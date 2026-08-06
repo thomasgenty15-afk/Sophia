@@ -4,6 +4,16 @@ import { KeelAppShell } from "../components/KeelAppShell";
 import { Badge, type BadgeTone } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { Card, SectionLabel } from "../components/ui/Card";
+// L'arithmétique de la facture vit à côté, pas ici: un module qui exporte un
+// composant ET des fonctions casse le Fast Refresh. Le calcul est inchangé.
+import {
+  billingStatusKind,
+  type BillingStatusKind,
+  type BillingSummary,
+  countBilling,
+  type SeatLedgerRow,
+  trialDaysLeft,
+} from "./coachBilling";
 
 /**
  * KEEL W10.3 — `/coach/billing`: what the coach pays, and exactly why.
@@ -55,7 +65,7 @@ const COPY = {
 
   "coach.billing.seats_billed_label": "Seats billed this month",
   "coach.billing.seats_billed_hint":
-    "A seat is billed when the student logged or wrote at least {threshold} times this month.",
+    "One seat per enrolled student. Invited and paused students are never billed.",
   "coach.billing.students_followed_label": "Students followed",
   "coach.billing.students_followed_hint":
     "Active links. Invited and paused students are never billed.",
@@ -72,7 +82,16 @@ const COPY = {
     "Your trial has ended. Your students keep no access until you subscribe.",
   "coach.billing.renews_on": "Renews on {date}",
   "coach.billing.cancels_on": "Ends on {date}",
-  "coach.billing.subscribe_cta": "Subscribe",
+  // `subscribe_cta` a été SCINDÉE EN DEUX: l'intervalle était figé à `monthly`
+  // en dur, donc l'annuel — accepté par la fonction edge depuis le premier
+  // jour — n'avait aucun chemin. Un seul bouton ne pouvait pas porter le choix.
+  "coach.billing.subscribe_monthly_cta": "Subscribe monthly",
+  "coach.billing.subscribe_yearly_cta": "Subscribe yearly",
+  // LE PRIX EST DIT ICI, PAS DANS LE BOUTON. Un libellé qui porterait « 7 € »
+  // deviendrait faux le jour d'un changement de tarif, sur un bouton que
+  // personne ne pense à relire. La phrase, elle, se relit.
+  "coach.billing.interval_hint":
+    "7 € per student per month, or 6 € when your student has paid for the year. No platform fee.",
   "coach.billing.manage_cta": "Manage billing",
   "coach.billing.checkout_error": "Checkout could not be opened: {message}",
 
@@ -88,8 +107,23 @@ const COPY = {
   "coach.billing.no_account_yet": "Has not created their account yet",
 
   "coach.billing.explainer_title": "How the seat count is decided",
+  // ⚠️ CETTE COPIE A ÉTÉ CORRIGÉE APRÈS UN CHANGEMENT DE FACTURATION.
+  // Elle disait: « on compte combien de fois chaque élève a agi; 3 fois ou plus
+  // et le siège est facturé, moins et il est gratuit ce mois-ci ». La migration
+  // 20260806170000 a retiré cette condition — le siège facturable est l'élève
+  // RATTACHÉ, actif ou non. La phrase décrivait donc une facturation qui
+  // n'existait plus, sur l'écran qu'un coach payant relit tous les mois.
+  //
+  // Le compte d'interactions RESTE affiché ligne par ligne (colonne du registre):
+  // il ne décide plus de la facture, mais « cet élève est rattaché et n'a rien
+  // fait ce mois-ci » est exactement ce qu'un coach doit voir — c'est le siège
+  // qu'il devrait envisager de rendre.
   "coach.billing.explainer_body":
-    "At the end of each month we count, for every student you follow, how many times they logged a fact or wrote to the app. {threshold} or more and the seat is billed. Fewer and it is free that month, even though the student kept full access the whole time. We never bill for a seat we did not show you here.",
+    "You are billed one seat per student enrolled with you, whether they used the app that month or not - you sell them the access, so you collect from them either way. A student you invited but who has not joined is not billed, and neither is a seat you turned off. We never bill for a seat we did not show you here.",
+  // Le compte d'interactions garde sa colonne, mais il change de sens: ce n'est
+  // plus un critère de facturation, c'est un signal d'usage.
+  "coach.billing.activity_hint":
+    "Interactions are shown so you can see who is actually using it. They no longer decide the bill - if a student has stopped for good, turn their seat off on their page.",
 } as const;
 
 type CopyKey = keyof typeof COPY;
@@ -103,37 +137,21 @@ function c(key: CopyKey, params?: Record<string, string | number>): string {
   });
 }
 
-/**
- * The contractual threshold, mirrored from
- * `supabase/functions/_shared/billing-tier.ts` and
- * `public.keel_active_student_threshold()`.
- *
- * It is NOT re-derived here: the page only interpolates it into the copy. The
- * `is_active_seat` decision itself always comes from the database, so a stale
- * constant here can make a sentence wrong but can never make a bill wrong.
- */
-const ACTIVE_STUDENT_MIN_INTERACTIONS = 3;
-
-interface SeatLedgerRow {
-  coach_client_id: string;
-  student_user_id: string | null;
-  seat_state: string | null;
-  link_status: string | null;
-  interaction_count: number | null;
-  is_active_seat: boolean | null;
-}
-
-interface BillingSummary {
-  coach_id: string;
-  coach_status: string | null;
-  trial_ends_at: string | null;
-  trial_seat_limit: number | null;
-  is_solvent: boolean | null;
-  subscription_status: string | null;
-  subscription_tier: string | null;
-  current_period_end: string | null;
-  cancel_at_period_end: boolean | null;
-}
+// LA CONSTANTE DE SEUIL A ÉTÉ RETIRÉE D'ICI.
+//
+// Elle valait 3 et n'était utilisée que pour interpoler « au moins 3 fois » dans
+// deux phrases. La migration 20260806170000 a retiré cette condition de
+// `keel_coach_seat_ledger`: le siège facturable est l'élève RATTACHÉ. Les deux
+// phrases sont réécrites, donc le miroir n'a plus de lecteur.
+//
+// `keel_active_student_threshold()` et `ACTIVE_STUDENT_MIN_INTERACTIONS` dans
+// `_shared/billing-tier.ts` SURVIVENT côté serveur — ils restent justes, ils ne
+// sont simplement plus le critère de facturation, et `billing-tier_test.ts`
+// vérifie encore leur accord avec le SQL.
+//
+// Son ancien commentaire disait: « une constante périmée ici peut rendre une
+// phrase fausse, jamais une facture fausse ». C'est exactement ce qui est
+// arrivé — la facture avait raison, la phrase mentait pendant une journée.
 
 interface DirectoryRow {
   id: string;
@@ -151,62 +169,6 @@ type LoadState =
   | { kind: "ready"; data: BillingData }
   | { kind: "not_coach" }
   | { kind: "error" };
-
-/** Two numbers, never merged. Derived from the rows, never stored. */
-export function countBilling(rows: readonly SeatLedgerRow[]): {
-  billed: number;
-  followed: number;
-} {
-  let billed = 0;
-  let followed = 0;
-  for (const r of rows) {
-    if (r.link_status !== "active" || !r.student_user_id) continue;
-    followed++;
-    if (r.is_active_seat === true) billed++;
-  }
-  return { billed, followed };
-}
-
-export type BillingStatusKind =
-  | "subscribed"
-  | "trialing"
-  | "expired"
-  | "unknown";
-
-/**
- * Paying wins over a still-running trial: a coach who subscribed on day 3 is a
- * customer, and telling them "11 days left" reads as "we did not take your
- * money".
- */
-export function billingStatusKind(
-  summary: Pick<
-    BillingSummary,
-    "subscription_status" | "current_period_end" | "trial_ends_at"
-  >,
-  now: Date = new Date(),
-): BillingStatusKind {
-  const status = String(summary.subscription_status ?? "").trim().toLowerCase();
-  const endMs = summary.current_period_end
-    ? new Date(summary.current_period_end).getTime()
-    : NaN;
-  const periodOk = !summary.current_period_end ||
-    (Number.isFinite(endMs) && now.getTime() < endMs);
-  if ((status === "active" || status === "trialing") && periodOk) {
-    return "subscribed";
-  }
-  const trialMs = summary.trial_ends_at
-    ? new Date(summary.trial_ends_at).getTime()
-    : NaN;
-  if (!Number.isFinite(trialMs)) return "unknown";
-  return now.getTime() < trialMs ? "trialing" : "expired";
-}
-
-/** Days left, rounded UP: never tell a coach they have less time than they do. */
-export function trialDaysLeft(trialEndsAt: string | null, now: Date = new Date()): number {
-  const ms = trialEndsAt ? new Date(trialEndsAt).getTime() : NaN;
-  if (!Number.isFinite(ms)) return 0;
-  return Math.max(0, Math.ceil((ms - now.getTime()) / (24 * 60 * 60 * 1000)));
-}
 
 function formatDate(iso: string | null | undefined): string {
   if (!iso) return "";
@@ -231,7 +193,7 @@ async function loadBilling(): Promise<BillingData | "not_coach"> {
     Boolean(err) &&
     (err?.code === "42501" || /not (an active )?coach/i.test(err?.message ?? ""));
 
-  if (notCoach(summaryRes.error as any)) return "not_coach";
+  if (notCoach(summaryRes.error)) return "not_coach";
   if (summaryRes.error) {
     throw new Error(`[keel/billing] summary failed: ${summaryRes.error.message}`);
   }
@@ -285,16 +247,21 @@ export function CoachBillingPage() {
     };
   }, [reloadKey]);
 
-  const openCheckout = React.useCallback(async () => {
+  // L'INTERVALLE EST UN CHOIX, PLUS UNE CONSTANTE.
+  //
+  // Il était figé à `"monthly"` en dur ici, donc l'annuel — que la fonction
+  // edge accepte pourtant depuis le premier jour — était inatteignable. Le
+  // paramètre existait, personne ne pouvait le passer.
+  const openCheckout = React.useCallback(async (interval: "monthly" | "yearly") => {
     setCheckoutBusy(true);
     setCheckoutError(null);
     try {
       const { data, error } = await supabase.functions.invoke(
         "stripe-create-checkout-session",
-        { body: { plan: "keel_coach", interval: "monthly" } },
+        { body: { plan: "keel_coach", interval } },
       );
       if (error) throw error;
-      const url = String((data as any)?.url ?? "").trim();
+      const url = String((data as { url?: unknown } | null)?.url ?? "").trim();
       // R7: no silent no-op. A button that does nothing is indistinguishable
       // from a button that worked, and this one moves money.
       if (!url) throw new Error("no checkout url returned");
@@ -355,7 +322,7 @@ function BillingBody({
   data: BillingData;
   busy: boolean;
   checkoutError: string | null;
-  onCheckout: () => void;
+  onCheckout: (interval: "monthly" | "yearly") => void;
 }) {
   const { billed, followed } = countBilling(data.ledger);
   const kind = billingStatusKind(data.summary);
@@ -366,9 +333,7 @@ function BillingBody({
         <StatTile
           label={c("coach.billing.seats_billed_label")}
           value={String(billed)}
-          hint={c("coach.billing.seats_billed_hint", {
-            threshold: ACTIVE_STUDENT_MIN_INTERACTIONS,
-          })}
+          hint={c("coach.billing.seats_billed_hint")}
         />
         <StatTile
           label={c("coach.billing.students_followed_label")}
@@ -381,13 +346,35 @@ function BillingBody({
         <SectionLabel>{c("coach.billing.plan_label")}</SectionLabel>
         <Card>
           <PlanState summary={data.summary} kind={kind} />
+          {/* DÉJÀ ABONNÉ: UN SEUL BOUTON, qui ouvre le portail Stripe.
+              L'intervalle ne se choisit qu'à la souscription — le proposer à
+              quelqu'un qui a déjà un contrat laisserait croire qu'un clic
+              bascule son abonnement en cours, ce que ce bouton ne fait pas.
+              L'intervalle passé est alors sans effet, et `"monthly"` est la
+              valeur honnête: c'est ce que le portail sert. */}
           <div className="mt-4 flex flex-wrap items-center gap-3">
-            <Button variant="primary" onClick={onCheckout} disabled={busy}>
-              {kind === "subscribed"
-                ? c("coach.billing.manage_cta")
-                : c("coach.billing.subscribe_cta")}
-            </Button>
+            {kind === "subscribed"
+              ? (
+                <Button variant="primary" onClick={() => onCheckout("monthly")} disabled={busy}>
+                  {c("coach.billing.manage_cta")}
+                </Button>
+              )
+              : (
+                <>
+                  <Button variant="primary" onClick={() => onCheckout("monthly")} disabled={busy}>
+                    {c("coach.billing.subscribe_monthly_cta")}
+                  </Button>
+                  <Button variant="secondary" onClick={() => onCheckout("yearly")} disabled={busy}>
+                    {c("coach.billing.subscribe_yearly_cta")}
+                  </Button>
+                </>
+              )}
           </div>
+          {kind !== "subscribed" && (
+            <p className="mt-3 text-xs leading-5 text-gray-500">
+              {c("coach.billing.interval_hint")}
+            </p>
+          )}
           {checkoutError && (
             <p className="mt-3 text-sm text-red-700">
               {c("coach.billing.checkout_error", { message: checkoutError })}
@@ -428,9 +415,10 @@ function BillingBody({
           {c("coach.billing.explainer_title")}
         </h3>
         <p className="mt-2 text-sm leading-6 text-gray-600">
-          {c("coach.billing.explainer_body", {
-            threshold: ACTIVE_STUDENT_MIN_INTERACTIONS,
-          })}
+          {c("coach.billing.explainer_body")}
+        </p>
+        <p className="mt-3 border-t border-gray-100 pt-3 text-xs leading-5 text-gray-500">
+          {c("coach.billing.activity_hint")}
         </p>
       </Card>
     </>

@@ -21,6 +21,7 @@ import {
   draftToDoctrine,
   entriesForScope,
   GOAL_TOKENS,
+  isDraftEmpty,
   joinForms,
   patchEntry,
   PREVIEW_VARIANTS,
@@ -31,6 +32,7 @@ import {
   scopeSentence,
   SECTION_CLOSED,
   splitForms,
+  starterFootprint,
   variantLabel,
 } from "./coachDoctrine";
 
@@ -290,6 +292,62 @@ describe("l'édition — une partie globale, une partie par dynamique", () => {
     expect(ALWAYS_SHARED_SECTIONS).toContain("vocabulary");
     expect(ALWAYS_SHARED_SECTIONS as readonly string[]).not.toContain("beliefs");
     expect(ALWAYS_SHARED_SECTIONS as readonly string[]).not.toContain("arbitrations");
+  });
+
+  it("le cliquet de provenance survit au déménagement de l'amorçage", () => {
+    // L'amorçage est parti dans une modale; l'ÉDITEUR, lui, est resté dans la
+    // page. Le cliquet vit dans `patchEntry`, que seul l'éditeur appelle — donc
+    // rien n'aurait dû bouger. « Rien n'aurait dû bouger » est exactement ce
+    // qu'on croit avant de casser une garde, d'où ce test plutôt qu'un coup
+    // d'œil: une ligne que le coach a réécrite lui appartient et ne doit jamais
+    // être recomptée comme la nôtre.
+    const generated: DoctrineDraft = {
+      beliefs: [{ claim: "Trois repas, et la cuisine ferme.", source: "starter" }],
+      forbidden: [{ token: "cheat_meal", instead: "On continue.", source: "starter" }],
+      arbitrations: [{ situation: "il a craqué", coach_answer: "Demain.", source: "starter" }],
+    };
+    expect(starterFootprint(generated).total).toBe(3);
+
+    // Réécrire une PHRASE rend la ligne au coach.
+    const rewritten = {
+      ...generated,
+      forbidden: patchEntry(generated.forbidden, 0, { instead: "Mes mots à moi." }),
+    };
+    expect(rewritten.forbidden[0].source).toBeNull();
+    expect(starterFootprint(rewritten).total).toBe(2);
+
+    // Changer une PORTÉE ne la rend pas: la phrase est toujours la nôtre, et un
+    // cliquet qui se déclencherait ici mentirait dans l'autre sens.
+    const scoped = {
+      ...generated,
+      beliefs: patchEntry(generated.beliefs, 0, { goal_scope: ["fat_loss"] }),
+    };
+    expect(scoped.beliefs[0].source).toBe("starter");
+    expect(starterFootprint(scoped).total).toBe(3);
+  });
+
+  it("le sas ne s'ouvre que sur un brouillon VIDE", () => {
+    // Proposé au-dessus d'une doctrine écrite, « on écrit ta méthode pour toi »
+    // est faux, et le bouton invite à régénérer par-dessus le travail du coach.
+    expect(isDraftEmpty(null)).toBe(true);
+    expect(isDraftEmpty({})).toBe(true);
+    expect(isDraftEmpty(DRAFT)).toBe(false);
+
+    // UNE LIGNE OUVERTE ET JAMAIS REMPLIE NE COMPTE PAS: elle ne partirait pas
+    // en base non plus (`pruneDraft`), donc la traiter comme du contenu
+    // fermerait la porte d'entrée sur un brouillon qui ne contient rien.
+    expect(isDraftEmpty({ beliefs: [{ claim: "  " }], qa: [{ question: "q", answer: "" }] }))
+      .toBe(true);
+    expect(isDraftEmpty({ beliefs: [{ claim: "Real." }] })).toBe(false);
+    expect(isDraftEmpty({ foods: { discouraged: [{ term: "seed oil" }] } })).toBe(false);
+  });
+
+  it("une voix seule laisse le brouillon VIDE — elle ne prescrit rien", () => {
+    // Même arbitrage que `compileDoctrineBlock.isEmpty`, et pour la même
+    // raison: une voix dit COMMENT parler, jamais QUOI prescrire. Un coach qui
+    // n'a qu'un `voice.language` (ce que le formulaire écrit tout seul) a
+    // encore droit au sas.
+    expect(isDraftEmpty({ voice: { language: "fr-FR", address: "tu" } })).toBe(true);
   });
 
   it("le vocabulaire d'objectifs du front EST celui du serveur", () => {

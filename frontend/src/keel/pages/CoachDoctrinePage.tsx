@@ -1,18 +1,24 @@
 import React from "react";
-import { supabase } from "../../lib/supabase";
 import { KeelAppShell } from "../components/KeelAppShell";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { Card, SectionLabel } from "../components/ui/Card";
-import { Field, inputClass } from "../components/ui/Field";
+import { inputClass } from "../components/ui/Field";
+import {
+  DoctrineStartDialog,
+  type DoctrineStartResult,
+} from "../components/DoctrineStartDialog";
 import {
   addEntry,
+  callDoctrine,
   cancelSection,
   closeSection,
+  type DoctrineSource,
   entriesForScope,
   GOAL_LABELS,
   GOAL_TOKENS,
   type GoalToken,
+  isDraftEmpty,
   joinForms,
   openSection,
   patchEntry,
@@ -21,13 +27,8 @@ import {
   SECTION_CLOSED,
   type SectionState,
   splitForms,
+  starterFootprint,
 } from "../api/coachDoctrine";
-import {
-  compileDocument,
-  MAX_DOCUMENT_MB,
-  MAX_DOCUMENT_PAGES,
-  rejectDocument,
-} from "../api/coachDocument";
 
 /**
  * PIVOT NUTRITION §3.7 — `/coach/doctrine`: the Doctrine Copilot.
@@ -68,8 +69,6 @@ import {
  * showing the first for the second invites a coach to rewrite everything he
  * already wrote.
  */
-
-const FN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/coach-doctrine-v1`;
 
 interface InterviewQuestion {
   section: string;
@@ -141,33 +140,10 @@ interface SectionApi {
   cancel: () => void;
 }
 
-async function callDoctrine<T>(payload: Record<string, unknown>): Promise<T> {
-  const { data: sessionData } = await supabase.auth.getSession();
-  const token = sessionData.session?.access_token ?? "";
-  const res = await fetch(FN_URL, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      apikey: import.meta.env.VITE_SUPABASE_ANON_KEY as string,
-      authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(payload),
-  });
-  const json = await res.json().catch(() => ({}));
-  if (!res.ok || json?.ok === false) {
-    // The server's reason code travels to the screen. A generic "something went
-    // wrong" would hide `coach_suspended` and `compile_unparseable`, which mean
-    // very different things to the person reading.
-    throw new Error(String(json?.error ?? `HTTP ${res.status}`));
-  }
-  return json as T;
-}
-
 export default function CoachDoctrinePage() {
   const [state, setState] = React.useState<LoadState>({ kind: "loading" });
   const [questions, setQuestions] = React.useState<InterviewQuestion[]>([]);
   const [versions, setVersions] = React.useState<VersionRow[]>([]);
-  const [answers, setAnswers] = React.useState<Record<number, string>>({});
   const [draft, setDraft] = React.useState<DoctrineDraft | null>(null);
   /**
    * D'OÙ VIENT CE QUI EST À L'ÉCRAN — et ce n'est pas cosmétique.
@@ -180,13 +156,6 @@ export default function CoachDoctrinePage() {
    */
   const [draftOrigin, setDraftOrigin] = React.useState<"compiled" | "loaded" | null>(null);
   const [issues, setIssues] = React.useState<string[]>([]);
-  /**
-   * L'interview est dépliée tant qu'il n'y a rien d'écrit, et repliée après.
-   * L'état est ici et pas dans la carte pour que `onCompile` puisse la laisser
-   * ouverte: le coach vient de la lancer, il veut relire ses réponses à côté de
-   * ce que l'IA en a fait.
-   */
-  const [interviewOpen, setInterviewOpen] = React.useState(false);
   /**
    * LA SECTION OUVERTE — une seule à la fois.
    *
@@ -216,19 +185,28 @@ export default function CoachDoctrinePage() {
   const [notice, setNotice] = React.useState<string | null>(null);
   const [failure, setFailure] = React.useState<string | null>(null);
   /**
-   * LE DOCUMENT CHOISI, PAS ENCORE DÉPOSÉ.
-   *
-   * Il attend que le coach dise ce qu'il veut en faire (ajouter / repartir de
-   * zéro). Déposer au moment du choix supprimerait cette décision, et le cas
-   * par défaut serait forcément le mauvais pour la moitié des coachs.
-   */
-  const [docFile, setDocFile] = React.useState<File | null>(null);
-  /**
    * R2/R3 — la langue de ce qui est ÉCRIT, distincte de celle de l'écran.
    * Elle voyage avec le dépôt: un coach qui écrit son ebook en français ne doit
    * pas voir sa doctrine étiquetée `en` parce que son navigateur l'est.
    */
   const [contentLocale, setContentLocale] = React.useState("en");
+  /**
+   * LES QUATRE FAÇONS DE COMMENCER — derrière une porte, pas dans la page.
+   *
+   * Ce sont des actions de DÉPART. Étalées sous la doctrine, elles faisaient
+   * traverser trois invitations à tout recommencer à un coach qui venait
+   * corriger une phrase: la page ne montrait plus ce qu'il avait écrit, elle
+   * montrait trois façons de le réécrire.
+   */
+  const [startOpen, setStartOpen] = React.useState(false);
+  /**
+   * QUELLE DOCTRINE SES ÉLÈVES REÇOIVENT — la sienne, ou celle de la maison.
+   *
+   * Distinct du brouillon, et il doit l'être: un coach qui délègue garde sa
+   * doctrine écrite (elle dort, pour que la bascule soit réversible). L'écran
+   * doit donc pouvoir afficher une méthode ET dire que personne ne la lit.
+   */
+  const [doctrineSource, setDoctrineSource] = React.useState<DoctrineSource>("own");
 
   /**
    * ── LA DOCTRINE EXISTANTE EST ROUVERTE, PAS REDEMANDÉE ──────────────────
@@ -254,13 +232,21 @@ export default function CoachDoctrinePage() {
     const [q, v, c] = await Promise.all([
       callDoctrine<{ questions: InterviewQuestion[] }>({ action: "questions" }),
       callDoctrine<{ versions: VersionRow[] }>({ action: "list" }),
-      callDoctrine<{ doctrine: DoctrineDraft | null; content_locale: string | null }>({
+      callDoctrine<{
+        doctrine: DoctrineDraft | null;
+        content_locale: string | null;
+        doctrine_source: DoctrineSource | null;
+      }>({
         action: "current",
       }),
     ]);
     setQuestions(q.questions ?? []);
     setVersions(v.versions ?? []);
     if (c.content_locale) setContentLocale(c.content_locale);
+    // TOUJOURS ÉCRASÉ, contrairement au brouillon: c'est un fait du serveur, pas
+    // un travail en cours. Le garder « seulement s'il est absent » ferait mentir
+    // l'écran juste après une bascule.
+    setDoctrineSource(c.doctrine_source === "house" ? "house" : "own");
     if (c.doctrine) {
       setDraft((existing) => existing ?? c.doctrine);
       // Ce qui vient de la base EST enregistré: sans cette ligne, l'écran
@@ -292,6 +278,16 @@ export default function CoachDoctrinePage() {
 
   const published = versions.find((v) => v.published_at) ?? null;
 
+  const footprint = React.useMemo(() => starterFootprint(draft), [draft]);
+  /**
+   * RIEN D'ÉCRIT — et c'est le SEUL endroit où l'amorçage mérite la page.
+   *
+   * Un coach qui arrive sans rien ne doit pas deviner qu'un bouton cache quatre
+   * chemins. L'appel à l'action prend donc la place de la doctrine absente, au
+   * lieu de se replier derrière une porte comme il le fait ensuite.
+   */
+  const nothingWritten = isDraftEmpty(draft);
+
   // Les quatre gestes sont des fonctions PURES testées dans
   // `coachDoctrine.int.test.ts`: c'est `cancel` qui porte le risque réel — un
   // « annuler » qui garderait les dégâts serait un bouton qui ment sur son nom.
@@ -319,63 +315,48 @@ export default function CoachDoctrinePage() {
     }
   }
 
-  const onCompile = () =>
-    run("compile", async () => {
-      const payload = questions
-        .map((q, i) => ({
-          section: q.section,
-          question: q.question,
-          answer: (answers[i] ?? "").trim(),
-        }))
-        .filter((a) => a.answer !== "");
-      if (payload.length === 0) {
-        throw new Error("answer_at_least_one_question");
-      }
-      const out = await callDoctrine<{ draft: DoctrineDraft; issues: string[] }>({
-        action: "compile",
-        answers: payload,
-      });
-      setDraft(out.draft ?? null);
-      setDraftOrigin(out.draft ? "compiled" : null);
-      setIssues(out.issues ?? []);
-      // L'interview reste OUVERTE après une compilation. Elle se replie parce
-      // qu'un coach qui revient corriger une phrase n'en a pas besoin — pas
-      // parce qu'un `draft` existe. Se refermer sur les réponses qu'il vient
-      // d'écrire, au moment précis où il doit vérifier que l'IA l'a bien lu,
-      // serait le contraire de ce que le repli cherche à faire.
-      setInterviewOpen(true);
-      setNotice("Read it back before saving - the AI transcribes, it does not decide.");
-    });
+  /**
+   * CE QUE LA MODALE REND — un brouillon, jamais une écriture.
+   *
+   * Les trois chemins de rédaction (débats, document, entretien) finissent tous
+   * ici, et c'est voulu: ils diffèrent par ce qu'ils demandent au coach, pas par
+   * ce qu'ils produisent. La porte de relecture est donc UNE, et aucun chemin ne
+   * peut être ajouté demain en oubliant de passer par elle.
+   *
+   * La modale se ferme: ce que le coach doit lire maintenant est ce qui vient
+   * d'atterrir dans sa méthode, pas le formulaire qui l'a produit.
+   */
+  const onStartResult = (result: DoctrineStartResult) => {
+    setDraft(result.draft ?? null);
+    setDraftOrigin(result.draft ? "compiled" : null);
+    setIssues(result.issues);
+    setNotice(result.notice);
+    setFailure(null);
+    setStartOpen(false);
+  };
 
   /**
-   * LE DÉPÔT D'UN DOCUMENT.
+   * LA BASCULE DE DÉLÉGATION — la seule des quatre qui prend effet TOUT DE SUITE.
    *
-   * `mode` est le geste du coach, pas une déduction: « add » fusionne dans ce
-   * qu'il a sous les yeux, « replace » repart du document. L'écran ne choisit
-   * jamais à sa place — deviner à partir de la présence d'un brouillon ferait
-   * disparaître son travail au moment où il croyait l'enrichir.
+   * Les trois autres rendent un brouillon que le coach relit et publie. Celle-ci
+   * n'a rien à rédiger: la doctrine de la maison est déjà publiée, et la bascule
+   * s'applique au prochain message de ses élèves. On le DIT — un changement
+   * silencieux sur ce qui atteint des élèves serait la pire des économies.
    */
-  const onCompileDocument = (mode: "add" | "replace") =>
-    run("document", async () => {
-      if (!docFile) throw new Error("Choose a PDF first.");
-      const out = await compileDocument(docFile, {
-        mergeInto: mode === "add" ? draft : null,
-        contentLocale,
-      });
-      setDraft(out.draft ?? null);
-      setDraftOrigin(out.draft ? "compiled" : null);
-      setIssues(out.issues ?? []);
-      setDocFile(null);
-      const foods = out.proposals_saved > 0
-        ? ` ${out.proposals_saved} food${out.proposals_saved > 1 ? "s" : ""} from it ${
-          out.proposals_saved > 1 ? "are" : "is"
-        } waiting on your Recommended food screen.`
-        : "";
-      setNotice(
-        `Read ${out.page_count} page${out.page_count > 1 ? "s" : ""}. Check it back before ` +
-          `saving — the AI transcribes, it does not decide.${foods}`,
-      );
-    });
+  const onDelegationChanged = (source: DoctrineSource, signsAs: string | null) => {
+    setDoctrineSource(source);
+    setFailure(null);
+    setStartOpen(false);
+    setNotice(
+      source === "house"
+        ? `Done. Your students are now followed by Sophia's method, and your agent signs “${
+          signsAs ?? "Sophia"
+        }” from their next message on. Nothing you wrote was deleted.`
+        : `Done. Your agent signs “${
+          signsAs ?? "your name"
+        }” again and serves your own published method.`,
+    );
+  };
 
   const onSave = () =>
     run("save", async () => {
@@ -438,8 +419,10 @@ export default function CoachDoctrinePage() {
           <SectionLabel>What this is</SectionLabel>
           <p className="mt-2 text-sm leading-6 text-gray-700">
             Your agent answers your students in your method and your voice. It
-            learns that here — by interviewing you, not by asking you to write a
-            prompt. Nothing you write reaches a student until you publish it.
+            learns that here — from where you stand on your field's real
+            arguments, from something you have already written, or from an
+            interview. Never by asking you to write a prompt. Nothing reaches a
+            student until you publish it.
           </p>
           {published ? (
             <p className="mt-3 text-sm text-gray-900">
@@ -474,6 +457,28 @@ export default function CoachDoctrinePage() {
         ) : null}
 
         {/*
+          RIEN D'ÉCRIT — L'AMORÇAGE PREND LA PLACE DE LA DOCTRINE ABSENTE.
+          C'est le seul état où ces chemins méritent la page: un coach qui
+          arrive sans rien ne doit pas deviner qu'un bouton les cache. Dès qu'il
+          y a une méthode, ils repassent derrière la porte du haut.
+        */}
+        {nothingWritten ? (
+          <Card>
+            <SectionLabel>Your method</SectionLabel>
+            <p className="mt-2 text-sm leading-6 text-gray-700">
+              {doctrineSource === "house"
+                ? "You have not written one — your students are followed by Sophia's method, and your agent signs “Sophia”. Write your own whenever you want it to speak in your name."
+                : "There is nothing here yet, so your agent has no method of yours to carry. There are four ways to get one, and the quickest takes about two minutes."}
+            </p>
+            <div className="mt-4">
+              <Button onClick={() => setStartOpen(true)} disabled={busy !== null}>
+                {doctrineSource === "house" ? "Write my own method" : "Create my method"}
+              </Button>
+            </div>
+          </Card>
+        ) : null}
+
+        {/*
           LA DOCTRINE S'ÉDITE ICI, DANS SES PROPRES CASES.
           Le contenu écrit est la SOURCE, pas un compte rendu affiché sous
           l'interview: corriger une phrase ne doit pas obliger à tout redire.
@@ -481,9 +486,38 @@ export default function CoachDoctrinePage() {
         {draft ? (
           <>
             <Card>
-              <SectionLabel>
-                {draftOrigin === "loaded" ? "Your method" : "What I understood"}
-              </SectionLabel>
+              <div className="flex items-start justify-between gap-3">
+                <SectionLabel>
+                  {draftOrigin === "loaded" ? "Your method" : "What I understood"}
+                </SectionLabel>
+                {/*
+                  LE BOUTON DISCRET, ET SON LIBELLÉ EST UNE QUESTION DE PRÉCISION,
+                  PAS DE TON.
+
+                  Il disait « Add to this ». C'est faux, et faux au seul endroit
+                  où ça compte: AJOUTER à sa méthode, c'est ce qu'on fait juste
+                  en dessous, avec les crayons, ligne par ligne. Ce que cette
+                  porte ouvre, c'est d'en écrire une NOUVELLE — les débats,
+                  l'entretien et la délégation remplacent la source entière, et
+                  seul le document sait aussi additionner (il le dit sur son
+                  propre bouton). Un coach qui lit « ajouter » et voit sa méthode
+                  remplacée n'a pas rencontré un défaut de copie: il a perdu son
+                  travail sur une promesse.
+
+                  « Create » plutôt que « Start over »: le second se lit comme un
+                  bouton qui efface, au-dessus du travail d'un coach, alors que
+                  rien n'est détruit tant qu'il n'a pas relu et enregistré.
+                */}
+                {nothingWritten ? null : (
+                  <button
+                    type="button"
+                    onClick={() => setStartOpen(true)}
+                    className="shrink-0 rounded-md border border-gray-200 px-2 py-1 text-xs text-gray-600 hover:border-gray-400 hover:text-gray-900"
+                  >
+                    Create a new one
+                  </button>
+                )}
+              </div>
               <p className="mt-2 text-xs leading-5 text-gray-500">
                 {draftOrigin === "loaded"
                   ? (published
@@ -491,6 +525,20 @@ export default function CoachDoctrinePage() {
                     : "This is your latest saved version. It is not published, so your agent is not using it yet.")
                   : "Nothing here is saved yet. If a line is not yours, it should not be here — change it, or delete it."}
               </p>
+              {/*
+                LA DÉLÉGATION SE DIT AU-DESSUS DE LA MÉTHODE QU'ELLE MET EN
+                SOMMEIL. Elle n'efface rien — c'est ce qui la rend réversible —
+                donc l'écran affiche une doctrine que PERSONNE NE LIT, et le
+                taire ferait croire au coach que ses élèves reçoivent ceci.
+              */}
+              {doctrineSource === "house" ? (
+                <p className="mt-2 rounded-md bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">
+                  <strong>Nobody is reading this right now.</strong>{" "}
+                  Your students are followed by Sophia's method and your agent
+                  signs “Sophia”. Everything below is kept exactly as you left it
+                  — take it back from the button above whenever you want.
+                </p>
+              ) : null}
               <p className="mt-2 text-xs leading-5 text-gray-500">
                 Everything in this card goes to <strong>every</strong>{" "}
                 student. Your voice, your words and your red lines are you — they
@@ -511,6 +559,30 @@ export default function CoachDoctrinePage() {
                 écrire — sinon un coach ferme sa section, quitte l'écran, et
                 perd sa phrase sans avoir rien fait de faux.
               */}
+              {/*
+                LE COMPTEUR. Il ne bloque rien — un coach a le droit de publier
+                un préréglage intact, c'est son produit et sa décision. Mais il
+                ne doit pas pouvoir le faire SANS LE SAVOIR: ce qu'il vend à ses
+                élèves est un agent qui parle comme lui, et deux coachs qui
+                n'ont rien retouché ont le même agent.
+
+                Il est ici et pas sur le bouton publier parce que c'est ici que
+                le coach relit. Au moment de publier il est déjà décidé.
+              */}
+              {footprint.total > 0 ? (
+                <p className="mt-5 text-xs leading-5 text-amber-800">
+                  <strong>
+                    {footprint.total} of {footprint.entries}
+                  </strong>{" "}
+                  lines above are still word-for-word ours. They work — but
+                  another coach who picked the same answers has the same
+                  sentences.{" "}
+                  {footprint.forbidden > 0
+                    ? "Start with the “instead” lines: that is the exact text your students read."
+                    : "Rewriting even three of them in your own words is what makes the agent sound like you."}
+                </p>
+              ) : null}
+
               <div className="mt-5 flex items-center gap-3">
                 <Button onClick={onSave} disabled={busy !== null || !dirty}>
                   {busy === "save" ? "Saving…" : "Save as draft"}
@@ -527,190 +599,11 @@ export default function CoachDoctrinePage() {
           </>
         ) : null}
 
-        {/*
-          LE DOCUMENT — LE CHEMIN DU COACH QUI A DÉJÀ TOUT ÉCRIT.
-
-          L'interview est le bon chemin quand il n'a rien. C'est un mur quand il
-          a deux cents pages qui disent déjà tout ça: il ne va pas re-rédiger son
-          ebook dans onze textareas, donc il ne le fait pas, et son agent reste
-          muet.
-
-          La carte est AU-DESSUS de l'interview, et c'est délibéré: entre
-          « réponds à onze questions » et « dépose ce que tu as déjà », le second
-          geste est plus court pour la majorité des coachs qui arrivent ici.
-        */}
-        <Card>
-          <SectionLabel>Start from something you already wrote</SectionLabel>
-          <p className="mt-2 text-xs leading-5 text-gray-500">
-            Your ebook, your method handbook, the FAQ you send new clients. It is
-            read once, and what comes out lands in the card above for you to
-            check — nothing is saved and nothing reaches a student until you
-            publish.
-          </p>
-          <p className="mt-2 text-xs leading-5 text-gray-500">
-            Upload <strong>your own</strong>{" "}
-            material. A textbook someone else wrote would put another author's
-            positions in your agent's mouth, under your name.
-          </p>
-
-          <div className="mt-4 flex flex-wrap items-center gap-3">
-            <label className="cursor-pointer rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50">
-              {docFile ? docFile.name : "Choose a PDF"}
-              <input
-                type="file"
-                accept="application/pdf,.pdf"
-                className="hidden"
-                disabled={busy !== null}
-                onChange={(e) => {
-                  const chosen = e.target.files?.[0] ?? null;
-                  // Le refus arrive AVANT l'encodage et avant le réseau: un
-                  // fichier de trente mégaoctets ne doit pas voyager pour se
-                  // faire dire non à l'arrivée.
-                  const rejection = chosen ? rejectDocument(chosen) : null;
-                  setFailure(rejection);
-                  setDocFile(rejection ? null : chosen);
-                  e.target.value = "";
-                }}
-              />
-            </label>
-            {docFile ? (
-              <button
-                type="button"
-                className="text-xs text-gray-500 underline decoration-dotted underline-offset-2"
-                onClick={() => setDocFile(null)}
-              >
-                Clear
-              </button>
-            ) : null}
-            <span className="text-xs text-gray-500">
-              PDF, up to {MAX_DOCUMENT_MB} MB and {MAX_DOCUMENT_PAGES} pages.
-            </span>
-          </div>
-
-          {docFile ? (
-            <div className="mt-4">
-              {/*
-                LE CHOIX EST EXPLICITE, et il ne l'est que quand il existe.
-                Sans brouillon à l'écran il n'y a rien à écraser: un seul bouton,
-                et pas une question dont les deux réponses font la même chose.
-              */}
-              {draft ? (
-                <>
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      onClick={() => onCompileDocument("add")}
-                      disabled={busy !== null}
-                    >
-                      {busy === "document" ? "Reading it…" : "Add to what I have"}
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      onClick={() => onCompileDocument("replace")}
-                      disabled={busy !== null}
-                    >
-                      Start over from this document
-                    </Button>
-                  </div>
-                  <p className="mt-2 text-xs leading-5 text-gray-500">
-                    Adding keeps every sentence already above and only fills the
-                    gaps — upload your documents one after another. Starting over
-                    replaces all of it.
-                  </p>
-                </>
-              ) : (
-                <Button onClick={() => onCompileDocument("replace")} disabled={busy !== null}>
-                  {busy === "document" ? "Reading it…" : "Read my document"}
-                </Button>
-              )}
-              <p className="mt-2 text-xs leading-5 text-gray-500">
-                A long document takes up to two minutes. Leave this tab open.
-              </p>
-            </div>
-          ) : null}
-        </Card>
-
-        {/*
-          L'INTERVIEW EST LE CHEMIN DU PREMIER JOUR, ET SEULEMENT ÇA.
-
-          Tant qu'il n'y a rien d'écrit, elle est l'écran: il n'y a pas d'autre
-          porte. Dès qu'il y a une doctrine, elle se replie derrière un lien en
-          bas de page — un coach qui revient corriger une phrase ne doit pas
-          faire défiler onze questions dépliées pour arriver à ses cases, et
-          onze textareas vides au-dessus de son travail donnent l'impression
-          qu'il reste quelque chose à remplir.
-
-          Et elle reste DESTRUCTRICE: la relancer remplace ce qui est écrit.
-          C'est pour ça qu'elle est une option qu'on ouvre, pas un formulaire
-          qu'on croise.
-        */}
-        <Card>
-          <SectionLabel>
-            {draft ? "Start over from an interview" : "The interview"}
-          </SectionLabel>
-          {draft && !interviewOpen ? (
-            <>
-              <p className="mt-2 text-xs leading-5 text-gray-500">
-                Rethinking your method from scratch? Answer the interview again
-                and the AI rewrites everything above. To fix a sentence, edit it
-                directly instead.
-              </p>
-              <button
-                type="button"
-                onClick={() => setInterviewOpen(true)}
-                className="mt-3 text-xs text-gray-700 underline decoration-dotted underline-offset-2 hover:text-gray-900"
-              >
-                Open the interview
-              </button>
-            </>
-          ) : (
-            <>
-              <p className="mt-2 text-xs leading-5 text-gray-500">
-                {draft
-                  ? "Answering these again REPLACES what is in the card above. Use it when you want to rethink your method, not to fix a sentence."
-                  : "Answer in your own words. Three of them ask for your sentence, word for word — that is what makes the agent sound like you rather than like a nutrition textbook."}
-              </p>
-              <div className="mt-4 space-y-4">
-                {questions.map((q, i) => (
-                  <Field
-                    key={`${q.section}-${i}`}
-                    label={q.question}
-                    htmlFor={`q-${i}`}
-                    hint={q.section === "hard_cases" ? "Word for word." : undefined}
-                  >
-                    <textarea
-                      id={`q-${i}`}
-                      className={inputClass}
-                      rows={3}
-                      value={answers[i] ?? ""}
-                      onChange={(e) =>
-                        setAnswers((prev) => ({ ...prev, [i]: e.target.value }))}
-                    />
-                  </Field>
-                ))}
-              </div>
-              <div className="mt-4 flex gap-2">
-                <Button onClick={onCompile} disabled={busy !== null}>
-                  {busy === "compile" ? "Reading you…" : "Turn this into my method"}
-                </Button>
-                {draft ? (
-                  <Button
-                    variant="secondary"
-                    onClick={() => setInterviewOpen(false)}
-                    disabled={busy !== null}
-                  >
-                    Close
-                  </Button>
-                ) : null}
-              </div>
-            </>
-          )}
-        </Card>
-
         <Card>
           <SectionLabel>Versions</SectionLabel>
           {versions.length === 0 ? (
             <p className="mt-2 text-sm text-gray-600">
-              No version yet. The interview above creates the first one.
+              No version yet. Anything you save above creates the first one.
             </p>
           ) : (
             <ul className="mt-3 divide-y divide-gray-100">
@@ -757,6 +650,24 @@ export default function CoachDoctrinePage() {
           )}
         </Card>
       </div>
+
+      {/*
+        LES QUATRE CHEMINS, DERRIÈRE UNE PORTE.
+
+        Ils vivent dans un composant et pas dans cette page pour une raison de
+        fond: ce sont des actions de DÉPART, et la page est un endroit où on
+        RELIT. Les mélanger a produit exactement l'écran que ce lot corrige.
+      */}
+      <DoctrineStartDialog
+        open={startOpen}
+        onClose={() => setStartOpen(false)}
+        questions={questions}
+        contentLocale={contentLocale}
+        draft={draft}
+        doctrineSource={doctrineSource}
+        onResult={onStartResult}
+        onDelegationChanged={onDelegationChanged}
+      />
     </KeelAppShell>
   );
 }

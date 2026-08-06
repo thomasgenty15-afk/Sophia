@@ -17,13 +17,18 @@ import {
   protocolBlockFor,
 } from "../_shared/keel/protocol_loader.ts";
 import { loadStudentSafetyConstraints } from "../_shared/keel/safety_constraints.ts";
-import { FOOD_PREFERENCES_KEY } from "../_shared/keel/food_preference_promotion.ts";
-import { dayTokenInZone, daysFrom } from "../_shared/keel/local_date.ts";
+import { foodPreferencesForPrompt } from "../_shared/keel/food_preference_promotion.ts";
+import { reconcileFoodPreferencesFor } from "../_shared/keel/food_preference_promotion_io.ts";
+import { dayTokenInZone, localDateInZone } from "../_shared/keel/local_date.ts";
+import {
+  type MealWindowRequest,
+  resolveRequestedWindow,
+  windowDayOrder,
+} from "../_shared/keel/meal_plan_window.ts";
 import {
   buildMealPrompt,
   MEAL_MODES,
   MEAL_PROMPT_VERSION,
-  MEAL_SCOPES,
   MEAL_SLOTS,
   type MealMode,
   type MealScope,
@@ -106,20 +111,43 @@ function readPantry(raw: unknown, issues: string[]): PantryItem[] {
  * de cette phrase. Absent vaut mieux que faux.
  */
 /**
- * Les préférences alimentaires CONFIRMÉES par l'élève.
+ * Les préférences alimentaires CONFIRMÉES par l'élève, DATÉES et la plus
+ * récente d'abord.
  *
- * Défensif comme sa voisine: on ne lit que des chaînes non vides, et on plafonne
- * — une liste qui grossit sans fin finirait par manger le budget de prompt et
- * pousser la doctrine du coach hors du contexte (le budget tronque par la
- * queue). Vingt lignes décrivent largement une façon de manger.
+ * La lecture, le tri et le plafond vivent dans `foodPreferencesForPrompt`, avec
+ * le générateur de semaine: deux lectures différentes du même jsonb finiraient
+ * par diverger, et c'est le genre de divergence qu'on ne voit qu'en relisant
+ * deux prompts côte à côte.
  */
 function readFoodPreferences(pc: Record<string, unknown> | null): string[] {
-  const raw = (pc ?? {})[FOOD_PREFERENCES_KEY];
-  if (!Array.isArray(raw)) return [];
-  return raw
-    .map((v) => String(v ?? "").trim())
-    .filter(Boolean)
-    .slice(0, 20);
+  return foodPreferencesForPrompt(pc);
+}
+
+/**
+ * L'INTENTION DE FENÊTRE, lue défensivement.
+ *
+ * Rend `null` sur tout ce qui n'est pas une des trois formes connues, et
+ * l'appelant refuse alors la requête. Pas de repli sur « sept jours »: une
+ * fenêtre devinée est une DATE DURABLE devinée, écrite dans une colonne que
+ * cinq lecteurs vont croire.
+ */
+function readWindowRequest(raw: unknown): MealWindowRequest | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const w = raw as Record<string, unknown>;
+  const kind = String(w.kind ?? "").trim();
+  if (kind === "until_sunday") return { kind: "until_sunday" };
+  if (kind === "days") {
+    const count = Number(w.count);
+    if (!Number.isFinite(count)) return null;
+    return { kind: "days", count };
+  }
+  if (kind === "exact") {
+    const startsOn = String(w.starts_on ?? "").trim();
+    const durationDays = Number(w.duration_days);
+    if (!startsOn || !Number.isFinite(durationDays)) return null;
+    return { kind: "exact", startsOn, durationDays };
+  }
+  return null;
 }
 
 function readCookingCapacity(pc: Record<string, unknown> | null): {
@@ -185,15 +213,36 @@ Deno.serve(async (req) => {
         request_id: requestId,
       }, { status: 400 });
     }
-    const scopeRaw = String(body.scope ?? "day").trim();
-    if (!(MEAL_SCOPES as readonly string[]).includes(scopeRaw)) {
+    // ── L'INTENTION DE FENÊTRE REMPLACE `scope` ──────────────────────────
+    // `scope` était une entrée du client, et une ligne `scope='day'` portant
+    // une fenêtre de sept jours était donc possible. Il est maintenant DÉRIVÉ
+    // de la durée, dans la RPC, et le client envoie ce qu'il veut vraiment
+    // dire: « jusqu'à dimanche », « sept jours », ou des dates exactes.
+    //
+    // LA RÉSOLUTION VIT ICI, PAS DANS LE NAVIGATEUR. La fenêtre est une DATE
+    // DURABLE que cinq lecteurs vont croire; la résoudre côté client la
+    // laisserait dépendre d'une horloge qu'on ne contrôle pas.
+    const windowRequest = readWindowRequest(body.window);
+    if (!windowRequest) {
       return jsonResponse(req, {
-        error: "unknown_scope",
-        detail: `scope must be one of ${MEAL_SCOPES.join(", ")}`,
+        error: "window_required",
+        detail: "window must be {kind:'until_sunday'} | {kind:'days',count} | " +
+          "{kind:'exact',starts_on,duration_days}",
         request_id: requestId,
       }, { status: 400 });
     }
-    const scope = scopeRaw as MealScope;
+    // Deux branches nommées, comme la RPC (R6). `replace_current` doit nommer
+    // la ligne qu'il remplace: avec deux onglets, « le courant » n'est plus
+    // une notion univoque, et c'est l'écran qui sait lequel on regarde.
+    const intent = String(body.intent ?? "replace_current").trim();
+    if (intent !== "replace_current" && intent !== "prepare_next") {
+      return jsonResponse(req, {
+        error: "unknown_intent",
+        detail: "intent must be replace_current or prepare_next",
+        request_id: requestId,
+      }, { status: 400 });
+    }
+    const replaces = String(body.replaces ?? "").trim() || null;
 
     const slotRaw = String(body.meal_slot ?? "").trim();
     const slot = (MEAL_SLOTS as readonly string[]).includes(slotRaw)
@@ -203,6 +252,10 @@ Deno.serve(async (req) => {
 
     const servings = Math.min(12, Math.max(1, Number(body.servings) || 1));
     const context = String(body.context ?? "").trim().slice(0, 2000) || null;
+    // CE DONT ILS ONT ENVIE POUR CETTE COMPOSITION. Même plafond que `context`
+    // et pour la même raison: ce champ part dans un prompt. Daté, donc écrit sur
+    // la LIGNE et jamais dans `practical_constraints`, qui est durable.
+    const preferences = String(body.preferences ?? "").trim().slice(0, 2000) || null;
     const pantry = readPantry(body.pantry, issues);
 
     if (mode === "from_pantry" && pantry.length === 0) {
@@ -236,6 +289,18 @@ Deno.serve(async (req) => {
       }, { status: 409 });
     }
     const goalRow = goalRes.data as Record<string, unknown>;
+
+    // --- CE QUE L'ÉLÈVE A DÉMENTI DEPUIS ----------------------------------
+    // Même raccord que dans `generate-week-plan-v1`, et il doit être ici AUSSI
+    // plutôt qu'à un seul endroit: rien ne garantit qu'un élève génère une
+    // semaine avant de générer un repas. Une garde qui ne couvre qu'un des
+    // deux chemins d'un même jsonb est une garde qu'on croit posée.
+    goalRow.practical_constraints = await reconcileFoodPreferencesFor({
+      admin,
+      userId,
+      constraints: (goalRow.practical_constraints ?? {}) as Record<string, unknown>,
+      source: FN_NAME,
+    });
 
     // --- LA MÉTHODE DU COACH ----------------------------------------------
     const doctrine = await loadPublishedDoctrine(admin, userId);
@@ -290,18 +355,17 @@ Deno.serve(async (req) => {
       console.warn(`[${FN_NAME}] safety constraints unavailable`, error);
     }
 
-    // ── LE JOUR OÙ L'ÉLÈVE EST, DANS SON FUSEAU ────────────────────────────
+    // ── LE JOUR OÙ L'ÉLÈVE EST, ET LA FENÊTRE QU'IL A DEMANDÉE ───────────
     //
-    // Défaut mesuré: un plan généré le mercredi commençait lundi — trois jours
-    // déjà passés, livrés comme neufs. Le prompt n'avait AUCUNE notion de date,
-    // donc le modèle repartait du lundi par habitude.
-    //
-    // Le fuseau vient du plan publié, et à défaut du profil. R7: un fuseau
-    // illisible ne se replie PAS sur UTC en silence — on renonce à contraindre
-    // les jours plutôt que de contraindre les mauvais, et le modèle retrouve
-    // son comportement d'avant.
-    let todayToken: string | null = null;
-    let daysToFill: string[] = [];
+    // ── LE REPLI SUR « LE MODÈLE CHOISIT SES JOURS » A DISPARU ───────────
+    // Un fuseau illisible dégradait en silence: `daysToFill = []`, et le modèle
+    // repartait du lundi par habitude. C'était tolérable tant que la fenêtre
+    // n'existait que dans le prompt. Elle est maintenant une DATE DURABLE
+    // écrite en base et lue par cinq lecteurs — la deviner écrirait une date
+    // fabriquée qu'aucun d'eux ne saurait mettre en doute. R7: on refuse.
+    let todayToken: string;
+    let todayDate: string;
+    let country: string | null = null;
     try {
       const tzRes = await admin
         .from("plan_versions")
@@ -309,28 +373,56 @@ Deno.serve(async (req) => {
         .eq("student_id", userId)
         .eq("status", "published")
         .maybeSingle();
-      const profileRes = tzRes.data
-        ? null
-        : await admin.from("profiles").select("timezone").eq("id", userId)
-          .maybeSingle();
+      // `profiles` est lu DANS TOUS LES CAS: c'est lui qui porte le PAYS, et le
+      // pays décide de ce qui pousse en ce moment là où l'élève fait ses courses.
+      const profileRes = await admin
+        .from("profiles")
+        .select("timezone, country")
+        .eq("id", userId)
+        .maybeSingle();
       const timezone = String(
         (tzRes.data as { timezone?: unknown } | null)?.timezone ??
           (profileRes?.data as { timezone?: unknown } | null)?.timezone ?? "",
       ).trim();
-      if (timezone) {
-        const token = dayTokenInZone(timezone, new Date());
-        todayToken = token;
-        // `day` remplit aujourd'hui seulement; `several_days` va jusqu'à
-        // dimanche prochain inclus — sept jours à partir d'aujourd'hui.
-        daysToFill = scope === "day" ? [token] : daysFrom(token, 7);
-      }
+      country = String(
+        (profileRes?.data as { country?: unknown } | null)?.country ?? "",
+      ).trim() || null;
+      if (!timezone) throw new Error("no timezone on the plan or the profile");
+      todayToken = dayTokenInZone(timezone, new Date());
+      // LA DATE, et pas seulement le jour de la semaine. « mercredi » ne dit
+      // pas si on est en février ou en août — donc rien ne permettrait au
+      // modèle de savoir ce qui est de saison.
+      todayDate = localDateInZone(timezone, new Date());
     } catch (error) {
-      issues.push(
-        `local day unresolved, the model picks its own days: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
-      );
+      return jsonResponse(req, {
+        error: "local_day_unresolved",
+        detail: "We could not tell what day it is where you are, and a meal " +
+          "plan has to carry real dates.",
+        request_id: requestId,
+      }, { status: 409 });
     }
+
+    // L'INTENTION DEVIENT UNE FENÊTRE, avec le fuseau de l'élève. Les erreurs
+    // sont NOMMÉES (durée hors bornes, départ dans le passé): les traduire en
+    // « une erreur est survenue » perdrait la seule information utile.
+    let startsOn: string;
+    let durationDays: number;
+    try {
+      const resolved = resolveRequestedWindow(windowRequest, todayDate);
+      startsOn = resolved.startsOn;
+      durationDays = resolved.durationDays;
+    } catch (error) {
+      return jsonResponse(req, {
+        error: "bad_window",
+        detail: error instanceof Error ? error.message : String(error),
+        request_id: requestId,
+      }, { status: 400 });
+    }
+
+    // `scope` est DÉRIVÉ de la durée et n'est plus reçu: une ligne `scope='day'`
+    // portant une fenêtre de sept jours n'est plus exprimable.
+    const scope: MealScope = durationDays === 1 ? "day" : "several_days";
+    const daysToFill: string[] = windowDayOrder(startsOn, durationDays);
 
     // LES MOMENTS D'UNE JOURNÉE NORMALE POUR CET ÉLÈVE — lus UNE fois, et
     // partagés par le prompt et le parseur.
@@ -348,6 +440,14 @@ Deno.serve(async (req) => {
         ?.eating_rhythm,
     );
 
+    // LUE UNE FOIS, servie deux fois: le prompt ANNONCE le plafond de temps,
+    // le parseur le VÉRIFIE. Deux lectures du même jsonb finiraient par
+    // diverger, et la divergence se paierait sur le seul contrôle qui dit à
+    // l'élève que sa session ne tient pas.
+    const capacity = readCookingCapacity(
+      goalRow.practical_constraints as Record<string, unknown> | null,
+    );
+
     const { systemPrompt, userMessage } = buildMealPrompt({
       doctrineBlock: doctrineBlockFor(doctrine),
       coachNoteBlock: coachNotePromptBlock(coachNote),
@@ -356,12 +456,21 @@ Deno.serve(async (req) => {
       goal: String(goalRow.goal ?? "health"),
       situation: goalRow.situation ? String(goalRow.situation) : null,
       context,
+      // L'ENVIE DU MOMENT, distincte des goûts durables lus plus bas dans
+      // `foodPreferences`: l'une a été tapée il y a dix secondes, les autres
+      // viennent de la conversation et valent pour toutes ses semaines.
+      preferences,
       mode,
       scope,
       slot,
       servings,
       pantry,
       todayToken,
+      // LA DATE ET LE PAYS — de quoi savoir ce qui est de saison là où l'élève
+      // fait ses courses. Nuls quand on n'a pas su les résoudre: le bloc le dit
+      // au modèle plutôt que de laisser croire à une localisation qu'on n'a pas.
+      today: todayDate,
+      country,
       daysToFill,
       eatingRhythm,
       // CE QUE L'ÉLÈVE PEUT VRAIMENT FAIRE. Quatre entrées qui décidaient de
@@ -373,9 +482,7 @@ Deno.serve(async (req) => {
       // Chacune est OPTIONNELLE et absente par défaut: un élève qui n'a rien
       // rempli reçoit exactement la semaine d'hier. C'est ce qui rend l'ajout
       // additif plutôt que régressif.
-      ...readCookingCapacity(
-        goalRow.practical_constraints as Record<string, unknown> | null,
-      ),
+      ...capacity,
       // CE QUE L'ÉLÈVE A CONFIRMÉ sur sa bouffe, promu depuis la conversation.
       // Passé NOMMÉMENT parce que ce générateur lit des clés nommées: une clé
       // de plus dans le jsonb y serait invisible (contrairement au plan hebdo,
@@ -406,6 +513,12 @@ Deno.serve(async (req) => {
         // `const` hissé au-dessus: relire `practical_constraints` ici rendrait
         // deux rythmes à tenir d'accord au lieu d'un seul à lire.
         eatingRhythm,
+        // MÊME RAISON: le plafond du parseur doit être celui du prompt, et il
+        // dérive du nombre de jours réellement demandés.
+        daysToFill,
+        // Le temps par session est un PLAFOND. Le prompt l'annonce, le parseur
+        // le vérifie: mesuré 30 déclarées contre 55 produites.
+        cookingTimeMin: capacity.cookingTimeMin,
       });
     } catch (error) {
       return jsonResponse(req, {
@@ -428,37 +541,91 @@ Deno.serve(async (req) => {
       }, { status: 422 });
     }
 
-    const { data: written, error: writeErr } = await admin
-      .from("student_generated_meals")
-      .insert({
-        user_id: userId,
-        scope,
-        mode,
-        meal_slot: slot,
-        servings,
-        context,
-        pantry,
-        dishes: mealDishesPayload(meal),
-        preparations: mealPreparationsPayload(meal),
-        cooking_sessions: mealSessionsPayload(meal),
-        shopping_list: mealShoppingPayload(meal),
-        generated_from: {
-          coach_id: doctrine.coachId,
-          doctrine_version: doctrine.doctrine?.version ?? null,
-          doctrine_reason: doctrine.reason,
-          belief_keys: beliefKeys,
-          goal: String(goalRow.goal ?? "health"),
-          prompt_version: MEAL_PROMPT_VERSION,
+    // ── L'ÉCRITURE PASSE PAR LA RPC, ET C'EST UNE TRANSACTION ────────────
+    // Préparer un plan qui démarre avant la fin du courant RACCOURCIT le
+    // courant. Deux appels ne peuvent pas garantir l'atomicité de ça, et le
+    // seul entrelacement vraiment nuisible est « troncature commitée, insert
+    // échoué »: l'élève perd des jours pour un plan qui n'est jamais arrivé.
+    //
+    // La RPC porte aussi la contrainte d'exclusion en filet: elle refuse
+    // nommément un plan qui chevauche un autre sans pouvoir le raccourcir.
+    const { data: writtenRows, error: writeErr } = await admin.rpc(
+      "write_student_meal_plan",
+      {
+        p_user_id: userId,
+        p_intent: intent,
+        p_starts_on: startsOn,
+        p_duration_days: durationDays,
+        p_replaces: replaces,
+        p_payload: {
+          mode,
+          meal_slot: slot,
+          servings,
+          context,
+          preferences,
+          pantry,
+          dishes: mealDishesPayload(meal),
+          preparations: mealPreparationsPayload(meal),
+          cooking_sessions: mealSessionsPayload(meal),
+          shopping_list: mealShoppingPayload(meal),
+          content_locale: String(goalRow.content_locale ?? "en"),
+          generated_from: {
+            coach_id: doctrine.coachId,
+            doctrine_version: doctrine.doctrine?.version ?? null,
+            doctrine_reason: doctrine.reason,
+            belief_keys: beliefKeys,
+            goal: String(goalRow.goal ?? "health"),
+            prompt_version: MEAL_PROMPT_VERSION,
+            intent,
+            // ── CE QUI A MORDU, ÉCRIT SUR LA LIGNE ────────────────────────
+            // Les `issues` ne partaient que dans la RÉPONSE HTTP, donc elles
+            // mouraient avec elle: un plan qui garde un lot six jours, ou dont
+            // la session déborde le temps déclaré, était écrit en base sans
+            // aucune trace du motif. Le contrôle existait et personne ne
+            // pouvait le lire — c'est-à-dire qu'il n'existait pas.
+            issues: [...issues, ...meal.issues],
+          },
         },
-        content_locale: String(goalRow.content_locale ?? "en"),
-      })
-      .select("id, created_at")
-      .single();
-    if (writeErr) throw writeErr;
+      },
+    );
+    const writtenRow = (Array.isArray(writtenRows) ? writtenRows[0] : writtenRows) as
+      | {
+        meal_id: string;
+        retired_plan_id: string | null;
+        truncated_plan_id: string | null;
+        truncated_from: number | null;
+        truncated_to: number | null;
+      }
+      | null;
+    // Les motifs de la RPC sont NOMMÉS (`plan_overlaps_existing`,
+    // `plan_not_replaceable`, `replaces_required`) et remontent tels quels:
+    // l'écran sait quoi en faire, « une erreur est survenue » non.
+    if (writeErr) {
+      return jsonResponse(req, {
+        error: "plan_not_written",
+        detail: writeErr.message,
+        request_id: requestId,
+      }, { status: 409 });
+    }
+    const written = writtenRow
+      ? { id: writtenRow.meal_id, starts_on: startsOn, duration_days: durationDays }
+      : null;
 
     return jsonResponse(req, {
       ok: true,
       meal: written,
+      // CE QUE CETTE GÉNÉRATION A DÉPLACÉ. L'écran en a besoin pour dire « 2 de
+      // ces jours sont passés dans ton prochain plan » — sans ça, la liste de
+      // courses du plan raccourci resterait muette sur ce qu'elle couvre encore.
+      window: { starts_on: startsOn, duration_days: durationDays },
+      retired_plan_id: writtenRow?.retired_plan_id ?? null,
+      truncated: writtenRow?.truncated_plan_id
+        ? {
+          plan_id: writtenRow.truncated_plan_id,
+          from_duration_days: writtenRow.truncated_from,
+          to_duration_days: writtenRow.truncated_to,
+        }
+        : null,
       // LA MÊME FORME QUE CE QUI EST STOCKÉ, et c'est un correctif.
       //
       // La réponse rendait `meal.dishes`, la forme INTERNE du parseur

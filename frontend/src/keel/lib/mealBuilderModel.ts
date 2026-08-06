@@ -1,10 +1,12 @@
+import { SHOPPING_AISLE_ORDER } from "../api/mealLabels";
 import {
   DAY_TOKENS,
   type GeneratedDish,
   type PantryItem,
+  type ShoppingItem,
 } from "../api/mealGeneration";
 
-// LES DEUX FONCTIONS PURES DU CONSTRUCTEUR DE REPAS.
+// LES FONCTIONS PURES DU CONSTRUCTEUR DE REPAS.
 //
 // Elles vivaient dans `MealBuilder.tsx`, et le lint avait raison de refuser:
 // un fichier qui exporte autre chose qu'un composant casse le fast refresh.
@@ -107,4 +109,34 @@ export function groupByDay(
     if (list && list.length > 0) out.push({ day: token, dishes: list });
   }
   return out;
+}
+
+/**
+ * Les articles groupés par rayon, dans l'ordre d'un magasin.
+ *
+ * Un rayon vide ne produit pas de titre: une liste de courses avec un « Frozen »
+ * suivi de rien fait chercher un article qui n'existe pas.
+ *
+ * L'INDEX D'ORIGINE VOYAGE AVEC L'ARTICLE. C'est lui qui identifie une ligne
+ * cochée — pas son terme, parce que deux rayons peuvent porter le même mot
+ * (« lemon » en produce, « lemon juice » en pantry), et pas sa position dans le
+ * groupe, qui change dès qu'on regroupe autrement.
+ */
+export function groupByAisle(
+  items: readonly ShoppingItem[],
+): Array<{ aisle: string; items: Array<{ item: ShoppingItem; index: number }> }> {
+  const byAisle = new Map<string, Array<{ item: ShoppingItem; index: number }>>();
+  items.forEach((item, index) => {
+    // Un rayon hors vocabulaire tombe dans « other » plutôt que de créer un
+    // groupe que l'ordre ci-dessous ne connaît pas — donc un article invisible.
+    const aisle = (SHOPPING_AISLE_ORDER as readonly string[]).includes(item.aisle)
+      ? item.aisle
+      : "other";
+    const list = byAisle.get(aisle) ?? [];
+    list.push({ item, index });
+    byAisle.set(aisle, list);
+  });
+  return SHOPPING_AISLE_ORDER
+    .map((aisle) => ({ aisle, items: byAisle.get(aisle) ?? [] }))
+    .filter((group) => group.items.length > 0);
 }

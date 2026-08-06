@@ -46,6 +46,7 @@ import {
   type DoctrineBelief,
   parseCoachDoctrine,
 } from "./doctrine.ts";
+import { type DoctrineOwner, resolveDoctrineOwner } from "./doctrine_delegation.ts";
 import { GOAL_TOKENS, type GoalToken, goalScopeApplies } from "./tokens.ts";
 
 export const DOCTRINE_LOAD_REASONS = [
@@ -74,6 +75,19 @@ export interface LoadedDoctrine {
   doctrine: CoachDoctrine | null;
   compiled: CompiledDoctrine | null;
   coachId: string | null;
+  /**
+   * `coaches.display_name`, ou `null` s'il est vide ou illisible.
+   *
+   * Il était lu ici et consommé UNIQUEMENT par le bloc compilé. Il ressort
+   * maintenant, parce qu'un second consommateur en a besoin: la substitution du
+   * verrou (`resolveDoctrineReplacement`) poste les mots du coach mot pour mot
+   * et les postait sans nom. Le re-lire ailleurs aurait donné deux requêtes et
+   * deux définitions de « le nom du coach de cet élève ».
+   *
+   * `null` EST UNE VALEUR UTILE, pas un échec: un coach sans nom affiché ne se
+   * signe pas. « — the coach » serait pire que rien.
+   */
+  coachDisplayName: string | null;
   reason: DoctrineLoadReason;
   /** Malformed entries dropped at parse time. Surfaced on the coach screen. */
   issues: string[];
@@ -195,6 +209,16 @@ export async function loadPublishedDoctrine(
 ): Promise<LoadedDoctrine> {
   let goal: GoalToken | null = null;
   let goalSource: DoctrineGoalSource = "none";
+  // DÉCLARÉ ICI, ET PAS À SA LECTURE PLUS BAS: `empty()` doit pouvoir le rendre.
+  // Un repli survenu APRÈS la résolution du nom (doctrine absente, vide, ou
+  // illisible) concerne un coach qu'on sait nommer, et le taire obligerait
+  // l'appelant à le relire ailleurs — donc à en produire une seconde
+  // définition. Avant la résolution, il vaut `null`, ce qui est exact.
+  let coachDisplayName: string | null = null;
+  // Résolu avec le nom, et tracé avec lui: le jour où un coach dit « Sophia
+  // signe du mauvais nom à mes élèves », la première question est « est-ce que
+  // ce coach délègue », et une résolution implicite est indébogable.
+  let owner: DoctrineOwner | null = null;
   const empty = (reason: DoctrineLoadReason, coachId: string | null = null): LoadedDoctrine => {
     // §3.2.2 — LA SÉLECTION SE LIT DANS LES LOGS, Y COMPRIS QUAND ELLE EST VIDE.
     //
@@ -210,6 +234,8 @@ export async function loadPublishedDoctrine(
       goal_source: goalSource,
       cache_key: null,
       reason,
+      doctrine_coach_id: owner?.doctrineCoachId ?? null,
+      delegated: owner?.delegated ?? false,
       beliefs_kept: 0,
       beliefs_total: 0,
       arbitrations_kept: 0,
@@ -220,6 +246,7 @@ export async function loadPublishedDoctrine(
       doctrine: null,
       compiled: null,
       coachId,
+      coachDisplayName,
       reason,
       issues: [],
       goal,
@@ -288,7 +315,7 @@ export async function loadPublishedDoctrine(
   }
   if (!coachId) return empty("no_coach");
 
-  // LE NOM DU COACH, et ce n'est pas cosmétique.
+  // LE NOM DU COACH, ET LA DOCTRINE QU'IL SERT — la même résolution.
   //
   // `coach_doctrines` ne porte pas de nom — c'est `coaches.display_name` qui
   // l'a. Sans cette lecture, le bloc compilé s'ouvre sur "THE COACH'S METHOD"
@@ -296,20 +323,18 @@ export async function loadPublishedDoctrine(
   // l'élève parle à l'agent DE SON COACH. Trouvé par la semaine simulée §7.4,
   // qui assertait le nom dans le bloc: les tests unitaires passaient le nom en
   // argument et ne pouvaient pas voir qu'aucun appelant réel ne le faisait.
-  let coachDisplayName: string | null = null;
-  try {
-    const { data, error } = await client
-      .from("coaches")
-      .select("display_name")
-      .eq("id", coachId)
-      .maybeSingle();
-    if (error) throw error;
-    coachDisplayName =
-      String((data as Record<string, unknown> | null)?.display_name ?? "").trim() || null;
-  } catch (error) {
-    // Un nom illisible dégrade la formulation, pas la doctrine: on continue.
-    console.warn("[keel/doctrine] coach name unreadable", error);
-  }
+  //
+  // LES DEUX RÉPONSES SORTENT ENSEMBLE, et c'est le point: un coach qui DÉLÈGUE
+  // à la maison sert la doctrine de la maison ET signe de son nom. Les séparer
+  // permettrait l'état incohérent — la méthode de la maison sous le nom du
+  // coach — qui est exactement le mensonge que la délégation existe pour éviter.
+  owner = await resolveDoctrineOwner(client, coachId);
+  coachDisplayName = owner.displayName;
+  // Un coach qui délègue alors que la maison est introuvable n'a AUCUNE
+  // doctrine à servir. Retomber sur la sienne — qui dort, exprès, pour que la
+  // bascule soit réversible — servirait à ses élèves une méthode qu'il a
+  // explicitement retirée. Voir `decideDoctrineOwner`.
+  if (!owner.doctrineCoachId) return empty("no_published_doctrine", coachId);
 
   let row: Record<string, unknown> | null = null;
   try {
@@ -322,7 +347,7 @@ export async function loadPublishedDoctrine(
         "coach_id, version, beliefs, forbidden, vocabulary, arbitrations, foods, qa, voice, " +
           "compiled_prompt, compiled_prompt_hash, content_locale, published_at",
       )
-      .eq("coach_id", coachId)
+      .eq("coach_id", owner.doctrineCoachId)
       .not("published_at", "is", null)
       .limit(1)
       .maybeSingle();
@@ -334,8 +359,58 @@ export async function loadPublishedDoctrine(
   }
   if (!row) return empty("no_published_doctrine", coachId);
 
+  // ── LES ALIMENTS ÉCARTÉS VIENNENT DE L'ÉCRAN ALIMENTS, PLUS DE LA DOCTRINE ──
+  //
+  // « Quels aliments tu écartes » n'est pas une conviction, c'est une liste. La
+  // poser dans l'entretien de doctrine mélangeait une opinion et un inventaire,
+  // et obligeait le coach à la tenir à deux endroits: une fois en prose ici, une
+  // fois en pastilles sur `/coach/protocol`.
+  //
+  // La source est désormais UNIQUE: `coach_food_items` en `stance='excluded'`
+  // — l'écran l'affiche « Never ». Le verrou de sortie ne change pas d'un iota:
+  // il lit toujours `doctrine.foods.discouraged`, qui est simplement alimenté
+  // d'ailleurs.
+  //
+  // ⚠️ CE QU'ON PERD, ET POURQUOI C'EST ACCEPTABLE ICI. Un `DoctrineFood` porte
+  // des `surfaceForms` — les autres façons d'écrire un aliment, qui rendent le
+  // matcher capable d'attraper « huile végétale » sur un interdit posé comme
+  // « huiles de graines ». Un item d'aliment n'en a pas: il porte un `label`.
+  //
+  // C'est tolérable parce que les deux cas ne se ressemblent pas. La prose que
+  // le coach tapait dans l'entretien était libre, donc il FALLAIT lui demander
+  // ses variantes. Un item vient d'un CATALOGUE FERMÉ (`food_items`), avec un
+  // libellé curé et stable — il n'y a pas de variante à deviner.
+  //
+  // NE THROW JAMAIS: une lecture d'aliments cassée dégrade la liste, elle ne
+  // doit pas coûter sa doctrine au coach. Même arbitrage de panne que le nom.
+  //
+  // ⚠️ LU POUR `owner.doctrineCoachId`, PAS POUR `coachId`. Un coach qui délègue
+  // à la maison remplace la source ENTIÈRE de sa doctrine — ses propres aliments
+  // écartés partent avec le reste. Lire les siens ici produirait un hybride que
+  // personne n'a écrit: la méthode de la maison, plus les exclusions d'un coach
+  // dont l'agent ne prononce même plus le nom.
+  let excludedFoods: Array<{ term: string }> = [];
+  try {
+    const { data, error } = await client
+      .from("coach_food_items")
+      .select("label")
+      .eq("coach_id", owner.doctrineCoachId)
+      .eq("stance", "excluded");
+    if (error) throw error;
+    excludedFoods = ((data ?? []) as Array<Record<string, unknown>>)
+      .map((r) => ({ term: String(r.label ?? "").trim() }))
+      .filter((f) => f.term.length > 0);
+  } catch (error) {
+    console.warn("[keel/doctrine] excluded foods unreadable", error);
+  }
+
   const { doctrine, issues } = parseCoachDoctrine({
     ...row,
+    // La colonne `foods` de `coach_doctrines` n'est plus la source. On la
+    // REMPLACE au lieu de fusionner: deux sources pour une même liste, c'est
+    // la divergence garantie le jour où un coach retire un aliment d'un écran
+    // et le voit rester actif parce que l'autre le porte encore.
+    foods: { discouraged: excludedFoods },
     coach_display_name: coachDisplayName,
   });
   const compiled = compileDoctrineBlock(doctrine, goal);
@@ -352,6 +427,11 @@ export async function loadPublishedDoctrine(
     variant: goal ?? "default",
     goal_source: goalSource,
     cache_key: compiled.hash,
+    // De QUI vient la doctrine servie, et sous quel nom elle sort. Sans ces
+    // deux champs, une délégation est invisible dans les logs et « pourquoi
+    // mon agent signe Sophia » se rejoue à la main.
+    doctrine_coach_id: owner.doctrineCoachId,
+    delegated: owner.delegated,
     // Même clé que sur les chemins vides, pour qu'un `grep` unique réponde à
     // « quelle variante, et pourquoi » sans avoir à connaître deux formats.
     reason: compiled.emptyForGoal
@@ -371,6 +451,7 @@ export async function loadPublishedDoctrine(
     doctrine,
     compiled,
     coachId,
+    coachDisplayName,
     // A published-but-empty doctrine is a real state (the coach clicked
     // publish on a blank form) and it must not be reported as "loaded": the
     // no-method block is the right injection, exactly as if none existed.

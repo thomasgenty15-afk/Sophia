@@ -74,6 +74,12 @@ export function resolvePlanQuestion(input: {
   requested_food_group: string | null;
   student_words: string;
   runtime: PlanQuestionSkillRuntime;
+  /**
+   * R3 — la langue de la RÉPONSE VISIBLE de ce tour. Distincte du
+   * `runtime.content_locale`, qui est la langue des MOTS DE L'ÉLÈVE stockés
+   * sur la ligne. Les confondre, c'est la fusion d'axes que R3 interdit.
+   */
+  response_locale: string;
 }): PlanQuestionResolution {
   const verdict = resolveTier0Swap({
     commitment: input.runtime.commitment,
@@ -95,6 +101,7 @@ export function resolvePlanQuestion(input: {
     verdict,
     change_request: changeRequest,
     safety_constraints: input.runtime.safety_constraints,
+    locale: input.response_locale,
   });
 
   const outcome: PlanQuestionOutcomeKind = verdict.decision === "allowed"
@@ -165,6 +172,7 @@ export async function runPlanQuestionSkill(
     requested_food_group: context?.requested_food_group ?? null,
     student_words: input.user_message,
     runtime,
+    response_locale: input.context.response_locale,
   });
 
   console.info("plan_question.resolution", resolution.diagnosis);

@@ -124,3 +124,30 @@ export function daysFrom(start: DayToken, count: number): DayToken[] {
   }
   return out;
 }
+
+/**
+ * D'AUJOURD'HUI À DIMANCHE INCLUS — la semaine EN COURS, et pas sept jours.
+ *
+ * ── LE DÉFAUT ─────────────────────────────────────────────────────────────
+ * `daysFrom(today, 7)` remplit sept jours glissants. Généré un jeudi, le plan
+ * couvrait jeudi→mercredi, donc lundi, mardi et mercredi de la semaine
+ * SUIVANTE. L'écran s'appelle « My week's plan », l'élève lit une semaine, et
+ * il en recevait une qui débordait sur la prochaine — avec des courses pour
+ * dix jours et des plats qu'il ne ferait jamais.
+ *
+ * La semaine se termine DIMANCHE, comme partout ailleurs dans ce dépôt
+ * (`currentMonday`, `week_start`). Un plan fait le jeudi couvre donc quatre
+ * jours, et c'est correct: c'est ce qu'il reste de la semaine.
+ *
+ * ── LE DIMANCHE, IL RESTE UN JOUR ─────────────────────────────────────────
+ * Et on le rend tel quel plutôt que d'enchaîner sur la semaine d'après. Étendre
+ * en douce ferait qu'un plan « de la semaine » signifierait deux choses selon
+ * le jour où on clique — et l'élève qui veut sa semaine suivante la génère le
+ * lundi, ce que la copie de l'écran peut dire.
+ */
+export function daysUntilSunday(start: DayToken): DayToken[] {
+  const week: DayToken[] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+  const at = week.indexOf(start);
+  if (at < 0) return week;
+  return week.slice(at);
+}

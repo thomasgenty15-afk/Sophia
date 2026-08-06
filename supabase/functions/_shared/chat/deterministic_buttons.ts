@@ -38,6 +38,11 @@ import {
   renderWeeklyFlowAck,
 } from "../keel/weekly_flow.ts";
 import { writeWeeklyFlowReply } from "../keel/weekly_flow_io.ts";
+import {
+  composeWeekReviewBody,
+  readWeekReview,
+} from "../keel/week_review_io.ts";
+import { resolveArtifactLocale } from "../keel/locale.ts";
 import { deliverChatMessage } from "./delivery.ts";
 import { handled, type InboundStepOutcome, PASS } from "./inbound_pipeline.ts";
 import type { InboundMessage } from "./inbound_message.ts";
@@ -53,6 +58,40 @@ async function timezoneFor(
     .maybeSingle();
   return String((data as { timezone?: string | null } | null)?.timezone ?? "")
     .trim() || null;
+}
+
+/**
+ * Le prénom et la locale, pour le bilan. Ne jette jamais.
+ *
+ * Un prénom absent n'est PAS remplacé par un placeholder: le prompt du bilan
+ * dit explicitement « tu ne connais pas son prénom, n'en invente pas ». Une
+ * chaîne vide est donc une information, pas un trou à combler.
+ */
+async function studentVoiceContext(
+  admin: SupabaseClient,
+  userId: string,
+): Promise<{ firstName: string; contentLocale: string }> {
+  try {
+    const { data } = await admin
+      .from("profiles")
+      .select("full_name, locale")
+      .eq("id", userId)
+      .maybeSingle();
+    const row = (data ?? null) as Record<string, unknown> | null;
+    return {
+      firstName: String(row?.full_name ?? "").trim().split(/\s+/)[0] ?? "",
+      contentLocale: resolveArtifactLocale({
+        studentProfile: String(row?.locale ?? "").trim() || null,
+        tenantDefault: null,
+      }),
+    };
+  } catch (error) {
+    console.warn("[keel/week_review] voice context unreadable", error);
+    return { firstName: "", contentLocale: resolveArtifactLocale({
+      studentProfile: null,
+      tenantDefault: null,
+    }) };
+  }
 }
 
 /**
@@ -139,6 +178,68 @@ async function writeMeasures(
   return handled("keel_measures");
 }
 
+/**
+ * Le corps de la réponse au formulaire hebdomadaire.
+ *
+ * ── POURQUOI CE N'EST PAS UNE QUESTION ARMÉE ────────────────────────────────
+ * `armed_question.ts` sert à interpréter une réponse libre CONTRE une question à
+ * boutons. Ici la question est ouverte — « qu'est-ce qui a rendu ça difficile
+ * cette semaine ? » — et n'a aucun bouton: la contraindre à trois réponses
+ * fabriquerait la raison au lieu de l'entendre, et c'est précisément la raison
+ * qu'on veut voir arriver dans la mémoire.
+ *
+ * La continuité est donc portée par le CONTEXTE, pas par une machine à états: le
+ * bloc du bilan vit dans chaque tour de la semaine suivante
+ * (`loadKeelTurnContext`), il porte la question posée et le « pourquoi » du
+ * coach sur la ligne concernée. Un état de flow en plus serait un piège à
+ * fermer — et ce dépôt en a déjà payé un (`safety-crisis-flow-no-exit-on-denial`).
+ *
+ * NE JETTE JAMAIS: tout échec rend l'accusé plat. L'élève a rempli le
+ * formulaire, la mesure est déjà écrite, et un 500 ici lui ferait croire que
+ * ses deux minutes sont perdues.
+ */
+async function weeklyReplyBody(
+  admin: SupabaseClient,
+  args: { userId: string; week: string; requestId: string; flatAck: string },
+): Promise<string> {
+  try {
+    const stored = await readWeekReview(admin, {
+      userId: args.userId,
+      weekStart: args.week,
+    });
+    if (!stored) return args.flatAck;
+
+    const voice = await studentVoiceContext(admin, args.userId);
+    const composed = await composeWeekReviewBody(admin, {
+      userId: args.userId,
+      firstName: voice.firstName,
+      reading: stored.reading,
+      contentLocale: voice.contentLocale,
+      requestId: args.requestId,
+    });
+    // Le motif du repli est JOURNALISÉ, jamais avalé: sans lui, « le composeur
+    // ne sert jamais » et « le composeur marche » produisent le même message.
+    console.info(JSON.stringify({
+      tag: "keel.week_review.replied",
+      user_id: args.userId,
+      week: args.week,
+      branch: stored.reading.branch,
+      asked: stored.reading.question?.group ?? null,
+      body_source: composed.source,
+      fallback_reason: composed.reason || null,
+    }));
+    return composed.body;
+  } catch (error) {
+    console.warn(JSON.stringify({
+      tag: "keel.week_review.reply_failed",
+      user_id: args.userId,
+      week: args.week,
+      error: error instanceof Error ? error.message : String(error),
+    }));
+    return args.flatAck;
+  }
+}
+
 export async function handleDeterministicButton(
   admin: SupabaseClient,
   args: { message: InboundMessage; requestId: string },
@@ -198,7 +299,27 @@ export async function handleDeterministicButton(
         userId: message.user_id,
         requestId: args.requestId,
         purpose: "keel_weekly_flow_ack",
-        body: renderWeeklyFlowAck(written.reply),
+        // ── CE QUI REVIENT APRÈS HUIT CHAMPS REMPLIS ──────────────────────
+        //
+        // C'était `renderWeeklyFlowAck` — « Got it, thanks for taking the two
+        // minutes ». Deux minutes du temps de l'élève contre une phrase, sur
+        // le seul moment de la semaine où il s'arrête et regarde ce qu'il a
+        // fait. Le bilan lit ce que la semaine a montré, contre la méthode de
+        // son coach, et pose au plus UNE question.
+        //
+        // L'ÉCRITURE D'ABORD, LE TEXTE ENSUITE, et l'ordre est la garde: la
+        // mesure est enregistrée avant qu'un modèle n'entre dans le tour. Un
+        // composeur en panne coûte alors une phrase, jamais la donnée.
+        //
+        // `renderWeeklyFlowAck` reste le SOL: pas de lecture gelée (l'élève a
+        // rouvert un formulaire d'une semaine jamais calculée, ou le cron n'a
+        // pas tourné), et on retombe exactement sur le message d'avant.
+        body: await weeklyReplyBody(admin, {
+          userId: message.user_id,
+          week,
+          requestId: args.requestId,
+          flatAck: renderWeeklyFlowAck(written.reply),
+        }),
       });
     } catch (error) {
       const err = error as { message?: string; code?: string; details?: string };

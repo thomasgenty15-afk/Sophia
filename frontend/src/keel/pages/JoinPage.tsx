@@ -610,7 +610,6 @@ function JoinSEO() {
       title={t("join.seo_title")}
       description={t("join.seo_description")}
       robots="noindex,nofollow"
-      lang="en"
     />
   );
 }

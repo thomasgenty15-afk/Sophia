@@ -1,3 +1,4 @@
+import { uiLocale } from '../keel/i18n/runtime';
 import { useEffect } from 'react';
 
 interface SEOProps {
@@ -8,6 +9,7 @@ interface SEOProps {
   robots?: string;
   type?: string;
   /** Document language. The product ships in English; pass a BCP-47 tag to override. */
+  /** Laisser vide pour suivre la locale d'interface. */
   lang?: string;
   structuredData?: Record<string, unknown> | Array<Record<string, unknown>>;
 }
@@ -22,12 +24,17 @@ const SEO = ({
   image = DEFAULT_IMAGE,
   robots = DEFAULT_ROBOTS,
   type = 'website',
-  lang = 'en',
+  lang,
   structuredData,
 }: SEOProps) => {
+  // `lang` non fourni => la locale d'interface COURANTE. Il defautait a 'en'
+  // en dur, et six pages le passaient explicitement a "en" par-dessus: quatre
+  // ecrivains pour un attribut, tous d'accord sur la mauvaise valeur des que
+  // le visiteur choisit le francais.
+  const resolvedLang = lang ?? uiLocale();
   useEffect(() => {
     const fullTitle = `${title} | Sophia Coach`;
-    document.documentElement.lang = lang;
+    document.documentElement.lang = resolvedLang;
     document.title = fullTitle;
 
     const ensureMeta = (attrs: Record<string, string>, content: string) => {
@@ -69,7 +76,7 @@ const SEO = ({
     // Derived from `lang`, never hardcoded: a page that declares lang="en" and
     // og:locale="fr_FR" tells crawlers and link previews two different things,
     // and the preview is what a shared link shows.
-    ensureMeta({ property: 'og:locale' }, lang.toLowerCase().startsWith('fr') ? 'fr_FR' : 'en_GB');
+    ensureMeta({ property: 'og:locale' }, resolvedLang.toLowerCase().startsWith('fr') ? 'fr_FR' : 'en_GB');
     ensureMeta({ property: 'og:image' }, image);
     ensureMeta({ property: 'og:image:alt' }, fullTitle);
     if (canonical) ensureMeta({ property: 'og:url' }, canonical);

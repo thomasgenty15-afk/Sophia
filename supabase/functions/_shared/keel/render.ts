@@ -1,7 +1,11 @@
 // KEEL render layer — deterministic, zero LLM, zero I/O.
 // Authority: docs/keel/CONTRACT.md + docs/keel/SCHEMA.md.
-// R1: tokens in, English content out (translation is this layer's job, 'en' only for now).
-// R7: every token mapping below throws on unknown input — no silent fallback.
+// R1: tokens in, LOCALIZED content out — la traduction est le travail de cette
+// couche, et elle le fait maintenant vraiment: `en` et `fr` ont chacun leur pack.
+// R7: every token mapping below throws on unknown input — no silent fallback,
+// y compris pour une LANGUE qu'on n'a pas livrée.
+
+import { type LocalePackKey, localePackKey } from "./locale.ts";
 
 export interface SundayDigestCommitment {
   title: string;
@@ -41,66 +45,188 @@ export type CoachSafetyFact =
   | { kind: "upper_limit_not_comparable"; ulLabel: string; targetUnit: string | null }
   | { kind: "interaction_watchlist"; medicationClass: string; note: string };
 
-// SCHEMA slot_vocabulary seed — global, one vocabulary for meal and non-meal slots.
-const SLOT_LABELS: Record<string, string> = {
-  on_waking: "on waking",
-  breakfast: "at breakfast",
-  snack_am: "morning snack",
-  pre_workout: "pre-workout",
-  lunch: "at lunch",
-  post_workout: "post-workout",
-  snack_pm: "afternoon snack",
-  dinner: "at dinner",
-  before_bed: "before bed",
-  any_meal: "any meal",
-  any_time: "any time",
+/**
+ * TOUT CE QUI PORTE LA LANGUE SUR CETTE SURFACE, dans UN objet par locale.
+ *
+ * Les tables étaient des constantes de module et les phrases des littéraux au
+ * fil du code: `renderSundayDigest` et `renderSlotReminder` prenaient pourtant
+ * DÉJÀ un `locale` requis, qu'elles n'utilisaient que pour jeter si ce n'était
+ * pas `"en"`. Le paramètre existait, la langue non — c'est la forme la plus
+ * discrète d'une garde désarmée: elle a l'air branchée en relecture.
+ *
+ * Regrouper par pack plutôt que d'ajouter des `isFrenchLocale(...)` au fil des
+ * lignes: une phrase oubliée dans une branche ne se voit pas, une clé manquante
+ * dans un pack ne compile pas.
+ */
+type RenderPack = {
+  /** Forme PRÉPOSITIONNELLE, collée dans une énumération: « at breakfast ». */
+  slotLabels: Record<string, string>;
+  /**
+   * Même vocabulaire, forme NOMINALE — un titre de rappel demande « Breakfast »
+   * et pas « at breakfast ». Deux formes grammaticales côte à côte, dans le même
+   * fichier: la divergence que ce dépôt paie est deux VOCABULAIRES dans deux
+   * modules, pas deux formes voisines. Chaque clé de `slotLabels` doit exister
+   * ici (piné par un test).
+   */
+  slotHeadings: Record<string, string>;
+  dayLabels: Record<string, string>;
+  monthLabels: readonly string[];
+  priorityHeadings: Record<string, string>;
+  digestOpening: (firstName: string, weekStart: string) => string;
+  digestFooter: readonly string[];
+  reminderHeadline: (slotHeading: string) => string;
+  reminderFooter: string;
+  cadenceDaily: string;
+  cadenceTimesThisWeek: (times: number) => string;
+  /** « Mon 4 Aug » vs « lun. 4 août » — l'ordre des composants change. */
+  weekStartFormat: (dayLabel: string, dayOfMonth: number, monthLabel: string) => string;
 };
 
-// Same vocabulary, NOMINAL form — a reminder headline needs "Morning snack", not
-// "morning snack" glued after a preposition. Deliberately a second map in the SAME
-// file rather than a second file: the divergence this repo keeps paying for is two
-// vocabularies in two modules, not two grammatical forms side by side. Every key of
-// SLOT_LABELS must exist here (pinned by a test).
-const SLOT_HEADINGS: Record<string, string> = {
-  on_waking: "On waking",
-  breakfast: "Breakfast",
-  snack_am: "Morning snack",
-  pre_workout: "Pre-workout",
-  lunch: "Lunch",
-  post_workout: "Post-workout",
-  snack_pm: "Afternoon snack",
-  dinner: "Dinner",
-  before_bed: "Before bed",
-  any_meal: "Any meal",
-  any_time: "Any time",
+const RENDER_PACKS: Record<LocalePackKey, RenderPack> = {
+  en: {
+    // SCHEMA slot_vocabulary seed — global, meal and non-meal slots unified.
+    slotLabels: {
+      on_waking: "on waking",
+      breakfast: "at breakfast",
+      snack_am: "morning snack",
+      pre_workout: "pre-workout",
+      lunch: "at lunch",
+      post_workout: "post-workout",
+      snack_pm: "afternoon snack",
+      dinner: "at dinner",
+      before_bed: "before bed",
+      any_meal: "any meal",
+      any_time: "any time",
+    },
+    slotHeadings: {
+      on_waking: "On waking",
+      breakfast: "Breakfast",
+      snack_am: "Morning snack",
+      pre_workout: "Pre-workout",
+      lunch: "Lunch",
+      post_workout: "Post-workout",
+      snack_pm: "Afternoon snack",
+      dinner: "Dinner",
+      before_bed: "Before bed",
+      any_meal: "Any meal",
+      any_time: "Any time",
+    },
+    // SCHEMA scheduled_days CHECK vocabulary.
+    dayLabels: {
+      mon: "Mon",
+      tue: "Tue",
+      wed: "Wed",
+      thu: "Thu",
+      fri: "Fri",
+      sat: "Sat",
+      sun: "Sun",
+    },
+    monthLabels: [
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+    ],
+    priorityHeadings: {
+      core: "Core",
+      secondary: "Also on the plan",
+      optional: "Optional",
+    },
+    digestOpening: (firstName, weekStart) =>
+      `Hi ${firstName} — here is what your plan holds for the week of ${weekStart}.`,
+    digestFooter: [
+      "This is just a heads-up — nothing to confirm or validate.",
+      "Any days you already know will be off-plan? Just tell me.",
+    ],
+    reminderHeadline: (heading) => `${heading} — on your plan today:`,
+    reminderFooter: "Tell me here whenever you get to it.",
+    cadenceDaily: "daily",
+    cadenceTimesThisWeek: (times) => `${times}x this week`,
+    weekStartFormat: (dayLabel, dayOfMonth, monthLabel) =>
+      `${dayLabel} ${dayOfMonth} ${monthLabel}`,
+  },
+  fr: {
+    // Formes PRÉPOSITIONNELLES: le français contracte (« à + le » = « au »),
+    // d'où des libellés portés entiers plutôt qu'assemblés par du code.
+    slotLabels: {
+      on_waking: "au réveil",
+      breakfast: "au petit-déjeuner",
+      snack_am: "à la collation du matin",
+      pre_workout: "avant l'entraînement",
+      lunch: "au déjeuner",
+      post_workout: "après l'entraînement",
+      snack_pm: "à la collation de l'après-midi",
+      dinner: "au dîner",
+      before_bed: "avant le coucher",
+      any_meal: "à n'importe quel repas",
+      any_time: "à n'importe quel moment",
+    },
+    slotHeadings: {
+      on_waking: "Au réveil",
+      breakfast: "Petit-déjeuner",
+      snack_am: "Collation du matin",
+      pre_workout: "Avant l'entraînement",
+      lunch: "Déjeuner",
+      post_workout: "Après l'entraînement",
+      snack_pm: "Collation de l'après-midi",
+      dinner: "Dîner",
+      before_bed: "Avant le coucher",
+      any_meal: "N'importe quel repas",
+      any_time: "N'importe quand",
+    },
+    dayLabels: {
+      mon: "lun.",
+      tue: "mar.",
+      wed: "mer.",
+      thu: "jeu.",
+      fri: "ven.",
+      sat: "sam.",
+      sun: "dim.",
+    },
+    monthLabels: [
+      "janv.", "févr.", "mars", "avr.", "mai", "juin",
+      "juil.", "août", "sept.", "oct.", "nov.", "déc.",
+    ],
+    priorityHeadings: {
+      core: "L'essentiel",
+      secondary: "Aussi au programme",
+      optional: "En option",
+    },
+    digestOpening: (firstName, weekStart) =>
+      `Salut ${firstName} — voici ce que ton plan prévoit pour la semaine du ${weekStart}.`,
+    digestFooter: [
+      "C'est juste pour t'informer — rien à confirmer ni à valider.",
+      "Des jours dont tu sais déjà qu'ils seront hors plan ? Dis-le-moi.",
+    ],
+    reminderHeadline: (heading) => `${heading} — à ton plan aujourd'hui :`,
+    reminderFooter: "Dis-le-moi ici quand tu t'en occupes.",
+    cadenceDaily: "tous les jours",
+    cadenceTimesThisWeek: (times) => `${times}x cette semaine`,
+    weekStartFormat: (dayLabel, dayOfMonth, monthLabel) =>
+      `${dayLabel} ${dayOfMonth} ${monthLabel}`,
+  },
 };
 
-// SCHEMA scheduled_days CHECK vocabulary.
-const DAY_LABELS: Record<string, string> = {
-  mon: "Mon",
-  tue: "Tue",
-  wed: "Wed",
-  thu: "Thu",
-  fri: "Fri",
-  sat: "Sat",
-  sun: "Sun",
-};
-
-const MONTH_LABELS = [
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-];
+/**
+ * Le pack de rendu d'une locale. R7 par délégation: `localePackKey` jette pour
+ * une langue non livrée. C'est le MÊME refus qu'avant (`locale !== "en"`), au
+ * même endroit du flux — remplacer un throw par un repli silencieux serait la
+ * seule régression possible ici.
+ */
+function renderPackFor(locale: string): RenderPack {
+  return RENDER_PACKS[localePackKey(locale)];
+}
 
 // SCHEMA plan_commitments.priority CHECK vocabulary, in display order.
 const PRIORITY_ORDER = ["core", "secondary", "optional"] as const;
-const PRIORITY_HEADINGS: Record<string, string> = {
-  core: "Core",
-  secondary: "Also on the plan",
-  optional: "Optional",
-};
 
-// R7: fail loudly — unknown token never degrades into undefined or a fallback label.
-function labelFor(map: Record<string, string>, token: string, kind: string): string {
+/**
+ * R7: fail loudly — unknown token never degrades into undefined or a fallback.
+ *
+ * Renommé depuis `labelFor`: il prend une MAP, là où le `labelFor` public de
+ * `labels.ts` prend un vocab et un pack. Deux fonctions homonymes aux
+ * signatures différentes dans le même domaine se lisent comme un doublon, et
+ * quelqu'un finit par « dédupliquer » la mauvaise.
+ */
+function lookupOrThrow(map: Record<string, string>, token: string, kind: string): string {
   const label = map[token];
   if (label === undefined) {
     throw new Error(`R7: unknown ${kind} token "${token}"`);
@@ -109,7 +235,7 @@ function labelFor(map: Record<string, string>, token: string, kind: string): str
 }
 
 // R7: strict ISO date parse; anything else throws.
-function formatWeekStart(isoDate: string): string {
+function formatWeekStart(isoDate: string, pack: RenderPack): string {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate);
   if (!match) {
     throw new Error(`R7: weekStartDate "${isoDate}" is not YYYY-MM-DD`);
@@ -123,17 +249,22 @@ function formatWeekStart(isoDate: string): string {
   ) {
     throw new Error(`R7: weekStartDate "${isoDate}" is not a real calendar date`);
   }
-  return `${DAY_LABELS[["sun", "mon", "tue", "wed", "thu", "fri", "sat"][utc.getUTCDay()]]} ${Number(d)} ${MONTH_LABELS[utc.getUTCMonth()]}`;
+  const dayToken = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"][utc.getUTCDay()];
+  return pack.weekStartFormat(
+    pack.dayLabels[dayToken],
+    Number(d),
+    pack.monthLabels[utc.getUTCMonth()],
+  );
 }
 
-function cadenceLabel(c: SundayDigestCommitment): string | null {
+function cadenceLabel(c: SundayDigestCommitment, pack: RenderPack): string | null {
   if (c.scheduledDays !== null) {
     // R7: each day token validated individually.
-    return c.scheduledDays.map((d) => labelFor(DAY_LABELS, d, "day")).join(", ");
+    return c.scheduledDays.map((d) => lookupOrThrow(pack.dayLabels, d, "day")).join(", ");
   }
   if (c.requiredDaysPerWeek !== null) {
-    if (c.requiredDaysPerWeek === 7) return "daily";
-    return `${c.requiredDaysPerWeek}x this week`;
+    if (c.requiredDaysPerWeek === 7) return pack.cadenceDaily;
+    return pack.cadenceTimesThisWeek(c.requiredDaysPerWeek);
   }
   return null;
 }
@@ -146,11 +277,10 @@ function cadenceLabel(c: SundayDigestCommitment): string | null {
  * own paper — CONTRACT doctrine).
  */
 export function renderSundayDigest(args: SundayDigestArgs): string {
-  // R7: 'en' is the only render locale wired today; anything else must not silently
-  // fall back to English as if it were a translation.
-  if (args.locale !== "en") {
-    throw new Error(`R7: unsupported render locale "${args.locale}"`);
-  }
+  // R7: une langue sans pack livré JETTE — elle ne retombe pas en silence sur
+  // l'anglais comme si c'était une traduction. Même refus qu'avant, désormais
+  // porté par `localePackKey` pour qu'il n'existe qu'à un seul endroit.
+  const pack = renderPackFor(args.locale);
   if (args.commitments.length === 0) {
     // R7 spirit: an empty digest is a caller bug, not a message to send.
     throw new Error("renderSundayDigest: refusing to render a digest with zero commitments");
@@ -158,39 +288,49 @@ export function renderSundayDigest(args: SundayDigestArgs): string {
 
   const lines: string[] = [];
   lines.push(
-    `Hi ${args.studentFirstName} — here is what your plan holds for the week of ${formatWeekStart(args.weekStartDate)}.`,
+    pack.digestOpening(
+      args.studentFirstName,
+      formatWeekStart(args.weekStartDate, pack),
+    ),
   );
 
   for (const priority of PRIORITY_ORDER) {
     const group = args.commitments.filter(
       // R7: validate every priority token, including ones outside the current group.
-      (c) => labelFor(PRIORITY_HEADINGS, c.priority, "priority") === PRIORITY_HEADINGS[priority],
+      (c) =>
+        lookupOrThrow(pack.priorityHeadings, c.priority, "priority") ===
+          pack.priorityHeadings[priority],
     );
     if (group.length === 0) continue;
     lines.push("");
-    lines.push(`${PRIORITY_HEADINGS[priority]}:`);
+    lines.push(`${pack.priorityHeadings[priority]}:`);
     for (const c of group) {
       const details: string[] = [];
-      if (c.slotKey !== null) details.push(labelFor(SLOT_LABELS, c.slotKey, "slot"));
-      const cadence = cadenceLabel(c);
+      if (c.slotKey !== null) {
+        details.push(lookupOrThrow(pack.slotLabels, c.slotKey, "slot"));
+      }
+      const cadence = cadenceLabel(c, pack);
       if (cadence !== null) details.push(cadence);
       lines.push(details.length > 0 ? `- ${c.title} (${details.join(", ")})` : `- ${c.title}`);
     }
   }
 
   lines.push("");
-  lines.push("This is just a heads-up — nothing to confirm or validate.");
-  lines.push("Any days you already know will be off-plan? Just tell me.");
+  lines.push(...pack.digestFooter);
   return lines.join("\n");
 }
 
-/** R7 slot-token lookups, exported so no other module ever redeclares the vocabulary. */
-export function slotLabel(slotKey: string): string {
-  return labelFor(SLOT_LABELS, slotKey, "slot");
+/**
+ * R7 slot-token lookups, exported so no other module ever redeclares the
+ * vocabulary. `locale` est REQUIS: sans lui ces deux-là rendaient l'anglais à
+ * tout appelant, y compris depuis un rendu français.
+ */
+export function slotLabel(slotKey: string, locale: string): string {
+  return lookupOrThrow(renderPackFor(locale).slotLabels, slotKey, "slot");
 }
 
-export function slotHeading(slotKey: string): string {
-  return labelFor(SLOT_HEADINGS, slotKey, "slot");
+export function slotHeading(slotKey: string, locale: string): string {
+  return lookupOrThrow(renderPackFor(locale).slotHeadings, slotKey, "slot");
 }
 
 /**
@@ -212,20 +352,22 @@ export function slotHeading(slotKey: string): string {
  * phantom-commit cardinality bug reappears (N acknowledged, 1 committed).
  */
 export function renderSlotReminder(args: SlotReminderArgs): string {
-  if (args.locale !== "en") {
-    throw new Error(`R7: unsupported render locale "${args.locale}"`);
-  }
+  const pack = renderPackFor(args.locale);
   if (args.commitments.length === 0) {
     // R7 spirit: an empty reminder is a caller bug, not a message to send.
     throw new Error("renderSlotReminder: refusing to render a reminder with zero commitments");
   }
-  const lines: string[] = [`${slotHeading(args.slotKey)} — on your plan today:`];
+  const lines: string[] = [
+    pack.reminderHeadline(
+      lookupOrThrow(pack.slotHeadings, args.slotKey, "slot"),
+    ),
+  ];
   for (const c of args.commitments) {
     const instruction = c.studentInstruction === null ? "" : c.studentInstruction.trim();
     lines.push(instruction === "" ? `- ${c.title}` : `- ${c.title} — ${instruction}`);
   }
   lines.push("");
-  lines.push("Tell me here whenever you get to it.");
+  lines.push(pack.reminderFooter);
   return lines.join("\n");
 }
 

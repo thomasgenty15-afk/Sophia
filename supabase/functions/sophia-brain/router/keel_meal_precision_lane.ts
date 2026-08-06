@@ -346,6 +346,8 @@ export interface MealPrecisionArmResult {
 export async function armMealPrecisionQuestion(args: {
   supabase: SupabaseClient;
   userId: string;
+  /** R3 — la question part vers l'élève: elle porte la langue du tour. */
+  responseLocale: string;
   committed: readonly CommittedMealFact[];
   planLines: readonly PrecisionPlanLine[];
   slotKey: string | null;
@@ -373,6 +375,7 @@ export async function armMealPrecisionQuestion(args: {
   // Le plafond n'est lu QUE si tout le reste laisse passer: une lecture en base
   // par tour d'élève, et seulement quand elle peut changer quelque chose.
   const cheapGate = gateMealPrecisionQuestion({
+    locale: args.responseLocale,
     assessment,
     safetyBand: args.safetyBand,
     futureIntent: args.futureIntent,
@@ -388,6 +391,7 @@ export async function armMealPrecisionQuestion(args: {
     localDate,
   });
   const gate = gateMealPrecisionQuestion({
+    locale: args.responseLocale,
     assessment,
     safetyBand: args.safetyBand,
     futureIntent: args.futureIntent,

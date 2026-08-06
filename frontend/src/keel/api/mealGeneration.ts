@@ -20,6 +20,7 @@
 // `honours_belief_keys`, pour qu'aucun écran ne puisse l'afficher par accident.
 
 import { supabase } from "../../lib/supabase";
+import { type MealWindowRequest, selectMealPlans } from "./mealWindow";
 import { type DayToken } from "./types";
 
 /** `MEAL_MODES` du moteur. Liste fermée: une valeur hors liste est refusée. */
@@ -97,6 +98,20 @@ export function parseEatingRhythm(raw: unknown): EatingOccasionSlot[] {
 
 export const DAY_TOKENS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
 
+/**
+ * Une durée en minutes, ou `null`. Miroir de `readMinutes` du moteur.
+ *
+ * PAS DE ZÉRO PAR DÉFAUT: « 0 min » se lit « c'est instantané », ce qui est une
+ * promesse; `null` se lit « on ne sait pas », et l'écran sait taire ce qu'il ne
+ * sait pas. Plafonné à quatre heures, au-delà c'est une erreur d'unité qui
+ * ferait renoncer devant une session qui prend en fait une heure.
+ */
+function readMinutes(value: unknown): number | null {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  return Math.min(240, Math.round(n));
+}
+
 export interface DishIngredient {
   term: string;
   quantity: string | null;
@@ -117,6 +132,16 @@ export interface MealPreparation {
   servings_made: number;
   ingredients: DishIngredient[];
   method: string;
+  /**
+   * LE TEMPS, EN DEUX NOMBRES QUI NE DISENT PAS LA MÊME CHOSE.
+   *
+   * `active_minutes` = les mains dessus. `total_minutes` = du début à la fin,
+   * attente comprise. Un rôti fait 10 actives et 50 totales, et cet écart EST la
+   * raison pour laquelle cuisiner en lot marche: le temps de four est libre.
+   * `null` = le modèle n'a rien rendu d'exploitable, et l'écran se tait.
+   */
+  active_minutes: number | null;
+  total_minutes: number | null;
   cook_on: string | null;
 }
 
@@ -125,6 +150,8 @@ export interface CookingSession {
   day: string;
   preparation_ids: string[];
   run_through: string;
+  /** La durée AU MUR de la session, pas la somme de ses préparations. */
+  total_minutes: number | null;
 }
 
 export interface GeneratedDish {
@@ -166,6 +193,15 @@ export interface GeneratedMealResult {
    */
   context: string | null;
   /**
+   * CE DONT L'ÉLÈVE AVAIT ENVIE POUR CETTE COMPOSITION — « mezze d'été, plein
+   * de carottes ». Renvoyé pour être REPROPOSÉ au formulaire, comme `context`.
+   *
+   * DISTINCT des goûts durables (`practical_constraints.food_preferences`), qui
+   * viennent de la conversation et valent pour toutes ses semaines. Celui-ci est
+   * daté: il a été tapé au moment de générer, et il se réécrit à chaque fois.
+   */
+  preferences: string | null;
+  /**
    * QUAND CETTE COMPOSITION A ÉTÉ FAITE — l'ancre de sa semaine.
    *
    * Un plat ne nomme qu'un jour (« tue »), jamais une date. Le moteur remplit
@@ -178,6 +214,16 @@ export interface GeneratedMealResult {
    * aujourd'hui, ce qui est vrai par construction.
    */
   createdAt: string | null;
+  /**
+   * LA FENÊTRE DE CE PLAN — le premier jour couvert et leur nombre.
+   *
+   * C'est ce qui donne une DATE à un jeton (« tue »), et ce qui permet à deux
+   * plans de coexister sans qu'aucun écran n'ait à deviner lequel regarder.
+   * Avant `20260807090000_meal_plan_window`, la table n'en portait aucune et
+   * l'écran la déduisait de `created_at`.
+   */
+  startsOn: string;
+  durationDays: number;
 }
 
 export interface PantryItem {
@@ -187,11 +233,25 @@ export interface PantryItem {
 
 export interface GenerateMealInput {
   mode: MealMode;
-  scope: MealScope;
+  /**
+   * CE QU'ON DEMANDE, résolu par le SERVEUR avec le fuseau de l'élève.
+   *
+   * `scope` était une entrée et ne l'est plus: il se dérive de la durée, ce qui
+   * rend inexprimable une ligne « un jour » portant une fenêtre de sept jours.
+   */
+  window: MealWindowRequest;
+  /**
+   * `replace_current` refait le plan de l'onglet qu'on REGARDE — d'où
+   * `replaces`. `prepare_next` en crée un second qui démarre plus tard.
+   */
+  intent: "replace_current" | "prepare_next";
+  replaces: string | null;
   slot: MealSlot | null;
   servings: number;
   /** Le contexte du MOMENT, en prose libre. C'est la demande produit. */
   context: string | null;
+  /** L'envie du moment: « mezze d'été, plein de carottes ». */
+  preferences: string | null;
   pantry: PantryItem[];
 }
 
@@ -209,10 +269,19 @@ export async function generateMeal(
   const { data, error } = await supabase.functions.invoke("generate-meal-v1", {
     body: {
       mode: input.mode,
-      scope: input.scope,
+      window: input.window.kind === "exact"
+        ? {
+          kind: "exact",
+          starts_on: input.window.startsOn,
+          duration_days: input.window.durationDays,
+        }
+        : input.window,
+      intent: input.intent,
+      replaces: input.replaces,
       meal_slot: input.slot,
       servings: input.servings,
       context: input.context,
+      preferences: input.preferences,
       pantry: input.pantry,
     },
   });
@@ -233,9 +302,18 @@ export async function generateMeal(
     // Ce qu'on a DEMANDÉ, pas ce que la réponse raconte: c'est la même valeur
     // que la ligne vient d'enregistrer, et elle est connue à coup sûr ici.
     context: input.context,
+    preferences: input.preferences,
     // Elle vient d'être composée: sa semaine commence aujourd'hui, et
     // `stretchStartDate(null)` le dit sans avoir à lire une horloge ici.
     createdAt: null,
+    // La fenêtre RÉSOLUE PAR LE SERVEUR, renvoyée telle quelle: c'est elle qui
+    // fait foi, pas celle que le navigateur avait prévisualisée.
+    startsOn: String(
+      ((payload.window ?? {}) as Record<string, unknown>).starts_on ?? "",
+    ),
+    durationDays: Number(
+      ((payload.window ?? {}) as Record<string, unknown>).duration_days ?? 7,
+    ),
     // On ne recopie QUE les champs de l'écran. `honours_belief_keys` est
     // volontairement laissé de côté: la doctrine du coach ne s'affiche pas.
     dishes: readDishes(dishes),
@@ -318,6 +396,8 @@ function readPreparations(raw: unknown): MealPreparation[] {
       title: String(p.title ?? ""),
       servings_made: Number(p.servings_made) || 0,
       method: String(p.method ?? ""),
+      active_minutes: readMinutes(p.active_minutes),
+      total_minutes: readMinutes(p.total_minutes),
       cook_on: p.cook_on === null || p.cook_on === undefined ? null : String(p.cook_on),
       ingredients: readIngredients(p.ingredients),
     };
@@ -334,6 +414,7 @@ function readSessions(raw: unknown): CookingSession[] {
         ? sess.preparation_ids.map((v) => String(v))
         : [],
       run_through: String(sess.run_through ?? ""),
+      total_minutes: readMinutes(sess.total_minutes),
     };
   }).filter((s) => s.day !== "" && s.preparation_ids.length > 0);
 }
@@ -352,53 +433,23 @@ async function readInvokeError(error: unknown): Promise<string | null> {
   }
 }
 
+/** Les colonnes qu'un plan doit rendre pour être affichable ET situable. */
+const MEAL_COLUMNS =
+  "id, dishes, preparations, cooking_sessions, shopping_list, context, " +
+  "preferences, starts_on, duration_days, retired_at, created_at";
+
 /**
- * La dernière composition de l'élève, pour que l'écran ne s'ouvre pas vide.
+ * Une ligne de plan, telle que l'écran la lit.
  *
- * `notBefore` — UNE DATE LOCALE, ET C'EST UNE QUESTION D'HONNÊTETÉ, PAS DE
- * PERFORMANCE. `/app/plan` montre la dernière composition quel que soit son
- * âge: c'est « ce que tu as demandé la dernière fois », et une date au-dessus
- * suffirait à le situer. `/app/today` dit « aujourd'hui »: y afficher le dîner
- * du mardi d'une composition vieille de trois semaines présenterait un plat
- * périmé comme le plat du jour. La table ne porte AUCUNE `week_start` — un plat
- * ne nomme qu'un jour de semaine (`tue`), jamais une date — donc la seule
- * ancre disponible est `created_at`, et l'appelant qui a besoin d'une fenêtre
- * la nomme.
- *
- * Un seul lecteur de la table, une seule définition de « ma dernière
- * composition »: deux requêtes séparées auraient fini par diverger sur les
- * colonnes lues.
+ * Défensif dans une seule direction: ce qui manque devient vide, jamais deviné.
+ * `duration_days` retombe sur sept parce que c'est la fenêtre qu'une ligne
+ * ancienne portait implicitement — et le backfill de la migration a écrit ce
+ * même sept sur toutes les lignes historiques, donc les deux s'accordent.
  */
-export async function loadLatestGeneratedMeal(
-  userId: string,
-  options: { notBefore?: string } = {},
-): Promise<GeneratedMealResult | null> {
-  let query = supabase
-    .from("student_generated_meals")
-    .select("id, dishes, preparations, cooking_sessions, shopping_list, context, created_at")
-    .eq("user_id", userId);
-  if (options.notBefore) {
-    query = query.gte("created_at", localMidnightInstant(options.notBefore));
-  }
-  const result = await query
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (result.error) {
-    throw new Error(`[keel/mealGeneration] load failed: ${result.error.message}`);
-  }
-  if (!result.data) return null;
-  const row = result.data as unknown as {
-    id: string;
-    dishes: unknown;
-    preparations: unknown;
-    cooking_sessions: unknown;
-    shopping_list: unknown;
-    context: unknown;
-    created_at: unknown;
-  };
+function readMealRow(raw: unknown): GeneratedMealResult {
+  const row = (raw ?? {}) as Record<string, unknown>;
   return {
-    mealId: row.id,
+    mealId: String(row.id ?? "") || null,
     dishes: readDishes(row.dishes),
     preparations: readPreparations(row.preparations),
     cookingSessions: readSessions(row.cooking_sessions),
@@ -406,28 +457,66 @@ export async function loadLatestGeneratedMeal(
     context: typeof row.context === "string" && row.context.trim() !== ""
       ? row.context
       : null,
+    preferences: typeof row.preferences === "string" && row.preferences.trim() !== ""
+      ? row.preferences
+      : null,
     createdAt: typeof row.created_at === "string" ? row.created_at : null,
+    startsOn: String(row.starts_on ?? ""),
+    durationDays: Number(row.duration_days) || 7,
   };
 }
 
 /**
- * Minuit LOCAL de cette date, en instant.
+ * LES DEUX PLANS DE L'ÉLÈVE: celui d'aujourd'hui, et celui qu'il a préparé.
  *
- * Volontairement l'horloge du NAVIGATEUR, la même que celle qui calcule le
- * lundi de la semaine (`weekPlan.currentMonday`). Envoyer `2026-08-03` brut à
- * PostgREST ferait comparer un `timestamptz` à une date interprétée dans le
- * fuseau du SERVEUR: la nuit du dimanche au lundi, une composition faite à
- * 23h30 tomberait du mauvais côté de la semaine.
+ * ── CE QUI REMPLACE `loadLatestGeneratedMeal` ────────────────────────────
+ * L'ancien chargeur prenait `order by created_at desc limit 1`: « le dernier
+ * écrit gagne ». C'était le seul choix possible tant que la ligne ne portait pas
+ * sa fenêtre — et ça devenait faux à la seconde où un élève préparait la semaine
+ * suivante: le plan à venir aurait pris la place de celui qu'il suit ce soir.
  *
- * `new Date("2026-08-03T00:00:00")` — sans `Z` et sans décalage — est lu en
- * heure locale par la spec, ce qui est exactement ce qu'on veut ici.
+ * IL EST SUPPRIMÉ, PAS ALIASÉ. Une fonction encore appelée
+ * `loadLatestGeneratedMeal` promettrait que la règle supprimée tient encore.
+ *
+ * ── LE TRI EST FAIT PAR `mealWindow`, PAS ICI ────────────────────────────
+ * On rapatrie les lignes vivantes et `selectMealPlans` tranche. C'est le même
+ * module, avec la même table de cas, que celui du moteur: deux définitions de
+ * « courant » divergent au premier ajustement, et personne ne sait alors
+ * laquelle ment.
+ *
+ * ÉCHOUE FORT. « Tu n'as pas de plan » et « on n'a pas pu le lire » sont deux
+ * phrases différentes, et montrer la première pour la seconde inviterait
+ * l'élève à en régénérer un par-dessus celui qui existe.
  */
-function localMidnightInstant(localDate: string): string {
-  const at = new Date(`${localDate}T00:00:00`);
-  if (Number.isNaN(at.getTime())) {
-    throw new Error(`[keel/mealGeneration] invalid local date "${localDate}"`);
+export async function loadMealPlans(
+  userId: string,
+  today: string,
+): Promise<{
+  current: GeneratedMealResult | null;
+  next: GeneratedMealResult | null;
+  elapsed: GeneratedMealResult[];
+}> {
+  const result = await supabase
+    .from("student_generated_meals")
+    .select(MEAL_COLUMNS)
+    .eq("user_id", userId)
+    .is("retired_at", null)
+    // Borne de coût, pas de sémantique: la contrainte d'exclusion garantit déjà
+    // qu'au plus une fenêtre vivante contient un jour donné. Douze lignes
+    // couvrent largement le courant, le suivant et les écoulés récents.
+    .order("starts_on", { ascending: false })
+    .limit(12);
+  if (result.error) {
+    throw new Error(`[keel/mealGeneration] load failed: ${result.error.message}`);
   }
-  return at.toISOString();
+
+  const rows = ((result.data ?? []) as unknown[]).map(readMealRow);
+  const picked = selectMealPlans(rows, today);
+  return {
+    current: picked.current,
+    next: picked.next,
+    elapsed: picked.elapsed,
+  };
 }
 
 /**

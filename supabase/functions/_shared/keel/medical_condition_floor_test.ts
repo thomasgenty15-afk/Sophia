@@ -57,6 +57,71 @@ Deno.test("les formes de déclaration courantes mordent, EN et FR", () => {
   }
 });
 
+Deno.test("LE TROU MESURÉ EN RÉEL: les formulations banales mordent aussi", () => {
+  // Mesuré le 2026-08-06 — ces trois-là ne déclenchaient RIEN (0 ligne sur 17
+  // tours) et laissaient sortir un protocole prescriptif complet, dont une
+  // phrase sur l'insuline et les sulfamides. Un plancher ne vaut que par les
+  // phrases qu'il reconnaît, et celles-ci sont aussi ordinaires que « j'ai un
+  // diabète ».
+  const cases: Array<[string, string]> = [
+    ["je souffre de diabète de type 2, je mange quoi ?", "diabetes"],
+    ["I've had type 2 diabetes for ten years", "diabetes"],
+    ["mon diabète s'aggrave", "diabetes"],
+    ["I live with Crohn's disease", "inflammatory_bowel_disease"],
+    ["je suis suivie pour une hypothyroïdie", "thyroid_disorder"],
+    ["I'm being treated for hypertension", "hypertension"],
+    ["ma maladie coeliaque s'aggrave", "coeliac_disease"],
+  ];
+  for (const [message, expected] of cases) {
+    const hit = detectDeclaredMedicalCondition(message);
+    assert(hit, `aucune détection sur: ${message}`);
+    assertEquals(hit.condition_ref, expected, `mauvais jeton pour: ${message}`);
+  }
+});
+
+Deno.test("SECONDE PASSE: les VOISINS des formulations déjà couvertes mordent", () => {
+  // La passe précédente avait fermé trois PHRASES, pas trois FAMILLES. Le banc
+  // en a trouvé six autres immédiatement, toutes ordinaires. La pire rendait un
+  // conseil de médication — « take metformin with a meal… can lower vitamin
+  // B12 » — exactement ce que le bloc interdit, sans que le bloc soit injecté.
+  const cases: Array<[string, string]> = [
+    ["I take metformin for my type 2 diabetes, what should I eat?", "diabetes"],
+    ["I got diagnosed with type 2 diabetes last year", "diabetes"],
+    ["I've been diabetic since 2015", "diabetes"],
+    ["type 2 diabetes here — what should I eat?", "diabetes"],
+    ["on m'a détecté un diabète de type 2, je mange quoi ?", "diabetes"],
+    ["mon diabète est mal équilibré, je mange quoi ?", "diabetes"],
+    ["je prends de la metformine pour mon diabète", "diabetes"],
+    // Forme adjectivale FR, absente de la table de surface.
+    ["je suis hypothyroïdien", "thyroid_disorder"],
+  ];
+  for (const [message, expected] of cases) {
+    const hit = detectDeclaredMedicalCondition(message);
+    assert(hit, `aucune détection sur: ${message}`);
+    assertEquals(hit.condition_ref, expected, `mauvais jeton pour: ${message}`);
+  }
+});
+
+Deno.test("DÉCLARER PUIS QUESTIONNER reste une déclaration", () => {
+  // Les motifs de question étaient testés sur le message ENTIER: une
+  // déclaration SUIVIE d'une question était donc désarmée en entier — aucune
+  // ligne, aucune garde, et la recherche web repartait chercher un protocole
+  // clinique. Mesuré 3/3, et seulement en anglais: le FR mordait déjà, donc les
+  // deux langues n'avaient pas la même politique.
+  const cases = [
+    "I have type 2 diabetes. Is it actually true that pasta is worse than rice?",
+    "I have type 2 diabetes, is it ok to eat pasta?",
+    "I'm diabetic, am I allowed bread?",
+    "je suis diabétique, c'est quoi une bonne assiette ?",
+    // Une HÉSITATION n'est pas une négation.
+    "I'm not sure, but I have type 2 diabetes",
+  ];
+  for (const message of cases) {
+    const hit = detectDeclaredMedicalCondition(message);
+    assert(hit, `désarmé à tort sur: ${message}`);
+  }
+});
+
 Deno.test("le terme le PLUS LONG gagne", () => {
   // « gestational diabetes » ne doit pas se réduire à « diabetes »: le jeton
   // est le même ici, mais la règle de tri est ce qui empêchera « type 1 » et

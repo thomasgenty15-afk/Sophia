@@ -2,26 +2,31 @@ import { assertEquals } from "jsr:@std/assert@1";
 import {
   decideFromLedger,
   decideSeatQuantity,
-  findSeatItem,
+  findSeatItemFor,
   type StripeSubscriptionLike,
 } from "./reconcile.ts";
 import type { SeatLedgerRow } from "../_shared/billing-tier.ts";
 
 const SEAT_PRICE = "price_seat_live";
+const SEAT_PRICE_YEAR = "price_seat_year_live";
 const FLAT_PRICE = "price_flat_live";
 
 function withPrices(fn: () => void) {
   const saved = {
     seat: Deno.env.get("STRIPE_PRICE_ID_COACH_SEAT_MONTHLY"),
+    seatYear: Deno.env.get("STRIPE_PRICE_ID_COACH_SEAT_YEARLY"),
     flat: Deno.env.get("STRIPE_PRICE_ID_COACH_PLATFORM_MONTHLY"),
   };
   Deno.env.set("STRIPE_PRICE_ID_COACH_SEAT_MONTHLY", SEAT_PRICE);
+  Deno.env.set("STRIPE_PRICE_ID_COACH_SEAT_YEARLY", SEAT_PRICE_YEAR);
   Deno.env.set("STRIPE_PRICE_ID_COACH_PLATFORM_MONTHLY", FLAT_PRICE);
   try {
     fn();
   } finally {
     if (saved.seat === undefined) Deno.env.delete("STRIPE_PRICE_ID_COACH_SEAT_MONTHLY");
     else Deno.env.set("STRIPE_PRICE_ID_COACH_SEAT_MONTHLY", saved.seat);
+    if (saved.seatYear === undefined) Deno.env.delete("STRIPE_PRICE_ID_COACH_SEAT_YEARLY");
+    else Deno.env.set("STRIPE_PRICE_ID_COACH_SEAT_YEARLY", saved.seatYear);
     if (saved.flat === undefined) Deno.env.delete("STRIPE_PRICE_ID_COACH_PLATFORM_MONTHLY");
     else Deno.env.set("STRIPE_PRICE_ID_COACH_PLATFORM_MONTHLY", saved.flat);
   }
@@ -48,7 +53,7 @@ function sub(
 // THE ITEM-ORDER BUG — the one that would have invoiced the flat line per head
 // ---------------------------------------------------------------------------
 
-Deno.test("findSeatItem picks the SEAT line whatever the item order", () => {
+Deno.test("findSeatItemFor picks the SEAT line whatever the item order", () => {
   withPrices(() => {
     const a = sub([
       { id: "si_flat", price: FLAT_PRICE, quantity: 1 },
@@ -58,14 +63,41 @@ Deno.test("findSeatItem picks the SEAT line whatever the item order", () => {
       { id: "si_seat", price: SEAT_PRICE, quantity: 4 },
       { id: "si_flat", price: FLAT_PRICE, quantity: 1 },
     ]);
-    assertEquals(findSeatItem(a)?.id, "si_seat");
-    assertEquals(findSeatItem(b)?.id, "si_seat");
+    assertEquals(findSeatItemFor(a, "month")?.id, "si_seat");
+    assertEquals(findSeatItemFor(b, "month")?.id, "si_seat");
   });
 });
 
 Deno.test("a subscription with ONLY the flat line has no seat item", () => {
   withPrices(() => {
-    assertEquals(findSeatItem(sub([{ id: "si_flat", price: FLAT_PRICE }])), null);
+    assertEquals(findSeatItemFor(sub([{ id: "si_flat", price: FLAT_PRICE }]), "month"), null);
+  });
+});
+
+// ── LE DÉFAUT QUE `findSeatItemFor` EXISTE POUR FERMER ────────────────────
+// Depuis 20260806190000 un abonnement peut porter DEUX articles de siège. Un
+// finder qui rend « le premier siège trouvé » redimensionnerait l'article
+// ANNUEL avec un compte MENSUEL — sur une facture, en silence.
+Deno.test("chaque intervalle vise SON article, jamais celui de l'autre", () => {
+  withPrices(() => {
+    const s = sub([
+      { id: "si_year", price: SEAT_PRICE_YEAR, quantity: 2 },
+      { id: "si_month", price: SEAT_PRICE, quantity: 5 },
+    ]);
+    assertEquals(findSeatItemFor(s, "month")?.id, "si_month");
+    assertEquals(findSeatItemFor(s, "year")?.id, "si_year");
+  });
+});
+
+// Un intervalle dont le prix n'est pas configuré ne trouve rien — et c'est ce
+// qui fera dire à la décision « create_item », donc à l'appelant de lever sur
+// la variable manquante. Le silence serait pire: on redimensionnerait l'autre.
+Deno.test("un intervalle sans prix configuré ne trouve aucun article", () => {
+  withPrices(() => {
+    Deno.env.delete("STRIPE_PRICE_ID_COACH_SEAT_YEARLY");
+    const s = sub([{ id: "si_month", price: SEAT_PRICE, quantity: 5 }]);
+    assertEquals(findSeatItemFor(s, "year"), null);
+    assertEquals(findSeatItemFor(s, "month")?.id, "si_month");
   });
 });
 

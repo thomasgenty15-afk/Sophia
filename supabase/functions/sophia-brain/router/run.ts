@@ -273,6 +273,11 @@ import {
   type LoadedDoctrine,
   loadPublishedDoctrine,
 } from "../../_shared/keel/doctrine_loader.ts";
+import { weekReviewPromptBlock } from "../../_shared/keel/week_review.ts";
+import {
+  loadLatestWeekReview,
+  type StoredWeekReview,
+} from "../../_shared/keel/week_review_io.ts";
 import { detectDeclaredSafetyConstraint } from "../../_shared/keel/safety_constraint_floor.ts";
 import {
   CLINICAL_DEFERRAL_BLOCK,
@@ -949,6 +954,24 @@ export type KeelTurnContext = {
    */
   coach_note: LoadedCoachNote | null;
   /**
+   * LE DERNIER BILAN HEBDOMADAIRE CALCULÉ de cet élève, ou `null`.
+   *
+   * ── POURQUOI IL VOYAGE SUR LE TOUR ET NE SE RECALCULE PAS ────────────────
+   * Le bilan est GELÉ au moment où le point du dimanche part
+   * (`week_review_io.ts`, « l'ordre des trois temps »). La conversation de
+   * toute la semaine suivante cite donc exactement les nombres que l'élève a
+   * lus dans son bilan. Recalculer à chaque tour donnerait un chiffre qui
+   * bouge entre deux messages — et un chiffre qui bouge est indéfendable,
+   * même quand chacune de ses valeurs était juste.
+   *
+   * `null` en régime nominal la première semaine, et pour tout élève dont le
+   * cron n'a pas encore tourné. Absent, il ne pousse RIEN — pas d'en-tête,
+   * pas de « je n'ai pas encore de bilan »: c'est la leçon de
+   * `NO_COACH_METHOD_BLOCK`, dont le titre décrivait un état interne et
+   * ressortait mot pour mot dans la bouche de l'agent.
+   */
+  week_review: StoredWeekReview | null;
+  /**
    * LA QUESTION DE PRÉCISION armée par CE tour, ou `null`.
    *
    * Elle voyage ici et pas sur le `turn_frame` pour une raison mesurée: un
@@ -995,6 +1018,7 @@ export const LEGACY_KEEL_TURN_CONTEXT: KeelTurnContext = {
   safety_constraints_unavailable_reason: null,
   doctrine: null,
   coach_note: null,
+  week_review: null,
 };
 
 const ISO_LOCAL_DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -1154,6 +1178,13 @@ export async function loadKeelTurnContext(args: {
   // des élèves. Ne throw jamais et porte son propre arbitrage de panne.
   const coachNote = await loadCoachNote(args.supabase, args.userId);
 
+  // LE BILAN DE LA DERNIÈRE SEMAINE EXAMINÉE. Ne throw jamais: une lecture en
+  // panne ou une forme illisible rend `null`, et le tour perd un sujet de
+  // conversation — pas la conversation. Le pire cas de l'alternative serait un
+  // chiffre faux cité dans la bulle, que ni l'élève ni le coach ne peuvent
+  // distinguer d'un vrai.
+  const weekReview = await loadLatestWeekReview(args.supabase, args.userId);
+
   return {
     role,
     is_student: true,
@@ -1174,6 +1205,7 @@ export async function loadKeelTurnContext(args: {
     safety_constraints_unavailable_reason: safetyConstraintsUnavailableReason,
     doctrine,
     coach_note: coachNote,
+    week_review: weekReview,
   };
 }
 
@@ -1860,6 +1892,25 @@ export function withKeelDoctrineBlock(
   // bouche de l'agent.
   const coachNote = keel.coach_note ? coachNotePromptBlock(keel.coach_note) : null;
   if (coachNote && coachNote.trim()) blocks.push(coachNote);
+
+  // LE BILAN DE LA DERNIÈRE SEMAINE EXAMINÉE — DERNIER DES CINQ, exprès.
+  //
+  // L'ordre de ces blocs est un classement par COÛT DE PERTE, parce que le
+  // budget de prompt tronque par la queue. Perdre le verrou clinique sert un
+  // protocole à quelqu'un dont la maladie se soigne; perdre l'allergène met un
+  // aliment dans une assiette; perdre la doctrine rend l'agent générique;
+  // perdre la note du coach dégrade le service d'un cran. Perdre le bilan coûte
+  // un SUJET DE CONVERSATION — le moins cher des cinq, donc le dernier.
+  //
+  // ⚠️ IL PORTE SES DATES, et c'est structurel, pas cosmétique: ce bloc survit
+  // toute la semaine SUIVANTE, et un modèle qui dirait « cette semaine tu as vu
+  // du poisson deux fois » énoncerait un chiffre exact rattaché à la mauvaise
+  // période — c'est-à-dire un chiffre faux que rien ne permet de contester.
+  // `weekReviewPromptBlock` écrit la plage en tête et l'interdit explicitement.
+  const weekReview = keel.week_review
+    ? weekReviewPromptBlock(keel.week_review.reading, keel.week_review.biofeedback)
+    : null;
+  if (weekReview && weekReview.trim()) blocks.push(weekReview);
 
   if (blocks.length === 0) return context;
   const base = String(context ?? "");

@@ -5,13 +5,29 @@
 // single source of truth — adding a key there immediately types t() calls.
 
 import { en } from "./en"
+import { fr } from "./fr.public"
+import { isPublicMessageKey } from "./catalog"
+import { uiLocale } from "./runtime"
 
 export type MessageKey = keyof typeof en
 export type Messages = Record<MessageKey, string>
 
-// Pilot: English only. resolveResponseLocale (backend) is the single point of
-// change for conversation language; this table is the UI-locale equivalent.
-const messages: Messages = en
+/**
+ * Le seed anglais est la SOURCE DU TYPE et le fond de carte.
+ *
+ * Le français est livré sur la VITRINE (voir `catalog.ts` pour le pourquoi de
+ * la frontière et la liste des namespaces). En dehors, l'anglais est la langue
+ * DÉCLARÉE du produit, pas une dégradation silencieuse: la frontière est
+ * portée par un type, testée par une ceinture de parité, et signalée en DEV
+ * ci-dessous. Le jour où l'app authentifiée est traduite, `PUBLIC_NAMESPACES`
+ * s'élargit et le compilateur énumère ce qui manque.
+ */
+function resolve(key: MessageKey): string | undefined {
+  if (uiLocale() === "fr" && isPublicMessageKey(key)) {
+    return fr[key]
+  }
+  return en[key]
+}
 
 /**
  * R7: token mappings fail loudly — but with a deliberate split by environment.
@@ -23,7 +39,15 @@ const messages: Messages = en
  * broken (the key string is on screen) and loudly logged.
  */
 export function t(key: MessageKey, params?: Record<string, string | number>): string {
-  const template = messages[key]
+  const template = resolve(key)
+  if (import.meta.env.DEV && uiLocale() === "fr" && !isPublicMessageKey(key)) {
+    // Visible pour NOUS, jamais pour l'utilisateur. Un throw ici ferait tomber
+    // l'app authentifiée dès qu'un visiteur ayant choisi le français s'y
+    // connecte — punir l'utilisateur pour une frontière qu'on a décidée.
+    console.info(
+      `t(): "${key}" est hors de la vitrine — rendu en anglais (frontière déclarée, voir i18n/catalog.ts)`,
+    )
+  }
   if (template === undefined) {
     const msg = `t(): unknown message key "${key}"`
     if (import.meta.env.DEV) {

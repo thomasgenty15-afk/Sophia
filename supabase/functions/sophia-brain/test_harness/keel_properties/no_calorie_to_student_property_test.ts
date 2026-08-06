@@ -33,6 +33,7 @@
  *   3. TYPE — `MealAnalysis` has no field that could carry one.
  */
 
+import { numericNutritionTargetPatterns } from "../../../_shared/keel/nutrition_lexicon.ts";
 import {
   assertEquals,
   assertStringIncludes,
@@ -59,24 +60,25 @@ import {
 // ---------------------------------------------------------------------------
 
 /**
- * A quantified energy or macro claim in student-facing prose. Requires a DIGIT
- * next to the word: "a protein-rich plate" is fine and must stay fine, because
- * a detector that also bans the vocabulary would force the product mute rather
- * than honest.
+ * A quantified energy or macro claim in student-facing prose.
+ *
+ * QUATRIÈME COPIE, SUPPRIMÉE. Cette propriété est la plus transverse du dépôt
+ * — « aucun chiffre d'énergie ni de macro n'atteint un élève » — et sa liste
+ * était 100 % anglaise. Le jour où le produit répond en français, elle serait
+ * devenue aveugle sur « 38 g de protéines »: une propriété verte qui ne
+ * regarde plus rien, ce qui est pire que pas de propriété du tout.
+ *
+ * Elle délègue maintenant à l'union EN+FR. Le principe qu'elle protège ne
+ * bouge pas: il faut un CHIFFRE à côté du mot. « une assiette riche en
+ * protéines » reste licite et doit le rester — un détecteur qui bannirait le
+ * vocabulaire forcerait le produit à être muet plutôt qu'honnête.
  */
-const CALORIE_PROSE = [
-  /\d[\d.,]*\s*(kcal|calories|calorie|cals?)\b/i,
-  /(kcal|calories|calorie)\s*[:=]?\s*\d/i,
-  /\d[\d.,]*\s*(g|gr|grams?|mg)\s*(of\s+)?(protein|carbs?|carbohydrates?|fat|fats|fibre|fiber|sugar|sodium)\b/i,
-  /(protein|carbs?|carbohydrates?|fat|fibre|fiber|sugar|sodium)\s*[:=]?\s*\d[\d.,]*\s*(g|gr|grams?|mg)\b/i,
-];
-
 function assertNoCalorieFigure(text: string, context: string): void {
-  for (const pattern of CALORIE_PROSE) {
+  for (const pattern of numericNutritionTargetPatterns()) {
     assertEquals(
-      pattern.test(text),
+      pattern.re.test(text),
       false,
-      `${context}: an energy/macro quantity reached a student surface -> ${JSON.stringify(text)}`,
+      `${context}: an energy/macro quantity reached a student surface (${pattern.name}) -> ${JSON.stringify(text)}`,
     );
   }
 }

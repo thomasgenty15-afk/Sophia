@@ -200,18 +200,10 @@ export const EN_LABELS: LocalePack = {
   food_groups,
 }
 
-/**
- * Look up the display label of a token. R7: fail loudly — an unknown vocab or
- * token throws; it never returns undefined or a silent fallback.
- */
-export function labelFor(vocab: Vocab, token: string, localePack: LocalePack = EN_LABELS): string {
-  const table = localePack[vocab]
-  if (!table) {
-    throw new Error(`labelFor: unknown vocab "${vocab}" (R7: fail loudly)`)
-  }
-  const label = table[token]
-  if (label === undefined) {
-    throw new Error(`labelFor: unknown token "${token}" in vocab "${vocab}" (R7: fail loudly)`)
-  }
-  return label
-}
+// `labelFor` a DÉMÉNAGÉ dans `labels.ts`, avec son pack en argument REQUIS.
+//
+// Il vivait ici avec `localePack: LocalePack = EN_LABELS`, et aucun des trois
+// appelants de production ne passait l'argument: le pack français aurait pu
+// exister et n'être servi à personne. Ce fichier ne porte plus que les données
+// EN et les types; qui veut un libellé passe par `labels.ts` et dit d'où vient
+// sa locale.

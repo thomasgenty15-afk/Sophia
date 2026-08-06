@@ -28,9 +28,23 @@ export type CoachClientStatus = "invited" | "active" | "paused" | "ended";
  */
 export type SeatDisplayState = "active" | "ending" | "paused" | "other";
 
+/** Sur quel article Stripe ce siège est compté (migration 20260806190000). */
+export type SeatInterval = "month" | "year";
+
 export interface SeatRow {
   status: CoachClientStatus;
   scheduled_end_at: string | null;
+  billing_interval: SeatInterval | null;
+}
+
+/**
+ * PURE. Tout ce qui n'est pas explicitement `'year'` est mensuel — y compris
+ * `null` et une valeur inconnue. Même défaut que `countSeats` côté serveur, et
+ * pour la même raison: le mensuel est le tarif le plus cher et le moins
+ * engageant, donc l'erreur de ce côté-là n'enferme personne douze mois.
+ */
+export function seatInterval(row: SeatRow | null): SeatInterval {
+  return row?.billing_interval === "year" ? "year" : "month";
 }
 
 /**
@@ -97,11 +111,32 @@ async function callSeatRpc(
 export async function loadSeat(studentId: string): Promise<SeatRow | null> {
   const { data, error } = await supabase
     .from("coach_clients")
-    .select("status, scheduled_end_at")
+    .select("status, scheduled_end_at, billing_interval")
     .eq("student_user_id", studentId)
     .maybeSingle();
   if (error) throw new Error(error.message);
   return (data as SeatRow | null) ?? null;
+}
+
+/**
+ * Bascule le siège entre mensuel et annuel.
+ *
+ * ⚠️ NE FACTURE NI NE REMBOURSE RIEN SUR LE MOMENT. Ça dit sur quel article le
+ * siège sera compté à la prochaine réconciliation — `stripe-reconcile-seats`
+ * tourne en `proration_behavior=none`. Le coach décide de son offre; nous
+ * comptons.
+ */
+export async function setSeatInterval(
+  studentId: string,
+  interval: SeatInterval,
+): Promise<SeatActionResult> {
+  const { data, error } = await supabase.rpc("keel_coach_set_seat_interval", {
+    p_student_user_id: studentId,
+    p_interval: interval,
+  });
+  if (error) throw new Error(error.message);
+  const row = (data ?? {}) as Partial<SeatActionResult>;
+  return { ok: Boolean(row.ok), reason: String(row.reason ?? "unknown") };
 }
 
 export function scheduleSeatEnd(studentId: string): Promise<SeatActionResult> {

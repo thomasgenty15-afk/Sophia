@@ -112,6 +112,30 @@ Deno.test("research lane stays silent without signal and mutes on high safety (a
   });
   assertEquals(falseValue.outcome, "not_requested");
 
+  // LA COUPURE MÉDICALE, exercée — elle ne l'était par aucun test, et la
+  // revalidation en réel n'a pas pu la prouver: `declaredMedicalCondition`
+  // valait `null` dans les six fixtures. Une recherche « quoi manger quand on a
+  // telle maladie » rapporte par construction ce que la garde clinique interdit
+  // de dire, et le composeur la remet EN TÊTE du prompt.
+  const medical = await runResearchGroundingLane({
+    declaredMedicalCondition: "diabetes",
+    turnFrame: frame({
+      needs_research: {
+        detected: true,
+        value: true,
+        query: "dietary advice for type 2 diabetes",
+      },
+    }),
+    searchFn: (() => {
+      throw new Error("la recherche ne doit PAS être appelée sur une maladie déclarée");
+    }) as never,
+  });
+  assertEquals(medical.outcome, "medical_muted");
+  assertEquals(medical.context_block, null);
+  // Pas de directive d'honnêteté non plus: on n'a rien tenté, donc il n'y a
+  // rien à avouer. La dire ferait parler l'agent d'une recherche absente.
+  assertEquals(medical.honesty_directive, null);
+
   const high = await runResearchGroundingLane({
     declaredMedicalCondition: null,
     turnFrame: frame({

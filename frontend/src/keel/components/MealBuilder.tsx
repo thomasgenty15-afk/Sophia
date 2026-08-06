@@ -4,23 +4,25 @@ import { useAuth } from "../../context/AuthContext";
 import {
   type GeneratedMealResult,
   generateMeal,
-  loadLatestGeneratedMeal,
+  loadMealPlans,
   MEAL_SLOTS,
   type MealMode,
-  type MealScope,
 } from "../api/mealGeneration";
+import {
+  type MealWindowRequest,
+  planEndsOn,
+  resolveRequestedWindow,
+  windowDates,
+  windowDayOrder,
+} from "../api/mealWindow";
 import { dishDayLabel, dishSlotLabel, mealCopy } from "../api/mealLabels";
 import DishCard from "./DishCard";
+import ShoppingListPanel from "./ShoppingListPanel";
 import CookingSessions from "./CookingSessions";
-import {
-  dishDate,
-  stretchDates,
-  stretchDayOrder,
-  stretchStartDate,
-} from "../api/mealStretch";
+import { dishDate } from "../api/mealStretch";
+import { addDays } from "../api/dates";
 import { browserLocalDate, useMealTicks } from "../lib/useMealTicks";
 import { groupByDay, parsePantry } from "../lib/mealBuilderModel";
-import { Badge } from "./ui/Badge";
 import { Button } from "./ui/Button";
 import { Card, SectionLabel } from "./ui/Card";
 import { Field, inputClass } from "./ui/Field";
@@ -65,9 +67,14 @@ const COPY = {
   "meals.form.mode_label": "Where do we start",
   "meals.form.mode_from_pantry": "From what I already have",
   "meals.form.mode_to_shop": "I will shop for it",
-  "meals.form.scope_label": "How much",
-  "meals.form.scope_day": "One day",
-  "meals.form.scope_several": "Several days",
+  // LA FENÊTRE, ET CE QU'ELLE COUVRE VRAIMENT. « Until Sunday » un dimanche
+  // fait UN jour — l'aperçu le dit, sinon le bouton a l'air cassé.
+  "meals.form.window_label": "Which days",
+  "meals.form.window_until_sunday": "Until Sunday",
+  "meals.form.window_seven_days": "For 7 days",
+  "meals.form.window_exact": "Choose exactly",
+  "meals.form.window_days_label": "How many days",
+  "meals.form.window_one_day": "Just today.",
   "meals.form.slot_label": "A particular meal (optional)",
   "meals.form.slot_any": "The whole day",
   "meals.form.servings_label": "How many people",
@@ -75,6 +82,18 @@ const COPY = {
   "meals.form.pantry_hint":
     "One per line. Add an amount if it matters — «rice, 500g».",
   "meals.form.pantry_placeholder": "chicken thighs\nrice\nspinach",
+  // L'ENVIE, ET PAS LES GOÛTS. Ce champ est DATÉ — il vaut pour cette
+  // composition. Les goûts durables (« je déteste le brocoli ») vivent dans
+  // « What you have told me about your eating », viennent de la conversation, et
+  // valent pour toutes les semaines. Deux champs parce que deux durées de vie:
+  // écrire « mezze d'été » dans la liste durable le ferait revenir en février.
+  "meals.form.preferences_label": "What you fancy this time (optional)",
+  "meals.form.preferences_placeholder":
+    "summer mezze — lots of carrots, raw veg, nothing heavy",
+  "meals.form.preferences_hint":
+    "A mood for these meals. What you always like or never eat belongs in «What you have told me about your eating» — it is remembered on its own.",
+  "meals.form.preferences_carried":
+    "Kept from your last plan. Change it if you fancy something else.",
   "meals.form.context_label": "Anything going on this week (optional)",
   "meals.form.context_placeholder":
     "training Tue and Thu, eating out on Friday, short on time…",
@@ -91,6 +110,7 @@ const COPY = {
   "meals.result.empty":
     "Nothing built yet. Tell me where to start above and I will put a few meals together.",
   "meals.result.shopping_title": "Shopping list",
+  "meals.result.shopping_close": "Hide shopping list",
   // Deux repères, et rien de plus. « Demain », « dans 3 jours » seraient des
   // calculs à refaire à chaque rendu pour une information que l'ordre donne
   // déjà: ce qui suit « today » est à venir.
@@ -100,6 +120,14 @@ const COPY = {
   // ── QUAND LA SEMAINE EXISTE DÉJÀ ──────────────────────────────────────────
   "meals.rebuild.button": "Build another plan",
   "meals.rebuild.title": "Build another plan",
+  "meals.rebuild.prepare_next": "Prepare next plan",
+  "meals.result.tab_current": "This week",
+  "meals.result.tab_next": "Next",
+  // L'AVERTISSEMENT DE TRONCATURE. Il NOMME les jours qui partent, parce que
+  // les courses de ces jours-là ont peut-être déjà été faites — et cette
+  // dépense-là ne se rembourse pas.
+  "meals.rebuild.truncates":
+    "This takes {days} day(s) off your current plan ({from} → {to}). You may already have shopped for them.",
   // Le formulaire REMPLACE la semaine en place, et le dit AVANT qu'on clique.
   // C'est le seul geste destructif de l'écran: `generate-meal-v1` écrit une
   // ligne neuve, et cet écran ne lit que la dernière.
@@ -122,17 +150,48 @@ export default function MealBuilder() {
   const userId = user?.id ?? "";
 
   const [state, setState] = React.useState<LoadState>("loading");
-  const [result, setResult] = React.useState<GeneratedMealResult | null>(null);
+  /**
+   * LES DEUX PLANS, et l'onglet qu'on regarde.
+   *
+   * Un élève peut avoir un plan EN COURS et un plan PRÉPARÉ pour plus tard.
+   * « Le suivant devient le courant » n'est pas un événement: `loadMealPlans`
+   * les reclasse à chaque lecture selon la date du jour, sans que rien n'ait
+   * été écrit.
+   */
+  const [plans, setPlans] = React.useState<{
+    current: GeneratedMealResult | null;
+    next: GeneratedMealResult | null;
+  }>({ current: null, next: null });
+  const [tab, setTab] = React.useState<"current" | "next">("current");
 
   const [mode, setMode] = React.useState<MealMode>("to_shop");
-  const [scope, setScope] = React.useState<MealScope>("several_days");
+  /**
+   * CE QU'ON DEMANDE, pas ce qu'on impose. `scope` était une entrée du client,
+   * et une ligne « un jour » portant une fenêtre de sept jours était donc
+   * possible; il est maintenant DÉRIVÉ de la durée, côté serveur.
+   *
+   * Deux préréglages bien visibles, et le reste derrière un lien discret: le
+   * geste courant est « jusqu'à dimanche » ou « sept jours », et un sélecteur
+   * de dates posé en permanence ferait payer à tout le monde le cas rare.
+   */
+  const [windowRequest, setWindowRequest] = React.useState<MealWindowRequest>({
+    kind: "until_sunday",
+  });
+  const [exactOpen, setExactOpen] = React.useState(false);
   const [slot, setSlot] = React.useState<string>("");
   const [servings, setServings] = React.useState(1);
   const [pantryText, setPantryText] = React.useState("");
   const [context, setContext] = React.useState("");
   /** Vrai tant que le contexte affiché est celui de la dernière génération. */
   const [contextCarried, setContextCarried] = React.useState(false);
+  /** L'envie du moment. Reproposée comme le contexte, et pour la même raison. */
+  const [preferences, setPreferences] = React.useState("");
+  const [preferencesCarried, setPreferencesCarried] = React.useState(false);
   const [building, setBuilding] = React.useState(false);
+  /** La liste de courses est dépliée ou non. Son bouton vit dans l'en-tête. */
+  const [shoppingOpen, setShoppingOpen] = React.useState(false);
+  /** Les sessions de cuisine, même traitement et même rang de bouton. */
+  const [sessionsOpen, setSessionsOpen] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   /**
    * LE FORMULAIRE EST DEMANDÉ, IL N'EST PLUS POSÉ EN PERMANENCE.
@@ -145,15 +204,36 @@ export default function MealBuilder() {
    * un bouton, et le formulaire quand on le demande.
    */
   const [formOpen, setFormOpen] = React.useState(false);
+  /**
+   * QUEL GESTE A OUVERT LE FORMULAIRE — et pas « y a-t-il un plan dans cet
+   * onglet ».
+   *
+   * DÉFAUT MESURÉ le 2026-08-07: l'intention se DÉDUISAIT de l'occupation de
+   * l'onglet (`plans.current ? replace : prepare`). « Prepare next plan »
+   * ouvrait donc le formulaire sur l'onglet courant, et la déduction rendait
+   * `replace_current` — le plan en cours a été RETIRÉ au lieu d'être raccourci.
+   * L'élève voulait préparer la suite; il a perdu la semaine pour laquelle il
+   * avait fait ses courses.
+   *
+   * Une intention est ce qu'on a DEMANDÉ. Elle se stocke, elle ne se devine pas.
+   */
+  const [formIntent, setFormIntent] = React.useState<
+    "replace_current" | "prepare_next"
+  >("replace_current");
 
   React.useEffect(() => {
     let cancelled = false;
     (async () => {
       if (!userId) return;
       try {
-        const latest = await loadLatestGeneratedMeal(userId);
+        const loaded = await loadMealPlans(userId, browserLocalDate());
         if (!cancelled) {
-          setResult(latest);
+          setPlans({ current: loaded.current, next: loaded.next });
+          // On ouvre sur le plan qu'on VIT. Ouvrir sur le suivant ferait lire
+          // les repas de la semaine prochaine à quelqu'un qui vient voir ce
+          // qu'il mange ce soir.
+          setTab(loaded.current ? "current" : loaded.next ? "next" : "current");
+          const latest = loaded.current ?? loaded.next;
           // LE CONTEXTE SE REPROPOSE. « Cantine le midi », « je m'entraîne
           // mardi et jeudi », « le week-end chez mes parents »: ces contraintes
           // sont celles d'une VIE, pas d'une semaine, et les retaper à chaque
@@ -166,6 +246,13 @@ export default function MealBuilder() {
           if (latest?.context) {
             setContext(latest.context);
             setContextCarried(true);
+          }
+          // MÊME REPRISE QUE LE CONTEXTE. « Mezze d'été » vaut souvent encore la
+          // semaine suivante, et la légende dit d'où le texte vient pour qu'une
+          // envie périmée saute aux yeux plutôt que de repartir en silence.
+          if (latest?.preferences) {
+            setPreferences(latest.preferences);
+            setPreferencesCarried(true);
           }
         }
       } catch {
@@ -182,6 +269,84 @@ export default function MealBuilder() {
   // LES COCHES. La liaison vit dans `lib/useMealTicks.ts` et pas ici: cet écran
   // et `/app/today` rendent le MÊME plat, et deux liaisons auraient fini par
   // afficher deux vérités.
+  // LE PLAN AFFICHÉ est celui de l'onglet: tout ce qui suit (plats, courses,
+  // sessions, coches, geste de régénération) porte sur LUI et pas sur « le
+  // dernier écrit ».
+  const result = tab === "next" ? plans.next : plans.current;
+
+  /**
+   * CE QUE LES BOUTONS COUVRENT, en clair, avant de cliquer.
+   *
+   * L'aperçu est INDICATIF: la fenêtre qui fait foi est résolue par le serveur
+   * avec le fuseau de l'élève. Les deux doivent s'accorder au jour près, d'où
+   * le module miroir et sa table de cas partagée.
+   *
+   * Une intention impossible (durée hors bornes, départ dans le passé) ne casse
+   * pas l'écran: elle rend son motif, et le serveur refusera de toute façon.
+   */
+  const windowPreview = React.useMemo(() => {
+    try {
+      const today = browserLocalDate();
+      const w = resolveRequestedWindow(windowRequest, today);
+      const ends = planEndsOn(w.startsOn, w.durationDays);
+      if (w.durationDays === 1) return c("meals.form.window_one_day");
+      return `${w.startsOn} → ${ends} · ${w.durationDays} days`;
+    } catch (e) {
+      return e instanceof Error ? e.message : String(e);
+    }
+  }, [windowRequest]);
+
+  /**
+   * Le lendemain de la fin du plan courant — le départ qui ne tronque RIEN.
+   *
+   * C'est le défaut de « Prepare next plan », parce que c'est le seul choix qui
+   * ne coûte rien à personne. L'élève peut le ramener plus tôt; l'écran lui dira
+   * alors ce que ça retire.
+   */
+  const nextDefaultStart = React.useMemo(() => {
+    const today = browserLocalDate();
+    if (!plans.current?.startsOn) return today;
+    const after = addDays(
+      planEndsOn(plans.current.startsOn, plans.current.durationDays),
+      1,
+    );
+    return after > today ? after : today;
+  }, [plans.current]);
+
+  /**
+   * CE QUE LA FENÊTRE DEMANDÉE RETIRERAIT AU PLAN COURANT.
+   *
+   * Dit AVANT le clic, et il nomme les jours: ce sont peut-être des jours pour
+   * lesquels l'élève a déjà fait ses courses, et cette dépense-là ne se
+   * rembourse pas. `null` quand rien ne bouge.
+   */
+  const truncationWarning = React.useMemo(() => {
+    const current = plans.current;
+    if (!current?.startsOn) return null;
+    let asked: { startsOn: string; durationDays: number };
+    try {
+      asked = resolveRequestedWindow(windowRequest, browserLocalDate());
+    } catch {
+      return null;
+    }
+    const currentEnds = planEndsOn(current.startsOn, current.durationDays);
+    // Le nouveau plan ne mord que s'il démarre APRÈS le début du courant et
+    // AVANT sa fin: sinon il le remplace (même départ) ou ne le touche pas.
+    if (asked.startsOn <= current.startsOn || asked.startsOn > currentEnds) return null;
+    const kept = Math.max(
+      0,
+      Math.round(
+        (Date.parse(`${asked.startsOn}T12:00:00Z`) -
+          Date.parse(`${current.startsOn}T12:00:00Z`)) / 86_400_000,
+      ),
+    );
+    const lost = current.durationDays - kept;
+    if (lost <= 0) return null;
+    return c("meals.rebuild.truncates")
+      .replace("{days}", String(lost))
+      .replace("{from}", String(current.durationDays))
+      .replace("{to}", String(kept));
+  }, [plans.current, windowRequest]);
   const ticks = useMealTicks({
     userId,
     mealId: result?.mealId ?? null,
@@ -203,22 +368,41 @@ export default function MealBuilder() {
     setFormOpen(false);
     setBuilding(true);
     try {
-      setResult(
-        await generateMeal({
-          mode,
-          scope,
-          slot: slot ? (slot as (typeof MEAL_SLOTS)[number]) : null,
-          servings,
-          context: context.trim() || null,
-          // CE QUI N'EST PLUS DEMANDÉ N'EST PLUS ENVOYÉ. Le champ est masqué en
-          // mode `to_shop`, mais le texte survit à la bascule — et l'envoyer
-          // quand même produirait une contradiction à l'écran: le moteur ignore
-          // le garde-manger pour composer (« they have not shopped yet — give
-          // the full list ») mais calcule quand même `in_pantry` sur ce qu'on
-          // lui passe. Un ingrédient serait badgé « You have it » ET listé dans
-          // les courses.
-          pantry: mode === "from_pantry" ? pantry : [],
-        }),
+      // LE GESTE PORTE SUR LE PLAN QU'ON REGARDE, et sur aucun autre. C'est le
+      // point le plus dangereux de cet écran: un élève posé sur « Next » qui
+      // appuie sur « Build another plan » détruirait le plan pour lequel il a
+      // DÉJÀ FAIT LES COURSES.
+      const target = tab === "next" ? plans.next : plans.current;
+      // Remplacer exige une cible. Sans plan dans l'onglet, il n'y a rien à
+      // remplacer et le premier plan se PRÉPARE.
+      const intent = formIntent === "replace_current" && target
+        ? "replace_current"
+        : "prepare_next";
+      const written = await generateMeal({
+        mode,
+        window: windowRequest,
+        intent,
+        replaces: intent === "replace_current" ? target?.mealId ?? null : null,
+        slot: slot ? (slot as (typeof MEAL_SLOTS)[number]) : null,
+        servings,
+        context: context.trim() || null,
+        preferences: preferences.trim() || null,
+        // CE QUI N'EST PLUS DEMANDÉ N'EST PLUS ENVOYÉ. Le champ est masqué en
+        // mode `to_shop`, mais le texte survit à la bascule — et l'envoyer
+        // quand même produirait une contradiction à l'écran: le moteur ignore
+        // le garde-manger pour composer (« they have not shopped yet — give
+        // the full list ») mais calcule quand même `in_pantry` sur ce qu'on
+        // lui passe. Un ingrédient serait badgé « You have it » ET listé dans
+        // les courses.
+        pantry: mode === "from_pantry" ? pantry : [],
+      });
+      // On RELIT plutôt que de poser la réponse à la place du plan affiché: une
+      // génération peut avoir TRONQUÉ l'autre plan, et seule une relecture rend
+      // les deux fenêtres telles qu'elles sont maintenant en base.
+      const loaded = await loadMealPlans(userId, browserLocalDate());
+      setPlans({ current: loaded.current, next: loaded.next });
+      setTab(
+        written.mealId && loaded.next?.mealId === written.mealId ? "next" : "current",
       );
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -237,14 +421,21 @@ export default function MealBuilder() {
     return <p className="text-sm text-gray-500">{c("meals.loading")}</p>;
   }
 
-  // LA SEMAINE DE CETTE COMPOSITION, ancrée sur le jour où elle a été faite.
-  // Le moteur remplit sept jours à partir de là; c'est ce qui donne une DATE à
-  // chaque jeton, et donc l'ordre d'affichage comme la fenêtre de rattrapage.
-  const startDate = stretchStartDate(result?.createdAt ?? null);
-  const dayDates = stretchDates(startDate);
-  // L'ordre du PLAN, pas celui du calendrier: un plan composé mercredi ne
-  // s'ouvre pas sur lundi et mardi, qui sont la semaine suivante.
-  const groups = groupByDay(result?.dishes ?? [], stretchDayOrder(startDate));
+  // LA FENÊTRE VIENT DE LA LIGNE, plus de `created_at`. Elle était DÉDUITE, et
+  // la déduction devenait fausse dès qu'un plan pouvait commencer plus tard.
+  //
+  // `windowDates` rend MOINS de sept entrées sur une fenêtre plus courte: un
+  // jeton hors fenêtre n'a pas de date, donc le plat n'est ni rendu, ni
+  // cochable. C'est ainsi qu'un plan tronqué cesse de montrer les jours qu'il
+  // ne possède plus, sans qu'on ait touché à ses données.
+  const startDate = result?.startsOn || browserLocalDate();
+  const durationDays = result?.durationDays ?? 7;
+  const dayDates = windowDates(startDate, durationDays);
+  // L'ordre du PLAN, pas celui du calendrier.
+  const groups = groupByDay(
+    result?.dishes ?? [],
+    windowDayOrder(startDate, durationDays),
+  );
   // Rien à lire encore: le formulaire n'est pas « une option », c'est l'écran.
   const hasWeek = groups.length > 0;
   const showForm = formOpen || !hasWeek;
@@ -257,15 +448,28 @@ export default function MealBuilder() {
         {showForm && (
         <section>
           <SectionLabel>
-            {hasWeek ? c("meals.rebuild.title") : c("meals.form.title")}
+            {!hasWeek
+              ? c("meals.form.title")
+              : formIntent === "prepare_next"
+              ? c("meals.rebuild.prepare_next")
+              : c("meals.rebuild.title")}
           </SectionLabel>
           <Card>
             {/* CE QUE ÇA COÛTE, DIT AVANT LE CLIC. Une génération remplace la
                 semaine affichée: cet écran ne lit que la dernière ligne. Le
                 découvrir après coup serait perdre un plan qu'on avait accepté. */}
-            {hasWeek && (
+            {hasWeek && formIntent === "replace_current" && !truncationWarning && (
               <p className="mb-4 rounded-lg bg-amber-50 p-3 text-xs leading-5 text-amber-900">
                 {c("meals.rebuild.warning")}
+              </p>
+            )}
+            {/* CE QUE ÇA RETIRE AU PLAN COURANT, dit avant le clic et chiffré.
+                Il REMPLACE l'avertissement générique: deux bandeaux ambre
+                empilés se lisent comme du bruit, et c'est celui-ci qui porte
+                l'information coûteuse. */}
+            {truncationWarning && (
+              <p className="mb-4 rounded-lg bg-amber-50 p-3 text-xs leading-5 text-amber-900">
+                {truncationWarning}
               </p>
             )}
             <form className="space-y-4" onSubmit={(e) => void build(e)}>
@@ -281,16 +485,81 @@ export default function MealBuilder() {
                     <option value="from_pantry">{c("meals.form.mode_from_pantry")}</option>
                   </select>
                 </Field>
-                <Field label={c("meals.form.scope_label")} htmlFor="meals-scope">
-                  <select
-                    id="meals-scope"
-                    className={inputClass}
-                    value={scope}
-                    onChange={(e) => setScope(e.target.value as MealScope)}
-                  >
-                    <option value="several_days">{c("meals.form.scope_several")}</option>
-                    <option value="day">{c("meals.form.scope_day")}</option>
-                  </select>
+                <Field label={c("meals.form.window_label")} htmlFor="meals-window">
+                  {/* DEUX PRÉRÉGLAGES BIEN VISIBLES, le reste derrière un lien.
+                      Le geste courant est « jusqu'à dimanche » ou « sept jours »;
+                      un sélecteur de dates posé en permanence ferait payer à
+                      tout le monde le cas rare de celui qui prépare la semaine
+                      suivante. */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={windowRequest.kind === "until_sunday" ? "primary" : "secondary"}
+                      onClick={() => setWindowRequest({ kind: "until_sunday" })}
+                    >
+                      {c("meals.form.window_until_sunday")}
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={windowRequest.kind === "days" ? "primary" : "secondary"}
+                      onClick={() => setWindowRequest({ kind: "days", count: 7 })}
+                    >
+                      {c("meals.form.window_seven_days")}
+                    </Button>
+                    <button
+                      type="button"
+                      onClick={() => setExactOpen((o) => !o)}
+                      className="text-xs font-medium text-gray-700 underline underline-offset-2"
+                    >
+                      {c("meals.form.window_exact")}
+                    </button>
+                  </div>
+                  {exactOpen && (
+                    <div className="mt-2 flex flex-wrap items-end gap-2">
+                      <input
+                        id="meals-window"
+                        type="date"
+                        // Pas de départ dans le PASSÉ: `isReportable`
+                        // autoriserait sinon des coches rétroactives sur des
+                        // jours qu'un plan précédent possédait.
+                        min={browserLocalDate()}
+                        value={windowRequest.kind === "exact"
+                          ? windowRequest.startsOn
+                          : browserLocalDate()}
+                        onChange={(e) =>
+                          setWindowRequest({
+                            kind: "exact",
+                            startsOn: e.target.value,
+                            durationDays: windowRequest.kind === "exact"
+                              ? windowRequest.durationDays
+                              : 7,
+                          })}
+                        className={`${inputClass} w-auto`}
+                      />
+                      <input
+                        type="number"
+                        min={1}
+                        max={7}
+                        aria-label={c("meals.form.window_days_label")}
+                        value={windowRequest.kind === "exact" ? windowRequest.durationDays : 7}
+                        onChange={(e) =>
+                          setWindowRequest({
+                            kind: "exact",
+                            startsOn: windowRequest.kind === "exact"
+                              ? windowRequest.startsOn
+                              : browserLocalDate(),
+                            durationDays: Number(e.target.value) || 1,
+                          })}
+                        className={`${inputClass} w-20`}
+                      />
+                    </div>
+                  )}
+                  {/* L'APERÇU DIT CE QUE LES BOUTONS FONT. « Until Sunday » un
+                      dimanche fait UN jour, et sans cette ligne le sélecteur
+                      aurait simplement l'air cassé. */}
+                  <p className="mt-1 text-xs text-gray-500">{windowPreview}</p>
                 </Field>
                 <Field label={c("meals.form.slot_label")} htmlFor="meals-slot">
                   <select
@@ -339,6 +608,30 @@ export default function MealBuilder() {
                   />
                 </Field>
               )}
+
+              {/* CE DONT ILS ONT ENVIE, POUR CES REPAS-LÀ. Séparé du contexte
+                  juste en dessous, et séparé des goûts durables de la carte
+                  « What you have told me about your eating »: trois durées de
+                  vie différentes. Une envie se réécrit à chaque génération, une
+                  contrainte de semaine aussi, un goût reste. */}
+              <Field
+                label={c("meals.form.preferences_label")}
+                hint={preferencesCarried
+                  ? c("meals.form.preferences_carried")
+                  : c("meals.form.preferences_hint")}
+                htmlFor="meals-preferences"
+              >
+                <textarea
+                  id="meals-preferences"
+                  className={`${inputClass} min-h-16`}
+                  value={preferences}
+                  placeholder={c("meals.form.preferences_placeholder")}
+                  onChange={(e) => {
+                    setPreferences(e.target.value);
+                    setPreferencesCarried(false);
+                  }}
+                />
+              </Field>
 
               <Field
                 label={c("meals.form.context_label")}
@@ -389,21 +682,126 @@ export default function MealBuilder() {
 
         <section>
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-            <SectionLabel className="mb-0">{c("meals.result.title")}</SectionLabel>
-            {/* LE GESTE, RÉDUIT À UN BOUTON. Il ne s'affiche pas quand le
-                formulaire est déjà ouvert (il ouvrirait ce qui est ouvert) ni
-                quand il n'y a pas de semaine (il n'y a pas d'« autre »). */}
-            {hasWeek && !showForm && (
-              <Button
-                variant="secondary"
-                size="sm"
-                disabled={building}
-                onClick={() => setFormOpen(true)}
-              >
-                {building ? c("meals.form.building") : c("meals.rebuild.button")}
-              </Button>
-            )}
+            {/* DEUX ONGLETS DÈS QU'UN SECOND PLAN EXISTE. Pas de primitive
+                `Tabs` dans le dépôt, et deux entrées n'en justifient pas une:
+                deux boutons en contrôle segmenté portent la même information
+                avec `aria-pressed`. */}
+            {plans.next
+              ? (
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant={tab === "current" ? "primary" : "secondary"}
+                    aria-pressed={tab === "current"}
+                    onClick={() => setTab("current")}
+                  >
+                    {c("meals.result.tab_current")}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={tab === "next" ? "primary" : "secondary"}
+                    aria-pressed={tab === "next"}
+                    onClick={() => setTab("next")}
+                  >
+                    {c("meals.result.tab_next")}
+                  </Button>
+                </div>
+              )
+              : <SectionLabel className="mb-0">{c("meals.result.title")}</SectionLabel>}
+            {/* LES DEUX GESTES DE CET ÉCRAN, CÔTE À CÔTE ET DE MÊME FORME.
+                La liste de courses avait son propre bouton, plus gros, posé
+                au-dessus du titre: deux traitements différents pour deux
+                actions du même rang, qu'il fallait comprendre deux fois. */}
+            <div className="flex flex-wrap items-center gap-2">
+              {hasWeek && !building && (result?.cookingSessions.length ?? 0) > 0 && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setSessionsOpen(true)}
+                >
+                  {mealCopy("meals.sessions.title")}
+                </Button>
+              )}
+              {hasWeek && !building && (result?.shoppingList.length ?? 0) > 0 && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setShoppingOpen(true)}
+                >
+                  {c("meals.result.shopping_title")}
+                </Button>
+              )}
+              {/* PRÉPARER LA SUITE. N'apparaît que s'il n'y a pas déjà un plan
+                  suivant: au plus deux plans vivants, et la contrainte
+                  d'exclusion le refuserait de toute façon. */}
+              {hasWeek && !showForm && !plans.next && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={building}
+                  onClick={() => {
+                    setFormIntent("prepare_next");
+                    setTab("current");
+                    // Le prochain plan démarre APRÈS le courant par défaut:
+                    // c'est le cas sans troncature, donc celui qui ne coûte
+                    // rien à personne.
+                    setWindowRequest({
+                      kind: "exact",
+                      startsOn: nextDefaultStart,
+                      durationDays: 7,
+                    });
+                    setExactOpen(true);
+                    setFormOpen(true);
+                  }}
+                >
+                  {c("meals.rebuild.prepare_next")}
+                </Button>
+              )}
+              {/* Il ne s'affiche pas quand le formulaire est déjà ouvert (il
+                  ouvrirait ce qui est ouvert) ni quand il n'y a pas de semaine
+                  (il n'y a pas d'« autre »). */}
+              {hasWeek && !showForm && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={building}
+                  onClick={() => {
+                    setFormIntent("replace_current");
+                    setFormOpen(true);
+                  }}
+                >
+                  {building ? c("meals.form.building") : c("meals.rebuild.button")}
+                </Button>
+              )}
+            </div>
           </div>
+
+          {/* LE PANNEAU S'OUVRE SOUS SON BOUTON. Il reste MONTÉ quand il est
+              replié: les ratures sont éphémères, mais pas au point de
+              disparaître parce qu'on est allé relire un plat. Il disparaît en
+              revanche pendant une génération — il décrit des plats qu'on est en
+              train de remplacer, et faire ses courses dessus serait acheter
+              pour un plan mort. */}
+          {!building && (
+            <>
+              <ShoppingListPanel
+                items={result?.shoppingList ?? []}
+                mealId={result?.mealId ?? null}
+                open={shoppingOpen}
+                onClose={() => setShoppingOpen(false)}
+              />
+              {/* MONTÉE MÊME FERMÉE — `Modal` rend `null`, il ne démonte pas —
+                  donc les recettes dépliées survivent à un aller-retour vers un
+                  plat. Elle disparaît en revanche pendant une génération: elle
+                  décrit des préparations qu'on est en train de remplacer. */}
+              <CookingSessions
+                sessions={result?.cookingSessions ?? []}
+                preparations={result?.preparations ?? []}
+                open={sessionsOpen}
+                onClose={() => setSessionsOpen(false)}
+              />
+            </>
+          )}
           {/* UNE COCHE QUI N'A PAS PRIS SE DIT. Sans ça, la case revient à sa
               place sans un mot et l'élève croit avoir mal visé — puis retape,
               indéfiniment, sur une écriture que la base refuse. */}
@@ -489,43 +887,6 @@ export default function MealBuilder() {
               </div>
             )}
         </section>
-
-        {/* LES SESSIONS AVANT LES JOURS. On lit ce qu'on cuisine avant de lire
-            ce qu'on mange: c'est l'ordre dans lequel la semaine se prépare, et
-            c'est ce que l'élève ouvre le dimanche soir. Elle disparaît pendant
-            une génération, comme la liste de courses: elle décrit des
-            préparations qu'on est en train de remplacer. */}
-        {!building && (
-          <CookingSessions
-            sessions={result?.cookingSessions ?? []}
-            preparations={result?.preparations ?? []}
-          />
-        )}
-
-        {/* La liste de courses de la semaine SORTANTE disparaît pendant la
-            génération: elle décrit des plats qu'on est en train de remplacer,
-            et faire ses courses dessus serait acheter pour un plan mort. */}
-        {!building && (result?.shoppingList.length ?? 0) > 0 && (
-          <section>
-            <SectionLabel>{c("meals.result.shopping_title")}</SectionLabel>
-            <Card>
-              <ul className="space-y-1">
-                {result!.shoppingList.map((item, index) => (
-                  <li
-                    key={`${item.term}-${index}`}
-                    className="flex flex-wrap items-baseline gap-2 text-sm text-gray-800"
-                  >
-                    <span>{item.term}</span>
-                    {item.quantity && (
-                      <span className="text-gray-500">{item.quantity}</span>
-                    )}
-                    <Badge tone="neutral">{item.aisle}</Badge>
-                  </li>
-                ))}
-              </ul>
-            </Card>
-          </section>
-        )}
 
     </div>
   );

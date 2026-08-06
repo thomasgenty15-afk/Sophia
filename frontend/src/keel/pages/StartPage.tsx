@@ -556,7 +556,7 @@ function Notice({ children }: { children: React.ReactNode }) {
  */
 function StartSEO() {
   return (
-    <SEO title={t("start.seo_title")} description={t("start.seo_description")} lang="en" />
+    <SEO title={t("start.seo_title")} description={t("start.seo_description")} />
   );
 }
 

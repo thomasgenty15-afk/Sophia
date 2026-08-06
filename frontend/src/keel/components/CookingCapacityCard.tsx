@@ -43,8 +43,12 @@ const COPY = {
   title: "How you cook",
   subtitle:
     "What you can actually do in a week. Without this, the plan is built for somebody else.",
-  summary_open: "Change this",
+  // « Change » et pas « Change this »: le lien est dans l'en-tête de la carte,
+  // donc son objet est déjà nommé juste à côté. Aligné sur les deux cartes
+  // voisines, mot pour mot.
+  summary_open: "Change",
   summary_edit: "Tell me",
+  summary_close: "Close",
   days_label: "Days you can cook",
   days_hint: "Pick the days you can spend real time in the kitchen.",
   time_label: "Time per cooking session",
@@ -164,22 +168,36 @@ export default function CookingCapacityCard(props: CookingCapacityCardProps) {
   }
 
   return (
-    <section>
-      <SectionLabel>{COPY.title}</SectionLabel>
-      <Card>
-        <p className="text-sm text-gray-600">{COPY.subtitle}</p>
+    // MÊME EN-TÊTE QUE LES CARTES VOISINES, et c'est le sujet.
+    //
+    // Cette carte portait son titre HORS de l'encadré et son ouverture dans un
+    // BOUTON posé sous le résumé, là où « Your goal » et « How your day runs »
+    // ont un lien « Change » discret en haut à droite. Trois cartes qui font la
+    // même chose de trois façons obligent à relire chacune pour comprendre
+    // qu'elles se plient toutes — et le bouton pleine hauteur ajoutait une
+    // ligne de plus à un empilement déjà long avant les repas.
+    <Card>
+      <div className="flex items-start justify-between gap-3">
+        <SectionLabel className="mb-0">{COPY.title}</SectionLabel>
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          aria-expanded={open}
+          className="shrink-0 text-xs font-medium text-gray-700 underline underline-offset-2 hover:text-gray-900"
+        >
+          {open ? COPY.summary_close : (declared.length > 0 ? COPY.summary_open : COPY.summary_edit)}
+        </button>
+      </div>
 
+      <>
         {!open && (
-          <div className="mt-3">
+          <div className="mt-2">
             <p className="text-sm text-gray-800">
               {declared.length > 0
                 ? declared.map((d) => dishDayLabel(d) ?? d).join(" · ")
                 : COPY.none_picked}
             </p>
             {flash && <p className="mt-1 text-sm text-emerald-700">{flash}</p>}
-            <Button className="mt-3" onClick={() => setOpen(true)}>
-              {declared.length > 0 ? COPY.summary_open : COPY.summary_edit}
-            </Button>
           </div>
         )}
 
@@ -268,7 +286,7 @@ export default function CookingCapacityCard(props: CookingCapacityCardProps) {
             </Button>
           </div>
         )}
-      </Card>
-    </section>
+      </>
+    </Card>
   );
 }

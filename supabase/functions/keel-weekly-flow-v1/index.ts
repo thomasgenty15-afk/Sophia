@@ -20,11 +20,14 @@ import {
   weekStartOf,
   WEEKLY_FLOW_WEEK_META_KEY,
 } from "../_shared/keel/weekly_flow_io.ts";
+import { resolveStudentFollowing } from "../_shared/keel/following_io.ts";
 import { deliverChatMessage } from "../_shared/chat/delivery.ts";
 import {
   isRestrictionFlagged,
   localHourFor,
 } from "../_shared/keel/reengagement_io.ts";
+import { computeAndStoreWeekReview } from "../_shared/keel/week_review_io.ts";
+import { resolveArtifactLocale } from "../_shared/keel/locale.ts";
 
 /**
  * PIVOT C4 — le job qui envoie le point hebdomadaire.
@@ -33,9 +36,16 @@ import {
  * (dimanche 18h-21h) est en heure LOCALE de l'élève, et un job quotidien ne
  * servirait correctement qu'un seul fuseau.
  *
- * CE QU'IL FAIT : décider, et poser la question. Il n'écrit pas la réponse —
- * elle arrive par le webhook sous forme de `nfm_reply`, parfois des heures
- * plus tard.
+ * CE QU'IL FAIT : décider, GELER LA LECTURE DE LA SEMAINE, et poser la
+ * question. Il n'écrit pas la réponse — elle revient par la bulle, parfois des
+ * heures plus tard, et c'est `_shared/chat/deterministic_buttons.ts` qui la
+ * traite.
+ *
+ * ── POURQUOI LE BILAN SE CALCULE ICI ET PAS AU RETOUR DU FORMULAIRE ───────
+ * Parce que c'est lui qui CHOISIT la question du bilan. Une lecture recalculée
+ * au retour donnerait un autre chiffre (une nuit a passé, l'élève a logué), et
+ * la conversation de la semaine suivante en citerait un troisième. Voir
+ * `_shared/keel/week_review_io.ts`, « l'ordre des trois temps ».
  *
  * ── L'ENVOI EST CONDITIONNÉ À UNE CONFIGURATION QU'ON N'A PAS ENCORE ──────
  * `KEEL_WEEKLY_FLOW_ID` est l'identifiant d'un Flow publié CHEZ META. Tant
@@ -143,6 +153,12 @@ Deno.serve(async (req) => {
     let scanned = 0;
     let sent = 0;
     const bySkip: Record<string, number> = {};
+    // Le compte-rendu du BILAN, à côté de celui de l'envoi. Un job qui envoie
+    // mille formulaires et gèle zéro lecture est un job qui a l'air vert:
+    // c'est exactement la panne silencieuse que ce dépôt a déjà payée avec
+    // `toneDelivered`, et le seul remède est de compter les deux séparément.
+    const reviewOutcomes: Record<string, number> = {};
+    const reviewBranches: Record<string, number> = {};
     const failures: string[] = [];
     let exhausted = false;
 
@@ -155,7 +171,11 @@ Deno.serve(async (req) => {
         // élève n'a jamais été examiné. Toutes les gardes en aval étaient du
         // code mort derrière un SELECT cassé. Voir le test de dérive de schéma
         // dans `_shared/keel/weekly_flow_schema_test.sql`.
-        .select("id, timezone, proactive_muted_at")
+        // `locale` s'ajoute avec le bilan: il décide la langue de l'ARTEFACT
+        // gelé (`weekly_reviews.content_locale`), et `keel-daily-pulse-v1` le
+        // lit déjà sous ce nom sur la même table — c'est-à-dire que la colonne
+        // est éprouvée en production, pas supposée.
+        .select("id, timezone, proactive_muted_at, locale")
         .eq("keel_role", "student")
         .order("id", { ascending: true })
         .limit(PAGE);
@@ -187,13 +207,16 @@ Deno.serve(async (req) => {
           const localDate = localDateFor(now, tz);
           const weekStart = weekStartOf(localDate);
 
-          const swpRes = await admin
-            .from("student_week_plans")
-            .select("id")
-            .eq("user_id", cursor)
-            .eq("status", "adopted")
-            .limit(1);
-          if (swpRes.error) throw swpRes.error;
+          // MÊME GARDE QUE LE TAP DU SOIR, ET DÉSORMAIS LE MÊME CODE.
+          //
+          // Elle exigeait ici `student_week_plans` en 'adopted' — une surface
+          // que le commit 99697610 a remplacée par le constructeur de repas.
+          // Plus rien n'écrivant 'adopted', ce formulaire ne partait plus pour
+          // personne, silencieusement. `keel-daily-pulse-v1` portait la même
+          // condition écrite séparément, avec une divergence déjà documentée
+          // dans son propre commentaire: c'est exactement ce que la définition
+          // partagée supprime.
+          const following = await resolveStudentFollowing(admin, cursor, weekStart);
 
           const decision = decideWeeklyFlow({
             localDow,
@@ -232,7 +255,7 @@ Deno.serve(async (req) => {
             // quand l'élève coupe ses relances (migration 20260804121000, dont
             // le backfill est délibérément asymétrique pour cette raison exacte).
             optedOut: Boolean(row.proactive_muted_at),
-            hasActivePlan: ((swpRes.data ?? []) as unknown[]).length > 0,
+            hasActivePlan: following.following,
           });
 
           if (decision.decision === "skip") {
@@ -241,6 +264,42 @@ Deno.serve(async (req) => {
           }
 
           if (!dryRun) {
+            // ── LE BILAN EST CALCULÉ ICI, AVANT QUE LA QUESTION NE PARTE ────
+            //
+            // C'est la condition « en amont du point », et elle n'est pas une
+            // commodité d'implémentation: la QUESTION que le bilan posera est
+            // choisie par ce calcul-là. Entre cet envoi et la réponse de
+            // l'élève il peut s'écouler une nuit, pendant laquelle il loguera
+            // peut-être son petit-déjeuner du lundi. Recalculer au retour du
+            // formulaire ferait bouger le chiffre sous la question déjà posée,
+            // et la conversation de toute la semaine suivante citerait une
+            // troisième valeur. Une seule lecture, gelée, relue partout.
+            //
+            // LA FENÊTRE VA JUSQU'À AUJOURD'HUI, PAS JUSQU'À DIMANCHE MINUIT.
+            // On est dimanche soir dans le fuseau de l'élève; la journée court
+            // encore. Le bloc porte ses deux dates pour que rien, plus tard, ne
+            // présente cette lecture comme une semaine close.
+            //
+            // ÉCHEC = ON ENVOIE QUAND MÊME. Le formulaire est la MESURE, et
+            // elle vaut plus que le commentaire qu'on en fait: un bilan raté
+            // coûte un accusé plat, un formulaire non envoyé coûte la semaine.
+            const review = await computeAndStoreWeekReview(admin, {
+              userId: cursor,
+              weekStart,
+              weekEnd: localDate,
+              contentLocale: resolveArtifactLocale({
+                studentProfile: String(row.locale ?? "").trim() || null,
+                tenantDefault: null,
+              }),
+              now,
+            });
+            reviewOutcomes[review.outcome.split(":").slice(0, 2).join(":")] =
+              (reviewOutcomes[review.outcome.split(":").slice(0, 2).join(":")] ?? 0) + 1;
+            if (review.reading) {
+              reviewBranches[review.reading.branch] =
+                (reviewBranches[review.reading.branch] ?? 0) + 1;
+            }
+
             // ── DE-WHATSAPP — LE FLOW META DEVIENT UN FORMULAIRE IN-APP ─────
             // Ce qui disparaît: le `flow_id` déclaré chez Meta, l'écran
             // d'entrée, le CTA du Flow, le 409 « fenêtre 24h fermée » (le cas
@@ -289,6 +348,8 @@ Deno.serve(async (req) => {
       scanned,
       sent,
       skipped_by_reason: bySkip,
+      week_review_outcomes: reviewOutcomes,
+      week_review_branches: reviewBranches,
       exhausted,
       next_after_user_id: exhausted ? null : cursor || null,
       failures: failures.slice(0, 50),

@@ -23,6 +23,15 @@ const COPY = {
   "meals.sessions.subtitle":
     "Cook on these days and the rest of the week is assembling, not cooking.",
   "meals.sessions.makes": "— {n} servings",
+  // ── LE TEMPS ──────────────────────────────────────────────────────────────
+  // Deux nombres, jamais fondus en un. « 10 min hands-on » décide si on s'y met
+  // ce soir; « 50 min in all » décide si on a la fenêtre. N'en montrer qu'un
+  // ferait renoncer sur le mauvais critère.
+  "meals.sessions.session_time": "about {n} min",
+  "meals.sessions.active": "{n} min hands-on",
+  "meals.sessions.total": "{n} min in all",
+  "meals.sessions.recipe_show": "Recipe",
+  "meals.sessions.recipe_hide": "Hide recipe",
   // Un plat qui puise dans une préparation n'affiche ni sa recette ni ses
   // quantités: les répéter ferait racheter et recuire ce qui est déjà prêt.
   "meals.result.from_prep": "From {title} — cooked on {day}.",
@@ -57,12 +66,54 @@ const COPY = {
   // consigne. « Done » aurait fait du dîner une tâche.
   "meals.tick.label": "I ate this",
   "meals.tick.failed": "That did not save. Tap it again.",
+  // ── LES RAYONS ────────────────────────────────────────────────────────────
+  // MOT POUR MOT CEUX DU PDF (`_shared/keel/meal_pdf.ts`), et dans le même
+  // ordre. L'élève lit la liste à l'écran, l'imprime, et fait ses courses avec
+  // le papier: deux ordres de rayons différents entre les deux, c'est un
+  // article qu'on cherche au mauvais bout du magasin.
+  "meals.aisle.produce": "Fruit & veg",
+  "meals.aisle.protein": "Meat & fish",
+  "meals.aisle.dairy": "Dairy",
+  "meals.aisle.grains": "Grains & bread",
+  "meals.aisle.frozen": "Frozen",
+  "meals.aisle.pantry": "Cupboard",
+  "meals.aisle.other": "Other",
 } as const;
+
+/**
+ * L'ORDRE DES RAYONS — celui d'un magasin, pas l'alphabet.
+ *
+ * Copié de `AISLE_ORDER` du PDF. Le vocabulaire est FERMÉ côté moteur
+ * (`SHOPPING_AISLES`), donc cette liste est exhaustive.
+ */
+export const SHOPPING_AISLE_ORDER = [
+  "produce",
+  "protein",
+  "dairy",
+  "grains",
+  "frozen",
+  "pantry",
+  "other",
+] as const;
 
 export type MealCopyKey = keyof typeof COPY;
 
 export function mealCopy(key: MealCopyKey): string {
   return COPY[key];
+}
+
+/**
+ * Le rayon, en mots. Un jeton inconnu rend « Other » au lieu de jeter.
+ *
+ * C'est l'INVERSE de `labels.ts`, qui jette sur un jeton inconnu, et la
+ * différence est assumée: là-bas un jeton inconnu est un bug de vocabulaire
+ * qu'il faut voir; ici c'est une carotte, et une carotte qu'on ne sait pas
+ * ranger doit rester ACHETABLE plutôt que disparaître de la liste au
+ * supermarché.
+ */
+export function aisleLabel(aisle: string): string {
+  const key = `meals.aisle.${aisle}` as MealCopyKey;
+  return key in COPY ? mealCopy(key) : mealCopy("meals.aisle.other");
 }
 
 /**

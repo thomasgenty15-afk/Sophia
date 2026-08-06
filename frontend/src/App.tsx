@@ -5,6 +5,16 @@ import { AuthProvider } from "./context/AuthProvider";
 // KEEL pivot: "/" sells Sophia to coaches (English, B2B). The old French
 // consumer landing (pages/LandingPage) is unmounted, not deleted.
 import LandingPage from "./keel/pages/LandingPage";
+// La seconde page de vente. Même produit, autre acheteur: `/` parle à qui vend
+// une formation, `/gyms` au propriétaire-coach d'une salle indépendante, dont la
+// douleur est le churn et pas le one-shot. Publique, statique, aucune redirection
+// pour un visiteur connecté — voir l'en-tête du fichier.
+import GymsLandingPage from "./keel/pages/GymsLandingPage";
+// La troisième. Le propriétaire d'une communauté payante a DÉJÀ le récurrent —
+// ni le one-shot de `/`, ni le churn de `/gyms`: sa douleur est qu'un fil ne
+// peut pas répondre à une personne. Publique, statique, sans redirection pour
+// un visiteur connecté, comme `/gyms`.
+import CommunitiesPage from "./keel/pages/CommunitiesPage";
 import ProductPlan from "./pages/ProductPlan";
 import UpgradePlan from "./pages/UpgradePlan"; // IMPORT UPGRADE PAGE
 import Account from "./pages/Account";
@@ -63,6 +73,16 @@ function App() {
             <ErrorBoundary>
             <Routes>
               <Route path="/" element={<LandingPage />} />
+              {/* La page de vente aux SALLES DE SPORT indépendantes. `/gyms` et
+                  pas `/keel/gyms`: « keel » est un nom interne et ne doit jamais
+                  affleurer dans une URL. */}
+              <Route path="/gyms" element={<GymsLandingPage />} />
+              {/* La page de vente aux PROPRIÉTAIRES DE COMMUNAUTÉ PAYANTE
+                  (Skool, Circle, Discord, Kajabi). Même règle d'URL que
+                  ci-dessus, et le nom d'aucune de ces plateformes n'y figure:
+                  il n'existe aucune intégration avec elles, et une URL qui en
+                  nommerait une promettrait le contraire. */}
+              <Route path="/communities" element={<CommunitiesPage />} />
               {/* DE-WHATSAPP — `/chat` était le simulateur WhatsApp web (le trio
                   ChatPage + ChatInterface + useChat). Il redirige vers la vraie
                   bulle plutôt que de 404: un lien en circulation ne doit pas

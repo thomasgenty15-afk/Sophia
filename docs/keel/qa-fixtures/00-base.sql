@@ -233,13 +233,19 @@ insert into public.coach_doctrines (
 delete from public.student_generated_meals
  where user_id = '08050000-0000-4000-8000-000000000011';
 
+-- LA FENÊTRE EST OBLIGATOIRE DEPUIS `20260807090000_meal_plan_window`. Elle
+-- démarre AUJOURD'HUI, dans le même fuseau que le jeton de jour calculé plus
+-- bas: une fixture dont la fenêtre ne contiendrait pas ses propres plats serait
+-- une fixture qui teste l'écran vide.
 insert into public.student_generated_meals (
-  id, user_id, scope, mode, meal_slot, servings, context, content_locale,
+  id, user_id, starts_on, duration_days, scope, mode, meal_slot, servings,
+  context, content_locale,
   pantry, dishes, preparations, cooking_sessions, shopping_list, generated_from
 )
 select
   '08050000-0000-4000-8000-0000000000e1',
   '08050000-0000-4000-8000-000000000011',
+  d.start_date, 7::smallint,
   'several_days', 'to_shop', null, 1,
   'Office canteen at midday two days a week. Cooks on Wednesday evening.',
   'en-GB',
@@ -329,7 +335,8 @@ select
 from (
   select
     lower(to_char((now() at time zone 'Europe/London')::date, 'Dy'))                 as today,
-    lower(to_char((now() at time zone 'Europe/London')::date + 1, 'Dy'))             as tomorrow
+    lower(to_char((now() at time zone 'Europe/London')::date + 1, 'Dy'))             as tomorrow,
+    (now() at time zone 'Europe/London')::date                                        as start_date
 ) as d;
 
 -- ---------------------------------------------------------------- restauration

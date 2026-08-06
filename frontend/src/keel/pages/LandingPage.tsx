@@ -8,6 +8,10 @@ import { PublicFooter, PublicHeader } from "../components/PublicHeader";
 import ServerUnreachable from "../components/ServerUnreachable";
 import { ButtonLink } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
+// Kicker / SectionTitle / PriceCard were defined in this file while it was the
+// only sales page. `/gyms` is the second one, so they moved to the UI folder —
+// one definition, two pages. See the header of `ui/Marketing.tsx`.
+import { Kicker, PriceCard, SectionTitle } from "../components/ui/Marketing";
 import { t, type MessageKey } from "../i18n/t";
 
 /**
@@ -144,7 +148,6 @@ export function LandingPage() {
         title={t("landing.seo_title")}
         description={t("landing.seo_description")}
         canonical="https://sophia-coach.ai/"
-        lang="en"
         structuredData={LANDING_STRUCTURED_DATA}
       />
 
@@ -175,22 +178,6 @@ export function LandingPage() {
 
       <PublicFooter />
     </div>
-  );
-}
-
-function Kicker({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">
-      {children}
-    </p>
-  );
-}
-
-function SectionTitle({ children }: { children: React.ReactNode }) {
-  return (
-    <h2 className="mt-2 max-w-2xl text-balance text-2xl font-semibold leading-tight sm:text-3xl">
-      {children}
-    </h2>
   );
 }
 
@@ -930,17 +917,18 @@ function Pricing() {
         <Kicker>{t("landing.pricing.kicker")}</Kicker>
         <SectionTitle>{t("landing.pricing.title")}</SectionTitle>
         {/*
-          Price, then period, then what it buys — stacked rather than sharing a
-          baseline. Side by side, "+ $12" and "per active student per month"
-          broke across two lines inside a half-width card and the plus sign
-          ended up orphaned above the figure.
+          UNE SEULE CARTE, ET C'EST LE MESSAGE.
+          Il y en avait deux — un forfait de plateforme et un prix par siège.
+          Deux cartes obligent le prospect à faire une addition, et cette
+          addition avait un point mort à ~13 élèves. Le forfait est supprimé
+          (voir l'en-tête de `landing.pricing.*`): il ne reste qu'un chiffre, et
+          une grille qu'on ne peut pas mal lire.
+
+          Prix, puis période, puis ce que ça achète — empilés. La carte reste à
+          demi-largeur: un seul poste étalé sur toute la page se lirait comme un
+          argument qu'on force.
         */}
-        <div className="mt-8 grid gap-4 sm:max-w-2xl sm:grid-cols-2">
-          <PriceCard
-            price={t("landing.pricing.base")}
-            period={t("landing.pricing.base_period")}
-            label={t("landing.pricing.base_label")}
-          />
+        <div className="mt-8 sm:max-w-sm">
           <PriceCard
             price={t("landing.pricing.seat")}
             period={t("landing.pricing.seat_period")}
@@ -958,28 +946,6 @@ function Pricing() {
         </div>
       </div>
     </section>
-  );
-}
-
-function PriceCard({
-  price,
-  period,
-  label,
-}: {
-  price: string;
-  period: string;
-  label: string;
-}) {
-  return (
-    <Card className="h-full">
-      <div className="whitespace-nowrap text-4xl font-semibold tabular-nums leading-none text-gray-900">
-        {price}
-      </div>
-      <div className="mt-2 text-sm text-gray-500">{period}</div>
-      <p className="mt-3 border-t border-gray-100 pt-3 text-sm font-medium text-gray-900">
-        {label}
-      </p>
-    </Card>
   );
 }
 

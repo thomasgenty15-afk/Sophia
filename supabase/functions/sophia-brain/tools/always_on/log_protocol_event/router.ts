@@ -225,6 +225,11 @@ export async function runLogProtocolEventDirectEffect(
     });
   }
 
+  // R3 — la langue de l'accusé. `content_locale` porte ici la
+  // `conversation_locale` du fil (voir son commentaire sur l'entrée), donc
+  // c'est bien la langue de la RÉPONSE, pas celle d'une ligne stockée.
+  const replyLocale = String(input.content_locale ?? "en-US").trim() || "en-US";
+
   // --- ledger + renderer --------------------------------------------------
   // PARTIAL FAN-OUT IS SAID, NOT SMOOTHED: the rows that failed stay in
   // `blocked_effects`, and the reply names only the rows that exist. A turn
@@ -233,7 +238,10 @@ export async function runLogProtocolEventDirectEffect(
   return enforceLogProtocolEventReplyInvariant({
     detected: true,
     status: "logged",
-    reply: renderLogProtocolEventLoggedReply(committed),
+    reply: renderLogProtocolEventLoggedReply(
+      committed,
+      replyLocale,
+    ),
     executed_tools: ["log_protocol_event"],
     requested_effects: requestedEffects,
     allowed_effects: requestedEffects,
@@ -244,5 +252,5 @@ export async function runLogProtocolEventDirectEffect(
       gate_reason: null,
       token_issue: null,
     },
-  });
+  }, replyLocale);
 }

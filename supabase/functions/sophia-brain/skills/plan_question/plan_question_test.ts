@@ -118,6 +118,7 @@ Deno.test("tier0: same food_groups class under swap_within_policy is allowed wit
   // Acceptance fixture 3 line 1, verbatim: banana (other_fruit) for the
   // prescribed berries, both FRUIT, `swap_within_policy` + class_equivalent.
   const resolution = resolvePlanQuestion({
+    response_locale: "en-US",
     user_id: "student-1",
     question_kind: "food_swap",
     requested_food_group: "other_fruit",
@@ -333,6 +334,7 @@ Deno.test("parity: every Tier 0 verdict agrees with the evaluator's later grade"
 
 Deno.test("out of policy: strict autonomy escalates to the coach at next_digest", () => {
   const resolution = resolvePlanQuestion({
+    response_locale: "en-US",
     user_id: "student-1",
     question_kind: "food_swap",
     requested_food_group: "other_fruit",
@@ -361,6 +363,7 @@ Deno.test("out of policy: strict autonomy escalates to the coach at next_digest"
 
 Deno.test("out of policy: a different class escalates, and the reply promises no change", () => {
   const resolution = resolvePlanQuestion({
+    response_locale: "en-US",
     user_id: "student-1",
     question_kind: "eating_out",
     requested_food_group: "refined_grain",
@@ -408,6 +411,7 @@ Deno.test("urgency: only allergen_violation and restriction_signal may bypass th
 
 Deno.test("allergen: a medical constraint on the requested group denies and bypasses the digest", () => {
   const resolution = resolvePlanQuestion({
+    response_locale: "en-US",
     user_id: "student-1",
     question_kind: "food_swap",
     requested_food_group: "shellfish",
@@ -489,6 +493,7 @@ Deno.test("allergen: an unreadable medical constraint makes Tier 0 abstain inste
 
 Deno.test("suggested_option is a draft that nothing applies", () => {
   const resolution = resolvePlanQuestion({
+    response_locale: "en-US",
     user_id: "student-1",
     question_kind: "food_swap",
     requested_food_group: "leafy_greens",
@@ -589,6 +594,7 @@ Deno.test("structural: the lane writes nothing — no DB client, no plan_commitm
 
 Deno.test("renderer: the allowed reply states no number, no percentage, no plan change", () => {
   const render = renderPlanQuestion({
+    locale: "en-US",
     verdict: {
       decision: "allowed",
       tier: 0,

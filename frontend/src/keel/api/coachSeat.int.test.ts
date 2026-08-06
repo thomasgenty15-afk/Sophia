@@ -3,12 +3,14 @@ import { describe, expect, it } from "vitest";
 import {
   formatSeatEndDate,
   seatDisplayState,
+  seatInterval,
   type SeatRow,
 } from "./coachSeat";
 
 const row = (over: Partial<SeatRow>): SeatRow => ({
   status: "active",
   scheduled_end_at: null,
+  billing_interval: null,
   ...over,
 });
 
@@ -53,6 +55,25 @@ describe("seatDisplayState", () => {
     expect(seatDisplayState(row({ status: "invited" }))).toBe("other");
     expect(seatDisplayState(row({ status: "ended" }))).toBe("other");
     expect(seatDisplayState(null)).toBe("other");
+  });
+});
+
+describe("seatInterval", () => {
+  it("l'annuel est explicite", () => {
+    expect(seatInterval(row({ billing_interval: "year" }))).toBe("year");
+  });
+
+  // TOUT LE RESTE EST MENSUEL — absent, null, valeur inconnue, siège illisible.
+  // Même défaut que `countSeats` côté serveur, et pour la même raison: le
+  // mensuel est le tarif le plus cher et le moins engageant, donc se tromper de
+  // ce côté-là coûte un peu d'argent au coach et n'enferme personne douze mois.
+  it("tout ce qui n'est pas 'year' retombe sur le mensuel", () => {
+    expect(seatInterval(row({ billing_interval: null }))).toBe("month");
+    expect(seatInterval(row({ billing_interval: "month" }))).toBe("month");
+    expect(seatInterval(null)).toBe("month");
+    expect(
+      seatInterval(row({ billing_interval: "annual" as unknown as "year" })),
+    ).toBe("month");
   });
 });
 

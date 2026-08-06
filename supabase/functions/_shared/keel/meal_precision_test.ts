@@ -17,7 +17,7 @@ import {
   gateMealPrecisionQuestion,
   MEAL_PRECISION_AXES,
   MEAL_PRECISION_DAILY_CAP,
-  MEAL_PRECISION_QUESTIONS,
+  mealPrecisionQuestions,
   type MealPrecisionAssessment,
   type PrecisionPlanLine,
   renderMealPrecisionQuestion,
@@ -84,10 +84,11 @@ const QUANTITY_LEXICON = [
 
 Deno.test("aucun gabarit de question ne demande une quantité (FR+EN)", () => {
   const rendered = [
-    ...Object.values(MEAL_PRECISION_QUESTIONS),
-    renderMealPrecisionQuestion("slot", []),
-    renderMealPrecisionQuestion("slot", ["lunch", "dinner"]),
-    renderMealPrecisionQuestion("slot", ["lunch", "dinner", "snack_pm"]),
+    ...Object.values(mealPrecisionQuestions("en-US")),
+    ...Object.values(mealPrecisionQuestions("fr-FR")),
+    renderMealPrecisionQuestion("slot", [], "en-US"),
+    renderMealPrecisionQuestion("slot", ["lunch", "dinner"], "en-US"),
+    renderMealPrecisionQuestion("slot", ["lunch", "dinner", "snack_pm"], "en-US"),
   ];
   for (const question of rendered) {
     const normalized = question.toLowerCase();
@@ -219,7 +220,7 @@ Deno.test("« du poulet » seul, avec une ligne légumes ouverte → accompanime
   assertEquals(result.primary, "accompaniment");
   assertEquals(result.depends_on, ["veg"]);
   assertEquals(
-    renderMealPrecisionQuestion("accompaniment"),
+    renderMealPrecisionQuestion("accompaniment", [], "en-US"),
     "And what did you have with it?",
   );
 });
@@ -295,7 +296,7 @@ Deno.test("deux créneaux nominaux atteignables sans créneau nommé → slot", 
   assertEquals(result.primary, "slot");
   assertEquals(result.slot_candidates, ["lunch", "dinner"]);
   assertEquals(
-    renderMealPrecisionQuestion("slot", result.slot_candidates),
+    renderMealPrecisionQuestion("slot", result.slot_candidates, "en-US"),
     "Which meal was that, lunch or dinner?",
   );
 });
@@ -313,7 +314,7 @@ Deno.test("un seul créneau candidat ne justifie pas la question de créneau", (
 
 Deno.test("au-delà de deux candidats, la question de créneau reste ouverte", () => {
   assertEquals(
-    renderMealPrecisionQuestion("slot", ["lunch", "dinner", "snack_pm"]),
+    renderMealPrecisionQuestion("slot", ["lunch", "dinner", "snack_pm"], "en-US"),
     "Which meal was that?",
   );
 });
@@ -349,6 +350,7 @@ function assessment(
 
 function gate(over: Partial<Parameters<typeof gateMealPrecisionQuestion>[0]> = {}) {
   return gateMealPrecisionQuestion({
+    locale: "en-US",
     assessment: assessment(),
     safetyBand: "none",
     futureIntent: false,

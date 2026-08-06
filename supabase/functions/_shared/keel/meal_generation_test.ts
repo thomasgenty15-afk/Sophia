@@ -72,6 +72,10 @@ function parse(payload: Record<string, unknown>, over: Record<string, unknown> =
     // Rien de déclaré: le parseur retombe sur `DEFAULT_EATING_RHYTHM`, comme le
     // prompt. `over` peut le remplacer pour les cas à rythme.
     eatingRhythm: [],
+    // Les jours réellement demandés: le plafond en dérive, exactement comme
+    // dans le prompt. Un seul jour ici, pour coller au `scope: "day"`.
+    daysToFill: ["mon"],
+    cookingTimeMin: null,
     ...over,
   });
 }
@@ -364,6 +368,8 @@ Deno.test("a non-JSON model output throws instead of shipping an empty meal", ()
     pantry: [],
     beliefKeys: [],
     eatingRhythm: [],
+    daysToFill: ["mon"],
+    cookingTimeMin: null,
   }));
 });
 

@@ -39,6 +39,12 @@ import {
   matchesFoodSearch,
   unitsForAxis,
 } from "../api/coachFoodItems";
+import {
+  FOOD_PACKS,
+  type FoodPack,
+  packAdditions,
+} from "../../../../supabase/functions/_shared/keel/food_packs.ts";
+import { fillAdditions } from "../../../../supabase/functions/_shared/keel/food_fill.ts";
 
 /**
  * `/coach/protocol` — « RECOMMENDED FOOD »: LES ALIMENTS AVEC LESQUELS LE
@@ -183,6 +189,15 @@ export function CoachProtocolPage() {
    * document le dit » de « le modèle l'a déduit ».
    */
   const [proposals, setProposals] = React.useState<FoodProposalRow[]>([]);
+
+  /**
+   * Les listes de départ restent accessibles APRÈS le premier remplissage.
+   *
+   * La carte s'affiche d'office sur une liste vide — c'est là qu'elle sert. Mais
+   * un coach qui a coché douze aliments à la main et veut ensuite la base
+   * « cuisine minimale » ne doit pas avoir à tout supprimer pour la revoir.
+   */
+  const [packsOpen, setPacksOpen] = React.useState(false);
 
   const [query, setQuery] = React.useState("");
   const [openClasses, setOpenClasses] = React.useState<Set<string>>(new Set());
@@ -553,6 +568,110 @@ export function CoachProtocolPage() {
     setProposals((prev) => prev.filter((x) => x.id !== p.id));
   }
 
+  /**
+   * POSER UNE LISTE DE DÉPART.
+   *
+   * ── CE QUE ÇA N'EST PAS ────────────────────────────────────────────────
+   * Une écriture d'un genre nouveau. Chaque ligne est exactement ce que pose le
+   * tap manuel juste au-dessus (`pickFood`): posture `encouraged`, `why` repris
+   * de `food_items.default_why`, `why_source: 'seeded'`. `seeded` et pas
+   * `coach`: tant que le coach n'y a pas touché, ce ne sont pas ses mots — et
+   * c'est ce qui autorise l'IA à les réécrire depuis SA doctrine.
+   *
+   * ── CE QU'ON N'ÉCRASE JAMAIS ───────────────────────────────────────────
+   * Ce que le coach a déjà. `packAdditions` retire les aliments déjà présents:
+   * s'il a marqué le beurre `excluded`, un pack qui le propose ne le retourne
+   * pas. Un préréglage n'a pas d'avis contre le coach.
+   *
+   * L'insert est fait EN UNE FOIS: les lignes d'un pack se posent ensemble ou
+   * pas du tout. Un pack à moitié écrit serait pire qu'un pack refusé — le
+   * coach croirait avoir une base cohérente et en aurait un morceau.
+   */
+  async function addPack(pack: FoodPack) {
+    const pid = await ensureDraft();
+    const slugs = packAdditions(pack, picked.map((p) => p.food_item_ref));
+    if (slugs.length === 0) return;
+    const rows = slugs.map((slug) => {
+      const source = catalog.find((c) => c.slug === slug);
+      if (!source) throw new Error(`pack ${pack.key} references ${slug}, absent from the catalogue`);
+      return {
+        protocol_id: pid,
+        coach_id: coachId,
+        food_item_ref: slug,
+        label: source.label,
+        food_group_ref: source.food_group_ref,
+        stance: "encouraged",
+        why: source.default_why ?? null,
+        why_source: source.default_why ? "seeded" : "coach",
+      };
+    });
+    const inserted = await supabase.from("coach_food_items").insert(rows).select("*");
+    if (inserted.error) throw new Error(inserted.error.message);
+    setPicked((prev) => [...prev, ...(inserted.data ?? []).map(rowToFoodItem)]);
+    setPacksOpen(false);
+  }
+
+  /**
+   * PRÉ-REMPLIR DEPUIS LA MÉTHODE DÉJÀ ÉCRITE.
+   *
+   * Un coach qui a rédigé sa doctrine a déjà dit comment il nourrit ses élèves;
+   * lui redemander en 127 pastilles est du travail qu'on peut lui épargner.
+   *
+   * ── LE SERVEUR DÉCIDE, L'ÉCRAN ÉCRIT ───────────────────────────────────
+   * `fill_from_doctrine` ne touche pas la base: il rend une SÉLECTION
+   * `{slug, stance}`. Les gardes (catalogue fermé, trace obligatoire sur un
+   * `excluded`) vivent là-bas, et l'insert passe par le MÊME chemin que le tap
+   * manuel et les packs. Dupliquer le chemin d'écriture aurait produit deux
+   * provenances divergentes sur la même table.
+   *
+   * ── LA STANCE VIENT DU SERVEUR, LE RESTE DU CATALOGUE ──────────────────
+   * Contrairement à `addPack`, la posture n'est pas toujours `encouraged`: la
+   * doctrine du coach peut écarter un aliment. Le `why` et le libellé, eux,
+   * viennent du catalogue comme partout ailleurs — `why_source: 'seeded'`, donc
+   * l'IA pourra les réécrire et le coach les reprendre.
+   *
+   * On n'écrase jamais ce qu'il a déjà: `fillAdditions` retire les aliments
+   * présents, quelle que soit la posture qu'il leur a donnée.
+   */
+  async function fillFromDoctrine() {
+    const res = await callFn<{
+      selection?: { slug: string; stance: string }[];
+      source?: string;
+      reason?: string;
+    }>({ action: "fill_from_doctrine" });
+    if (!res.selection) throw new Error(res.reason ?? "fill_failed");
+
+    const pid = await ensureDraft();
+    const additions = fillAdditions(
+      res.selection as { slug: string; stance: "encouraged" | "discouraged" | "excluded" }[],
+      picked.map((p) => p.food_item_ref),
+    );
+    if (additions.length === 0) return;
+
+    const rows = additions.flatMap((sel) => {
+      const source = catalog.find((c) => c.slug === sel.slug);
+      // Le serveur a déjà vérifié le catalogue; si un slug manque ICI c'est que
+      // les deux vues divergent. On saute la ligne plutôt que de jeter tout le
+      // remplissage — mais on ne l'invente pas non plus.
+      if (!source) return [];
+      return [{
+        protocol_id: pid,
+        coach_id: coachId,
+        food_item_ref: sel.slug,
+        label: source.label,
+        food_group_ref: source.food_group_ref,
+        stance: sel.stance,
+        why: source.default_why ?? null,
+        why_source: source.default_why ? "seeded" : "coach",
+      }];
+    });
+    if (rows.length === 0) return;
+
+    const inserted = await supabase.from("coach_food_items").insert(rows).select("*");
+    if (inserted.error) throw new Error(inserted.error.message);
+    setPicked((prev) => [...prev, ...(inserted.data ?? []).map(rowToFoodItem)]);
+  }
+
   async function rewriteWhy(item: CoachFoodItem) {
     const res = await callFn<{ why?: string | null; reason?: string }>({
       action: "draft_why",
@@ -718,6 +837,121 @@ export function CoachProtocolPage() {
                 {t("coach.food.proposals.footer")}
               </p>
             </Card>
+          )}
+
+          {/*
+            ── LES LISTES DE DÉPART ────────────────────────────────────────
+            127 aliments, aucun coché, et un coach qui n'a pas dix minutes:
+            l'écran est juste, il est vide, donc il le reste.
+
+            Un pack se nomme par un STYLE (« méditerranéen », « cuisine
+            minimale »), jamais par un résultat (« pack perte de gras »). C'est
+            la ligne exacte où KEEL deviendrait l'autorité nutritionnelle, et
+            `food_packs_test.ts` la tient. Que des `encouraged`: ce qu'un coach
+            garde HORS de l'assiette est bien plus personnel, et ça reste un
+            geste manuel.
+          */}
+          {(picked.length === 0 || packsOpen) && (
+            <Card className="mb-4">
+              {/*
+                ── DEPUIS SA MÉTHODE, AVANT LES PACKS ────────────────────────
+                Un coach qui a écrit sa doctrine a DÉJÀ dit comment il nourrit
+                ses élèves. Lui proposer un pack de style avant de lire ce qu'il
+                a écrit, c'est lui demander de choisir un style qu'il vient de
+                décrire. Les packs restent en dessous: ils servent celui qui
+                n'a rien écrit — et le serveur refuse d'ailleurs proprement
+                (`no_doctrine`) quand il n'y a rien à lire.
+              */}
+              <div className="mb-4 rounded-lg border border-gray-900 p-3">
+                <p className="text-sm font-medium text-gray-900">
+                  {t("coach.food.fill.title")}
+                </p>
+                <p className="mt-1 text-xs leading-5 text-gray-600">
+                  {t("coach.food.fill.hint")}
+                </p>
+                <div className="mt-2">
+                  <Button
+                    size="sm"
+                    disabled={busy}
+                    onClick={async () => {
+                      setBusy(true);
+                      try {
+                        await fillFromDoctrine();
+                        setWriteError(null);
+                      } catch (e) {
+                        const msg = e instanceof Error ? e.message : String(e);
+                        // `no_doctrine` n'est pas une panne: c'est un coach qui
+                        // n'a rien écrit. On lui dit quoi faire au lieu de
+                        // l'envoyer chercher une erreur.
+                        setWriteError(
+                          msg === "no_doctrine" ? t("coach.food.fill.no_doctrine") : msg,
+                        );
+                      } finally {
+                        setBusy(false);
+                      }
+                    }}
+                  >
+                    {t("coach.food.fill.cta")}
+                  </Button>
+                </div>
+              </div>
+
+              <SectionLabel>{t("coach.food.packs.title")}</SectionLabel>
+              <p className="mt-2 text-sm text-gray-600">{t("coach.food.packs.hint")}</p>
+              <div className="mt-3 space-y-3">
+                {FOOD_PACKS.map((pack) => {
+                  const additions = packAdditions(pack, picked.map((p) => p.food_item_ref));
+                  return (
+                    <div key={pack.key} className="rounded-lg border border-gray-200 p-3">
+                      <p className="text-sm font-medium text-gray-900">{pack.label}</p>
+                      <p className="mt-1 text-xs leading-5 text-gray-600">{pack.blurb}</p>
+                      <div className="mt-2 flex items-center gap-3">
+                        <Button
+                          size="sm"
+                          disabled={busy || additions.length === 0}
+                          onClick={async () => {
+                            setBusy(true);
+                            try {
+                              await addPack(pack);
+                              setWriteError(null);
+                            } catch (e) {
+                              setWriteError(e instanceof Error ? e.message : String(e));
+                            } finally {
+                              setBusy(false);
+                            }
+                          }}
+                        >
+                          {/* Le bouton annonce ce qu'il fera VRAIMENT, pas la
+                              taille du pack: dire 26 et en poser 4 est un
+                              bouton qui ment. */}
+                          {t("coach.food.packs.add", { count: String(additions.length) })}
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="mt-3 text-xs text-gray-500">{t("coach.food.packs.footer")}</p>
+              {packsOpen && (
+                <button
+                  type="button"
+                  onClick={() => setPacksOpen(false)}
+                  className="mt-3 text-xs text-gray-700 underline decoration-dotted underline-offset-2"
+                >
+                  {t("common.close")}
+                </button>
+              )}
+            </Card>
+          )}
+
+          {picked.length > 0 && !packsOpen && (
+            <button
+              type="button"
+              onClick={() => setPacksOpen(true)}
+              className="mb-4 text-xs text-gray-700 underline decoration-dotted underline-offset-2 hover:text-gray-900"
+            >
+              {t("coach.food.packs.reopen")}
+            </button>
           )}
 
           {/* ── LES AXES: des QUESTIONS, jamais des réponses ──────────────── */}

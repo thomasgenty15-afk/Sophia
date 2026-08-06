@@ -78,6 +78,17 @@ export interface DayFacts {
   tickedCount: number;
   /** Ceux de ces plats qui portent un titre citable, tels que cochés. */
   tickedTitles: readonly string[];
+  /**
+   * Celles de ces coches qui visent LE PLAN dont vient `plannedCount`.
+   *
+   * ── POURQUOI CE CHAMP EXISTE À CÔTÉ DE `tickedCount` ──────────────────
+   * Depuis qu'un plan COURANT et un plan SUIVANT coexistent, les coches des
+   * deux portent le même préfixe. `tickedCount` les compte toutes — et c'est
+   * juste: une coche est un fait rapporté. Mais le RATIO doit comparer des
+   * choses comparables, sinon on écrit « 5 des 3 » dans le message du soir,
+   * sans qu'aucune erreur ne soit levée.
+   */
+  tickedForPlanCount: number;
   /** Plats que le plan prévoyait pour aujourd'hui. 0 = pas de plan ce jour. */
   plannedCount: number;
   /** Photos de repas envoyées aujourd'hui. */
@@ -86,6 +97,7 @@ export interface DayFacts {
 
 export const EMPTY_DAY_FACTS: DayFacts = {
   tickedCount: 0,
+  tickedForPlanCount: 0,
   tickedTitles: [],
   plannedCount: 0,
   photoCount: 0,
@@ -161,8 +173,12 @@ export function renderDeterministicRecap(facts: DayFacts): string | null {
     // le compte coché ne le DÉPASSE pas: une coche de rattrapage sur un plat
     // d'hier peut porter le total au-dessus du plan d'aujourd'hui, et « 5 sur
     // 3 » serait un chiffre faux sorti d'une arithmétique juste.
-    const ratio = facts.plannedCount > 0 && facts.tickedCount <= facts.plannedCount
-      ? ` — ${facts.tickedCount} of the ${facts.plannedCount} on the plan`
+    // LE RATIO COMPARE DES CHOSES COMPARABLES: le numérateur est scopé au plan
+    // qui a fourni le dénominateur. `tickedCount` reste le total honnête des
+    // faits du jour, mais il n'a rien à faire dans une fraction.
+    const ratio = facts.plannedCount > 0 &&
+        facts.tickedForPlanCount <= facts.plannedCount
+      ? ` — ${facts.tickedForPlanCount} of the ${facts.plannedCount} on the plan`
       : "";
 
     const titles = facts.tickedTitles.map(cleanTitle).filter(Boolean);
@@ -301,7 +317,7 @@ export function buildRecapUserPrompt(firstName: string): string {
  * exigent donc le nom qualifié (`day`, `job`, `work`, `week`, `going`) ou une
  * adresse directe à l'élève, jamais un adjectif seul.
  */
-const VERDICT_PATTERNS: readonly RegExp[] = [
+export const VERDICT_PATTERNS: readonly RegExp[] = [
   /\b(?:great|good|solid|strong|excellent|amazing|awesome|fantastic|perfect|impressive|beautiful)\s+(?:day|job|work|week|going|effort|going)\b/i,
   /\bwell\s+done\b/i,
   /\bnice\s+(?:work|going|job|one)\b/i,
@@ -329,6 +345,24 @@ const VERDICT_PATTERNS: readonly RegExp[] = [
 ];
 
 /**
+ * Le premier verdict trouvé, ou `null`. Le point d'entrée PARTAGÉ de la
+ * ceinture: le bilan hebdomadaire (`week_review.ts`) porte exactement la même
+ * interdiction, et une seconde liste de motifs finirait par diverger de
+ * celle-ci — deux vocabulaires pour une même règle produit est le défaut que
+ * `tokens.ts` documente en tête de fichier.
+ *
+ * Ces motifs ne sont PAS globaux (`/g`): `exec` repart donc du début à chaque
+ * appel, et deux consommateurs ne se volent pas leur `lastIndex`.
+ */
+export function findQualifyingVerdict(text: string): string | null {
+  for (const pattern of VERDICT_PATTERNS) {
+    const match = pattern.exec(text);
+    if (match) return match[0].trim();
+  }
+  return null;
+}
+
+/**
  * LES NOMS DE CHOSES QU'ON COMPTE. Un nombre n'est vérifié que devant l'un
  * d'eux — c'est ce qui distingue « one meal » (un compte, donc vérifiable)
  * de « one thing I noticed » (un pronom, donc pas un chiffre).
@@ -340,7 +374,7 @@ const VERDICT_PATTERNS: readonly RegExp[] = [
  */
 const COUNTABLE = "meals?|dish|dishes|plates?|days?|photos?|logs?|entr(?:y|ies)";
 
-const NUMBER_WORDS: Readonly<Record<string, number>> = {
+export const NUMBER_WORDS: Readonly<Record<string, number>> = {
   zero: 0,
   one: 1,
   two: 2,
@@ -369,7 +403,13 @@ const COUNT_RATIO = new RegExp(
   "gi",
 );
 
-function numberValue(token: string): number | null {
+/**
+ * La valeur d'un jeton numérique, chiffre ou mot. Exporté pour la même raison
+ * que `findQualifyingVerdict`: le bilan hebdomadaire compte d'autres noms
+ * (`portions`, `times`) mais avec le MÊME vocabulaire de nombres, et deux
+ * tables `one..twelve` divergeraient au premier ajout.
+ */
+export function numberValue(token: string): number | null {
   const raw = String(token ?? "").trim().toLowerCase();
   if (/^\d+$/.test(raw)) return Number(raw);
   return raw in NUMBER_WORDS ? NUMBER_WORDS[raw] : null;
@@ -387,6 +427,12 @@ function numberValue(token: string): number | null {
 export function allowedNumbers(facts: DayFacts): Set<number> {
   return new Set([
     facts.tickedCount,
+    // ⚠️ LE PIÈGE LE PLUS TRANCHANT DE CE FICHIER. `tickedForPlanCount` apparaît
+    // dans le ratio; s'il manquait ici, un corps composé PARFAITEMENT exact
+    // serait rejeté en `invented_number` et le message replierait sur le texte
+    // déterministe — la voix du coach disparaîtrait sans une seule erreur nulle
+    // part, et sans que personne ne sache pourquoi.
+    facts.tickedForPlanCount,
     facts.plannedCount,
     facts.photoCount,
     // Le nombre de titres CITÉS. Il ne vaut pas toujours `tickedCount` (coche
@@ -459,11 +505,9 @@ export function acceptComposedRecap(raw: string, facts: DayFacts): RecapVerdict 
     };
   }
 
-  for (const pattern of VERDICT_PATTERNS) {
-    const match = pattern.exec(text);
-    if (match) {
-      return { ok: false, reason: "qualifies_the_day", detail: match[0].trim() };
-    }
+  const verdict = findQualifyingVerdict(text);
+  if (verdict) {
+    return { ok: false, reason: "qualifies_the_day", detail: verdict };
   }
 
   const allowed = allowedNumbers(facts);

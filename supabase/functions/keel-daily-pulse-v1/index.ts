@@ -20,6 +20,12 @@ import { hasRecapGround } from "../_shared/keel/daily_recap.ts";
 import { composeRecapBody, loadDayFacts } from "../_shared/keel/daily_recap_io.ts";
 import { resolveArtifactLocale } from "../_shared/keel/locale.ts";
 import { localDateFor, localHourFor } from "../_shared/keel/reengagement_io.ts";
+import { resolveStudentFollowing } from "../_shared/keel/following_io.ts";
+// `weekStartOf` vit dans `weekly_flow_io.ts` et n'y est pas propriétaire du
+// point hebdomadaire: c'est le lundi d'une date locale, point. On l'importe
+// plutôt que d'en recopier trois lignes — deux définitions du lundi finissent
+// par diverger, et celle-ci borne désormais la fraîcheur des repas composés.
+import { weekStartOf } from "../_shared/keel/weekly_flow_io.ts";
 import { deliverChatMessage } from "../_shared/chat/delivery.ts";
 
 /**
@@ -147,34 +153,26 @@ Deno.serve(async (req) => {
 
         try {
           const day = await loadPulseDay(admin, { userId: cursor, localDate });
-          const planRes = await admin
-            .from("plan_versions")
-            .select("id")
-            .eq("student_id", cursor)
-            .eq("status", "published")
-            .limit(1);
-          if (planRes.error) throw planRes.error;
 
-          // Le plan de l'élève OU un programme publié: en 1:N c'est
-          // `student_week_plans` qui fait foi, mais un élève 1:1 garde son
-          // plan_version. On accepte les deux, sinon le modèle 1:N n'aurait
-          // jamais de tap.
+          // « RIEN À SUIVRE, RIEN À DEMANDER » — la garde reste, ce qu'elle
+          // REGARDE a changé.
           //
-          // `status='adopted'` OBLIGATOIRE. Sans ce filtre, un brouillon
-          // généré et jamais adopté comptait comme plan actif: l'élève qui a
-          // regardé une proposition sans la prendre recevait « How was
-          // today? » tous les soirs, alors qu'il ne suit rien. « Rien à
-          // suivre, rien à demander » — c'est la garde `no_active_plan`, et
-          // elle ne mordait pas. Le point hebdomadaire, lui, exigeait déjà
-          // `adopted`: les deux surfaces divergeaient sur ce que « avoir un
-          // plan » veut dire.
-          const swpRes = await admin
-            .from("student_week_plans")
-            .select("id")
-            .eq("user_id", cursor)
-            .eq("status", "adopted")
-            .limit(1);
-          if (swpRes.error) throw swpRes.error;
+          // Elle lisait ici, en dur, `plan_versions` publié OU
+          // `student_week_plans` en 'adopted'. Le commit 99697610 a remplacé la
+          // semaine de méthode par le constructeur de repas: plus personne
+          // n'écrit 'adopted', et aucun coach ne publie de plan_version en 1:N.
+          // LES DEUX CONDITIONS ÉTAIENT DEVENUES IMPOSSIBLES — donc ce tap ne
+          // partait plus pour personne, en silence, sans une seule erreur.
+          //
+          // La définition vit maintenant dans `following_io.ts`, partagée avec
+          // `keel-weekly-flow-v1` qui portait la même garde écrite deux fois.
+          // Une seule définition de « suivre quelque chose »: c'est ce qui
+          // empêche les deux surfaces de re-diverger au prochain pivot.
+          const following = await resolveStudentFollowing(
+            admin,
+            cursor,
+            weekStartOf(localDate),
+          );
 
           // ── LES DEUX LECTURES QUI NOURRISSENT LA DÉCISION ───────────────
           // Les faits d'abord: ils décident s'il y a quelque chose à DIRE. La
@@ -243,8 +241,7 @@ Deno.serve(async (req) => {
             // quand l'élève coupe ses relances (migration 20260804121000, dont
             // le backfill est délibérément asymétrique pour cette raison exacte).
             optedOut: Boolean(row.proactive_muted_at),
-            hasActivePlan: ((planRes.data ?? []) as unknown[]).length > 0 ||
-              ((swpRes.data ?? []) as unknown[]).length > 0,
+            hasActivePlan: following.following,
           });
 
           if (decision.decision === "skip") {

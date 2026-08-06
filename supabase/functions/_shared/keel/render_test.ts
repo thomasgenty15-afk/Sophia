@@ -1,5 +1,10 @@
 // Snapshot tests for the KEEL render layer (deterministic, zero I/O — see render.ts).
-import { assertEquals, assertThrows } from "jsr:@std/assert@1";
+import {
+  assert,
+  assertEquals,
+  assertStringIncludes,
+  assertThrows,
+} from "jsr:@std/assert@1";
 import {
   medicationClassLabel,
   renderCoachSafetyNote,
@@ -149,16 +154,29 @@ Deno.test("renderSundayDigest — R7: unknown tokens throw, never fall back", ()
     Error,
     "not YYYY-MM-DD",
   );
+  // PRÉMISSE RETOURNÉE. Cette assertion épinglait « le français JETTE ». Ce
+  // n'était pas un invariant, c'était l'état du pilote: une seule langue était
+  // livrée. Le français a maintenant son pack, donc il rend — et l'invariant
+  // réel (« on ne sert jamais l'anglais en se faisant passer pour une
+  // traduction ») se vérifie sur une langue qu'on n'a PAS livrée.
+  const frDigest = renderSundayDigest({
+    commitments: [base],
+    weekStartDate: "2026-07-27",
+    studentFirstName: "T",
+    locale: "fr-FR",
+  });
+  assertStringIncludes(frDigest, "ton plan prévoit");
+  assert(!frDigest.includes("here is what"), frDigest);
   assertThrows(
     () =>
       renderSundayDigest({
         commitments: [base],
         weekStartDate: "2026-07-27",
         studentFirstName: "T",
-        locale: "fr",
+        locale: "de-DE",
       }),
     Error,
-    'unsupported render locale "fr"',
+    "no locale pack",
   );
 });
 
@@ -354,15 +372,23 @@ Deno.test("renderSlotReminder — R7: unknown slot and empty list both throw", (
     Error,
     "zero commitments",
   );
+  // Même retournement que pour le digest: `fr` rend, `de-DE` jette.
+  const frReminder = renderSlotReminder({
+    slotKey: "lunch",
+    locale: "fr-FR",
+    commitments: [{ title: "x", studentInstruction: null }],
+  });
+  assertStringIncludes(frReminder, "Déjeuner");
+  assert(!frReminder.includes("on your plan today"), frReminder);
   assertThrows(
     () =>
       renderSlotReminder({
         slotKey: "lunch",
-        locale: "fr",
+        locale: "de-DE",
         commitments: [{ title: "x", studentInstruction: null }],
       }),
     Error,
-    "unsupported render locale",
+    "no locale pack",
   );
 });
 
@@ -382,8 +408,15 @@ Deno.test("slotHeading covers every slot label key (no vocabulary drift)", () =>
       "any_time",
     ]
   ) {
-    assertEquals(typeof slotLabel(slot), "string");
-    assertEquals(typeof slotHeading(slot), "string");
+    // Les DEUX packs libellent chaque créneau. Sans cette boucle, un slug
+    // oublié côté FR ne se verrait qu'en production, sur l'écran d'un élève.
+    for (const locale of ["en-US", "fr-FR"]) {
+      assertEquals(typeof slotLabel(slot, locale), "string");
+      assertEquals(typeof slotHeading(slot, locale), "string");
+    }
   }
-  assertThrows(() => slotHeading("brunch"), Error, "unknown slot token");
+  assertThrows(() => slotHeading("brunch", "en-US"), Error, "unknown slot token");
+  // R7 sur la LANGUE, pas seulement sur le jeton: une locale sans pack livré
+  // jette au lieu de rendre l'anglais en se faisant passer pour une traduction.
+  assertThrows(() => slotHeading("lunch", "de-DE"), Error, "no locale pack");
 });

@@ -27,12 +27,20 @@ import {
 } from "./daily_recap.ts";
 
 function facts(over: Partial<DayFacts> = {}): DayFacts {
-  return {
+  const base = {
     tickedCount: 2,
     tickedTitles: ["Greek yoghurt and berries", "Chicken and rice bowl"],
     plannedCount: 4,
     photoCount: 1,
     ...over,
+  };
+  return {
+    ...base,
+    // Par défaut, toutes les coches visent le plan du jour — l'hypothèse de ces
+    // tests, et le cas d'un élève qui n'a qu'un plan. Un cas qui veut la
+    // dissocier (coches d'un plan PRÉPARÉ comptées face au plan courant) la
+    // passe explicitement.
+    tickedForPlanCount: over.tickedForPlanCount ?? base.tickedCount,
   };
 }
 
@@ -300,4 +308,42 @@ Deno.test("no first name means no placeholder, ever", () => {
   const anon = buildRecapUserPrompt("");
   assert(/do not invent one/i.test(anon), anon);
   assert(!anon.includes("{{"), anon);
+});
+
+// ===========================================================================
+// LE RATIO NE PEUT PAS DÉPASSER 100 % — et le nombre qu'il montre doit être
+// AUTORISÉ, sinon la voix du coach disparaît sans une erreur.
+//
+// Depuis qu'un plan COURANT et un plan SUIVANT coexistent, les coches des deux
+// portent le même préfixe `meal_tick:`. Le numérateur du ratio est donc scopé
+// au plan qui fournit le dénominateur, pendant que `tickedCount` reste le total
+// honnête des faits du jour.
+// ===========================================================================
+
+Deno.test("le ratio compare des choses comparables, jamais plus de 100 %", () => {
+  // Cinq coches ce jour-là, dont deux seulement visent le plan d'aujourd'hui:
+  // les trois autres viennent d'un plan préparé pour plus tard.
+  const mixed = facts({
+    tickedCount: 5,
+    tickedForPlanCount: 2,
+    plannedCount: 3,
+    tickedTitles: ["Oats"],
+  });
+  // `renderDeterministicRecap` rend `null` quand il n'y a rien à dire; ici il y
+  // a cinq coches, donc il y a un texte.
+  const text = renderDeterministicRecap(mixed) ?? "";
+  assert(text.includes("2 of the 3 on the plan"), text);
+  // Et surtout PAS le total brut face au plan: « 5 des 3 » est le défaut.
+  assert(!text.includes("5 of the 3"), text);
+});
+
+Deno.test("le nombre du ratio est autorisé au juge — sinon repli silencieux", () => {
+  // LE PIÈGE. `allowedNumbers` valide les nombres d'un corps composé. Si
+  // `tickedForPlanCount` y manquait, un corps PARFAITEMENT exact serait rejeté
+  // en `invented_number`, le message replierait sur le texte déterministe, et
+  // la voix du coach disparaîtrait sans une seule erreur nulle part.
+  const mixed = facts({ tickedCount: 5, tickedForPlanCount: 2, plannedCount: 3 });
+  assert(allowedNumbers(mixed).has(2), "le numérateur du ratio doit être autorisé");
+  assert(allowedNumbers(mixed).has(5), "le total des coches reste autorisé");
+  assert(allowedNumbers(mixed).has(3), "le dénominateur reste autorisé");
 });

@@ -66,7 +66,7 @@ import {
 import {
   dishDaySplit,
   type GeneratedMealResult,
-  loadLatestGeneratedMeal,
+  loadMealPlans,
 } from "../api/mealGeneration";
 import { mealCopy } from "../api/mealLabels";
 import { browserLocalDate, useMealTicks } from "../lib/useMealTicks";
@@ -795,14 +795,19 @@ export default function TodayPage() {
         const weekStart = currentMonday();
         const [ownWeek, ownMeals] = await Promise.all([
           loadWeekPlan(weekStart),
-          // FENÊTRE SUR LA SEMAINE EN COURS. La table ne porte pas de
-          // `week_start` et un plat ne nomme qu'un jour de semaine (« tue »),
-          // jamais une date: sans borne, le dîner du mardi d'une composition
-          // vieille de trois semaines s'afficherait comme le plat du jour.
-          loadLatestGeneratedMeal(userId, { notBefore: weekStart }),
+          // ── LE PLAN COURANT, PAS LE DERNIER ÉCRIT ──────────────────────
+          // C'était « la dernière composition de la semaine en cours », faute
+          // de fenêtre en base. Depuis qu'un élève peut PRÉPARER la semaine
+          // suivante, ce chargeur-là aurait servi le dîner de la semaine
+          // prochaine comme plat du soir. `loadMealPlans` rend le plan dont la
+          // fenêtre CONTIENT aujourd'hui, et rien d'autre.
+          loadMealPlans(userId, browserLocalDate()),
         ]);
         const adopted = ownWeek && ownWeek.status === "adopted" ? ownWeek : null;
-        const composed = ownMeals && ownMeals.dishes.length > 0 ? ownMeals : null;
+        const currentMeals = ownMeals.current;
+        const composed = currentMeals && currentMeals.dishes.length > 0
+          ? currentMeals
+          : null;
         if (adopted || composed) {
           setState({
             kind: "own_week",

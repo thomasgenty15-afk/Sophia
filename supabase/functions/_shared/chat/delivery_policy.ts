@@ -68,6 +68,23 @@ export const OPT_IN_PURPOSES = new Set<string>([
   "keel_sunday_digest",
 ]);
 
+// ── `keel_coach_broadcast` N'EST DANS AUCUN DE CES ENSEMBLES, ET C'EST VOULU ──
+//
+// Le message de cohorte du coach (20260806180500) tombe donc en étape 9: le
+// plafond NON SOLLICITÉ. Trois raisons de ne pas le promouvoir:
+//
+//   * ce n'est pas un envoi PROGRAMMÉ que l'élève a accepté (`OPT_IN`): il ne
+//     suit aucun rythme que l'élève connaît, il arrive quand son coach écrit;
+//   * ce n'est pas un bilan (`GUARANTEED`): rien ne casse s'il n'arrive pas
+//     aujourd'hui, alors qu'un bilan manqué est une mesure perdue;
+//   * le plafond est la protection contre un coach enthousiaste, en plus de la
+//     cadence hebdomadaire tenue en base.
+//
+// CONSÉQUENCE ASSUMÉE: un jour où l'élève a déjà reçu une relance, la diffusion
+// peut être écartée. C'est le bon arbitrage dans ce sens-là — mais il vaut
+// d'être su, et `skipped_count` sur la ligne de diffusion le rend visible au
+// coach au lieu de le laisser croire que tout le monde a reçu.
+
 /**
  * Confirmations transactionnelles. Jamais plafonnées, jamais coupées par un
  * mute : ce sont des accusés d'une action que l'élève vient de faire.

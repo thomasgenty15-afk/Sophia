@@ -547,9 +547,34 @@ Deno.test("the student's own intentions are reported, without a score", () => {
   ], NOW);
   assertEquals(synthesis.metrics.planned, 1);
   const text = renderSynthesisText(synthesis, { locale: "en" });
-  assert(text.includes("1 of 2 set themselves a plan"), text);
+  assert(text.includes("1 of 2 built themselves a week"), text);
   // Jamais un pourcentage de réalisation: personne ne note.
   assert(!/\d+% of (their|the) plan/i.test(text), text);
+});
+
+// LE CAS QUI A CASSÉ CE CHIFFRE EN PRODUCTION, et la raison de la seconde
+// source. Depuis que la semaine de méthode a été remplacée par le constructeur
+// de repas, plus personne n'adopte: ce bloc affichait 0 pour TOUTE cohorte, sur
+// l'artefact que le coach paie pour lire.
+Deno.test("des repas composés comptent, même sans semaine adoptée", () => {
+  const synthesis = buildCoachSynthesis([
+    student({ studentUserId: "a", weekPlan: null, composedMeals: 3 }),
+    student({ studentUserId: "b", weekPlan: null, composedMeals: 0 }),
+  ], NOW);
+  assertEquals(synthesis.metrics.planned, 1);
+  assert(
+    renderSynthesisText(synthesis, { locale: "en" }).includes("1 of 2 built themselves a week"),
+  );
+});
+
+// Le silence n'est jamais arrondi vers le haut: sans surface renseignée, la
+// phrase disparaît au lieu de rendre un zéro qui se lit comme un constat.
+Deno.test("aucune des deux surfaces: la phrase ne sort pas", () => {
+  const synthesis = buildCoachSynthesis([
+    student({ studentUserId: "a", weekPlan: null }),
+  ], NOW);
+  assertEquals(synthesis.metrics.planned, 0);
+  assert(!renderSynthesisText(synthesis, { locale: "en" }).includes("built themselves a week"));
 });
 
 // ---------------------------------------------------------------------------

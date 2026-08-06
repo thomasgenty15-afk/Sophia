@@ -44,8 +44,16 @@ import {
 } from "./restriction_runtime.ts";
 import type { RestrictionGuardResult } from "./restriction_guard.ts";
 
-/** Only 'en' is wired in the render layer today; R7 makes anything else throw. */
-const KEEL_RENDER_LOCALE = "en";
+/**
+ * Repli quand le profil ne porte pas de locale.
+ *
+ * Ce fichier tenait `const KEEL_RENDER_LOCALE = "en"` — la SIXIÈME épingle du
+ * pilote, et la plus discrète: c'était l'unique alimentateur de `locale` sur
+ * tout le chemin du digest du dimanche et des rappels de créneau. La couche de
+ * rendu prenait un `locale` requis, ce module lui passait une constante, et
+ * l'axe s'arrêtait là. La locale vient maintenant du profil de l'élève.
+ */
+const KEEL_RENDER_LOCALE_FALLBACK = "en-US";
 
 /** Statuses that mean "this reminder is still alive" (not cancelled/failed). */
 const KEEL_PENDING_STATUSES = ["pending", "retrying", "awaiting_user"];
@@ -90,6 +98,12 @@ export async function provisionKeelDayForUser(
     localDate: string;
     /** `profiles.full_name`; only the first name reaches the digest. */
     fullName?: unknown;
+    /**
+     * `profiles.locale` de l'élève. Voyage dans le même objet `params` que
+     * `fullName` et `timezone`, et pour la même raison: c'est un fait du profil
+     * que l'appelant a déjà lu.
+     */
+    locale?: string | null;
     now?: Date;
     /**
      * W10 — false for a student with no WhatsApp opt-in.
@@ -154,7 +168,7 @@ export async function provisionKeelDayForUser(
     weekStartsOn: String(planVersion.week_starts_on ?? "mon"),
     commitments,
     studentFirstName: firstName(params.fullName),
-    locale: KEEL_RENDER_LOCALE,
+    locale: String(params.locale ?? "").trim() || KEEL_RENDER_LOCALE_FALLBACK,
     restriction,
   });
 

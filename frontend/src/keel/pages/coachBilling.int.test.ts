@@ -3,7 +3,7 @@ import {
   billingStatusKind,
   countBilling,
   trialDaysLeft,
-} from './CoachBillingPage';
+} from './coachBilling';
 
 /**
  * KEEL W10.3 — the arithmetic of the coach's billing screen.

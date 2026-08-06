@@ -272,7 +272,7 @@ Deno.serve(async (req) => {
     let profilesQuery = supabaseAdmin
       .from("profiles")
       .select(
-        "id,full_name,birth_date,timezone,proactive_muted_at,whatsapp_coaching_paused_until,access_tier,trial_start,trial_end",
+        "id,full_name,locale,birth_date,timezone,proactive_muted_at,whatsapp_coaching_paused_until,access_tier,trial_start,trial_end",
       )
       .neq("account_status", "deletion_pending")
       .order("id", { ascending: true });
@@ -398,6 +398,8 @@ Deno.serve(async (req) => {
           timezone,
           localDate,
           fullName: profile.full_name,
+          // R3 — le digest et les rappels partent dans la langue de l'élève.
+          locale: String(profile.locale ?? "") || null,
           now,
           remindersEnabled: keelRemindersEnabled,
         });

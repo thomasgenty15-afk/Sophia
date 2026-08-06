@@ -63,6 +63,7 @@ const KEEL_STUDENT: KeelTurnContext = {
   safety_constraints_unavailable_reason: null,
   doctrine: null,
   coach_note: null,
+  week_review: null,
 };
 
 function frame(patch: Partial<TurnFrame> = {}): TurnFrame {

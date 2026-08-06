@@ -23,6 +23,22 @@ import {
   mergeDoctrineDrafts,
   parseDocumentExtraction,
 } from "../_shared/keel/doctrine_document.ts";
+import {
+  DOCTRINE_SOURCES,
+  type DoctrineSource,
+  parseDoctrineSource,
+  resolveDoctrineOwner,
+} from "../_shared/keel/doctrine_delegation.ts";
+import { toEditorShape } from "../_shared/keel/doctrine_editor_shape.ts";
+import {
+  buildDraftFromForkGeneration,
+  buildForkCompilePrompt,
+  describeChoices,
+  DOCTRINE_FROM_FORKS_SYSTEM_PROMPT,
+  hasVoiceSample,
+  pairVoiceAnswers,
+  VOICE_QUESTIONS,
+} from "../_shared/keel/doctrine_from_forks.ts";
 import { persistDocumentCorpus } from "../_shared/keel/document_corpus_io.ts";
 import { FOOD_GROUP_REFS, GOAL_TOKENS, type GoalToken } from "../_shared/keel/tokens.ts";
 import {
@@ -45,6 +61,11 @@ import {
  *   questions   — les questions de l'interview (l'écran et le prompt lisent LA
  *                 MÊME liste; deux listes divergeraient au premier ajout)
  *   compile     — brique 1: l'interview -> doctrine structurée (LLM transcripteur)
+ *   compile_from_forks
+ *               — brique 1 ter: le SAS. Dix camps tapés + sa voix -> une
+ *                 doctrine RÉDIGÉE pour lui. Même patron que `compile`, et
+ *                 c'est le seul chemin où le modèle ÉCRIT au lieu de
+ *                 transcrire (voir `doctrine_from_forks.ts` pour le pourquoi).
  *   compile_document
  *               — brique 1 bis: le PDF du coach -> la MÊME doctrine structurée,
  *                 plus des propositions d'aliments pour `/coach/protocol`.
@@ -78,7 +99,15 @@ function adminClient(): SupabaseClient {
 async function requireCoach(
   req: Request,
   admin: SupabaseClient,
-): Promise<{ coachId: string; userId: string; displayName: string | null } | Response> {
+): Promise<
+  {
+    coachId: string;
+    userId: string;
+    displayName: string | null;
+    coachKind: string;
+    doctrineSource: DoctrineSource;
+  } | Response
+> {
   const requestId = getRequestId(req);
   const authHeader = req.headers.get("Authorization") ?? "";
   const userClient = createClient(
@@ -92,18 +121,30 @@ async function requireCoach(
   }
   const { data: coach, error: coachErr } = await admin
     .from("coaches")
-    .select("id, status, display_name")
+    .select("id, status, display_name, coach_kind, doctrine_source")
     .eq("user_id", user.id)
     .maybeSingle();
   if (coachErr) throw coachErr;
   if (!coach) {
     return jsonResponse(req, { error: "not_a_coach", request_id: requestId }, { status: 403 });
   }
-  const row = coach as { id: string; status: string; display_name: string | null };
+  const row = coach as {
+    id: string;
+    status: string;
+    display_name: string | null;
+    coach_kind: string | null;
+    doctrine_source: string | null;
+  };
   if (row.status !== "active") {
     return jsonResponse(req, { error: "coach_suspended", request_id: requestId }, { status: 403 });
   }
-  return { coachId: row.id, userId: user.id, displayName: row.display_name };
+  return {
+    coachId: row.id,
+    userId: user.id,
+    displayName: row.display_name,
+    coachKind: String(row.coach_kind ?? "human").trim() || "human",
+    doctrineSource: parseDoctrineSource(row.doctrine_source),
+  };
 }
 
 async function loadVersions(
@@ -132,89 +173,6 @@ async function loadDoctrineRow(
     .maybeSingle();
   if (error) throw error;
   return (data ?? null) as Record<string, unknown> | null;
-}
-
-/**
- * LA DOCTRINE COURANTE, DANS LA FORME QUE L'ÉDITEUR SAIT AFFICHER.
- *
- * LE DÉFAUT QUE ÇA FERME (signalé par un coach, 2026-08-05)
- * ---------------------------------------------------------
- * `list` ne rend que des MÉTADONNÉES (numéro de version, date, note). Aucune
- * action ne rendait le CONTENU. Conséquence: une doctrine déjà écrite était
- * invisible sur son propre écran, et la seule façon d'en produire une était de
- * refaire l'interview de zéro. Un coach qui revient pour corriger UNE phrase
- * devait tout redire.
- *
- * ── POURQUOI ON NORMALISE EN snake_case ICI ──────────────────────────────
- * Deux écritures coexistent légitimement en base: `save` écrit verbatim ce que
- * l'éditeur envoie (`surface_forms`, `coach_answer`), et un seed ou un import
- * peut avoir écrit la forme camelCase que `parseCoachDoctrine` accepte aussi
- * (`f.surface_forms ?? f.surfaceForms`). Le parseur de l'agent tolère les deux;
- * l'ÉDITEUR, lui, ne lit qu'une seule forme.
- *
- * Renvoyer la forme camelCase telle quelle afficherait donc des champs VIDES
- * sur des données présentes — et le premier « enregistrer » les écraserait pour
- * de bon. On convertit, pour que ce que le coach voit soit ce qui est stocké.
- */
-function toEditorShape(row: Record<string, unknown>): Record<string, unknown> {
-  const arr = (v: unknown): Record<string, unknown>[] =>
-    Array.isArray(v) ? (v as Record<string, unknown>[]) : [];
-  const forms = (e: Record<string, unknown>): string[] => {
-    const raw = e.surface_forms ?? e.surfaceForms;
-    return Array.isArray(raw) ? raw.map((x) => String(x ?? "")).filter(Boolean) : [];
-  };
-  // LA PORTÉE FAIT L'ALLER-RETOUR, ET SON OUBLI SERAIT SILENCIEUX.
-  //
-  // Cet écran RELIT la doctrine publiée pour la modifier, et le premier
-  // « enregistrer » réécrit ce qu'il a relu. Une portée que `toEditorShape`
-  // laisserait tomber serait donc effacée de toutes les entrées du coach au
-  // premier retour sur son écran — sans message, et sans qu'il puisse le
-  // deviner: à l'écran, une croyance globale et une croyance ciblée se
-  // ressemblent, c'est le marqueur qui les distingue.
-  const scope = (e: Record<string, unknown>): string[] => {
-    const raw = e.goal_scope ?? e.goalScope;
-    return Array.isArray(raw) ? raw.map((x) => String(x ?? "")).filter(Boolean) : [];
-  };
-  const foods = (row.foods ?? {}) as Record<string, unknown>;
-  return {
-    beliefs: arr(row.beliefs).map((b) => ({
-      claim: String(b.claim ?? ""),
-      rationale: b.rationale == null ? null : String(b.rationale),
-      goal_scope: scope(b),
-    })),
-    forbidden: arr(row.forbidden).map((f) => ({
-      token: String(f.token ?? ""),
-      surface_forms: forms(f),
-      reason: f.reason == null ? null : String(f.reason),
-      instead: f.instead == null ? null : String(f.instead),
-    })),
-    vocabulary: arr(row.vocabulary).map((v) => ({
-      term: String(v.term ?? ""),
-      meaning: v.meaning == null ? null : String(v.meaning),
-    })),
-    arbitrations: arr(row.arbitrations).map((a) => ({
-      situation: String(a.situation ?? ""),
-      coach_answer: String(a.coach_answer ?? a.coachAnswer ?? ""),
-      goal_scope: scope(a),
-    })),
-    foods: {
-      // Pas de `recommended`: « avec quoi je construis » vit sur
-      // `/coach/protocol`, dans le vocabulaire fermé. Une ligne ancienne qui en
-      // porte encore une n'est pas rendue à l'éditeur — donc le prochain
-      // enregistrement la laisse tomber, ce qui est exactement le nettoyage
-      // qu'on veut, et il est visible dans le diff de version.
-      discouraged: arr(foods.discouraged).map((f) => ({
-        term: String(f.term ?? ""),
-        surface_forms: forms(f),
-        reason: f.reason == null ? null : String(f.reason),
-      })),
-    },
-    qa: arr(row.qa).map((q) => ({
-      question: String(q.question ?? ""),
-      answer: String(q.answer ?? ""),
-    })),
-    voice: (row.voice ?? {}) as Record<string, unknown>,
-  };
 }
 
 /**
@@ -440,14 +398,23 @@ Deno.serve(async (req) => {
     const admin = adminClient();
     const auth = await requireCoach(req, admin);
     if (auth instanceof Response) return auth;
-    const { coachId, userId, displayName } = auth;
+    const { coachId, userId, displayName, coachKind, doctrineSource } = auth;
 
     const body = await req.json().catch(() => ({} as Record<string, unknown>));
     const action = String(body.action ?? "").trim();
 
     // ---- questions ------------------------------------------------------
     if (action === "questions") {
-      return jsonResponse(req, { ok: true, questions: INTERVIEW_QUESTIONS, request_id: requestId });
+      return jsonResponse(req, {
+        ok: true,
+        questions: INTERVIEW_QUESTIONS,
+        // Les questions du SAS voyagent par le même canal, pour la même raison:
+        // deux listes divergeraient au premier ajout. L'écran importe déjà
+        // `VOICE_QUESTIONS` du module partagé — ceci est ce que lit un appelant
+        // qui n'a pas ce bundler (un script de QA, un test de bout en bout).
+        voice_questions: VOICE_QUESTIONS,
+        request_id: requestId,
+      });
     }
 
     // ---- list -----------------------------------------------------------
@@ -471,6 +438,11 @@ Deno.serve(async (req) => {
           doctrine: null,
           version: null,
           published_at: null,
+          // RENDU MÊME SANS DOCTRINE, et c'est le cas le plus fréquent du
+          // chemin: un coach qui délègue n'a, par construction, rien écrit.
+          // Sans ce champ ici, l'écran ne saurait pas qu'il délègue tant qu'il
+          // n'a pas de version — c'est-à-dire jamais.
+          doctrine_source: doctrineSource,
           request_id: requestId,
         });
       }
@@ -485,6 +457,71 @@ Deno.serve(async (req) => {
         version: pick.version,
         published_at: pick.published_at,
         content_locale: row?.content_locale ?? null,
+        // La doctrine du coach est rendue MÊME quand il délègue: elle dort, elle
+        // n'est pas supprimée, et c'est ce qui rend la bascule réversible. Ce
+        // champ dit à l'écran laquelle des deux ses élèves reçoivent en ce
+        // moment — sans lui, il afficherait une méthode que personne ne lit.
+        doctrine_source: doctrineSource,
+        request_id: requestId,
+      });
+    }
+
+    // ---- set_doctrine_source — DÉLÉGUER, OU REPRENDRE LA MAIN -------------
+    //
+    // Le quatrième chemin d'amorçage, et le seul qui n'écrit AUCUN contenu.
+    // Le coach maison existe déjà avec sa doctrine publiée; déléguer, c'est
+    // faire pointer la résolution vers elle. Rien à rédiger, rien à maintenir
+    // en double.
+    //
+    // ── RÉVERSIBLE DANS LES DEUX SENS, ET C'EST UNE EXIGENCE ─────────────
+    // Repasser à `own` ressert la doctrine du coach TELLE QU'ELLE ÉTAIT: on ne
+    // la supprime pas en déléguant, on cesse de la lire. C'est le genre de
+    // bascule qu'on n'implémente que dans un sens si on ne l'écrit pas — et un
+    // coach qui découvrirait que « laisse Sophia s'en charger » a effacé sa
+    // méthode aurait raison de ne plus rien nous confier.
+    //
+    // ⚠️ N'ÉCRIT RIEN SUR LA FACTURATION. `keel_coach_seat_ledger` branche sur
+    // `coach_kind`, jamais sur cette colonne: emprunter la doctrine de la
+    // maison ne fait pas de vous la maison, et vos sièges restent facturés.
+    if (action === "set_doctrine_source") {
+      const source = String(body.source ?? "").trim();
+      if (!(DOCTRINE_SOURCES as readonly string[]).includes(source)) {
+        return jsonResponse(req, {
+          error: "unknown_doctrine_source",
+          known: DOCTRINE_SOURCES,
+          request_id: requestId,
+        }, { status: 400 });
+      }
+      // La base porte déjà la garde (`coaches_house_never_delegates_check`),
+      // mais elle rendrait une erreur Postgres brute. Le coach maison qui
+      // déléguerait à lui-même est un cycle, pas une faute de frappe.
+      if (coachKind === "house" && source === "house") {
+        return jsonResponse(req, {
+          error: "house_cannot_delegate",
+          request_id: requestId,
+        }, { status: 400 });
+      }
+      const { error } = await admin
+        .from("coaches")
+        .update({ doctrine_source: source })
+        .eq("id", coachId);
+      if (error) throw error;
+      // Le nom sous lequel ses élèves vont le lire à partir du prochain
+      // message. Rendu à l'écran pour que la bascule se CONSTATE au lieu de se
+      // supposer: « tes élèves lisent maintenant Sophia » est vérifiable,
+      // « c'est enregistré » ne l'est pas.
+      const owner = await resolveDoctrineOwner(admin, coachId);
+      console.info("keel.doctrine.source_changed", {
+        coach_id: coachId,
+        request_id: requestId,
+        source,
+        signs_as: owner.displayName,
+        doctrine_coach_id: owner.doctrineCoachId,
+      });
+      return jsonResponse(req, {
+        ok: true,
+        doctrine_source: source,
+        signs_as: owner.displayName,
         request_id: requestId,
       });
     }
@@ -555,6 +592,139 @@ Deno.serve(async (req) => {
         // transcrit, n'écrit jamais" — the same rule as the plan import.
         draft: parsed,
         issues,
+        preview_block: compiled.text,
+        preview_goal: compiled.goal ?? "default",
+        request_id: requestId,
+      });
+    }
+
+    // ---- compile_from_forks (brique 1 ter) — LE SAS ----------------------
+    //
+    // LE MÊME PATRON QUE `compile`, ET UNE SEULE DIFFÉRENCE DE FOND: ici le
+    // modèle ÉCRIT. Le coach n'a pas donné de prose — il a tapé des camps —
+    // donc il n'y a rien à transcrire, et la porte de relecture qui rendait
+    // `compile` acceptable est encore plus nécessaire: rien n'est enregistré,
+    // rien n'atteint un élève, le coach relit et corrige.
+    //
+    // POURQUOI CE N'EST PAS `applyStarterChoices`: cette fonction sème le texte
+    // PRÉ-RÉDIGÉ du catalogue, donc deux coachs qui tapent les mêmes camps
+    // repartent avec les mêmes phrases — exactement le clonage que le starter
+    // dit exister pour éviter. Voir l'en-tête de `doctrine_from_forks.ts`.
+    if (action === "compile_from_forks") {
+      const choicesRaw = (body.choices ?? {}) as Record<string, unknown>;
+      const choices: Record<string, string> = {};
+      for (const [k, v] of Object.entries(choicesRaw)) {
+        choices[String(k)] = String(v ?? "").trim();
+      }
+      const voiceAnswers = Array.isArray(body.voice_answers)
+        ? (body.voice_answers as unknown[]).map((a) => String(a ?? ""))
+        : [];
+
+      // R7 — un jeton de position inconnu REFUSE l'appel, il n'est jamais semé
+      // « au mieux ». Écrire dans la doctrine d'un coach une conviction
+      // qu'aucun écran ne lui a montrée est le pire défaut possible ici. La
+      // levée vit dans le module pur; on la nomme pour l'appelant.
+      let intentions;
+      try {
+        intentions = describeChoices(choices);
+      } catch (err) {
+        return jsonResponse(req, {
+          error: "unknown_starter_position",
+          detail: err instanceof Error ? err.message : String(err),
+          request_id: requestId,
+        }, { status: 400 });
+      }
+      if (intentions.length === 0) {
+        return jsonResponse(req, { error: "choices_required", request_id: requestId }, {
+          status: 400,
+        });
+      }
+      // SANS UN MOT DE LUI, ON REFUSE D'ÉCRIRE. Sa voix est la seule source de
+      // variance: générer sans elle produirait de la prose de manuel, c'est-à-dire
+      // la même doctrine pour deux coachs — le clonage, reconstruit en plus cher.
+      if (!hasVoiceSample(voiceAnswers)) {
+        return jsonResponse(req, { error: "voice_sample_required", request_id: requestId }, {
+          status: 400,
+        });
+      }
+      const voice = pairVoiceAnswers(voiceAnswers);
+
+      const result = await generateWithGemini(
+        DOCTRINE_FROM_FORKS_SYSTEM_PROMPT,
+        buildForkCompilePrompt({ intentions, voice }),
+        // PLUS CHAUD QUE `compile` (0.2), ET C'EST LE SUJET. Là-bas le modèle
+        // recopie des mots que le coach a écrits, et toute liberté est un
+        // risque. Ici il ÉCRIT, et à 0.2 il écrit la phrase la plus attendue —
+        // c'est-à-dire la même que pour le coach précédent.
+        0.5,
+        true,
+        [],
+        "auto",
+        { requestId, userId },
+      );
+      // `generateWithGemini` rend `string | {tool, args}` — JAMAIS `{text}`.
+      // Le cast `as {text?: string}` compile, passe `deno check`, passe les
+      // tests, et rend "" à 100% des appels en runtime. C'est arrivé sur
+      // `compile`; la garde est recopiée telle quelle.
+      if (typeof result !== "string") {
+        return jsonResponse(req, {
+          error: "compile_returned_tool_call",
+          request_id: requestId,
+        }, { status: 502 });
+      }
+      let parsed: Record<string, unknown>;
+      try {
+        const raw = result.trim()
+          .replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+        parsed = JSON.parse(raw);
+      } catch (err) {
+        return jsonResponse(req, {
+          error: "compile_unparseable",
+          detail: err instanceof Error ? err.message : String(err),
+          request_id: requestId,
+        }, { status: 502 });
+      }
+
+      const built = buildDraftFromForkGeneration({ choices, generated: parsed, voice });
+      // UNE DOCTRINE QUI SE MORD LA QUEUE NE S'ENREGISTRE PAS.
+      //
+      // Un `instead` qui contient sa propre formulation interdite se fait
+      // attraper par le verrou de sortie: le coach verrait son agent bloquer sa
+      // propre réponse, en boucle, sans jamais savoir pourquoi. On refuse la
+      // génération — une seconde tentative rend autre chose — plutôt que
+      // d'écrire une doctrine dont on sait déjà qu'elle se contredit.
+      if (built.selfBiting.length > 0) {
+        console.warn("keel.doctrine.forks_generation_self_biting", {
+          coach_id: coachId,
+          request_id: requestId,
+          detail: built.selfBiting.join("; "),
+        });
+        return jsonResponse(req, {
+          error: "generated_text_trips_own_lock",
+          detail: built.selfBiting.join("; "),
+          request_id: requestId,
+        }, { status: 502 });
+      }
+
+      const { doctrine, issues } = parseCoachDoctrine({
+        ...built.draft,
+        coach_id: coachId,
+        version: 0,
+        content_locale: String(body.content_locale ?? "en"),
+      });
+      const previewGoal = readGoalParam(body.preview_goal);
+      if (previewGoal instanceof Response) {
+        return jsonResponse(req, { error: "unknown_goal", request_id: requestId }, { status: 400 });
+      }
+      const compiled = compileDoctrineBlock(
+        { ...doctrine, coachDisplayName: displayName },
+        previewGoal,
+      );
+      return jsonResponse(req, {
+        ok: true,
+        // NON ENREGISTRÉ, comme `compile`. Le coach relit, corrige, publie.
+        draft: built.draft,
+        issues: [...built.issues, ...issues],
         preview_block: compiled.text,
         preview_goal: compiled.goal ?? "default",
         request_id: requestId,
@@ -1022,7 +1192,20 @@ Deno.serve(async (req) => {
 
     return jsonResponse(req, {
       error: "unknown_action",
-      known: ["questions", "list", "current", "compile", "save", "publish", "rollback", "diff", "replay"],
+      known: [
+        "questions",
+        "list",
+        "current",
+        "compile",
+        "compile_from_forks",
+        "compile_document",
+        "set_doctrine_source",
+        "save",
+        "publish",
+        "rollback",
+        "diff",
+        "replay",
+      ],
       request_id: requestId,
     }, { status: 400 });
   } catch (error) {

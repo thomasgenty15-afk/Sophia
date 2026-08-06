@@ -88,6 +88,11 @@ Deno.serve(async (req) => {
     const serviceRole = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
     const stripeSecretKey = requireEnv("STRIPE_SECRET_KEY");
     const seatPriceMonthly = Deno.env.get("STRIPE_PRICE_ID_COACH_SEAT_MONTHLY")?.trim() ?? "";
+    // L'annuel n'est PAS `requireEnv`: un déploiement qui ne vend que du
+    // mensuel doit continuer de tourner. L'absence ne devient une erreur que
+    // si un siège annuel existe réellement et qu'il faut créer son article —
+    // c'est-à-dire au moment où quelqu'un l'a vraiment vendu.
+    const seatPriceYearly = Deno.env.get("STRIPE_PRICE_ID_COACH_SEAT_YEARLY")?.trim() ?? "";
 
     const admin = createClient(supabaseUrl, serviceRole);
 
@@ -167,45 +172,91 @@ Deno.serve(async (req) => {
           });
         }
 
-        decision = decideSeatQuantity({ subscription: stripeSub, activeSeats: active });
+        // ── DEUX ARTICLES, DEUX QUANTITÉS ───────────────────────────────────
+        //
+        // Une cohorte est MIXTE (20260806190000): certains élèves paient le
+        // mois à leur coach, d'autres l'année. Les sièges se comptent donc sur
+        // DEUX articles Stripe, et chacun est redimensionné avec SON compte.
+        //
+        // Pousser `active` (le total) sur un seul article facturerait les
+        // élèves annuels au tarif mensuel — en silence, sur une facture.
+        // `countSeats` garantit `active === activeMonthly + activeYearly`: un
+        // siège est compté une fois et une seule.
+        //
+        // `decision` reste celle du MENSUEL: c'est elle que la ligne de journal
+        // et le champ `pushed_quantity` décrivent depuis toujours, et la casser
+        // rendrait illisible l'historique de réconciliation. L'annuel a ses
+        // propres compteurs, séparés.
+        const perInterval: Array<{
+          interval: "month" | "year";
+          seats: number;
+          priceId: string;
+          envName: string;
+        }> = [
+          {
+            interval: "month",
+            seats: counts.activeMonthly,
+            priceId: seatPriceMonthly,
+            envName: "STRIPE_PRICE_ID_COACH_SEAT_MONTHLY",
+          },
+          {
+            interval: "year",
+            seats: counts.activeYearly,
+            priceId: seatPriceYearly,
+            envName: "STRIPE_PRICE_ID_COACH_SEAT_YEARLY",
+          },
+        ];
 
-        if (!dryRun) {
-          if (decision.action === "update_item") {
-            stripeSeatItemId = decision.itemId;
-            // Idempotency key includes the month and the quantity: a retry of
-            // the same reconciliation is one Stripe write, not two.
+        for (const lane of perInterval) {
+          const laneDecision = decideSeatQuantity({
+            subscription: stripeSub,
+            activeSeats: lane.seats,
+            interval: lane.interval,
+          });
+          if (lane.interval === "month") decision = laneDecision;
+
+          if (dryRun) continue;
+
+          if (laneDecision.action === "update_item") {
+            if (lane.interval === "month") stripeSeatItemId = laneDecision.itemId;
+            // La clé d'idempotence porte l'INTERVALLE: sans lui, la même
+            // quantité sur les deux articles au même mois produirait une seule
+            // écriture Stripe, et l'un des deux ne serait jamais mis à jour.
             await stripeRequest({
               method: "POST",
-              path: `/v1/subscription_items/${encodeURIComponent(decision.itemId)}`,
+              path: `/v1/subscription_items/${encodeURIComponent(laneDecision.itemId)}`,
               secretKey: stripeSecretKey,
-              idempotencyKey: `keel_seats_${coach.id}_${periodMonth}_${decision.quantity}`,
-              body: { quantity: decision.quantity, proration_behavior: "none" },
+              idempotencyKey:
+                `keel_seats_${coach.id}_${periodMonth}_${lane.interval}_${laneDecision.quantity}`,
+              body: { quantity: laneDecision.quantity, proration_behavior: "none" },
             });
-            pushedQuantity = decision.quantity;
+            if (lane.interval === "month") pushedQuantity = laneDecision.quantity;
             pushed++;
-          } else if (decision.action === "create_item") {
-            if (!seatPriceMonthly) {
+          } else if (laneDecision.action === "create_item") {
+            if (!lane.priceId) {
               throw new Error(
-                "Missing env var: STRIPE_PRICE_ID_COACH_SEAT_MONTHLY (human step: create the Stripe price)",
+                `Missing env var: ${lane.envName} (human step: create the Stripe price)`,
               );
             }
             await stripeRequest({
               method: "POST",
               path: "/v1/subscription_items",
               secretKey: stripeSecretKey,
-              idempotencyKey: `keel_seats_new_${coach.id}_${periodMonth}`,
+              idempotencyKey: `keel_seats_new_${coach.id}_${periodMonth}_${lane.interval}`,
               body: {
                 subscription: stripeSubscriptionId,
-                price: seatPriceMonthly,
-                quantity: decision.quantity,
+                price: lane.priceId,
+                quantity: laneDecision.quantity,
                 proration_behavior: "none",
               },
             });
-            pushedQuantity = decision.quantity;
+            if (lane.interval === "month") pushedQuantity = laneDecision.quantity;
             pushed++;
-          } else if (decision.action === "noop") {
-            stripeSeatItemId = decision.itemId;
-            pushedQuantity = decision.quantity;
+          } else if (laneDecision.action === "noop") {
+            if (lane.interval === "month") {
+              stripeSeatItemId = laneDecision.itemId;
+              pushedQuantity = laneDecision.quantity;
+            }
           } else {
             skipped++;
           }

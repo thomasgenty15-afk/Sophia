@@ -50,6 +50,7 @@
  * PURE MODULE : no I/O, no clock (le caller passe `now`), no randomness.
  */
 
+import { findNumericNutritionTarget } from "./nutrition_lexicon.ts";
 import {
   applyKeelOutputLocks,
   type OutputLockResult,
@@ -293,64 +294,17 @@ export function focusFor(goal: StudentGoal): { maxNutrition: number; emphasis: s
  * exactement le défaut décrit en tête de `forbidden_matcher.ts`: deux copies
  * d'une même liste, dont une seule reçoit l'ajout.
  */
-const MACRO_WORDS = "protein|carb|carbohydrate|fat|sugar|fibre|fiber";
-
-/**
- * Les unités de MASSE, et seulement elles.
- *
- * `ml|cl|l` en sont sortis. Un volume est une PORTION, pas une cible de macro:
- * une cible s'écrit en grammes ou en pourcents, jamais en litres. Les garder
- * faisait mordre `macro_quantity_reversed` sur « Swap the sugary drink for 1 l
- * of water » — une ligne qui applique une conviction (couper le sucre liquide),
- * rejetée par le filtre censé protéger les lignes. Un faux positif ici est
- * silencieux: la ligne disparaît du plan sans que personne la voie manquer.
- */
-const MASS_UNITS = "g|gr|grams?|kg|oz";
-
-const NUMERIC_TARGET_PATTERNS: ReadonlyArray<{ name: string; re: RegExp }> = [
-  // Une unité d'énergie est toujours une cible, quel que soit le contexte.
-  //
-  // `kcal` n'avait pas de pluriel et `cal(?:orie)?` ne rattrape pas un préfixe
-  // `kilo`: « 1800 Kcals », « 1800 kilocalories » et « 2000 kilojoules »
-  // traversaient tous les trois, avec l'autorité d'un chiffre que personne n'a
-  // mesuré.
-  {
-    name: "energy_unit",
-    re: /\d[\d.,]*\s*(?:k(?:ilo)?cal(?:orie)?s?|k(?:ilo)?j(?:oule)?s?|cal(?:orie)?s?)\b/i,
-  },
-  // Une masse COLLÉE à un macro. L'ordre des deux sens compte:
-  // "30 g of protein" et "protein: 30 g" s'écrivent tous les deux.
-  {
-    name: "macro_quantity",
-    re: new RegExp(
-      `\\d[\\d.,]*\\s*(?:${MASS_UNITS})\\b[^.\\n]{0,20}\\b(?:${MACRO_WORDS})`,
-      "i",
-    ),
-  },
-  {
-    name: "macro_quantity_reversed",
-    re: new RegExp(
-      `\\b(?:${MACRO_WORDS})\\w*\\b[^.\\n]{0,20}\\d[\\d.,]*\\s*(?:${MASS_UNITS})\\b`,
-      "i",
-    ),
-  },
-  // Un pourcentage accolé à un macro est une répartition, donc une cible.
-  {
-    name: "macro_percentage",
-    re: new RegExp(
-      `\\d[\\d.,]*\\s*%[^.\\n]{0,20}\\b(?:${MACRO_WORDS})` +
-        `|\\b(?:${MACRO_WORDS})\\w*\\b[^.\\n]{0,20}\\d[\\d.,]*\\s*%`,
-      "i",
-    ),
-  },
-];
+// MACRO_WORDS, MASS_UNITS et NUMERIC_TARGET_PATTERNS ont DÉMÉNAGÉ dans
+// `nutrition_lexicon.ts`. Ce fichier en portait trois des quatre copies du
+// dépôt, et son propre en-tête documentait déjà ce que la duplication a coûté
+// (`fibre|fiber` ajoutées à deux motifs sur trois). L'union EN+FR y vit
+// maintenant en un point, sans paramètre de langue: un détecteur de fuite qui
+// choisirait sa langue laisserait passer « 38 g de protéines » dans un fil
+// anglais, sans erreur nulle part.
 
 /** Renvoie le nom du motif qui mord, ou null. Exporté pour être testé motif par motif. */
 export function findNumericTarget(text: string): string | null {
-  for (const p of NUMERIC_TARGET_PATTERNS) {
-    if (p.re.test(text)) return p.name;
-  }
-  return null;
+  return findNumericNutritionTarget(text);
 }
 
 // ---------------------------------------------------------------------------

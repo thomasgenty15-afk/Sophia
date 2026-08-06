@@ -21,7 +21,7 @@
  */
 
 import { addDays } from "./local_date.ts";
-import { dishesForDate, STRETCH_DAYS } from "./meal_stretch.ts";
+import { dishesForDate } from "./meal_stretch.ts";
 import {
   type FoodCatalogueItem,
   type PlannedDish,
@@ -98,49 +98,75 @@ export async function loadPlannedDishContext(
   if (catalogue.length === 0) return EMPTY("load_failed");
 
   let row: Record<string, unknown> | null = null;
+  let candidateCount = 0;
   try {
-    // LA DERNIÈRE composition, et une seule. Une régénération remplace la
-    // semaine — `useMealTicks` le dit déjà côté écran: « les clés de l'ancienne
-    // ne matchent plus rien, et la semaine neuve repart décochée ».
+    // ── LE PLAN QUI POSSÈDE CE JOUR-LÀ, pas « le dernier écrit » ──────────
+    //
+    // C'était `order by created_at desc limit 1`, et le défaut est documenté:
+    // « un seul clic générer un repas rend tout le plan de la semaine invisible
+    // au matching » (`docs/keel/QA-CHAT-2026-08-05-RESULTS.md`, A3). Depuis que
+    // deux plans peuvent coexister, c'était devenu pire qu'un défaut de
+    // fraîcheur: un plan PRÉPARÉ pour la semaine prochaine aurait servi de
+    // référence à la photo d'aujourd'hui, et la coche automatique aurait écrit
+    // un fait FABRIQUÉ — append-only, indélébile, dans la table que le coach
+    // lit.
+    //
+    // Le prédicat est en SQL et il est EXACT: `starts_on` et son terme
+    // encadrent la date demandée. La borne d'âge de sept jours qui suivait
+    // disparaît — elle devinait ce que la fenêtre affirme maintenant.
+    //
+    // `retired_at is null` n'est pas cosmétique: sans lui, un plan explicitement
+    // remplacé pourrait encore faire écrire une coche automatique.
     const { data, error } = await db
       .from("student_generated_meals")
-      .select("id, dishes, preparations, created_at")
+      .select("id, dishes, preparations, starts_on, duration_days, created_at")
       .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .is("retired_at", null)
+      .lte("starts_on", args.localDate)
+      .order("starts_on", { ascending: false })
+      .limit(4);
     if (error) throw error;
-    row = (data ?? null) as Record<string, unknown> | null;
+    // Plusieurs candidats démarrent avant cette date; c'est le PREMIER dont la
+    // fenêtre la contient encore qui la possède. On lit quatre lignes plutôt
+    // qu'une pour que la donnée antérieure à la contrainte d'exclusion (des
+    // fenêtres qui se chevauchaient) ne fasse pas rendre `null` à tort.
+    const candidates = (data ?? []) as Array<Record<string, unknown>>;
+    row = candidates.find((c) => {
+      const startsOn = String(c.starts_on ?? "");
+      const days = Number(c.duration_days);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(startsOn) || !Number.isFinite(days)) return false;
+      return args.localDate <= addDays(startsOn, Math.max(1, days) - 1);
+    }) ?? null;
+    candidateCount = candidates.length;
   } catch (error) {
     console.warn("[keel/planned_dish] composition unreadable", error);
     return EMPTY("load_failed");
   }
-  if (!row) return EMPTY("no_composition");
+  // DEUX SILENCES DIFFÉRENTS, et ils ne veulent pas dire la même chose: « cet
+  // élève n'a jamais rien composé » n'est pas « il a un plan, mais pas pour ce
+  // jour-là ». Le second est le cas nominal d'un plan de quatre jours qu'on
+  // interroge le cinquième.
+  if (!row) {
+    return candidateCount > 0
+      ? { ...EMPTY("composition_out_of_window"), catalogue }
+      : EMPTY("no_composition");
+  }
 
   const dishes = Array.isArray(row.dishes) ? (row.dishes as PlannedDish[]) : [];
   if (dishes.length === 0) return EMPTY("no_composition");
 
-  // L'ANCRE: la date de composition, ramenée à sa date locale. `created_at` est
-  // un instant UTC; on en prend la partie date telle quelle plutôt que de la
-  // re-résoudre dans un fuseau qu'on n'a pas lu — le décalage possible est d'un
-  // jour sur une composition faite après minuit UTC, et c'est un décalage que
-  // le fenêtrage absorbe (le plat glisse d'un jour, il ne disparaît pas).
-  const startDate = String(row.created_at ?? "").slice(0, 10);
+  // LA FENÊTRE VIENT DE LA LIGNE. Elle était DÉDUITE de `created_at`, avec sa
+  // propre mise en garde (« le décalage possible est d'un jour sur une
+  // composition faite après minuit UTC »). Ce décalage n'existe plus: la date
+  // est écrite, dans le calendrier local de l'élève, par celui qui a résolu son
+  // fuseau.
+  const startDate = String(row.starts_on ?? "");
   if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate)) return EMPTY("load_failed");
-
-  // LA BORNE D'ÂGE. `stretchDates` ne couvre que `startDate`..`startDate+6`;
-  // au-delà, aucun jeton de jour ne résout vers aujourd'hui et le fenêtrage
-  // suffit déjà. Mais elle est posée EXPLICITEMENT plutôt que déduite, parce
-  // qu'elle était la seconde moitié du défaut `day: null` (voir
-  // `dishesForDate`): une composition du 15 juillet restait éligible.
-  const lastCovered = addDays(startDate, STRETCH_DAYS - 1);
-  if (args.localDate < startDate || args.localDate > lastCovered) {
-    return { ...EMPTY("composition_out_of_window"), catalogue };
-  }
 
   const today = dishesForDate({
     dishes,
     startDate,
+    durationDays: Number(row.duration_days) || undefined,
     onDate: args.localDate,
     // Voir `dishesForDate`: un plat sans jour ne prouve rien sur AUJOURD'HUI.
     includeUndated: false,

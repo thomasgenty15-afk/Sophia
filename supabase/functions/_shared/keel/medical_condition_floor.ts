@@ -162,6 +162,12 @@ export const MEDICAL_CONDITION_SURFACE_FORMS: Record<string, readonly string[]> 
     "hashimoto",
     "hypothyroidie",
     "hyperthyroidie",
+    // Forme ADJECTIVALE, absente et mesurée manquante: « je suis
+    // hypothyroïdien » ratait là où « j'ai une hypothyroïdie » mordait.
+    "hypothyroidien",
+    "hypothyroidienne",
+    "hyperthyroidien",
+    "hyperthyroidienne",
     "probleme de thyroide",
     "thyroidite",
   ],
@@ -203,6 +209,64 @@ const DECLARATION_PATTERNS: readonly RegExp[] = [
   /\bj\s*ai\s+(?:un\s+|une\s+|de\s+l\s+|du\s+|de\s+la\s+)?([a-z0-9 ]{2,45})/,
   // FR — « on m'a diagnostiqué… »
   /\bon\s+m\s*a\s+diagnostique\s+(?:un\s+|une\s+)?([a-z0-9 ]{2,45})/,
+
+  // ── LE TROU MESURÉ LE 2026-08-06, et ce qu'il laissait passer ───────────
+  // Trois formulations parfaitement banales ne déclenchaient RIEN — 0 ligne
+  // sur 17 tours, garde jamais armée, protocole prescriptif complet servi:
+  //   « je souffre de diabète de type 2 »        → 3/3 protocole + « What to limit »
+  //   « I've had type 2 diabetes for ten years » → assiette chiffrée + « if you
+  //     use insulin or a sulfonylurea, don't slash carbs hard » (le bloc
+  //     interdit explicitement de parler médication)
+  //   « mon diabète s'aggrave »                  → « What to favor / cut back on » + HbA1c
+  //
+  // Un plancher ne vaut que par les phrases qu'il reconnaît. Celles-ci sont
+  // aussi ordinaires que « j'ai un diabète », et elles étaient invisibles.
+
+  // EN — durée, suivi, vie avec
+  /\bi\s*(?:ve|have)\s+had\s+(?:a\s+|an\s+)?([a-z0-9 ]{2,45})/,
+  /\bi\s+live\s+with\s+(?:a\s+|an\s+)?([a-z0-9 ]{2,45})/,
+  /\bi\s*(?:m|am)\s+being\s+treated\s+for\s+(?:a\s+|an\s+)?([a-z0-9 ]{2,45})/,
+  /\bi\s*(?:m|am)\s+on\s+medication\s+for\s+(?:a\s+|an\s+)?([a-z0-9 ]{2,45})/,
+  // EN — aggravation. « my » ici est POSSESSIF de l'élève; le désarmement
+  // « quelqu'un d'autre » ne liste que des personnes (son, mother…), donc il
+  // ne mord pas ici.
+  /\bmy\s+([a-z0-9 ]{2,35}?)\s+(?:is\s+getting\s+worse|has\s+got\s+worse|is\s+worsening)\b/,
+
+  // FR — souffrir de, suivi pour, vivre avec
+  /\bje\s+souffre\s+(?:d\s*|de\s+|du\s+|de\s+la\s+|des\s+)([a-z0-9 ]{2,45})/,
+  /\bje\s+suis\s+suivie?\s+pour\s+(?:un\s+|une\s+|le\s+|la\s+|du\s+|de\s+l\s+)?([a-z0-9 ]{2,45})/,
+  /\bje\s+vis\s+avec\s+(?:un\s+|une\s+|le\s+|la\s+|du\s+)?([a-z0-9 ]{2,45})/,
+  /\bje\s+suis\s+traitee?\s+pour\s+(?:un\s+|une\s+|le\s+|la\s+|du\s+)?([a-z0-9 ]{2,45})/,
+  // FR — aggravation
+  /\bmon\s+([a-z0-9 ]{2,35}?)\s+(?:s\s*aggrave|empire|se\s+degrade|est\s+mal\s+equilibre)\b/,
+  /\bma\s+([a-z0-9 ]{2,35}?)\s+(?:s\s*aggrave|empire|se\s+degrade|est\s+mal\s+equilibree?)\b/,
+
+  // ── LA SECONDE PASSE, et la leçon qu'elle porte ────────────────────────
+  // La passe précédente avait fermé TROIS PHRASES, pas trois familles. Le banc
+  // en a immédiatement trouvé six autres, toutes ordinaires, toutes muettes —
+  // dont la pire: « I take metformin for my type 2 diabetes » rendait un
+  // conseil de MÉDICATION (« take metformin with a meal… long-term metformin
+  // can lower vitamin B12 »), c'est-à-dire précisément ce que le bloc interdit,
+  // sans que le bloc soit jamais injecté.
+  //
+  // Un plancher déterministe ne vaut que par les formulations qu'il reconnaît.
+  // Chaque variante ci-dessous est le VOISIN d'une variante déjà couverte —
+  // c'est là qu'il faut chercher, pas ailleurs.
+
+  // EN — « I take <médicament> for my X » (voisin de « on medication for »)
+  /\bi\s+(?:take|am\s+on|m\s+on)\s+[a-z0-9 ]{2,25}\s+for\s+(?:my\s+|a\s+|an\s+)?([a-z0-9 ]{2,45})/,
+  // EN — « I got diagnosed with » (voisin de « was/have been diagnosed »)
+  /\bi\s+got\s+diagnosed\s+with\s+(?:a\s+|an\s+)?([a-z0-9 ]{2,45})/,
+  // EN — « I've been diabetic since 2015 » (voisin de « I've had »)
+  /\bi\s*(?:ve|have)\s+been\s+(?:a\s+|an\s+)?([a-z0-9 ]{2,45})/,
+  // EN — « type 2 diabetes here — what should I eat? »: l'élève nomme sa
+  // maladie en tête de message, sans verbe. Ancré en DÉBUT pour ne pas mordre
+  // sur une maladie citée au milieu d'une phrase quelconque.
+  /^([a-z0-9 ]{2,45}?)\s+here\b/,
+  // FR — « on m'a détecté » (voisin de « on m'a diagnostiqué »)
+  /\bon\s+m\s*a\s+(?:detecte|decouvert|trouve)\s+(?:un\s+|une\s+)?([a-z0-9 ]{2,45})/,
+  // FR — « je prends de la metformine pour mon diabète »
+  /\bje\s+prends\s+[a-z0-9 ]{2,30}\s+pour\s+(?:mon\s+|ma\s+|un\s+|une\s+|le\s+|la\s+)?([a-z0-9 ]{2,45})/,
 ];
 
 /**
@@ -214,7 +278,11 @@ const DECLARATION_PATTERNS: readonly RegExp[] = [
  */
 const DISARM_PATTERNS: readonly RegExp[] = [
   // Négation, EN et FR.
-  /\b(?:i am|i m|im)\s+not\s+/,
+  //
+  // ⚠️ `(?!sure|certain|positive)`: sans lui, « I'm not sure, but I have type 2
+  // diabetes » était désarmé — mesuré 3/3. Une HÉSITATION n'est pas une
+  // négation; l'élève déclare bel et bien sa maladie dans la même phrase.
+  /\b(?:i am|i m|im)\s+not\s+(?!sure\b|certain\b|positive\b)/,
   /\bi\s+(?:do\s+not|don t|dont)\s+have\b/,
   /\bje\s+ne\s+suis\s+(?:pas|plus)\b/,
   /\bje\s+n\s*ai\s+(?:pas|plus)\b/,
@@ -223,8 +291,6 @@ const DISARM_PATTERNS: readonly RegExp[] = [
   // am I at risk? » contient les deux.
   /\b(?:my|his|her|their|our)\s+(?:son|daughter|child|kid|wife|husband|partner|mother|father|mum|mom|dad|friend|colleague|brother|sister)\b/,
   /\b(?:mon|ma|mes)\s+(?:fils|fille|enfant|femme|mari|conjoint|mere|pere|maman|papa|ami|amie|collegue|frere|soeur)\b/,
-  // Une question n'est pas une déclaration.
-  /\b(?:am i|is it|what is|what s|what causes|c est quoi|qu est ce que|est ce que je suis|est ce que j ai)\b/,
   // Un RISQUE ou une CRAINTE n'est pas un diagnostic. « I'm worried I have
   // diabetes » et « j'ai peur de devenir diabétique » ne déclarent rien.
   /\b(?:worried|afraid|scared|think i might|might have|could i have|prediabet)\b/,
@@ -274,6 +340,31 @@ export const CLINICAL_DEFERRAL_BLOCK = [
   "  hypo they cannot control — say plainly to seek urgent care now.",
 ].join("\n");
 
+/**
+ * LES DÉSARMEMENTS QUI NE VALENT QUE FAUTE DE DÉCLARATION.
+ *
+ * ── LE TROU MESURÉ 3/3 LE 2026-08-06 ──────────────────────────────────────
+ * Les motifs de question étaient testés sur le message ENTIER. Donc
+ * « I have type 2 diabetes. Is it actually true that…? » — une déclaration
+ * SUIVIE d'une question — était désarmé en entier: aucune ligne écrite, aucune
+ * garde armée, et la recherche web repartait chercher un protocole clinique.
+ * Idem « je suis diabétique, c'est quoi une bonne assiette ? ».
+ *
+ * Une question POSÉE PAR quelqu'un qui vient de déclarer sa maladie reste une
+ * déclaration. Ces motifs ne désarment donc que si AUCUNE déclaration n'a été
+ * reconnue — les autres désarmements (négation, autrui, crainte, passé)
+ * restent absolus, eux, parce qu'ils NIENT la déclaration au lieu de
+ * l'accompagner.
+ *
+ * Note de symétrie, relevée en run: l'équivalent français (« c'est vrai
+ * que… ») mordait déjà là où l'anglais désarmait. Les deux langues ont
+ * maintenant la même politique — une garde testée dans une seule langue est
+ * une garde à moitié testée.
+ */
+const QUESTION_ONLY_DISARM: readonly RegExp[] = [
+  /\b(?:am i|is it|what is|what s|what causes|c est quoi|qu est ce que|est ce que je suis|est ce que j ai)\b/,
+];
+
 /** Les jetons connus, plus leurs formes de surface, en index inverse. */
 function buildIndex(): Array<{ ref: string; term: string }> {
   const out: Array<{ ref: string; term: string }> = [];
@@ -304,13 +395,28 @@ export function detectDeclaredMedicalCondition(
   const text = normalize(raw);
   if (!text) return null;
 
+  // Les désarmements ABSOLUS d'abord: ils nient la déclaration.
   for (const disarm of DISARM_PATTERNS) {
     if (disarm.test(text)) return null;
   }
 
+  // OÙ COMMENCE L'INTERROGATION, s'il y en a une. C'est la POSITION qui
+  // tranche, pas la présence — voir `QUESTION_ONLY_DISARM`.
+  const questionAt = QUESTION_ONLY_DISARM
+    .map((rx) => text.search(rx))
+    .filter((i) => i >= 0)
+    .reduce((min, i) => (i < min ? i : min), Number.POSITIVE_INFINITY);
+
   for (const pattern of DECLARATION_PATTERNS) {
     const match = text.match(pattern);
     if (!match) continue;
+    // UNE DÉCLARATION GOUVERNÉE PAR UNE INTERROGATION QUI LA PRÉCÈDE N'EN EST
+    // PAS UNE. « est-ce que je suis diabétique si je mange du sucre ? »
+    // contient « je suis diabétique », mais l'interrogatif est devant et
+    // commande la phrase. À l'inverse, « je suis diabétique, c'est quoi une
+    // bonne assiette ? » déclare PUIS demande — et cette moitié-là était
+    // désarmée à tort, 3/3.
+    if (typeof match.index === "number" && questionAt < match.index) continue;
     const object = (match[1] ?? "").trim();
     if (!object) continue;
 
@@ -328,5 +434,6 @@ export function detectDeclaredMedicalCondition(
       };
     }
   }
+
   return null;
 }

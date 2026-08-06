@@ -719,6 +719,10 @@ Deno.serve(async (req) => {
         localDate: readBack.local_date,
       });
       const gate = gateMealPrecisionQuestion({
+        // R3 — la question est rédigée pour CET élève, dans la langue de la
+        // ligne relue (R2). Même source que le rendu ligne 818: deux
+        // expressions pour une seule vérité finiraient par diverger.
+        locale: String(readBack.content_locale ?? "en-GB"),
         // Le chemin photo apporte SON axe (dérivé des hypothèses déclarées) et
         // sa propre condition de mise; l'évaluation textuelle ne s'y applique
         // pas. On lui donne donc l'axe déjà décidé, et le gate ne juge plus que

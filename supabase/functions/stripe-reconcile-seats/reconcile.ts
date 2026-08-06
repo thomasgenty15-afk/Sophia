@@ -13,8 +13,12 @@
 import {
   countSeats,
   isKeelSeatPriceId,
+  keelSeatPriceIdFor,
+  type SeatInterval,
   type SeatLedgerRow,
 } from "../_shared/billing-tier.ts";
+
+export type { SeatInterval };
 
 export type StripeSubscriptionItem = {
   id?: string;
@@ -47,12 +51,28 @@ export type SeatDecision =
  * in an order Stripe does not promise, and resizing the FLAT line to the number
  * of students would invoice a coach 49 $ times their roster.
  */
-export function findSeatItem(
+/**
+ * Le siège DE CET INTERVALLE, et lui seul.
+ *
+ * ⚠️ IL A REMPLACÉ UN `findSeatItem` SANS INTERVALLE, ET C'EST UNE CORRECTION,
+ * PAS UN AJOUT. L'ancien rendait le PREMIER article qui ressemblait à un siège.
+ * Tant qu'il n'y avait qu'un tarif, « le premier » était « le bon ». Depuis
+ * 20260806190000 un abonnement peut porter DEUX articles de siège — mensuel et
+ * annuel — et redimensionner celui trouvé en premier facturerait les élèves
+ * annuels au tarif mensuel, ou l'inverse. Sur une facture, en silence.
+ *
+ * `isKeelSeatPriceId` survit ailleurs: il répond « cet abonnement est-il un
+ * contrat coach », question qui ne demande pas l'intervalle.
+ */
+export function findSeatItemFor(
   sub: StripeSubscriptionLike | null | undefined,
+  interval: SeatInterval,
 ): StripeSubscriptionItem | null {
+  const priceId = keelSeatPriceIdFor(interval);
+  if (!priceId) return null;
   const items = sub?.items?.data ?? [];
   for (const it of items) {
-    if (isKeelSeatPriceId(it?.price?.id)) return it;
+    if (String(it?.price?.id ?? "").trim() === priceId) return it;
   }
   return null;
 }
@@ -65,6 +85,16 @@ export function findSeatItem(
 export function decideSeatQuantity(input: {
   subscription: StripeSubscriptionLike | null | undefined;
   activeSeats: number;
+  /**
+   * L'article visé. OBLIGATOIRE.
+   *
+   * Il a été optionnel pendant une heure, avec un repli sur « le premier
+   * article de siège trouvé ». C'était la faute que ce dépôt documente ailleurs
+   * sous le nom « paramètre de garde optionnel = garde désarmée »: l'oubli
+   * n'aurait pas fait échouer l'appel, il aurait redimensionné le mauvais
+   * article — et personne ne l'aurait vu avant la facture.
+   */
+  interval: SeatInterval;
 }): SeatDecision {
   const sub = input.subscription;
   const status = String(sub?.status ?? "").trim().toLowerCase();
@@ -83,7 +113,7 @@ export function decideSeatQuantity(input: {
   }
   const quantity = Math.floor(seats);
 
-  const item = findSeatItem(sub);
+  const item = findSeatItemFor(sub, input.interval);
   if (!item?.id) {
     if (quantity === 0) return { action: "skip", reason: "no_seats_no_item" };
     return { action: "create_item", quantity };
@@ -100,12 +130,19 @@ export function decideSeatQuantity(input: {
 export function decideFromLedger(input: {
   subscription: StripeSubscriptionLike | null | undefined;
   ledger: ReadonlyArray<SeatLedgerRow>;
+  /** L'article visé. Obligatoire, pour la même raison que dans
+   *  `decideSeatQuantity`: un défaut silencieux viserait le mauvais tarif. */
+  interval: SeatInterval;
 }): { decision: SeatDecision; active: number; linked: number } {
   const counts = countSeats(input.ledger);
+  // LE COMPTE DE CETTE VOIE, PAS LE TOTAL. Passer `counts.active` pousserait
+  // toute la cohorte sur un seul des deux articles.
+  const seats = input.interval === "year" ? counts.activeYearly : counts.activeMonthly;
   return {
     decision: decideSeatQuantity({
       subscription: input.subscription,
-      activeSeats: counts.active,
+      activeSeats: seats,
+      interval: input.interval,
     }),
     active: counts.active,
     linked: counts.linked,

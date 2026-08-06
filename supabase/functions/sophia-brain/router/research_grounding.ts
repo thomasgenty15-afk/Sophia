@@ -102,6 +102,16 @@ export async function runResearchGroundingLane(args: {
   // construction ce que la garde interdit de dire. Le bon arbitrage est le même
   // que pour la crise: on ne va pas le chercher.
   if (args.declaredMedicalCondition) {
+    // TRACÉ, parce qu'une coupure muette est invérifiable en run réel: la
+    // revalidation du 2026-08-06 n'a pas pu prouver que celle-ci mordait, elle
+    // n'a pu que constater l'absence de chiffres. Une garde dont on ne voit
+    // jamais l'effet est une garde qu'on suppose.
+    console.warn(JSON.stringify({
+      tag: "research_grounding_medical_muted",
+      request_id: args.requestId ?? null,
+      condition_ref: args.declaredMedicalCondition,
+      query,
+    }));
     return {
       context_block: null,
       honesty_directive: null,

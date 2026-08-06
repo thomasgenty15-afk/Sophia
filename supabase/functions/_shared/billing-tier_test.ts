@@ -186,7 +186,13 @@ Deno.test("countSeats reports linked and active separately", () => {
     row({ is_active_seat: true, interaction_count: 3 }),
     row({ is_active_seat: false, interaction_count: 1 }),
   ];
-  assertEquals(countSeats(rows), { linked: 3, active: 2, linkedNotActive: 1 });
+  assertEquals(countSeats(rows), {
+    linked: 3,
+    active: 2,
+    linkedNotActive: 1,
+    activeMonthly: 2,
+    activeYearly: 0,
+  });
 });
 
 Deno.test("countSeats: invited / paused / ended links are not seats", () => {
@@ -198,18 +204,68 @@ Deno.test("countSeats: invited / paused / ended links are not seats", () => {
   ];
   // Only the 'active' link counts, even when the ledger claims the others are
   // active seats: `status` is the seat, activity is only the billing filter.
-  assertEquals(countSeats(rows), { linked: 1, active: 1, linkedNotActive: 0 });
+  assertEquals(countSeats(rows), {
+    linked: 1,
+    active: 1,
+    linkedNotActive: 0,
+    activeMonthly: 1,
+    activeYearly: 0,
+  });
 });
 
 Deno.test("countSeats: a link with no student account is not a seat", () => {
   // An invitation accepted by nobody has student_user_id NULL. Billing a coach
   // for an email address is the failure mode this closes.
   const rows = [row({ student_user_id: null, is_active_seat: true })];
-  assertEquals(countSeats(rows), { linked: 0, active: 0, linkedNotActive: 0 });
+  assertEquals(countSeats(rows), {
+    linked: 0,
+    active: 0,
+    linkedNotActive: 0,
+    activeMonthly: 0,
+    activeYearly: 0,
+  });
 });
 
 Deno.test("countSeats on an empty roster is zero, not NaN", () => {
-  assertEquals(countSeats([]), { linked: 0, active: 0, linkedNotActive: 0 });
+  assertEquals(countSeats([]), {
+    linked: 0,
+    active: 0,
+    linkedNotActive: 0,
+    activeMonthly: 0,
+    activeYearly: 0,
+  });
+});
+
+// ── LA VENTILATION PAR INTERVALLE (20260806190000) ─────────────────────────
+
+Deno.test("countSeats ventile la facture entre mensuel et annuel", () => {
+  const rows = [
+    row({ is_active_seat: true, billing_interval: "month" }),
+    row({ is_active_seat: true, billing_interval: "year" }),
+    row({ is_active_seat: true, billing_interval: "year" }),
+    // Non facturable: il ne compte dans AUCUNE des deux voies.
+    row({ is_active_seat: false, billing_interval: "year" }),
+  ];
+  const c = countSeats(rows);
+  assertEquals({ active: c.active, m: c.activeMonthly, y: c.activeYearly }, {
+    active: 3,
+    m: 1,
+    y: 2,
+  });
+  // L'INVARIANT QUI PROTÈGE LA FACTURE: un siège est compté une fois et une
+  // seule. Si cette égalité cassait, un élève serait facturé deux fois ou pas
+  // du tout, et personne ne le verrait avant l'invoice.
+  assertEquals(c.activeMonthly + c.activeYearly, c.active);
+});
+
+// TOUT CE QUI N'EST PAS 'year' EST MENSUEL — y compris `null`, `undefined` et
+// une valeur inconnue. Le mensuel est le tarif le plus cher et le moins
+// engageant: se tromper de ce côté-là ne verrouille personne douze mois.
+Deno.test("un intervalle absent ou inconnu retombe sur le mensuel", () => {
+  for (const v of [null, undefined, "", "annual", "MONTH"]) {
+    const c = countSeats([row({ is_active_seat: true, billing_interval: v })]);
+    assertEquals({ m: c.activeMonthly, y: c.activeYearly }, { m: 1, y: 0 });
+  }
 });
 
 // ---------------------------------------------------------------------------

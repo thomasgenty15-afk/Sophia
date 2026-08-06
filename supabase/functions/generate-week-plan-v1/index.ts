@@ -13,6 +13,7 @@ import {
 } from "../_shared/keel/doctrine_loader.ts";
 import { coachNotePromptBlock, loadCoachNote } from "../_shared/keel/coach_note.ts";
 import { constraintsForPrompt } from "../_shared/keel/food_preference_promotion.ts";
+import { reconcileFoodPreferencesFor } from "../_shared/keel/food_preference_promotion_io.ts";
 import { loadStudentSafetyConstraints } from "../_shared/keel/safety_constraints.ts";
 import { ageBandOf, usableAge, weekPlanAgeGate } from "../_shared/keel/student_age.ts";
 import {
@@ -120,6 +121,23 @@ Deno.serve(async (req) => {
       }, { status: 409 });
     }
     const goalRow = goalRes.data as Record<string, unknown>;
+
+    // --- CE QUE L'ÉLÈVE A DÉMENTI DEPUIS ----------------------------------
+    // Une préférence gardée est une chaîne dans un jsonb; le souvenir dont
+    // elle vient continue de vivre dans `memory_items` et peut y être
+    // `superseded` (l'élève est revenu dessus) ou `invalidated` (il a
+    // rétracté). Sans ce raccord, mesuré sur un run réel de 3 semaines, le
+    // prompt recevait « aime le brocoli rôti » ET « n'aime pas le brocoli ».
+    //
+    // ICI, avant tout lecteur de `practical_constraints`: la correction est
+    // persistée, donc elle vaut aussi pour la carte, l'export et le
+    // générateur de repas.
+    goalRow.practical_constraints = await reconcileFoodPreferencesFor({
+      admin,
+      userId,
+      constraints: (goalRow.practical_constraints ?? {}) as Record<string, unknown>,
+      source: FN_NAME,
+    });
 
     // --- les RECOMMANDATIONS du coach (son programme, pas une prescription)
     const linkRes = await admin

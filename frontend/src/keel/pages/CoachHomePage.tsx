@@ -1,6 +1,7 @@
 import React from "react";
 import { useAuth } from "../../context/AuthContext";
 import { supabase } from "../../lib/supabase";
+import CoachBroadcastCard from "../components/CoachBroadcastCard";
 import { InviteDialog } from "../components/InviteDialog";
 import { KeelAppShell } from "../components/KeelAppShell";
 import { Badge, type BadgeTone } from "../components/ui/Badge";
@@ -323,6 +324,18 @@ function CoachHomeBody({
         />
         <StatTile label={t("coach.home.pending_label")} value={String(pending)} />
       </section>
+
+      {/* LE MOT À TOUTE LA COHORTE — sous les compteurs, au-dessus de la liste.
+          L'ordre dit le modèle: le coach voit d'abord COMBIEN d'élèves il a,
+          puis il leur parle à tous, et seulement ensuite il descend dans la
+          liste nominative. Placée après la liste, elle se serait lue comme une
+          action sur l'élève survolé — exactement ce que ce canal n'est pas.
+
+          Écriture par RPC (`keel_coach_send_broadcast`, migration
+          20260806180500): `coach_broadcasts` n'a aucune policy d'écriture, la
+          cadence hebdomadaire est tenue par un index unique en base et non par
+          cet écran. */}
+      <CoachBroadcastCard />
 
       {invitations.length > 0 && (
         <section className="mb-8">

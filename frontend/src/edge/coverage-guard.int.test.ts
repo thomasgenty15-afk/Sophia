@@ -124,6 +124,12 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       // internal ones (the hourly arming sweep and its due list) behind
       // X-Internal-Secret. Zero model calls: the render is deterministic.
       "keel-cards-v1",
+      // Le message de cohorte (20260806180500): le coach écrit une fois, N
+      // élèves reçoivent dans leur fil, signé de son nom. Interne
+      // (X-Internal-Secret), appelée par le cron `keel-coach-broadcast` toutes
+      // les dix minutes. Diffusion au curseur — `cursor_user_id` porte le point
+      // de reprise, donc un tick interrompu ne re-livre jamais.
+      "keel-coach-broadcast-v1",
       // PIVOT N2/C4/§1.3 — les trois boucles proactives KEEL. Depuis le
       // chantier de-whatsapp elles livrent dans la bulle; couvertes par
       // _shared/chat/proactive_int_test.ts (9 cas contre le vrai cron).
@@ -236,6 +242,11 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       "meal_ideas_food_groups_valid",
       "meal_plan_entries_touch",
       "student_cards_render",
+      // La note 1:1 du coach sur un élève (20260805180000). Simple horodatage
+      // de `updated_at` — aucune règle métier dedans. Acquitté ici parce que ce
+      // garde-fou existe pour qu'aucun trigger n'arrive sans que quelqu'un l'ait
+      // regardé, pas parce que celui-ci mérite une discussion.
+      "student_coach_notes_touch_updated_at",
       // `/app/health` (20260804190000): l'élève peut RETIRER une contrainte
       // qu'il a déclarée, et rien d'autre. Une policy RLS porte sur des lignes,
       // pas sur des colonnes — sans ce trigger, un `update` autorisé laissait

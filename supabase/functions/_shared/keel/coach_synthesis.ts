@@ -228,6 +228,16 @@ export interface StudentWeekInput {
   /** Combien de lignes l'élève s'était fixées cette semaine, et de quel type. */
   weekPlan?: { nutritionLines: number; actionLines: number; adopted: boolean } | null;
   /**
+   * Combien de compositions de repas l'élève s'est faites cette semaine.
+   *
+   * SECONDE SOURCE DE « il s'est fixé quelque chose », et aujourd'hui la seule
+   * vivante: la semaine de méthode a été remplacée par le constructeur de repas
+   * (commit 99697610), donc `weekPlan.adopted` est faux pour tout le monde.
+   * Les repas comptent parce que `generate-meal-v1` compose à partir de la
+   * doctrine publiée — c'est bien la méthode du coach qui a produit ces plats.
+   */
+  composedMeals?: number;
+  /**
    * The deterministic TCA floor (`restriction_guard.ts`). When true, it
    * overrides every other band — see `classifyRisk`.
    */
@@ -304,6 +314,9 @@ export interface StudentSynthesisLine {
   livability: LivabilitySummary;
   /** PIVOT N4: ce que l'élève s'était fixé. Null s'il n'a pas fait de plan. */
   weekPlan: { nutritionLines: number; actionLines: number; adopted: boolean } | null;
+  /** Combien de compositions de repas cette semaine. La seconde source de
+   *  « il s'est fixé quelque chose », et la seule encore alimentée. */
+  composedMeals: number;
   /** The week's plate readout. `total: 0` when no photo carried a band. */
   portions: PortionBandSummary;
   /** Rank key: lower sorts first. Deterministic, no ties broken by chance. */
@@ -374,6 +387,7 @@ export function buildStudentLine(
     flagReason,
     livability,
     weekPlan: input.weekPlan ?? null,
+    composedMeals: Math.max(0, Math.trunc(Number(input.composedMeals ?? 0)) || 0),
     portions: summarizePortionBands(input.portionBands ?? []),
     severity: flagReason === null ? 99 : FLAG_SEVERITY[flagReason],
   };
@@ -466,7 +480,11 @@ export function buildCoachSynthesis(
       hard: lines.filter((l) => l.livability.band === "hard").length,
       unknown: lines.filter((l) => l.livability.band === "unknown").length,
     },
-    planned: lines.filter((l) => l.weekPlan?.adopted).length,
+    // ADOPTÉ **OU** COMPOSÉ. Les deux disent la même chose du point de vue du
+    // coach — cet élève s'est écrit une semaine à partir de ma méthode — et une
+    // seule des deux surfaces est encore alimentée. Compter la seule qui reste
+    // vivante affichait 0 pour toute cohorte.
+    planned: lines.filter((l) => l.weekPlan?.adopted || l.composedMeals > 0).length,
     portions: summarizePortionBands(
       students.flatMap((s) => [...(s.portionBands ?? [])]),
     ),
@@ -541,8 +559,12 @@ export function renderSynthesisText(
   }
 
   if (m.planned > 0) {
+    // « built themselves a week » et plus « set themselves a plan »: la phrase
+    // doit rester vraie pour les DEUX sources qui l'alimentent — une semaine de
+    // méthode adoptée, et des repas composés. « A plan » désignait la première
+    // seule, celle que plus personne n'a.
     out.push(
-      `${m.planned} of ${m.studentCount} set themselves a plan for the week.`,
+      `${m.planned} of ${m.studentCount} built themselves a week from your method.`,
     );
   }
 

@@ -304,7 +304,37 @@ export async function loadStudentWeek(
     (r) => ({ overall: String(r.overall ?? ""), axis: r.axis ? String(r.axis) : null }),
   );
 
-  // PIVOT N4 — CE QUE L'ÉLÈVE S'ÉTAIT FIXÉ. Compté, jamais noté.
+  // CE QUE L'ÉLÈVE S'EST COMPOSÉ CETTE SEMAINE. Compté, jamais noté.
+  //
+  // ── POURQUOI DEUX SOURCES ET PLUS UNE ────────────────────────────────────
+  // Ce bloc ne lisait que `student_week_plans` en `'adopted'`. Le commit
+  // 99697610 a remplacé la semaine de méthode par le constructeur de repas:
+  // plus personne n'adopte, donc « ce qu'ils se sont fixé » affichait 0 pour
+  // TOUTE cohorte — sur l'artefact que le coach paie pour lire.
+  //
+  // Les repas comptent, et ce n'est pas un pis-aller: `generate-meal-v1`
+  // compose à partir de la doctrine publiée du coach. Un élève qui s'est
+  // composé des plats s'est bel et bien écrit une semaine à partir de la
+  // méthode. La phrase rendue reste vraie, elle change juste de surface.
+  //
+  // MÊME BORNE QUE `following_io.ts`, et elle a changé de nature le 2026-08-07.
+  // La table PORTE maintenant sa fenêtre (`starts_on`, `duration_days`,
+  // `ends_on`), donc on n'a plus à se rabattre sur `created_at` — qui datait
+  // l'écriture et pas la couverture, et faisait manquer un plan composé le
+  // dimanche pour la semaine d'après.
+  //
+  // Deux définitions de « cette semaine » divergeraient: celle-ci est la même
+  // que celle de `following_io.ts`, au prédicat près.
+  const mealRes = await db
+    .from("student_generated_meals")
+    .select("id")
+    .eq("user_id", args.studentUserId)
+    .is("retired_at", null)
+    .gte("ends_on", periodStart)
+    .limit(1);
+  if (mealRes.error) throw mealRes.error;
+  const composedMeals = ((mealRes.data ?? []) as unknown[]).length;
+
   const planRes = await db
     .from("student_week_plans")
     .select("items, status")
@@ -330,6 +360,7 @@ export async function loadStudentWeek(
     portionBands,
     dailyPulses,
     weekPlan,
+    composedMeals,
     restrictionFlag: args.restrictionFlag === true,
   };
 }

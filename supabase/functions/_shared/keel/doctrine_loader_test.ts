@@ -21,25 +21,42 @@ import {
 type Outcome = { data?: unknown; error?: unknown; throws?: boolean };
 
 /**
- * Fake matching the chain the loader uses:
+ * Fake matching the two chains the loader uses:
  *   from(t).select(c).eq(a,b)[.eq|.not](...).limit(n).maybeSingle()
+ *   from(t).select(c).eq(a,b).eq(a,b)                  ← awaited directly
+ *
+ * Le second est THENABLE, comme un vrai constructeur de requête PostgREST: la
+ * lecture des aliments écartés n'appelle ni `limit` ni `maybeSingle`, elle
+ * attend la chaîne. Un faux qui ne rendrait que des nœuds laisserait ce chemin
+ * silencieusement vide, donc non testé.
  */
 function fakeDb(byTable: Record<string, Outcome>) {
   const calls: string[] = [];
   const chain = (table: string) => {
     const outcome = byTable[table] ?? { data: null };
+    const settle = () => {
+      calls.push(table);
+      if (outcome.throws) throw new Error("connection reset");
+      return Promise.resolve({
+        data: outcome.data ?? null,
+        error: outcome.error ?? null,
+      });
+    };
     const node: Record<string, unknown> = {
       eq: () => node,
       not: () => node,
       order: () => node,
       limit: () => node,
-      maybeSingle: () => {
-        calls.push(table);
-        if (outcome.throws) throw new Error("connection reset");
-        return Promise.resolve({
-          data: outcome.data ?? null,
-          error: outcome.error ?? null,
-        });
+      maybeSingle: settle,
+      then: (
+        resolve: (v: unknown) => unknown,
+        reject: (e: unknown) => unknown,
+      ) => {
+        try {
+          return settle().then(resolve, reject);
+        } catch (err) {
+          return Promise.resolve().then(() => reject(err));
+        }
       },
     };
     return node;
@@ -75,6 +92,56 @@ Deno.test("loads the published doctrine of the student's live coach", async () =
   assert(loaded.compiled?.hash);
   // And the injected block IS the doctrine, not the fallback.
   assertEquals(doctrineBlockFor(loaded), loaded.compiled?.text);
+});
+
+// ── LES ALIMENTS ÉCARTÉS VIENNENT DE L'ÉCRAN ALIMENTS ─────────────────────
+//
+// Ils étaient demandés en prose dans l'entretien de doctrine ET posés en
+// pastilles sur `/coach/protocol`. Une seule source désormais:
+// `coach_food_items` en `stance='excluded'` — « Never » à l'écran.
+
+Deno.test("les aliments 'Never' arment le verrou depuis coach_food_items", async () => {
+  const { db } = fakeDb({
+    coach_clients: { data: { coach_id: "coach-1" } },
+    coach_doctrines: { data: DOCTRINE_ROW },
+    coach_food_items: { data: [{ label: "Seed oil" }, { label: "Protein bars" }] },
+  });
+  const loaded = await loadPublishedDoctrine(db, "student-1");
+  assertEquals(
+    loaded.doctrine?.foods.discouraged.map((f) => f.term),
+    ["Seed oil", "Protein bars"],
+  );
+});
+
+// LA COLONNE `coach_doctrines.foods` N'EST PLUS LA SOURCE. On la REMPLACE, on
+// ne fusionne pas: deux sources pour une liste, c'est la divergence garantie le
+// jour où un coach retire un aliment d'un écran et le voit rester actif parce
+// que l'autre le porte encore.
+Deno.test("la colonne foods de la doctrine ne survit pas à la lecture", async () => {
+  const { db } = fakeDb({
+    coach_clients: { data: { coach_id: "coach-1" } },
+    coach_doctrines: {
+      data: { ...DOCTRINE_ROW, foods: { discouraged: [{ term: "Stale entry" }] } },
+    },
+    coach_food_items: { data: [{ label: "Seed oil" }] },
+  });
+  const loaded = await loadPublishedDoctrine(db, "student-1");
+  assertEquals(loaded.doctrine?.foods.discouraged.map((f) => f.term), ["Seed oil"]);
+});
+
+// NE THROW JAMAIS. Une lecture d'aliments cassée dégrade la liste; elle ne doit
+// pas coûter sa doctrine au coach — sinon une panne sur une table secondaire
+// prive toute une cohorte de la méthode qu'elle paie.
+Deno.test("une lecture d'aliments cassée ne coûte pas la doctrine", async () => {
+  const { db } = fakeDb({
+    coach_clients: { data: { coach_id: "coach-1" } },
+    coach_doctrines: { data: DOCTRINE_ROW },
+    coach_food_items: { throws: true },
+  });
+  const loaded = await loadPublishedDoctrine(db, "student-1");
+  assertEquals(loaded.reason, "loaded");
+  assertEquals(loaded.doctrine?.foods.discouraged.length, 0);
+  assertEquals(loaded.doctrine?.forbidden[0].token, "six_small_meals");
 });
 
 Deno.test("no method loaded still ANSWERS the student", () => {

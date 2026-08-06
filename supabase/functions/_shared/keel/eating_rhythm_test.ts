@@ -152,6 +152,8 @@ Deno.test("le plafond du PROMPT et celui du PARSEUR ne peuvent pas diverger", ()
       pantry: [],
       beliefKeys: [],
       eatingRhythm: five,
+      daysToFill: ["mon"],
+      cookingTimeMin: null,
     },
   );
   assertEquals(meal.dishes.length, 5);

@@ -9,6 +9,8 @@ import {
   scheduleSeatEnd,
   type SeatRow,
   seatDisplayState,
+  seatInterval,
+  setSeatInterval,
 } from "../api/coachSeat";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
@@ -119,6 +121,41 @@ export default function CoachSeatCard({ studentId }: { studentId: string }) {
           <p className="mt-2 text-sm leading-6 text-gray-600">
             {t("coach.seat.active_body")}
           </p>
+
+          {/* L'INTERVALLE DE CE SIÈGE, et il est ici plutôt que sur la page de
+              facturation parce qu'il se décide PAR ÉLÈVE: le coach sait que
+              CELUI-CI lui a payé l'année, pas que « sa cohorte est annuelle ».
+              Une cohorte réelle est mixte. */}
+          <div className="mt-4 border-t border-gray-100 pt-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+              {t("coach.seat.interval_label")}
+            </p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {(["month", "year"] as const).map((iv) => {
+                const current = seatInterval(seat) === iv;
+                return (
+                  <button
+                    key={iv}
+                    type="button"
+                    disabled={busy || current}
+                    onClick={() => run(() => setSeatInterval(studentId, iv))}
+                    className={`rounded-lg border px-3 py-1.5 text-xs font-medium ${
+                      current
+                        ? "border-gray-900 bg-gray-900 text-white"
+                        : "border-gray-300 text-gray-700 hover:border-gray-400"
+                    }`}
+                  >
+                    {iv === "year"
+                      ? t("coach.seat.interval_year")
+                      : t("coach.seat.interval_month")}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="mt-2 text-xs leading-5 text-gray-500">
+              {t("coach.seat.interval_hint")}
+            </p>
+          </div>
           {confirming ? (
             <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
               <p className="text-sm leading-6 text-gray-700">

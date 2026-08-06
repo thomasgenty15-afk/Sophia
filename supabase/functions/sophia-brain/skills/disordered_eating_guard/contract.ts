@@ -187,31 +187,12 @@ export const DISORDERED_EATING_GUARD_INVARIANTS = [
  * on purpose: a broad list would reject legitimate sentences and push the
  * fallback into nominal use, which is how a validator ends up disabled.
  */
-export const FORBIDDEN_METRIC_TERMS: readonly string[] = Object.freeze([
-  "calorie",
-  "calories",
-  "kcal",
-  "macro",
-  "macros",
-  "bmi",
-  "kg",
-  "kgs",
-  "kilogram",
-  "kilograms",
-  "lb",
-  "lbs",
-  "pound",
-  "pounds",
-  "adherence",
-  "compliance",
-  "percentage",
-  "percent",
-  "streak",
-  "deficit",
-  "weigh",
-  "weight",
-  "score",
-]);
+// FORBIDDEN_METRIC_TERMS a DÉMÉNAGÉ dans `_shared/keel/nutrition_lexicon.ts`,
+// où il devient l'UNION EN+FR. La liste était anglaise seulement: « kilos »,
+// « poids », « assiduité », « IMC » passaient tous le validateur — sur la lane
+// clinique, celle où un chiffre coûte le plus cher. Réexporté ici pour ne pas
+// casser les appelants qui le lisent depuis le contrat du skill.
+export { FORBIDDEN_METRIC_TERMS } from "../../../_shared/keel/nutrition_lexicon.ts";
 
 export function disorderedEatingResponseContract(args: {
   kind: DisorderedEatingVisibleTaskKind;

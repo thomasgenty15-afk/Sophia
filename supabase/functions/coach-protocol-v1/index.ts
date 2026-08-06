@@ -8,6 +8,12 @@ import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import { generateWithGemini } from "../_shared/gemini.ts";
 import { type CoachDoctrine, parseCoachDoctrine } from "../_shared/keel/doctrine.ts";
 import { FOOD_GROUP_REFS } from "../_shared/keel/tokens.ts";
+import { resolveDoctrineOwner } from "../_shared/keel/doctrine_delegation.ts";
+import {
+  houseFillSelection,
+  keepExcludedWithEvidence,
+  parseFillSelection,
+} from "../_shared/keel/food_fill.ts";
 
 /**
  * `/coach/protocol` — LES DEUX SEULS ENDROITS OÙ UN MODÈLE TOUCHE À L'ÉCRAN
@@ -171,6 +177,45 @@ function doctrineMaterial(doctrine: CoachDoctrine): string {
   return lines.join("\n");
 }
 
+/**
+ * LE PROMPT DU REMPLISSAGE — et il ne demande PAS d'écrire de la nutrition.
+ *
+ * Il demande de SÉLECTIONNER dans une liste fermée. C'est la règle de tout cet
+ * écran (« le modèle n'écrit JAMAIS de nutrition, il écrit ce que LE COACH
+ * pense »), appliquée à un geste où la tentation d'inventer est maximale: on
+ * lui montre 127 aliments et une méthode, il serait naturel qu'il en propose un
+ * 128ᵉ. Le rappel est donc explicite, et `parseFillSelection` le vérifie de
+ * toute façon — le prompt évite la génération perdue, le parseur est ce qui
+ * tient.
+ */
+const FILL_SYSTEM_PROMPT = `
+You are given a coach's recorded method and a CLOSED list of foods.
+
+Your ONLY job is to pick, from that list, the foods this coach would build with,
+go easy on, or rule out. You are selecting, never writing.
+
+HARD RULES, in order of importance:
+
+1. RETURN ONLY SLUGS FROM THE LIST. Never invent a food, never return a variant
+   of a slug, never return a label. A slug that is not in the list is discarded
+   and counted as a mistake.
+2. USE ONLY THE COACH'S METHOD as your source. You are not a nutritionist. If
+   their method gives you nothing about a food, leave it out — a short honest
+   selection beats a long invented one.
+3. "excluded" IS THEIR RED LINE, not your inference. Only use it for a food the
+   coach has actually named as one they keep off a plate. If you are reasoning
+   from a principle rather than from their words, use "discouraged".
+4. NO HEALTH CLAIMS, NO NUMBERS anywhere in your output. You return slugs and
+   stances, nothing else — there is no field for prose.
+5. Prefer "encouraged". It is what the screen is for: the foods this coach
+   builds with. Twenty encouraged and two discouraged is a normal answer.
+
+Return STRICT JSON:
+{"selection": [{"slug": "...", "stance": "encouraged"|"discouraged"|"excluded"}]}
+
+An empty selection is a valid answer when their method says nothing about food.
+`;
+
 const WHY_SYSTEM_PROMPT = `
 You write ONE sentence explaining why a coach puts a given food on their
 students' plates — or keeps it off. You are writing AS THAT COACH, from their
@@ -333,6 +378,120 @@ Deno.serve(async (req) => {
     }
 
     // ---- draft_why -------------------------------------------------------
+    // ---- fill_from_doctrine ------------------------------------------------
+    //
+    // Pré-remplir l'écran des aliments à partir de la méthode déjà écrite.
+    //
+    // ⚠️ CETTE ACTION N'ÉCRIT RIEN. Elle rend une SÉLECTION `{slug, stance}` et
+    // l'écran insère lui-même, par le chemin d'écriture qui existe déjà (RLS,
+    // `ensureDraft`, `default_why` du catalogue). Écrire ici aurait dupliqué ce
+    // chemin — et c'est la duplication d'un chemin d'écriture qui produit deux
+    // provenances divergentes sur la même table.
+    //
+    // ── DEUX CHEMINS, ET L'ASYMÉTRIE EST VOULUE ────────────────────────────
+    // Un coach qui DÉLÈGUE sa doctrine à la maison n'a pas besoin d'un modèle:
+    // la doctrine de la maison est la même pour tout le monde, donc la
+    // sélection qui en découle doit l'être aussi. Un appel IA y produirait de
+    // la variance là où le produit en promet zéro — deux salles identiques
+    // repartiraient avec deux listes différentes, sans raison.
+    if (action === "fill_from_doctrine") {
+      const owner = await resolveDoctrineOwner(admin, coachId);
+
+      // Le catalogue fermé. Lu depuis la TABLE et pas depuis une constante:
+      // c'est la FK qui refusera l'écriture, donc c'est elle la vérité.
+      const { data: catalogRows, error: catalogErr } = await admin
+        .from("food_items")
+        .select("slug, label");
+      if (catalogErr) throw catalogErr;
+      const catalogue = new Set<string>();
+      const labelBySlug = new Map<string, string>();
+      for (const r of (catalogRows ?? []) as Array<Record<string, unknown>>) {
+        const slug = String(r.slug ?? "").trim();
+        if (!slug) continue;
+        catalogue.add(slug);
+        labelBySlug.set(slug, String(r.label ?? "").trim());
+      }
+
+      // ── CHEMIN MAISON: déterministe, aucun appel modèle ──────────────────
+      if (owner.delegated) {
+        const selection = houseFillSelection().filter((s) => catalogue.has(s.slug));
+        return jsonResponse(req, {
+          ok: true,
+          source: "house",
+          selection,
+          rejected: 0,
+          downgraded: 0,
+          request_id: requestId,
+        });
+      }
+
+      // ── CHEMIN DOCTRINE: le modèle SÉLECTIONNE ──────────────────────────
+      const doctrine = owner.doctrineCoachId
+        ? await loadDoctrine(admin, owner.doctrineCoachId)
+        : null;
+      if (!hasMaterial(doctrine)) {
+        // On refuse en DISANT quoi faire. « Ça a raté » enverrait le coach
+        // chercher une panne; ici il sait qu'il doit écrire sa méthode d'abord
+        // — ou qu'il peut prendre un pack de style, qui existe pour ce cas.
+        return jsonResponse(req, {
+          ok: false,
+          reason: "no_doctrine",
+          request_id: requestId,
+        });
+      }
+
+      const catalogueList = [...catalogue]
+        .map((s) => `${s} — ${labelBySlug.get(s) ?? ""}`)
+        .join("\n");
+      const material = doctrineMaterial(doctrine!);
+
+      const result = await generateWithGemini(
+        FILL_SYSTEM_PROMPT,
+        [
+          `The coach's recorded method:`,
+          material,
+          ``,
+          `The closed list of foods (slug — label):`,
+          catalogueList,
+        ].join("\n"),
+        0.2,
+        true,
+        [],
+        "auto",
+        { requestId },
+      );
+
+      const parsed = parseFillSelection(
+        parseJsonLoose(modelText(result)).selection,
+        catalogue,
+      );
+      // LA TRACE SUR `excluded`, et c'est la garde qui compte le plus ici.
+      // Depuis que `doctrine_loader.ts` alimente `foods.discouraged` depuis
+      // `stance='excluded'`, un `excluded` de trop ARME le verrou de sortie au
+      // nom du coach: son agent refusera un aliment en son nom, et il ne saura
+      // pas pourquoi. Sans trace écrite, on dégrade en `discouraged`.
+      const checked = keepExcludedWithEvidence(parsed.selection, labelBySlug, material);
+
+      console.info("keel.food_fill", {
+        coach_id: coachId,
+        kept: checked.selection.length,
+        rejected: parsed.rejected.length,
+        downgraded: checked.downgraded.length,
+        // Un modèle qui invente régulièrement est un prompt à corriger. Un
+        // rejet silencieux ne le dirait jamais.
+        rejected_slugs: parsed.rejected.map((r) => r.slug).slice(0, 10).join(","),
+      });
+
+      return jsonResponse(req, {
+        ok: true,
+        source: "doctrine",
+        selection: checked.selection,
+        rejected: parsed.rejected.length,
+        downgraded: checked.downgraded.length,
+        request_id: requestId,
+      });
+    }
+
     if (action === "draft_why") {
       const itemId = String(body.item_id ?? "").trim();
       if (!itemId) {

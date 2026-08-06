@@ -142,6 +142,7 @@ export async function makeStudent(opts: {
   timezone?: string;
   country?: string | null;
   fullName?: string;
+  locale?: string;
   withAdoptedPlan?: boolean;
   weekStart?: string;
 } = {}): Promise<Student> {
@@ -151,6 +152,21 @@ export async function makeStudent(opts: {
     keel_role: "student",
     full_name: opts.fullName ?? "QA Student",
     timezone: opts.timezone ?? "Europe/Paris",
+    // ── `locale`, ET IL A DÉJÀ FABRIQUÉ UN FAUX DÉFAUT ────────────────────
+    // `profiles.locale` a pour DÉFAUT `fr-FR` — un reste du produit grand
+    // public. Les trois chemins réels qui font de quelqu'un un élève KEEL
+    // écrivent tous `en-US` (`keel_attach_student_to_coach`,
+    // `free_signup_attach_engine`, `house_discovery_plan_version`, plus
+    // `JoinPage.tsx`). Ce harnais, lui, insère `coach_clients` EN DIRECT et
+    // court-circuite donc la RPC: sans cette ligne, tout élève de QA naît
+    // `fr-FR`.
+    //
+    // Ce que ça a coûté le 2026-08-06: un run de trois semaines a conclu à un
+    // « défaut de langue du memorizer » — mémoire française pour un élève
+    // en-GB — alors que le memorizer avait obéi au profil. Un décor qui ment
+    // sur le produit fabrique des défauts qui n'existent pas, ce qui coûte
+    // aussi cher qu'en cacher un.
+    locale: opts.locale ?? "en-US",
     proactive_muted_at: null,
     deletion_requested_at: null,
   };

@@ -97,6 +97,21 @@ export interface OutputLockInput {
    */
   doctrine?: Pick<CoachDoctrine, "forbidden" | "foods"> | null;
   /**
+   * Le nom du coach, POUR SIGNER SA SUBSTITUTION — et rien d'autre.
+   *
+   * Optionnel PAR CONCEPTION, et le call site décide. Le chat le passe: la
+   * substitution y est un message que l'élève lit, et c'est le seul moment du
+   * produit où il reçoit les mots de son coach mot pour mot. Les deux
+   * générateurs (`meal_generation`, `week_plan_generation`) ne le passent PAS:
+   * ils produisent un artefact — un plat, une ligne de semaine — et y coller
+   * « — Marc » signerait une recette, pas une réponse.
+   *
+   * Son absence ne désarme aucune garde: elle retire une signature, pas une
+   * vérification. C'est la seule forme sous laquelle un paramètre optionnel est
+   * acceptable ici.
+   */
+  coachDisplayName?: string | null;
+  /**
    * Les identifiants que CE TOUR retire (`declare_safety_constraint` avec
    * `intent: 'retract'`). Voir la condition de désarmement n°5 dans le corps:
    * sans elle, un élève ne peut JAMAIS corriger une contrainte, parce que la
@@ -169,6 +184,7 @@ export function resolveDoctrineReplacement(
   violationTokens: readonly string[],
   forbidden: readonly CoachDoctrine["forbidden"][number][],
   constraints: readonly StudentSafetyConstraint[],
+  coachDisplayName?: string | null,
 ): { text: string; usedCoachWords: boolean } {
   for (const token of violationTokens) {
     const entry = forbidden.find((f) => f.token === token);
@@ -181,9 +197,36 @@ export function resolveDoctrineReplacement(
       });
       continue;
     }
-    return { text: instead, usedCoachWords: true };
+    return { text: signAsCoach(instead, coachDisplayName), usedCoachWords: true };
   }
+  // ⚠️ LE REPLI GÉNÉRIQUE N'EST JAMAIS SIGNÉ, et c'est la moitié qui compte.
+  //
+  // `DOCTRINE_BLOCK_FALLBACK_EN` est NOTRE phrase, écrite ici, quand le coach
+  // n'a rien prévu ou que son texte mordait une contrainte médicale. La signer
+  // ferait dire au coach une chose qu'il n'a pas écrite — au moment précis où
+  // l'élève pousse contre sa méthode, c'est-à-dire au pire moment possible pour
+  // lui prêter des mots. La signature suit `usedCoachWords`, jamais autre chose.
   return { text: DOCTRINE_BLOCK_FALLBACK_EN, usedCoachWords: false };
+}
+
+/**
+ * La signature — et pourquoi elle est en suffixe, pas en préfixe.
+ *
+ * `instead` est écrit par le coach à la deuxième personne, adressé à l'élève
+ * (« Trois vrais repas. Si tu as faim entre les deux, c'est que le repas
+ * d'avant était trop petit. »). Le préfixer de « Marc dit : » en ferait une
+ * citation rapportée et mettrait un narrateur entre les deux — exactement
+ * l'inverse de l'effet recherché. En suffixe, l'élève lit d'abord la réponse,
+ * puis découvre de qui elle est.
+ *
+ * PAS DE NOM, PAS DE SIGNATURE. `null` est une valeur légitime — un coach sans
+ * `display_name`. « — the coach » serait une signature vide qui attire l'œil
+ * sur une absence; mieux vaut la phrase seule, qui reste vraie.
+ */
+function signAsCoach(text: string, coachDisplayName?: string | null): string {
+  const name = String(coachDisplayName ?? "").trim();
+  if (!name) return text;
+  return `${text}\n\n— ${name}`;
 }
 
 /**
@@ -272,11 +315,20 @@ export function applyKeelOutputLocks(input: OutputLockInput): OutputLockResult {
     if (doctrineViolations.length > 0) {
       const tokens = [...new Set(doctrineViolations.map((v) => v.token))];
       // On répond À LA PLACE du coach avec SES mots quand il les a donnés.
-      const replacement = resolveDoctrineReplacement(tokens, forbidden, constraints);
+      const replacement = resolveDoctrineReplacement(
+        tokens,
+        forbidden,
+        constraints,
+        input.coachDisplayName,
+      );
       console.error("keel.output_lock.doctrine", {
         violation_count: doctrineViolations.length,
         tokens: tokens.join(","),
         used_coach_words: replacement.usedCoachWords,
+        // La signature suit `used_coach_words`: si les deux divergent un jour
+        // dans les logs, c'est que le repli générique a été signé — la seule
+        // faute que cette fonctionnalité peut commettre.
+        signed: replacement.usedCoachWords && Boolean(String(input.coachDisplayName ?? "").trim()),
         detail: "Visible text replaced before delivery.",
       });
       return {

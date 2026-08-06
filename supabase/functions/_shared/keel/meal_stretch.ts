@@ -46,9 +46,19 @@ export const STRETCH_DAYS = 7;
  * correspondance est totale et sans ambiguïté — c'est précisément ce qui manque
  * quand on regarde un plat isolé.
  */
-export function stretchDates(startDate: string): Record<string, string> {
+export function stretchDates(
+  startDate: string,
+  /**
+   * La vraie longueur de la fenêtre. Sept par défaut — l'hypothèse que ce
+   * module portait quand un plan durait toujours une semaine. Depuis
+   * `20260807090000_meal_plan_window`, la ligne la connaît, et un plan de
+   * quatre jours ne doit pas résoudre les trois jetons qu'il ne possède pas.
+   */
+  durationDays: number = STRETCH_DAYS,
+): Record<string, string> {
   const out: Record<string, string> = {};
-  for (let i = 0; i < STRETCH_DAYS; i++) {
+  const days = Math.min(STRETCH_DAYS, Math.max(1, durationDays));
+  for (let i = 0; i < days; i++) {
     const date = addDays(startDate, i);
     out[dayTokenOfDate(date)] = date;
   }
@@ -112,8 +122,18 @@ export interface DishOnDate<T> {
  */
 export function dishesForDate<T extends StretchableDish>(args: {
   dishes: readonly T[];
-  /** `created_at` de la composition, en date locale de l'élève. */
+  /** Premier jour de la fenêtre (`starts_on`), en date locale de l'élève. */
   startDate: string;
+  /**
+   * Combien de jours la fenêtre couvre. Par défaut sept — ce que ce module a
+   * supposé jusqu'au 2026-08-07, quand un plan commençait toujours aujourd'hui
+   * et durait toujours une semaine.
+   *
+   * Le passer VRAIMENT est ce qui empêche un plan de quatre jours de résoudre
+   * les trois jetons qu'il ne possède pas: sans ça, le lundi de la semaine
+   * SUIVANTE rapprocherait une photo contre le plan de cette semaine-ci.
+   */
+  durationDays?: number;
   onDate: string;
   /**
    * Un plat SANS jour (`day: null`) tombe-t-il le jour demandé ?
@@ -134,7 +154,7 @@ export function dishesForDate<T extends StretchableDish>(args: {
    */
   includeUndated?: boolean;
 }): Array<DishOnDate<T>> {
-  const dates = stretchDates(args.startDate);
+  const dates = stretchDates(args.startDate, args.durationDays);
   const out: Array<DishOnDate<T>> = [];
   args.dishes.forEach((dish, dishIndex) => {
     if (!args.includeUndated && !String(dish.day ?? "").trim()) return;

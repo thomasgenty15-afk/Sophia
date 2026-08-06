@@ -32,6 +32,7 @@ import {
   renderDeterministicRecap,
 } from "./daily_recap.ts";
 import { loadPlannedDishContext } from "./planned_dish_io.ts";
+import { parseMealTickKey } from "./meal_tick.ts";
 import { doctrineBlockFor, loadPublishedDoctrine } from "./doctrine_loader.ts";
 import { appendResponseLanguageBlock } from "./locale.ts";
 import { generateWithGemini } from "../gemini.ts";
@@ -40,8 +41,8 @@ import { generateWithGemini } from "../gemini.ts";
 // deno-lint-ignore no-explicit-any
 type Db = any;
 
-/** Le préfixe de `source_message_id` que `mealTickKey` produit. */
-const TICK_KEY_PREFIX = "meal_tick:";
+// Le préfixe et sa relecture vivent dans `meal_tick.ts`: une seconde copie du
+// format de clé finirait par diverger de celle qui l'ÉCRIT.
 
 /**
  * Les faits de la journée, tels que l'élève les a déclarés.
@@ -87,6 +88,9 @@ export async function loadDayFacts(
   }
 
   const tickedTitles: string[] = [];
+  // De quel PLAN vient chaque coche. Même longueur que `tickedTitles`: les deux
+  // sont poussés ensemble, sur la même ligne d'événement.
+  const tickedMealIds: string[] = [];
   let photoCount = 0;
   for (const row of events) {
     const source = String(row.source ?? "");
@@ -94,23 +98,26 @@ export async function loadDayFacts(
       photoCount++;
       continue;
     }
-    if (
-      source === "quick_tap" &&
-      String(row.source_message_id ?? "").startsWith(TICK_KEY_PREFIX)
-    ) {
+    if (source === "quick_tap") {
+      const parsed = parseMealTickKey(row.source_message_id);
+      if (!parsed) continue;
       const title = String(row.student_note ?? "").trim();
       // Une coche sans titre reste un fait — elle compte dans le total, elle ne
       // se cite simplement pas. L'écarter fausserait le numérateur.
       tickedTitles.push(title);
+      tickedMealIds.push(parsed.mealId);
     }
   }
 
-  // Le dénominateur, et rien d'autre. Une composition illisible ou hors fenêtre
-  // rend 0: le message dira « X cochés » sans ratio, ce qui reste vrai.
+  // Le dénominateur, et l'IDENTITÉ du plan dont il vient. Une composition
+  // illisible ou hors fenêtre rend 0: le message dira « X cochés » sans ratio,
+  // ce qui reste vrai.
   let plannedCount = 0;
+  let plannedMealId: string | null = null;
   try {
     const planned = await loadPlannedDishContext(db, { userId, localDate });
     plannedCount = planned.dishes.length;
+    plannedMealId = planned.mealId;
   } catch (error) {
     console.warn("[keel/recap] planned dishes unreadable", error);
   }
@@ -121,6 +128,21 @@ export async function loadDayFacts(
     // si on prenait la longueur de la liste filtrée, et « 2 des 4 » deviendrait
     // « 1 des 4 »: un chiffre faux issu d'une donnée manquante.
     tickedCount: tickedTitles.length,
+    // ── LE NUMÉRATEUR DU RATIO EST SCOPÉ AU PLAN, `tickedCount` NON ────────
+    // Les deux existent, et la distinction est délibérée:
+    //
+    //   `tickedCount` compte TOUTES les coches du jour. Une coche est un fait
+    //   que l'élève a rapporté; la compter n'est jamais faux, et le message
+    //   « tu as coché 3 choses » reste vrai quel que soit le plan visé.
+    //
+    //   `tickedForPlanCount` ne compte que celles du plan qui fournit le
+    //   DÉNOMINATEUR. Sans ce filtre, un élève qui a un plan courant et un plan
+    //   préparé voyait ses coches des deux additionnées face aux plats d'un
+    //   seul: « 5 des 3 », dans le message du soir, sans qu'aucune erreur ne
+    //   soit levée nulle part.
+    tickedForPlanCount: plannedMealId
+      ? tickedMealIds.filter((id) => id === plannedMealId).length
+      : 0,
     tickedTitles: tickedTitles.filter((t) => t.length > 0),
     plannedCount: Math.max(plannedCount, 0),
     photoCount,

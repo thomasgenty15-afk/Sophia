@@ -167,7 +167,9 @@ const Auth = () => {
   useEffect(() => {
     if (coachSignup) {
       document.title = "Sophia — coach sign in";
-      document.documentElement.lang = "en";
+      // `lang` appartient a `keel/i18n/runtime.ts`: UN seul ecrivain.
+      // Trois composants l'ecrivaient au montage, chacun a "en" — donc la
+      // valeur dependait de l'ordre de rendu, ce qui n'est pas une decision.
     }
   }, [coachSignup]);
 

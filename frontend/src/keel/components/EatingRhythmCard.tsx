@@ -74,6 +74,28 @@ function occasionLabel(slot: EatingOccasion): string {
   return mealCopy(`meals.slot.${slot}` as Parameters<typeof mealCopy>[0]);
 }
 
+/**
+ * L'EMPREINTE D'UN RYTHME — ce qui décide que deux rythmes sont LE MÊME.
+ *
+ * Sur les six moments, dans l'ordre du jour: absent, ou pris avec son heure.
+ * Une chaîne et pas un tableau, parce que le parent recalcule `props.rhythm` à
+ * chaque rendu (`parseEatingRhythm(...)` appelé dans le JSX): comparer les
+ * identités de tableaux dirait « changé » à chaque frappe de clavier voisine.
+ */
+function fingerprint(pick: (slot: EatingOccasion) => string | null | undefined): string {
+  return EATING_OCCASIONS.map((slot) => {
+    const at = pick(slot);
+    return at === undefined ? "" : `${slot}@${at ?? ""}`;
+  }).join("|");
+}
+
+function savedFingerprint(rhythm: readonly EatingOccasionSlot[]): string {
+  return fingerprint((slot) => {
+    const row = rhythm.find((o) => o.slot === slot);
+    return row ? row.at : undefined;
+  });
+}
+
 export interface EatingRhythmCardProps {
   /** `null` tant qu'aucune ligne `student_goals` n'existe: rien à mettre à jour. */
   hasGoal: boolean;
@@ -96,10 +118,32 @@ export default function EatingRhythmCard(props: EatingRhythmCardProps) {
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [flash, setFlash] = React.useState<string | null>(null);
-  // La page monte cette carte APRÈS son chargement (`state.kind === "loading"`
-  // rend un écran à part), donc l'initialiseur voit le vrai rythme et non un
-  // tableau vide transitoire.
   const [open, setOpen] = React.useState(() => props.rhythm.length === 0);
+
+  // ── LE BROUILLON SUIT LE RYTHME ENREGISTRÉ QUAND CELUI-CI CHANGE ────────
+  // Les initialiseurs ci-dessus ne tournent QU'AU MONTAGE. Cette carte a donc
+  // longtemps affiché un rythme vide sur un élève qui en avait un: la page la
+  // montait avant d'avoir lu `student_goals`, l'initialiseur voyait `[]`, et
+  // plus rien ne le rattrapait quand la lecture arrivait. Le « Nothing ticked »
+  // était faux, et le Save d'à côté effaçait pour de bon ce qui était en base.
+  //
+  // La page a maintenant son écran de chargement, donc le montage voit le vrai
+  // rythme. Ce n'est pas une raison de rester monté sur cette hypothèse: elle
+  // vit chez le parent, elle a déjà sauté une fois en silence, et ce qu'elle
+  // protège est une ÉCRITURE DESTRUCTRICE. La carte se resynchronise donc
+  // d'elle-même dès que l'empreinte enregistrée change sous elle.
+  //
+  // Sur l'empreinte et pas sur `props.rhythm`: un rendu du parent qui ne touche
+  // pas au rythme (une frappe dans une carte voisine) ne doit pas jeter le
+  // brouillon en cours. Et après une sauvegarde, ce qui est relu EST le
+  // brouillon — la resynchronisation est alors sans effet visible.
+  const saved = savedFingerprint(props.rhythm);
+  const [syncedFrom, setSyncedFrom] = React.useState(saved);
+  if (syncedFrom !== saved) {
+    setSyncedFrom(saved);
+    setPicked(new Set(props.rhythm.map((o) => o.slot)));
+    setTimes(Object.fromEntries(props.rhythm.filter((o) => o.at).map((o) => [o.slot, o.at!])));
+  }
 
   /** Ce que la carte repliée dit: le rythme ENREGISTRÉ, dans l'ordre du jour. */
   const savedSummary = React.useMemo(() => {
@@ -113,21 +157,9 @@ export default function EatingRhythmCard(props: EatingRhythmCardProps) {
   }, [props.rhythm]);
 
   /** Le brouillon s'écarte-t-il de ce qui est en base ? (repli ≠ perte) */
-  const dirty = React.useMemo(() => {
-    const fingerprint = (pick: (slot: EatingOccasion) => string | null | undefined) =>
-      EATING_OCCASIONS.map((slot) => {
-        const at = pick(slot);
-        return at === undefined ? "" : `${slot}@${at ?? ""}`;
-      }).join("|");
-    const saved = fingerprint((slot) => {
-      const row = props.rhythm.find((o) => o.slot === slot);
-      return row ? row.at : undefined;
-    });
-    const draft = fingerprint((slot) =>
-      picked.has(slot) ? times[slot]?.trim() || null : undefined,
-    );
-    return saved !== draft;
-  }, [props.rhythm, picked, times]);
+  const dirty =
+    saved !==
+    fingerprint((slot) => (picked.has(slot) ? times[slot]?.trim() || null : undefined));
 
   const toggle = (slot: EatingOccasion) => {
     setFlash(null);

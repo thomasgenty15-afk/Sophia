@@ -75,7 +75,18 @@ function isI18nExempt(file) {
   const r = rel(file);
   return (
     /^frontend\/src\/keel\/i18n\/[^/]+\.ts$/.test(r) ||
-    /^supabase\/functions\/_shared\/keel\/locale[^/]*\.ts$/.test(r)
+    /^supabase\/functions\/_shared\/keel\/locale[^/]*\.ts$/.test(r) ||
+    // Les PACKS DE LIBELLÉS côté serveur (`labels.en.ts`, `labels.fr.ts`, et
+    // l'accesseur `labels.ts`). L'exemption ne couvrait que le seed du front,
+    // et la règle R1-days mordait sur `labels.fr.ts` — dont la raison d'être
+    // est précisément de porter « lundi » en face du jeton `mon`. R1 interdit
+    // un jour français comme DONNÉE; un pack de libellés est l'endroit exact
+    // où la traduction est légitime, et le seul.
+    /^supabase\/functions\/_shared\/keel\/labels(\.[a-z]{2})?\.ts$/.test(r) ||
+    // Le lexique des DÉTECTEURS DE FUITE: il porte l'union EN+FR des noms de
+    // nutriments et du vocabulaire métrique. Ce sont des motifs de détection,
+    // jamais des jetons écrits en base.
+    /^supabase\/functions\/_shared\/keel\/nutrition_lexicon\.ts$/.test(r)
   );
 }
 
@@ -408,10 +419,23 @@ const INTERNAL_IN_PROSE = [
   },
 ];
 
-// The locale seeds, and only those: `t.ts` is the lookup machinery, and its
-// strings are developer-facing errors that SHOULD name the key that is missing.
+// The locale seeds, and ONLY those — listés par leur nom, pas déduits du
+// dossier.
+//
+// Le filtre excluait `t.ts` par basename et prenait tout le reste de
+// `i18n/` pour un seed. Ça marchait tant que le dossier ne contenait QUE le
+// seed et sa machinerie; le jour où il gagne `catalog.ts`, `runtime.ts` et
+// `fr.public.ts`, la règle R1-prose scanne les clés de `localStorage` et les
+// noms de namespace comme si un coach les lisait. Un lint qui remonte des
+// faux positifs sur des fichiers d'infrastructure est un lint qu'on apprend
+// à ignorer, ce qui coûte plus cher que ce qu'il garde.
+//
+// Une liste explicite vieillit dans le bon sens: ajouter une langue oblige à
+// ajouter son fichier ici, et c'est une ligne visible en diff.
+const LOCALE_SEED_BASENAMES = new Set(["en.ts", "fr.ts", "fr.public.ts"]);
 const localeSeeds = files.filter((f) =>
-  /^frontend\/src\/keel\/i18n\/[^/]+\.ts$/.test(rel(f)) && path.basename(f) !== "t.ts"
+  /^frontend\/src\/keel\/i18n\/[^/]+\.ts$/.test(rel(f)) &&
+  LOCALE_SEED_BASENAMES.has(path.basename(f))
 );
 
 for (const file of localeSeeds) {

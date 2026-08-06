@@ -124,6 +124,28 @@ export interface DoctrineBelief {
   rationale?: string | null;
   /** Vide = pour tout le monde. Voir `goalScopeApplies`. */
   goalScope: readonly string[];
+  /**
+   * QUI A ÉCRIT CETTE PHRASE — et la seule valeur qui existe est celle qui
+   * change quelque chose.
+   *
+   * `starter` = KEEL a écrit ces mots, le coach a tapé sur une position sans
+   * les retoucher. C'est la provenance dont dépend LA promesse du produit:
+   * « c'est MON agent, dans MA voix ». Dix coachs qui adoptent la même position
+   * sans y toucher, ce sont dix agents qui sortent la même phrase — et le
+   * premier coach qui reconnaît son `instead` mot pour mot chez un concurrent
+   * arrête de payer. Le défaut est silencieux jusqu'à ce jour-là.
+   *
+   * R6 — LA BRANCHE NOMMÉE QUI LA LIT: `countUntouchedStarter`
+   * (`doctrine_starter.ts`), qui alimente le compteur affiché au bouton
+   * publier. Le vocabulaire reste à UNE valeur tant qu'une seconde n'a pas sa
+   * propre branche: une provenance qui ne change rien nulle part est un champ
+   * que personne ne maintient et sur lequel tout le monde s'appuie.
+   *
+   * ⚠️ N'ENTRE JAMAIS DANS LE BLOC COMPILÉ. `compileDoctrineBlock` ne rend que
+   * `claim` et `rationale`; le hash de cache est donc inchangé, et l'agent
+   * n'apprend pas qu'une conviction de son coach vient d'un préréglage.
+   */
+  source?: "starter" | null;
 }
 
 /**
@@ -155,6 +177,15 @@ export interface DoctrineForbidden {
    * neutral refusal that still never invents a channel.
    */
   instead?: string | null;
+  /**
+   * Voir `DoctrineBelief.source`. Même vocabulaire, même branche nommée.
+   *
+   * C'est ICI que la provenance compte le plus: `instead` est LITTÉRALEMENT ce
+   * qu'un élève lit quand le verrou remplace une réponse. Un `instead` de
+   * préréglage jamais retouché est la phrase de KEEL, servie à un élève, sous
+   * le nom de son coach.
+   */
+  source?: "starter" | null;
 }
 
 export interface DoctrineVocabularyEntry {
@@ -166,7 +197,15 @@ export interface DoctrineVocabularyEntry {
 export interface DoctrineArbitration {
   situation: string;
   coachAnswer: string;
-  source?: "interview" | "weekly_suggestion" | "test_mode" | null;
+  /**
+   * `starter` a rejoint ce vocabulaire pour que les TROIS sections semées par
+   * un préréglage se lisent pareil. Sans lui `parseCoachDoctrine` ramenait la
+   * provenance d'une arbitration à `null` pendant que la même marque survivait
+   * sur une croyance — deux parseurs en désaccord sur la même ligne, ce qui est
+   * la définition d'une provenance à laquelle on ne peut pas se fier.
+   * Voir `DoctrineBelief.source`.
+   */
+  source?: "interview" | "weekly_suggestion" | "test_mode" | "starter" | null;
   /** Vide = pour tout le monde. C'est le champ le plus souvent rempli des deux. */
   goalScope: readonly string[];
 }
@@ -356,6 +395,19 @@ function parseGoalScope(
   return out;
 }
 
+/**
+ * La provenance d'une entrée. Inconnue ⇒ `null`, et c'est le bon sens d'échec.
+ *
+ * `null` veut dire « du coach », qui est la valeur par défaut de TOUTE la base
+ * existante: aucune ligne écrite avant ce lot ne porte de `source`, et les
+ * relire comme « préréglage » afficherait à un coach que sa propre doctrine
+ * n'est pas de lui. L'inverse (un préréglage relu comme du coach) ne coûte
+ * qu'un compteur trop optimiste sur une valeur qu'on vient d'écrire nous-mêmes.
+ */
+function parseEntrySource(raw: unknown): "starter" | null {
+  return str(raw) === "starter" ? "starter" : null;
+}
+
 export function deriveBeliefKey(claim: string): string {
   const words = claim
     .normalize("NFD")
@@ -412,6 +464,7 @@ export function parseCoachDoctrine(
       claim,
       rationale: str(b.rationale) || null,
       goalScope: parseGoalScope(b.goal_scope ?? b.goalScope, `beliefs[${i}]`, issues),
+      source: parseEntrySource(b.source),
     });
   }
 
@@ -431,6 +484,7 @@ export function parseCoachDoctrine(
       surfaceForms,
       reason: str(f.reason) || null,
       instead: str(f.instead) || null,
+      source: parseEntrySource(f.source),
     });
   }
 
@@ -461,7 +515,7 @@ export function parseCoachDoctrine(
     arbitrations.push({
       situation,
       coachAnswer,
-      source: (["interview", "weekly_suggestion", "test_mode"].includes(source)
+      source: (["interview", "weekly_suggestion", "test_mode", "starter"].includes(source)
         ? source
         : null) as DoctrineArbitration["source"],
       goalScope: parseGoalScope(a.goal_scope ?? a.goalScope, `arbitrations[${i}]`, issues),

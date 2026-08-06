@@ -116,6 +116,27 @@ function keelPriceIds(kind: "platform" | "seat"): Set<string> {
   return new Set(keys.map((k) => env(k)).filter(Boolean) as string[]);
 }
 
+/** L'intervalle de facturation d'un siège. Miroir de la CHECK
+ *  `coach_clients_billing_interval_check` (migration 20260806190000). */
+export type SeatInterval = "month" | "year";
+
+/**
+ * L'identifiant de prix Stripe du siège POUR CET INTERVALLE, ou `null` s'il
+ * n'est pas configuré.
+ *
+ * `isKeelSeatPriceId` répond « c'est une ligne de siège » sans dire laquelle —
+ * il servait quand il n'y avait qu'un tarif. Depuis qu'un abonnement peut
+ * porter DEUX articles de siège (mensuel et annuel), redimensionner « le »
+ * siège trouvé en premier facturerait les élèves annuels au tarif mensuel, ou
+ * l'inverse. Cette fonction est ce qui permet de viser le bon article.
+ */
+export function keelSeatPriceIdFor(interval: SeatInterval): string | null {
+  const key = interval === "year"
+    ? KEEL_PRICE_ENV.seatYearly
+    : KEEL_PRICE_ENV.seatMonthly;
+  return env(key) || null;
+}
+
 /** Is this price id the per-active-student line? Used to find the item to resize. */
 export function isKeelSeatPriceId(priceId: string | null | undefined): boolean {
   const id = (priceId ?? "").trim();
@@ -251,15 +272,24 @@ export type SeatLedgerRow = {
   link_status: string | null;
   interaction_count: number | null;
   is_active_seat: boolean | null;
+  /** 'month' | 'year' — sur quel article Stripe ce siège est compté.
+   *  Optionnel dans le type parce que les lignes écrites avant la migration
+   *  20260806190000 ne le portent pas; `countSeats` traite l'absence comme
+   *  'month', c'est-à-dire le tarif le plus cher et le moins engageant. */
+  billing_interval?: string | null;
 };
 
 export type SeatCounts = {
   /** Links that occupy a seat: status 'active'. */
   linked: number;
-  /** Of those, the ones that crossed the activity threshold. THE INVOICE. */
+  /** Of those, the billable ones. THE INVOICE. */
   active: number;
-  /** Active links that did NOT cross it — listed, explained, not billed. */
+  /** Active links that are not billable — listed, explained, not billed. */
   linkedNotActive: number;
+  /** LA FACTURE, VENTILÉE PAR ARTICLE STRIPE. `active === month + year`,
+   *  toujours: un siège facturable est compté une fois et une seule. */
+  activeMonthly: number;
+  activeYearly: number;
 };
 
 /**
@@ -273,13 +303,29 @@ export type SeatCounts = {
 export function countSeats(rows: ReadonlyArray<SeatLedgerRow>): SeatCounts {
   let linked = 0;
   let active = 0;
+  let activeMonthly = 0;
+  let activeYearly = 0;
   for (const r of rows) {
     if (String(r?.link_status ?? "") !== "active") continue;
     if (!r?.student_user_id) continue;
     linked++;
-    if (r?.is_active_seat === true) active++;
+    if (r?.is_active_seat !== true) continue;
+    active++;
+    // TOUT CE QUI N'EST PAS EXPLICITEMENT 'year' EST MENSUEL — y compris une
+    // valeur inconnue, nulle, ou une ligne écrite avant 20260806190000. Le
+    // mensuel est le tarif LE PLUS CHER et le moins engageant: se tromper de ce
+    // côté-là coûte un peu d'argent au coach et ne l'engage à rien, alors que
+    // le défaut inverse l'engagerait douze mois sans qu'il l'ait demandé.
+    if (String(r?.billing_interval ?? "") === "year") activeYearly++;
+    else activeMonthly++;
   }
-  return { linked, active, linkedNotActive: linked - active };
+  return {
+    linked,
+    active,
+    linkedNotActive: linked - active,
+    activeMonthly,
+    activeYearly,
+  };
 }
 
 /**

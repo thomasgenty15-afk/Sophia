@@ -33,21 +33,86 @@ import {
   GOAL_TOKENS,
   type GoalToken,
 } from "../../../../supabase/functions/_shared/keel/tokens.ts";
+import {
+  claimOnEdit,
+  countUntouchedStarter,
+  NO_RULE,
+  STARTER_FORKS,
+  type StarterChoices,
+  type StarterFootprint,
+  type StarterFork,
+} from "../../../../supabase/functions/_shared/keel/doctrine_starter.ts";
+import { VOICE_QUESTIONS } from "../../../../supabase/functions/_shared/keel/doctrine_from_forks.ts";
+import {
+  DOCTRINE_SOURCES,
+  type DoctrineSource,
+} from "../../../../supabase/functions/_shared/keel/doctrine_delegation.ts";
+import { supabase } from "../../lib/supabase";
 
-export type { CoachDoctrine, CompiledDoctrine, GoalToken };
+export type { CoachDoctrine, CompiledDoctrine, DoctrineSource, GoalToken };
 export { GOAL_TOKENS };
+export type { StarterChoices, StarterFootprint, StarterFork };
+export { DOCTRINE_SOURCES, NO_RULE, STARTER_FORKS, VOICE_QUESTIONS };
+
+/**
+ * L'APPEL À `coach-doctrine-v1` — une seule fois, pour deux surfaces.
+ *
+ * Il vivait dans `CoachDoctrinePage`. La modale d'amorçage en a besoin aussi, et
+ * une copie dans le composant aurait produit deux façons de lire une erreur du
+ * serveur — donc deux écrans qui, sur le même code, ne disent pas la même chose.
+ *
+ * LE CODE DE REFUS DU SERVEUR VOYAGE TEL QUEL. Un « something went wrong »
+ * générique masquerait `coach_suspended` et `voice_sample_required`, qui veulent
+ * dire des choses très différentes à la personne qui lit. La traduction en
+ * phrase, quand elle a lieu, est le travail de l'écran — pas de ce transport.
+ */
+export async function callDoctrine<T>(payload: Record<string, unknown>): Promise<T> {
+  const { data: sessionData } = await supabase.auth.getSession();
+  const token = sessionData.session?.access_token ?? "";
+  const res = await fetch(
+    `${import.meta.env.VITE_SUPABASE_URL as string}/functions/v1/coach-doctrine-v1`,
+    {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        apikey: import.meta.env.VITE_SUPABASE_ANON_KEY as string,
+        authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    },
+  );
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok || (json as { ok?: boolean })?.ok === false) {
+    throw new Error(String((json as { error?: unknown })?.error ?? `HTTP ${res.status}`));
+  }
+  return json as T;
+}
 
 /** La forme que l'éditeur manipule: celle que `coach-doctrine-v1` rend et lit. */
 export interface DoctrineDraft {
-  beliefs?: Array<{ claim?: string; rationale?: string | null; goal_scope?: string[] }>;
+  // `source: "starter"` = la phrase est encore MOT POUR MOT celle du préréglage.
+  // Voir `DoctrineBelief.source` côté Deno: c'est la provenance dont dépend la
+  // promesse « c'est MON agent, dans MA voix ».
+  beliefs?: Array<{
+    claim?: string;
+    rationale?: string | null;
+    goal_scope?: string[];
+    source?: string | null;
+  }>;
   forbidden?: Array<{
     token?: string;
     surface_forms?: string[];
     reason?: string | null;
     instead?: string | null;
+    source?: string | null;
   }>;
   vocabulary?: Array<{ term?: string; meaning?: string | null }>;
-  arbitrations?: Array<{ situation?: string; coach_answer?: string; goal_scope?: string[] }>;
+  arbitrations?: Array<{
+    situation?: string;
+    coach_answer?: string;
+    goal_scope?: string[];
+    source?: string | null;
+  }>;
   foods?: {
     discouraged?: Array<{ term?: string; surface_forms?: string[]; reason?: string | null }>;
   };
@@ -64,6 +129,56 @@ export interface DoctrineDraft {
  * bouton: un interdit qui ne vaut que pour certains élèves est une préférence.
  */
 export const ALWAYS_SHARED_SECTIONS = ["voice", "vocabulary", "forbidden", "foods", "qa"] as const;
+
+// ---------------------------------------------------------------------------
+// LES PRÉRÉGLAGES — un passe-plat typé, zéro logique
+// ---------------------------------------------------------------------------
+//
+// Les décisions (quand une ligne change de propriétaire, ce qui compte encore
+// comme « à nous ») vivent dans `doctrine_starter.ts`, testé côté Deno. Cette
+// fonction n'existe que pour recoller les types: l'éditeur manipule une
+// `DoctrineDraft` nommée, le module pur un `Record` — et un `as` répété sur
+// quinze appels finit par en masquer un qui n'était pas légitime.
+//
+// ── `applyStarter` ET `starterChoicesOf` ONT DISPARU D'ICI ──────────────
+// L'écran ne SÈME plus depuis les débats. Semer écrivait dans le brouillon le
+// texte pré-rédigé du catalogue, donc deux coachs qui tapaient les mêmes camps
+// repartaient avec les mêmes phrases — le clonage même que le catalogue dit
+// exister pour éviter. Les camps sont maintenant l'ENTRÉE D'UN PROMPT
+// (`compile_from_forks`), et c'est la réécriture qui produit la variance.
+// `applyStarterChoices` reste côté Deno: ses tests documentent le format, et
+// c'est encore elle qui décrit ce qu'une position sème.
+
+export function starterFootprint(draft: DoctrineDraft | null): StarterFootprint {
+  return countUntouchedStarter(draft as Record<string, unknown> | null);
+}
+
+/**
+ * LE BROUILLON EST-IL VIDE — la condition qui décide d'afficher le sas.
+ *
+ * Le sas ne s'ouvre que là: proposé au-dessus d'une doctrine écrite, il
+ * inviterait à régénérer par-dessus le travail du coach, et « on écrit ta
+ * méthode pour toi » est faux quand elle existe déjà.
+ *
+ * LA VOIX N'EN FAIT PAS PARTIE, exactement comme dans `compileDoctrineBlock`:
+ * une voix dit COMMENT parler, jamais QUOI prescrire. Un brouillon qui ne porte
+ * qu'un `voice.language` est un brouillon vide, et un coach qui a seulement
+ * ouvert l'écran a droit au sas.
+ *
+ * Le critère d'« entrée » est celui de `pruneDraft` — donc celui du serveur:
+ * une ligne ouverte et jamais remplie ne compte pas, puisqu'elle ne partirait
+ * pas en base non plus.
+ */
+export function isDraftEmpty(draft: DoctrineDraft | null): boolean {
+  if (!draft) return true;
+  const clean = pruneDraft(draft);
+  return (clean.beliefs?.length ?? 0) === 0 &&
+    (clean.forbidden?.length ?? 0) === 0 &&
+    (clean.vocabulary?.length ?? 0) === 0 &&
+    (clean.arbitrations?.length ?? 0) === 0 &&
+    (clean.foods?.discouraged?.length ?? 0) === 0 &&
+    (clean.qa?.length ?? 0) === 0;
+}
 
 /** Le libellé d'un objectif, dans les mots d'un coach. */
 export const GOAL_LABELS: Readonly<Record<GoalToken, string>> = {
@@ -257,8 +372,31 @@ export function entriesForScope<T extends { goal_scope?: string[] }>(
 }
 
 /** Remplace une entrée. Rend un nouveau tableau — React ne re-rend pas une mutation. */
+/**
+ * Modifie une entrée — ET LUI REND SA PROPRIÉTÉ AU PASSAGE.
+ *
+ * ── POURQUOI LE CLIQUET EST *ICI* ET PAS SUR LES QUINZE APPELANTS ────────
+ * C'est le seul endroit par lequel passe toute édition d'entrée de l'éditeur.
+ * Une ligne semée par un préréglage (`source: "starter"`) cesse d'être la
+ * nôtre à la seconde où le coach en réécrit le texte, et le compteur affiché
+ * au bouton publier en dépend. Quinze appelants qui devraient penser à passer
+ * `source: null` sont quinze endroits où l'un d'eux oubliera — et l'oubli ne
+ * casse rien, il ment: le compteur dirait « encore la nôtre » sur une phrase
+ * que le coach vient d'écrire.
+ *
+ * La décision « ce texte a changé de propriétaire » vit dans
+ * `claimOnEdit` (module Deno, testé), pas ici: le serveur et l'écran doivent en
+ * juger pareil.
+ */
 export function patchEntry<T>(list: readonly T[] | undefined, index: number, patch: Partial<T>): T[] {
-  return (list ?? []).map((e, i) => (i === index ? { ...e, ...patch } : e));
+  return (list ?? []).map((e, i) => {
+    if (i !== index) return e;
+    const claimed = claimOnEdit(
+      e as unknown as Record<string, unknown>,
+      patch as Record<string, unknown>,
+    );
+    return { ...e, ...(claimed as Partial<T>) };
+  });
 }
 
 /** Ajoute une entrée à la fin. */

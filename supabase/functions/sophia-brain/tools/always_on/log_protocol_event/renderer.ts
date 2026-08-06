@@ -12,11 +12,17 @@
  * acknowledged). Here the acknowledgement is a function of the ledger, so the
  * cardinality of what is said equals the cardinality of what exists.
  *
- * Copy is English: KEEL surfaces are English (W9 makes it total). The strings
- * are content, not tokens (R1 applies to data, not to prose).
+ * La copie SUIT LA LANGUE DE LA RÉPONSE. Elle était anglaise en dur, avec un
+ * commentaire qui l'assumait — vrai tant que le produit n'avait qu'une langue,
+ * faux le jour où l'axe existe. Les chaînes sont du contenu, pas des jetons
+ * (R1 porte sur les données, pas sur la prose).
  */
 
-import { labelFor } from "../../../../_shared/keel/labels.en.ts";
+import {
+  labelFor,
+  type LocalePack,
+  localePackFor,
+} from "../../../../_shared/keel/labels.ts";
 import type {
   LogProtocolEventCommittedEffect,
   LogProtocolEventDirectEffectResult,
@@ -32,20 +38,26 @@ import type {
  * lie inverted. The slug is ASCII English, so it is shown as-is and the gap is
  * visible instead of silent.
  */
-function itemNameOf(effect: LogProtocolEventCommittedEffect): string | null {
+function itemNameOf(
+  effect: LogProtocolEventCommittedEffect,
+  pack: LocalePack,
+): string | null {
   const token = effect.food_group_ref ?? effect.substance_ref;
   if (!token) return null;
   const vocab = effect.food_group_ref ? "food_groups" : "substances";
   try {
-    return labelFor(vocab, token);
+    return labelFor(vocab, token, pack);
   } catch {
     return token;
   }
 }
 
 /** `"A"`, `"A and B"`, `"A, B and C"` — the cardinality is legible in the list. */
-function nameList(effects: readonly LogProtocolEventCommittedEffect[]): string {
-  const names = effects.map(itemNameOf).filter((n): n is string => n !== null);
+function nameList(
+  effects: readonly LogProtocolEventCommittedEffect[],
+  pack: LocalePack,
+): string {
+  const names = effects.map((e) => itemNameOf(e, pack)).filter((n): n is string => n !== null);
   if (names.length === 0) return "";
   if (names.length === 1) return `: ${names[0]}`;
   return `: ${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
@@ -63,9 +75,16 @@ function nameList(effects: readonly LogProtocolEventCommittedEffect[]): string {
  */
 export function renderLogProtocolEventLoggedReply(
   effects: readonly LogProtocolEventCommittedEffect[] | null | undefined,
+  /**
+   * R3 — REQUIS. L'accusé NOMME des groupes alimentaires et des substances;
+   * sans locale il les nommait toujours en anglais, et le paramètre de
+   * `labelFor` prévu pour l'éviter n'était passé par personne.
+   */
+  locale: string,
 ): string | null {
   const committed = (effects ?? []).filter((e) => Boolean(e?.protocol_event_id));
   if (committed.length === 0) return null;
+  const pack = localePackFor(locale);
 
   const head = committed[0];
   const slot = head.slot_key ? ` (${head.slot_key})` : "";
@@ -76,11 +95,11 @@ export function renderLogProtocolEventLoggedReply(
   // Idempotence must be legible: the student should not wonder whether the
   // retry created a second entry.
   if (fresh.length === 0) {
-    return `Already recorded ${where}${nameList(existing)} — nothing added.`;
+    return `Already recorded ${where}${nameList(existing, pack)} — nothing added.`;
   }
-  const recorded = `Recorded ${where}${nameList(fresh)}.`;
+  const recorded = `Recorded ${where}${nameList(fresh, pack)}.`;
   if (existing.length === 0) return recorded;
-  return `${recorded} Already recorded${nameList(existing)} — nothing added.`;
+  return `${recorded} Already recorded${nameList(existing, pack)} — nothing added.`;
 }
 
 export function renderLogProtocolEventRefusal(
@@ -149,6 +168,8 @@ export function renderLogProtocolEventRefusal(
  */
 export function enforceLogProtocolEventReplyInvariant(
   result: LogProtocolEventDirectEffectResult,
+  /** R3 — la ceinture RE-REND l'accusé; elle doit le rendre dans la bonne langue. */
+  locale: string,
 ): LogProtocolEventDirectEffectResult {
   if (result.status !== "logged") return result;
 
@@ -179,7 +200,7 @@ export function enforceLogProtocolEventReplyInvariant(
   const dropped = result.committed_effects.length - committed.length;
   return {
     ...result,
-    reply: renderLogProtocolEventLoggedReply(committed),
+    reply: renderLogProtocolEventLoggedReply(committed, locale),
     committed_effects: committed,
     blocked_effects: [
       ...result.blocked_effects,

@@ -256,6 +256,20 @@ export interface MealPreparation {
   ingredients: DishIngredient[];
   /** Comment on la fait. La recette vit ici, plus dans chaque plat. */
   method: string;
+  /**
+   * LE TEMPS, EN DEUX NOMBRES QUI NE DISENT PAS LA MÊME CHOSE.
+   *
+   * `activeMinutes` = les mains dessus. `totalMinutes` = du début à la fin,
+   * attente comprise. Un rôti fait 10 actives et 50 totales, et cet écart EST la
+   * raison pour laquelle le batch marche: le temps de four est libre pour autre
+   * chose. N'en garder qu'un rendrait l'un des deux plans impossible à juger —
+   * « 50 minutes » ferait renoncer quelqu'un qui a dix minutes devant lui.
+   *
+   * `null` quand le modèle n'a rien rendu d'exploitable: pas de zéro par
+   * défaut, qui se lirait « c'est instantané ».
+   */
+  activeMinutes: number | null;
+  totalMinutes: number | null;
   /** Jour de cuisson, quand une session le fixe. */
   cookOn: string | null;
 }
@@ -279,6 +293,16 @@ export interface CookingSession {
   preparationIds: string[];
   /** L'ordre réel des gestes, en prose. */
   runThrough: string;
+  /**
+   * LA DURÉE DE LA SESSION, au mur — PAS la somme de ses préparations.
+   *
+   * Les cuissons se chevauchent: le riz pendant que le four tourne. Additionner
+   * transformerait un dimanche confortable de quatre-vingt-dix minutes en une
+   * corvée de quatre heures que personne ne commence. C'est le modèle qui la
+   * donne, et on ne la recalcule pas — la recalculer serait exactement faire
+   * cette somme.
+   */
+  totalMinutes: number | null;
 }
 
 export interface GeneratedMeal {
@@ -316,6 +340,17 @@ const DAY_TOKENS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
  * sessions ou l'inverse. Un tiers, arrondi — assez pour un plat frais par jour
  * ou deux, pas assez pour tout cuisiner à la volée.
  */
+/**
+ * Combien de jours un lot cuisiné tient au réfrigérateur, au maximum.
+ *
+ * Trois, et le même chiffre pour tout. Le prompt est plus fin (riz et produits
+ * de la mer: le jour même ou le lendemain); ce seuil-ci est le filet
+ * déterministe, et il reste grossier exprès — le raffiner par famille
+ * d'aliment demanderait de CLASSER chaque préparation, donc de déduire, sur le
+ * seul sujet de ce moteur où une erreur rend malade.
+ */
+export const MAX_FRIDGE_DAYS = 3;
+
 export function batchSessionBudget(cap: number): number {
   return Math.max(2, Math.round(cap / 3));
 }
@@ -376,6 +411,17 @@ const OCCASION_PROSE: Record<EatingOccasion, string> = {
 export function dishCapFor(
   scope: MealScope,
   rhythm: readonly EatingOccasionSlot[] = [],
+  /**
+   * COMBIEN DE JOURS ON REMPLIT VRAIMENT — sept par défaut, et rarement sept.
+   *
+   * La semaine s'arrête DIMANCHE (`daysUntilSunday`): un plan fait le jeudi en
+   * couvre quatre. Le plafond doit suivre, sinon il ouvre un budget pour des
+   * jours qui n'existent pas — et le modèle, à qui on annonce « au plus 28
+   * plats », déborde poliment sur la semaine suivante pour le remplir. C'est
+   * exactement le défaut rapporté: un plan du jeudi qui proposait à manger
+   * jusqu'au mercredi d'après.
+   */
+  daysToFill = 7,
 ): number {
   // ── UNE SEULE SOURCE POUR « COMBIEN DE FOIS ON MANGE » ───────────────────
   // Le repli sans rythme était une paire de nombres écrits à la main (4 et 21)
@@ -402,11 +448,12 @@ export function dishCapFor(
   // — un scope ajouté sans plafond ne compile pas (« not all code paths return
   // a value »), là où un ternaire lui donnerait silencieusement celui de la
   // semaine.
+  const days = Math.max(1, daysToFill);
   switch (scope) {
     case "day":
       return occasions.length;
     case "several_days":
-      return occasions.length * 7;
+      return occasions.length * days;
   }
 }
 
@@ -550,6 +597,57 @@ Aim for two or three sessions in a week, not seven. Every preparation belongs to
 exactly one session: a preparation nobody cooks is a plan the student cannot
 follow.
 
+== NOTHING SITS IN THE FRIDGE FOR A WEEK ==
+
+A cooked batch is eaten within THREE DAYS of the day it was cooked. Cooked on
+Thursday means eaten by Sunday, and that is the end of it. Beyond that it is not
+a meal plan, it is a plan to throw food away or to get somebody ill.
+
+Cooked rice and cooked seafood are tighter still: same day or the day after.
+Rice left sitting is the classic way to make somebody sick, and no amount of
+convenience is worth it.
+
+If a batch would have to stretch further, you have three honest ways out: cook a
+smaller batch, cook it twice, or say plainly in the method that the surplus goes
+in the FREEZER on the cooking day. Never stretch it in silence.
+
+== THE COOKING TIME THEY GAVE YOU IS A CEILING ==
+
+When a session time is stated, the session fits inside it. It is not a target to
+approach and overshoot: it is what they actually have that evening, and a
+session that does not fit is a session they skip — after which the whole week
+falls apart, not just that session.
+
+If everything will not fit, cook LESS in that session and put the rest on
+another cooking day. Fewer preparations that happen beat more preparations that
+do not.
+
+== NOTHING IS EATEN BEFORE IT IS COOKED ==
+
+A preparation must be cooked ON OR BEFORE the first day that eats from it. If
+the only cooking day you have is Sunday, then Thursday, Friday and Saturday
+cannot live off a Sunday batch — those days cook for themselves, or they eat
+something that needs no batch at all.
+
+This is not a preference. A plan that feeds Thursday from a Sunday session is a
+plan that cannot be executed, and the student finds out at lunchtime.
+
+== HOW LONG THINGS TAKE ==
+
+Every preparation carries two numbers, and they are not the same one.
+"active_minutes" is time with your hands on it — chopping, stirring, turning.
+"total_minutes" is from starting to finished, waiting included. A roast is 10
+active and 50 total; that gap is the whole reason batch cooking works, because
+the oven time is free for another preparation.
+
+A session's "total_minutes" is the wall clock of the session, NOT the sum of its
+preparations: things overlap, and pretending otherwise turns a comfortable
+ninety-minute Sunday into a scary four-hour one nobody starts.
+
+Round to the nearest five. These are estimates a cook recognises, not
+measurements — but they are the numbers somebody uses to decide whether tonight
+is possible, so a wrong one costs a skipped meal.
+
 == NEVER PUT A NUMBER ON NUTRITION ==
 
 No calories. No macro grams. No percentages of anything nutritional. Not as a target, not as a range, not "roughly". Nobody has measured this student.
@@ -592,10 +690,13 @@ mode = to_shop
       "servings_made": 4,
       "ingredients": [{ "term": "...", "quantity": "<for the WHOLE batch>" }],
       "method": "how to cook the batch",
+      "active_minutes": <minutes of HANDS-ON work>,
+      "total_minutes": <minutes from starting to finished, waiting included>,
       "cook_on": "sun"|null }
   ],
   "cooking_sessions": [
     { "day": "sun", "preparation_ids": ["prep_chicken", "prep_rice"],
+      "total_minutes": <minutes the whole session takes, start to finish>,
       "run_through": "the order of the gestures, plainly" }
   ],
   "shopping_list": [
@@ -628,6 +729,15 @@ export function buildMealPrompt(args: {
   situation: string | null;
   /** Le contexte du MOMENT, en prose libre. C'est la demande produit. */
   context: string | null;
+  /**
+   * CE DONT ILS ONT ENVIE POUR CETTE COMPOSITION — « mezze d'été, plein de
+   * carottes ». Daté, tapé au moment de générer.
+   *
+   * À ne pas confondre avec `foodPreferences`, qui est ce qu'ils ont dit de leur
+   * bouffe EN CONVERSATION et qui vaut pour toutes leurs semaines. L'un est une
+   * envie, l'autre un goût.
+   */
+  preferences?: string | null;
   mode: MealMode;
   scope: MealScope;
   slot: MealSlot | null;
@@ -635,6 +745,24 @@ export function buildMealPrompt(args: {
   pantry: readonly PantryItem[];
   /** Le jeton du jour de l'élève, dans SON fuseau. Jamais celui du serveur. */
   todayToken?: string | null;
+  /**
+   * LA DATE DU JOUR, dans le fuseau de l'élève — et pas seulement le jour de la
+   * semaine.
+   *
+   * « mercredi » ne dit pas si on est en février ou en août. Sans la date, rien
+   * dans ce prompt ne permettait au modèle de savoir ce qui pousse en ce moment,
+   * et il proposait des blanquettes en plein été.
+   */
+  today?: string | null;
+  /**
+   * LE PAYS OÙ L'ÉLÈVE FAIT SES COURSES (ISO-3166 alpha-2), ou `null`.
+   *
+   * Une saison n'existe pas dans l'absolu: août est l'été en France et l'hiver
+   * en Argentine, et sous l'équateur la question ne se pose pas dans ces termes.
+   * On transmet donc le PAYS et la DATE — des faits — plutôt que « c'est
+   * l'été », qui serait notre déduction et qu'on aurait tort d'imposer.
+   */
+  country?: string | null;
   /**
    * CE QUE L'ÉLÈVE PEUT VRAIMENT FAIRE — `practical_constraints`.
    *
@@ -688,7 +816,7 @@ export function buildMealPrompt(args: {
   // des moments que le prompt NOMME trois lignes plus haut. Passer le brut a
   // déjà produit la divergence exacte que `dishCapFor` documente — la consigne
   // demandait trois plats, le plafond en autorisait quatre.
-  const cap = dishCapFor(args.scope, rhythm);
+  const cap = dishCapFor(args.scope, rhythm, args.daysToFill?.length || 7);
   const pantryLines = args.pantry
     .map((p) => (p.quantity ? `- ${p.term} (${p.quantity})` : `- ${p.term}`))
     .join("\n");
@@ -719,6 +847,35 @@ export function buildMealPrompt(args: {
     args.context
       ? `what is going on for them RIGHT NOW: ${args.context}`
       : "nothing special going on this week.",
+    "",
+    // ── LA SAISON, ET CE QUI POUSSE LÀ OÙ ILS SONT ──────────────────────
+    //
+    // ON DONNE LES FAITS, PAS NOTRE DÉDUCTION. La tentation était d'écrire
+    // « c'est l'été » — ce qui aurait demandé une table d'hémisphères, se serait
+    // trompé sous l'équateur, et aurait imposé notre lecture à un modèle qui
+    // connaît déjà les calendriers agricoles. On transmet la DATE et le PAYS;
+    // ce qui pousse en Bretagne le 5 août, il le sait mieux que nous.
+    //
+    // ET C'EST UNE PRÉFÉRENCE, PAS UNE CONTRAINTE — c'est dit deux fois, parce
+    // que ce prompt porte de vraies interdictions (allergènes, doctrine) et
+    // qu'une consigne de saison lue avec le même poids ferait REFUSER des plats.
+    // Personne ne doit s'entendre dire « pas de tomates, ce n'est pas la
+    // saison »: la saison choisit vers quoi on tend, jamais ce qu'on écarte.
+    "== WHAT IS IN SEASON WHERE THEY ARE ==",
+    args.today ? `today's date: ${args.today}` : "today's date: not known.",
+    args.country
+      ? `they shop in: ${args.country} (ISO-3166 country code)`
+      : "where they shop: not known — reason about season only if their " +
+        "situation says where they are.",
+    "PREFER fruit and vegetables in season there at that date, and produce " +
+    "that grows in that country over what has to be flown in. Let the season " +
+    "set the WEIGHT of a dish too: a long-braised winter stew in midsummer is " +
+    "food nobody wants to cook or eat when it is hot.",
+    "This is a PREFERENCE and never a rule. Never drop a dish the method calls " +
+    "for to honour it, never refuse an ingredient the student asked for " +
+    "because it is out of season, and never tell them a food is unavailable — " +
+    "you are not looking at their shops. It ranks your choices; it does not " +
+    "veto anything.",
     "",
     // ── LA FORME DE LEUR JOURNÉE ────────────────────────────────────────
     // Son propre en-tête, et pas une ligne perdue dans « what to cook »: c'est
@@ -772,12 +929,62 @@ export function buildMealPrompt(args: {
     // LES CONTRAINTES DE CUISINE, juste à côté de la demande. Une session
     // proposée un dimanche à quelqu'un qui travaille le dimanche est un plan
     // qu'on ne suit pas, et le modèle n'avait aucun moyen de le savoir.
-    ...(args.cookDays && args.cookDays.length > 0
-      ? [
-        `they can only cook on: ${args.cookDays.join(", ")}. Put every cooking ` +
+    // LES JOURS DE CUISINE, INTERSECTÉS AVEC LA FENÊTRE. Mesuré: un élève qui
+    // déclare cuisiner « dimanche et mercredi », plan généré un JEUDI, recevait
+    // une session le MERCREDI — un jour déjà passé. Ses jours de cuisine sont
+    // une propriété de sa semaine type; la fenêtre est ce qu'il en reste, et
+    // c'est l'intersection qui est exécutable.
+    //
+    // L'INTERSECTION VIDE RETOMBE SUR LA FENÊTRE, jamais sur rien: quelqu'un
+    // qui ne cuisine que le lundi, un vendredi, doit quand même manger. Mieux
+    // vaut une session posée un jour non déclaré — qu'il déplacera — qu'un plan
+    // sans aucun jour de cuisine.
+    ...((() => {
+      const window = args.daysToFill ?? [];
+      const declared = args.cookDays ?? [];
+      if (declared.length === 0) return [];
+      const usable = window.length > 0
+        ? declared.filter((d) => window.includes(d))
+        : declared;
+
+      // ── LA CONTRAINTE DOIT RESTER SATISFAISABLE ─────────────────────────
+      // MESURÉ: jours déclarés `sun, wed`, fenêtre jeudi→dimanche.
+      // L'intersection ne laisse que DIMANCHE — le dernier jour. Le modèle a
+      // donc fait manger jeudi, vendredi et samedi sur un lot cuisiné le
+      // dimanche: quatre repas antérieurs à leur propre cuisson. Quatre
+      // `issues` sur un vrai plan, et un plan inexécutable.
+      //
+      // Un jour de cuisine qui arrive APRÈS les repas qu'il doit nourrir n'est
+      // pas une contrainte, c'est une impasse. On ajoute donc le PREMIER jour
+      // de la fenêtre — et on DIT que c'est un ajout, pour que le modèle
+      // n'aille pas croire que l'élève l'a déclaré. Le pire cas est une session
+      // posée un jour non déclaré, qu'il déplacera; l'autre pire cas est une
+      // semaine qu'il ne peut pas cuisiner.
+      const first = window[0];
+      const tooLate = usable.length > 0 && first !== undefined &&
+        !usable.includes(first) &&
+        Math.min(...usable.map((d) => window.indexOf(d))) > 0;
+
+      if (usable.length === 0) {
+        return [
+          `they usually cook on ${declared.join(", ")}, but none of those days ` +
+          "are left in this stretch. Put the cooking sessions on the days you " +
+          "do have, as early as possible.",
+        ];
+      }
+      if (tooLate) {
+        return [
+          `they usually cook on ${usable.join(", ")} -- all of which fall after ` +
+          `${first}, so nothing cooked then can feed the days before it. Cook ` +
+          `on ${first} as well, and say so: it is a day they did not ask for. ` +
+          "Everything before their usual day is cooked fresh, not from a batch.",
+        ];
+      }
+      return [
+        `they can only cook on: ${usable.join(", ")}. Put every cooking ` +
         "session on those days, and no others.",
-      ]
-      : []),
+      ];
+    })()),
     ...(args.cookingTimeMin
       ? [
         `time per cooking session: about ${args.cookingTimeMin} minutes. A ` +
@@ -805,6 +1012,17 @@ export function buildMealPrompt(args: {
         ...args.foodPreferences.map((p) => `- ${p}`),
       ]
       : []),
+    // CE DONT ILS ONT ENVIE *MAINTENANT* — séparé de la ligne au-dessus, et
+    // après elle, exactement comme `context` est séparé de `situation`.
+    //
+    // La liste au-dessus est DURABLE: elle vient de la conversation, elle a été
+    // confirmée sur un écran, elle vaut pour toutes leurs semaines. Celle-ci est
+    // DATÉE: elle a été tapée dans le formulaire il y a dix secondes et ne vaut
+    // que pour cette composition. Les fondre ferait traiter « mezze d'été cette
+    // semaine » comme un goût permanent — et ça reviendrait en février.
+    ...(args.preferences
+      ? [`what they feel like eating THIS TIME: ${args.preferences}`]
+      : []),
     ...(args.daysToFill && args.daysToFill.length > 0
       ? [
         `days to fill, in this order: ${args.daysToFill.join(", ")}`,
@@ -830,6 +1048,25 @@ export function buildMealPrompt(args: {
 
 function cleanText(value: unknown): string {
   return String(value ?? "").trim();
+}
+
+/**
+ * Une durée en minutes, ou `null`.
+ *
+ * ── PAS DE ZÉRO PAR DÉFAUT ────────────────────────────────────────────────
+ * Une durée manquante rend `null`, jamais `0`: « 0 min » se lit « c'est
+ * instantané », ce qui est une promesse, alors que `null` se lit « on ne sait
+ * pas » et l'écran sait taire ce qu'il ne sait pas.
+ *
+ * ── PLAFONNÉE À QUATRE HEURES ─────────────────────────────────────────────
+ * Au-delà, c'est une hallucination d'unité (des secondes prises pour des
+ * minutes, une marinade de 24 h comptée comme du temps de cuisine) et l'afficher
+ * ferait renoncer quelqu'un devant une session qui prend en fait une heure.
+ */
+function readMinutes(value: unknown): number | null {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  return Math.min(240, Math.round(n));
 }
 
 /**
@@ -869,6 +1106,23 @@ export function parseGeneratedMeal(
      * `safetyConstraints` dans `buildWeekPlanPrompt`.
      */
     eatingRhythm: readonly EatingOccasionSlot[];
+    /**
+     * LES JOURS RÉELLEMENT DEMANDÉS. REQUIS pour la même raison que
+     * `eatingRhythm` juste au-dessus: le plafond du parseur doit être celui du
+     * prompt, et un paramètre optionnel est un paramètre qu'un appelant oublie
+     * — après quoi le prompt demande quatre jours et le parseur en accepte
+     * sept, ce qui est exactement le débordement qu'on répare.
+     */
+    daysToFill: readonly string[];
+    /**
+     * LE TEMPS PAR SESSION DÉCLARÉ PAR L'ÉLÈVE, ou `null` s'il ne l'a pas dit.
+     *
+     * REQUIS, `T | null`, jamais `T?`: c'est un PLAFOND, et un plafond qu'un
+     * appelant peut oublier de passer est un plafond désarmé — le prompt
+     * l'annonce, personne ne le vérifie, et on ne le découvre qu'en mesurant un
+     * plan à la main. Mesuré le 2026-08-06: 30 minutes déclarées, 55 produites.
+     */
+    cookingTimeMin: number | null;
   },
 ): GeneratedMeal {
   const issues: string[] = [];
@@ -891,7 +1145,7 @@ export function parseGeneratedMeal(
   // nombre dont une seule reçoit la modification est le défaut que ce fichier
   // documente deux fois; ici les deux copies lisent la même fonction avec la
   // même entrée, donc elles ne peuvent plus diverger.
-  const cap = dishCapFor(args.scope, args.eatingRhythm);
+  const cap = dishCapFor(args.scope, args.eatingRhythm, args.daysToFill.length || 7);
 
   // ── LES PLATS ───────────────────────────────────────────────────────────
   // ── LES PRÉPARATIONS ────────────────────────────────────────────────────
@@ -945,6 +1199,8 @@ export function parseGeneratedMeal(
       servingsMade: Math.min(21, Math.round(made)),
       ingredients: prepIngredients,
       method,
+      activeMinutes: readMinutes(prep.active_minutes),
+      totalMinutes: readMinutes(prep.total_minutes),
       cookOn: DAY_TOKENS.includes(cookOnRaw) ? cookOnRaw : null,
     });
   }
@@ -1204,7 +1460,12 @@ export function parseGeneratedMeal(
       issues.push(`cooking_sessions[${i}]: numeric target (${numeric}) -- dropped`);
       continue;
     }
-    cookingSessions.push({ day: dayRaw, preparationIds: ids, runThrough });
+    cookingSessions.push({
+      day: dayRaw,
+      preparationIds: ids,
+      runThrough,
+      totalMinutes: readMinutes((raw as Record<string, unknown>).total_minutes),
+    });
   }
 
   // LE JOUR DE CUISSON VIENT DE LA SESSION, pas de la préparation. Le modèle
@@ -1214,6 +1475,97 @@ export function parseGeneratedMeal(
     for (const id of session.preparationIds) {
       const prep = preparations.find((p) => p.id === id);
       if (prep) prep.cookOn = session.day;
+    }
+  }
+
+  // ── UNE SESSION QUI DÉBORDE LE TEMPS DÉCLARÉ ────────────────────────────
+  // Le temps par session est une CONTRAINTE, pas une indication: c'est ce que
+  // l'élève a ce soir-là. Le prompt le dit; ceci le vérifie, parce que mesuré
+  // le 2026-08-06 il annonçait « about 30 minutes » et recevait une session de
+  // 55. La marge de dix minutes n'est pas de la complaisance: une estimation de
+  // cuisine à cinq minutes près n'existe pas, et signaler 62 contre 60 ferait
+  // du bruit que personne ne lirait — ce qui finit par cacher les vrais 95.
+  if (args.cookingTimeMin) {
+    for (const session of cookingSessions) {
+      if (session.totalMinutes === null) continue;
+      if (session.totalMinutes > args.cookingTimeMin + 10) {
+        issues.push(
+          `cooking session on ${session.day} runs ${session.totalMinutes} min, ` +
+          `but they said they have about ${args.cookingTimeMin}`,
+        );
+      }
+    }
+  }
+
+  // ── UN LOT GARDÉ TROP LONGTEMPS ─────────────────────────────────────────
+  // MESURÉ sur un vrai plan: des légumes rôtis cuisinés le jeudi et mangés le
+  // mercredi suivant — J+6. Des boulettes à J+5, du couscous à J+5. Rien dans
+  // ce moteur ne parlait de conservation, à aucun endroit: ni règle, ni garde,
+  // ni même le mot.
+  //
+  // TROIS JOURS, et le même seuil pour tout: c'est le plancher raisonnable pour
+  // du cuisiné au réfrigérateur. Le prompt distingue le riz et les produits de
+  // la mer, plus stricts encore; le contrôle ici reste volontairement UNIQUE et
+  // grossier, parce qu'un seuil par famille d'aliment demanderait de classer
+  // chaque préparation — une déduction, sur un sujet où se tromper rend malade.
+  //
+  // ON SIGNALE, ON NE RÉÉCRIT PAS: raccourcir la portée retirerait un repas à
+  // l'élève, et déplacer la cuisson inventerait un jour qu'il n'a pas déclaré.
+  const window = args.daysToFill.length > 0 ? args.daysToFill : DAY_TOKENS;
+  const posOf = (day: string) => {
+    const at = window.indexOf(day);
+    return at >= 0 ? at : DAY_TOKENS.indexOf(day);
+  };
+  for (const prep of preparations) {
+    if (!prep.cookOn) continue;
+    const cookAt = posOf(prep.cookOn);
+    if (cookAt < 0) continue;
+    for (const dish of dishes) {
+      if (!dish.day) continue;
+      if (!dish.uses.some((u) => u.preparationId === prep.id)) continue;
+      const eatAt = posOf(dish.day);
+      if (eatAt < 0) continue;
+      if (eatAt - cookAt > MAX_FRIDGE_DAYS) {
+        issues.push(
+          `"${prep.title}" is cooked on ${prep.cookOn} and still eaten on ` +
+          `${dish.day} -- ${eatAt - cookAt} days in the fridge`,
+        );
+      }
+    }
+  }
+
+  // ── UN LOT MANGÉ AVANT D'ÊTRE CUISINÉ ────────────────────────────────────
+  // MESURÉ: fenêtre jeudi→dimanche, seul jour de cuisine déclaré encore
+  // disponible le dimanche, et le modèle a fait puiser le déjeuner de JEUDI
+  // dans un lot cuisiné le DIMANCHE. La consigne le dit maintenant; ceci le
+  // VÉRIFIE, parce qu'une consigne de prompt n'est pas une garantie et que ce
+  // dépôt a déjà payé plusieurs fois la différence.
+  //
+  // On SIGNALE, on ne réécrit pas: déplacer la session inventerait un jour de
+  // cuisine que l'élève n'a pas déclaré, et retirer le plat lui prendrait un
+  // repas. L'anomalie est nommée dans `issues`, qui est ce qu'on lit quand un
+  // plan sort de travers.
+  const orderOf = (day: string) => DAY_TOKENS.indexOf(day);
+  for (const dish of dishes) {
+    if (!dish.day) continue;
+    for (const use of dish.uses) {
+      const prep = preparations.find((p) => p.id === use.preparationId);
+      if (!prep?.cookOn || !dish.day) continue;
+      // Les deux jours sont lus dans l'ordre de la FENÊTRE, pas du calendrier:
+      // un plan jeudi→dimanche a jeudi en premier, et « lundi » y serait la
+      // semaine suivante.
+      const cookAt = window.indexOf(prep.cookOn);
+      const eatAt = window.indexOf(dish.day);
+      const known = cookAt >= 0 && eatAt >= 0;
+      const after = known
+        ? cookAt > eatAt
+        : orderOf(prep.cookOn) > orderOf(dish.day);
+      if (after) {
+        issues.push(
+          `"${dish.title}" (${dish.day}) eats from "${prep.title}", cooked on ` +
+          `${prep.cookOn} -- after the meal`,
+        );
+      }
     }
   }
 
@@ -1263,6 +1615,8 @@ export function mealPreparationsPayload(
       in_pantry: i.in_pantry,
     })),
     method: p.method,
+    active_minutes: p.activeMinutes,
+    total_minutes: p.totalMinutes,
     cook_on: p.cookOn,
   }));
 }
@@ -1274,6 +1628,7 @@ export function mealSessionsPayload(
     day: session.day,
     preparation_ids: session.preparationIds,
     run_through: session.runThrough,
+    total_minutes: session.totalMinutes,
   }));
 }
 

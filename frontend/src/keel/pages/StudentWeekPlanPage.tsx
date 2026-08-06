@@ -80,8 +80,12 @@ import { buildMeasuresToken } from "../../../../supabase/functions/_shared/keel/
  * ici serait promettre ce que le serveur a le devoir de ne pas livrer.
  */
 const PAGE_TITLE = "My week's plan";
+// « plus one or two light habits » est TOMBÉ. L'écran ne compose plus de lignes
+// de comportement — `MealBuilder` produit des plats, et rien d'autre. La
+// promesse survivait au moteur qui la tenait, ce qui est la pire forme de copie
+// morte: elle annonce une fonctionnalité qu'aucun code ne fournit.
 const PAGE_SUBTITLE =
-  "What you eat this week, written from your coach's method — plus one or two light habits. Lines and rhythms, never calorie counts.";
+  "What you eat this week, written from your coach's method. Lines and rhythms, never calorie counts.";
 
 
 
@@ -712,6 +716,27 @@ export default function StudentWeekPlanPage() {
    * this dialog is not what makes the plan safe — it is what makes saying yes
    * possible.
    */
+  // RIEN NE S'AFFICHE AVANT D'AVOIR LU, et ce n'était pas cosmétique.
+  //
+  // Cette page était la seule des pages élève sans ce garde-fou: elle rendait
+  // ses cartes DÈS LE PREMIER RENDU, donc avec `goal === null`. Or chacune de
+  // ces cartes fige son brouillon à son MONTAGE (`useState(() => ...)`). Le
+  // rythme et la capacité de cuisine se montaient donc sur du vide, et rien ne
+  // les resynchronisait quand la lecture arrivait: un rythme enregistré en base
+  // s'affichait décoché, avec « Nothing ticked » sous les yeux de l'élève.
+  //
+  // Le vrai dégât n'est pas l'affichage: c'est qu'un « Save » posé sur cet
+  // écran-là ÉCRASE ce qui était enregistré, avec un formulaire que personne
+  // n'a rempli. Un écran qui affiche du vide qu'il n'a pas encore lu finit
+  // toujours par le faire écrire.
+  if (state.kind === "loading") {
+    return (
+      <KeelAppShell variant="student" title={PAGE_TITLE} subtitle={PAGE_SUBTITLE}>
+        <p className="text-sm text-gray-500">Loading…</p>
+      </KeelAppShell>
+    );
+  }
+
   if (state.kind === "error") {
     return (
       <KeelAppShell variant="student" title={PAGE_TITLE}>

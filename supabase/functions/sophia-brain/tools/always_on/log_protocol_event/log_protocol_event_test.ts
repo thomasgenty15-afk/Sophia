@@ -263,7 +263,7 @@ Deno.test("write-through — la ceinture anti-phantom rattrape un 'logged' sans 
     committed_effects: [],
     blocked_effects: [],
     debug: { reason_code: "logged" },
-  });
+  }, "en-US");
   assertEquals(phantom.status, "failed");
   assertEquals(phantom.reply, null);
   assertEquals(phantom.executed_tools, []);
@@ -278,7 +278,7 @@ Deno.test("write-through — la ceinture anti-phantom rattrape un 'logged' sans 
     committed_effects: [],
     blocked_effects: [{ type: "log_protocol_event", reason_code: "safety_high" }],
     debug: { reason_code: "safety_high" },
-  });
+  }, "en-US");
   assertEquals(untouched.status, "blocked");
   assertEquals(untouched.reply, "nope");
 });
@@ -1167,7 +1167,7 @@ Deno.test("D2 — la ceinture retire un doublon de ligne et RE-REND l'accuse", a
     committed_effects: [committed, { ...committed }],
     blocked_effects: [],
     debug: { reason_code: "logged" },
-  });
+  }, "en-US");
   assertEquals(enforced.status, "logged");
   assertEquals(enforced.committed_effects.length, 1);
   assertEquals(enforced.blocked_effects[0].reason_code, "duplicate_commit_dropped");

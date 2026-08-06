@@ -41,6 +41,25 @@ function requireEnv(name: string): string {
   return v;
 }
 
+/**
+ * La locale du tunnel Stripe, depuis `profiles.locale`.
+ *
+ * DEUX VALEURS ET UN REPLI, délibérément. Stripe accepte une trentaine de
+ * locales; en énumérer trente ici créerait une liste à tenir à jour contre une
+ * table qu'on ne contrôle pas. Le produit coach naît en anglais (R3) et ses
+ * seuls utilisateurs connus sont anglophones ou francophones — on nomme ces
+ * deux-là et on laisse `auto` (le navigateur) décider pour tous les autres.
+ *
+ * `auto` plutôt que `'en'` en repli: une locale absente veut dire « on ne sait
+ * pas », et le navigateur en sait plus que nous.
+ */
+function stripeLocaleFrom(raw: unknown): string {
+  const v = String(raw ?? "").trim().toLowerCase();
+  if (v.startsWith("fr")) return "fr";
+  if (v.startsWith("en")) return "en";
+  return "auto";
+}
+
 function isStripeSubActive(sub: StripeSub | null | undefined): boolean {
   const st = String(sub?.status ?? "").toLowerCase();
   return st === "active" || st === "trialing";
@@ -73,11 +92,17 @@ Deno.serve(async (req) => {
     const stripeSecretKey = requireEnv("STRIPE_SECRET_KEY");
     const appBaseUrl = requireEnv("APP_BASE_URL").replace(/\/+$/, "");
     const isKeelCoach = body.plan === "keel_coach";
-    const priceId = isKeelCoach
-      ? requireEnv(`STRIPE_PRICE_ID_COACH_PLATFORM_${body.interval.toUpperCase()}`)
-      : requireEnv(
-        `STRIPE_PRICE_ID_${String(body.tier).toUpperCase()}_${body.interval.toUpperCase()}`,
-      );
+    // LE CONTRAT KEEL N'A PLUS DE FORFAIT DE PLATEFORME, donc plus de prix à
+    // résoudre ici pour un coach: son unique poste est le siège, lu juste en
+    // dessous. `legacyTierPriceId` ne sert qu'aux paliers du produit grand
+    // public (`system`, `alliance`, `architecte`), qui eux ont toujours un prix
+    // unitaire.
+    //
+    // Il est réclamé PARESSEUSEMENT: `requireEnv` sur le chemin coach ferait
+    // échouer un abonnement pour une variable dont ce chemin n'a plus besoin.
+    const legacyTierPriceId = isKeelCoach ? null : requireEnv(
+      `STRIPE_PRICE_ID_${String(body.tier).toUpperCase()}_${body.interval.toUpperCase()}`,
+    );
     const seatPriceId = isKeelCoach
       ? requireEnv(`STRIPE_PRICE_ID_COACH_SEAT_${body.interval.toUpperCase()}`)
       : null;
@@ -156,7 +181,11 @@ Deno.serve(async (req) => {
 
     const { data: profile, error: profileErr } = await supabaseAdmin
       .from("profiles")
-      .select("stripe_customer_id,email")
+      // `locale` sert UNIQUEMENT à localiser le tunnel de paiement de Stripe
+      // (ses propres libellés: « S'abonner », « Total », les moyens de
+      // paiement). Il ne traduit RIEN de ce qui vient de nous — le nom du
+      // produit est une valeur unique côté Stripe, dans une seule langue.
+      .select("stripe_customer_id,email,locale")
       .eq("id", user.id)
       .maybeSingle();
     if (profileErr) {
@@ -251,17 +280,40 @@ Deno.serve(async (req) => {
       return jsonResponse(req, { mode: "portal", url: portalUrl, request_id: requestId });
     }
 
-    // The two items of the KEEL contract. The seat line is OMITTED when the
-    // coach has no active student yet: Stripe checkout will not accept a
-    // quantity of 0, and starting it at 1 would invoice 12 $ for a seat nobody
-    // occupies. `stripe-reconcile-seats` creates the item the month the first
-    // active student appears — it handles both "item present" and "item absent"
-    // precisely so this branch can stay honest.
-    const lineItems: Array<Record<string, unknown>> = [
-      { price: priceId, quantity: 1 },
-    ];
-    if (isKeelCoach && seatPriceId && initialSeatQuantity > 0) {
+    // ── LE CONTRAT KEEL N'A PLUS QU'UN POSTE: LE SIÈGE ──────────────────────
+    //
+    // Le forfait de plateforme est SUPPRIMÉ. Il imposait au coach un point mort
+    // à ~13 élèves — en dessous, chaque mois lui coûtait plus qu'il ne lui
+    // rapportait, quel que soit son sérieux — alors que l'essai le fait
+    // justement démarrer à 3. Il découvrait le calcul le jour où on lui
+    // demandait sa carte.
+    //
+    // Sans forfait, la phrase de vente devient littéralement vraie: dès le
+    // premier élève, le coach gagne de l'argent. Et le manque à gagner est
+    // faible: à l'échelle, le forfait ne pesait presque rien face aux sièges —
+    // il ne coûtait que les petits coachs, c'est-à-dire la longue traîne.
+    //
+    // Le poste siège reste OMIS quand le coach n'a encore aucun élève actif:
+    // Stripe refuse une quantité de 0, et démarrer à 1 facturerait un siège que
+    // personne n'occupe. `stripe-reconcile-seats` crée l'article le mois où le
+    // premier élève apparaît — il gère « article présent » comme « article
+    // absent », précisément pour que cette branche puisse rester honnête.
+    //
+    // CONSÉQUENCE POUR UN COACH SANS ÉLÈVE: son panier serait vide, et Stripe
+    // refuse une session sans article. On le dit plutôt que de lui vendre un
+    // forfait qui n'existe plus.
+    const lineItems: Array<Record<string, unknown>> = [];
+    if (isKeelCoach) {
+      if (!seatPriceId || initialSeatQuantity <= 0) {
+        return jsonResponse(req, {
+          error: "no_billable_seat",
+          detail: "Invite at least one student before subscribing: the contract is billed per seat.",
+          request_id: requestId,
+        }, { status: 409 });
+      }
       lineItems.push({ price: seatPriceId, quantity: initialSeatQuantity });
+    } else {
+      lineItems.push({ price: legacyTierPriceId, quantity: 1 });
     }
 
     const checkout = await stripeRequest<{ url?: string; id?: string }>({
@@ -278,6 +330,18 @@ Deno.serve(async (req) => {
           ? `${appBaseUrl}/coach/billing?billing=cancelled`
           : `${appBaseUrl}/upgrade?billing=cancelled`,
         line_items: lineItems,
+        // LA LANGUE DU TUNNEL, ET SEULEMENT LA SIENNE.
+        //
+        // Stripe localise SES libellés — le bouton, « Total », les moyens de
+        // paiement, les mentions fiscales. Il ne traduit pas le nom du produit,
+        // qui est une valeur unique sur l'objet Stripe: il n'existe aucun
+        // moyen d'avoir un nom de produit bilingue, et c'est pour ça que le
+        // nôtre est en anglais comme tout le reste des surfaces coach (R3).
+        //
+        // `auto` en repli, jamais 'en' en dur: `auto` suit le navigateur, ce
+        // qui est plus juste qu'un défaut choisi par nous pour un coach dont on
+        // n'a pas encore lu la locale.
+        locale: stripeLocaleFrom((profile as { locale?: unknown } | null)?.locale),
         allow_promotion_codes: true,
         client_reference_id: user.id,
         subscription_data: {

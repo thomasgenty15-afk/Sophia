@@ -58,5 +58,37 @@ export function mealTickKey(generatedMealId: string, dishIndex: number): string 
   return `meal_tick:${id}:${dishIndex}`;
 }
 
+/** Le préfixe que `mealTickKey` produit. Une seule définition. */
+export const MEAL_TICK_PREFIX = "meal_tick:";
+
+/**
+ * La clé, relue: de quel PLAN et de quel plat cette coche parle-t-elle.
+ *
+ * ── POURQUOI ÇA REMPLACE `startsWith("meal_tick:")` ───────────────────────
+ * Tant qu'un élève n'avait qu'un plan, tester le préfixe suffisait: toutes les
+ * coches venaient forcément de lui. Depuis qu'un plan COURANT et un plan
+ * SUIVANT coexistent, les coches des deux portent le même préfixe — et un
+ * numérateur qui les additionne face à un dénominateur venu d'un seul plan
+ * produit « 5 des 3 ». Le ratio dépasse 100 % dans le message du soir, et rien
+ * ne le signale.
+ *
+ * Rend `null` sur ce qui n'est pas une clé de coche, plutôt que de deviner: une
+ * clé mal formée est un fait qu'on ne sait pas rattacher, pas un fait à
+ * rattacher au hasard.
+ */
+export function parseMealTickKey(
+  key: unknown,
+): { mealId: string; dishIndex: number } | null {
+  const raw = String(key ?? "");
+  if (!raw.startsWith(MEAL_TICK_PREFIX)) return null;
+  const rest = raw.slice(MEAL_TICK_PREFIX.length);
+  const at = rest.lastIndexOf(":");
+  if (at <= 0) return null;
+  const mealId = rest.slice(0, at);
+  const dishIndex = Number(rest.slice(at + 1));
+  if (!mealId || !Number.isInteger(dishIndex) || dishIndex < 0) return null;
+  return { mealId, dishIndex };
+}
+
 /** Le motif porté par une coche RETIRÉE. Valeur du CHECK de la table. */
 export const MEAL_UNTICK_REASON = "food_not_eaten" as const;

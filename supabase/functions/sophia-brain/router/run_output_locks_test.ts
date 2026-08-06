@@ -53,6 +53,7 @@ function keel(over: Partial<KeelTurnContext> = {}): KeelTurnContext {
     safety_constraints_unavailable_reason: null,
     doctrine: null,
     coach_note: null,
+    week_review: null,
     ...over,
   };
 }

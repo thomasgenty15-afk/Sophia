@@ -147,7 +147,6 @@ const Legal = () => {
         title="Legal notice & Terms"
         description={SEO_DESCRIPTION}
         canonical={`${LEGAL_ENTITY.siteUrl}/legal`}
-        lang="en"
         structuredData={STRUCTURED_DATA}
       />
 

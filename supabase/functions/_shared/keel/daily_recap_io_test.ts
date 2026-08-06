@@ -169,7 +169,7 @@ Deno.test("an empty day never reaches the model", async () => {
   const out = await composeRecapBody(exploding, {
     userId: "u1",
     firstName: "Julie",
-    facts: { tickedCount: 0, tickedTitles: [], plannedCount: 4, photoCount: 0 },
+    facts: { tickedCount: 0, tickedForPlanCount: 0, tickedTitles: [], plannedCount: 4, photoCount: 0 },
     contentLocale: "en-US",
   });
   assertEquals(out.body, null);
@@ -200,7 +200,7 @@ Deno.test("no published doctrine means the deterministic count, not silence", as
   const out = await composeRecapBody(noDoctrine, {
     userId: "u1",
     firstName: "Julie",
-    facts: { tickedCount: 2, tickedTitles: ["Oats", "Soup"], plannedCount: 4, photoCount: 0 },
+    facts: { tickedCount: 2, tickedForPlanCount: 2, tickedTitles: ["Oats", "Soup"], plannedCount: 4, photoCount: 0 },
     contentLocale: "en-US",
   });
   assertEquals(out.source, "fallback");

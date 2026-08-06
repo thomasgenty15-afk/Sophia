@@ -53,12 +53,21 @@ export const INTERVIEW_SECTIONS = [
   "beliefs",
   "forbidden",
   "vocabulary",
-  // LES ALIMENTS. Section à part et pas fondue dans `forbidden`: un interdit
-  // est une PRATIQUE dont le coach doit écrire le remplacement mot pour mot,
-  // un aliment est un INGRÉDIENT que le générateur remplace tout seul. Poser
-  // les deux dans la même question obligeait le coach à rédiger un `instead`
-  // verbatim pour chaque aliment qu'il n'aime pas — donc à ne rien remplir.
-  "foods",
+  // LA SECTION `foods` A ÉTÉ RETIRÉE DE L'ENTRETIEN.
+  //
+  // Elle demandait en prose les aliments que le coach écarte. C'était un
+  // INVENTAIRE déguisé en question de méthode, et il existait déjà sur
+  // `/coach/protocol`, en pastilles, dont « Never » (`stance = 'excluded'`).
+  // Deux listes pour la même chose, en deux vocabulaires, sans réconciliation.
+  //
+  // La source unique est maintenant `coach_food_items`, et
+  // `doctrine_loader.ts` en remplit `doctrine.foods.discouraged` à la lecture.
+  // Le verrou de sortie n'a rien perdu: il lit toujours le même champ.
+  //
+  // ⚠️ `foods` reste dans le TYPE de doctrine et dans le prompt de compilation
+  // (un coach peut nommer un aliment en répondant à une autre question, et il
+  // ne faut pas le jeter). Ce qui disparaît, c'est la QUESTION dédiée et
+  // l'obligation de couvrir cette section.
   "hard_cases",
   // LA PORTÉE. Section à part, et pas une quatrième question de `hard_cases`:
   // les trois cas durs demandent une PHRASE du coach, mot pour mot, et une
@@ -132,15 +141,23 @@ export const INTERVIEW_QUESTIONS: ReadonlyArray<
   // Ce qui reste ci-dessous est ce que le mapping ne sait PAS porter: les
   // formulations de surface d'un aliment déconseillé, que le verrou
   // déterministe matche dans la prose générée.
-  {
-    // On demande les FORMULATIONS, pas seulement le nom, pour la même raison
-    // que les `surface_forms` d'un interdit: « huiles de graines » ne s'écrit
-    // presque jamais comme ça dans une phrase, et un terme seul rendrait la
-    // vérification décorative.
-    section: "foods",
-    question:
-      "And which ones do you not put on a plate? Say each one the different ways people write it, and why you avoid it.",
-  },
+  // LA QUESTION « QUELS ALIMENTS TU ÉCARTES » N'EST PLUS ICI.
+  //
+  // Elle demandait au coach, en prose, les aliments qu'il ne met pas dans une
+  // assiette et leurs formulations. Ce n'est pas une conviction, c'est un
+  // INVENTAIRE — et il existait déjà ailleurs: `/coach/protocol` le lui fait
+  // poser en pastilles, posture par aliment, dont « Never » (`stance =
+  // 'excluded'`). Le coach tenait donc la même liste à deux endroits, en deux
+  // formats, sans que rien ne les réconcilie.
+  //
+  // Le verrou de sortie n'a rien perdu: `doctrine.foods.discouraged` existe
+  // toujours et l'arme toujours — `doctrine_loader.ts` le remplit désormais
+  // depuis `coach_food_items`. Une source, un écran, une liste.
+  //
+  // Même motif que la question « avec quoi tu construis », retirée plus haut
+  // pour la même raison: deux listes qui disent la même chose dans deux
+  // vocabulaires finissent par diverger, et le coach ne sait plus laquelle son
+  // agent lit.
   {
     section: "hard_cases",
     question:

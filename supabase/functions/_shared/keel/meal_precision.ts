@@ -36,7 +36,8 @@
 // MODULE PUR: aucune I/O, aucune horloge, aucun aléa.
 
 import { FOOD_GROUP_CLASSES } from "./meal_analysis.ts";
-import { labelFor } from "./labels.en.ts";
+import { labelFor, localePackFor } from "./labels.ts";
+import { isFrenchLocale, type LocalePackKey, localePackKey } from "./locale.ts";
 import type { FoodGroupRef } from "./tokens.ts";
 
 // ---------------------------------------------------------------------------
@@ -415,22 +416,35 @@ function orderAxes(axes: readonly MealPrecisionAxis[]): MealPrecisionAxis[] {
 // ---------------------------------------------------------------------------
 
 /**
- * Un gabarit par axe. Constantes, jamais générées.
+ * Un gabarit par axe, PAR LANGUE. Constantes, jamais générées.
  *
  * Aucune ne demande une quantité, et aucune ne PEUT le faire: c'est du texte
  * figé, et `meal_precision_test.ts` le vérifie contre un lexique de quantité
- * FR+EN. C'est la seule forme de garantie qui survive à un modèle qui change.
- *
- * Anglais: les surfaces KEEL le sont (W9), comme `renderLogProtocolEventLoggedReply`
- * et `renderMealPhotoAck`.
+ * FR+EN. C'est la seule forme de garantie qui survive à un modèle qui change —
+ * et elle vaut donc pour le pack FR exactement comme pour le pack EN, sans
+ * qu'on ait à réécrire la ceinture: le test mordait DÉJÀ sur les deux langues.
  */
-export const MEAL_PRECISION_QUESTIONS: Readonly<
-  Record<Exclude<MealPrecisionAxis, "slot">, string>
+const MEAL_PRECISION_QUESTION_PACKS: Readonly<
+  Record<LocalePackKey, Readonly<Record<Exclude<MealPrecisionAxis, "slot">, string>>>
 > = {
-  composition: "What was in it?",
-  accompaniment: "And what did you have with it?",
-  preparation: "Did you cook that with any oil or butter?",
+  en: {
+    composition: "What was in it?",
+    accompaniment: "And what did you have with it?",
+    preparation: "Did you cook that with any oil or butter?",
+  },
+  fr: {
+    composition: "Il y avait quoi dedans ?",
+    accompaniment: "Et tu as mangé quoi avec ?",
+    preparation: "Tu l'as cuisiné avec de l'huile ou du beurre ?",
+  },
 };
+
+/** Les gabarits d'une langue. R7 par délégation: langue non livrée ⇒ throw. */
+export function mealPrecisionQuestions(
+  locale: string,
+): Readonly<Record<Exclude<MealPrecisionAxis, "slot">, string>> {
+  return MEAL_PRECISION_QUESTION_PACKS[localePackKey(locale)];
+}
 
 /**
  * La question de créneau NOMME ses candidats quand elle le peut. « Which meal
@@ -442,13 +456,22 @@ export const MEAL_PRECISION_QUESTIONS: Readonly<
  */
 export function renderMealPrecisionQuestion(
   axis: MealPrecisionAxis,
-  slotCandidates: readonly string[] = [],
+  slotCandidates: readonly string[],
+  /**
+   * REQUIS, et placé APRÈS `slotCandidates` qui a perdu son défaut pour ça.
+   * Un `locale?: string` aurait compilé chez les trois appelants sans rien
+   * changer — une question posée en anglais à un élève francophone, sans
+   * qu'aucun test ne bouge.
+   */
+  locale: string,
 ): string {
-  if (axis !== "slot") return MEAL_PRECISION_QUESTIONS[axis];
+  if (axis !== "slot") return mealPrecisionQuestions(locale)[axis];
+  const pack = localePackFor(locale);
+  const french = isFrenchLocale(locale);
   const labels = slotCandidates
     .map((slot) => {
       try {
-        return labelFor("slots", slot).toLowerCase();
+        return labelFor("slots", slot, pack).toLowerCase();
       } catch {
         // R7 côté rendu: un slug hors vocabulaire ne fait pas taire la
         // question, il s'affiche tel quel et le trou reste visible.
@@ -457,9 +480,11 @@ export function renderMealPrecisionQuestion(
     })
     .filter((label) => label !== "");
   if (labels.length === 2) {
-    return `Which meal was that, ${labels[0]} or ${labels[1]}?`;
+    return french
+      ? `C'était quel repas, ${labels[0]} ou ${labels[1]} ?`
+      : `Which meal was that, ${labels[0]} or ${labels[1]}?`;
   }
-  return "Which meal was that?";
+  return french ? "C'était quel repas ?" : "Which meal was that?";
 }
 
 // ---------------------------------------------------------------------------
@@ -514,6 +539,8 @@ export const MEAL_PRECISION_DAILY_CAP = 2;
  */
 export function gateMealPrecisionQuestion(args: {
   assessment: MealPrecisionAssessment;
+  /** R3 — REQUIS: le gate RÉDIGE la question, donc il en porte la langue. */
+  locale: string;
   safetyBand: string | null | undefined;
   futureIntent: boolean;
   committedEventCount: number;
@@ -541,7 +568,11 @@ export function gateMealPrecisionQuestion(args: {
   return {
     ask: true,
     axis,
-    question: renderMealPrecisionQuestion(axis, args.assessment.slot_candidates),
+    question: renderMealPrecisionQuestion(
+      axis,
+      args.assessment.slot_candidates,
+      args.locale,
+    ),
     reason_code: "ask",
   };
 }
