@@ -15,10 +15,41 @@ function legacyKey(...parts: string[]): string {
   return parts.join("_");
 }
 
+/**
+ * Les flows qui portent LEUR PROPRE classifieur, donc qui sautent le dispatcher
+ * global. `safety_crisis` a `skills/safety_crisis/local_dispatcher.ts`.
+ */
+const FLOWS_THAT_SKIP_THE_GLOBAL_DISPATCHER:
+  ActiveLocalConversationFlowSkillId[] = [
+    "safety_crisis",
+  ];
+
+/**
+ * Les flows SANS classifieur propre. Eux DOIVENT payer le dispatcher global,
+ * sinon plus personne ne classe le tour.
+ *
+ * ── LE DÉFAUT QUE CETTE SECONDE LISTE EMPÊCHE DE REVENIR ─────────────────────
+ * Ce fichier n'avait qu'UNE liste, `RETAINED_LOCAL_FLOW_IDS`, et un test qui
+ * bouclait dessus en asseyant `true` partout. Quand la phase B a ajouté
+ * `keel_reengagement_resume_v1`, personne n'a étendu la liste: le test est
+ * resté vert en ne parlant tout simplement pas du flow neuf.
+ *
+ * MESURÉ en run réel: pendant la reprise, « j'ai repris le magnésium hier soir »
+ * n'écrivait AUCUNE ligne `protocol_events` — le dispatcher étant sauté, le
+ * `turn_frame` était vide et il n'y avait aucun effet direct à exécuter. Le
+ * même message, une fois le flow purgé, écrivait bien sa ligne.
+ *
+ * D'où DEUX listes et une assertion d'exhaustivité: un flow neuf tombe en rouge
+ * tant que quelqu'un ne l'a pas rangé, explicitement, dans l'une des deux.
+ */
+const FLOWS_THAT_NEED_THE_GLOBAL_DISPATCHER:
+  ActiveLocalConversationFlowSkillId[] = [
+    "keel_reengagement_resume_v1",
+  ];
+
 const RETAINED_LOCAL_FLOW_IDS: ActiveLocalConversationFlowSkillId[] = [
-  // W2.A: "feature_opportunity" et "potion_support_admission_v1" ne sont plus
-  // des flows locaux retenus (registre en dur retiré).
-  "safety_crisis",
+  ...FLOWS_THAT_SKIP_THE_GLOBAL_DISPATCHER,
+  ...FLOWS_THAT_NEED_THE_GLOBAL_DISPATCHER,
 ];
 
 Deno.test("active_flow_state resumes only retained conversation skills", () => {
@@ -57,19 +88,44 @@ Deno.test("active_flow_state canonical active conversation key wins over aliases
   );
 });
 
-Deno.test("active_flow_state skips global dispatcher for every retained active local flow", () => {
-  for (const skillId of RETAINED_LOCAL_FLOW_IDS) {
+Deno.test("active_flow_state skips the global dispatcher ONLY for flows that classify their own turn", () => {
+  const skipFor = (skillId: string) => {
     const active = readActiveFlowState({
       __active_skill_state: { skill_id: skillId, status: "active" },
     });
     assertEquals((active.activeSkillState as any)?.skill_id, skillId);
-    assertEquals(
-      shouldSkipGlobalDispatcherForActiveLocalFlow({
-        activeSkillState: active.activeSkillState,
-      }),
-      true,
-    );
+    return shouldSkipGlobalDispatcherForActiveLocalFlow({
+      activeSkillState: active.activeSkillState,
+    });
+  };
+
+  for (const skillId of FLOWS_THAT_SKIP_THE_GLOBAL_DISPATCHER) {
+    assertEquals(skipFor(skillId), true, `${skillId} doit sauter`);
   }
+  // La moitié qui manquait, et sans laquelle la boucle ci-dessus est une
+  // tautologie: un `shouldSkip` qui renvoie TOUJOURS `true` la passerait.
+  for (const skillId of FLOWS_THAT_NEED_THE_GLOBAL_DISPATCHER) {
+    assertEquals(skipFor(skillId), false, `${skillId} ne doit PAS sauter`);
+  }
+});
+
+Deno.test("active_flow_state: tout flow local retenu est range dans exactement une des deux listes", () => {
+  // EXHAUSTIVITÉ. C'est cette assertion, et elle seule, qui met un flow neuf en
+  // rouge tant que personne n'a tranché s'il porte son propre classifieur.
+  // Source de vérité: l'union de types du module, pas une copie locale.
+  const declared: ActiveLocalConversationFlowSkillId[] = [
+    "safety_crisis",
+    "keel_reengagement_resume_v1",
+  ];
+  assertEquals(
+    [...RETAINED_LOCAL_FLOW_IDS].sort(),
+    [...declared].sort(),
+  );
+  assertEquals(
+    new Set(RETAINED_LOCAL_FLOW_IDS).size,
+    RETAINED_LOCAL_FLOW_IDS.length,
+    "un flow ne peut pas etre dans les deux listes",
+  );
 });
 
 Deno.test("active_flow_state ignores retained local flows with terminal status", () => {

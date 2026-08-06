@@ -188,15 +188,43 @@ export function readActiveFlowState(tempMemory: unknown): ActiveFlowState {
   };
 }
 
+/**
+ * LES FLOWS QUI CLASSENT LEUR PROPRE TOUR — et eux seuls sautent le dispatcher.
+ *
+ * Un flow ne peut se passer du dispatcher global que s'il porte SON PROPRE
+ * classifieur. `safety_crisis` en a un (`skills/safety_crisis/local_dispatcher.ts`).
+ *
+ * `keel_reengagement_resume_v1` n'en a pas: c'est un renderer déterministe, il
+ * ne lit du message que s'il est vide. Le sauter revenait donc à ce que PERSONNE
+ * ne classe le tour.
+ *
+ * ── CE QUE ÇA COÛTAIT, MESURÉ EN RUN RÉEL (2026-08-06) ───────────────────────
+ * Élève relancé, cadre armé, puis :
+ *
+ *   « Je suis là. J'ai repris le magnésium hier soir d'ailleurs. »
+ *      → cadre rendu, `protocol_events` : 0 ligne.               ✘
+ *
+ * Le même message, flow purgé, sur le tour suivant :
+ *      → `protocol_events` : 1 ligne, `substance_ref = magnesium_glycinate`. ✔
+ *
+ * Le fait rapporté par l'élève était PERDU — silencieusement, et précisément
+ * sur le tour où il revient. `routers.ts` porte pourtant le commentaire « les
+ * effets directs passent SANS fermer le flow » : il décrivait un code qui ne
+ * pouvait pas s'exécuter, puisque `direct_effects_to_run` se lit dans un
+ * `turn_frame` que plus personne ne remplissait.
+ *
+ * Liste POSITIVE et non une négation: un flow neuf ne saute rien tant que
+ * quelqu'un n'a pas écrit son classifieur et ne l'a pas inscrit ici.
+ */
+const FLOWS_WITH_THEIR_OWN_DISPATCHER = new Set<string>([
+  "safety_crisis",
+]);
+
 export function shouldSkipGlobalDispatcherForActiveLocalFlow(args: {
   activeSkillState: unknown;
 }): boolean {
   const skillId = activeLocalConversationSkillId(args.activeSkillState);
-  // presence_conversation n'a PAS de dispatcher local: il dépend du dispatcher
-  // GLOBAL à chaque tour pour classer le kind (maintain/pivot_action/tool_pull/
-  // closure/topic_change) et détecter les signaux de sortie. On ne le saute
-  // donc jamais quand la présence est active.
-  return skillId !== "";
+  return skillId !== "" && FLOWS_WITH_THEIR_OWN_DISPATCHER.has(skillId);
 }
 
 export function clearLegacyRuntimeState<
