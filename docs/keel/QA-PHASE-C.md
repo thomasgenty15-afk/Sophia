@@ -96,10 +96,33 @@ Deux causes distinctes, à ne pas confondre :
   expire en quelques minutes — une lane rare ne peut structurellement pas en
   bénéficier. Rien à corriger côté prompt.
 - **`sophia-brain:companion` à 23 %** : celui-là tourne à **chaque tour normal**,
-  et 77 % de ses 6 787 tokens sont refacturés plein tarif à chaque fois. Un
-  préfixe stable se met en cache ; du contenu variable placé tôt le casse. C'est
-  la cible mesurable de C5, et elle est probablement plus rentable que tout ce
-  qui reste sur le dispatcher.
+  et 77 % de ses 6 787 tokens sont refacturés plein tarif à chaque fois.
+
+#### Et la cause n'est PAS l'ordre des blocs — mesuré
+
+Mon hypothèse de départ (« du contenu variable placé trop tôt casse le
+préfixe ») est fausse. Le composeur porte déjà un découpage
+stable / semi-stable / volatile **et sa propre télémétrie**
+(`companion_prompt_cache_ready`). Trois tours consécutifs lus dans les logs de
+l'edge runtime :
+
+| bloc | chars | ≈ tokens | hash d'un tour à l'autre |
+|---|---|---|---|
+| `stable` | 10 536 | ~2 634 | `20726622` — **identique** ✅ |
+| `semi_stable` | 590 | ~148 | change à chaque tour |
+| `volatile` | **20 149** | **~5 037** | change à chaque tour |
+| **total** | 31 501 | ~7 875 | |
+
+L'ordre est déjà le bon : le stable est en tête, donc tout ce qui *peut* être
+mis en cache l'est. Le plafond du cache, c'est la taille du bloc stable —
+~2 634 tokens — et on en mesure 1 593, l'écart s'expliquant par la granularité
+de 128 tokens d'OpenAI.
+
+**Le vrai chiffre est ailleurs : le contexte par tour pèse 20 149 caractères,
+soit 64 % du prompt, et il est par nature incachable.** C5 ne doit donc pas
+chercher à réordonner quoi que ce soit — il doit demander ce que contiennent ces
+20 Ko et lesquels servent vraiment à la réponse. Déplacer le bloc semi-stable ne
+rapporterait que 148 tokens ; c'est le volatile qui porte l'enjeu.
 
 ### Composition du prompt `safety_crisis.local_dispatcher` (24 271 car. ≈ 6 068 tok)
 
