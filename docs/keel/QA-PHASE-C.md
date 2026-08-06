@@ -95,6 +95,63 @@ garde « rien à lire ⇒ rien à payer ») et prouvé en run : la même relance
 `generate-meal-v1` à **26 s**. Aucune des deux n'est sur le chemin d'un tour de
 conversation, mais 90 s dans un cron est un budget qui se consomme.
 
+## RÉSULTAT C3 — les quatre effets durables KEEL (2026-08-06, run réel)
+
+| effet | table | verdict |
+|---|---|---|
+| `log_protocol_event` | `protocol_events` | ✅ (prouvé en C1 cas 7) |
+| `declare_safety_constraint` | `student_safety_constraints` | ✅ `kind=allergy`, `allergen_ref=peanut`, `severity=medical`, `status=active` |
+| `create_one_shot_reminder` | `scheduled_checkins` | ✅ `2026-08-07 07:00Z` = 9 h Paris, `event_context=one_shot_reminder:prendre_mon_magnesium` |
+| `declare_deviation` | `planned_deviations` | ⚠️ **corrigé** 1/3 → 3/3, mais voir le RED de date ci-dessous |
+
+### Corrigé — deux règles du prompt se contredisaient
+
+Le bloc `plan_question` donnait `"je suis au resto ce soir"` — annonce **sèche,
+sans demande** — comme exemple de `kind=eating_out`. La règle 3k-b(3), 130
+lignes plus bas, dit l'inverse. Mesuré sur 3 passes de *« Jeudi soir je mange au
+restaurant avec des amis. »* : `declare_deviation` **1 fois**, `plan_question`
+2 fois. Après correction : **3/3**.
+
+Deux tiers des annonces d'indisponibilité étaient donc perdues — le jour restait
+dans le dénominateur d'adhérence — et l'élève recevait en prime une escalade.
+
+### ❌ RED OUVERT — l'ancrage des jours nommés est instable
+
+Sur les 3 passes corrigées ci-dessus, avec **aujourd'hui = jeudi 2026-08-06**,
+*« Jeudi soir »* a produit :
+
+| passe | `local_date` écrit | jour | attendu |
+|---|---|---|---|
+| 1 | `2026-08-07` | **vendredi** | jeudi 08-06 |
+| 2 | `2026-08-06` | jeudi | ✅ |
+| 3 | dédupliqué sur 08-06 | — | — |
+
+Le décalage n'est pas « jeudi prochain » : c'est **+1 jour**. Une déviation
+écrite sur le mauvais jour sort le mauvais jour du dénominateur d'adhérence
+**et** y laisse le vrai — deux erreurs pour une.
+
+Cohérent avec [[date-anchoring-instability-rose-hard15]] et
+[[paul-untested16-durable-effect-reds]]. C'est le premier item de la reprise.
+
+### ❌ RED OUVERT — `plan_question` promet un canal qui n'existe pas
+
+`skills/plan_question/renderer.ts:81` (`escalationText`) rend :
+
+> « I have passed your question to them with exactly what you told me — **they
+> will come back on it.** »
+
+et `DENY_TEXT` : « It is flagged to your coach right now so they can look at it
+straight away. »
+
+La première moitié est vraie — la question part bien en
+`contract_change_requests`, une file que le coach voit. **« They will come back
+on it » est faux** : il n'existe aucun canal coach → élève
+(`docs/keel/MODEL.md`, et c'est la règle la plus violée du projet). L'élève
+attend une réponse que rien ne peut lui livrer.
+
+Le gabarit est aussi **codé en dur en anglais**, dans un renderer qui reçoit
+pourtant une `LocalePack`.
+
 ## C2 à C8 — l'ordre, et pourquoi
 
 2. **Dispatcher global** — c'est ici que sont les tokens. Mesuré : le prompt est
