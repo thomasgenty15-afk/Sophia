@@ -62,6 +62,14 @@ declare
   v_id   uuid;
   v_rows int := 0;
   v_msg  text;
+  -- `set_config('role','none',...)` est `reset role` déguisé: il ne rend pas
+  -- l'identité de l'appelant, il retombe sur `session_user`. Le CLI se place
+  -- sur un rôle pour appliquer la lignée, et le lui jeter casse tout ce qui
+  -- suit dans la même transaction — y compris l'épreuve d'absence en bas de ce
+  -- fichier, qui interroge `information_schema` (filtré par privilèges) et
+  -- annonçait « colonne absente » pour une colonne présente. On restitue donc
+  -- l'identité d'entrée. Voir `20260804181000`, même piège, autre orthographe.
+  v_role text := current_user;
 begin
   select id into v_id from public.profiles limit 1;
   if v_id is null then
@@ -92,7 +100,7 @@ begin
   exception
     when others then
       get stacked diagnostics v_msg = message_text;
-      perform set_config('role', 'none', true);
+      perform set_config('role', v_role, true);
       perform set_config('request.jwt.claims', '', true);
       if v_msg is distinct from '__probe_rollback__' then
         raise exception
@@ -127,9 +135,16 @@ end $$;
 -- Épreuve d'absence: la colonne existe et n'est pas gardée.
 do $$
 begin
-  perform 1 from information_schema.columns
-   where table_schema = 'public' and table_name = 'profiles'
-     and column_name = 'chat_last_read_at';
+  -- `pg_catalog` et non `information_schema`: cette vue-là ne montre que les
+  -- colonnes sur lesquelles le rôle courant a un privilège. Sous une identité
+  -- amoindrie elle rend zéro ligne, et l'épreuve d'absence se met à affirmer
+  -- qu'une colonne présente est absente. Une preuve de présence ne doit pas
+  -- dépendre de qui la lit.
+  perform 1 from pg_catalog.pg_attribute
+   where attrelid = 'public.profiles'::regclass
+     and attname  = 'chat_last_read_at'
+     and attnum   > 0
+     and not attisdropped;
   if not found then
     raise exception 'chat_last_read_at: colonne absente après migration';
   end if;

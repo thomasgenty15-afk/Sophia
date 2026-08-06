@@ -90,10 +90,17 @@ $function$;
 -- qui lirait `pg_proc.prosrc` à la recherche du bon nom de colonne prouverait
 -- que le texte a changé, pas que l'UPDATE passe — et c'est précisément la
 -- distinction qui a coûté cette panne.
+-- `reset role` NE REND PAS le rôle de l'appelant : il retombe sur `session_user`.
+-- Le CLI (`supabase db push`) se place sur un rôle avant d'appliquer chaque
+-- fichier, puis écrit lui-même dans `supabase_migrations.schema_migrations`.
+-- Un `reset role` ici jetait ce rôle par-dessus bord et l'INSERT de
+-- comptabilité repartait en `session_user` nu : `permission denied for schema
+-- supabase_migrations`. On capture donc l'identité d'entrée et on la restitue.
 do $$
 declare
   v_id uuid;
   v_msg text;
+  v_role text := current_user;
 begin
   select id into v_id from public.profiles limit 1;
   if v_id is null then
@@ -108,19 +115,19 @@ begin
     -- n'est pas ce qu'on teste ici — on teste que le trigger COMPILE ses
     -- champs à l'exécution.
     update public.profiles set updated_at = updated_at where id = v_id;
-    reset role;
+    execute format('set local role %I', v_role);
   exception
     when undefined_column then
-      reset role;
+      execute format('set local role %I', v_role);
       raise exception
         'guard_profiles_privileged_columns nomme encore une colonne absente: %',
         sqlerrm;
     when insufficient_privilege then
       -- RLS a parlé, pas le trigger. C'est un succès pour ce contrôle.
-      reset role;
+      execute format('set local role %I', v_role);
     when others then
       get stacked diagnostics v_msg = message_text;
-      reset role;
+      execute format('set local role %I', v_role);
       if v_msg like '%has no field%' then
         raise exception 'guard_profiles_privileged_columns: %', v_msg;
       end if;
