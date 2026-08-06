@@ -9,7 +9,6 @@ import {
 } from "./active_flow_state.ts";
 import { ACTIVE_CONVERSATION_SKILL_KEY } from "../skills/_shared/active_skill_state.ts";
 import {
-  applyConversationSkillState,
   applyMemoryV2ActiveLoaderResult,
   applySafetyCrisisSkillState,
   buildTurnFrameForRuntime,
@@ -108,9 +107,10 @@ function route(turnFrame: TurnFrame) {
 }
 
 const RETAINED_LOCAL_FLOW_IDS: ActiveLocalConversationFlowSkillId[] = [
-  "product_help",
   // W2.A: "feature_opportunity" n'est plus un flow local retenu.
+  // A6: "product_help" non plus — sa lane est supprimée.
   "safety_crisis",
+  "keel_reengagement_resume_v1",
 ];
 
 // P5-A (paul-p4verify T12) — recalibrage volontaire : l'ancien test préservait
@@ -132,9 +132,6 @@ Deno.test("global router gives safety high critical priority and blocks one-shot
       confidence_band: "high",
       payload_hint: {},
     }],
-    skill_signals: {
-      product_help: { detected: true, confidence_band: "high" },
-    },
   }));
 
   assertEquals(decision.response_owner, "safety");
@@ -222,16 +219,12 @@ Deno.test("global redispatch after local exit uses note without active flow owne
       source_message_id: "m-local-exit",
       turn_id: "t-local-exit",
     },
+    // Le modèle ne signale plus rien de routable: les lanes que ce cas
+    // nommait (`product_help`, puis `feature_opportunity`) sont supprimées.
     llmRunner: async () => ({
       safety: { risk_band: "none", reason_codes: [], evidence: [] },
       direct_effects: [],
-      skill_signals: {
-        product_help: {
-          detected: true,
-          confidence_band: "high",
-          reason: "local_flow_exit_note",
-        },
-      },
+      skill_signals: {},
     }),
   });
 
@@ -241,16 +234,34 @@ Deno.test("global redispatch after local exit uses note without active flow owne
     safety_context_risk_band: "none",
   });
 
+  // CE QUE CE CAS PROUVE, ET QUI N'A PAS BOUGÉ: après une sortie de flow local,
+  // la note de sortie ARRIVE au dispatcher global (elle est portée par le
+  // turn_frame), et le tour n'est possédé par AUCUN flow local — il repart en
+  // routage normal. Le propriétaire attendu était `product_help`; cette lane
+  // ayant disparu en A6, c'est désormais `normal_reply`, ce qui est la même
+  // affirmation: le flow sorti n'a pas gardé la main.
   assertEquals(
     (turnFrame.note_information as any)?.source_flow_id,
     "feature_opportunity",
   );
-  assertEquals(decision.response_owner, "product_help");
-  assertEquals(decision.reason_code, "product_help_signal");
+  assertEquals(decision.response_owner, "normal_reply");
+  assertEquals(decision.active_flow_arbitration?.active_owner, undefined);
 });
 
-Deno.test("runtime turn frame builder skips global dispatcher LLM for every retained local flow", async () => {
-  for (const skillId of RETAINED_LOCAL_FLOW_IDS) {
+// ⚠️ « for every retained local flow » ÉTAIT LE DÉFAUT, pas seulement le nom.
+//
+// Ce test bouclait sur TOUS les flows retenus en assertant `llmCalled === false`
+// partout. Or seul un flow portant son propre classifieur peut se passer du
+// dispatcher global. `keel_reengagement_resume_v1` n'en a pas: le sauter faisait
+// perdre les effets directs du tour (mesuré: « j'ai repris le magnésium hier
+// soir » n'écrivait aucune ligne `protocol_events` pendant la reprise).
+//
+// La boucle porte donc désormais sur la seule liste des flows qui SAUTENT.
+const FLOWS_THAT_SKIP_THE_GLOBAL_DISPATCHER:
+  ActiveLocalConversationFlowSkillId[] = ["safety_crisis"];
+
+Deno.test("runtime turn frame builder skips global dispatcher LLM only for flows that classify their own turn", async () => {
+  for (const skillId of FLOWS_THAT_SKIP_THE_GLOBAL_DISPATCHER) {
     let llmCalled = false;
     const active = readActiveFlowState({
       __active_skill_state: { skill_id: skillId, status: "active" },
@@ -337,29 +348,36 @@ Deno.test("global router runs direct effect then normal reply", () => {
   assertEquals(decision.reason_code, "direct_effects_then_normal_reply");
 });
 
-Deno.test("global router can combine direct effect with product_help owner", () => {
-  const decision = route(frame({
-    direct_effects: [{
-      effect_type: "create_one_shot_reminder",
-      explicitness: "explicit",
-      target_status: "identified",
-      confidence_band: "high",
-      payload_hint: { raw_text: "demain a 9h" },
-    }],
-    skill_signals: {
-      product_help: {
-        detected: true,
+// La lane `product_help` a été supprimée en phase A6, et avec elle le cas
+// « effet direct + propriétaire de lane ». L'invariant, lui, a survécu et vaut
+// désormais pour le seul propriétaire de lane restant : un effet direct
+// s'exécute SANS retirer le tour au flow qui le possède.
+Deno.test("global router combine un effet direct avec le proprietaire de lane actif", () => {
+  const decision = runConversationRouters({
+    turn_frame: frame({
+      direct_effects: [{
+        effect_type: "create_one_shot_reminder",
+        explicitness: "explicit",
+        target_status: "identified",
         confidence_band: "high",
-        reason: "product_help_question",
-      },
+        payload_hint: { raw_text: "demain a 9h" },
+      }],
+    }),
+    active_skill_state: {
+      version: 1,
+      skill_id: "keel_reengagement_resume_v1",
+      status: "active",
+      working_state: {},
     },
-  }));
+    safety_context_risk_band: "none",
+  });
 
-  assertEquals(decision.response_owner, "product_help");
-  assertEquals(decision.selected_handler, "product_help");
-  assertEquals(decision.direct_effects_to_run, [
-    "create_one_shot_reminder",
-  ]);
+  assertEquals(decision.response_owner, "keel_reengagement_resume_v1");
+  assertEquals(decision.direct_effects_to_run, ["create_one_shot_reminder"]);
+  assertEquals(
+    decision.reason_code,
+    "active_keel_reengagement_resume_with_direct_effects",
+  );
 });
 
 // W2.B will delete this: la lane est désactivée en W2.A.
@@ -392,42 +410,40 @@ Deno.test({
   assertEquals(decision.reason_code, "feature_opportunity_signal");
 });
 
-// W2.A: la lane feature_opportunity a disparu; la priorité testée ici est
-// désormais triviale. Le signal résiduel est passé en cast pour documenter
-// qu'un signal LLM legacy est simplement droppé (W2.B nettoie le test).
-Deno.test("readActiveFlowState active product_help keeps product_help ownership", () => {
+// Rebasé de `product_help` (supprimé en A6) vers le seul flow local non-safety
+// restant. L'invariant testé n'a pas bougé: un flow ACTIF garde le tour, quoi
+// que le dispatcher ait par ailleurs signalé.
+Deno.test("readActiveFlowState: un flow de reprise actif garde la propriete du tour", () => {
   const activeFlowState = readActiveFlowState({
     [ACTIVE_CONVERSATION_SKILL_KEY]: {
       version: 1,
-      skill_id: "product_help",
+      skill_id: "keel_reengagement_resume_v1",
       status: "active",
       turn_count: 1,
       started_at: new Date(Date.now() - 120_000).toISOString(),
       updated_at: new Date(Date.now() - 60_000).toISOString(),
       working_state: {
-        product_help_local_state: {
-          skill_id: "product_help",
-          status: "open",
+        keel_reengagement_resume_local_state: {
+          version: 1,
+          stage: "welcome_back",
+          turns_in_flow: 0,
+          awaiting_first_reply: true,
         },
       },
     },
   });
   const decision = runConversationRouters({
-    turn_frame: frame({
-      skill_signals: {
-        coaching_recommendation: { detected: true, confidence_band: "high" },
-      },
-    }),
+    turn_frame: frame(),
     active_skill_state: activeFlowState.activeSkillState,
     safety_context_risk_band: "none",
   });
 
   assertEquals(
     (activeFlowState.activeSkillState as any)?.skill_id,
-    "product_help",
+    "keel_reengagement_resume_v1",
   );
-  assertEquals(decision.response_owner, "product_help");
-  assertEquals(decision.reason_code, "active_product_help");
+  assertEquals(decision.response_owner, "keel_reengagement_resume_v1");
+  assertEquals(decision.reason_code, "active_keel_reengagement_resume");
   assertEquals(decision.active_flow_arbitration?.decision, "continue_active");
 });
 
@@ -450,14 +466,10 @@ Deno.test("readActiveFlowState active safety keeps safety ownership and skips pr
     },
   });
   const decision = runConversationRouters({
+    // Le signal `product_help` qui vivait ici a disparu avec sa lane (A6).
+    // Ce que le cas prouve n'a pas changé: une crise safety ACTIVE garde le
+    // tour et bloque l'effet direct, quoi que le dispatcher ait signalé.
     turn_frame: frame({
-      skill_signals: {
-        product_help: {
-          detected: true,
-          confidence_band: "high",
-          reason: "where_is_feature",
-        },
-      },
       direct_effects: [{
         effect_type: "create_one_shot_reminder",
         explicitness: "explicit",
@@ -599,90 +611,23 @@ Deno.test("applySafetyCrisisSkillState purges every active flow key on exit to g
   );
 });
 
-Deno.test("applyConversationSkillState purges every active flow key for local dispatcher exits", () => {
-  const skillIds = [
-    "product_help",
-    "coaching_recommendation",
-    // W2.A: "feature_opportunity" retiré de RuntimeConversationSkillId.
-    "plan_realignment",
-  ] as const;
-
-  for (const skillId of skillIds) {
-    const active = {
-      version: 1,
-      skill_id: skillId,
-      status: "active",
-      turn_count: 2,
-      working_state: {},
-    };
-    const next = applyConversationSkillState({
-      tempMemory: {
-        [ACTIVE_CONVERSATION_SKILL_KEY]: active,
-        __active_skill_state: active,
-        active_skill_state: active,
-      },
-      activeSkillState: active,
-      skillId,
-      output: {
-        skill_id: skillId,
-        status: "exit",
-        response_intent: "exit_to_global_dispatcher",
-        reply: "",
-        memory_trace: {
-          memory_used_for_response: false,
-          memory_item_ids_used: [],
-          correction_detected: false,
-          correction_target_item_ids: [],
-        },
-        state_patch: {},
-      } as any,
-    });
-
-    assertEquals(readActiveFlowState(next).activeSkillState, null);
-    assertEquals((next as any)[ACTIVE_CONVERSATION_SKILL_KEY], undefined);
-    assertEquals((next as any).__active_skill_state, undefined);
-    assertEquals((next as any).active_skill_state, undefined);
-  }
-});
-
-// W2.B will delete this: la lane est désactivée en W2.A.
-Deno.test({
-  name:
-    "global router keeps active feature opportunity before product_help",
-  ignore: true,
-}, () => {
-  const active = {
-    skill_id: "feature_opportunity",
-    status: "active",
-    working_state: {},
-  };
-  const continued = runConversationRouters({
-    turn_frame: frame(),
-    active_skill_state: active,
-    safety_context_risk_band: "none",
-  });
-  assertEquals(continued.response_owner, "feature_opportunity");
-
-  const interrupted = runConversationRouters({
-    turn_frame: frame({
-      skill_signals: {
-        product_help: { detected: true, confidence_band: "high" },
-      },
-    }),
-    active_skill_state: active,
-    safety_context_risk_band: "none",
-  });
-  assertEquals(interrupted.response_owner, "feature_opportunity");
-  assertEquals(interrupted.reason_code, "active_feature_opportunity");
-  assertEquals(
-    interrupted.active_flow_arbitration?.active_owner,
-    "feature_opportunity",
-  );
-  assertEquals(
-    interrupted.active_flow_arbitration?.decision,
-    "continue_active",
-  );
-});
+// SUPPRIMÉS ICI, ET LA RAISON EST LA MÊME POUR LES DEUX.
+//
+// `applyConversationSkillState purges every active flow key for local
+// dispatcher exits` bouclait sur product_help / coaching_recommendation /
+// plan_realignment, et appelait un helper de `run.ts` qui a disparu avec eux
+// (phase A6: product_help était le DERNIER membre de
+// `RuntimeConversationSkillId`, et son retrait a effondré toute la machinerie).
+//
+// `global router keeps active feature opportunity before product_help` était
+// déjà `ignore: true` depuis W2.A — un corps ignoré continue pourtant d'être
+// type-checké, et il référait deux lanes supprimées.
+//
+// L'INVARIANT DE PURGE N'EST PAS PERDU: il est désormais prouvé sur le seul
+// propriétaire de lane restant, par
+// `active_flow_state clears all active conversation aliases after local exit`
+// (active_flow_state_test.ts) et en run réel — voir la purge vérifiée en base
+// dans `docs/keel/QA-PHASE-C.md`, cas 5.
 
 Deno.test("global router allows one-shot direct effect during normal reply", () => {
   const decision = runConversationRouters({

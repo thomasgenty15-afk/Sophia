@@ -244,18 +244,14 @@ Deno.test("track_progress_plan_item v2 covers success, clarify and blocked cases
   }
 });
 
-Deno.test("track_progress_plan_item v2 can coexist with product_help signal", async () => {
+// Renommé: le signal concurrent de ce cas était `product_help`, lane supprimée
+// en A6. Ce qui se prouve ici est l'effet direct SUR UN MESSAGE CHARGÉ
+// D'ÉMOTION (« je suis nul ») — l'effet s'écrit quand même.
+Deno.test("track_progress_plan_item v2 s'execute sur un message charge d'emotion", async () => {
   const outcome = await runTrackProgressPlanItemV2({
     message: "j'ai rate ma marche, je suis nul",
     plan_snapshot: { items: [{ id: "walk", title: "marche" }] },
     turn_frame: frame({
-      skill_signals: {
-        product_help: {
-          detected: true,
-          confidence_band: "high",
-          reason: "product_question_near_progress",
-        },
-      },
       direct_effects: [{
         effect_type: "track_progress_plan_item",
         explicitness: "explicit",

@@ -285,16 +285,15 @@ Deno.test("CHANNEL whatsapp_delivery: the sender re-asks the floor at delivery t
 // ---------------------------------------------------------------------------
 
 Deno.test("CHANNEL conversation: a raised flag routes the turn away from every plan lane", () => {
+  // Les deux lanes concurrentes de ce cas (`product_help`,
+  // `coaching_recommendation`) ont été supprimées en phase A. Ce que la
+  // propriété affirme n'a pas bougé — un drapeau de restriction détourne le
+  // tour de TOUTE lane plan — donc la table garde un signal encore vivant plus
+  // un signal inconnu, qui est le pire cas: le routeur ne doit pas s'y raccrocher.
   const otherLanes: Array<Partial<TurnFrame["skill_signals"]>> = [
     {},
-    { product_help: { detected: true, confidence_band: "high", reason: "fixture" } },
-    {
-      coaching_recommendation: {
-        detected: true,
-        confidence_band: "high",
-        reason: "fixture",
-      },
-    },
+    { plan_question: { detected: true, confidence_band: "high" } },
+    { unknown_removed_lane: { detected: true, confidence_band: "high" } } as never,
   ];
   for (const skill_signals of otherLanes) {
     const decision = runConversationRouters({

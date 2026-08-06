@@ -250,8 +250,8 @@ Deno.test("direct_effect_lane defers on ideation codes even without crisis-block
       }),
       // Route synthétique de flow local actif : AUCUN blocked_path crise.
       routeDecision: baseRouteDecision({
-        response_owner: "coaching_recommendation",
-        reason_code: "active_coaching_recommendation_with_local_direct_effects",
+        response_owner: "keel_reengagement_resume_v1",
+        reason_code: "active_keel_reengagement_resume_with_direct_effects",
         direct_effects_to_run: ["create_one_shot_reminder"],
       }),
       safetyContextOutput: { risk_band: "medium", reason_codes: [] },
@@ -333,18 +333,13 @@ Deno.test("operation_runtime_pipeline product_help route allows one-shot reminde
           instruction_hint: "relire la doc",
         },
       }],
-      skill_signals: {
-        product_help: {
-          detected: true,
-          confidence_band: "high",
-          intent: "can_i_do_x",
-          evidence: ["modifier une carte d'attaque"],
-        } as any,
-      },
     }),
+    // A6: la lane `product_help` a disparu. Ce que le cas prouve — un effet
+    // direct s'exécute pendant qu'un flow local possède le tour — se rejoue
+    // sur le seul propriétaire de lane non-safety restant.
     routeDecision: baseRouteDecision({
-      response_owner: "product_help",
-      selected_handler: "product_help",
+      response_owner: "keel_reengagement_resume_v1",
+      selected_handler: "keel_reengagement_resume_v1",
       direct_effects_to_run: ["create_one_shot_reminder"],
     }),
     clientNow: new Date("2026-06-13T08:00:00.000Z"),
@@ -401,10 +396,10 @@ Deno.test("operation_runtime_pipeline active local flow does not parse raw messa
     userMessage: message,
     turnFrame: baseTurnFrame(),
     routeDecision: baseRouteDecision({
-      response_owner: "product_help",
-      selected_handler: "product_help",
+      response_owner: "keel_reengagement_resume_v1",
+      selected_handler: "keel_reengagement_resume_v1",
       direct_effects_to_run: [],
-      reason_code: "active_product_help",
+      reason_code: "active_keel_reengagement_resume",
     }),
     allowDirectEffectMessageIntakeFallback: true,
     clientNow: new Date("2026-06-13T08:00:00.000Z"),

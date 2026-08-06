@@ -1,6 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import {
-  sessionDecisionFromPlanRealignmentState,
+
   sessionDecisionsFromTempMemory,
   sessionDecisionsPromptBlock,
   withSessionDecision,
@@ -66,30 +66,11 @@ Deno.test("une nouvelle decision sur le meme levier supersede l'ancienne en 'eca
   );
 });
 
-// W2.B: le volet `feature_opportunity` de ce test est parti avec le skill.
-// La retro-compatibilite d'ETAT reste couverte plus bas: une entree persistee
-// portant `source: "feature_opportunity"` doit encore etre relue telle quelle.
-Deno.test("le hand-off plan_realignment est capture comme decision de session (nina-r7 B04)", () => {
-  const realignment = sessionDecisionFromPlanRealignmentState({
-    drift_type: "plan_too_light",
-    scope: "week",
-  });
-  assertEquals(realignment?.source, "plan_realignment");
-  assertEquals(realignment?.handoff?.includes("plan_too_light"), true);
-
-  // Anti-faux-positif: drift ambigu → rien.
-  assertEquals(
-    sessionDecisionFromPlanRealignmentState({ drift_type: "ambiguous" }),
-    null,
-  );
-
-  // Le bloc liste le reste-a-faire.
-  let tempMemory: Record<string, unknown> = {};
-  tempMemory = withSessionDecision(tempMemory, realignment);
-  const block = sessionDecisionsPromptBlock(tempMemory);
-  assertEquals(block?.includes("plan_too_light"), true);
-  assertEquals(block?.includes("reste a faire de ton cote"), true);
-});
+// SUPPRIMÉ: `le hand-off plan_realignment est capturé comme décision de session`.
+// `sessionDecisionFromPlanRealignmentState` est parti avec la lane en phase A4;
+// ce module n'a plus AUCUN producteur de décision, seulement des lecteurs. La
+// rétro-compatibilité d'ÉTAT — une entrée déjà persistée doit rester relue —
+// est ce qui compte encore, et le cas juste en dessous la couvre.
 
 // W2.B: garde-fou de retro-compatibilite d'ETAT — une decision persistee par
 // l'ancien skill `feature_opportunity` doit rester lue avec sa source, jamais

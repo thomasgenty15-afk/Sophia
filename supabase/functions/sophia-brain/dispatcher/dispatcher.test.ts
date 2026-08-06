@@ -172,7 +172,13 @@ Deno.test("dispatcher treats personal active-state requests as normal fallback",
     },
   });
 
-  assertEquals(frame.skill_signals.product_help, undefined);
+  // `product_help` a quitté le TYPE `DispatcherSkillSignals` (A6/A8). Ce que le
+  // cas doit encore prouver est que le modèle ne peut pas ré-injecter la clé:
+  // la lecture se fait donc sur l'objet, pas sur le type.
+  assertEquals(
+    (frame.skill_signals as Record<string, unknown>).product_help,
+    undefined,
+  );
   assertEquals(frame.direct_effects, []);
   assertEquals(frame.memory_plan.context_need, "targeted");
   assertNoLegacyRouteFields(frame);
@@ -208,7 +214,7 @@ Deno.test("dispatcher filters hostile legacy LLM output", async () => {
         removed_lifecycle: { detected: true, confidence_band: "high" },
       },
       exit: {
-        product_help: { detected: true, confidence_band: "high" },
+        removed_exit: { detected: true, confidence_band: "high" },
       },
     },
     direct_effects: [{
