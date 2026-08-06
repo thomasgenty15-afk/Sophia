@@ -41,22 +41,38 @@ Deno.test("le premier tour cadre, et desarme le carve-out de fraicheur", () => {
   assertEquals(decision.next.awaiting_first_reply, false);
 });
 
-Deno.test("borne a deux tours: le second rend deja la main", () => {
-  const second = reduceKeelReengagementResume({
-    persistedState: armed({ turns_in_flow: 1, awaiting_first_reply: false }),
-    ...OK,
-  });
-  assertEquals(second.kind, "frame");
-  if (second.kind !== "frame") return;
-  assertEquals(second.next.stage, "handed_back");
-  assertEquals(second.next.turns_in_flow, KEEL_REENGAGEMENT_RESUME_MAX_TURNS);
+Deno.test("borne a UN tour: tout etat deja consomme rend la main", () => {
+  // Le runtime purge l'etat des le tour rendu, donc ce cas ne doit pas se
+  // produire en regime nominal. Il se produit si une purge echoue — et alors
+  // le flow doit se taire, pas reprendre la parole a chaque message.
+  assertEquals(KEEL_REENGAGEMENT_RESUME_MAX_TURNS, 1);
+  for (const consumed of [1, 2, 7]) {
+    const decision = reduceKeelReengagementResume({
+      persistedState: armed({
+        turns_in_flow: consumed,
+        awaiting_first_reply: false,
+      }),
+      ...OK,
+    });
+    assertEquals(decision.kind, "hand_back", `turns_in_flow=${consumed}`);
+    if (decision.kind === "hand_back") assertEquals(decision.reason, "max_turns");
+  }
+});
 
-  const third = reduceKeelReengagementResume({
-    persistedState: armed({ turns_in_flow: 2, awaiting_first_reply: false }),
+Deno.test("le tour cadre ne se prolonge jamais: un seul stage existe", () => {
+  // REGRESSION (run reel 2026-08-06): un second stage `handed_back` rendait
+  // « Good, let's carry on from there. » a un eleve qui venait d'ecrire
+  // « Je voudrais surtout gerer les diners cette semaine ». Un gabarit ferme ne
+  // peut pas repondre a une demande qu'il n'a pas lue — donc il n'y a plus de
+  // second gabarit, et plus de second tour possede.
+  const decision = reduceKeelReengagementResume({
+    persistedState: armed(),
     ...OK,
   });
-  assertEquals(third.kind, "hand_back");
-  if (third.kind === "hand_back") assertEquals(third.reason, "max_turns");
+  assertEquals(decision.kind, "frame");
+  if (decision.kind !== "frame") return;
+  assertEquals(decision.next.stage, "welcome_back");
+  assertEquals(KEEL_RESUME_ALL_TEMPLATES.length, 2, "un gabarit, deux langues");
 });
 
 Deno.test("safety prend tout, sur les trois bandes", () => {
@@ -116,7 +132,7 @@ Deno.test("AUCUN gabarit ne nomme l'absence, dans les deux langues", () => {
       );
     }
   }
-  assert(KEEL_RESUME_ALL_TEMPLATES.length >= 4, "fr + en, deux stages");
+  assert(KEEL_RESUME_ALL_TEMPLATES.length >= 2, "un gabarit, fr + en");
 });
 
 Deno.test("le renderer suit la locale resolue par le runtime", () => {
@@ -131,7 +147,7 @@ Deno.test("le renderer suit la locale resolue par le runtime", () => {
   assert(fr !== en);
   // Repli anglais sur une locale inconnue: jamais de chaine vide.
   assert(
-    renderKeelReengagementResume({ stage: "handed_back", responseLocale: "" })
+    renderKeelReengagementResume({ stage: "welcome_back", responseLocale: "" })
       .length > 0,
   );
 });

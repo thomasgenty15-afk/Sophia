@@ -57,13 +57,13 @@ export function reduceKeelReengagementResume(
     kind: "frame",
     next: {
       ...state,
-      // Le flow a possédé un tour: le carve-out de fraîcheur n'a plus lieu
-      // d'être, l'état redevient soumis au staleness ordinaire de 4 h.
+      // Le flow a possédé son tour: le carve-out de fraîcheur n'a plus lieu
+      // d'être. En régime nominal le runtime purge l'état juste après, donc
+      // personne ne relira ce champ — il reste juste pour que l'état résiduel
+      // d'une purge ratée expire comme n'importe quel autre.
       awaiting_first_reply: false,
       turns_in_flow: nextTurns,
-      stage: nextTurns >= KEEL_REENGAGEMENT_RESUME_MAX_TURNS
-        ? "handed_back"
-        : "welcome_back",
+      stage: "welcome_back",
     },
   };
 }

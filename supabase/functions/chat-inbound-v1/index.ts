@@ -49,6 +49,7 @@ import {
 } from "../_shared/chat/inbound_pipeline.ts";
 import { CHAT_SCOPE, deliverChatMessage } from "../_shared/chat/delivery.ts";
 import { closeKeelReengagementEpisodeOnInbound } from "../_shared/keel/reengagement_io.ts";
+import { ACTIVE_FLOW_STATE_TABLE } from "../sophia-brain/router/active_flow_state.ts";
 import {
   handleDeterministicButton,
 } from "../_shared/chat/deterministic_buttons.ts";
@@ -291,44 +292,55 @@ Deno.serve(async (req) => {
       try {
         const nowIso = message.received_at;
         const { data: stateRow } = await admin
-          .from("user_states")
+          .from(ACTIVE_FLOW_STATE_TABLE)
           .select("temp_memory")
           .eq("user_id", user.id)
           .eq("scope", CHAT_SCOPE)
           .maybeSingle();
         const tempMemory =
           (stateRow?.temp_memory ?? {}) as Record<string, unknown>;
-        await admin.from("user_states").upsert({
-          user_id: user.id,
-          scope: CHAT_SCOPE,
-          temp_memory: {
-            ...tempMemory,
-            __active_conversation_skill_v1: {
-              version: 1,
-              skill_id: "keel_reengagement_resume_v1",
-              status: "active",
-              turn_count: 0,
-              started_at: nowIso,
-              updated_at: nowIso,
-              working_state: {
-                keel_reengagement_resume_local_state: {
-                  version: 1,
-                  stage: "welcome_back",
-                  turns_in_flow: 0,
-                  awaiting_first_reply: true,
-                  episode_id: reengagementClose.episodeId,
-                  days_inactive_at_open: reengagementClose.daysInactiveAtOpen,
-                  armed_at: nowIso,
+        const { error: armError } = await admin
+          .from(ACTIVE_FLOW_STATE_TABLE)
+          .upsert({
+            user_id: user.id,
+            scope: CHAT_SCOPE,
+            temp_memory: {
+              ...tempMemory,
+              __active_conversation_skill_v1: {
+                version: 1,
+                skill_id: "keel_reengagement_resume_v1",
+                status: "active",
+                turn_count: 0,
+                started_at: nowIso,
+                updated_at: nowIso,
+                working_state: {
+                  keel_reengagement_resume_local_state: {
+                    version: 1,
+                    stage: "welcome_back",
+                    turns_in_flow: 0,
+                    awaiting_first_reply: true,
+                    episode_id: reengagementClose.episodeId,
+                    days_inactive_at_open: reengagementClose.daysInactiveAtOpen,
+                    armed_at: nowIso,
+                  },
                 },
               },
             },
-          },
-        }, { onConflict: "user_id,scope" });
+          }, { onConflict: "user_id,scope" });
+        // LIRE `error`, PAS SEULEMENT ATTRAPER. Le client PostgREST ne throw
+        // PAS sur une écriture refusée: il rend `{ error }`. Ce bloc a donc
+        // journalisé `keel_reengagement_resume_armed` à chaque réponse alors
+        // qu'il écrivait dans une table INEXISTANTE (`user_states`), et le
+        // `catch` ci-dessous n'a jamais rien vu. Le seul symptôme observable
+        // était l'absence du cadre — c'est-à-dire rien.
         console.log(JSON.stringify({
-          tag: "keel_reengagement_resume_armed",
+          tag: armError
+            ? "keel_reengagement_resume_arm_failed"
+            : "keel_reengagement_resume_armed",
           request_id: requestId,
           user_id: user.id,
           episode_id: reengagementClose.episodeId,
+          error: armError ? String(armError.message ?? armError) : undefined,
         }));
       } catch (error) {
         console.warn("[keel/reengagement] resume arming failed", error);

@@ -28,25 +28,53 @@
  * si l'élève rapporte un fait dans le même message, c'est le dispatcher global
  * qui l'émet, pas ce flow.
  *
- * Et il est BORNÉ : deux tours au maximum. Un cadre de reprise qui s'installe
- * devient une conversation sur l'absence, ce qui est exactement le contraire du
- * but — la boucle existe pour ramener quelqu'un à son protocole, pas pour lui
- * faire commenter son silence.
+ * Et il est BORNÉ À UN SEUL TOUR. Un cadre de reprise qui s'installe devient une
+ * conversation sur l'absence, ce qui est exactement le contraire du but — la
+ * boucle existe pour ramener quelqu'un à son protocole, pas pour lui faire
+ * commenter son silence.
+ *
+ * ── POURQUOI UN TOUR ET NON DEUX (mesuré en run réel, 2026-08-06) ────────────
+ * Ce flow a d'abord été borné à DEUX tours : le premier accueillait, le second
+ * rendait la main en le disant (« Très bien, on continue là-dessus. »).
+ *
+ * Le premier run réel a montré ce que ce second gabarit coûte. Séquence
+ * observée, en base :
+ *
+ *   T1  élève  « Ah oui pardon, j'ai un peu lâché. Je reprends aujourd'hui. »
+ *       flow   « Content de te lire. On reprend où tu veux : … »      ✔ juste
+ *   T2  élève  « Je voudrais surtout gérer les dîners cette semaine »
+ *       flow   « Très bien, on continue là-dessus. »                  ✘ AVALÉ
+ *   T3  élève  « Du coup je fais quoi ce soir pour le dîner ? »
+ *       normal « Pour ce soir, garde la même ancre : protéine d'abord… » ✔
+ *
+ * Au tour 2, l'élève formule une demande RÉELLE et le gabarit la remplace par
+ * une phrase creuse. Le reducer est pur — il n'a par construction AUCUN moyen
+ * de distinguer « ok je reprends » d'une question. Tout second tour possédé est
+ * donc un pari sur le fait que l'élève n'a rien demandé, et ce pari perd dès le
+ * premier essai réel.
+ *
+ * Le premier tour, lui, n'est pas un pari du même ordre : il est armé sur un
+ * fait établi hors conversation (l'épisode de décrochage vient de se fermer),
+ * et c'est exactement le moment que le produit veut cadrer.
+ *
+ * Le flow parle donc UNE fois, puis son état est purgé — la conversation
+ * reprend son cours normal dès le message suivant.
  */
 
 /** L'identifiant de skill, partagé par le routeur, l'état de flow et le runtime. */
 export const KEEL_REENGAGEMENT_RESUME_SKILL_ID = "keel_reengagement_resume_v1";
 
 /**
- * Deux tours, et le second est déjà une sortie.
+ * UN tour. Le flow accueille, puis disparaît.
  *
- * Le premier accueille et rouvre la porte ; le second rend la main au
- * dispatcher global quoi qu'il arrive. Voir le docstring : un cadre qui dure
- * devient le sujet.
+ * Le runtime purge l'état dès ce tour rendu, donc ce plafond ne devrait jamais
+ * être atteint en régime nominal. Il RESTE, comme ceinture : si une purge
+ * échoue (écriture partielle, course), l'état résiduel doit rendre la main au
+ * lieu de reprendre la parole à chaque message.
  */
-export const KEEL_REENGAGEMENT_RESUME_MAX_TURNS = 2;
+export const KEEL_REENGAGEMENT_RESUME_MAX_TURNS = 1;
 
-export const KEEL_REENGAGEMENT_RESUME_STAGES = ["welcome_back", "handed_back"] as const;
+export const KEEL_REENGAGEMENT_RESUME_STAGES = ["welcome_back"] as const;
 export type KeelReengagementResumeStage =
   (typeof KEEL_REENGAGEMENT_RESUME_STAGES)[number];
 
@@ -102,7 +130,7 @@ export const KEEL_REENGAGEMENT_RESUME_INVARIANTS = [
   "never_commits_a_durable_effect",
   "never_names_the_absence_duration",
   "safety_always_preempts",
-  "bounded_to_two_turns",
+  "bounded_to_one_turn",
   "unreadable_state_hands_back",
 ] as const;
 

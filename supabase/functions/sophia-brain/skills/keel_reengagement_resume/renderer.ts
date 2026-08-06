@@ -42,26 +42,24 @@ const WELCOME_BACK: Record<Locale, string> = {
 };
 
 /**
- * Le second tour : on rend la main, en le disant.
+ * IL N'Y A PLUS DE SECOND GABARIT, ET C'EST UNE SUPPRESSION MESURÉE.
  *
- * Pas de « je te laisse » sec — la phrase doit porter la continuité, sinon le
- * flow se referme comme une porte.
+ * Un `HANDED_BACK` a existé ici — « Très bien, on continue là-dessus. » / « Good,
+ * let's carry on from there. » Le premier run réel l'a condamné : au tour 2
+ * l'élève écrivait « Je voudrais surtout gérer les dîners cette semaine » et
+ * recevait cette phrase creuse à la place d'une réponse. Un gabarit fermé ne
+ * peut pas répondre à une demande qu'il n'a pas lue.
+ *
+ * La sortie du flow est donc SILENCIEUSE : le composeur reprend le tour et
+ * répond pour de vrai. Voir `contract.ts` pour la séquence observée.
  */
-const HANDED_BACK: Record<Locale, string> = {
-  fr: "Très bien, on continue là-dessus.",
-  en: "Good, let's carry on from there.",
-};
-
 export function renderKeelReengagementResume(args: {
-  stage: "welcome_back" | "handed_back";
+  stage: "welcome_back";
   responseLocale: string;
 }): string {
-  const locale = localeOf(args.responseLocale);
-  return args.stage === "handed_back" ? HANDED_BACK[locale] : WELCOME_BACK[locale];
+  void args.stage;
+  return WELCOME_BACK[localeOf(args.responseLocale)];
 }
 
 /** Exporté pour le test de lexique: il doit voir TOUS les gabarits. */
-export const KEEL_RESUME_ALL_TEMPLATES = [
-  ...Object.values(WELCOME_BACK),
-  ...Object.values(HANDED_BACK),
-];
+export const KEEL_RESUME_ALL_TEMPLATES = [...Object.values(WELCOME_BACK)];

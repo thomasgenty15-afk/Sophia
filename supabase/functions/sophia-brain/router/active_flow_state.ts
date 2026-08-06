@@ -6,6 +6,22 @@ export type ActiveFlowState = {
   activeSkillState: unknown;
 };
 
+/**
+ * LA TABLE QUI PORTE `temp_memory`, DONC L'ÉTAT DE FLOW ACTIF.
+ *
+ * Exportée depuis ICI, à côté du lecteur, parce que le seul écrivain vit dans
+ * une AUTRE fonction edge (`chat-inbound-v1`, garde 4) et que les deux se sont
+ * déjà désaccordés: l'armement écrivait dans `user_states`, qui n'existe pas.
+ * Le client PostgREST ne throw pas sur une table absente — il rend `{ error }`
+ * — donc le type-checker était muet, les tests unitaires aussi, et le seul
+ * symptôme était un flow qui ne s'armait jamais.
+ *
+ * Une constante partagée ne prouve pas que la table existe; elle garantit que
+ * l'écrivain et le lecteur se trompent ENSEMBLE, ce qui rend l'erreur visible
+ * au premier tour au lieu de la rendre silencieuse pour toujours.
+ */
+export const ACTIVE_FLOW_STATE_TABLE = "user_chat_states";
+
 export type ActiveLocalConversationFlowSkillId =
   | "safety_crisis"
   | "keel_reengagement_resume_v1";

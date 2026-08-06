@@ -5063,26 +5063,45 @@ export async function processMessage(
     });
     const skillLatencyMs = Date.now() - skillStart;
 
-    // SORTIE SILENCIEUSE: le flow rend la main sans texte. On purge son état
-    // et on laisse le tour continuer vers le composeur — pas de re-dispatch à
-    // réinventer, il n'y a plus qu'une lane conversationnelle.
+    // ── L'ÉTAT EST PURGÉ DANS LES DEUX CAS, ET C'EST LE FOND DU FLOW ────────
+    //
+    // Le cadre ne possède qu'UN tour (`KEEL_REENGAGEMENT_RESUME_MAX_TURNS = 1`).
+    // Qu'il ait parlé (`complete`) ou rendu la main sans texte (`exit`), il n'a
+    // plus rien à faire: le message suivant est une conversation ordinaire.
+    //
+    // Mesuré en run réel avant cette correction: le flow gardait la main un
+    // second tour et répondait « Good, let's carry on from there. » à
+    // « Je voudrais surtout gérer les dîners cette semaine ». Voir la séquence
+    // complète dans `skills/keel_reengagement_resume/contract.ts`.
+    tempMemory = clearActiveConversationSkillState(
+      tempMemory as Record<string, unknown>,
+    );
+
     if (String(skillOutput.status ?? "") === "exit") {
-      tempMemory = clearActiveConversationSkillState(
-        tempMemory as Record<string, unknown>,
-      );
-    } else {
-      tempMemory = {
-        ...(tempMemory as Record<string, unknown>),
-        [ACTIVE_CONVERSATION_SKILL_KEY]: {
-          version: 1,
-          skill_id: "keel_reengagement_resume_v1",
-          status: "active",
-          turn_count: 1,
-          started_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          working_state: skillOutput.state_patch ?? {},
-        },
+      // ⚠️ SANS CETTE AFFECTATION, LA PURGE CI-DESSUS EST PERDUE.
+      //
+      // Sur la sortie silencieuse le tour continue vers le composeur, et le
+      // composeur reconstruit `tempMemory` depuis l'état PRÉ-routing
+      // (`agents/companion.ts`, `nextTempMemory`). La ligne
+      // `tempMemory = cleanupLegacyRuntimeState(agentOut.tempMemory ?? …)` plus
+      // bas réinstalle donc l'état de flow qu'on vient d'effacer — sauf si
+      // `localFlowExitSkillRun` est renseigné, ce que la garde juste après
+      // cette ligne teste depuis toujours.
+      //
+      // Ce drapeau n'avait plus AUCUN écrivain depuis la phase A (son setter
+      // vivait dans une lane supprimée): une ceinture armée sur un coffre vide.
+      // MESURÉ: après trois tours, `temp_memory.__active_conversation_skill_v1`
+      // portait encore `turns_in_flow: 2`.
+      localFlowExitSkillRun = {
+        selected_skill_id: "keel_reengagement_resume_v1",
+        reason_code: routeDecision.reason_code,
+        status: "exit",
+        latency_ms: skillLatencyMs,
       };
+    } else {
+      // Le chemin parlant retourne AVANT le composeur: `finishKeelSkillTurn`
+      // persiste la `tempMemory` déjà purgée ci-dessus, sans passer par la
+      // reconstruction du companion.
       return await finishKeelSkillTurn({
         skillId: "keel_reengagement_resume_v1" as never,
         skillOutput,

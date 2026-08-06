@@ -46,8 +46,12 @@ export function runKeelReengagementResumeSkill(
   }
 
   const next: KeelReengagementResumeState = decision.next;
+  // `complete`, TOUJOURS: le flow n'a qu'un tour, et il vient de le prendre.
+  // C'est ce statut que `run.ts` lit pour purger l'état — un `continue` ici
+  // laisserait le cadre repossèder le message suivant, qui est précisément le
+  // défaut que le run réel a exposé.
   return baseOutput(KEEL_REENGAGEMENT_RESUME_SKILL_ID as never, {
-    status: next.stage === "handed_back" ? "complete" : "continue",
+    status: "complete",
     reply: renderKeelReengagementResume({
       stage: next.stage,
       responseLocale: input.context.response_locale,
