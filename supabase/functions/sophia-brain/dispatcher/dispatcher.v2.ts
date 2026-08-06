@@ -1020,9 +1020,7 @@ async function maybeRepairCompositeIntentCoverage(args: {
     // verrait une doctrine que la passe precedente n'avait pas.
     const raw = await args.llm_runner({
       system_prompt: `${
-        buildDispatcherSystemPrompt({
-          keelStudent: args.input.keel_student === true,
-        })
+        buildDispatcherSystemPrompt(promptAudienceFor(args.input))
       }\n\nTu es encore dans le dispatcher Sophia. Cette passe est une réparation de couverture structurée: elle ne route pas par mots-clés, elle vérifie seulement si le TurnFrame précédent a oublié une autre demande explicite du même message.`,
       user_prompt: buildCompositeIntentRepairPrompt({
         input: args.input,
@@ -1044,12 +1042,31 @@ async function maybeRepairCompositeIntentCoverage(args: {
   return args.initial;
 }
 
+
+/**
+ * Les deux drapeaux d'etat que le prompt consulte (QA phase C).
+ *
+ * Lus dans `flow_state_context`, que le RUNTIME remplit — jamais dans le
+ * message. Absent ⇒ les regles de reprise ne partent pas: elles n'auraient
+ * rien a decrire.
+ */
+function promptAudienceFor(input: RunDispatcherInput) {
+  const flow = (input.flow_state_context ?? {}) as Record<string, unknown>;
+  return {
+    keelStudent: input.keel_student === true,
+    pendingDirectEffectClarification:
+      Boolean(flow.pending_direct_effect_clarification),
+    pendingSafetyDeferredReminder:
+      Boolean(flow.pending_safety_deferred_reminder),
+  };
+}
+
 export async function runDispatcher(
   input: RunDispatcherInput,
 ): Promise<TurnFrame> {
   const started = Date.now();
   const keelStudent = input.keel_student === true;
-  const systemPrompt = buildDispatcherSystemPrompt({ keelStudent });
+  const systemPrompt = buildDispatcherSystemPrompt(promptAudienceFor(input));
   const prompt = buildDispatcherPrompt({
     user_message: input.user_message,
     recent_messages: input.recent_messages,

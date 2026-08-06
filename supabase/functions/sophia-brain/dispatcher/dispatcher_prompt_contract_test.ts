@@ -392,30 +392,30 @@ Deno.test("dispatcher prompt: co-demande de N rappels = N entrees direct_effects
 });
 
 Deno.test("dispatcher prompt re-arms a pending write clarification (chantier O4)", () => {
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "pending_direct_effect_clarification",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "re-emets l'effet direct COMPLET correspondant avec le payload canonique",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "c'est la suite de la meme demande, pas une nouvelle intention",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "Si le message courant passe a autre chose, ignore ce contexte",
-    ),
-    true,
-  );
+  // QA PHASE C — GARDE A DEUX SENS. Les regles 3g / 3g-ter decrivent comment
+  // REPRENDRE une ecriture en suspens; elles ne partent plus que si l'etat
+  // existe. Le test doit donc prouver les DEUX sens: presentes quand l'etat est
+  // la, ABSENTES sinon. Un test qui ne verifierait que le premier passerait sur
+  // un prompt qui les envoie toujours — c'est-a-dire le defaut d'avant.
+  const armed = buildDispatcherSystemPrompt({
+    keelStudent: true,
+    pendingDirectEffectClarification: true,
+  });
+  assertEquals(armed.includes("pending_direct_effect_clarification"), true);
+  assertEquals(armed.includes("target_switch_ambiguous"), true);
+
+  const deferred = buildDispatcherSystemPrompt({
+    keelStudent: true,
+    pendingSafetyDeferredReminder: true,
+  });
+  assertEquals(deferred.includes("pending_safety_deferred_reminder"), true);
+
+  // FAUSSE PREMISSE: sur un tour nominal, les deux reprises ne partent pas.
+  const nominal = buildDispatcherSystemPrompt({ keelStudent: true });
+  assertEquals(nominal.includes("pending_direct_effect_clarification"), false);
+  assertEquals(nominal.includes("pending_safety_deferred_reminder"), false);
+  // Et le gain est reel, pas cosmetique.
+  assertEquals(armed.length - nominal.length > 3000, true);
 });
 
 Deno.test("dispatcher prompt: un fragment temporel incident dans une recherche n'est jamais un rappel (eva-r9 B02)", () => {

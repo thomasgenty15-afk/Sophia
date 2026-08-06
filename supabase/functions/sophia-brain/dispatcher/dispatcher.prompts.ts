@@ -64,6 +64,22 @@ function domainRegistryPromptLines(): string[] {
  */
 export type DispatcherPromptAudience = {
   /**
+   * QA PHASE C — LES DEUX REPRISES NE PARTENT QUE SI ELLES EXISTENT.
+   *
+   * Les regles 3g (3 134 car.) et 3g-ter (858 car.) decrivent comment REPRENDRE
+   * une ecriture laissee en suspens. Elles s'ouvrent toutes deux sur « Si
+   * flow_state_context.<champ> est present » — un etat que le payload porte
+   * deja, et qui est absent sur la quasi-totalite des tours. Elles partaient
+   * quand meme, a chaque tour, pour tout le monde.
+   *
+   * CE N'EST PAS UNE DECISION SEMANTIQUE. On ne lit pas le message, on lit la
+   * presence d'un champ que le RUNTIME a rempli — meme mecanisme que
+   * `keelStudent`, et la doctrine « pas de regex metier » n'est pas touchee.
+   * Absent ⇒ la regle ne peut de toute facon rien decrire.
+   */
+  pendingDirectEffectClarification?: boolean;
+  pendingSafetyDeferredReminder?: boolean;
+  /**
    * `profiles.keel_role === 'student'`, lu EN BASE par le runtime
    * (`loadKeelTurnContext`), jamais deduit du LLM ni du message. Meme source
    * que le `keel_student` de `routers.ts`: les deux doivent voir le meme
@@ -196,7 +212,9 @@ ${oneShotReminderCanonicalDispatcherPromptLines().join("\n")}`,
     // 3g et 3g-ter restent: les deux portent la reprise d'un
     // create_one_shot_reminder (clarification en attente, rappel differe par
     // une crise safety), lane bien ouverte a un eleve KEEL.
-    when: ALWAYS,
+    when: (a: DispatcherPromptAudience) =>
+      a.pendingDirectEffectClarification === true ||
+      a.pendingSafetyDeferredReminder === true,
     text: `3g. Si flow_state_context.pending_direct_effect_clarification est present: le tour precedent a pose une question pour finaliser une ecriture (effect_type, clarify_question, known_slots, reason_code). Si le message courant repond a cette question, re-emets l'effet direct COMPLET correspondant avec le payload canonique — c'est la suite de la meme demande, pas une nouvelle intention, donc explicitness=explicit et target_status=identified. Regle de fusion des slots: la reponse du user PRIME sur known_slots pour le slot clarifie, known_slots fournit le reste. En particulier, si reason_code est target_not_evidenced ou target_ambiguous, la question portait sur LA CIBLE: known_slots.target_item_id est la cible DEVINEE a remplacer — prends target_item_id depuis l'action que le user nomme maintenant (active_action_candidates) avec target_evidence citant ses mots, et reprends status/date de known_slots. Exemple: known_slots={target 'Planifier mes soirees' devine, completed} + user 'je parle de la cartographie de mes ruminations' → emets track_progress avec target_item_id de 'Cartographier mes ruminations du soir', status_hint=completed, target_evidence='la cartographie de mes ruminations'. CONFIRMATION PURE (nina-untested T3, INVALIDE observe: AUCUN effet re-emis): quand la reponse CONFIRME la cible que la question proposait ('bah si je te confirme que c'est ca, a 100%, note-la', 'oui c'est ca', 'exactement') SANS nommer une autre action, re-emets l'effet direct COMPLET avec les known_slots TELS QUELS (target_item_id/status/date de known_slots, target_evidence = le titre tel que la question l'a nomme au tour precedent) — une confirmation a 100% qui ne re-emet rien laisse le user bloque une 3e fois sur un report legitime. Cas BASCULE DE CIBLE TRACK (reason_code=target_switch_ambiguous): la question etait « en plus, ou a la place ? » entre known_slots.retarget_from_title (deja committe) et la nouvelle cible. Reponse « en plus / aussi / les deux » → re-emets le track NORMAL de la nouvelle cible (known_slots fournit target_item_id/status). Reponse « a la place / c'etait pas ca / remplace » → re-emets le track avec correction=true ET retarget_from=known_slots.retarget_from_candidate: le runtime invalide l'ecriture erronee puis enregistre la bonne. Cas RAPPEL REPLACE (rose-lifecycle R1-B03): si pending_direct_effect_clarification porte effect_type=create_one_shot_reminder avec intent=replace, la reponse du user complete CE remplacement — re-emets create_one_shot_reminder avec payload_hint.intent='replace', les known_slots (UTC_time/local_label/instruction_hint du NOUVEAU rappel) et payload_hint.replace_target_label = ce que le user designe maintenant (son heure actuelle ou ses mots: 'celui de la carto demain matin'). Ne reclasse JAMAIS cette reponse en reschedule ni en enonce neuf: c'est la suite du replace deja engage (l'erreur observee: clarify → reponse → reclassee reschedule → re-blocage circulaire, l'utilisatrice a suivi la consigne et s'est fait re-bloquer). Si le message courant passe a autre chose, ignore ce contexte et traite le message normalement.
 3g-ter. Si flow_state_context.pending_safety_deferred_reminder est present: un rappel demande PENDANT une crise safety a ete differe (« je le garde pour apres ») et la crise est passee. Si le message courant redemande ce rappel (« remets-moi le rappel de X », « et mon rappel ? », « oui vas-y pose-le ») ou CONFIRME l'offre de le poser, emets direct_effects.create_one_shot_reminder COMPLET (intent='create', jamais 'reschedule': ce rappel n'a JAMAIS ete cree) en fusionnant known_slots (raw_text/when_hint d'origine) avec ce que le message precise maintenant. paul-p3verify T15, INVALIDE observe: « remets-moi le rappel des pates pour demain » post-crise classe reschedule d'un rappel INEXISTANT → blocage + renvoi vers l'app, un create benin explicite refuse. Si le user passe a autre chose, ignore ce contexte (l'offre viendra du composeur).`,
   },
