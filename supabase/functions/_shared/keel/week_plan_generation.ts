@@ -443,6 +443,21 @@ export function buildWeekPlanPrompt(args: {
    * `finalVisibleText`.
    */
   safetyConstraints: readonly StudentSafetyConstraint[] | null;
+  /**
+   * LA NOTE DU COACH SUR CET ÉLÈVE — mode 1:1 assumé, `null` quand il n'y en a
+   * pas (le cas ordinaire). Produit par `coachNotePromptBlock`.
+   *
+   * REQUIS, `T | null`, jamais `T?`, pour la raison exacte donnée sur
+   * `safetyConstraints` ci-dessus: un champ optionnel serait ré-oublié par le
+   * prochain appelant, en silence, et la seule preuve serait une semaine
+   * construite sans ce que le coach avait pris la peine d'écrire. C'est
+   * précisément le défaut qu'a produit `coach_food_rules` — un écran, des
+   * gardes, des tests, et aucun lecteur au runtime.
+   *
+   * Il ne donne AUCUNE clé de conviction: `allowedKeys` reste dérivé des seuls
+   * `principles`, et `parseWeekPlan` rejette le reste.
+   */
+  coachNoteBlock: string | null;
 }): {
   systemPrompt: string;
   userMessage: string;
@@ -495,6 +510,12 @@ export function buildWeekPlanPrompt(args: {
       2,
     ),
     "",
+    // LA NOTE DU COACH, entre la méthode et l'élève — l'ordre dit le rang.
+    // Elle suit tout ce qui est COLLECTIF (contraintes dures, doctrine,
+    // convictions citables) et précède tout ce que l'ÉLÈVE a écrit lui-même.
+    // Absente, elle ne laisse aucune ligne: pas d'en-tête vide, pas de « le
+    // coach n'a rien noté » — voir l'en-tête de `coach_note.ts`.
+    ...(args.coachNoteBlock ? [args.coachNoteBlock, ""] : []),
     "== THIS STUDENT ==",
     `goal: ${args.situation.goal}`,
     `emphasis for this goal: ${focus.emphasis}`,

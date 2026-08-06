@@ -20,10 +20,12 @@
  * même asymétrie que `doctrine_loader`, et elle penche du même côté.
  */
 
-import { dishesForDate } from "./meal_stretch.ts";
+import { addDays } from "./local_date.ts";
+import { dishesForDate, STRETCH_DAYS } from "./meal_stretch.ts";
 import {
   type FoodCatalogueItem,
   type PlannedDish,
+  type PlannedPreparation,
 } from "./planned_dish_match.ts";
 
 /** Structural type: les tests injectent un faux, la prod un SupabaseClient. */
@@ -35,14 +37,23 @@ export interface PlannedDishContext {
   mealId: string | null;
   /** Les plats du jour, avec leur INDEX d'origine (la clé de coche en dépend). */
   dishes: Array<{ dish: PlannedDish; dishIndex: number }>;
+  /** Les préparations de la composition, citées par `dish.uses`. */
+  preparations: PlannedPreparation[];
   catalogue: FoodCatalogueItem[];
   /** Pourquoi le contexte est vide, quand il l'est. Tracé, jamais deviné. */
-  reason: "loaded" | "no_composition" | "no_dish_today" | "load_failed";
+  reason:
+    | "loaded"
+    | "no_composition"
+    | "no_dish_today"
+    /** La composition ne couvre pas ce jour: trop vieille, ou pas encore commencée. */
+    | "composition_out_of_window"
+    | "load_failed";
 }
 
 const EMPTY = (reason: PlannedDishContext["reason"]): PlannedDishContext => ({
   mealId: null,
   dishes: [],
+  preparations: [],
   catalogue: [],
   reason,
 });
@@ -93,7 +104,7 @@ export async function loadPlannedDishContext(
     // ne matchent plus rien, et la semaine neuve repart décochée ».
     const { data, error } = await db
       .from("student_generated_meals")
-      .select("id, dishes, created_at")
+      .select("id, dishes, preparations, created_at")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -117,18 +128,37 @@ export async function loadPlannedDishContext(
   const startDate = String(row.created_at ?? "").slice(0, 10);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate)) return EMPTY("load_failed");
 
+  // LA BORNE D'ÂGE. `stretchDates` ne couvre que `startDate`..`startDate+6`;
+  // au-delà, aucun jeton de jour ne résout vers aujourd'hui et le fenêtrage
+  // suffit déjà. Mais elle est posée EXPLICITEMENT plutôt que déduite, parce
+  // qu'elle était la seconde moitié du défaut `day: null` (voir
+  // `dishesForDate`): une composition du 15 juillet restait éligible.
+  const lastCovered = addDays(startDate, STRETCH_DAYS - 1);
+  if (args.localDate < startDate || args.localDate > lastCovered) {
+    return { ...EMPTY("composition_out_of_window"), catalogue };
+  }
+
   const today = dishesForDate({
     dishes,
     startDate,
     onDate: args.localDate,
+    // Voir `dishesForDate`: un plat sans jour ne prouve rien sur AUJOURD'HUI.
+    includeUndated: false,
   });
   if (today.length === 0) {
     return { ...EMPTY("no_dish_today"), catalogue };
   }
 
+  const preparations = Array.isArray(row.preparations)
+    ? (row.preparations as PlannedPreparation[])
+    : [];
+
   return {
     mealId: String(row.id ?? "").trim() || null,
     dishes: today.map((d) => ({ dish: d.dish, dishIndex: d.dishIndex })),
+    // Sans elles, le rapprochement ne voit que ce que le plat AJOUTE et rate le
+    // poulet qui vit dans la préparation — voir `PlannedDish.uses`.
+    preparations,
     catalogue,
     reason: "loaded",
   };

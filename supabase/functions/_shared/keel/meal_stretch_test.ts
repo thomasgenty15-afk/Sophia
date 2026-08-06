@@ -66,11 +66,30 @@ Deno.test("les candidats d'un jour gardent leur INDEX d'origine", () => {
   assertEquals(today.map((d) => d.dish.slot), ["lunch", "dinner"]);
 });
 
-Deno.test("un plat SANS jour est candidat pour la date demandée", () => {
+Deno.test("un plat SANS jour n'est PAS candidat par défaut", () => {
+  // ── LE DÉFAUT MESURÉ LE 2026-08-05 ────────────────────────────────────────
+  // `dishDate(null, …)` rend le repli, c'est-à-dire le jour demandé: un plat
+  // sans jour tombait donc TOUS les jours, indéfiniment. Une composition du
+  // 15 juillet cochait automatiquement le 5 août, `confident` 3/3 — et **9
+  // plats réels de la base** portent `day: null`, tous issus de compositions
+  // `scope='day'`. Ils étaient éternellement rapprochables.
   const today = dishesForDate({
     dishes: [{ day: null, slot: "lunch" }],
     startDate: WED,
     onDate: "2026-08-07",
+  });
+  assertEquals(today.length, 0);
+});
+
+Deno.test("un plat SANS jour reste candidat quand l'appelant le DEMANDE", () => {
+  // La condition de désarmement: le repli reste juste pour RAPPORTER (cocher à
+  // la main un plat sans jour le date du jour où on le fait). Il n'est faux
+  // que pour rapprocher sans demander.
+  const today = dishesForDate({
+    dishes: [{ day: null, slot: "lunch" }],
+    startDate: WED,
+    onDate: "2026-08-07",
+    includeUndated: true,
   });
   assertEquals(today.length, 1);
   assertEquals(today[0].date, "2026-08-07");

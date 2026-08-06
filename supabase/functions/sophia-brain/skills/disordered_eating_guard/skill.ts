@@ -52,8 +52,11 @@ function workingState(input: RunSkillInput): DisorderedEatingWorkingState {
 }
 
 function runtimeOf(input: RunSkillInput): DisorderedEatingSkillRuntime {
-  // deno-lint-ignore no-explicit-any
-  const runtime = (input.context as any)?.disordered_eating_guard_runtime as
+  // Le champ est déclaré `unknown` sur `SkillContext` (canal de runtime): la
+  // vérification ci-dessous EST la validation, pas une formalité. Elle lisait
+  // auparavant `(input.context as any)`, ce qui désarmait le typecheck sur
+  // l'objet entier au lieu du seul champ.
+  const runtime = input.context.disordered_eating_guard_runtime as
     | DisorderedEatingSkillRuntime
     | undefined;
   if (!runtime || typeof runtime !== "object") {
@@ -96,6 +99,7 @@ export async function runDisorderedEatingGuardSkill(
 
   const visible = await runDisorderedEatingVisibleAgent({
     user_id: input.context.user_id,
+    response_locale: input.context.response_locale,
     request_id: input.context.turn_frame.source_message_id,
     visible_task: reduction.visibleTask,
   });

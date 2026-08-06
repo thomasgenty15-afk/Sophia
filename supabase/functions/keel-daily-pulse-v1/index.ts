@@ -6,27 +6,47 @@ import { ensureInternalRequest } from "../_shared/internal-auth.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import {
+  decideAskCadence,
   decideDailyPulse,
-  PULSE_TEMPLATE_LANG_DEFAULT,
-  PULSE_TEMPLATE_NAME_DEFAULT,
-  pulseTemplateButtonComponents,
-  renderPulseQuestion,
+  renderPulseMessage,
 } from "../_shared/keel/daily_pulse.ts";
-import { loadPulseDay, wasPulseAskedToday } from "../_shared/keel/daily_pulse_io.ts";
+import {
+  loadAskCadence,
+  loadPulseDay,
+  PULSE_ASKED_METADATA_KEY,
+  wasPulseSentToday,
+} from "../_shared/keel/daily_pulse_io.ts";
+import { hasRecapGround } from "../_shared/keel/daily_recap.ts";
+import { composeRecapBody, loadDayFacts } from "../_shared/keel/daily_recap_io.ts";
+import { resolveArtifactLocale } from "../_shared/keel/locale.ts";
 import { localDateFor, localHourFor } from "../_shared/keel/reengagement_io.ts";
 import { deliverChatMessage } from "../_shared/chat/delivery.ts";
 
 /**
- * PIVOT NUTRITION — N2 : le job qui envoie le tap du soir.
+ * PIVOT NUTRITION — N2 : le job du soir.
  *
  * Balayage HORAIRE, parce que la fenêtre (20h-22h) est en heure LOCALE de
  * l'élève : un job quotidien ne pourrait servir correctement qu'un seul fuseau.
  * C'est le même raisonnement que `keel-reengage-v1`, et c'est le bug latent
  * n°2 documenté dans BUILD_PLAN W1.3 (« planificateur cassé hors Europe »).
  *
- * CE QU'IL FAIT : décider, et poser la question. Il n'écrit pas la réponse —
- * c'est le webhook qui la reçoit et l'écrit, parce que la réponse arrive par
- * un bouton, des minutes ou des heures plus tard.
+ * ── CE QU'IL ENVOIE A CHANGÉ DE NATURE ───────────────────────────────────
+ * Il posait une question, tous les soirs. Il envoie maintenant un message qui
+ * s'ouvre sur un FAIT de la journée — ce que l'élève a coché, ce qu'il a
+ * photographié — et qui ne porte la question que lorsqu'elle est due.
+ *
+ * Le motif produit, en une ligne: le message ne donnait rien, il prenait. Un
+ * formulaire quotidien se fait ignorer puis couper, et la mesure qu'il servait
+ * se détruisait elle-même. Le raisonnement complet est dans `daily_recap.ts`;
+ * la cadence de la question dans `decideAskCadence`.
+ *
+ * TROIS DÉCISIONS, DANS CET ORDRE, et chacune est pure et testable seule:
+ *   1. `hasRecapGround(facts)` — y a-t-il un fait sur quoi ouvrir ?
+ *   2. `decideAskCadence(...)` — la question est-elle due ?
+ *   3. `decideDailyPulse(...)` — envoie-t-on, et la question part-elle avec ?
+ *
+ * CE QU'IL N'ÉCRIT PAS : la réponse. C'est le webhook qui la reçoit, parce
+ * qu'elle arrive par un bouton, des minutes ou des heures plus tard.
  *
  * `dry_run: true` décide sans envoyer : le mode qui permet de voir QUI serait
  * sollicité avant d'ouvrir la vanne.
@@ -76,6 +96,20 @@ Deno.serve(async (req) => {
     let cursor = cleanText(body.after_user_id);
     let scanned = 0;
     let sent = 0;
+    /** Messages partis AVEC la question. `sent - asked` = les faits seuls. */
+    let asked = 0;
+    /**
+     * D'où venait l'ouverture: voix du coach, ou décompte déterministe.
+     *
+     * Compté pour la même raison que `body_sources` dans `keel-reengage-v1`:
+     * composé et replié produisent tous deux un envoi réussi, et sans ce compte
+     * un composeur qui ne sert JAMAIS — doctrine absente sur la cohorte, modèle
+     * en panne, ceinture qui refuse tout — se lit comme un composeur qui marche.
+     */
+    const bodySources: Record<string, number> = {};
+    const fallbackReasons: Record<string, number> = {};
+    /** Pourquoi la question n'est pas partie, ou pourquoi elle est partie. */
+    const cadenceReasons: Record<string, number> = {};
     const bySkip: Record<string, number> = {};
     const failures: string[] = [];
     let exhausted = false;
@@ -83,7 +117,7 @@ Deno.serve(async (req) => {
     while (true) {
       let q = admin
         .from("profiles")
-        .select("id, timezone, proactive_muted_at")
+        .select("id, timezone, proactive_muted_at, full_name, locale")
         .eq("keel_role", "student")
         .order("id", { ascending: true })
         .limit(PAGE);
@@ -142,18 +176,35 @@ Deno.serve(async (req) => {
             .limit(1);
           if (swpRes.error) throw swpRes.error;
 
-          const decision = decideDailyPulse({
-            localHour,
-            answeredToday: day.answeredToday,
-            // La question est-elle déjà sortie ce jour local ? Le cron est
-            // horaire et la fenêtre fait deux heures: sans cette garde, le
-            // silence de l'élève valait relance une heure plus tard.
-            askedToday: await wasPulseAskedToday(admin, {
+          // ── LES DEUX LECTURES QUI NOURRISSENT LA DÉCISION ───────────────
+          // Les faits d'abord: ils décident s'il y a quelque chose à DIRE. La
+          // cadence ensuite: elle décide s'il y a quelque chose à DEMANDER.
+          // Les deux sont indépendantes, et c'est ce qui garantit qu'une
+          // journée vide n'annule jamais une question due.
+          const facts = await loadDayFacts(admin, { userId: cursor, localDate });
+          const cadence = decideAskCadence(
+            await loadAskCadence(admin, {
               userId: cursor,
               localDate,
               timezone: tz,
               now,
             }),
+          );
+
+          const decision = decideDailyPulse({
+            localHour,
+            answeredToday: day.answeredToday,
+            // Le message est-il déjà sorti ce jour local ? Le cron est horaire
+            // et la fenêtre fait deux heures: sans cette garde, le silence de
+            // l'élève valait relance une heure plus tard.
+            sentToday: await wasPulseSentToday(admin, {
+              userId: cursor,
+              localDate,
+              timezone: tz,
+              now,
+            }),
+            hasGround: hasRecapGround(facts),
+            askDue: cadence.ask,
             // Le mode `attach` demande le dernier échange; ce job ne l'a pas
             // sous la main et l'attachement se décide côté conversation. Ici
             // on envoie toujours en standalone, ce qui est le cas nominal du
@@ -201,8 +252,38 @@ Deno.serve(async (req) => {
             continue;
           }
 
+          // La cadence n'est comptée QUE sur les élèves réellement servis: la
+          // compter avant les gardes ferait ressembler une cohorte entière hors
+          // fenêtre à une cohorte qu'on a décidé de ne pas questionner.
+          cadenceReasons[cadence.reason] = (cadenceReasons[cadence.reason] ?? 0) + 1;
+
           if (!dryRun) {
-            const message = renderPulseQuestion();
+            // L'OUVERTURE, dans la voix du coach quand il en a une. Tout
+            // échec — pas de doctrine, modèle en panne, ceinture qui refuse —
+            // rend le décompte déterministe: on perd la voix, jamais
+            // l'information.
+            const recap = await composeRecapBody(admin, {
+              userId: cursor,
+              firstName: String(row.full_name ?? "").trim().split(/\s+/)[0] ?? "",
+              facts,
+              // R2/R3 — un message de job est un ARTEFACT: aucun fil à ancrer,
+              // donc `resolveArtifactLocale` et pas `resolveResponseLocale`.
+              contentLocale: resolveArtifactLocale({
+                studentProfile: String(row.locale ?? "").trim() || null,
+                tenantDefault: null,
+              }),
+              requestId,
+            });
+            bodySources[recap.source] = (bodySources[recap.source] ?? 0) + 1;
+            if (recap.source === "fallback" && recap.reason) {
+              const key = recap.reason.split(":").slice(0, 2).join(":");
+              fallbackReasons[key] = (fallbackReasons[key] ?? 0) + 1;
+            }
+
+            const message = renderPulseMessage({
+              recapBody: recap.body,
+              ask: decision.ask,
+            });
             // DE-WHATSAPP — la livraison est une ÉCRITURE, plus un appel Graph.
             //
             // Ce qui disparaît avec Meta, et ce que ça supprime de complexité:
@@ -224,6 +305,25 @@ Deno.serve(async (req) => {
                 label: b.title,
               })),
               requestId,
+              // ⚠️ LE DRAPEAU DONT DÉPEND TOUTE LA CADENCE.
+              //
+              // Le récapitulatif et la question partent sous le MÊME purpose
+              // (`keel_daily_pulse` est dans `GUARANTEED_PURPOSES`; un purpose
+              // neuf serait silencieusement plafonné). Sans ce drapeau,
+              // `loadAskCadence` compterait chaque récapitulatif comme une
+              // question posée, `daysSinceLastAsk` vaudrait éternellement 0, et
+              // **la question ne repartirait jamais** — pendant que le job
+              // continuerait à compter un envoi par élève et par jour.
+              //
+              // `body_source` voyage pour la même raison que dans la relance:
+              // un message dont on ne peut plus dire, trois semaines plus tard,
+              // s'il portait la voix du coach ou le texte de secours est un
+              // message qu'on ne peut pas juger.
+              metadata: {
+                [PULSE_ASKED_METADATA_KEY]: decision.ask,
+                body_source: recap.source,
+                body_fallback_reason: recap.reason || null,
+              },
               // L'HORLOGE DU JOB EST AUSSI CELLE DE SES EFFETS.
               // Sans ce passage, `now` gouvernait la DÉCISION (fenêtre 20-22 h
               // locales) et l'horloge réelle gouvernait l'ÉCRITURE: la ligne
@@ -246,6 +346,7 @@ Deno.serve(async (req) => {
             }
           }
           sent++;
+          if (decision.ask) asked++;
         } catch (error) {
           // Une erreur PostgREST n'est PAS une `Error`: sans ces champs, le
           // journal ne dit que « [object Object] ». C'est exactement ce qui a
@@ -279,6 +380,17 @@ Deno.serve(async (req) => {
       dry_run: dryRun,
       scanned,
       sent,
+      // `sent` compte les MESSAGES, `asked` les questions. Les confondre était
+      // possible tant que le message ÉTAIT la question; ça ne l'est plus, et un
+      // soir où « 40 messages sont partis » ne dit rien de ce qui a été mesuré.
+      asked,
+      // La voix du coach a-t-elle porté ? `{"composed":8,"fallback":2}` se lit;
+      // `sent: 10` ne dit rien de ce que les élèves ont reçu.
+      body_sources: bodySources,
+      body_fallback_reasons: fallbackReasons,
+      // Pourquoi la question est partie, ou pas. `{"too_soon": 30}` est un
+      // produit qui se tient; `{"backing_off": 30}` est une cohorte qui décroche.
+      ask_cadence_reasons: cadenceReasons,
       skipped_by_reason: bySkip,
       exhausted,
       next_after_user_id: exhausted ? null : cursor || null,

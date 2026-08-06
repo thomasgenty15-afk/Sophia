@@ -6,13 +6,25 @@ import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import { generateWithGemini } from "../_shared/gemini.ts";
+import { generateWithVision } from "../_shared/vision.ts";
 import {
   compileAllDoctrineVariants,
   compileDoctrineBlock,
   doctrineCacheFootprint,
   parseCoachDoctrine,
 } from "../_shared/keel/doctrine.ts";
-import { GOAL_TOKENS, type GoalToken } from "../_shared/keel/tokens.ts";
+import {
+  buildDocumentUserMessage,
+  DOCUMENT_COMPILE_SYSTEM_PROMPT,
+  type FoodProposal,
+  foldTerm,
+  MAX_DOCUMENT_BASE64_CHARS,
+  MAX_DOCUMENT_PAGES,
+  mergeDoctrineDrafts,
+  parseDocumentExtraction,
+} from "../_shared/keel/doctrine_document.ts";
+import { persistDocumentCorpus } from "../_shared/keel/document_corpus_io.ts";
+import { FOOD_GROUP_REFS, GOAL_TOKENS, type GoalToken } from "../_shared/keel/tokens.ts";
 import {
   buildInterviewCompilePrompt,
   buildReplayPrompt,
@@ -33,6 +45,11 @@ import {
  *   questions   — les questions de l'interview (l'écran et le prompt lisent LA
  *                 MÊME liste; deux listes divergeraient au premier ajout)
  *   compile     — brique 1: l'interview -> doctrine structurée (LLM transcripteur)
+ *   compile_document
+ *               — brique 1 bis: le PDF du coach -> la MÊME doctrine structurée,
+ *                 plus des propositions d'aliments pour `/coach/protocol`.
+ *                 Rien n'est publié, rien n'atteint un élève, et les aliments
+ *                 attendent un clic du coach dans `coach_food_proposals`.
  *   save        — écrit un BROUILLON (jamais publié directement)
  *   publish     — brique 6: publie, et invalide le cache PAR CONSÉQUENCE
  *   rollback    — brique 6: COPIE une version passée dans une neuve
@@ -246,6 +263,122 @@ function invalidGoalScopes(payload: Record<string, unknown>): string[] {
   return bad;
 }
 
+function decodeBase64(value: string): Uint8Array {
+  const cleaned = value.trim().replace(/^data:[^;]+;base64,/, "");
+  const binary = atob(cleaned);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+
+/**
+ * LES PROPOSITIONS D'ALIMENTS, PARQUÉES EN ATTENTE D'UN CLIC.
+ *
+ * ── CE QUE CETTE FONCTION N'A PAS LE DROIT DE FAIRE ──────────────────────
+ * Écrire dans `coach_food_items`. C'est la table de la MÉTHODE: ce qui s'y
+ * trouve est compilé en postures de groupe, publié, puis lu par le générateur
+ * de repas et par l'évaluateur. Une ligne posée là par un modèle qui a mal lu
+ * une page devient une règle que Sophia applique au nom du coach, sans qu'il
+ * ait rien validé.
+ *
+ * ── LES DEUX FILTRES, ET POURQUOI ILS NE SONT PAS LE MÊME ────────────────
+ *   déjà EN ATTENTE  → le coach ne l'a pas encore tranché. Le reproposer
+ *                      allongerait sa liste sans rien lui apprendre.
+ *   déjà DANS SA MÉTHODE → il l'a déjà coché à la main. Le reproposer lui
+ *                      demanderait de valider une décision qu'il a prise.
+ * Sans le second, un coach qui redépose son ebook après avoir rempli son écran
+ * se retrouve à retrancher trente aliments qu'il possède déjà.
+ *
+ * Un terme DÉJÀ REFUSÉ, lui, revient: `dismissed` ne verrouille rien. Le coach
+ * a écarté une lecture d'un document, pas l'aliment — et le document suivant
+ * peut en dire autre chose.
+ */
+async function saveFoodProposals(
+  admin: SupabaseClient,
+  coachId: string,
+  proposals: readonly FoodProposal[],
+  contentLocale: string,
+  sourceLabel: string | null,
+): Promise<{ saved: number; alreadyPending: number; issues: string[] }> {
+  if (proposals.length === 0) return { saved: 0, alreadyPending: 0, issues: [] };
+
+  const [pending, owned, catalog] = await Promise.all([
+    admin.from("coach_food_proposals").select("term").eq("coach_id", coachId).eq(
+      "status",
+      "pending",
+    ),
+    admin.from("coach_food_items").select("label, food_item_ref").eq("coach_id", coachId),
+    admin.from("food_items").select("slug, label"),
+  ]);
+  if (pending.error) throw pending.error;
+  if (owned.error) throw owned.error;
+  if (catalog.error) throw catalog.error;
+
+  const known = new Set<string>();
+  for (const row of (pending.data ?? []) as { term: string }[]) known.add(foldTerm(row.term));
+  const ownedKeys = new Set<string>();
+  for (const row of (owned.data ?? []) as { label: string }[]) {
+    ownedKeys.add(foldTerm(row.label));
+  }
+
+  // Le rattachement au CATALOGUE quand le terme du document en rejoint un.
+  // Facultatif par construction: `food_item_ref` est nullable exactement pour
+  // qu'un terme maison reste un terme maison (`coach_food_items` fait pareil).
+  const bySlug = new Map<string, string>();
+  for (const row of (catalog.data ?? []) as { slug: string; label: string }[]) {
+    bySlug.set(foldTerm(row.label), row.slug);
+    bySlug.set(foldTerm(row.slug), row.slug);
+  }
+
+  const issues: string[] = [];
+  let alreadyPending = 0;
+  const rows: Record<string, unknown>[] = [];
+  for (const p of proposals) {
+    const key = foldTerm(p.term);
+    if (known.has(key)) {
+      alreadyPending++;
+      continue;
+    }
+    if (ownedKeys.has(key)) {
+      issues.push(`${p.term}: already on your Recommended food screen, not proposed again`);
+      continue;
+    }
+    known.add(key);
+    rows.push({
+      coach_id: coachId,
+      term: p.term,
+      quote: p.quote,
+      content_locale: contentLocale,
+      stance: p.stance,
+      food_group_ref: p.foodGroupRef,
+      food_item_ref: bySlug.get(key) ?? null,
+      source_label: sourceLabel,
+    });
+  }
+  if (rows.length === 0) return { saved: 0, alreadyPending, issues };
+
+  // LIGNE PAR LIGNE, ET C'EST DÉLIBÉRÉ. Un insert groupé qui bute sur UNE
+  // collision (deux onglets, deux dépôts simultanés) échoue en entier: le coach
+  // perdrait vingt-neuf lectures valides à cause d'une trentième. L'index
+  // partiel reste la vérité; on tolère juste son verdict, une ligne à la fois.
+  const results = await Promise.all(
+    rows.map((row) => admin.from("coach_food_proposals").insert(row).select("id").maybeSingle()),
+  );
+  let saved = 0;
+  for (const [i, res] of results.entries()) {
+    if (!res.error) {
+      saved++;
+      continue;
+    }
+    if (res.error.code === "23505") {
+      alreadyPending++;
+      continue;
+    }
+    issues.push(`${String(rows[i].term)}: could not be saved (${res.error.message})`);
+  }
+  return { saved, alreadyPending, issues };
+}
+
 /**
  * RECOMPILE ET REMPLACE TOUTES LES VARIANTES D'UNE DOCTRINE.
  *
@@ -424,6 +557,199 @@ Deno.serve(async (req) => {
         issues,
         preview_block: compiled.text,
         preview_goal: compiled.goal ?? "default",
+        request_id: requestId,
+      });
+    }
+
+    // ---- compile_document (brique 1 bis) ---------------------------------
+    //
+    // LE MÊME CHEMIN QUE `compile`, AVEC UNE AUTRE SOURCE. Rien n'est
+    // enregistré: le coach relit, corrige, enregistre, publie. Les trois portes
+    // de l'interview restent en place, et c'est ce qui rend acceptable qu'un
+    // modèle ait lu deux cents pages à sa place.
+    if (action === "compile_document") {
+      const media = (body.media ?? {}) as Record<string, unknown>;
+      const mimeType = String(media.mime_type ?? "").trim().toLowerCase();
+      const base64 = String(media.base64 ?? "").trim();
+      const fileName = String(body.file_name ?? "").trim() || null;
+      const contentLocale = String(body.content_locale ?? "en").trim() || "en";
+
+      // R7 — les refus sont BRUYANTS et NOMMÉS. Un « ça a raté » générique
+      // enverrait le coach chercher une panne là où il y a une consigne.
+      // L'ORDRE COMPTE. Le contrôle du type EN PREMIER rendait
+      // `document_required` inatteignable: un corps vide n'a pas de type non
+      // plus, donc « tu n'as envoyé aucun document » sortait comme « ça doit
+      // être un PDF » — un diagnostic faux sur le seul cas qui vient d'un bug
+      // d'appelant plutôt que d'un geste du coach.
+      if (!base64) {
+        return jsonResponse(req, { error: "document_required", request_id: requestId }, {
+          status: 400,
+        });
+      }
+      if (mimeType !== "application/pdf") {
+        return jsonResponse(req, {
+          error: "document_must_be_pdf",
+          request_id: requestId,
+        }, { status: 400 });
+      }
+      if (base64.length > MAX_DOCUMENT_BASE64_CHARS) {
+        return jsonResponse(req, {
+          error: "document_too_large",
+          request_id: requestId,
+        }, { status: 413 });
+      }
+
+      // LE NOMBRE DE PAGES SE COMPTE, IL NE SE DEVINE PAS.
+      // Le plafond existe pour l'horloge de la fonction (voir
+      // MAX_DOCUMENT_PAGES): sans ce comptage, un document de quatre cents
+      // pages ne serait pas refusé, il expirerait à 120 s — et le coach lirait
+      // « ça n'a pas marché » là où la vraie réponse est « découpe-le ».
+      // Décodé UNE fois: les octets servent au comptage de pages, puis à
+      // l'extraction du texte et au dépôt du fichier. Un second
+      // `decodeBase64` sur six mégaoctets est un doublon de mémoire gratuit.
+      let documentBytes: Uint8Array;
+      try {
+        documentBytes = decodeBase64(base64);
+      } catch (err) {
+        return jsonResponse(req, {
+          error: "document_unreadable",
+          detail: err instanceof Error ? err.message : String(err),
+          request_id: requestId,
+        }, { status: 400 });
+      }
+
+      let pageCount: number;
+      try {
+        const { PDFDocument } = await import("npm:pdf-lib@1.17.1");
+        const doc = await PDFDocument.load(documentBytes, {
+          ignoreEncryption: true,
+          updateMetadata: false,
+        });
+        pageCount = doc.getPageCount();
+      } catch (err) {
+        return jsonResponse(req, {
+          error: "document_unreadable",
+          detail: err instanceof Error ? err.message : String(err),
+          request_id: requestId,
+        }, { status: 400 });
+      }
+      if (pageCount > MAX_DOCUMENT_PAGES) {
+        return jsonResponse(req, {
+          error: "document_too_long",
+          page_count: pageCount,
+          max_pages: MAX_DOCUMENT_PAGES,
+          request_id: requestId,
+        }, { status: 413 });
+      }
+
+      const generated = await generateWithVision({
+        systemPrompt: DOCUMENT_COMPILE_SYSTEM_PROMPT,
+        userMessage: buildDocumentUserMessage(FOOD_GROUP_REFS, fileName),
+        media: [{ mimeType, base64 }],
+        jsonMode: true,
+        // Plus bas que l'interview (0.2): sur un document long, la seule chose
+        // qu'on veut du modèle est qu'il recopie ce qu'il lit.
+        temperature: 0.1,
+        timeoutMs: 120_000,
+        meta: { source: "coach-doctrine-v1:compile_document", userId, requestId },
+      });
+
+      let parsed: Record<string, unknown>;
+      try {
+        const raw = String(generated.text ?? "").trim()
+          .replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+        parsed = JSON.parse(raw);
+      } catch (err) {
+        // Même choix que `compile`: échec bruyant. Une doctrine vide rendue en
+        // silence publierait un coach qui n'a rien dit.
+        return jsonResponse(req, {
+          error: "compile_unparseable",
+          detail: err instanceof Error ? err.message : String(err),
+          request_id: requestId,
+        }, { status: 502 });
+      }
+
+      const extraction = parseDocumentExtraction(parsed, FOOD_GROUP_REFS);
+
+      // Le parseur de doctrine dit ce qu'il a jeté; ses `issues` et celles de
+      // l'extraction se lisent dans la même liste, à l'écran.
+      const { doctrine, issues: doctrineIssues } = parseCoachDoctrine({
+        ...extraction.draft,
+        coach_id: coachId,
+        version: 0,
+        content_locale: contentLocale,
+      });
+      void doctrine;
+
+      // LA FUSION. `merge_into` est le brouillon que le coach a sous les yeux;
+      // absent, le document devient le brouillon. Voir `mergeDoctrineDrafts`:
+      // ce qui est déjà à l'écran gagne, l'arrivant remplit les trous.
+      const mergeInto = body.merge_into && typeof body.merge_into === "object"
+        ? body.merge_into as Record<string, unknown>
+        : null;
+      const draft = mergeDoctrineDrafts(mergeInto, extraction.draft);
+
+      const saved = await saveFoodProposals(
+        admin,
+        coachId,
+        extraction.proposals,
+        contentLocale,
+        fileName,
+      );
+
+      // ── LE CORPUS ─────────────────────────────────────────────────────
+      // Le document, son texte découpé, et les citations ancrées. Écrit
+      // APRÈS le brouillon parce que ce n'est pas ce que le coach attend:
+      // c'est ce qui rend son document relisible plus tard, sans le lui
+      // redemander (voir `document_corpus.ts`).
+      //
+      // NE PEUT PAS FAIRE ÉCHOUER LE TOUR, par construction:
+      // `persistDocumentCorpus` ne lance jamais et rend une raison nommée.
+      // Le coach vient d'attendre deux minutes qu'un modèle lise cent pages;
+      // lui rendre une erreur alors que son brouillon est prêt le ferait
+      // redéposer le fichier pour obtenir le même échec.
+      const corpus = await persistDocumentCorpus(admin, {
+        coachId,
+        // `coaches.user_id`, PAS `coaches.id`: c'est l'id auth qui préfixe le
+        // chemin de stockage, et les deux routines RGPD s'y accrochent.
+        coachUserId: userId,
+        fileName,
+        bytes: documentBytes,
+        pageCount,
+        contentLocale,
+        citations: extraction.citations,
+      });
+      // Journalisé, jamais rendu au coach: « 3 citations introuvables dans ton
+      // document » est une information sur NOTRE extraction, pas une action
+      // qu'il peut prendre. C'est nous que ça regarde.
+      console.info("keel.doctrine.corpus", {
+        coach_id: coachId,
+        request_id: requestId,
+        document_id: corpus.documentId,
+        reason: corpus.reason,
+        text_status: corpus.textStatus,
+        page_count: pageCount,
+        chunks: corpus.chunksWritten,
+        citations: corpus.citationsWritten,
+        citations_unlocated: corpus.citationsUnlocated,
+        stored_source: Boolean(corpus.storagePath),
+        warnings: corpus.warnings,
+      });
+
+      return jsonResponse(req, {
+        ok: true,
+        // NON ENREGISTRÉ, comme `compile`. « L'IA transcrit, n'écrit jamais. »
+        draft,
+        issues: [...doctrineIssues, ...extraction.issues, ...saved.issues],
+        page_count: pageCount,
+        proposals_saved: saved.saved,
+        proposals_already_pending: saved.alreadyPending,
+        // Le corpus est un fait sur CE dépôt, pas une décision à prendre:
+        // l'écran peut dire « document gardé, 214 passages » sans rien
+        // demander au coach.
+        document_id: corpus.documentId,
+        document_text_status: corpus.textStatus,
+        document_chunks: corpus.chunksWritten,
         request_id: requestId,
       });
     }

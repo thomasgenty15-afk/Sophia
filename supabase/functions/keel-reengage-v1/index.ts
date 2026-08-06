@@ -13,6 +13,7 @@ import {
   rollbackReengagementEpisode,
   sendReengageNudge,
 } from "../_shared/keel/reengagement_io.ts";
+import { resolveArtifactLocale } from "../_shared/keel/locale.ts";
 import { toneInstruction } from "../_shared/keel/reengagement.ts";
 
 /**
@@ -210,6 +211,13 @@ Deno.serve(async (req) => {
           userId: outcome.userId,
           firstName: byUserId.get(outcome.userId)?.firstName ?? "",
           tone: d.tone,
+          // R2/R3 — une relance est un ARTEFACT: aucun fil à ancrer, donc
+          // `resolveArtifactLocale` et pas `resolveResponseLocale`. Le
+          // `tenantDefault` attend sa colonne (`coaches.default_student_locale`).
+          contentLocale: resolveArtifactLocale({
+            studentProfile: byUserId.get(outcome.userId)?.profileLocale ?? null,
+            tenantDefault: null,
+          }),
           requestId,
         });
         if (!res.toneDelivered) toneNotDelivered++;

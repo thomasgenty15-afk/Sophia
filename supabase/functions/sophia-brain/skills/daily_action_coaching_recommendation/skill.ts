@@ -123,6 +123,7 @@ export async function runDailyActionCoachingRecommendationSkill(
     ? normalizeVisibleOutput(
       await visible({
         user_id: input.context.user_id,
+        response_locale: input.context.response_locale,
         request_id: (input.context.turn_frame as any)?.source_message_id ??
           null,
         recent_messages: recentMessagesForVisible(input),

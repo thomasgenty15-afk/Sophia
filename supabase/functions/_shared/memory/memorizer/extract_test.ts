@@ -663,3 +663,30 @@ Deno.test("extraction prompt: la generalisation d'un report d'action reste exclu
     true,
   );
 });
+
+// LE REPLI DE LANGUE — anglais, et pas français.
+//
+// Le repli d'origine rendait la langue DU PROMPT (français) plutôt que celle du
+// PRODUIT. C'est invisible tant que `user_profile.locale` se lit, et ça redevient
+// actif au premier incident de lecture — ce qui est exactement arrivé: chargeur
+// mort jusqu'au 2026-08-03, `user_profile` toujours null, mémoire entièrement
+// française pour un élève `en-GB`.
+Deno.test("le repli de langue est l'ANGLAIS quand la locale est inconnue", () => {
+  const prompt = buildExtractionPrompt({
+    messages: [{ id: "m1", user_id: "u", role: "user", content: "I hate broccoli." }],
+  });
+  assertEquals(prompt.system_prompt.includes("locale est absent, ecris en ANGLAIS"), true);
+  // Et jamais l'ancien repli, sous aucune forme.
+  assertEquals(prompt.system_prompt.includes("est absent, ecris en francais"), false);
+});
+
+Deno.test("la langue reste celle du USER quand elle est connue", () => {
+  // Le repli ne remplace pas la règle: `fr-FR` doit continuer de produire du
+  // français. Changer le repli ne doit angliciser personne.
+  const prompt = buildExtractionPrompt({
+    messages: [{ id: "m1", user_id: "u", role: "user", content: "Je deteste le brocoli." }],
+    user_profile: { locale: "fr-FR" },
+  });
+  assertEquals(prompt.system_prompt.includes("LA LANGUE DU USER"), true);
+  assertEquals(prompt.system_prompt.includes('"fr-FR" => francais'), true);
+});

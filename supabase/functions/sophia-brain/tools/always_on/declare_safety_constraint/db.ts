@@ -22,7 +22,8 @@ import type {
 } from "./contract.ts";
 
 const READ_BACK_COLUMNS =
-  "id,user_id,kind,allergen_ref,substance_ref,medication_class,severity,status," +
+  "id,user_id,kind,allergen_ref,substance_ref,medication_class,condition_ref," +
+  "severity,status," +
   "declared_by,content_locale";
 
 const UNIQUE_VIOLATION = "23505";
@@ -41,6 +42,7 @@ function asRow(value: unknown): SafetyConstraintRow | null {
     allergen_ref: text("allergen_ref"),
     substance_ref: text("substance_ref"),
     medication_class: text("medication_class"),
+    condition_ref: text("condition_ref"),
     severity: String(row.severity ?? ""),
     status: String(row.status ?? ""),
     declared_by: String(row.declared_by ?? ""),
@@ -50,7 +52,12 @@ function asRow(value: unknown): SafetyConstraintRow | null {
 
 /** Les identifiants portés par la demande, pour cibler une rétractation. */
 function refsOf(input: RequestedSafetyConstraintEffect): string[] {
-  return [input.allergen_ref, input.substance_ref, input.medication_class]
+  return [
+    input.allergen_ref,
+    input.substance_ref,
+    input.medication_class,
+    input.condition_ref,
+  ]
     .filter((r): r is string => Boolean(r));
 }
 
@@ -69,7 +76,7 @@ export function createSafetyConstraintWrite(args: {
 
       const targets = await args.supabase
         .from("student_safety_constraints")
-        .select("id,allergen_ref,substance_ref,medication_class")
+        .select("id,allergen_ref,substance_ref,medication_class,condition_ref")
         .eq("user_id", input.user_id)
         .eq("status", "active");
       if (targets.error) {
@@ -81,7 +88,7 @@ export function createSafetyConstraintWrite(args: {
       const match = rows.find((row) => {
         const r = row;
         return refs.some((ref) =>
-          [r.allergen_ref, r.substance_ref, r.medication_class]
+          [r.allergen_ref, r.substance_ref, r.medication_class, r.condition_ref]
             .some((v) => String(v ?? "").toLowerCase() === ref)
         );
       }) as Record<string, unknown> | undefined;
@@ -158,6 +165,7 @@ export function createSafetyConstraintWrite(args: {
         allergen_ref: input.allergen_ref,
         substance_ref: input.substance_ref,
         medication_class: input.medication_class,
+        condition_ref: input.condition_ref,
         severity: input.severity,
         // Le chat, c'est l'élève qui parle. `coach` est réservé au canal coach,
         // qui n'existe pas encore: une autorisation qu'une couche

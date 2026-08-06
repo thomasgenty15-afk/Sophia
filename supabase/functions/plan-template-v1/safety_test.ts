@@ -26,6 +26,7 @@ const INTERACTIONS: SubstanceInteractionRow[] = [
   {
     substance_ref: "st_johns_wort",
     medication_class: "ssri",
+    condition_ref: null,
     severity: "high",
     note: "Combining St. John's wort with SSRIs raises serotonin syndrome risk.",
   },
@@ -158,6 +159,7 @@ Deno.test("two watchlist rows are two notes, each naming its own medication clas
       {
         substance_ref: "st_johns_wort",
         medication_class: "oral_contraceptives",
+        condition_ref: null,
         severity: "high",
         note: "St. John's wort induces CYP450 enzymes and can reduce contraceptive efficacy.",
       },

@@ -347,6 +347,11 @@ const SCOPE = {
   // Health data declared by or about the user: exported in full.
   safetyConstraints:
     "id,kind,allergen_ref,substance_ref,medication_class,severity,declared_by,notes,content_locale,created_at,updated_at",
+  // La note 1:1 du coach sur un élève (2026-08-05). Elle est exportée DES DEUX
+  // CÔTÉS, et le côté élève est le seul qui soit obligatoire: c'est une donnée
+  // personnelle le concernant, écrite par un tiers, donc couverte par son droit
+  // d'accès. L'écran coach le lui dit avant qu'il n'écrive.
+  coachNotes: "id,coach_id,student_user_id,note,created_at,updated_at",
   // W1.4 R5 — commitment_relations. The evaluator must never read this table
   // (CONTRACT.md NON-INPUTS #1), but that is a rule about GRADING, not about
   // portability: the rows are part of the protocol written for this student
@@ -434,6 +439,25 @@ const SCOPE = {
   // coach. Ce qui sort est l'AGRÉGAT de sa propre pratique.
   coachSyntheses:
     "id,cohort_id,kind,period_start,period_end,metrics,content_locale,generated_at,delivered_at,delivery_channel,created_at",
+  // 20260806100000 — les aliments lus dans les DOCUMENTS du coach, en attente
+  // de son tri. Tout sort, y compris `quote`: la citation vient de son propre
+  // PDF, elle est à lui, et c'est précisément la colonne qui lui permet de
+  // vérifier ce que la lecture automatique a retenu de son matériel. Aucune
+  // colonne ne désigne un tiers.
+  coachFoodProposals:
+    "id,term,quote,content_locale,stance,food_group_ref,food_item_ref,source_label,status,created_at,resolved_at",
+  // 20260806140000 — le corpus des documents du coach. Tout sort: c'est SON
+  // ebook, son texte, ses citations. `storage_path` sort aussi, et il n'est
+  // pas décoratif — le fichier lui-même part dans `fichiers/documents-plan`
+  // (bucket `plan-documents`), et sans le chemin il ne saurait pas quel PDF de
+  // l'archive correspond à quelle ligne.
+  coachDocuments:
+    "id,filename,byte_size,page_count,content_locale,content_sha256,storage_path,text_status,text_chars,chunk_count,created_at",
+  // Le texte intégral de ses propres documents. Volumineux, et c'est la
+  // raison de l'exporter: c'est exactement ce qu'on a gardé de lui.
+  coachDocumentChunks: "id,document_id,ordinal,page_number,text,char_count",
+  coachDocumentCitations:
+    "id,document_id,chunk_id,entry_kind,entry_key,quote,page_number,created_at",
 
   // TENANCY (20260727120000).
   coachClients:
@@ -522,6 +546,8 @@ async function buildExportPayload(
     weeklyReviews,
     changeRequests,
     safetyConstraints,
+    coachNotesAboutMe,
+    coachNotesIWrote,
     coachClientsAsStudent,
     coachClientsAsCoach,
     coachInvitationsAsStudent,
@@ -540,6 +566,10 @@ async function buildExportPayload(
     coachDoctrines,
     cohorts,
     coachSyntheses,
+    coachFoodProposals,
+    coachDocuments,
+    coachDocumentChunks,
+    coachDocumentCitations,
     storage,
   ] = await Promise.all([
     fetchKeelRows(admin, "plan_templates", SCOPE.planTemplates, "coach_id", coachId, keelUnavailable),
@@ -599,6 +629,24 @@ async function buildExportPayload(
       SCOPE.safetyConstraints,
       "user_id",
       user.id,
+      keelUnavailable,
+    ),
+    // Les deux côtés de la note 1:1. Côté ÉLÈVE d'abord, parce que c'est celui
+    // qui est dû: ce que son coach a écrit sur lui.
+    fetchKeelRows(
+      admin,
+      "student_coach_notes",
+      SCOPE.coachNotes,
+      "student_user_id",
+      user.id,
+      keelUnavailable,
+    ),
+    fetchKeelRows(
+      admin,
+      "student_coach_notes",
+      SCOPE.coachNotes,
+      "coach_id",
+      coachId,
       keelUnavailable,
     ),
     // Both sides of the link: the user as a student, and as a coach.
@@ -705,6 +753,38 @@ async function buildExportPayload(
       coachId,
       keelUnavailable,
     ),
+    fetchKeelRows(
+      admin,
+      "coach_food_proposals",
+      SCOPE.coachFoodProposals,
+      "coach_id",
+      coachId,
+      keelUnavailable,
+    ),
+    fetchKeelRows(
+      admin,
+      "coach_documents",
+      SCOPE.coachDocuments,
+      "coach_id",
+      coachId,
+      keelUnavailable,
+    ),
+    fetchKeelRows(
+      admin,
+      "coach_document_chunks",
+      SCOPE.coachDocumentChunks,
+      "coach_id",
+      coachId,
+      keelUnavailable,
+    ),
+    fetchKeelRows(
+      admin,
+      "coach_document_citations",
+      SCOPE.coachDocumentCitations,
+      "coach_id",
+      coachId,
+      keelUnavailable,
+    ),
     collectStorageFiles(admin, user.id),
   ]);
   // A coach who is also their own student would match both queries; dedupe on id.
@@ -774,6 +854,12 @@ async function buildExportPayload(
         doctrine_coach: coachDoctrines,
         cohortes_coach: cohorts,
         syntheses_coach: coachSyntheses,
+        propositions_aliments_coach: coachFoodProposals,
+        // 20260806140000 — ses documents, leur texte, et les citations qui
+        // relient une entrée de doctrine à la phrase dont elle sort.
+        documents_source_coach: coachDocuments,
+        passages_documents_coach: coachDocumentChunks,
+        citations_documents_coach: coachDocumentCitations,
       },
       "protocole_suivi.json": {
         evenements: protocolEvents,
@@ -817,6 +903,14 @@ async function buildExportPayload(
         // W1.4 R5: the invitations themselves, WITHOUT invite_token_hash
         // (SCOPE.coachInvitations is the allowlist that keeps it out).
         invitations_coach: coachInvitations,
+        // LES DEUX SENS, ET DEUX CLÉS SÉPARÉES: fondre « ce que mon coach a
+        // écrit sur moi » et « ce que j'ai écrit sur mes élèves » dans une
+        // seule liste rendrait l'export illisible exactement là où il compte,
+        // et ce sont deux droits différents. Même découpage que `liens_coach`,
+        // qui dédoublonne parce qu'un coach peut être son propre élève — ici
+        // les deux listes ne se recouvrent jamais, la paire étant unique.
+        notes_de_mon_coach_sur_moi: coachNotesAboutMe,
+        mes_notes_sur_mes_eleves: coachNotesIWrote,
       },
       // Integrity manifest: what shipped, and what did not ship and why.
       "fichiers.json": {
@@ -857,7 +951,9 @@ function readmeText(exportedAtIso: string): string {
     "  - securite.json        : tes contraintes de sécurité (allergies, intolérances,",
     "                           traitements) telles que déclarées.",
     "  - coaching.json        : tes liens avec un coach, les invitations reçues ou",
-    "                           envoyées, et les accès à ton dossier.",
+    "                           envoyées, les accès à ton dossier, et les notes",
+    "                           que ton coach a écrites à ton sujet (ainsi que",
+    "                           celles que tu as écrites, si tu es coach).",
     "  - fichiers.json        : la liste de tes fichiers, avec pour chacun s'il est",
     "                           inclus dans l'archive et, sinon, pourquoi. Si son",
     "                           champ « tables_indisponibles » n'est pas vide, une",

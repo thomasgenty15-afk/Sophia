@@ -246,6 +246,7 @@ Deno.test({
           // Le champ que l'écran choisit pour ce `kind` (`refFieldFor`).
           allergen_ref: kind === "medical" ? null : "probe_ref",
           medication_class: kind === "medical" ? "probe_class" : null,
+          condition_ref: null,
           severity,
           declared_by: "student",
           content_locale: "en-GB",

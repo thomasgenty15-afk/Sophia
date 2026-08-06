@@ -4,6 +4,29 @@
   body {
     @apply bg-gray-50 text-gray-900;
   }
+
+  /* ── LE CHAMP QUI FAIT ZOOMER LA PAGE ──────────────────────────────────────
+     Safari iOS ZOOME sur un champ dont le texte fait moins de 16 px dès qu'il
+     reçoit le focus, et ne dézoome pas en sortant: la page reste décalée, la
+     barre d'onglets sort de l'écran, et il faut pincer pour revenir. Nos champs
+     sont en `text-sm` (14 px) partout — donc écrire un message dans la bulle,
+     ou déclarer une allergie, décalait l'app à chaque fois.
+
+     La réponse N'EST PAS `maximum-scale=1` dans le viewport: ça règle le
+     symptôme en interdisant AUSSI le zoom volontaire, c'est-à-dire en cassant
+     l'accessibilité pour tout le monde. On monte la taille du texte saisi, ce
+     qui est de toute façon la bonne taille sur un téléphone.
+
+     Borné à `< lg`, là où la chrome tactile est montée (voir KeelAppShell), et
+     aux champs de SAISIE: cases et boutons radio ne sont pas concernés, leur
+     taille vient de leur largeur. */
+  @media (max-width: 1023px) {
+    input:not([type="checkbox"]):not([type="radio"]),
+    select,
+    textarea {
+      font-size: 16px;
+    }
+  }
 }
 
 @theme {

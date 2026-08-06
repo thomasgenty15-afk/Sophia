@@ -31,8 +31,8 @@ import { ENTITY_TYPES } from "../../_shared/memory/types.v1.ts";
 import type { SafetySignalContext } from "../safety/safety_context.ts";
 import {
   buildDispatcherPrompt,
+  buildDispatcherSystemPrompt,
   DISPATCHER_V2_PROMPT_VERSION,
-  DISPATCHER_V2_SYSTEM_PROMPT,
 } from "./dispatcher.prompts.ts";
 
 export type DispatcherRunStats = {
@@ -71,6 +71,16 @@ export type RunDispatcherInput = {
    * (regles 3k et 6-bis du prompt).
    */
   keel_plan_context?: string | null;
+  /**
+   * `profiles.keel_role === 'student'`, lu en base par le runtime. Meme
+   * drapeau et meme source que le `keel_student` de `routers.ts`.
+   *
+   * Il commande l'ASSEMBLAGE du prompt (quelles lanes et quels effets y sont
+   * decrits), pas la projection du plan — celle-ci suit `keel_plan_context`,
+   * inchangee. Les deux sont distincts: un eleve dont le plan n'a pas pu etre
+   * lu n'a toujours pas acces aux lanes B2C.
+   */
+  keel_student?: boolean;
   safety_context_output: SafetySignalContext;
   conversation_risk_history?: number[];
   source_message_id?: string;
@@ -1175,9 +1185,16 @@ async function maybeRepairCompositeIntentCoverage(args: {
     return args.initial;
   }
   try {
+    // MEME assemblage que la passe principale. La passe de reparation renvoie
+    // le prompt systeme ENTIER une seconde fois sur le meme tour: lui laisser
+    // la version legacy paierait deux fois les lanes fermees, et le modele y
+    // verrait une doctrine que la passe precedente n'avait pas.
     const raw = await args.llm_runner({
-      system_prompt:
-        `${DISPATCHER_V2_SYSTEM_PROMPT}\n\nTu es encore dans le dispatcher Sophia. Cette passe est une réparation de couverture structurée: elle ne route pas par mots-clés, elle vérifie seulement si le TurnFrame précédent a oublié une autre demande explicite du même message.`,
+      system_prompt: `${
+        buildDispatcherSystemPrompt({
+          keelStudent: args.input.keel_student === true,
+        })
+      }\n\nTu es encore dans le dispatcher Sophia. Cette passe est une réparation de couverture structurée: elle ne route pas par mots-clés, elle vérifie seulement si le TurnFrame précédent a oublié une autre demande explicite du même message.`,
       user_prompt: buildCompositeIntentRepairPrompt({
         input: args.input,
         previous: args.initial,
@@ -1202,6 +1219,8 @@ export async function runDispatcher(
   input: RunDispatcherInput,
 ): Promise<TurnFrame> {
   const started = Date.now();
+  const keelStudent = input.keel_student === true;
+  const systemPrompt = buildDispatcherSystemPrompt({ keelStudent });
   const prompt = buildDispatcherPrompt({
     user_message: input.user_message,
     recent_messages: input.recent_messages,
@@ -1211,6 +1230,7 @@ export async function runDispatcher(
     plan_snapshot: input.plan_snapshot,
     // W4.7 — la branche de projection du plan. Non null => payload KEEL pur.
     keel_plan_context: input.keel_plan_context ?? null,
+    keel_student: keelStudent,
   });
   const modelName = input.model_name ?? getGlobalAiModel();
   let usedLlm = false;
@@ -1219,7 +1239,7 @@ export async function runDispatcher(
   if (input.llm_runner) {
     usedLlm = true;
     const raw = await input.llm_runner({
-      system_prompt: DISPATCHER_V2_SYSTEM_PROMPT,
+      system_prompt: systemPrompt,
       user_prompt: prompt,
       json_mode: true,
       model_name: modelName,
@@ -1237,8 +1257,7 @@ export async function runDispatcher(
 
   const stats: DispatcherRunStats = {
     latency_ms: Date.now() - started,
-    tokens_in: estimateTokens(DISPATCHER_V2_SYSTEM_PROMPT) +
-      estimateTokens(prompt),
+    tokens_in: estimateTokens(systemPrompt) + estimateTokens(prompt),
     tokens_out: estimateTokens(JSON.stringify(output)),
     prompt_version: DISPATCHER_V2_PROMPT_VERSION,
     model_name: modelName,

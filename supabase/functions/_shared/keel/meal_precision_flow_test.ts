@@ -28,6 +28,7 @@ function flow(over: Partial<MealPrecisionFlowState> = {}): MealPrecisionFlowStat
     state: "awaiting_clarification",
     source: "photo",
     eventIds: [EVENT],
+    tickEventIds: [],
     componentKeys: ["food_group:poultry"],
     turns: 0,
     openedAt: new Date(NOW.getTime() - 60_000).toISOString(),
@@ -51,9 +52,17 @@ Deno.test("answering the question AMENDS the event, it never logs a second one",
   // un fait que le coach doit pouvoir compter), mais jamais réécrire ce qui est
   // déjà là — c'est `componentKeys` qui l'interdit, en aval.
   assertEquals(d.allowsNewComponents, true);
-  // And the flow closes: the question is answered, there is nothing left to
-  // hold the student for.
-  assertEquals(d.nextFlow.state, "closed");
+  // ── CE QUE CETTE ASSERTION DISAIT AVANT, ET POURQUOI ELLE A CHANGÉ ────────
+  // Elle affirmait « the flow closes: the question is answered, there is
+  // nothing left to hold the student for ». Il restait pourtant quelque chose:
+  // LA PORTE DE CORRECTION. Mesuré 6/6 le 2026-08-06 — l'élève qui répond puis
+  // se ravise (« en fait non, c'était des pâtes ») n'avait plus aucun flow, son
+  // démenti n'amendait rien, la coche du plat démenti restait, et Sophia
+  // répondait quand même « Got it ». Répondre ne règle pas l'identité du repas;
+  // seule une correction la tranche.
+  assertEquals(d.nextFlow.state, "awaiting_correction");
+  // Le tour est compté: la porte reste ouverte, elle ne devient pas éternelle.
+  assertEquals(d.nextFlow.turns, 1);
 });
 
 Deno.test("a correction also amends, and is distinguishable from an answer", () => {
@@ -64,6 +73,120 @@ Deno.test("a correction also amends, and is distinguishable from an answer", () 
   // Une CORRECTION remplace, elle n'ajoute pas: lui laisser écrire une ligne
   // produirait le doublon que ce flow existe pour empêcher.
   assertEquals(d.allowsNewComponents, false);
+});
+
+Deno.test("une CORRECTION rend les coches à décocher", () => {
+  // Mesuré 6/6 le 2026-08-05: Sophia disait « then the chicken line doesn't
+  // apply » et la ligne `quick_tap` restait non disqualifiée, continuant de
+  // nourrir la couverture du coach avec un plat que l'élève venait de démentir.
+  const d = reduceMealPrecisionFlow({
+    flow: flow({ tickEventIds: ["tick-1"] }),
+    intent: "corrects_declaration",
+    now: NOW,
+  });
+  assertEquals(d.kind, "amend");
+  if (d.kind !== "amend") return;
+  assertEquals(d.tickEventIds, ["tick-1"]);
+  // La coche ne rejoint JAMAIS `eventIds`: `targetAmbiguous` s'y calcule, et
+  // l'y verser ferait passer toute photo cochée pour une cible ambiguë — le
+  // crédit cesserait alors d'être effacé sur correction (mesuré 3/3).
+  assertEquals(d.eventIds, [EVENT]);
+});
+
+Deno.test("une CONFIRMATION laisse la porte de correction OUVERTE", () => {
+  // ── LE DÉFAUT MESURÉ 6/6, DÉTERMINISTE ────────────────────────────────────
+  // Les trois branches d'amendement rendaient `closed(...)`, donc un flow ne
+  // portait jamais qu'UN amendement. « oui c'est bien ça » puis, au tour
+  // suivant, « en fait non, c'était des pâtes »: le démenti n'amendait plus
+  // rien, la coche du plat démenti RESTAIT, et Sophia répondait quand même
+  // « Got it ». Accusé fantôme sur la porte que le produit venait d'ouvrir.
+  const d = reduceMealPrecisionFlow({
+    flow: flow({ tickEventIds: ["tick-1"] }),
+    intent: "confirms_declaration",
+    now: NOW,
+  });
+  assertEquals(d.kind, "amend");
+  if (d.kind !== "amend") return;
+  assertEquals(d.nextFlow.state, "awaiting_correction");
+  // La question, s'il y en avait une, vient d'obtenir sa réponse.
+  assertEquals(d.nextFlow.question, null);
+  // Et le tour est COMPTÉ: la porte reste ouverte, elle ne devient pas
+  // éternelle — `MAX_TURNS` redevient atteignable, ce qu'il n'était plus.
+  assertEquals(d.nextFlow.turns, 1);
+});
+
+Deno.test("le démenti qui SUIT une confirmation amende encore, et décoche", () => {
+  // La séquence complète, celle qui était 6/6 rouge.
+  const first = reduceMealPrecisionFlow({
+    flow: flow({ tickEventIds: ["tick-1"] }),
+    intent: "confirms_declaration",
+    now: NOW,
+  });
+  if (first.kind !== "amend") throw new Error("premier tour non amendé");
+  const second = reduceMealPrecisionFlow({
+    flow: first.nextFlow,
+    intent: "corrects_declaration",
+    now: NOW,
+  });
+  assertEquals(second.kind, "amend");
+  if (second.kind !== "amend") return;
+  assertEquals(second.amendment, "correction");
+  // La coche du plat démenti tombe — elle survivait à ce démenti-là.
+  assertEquals(second.tickEventIds, ["tick-1"]);
+  // Et CELLE-CI ferme: l'élève vient de dire ce que c'était, l'identité est
+  // tranchée. C'est la condition de désarmement de l'ouverture prolongée.
+  assertEquals(second.nextFlow.state, "closed");
+});
+
+Deno.test("une CORRECTION ferme, elle ne laisse pas la porte ouverte", () => {
+  const d = reduceMealPrecisionFlow({
+    flow: flow(),
+    intent: "corrects_declaration",
+    now: NOW,
+  });
+  if (d.kind !== "amend") throw new Error("non amendé");
+  assertEquals(d.nextFlow.state, "closed");
+});
+
+Deno.test("CONDITION DE DÉSARMEMENT ATTEIGNABLE: une CONFIRMATION ne décoche rien", () => {
+  // ── POURQUOI CE TEST EXISTE ────────────────────────────────────────────────
+  // La condition de désarmement du décochage reposait sur `answers_question`,
+  // interdit quand aucune question n'a été posée. Or `clarifying_question` est
+  // NULL sur 100 % des lignes photo: le flow s'ouvre TOUJOURS en
+  // `awaiting_correction`, donc le jeton était inatteignable par construction —
+  // morte-née, pas fragile. « yes, cooked with olive oil » partait en
+  // `corrects_declaration` 4 fois sur 6 et effaçait le crédit de la photo.
+  //
+  // `confirms_declaration` ne dépend d'AUCUNE question. C'est ce qui rend le
+  // désarmement réel.
+  const d = reduceMealPrecisionFlow({
+    flow: flow({ state: "awaiting_correction", question: null, tickEventIds: ["tick-1"] }),
+    intent: "confirms_declaration",
+    now: NOW,
+  });
+  assertEquals(d.kind, "amend");
+  if (d.kind !== "amend") return;
+  // Elle AMENDE — le détail ajouté est un fait réel, il se garde…
+  assertEquals(d.amendment, "answer");
+  assertEquals(d.allowsNewComponents, true);
+  // …et elle ne retire RIEN: ni la coche, ni (via `amendment: "answer"`) le
+  // crédit de la photo.
+  assertEquals(d.tickEventIds, []);
+});
+
+Deno.test("CONDITION DE DÉSARMEMENT: une RÉPONSE ne décoche rien", () => {
+  // « oui, avec du riz » précise le repas sans démentir le plat. Décocher ici
+  // ferait tomber une identification correcte, et la garde serait débranchée
+  // dans la semaine.
+  const d = reduceMealPrecisionFlow({
+    flow: flow({ tickEventIds: ["tick-1"] }),
+    intent: "answers_question",
+    now: NOW,
+  });
+  assertEquals(d.kind, "amend");
+  if (d.kind !== "amend") return;
+  assertEquals(d.amendment, "answer");
+  assertEquals(d.tickEventIds, []);
 });
 
 // ---------------------------------------------------------------------------

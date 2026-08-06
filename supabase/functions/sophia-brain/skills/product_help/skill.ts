@@ -532,6 +532,7 @@ export async function runProductHelpSkill(input: ProductHelpRunSkillInput) {
   });
   const visible = await visibleAgent({
     user_id: input.context.user_id,
+    response_locale: input.context.response_locale,
     request_id: (input.context.turn_frame as any)?.source_message_id ?? null,
     stage: reduced.visible_task,
     conversation_context: reduced.conversation_context,

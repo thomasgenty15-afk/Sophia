@@ -1,0 +1,237 @@
+/**
+ * LA COQUILLE D'I/O DU FAIT DU SOIR — lire la journée, la faire dire.
+ *
+ * `daily_recap.ts` DÉCIDE et JUGE (pur, testé). Ce module LIT et APPELLE le
+ * modèle. Même frontière que partout dans `_shared/keel/`, et elle porte ici
+ * une charge particulière: tout ce qui entre dans le message passe par
+ * `loadDayFacts`, donc la surface de confabulation du produit tient dans une
+ * seule fonction qu'on peut relire.
+ *
+ * ── CE QUI EST LU, ET POURQUOI DANS CET ORDRE ────────────────────────────
+ *   1. `protocol_events` du jour local — LES FAITS. Les coches (`quick_tap` +
+ *      clé `meal_tick:…`) et les photos. C'est la table des faits déclarés par
+ *      l'élève; rien n'y est déduit.
+ *   2. `student_generated_meals` via `loadPlannedDishContext` — le DÉNOMINATEUR
+ *      seul (« 2 des 4 »). Les titres du plan ne remontent PAS: le modèle n'a
+ *      aucune raison de nommer un plat que l'élève n'a pas coché, et lui donner
+ *      les deux listes l'inviterait à les confondre.
+ *
+ * ── UNE LECTURE EN PANNE REND UNE JOURNÉE VIDE, JAMAIS UNE ERREUR ────────
+ * Le pire cas est un soir sans fait — l'élève reçoit la question seule, ou
+ * rien. Le pire cas de l'alternative serait un décompte faux, et un décompte
+ * faux dans la bulle est indiscernable d'un vrai. L'asymétrie penche du même
+ * côté que `doctrine_loader` et `planned_dish_io`, et pour la même raison.
+ */
+
+import {
+  acceptComposedRecap,
+  buildRecapSystemPrompt,
+  buildRecapUserPrompt,
+  type DayFacts,
+  EMPTY_DAY_FACTS,
+  renderDeterministicRecap,
+} from "./daily_recap.ts";
+import { loadPlannedDishContext } from "./planned_dish_io.ts";
+import { doctrineBlockFor, loadPublishedDoctrine } from "./doctrine_loader.ts";
+import { appendResponseLanguageBlock } from "./locale.ts";
+import { generateWithGemini } from "../gemini.ts";
+
+/** Structural type: les tests injectent un faux, la prod un SupabaseClient. */
+// deno-lint-ignore no-explicit-any
+type Db = any;
+
+/** Le préfixe de `source_message_id` que `mealTickKey` produit. */
+const TICK_KEY_PREFIX = "meal_tick:";
+
+/**
+ * Les faits de la journée, tels que l'élève les a déclarés.
+ *
+ * ── LE TITRE VIENT DE LA COCHE, PAS DE LA COMPOSITION ────────────────────
+ * `tickMeal` écrit `student_note = dish.title` au moment du geste. On relit
+ * donc ce que l'élève a coché, à l'instant où il l'a coché — et non ce que la
+ * composition COURANTE dit aujourd'hui du plat n°3. Une régénération de semaine
+ * change les titres sous les clés; sans cette lecture directe, le message du
+ * soir citerait un plat que l'élève n'a jamais vu.
+ *
+ * ── `local_date` ET PAS `occurred_at` ────────────────────────────────────
+ * Une coche porte la date du jour où le plat SE MANGEAIT (`useMealTicks`: « le
+ * passé se rattrape »). Rattraper mardi le dîner de lundi ne doit donc pas
+ * faire apparaître ce dîner dans le message de mardi soir — il appartient à
+ * lundi, et la colonne le dit déjà.
+ */
+export async function loadDayFacts(
+  db: Db,
+  args: { userId: string; localDate: string },
+): Promise<DayFacts> {
+  const userId = String(args.userId ?? "").trim();
+  const localDate = String(args.localDate ?? "").trim();
+  if (!userId || !localDate) return EMPTY_DAY_FACTS;
+
+  let events: Array<Record<string, unknown>> = [];
+  try {
+    const { data, error } = await db
+      .from("protocol_events")
+      .select("source, student_note, source_message_id")
+      .eq("user_id", userId)
+      .eq("local_date", localDate)
+      // Une ligne décochée SURVIT (`protocol_events` est append-only) et porte
+      // `disqualified_reason='food_not_eaten'`. Tout lecteur qui COMPTE filtre
+      // dessus — en oublier le filtre ferait féliciter pour un plat que
+      // l'élève vient explicitement de retirer.
+      .is("disqualified_reason", null);
+    if (error) throw error;
+    events = (data ?? []) as Array<Record<string, unknown>>;
+  } catch (error) {
+    console.warn("[keel/recap] day events unreadable", error);
+    return EMPTY_DAY_FACTS;
+  }
+
+  const tickedTitles: string[] = [];
+  let photoCount = 0;
+  for (const row of events) {
+    const source = String(row.source ?? "");
+    if (source === "photo") {
+      photoCount++;
+      continue;
+    }
+    if (
+      source === "quick_tap" &&
+      String(row.source_message_id ?? "").startsWith(TICK_KEY_PREFIX)
+    ) {
+      const title = String(row.student_note ?? "").trim();
+      // Une coche sans titre reste un fait — elle compte dans le total, elle ne
+      // se cite simplement pas. L'écarter fausserait le numérateur.
+      tickedTitles.push(title);
+    }
+  }
+
+  // Le dénominateur, et rien d'autre. Une composition illisible ou hors fenêtre
+  // rend 0: le message dira « X cochés » sans ratio, ce qui reste vrai.
+  let plannedCount = 0;
+  try {
+    const planned = await loadPlannedDishContext(db, { userId, localDate });
+    plannedCount = planned.dishes.length;
+  } catch (error) {
+    console.warn("[keel/recap] planned dishes unreadable", error);
+  }
+
+  return {
+    // ⚠️ LE TOTAL COMPTE LES COCHES, PAS LES TITRES LISIBLES — d'où deux
+    // champs. Une coche muette (titre vide en base) disparaîtrait du décompte
+    // si on prenait la longueur de la liste filtrée, et « 2 des 4 » deviendrait
+    // « 1 des 4 »: un chiffre faux issu d'une donnée manquante.
+    tickedCount: tickedTitles.length,
+    tickedTitles: tickedTitles.filter((t) => t.length > 0),
+    plannedCount: Math.max(plannedCount, 0),
+    photoCount,
+  };
+}
+
+const COMPOSE_TIMEOUT_MS = 12_000;
+
+export type RecapBodySource = "composed" | "fallback";
+
+export interface ComposedRecapBody {
+  /** `null` = aucun fait: le message du soir n'aura pas d'ouverture. */
+  body: string | null;
+  source: RecapBodySource;
+  /** Motif du repli, vide quand le corps est composé. */
+  reason: string;
+}
+
+/**
+ * Le fait du soir, dans la voix du coach quand il en a une.
+ *
+ * Tout échec — pas de doctrine, modèle en panne, verdict négatif — rend le
+ * texte DÉTERMINISTE. C'est l'arbitrage de `composeReengageBody`, repris tel
+ * quel, et il est encore plus confortable ici: le repli n'est pas un texte
+ * générique, c'est le décompte exact. On perd la voix, pas l'information.
+ *
+ * Le motif du repli est RENDU, jamais avalé. Sans lui, « le composeur ne sert
+ * jamais » et « le composeur marche » produisent le même message et le même
+ * compte-rendu — la panne silencieuse que ce dépôt a déjà payée avec
+ * `toneDelivered`.
+ */
+export async function composeRecapBody(
+  db: Db,
+  args: {
+    userId: string;
+    firstName: string;
+    facts: DayFacts;
+    /** R2/R3 — locale de l'ARTEFACT, résolue par l'appelant. Requis. */
+    contentLocale: string;
+    requestId?: string;
+  },
+): Promise<ComposedRecapBody> {
+  const deterministic = renderDeterministicRecap(args.facts);
+  const fallback = (reason: string): ComposedRecapBody => ({
+    body: deterministic,
+    source: "fallback",
+    reason,
+  });
+
+  // Pas de sol, pas de message: rien à composer, et surtout rien à inventer.
+  // C'est ici que se tient la promesse « une journée vide n'a pas d'ouverture »
+  // — le modèle n'est jamais appelé sur une journée qu'il devrait meubler.
+  if (deterministic === null) {
+    return { body: null, source: "fallback", reason: "no_ground" };
+  }
+
+  let doctrineBlock: string;
+  try {
+    const loaded = await loadPublishedDoctrine(db, args.userId);
+    // PAS DE COMPOSITION SANS DOCTRINE: sans méthode publiée il n'y a aucune
+    // voix à porter, donc la composition paierait un appel de modèle pour
+    // réécrire un décompte — moins fiable, et sans le déterminisme qui allait
+    // avec. Même règle, mot pour mot, que la relance.
+    if (loaded.reason !== "loaded") return fallback(`no_doctrine:${loaded.reason}`);
+    doctrineBlock = doctrineBlockFor(loaded);
+  } catch (error) {
+    return fallback(
+      `doctrine_load_failed:${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+
+  const system = appendResponseLanguageBlock(
+    buildRecapSystemPrompt({ doctrineBlock, facts: args.facts }),
+    // La doctrine porte `write in <language>`; le laisser gagner ferait sortir
+    // le fait du soir dans une langue que la conversation n'utilise pas. La
+    // langue vient de l'appelant — un message de job est un ARTEFACT, il n'a
+    // pas de fil sur lequel s'ancrer.
+    args.contentLocale,
+  );
+
+  let raw: unknown;
+  try {
+    raw = await Promise.race([
+      generateWithGemini(
+        system,
+        buildRecapUserPrompt(args.firstName),
+        // Bas, et plus bas que la relance (0.6): ici le texte porte des
+        // CHIFFRES. La fantaisie ne produit pas de la chaleur, elle produit des
+        // rejets `invented_number` — donc du repli déterministe, donc moins de
+        // voix du coach, pas plus.
+        0.4,
+        false,
+        [],
+        "auto",
+        { requestId: args.requestId, userId: args.userId, source: "keel_daily_recap" },
+      ),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("compose_timeout")), COMPOSE_TIMEOUT_MS)
+      ),
+    ]);
+  } catch (error) {
+    return fallback(
+      `llm_failed:${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+
+  // `generateWithGemini` peut rendre un appel d'outil. On n'en demande aucun;
+  // recevoir autre chose qu'une chaîne est une anomalie, pas un cas.
+  if (typeof raw !== "string") return fallback("llm_returned_non_text");
+
+  const verdict = acceptComposedRecap(raw, args.facts);
+  if (!verdict.ok) return fallback(`rejected:${verdict.reason}:${verdict.detail}`);
+  return { body: verdict.text, source: "composed", reason: "" };
+}

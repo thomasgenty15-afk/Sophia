@@ -91,7 +91,7 @@ Deno.test("W8 adaptateur: message vide ou rendu vide ⇒ no-op (fail-open)", () 
 // ===========================================================================
 
 Deno.test("W12-V avarie: la sortie par defaut du pilote est en ANGLAIS", () => {
-  const text = keelOutageTemplate();
+  const text = keelOutageTemplate("en-US");
   assertStringIncludes(text, "technical problem");
   assertEquals(/[\u00e9\u00e8\u00ea\u00e0\u00e7\u00f9]/.test(text), false, text);
   // Elle dit ce qui est VRAI : rien n'a ete ecrit. Meme contrat que la

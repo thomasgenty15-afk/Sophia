@@ -7,6 +7,8 @@ import type { DayToken } from "../api/types";
 import { KeelShellBar } from "../components/KeelAppShell";
 import WeekView from "../components/WeekView";
 import StudentConstraintsCard from "../components/StudentConstraintsCard";
+import CoachNoteCard from "../components/CoachNoteCard";
+import CoachSeatCard from "../components/CoachSeatCard";
 import { Card } from "../components/ui/Card";
 import { t } from "../i18n/t";
 import {
@@ -340,7 +342,37 @@ export default function CoachStudentPage() {
           mot seul — et la reformuler avec lui. */}
       <StudentConstraintsCard studentId={d.student.id} />
 
+      {/* ⚠️ LA SEULE ÉCRITURE DE CETTE PAGE, et donc la seule exception à
+          l'en-tête « READ-ONLY, and structurally so » ci-dessus.
+
+          Elle ne casse aucun des invariants que cet en-tête défend: pas de
+          service role, pas d'impersonation, pas d'appel de fonction edge —
+          l'écriture passe par la policy `student_coach_notes_coach_all`,
+          exactement comme les lectures passent par les policies Tier A. Ce qui
+          change est le MODÈLE PRODUIT, pas l'architecture d'accès: arbitrage du
+          2026-08-05 en faveur du mode 1:1 assumé, contre la règle de
+          docs/keel/MODEL.md. Le pourquoi complet est dans l'en-tête de la
+          migration 20260805180000_student_coach_notes.sql — lis-le avant de
+          retirer cette carte comme hors-modèle.
+
+          Placée SOUS les contraintes: ce que l'élève ne peut pas manger se lit
+          avant ce que le coach en pense. */}
+      <CoachNoteCard studentId={d.student.id} />
+
       <FoodAndNumbers studentId={d.student.id} />
+
+      {/* LE SIÈGE, TOUT EN BAS ET EXPRÈS.
+          C'est la seule commande destructrice de l'écran — elle retire un accès
+          à une personne. Elle ne se met pas sur le chemin de la lecture: un
+          coach vient ici pour voir sa semaine, pas pour la résilier. Il la
+          trouve quand il la cherche.
+
+          Deuxième écriture de la page après la note, et même architecture
+          d'accès: pas de service role, pas d'impersonation, pas de fonction
+          edge. Trois RPC `security definer` gardées par `auth.uid()` →
+          `coaches` (migration 20260806160000). L'en-tête « READ-ONLY » de cette
+          page compte donc maintenant deux exceptions, toutes deux nommées. */}
+      <CoachSeatCard studentId={d.student.id} />
 
       <footer className="mt-8 border-t border-gray-100 pt-4 text-xs leading-5 text-gray-500">
         {t("coach.student.footer")}

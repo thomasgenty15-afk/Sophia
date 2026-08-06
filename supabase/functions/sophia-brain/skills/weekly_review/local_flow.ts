@@ -3854,6 +3854,11 @@ function directEffectBlockedEffects(
 export async function runWeeklyReviewLocalRuntime(args: {
   supabase: SupabaseClient;
   userId: string;
+  /**
+   * W9/R3 — la langue de la réponse visible, résolue une fois par `run.ts`.
+   * Traversée jusqu'à l'agent visible, jamais recalculée ici.
+   */
+  responseLocale: string;
   tempMemory: unknown;
   activeSkillState?: unknown;
   userMessage: string;
@@ -4022,6 +4027,7 @@ export async function runWeeklyReviewLocalRuntime(args: {
   const visibleAgent = args.visibleAgent ?? runWeeklyReviewVisibleAgent;
   const visible = await visibleAgent({
     user_id: args.userId,
+    response_locale: args.responseLocale,
     request_id: args.requestId ?? null,
     stage: visibleTask,
     user_message: args.userMessage,

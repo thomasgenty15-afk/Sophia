@@ -1,12 +1,19 @@
 # KEEL — Contract
 
-> **This file is the authority.** Every KEEL module, migration, prompt and test cites these rules
-> by number. A change here is a product decision, not a refactor. If code and this contract
-> disagree, the code is wrong.
+> **This file is the authority ON THE RULES BELOW.** Every KEEL module, migration, prompt and
+> test cites them by number. A change here is a product decision, not a refactor. If code and
+> these rules disagree, the code is wrong.
 >
-> KEEL = the runtime of the protocol a coach has written. The coach authors the plan; the AI
-> executes it, observes facts, and derives adherence. The AI never authors, edits, or pads a
-> prescription.
+> **It is NOT the authority on the product model — [MODEL.md](MODEL.md) is. Read that first.**
+> This header used to open with "the coach authors the plan; the AI executes it", which stopped
+> being true on 2026-08-03 and cost a great deal of repeated explanation before anyone corrected
+> it. In the model we ship, **the coach produces nothing personal for any student**: they author a
+> doctrine and a programme for the whole cohort, and the student composes their own week from it.
+> The 1:1 prescription chain described further down still exists in code and is kept on purpose —
+> it is the 1:1 mode, not the product. MODEL.md says which is which.
+>
+> The rules below are orthogonal to that change: locales, units, isolation and the ban on the AI
+> authoring food content hold in both modes.
 
 ## The three layers
 

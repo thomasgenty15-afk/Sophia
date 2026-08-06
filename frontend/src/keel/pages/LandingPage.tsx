@@ -5,6 +5,7 @@ import { useAuth } from "../../context/AuthContext";
 import { LEGAL_ENTITY, organizationStructuredData } from "../../lib/legalEntity";
 import { resolveHomePath, type HomePath } from "../api/postLogin";
 import { PublicFooter, PublicHeader } from "../components/PublicHeader";
+import ServerUnreachable from "../components/ServerUnreachable";
 import { ButtonLink } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { t, type MessageKey } from "../i18n/t";
@@ -16,9 +17,11 @@ import { t, type MessageKey } from "../i18n/t";
  * what is this, why do I care, how does it work, why trust it, what does it cost.
  *
  * A signed-in visitor does not belong on a sales page: they are routed to
- * their space (coach workspace / student app / legacy dashboard) the moment
- * their role resolves. The landing renders meanwhile so the redirect is a
- * navigation, never a blank screen.
+ * their space (coach workspace / student app / account) the moment their role
+ * resolves. The landing renders meanwhile so the redirect is a navigation,
+ * never a blank screen. If the role cannot be resolved AT ALL — the backend is
+ * unreachable — they get the connection-lost screen instead: routing on no
+ * facts is what once dropped a student into the legacy consumer account page.
  *
  * ── THE MODEL THIS PAGE SELLS (pivot nutrition, 2026-08-03) ───────────────
  * A masterclass, not a one-to-one practice: the coach teaches a method, the
@@ -99,21 +102,37 @@ const LANDING_STRUCTURED_DATA = [
 export function LandingPage() {
   const { user } = useAuth();
   const [dest, setDest] = React.useState<HomePath | null>(null);
+  // `resolveHomePath` returning null means it read NOTHING — the backend is
+  // unreachable. We must not navigate on that: the destination would be the
+  // fallback page, which needs the same backend and renders empty. Say it
+  // instead. A signed-out visitor never reaches this state; the sales page
+  // below is static and stays served.
+  const [unreachable, setUnreachable] = React.useState(false);
 
   const userId = user?.id ?? null;
   React.useEffect(() => {
     let cancelled = false;
+    setUnreachable(false);
     if (!userId) {
       setDest(null);
       return;
     }
     resolveHomePath(userId).then((path) => {
-      if (!cancelled) setDest(path);
+      if (cancelled) return;
+      if (path === null) {
+        setUnreachable(true);
+        return;
+      }
+      setDest(path);
     });
     return () => {
       cancelled = true;
     };
   }, [userId]);
+
+  if (userId && unreachable) {
+    return <ServerUnreachable />;
+  }
 
   if (userId && dest) {
     return <Navigate to={dest} replace />;
@@ -135,6 +154,19 @@ export function LandingPage() {
         <Hero />
         <Problem />
         <HowItWorks />
+        {/*
+          ICI, ET PAS AILLEURS. `HowItWorks` vient d'installer la cadence 1:N —
+          « recorded once, answering all week », le coach n'écrit jamais par
+          élève. La note est l'EXCEPTION à ce « once », donc elle se lit juste
+          après, pendant que la règle est encore fraîche. Plus bas, elle
+          ressemblerait à une feature de plus; plus haut, elle affaiblirait la
+          promesse qu'elle nuance.
+
+          Elle reste AVANT `DoubleLock`, qui garde son rôle de sommet: la
+          section ci-dessous ajoute une entrée dans le prompt, et le lecteur
+          doit rencontrer la garantie APRÈS avoir vu tout ce qui y entre.
+        */}
+        <OneToOneNote />
         <DoubleLock />
         <Doctrine />
         <Pricing />
@@ -499,6 +531,114 @@ function HowItWorks() {
         </ol>
       </div>
     </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// The 1:1 note
+// ---------------------------------------------------------------------------
+
+/**
+ * LE MODE 1:1, NOMMÉ COMME TEL — `student_coach_notes` sur la page de vente.
+ *
+ * Le produit vendu au-dessus est 1:N: une méthode, N élèves, aucun geste par
+ * élève. Un coach qui en a dix et les connaît lit ça comme un refus de le
+ * servir, alors que la fonctionnalité EXISTE (migration 20260805180000, câblée
+ * aux trois points d'injection). Cette section la nomme.
+ *
+ * ── CE QUE LA SECTION DOIT FAIRE, ET DANS CET ORDRE ──────────────────────
+ * 1. dire que ça existe;  2. dire jusqu'où ça va — les quatre bornes;
+ * 3. refermer la tension avec le hero (« no one-to-one inbox »).
+ *
+ * Les quatre bornes NE SONT PAS des précautions juridiques: ce sont les
+ * arguments. Un coach 1:1 confie une observation sur une personne à une
+ * machine qui parlera en son nom; ce qu'il achète, c'est de savoir ce qu'elle
+ * ne fera pas avec. « Elle ne la cite jamais » vend mieux que « elle la lit ».
+ *
+ * ── LE MOCK EST LE VRAI CHAMP ────────────────────────────────────────────
+ * Titre et exemple sont repris mot pour mot de `CoachNoteCard`. C'est la même
+ * règle que le panneau du lundi: on ne montre pas un écran qu'on n'a pas.
+ */
+function OneToOneNote() {
+  const rules: { title: string; body: string }[] = [
+    { title: t("landing.note.rule1_title"), body: t("landing.note.rule1_body") },
+    { title: t("landing.note.rule2_title"), body: t("landing.note.rule2_body") },
+    { title: t("landing.note.rule3_title"), body: t("landing.note.rule3_body") },
+    { title: t("landing.note.rule4_title"), body: t("landing.note.rule4_body") },
+  ];
+  return (
+    <section className="border-b border-gray-200 bg-gray-50">
+      <div className="mx-auto max-w-6xl px-4 py-16">
+        <Kicker>{t("landing.note.kicker")}</Kicker>
+        <SectionTitle>{t("landing.note.title")}</SectionTitle>
+
+        {/*
+          Le mock est apparié à l'INTRO, pas à la section entière. Apparié aux
+          quatre bornes, il laissait une colonne droite vide sur les deux tiers
+          de la hauteur — le mock fait cinq lignes, les bornes en font vingt.
+          Les bornes passent donc en pleine largeur en dessous, comme les trois
+          règles de `Doctrine`.
+        */}
+        <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_auto] lg:items-start lg:gap-16">
+          <p className="max-w-xl text-base leading-7 text-gray-600">
+            {t("landing.note.body")}
+          </p>
+          <NoteMock />
+        </div>
+
+        <dl className="mt-10 grid gap-8 border-t border-gray-200 pt-8 sm:grid-cols-2 sm:gap-x-10 lg:grid-cols-4">
+          {rules.map((rule) => (
+            <div key={rule.title}>
+              <dt className="text-base font-semibold leading-6 text-gray-900">
+                {rule.title}
+              </dt>
+              <dd className="mt-2 text-sm leading-6 text-gray-600">{rule.body}</dd>
+            </div>
+          ))}
+        </dl>
+
+        {/*
+          La phrase qui referme la contradiction apparente avec le hero. Elle
+          est en bas et pleine largeur parce qu'elle conclut la section entière,
+          pas l'une des quatre bornes.
+        */}
+        <p className="mt-10 max-w-3xl border-t border-gray-200 pt-6 text-base leading-7 text-gray-900">
+          {t("landing.note.close")}
+        </p>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * Le champ, schématique. Fond BLANC sur une section grise — l'inverse du
+ * `ChatMock`, dont le gris se détache d'une section blanche. Dans les deux cas
+ * le mock doit se lire comme une surface posée sur la page, pas comme un bloc
+ * de la page.
+ */
+function NoteMock() {
+  return (
+    <div className="w-full lg:w-80">
+      <div className="text-[0.6875rem] font-semibold uppercase tracking-wider text-gray-500">
+        {t("landing.mock.note_label")}
+      </div>
+      <div className="mt-2 rounded-xl border border-gray-200 bg-white p-4">
+        <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+          {t("landing.mock.note_heading")}
+        </p>
+        {/*
+          Le texte est rendu dans un bloc bordé qui IMITE le textarea sans en
+          être un: un vrai <textarea> sur une page de vente s'invite au focus,
+          se remplit, et ne mène nulle part.
+        */}
+        <div className="mt-3 rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs leading-5 text-gray-700">
+          {t("landing.mock.note_body")}
+        </div>
+      </div>
+      <p className="mt-2 text-xs leading-5 text-gray-500">
+        {t("landing.mock.note_caption")}
+      </p>
+    </div>
   );
 }
 

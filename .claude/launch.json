@@ -82,6 +82,14 @@
       "autoPort": false
     },
     {
+      "name": "frontend-a20",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "--port", "5190", "--strictPort"],
+      "cwd": "frontend",
+      "port": 5190,
+      "autoPort": false
+    },
+    {
       "name": "frontend-a16",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev", "--", "--port", "5186", "--strictPort"],

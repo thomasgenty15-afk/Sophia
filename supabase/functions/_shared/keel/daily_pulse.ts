@@ -1,19 +1,32 @@
 /**
  * PIVOT NUTRITION — N2 : LE TAP DU SOIR.
  *
- * Une question par jour, un tap. C'est la seule chose que ce module décide, et
- * il y a plus de raisonnement là-dedans qu'il n'y paraît.
+ * ── CE QUE CE MODULE DÉCIDE DÉSORMAIS: DEUX CHOSES, PAS UNE ──────────────
+ * Il décidait « envoie-t-on la question ce soir ? ». Il décide maintenant
+ * « envoie-t-on un message ce soir, et la question part-elle avec ? ».
+ *
+ * La séparation vient d'un constat produit: ce qui était pénible n'était pas la
+ * question, c'était la question TOUS LES JOURS, sans rien en échange. Le
+ * message du soir s'ouvre donc sur un fait de la journée (`daily_recap.ts`,
+ * gratuit à recevoir, aucune réponse attendue) et la question ne l'accompagne
+ * que quand elle est due — voir `decideAskCadence`.
+ *
+ * UN SEUL MESSAGE, dans tous les cas. Deux messages seraient deux
+ * notifications, c'est-à-dire le problème qu'on répare, doublé.
  *
  * ── POURQUOI 3 NIVEAUX ET PAS 0-10 ───────────────────────────────────────
- * Contrainte dure d'abord : WhatsApp plafonne les boutons de réponse à TROIS
- * (limite Meta, appliquée dans `whatsapp-send` par un `slice(0, 3)`). Trois
- * métriques × cinq niveaux = quinze options : impossible en un message, et
- * trois messages par jour pour un check-in est du spam.
+ * La première raison a disparu, et il faut le dire: WhatsApp plafonnait les
+ * boutons à TROIS, et ce plafond a façonné toute la forme de ce message. Depuis
+ * le chantier de-whatsapp la livraison est un `deliverChatMessage` — une ligne
+ * dans la bulle — et plus rien ne limite ni le nombre de boutons ni la longueur
+ * des libellés.
  *
- * Mais la contrainte tombe bien, parce que 0-10 rempli tous les jours est une
- * mauvaise échelle : les réponses se massent sur 7-8, la variance s'effondre,
- * et l'échelle transporte presque rien tout en ayant l'air précise. Un état
- * subjectif quotidien a honnêtement trois niveaux utiles.
+ * La SECONDE raison, elle, tient toujours, et c'est la vraie: 0-10 rempli tous
+ * les jours est une mauvaise échelle — les réponses se massent sur 7-8, la
+ * variance s'effondre, et l'échelle transporte presque rien tout en ayant l'air
+ * précise. Un état subjectif quotidien a honnêtement trois niveaux utiles. On
+ * garde donc trois niveaux PARCE QU'ILS SONT JUSTES, plus parce qu'un
+ * fournisseur nous y obligeait.
  *
  * La finesse n'est pas perdue, elle change d'étage : 1-5 sur six axes dans le
  * point hebdomadaire, dans l'app, là où l'élève a une minute et un vrai écran.
@@ -196,13 +209,125 @@ export const PULSE_ATTACH_IF_ACTIVE_WITHIN_MINUTES = 30;
 
 export const PULSE_SKIP_REASONS = [
   "already_answered_today",
-  "already_asked_today",
+  // Renommé depuis `already_asked_today`: le message du soir ne PORTE plus
+  // forcément une question. Ce qu'on garde à un par jour, c'est le MESSAGE.
+  "already_sent_today",
   "outside_window",
   "safety_active",
   "opted_out",
   "no_active_plan",
+  // La réduction de bruit du lot, et elle n'existait pas: rien de groundé à
+  // dire ET pas de question due ⇒ on se tait. Un soir sans message est un
+  // résultat, pas une panne — d'où un motif qui le NOMME dans le compte-rendu.
+  "nothing_to_say",
 ] as const;
 export type PulseSkipReason = (typeof PULSE_SKIP_REASONS)[number];
+
+// ---------------------------------------------------------------------------
+// LA CADENCE DE LA QUESTION — le vrai levier
+// ---------------------------------------------------------------------------
+
+/**
+ * L'intervalle nominal entre deux questions, en jours locaux.
+ *
+ * Trois et pas sept: en dessous, le tap redevient le formulaire quotidien qu'on
+ * démonte; au-dessus, la mesure devient trop grossière pour dire à un coach
+ * qu'une semaine s'est dégradée. Le fait du soir, lui, reste quotidien — c'est
+ * ce qui permet de baisser la fréquence de l'ASK sans laisser le canal refroidir.
+ */
+export const PULSE_ASK_INTERVAL_DAYS = 3;
+
+/**
+ * L'ESCALADE. Après une journée déclarée `hard`, on redemande le lendemain.
+ *
+ * C'est le seul cas où la mesure vaut plus que la tranquillité: « le protocole
+ * n'est pas vivable » est précisément le signal pour lequel cette boucle
+ * existe, et le laisser trois jours sans suite le rend inexploitable — le coach
+ * apprend la difficulté quand elle est finie.
+ */
+export const PULSE_ASK_INTERVAL_WHEN_HARD = 1;
+
+/**
+ * LE REPLI. Après ce nombre de questions restées sans réponse, l'intervalle
+ * s'allonge.
+ *
+ * Le silence n'est pas une demande de rappel — c'est déjà écrit plus bas pour la
+ * garde `already_sent_today`, et c'est la même règle une échelle au-dessus.
+ */
+export const PULSE_IGNORED_STREAK = 2;
+export const PULSE_ASK_INTERVAL_WHEN_IGNORED = 7;
+
+export interface AskCadenceInput {
+  /** Jours écoulés depuis la dernière question POSÉE. `null` = jamais posée. */
+  daysSinceLastAsk: number | null;
+  /** Le niveau de la DERNIÈRE réponse, `null` si l'élève n'a jamais répondu. */
+  lastAnsweredLevel: PulseLevel | null;
+  /** Questions posées et restées sans réponse DEPUIS la dernière réponse. */
+  unansweredStreak: number;
+}
+
+export type AskCadenceReason =
+  | "never_asked"
+  | "interval_reached"
+  | "escalated_after_hard"
+  | "too_soon"
+  | "backing_off";
+
+export interface AskCadenceDecision {
+  ask: boolean;
+  reason: AskCadenceReason;
+  /** L'intervalle retenu, pour que le compte-rendu du job soit lisible. */
+  intervalDays: number;
+}
+
+/**
+ * La question est-elle due aujourd'hui ?
+ *
+ * ── L'ORDRE EST LE CONTRAT, ET IL PENCHE VERS LE SILENCE ─────────────────
+ *   1. jamais posée      — amorçage: on ne peut pas mesurer sans commencer.
+ *   2. repli sur silence — DEUX questions ignorées ⇒ on espace. Cette règle
+ *                          passe AVANT l'escalade, et c'est l'arbitrage le
+ *                          moins évident du module: un élève qui a répondu
+ *                          `hard` puis s'est tu deux fois ne doit PAS être
+ *                          questionné tous les jours. C'est exactement le
+ *                          profil qu'un harcèlement quotidien fait partir, et
+ *                          le fait du soir continue de sortir — le canal ne
+ *                          refroidit pas pour autant.
+ *   3. escalade `hard`   — la dernière réponse dit que ça coince: on redemande
+ *                          le lendemain.
+ *   4. intervalle        — trois jours.
+ *
+ * PURE: aucune horloge. L'appelant a déjà résolu les jours locaux, parce que
+ * lui seul connaît le fuseau de l'élève.
+ */
+export function decideAskCadence(input: AskCadenceInput): AskCadenceDecision {
+  const ignored = Math.max(0, Math.floor(input.unansweredStreak ?? 0));
+
+  const intervalDays = ignored >= PULSE_IGNORED_STREAK
+    ? PULSE_ASK_INTERVAL_WHEN_IGNORED
+    : input.lastAnsweredLevel === "hard"
+    ? PULSE_ASK_INTERVAL_WHEN_HARD
+    : PULSE_ASK_INTERVAL_DAYS;
+
+  const since = input.daysSinceLastAsk;
+  if (since === null || !Number.isFinite(since)) {
+    return { ask: true, reason: "never_asked", intervalDays };
+  }
+  if (since < intervalDays) {
+    return {
+      ask: false,
+      reason: ignored >= PULSE_IGNORED_STREAK ? "backing_off" : "too_soon",
+      intervalDays,
+    };
+  }
+  return {
+    ask: true,
+    reason: intervalDays === PULSE_ASK_INTERVAL_WHEN_HARD
+      ? "escalated_after_hard"
+      : "interval_reached",
+    intervalDays,
+  };
+}
 
 export interface PulseDecisionInput {
   /** Heure locale de l'élève, 0..23. */
@@ -210,7 +335,7 @@ export interface PulseDecisionInput {
   /** A-t-il déjà répondu aujourd'hui ? */
   answeredToday: boolean;
   /**
-   * La question est-elle DÉJÀ PARTIE aujourd'hui (jour local de l'élève) ?
+   * Le message du soir est-il DÉJÀ PARTI aujourd'hui (jour local de l'élève) ?
    *
    * REQUIS, et distinct de `answeredToday` — c'est tout l'objet du correctif.
    * La fenêtre fait deux heures et le cron est horaire : il y a donc DEUX ticks
@@ -223,9 +348,20 @@ export interface PulseDecisionInput {
    * La garde se fonde sur ce qui est SORTI, pas sur ce qui est revenu : c'est
    * la seule trace qui existe quand l'élève se tait.
    */
-  askedToday: boolean;
+  sentToday: boolean;
   /** Minutes depuis le dernier échange, null si aucun. */
   minutesSinceLastExchange: number | null;
+  /**
+   * Y a-t-il un FAIT sur quoi ouvrir ? (`hasRecapGround` de `daily_recap.ts`)
+   *
+   * REQUIS, comme `safetyBand` et pour la même raison: un booléen optionnel qui
+   * vaut `false` par défaut aurait transformé « l'appelant n'a pas lu les
+   * faits » en « cet élève n'a rien fait aujourd'hui », et les deux se seraient
+   * comptés en `nothing_to_say` sans qu'aucun test ne les distingue.
+   */
+  hasGround: boolean;
+  /** La question est-elle due ? (`decideAskCadence`) REQUIS, même raison. */
+  askDue: boolean;
   /**
    * REQUIS, pas optionnel — corrigé en C4.
    *
@@ -245,7 +381,12 @@ export interface PulseDecisionInput {
 }
 
 export type PulseDecision =
-  | { decision: "send"; mode: "standalone" | "attach" }
+  | {
+    decision: "send";
+    mode: "standalone" | "attach";
+    /** La question part-elle avec le message ? Faux = le fait, tout seul. */
+    ask: boolean;
+  }
   | { decision: "skip"; reason: PulseSkipReason };
 
 /**
@@ -253,32 +394,39 @@ export type PulseDecision =
  *
  *   1. opted_out          — réglementaire, jamais surchargeable.
  *   2. safety_active      — on ne demande pas « ta journée ? » à quelqu'un en
- *                           crise. Le dépôt a un incident documenté d'effet
- *                           durable committé pendant un tour de crise.
- *   3. no_active_plan     — rien à suivre, donc rien à demander.
+ *                           crise, et on ne lui récite pas non plus son
+ *                           décompte de repas. Le dépôt a un incident documenté
+ *                           d'effet durable committé pendant un tour de crise.
+ *   3. no_active_plan     — rien à suivre, donc rien à dire ni à demander.
  *   4. already_answered   — un tap par jour. Le CHECK d'unicité le tient aussi,
  *                           mais mieux vaut ne pas envoyer que d'envoyer et
  *                           refuser l'écriture.
- *   5. already_asked      — UNE question par jour, répondue ou non. La fenêtre
- *                           dure deux heures et le cron est horaire: sans
- *                           cette garde, le silence de l'élève vaut
- *                           relance à 21h10. Le silence n'est pas une demande
- *                           de rappel.
+ *   5. already_sent       — UN message du soir par jour. La fenêtre dure deux
+ *                           heures et le cron est horaire: sans cette garde, le
+ *                           silence de l'élève vaut relance à 21h10. Le silence
+ *                           n'est pas une demande de rappel.
  *   6. outside_window     — hors 20h-22h locales, on ne fait rien: le tick
  *                           suivant retombera dedans. Jamais annulé, juste
  *                           pas maintenant.
+ *   7. nothing_to_say     — DERNIÈRE, et c'est délibéré. Elle est la seule qui
+ *                           dépende de la journée de l'élève plutôt que de son
+ *                           état; la placer plus haut masquerait les six
+ *                           autres dans le compte-rendu, et « personne n'avait
+ *                           rien fait » couvrirait « tout le monde était hors
+ *                           fenêtre ».
  *
- * `already_answered` avant `already_asked` alors que les deux coupent au même
+ * `already_answered` avant `already_sent` alors que les deux coupent au même
  * endroit: c'est de l'ATTRIBUTION. « Il a répondu » et « on l'a sollicité sans
  * réponse » sont deux journées différentes pour le coach, et le compteur du
  * job est ce qui les distingue.
  *
- * ⚠️ L'ACTIVITÉ NE SUPPRIME JAMAIS LA QUESTION. Un élève qui a envoyé trois
- * photos aujourd'hui a une bonne couverture et peut être épuisé : les photos
- * disent CE QU'IL A MANGÉ, le tap dit SI LE PROTOCOLE EST VIVABLE. Ce sont
- * deux mesures orthogonales, et laisser l'une supprimer l'autre rendrait
- * invisible exactement le cas qu'on cherche. L'activité ne change donc que le
- * MODE d'envoi (`attach` au lieu de `standalone`), jamais le fait de demander.
+ * ⚠️ L'ACTIVITÉ NE SUPPRIME JAMAIS LA QUESTION — et la refonte ne l'a pas
+ * entamé. Un élève qui a envoyé trois photos aujourd'hui a une bonne couverture
+ * et peut être épuisé: les photos disent CE QU'IL A MANGÉ, le tap dit SI LE
+ * PROTOCOLE EST VIVABLE. Ce sont deux mesures orthogonales. `hasGround` décide
+ * de ce qu'on RACONTE, jamais de ce qu'on demande — un jour où la question est
+ * due, elle part, que la journée soit pleine ou vide. Les deux entrées sont
+ * séparées exprès pour que ça reste vrai par construction.
  */
 export function decideDailyPulse(input: PulseDecisionInput): PulseDecision {
   if (input.optedOut) return { decision: "skip", reason: "opted_out" };
@@ -288,18 +436,23 @@ export function decideDailyPulse(input: PulseDecisionInput): PulseDecision {
 
   if (!input.hasActivePlan) return { decision: "skip", reason: "no_active_plan" };
   if (input.answeredToday) return { decision: "skip", reason: "already_answered_today" };
-  if (input.askedToday) return { decision: "skip", reason: "already_asked_today" };
+  if (input.sentToday) return { decision: "skip", reason: "already_sent_today" };
 
   const hour = Math.floor(input.localHour);
   if (!Number.isFinite(hour) || hour < PULSE_HOUR_LOCAL || hour >= PULSE_WINDOW_END_LOCAL) {
     return { decision: "skip", reason: "outside_window" };
   }
 
+  // Rien de vrai à dire et rien à demander: on se tait. C'est la moitié du lot.
+  if (!input.hasGround && !input.askDue) {
+    return { decision: "skip", reason: "nothing_to_say" };
+  }
+
   const since = input.minutesSinceLastExchange;
   const active = since !== null && Number.isFinite(since) &&
     since <= PULSE_ATTACH_IF_ACTIVE_WITHIN_MINUTES;
 
-  return { decision: "send", mode: active ? "attach" : "standalone" };
+  return { decision: "send", mode: active ? "attach" : "standalone", ask: input.askDue };
 }
 
 // ---------------------------------------------------------------------------
@@ -313,6 +466,48 @@ export interface PulseMessage {
 
 export function renderPulseQuestion(): PulseMessage {
   return { body: PULSE_QUESTION_EN, buttons: pulseLevelButtons() };
+}
+
+/**
+ * LE MESSAGE DU SOIR TEL QUEL — le fait, puis la question quand elle est due.
+ *
+ * Les trois formes que l'élève peut recevoir, et aucune autre:
+ *
+ *   fait + question   « Ticked off today: … — 2 of the 4 on the plan.
+ *                       \n\n How was today? »          [3 boutons]
+ *   fait seul         « Ticked off today: … »          [aucun bouton]
+ *   question seule    « How was today? »               [3 boutons]
+ *
+ * ── PAS DE BOUTON SANS QUESTION, PAS DE QUESTION SANS BOUTON ─────────────
+ * C'est la seule invariance de rendu qui compte, et elle est tenue ici plutôt
+ * que par une convention d'appelant. Des boutons sous un simple constat
+ * demanderaient une réponse à un message qui n'en attend pas; une question sans
+ * bouton renverrait l'élève au clavier alors que `readPulseReply` ne lit QUE
+ * des identifiants de bouton — sa réponse texte partirait au dispatcher et la
+ * journée ne serait jamais mesurée.
+ *
+ * La ligne vide entre les deux n'est pas cosmétique: sans elle, le décompte et
+ * la question se lisent comme une seule phrase, et « 2 des 4 du plan, et ta
+ * journée ? » transforme le constat en préambule d'interrogatoire — exactement
+ * le biais de mesure que `daily_recap.ts` existe pour éviter.
+ */
+export function renderPulseMessage(
+  args: { recapBody: string | null; ask: boolean },
+): PulseMessage {
+  const recap = String(args.recapBody ?? "").trim();
+  if (!args.ask) {
+    // Un appel sans fait NI question ne rend rien de sensé: le décideur a déjà
+    // écarté ce cas en `nothing_to_say`, et le lever ici empêche qu'un futur
+    // appelant contourne la décision et poste une bulle vide (R7).
+    if (!recap) {
+      throw new Error("[keel/pulse] renderPulseMessage: neither ground nor ask");
+    }
+    return { body: recap, buttons: [] };
+  }
+  return {
+    body: recap ? `${recap}\n\n${PULSE_QUESTION_EN}` : PULSE_QUESTION_EN,
+    buttons: pulseLevelButtons(),
+  };
 }
 
 export function renderPulseAxisQuestion(): PulseMessage {

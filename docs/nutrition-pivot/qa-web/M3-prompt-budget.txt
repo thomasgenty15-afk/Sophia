@@ -1,0 +1,137 @@
+══════════════════════════════════════════════════════════════════════════════
+▌ M3 — BUDGET DU PROMPT D'UN TOUR KEEL  (tokens = ceil(car./4))
+══════════════════════════════════════════════════════════════════════════════
+response_locale résolu par la prod: en-US
+pack companion assemblé:            EN (KEEL)
+
+══════════════════════════════════════════════════════════════════════════════
+▌ AVANT — dispatcher, prompt système assemblé pour un utilisateur LEGACY
+══════════════════════════════════════════════════════════════════════════════
+TOTAL: 84388 car.  ~21097 tokens
+──────────────────────────────────────────────────────────────────────────────
+    49 tok     193 car.   (preambule)
+   237 tok     945 car.   Contrat effectif unique + Interdits
+  2744 tok   10973 car.   Doctrine des lanes (product_help/coaching/realignment/presence)
+    94 tok     374 car.   Principe de tour courant
+   478 tok    1912 car.   Categories coaching_recommendation
+   102 tok     408 car.   Contrat coaching_recommendation
+   239 tok     954 car.   Contrat plan_realignment
+   505 tok    2019 car.   Contrat plan_question (KEEL)
+   176 tok     704 car.   Contrainte de STYLE de session
+   849 tok    3393 car.   Recurrence / rituel / style
+  1169 tok    4674 car.   1..1d-bis  safety
+  4728 tok   18911 car.   2         create_one_shot_reminder
+   189 tok     756 car.   3..3c     track_progress_plan_item
+   639 tok    2555 car.   3d        track payload canonique
+   343 tok    1372 car.   3d-bis    track date_hint
+   388 tok    1552 car.   3d-ter    track target_evidence
+   384 tok    1534 car.   3d-ter-bis deux effets de types distincts
+   153 tok     611 car.   3d-quater bi-intention + report
+   437 tok    1745 car.   3e        question/anti-instruction/retractation
+    86 tok     341 car.   3f        cible track devinee
+   775 tok    3098 car.   3g        clarification en attente
+   212 tok     845 car.   3g-ter    rappel differe par une crise
+   126 tok     504 car.   3g-bis    enonce affectif
+    85 tok     338 car.   3h        correction de statut
+   450 tok    1798 car.   3h-bis    correction de cible
+   152 tok     607 car.   3k        garde des effets durables KEEL
+  1882 tok    7527 car.   3k-a      log_protocol_event
+   718 tok    2872 car.   3k-c      declare_safety_constraint
+   565 tok    2257 car.   3k-b      declare_deviation
+   491 tok    1963 car.   4         product_help
+   296 tok    1184 car.   6         plan_realignment
+   154 tok     613 car.   6-bis     plan_question
+    74 tok     295 car.   7         initiatives / coach_preferences
+   169 tok     675 car.   8         needs_research
+    34 tok     133 car.   9         memory_plan
+   429 tok    1715 car.   Fallback
+   510 tok    2038 car.   memory_plan + registre de domaines
+
+══════════════════════════════════════════════════════════════════════════════
+▌ APRÈS — dispatcher, prompt système assemblé pour un ÉLÈVE KEEL
+══════════════════════════════════════════════════════════════════════════════
+TOTAL: 59250 car.  ~14813 tokens
+──────────────────────────────────────────────────────────────────────────────
+    49 tok     193 car.   (preambule)
+   231 tok     923 car.   Contrat effectif unique + Interdits
+  1408 tok    5631 car.   Doctrine des lanes (product_help/coaching/realignment/presence)
+    94 tok     374 car.   Principe de tour courant
+   505 tok    2019 car.   Contrat plan_question (KEEL)
+   176 tok     704 car.   Contrainte de STYLE de session
+   289 tok    1154 car.   Recurrence / rituel / style
+  1169 tok    4674 car.   1..1d-bis  safety
+  4728 tok   18911 car.   2         create_one_shot_reminder
+   384 tok    1534 car.   3d-ter-bis deux effets de types distincts
+   437 tok    1745 car.   3e        question/anti-instruction/retractation
+   775 tok    3098 car.   3g        clarification en attente
+   212 tok     845 car.   3g-ter    rappel differe par une crise
+   152 tok     607 car.   3k        garde des effets durables KEEL
+  1880 tok    7520 car.   3k-a      log_protocol_event
+   718 tok    2872 car.   3k-c      declare_safety_constraint
+   554 tok    2215 car.   3k-b      declare_deviation
+   154 tok     613 car.   6-bis     plan_question
+   169 tok     675 car.   8         needs_research
+    34 tok     133 car.   9         memory_plan
+   193 tok     772 car.   Fallback
+   510 tok    2038 car.   memory_plan + registre de domaines
+
+══════════════════════════════════════════════════════════════════════════════
+▌ AVANT — dispatcher, payload du meme tour KEEL (assemblage legacy)
+══════════════════════════════════════════════════════════════════════════════
+TOTAL: 16226 car.  ~4057 tokens
+──────────────────────────────────────────────────────────────────────────────
+    14 tok      54 car.   prompt_version
+    10 tok      40 car.   user_message
+    51 tok     202 car.   recent_messages
+     1 tok       4 car.   active_topic_state
+     1 tok       4 car.   flow_state_context
+    45 tok     179 car.   direct_effect_time_context
+   543 tok    2169 car.   keel_plan_context
+     1 tok       4 car.   plan_snapshot
+     1 tok       2 car.   active_action_candidates_for_direct_effects
+   472 tok    1888 car.   expected_shape
+  2857 tok   11428 car.   doctrine_examples
+
+══════════════════════════════════════════════════════════════════════════════
+▌ APRÈS — dispatcher, payload du meme tour KEEL (assemblage KEEL)
+══════════════════════════════════════════════════════════════════════════════
+TOTAL: 7257 car.  ~1815 tokens
+──────────────────────────────────────────────────────────────────────────────
+    14 tok      54 car.   prompt_version
+    10 tok      40 car.   user_message
+    51 tok     202 car.   recent_messages
+     1 tok       4 car.   active_topic_state
+     1 tok       4 car.   flow_state_context
+    45 tok     179 car.   direct_effect_time_context
+   543 tok    2169 car.   keel_plan_context
+     1 tok       4 car.   plan_snapshot
+     1 tok       2 car.   active_action_candidates_for_direct_effects
+   282 tok    1127 car.   expected_shape
+   805 tok    3220 car.   doctrine_examples
+
+══════════════════════════════════════════════════════════════════════════════
+▌ COMPANION — prompt système d'un tour KEEL (canal web)
+══════════════════════════════════════════════════════════════════════════════
+TOTAL: 14148 car.  ~3537 tokens
+──────────────────────────────────────────────────────────────────────────────
+   800 tok    3199 car.   CORE_COMPANION (+ regles de style/flow)
+   175 tok     699 car.   OUTPUT_STYLE
+    49 tok     193 car.   CHANNEL_OVERLAY
+   415 tok    1657 car.   NORMAL_REPLY_POLICY
+   163 tok     649 car.   LOOP_RECOVERY
+   631 tok    2524 car.   CONTEXT_RULES
+   184 tok     736 car.   TASK_OVERLAYS
+   221 tok     881 car.   SILENCE_AND_REACTIONS
+    18 tok      70 car.   META COMPAGNON (semi-stable)
+   125 tok     498 car.   QUESTION RHYTHM
+    13 tok      50 car.   DERNIERE REPONSE
+    66 tok     264 car.   HISTORIQUE RECENT VISIBLE
+   627 tok    2507 car.   CONTEXTE (volatile)
+    56 tok     221 car.   RESPONSE_LANGUAGE
+
+══════════════════════════════════════════════════════════════════════════════
+▌ TOTAL D'UN TOUR KEEL
+══════════════════════════════════════════════════════════════════════════════
+assemblage legacy (ce qui partait avant): ~28691 tokens
+assemblage KEEL   (ce qui part depuis) : ~20165 tokens
+gain: 8526 tokens (29.7 %) par tour, et le double sur un tour qui déclenche la passe de réparation de couverture composite (elle renvoie le prompt système entier).

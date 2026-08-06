@@ -11,11 +11,13 @@ import {
   doctrineBlockFor,
   loadPublishedDoctrine,
 } from "../_shared/keel/doctrine_loader.ts";
+import { coachNotePromptBlock, loadCoachNote } from "../_shared/keel/coach_note.ts";
 import {
   loadPublishedProtocol,
   protocolBlockFor,
 } from "../_shared/keel/protocol_loader.ts";
 import { loadStudentSafetyConstraints } from "../_shared/keel/safety_constraints.ts";
+import { FOOD_PREFERENCES_KEY } from "../_shared/keel/food_preference_promotion.ts";
 import { dayTokenInZone, daysFrom } from "../_shared/keel/local_date.ts";
 import {
   buildMealPrompt,
@@ -103,6 +105,23 @@ function readPantry(raw: unknown, issues: string[]): PantryItem[] {
  * « recipe level they want: <n'importe quoi> » et le modèle ferait ce qu'il veut
  * de cette phrase. Absent vaut mieux que faux.
  */
+/**
+ * Les préférences alimentaires CONFIRMÉES par l'élève.
+ *
+ * Défensif comme sa voisine: on ne lit que des chaînes non vides, et on plafonne
+ * — une liste qui grossit sans fin finirait par manger le budget de prompt et
+ * pousser la doctrine du coach hors du contexte (le budget tronque par la
+ * queue). Vingt lignes décrivent largement une façon de manger.
+ */
+function readFoodPreferences(pc: Record<string, unknown> | null): string[] {
+  const raw = (pc ?? {})[FOOD_PREFERENCES_KEY];
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((v) => String(v ?? "").trim())
+    .filter(Boolean)
+    .slice(0, 20);
+}
+
 function readCookingCapacity(pc: Record<string, unknown> | null): {
   cookDays: string[];
   cookingTimeMin: number | null;
@@ -235,6 +254,13 @@ Deno.serve(async (req) => {
       .map((b) => String(b.key ?? "").trim())
       .filter(Boolean);
 
+    // --- LA NOTE 1:1 DU COACH SUR CET ÉLÈVE --------------------------------
+    //
+    // Chargée ici pour être injectée AU MÊME RANG que la doctrine, et jamais
+    // au-dessus: elle ne rend aucune clé de conviction, donc `beliefKeys`
+    // reste ce que `doctrineBeliefsFor` a filtré. Ne throw jamais.
+    const coachNote = await loadCoachNote(admin, userId);
+
     // --- LE MAPPING ALIMENTAIRE DU COACH ----------------------------------
     //
     // `coach_food_rules` existait, avec son écran, ses gardes et un compilateur
@@ -306,8 +332,25 @@ Deno.serve(async (req) => {
       );
     }
 
+    // LES MOMENTS D'UNE JOURNÉE NORMALE POUR CET ÉLÈVE — lus UNE fois, et
+    // partagés par le prompt et le parseur.
+    //
+    // Hissé hors de l'appel exprès: le plafond de plats est dérivé de ce rythme
+    // des DEUX côtés (`buildMealPrompt` demande N plats, `parseGeneratedMeal`
+    // en accepte N). Tant que le parseur ne le recevait pas, il retombait sur
+    // trois et rognait en silence la journée d'un élève qui mange cinq fois.
+    //
+    // Un rythme illisible rend `[]`, et les deux côtés retombent alors sur les
+    // trois repas d'avant — ensemble. Une contrainte qu'on ne sait pas lire ne
+    // doit pas produire une journée vide.
+    const eatingRhythm = parseEatingRhythm(
+      (goalRow.practical_constraints as Record<string, unknown> | null)
+        ?.eating_rhythm,
+    );
+
     const { systemPrompt, userMessage } = buildMealPrompt({
       doctrineBlock: doctrineBlockFor(doctrine),
+      coachNoteBlock: coachNotePromptBlock(coachNote),
       protocolBlock,
       beliefKeys,
       goal: String(goalRow.goal ?? "health"),
@@ -320,13 +363,7 @@ Deno.serve(async (req) => {
       pantry,
       todayToken,
       daysToFill,
-      // Un rythme illisible rend `[]`, et `buildMealPrompt` retombe alors sur
-      // les trois repas d'avant. Une contrainte qu'on ne sait pas lire ne doit
-      // pas produire une journée vide.
-      eatingRhythm: parseEatingRhythm(
-        (goalRow.practical_constraints as Record<string, unknown> | null)
-          ?.eating_rhythm,
-      ),
+      eatingRhythm,
       // CE QUE L'ÉLÈVE PEUT VRAIMENT FAIRE. Quatre entrées qui décidaient de
       // tout et que le moteur devinait: le jour de cuisine, le temps, le niveau
       // de recette, le budget. `cooking_time_min` et `budget_band` existaient
@@ -337,6 +374,13 @@ Deno.serve(async (req) => {
       // rempli reçoit exactement la semaine d'hier. C'est ce qui rend l'ajout
       // additif plutôt que régressif.
       ...readCookingCapacity(
+        goalRow.practical_constraints as Record<string, unknown> | null,
+      ),
+      // CE QUE L'ÉLÈVE A CONFIRMÉ sur sa bouffe, promu depuis la conversation.
+      // Passé NOMMÉMENT parce que ce générateur lit des clés nommées: une clé
+      // de plus dans le jsonb y serait invisible (contrairement au plan hebdo,
+      // qui sérialise tout).
+      foodPreferences: readFoodPreferences(
         goalRow.practical_constraints as Record<string, unknown> | null,
       ),
     });
@@ -358,6 +402,10 @@ Deno.serve(async (req) => {
         scope,
         pantry,
         beliefKeys,
+        // LA MÊME VALEUR que celle passée au prompt, et c'est tout l'objet du
+        // `const` hissé au-dessus: relire `practical_constraints` ici rendrait
+        // deux rythmes à tenir d'accord au lieu d'un seul à lire.
+        eatingRhythm,
       });
     } catch (error) {
       return jsonResponse(req, {

@@ -1,6 +1,7 @@
 import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import {
   buildDispatcherPrompt,
+  buildDispatcherSystemPrompt,
   DISPATCHER_V2_SYSTEM_PROMPT,
 } from "./dispatcher.prompts.ts";
 
@@ -1273,5 +1274,156 @@ Deno.test("dispatcher prompt: mention incidente d'un rappel existant = aucun eff
       "jamais infere d'une mention",
     ),
     true,
+  );
+});
+
+// ───────────────────────────────────────────────────────────────────────────
+// ASSEMBLAGE CONDITIONNEL — ce qu'un ELEVE KEEL recoit, et ce qu'il ne recoit
+// plus.
+//
+// Le prompt systeme part INTEGRALEMENT a chaque tour. Il portait la doctrine
+// de trois lanes que `routers.ts` ferme a un eleve de coach
+// (`product_help`, `coaching_recommendation`, `plan_realignment`) et celle
+// d'un effet que KEEL n'utilise pas (`track_progress_plan_item`, regle 3k) —
+// mesure du 06/08: 21 097 tokens de prompt systeme, dont ~6 300 inutilisables
+// sur un tour KEEL, plus ~2 200 d'exemples et de forme attendue cote payload.
+//
+// Ces tests figent les DEUX cotes de la branche. Sans le second, la branche
+// legacy derive en silence et casse le produit grand public, qui tourne
+// encore depuis ce meme code sur un autre projet Supabase.
+// ───────────────────────────────────────────────────────────────────────────
+
+Deno.test("legacy assembly is the exported constant, unchanged", () => {
+  assertEquals(
+    buildDispatcherSystemPrompt({ keelStudent: false }),
+    DISPATCHER_V2_SYSTEM_PROMPT,
+  );
+});
+
+Deno.test("KEEL assembly drops the lanes routers.ts closes to a student", () => {
+  const keel = buildDispatcherSystemPrompt({ keelStudent: true });
+
+  // Doctrine et contrats des trois lanes fermees.
+  assertEquals(keel.includes("Categories coaching_recommendation obligatoires"), false);
+  assertEquals(keel.includes("Contrat coaching_recommendation:"), false);
+  assertEquals(keel.includes("Contrat plan_realignment:"), false);
+  assertEquals(keel.includes("4. skill_signals.product_help seulement si"), false);
+  assertEquals(keel.includes("6. skill_signals.plan_realignment si"), false);
+
+  // Mais les NOMS restent: les anti-faux-positifs de presence y renvoient, et
+  // les leur retirer donnerait au modele un ordre et son contraire.
+  assertEquals(keel.includes("- skill_signals.product_help"), true);
+  assertEquals(
+    keel.includes(
+      "hors product_help, coaching_recommendation, plan_realignment, plan_question ou presence_conversation",
+    ),
+    true,
+  );
+});
+
+Deno.test("KEEL assembly drops track_progress_plan_item and keeps what serves another lane", () => {
+  const keel = buildDispatcherSystemPrompt({ keelStudent: true });
+
+  // Regle 3k: l'effet n'existe pas pour un eleve, et
+  // `active_action_candidates_for_direct_effects` part vide.
+  assertEquals(keel.includes("3. direct_effects.track_progress_plan_item"), false);
+  assertEquals(keel.includes("3d. Payload canonique track_progress_plan_item"), false);
+  assertEquals(keel.includes("3d-bis. payload_hint.date_hint"), false);
+  assertEquals(keel.includes("3d-ter. payload_hint.target_evidence"), false);
+  assertEquals(keel.includes("3h-bis. Correction de CIBLE"), false);
+
+  // Gardees: chacune sert AUSSI une lane ouverte a un eleve.
+  // 3d-ter-bis: deux effets de types distincts dans un tour.
+  assertEquals(keel.includes("3d-ter-bis. DEUX EFFETS DE TYPES DISTINCTS"), true);
+  // 3e: une question de verification / une anti-instruction n'est pas une
+  // ecriture — la regle 3k-a(4) y renvoie explicitement.
+  assertEquals(keel.includes("3e. Une question de verification"), true);
+  // 3g / 3g-ter: reprise d'un create_one_shot_reminder.
+  assertEquals(keel.includes("3g. Si flow_state_context.pending_direct_effect_clarification"), true);
+  assertEquals(keel.includes("3g-ter. Si flow_state_context.pending_safety_deferred_reminder"), true);
+});
+
+Deno.test("KEEL assembly keeps everything a student turn can actually reach", () => {
+  const keel = buildDispatcherSystemPrompt({ keelStudent: true });
+
+  assertEquals(keel.includes("Priorites:"), true);                       // safety
+  assertEquals(keel.includes("2. direct_effects.create_one_shot_reminder"), true);
+  assertEquals(keel.includes("3k. EFFETS DURABLES KEEL"), true);
+  assertEquals(keel.includes("3k-a. log_protocol_event"), true);
+  assertEquals(keel.includes("3k-b. declare_deviation"), true);
+  assertEquals(keel.includes("3k-c. declare_safety_constraint"), true);
+  assertEquals(keel.includes("Contrat plan_question (KEEL"), true);
+  assertEquals(keel.includes("presence_conversation = le user aborde"), true);
+  assertEquals(keel.includes("session_style_commitment_hint est un champ RACINE"), true);
+  assertEquals(keel.includes("memory_plan:"), true);
+});
+
+Deno.test("KEEL assembly leaves no cross-reference to a rule it dropped", () => {
+  const keel = buildDispatcherSystemPrompt({ keelStudent: true });
+  // Les trois renvois que les regles KEEL faisaient vers des regles track.
+  assertEquals(keel.includes("Meme regle qu'en 3d "), false);
+  assertEquals(keel.includes("Effet TRANSVERSE comme en 3c"), false);
+  assertEquals(keel.includes("meme discipline que date_hint en 3d-bis"), false);
+  // Ce que la version legacy dit toujours, elle.
+  assertEquals(DISPATCHER_V2_SYSTEM_PROMPT.includes("Meme regle qu'en 3d "), true);
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("Effet TRANSVERSE comme en 3c"),
+    true,
+  );
+});
+
+Deno.test("KEEL payload ships only the signals and examples a student turn can serve", () => {
+  const args = {
+    user_message: "j'ai fait ma marche de 30 minutes",
+    recent_messages: [],
+    plan_snapshot: null,
+    keel_plan_context: "=== KEEL PLAN ===",
+  };
+  const keel = JSON.parse(
+    buildDispatcherPrompt({ ...args, keel_student: true }),
+  ) as {
+    expected_shape: { skill_signals: Record<string, unknown> };
+    doctrine_examples: Array<{ user_message: string }>;
+  };
+  const legacy = JSON.parse(
+    buildDispatcherPrompt({ ...args, keel_plan_context: null }),
+  ) as {
+    expected_shape: { skill_signals: Record<string, unknown> };
+    doctrine_examples: Array<{ user_message: string }>;
+  };
+
+  assertEquals(Object.keys(keel.expected_shape.skill_signals), [
+    "plan_question",
+    "presence_conversation",
+  ]);
+  assertEquals(Object.keys(legacy.expected_shape.skill_signals), [
+    "product_help",
+    "coaching_recommendation",
+    "plan_realignment",
+    "presence_conversation",
+  ]);
+
+  // « J'ai fait ma marche » enseignait track_progress_plan_item — le cas
+  // exact que la regle 3k-a documente comme non logue 4 fois sur 4 en run
+  // reel cote KEEL. Il ne part plus a un eleve.
+  const keelMessages = keel.doctrine_examples.map((e) => e.user_message);
+  assertEquals(keelMessages.includes("J'ai fait ma marche"), false);
+  assertEquals(keelMessages.includes("C'est quoi une carte de defense ?"), false);
+  assertEquals(keelMessages.includes("j'ai pris mon magnesium"), true);
+  assertEquals(keelMessages.includes("Rappelle-moi demain a 9h d'appeler Paul"), true);
+  assertEquals(keel.doctrine_examples.length, 8);
+  assertEquals(legacy.doctrine_examples.length, 28);
+});
+
+Deno.test("a payload built without the flag stays byte-identical to the legacy one", () => {
+  const args = {
+    user_message: "j'ai fait ma marche",
+    recent_messages: [{ role: "user", content: "salut" }],
+    plan_snapshot: { items: [] },
+    keel_plan_context: null,
+  };
+  assertEquals(
+    buildDispatcherPrompt(args),
+    buildDispatcherPrompt({ ...args, keel_student: false }),
   );
 });

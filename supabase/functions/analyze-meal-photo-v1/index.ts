@@ -38,6 +38,11 @@ import {
   type PlannedDishMatch,
 } from "../_shared/keel/planned_dish_match.ts";
 import { mealTickKey } from "../_shared/keel/meal_tick.ts";
+import {
+  blocksDurableWrite,
+  readLastTurnSafetyBand,
+} from "../_shared/keel/safety_band_io.ts";
+import { CHAT_SCOPE } from "../_shared/chat/delivery.ts";
 
 /**
  * L'AXE DE LA QUESTION PHOTO, dans le vocabulaire UNIFIÉ (§P5.3).
@@ -469,6 +474,10 @@ Deno.serve(async (req) => {
           },
           dishes: plannedContext.dishes.map((d) => d.dish),
           catalogue: plannedContext.catalogue,
+          // Sans elles le plat « Chicken, brown rice and broccoli bowl » n'a
+          // pour ingrédients que brocoli, huile et citron — voir
+          // `PlannedDish.uses`.
+          preparations: plannedContext.preparations,
         });
       }
     } catch (error) {
@@ -609,11 +618,39 @@ Deno.serve(async (req) => {
     // BEST-EFFORT: une coche qui n'part pas ne défait pas une photo analysée.
     // Elle est SILENCIEUSE côté élève dans ce cas — `tickedDishTitle` reste
     // null, donc l'accusé ne prétend rien. Aucun accusé sans effet committé.
+    // LE BAND DE SÉCURITÉ, LU UNE FOIS POUR LES DEUX EFFETS DURABLES de ce
+    // chemin (la coche, puis la question). Il valait `"none"` en dur ici, donc
+    // la garde de `meal_precision` ne pouvait structurellement jamais mordre —
+    // voir `safety_band_io.ts` pour ce que ça a coûté en run réel.
+    const safetyBand = await readLastTurnSafetyBand(admin, {
+      userId: readBack.user_id,
+      scope: CHAT_SCOPE,
+    });
+    const safetyBlocks = blocksDurableWrite(safetyBand);
+    if (safetyBlocks && plannedMatch?.verdict === "confident") {
+      // Tracé, parce qu'une coche retenue est indiscernable d'une coche jamais
+      // proposée si personne ne l'écrit.
+      console.log(JSON.stringify({
+        tag: "planned_dish_tick_withheld_safety",
+        user_id: readBack.user_id,
+        safety_band: safetyBand,
+      }));
+    }
+
     let tickedDishTitle: string | null = null;
+    // L'ID DE LA LIGNE DE COCHE, remonté à l'appelant pour qu'il l'inscrive
+    // dans le flow de correction. Sans lui, « non c'était autre chose » amende
+    // la photo et laisse la coche debout — voir le bloc du flow dans
+    // `meal-photo-upload-v1`.
+    let tickedEventId: string | null = null;
     if (
       plannedMatch?.verdict === "confident" &&
       plannedContext?.mealId &&
-      disqualifiedReason === null
+      disqualifiedReason === null &&
+      // Un tour de crise n'écrit RIEN de durable que l'élève n'a pas demandé.
+      // La photo, elle, reste enregistrée: elle est un geste de l'élève, la
+      // coche est une déduction de la machine. Les deux ne pèsent pas pareil.
+      !safetyBlocks
     ) {
       const dishIndex =
         plannedContext.dishes[plannedMatch.best!.dishIndex]?.dishIndex ?? null;
@@ -647,6 +684,8 @@ Deno.serve(async (req) => {
           // pas une raison de le lui annoncer une seconde fois.
           if (!tick.error && tick.data) {
             tickedDishTitle = plannedMatch.best!.title;
+            tickedEventId = String((tick.data as { id?: unknown }).id ?? "") ||
+              null;
           } else if (tick.error && (tick.error as { code?: string }).code !== "23505") {
             console.warn(JSON.stringify({
               tag: "planned_dish_tick_failed",
@@ -691,7 +730,7 @@ Deno.serve(async (req) => {
           depends_on: [],
           slot_candidates: [],
         },
-        safetyBand: "none",
+        safetyBand,
         futureIntent: false,
         committedEventCount: 1,
         questionsAskedToday: count.count,
@@ -749,6 +788,11 @@ Deno.serve(async (req) => {
       rejected_commitment_ids: analysis.rejected_commitment_ids,
       dropped_measurement_fields: analysis.dropped_measurement_fields,
       issues: analysis.issues,
+      // LA LIGNE DE COCHE, pour que l'appelant l'inscrive dans le flow de
+      // correction. Null quand rien n'a été coché — et l'appelant ne doit
+      // JAMAIS déduire la coche du titre rendu dans l'accusé: seul un id relu
+      // prouve qu'une ligne existe.
+      planned_dish_tick_event_id: tickedEventId,
       // Built from the row the database returned, not from local state.
       recognized: readBack.recognized,
       recognition_confidence: readBack.recognition_confidence,

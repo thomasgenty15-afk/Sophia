@@ -1,0 +1,281 @@
+
+══════════════════════════════════════════════════════════════════════════════
+▌ M1 — BUDGET DES BLOCS INJECTÉS  (tokens estimés à 4 car./token)
+══════════════════════════════════════════════════════════════════════════════
+
+══════════════════════════════════════════════════════════════════════════════
+▌ 1. LE RÉEL — doctrines présentes en base locale
+══════════════════════════════════════════════════════════════════════════════
+  204 doctrine(s).
+
+  publiée │ entrées │ default │  max variante │ écart variantes
+  ────────┼─────────┼─────────┼───────────────┼────────────────
+     oui  │       4 │    1236 │          1236 │              0
+     non  │       0 │     253 │           253 │              0
+     oui  │       0 │     253 │           253 │              0
+     oui  │       0 │     253 │           253 │              0
+     oui  │       0 │     253 │           253 │              0
+     oui  │       0 │     253 │           253 │              0
+     oui  │      15 │    3675 │          3675 │              0
+     oui  │       8 │    1829 │          1829 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │      14 │    2597 │          2597 │              0
+     oui  │       8 │    1829 │          1829 │              0
+     oui  │       8 │    1829 │          1829 │              0
+     oui  │       8 │    1829 │          1829 │              0
+     oui  │       8 │    1829 │          1829 │              0
+     oui  │       8 │    1829 │          1829 │              0
+     oui  │       8 │    1829 │          1829 │              0
+     oui  │       8 │    1829 │          1829 │              0
+     oui  │       8 │    1829 │          1829 │              0
+     oui  │       8 │    1829 │          1829 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       8 │    1829 │          1829 │              0
+     oui  │       8 │    1829 │          1829 │              0
+     oui  │       8 │    1829 │          1829 │              0
+     oui  │       8 │    1829 │          1829 │              0
+     oui  │       8 │    1829 │          1829 │              0
+     oui  │       8 │    1829 │          1829 │              0
+     oui  │       8 │    1829 │          1829 │              0
+     oui  │       3 │    1004 │          1004 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       3 │    1008 │          1008 │              0
+     oui  │       3 │    1008 │          1008 │              0
+     oui  │       3 │    1008 │          1008 │              0
+     oui  │       3 │    1008 │          1008 │              0
+     oui  │       3 │    1008 │          1008 │              0
+     oui  │       3 │    1008 │          1008 │              0
+     oui  │       3 │    1008 │          1008 │              0
+     oui  │       3 │    1008 │          1008 │              0
+     oui  │       2 │     466 │           466 │              0
+     oui  │       3 │    1008 │          1008 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       2 │     466 │           466 │              0
+     oui  │       2 │     466 │           466 │              0
+     oui  │       2 │     466 │           466 │              0
+     oui  │       2 │     466 │           466 │              0
+     oui  │       2 │     466 │           466 │              0
+     oui  │      13 │    4361 │          4361 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       1 │     328 │           328 │              0
+     oui  │       6 │    1379 │          1503 │            124
+     oui  │       9 │    1831 │          1831 │              0
+     non  │       9 │    1590 │          1787 │            197
+     oui  │       6 │    1398 │          1522 │            124
+     oui  │       6 │    1582 │          1582 │              0
+     oui  │      19 │    5363 │          5363 │              0
+     oui  │       2 │     426 │           426 │              0
+     oui  │       8 │    1939 │          1939 │              0
+     oui  │       8 │    1939 │          1939 │              0
+     oui  │       1 │     445 │           445 │              0
+     oui  │       1 │     445 │           445 │              0
+     oui  │       1 │     445 │           445 │              0
+     oui  │      14 │    3222 │          3591 │            369
+     oui  │       9 │    2746 │          2910 │            164
+     oui  │       9 │    2747 │          2911 │            164
+     oui  │       9 │    2747 │          2911 │            164
+     oui  │       9 │    2747 │          2911 │            164
+     oui  │       9 │    2747 │          2911 │            164
+     oui  │       9 │    2747 │          2911 │            164
+     oui  │       9 │    2747 │          2911 │            164
+     oui  │       9 │    2747 │          2911 │            164
+     oui  │       0 │     376 │           376 │              0
+     oui  │       5 │     921 │          1526 │            605
+     oui  │       9 │    2747 │          2911 │            164
+     oui  │       9 │    2746 │          2910 │            164
+     oui  │       9 │    2746 │          2910 │            164
+     oui  │       9 │    2747 │          2911 │            164
+     oui  │       9 │    2746 │          2910 │            164
+     oui  │       9 │    2747 │          2911 │            164
+     oui  │       0 │     376 │           376 │              0
+     oui  │       3 │     376 │           608 │            232
+     oui  │       9 │    2747 │          2911 │            164
+     oui  │       9 │    2746 │          2910 │            164
+     oui  │       0 │     376 │           376 │              0
+     oui  │       9 │    2747 │          2911 │            164
+     oui  │       9 │    2747 │          2911 │            164
+     oui  │       9 │    2746 │          2910 │            164
+     oui  │       9 │    2747 │          2911 │            164
+     oui  │       9 │    2746 │          2910 │            164
+
+  → la plus grosse doctrine réelle en local: 5,363 car. ≈ 1,341 tok.
+  ⚠️  ce sont des FIXTURES de QA (1 à 4 entrées par section). Ce chiffre est
+     un plancher, pas une projection. La suite modélise le vrai coach.
+
+══════════════════════════════════════════════════════════════════════════════
+▌ 2. LE COÛT DE STRUCTURE — ce que le compilateur ajoute par lui-même
+══════════════════════════════════════════════════════════════════════════════
+  En-tête fixe (doctrine sans aucune entrée) : 363 car. ≈ 91 tok.
+
+  Scaffolding par entrée, hors texte du coach :
+    beliefs           6.0 car.
+    forbidden        54.0 car.
+    vocabulary        7.0 car.
+    arbitrations     29.0 car.
+    foods            15.0 car.
+    qa               12.0 car.
+
+  → Lecture: le bloc ≈ en-tête fixe + TOUT ce que le coach a écrit +
+    ~une poignée de caractères par entrée. Le compilateur ne compresse
+    RIEN. Ce n'est pas un défaut — c'est le contrat « lock 1: INJECTED ».
+    Mais ça veut dire que le budget de prompt suit l'écriture du coach,
+    linéairement, et qu'aucune borne n'existe entre les deux.
+
+══════════════════════════════════════════════════════════════════════════════
+▌ 3. LA PROJECTION — ce que pèse le bloc selon ce que le coach a écrit
+══════════════════════════════════════════════════════════════════════════════
+  scénario                       │ entrées │ bloc compilé
+  ───────────────────────────────┼─────────┼──────────────────────────
+  Interview seule                │      25 │ 5,310 car. ≈ 1,328 tok.
+    les 11 réponses de /coach/doctrine, remplies sérieusement
+  Interview + 1 ebook            │     122 │ 39,936 car. ≈ 9,984 tok.
+    un PDF de ~120 p. extrait par-dessus l'interview (fusion, pas remplacement)
+  Coach installé, 3 documents    │     350 │ 119,243 car. ≈ 29,811 tok.
+    ebook + FAQ + transcription de conférence, fusionnés; rien n'est jamais retiré
+
+  Seuils, en faisant croître le profil « ebook » à l'identique :
+      2000 tok. franchis à ~23 entrées (18 % d'un ebook de ce format)
+      5000 tok. franchis à ~62 entrées (50 % d'un ebook de ce format)
+     10000 tok. franchis à ~124 entrées (102 % d'un ebook de ce format)
+     30000 tok. franchis à ~374 entrées (306 % d'un ebook de ce format)
+
+  Rappel de multiplication: ce bloc est injecté sur TROIS chemins
+  (conversation, generate-week-plan-v1, generate-meal-v1), à CHAQUE
+  appel, pour CHAQUE élève du coach. À 9,984 tokens, un coach de 30 élèves
+  qui parlent 5 fois par jour paie 1.5 M tokens d'entrée par jour sur la seule
+  conversation — avant tout ce que l'élève a écrit.
+
+══════════════════════════════════════════════════════════════════════════════
+▌ 4. LES PLAFONDS — ce qui est borné aujourd'hui
+══════════════════════════════════════════════════════════════════════════════
+  Mapping alimentaire, TOUS les groupes couverts (30) : 4,832 car. ≈ 1,208 tok.
+    → BORNÉ par construction: le vocabulaire est fermé, un coach ne peut
+      pas inventer un 31e groupe. Et ce bloc n'atteint que generate-meal-v1.
+
+  Note 1:1 du coach, au plafond (1500 car.) : 2,121 car. ≈ 530 tok.
+    → BORNÉ par un CHECK en base.
+
+  Doctrine : AUCUN plafond.
+    · pas de CHECK en base (`coach_doctrines` porte du jsonb nu)
+    · pas de cap dans `parseCoachDoctrine`
+    · pas de cap dans `parseDocumentExtraction` — un PDF de 120 pages
+      peut rendre autant d'entrées que le modèle en trouve
+    · la fusion documentaire AJOUTE et ne retire jamais
+

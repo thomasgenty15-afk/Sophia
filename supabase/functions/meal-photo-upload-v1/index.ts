@@ -16,11 +16,15 @@ import {
   serverError,
   z,
 } from "../_shared/http.ts";
-import { resolveResponseLocale } from "../_shared/keel/locale.ts";
+import { resolveArtifactLocale } from "../_shared/keel/locale.ts";
 import { parseSlotKey } from "../_shared/keel/tokens.ts";
 import { CHAT_SCOPE, deliverChatMessage } from "../_shared/chat/delivery.ts";
 import { claimInbound } from "../_shared/chat/inbound_pipeline.ts";
 import { openMealPrecisionFlow } from "../_shared/keel/meal_precision_flow.ts";
+import {
+  blocksDurableWrite,
+  readLastTurnSafetyBand,
+} from "../_shared/keel/safety_band_io.ts";
 import { openMealPrecisionFlowState } from "../_shared/keel/meal_precision_flow_state.ts";
 import { protocolEventComponentKey } from "../_shared/keel/protocol_event_key.ts";
 import { studentBindingIn } from "../_shared/keel/meal_analysis.ts";
@@ -513,20 +517,29 @@ Deno.serve(async (req) => {
       throw new Error(`plan_versions read failed: ${planRead.error.message}`);
     }
     const planVersion = planRead.data as { id: string; timezone: string } | null;
-    let timezone = String(planVersion?.timezone ?? "").trim();
-    if (!timezone) {
-      const profileRead = await admin
-        .from("profiles")
-        .select("timezone")
-        .eq("id", userId)
-        .maybeSingle();
-      if (profileRead.error) {
-        throw new Error(`profiles read failed: ${profileRead.error.message}`);
-      }
-      timezone = String(
-        (profileRead.data as { timezone?: unknown } | null)?.timezone ?? "",
-      ).trim();
+    // R2 — la lecture du profil est devenue INCONDITIONNELLE, et c'est un coût
+    // assumé (un aller-retour de plus quand le plan porte déjà son fuseau).
+    // Elle ne servait qu'au repli de fuseau; il lui faut maintenant aussi la
+    // locale, parce que la ligne écrite plus bas porte de la prose
+    // (`student_note`, les mots de l'élève) et que R2 interdit une colonne dont
+    // la langue devrait être devinée après coup. La valeur précédente était
+    // `resolveResponseLocale({})`, c'est-à-dire « en-US » pour tout le monde:
+    // une langue déclarée que personne n'avait déclarée.
+    const profileRead = await admin
+      .from("profiles")
+      .select("timezone, locale")
+      .eq("id", userId)
+      .maybeSingle();
+    if (profileRead.error) {
+      throw new Error(`profiles read failed: ${profileRead.error.message}`);
     }
+    const profileRow = profileRead.data as
+      | { timezone?: unknown; locale?: unknown }
+      | null;
+    // `let` et non `const`: le repli UTC ci-dessous RÉASSIGNE cette variable.
+    let timezone = String(planVersion?.timezone ?? "").trim() ||
+      String(profileRow?.timezone ?? "").trim();
+    const studentProfileLocale = String(profileRow?.locale ?? "").trim() || null;
     if (!timezone) {
       // Ni plan ni profil: on ne SAIT pas quel jour il est pour cet élève. UTC
       // est le seul repli honnête — c'est « on ne sait pas » et non « il vit à
@@ -661,6 +674,38 @@ Deno.serve(async (req) => {
             requestId,
           });
           if (claim.status === "fresh") {
+            // LA BULLE DE L'ÉLÈVE, comme sur le chemin frais.
+            //
+            // ── LE DÉFAUT MESURÉ 3/3 LE 2026-08-05 ──────────────────────────
+            // Cette branche livrait l'accusé SANS insérer la ligne `role:'user'`
+            // que le chemin frais écrit. Pendant la session l'aperçu local
+            // (`createObjectURL`) masquait le trou; après rechargement il ne
+            // restait que « I already have that photo… » suspendu au-dessus de
+            // rien. Un élève qui renvoie sa photo le fait presque toujours
+            // parce qu'il n'a pas vu la première partir — lui répondre à propos
+            // d'une image qu'il ne voit pas est la pire réponse possible.
+            await admin.from("chat_messages").insert({
+              user_id: userId,
+              scope: CHAT_SCOPE,
+              role: "user",
+              content: String(body.student_note ?? "").trim() || "[photo]",
+              metadata: {
+                channel: "in_app",
+                kind: "media",
+                client_message_id: body.chat_client_message_id,
+                // Le chemin DÉJÀ stocké, pas un nouvel upload: c'est la même
+                // image, et la dédupliquer côté storage est justement l'objet
+                // de cette branche.
+                media_ref: {
+                  path: priorPath,
+                  content_type: sniffed,
+                  size_bytes: bytes.length,
+                },
+                request_id: requestId,
+                duplicate_of: String(priorRow.id ?? ""),
+              },
+            } as never);
+
             const res = await deliverChatMessage(admin, {
               userId,
               content:
@@ -755,9 +800,15 @@ Deno.serve(async (req) => {
       // the food group when exactly one detected group is on the day's plan.
       food_group_ref: null,
       student_note: body.student_note ?? null,
-      // R2: every row carrying prose states its language. R3: the locale comes
-      // from the single resolver, never hardcoded at a call site.
-      content_locale: resolveResponseLocale({}),
+      // R2: every row carrying prose states its language. R3: this row is a
+      // stored ARTEFACT, not a reply — it takes `resolveArtifactLocale`, never
+      // `resolveResponseLocale`. Conflating the two is the collapse R3 forbids:
+      // the thread's answer language and the language a student typed their
+      // note in are not the same fact.
+      content_locale: resolveArtifactLocale({
+        studentProfile: studentProfileLocale,
+        tenantDefault: null,
+      }),
       evidence_weight: PHOTO_EVIDENCE_WEIGHT,
       // L'empreinte des octets. C'est elle que `protocol_events_media_dedup_idx`
       // contraint: à partir d'ici, deux envois du même fichier le même jour ne
@@ -999,7 +1050,28 @@ Deno.serve(async (req) => {
           null;
       const disqualified =
         (eventRow as { disqualified_reason?: unknown }).disqualified_reason ?? null;
-      if (recognized && disqualified === null) {
+      // LA CRISE FERME LA PORTE AVANT DE L'OUVRIR.
+      //
+      // `reduceMealPrecisionFlow` sort déjà d'un flow ouvert quand le band
+      // n'est pas `none` — mais ici on OUVRAIT sans jamais regarder le band,
+      // mesuré 6/6 le 2026-08-06. Le dégât restait borné (le reducer sortait au
+      // tour suivant), et c'est exactement le genre d'écart qui rend une garde
+      // décrite mais absente: `safety_band_io.ts` affirmait que cette ouverture
+      // était gatée, elle ne l'était pas.
+      //
+      // On ne demande pas à quelqu'un en détresse s'il a mis de l'huile.
+      const safetyBandNow = await readLastTurnSafetyBand(admin, {
+        userId,
+        scope: CHAT_SCOPE,
+      });
+      if (blocksDurableWrite(safetyBandNow)) {
+        console.log(JSON.stringify({
+          tag: "meal_precision_flow_not_opened_safety",
+          user_id: userId,
+          safety_band: safetyBandNow,
+        }));
+      }
+      if (recognized && disqualified === null && !blocksDurableWrite(safetyBandNow)) {
         const foods = Array.isArray(recognized.detected_foods)
           ? (recognized.detected_foods as Array<Record<string, unknown>>)
             .map((f) => String(f?.label ?? "").trim())
@@ -1009,12 +1081,35 @@ Deno.serve(async (req) => {
           ? recognized.clarifying_question
           : null;
         const now = new Date();
+        // LA COCHE FAIT PARTIE DE CE QUI EST CORRIGIBLE.
+        //
+        // ── LE DÉFAUT MESURÉ 4/4 LE 2026-08-05 ────────────────────────────
+        // Le flow ne portait que la ligne PHOTO. La coche automatique est une
+        // ligne `quick_tap` distincte, écrite par `analyze-meal-photo-v1`, et
+        // `amendMealPrecisionEvents` ne touche que `eventIds`. Résultat: à
+        // « non, c'était autre chose », Sophia répondait « alors la ligne du
+        // poulet ne s'applique pas » — et la coche restait, non disqualifiée,
+        // continuant de nourrir la couverture que le coach lit. Un accusé de
+        // rétractation sans ligne derrière lui: exactement le défaut d'accusé
+        // fantôme que ce dépôt paie en boucle, à l'envers.
+        //
+        // On lit l'ID RELU rendu par l'analyse, jamais le titre de l'accusé:
+        // seul un id prouve qu'une ligne existe.
+        const tickEventId = String(
+          (analysis as { planned_dish_tick_event_id?: unknown } | null)
+            ?.planned_dish_tick_event_id ?? "",
+        ).trim();
         const opened = await openMealPrecisionFlowState(admin, {
           userId,
           scope: CHAT_SCOPE,
           flow: openMealPrecisionFlow({
             source: "photo",
             eventIds: [eventId],
+            // LISTE SÉPARÉE, pas un second `eventId`: `targetAmbiguous` se
+            // calcule sur `eventIds`, et y verser la coche ferait passer toute
+            // photo cochée pour une cible ambiguë — le crédit cesserait alors
+            // d'être effacé sur correction. Mesuré 3/3.
+            tickEventIds: tickEventId ? [tickEventId] : [],
             // L'IDENTITÉ DÉJÀ ÉCRITE, calculée par la MÊME fonction que
             // l'écriture texte. C'est ce qui empêchera « oui, du poulet grillé »
             // de refaire un poulet: la réponse à la question de précision ne

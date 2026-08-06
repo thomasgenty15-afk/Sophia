@@ -1,11 +1,13 @@
 import { assert, assertEquals } from "jsr:@std/assert@^1.0.0";
 import {
+  buildMealPrompt,
   DEFAULT_EATING_RHYTHM,
   dishCapFor,
   EATING_OCCASIONS,
   MEAL_SLOTS,
   occasionList,
   parseEatingRhythm,
+  parseGeneratedMeal,
 } from "./meal_generation.ts";
 
 // ===========================================================================
@@ -88,6 +90,72 @@ Deno.test("le plafond suit le rythme, et ne bouge pas sans lui", () => {
   // qui n'a rien rempli reçoit la semaine d'avant, au plat près.
   assertEquals(dishCapFor("several_days", []), dishCapFor("several_days"));
   assertEquals(dishCapFor("day", []), dishCapFor("day"));
+
+  // ET LE REPLI EST LE RYTHME PAR DÉFAUT, PAS UN NOMBRE ÉCRIT À CÔTÉ.
+  // Le repli était une paire de constantes (4 et 21) posées près d'un défaut
+  // qui compte trois moments. Elles ont divergé le 2026-08-05: `day` est passé
+  // à 4 pendant que `DEFAULT_EATING_RHYTHM` restait à 3, et le prompt s'est mis
+  // à demander trois plats tout en en acceptant quatre.
+  assertEquals(dishCapFor("day"), DEFAULT_EATING_RHYTHM.length);
+  assertEquals(dishCapFor("several_days"), DEFAULT_EATING_RHYTHM.length * 7);
+});
+
+Deno.test("le plafond du PROMPT et celui du PARSEUR ne peuvent pas diverger", () => {
+  // LE DÉFAUT QUE CE TEST GARDE, et que le test ci-dessus ne voyait pas.
+  // `dishCapFor` suivait déjà le rythme — mais `parseGeneratedMeal` ne le
+  // RECEVAIT pas. Un élève à cinq repas obtenait donc une consigne pour cinq
+  // plats et un parseur qui en gardait trois: les deux derniers tombaient APRÈS
+  // génération, sans que rien ne le dise. Une garde prouvée sur la fonction et
+  // jamais sur le câblage.
+  const five = parseEatingRhythm(
+    ["breakfast", "snack_am", "lunch", "snack_pm", "dinner"].map((slot) => ({ slot })),
+  );
+
+  const { userMessage } = buildMealPrompt({
+    doctrineBlock: "== METHOD ==",
+    coachNoteBlock: null,
+    protocolBlock: "",
+    beliefKeys: [],
+    goal: "health",
+    situation: null,
+    context: null,
+    mode: "to_shop",
+    scope: "day",
+    slot: null,
+    servings: 1,
+    pantry: [],
+    todayToken: "mon",
+    eatingRhythm: five,
+  });
+
+  // Ce que la consigne DEMANDE, et ce que le parseur ACCEPTE: le même nombre,
+  // lu par la même fonction avec la même entrée.
+  assert(userMessage.includes("5"));
+  assertEquals(dishCapFor("day", five), 5);
+
+  const meal = parseGeneratedMeal(
+    {
+      dishes: Array.from({ length: 5 }, (_, i) => ({
+        title: `dish ${i + 1}`,
+        slot: "lunch",
+        day: "mon",
+        ingredients: [{ term: "rice", quantity: "100 g" }],
+        method: ["cook it"],
+      })),
+      shopping_list: [],
+    },
+    {
+      doctrine: null,
+      safetyConstraints: [],
+      mode: "to_shop",
+      scope: "day",
+      pantry: [],
+      beliefKeys: [],
+      eatingRhythm: five,
+    },
+  );
+  assertEquals(meal.dishes.length, 5);
+  assert(!meal.issues.some((i) => i.includes("cap")));
 });
 
 Deno.test("la consigne nomme SES moments, en prose", () => {

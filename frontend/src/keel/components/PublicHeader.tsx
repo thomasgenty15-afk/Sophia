@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import { t } from "../i18n/t";
 import { ButtonLink } from "./ui/Button";
 
@@ -20,6 +21,18 @@ export function PublicHeader({
 }: {
   audience?: "coach" | "student";
 } = {}) {
+  // ── UNE PAGE PUBLIQUE PEUT ÊTRE LUE PAR QUELQU'UN DE CONNECTÉ ───────────────
+  // `/legal` est dans la nav du shell, des deux côtés. Un élève qui la tapait
+  // atterrissait donc sur cet en-tête, c'est-à-dire sur « Sign in » et « Start
+  // free trial » — proposés à quelqu'un qui EST connecté — et sans un seul
+  // chemin de retour vers `/app`. Le mot de la marque menait bien à `/`, mais
+  // rien ne disait que c'était la sortie, et deux boutons disaient le contraire.
+  //
+  // La destination reste `/`: la landing route déjà un visiteur connecté vers
+  // SON espace (`resolveHomePath`). Pas de second résolveur ici — un aller-retour
+  // de plus, et un deuxième endroit où se tromper de porte.
+  const { user } = useAuth();
+
   // Public KEEL pages are English; the legacy index.html declares lang="fr".
   // The landing corrects both through SEO; this covers pages without it (join).
   React.useEffect(() => {
@@ -47,14 +60,27 @@ export function PublicHeader({
           >
             {t("public.header.legal")}
           </Link>
-          <ButtonLink to="/auth" variant={audience === "student" ? "secondary" : "ghost"}>
-            {t("public.header.sign_in")}
-          </ButtonLink>
-          {audience === "coach" && (
-            <ButtonLink to="/auth?role=coach" variant="primary">
-              {t("public.header.start_trial")}
-            </ButtonLink>
-          )}
+          {user
+            ? (
+              <ButtonLink to="/" variant="primary">
+                {t("public.header.back_to_app")}
+              </ButtonLink>
+            )
+            : (
+              <>
+                <ButtonLink
+                  to="/auth"
+                  variant={audience === "student" ? "secondary" : "ghost"}
+                >
+                  {t("public.header.sign_in")}
+                </ButtonLink>
+                {audience === "coach" && (
+                  <ButtonLink to="/auth?role=coach" variant="primary">
+                    {t("public.header.start_trial")}
+                  </ButtonLink>
+                )}
+              </>
+            )}
         </nav>
       </div>
     </header>

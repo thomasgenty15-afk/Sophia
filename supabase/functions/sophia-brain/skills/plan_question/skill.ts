@@ -131,8 +131,11 @@ export function resolvePlanQuestion(input: {
 }
 
 function runtimeOf(input: RunSkillInput): PlanQuestionSkillRuntime {
-  // deno-lint-ignore no-explicit-any
-  const runtime = (input.context as any)?.plan_question_runtime as
+  // Le champ est déclaré `unknown` sur `SkillContext` (canal de runtime): la
+  // vérification ci-dessous EST la validation, pas une formalité. Elle lisait
+  // auparavant `(input.context as any)`, ce qui désarmait le typecheck sur
+  // l'objet entier au lieu du seul champ.
+  const runtime = input.context.plan_question_runtime as
     | PlanQuestionSkillRuntime
     | undefined;
   if (!runtime || typeof runtime !== "object") {

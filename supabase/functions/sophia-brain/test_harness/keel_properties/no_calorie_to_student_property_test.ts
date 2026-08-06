@@ -302,6 +302,12 @@ Deno.test("PROPERTY: the photo acknowledgement never carries a quantity, over th
               binding,
               credit: null,
               commitmentTitles: titles,
+              // ROUGE PREEXISTANT (hors chantier i18n): `hasPrescription` et
+              // `tickedDish` sont REQUIS depuis que le rendu a cesse de deduire
+              // « pas de prescription » d'un `commitmentTitles` vide. Les deux cas
+              // ici portent une prescription et ne cochent rien.
+              hasPrescription: true,
+              tickedDish: null,
               locale: "en",
             });
             combinations += 1;
@@ -342,6 +348,8 @@ Deno.test("PROPERTY: an ambiguous plate credits nothing and says so", () => {
     binding,
     credit: null,
     commitmentTitles: { c1: "Fatty fish 3x per week", c2: "Protein at every main meal" },
+    hasPrescription: true,
+    tickedDish: null,
     locale: "en",
   });
   assertEquals(text.includes("Counted toward"), false, text);

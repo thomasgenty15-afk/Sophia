@@ -27,6 +27,7 @@ function candidate(over: Partial<ReengageCandidate> = {}): ReengageCandidate {
     userId: "s1",
     phoneNumber: "+447700900001",
     firstName: "Iris",
+    profileLocale: null,
     lastInboundAt: new Date(NOW.getTime() - 90 * 3600_000).toISOString(),
     localHour: 10,
     timezone: "Europe/Paris",
@@ -371,6 +372,7 @@ Deno.test("pas de coach ⇒ repli, sans jamais consulter le modèle", async () =
     userId: "s1",
     firstName: "Iris",
     tone: "gentle",
+    contentLocale: "en-US",
   });
 
   assertEquals(out.source, "fallback");
@@ -390,6 +392,7 @@ Deno.test("une lecture de doctrine qui explose ne fait pas taire la relance", as
     userId: "s1",
     firstName: "Iris",
     tone: "gentle",
+    contentLocale: "en-US",
   });
 
   assertEquals(out.source, "fallback");

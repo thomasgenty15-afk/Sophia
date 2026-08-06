@@ -10,8 +10,7 @@ import {
   Mail,
   Bell,
   Check,
-  ChevronRight,
-  Gift
+  ChevronRight
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -372,15 +371,15 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
             <button onClick={() => setActiveTab('settings')} className={`${styles.sidebarItem(activeTab === 'settings')} justify-center min-[350px]:justify-start`}>
               <Settings className="w-4 h-4" /> Options
             </button>
-            <button
-              onClick={() => {
-                onClose();
-                navigate('/parrainage');
-              }}
-              className={`${styles.sidebarItem(false)} justify-center min-[350px]:justify-start`}
-            >
-              <Gift className="w-4 h-4" /> Referral
-            </button>
+            {/* L'ONGLET « REFERRAL » A ÉTÉ RETIRÉ ICI (2026-08-05).
+                Il appelait `navigate('/parrainage')`, une route DÉMONTÉE avec le
+                produit grand public (W2.A): le seul effet du bouton était de
+                fermer le panneau et d'envoyer sur la page « introuvable ». Il
+                était en plus le quatrième d'une rangée qui ne tient pas dans un
+                téléphone — mesuré à 375 px, il commençait à x=366, donc hors
+                écran, ce qui est la seule raison pour laquelle personne ne
+                l'avait signalé.
+                Le jour où le parrainage revient, il revient avec sa route. */}
           </div>
 
           {/* CONTENT SCROLLABLE */}
@@ -405,7 +404,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                   <div>
                     <label className={`block text-xs font-medium mb-1.5 ${isArchitect ? "text-emerald-400" : "text-slate-500"}`}>Email</label>
                     <div className="relative">
-                      <input type="email" defaultValue={displayEmail} className={styles.input} readOnly />
+                      {/* `pr-10`: la coche verte est posée en absolu SUR le
+                          champ. Sans réserve à droite, une adresse un peu longue
+                          passe dessous et se termine derrière l'icône — visible
+                          sur un téléphone dès qu'on dépasse ~28 caractères. */}
+                      <input type="email" defaultValue={displayEmail} className={`${styles.input} pr-10`} readOnly />
                       <div className={`absolute right-3 top-3 ${isArchitect ? "text-emerald-500" : "text-emerald-600"}`}>
                         <Check className="w-4 h-4" />
                       </div>

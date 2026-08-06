@@ -224,6 +224,28 @@ const Auth = () => {
   }, [codeParam, view, confirmationPending, navigate]);
 
   // ---------------------------------------------------------------------------
+  // ROUTING HOME AFTER A SUCCESSFUL SIGN-IN
+  // ---------------------------------------------------------------------------
+  // `resolveHomePath` answers `null` when it could read NEITHER role row — the
+  // backend is unreachable. Navigating anyway means sending someone to a page
+  // that cannot load either, which is how a student once ended up staring at
+  // the legacy consumer account shell with every field blank.
+  //
+  // Here the stakes are specific: the credentials were ACCEPTED a moment ago.
+  // If we said nothing, or reused a generic error, the user's only reading is
+  // "my password is wrong" — and they would start resetting an account that is
+  // perfectly fine. So the message names what happened, and we stay on /auth,
+  // which is a screen with a button they can press again.
+  const navigateHome = async (userId: string): Promise<void> => {
+    const home = await resolveHomePath(userId);
+    if (home === null) {
+      setError(keelT("server_unreachable.after_signin"));
+      return;
+    }
+    navigate(home);
+  };
+
+  // ---------------------------------------------------------------------------
   // POST-SIGNUP FLOW (shared between polling, manual check, and handleAuth)
   // ---------------------------------------------------------------------------
   const runPostSignupFlow = async (userId: string) => {
@@ -270,7 +292,7 @@ const Auth = () => {
     if (redirectTo) {
       navigate(redirectTo);
     } else {
-      navigate(await resolveHomePath(userId));
+      await navigateHome(userId);
     }
   };
 
@@ -594,16 +616,17 @@ const Auth = () => {
               // "already used" refusal — an error screen at the exact moment of
               // success, and it re-stores the spent token. The destination of a
               // successful join is the student's own space.
-              navigate(await resolveHomePath(data.user.id));
+              await navigateHome(data.user.id);
             } else if (redirectTo) {
               navigate(redirectTo);
             } else {
               // KEEL — route by the user's REAL role, read from the database:
               // active coaches row -> /coach, keel_role='student' -> /app/today,
-              // anything else (the legacy French consumer) -> /dashboard.
-              // The resolver fails safe to /dashboard; the route guards and RLS
-              // remain the actual boundary on arrival.
-              navigate(await resolveHomePath(data.user.id));
+              // read but neither -> /account. The resolver fails SAFE on a row
+              // it cannot read, and fails LOUD when it could read nothing at
+              // all; the route guards and RLS remain the actual boundary on
+              // arrival.
+              await navigateHome(data.user.id);
             }
         }
       }

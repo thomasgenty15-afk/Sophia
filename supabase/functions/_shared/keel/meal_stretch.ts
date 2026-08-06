@@ -115,10 +115,29 @@ export function dishesForDate<T extends StretchableDish>(args: {
   /** `created_at` de la composition, en date locale de l'élève. */
   startDate: string;
   onDate: string;
+  /**
+   * Un plat SANS jour (`day: null`) tombe-t-il le jour demandé ?
+   *
+   * ── LE DÉFAUT MESURÉ LE 2026-08-05, ET POURQUOI LE DÉFAUT EST `false` ────
+   * `dishDate(null, …)` rend le `fallback`, c'est-à-dire le jour demandé. Un
+   * plat sans jour tombe donc TOUS les jours — et comme le chargeur prend la
+   * dernière composition sans borne d'âge, une composition du 15 juillet
+   * cochait automatiquement aujourd'hui, `confident` 3/3. Ce n'est pas
+   * théorique: **9 plats réels de la base** portent `day: null`, tous issus de
+   * compositions `scope='day'` (« génère-moi un repas »). Ils étaient
+   * éternellement rapprochables.
+   *
+   * Le repli reste JUSTE pour rapporter (l'élève qui coche à la main un plat
+   * sans jour le rapporte le jour où il le fait). Il est FAUX pour rapprocher
+   * sans demander: un plat qui ne vise aucun jour ne peut pas servir de preuve
+   * qu'on l'a mangé aujourd'hui plutôt qu'il y a trois semaines.
+   */
+  includeUndated?: boolean;
 }): Array<DishOnDate<T>> {
   const dates = stretchDates(args.startDate);
   const out: Array<DishOnDate<T>> = [];
   args.dishes.forEach((dish, dishIndex) => {
+    if (!args.includeUndated && !String(dish.day ?? "").trim()) return;
     const date = dishDate(dish.day, dates, args.onDate);
     if (date === args.onDate) out.push({ dish, dishIndex, date });
   });

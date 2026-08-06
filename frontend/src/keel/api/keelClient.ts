@@ -24,6 +24,36 @@ import type {
   WeeklyReviewRow,
 } from "./types";
 
+/**
+ * Le MOTIF NOMMÉ d'un échec de `supabase.functions.invoke`, ou `null`.
+ *
+ * Sans ça, un 409 métier remonte comme « Edge Function returned a non-2xx
+ * status code » — une phrase qui n'apprend rien à personne et qui efface la
+ * seule information utile. Nos fonctions edge répondent toutes
+ * `{ error, detail }`; ce lecteur va le chercher dans le corps que
+ * `FunctionsHttpError` transporte.
+ *
+ * ⚠️ DUPLIQUÉ, EN CONNAISSANCE DE CAUSE. `mealGeneration.ts` porte une copie
+ * privée identique. Elle n'a PAS été factorisée ici parce que ce fichier est en
+ * cours de modification par un autre chantier au moment où celui-ci est écrit,
+ * et qu'un conflit sur un helper vaut moins qu'une duplication de quinze
+ * lignes. À fusionner quand l'autre chantier a atterri — c'est de la mécanique,
+ * pas une règle métier, donc la divergence ne peut rien casser en silence.
+ */
+export async function readInvokeError(error: unknown): Promise<string | null> {
+  const context = (error as { context?: unknown })?.context;
+  if (!context || typeof (context as Response).json !== "function") return null;
+  try {
+    const body = await (context as Response).json();
+    const named = String((body as Record<string, unknown>)?.error ?? "").trim();
+    const detail = String((body as Record<string, unknown>)?.detail ?? "").trim();
+    if (!named) return null;
+    return detail ? `${named}: ${detail}` : named;
+  } catch {
+    return null;
+  }
+}
+
 const COMMITMENT_COLUMNS =
   "id, plan_version_id, title, student_instruction, content_locale, polarity, " +
   "activity_class, anchor_kind, slot_key, clock_local, window_start_local, " +

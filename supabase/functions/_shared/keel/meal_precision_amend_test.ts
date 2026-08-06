@@ -73,8 +73,16 @@ Deno.test("intent: sous le seuil de confiance, on retombe sur le comportement d'
 });
 
 Deno.test("intent: `answers_question` est refusé quand aucune question n'a été posée", async () => {
-  // Un élève ne peut pas répondre à une question qu'on ne lui a pas posée.
-  // Sans cette garde, un modèle complaisant ferme un flow sur une hallucination.
+  // Un élève ne peut pas répondre à une question qu'on ne lui a pas posée: le
+  // jeton ne survit JAMAIS tel quel sans question. Cette garde-là n'a pas bougé.
+  //
+  // Ce qui a changé le 2026-08-06, c'est la DESTINATION. Il retombait sur
+  // `unknown` (donc `stay`, donc rien d'écrit), faute d'un jeton portant
+  // « l'élève est d'accord ». Or l'accusé sans question n'est pas muet: il
+  // annonce une hypothèse et invite à la corriger — « oui » y est une
+  // CONFIRMATION, pas une incertitude. Et comme `clarifying_question` est NULL
+  // sur 100 % des lignes photo, c'était le cas NOMINAL qui tombait dans
+  // `unknown`: la condition de désarmement du décochage était inatteignable.
   const got = await classifyMealPrecisionIntent({
     source: "photo",
     question: null,
@@ -82,7 +90,7 @@ Deno.test("intent: `answers_question` est refusé quand aucune question n'a ét�
     inboundText: "oui",
     llmRunner: runner("answers_question", 0.99),
   });
-  assertEquals(got.intent, "unknown");
+  assertEquals(got.intent, "confirms_declaration");
 });
 
 Deno.test("intent: le modèle ne peut PAS prétendre qu'une photo est arrivée", async () => {

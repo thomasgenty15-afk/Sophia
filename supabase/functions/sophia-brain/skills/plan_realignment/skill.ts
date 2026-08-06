@@ -204,6 +204,7 @@ export async function runPlanRealignmentSkill(
   );
   const reply = await visibleAgent({
     user_id: input.context.user_id,
+    response_locale: input.context.response_locale,
     request_id: (input.context.turn_frame as any)?.source_message_id ?? null,
     stage: reduced.visible_task,
     visible_runtime_context: visibleRuntimeContext(input, isFlowEntry),

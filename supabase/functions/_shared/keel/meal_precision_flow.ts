@@ -92,6 +92,23 @@ export interface MealPrecisionFlowState {
    */
   eventIds: string[];
   /**
+   * LES COCHES AUTOMATIQUES écrites pour ce repas — séparées d'`eventIds`, et
+   * la séparation est le point.
+   *
+   * ── POURQUOI PAS DANS `eventIds` ──────────────────────────────────────────
+   * Première tentative de correction (2026-08-05): on ajoutait simplement la
+   * ligne `quick_tap` à `eventIds`. La correction amendait bien les deux — mais
+   * `targetAmbiguous = eventIds.length > 1` traitait dès lors TOUTE photo
+   * cochée comme une cible ambiguë, et `clearsCredit` passait à faux. Mesuré
+   * 3/3: une photo de pomme corrigée gardait son `food_group_ref` au lieu de
+   * l'effacer. Une coche n'est pas une cible CONCURRENTE de la photo: elle en
+   * est DÉRIVÉE. Deux listes, deux traitements.
+   *
+   * Ces lignes-là ne s'amendent pas, elles se DÉCOCHENT — et seulement sur une
+   * `correction`, jamais sur une `answer` (voir `amendMealPrecisionEvents`).
+   */
+  tickEventIds: string[];
+  /**
    * Les clés d'identité DÉJÀ écrites pour ce repas
    * (`protocolEventComponentKey`). C'est l'anti-doublon de la réponse: quand
    * l'élève répond « du poulet avec du riz », le poulet est déjà un fait et ne
@@ -142,6 +159,32 @@ export const MEAL_PRECISION_INTENTS = [
   /** Répond à la question posée ("oui à l'huile d'olive", "avec du riz"). */
   "answers_question",
   /**
+   * CONFIRME ou PRÉCISE ce qui a été enregistré, SANS le contester.
+   *
+   * ── LE JETON QUI MANQUAIT, ET CE QUE SON ABSENCE COÛTAIT ─────────────────
+   * Quand l'accusé annonce une hypothèse et ouvre la porte — « I have ticked
+   * "Chicken rice bowl" off. Tell me if that was not it » — l'élève a DEUX
+   * réponses possibles: démentir, ou confirmer/préciser. Seule la première
+   * était représentable.
+   *
+   * Et `answers_question` ne pouvait pas jouer ce rôle: il est interdit quand
+   * aucune question n'a été posée (à raison — on ne répond pas à une question
+   * qui n'existe pas), et la campagne du 2026-08-05 a mesuré que
+   * `recognized.clarifying_question` est NULL sur **100 %** des lignes photo.
+   * Le flow s'ouvre donc TOUJOURS en `awaiting_correction`, où le prompt
+   * interdit explicitement `answers_question`. Résultat: « yes, cooked with
+   * olive oil » n'avait d'autre sortie que `corrects_declaration` — classé
+   * ainsi 4 fois sur 6, dans les deux langues, ce qui EFFAÇAIT le
+   * `food_group_ref` de la photo et décochait un plat correctement identifié.
+   * La condition de désarmement de la ceinture était inatteignable par
+   * construction: elle n'était pas fragile, elle était morte-née.
+   *
+   * Ce jeton est disponible dans les DEUX états, avec ou sans question posée.
+   * Il amende comme une réponse (le détail est un fait réel, il se garde) et
+   * ne retire RIEN: ni le crédit, ni la coche.
+   */
+  "confirms_declaration",
+  /**
    * Corrige ce qui a été enregistré ("c'était du poulet, pas du porc").
    *
    * UN SEUL token pour les deux sources: côté photo il corrige la LECTURE de
@@ -173,6 +216,11 @@ export type MealPrecisionDecision =
   | {
     kind: "amend";
     eventIds: string[];
+    /**
+     * Les coches à DÉCOCHER. Non vide seulement sur une `correction` — voir
+     * `tickEventIds` sur l'état, et pourquoi elles ne sont pas dans `eventIds`.
+     */
+    tickEventIds: string[];
     /** Ce que l'amendement porte: une réponse, ou une correction. */
     amendment: "answer" | "correction";
     /**
@@ -206,6 +254,41 @@ function minutesSince(openedAt: string, now: Date): number {
   const opened = new Date(openedAt).getTime();
   if (!Number.isFinite(opened)) return Number.POSITIVE_INFINITY;
   return (now.getTime() - opened) / 60_000;
+}
+
+/**
+ * L'ÉTAT APRÈS UN AMENDEMENT QUI NE RETIRE RIEN (confirmation, réponse).
+ *
+ * ── LE DÉFAUT MESURÉ 6/6, DÉTERMINISTE, LE 2026-08-06 ─────────────────────
+ * Les TROIS branches d'amendement rendaient `closed(...)`, et la lane traduit
+ * `closed` en état effacé. Un flow ne pouvait donc porter qu'UN SEUL
+ * amendement, jamais deux. Séquence mesurée, dans les deux langues:
+ *
+ *   tour 1  « oui, c'est bien ça »        → amendement, flow FERMÉ
+ *   tour 2  « en fait non, c'était des pâtes » → plus aucun flow:
+ *           rien n'est amendé, LA COCHE DU PLAT DÉMENTI RESTE, et Sophia
+ *           répond quand même « Got it — pasta, not the earlier thing ».
+ *
+ * Un accusé fantôme, sur la porte de correction que le produit vient d'ouvrir
+ * lui-même. Et le trou en cachait deux autres: `MEAL_PRECISION_MAX_TURNS = 2`
+ * était INATTEIGNABLE après tout amendement (seul `unknown` laissait le flow
+ * ouvert), et l'empilement documenté dans `buildAmendedRecognized` — « c'était
+ * du poulet » puis « et sans huile », deux faits que le coach doit voir — était
+ * du code mort: `max(jsonb_array_length(amendments))` valait 1 sur tout le run.
+ *
+ * CONFIRMER OU RÉPONDRE NE RÈGLE PAS L'IDENTITÉ DU REPAS. La porte de
+ * correction reste donc ouverte, bornée comme avant par `MAX_TURNS` et par la
+ * fenêtre de fraîcheur. Une CORRECTION, elle, ferme: l'élève vient de dire ce
+ * que c'était, l'identité est tranchée.
+ *
+ * L'état retombe sur `awaiting_correction`: la question, s'il y en avait une,
+ * vient d'obtenir sa réponse — ce qui reste ouvert n'est plus qu'une porte.
+ */
+function stillOpenAfterNonDestructive(
+  flow: MealPrecisionFlowState,
+  turns: number,
+): MealPrecisionFlowState {
+  return { ...flow, turns, state: "awaiting_correction", question: null };
 }
 
 /**
@@ -260,6 +343,22 @@ export function reduceMealPrecisionFlow(
     return { kind: "exit", reason: "max_turns", nextFlow: closed(flow) };
   }
 
+  // MÊME TRANSITION QU'UNE RÉPONSE, et c'est le point: confirmer ou préciser
+  // ajoute un fait, ne retire rien. `tickEventIds: []` est la condition de
+  // désarmement du décochage — enfin atteignable, puisque ce jeton ne dépend
+  // d'aucune question posée.
+  if (intent === "confirms_declaration") {
+    return {
+      kind: "amend",
+      eventIds: [...flow.eventIds],
+      tickEventIds: [],
+      amendment: "answer",
+      allowsNewComponents: true,
+      // ⚠️ LA PORTE RESTE OUVERTE — voir `stillOpenAfterNonDestructive`.
+      nextFlow: stillOpenAfterNonDestructive(flow, turns),
+    };
+  }
+
   if (intent === "answers_question") {
     // LE CAS §7.4 J1 soir: on AMENDE les lignes, on n'en crée pas de seconde
     // POUR CE QUI EST DÉJÀ ÉCRIT. Ce que la réponse ajoute de NOUVEAU est un
@@ -268,9 +367,14 @@ export function reduceMealPrecisionFlow(
     return {
       kind: "amend",
       eventIds: [...flow.eventIds],
+      // Une RÉPONSE précise le repas, elle ne dément pas le plat: la coche
+      // reste. C'est la condition de désarmement du décochage.
+      tickEventIds: [],
       amendment: "answer",
       allowsNewComponents: true,
-      nextFlow: closed({ ...flow, turns }),
+      // Même raison que pour la confirmation: répondre ne règle pas l'identité
+      // du repas, donc ça ne doit pas fermer la porte de correction.
+      nextFlow: stillOpenAfterNonDestructive(flow, turns),
     };
   }
 
@@ -278,6 +382,9 @@ export function reduceMealPrecisionFlow(
     return {
       kind: "amend",
       eventIds: [...flow.eventIds],
+      // Une CORRECTION dément l'identification: la coche automatique qui en
+      // découlait doit tomber avec elle.
+      tickEventIds: [...(flow.tickEventIds ?? [])],
       amendment: "correction",
       allowsNewComponents: false,
       nextFlow: closed({ ...flow, turns }),
@@ -295,6 +402,8 @@ export function reduceMealPrecisionFlow(
 export function openMealPrecisionFlow(args: {
   source: MealPrecisionSourceKind;
   eventIds: readonly string[];
+  /** Les coches automatiques de ce repas — voir `tickEventIds` sur l'état. */
+  tickEventIds?: readonly string[];
   componentKeys?: readonly string[];
   question: string | null;
   axis?: MealPrecisionAxis | null;
@@ -309,6 +418,8 @@ export function openMealPrecisionFlow(args: {
     eventIds: [...args.eventIds].map((id) => String(id)).filter((id) =>
       id !== ""
     ),
+    tickEventIds: [...(args.tickEventIds ?? [])].map((id) => String(id))
+      .filter((id) => id !== ""),
     componentKeys: [...(args.componentKeys ?? [])].map((key) => String(key))
       .filter((key) => key !== ""),
     turns: 0,

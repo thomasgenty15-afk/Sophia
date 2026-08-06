@@ -55,6 +55,7 @@ function contextInput(
 ): LoadSkillContextInput {
   return {
     user_id: "user-safety-local",
+    response_locale: "en-US",
     active_skill_working_state: null,
     turn_frame: turnFrame(),
     recent_messages: [],
@@ -231,6 +232,7 @@ Deno.test("safety_crisis visible prompt enforces strict safety wording quality",
   };
   const prompt = visibleSystemPromptForSafetyCrisisTest({
     user_id: "user-safety",
+    response_locale: "en-US",
     request_id: "req-safety",
     visible_task: visibleTask,
   });
@@ -251,6 +253,7 @@ Deno.test("safety_crisis visible prompt enforces strict safety wording quality",
   try {
     const result = await runSafetyCrisisVisibleAgentResult({
       user_id: "user-safety",
+      response_locale: "en-US",
       request_id: "req-safety",
       visible_task: visibleTask,
     });
@@ -306,6 +309,7 @@ Deno.test("safety_crisis visible product boundary rejects product artifact conte
   };
   const prompt = visibleSystemPromptForSafetyCrisisTest({
     user_id: "user-safety",
+    response_locale: "en-US",
     request_id: "req-safety",
     visible_task: visibleTask,
   });
@@ -319,6 +323,7 @@ Deno.test("safety_crisis visible product boundary rejects product artifact conte
   try {
     const result = await runSafetyCrisisVisibleAgentResult({
       user_id: "user-safety",
+      response_locale: "en-US",
       request_id: "req-safety",
       visible_task: visibleTask,
     });

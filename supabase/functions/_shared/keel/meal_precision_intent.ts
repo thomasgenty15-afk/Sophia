@@ -114,22 +114,46 @@ export async function classifyMealPrecisionIntent(params: {
     : "A student just described a meal in writing; Sophia recorded it and replied with what she recorded";
 
   const systemPrompt = "Sophia is a nutrition companion. " + what +
-    (params.question ? " and asked one question." : ".") +
+    // Sans question, l'accusé n'est pas muet: il ANNONCE une hypothèse et
+    // ouvre une porte (« tell me if that was not it »). Le dire au classifieur
+    // est ce qui rend `confirms_declaration` intelligible — sinon il ne voit
+    // pas à quoi l'élève pourrait bien être en train d'acquiescer.
+    (params.question
+      ? " and asked one question."
+      : ", stated what she assumed, and invited the student to correct her if" +
+        " she got it wrong.") +
     " Classify what the student's NEXT message is doing. Answer with one token:\n" +
     (params.question
       ? '- "answers_question": it answers the question Sophia asked.\n'
       : '- "answers_question": never use this, Sophia asked no question.\n') +
+    '- "confirms_declaration": it AGREES with what Sophia recorded, or adds ' +
+    "detail to it, without disputing any of it. Sophia said what she saw and " +
+    'invited a correction; this is the student saying "yes, that is right" — ' +
+    "with or without extra detail.\n" +
     '- "corrects_declaration": it disputes or corrects what Sophia recorded ' +
     "(a wrong food, a wrong preparation, a wrong meal slot).\n" +
-    '- "new_declaration": it reports a DIFFERENT meal or food that Sophia has ' +
-    "not recorded yet.\n" +
+    '- "new_declaration": it reports an ADDITIONAL, SEPARATE meal that Sophia ' +
+    "has not recorded yet — a different eating occasion, not a rewrite of " +
+    "this one.\n" +
     '- "unrelated": it talks about something else — their day, how they feel, ' +
     "a future intention, a question of their own.\n" +
     '- "unknown": you genuinely cannot tell.\n' +
     "A correction of what was ALREADY recorded is `corrects_declaration`. " +
-    "Naming food that ADDS to the same meal, in reply to the question, is " +
-    "`answers_question`. A statement about a DIFFERENT or FUTURE meal is " +
-    "`new_declaration` or `unrelated`, even when it names food. " +
+    // ── LA RÈGLE QUI MANQUAIT, mesurée 6/6 déterministe le 2026-08-05 ──────
+    // « no, that wasn't it — I actually had pasta with tomato sauce » partait
+    // en `new_declaration`, donc sortie de flow, donc RIEN d'amendé — et
+    // Sophia répondait quand même « Got it ». Le même démenti sans nommer le
+    // plat de remplacement passait 3/3. C'est « j'ai mangé X » qui basculait
+    // le verdict: le modèle voyait un aliment non enregistré et concluait
+    // « autre repas », alors que c'est la formulation la PLUS naturelle d'une
+    // correction.
+    "A message that DENIES what was recorded is `corrects_declaration` EVEN " +
+    "WHEN it names the replacement food: \"no, that wasn't it, I had pasta\" " +
+    "is one meal being rewritten, not two meals. Use `new_declaration` only " +
+    "when the student is adding a SECOND eating occasion alongside this one.\n" +
+    "Naming food that ADDS to the same meal, without disputing anything, is " +
+    (params.question ? "`answers_question`" : "`confirms_declaration`") + ". " +
+    "A statement about a FUTURE meal is `unrelated`, even when it names food. " +
     "The student may write in English or French; both are normal.\n" +
     'Answer ONLY as JSON: {"intent": <token>, "confidence": <0..1>}.';
 
@@ -150,7 +174,14 @@ export async function classifyMealPrecisionIntent(params: {
         forceInitialModel: true,
         disableFallbackChain: true,
         reasoningEffort: "none",
-        httpTimeoutMs: 5_000,
+        // ── 5 s ÉTAIT TROP COURT, ET LE PROMPT VIENT DE S'ALLONGER ──────────
+        // Mesuré le 2026-08-06: 3 timeouts sur 6 rondes lancées EN PARALLÈLE
+        // (`Signal timed out`, `no response after retries`), 0 sur 6 en série.
+        // Le repli `unknown` → `stay` est correct côté base — rien n'est
+        // détruit — mais il ne coupe PAS l'accusé: l'élève reçoit « Got it —
+        // pasta, not what I assumed » sans qu'aucune ligne n'ait bougé. Un
+        // accusé fantôme payé par une seconde de budget.
+        httpTimeoutMs: 12_000,
         maxRetries: 1,
       });
     const parsed = parseIntent(raw);
@@ -158,8 +189,15 @@ export async function classifyMealPrecisionIntent(params: {
     // le laisser passer permettrait à une phrase de fermer un flow en
     // prétendant porter une image.
     if (parsed.intent === "new_photo") return { intent: "unknown", confidence: 0 };
+    // UN `answers_question` SANS QUESTION EST UNE CONFIRMATION, pas un doute.
+    //
+    // Il retombait sur `unknown`, donc `stay`, donc rien d'écrit. C'était le
+    // moins mauvais tant qu'aucun jeton ne portait « l'élève est d'accord »;
+    // maintenant qu'il en existe un, le modèle qui dit « ça répond » sur un
+    // accusé sans question décrit exactement `confirms_declaration`. Le
+    // rabattre sur `unknown` jetterait un verdict juste.
     if (parsed.intent === "answers_question" && !params.question) {
-      return { intent: "unknown", confidence: 0 };
+      return { intent: "confirms_declaration", confidence: parsed.confidence };
     }
     if (parsed.confidence < MIN_CONFIDENCE) {
       return { intent: "unknown", confidence: parsed.confidence };

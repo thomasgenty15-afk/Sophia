@@ -122,6 +122,25 @@ const FN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/coach-protocol
 
 type Phase = "loading" | "ready" | "error";
 
+/**
+ * Une ligne de `coach_food_proposals` — ce qu'un document du coach a dit d'un
+ * aliment, en attente de son arbitrage.
+ *
+ * `quote` n'est pas facultatif, ni ici ni en base (`quote text not null`): une
+ * proposition sans citation n'est pas une lecture du document, c'est une
+ * invention — et une invention est indiscernable d'une lecture une fois
+ * affichée à côté des autres.
+ */
+interface FoodProposalRow {
+  id: string;
+  term: string;
+  quote: string;
+  stance: Stance;
+  food_group_ref: string;
+  food_item_ref: string | null;
+  source_label: string | null;
+}
+
 export function CoachProtocolPage() {
   const [phase, setPhase] = React.useState<Phase>("loading");
   const [errorText, setErrorText] = React.useState<string | null>(null);
@@ -149,6 +168,21 @@ export function CoachProtocolPage() {
   const [terms, setTerms] = React.useState<CoachTerm[]>([]);
   const [published, setPublished] = React.useState<CompiledCommitment[]>([]);
   const [publishedAt, setPublishedAt] = React.useState<string | null>(null);
+
+  /**
+   * CE QU'UN DOCUMENT DU COACH A DIT, EN ATTENTE DE SON ARBITRAGE.
+   *
+   * Écrit par `coach-doctrine-v1: compile_document` dans `coach_food_proposals`,
+   * jamais dans `coach_food_items`. La distinction est la garde de tout ce lot:
+   * la table de la MÉTHODE est compilée, publiée, puis lue par le générateur et
+   * l'évaluateur — une ligne posée là par un modèle qui a mal lu une page
+   * deviendrait une règle appliquée au nom du coach sans qu'il ait rien validé.
+   *
+   * Chaque proposition porte la CITATION du document. C'est elle qui permet de
+   * trancher en une seconde, et c'est le seul signal qui distingue « le
+   * document le dit » de « le modèle l'a déduit ».
+   */
+  const [proposals, setProposals] = React.useState<FoodProposalRow[]>([]);
 
   const [query, setQuery] = React.useState("");
   const [openClasses, setOpenClasses] = React.useState<Set<string>>(new Set());
@@ -200,6 +234,15 @@ export function CoachProtocolPage() {
         setCatalog((itemRows.data ?? []) as FoodItemRow[]);
 
         if (coach.data?.id) {
+          const pending = await supabase
+            .from("coach_food_proposals")
+            .select("id, term, quote, stance, food_group_ref, food_item_ref, source_label")
+            .eq("coach_id", coach.data.id)
+            .eq("status", "pending")
+            .order("created_at", { ascending: true });
+          if (pending.error) throw new Error(pending.error.message);
+          if (!cancelled) setProposals((pending.data ?? []) as FoodProposalRow[]);
+
           const clients = await supabase
             .from("coach_clients")
             .select("status")
@@ -445,6 +488,71 @@ export function CoachProtocolPage() {
     setOpenFood(next.id);
   }
 
+  /**
+   * LE COACH ADOPTE UNE LECTURE DE SON DOCUMENT.
+   *
+   * ── `why_source: "coach"` ET PAS `"ai"`, ET C'EST UN ARBITRAGE ──────────
+   * Le `why` posé ici est la CITATION du document — les mots du coach, écrits
+   * par lui, qu'il vient de relire et d'adopter d'un clic. `why_source` est un
+   * cliquet: l'écriture IA est conditionnée (`where why_source <> 'coach'`),
+   * donc marquer `"coach"` interdit à une régénération d'écraser sa phrase par
+   * une phrase générée. Marquer `"ai"` autoriserait exactement ça — c'est le
+   * défaut déjà payé sur la carte de défense.
+   *
+   * Une quatrième valeur `"document"` a été envisagée et écartée: elle se
+   * comporterait à l'identique de `"coach"` partout, ce que R6 interdit (pas de
+   * valeur d'enum sans branche nommée qui la lit).
+   *
+   * L'ordre compte: on écrit la ligne de méthode D'ABORD, on résout la
+   * proposition ENSUITE. L'inverse laisserait une proposition marquée
+   * `accepted` sans ligne derrière si l'insert échoue — un fantôme, et le coach
+   * croirait avoir un aliment qu'il n'a pas.
+   */
+  async function acceptProposal(p: FoodProposalRow) {
+    const pid = await ensureDraft();
+    const inserted = await supabase
+      .from("coach_food_items")
+      .insert({
+        protocol_id: pid,
+        coach_id: coachId,
+        food_item_ref: p.food_item_ref,
+        label: p.term,
+        food_group_ref: p.food_group_ref,
+        stance: p.stance,
+        why: p.quote,
+        why_source: "coach",
+      })
+      .select("*")
+      .single();
+    if (inserted.error) throw new Error(inserted.error.message);
+
+    const resolved = await supabase
+      .from("coach_food_proposals")
+      .update({ status: "accepted", resolved_at: new Date().toISOString() })
+      .eq("id", p.id);
+    if (resolved.error) throw new Error(resolved.error.message);
+
+    setPicked((prev) => [...prev, rowToFoodItem(inserted.data)]);
+    setProposals((prev) => prev.filter((x) => x.id !== p.id));
+    setOpenFood(inserted.data.id as string);
+  }
+
+  /**
+   * ÉCARTER N'EST PAS UN VERROU SUR L'ALIMENT.
+   *
+   * Le coach écarte une LECTURE d'un document, pas le saumon. Un autre document
+   * peut en dire autre chose, et l'index partiel de la base (`where status =
+   * 'pending'`) est écrit pour que ce soit possible.
+   */
+  async function dismissProposal(p: FoodProposalRow) {
+    const resolved = await supabase
+      .from("coach_food_proposals")
+      .update({ status: "dismissed", resolved_at: new Date().toISOString() })
+      .eq("id", p.id);
+    if (resolved.error) throw new Error(resolved.error.message);
+    setProposals((prev) => prev.filter((x) => x.id !== p.id));
+  }
+
   async function rewriteWhy(item: CoachFoodItem) {
     const res = await callFn<{ why?: string | null; reason?: string }>({
       action: "draft_why",
@@ -532,6 +640,86 @@ export function CoachProtocolPage() {
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="min-w-0">
+          {/*
+            ── CE QU'UN DOCUMENT A DIT, EN ATTENTE D'UN ARBITRAGE ──────────
+            En haut, avant les catégories: c'est une décision à prendre, pas une
+            liste à parcourir. Rangée plus bas, elle attendrait indéfiniment.
+
+            Chaque ligne montre LA CITATION. Sans elle le coach devrait aller
+            rouvrir son PDF pour trancher — donc il ne trancherait pas, et une
+            liste qu'on ne tranche pas finit par être acceptée en bloc.
+          */}
+          {proposals.length > 0 && (
+            <Card className="mb-4">
+              <SectionLabel>{t("coach.food.proposals.title")}</SectionLabel>
+              <p className="mt-2 text-sm text-gray-600">
+                {t("coach.food.proposals.hint", { count: String(proposals.length) })}
+              </p>
+              <ul className="mt-3 divide-y divide-gray-100">
+                {proposals.map((p) => (
+                  <li key={p.id} className="py-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-medium text-gray-900">{p.term}</span>
+                      <span className={`rounded-full px-2 py-0.5 text-xs ${STANCE_PILL[p.stance]}`}>
+                        {t(
+                          STANCES.find((s) => s.value === p.stance)?.labelKey ??
+                            ("coach.protocol.stance.encouraged" as MessageKey),
+                        )}
+                      </span>
+                      <span className="text-xs text-gray-500">{groupLabel(p.food_group_ref)}</span>
+                    </div>
+                    <blockquote className="mt-1 border-l-2 border-gray-200 pl-3 text-sm italic text-gray-600">
+                      {p.quote}
+                    </blockquote>
+                    {p.source_label && (
+                      <p className="mt-1 text-xs text-gray-400">{p.source_label}</p>
+                    )}
+                    <div className="mt-2 flex gap-2">
+                      <Button
+                        size="sm"
+                        disabled={busy}
+                        onClick={async () => {
+                          setBusy(true);
+                          try {
+                            await acceptProposal(p);
+                            setWriteError(null);
+                          } catch (e) {
+                            setWriteError(e instanceof Error ? e.message : String(e));
+                          } finally {
+                            setBusy(false);
+                          }
+                        }}
+                      >
+                        {t("coach.food.proposals.accept")}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        disabled={busy}
+                        onClick={async () => {
+                          setBusy(true);
+                          try {
+                            await dismissProposal(p);
+                            setWriteError(null);
+                          } catch (e) {
+                            setWriteError(e instanceof Error ? e.message : String(e));
+                          } finally {
+                            setBusy(false);
+                          }
+                        }}
+                      >
+                        {t("coach.food.proposals.dismiss")}
+                      </Button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-3 text-xs text-gray-500">
+                {t("coach.food.proposals.footer")}
+              </p>
+            </Card>
+          )}
+
           {/* ── LES AXES: des QUESTIONS, jamais des réponses ──────────────── */}
           {picked.length === 0 && (
             <Card className="mb-4">

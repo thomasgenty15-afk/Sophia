@@ -31,6 +31,22 @@ export type SkillMemoryItem = {
 export type SkillContext = {
   skill_id: SkillId;
   user_id: string;
+  /**
+   * W9/R3 — la langue de la RÉPONSE VISIBLE de ce tour, DÉJÀ résolue par
+   * `resolveResponseLocale` chez le propriétaire du tour (`router/run.ts`).
+   *
+   * REQUIS, et c'est tout le mécanisme. Un skill qui résout sa propre langue
+   * est exactement le module que R3 interdit — et huit lanes l'ont fait, en
+   * appelant `resolveResponseLocale({})`: une chaîne de priorité sans aucune
+   * entrée, donc une langue décidée par son repli. Le type est ce qui oblige
+   * chaque lane à recevoir la décision au lieu de la reprendre.
+   *
+   * Même canal que `student_country`, avec la même règle: le runtime décide,
+   * le skill lit. Non optionnel, contrairement à `student_country`, parce
+   * qu'il n'existe pas d'état « langue inconnue »: il y a toujours une langue
+   * dans laquelle on répond.
+   */
+  response_locale: string;
   recent_messages: Array<{ role: "user" | "assistant"; content: string }>;
   active_skill_working_state: ActiveConversationSkillWorkingState | null;
   turn_frame: TurnFrame;
@@ -63,10 +79,29 @@ export type SkillContext = {
    * le repli international n'est correct que sur un inconnu déclaré.
    */
   student_country?: string | null;
+  /**
+   * Canaux de runtime des deux lanes qui en portent un (W3.2 TCA, W4.4 plan).
+   *
+   * `unknown` et pas le type du skill: `_shared/context.ts` est la base commune,
+   * et lui faire importer deux skills-feuilles inverserait le graphe de
+   * dépendances. `unknown` force le lecteur à valider — ce que `runtimeOf` fait
+   * déjà, avec son refus R7 quand le champ manque.
+   *
+   * Ce qui compte ici n'est pas la précision du type, c'est qu'ils soient
+   * DÉCLARÉS. Tant qu'ils ne l'étaient pas, les deux sites de construction
+   * castaient l'objet entier en `never` pour les faire passer — et `never`
+   * étant assignable à tout, un champ REQUIS ajouté à `SkillContext` y
+   * compilait en silence et arrivait `undefined` au runtime. Sur la lane
+   * clinique et la lane qui répond aux permissions de plan.
+   */
+  disordered_eating_guard_runtime?: unknown;
+  plan_question_runtime?: unknown;
 };
 
 export type LoadSkillContextInput = {
   user_id: string;
+  /** R3 — résolue par le runtime, transportée, jamais devinée ici. */
+  response_locale: string;
   active_skill_working_state: ActiveConversationSkillWorkingState | null;
   turn_frame: TurnFrame;
   recent_messages: Array<{ role: "user" | "assistant"; content: string }>;
@@ -125,6 +160,7 @@ export async function loadBaseSkillContext(
   return {
     skill_id: skillId,
     user_id: input.user_id,
+    response_locale: input.response_locale,
     recent_messages: input.recent_messages.slice(-recentLimit),
     active_skill_working_state: input.active_skill_working_state,
     turn_frame: input.turn_frame,

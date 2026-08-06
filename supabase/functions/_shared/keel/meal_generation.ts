@@ -377,26 +377,36 @@ export function dishCapFor(
   scope: MealScope,
   rhythm: readonly EatingOccasionSlot[] = [],
 ): number {
-  if (rhythm.length > 0) {
-    return scope === "day" ? rhythm.length : rhythm.length * 7;
-  }
+  // ── UNE SEULE SOURCE POUR « COMBIEN DE FOIS ON MANGE » ───────────────────
+  // Le repli sans rythme était une paire de nombres écrits à la main (4 et 21)
+  // à côté d'un `DEFAULT_EATING_RHYTHM` qui en compte 3. Les deux copies ont
+  // divergé exactement comme ce fichier prédit qu'elles divergent: le 2026-08-05
+  // le repli `day` est passé de 3 à 4 pendant que le rythme par défaut restait à
+  // trois moments, et `buildMealPrompt` s'est mis à DEMANDER trois plats tout en
+  // en ACCEPTANT quatre.
+  //
+  // Il n'y a donc plus de repli chiffré: l'absence de rythme déclaré EST le
+  // rythme par défaut, et l'arithmétique est la même pour les deux. Le « × 7 »
+  // reste ce qu'il était (21 = 3 × 7, au plat près), donc le chantier du rythme
+  // demeure additif pour un élève qui n'a rien rempli.
+  //
+  // LE « × 7 » BORNE LES REPAS COUVERTS, PAS LES SESSIONS DE CUISINE. Le
+  // plafond de la semaine est passé de 8 à 21 parce qu'à 8 une semaine demandée
+  // rendait une semaine TROUÉE — lundi dîner, mardi petit-déjeuner et dîner,
+  // puis plus rien. « Une semaine de vingt plats est une semaine qu'on abandonne
+  // le mercredi » était vrai tant qu'un plat coûtait une session; le BATCH casse
+  // cette équivalence, et c'est le prompt qui borne les sessions
+  // (`batchSessionBudget`).
+  const occasions = rhythm.length > 0 ? rhythm : DEFAULT_EATING_RHYTHM;
+  // `switch` et pas un ternaire: c'est lui qui rend le R6 vrai par construction
+  // — un scope ajouté sans plafond ne compile pas (« not all code paths return
+  // a value »), là où un ternaire lui donnerait silencieusement celui de la
+  // semaine.
   switch (scope) {
     case "day":
-      return 4;
-    // LE PLAFOND A ÉTÉ LEVÉ DE 8 À 21, et le raisonnement a changé avec lui.
-    //
-    // À 8, une semaine demandée rendait une semaine TROUÉE: lundi dîner, mardi
-    // petit-déjeuner et dîner, puis plus rien. L'élève voyait des trous là où il
-    // n'avait donné aucune consigne de partialité, et l'écran affichait
-    // fièrement un tiers de semaine.
-    //
-    // L'ancien commentaire disait: « une semaine de vingt plats est une semaine
-    // qu'on abandonne le mercredi ». C'était vrai — tant que chaque plat coûtait
-    // une session de cuisine. Le BATCH casse cette équivalence: vingt-et-un
-    // repas peuvent tenir en six sessions. Le plafond borne donc désormais les
-    // REPAS COUVERTS, pendant que le prompt borne les sessions de CUISINE.
+      return occasions.length;
     case "several_days":
-      return 21;
+      return occasions.length * 7;
   }
 }
 
@@ -637,6 +647,32 @@ export function buildMealPrompt(args: {
   recipeDifficulty?: string | null;
   variety?: string | null;
   budgetBand?: string | null;
+  /**
+   * CE QUE L'ÉLÈVE A DIT SUR SA BOUFFE, promu depuis la conversation.
+   *
+   * ── POURQUOI C'EST UN ARGUMENT NOMMÉ ICI, ET PAS UN JSONB ─────────────
+   * `generate-week-plan-v1` sérialise `practical_constraints` en entier, donc
+   * il verrait cette clé sans rien changer. Ce générateur-ci lit des clés
+   * NOMMÉES (`eating_rhythm`, capacité de cuisine): une clé de plus y est
+   * invisible tant que personne ne la passe. C'est exactement le défaut que
+   * `coach_food_rules` a produit — un écran, des gardes, trente tests, et
+   * aucun lecteur au runtime.
+   *
+   * Vide = l'élève n'a rien confirmé, et le prompt est celui d'avant.
+   */
+  foodPreferences?: readonly string[];
+  /**
+   * LA NOTE DU COACH SUR CET ÉLÈVE — mode 1:1 assumé, `null` quand il n'y en a
+   * pas (le cas ordinaire). Produit par `coachNotePromptBlock`.
+   *
+   * REQUIS, `T | null`, jamais `T?` — contrairement à `foodPreferences` juste
+   * au-dessus, et exprès. Le commentaire de `foodPreferences` explique
+   * pourquoi une clé NOMMÉE de plus est invisible ici tant que personne ne la
+   * passe, et cite `coach_food_rules` comme le mort de cette famille. Un champ
+   * optionnel signerait le même défaut une deuxième fois, dans le fichier qui
+   * le documente.
+   */
+  coachNoteBlock: string | null;
   /** Les jours à remplir, à partir d'aujourd'hui. Vide = le modèle décide. */
   daysToFill?: readonly string[];
   /**
@@ -648,7 +684,11 @@ export function buildMealPrompt(args: {
   const rhythm = args.eatingRhythm && args.eatingRhythm.length > 0
     ? args.eatingRhythm
     : DEFAULT_EATING_RHYTHM;
-  const cap = dishCapFor(args.scope, args.eatingRhythm ?? []);
+  // `rhythm` RÉSOLU, jamais `args.eatingRhythm` brut: le plafond doit être celui
+  // des moments que le prompt NOMME trois lignes plus haut. Passer le brut a
+  // déjà produit la divergence exacte que `dishCapFor` documente — la consigne
+  // demandait trois plats, le plafond en autorisait quatre.
+  const cap = dishCapFor(args.scope, rhythm);
   const pantryLines = args.pantry
     .map((p) => (p.quantity ? `- ${p.term} (${p.quantity})` : `- ${p.term}`))
     .join("\n");
@@ -663,6 +703,10 @@ export function buildMealPrompt(args: {
     "== THE CONVICTION KEYS YOU MAY NAME ==",
     JSON.stringify(args.beliefKeys),
     "",
+    // LA NOTE DU COACH, entre la méthode et l'élève — même placement que dans
+    // `buildWeekPlanPrompt`: après tout ce qui est collectif et cacheable,
+    // avant tout ce que l'élève a dit de lui-même. Absente, aucune ligne.
+    ...(args.coachNoteBlock ? [args.coachNoteBlock, ""] : []),
     "== THIS STUDENT ==",
     `goal: ${args.goal}`,
     args.situation
@@ -750,6 +794,17 @@ export function buildMealPrompt(args: {
         "and skip expensive proteins and out-of-season produce.",
       ]
       : []),
+    // CE QU'IL A DIT LUI-MÊME, et il l'a confirmé sur un écran. Ce ne sont ni
+    // des interdits du coach (ceux-là sont dans la doctrine, avec leur double
+    // verrou) ni des contraintes médicales (celles-là ont leur propre table et
+    // n'arrivent jamais ici): ce sont des goûts et des contextes de vie, et ils
+    // décident si une semaine est vivable.
+    ...(args.foodPreferences && args.foodPreferences.length > 0
+      ? [
+        "what they have told you about their eating, in their own words:",
+        ...args.foodPreferences.map((p) => `- ${p}`),
+      ]
+      : []),
     ...(args.daysToFill && args.daysToFill.length > 0
       ? [
         `days to fill, in this order: ${args.daysToFill.join(", ")}`,
@@ -797,6 +852,23 @@ export function parseGeneratedMeal(
     pantry: readonly PantryItem[];
     /** Les clés de la doctrine publiée, pour filtrer `honours_belief_keys`. */
     beliefKeys: readonly string[];
+    /**
+     * LES MOMENTS D'UNE JOURNÉE NORMALE POUR CET ÉLÈVE — les mêmes que ceux
+     * passés à `buildMealPrompt`. Vide = il ne les a pas déclarés.
+     *
+     * REQUIS, `T` avec une valeur explicite pour « on ne sait pas » (`[]`),
+     * jamais `T?`. Ce paramètre n'existait pas, et son absence était le défaut:
+     * le plafond du PROMPT suivait le rythme (5 occasions ⇒ 5 plats) pendant que
+     * le plafond du PARSEUR l'ignorait et retombait sur trois. Un élève à cinq
+     * repas voyait donc ses deux dernières occasions tomber APRÈS génération —
+     * c'est-à-dire disparaître, sans que rien ne le dise, ce que le commentaire
+     * de `dishCapFor` promettait précisément d'empêcher.
+     *
+     * Optionnel, il serait ré-oublié par le prochain appelant, en silence, et la
+     * seule preuve serait une journée trouée. Même raisonnement que
+     * `safetyConstraints` dans `buildWeekPlanPrompt`.
+     */
+    eatingRhythm: readonly EatingOccasionSlot[];
   },
 ): GeneratedMeal {
   const issues: string[] = [];
@@ -815,7 +887,11 @@ export function parseGeneratedMeal(
 
   const root = parsed as Record<string, unknown>;
   const allowedKeys = new Set(args.beliefKeys.map((k) => String(k).trim()).filter(Boolean));
-  const cap = dishCapFor(args.scope);
+  // LE MÊME PLAFOND QUE LE PROMPT, dérivé du MÊME rythme. Deux copies d'un même
+  // nombre dont une seule reçoit la modification est le défaut que ce fichier
+  // documente deux fois; ici les deux copies lisent la même fonction avec la
+  // même entrée, donc elles ne peuvent plus diverger.
+  const cap = dishCapFor(args.scope, args.eatingRhythm);
 
   // ── LES PLATS ───────────────────────────────────────────────────────────
   // ── LES PRÉPARATIONS ────────────────────────────────────────────────────

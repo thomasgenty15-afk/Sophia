@@ -7,6 +7,7 @@ import { Field, inputClass } from "../components/ui/Field";
 import MealBuilder from "../components/MealBuilder";
 import EatingRhythmCard from "../components/EatingRhythmCard";
 import CookingCapacityCard from "../components/CookingCapacityCard";
+import FoodPreferencesCard from "../components/FoodPreferencesCard";
 import { parseEatingRhythm } from "../api/mealGeneration";
 import { sendChatMessage } from "../api/chat";
 import {
@@ -956,6 +957,19 @@ export default function StudentWeekPlanPage() {
             `budget_band` existaient dans la colonne depuis le premier jour du
             pivot — lues par le générateur, remplies par personne. */}
         <CookingCapacityCard
+          hasGoal={goal !== null}
+          practicalConstraints={goal?.practical_constraints ?? {}}
+          onSaved={refresh}
+        />
+
+        {/* CE QU'IL A DIT SUR SA BOUFFE, remonté de la conversation. En
+            DERNIER des trois cartes et juste avant le constructeur, parce que
+            c'est la couche la plus personnelle: le rythme dit quand il mange,
+            la capacité ce qu'il peut cuisiner, et ceci ce qu'il aime — dans ses
+            mots. C'est aussi la seule des trois qu'il n'a pas eu à remplir:
+            elle se remplit toute seule à partir de ce qu'il a déjà raconté, et
+            il n'a qu'à confirmer. */}
+        <FoodPreferencesCard
           hasGoal={goal !== null}
           practicalConstraints={goal?.practical_constraints ?? {}}
           onSaved={refresh}

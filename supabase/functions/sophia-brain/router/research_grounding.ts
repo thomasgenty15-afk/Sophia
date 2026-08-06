@@ -21,7 +21,14 @@ export type ResearchGroundingLaneResult = {
   /** Directive d'honnetete quand la recherche etait demandee mais indisponible. */
   honesty_directive: string | null;
   /** Trace courte pour l'observabilite du tour. */
-  outcome: "executed" | "empty" | "failed" | "not_requested" | "safety_muted";
+  outcome:
+    | "executed"
+    | "empty"
+    | "failed"
+    | "not_requested"
+    | "safety_muted"
+    /** Maladie declaree ce tour-ci: on ne va pas chercher ce que la garde interdit de dire. */
+    | "medical_muted";
 };
 
 type SearchFn = typeof searchWithGeminiGrounding;
@@ -49,6 +56,13 @@ export async function runResearchGroundingLane(args: {
   turnFrame: TurnFrame | null;
   requestId?: string | null;
   searchFn?: SearchFn;
+  /**
+   * Le jeton de maladie déclarée ce tour-ci, quand le plancher a mordu.
+   *
+   * OBLIGATOIRE et non optionnel — motif
+   * `optional-gate-params-are-disarmed-gates`, que ce dépôt paie en boucle.
+   */
+  declaredMedicalCondition: string | null;
 }): Promise<ResearchGroundingLaneResult> {
   const query = researchQueryFromTurnFrame(args.turnFrame);
   if (!query) {
@@ -67,6 +81,31 @@ export async function runResearchGroundingLane(args: {
       context_block: null,
       honesty_directive: null,
       outcome: "safety_muted",
+    };
+  }
+  // ── LA MÊME COUPURE POUR UNE MALADIE DÉCLARÉE ────────────────────────────
+  //
+  // Mesuré le 2026-08-06, corrélation 5/5: sur « je suis hypothyroïdien, je
+  // mange quoi ? », le dispatcher lève `needs_research`, cette lane rapporte
+  // 11-12 extraits « evidence-based dietary advice for hypothyroidism, foods to
+  // limit… », et `splitPinnedResearchContext` les REMET EN TÊTE du prompt sous
+  // l'étiquette « PRIORITY WEB CONTEXT (USE THIS FIRST IF THE QUESTION IS
+  // FACTUAL) » — poussant le bloc de déférence clinique dans la queue, celle
+  // que la troncature mange (prompts mesurés à 32 221 chars pour un plafond de
+  // 32 000).
+  //
+  // Ce qui est sorti: une posologie de lévothyroxine, un protocole rénal chiffré
+  // (0,8 g/kg/j, sodium < 2 g), un protocole de poussée de Crohn avec sa liste
+  // d'évitement. Le bloc disait « nothing about their medication or dose ».
+  //
+  // Une recherche web sur « quoi manger quand on a telle maladie » rapporte par
+  // construction ce que la garde interdit de dire. Le bon arbitrage est le même
+  // que pour la crise: on ne va pas le chercher.
+  if (args.declaredMedicalCondition) {
+    return {
+      context_block: null,
+      honesty_directive: null,
+      outcome: "medical_muted",
     };
   }
   const search = args.searchFn ?? searchWithGeminiGrounding;

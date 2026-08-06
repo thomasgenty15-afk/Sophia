@@ -3092,6 +3092,7 @@ Deno.test("coaching skill passes dispatcher context to specialized visible input
     context: {
       skill_id: "coaching_recommendation",
       user_id: "u1",
+      response_locale: "en-US",
       recent_messages: [
         { role: "user", content: "Avant je parlais d'autre chose" },
         { role: "assistant", content: "Ok." },
@@ -3233,6 +3234,7 @@ Deno.test("coaching visible receives recent committed reminder context when curr
     context: {
       skill_id: "coaching_recommendation",
       user_id: "u1",
+      response_locale: "en-US",
       recent_messages: [],
       active_skill_working_state: null,
       turn_frame: turnFrame,
@@ -3319,6 +3321,7 @@ Deno.test("coaching skill stores structured visible decision as recommendation p
     context: {
       skill_id: "coaching_recommendation",
       user_id: "u1",
+      response_locale: "en-US",
       recent_messages: [],
       active_skill_working_state: null,
       turn_frame: turnFrame,
@@ -3467,6 +3470,7 @@ Deno.test("coaching_only visible decision preserves the last stable product reco
     context: {
       skill_id: "coaching_recommendation",
       user_id: "u1",
+      response_locale: "en-US",
       recent_messages: [],
       active_skill_working_state: activeCoachingState(previousState),
       turn_frame: turnFrame,
@@ -3590,6 +3594,7 @@ Deno.test("coaching_only visible decision preserves the last stable product reco
     context: {
       skill_id: "coaching_recommendation",
       user_id: "u1",
+      response_locale: "en-US",
       recent_messages: [],
       active_skill_working_state: activeCoachingState(actionPlanPreviousState),
       turn_frame: actionTurnFrame,
@@ -3723,6 +3728,7 @@ Deno.test("coaching product visible decision keeps ownership active when reducer
     context: {
       skill_id: "coaching_recommendation",
       user_id: "u1",
+      response_locale: "en-US",
       recent_messages: [],
       active_skill_working_state: activeCoachingState(previousState),
       turn_frame: turnFrame,
@@ -4655,6 +4661,7 @@ Deno.test("la branche exit exécute le direct effect avant de rendre la main (P0
     context: {
       skill_id: "coaching_recommendation",
       user_id: "u1",
+      response_locale: "en-US",
       recent_messages: [],
       active_skill_working_state: null,
       turn_frame: {
@@ -4749,6 +4756,7 @@ Deno.test("la branche exit exécute le direct effect avant de rendre la main (P0
     context: {
       skill_id: "coaching_recommendation",
       user_id: "u1",
+      response_locale: "en-US",
       recent_messages: [],
       active_skill_working_state: null,
       turn_frame: {

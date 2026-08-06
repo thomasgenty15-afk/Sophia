@@ -89,8 +89,15 @@ const SILENCE_DURATION_PATTERNS: readonly RegExp[] = [
   /\bdepuis\s+(?:notre|ta|la)\s+derni[èe]re?\s+(?:conversation|message|fois)/i,
 ];
 
-/** Ce qu'un message de conversation ne doit jamais porter: nos artefacts. */
-const PROMPT_ARTEFACT_PATTERNS: readonly RegExp[] = [
+/**
+ * Ce qu'un message de conversation ne doit jamais porter: nos artefacts.
+ *
+ * EXPORTÉ parce que `daily_recap.ts` juge un second texte composé et que ces
+ * motifs ne dépendent pas de la relance: du markdown reste du markdown. Deux
+ * listes auraient divergé à la première addition — c'est R7, et ce dépôt a déjà
+ * payé une normalisation écrite deux fois.
+ */
+export const PROMPT_ARTEFACT_PATTERNS: readonly RegExp[] = [
   /\*\*/,
   /^#{1,6}\s/m,
   /\[[^\]]*\]\([^)]*\)/,
@@ -174,7 +181,8 @@ export function sanitizeComposedNudge(raw: string): string {
   return text;
 }
 
-function countSentences(text: string): number {
+/** Exporté pour la même raison que `PROMPT_ARTEFACT_PATTERNS` — un second juge. */
+export function countSentences(text: string): number {
   const parts = text.split(/[.!?…]+(?:\s|$)/).map((s) => s.trim()).filter(Boolean);
   return parts.length;
 }

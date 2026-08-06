@@ -75,12 +75,61 @@ function daysBack(range: Range): number {
   return range === "week" ? 7 : 30;
 }
 
-function isoDaysAgo(n: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() - n);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${
-    String(d.getDate()).padStart(2, "0")
-  }`;
+/**
+ * LE PREMIER JOUR DE LA FENÊTRE RÉELLEMENT AFFICHÉE.
+ *
+ * ── LE DÉFAUT MESURÉ LE 2026-08-05 ────────────────────────────────────────
+ * Le filtre était `local_date >= isoDaysAgo(7)` alors que la grille rend
+ * `isoDaysAgo(6..0)` — sept jours. Le J-7 entrait donc dans TOUS les
+ * dénominateurs de l'écran et ne pouvait atterrir dans AUCUNE case. Mesuré:
+ * « 5 meals logged across 4 days » et « Vegetables at 1 of 5 meals » pendant
+ * que le journal listait 3 jours et que la grille sommait à 4. Même décalage à
+ * 30 jours.
+ *
+ * Une seule expression sert maintenant les deux — la borne des requêtes et
+ * celle des cases — pour qu'elles ne puissent plus diverger.
+ */
+function windowStart(range: Range, timeZone: string | null = null): string {
+  return isoDaysAgo(daysBack(range) - 1, timeZone);
+}
+
+/**
+ * AUJOURD'HUI DANS LE FUSEAU DE L'ÉLÈVE, en `YYYY-MM-DD`.
+ *
+ * `en-CA` est le seul locale dont le format court EST l'ISO — c'est l'idiome
+ * habituel pour obtenir une date civile dans un fuseau donné sans dépendance.
+ */
+function todayIn(timeZone: string | null): string {
+  try {
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: timeZone || undefined,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date());
+  } catch {
+    // Un fuseau invalide en base ne doit pas blanchir l'écran.
+    return new Intl.DateTimeFormat("en-CA", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date());
+  }
+}
+
+/**
+ * Le jour civil `n` jours avant aujourd'hui, DANS LE FUSEAU DE L'ÉLÈVE.
+ *
+ * Le décalage se fait en arithmétique de chaîne (via un `Date` en UTC pur),
+ * jamais en `setDate` sur une date locale: `setDate` sur une nuit de changement
+ * d'heure décale d'un jour de plus ou de moins selon le fuseau de la machine —
+ * exactement le genre d'écart que cet écran vient de payer.
+ */
+function isoDaysAgo(n: number, timeZone: string | null = null): string {
+  const base = todayIn(timeZone);
+  const d = new Date(`${base}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - n);
+  return d.toISOString().slice(0, 10);
 }
 
 export default function StudentProgressPage() {
@@ -94,13 +143,41 @@ export default function StudentProgressPage() {
   const [reviews, setReviews] = React.useState<ReviewRow[]>([]);
   /** chemin de bucket -> URL signée, pour les vignettes du journal. */
   const [photoUrls, setPhotoUrls] = React.useState<Record<string, string>>({});
+  /**
+   * LE FUSEAU DE L'ÉLÈVE, celui qui a daté ses lignes. Null tant qu'il n'est
+   * pas lu — voir `timeZone` plus bas pour pourquoi ce n'est pas celui du
+   * navigateur.
+   */
+  const [profileTimeZone, setProfileTimeZone] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     let cancelled = false;
     (async () => {
       setState({ kind: "loading" });
       try {
-        const since = isoDaysAgo(daysBack(range));
+        // LE FUSEAU D'ABORD, parce que les bornes de la fenêtre en dépendent:
+        // « aujourd'hui » n'est pas le même jour pour un élève d'Auckland et
+        // pour le navigateur qui l'affiche depuis Paris. Une requête de plus,
+        // séquentielle, contre un écran dont les dates seraient fausses d'un
+        // jour pour tout élève à l'est du spectateur.
+        const profileRes = await supabase
+          .from("profiles")
+          .select("timezone")
+          .maybeSingle();
+        // Un fuseau illisible DÉGRADE vers celui du navigateur, il ne fait pas
+        // échouer l'écran: une grille approximative vaut mieux qu'une page
+        // blanche.
+        const tz = String(
+          (profileRes.data as { timezone?: unknown } | null)?.timezone ?? "",
+        ).trim() || null;
+        if (cancelled) return;
+        setProfileTimeZone(tz);
+
+        const since = windowStart(range, tz);
+        // LA BORNE HAUTE. Le `.gte` n'en avait aucune: une ligne datée dans le
+        // futur entrait dans les compteurs sans pouvoir s'afficher. Voir
+        // `windowStart`.
+        const until = isoDaysAgo(0, tz);
 
         // Le garde TCA d'abord. Si un drapeau est levé, on ne lit même pas le
         // reste: l'écran ne doit pas exister pour cet élève cette semaine.
@@ -121,6 +198,9 @@ export default function StudentProgressPage() {
             .from("student_daily_checkins")
             .select("local_date, overall, axis")
             .gte("local_date", since)
+            // MÊME borne haute que les repas: un check-in daté de demain chez
+            // l'élève entrait sinon dans « HOW IT WENT » (mesuré).
+            .lte("local_date", until)
             .order("local_date", { ascending: true }),
           supabase
             .from("protocol_events")
@@ -146,7 +226,11 @@ export default function StudentProgressPage() {
             // comme un repas dans « X meals logged » et dans la distribution
             // des portions.
             .is("disqualified_reason", null)
-            .gte("local_date", range === "week" ? isoDaysAgo(14) : since),
+            // `tz` et pas le fuseau du navigateur: la borne basse doit être
+            // dans la MÊME horloge que la borne haute, sinon la fenêtre de
+            // comparaison déborde d'un jour pour tout élève décalé.
+            .gte("local_date", range === "week" ? isoDaysAgo(13, tz) : since)
+            .lte("local_date", until),
           supabase
             .from("weekly_reviews")
             .select("week_start_date, outcomes, biofeedback")
@@ -167,7 +251,11 @@ export default function StudentProgressPage() {
         // `GenericStringError[]`, qui ne recouvre pas assez `FoodEventRow[]`
         // pour un cast direct. Même traversée que partout ailleurs.
         const allEvents = (eventRes.data ?? []) as unknown as FoodEventRow[];
-        setEvents(allEvents.filter((e) => e.local_date >= since));
+        // Les DEUX bornes, comme la requête: ce filtre et `windowDates` plus bas
+        // décrivent désormais le même intervalle.
+        setEvents(
+          allEvents.filter((e) => e.local_date >= since && e.local_date <= until),
+        );
         setPrevEvents(
           range === "week" ? allEvents.filter((e) => e.local_date < since) : [],
         );
@@ -206,8 +294,9 @@ export default function StudentProgressPage() {
 
   // 3bis. LA SEMAINE DANS L'ASSIETTE — l'agrégat de fréquence. Des comptes,
   // jamais des pourcentages: « at 9 of 13 meals » décrit, « 69% » note.
+  // Les MÊMES bornes que la requête, dans le MÊME fuseau — voir `windowStart`.
   const windowDates = range === "week"
-    ? Array.from({ length: 7 }, (_, i) => isoDaysAgo(6 - i))
+    ? Array.from({ length: 7 }, (_, i) => isoDaysAgo(6 - i, profileTimeZone))
     : [];
   const food = aggregateWeekInFood(events, {
     dates: windowDates,
@@ -218,13 +307,25 @@ export default function StudentProgressPage() {
 
   // 3ter. LE RYTHME — la même semaine, mais sur l'axe du TEMPS.
   //
-  // Le fuseau vient de l'appareil: c'est l'élève qui regarde son propre écran,
-  // et son navigateur est la source la plus proche de sa journée vécue. Le
-  // module reste pur — il reçoit le fuseau, il ne le devine pas.
-  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+  // ── LE FUSEAU VIENT DU PROFIL, PAS DE L'APPAREIL ────────────────────────
+  // Il venait de `Intl.DateTimeFormat().resolvedOptions().timeZone`, au motif
+  // que le navigateur est la source la plus proche de la journée vécue. C'était
+  // vrai pour le MOMENT et faux pour le JOUR: `local_date` est résolu côté
+  // serveur dans `profiles.timezone`. La colonne d'une case et sa ligne étaient
+  // donc calculées dans deux horloges différentes.
+  //
+  // Mesuré 3/3 le 2026-08-05, élève à Auckland, navigateur à Paris: 08:00 →
+  // « Night », 12:30 → « Night », 19:00 → « Morning », et le résumé affirmait
+  // « Most of what you log lands in the night » à quelqu'un qui mange à 8 h,
+  // 12 h 30 et 19 h. Ça mordait dès UNE heure d'écart — un dîner londonien à
+  // 21 h 30 tombait en « Night ». Sur l'écran qui porte le garde TCA.
+  //
+  // Le repli reste l'appareil: mieux vaut une grille approximative qu'aucune.
+  const timeZone = profileTimeZone ||
+    Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
   const rhythmDates = range === "week"
     ? windowDates
-    : Array.from({ length: 30 }, (_, i) => isoDaysAgo(29 - i));
+    : Array.from({ length: 30 }, (_, i) => isoDaysAgo(29 - i, profileTimeZone));
   const rhythm = aggregateRhythm(events as RhythmEventRow[], {
     dates: rhythmDates,
     timeZone,

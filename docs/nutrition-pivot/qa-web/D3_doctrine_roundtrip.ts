@@ -20,6 +20,17 @@
  *   deno run -A docs/nutrition-pivot/qa-web/D3_doctrine_roundtrip.ts
  */
 import { admin, callAs, type Coach, makeCoach, sql } from "./harness.ts";
+import { GOAL_TOKENS } from "../../../supabase/functions/_shared/keel/tokens.ts";
+
+/**
+ * Le nombre de variantes compilées: un objectif chacun, PLUS `default`.
+ *
+ * Il était écrit `6` en dur, et il l'est resté quand `muscle_gain` est arrivé
+ * (migration 20260805120000, après ce script): les trois assertions de
+ * fragmentation sont devenues rouges sans qu'aucune régression n'ait eu lieu —
+ * c'est-à-dire qu'elles ont cessé de pouvoir en signaler une.
+ */
+const VARIANT_COUNT = GOAL_TOKENS.length + 1;
 
 const results: Array<{ name: string; ok: boolean; detail: string }> = [];
 function check(name: string, ok: boolean, detail: string): void {
@@ -120,7 +131,7 @@ const published = await call({ action: "publish", version: 1 });
 console.log(JSON.stringify(published.json, null, 2).slice(0, 400));
 check(
   "publish rend la mesure de fragmentation",
-  published.json?.variants === 6 && typeof published.json?.distinct_cache_entries === "number",
+  published.json?.variants === VARIANT_COUNT && typeof published.json?.distinct_cache_entries === "number",
   `variants=${published.json?.variants} entrées=${published.json?.distinct_cache_entries}`,
 );
 
@@ -139,7 +150,11 @@ const storedCount = Number(
   where d.coach_id = '${coach.coachId}';
 `)).split("\n")[1]?.trim() ?? "0",
 );
-check("six variantes en base", storedCount === 6, `${storedCount} lignes`);
+check(
+  `${VARIANT_COUNT} variantes en base`,
+  storedCount === VARIANT_COUNT,
+  `${storedCount} lignes`,
+);
 
 const distinct = await sql(`
   select count(*) as variantes, count(distinct c.compiled_prompt_hash) as entrees_de_cache
@@ -198,8 +213,8 @@ const v2Distinct = await sql(`
 `);
 console.log(`\nV2 (plus aucune portée) — fragmentation:\n${v2Distinct}`);
 check(
-  "sans aucune portée: six variantes, UNE entrée de cache",
-  v2Distinct.includes("6|1"),
+  `sans aucune portée: ${VARIANT_COUNT} variantes, UNE entrée de cache`,
+  v2Distinct.includes(`${VARIANT_COUNT}|1`),
   v2Distinct.replace(/\n/g, " "),
 );
 console.log(`\n(hashes v1: ${hashesBefore.split("\n")[1]?.trim()})`);

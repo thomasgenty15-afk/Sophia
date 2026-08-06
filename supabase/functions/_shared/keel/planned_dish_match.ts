@@ -70,6 +70,42 @@ export interface PlannedDish {
   /** `breakfast` … `dinner`, ou null quand le plat ne vise aucun créneau. */
   slot: string | null;
   ingredients: ReadonlyArray<{ term?: string | null }>;
+  /**
+   * CE QUE LE PLAT PRÉLÈVE SUR UNE PRÉPARATION DÉJÀ FAITE.
+   *
+   * ── LE DÉFAUT QUE LA CAMPAGNE DU 2026-08-05 A MESURÉ ─────────────────────
+   * `ingredients` ne porte QUE ce qu'on ajoute au moment de manger. Le plat
+   * « Chicken, brown rice and broccoli bowl » a pour `ingredients` : Broccoli,
+   * olive oil, Lemon — le poulet et le riz vivent dans la PRÉPARATION que
+   * `uses` cite. Le matcher ne lisait que `ingredients` : sur la composition
+   * réellement livrée, le seul vrai plat photographié est ressorti `probable`
+   * à 0,5 de couverture, rétrogradé par un citron que la photo ne peut pas
+   * montrer. Le mécanisme ne se déclenchait donc JAMAIS sur la vraie donnée.
+   */
+  /**
+   * ⚠️ LES DEUX CASSES SONT RÉELLES, et n'en lire qu'une a coûté un run.
+   *
+   * `mealDishesPayload` sérialise `preparation_id` (snake_case), mais des
+   * lignes plus anciennes de `student_generated_meals` portent `preparationId`.
+   * Les deux formes coexistent en base — vérifié par
+   * `select distinct k from … jsonb_object_keys(u) k`. La première version de
+   * ce champ ne lisait que le camelCase: 90 tests unitaires verts, et le
+   * rapprochement muet sur toute donnée écrite par le générateur.
+   *
+   * Le `as PlannedDish[]` du chargeur désarme le typecheck sur ce payload
+   * (motif `as-cast-on-foreign-type-disarms-typecheck`), donc rien n'aurait
+   * signalé l'écart. On lit les deux, et `preparationTermsOf` est le SEUL
+   * endroit qui connaît cette dualité.
+   */
+  uses?: ReadonlyArray<
+    { preparationId?: string | null; preparation_id?: string | null }
+  >;
+}
+
+/** Une préparation, réduite à ce que le rapprochement en lit. */
+export interface PlannedPreparation {
+  id: string;
+  ingredients: ReadonlyArray<{ term?: string | null }>;
 }
 
 /** Ce qu'une photo ou une déclaration a produit. */
@@ -212,12 +248,32 @@ export interface PlannedDishCandidate {
   title: string;
   /** Les groupes que le plat DEMANDE, résolus par le catalogue. */
   dishGroups: FoodGroupRef[];
+  /** Ceux d'entre eux qu'une photo peut honnêtement montrer — le dénominateur. */
+  anchorGroups: FoodGroupRef[];
   /** Ceux d'entre eux qui sont sur l'assiette. */
   matchedGroups: FoodGroupRef[];
   /** Ceux qui manquent. C'est ce qui rend une question INTELLIGIBLE. */
   missingGroups: FoodGroupRef[];
   /** Les termes du plat retrouvés mot pour mot dans ce que le modèle a nommé. */
   matchedTerms: string[];
+  /**
+   * Les groupes d'ancre dont AU MOINS UN terme a été retrouvé mot pour mot.
+   *
+   * ── POURQUOI CE CHAMP EXISTE, ET CE QU'IL A COÛTÉ DE NE PAS L'AVOIR ──────
+   * `confident` se décidait sur la seule couverture des GROUPES. Deux aliments
+   * du même `food_group_ref` sont alors interchangeables, et la campagne du
+   * 2026-08-05 l'a mesuré 3/3 sur des photos réelles : une assiette de poulet,
+   * riz et brocolis a coché « Duck breast with quinoa and cauliflower », et une
+   * assiette de saumon a coché « Sardines with white rice and green beans ».
+   * Zéro recouvrement de termes dans les deux cas — le canard et le poulet sont
+   * tous deux `poultry`, le saumon et la sardine tous deux du poisson gras.
+   *
+   * `matchedTerms` existait déjà et n'était utilisé QUE comme départage de
+   * tri : le seul signal capable de distinguer le saumon de la sardine servait
+   * à ordonner, jamais à interdire. C'est maintenant une GARDE (voir le verdict
+   * `confident`), et le tri n'a pas changé.
+   */
+  corroboratedGroups: FoodGroupRef[];
   /** `matchedGroups / dishGroups`, dans [0,1]. 0 quand le plat n'a aucun groupe. */
   coverage: number;
   /** Le créneau du plat contredit-il celui déclaré par l'élève. */
@@ -237,6 +293,9 @@ export interface PlannedDishMatch {
     | "single_full_cover"
     | "several_plausible"
     | "partial_cover"
+    // Tous les groupes du plat sont sur l'assiette, mais aucun aliment n'a été
+    // nommé pareil: le canard contre le poulet. On propose, on ne coche pas.
+    | "groups_match_terms_do_not"
     | "nothing_reaches";
 }
 
@@ -270,6 +329,18 @@ const ACCESSORY_GROUPS: readonly string[] = [
   "other_added_fat",
   "sauce_dressing",
   "sugar_sweets",
+  // ── `water`, ET CE QU'IL A COÛTÉ D'Y PENSER TROP TARD ────────────────────
+  // Ajouté le 2026-08-05, en même temps que la lecture des préparations. Une
+  // préparation de riz réelle porte `basmati rice` (aucun groupe au catalogue),
+  // `water` et `salt`: en lisant les préparations, on a donc gagné l'ancre
+  // `poultry` du poulet ET acheté une ancre `water` qu'aucune photo ne peut
+  // montrer. Couverture mesurée: 1 → 0,667, garantie, sur le plat le plus
+  // courant du produit. Le correctif dégradait plus qu'il n'apportait.
+  //
+  // L'eau relève exactement de la même règle que l'huile de cuisson: le
+  // système SAIT qu'elle est invisible, et exiger d'une photo qu'elle la
+  // prouve, c'est garantir que rien ne matche jamais.
+  "water",
 ];
 
 /**
@@ -285,6 +356,11 @@ export function matchPlannedDish(args: {
   plate: ObservedPlate;
   dishes: readonly PlannedDish[];
   catalogue: readonly FoodCatalogueItem[];
+  /**
+   * Les préparations de la composition, citées par `dish.uses`. Absentes, le
+   * rapprochement ne voit que ce que le plat AJOUTE — voir `PlannedDish.uses`.
+   */
+  preparations?: readonly PlannedPreparation[];
 }): PlannedDishMatch {
   const empty = (reason: PlannedDishMatch["reason"]): PlannedDishMatch => ({
     verdict: "none",
@@ -307,11 +383,34 @@ export function matchPlannedDish(args: {
     .filter(Boolean);
   const plateSlot = String(args.plate.slot ?? "").trim();
 
+  // Les préparations par id, pour résoudre `dish.uses` sans re-parcourir.
+  const prepById = new Map<string, PlannedPreparation>();
+  for (const prep of args.preparations ?? []) {
+    const id = String(prep?.id ?? "").trim();
+    if (id) prepById.set(id, prep);
+  }
+
   const candidates: PlannedDishCandidate[] = [];
   args.dishes.forEach((dish, dishIndex) => {
     const dishGroups: FoodGroupRef[] = [];
     const matchedTerms: string[] = [];
-    for (const ing of dish.ingredients ?? []) {
+    // Un groupe n'est CORROBORÉ que si l'un de ses termes a été nommé mot pour
+    // mot par le modèle. C'est la garde qui sépare le poulet du canard.
+    const corroborated = new Set<FoodGroupRef>();
+
+    // LES INGRÉDIENTS EFFECTIFS: ce que le plat ajoute, PLUS ce qu'il prélève
+    // sur les préparations qu'il cite. Voir `PlannedDish.uses`.
+    const effectiveIngredients: Array<{ term?: string | null }> = [
+      ...(dish.ingredients ?? []),
+    ];
+    for (const use of dish.uses ?? []) {
+      // Les DEUX casses — voir `PlannedDish.uses`.
+      const id = String(use?.preparationId ?? use?.preparation_id ?? "").trim();
+      const prep = id ? prepById.get(id) : undefined;
+      if (prep) effectiveIngredients.push(...(prep.ingredients ?? []));
+    }
+
+    for (const ing of effectiveIngredients) {
       const term = String(ing?.term ?? "").trim();
       if (!term) continue;
       const group = groupForTerm(term, args.catalogue);
@@ -322,6 +421,7 @@ export function matchPlannedDish(args: {
         plateLabels.some((l) => l === norm || l.includes(norm) || norm.includes(l))
       ) {
         matchedTerms.push(term);
+        if (group) corroborated.add(group);
       }
     }
     // Un plat dont AUCUN ingrédient n'est au catalogue ne peut pas être
@@ -343,9 +443,11 @@ export function matchPlannedDish(args: {
       dishIndex,
       title: dish.title,
       dishGroups,
+      anchorGroups,
       matchedGroups,
       missingGroups,
       matchedTerms,
+      corroboratedGroups: anchorGroups.filter((g) => corroborated.has(g)),
       // Le dénominateur est l'ANCRE, pas la liste d'ingrédients: voir
       // `ACCESSORY_GROUPS`. Le numérateur ne compte que des ancres lui aussi,
       // sinon un yaourt sucré dépasserait 1.
@@ -380,11 +482,34 @@ export function matchPlannedDish(args: {
   if (full.length === 1 && reachable.length >= 1) {
     const others = reachable.filter((c) => c !== full[0]);
     if (others.every((c) => c.coverage < 1)) {
+      // LA GARDE SUR LES TERMES. Couvrir tous les groupes ne suffit pas: deux
+      // aliments du même groupe sont interchangeables, et c'est exactement
+      // comme ça qu'une assiette de poulet a coché un plat au canard (voir
+      // `corroboratedGroups`). Pour agir sans demander, il faut que le modèle
+      // ait NOMMÉ, mot pour mot, un aliment de CHAQUE groupe d'ancre.
+      //
+      // CONDITION DE DÉSARMEMENT — cette garde ne doit pas mordre partout, ou
+      // on la débranchera dans la semaine: un plat dont le modèle nomme
+      // « grilled chicken breast » contre « Chicken breast » au catalogue est
+      // corroboré (l'inclusion par mots entiers de `groupForTerm` le rattrape),
+      // et le cas nominal coche donc toujours.
+      const fullyCorroborated =
+        full[0].corroboratedGroups.length === full[0].anchorGroups.length;
+      if (fullyCorroborated) {
+        return {
+          verdict: "confident",
+          best: full[0],
+          candidates: reachable,
+          reason: "single_full_cover",
+        };
+      }
+      // Tous les groupes y sont mais les aliments ne sont pas les mêmes: c'est
+      // précisément le faux positif. On rétrograde, on ne coche pas.
       return {
-        verdict: "confident",
+        verdict: "probable",
         best: full[0],
         candidates: reachable,
-        reason: "single_full_cover",
+        reason: "groups_match_terms_do_not",
       };
     }
   }

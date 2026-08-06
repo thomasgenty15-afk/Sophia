@@ -238,70 +238,88 @@ export async function generateMeal(
     createdAt: null,
     // On ne recopie QUE les champs de l'écran. `honours_belief_keys` est
     // volontairement laissé de côté: la doctrine du coach ne s'affiche pas.
-    dishes: dishes.map((raw) => {
-      const d = (raw ?? {}) as Record<string, unknown>;
-      const ingredients = Array.isArray(d.ingredients) ? d.ingredients : [];
-      return {
-        title: String(d.title ?? ""),
-        slot: (d.slot ?? null) as MealSlot | null,
-        day: d.day === null || d.day === undefined ? null : String(d.day),
-        method: String(d.method ?? ""),
-        why: String(d.why ?? ""),
-        uses: Array.isArray(d.uses)
-          ? d.uses.map((raw) => {
-            const u = (raw ?? {}) as Record<string, unknown>;
-            return {
-              preparation_id: String(u.preparation_id ?? ""),
-              servings: Number(u.servings) || 1,
-            };
-          }).filter((u) => u.preparation_id !== "")
-          : [],
-        ingredients: ingredients.map((rawItem) => {
-          const i = (rawItem ?? {}) as Record<string, unknown>;
-          return {
-            term: String(i.term ?? ""),
-            quantity: i.quantity === null || i.quantity === undefined
-              ? null
-              : String(i.quantity),
-            in_pantry: i.in_pantry === true,
-          };
-        }),
-      };
-    }),
-    shoppingList: shopping.map((raw) => {
-      const s = (raw ?? {}) as Record<string, unknown>;
-      return {
-        term: String(s.term ?? ""),
-        quantity: s.quantity === null || s.quantity === undefined
-          ? null
-          : String(s.quantity),
-        aisle: String(s.aisle ?? "other"),
-      };
-    }),
+    dishes: readDishes(dishes),
+    shoppingList: readShopping(shopping),
   };
+}
+
+/** Les ingrédients d'un plat ou d'une préparation — même forme des deux côtés. */
+function readIngredients(raw: unknown): DishIngredient[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((entry) => {
+    const i = (entry ?? {}) as Record<string, unknown>;
+    return {
+      term: String(i.term ?? ""),
+      quantity: i.quantity === null || i.quantity === undefined
+        ? null
+        : String(i.quantity),
+      in_pantry: i.in_pantry === true,
+    };
+  });
+}
+
+/**
+ * LES PLATS, NORMALISÉS — et c'est le SEUL chemin vers `GeneratedDish[]`.
+ *
+ * Deux appelants montent la même liste: la réponse du moteur, et une ligne
+ * `student_generated_meals` relue plus tard. La ligne relue a été écrite par une
+ * version antérieure du moteur, donc ses plats n'ont pas forcément les champs
+ * d'aujourd'hui — `uses` est arrivé après des compositions déjà en base. Un
+ * `as GeneratedDish[]` sur ce JSONB compile et jure que `dish.uses` existe;
+ * l'écran fait `dish.uses.map(...)` et casse à l'ouverture, sans qu'aucun test
+ * de type n'ait pu le voir. D'où: un lecteur qui DONNE les champs manquants,
+ * partagé, plutôt qu'un cast qui les suppose.
+ */
+export function readDishes(raw: unknown): GeneratedDish[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((entry) => {
+    const d = (entry ?? {}) as Record<string, unknown>;
+    return {
+      title: String(d.title ?? ""),
+      slot: (d.slot ?? null) as MealSlot | null,
+      day: d.day === null || d.day === undefined ? null : String(d.day),
+      method: String(d.method ?? ""),
+      why: String(d.why ?? ""),
+      uses: Array.isArray(d.uses)
+        ? d.uses.map((rawUse) => {
+          const u = (rawUse ?? {}) as Record<string, unknown>;
+          return {
+            preparation_id: String(u.preparation_id ?? ""),
+            servings: Number(u.servings) || 1,
+          };
+        }).filter((u) => u.preparation_id !== "")
+        : [],
+      ingredients: readIngredients(d.ingredients),
+    };
+  });
+}
+
+/** La liste de courses, même arbitrage: relue d'une ligne, elle est normalisée. */
+function readShopping(raw: unknown): ShoppingItem[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((entry) => {
+    const s = (entry ?? {}) as Record<string, unknown>;
+    return {
+      term: String(s.term ?? ""),
+      quantity: s.quantity === null || s.quantity === undefined
+        ? null
+        : String(s.quantity),
+      aisle: String(s.aisle ?? "other"),
+    };
+  });
 }
 
 function readPreparations(raw: unknown): MealPreparation[] {
   if (!Array.isArray(raw)) return [];
   return raw.map((entry) => {
     const p = (entry ?? {}) as Record<string, unknown>;
-    const ingredients = Array.isArray(p.ingredients) ? p.ingredients : [];
     return {
       id: String(p.id ?? ""),
       title: String(p.title ?? ""),
       servings_made: Number(p.servings_made) || 0,
       method: String(p.method ?? ""),
       cook_on: p.cook_on === null || p.cook_on === undefined ? null : String(p.cook_on),
-      ingredients: ingredients.map((rawItem) => {
-        const i = (rawItem ?? {}) as Record<string, unknown>;
-        return {
-          term: String(i.term ?? ""),
-          quantity: i.quantity === null || i.quantity === undefined
-            ? null
-            : String(i.quantity),
-          in_pantry: i.in_pantry === true,
-        };
-      }),
+      ingredients: readIngredients(p.ingredients),
     };
   }).filter((p) => p.id !== "" && p.title !== "");
 }
@@ -381,12 +399,10 @@ export async function loadLatestGeneratedMeal(
   };
   return {
     mealId: row.id,
-    dishes: (Array.isArray(row.dishes) ? row.dishes : []) as GeneratedDish[],
+    dishes: readDishes(row.dishes),
     preparations: readPreparations(row.preparations),
     cookingSessions: readSessions(row.cooking_sessions),
-    shoppingList: (Array.isArray(row.shopping_list)
-      ? row.shopping_list
-      : []) as ShoppingItem[],
+    shoppingList: readShopping(row.shopping_list),
     context: typeof row.context === "string" && row.context.trim() !== ""
       ? row.context
       : null,

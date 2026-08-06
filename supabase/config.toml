@@ -502,13 +502,12 @@ verify_jwt = false
 [functions.keel-cards-v1]
 verify_jwt = false
 
-# The coach composes the student's week of meals. Same door as its siblings:
-# verify_jwt is off because GoTrue signs ES256 locally and the gateway cannot
-# verify it, so the JWT is checked INSIDE the function — and here every single
-# action is coach-gated (auth.getUser -> coaches, status='active'), with no
-# internal-secret path and no anonymous surface at all.
-[functions.keel-meal-plan-v1]
-verify_jwt = false
+# `keel-meal-plan-v1` a été RETIRÉE ici: la fonction n'existe plus depuis la fin
+# de la composition 1:1 de la semaine de repas (migration 20260804210000). Le
+# coach n'épingle plus une recette sur le jour et le créneau d'un élève nommé —
+# il écrit une bibliothèque, et l'élève la lit sans placement; la fonction
+# n'avait plus de table à écrire. Sa déclaration survivait à son code, ce qui
+# donnait un `[functions.…]` pointant vers un répertoire absent.
 
 [analytics]
 enabled = false

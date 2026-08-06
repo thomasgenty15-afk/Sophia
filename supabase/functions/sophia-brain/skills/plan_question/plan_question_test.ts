@@ -91,6 +91,7 @@ function constraint(
     allergenRef: "shellfish",
     substanceRef: null,
     medicationClass: null,
+    conditionRef: null,
     severity: "medical",
     declaredBy: "coach",
     notes: null,

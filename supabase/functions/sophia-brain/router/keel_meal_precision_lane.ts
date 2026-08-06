@@ -207,6 +207,23 @@ export async function runMealPrecisionLane(args: {
   }
 
   if (decision.kind === "exit") {
+    // ── TRACÉ, parce que la sortie est le chemin le plus coûteux ────────────
+    // Mesuré le 2026-08-05: sur 12 démentis, 5 ont été routés en `exit` — le
+    // flow se ferme, RIEN n'est amendé, et Sophia répond quand même « Got it —
+    // it was pasta, not what I said before ». Un accusé fantôme. Trois de ces
+    // tours ont même écrit une SECONDE ligne `protocol_events`: l'élève a mangé
+    // une fois, son coach en compte deux. Aucun de ces tours ne laissait la
+    // moindre ligne de log — seul le cas amendé était journalisé, donc le
+    // chemin qui casse était le seul invisible.
+    console.log(JSON.stringify({
+      tag: "meal_precision_flow_exit",
+      user_id: args.userId,
+      reason: decision.reason,
+      intent,
+      // Ce qu'on RENONCE à amender en sortant: c'est le coût du tour.
+      abandoned_event_ids: stored.flow.eventIds,
+      abandoned_tick_event_ids: stored.flow.tickEventIds ?? [],
+    }));
     // Le flow se ferme (autre sujet, autre repas, nouvelle photo, timeout,
     // plafond, crise). On n'absorbe RIEN: le tour doit pouvoir écrire son
     // propre fait, et une nouvelle photo doit pouvoir ouvrir le sien.
@@ -219,6 +236,9 @@ export async function runMealPrecisionLane(args: {
 
   const result = await amendMealPrecisionEvents(args.supabase, {
     eventIds: decision.eventIds,
+    // Non vide seulement sur une `correction`: le démenti du plat décoche la
+    // ligne `quick_tap` qui en découlait.
+    tickEventIds: decision.tickEventIds,
     userId: args.userId,
     amendment: {
       kind: decision.amendment,

@@ -109,6 +109,9 @@ export function readMealPrecisionFlowState(
       state,
       source,
       eventIds: resolvedEventIds,
+      // Absent des états écrits avant le 2026-08-05: une liste vide est la
+      // lecture correcte — ces flows-là n'avaient aucune coche à décocher.
+      tickEventIds: stringList(flow.tickEventIds),
       componentKeys: stringList(flow.componentKeys),
       openedAt,
       turns: Number.isFinite(turns) ? turns : 0,

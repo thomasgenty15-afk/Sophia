@@ -9,8 +9,15 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
 import {
+  type AskCadenceInput,
+  decideAskCadence,
   decideDailyPulse,
   needsAxisFollowUp,
+  PULSE_ASK_INTERVAL_DAYS,
+  PULSE_ASK_INTERVAL_WHEN_HARD,
+  PULSE_ASK_INTERVAL_WHEN_IGNORED,
+  PULSE_IGNORED_STREAK,
+  renderPulseMessage,
   type PulseDecisionInput,
   PULSE_AXES,
   PULSE_LEVELS,
@@ -29,10 +36,14 @@ function input(over: Partial<PulseDecisionInput> = {}): PulseDecisionInput {
   return {
     localHour: 20,
     answeredToday: false,
-    askedToday: false,
+    sentToday: false,
     minutesSinceLastExchange: null,
     safetyBand: null,
     hasActivePlan: true,
+    // The nominal evening after the redesign: something happened today, and the
+    // question is due. Tests that care about either one say so explicitly.
+    hasGround: true,
+    askDue: true,
     ...over,
   };
 }
@@ -68,33 +79,33 @@ Deno.test("one tap per day", () => {
   if (d.decision === "skip") assertEquals(d.reason, "already_answered_today");
 });
 
-Deno.test("silence is not a request for a reminder: one ASK per day", () => {
+Deno.test("silence is not a request for a reminder: one MESSAGE per day", () => {
   // Regression, QA agent 7 (2026-08-03). The window is two hours wide and the
   // cron is hourly, so there are two ticks inside it. With `answeredToday` as
   // the only gate, a student who did not answer got "How was today?" at 20:10
   // AND at 21:10 — proven in local with two `keel_daily_pulse` outbound rows on
   // the same local day for one silent student.
-  const d = decideDailyPulse(input({ answeredToday: false, askedToday: true }));
+  const d = decideDailyPulse(input({ answeredToday: false, sentToday: true }));
   assertEquals(d.decision, "skip");
-  if (d.decision === "skip") assertEquals(d.reason, "already_asked_today");
+  if (d.decision === "skip") assertEquals(d.reason, "already_sent_today");
 
   // ...AND ITS DISARMING CONDITION. The belt must not bite when the premise is
-  // false: nothing sent today means the question still goes out. A gate that
+  // false: nothing sent today means the message still goes out. A gate that
   // can only ever say no is a gate that silently kills the feature.
   assertEquals(
-    decideDailyPulse(input({ answeredToday: false, askedToday: false })).decision,
+    decideDailyPulse(input({ answeredToday: false, sentToday: false })).decision,
     "send",
   );
-  // And it does not leak across days: `askedToday` is computed against the
-  // student's local date, so a question sent yesterday leaves today open.
+  // And it does not leak across days: `sentToday` is computed against the
+  // student's local date, so a message sent yesterday leaves today open.
   assertEquals(
-    decideDailyPulse(input({ localHour: 21, askedToday: false })).decision,
+    decideDailyPulse(input({ localHour: 21, sentToday: false })).decision,
     "send",
   );
 });
 
-Deno.test("answered outranks asked: the two make different days for the coach", () => {
-  const d = decideDailyPulse(input({ answeredToday: true, askedToday: true }));
+Deno.test("answered outranks sent: the two make different days for the coach", () => {
+  const d = decideDailyPulse(input({ answeredToday: true, sentToday: true }));
   assertEquals(d.decision, "skip");
   // "He answered" and "we asked and got nothing" are not the same day, and the
   // job's counter is what tells them apart.
@@ -134,11 +145,185 @@ Deno.test("the gate order holds: opt-out outranks safety outranks the rest", () 
   if (s.decision === "skip") assertEquals(s.reason, "safety_active");
 
   // ...and "nothing to follow" still outranks both day-gates. A student with no
-  // adopted plan is not "already asked", he is out of scope entirely.
+  // adopted plan is not "already sent", he is out of scope entirely.
   const p = decideDailyPulse(
-    input({ hasActivePlan: false, answeredToday: true, askedToday: true }),
+    input({ hasActivePlan: false, answeredToday: true, sentToday: true }),
   );
   if (p.decision === "skip") assertEquals(p.reason, "no_active_plan");
+
+  // `nothing_to_say` is LAST, and that placement is the contract. It is the only
+  // gate that depends on the student's day rather than on his state; hoisting it
+  // would let "nobody did anything" hide "everybody was out of the window".
+  const w = decideDailyPulse(
+    input({ localHour: 8, hasGround: false, askDue: false }),
+  );
+  if (w.decision === "skip") assertEquals(w.reason, "outside_window");
+});
+
+// ---------------------------------------------------------------------------
+// THE REDESIGN: what we GIVE, and what we ASK, are two decisions
+// ---------------------------------------------------------------------------
+
+Deno.test("nothing grounded to say and no question due: we stay silent", () => {
+  // The whole point of the redesign. The evening message used to go out every
+  // single day carrying nothing but a request. A day with no fact and no due
+  // question now produces NO message at all — and a named reason, because a
+  // quiet evening is a result, not a failure.
+  const d = decideDailyPulse(input({ hasGround: false, askDue: false }));
+  assertEquals(d.decision, "skip");
+  if (d.decision === "skip") assertEquals(d.reason, "nothing_to_say");
+});
+
+Deno.test("an empty day NEVER cancels a due question", () => {
+  // The structural half of "activity never suppresses the question", stated the
+  // other way round: the two inputs are separate so that neither can eat the
+  // other. A student who logged nothing is exactly the one whose livability we
+  // most need to hear about.
+  const d = decideDailyPulse(input({ hasGround: false, askDue: true }));
+  assertEquals(d.decision, "send");
+  if (d.decision === "send") assertEquals(d.ask, true);
+});
+
+Deno.test("a full day with no question due sends the fact ALONE", () => {
+  // ...and this is the give-without-taking case that did not exist before.
+  const d = decideDailyPulse(input({ hasGround: true, askDue: false }));
+  assertEquals(d.decision, "send");
+  if (d.decision === "send") assertEquals(d.ask, false);
+});
+
+// ---------------------------------------------------------------------------
+// THE CADENCE — the actual lever on "this is annoying"
+// ---------------------------------------------------------------------------
+
+function cadence(over: Partial<AskCadenceInput> = {}): AskCadenceInput {
+  return {
+    daysSinceLastAsk: null,
+    lastAnsweredLevel: null,
+    unansweredStreak: 0,
+    ...over,
+  };
+}
+
+Deno.test("never asked: we bootstrap, because you cannot measure without starting", () => {
+  const d = decideAskCadence(cadence());
+  assertEquals(d.ask, true);
+  assertEquals(d.reason, "never_asked");
+});
+
+Deno.test("the nominal interval holds the question back on the days between", () => {
+  for (let days = 0; days < PULSE_ASK_INTERVAL_DAYS; days++) {
+    const d = decideAskCadence(
+      cadence({ daysSinceLastAsk: days, lastAnsweredLevel: "good" }),
+    );
+    assertEquals(d.ask, false, `${days} days`);
+    assertEquals(d.reason, "too_soon");
+  }
+  const due = decideAskCadence(
+    cadence({ daysSinceLastAsk: PULSE_ASK_INTERVAL_DAYS, lastAnsweredLevel: "good" }),
+  );
+  assertEquals(due.ask, true);
+  assertEquals(due.reason, "interval_reached");
+});
+
+Deno.test("a 'rough' day escalates to daily: that signal is why the loop exists", () => {
+  const d = decideAskCadence(
+    cadence({ daysSinceLastAsk: PULSE_ASK_INTERVAL_WHEN_HARD, lastAnsweredLevel: "hard" }),
+  );
+  assertEquals(d.ask, true);
+  assertEquals(d.reason, "escalated_after_hard");
+  assertEquals(d.intervalDays, PULSE_ASK_INTERVAL_WHEN_HARD);
+
+  // ...AND ITS DISARMING CONDITION: the escalation is not "ask forever". Same
+  // day means same day — the `already_sent_today` gate and this one agree.
+  assertEquals(
+    decideAskCadence(
+      cadence({ daysSinceLastAsk: 0, lastAnsweredLevel: "hard" }),
+    ).ask,
+    false,
+  );
+});
+
+Deno.test("two ignored questions BEAT the 'rough' escalation, and that is the arbitration", () => {
+  // The least obvious call in the module, and the one most likely to be
+  // "fixed" by someone reading the escalation on its own. A student who
+  // answered `hard` and then went quiet twice must NOT be asked daily: that is
+  // precisely the profile a daily interrogation drives away. The evening fact
+  // keeps going out either way, so the channel does not go cold.
+  const d = decideAskCadence(
+    cadence({
+      daysSinceLastAsk: PULSE_ASK_INTERVAL_WHEN_HARD,
+      lastAnsweredLevel: "hard",
+      unansweredStreak: PULSE_IGNORED_STREAK,
+    }),
+  );
+  assertEquals(d.ask, false);
+  assertEquals(d.reason, "backing_off");
+  assertEquals(d.intervalDays, PULSE_ASK_INTERVAL_WHEN_IGNORED);
+
+  // The back-off is a delay, not a mute: the question returns after a week.
+  assertEquals(
+    decideAskCadence(
+      cadence({
+        daysSinceLastAsk: PULSE_ASK_INTERVAL_WHEN_IGNORED,
+        lastAnsweredLevel: "hard",
+        unansweredStreak: 5,
+      }),
+    ).ask,
+    true,
+  );
+});
+
+Deno.test("one ignored question is not a pattern: the interval stays nominal", () => {
+  const d = decideAskCadence(
+    cadence({ daysSinceLastAsk: PULSE_ASK_INTERVAL_DAYS, unansweredStreak: 1 }),
+  );
+  assertEquals(d.ask, true);
+  assertEquals(d.intervalDays, PULSE_ASK_INTERVAL_DAYS);
+});
+
+// ---------------------------------------------------------------------------
+// THE MESSAGE — three shapes, and the invariant that binds them
+// ---------------------------------------------------------------------------
+
+Deno.test("no buttons without a question, no question without buttons", () => {
+  // Buttons under a plain statement would demand an answer to a message that
+  // wants none. A question with no buttons is worse: `readPulseReply` only ever
+  // reads button ids, so a typed reply goes to the dispatcher and the day is
+  // never measured at all.
+  const factOnly = renderPulseMessage({ recapBody: "Ticked off today: Oats.", ask: false });
+  assertEquals(factOnly.buttons.length, 0);
+  assertEquals(factOnly.body, "Ticked off today: Oats.");
+
+  const askOnly = renderPulseMessage({ recapBody: null, ask: true });
+  assertEquals(askOnly.buttons.length, 3);
+  assertEquals(askOnly.body, "How was today?");
+
+  const both = renderPulseMessage({ recapBody: "Ticked off today: Oats.", ask: true });
+  assertEquals(both.buttons.length, 3);
+  // The blank line is load-bearing, not cosmetic: run together, the count reads
+  // as the preamble to the question, which is the measurement bias the recap
+  // exists to avoid.
+  assertEquals(both.body, "Ticked off today: Oats.\n\nHow was today?");
+});
+
+Deno.test("neither ground nor ask cannot be rendered — the decider already refused it", () => {
+  // A throw rather than an empty bubble: `nothing_to_say` is a decision, and a
+  // caller that reaches the renderer without it has bypassed the decision.
+  let threw = false;
+  try {
+    renderPulseMessage({ recapBody: null, ask: false });
+  } catch {
+    threw = true;
+  }
+  assert(threw);
+  // Whitespace is not a fact either.
+  let threwOnBlank = false;
+  try {
+    renderPulseMessage({ recapBody: "   \n ", ask: false });
+  } catch {
+    threwOnBlank = true;
+  }
+  assert(threwOnBlank);
 });
 
 // ---------------------------------------------------------------------------

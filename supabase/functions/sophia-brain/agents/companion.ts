@@ -9,12 +9,13 @@ import {
   visibleConversationFlowRules,
   visibleOutputStyleRules,
 } from "../router/response_style_policy.ts";
-// W9 — R3. La langue de la réponse visible se résout ici et NULLE PART
-// ailleurs, et le bloc RESPONSE_LANGUAGE part en DERNIÈRE instruction.
+// W9 — R3. La langue de la réponse visible est RÉSOLUE par le propriétaire du
+// tour (`router/run.ts`) et reçue ici; le bloc RESPONSE_LANGUAGE part en
+// DERNIÈRE instruction, après la passe de budget.
 import {
   appendResponseLanguageBlock,
   isFrenchLocale,
-  resolveResponseLocale,
+  withPersistedConversationLocale,
 } from "../../_shared/keel/locale.ts";
 declare const Deno: any;
 
@@ -495,27 +496,11 @@ function buildNextQuestionRhythmState(args: {
   };
 }
 
-/**
- * R3 — the `conversation_locale` already committed to this thread.
- * Read-only helper: this module never writes a locale it did not resolve
- * through `resolveResponseLocale`.
- */
-export function readPersistedConversationLocale(userState: any): string | null {
-  const raw = (userState?.temp_memory as any)?.conversation_locale;
-  const value = String(raw ?? "").trim();
-  return value ? value : null;
-}
-
-/**
- * An EXPLICIT request from the student to be answered in a given language.
- * This is the only input allowed to move a thread already anchored on a
- * locale — everything else would re-open the oscillation R3 forbids.
- */
-export function readExplicitConversationLocale(userState: any): string | null {
-  const raw = (userState?.temp_memory as any)?.conversation_locale_explicit;
-  const value = String(raw ?? "").trim();
-  return value ? value : null;
-}
+// R3 — les lecteurs/écrivain de `conversation_locale` ont été remontés dans
+// `_shared/keel/locale.ts`, à côté du résolveur. Ce module ne décide plus de la
+// langue: il la REÇOIT (`opts.responseLocale`). Tant que la décision vivait
+// ici, seuls les tours possédés par le composeur committaient une locale — un
+// tour pris par une skill n'en persistait aucune, et le fil dérivait.
 
 export type CompanionModelOutput = string;
 
@@ -1293,6 +1278,13 @@ export async function runCompanion(
   message: string,
   history: any[],
   userState: any,
+  /**
+   * W9/R3 — la langue de la réponse, DÉJÀ résolue par le propriétaire du tour.
+   * Requis, et positionné avant `context` (qui a un défaut) pour qu'il ne
+   * puisse pas être omis: un composeur qui devine sa propre langue est le
+   * module que R3 existe pour interdire.
+   */
+  responseLocale: string,
   context: string = "",
   meta?: {
     requestId?: string;
@@ -1327,18 +1319,6 @@ export async function runCompanion(
       temp_memory: userState?.temp_memory ?? {},
     };
   }
-
-  // W9/R3 — langue de la réponse visible.
-  // `persisted` est l'ancre anti-oscillation: la valeur déjà committée sur ce
-  // fil prime sur toute détection par message. Sans cette lecture+réécriture,
-  // la langue rebascule d'un tour à l'autre (mode de panne nommé par R3).
-  const persistedConversationLocale = readPersistedConversationLocale(
-    userState,
-  );
-  const responseLocale = resolveResponseLocale({
-    userExplicit: readExplicitConversationLocale(userState),
-    persisted: persistedConversationLocale,
-  });
 
   const promptParts = buildCompanionPromptParts({
     isWhatsApp,
@@ -1385,13 +1365,13 @@ export async function runCompanion(
     context: augmentedContext,
     responseText: result.text,
   });
-  const nextTempMemory = {
+  // R3 — le fil PORTE sa langue. `withPersistedConversationLocale` est
+  // l'écrivain unique; le routeur l'applique AUSSI sur les chemins possédés
+  // par une skill, sinon un tour non-composeur laisse le fil sans ancre.
+  const nextTempMemory = withPersistedConversationLocale({
     ...((userState?.temp_memory ?? {}) as Record<string, unknown>),
     companion_question_rhythm: nextQuestionRhythm,
-    // R3 — le fil PORTE sa langue. Le routeur persiste `temp_memory`; cette
-    // écriture est ce qui rend le prochain tour stable.
-    conversation_locale: responseLocale,
-  };
+  }, responseLocale);
 
   return {
     ...result,

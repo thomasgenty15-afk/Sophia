@@ -196,16 +196,199 @@ Deno.test("un créneau qui se CONTREDIT élimine le candidat", () => {
 Deno.test("un créneau ABSENT côté assiette ne disqualifie rien", () => {
   // `slot_key` est NULL sur 71 % des lignes: le traiter comme un désaccord
   // désarmerait le rapprochement pour les deux tiers des repas.
+  //
+  // Les libellés NOMMENT les trois aliments, comme le fait un vrai retour de
+  // modèle (« grilled chicken breast, brown rice, broccoli florets »): depuis
+  // la garde sur les termes, une assiette qui déclare trois groupes sans
+  // nommer les aliments ne coche plus — et c'est un autre test que celui-ci.
   const m = matchPlannedDish({
     plate: {
       groups: ["poultry", "whole_grain", "cruciferous_veg"],
-      labels: ["chicken"],
+      labels: ["grilled chicken breast", "brown rice", "broccoli florets"],
       slot: null,
     },
     dishes: [CHICKEN],
     catalogue: CATALOGUE,
   });
   assertEquals(m.verdict, "confident");
+});
+
+Deno.test("LA GARDE SUR LES TERMES: mêmes groupes, autres aliments → jamais confident", () => {
+  // LE FAUX POSITIF MESURÉ EN RUN RÉEL LE 2026-08-05, 3/3, sur de vraies
+  // photos: une assiette de poulet/riz/brocolis a coché « Duck breast with
+  // quinoa and cauliflower ». Le canard et le poulet sont tous deux `poultry`,
+  // le quinoa et le riz `whole_grain`, le chou-fleur et le brocoli
+  // `cruciferous_veg` — couverture de groupes parfaite, zéro aliment commun.
+  //
+  // Une fausse coche écrit un fait faux dans la table que le coach lit, et
+  // l'élève ne peut pas le retirer. On rétrograde, on ne coche pas.
+  const DUCK: PlannedDish = {
+    title: "Duck breast with quinoa and cauliflower",
+    slot: "lunch",
+    ingredients: [
+      { term: "duck breast" },
+      { term: "quinoa" },
+      { term: "cauliflower" },
+    ],
+  };
+  const m = matchPlannedDish({
+    plate: {
+      groups: ["poultry", "whole_grain", "cruciferous_veg"],
+      labels: ["grilled chicken breast", "brown rice", "broccoli florets"],
+      slot: null,
+    },
+    dishes: [DUCK],
+    catalogue: [
+      ...CATALOGUE,
+      { slug: "duck_breast", label: "Duck breast", food_group_ref: "poultry" },
+      { slug: "quinoa", label: "Quinoa", food_group_ref: "whole_grain" },
+      {
+        slug: "cauliflower",
+        label: "Cauliflower",
+        food_group_ref: "cruciferous_veg",
+      },
+    ],
+  });
+  assertEquals(m.verdict, "probable");
+  assertEquals(m.reason, "groups_match_terms_do_not");
+  // La couverture reste PARFAITE: c'est bien la garde sur les termes qui a
+  // mordu, pas un candidat qui n'atteignait pas le seuil.
+  assertEquals(m.best?.coverage, 1);
+  assertEquals(m.best?.corroboratedGroups, []);
+});
+
+Deno.test("CONDITION DE DÉSARMEMENT: le cas nominal coche toujours", () => {
+  // Une garde qui mord partout est une garde qu'on débranche dans la semaine.
+  // Le libellé du modèle est plus riche que le terme du plat (« grilled
+  // chicken breast » contre « Chicken breast »), et l'inclusion par mots
+  // entiers doit le rattraper — sinon plus AUCUNE photo ne cocherait.
+  const m = matchPlannedDish({
+    plate: {
+      groups: ["poultry", "whole_grain", "cruciferous_veg"],
+      labels: ["grilled chicken breast", "brown rice", "steamed broccoli"],
+      slot: "lunch",
+    },
+    dishes: [CHICKEN],
+    catalogue: CATALOGUE,
+  });
+  assertEquals(m.verdict, "confident");
+  assertEquals(m.best?.corroboratedGroups.length, 3);
+});
+
+Deno.test("les ingrédients d'une PRÉPARATION comptent pour le plat", () => {
+  // LE DÉFAUT QUI RENDAIT LE MÉCANISME MUET SUR LA VRAIE DONNÉE. Le plat livré
+  // « Chicken, brown rice and broccoli bowl » n'a pour `ingredients` que
+  // brocoli, huile et citron: le poulet et le riz vivent dans la PRÉPARATION
+  // que `uses` cite. Sans les lire, le seul vrai plat photographié de la
+  // campagne est ressorti `probable` à 0,5 — rétrogradé par un citron que la
+  // photo ne peut pas montrer.
+  const BOWL: PlannedDish = {
+    title: "Chicken, brown rice and broccoli bowl",
+    slot: "lunch",
+    ingredients: [{ term: "broccoli" }],
+    uses: [{ preparationId: "prep_chicken_rice" }],
+  };
+  const m = matchPlannedDish({
+    plate: {
+      groups: ["poultry", "whole_grain", "cruciferous_veg"],
+      labels: ["grilled chicken breast", "brown rice", "broccoli florets"],
+      slot: "lunch",
+    },
+    dishes: [BOWL],
+    catalogue: CATALOGUE,
+    preparations: [
+      {
+        id: "prep_chicken_rice",
+        ingredients: [{ term: "chicken breast" }, { term: "brown rice" }],
+      },
+    ],
+  });
+  assertEquals(m.verdict, "confident");
+  assertEquals(m.best?.anchorGroups.length, 3);
+});
+
+Deno.test("l'EAU d'une préparation ne pénalise pas la couverture", () => {
+  // Mesuré en run réel: la préparation de riz livrée porte `basmati rice` (hors
+  // catalogue), `water` et `salt`. En lisant les préparations sans classer
+  // l'eau comme accessoire, on ajoutait au DÉNOMINATEUR une ancre qu'aucune
+  // photo ne peut montrer — couverture 1 → 0,667, garantie.
+  const m = matchPlannedDish({
+    plate: {
+      groups: ["poultry", "cruciferous_veg"],
+      labels: ["grilled chicken breast", "broccoli florets"],
+      slot: "lunch",
+    },
+    dishes: [{
+      title: "Chicken and broccoli",
+      slot: "lunch",
+      ingredients: [{ term: "broccoli" }],
+      uses: [{ preparation_id: "prep_chicken" }],
+    }],
+    catalogue: [
+      ...CATALOGUE,
+      { slug: "water", label: "Water", food_group_ref: "water" },
+    ],
+    preparations: [{
+      id: "prep_chicken",
+      ingredients: [{ term: "chicken breast" }, { term: "water" }],
+    }],
+  });
+  // L'eau est RAPPORTÉE (elle reste dans `dishGroups`) mais hors dénominateur.
+  assert(m.best!.dishGroups.includes("water" as never));
+  assertEquals(m.best?.anchorGroups.includes("water" as never), false);
+  assertEquals(m.best?.coverage, 1);
+  assertEquals(m.verdict, "confident");
+});
+
+Deno.test("LA CASSE DU PAYLOAD RÉEL: `preparation_id` marche comme `preparationId`", () => {
+  // ── CE TEST EXISTE PARCE QUE SON ABSENCE A COÛTÉ UN RUN ──────────────────
+  // La première version lisait `use.preparationId`. Or `mealDishesPayload`
+  // sérialise `preparation_id` (snake_case): les DEUX formes coexistent en base
+  // (`select distinct k from … jsonb_object_keys(u) k` rend les deux). Le
+  // `as PlannedDish[]` du chargeur désarme le typecheck sur ce payload, donc
+  // rien n'a signalé l'écart — 90 tests verts, et le rapprochement muet sur
+  // toute donnée écrite par le générateur.
+  //
+  // Motif connu du dépôt: `as-cast-on-foreign-type-disarms-typecheck`.
+  const PREPARATIONS = [
+    {
+      id: "prep_chicken_rice",
+      ingredients: [{ term: "chicken breast" }, { term: "brown rice" }],
+    },
+  ];
+  const PLATE = {
+    groups: ["poultry", "whole_grain", "cruciferous_veg"],
+    labels: ["grilled chicken breast", "brown rice", "broccoli florets"],
+    slot: "lunch",
+  };
+  const snake = matchPlannedDish({
+    plate: PLATE,
+    dishes: [{
+      title: "Chicken, brown rice and broccoli bowl",
+      slot: "lunch",
+      ingredients: [{ term: "broccoli" }],
+      uses: [{ preparation_id: "prep_chicken_rice" }],
+    }],
+    catalogue: CATALOGUE,
+    preparations: PREPARATIONS,
+  });
+  const camel = matchPlannedDish({
+    plate: PLATE,
+    dishes: [{
+      title: "Chicken, brown rice and broccoli bowl",
+      slot: "lunch",
+      ingredients: [{ term: "broccoli" }],
+      uses: [{ preparationId: "prep_chicken_rice" }],
+    }],
+    catalogue: CATALOGUE,
+    preparations: PREPARATIONS,
+  });
+  assertEquals(snake.verdict, "confident");
+  // Les deux casses doivent rendre EXACTEMENT le même verdict: c'est la seule
+  // assertion qui empêche d'en corriger une et d'oublier l'autre.
+  assertEquals(snake.verdict, camel.verdict);
+  assertEquals(snake.best?.coverage, camel.best?.coverage);
+  assertEquals(snake.best?.anchorGroups.length, 3);
 });
 
 Deno.test("sous le seuil de couverture, on ne propose RIEN", () => {

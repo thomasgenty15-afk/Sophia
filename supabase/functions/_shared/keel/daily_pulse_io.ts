@@ -19,10 +19,13 @@
  */
 
 import {
+  type AskCadenceInput,
   needsAxisFollowUp,
   type PulseAxis,
   type PulseLevel,
+  PULSE_LEVELS,
 } from "./daily_pulse.ts";
+import { addDays, daysBetween } from "./local_date.ts";
 import { localDateFor } from "./reengagement_io.ts";
 
 /** Le purpose des messages sortants qui PORTENT la question du soir. */
@@ -65,7 +68,43 @@ export async function loadPulseDay(
 }
 
 /**
- * La question est-elle DÉJÀ PARTIE dans le jour local de l'élève ?
+ * LA CLÉ QUI SÉPARE « UN MESSAGE EST PARTI » DE « UNE QUESTION A ÉTÉ POSÉE ».
+ *
+ * ⚠️ ELLE EST LA CONDITION DE SURVIE DE TOUTE LA CADENCE, et son absence aurait
+ * été invisible. Le message du soir porte maintenant un FAIT tous les jours et
+ * la question tous les trois — sous le MÊME purpose `keel_daily_pulse`, parce
+ * que c'est lui qui est dans `GUARANTEED_PURPOSES` et qu'un purpose neuf serait
+ * silencieusement plafonné.
+ *
+ * Sans ce drapeau, `wasPulseAskedToday` — qui ne regarde que le purpose —
+ * rendrait `true` tous les soirs à cause du simple récapitulatif, et
+ * `daysSinceLastAsk` vaudrait éternellement 0: **la question ne serait plus
+ * JAMAIS posée**, et le job compterait pourtant un envoi par élève et par jour.
+ * Un produit qui ne mesure plus rien, avec un compte-rendu vert.
+ */
+export const PULSE_ASKED_METADATA_KEY = "pulse_asked";
+
+/**
+ * Cette ligne de ledger portait-elle une question ?
+ *
+ * L'ABSENCE DU DRAPEAU VAUT « OUI », et c'est le seul choix qui préserve
+ * l'histoire: toutes les lignes antérieures à ce lot étaient des questions —
+ * le message du soir n'était que ça. Lire l'absence comme « non » redémarrerait
+ * la cadence de zéro pour toute la base au premier tick après déploiement.
+ * C'est le même raisonnement que le repli de `metadata.local_date` plus bas.
+ */
+function rowCarriedAsk(metadata: unknown): boolean {
+  const raw = (metadata as Record<string, unknown> | null)?.[PULSE_ASKED_METADATA_KEY];
+  if (raw === undefined || raw === null) return true;
+  return raw === true || String(raw) === "true";
+}
+
+/**
+ * Le MESSAGE du soir est-il déjà parti dans le jour local de l'élève ?
+ *
+ * Renommé depuis `wasPulseAskedToday`: ce qu'il garde à un par jour est le
+ * message, pas la question — celle-ci a désormais sa propre cadence
+ * (`loadAskCadence`). Le corps de la garde est inchangé.
  *
  * ── POURQUOI ON INTERROGE LES SORTANTS ET PAS LES RÉPONSES ───────────────
  * La fenêtre du soir fait deux heures et le cron est horaire: il y a deux
@@ -85,7 +124,7 @@ export async function loadPulseDay(
  * Fenêtre de lecture de 36h: elle couvre le jour local le plus décalé (UTC±14)
  * sans jamais scanner l'historique complet.
  */
-export async function wasPulseAskedToday(
+export async function wasPulseSentToday(
   db: Db,
   args: { userId: string; localDate: string; timezone: string | null; now: Date },
 ): Promise<boolean> {
@@ -127,6 +166,124 @@ export async function wasPulseAskedToday(
     }
     return stamped === args.localDate;
   });
+}
+
+/**
+ * La fenêtre de lecture de la cadence, en jours locaux.
+ *
+ * Trois semaines: le repli le plus long fait sept jours, et il faut pouvoir
+ * observer plusieurs de ses cycles pour que `unansweredStreak` soit juste. Plus
+ * loin ne changerait aucune décision — au-delà du repli maximal, « posée il y a
+ * 21 jours » et « posée il y a 200 jours » commandent la même chose.
+ */
+export const PULSE_CADENCE_LOOKBACK_DAYS = 21;
+
+/**
+ * De quoi décider la cadence de la question: quand a-t-elle été posée pour la
+ * dernière fois, qu'a répondu l'élève, et combien de fois s'est-il tu depuis.
+ *
+ * ── LES JOURS SONT DES CHAÎNES, COMPARÉES COMME DES CHAÎNES ──────────────
+ * Le jour vient de `metadata.local_date`, écrit UNE fois par
+ * `deliverChatMessage`. On ne le recalcule pas: ce dépôt a déjà produit une clé
+ * `(user_id, local_date)` qui ne se rejoignait jamais parce que deux endroits
+ * découpaient les jours différemment, et le rejeu à horloge simulée fait
+ * diverger l'horodatage de la ligne de ledger de celui du message.
+ *
+ * ── UNE LECTURE EN PANNE REDEMANDE, ELLE NE SE TAIT PAS ──────────────────
+ * Le repli est `never_asked` — c'est-à-dire « pose la question ». C'est
+ * l'inverse du repli de `loadDayFacts`, et c'est délibéré: perdre le FAIT d'un
+ * soir coûte une phrase, perdre la MESURE indéfiniment sur une base illisible
+ * coûte le produit. Chaque repli penche vers ce qu'on ne peut pas rattraper.
+ */
+export async function loadAskCadence(
+  db: Db,
+  args: { userId: string; localDate: string; timezone: string | null; now: Date },
+): Promise<AskCadenceInput> {
+  const NEVER: AskCadenceInput = {
+    daysSinceLastAsk: null,
+    lastAnsweredLevel: null,
+    unansweredStreak: 0,
+  };
+
+  const earliest = addDays(args.localDate, -PULSE_CADENCE_LOOKBACK_DAYS);
+
+  // ── LES JOURS OÙ UNE QUESTION EST PARTIE ──────────────────────────────
+  const askDays = new Set<string>();
+  try {
+    // Le préfiltre reste sur `created_at` (c'est lui qui est indexé), élargi de
+    // trois jours pour couvrir le fuseau le plus décalé — le JOUR, lui, se lit
+    // sur la ligne.
+    const since = new Date(
+      args.now.getTime() - (PULSE_CADENCE_LOOKBACK_DAYS + 3) * 86_400_000,
+    ).toISOString();
+    const { data, error } = await db
+      .from("outbound_messages")
+      .select("created_at, metadata")
+      .eq("user_id", args.userId)
+      .eq("metadata->>purpose", PULSE_QUESTION_PURPOSE)
+      .gte("created_at", since);
+    if (error) throw error;
+    for (const row of (data ?? []) as Array<Record<string, unknown>>) {
+      if (!rowCarriedAsk(row.metadata)) continue;
+      const stamped = String(
+        (row.metadata as { local_date?: unknown } | null)?.local_date ?? "",
+      ).trim();
+      const day = stamped ||
+        localDateFor(new Date(String(row.created_at)), args.timezone);
+      if (!day || day < earliest) continue;
+      // Une question datée DEMAIN vient d'un rejeu à horloge simulée, pas de la
+      // vie de l'élève. La compter rendrait `daysSinceLastAsk` négatif et
+      // gèlerait la cadence pour toute la fenêtre.
+      if (day > args.localDate) continue;
+      askDays.add(day);
+    }
+  } catch (error) {
+    console.error("[keel/pulse] ask history unreadable", error);
+    return NEVER;
+  }
+
+  // ── LA DERNIÈRE RÉPONSE ───────────────────────────────────────────────
+  let lastAnswerDay = "";
+  let lastAnsweredLevel: PulseLevel | null = null;
+  try {
+    const { data, error } = await db
+      .from("student_daily_checkins")
+      .select("local_date, overall")
+      .eq("user_id", args.userId)
+      .gte("local_date", earliest)
+      .lte("local_date", args.localDate)
+      .order("local_date", { ascending: false })
+      .limit(1);
+    if (error) throw error;
+    const row = ((data ?? []) as Array<Record<string, unknown>>)[0] ?? null;
+    if (row) {
+      lastAnswerDay = String(row.local_date ?? "").trim();
+      const level = String(row.overall ?? "").trim();
+      lastAnsweredLevel = PULSE_LEVELS.includes(level as PulseLevel)
+        ? (level as PulseLevel)
+        : null;
+    }
+  } catch (error) {
+    console.error("[keel/pulse] last answer unreadable", error);
+    return NEVER;
+  }
+
+  if (askDays.size === 0) return { ...NEVER, lastAnsweredLevel };
+
+  const sorted = [...askDays].sort();
+  const lastAskDay = sorted[sorted.length - 1];
+
+  return {
+    daysSinceLastAsk: daysBetween(lastAskDay, args.localDate),
+    lastAnsweredLevel,
+    // Les questions posées APRÈS la dernière réponse. Sans réponse du tout, ce
+    // sont toutes celles de la fenêtre — un élève qui n'a jamais répondu doit
+    // atteindre le repli comme un autre, sinon on le sollicite tous les trois
+    // jours pour toujours.
+    unansweredStreak: lastAnswerDay
+      ? sorted.filter((d) => d > lastAnswerDay).length
+      : sorted.length,
+  };
 }
 
 export interface PulseWriteResult {

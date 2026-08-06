@@ -56,6 +56,11 @@ import {
 export type OperationRuntimePipelineInput = {
   supabase: SupabaseClient;
   userId: string;
+  /**
+   * W9/R3 — la langue de la réponse visible, résolue une fois par `run.ts`.
+   * Ce pipeline la TRAVERSE jusqu'aux runtimes locaux; il ne la décide pas.
+   */
+  responseLocale: string;
   userMessage: string;
   channel: "web" | "whatsapp";
   userTimezone: string;
@@ -895,6 +900,7 @@ export async function runOperationRuntimePipeline(
     ? await runWeeklyReviewLocalRuntime({
       supabase: args.supabase,
       userId: args.userId,
+      responseLocale: args.responseLocale,
       tempMemory,
       activeSkillState: activeFlowState.activeSkillState,
       userMessage: args.userMessage,

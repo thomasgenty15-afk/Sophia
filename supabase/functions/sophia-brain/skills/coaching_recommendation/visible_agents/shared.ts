@@ -2,13 +2,13 @@ import {
   generateWithGemini,
   getGlobalAiModel,
 } from "../../../../_shared/gemini.ts";
-// W9/R3 — la langue de la reponse VISIBLE est resolue par le point unique
-// `resolveResponseLocale`, et le bloc RESPONSE_LANGUAGE part en DERNIERE
-// instruction du prompt (la position est le mecanisme: la recence gagne).
-import {
-  appendResponseLanguageBlock,
-  resolveResponseLocale,
-} from "../../../../_shared/keel/locale.ts";
+// W9/R3 — la langue de la reponse VISIBLE est RECUE (`input.response_locale`),
+// resolue une seule fois par le proprietaire du tour. Ce module appelait
+// `resolveResponseLocale({})` sur SES DEUX prompts (principal et reparation):
+// une chaine de priorite sans aucune entree, donc une langue decidee par son
+// repli. Le bloc RESPONSE_LANGUAGE part en DERNIERE instruction du prompt (la
+// position est le mecanisme: la recence gagne).
+import { appendResponseLanguageBlock } from "../../../../_shared/keel/locale.ts";
 import {
   committedOneShotReminderKnown,
   directEffectContextCommittedThisTurn,
@@ -31,6 +31,8 @@ import type {
 
 export type CoachingVisibleAgentInput = {
   user_id: string;
+  /** W9/R3 — résolue par le runtime, descendue par le skill. Jamais devinée. */
+  response_locale: string;
   request_id?: string | null;
   visible_runtime_context: {
     recent_messages: Array<{
@@ -350,7 +352,7 @@ export async function runSpecializedVisibleAgent(args: {
   ].join("\n");
   try {
     const raw = await generateWithGemini(
-      appendResponseLanguageBlock(prompt, resolveResponseLocale({})),
+      appendResponseLanguageBlock(prompt, args.input.response_locale),
       JSON.stringify({
         visible_runtime_context: args.input.visible_runtime_context,
         flow_context: args.input.flow_context,
@@ -388,7 +390,10 @@ export async function runSpecializedVisibleAgent(args: {
       "- Retourne uniquement un JSON strict valide.",
     ].join("\n");
     const repairedRaw = await generateWithGemini(
-      appendResponseLanguageBlock(repairPrompt, resolveResponseLocale({})),
+      // Le prompt de REPARATION porte la meme consigne de langue. Le bloc est
+      // idempotent, donc `repairPrompt` (qui contient deja `prompt`, bloc
+      // compris) n'en empile pas deux — c'est ce qui rend cette ligne sure.
+      appendResponseLanguageBlock(repairPrompt, args.input.response_locale),
       JSON.stringify({
         visible_runtime_context: args.input.visible_runtime_context,
         flow_context: args.input.flow_context,

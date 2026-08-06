@@ -192,6 +192,7 @@ export async function runSafetyCrisisSkill(
   };
   const visibleAgentResult = await runSafetyCrisisVisibleAgentResult({
     user_id: input.context.user_id,
+    response_locale: input.context.response_locale,
     request_id: input.context.turn_frame.source_message_id,
     visible_task: visibleTask,
   });

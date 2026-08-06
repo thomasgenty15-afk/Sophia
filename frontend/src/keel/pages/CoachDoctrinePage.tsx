@@ -22,6 +22,12 @@ import {
   type SectionState,
   splitForms,
 } from "../api/coachDoctrine";
+import {
+  compileDocument,
+  MAX_DOCUMENT_MB,
+  MAX_DOCUMENT_PAGES,
+  rejectDocument,
+} from "../api/coachDocument";
 
 /**
  * PIVOT NUTRITION §3.7 — `/coach/doctrine`: the Doctrine Copilot.
@@ -209,6 +215,20 @@ export default function CoachDoctrinePage() {
   const [busy, setBusy] = React.useState<string | null>(null);
   const [notice, setNotice] = React.useState<string | null>(null);
   const [failure, setFailure] = React.useState<string | null>(null);
+  /**
+   * LE DOCUMENT CHOISI, PAS ENCORE DÉPOSÉ.
+   *
+   * Il attend que le coach dise ce qu'il veut en faire (ajouter / repartir de
+   * zéro). Déposer au moment du choix supprimerait cette décision, et le cas
+   * par défaut serait forcément le mauvais pour la moitié des coachs.
+   */
+  const [docFile, setDocFile] = React.useState<File | null>(null);
+  /**
+   * R2/R3 — la langue de ce qui est ÉCRIT, distincte de celle de l'écran.
+   * Elle voyage avec le dépôt: un coach qui écrit son ebook en français ne doit
+   * pas voir sa doctrine étiquetée `en` parce que son navigateur l'est.
+   */
+  const [contentLocale, setContentLocale] = React.useState("en");
 
   /**
    * ── LA DOCTRINE EXISTANTE EST ROUVERTE, PAS REDEMANDÉE ──────────────────
@@ -234,10 +254,13 @@ export default function CoachDoctrinePage() {
     const [q, v, c] = await Promise.all([
       callDoctrine<{ questions: InterviewQuestion[] }>({ action: "questions" }),
       callDoctrine<{ versions: VersionRow[] }>({ action: "list" }),
-      callDoctrine<{ doctrine: DoctrineDraft | null }>({ action: "current" }),
+      callDoctrine<{ doctrine: DoctrineDraft | null; content_locale: string | null }>({
+        action: "current",
+      }),
     ]);
     setQuestions(q.questions ?? []);
     setVersions(v.versions ?? []);
+    if (c.content_locale) setContentLocale(c.content_locale);
     if (c.doctrine) {
       setDraft((existing) => existing ?? c.doctrine);
       // Ce qui vient de la base EST enregistré: sans cette ligne, l'écran
@@ -322,6 +345,36 @@ export default function CoachDoctrinePage() {
       // serait le contraire de ce que le repli cherche à faire.
       setInterviewOpen(true);
       setNotice("Read it back before saving - the AI transcribes, it does not decide.");
+    });
+
+  /**
+   * LE DÉPÔT D'UN DOCUMENT.
+   *
+   * `mode` est le geste du coach, pas une déduction: « add » fusionne dans ce
+   * qu'il a sous les yeux, « replace » repart du document. L'écran ne choisit
+   * jamais à sa place — deviner à partir de la présence d'un brouillon ferait
+   * disparaître son travail au moment où il croyait l'enrichir.
+   */
+  const onCompileDocument = (mode: "add" | "replace") =>
+    run("document", async () => {
+      if (!docFile) throw new Error("Choose a PDF first.");
+      const out = await compileDocument(docFile, {
+        mergeInto: mode === "add" ? draft : null,
+        contentLocale,
+      });
+      setDraft(out.draft ?? null);
+      setDraftOrigin(out.draft ? "compiled" : null);
+      setIssues(out.issues ?? []);
+      setDocFile(null);
+      const foods = out.proposals_saved > 0
+        ? ` ${out.proposals_saved} food${out.proposals_saved > 1 ? "s" : ""} from it ${
+          out.proposals_saved > 1 ? "are" : "is"
+        } waiting on your Recommended food screen.`
+        : "";
+      setNotice(
+        `Read ${out.page_count} page${out.page_count > 1 ? "s" : ""}. Check it back before ` +
+          `saving — the AI transcribes, it does not decide.${foods}`,
+      );
     });
 
   const onSave = () =>
@@ -473,6 +526,108 @@ export default function CoachDoctrinePage() {
             <SpecificEditor draft={draft} onChange={setDraft} section={section} />
           </>
         ) : null}
+
+        {/*
+          LE DOCUMENT — LE CHEMIN DU COACH QUI A DÉJÀ TOUT ÉCRIT.
+
+          L'interview est le bon chemin quand il n'a rien. C'est un mur quand il
+          a deux cents pages qui disent déjà tout ça: il ne va pas re-rédiger son
+          ebook dans onze textareas, donc il ne le fait pas, et son agent reste
+          muet.
+
+          La carte est AU-DESSUS de l'interview, et c'est délibéré: entre
+          « réponds à onze questions » et « dépose ce que tu as déjà », le second
+          geste est plus court pour la majorité des coachs qui arrivent ici.
+        */}
+        <Card>
+          <SectionLabel>Start from something you already wrote</SectionLabel>
+          <p className="mt-2 text-xs leading-5 text-gray-500">
+            Your ebook, your method handbook, the FAQ you send new clients. It is
+            read once, and what comes out lands in the card above for you to
+            check — nothing is saved and nothing reaches a student until you
+            publish.
+          </p>
+          <p className="mt-2 text-xs leading-5 text-gray-500">
+            Upload <strong>your own</strong>{" "}
+            material. A textbook someone else wrote would put another author's
+            positions in your agent's mouth, under your name.
+          </p>
+
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <label className="cursor-pointer rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50">
+              {docFile ? docFile.name : "Choose a PDF"}
+              <input
+                type="file"
+                accept="application/pdf,.pdf"
+                className="hidden"
+                disabled={busy !== null}
+                onChange={(e) => {
+                  const chosen = e.target.files?.[0] ?? null;
+                  // Le refus arrive AVANT l'encodage et avant le réseau: un
+                  // fichier de trente mégaoctets ne doit pas voyager pour se
+                  // faire dire non à l'arrivée.
+                  const rejection = chosen ? rejectDocument(chosen) : null;
+                  setFailure(rejection);
+                  setDocFile(rejection ? null : chosen);
+                  e.target.value = "";
+                }}
+              />
+            </label>
+            {docFile ? (
+              <button
+                type="button"
+                className="text-xs text-gray-500 underline decoration-dotted underline-offset-2"
+                onClick={() => setDocFile(null)}
+              >
+                Clear
+              </button>
+            ) : null}
+            <span className="text-xs text-gray-500">
+              PDF, up to {MAX_DOCUMENT_MB} MB and {MAX_DOCUMENT_PAGES} pages.
+            </span>
+          </div>
+
+          {docFile ? (
+            <div className="mt-4">
+              {/*
+                LE CHOIX EST EXPLICITE, et il ne l'est que quand il existe.
+                Sans brouillon à l'écran il n'y a rien à écraser: un seul bouton,
+                et pas une question dont les deux réponses font la même chose.
+              */}
+              {draft ? (
+                <>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      onClick={() => onCompileDocument("add")}
+                      disabled={busy !== null}
+                    >
+                      {busy === "document" ? "Reading it…" : "Add to what I have"}
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      onClick={() => onCompileDocument("replace")}
+                      disabled={busy !== null}
+                    >
+                      Start over from this document
+                    </Button>
+                  </div>
+                  <p className="mt-2 text-xs leading-5 text-gray-500">
+                    Adding keeps every sentence already above and only fills the
+                    gaps — upload your documents one after another. Starting over
+                    replaces all of it.
+                  </p>
+                </>
+              ) : (
+                <Button onClick={() => onCompileDocument("replace")} disabled={busy !== null}>
+                  {busy === "document" ? "Reading it…" : "Read my document"}
+                </Button>
+              )}
+              <p className="mt-2 text-xs leading-5 text-gray-500">
+                A long document takes up to two minutes. Leave this tab open.
+              </p>
+            </div>
+          ) : null}
+        </Card>
 
         {/*
           L'INTERVIEW EST LE CHEMIN DU PREMIER JOUR, ET SEULEMENT ÇA.

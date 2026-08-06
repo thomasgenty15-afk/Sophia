@@ -68,7 +68,8 @@ export function intakeSafetyConstraintEffect(input: {
   const allergenRef = normalizeRef(payload.allergen_ref);
   const substanceRef = normalizeRef(payload.substance_ref);
   const medicationClass = normalizeRef(payload.medication_class);
-  if (!allergenRef && !substanceRef && !medicationClass) {
+  const conditionRef = normalizeRef(payload.condition_ref);
+  if (!allergenRef && !substanceRef && !medicationClass && !conditionRef) {
     // Le CHECK `student_safety_constraints_ref_check` refuserait la ligne de
     // toute façon; on le dit ICI pour que le refus porte un motif nommé plutôt
     // qu'une erreur Postgres remontée en `write_failed`.
@@ -117,6 +118,7 @@ export function intakeSafetyConstraintEffect(input: {
       allergen_ref: allergenRef,
       substance_ref: substanceRef,
       medication_class: medicationClass,
+      condition_ref: conditionRef,
       severity: rawSeverity as SafetyConstraintSeverity,
       notes: optionalText(payload.notes, 500),
       content_locale: contentLocale,

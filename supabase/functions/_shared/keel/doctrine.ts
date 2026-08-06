@@ -796,13 +796,32 @@ export function compileDoctrineBlock(
   //
   // Il porte sur la VARIANTE (les listes filtrées), pas sur la doctrine brute:
   // un bloc qui ne contient plus que son en-tête n'instruit le modèle sur rien.
+  // ⚠️ LA VOIX N'EN FAIT PAS PARTIE, et c'est la correction du 2026-08-05.
+  //
+  // `voiceBits.length === 0` était dans cette conjonction. Conséquence: TOUTE
+  // doctrine portant une voix — c'est-à-dire toutes celles que le formulaire
+  // produit, `voice.language` étant rempli par défaut — ne pouvait jamais être
+  // vide. `isEmpty` restait faux, `emptyForGoal` avec lui (il en dépend), et
+  // les DEUX blocs de repli devenaient injoignables par construction.
+  //
+  // Ce que l'élève recevait à la place, mesuré 2/3 en run réel: l'en-tête
+  // « YOU SPEAK AS THIS COACH'S AGENT … this block wins » avec RIEN dessous
+  // sauf la voix. Le modèle comblait le vide et inventait une position au nom
+  // d'un coach nommé — « Dita Aaronson doesn't do free-form lunch advice » —
+  // que sa doctrine ne dit nulle part. Le lot voulait tuer le bâillon; il
+  // l'avait remplacé par une fabrication attribuée.
+  //
+  // Une voix dit COMMENT parler, jamais QUOI prescrire. Un bloc qui ne porte
+  // qu'elle n'instruit le modèle sur aucune méthode, et c'est exactement ce que
+  // `isEmpty` doit mesurer. Contrepartie assumée: la voix d'un coach qui n'a
+  // rempli QUE sa voix n'est pas servie, puisqu'on injecte un bloc de repli à
+  // la place. Perdre un ton vaut mieux que fabriquer une méthode.
   const isEmpty = beliefs.length === 0 &&
     doctrine.forbidden.length === 0 &&
     doctrine.vocabulary.length === 0 &&
     arbitrations.length === 0 &&
     doctrine.foods.discouraged.length === 0 &&
-    doctrine.qa.length === 0 &&
-    voiceBits.length === 0;
+    doctrine.qa.length === 0;
 
   // Vide POUR CET OBJECTIF: la variante ne dit rien alors que le coach, lui, a
   // écrit quelque chose — tout est parti à la portée. Local et exact, sans

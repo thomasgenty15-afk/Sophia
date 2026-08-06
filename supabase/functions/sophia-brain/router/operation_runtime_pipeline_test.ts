@@ -123,6 +123,7 @@ function basePipelineInput(overrides: Record<string, unknown> = {}) {
   return {
     supabase: {} as any,
     userId: "user_1",
+    responseLocale: "en-US",
     userMessage: "test",
     channel: "web" as const,
     userTimezone: "Europe/Paris",

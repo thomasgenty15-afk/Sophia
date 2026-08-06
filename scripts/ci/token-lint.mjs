@@ -107,25 +107,56 @@ function scanTs(source) {
       stripped += "  ";
       i += 2;
     } else if (c === '"' || c === "'" || c === "`") {
+      // UNE APOSTROPHE N'EST PAS TOUJOURS UNE QUOTE.
+      //
+      // Ce scanner traitait tout `'` comme l'ouverture d'une chaîne. Dans une
+      // base francophone c'est faux une ligne sur deux: le `'` de « c'est »,
+      // en texte JSX ou dans un commentaire, ouvrait un littéral FANTÔME qui
+      // courait jusqu'à l'apostrophe suivante — parfois 90 lignes plus bas.
+      // Les chaînes étant CONSERVÉES dans `stripped`, tout ce que ce faux
+      // littéral avalait (délimiteurs de commentaires compris) revenait dans
+      // le texte scanné: `StudentWeekPlanPage.tsx` remontait ainsi deux
+      // « dimanche » situés dans des COMMENTAIRES, que la règle R1-days est
+      // censée ignorer. Faux positif d'un côté, et surtout faux NÉGATIF de
+      // l'autre — le vrai code avalé n'était plus analysé du tout.
+      //
+      // La règle qui tranche est une règle du langage, pas une heuristique:
+      // `'...'` et `"..."` ne peuvent PAS contenir un saut de ligne brut.
+      // Seul le template literal le peut. Une quote non refermée avant la fin
+      // de ligne n'était donc pas une quote: c'est du texte, on l'émet tel
+      // quel et on avance d'un seul caractère.
       const quote = c;
       const startLine = line;
       let value = "";
-      stripped += c;
-      i++;
-      while (i < n && source[i] !== quote) {
-        if (source[i] === "\\") {
-          value += source[i] + (source[i + 1] ?? "");
-          stripped += source[i] + (source[i + 1] ?? "");
-          i += 2;
+      let j = i + 1;
+      let closed = false;
+      let spannedLines = 0;
+      while (j < n) {
+        const ch = source[j];
+        if (ch === "\\") {
+          value += ch + (source[j + 1] ?? "");
+          j += 2;
           continue;
         }
-        if (source[i] === "\n") line++;
-        value += source[i];
-        stripped += source[i];
-        i++;
+        if (ch === quote) {
+          closed = true;
+          break;
+        }
+        if (ch === "\n") {
+          if (quote !== "`") break; // pas une chaîne: on abandonne
+          spannedLines++;
+        }
+        value += ch;
+        j++;
       }
-      stripped += source[i] ?? "";
-      i++;
+      if (!closed) {
+        stripped += c;
+        i++;
+        continue;
+      }
+      stripped += source.slice(i, j + 1);
+      line += spannedLines;
+      i = j + 1;
       literals.push({ value, line: startLine });
     } else {
       stripped += c;

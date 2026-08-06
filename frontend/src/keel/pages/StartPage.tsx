@@ -11,6 +11,7 @@ import {
 } from "../api/freeSignup";
 import { resolveHomePath } from "../api/postLogin";
 import { PublicFooter, PublicHeader } from "../components/PublicHeader";
+import ServerUnreachable from "../components/ServerUnreachable";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { Field, inputClass } from "../components/ui/Field";
@@ -90,6 +91,8 @@ const COUNTRIES: { code: string; label: string }[] = [
 type Phase =
   | { kind: "loading" }
   | { kind: "unavailable" }
+  /** Le backend ne répond pas — distinct de `unavailable`, qui est un fait produit. */
+  | { kind: "unreachable" }
   | { kind: "form" }
   | { kind: "check_email" }
   | { kind: "existing_account" }
@@ -160,7 +163,18 @@ export default function StartPage() {
         .maybeSingle();
       if (cancelled) return;
       if (!link.error && link.data) {
-        navigate(await resolveHomePath(user.id), { replace: true });
+        // `null` = aucun rôle n'a pu être lu, le backend ne répond plus. On ne
+        // navigue pas vers un repli qui aurait besoin du même backend. Et PAS
+        // l'écran `unavailable`: celui-là annonce « l'inscription libre est en
+        // pause », ce qui est un fait sur le produit. Une panne de serveur n'en
+        // est pas un, et le visiteur repartirait avec une fausse nouvelle.
+        const home = await resolveHomePath(user.id);
+        if (cancelled) return;
+        if (home === null) {
+          setPhase({ kind: "unreachable" });
+          return;
+        }
+        navigate(home, { replace: true });
         return;
       }
       setPhase({ kind: "repair" });
@@ -277,6 +291,10 @@ export default function StartPage() {
         <p className="text-sm text-gray-500">{t("start.loading")}</p>
       </Notice>
     );
+  }
+
+  if (phase.kind === "unreachable") {
+    return <ServerUnreachable />;
   }
 
   if (phase.kind === "unavailable") {

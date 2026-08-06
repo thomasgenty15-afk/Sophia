@@ -77,6 +77,7 @@ const PEANUT: StudentSafetyConstraint = {
   allergenRef: "peanut",
   substanceRef: null,
   medicationClass: null,
+    conditionRef: null,
   severity: "medical",
   declaredBy: "student",
   notes: null,
@@ -492,6 +493,7 @@ Deno.test("the prompt carries the convictions and forbids numbers", () => {
       body: UNKNOWN_BODY,
     },
     doctrineBlock: "== MARC'S METHOD ==",
+    coachNoteBlock: null,
     weekStart: "2026-08-03",
     safetyConstraints: null,
   });
@@ -549,6 +551,7 @@ function promptWith(over: Record<string, unknown>): string {
       ...over,
     },
     doctrineBlock: "== MARC'S METHOD ==",
+    coachNoteBlock: null,
     weekStart: "2026-08-03",
     safetyConstraints: null,
   }).userMessage;

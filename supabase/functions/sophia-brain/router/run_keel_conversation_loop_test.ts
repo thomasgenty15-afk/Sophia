@@ -55,12 +55,14 @@ const KEEL_STUDENT: KeelTurnContext = {
   plan_context_reason_code: "keel_student_plan_context",
   restriction: null,
   restriction_unavailable_reason: null,
+    declared_medical_condition: null,
   // PIVOT §3.3 — la ceinture de sortie est DÉSARMÉE dans ce fixture: aucune
   // contrainte, aucune doctrine. Les tours de cette boucle testent le plan et
   // les effets, pas les verrous (ceux-ci ont leurs propres tests).
   safety_constraints: [],
   safety_constraints_unavailable_reason: null,
   doctrine: null,
+  coach_note: null,
 };
 
 function frame(patch: Partial<TurnFrame> = {}): TurnFrame {

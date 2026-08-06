@@ -721,6 +721,22 @@ export const en = {
   // et croit que l'écran est lent.
   "coach.food.write_failed": "That change did not save. Nothing on this screen has been lost.",
 
+  // ── Ce qu'un document du coach a dit, en attente de son arbitrage ────────
+  // Le mot « proposal » est choisi contre « suggestion »: une proposition
+  // attend une réponse, une suggestion s'ignore. Et rien de cette liste
+  // n'existe côté méthode tant que le coach n'a pas cliqué — la copie ne doit
+  // jamais laisser croire l'inverse.
+  "coach.food.proposals.title": "From your document",
+  "coach.food.proposals.hint":
+    "{count} food(s) your document takes a position on. Nothing here is on your list yet.",
+  "coach.food.proposals.accept": "That's mine",
+  "coach.food.proposals.dismiss": "Not mine",
+  // La phrase qui dit ce que « that's mine » ENGAGE, à l'endroit où on le
+  // clique. Adopter une citation la rend intouchable par la réécriture IA:
+  // c'est une bonne nouvelle, mais elle doit être dite avant, pas découverte.
+  "coach.food.proposals.footer":
+    "Adding one puts the quoted sentence in its “why”, as your own words — the AI rewrite will not touch it.",
+
   // Les trois postures. Écrites comme un coach les dit, pas comme la base les
   // stocke.
   "coach.food.stance.encouraged": "Build with it",
@@ -1201,6 +1217,41 @@ export const en = {
   "coach.student.footer":
     "You are reading, not acting, and you are reading exactly the week your student reads. What they write - their notes on a logged meal, their words in chat, their photos - stays with them; you see that a fact exists and what it measured. Every opening of this page is recorded and visible to them.",
 
+  // Coach — le siège de cet élève (migration 20260806160000).
+  //
+  // LA COPIE DIT « fin du mois » PARTOUT, et ce n'est pas une politesse: la
+  // désactivation est PROGRAMMÉE, jamais immédiate, parce que l'élève a payé
+  // son mois à son coach. Un libellé qui laisserait croire à une coupure
+  // instantanée produirait exactement le reproche qu'on veut éviter — et c'est
+  // le COACH qui le recevrait, pas nous.
+  "coach.seat.title": "This student's seat",
+  "coach.seat.active_body":
+    "Billed while they are enrolled with you. If they stop paying you, turn the seat off — it stays on until the end of the month they have already paid for.",
+  "coach.seat.deactivate_cta": "Turn off at end of month",
+  // ⚠️ CETTE PHRASE A ÉTÉ CORRIGÉE APRÈS MESURE. Elle disait « then lose it »,
+  // ce qui est faux: la bascule fait tomber `access_tier` et ferme la
+  // génération (409 `no_coach`, plus de doctrine), mais `/app/*` reste
+  // atteignable — la route garde sur `keel_role`, que la pause ne touche pas.
+  // Un coach à qui on promet une coupure nette et dont l'ex-élève rouvre son
+  // historique le lendemain a raison de ne plus nous croire sur le reste.
+  "coach.seat.confirm_body":
+    "Until the end of this month, nothing changes for them. After that they stop getting your method - no new week, no answers - but they keep what they have already built. You can turn the seat back on whenever you like.",
+  "coach.seat.confirm_cta": "Turn off",
+  "coach.seat.confirm_cancel": "Keep it on",
+  "coach.seat.ending_body":
+    "Turning off on {date}. They keep full access until then, and this is the last month you are billed for them.",
+  "coach.seat.ending_undo_cta": "Keep the seat after all",
+  "coach.seat.paused_body":
+    "Off. They no longer get your method, and you are not billed for them. What they built is kept, and so is their history.",
+  "coach.seat.reactivate_cta": "Turn the seat back on",
+  "coach.seat.working": "Saving...",
+  // Le motif qui n'est pas une panne: l'élève a rejoint un autre coach pendant
+  // la pause, et `one_live_coach_per_student` refuse le second lien vivant.
+  // C'est le comportement voulu (20260727120000), donc ça se dit en clair.
+  "coach.seat.error.already_coached":
+    "This student now works with another coach, so their seat cannot be turned back on.",
+  "coach.seat.error.generic": "Not saved - {message}",
+
   // Student progress: the week, then the trend
   "progress.week_title": "This week",
   "progress.trend_title": "Across the last {weeks} weeks",
@@ -1211,6 +1262,12 @@ export const en = {
   "app.nav.progress": "Progress",
   "app.nav.chat": "Chat",
   "app.nav.health": "Health",
+  // `app.nav.cards` a été retirée avec l'onglet « Cards »: la page exigeait un
+  // plan publié que le modèle 1:N ne produit jamais. Rien ne la lit plus.
+  // Libellés courts: la barre d'onglets du téléphone donne 75 px par colonne,
+  // et « My week's plan » y tiendrait sur trois lignes.
+  "app.nav.plan.short": "Plan",
+  "app.nav.meals.short": "Meals",
 
   // DE-WHATSAPP — la bulle. C'est LE canal, plus un simulateur: la
   // conversation quotidienne avec Sophia vit ici, dans l'app.
@@ -1260,6 +1317,12 @@ export const en = {
   "chat.photo.sending": "Sending a photo…",
   "chat.photo.error.type": "That file type isn't supported — send a JPEG, PNG or WebP.",
   "chat.photo.error.size": "That photo is too large. Try a smaller one.",
+  // Une photo choisie ATTEND dans le composeur au lieu de partir seule: le mot
+  // qui l'accompagne — « la moitié », « c'était hier » — se tape après l'avoir
+  // choisie, jamais avant.
+  "chat.photo.attached": "Photo ready to send",
+  "chat.photo.remove": "Remove",
+  "chat.photo.caption.placeholder": "Say something about it (optional)",
 
   "chat.weekly.title": "How the week actually went",
   "chat.weekly.subtitle": "Six quick reads. Two minutes, and nothing here is graded.",
@@ -1656,11 +1719,32 @@ export const en = {
   "public.header.start_trial": "Start free trial",
   // Short form for the header; the footer keeps the fuller "Legal & privacy".
   "public.header.legal": "Legal",
+  // Ce que voit quelqu'un de DÉJÀ connecté sur une page publique — typiquement
+  // `/legal`, qui est dans la nav du shell. Lui proposer « Sign in » à cet
+  // endroit était faux, et ne rien lui proposer en faisait un cul-de-sac.
+  "public.header.back_to_app": "Back to my space",
   "public.footer.tagline": "Your method, answering in your absence.",
   "public.footer.legal": "Legal & privacy",
   "public.footer.contact": "Contact",
   "public.footer.contact_email": "sophia@sophia-coach.ai",
   "public.footer.copyright": "Sophia — coaching software",
+
+  // ── THE BACKEND IS UNREACHABLE ───────────────────────────────────────────
+  // Shown when `resolveHomePath` could read NOTHING (see postLogin.ts branch
+  // 4). Two things this copy must do, both learnt from the bug that created
+  // it. First, name the side the fault is on: the observed failure looked
+  // exactly like a broken account — an old product's shell with dead fields —
+  // and the user's first thought was that they had lost something. Second,
+  // give the one action that helps. No apology, no "oops", no support address
+  // for a condition that clears itself: the retry IS the remedy.
+  "server_unreachable.title": "We can't reach the server.",
+  "server_unreachable.body":
+    "Your account and your data are untouched — the app just can't read anything right now. This is usually a few seconds.",
+  "server_unreachable.retry": "Try again",
+  // Same fact on /auth, where the sign-in itself succeeded and only the
+  // routing read failed: the user must not conclude their password was wrong.
+  "server_unreachable.after_signin":
+    "You're signed in, but we can't reach the server to open your space. Try again in a moment.",
 
   // App shell (connected chrome, coach + student)
   "shell.nav.students": "Students",
@@ -1682,6 +1766,12 @@ export const en = {
   "shell.nav.account": "Account",
   "shell.nav.legal": "Legal",
   "shell.nav.sign_out": "Sign out",
+  // Le menu du téléphone. « Menu » et pas une icône hamburger seule: rien
+  // d'autre dans ce produit n'est une icône, et un glyphe isolé au milieu de
+  // libellés en toutes lettres se lit comme un bouton décoratif.
+  "shell.nav.menu": "Menu",
+  "shell.nav.menu_close": "Close",
+  "shell.nav.primary": "Main sections",
 
   // Auth page cross-links (the two doors reference each other)
   "auth.coach_link.prompt": "Are you a coach?",
@@ -1690,13 +1780,40 @@ export const en = {
   "auth.coach_link.back_cta": "Go to the standard sign-in",
 
   // Landing — hero
-  "landing.seo_title": "Sophia — your method, answering every student, every day",
+  //
+  // ── POURQUOI CETTE PAGE VEND UN REVENU ET PLUS UNE FATIGUE ÉVITÉE ────────
+  // La version précédente ouvrait sur « You can't answer two hundred students »:
+  // un argument de CHARGE DE TRAVAIL, donc de COÛT. Trois conséquences, toutes
+  // mesurables sur la page:
+  //
+  //   1. un argument de coût se compare à un coût. Le prospect nous rangeait à
+  //      côté de TrueCoach (49 $/mois tout compris à 20 clients) alors qu'on
+  //      sort à 289 $, et la comparaison était perdue avant d'être ouverte;
+  //   2. un argument de coût plafonne au temps du coach. Un argument de revenu
+  //      ne plafonne pas;
+  //   3. seule la promesse de revenu est recopiable sur la page de vente DU
+  //      COACH — c'est le seul vecteur de distribution que ce produit possède.
+  //
+  // ⚠️ LA LIMITE QU'AUCUNE LIGNE NE DOIT FRANCHIR: il n'existe AUCUN SKU élève
+  // dans `stripe-create-checkout-session` (seulement `plan='keel_coach'` et les
+  // tiers hérités du B2C). On ne facture donc PAS l'élève, et rien ici ne doit
+  // le laisser croire. Ce qu'on promet est exact et suffisant: le coach obtient
+  // quelque chose QUI VAUT un abonnement. Il l'encaisse avec ses propres outils.
+  //
+  // La cible est double et le titre les couvre toutes les deux: celui qui vend
+  // une formation one-shot (Sophia lui crée la ligne récurrente), et le coach
+  // 1:1 avec une liste d'attente (Sophia lui crée le palier SOUS son 1:1).
+  "landing.seo_title": "Sophia — turn a course into a coaching program",
   "landing.seo_description":
-    "Sophia is the AI that answers a masterclass coach's students in their coach's own method and words, every day, in the app. You record your method once; every outgoing message is checked against your red lines before it is sent. On Monday you read one page — who is still talking, how the week felt, what they set themselves.",
-  "landing.hero.kicker": "For coaches teaching a method at scale",
-  "landing.hero.title": "You can't answer two hundred students. Your method can.",
+    "Sophia is the AI that answers your students in your own method and words, every day. A method you could only sell once becomes a program worth paying for every month. You record your method once; every outgoing message is checked against your red lines before it is sent. On Monday you read one page — who is still talking, how the week felt, what they set themselves.",
+  "landing.hero.kicker": "For coaches who sell a method, not hours",
+  "landing.hero.title": "Your course ends. Your coaching doesn't.",
+  // « on Monday you read one page » a été RETIRÉ d'ici: le panneau du lundi est
+  // à trente centimètres à droite, titré « Monday / One page. Not a dashboard. »
+  // Le dire aussi dans le sous-titre coûtait une ligne et demie et repoussait le
+  // bouton sous la ligne de flottaison pour redire ce que la maquette montre.
   "landing.hero.subtitle":
-    "Sophia learns how you coach — your convictions, your red lines, your vocabulary, the calls you make on the hard cases — and answers in your place, all week. Every message is checked against your red lines before it goes out. On Monday, you read one page.",
+    "Sophia learns how you coach — your convictions, your red lines, the calls you make on the hard cases — and answers your students in your place, every day. A method you could only sell once becomes a program worth paying for every month. Every message is checked against your red lines before it goes out.",
   "landing.hero.cta_trial": "Start the 14-day trial",
   "landing.hero.cta_signin": "Sign in",
   "landing.hero.note":
@@ -1745,16 +1862,29 @@ export const en = {
   "landing.mock.chat_tap_caption":
     "Three buttons. If it was hard, one follow-up — energy, hunger or sleep. That's the whole evening.",
 
-  // Landing — the problem
+  // Landing — the coach's note on one student. The heading and the example are
+  // VERBATIM from `CoachNoteCard`: this mock shows a real field, and a landing
+  // that paraphrases its own product screen is a landing that will drift from
+  // it on the first edit.
+  "landing.mock.note_label": "On their page, in your workspace",
+  "landing.mock.note_heading": "What you have noticed about them",
+  "landing.mock.note_body": "Works nights, eats around 3am. Hates cooking on Sundays.",
+  "landing.mock.note_caption":
+    "One field, one student, 1,500 characters. Rewrite it whenever they change; the next message uses the new one.",
+
+  // Landing — the problem. Il nomme maintenant les DEUX pertes, dans cet ordre:
+  // l'élève qui décroche (le résultat), et le revenu qui s'arrête (la ligne).
+  // La seconde n'était nulle part sur l'ancienne page, alors que c'est celle
+  // qui fait signer — cf. l'en-tête du hero.
   "landing.problem.kicker": "The problem",
-  "landing.problem.title": "A masterclass sells your method. It can't sell your evenings.",
+  "landing.problem.title": "A course is paid once. The work takes a year.",
   "landing.problem.body":
-    "You recorded the modules, the cohort is full, and the method is good. Then Tuesday night arrives and a student has a question that isn't in any module — because it's about their evening, their kitchen, their week. Multiply it by everyone enrolled. There is no version of you that answers all of it.",
+    "You recorded the modules, the cohort is full, and the method is good. Then Tuesday night arrives and a student has a question that isn't in any module — because it's about their evening, their kitchen, their week. Multiply it by everyone enrolled. There is no version of you that answers all of it, so the modules are where your relationship with them stops.",
   "landing.problem.q1": "“Can I swap the rice for pasta tonight?”",
   "landing.problem.q2": "“I'm starving at 4pm — is that normal?”",
   "landing.problem.q3": "“I ate badly at a wedding. Have I wrecked the week?”",
   "landing.problem.close":
-    "Every one of those has an answer, and the answer is yours — you've made that call a hundred times. Nobody leaves because your method was wrong. They drift because on Tuesday night, nobody who thinks like you was there.",
+    "Every one of those has an answer, and the answer is yours — you've made that call a hundred times. Nobody leaves because your method was wrong. They drift because on Tuesday night, nobody who thinks like you was there. And a student who drifts doesn't get the result, doesn't come back, and doesn't send you anyone.",
 
   // Landing — how it works. The eyebrows are the CADENCE, not 1/2/3: the whole
   // argument is the asymmetry between recording once and answering daily.
@@ -1776,6 +1906,46 @@ export const en = {
   "landing.how.step3_title": "You read one page",
   "landing.how.step3_body":
     "Who's still talking, how the week felt, what your students set themselves. Computed from what actually happened, never narrated by a model — and when there isn't enough to say something, it says that instead.",
+
+  // Landing — the 1:1 case (`student_coach_notes`, migration 20260805180000).
+  //
+  // POURQUOI CETTE SECTION EXISTE ALORS QUE LE HERO DIT « no one-to-one inbox »:
+  // les deux tiennent ensemble, et c'est précisément ce que la section doit
+  // faire lire. La note n'est pas un canal — l'élève n'y répond pas, elle ne
+  // revient jamais dans la boîte du coach. Le `close` ci-dessous porte cette
+  // réconciliation explicitement, parce qu'un lecteur attentif VA sentir la
+  // tension et qu'une contradiction non traitée coûte plus cher qu'une phrase.
+  //
+  // CHAQUE PHRASE EST UNE PROPRIÉTÉ VÉRIFIABLE DU CODE, pas une promesse:
+  //   rule1 — les 3 points d'injection (`run.ts`, `generate-week-plan-v1`,
+  //           `generate-meal-v1` appellent tous `loadCoachNote`);
+  //   rule2 — l'ordre fixe sécurité > doctrine > note, et le CHECK
+  //           `student_week_plans_doctrine_traceable_check` + `allowedKeys`
+  //           dans `parseWeekPlan` (la note n'ouvre AUCUNE clé);
+  //   rule3 — les 2 dernières lignes de `coachNotePromptBlock` (never quote,
+  //           never narrate) + la réclamation des deux côtés dans
+  //           `account-export-v1`;
+  //   rule4 — `coachNotePromptBlock` rend `null` sur note vide: RIEN dans le
+  //           prompt, pas même « le coach n'a rien noté ».
+  // Si l'une de ces quatre propriétés change, cette section ment.
+  "landing.note.kicker": "If you coach one to one",
+  "landing.note.title": "Ten students you actually know. Tell Sophia what you know.",
+  "landing.note.body":
+    "Your method is what you would say to any of them. But you also know that this one works nights, that one is coming back from a knee injury, that one writes off Sunday every week. None of it belongs in your method — it isn't true of anybody else. So it goes somewhere else: one note, on one student, in your own words.",
+  "landing.note.rule1_title": "It reaches everything they get",
+  "landing.note.rule1_body":
+    "Their chat, the week they build for themselves, the meals Sophia drafts for them. Not a second method running beside yours — your method, read through what you know about them.",
+  "landing.note.rule2_title": "It never outranks anything",
+  "landing.note.rule2_body":
+    "Their allergies come first, your method second, the note third. Where the note meets either one, the other wins. It cannot unlock a food a constraint rules out, and it opens no conviction you don't hold: every line Sophia builds still traces back to your method, or the database refuses to store it.",
+  "landing.note.rule3_title": "Sophia uses it. She never quotes it.",
+  "landing.note.rule3_body":
+    "Your student never reads “your coach noted that you…”. They get an answer that happens to fit them, with no explanation of why. And because it is a note about a person, it belongs to them too: it is included if they ever ask for their data, and the screen tells you that before you write.",
+  "landing.note.rule4_title": "Empty means empty",
+  "landing.note.rule4_body":
+    "No reminder, no field waiting for you, and nothing reaching the model to say you left it blank. Two hundred students, write none. Ten, write ten. It is the only shape under which a per-student field doesn't quietly become a per-student chore.",
+  "landing.note.close":
+    "That is the whole of the one-to-one mode. It is a note, not an inbox — nobody replies to it, and there is still nothing for you to keep up with.",
 
   // Landing — the double lock (the dark block: the guarantee, not the argument)
   "landing.diff.kicker": "The part you should be most afraid of",
@@ -1830,13 +2000,18 @@ export const en = {
   "landing.pricing.seat": "+ $12",
   "landing.pricing.seat_period": "per active student per month",
   "landing.pricing.seat_label": "Active = 3 or more interactions that month",
+  // La dernière phrase POSE UNE QUESTION au lieu d'avancer un chiffre, et c'est
+  // délibéré: le ratio réel dépend de ce que le coach facture, que nous ne
+  // connaissons pas. Une arithmétique inventée ici serait le premier chiffre
+  // faux de la page, sur la section où le prospect est le plus attentif.
   "landing.pricing.why":
-    "Twenty students or two hundred, you pay for the ones actually using it. A student who never answers costs you nothing, so we carry the cost of keeping them engaged — the same incentive you have. Nothing about the price depends on how many hours you put in, because the whole point is that you don't.",
+    "Twenty students or two hundred, you pay for the ones actually using it. A student who never answers costs you nothing, so we carry the cost of keeping them engaged — the same incentive you have. And the number to weigh this against isn't the hours you save: it's what one student who stays instead of drifting is worth to you.",
   "landing.pricing.cta": "Start the 14-day trial",
   "landing.pricing.trial_note": "14 days, up to 3 students, then it stops on its own.",
 
   // Landing — closing call
-  "landing.closing.title": "You've already written the method. This is what makes it answer at 9pm.",
+  "landing.closing.title":
+    "You've already written the method. This is what makes it worth paying for every month.",
   "landing.closing.cta": "Start the 14-day trial",
   "landing.closing.signin_prompt": "Already using Sophia?",
   "landing.closing.signin_link": "Sign in",

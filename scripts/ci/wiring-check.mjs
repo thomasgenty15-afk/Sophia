@@ -55,11 +55,11 @@ const KEEL_EDGE_FUNCTIONS = [
   // in front of a student BEFORE the meal; unwired, the cards exist and never
   // arrive, which looks exactly like "the students do not use cards".
   "keel-cards-v1",
-  // Q6 — the meal scaffolding. The coach composes the week; the student reads
-  // it under RLS without ever calling this function. Listed here because the
-  // whole feature is one coach screen: unwired, the tables fill up and the
-  // grid nobody can reach looks exactly like "coaches do not plan meals".
-  "keel-meal-plan-v1",
+  // `keel-meal-plan-v1` a été RETIRÉE de cette liste: la fonction a disparu
+  // avec la composition 1:1 de la semaine de repas (migration 20260804210000),
+  // et la liste continuait d'exiger son `index.ts`. Une attente qui survit à
+  // ce qu'elle attendait produit un rouge permanent — c'est-à-dire une CI qu'on
+  // apprend à ignorer, ce qui coûte plus cher que ce qu'elle garde.
 ];
 
 // A module may be exempt only with a reason that survives review.

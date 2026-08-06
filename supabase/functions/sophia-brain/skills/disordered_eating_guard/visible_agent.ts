@@ -21,13 +21,12 @@ import {
   generateWithGemini,
   getGlobalAiModel,
 } from "../../../_shared/gemini.ts";
-// W9/R3 — la langue de la reponse VISIBLE est resolue par le point unique
-// `resolveResponseLocale`, et le bloc RESPONSE_LANGUAGE part en DERNIERE
+// W9/R3 — la langue de la reponse VISIBLE est RECUE (`input.response_locale`),
+// resolue une seule fois par le proprietaire du tour. Ce module appelait
+// `resolveResponseLocale({})`: une chaine de priorite sans aucune entree, donc
+// une langue decidee par son repli. Le bloc RESPONSE_LANGUAGE part en DERNIERE
 // instruction du prompt (la position est le mecanisme: la recence gagne).
-import {
-  appendResponseLanguageBlock,
-  resolveResponseLocale,
-} from "../../../_shared/keel/locale.ts";
+import { appendResponseLanguageBlock } from "../../../_shared/keel/locale.ts";
 import { VISIBLE_OUTPUT_STYLE_RULES } from "../../router/response_style_policy.ts";
 import {
   FORBIDDEN_METRIC_TERMS,
@@ -38,6 +37,8 @@ import { allowedNumbersForTask } from "./reducer.ts";
 
 export type DisorderedEatingVisibleAgentInput = {
   user_id: string;
+  /** W9/R3 — résolue par le runtime, descendue par le skill. Jamais devinée. */
+  response_locale: string;
   request_id?: string | null;
   visible_task: DisorderedEatingVisibleTask;
 };
@@ -297,7 +298,7 @@ export async function runDisorderedEatingVisibleAgent(
     const raw = await generateWithGemini(
       appendResponseLanguageBlock(
         visibleSystemPrompt(input),
-        resolveResponseLocale({}),
+        input.response_locale,
       ),
       userPrompt,
       0.3,

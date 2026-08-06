@@ -22,6 +22,7 @@ function constraint(
     allergenRef: "peanut",
     substanceRef: null,
     medicationClass: null,
+    conditionRef: null,
     severity: "medical",
     declaredBy: "student",
     notes: null,
@@ -44,6 +45,7 @@ type SettledRow = {
   allergen_ref: string | null;
   substance_ref: string | null;
   medication_class: string | null;
+  condition_ref: string | null;
   severity: string;
   declared_by: string;
   notes: string | null;
@@ -114,6 +116,7 @@ const ROW = {
   allergen_ref: "peanut",
   substance_ref: null,
   medication_class: null,
+  condition_ref: null,
   severity: "medical",
   declared_by: "student",
   notes: "anaphylaxis",
@@ -233,6 +236,7 @@ Deno.test("medicalConstraintTokens — only severity='medical', identifiers only
       allergenRef: null,
       substanceRef: "st_johns_wort",
       medicationClass: "ssri",
+    conditionRef: null,
       notes: "gluten is fine actually",
     }),
   ]);
@@ -524,7 +528,12 @@ Deno.test("le bloc de prompt distingue « rien à dire » de « lecture en panne
   // Une contrainte sans aucun identifiant ne produit pas de ligne vide.
   assertEquals(
     safetyConstraintsPromptBlock([
-      constraint({ allergenRef: null, substanceRef: null, medicationClass: null }),
+      constraint({
+        allergenRef: null,
+        substanceRef: null,
+        medicationClass: null,
+        conditionRef: null,
+      }),
     ]),
     null,
   );

@@ -11,6 +11,8 @@ import {
   doctrineBlockFor,
   loadPublishedDoctrine,
 } from "../_shared/keel/doctrine_loader.ts";
+import { coachNotePromptBlock, loadCoachNote } from "../_shared/keel/coach_note.ts";
+import { constraintsForPrompt } from "../_shared/keel/food_preference_promotion.ts";
 import { loadStudentSafetyConstraints } from "../_shared/keel/safety_constraints.ts";
 import { ageBandOf, usableAge, weekPlanAgeGate } from "../_shared/keel/student_age.ts";
 import {
@@ -166,6 +168,12 @@ Deno.serve(async (req) => {
         rationale: b.rationale ?? null,
       }));
 
+    // LA NOTE 1:1 DU COACH SUR CET ÉLÈVE — chargée à côté de la doctrine, et
+    // délibérément SANS effet sur `principles`. Une ligne de semaine trace à
+    // une clé de conviction (CHECK `..._doctrine_traceable_check`); la note
+    // n'en est pas une, et un plan ne peut donc pas se réclamer d'elle.
+    const coachNote = await loadCoachNote(admin, userId);
+
     if (principles.length === 0) {
       // TROIS SITUATIONS, ET PAS UN SEUL CODE POUR LES TROIS.
       //
@@ -303,7 +311,14 @@ Deno.serve(async (req) => {
         // module appelle une entrée décorative.
         aspiration: goalRow.aspiration ? String(goalRow.aspiration) : null,
         focusAxis: (goalRow.focus_axis ?? null) as WeeklyAxis | null,
-        practicalConstraints: (goalRow.practical_constraints ?? {}) as Record<string, unknown>,
+        // `constraintsForPrompt` et pas le jsonb brut: `buildWeekPlanPrompt` le
+        // sérialise EN ENTIER, donc toute clé ajoutée part au modèle. La
+        // comptabilité de la carte de préférences (les ids écartés) n'a rien à
+        // y faire — elle occuperait du budget pour du bruit, et un modèle qui
+        // lit « dismissed » à côté de préférences peut les appliquer à l'envers.
+        practicalConstraints: constraintsForPrompt(
+          (goalRow.practical_constraints ?? {}) as Record<string, unknown>,
+        ),
         // Ce que chaque entrée ALTÈRE est documenté dans `student_body.ts`. Une
         // bande d'âge (pas un nombre) et des TENDANCES (pas des valeurs): le
         // modèle n'a aucun usage légitime de « 78,4 kg » qu'il n'ait de
@@ -316,6 +331,7 @@ Deno.serve(async (req) => {
         },
       },
       doctrineBlock: doctrineBlockFor(doctrine),
+      coachNoteBlock: coachNotePromptBlock(coachNote),
       weekStart,
       // VERROU 4, moitié « avant génération ». Le même objet qui alimente
       // `parseWeekPlan` plus bas: une seule lecture, deux moitiés de verrou.

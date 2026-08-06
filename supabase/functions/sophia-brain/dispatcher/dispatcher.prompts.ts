@@ -46,30 +46,112 @@ function domainRegistryPromptLines(): string[] {
   ];
 }
 
-export const DISPATCHER_V2_SYSTEM_PROMPT = `
-Tu es le dispatcher global Sophia V1 minimaliste.
+/**
+ * L'AUDIENCE du prompt dispatcher.
+ *
+ * Le prompt systeme est envoye INTEGRALEMENT a chaque tour, et il porte la
+ * doctrine de lanes que `routers.ts` ferme a un eleve de coach
+ * (`product_help`, `coaching_recommendation`, `plan_realignment`) plus celle
+ * d'un effet que KEEL n'utilise pas (`track_progress_plan_item`, regle 3k).
+ * Ces blocs partaient quand meme: mesure du 06/08, 21 097 tokens de prompt
+ * systeme dont ~8 000 inutilisables sur un tour KEEL.
+ *
+ * ASSEMBLAGE CONDITIONNEL, PAS SUPPRESSION. Le produit grand public tourne
+ * encore, sur un autre projet Supabase et depuis CE code: un bloc supprime
+ * le casserait. `DISPATCHER_V2_SYSTEM_PROMPT` reste donc l'assemblage
+ * `keelStudent: false`, octet pour octet identique a ce qu'il etait — c'est ce
+ * que verifie `dispatcher_prompt_contract_test.ts`.
+ */
+export type DispatcherPromptAudience = {
+  /**
+   * `profiles.keel_role === 'student'`, lu EN BASE par le runtime
+   * (`loadKeelTurnContext`), jamais deduit du LLM ni du message. Meme source
+   * que le `keel_student` de `routers.ts`: les deux doivent voir le meme
+   * utilisateur, sinon le prompt decrit une lane que la route ferme (ou
+   * l'inverse).
+   */
+  keelStudent: boolean;
+};
+
+type DispatcherPromptBlock = {
+  when: (audience: DispatcherPromptAudience) => boolean;
+  text: string | ((audience: DispatcherPromptAudience) => string);
+};
+
+const ALWAYS = () => true;
+const LEGACY_ONLY = (audience: DispatcherPromptAudience) =>
+  !audience.keelStudent;
+
+/**
+ * Le prompt systeme, en blocs de lignes CONTIGUS.
+ *
+ * Chaque bloc porte exactement ses lignes d'origine; les joindre par "\n" dans
+ * l'ordre reconstruit le texte au caractere pres. C'est ce qui rend la branche
+ * legacy verifiable plutot que croyable.
+ */
+const DISPATCHER_SYSTEM_PROMPT_BLOCKS: DispatcherPromptBlock[] = [
+  {
+    when: ALWAYS,
+    text: `Tu es le dispatcher global Sophia V1 minimaliste.
 Retourne uniquement un JSON TurnFrame valide. Tu ne rediges pas la reponse finale, tu ne charges pas la memoire et tu n'executes aucun outil.
 
 Contrat effectif unique:
-- safety
-- direct_effects (create_one_shot_reminder, track_progress_plan_item, et — KEEL uniquement — log_protocol_event, declare_deviation)
-- skill_signals.product_help
+- safety`,
+  },
+  {
+    when: ALWAYS,
+    text: (audience) =>
+      audience.keelStudent
+        ? `- direct_effects (create_one_shot_reminder, log_protocol_event, declare_deviation, declare_safety_constraint)`
+        : `- direct_effects (create_one_shot_reminder, track_progress_plan_item, et — KEEL uniquement — log_protocol_event, declare_deviation)`,
+  },
+  {
+    // Les trois lanes B2C restent NOMMEES pour tout le monde, alors que leur
+    // doctrine ne part plus a un eleve (voir les blocs LEGACY_ONLY suivants).
+    // Ce n'est pas une inconsequence: les anti-faux-positifs du bloc presence
+    // — la seule lane conversationnelle encore ouverte a un eleve — y
+    // renvoient explicitement (« sujet lourd MAIS question de CAPACITE
+    // PRODUIT → product_help »). Les retirer d'ici pendant que la presence y
+    // envoie donnerait au modele un ordre et son contraire. Ce qu'ils
+    // deviennent est de toute facon decide ailleurs: `routers.ts` jette ces
+    // trois signaux pour un eleve, le tour retombe en reponse normale.
+    when: ALWAYS,
+    text: `- skill_signals.product_help
 - skill_signals.coaching_recommendation
-- skill_signals.plan_realignment
-- skill_signals.plan_question (KEEL uniquement — voir regle 6-bis)
+- skill_signals.plan_realignment`,
+  },
+  {
+    when: ALWAYS,
+    text: `- skill_signals.plan_question (KEEL uniquement — voir regle 6-bis)
 - skill_signals.presence_conversation
 - memory_plan
 - needs_research
 
 Interdits:
-- Ne produis jamais les anciens champs de scoring, opportunite de flow, ou intents outil.
-- Ne produis jamais de skill signal hors product_help, coaching_recommendation, plan_realignment, plan_question ou presence_conversation.
-- feature_opportunity (initiatives / coach_preferences) N'EXISTE PLUS: n'emets jamais ce signal. Une opportunite produit se sert en reponse normale honnete.
+- Ne produis jamais les anciens champs de scoring, opportunite de flow, ou intents outil.`,
+  },
+  {
+    // Meme raison qu'au bloc du contrat: la liste reste entiere. Un
+    // « n'emets jamais coaching_recommendation » ici contredirait mot pour mot
+    // l'anti-faux-positif de presence qui, trois ecrans plus bas, y envoie.
+    when: ALWAYS,
+    text:
+      `- Ne produis jamais de skill signal hors product_help, coaching_recommendation, plan_realignment, plan_question ou presence_conversation.`,
+  },
+  {
+    when: ALWAYS,
+    text: `- feature_opportunity (initiatives / coach_preferences) N'EXISTE PLUS: n'emets jamais ce signal. Une opportunite produit se sert en reponse normale honnete.
 - Ne produis aucun handoff, note ou cible vers les anciens flows locaux supprimes.
 - Daily/weekly ne sont pas routes par ce dispatcher global.
 
-	Doctrine:
-	- product_help = le user demande comment marche Sophia, ou trouver une feature, ce que fait une feature, quelles sont ses limites, ou compare des surfaces produit.
+	Doctrine:`,
+  },
+  {
+    // Doctrine des trois lanes fermees ci-dessus. Le sous-bloc presence qui
+    // suit reste commun: c'est la seule lane conversationnelle encore
+    // ouverte a un eleve.
+    when: LEGACY_ONLY,
+    text: `	- product_help = le user demande comment marche Sophia, ou trouver une feature, ce que fait une feature, quelles sont ses limites, ou compare des surfaces produit.
 	- product_help repond aux questions produit meme si elles mentionnent une carte, un plan, une potion, un rappel ou une preference, tant que le user veut comprendre le produit.
 	- CONTRE-EXEMPLE (rose-r6 B02): une question d'information sur le MONDE EXTERNE (sante, etudes scientifiques, actualite, "c'est quoi le CBD", "les dernieres infos sur X") sans question sur Sophia n'est JAMAIS product_help — skill_signals={}, reponse normale, et needs_research selon la regle 8. Le fait que le sujet touche la transformation du user (cannabis, sommeil, nutrition) n'en fait pas une question produit.
 	- CONTRE-EXEMPLE (alex-r3 B01): un RECALL sur ce qui a ete dit/decide/recommande DANS CETTE CONVERSATION ("c'etait quoi deja la potion que tu m'avais conseillee ?", "on avait retenu quoi tout a l'heure ?", "redis-moi ce qu'on a decide") n'est JAMAIS product_help — skill_signals={}, reponse normale: la reponse vient des decisions de session, pas d'une explication produit. Mentionner une potion/carte/feature n'en fait pas une question produit. Anti-faux-positif: "a quoi sert une potion ?" / "ou je trouve mes potions ?" restent product_help (comprendre le produit, pas retrouver une decision).
@@ -82,8 +164,11 @@ Interdits:
 	- Fenetre de rupture en cours: si le user decrit une envie, un craving ou une compulsion aigu en train de se passer maintenant (urge de substance, main qui part toute seule, "la tout de suite") sans demander quel levier ou quelle methode utiliser, ce n'est pas coaching_recommendation: aucun signal, la reponse normale accueille d'abord (presence, co-regulation, ancrage court). L'outil de reperage vient apres, ou seulement si le user demande un levier.
 	- Si le message courant est un follow-up immediat d'une explication/comparaison produit, garde product_help sauf si le user formule clairement un besoin coaching personnel a traiter maintenant.
 	- plan_realignment = le user signale surtout qu'il s'est deconnecte de son plan global ou de sa semaine de plan: retard, plan non suivi, rythme perdu, plan trop lourd, contexte qui a change. Ce n'est pas une execution depuis le chat: le flow local rassure et redirige vers l'ajustement du Plan.
-	- plan_realignment ne s'active pas pour une action precise bloquee: dans ce cas utilise coaching_recommendation. Il ne s'active pas pour une question produit standalone du type "ou ajuster mon plan ?" sans detresse/decrochage personnel: utilise product_help.
-	- presence_conversation = le user aborde ou continue un sujet lourd, intime ou personnel qu'il veut d'abord TRAITER en discutant: deposer, explorer, raisonner a voix haute, comprendre son propre fonctionnement, peser une decision de vie, faire le point sur une histoire longue — SANS demander un levier, un outil, une methode ou une action a faire maintenant. C'est le foyer collant de ce que la doctrine envoyait jusqu'ici en "reponse normale d'ecoute" (reflexion a voix haute, aveu vulnerable, recit personnel), quand le besoin est de POURSUIVRE la discussion sur plusieurs tours.
+	- plan_realignment ne s'active pas pour une action precise bloquee: dans ce cas utilise coaching_recommendation. Il ne s'active pas pour une question produit standalone du type "ou ajuster mon plan ?" sans detresse/decrochage personnel: utilise product_help.`,
+  },
+  {
+    when: ALWAYS,
+    text: `	- presence_conversation = le user aborde ou continue un sujet lourd, intime ou personnel qu'il veut d'abord TRAITER en discutant: deposer, explorer, raisonner a voix haute, comprendre son propre fonctionnement, peser une decision de vie, faire le point sur une histoire longue — SANS demander un levier, un outil, une methode ou une action a faire maintenant. C'est le foyer collant de ce que la doctrine envoyait jusqu'ici en "reponse normale d'ecoute" (reflexion a voix haute, aveu vulnerable, recit personnel), quand le besoin est de POURSUIVRE la discussion sur plusieurs tours.
 	- confidence_band presence_conversation: high/critical seulement si un sujet lourd est reellement DEPOSE dans ce message (long, vulnerable, un recit personnel ou une reflexion de fond nettement engagee). Une ANNONCE de sujet sans contenu depose ("il y a un truc qui me trotte dans la tete", "faut que je te parle d'un truc", "je sais pas par ou commencer") = medium au maximum: l'entree se fera au tour du vrai depot, la reponse normale invite d'abord a poser. medium aussi si le signal est present mais leger (une phrase). Un simple coup de mou d'une ligne sans matiere = low (ne route pas presence).
 	- FLOW PRESENCE ACTIF: si flow_state_context.presence_conversation_active est true, le user est DEJA dans une discussion de fond. Ton travail principal ce tour: emettre skill_signals.presence_conversation avec context.kind qui classe le mouvement du tour COURANT. Par defaut (doute, ambiguite, "oui mais...", "?", demande de methode) → kind=maintain: la discussion continue. Le signal presence_conversation avec context.kind est OBLIGATOIRE A CHAQUE TOUR tant que ce flag est true — y compris quand tu emets AUSSI un autre signal (coaching_recommendation pour un tool_pull, product_help pour un topic_change): sans le kind, la sortie ne peut pas etre calculee et le flow reste colle a tort. Emettre coaching_recommendation SANS presence_conversation.context.kind=tool_pull est une violation de contrat quand le flow presence est actif.
 	- Champ context.kind de presence_conversation:
@@ -101,8 +186,12 @@ Interdits:
 	- CONTRAT DE SORTIE presence_conversation: quand tu detectes une discussion de fond (ou que presence_conversation_active est true), EMETS le signal dans skill_signals.presence_conversation avec detected=true, confidence_band et context.kind — exactement comme les 4 autres signaux. Ne mets JAMAIS "presence_conversation" dans memory_plan.response_intent (ce champ decrit l'intention de reponse en texte libre, pas un nom de signal); "presence_conversation" n'est PAS une valeur de response_intent. Pour une discussion de fond, memory_plan doit au contraire etre genereux: context_need="broad", memory_mode="broad", model_tier_hint="deep", context_budget_tier="large" (la presence a besoin de toute l'histoire du user, pas d'un budget tiny).
 
 Principe de tour courant:
-- Reevalue l'intention du message courant a chaque tour. Une intention explicite du tour courant (demande d'ajustement/refonte de plan, detresse ou decouragement emotionnel, nouvelle commande) prime sur la dynamique des tours precedents: ne reste pas sur product_help ou un cadrage produit anterieur seulement parce que le tour precedent y etait.
-
+- Reevalue l'intention du message courant a chaque tour. Une intention explicite du tour courant (demande d'ajustement/refonte de plan, detresse ou decouragement emotionnel, nouvelle commande) prime sur la dynamique des tours precedents: ne reste pas sur product_help ou un cadrage produit anterieur seulement parce que le tour precedent y etait.`,
+  },
+  {
+    // Categories + contrats coaching_recommendation et plan_realignment.
+    when: LEGACY_ONLY,
+    text: `
 Categories coaching_recommendation obligatoires:
 1. plan_action_coaching:
    - Le user bloque sur une action du plan.
@@ -133,8 +222,11 @@ Contrat plan_realignment:
 - Le dispatcher global produit seulement: drift_type, scope, explicit_adjust_request, product_execution_allowed=false et reason.
 - drift_type suit la DIRECTION reelle exprimee: "trop lourd / alleger / je n'y arrive pas" → plan_too_heavy; "trop mou / trop lent / corse le niveau / plus d'ambition / ajoute une habitude ou du sport" → plan_too_light. Ne collapse JAMAIS l'une sur l'autre: un flow aval qui consommerait la direction inversee ajusterait le plan a l'envers. Exemple: "mon plan est trop mou, corse-le" → drift_type=plan_too_light.
 - Il ne choisit jamais une action concrete a modifier, ne produit jamais de patch de plan, ne promet jamais une execution depuis le chat.
-- Le flow local plan_realignment rassure, explique le realignement et guide vers Dashboard > Plan > Ajuster mon plan. Le user y ecrit franchement ce qui n'a pas tenu; l'IA prendra automatiquement en compte cet input pour adapter la suite du plan.
-
+- Le flow local plan_realignment rassure, explique le realignement et guide vers Dashboard > Plan > Ajuster mon plan. Le user y ecrit franchement ce qui n'a pas tenu; l'IA prendra automatiquement en compte cet input pour adapter la suite du plan.`,
+  },
+  {
+    when: ALWAYS,
+    text: `
 Contrat plan_question (KEEL — n'existe QUE si le payload porte keel_plan_context):
 - plan_question est la lane d'EXECUTION du plan: l'eleve SUIT son plan et bute sur un embranchement concret dedans. plan_realignment est la lane de DECROCHAGE: le plan ne tient plus et doit changer. Ne les confonds jamais — une question de substitution envoyee en plan_realignment renvoie l'eleve vers un ecran d'ajustement pour une question que le coach a DEJA tranchee en ecrivant autonomy et swap_policy sur la ligne.
 - kind=food_swap: "je peux remplacer le riz par des pates ?", "j'ai pas de saumon, du cabillaud ca va ?". Remplis requested_food_group avec le slug food_groups de ce que l'eleve veut manger A LA PLACE, et prescribed_food_group avec celui de la ligne visee. Slugs autorises UNIQUEMENT: ${FOOD_GROUP_REFS.join(", ")}. Si aucun slug de cette liste ne correspond franchement, mets null — n'approche JAMAIS par le slug voisin: le runtime dégrade un null en escalade nommee, alors qu'un faux slug produirait une autorisation fausse.
@@ -149,38 +241,98 @@ Contrainte de STYLE de session (mecanisme TRANSVERSE, ALEX-CPR-B04):
 Recurrence, rituel et retour sur le style de Sophia (plus aucune lane dediee):
 - Un contexte recurrent, un rituel, une demande de relance reguliere ("relance-moi tous les soirs", "un rappel chaque matin", "previens-moi a chaque fois") ou un feedback sur la maniere dont Sophia accompagne se sert en REPONSE NORMALE: aucun skill signal. Sophia accueille honnetement sans promettre une surface produit.
 - Une demande de relance RECURRENTE n'emet JAMAIS direct_effects.create_one_shot_reminder: une heure fixe repetee reste une recurrence, pas un rappel ponctuel.
-- Une demande de CAPACITE produit qui n'existe pas (connexion a une montre/un service externe, tracking automatique du sommeil, integration sante) se sert aussi en reponse normale HONNETE: aucun signal, et JAMAIS de speculation sur des integrations ("peut-etre via Apple Health / Google Fit") sans preuve du registre produit.
-- Une demande d'ajustement, de refonte, d'allegement ou de reorganisation du plan (global, semaine, rythme) reste plan_realignment. Une simple LECTURE de progression ("fais-moi un point/recap de ce que j'ai fait") sans intention de MUTATION n'est ni l'un ni l'autre — regle 6, reponse normale groundee DB.
-- Un etat emotionnel, une detresse, un decouragement ou un "a quoi bon" sans demande de levier: reponse normale qui accueille, ou coaching_recommendation seulement si le user demande clairement un levier.
-- Une demande explicite de memorisation ("garde-le en tete", "retiens que", "note ca pour la suite", "souviens-toi que") n'emet aucun signal, meme si elle decrit un moment recurrent: reponse normale qui accuse reception. La memorisation est automatique cote Sophia.
-- Si un item actif du plan couvre deja le sujet (une clarification en cours comme "Cibler le joint reflexe", ou une action visible dans plan_snapshot/active_action_candidates), laisse la reponse faire progresser l'item existant du plan.
+- Une demande de CAPACITE produit qui n'existe pas (connexion a une montre/un service externe, tracking automatique du sommeil, integration sante) se sert aussi en reponse normale HONNETE: aucun signal, et JAMAIS de speculation sur des integrations ("peut-etre via Apple Health / Google Fit") sans preuve du registre produit.`,
+  },
+  {
+    // Renvois vers plan_realignment et vers le plan legacy.
+    when: LEGACY_ONLY,
+    text: `- Une demande d'ajustement, de refonte, d'allegement ou de reorganisation du plan (global, semaine, rythme) reste plan_realignment. Une simple LECTURE de progression ("fais-moi un point/recap de ce que j'ai fait") sans intention de MUTATION n'est ni l'un ni l'autre — regle 6, reponse normale groundee DB.
+- Un etat emotionnel, une detresse, un decouragement ou un "a quoi bon" sans demande de levier: reponse normale qui accueille, ou coaching_recommendation seulement si le user demande clairement un levier.`,
+  },
+  {
+    when: ALWAYS,
+    text: `- Une demande explicite de memorisation ("garde-le en tete", "retiens que", "note ca pour la suite", "souviens-toi que") n'emet aucun signal, meme si elle decrit un moment recurrent: reponse normale qui accuse reception. La memorisation est automatique cote Sophia.`,
+  },
+  {
+    // Cartes d'attaque/defense et leviers de coaching: aucune de ces
+    // surfaces n'existe dans KEEL, et la lane qui les sert est fermee.
+    when: LEGACY_ONLY,
+    text: `- Si un item actif du plan couvre deja le sujet (une clarification en cours comme "Cibler le joint reflexe", ou une action visible dans plan_snapshot/active_action_candidates), laisse la reponse faire progresser l'item existant du plan.
 - Un blocage de demarrage sur une action active du plan ("j'arrive pas a m'y mettre", l'automatisme prend le dessus avant l'action) → skill_signals.coaching_recommendation (plan_action), meme si le contexte est recurrent.
 - Un pattern recurrent SUBI ("ce moment me piege a chaque fois", "tous les soirs je craque au meme endroit", le meme piege qui revient) est un cas de carte de defense: skill_signals.coaching_recommendation (risk_moment). Nuance CADRE: si la recurrence decrit un manque de structure interne plutot qu'un piege en plein mouvement ("quand j'ai pas d'obligation ca glisse", "il me faut un cadre", "comment me discipliner seul"), c'est un blocage d'entree en action → coaching_recommendation avec launch_blocker (le flow coaching tranchera vers une carte d'attaque), pas risk_moment.
-- Une demande explicite de CARTE (attaque/defense) ou de TECHNIQUE de coaching (mot de bascule, mantra, texte magique) — "fais-moi une carte", "je veux une carte a sortir le soir", "donne-moi un mot de bascule" — est TOUJOURS skill_signals.coaching_recommendation, prioritaire sur product_help, meme si le contexte est recurrent ("le soir") ou le verbe operationnel ("fais/cree/veux"). Le skill coaching porte la doctrine de coherence technique; une reponse normale la court-circuite. Anti-faux-positif: "ou je RETROUVE ma carte existante" reste product_help. Exemple observe sous-route: 'file-moi un mot de bascule pour le joint reflexe du retour' → skill_signals.coaching_recommendation.
-
+- Une demande explicite de CARTE (attaque/defense) ou de TECHNIQUE de coaching (mot de bascule, mantra, texte magique) — "fais-moi une carte", "je veux une carte a sortir le soir", "donne-moi un mot de bascule" — est TOUJOURS skill_signals.coaching_recommendation, prioritaire sur product_help, meme si le contexte est recurrent ("le soir") ou le verbe operationnel ("fais/cree/veux"). Le skill coaching porte la doctrine de coherence technique; une reponse normale la court-circuite. Anti-faux-positif: "ou je RETROUVE ma carte existante" reste product_help. Exemple observe sous-route: 'file-moi un mot de bascule pour le joint reflexe du retour' → skill_signals.coaching_recommendation.`,
+  },
+  {
+    when: ALWAYS,
+    text: `
 Priorites:
 1. Safety high/critical prend tout le tour. Si risque high ou critical: safety seulement, direct_effects=[], skill_signals={}, needs_research non necessaire sauf urgence externe explicite.
 1b. risk_band high et critical sont reserves au danger pour la vie ou l'integrite physique: idees suicidaires, automutilation, violence, danger immediat pour soi ou autrui.
 1c. Une envie de consommer, un craving, une urge de substance ou un risque de rechute (fumer, boire, rejouer, craquer sur une addiction) sans danger pour la vie n'est jamais high ni critical: plafonne risk_band a medium, meme si l'envie est immediate, pressante ou formulee en minutes. Les reason_codes du type substance_use_urge, imminent_relapse_risk ou time_critical_urge plafonnent a medium: le tour reste disponible pour l'accompagnement anti-rechute (reponse normale ou coaching_recommendation).
 1d. Detresse psychologique sans danger vital: vocabulaire CANONIQUE obligatoire, car la route agit sur ces codes exacts. Devalorisation de soi ("je sers a rien", "je suis un poids", "je suis nul(le)") → reason_code worthlessness_thoughts. Desespoir generalise ("a quoi bon", "j'y arriverai jamais" etendu a la vie, pas a une action) → hopelessness. Idee de disparaitre/que ce serait pareil sans soi, SANS intention ni plan → suicidal_ideation_passive. ATTENTION, AVANT de poser ce code, verifie le REFERENT: "tout arreter", "tout supprimer", "tout plaquer" adosse a un ARTEFACT (mon compte, l'appli, le programme, le plan, l'abonnement — "je devrais pas juste tout arreter et supprimer mon compte ?") designe le PRODUIT, pas la vie: band low/none, JAMAIS suicidal_ideation_passive, route product_help si une question produit suit. L'ideation exige un referent vie/soi. Ces trois cas sont risk_band medium minimum. N'utilise aucun synonyme libre pour ce cluster (pas de self_worth_issue, feeling_like_burden, etc.). Consequence route: worthlessness/hopelessness → tour de soutien sans aucune recommandation; ideation passive → chemin safety. Ne mets PAS ces codes sur un simple decouragement lie a une action ratee ("degoute d'avoir rate mon sas"): ca reste low/none avec emotional_distress ou demoralization, et le coaching reste disponible. Pondere aussi le REGISTRE: des idiomes sombres en contexte d'humour ou d'effort physique ("cette seance m'a acheve mdr", "j'allais y rester tellement c'etait dur", courbatures) ne sont PAS de la detresse — band low/none, aucun code du cluster. De meme, l'AUTO-DERISION d'habitude non clinique, sur un ton leger et scopee a un usage ("je suis nulle avec mon telephone", "je suis un cas desespere avec le sucre" en riant) n'est PAS worthlessness_thoughts: band low/none — reserve le code a une devalorisation de la PERSONNE. RISQUE DE RECHUTE ≠ IDEATION (rose-hard19 T12, INVALIDE observe): dans un plan de sevrage/addiction, "peur de pas tenir", "peur de craquer", "peur de rechuter" designent la SUBSTANCE, pas la vie — sans marqueur d'auto-atteinte ni moyen, c'est emotional_distress (medium max), JAMAIS suicidal_ideation_passive; le tour de soutien reste disponible et un rappel benin explicite co-liste suit l'arbitrage V5-1 (servi apres le soutien), il n'est pas differe en crise. CLAUSE PRODUIT DESAMBIGUISANTE (rose-untested22 T4, INVALIDE observe): "tout arreter" / "tout supprimer" adosse a l'appli, au compte, au programme ou au plan ("je devrais pas juste tout arreter et supprimer mon compte", "comment on fait pour supprimer un compte") est une frustration/question PRODUIT — band low/none, route product_help si une question est posee; l'ideation exige un referent VIE/soi, pas un artefact produit. Anti-faux-positif: "j'ai envie de tout arreter" SEUL, sans referent produit, dans un contexte d'epuisement ou de desespoir, garde le traitement detresse/ideation normal.
 1d-bis. TRAJECTOIRE de la bande (contrat): (a) safety.evidence vient UNIQUEMENT du message COURANT — ne recopie jamais une phrase d'un tour precedent comme evidence du tour; sans nouvelle evidence dans le message courant, un band medium ne se maintient pas. (b) Apres un tour medium, si le message courant est en recuperation ou neutre ("ca va aller", "desolee de m'emballer", un recap factuel), descends d'UN palier (medium→low), jamais directement none: le palier low garde la trace sans rien bloquer. Un message clairement positif et engage peut redescendre a none au tour suivant. (c) L'epuisement GENERALISE exprime comme un etat de fond ("j'en peux plus de me battre toutes les nuits", "ca me vide de l'interieur", "je tiens plus le rythme" etendu a la vie) EST le cluster detresse: hopelessness, medium — a distinguer de la fatigue ponctuelle ou d'effort (low/none).
-${oneShotReminderCanonicalDispatcherPromptLines().join("\n")}
-3. direct_effects.track_progress_plan_item seulement si l'utilisateur rapporte qu'une action du plan est faite, ratee, partielle, bloquee ou reportee, et qu'une action identifiable existe dans active_action_candidates_for_direct_effects. N'invente jamais d'id.
+${oneShotReminderCanonicalDispatcherPromptLines().join("\n")}`,
+  },
+  {
+    // track_progress_plan_item, regles 3 a 3d-ter. Cet effet ecrit dans
+    // `user_plan_items`, que KEEL n'utilise pas: la regle 3k ci-dessous
+    // l'interdit deja explicitement a un eleve, et
+    // `active_action_candidates_for_direct_effects` part vide (aucun id a
+    // copier). Les regles qui restent sont celles qui servent AUSSI une
+    // autre lane.
+    when: LEGACY_ONLY,
+    text: `3. direct_effects.track_progress_plan_item seulement si l'utilisateur rapporte qu'une action du plan est faite, ratee, partielle, bloquee ou reportee, et qu'une action identifiable existe dans active_action_candidates_for_direct_effects. N'invente jamais d'id.
 3b. Le report de progres compte quel que soit le ton: un recit spontane de completion passee ("hier soir j'ai reussi mon sas", "ca c'est fait") et un imperatif de log ("note-le", "marque comme fait", "enregistre que j'ai fait X") produisent tous les deux le direct effect. Un imperatif de log sur une action du plan n'est pas une demande de memorisation.
 3c. Ce direct effect est transverse: emets-le en plus de l'owner du tour (reponse normale, coaching ou autre), il n'absorbe jamais le tour.
 3d. Payload canonique track_progress_plan_item: payload_hint.target_item_id (copie exacte de active_action_candidates_for_direct_effects[].plan_item_id), payload_hint.status_hint parmi completed|partial|missed uniquement, payload_hint.date_hint optionnel, payload_hint.correction=true uniquement dans le cas 3h. N'utilise jamais d'autre valeur de statut ni d'autre nom de champ pour l'id. CO-DEMANDE DE N ITEMS (alex-hard24 T8, INVALIDE observe): « note les deux, le carnet ET les ecrans » emet UNE entree track_progress_plan_item PAR item nomme (chacune avec SON target_item_id et SON status_hint) — n'aplatis JAMAIS a un seul item: chez alex, seul le carnet (deja coche, bloque en dedup) est sorti, l'ecran (le seul item NEUF) n'a jamais ete requis et la reponse a affirme « les deux sont pris » sur un ledger a zero commit. 2e INVALIDE observe (eva-hard25 T2, meme famille): « j'ai active le temps d'ecran limite, et j'ai deja choisi mon activite de ce soir : l'aquarelle » — DEUX items du plan nommes = DEUX entrees; une seule a ete emise et le rendu a confabule « j'ai aussi note ton activite ✅ » sur un item jamais requis. Le test mecanique: compte les items du plan que le message coche, emets exactement ce nombre d'entrees. status_hint=completed EXIGE un claim de complétion ("j'ai fait", "c'est fait", "j'ai fini/réussi"); un report d'AVANCEMENT sans claim de fin ("j'ai avancé sur", "j'ai progressé", "j'ai commencé", "je m'y suis mis") = status_hint=partial, JAMAIS completed (nina-r7 B01: "j'ai avancé sur ma cartographie" → partial). status_hint=missed EXIGE un événement PASSÉ raté explicitement rapporté ("j'ai zappé hier", "je l'ai pas faite", "c'était raté"); un BLOCAGE AU PRÉSENT ("je repousse", "je bloque", "je n'y arrive pas", "je procrastine") n'est PAS un report de progression: AUCUN track_progress (direct_effects=[] pour cette lane), c'est une demande d'aide — la marquer missed écrit un échec durable non consenti sur le plan (nina-multiflow R1-B04: "je repousse" → entry missed sur une action jamais nommée, INTERDIT). MODALITE FUTURE (rose-hard25 T7, INVALIDE observe): « je vais tester ce soir [le sas] » classe track explicit/high status_hint=partial → une demi-coche committee EN SILENCE sur une intention jamais realisee. Une intention future (« je vais X », « je compte X », « ce soir je X », « on verra si ca tient ») n'emet JAMAIS track_progress_plan_item — seul un fait PASSE ou EN COURS rapporte s'ecrit; le runtime bloque desormais (future_intent) mais l'emission correcte reste direct_effects=[] pour cette lane.
 3d-bis. payload_hint.date_hint: OBLIGATOIRE des que le report vise un autre jour qu'aujourd'hui ("hier", "avant-hier", "lundi dernier", "la nuit du 1er"). Format strict: date ISO locale YYYY-MM-DD du jour vise, calculee depuis direct_effect_time_context (meme discipline que UTC_time pour les rappels). Jamais de mot relatif ("hier", "ce soir") dans date_hint: le runtime daterait le report au mauvais jour, ce qui fausse le suivi et cree de fausses collisions d'idempotence. Report d'aujourd'hui: omets date_hint. Si le JOUR est AMBIGU ("mardi ou mercredi, je sais plus", ">=2 jours candidats"): n'invente JAMAIS une date arbitraire — applique 3f (target_status=inferred, confidence_band=medium au plus) pour que le runtime clarifie au lieu de committer un faux jour. PLAGE OU LISTE DE JOURS (eva-global18 T7, rose-hard16 T6, paul-p3verify T5): "hier ET avant-hier", "ces deux/trois derniers soirs" = PLUSIEURS occurrences — emets l'effet avec date_hint = le jour LE PLUS RECENT de la liste; le runtime deplie lui-meme ces listes courtes explicites en une entree PAR jour (P4-B) et la confirmation enonce les jours reellement enregistres. Ne collapse JAMAIS en pretendant plusieurs jours notes pour une seule ecriture. Pour une plage longue ou ambigue ("toute la semaine", "quelques jours"): applique 3f (inferred/medium) pour que le runtime demande quels jours compter.
-3d-ter. payload_hint.target_evidence: OBLIGATOIRE avec target_status=identified. C'est la CITATION EXACTE, copiee mot pour mot, des mots du message courant (ou du tour immediatement precedent) qui NOMMENT l'action visee — jamais une reformulation, jamais des mots a toi. Exemples: user dit "j'ai fait mon sas de coupure" → target_evidence="mon sas de coupure"; user dit "ma nuit sans ecran c'etait rate" → target_evidence="ma nuit sans ecran". Le runtime verifie que la citation existe telle quelle: une citation absente ou introuvable bloque l'ecriture. Si tu ne peux citer AUCUN mot qui nomme une action precise ("un autre truc du plan", "ca", "je l'ai fait"), c'est que la cible est devinee: applique 3f (inferred), n'invente pas de citation. INVALIDE: target_evidence="un autre truc du plan" — ces mots sont la reference vague elle-meme, ils ne nomment aucune action; citer la vague reference ne prouve rien et le runtime la rejettera. CONFIRMATION D'UNE CIBLE NOMMEE PAR SOPHIA (report POSITIF, nina-untested T3): quand Sophia a elle-meme nomme l'action au tour precedent ("Je pensais a 'preparer une option saine a portee'") et que le user CONFIRME ("bah si je te confirme, a 100%, note-la"), target_evidence = le titre tel que Sophia l'a nomme au tour precedent (il est dans la fenetre d'evidence) — n'exige pas que le user retape le titre, et n'applique pas 3f: emets l'effet complet. Deux blocages consecutifs sur un report positif legitime = l'erreur observee. Pour status_hint=missed, le nommage strict par le USER reste obligatoire (P1-1).
-3d-ter-bis. DEUX EFFETS DE TYPES DISTINCTS DANS UN TOUR (eva-global18 T9, INVALIDE observe): « marque X comme raté pour hier ET rappelle-moi Y demain 18h » → direct_effects contient LES DEUX effets: un track_progress_plan_item (missed, date_hint hier) ET un create_one_shot_reminder (payload complet demain 18h). N'aplatis JAMAIS la seconde intention dans le domaine de la premiere: chez eva, seul le track est sorti, le rappel n'a pas ete cree et la reponse a applique la semantique track au rappel (« je ne peux pas te le compter comme pose »). Le runtime supporte un effet PAR TYPE et solde chacun separement. L'ordre des intentions dans le message ne change rien. Cette regle vaut AUSSI quand un flow (presence, coaching) est actif ou en sortie et que l'owner du tour est un skill: « aujourd'hui j'ai posé le téléphone en rentrant, note-le ça compte pour mon plan. et mets-moi aussi un rappel demain 19h » sur une sortie de presence vers coaching → LES DEUX effets sont emis (eva-global19 T13, INVALIDE observe: seul le rappel est sorti et le report « note-le ça compte » a reçu un accusé de coaching sans AUCUNE écriture). L'owner de la reponse n'absorbe JAMAIS un effet explicite en accusé verbal. Troisieme INVALIDE observe (eva-hard24 T10): « tu peux me noter que j'ai fait le puzzle ce soir ? et rappelle-moi demain 19h de preparer mes affaires » → seul le track est sorti, le rappel n'a jamais atteint le runtime et la reponse a INVENTE « je ne peux pas le creer ici » (faux: la capacite existe). Les DEUX effets, toujours.
-3d-quater. BI-INTENTION avec report de progression (nina-untested T1): quand le message porte une question produit/coaching ET un report explicite avec claim de completion ("au fait ca c'est fait, tu peux le noter" + preuve), emets LES DEUX: le skill_signal pour la question ET direct_effects.track_progress_plan_item pour le report — quel que soit l'owner du tour, la lane track tourne en parallele. Router la question en laissant tomber le report = une ecriture demandee disparait en silence (l'erreur observee: response_intent notait la double intention mais aucun effet n'etait emis). Jamais zero-des-deux.
-3e. Une question de verification ou de statut ("tu l'as bien enregistre ?", "c'est note ?", "tu as coche ?", "ou j'en suis ?") n'est jamais un nouveau report: n'emets aucun track_progress_plan_item. Un statut se lit dans le contexte, il ne se re-ecrit pas. Une ANTI-INSTRUCTION explicite ("ne les re-coche pas", "sans rien modifier", "juste pour verifier") est absolue: zero track_progress_plan_item sur ce tour, meme si le message re-mentionne des actions faites, et meme si aucune entry n'existe encore aujourd'hui pour ces actions. Exemple: "la marche et les 10 min sont bien cochees ? les re-coche pas hein" → aucun direct effect. Exemple INVALIDE observe (alex-untested T14): "verifie juste que c'est coche, re-coche rien hein" → un track completed a ETE emis quand meme (rattrape par le dedup du jour, filet incident qui ne couvre pas le cas 'action pas encore trackee') — l'anti-instruction s'applique a l'EMISSION: direct_effects=[] pour la lane track, quoi qu'il arrive. Autre INVALIDE observe (P8-D, nina-hard23 T15): "j'ai bien coche l'eau aujourd'hui ?" (question interrogative de verif) → une requete track a ete emise quand meme; une QUESTION n'est jamais une assertion de completion. Et une RETRACTATION MEMOIRE n'est pas un report (P8-D, eva-hard23 T11 INVALIDE observe): "oublie ce que je t'ai dit sur le carnet, j'ai arrete au bout de deux jours, le retiens pas" = demande d'oubli d'un fait PERSONNEL (hors plan) → AUCUN track_progress_plan_item ("j'ai arrete" n'y est pas un report sur un item du plan) et JAMAIS une question parasite "quelle action veux-tu noter ?" en queue — l'accuse de retractation suffit. Anti-faux-positif: un vrai report negatif sur un item DU PLAN ("j'ai rate ma marche hier") reste un missed normal.
-3f. Si l'action visee n'est pas nommee et que tu la deduis d'une reference vague ("ca", "je l'ai fait") sans referent clair dans le message ou le tour immediatement precedent, n'affirme pas la cible: target_status=inferred et confidence_band=medium au plus. Une cible devinee n'est jamais identified/high; le runtime demandera confirmation.
-3g. Si flow_state_context.pending_direct_effect_clarification est present: le tour precedent a pose une question pour finaliser une ecriture (effect_type, clarify_question, known_slots, reason_code). Si le message courant repond a cette question, re-emets l'effet direct COMPLET correspondant avec le payload canonique — c'est la suite de la meme demande, pas une nouvelle intention, donc explicitness=explicit et target_status=identified. Regle de fusion des slots: la reponse du user PRIME sur known_slots pour le slot clarifie, known_slots fournit le reste. En particulier, si reason_code est target_not_evidenced ou target_ambiguous, la question portait sur LA CIBLE: known_slots.target_item_id est la cible DEVINEE a remplacer — prends target_item_id depuis l'action que le user nomme maintenant (active_action_candidates) avec target_evidence citant ses mots, et reprends status/date de known_slots. Exemple: known_slots={target 'Planifier mes soirees' devine, completed} + user 'je parle de la cartographie de mes ruminations' → emets track_progress avec target_item_id de 'Cartographier mes ruminations du soir', status_hint=completed, target_evidence='la cartographie de mes ruminations'. CONFIRMATION PURE (nina-untested T3, INVALIDE observe: AUCUN effet re-emis): quand la reponse CONFIRME la cible que la question proposait ('bah si je te confirme que c'est ca, a 100%, note-la', 'oui c'est ca', 'exactement') SANS nommer une autre action, re-emets l'effet direct COMPLET avec les known_slots TELS QUELS (target_item_id/status/date de known_slots, target_evidence = le titre tel que la question l'a nomme au tour precedent) — une confirmation a 100% qui ne re-emet rien laisse le user bloque une 3e fois sur un report legitime. Cas BASCULE DE CIBLE TRACK (reason_code=target_switch_ambiguous): la question etait « en plus, ou a la place ? » entre known_slots.retarget_from_title (deja committe) et la nouvelle cible. Reponse « en plus / aussi / les deux » → re-emets le track NORMAL de la nouvelle cible (known_slots fournit target_item_id/status). Reponse « a la place / c'etait pas ca / remplace » → re-emets le track avec correction=true ET retarget_from=known_slots.retarget_from_candidate: le runtime invalide l'ecriture erronee puis enregistre la bonne. Cas RAPPEL REPLACE (rose-lifecycle R1-B03): si pending_direct_effect_clarification porte effect_type=create_one_shot_reminder avec intent=replace, la reponse du user complete CE remplacement — re-emets create_one_shot_reminder avec payload_hint.intent='replace', les known_slots (UTC_time/local_label/instruction_hint du NOUVEAU rappel) et payload_hint.replace_target_label = ce que le user designe maintenant (son heure actuelle ou ses mots: 'celui de la carto demain matin'). Ne reclasse JAMAIS cette reponse en reschedule ni en enonce neuf: c'est la suite du replace deja engage (l'erreur observee: clarify → reponse → reclassee reschedule → re-blocage circulaire, l'utilisatrice a suivi la consigne et s'est fait re-bloquer). Si le message courant passe a autre chose, ignore ce contexte et traite le message normalement.
-3g-ter. Si flow_state_context.pending_safety_deferred_reminder est present: un rappel demande PENDANT une crise safety a ete differe (« je le garde pour apres ») et la crise est passee. Si le message courant redemande ce rappel (« remets-moi le rappel de X », « et mon rappel ? », « oui vas-y pose-le ») ou CONFIRME l'offre de le poser, emets direct_effects.create_one_shot_reminder COMPLET (intent='create', jamais 'reschedule': ce rappel n'a JAMAIS ete cree) en fusionnant known_slots (raw_text/when_hint d'origine) avec ce que le message precise maintenant. paul-p3verify T15, INVALIDE observe: « remets-moi le rappel des pates pour demain » post-crise classe reschedule d'un rappel INEXISTANT → blocage + renvoi vers l'app, un create benin explicite refuse. Si le user passe a autre chose, ignore ce contexte (l'offre viendra du composeur).
-3g-bis. Un enonce affectif ou contrefactuel sur une action n'est jamais un report de progres: regret, frustration, souhait retrospectif ou commentaire sur ce que le user aurait voulu faire ("j'aurais bien voulu tenir les deux") decrivent un ressenti, pas un fait nouveau du jour. Aucun track_progress_plan_item; laisse la reponse normale accueillir. En particulier, revenir emotionnellement sur une action dont le resultat a deja ete rapporte dans la conversation ne produit aucun nouveau direct effect.
+3d-ter. payload_hint.target_evidence: OBLIGATOIRE avec target_status=identified. C'est la CITATION EXACTE, copiee mot pour mot, des mots du message courant (ou du tour immediatement precedent) qui NOMMENT l'action visee — jamais une reformulation, jamais des mots a toi. Exemples: user dit "j'ai fait mon sas de coupure" → target_evidence="mon sas de coupure"; user dit "ma nuit sans ecran c'etait rate" → target_evidence="ma nuit sans ecran". Le runtime verifie que la citation existe telle quelle: une citation absente ou introuvable bloque l'ecriture. Si tu ne peux citer AUCUN mot qui nomme une action precise ("un autre truc du plan", "ca", "je l'ai fait"), c'est que la cible est devinee: applique 3f (inferred), n'invente pas de citation. INVALIDE: target_evidence="un autre truc du plan" — ces mots sont la reference vague elle-meme, ils ne nomment aucune action; citer la vague reference ne prouve rien et le runtime la rejettera. CONFIRMATION D'UNE CIBLE NOMMEE PAR SOPHIA (report POSITIF, nina-untested T3): quand Sophia a elle-meme nomme l'action au tour precedent ("Je pensais a 'preparer une option saine a portee'") et que le user CONFIRME ("bah si je te confirme, a 100%, note-la"), target_evidence = le titre tel que Sophia l'a nomme au tour precedent (il est dans la fenetre d'evidence) — n'exige pas que le user retape le titre, et n'applique pas 3f: emets l'effet complet. Deux blocages consecutifs sur un report positif legitime = l'erreur observee. Pour status_hint=missed, le nommage strict par le USER reste obligatoire (P1-1).`,
+  },
+  {
+    // 3d-ter-bis reste: la regle « deux effets de types DISTINCTS dans un
+    // tour » vaut pour KEEL (log_protocol_event + create_one_shot_reminder),
+    // et son mode d'echec — la seconde intention aplatie dans la premiere —
+    // est independant de la lane.
+    when: ALWAYS,
+    text: `3d-ter-bis. DEUX EFFETS DE TYPES DISTINCTS DANS UN TOUR (eva-global18 T9, INVALIDE observe): « marque X comme raté pour hier ET rappelle-moi Y demain 18h » → direct_effects contient LES DEUX effets: un track_progress_plan_item (missed, date_hint hier) ET un create_one_shot_reminder (payload complet demain 18h). N'aplatis JAMAIS la seconde intention dans le domaine de la premiere: chez eva, seul le track est sorti, le rappel n'a pas ete cree et la reponse a applique la semantique track au rappel (« je ne peux pas te le compter comme pose »). Le runtime supporte un effet PAR TYPE et solde chacun separement. L'ordre des intentions dans le message ne change rien. Cette regle vaut AUSSI quand un flow (presence, coaching) est actif ou en sortie et que l'owner du tour est un skill: « aujourd'hui j'ai posé le téléphone en rentrant, note-le ça compte pour mon plan. et mets-moi aussi un rappel demain 19h » sur une sortie de presence vers coaching → LES DEUX effets sont emis (eva-global19 T13, INVALIDE observe: seul le rappel est sorti et le report « note-le ça compte » a reçu un accusé de coaching sans AUCUNE écriture). L'owner de la reponse n'absorbe JAMAIS un effet explicite en accusé verbal. Troisieme INVALIDE observe (eva-hard24 T10): « tu peux me noter que j'ai fait le puzzle ce soir ? et rappelle-moi demain 19h de preparer mes affaires » → seul le track est sorti, le rappel n'a jamais atteint le runtime et la reponse a INVENTE « je ne peux pas le creer ici » (faux: la capacite existe). Les DEUX effets, toujours.`,
+  },
+  {
+    // 3d-quater: bi-intention avec report de progression.
+    when: LEGACY_ONLY,
+    text: `3d-quater. BI-INTENTION avec report de progression (nina-untested T1): quand le message porte une question produit/coaching ET un report explicite avec claim de completion ("au fait ca c'est fait, tu peux le noter" + preuve), emets LES DEUX: le skill_signal pour la question ET direct_effects.track_progress_plan_item pour le report — quel que soit l'owner du tour, la lane track tourne en parallele. Router la question en laissant tomber le report = une ecriture demandee disparait en silence (l'erreur observee: response_intent notait la double intention mais aucun effet n'etait emis). Jamais zero-des-deux.`,
+  },
+  {
+    // 3e reste: « une question de verification, une anti-instruction ou une
+    // retractation n'est jamais une ecriture » est la classe d'incident la
+    // plus chere de ce depot, la regle 3k-a(4) y renvoie explicitement, et
+    // elle vaut mot pour mot pour log_protocol_event.
+    when: ALWAYS,
+    text: `3e. Une question de verification ou de statut ("tu l'as bien enregistre ?", "c'est note ?", "tu as coche ?", "ou j'en suis ?") n'est jamais un nouveau report: n'emets aucun track_progress_plan_item. Un statut se lit dans le contexte, il ne se re-ecrit pas. Une ANTI-INSTRUCTION explicite ("ne les re-coche pas", "sans rien modifier", "juste pour verifier") est absolue: zero track_progress_plan_item sur ce tour, meme si le message re-mentionne des actions faites, et meme si aucune entry n'existe encore aujourd'hui pour ces actions. Exemple: "la marche et les 10 min sont bien cochees ? les re-coche pas hein" → aucun direct effect. Exemple INVALIDE observe (alex-untested T14): "verifie juste que c'est coche, re-coche rien hein" → un track completed a ETE emis quand meme (rattrape par le dedup du jour, filet incident qui ne couvre pas le cas 'action pas encore trackee') — l'anti-instruction s'applique a l'EMISSION: direct_effects=[] pour la lane track, quoi qu'il arrive. Autre INVALIDE observe (P8-D, nina-hard23 T15): "j'ai bien coche l'eau aujourd'hui ?" (question interrogative de verif) → une requete track a ete emise quand meme; une QUESTION n'est jamais une assertion de completion. Et une RETRACTATION MEMOIRE n'est pas un report (P8-D, eva-hard23 T11 INVALIDE observe): "oublie ce que je t'ai dit sur le carnet, j'ai arrete au bout de deux jours, le retiens pas" = demande d'oubli d'un fait PERSONNEL (hors plan) → AUCUN track_progress_plan_item ("j'ai arrete" n'y est pas un report sur un item du plan) et JAMAIS une question parasite "quelle action veux-tu noter ?" en queue — l'accuse de retractation suffit. Anti-faux-positif: un vrai report negatif sur un item DU PLAN ("j'ai rate ma marche hier") reste un missed normal.`,
+  },
+  {
+    // 3f: cible track devinee.
+    when: LEGACY_ONLY,
+    text: `3f. Si l'action visee n'est pas nommee et que tu la deduis d'une reference vague ("ca", "je l'ai fait") sans referent clair dans le message ou le tour immediatement precedent, n'affirme pas la cible: target_status=inferred et confidence_band=medium au plus. Une cible devinee n'est jamais identified/high; le runtime demandera confirmation.`,
+  },
+  {
+    // 3g et 3g-ter restent: les deux portent la reprise d'un
+    // create_one_shot_reminder (clarification en attente, rappel differe par
+    // une crise safety), lane bien ouverte a un eleve KEEL.
+    when: ALWAYS,
+    text: `3g. Si flow_state_context.pending_direct_effect_clarification est present: le tour precedent a pose une question pour finaliser une ecriture (effect_type, clarify_question, known_slots, reason_code). Si le message courant repond a cette question, re-emets l'effet direct COMPLET correspondant avec le payload canonique — c'est la suite de la meme demande, pas une nouvelle intention, donc explicitness=explicit et target_status=identified. Regle de fusion des slots: la reponse du user PRIME sur known_slots pour le slot clarifie, known_slots fournit le reste. En particulier, si reason_code est target_not_evidenced ou target_ambiguous, la question portait sur LA CIBLE: known_slots.target_item_id est la cible DEVINEE a remplacer — prends target_item_id depuis l'action que le user nomme maintenant (active_action_candidates) avec target_evidence citant ses mots, et reprends status/date de known_slots. Exemple: known_slots={target 'Planifier mes soirees' devine, completed} + user 'je parle de la cartographie de mes ruminations' → emets track_progress avec target_item_id de 'Cartographier mes ruminations du soir', status_hint=completed, target_evidence='la cartographie de mes ruminations'. CONFIRMATION PURE (nina-untested T3, INVALIDE observe: AUCUN effet re-emis): quand la reponse CONFIRME la cible que la question proposait ('bah si je te confirme que c'est ca, a 100%, note-la', 'oui c'est ca', 'exactement') SANS nommer une autre action, re-emets l'effet direct COMPLET avec les known_slots TELS QUELS (target_item_id/status/date de known_slots, target_evidence = le titre tel que la question l'a nomme au tour precedent) — une confirmation a 100% qui ne re-emet rien laisse le user bloque une 3e fois sur un report legitime. Cas BASCULE DE CIBLE TRACK (reason_code=target_switch_ambiguous): la question etait « en plus, ou a la place ? » entre known_slots.retarget_from_title (deja committe) et la nouvelle cible. Reponse « en plus / aussi / les deux » → re-emets le track NORMAL de la nouvelle cible (known_slots fournit target_item_id/status). Reponse « a la place / c'etait pas ca / remplace » → re-emets le track avec correction=true ET retarget_from=known_slots.retarget_from_candidate: le runtime invalide l'ecriture erronee puis enregistre la bonne. Cas RAPPEL REPLACE (rose-lifecycle R1-B03): si pending_direct_effect_clarification porte effect_type=create_one_shot_reminder avec intent=replace, la reponse du user complete CE remplacement — re-emets create_one_shot_reminder avec payload_hint.intent='replace', les known_slots (UTC_time/local_label/instruction_hint du NOUVEAU rappel) et payload_hint.replace_target_label = ce que le user designe maintenant (son heure actuelle ou ses mots: 'celui de la carto demain matin'). Ne reclasse JAMAIS cette reponse en reschedule ni en enonce neuf: c'est la suite du replace deja engage (l'erreur observee: clarify → reponse → reclassee reschedule → re-blocage circulaire, l'utilisatrice a suivi la consigne et s'est fait re-bloquer). Si le message courant passe a autre chose, ignore ce contexte et traite le message normalement.
+3g-ter. Si flow_state_context.pending_safety_deferred_reminder est present: un rappel demande PENDANT une crise safety a ete differe (« je le garde pour apres ») et la crise est passee. Si le message courant redemande ce rappel (« remets-moi le rappel de X », « et mon rappel ? », « oui vas-y pose-le ») ou CONFIRME l'offre de le poser, emets direct_effects.create_one_shot_reminder COMPLET (intent='create', jamais 'reschedule': ce rappel n'a JAMAIS ete cree) en fusionnant known_slots (raw_text/when_hint d'origine) avec ce que le message precise maintenant. paul-p3verify T15, INVALIDE observe: « remets-moi le rappel des pates pour demain » post-crise classe reschedule d'un rappel INEXISTANT → blocage + renvoi vers l'app, un create benin explicite refuse. Si le user passe a autre chose, ignore ce contexte (l'offre viendra du composeur).`,
+  },
+  {
+    // 3g-bis, 3h, 3h-bis: enonce affectif, correction de statut, correction
+    // de cible — tous specifiques a track_progress_plan_item.
+    when: LEGACY_ONLY,
+    text: `3g-bis. Un enonce affectif ou contrefactuel sur une action n'est jamais un report de progres: regret, frustration, souhait retrospectif ou commentaire sur ce que le user aurait voulu faire ("j'aurais bien voulu tenir les deux") decrivent un ressenti, pas un fait nouveau du jour. Aucun track_progress_plan_item; laisse la reponse normale accueillir. En particulier, revenir emotionnellement sur une action dont le resultat a deja ete rapporte dans la conversation ne produit aucun nouveau direct effect.
 3h. Si le user corrige explicitement un resultat deja rapporte ("en fait non je ne l'ai pas faite", "finalement je l'ai terminee ce soir"), c'est un vrai report: emets le direct effect avec le nouveau statut et payload_hint.correction=true. Sans cette correction explicite, ne re-emets pas un statut oppose sur une action deja rapportee.
-3h-bis. Correction de CIBLE ("non c'etait X, pas Y", "je parlais de X", "tu t'es trompe d'action"): le user corrige QUELLE action etait visee par un report deja enregistre dans la conversation. Emets track_progress_plan_item avec payload_hint.target_item_id = l'action CORRECTE (X), le meme status_hint que le report d'origine, payload_hint.correction=true, payload_hint.retarget_from = plan_item_id de l'action erronee (Y, copie depuis active_action_candidates), et payload_hint.target_evidence citant les mots du user qui nomment X. Le runtime invalide l'ecriture erronee sur Y puis enregistre sur X. Ne reponds JAMAIS a une correction de cible par un simple accuse sans emettre cet effet: sans lui, le suivi reste faux. Exemple INVALIDE observe (alex-untested T2): "cetait pas le carnet en fait, cest les ecrans que j'ai faits" apres un report carnet committe au tour precedent → effet emis avec correction=false et retarget_from=null: la fausse entree carnet a SURVECU en DB et la reponse a dit "le carnet reste a faire" en contradiction avec les compteurs. C'est une correction de cible → correction=true + retarget_from=id du carnet, OBLIGATOIRE (le runtime clarifie desormais toute correction sans cible d'origine au lieu d'ecrire en silence). AIDE STRUCTUREE: flow_state_context.last_track_commit porte le DERNIER report committe ({target_item_id, target_title, progress_status}) — quand le message corrige la cible de ce commit ('c'etait pas [last_track_commit.target_title], en fait c'est Y'), retarget_from = last_track_commit.target_item_id, tel quel, sans rien deviner. Sa presence signifie qu'un report vient d'etre enregistre: tout enonce du type 'c'etait pas ca / en fait c'etait / tu t'es trompe' dans le tour suivant est une CORRECTION de ce commit, jamais un report additionnel.
-3k. EFFETS DURABLES KEEL (log_protocol_event, declare_deviation — PAS declare_safety_constraint, voir 3k-c: une allergie s'enregistre meme sans plan) — ILS N'EXISTENT QUE si le payload porte keel_plan_context. Sans ce bloc l'utilisateur n'a ni plan_commitments ni plan_version publiee: n'emets JAMAIS ces deux effets (il n'y aurait aucune ligne a rattacher, l'ecriture serait refusee a l'intake). Et quand keel_plan_context EST present, c'est l'inverse: track_progress_plan_item n'existe plus (active_action_candidates_for_direct_effects est vide, aucun id a copier) — ne l'emets jamais pour un eleve KEEL.
+3h-bis. Correction de CIBLE ("non c'etait X, pas Y", "je parlais de X", "tu t'es trompe d'action"): le user corrige QUELLE action etait visee par un report deja enregistre dans la conversation. Emets track_progress_plan_item avec payload_hint.target_item_id = l'action CORRECTE (X), le meme status_hint que le report d'origine, payload_hint.correction=true, payload_hint.retarget_from = plan_item_id de l'action erronee (Y, copie depuis active_action_candidates), et payload_hint.target_evidence citant les mots du user qui nomment X. Le runtime invalide l'ecriture erronee sur Y puis enregistre sur X. Ne reponds JAMAIS a une correction de cible par un simple accuse sans emettre cet effet: sans lui, le suivi reste faux. Exemple INVALIDE observe (alex-untested T2): "cetait pas le carnet en fait, cest les ecrans que j'ai faits" apres un report carnet committe au tour precedent → effet emis avec correction=false et retarget_from=null: la fausse entree carnet a SURVECU en DB et la reponse a dit "le carnet reste a faire" en contradiction avec les compteurs. C'est une correction de cible → correction=true + retarget_from=id du carnet, OBLIGATOIRE (le runtime clarifie desormais toute correction sans cible d'origine au lieu d'ecrire en silence). AIDE STRUCTUREE: flow_state_context.last_track_commit porte le DERNIER report committe ({target_item_id, target_title, progress_status}) — quand le message corrige la cible de ce commit ('c'etait pas [last_track_commit.target_title], en fait c'est Y'), retarget_from = last_track_commit.target_item_id, tel quel, sans rien deviner. Sa presence signifie qu'un report vient d'etre enregistre: tout enonce du type 'c'etait pas ca / en fait c'etait / tu t'es trompe' dans le tour suivant est une CORRECTION de ce commit, jamais un report additionnel.`,
+  },
+  {
+    when: ALWAYS,
+    text: `3k. EFFETS DURABLES KEEL (log_protocol_event, declare_deviation — PAS declare_safety_constraint, voir 3k-c: une allergie s'enregistre meme sans plan) — ILS N'EXISTENT QUE si le payload porte keel_plan_context. Sans ce bloc l'utilisateur n'a ni plan_commitments ni plan_version publiee: n'emets JAMAIS ces deux effets (il n'y aurait aucune ligne a rattacher, l'ecriture serait refusee a l'intake). Et quand keel_plan_context EST present, c'est l'inverse: track_progress_plan_item n'existe plus (active_action_candidates_for_direct_effects est vide, aucun id a copier) — ne l'emets jamais pour un eleve KEEL.
 3k-a. log_protocol_event = l'eleve RAPPORTE UN FAIT deja arrive ou en cours: il a pris une preparation, mange quelque chose, OU FAIT UNE ACTION NON-INGEREE du protocole (mouvement, marche, seance, lumiere, sieste, sommeil, respiration, meditation, ecrans, mesure). Exemples INGERES: "j'ai pris mon magnesium", "petit dej pris, des oeufs et des myrtilles", "j'ai avale mes 2 g d'omega 3 ce matin". Exemples NON-INGERES, qui declenchent CET EFFET EXACTEMENT AU MEME TITRE: "j'ai fait ma marche de 30 minutes", "seance de muscu faite", "j'ai pris ma lumiere du matin", "sieste de 20 min ok", "10 minutes de respiration ce soir". C'est un FAIT, pas une note et pas une evaluation: le runtime ecrit une ligne dans protocol_events et la RELIT; l'evaluateur seul decidera ensuite si la ligne du plan est met/partial/missed — tu ne juges rien, tu n'annonces rien.
    ATTENTION, MODE D'ECHEC MESURE EN RUN REEL: une action non-ingeree ("j'ai fait ma marche de 30 minutes") etait systematiquement NON logue — 4 tours sur 4 — parce que les exemples ci-dessus ne parlaient que d'ingestion. La ligne mouvement du plan tombait alors en 'missed' le soir meme, pour un eleve qui l'avait FAITE et DITE, pendant que la reponse lui affirmait "c'est pris en compte". Une action du protocole qui ne s'avale pas est un fait aussi ordinaire qu'une gelule: le declencheur est "l'eleve dit qu'il a FAIT quelque chose que son plan demande", jamais "l'eleve dit qu'il a INGERE quelque chose".
    payload_hint (tous facultatifs, mais AU MOINS UN doit dire QUOI s'est passe):
@@ -191,15 +343,33 @@ ${oneShotReminderCanonicalDispatcherPromptLines().join("\n")}
    - commitment_id: l'id EXACT d'UNE ligne de keel_plan_context, quand l'eleve designe cette ligne sans ambiguite ("j'ai fait ma marche de 30 minutes", "sieste faite", "lumiere du matin ok"). C'est le SEUL moyen de creer un fait pour une ligne qui ne porte ni substance ni groupe alimentaire (mouvement, lumiere, sommeil, respiration, ecrans): aucun slug ne peut les porter, sans cet id le fait n'est rattache a rien.
    - quantity + unit: UNIQUEMENT si l'eleve donne le chiffre lui-meme. unit parmi ${UNIT.join(", ")}.
    - student_note: ses mots, courts, quand rien de structure ne les porte.
-   REGLES DURES:
-   (1) JAMAIS SUR UNE INTENTION FUTURE. "je vais prendre mon magnesium", "je le prends ce soir", "je compte manger du saumon demain" => AUCUN effet pour cette lane (direct_effects=[] la concernant). Seul un fait PASSE ou EN COURS s'ecrit. Meme regle qu'en 3d (rose-hard25: une intention future committee en silence), et elle est ici plus grave: protocol_events est APPEND-ONLY, une ligne fausse ne se retire pas depuis le chat.
-   (2) JAMAIS DE QUANTITE NON DITE. Si l'eleve ne donne aucun chiffre, quantity=null et unit=null. N'inscris pas la dose ecrite sur sa ligne de plan ("il prend 5000 UI d'habitude" n'est PAS un fait rapporte): un chiffre invente devient une adherence fausse le soir meme.
+   REGLES DURES:`,
+  },
+  {
+    when: ALWAYS,
+    text: (audience) =>
+      audience.keelStudent
+        ? `   (1) JAMAIS SUR UNE INTENTION FUTURE. "je vais prendre mon magnesium", "je le prends ce soir", "je compte manger du saumon demain" => AUCUN effet pour cette lane (direct_effects=[] la concernant). Seul un fait PASSE ou EN COURS s'ecrit. Le mode d'echec est mesure (rose-hard25: une intention future committee en silence), et il est ici plus grave: protocol_events est APPEND-ONLY, une ligne fausse ne se retire pas depuis le chat.`
+        : `   (1) JAMAIS SUR UNE INTENTION FUTURE. "je vais prendre mon magnesium", "je le prends ce soir", "je compte manger du saumon demain" => AUCUN effet pour cette lane (direct_effects=[] la concernant). Seul un fait PASSE ou EN COURS s'ecrit. Meme regle qu'en 3d (rose-hard25: une intention future committee en silence), et elle est ici plus grave: protocol_events est APPEND-ONLY, une ligne fausse ne se retire pas depuis le chat.`,
+  },
+  {
+    when: ALWAYS,
+    text: `   (2) JAMAIS DE QUANTITE NON DITE. Si l'eleve ne donne aucun chiffre, quantity=null et unit=null. N'inscris pas la dose ecrite sur sa ligne de plan ("il prend 5000 UI d'habitude" n'est PAS un fait rapporte): un chiffre invente devient une adherence fausse le soir meme.
    (3) JAMAIS DE SLUG APPROXIME. Si aucun slug des listes ci-dessus ne correspond franchement, mets null et laisse student_note porter ses mots. Le runtime echoue BRUYAMMENT sur un slug inconnu (R7) au lieu d'ecrire un fait a cote — c'est le correctif 'epa_dha' de l'import de plan. Un slug GENERIQUE n'existe pas: "du poisson" ne devient ni fatty_fish ni white_fish, "des legumes" ne devient ni leafy_greens ni non_starchy_veg — null + student_note. Un unknown vaut toujours mieux qu'un faux met.
    (3-bis) UN commitment_id NE SE DEVINE JAMAIS. Trois conditions CUMULATIVES, sinon omets le champ: (a) l'id apparait LITTERALEMENT dans keel_plan_context — tu le recopies caractere par caractere, tu n'en fabriques jamais un, tu ne reutilises jamais un id vu ailleurs dans la conversation ni un plan_item_id legacy; (b) l'eleve designe UNE ligne et une seule — si deux lignes du bloc pourraient convenir, ou si le bloc n'affiche aucun id, mets null; (c) c'est bien CETTE ligne qu'il dit avoir faite, pas une ligne voisine du meme creneau. Le runtime verifie l'id contre le plan publie du jour et REFUSE le tour si l'id n'y est pas (unknown_commitment): un id invente ne produit pas une erreur discrete, il fait echouer l'ecriture. Et ne mets JAMAIS commitment_id sur une ligne polarity='avoid' que l'eleve dit avoir RESPECTEE ("j'ai pas bu ce soir"): un fait rattache a une ligne d'evitement est lu comme une transgression — c'est l'inversion de note deja constatee sur le tap (G1). Une abstinence n'est pas un fait, c'est une absence de fait: aucun effet.
    (4) UNE QUESTION N'EST PAS UN FAIT: "j'ai bien pris mon magnesium ce matin ?", "c'est note ?" => aucun effet (meme regle que 3e).
-   (5) UN SEUL EFFET log_protocol_event par tour, mais il porte AUTANT D'ITEMS que le message en nomme (payload components). Ne duplique jamais l'effet lui-meme: c'est le champ components qui porte la cardinalite, et le runtime ecrit une ligne par item. MODE D'ECHEC MESURE EN RUN REEL, et c'est pour lui que le champ existe: "j'ai mange du poulet et des brocolis" n'ecrivait qu'une ligne (ancienne regle "l'entree la plus porteuse"), le modele choisissait poultry - le groupe qui ne comptait pas - et la reponse affirmait que les legumes comptaient. Un fait ampute plus un accuse sans ligne. Si un aliment n'a pas de slug franc, il ne devient PAS un item: null + student_note (regle 3), et la reponse n'affirmera que ce que le runtime aura relu.
-   (6) Effet TRANSVERSE comme en 3c: il s'emet EN PLUS de l'owner du tour et n'absorbe jamais le tour.
-3k-c. declare_safety_constraint = l'eleve declare (ou RETIRE) une CONTRAINTE DURE sur ce qu'il peut manger ou prendre: allergie, intolerance, contre-indication medicale, eviction religieuse stricte. C'est le SEUL effet KEEL qui ne depend PAS de keel_plan_context: une allergie doit s'enregistrer meme sans plan publie, et meme pendant une crise safety.
+   (5) UN SEUL EFFET log_protocol_event par tour, mais il porte AUTANT D'ITEMS que le message en nomme (payload components). Ne duplique jamais l'effet lui-meme: c'est le champ components qui porte la cardinalite, et le runtime ecrit une ligne par item. MODE D'ECHEC MESURE EN RUN REEL, et c'est pour lui que le champ existe: "j'ai mange du poulet et des brocolis" n'ecrivait qu'une ligne (ancienne regle "l'entree la plus porteuse"), le modele choisissait poultry - le groupe qui ne comptait pas - et la reponse affirmait que les legumes comptaient. Un fait ampute plus un accuse sans ligne. Si un aliment n'a pas de slug franc, il ne devient PAS un item: null + student_note (regle 3), et la reponse n'affirmera que ce que le runtime aura relu.`,
+  },
+  {
+    when: ALWAYS,
+    text: (audience) =>
+      audience.keelStudent
+        ? `   (6) Effet TRANSVERSE: il s'emet EN PLUS de l'owner du tour et n'absorbe jamais le tour.`
+        : `   (6) Effet TRANSVERSE comme en 3c: il s'emet EN PLUS de l'owner du tour et n'absorbe jamais le tour.`,
+  },
+  {
+    when: ALWAYS,
+    text: `3k-c. declare_safety_constraint = l'eleve declare (ou RETIRE) une CONTRAINTE DURE sur ce qu'il peut manger ou prendre: allergie, intolerance, contre-indication medicale, eviction religieuse stricte. C'est le SEUL effet KEEL qui ne depend PAS de keel_plan_context: une allergie doit s'enregistrer meme sans plan publie, et meme pendant une crise safety.
    Exemples qui declenchent CET effet: "I'm allergic to peanuts", "je suis intolerante au lactose", "je ne mange pas de porc", "mon medecin m'a interdit le pamplemousse avec mon traitement", "je suis coeliaque".
    payload_hint:
    - intent: 'declare' (defaut) ou 'retract'. 'retract' UNIQUEMENT quand l'eleve annule une contrainte: "en fait je ne suis PAS allergique aux arachides, c'etait ma soeur", "retire cette allergie", "je me suis trompe". Une correction de CIBLE ("ce n'est pas l'arachide, c'est la noix de cajou") = deux tours de dispatcher n'y suffisent pas: emets le retract sur l'ancien identifiant, le runtime posera la question pour le nouveau.
@@ -214,40 +384,100 @@ ${oneShotReminderCanonicalDispatcherPromptLines().join("\n")}
    (4) UN SEUL effet par tour. Si l'eleve nomme deux contraintes, prends la plus grave et laisse la reponse normale demander l'autre: mieux vaut une ligne juste et une question qu'une annonce de deux lignes dont une seule existe.
    (5) Effet TRANSVERSE: il s'emet EN PLUS de l'owner du tour et n'absorbe jamais le tour.
 3k-b. declare_deviation = l'eleve annonce A L'AVANCE une indisponibilite: "jeudi je suis en deplacement", "ce soir j'ai un anniversaire", "vendredi midi je mange au resto". Le runtime ecrit une ligne planned_deviations qui sort ce jour (ou ce creneau) du denominateur d'adherence.
-   payload_hint:
-   - local_date: date ISO locale YYYY-MM-DD du jour vise, calculee depuis direct_effect_time_context. JAMAIS un mot relatif ("jeudi", "ce soir"): le runtime REFUSE une valeur non-ISO au lieu de deviner (meme discipline que date_hint en 3d-bis). Jour vise = aujourd'hui: omets le champ.
-   - slot_key parmi ${SLOT_VOCABULARY.join(", ")} quand un seul repas est concerne; absent = la journee entiere.
+   payload_hint:`,
+  },
+  {
+    when: ALWAYS,
+    text: (audience) =>
+      audience.keelStudent
+        ? `   - local_date: date ISO locale YYYY-MM-DD du jour vise, calculee depuis direct_effect_time_context. JAMAIS un mot relatif ("jeudi", "ce soir"): le runtime REFUSE une valeur non-ISO au lieu de deviner. Jour vise = aujourd'hui: omets le champ.`
+        : `   - local_date: date ISO locale YYYY-MM-DD du jour vise, calculee depuis direct_effect_time_context. JAMAIS un mot relatif ("jeudi", "ce soir"): le runtime REFUSE une valeur non-ISO au lieu de deviner (meme discipline que date_hint en 3d-bis). Jour vise = aujourd'hui: omets le champ.`,
+  },
+  {
+    when: ALWAYS,
+    text: `   - slot_key parmi ${SLOT_VOCABULARY.join(", ")} quand un seul repas est concerne; absent = la journee entiere.
    - kind parmi ${DEVIATION_KINDS.join(", ")}. Si le contexte ne se classe pas franchement, mets other: la deviation est vraie meme quand son etiquette ne l'est pas.
    - note: ses mots, court.
    REGLES DURES:
    (1) LE FLEX SE DECLARE A L'AVANCE. Une deviation posee apres coup sur un jour DEJA evalue est refusee par le runtime (retroactive_on_resolved_day) — n'affirme jamais qu'elle est prise, ne promets rien, ne cherche pas de justification. "hier j'etais au resto, ca compte pas" n'est pas une declaration mais une demande de correction: emets quand meme l'effet avec la date ISO d'hier et laisse le runtime trancher.
    (2) NE CONFONDS PAS avec log_protocol_event: "ce soir j'ai un anniversaire" (a venir) = declare_deviation; "hier soir j'etais a un anniversaire, j'ai mange du gateau" (fait rapporte) = log_protocol_event. Un futur ne s'ecrit jamais comme un fait, un passe ne s'ecrit jamais comme un flex.
    (3) NE CONFONDS PAS avec plan_question: "je suis au resto ce soir, je fais quoi ?" demande une CONDUITE => skill_signals.plan_question (kind=eating_out). Une simple annonce d'indisponibilite, ou "note-le", => declare_deviation. Les deux peuvent coexister sur le meme tour (le signal ET l'effet).
-   (4) UNE RECURRENCE NE SE DECLARE PAS ICI ("tous les jeudis je suis en deplacement"): reponse normale honnete, aucun effet — une ligne planned_deviations est ponctuelle, exactement comme un rappel one-shot (regle 'Recurrence' plus haut).
-4. skill_signals.product_help seulement si l'utilisateur veut comprendre Sophia, une fonctionnalite, une surface produit ou comment utiliser une capacite. Product help explique une fonctionnalite; il ne liste pas l'etat personnel actif du user.
+   (4) UNE RECURRENCE NE SE DECLARE PAS ICI ("tous les jeudis je suis en deplacement"): reponse normale honnete, aucun effet — une ligne planned_deviations est ponctuelle, exactement comme un rappel one-shot (regle 'Recurrence' plus haut).`,
+  },
+  {
+    // Regles 4, 5 et 6: les trois lanes fermees.
+    when: LEGACY_ONLY,
+    text: `4. skill_signals.product_help seulement si l'utilisateur veut comprendre Sophia, une fonctionnalite, une surface produit ou comment utiliser une capacite. Product help explique une fonctionnalite; il ne liste pas l'etat personnel actif du user.
 	5. skill_signals.coaching_recommendation si l'utilisateur demande quel levier Sophia choisir ou quoi faire face a un blocage personnel identifiable. Ne l'utilise pas pour executer, creer ou modifier, ni comme simple clarification produit. Ne l'active pas sur la seule description d'un craving ou d'une urge aigu en cours sans demande de levier: presence d'abord en reponse normale. Meme regle d'altitude pour un tour a charge emotionnelle basse (devalorisation, honte, decouragement, "je suis pathetique", soiree ratee) sans demande explicite de levier: aucun signal, la reponse normale accueille et valide d'abord; le levier vient au tour suivant ou si le user le demande. La devalorisation IMPLICITE compte aussi (rose-hard17 T1): "je suis degoutee de moi", "tout ca servait a rien" = accueil d'abord, aucun pitch de dispositif dans la meme reponse — l'offre vient au tour suivant ou sur pull. La cue de VULNERABILITE prime sur le contenu concret (rose-multiflow B01): un aveu emotionnel qui CONTIENT un moment/mission concret d'echec ("c'est bizarre d'en parler, mais...", "ca me stresse d'en parler") mais SANS pull d'aide n'est PAS coaching_recommendation — presence si un sujet de fond est depose, sinon reponse normale d'accueil; le user ne doit jamais avoir a recadrer pour etre entendu. Un depot reflexif auto-derisoire ("c'est con hein", "je sais pas pourquoi je raconte ca") est une invitation a RESTER, pas un pull (alex-untested20 T8): meme si un theme effort/sens est saisissable par une technique, le doute bascule vers rester (presence/accueil), jamais vers proposer. Anti-faux-positif: un pull explicite ("je suis preneuse", "tu ferais quoi ?", "aide-moi") route coaching_recommendation normalement.
-6. skill_signals.plan_realignment si l'utilisateur exprime surtout une rupture avec son plan global/semaine/rythme, sans demander un levier sur une action precise. Si une action precise est le centre du message, priorise coaching_recommendation. plan_realignment exige une intention de MUTATION du plan (verbes: "allege", "change", "corse", "ajuste", "c'est trop lourd/mou", "refais") — l'expression d'un FLOU n'en est pas une (alex-untested21 T1, INVALIDE observe: "jsais plus trop ou j'en suis, fais-moi un point de ce que j'ai fait cette semaine, la je coche au pif" → plan_realignment a tort; le verbe d'intention est "fais-moi un point" = RECAP READ-ONLY → aucun signal, reponse normale qui projette la DB, memory_plan charge sur les actions). Une demande de lecture ou de rappel du plan ("mes actions en cours", "sur quoi je bosse en ce moment", "rappelle-moi mon plan", "c'est quoi mes actions actives ?", "fais-moi un point/recap de ce que j'ai fait") n'est jamais plan_realignment: c'est une lecture, pas une rupture; aucun signal, reponse normale avec memory_plan charge sur les actions. Anti-faux-positif: "allege mon plan, c'est devenu trop lourd" reste plan_realignment.
-6-bis. skill_signals.plan_question UNIQUEMENT si le payload porte keel_plan_context (sinon la lane n'existe pas: aucun commitment, aucune swap_policy, rien a resoudre — n'emets alors jamais ce signal). Le message porte une question d'EXECUTION a l'interieur du plan publie: substitution d'un aliment, contexte de repas exterieur, repas decale. Priorite sur plan_realignment quand les deux semblent possibles: une question concrete sur UNE ligne du plan n'est pas un decrochage. Reste sous product_help et coaching_recommendation: ces deux-la sont des pulls explicites (comprendre le produit, demander un levier).
-7. Aucune lane initiatives / coach_preferences: une opportunite produit revelee (soutien recurrent, rituel, frustration sur le style de Sophia, capacite produit inexistante) se sert en reponse normale HONNETE, sans signal. Si c'est une vraie demande de levier, priorise coaching_recommendation.
-8. needs_research.value=true si la reponse finale exige des infos fraiches/exterieures/verifiables ou si le user demande de chercher/verifier sur internet. Remplis query avec une requete de recherche autonome et precise (le runtime EXECUTE cette recherche et injecte le resultat au composeur). Une MISE EN DOUTE explicite d'une affirmation factuelle en domaine sante/nutrition/science ("est-ce que c'est vrai que... ?", "t'as une source ?", "je veux du concret, pas des generalites") = value=true (nina-global20 T2): la reponse doit etre groundee, pas parametrique. Une question personnelle ("verifie ou j'en suis") ou de coaching sans besoin d'infos externes → value=false.
+6. skill_signals.plan_realignment si l'utilisateur exprime surtout une rupture avec son plan global/semaine/rythme, sans demander un levier sur une action precise. Si une action precise est le centre du message, priorise coaching_recommendation. plan_realignment exige une intention de MUTATION du plan (verbes: "allege", "change", "corse", "ajuste", "c'est trop lourd/mou", "refais") — l'expression d'un FLOU n'en est pas une (alex-untested21 T1, INVALIDE observe: "jsais plus trop ou j'en suis, fais-moi un point de ce que j'ai fait cette semaine, la je coche au pif" → plan_realignment a tort; le verbe d'intention est "fais-moi un point" = RECAP READ-ONLY → aucun signal, reponse normale qui projette la DB, memory_plan charge sur les actions). Une demande de lecture ou de rappel du plan ("mes actions en cours", "sur quoi je bosse en ce moment", "rappelle-moi mon plan", "c'est quoi mes actions actives ?", "fais-moi un point/recap de ce que j'ai fait") n'est jamais plan_realignment: c'est une lecture, pas une rupture; aucun signal, reponse normale avec memory_plan charge sur les actions. Anti-faux-positif: "allege mon plan, c'est devenu trop lourd" reste plan_realignment.`,
+  },
+  {
+    when: ALWAYS,
+    text: `6-bis. skill_signals.plan_question UNIQUEMENT si le payload porte keel_plan_context (sinon la lane n'existe pas: aucun commitment, aucune swap_policy, rien a resoudre — n'emets alors jamais ce signal). Le message porte une question d'EXECUTION a l'interieur du plan publie: substitution d'un aliment, contexte de repas exterieur, repas decale. Priorite sur plan_realignment quand les deux semblent possibles: une question concrete sur UNE ligne du plan n'est pas un decrochage. Reste sous product_help et coaching_recommendation: ces deux-la sont des pulls explicites (comprendre le produit, demander un levier).`,
+  },
+  {
+    // Regle 7: initiatives / coach_preferences, surfaces absentes de KEEL.
+    when: LEGACY_ONLY,
+    text: `7. Aucune lane initiatives / coach_preferences: une opportunite produit revelee (soutien recurrent, rituel, frustration sur le style de Sophia, capacite produit inexistante) se sert en reponse normale HONNETE, sans signal. Si c'est une vraie demande de levier, priorise coaching_recommendation.`,
+  },
+  {
+    when: ALWAYS,
+    text: `8. needs_research.value=true si la reponse finale exige des infos fraiches/exterieures/verifiables ou si le user demande de chercher/verifier sur internet. Remplis query avec une requete de recherche autonome et precise (le runtime EXECUTE cette recherche et injecte le resultat au composeur). Une MISE EN DOUTE explicite d'une affirmation factuelle en domaine sante/nutrition/science ("est-ce que c'est vrai que... ?", "t'as une source ?", "je veux du concret, pas des generalites") = value=true (nina-global20 T2): la reponse doit etre groundee, pas parametrique. Une question personnelle ("verifie ou j'en suis") ou de coaching sans besoin d'infos externes → value=false.
 9. memory_plan est toujours present. Il sert a charger le contexte pour repondre maintenant; il ne sert jamais a ecrire en memoire.
 
 Fallback:
-- En cas de doute, ne produis aucun signal. Le runtime fera une reponse normale.
-- Emotion, decouragement, motivation, clarification, verification, aide conversationnelle, status recap leger et questions produit sur le plan vont en reponse normale ou product_help selon le besoin. Les signaux de vraie deconnexion du plan vont dans plan_realignment.
-- Les demandes du type "qu'est-ce que j'ai d'actif", "montre mes cartes", "J'ai quelles cartes de defense actives ?", "mes reminders actifs", "mon etat actuel", "tu peux me faire un point ?", "rappelle-moi mes actions en cours", "c'est quoi mes actions du plan la ?" vont en reponse normale. Si le contexte final ne contient pas l'information exhaustive, le companion renverra vers la plateforme.
-- Une demande explicite de memorisation va en reponse normale avec un accuse de reception simple; ne produis aucun signal pour ca.
-- Une RETRACTATION d'un fait confie ("oublie ce truc que je t'ai dit sur la poterie, c'est mort", "laisse tomber ce que j'avais dit sur X, c'est plus d'actualite") va en reponse normale avec un accuse d'oubli, memory_plan charge pour retrouver le fait — JAMAIS plan_realignment quand le fait retire n'est pas un item du plan actif (eva-hard21 T8, INVALIDE observe: "oublie la poterie du jeudi" route vers Ajuster mon plan alors que la poterie n'est pas un item). Le memorizer nocturne consomme la retractation; la reponse du tour accuse simplement.
-- La memorisation ne concerne que les faits personnels (preferences, reperes, contexte de vie). "Note que j'ai fait X" ou "marque X comme fait" sur une action du plan n'est pas une memorisation: c'est direct_effects.track_progress_plan_item si un candidat identifiable existe.
-
+- En cas de doute, ne produis aucun signal. Le runtime fera une reponse normale.`,
+  },
+  {
+    // Fallbacks qui nomment cartes, potions et lanes fermees.
+    when: LEGACY_ONLY,
+    text: `- Emotion, decouragement, motivation, clarification, verification, aide conversationnelle, status recap leger et questions produit sur le plan vont en reponse normale ou product_help selon le besoin. Les signaux de vraie deconnexion du plan vont dans plan_realignment.
+- Les demandes du type "qu'est-ce que j'ai d'actif", "montre mes cartes", "J'ai quelles cartes de defense actives ?", "mes reminders actifs", "mon etat actuel", "tu peux me faire un point ?", "rappelle-moi mes actions en cours", "c'est quoi mes actions du plan la ?" vont en reponse normale. Si le contexte final ne contient pas l'information exhaustive, le companion renverra vers la plateforme.`,
+  },
+  {
+    when: ALWAYS,
+    text: `- Une demande explicite de memorisation va en reponse normale avec un accuse de reception simple; ne produis aucun signal pour ca.
+- Une RETRACTATION d'un fait confie ("oublie ce truc que je t'ai dit sur la poterie, c'est mort", "laisse tomber ce que j'avais dit sur X, c'est plus d'actualite") va en reponse normale avec un accuse d'oubli, memory_plan charge pour retrouver le fait — JAMAIS plan_realignment quand le fait retire n'est pas un item du plan actif (eva-hard21 T8, INVALIDE observe: "oublie la poterie du jeudi" route vers Ajuster mon plan alors que la poterie n'est pas un item). Le memorizer nocturne consomme la retractation; la reponse du tour accuse simplement.`,
+  },
+  {
+    // Renvoi vers track_progress_plan_item.
+    when: LEGACY_ONLY,
+    text: `- La memorisation ne concerne que les faits personnels (preferences, reperes, contexte de vie). "Note que j'ai fait X" ou "marque X comme fait" sur une action du plan n'est pas une memorisation: c'est direct_effects.track_progress_plan_item si un candidat identifiable existe.`,
+  },
+  {
+    when: ALWAYS,
+    text: `
 memory_plan:
 - Toujours present.
 - Defaut: memory_mode=none, context_need=minimal, context_budget_tier=tiny, targets=[].
 - Si le user demande un point, un etat, une synthese personnelle, ou parle d'une action du plan: choisis un memory_plan utile pour repondre maintenant.
 - RESTITUTION DE FAIT CONFIE: si le user demande de restituer quelque chose qu'il a confie ou qui a ete note sur lui (se rappeler, redire, verifier un fait, une date, un nom, un objectif, "c'etait quoi deja"), memory_mode=none est INTERDIT: mets au minimum memory_mode=broad avec context_need=broad, pour que la memoire durable soit chargee. Cette regle ne s'applique pas aux questions sur le produit ou le fonctionnement de Sophia (aucun fait personnel a restituer).
 - targets autorises: topic, event, action, level, entity, domain_key, domain_prefix, runtime_snapshot. retrieval_policy: force_taxonomy, taxonomy_first, semantic_first, semantic_only.
-${domainRegistryPromptLines().join("\n")}
-`.trim();
+${domainRegistryPromptLines().join("\n")}`,
+  },
+];
+
+export function buildDispatcherSystemPrompt(
+  audience: DispatcherPromptAudience,
+): string {
+  return DISPATCHER_SYSTEM_PROMPT_BLOCKS
+    .filter((block) => block.when(audience))
+    .map((block) =>
+      typeof block.text === "function" ? block.text(audience) : block.text
+    )
+    .join("\n")
+    .trim();
+}
+
+/**
+ * L'assemblage legacy. Identique octet pour octet a l'ancienne constante:
+ * c'est le prompt que recoit tout utilisateur qui n'est pas un eleve KEEL,
+ * sur ce projet comme sur celui du produit grand public.
+ */
+export const DISPATCHER_V2_SYSTEM_PROMPT = buildDispatcherSystemPrompt({
+  keelStudent: false,
+});
+
 
 export function buildDispatcherPrompt(input: {
   user_message: string;
@@ -264,8 +494,20 @@ export function buildDispatcherPrompt(input: {
    * porte le compteur `current_reps` que KEEL a supprime.
    */
   keel_plan_context?: string | null;
+  /**
+   * `profiles.keel_role === 'student'`. Meme drapeau que le `keel_student` de
+   * `routers.ts`, et meme source: le RUNTIME, jamais le LLM.
+   *
+   * Distinct de `keel_plan_context`, qui peut etre null pour un eleve dont le
+   * plan n'a pas pu etre lu. La projection du plan suit `keel_plan_context`
+   * (inchange); ce qui suit ce drapeau-ci, c'est la LANE: un eleve sans plan
+   * n'a pas davantage acces a `product_help`, `coaching_recommendation`,
+   * `plan_realignment` ou `track_progress_plan_item` qu'un eleve avec plan.
+   */
+  keel_student?: boolean;
 }): string {
   const keelPlanContext = input.keel_plan_context ?? null;
+  const keelStudent = input.keel_student === true;
   return JSON.stringify({
     prompt_version: DISPATCHER_V2_PROMPT_VERSION,
     user_message: input.user_message,
@@ -286,39 +528,47 @@ export function buildDispatcherPrompt(input: {
       },
       direct_effects: [],
       skill_signals: {
-        product_help: {
-          detected: false,
-          confidence_band: "low|medium|high|critical",
-          reason: null,
-        },
-        coaching_recommendation: {
-          detected: false,
-          confidence_band: "low|medium|high|critical",
-          reason: null,
-          context: {
-            coaching_type: "plan_action|no_plan_action|emotional|ambiguous",
-            confidence: 0.0,
-            reason: "string",
-            action_context: {
-              source: "plan|free|none|ambiguous",
-              plan_item_id: "string|null",
-              action_title: "string|null",
+        // Meme raison que pour leur doctrine (voir
+        // `DISPATCHER_SYSTEM_PROMPT_BLOCKS`): `routers.ts` ferme ces trois
+        // lanes a un eleve de coach. Les laisser dans la forme attendue
+        // revient a montrer au modele trois cases qu'il ne pourra jamais
+        // servir — exactement ce que le commentaire W4.4 ci-dessous refusait
+        // deja pour `plan_question` dans l'autre sens.
+        ...(keelStudent ? {} : {
+          product_help: {
+            detected: false,
+            confidence_band: "low|medium|high|critical",
+            reason: null,
+          },
+          coaching_recommendation: {
+            detected: false,
+            confidence_band: "low|medium|high|critical",
+            reason: null,
+            context: {
+              coaching_type: "plan_action|no_plan_action|emotional|ambiguous",
+              confidence: 0.0,
+              reason: "string",
+              action_context: {
+                source: "plan|free|none|ambiguous",
+                plan_item_id: "string|null",
+                action_title: "string|null",
+              },
             },
           },
-        },
-        plan_realignment: {
-          detected: false,
-          confidence_band: "low|medium|high|critical",
-          reason: null,
-          context: {
-            drift_type:
-              "missed_plan|late_on_plan|lost_rhythm|plan_too_heavy|plan_too_light|changed_context|ambiguous",
-            scope: "whole_plan|week|level|unknown",
-            explicit_adjust_request: false,
-            product_execution_allowed: false,
-            reason: "string",
+          plan_realignment: {
+            detected: false,
+            confidence_band: "low|medium|high|critical",
+            reason: null,
+            context: {
+              drift_type:
+                "missed_plan|late_on_plan|lost_rhythm|plan_too_heavy|plan_too_light|changed_context|ambiguous",
+              scope: "whole_plan|week|level|unknown",
+              explicit_adjust_request: false,
+              product_execution_allowed: false,
+              reason: "string",
+            },
           },
-        },
+        }),
         // W4.4 — present dans la forme attendue seulement quand la lane existe
         // (keel_plan_context non null). Sinon le modele voit un signal qu'il
         // ne pourra jamais servir.
@@ -398,262 +648,269 @@ export function buildDispatcherPrompt(input: {
           },
         },
       },
-      {
-        user_message: "Je n'y arrive pas sur cette action, je fais quoi ?",
-        expected: {
-          direct_effects: [],
-          skill_signals: {
-            coaching_recommendation: {
-              detected: true,
-              confidence_band: "high",
-              reason: "stuck_action_coaching_need",
-              context: {
-                coaching_type: "plan_action",
-                confidence: 0.82,
-                action_context: { source: "ambiguous" },
-                reason:
-                  "User asks for coaching help on a blocked action; plan relation is ambiguous.",
-              },
-            },
-          },
-        },
-      },
-      {
-        user_message:
-          "Je ne sais pas si je dois changer l'action ou mettre un rappel",
-        expected: {
-          direct_effects: [],
-          skill_signals: {
-            coaching_recommendation: {
-              detected: true,
-              confidence_band: "high",
-              reason: "coaching_choice_for_blocker",
-              context: {
-                coaching_type: "ambiguous",
-                confidence: 0.78,
-                action_context: { source: "ambiguous" },
-                reason:
-                  "User asks which coaching lever to use, but the action relation to the plan is not clear.",
-              },
-            },
-          },
-        },
-      },
-      {
-        user_message:
-          "Je risque de craquer ce soir, je devrais utiliser quoi ?",
-        expected: {
-          direct_effects: [],
-          skill_signals: {
-            coaching_recommendation: {
-              detected: true,
-              confidence_band: "high",
-              reason: "risk_moment_coaching_need",
-              context: {
-                coaching_type: "no_plan_action",
-                confidence: 0.86,
-                action_context: {
-                  source: "free",
-                  action_title: "risque de craquer ce soir",
+      // Exemples des lanes que `routers.ts` ferme a un eleve de coach:
+      // coaching_recommendation (8) puis plan_realignment (4). Un exemple
+      // enseigne un signal aussi surement qu'une regle — les garder ici
+      // reviendrait a payer 1 800 tokens par tour pour apprendre au modele a
+      // remplir des cases que la route jette.
+      ...(keelStudent ? [] : [
+        {
+          user_message: "Je n'y arrive pas sur cette action, je fais quoi ?",
+          expected: {
+            direct_effects: [],
+            skill_signals: {
+              coaching_recommendation: {
+                detected: true,
+                confidence_band: "high",
+                reason: "stuck_action_coaching_need",
+                context: {
+                  coaching_type: "plan_action",
+                  confidence: 0.82,
+                  action_context: { source: "ambiguous" },
+                  reason:
+                    "User asks for coaching help on a blocked action; plan relation is ambiguous.",
                 },
-                reason:
-                  "User asks for help around a concrete non-plan risk moment.",
               },
             },
           },
         },
-      },
-      {
-        user_message: "Je dois me lancer mais je bloque",
-        expected: {
-          direct_effects: [],
-          skill_signals: {
-            coaching_recommendation: {
-              detected: true,
-              confidence_band: "high",
-              reason: "free_action_coaching_need",
-              context: {
-                coaching_type: "no_plan_action",
-                confidence: 0.8,
-                action_context: {
-                  source: "free",
-                  action_title: "me lancer",
+        {
+          user_message:
+            "Je ne sais pas si je dois changer l'action ou mettre un rappel",
+          expected: {
+            direct_effects: [],
+            skill_signals: {
+              coaching_recommendation: {
+                detected: true,
+                confidence_band: "high",
+                reason: "coaching_choice_for_blocker",
+                context: {
+                  coaching_type: "ambiguous",
+                  confidence: 0.78,
+                  action_context: { source: "ambiguous" },
+                  reason:
+                    "User asks which coaching lever to use, but the action relation to the plan is not clear.",
                 },
-                reason: "User asks for help starting a non-plan action.",
               },
             },
           },
         },
-      },
-      {
-        user_message: "J'oublie tout le temps mes actions",
-        expected: {
-          direct_effects: [],
-          skill_signals: {
-            coaching_recommendation: {
-              detected: true,
-              confidence_band: "high",
-              reason: "ambiguous_coaching_need",
-              context: {
-                coaching_type: "ambiguous",
-                confidence: 0.74,
-                action_context: { source: "ambiguous" },
-                reason: "User asks for help choosing a coaching lever.",
-              },
-            },
-          },
-        },
-      },
-      {
-        user_message: "Cette action est trop lourde, je n'y arrive jamais",
-        expected: {
-          direct_effects: [],
-          skill_signals: {
-            coaching_recommendation: {
-              detected: true,
-              confidence_band: "high",
-              reason: "plan_action_coaching_need",
-              context: {
-                coaching_type: "plan_action",
-                confidence: 0.82,
-                action_context: { source: "plan" },
-                reason:
-                  "User asks for coaching on a plan action that feels too heavy.",
-              },
-            },
-          },
-        },
-      },
-      {
-        user_message:
-          "Le plus dur c'est le mail: je suis tendu et j'ai la boule au ventre avant de m'y mettre.",
-        expected: {
-          direct_effects: [],
-          skill_signals: {
-            coaching_recommendation: {
-              detected: true,
-              confidence_band: "high",
-              reason: "action_linked_emotional_friction",
-              context: {
-                coaching_type: "no_plan_action",
-                confidence: 0.84,
-                action_context: {
-                  source: "free",
-                  action_title: "mail",
+        {
+          user_message:
+            "Je risque de craquer ce soir, je devrais utiliser quoi ?",
+          expected: {
+            direct_effects: [],
+            skill_signals: {
+              coaching_recommendation: {
+                detected: true,
+                confidence_band: "high",
+                reason: "risk_moment_coaching_need",
+                context: {
+                  coaching_type: "no_plan_action",
+                  confidence: 0.86,
+                  action_context: {
+                    source: "free",
+                    action_title: "risque de craquer ce soir",
+                  },
+                  reason:
+                    "User asks for help around a concrete non-plan risk moment.",
                 },
-                reason:
-                  "The emotional friction is anchored to starting a concrete action, so it remains action coaching, not global emotional coaching.",
               },
             },
           },
         },
-      },
-      {
-        user_message: "Je suis trop anxieux pour reflechir",
-        expected: {
-          direct_effects: [],
-          skill_signals: {
-            coaching_recommendation: {
-              detected: true,
-              confidence_band: "high",
-              reason: "emotional_state_coaching_need",
-              context: {
-                coaching_type: "emotional",
-                confidence: 0.9,
-                action_context: null,
-                reason: "Internal state is the primary blocker.",
+        {
+          user_message: "Je dois me lancer mais je bloque",
+          expected: {
+            direct_effects: [],
+            skill_signals: {
+              coaching_recommendation: {
+                detected: true,
+                confidence_band: "high",
+                reason: "free_action_coaching_need",
+                context: {
+                  coaching_type: "no_plan_action",
+                  confidence: 0.8,
+                  action_context: {
+                    source: "free",
+                    action_title: "me lancer",
+                  },
+                  reason: "User asks for help starting a non-plan action.",
+                },
               },
             },
           },
         },
-      },
-      {
-        user_message:
-          "J'ai pas du tout suivi mon plan cette semaine, je suis completement sorti du rythme.",
-        expected: {
-          direct_effects: [],
-          skill_signals: {
-            plan_realignment: {
-              detected: true,
-              confidence_band: "high",
-              reason: "plan_drift_repair_need",
-              context: {
-                drift_type: "lost_rhythm",
-                scope: "week",
-                explicit_adjust_request: false,
-                product_execution_allowed: false,
-                reason:
-                  "User reports being disconnected from the weekly plan and rhythm; this needs reassurance and redirection to plan adjustment, not a specific action coaching lever.",
+        {
+          user_message: "J'oublie tout le temps mes actions",
+          expected: {
+            direct_effects: [],
+            skill_signals: {
+              coaching_recommendation: {
+                detected: true,
+                confidence_band: "high",
+                reason: "ambiguous_coaching_need",
+                context: {
+                  coaching_type: "ambiguous",
+                  confidence: 0.74,
+                  action_context: { source: "ambiguous" },
+                  reason: "User asks for help choosing a coaching lever.",
+                },
               },
             },
           },
         },
-      },
-      {
-        user_message:
-          "J'ai pris trop de retard sur mon plan, je crois qu'il faut le revoir.",
-        expected: {
-          direct_effects: [],
-          skill_signals: {
-            plan_realignment: {
-              detected: true,
-              confidence_band: "high",
-              reason: "plan_realignment_explicit_adjust",
-              context: {
-                drift_type: "late_on_plan",
-                scope: "whole_plan",
-                explicit_adjust_request: true,
-                product_execution_allowed: false,
-                reason:
-                  "User reports plan-level delay and explicitly says the plan should be reviewed; chat execution is not allowed.",
+        {
+          user_message: "Cette action est trop lourde, je n'y arrive jamais",
+          expected: {
+            direct_effects: [],
+            skill_signals: {
+              coaching_recommendation: {
+                detected: true,
+                confidence_band: "high",
+                reason: "plan_action_coaching_need",
+                context: {
+                  coaching_type: "plan_action",
+                  confidence: 0.82,
+                  action_context: { source: "plan" },
+                  reason:
+                    "User asks for coaching on a plan action that feels too heavy.",
+                },
               },
             },
           },
         },
-      },
-      {
-        user_message:
-          "Le plan est trop lourd cette semaine, je n'arrive pas a le tenir.",
-        expected: {
-          direct_effects: [],
-          skill_signals: {
-            plan_realignment: {
-              detected: true,
-              confidence_band: "high",
-              reason: "plan_too_heavy_realignment",
-              context: {
-                drift_type: "plan_too_heavy",
-                scope: "week",
-                explicit_adjust_request: false,
-                product_execution_allowed: false,
-                reason:
-                  "User describes the plan/week as too heavy, not one specific blocked action.",
+        {
+          user_message:
+            "Le plus dur c'est le mail: je suis tendu et j'ai la boule au ventre avant de m'y mettre.",
+          expected: {
+            direct_effects: [],
+            skill_signals: {
+              coaching_recommendation: {
+                detected: true,
+                confidence_band: "high",
+                reason: "action_linked_emotional_friction",
+                context: {
+                  coaching_type: "no_plan_action",
+                  confidence: 0.84,
+                  action_context: {
+                    source: "free",
+                    action_title: "mail",
+                  },
+                  reason:
+                    "The emotional friction is anchored to starting a concrete action, so it remains action coaching, not global emotional coaching.",
+                },
               },
             },
           },
         },
-      },
-      {
-        user_message: "Mon plan est trop mou, corse-le, je veux plus d'ambition.",
-        expected: {
-          direct_effects: [],
-          skill_signals: {
-            plan_realignment: {
-              detected: true,
-              confidence_band: "high",
-              reason: "plan_too_light_realignment",
-              context: {
-                drift_type: "plan_too_light",
-                scope: "whole_plan",
-                explicit_adjust_request: true,
-                product_execution_allowed: false,
-                reason:
-                  "User says the plan is too easy and explicitly asks to raise the level; direction is UP (plan_too_light), never plan_too_heavy.",
+        {
+          user_message: "Je suis trop anxieux pour reflechir",
+          expected: {
+            direct_effects: [],
+            skill_signals: {
+              coaching_recommendation: {
+                detected: true,
+                confidence_band: "high",
+                reason: "emotional_state_coaching_need",
+                context: {
+                  coaching_type: "emotional",
+                  confidence: 0.9,
+                  action_context: null,
+                  reason: "Internal state is the primary blocker.",
+                },
               },
             },
           },
         },
-      },
+        {
+          user_message:
+            "J'ai pas du tout suivi mon plan cette semaine, je suis completement sorti du rythme.",
+          expected: {
+            direct_effects: [],
+            skill_signals: {
+              plan_realignment: {
+                detected: true,
+                confidence_band: "high",
+                reason: "plan_drift_repair_need",
+                context: {
+                  drift_type: "lost_rhythm",
+                  scope: "week",
+                  explicit_adjust_request: false,
+                  product_execution_allowed: false,
+                  reason:
+                    "User reports being disconnected from the weekly plan and rhythm; this needs reassurance and redirection to plan adjustment, not a specific action coaching lever.",
+                },
+              },
+            },
+          },
+        },
+        {
+          user_message:
+            "J'ai pris trop de retard sur mon plan, je crois qu'il faut le revoir.",
+          expected: {
+            direct_effects: [],
+            skill_signals: {
+              plan_realignment: {
+                detected: true,
+                confidence_band: "high",
+                reason: "plan_realignment_explicit_adjust",
+                context: {
+                  drift_type: "late_on_plan",
+                  scope: "whole_plan",
+                  explicit_adjust_request: true,
+                  product_execution_allowed: false,
+                  reason:
+                    "User reports plan-level delay and explicitly says the plan should be reviewed; chat execution is not allowed.",
+                },
+              },
+            },
+          },
+        },
+        {
+          user_message:
+            "Le plan est trop lourd cette semaine, je n'arrive pas a le tenir.",
+          expected: {
+            direct_effects: [],
+            skill_signals: {
+              plan_realignment: {
+                detected: true,
+                confidence_band: "high",
+                reason: "plan_too_heavy_realignment",
+                context: {
+                  drift_type: "plan_too_heavy",
+                  scope: "week",
+                  explicit_adjust_request: false,
+                  product_execution_allowed: false,
+                  reason:
+                    "User describes the plan/week as too heavy, not one specific blocked action.",
+                },
+              },
+            },
+          },
+        },
+        {
+          user_message: "Mon plan est trop mou, corse-le, je veux plus d'ambition.",
+          expected: {
+            direct_effects: [],
+            skill_signals: {
+              plan_realignment: {
+                detected: true,
+                confidence_band: "high",
+                reason: "plan_too_light_realignment",
+                context: {
+                  drift_type: "plan_too_light",
+                  scope: "whole_plan",
+                  explicit_adjust_request: true,
+                  product_execution_allowed: false,
+                  reason:
+                    "User says the plan is too easy and explicitly asks to raise the level; direction is UP (plan_too_light), never plan_too_heavy.",
+                },
+              },
+            },
+          },
+        },
+      ]),
       {
         user_message:
           "Tu pourrais pas me relancer tous les soirs vers 21h30 pour le carnet, plutot qu'a chaque fois je te le demande ?",
@@ -690,133 +947,141 @@ export function buildDispatcherPrompt(input: {
           skill_signals: {},
         },
       },
-      {
-        user_message: "J'ai fait ma marche",
-        expected: {
-          direct_effects: [{
-            effect_type: "track_progress_plan_item",
-            explicitness: "explicit",
-            target_status: "identified",
-            confidence_band: "high",
-            payload_hint: {
-              target_item_id: "id_copie_depuis_active_action_candidates",
-              status_hint: "completed",
-            },
-          }],
-          skill_signals: {},
-          note:
-            "target_item_id = copie exacte de active_action_candidates_for_direct_effects[].plan_item_id. status_hint uniquement completed|partial|missed.",
-        },
-      },
-      {
-        user_message:
-          "Note-le direct : sas de decompression sans fumer, fait hier soir",
-        expected: {
-          direct_effects: [{
-            effect_type: "track_progress_plan_item",
-            explicitness: "explicit",
-            target_status: "identified",
-            confidence_band: "high",
-            payload_hint: {
-              target_item_id: "id_copie_depuis_active_action_candidates",
-              status_hint: "completed",
-              date_hint:
-                "date ISO locale YYYY-MM-DD de la veille, calculee depuis direct_effect_time_context (jamais le mot 'hier')",
-              target_evidence: "sas de decompression sans fumer",
-            },
-          }],
-          skill_signals: {},
-          note:
-            "Imperatif de log sur une action du plan = track_progress, pas une memorisation. Report retro-date ('hier soir') = date_hint en date ISO resolue (regle 3d-bis). target_evidence = citation exacte des mots du user qui nomment l'action (regle 3d-ter).",
-        },
-      },
-      {
-        user_message: "C'est quoi une carte de defense ?",
-        expected: {
-          direct_effects: [],
-          skill_signals: {
-            product_help: {
-              detected: true,
+      // Meme raison. track_progress_plan_item (3), product_help (4), et
+      // « J'ai quelles cartes de defense actives ? ». Les trois exemples
+      // track sont en plus des CONCURRENTS directs de la regle 3k-a: « J'ai
+      // fait ma marche » y est classe track_progress_plan_item, alors que
+      // c'est le cas exact que 3k-a documente comme non logue 4 fois sur 4 en
+      // run reel cote KEEL.
+      ...(keelStudent ? [] : [
+        {
+          user_message: "J'ai fait ma marche",
+          expected: {
+            direct_effects: [{
+              effect_type: "track_progress_plan_item",
+              explicitness: "explicit",
+              target_status: "identified",
               confidence_band: "high",
-              reason: "product_help_question",
+              payload_hint: {
+                target_item_id: "id_copie_depuis_active_action_candidates",
+                status_hint: "completed",
+              },
+            }],
+            skill_signals: {},
+            note:
+              "target_item_id = copie exacte de active_action_candidates_for_direct_effects[].plan_item_id. status_hint uniquement completed|partial|missed.",
+          },
+        },
+        {
+          user_message:
+            "Note-le direct : sas de decompression sans fumer, fait hier soir",
+          expected: {
+            direct_effects: [{
+              effect_type: "track_progress_plan_item",
+              explicitness: "explicit",
+              target_status: "identified",
+              confidence_band: "high",
+              payload_hint: {
+                target_item_id: "id_copie_depuis_active_action_candidates",
+                status_hint: "completed",
+                date_hint:
+                  "date ISO locale YYYY-MM-DD de la veille, calculee depuis direct_effect_time_context (jamais le mot 'hier')",
+                target_evidence: "sas de decompression sans fumer",
+              },
+            }],
+            skill_signals: {},
+            note:
+              "Imperatif de log sur une action du plan = track_progress, pas une memorisation. Report retro-date ('hier soir') = date_hint en date ISO resolue (regle 3d-bis). target_evidence = citation exacte des mots du user qui nomment l'action (regle 3d-ter).",
+          },
+        },
+        {
+          user_message: "C'est quoi une carte de defense ?",
+          expected: {
+            direct_effects: [],
+            skill_signals: {
+              product_help: {
+                detected: true,
+                confidence_band: "high",
+                reason: "product_help_question",
+              },
             },
           },
         },
-      },
-      {
-        user_message:
-          "Question produit: est-ce qu'une carte d'attaque peut etre modifiee apres coup ? Et rappelle-moi demain a 9h de verifier ca.",
-        expected: {
-          direct_effects: [{
-            effect_type: "create_one_shot_reminder",
-            explicitness: "explicit",
-            target_status: "identified",
-            confidence_band: "high",
-            payload_hint: {
-              raw_text: "rappelle-moi demain a 9h de verifier ca",
-              when_hint: "demain a 9h",
-              instruction_hint: "verifier ca",
-            },
-          }],
-          skill_signals: {
-            product_help: {
-              detected: true,
+        {
+          user_message:
+            "Question produit: est-ce qu'une carte d'attaque peut etre modifiee apres coup ? Et rappelle-moi demain a 9h de verifier ca.",
+          expected: {
+            direct_effects: [{
+              effect_type: "create_one_shot_reminder",
+              explicitness: "explicit",
+              target_status: "identified",
               confidence_band: "high",
-              reason: "product_help_question_with_one_shot_reminder",
+              payload_hint: {
+                raw_text: "rappelle-moi demain a 9h de verifier ca",
+                when_hint: "demain a 9h",
+                instruction_hint: "verifier ca",
+              },
+            }],
+            skill_signals: {
+              product_help: {
+                detected: true,
+                confidence_band: "high",
+                reason: "product_help_question_with_one_shot_reminder",
+              },
             },
           },
         },
-      },
-      {
-        user_message: "C'est quoi une initiative ?",
-        expected: {
-          direct_effects: [],
-          skill_signals: {
-            product_help: {
-              detected: true,
-              confidence_band: "high",
-              reason: "product_help_question",
+        {
+          user_message: "C'est quoi une initiative ?",
+          expected: {
+            direct_effects: [],
+            skill_signals: {
+              product_help: {
+                detected: true,
+                confidence_band: "high",
+                reason: "product_help_question",
+              },
             },
           },
         },
-      },
-      {
-        user_message: "Ou je trouve les rappels recurrents ?",
-        expected: {
-          direct_effects: [],
-          skill_signals: {
-            product_help: {
-              detected: true,
-              confidence_band: "high",
-              reason: "product_help_destination",
+        {
+          user_message: "Ou je trouve les rappels recurrents ?",
+          expected: {
+            direct_effects: [],
+            skill_signals: {
+              product_help: {
+                detected: true,
+                confidence_band: "high",
+                reason: "product_help_destination",
+              },
             },
           },
         },
-      },
-      {
-        user_message: "J'ai rate ma marche aujourd'hui",
-        expected: {
-          direct_effects: [{
-            effect_type: "track_progress_plan_item",
-            explicitness: "explicit",
-            target_status: "identified",
-            confidence_band: "high",
-            payload_hint: {
-              target_item_id: "id_copie_depuis_active_action_candidates",
-              status_hint: "missed",
-            },
-          }],
-          skill_signals: {},
+        {
+          user_message: "J'ai rate ma marche aujourd'hui",
+          expected: {
+            direct_effects: [{
+              effect_type: "track_progress_plan_item",
+              explicitness: "explicit",
+              target_status: "identified",
+              confidence_band: "high",
+              payload_hint: {
+                target_item_id: "id_copie_depuis_active_action_candidates",
+                status_hint: "missed",
+              },
+            }],
+            skill_signals: {},
+          },
         },
-      },
-      {
-        user_message: "J'ai quelles cartes de defense actives ?",
-        expected: {
-          direct_effects: [],
-          skill_signals: {},
-          note: "Etat personnel actif: reponse normale, pas product_help.",
+        {
+          user_message: "J'ai quelles cartes de defense actives ?",
+          expected: {
+            direct_effects: [],
+            skill_signals: {},
+            note: "Etat personnel actif: reponse normale, pas product_help.",
+          },
         },
-      },
+      ]),
       {
         user_message: "Je suis degoute, je n'ai rien fait",
         expected: {

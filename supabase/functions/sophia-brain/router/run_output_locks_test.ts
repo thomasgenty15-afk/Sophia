@@ -34,6 +34,7 @@ function keel(over: Partial<KeelTurnContext> = {}): KeelTurnContext {
     plan_context_reason_code: "keel_student_plan_context",
     restriction: null,
     restriction_unavailable_reason: null,
+    declared_medical_condition: null,
     safety_constraints: [
       {
         id: "c1",
@@ -42,6 +43,7 @@ function keel(over: Partial<KeelTurnContext> = {}): KeelTurnContext {
         allergenRef: "peanut",
         substanceRef: null,
         medicationClass: null,
+    conditionRef: null,
         severity: "medical",
         declaredBy: "student",
         notes: null,
@@ -50,6 +52,7 @@ function keel(over: Partial<KeelTurnContext> = {}): KeelTurnContext {
     ],
     safety_constraints_unavailable_reason: null,
     doctrine: null,
+    coach_note: null,
     ...over,
   };
 }
@@ -190,6 +193,45 @@ Deno.test("no doctrine loaded -> the NO-METHOD block, never an empty layer", () 
   });
   assert(ctx.includes(NO_COACH_METHOD_BLOCK));
   assert(ctx.includes("ANSWER THE QUESTION"));
+});
+
+// ---------------------------------------------------------------------------
+// LA NOTE 1:1 DU COACH (2026-08-05) — troisième bloc, et le rang est le sujet.
+// ---------------------------------------------------------------------------
+
+Deno.test("la note du coach est injectée APRÈS la sécurité et la doctrine", () => {
+  const compiled = compileDoctrineBlock(DOCTRINE_CTX.doctrine!.doctrine!, null);
+  const ctx = withKeelDoctrineBlock("=== PLAN ===", {
+    ...keel(), // celui-ci porte une contrainte médicale (peanut)
+    doctrine: { ...DOCTRINE_CTX.doctrine!, compiled },
+    coach_note: { note: "Travaille de nuit.", reason: "loaded" },
+  });
+  assert(ctx.includes("Travaille de nuit."));
+  // L'ORDRE EST LA GARANTIE. Le budget tronque par la queue: la note est la
+  // moins chère des trois à perdre, elle passe donc en dernier. Inverser cet
+  // ordre ferait sauter l'allergène avant l'observation.
+  assert(ctx.indexOf("HARD CONSTRAINTS") < ctx.indexOf("MARC'S METHOD"));
+  assert(ctx.indexOf("MARC'S METHOD") < ctx.indexOf("Travaille de nuit."));
+  assert(ctx.indexOf("Travaille de nuit.") < ctx.indexOf("=== PLAN ==="));
+});
+
+Deno.test("pas de note -> AUCUN bloc, pas même un en-tête vide", () => {
+  const withoutRow = withKeelDoctrineBlock("=== PLAN ===", {
+    ...DOCTRINE_CTX,
+    coach_note: { note: null, reason: "no_note" },
+  });
+  const failed = withKeelDoctrineBlock("=== PLAN ===", {
+    ...DOCTRINE_CTX,
+    coach_note: { note: null, reason: "load_failed" },
+  });
+  // Un bloc « le coach n'a rien noté » apprendrait au modèle que la note existe
+  // et qu'elle manque — c'est-à-dire la pression par élève que MODEL.md refuse.
+  for (const ctx of [withoutRow, failed]) {
+    assert(!ctx.includes("WHAT THEIR COACH HAS NOTED"));
+  }
+  // Et une lecture en panne ne se distingue pas d'une absence CÔTÉ PROMPT —
+  // elle se distingue dans les logs. L'élève ne paie pas l'incident.
+  assertEquals(withoutRow, failed);
 });
 
 Deno.test("a non-KEEL turn keeps its context byte-for-byte", () => {

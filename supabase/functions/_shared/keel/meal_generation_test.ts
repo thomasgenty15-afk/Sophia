@@ -48,6 +48,7 @@ const PEANUT: StudentSafetyConstraint = {
   allergenRef: "peanut",
   substanceRef: null,
   medicationClass: null,
+    conditionRef: null,
   severity: "medical",
   declaredBy: "student",
   notes: null,
@@ -68,6 +69,9 @@ function parse(payload: Record<string, unknown>, over: Record<string, unknown> =
     scope: "day",
     pantry: PANTRY,
     beliefKeys: ["protein_anchors_the_plate"],
+    // Rien de déclaré: le parseur retombe sur `DEFAULT_EATING_RHYTHM`, comme le
+    // prompt. `over` peut le remplacer pour les cas à rythme.
+    eatingRhythm: [],
     ...over,
   });
 }
@@ -309,6 +313,7 @@ Deno.test("an invented conviction key is dropped but does NOT cost the dish", ()
 Deno.test("the prompt separates the STABLE situation from the DATED context", () => {
   const { userMessage, systemPrompt } = buildMealPrompt({
     doctrineBlock: "== MARC'S METHOD ==",
+    coachNoteBlock: null,
     protocolBlock: "",
     beliefKeys: ["protein_anchors_the_plate"],
     goal: "fat_loss",
@@ -331,6 +336,7 @@ Deno.test("the prompt separates the STABLE situation from the DATED context", ()
 Deno.test("from_pantry puts the pantry in the prompt, to_shop does not pretend to", () => {
   const base = {
     doctrineBlock: "d",
+    coachNoteBlock: null,
     protocolBlock: "",
     beliefKeys: [],
     goal: "health",
@@ -357,10 +363,69 @@ Deno.test("a non-JSON model output throws instead of shipping an empty meal", ()
     scope: "day",
     pantry: [],
     beliefKeys: [],
+    eatingRhythm: [],
   }));
 });
 
 Deno.test("the aisle vocabulary is closed and non-empty", () => {
   assert(SHOPPING_AISLES.length >= 5);
   assert(SHOPPING_AISLES.includes("other"));
+});
+
+// ---------------------------------------------------------------------------
+// CE QUE L'ÉLÈVE A DIT SUR SA BOUFFE — le pont mémoire → composition
+//
+// Le défaut que ça ferme: le memorizer extrayait déjà « déteste le brocoli »
+// (mesuré sur un vrai élève KEEL), et NI ce générateur NI celui du plan hebdo
+// n'en savaient rien — vérifié par grep, aucune occurrence de `memory_items`.
+// L'élève parlait, le système retenait, et le plan remettait du brocoli.
+//
+// Ici l'argument est NOMMÉ, contrairement au plan hebdo qui sérialise tout le
+// jsonb: une clé de plus y serait invisible tant que personne ne la passe.
+// C'est le défaut `coach_food_rules` — un écran, des gardes, trente tests, et
+// aucun lecteur au runtime.
+// ---------------------------------------------------------------------------
+
+Deno.test("les préférences confirmées entrent dans le prompt, dans les mots de l'élève", () => {
+  const withPrefs = buildMealPrompt({
+    doctrineBlock: "== MARC'S METHOD ==",
+    coachNoteBlock: null,
+    protocolBlock: "",
+    beliefKeys: [],
+    goal: "health",
+    situation: null,
+    context: null,
+    mode: "to_shop",
+    scope: "day",
+    slot: null,
+    servings: 1,
+    pantry: [],
+    foodPreferences: ["Dislikes broccoli", "Lunch at the canteen"],
+  });
+  assert(withPrefs.userMessage.includes("Dislikes broccoli"));
+  assert(withPrefs.userMessage.includes("Lunch at the canteen"));
+  assert(withPrefs.userMessage.includes("in their own words"));
+});
+
+Deno.test("sans préférence, le prompt est EXACTEMENT celui d'avant", () => {
+  // L'ajout doit être additif: un élève qui n'a rien confirmé reçoit la même
+  // journée qu'hier. C'est ce qui rend le lot sans risque de régression.
+  const base = {
+    doctrineBlock: "== MARC'S METHOD ==",
+    coachNoteBlock: null,
+    protocolBlock: "",
+    beliefKeys: [],
+    goal: "health" as const,
+    situation: null,
+    context: null,
+    mode: "to_shop" as const,
+    scope: "day" as const,
+    slot: null,
+    servings: 1,
+    pantry: [],
+  };
+  const without = buildMealPrompt(base);
+  const empty = buildMealPrompt({ ...base, foodPreferences: [] });
+  assertEquals(without.userMessage, empty.userMessage);
+  assert(!without.userMessage.includes("in their own words"));
 });

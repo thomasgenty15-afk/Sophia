@@ -272,6 +272,7 @@ function visibleContext() {
 
 Deno.test("weekly visible receives mandatory runtime context pack", () => {
   const prompt = buildWeeklyReviewVisibleAgentUserPrompt({
+    response_locale: "en-US",
     user_id: "user-weekly-visible",
     stage: "weekly_synthesis",
     recent_messages: [
@@ -357,6 +358,7 @@ Deno.test("weekly visible receives adjustment destination and closure claim guar
   context.weekly_gates.closure_status = "missing";
 
   const prompt = buildWeeklyReviewVisibleAgentUserPrompt({
+    response_locale: "en-US",
     user_id: "user-weekly-visible-destination",
     stage: "weekly_synthesis",
     conversation_context: context,
@@ -421,6 +423,7 @@ Deno.test("weekly visible context does not expose raw destination instruction wi
   };
 
   const parsed = JSON.parse(buildWeeklyReviewVisibleAgentUserPrompt({
+    response_locale: "en-US",
     user_id: "user-weekly-visible-no-raw-destination",
     stage: "weekly_synthesis",
     conversation_context: context,
@@ -483,6 +486,7 @@ Deno.test("weekly adjust visible does not receive incomplete recommendation payl
   };
 
   const parsed = JSON.parse(buildWeeklyReviewVisibleAgentUserPrompt({
+    response_locale: "en-US",
     user_id: "user-weekly-adjust-incomplete-payload",
     stage: "weekly_adjust_recommendation",
     conversation_context: context,
@@ -515,6 +519,7 @@ Deno.test("weekly visible receives direct effect confirmation context", () => {
     reminder_instruction: "continuer le weekly",
   };
   const prompt = buildWeeklyReviewVisibleAgentUserPrompt({
+    response_locale: "en-US",
     user_id: "user-weekly-visible-reminder",
     stage: "weekly_synthesis",
     recent_messages: [
@@ -615,6 +620,7 @@ Deno.test("weekly closure visible receives synthesis rendered flag", () => {
   context.weekly_gates.closure_status = "complete";
 
   const parsed = JSON.parse(buildWeeklyReviewVisibleAgentUserPrompt({
+    response_locale: "en-US",
     user_id: "user-weekly-closure-after-synthesis",
     stage: "weekly_closure",
     conversation_context: context,
@@ -647,6 +653,7 @@ Deno.test("weekly closure forbids repeating already surfaced adjust recommendati
   };
 
   const parsed = JSON.parse(buildWeeklyReviewVisibleAgentUserPrompt({
+    response_locale: "en-US",
     user_id: "user-weekly-closure-after-adjust",
     stage: "weekly_closure",
     conversation_context: context,
@@ -794,6 +801,7 @@ Deno.test("weekly visible refuses chat plan mutation request without re-surfacin
   };
 
   const parsed = JSON.parse(buildWeeklyReviewVisibleAgentUserPrompt({
+    response_locale: "en-US",
     user_id: "user-weekly-chat-mutation-push",
     stage: "weekly_adjust_recommendation",
     conversation_context: context,
@@ -844,6 +852,7 @@ Deno.test("weekly synthesis does not re-surface an already surfaced recommendati
   };
 
   const parsed = JSON.parse(buildWeeklyReviewVisibleAgentUserPrompt({
+    response_locale: "en-US",
     user_id: "user-weekly-synthesis-already-surfaced",
     stage: "weekly_synthesis",
     conversation_context: context,
@@ -885,6 +894,7 @@ Deno.test("weekly synthesis first surface still renders when not yet surfaced", 
   };
 
   const parsed = JSON.parse(buildWeeklyReviewVisibleAgentUserPrompt({
+    response_locale: "en-US",
     user_id: "user-weekly-synthesis-first-surface",
     stage: "weekly_synthesis",
     conversation_context: context,
@@ -925,6 +935,7 @@ Deno.test("weekly adjust recommendation user prompt flags already surfaced recom
   };
 
   const parsed = JSON.parse(buildWeeklyReviewVisibleAgentUserPrompt({
+    response_locale: "en-US",
     user_id: "user-weekly-adjust-already-surfaced",
     stage: "weekly_adjust_recommendation",
     conversation_context: context,
@@ -1930,6 +1941,7 @@ Deno.test("weekly review exit does not call visible agent", async () => {
   };
   const runtime = await runWeeklyReviewLocalRuntime({
     supabase: {} as any,
+    responseLocale: "en-US",
     userId: "user-weekly-exit",
     tempMemory: {
       [ACTIVE_CONVERSATION_SKILL_KEY]: activeWeeklyState,
@@ -2080,6 +2092,7 @@ Deno.test("weekly runtime forwards committed one-shot reminder context and conti
   };
   const runtime = await runWeeklyReviewLocalRuntime({
     supabase: {} as any,
+    responseLocale: "en-US",
     userId: "user-weekly-reminder",
     tempMemory: { __active_skill_state: activeWeeklyState },
     activeSkillState: activeWeeklyState,
@@ -2169,6 +2182,7 @@ Deno.test("weekly runtime injects next-level planning context when no next week 
   let visiblePlanningMode: string | null = null;
   const runtime = await runWeeklyReviewLocalRuntime({
     supabase: {} as any,
+    responseLocale: "en-US",
     userId: "user-weekly-next-level",
     tempMemory: { __active_skill_state: activeWeeklyState },
     activeSkillState: activeWeeklyState,

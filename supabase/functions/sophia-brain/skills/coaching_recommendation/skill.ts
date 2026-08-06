@@ -485,6 +485,7 @@ export async function runCoachingRecommendationSkill(
   const visibleOutput = normalizeVisibleOutput(
     await visibleAgent({
       user_id: input.context.user_id,
+      response_locale: input.context.response_locale,
       request_id: (input.context.turn_frame as any)?.source_message_id ??
         null,
       visible_runtime_context: {

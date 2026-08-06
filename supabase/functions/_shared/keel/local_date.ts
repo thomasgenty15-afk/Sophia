@@ -90,6 +90,23 @@ export function addDays(date: string, days: number): string {
 }
 
 /**
+ * Le nombre de jours de `from` à `to`, négatif si `to` précède `from`.
+ *
+ * Même ancrage à midi que `addDays`, et c'est ce qui compte: une soustraction
+ * de deux `Date` à minuit rend 0,958 jour la nuit d'un changement d'heure, et
+ * un `Math.round` sur un décompte de jours est le genre d'arrondi qui décale
+ * une cadence d'un jour deux fois par an sans que rien ne le signale.
+ */
+export function daysBetween(from: string, to: string): number {
+  const a = new Date(`${String(from ?? "").trim()}T12:00:00Z`);
+  const b = new Date(`${String(to ?? "").trim()}T12:00:00Z`);
+  if (Number.isNaN(a.getTime()) || Number.isNaN(b.getTime())) {
+    throw new Error(`[keel/local_date] "${from}" → "${to}" is not a real range`);
+  }
+  return Math.round((b.getTime() - a.getTime()) / 86_400_000);
+}
+
+/**
  * Les jetons de jour à partir d'aujourd'hui, en avançant.
  *
  * C'est ce qui fait qu'un plan demandé un mercredi commence MERCREDI. Sans lui,

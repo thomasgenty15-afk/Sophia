@@ -39,6 +39,8 @@
 
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
 
+import { MEAL_UNTICK_REASON } from "./meal_tick.ts";
+
 /** Ce que l'élève vient d'ajouter à un fait déjà écrit. */
 export interface MealAmendment {
   kind: "answer" | "correction";
@@ -110,6 +112,8 @@ export interface AmendMealPrecisionResult {
   amendedEventIds: string[];
   /** Les lignes dont le crédit machine a été effacé. */
   clearedCreditEventIds: string[];
+  /** Les coches automatiques réellement décochées, relues. */
+  untickedEventIds: string[];
   /** Le motif quand `ok` est faux. Jamais un silence. */
   reason?: string;
 }
@@ -205,6 +209,14 @@ export async function amendMealPrecisionEvents(
   db: SupabaseClient,
   args: {
     eventIds: readonly string[];
+    /**
+     * Les coches automatiques à DÉCOCHER quand l'élève dément le plat.
+     *
+     * Elles ne rejoignent PAS `eventIds`: `targetAmbiguous` s'y calcule, et une
+     * coche n'est pas une cible concurrente de la photo — voir
+     * `MealPrecisionFlowState.tickEventIds`.
+     */
+    tickEventIds?: readonly string[];
     userId: string;
     amendment: MealAmendment;
   },
@@ -216,6 +228,7 @@ export async function amendMealPrecisionEvents(
       ok: false,
       amendedEventIds: [],
       clearedCreditEventIds: [],
+      untickedEventIds: [],
       reason: "no event to amend",
     };
   }
@@ -240,10 +253,97 @@ export async function amendMealPrecisionEvents(
     }
   }
 
+  // ── LE DÉCOCHAGE ─────────────────────────────────────────────────────────
+  //
+  // Mesuré 6/6 le 2026-08-05: Sophia répondait « then the chicken line doesn't
+  // apply » et la ligne `quick_tap` restait `disqualified_reason IS NULL`.
+  // `coach_synthesis_io` compte les événements non disqualifiés sans filtrer la
+  // source, donc un plat que l'élève venait explicitement de démentir
+  // continuait de nourrir la couverture que son coach lit. Un accusé de
+  // rétractation sans ligne derrière lui.
+  //
+  // SEULEMENT sur une `correction`. Une `answer` précise le repas sans démentir
+  // le plat — c'est la condition de désarmement, et sans elle « oui, avec du
+  // riz » décocherait un plat correctement identifié.
+  //
+  // ⚠️ CETTE CONDITION HÉRITE D'UN DÉFAUT QUI LA PRÉCÈDE, mesuré le 2026-08-05:
+  // le classifieur route « yes, cooked with olive oil » vers
+  // `corrects_declaration` 2 fois sur 3, dans les deux langues. Ce défaut ne
+  // vient PAS du décochage — il fait DÉJÀ effacer à tort le `food_group_ref` de
+  // la photo (`clearsCredit` dépend du même verdict, et le run le montre:
+  // `kind=correction cleared_credit=1` sur une simple réponse).
+  //
+  // On ne le compense donc pas ici. Affaiblir le décochage pour contourner un
+  // classifieur qui se trompe laisserait le vrai défaut en place ET rendrait
+  // les fausses coches à nouveau indélébiles — le mal le plus cher des deux,
+  // parce qu'il n'est pas rattrapable par l'élève (une coche retirée à tort se
+  // recoche d'un geste depuis `/app/plan`; une fausse coche gardée, non).
+  // À corriger au niveau du classifieur / du reducer, où il fait son dégât.
+  const tickEventIds = args.amendment.kind === "correction"
+    ? [...new Set((args.tickEventIds ?? []).map((id) => String(id ?? "").trim()))]
+      .filter((id) => id !== "")
+    : [];
+  const unticked: string[] = [];
+  for (const tickId of tickEventIds) {
+    try {
+      const res = await db
+        .from("protocol_events")
+        // ⚠️ UNE SEULE COLONNE, et exactement celle que l'écran écrit
+        // (`api/mealTicks.ts`). La première version ajoutait
+        // `student_corrected: true` — qui N'EST PAS une colonne de
+        // `protocol_events` (c'est une clé de `recognized`). PostgREST rejette
+        // alors l'UPDATE ENTIER (`PGRST204`), donc `disqualified_reason`
+        // n'était pas écrit non plus: décochage 0/7 en run réel, et le `as
+        // never` masquait l'erreur au typecheck.
+        .update({ disqualified_reason: MEAL_UNTICK_REASON })
+        .eq("id", tickId)
+        // La propriété est vérifiée ici comme sur `amendOne`: un id ne suffit
+        // pas à autoriser une écriture.
+        .eq("user_id", args.userId)
+        // ON RELIT LA COLONNE ÉCRITE, pas seulement l'id: un `.select("id")`
+        // rendrait une ligne même si l'UPDATE n'avait rien changé, et on
+        // rapporterait un décochage qui n'a pas eu lieu.
+        .select("id, disqualified_reason")
+        .maybeSingle();
+      if (
+        !res.error && res.data &&
+        (res.data as { disqualified_reason?: unknown }).disqualified_reason ===
+          MEAL_UNTICK_REASON
+      ) {
+        unticked.push(tickId);
+      } else {
+        failures.push(
+          `${tickId}: ${res.error?.message ?? "untick did not stick"}`,
+        );
+      }
+    } catch (error) {
+      failures.push(
+        `${tickId}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+
+  // UN DÉCOCHAGE RATÉ SE CRIE ICI, et pas chez l'appelant.
+  //
+  // `ok` reste vrai dès que la PHOTO a été amendée — c'est voulu (une parole
+  // d'élève inscrite quelque part ne doit pas faire réécrire un doublon). Mais
+  // du coup l'appelant ne loguait rien, et un décochage en panne était
+  // parfaitement muet: c'est comme ça que 0/7 est passé inaperçu.
+  if (tickEventIds.length > 0 && unticked.length < tickEventIds.length) {
+    console.warn(JSON.stringify({
+      tag: "meal_precision_untick_failed",
+      user_id: args.userId,
+      requested: tickEventIds.length,
+      unticked: unticked.length,
+      reason: failures.join("; ") || "unknown",
+    }));
+  }
+
   return {
     ok: amended.length > 0,
     amendedEventIds: amended,
     clearedCreditEventIds: cleared,
+    untickedEventIds: unticked,
     reason: failures.length > 0 ? failures.join("; ") : undefined,
   };
 }

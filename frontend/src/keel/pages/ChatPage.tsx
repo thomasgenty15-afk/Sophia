@@ -54,6 +54,13 @@ type Status = "connecting" | "live" | "offline";
 const PHOTO_PLACEHOLDER = "[photo]";
 
 /**
+ * Une photo choisie, en attente d'envoi. Elle porte son `previewUrl` parce que
+ * le même `blob:` sert la vignette du composeur PUIS la bulle: en fabriquer un
+ * second à l'envoi ferait recharger la même image sous les yeux de l'élève.
+ */
+type PendingPhoto = { file: File; mime: string; previewUrl: string };
+
+/**
  * Un interrupteur de réglage, avec son explication.
  *
  * `role="switch"` + `aria-checked` plutôt qu'une case à cocher stylée: l'état
@@ -125,6 +132,9 @@ export default function ChatPage() {
   // chemin de bucket -> URL signée. `meal-photos` est privé et sans policy, donc
   // une photo ne s'affiche qu'après cet échange (voir `signMealPhotoUrls`).
   const [photoUrls, setPhotoUrls] = React.useState<Record<string, string>>({});
+  // La photo CHOISIE mais pas encore envoyée. Elle attend dans le composeur le
+  // temps que la légende s'écrive (voir `attachPhoto`).
+  const [pendingPhoto, setPendingPhoto] = React.useState<PendingPhoto | null>(null);
   // ── LES RÉGLAGES ──────────────────────────────────────────────────────────
   // `muted === null` = pas encore chargé. Distinct de `false`: afficher
   // « les relances sont actives » avant de le savoir, c'est promettre à
@@ -136,7 +146,7 @@ export default function ChatPage() {
   );
   const [settingsOpen, setSettingsOpen] = React.useState(false);
   const [settingsBusy, setSettingsBusy] = React.useState(false);
-  const bottomRef = React.useRef<HTMLDivElement | null>(null);
+  const logRef = React.useRef<HTMLDivElement | null>(null);
 
   const refetch = React.useCallback(async () => {
     try {
@@ -209,8 +219,25 @@ export default function ChatPage() {
     return () => clearInterval(timer);
   }, [status, refetch]);
 
+  // ── ON OUVRE UNE CONVERSATION SUR SON DERNIER MESSAGE ──────────────────────
+  // Avant: `bottomRef.current?.scrollIntoView({ behavior: "smooth" })`.
+  //
+  // MESURÉ au navigateur: dans ce conteneur, `behavior: "smooth"` ne fait RIEN
+  // — ni via `scrollIntoView`, ni via `scrollTo` — là où le même appel en
+  // `auto` descend bien à 1038. Résultat: la bulle s'ouvrait sur le message le
+  // plus ANCIEN, à un écran et demi du plus récent, et il fallait faire défiler
+  // à la main pour trouver ce qu'on venait lire. Un défilement animé est un
+  // agrément; ici la CORRECTION de l'écran en dépendait, ce qui est le mauvais
+  // couplage: quand l'agrément est indisponible, l'écran devient faux.
+  //
+  // On écrit donc `scrollTop` directement — instantané, et sans dépendance à
+  // une capacité optionnelle du navigateur. Instantané est de toute façon ce
+  // qu'on veut à l'ouverture: personne ne souhaite regarder trois semaines
+  // d'historique défiler.
   React.useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const log = logRef.current;
+    if (!log) return;
+    log.scrollTop = log.scrollHeight;
   }, [messages.length, thinking]);
 
   // Les réglages, au chargement. Un échec est AVALÉ et laisse `muted` à `null`:
@@ -375,8 +402,15 @@ export default function ChatPage() {
   // `storage.objects`, W1), et c'est lui qui écrit la photo ET son accusé dans
   // la bulle. Un second chemin d'upload contournerait la vérification par
   // octets magiques et le calcul de la date locale côté serveur.
-  const onPickPhoto = React.useCallback(
-    async (file: File | null) => {
+  //
+  // CHOISIR N'EST PAS ENVOYER. Le fichier attend dans le composeur, et c'est le
+  // MÊME bouton « Envoyer » que pour du texte qui le fait partir — avec la
+  // légende tapée entre-temps. Partir dès le `change` du champ, c'était fermer
+  // la seule fenêtre où « la moitié seulement » ou « c'était hier » peut
+  // s'écrire: le serveur accepte `student_note` depuis toujours, personne ne
+  // pouvait le remplir.
+  const attachPhoto = React.useCallback(
+    (file: File | null) => {
       if (!file || sending) return;
       const mime = file.type.toLowerCase();
       if (!(ACCEPTED_PHOTO_MIME_TYPES as readonly string[]).includes(mime)) {
@@ -387,34 +421,55 @@ export default function ChatPage() {
         setError(t("chat.photo.error.size"));
         return;
       }
-      const clientMessageId = crypto.randomUUID();
-      // L'APERÇU LOCAL, tout de suite. La chaîne complète — upload, vision,
-      // accusé — prend 6 à 9 secondes; sans image pendant ce temps, l'élève
-      // regarde une bulle grise et ne sait pas ce qu'il vient d'envoyer.
-      // `URL.createObjectURL` n'attend rien: le fichier est déjà dans l'onglet.
+      setError(null);
+      // L'APERÇU LOCAL, tout de suite. `URL.createObjectURL` n'attend rien: le
+      // fichier est déjà dans l'onglet. Il sert deux fois — la vignette du
+      // composeur, puis la bulle pendant les 6 à 9 secondes de la chaîne
+      // upload → vision → accusé, où sans image l'élève regarde une bulle grise
+      // sans savoir ce qu'il vient d'envoyer.
       const previewUrl = URL.createObjectURL(file);
+      // Remplacer une photo en attente relâche la précédente ICI: elle n'entre
+      // jamais dans `messages`, donc le nettoyage au démontage ne la verra pas.
+      if (pendingPhoto) URL.revokeObjectURL(pendingPhoto.previewUrl);
+      setPendingPhoto({ file, mime, previewUrl });
+    },
+    [sending, pendingPhoto],
+  );
+
+  const clearPendingPhoto = React.useCallback(() => {
+    if (!pendingPhoto) return;
+    URL.revokeObjectURL(pendingPhoto.previewUrl);
+    setPendingPhoto(null);
+  }, [pendingPhoto]);
+
+  const sendPhoto = React.useCallback(
+    async (photo: PendingPhoto, note: string) => {
+      const clientMessageId = crypto.randomUUID();
       setSending(true);
       setThinking(true);
       setError(null);
       setMessages((prev) => [...prev, {
         id: `pending-${clientMessageId}`,
         role: "user",
-        content: t("chat.photo.sending"),
+        // La légende gagne quand il y en a une — c'est exactement ce que le
+        // serveur écrira sur la ligne réelle, donc l'écho ne ment pas.
+        content: note || t("chat.photo.sending"),
         createdAt: new Date().toISOString(),
         buttons: [],
         proactive: false,
         // `path` vide: cet écho n'a pas encore de chemin de bucket — il en aura
         // un quand la ligne réelle le chassera. Seul `previewUrl` s'affiche.
-        media: { path: "", contentType: mime, previewUrl },
+        media: { path: "", contentType: photo.mime, previewUrl: photo.previewUrl },
         pending: true,
         clientMessageId,
       }]);
       try {
         await uploadMealPhoto({
-          file,
+          file: photo.file,
           slotKey: null,
           clientUploadId: clientMessageId,
           chatClientMessageId: clientMessageId,
+          note,
         });
         await refetch();
       } catch (err) {
@@ -431,7 +486,7 @@ export default function ChatPage() {
         setThinking(false);
       }
     },
-    [sending, refetch],
+    [refetch],
   );
 
   // Les `blob:` créés pour les aperçus sont relâchés au démontage. Un
@@ -442,6 +497,10 @@ export default function ChatPage() {
   for (const m of messages) {
     if (m.media?.previewUrl) previewUrlsRef.current.add(m.media.previewUrl);
   }
+  // Y COMPRIS CELLE QUI N'EST JAMAIS PARTIE: quitter l'écran avec une photo
+  // choisie et pas envoyée la relâche aussi. Un `revokeObjectURL` de trop sur
+  // une URL déjà relâchée par `clearPendingPhoto` ne coûte rien.
+  if (pendingPhoto) previewUrlsRef.current.add(pendingPhoto.previewUrl);
   React.useEffect(() => () => {
     for (const url of previewUrlsRef.current) URL.revokeObjectURL(url);
     previewUrlsRef.current.clear();
@@ -457,7 +516,18 @@ export default function ChatPage() {
     // l'historique se rechargeait comme si de rien n'était. Un envoi
     // silencieusement perdu, indiscernable d'un envoi jamais tenté.
     event.preventDefault();
+    if (sending) return;
     const text = draft.trim();
+    // UNE PHOTO EN ATTENTE FAIT DE CE FORMULAIRE UN ENVOI DE PHOTO, et le texte
+    // devient sa légende. Deux envois séparés — la photo d'un côté, la phrase de
+    // l'autre — donneraient deux tours au serveur, dont un qui commente une
+    // image qu'il n'a pas encore vue.
+    if (pendingPhoto) {
+      setDraft("");
+      setPendingPhoto(null);
+      void sendPhoto(pendingPhoto, text);
+      return;
+    }
     if (!text) return;
     setDraft("");
     void send({ kind: "text", text }, text);
@@ -490,8 +560,11 @@ export default function ChatPage() {
       variant="student"
       title={t("chat.title")}
       subtitle={t("chat.subtitle")}
+      // LA BULLE OCCUPE L'ÉCRAN, elle ne l'allonge pas. Voir `fill` dans
+      // KeelAppShell: c'est le fil qui défile, le composeur reste en bas.
+      fill
     >
-      <div className="flex flex-col gap-3">
+      <div className="flex min-h-0 flex-1 flex-col gap-3">
         {status === "offline" && (
           <p
             role="status"
@@ -546,8 +619,19 @@ export default function ChatPage() {
           </div>
         )}
 
+        {/* LE FIL PREND CE QUI RESTE, ET RIEN DE PLUS.
+            Avant: `max-h-[60vh] min-h-[40vh]`. À 375×812 la chrome au-dessus et
+            en dessous (barre du haut, en-tête, réglages, composeur, barre
+            d'onglets) mange ~376 px, donc 60 vh de fil poussait le composeur
+            SOUS la ligne de flottaison: l'écran s'ouvrait sur une conversation
+            à laquelle on ne pouvait pas répondre sans scroller. Une hauteur
+            fixe en `vh` ne pouvait pas être juste sur les deux formats — c'est
+            au flex de la calculer. `min-h-0` est OBLIGATOIRE: sans lui la
+            hauteur minimale d'un enfant flex est celle de son contenu, donc le
+            fil pousse au lieu de défiler et on retombe sur la panne. */}
         <div
-          className="flex max-h-[60vh] min-h-[40vh] flex-col gap-3 overflow-y-auto rounded-2xl border border-gray-200 bg-white p-4"
+          ref={logRef}
+          className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto rounded-2xl border border-gray-200 bg-white p-4"
           data-testid="chat-log"
         >
           {hasMore && (
@@ -660,7 +744,6 @@ export default function ChatPage() {
               {t("chat.thinking")}
             </p>
           )}
-          <div ref={bottomRef} />
         </div>
 
         {weeklyToken && (
@@ -673,37 +756,93 @@ export default function ChatPage() {
 
         {error && <p className="text-sm text-red-600">{error}</p>}
 
-        <form onSubmit={onSubmit} className="flex gap-2">
-          <label
-            className="inline-flex cursor-pointer items-center rounded-full border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
-            aria-label={t("chat.photo.label")}
-          >
-            {t("chat.photo.label")}
+        {/* LE COMPOSEUR NE QUITTE PAS L'ÉCRAN, et il n'a pour ça besoin d'aucun
+            `sticky`: la page ne défile plus (voir `fill`), c'est le fil au-dessus
+            qui défile. `shrink-0` pour que la rangée ne se fasse pas comprimer
+            par un fil qui réclame de la place. */}
+        <form onSubmit={onSubmit} className="flex shrink-0 flex-col gap-2">
+          {/* LA PHOTO EN ATTENTE, AU-DESSUS DE SON CHAMP. Elle se voit avant de
+              partir — c'est tout l'intérêt de ne plus envoyer au `change` — et
+              elle se retire sans avoir à recharger l'écran. La vignette est
+              décorative (`alt` vide): c'est le texte à côté qui dit ce qu'elle
+              est, et l'élève vient de la choisir. */}
+          {pendingPhoto && (
+            <div
+              data-testid="chat-photo-pending"
+              className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-gray-50 p-2"
+            >
+              <img
+                src={pendingPhoto.previewUrl}
+                alt=""
+                className="h-14 w-14 rounded-xl object-cover"
+              />
+              <p className="flex-1 truncate text-sm text-gray-600">
+                {t("chat.photo.attached")}
+              </p>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                disabled={sending}
+                onClick={clearPendingPhoto}
+              >
+                {t("chat.photo.remove")}
+              </Button>
+            </div>
+          )}
+          <div className="flex gap-2">
+            <label
+              className="inline-flex shrink-0 cursor-pointer items-center rounded-full border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+              aria-label={t("chat.photo.label")}
+            >
+              {t("chat.photo.label")}
+              <input
+                type="file"
+                accept={ACCEPTED_PHOTO_MIME_TYPES.join(",")}
+                className="hidden"
+                disabled={sending}
+                onChange={(e) => {
+                  const file = e.target.files?.[0] ?? null;
+                  // Le champ est remis à zéro pour que RE-choisir le même fichier
+                  // redéclenche `change`. Sans ça, une photo retirée puis
+                  // reprise, ou un envoi raté réessayé, resterait sans effet.
+                  e.target.value = "";
+                  attachPhoto(file);
+                }}
+              />
+            </label>
+            {/* LE MÊME CHAMP SERT LES DEUX, et il le DIT: sous une photo en
+                attente, le placeholder annonce une légende facultative. Un champ
+                qui continue de dire « écris à Sophia » laisserait croire qu'un
+                mot tapé là partirait tout seul, sans la photo. */}
             <input
-              type="file"
-              accept={ACCEPTED_PHOTO_MIME_TYPES.join(",")}
-              className="hidden"
-              disabled={sending}
-              onChange={(e) => {
-                const file = e.target.files?.[0] ?? null;
-                // Le champ est remis à zéro pour que RE-choisir le même fichier
-                // redéclenche `change`. Sans ça, un envoi raté ne peut pas être
-                // réessayé avec la même photo.
-                e.target.value = "";
-                void onPickPhoto(file);
-              }}
+              value={draft}
+              onChange={(event) => setDraft(event.target.value)}
+              placeholder={pendingPhoto
+                ? t("chat.photo.caption.placeholder")
+                : t("chat.input.placeholder")}
+              aria-label={pendingPhoto
+                ? t("chat.photo.caption.placeholder")
+                : t("chat.input.placeholder")}
+              // `min-w-0` — LE PIÈGE FLEXBOX, et il coûtait le bouton « Send ».
+              // Un enfant flex a `min-width: auto`, donc il ne descend JAMAIS
+              // sous sa largeur intrinsèque; celle d'un `<input>` vaut ~20
+              // caractères. `flex-1` ne suffit donc pas à le faire rétrécir: à
+              // 320 px (iPhone SE) la rangée poussait « Send » hors de l'écran.
+              // Mesuré au navigateur, et invisible à 375 où ça passait de peu.
+              className="min-w-0 flex-1 rounded-full border border-gray-300 px-4 py-2 text-sm focus:border-gray-900 focus:outline-none"
             />
-          </label>
-          <input
-            value={draft}
-            onChange={(event) => setDraft(event.target.value)}
-            placeholder={t("chat.input.placeholder")}
-            aria-label={t("chat.input.placeholder")}
-            className="flex-1 rounded-full border border-gray-300 px-4 py-2 text-sm focus:border-gray-900 focus:outline-none"
-          />
-          <Button type="submit" variant="primary" disabled={sending || !draft.trim()}>
-            {t("chat.send")}
-          </Button>
+            {/* Une photo seule reste un envoi valable: le bouton s'active sur la
+                photo OU sur du texte, jamais sur le seul brouillon. */}
+            <Button
+              type="submit"
+              variant="primary"
+              className="shrink-0"
+              disabled={sending || (!draft.trim() && !pendingPhoto)}
+            >
+              {t("chat.send")}
+            </Button>
+          </div>
         </form>
       </div>
     </KeelAppShell>

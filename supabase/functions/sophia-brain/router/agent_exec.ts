@@ -61,6 +61,11 @@ export async function runAgentAndVerify(opts: {
   stopCheckup: boolean;
   isPostCheckup: boolean;
   outageTemplate: string;
+  /**
+   * W9/R3 — la langue de la réponse visible, résolue une fois par `run.ts`.
+   * Traversée, jamais recalculée: cette couche n'est pas un décideur.
+   */
+  responseLocale: string;
   sophiaChatModel: string;
   tempMemory?: any;
   dispatcherDeferredTopic?: string | null;
@@ -95,6 +100,7 @@ export async function runAgentAndVerify(opts: {
     stopCheckup,
     isPostCheckup,
     outageTemplate,
+    responseLocale,
     sophiaChatModel,
   } = opts;
 
@@ -186,6 +192,7 @@ export async function runAgentAndVerify(opts: {
           userMessage,
           history,
           state,
+          responseLocale,
           context,
           { ...(meta ?? {}), userId, model: sophiaChatModel },
         );

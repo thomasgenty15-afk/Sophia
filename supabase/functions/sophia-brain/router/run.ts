@@ -195,6 +195,7 @@ import {
 } from "../skills/safety_crisis/local_dispatcher.ts";
 import type { SafetyCrisisLocalDispatcherOutput } from "../skills/safety_crisis/contract.ts";
 import { ACTIVE_CONVERSATION_SKILL_KEY } from "../skills/_shared/active_skill_state.ts";
+import type { ActiveConversationSkillWorkingState } from "../skills/_shared/active_skill_state.ts";
 import type { ConversationSkillOutput } from "../contracts/skill_output.v1.ts";
 import {
   type MemoryV2ActiveLoaderResult,
@@ -222,7 +223,10 @@ import { dayTokenForLocalDate } from "../../_shared/keel/slot_reminders.ts";
 import { slotKeyNamedIn } from "../../_shared/keel/slot_from_message.ts";
 import {
   isFrenchLocale,
+  readExplicitConversationLocale,
+  readPersistedConversationLocale,
   resolveResponseLocale,
+  withPersistedConversationLocale,
 } from "../../_shared/keel/locale.ts";
 import {
   armMealPrecisionQuestion,
@@ -281,11 +285,20 @@ import {
 // les brancher sur le seul point de passage de tout texte visible.
 import { applyKeelOutputLocks } from "../skills/_shared/keel_output_locks.ts";
 import {
+  coachNotePromptBlock,
+  type LoadedCoachNote,
+  loadCoachNote,
+} from "../../_shared/keel/coach_note.ts";
+import {
   doctrineBlockFor,
   type LoadedDoctrine,
   loadPublishedDoctrine,
 } from "../../_shared/keel/doctrine_loader.ts";
 import { detectDeclaredSafetyConstraint } from "../../_shared/keel/safety_constraint_floor.ts";
+import {
+  CLINICAL_DEFERRAL_BLOCK,
+  detectDeclaredMedicalCondition,
+} from "../../_shared/keel/medical_condition_floor.ts";
 import { detectDeclaredMeal } from "../../_shared/keel/meal_declaration_floor.ts";
 import {
   recordAllowedEffect,
@@ -612,6 +625,8 @@ type RuntimeConversationSkillId =
 function buildConversationSkillContext(args: {
   skillId: RuntimeConversationSkillId;
   userId: string;
+  /** R3 — résolue une fois par tour, en amont. Requis: voir `SkillContext`. */
+  responseLocale: string;
   recentMessages: Array<{ role: "user" | "assistant"; content: string }>;
   activeSkillState: unknown;
   turnFrame: TurnFrame;
@@ -625,6 +640,7 @@ function buildConversationSkillContext(args: {
   return {
     skill_id: args.skillId,
     user_id: args.userId,
+    response_locale: args.responseLocale,
     recent_messages: args.recentMessages,
     active_skill_working_state: args.activeSkillState as any,
     turn_frame: args.turnFrame,
@@ -1228,6 +1244,15 @@ export type KeelTurnContext = {
   /** PIVOT §3.3 — la doctrine publiée du coach de cet élève. */
   doctrine: LoadedDoctrine | null;
   /**
+   * LA NOTE 1:1 DU COACH SUR CET ÉLÈVE (2026-08-05), ou `null` hors élève KEEL.
+   *
+   * Elle voyage sur le contexte de tour, à côté de la doctrine, parce qu'elle
+   * est injectée par le MÊME composeur (`withKeelPromptBlocks`) et qu'un
+   * second chargement ailleurs serait une deuxième source de vérité pour le
+   * même texte. Absente (`reason !== "loaded"`), elle ne pousse aucun bloc.
+   */
+  coach_note: LoadedCoachNote | null;
+  /**
    * LA QUESTION DE PRÉCISION armée par CE tour, ou `null`.
    *
    * Elle voyage ici et pas sur le `turn_frame` pour une raison mesurée: un
@@ -1242,6 +1267,19 @@ export type KeelTurnContext = {
    * quantité ne sort, quelle que soit l'humeur du composeur.
    */
   meal_precision_question?: string | null;
+  /**
+   * LE JETON DE MALADIE DÉCLARÉE CE TOUR-CI, ou null.
+   *
+   * OBLIGATOIRE, pas optionnel, et c'est délibéré: ce dépôt a déjà mesuré
+   * qu'« un paramètre de garde optionnel est une garde désarmée ». Le
+   * compilateur est le seul relecteur qui ne se fatigue pas — même raisonnement
+   * que le `keel` obligatoire de `finalVisibleText`.
+   *
+   * Il vient du plancher déterministe `detectDeclaredMedicalCondition`, JAMAIS
+   * du dispatcher: la campagne du 2026-08-05 a mesuré le renvoi clinicien à
+   * FR 0/3 et EN 1/3 quand il dépendait du LLM.
+   */
+  declared_medical_condition: string | null;
 };
 
 export const LEGACY_KEEL_TURN_CONTEXT: KeelTurnContext = {
@@ -1256,9 +1294,11 @@ export const LEGACY_KEEL_TURN_CONTEXT: KeelTurnContext = {
   plan_context_reason_code: "legacy_plan_snapshot",
   restriction: null,
   restriction_unavailable_reason: null,
+  declared_medical_condition: null,
   safety_constraints: null,
   safety_constraints_unavailable_reason: null,
   doctrine: null,
+  coach_note: null,
 };
 
 const ISO_LOCAL_DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -1414,6 +1454,10 @@ export async function loadKeelTurnContext(args: {
   // porte son propre arbitrage de panne (bloc de prudence).
   const doctrine = await loadPublishedDoctrine(args.supabase, args.userId);
 
+  // La moitié « 1:1 assumé » — mode optionnel, absent chez la quasi-totalité
+  // des élèves. Ne throw jamais et porte son propre arbitrage de panne.
+  const coachNote = await loadCoachNote(args.supabase, args.userId);
+
   return {
     role,
     is_student: true,
@@ -1426,9 +1470,14 @@ export async function loadKeelTurnContext(args: {
     plan_context_reason_code: selection.reason_code,
     restriction,
     restriction_unavailable_reason: restrictionUnavailableReason,
+    // Le chargeur ne voit pas le message du tour: c'est le plancher, plus bas
+    // dans `run`, qui le renseigne. Null ici veut dire « pas encore lu », pas
+    // « rien déclaré ».
+    declared_medical_condition: null,
     safety_constraints: safetyConstraints,
     safety_constraints_unavailable_reason: safetyConstraintsUnavailableReason,
     doctrine,
+    coach_note: coachNote,
   };
 }
 
@@ -2025,8 +2074,13 @@ async function readKeelDayResolution(args: {
  * que choisir la copie. La phrase dit ce qui est VRAI et rien d'autre : aucune
  * ligne n'a été écrite — même contrat que la ceinture accusé-fantôme.
  */
-export function keelOutageTemplate(locale?: string | null): string {
-  const tag = locale ?? resolveResponseLocale({});
+export function keelOutageTemplate(locale: string): string {
+  // `locale` est REQUIS. Il était optionnel, avec un repli
+  // `resolveResponseLocale({})`, et l'unique appelant de production ne le
+  // passait pas: le texte d'avarie sortait donc toujours en anglais, y compris
+  // sur un fil français. Un paramètre optionnel ici, c'est la langue décidée
+  // par l'oubli de l'appelant.
+  const tag = locale;
   return isFrenchLocale(tag)
     ? "J'ai un souci technique sur ce tour. Je n'ai rien execute de plus."
     : "I hit a technical problem on this turn. Nothing was logged.";
@@ -2058,6 +2112,10 @@ export function keelOutageTemplate(locale?: string | null): string {
  *
  * HORS ÉLÈVE KEEL: rendu tel quel. La branche FR legacy n'est pas touchée.
  */
+// ⚠️ LE NOM MENT D'UN TIERS, ET C'EST DÉLIBÉRÉ DE NE PAS LE RENOMMER: cette
+// fonction injecte TROIS blocs, dans cet ordre — contraintes dures, doctrine,
+// note 1:1 du coach (2026-08-05). Elle reste « le » point d'injection unique,
+// ce que quatre commentaires ailleurs dans le repo désignent par ce nom.
 export function withKeelDoctrineBlock(
   context: string,
   keel: KeelTurnContext,
@@ -2078,11 +2136,34 @@ export function withKeelDoctrineBlock(
   // `safety_constraints === null` (lecture en panne) ne produit AUCUN bloc,
   // et c'est la bonne posture: on n'écrit pas « aucune contrainte » quand on
   // ne sait pas. La distinction null / [] est préservée jusqu'ici.
+  // LE VERROU MÉDICAL EN PREMIER — avant même les contraintes dures.
+  //
+  // Le budget de prompt tronque PAR LA QUEUE, et l'ordre de ces blocs est donc
+  // un classement par coût de perte. Perdre l'allergène met un aliment dans une
+  // assiette; perdre celui-ci sert un protocole nutritionnel à quelqu'un dont
+  // la maladie se soigne. Et il gouverne la POSTURE du tour entier, pas un
+  // ingrédient: il passe donc devant.
+  if (keel.declared_medical_condition) blocks.push(CLINICAL_DEFERRAL_BLOCK);
+
   const safetyBlock = safetyConstraintsPromptBlock(keel.safety_constraints);
   if (safetyBlock && safetyBlock.trim()) blocks.push(safetyBlock);
 
   const doctrine = keel.doctrine ? doctrineBlockFor(keel.doctrine) : null;
   if (doctrine && doctrine.trim()) blocks.push(doctrine);
+
+  // LA NOTE 1:1 DU COACH — dernière des trois, exprès, et pour la raison
+  // donnée deux blocs plus haut sur l'ordre: le budget de prompt tronque PAR
+  // LA QUEUE. Des trois, c'est celle dont la perte coûte le moins — un
+  // allergène qui saute est une assiette, une observation qui saute est un
+  // service dégradé d'un cran.
+  //
+  // Absente, elle ne pousse RIEN: pas d'en-tête, pas de « le coach n'a rien
+  // noté ». C'est la condition sous laquelle la note reste optionnelle
+  // (`coach_note.ts`), et c'est aussi la leçon de `NO_COACH_METHOD_BLOCK`, dont
+  // le titre décrivait un état interne et ressortait mot pour mot dans la
+  // bouche de l'agent.
+  const coachNote = keel.coach_note ? coachNotePromptBlock(keel.coach_note) : null;
+  if (coachNote && coachNote.trim()) blocks.push(coachNote);
 
   if (blocks.length === 0) return context;
   const base = String(context ?? "");
@@ -3200,7 +3281,10 @@ export async function processMessage(
   // où le prompt est construit, et le plancher au moment où la route est
   // calculée. Un utilisateur legacy paie une lecture `profiles` et rien
   // d'autre (`loadKeelTurnContext` sort immédiatement).
-  const keelTurn = await loadKeelTurnContext({
+  // `let` et non `const`: le plancher de déclaration de maladie, plus bas,
+  // renseigne `declared_medical_condition` sur ce contexte — le chargeur, lui,
+  // ne voit pas le message du tour.
+  let keelTurn = await loadKeelTurnContext({
     supabase,
     userId,
     userMessage,
@@ -3221,6 +3305,36 @@ export async function processMessage(
         }`,
     );
   }
+
+  // W9/R3 — LE POINT UNIQUE de décision de la langue de réponse. Résolue ici,
+  // une fois, chez le propriétaire du tour, puis DESCENDUE dans chaque lane.
+  // Aucune autre couche ne résout, ne devine, ni ne code une langue en dur:
+  // huit lanes appelaient `resolveResponseLocale({})` — une chaîne de priorité
+  // sans aucune entrée, donc une langue décidée par son repli.
+  //
+  // `tenantDefault` attend sa source (`coaches.default_student_locale`), et
+  // `detectedRecent` n'a DÉLIBÉRÉMENT pas de producteur: la détection par
+  // message est exactement le mode d'oscillation que R3 nomme. Les deux sont
+  // `null` déclarés, pas des champs oubliés.
+  const responseLocale = resolveResponseLocale({
+    userExplicit: readExplicitConversationLocale(tempMemory),
+    persisted: readPersistedConversationLocale(tempMemory),
+    tenantDefault: null,
+    detectedRecent: null,
+  });
+  // ET ON L'ANCRE IMMÉDIATEMENT, sur le fil, pour TOUS les chemins de sortie.
+  //
+  // C'est la moitié de la ceinture qui manquait: l'écriture ne vivait que dans
+  // `companion.ts`, donc un tour possédé par une skill (`product_help`,
+  // `weekly_review`, la lane TCA…) résolvait une langue et ne committait rien.
+  // Au tour suivant, `persisted` relisait vide, la chaîne retombait sur son
+  // repli, et le fil changeait de langue — l'oscillation que R3 nomme, ouverte
+  // par le simple fait qu'une skill avait pris la main.
+  //
+  // Écrire ICI, au point de résolution, plutôt qu'à chaque sortie: un chemin
+  // de sortie qu'on oublie est une ancre perdue, et il y en a huit.
+  tempMemory = withPersistedConversationLocale(tempMemory, responseLocale);
+  state = { ...(state as any), temp_memory: tempMemory };
 
   // W3.1 — deterministic pregate on the CURRENT message. Publishes the floor
   // the LLM frame can raise but never sink below (safety/safety_floor.ts).
@@ -3320,6 +3434,11 @@ export async function processMessage(
     // plan KEEL et RIEN du legacy, et les lanes KEEL (2 effets durables +
     // plan_question) deviennent énonçables dans le prompt.
     keel_plan_context: keelTurn.plan_block,
+    // …et le RÔLE, qui commande l'assemblage du prompt système. Distinct du
+    // bloc plan ci-dessus, exprès: `routers.ts` ferme les trois lanes B2C sur
+    // ce même drapeau, pas sur la présence d'un plan. Les deux doivent voir le
+    // même utilisateur, sinon le prompt décrit une lane que la route jette.
+    keel_student: keelTurn.is_student,
     safety_context_output: safetyContextOutput,
     // P3-A: traîne pregate — les scores des tours précédents viennent de
     // temp_memory (commit post-génération plus bas).
@@ -3745,6 +3864,95 @@ export async function processMessage(
           },
         ],
       };
+    }
+
+    // ── LE PLANCHER DE DÉCLARATION DE MALADIE ────────────────────────────────
+    //
+    // Même forme et même raison que les deux planchers voisins: ce qui OUVRE
+    // une posture ne transite pas par le LLM du dispatcher. Mesuré le
+    // 2026-08-05 — « je suis diabétique de type 2, je mange quoi ? » recevait un
+    // protocole prescriptif complet, renvoi clinicien FR 0/3 et EN 1/3, et
+    // `student_safety_constraints` restait vide.
+    //
+    // Il ne DÉCIDE pas la réponse: il lève un drapeau que
+    // `withKeelDoctrineBlock` traduit en `CLINICAL_DEFERRAL_BLOCK`.
+    const declaredCondition = detectDeclaredMedicalCondition(userMessage);
+    if (declaredCondition) {
+      console.warn("[keel] medical_condition_floor raised", {
+        request_id: requestId,
+        condition_ref: declaredCondition.condition_ref,
+        matched: declaredCondition.matched,
+        detail:
+          "déclaration de maladie détectée par le plancher déterministe; le " +
+          "bloc de déférence clinique est injecté pour ce tour.",
+      });
+      keelTurn = {
+        ...keelTurn,
+        declared_medical_condition: declaredCondition.condition_ref,
+      };
+
+      // ET LA LIGNE, parce que le bloc seul ne fait que gouverner CE tour.
+      // Sans persistance, la génération de plan, la doctrine et la synthèse du
+      // coach continuent d'ignorer la maladie — c'est la moitié « après
+      // génération » du verrou, celle qui manquait aussi.
+      //
+      // `severity: 'medical'` par construction: c'est la seule sévérité que la
+      // ceinture de sortie traite comme non négociable, et une maladie
+      // déclarée n'est pas une préférence.
+      // ⚠️ LE PLANCHER REMPLACE, IL NE S'EFFACE PAS DEVANT LE DISPATCHER.
+      //
+      // Première version: le plancher n'ajoutait son effet que si le
+      // dispatcher n'en avait demandé aucun. Mesuré le 2026-08-06 — 7 lignes
+      // sur 44 (16 %, dont 6 en français) écrites par le dispatcher étaient
+      // DIFFORMES: `allergen_ref='diabetes'`, `substance_ref='glucose'`,
+      // `allergen_ref='diabetes_type_2'`. Une maladie rangée dans la case des
+      // aliments à éviter, ce qui ARME LA CEINTURE DE SORTIE sur son nom.
+      //
+      // Conséquence mesurée en run réel, et c'est la pire de la campagne: un
+      // message d'urgence — « take fast-acting glucose now and call emergency
+      // services » — a été REMPLACÉ par un refus poli. Et l'élève dont le
+      // `allergen_ref` valait `diabetes` ne pouvait plus parler de sa maladie
+      // du tout: cul-de-sac.
+      //
+      // Le plancher, lui, connaît la forme juste (`kind='medical'` +
+      // `condition_ref`). Quand il a détecté une maladie, c'est SA demande qui
+      // fait foi: on retire les `declare_safety_constraint` du tour et on pose
+      // la sienne. Un tirage de LLM ne corrige pas un plancher déterministe.
+      const displaced = turnFrame.direct_effects.filter(
+        (effect) => effect.effect_type === "declare_safety_constraint",
+      );
+      if (displaced.length > 0) {
+        console.warn("[keel] medical_condition_floor displaced dispatcher effect", {
+          request_id: requestId,
+          condition_ref: declaredCondition.condition_ref,
+          displaced: displaced.length,
+          detail:
+            "le dispatcher rangeait la maladie dans une case d'aliment; la " +
+            "forme du plancher (kind=medical + condition_ref) fait foi.",
+        });
+      }
+      {
+        turnFrame = {
+          ...turnFrame,
+          direct_effects: [
+            ...turnFrame.direct_effects.filter(
+              (effect) => effect.effect_type !== "declare_safety_constraint",
+            ),
+            {
+              effect_type: "declare_safety_constraint",
+              explicitness: "explicit",
+              target_status: "identified",
+              confidence_band: "high",
+              payload_hint: {
+                kind: "medical",
+                condition_ref: declaredCondition.condition_ref,
+                severity: "medical",
+                notes: declaredCondition.notes,
+              },
+            },
+          ],
+        };
+      }
     }
 
     const declared = detectDeclaredSafetyConstraint(userMessage);
@@ -4267,6 +4475,7 @@ export async function processMessage(
   const operationPipeline = await runOperationRuntimePipeline({
     supabase,
     userId,
+    responseLocale,
     userMessage,
     channel,
     userTimezone: userTime?.timezone ?? meta?.clientTimezone ?? "UTC",
@@ -4565,6 +4774,7 @@ export async function processMessage(
       const reexecReminderLane = await runDirectEffectLane({
         supabase,
         userId,
+        responseLocale,
         userMessage,
         channel,
         userTimezone: userTime?.timezone ?? meta?.clientTimezone ?? "UTC",
@@ -4848,6 +5058,7 @@ export async function processMessage(
         context: {
           skill_id: "safety_crisis",
           user_id: userId,
+          response_locale: responseLocale,
           recent_messages: recentMessagesForTurnFrame,
           active_skill_working_state: currentActiveSkillState as any,
           turn_frame: turnFrame,
@@ -5067,6 +5278,7 @@ export async function processMessage(
       const context = buildConversationSkillContext({
         skillId,
         userId,
+        responseLocale,
         recentMessages: recentMessagesForTurnFrame,
         activeSkillState: currentActiveSkillState,
         turnFrame,
@@ -5123,6 +5335,7 @@ export async function processMessage(
         const directEffectLane = await runDirectEffectLane({
           supabase,
           userId,
+          responseLocale,
           userMessage,
           channel,
           userTimezone: userTime?.timezone ?? meta?.clientTimezone ?? "UTC",
@@ -5510,6 +5723,10 @@ export async function processMessage(
   const researchGrounding = await runResearchGroundingLane({
     turnFrame,
     requestId,
+    // Une recherche web sur « quoi manger quand on a telle maladie » rapporte
+    // par construction ce que la garde clinique interdit de dire, et la remet
+    // EN TÊTE du prompt. Voir la coupure dans `research_grounding.ts`.
+    declaredMedicalCondition: keelTurn.declared_medical_condition,
   });
   const injectedContext = [
     opts?.contextOverride,
@@ -5937,17 +6154,24 @@ export async function processMessage(
       context: {
         skill_id: "disordered_eating_guard",
         user_id: userId,
+        response_locale: responseLocale,
         recent_messages: recentMessagesForTurnFrame,
         // La continuité de l'épisode est portée par une clé dédiée (voir
         // `KEEL_DISORDERED_EATING_STATE_KEY`): `active_flow_state.ts` ne
         // connaît pas ce flow, donc l'état ne peut pas transiter par le
         // registre des flows locaux.
+        // Cast NOMMÉ, et volontairement pas `as never`: le skill ne lit que
+        // `.working_state`, et les champs de registre (version, turn_count,
+        // started_at…) n'existent pas pour un flow qui ne transite pas par le
+        // registre. Les inventer pour satisfaire la forme fabriquerait des
+        // faits que rien ne lit. Un cast nommé ment sur UN champ; `as never`
+        // sur l'objet entier avalait tout champ manquant du contexte.
         active_skill_working_state: {
           working_state: disorderedEatingWorkingStateForTurn(
             tempMemory,
             restriction,
           ),
-        } as never,
+        } as ActiveConversationSkillWorkingState,
         turn_frame: turnFrame,
         relevant_memory_items: [],
         // Zéro projection de plan pendant ce flow: l'invariant du skill est
@@ -5956,7 +6180,7 @@ export async function processMessage(
         product_surfaces: [],
         exclusions: [],
         disordered_eating_guard_runtime: guardRuntime,
-      } as never,
+      },
     });
     const skillLatencyMs = Date.now() - skillStart;
 
@@ -6039,7 +6263,35 @@ export async function processMessage(
   }
 
   // ── MAILLON 4 — PLAN_QUESTION (Tier 0 déterministe) ───────────────────
-  if (routeDecision.response_owner === "plan_question") {
+  //
+  // ⚠️ UNE MALADIE DÉCLARÉE DÉSARME CETTE LANE, et c'est une correction du
+  // 2026-08-06.
+  //
+  // `withKeelDoctrineBlock` n'a qu'UN appelant — le composeur, plus bas. Cette
+  // lane rend AVANT lui, donc le bloc de déférence clinique n'atteignait jamais
+  // le tour: mesuré 8 fois sur les lots A à D. Pire, son gabarit est codé en
+  // dur en anglais et promet « I have passed your question to them » — un canal
+  // 1:1 coach → élève qui N'EXISTE PAS (docs/keel/MODEL.md). Un élève qui
+  // déclare un diabète recevait donc: aucun clinicien nommé, une promesse
+  // fausse, et une ligne `contract_change_requests` classée
+  // `reason_code='dislikes_food'` — son diabète rangé en dégoût alimentaire,
+  // parti dans le digest hebdomadaire de son coach.
+  //
+  // On laisse donc le tour tomber vers le composeur, qui porte le bloc. La
+  // question de plan, elle, attendra le tour suivant: elle est réversible, la
+  // déférence clinique ne l'est pas.
+  if (
+    routeDecision.response_owner === "plan_question" &&
+    keelTurn.declared_medical_condition
+  ) {
+    console.warn("[keel] plan_question lane skipped for medical declaration", {
+      request_id: requestId,
+      condition_ref: keelTurn.declared_medical_condition,
+      detail:
+        "la lane rend avant le composeur, donc avant le bloc de déférence " +
+        "clinique; on tombe vers le composeur pour que la garde gouverne.",
+    });
+  } else if (routeDecision.response_owner === "plan_question") {
     if (!keelTurn.is_student) {
       // Ceinture: `routers.ts` gate cette lane sur `keel_student`. L'atteindre
       // sans le rôle signifierait que le gate a sauté — et la lane répondrait
@@ -6096,6 +6348,7 @@ export async function processMessage(
       context: {
         skill_id: "plan_question",
         user_id: userId,
+        response_locale: responseLocale,
         recent_messages: recentMessagesForTurnFrame,
         active_skill_working_state: null,
         turn_frame: turnFrame,
@@ -6104,7 +6357,7 @@ export async function processMessage(
         product_surfaces: [],
         exclusions: [],
         plan_question_runtime: planQuestionRuntime,
-      } as never,
+      },
     });
     const skillLatencyMs = Date.now() - skillStart;
 
@@ -6225,7 +6478,8 @@ export async function processMessage(
       // précisément le plus probable en démo (réseau/quota).
       // La langue vient de `resolveResponseLocale`, source unique (R3) : aucun
       // module ne code une langue de réponse en dur, y compris celui-ci.
-      outageTemplate: keelOutageTemplate(),
+      outageTemplate: keelOutageTemplate(responseLocale),
+      responseLocale,
       sophiaChatModel: presenceModel ?? meta?.model ?? getGlobalAiModel(),
       tempMemory,
       meta: {

@@ -31,6 +31,7 @@ function frame(patch: Record<string, unknown> = {}): TurnFrame {
 
 Deno.test("research lane executes on structured signal and builds the companion block", async () => {
   const result = await runResearchGroundingLane({
+    declaredMedicalCondition: null,
     turnFrame: frame({
       needs_research: {
         detected: true,
@@ -60,6 +61,7 @@ Deno.test("research lane executes on structured signal and builds the companion 
 
 Deno.test("research lane failure yields the honesty directive, never a block (cmd 7)", async () => {
   const failed = await runResearchGroundingLane({
+    declaredMedicalCondition: null,
     turnFrame: frame({
       needs_research: { detected: true, value: true, query: "quoi de neuf" },
     }),
@@ -75,6 +77,7 @@ Deno.test("research lane failure yields the honesty directive, never a block (cm
   );
 
   const empty = await runResearchGroundingLane({
+    declaredMedicalCondition: null,
     turnFrame: frame({
       needs_research: { detected: true, value: true, query: "quoi de neuf" },
     }),
@@ -92,6 +95,7 @@ Deno.test("research lane stays silent without signal and mutes on high safety (a
   };
 
   const none = await runResearchGroundingLane({
+    declaredMedicalCondition: null,
     turnFrame: frame(),
     searchFn: spy,
   });
@@ -100,6 +104,7 @@ Deno.test("research lane stays silent without signal and mutes on high safety (a
   assertEquals(none.honesty_directive, null);
 
   const falseValue = await runResearchGroundingLane({
+    declaredMedicalCondition: null,
     turnFrame: frame({
       needs_research: { detected: true, value: false, query: "x" },
     }),
@@ -108,6 +113,7 @@ Deno.test("research lane stays silent without signal and mutes on high safety (a
   assertEquals(falseValue.outcome, "not_requested");
 
   const high = await runResearchGroundingLane({
+    declaredMedicalCondition: null,
     turnFrame: frame({
       safety: { risk_band: "high", reason_codes: [], evidence: [] },
       needs_research: { detected: true, value: true, query: "x" },

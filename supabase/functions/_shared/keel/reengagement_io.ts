@@ -52,7 +52,7 @@ import {
   buildReengageUserPrompt,
 } from "./reengage_composer.ts";
 import { doctrineBlockFor, loadPublishedDoctrine } from "./doctrine_loader.ts";
-import { appendResponseLanguageBlock, resolveResponseLocale } from "./locale.ts";
+import { appendResponseLanguageBlock } from "./locale.ts";
 import { generateWithGemini } from "../gemini.ts";
 import { deliverChatMessage } from "../chat/delivery.ts";
 
@@ -69,6 +69,12 @@ export interface ReengageCandidate {
   phoneNumber: string | null;
   /** `{{1}}` du template. Vide => « there », jamais « Hi , ». */
   firstName: string;
+  /**
+   * R2/R3 — `profiles.locale` de l'élève, tel que lu. La relance est un
+   * ARTEFACT (aucun fil à ancrer): sa langue se résout par
+   * `resolveArtifactLocale`, pas par `resolveResponseLocale`.
+   */
+  profileLocale: string | null;
   lastInboundAt: string | null;
   localHour: number;
   timezone: string | null;
@@ -149,7 +155,7 @@ export async function loadReengageCandidates(
   let query = db
     .from("profiles")
     .select(
-      "id, phone_number, full_name, timezone, proactive_muted_at, keel_role",
+      "id, phone_number, full_name, timezone, locale, proactive_muted_at, keel_role",
     )
     .eq("keel_role", "student")
     .order("id", { ascending: true })
@@ -215,6 +221,7 @@ export async function loadReengageCandidates(
       // (`sophia_checkin_v2` qui disait « Hello Thomas » à tout le monde, un
       // bilan hebdo rempli avec le mauvais champ) — d'où la découpe explicite.
       firstName: String(row.full_name ?? "").trim().split(/\s+/)[0] ?? "",
+      profileLocale: String(row.locale ?? "").trim() || null,
       lastInboundAt,
       localHour: localHourFor(args.now, String(row.timezone ?? "")) ?? Number.NaN,
       timezone: String(row.timezone ?? "") || null,
@@ -481,7 +488,14 @@ export interface ComposedReengageBody {
  */
 export async function composeReengageBody(
   db: Db,
-  args: { userId: string; firstName: string; tone: JobReachableTone; requestId?: string },
+  args: {
+    userId: string;
+    firstName: string;
+    tone: JobReachableTone;
+    /** R2/R3 — locale de l'ARTEFACT, résolue par l'appelant. Requis. */
+    contentLocale: string;
+    requestId?: string;
+  },
 ): Promise<ComposedReengageBody> {
   const fallback = (reason: string): ComposedReengageBody => ({
     body: renderReengageNudge(args.firstName),
@@ -506,11 +520,12 @@ export async function composeReengageBody(
 
   const system = appendResponseLanguageBlock(
     buildReengageSystemPrompt({ doctrineBlock, tone: args.tone }),
-    // Le verrou du pilote, pas le nôtre. Voir l'en-tête du composeur: la
-    // doctrine porte `write in <language>`, et le laisser gagner ici ferait
+    // La doctrine porte `write in <language>`; le laisser gagner ici ferait
     // sortir la relance dans une langue que la conversation qu'elle relance
-    // n'utilise pas. `locale.ts` est le point de changement unique.
-    resolveResponseLocale({}),
+    // n'utilise pas. La langue vient donc de l'appelant, qui l'a résolue par
+    // `resolveArtifactLocale` — une relance est un artefact, pas un tour de
+    // conversation: il n'y a pas de fil sur lequel s'ancrer.
+    args.contentLocale,
   );
 
   let raw: unknown;
@@ -569,6 +584,8 @@ export async function sendReengageNudge(
     userId: string;
     firstName: string;
     tone: JobReachableTone;
+    /** R2/R3 — locale de l'ARTEFACT, résolue par l'appelant. Requis. */
+    contentLocale: string;
     requestId?: string;
   },
 ): Promise<
@@ -584,6 +601,7 @@ export async function sendReengageNudge(
   }
 > {
   const composed = await composeReengageBody(db, args);
+
   const body = composed.body;
   // Lève si le corps culpabilise. Volontairement NON rattrapé: le job compte
   // l'échec et n'envoie pas. Un message qui fait honte à quelqu'un qui décroche

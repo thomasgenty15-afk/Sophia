@@ -70,10 +70,12 @@ export type RequestedSafetyConstraintEffect = {
   intent: SafetyConstraintIntent;
   user_id: string;
   kind: SafetyConstraintKind;
-  /** Au moins un des trois est non-null (CHECK `..._ref_check`). */
+  /** Au moins un des QUATRE est non-null (CHECK `..._ref_check`). */
   allergen_ref: string | null;
   substance_ref: string | null;
   medication_class: string | null;
+  /** Jeton de MALADIE declaree. Distinct de `substance_ref`. */
+  condition_ref: string | null;
   severity: SafetyConstraintSeverity;
   /** Prose de l'élève, citable. Jamais utilisée pour matcher (R1). */
   notes: string | null;
@@ -93,6 +95,7 @@ export type SafetyConstraintRow = {
   allergen_ref: string | null;
   substance_ref: string | null;
   medication_class: string | null;
+  condition_ref: string | null;
   severity: string;
   status: string;
   declared_by: string;

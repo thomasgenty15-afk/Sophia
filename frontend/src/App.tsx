@@ -25,7 +25,6 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import PlanImportPage from "./keel/pages/PlanImportPage";
 import TodayPage from "./keel/pages/TodayPage";
 import KeelChatPage from "./keel/pages/ChatPage";
-import CardsPage from "./keel/pages/CardsPage";
 import JoinPage from "./keel/pages/JoinPage";
 import StartPage from "./keel/pages/StartPage";
 import CoachStudentPage from "./keel/pages/CoachStudentPage";
@@ -141,17 +140,19 @@ function App() {
                   </KeelStudentRoute>
                 }
               />
-              {/* KEEL — cards (W8.3/W8.4). Same guard as the two screens
-                  above. The shell nav entry lands with W9, which owns the
-                  `app.nav.cards` message key. */}
-              <Route
-                path="/app/cards"
-                element={
-                  <KeelStudentRoute>
-                    <CardsPage />
-                  </KeelStudentRoute>
-                }
-              />
+              {/* KEEL — `/app/cards` est DÉMONTÉE (cartes d'attaque/défense,
+                  W8.3/W8.4). Pas parce que l'écran était imparfait: il exige un
+                  `plan_versions` publié et tombe sinon sur l'état `no_plan`, et
+                  le modèle 1:N n'en publie JAMAIS (docs/keel/MODEL.md). L'onglet
+                  menait donc à un écran vide en permanence, pour tout élève
+                  KEEL. Il redirige vers `/app/today` plutôt que de 404 — même
+                  raison que `/chat` plus haut: un lien en circulation ne doit
+                  pas mourir.
+                  `CardsPage.tsx`, `keel/api/cards.ts`, `keel-cards-v1`, le cron
+                  `keel-arm-cards` et les quatre tables restent EN PLACE: le
+                  produit grand public tourne encore depuis ce même code sur un
+                  autre projet Supabase. Démonté, pas détruit. */}
+              <Route path="/app/cards" element={<Navigate to="/app/today" replace />} />
               {/* KEEL — coach space (W6.1). Guarded by an ACTIVE `coaches`
                   row, not by `keel_role` and not by the legacy subscription
                   tier: keel_role is routing metadata, the coaches row is the

@@ -1,5 +1,23 @@
 # Claude — règles projet
 
+## 🧭 Le modèle produit — à savoir AVANT de toucher quoi que ce soit côté élève
+
+> ### Le coach ne produit RIEN de personnel pour un élève.
+> Pas de plan, pas de menu, pas de message, pas de correction. Il écrit une **doctrine** et un
+> **programme** pour toute sa cohorte ; c'est **l'élève** qui compose sa semaine à partir de ça
+> (`student_goals` → `generate-week-plan-v1` → `student_week_plans`). Il n'existe **aucun canal
+> 1:1** coach → élève.
+
+Conséquence immédiate et la plus souvent violée : **aucune copie ne doit faire attendre
+l'élève**. « Ton coach prépare ton plan » est faux. Un écran élève vide porte la sortie vers
+`/app/plan`, où il compose lui-même.
+
+La chaîne de prescription individuelle (`plan_versions`, `/coach/import`, `/coach/templates`)
+existe encore dans le code : elle est **gardée exprès** — c'est le mode 1:1 — et elle **n'est
+pas le modèle**. Ne la supprime pas, ne la prends pas pour le produit.
+
+Détail complet, ce que ça interdit, et le trou connu : **[docs/keel/MODEL.md](docs/keel/MODEL.md)**.
+
 ## ⛔ Commandes à risque : validation humaine explicite requise
 
 Tu ne peux **pas** exécuter seul les commandes à risque (secrets, deploy, reset).

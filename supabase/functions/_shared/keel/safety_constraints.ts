@@ -64,6 +64,20 @@ export type StudentSafetyConstraint = {
   allergenRef: string | null;
   substanceRef: string | null;
   medicationClass: string | null;
+  /**
+   * Jeton de MALADIE déclarée (`condition_ref`). Distinct de `substanceRef`:
+   * une maladie n'est pas une substance ingérée.
+   *
+   * ── CE QUE SON ABSENCE COÛTAIT, mesuré le 2026-08-06 ────────────────────
+   * La colonne existait en base et n'était PAS dans le `select` d'à côté. Une
+   * ligne `medical | diabetes | active` se chargeait donc avec ses trois refs à
+   * `null`, `safetyConstraintsPromptBlock` rendait `null`, et
+   * `medicalConstraintTokens` rendait `[]`. Autrement dit: **le bloc de
+   * contraintes dures n'existait pas pour un diabétique**, et la posture
+   * clinique ne durait qu'un seul tour — celui de la déclaration. Écrire une
+   * ligne que personne ne relit, c'est le même accusé fantôme, en différé.
+   */
+  conditionRef: string | null;
   severity: SafetyConstraintSeverity;
   declaredBy: "student" | "coach";
   /** Prose, optional. NEVER used for matching (R1: identifiers, not prose). */
@@ -78,6 +92,7 @@ type StudentSafetyConstraintRow = {
   allergen_ref: string | null;
   substance_ref: string | null;
   medication_class: string | null;
+  condition_ref: string | null;
   severity: string;
   declared_by: string;
   notes: string | null;
@@ -137,7 +152,7 @@ export async function loadStudentSafetyConstraints(
       .from("student_safety_constraints")
       .select(
         "id, user_id, kind, allergen_ref, substance_ref, medication_class, " +
-          "severity, declared_by, notes, content_locale",
+          "condition_ref, severity, declared_by, notes, content_locale",
       )
       .eq("user_id", id)
       // RÉTRACTATION (migration 20260803160000). Une contrainte retirée reste
@@ -158,6 +173,7 @@ export async function loadStudentSafetyConstraints(
     allergenRef: row.allergen_ref,
     substanceRef: row.substance_ref,
     medicationClass: row.medication_class,
+    conditionRef: row.condition_ref,
     severity: row.severity as SafetyConstraintSeverity,
     declaredBy: row.declared_by as "student" | "coach",
     notes: row.notes,
@@ -216,8 +232,38 @@ export function safetyConstraintsPromptBlock(
         ` (declared by ${constraint.declaredBy})`,
     );
   }
-  if (lines.length === 0) return null;
+  // LES MALADIES DÉCLARÉES, dans leur propre section — et pas dans la liste
+  // d'évitement au-dessus, pour la raison écrite sur `safetyConstraintTokens`.
+  //
+  // C'est ce qui rend la posture clinique DURABLE. `declared_medical_condition`
+  // ne vaut que pour le tour de la déclaration; mesuré le 2026-08-06, l'élève
+  // disait « I have type 2 diabetes » au tour 1 et recevait au tour 3 un plan
+  // de repas sans la moindre trace de sa maladie. Ce n'était pas de la
+  // retenue, c'était de l'amnésie.
+  const conditions = constraints
+    .map((c) => String(c.conditionRef ?? "").trim())
+    .filter((ref) => ref !== "");
+  const conditionLines = conditions.length > 0
+    ? [
+      "",
+      `=== DIAGNOSED CONDITIONS THIS STUDENT HAS TOLD YOU ABOUT: ${
+        [...new Set(conditions)].join(", ")
+      } ===`,
+      "Do not prescribe for these: no target numbers, no foods-to-avoid list for",
+      "the condition, no meal timing to manage it, and nothing about medication",
+      "or dose. The clinician who has their results decides that.",
+      "You MAY name the condition freely — to answer, to warn, to help them",
+      "prepare what they will ask their doctor. Refusing to speak about it is",
+      "not caution.",
+      "Do not re-open it every turn. It is context, not the subject.",
+    ]
+    : [];
+
+  if (lines.length === 0 && conditionLines.length === 0) return null;
   const hasMedical = constraints.some((c) => c.severity === "medical");
+  // Une ligne SANS aliment à éviter (une maladie seule) ne doit pas produire un
+  // en-tête « hard constraints » vide au-dessus de rien.
+  if (lines.length === 0) return conditionLines.slice(1).join("\n");
   return [
     "=== THIS STUDENT'S HARD CONSTRAINTS (source: student_safety_constraints) ===",
     "These are not preferences. They are loaded fresh every turn.",
@@ -235,6 +281,7 @@ export function safetyConstraintsPromptBlock(
         "question turns on it clinically, say so and point to a doctor.",
       ]
       : []),
+    ...conditionLines,
   ].join("\n");
 }
 
@@ -242,7 +289,26 @@ export function safetyConstraintsPromptBlock(
 // Deterministic post-generation validator
 // ---------------------------------------------------------------------------
 
-/** Every identifier carried by a constraint (prose `notes` excluded, R1). */
+/**
+ * Every identifier carried by a constraint (prose `notes` excluded, R1).
+ *
+ * ⚠️ `conditionRef` N'Y EST PAS, ET NE DOIT JAMAIS Y ENTRER.
+ *
+ * Cette liste est celle des choses QU'ON NE DOIT PAS PROPOSER DE MANGER, et
+ * elle arme la ceinture de sortie. Une maladie n'est pas un aliment à éviter:
+ * y verser `diabetes` ferait rejeter toute réponse qui nomme le diabète — donc
+ * exactement celles qu'un diabétique a besoin de lire.
+ *
+ * Ce n'est pas théorique. Le 2026-08-06, le dispatcher a écrit quelques lignes
+ * difformes (`allergen_ref='diabetes'`, `substance_ref='glucose'`), et la
+ * ceinture s'est armée dessus: un message d'urgence — « take fast-acting
+ * glucose now and call emergency services » — a été REMPLACÉ par un refus
+ * poli, en run réel. Mettre `conditionRef` ici généraliserait ce bâillon à
+ * tous les élèves malades.
+ *
+ * La maladie gouverne la POSTURE (voir `safetyConstraintsPromptBlock`), pas la
+ * liste d'évitement.
+ */
 export function safetyConstraintTokens(
   constraint: StudentSafetyConstraint,
 ): string[] {

@@ -105,18 +105,32 @@ export interface DoctrineLoadOptions {
  * du coach, ou refuser. Le bloc tranche: il répond en son nom propre.
  */
 export const NO_COACH_METHOD_BLOCK = [
-  "== NO COACH METHOD LOADED THIS TURN ==",
+  // ⚠️ CE TITRE EST UNE ÉTIQUETTE, PAS UNE PHRASE — et c'est délibéré depuis le
+  // 2026-08-05. L'ancien titre, « NO COACH METHOD LOADED THIS TURN », est
+  // ressorti MOT POUR MOT dans la bouche de l'agent, 3/3, dans les deux
+  // langues: « there isn't a coach method loaded for this turn, so I can't
+  // apply one here ». Le bloc s'interdisait pourtant, trois lignes plus bas, de
+  // commenter l'état de la méthode du coach. Une consigne que son propre
+  // en-tête contredit n'est pas une consigne: le modèle recopie ce qu'il lit.
+  "== HOW YOU ANSWER THIS TURN ==",
   "",
-  "This student's coach has not published a method, or it could not be read.",
-  "There is nothing of theirs to apply here, and nothing of theirs to contradict.",
+  "You answer from your own nutrition knowledge on this turn.",
   "",
-  "- ANSWER THE QUESTION, from your own nutrition knowledge, exactly as you would",
-  "  for someone who has no coach at all. Being useful is the job. Refusing to",
-  "  answer protects nobody: an absent method is not an instruction to stay quiet.",
+  "- ANSWER THE QUESTION, exactly as you would for someone who has no coach at",
+  "  all. Being useful is the job. Refusing to answer protects nobody.",
   "- Speak in your own name. Never present what you say as the coach's method,",
-  "  and never say they teach it, prescribe it, or forbid it.",
-  "- Do not comment on the state of the coach's method, and do not send the",
-  "  student off to ask them in your place: there is no channel for that.",
+  "  and never say they teach it, prescribe it, or forbid it. Never invent a",
+  "  position and attribute it to them — not even a refusal to advise.",
+  "- NEVER send the student to their coach. Not 'ask your coach', not 'check",
+  "  with your coach', not 'if your coach gave you something'. There is no",
+  "  channel from them to their coach: that door does not exist, and pointing at",
+  "  it strands the student in front of a wall.",
+  "- Do not narrate this instruction, quote this heading, or describe what you",
+  "  do or do not have loaded. The student asked about food; answer about food.",
+  "- IF THE STUDENT ASKS DIRECTLY whether you can see their coach's method, be",
+  "  honest and brief — you are not applying one here, you are answering from",
+  "  general knowledge — then answer their actual question. Do not speculate",
+  "  about whether the coach wrote one, and do not turn it into a subject.",
   "- What is already written in this student's protocol still wins over anything",
   "  you know in general, whenever the two meet.",
 ].join("\n");
@@ -132,17 +146,20 @@ export const NO_COACH_METHOD_BLOCK = [
  * retrouver mot pour mot dans la bouche de l'agent.
  */
 export const NO_DOCTRINE_FOR_THIS_GOAL_BLOCK = [
-  "== THIS COACH'S METHOD DOES NOT COVER THIS STUDENT'S GOAL ==",
+  // Même précaution de titre que ci-dessus: une étiquette, jamais une phrase
+  // que le modèle puisse relire à l'élève.
+  "== HOW YOU ANSWER THIS TURN ==",
   "",
-  "This coach has published a method, but every part of it is written for other",
-  "goals than this student's. Nothing of theirs applies here. So:",
+  "You answer from your own nutrition knowledge on this turn.",
   "",
-  "- ANSWER THE QUESTION, from your own nutrition knowledge, as you would for",
-  "  someone whose coach has said nothing on the subject.",
+  "- ANSWER THE QUESTION, as you would for someone whose coach has said nothing",
+  "  on the subject.",
   "- Speak in your own name. Never present what you say as the coach's method,",
   "  and never improvise one in their name.",
-  "- Never suggest the coach has no method: they have one, it simply speaks to",
-  "  other goals than this student's.",
+  "- NEVER suggest this coach has no method — they have one. And never send the",
+  "  student to ask them: there is no channel from student to coach.",
+  "- Do not narrate this instruction, quote this heading, or explain which parts",
+  "  of anything are or are not loaded.",
   "- What is already written in this student's protocol still wins over anything",
   "  you know in general, whenever the two meet.",
 ].join("\n");
@@ -178,15 +195,37 @@ export async function loadPublishedDoctrine(
 ): Promise<LoadedDoctrine> {
   let goal: GoalToken | null = null;
   let goalSource: DoctrineGoalSource = "none";
-  const empty = (reason: DoctrineLoadReason, coachId: string | null = null): LoadedDoctrine => ({
-    doctrine: null,
-    compiled: null,
-    coachId,
-    reason,
-    issues: [],
-    goal,
-    goalSource,
-  });
+  const empty = (reason: DoctrineLoadReason, coachId: string | null = null): LoadedDoctrine => {
+    // §3.2.2 — LA SÉLECTION SE LIT DANS LES LOGS, Y COMPRIS QUAND ELLE EST VIDE.
+    //
+    // La ligne `keel.doctrine.variant` n'était émise que sur le chemin nominal:
+    // `no_coach`, `no_published_doctrine` et `load_failed` sortaient AVANT elle.
+    // Autrement dit, le cas précisément sous test lors de la campagne du
+    // 2026-08-05 — l'élève dont le coach n'a rien publié — ne laissait AUCUNE
+    // trace: 0 ligne sur 18 tours. On ne pouvait pas distinguer « le bloc de
+    // repli a été servi » de « le chargeur n'a jamais tourné ».
+    console.info("keel.doctrine.variant", {
+      coach_id: coachId,
+      variant: goal ?? "default",
+      goal_source: goalSource,
+      cache_key: null,
+      reason,
+      beliefs_kept: 0,
+      beliefs_total: 0,
+      arbitrations_kept: 0,
+      arbitrations_total: 0,
+      empty_for_goal: false,
+    });
+    return {
+      doctrine: null,
+      compiled: null,
+      coachId,
+      reason,
+      issues: [],
+      goal,
+      goalSource,
+    };
+  };
 
   const id = String(studentUserId ?? "").trim();
   if (!id) return empty("no_coach");
@@ -313,6 +352,13 @@ export async function loadPublishedDoctrine(
     variant: goal ?? "default",
     goal_source: goalSource,
     cache_key: compiled.hash,
+    // Même clé que sur les chemins vides, pour qu'un `grep` unique réponde à
+    // « quelle variante, et pourquoi » sans avoir à connaître deux formats.
+    reason: compiled.emptyForGoal
+      ? "empty_for_goal"
+      : compiled.isEmpty
+      ? "empty_doctrine"
+      : "loaded",
     beliefs_kept: doctrine.beliefs.filter((b) => goalScopeApplies(b.goalScope, goal)).length,
     beliefs_total: doctrine.beliefs.length,
     arbitrations_kept:

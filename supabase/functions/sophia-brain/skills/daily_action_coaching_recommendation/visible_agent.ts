@@ -135,6 +135,8 @@ function stepContext(args: {
 
 export async function runDailyActionCoachingVisibleAgent(args: {
   user_id: string;
+  /** W9/R3 — résolue par le runtime, descendue par le skill. Jamais devinée. */
+  response_locale: string;
   request_id?: string | null;
   recent_messages: Array<{
     role: "user" | "assistant";
@@ -153,6 +155,7 @@ export async function runDailyActionCoachingVisibleAgent(args: {
 }): Promise<CoachingVisibleAgentOutput | null> {
   const input: CoachingVisibleAgentInput = {
     user_id: args.user_id,
+    response_locale: args.response_locale,
     request_id: args.request_id,
     visible_runtime_context: {
       recent_messages: args.recent_messages.slice(-8),
