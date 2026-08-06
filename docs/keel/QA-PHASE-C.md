@@ -90,3 +90,61 @@ from llm_usage_events where request_id = '…' group by 1;
 Avant/après, en tokens et en ms. **Le `cached_tokens` n'est toujours pas lu**
 (`input_tokens_details` dans la réponse brute) : `cost_usd` surestime le
 dispatcher d'environ 7×. À câbler pendant C2.
+
+---
+
+## RÉSULTAT C1 — PASSE 1 (2026-08-06, run réel)
+
+**Le cas 1 (« la relance part ») est ROUGE, et il bloque tous les autres.**
+
+```
+POST keel-reengage-v1 → HTTP 200
+{"candidates":115,"sent":0,"armed":0,
+ "body_sources":{"composed":7},
+ "skipped_by_reason":{"no_active_plan":85,"already_nudged_this_episode":18,"opted_out":5},
+ "failures":[7× "delivery refused: unsolicited_daily_cap (episode rolled back)"]}
+```
+
+### Le défaut : l'ordre entre composer et vérifier le plafond
+
+`sendReengageNudge` (`_shared/keel/reengagement_io.ts`) fait, dans cet ordre :
+
+1. `openReengagementEpisode` — écrit une ligne ;
+2. `composeReengageBody` — **charge la doctrine du coach et appelle un modèle** ;
+3. `assertNoGuiltTripping` ;
+4. `deliverChatMessage` — **c'est SEULEMENT ici** que `decideChatDelivery`
+   consulte le plafond `DAILY_UNSOLICITED_CAP = 2` ;
+5. refus → `rollbackReengagementEpisode`, la ligne est **supprimée**.
+
+`keel_reengage` n'est dans aucun des trois ensembles privilégiés
+(`GUARANTEED_PURPOSES`, `OPT_IN_PURPOSES`, `TRANSACTIONAL_PURPOSES`) : il tombe
+en `unsolicited_within_cap`, donc `subjectToCap: true`.
+
+**Coût mesuré sur CE tick** : `llm_usage_events` sur les 5 dernières minutes →
+**8 appels, 8 221 tokens de prompt**, intégralement jetés. Le job tourne
+**toutes les heures**.
+
+### Pourquoi c'est structurel et pas un hasard de fixtures
+
+Le plafond est journalier et **partagé** avec tous les autres messages non
+sollicités (pulse du soir, point hebdo). Un élève qui a déjà reçu ses deux
+messages du jour ne peut pas recevoir de relance — mais le job le découvre
+après avoir payé sa composition. Plus la boucle proactive est vivante, plus la
+relance paie pour rien.
+
+### La correction, et ce qu'elle ne doit pas casser
+
+Consulter le plafond **avant** l'étape 2, sans dupliquer la décision :
+`decideChatDelivery` (`_shared/chat/delivery_policy.ts`) est déjà un **module
+pur**. L'appeler en pré-vérification puis laisser `deliverChatMessage` trancher
+pour de bon garde une seule source de vérité — deux implémentations du plafond
+seraient le vrai piège.
+
+⚠️ Ne PAS transformer `keel_reengage` en purpose garanti pour contourner : le
+plafond de 2/jour est une protection produit, pas un obstacle technique.
+
+### Ce que la passe 1 n'a donc PAS pu juger
+
+Les cas 2 à 8 (armement, scope, carve-out, borne, safety, effet durable,
+lexique) attendent qu'une relance parte réellement. Le flow de reprise reste
+**non vérifié en conditions réelles**.
