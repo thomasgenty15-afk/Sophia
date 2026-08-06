@@ -76,10 +76,43 @@ C'est la carte d'entrée de C3 à C8. Elle a déjà livré un défaut à elle se
 | `keel_reengage` | 12 | 619 | — | 23 | 1 881 |
 | `winback_reengagement_extractor_v1` | 6 | 566 | — | 102 | 2 441 |
 
-**Ce que la colonne « en cache » dit du reste.** Seul `dispatcher-v2-llm`
-rapporte un taux de cache : c'est le seul à passer par le chemin OpenAI
-Responses. Tous les autres sont sur Gemini, qui ne rend pas ce champ — d'où le
-`NULL`, qui veut dire « pas de mesure », pas « pas de cache ».
+**⚠️ Correction de ce que j'ai écrit ici d'abord.** J'avais expliqué les `NULL`
+de la colonne « en cache » par « tous les autres sont sur Gemini, qui ne rend
+pas ce champ ». **C'est faux**, et la mesure par `provider`/`model` le montre :
+
+| source | provider / model | n | tok | en cache | ms |
+|---|---|---|---|---|---|
+| `dispatcher-v2-llm` | openai / gpt-5.4-mini | 41 | 15 030 | **11 264 (75 %)** | 3 806 |
+| `sophia-brain:companion` | openai / gpt-5.4-mini | 30 | 6 787 | **1 593 (23 %)** | 2 744 |
+| `safety_crisis.local_dispatcher` | openai / gpt-5.4-mini | 1 | 6 592 | **0** | 5 102 |
+| `generate-meal-v1` | openai / gpt-5.4-mini | 8 | 3 019 | 0 | 27 850 |
+
+Tout ce qui est lourd est sur **OpenAI**. Les `NULL` ne disent donc pas « pas de
+mesure » ici : ils disent que ces appels **n'ont réellement pas de cache**.
+
+Deux causes distinctes, à ne pas confondre :
+
+- **`safety_crisis`** : appelé une fois en quatre heures. Le cache d'OpenAI
+  expire en quelques minutes — une lane rare ne peut structurellement pas en
+  bénéficier. Rien à corriger côté prompt.
+- **`sophia-brain:companion` à 23 %** : celui-là tourne à **chaque tour normal**,
+  et 77 % de ses 6 787 tokens sont refacturés plein tarif à chaque fois. Un
+  préfixe stable se met en cache ; du contenu variable placé tôt le casse. C'est
+  la cible mesurable de C5, et elle est probablement plus rentable que tout ce
+  qui reste sur le dispatcher.
+
+### Composition du prompt `safety_crisis.local_dispatcher` (24 271 car. ≈ 6 068 tok)
+
+| bloc | tokens |
+|---|---|
+| doctrine + schéma de sortie | ~4 845 |
+| 3 few-shots | ~1 223 |
+| dont `no_tooling` (×4) | ~199 |
+
+Rien d'évidemment gaspillé : le gros est la doctrine safety elle-même. Le champ
+`no_tooling.product_help_called` reste **inerte exprès** (décision A.5 : c'est la
+forme attendue du modèle, le retirer change le contrat LLM sur la lane où il
+faut être le plus conservateur, pour 199 tokens sur une lane rare).
 
 **Ce que la ligne 8 a livré.** `winback_reengagement_extractor_v1` : 6 appels en
 90 min pour **zéro information**. L'extraction du motif de décrochage lisait
@@ -115,7 +148,9 @@ restaurant avec des amis. »* : `declare_deviation` **1 fois**, `plan_question`
 Deux tiers des annonces d'indisponibilité étaient donc perdues — le jour restait
 dans le dénominateur d'adhérence — et l'élève recevait en prime une escalade.
 
-### ❌ RED OUVERT — l'ancrage des jours nommés est instable
+### ✅ FERMÉ — l'ancrage des jours nommés (voir C3-bis plus bas)
+
+### ❌ (historique) l'ancrage des jours nommés est instable
 
 Sur les 3 passes corrigées ci-dessus, avec **aujourd'hui = jeudi 2026-08-06**,
 *« Jeudi soir »* a produit :
@@ -133,7 +168,7 @@ Le décalage n'est pas « jeudi prochain » : c'est **+1 jour**. Une déviation
 Cohérent avec [[date-anchoring-instability-rose-hard15]] et
 [[paul-untested16-durable-effect-reds]]. C'est le premier item de la reprise.
 
-### ❌ RED OUVERT — `plan_question` promet un canal qui n'existe pas
+### ✅ FERMÉ — `plan_question` promettait un canal qui n'existe pas
 
 `skills/plan_question/renderer.ts:81` (`escalationText`) rend :
 
@@ -150,7 +185,47 @@ on it » est faux** : il n'existe aucun canal coach → élève
 attend une réponse que rien ne peut lui livrer.
 
 Le gabarit est aussi **codé en dur en anglais**, dans un renderer qui reçoit
-pourtant une `LocalePack`.
+pourtant une `LocalePack`. *(La phrase est corrigée ; la traduction du renderer
+reste ouverte — elle appartient au chantier locale, pas à celui-ci.)*
+
+---
+
+## RÉSULTAT C3-bis — les deux rouges refermés (2026-08-06)
+
+### Ce que la correction a appris, et qui vaut plus que la correction
+
+Donner au modèle une table `named_day_calendar` (les 8 prochains jours civils
+avec leur ISO et leur nom dans les deux langues) **n'a pas suffi**. Mesuré juste
+après l'avoir livrée :
+
+| phrase | résolu | verdict |
+|---|---|---|
+| « **Samedi** soir je mange au restaurant » | `2026-08-08` | ✅ |
+| « **Jeudi** soir je mange au restaurant » (un jeudi) | `2026-08-07` | ❌ **3/3** |
+
+Le modèle **lisait** la table pour un jour futur et refusait qu'un jour *nommé*
+puisse être aujourd'hui. Ce n'était donc pas du jitter : c'était une règle qu'il
+appliquait — « un jour nommé est forcément devant ». Une table de données ne
+défait pas un a priori ; il faut le nommer et le contredire explicitement.
+
+Après ajout de la règle adversariale (« c'est le seul cas où tu te trompes, et
+tu t'y trompes systématiquement »), avec sa mesure dans le prompt :
+
+| phrase | 3 passes | routage |
+|---|---|---|
+| « Jeudi soir… » | `2026-08-06` **3/3** | `normal_reply` + effet |
+| « Samedi soir… » | `2026-08-08` **3/3** | `normal_reply` + effet |
+
+**6/6.** Et la confusion résiduelle avec `plan_question` — qui tenait encore à
+1/3 sur « samedi » après le correctif de C3 — disparaît avec.
+
+### Le piège d'arithmétique, pour la prochaine fois
+
+`buildNamedDayCalendar` fait de l'arithmétique **de calendrier**
+(`Date.UTC(y, m, d + offset)`), jamais `now + offset * 86_400_000`. Ajouter 24 h
+autour d'un changement d'heure retombe sur le même jour civil ou en saute un —
+c'est exactement le décalage de ±1 jour qu'on corrigeait. Le test épingle la fin
+de l'heure d'été 2026 (le 25 octobre dure 25 h à Paris) et un passage d'année.
 
 ## C2 à C8 — l'ordre, et pourquoi
 

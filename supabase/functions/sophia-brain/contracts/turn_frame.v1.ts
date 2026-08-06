@@ -43,6 +43,26 @@ export type DirectEffectTimeContext = {
   user_locale: string;
   user_local_datetime: string;
   user_local_human: string;
+  /**
+   * LES 8 PROCHAINS JOURS CIVILS DE L'ÉLÈVE, déjà résolus — aujourd'hui inclus.
+   *
+   * Chaque entrée porte sa date ISO et son nom dans la locale de l'élève ET en
+   * anglais, parce qu'un élève `fr-FR` écrit parfois « Thursday ».
+   *
+   * Existe pour que « jeudi » soit une LECTURE et non un calcul. Sans elle, le
+   * modèle n'avait le jour courant que dans la prose de `user_local_human` :
+   * mesuré un JEUDI, « jeudi soir » ressortait en 2026-08-07 (vendredi) une
+   * passe sur deux. Un décalage de +1 jour écrit l'effet sur le mauvais jour.
+   *
+   * Optionnel: un contexte temporel construit avant ce champ reste valide, et
+   * une timezone illisible rend un tableau vide plutôt que de faire tomber le
+   * tour. Absent ⇒ le modèle retombe sur `user_local_human`, comme avant.
+   */
+  named_day_calendar?: Array<{
+    iso: string;
+    offset: number;
+    names: string[];
+  }>;
 };
 
 export type SkillSignal = {

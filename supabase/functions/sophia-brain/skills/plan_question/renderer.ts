@@ -78,9 +78,24 @@ function escalationText(
       "not going to green-light it myself."
     : "That one sits outside what your coach set on this line, so I am not " +
       "going to green-light it myself.";
-  return `${opener} I have passed your question to them with exactly what ` +
-    "you told me — they will come back on it. Nothing in your plan has " +
-    "changed in the meantime.";
+  // ── « THEY WILL COME BACK ON IT » ÉTAIT FAUX, ET C'ÉTAIT LA RÈGLE LA PLUS
+  //    VIOLÉE DU PRODUIT ──────────────────────────────────────────────────────
+  //
+  // La première moitié de cette phrase est vraie: la question part bien en
+  // `contract_change_requests`, une file que le coach voit. La seconde ne
+  // l'était pas. Il n'existe AUCUN canal 1:1 coach → élève
+  // (`docs/keel/MODEL.md`): le coach écrit une doctrine et un programme pour
+  // toute sa cohorte, jamais un message à quelqu'un. Personne ne « revient »
+  // vers cet élève — il attendait une réponse que rien ne pouvait lui livrer.
+  //
+  // Ce que le coach PEUT faire est réel mais d'une autre nature: rouvrir la
+  // ligne, élargir la `swap_policy`. Ça se manifeste dans le PLAN, pas dans une
+  // bulle de conversation. La phrase le dit maintenant, et rend la main à
+  // l'élève au lieu de le faire patienter — c'est la règle produit qui interdit
+  // toute copie mettant l'élève en attente.
+  return `${opener} Your question is with them now, word for word. ` +
+    "Nothing in your plan has changed, so keep following the line as " +
+    "written; if they open it up, you will see it in your plan.";
 }
 
 const DENY_TEXT =

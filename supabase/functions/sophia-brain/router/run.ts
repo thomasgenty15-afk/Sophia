@@ -3130,6 +3130,11 @@ export async function processMessage(
         user_locale: userTime.user_locale,
         user_local_datetime: userTime.user_local_datetime,
         user_local_human: userTime.user_local_human,
+        // LES JOURS NOMMÉS, DÉJÀ RÉSOLUS. Sans cette ligne, le modèle n'avait
+        // le jour courant que dans la prose de `user_local_human` et devait
+        // faire l'arithmétique lui-même: un JEUDI, « jeudi soir » ressortait en
+        // 2026-08-07 (vendredi) une passe sur deux.
+        named_day_calendar: userTime.named_day_calendar,
       }
       : undefined,
     plan_snapshot: planItemSnapshot,

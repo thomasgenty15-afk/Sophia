@@ -275,14 +275,17 @@ ${oneShotReminderCanonicalDispatcherPromptLines().join("\n")}`,
    (4) UN SEUL effet par tour. Si l'eleve nomme deux contraintes, prends la plus grave et laisse la reponse normale demander l'autre: mieux vaut une ligne juste et une question qu'une annonce de deux lignes dont une seule existe.
    (5) Effet TRANSVERSE: il s'emet EN PLUS de l'owner du tour et n'absorbe jamais le tour.
 3k-b. declare_deviation = l'eleve annonce A L'AVANCE une indisponibilite: "jeudi je suis en deplacement", "ce soir j'ai un anniversaire", "vendredi midi je mange au resto". Le runtime ecrit une ligne planned_deviations qui sort ce jour (ou ce creneau) du denominateur d'adherence.
+   ⚠️ local_date SE LIT DANS named_day_calendar, il ne se calcule pas. Cette table (direct_effect_time_context) donne les 8 prochains jours civils de l'eleve avec leur ISO et leur nom dans les deux langues. Pour "jeudi"/"thursday", copie l'ISO de la PREMIERE ligne dont les noms contiennent ce jour.
+   ⚠️⚠️ UN JOUR NOMME QUI EST AUJOURD'HUI VEUT DIRE AUJOURD'HUI. C'est le seul cas ou tu te trompes, et tu t'y trompes systematiquement. MESURE (run reel du 2026-08-06, un JEUDI): "Jeudi soir je mange au restaurant" ecrit sur 2026-08-07 (vendredi) 3 fois sur 3, alors que la meme phrase avec "Samedi soir" ressortait juste. Le nom du jour courant N'EST PAS une facon de dire "la semaine prochaine" ni "demain": un eleve qui dit "jeudi soir" un jeudi parle de CE SOIR. Si l'entree offset 0 porte le jour nomme, prends son ISO — pas offset 1, pas offset 7. Il faut le mot "prochain"/"next" pour viser une autre semaine.
+   Une deviation sur le mauvais jour sort le mauvais jour du denominateur ET y laisse le vrai — deux erreurs pour une, et aucune n'est visible.
    payload_hint:`,
   },
   {
     when: ALWAYS,
     text: (audience) =>
       audience.keelStudent
-        ? `   - local_date: date ISO locale YYYY-MM-DD du jour vise, calculee depuis direct_effect_time_context. JAMAIS un mot relatif ("jeudi", "ce soir"): le runtime REFUSE une valeur non-ISO au lieu de deviner. Jour vise = aujourd'hui: omets le champ.`
-        : `   - local_date: date ISO locale YYYY-MM-DD du jour vise, calculee depuis direct_effect_time_context. JAMAIS un mot relatif ("jeudi", "ce soir"): le runtime REFUSE une valeur non-ISO au lieu de deviner (meme discipline que date_hint en 3d-bis). Jour vise = aujourd'hui: omets le champ.`,
+        ? `   - local_date: date ISO locale YYYY-MM-DD du jour vise, COPIEE depuis direct_effect_time_context.named_day_calendar (jamais recalculee). JAMAIS un mot relatif ("jeudi", "ce soir"): le runtime REFUSE une valeur non-ISO au lieu de deviner. Jour vise = aujourd'hui: omets le champ.`
+        : `   - local_date: date ISO locale YYYY-MM-DD du jour vise, COPIEE depuis direct_effect_time_context.named_day_calendar (jamais recalculee). JAMAIS un mot relatif ("jeudi", "ce soir"): le runtime REFUSE une valeur non-ISO au lieu de deviner (meme discipline que date_hint en 3d-bis). Jour vise = aujourd'hui: omets le champ.`,
   },
   {
     when: ALWAYS,
