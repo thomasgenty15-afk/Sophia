@@ -655,10 +655,35 @@ const Auth = () => {
               <h2 className="text-3xl font-bold text-emerald-600 mb-4">
                 Email verified!
               </h2>
-              <p className="text-slate-600 mb-4">
-                Setting up your space…
-              </p>
-              <Loader2 className="w-6 h-6 animate-spin text-slate-400 mx-auto" />
+              {/* `runPostSignupFlow` can fail AFTER the session exists — a
+                  `coach-signup-v1` that never answers, a role lookup that can't
+                  reach the backend. It reports that by calling `setError` and
+                  returning, and this screen used to render the spinner and
+                  nothing else: the message was set, invisible, and the page
+                  spun forever on an account that was in fact created. An error
+                  set on this branch has to be shown ON this branch, with a way
+                  to retry, or it is not an error report at all. */}
+              {error ? (
+                <>
+                  <div className="rounded-lg bg-red-50 p-3 flex items-start gap-2 max-w-xs mx-auto text-left mb-4">
+                    <AlertCircle className="h-4 w-4 text-red-400 mt-0.5 flex-shrink-0" />
+                    <p className="text-xs text-red-700 font-medium">{error}</p>
+                  </div>
+                  <button
+                    onClick={handleManualVerificationCheck}
+                    className="inline-flex justify-center items-center gap-2 py-3 px-6 rounded-2xl text-sm font-bold text-white bg-slate-900 hover:bg-indigo-600 transition-all"
+                  >
+                    Try again
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p className="text-slate-600 mb-4">
+                    Setting up your space…
+                  </p>
+                  <Loader2 className="w-6 h-6 animate-spin text-slate-400 mx-auto" />
+                </>
+              )}
             </>
           ) : (
             <>
