@@ -10,8 +10,11 @@ Deno.test("dispatcher prompt contract is minimal V1", () => {
     DISPATCHER_V2_SYSTEM_PROMPT.includes("Contrat effectif unique"),
     true,
   );
+  // Demolition B2C (2026-08-06): la seule lane conversationnelle nommee au
+  // contrat est `plan_question`. Les huit autres sont supprimees — voir la
+  // garde inversee en fin de fichier.
   assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes("skill_signals.product_help"),
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("skill_signals.plan_question"),
     true,
   );
   assertEquals(
@@ -27,33 +30,6 @@ Deno.test("dispatcher prompt contract is minimal V1", () => {
   assertEquals(
     DISPATCHER_V2_SYSTEM_PROMPT.includes("opportunite de flow signale"),
     false,
-  );
-});
-
-Deno.test("dispatcher prompt separates product help from coaching recommendation", () => {
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "product_help repond aux questions produit",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "coaching_recommendation n'est pas un clarificateur generique",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "follow-up immediat d'une explication/comparaison produit",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "blocage personnel identifiable",
-    ),
-    true,
   );
 });
 
@@ -153,134 +129,6 @@ Deno.test({
   );
 });
 
-Deno.test("dispatcher prompt defines plan realignment and boundaries", () => {
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes("skill_signals.plan_realignment"),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "product_execution_allowed=false",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "ne s'active pas pour une action precise bloquee",
-    ),
-    true,
-  );
-
-  const parsed = JSON.parse(buildDispatcherPrompt({
-    user_message: "test",
-    recent_messages: [],
-  })) as {
-    doctrine_examples: Array<{
-      user_message: string;
-      expected: {
-        skill_signals?: {
-          plan_realignment?: {
-            detected?: boolean;
-            context?: {
-              drift_type?: string;
-              scope?: string;
-              product_execution_allowed?: boolean;
-            };
-          };
-          coaching_recommendation?: { detected?: boolean };
-          product_help?: { detected?: boolean };
-        };
-      };
-    }>;
-  };
-  const drift = parsed.doctrine_examples.find((item) =>
-    item.user_message.includes("pas du tout suivi mon plan")
-  );
-  const late = parsed.doctrine_examples.find((item) =>
-    item.user_message.includes("pris trop de retard sur mon plan")
-  );
-  const action = parsed.doctrine_examples.find((item) =>
-    item.user_message.includes("Cette action est trop lourde")
-  );
-  const product = parsed.doctrine_examples.find((item) =>
-    item.user_message.includes("C'est quoi une carte de defense")
-  );
-  const tooLight = parsed.doctrine_examples.find((item) =>
-    item.user_message.includes("trop mou, corse-le")
-  );
-  const tooHeavy = parsed.doctrine_examples.find((item) =>
-    item.user_message.includes("Le plan est trop lourd cette semaine")
-  );
-
-  // paul-r7 B04: qui declenche decide la route (user → coaching, Sophia → initiatives).
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes("QUI DECLENCHE decide la route"),
-    true,
-  );
-
-  // nina-r4 B03 / paul-r6 B03: la doctrine de direction est ancree et les deux
-  // exemples opposes ne collapsent jamais l'un sur l'autre.
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "drift_type suit la DIRECTION reelle exprimee",
-    ),
-    true,
-  );
-  assertEquals(
-    tooLight?.expected.skill_signals?.plan_realignment?.context?.drift_type,
-    "plan_too_light",
-  );
-  assertEquals(
-    tooHeavy?.expected.skill_signals?.plan_realignment?.context?.drift_type,
-    "plan_too_heavy",
-  );
-
-  assertEquals(drift?.expected.skill_signals?.plan_realignment?.context
-    ?.drift_type, "lost_rhythm");
-  assertEquals(late?.expected.skill_signals?.plan_realignment?.context
-    ?.product_execution_allowed, false);
-  assertEquals(action?.expected.skill_signals?.coaching_recommendation
-    ?.detected, true);
-  assertEquals(product?.expected.skill_signals?.product_help?.detected, true);
-});
-
-Deno.test("dispatcher prompt preserves product help plus one-shot reminder multi-intent", () => {
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "question produit et une demande explicite de rappel ponctuel",
-    ),
-    true,
-  );
-
-  const parsed = JSON.parse(buildDispatcherPrompt({
-    user_message: "test",
-    recent_messages: [],
-  })) as {
-    doctrine_examples: Array<{
-      user_message: string;
-      expected: {
-        direct_effects?: Array<Record<string, unknown>>;
-        skill_signals?: Record<string, unknown>;
-      };
-    }>;
-  };
-  const example = parsed.doctrine_examples.find((item) =>
-    item.user_message.includes("Question produit") &&
-    item.user_message.includes("rappelle-moi demain a 9h")
-  );
-
-  assertEquals(Boolean(example), true);
-  assertEquals(
-    example?.expected.direct_effects?.[0]?.effect_type,
-    "create_one_shot_reminder",
-  );
-  assertEquals(
-    (example?.expected.skill_signals?.product_help as { detected?: boolean })
-      ?.detected,
-    true,
-  );
-});
-
 Deno.test("dispatcher prompt uses canonical one-shot reminder rules", () => {
   assertEquals(
     DISPATCHER_V2_SYSTEM_PROMPT.includes(
@@ -348,21 +196,6 @@ Deno.test("dispatcher prompt caps substance urge below safety high", () => {
   );
 });
 
-Deno.test("dispatcher prompt routes plan reading away from plan_realignment", () => {
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "n'est jamais plan_realignment: c'est une lecture, pas une rupture",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "rappelle-moi mes actions en cours",
-    ),
-    true,
-  );
-});
-
 // W2.B will delete this: la lane est désactivée en W2.A.
 Deno.test({
   name:
@@ -387,186 +220,6 @@ Deno.test({
     ),
     true,
   );
-});
-
-Deno.test("dispatcher prompt keeps presence-first during acute craving windows", () => {
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes("Fenetre de rupture en cours"),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "sans demander quel levier ou quelle methode utiliser, ce n'est pas coaching_recommendation",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "la reponse normale accueille d'abord (presence, co-regulation, ancrage court)",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "Ne l'active pas sur la seule description d'un craving ou d'une urge aigu en cours sans demande de levier",
-    ),
-    true,
-  );
-});
-
-Deno.test("dispatcher prompt keeps coaching out of ungrounded emotional confessions (rose-multiflow B01)", () => {
-  // Positif: la cue de vulnerabilite prime sur le moment concret d'echec.
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "La cue de VULNERABILITE prime sur le contenu concret",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "un moment/mission concret d'echec",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "le user ne doit jamais avoir a recadrer pour etre entendu",
-    ),
-    true,
-  );
-  // Anti-faux-positif: le pull explicite garde l'entree coaching.
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      'un pull explicite ("je suis preneuse"',
-    ),
-    true,
-  );
-});
-
-Deno.test("dispatcher prompt exits presence flow on transactional read (paul-triflow15 T10)", () => {
-  // Positif: une lecture d'etat pendant un flow presence actif est un topic_change,
-  // jamais un maintain — la reponse normale possede la projection plan/rappels.
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "Y COMPRIS une demande d'INFORMATION ou de LECTURE transactionnelle",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes('"c\'est quoi mes actions en cours ?"'),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "JAMAIS un maintain, meme a conversation_risk=0",
-    ),
-    true,
-  );
-  // Anti-faux-positif: la demande de methode et le retour emotionnel restent maintain.
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "une demande de METHODE sur le sujet en cours ou un retour emotionnel au meme sujet reste maintain",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      'une demande de METHODE ("concretement je fais quoi',
-    ),
-    true,
-  );
-});
-
-Deno.test("dispatcher prompt teaches canonical track_progress payload contract", () => {
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "payload_hint.status_hint parmi completed|partial|missed uniquement",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "payload_hint.target_item_id (copie exacte de active_action_candidates_for_direct_effects[].plan_item_id)",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "Le report de progres compte quel que soit le ton",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "Un imperatif de log sur une action du plan n'est pas une demande de memorisation",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "Ce direct effect est transverse",
-    ),
-    true,
-  );
-});
-
-Deno.test("dispatcher prompt separates regret from report and teaches explicit correction", () => {
-  // 3g: un enonce affectif/contrefactuel (regret, frustration, souhait
-  // retrospectif) n'est jamais un report de progres (BF-INTAKE-04 R2-B01).
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "Un enonce affectif ou contrefactuel sur une action n'est jamais un report de progres",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "revenir emotionnellement sur une action dont le resultat a deja ete rapporte dans la conversation ne produit aucun nouveau direct effect",
-    ),
-    true,
-  );
-  // 3h: la correction explicite d'un report deja fait passe par
-  // payload_hint.correction=true (seule voie qui traverse le guard
-  // contradicts_same_day_evidence).
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes("payload_hint.correction=true"),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "ne re-emets pas un statut oppose sur une action deja rapportee",
-    ),
-    true,
-  );
-});
-
-Deno.test("dispatcher prompt track_progress examples use canonical status enum and item id", () => {
-  const parsed = JSON.parse(buildDispatcherPrompt({
-    user_message: "test",
-    recent_messages: [],
-  })) as {
-    doctrine_examples: Array<{
-      expected: {
-        direct_effects?: Array<{
-          effect_type?: string;
-          payload_hint?: Record<string, unknown>;
-        }>;
-      };
-    }>;
-  };
-
-  const trackExamples = parsed.doctrine_examples
-    .flatMap((example) => example.expected.direct_effects ?? [])
-    .filter((effect) => effect.effect_type === "track_progress_plan_item");
-  assertEquals(trackExamples.length >= 2, true);
-  for (const effect of trackExamples) {
-    const status = effect.payload_hint?.status_hint;
-    assertEquals(
-      status === "completed" || status === "partial" || status === "missed",
-      true,
-    );
-    assertEquals(typeof effect.payload_hint?.target_item_id, "string");
-  }
 });
 
 // W2.B will delete this: la lane est désactivée en W2.A.
@@ -666,48 +319,6 @@ Deno.test("dispatcher prompt treats reminder verification questions as non-creat
   );
 });
 
-Deno.test("dispatcher prompt treats track verification questions and vague targets as non-writes", () => {
-  // Paul r1 T15 (question de statut re-committee) + T8 (anaphore committee
-  // sans confirmation): la doctrine doit interdire l'emission sur une
-  // question, et degrader la confiance sur une cible devinee.
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "Une question de verification ou de statut",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "n'est jamais un nouveau report: n'emets aucun track_progress_plan_item",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "Un statut se lit dans le contexte, il ne se re-ecrit pas",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "sans referent clair dans le message ou le tour immediatement precedent",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "target_status=inferred et confidence_band=medium au plus",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "Une cible devinee n'est jamais identified/high",
-    ),
-    true,
-  );
-});
-
 // W2.B will delete this: la lane est désactivée en W2.A.
 Deno.test({
   name:
@@ -759,26 +370,6 @@ Deno.test("dispatcher prompt carries night-time anchoring and cardinality contra
   );
 });
 
-Deno.test("dispatcher prompt: demande explicite de potion = coaching_recommendation, jamais un rappel substitue (P8-B, eva-hard23 T6/T7)", () => {
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes("DEMANDE EXPLICITE DE POTION"),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "n'emets JAMAIS create_one_shot_reminder comme substitut d'une potion",
-    ),
-    true,
-  );
-  // Anti-faux-positif: la vraie co-demande de rappel reste servie.
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "'et rappelle-moi a 22h de la faire') garde son create normal",
-    ),
-    true,
-  );
-});
-
 Deno.test("dispatcher prompt: co-demande de N rappels = N entrees direct_effects (P8-A, rose-p7verify T13/T14)", () => {
   assertEquals(
     DISPATCHER_V2_SYSTEM_PROMPT.includes("CO-DEMANDE DE N RAPPELS"),
@@ -795,24 +386,6 @@ Deno.test("dispatcher prompt: co-demande de N rappels = N entrees direct_effects
   assertEquals(
     DISPATCHER_V2_SYSTEM_PROMPT.includes(
       "reste UNE entree (clarify du choix)",
-    ),
-    true,
-  );
-});
-
-Deno.test("dispatcher prompt keeps presence-first altitude on emotional lows (eva-r1 T1)", () => {
-  // Charge emotionnelle basse sans demande de levier => reponse normale
-  // d'accueil, pas de signal coaching par reflexe (generalisation de la
-  // regle presence-first du craving aigu).
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "Meme regle d'altitude pour un tour a charge emotionnelle basse",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "la reponse normale accueille et valide d'abord",
     ),
     true,
   );
@@ -845,109 +418,6 @@ Deno.test("dispatcher prompt re-arms a pending write clarification (chantier O4)
   );
 });
 
-Deno.test("dispatcher prompt anchors retro-dated reports on a resolved ISO date_hint (eva-r2 B01, rose-r5 B06)", () => {
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "Format strict: date ISO locale YYYY-MM-DD du jour vise",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "Jamais de mot relatif (\"hier\", \"ce soir\") dans date_hint",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "Report d'aujourd'hui: omets date_hint",
-    ),
-    true,
-  );
-  // L'exemple doctrine n'enseigne plus le format relatif.
-  const parsed = JSON.parse(buildDispatcherPrompt({
-    user_message: "test",
-    recent_messages: [],
-  })) as {
-    doctrine_examples: Array<{
-      user_message: string;
-      expected: {
-        direct_effects?: Array<{ payload_hint?: { date_hint?: string } }>;
-      };
-    }>;
-  };
-  const retro = parsed.doctrine_examples.find((example) =>
-    example.user_message.includes("fait hier soir")
-  );
-  assertEquals(Boolean(retro), true);
-  const dateHint = retro?.expected.direct_effects?.[0]?.payload_hint
-    ?.date_hint ?? "";
-  assertEquals(dateHint.includes("YYYY-MM-DD"), true);
-  assertEquals(dateHint === "hier soir", false);
-});
-
-Deno.test("dispatcher prompt requires a verbatim target_evidence quote and defines target retarget (G1/G2, alex-r5 T7/T8)", () => {
-  // 3d-ter: la cible identifiee exige une citation verbatim du user.
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "payload_hint.target_evidence: OBLIGATOIRE avec target_status=identified",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "CITATION EXACTE, copiee mot pour mot",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "Si tu ne peux citer AUCUN mot qui nomme une action precise",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes("n'invente pas de citation"),
-    true,
-  );
-  // 3h-bis: correction de cible = retarget structurel, jamais un simple accuse.
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes("Correction de CIBLE"),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "payload_hint.retarget_from = plan_item_id de l'action erronee",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "Ne reponds JAMAIS a une correction de cible par un simple accuse sans emettre cet effet",
-    ),
-    true,
-  );
-  // L'exemple doctrine porte la citation.
-  const parsed = JSON.parse(buildDispatcherPrompt({
-    user_message: "test",
-    recent_messages: [],
-  })) as {
-    doctrine_examples: Array<{
-      user_message: string;
-      expected: {
-        direct_effects?: Array<{ payload_hint?: { target_evidence?: string } }>;
-      };
-    }>;
-  };
-  const retro = parsed.doctrine_examples.find((example) =>
-    example.user_message.includes("sas de decompression")
-  );
-  assertEquals(
-    retro?.expected.direct_effects?.[0]?.payload_hint?.target_evidence,
-    "sas de decompression sans fumer",
-  );
-});
-
 Deno.test("dispatcher prompt: un fragment temporel incident dans une recherche n'est jamais un rappel (eva-r9 B02)", () => {
   // Positif: la definition d'explicite exige un acte de rappel adresse a Sophia.
   assertEquals(
@@ -972,28 +442,6 @@ Deno.test("dispatcher prompt: un fragment temporel incident dans une recherche n
   // Anti-faux-positif: la demande imperative reste couverte par le bloc.
   assertEquals(
     DISPATCHER_V2_SYSTEM_PROMPT.includes("'rappelle-moi'"),
-    true,
-  );
-});
-
-Deno.test("dispatcher prompt: un recall de session n'est jamais product_help (alex-r3 B01)", () => {
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "c'etait quoi deja la potion que tu m'avais conseillee ?",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "la reponse vient des decisions de session, pas d'une explication produit",
-    ),
-    true,
-  );
-  // Anti-faux-positif: comprendre le produit reste product_help.
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "\"a quoi sert une potion ?\" / \"ou je trouve mes potions ?\" restent product_help",
-    ),
     true,
   );
 });
@@ -1074,28 +522,6 @@ Deno.test("dispatcher prompt: mise en doute factuelle sante ⇒ needs_research (
   );
 });
 
-Deno.test("dispatcher prompt: depot reflexif sans pull ⇒ rester, jamais proposer (P5-H, alex-untested20 T8)", () => {
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "Un depot reflexif auto-derisoire",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "le doute bascule vers rester (presence/accueil), jamais vers proposer",
-    ),
-    true,
-  );
-  // Anti-faux-positif conservé: pull explicite → coaching.
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      'un pull explicite ("je suis preneuse", "tu ferais quoi ?", "aide-moi") route coaching_recommendation normalement',
-    ),
-    true,
-  );
-});
-
 // W2.B will delete this: la lane est désactivée en W2.A.
 Deno.test({
   name:
@@ -1116,74 +542,7 @@ Deno.test({
   );
 });
 
-Deno.test("dispatcher prompt: devalorisation implicite ⇒ accueil d'abord, pas de pitch (P5-H, rose-hard17 T1)", () => {
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "La devalorisation IMPLICITE compte aussi",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "aucun pitch de dispositif dans la meme reponse",
-    ),
-    true,
-  );
-});
-
 // ── P6-E (vague 21) ─────────────────────────────────────────────────────────
-
-Deno.test("dispatcher prompt: recap read-only jamais plan_realignment, mutation exigee (P6-E, alex-untested21 R1-B01)", () => {
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "plan_realignment exige une intention de MUTATION du plan",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "l'expression d'un FLOU n'en est pas une",
-    ),
-    true,
-  );
-  // Anti-faux-positif conservé.
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      '"allege mon plan, c\'est devenu trop lourd" reste plan_realignment',
-    ),
-    true,
-  );
-});
-
-Deno.test("dispatcher prompt: retractation d'un fait confie = accuse d'oubli, jamais plan_realignment (P6-E, eva-hard21 R1-B02)", () => {
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "Une RETRACTATION d'un fait confie",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "JAMAIS plan_realignment quand le fait retire n'est pas un item du plan actif",
-    ),
-    true,
-  );
-});
-
-Deno.test("dispatcher prompt: capacite produit explicite preempte presence pour le FAIT (P6-E, paul-hard21 R1-B03)", () => {
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "question de CAPACITE PRODUIT explicite",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "La detresse PURE sans question produit reste presence",
-    ),
-    true,
-  );
-});
 
 // ── P7-A (vague 22) ─────────────────────────────────────────────────────────
 
@@ -1249,19 +608,6 @@ Deno.test("dispatcher prompt: jours nommes denombrables = fan-out once×N, jamai
   );
 });
 
-Deno.test("dispatcher prompt: co-demande track N items — 2e exemple invalide eva-hard25 + test mecanique (P12-B)", () => {
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes("2e INVALIDE observe (eva-hard25 T2"),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "compte les items du plan que le message coche, emets exactement ce nombre d'entrees",
-    ),
-    true,
-  );
-});
-
 Deno.test("dispatcher prompt: mention incidente d'un rappel existant = aucun effet (P12-B, eva-hard25 R1-B07)", () => {
   assertEquals(
     DISPATCHER_V2_SYSTEM_PROMPT.includes(
@@ -1300,121 +646,6 @@ Deno.test("legacy assembly is the exported constant, unchanged", () => {
   );
 });
 
-Deno.test("KEEL assembly drops the lanes routers.ts closes to a student", () => {
-  const keel = buildDispatcherSystemPrompt({ keelStudent: true });
-
-  // Doctrine et contrats des trois lanes fermees.
-  assertEquals(keel.includes("Categories coaching_recommendation obligatoires"), false);
-  assertEquals(keel.includes("Contrat coaching_recommendation:"), false);
-  assertEquals(keel.includes("Contrat plan_realignment:"), false);
-  assertEquals(keel.includes("4. skill_signals.product_help seulement si"), false);
-  assertEquals(keel.includes("6. skill_signals.plan_realignment si"), false);
-
-  // Mais les NOMS restent: les anti-faux-positifs de presence y renvoient, et
-  // les leur retirer donnerait au modele un ordre et son contraire.
-  assertEquals(keel.includes("- skill_signals.product_help"), true);
-  assertEquals(
-    keel.includes(
-      "hors product_help, coaching_recommendation, plan_realignment, plan_question ou presence_conversation",
-    ),
-    true,
-  );
-});
-
-Deno.test("KEEL assembly drops track_progress_plan_item and keeps what serves another lane", () => {
-  const keel = buildDispatcherSystemPrompt({ keelStudent: true });
-
-  // Regle 3k: l'effet n'existe pas pour un eleve, et
-  // `active_action_candidates_for_direct_effects` part vide.
-  assertEquals(keel.includes("3. direct_effects.track_progress_plan_item"), false);
-  assertEquals(keel.includes("3d. Payload canonique track_progress_plan_item"), false);
-  assertEquals(keel.includes("3d-bis. payload_hint.date_hint"), false);
-  assertEquals(keel.includes("3d-ter. payload_hint.target_evidence"), false);
-  assertEquals(keel.includes("3h-bis. Correction de CIBLE"), false);
-
-  // Gardees: chacune sert AUSSI une lane ouverte a un eleve.
-  // 3d-ter-bis: deux effets de types distincts dans un tour.
-  assertEquals(keel.includes("3d-ter-bis. DEUX EFFETS DE TYPES DISTINCTS"), true);
-  // 3e: une question de verification / une anti-instruction n'est pas une
-  // ecriture — la regle 3k-a(4) y renvoie explicitement.
-  assertEquals(keel.includes("3e. Une question de verification"), true);
-  // 3g / 3g-ter: reprise d'un create_one_shot_reminder.
-  assertEquals(keel.includes("3g. Si flow_state_context.pending_direct_effect_clarification"), true);
-  assertEquals(keel.includes("3g-ter. Si flow_state_context.pending_safety_deferred_reminder"), true);
-});
-
-Deno.test("KEEL assembly keeps everything a student turn can actually reach", () => {
-  const keel = buildDispatcherSystemPrompt({ keelStudent: true });
-
-  assertEquals(keel.includes("Priorites:"), true);                       // safety
-  assertEquals(keel.includes("2. direct_effects.create_one_shot_reminder"), true);
-  assertEquals(keel.includes("3k. EFFETS DURABLES KEEL"), true);
-  assertEquals(keel.includes("3k-a. log_protocol_event"), true);
-  assertEquals(keel.includes("3k-b. declare_deviation"), true);
-  assertEquals(keel.includes("3k-c. declare_safety_constraint"), true);
-  assertEquals(keel.includes("Contrat plan_question (KEEL"), true);
-  assertEquals(keel.includes("presence_conversation = le user aborde"), true);
-  assertEquals(keel.includes("session_style_commitment_hint est un champ RACINE"), true);
-  assertEquals(keel.includes("memory_plan:"), true);
-});
-
-Deno.test("KEEL assembly leaves no cross-reference to a rule it dropped", () => {
-  const keel = buildDispatcherSystemPrompt({ keelStudent: true });
-  // Les trois renvois que les regles KEEL faisaient vers des regles track.
-  assertEquals(keel.includes("Meme regle qu'en 3d "), false);
-  assertEquals(keel.includes("Effet TRANSVERSE comme en 3c"), false);
-  assertEquals(keel.includes("meme discipline que date_hint en 3d-bis"), false);
-  // Ce que la version legacy dit toujours, elle.
-  assertEquals(DISPATCHER_V2_SYSTEM_PROMPT.includes("Meme regle qu'en 3d "), true);
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes("Effet TRANSVERSE comme en 3c"),
-    true,
-  );
-});
-
-Deno.test("KEEL payload ships only the signals and examples a student turn can serve", () => {
-  const args = {
-    user_message: "j'ai fait ma marche de 30 minutes",
-    recent_messages: [],
-    plan_snapshot: null,
-    keel_plan_context: "=== KEEL PLAN ===",
-  };
-  const keel = JSON.parse(
-    buildDispatcherPrompt({ ...args, keel_student: true }),
-  ) as {
-    expected_shape: { skill_signals: Record<string, unknown> };
-    doctrine_examples: Array<{ user_message: string }>;
-  };
-  const legacy = JSON.parse(
-    buildDispatcherPrompt({ ...args, keel_plan_context: null }),
-  ) as {
-    expected_shape: { skill_signals: Record<string, unknown> };
-    doctrine_examples: Array<{ user_message: string }>;
-  };
-
-  assertEquals(Object.keys(keel.expected_shape.skill_signals), [
-    "plan_question",
-    "presence_conversation",
-  ]);
-  assertEquals(Object.keys(legacy.expected_shape.skill_signals), [
-    "product_help",
-    "coaching_recommendation",
-    "plan_realignment",
-    "presence_conversation",
-  ]);
-
-  // « J'ai fait ma marche » enseignait track_progress_plan_item — le cas
-  // exact que la regle 3k-a documente comme non logue 4 fois sur 4 en run
-  // reel cote KEEL. Il ne part plus a un eleve.
-  const keelMessages = keel.doctrine_examples.map((e) => e.user_message);
-  assertEquals(keelMessages.includes("J'ai fait ma marche"), false);
-  assertEquals(keelMessages.includes("C'est quoi une carte de defense ?"), false);
-  assertEquals(keelMessages.includes("j'ai pris mon magnesium"), true);
-  assertEquals(keelMessages.includes("Rappelle-moi demain a 9h d'appeler Paul"), true);
-  assertEquals(keel.doctrine_examples.length, 8);
-  assertEquals(legacy.doctrine_examples.length, 28);
-});
-
 Deno.test("a payload built without the flag stays byte-identical to the legacy one", () => {
   const args = {
     user_message: "j'ai fait ma marche",
@@ -1426,4 +657,34 @@ Deno.test("a payload built without the flag stays byte-identical to the legacy o
     buildDispatcherPrompt(args),
     buildDispatcherPrompt({ ...args, keel_student: false }),
   );
+});
+
+// ── GARDE INVERSÉE (démolition B2C, 2026-08-06) ──────────────────────────────
+//
+// Les huit lanes conversationnelles du produit d'avant sont supprimées. Cette
+// garde remplace les ~26 cas qui prouvaient leur doctrine : elle prouve
+// désormais qu'elles ne REVIENNENT pas dans le prompt. Même forme que
+// `turn_intent_arbitrator stays deleted` (router/user_facing_messages_
+// architecture_test.ts), le précédent méthodologique du dépôt.
+//
+// CONDITION DE DÉSARMEMENT : si une de ces lanes est un jour réintroduite
+// délibérément, ce test doit être amendé DANS LE MÊME LOT, jamais supprimé en
+// silence.
+Deno.test("deleted conversation lanes stay deleted — the prompt never names them again", () => {
+  const prompt = buildDispatcherSystemPrompt({ keelStudent: true });
+  const legacy = buildDispatcherSystemPrompt({ keelStudent: false });
+  for (
+    const lane of [
+      "skill_signals.product_help",
+      "skill_signals.coaching_recommendation",
+      "skill_signals.plan_realignment",
+      "presence_conversation = le user",
+      "Categories coaching_recommendation",
+    ]
+  ) {
+    assertEquals(prompt.includes(lane), false, `KEEL prompt names ${lane}`);
+    assertEquals(legacy.includes(lane), false, `legacy prompt names ${lane}`);
+  }
+  // Les deux assemblages ont CONVERGÉ: il n'y a plus qu'une audience.
+  assertEquals(prompt.length > 0, true);
 });
