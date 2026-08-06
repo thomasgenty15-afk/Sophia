@@ -7,7 +7,8 @@ export type ActiveFlowState = {
 };
 
 export type ActiveLocalConversationFlowSkillId =
-  | "safety_crisis";
+  | "safety_crisis"
+  | "keel_reengagement_resume_v1";
 
 // W2.A: `feature_opportunity` et `potion_support_admission_v1` sont retirés du
 // registre en dur. Conséquence voulue: un état de flow résiduel déjà écrit en
@@ -17,6 +18,7 @@ const ACTIVE_LOCAL_CONVERSATION_FLOW_SKILL_IDS = new Set<
   ActiveLocalConversationFlowSkillId
 >([
   "safety_crisis",
+  "keel_reengagement_resume_v1",
 ]);
 
 function legacyKey(...parts: string[]): string {
@@ -111,12 +113,16 @@ export function isStaleActiveLocalFlowState(
     String(record.skill_id ?? "") === "potion_support_admission_v1" &&
     record.working_state?.potion_support_admission?.awaiting_first_reply === true
   ) return false;
-  // ⚠️ LE CARVE-OUT DU RÉENGAGEMENT EST PARTI AVEC `winback_reengagement_v1`,
-  // ET IL DEVRA REVENIR (chantier B, flow de reprise après relance KEEL).
-  // Sa raison n'a pas disparu avec la lane : un élève peut répondre à une
-  // relance PLUSIEURS JOURS après son armement. Une ouverture proactive
-  // possède exactement une réponse sémantique, pas un timer de 4 h — sans ce
-  // carve-out, le flow de reprise expirera avant que l'élève ne réponde.
+  // LE CARVE-OUT DU RÉENGAGEMENT, restauré par le chantier B sur le flow qui
+  // le remplace. Sa raison n'avait pas disparu avec `winback_reengagement_v1` :
+  // un élève répond à une relance PLUSIEURS JOURS après son armement. Une
+  // ouverture proactive possède exactement une réponse sémantique, pas un timer
+  // de 4 h — sans ce carve-out, le flow expire avant que l'élève ne réponde.
+  if (
+    String(record.skill_id ?? "") === "keel_reengagement_resume_v1" &&
+    record.working_state?.keel_reengagement_resume_local_state
+        ?.awaiting_first_reply === true
+  ) return false;
   const touchedAt = Date.parse(
     String(record.updated_at ?? record.started_at ?? ""),
   );

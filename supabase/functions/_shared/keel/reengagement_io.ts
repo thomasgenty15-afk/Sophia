@@ -676,7 +676,9 @@ export async function sendReengageNudge(
 export async function closeKeelReengagementEpisodeOnInbound(
   db: Db,
   args: { userId: string; atIso: string; stopped?: boolean },
-): Promise<{ closed: boolean }> {
+): Promise<
+  { closed: boolean; episodeId: string | null; daysInactiveAtOpen: number | null }
+> {
   try {
     const { data, error } = await db
       .from("reengagement_episodes")
@@ -694,12 +696,26 @@ export async function closeKeelReengagementEpisodeOnInbound(
       .eq("user_id", args.userId)
       .eq("source", KEEL_EPISODE_SOURCE)
       .is("closed_at", null)
-      .select("id");
+      .select("id, days_inactive_at_open");
     if (error) throw error;
-    return { closed: ((data ?? []) as unknown[]).length > 0 };
+    const rows = (data ?? []) as Array<
+      { id?: unknown; days_inactive_at_open?: unknown }
+    >;
+    const row = rows[0];
+    return {
+      closed: rows.length > 0,
+      // PHASE B — la ligne voyage avec le verdict, et c'est deliberé: c'est
+      // l'unique instant où le runtime sait « cette réponse rompt un silence ».
+      // La relire plus tard est impossible (l'épisode est clos), et la relire
+      // AVANT coûterait une requête pour un fait qu'on tient déjà.
+      episodeId: typeof row?.id === "string" ? row.id : null,
+      daysInactiveAtOpen: Number.isFinite(Number(row?.days_inactive_at_open))
+        ? Number(row?.days_inactive_at_open)
+        : null,
+    };
   } catch (error) {
     console.warn("[keel/reengagement] episode close on inbound failed", error);
-    return { closed: false };
+    return { closed: false, episodeId: null, daysInactiveAtOpen: null };
   }
 }
 

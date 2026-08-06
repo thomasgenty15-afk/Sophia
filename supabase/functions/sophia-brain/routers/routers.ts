@@ -176,6 +176,7 @@ function isActiveConversationSkill(
   skillId:
     | "safety_crisis"
     | "disordered_eating_guard"
+    | "keel_reengagement_resume_v1"
 ,
 ): boolean {
   const record = activeSkillState && typeof activeSkillState === "object" &&
@@ -358,6 +359,39 @@ export function runConversationRouters(input: {
       arbitration_decision: "continue_active",
       resume_policy: "resume_active",
       reason_code: "active_disordered_eating_guard",
+    });
+  }
+
+  // ── REPRISE APRÈS RELANCE KEEL (phase B) ────────────────────────────────
+  // Placée ICI, et cette place est le fond du lot : SOUS les trois branches
+  // safety et SOUS le plancher TCA — un cadre de reprise ne parle jamais
+  // par-dessus une détresse ni par-dessus une restriction. AU-DESSUS du reste
+  // parce qu'elle est armée hors conversation et n'a qu'un tour pour exister.
+  //
+  // CONTINUATION SEULE, comme le winback qu'elle remplace : aucun signal du
+  // dispatcher n'ouvre ce flow. Il s'arme à la fermeture de l'épisode de
+  // décrochage, dans `chat-inbound-v1`, et nulle part ailleurs.
+  //
+  // Les effets directs passent SANS fermer le flow : un élève qui revient en
+  // rapportant un fait (« j'ai repris le magnésium hier ») doit voir sa ligne
+  // écrite ET son retour accueilli. Fermer sur l'effet perdrait le cadre.
+  if (
+    isActiveConversationSkill(
+      input.active_skill_state,
+      "keel_reengagement_resume_v1",
+    )
+  ) {
+    return buildRouteDecision({
+      response_owner: "keel_reengagement_resume_v1",
+      selected_handler: "keel_reengagement_resume_v1",
+      direct_effects_to_run: directEffectsToRun,
+      blocked_paths: blockedPaths,
+      active_owner: "keel_reengagement_resume_v1",
+      arbitration_decision: "continue_active",
+      resume_policy: "resume_active",
+      reason_code: directEffectsToRun.length > 0
+        ? "active_keel_reengagement_resume_with_direct_effects"
+        : "active_keel_reengagement_resume",
     });
   }
 

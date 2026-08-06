@@ -12,6 +12,9 @@ export type SkillId =
   // W4.4 — KEEL. Lane d'exécution résolue en Tier 0 déterministe (aucun modèle
   // sur le chemin de la permission).
   | "plan_question"
+  // Phase B — reprise apres une relance KEEL. Arme HORS conversation, a la
+  // fermeture de l'episode de decrochage; aucun signal dispatcher ne l'ouvre.
+  | "keel_reengagement_resume_v1"
 ;
 
 export type SkillMemoryItem = {

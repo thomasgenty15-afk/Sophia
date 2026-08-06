@@ -235,6 +235,7 @@ import { isTrackProgressFutureIntent } from "../tools/always_on/track_progress_p
 import {
   type DisorderedEatingWorkingState,
 } from "../skills/disordered_eating_guard/contract.ts";
+import { runKeelReengagementResumeSkill } from "../skills/keel_reengagement_resume/skill.ts";
 import {
   type DisorderedEatingSkillRuntime,
   runDisorderedEatingGuardSkill,
@@ -5028,6 +5029,66 @@ export async function processMessage(
       },
       ledgerEntries,
     });
+  }
+
+  // ── PHASE B — REPRISE APRÈS RELANCE KEEL ──────────────────────────────
+  //
+  // Flow DÉTERMINISTE, zéro appel modèle: même arbitrage que `plan_question`.
+  // Sur une reprise, le risque n'est pas de mal comprendre, c'est de dire
+  // quelque chose de faux sur une absence qu'on n'a pas observée. Un gabarit
+  // fermé ne peut pas inventer une durée ni un reproche.
+  //
+  // L'état arrive par `active_flow_state` (armé hors conversation, à la
+  // fermeture de l'épisode dans `chat-inbound-v1`); la bande safety effective
+  // du tour est passée au reducer, qui porte sa propre condition de sortie.
+  if (routeDecision.response_owner === "keel_reengagement_resume_v1") {
+    const skillStart = Date.now();
+    const skillOutput = runKeelReengagementResumeSkill({
+      user_message: userMessage,
+      safety_band: String(runtimeSafetyRiskBand ?? "none"),
+      context: {
+        skill_id: "keel_reengagement_resume_v1",
+        user_id: userId,
+        response_locale: responseLocale,
+        recent_messages: recentMessagesForTurnFrame,
+        active_skill_working_state: ((activeFlowState.activeSkillState as
+          | { working_state?: unknown }
+          | null)?.working_state ?? {}) as ActiveConversationSkillWorkingState,
+        turn_frame: turnFrame,
+        relevant_memory_items: [],
+        plan_items: [],
+        product_surfaces: [],
+        exclusions: [],
+      },
+    });
+    const skillLatencyMs = Date.now() - skillStart;
+
+    // SORTIE SILENCIEUSE: le flow rend la main sans texte. On purge son état
+    // et on laisse le tour continuer vers le composeur — pas de re-dispatch à
+    // réinventer, il n'y a plus qu'une lane conversationnelle.
+    if (String(skillOutput.status ?? "") === "exit") {
+      tempMemory = clearActiveConversationSkillState(
+        tempMemory as Record<string, unknown>,
+      );
+    } else {
+      tempMemory = {
+        ...(tempMemory as Record<string, unknown>),
+        [ACTIVE_CONVERSATION_SKILL_KEY]: {
+          version: 1,
+          skill_id: "keel_reengagement_resume_v1",
+          status: "active",
+          turn_count: 1,
+          started_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          working_state: skillOutput.state_patch ?? {},
+        },
+      };
+      return await finishKeelSkillTurn({
+        skillId: "keel_reengagement_resume_v1" as never,
+        skillOutput,
+        skillLatencyMs,
+      });
+    }
   }
 
   // ── MAILLON 4 — PLAN_QUESTION (Tier 0 déterministe) ───────────────────

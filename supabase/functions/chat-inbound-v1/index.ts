@@ -265,10 +265,75 @@ Deno.serve(async (req) => {
     //
     // Best-effort assumé: un échec de fermeture ne doit jamais faire échouer
     // la réception d'un message (la fonction avale déjà ses erreurs).
-    await closeKeelReengagementEpisodeOnInbound(admin, {
-      userId: user.id,
-      atIso: message.received_at,
-    });
+    const reengagementClose = await closeKeelReengagementEpisodeOnInbound(
+      admin,
+      { userId: user.id, atIso: message.received_at },
+    );
+
+    // ── PHASE B : ARMER LE CADRE DE REPRISE, ICI ET NULLE PART AILLEURS ─────
+    //
+    // `closed === true` signifie exactement une chose: ce message entrant est
+    // une réponse à une relance KEEL. C'est le SEUL instant où le runtime le
+    // sait — l'épisode vient d'être clos par la ligne au-dessus, et
+    // `processMessage` (plus bas) ne pourra plus le lire.
+    //
+    // Scope `"app"`, comme tout le reste de ce fichier. Le winback armait sur
+    // `"whatsapp"` et c'est précisément ce qui rendrait le flow invisible.
+    //
+    // `awaiting_first_reply: true` n'est pas décoratif: c'est lui que lit le
+    // carve-out de fraîcheur d'`active_flow_state.ts`. Sans lui, l'état
+    // expirerait à 4 h alors que l'élève répond des jours après.
+    //
+    // Best-effort assumé, comme la fermeture juste au-dessus: rater le cadre
+    // dégrade le tour en réponse normale, ce qui est le comportement d'avant
+    // ce chantier. Faire échouer la réception d'un message serait pire.
+    if (reengagementClose.closed) {
+      try {
+        const nowIso = message.received_at;
+        const { data: stateRow } = await admin
+          .from("user_states")
+          .select("temp_memory")
+          .eq("user_id", user.id)
+          .eq("scope", CHAT_SCOPE)
+          .maybeSingle();
+        const tempMemory =
+          (stateRow?.temp_memory ?? {}) as Record<string, unknown>;
+        await admin.from("user_states").upsert({
+          user_id: user.id,
+          scope: CHAT_SCOPE,
+          temp_memory: {
+            ...tempMemory,
+            __active_conversation_skill_v1: {
+              version: 1,
+              skill_id: "keel_reengagement_resume_v1",
+              status: "active",
+              turn_count: 0,
+              started_at: nowIso,
+              updated_at: nowIso,
+              working_state: {
+                keel_reengagement_resume_local_state: {
+                  version: 1,
+                  stage: "welcome_back",
+                  turns_in_flow: 0,
+                  awaiting_first_reply: true,
+                  episode_id: reengagementClose.episodeId,
+                  days_inactive_at_open: reengagementClose.daysInactiveAtOpen,
+                  armed_at: nowIso,
+                },
+              },
+            },
+          },
+        }, { onConflict: "user_id,scope" });
+        console.log(JSON.stringify({
+          tag: "keel_reengagement_resume_armed",
+          request_id: requestId,
+          user_id: user.id,
+          episode_id: reengagementClose.episodeId,
+        }));
+      } catch (error) {
+        console.warn("[keel/reengagement] resume arming failed", error);
+      }
+    }
 
     // ── GARDE 5 : LES BOUTONS DÉTERMINISTES, AVANT LE DISPATCHER ─────────────
     // Un `button_payload` est une valeur que NOUS avons émise et qui n'a qu'un
