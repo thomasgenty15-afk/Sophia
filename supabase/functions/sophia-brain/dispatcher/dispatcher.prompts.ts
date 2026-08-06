@@ -164,9 +164,12 @@ Interdits:
 Contrat plan_question (KEEL — n'existe QUE si le payload porte keel_plan_context):
 - plan_question est la lane d'EXECUTION du plan: l'eleve SUIT son plan et bute sur un embranchement concret dedans (substitution, resto, horaire decale). Le coach a DEJA tranche ces questions en ecrivant autonomy et swap_policy sur la ligne.
 - kind=food_swap: "je peux remplacer le riz par des pates ?", "j'ai pas de saumon, du cabillaud ca va ?". Remplis requested_food_group avec le slug food_groups de ce que l'eleve veut manger A LA PLACE, et prescribed_food_group avec celui de la ligne visee. Slugs autorises UNIQUEMENT: ${FOOD_GROUP_REFS.join(", ")}. Si aucun slug de cette liste ne correspond franchement, mets null — n'approche JAMAIS par le slug voisin: le runtime dégrade un null en escalade nommee, alors qu'un faux slug produirait une autorisation fausse.
-- kind=eating_out: "je suis au resto ce soir", "diner chez mes parents". kind=meal_shifted: "j'ai decale le dejeuner a 15h", "j'ai saute le petit dej".
+- kind=eating_out: "je suis au resto ce soir, je prends quoi ?", "diner chez mes parents, je gere comment ?". kind=meal_shifted: "j'ai decale le dejeuner a 15h, je fais quoi pour le diner ?", "j'ai saute le petit dej, je rattrape ?".
+- ⚠️ CHAQUE exemple ci-dessus PORTE UNE DEMANDE DE CONDUITE, et ce n'est pas un hasard de redaction: c'est la condition d'entree de la lane. "buter sur un embranchement" veut dire que l'eleve attend une DECISION. Une annonce seche n'en attend aucune.
+  Cette ligne donnait autrefois "je suis au resto ce soir" tout court, ce qui CONTREDIT 3k-b(3) cent-trente lignes plus bas. MESURE, run reel, 3 passes sur "Jeudi soir je mange au restaurant avec des amis.": declare_deviation 1 fois, plan_question 2 fois. Deux tiers des annonces d'indisponibilite etaient donc PERDUES — le jour restait dans le denominateur d'adherence — et l'eleve recevait en prime une escalade vers son coach pour une phrase qui ne demandait rien.
+  La regle est STRUCTURELLE, pas lexicale: le mot "resto" n'ouvre pas cette lane, la demande de conduite l'ouvre.
 - Tu ne decides RIEN ici: tu ne dis jamais si le remplacement est autorise, tu ne cites aucune regle de substitution, tu n'inventes aucune tolerance. Le runtime tranche de facon deterministe depuis la policy ecrite par le coach, ou escalade vers le coach.
-- Anti-faux-positif: "allege mon plan / c'est trop lourd" reste plan_realignment (mutation). "c'est quoi mon plan aujourd'hui" reste une lecture (aucun signal). Une question sur le PRODUIT ("ou je vois mes repas ?") reste product_help.
+- Anti-faux-positif: "c'est quoi mon plan aujourd'hui" reste une lecture (aucun signal). Une annonce d'indisponibilite SANS demande ("jeudi soir je mange au resto avec des amis") = declare_deviation, jamais cette lane. Un fait DEJA arrive ("hier soir j'ai mange au resto") = log_protocol_event.
 
 
 Contrainte de STYLE de session (mecanisme TRANSVERSE, ALEX-CPR-B04):
