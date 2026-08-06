@@ -280,6 +280,77 @@ async function writeOutboundRow(
  * L'écriture de `chat_messages` vient AVANT celle du ledger : c'est elle qui
  * déclenche Realtime, et c'est elle que l'élève voit.
  */
+/**
+ * PRÉ-VÉRIFICATION DE LIVRAISON — même décision, sans rien écrire.
+ *
+ * Elle existe pour un défaut MESURÉ (QA phase C, 2026-08-06) : la relance de
+ * réengagement ouvrait son épisode, chargeait la doctrine du coach et appelait
+ * un modèle pour composer son corps — et découvrait SEULEMENT ensuite que le
+ * plafond de messages non sollicités du jour était atteint. Un tick réel a
+ * jeté 8 appels et 8 221 tokens de cette façon, et le job tourne toutes les
+ * heures.
+ *
+ * UNE SEULE SOURCE DE VÉRITÉ. Cette fonction appelle exactement le même
+ * `decideChatDelivery` que `deliverChatMessage`, avec les mêmes compteurs. Elle
+ * ne remplace pas la décision finale : l'appelant compose seulement si elle dit
+ * oui, et c'est `deliverChatMessage` qui tranche pour de bon (l'état peut avoir
+ * bougé entre les deux, et c'est acceptable — le pire cas retombe sur le
+ * comportement d'avant).
+ *
+ * Aucune ligne de ledger n'est écrite ici : un refus de PRÉ-vérification n'est
+ * pas un envoi refusé, c'est un envoi jamais tenté.
+ */
+export async function probeChatDelivery(
+  admin: SupabaseClient,
+  params: { userId: string; purpose: string; now?: Date },
+): Promise<{ deliver: boolean; reason: string }> {
+  try {
+    const now = params.now ?? new Date();
+    const profile = await loadProfile(admin, params.userId);
+    // Pas de profil lisible ⇒ on NE tranche PAS ici. La pré-vérification n'a
+    // qu'un seul mandat (le plafond); tout le reste appartient à
+    // `deliverChatMessage`, qui refusera proprement et écrira son ledger.
+    if (!profile) return { deliver: true, reason: "probe_unavailable" };
+    const timezone = String(profile.timezone ?? "").trim() || null;
+    const localDate = localDateFor(now, timezone);
+    const [unsolicitedSentToday, optInSentToday, guaranteedExpectedToday] =
+      await Promise.all([
+        countDeliveredToday(admin, {
+          userId: params.userId,
+          localDate,
+          unsolicitedOnly: true,
+        }),
+        countDeliveredToday(admin, {
+          userId: params.userId,
+          localDate,
+          purposes: [...OPT_IN_PURPOSES],
+        }),
+        countGuaranteedExpectedToday(admin, {
+          userId: params.userId,
+          timezone,
+          localDate,
+        }),
+      ]);
+    const decision = decideChatDelivery({
+      purpose: String(params.purpose ?? "").trim(),
+      isReply: false,
+      lastInboundAtIso: profile.chat_last_inbound_at ?? null,
+      nowIso: now.toISOString(),
+      muted: Boolean(profile.proactive_muted_at),
+      deletionPending: Boolean(profile.deletion_requested_at),
+      composedStateStillValid: null,
+      unsolicitedSentToday,
+      guaranteedExpectedToday,
+      optInSentToday,
+    });
+    return { deliver: decision.deliver, reason: decision.reason };
+  } catch {
+    // FAIL-OPEN ASSUMÉ: une pré-vérification qui échoue ne doit pas empêcher
+    // un envoi légitime. `deliverChatMessage` reste le juge.
+    return { deliver: true, reason: "probe_unavailable" };
+  }
+}
+
 export async function deliverChatMessage(
   admin: SupabaseClient,
   params: DeliverChatMessageParams,

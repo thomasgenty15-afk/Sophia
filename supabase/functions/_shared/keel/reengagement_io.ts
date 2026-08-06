@@ -54,7 +54,7 @@ import {
 import { doctrineBlockFor, loadPublishedDoctrine } from "./doctrine_loader.ts";
 import { appendResponseLanguageBlock } from "./locale.ts";
 import { generateWithGemini } from "../gemini.ts";
-import { deliverChatMessage } from "../chat/delivery.ts";
+import { deliverChatMessage, probeChatDelivery } from "../chat/delivery.ts";
 
 // deno-lint-ignore no-explicit-any
 type Db = any;
@@ -600,6 +600,39 @@ export async function sendReengageNudge(
     bodyReason: string;
   }
 > {
+  // QA PHASE C (2026-08-06) — LE PLAFOND SE VÉRIFIE AVANT DE COMPOSER.
+  //
+  // L'ordre inverse a été mesuré: 115 candidats, `sent: 0`, et 8 appels de
+  // modèle (8 221 tokens) jetés en un seul tick parce que le plafond de
+  // messages non sollicités du jour n'était consulté qu'à la livraison — après
+  // l'ouverture de l'épisode ET après la composition. Le job tourne toutes les
+  // heures, et le plafond est PARTAGÉ avec le pulse du soir et le point hebdo.
+  //
+  // `probeChatDelivery` appelle le même `decideChatDelivery` que la livraison:
+  // une seule source de vérité, et la livraison réelle tranche toujours pour de
+  // bon plus bas (le nom de sa fonction n'est pas cité ici: `reengagement_io_
+  // test.ts` vérifie l'ORDRE par recherche textuelle, et une mention en
+  // commentaire y ferait un faux positif).
+  const probe = await probeChatDelivery(db as never, {
+    userId: args.userId,
+    purpose: "keel_reengage",
+  });
+  // Ne bloque QUE sur un refus de plafond: c'est le seul motif dont la
+  // connaissance anticipée évite une composition. Tout autre refus est laissé
+  // à la livraison réelle, qui écrit son ledger.
+  if (!probe.deliver && probe.reason === "unsolicited_daily_cap") {
+    // Même contrat de sortie qu'un refus de livraison (status 4xx): l'appelant
+    // rend l'élève à la boucle au lieu de le verrouiller derrière un épisode.
+    return {
+      ok: false,
+      status: 409,
+      error: `delivery refused (pre-check): ${probe.reason}`,
+      toneDelivered: true,
+      bodySource: "fallback",
+      bodyReason: `precheck:${probe.reason}`,
+    };
+  }
+
   const composed = await composeReengageBody(db, args);
 
   const body = composed.body;
