@@ -149,11 +149,6 @@ function blockedDirectEffects(
     }));
 }
 
-function productHelpDetected(turnFrame: TurnFrame): boolean {
-  return turnFrame.skill_signals.product_help?.detected === true &&
-    turnFrame.skill_signals.product_help.confidence_band !== "low";
-}
-
 // W2.A: `featureOpportunityDetected` supprimé avec la lane initiatives /
 // coach_preferences (le signal n'existe plus dans le TurnFrame).
 
@@ -195,7 +190,6 @@ function isActiveConversationSkill(
   skillId:
     | "safety_crisis"
     | "disordered_eating_guard"
-    | "product_help"
     | "presence_conversation",
 ): boolean {
   const record = activeSkillState && typeof activeSkillState === "object" &&
@@ -461,22 +455,6 @@ export function runConversationRouters(input: {
     });
   }
 
-  if (
-    isActiveConversationSkill(input.active_skill_state, "product_help")
-  ) {
-    return buildRouteDecision({
-      response_owner: "product_help",
-      selected_handler: "product_help",
-      direct_effects_to_run: directEffectsToRun,
-      blocked_paths: blockedPaths,
-      active_owner: "product_help",
-      arbitration_decision: "continue_active",
-      resume_policy: "resume_active",
-      reason_code: directEffectsToRun.length > 0
-        ? "active_product_help_with_direct_effects"
-        : "active_product_help",
-    });
-  }
 
   // W2.A: branche de CONTINUATION `feature_opportunity` retirée (l'ordre des
   // branches restantes est inchangé). Un état de flow résiduel en base ne peut
@@ -539,18 +517,6 @@ export function runConversationRouters(input: {
   // dispatcher — même doctrine que le plancher TCA et que `plan_question`.
   // ══════════════════════════════════════════════════════════════════════
   const keelStudent = input.keel_student === true;
-
-  if (!keelStudent && productHelpDetected(input.turn_frame)) {
-    return buildRouteDecision({
-      response_owner: "product_help",
-      selected_handler: "product_help",
-      direct_effects_to_run: directEffectsToRun,
-      blocked_paths: blockedPaths,
-      reason_code: directEffectsToRun.length > 0
-        ? "product_help_with_direct_effects"
-        : "product_help_signal",
-    });
-  }
 
   // W4.4 — plan_question AVANT plan_realignment, et ce placement est le fond
   // du lot. « je peux remplacer le riz par des pâtes ? » capté par

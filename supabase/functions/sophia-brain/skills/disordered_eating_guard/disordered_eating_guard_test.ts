@@ -533,15 +533,14 @@ Deno.test("routing — FALSE PREMISE: a clear floor changes nothing", () => {
     ]
   ) {
     const decision = runConversationRouters({
-      turn_frame: turnFrame({
-        skill_signals: {
-          product_help: { detected: true, confidence_band: "high" },
-        },
-      }),
+      // Demolition B2C (2026-08-06): la lane `product_help` n'existe plus.
+      // La route ORDINAIRE d'un tour sans signal est `normal_reply` — c'est
+      // elle qui doit gagner quand le drapeau est baisse.
+      turn_frame: turnFrame({ skill_signals: {} }),
       safety_context_risk_band: "none",
       restriction_guard: guard,
     });
-    assertEquals(decision.response_owner, "product_help");
+    assertEquals(decision.response_owner, "normal_reply");
   }
 });
 
@@ -589,7 +588,7 @@ Deno.test("routing — the floor is ARMED and EXECUTED in conversation, never se
 
   // (1) Every call site arms the floor, through the single shared builder.
   const callSites = runSource.split("runConversationRouters({").slice(1);
-  assertEquals(callSites.length, 3, "run.ts call-site count changed");
+  assertEquals(callSites.length, 2, "run.ts call-site count changed");
   for (const site of callSites) {
     const args = site.slice(0, site.indexOf("});"));
     assert(

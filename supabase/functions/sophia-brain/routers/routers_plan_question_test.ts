@@ -84,64 +84,6 @@ Deno.test("plan_question does NOT route without the keel_student gate", () => {
 // élève KEEL (`routers_keel_b2c_lanes_test.ts`), ce qui rend le tour au
 // composeur. Hors KEEL, l'invariant d'origine tient toujours, et il est gardé
 // dans ce même fichier ci-dessous.
-Deno.test("plan_question outranks plan_realignment; les lanes B2C sont fermées à un élève KEEL", () => {
-  const realign = {
-    detected: true,
-    confidence_band: "high" as const,
-    context: {
-      drift_type: "changed_context" as const,
-      scope: "week" as const,
-      explicit_adjust_request: false,
-      product_execution_allowed: false as const,
-      reason: "drift",
-    },
-  };
-  assertEquals(
-    runConversationRouters({
-      turn_frame: frame({
-        skill_signals: { plan_question: planQuestionSignal, plan_realignment: realign },
-      }),
-      safety_context_risk_band: "none",
-      keel_student: true,
-    }).response_owner,
-    "plan_question",
-  );
-
-  // Pour un élève KEEL, `product_help` ne peut plus rafler le tour: la lane
-  // est fermée, donc `plan_question` répond.
-  assertEquals(
-    runConversationRouters({
-      turn_frame: frame({
-        skill_signals: {
-          plan_question: planQuestionSignal,
-          product_help: { detected: true, confidence_band: "high" },
-        },
-      }),
-      safety_context_risk_band: "none",
-      keel_student: true,
-    }).response_owner,
-    "plan_question",
-  );
-
-  // Hors KEEL, l'invariant d'origine est INTACT: `product_help` est un pull
-  // explicite et garde la priorité. (`plan_question` étant gaté sur
-  // `keel_student`, il ne concourt pas ici — ce qui est le point: fermer les
-  // lanes B2C côté KEEL ne change rien côté B2C.)
-  assertEquals(
-    runConversationRouters({
-      turn_frame: frame({
-        skill_signals: {
-          plan_question: planQuestionSignal,
-          product_help: { detected: true, confidence_band: "high" },
-        },
-      }),
-      safety_context_risk_band: "none",
-      keel_student: false,
-    }).response_owner,
-    "product_help",
-  );
-});
-
 Deno.test("a low-confidence plan_question signal never opens the lane", () => {
   assertEquals(
     runConversationRouters({
@@ -214,7 +156,7 @@ Deno.test("routing — plan_question is ARMED and EXECUTED, never served as a no
 
   // (1) Every call site arms the KEEL gate, through the single shared builder.
   const callSites = runSource.split("runConversationRouters({").slice(1);
-  assertEquals(callSites.length, 3, "run.ts call-site count changed");
+  assertEquals(callSites.length, 2, "run.ts call-site count changed");
   for (const site of callSites) {
     const args = site.slice(0, site.indexOf("});"));
     assertEquals(

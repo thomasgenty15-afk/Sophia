@@ -15,7 +15,7 @@ Deno.test("conversation_route_replay loads and passes V1 fixtures", async () => 
   const fixtures = await loadReplayFixtures(
     FIXTURES_DIR,
   );
-  assertEquals(fixtures.length, 4);
+  assertEquals(fixtures.length, 2);
   const results = await runReplayFixtures(fixtures);
   assertEquals(results.every((result) => result.passed), true);
 });
@@ -43,7 +43,7 @@ Deno.test("conversation_route_replay passes chat realism smoke fixture", async (
   const fixtures = await loadReplayFixtures(
     `${FIXTURES_DIR}/chat_realism`,
   );
-  assertEquals(fixtures.length, 1);
+  assertEquals(fixtures.length, 0);
   const results = await runReplayFixtures(fixtures, { mode: "s2" });
   assertEquals(results.every((result) => result.passed), true);
 });

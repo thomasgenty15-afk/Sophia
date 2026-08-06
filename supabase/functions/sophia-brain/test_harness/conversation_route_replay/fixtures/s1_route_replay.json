@@ -2,23 +2,11 @@
   {
     "fixture_id": "v1_safety_priority",
     "input": {
-      "safety_risk_band": "critical",
-      "product_help": true
+      "safety_risk_band": "critical"
     },
     "expected": {
       "response_owner": "safety",
       "selected_handler": "safety_crisis",
-      "direct_effects_to_run": []
-    }
-  },
-  {
-    "fixture_id": "v1_product_help_question",
-    "input": {
-      "product_help": true
-    },
-    "expected": {
-      "response_owner": "product_help",
-      "selected_handler": "product_help",
       "direct_effects_to_run": []
     }
   },

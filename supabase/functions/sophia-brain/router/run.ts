@@ -170,7 +170,6 @@ import {
   stripDeprecatedProductVocabulary,
   stripHiddenHtmlComments,
 } from "./response_visibility_formatting.ts";
-import { runProductHelpSkill } from "../skills/product_help/skill.ts";
 import {
   closeOpenReengagementEpisodeForSafety,
   closeReengagementEpisodeFromFlow,
@@ -595,72 +594,6 @@ function cleanupLegacyRuntimeState(tempMemory: any): any {
   return next;
 }
 
-function productHelpInjectedContext(routeDecision: RouteDecision | null) {
-  if (routeDecision?.response_owner !== "product_help") return undefined;
-  return [
-    "ROUTE PRODUIT SOPHIA.",
-    "Reponds uniquement sur le fonctionnement, la navigation, les limites ou l'usage de Sophia.",
-    "N'execute aucune action, ne cree rien, ne modifie rien, ne programme rien et ne promets aucun handoff local.",
-    "Si la demande est en fait une action produit ancienne ou unsupported, explique sobrement que ce n'est pas fait depuis le chat et ramene la conversation au besoin utilisateur.",
-  ].join("\n");
-}
-
-type RuntimeConversationSkillId =
-  | "product_help"
-;
-
-function buildConversationSkillContext(args: {
-  skillId: RuntimeConversationSkillId;
-  userId: string;
-  /** R3 — résolue une fois par tour, en amont. Requis: voir `SkillContext`. */
-  responseLocale: string;
-  recentMessages: Array<{ role: "user" | "assistant"; content: string }>;
-  activeSkillState: unknown;
-  turnFrame: TurnFrame;
-  planItemSnapshot: V2PlanItemSnapshotItem[];
-  inboundNote?: unknown;
-  recentEffectsSummary?: string | null;
-  recentDirectEffectConfirmationContext?: Record<string, unknown> | null;
-  userIdentity?: UserIdentityPack | null;
-  sessionDecisionsBlock?: string | null;
-}) {
-  return {
-    skill_id: args.skillId,
-    user_id: args.userId,
-    response_locale: args.responseLocale,
-    recent_messages: args.recentMessages,
-    active_skill_working_state: args.activeSkillState as any,
-    turn_frame: args.turnFrame,
-    relevant_memory_items: [],
-    plan_items: args.planItemSnapshot as unknown as Array<
-      Record<string, unknown>
-    >,
-    product_surfaces: [],
-    exclusions: [],
-    runtime_context: {
-      recent_effects_summary: args.recentEffectsSummary ?? null,
-      recent_direct_effect_confirmation_context:
-        args.recentDirectEffectConfirmationContext ?? null,
-      user_identity: args.userIdentity ?? null,
-      // alex-r3 B01 (ceinture): meme si le routage envoie un recall de
-      // session vers un skill, le bloc de decisions reste visible — un
-      // routage rate ne produit plus une fausse amnesie.
-      session_decisions_block: args.sessionDecisionsBlock ?? null,
-    },
-    note_information: args.inboundNote ?? null,
-  };
-}
-
-function localStateFromSkillOutput(
-  skillId: RuntimeConversationSkillId,
-  output: ConversationSkillOutput,
-): unknown {
-  const patch = output.state_patch ?? {};
-  return skillId === "product_help"
-    ? patch.product_help_local_state
-    : null;
-}
-
 function safetyWorkingStateFromOutput(output: ConversationSkillOutput) {
   const patch = output.state_patch ?? {};
   const { visible_task: _visibleTask, ...workingState } = patch as Record<
@@ -724,66 +657,6 @@ export function applySafetyCrisisSkillState(args: {
   return clearActiveConversationSkillState(next);
 }
 
-export function applyConversationSkillState(args: {
-  tempMemory: Record<string, unknown>;
-  activeSkillState: unknown;
-  skillId: RuntimeConversationSkillId;
-  output: ConversationSkillOutput;
-}) {
-  let next = { ...args.tempMemory };
-  const localState = localStateFromSkillOutput(args.skillId, args.output);
-  if (args.output.status === "continue" && localState) {
-    const previous = args.activeSkillState &&
-        typeof args.activeSkillState === "object" &&
-        !Array.isArray(args.activeSkillState)
-      ? args.activeSkillState as Record<string, unknown>
-      : {};
-    const now = new Date().toISOString();
-    const local = localState as any;
-    const activeSkillState = {
-      version: 1,
-      skill_id: args.skillId,
-      status: "active",
-      turn_count: Number(local?.product_help_state?.turn_count) ||
-        Number(previous.turn_count ?? 0) + 1,
-      started_at: String(previous.started_at ?? "") || now,
-      updated_at: now,
-      working_state: {
-        product_help_local_state: localState,
-      },
-    };
-    next[ACTIVE_CONVERSATION_SKILL_KEY] = activeSkillState;
-    next.__active_skill_state = activeSkillState;
-    delete next.active_skill_state;
-  } else {
-    next = clearActiveConversationSkillState(next);
-  }
-  if (args.skillId === "product_help" && args.output.state_patch) {
-    const memo = args.output.state_patch.product_help_exit_memo;
-    if (memo) next.__last_product_help_exit_memo = memo;
-  }
-  // W2.A: le producteur d'engagement de style porté par le state_patch du flow
-  // local feature_opportunity (eva-r7 B01) est retiré avec la lane. Le second
-  // producteur — `TurnFrame.session_style_commitment_hint`, émis par le
-  // dispatcher GLOBAL quel que soit l'owner — reste seul et couvre tous les
-  // composeurs (voir skills/_shared/session_style_commitment.ts).
-  return next;
-}
-
-function skillOutputNoteInformation(
-  output: ConversationSkillOutput,
-): unknown | null {
-  const patch = output.state_patch ?? {};
-  return (patch.product_help_note_information ??
-    patch.coaching_recommendation_note_information ??
-    (output.diagnosis as any)?.note_information) ?? null;
-}
-
-function skillOutputNoteTarget(output: ConversationSkillOutput): string {
-  const note = skillOutputNoteInformation(output) as any;
-  return String(note?.target_dispatcher ?? "").trim();
-}
-
 function recordOrNull(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value)
     ? value as Record<string, unknown>
@@ -845,16 +718,11 @@ function turnFrameWithLocalExitNoteRoutingHints(args: {
   const focus = recommendedNextFocusFromNote(note);
   const confidenceBand = noteConfidenceBand(note);
   const skillSignals = { ...(args.turnFrame.skill_signals ?? {}) };
-  if (focus === "product_help" && !skillSignals.product_help?.detected) {
-    skillSignals.product_help = {
-      detected: true,
-      confidence_band: confidenceBand,
-      reason: "local_flow_exit_note",
-    };
-  } else if (false) {
-    // W2.A: `focus === "feature_opportunity"` ne ré-injecte plus de signal —
-    // la lane n'existe plus; un mémo résiduel retombe en réponse normale.
-  }
+  // DEMOLITION B2C (2026-08-06): plus aucune lane conversationnelle ne se
+  // ré-injecte depuis une note de sortie locale. Un mémo résiduel retombe en
+  // réponse normale, ce qui est le bon défaut.
+  void focus;
+  void confidenceBand;
 
   return {
     ...args.turnFrame,
@@ -4939,332 +4807,6 @@ export async function processMessage(
       };
     }
 
-    if (routeDecision.response_owner === "product_help") {
-      const skillId = routeDecision.response_owner;
-      const skillStart = Date.now();
-      const [
-        recentEffectsSummary,
-        recentDirectEffectConfirmationContext,
-        skillUserIdentity,
-      ] = await Promise.all([
-        loadRecentEffectsLedgerSummary({
-          supabase,
-          userId,
-          scope,
-          userTimePromptBlock: userTime?.prompt_block,
-          ledgerReadClient: serviceRoleLedgerReadClient(),
-        }),
-        loadRecentDirectEffectConfirmationContext({
-          supabase,
-          userId,
-          scope,
-          ledgerReadClient: serviceRoleLedgerReadClient(),
-        }),
-        loadUserIdentityPack(supabase, userId),
-      ]);
-      const context = buildConversationSkillContext({
-        skillId,
-        userId,
-        responseLocale,
-        recentMessages: recentMessagesForTurnFrame,
-        activeSkillState: currentActiveSkillState,
-        turnFrame,
-        planItemSnapshot,
-        inboundNote: turnFrame.note_information ?? null,
-        recentEffectsSummary,
-        recentDirectEffectConfirmationContext,
-        userIdentity: skillUserIdentity,
-        sessionDecisionsBlock: sessionDecisionsPromptBlock(
-          tempMemory as Record<string, unknown>,
-        ),
-      });
-      const localOneShotDirectEffectExecutor = async (
-        request: LocalOneShotDirectEffectRequest,
-      ) => {
-        const localOneShotDirectEffect = oneShotDirectEffectFromLocalRequest(
-          request,
-          { turnFrame },
-        );
-        if (!localOneShotDirectEffect || !turnFrame || !routeDecision) {
-          return { turn_frame: turnFrame };
-        }
-        if (
-          !turnFrame.direct_effects.some((effect) =>
-            effect.effect_type === localOneShotDirectEffect.effect_type
-          )
-        ) {
-          turnFrame = {
-            ...turnFrame,
-            direct_effects: [
-              ...turnFrame.direct_effects,
-              localOneShotDirectEffect,
-            ],
-          };
-        }
-        if (
-          !routeDecision.direct_effects_to_run.includes(
-            "create_one_shot_reminder",
-          )
-        ) {
-          routeDecision = {
-            ...routeDecision,
-            direct_effects_to_run: [
-              ...routeDecision.direct_effects_to_run,
-              "create_one_shot_reminder",
-            ],
-            reason_code: routeDecision.reason_code.includes(
-                "direct_effects",
-              )
-              ? routeDecision.reason_code
-              : `${routeDecision.reason_code}_with_local_direct_effects`,
-          };
-        }
-        const directEffectLane = await runDirectEffectLane({
-          supabase,
-          userId,
-          responseLocale,
-          userMessage,
-          channel,
-          userTimezone: userTime?.timezone ?? meta?.clientTimezone ?? "UTC",
-          history,
-          tempMemory,
-          state,
-          planItemSnapshot,
-          turnFrame,
-          routeDecision,
-          safetyContextOutput,
-          sourceMessageId: loggedMessageId ?? requestId,
-          requestId,
-          v2Runtime,
-          clientNow,
-          allowMessageIntakeFallback: false,
-        });
-        routeDecision = directEffectLane.routeDecision ?? routeDecision;
-        tempMemory = directEffectLane.tempMemory ?? tempMemory;
-        turnFrame = turnFrameWithDirectEffectRuntime(
-          directEffectLane.turnFrame,
-          directEffectLane.operationRuntime,
-        ) ??
-          (directEffectLane.turnFrame
-            ? withDirectEffectConfirmationContext(directEffectLane.turnFrame)
-            : directEffectLane.turnFrame) ??
-          turnFrame;
-        operationRuntime = mergeDirectEffectRuntimeIntoVisibleRuntime({
-          directRuntime: directEffectLane.operationRuntime,
-          visibleRuntime: operationRuntime,
-        });
-        oneShotReminderCommittedThisTurn = oneShotReminderCommittedThisTurn ||
-          turnFrameHasCommittedOneShotReminder(turnFrame);
-        return { turn_frame: turnFrame };
-      };
-      let skillOutput = await runProductHelpSkill({
-        user_message: userMessage,
-        context,
-      });
-      const skillLatencyMs = Date.now() - skillStart;
-      const skillExitNoteInformation = skillOutputNoteInformation(skillOutput);
-      const baseTempMemoryForSkillState = tempMemory as Record<string, unknown>;
-      tempMemory = applyConversationSkillState({
-        tempMemory: baseTempMemoryForSkillState,
-        activeSkillState: currentActiveSkillState,
-        skillId,
-        output: skillOutput,
-      });
-      const target = skillOutputNoteTarget(skillOutput);
-      const skillReply = String(skillOutput.reply ?? "").trim();
-      if (
-        skillOutput.status === "exit" && !skillReply && target === "global"
-      ) {
-        localFlowExitSkillRun = {
-          selected_skill_id: skillId,
-          reason_code: routeDecision.reason_code,
-          status: skillOutput.status,
-          latency_ms: skillLatencyMs,
-          exit_target: target,
-          exit_note_information: skillExitNoteInformation,
-        };
-        localFlowExitRedispatchCount += 1;
-        currentActiveSkillState = null;
-        turnFrame = await buildTurnFrameForRuntime({
-          dispatcherInput: {
-            ...dispatcherInput,
-            active_skill_state: null,
-            flow_state_context: localExitFlowStateContext({
-              sourceFlowId: skillId,
-              noteInformation: skillExitNoteInformation,
-            }),
-          },
-          skipGlobalDispatcherForActiveLocalFlow: false,
-          llmRunner: buildDispatcherLlmRunner({
-            requestId,
-            userId,
-            model: meta?.model,
-            forceRealAi: meta?.forceRealAi,
-          }),
-        });
-        turnFrame = turnFrameWithLocalExitNoteRoutingHints({
-          turnFrame,
-          noteInformation: skillExitNoteInformation,
-        });
-        routeDecision = runConversationRouters({
-          turn_frame: turnFrame,
-          active_skill_state: currentActiveSkillState,
-          safety_context_risk_band: safetyContextOutput.risk_band,
-          // Un flow qui rend la main sur un dépôt discursif (ex: coaching →
-          // exit_to_global_dispatcher) doit pouvoir atterrir en présence CE
-          // tour — sans ce flag, le re-dispatch retombait en normal_reply
-          // malgré un signal présence high (run nav-frontieres-r2, B6'-T5).
-          presence_flow_enabled: presenceFlowEnabled,
-          ...keelRoutingInputs(),
-        });
-        applyPresenceEntryAfterLocalFlowExit();
-        if (localFlowExitRedispatchCount <= 2) continue visibleOwnerDispatch;
-        skillExitInjectedContext = [
-          `LOCAL FLOW ${skillId} EXITED TO GLOBAL.`,
-          "Use this note as routing context.",
-          JSON.stringify(skillExitNoteInformation),
-        ].join("\n");
-      } else {
-        const responseContent = finalVisibleText(
-          mergeVisibleTextForTest(operationRuntime, skillReply),
-          routeDecision,
-          turnFrame,
-          userMessage,
-          history,
-          keelTurn,
-        );
-        const effectLedger = effectLedgerForOperationRuntime(
-          turnFrame.turn_id,
-          operationRuntime,
-        );
-        const conversationTurnTrace = {
-          turn_frame: turnFrame,
-          route_decision: routeDecision,
-          effect_ledger: summarizeEffectLedgerForTrace(effectLedger),
-          response_owner: routeDecision.response_owner,
-          skill_run: {
-            selected_skill_id: skillId,
-            reason_code: routeDecision.reason_code,
-            status: skillOutput.status,
-            latency_ms: skillLatencyMs,
-            // Observabilité (QA S1 20/07) : la décision du dispatcher local
-            // winback voyage dans la trace persistée, comme le sas potion.
-            ...((skillOutput.diagnosis as Record<string, unknown> | undefined)
-                ?.winback_reengagement_local_dispatch
-              ? {
-                winback_reengagement_local_dispatch:
-                  (skillOutput.diagnosis as Record<string, unknown>)
-                    .winback_reengagement_local_dispatch,
-              }
-              : {}),
-            ...(skillOutput.status === "exit"
-              ? {
-                exit_target: target || null,
-                exit_note_information: skillExitNoteInformation,
-              }
-              : {}),
-          },
-          tool_skill_run: operationRuntime?.toolSkillRun ?? undefined,
-        };
-        try {
-          const dispatcherStat = dispatcherV2Stats[0];
-          await logConversationTurn({
-            turn_id: turnFrame.turn_id,
-            user_id: userId,
-            source_message_id: turnFrame.source_message_id,
-            ts: new Date().toISOString(),
-            dispatcher_run: {
-              latency_ms: dispatcherStat?.latency_ms ?? dispatcherLatencyMs,
-              tokens_in: dispatcherStat?.tokens_in ?? 0,
-              tokens_out: dispatcherStat?.tokens_out ?? 0,
-              prompt_version: skipGlobalDispatcherForActiveLocalFlow
-                ? "dispatcher_skipped_active_local_flow_v1"
-                : dispatcherStat?.prompt_version ??
-                  "dispatcher_v2_prompt_2026_05_s12",
-              model_used: dispatcherStat?.model_name ?? null,
-              memory_plan: turnFrame.memory_plan ??
-                DEFAULT_DISPATCHER_MEMORY_PLAN,
-            },
-            turn_frame: conversationTurnTrace.turn_frame,
-            route_decision: routeDecision,
-            direct_effects: directEffectTrace(operationRuntime),
-            effect_ledger: summarizeEffectLedgerForTrace(effectLedger),
-            skill_run: conversationTurnTrace.skill_run,
-            tool_skill_run: operationRuntime?.toolSkillRun ?? undefined,
-            confirmation_token_outcomes: [],
-            memory_write_candidates_emitted: 0,
-            response_owner: routeDecision.response_owner,
-            total_latency_ms: Date.now() - turnStartMs,
-          }, { supabase });
-        } catch (error) {
-          // P1-4: échec visible après retries (cf. autre call site).
-          console.error(
-            "[Router] logConversationTurn failed after retries",
-            { turn_id: turnFrame.turn_id, error: String(error) },
-          );
-        }
-        await persistEffectLedgerForRuntimeTurn({
-          supabase,
-          effectLedger,
-          userId,
-          sourceMessageId: turnFrame.source_message_id,
-          requestId,
-          channel,
-          scope,
-        });
-        // P4-C (paul-p3verify R1-W02): traîne conversation_risk committée
-        // aussi sur ce chemin de retour anticipé (leçon P3: tous les
-        // chemins, pas seulement le nominal).
-        tempMemory = commitPostTurnRiskTrail(
-          tempMemory as Record<string, unknown>,
-          {
-            runtimeSafetyRiskBand,
-            turnFrameRiskBand: turnFrame.safety?.risk_band,
-            routeIsSafety: false,
-            sourceMessageId: turnFrame.source_message_id ?? null,
-          },
-        );
-        await updateUserState(supabase, userId, scope, {
-          current_mode: "companion",
-          temp_memory: tempMemory,
-          last_processed_at: new Date().toISOString(),
-          last_interaction_at: new Date().toISOString(),
-        } as any);
-        if (logMessages && responseContent) {
-          await logMessage(
-            supabase,
-            userId,
-            scope,
-            "assistant",
-            responseContent,
-            "companion",
-            {
-              request_id: requestId,
-              route_owner: routeDecision.response_owner,
-              selected_handler: routeDecision.selected_handler ?? null,
-              runtime_safety_risk_band: runtimeSafetyRiskBand,
-              dispatcher_latency_ms: dispatcherLatencyMs,
-              context_latency_ms: 0,
-              agent_latency_ms: skillLatencyMs,
-            },
-          );
-        }
-        await trace("brain:turn_complete", "io", {
-          response_owner: routeDecision.response_owner,
-          selected_handler: routeDecision.selected_handler ?? null,
-          executed_tools: operationRuntime?.executedTools ?? [],
-          tool_execution: operationRuntime?.toolExecution ?? "none",
-        }, "debug");
-        return {
-          content: responseContent,
-          mode: "companion" as AgentMode,
-          delivery: null,
-          tool_execution: operationRuntime?.toolExecution ?? "none",
-          executed_tools: operationRuntime?.executedTools ?? [],
-          conversation_turn_trace: conversationTurnTrace,
-        };
-      }
-    }
 
     break;
   }
@@ -5304,7 +4846,6 @@ export async function processMessage(
     keelTurn.is_student
       ? keelTurn.plan_block
       : activePlanSnapshotPromptBlock(planItemSnapshot),
-    productHelpInjectedContext(routeDecision),
     // eva-r6 B02: directive de tour pour la preemption detresse SANS ideation
     // — le companion sortait un cadrage urgences disproportionne. Donnee de
     // tour (budget companion preserve), pas une regle de prompt.
@@ -6202,8 +5743,7 @@ export async function processMessage(
       direct_effects: directEffectTrace(operationRuntime),
       effect_ledger: summarizeEffectLedgerForTrace(effectLedger),
       skill_run: localFlowExitSkillRun ??
-        (routeDecision.response_owner === "product_help" ||
-            isSafetyRoute(routeDecision)
+        (isSafetyRoute(routeDecision)
           ? {
             selected_skill_id: routeDecision.selected_handler ?? null,
             reason_code: routeDecision.reason_code,

@@ -622,7 +622,6 @@ function sanitizeSkillSignal(
     | "coaching_recommendation"
     | "plan_question"
     | "presence_conversation"
-    | "product_help",
 ): {
   detected: boolean;
   confidence_band: ConfidenceBand;
@@ -662,10 +661,6 @@ function sanitizeSkillSignals(
   const root = raw && typeof raw === "object" && !Array.isArray(raw)
     ? raw as Record<string, unknown>
     : {};
-  const directProductHelp = sanitizeSkillSignal(
-    root.product_help,
-    "product_help",
-  );
   const directCoachingRecommendation = sanitizeSkillSignal(
     root.coaching_recommendation,
     "coaching_recommendation",
@@ -682,10 +677,6 @@ function sanitizeSkillSignals(
       !Array.isArray(root.entry)
     ? root.entry as Record<string, unknown>
     : {};
-  const entryProductHelp = sanitizeSkillSignal(
-    entryRoot.product_help,
-    "product_help",
-  );
   const entryCoachingRecommendation = sanitizeSkillSignal(
     entryRoot.coaching_recommendation,
     "coaching_recommendation",
@@ -698,16 +689,12 @@ function sanitizeSkillSignals(
     entryRoot.presence_conversation,
     "presence_conversation",
   );
-  const productHelp = directProductHelp ?? entryProductHelp;
   const coachingRecommendation = directCoachingRecommendation ??
     entryCoachingRecommendation;
   const planQuestion = directPlanQuestion ?? entryPlanQuestion;
   const presenceConversation = directPresenceConversation ??
     entryPresenceConversation;
   const signals: NonNullable<TurnFrame["skill_signals"]> = {};
-  if (productHelp?.detected === true) {
-    signals.product_help = productHelp;
-  }
   if (planQuestion?.detected === true) {
     signals.plan_question = planQuestion as any;
   }
@@ -968,7 +955,7 @@ function hasAllOriginalDirectEffects(
 }
 
 function hasEntrySkillSignal(frame: TurnFrame): boolean {
-  return frame.skill_signals?.product_help?.detected === true;
+  return false;
 }
 
 function hasAdditionalStructuredSignal(

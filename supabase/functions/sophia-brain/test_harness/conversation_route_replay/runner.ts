@@ -5,7 +5,6 @@ export type ReplayFixture = {
   fixture_id: string;
   input: {
     safety_risk_band?: TurnFrame["safety"]["risk_band"];
-    product_help?: boolean;
     active_skill_id?: string | null;
     direct_effects?: TurnFrame["direct_effects"];
     memory_response_intent?: TurnFrame["memory_plan"]["response_intent"];
@@ -41,13 +40,6 @@ function turnFrame(fixture: ReplayFixture): TurnFrame {
     },
     direct_effects: fixture.input.direct_effects ?? [],
     skill_signals: {
-      product_help: fixture.input.product_help
-        ? {
-          detected: true,
-          confidence_band: "high",
-          reason: "fixture",
-        }
-        : undefined,
     },
     needs_research: { detected: false, value: false },
     memory_plan: {

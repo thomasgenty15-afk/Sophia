@@ -121,7 +121,6 @@ export type PlanQuestionSignalContext = {
 };
 
 export type DispatcherSkillSignals = {
-  product_help?: SkillSignal;
   // W2.A: `feature_opportunity` (initiatives / coach_preferences) est retiré
   // du contrat de signaux — la lane n'est plus routable. Le type de contexte
   // `FeatureOpportunitySignalContext` reste défini ci-dessus tant que le skill

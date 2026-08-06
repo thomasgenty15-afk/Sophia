@@ -13,7 +13,7 @@ export type NoteInformationTargetDispatcher =
   | "safety_crisis"
   | "create_one_shot_reminder"
   | "track_progress_plan_item"
-  | "product_help";
+;
 
 export type NoteInformation = {
   source_flow_id: string;
@@ -30,8 +30,6 @@ export const FLOW_PRESENTATIONS: Record<string, string> = {
     "Manages WhatsApp onboarding, plan readiness, preference calibration, and first-topic handoff. It blocks normal product exits until the plan is ready.",
   safety_crisis:
     "Owns active safety/crisis turns and prioritizes immediate human safety, grounding, means distance, and support contact. Product/tool requests are deferred, not routed.",
-  product_help:
-    "Answers Sophia product, navigation, feature, and limit questions. It never creates, modifies, activates, cancels, or fills another flow's slots.",
   create_one_shot_reminder:
     "Runs the direct one-shot reminder lane when the user gives an explicit reminder request.",
   track_progress_plan_item:
@@ -134,19 +132,15 @@ function normalizeTargetDispatcher(
   if (
     text === "global" || text === "safety_crisis" ||
     text === "create_one_shot_reminder" ||
-    text === "track_progress_plan_item" ||
-    text === "product_help"
+    text === "track_progress_plan_item"
   ) return text;
   if (text === "safety") return "safety_crisis";
-  return fallback === "safety_crisis" || fallback === "product_help"
-    ? fallback
-    : "global";
+  return fallback === "safety_crisis" ? fallback : "global";
 }
 
 const LOCAL_EXIT_ALLOWED_TARGETS = new Set<NoteInformationTargetDispatcher>([
   "global",
   "safety_crisis",
-  "product_help",
   "create_one_shot_reminder",
   "track_progress_plan_item",
 ]);

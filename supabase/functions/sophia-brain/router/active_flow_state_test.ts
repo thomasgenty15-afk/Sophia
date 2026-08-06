@@ -16,7 +16,6 @@ function legacyKey(...parts: string[]): string {
 }
 
 const RETAINED_LOCAL_FLOW_IDS: ActiveLocalConversationFlowSkillId[] = [
-  "product_help",
   // W2.A: "feature_opportunity" et "potion_support_admission_v1" ne sont plus
   // des flows locaux retenus (registre en dur retiré).
   "safety_crisis",
@@ -31,9 +30,9 @@ Deno.test("active_flow_state resumes only retained conversation skills", () => {
   );
   assertEquals(
     (readActiveFlowState({
-      __active_skill_state: { skill_id: "product_help" },
+      __active_skill_state: { skill_id: "safety_crisis" },
     }).activeSkillState as any)?.skill_id,
-    "product_help",
+    "safety_crisis",
   );
   assertEquals(
     readActiveFlowState({
@@ -46,15 +45,15 @@ Deno.test("active_flow_state resumes only retained conversation skills", () => {
 Deno.test("active_flow_state canonical active conversation key wins over aliases", () => {
   const active = readActiveFlowState({
     [ACTIVE_CONVERSATION_SKILL_KEY]: {
-      skill_id: "product_help",
+      skill_id: "safety_crisis",
       status: "active",
     },
-    __active_skill_state: { skill_id: "product_help", status: "active" },
+    __active_skill_state: { skill_id: "safety_crisis", status: "active" },
   });
 
   assertEquals(
     (active.activeSkillState as any)?.skill_id,
-    "product_help",
+    "safety_crisis",
   );
 });
 
@@ -122,19 +121,19 @@ Deno.test("active_flow_state does not skip global dispatcher for unknown legacy 
 Deno.test("active_flow_state clears all active conversation aliases after local exit", () => {
   const cleaned = clearActiveConversationSkillState({
     [ACTIVE_CONVERSATION_SKILL_KEY]: {
-      skill_id: "product_help",
+      skill_id: "safety_crisis",
       status: "active",
     },
-    __active_skill_state: { skill_id: "product_help" },
-    active_skill_state: { skill_id: "product_help" },
-    __last_product_help_exit_memo: { reason: "topic_change" },
+    __active_skill_state: { skill_id: "safety_crisis" },
+    active_skill_state: { skill_id: "safety_crisis" },
+    __last_safety_crisis_exit_memo: { reason: "topic_change" },
     kept: true,
   });
 
   assertEquals(cleaned[ACTIVE_CONVERSATION_SKILL_KEY], undefined);
   assertEquals(cleaned.__active_skill_state, undefined);
   assertEquals(cleaned.active_skill_state, undefined);
-  assertEquals(cleaned.__last_product_help_exit_memo, {
+  assertEquals(cleaned.__last_safety_crisis_exit_memo, {
     reason: "topic_change",
   });
   assertEquals(cleaned.kept, true);
@@ -185,12 +184,12 @@ Deno.test("active_flow_state keeps only retained local exit memos", () => {
   const removedMemoKey = legacyKey("__last", "status", "recap", "exit", "memo");
   const cleaned = clearLastLocalFlowExitContext({
     [removedMemoKey]: { reason: "topic_change" },
-    __last_product_help_exit_memo: { reason: "done" },
+    __last_safety_crisis_exit_memo: { reason: "done" },
     kept: true,
   });
 
   assertEquals(cleaned[removedMemoKey], undefined);
-  assertEquals(cleaned.__last_product_help_exit_memo, undefined);
+  assertEquals(cleaned.__last_safety_crisis_exit_memo, undefined);
   assertEquals(cleaned.kept, true);
 });
 
@@ -205,7 +204,7 @@ Deno.test("active_flow_state releases local flows stale for more than 4 hours", 
   // Flow périmé (dernier tour il y a 5h): relâché avant arbitration.
   const stale = {
     __active_skill_state: {
-      skill_id: "product_help",
+      skill_id: "safety_crisis",
       status: "active",
       updated_at: fiveHoursAgo,
     },
@@ -221,26 +220,26 @@ Deno.test("active_flow_state releases local flows stale for more than 4 hours", 
   // Anti-régression: flow récent (10 min) toujours actif.
   const fresh = {
     __active_skill_state: {
-      skill_id: "product_help",
+      skill_id: "safety_crisis",
       status: "active",
       updated_at: tenMinutesAgo,
     },
   };
   assertEquals(
     (readActiveFlowState(fresh).activeSkillState as any)?.skill_id,
-    "product_help",
+    "safety_crisis",
   );
 
   // Anti-régression: state sans timestamp exploitable conservé (state partiel
   // ou legacy — la fraîcheur ne casse jamais un flow légitime).
   assertEquals(
-    isStaleActiveLocalFlowState({ skill_id: "product_help", status: "active" }),
+    isStaleActiveLocalFlowState({ skill_id: "safety_crisis", status: "active" }),
     false,
   );
   // started_at sert de repli quand updated_at manque.
   assertEquals(
     isStaleActiveLocalFlowState({
-      skill_id: "product_help",
+      skill_id: "safety_crisis",
       status: "active",
       started_at: fiveHoursAgo,
     }),

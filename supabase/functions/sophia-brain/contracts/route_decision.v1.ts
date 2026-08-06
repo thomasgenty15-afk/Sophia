@@ -4,7 +4,6 @@ export type ResponseOwner =
   // n'est jamais sélectionné par un signal du dispatcher : seul le plancher
   // déterministe `_shared/keel/restriction_guard.ts` l'ouvre.
   | "disordered_eating_guard"
-  | "product_help"
   // W4.4 — KEEL. Lane d'EXÉCUTION (« je peux remplacer X par Y ? »), distincte
   // de `plan_realignment` qui est la lane de DÉCROCHAGE. Non collante: aucune
   // branche de continuation, la question se répond en un tour.

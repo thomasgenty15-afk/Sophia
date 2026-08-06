@@ -1,13 +1,1 @@
-[
-  {
-    "fixture_id": "whatsapp_v1_product_help",
-    "input": {
-      "product_help": true
-    },
-    "expected": {
-      "response_owner": "product_help",
-      "selected_handler": "product_help",
-      "direct_effects_to_run": []
-    }
-  }
-]
+[]

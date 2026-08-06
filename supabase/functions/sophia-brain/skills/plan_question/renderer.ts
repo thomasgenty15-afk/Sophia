@@ -23,13 +23,17 @@ import {
   findMedicalConstraintViolations,
   type StudentSafetyConstraint,
 } from "../../../_shared/keel/safety_constraints.ts";
-import { labelFor } from "../../../_shared/keel/labels.en.ts";
+import {
+  labelFor,
+  type LocalePack,
+  localePackFor,
+} from "../../../_shared/keel/labels.ts";
 import type { PlanQuestionChangeRequest, Tier0Verdict } from "./contract.ts";
 
 /** Human label for a food group slug; falls back to the slug (never throws). */
-function foodLabel(slug: string): string {
+function foodLabel(slug: string, pack: LocalePack): string {
   try {
-    return labelFor("food_groups", slug).toLowerCase();
+    return labelFor("food_groups", slug, pack).toLowerCase();
   } catch {
     return slug.replaceAll("_", " ");
   }
@@ -43,14 +47,17 @@ export type PlanQuestionRender = {
   medical_validator_tripped: boolean;
 };
 
-function tier0AllowedText(verdict: Extract<Tier0Verdict, { decision: "allowed" }>) {
+function tier0AllowedText(
+  verdict: Extract<Tier0Verdict, { decision: "allowed" }>,
+  pack: LocalePack,
+) {
   if (verdict.reason_code === "identical_group") {
     return `Yes — ${
-      foodLabel(verdict.requested_food_group)
+      foodLabel(verdict.requested_food_group, pack)
     } is exactly what the line asks for. Log it as usual.`;
   }
-  const swap = `${foodLabel(verdict.requested_food_group)} instead of ${
-    foodLabel(verdict.prescribed_food_group)
+  const swap = `${foodLabel(verdict.requested_food_group, pack)} instead of ${
+    foodLabel(verdict.prescribed_food_group, pack)
   }`;
   if (verdict.reason_code === "explicit_allowlist") {
     return `Yes — ${swap} works here. Your coach listed it as an accepted ` +
@@ -63,10 +70,11 @@ function tier0AllowedText(verdict: Extract<Tier0Verdict, { decision: "allowed" }
 
 function escalationText(
   verdict: Extract<Tier0Verdict, { decision: "escalate" }>,
+  pack: LocalePack,
 ): string {
   const opener = verdict.requested_food_group && verdict.prescribed_food_group
-    ? `${foodLabel(verdict.requested_food_group)} is outside what your coach ` +
-      `set for the ${foodLabel(verdict.prescribed_food_group)} line, so I am ` +
+    ? `${foodLabel(verdict.requested_food_group, pack)} is outside what your coach ` +
+      `set for the ${foodLabel(verdict.prescribed_food_group, pack)} line, so I am ` +
       "not going to green-light it myself."
     : "That one sits outside what your coach set on this line, so I am not " +
       "going to green-light it myself.";
@@ -91,12 +99,19 @@ export function renderPlanQuestion(input: {
   verdict: Tier0Verdict;
   change_request: PlanQuestionChangeRequest | null;
   safety_constraints: readonly StudentSafetyConstraint[];
+  /**
+   * R3 — REQUIS. Ce renderer nomme des groupes alimentaires; sans locale il
+   * les nommait toujours en anglais, et le paramètre de `labelFor` qui existait
+   * pour l'éviter n'était passé par personne.
+   */
+  locale: string;
 }): PlanQuestionRender {
+  const pack = localePackFor(input.locale);
   let reply: string;
   let reason: string;
   switch (input.verdict.decision) {
     case "allowed":
-      reply = tier0AllowedText(input.verdict);
+      reply = tier0AllowedText(input.verdict, pack);
       reason = `tier0_allowed_${input.verdict.reason_code}`;
       break;
     case "denied":
@@ -104,7 +119,7 @@ export function renderPlanQuestion(input: {
       reason = "hard_deny_allergen_violation";
       break;
     default:
-      reply = escalationText(input.verdict);
+      reply = escalationText(input.verdict, pack);
       reason = `escalated_${input.verdict.reason_code}`;
       break;
   }

@@ -121,22 +121,6 @@ Deno.test("dispatcher keeps track progress direct effect only", async () => {
   assertNoLegacyRouteFields(frame);
 });
 
-Deno.test("dispatcher routes product explanation to product_help only", async () => {
-  const frame = await dispatch("C'est quoi une carte de defense ?", {
-    skill_signals: {
-      product_help: {
-        detected: true,
-        confidence_band: "high",
-        reason: "product_help_question",
-      },
-    },
-  });
-
-  assertEquals(frame.skill_signals.product_help?.detected, true);
-  assertEquals(frame.direct_effects, []);
-  assertNoLegacyRouteFields(frame);
-});
-
 // W2.B will delete this: la lane est désactivée en W2.A.
 Deno.test({
   name:
@@ -170,24 +154,6 @@ Deno.test({
   assertEquals(context?.feature, "initiatives");
   assertEquals(context?.opportunity_kind, "recurring_context");
   assertEquals(context?.trigger_context, "avant chaque diner");
-});
-
-Deno.test("dispatcher keeps initiative product question as product_help", async () => {
-  const frame = await dispatch("C'est quoi une initiative ?", {
-    skill_signals: {
-      product_help: {
-        detected: true,
-        confidence_band: "high",
-        reason: "product_help_question",
-      },
-    },
-  });
-
-  assertEquals(frame.skill_signals.product_help?.detected, true);
-  assertEquals(
-    (frame.skill_signals as Record<string, unknown>).feature_opportunity,
-    undefined,
-  );
 });
 
 Deno.test("dispatcher treats personal active-state requests as normal fallback", async () => {
@@ -256,39 +222,6 @@ Deno.test("dispatcher filters hostile legacy LLM output", async () => {
 
   assertEquals(frame.direct_effects, []);
   assertEquals(frame.skill_signals, {});
-  assertNoLegacyRouteFields(frame);
-});
-
-Deno.test("dispatcher safety high clears product_help, research and direct effects", async () => {
-  const frame = await runDispatcher({
-    ...baseInput("Je veux me faire du mal"),
-    safety_context_output: {
-      detected: true,
-      risk_band: "high" as const,
-      reason_codes: ["self_harm"],
-      evidence: ["Je veux me faire du mal"],
-      allow_side_effects: false,
-      layer_contributions: {},
-    } as any,
-    llm_runner: async () => ({
-      direct_effects: [{
-        effect_type: "create_one_shot_reminder",
-        explicitness: "explicit",
-        target_status: "identified",
-        confidence_band: "high",
-        payload_hint: {},
-      }],
-      skill_signals: {
-        product_help: { detected: true, confidence_band: "high" },
-      },
-      needs_research: { detected: true, value: true, confidence: 0.9 },
-    }),
-  });
-
-  assertEquals(frame.safety.risk_band, "high");
-  assertEquals(frame.direct_effects, []);
-  assertEquals(frame.skill_signals, {});
-  assertEquals(frame.needs_research?.value, false);
   assertNoLegacyRouteFields(frame);
 });
 

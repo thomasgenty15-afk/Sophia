@@ -148,7 +148,6 @@ export function selectedConversationSkillForRoute(
   routeDecision: RouteDecision | null,
 ): string {
   if (isSafetyRoute(routeDecision)) return "safety_crisis";
-  if (routeDecision?.response_owner === "product_help") return "product_help";
   return "";
 }
 

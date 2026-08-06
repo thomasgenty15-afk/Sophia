@@ -8,7 +8,6 @@ export type SkillId =
   // vient pas d'un signal dispatcher mais du plancher déterministe
   // `_shared/keel/restriction_guard.ts`.
   | "disordered_eating_guard"
-  | "product_help"
   | "feature_opportunity"
   // W4.4 — KEEL. Lane d'exécution résolue en Tier 0 déterministe (aucun modèle
   // sur le chemin de la permission).

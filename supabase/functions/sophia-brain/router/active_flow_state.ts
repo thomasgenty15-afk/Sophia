@@ -7,7 +7,6 @@ export type ActiveFlowState = {
 };
 
 export type ActiveLocalConversationFlowSkillId =
-  | "product_help"
   | "presence_conversation"
   | "safety_crisis";
 
@@ -18,7 +17,6 @@ export type ActiveLocalConversationFlowSkillId =
 const ACTIVE_LOCAL_CONVERSATION_FLOW_SKILL_IDS = new Set<
   ActiveLocalConversationFlowSkillId
 >([
-  "product_help",
   "presence_conversation",
   "safety_crisis",
 ]);
@@ -247,10 +245,6 @@ export function buildLastLocalFlowExitContext(
       operation_type: "whatsapp_onboarding",
       memo: temp.__last_whatsapp_onboarding_exit_memo,
     },
-    {
-      operation_type: "product_help",
-      memo: temp.__last_product_help_exit_memo,
-    },
     // W2.A: memos `feature_opportunity` et `potion_support_admission_v1`
     // retirés des candidats — un mémo résiduel en base ne doit plus produire de
     // hint de handoff vers une lane désactivée. Les clés restent purgées par
@@ -293,7 +287,6 @@ export function clearLastLocalFlowExitContext<
 >(tempMemory: T): Record<string, unknown> {
   const next = clearTempMemoryKeys(tempMemory, LEGACY_LOCAL_EXIT_MEMO_KEYS);
   delete next.__last_whatsapp_onboarding_exit_memo;
-  delete next.__last_product_help_exit_memo;
   delete next.__last_potion_support_admission_exit_memo;
   delete next.__last_feature_opportunity_exit_memo;
   delete next.__last_safety_crisis_exit_memo;
