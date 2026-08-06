@@ -61,6 +61,40 @@ et répondre via `POST /functions/v1/test-send-message`.
 
 ---
 
+## Le profil réel, mesuré (2026-08-06, 90 min de trafic)
+
+C'est la carte d'entrée de C3 à C8. Elle a déjà livré un défaut à elle seule.
+
+| source | n | tok in | en cache | tok out | ms |
+|---|---|---|---|---|---|
+| `dispatcher-v2-llm` | 8 | 14 575 | **8 363** | 206 | 4 098 |
+| `safety_crisis.local_dispatcher` | 1 | 6 592 | — | 494 | 5 102 |
+| `sophia-brain:companion` | 3 | 5 528 | — | 42 | 3 246 |
+| `generate-meal-v1` | 5 | 3 140 | — | 3 567 | **25 687** |
+| `safety_crisis.visible.immediate_risk_check` | 1 | 1 921 | — | 114 | 2 072 |
+| `keel_week_review` | 6 | 919 | — | 54 | **90 558** |
+| `keel_reengage` | 12 | 619 | — | 23 | 1 881 |
+| `winback_reengagement_extractor_v1` | 6 | 566 | — | 102 | 2 441 |
+
+**Ce que la colonne « en cache » dit du reste.** Seul `dispatcher-v2-llm`
+rapporte un taux de cache : c'est le seul à passer par le chemin OpenAI
+Responses. Tous les autres sont sur Gemini, qui ne rend pas ce champ — d'où le
+`NULL`, qui veut dire « pas de mesure », pas « pas de cache ».
+
+**Ce que la ligne 8 a livré.** `winback_reengagement_extractor_v1` : 6 appels en
+90 min pour **zéro information**. L'extraction du motif de décrochage lisait
+`chat_messages` en `scope: "whatsapp"` — 0 ligne sur 30 jours contre 1 255 en
+`app`. Le transcript était toujours vide, le modèle rendait honnêtement
+`other / low / null`, et la ligne passait en `extraction_status = "done"`. 100 %
+des épisodes extraits portaient ces trois valeurs. Corrigé (scope partagé +
+garde « rien à lire ⇒ rien à payer ») et prouvé en run : la même relance, avec
+« j'étais en déplacement pro toute la semaine », rend désormais
+`context / high` et cite l'élève mot pour mot.
+
+**Deux latences à regarder en C3+** : `keel_week_review` à **90 s** et
+`generate-meal-v1` à **26 s**. Aucune des deux n'est sur le chemin d'un tour de
+conversation, mais 90 s dans un cron est un budget qui se consomme.
+
 ## C2 à C8 — l'ordre, et pourquoi
 
 2. **Dispatcher global** — c'est ici que sont les tokens. Mesuré : le prompt est
