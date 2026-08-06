@@ -53,12 +53,70 @@ async function loadPricing(): Promise<Map<string, Pricing>> {
   return map;
 }
 
-export async function computeCostUsd(provider: string, model: string, promptTokens?: number, outputTokens?: number): Promise<number> {
+/**
+ * La remise appliquée aux tokens d'entrée servis par le cache du fournisseur.
+ *
+ * OpenAI facture l'entrée en cache à **10 %** du tarif plein (prompt caching,
+ * automatique au-delà de 1024 tokens de préfixe identique). Une constante
+ * nommée plutôt qu'un `0.1` posé dans le calcul: le jour où ce taux change, il
+ * y a UN endroit à corriger, et il porte son propre commentaire.
+ *
+ * ── POURQUOI CE PARAMÈTRE EXISTE ────────────────────────────────────────────
+ * Sans lui, `cost_usd` facturait tout le prompt au plein tarif. Mesuré sur le
+ * dispatcher global: 15 104 tokens en cache sur 17 139 envoyés (88 %), donc un
+ * coût surestimé d'environ 7×. C'est le chiffre qui servait à décider quoi
+ * optimiser — un prompt gonflé y paraissait sept fois plus cher qu'il ne l'est,
+ * et un prompt bien caché sept fois moins rentable à réduire.
+ */
+export const CACHED_INPUT_PRICE_MULTIPLIER = 0.1;
+
+/**
+ * L'ARITHMÉTIQUE SEULE — pure, sans réseau ni base, donc testable.
+ *
+ * Extraite de `computeCostUsd` parce que celui-ci lit la grille tarifaire en
+ * base : sa formule n'était vérifiable que contre une base, c'est-à-dire pas
+ * vérifiée. C'est ce qui a laissé passer l'absence de remise de cache.
+ */
+export function costUsdFromTokens(args: {
+  promptTokens: number;
+  outputTokens: number;
+  cachedPromptTokens: number | null;
+  inputPricePer1k: number;
+  outputPricePer1k: number;
+}): number {
+  const inTok = Number(args.promptTokens) || 0;
+  const outTok = Number(args.outputTokens) || 0;
+  const cachedRaw = Number(args.cachedPromptTokens ?? 0) || 0;
+  // Borné à l'entrée: un cache supérieur au prompt rendrait `freshTok` négatif,
+  // donc un coût négatif — une valeur qu'aucun agrégat ne rattraperait.
+  const cachedTok = Math.max(0, Math.min(cachedRaw, inTok));
+  const freshTok = inTok - cachedTok;
+  return (freshTok / 1000) * args.inputPricePer1k +
+    (cachedTok / 1000) * args.inputPricePer1k * CACHED_INPUT_PRICE_MULTIPLIER +
+    (outTok / 1000) * args.outputPricePer1k;
+}
+
+export async function computeCostUsd(
+  provider: string,
+  model: string,
+  promptTokens?: number,
+  outputTokens?: number,
+  /**
+   * Part de `promptTokens` servie par le cache. `null`/absent = le fournisseur
+   * n'a rien dit, et on facture alors tout au plein tarif — se tromper vers le
+   * HAUT sur un coût est le seul sens sûr de l'erreur.
+   */
+  cachedPromptTokens?: number | null,
+): Promise<number> {
   const p = await resolvePricing(provider, model);
   if (!p) return 0;
-  const inTok = Number(promptTokens ?? 0) || 0;
-  const outTok = Number(outputTokens ?? 0) || 0;
-  return (inTok / 1000) * p.input_per_1k_tokens_usd + (outTok / 1000) * p.output_per_1k_tokens_usd;
+  return costUsdFromTokens({
+    promptTokens: Number(promptTokens ?? 0) || 0,
+    outputTokens: Number(outputTokens ?? 0) || 0,
+    cachedPromptTokens: cachedPromptTokens ?? null,
+    inputPricePer1k: p.input_per_1k_tokens_usd,
+    outputPricePer1k: p.output_per_1k_tokens_usd,
+  });
 }
 
 export async function resolvePricing(provider: string, model: string): Promise<Pricing | null> {
@@ -144,6 +202,15 @@ export async function logLlmUsageEvent(evt: {
   model: string;
   kind: "generate" | "embed";
   prompt_tokens?: number | null;
+  /**
+   * Part de `prompt_tokens` servie par le cache du fournisseur.
+   *
+   * `null` = non renseigné (fournisseur muet, ou ligne d'avant le câblage).
+   * `0` = cache réellement vide. Les deux ne se valent pas et la colonne les
+   * distingue — sans quoi tout l'historique antérieur se lirait comme un taux
+   * de cache de 0 %.
+   */
+  cached_prompt_tokens?: number | null;
   output_tokens?: number | null;
   total_tokens?: number | null;
   cost_usd?: number | null;
@@ -184,6 +251,7 @@ export async function logLlmUsageEvent(evt: {
       model: evt.model,
       kind: evt.kind,
       prompt_tokens: evt.prompt_tokens ?? null,
+      cached_prompt_tokens: evt.cached_prompt_tokens ?? null,
       output_tokens: evt.output_tokens ?? null,
       total_tokens: evt.total_tokens ?? null,
       cost_usd: evt.cost_usd ?? null,

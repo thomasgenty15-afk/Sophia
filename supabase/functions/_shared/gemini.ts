@@ -423,9 +423,29 @@ export async function generateWithGemini(
       Number(usage?.prompt_tokens ?? usage?.input_tokens ?? 0) || 0;
     const outputTokens =
       Number(usage?.completion_tokens ?? usage?.output_tokens ?? 0) || 0;
+    // LA PART DÉJÀ EN CACHE, que ce normaliseur jetait.
+    //
+    // Deux noms selon l'API: `input_tokens_details` (Responses) et
+    // `prompt_tokens_details` (Chat Completions). Les deux comptent la même
+    // chose — des tokens d'ENTRÉE facturés une fraction du plein tarif.
+    //
+    // `null` quand le fournisseur ne dit rien, JAMAIS `0`: « on ne sait pas »
+    // et « le cache était vide » ne se valent pas, et les confondre invente un
+    // taux de cache de 0 % là où il n'y a pas de mesure.
+    const cachedRaw = usage?.input_tokens_details?.cached_tokens ??
+      usage?.prompt_tokens_details?.cached_tokens;
+    const cachedTokens = Number.isFinite(Number(cachedRaw))
+      ? Number(cachedRaw)
+      : null;
     return {
       prompt_tokens: promptTokens,
       completion_tokens: outputTokens,
+      // Borné à `prompt_tokens`: un cache plus grand que l'entrée serait une
+      // incohérence du fournisseur, et la laisser passer produirait un coût
+      // NÉGATIF une fois la remise appliquée.
+      cached_prompt_tokens: cachedTokens === null
+        ? null
+        : Math.max(0, Math.min(cachedTokens, promptTokens)),
       total_tokens: Number(
         usage?.total_tokens ?? (promptTokens + outputTokens),
       ) || 0,
@@ -1268,6 +1288,16 @@ export async function generateWithGemini(
               const totalTokens = Number(
                 json?.usage?.total_tokens ?? (promptTokens + outputTokens),
               ) || 0;
+              // Posé par `normalizeOpenAIUsage` (chemin Responses) ou lu
+              // directement du corps Chat Completions. `null` si le fournisseur
+              // n'a rien dit — et `computeCostUsd` facture alors plein tarif,
+              // parce que se tromper vers le HAUT est le seul sens sûr.
+              const cachedRaw = json?.usage?.cached_prompt_tokens ??
+                json?.usage?.prompt_tokens_details?.cached_tokens ??
+                json?.usage?.input_tokens_details?.cached_tokens;
+              const cachedPromptTokens = Number.isFinite(Number(cachedRaw))
+                ? Math.max(0, Math.min(Number(cachedRaw), promptTokens))
+                : null;
               if (promptTokens > 0 || outputTokens > 0 || totalTokens > 0) {
                 const { computeCostUsd, logLlmUsageEvent, resolvePricing } =
                   await import("./llm-usage.ts");
@@ -1277,6 +1307,7 @@ export async function generateWithGemini(
                   model,
                   promptTokens,
                   outputTokens,
+                  cachedPromptTokens,
                 );
                 await logLlmUsageEvent({
                   user_id: meta?.userId ?? null,
@@ -1286,6 +1317,7 @@ export async function generateWithGemini(
                   model,
                   kind: "generate",
                   prompt_tokens: promptTokens,
+                  cached_prompt_tokens: cachedPromptTokens,
                   output_tokens: outputTokens,
                   total_tokens: totalTokens,
                   cost_usd: costUsd,

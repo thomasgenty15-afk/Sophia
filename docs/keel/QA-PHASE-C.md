@@ -83,13 +83,41 @@ et répondre via `POST /functions/v1/test-send-message`.
 ## La mesure, à chaque fois
 
 ```sql
-select source, count(*), round(avg(prompt_tokens)), round(avg(latency_ms))
+select source, count(*), round(avg(prompt_tokens)) as tok,
+       round(avg(cached_prompt_tokens)) as cached, round(avg(latency_ms)) as ms,
+       round(sum(cost_usd)::numeric, 6) as usd
 from llm_usage_events where request_id = '…' group by 1;
 ```
 
-Avant/après, en tokens et en ms. **Le `cached_tokens` n'est toujours pas lu**
-(`input_tokens_details` dans la réponse brute) : `cost_usd` surestime le
-dispatcher d'environ 7×. À câbler pendant C2.
+Avant/après, en tokens et en ms.
+
+### `cached_tokens` — CÂBLÉ (2026-08-06)
+
+`normalizeOpenAIUsage` (`_shared/gemini.ts`) jetait
+`usage.input_tokens_details.cached_tokens`, donc `computeCostUsd` facturait tout
+le prompt au plein tarif alors qu'OpenAI facture l'entrée en cache à **10 %**.
+
+Mesuré en run réel, même tour répété pour réchauffer le cache :
+
+| appel | prompt | en cache | % | `cost_usd` |
+|---|---|---|---|---|
+| froid | 14 580 | 0 | 0 % | **0,012029** |
+| chaud | 14 576 | 12 544 | **86 %** | **0,003491** |
+
+Le coût du dispatcher était donc **surestimé 3,4×** — sur le chiffre même qui
+sert à décider quoi optimiser. (L'estimation antérieure de « ~7× » supposait
+88 % de cache appliqué à l'entrée seule ; 3,4× est la mesure, sortie comprise.)
+
+`cached_prompt_tokens` distingue **`NULL`** (le fournisseur n'a rien dit — c'est
+le cas de toutes les lignes Gemini, et de tout l'historique d'avant le câblage)
+de **`0`** (cache réellement vide). Les confondre inventerait un taux de cache
+de 0 % là où il n'y a pas de mesure.
+
+⚠️ **Ordre de déploiement** : la migration
+`20260806220000_llm_usage_cached_prompt_tokens.sql` doit partir **avant** les
+fonctions. Colonne absente ⇒ l'insert entier de `llm_usage_events` échoue, et
+cet insert vit dans un `try/catch` « best effort » : la télémétrie s'éteindrait
+**en silence**, sans casser un seul tour.
 
 ---
 
