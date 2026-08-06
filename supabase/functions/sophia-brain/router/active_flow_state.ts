@@ -7,7 +7,6 @@ export type ActiveFlowState = {
 };
 
 export type ActiveLocalConversationFlowSkillId =
-  | "presence_conversation"
   | "safety_crisis";
 
 // W2.A: `feature_opportunity` et `potion_support_admission_v1` sont retirés du
@@ -17,7 +16,6 @@ export type ActiveLocalConversationFlowSkillId =
 const ACTIVE_LOCAL_CONVERSATION_FLOW_SKILL_IDS = new Set<
   ActiveLocalConversationFlowSkillId
 >([
-  "presence_conversation",
   "safety_crisis",
 ]);
 
@@ -176,7 +174,6 @@ export function shouldSkipGlobalDispatcherForActiveLocalFlow(args: {
   // GLOBAL à chaque tour pour classer le kind (maintain/pivot_action/tool_pull/
   // closure/topic_change) et détecter les signaux de sortie. On ne le saute
   // donc jamais quand la présence est active.
-  if (skillId === "presence_conversation") return false;
   return skillId !== "";
 }
 

@@ -71,32 +71,6 @@ export type FeatureOpportunitySignalContext = {
   priority_reason: string;
 };
 
-// Flow « Présence » (mode ami): une conversation pure centrée sur un sujet de
-// fond. Aucune offre produit n'y vit: si le user demande un outil, on SORT.
-// `kind` classe le mouvement conversationnel du tour COURANT (utilisé surtout
-// quand le flow est déjà actif pour décider maintien vs sortie):
-// - maintain: le user continue d'explorer/déposer/raisonner — y compris les
-//   demandes de méthode (« concrètement je fais quoi ? »), servies en
-//   conversation. Défaut.
-// - tool_pull: il accepte ou demande explicitement un dispositif produit
-//   (« ok vas-y la carte », « prépare-moi une potion ») → sortie du flow vers
-//   le dispatcher global.
-// - closure: clôture naturelle (« merci, bonne nuit »).
-// - topic_change: pivot net vers un autre sujet ou une tâche.
-export type PresenceConversationKind =
-  | "maintain"
-  | "tool_pull"
-  | "closure"
-  | "topic_change";
-
-export type PresenceConversationSignalContext = {
-  kind: PresenceConversationKind;
-  // Sujet lourd/personnel que le user est en train de traiter — sert la
-  // continuité visible et le contexte re-synthétisé au handoff.
-  topic_hint?: string | null;
-  reason: string;
-};
-
 // KEEL W4.4 — flow léger `plan_question`: le student pose une question
 // D'EXÉCUTION à l'intérieur du plan (« je peux remplacer le riz par des
 // pâtes ? », « je suis au resto », « j'ai décalé le déjeuner »). Distinct de
@@ -125,9 +99,6 @@ export type DispatcherSkillSignals = {
   // du contrat de signaux — la lane n'est plus routable. Le type de contexte
   // `FeatureOpportunitySignalContext` reste défini ci-dessus tant que le skill
   // existe en code (supprimé en W2.B).
-  presence_conversation?: SkillSignal & {
-    context?: PresenceConversationSignalContext;
-  };
   // W4.4 — KEEL only. La lane ne s'ouvre que pour un `keel_role='student'`
   // (routers.ts gate sur `keel_student`): sans commitments il n'y a rien à
   // résoudre, et le legacy n'a ni swap_policy ni food_groups.

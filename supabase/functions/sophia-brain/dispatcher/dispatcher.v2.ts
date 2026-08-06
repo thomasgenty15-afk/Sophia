@@ -11,8 +11,6 @@ import type {
   Explicitness,
   PlanQuestionKind,
   PlanQuestionSignalContext,
-  PresenceConversationKind,
-  PresenceConversationSignalContext,
   RiskBand,
   TurnFrame,
 } from "../contracts/turn_frame.v1.ts";
@@ -434,23 +432,6 @@ function enumString<T extends string>(
 // W2.A: `sanitizeFeatureOpportunitySignalContext` supprimé — le signal
 // feature_opportunity ne fait plus partie du contrat de sortie du dispatcher.
 
-function sanitizePresenceConversationSignalContext(
-  raw: unknown,
-): PresenceConversationSignalContext | undefined {
-  const root = objectRecord(raw);
-  if (!root) return undefined;
-  return {
-    kind: enumString<PresenceConversationKind>(
-      root.kind,
-      ["maintain", "tool_pull", "closure", "topic_change"],
-      "maintain",
-    ),
-    topic_hint: optionalText(root.topic_hint, 200),
-    reason: optionalText(root.reason, 240) ?? "",
-  };
-}
-
-// W4.4 — KEEL. Les deux slugs `food_groups` sont recopiés BRUTS: le sanitizer
 // ne parse ni ne corrige un slug (ce serait deviner). `swap_resolver.ts` les
 // résout fail-loud et dégrade un token inconnu en escalade nommée
 // `unresolved_food_group` — jamais en groupe voisin.
@@ -621,15 +602,12 @@ function sanitizeSkillSignal(
   kind?:
     | "coaching_recommendation"
     | "plan_question"
-    | "presence_conversation"
 ): {
   detected: boolean;
   confidence_band: ConfidenceBand;
   score?: number;
   reason?: string;
-  context?:
-    | PlanQuestionSignalContext
-    | PresenceConversationSignalContext;
+  context?: PlanQuestionSignalContext;
 } | null {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
   const signal = raw as Record<string, unknown>;
@@ -643,8 +621,6 @@ function sanitizeSkillSignal(
   const reason = String(signal.reason ?? "").trim();
   const context = kind === "plan_question"
     ? sanitizePlanQuestionSignalContext(signal.context)
-    : kind === "presence_conversation"
-    ? sanitizePresenceConversationSignalContext(signal.context)
     : undefined;
   return {
     detected: signal.detected === true,
@@ -669,10 +645,6 @@ function sanitizeSkillSignals(
     root.plan_question,
     "plan_question",
   );
-  const directPresenceConversation = sanitizeSkillSignal(
-    root.presence_conversation,
-    "presence_conversation",
-  );
   const entryRoot = root.entry && typeof root.entry === "object" &&
       !Array.isArray(root.entry)
     ? root.entry as Record<string, unknown>
@@ -685,24 +657,15 @@ function sanitizeSkillSignals(
     entryRoot.plan_question,
     "plan_question",
   );
-  const entryPresenceConversation = sanitizeSkillSignal(
-    entryRoot.presence_conversation,
-    "presence_conversation",
-  );
   const coachingRecommendation = directCoachingRecommendation ??
     entryCoachingRecommendation;
   const planQuestion = directPlanQuestion ?? entryPlanQuestion;
-  const presenceConversation = directPresenceConversation ??
-    entryPresenceConversation;
   const signals: NonNullable<TurnFrame["skill_signals"]> = {};
   if (planQuestion?.detected === true) {
     signals.plan_question = planQuestion as any;
   }
   // W2.A: un signal `feature_opportunity` émis par le LLM est désormais DROPPÉ
   // ici (le sanitizer ne le lit plus) — la lane n'existe plus.
-  if (presenceConversation?.detected === true) {
-    signals.presence_conversation = presenceConversation as any;
-  }
   return signals;
 }
 

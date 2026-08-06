@@ -162,20 +162,6 @@ function planQuestionDetected(turnFrame: TurnFrame): boolean {
     turnFrame.skill_signals.plan_question.confidence_band !== "low";
 }
 
-// Entrée présence CONSERVATRICE: signal explicite ET confiance forte. La
-// règle des deux tours (un signal moyen n'entre qu'en se répétant) est portée
-// par la calibration de confidence du dispatcher (il voit recent_messages),
-// pas par un état candidat threadé ici. Un tour classé comme mouvement de
-// SORTIE (tool_pull/closure/topic_change) n'ouvre jamais un flow présence.
-function presenceEntryEligible(turnFrame: TurnFrame): boolean {
-  const signal = turnFrame.skill_signals.presence_conversation;
-  if (signal?.detected !== true) return false;
-  if (
-    signal.confidence_band !== "high" && signal.confidence_band !== "critical"
-  ) return false;
-  const kind = signal.context?.kind ?? "maintain";
-  return kind === "maintain";
-}
 
 function activeConversationSkillId(activeSkillState: unknown): string {
   const record = activeSkillState && typeof activeSkillState === "object" &&
@@ -190,7 +176,7 @@ function isActiveConversationSkill(
   skillId:
     | "safety_crisis"
     | "disordered_eating_guard"
-    | "presence_conversation",
+,
 ): boolean {
   const record = activeSkillState && typeof activeSkillState === "object" &&
       !Array.isArray(activeSkillState)
@@ -438,22 +424,6 @@ export function runConversationRouters(input: {
   // lui-même (statut != continue → état effacé → re-dispatch global au tour
   // suivant, charte cmd 17). Les effets directs (rappel, coche) passent sans
   // fermer le flow (parenthèse tâche).
-  if (
-    isActiveConversationSkill(input.active_skill_state, "presence_conversation")
-  ) {
-    return buildRouteDecision({
-      response_owner: "presence_conversation",
-      selected_handler: "presence_conversation",
-      direct_effects_to_run: directEffectsToRun,
-      blocked_paths: blockedPaths,
-      active_owner: "presence_conversation",
-      arbitration_decision: "continue_active",
-      resume_policy: "resume_active",
-      reason_code: directEffectsToRun.length > 0
-        ? "active_presence_conversation_with_direct_effects"
-        : "active_presence_conversation",
-    });
-  }
 
 
   // W2.A: branche de CONTINUATION `feature_opportunity` retirée (l'ordre des
@@ -467,21 +437,6 @@ export function runConversationRouters(input: {
   // (exit_to_global_dispatcher → re-dispatch global le même tour); l'entrée se
   // fait alors ici, état purgé. Prioritaire sur les signaux frais produit/
   // coaching: un dépôt discursif fort prime sur un signal levier concurrent
-  // (le dispatcher n'émet presence high/critical que sur intention discursive).
-  if (
-    input.presence_flow_enabled === true &&
-    presenceEntryEligible(input.turn_frame)
-  ) {
-    return buildRouteDecision({
-      response_owner: "presence_conversation",
-      selected_handler: "presence_conversation",
-      direct_effects_to_run: directEffectsToRun,
-      blocked_paths: blockedPaths,
-      arbitration_decision: "enter_presence",
-      resume_policy: "enter_fresh",
-      reason_code: "presence_conversation_entry",
-    });
-  }
 
   // ══════════════════════════════════════════════════════════════════════
   // KEEL — LES TROIS LANES B2C SONT FERMÉES À UN ÉLÈVE DE COACH.

@@ -37,13 +37,6 @@ import {
 } from "../../_shared/brain-trace.ts";
 import { debounceAndBurstMerge } from "./debounce.ts";
 import { runAgentAndVerify } from "./agent_exec.ts";
-import {
-  applyPresenceFlowState,
-  armAttackKeywordSupportPresence,
-  commitPresenceResult,
-  type PresenceApplyResult,
-  readActivePresenceState,
-} from "../skills/presence_conversation/apply.ts";
 // W2.A: le dispatcher local du sas potion et son état ne sont plus importés —
 // le sas est débranché (le dossier du skill est supprimé en W2.B).
 import {
@@ -52,7 +45,6 @@ import {
   loadAttackKeywordSupportMatch,
   renderAttackKeywordSupportReply,
 } from "../../_shared/attack-keyword-support.ts";
-import { applyAttackKeywordSupportRoute } from "./attack_keyword_support_route.ts";
 // W2.A: mécanisme TRANSVERSE (companion + présence + safety), extrait du
 // voisinage de `feature_opportunity` avant sa désactivation.
 import {
@@ -67,9 +59,6 @@ import {
   KEEL_ACK_GUARD_NAME,
   recordKeelAckGuardTrigger,
 } from "../skills/_shared/keel_ack_without_effect_guard.ts";
-import { stripToPresenceContext } from "../skills/presence_conversation/context.ts";
-import { buildPresenceSystemBlock } from "../skills/presence_conversation/prompt.ts";
-import { buildPresenceThreadContext } from "../skills/presence_conversation/thread.ts";
 import {
   buildNeutralTurnFrame,
   type DispatcherLlmRunner,
@@ -3728,135 +3717,15 @@ export async function processMessage(
   // active), jamais codé en dur. Pré-gate sans DB: seul un message qui se
   // réduit à UN mot autorisé peut être un mot de bascule — les tours normaux
   // ne paient aucune lecture. La safety garde la priorité absolue: une route
-  // safety reste intacte (applyAttackKeywordSupportRoute est un no-op dessus)
-  // et le lookup n'est même pas tenté.
-  let attackKeywordSupportContext: AttackKeywordSupportContextV1 | null = null;
-  if (!isSafetyRoute(routeDecision) && isAllowedAttackKeyword(userMessage)) {
-    try {
-      attackKeywordSupportContext = await loadAttackKeywordSupportMatch({
-        admin: serviceRoleLedgerReadClient() ?? supabase,
-        userId,
-        userMessage,
-      });
-    } catch (error) {
-      // Panne de lecture = tour normal, jamais un tour cassé.
-      console.warn("[attack-keyword] match lookup failed", error);
-    }
-    if (attackKeywordSupportContext) {
-      routeDecision = applyAttackKeywordSupportRoute({
-        routeDecision,
-        activeSkillState: currentActiveSkillState,
-      });
-      console.log(
-        `[attack-keyword] request_id=${requestId} matched` +
-          ` card=${attackKeywordSupportContext.attack_card_id}` +
-          ` keyword=${attackKeywordSupportContext.trigger.activation_keyword_normalized}`,
-      );
-    }
-  }
 
   // ── Flow présence: transition calculée AVANT tout runtime ────────────────
   // Sur une SORTIE (tool_pull / topic_change / closure / expired), le tour
   // est re-dispatché globalement immédiatement (charte cmd 17): le user qui
   // demande une carte atterrit dans coaching CE tour-ci, pas au suivant.
   // Le commit de l'état (poubelle ou maintien) reste fait post-génération.
-  let presenceApplyResult: PresenceApplyResult | null = null;
-  let presenceExited = false;
-  let presenceNowIso = "";
-  if (routeDecision.response_owner === "presence_conversation") {
-    const presenceStateBeforeTurn = readActivePresenceState(
-      currentActiveSkillState,
-    );
-    const presenceSignal = turnFrame.skill_signals.presence_conversation;
-    // P7-E (rose-untested22 R1-B02): INVARIANT INTRA-FRAME — quand le
-    // dispatcher classe lui-même le tour en LECTURE factuelle
-    // (memory_plan.response_intent recap/statut), un kind=maintain co-émis
-    // est incohérent: la présence cède (topic_change → poubelle + re-dispatch
-    // global du même tour, cmd 17), seule la réponse normale possède la
-    // projection DB. Champ structuré du frame, pas une lecture du message.
-    const responseIntentForPresence = String(
-      turnFrame.memory_plan?.response_intent ?? "",
-    ).toLowerCase();
-    const factualIntentOverridesPresence =
-      responseIntentForPresence.includes("recap") ||
-      responseIntentForPresence.includes("status");
-    const presenceKind = factualIntentOverridesPresence
-      ? "topic_change"
-      : presenceSignal?.context?.kind ?? "maintain";
-    presenceNowIso = turnFrame.direct_effect_time_context?.now_utc ??
-      new Date().toISOString();
-    const presenceLocalDate =
-      (turnFrame.direct_effect_time_context?.user_local_datetime ?? "")
-        .slice(0, 10) || presenceNowIso.slice(0, 10);
-    presenceApplyResult = applyPresenceFlowState({
-      tempMemory: tempMemory as Record<string, unknown>,
-      activeSkillState: currentActiveSkillState,
-      kind: presenceKind,
-      nowIso: presenceNowIso,
-      localDate: presenceLocalDate,
-      topicHint: presenceSignal?.context?.topic_hint ?? null,
-      entryReason: routeDecision.reason_code,
-    });
-    console.log(
-      `[presence] request_id=${requestId} transition=${presenceApplyResult.transition}` +
-        ` kind=${presenceKind}` +
-        (presenceApplyResult.exit_reason
-          ? ` exit_reason=${presenceApplyResult.exit_reason}`
-          : "") +
-        ` turns=${presenceApplyResult.flow_state?.turns_in_flow ?? 0}`,
-    );
-    if (presenceApplyResult.transition === "exit") {
-      // Poubelle immédiate + re-dispatch global du MÊME tour. L'entrée
-      // présence est désactivée sur ce re-routage pour éviter la ré-entrée
-      // instantanée sur le signal du tour de sortie.
-      presenceExited = true;
-      currentActiveSkillState = null;
-      tempMemory = clearActiveConversationSkillState(
-        tempMemory as Record<string, unknown>,
-      );
-      routeDecision = runConversationRouters({
-        turn_frame: turnFrame,
-        active_skill_state: null,
-        safety_context_risk_band: safetyContextOutput.risk_band,
-        presence_flow_enabled: false,
-        ...keelRoutingInputs(),
-      });
-      console.log(
-        `[presence] request_id=${requestId} exit_reroute owner=${routeDecision.response_owner} reason=${routeDecision.reason_code}`,
-      );
-      presenceApplyResult = null; // état déjà purgé, rien à committer.
-    }
-  }
   // Entrée présence atteinte via la sortie d'un AUTRE flow local (ex: coaching
   // → exit_to_global_dispatcher sur dépôt discursif → re-dispatch → présence).
   // Le bloc de transition ci-dessus a tourné avant la boucle des owners: il
-  // faut appliquer l'entrée ici, sinon la génération présence (contexte
-  // strippé + fil + état collant) ne s'arme pas sur le tour de re-dispatch.
-  const applyPresenceEntryAfterLocalFlowExit = () => {
-    if (routeDecision.response_owner !== "presence_conversation") return;
-    if (presenceApplyResult) return;
-    const presenceSignal = turnFrame.skill_signals.presence_conversation;
-    presenceNowIso = turnFrame.direct_effect_time_context?.now_utc ??
-      new Date().toISOString();
-    const presenceLocalDate =
-      (turnFrame.direct_effect_time_context?.user_local_datetime ?? "")
-        .slice(0, 10) || presenceNowIso.slice(0, 10);
-    presenceApplyResult = applyPresenceFlowState({
-      tempMemory: tempMemory as Record<string, unknown>,
-      activeSkillState: currentActiveSkillState,
-      kind: presenceSignal?.context?.kind ?? "maintain",
-      nowIso: presenceNowIso,
-      localDate: presenceLocalDate,
-      topicHint: presenceSignal?.context?.topic_hint ?? null,
-      entryReason: routeDecision.reason_code,
-    });
-    console.log(
-      `[presence] request_id=${requestId} transition=${presenceApplyResult.transition}` +
-        ` after_local_flow_exit turns=${
-          presenceApplyResult.flow_state?.turns_in_flow ?? 0
-        }`,
-    );
-  };
   let precomputedSafetyCrisisLocalDispatcherOutput:
     | SafetyCrisisLocalDispatcherOutput
     | null = null;
@@ -4052,169 +3921,6 @@ export async function processMessage(
   // ancrage, intention, consigne) alimente un prompt spécialisé — jamais le
   // composeur générique. Aucun effet durable ne tourne sur ce tour (la route
   // les a bloqués), et la Présence est armée pour que la suite reste une
-  // conversation de soutien collante, pas un retour sec à la machinerie.
-  if (
-    routeDecision.response_owner === "attack_keyword_support" &&
-    attackKeywordSupportContext
-  ) {
-    const skillStart = Date.now();
-    // PAUL-BASC-B01: le prompt spécialisé reçoit les derniers messages user
-    // VERBATIM (données réelles de session, fraîcheur déjà filtrée en amont)
-    // pour ne pas re-prescrire un geste déjà déclaré fait sur un re-trigger.
-    // Aucune surface produit, aucun résumé intermédiaire — la sanitation
-    // (troncature, écho du mot exclu) vit dans le module du domaine.
-    const support = await renderAttackKeywordSupportReply({
-      context: attackKeywordSupportContext,
-      userId,
-      requestId,
-      recentUserMessages: (history ?? [])
-        .filter((entry: any) => String(entry?.role ?? "") === "user")
-        .map((entry: any) => String(entry?.content ?? "")),
-    });
-    const skillLatencyMs = Date.now() - skillStart;
-    const responseContent = finalVisibleText(
-      support.support_text,
-      routeDecision,
-      turnFrame,
-      userMessage,
-      history,
-      keelTurn,
-    );
-    const nowIso = turnFrame.direct_effect_time_context?.now_utc ??
-      new Date().toISOString();
-    const localDate =
-      (turnFrame.direct_effect_time_context?.user_local_datetime ?? "")
-        .slice(0, 10) || nowIso.slice(0, 10);
-    // Préemption: le flow local actif (coaching, présence potion…) est mis à
-    // la poubelle, puis la Présence est ré-armée avec l'origine mot de
-    // bascule. awaiting_first_reply garde la propriété jusqu'à la réponse du
-    // user, même des heures plus tard.
-    tempMemory = clearActiveConversationSkillState(
-      tempMemory as Record<string, unknown>,
-    );
-    tempMemory = armAttackKeywordSupportPresence({
-      tempMemory: tempMemory as Record<string, unknown>,
-      nowIso,
-      localDate,
-      topicHint: attackKeywordSupportContext.trigger.risk_situation || null,
-      entryContext: {
-        source: "attack_keyword_support",
-        attack_card_id: attackKeywordSupportContext.attack_card_id,
-        technique_key: "pre_engagement",
-        activation_keyword_normalized:
-          attackKeywordSupportContext.trigger.activation_keyword_normalized,
-        awaiting_first_reply: true,
-      },
-    });
-    tempMemory = commitPostTurnRiskTrail(
-      tempMemory as Record<string, unknown>,
-      {
-        runtimeSafetyRiskBand,
-        turnFrameRiskBand: turnFrame.safety?.risk_band,
-        routeIsSafety: false,
-        sourceMessageId: turnFrame.source_message_id ?? null,
-      },
-    );
-    const effectLedger = effectLedgerForOperationRuntime(
-      turnFrame.turn_id,
-      null,
-    );
-    const conversationTurnTrace = {
-      turn_frame: turnFrame,
-      route_decision: routeDecision,
-      effect_ledger: summarizeEffectLedgerForTrace(effectLedger),
-      response_owner: routeDecision.response_owner,
-      skill_run: {
-        selected_skill_id: "attack_keyword_support",
-        reason_code: routeDecision.reason_code,
-        status: support.used_fallback ? "fallback" : "generated",
-        latency_ms: skillLatencyMs,
-        attack_card_id: attackKeywordSupportContext.attack_card_id,
-      },
-    };
-    try {
-      const dispatcherStat = dispatcherV2Stats[0];
-      await logConversationTurn({
-        turn_id: turnFrame.turn_id,
-        user_id: userId,
-        source_message_id: turnFrame.source_message_id,
-        ts: new Date().toISOString(),
-        dispatcher_run: {
-          latency_ms: dispatcherStat?.latency_ms ?? dispatcherLatencyMs,
-          tokens_in: dispatcherStat?.tokens_in ?? 0,
-          tokens_out: dispatcherStat?.tokens_out ?? 0,
-          prompt_version: skipGlobalDispatcherForActiveLocalFlow
-            ? "dispatcher_skipped_active_local_flow_v1"
-            : dispatcherStat?.prompt_version ??
-              "dispatcher_v2_prompt_2026_05_s12",
-          model_used: dispatcherStat?.model_name ?? null,
-          memory_plan: turnFrame.memory_plan ?? DEFAULT_DISPATCHER_MEMORY_PLAN,
-        },
-        turn_frame: conversationTurnTrace.turn_frame,
-        route_decision: routeDecision,
-        direct_effects: directEffectTrace(null),
-        effect_ledger: summarizeEffectLedgerForTrace(effectLedger),
-        skill_run: conversationTurnTrace.skill_run,
-        confirmation_token_outcomes: [],
-        memory_write_candidates_emitted: 0,
-        response_owner: routeDecision.response_owner,
-        total_latency_ms: Date.now() - turnStartMs,
-      }, { supabase });
-    } catch (error) {
-      console.error(
-        "[Router] logConversationTurn failed after retries",
-        { turn_id: turnFrame.turn_id, error: String(error) },
-      );
-    }
-    await persistEffectLedgerForRuntimeTurn({
-      supabase,
-      effectLedger,
-      userId,
-      sourceMessageId: turnFrame.source_message_id,
-      requestId,
-      channel,
-      scope,
-    });
-    await updateUserState(supabase, userId, scope, {
-      current_mode: "companion",
-      temp_memory: tempMemory,
-      last_processed_at: new Date().toISOString(),
-      last_interaction_at: new Date().toISOString(),
-    } as any);
-    if (logMessages && responseContent) {
-      await logMessage(
-        supabase,
-        userId,
-        scope,
-        "assistant",
-        responseContent,
-        "companion",
-        {
-          request_id: requestId,
-          route_owner: routeDecision.response_owner,
-          selected_handler: routeDecision.selected_handler ?? null,
-          runtime_safety_risk_band: runtimeSafetyRiskBand,
-          dispatcher_latency_ms: dispatcherLatencyMs,
-          context_latency_ms: 0,
-          agent_latency_ms: skillLatencyMs,
-        },
-      );
-    }
-    await trace("brain:turn_complete", "io", {
-      response_owner: routeDecision.response_owner,
-      selected_handler: routeDecision.selected_handler ?? null,
-      executed_tools: [],
-      tool_execution: "none",
-    }, "debug");
-    return {
-      content: responseContent,
-      mode: "companion" as AgentMode,
-      delivery: null,
-      tool_execution: "none",
-      executed_tools: [],
-      conversation_turn_trace: conversationTurnTrace,
-    };
-  }
 
   const operationPipeline = await runOperationRuntimePipeline({
     supabase,
@@ -5012,45 +4718,6 @@ export async function processMessage(
   // La transition (enter/maintain/exit) a été décidée en amont, juste après
   // le routing (les sorties ont déjà été re-dispatchées). Ici: conversation
   // pure — contexte STRIPPÉ (aucun bloc produit, garantie structurelle) +
-  // FIL DE LA DISCUSSION verbatim depuis l'entrée (soupape résumé en cas de
-  // débordement) + prompt de présence + modèle deep.
-  let presenceContext: string | null = null;
-  let presenceModel: string | null = null;
-  if (
-    routeDecision.response_owner === "presence_conversation" &&
-    presenceApplyResult && presenceApplyResult.flow_state
-  ) {
-    const thread = await buildPresenceThreadContext({
-      supabase,
-      userId,
-      scope,
-      flowState: presenceApplyResult.flow_state,
-      requestId,
-    });
-    // Le repli éventuel du fil met à jour le résumé porté par l'état.
-    presenceApplyResult = {
-      ...presenceApplyResult,
-      flow_state: thread.flowState,
-    };
-    presenceContext = [
-      buildPresenceSystemBlock(),
-      // P1-2 (ALEX-CPR-B04): l'allowlist presence retirait le bloc de
-      // contrainte de style session — la presence promettait « je retiens »
-      // puis répondait en pavé. L'engagement PRIME aussi en mode ami.
-      sessionStyleCommitmentsPromptBlock(tempMemory) ?? "",
-      // P7-B (rose-hard19 R1-B01): le contrat d'outcome des effets du tour
-      // ENTRE dans la prose du flow — un rappel COMMITTÉ pendant la présence
-      // était nié par le template d'honnêteté-durabilité (« je ne peux pas
-      // te programmer ça depuis le chat ») faute de voir l'issue. Le strip
-      // produit reste entier pour tout le reste; la règle (5) du contrat
-      // fait primer un committed sur toute note de scope du flow.
-      directEffectConfirmationContextPrompt(turnFrame) ?? "",
-      buildContextString(stripToPresenceContext(contextLoadResult.context)),
-      thread.block,
-    ].filter((part) => part && part.trim().length > 0).join("\n\n");
-    presenceModel =
-      String(Deno.env.get("SOPHIA_COMPANION_MODEL_DEEP") ?? "").trim() || null;
-  }
 
   // ══════════════════════════════════════════════════════════════════════
   // W4.7 — LES DEUX LANES KEEL POSSÈDENT LEUR TOUR.
@@ -5554,7 +5221,7 @@ export async function processMessage(
       userMessage,
       history,
       state,
-      context: withKeelDoctrineBlock(presenceContext ?? context, keelTurn),
+      context: withKeelDoctrineBlock(context, keelTurn),
       targetMode,
       nCandidates: 1,
       checkupActive: false,
@@ -5570,7 +5237,7 @@ export async function processMessage(
       // module ne code une langue de réponse en dur, y compris celui-ci.
       outageTemplate: keelOutageTemplate(responseLocale),
       responseLocale,
-      sophiaChatModel: presenceModel ?? meta?.model ?? getGlobalAiModel(),
+      sophiaChatModel: meta?.model ?? getGlobalAiModel(),
       tempMemory,
       meta: {
         ...(meta ?? {}),
@@ -5581,7 +5248,6 @@ export async function processMessage(
         // reasoning model tourne à l'effort par défaut de l'API (medium/high)
         // et crame son budget de sortie en raisonnement interne → contenu
         // visible VIDE de façon intermittente (bug observé au replay du 09/07).
-        ...(presenceContext ? { reasoningEffort: "low" as const } : {}),
       },
     })
     : {
@@ -5659,20 +5325,6 @@ export async function processMessage(
   // ne pas se faire écraser par le générateur: enter/maintain → persiste le
   // flow (collant), exit → efface (poubelle + re-dispatch global au prochain
   // tour).
-  if (presenceApplyResult) {
-    tempMemory = commitPresenceResult(
-      tempMemory as Record<string, unknown>,
-      presenceApplyResult,
-      presenceNowIso,
-    );
-  } else if (presenceExited) {
-    // Sur une SORTIE présence, garantir que l'état effacé survit à toute
-    // réassignation de tempMemory pendant la génération/le loader mémoire
-    // (sinon le tour suivant re-verrait la présence active).
-    tempMemory = clearActiveConversationSkillState(
-      tempMemory as Record<string, unknown>,
-    );
-  }
   const responseContent = finalVisibleText(
     mergeVisibleTextForTest(operationRuntime, agentOut.responseContent),
     routeDecision,

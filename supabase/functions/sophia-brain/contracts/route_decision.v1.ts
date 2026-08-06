@@ -9,8 +9,6 @@ export type ResponseOwner =
   // branche de continuation, la question se répond en un tour.
   | "plan_question"
   // W2.A: "feature_opportunity" retiré de l'union — plus aucun owner possible.
-  | "presence_conversation"
-  | "attack_keyword_support"
   | "direct_effect"
   | "normal_reply";
 
