@@ -1,7 +1,7 @@
 import React from "react";
 
 import { supabase } from "../../lib/supabase";
-import { allergenLabel, isCatalogAllergen } from "../copy/allergens";
+import { allergenLabel, hasWideCoverage } from "../copy/allergens";
 import { Badge } from "./ui/Badge";
 import { Card } from "./ui/Card";
 
@@ -114,7 +114,11 @@ export default function StudentConstraintsCard({ studentId }: { studentId: strin
             {rows.map((row) => {
               const ref = row.allergen_ref ?? row.substance_ref ??
                 row.medication_class ?? "";
-              const narrow = row.allergen_ref !== null && !isCatalogAllergen(ref);
+              // La couverture se lit dans la table du VERROU, pas dans le
+              // catalogue de l'écran: `milk`, `eggs`, `soya`, `crustacean` sont
+              // couverts sans être proposés. Les signaler « en leurs propres
+              // mots » enverrait le coach renégocier un terme déjà standard.
+              const narrow = row.allergen_ref !== null && !hasWideCoverage(ref);
               return (
                 <li key={row.id} className="border-t border-gray-100 pt-3 first:border-0 first:pt-0">
                   <div className="flex flex-wrap items-center gap-2">

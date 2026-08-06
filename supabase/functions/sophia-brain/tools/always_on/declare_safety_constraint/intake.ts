@@ -7,6 +7,27 @@
  * un succès.
  */
 
+// LA NORMALISATION DES SLUGS EST IMPORTÉE, ET PLUS JAMAIS RECOPIÉE.
+//
+// `normalizeAllergenRef` fait ce que faisait la `normalizeRef` locale de ce
+// fichier: slug ASCII snake_case (R1), la casse et les séparateurs normalisés
+// — « Tree Nut », « tree-nut » et « tree_nut » sont le même allergène — mais
+// rien d'inventé, ce qui n'est pas un slug plausible est rejeté.
+//
+// Ce fichier en portait une copie pendant que `allergen_catalog.ts` en portait
+// une seconde et le formulaire une troisième. Les trois étaient identiques —
+// c'est justement ce qui rendait la dérive indolore à écrire: le jour où l'une
+// gagne une règle (les apostrophes, les accents translittérés, un plafond de
+// longueur), le formulaire écrit un slug et la conversation en écrit un autre
+// POUR LE MÊME MOT. L'élève déclare une allergie, la base en porte deux, et le
+// verrou de sortie n'en connaît qu'une.
+//
+// Le garde n'est pas ce commentaire: c'est `scripts/ci/wiring-check.mjs`.
+// Retirer cet import pour re-déclarer une copie locale fait repasser
+// `allergen_catalog.ts` en `unwired-module` et la CI en rouge. (Et pas d'alias
+// `const normalizeRef = normalizeAllergenRef`: un alias est exactement
+// l'endroit où la copie repousserait sans qu'un site d'appel ne change.)
+import { normalizeAllergenRef } from "../../../../_shared/keel/allergen_catalog.ts";
 import {
   SAFETY_CONSTRAINT_KINDS,
   SAFETY_CONSTRAINT_SEVERITIES,
@@ -19,18 +40,6 @@ import {
   SAFETY_CONSTRAINT_INTENTS,
   type SafetyConstraintIntent,
 } from "./contract.ts";
-
-/**
- * Slug ASCII snake_case (R1). On NORMALISE la casse et les séparateurs — « Tree
- * Nut », « tree-nut » et « tree_nut » sont le même allergène — mais on
- * n'invente rien: ce qui n'est pas un slug plausible est rejeté.
- */
-function normalizeRef(value: unknown): string | null {
-  const raw = String(value ?? "").trim().toLowerCase();
-  if (!raw) return null;
-  const slug = raw.replace(/[\s-]+/g, "_").replace(/[^a-z0-9_]/g, "");
-  return slug || null;
-}
 
 function optionalText(value: unknown, max: number): string | null {
   const raw = String(value ?? "").trim();
@@ -65,10 +74,14 @@ export function intakeSafetyConstraintEffect(input: {
       ? rawIntent as SafetyConstraintIntent
       : "declare";
 
-  const allergenRef = normalizeRef(payload.allergen_ref);
-  const substanceRef = normalizeRef(payload.substance_ref);
-  const medicationClass = normalizeRef(payload.medication_class);
-  const conditionRef = normalizeRef(payload.condition_ref);
+  // Les QUATRE identifiants passent par la MÊME règle, `condition_ref`
+  // compris. C'est le point du câblage: une maladie déclarée en conversation
+  // et la même déclarée au formulaire doivent produire le même slug, sinon la
+  // base porte deux lignes pour un seul fait.
+  const allergenRef = normalizeAllergenRef(payload.allergen_ref);
+  const substanceRef = normalizeAllergenRef(payload.substance_ref);
+  const medicationClass = normalizeAllergenRef(payload.medication_class);
+  const conditionRef = normalizeAllergenRef(payload.condition_ref);
   if (!allergenRef && !substanceRef && !medicationClass && !conditionRef) {
     // Le CHECK `student_safety_constraints_ref_check` refuserait la ligne de
     // toute façon; on le dit ICI pour que le refus porte un motif nommé plutôt

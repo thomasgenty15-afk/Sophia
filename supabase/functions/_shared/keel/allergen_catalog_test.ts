@@ -65,6 +65,23 @@ Deno.test("les alias du même danger ne sont pas proposés deux fois", () => {
   }
 });
 
+Deno.test("aucune clé vide: la CLÉ suffit à décider de la couverture", () => {
+  // LE PONT AVEC LE MIROIR NAVIGATEUR. `frontend/src/keel/copy/allergens.ts`
+  // ne peut mirroir que les CLÉS de la table (il ne charge pas ce module
+  // Deno/JSR), alors que `hasSurfaceFormCoverage` exige AUSSI un tableau non
+  // vide. Les deux prédicats ne coïncident que tant qu'aucune clé n'est vide —
+  // sinon le front dirait « reconnu sous ses autres noms » là où le moteur dit
+  // non, c'est-à-dire une promesse de protection que le verrou ne tient pas.
+  for (const [slug, forms] of Object.entries(ALLERGEN_SURFACE_FORMS)) {
+    assert(forms.length > 0, `'${slug}' est une clé sans aucune forme de surface`);
+    assertEquals(
+      hasSurfaceFormCoverage(slug),
+      true,
+      `'${slug}' est une clé de la table mais n'est pas rendu couvert`,
+    );
+  }
+});
+
 Deno.test("hasSurfaceFormCoverage dit la couverture, jamais « protégé »", () => {
   assertEquals(hasSurfaceFormCoverage("peanut"), true);
   // Un slug hors table: le matcher le trouve toujours sur son propre mot, mais
@@ -78,7 +95,10 @@ Deno.test("hasSurfaceFormCoverage dit la couverture, jamais « protégé »", ()
 
 Deno.test("la normalisation du formulaire est celle de la conversation", () => {
   // Divergence = deux contraintes pour un mot, et un verrou qui n'en connaît
-  // qu'une. Les cas sont ceux de `declare_safety_constraint/intake.ts`.
+  // qu'une. Ces cas étaient ceux de `declare_safety_constraint/intake.ts ::
+  // normalizeRef`, qui portait sa propre copie identique; l'intake IMPORTE
+  // maintenant cette fonction-ci, donc ces assertions pinnent la seule règle
+  // qui reste côté moteur.
   assertEquals(normalizeAllergenRef("Fruits de mer"), "fruits_de_mer");
   assertEquals(normalizeAllergenRef("  tree-nut "), "tree_nut");
   assertEquals(normalizeAllergenRef("Peanut!"), "peanut");

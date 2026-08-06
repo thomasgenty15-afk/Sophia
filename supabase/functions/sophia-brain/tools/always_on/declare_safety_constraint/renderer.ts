@@ -46,6 +46,25 @@ export function renderSafetyConstraintAck(
           "it from here on."
         : "Noted on your file - I'll take it into account in what I suggest.",
     );
+    // LA PORTÉE DE LA PROMESSE QU'ON VIENT DE FAIRE.
+    //
+    // Les deux phrases ci-dessus annoncent une vérification. Sur un slug hors
+    // de `ALLERGEN_SURFACE_FORMS`, cette vérification porte sur UN mot: l'élève
+    // qui a déclaré `fruits_de_mer` est couvert contre « fruits de mer » et pas
+    // contre « crevettes ». Le taire n'est pas neutre — c'est ce qui fait qu'il
+    // ne le redira jamais autrement.
+    //
+    // Ce n'est PAS « tu n'es pas protégé »: la contrainte mord, simplement sur
+    // son seul mot. Et la phrase ne NOMME rien, pour la raison mécanique
+    // expliquée en tête de fichier — un accusé qui cite l'allergène se fait
+    // remplacer par la ceinture de sortie.
+    if (declared.some((c) => c.surface_form_coverage === "word_only")) {
+      lines.push(
+        "One thing worth knowing: I have it under that one name, so that's the " +
+          "name I'll catch. If it goes by anything else on a menu or a label, " +
+          "tell me and I'll add that too.",
+      );
+    }
   }
   if (retracted.length > 0) {
     lines.push(

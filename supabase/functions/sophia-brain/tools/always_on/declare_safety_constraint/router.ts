@@ -11,12 +11,14 @@
  * réception d'une contrainte que la base n'a pas — le défaut d'origine.
  */
 
+import { hasSurfaceFormCoverage } from "../../../../_shared/keel/allergen_catalog.ts";
 import type { TurnFrame } from "../../../contracts/turn_frame.v1.ts";
 import type {
   BlockedSafetyConstraintEffect,
   CommittedSafetyConstraintEffect,
   RequestedSafetyConstraintEffect,
   SafetyConstraintWrite,
+  SurfaceFormCoverage,
 } from "./contract.ts";
 import { intakeSafetyConstraintEffect } from "./intake.ts";
 import { renderSafetyConstraintAck } from "./renderer.ts";
@@ -133,6 +135,38 @@ export async function runDeclareSafetyConstraintDirectEffect(args: {
   }
 
   const row = result.row;
+
+  // CE QUE LE VERROU TIENDRA SUR CETTE LIGNE — décidé ICI, sur la colonne
+  // relue, et porté jusqu'au renderer.
+  //
+  // Sans ce calcul, l'accusé disait « I'll check anything I suggest against it
+  // from here on » aussi bien sur `peanut` (reconnu sous « satay », « PB »,
+  // « nut butter ») que sur `kiwi` ou `fruits_de_mer` (reconnus sous ce mot et
+  // sous aucun autre). La phrase était vraie dans un cas et trop large dans
+  // l'autre, et c'est le second qui coûte: un élève rassuré ne redit pas son
+  // allergie sous un autre nom.
+  //
+  // On lit `row.allergen_ref` et pas `constraint_ref`: une classe de
+  // médicament n'a pas de formes de surface alimentaires, et lui répondre
+  // « seulement sous ce mot » serait une inquiétude sans objet.
+  const surfaceFormCoverage: SurfaceFormCoverage = row.allergen_ref === null
+    ? "not_applicable"
+    : hasSurfaceFormCoverage(row.allergen_ref)
+    ? "wide"
+    : "word_only";
+
+  // Le coach est la seule personne qui puisse élargir une contrainte étroite
+  // (en convenant du terme standard avec l'élève). Il la voit déjà sur sa
+  // fiche; ce log la rend comptable côté moteur. Pas de slug: un allergène est
+  // une donnée de santé, et `constraint_id` suffit à retrouver la ligne.
+  if (requested.intent === "declare" && surfaceFormCoverage === "word_only") {
+    console.log("keel.declare_safety_constraint.word_only_coverage", {
+      constraint_id: row.id,
+      kind: row.kind,
+      severity: row.severity,
+    });
+  }
+
   const committed: CommittedSafetyConstraintEffect = {
     type: "declare_safety_constraint",
     intent: requested.intent,
@@ -145,6 +179,7 @@ export async function runDeclareSafetyConstraintDirectEffect(args: {
     severity: row.severity,
     status: row.status,
     already_recorded: result.outcome === "already_recorded",
+    surface_form_coverage: surfaceFormCoverage,
   };
 
   return {

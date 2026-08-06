@@ -102,6 +102,26 @@ export type SafetyConstraintRow = {
   content_locale: string;
 };
 
+/**
+ * CE QUE LE VERROU DE SORTIE SAIT TENIR SUR CETTE LIGNE-LÀ, et rien de plus.
+ *
+ *   `wide`           le slug est dans `ALLERGEN_SURFACE_FORMS`: il est reconnu
+ *                    sous ses AUTRES noms (`peanut` couvre « satay », « PB »,
+ *                    « nut butter » — le défaut mesuré du 2026-08-03).
+ *   `word_only`      hors table. Le matcher compare TOUJOURS le token lui-même,
+ *                    pluriels et séparateurs compris: la contrainte mord, mais
+ *                    sur son seul mot. Ce n'est PAS « non protégé ».
+ *   `not_applicable` la ligne ne porte pas d'`allergen_ref` (un médicament, une
+ *                    molécule). Une classe de médicament n'a pas de formes de
+ *                    surface alimentaires; afficher « seulement sous ce mot »
+ *                    dessus inventerait une inquiétude sans objet.
+ *
+ * Trois états et pas un booléen: `not_applicable` et `word_only` répondent à
+ * des questions différentes, et les confondre ferait dire au renderer la même
+ * phrase sur une allergie au kiwi et sur une prescription de metformine.
+ */
+export type SurfaceFormCoverage = "wide" | "word_only" | "not_applicable";
+
 export type CommittedSafetyConstraintEffect = {
   type: "declare_safety_constraint";
   intent: SafetyConstraintIntent;
@@ -112,6 +132,13 @@ export type CommittedSafetyConstraintEffect = {
   severity: string;
   status: string;
   already_recorded: boolean;
+  /**
+   * Calculée sur la ligne RELUE, jamais sur la demande — même discipline que
+   * `constraint_ref`. Un accusé qui annonce une couverture large d'après le
+   * payload alors que la base a écrit autre chose est exactement le mensonge
+   * que le write-through existe pour rendre impossible.
+   */
+  surface_form_coverage: SurfaceFormCoverage;
 };
 
 export type BlockedSafetyConstraintEffect = {

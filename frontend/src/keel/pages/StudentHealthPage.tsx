@@ -15,7 +15,7 @@ import {
 import {
   ALLERGEN_OPTIONS,
   allergenLabel,
-  isCatalogAllergen,
+  hasWideCoverage,
   normalizeAllergenInput,
 } from "../copy/allergens";
 import KeelAppShell from "../components/KeelAppShell";
@@ -174,10 +174,15 @@ export default function StudentHealthPage() {
   const effectiveChoice = catalogApplies ? choice : OTHER;
   const usesFreeText = effectiveChoice === OTHER;
 
+  // Le slug tel qu'il PARTIRA en base, calculé pendant la frappe: c'est lui
+  // qu'on interroge sur la couverture, pas le texte brut. « Milk », « milk »
+  // et « MILK  » sont le même slug, donc la même promesse.
+  const freeTextRef = usesFreeText ? normalizeAllergenInput(freeText) : null;
+
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     setFormError(null);
-    const ref = usesFreeText ? normalizeAllergenInput(freeText) : effectiveChoice;
+    const ref = usesFreeText ? freeTextRef : effectiveChoice;
     if (!ref) {
       setFormError(c("health.add.error_no_ref"));
       return;
@@ -263,7 +268,12 @@ export default function StudentHealthPage() {
                   // « reconnu seulement sous ce mot » sur une classe de
                   // médicament inventerait une inquiétude sans objet.
                   const showsCoverage = row.allergen_ref !== null;
-                  const wide = ref !== null && isCatalogAllergen(ref);
+                  // La table du VERROU, pas le catalogue de l'écran: on ne
+                  // propose qu'une entrée par danger (`dairy`), mais le verrou
+                  // couvre aussi `milk`, `lactose`, `casein`, `eggs`, `soya`,
+                  // `crustacean`, `shrimp`. Un élève qui a tapé « milk » est
+                  // reconnu sous ses autres noms, et l'écran doit le dire.
+                  const wide = ref !== null && hasWideCoverage(ref);
                   return (
                     <li key={row.id}>
                       <Card>
@@ -355,7 +365,13 @@ export default function StudentHealthPage() {
               {usesFreeText && (
                 <Field
                   label={c("health.add.other_label")}
-                  hint={c("health.list.coverage_hint")}
+                  // La saisie libre n'est pas synonyme d'étroit: `milk`,
+                  // `eggs`, `soya` sont couverts sans être dans la liste. Le
+                  // dire PENDANT la frappe évite de promettre étroit ici et
+                  // large sur la fiche trois secondes plus tard.
+                  hint={freeTextRef !== null && hasWideCoverage(freeTextRef)
+                    ? c("health.list.coverage_full")
+                    : c("health.list.coverage_hint")}
                   htmlFor="health-other"
                 >
                   <input

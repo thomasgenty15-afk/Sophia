@@ -5,9 +5,12 @@ import { resolve } from "node:path";
 import {
   ALLERGEN_OPTIONS,
   allergenLabel,
-  isCatalogAllergen,
+  hasWideCoverage,
   normalizeAllergenInput,
+  WIDE_COVERAGE_SLUGS,
 } from "./allergens";
+
+const ENGINE_CATALOG = "../../../../supabase/functions/_shared/keel/allergen_catalog.ts";
 
 /**
  * LE TEST DE DÉRIVE. Le catalogue est déclaré dans le moteur et rendu ici, et
@@ -21,10 +24,7 @@ import {
  * noms alors que le verrou ne connaîtrait que le mot brut.
  */
 function engineCatalogSlugs(): string[] {
-  const enginePath = resolve(
-    __dirname,
-    "../../../../supabase/functions/_shared/keel/allergen_catalog.ts",
-  );
+  const enginePath = resolve(__dirname, ENGINE_CATALOG);
   const source = readFileSync(enginePath, "utf8");
   const block = source.match(
     /export const ALLERGEN_CATALOG: readonly AllergenCatalogEntry\[\] = \[([\s\S]*?)\] as const;/,
@@ -89,18 +89,138 @@ describe("allergen display", () => {
     expect(allergenLabel("")).toBe("—");
   });
 
-  it("tells catalog membership without claiming protection", () => {
-    expect(isCatalogAllergen("peanut")).toBe(true);
-    expect(isCatalogAllergen("PEANUT")).toBe(true);
-    expect(isCatalogAllergen("kiwi")).toBe(false);
-    expect(isCatalogAllergen("")).toBe(false);
+  it("tells surface-form coverage without claiming protection", () => {
+    expect(hasWideCoverage("peanut")).toBe(true);
+    expect(hasWideCoverage("PEANUT")).toBe(true);
+    expect(hasWideCoverage("  peanut ")).toBe(true);
+    // Hors table: le matcher le trouve toujours sur son propre mot. `false`
+    // veut dire « seulement sous ce mot », jamais « non protégé ».
+    expect(hasWideCoverage("kiwi")).toBe(false);
+    expect(hasWideCoverage("")).toBe(false);
   });
 });
 
+describe("wide-coverage mirror", () => {
+  // CE QUE CE BLOC EMPÊCHE. L'écran lisait la couverture dans le CATALOGUE —
+  // ce qu'il propose — alors que la couverture est décidée par la table du
+  // verrou. `milk`, `lactose`, `casein`, `eggs`, `soya`, `crustacean`,
+  // `shrimp` sont couverts sans être proposés: un élève qui tapait « milk » en
+  // saisie libre s'entendait dire « reconnu seulement sous ce mot », faux.
+
+  it("mirrors exactly the slugs the engine covers", () => {
+    const engine = engineSurfaceFormSlugs();
+    expect(engine.length).toBeGreaterThan(0);
+    // Les DEUX sens. Une clé manquante ici sous-annonce (prudent mais faux);
+    // une clé de trop promettrait une reconnaissance large sur un slug que le
+    // verrou ne connaît que nu — la panne grave, et la seule qui rassure.
+    expect([...WIDE_COVERAGE_SLUGS].sort()).toEqual([...engine].sort());
+  });
+
+  it("claims wide coverage for every engine slug and for nothing else", () => {
+    for (const slug of engineSurfaceFormSlugs()) {
+      expect(hasWideCoverage(slug)).toBe(true);
+    }
+    for (const outside of ["kiwi", "fruits_de_mer", "metformin", "nut_butter"]) {
+      expect(hasWideCoverage(outside)).toBe(false);
+    }
+  });
+
+  it("covers everything the catalog proposes", () => {
+    // La promesse de la liste fermée: choisir dedans, c'est être reconnu sous
+    // ses autres noms. Redite ici sur le prédicat que l'écran appelle vraiment.
+    for (const option of ALLERGEN_OPTIONS) {
+      expect(hasWideCoverage(option.slug)).toBe(true);
+    }
+  });
+});
+
+/**
+ * LA RÈGLE DE NORMALISATION, ÉPROUVÉE PAR ÉQUIVALENCE ET PLUS PAR RESSEMBLANCE.
+ *
+ * Ce bloc pinnait des cas écrits à la main (« Fruits de mer » -> `fruits_de_mer`)
+ * en disant qu'ils étaient « ceux de l'intake ». Ils ne l'étaient que par
+ * copie: le moteur pouvait gagner une règle — les apostrophes, un plafond de
+ * longueur, une translittération — sans qu'un seul test ne bouge, et le
+ * formulaire aurait écrit un slug là où la conversation en écrivait un autre
+ * POUR LE MÊME MOT. Deux contraintes pour une allergie déclarée une fois, et un
+ * verrou qui n'en connaît qu'une.
+ *
+ * On EXTRAIT donc le corps de `normalizeAllergenRef` du fichier moteur et on le
+ * fait tourner sur le même corpus. Vite/node ne peut pas importer ce module
+ * Deno/JSR — mais la fonction est pure et sans import, donc son corps s'exécute
+ * tel quel.
+ */
+function engineNormalizer(): (value: unknown) => string | null {
+  const source = readFileSync(resolve(__dirname, ENGINE_CATALOG), "utf8");
+  const block = source.match(
+    /export function normalizeAllergenRef\(value: unknown\): string \| null \{([\s\S]*?)\n\}/,
+  );
+  if (!block) {
+    throw new Error("normalizeAllergenRef not found in allergen_catalog.ts");
+  }
+  try {
+    return new Function("value", block[1]) as (value: unknown) => string | null;
+  } catch (error) {
+    // Le corps a cessé d'être du JS exécutable tel quel (une annotation de
+    // type sur une locale, un import). Le dire ainsi plutôt que de laisser une
+    // SyntaxError nue: ce test est le seul lien entre les deux copies.
+    throw new Error(
+      `le corps de normalizeAllergenRef n'est plus exécutable hors Deno — ` +
+        `adapter ce test AVANT de conclure que le front est bon: ${String(error)}`,
+    );
+  }
+}
+
+const NORMALISATION_CORPUS: readonly string[] = [
+  "peanut",
+  "Peanut",
+  "PEANUT",
+  "  peanut  ",
+  "tree nut",
+  "tree-nut",
+  "  tree-nut ",
+  "Tree_Nut",
+  "tree--nut",
+  "tree - nut",
+  "Fruits de mer",
+  "fruits  de   mer",
+  "café  au lait",
+  "crème fraîche",
+  "jalapeño",
+  "Peanut!",
+  "peanut's",
+  "peanut’s",
+  "peanut/butter",
+  "nut butter",
+  "PB",
+  "shellfish (all)",
+  "e621",
+  "50/50",
+  "\tpeanut\n",
+  "milk protein",
+  "",
+  "   ",
+  "!!!",
+  "---",
+  "___",
+  "😀",
+  "peanut😀",
+];
+
 describe("free-text normalisation", () => {
-  it("matches the conversational intake, character for character", () => {
-    // Divergence = deux contraintes pour un mot, et un verrou qui n'en connaît
-    // qu'une.
+  it("agrees with the engine rule on every input of the corpus", () => {
+    const engine = engineNormalizer();
+    for (const input of NORMALISATION_CORPUS) {
+      expect(
+        normalizeAllergenInput(input),
+        `divergence sur ${JSON.stringify(input)}`,
+      ).toEqual(engine(input));
+    }
+  });
+
+  it("still pins the cases a reader needs to see", () => {
+    // L'équivalence ci-dessus attraperait une dérive, mais elle ne dit pas ce
+    // que la règle FAIT. Ces quatre-là restent lisibles à l'œil nu.
     expect(normalizeAllergenInput("Fruits de mer")).toBe("fruits_de_mer");
     expect(normalizeAllergenInput("  tree-nut ")).toBe("tree_nut");
     expect(normalizeAllergenInput("Peanut!")).toBe("peanut");
@@ -111,5 +231,17 @@ describe("free-text normalisation", () => {
     expect(normalizeAllergenInput("")).toBeNull();
     expect(normalizeAllergenInput("   ")).toBeNull();
     expect(normalizeAllergenInput("!!!")).toBeNull();
+  });
+
+  it("survives a nullish value the type forbids but the DOM can produce", () => {
+    // La signature moteur prend `unknown`, celle du front prend `string`. Le
+    // cast est délibéré: un champ non contrôlé, un état réinitialisé, et la
+    // valeur arrive quand même. Le corps la gère — on le vérifie plutôt que de
+    // le supposer.
+    const engine = engineNormalizer();
+    for (const nullish of [null, undefined]) {
+      expect(normalizeAllergenInput(nullish as unknown as string)).toBeNull();
+      expect(engine(nullish)).toBeNull();
+    }
   });
 });
