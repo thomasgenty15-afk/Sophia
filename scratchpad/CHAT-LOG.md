@@ -720,3 +720,146 @@ quelqu'un à qui on demande.
 5. **Fixtures `chat_`** : aucune. Tests en mémoire.
 
 ---
+## Validation finale — 10 tests en conditions réelles
+
+**Début** : 2026-08-08 · **Fin** : 2026-08-08.
+**Verdict global : 9 tests sur 10 passent. Le test 9 ÉCHOUE**, diagnostic
+complet ci-dessous, non corrigé et non maquillé.
+
+### Le dispositif
+
+Stack **locale**, **vrai modèle** (clés OpenAI/Gemini présentes dans le runtime
+edge), **vraie base**. Aucun mock. Élèves provisionnés par
+`scratchpad/chat_qa_provision.ts` : compte auth réel (donc vrai JWT), coach,
+lien `coach_clients` consenti, **plan publié** avec 2 engagements — sans lui
+aucun effet KEEL ne se produit — et **`profiles.locale` écrit explicitement**,
+le défaut de la colonne étant `fr-FR`.
+Messages envoyés à `chat-inbound-v1` avec le JWT de l'élève et l'`apikey` anon.
+
+**Script Kong lancé AVANT le run** : `read_timeout` porté à 600 000 ms.
+Aucun 502 sur les ~35 tours joués.
+
+### ⚠️ PIÈGE D'OUTILLAGE DÉCOUVERT — le runtime edge sert un cache périmé
+
+Après modification d'un fichier `_shared` **déjà existant**, le runtime edge
+local continuait de servir l'ancienne version. Un fichier **neuf**
+(`body_measure_floor.ts`) était bien chargé ; un fichier **modifié**
+(`meal_declaration_floor.ts`) ne l'était pas.
+
+Symptôme : un correctif appliqué et vérifié en unitaire restait invisible en run
+réel, ce qui pousse à diagnostiquer un bug produit qui n'existe pas — exactement
+la famille du piège Kong. **`docker restart supabase_edge_runtime_Sophia_2` est
+obligatoire avant tout run réel qui vise un `_shared` modifié.**
+
+### Les dix tests
+
+| # | Test | Verdict | Preuve |
+|---|---|---|---|
+| 1 | « je suis à 78 kg » | ✅ | `weekly_reviews.biofeedback = {"source":"chat","weight_kg":78,"measured_at":"2026-08-08T00:58:45"}` |
+| 2 | « I'm at 172 lbs this morning » | ✅ | `weight_kg: 78` (172 lb converti), `source: chat`, profil `en-GB`/`imperial`, réponse anglaise : « Got it. That's 172 lbs this morning. » |
+| 3 | « je veux atteindre 75 kg » | ✅ | `biofeedback` **inchangé** (78, `measured_at` du tour précédent) — rien d'écrit |
+| 4 | Perte franchissant le seuil, venue **du chat** | ✅ | log : `restriction guard re-evaluated after a chat measure { was: false, now: true, triggers: ["rapid_weight_loss"] }` ; base : 70,0 / 69,7 (dimanche) puis **67,4 `source: chat`** |
+| 5 | Sous plancher levé, l'élève écrit son poids | ✅ | `weight_kg` passe à **67** en base ; réponse : « I hear that this morning feels heavy. I'm staying with that with you. » — **zéro chiffre** |
+| 6 | « j'ai commandé une pizza ce soir » | ✅ *(après correctif)* | `plan_relation = off_plan`, `source = chat`, **1 ligne** |
+| 7 | Foyer : « on mange quoi ce soir ? » | ✅ *(après correctif)* | « Tonight you're having roasted chicken, brown rice, and green beans. Your plate should have a bigger protein portion for QA, and Marc gets a smaller starch portion. » |
+| 8 | Foyer `shared` : la part d'un autre | ✅ | réponse : « The only serving note I have is for you » — **et la preuve qui compte** : sonde directe du contexte, `portions = [{"firstName":"QA","isMe":true}]`, roster `Marc → presence_only`, bloc **ne contient pas** « féculents plus petite » (`false`). En `family`, le même élève : `true`. |
+| 9 | « cette semaine a été horrible » avec des dîners cochés | 🔴 **ÉCHOUÉ** | voir ci-dessous |
+| 10 | Vingt tours ordinaires | ✅ | 20/20 en HTTP 200 ; **0** demande alimentaire, **0** demande d'énergie/sommeil/appétit sur 62 lignes de réponse. Tap « Rough / hunger » du 2026-08-07 **chargé et daté** dans le contexte (sonde directe), **jamais redemandé** |
+
+### 🔴 Les deux défauts PRODUIT que le run a trouvés — et corrigés
+
+**A. `plan_relation` était perdue dès que le modèle parlait le premier.**
+Sur « j'ai commandé une pizza ce soir », le dispatcher avait **déjà** demandé le
+`log_protocol_event` (il déduit `fried_food` de « pizza »). Le plancher s'efface
+devant le dispatcher — c'est sa règle — et la relation au plan **n'était donc
+jamais écrite**, au moment exact où le message la portait le plus clairement.
+Base observée : `plan_relation` NULL.
+**Correctif** : `plan_relation` est une classification **déterministe** que le
+dispatcher n'émet jamais ; le routeur l'**attache** désormais à l'effet
+existant au lieu d'en ajouter un second (qui dupliquerait le fait). Même forme
+que le plancher de maladie, même raison. Vérifié : `plan_relation = off_plan`,
+une seule ligne, log `plan_relation attached to the dispatcher's effect`.
+Pinné par un test unitaire.
+
+**B. `keel_household_roster()` était inatteignable depuis le serveur.**
+Deux causes indépendantes, chacune suffisante :
+1. le corps filtre sur `keel_household_of((select auth.uid()))`, et `auth.uid()`
+   est **NULL** sous `service_role` — la cicatrice
+   `auth-uid-null-under-service-role` du dépôt, mot pour mot ;
+2. `revoke all … from public, anon` puis `grant … to authenticated` :
+   `service_role` n'a **jamais** eu le droit d'exécuter cette fonction.
+
+Le chargeur avalait l'échec **par conception** (une panne ne doit pas faire dire
+« rien de prévu »), donc le symptôme était un agent qui répond avec les lignes
+du **coach** à quelqu'un qui demande ce qu'on mange ce soir. Aucune erreur nulle
+part.
+**Correctif** (`20260808060000_household_roster_for_server.sql`) :
+`keel_household_roster_for(p_user)` porte **le** corps et n'est exécutable que
+par `service_role` ; la fonction historique devient un appel d'une ligne qui lui
+passe `auth.uid()`. **Une requête, deux gardes**, pas deux copies. Contrôle
+final qui **rejoue le geste** dans les deux sens (un membre → ≥ 1 ligne, un uuid
+sans foyer → 0 ligne).
+
+### 🔴 TEST 9 — ÉCHOUÉ, et le diagnostic est complet
+
+**Ce qui a été joué.** Élève avec **5 dîners cochés** (2026-08-04 → 08,
+`plan_relation = as_planned`), message : « cette semaine a été horrible, j'ai
+rien tenu ».
+
+**Ce qui devait arriver.** La réponse s'appuie sur un fait, sans encouragement
+non groundé.
+
+**Ce qui est arrivé.**
+> That sounds brutal. You're not describing a small slip, you're saying the week
+> felt like a full miss.
+>
+>  **That's all I can ground it on right now.**
+
+La phrase qui **citait le fait** a disparu, laissant une référence en l'air.
+
+**La cause, mesurée et pas supposée.** Ce n'est **pas** ma ceinture : le log
+`grounded_support belt bit` n'apparaît **pas**. C'est
+`stripKeelAckWithoutCommittedEffect` — log :
+`[keel] ack_guard triggered count=1 stripped=1 locale=fr object=none`.
+
+Sondes directes sur la base réelle, qui montrent que tout le reste est correct :
+- `dayFacts = {"tickedCount":1,"tickedTitles":["Poulet rôti et haricots verts"],…}`
+- `supportGround = "day"`
+- `detectDiscouragementTurn(...) = {"matched":"cette semaine a ete horrible"}`
+- le bloc de matière est bien assemblé, avec ses trois comptes
+
+**Le défaut de fond.** La ceinture d'accusé fantôme ne sait pas distinguer
+« j'accuse réception de ce que je viens d'enregistrer » de « je cite un fait que
+tu as enregistré plus tôt aujourd'hui ». Sur un tour de découragement il n'y a
+**jamais** d'effet committé — une citation groundée y est donc **toujours** à
+risque. FF-011 rend cette collision **nouvellement atteignable** : c'est la
+première fiche qui demande à l'agent de citer un fait préexistant sur un tour
+qui n'écrit rien.
+
+**Pourquoi ce n'est PAS corrigé ici.** `stripKeelAckWithoutCommittedEffect` est
+une ceinture de sortie adossée à une famille de défauts documentée
+(`fanout-reminder-phantom-commit`, `p0-write-through-reminders`). La desserrer
+en fin de chantier, sans la place de rejouer ses propres épreuves, c'est
+exactement le geste que ce dépôt punit. **Le correctif est un lot à lui seul**,
+avec sa preuve : apprendre à la garde qu'une citation d'un fait du JOUR — dont
+la valeur est dans `day_facts` — n'est pas un accusé de ce tour.
+
+**Le reste de FF-011 est vérifié** : la matière est chargée, le sol est calculé,
+le bloc est correct, la ceinture est armée sur les bons tours (20 tests
+unitaires), et **aucun encouragement non groundé n'est sorti**. Ce qui manque
+est la **citation**, mangée en aval.
+
+### Vérifications finales
+
+- **Suite Deno complète** : `2674 passed | 1 failed | 16 ignored` — le rouge
+  préexistant, prouvé par remisage au lot 1, et rien d'autre.
+- **Frontend** : `npx tsc -b` vert.
+- **Migrations** : les deux appliquées **localement** par `docker exec … psql`,
+  versions enregistrées dans `supabase_migrations.schema_migrations`. **Aucun
+  `db reset`, aucun `db push`, aucun `functions deploy`.**
+- **Fixtures** : les élèves de QA portent l'e-mail `chat-qa-*@test.dev` (et
+  `chat-coach-*`, `chat-mate-*`). Ils sont laissés en base **exprès** — ils
+  portent les preuves citées ci-dessus. La requête de nettoyage est dans le
+  récapitulatif.
+
+---

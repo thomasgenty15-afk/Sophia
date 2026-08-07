@@ -203,8 +203,19 @@ export async function loadHouseholdTurnContext(
     const kind = rawKind as HouseholdKind;
 
     // 2. LE ROSTER, par la RPC — jamais par `profiles`. Le fait que la RPC
-    // existe EST la garde: une policy RLS ne restreint pas les COLONNES.
-    const rosterRes = await db.rpc("keel_household_roster", { p_user: userId });
+    // existe EST la garde: une policy RLS ne restreint pas les COLONNES, et
+    // ouvrir `profiles` aux co-membres livrerait téléphone, e-mail et
+    // identifiant Stripe pour afficher un prénom.
+    //
+    // ⚠️ `_for(p_user)`, ET PAS LA VERSION SANS ARGUMENT. Mesuré en run réel:
+    // `keel_household_roster()` filtre sur `auth.uid()`, qui est NULL sous
+    // `service_role` — et son GRANT ne couvrait même pas ce rôle. L'appel ne
+    // pouvait donc pas aboutir, le chargeur avalait l'échec (par conception),
+    // et l'agent répondait avec les lignes du COACH à quelqu'un qui demandait
+    // ce qu'on mange ce soir. Aucune erreur nulle part.
+    // Les deux fonctions partagent UN corps (20260808060000): le navigateur
+    // garde sa garde `auth.uid()`, le serveur passe l'élève explicitement.
+    const rosterRes = await db.rpc("keel_household_roster_for", { p_user: userId });
     if (rosterRes.error) throw rosterRes.error;
     const rosterRows = asArray(rosterRes.data);
     const me = rosterRows.map(snapshotOf).find((m) => m.userId === userId);

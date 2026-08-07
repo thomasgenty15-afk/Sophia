@@ -291,3 +291,22 @@ Deno.test("FF-009 — « chez moi » et « chez nous » ne sont JAMAIS un hors-p
     assertEquals(detectOffPlanMarker(home), null, `hors-plan à tort: ${home}`);
   }
 });
+
+Deno.test("FF-009 — LE MARQUEUR SURVIT QUAND LE MODÈLE PARLE LE PREMIER", () => {
+  // 🔴 Régression mesurée en run réel (2026-08-08): sur « j'ai commandé une
+  // pizza ce soir », le dispatcher avait déjà demandé le `log_protocol_event`
+  // (il déduit `fried_food` de « pizza »), le plancher s'était effacé — c'est
+  // sa règle — et `plan_relation` restait NULL en base.
+  //
+  // Le plancher garde sa règle; c'est le ROUTEUR qui attache maintenant la
+  // relation à l'effet du dispatcher (`run.ts`, « LA RELATION AU PLAN NE
+  // S'EFFACE PAS DEVANT LE DISPATCHER »). Ce test pinne la moitié pure: la
+  // relation est disponible même quand aucun aliment du lexique ne mord, donc
+  // même quand le plancher n'aurait rien eu à poser de lui-même.
+  const hit = detectDeclaredMeal("j'ai commandé une pizza ce soir");
+  assertEquals(hit?.planRelation, "off_plan");
+  assertEquals(hit?.components.length, 0);
+  // Et en anglais, la même chose.
+  const en = detectDeclaredMeal("I ordered a pizza tonight");
+  assertEquals(en?.planRelation, "off_plan");
+});

@@ -3860,6 +3860,55 @@ export async function processMessage(
     const mealAlreadyRequested = turnFrame.direct_effects.some(
       (effect) => effect.effect_type === "log_protocol_event",
     );
+
+    // ── FF-009 · LA RELATION AU PLAN NE S'EFFACE PAS DEVANT LE DISPATCHER ───
+    //
+    // 🔴 DÉFAUT MESURÉ EN RUN RÉEL (2026-08-08, stack locale, vrai modèle).
+    //   élève  : « j'ai commandé une pizza ce soir »
+    //   frame  : le dispatcher AVAIT demandé un `log_protocol_event`
+    //            (`food_group_ref = fried_food`, déduit de « pizza »)
+    //   base   : `plan_relation = NULL`
+    // Le plancher s'était effacé — c'est sa règle — et la relation au plan
+    // était perdue AU MOMENT EXACT où le message la portait le plus clairement.
+    //
+    // La correction est la même que celle du plancher de maladie, pour la même
+    // raison: `plan_relation` est une CLASSIFICATION DÉTERMINISTE que le
+    // dispatcher n'émet jamais. Il n'y a donc rien à écraser — on complète
+    // l'effet qu'il a demandé au lieu d'ajouter le nôtre à côté, ce qui
+    // dupliquerait le fait.
+    //
+    // ⚠️ CE N'EST PAS UN PLANCHER QUI DEVIENT UN REMPLAÇANT: si le dispatcher
+    // n'a rien demandé, le plancher pose son propre effet comme avant. Ici il
+    // ne fait qu'AJOUTER une colonne à une demande existante.
+    if (declaredMeal?.planRelation && mealAlreadyRequested) {
+      console.warn("[keel] plan_relation attached to the dispatcher's effect", {
+        request_id: requestId,
+        plan_relation: declaredMeal.planRelation,
+        off_plan_matched: declaredMeal.offPlanMatched,
+        detail:
+          "le dispatcher avait déjà demandé le log; la relation au plan est " +
+          "déterministe et lui manquait. Sans ceci, un hors-plan est " +
+          "indiscernable d'un repas cuisiné dès que le modèle parle le premier.",
+      });
+      turnFrame = {
+        ...turnFrame,
+        direct_effects: turnFrame.direct_effects.map((effect) =>
+          effect.effect_type === "log_protocol_event"
+            ? {
+              ...effect,
+              payload_hint: {
+                ...(effect.payload_hint && typeof effect.payload_hint === "object" &&
+                    !Array.isArray(effect.payload_hint)
+                  ? effect.payload_hint as Record<string, unknown>
+                  : {}),
+                plan_relation: declaredMeal.planRelation,
+              },
+            }
+            : effect
+        ),
+      };
+    }
+
     if (declaredMeal && !mealAlreadyRequested) {
       console.warn("[keel] meal_declaration_floor raised", {
         request_id: requestId,
