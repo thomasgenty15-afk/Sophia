@@ -5113,6 +5113,9 @@ export async function processMessage(
     injectedContext,
     memoryPlan: turnFrame.memory_plan ?? DEFAULT_DISPATCHER_MEMORY_PLAN,
     v2Runtime,
+    // Un élève KEEL ne reçoit pas la cartographie du tableau de bord grand
+    // public. Même branche que le bloc plan plus haut (W4.7).
+    keelStudent: keelTurn.is_student,
   });
   try {
     const memoryV2Active = await runMemoryV2ActiveLoader({

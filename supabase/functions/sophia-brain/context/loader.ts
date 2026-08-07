@@ -193,6 +193,17 @@ export interface ContextLoaderOptions {
   v2CycleId?: string | null;
   v2TransformationId?: string | null;
   v2Runtime?: ActiveTransformationRuntime | null;
+  /**
+   * Élève d'un coach KEEL (`keelTurn.is_student`). Sert à NE PAS lui décrire
+   * un tableau de bord qu'il n'a pas — voir `formatDashboardCapabilitiesLiteAddon`.
+   *
+   * Le défaut `false` est VOULU, pas un oubli: c'est l'assemblage du produit
+   * grand public, qui tourne encore depuis ce code sur un autre projet
+   * Supabase et doit rester identique. Même patron que
+   * `DispatcherPromptAudience.keelStudent` et que `run.ts` W4.7 sur le bloc
+   * plan. Un seul appelant en production (`router/run.ts`), et il le passe.
+   */
+  keelStudent?: boolean;
 }
 
 /**
@@ -910,13 +921,27 @@ export async function loadContextForMode(
   }
 
   // 13b. Dashboard capabilities lite addon (only when no specific dashboard addon is active)
+  //
+  // PAS POUR UN ÉLÈVE KEEL. Ce bloc part à CHAQUE tour companion et décrit un
+  // tableau de bord grand public que l'élève d'un coach n'a pas: « Ressources:
+  // cartes d'attaque, cartes de défense, potions », « Inspirations »,
+  // « Initiatives », « Missions », et l'ordre « toute reconfiguration du plan
+  // doit être faite dans le dashboard ». La carte de défense qu'il nomme a été
+  // supprimée le 2026-08-08 (`20260808030000_drop_defense_card.sql`): le bloc
+  // décrivait donc au modèle une capacité qui n'existe plus.
+  //
+  // ASSEMBLAGE CONDITIONNEL, PAS SUPPRESSION — même raison que
+  // `dispatcher.prompts.ts`: le produit grand public tourne encore depuis ce
+  // code sur un autre projet Supabase, et son assemblage reste identique.
   const hasSpecificDashboardAddon = Boolean(
     dashboardRedirectAddon ||
       dashboardPreferencesIntentAddon ||
       dashboardCapabilitiesAddon ||
       hasSurfaceOpportunityAddon,
   );
-  if (opts.mode === "companion" && !hasSpecificDashboardAddon) {
+  if (
+    opts.mode === "companion" && !hasSpecificDashboardAddon && !opts.keelStudent
+  ) {
     context.dashboardCapabilitiesLiteAddon =
       formatDashboardCapabilitiesLiteAddon();
     if (context.dashboardCapabilitiesLiteAddon) {
