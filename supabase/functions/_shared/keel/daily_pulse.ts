@@ -624,7 +624,28 @@ export function pulseContextBlock(
   }
 
   lines.push("");
-  lines.push("HARD RULE — energy, hunger, sleep and digestion:");
+  // FF-012 — LA RÈGLE ALIMENTAIRE VIT ICI, ET PAS DANS LE PROMPT DU COMPAGNON.
+  //
+  // Deux raisons, et la seconde est mesurée. (1) « Ne demande jamais ce qu'il a
+  // mangé » n'a aucun sens pour la branche legacy grand public, qui partage le
+  // prompt du compagnon et n'a pas de repas. (2) Le corps du prompt FR du
+  // compagnon était à 12 987 caractères pour un plafond de 13 000 — TREIZE
+  // caractères de marge, et le test de budget est tombé à la première ligne
+  // ajoutée. Une règle KEEL vit dans un bloc KEEL.
+  //
+  // Elle est dans CE bloc plutôt que dans celui du soutien groundé parce que
+  // celui-ci passe AVANT dans l'ordre d'injection: le budget tronque par la
+  // queue, et l'interdiction de solliciter est la fiche entière de FF-012.
+  lines.push("HARD RULE — what this conversation NEVER asks for:");
+  lines.push(
+    "- NEVER ask what they ate, what they had, what they cooked, how their " +
+      "eating went, or any softened version of any of those. Not as a " +
+      "greeting, not as small talk, not to fill a turn. You ACCEPT what they " +
+      "offer; you never collect. If they give you a meal, that is theirs to " +
+      "give.",
+  );
+  lines.push("");
+  lines.push("And the same rule for energy, hunger, sleep and digestion:");
   lines.push(
     "- NEVER ask about them. Not 'how's your energy?', not 'how are you " +
       "sleeping?', not 'how's your appetite been?', not a softened version of " +

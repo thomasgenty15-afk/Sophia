@@ -377,7 +377,11 @@ Deno.test("companion question rhythm reads coach question tendency from runtime 
   });
 
   assert(prompt.includes("Préférence user: low"));
-  assert(prompt.includes("environ 1 question tous les 4 tours"));
+  // FF-012: la préférence du coach reste LUE, mais elle s'exprime en PLAFOND
+  // et plus en cible. « Environ 1 question tous les 4 tours » était un quota à
+  // atteindre; « au plus 1 sur 6 tours » est une retenue.
+  assert(prompt.includes("max 1 question / 6 tours"));
+  assertEquals(prompt.includes("environ 1 question"), false);
 });
 
 Deno.test("companion question rhythm reads coach question tendency from user facts", () => {
@@ -395,7 +399,7 @@ Deno.test("companion question rhythm reads coach question tendency from user fac
   });
 
   assert(prompt.includes("Préférence user: high"));
-  assert(prompt.includes("environ 1 question tous les 2 tours"));
+  assert(prompt.includes("max 3 questions / 6 tours"));
 });
 
 Deno.test("companion question rhythm does not infer question tendency from other coach preferences", () => {
@@ -421,7 +425,7 @@ Deno.test("companion question rhythm does not infer question tendency from other
   });
 
   assert(prompt.includes("Préférence user: high"));
-  assert(prompt.includes("environ 1 question tous les 2 tours"));
+  assert(prompt.includes("max 3 questions / 6 tours"));
 });
 
 Deno.test("companion normal reply acknowledges explicit memorization requests", () => {

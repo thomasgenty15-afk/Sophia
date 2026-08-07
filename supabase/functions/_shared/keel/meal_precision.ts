@@ -508,15 +508,30 @@ export interface MealPrecisionGateResult {
 }
 
 /**
- * Deux questions par jour et par élève, TOUTES SOURCES CONFONDUES.
+ * UNE question par jour et par élève, TOUTES SOURCES CONFONDUES.
  *
  * Sans plafond, un élève bavard qui déclare cinq repas reçoit cinq questions et
  * cesse de déclarer — ce qui coûte plus cher que l'imprécision qu'on voulait
  * corriger. Le compteur est persistant et vérifiable en base
  * (`meal_precision_questions`), jamais en mémoire de tour: une mémoire de tour
  * remet le compteur à zéro à chaque message et ne plafonne rien.
+ *
+ * ── POURQUOI 2 → 1 (FF-012 R2) ─────────────────────────────────────────────
+ * « Deux, c'était déjà une relance ; une, c'est un approfondissement. » Une
+ * question adossée à un fait DÉJÀ DONNÉ creuse ce que l'élève vient d'offrir.
+ * La deuxième ne creuse plus rien: elle réclame, et le produit a tranché qu'il
+ * ne réclame pas. La question elle-même ne disparaît PAS — ses gabarits sont
+ * fermés, aucun ne demande de quantité, et le gate refuse déjà sous
+ * `safety_band`, sur une intention future et sans fait committé.
+ *
+ * ⚠️ EFFET DE BORD VOULU, ET C'EST UN BÉNÉFICE. Le plafond se compte sur le
+ * JOUR LOCAL (`meal_precision_cap.ts`, motif `missing_local_date`), et un
+ * fuseau mal résolu fait repartir le compteur à minuit UTC. À 2, ce bug était
+ * masqué — l'élève recevait deux questions et personne ne s'en apercevait. À 1,
+ * une deuxième question DANS LA MÊME JOURNÉE est le symptôme visible d'un
+ * fuseau mal résolu.
  */
-export const MEAL_PRECISION_DAILY_CAP = 2;
+export const MEAL_PRECISION_DAILY_CAP = 1;
 
 /**
  * Pose-t-on la question ?

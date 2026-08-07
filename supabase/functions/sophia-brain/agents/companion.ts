@@ -32,7 +32,23 @@ const QUESTION_RHYTHM_WINDOW_SIZE = 6;
 const RESEARCH_CONTEXT_MARKER = "=== RECHERCHE WEB (informations fraiches) ===";
 
 type QuestionTendency = "low" | "normal" | "high";
-type QuestionGuidance = "avoid_now" | "optional" | "ask_now";
+/**
+ * FF-012 — `ask_now` A DISPARU DU VOCABULAIRE, et c'est le lot.
+ *
+ * Il poussait l'agent à poser une question PARCE QU'IL N'EN AVAIT PAS POSÉ
+ * DEPUIS N TOURS. C'est la définition de la sollicitation, et ça vient d'un
+ * produit d'engagement, pas d'un produit de conseil: « une app de tracking est
+ * asymétrique — l'utilisateur fournit le travail, l'app rend un jugement. Une
+ * app de plan est symétrique: l'app travaille, l'utilisateur mange. »
+ *
+ * ⚠️ CE QUI RESTE, ET POURQUOI ON NE L'A PAS RETIRÉ AUSSI. Le compteur survit,
+ * mais il ne sert plus qu'à RETENIR: `avoid_now` plafonne le nombre de
+ * questions dans la fenêtre. Retirer le plafond en même temps que la poussée
+ * rendrait l'agent PLUS libre de demander — l'inverse exact de la fiche.
+ * Le rythme ne dit plus « il est temps de demander »; il dit « tu en as déjà
+ * assez demandé ».
+ */
+type QuestionGuidance = "avoid_now" | "optional";
 
 type CompanionQuestionRhythmState = {
   preference?: QuestionTendency;
@@ -385,10 +401,10 @@ function buildQuestionRhythmGuide(
       : recentTurns.length;
 
   const cfg = preference === "low"
-    ? { optionalAfter: 2, askAfter: 4, maxQuestionsInWindow: 1 }
+    ? { optionalAfter: 2, maxQuestionsInWindow: 1 }
     : preference === "high"
-    ? { optionalAfter: 1, askAfter: 2, maxQuestionsInWindow: 3 }
-    : { optionalAfter: 1, askAfter: 3, maxQuestionsInWindow: 2 };
+    ? { optionalAfter: 1, maxQuestionsInWindow: 3 }
+    : { optionalAfter: 1, maxQuestionsInWindow: 2 };
 
   let guidance: QuestionGuidance = "avoid_now";
   if (
@@ -396,9 +412,11 @@ function buildQuestionRhythmGuide(
     questionsInWindow >= cfg.maxQuestionsInWindow
   ) {
     guidance = "avoid_now";
-  } else if (turnsSinceLastQuestion >= cfg.askAfter) {
-    guidance = "ask_now";
   } else if (turnsSinceLastQuestion >= cfg.optionalAfter) {
+    // FF-012 — LE PALIER `ask_now` A SAUTÉ, et `askAfter` avec lui: au-delà du
+    // seuil « optionnel », plus rien ne s'intensifie. Un seuil laissé en place
+    // sans lecteur serait une invitation à le rebrancher. Le compteur ne peut
+    // donc plus produire qu'une PERMISSION, jamais une consigne de poser.
     guidance = "optional";
   }
 
@@ -421,44 +439,50 @@ function buildQuestionRhythmPromptBlock(
     ? guide.recentTurns.length
     : QUESTION_RHYTHM_WINDOW_SIZE;
   if (!isFrenchLocale(responseLocale)) {
-    const instructionEn = guide.guidance === "ask_now"
-      ? "Ideally ask 1 useful question this turn, unless the student mainly expects a direct answer or reassurance."
-      : guide.guidance === "optional"
-      ? "Question optional. Without one, keep momentum with a hypothesis, a reflection or a stance."
-      : "Avoid asking a question unless strongly needed; prefer a hypothesis, a reflection or a useful rephrasing.";
-    const ratioEn = guide.preference === "low"
-      ? "about 1 question every 4 turns"
+    const instructionEn = guide.guidance === "optional"
+      ? "A question is allowed if it serves THIS reply; otherwise a hypothesis, a reflection or a stance."
+      : "Avoid a question unless strongly needed; prefer a hypothesis or a reflection.";
+    // La PRÉFÉRENCE du coach survit — c'est un réglage d'écran, pas une
+    // mécanique d'engagement — mais elle s'exprime désormais comme un
+    // PLAFOND et plus comme une cible. « Environ 1 question tous les 3 tours »
+    // était un quota à atteindre; « au plus 2 sur 6 tours » est une retenue.
+    const ceilingEn = guide.preference === "low"
+      ? "max 1 question / 6 turns"
       : guide.preference === "high"
-      ? "about 1 question every 2 turns"
-      : "about 1 question every 3 turns";
+      ? "max 3 questions / 6 turns"
+      : "max 2 questions / 6 turns";
     return [
-      "=== QUESTION RHYTHM (CRITICAL) ===",
-      `- Student preference: ${guide.preference}. Target: ${ratioEn}.`,
-      `- History: ${guide.questionsInWindow} question(s) over ${windowSize} turns; last one ${guide.turnsSinceLastQuestion} turn(s) ago.`,
-      `- Guidance: ${guide.guidance}.`,
+      "=== QUESTION RESTRAINT (CRITICAL) ===",
+      `- Preference: ${guide.preference}. Ceiling: ${ceilingEn}. Asked over ${windowSize} turns: ${guide.questionsInWindow}. Guidance: ${guide.guidance}.`,
       `- ${instructionEn}`,
-      "- Even on ask_now: no forced question on a factual answer, a rushed message, an emotion that calls for presence, or right after a platform redirect.",
-      "- If you do ask: one question, concrete, useful.",
+      // FF-012 — LA RÈGLE QUI REMPLACE LE RYTHME. Il n'y a plus de cadence à
+      // tenir: une question se justifie par le tour en cours, jamais par le
+      // temps écoulé depuis la dernière.
+      "- No quota, no rhythm: NEVER ask because it has been a while. A question is justified by THIS turn or not at all.",
+      "- No forced question: factual answer, rushed message, emotion, right after a platform redirect.",
+      "- If you do ask: one question, concrete, useful right here.",
     ].join("\n");
   }
-  const guidanceInstruction = guide.guidance === "ask_now"
-    ? "Pose idealement 1 question utile sur ce tour, sauf si le user attend surtout une reponse directe ou un apaisement."
-    : guide.guidance === "optional"
-    ? "Question optionnelle. Sans question, garde l'elan avec hypothese, reflet ou prise de position."
-    : "Evite la question sauf necessite forte; prefere hypothese, reflet ou reformulation utile.";
-  const ratioTarget = guide.preference === "low"
-    ? "environ 1 question tous les 4 tours"
+  const guidanceInstruction = guide.guidance === "optional"
+    ? "Question permise si elle sert CETTE reponse; sinon hypothese, reflet ou prise de position."
+    : "Evite la question sauf necessite forte; prefere hypothese ou reflet.";
+  // Voir le bloc anglais: la préférence du coach survit comme PLAFOND, jamais
+  // comme cible.
+  const ceilingFr = guide.preference === "low"
+    ? "max 1 question / 6 tours"
     : guide.preference === "high"
-    ? "environ 1 question tous les 2 tours"
-    : "environ 1 question tous les 3 tours";
+    ? "max 3 questions / 6 tours"
+    : "max 2 questions / 6 tours";
   return [
-    "=== QUESTION RHYTHM (CRITIQUE) ===",
-    `- Préférence user: ${guide.preference}. Cible: ${ratioTarget}.`,
-    `- Historique: ${guide.questionsInWindow} question(s) sur ${windowSize} tours; dernière il y a ${guide.turnsSinceLastQuestion} tour(s).`,
-    `- Guidance: ${guide.guidance}.`,
+    "=== RETENUE SUR LES QUESTIONS (CRITIQUE) ===",
+    `- Préférence user: ${guide.preference}. Plafond: ${ceilingFr}. Posées sur ${windowSize} tours: ${guide.questionsInWindow}. Guidance: ${guide.guidance}.`,
     `- ${guidanceInstruction}`,
-    "- Même si ask_now: pas de question forcée en réponse factuelle, message pressé, émotion qui demande présence, ou redirection plateforme récente.",
-    "- Si question: unique, concrete, utile.",
+    // FF-012 — voir le bloc anglais: la cadence a disparu, il ne reste que la
+    // retenue. Les deux packs disent la MÊME règle, sinon la langue de réponse
+    // déciderait du comportement produit.
+    "- Aucun quota ni cadence: jamais de question parce que ça fait un moment. Elle se justifie par CE tour ou pas du tout.",
+    "- Pas de question forcée: reponse factuelle, message presse, emotion, redirection plateforme.",
+    "- Si question: unique, concrete, utile ici.",
   ].join("\n");
 }
 

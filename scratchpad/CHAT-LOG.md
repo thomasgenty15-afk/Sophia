@@ -509,3 +509,120 @@ courante.
 5. **Fixtures `chat_`** : aucune.
 
 ---
+## Lot 5 — FF-012 · La fin de la sollicitation
+
+**Début** : 2026-08-08 · **Fin** : 2026-08-08 · **Verdict : RÉUSSI.**
+**En dernier**, comme la fiche l'exige : FF-008 et FF-009 construisent l'accueil
+de ce qui est donné spontanément, et ils sont livrés (lots 1 et 2). Retirer la
+demande avant eux, c'était perdre la donnée deux fois.
+
+### Ce qui a été écrit
+
+| Fichier | Nature |
+|---|---|
+| `_shared/keel/meal_precision.ts` | `MEAL_PRECISION_DAILY_CAP` **2 → 1** |
+| `sophia-brain/agents/companion.ts` | `ask_now` retiré du vocabulaire, `askAfter` retiré avec lui, bloc réécrit |
+| `_shared/keel/daily_pulse.ts` | l'interdiction de **réclamer un repas** |
+| `test_harness/keel_properties/no_food_solicitation_property_test.ts` | **neuf** — 7 propriétés |
+| deux fichiers de tests existants | mis à jour (voir plus bas) |
+
+### 🔴 CE QUE LE LOT A DÉCOUVERT — le prompt FR du compagnon était à **13
+caractères** de son plafond
+
+`companion_prompt_contract_test.ts` pin le corps du prompt système à
+**< 13 000 caractères**. Mesuré avant ce lot : **fr-FR = 12 987**, en-GB = 11 141.
+La toute première ligne ajoutée l'a fait tomber (13 381).
+
+Ce n'est pas un détail d'outillage : c'est un prompt partagé qui n'a plus de
+marge, et le prochain lot qui y ajoutera une règle la découvrira de la même
+façon. **Consigné comme trouvaille, pas comme obstacle.**
+
+Ça a changé la conception, et pour le mieux :
+
+- **L'interdiction alimentaire (« ne demande jamais ce qu'il a mangé ») ne vit
+  PAS dans le prompt du compagnon.** Ce prompt est **partagé avec la branche
+  legacy grand public**, qui n'a pas de repas ; une règle KEEL n'y a rien à
+  faire. Elle vit dans le bloc KEEL de FF-013 (`pulseContextBlock`), qui est
+  déjà « ce que cette conversation ne demande jamais » et n'est injecté que pour
+  un élève.
+- **Le bloc de rythme sort plus COURT qu'il n'est entré** — ce qu'un retrait
+  devrait toujours faire. Après le lot : **fr-FR = 12 983** (−4), **en-GB =
+  11 124** (−17).
+
+### Décisions
+
+1. **`ask_now` disparaît du vocabulaire** (R5). C'est lui qui poussait à poser
+   une question *parce qu'on n'en avait pas posé depuis N tours* — la définition
+   de la sollicitation, héritée d'un produit d'engagement. `askAfter` est retiré
+   avec lui : un seuil laissé sans lecteur est une invitation à le rebrancher.
+
+2. **La RETENUE, elle, survit — et c'est délibéré.** `avoid_now` plafonne
+   toujours le nombre de questions dans la fenêtre. Retirer le plafond en même
+   temps que la poussée rendrait l'agent **plus** libre de demander : l'inverse
+   exact de la fiche. Le compteur ne dit plus « il est temps de demander », il
+   dit « tu en as déjà assez demandé ». Un test le pinne dans les deux sens.
+
+3. **La préférence du coach (`question_tendency`) reste lue**, mais s'exprime en
+   **plafond** et non plus en cible : « environ 1 question tous les 3 tours »
+   était un quota à atteindre ; « max 2 questions / 6 tours » est une retenue.
+   Trois tests de contrat protégeaient ce réglage — ils sont mis à jour, pas
+   supprimés.
+
+4. **La question de précision n'est PAS supprimée**, elle est plafonnée. Un test
+   de propriété le vérifie explicitement : prouver « zéro question jamais »
+   prouverait qu'on a supprimé la mauvaise chose.
+
+5. **Effet de bord voulu du plafond 1** : il rend visible le bug de fuseau que
+   le plafond 2 masquait (`meal_precision_cap.ts`, motif `missing_local_date`).
+   Une deuxième question dans la même journée est désormais le **symptôme** d'un
+   fuseau mal résolu.
+
+### Vérifications
+
+1. **LA PREUVE QUI FAIT LE LOT — le test de propriété, VERT.** 7 propriétés,
+   pas une relecture :
+   - 20 tours ordinaires consécutifs (FR et EN alternés) → **0 demande**, et le
+     seul motif rendu est `no_committed_fact` ;
+   - 20 tours consécutifs **après** un fait, compteur persistant → **exactement
+     1** question sur la journée ;
+   - les refus existants (`safety_band`, `future_intent`) tiennent sur les 20 ;
+   - pour **chaque** valeur de « tours depuis la dernière question » de 0 à 20,
+     dans **les deux langues** : ni le jeton `ask_now`, ni « Ideally ask 1
+     useful question », ni « Pose idealement 1 question », ni aucune cible
+     chiffrée ;
+   - la retenue survit (`avoid_now` atteignable) ;
+   - l'interdiction alimentaire est présente **avec et sans matière** ;
+   - la question de précision existe toujours.
+
+2. **Suite Deno complète** : `2658 passed | 1 failed | 16 ignored`.
+   Même rouge préexistant. **Zéro rouge nouveau** ; +9 tests.
+
+3. **Frontend** : non touché.
+
+4. **📏 LONGUEURS — mesurées, avant/après.**
+
+   | surface | avant | après | Δ |
+   |---|---|---|---|
+   | prompt système compagnon, corps **fr-FR** | 12 987 | **12 983** | **−4** |
+   | prompt système compagnon, corps **en-GB** | 11 141 | **11 124** | **−17** |
+   | bloc KEEL `pulseContextBlock` | 1 160 | **1 500** (375 tokens, 4,7 %) | +340 |
+
+   Le prompt **partagé** rétrécit ; la règle KEEL migre dans un bloc KEEL. Cumul
+   des blocs de contexte ajoutés par le chantier : FF-013+FF-012 (375 tokens) +
+   FF-011 (242) = **617 tokens, 7,7 %** du budget compagnon de 8 000.
+
+5. **Fixtures `chat_`** : aucune.
+
+### Trois tests existants mis à jour, et pourquoi
+
+- `meal_precision_test.ts` : le pin `MEAL_PRECISION_DAILY_CAP === 2` devient
+  `=== 1`, et un test neuf couvre le critère textuel de la fiche (« une seconde
+  déclaration vague le même jour n'en déclenche aucune »).
+- `companion_prompt_contract_test.ts` (×3) : la **cible** devient un **plafond**.
+  Le réglage du coach reste lu — c'est ce que ces tests protègent — et une
+  assertion neuve vérifie que la formulation « environ 1 question » a bien
+  disparu.
+- `daily_pulse_context_test.ts` : borne du bloc 1 400 → 1 700, parce que
+  l'interdiction alimentaire l'a rejoint. Le pin reste un pin.
+
+---

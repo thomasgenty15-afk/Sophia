@@ -395,12 +395,26 @@ Deno.test("pas de question sans ligne à préciser", () => {
   assertEquals(result.reason_code, "no_committed_fact");
 });
 
-Deno.test("le plafond du jour est de deux questions, toutes sources confondues", () => {
-  assertEquals(MEAL_PRECISION_DAILY_CAP, 2);
-  assertEquals(gate({ questionsAskedToday: 1 }).ask, true);
-  assertEquals(gate({ questionsAskedToday: 2 }).ask, false);
-  assertEquals(gate({ questionsAskedToday: 2 }).reason_code, "daily_cap_reached");
+Deno.test("FF-012 — le plafond du jour est d'UNE question, toutes sources confondues", () => {
+  // « Deux, c'était déjà une relance ; une, c'est un approfondissement. »
+  // La première question est adossée à un fait déjà donné et creuse ce que
+  // l'élève vient d'offrir; la seconde ne creuse plus rien, elle réclame.
+  assertEquals(MEAL_PRECISION_DAILY_CAP, 1);
+  assertEquals(gate({ questionsAskedToday: 0 }).ask, true);
+  assertEquals(gate({ questionsAskedToday: 1 }).ask, false);
+  assertEquals(gate({ questionsAskedToday: 1 }).reason_code, "daily_cap_reached");
   assertEquals(gate({ questionsAskedToday: 9 }).reason_code, "daily_cap_reached");
+});
+
+Deno.test("FF-012 — une SECONDE déclaration vague le même jour n'en déclenche AUCUNE", () => {
+  // Le critère d'acceptation textuel de la fiche. Le compteur est persistant
+  // et vérifiable en base, donc il survit au tour: c'est ce qui distingue un
+  // plafond d'une intention.
+  const first = gate({ questionsAskedToday: 0 });
+  assertEquals(first.ask, true);
+  const second = gate({ questionsAskedToday: 1 });
+  assertEquals(second.ask, false);
+  assertEquals(second.question, null);
 });
 
 Deno.test("un flow déjà ouvert interdit une seconde question", () => {

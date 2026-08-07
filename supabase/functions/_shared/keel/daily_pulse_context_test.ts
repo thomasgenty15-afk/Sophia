@@ -71,6 +71,17 @@ Deno.test("R1 — l'interdiction de DEMANDER est là, avec ou sans matière", ()
   }
 });
 
+Deno.test("FF-012 — l'interdiction de RÉCLAMER UN REPAS vit dans ce bloc", () => {
+  // Elle est ici et pas dans le prompt du compagnon: celui-ci est PARTAGÉ avec
+  // la branche legacy grand public, qui n'a pas de repas — et son corps FR
+  // était à treize caractères de son plafond de 13 000.
+  for (const pulse of [tap(), null]) {
+    const block = pulseContextBlock(pulse, false);
+    assertStringIncludes(block, "NEVER ask what they ate");
+    assertStringIncludes(block, "never collect");
+  }
+});
+
 Deno.test("R4 — aucune moyenne, aucune tendance, aucune série", () => {
   const block = pulseContextBlock(tap(), false);
   assertStringIncludes(block, "Never average");
@@ -114,10 +125,15 @@ Deno.test("les six axes du dimanche ne sont annoncés QUE s'ils sont là", () =>
 
 Deno.test("R7 — le bloc reste court: le prompt tronque par la queue", () => {
   // Une semaine de taps pousserait le bloc doctrine dehors. On en cite UN.
+  //
+  // La borne est passée de 1 400 à 1 700 avec FF-012: l'interdiction de
+  // solliciter un repas a rejoint ce bloc plutôt que le prompt PARTAGÉ du
+  // compagnon, dont le corps FR était à treize caractères de son plafond. Le
+  // pin reste un pin — il refuse toujours qu'on empile ici.
   const block = pulseContextBlock(tap(), true);
   assert(
-    block.length < 1400,
-    `le bloc fait ${block.length} caractères — il doit rester sous le millier et demi`,
+    block.length < 1700,
+    `le bloc fait ${block.length} caractères — il doit rester sous 1 700`,
   );
   // Un seul tap cité, jamais une liste.
   assertEquals(block.split("Their last evening check-in").length - 1, 1);
