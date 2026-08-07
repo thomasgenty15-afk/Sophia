@@ -293,6 +293,15 @@ import {
   pulseContextBlock,
 } from "../../_shared/keel/daily_pulse.ts";
 import { loadLatestPulse } from "../../_shared/keel/daily_pulse_io.ts";
+import {
+  applyGroundedSupportBelt,
+  detectDiscouragementTurn,
+  groundedSupportBlock,
+  type SupportGround,
+  supportGround,
+} from "../../_shared/keel/grounded_support.ts";
+import { type DayFacts, EMPTY_DAY_FACTS } from "../../_shared/keel/daily_recap.ts";
+import { loadDayFacts } from "../../_shared/keel/daily_recap_io.ts";
 import { detectDeclaredSafetyConstraint } from "../../_shared/keel/safety_constraint_floor.ts";
 import {
   CLINICAL_DEFERRAL_BLOCK,
@@ -1023,6 +1032,25 @@ export type KeelTurnContext = {
    */
   daily_pulse: CitablePulse | null;
   /**
+   * FF-011 — LES FAITS DE LA JOURNÉE, ou `null`.
+   *
+   * La matière du soutien groundé. `null` couvre trois cas: pas d'élève KEEL,
+   * plancher de restriction levé (filtré AU CHARGEMENT), lecture en panne.
+   *
+   * ⚠️ `null` ET UNE JOURNÉE VIDE NE SONT PAS LA MÊME CHOSE, et la distinction
+   * porte la ceinture: `null` n'autorise AUCUN nombre de journée, parce qu'on
+   * ne justifie pas un chiffre avec des faits qu'on n'a pas lus. Une journée
+   * vide autorise ses zéros, qui sont des faits.
+   */
+  day_facts: DayFacts | null;
+  /**
+   * FF-011 — le verdict de `supportGround`, calculé UNE fois par tour.
+   *
+   * Il décide AVANT la rédaction: on ne demande pas au modèle d'être groundé,
+   * on lui donne de la matière ou on raccourcit sa laisse.
+   */
+  support_ground: SupportGround;
+  /**
    * LA QUESTION DE PRÉCISION armée par CE tour, ou `null`.
    *
    * Elle voyage ici et pas sur le `turn_frame` pour une raison mesurée: un
@@ -1073,6 +1101,8 @@ export const LEGACY_KEEL_TURN_CONTEXT: KeelTurnContext = {
   coach_note: null,
   week_review: null,
   daily_pulse: null,
+  day_facts: null,
+  support_ground: "none",
 };
 
 const ISO_LOCAL_DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -1276,6 +1306,21 @@ export async function loadKeelTurnContext(args: {
       localDate,
     });
 
+  // FF-011 — LA MATIÈRE DU SOUTIEN GROUNDÉ, filtrée au CHARGEMENT elle aussi.
+  //
+  // `loadDayFacts` ne jette jamais: une lecture en panne rend `EMPTY_DAY_FACTS`
+  // et journalise. On garde ici la distinction que le chargeur perd — `null`
+  // (« je n'ai pas lu ») contre une journée vide (« j'ai lu, il n'y a rien ») —
+  // parce que c'est elle qui décide si un zéro est un fait citable ou un
+  // chiffre inventé.
+  const dayFacts = restrictionRaised || !localDate
+    ? null
+    : await loadDayFacts(args.supabase, { userId: args.userId, localDate });
+  const groundOfSupport = supportGround(
+    dayFacts,
+    restrictionRaised ? null : (weekReview?.reading ?? null),
+  );
+
   return {
     role,
     is_student: true,
@@ -1300,6 +1345,8 @@ export async function loadKeelTurnContext(args: {
     coach_note: coachNote,
     week_review: weekReview,
     daily_pulse: dailyPulse,
+    day_facts: dayFacts,
+    support_ground: groundOfSupport,
   };
 }
 
@@ -2028,6 +2075,19 @@ export function withKeelDoctrineBlock(
   );
   if (pulseBlock.trim()) blocks.push(pulseBlock);
 
+  // FF-011 — LE SOUTIEN EST GROUNDÉ OU IL EST COURT.
+  //
+  // DERNIER des sept, et donc le premier à sauter par la queue. C'est le bon
+  // rang: sa perte laisse l'agent sans la matière du jour, mais la CEINTURE,
+  // elle, est déterministe et vit dans `finalVisibleText` — elle ne dépend
+  // d'aucun bloc de prompt. Perdre ce bloc dégrade la réponse; ça ne rouvre
+  // pas la porte à l'encouragement creux.
+  //
+  // Sous plancher de restriction, `day_facts` vaut déjà `null` (filtré au
+  // CHARGEMENT) et le bloc ne porte que sa règle de conduite.
+  const supportBlock = groundedSupportBlock(keel.day_facts, keel.support_ground);
+  if (supportBlock.trim()) blocks.push(supportBlock);
+
   if (blocks.length === 0) return context;
   const base = String(context ?? "");
   return base.trim()
@@ -2105,6 +2165,54 @@ export function finalVisibleText(
     // endroit où l'on demande à quelqu'un avec quoi il a mangé son poulet. La
     // bande de safety ferme déjà l'armement en amont (`gateMealPrecisionQuestion`);
     // ceci est la seconde barrière, sur la route cette fois.
+    // ── FF-011 · LE SOUTIEN EST GROUNDÉ OU IL EST COURT ─────────────────────
+    //
+    // AVANT la question de précision, exprès: si la ceinture réécrit le corps,
+    // la question doit s'accrocher au texte que l'élève va réellement lire.
+    //
+    // DANS le `if (!isSafetyRoute(...))`, et c'est la moitié la plus importante
+    // du placement: la crise et le plancher TCA ont leurs propres chemins,
+    // leurs ressources par pays et leurs gardes, et cette fiche NE LES TRAVERSE
+    // PAS. Le `disordered_eating_guard` est exclu par le même test que la
+    // ceinture d'accusé fantôme trois lignes plus haut.
+    //
+    // ⚠️ ELLE NE S'ARME QUE SUR UN TOUR DE DÉCOURAGEMENT, reconnu
+    // DÉTERMINISTIQUEMENT. Mordre sur tous les tours refuserait des réponses
+    // correctes et le repli deviendrait le cas nominal en silence — « un
+    // composeur mort déguisé en composeur prudent ».
+    if (
+      keel.is_student &&
+      routeDecision?.response_owner !== "disordered_eating_guard"
+    ) {
+      const discouraged = detectDiscouragementTurn(userMessage);
+      if (discouraged) {
+        const belt = applyGroundedSupportBelt({
+          text: out,
+          facts: keel.day_facts,
+          week: keel.week_review?.reading ?? null,
+          contentLocale: keel.content_locale ?? "en-GB",
+        });
+        if (belt.reasons.length > 0) {
+          // §5 de la fiche: UNE SEULE TRACE, en observabilité et pas en base
+          // métier. Le motif, jamais le contenu — R9 de FF-007: le coach ne
+          // lit jamais les conversations, et §10 doit être mesurable sans ça.
+          //
+          // ⚠️ SI CE TAUX EST ÉLEVÉ, C'EST LE PROMPT QU'IL FAUT CORRIGER, PAS
+          // LA CEINTURE QU'IL FAUT DESSERRER. Un repli devenu nominal est un
+          // composeur mort, et il est invisible autrement.
+          console.warn("[keel] grounded_support belt bit", {
+            reasons: belt.reasons,
+            matched: belt.matched,
+            ground: keel.support_ground,
+            discouragement_marker: discouraged.matched,
+            rewritten_to_fallback: belt.text.length < 120 &&
+              belt.matched.length > 0,
+          });
+        }
+        out = belt.text;
+      }
+    }
+
     out = appendMealPrecisionQuestion(
       out,
       keel.meal_precision_question,

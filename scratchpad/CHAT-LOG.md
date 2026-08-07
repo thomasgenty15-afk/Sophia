@@ -407,3 +407,105 @@ chargement pour **sa** matière, ce qui est fait ; étendre la règle au bilan
 hebdo est un changement de comportement d'un autre lot. **Signalé, non corrigé.**
 
 ---
+## Lot 4 — FF-011 · Le soutien groundé
+
+**Début** : 2026-08-08 · **Fin** : 2026-08-08 · **Verdict : RÉUSSI.**
+
+### Ce qui a été écrit
+
+| Fichier | Nature |
+|---|---|
+| `_shared/keel/grounded_support.ts` | **neuf** — détection, matière, ceinture |
+| `_shared/keel/grounded_support_test.ts` | **neuf** — 20 tests, FR **et** EN, deux directions |
+| `sophia-brain/router/run.ts` | `day_facts` + `support_ground` sur le tour, bloc injecté, ceinture dans `finalVisibleText` |
+
+### Aucune seconde liste de motifs — c'est le no-go n°1 de la fiche
+
+`VERDICT_PATTERNS`, `findQualifyingVerdict`, `allowedNumbers`, `numberValue`,
+`NUMBER_WORDS` et `allowedWeekNumbers` sont **importés**, jamais recopiés. Le
+soir, l'hebdo et le chat partagent une seule règle produit. Un test le prouve
+par le comportement le plus fin de la liste partagée : « a good source of
+protein » **passe** (c'est de la nutrition, pas un bulletin), alors que
+« well done » mord — la condition de désarmement voyage avec les motifs.
+
+Et le test que la cicatrice du dépôt exige : **« Bien joué, » avec la virgule
+mord**. En JS, `\b` se calcule sur l'ASCII et « é » n'en est pas ; le motif
+existait, n'était testé nulle part, et laissait passer la formule la plus
+courante.
+
+### Décisions
+
+1. **La ceinture ne s'arme que sur un tour de découragement**, reconnu
+   déterministiquement par une liste fermée FR+EN. §3 de la fiche le demande
+   (« sur les tours de détresse ou de découragement »), et mordre partout
+   refuserait des réponses correctes : le repli deviendrait le cas nominal en
+   silence — « un composeur mort déguisé en composeur prudent ». La
+   contre-épreuve est testée : sept tours ordinaires FR/EN n'arment rien.
+
+2. **Elle réécrit PHRASE PAR PHRASE** (R8). Refuser le tour entier sur une
+   formule de trop remplacerait une réponse utile par un repli. On retire la
+   phrase fautive, on garde la partie groundée — testé : « You ticked 2 dishes
+   today. Well done! » devient « You ticked 2 dishes today. »
+
+3. **Quand tout est retiré, un texte déterministe sort**, jamais un silence :
+   « Je préfère ne rien affirmer que je ne puisse pas appuyer sur un fait. » /
+   « I'd rather not claim anything I can't back with a fact. » Sec par
+   construction : pas de consolation, pas de question, pas de chiffre.
+
+4. **Les nombres du bilan hebdo sont autorisés.** Ils sont **dans le prompt** :
+   les refuser ferait replier une réponse parfaitement exacte, et la voix du
+   coach disparaîtrait sans qu'une seule erreur n'apparaisse nulle part — le
+   piège exact que `tickedForPlanCount` documente dans `allowedNumbers`.
+   Réunion de `allowedNumbers(dayFacts, null)` et `allowedWeekNumbers(reading)`,
+   les deux fonctions existantes.
+
+5. **`day_facts = null` ≠ journée vide.** `null` (« je n'ai pas lu »)
+   n'autorise **aucun** nombre de journée : on ne justifie pas un chiffre avec
+   des faits qu'on n'a pas lus. Une journée vide autorise ses zéros, qui sont
+   des faits. Les deux sont testés.
+
+6. **La crise n'est pas traversée.** La ceinture vit dans le
+   `if (!isSafetyRoute(routeDecision))` de `finalVisibleText`, et le
+   `disordered_eating_guard` est exclu par le même test que la ceinture
+   d'accusé fantôme trois lignes plus haut. `safety_crisis` et le plancher TCA
+   gardent leurs chemins, leurs ressources par pays et leurs gardes.
+
+7. **Une seule trace, en observabilité** (§5) : le motif et le passage, jamais
+   le contenu du tour — R9 de FF-007, le coach ne lit jamais les conversations,
+   et §10 doit rester mesurable sans ça.
+
+### Vérifications
+
+1. **Unitaires du lot — VERT.** 20 tests. Découragement FR (7 formes) et EN
+   (7 formes) ; sept tours ordinaires qui n'arment rien ; `supportGround` dans
+   ses trois états ; le bloc sans matière qui exige court et sobre ; le bloc
+   avec matière qui interdit la somme ; les quatre formules FR interdites et les
+   quatre EN ; le chiffre inventé refusé **et** sa condition de désarmement ;
+   les nombres du bilan autorisés ; `null` ≠ journée vide ; le repli
+   déterministe dans les deux langues ; un aliment qualifiable ; un texte propre
+   intact à l'octet près.
+
+2. **Suite Deno complète** : `2649 passed | 1 failed | 16 ignored`.
+   Même rouge préexistant, déjà prouvé. **Zéro rouge nouveau** ; +20 tests.
+
+3. **Frontend** : non touché.
+
+4. **📏 LONGUEUR DU CONTEXTE ASSEMBLÉ — mesurée.**
+
+   | bloc | chars | ≈ tokens | part du budget |
+   |---|---|---|---|
+   | FF-011 avec matière | 967 | 242 | 3,02 % |
+   | FF-011 sans matière | 882 | 221 | 2,76 % |
+
+   **Cumul des deux lots qui poussent dans le prompt du compagnon** :
+   FF-013 (290 tokens, pire cas) + FF-011 (242) = **532 tokens, soit 6,6 %** des
+   8 000. Le bloc doctrine reste très loin de la queue.
+   FF-011 est poussé **en dernier**, donc premier à sauter par troncature — et
+   c'est le bon rang : sa perte prive l'agent de la matière du jour, mais **la
+   ceinture, elle, est déterministe et vit dans `finalVisibleText`**. Elle ne
+   dépend d'aucun bloc de prompt. Perdre le bloc dégrade la réponse ; ça ne
+   rouvre pas la porte à l'encouragement creux.
+
+5. **Fixtures `chat_`** : aucune.
+
+---
