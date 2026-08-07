@@ -99,6 +99,27 @@ export function toEditorShape(row: Record<string, unknown>): Record<string, unkn
       question: String(q.question ?? ""),
       answer: String(q.answer ?? ""),
     })),
+    // ── LES PRATIQUES QUOTIDIENNES FONT L'ALLER-RETOUR EN ENTIER (FF-001) ──
+    // La règle en tête de ce fichier s'applique ici plus durement qu'ailleurs:
+    // une pratique porte ONZE champs classifiés que le coach n'a pas tapés
+    // lui-même. En laisser tomber un — `brief`, et il n'y a plus rien à dire au
+    // modèle du soir; `status`, et une pratique bloquée redevient active — les
+    // efface TOUS au premier « enregistrer », sans un mot, et il faudrait
+    // repasser un appel de classification par pratique pour les retrouver.
+    daily_practices: arr(row.daily_practices).map((p) => ({
+      label: String(p.label ?? ""),
+      kind: String(p.kind ?? ""),
+      quantified: p.quantified === true,
+      target: p.target == null ? null : Number(p.target),
+      unit: p.unit == null ? null : String(p.unit),
+      goal_scope: scope(p),
+      cadence: String(p.cadence ?? ""),
+      askable: p.askable === true,
+      minor_safe: p.minor_safe === true || p.minorSafe === true,
+      brief: String(p.brief ?? ""),
+      status: String(p.status ?? ""),
+      collides_with: p.collides_with == null ? null : String(p.collides_with),
+    })),
     voice: (row.voice ?? {}) as Record<string, unknown>,
   };
 }

@@ -46,6 +46,7 @@
  * decidable here, in tests.
  */
 
+import { type DailyPractice, parseDailyPractices } from "./daily_practices.ts";
 import {
   findForbiddenMatches,
   type ForbiddenMatch,
@@ -303,6 +304,20 @@ export interface CoachDoctrine {
   foods: DoctrineFoods;
   qa: readonly DoctrineQA[];
   voice: DoctrineVoice;
+  /**
+   * FF-001 — LES GESTES QUOTIDIENS.
+   *
+   * Elles vivent sur la doctrine parce qu'elles SONT de la méthode, versionnée
+   * et publiée d'un bloc: un rollback doit les ramener avec le reste.
+   *
+   * ⚠️ ELLES N'ENTRENT PAS DANS `compileDoctrineBlock`, ET C'EST DÉLIBÉRÉ.
+   * Le bloc compilé est injecté à CHAQUE tour de conversation; une pratique n'a
+   * rien à y faire — elle s'adresse au message du soir, une fois par jour. Deux
+   * conséquences qui se vérifient: le hash de cache est INCHANGÉ pour tous les
+   * coachs existants (donc aucune refragmentation), et un coach sans pratique
+   * reçoit exactement le produit d'avant, octet pour octet.
+   */
+  dailyPractices: readonly DailyPractice[];
   contentLocale: string;
 }
 
@@ -516,6 +531,14 @@ export function parseCoachDoctrine(
     });
   }
 
+  // ── LES PRATIQUES QUOTIDIENNES (FF-001) ─────────────────────────────────
+  // Lues ici, avec le reste de la méthode, pour la raison qui gouverne tout ce
+  // parseur: une seule relecture de la ligne publiée. Leurs `issues` rejoignent
+  // les autres et remontent sur le même écran — le coach n'a pas à deviner
+  // qu'une pratique n'atteint personne parce que sa portée est illisible.
+  const dailyPracticesParsed = parseDailyPractices(row.daily_practices ?? row.dailyPractices);
+  issues.push(...dailyPracticesParsed.issues);
+
   const voiceRaw = (row.voice ?? {}) as Record<string, unknown>;
   const length = str(voiceRaw.length);
   const emojis = str(voiceRaw.emojis);
@@ -531,6 +554,7 @@ export function parseCoachDoctrine(
       arbitrations,
       foods,
       qa,
+      dailyPractices: dailyPracticesParsed.practices,
       voice: {
         address: str(voiceRaw.address) || null,
         length: (length === "short" || length === "medium" ? length : null),

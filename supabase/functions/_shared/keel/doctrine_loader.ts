@@ -344,7 +344,14 @@ export async function loadPublishedDoctrine(
         // `foods` et `qa` font partie de la sélection, sinon le parseur les
         // voit absentes et le VERROU sur les aliments déconseillés se retrouve
         // désarmé — sans que rien ne le signale.
-        "coach_id, version, beliefs, forbidden, vocabulary, arbitrations, foods, qa, voice, " +
+        //
+        // `daily_practices` (FF-001) est là pour la MÊME raison, et son oubli
+        // aurait le même goût: le message du soir cesserait de porter la voix du
+        // coach, sans erreur nulle part, et le symptôme lu serait « la
+        // fonctionnalité ne marche pas » plutôt que « une colonne manque au
+        // SELECT ». C'est la classe de défaut la plus chère de ce fichier.
+        "coach_id, version, beliefs, forbidden, vocabulary, arbitrations, foods, qa, " +
+          "daily_practices, voice, " +
           "compiled_prompt, compiled_prompt_hash, content_locale, published_at",
       )
       .eq("coach_id", owner.doctrineCoachId)

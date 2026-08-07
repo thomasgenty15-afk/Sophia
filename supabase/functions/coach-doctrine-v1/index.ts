@@ -24,6 +24,17 @@ import {
   parseDocumentExtraction,
 } from "../_shared/keel/doctrine_document.ts";
 import {
+  MAX_DAILY_PRACTICES,
+  parseDailyPractices,
+} from "../_shared/keel/daily_practices.ts";
+import {
+  buildPracticeClassifyPrompt,
+  dailyPracticeToRow,
+  parseClassifiedPractice,
+  PRACTICE_CLASSIFY_SYSTEM_PROMPT,
+  unclassifiedPractice,
+} from "../_shared/keel/daily_practices_classify.ts";
+import {
   DOCTRINE_SOURCES,
   type DoctrineSource,
   parseDoctrineSource,
@@ -66,6 +77,11 @@ import {
  *                 doctrine RÉDIGÉE pour lui. Même patron que `compile`, et
  *                 c'est le seul chemin où le modèle ÉCRIT au lieu de
  *                 transcrire (voir `doctrine_from_forks.ts` pour le pourquoi).
+ *   classify_practice
+ *               — FF-001: UNE pratique quotidienne tapée en clair -> sa
+ *                 classification. Un appel par pratique et par coach, à vie —
+ *                 ni par élève, ni par soir. Rien n'est écrit: le coach VOIT le
+ *                 verdict et le corrige avant `save`.
  *   compile_document
  *               — brique 1 bis: le PDF du coach -> la MÊME doctrine structurée,
  *                 plus des propositions d'aliments pour `/coach/protocol`.
@@ -924,6 +940,105 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ---- classify_practice (FF-001) --------------------------------------
+    //
+    // ── POURQUOI UNE ACTION ICI ET PAS UNE FONCTION EDGE NEUVE ─────────────
+    // Le routeur du runtime edge lit une liste de fonctions FIGÉE à la création
+    // du conteneur. Une fonction neuve ne serait pas servie sans recréer la
+    // pile — ce qui couperait les autres sessions qui travaillent sur la même
+    // base locale. Et sur le fond, ceci EST de la doctrine: même auth, même
+    // propriétaire, même écran.
+    //
+    // ── ELLE N'ÉCRIT RIEN ─────────────────────────────────────────────────
+    // Comme `compile` et `compile_document`: « l'IA transcrit, elle n'écrit
+    // jamais ». Le coach relit le verdict et le corrige, puis `save` écrit. Un
+    // classifieur qui publierait tout seul ferait porter à la voix du coach une
+    // pratique qu'il n'a pas relue — et la porte de relecture est la seule
+    // raison pour laquelle un appel de modèle est acceptable ici.
+    if (action === "classify_practice") {
+      const label = String(body.label ?? "").trim();
+      if (!label) {
+        return jsonResponse(req, {
+          error: "label_required",
+          request_id: requestId,
+        }, { status: 400 });
+      }
+      const contentLocale = String(body.content_locale ?? "en").trim() || "en";
+      const existingLabels =
+        (Array.isArray(body.existing_labels) ? body.existing_labels : [] as unknown[])
+          .map((l: unknown) => String(l ?? "").trim())
+          .filter(Boolean)
+          .slice(0, MAX_DAILY_PRACTICES);
+
+      // ── L'ÉCHEC NE COÛTE PAS SA SAISIE AU COACH (§7) ────────────────────
+      // Chaque sortie de ce bloc rend une pratique. Jamais un 502 nu: le coach
+      // vient de taper une phrase, et le moment où on lui répond « erreur » est
+      // exactement celui où il ferme l'onglet. Il reçoit sa pratique en
+      // `needs_review`, avec le motif, et il peut relancer ou la corriger.
+      const fallback = (reason: string) =>
+        jsonResponse(req, {
+          ok: true,
+          practice: dailyPracticeToRow(unclassifiedPractice(label)),
+          issues: [reason],
+          classified: false,
+          request_id: requestId,
+        });
+
+      let result: unknown;
+      try {
+        result = await generateWithGemini(
+          PRACTICE_CLASSIFY_SYSTEM_PROMPT,
+          buildPracticeClassifyPrompt({ label, contentLocale, existingLabels }),
+          // Basse: ce tour CLASSE, il ne rédige pas de prose libre. La seule
+          // chose qu'il écrit est le brief, et un brief fantaisiste produit une
+          // phrase du soir imprévisible dans la voix du coach.
+          0.2,
+          true,
+          [],
+          "auto",
+          { requestId, userId, source: "keel_practice_classify" },
+        );
+      } catch (error) {
+        return fallback(
+          `classification failed: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+      // `generateWithGemini` rend `string | {tool, args}`. Un appel d'outil
+      // n'est pas un cas: on n'en demande aucun.
+      if (typeof result !== "string") return fallback("classification returned a tool call");
+
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(
+          result.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, ""),
+        );
+      } catch (error) {
+        return fallback(
+          `classification was not readable JSON: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        );
+      }
+
+      const classified = parseClassifiedPractice(parsed, label);
+      console.info("keel.practice.classified", {
+        coach_id: coachId,
+        request_id: requestId,
+        status: classified.practice.status,
+        collides_with: classified.practice.collidesWith,
+        goal_scope: [...classified.practice.goalScope],
+        issue_count: classified.issues.length,
+      });
+      return jsonResponse(req, {
+        ok: true,
+        // NON ENREGISTRÉE. Le coach valide, PUIS `save` écrit.
+        practice: dailyPracticeToRow(classified.practice),
+        issues: classified.issues,
+        classified: true,
+        request_id: requestId,
+      });
+    }
+
     // ---- save (draft) ----------------------------------------------------
     if (action === "save") {
       const versions = await loadVersions(admin, coachId);
@@ -951,6 +1066,17 @@ Deno.serve(async (req) => {
           // validation, publiait, et l'agent n'en savait rien.
           foods: payload.foods ?? { discouraged: [] },
           qa: payload.qa ?? [],
+          // FF-001 — LES PRATIQUES SONT RÉÉCRITES PAR `parseDailyPractices`,
+          // pas recopiées telles quelles.
+          //
+          // C'est la seule section que l'écran ne saisit pas entièrement à la
+          // main: onze champs viennent d'une classification. Les repasser par le
+          // parseur au moment du `save` fait deux choses qu'un `?? []` ne ferait
+          // pas — le plafond de 7 (R2) s'applique à l'écriture, et la ceinture
+          // R9 se rejoue sur le label, donc un `status` bricolé côté client ne
+          // publie pas une pratique bloquée.
+          daily_practices: parseDailyPractices(payload.daily_practices)
+            .practices.map(dailyPracticeToRow),
           voice: payload.voice ?? {},
           content_locale: String(body.content_locale ?? "en"),
           change_note: String(body.change_note ?? "") || null,
@@ -1086,6 +1212,11 @@ Deno.serve(async (req) => {
           // `save` qui les avait oubliés avant lui.
           foods: source.foods ?? { discouraged: [] },
           qa: source.qa ?? [],
+          // Un rollback COPIE une version: il doit la copier EN ENTIER. Les
+          // pratiques partent d'une ligne déjà passée par le parseur, donc on
+          // les recopie telles quelles — la re-valider ici ne changerait rien et
+          // masquerait une éventuelle divergence entre les deux chemins.
+          daily_practices: source.daily_practices ?? [],
           voice: source.voice ?? {},
           content_locale: String(source.content_locale ?? "en"),
           created_from_version: plan.sourceVersion,
@@ -1199,6 +1330,7 @@ Deno.serve(async (req) => {
         "compile",
         "compile_from_forks",
         "compile_document",
+        "classify_practice",
         "set_doctrine_source",
         "save",
         "publish",
