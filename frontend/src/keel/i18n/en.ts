@@ -2884,6 +2884,45 @@ export const en = {
     "{count} people said nothing this week and were composed from their profile.",
   "household.portions.title": "At the table",
   "household.portions.standard": "A standard serving",
+  // ── FF-001 — LES GESTES QUOTIDIENS DU COACH ──────────────────────────────
+  // La doctrine dit comment COMPOSER; elle ne dit nulle part quoi FAIRE tous
+  // les jours. Cette carte est le seul endroit du produit où un coach peut
+  // écrire « quatre verres d'eau » — une règle qui gouverne une journée et
+  // qu'aucune ligne de plan ne peut porter.
+  "coach.practices.title": "What you tell everyone, every day",
+  "coach.practices.intro":
+    "The habits you repeat to every student. One of them goes out with their evening message — a different one each night, in your voice, never a form to fill in.",
+  "coach.practices.empty":
+    "Nothing here yet. Your method says how to build a plate; this is where you say what to do with a day.",
+  "coach.practices.add_placeholder": "e.g. Four glasses of water across the day",
+  "coach.practices.add_button": "Add",
+  "coach.practices.adding": "Reading it…",
+  "coach.practices.full": "Seven is the most a rotation can carry before your students stop being able to tell one evening from the next.",
+  "coach.practices.rotation_one": "One practice — it goes out every evening.",
+  "coach.practices.rotation_many": "{count} practices — each student sees a different one each evening.",
+  "coach.practices.reach_label": "Goes to",
+  // Le verdict de la classification est MONTRÉ et CORRIGEABLE: c'est la moitié
+  // de la valeur du stockage (même patron que `coach_food_proposals`).
+  "coach.practices.verdict_label": "What I understood",
+  "coach.practices.brief_label": "What gets conveyed",
+  "coach.practices.needs_review":
+    "I could not read this one well enough to send it. Check the fields below, or rewrite the line and add it again.",
+  "coach.practices.reclassify": "Read it again",
+  "coach.practices.remove": "Remove",
+  "coach.practices.askable_label": "Can become a question",
+  "coach.practices.askable_hint":
+    "On evenings when the daily message asks nothing else, this one can end in a question. Never two questions in one message.",
+  "coach.practices.minor_safe_label": "Safe for students under 18",
+  "coach.practices.minor_safe_hint":
+    "Minors get the practice without any number — the habit, never the dose.",
+  "coach.practices.constant_label": "One of my cornerstones",
+  "coach.practices.constant_hint": "Cornerstones come round about twice as often as the rest.",
+  "coach.practices.scope_label": "Only for students who are",
+  "coach.practices.scope_everyone": "Everyone",
+  "coach.practices.blocked_title": "This one cannot go out",
+  "coach.practices.no_method":
+    "Practices travel in your voice, so they only go out once you have published a method. Write one above first.",
+
   "household.waves.title": "Shopping",
   "household.waves.now": "Buy now",
   "household.waves.on": "Buy on {date}",

@@ -13,6 +13,7 @@ import {
   callDoctrine,
   cancelSection,
   closeSection,
+  type DoctrineDraft,
   type DoctrineSource,
   entriesForScope,
   GOAL_LABELS,
@@ -29,6 +30,15 @@ import {
   splitForms,
   starterFootprint,
 } from "../api/coachDoctrine";
+import {
+  blockedSentence,
+  canAddPractice,
+  classifyPractice,
+  practiceReach,
+  type PracticeRow,
+  rotationLengthDays,
+} from "../api/dailyPractices";
+import { t } from "../i18n/t";
 
 /**
  * PIVOT NUTRITION §3.7 — `/coach/doctrine`: the Doctrine Copilot.
@@ -83,49 +93,16 @@ interface VersionRow {
   created_at: string;
 }
 
-interface DoctrineDraft {
-  beliefs?: Array<{
-    claim?: string;
-    rationale?: string | null;
-    /**
-     * QUI reçoit cette conviction. Absent ou vide = tout le monde.
-     *
-     * Facultatif, et il doit le rester: l'écrasante majorité de ce qu'un coach
-     * écrit vaut pour tous ses élèves, et un champ obligatoire ici
-     * multiplierait par cinq une saisie dont l'essentiel est commun.
-     */
-    goal_scope?: string[];
-  }>;
-  forbidden?: Array<{
-    token?: string;
-    surface_forms?: string[];
-    reason?: string | null;
-    /**
-     * What you do INSTEAD, in your own words.
-     *
-     * This is not decoration. When your agent is about to say something you
-     * forbid, this text is what the student receives in its place. Students in
-     * a masterclass have no one-to-one channel back to you — "ask your coach"
-     * points at a door that does not exist — so an interdit without an
-     * `instead` gets a flat refusal, and an interdit with one gets YOUR answer.
-     */
-    instead?: string | null;
-  }>;
-  vocabulary?: Array<{ term?: string; meaning?: string | null }>;
-  arbitrations?: Array<{ situation?: string; coach_answer?: string; goal_scope?: string[] }>;
-  /**
-   * SEULEMENT ce que le coach garde HORS de l'assiette.
-   *
-   * « Avec quoi je construis » se dit sur `/coach/protocol`, en pastilles sur
-   * le vocabulaire fermé — c'est lui qui atteint le générateur de repas. La
-   * même affirmation à deux endroits, c'est deux listes qui divergent.
-   */
-  foods?: {
-    discouraged?: Array<{ term?: string; surface_forms?: string[]; reason?: string | null }>;
-  };
-  qa?: Array<{ question?: string; answer?: string }>;
-  voice?: Record<string, unknown>;
-}
+/**
+ * LA FORME DU BROUILLON VIT DANS `api/coachDoctrine.ts`, PAS ICI.
+ *
+ * Elle était déclarée deux fois — une copie dans ce fichier, une dans le module
+ * d'API — et les deux se sont mises à diverger dès qu'une section a gagné un
+ * champ: `source` existait côté API et pas ici. Une forme dupliquée dont une
+ * moitié ignore un champ est exactement le mécanisme par lequel un champ se
+ * fait effacer au premier « enregistrer » (voir l'en-tête de
+ * `doctrine_editor_shape.ts`, qui documente la même cicatrice côté serveur).
+ */
 
 type LoadState =
   | { kind: "loading" }
@@ -594,6 +571,19 @@ export default function CoachDoctrinePage() {
                 </span>
               </div>
             </Card>
+
+            {/*
+              LES GESTES QUOTIDIENS, ENTRE LA MÉTHODE ET LES DYNAMIQUES.
+              Après la carte globale parce qu'ils en dépendent — une pratique
+              voyage dans la voix du coach — et avant les dynamiques parce
+              qu'ils prennent une portée comme elles.
+            */}
+            <DailyPracticesCard
+              draft={draft}
+              onChange={setDraft}
+              contentLocale={contentLocale}
+              hasMethod={!nothingWritten}
+            />
 
             <SpecificEditor draft={draft} onChange={setDraft} section={section} />
           </>
@@ -1408,5 +1398,309 @@ function SpecificEditor({
         />
       </div>
     </Card>
+  );
+}
+
+/**
+ * FF-001 — LES GESTES QUOTIDIENS.
+ *
+ * ── POURQUOI UNE CARTE À PART, ET PAS UNE SECTION DE PLUS ────────────────
+ * Les autres sections sont de la COMPOSITION: elles gouvernent un plat, et une
+ * ligne de plan les cite. Une pratique gouverne une JOURNÉE — aucun plat ne la
+ * porte, aucune ligne de plan ne peut la tracer, et son unique canal de sortie
+ * est le message du soir. La ranger avec les convictions ferait croire au coach
+ * qu'elle sert à composer ses semaines, ce qu'elle ne fait pas.
+ *
+ * Et elle ne peut pas non plus vivre dans la carte globale: cette carte
+ * promet, en toutes lettres, que tout ce qu'elle contient va à CHAQUE élève.
+ * Une pratique prend une portée.
+ *
+ * ── LE VERDICT EST VISIBLE ET CORRIGEABLE ────────────────────────────────
+ * Le coach tape une phrase, un appel la classe, et il LIT ce qui a été compris.
+ * C'est la moitié de la valeur du stockage — l'autre étant qu'on ne paie qu'un
+ * appel par pratique et par coach, à vie. Une classification invisible serait
+ * incorrigible, et un coach qui ne peut pas corriger une machine qui parle en
+ * son nom arrête de lui confier quoi que ce soit.
+ */
+function DailyPracticesCard({
+  draft,
+  onChange,
+  contentLocale,
+  hasMethod,
+}: {
+  draft: DoctrineDraft;
+  onChange: (next: DoctrineDraft) => void;
+  contentLocale: string;
+  /** Une pratique voyage DANS la voix du coach: sans méthode publiée, elle ne part pas. */
+  hasMethod: boolean;
+}) {
+  const practices = draft.daily_practices ?? [];
+  const [label, setLabel] = React.useState("");
+  const [busy, setBusy] = React.useState(false);
+  const [failure, setFailure] = React.useState<string | null>(null);
+
+  const patch = (index: number, next: Partial<PracticeRow>) =>
+    onChange({
+      ...draft,
+      daily_practices: practices.map((p, i) => (i === index ? { ...p, ...next } : p)),
+    });
+
+  async function classify(text: string, replaceIndex: number | null) {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    setBusy(true);
+    setFailure(null);
+    try {
+      const out = await classifyPractice({
+        label: trimmed,
+        contentLocale,
+        // Le contexte sert la CADENCE: « socle » n'a de sens que par rapport
+        // aux autres pratiques du coach.
+        existingLabels: practices
+          .map((p) => String(p.label ?? ""))
+          .filter((l, i) => l && i !== replaceIndex),
+      });
+      onChange({
+        ...draft,
+        daily_practices: replaceIndex === null
+          ? [...practices, out.practice]
+          : practices.map((p, i) => (i === replaceIndex ? out.practice : p)),
+      });
+      if (replaceIndex === null) setLabel("");
+    } catch (err) {
+      // Un échec de TRANSPORT, pas de classification: le serveur, lui, rend
+      // toujours une pratique. Les deux phrases sont différentes et le coach a
+      // besoin de savoir laquelle il lit.
+      setFailure(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const cycle = rotationLengthDays(practices);
+
+  return (
+    <Card>
+      <SectionLabel>{t("coach.practices.title")}</SectionLabel>
+      <p className="mt-2 text-sm leading-6 text-gray-700">{t("coach.practices.intro")}</p>
+      {hasMethod ? null : (
+        <p className="mt-2 rounded-md bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">
+          {t("coach.practices.no_method")}
+        </p>
+      )}
+
+      {practices.length === 0
+        ? <p className="mt-4 text-sm text-gray-400">{t("coach.practices.empty")}</p>
+        : (
+          <>
+            <p className="mt-4 text-xs text-gray-500">
+              {cycle <= 1
+                ? t("coach.practices.rotation_one")
+                : t("coach.practices.rotation_many", { count: cycle })}
+            </p>
+            <ul className="mt-3 space-y-3">
+              {practices.map((p, index) => (
+                <PracticeRowEditor
+                  key={`${index}-${String(p.label ?? "")}`}
+                  practice={p}
+                  busy={busy}
+                  onPatch={(next) => patch(index, next)}
+                  onReclassify={() => classify(String(p.label ?? ""), index)}
+                  onRemove={() =>
+                    onChange({
+                      ...draft,
+                      daily_practices: practices.filter((_, i) => i !== index),
+                    })}
+                />
+              ))}
+            </ul>
+          </>
+        )}
+
+      {canAddPractice(practices)
+        ? (
+          <div className="mt-4 flex flex-wrap items-start gap-2">
+            {/* `min-w-0` sur l'enfant flex: `flex-1` seul ne rétrécit pas un
+                input — sa `min-width` vaut `auto`, et la carte déborde à 320px. */}
+            <input
+              className={`${inputClass} min-w-0 flex-1`}
+              value={label}
+              placeholder={t("coach.practices.add_placeholder")}
+              onChange={(e) => setLabel(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  void classify(label, null);
+                }
+              }}
+            />
+            <Button onClick={() => void classify(label, null)} disabled={busy || !label.trim()}>
+              {busy ? t("coach.practices.adding") : t("coach.practices.add_button")}
+            </Button>
+          </div>
+        )
+        : <p className="mt-4 text-xs leading-5 text-amber-800">{t("coach.practices.full")}</p>}
+
+      {failure ? <p className="mt-2 text-xs text-red-700">{failure}</p> : null}
+    </Card>
+  );
+}
+
+/** Une pratique: ce qui a été compris, et les quatre choses qui se corrigent. */
+function PracticeRowEditor({
+  practice,
+  busy,
+  onPatch,
+  onReclassify,
+  onRemove,
+}: {
+  practice: PracticeRow;
+  busy: boolean;
+  onPatch: (next: Partial<PracticeRow>) => void;
+  onReclassify: () => void;
+  onRemove: () => void;
+}) {
+  const blocked = blockedSentence(practice.collides_with ?? null);
+  const scope = (practice.goal_scope ?? []).filter(Boolean);
+
+  return (
+    <li className="rounded-md border border-gray-100 bg-gray-50/60 p-3">
+      {/* Les mots du coach, VERBATIM. Jamais réécrits, donc jamais rendus
+          autrement qu'à l'identique. */}
+      <p className="text-sm font-medium leading-6 text-gray-900">{String(practice.label ?? "")}</p>
+
+      {blocked
+        ? (
+          <div className="mt-2 rounded-md bg-amber-50 px-3 py-2">
+            <p className="text-xs font-medium text-amber-900">
+              {t("coach.practices.blocked_title")}
+            </p>
+            {/* R9 — le motif NOMME la ceinture. Un blocage muet se vit comme de
+                l'arbitraire, et un coach qui vit un refus comme arbitraire
+                arrête d'écrire. */}
+            <p className="mt-1 text-xs leading-5 text-amber-900">{blocked}</p>
+          </div>
+        )
+        : null}
+
+      {practice.status === "needs_review"
+        ? (
+          <p className="mt-2 text-xs leading-5 text-amber-800">
+            {t("coach.practices.needs_review")}
+          </p>
+        )
+        : null}
+
+      <p className="mt-2 text-xs text-gray-500">
+        <span className="font-medium">{t("coach.practices.reach_label")}:</span>{" "}
+        {practiceReach(practice)}
+      </p>
+      {practice.brief
+        ? (
+          <p className="mt-1 text-xs leading-5 text-gray-500">
+            <span className="font-medium">{t("coach.practices.brief_label")}:</span>{" "}
+            {practice.brief}
+          </p>
+        )
+        : null}
+
+      {/* LES CORRECTIONS. Quatre, et pas une de plus: ce sont les quatre
+          décisions du classifieur qui changent ce que la cohorte reçoit. Le
+          `kind`, le `target` et l'`unit` ne sont pas éditables ici — ils
+          décrivent la phrase du coach, et la façon de les corriger est de
+          réécrire la phrase, ce que « Read it again » fait. */}
+      <div className="mt-3 space-y-1.5">
+        <label className="flex items-start gap-2 text-xs text-gray-700">
+          <input
+            type="checkbox"
+            className="mt-0.5"
+            checked={practice.askable === true}
+            onChange={(e) => onPatch({ askable: e.target.checked })}
+          />
+          <span>
+            {t("coach.practices.askable_label")}
+            <span className="block text-gray-400">{t("coach.practices.askable_hint")}</span>
+          </span>
+        </label>
+        <label className="flex items-start gap-2 text-xs text-gray-700">
+          <input
+            type="checkbox"
+            className="mt-0.5"
+            checked={practice.minor_safe === true}
+            onChange={(e) => onPatch({ minor_safe: e.target.checked })}
+          />
+          <span>
+            {t("coach.practices.minor_safe_label")}
+            <span className="block text-gray-400">{t("coach.practices.minor_safe_hint")}</span>
+          </span>
+        </label>
+        <label className="flex items-start gap-2 text-xs text-gray-700">
+          <input
+            type="checkbox"
+            className="mt-0.5"
+            checked={practice.cadence === "constant"}
+            onChange={(e) => onPatch({ cadence: e.target.checked ? "constant" : "rotating" })}
+          />
+          <span>
+            {t("coach.practices.constant_label")}
+            <span className="block text-gray-400">{t("coach.practices.constant_hint")}</span>
+          </span>
+        </label>
+      </div>
+
+      <div className="mt-2">
+        <p className="text-xs font-medium text-gray-500">{t("coach.practices.scope_label")}</p>
+        <div className="mt-1 flex flex-wrap gap-1.5">
+          {/* « Everyone » est une VALEUR, pas l'absence de choix: la portée vide
+              est le cas de l'écrasante majorité des pratiques. */}
+          <button
+            type="button"
+            onClick={() => onPatch({ goal_scope: [] })}
+            className={`rounded-full border px-2.5 py-0.5 text-xs ${
+              scope.length === 0
+                ? "border-gray-900 bg-gray-900 text-white"
+                : "border-gray-200 bg-white text-gray-600"
+            }`}
+          >
+            {t("coach.practices.scope_everyone")}
+          </button>
+          {GOAL_TOKENS.map((g) => (
+            <button
+              key={g}
+              type="button"
+              onClick={() =>
+                onPatch({
+                  goal_scope: scope.includes(g) ? scope.filter((s) => s !== g) : [...scope, g],
+                })}
+              className={`rounded-full border px-2.5 py-0.5 text-xs ${
+                scope.includes(g)
+                  ? "border-gray-900 bg-gray-900 text-white"
+                  : "border-gray-200 bg-white text-gray-600"
+              }`}
+            >
+              {GOAL_LABELS[g]}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-2 flex gap-3">
+        <button
+          type="button"
+          onClick={onReclassify}
+          disabled={busy}
+          className="text-xs text-gray-500 underline decoration-dotted underline-offset-2 hover:text-gray-900 disabled:opacity-50"
+        >
+          {t("coach.practices.reclassify")}
+        </button>
+        <button
+          type="button"
+          onClick={onRemove}
+          className="text-xs text-gray-400 underline decoration-dotted underline-offset-2 hover:text-gray-700"
+        >
+          {t("coach.practices.remove")}
+        </button>
+      </div>
+    </li>
   );
 }

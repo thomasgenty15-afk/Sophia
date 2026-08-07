@@ -117,6 +117,27 @@ export interface DoctrineDraft {
     discouraged?: Array<{ term?: string; surface_forms?: string[]; reason?: string | null }>;
   };
   qa?: Array<{ question?: string; answer?: string }>;
+  /**
+   * FF-001 — LES GESTES QUOTIDIENS, la seule section que le coach ne saisit pas
+   * entièrement à la main: il tape `label`, une classification remplit le reste,
+   * et il corrige ce qu'il veut. Onze champs font donc l'aller-retour, et un
+   * seul oublié est effacé au premier « enregistrer » (voir
+   * `doctrine_editor_shape.ts`).
+   */
+  daily_practices?: Array<{
+    label?: string;
+    kind?: string;
+    quantified?: boolean;
+    target?: number | null;
+    unit?: string | null;
+    goal_scope?: string[];
+    cadence?: string;
+    askable?: boolean;
+    minor_safe?: boolean;
+    brief?: string;
+    status?: string;
+    collides_with?: string | null;
+  }>;
   voice?: Record<string, unknown>;
 }
 
@@ -458,5 +479,9 @@ export function pruneDraft(draft: DoctrineDraft): DoctrineDraft {
       discouraged: (draft.foods?.discouraged ?? []).filter((f) => has(f.term)),
     },
     qa: (draft.qa ?? []).filter((q) => has(q.question) && has(q.answer)),
+    // Le champ SANS LEQUEL la pratique n'existe pas est le `label` — les mots du
+    // coach. Tout le reste vient d'une classification, et une pratique dont la
+    // classification a échoué garde quand même sa saisie (§7 de FF-001).
+    daily_practices: (draft.daily_practices ?? []).filter((p) => has(p.label)),
   };
 }
