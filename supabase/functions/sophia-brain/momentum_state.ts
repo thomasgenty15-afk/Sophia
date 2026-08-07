@@ -198,7 +198,6 @@ const MAX_CONSENT_EVENTS = 16;
 const MAX_RESPONSE_EVENTS = 20;
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const SEVEN_DAYS_MS = 7 * ONE_DAY_MS;
-const FOURTEEN_DAYS_MS = 14 * ONE_DAY_MS;
 const TWENTY_ONE_DAYS_MS = 21 * ONE_DAY_MS;
 const SEVENTY_TWO_HOURS_MS = 72 * 60 * 60 * 1000;
 const MAX_BLOCKER_ACTIONS = 8;
@@ -1891,8 +1890,6 @@ async function fetchMomentumSnapshot(args: {
     .toISOString();
   const blockersSinceIso = new Date(parseIsoMs(nowIso) - TWENTY_ONE_DAYS_MS)
     .toISOString();
-  const vitalsSinceIso = new Date(parseIsoMs(nowIso) - FOURTEEN_DAYS_MS)
-    .toISOString();
 
   const [
     { data: profile },
@@ -1941,19 +1938,19 @@ async function fetchMomentumSnapshot(args: {
       .eq("kind", "progress_marker"),
   ]);
 
-  const activeVitalIds = Array.isArray(activeVitals)
-    ? activeVitals.map((row: any) => String(row?.id ?? "")).filter(Boolean)
-    : [];
-  const { data: vitalEntries } = activeVitalIds.length > 0
-    ? await args.supabase
-      .from("user_metric_entries")
-      .select("metric_id, value_numeric, created_at")
-      .eq("user_id", args.userId)
-      .in("vital_sign_id", activeVitalIds)
-      .gte("recorded_at", vitalsSinceIso)
-      .order("recorded_at", { ascending: true })
-      .limit(120)
-    : { data: [] as any[] };
+  // `user_metric_entries` N'EXISTE PAS — ni en base, ni dans une migration du
+  // dépôt (`rg user_metric_entries supabase/migrations*` ne rend rien, et
+  // `to_regclass` la dit absente). La requête qui vivait ici partait donc à
+  // chaque calcul de momentum vers une table introuvable, et son `error`
+  // n'était même pas lu: `vitalEntries` valait toujours `undefined`, et
+  // `snapshot.vitalEntries` toujours `[]`.
+  //
+  // Le tableau vide REMPLACE la requête à comportement identique, il ne change
+  // rien. On garde `vitalEntries` dans le snapshot plutôt que d'arracher le
+  // calcul `improvedVitals`/`worsenedVitals` qu'il alimente: ce calcul rend
+  // déjà 0 dans tous les cas, et le démonter est un chantier « momentum », pas
+  // un retrait de résidu.
+  const vitalEntries: any[] = [];
 
   const profilePauseUntilIso = (() => {
     const coaching = String(
