@@ -2806,4 +2806,84 @@ export const en = {
   "communities.closing.cta": "Start the 14-day trial",
   "communities.closing.signin_prompt": "Already using Sophia?",
   "communities.closing.signin_link": "Sign in",
+
+  // ── LE FOYER ────────────────────────────────────────────────────────────
+  // Autorité produit: docs/keel/PIVOT-FOYER.md §8.
+  //
+  // DEUX REGISTRES QUI NE SE MÉLANGENT JAMAIS (§8.5 règle 4). Ce que dit
+  // Sophia est épistémique et discutable; ce que pose le compte maître est
+  // domestique et attribué à lui. Aucune phrase de ce bloc ne doit faire
+  // passer une décision de foyer pour un conseil de santé — c'est pour ça que
+  // `household.restriction.notice_owner` nomme la personne, et que rien ici
+  // ne parle jamais de ce qui est « bon » ou « mauvais » pour quelqu'un.
+  "household.title": "Your household",
+  "household.empty.title": "Cook once, for everyone",
+  "household.empty.body":
+    "Add the people you cook for. One cooking session, portions that follow each person's own direction.",
+  "household.create.name": "What do you call it?",
+  "household.create.kind": "Who lives here?",
+  "household.create.kind.family": "A family",
+  "household.create.kind.family_hint":
+    "Includes children. You can set foods the household does not serve to a given person.",
+  "household.create.kind.shared": "Adults sharing a kitchen",
+  "household.create.kind.shared_hint":
+    "A couple, a flatshare. Nobody can restrict anybody, and nobody sees anyone else's goal.",
+  "household.create.submit": "Create the household",
+  "household.members.title": "Who eats here",
+  "household.members.owner": "Runs the household",
+  "household.members.child": "Child",
+  "household.invite.title": "Invite someone",
+  "household.invite.body":
+    "They need their own profile: without it, the plan is wrong for them.",
+  "household.invite.email": "Their email",
+  "household.invite.submit": "Create the invitation",
+  "household.invite.link_ready":
+    "Send them this link. It works once, for that address, and expires in 14 days.",
+  "household.invite.error.rate_limited": "That is enough invitations for today.",
+  "household.invite.error.bad_email": "That address does not look usable.",
+  "household.invite.error.not_owner": "Only the person who runs the household can invite.",
+  "household.join.consent_notice":
+    "In this household, {owner} can decide that some foods are not served to you.",
+  "household.consent.title": "Foods others can rule out for you",
+  "household.consent.off":
+    "Nobody can rule out foods for you. This is the default.",
+  "household.consent.on":
+    "You allowed {owner} to rule out some foods for you. You can undo this at any time, and it removes what is already set.",
+  "household.consent.grant": "Allow it",
+  "household.consent.revoke": "Undo it",
+  "household.restriction.title": "Foods this household does not serve",
+  "household.restriction.add": "Add a food",
+  "household.restriction.placeholder": "Nutella",
+  "household.restriction.notice_owner": "Not served here — {owner} decided that.",
+  "household.restriction.notice_me": "You decided that.",
+  "household.restriction.remove": "Remove",
+  "household.restriction.blocked.not_a_family":
+    "This household is adults sharing a kitchen. Nobody rules out food for anybody here.",
+  "household.restriction.blocked.not_owner":
+    "Only the person who runs the household can do this.",
+  "household.restriction.blocked.self":
+    "For your own food, use your preferences instead.",
+  "household.restriction.blocked.adult_without_consent":
+    "{name} has not allowed this. They can turn it on from their own household page.",
+  "household.envy.title": "What do you feel like this week?",
+  "household.envy.body":
+    "Say it before the plan is made. Nobody has to answer: whoever says nothing is simply composed from their profile.",
+  "household.envy.placeholder": "A curry, and something quick on Thursday.",
+  "household.envy.save": "Save it",
+  "household.envy.saved": "Noted.",
+  "household.envy.spoken": "{count} said what they want",
+  "household.envy.silent": "{count} said nothing — that is fine",
+  "household.compose.title": "Make this week's plan",
+  "household.compose.body":
+    "One cooking session, portions that follow each person's direction, and the shopping split by when it has to be fresh.",
+  "household.compose.submit": "Compose for the household",
+  "household.compose.working": "Composing...",
+  "household.compose.silent_note":
+    "{count} people said nothing this week and were composed from their profile.",
+  "household.portions.title": "At the table",
+  "household.portions.standard": "A standard serving",
+  "household.waves.title": "Shopping",
+  "household.waves.now": "Buy now",
+  "household.waves.on": "Buy on {date}",
+  "household.waves.reason": "for the {day} cooking",
 } as const
