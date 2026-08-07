@@ -86,6 +86,14 @@ export interface FollowingDb {
  *  veut pouvoir lire dans les logs laquelle des trois surfaces porte la cohorte. */
 export type FollowingSource =
   | "generated_meals"
+  /**
+   * LE FOYER. Une composition écrite par le compte maître pour son foyer
+   * appartient à SON `user_id`; les autres membres n'ont donc AUCUNE ligne à
+   * leur nom, et sans cette source ils seraient tous écartés du tap du soir —
+   * c'est-à-dire très exactement le défaut que ce module a été écrit pour
+   * réparer, reproduit sur une surface neuve.
+   */
+  | "household_meals"
   | "adopted_week_plan"
   | "published_plan_version"
   | "none";
@@ -142,6 +150,41 @@ export async function resolveStudentFollowing(
     )
   ) {
     return { following: true, source: "generated_meals" };
+  }
+
+  // ── LE FOYER, EN DEUXIÈME ────────────────────────────────────────────
+  // Deux lectures et pas une jointure: le foyer d'une personne se lit d'abord
+  // (une ligne, index unique), et la composition ensuite. Une jointure côté
+  // PostgREST obligerait à embarquer `households` dans le select, donc à
+  // dépendre d'une relation nommée que la RLS filtre déjà — pour économiser un
+  // aller-retour sur un chemin de repli qui ne part presque jamais.
+  //
+  // Elle ne part QU'APRÈS `student_generated_meals`: le compte maître a sa
+  // propre ligne, il répond donc sur la première source et ne paie jamais
+  // celle-ci. Seuls les autres membres l'atteignent.
+  const household = await db
+    .from("household_members")
+    .select("household_id")
+    .eq("user_id", userId)
+    .limit(1);
+  if (household.error) throw household.error;
+  const householdId = Array.isArray(household.data) && household.data.length > 0
+    ? String((household.data[0] as { household_id?: unknown }).household_id ?? "")
+    : "";
+  if (householdId) {
+    if (
+      hit(
+        await db
+          .from("student_generated_meals")
+          .select("id")
+          .eq("household_id", householdId)
+          .is("retired_at", null)
+          .gte("ends_on", weekStart)
+          .limit(1),
+      )
+    ) {
+      return { following: true, source: "household_meals" };
+    }
   }
 
   if (
