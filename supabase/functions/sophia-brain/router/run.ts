@@ -39,12 +39,9 @@ import { debounceAndBurstMerge } from "./debounce.ts";
 import { runAgentAndVerify } from "./agent_exec.ts";
 // W2.A: le dispatcher local du sas potion et son état ne sont plus importés —
 // le sas est débranché (le dossier du skill est supprimé en W2.B).
-import {
-  type AttackKeywordSupportContextV1,
-  isAllowedAttackKeyword,
-  loadAttackKeywordSupportMatch,
-  renderAttackKeywordSupportReply,
-} from "../../_shared/attack-keyword-support.ts";
+// RETRAIT RÉSIDUS (2026-08-08): l'import d'attack-keyword-support est parti
+// avec le module et sa table `user_attack_cards` (décision humaine « retirer
+// les deux », migration 20260808090000) — il n'avait plus aucun site d'appel.
 // W2.A: mécanisme TRANSVERSE (companion + présence + safety), extrait du
 // voisinage de `feature_opportunity` avant sa désactivation.
 import {

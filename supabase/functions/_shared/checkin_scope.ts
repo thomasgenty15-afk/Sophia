@@ -15,7 +15,6 @@ export type CheckinExclusionSnapshot = {
 };
 
 export type OwnedFollowUpSource =
-  | "potion"
   | "one_shot"
   | "scheduled_checkin"
   | "watcher"
@@ -31,7 +30,6 @@ export type OwnedFollowUp = {
   scheduled_for: string | null;
   created_at: string | null;
   updated_at: string | null;
-  source_potion_session_id: string | null;
   target_kind: string | null;
   target_plan_item_id: string | null;
   target_action_family_key: string | null;
@@ -353,7 +351,6 @@ export async function fetchCheckinExclusionSnapshot(params: {
       scheduled_for: cleanNullable(row.scheduled_for),
       created_at: cleanNullable(row.created_at),
       updated_at: null,
-      source_potion_session_id: null,
       target_kind: null,
       target_plan_item_id: null,
       target_action_family_key: null,
@@ -438,7 +435,7 @@ export function buildWatcherScopePromptBlock(
   return [
     "=== SUJETS HORS-SCOPE POUR CE CHECK-IN (CRITIQUE) ===",
     "Ces sujets appartiennent a d'autres pipelines. Tu peux les reconnaitre, mais tu ne dois ni les mentionner, ni les simplifier, ni les suivre.",
-    "Processus obligatoire: avant de proposer un check-in watcher, compare le candidat aux suivis deja pris en charge ci-dessous. Si le besoin est deja handle par un one-shot reminder, une potion ou un check-in existant, ne retourne aucun candidat pour cet element.",
+    "Processus obligatoire: avant de proposer un check-in watcher, compare le candidat aux suivis deja pris en charge ci-dessous. Si le besoin est deja handle par un one-shot reminder ou un check-in existant, ne retourne aucun candidat pour cet element.",
     formatWatcherExclusionSnapshot(snapshot),
     "Interdictions strictes:",
     "- Ne parle jamais de plan, objectifs, actions, actions perso, frameworks, journal, vital signs, progression, streaks ou discipline.",
@@ -446,7 +443,7 @@ export function buildWatcherScopePromptBlock(
     "- Ne fais jamais d'accountability d'execution: pas de 'garder le cap', pas de 'tu l'as fait ?', pas de suivi de progression.",
     "- Si le transcript recent ou la memoire parlent de ces sujets, ignore-les ou abstrais-les en ressenti general sans citer l'item.",
     "- Si un evenement reel existe mais qu'une partie du contexte touche un sujet hors-scope, garde uniquement le noyau evenementiel et jette le reste.",
-    "- Pour chaque candidat watcher, verifie d'abord les suivis deja pris en charge. S'il est couvert par une potion, un one-shot reminder ou un check-in existant, ne cree rien.",
+    "- Pour chaque candidat watcher, verifie d'abord les suivis deja pris en charge. S'il est couvert par un one-shot reminder ou un check-in existant, ne cree rien.",
   ].join("\n");
 }
 
@@ -525,7 +522,7 @@ export function watcherCandidateCoveredByExistingFollowUp(
     }
     if (
       sameDay &&
-      (followup.source === "one_shot" || followup.source === "potion") &&
+      followup.source === "one_shot" &&
       (overlap.hits >= 1 || overlap.ratio >= 0.4)
     ) {
       return {

@@ -2355,46 +2355,14 @@ function formatBilanJustStoppedAddon(addon: any): string {
 // Durable effects summary (chantier 2 phase B, 2026-05-28)
 //
 // Injecte dans le prompt companion un mini résumé de l'état durable côté DB:
-// dernière carte d'attaque/défense active, rappels ponctuels en attente,
-// préférences coach actives. Sert de "source de vérité" pour empêcher le
+// rappels ponctuels en attente, préférences coach actives. (Retrait résidus
+// 2026-08-08: cartes d'attaque et potions parties avec leurs tables,
+// migration 20260808090000.) Sert de "source de vérité" pour empêcher le
 // LLM d'halluciner "on n'a pas validé/créé X" alors que la DB confirme X.
 //
 // Voir docs/agent-playbook/New/runtime-contracts/00-architecture-doctrine.md, chantier 2 phase B.
 // ===========================================================================
 
-function ageLabelFromIso(iso: string | null | undefined): string {
-  if (!iso) return "";
-  const t = Date.parse(String(iso));
-  if (!Number.isFinite(t)) return "";
-  const diffMs = Date.now() - t;
-  if (diffMs < 0) return "";
-  const minutes = Math.round(diffMs / 60000);
-  if (minutes < 1) return "il y a moins d'1 min";
-  if (minutes < 60) return `il y a ${minutes} min`;
-  const hours = Math.round(minutes / 60);
-  if (hours < 24) return `il y a ${hours} h`;
-  const days = Math.round(hours / 24);
-  if (days < 14) return `il y a ${days} j`;
-  return `il y a ${Math.round(days / 7)} sem`;
-}
-
-function extractCardTitleFromContent(content: any): string {
-  return String(
-    content?.operation_draft?.title ??
-      content?.techniques?.[0]?.generated_result?.output_title ??
-      content?.title ??
-      content?.card_title ??
-      "",
-  ).trim();
-}
-
-function extractTechniqueLabelFromContent(content: any): string {
-  const technique = content?.operation_draft?.technique ??
-    content?.techniques?.[0]?.technique_key ??
-    content?.technique ??
-    "";
-  return String(technique ?? "").trim();
-}
 
 // Chantier 12 (2026-05-28) — Affichage des heures de rappel dans la
 // timezone utilisateur. Sans ça, le summary affiche le ISO UTC brut
@@ -2746,20 +2714,11 @@ export async function loadDurableEffectsSummary(
       }
     })();
     const [
-      attackRes,
       checkinsRes,
       cancelledRes,
       prefsRes,
-      potionRes,
       userTimezone,
     ] = await Promise.all([
-      supabase
-        .from("user_attack_cards")
-        .select("id,content,generated_at")
-        .eq("user_id", userId)
-        .eq("status", "active")
-        .order("generated_at", { ascending: false })
-        .limit(1),
       // C3 (2026-07-03, rose-r2 T15 / BF-STATUS-01) — le cap silencieux à 5
       // faisait annoncer "5 rappels" comme total exhaustif alors que 6 étaient
       // pending. On charge large + count exact pour que le rendu ne puisse
@@ -2810,18 +2769,9 @@ export async function loadDurableEffectsSummary(
         .like("key", "coach.%")
         .order("updated_at", { ascending: false })
         .limit(12),
-      // CHANTIER E6 — Sessions de potion / mode d'état (A3-r10 T15: le recap ne
-      // récupérait pas la session de potion).
-      supabase
-        .from("user_potion_sessions")
-        .select("id,potion_type,content,status,generated_at")
-        .eq("user_id", userId)
-        .order("generated_at", { ascending: false })
-        .limit(2),
       profileTzPromise,
     ]);
 
-    const attack = (attackRes.data ?? [])[0] as any;
     const checkins = (checkinsRes.data ?? []) as any[];
     // Total DB réel (count exact), potentiellement > lignes chargées: le
     // rendu ne doit jamais annoncer un total dérivé d'une liste tronquée.
@@ -2829,7 +2779,6 @@ export async function loadDurableEffectsSummary(
       ? Math.max(Number((checkinsRes as any).count), checkins.length)
       : checkins.length;
     const prefs = (prefsRes.data ?? []) as any[];
-    const potions = (potionRes.data ?? []) as any[];
     // E6: une préférence est "explicite" si elle n'a pas été semée par défaut.
     const explicitPrefs = prefs.filter((row) =>
       String(row?.source_type ?? "") !== "system_default"
@@ -2838,9 +2787,7 @@ export async function loadDurableEffectsSummary(
       String(row?.source_type ?? "") === "system_default"
     );
 
-    const hasAnything = Boolean(attack) ||
-      checkins.length > 0 || prefs.length > 0 ||
-      potions.length > 0;
+    const hasAnything = checkins.length > 0 || prefs.length > 0;
     if (!hasAnything) return null;
 
     const lines: string[] = [];
@@ -2852,24 +2799,12 @@ export async function loadDurableEffectsSummary(
       "Cette liste PRIME sur tout ce que la conversation a pu dire avant (y compris un ancien tour niant une création): un rappel listé ici EXISTE — ne nie jamais son existence; un élément absent d'ici n'existe pas.",
     );
     lines.push(
-      "Question d'inventaire ('j'ai quoi comme rappels ?'): la réponse couvre les DEUX sections — rappels PONCTUELS en attente ET rappels récurrents actifs. Ne dis JAMAIS 'pas d'autre rappel' si l'une des deux sections liste encore une entrée non mentionnée.",
+      "Question d'inventaire ('j'ai quoi comme rappels ?'): la réponse couvre les rappels PONCTUELS en attente listés ici. Ne dis JAMAIS 'pas d'autre rappel' si cette section liste encore une entrée non mentionnée.",
     );
     lines.push(
-      "Recap POST-ANNULATION (P8-G, alex-hard23 T15): « redis-moi ce qu'il me reste de programmé/prévu » juste après un cancel de rappel répond D'ABORD depuis l'inventaire des rappels et check-ins encore actifs (ponctuels en attente + récurrents actifs), avant tout glissement vers les items du plan — omettre un récurrent encore actif laisse croire que tout est éteint.",
+      "Recap POST-ANNULATION (P8-G, alex-hard23 T15): « redis-moi ce qu'il me reste de programmé/prévu » juste après un cancel de rappel répond D'ABORD depuis l'inventaire des rappels et check-ins encore actifs (ponctuels en attente), avant tout glissement vers les items du plan — omettre une entrée encore active laisse croire que tout est éteint.",
     );
 
-    if (attack) {
-      const title = extractCardTitleFromContent(attack?.content) ||
-        "carte d'attaque";
-      const technique = extractTechniqueLabelFromContent(attack?.content);
-      const age = ageLabelFromIso(attack?.generated_at) || "récente";
-      const techniqueText = technique ? ` (technique: ${technique})` : "";
-      lines.push(
-        `- Carte d'attaque active (${age}): "${title}"${techniqueText}.`,
-      );
-    } else {
-      lines.push("- Carte d'attaque active: aucune.");
-    }
 
     if (checkinsRes.error) {
       // R-1 (BF-STATUS-01): une lecture echouee n'est JAMAIS rendue comme une
@@ -2996,21 +2931,6 @@ export async function loadDurableEffectsSummary(
       }
     }
 
-    // CHANTIER E6 — Sessions de potion / mode d'état.
-    const lastPotion = potions[0];
-    if (!lastPotion) {
-      lines.push("- Potion / mode d'état: aucune session récente.");
-    } else {
-      const ptype = String(lastPotion?.potion_type ?? "").trim();
-      const ptitle = String((lastPotion?.content as any)?.title ?? "").trim();
-      const pstatus = String(lastPotion?.status ?? "").trim();
-      const detail = [ptype, ptitle].filter(Boolean).join(" — ");
-      lines.push(
-        `- Potion / mode d'état: une session existe${
-          detail ? ` (${detail})` : ""
-        }${pstatus ? ` [statut: ${pstatus}]` : ""}.`,
-      );
-    }
 
     lines.push(
       "Consigne: ces lignes décrivent ce qui existe vraiment côté DB. " +

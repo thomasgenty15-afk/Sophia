@@ -35,13 +35,16 @@ Deno.test("companion normal reply prompt stays conversation-first and product-th
   assert(prompt.includes("SILENCE_AND_REACTIONS"));
   assert(prompt.includes("Reconstruis le fil depuis le fil rouge/contexte"));
   assert(prompt.includes("PLATFORM_SKETCH_FOR_NORMAL_REPLY"));
-  assert(prompt.includes("Plan, Ressources, Inspirations, Initiatives"));
+  // Retrait résidus 2026-08-08: Ressources (cartes/potions) et Initiatives
+  // (messages récurrents) n'existent plus — le contrat vérifie leur ABSENCE.
+  assert(prompt.includes("Sections à nommer: Plan, Inspirations"));
+  assert(!prompt.includes("Plan, Ressources, Inspirations, Initiatives"));
+  assert(!prompt.includes("Pour ce cas, dis Initiatives"));
   assert(
     prompt.includes(
       "Ne présente pas Soutien, Missions ou Habitudes comme des sections de destination",
     ),
   );
-  assert(prompt.includes("Pour ce cas, dis Initiatives"));
   assert(
     prompt.includes(
       "Ce n'est pas du coaching par défaut",
@@ -119,13 +122,12 @@ Deno.test("companion normal reply prompt stays conversation-first and product-th
     ),
   );
   assert(prompt.includes("Frontière plateforme"));
-  assert(prompt.includes("cartes de défense/attaque actives"));
-  assert(prompt.includes("rappels récurrents actifs"));
-  assert(prompt.includes("potion active"));
+  // Retrait résidus 2026-08-08: cartes, potions et rappels récurrents n'existent
+  // plus — le contrat vérifie désormais leur ABSENCE du prompt.
+  assert(!prompt.includes("cartes de défense/attaque actives"));
+  assert(!prompt.includes("potion active"));
   assert(
-    prompt.includes(
-      "Ne propose pas automatiquement une carte, une potion ou un outil Sophia",
-    ),
+    prompt.includes("Ne propose pas automatiquement un outil Sophia"),
   );
   assert(prompt.includes("Priorité au dernier message"));
   assert(prompt.includes("accueille l'émotion d'abord"));
@@ -247,8 +249,7 @@ Deno.test("companion normal reply requires platform fallback for non-injected So
   });
 
   assert(prompt.includes("hors éléments injectés"));
-  assert(prompt.includes("cartes de défense/attaque actives"));
-  assert(prompt.includes("rappels récurrents actifs"));
+  assert(!prompt.includes("cartes de défense/attaque actives"));
   assert(prompt.includes("préférences, objets Sophia"));
   assert(prompt.includes("vue complète dans la plateforme"));
   assert(prompt.includes("Aucune liste inventée"));

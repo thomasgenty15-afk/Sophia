@@ -83,7 +83,6 @@ function makeFakeSupabase(rowsByTable: TableRowsByName) {
 
 Deno.test("loadDurableEffectsSummary returns null when nothing durable exists", async () => {
   const supabase = makeFakeSupabase({
-    user_attack_cards: [],
     scheduled_checkins: [],
     user_profile_facts: [],
   });
@@ -91,55 +90,9 @@ Deno.test("loadDurableEffectsSummary returns null when nothing durable exists", 
   assertEquals(summary, null);
 });
 
-Deno.test("loadDurableEffectsSummary lists an active attack card and forbids 'pas créé' (A2-r4 T9)", async () => {
-  const recent = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-  const supabase = makeFakeSupabase({
-    user_attack_cards: [{
-      id: "card-1",
-      generated_at: recent,
-      content: {
-        operation_draft: {
-          title: "Payer la facture une fois pour toutes",
-          technique: "ancre_visuelle",
-        },
-      },
-    }],
-    scheduled_checkins: [],
-    user_profile_facts: [],
-  });
-  const summary = await loadDurableEffectsSummary(supabase, "u1");
-  if (!summary) throw new Error("expected non-null summary");
-  assertStringIncludes(summary, "ÉTAT DURABLE ACTUEL");
-  assertStringIncludes(summary, "Carte d'attaque active");
-  assertStringIncludes(summary, "Payer la facture une fois pour toutes");
-  assertStringIncludes(summary, "ancre_visuelle");
-  // Garde-fou: la consigne anti-hallucination doit être présente.
-  assertStringIncludes(
-    summary,
-    'Ne dis JAMAIS "on n\'a pas validé/créé X"',
-  );
-});
-
-Deno.test("loadDurableEffectsSummary mentions absence explicitly when attack card is missing", async () => {
-  const recent = new Date(Date.now() - 2 * 60 * 1000).toISOString();
-  const supabase = makeFakeSupabase({
-    user_attack_cards: [{
-      id: "a-1",
-      generated_at: recent,
-      content: { operation_draft: { title: "Tri PDF Express" } },
-    }],
-    scheduled_checkins: [],
-    user_profile_facts: [],
-  });
-  const summary = await loadDurableEffectsSummary(supabase, "u1");
-  if (!summary) throw new Error("expected non-null summary");
-  assertStringIncludes(summary, "Carte d'attaque active");
-});
-
 Deno.test("loadDurableEffectsSummary lists pending one-shot reminders with scheduled_for and instruction", async () => {
   const inOneHour = new Date(Date.now() + 60 * 60 * 1000).toISOString();
   const supabase = makeFakeSupabase({
-    user_attack_cards: [],
     scheduled_checkins: [{
       id: "r-1",
       scheduled_for: inOneHour,
@@ -169,7 +122,6 @@ Deno.test("loadDurableEffectsSummary lists every pending reminder with the real 
     message_payload: { reminder_instruction: `rappel numero ${index}` },
   }));
   const supabase = makeFakeSupabase({
-    user_attack_cards: [],
     scheduled_checkins: rows,
     user_profile_facts: [],
   });
@@ -192,7 +144,6 @@ Deno.test("loadDurableEffectsSummary never claims exhaustivity on a truncated re
     message_payload: { reminder_instruction: `rappel numero ${index}` },
   }));
   const supabase = makeFakeSupabase({
-    user_attack_cards: [],
     scheduled_checkins: rows,
     user_profile_facts: [],
   });
@@ -210,7 +161,6 @@ Deno.test("loadDurableEffectsSummary formats scheduled_for in user timezone (A4-
   // 2026-05-28T09:21:00Z = 11:21 Europe/Paris (DST)
   const isoUtc = "2026-05-28T09:21:00.000Z";
   const supabase = makeFakeSupabase({
-    user_attack_cards: [],
     scheduled_checkins: [{
       id: "r-1",
       scheduled_for: isoUtc,
@@ -239,7 +189,6 @@ Deno.test("loadDurableEffectsSummary formats scheduled_for in user timezone (A4-
 
 Deno.test("loadDurableEffectsSummary falls back to Europe/Paris when profile has no timezone", async () => {
   const supabase = makeFakeSupabase({
-    user_attack_cards: [],
     scheduled_checkins: [{
       id: "r-1",
       scheduled_for: "2026-05-28T09:21:00.000Z",
@@ -261,7 +210,6 @@ Deno.test("loadDurableEffectsSummary details ALL pending reminders (A4-r5 T11)",
   const inOneHour = new Date(Date.now() + 60 * 60 * 1000).toISOString();
   const inTwoHours = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
   const supabase = makeFakeSupabase({
-    user_attack_cards: [],
     scheduled_checkins: [
       {
         id: "r-1",
@@ -301,7 +249,6 @@ Deno.test("loadDurableEffectsSummary details ALL pending reminders (A4-r5 T11)",
 
 Deno.test("loadDurableEffectsSummary lists explicit coach preferences with key=value format", async () => {
   const supabase = makeFakeSupabase({
-    user_attack_cards: [],
     scheduled_checkins: [],
     user_profile_facts: [
       {
@@ -330,7 +277,6 @@ Deno.test("loadDurableEffectsSummary lists explicit coach preferences with key=v
 Deno.test("loadDurableEffectsSummary distingue les defaults système des préférences explicites (A11 T13)", async () => {
   const recent = new Date(Date.now() - 5 * 60 * 1000).toISOString();
   const supabase = makeFakeSupabase({
-    user_attack_cards: [],
     scheduled_checkins: [],
     user_profile_facts: [
       {
@@ -358,25 +304,6 @@ Deno.test("loadDurableEffectsSummary distingue les defaults système des préfé
   assertStringIncludes(summary, "par défaut (système)");
   // Consigne anti-confusion présente.
   assertStringIncludes(summary, "aucune préférence coach enregistrée");
-});
-
-Deno.test("loadDurableEffectsSummary remonte une session de potion (A3-r10 T15)", async () => {
-  const supabase = makeFakeSupabase({
-    user_attack_cards: [],
-    scheduled_checkins: [],
-    user_profile_facts: [],
-    user_potion_sessions: [{
-      id: "p-1",
-      potion_type: "apaisement",
-      content: { title: "Potion d'apaisement" },
-      status: "completed",
-      generated_at: new Date().toISOString(),
-    }],
-  });
-  const summary = await loadDurableEffectsSummary(supabase, "u1");
-  if (!summary) throw new Error("expected non-null summary");
-  assertStringIncludes(summary, "Potion / mode d'état: une session existe");
-  assertStringIncludes(summary, "apaisement");
 });
 
 Deno.test("loadDurableEffectsSummary swallows errors and returns null (non-blocking)", async () => {

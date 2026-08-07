@@ -236,7 +236,6 @@ function normalizePhase1LabState(
       typeof value.attack_revealed_at === "string" ? value.attack_revealed_at : null,
     support_card_suggested: Boolean(value.support_card_suggested),
     support_card_reason: value.support_card_reason ?? null,
-    attack_card_id: value.attack_card_id ?? null,
     support_card_id: value.support_card_id ?? null,
     attack_candidates: normalizeCandidates(value.attack_candidates),
   };

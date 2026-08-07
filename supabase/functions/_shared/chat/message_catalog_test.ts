@@ -1,10 +1,8 @@
 import { assertEquals } from "jsr:@std/assert@1";
 
 import {
-  elidedPotionSegment,
   MORNING_LIGHT_TEMPLATE_VARIANTS,
   pickMorningLightVariant,
-  potionReminderComponents,
   renderWhatsAppTemplate,
 } from "./message_catalog.ts";
 
@@ -59,43 +57,6 @@ Deno.test("morning nudge template renders zero-placeholder morning prompt", () =
   assertEquals(rendered.known, true);
   assertEquals(rendered.content, "Hello ! Prêt pour ton boost du matin ? 💥");
   assertEquals(rendered.buttons, ["Go !"]);
-});
-
-Deno.test("potion reminder template injects the elided segment as {{1}}", () => {
-  const rendered = renderWhatsAppTemplate({
-    name: "sophia_potion_reminder_v1",
-    components: [
-      { type: "body", parameters: [{ type: "text", text: "d'apaisement" }] },
-    ],
-  });
-
-  assertEquals(rendered.known, true);
-  assertEquals(
-    rendered.content,
-    "Hello 🙂 Prêt(e) pour ton message d'apaisement du jour ?",
-  );
-  assertEquals(rendered.buttons, ["Oui !"]);
-});
-
-Deno.test("elidedPotionSegment covers the 6 potion types and handles unknowns", () => {
-  assertEquals(elidedPotionSegment("rappel"), "de rappel");
-  assertEquals(elidedPotionSegment("courage"), "de courage");
-  assertEquals(elidedPotionSegment("guerison"), "de guérison");
-  assertEquals(elidedPotionSegment("clarte"), "de clarté");
-  assertEquals(elidedPotionSegment("amour"), "d'amour");
-  assertEquals(elidedPotionSegment("apaisement"), "d'apaisement");
-  // Case-insensitive + trimmed.
-  assertEquals(elidedPotionSegment("  APAISEMENT "), "d'apaisement");
-  // Unknown → null so callers fall back to the generic reminder.
-  assertEquals(elidedPotionSegment("inconnu"), null);
-  assertEquals(elidedPotionSegment(null), null);
-});
-
-Deno.test("potionReminderComponents builds a body param or null", () => {
-  assertEquals(potionReminderComponents("amour"), [
-    { type: "body", parameters: [{ type: "text", text: "d'amour" }] },
-  ]);
-  assertEquals(potionReminderComponents("inconnu"), null);
 });
 
 Deno.test("pickMorningLightVariant is deterministic and in range", () => {

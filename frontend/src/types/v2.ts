@@ -453,7 +453,6 @@ export type UserPlanItemRow = {
   start_after_item_id: string | null;
   phase_id: string | null;
   phase_order?: number | null;
-  attack_card_id?: string | null;
   cards_status?:
     | "not_required"
     | "not_started"
@@ -1299,7 +1298,6 @@ export type Phase1LabState = {
   attack_revealed_at?: string | null;
   support_card_suggested: boolean;
   support_card_reason: string | null;
-  attack_card_id: string | null;
   support_card_id: string | null;
   attack_candidates?: Array<{
     card_id: string;

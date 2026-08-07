@@ -555,11 +555,11 @@ Règles CRITIQUES :
 - IGNORE les événements mineurs, routiniers, ou le fait que l'utilisateur dise simplement "à demain" ou "bonne nuit".
 - N'utilise PAS les actions actives du plan comme motif de check-in ponctuel watcher (elles sont déjà suivies ailleurs).
 - Si l'utilisateur demande explicitement un rappel ponctuel a Sophia ("rappelle-moi", "envoie-moi un rappel", etc.), renvoie []: ce cas est géré par le tool de reminder one-shot, pas par le watcher.
-- AVANT de retourner un element dans "events", compare-le aux suivis existants listes plus bas: rappels dashboard/chat, potions, one-shot reminders, check-ins deja planifies.
+- AVANT de retourner un element dans "events", compare-le aux suivis existants listes plus bas: rappels du chat, one-shot reminders, check-ins deja planifies.
 - Si le besoin utilisateur est deja pris en charge par un autre flow, ne retourne PAS ce candidat dans "events". Le watcher ne doit pas recreer un check-in pour un element deja handle.
-- Raisonne candidat par candidat: un evenement non couvert peut etre retourne, mais tout element couvert par un one-shot reminder, un rappel recurrent, une potion ou un check-in existant doit etre exclu directement dans ta sortie JSON.
-- Si le sujet/rappel semble déjà pris en charge via le flux rendez-vous/dashboard (création/édition d'action, rappel récurrent, réglage de plan), ne crée PAS de future event watcher pour ce sujet.
-- Si l'échange montre qu'un rendez-vous couvre déjà le besoin, renvoie [] pour éviter les doublons.
+- Raisonne candidat par candidat: un evenement non couvert peut etre retourne, mais tout element couvert par un one-shot reminder ou un check-in existant doit etre exclu directement dans ta sortie JSON.
+- Si le sujet/rappel semble déjà pris en charge par un autre flux (création/édition d'action, réglage de plan), ne crée PAS de future event watcher pour ce sujet.
+- Si l'échange montre qu'un suivi existant couvre déjà le besoin, renvoie [] pour éviter les doublons.
 - event_context doit être une étiquette canonique et stable de l'événement, pas une formulation relative.
 - Interdit dans event_context: "dans deux semaines", "demain", "vendredi prochain", "ce soir", etc.
 - Préfère une formulation absolue ou neutre, par exemple "Rendez-vous galant" ou "Rendez-vous galant du 20 mars".

@@ -102,21 +102,21 @@ Deno.test("does_not_persist_full_draft_payload", () => {
   const ledger = createEffectLedger("turn-1");
   recordCommittedEffect(ledger, {
     effect_id: "effect-1",
-    effect_type: "attack_card.create",
+    effect_type: "one_shot_reminder.create",
     source: "executor",
     payload_summary: {
-      target_title: "Carte ancre",
+      target_title: "Rappel ancre",
       full_draft: { title: "secret", body: "x".repeat(1000) },
       raw_text: "user said a lot",
     },
-    db_ref: { table: "user_attack_cards", id: "card-1" },
+    db_ref: { table: "scheduled_checkins", id: "checkin-1" },
   });
   const [entry] = serializeEffectLedgerForPersistence({
     ledger,
     userId: "user-1",
     nowIso: "2026-05-29T10:00:00.000Z",
   });
-  assertEquals(entry.payload_summary.target_title, "Carte ancre");
+  assertEquals(entry.payload_summary.target_title, "Rappel ancre");
   assertEquals("full_draft" in entry.payload_summary, false);
   assertEquals("raw_text" in entry.payload_summary, false);
 });
