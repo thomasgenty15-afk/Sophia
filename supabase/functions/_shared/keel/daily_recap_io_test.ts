@@ -9,7 +9,23 @@
 
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
-import { composeRecapBody, loadDayFacts } from "./daily_recap_io.ts";
+import {
+  composeRecapBody,
+  loadDayFacts,
+  type RecapPracticeContext,
+} from "./daily_recap_io.ts";
+
+/**
+ * Le contexte nominal: adulte, pas de plancher TCA, le pulse ne demande rien.
+ * Chaque champ est REQUIS — c'est la garde que ce dépôt a déjà vue désarmée par
+ * un paramètre optionnel qu'aucun appelant ne passait.
+ */
+const PRACTICE_CONTEXT: RecapPracticeContext = {
+  localDate: "2026-08-11",
+  isMinor: false,
+  restrictionFlag: false,
+  pulseAsks: false,
+};
 
 type EventRow = {
   source: string;
@@ -171,6 +187,7 @@ Deno.test("an empty day never reaches the model", async () => {
     firstName: "Julie",
     facts: { tickedCount: 0, tickedForPlanCount: 0, tickedTitles: [], plannedCount: 4, photoCount: 0 },
     contentLocale: "en-US",
+    practiceContext: PRACTICE_CONTEXT,
   });
   assertEquals(out.body, null);
   assertEquals(out.source, "fallback");
@@ -202,6 +219,7 @@ Deno.test("no published doctrine means the deterministic count, not silence", as
     firstName: "Julie",
     facts: { tickedCount: 2, tickedForPlanCount: 2, tickedTitles: ["Oats", "Soup"], plannedCount: 4, photoCount: 0 },
     contentLocale: "en-US",
+    practiceContext: PRACTICE_CONTEXT,
   });
   assertEquals(out.source, "fallback");
   assert(out.reason.startsWith("no_doctrine:"), out.reason);

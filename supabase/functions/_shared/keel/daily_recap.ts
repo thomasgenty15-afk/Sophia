@@ -47,12 +47,15 @@
  * PURE MODULE: no I/O, no clock, no randomness.
  */
 
+import { type PracticeInjection } from "./daily_practices.ts";
 import {
   countSentences,
   PROMPT_ARTEFACT_PATTERNS,
   sanitizeComposedNudge,
 } from "./reengage_composer.ts";
 import { findGuiltTripping } from "./reengagement.ts";
+
+export type { PracticeInjection };
 
 // ---------------------------------------------------------------------------
 // LES FAITS — et rien d'autre n'entrera jamais dans ce message
@@ -224,6 +227,28 @@ export const RECAP_MAX_CHARS = 220;
 export const RECAP_MAX_SENTENCES = 2;
 
 /**
+ * LES PLAFONDS QUAND UNE PRATIQUE DU COACH VOYAGE AVEC LE FAIT (FF-001).
+ *
+ * ── POURQUOI ILS BOUGENT, ET POURQUOI C'EST UNE DÉCISION ET PAS UN CONFORT ──
+ * FF-001 ne dit rien de la longueur, et c'était le trou le plus coûteux de la
+ * spécification: le message porte désormais DEUX choses — le fait de la journée
+ * et une phrase du coach — sous un plafond écrit pour une seule. Laisser 220/2
+ * en place aurait fait rejeter des compositions parfaitement correctes en
+ * `too_long`, le repli déterministe serait devenu le cas nominal, et le symptôme
+ * lu par tout le monde aurait été « la voix du coach a disparu ».
+ *
+ * C'est exactement le piège de R10, sous un autre nom, et il se referme de la
+ * même façon: en donnant à la ceinture la place que la nouvelle information
+ * occupe légitimement.
+ *
+ * UNE phrase de plus, et cent caractères. Pas davantage: la raison qui fixait
+ * 220 n'a pas changé d'un pouce — ce message n'est pas demandé, et un paragraphe
+ * se remet à plus tard, qui ne revient pas.
+ */
+export const RECAP_MAX_CHARS_WITH_PRACTICE = 320;
+export const RECAP_MAX_SENTENCES_WITH_PRACTICE = 3;
+
+/**
  * Les faits, mis en mots pour le modèle. Le SEUL contexte qu'il reçoit.
  *
  * Ce qui n'y est PAS, délibérément: le contenu du plan du jour, l'adhérence, la
@@ -270,7 +295,34 @@ export function describeDayFacts(facts: DayFacts): string {
 export function buildRecapSystemPrompt(args: {
   doctrineBlock: string;
   facts: DayFacts;
+  /**
+   * LA PRATIQUE DU SOIR, ou `null` (FF-001). REQUIS.
+   *
+   * Requis et pas optionnel, pour la raison que ce dépôt a déjà payée avec
+   * `safetyBand`: une clé absente et une déclaration de `null` se ressemblent,
+   * et rien ne les distingue quand le champ est facultatif. Ici l'oubli serait
+   * même invisible dans les deux sens — le prompt continuerait de fonctionner,
+   * simplement sans jamais porter la voix du coach sur ses gestes quotidiens.
+   *
+   * ⚠️ AVEC `null`, CETTE FONCTION REND EXACTEMENT LE TEXTE D'AVANT FF-001,
+   * OCTET POUR OCTET. C'est la contre-épreuve du lot, elle est pinnée par un
+   * test, et c'est ce qui prouve que l'ajout est additif et pas régressif.
+   */
+  practice: PracticeInjection | null;
 }): string {
+  const p = args.practice;
+  const maxChars = p ? RECAP_MAX_CHARS_WITH_PRACTICE : RECAP_MAX_CHARS;
+  const lengthRule = p
+    ? `- Two to three sentences. Never more than ${maxChars} characters.`
+    : `- One to two sentences. Never more than ${maxChars} characters.`;
+  // La règle de question est la SEULE des sept qui change de sens selon la
+  // pratique, et elle change vers l'autorisation d'UNE question — jamais vers
+  // l'ouverture générale. Les jours où le pulse pose la sienne, la pratique est
+  // en `remind` et cette ligne redevient l'interdiction d'origine (R3).
+  const askRule = p?.mode === "ask"
+    ? "- The ONLY question you may ask is the one about the practice below, and there is at most one of it. No other question, not even a rhetorical one."
+    : "- Ask NOTHING. No question of any kind, not even a rhetorical one.";
+
   return [
     "You are Sophia, the day-to-day voice of this student's coach.",
     "",
@@ -280,15 +332,16 @@ export function buildRecapSystemPrompt(args: {
     describeDayFacts(args.facts),
     "",
     "HARD RULES — a message that breaks any of these is discarded, not fixed:",
-    `- One to two sentences. Never more than ${RECAP_MAX_CHARS} characters.`,
+    lengthRule,
     "- Say what happened, using only the facts above. Never state a number, a meal, a day or a streak that is not in them.",
     "- Do NOT praise, congratulate or judge. No 'great day', no 'well done', no 'nice work', no 'keep it up', no 'proud of you'. Naming what the student did IS the message; an adjective on top of it is not.",
     "- Never mention adherence, tracking, targets, streaks or weight.",
-    "- Ask NOTHING. No question of any kind, not even a rhetorical one.",
+    askRule,
     "- Do not tell them what to do tomorrow, and do not comment on what is missing.",
     "- Plain text only. No markdown, no quotation marks around the message, no 'Sophia:' prefix.",
     "",
     "Reply with the message itself and nothing else.",
+    ...(p ? ["", p.block] : []),
     "",
     "── THE COACH'S METHOD (their voice is the one you write in) ──",
     args.doctrineBlock,
@@ -424,8 +477,23 @@ export function numberValue(token: string): number | null {
  * d'énoncer des chiffres finit par en énoncer un qu'aucune ligne ne porte, et
  * ce chiffre-là est indiscernable des vrais pour l'élève comme pour le coach.
  */
-export function allowedNumbers(facts: DayFacts): Set<number> {
+export function allowedNumbers(
+  facts: DayFacts,
+  /**
+   * R10 — LE PIÈGE LE PLUS CHER DE FF-001, PARCE QU'IL EST SILENCIEUX.
+   *
+   * Le `target` d'une pratique est un nombre NEUF: la journée ne le porte pas,
+   * donc la ceinture ne peut pas le justifier. L'oublier ferait rejeter des
+   * messages parfaitement corrects, et le symptôme serait « la voix du coach a
+   * disparu », jamais « un nombre a été refusé ».
+   *
+   * REQUIS. `null` est une déclaration, une clé absente est un oubli, et le
+   * second se serait lu comme le premier pendant des semaines.
+   */
+  practice: PracticeInjection | null,
+): Set<number> {
   return new Set([
+    ...(practice?.numbers ?? []),
     facts.tickedCount,
     // ⚠️ LE PIÈGE LE PLUS TRANCHANT DE CE FICHIER. `tickedForPlanCount` apparaît
     // dans le ratio; s'il manquait ici, un corps composé PARFAITEMENT exact
@@ -450,7 +518,58 @@ export type RecapVerdictReason =
   | "prompt_artefact"
   | "qualifies_the_day"
   | "asks_a_question"
-  | "invented_number";
+  | "invented_number"
+  /** R5 — un chiffre de pratique dans un message destiné à un mineur. */
+  | "minor_quantity";
+
+/**
+ * Les mots-nombres qu'on relit UNIQUEMENT pour la garde mineur, en EN et en FR.
+ *
+ * ── POURQUOI PAS `NUMBER_WORDS` ────────────────────────────────────────────
+ * `NUMBER_WORDS` alimente `COUNT_BEFORE_NOUN` et `COUNT_RATIO`, dont les motifs
+ * s'ancrent sur des noms comptables ANGLAIS. Y verser du français élargirait
+ * une ceinture réglée pour autre chose, sans rien gagner.
+ *
+ * Ici la question est différente et beaucoup plus simple: « ce nombre précis
+ * apparaît-il dans le texte, sous une forme ou sous une autre ». Le message part
+ * dans la langue de l'élève; une garde qui ne lirait que l'anglais laisserait
+ * passer « quatre verres » chez un mineur francophone — c'est-à-dire chez
+ * exactement la moitié de la base.
+ */
+const QUANTITY_WORDS: Readonly<Record<string, number>> = {
+  ...NUMBER_WORDS,
+  un: 1,
+  une: 1,
+  deux: 2,
+  trois: 3,
+  quatre: 4,
+  cinq: 5,
+  six: 6,
+  sept: 7,
+  huit: 8,
+  neuf: 9,
+  dix: 10,
+  onze: 11,
+  douze: 12,
+};
+
+const QUANTITY_TOKEN = new RegExp(
+  `\\b(\\d+(?:[.,]\\d+)?|${Object.keys(QUANTITY_WORDS).join("|")})\\b`,
+  "gi",
+);
+
+/** Tous les nombres que le texte porte, chiffres et mots confondus. */
+function quantitiesIn(text: string): number[] {
+  QUANTITY_TOKEN.lastIndex = 0;
+  const out: number[] = [];
+  let match: RegExpExecArray | null;
+  while ((match = QUANTITY_TOKEN.exec(text)) !== null) {
+    const raw = match[1].toLowerCase().replace(",", ".");
+    const value = /^\d/.test(raw) ? Number(raw) : QUANTITY_WORDS[raw];
+    if (typeof value === "number" && Number.isFinite(value)) out.push(value);
+  }
+  return out;
+}
 
 export type RecapVerdict =
   | { ok: true; text: string }
@@ -464,23 +583,32 @@ export type RecapVerdict =
  * motif. Une exception l'obligerait à l'attraper pour ne rien en faire, ce qui
  * finit toujours en `catch {}`.
  */
-export function acceptComposedRecap(raw: string, facts: DayFacts): RecapVerdict {
+export function acceptComposedRecap(
+  raw: string,
+  facts: DayFacts,
+  /** La pratique du soir, ou `null` (FF-001). REQUIS — voir `allowedNumbers`. */
+  practice: PracticeInjection | null,
+): RecapVerdict {
   // Le même nettoyage que la relance: un modèle enveloppe de guillemets et
   // préfixe son rôle par réflexe, et refuser pour ça ferait replier tout le
   // monde. Nettoyer PUIS juger, jamais l'inverse.
   const text = sanitizeComposedNudge(raw);
   if (!text) return { ok: false, reason: "empty", detail: "" };
 
-  if (text.length > RECAP_MAX_CHARS) {
-    return { ok: false, reason: "too_long", detail: `${text.length} > ${RECAP_MAX_CHARS}` };
+  const maxChars = practice ? RECAP_MAX_CHARS_WITH_PRACTICE : RECAP_MAX_CHARS;
+  if (text.length > maxChars) {
+    return { ok: false, reason: "too_long", detail: `${text.length} > ${maxChars}` };
   }
 
+  const maxSentences = practice
+    ? RECAP_MAX_SENTENCES_WITH_PRACTICE
+    : RECAP_MAX_SENTENCES;
   const sentences = countSentences(text);
-  if (sentences > RECAP_MAX_SENTENCES) {
+  if (sentences > maxSentences) {
     return {
       ok: false,
       reason: "too_many_sentences",
-      detail: `${sentences} > ${RECAP_MAX_SENTENCES}`,
+      detail: `${sentences} > ${maxSentences}`,
     };
   }
 
@@ -489,11 +617,29 @@ export function acceptComposedRecap(raw: string, facts: DayFacts): RecapVerdict 
     if (match) return { ok: false, reason: "prompt_artefact", detail: match[0] };
   }
 
-  // Une question ici n'aurait aucun bouton pour y répondre les jours où le tap
-  // n'est pas dû, et doublerait la question du soir les jours où il l'est. Le
-  // récapitulatif DONNE; il ne demande rien.
-  if (text.includes("?") || text.includes("？")) {
-    return { ok: false, reason: "asks_a_question", detail: "?" };
+  // ── LA QUESTION: ZÉRO, SAUF UNE PRATIQUE EN MODE QUESTION ────────────────
+  //
+  // L'interdiction d'origine avait DEUX motifs, et FF-001 en règle un seul:
+  //
+  //   « doublerait la question du soir les jours où il l'est » — réglé par R3:
+  //     la pratique n'est en mode question QUE les soirs où le pulse ne demande
+  //     rien. Les deux ne peuvent structurellement pas coexister.
+  //
+  //   « n'aurait aucun bouton pour y répondre » — assumé, et c'est le seul point
+  //     où ce lot change la nature du message. Une question de pratique est
+  //     OUVERTE: l'élève répond au clavier, et le dispatcher fait le reste. Ce
+  //     n'est pas une mesure, donc rien ne se perd si personne ne répond.
+  //
+  // Le plafond reste UNE. Deux questions dans une bulle du soir, c'est
+  // l'interrogatoire que tout ce chantier démonte.
+  const questionMarks = (text.match(/[?？]/g) ?? []).length;
+  const allowedQuestions = practice?.mode === "ask" ? 1 : 0;
+  if (questionMarks > allowedQuestions) {
+    return {
+      ok: false,
+      reason: "asks_a_question",
+      detail: `${questionMarks} > ${allowedQuestions}`,
+    };
   }
 
   const guilt = findGuiltTripping(text);
@@ -510,7 +656,30 @@ export function acceptComposedRecap(raw: string, facts: DayFacts): RecapVerdict 
     return { ok: false, reason: "qualifies_the_day", detail: verdict };
   }
 
-  const allowed = allowedNumbers(facts);
+  // ── R5 — LE CHIFFRE QU'UN MINEUR NE DOIT PAS LIRE ───────────────────────
+  //
+  // Cette garde passe AVANT `allowedNumbers`, et elle ne lui ressemble pas.
+  // `allowedNumbers` autorise: elle ne regarde un nombre que devant un nom
+  // COMPTABLE (`meals`, `dishes`, `days`), donc « 4 verres » ne l'intéresse
+  // même pas — retirer 4 des nombres autorisés n'interdit RIEN. Celle-ci
+  // INTERDIT, sur le nombre lui-même, où qu'il soit dans la phrase.
+  //
+  // Sans elle, « le chiffre n'apparaît pas dans le message » serait une
+  // consigne de prompt et rien d'autre.
+  const forbidden = new Set(practice?.forbiddenNumbers ?? []);
+  if (forbidden.size > 0) {
+    for (const value of quantitiesIn(text)) {
+      if (forbidden.has(value)) {
+        return {
+          ok: false,
+          reason: "minor_quantity",
+          detail: `${value} (forbidden: ${[...forbidden].join(",")})`,
+        };
+      }
+    }
+  }
+
+  const allowed = allowedNumbers(facts, practice);
   for (const pattern of [COUNT_BEFORE_NOUN, COUNT_RATIO]) {
     // `lastIndex` survit à un appel sur un regex global: sans remise à zéro,
     // le second texte jugé repartirait du milieu du premier.

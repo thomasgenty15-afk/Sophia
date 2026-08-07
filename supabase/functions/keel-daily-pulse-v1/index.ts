@@ -19,7 +19,12 @@ import {
 import { hasRecapGround } from "../_shared/keel/daily_recap.ts";
 import { composeRecapBody, loadDayFacts } from "../_shared/keel/daily_recap_io.ts";
 import { resolveArtifactLocale } from "../_shared/keel/locale.ts";
-import { localDateFor, localHourFor } from "../_shared/keel/reengagement_io.ts";
+import {
+  isRestrictionFlagged,
+  localDateFor,
+  localHourFor,
+} from "../_shared/keel/reengagement_io.ts";
+import { assessBirthDate } from "../_shared/keel/student_age.ts";
 import { resolveStudentFollowing } from "../_shared/keel/following_io.ts";
 // `weekStartOf` vit dans `weekly_flow_io.ts` et n'y est pas propriétaire du
 // point hebdomadaire: c'est le lundi d'une date locale, point. On l'importe
@@ -114,6 +119,14 @@ Deno.serve(async (req) => {
      */
     const bodySources: Record<string, number> = {};
     const fallbackReasons: Record<string, number> = {};
+    /**
+     * FF-001 — la voix du coach sur ses GESTES a-t-elle porté, et sous quelle
+     * forme ? `{"remind":30,"ask":12,"none":4}` se lit; l'absence de ce compteur
+     * rendrait « aucun coach n'a écrit de pratique » indiscernable de « la
+     * sélection ne sert jamais », qui est la panne que `body_sources` a déjà
+     * appris à ce job à rendre visible.
+     */
+    const practiceModes: Record<string, number> = {};
     /** Pourquoi la question n'est pas partie, ou pourquoi elle est partie. */
     const cadenceReasons: Record<string, number> = {};
     const bySkip: Record<string, number> = {};
@@ -123,7 +136,10 @@ Deno.serve(async (req) => {
     while (true) {
       let q = admin
         .from("profiles")
-        .select("id, timezone, proactive_muted_at, full_name, locale")
+        // `birth_date` (FF-001 R5): le mineur se DÉRIVE à chaque lecture, il ne
+        // se fige jamais — un entier `age` est faux le lendemain de
+        // l'anniversaire et personne ne repasse derrière (`student_age.ts`).
+        .select("id, timezone, proactive_muted_at, full_name, locale, birth_date")
         .eq("keel_role", "student")
         .order("id", { ascending: true })
         .limit(PAGE);
@@ -255,6 +271,28 @@ Deno.serve(async (req) => {
           cadenceReasons[cadence.reason] = (cadenceReasons[cadence.reason] ?? 0) + 1;
 
           if (!dryRun) {
+            // ── LE PLANCHER TCA (FF-001 R4) ────────────────────────────────
+            //
+            // Lu par `isRestrictionFlagged`, l'unique lecteur du dépôt: cette
+            // fonction existe parce que la relance posait `restrictionFlag:
+            // false` en dur pendant qu'un commentaire affirmait le contraire, et
+            // que le point hebdo, lui, lisait la base. Une seconde lecture ici
+            // referait exactement la même divergence.
+            //
+            // Elle REMONTE en cas d'échec, et c'est voulu: le tour de cet élève
+            // est compté en `failures`. Rater un message coûte un message; rater
+            // le plancher envoie une question d'observance à quelqu'un qu'il
+            // faut laisser tranquille.
+            const restrictionFlag = await isRestrictionFlagged(admin, cursor);
+
+            // ── LE MINEUR (FF-001 R5) ──────────────────────────────────────
+            // Dérivé de la date de naissance À CHAQUE LECTURE, sur le jour LOCAL
+            // de l'élève — un élève à Auckland a dix-huit ans douze heures avant
+            // que le serveur ne l'admette. Une date absente n'est PAS un mineur:
+            // c'est la condition de désarmement écrite dans `student_age.ts`, et
+            // aucun élève d'avant ce champ n'en porte une.
+            const isMinor = assessBirthDate(row.birth_date, localDate).status === "minor";
+
             // L'OUVERTURE, dans la voix du coach quand il en a une. Tout
             // échec — pas de doctrine, modèle en panne, ceinture qui refuse —
             // rend le décompte déterministe: on perd la voix, jamais
@@ -269,6 +307,16 @@ Deno.serve(async (req) => {
                 studentProfile: String(row.locale ?? "").trim() || null,
                 tenantDefault: null,
               }),
+              // FF-001 — LA PRATIQUE ENTRE DANS L'APPEL QUI A DÉJÀ LIEU.
+              // `pulseAsks` vient de la décision prise trois lignes plus haut:
+              // c'est ELLE qui fait l'alternance (R3), et pas une seconde
+              // cadence qui pourrait entrer en collision avec la première.
+              practiceContext: {
+                localDate,
+                isMinor,
+                restrictionFlag,
+                pulseAsks: decision.ask,
+              },
               requestId,
             });
             bodySources[recap.source] = (bodySources[recap.source] ?? 0) + 1;
@@ -276,6 +324,7 @@ Deno.serve(async (req) => {
               const key = recap.reason.split(":").slice(0, 2).join(":");
               fallbackReasons[key] = (fallbackReasons[key] ?? 0) + 1;
             }
+            practiceModes[recap.practiceMode] = (practiceModes[recap.practiceMode] ?? 0) + 1;
 
             const message = renderPulseMessage({
               recapBody: recap.body,
@@ -385,6 +434,9 @@ Deno.serve(async (req) => {
       // `sent: 10` ne dit rien de ce que les élèves ont reçu.
       body_sources: bodySources,
       body_fallback_reasons: fallbackReasons,
+      // FF-001 — la répartition rappel / question / rien, qui est l'une des
+      // quatre mesures que la spécification demande (§10).
+      practice_modes: practiceModes,
       // Pourquoi la question est partie, ou pas. `{"too_soon": 30}` est un
       // produit qui se tient; `{"backing_off": 30}` est une cohorte qui décroche.
       ask_cadence_reasons: cadenceReasons,

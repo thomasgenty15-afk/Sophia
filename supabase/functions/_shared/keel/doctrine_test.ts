@@ -64,6 +64,12 @@ function doctrine(over: Partial<CoachDoctrine> = {}): CoachDoctrine {
       },
     ],
     voice: { address: "tu", length: "short", emojis: "none", language: "fr-FR" },
+    // FF-001 — vide par défaut, et c'est le cas qui compte ici: une doctrine
+    // sans pratique doit compiler EXACTEMENT le bloc d'avant. Les pratiques
+    // n'entrent pas dans `compileDoctrineBlock` (elles s'adressent au message du
+    // soir, pas à chaque tour de conversation), donc le hash de cache de tous
+    // les coachs existants est inchangé.
+    dailyPractices: [],
     contentLocale: "fr-FR",
     ...over,
   };

@@ -24,6 +24,13 @@
  */
 
 import {
+  decidePracticeMode,
+  type PracticeInjection,
+  practiceInjectionFor,
+  practicesFor,
+  selectPracticeForEvening,
+} from "./daily_practices.ts";
+import {
   acceptComposedRecap,
   buildRecapSystemPrompt,
   buildRecapUserPrompt,
@@ -159,6 +166,35 @@ export interface ComposedRecapBody {
   source: RecapBodySource;
   /** Motif du repli, vide quand le corps est composé. */
   reason: string;
+  /**
+   * FF-001 — CE QUI EST ARRIVÉ À LA PRATIQUE, rendu à l'appelant.
+   *
+   * `"none"` couvre les quatre situations que le compte-rendu du job doit
+   * pouvoir distinguer: pas de doctrine, aucune pratique écrite, toutes hors
+   * portée pour cet élève, ou toutes en attente de relecture. Sans ce champ,
+   * « la fonctionnalité ne part jamais » et « elle part » produisent le même
+   * compte-rendu — la panne silencieuse que `body_sources` existe déjà pour
+   * empêcher un étage plus haut.
+   */
+  practiceMode: "remind" | "ask" | "none";
+}
+
+/**
+ * CE QUE L'APPELANT SAIT DE L'ÉLÈVE, ET QUE CE MODULE NE PEUT PAS DEVINER.
+ *
+ * Les trois champs sont REQUIS. Chacun est une garde, et une garde à paramètre
+ * optionnel est une garde désarmée — la classe de défaut la plus fréquente de
+ * ce dépôt, documentée dans `daily_pulse.ts` à propos de `safetyBand`.
+ */
+export interface RecapPracticeContext {
+  /** Le jour local de l'élève, `YYYY-MM-DD`. La rotation en dépend (R6). */
+  localDate: string;
+  /** Dérivé de `profiles.birth_date`, jamais figé (`student_age.ts`). R5. */
+  isMinor: boolean;
+  /** Le plancher TCA (`isRestrictionFlagged`). R4. */
+  restrictionFlag: boolean;
+  /** Le pulse pose-t-il SA question ce soir ? (`decideDailyPulse().ask`) R3. */
+  pulseAsks: boolean;
 }
 
 /**
@@ -182,6 +218,8 @@ export async function composeRecapBody(
     facts: DayFacts;
     /** R2/R3 — locale de l'ARTEFACT, résolue par l'appelant. Requis. */
     contentLocale: string;
+    /** FF-001 — ce que l'appelant sait de l'élève. Requis. */
+    practiceContext: RecapPracticeContext;
     requestId?: string;
   },
 ): Promise<ComposedRecapBody> {
@@ -190,16 +228,21 @@ export async function composeRecapBody(
     body: deterministic,
     source: "fallback",
     reason,
+    // Le repli déterministe ne porte AUCUNE pratique, et c'est délibéré: il
+    // compte, il n'a pas de voix. Y coller une phrase de coach écrite à la main
+    // serait la phrase figée que tout ce lot refuse.
+    practiceMode: "none",
   });
 
   // Pas de sol, pas de message: rien à composer, et surtout rien à inventer.
   // C'est ici que se tient la promesse « une journée vide n'a pas d'ouverture »
   // — le modèle n'est jamais appelé sur une journée qu'il devrait meubler.
   if (deterministic === null) {
-    return { body: null, source: "fallback", reason: "no_ground" };
+    return { body: null, source: "fallback", reason: "no_ground", practiceMode: "none" };
   }
 
   let doctrineBlock: string;
+  let practice: PracticeInjection | null = null;
   try {
     const loaded = await loadPublishedDoctrine(db, args.userId);
     // PAS DE COMPOSITION SANS DOCTRINE: sans méthode publiée il n'y a aucune
@@ -208,6 +251,39 @@ export async function composeRecapBody(
     // avec. Même règle, mot pour mot, que la relance.
     if (loaded.reason !== "loaded") return fallback(`no_doctrine:${loaded.reason}`);
     doctrineBlock = doctrineBlockFor(loaded);
+
+    // ── LA PRATIQUE DU SOIR (FF-001) ──────────────────────────────────────
+    //
+    // Elle se choisit ICI, dans la lecture de doctrine qui a DÉJÀ lieu: aucune
+    // requête de plus, aucun cron de plus, aucun appel de modèle de plus. C'est
+    // la contrainte n°1 de FF-001, et elle tient parce que les pratiques vivent
+    // sur la même ligne que le reste de la méthode.
+    //
+    // `loaded.goal` est la variante servie à CET élève — la même que celle qui
+    // a filtré les croyances. Relire l'objectif ailleurs produirait une seconde
+    // définition de « à qui s'adresse cette entrée », et c'est exactement la
+    // divergence que la portée par objectif a déjà coûté une fois.
+    const eligible = practicesFor(
+      loaded.doctrine?.dailyPractices ?? [],
+      loaded.goal,
+      args.practiceContext.isMinor,
+    );
+    const chosen = selectPracticeForEvening({
+      practices: eligible,
+      userId: args.userId,
+      localDate: args.practiceContext.localDate,
+    });
+    practice = practiceInjectionFor({
+      practice: chosen,
+      mode: chosen
+        ? decidePracticeMode({
+          pulseAsks: args.practiceContext.pulseAsks,
+          restrictionFlag: args.practiceContext.restrictionFlag,
+          practice: chosen,
+        })
+        : "none",
+      isMinor: args.practiceContext.isMinor,
+    });
   } catch (error) {
     return fallback(
       `doctrine_load_failed:${error instanceof Error ? error.message : String(error)}`,
@@ -215,7 +291,7 @@ export async function composeRecapBody(
   }
 
   const system = appendResponseLanguageBlock(
-    buildRecapSystemPrompt({ doctrineBlock, facts: args.facts }),
+    buildRecapSystemPrompt({ doctrineBlock, facts: args.facts, practice }),
     // La doctrine porte `write in <language>`; le laisser gagner ferait sortir
     // le fait du soir dans une langue que la conversation n'utilise pas. La
     // langue vient de l'appelant — un message de job est un ARTEFACT, il n'a
@@ -253,7 +329,12 @@ export async function composeRecapBody(
   // recevoir autre chose qu'une chaîne est une anomalie, pas un cas.
   if (typeof raw !== "string") return fallback("llm_returned_non_text");
 
-  const verdict = acceptComposedRecap(raw, args.facts);
+  const verdict = acceptComposedRecap(raw, args.facts, practice);
   if (!verdict.ok) return fallback(`rejected:${verdict.reason}:${verdict.detail}`);
-  return { body: verdict.text, source: "composed", reason: "" };
+  return {
+    body: verdict.text,
+    source: "composed",
+    reason: "",
+    practiceMode: practice?.mode ?? "none",
+  };
 }

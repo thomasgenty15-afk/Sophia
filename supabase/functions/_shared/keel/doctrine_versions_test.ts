@@ -47,6 +47,7 @@ function doctrine(over: Partial<CoachDoctrine> = {}): CoachDoctrine {
     qa: [],
     arbitrations: [{ situation: "cracked at night", coachAnswer: "One evening is data.", source: null, goalScope: [] }],
     voice: { address: "tu", length: "short", emojis: "none", language: "fr-FR" },
+    dailyPractices: [],
     contentLocale: "fr-FR",
     ...over,
   };

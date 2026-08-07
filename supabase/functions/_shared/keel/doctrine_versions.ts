@@ -343,7 +343,14 @@ export function planRollback(args: {
 // ---------------------------------------------------------------------------
 
 export interface DoctrineDiffEntry {
-  field: "beliefs" | "forbidden" | "vocabulary" | "arbitrations" | "voice";
+  field:
+    | "beliefs"
+    | "forbidden"
+    | "vocabulary"
+    | "arbitrations"
+    /** FF-001 — les gestes quotidiens. Une section muette au diff est une section que le coach publie sans la relire. */
+    | "daily_practices"
+    | "voice";
   change: "added" | "removed" | "changed";
   label: string;
 }
@@ -368,6 +375,11 @@ function labelOf(field: DoctrineDiffEntry["field"], item: unknown): string {
       return String(o.term ?? "");
     case "arbitrations":
       return String(o.situation ?? "");
+    case "daily_practices":
+      // Le LABEL du coach, verbatim: c'est ce qu'il reconnaît. Une pratique
+      // dont il a réécrit la phrase EST une autre pratique — elle repart en
+      // classification, donc « retirée puis ajoutée » est le récit exact.
+      return String(o.label ?? "");
     default:
       return "";
   }
@@ -390,6 +402,7 @@ export function diffDoctrines(
     ["forbidden", before?.forbidden ?? [], after.forbidden],
     ["vocabulary", before?.vocabulary ?? [], after.vocabulary],
     ["arbitrations", before?.arbitrations ?? [], after.arbitrations],
+    ["daily_practices", before?.dailyPractices ?? [], after.dailyPractices],
   ];
   for (const [field, oldItems, newItems] of fields) {
     const oldByLabel = new Map<string, unknown>();

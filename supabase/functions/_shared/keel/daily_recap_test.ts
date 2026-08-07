@@ -21,6 +21,7 @@ import {
   describeDayFacts,
   EMPTY_DAY_FACTS,
   hasRecapGround,
+  type PracticeInjection,
   recapGround,
   RECAP_MAX_CHARS,
   renderDeterministicRecap,
@@ -133,7 +134,7 @@ Deno.test("the fallback never judges: no adjective survives its own belt", () =>
   // Pinning it here is what keeps a future "warmer" edit honest.
   for (const f of [facts(), facts({ plannedCount: 0 }), facts({ tickedCount: 0, tickedTitles: [], photoCount: 2 })]) {
     const text = renderDeterministicRecap(f) ?? "";
-    const verdict = acceptComposedRecap(text, f);
+    const verdict = acceptComposedRecap(text, f, null);
     assert(verdict.ok, `${text} -> ${verdict.ok ? "" : verdict.reason}`);
   }
 });
@@ -157,7 +158,7 @@ Deno.test("praise is refused, in both languages", () => {
     "Yaourt et poulet cochés. Continue comme ça.",
   ];
   for (const text of refused) {
-    const v = acceptComposedRecap(text, f);
+    const v = acceptComposedRecap(text, f, null);
     assertEquals(v.ok, false, text);
     if (!v.ok) assertEquals(v.reason, "qualifies_the_day", text);
   }
@@ -176,7 +177,7 @@ Deno.test("...AND ITS DISARMING CONDITION: qualifying a FOOD is not qualifying t
       "The chicken bowl went down today, and the yoghurt too.",
     ]
   ) {
-    const v = acceptComposedRecap(text, f);
+    const v = acceptComposedRecap(text, f, null);
     assertEquals(v.ok, true, `${text} -> ${v.ok ? "" : `${v.reason}:${v.detail}`}`);
   }
 });
@@ -184,20 +185,20 @@ Deno.test("...AND ITS DISARMING CONDITION: qualifying a FOOD is not qualifying t
 Deno.test("a number that was not given is a number that was invented", () => {
   const f = facts({ tickedCount: 2, plannedCount: 4, photoCount: 1 });
   // 3 is in no fact: not the ticks, not the plan, not the photos.
-  const v = acceptComposedRecap("3 of the 4 dishes went down today.", f);
+  const v = acceptComposedRecap("3 of the 4 dishes went down today.", f, null);
   assertEquals(v.ok, false);
   if (!v.ok) assertEquals(v.reason, "invented_number");
 
   // A streak is the classic confabulation, and it is refused for the same
   // reason: no fact carries it.
-  const s = acceptComposedRecap("Yoghurt and chicken ticked — 6 days running now.", f);
+  const s = acceptComposedRecap("Yoghurt and chicken ticked — 6 days running now.", f, null);
   assertEquals(s.ok, false);
   if (!s.ok) assertEquals(s.reason, "invented_number");
 });
 
 Deno.test("...AND ITS DISARMING CONDITION: the given numbers pass, and pronouns are not counts", () => {
   const f = facts({ tickedCount: 2, plannedCount: 4, photoCount: 1 });
-  assertEquals(allowedNumbers(f), new Set([2, 4, 1]));
+  assertEquals(allowedNumbers(f, null), new Set([2, 4, 1]));
 
   for (
     const text of [
@@ -209,7 +210,7 @@ Deno.test("...AND ITS DISARMING CONDITION: the given numbers pass, and pronouns 
       "One thing came through today: the chicken bowl.",
     ]
   ) {
-    const v = acceptComposedRecap(text, f);
+    const v = acceptComposedRecap(text, f, null);
     assertEquals(v.ok, true, `${text} -> ${v.ok ? "" : `${v.reason}:${v.detail}`}`);
   }
 });
@@ -220,35 +221,35 @@ Deno.test("the belt is stateless between texts (global regex lastIndex)", () => 
   // that passes everything after its first bite.
   const f = facts();
   const bad = "3 of the 9 dishes went down.";
-  assertEquals(acceptComposedRecap(bad, f).ok, false);
-  assertEquals(acceptComposedRecap(bad, f).ok, false);
-  assertEquals(acceptComposedRecap(bad, f).ok, false);
+  assertEquals(acceptComposedRecap(bad, f, null).ok, false);
+  assertEquals(acceptComposedRecap(bad, f, null).ok, false);
+  assertEquals(acceptComposedRecap(bad, f, null).ok, false);
 });
 
 Deno.test("the recap asks NOTHING", () => {
   const f = facts();
   // On the days the question is not due there is no button to answer with; on
   // the days it is, this would be a second question. Either way it is wrong.
-  const v = acceptComposedRecap("Yoghurt and chicken ticked off. How did that feel?", f);
+  const v = acceptComposedRecap("Yoghurt and chicken ticked off. How did that feel?", f, null);
   assertEquals(v.ok, false);
   if (!v.ok) assertEquals(v.reason, "asks_a_question");
 });
 
 Deno.test("length, sentence count and prompt artefacts are refused", () => {
   const f = facts();
-  const long = acceptComposedRecap("x".repeat(RECAP_MAX_CHARS + 1), f);
+  const long = acceptComposedRecap("x".repeat(RECAP_MAX_CHARS + 1), f, null);
   assertEquals(long.ok, false);
   if (!long.ok) assertEquals(long.reason, "too_long");
 
-  const chatty = acceptComposedRecap("Yoghurt in. Chicken in. Plan half done.", f);
+  const chatty = acceptComposedRecap("Yoghurt in. Chicken in. Plan half done.", f, null);
   assertEquals(chatty.ok, false);
   if (!chatty.ok) assertEquals(chatty.reason, "too_many_sentences");
 
-  const md = acceptComposedRecap("**Yoghurt** and chicken ticked off.", f);
+  const md = acceptComposedRecap("**Yoghurt** and chicken ticked off.", f, null);
   assertEquals(md.ok, false);
   if (!md.ok) assertEquals(md.reason, "prompt_artefact");
 
-  const empty = acceptComposedRecap("   ", f);
+  const empty = acceptComposedRecap("   ", f, null);
   assertEquals(empty.ok, false);
   if (!empty.ok) assertEquals(empty.reason, "empty");
 });
@@ -262,6 +263,7 @@ Deno.test("a wrapping quote or a role prefix is cleaned, not refused", () => {
   const v = acceptComposedRecap(
     '  Sophia: "Yoghurt and the chicken bowl ticked off today."  ',
     f,
+    null,
   );
   assertEquals(v.ok, true);
   if (v.ok) assertEquals(v.text, "Yoghurt and the chicken bowl ticked off today.");
@@ -290,7 +292,7 @@ Deno.test("an empty day is described as empty, never padded", () => {
 });
 
 Deno.test("the system prompt states each hard rule that a belt enforces", () => {
-  const prompt = buildRecapSystemPrompt({ doctrineBlock: "DOCTRINE HERE", facts: facts() });
+  const prompt = buildRecapSystemPrompt({ doctrineBlock: "DOCTRINE HERE", facts: facts(), practice: null });
   // A prompt rule with no verifier is an intention, and this repo has enough
   // green disarmed gates. Each of these has a belt in `acceptComposedRecap`.
   assert(prompt.includes(String(RECAP_MAX_CHARS)));
@@ -343,7 +345,139 @@ Deno.test("le nombre du ratio est autorisé au juge — sinon repli silencieux",
   // en `invented_number`, le message replierait sur le texte déterministe, et
   // la voix du coach disparaîtrait sans une seule erreur nulle part.
   const mixed = facts({ tickedCount: 5, tickedForPlanCount: 2, plannedCount: 3 });
-  assert(allowedNumbers(mixed).has(2), "le numérateur du ratio doit être autorisé");
-  assert(allowedNumbers(mixed).has(5), "le total des coches reste autorisé");
-  assert(allowedNumbers(mixed).has(3), "le dénominateur reste autorisé");
+  assert(allowedNumbers(mixed, null).has(2), "le numérateur du ratio doit être autorisé");
+  assert(allowedNumbers(mixed, null).has(5), "le total des coches reste autorisé");
+  assert(allowedNumbers(mixed, null).has(3), "le dénominateur reste autorisé");
+});
+
+// ===========================================================================
+// FF-001 — LA PRATIQUE DU COACH DANS LE MESSAGE DU SOIR
+//
+// LA CONTRE-ÉPREUVE D'ABORD, parce que c'est elle qui décide si l'ajout est
+// additif ou régressif: un coach SANS pratique doit recevoir le produit
+// d'avant, au caractère près. Le message final n'est pas comparable (le modèle
+// échantillonne), mais TOUT ce qui le détermine de notre côté l'est — et c'est
+// le seul endroit où la régression pourrait naître.
+// ===========================================================================
+
+/** L'injection type: « 4 verres d'eau », en mode rappel, pour un adulte. */
+function injection(over: Partial<PracticeInjection> = {}): PracticeInjection {
+  return {
+    block: "── ONE DAILY PRACTICE FROM THIS COACH ──\nThe coach's own words for it: \"4 glasses of water\"",
+    mode: "remind",
+    numbers: [4],
+    forbiddenNumbers: [],
+    ...over,
+  };
+}
+
+Deno.test("CONTRE-ÉPREUVE: sans pratique, le prompt est CELUI D'AVANT, octet pour octet", () => {
+  // Le texte attendu est recopié en dur, pas dérivé de la fonction: un attendu
+  // calculé par le code sous test ne prouve rien. C'est le prompt tel qu'il
+  // était avant FF-001.
+  const before = [
+    "You are Sophia, the day-to-day voice of this student's coach.",
+    "",
+    "It is the evening. You are writing an unprompted note about the day that is ending. The student did not ask for it, and this is not a reply to anything.",
+    "",
+    "WHAT YOU KNOW — these facts, and nothing else exists:",
+    describeDayFacts(facts()),
+    "",
+    "HARD RULES — a message that breaks any of these is discarded, not fixed:",
+    "- One to two sentences. Never more than 220 characters.",
+    "- Say what happened, using only the facts above. Never state a number, a meal, a day or a streak that is not in them.",
+    "- Do NOT praise, congratulate or judge. No 'great day', no 'well done', no 'nice work', no 'keep it up', no 'proud of you'. Naming what the student did IS the message; an adjective on top of it is not.",
+    "- Never mention adherence, tracking, targets, streaks or weight.",
+    "- Ask NOTHING. No question of any kind, not even a rhetorical one.",
+    "- Do not tell them what to do tomorrow, and do not comment on what is missing.",
+    "- Plain text only. No markdown, no quotation marks around the message, no 'Sophia:' prefix.",
+    "",
+    "Reply with the message itself and nothing else.",
+    "",
+    "── THE COACH'S METHOD (their voice is the one you write in) ──",
+    "DOCTRINE HERE",
+  ].join("\n");
+  assertEquals(
+    buildRecapSystemPrompt({ doctrineBlock: "DOCTRINE HERE", facts: facts(), practice: null }),
+    before,
+  );
+  // Et la ceinture juge à l'identique: mêmes plafonds, même interdiction de
+  // question, mêmes nombres.
+  assertEquals(RECAP_MAX_CHARS, 220);
+  assertEquals(allowedNumbers(facts(), null), new Set([2, 4, 1]));
+});
+
+Deno.test("R10: le target de la pratique rejoint les nombres autorisés", () => {
+  // LE PIÈGE LE PLUS CHER DE FF-001, et il est silencieux. Sans cette ligne, un
+  // corps qui cite les « 4 verres » du coach est rejeté en `invented_number`, le
+  // repli déterministe devient le cas nominal, et le symptôme lu est « la voix
+  // du coach a disparu » — jamais « un nombre a été refusé ».
+  const f = facts();
+  assert(!allowedNumbers(f, null).has(9), "prémisse: 9 n'est pas un nombre de la journée");
+  assert(allowedNumbers(f, injection({ numbers: [9] })).has(9));
+});
+
+Deno.test("le plafond s'ouvre d'UNE phrase quand une pratique voyage", () => {
+  const f = facts();
+  const three = "Yoghurt and chicken ticked off. Two of the four on the plan. Water across the day is the one your coach keeps coming back to.";
+  // Sans pratique: trois phrases sont une de trop, et le message replie.
+  const alone = acceptComposedRecap(three, f, null);
+  assertEquals(alone.ok, false);
+  if (!alone.ok) assertEquals(alone.reason, "too_many_sentences");
+  // Avec: elles tiennent. Le message porte DEUX choses, il a droit à la place
+  // de la seconde.
+  assertEquals(acceptComposedRecap(three, f, injection()).ok, true);
+  // Quatre restent quatre de trop, dans les deux cas.
+  const four = `${three} And that is that.`;
+  assertEquals(acceptComposedRecap(four, f, injection()).ok, false);
+});
+
+Deno.test("R3: une question ne passe QUE si la pratique est en mode question", () => {
+  const f = facts();
+  const asked = "Yoghurt and chicken ticked off. Did the water go down today?";
+  // Mode rappel — c'est-à-dire, entre autres, tous les soirs où le pulse pose
+  // DÉJÀ la sienne. Deux questions dans une bulle est le défaut.
+  assertEquals(acceptComposedRecap(asked, f, injection({ mode: "remind" })).ok, false);
+  assertEquals(acceptComposedRecap(asked, f, null).ok, false);
+  // Mode question: une, et une seule.
+  assertEquals(acceptComposedRecap(asked, f, injection({ mode: "ask" })).ok, true);
+  const twice = "Yoghurt ticked off. Did the water go down? And how about tomorrow?";
+  assertEquals(acceptComposedRecap(twice, f, injection({ mode: "ask" })).ok, false);
+});
+
+Deno.test("R5: le chiffre de la pratique est REFUSÉ dans un message pour un mineur", () => {
+  // La garde que `allowedNumbers` ne peut pas porter: elle ne regarde un nombre
+  // que devant un nom comptable, et « glasses » n'en est pas un. Retirer 4 des
+  // nombres autorisés n'interdirait donc rien du tout.
+  const f = facts();
+  const minor = injection({ numbers: [], forbiddenNumbers: [4] });
+  const withDigit = acceptComposedRecap("Yoghurt ticked off. Water across the day — 4 glasses.", f, minor);
+  assertEquals(withDigit.ok, false);
+  assertEquals(withDigit.ok === false && withDigit.reason, "minor_quantity");
+  // En toutes lettres, et en français: le message part dans la langue de
+  // l'élève, et une garde qui ne lirait que l'anglais laisserait passer la
+  // moitié de la base.
+  for (const text of ["Yoghurt ticked off. Four glasses of water is the one.", "Yaourt coché. Quatre verres d'eau, c'est la règle."]) {
+    assertEquals(acceptComposedRecap(text, f, minor).ok, false, text);
+  }
+  // Et sans le chiffre, la pratique passe: on retire la dose, pas la voix.
+  assertEquals(
+    acceptComposedRecap("Yoghurt ticked off. Water across the day is the one to hold.", f, minor).ok,
+    true,
+  );
+});
+
+Deno.test("le bloc de la pratique entre dans le prompt, et la règle de question suit", () => {
+  const p = injection({ mode: "ask" });
+  const prompt = buildRecapSystemPrompt({ doctrineBlock: "DOCTRINE", facts: facts(), practice: p });
+  assert(prompt.includes(p.block), prompt);
+  assert(prompt.includes("The ONLY question you may ask"), prompt);
+  assert(!prompt.includes("- Ask NOTHING."), prompt);
+  // En mode rappel, l'interdiction d'origine revient MOT POUR MOT.
+  const remind = buildRecapSystemPrompt({ doctrineBlock: "DOCTRINE", facts: facts(), practice: injection() });
+  assert(remind.includes("- Ask NOTHING. No question of any kind, not even a rhetorical one."), remind);
+  // Le bloc reste SOUS les faits et AU-DESSUS de la doctrine: le fait ouvre, la
+  // pratique suit, la voix enveloppe.
+  assert(prompt.indexOf(p.block) > prompt.indexOf("WHAT YOU KNOW"), "la pratique passe après les faits");
+  assert(prompt.indexOf(p.block) < prompt.indexOf("THE COACH'S METHOD"), "la pratique passe avant la doctrine");
 });
