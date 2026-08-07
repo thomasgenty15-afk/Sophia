@@ -640,17 +640,12 @@ export async function loadContextForMode(
     elementsLoaded.push("temporal");
   }
 
-  // 2b. Rendez-vous configured in dashboard (inject only when explicitly relevant)
-  if (shouldInjectRendezVousSummary(opts.mode, opts.message)) {
-    promises.push(
-      loadRendezVousSummary(opts.supabase, opts.userId).then((block) => {
-        if (block) {
-          context.rendezVousSummary = block;
-          elementsLoaded.push("rendez_vous_summary");
-        }
-      }),
-    );
-  }
+  // 2b. RETRAIT RÉSIDUS GRAND PUBLIC (2026-08-08) — le bloc « RAPPELS
+  // RÉCURRENTS CONFIGURÉS » est parti avec `user_recurring_reminders`
+  // (migration 20260808080000). Les rappels PONCTUELS restent portés par
+  // « ÉTAT DURABLE ACTUEL » (scheduled_checkins), qui couvre déjà les
+  // questions d'inventaire — la garde BF-STATUS-01 vivait ici parce que ce
+  // bloc-ci était partiel; sans lui, la section unique redevient complète.
 
   // 3. Identity (Temple)
   if (
@@ -1173,7 +1168,6 @@ export function buildContextString(loaded: LoadedContext): string {
   // Order matters for prompt coherence
   if (loaded.deferredUserPref) ctx += loaded.deferredUserPref;
   if (loaded.injectedContext) ctx += loaded.injectedContext;
-  if (loaded.rendezVousSummary) ctx += loaded.rendezVousSummary + "\n\n";
   if (loaded.temporal) ctx += loaded.temporal;
   if (loaded.facts) ctx += loaded.facts;
   // Source de vérité DB des effets durables en cours: placée tôt et avant
@@ -1357,10 +1351,6 @@ async function loadSurfaceSupportingContent(args: {
   switch (definition.contentSource) {
     case "none":
       return "";
-    case "reminders": {
-      const block = await loadRendezVousSummary(args.supabase, args.userId);
-      return block ? `${block.trim()}\n` : "";
-    }
     case "preferences":
       return await loadPreferencesSurfaceSummary(args.supabase, args.userId) ??
         "";
@@ -2298,106 +2288,8 @@ async function loadWeeklyRecapContext(
   }
 }
 
-function shouldInjectRendezVousSummary(
-  mode: AgentMode,
-  message: string,
-): boolean {
-  if (mode !== "companion") return false;
-  const normalized = String(message ?? "").trim();
-  if (!normalized) return false;
-  const lower = normalized.toLowerCase();
-  // P8-G (alex-hard23 R1-B02): un recap « redis-moi ce qu'il me reste de
-  // programmé » juste après un cancel n'emploie pas le mot « rappel » — le
-  // bloc récurrents n'était pas injecté et le recap dérivait sur les items
-  // de plan en OMETTANT le récurrent 09:00 encore actif (inventaire faux).
-  // Les formes d'inventaire « programmé/prévu/relance » injectent le bloc.
-  return lower.includes("rappel") || lower.includes("rendez-vous") ||
-    lower.includes("rendez vous") || lower.includes("programm") ||
-    lower.includes("de prevu") || lower.includes("de prévu") ||
-    lower.includes("relance");
-}
-
-async function loadRendezVousSummary(
-  supabase: SupabaseClient,
-  userId: string,
-): Promise<string> {
-  try {
-    const { data, error } = await supabase
-      .from("user_recurring_reminders")
-      .select(
-        "message_instruction, local_time_hhmm, scheduled_days, status, rationale, updated_at, source_kind, initiative_kind",
-      )
-      .eq("user_id", userId)
-      .order("updated_at", { ascending: false })
-      .limit(8);
-
-    if (error || !data || data.length === 0) {
-      return (
-        "=== RENDEZ-VOUS CONFIGURÉS (SOURCE DE VÉRITÉ) ===\n" +
-        "- Aucun rendez-vous configuré actuellement dans user_recurring_reminders.\n" +
-        "- Si le user demande s'il en a déjà, réponds non.\n" +
-        "- N'invente jamais un rendez-vous existant.\n"
-      );
-    }
-
-    const active = data.filter((row: any) =>
-      String(row?.status ?? "") === "active"
-    );
-    const inactive = data.filter((row: any) =>
-      String(row?.status ?? "") !== "active"
-    );
-    // R-1 (BF-STATUS-01, cause racine des dénis paul-triflow T11 / alex T12):
-    // ce bloc s'injecte sur tout message contenant « rappel » et s'annonçait
-    // « SOURCE DE VÉRITÉ » avec « base-toi UNIQUEMENT sur cette section » —
-    // il ne contient QUE les récurrents, donc les rappels PONCTUELS devenaient
-    // invisibles PAR INSTRUCTION. Le bloc se borne désormais à son périmètre.
-    let block = "=== RAPPELS RÉCURRENTS CONFIGURÉS (rendez-vous) ===\n";
-    block +=
-      `- Total: ${data.length} | actifs: ${active.length} | inactifs: ${inactive.length}\n`;
-    block +=
-      "- PÉRIMÈTRE: cette section couvre UNIQUEMENT les rappels RÉCURRENTS (configuration user_recurring_reminders). Les rappels PONCTUELS en attente sont listés dans « ÉTAT DURABLE ACTUEL » — pour toute question sur UN rappel précis ('mon rappel de 7h30'), un inventaire ('j'ai quoi comme rappels ?') ou une vérification, croise LES DEUX sections. Ne réponds JAMAIS 'aucun rappel' ou 'pas d'autre rappel' depuis cette seule section.\n";
-    block +=
-      "- Si le user demande ses rendez-vous/relances RÉCURRENTS spécifiquement, cette section fait foi pour ce périmètre-là.\n";
-
-    if (active.length > 0) {
-      block += "Actifs:\n";
-      for (const row of active.slice(0, 5) as any[]) {
-        const instruction =
-          String(row?.message_instruction ?? "").trim().slice(0, 120) ||
-          "Message non précisé";
-        const time = String(row?.local_time_hhmm ?? "").trim() || "?";
-        const days =
-          Array.isArray(row?.scheduled_days) && row.scheduled_days.length > 0
-            ? row.scheduled_days.join(", ")
-            : "jours non précisés";
-        // P2-8 (alex-untested R1-B07): la généalogie répond à « ça vient
-        // d'où ? » — une série issue d'une potion se nomme comme telle.
-        const origin =
-          String(row?.initiative_kind ?? "") === "potion_follow_up" ||
-            String(row?.source_kind ?? "").includes("potion")
-            ? " | origine: série de suivi d'une potion"
-            : "";
-        block += `- ${instruction} | ${days} | ${time}${origin}\n`;
-      }
-    }
-
-    if (inactive.length > 0) {
-      block += "Inactifs:\n";
-      for (const row of inactive.slice(0, 3) as any[]) {
-        const instruction =
-          String(row?.message_instruction ?? "").trim().slice(0, 100) ||
-          "Message non précisé";
-        const time = String(row?.local_time_hhmm ?? "").trim() || "?";
-        block += `- ${instruction} | ${time} [inactif]\n`;
-      }
-    }
-
-    block += "- N'invente jamais d'autre rendez-vous que ceux listés ici.\n";
-    return block;
-  } catch {
-    return "";
-  }
-}
+// RETRAIT RÉSIDUS GRAND PUBLIC (2026-08-08) — `shouldInjectRendezVousSummary`
+// et `loadRendezVousSummary` sont partis avec `user_recurring_reminders`.
 
 /**
  * Format lightweight onboarding addon for the Companion agent.
@@ -2858,7 +2750,6 @@ export async function loadDurableEffectsSummary(
       checkinsRes,
       cancelledRes,
       prefsRes,
-      recurringRes,
       potionRes,
       userTimezone,
     ] = await Promise.all([
@@ -2919,14 +2810,6 @@ export async function loadDurableEffectsSummary(
         .like("key", "coach.%")
         .order("updated_at", { ascending: false })
         .limit(12),
-      // CHANTIER E6 — Rappels récurrents actifs (surface nommée dans les recaps).
-      supabase
-        .from("user_recurring_reminders")
-        .select("id,message_instruction,local_time_hhmm,scheduled_days,status")
-        .eq("user_id", userId)
-        .eq("status", "active")
-        .order("starts_at", { ascending: false })
-        .limit(5),
       // CHANTIER E6 — Sessions de potion / mode d'état (A3-r10 T15: le recap ne
       // récupérait pas la session de potion).
       supabase
@@ -2946,7 +2829,6 @@ export async function loadDurableEffectsSummary(
       ? Math.max(Number((checkinsRes as any).count), checkins.length)
       : checkins.length;
     const prefs = (prefsRes.data ?? []) as any[];
-    const recurring = (recurringRes.data ?? []) as any[];
     const potions = (potionRes.data ?? []) as any[];
     // E6: une préférence est "explicite" si elle n'a pas été semée par défaut.
     const explicitPrefs = prefs.filter((row) =>
@@ -2957,7 +2839,7 @@ export async function loadDurableEffectsSummary(
     );
 
     const hasAnything = Boolean(attack) ||
-      checkins.length > 0 || prefs.length > 0 || recurring.length > 0 ||
+      checkins.length > 0 || prefs.length > 0 ||
       potions.length > 0;
     if (!hasAnything) return null;
 
@@ -3111,23 +2993,6 @@ export async function loadDurableEffectsSummary(
         lines.push(
           `  • (${defaultPrefs.length} autre(s) réglage(s) restent sur la valeur par défaut système.)`,
         );
-      }
-    }
-
-    // CHANTIER E6 — Rappels récurrents actifs.
-    if (recurring.length === 0) {
-      lines.push("- Rappels récurrents actifs: aucun.");
-    } else {
-      lines.push(`- Rappels récurrents actifs (${recurring.length}):`);
-      for (const rem of recurring) {
-        const hhmm = String(rem?.local_time_hhmm ?? "").trim();
-        const instruction = String(rem?.message_instruction ?? "").trim() ||
-          "(sans instruction)";
-        const days = Array.isArray(rem?.scheduled_days)
-          ? (rem.scheduled_days as unknown[]).join("/")
-          : "";
-        const when = [hhmm, days].filter(Boolean).join(" ");
-        lines.push(`  • ${when ? `${when} — ` : ""}${instruction}.`);
       }
     }
 

@@ -360,26 +360,6 @@ Deno.test("loadDurableEffectsSummary distingue les defaults système des préfé
   assertStringIncludes(summary, "aucune préférence coach enregistrée");
 });
 
-Deno.test("loadDurableEffectsSummary liste les rappels récurrents actifs (E6)", async () => {
-  const supabase = makeFakeSupabase({
-    user_attack_cards: [],
-    scheduled_checkins: [],
-    user_profile_facts: [],
-    user_recurring_reminders: [{
-      id: "rr-1",
-      message_instruction: "boire de l'eau",
-      local_time_hhmm: "09:00",
-      scheduled_days: ["mon", "tue"],
-      status: "active",
-    }],
-  });
-  const summary = await loadDurableEffectsSummary(supabase, "u1");
-  if (!summary) throw new Error("expected non-null summary");
-  assertStringIncludes(summary, "Rappels récurrents actifs (1)");
-  assertStringIncludes(summary, "boire de l'eau");
-  assertStringIncludes(summary, "09:00");
-});
-
 Deno.test("loadDurableEffectsSummary remonte une session de potion (A3-r10 T15)", async () => {
   const supabase = makeFakeSupabase({
     user_attack_cards: [],

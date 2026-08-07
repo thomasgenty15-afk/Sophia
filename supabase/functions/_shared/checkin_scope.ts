@@ -10,13 +10,11 @@ export type CheckinExclusionSnapshot = {
   personalActionTitles: string[];
   frameworkTitles: string[];
   vitalSignTitles: string[];
-  recurringReminderLabels: string[];
   ownedFollowUps: OwnedFollowUp[];
   ownedTitles: string[];
 };
 
 export type OwnedFollowUpSource =
-  | "recurring_reminder"
   | "potion"
   | "one_shot"
   | "scheduled_checkin"
@@ -33,7 +31,6 @@ export type OwnedFollowUp = {
   scheduled_for: string | null;
   created_at: string | null;
   updated_at: string | null;
-  recurring_reminder_id: string | null;
   source_potion_session_id: string | null;
   target_kind: string | null;
   target_plan_item_id: string | null;
@@ -187,15 +184,6 @@ function ownedFollowUpText(followup: OwnedFollowUp): string {
   ].filter(Boolean).join(" ");
 }
 
-function sourceFromReminder(row: Record<string, unknown>): OwnedFollowUpSource {
-  if (
-    row.initiative_kind === "potion_follow_up" || row.source_potion_session_id
-  ) {
-    return "potion";
-  }
-  return "recurring_reminder";
-}
-
 function sourceFromCheckin(row: Record<string, unknown>): OwnedFollowUpSource {
   const payload = isRecord(row.message_payload) ? row.message_payload : {};
   const eventContext = String(row.event_context ?? "");
@@ -210,20 +198,6 @@ function sourceFromCheckin(row: Record<string, unknown>): OwnedFollowUpSource {
   if (eventContext.includes("daily")) return "daily";
   if (eventContext.includes("weekly")) return "weekly";
   return "scheduled_checkin";
-}
-
-function labelFromReminder(row: Record<string, unknown>): string {
-  const metadata = isRecord(row.initiative_metadata)
-    ? row.initiative_metadata
-    : {};
-  const targetBinding = isRecord(metadata.target_binding)
-    ? metadata.target_binding
-    : {};
-  return cleanText(
-    targetBinding.label ?? row.message_instruction ?? row.rationale ??
-      row.initiative_kind ?? "rappel",
-    160,
-  );
 }
 
 function labelFromCheckin(row: Record<string, unknown>): string {
@@ -300,7 +274,6 @@ export async function fetchCheckinExclusionSnapshot(params: {
   );
   const [
     planItems,
-    remindersRes,
     checkinsRes,
   ] = await Promise.all([
     runtime.plan
@@ -309,18 +282,9 @@ export async function fetchCheckinExclusionSnapshot(params: {
       })
       : Promise.resolve([]),
     params.admin
-      .from("user_recurring_reminders")
-      .select(
-        "id,message_instruction,rationale,status,created_at,updated_at,initiative_kind,source_kind,source_potion_session_id,target_kind,target_plan_item_id,target_action_family_key,initiative_metadata",
-      )
-      .eq("user_id", params.userId)
-      .eq("status", "active")
-      .order("updated_at", { ascending: false })
-      .limit(50),
-    params.admin
       .from("scheduled_checkins")
       .select(
-        "id,recurring_reminder_id,event_context,origin,status,draft_message,message_payload,scheduled_for,created_at",
+        "id,event_context,origin,status,draft_message,message_payload,scheduled_for,created_at",
       )
       .eq("user_id", params.userId)
       .in("status", ["pending", "awaiting_user", "sent"])
@@ -335,7 +299,6 @@ export async function fetchCheckinExclusionSnapshot(params: {
       .limit(100),
   ]);
 
-  if (remindersRes.error) throw remindersRes.error;
   if (checkinsRes.error) throw checkinsRes.error;
 
   const planActionTitles = dedupeStrings(
@@ -376,30 +339,6 @@ export async function fetchCheckinExclusionSnapshot(params: {
   const vitalSignTitles = dedupeStrings(
     (runtime.progress_markers ?? []).map((row) => cleanText(row.title)),
   );
-  const recurringReminderLabels = dedupeStrings(
-    ((remindersRes.data ?? []) as Array<Record<string, unknown>>).map((row) =>
-      cleanText(row?.message_instruction, 120)
-    ),
-  );
-  const reminderFollowUps: OwnedFollowUp[] =
-    ((remindersRes.data ?? []) as Array<Record<string, unknown>>).map(
-      (row) => ({
-        source: sourceFromReminder(row),
-        label: labelFromReminder(row),
-        message_instruction: cleanNullable(row.message_instruction, 180),
-        event_context: null,
-        scheduled_for: null,
-        created_at: cleanNullable(row.created_at),
-        updated_at: cleanNullable(row.updated_at),
-        recurring_reminder_id: cleanNullable(row.id),
-        source_potion_session_id: cleanNullable(row.source_potion_session_id),
-        target_kind: cleanNullable(row.target_kind),
-        target_plan_item_id: cleanNullable(row.target_plan_item_id),
-        target_action_family_key: cleanNullable(row.target_action_family_key),
-        initiative_kind: cleanNullable(row.initiative_kind),
-        source_kind: cleanNullable(row.source_kind),
-      }),
-    );
   const checkinFollowUps: OwnedFollowUp[] =
     ((checkinsRes.data ?? []) as Array<Record<string, unknown>>).map((row) => ({
       source: sourceFromCheckin(row),
@@ -414,7 +353,6 @@ export async function fetchCheckinExclusionSnapshot(params: {
       scheduled_for: cleanNullable(row.scheduled_for),
       created_at: cleanNullable(row.created_at),
       updated_at: null,
-      recurring_reminder_id: cleanNullable(row.recurring_reminder_id),
       source_potion_session_id: null,
       target_kind: null,
       target_plan_item_id: null,
@@ -422,14 +360,13 @@ export async function fetchCheckinExclusionSnapshot(params: {
       initiative_kind: null,
       source_kind: cleanNullable(row.origin),
     }));
-  const ownedFollowUps = [...reminderFollowUps, ...checkinFollowUps]
+  const ownedFollowUps = checkinFollowUps
     .filter((followup) => followup.label || followup.event_context);
   const ownedTitles = dedupeStrings([
     ...planActionTitles,
     ...personalActionTitles,
     ...frameworkTitles,
     ...vitalSignTitles,
-    ...recurringReminderLabels,
     ...ownedFollowUps.flatMap((followup) => [
       followup.label,
       followup.message_instruction ?? "",
@@ -443,7 +380,6 @@ export async function fetchCheckinExclusionSnapshot(params: {
     personalActionTitles,
     frameworkTitles,
     vitalSignTitles,
-    recurringReminderLabels,
     ownedFollowUps,
     ownedTitles,
   };
@@ -491,8 +427,6 @@ export function formatWatcherExclusionSnapshot(
     formatPromptList(snapshot.frameworkTitles, "(aucun)"),
     "Vital signs (hors-scope):",
     formatPromptList(snapshot.vitalSignTitles, "(aucun)"),
-    "Rappels recurrents deja geres ailleurs (hors-scope):",
-    formatPromptList(snapshot.recurringReminderLabels, "(aucun)"),
     "Suivis deja pris en charge par d'autres flows (anti-doublon watcher):",
     formatOwnedFollowUps(snapshot.ownedFollowUps),
   ].join("\n");
@@ -504,7 +438,7 @@ export function buildWatcherScopePromptBlock(
   return [
     "=== SUJETS HORS-SCOPE POUR CE CHECK-IN (CRITIQUE) ===",
     "Ces sujets appartiennent a d'autres pipelines. Tu peux les reconnaitre, mais tu ne dois ni les mentionner, ni les simplifier, ni les suivre.",
-    "Processus obligatoire: avant de proposer un check-in watcher, compare le candidat aux suivis deja pris en charge ci-dessous. Si le besoin est deja handle par un one-shot reminder, un rappel recurrent, une potion ou un check-in existant, ne retourne aucun candidat pour cet element.",
+    "Processus obligatoire: avant de proposer un check-in watcher, compare le candidat aux suivis deja pris en charge ci-dessous. Si le besoin est deja handle par un one-shot reminder, une potion ou un check-in existant, ne retourne aucun candidat pour cet element.",
     formatWatcherExclusionSnapshot(snapshot),
     "Interdictions strictes:",
     "- Ne parle jamais de plan, objectifs, actions, actions perso, frameworks, journal, vital signs, progression, streaks ou discipline.",
@@ -512,7 +446,7 @@ export function buildWatcherScopePromptBlock(
     "- Ne fais jamais d'accountability d'execution: pas de 'garder le cap', pas de 'tu l'as fait ?', pas de suivi de progression.",
     "- Si le transcript recent ou la memoire parlent de ces sujets, ignore-les ou abstrais-les en ressenti general sans citer l'item.",
     "- Si un evenement reel existe mais qu'une partie du contexte touche un sujet hors-scope, garde uniquement le noyau evenementiel et jette le reste.",
-    "- Pour chaque candidat watcher, verifie d'abord les suivis deja pris en charge. S'il est couvert par un reminder, une potion, un one-shot reminder ou un check-in existant, ne cree rien.",
+    "- Pour chaque candidat watcher, verifie d'abord les suivis deja pris en charge. S'il est couvert par une potion, un one-shot reminder ou un check-in existant, ne cree rien.",
   ].join("\n");
 }
 

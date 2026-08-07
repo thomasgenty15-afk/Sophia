@@ -191,16 +191,16 @@ Deno.test("buildMemoryTraceScorecard aggregates memorizer, retrieval, injection,
         payload: {
           before: {
             entries: {
-              "dashboard.reminders": { accepted_count: 0, ignored_count: 0 },
+              "dashboard.preferences": { accepted_count: 0, ignored_count: 0 },
             },
           },
           after: {
             entries: {
-              "dashboard.reminders": { accepted_count: 1, ignored_count: 0 },
+              "dashboard.preferences": { accepted_count: 1, ignored_count: 0 },
             },
           },
           addon: {
-            surface_id: "dashboard.reminders",
+            surface_id: "dashboard.preferences",
             level: 3,
           },
         },
@@ -313,7 +313,7 @@ Deno.test("buildMemoryTraceScorecard aggregates memorizer, retrieval, injection,
   assertEquals(scorecard.surface.turns_with_surface_addon, 1);
   assertEquals(scorecard.surface.average_level, 3);
   assertEquals(scorecard.surface.accepted_events, 1);
-  assertEquals(scorecard.surface.by_surface["dashboard.reminders"]?.shown, 1);
+  assertEquals(scorecard.surface.by_surface["dashboard.preferences"]?.shown, 1);
   assertEquals(scorecard.reuse.topics.count, 1);
   assertEquals(scorecard.reuse.events.count, 1);
   assertEquals(scorecard.reuse.globals.count, 1);

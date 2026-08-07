@@ -9,10 +9,14 @@
 // résout plus rien, et `loadSurfaceOpportunityAddon()` rend `null` avant tout
 // accès DB.
 //
-// Ce qui reste ici (les trois surfaces `dashboard.*`) n'a **aucun écrivain**:
+// Ce qui reste ici (les surfaces `dashboard.*`) n'a **aucun écrivain**:
 // personne ne pose `tempMemory.__surface_opportunity_addon`, seule entrée du
 // système. Le registre entier est donc inerte — son verdict dépend des lots
 // « plans d'action » et « rappels récurrents », et n'est pas rendu ici.
+//
+// RETRAIT RÉSIDUS GRAND PUBLIC (2026-08-08) — `dashboard.reminders` est partie
+// avec `user_recurring_reminders` (lot « rappels récurrents », migration
+// 20260808080000, décision humaine: 0 utilisateur grand public).
 
 // `"transformational"` disparaît avec les surfaces `architect.*`: c'était la
 // famille des cinq, et il n'en reste aucune.
@@ -20,13 +24,11 @@ export type SurfaceFamily = "utility";
 
 export type SurfaceId =
   | "dashboard.personal_actions"
-  | "dashboard.reminders"
   | "dashboard.preferences";
 
 export type SurfaceContentSource =
   | "none"
   | "personal_actions"
-  | "reminders"
   | "preferences";
 
 export interface SurfaceDefinition {
@@ -69,30 +71,6 @@ export const SURFACE_REGISTRY: SurfaceDefinition[] = [
       "habitude",
       "discipline quotidienne",
       "répéter",
-    ],
-  },
-  {
-    id: "dashboard.reminders",
-    family: "utility",
-    label: "Rendez-vous",
-    goal:
-      "Permettre à Sophia de venir vers le user au bon moment avec un rappel, un message ou un contenu inspirant.",
-    whenRelevant:
-      "Besoin de rappels, relances, messages planifiés, soutien proactif, timing important.",
-    antiNoise:
-      "Ne pas pousser si le user veut seulement créer une habitude à faire lui-même ou un rappel one-shot.",
-    defaultLevelCap: 5,
-    contentSource: "reminders",
-    aliases: ["rendez-vous", "rendez vous", "reminders"],
-    triggerKeywords: [
-      "rappel",
-      "rappels",
-      "reminder",
-      "viens vers moi",
-      "écris-moi",
-      "me rappeler",
-      "me relancer",
-      "message planifié",
     ],
   },
   {

@@ -81,7 +81,8 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       // (anti-hallucination on commitment_id, measurement stripping) are pure
       // and covered by _shared/keel/meal_analysis_test.ts.
       "analyze-meal-photo-v1",
-      "classify-recurring-reminder",
+      // `classify-recurring-reminder` est partie avec les rappels récurrents
+      // (retrait résidus grand public, 2026-08-08, migration 20260808080000).
       // PIVOT NUTRITION — les huit fonctions ci-dessous étaient absentes de
       // cette liste alors qu'elles existaient déjà: le garde était ROUGE avant
       // le chantier de-whatsapp, ce qui veut dire qu'il ne gardait plus rien.

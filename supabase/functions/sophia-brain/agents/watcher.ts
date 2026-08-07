@@ -765,8 +765,6 @@ ${exclusionSnapshotBlock}
           matched_event_context: coverage.matched_followup?.event_context ??
             null,
           matched_label: coverage.matched_followup?.label ?? null,
-          matched_recurring_reminder_id:
-            coverage.matched_followup?.recurring_reminder_id ?? null,
         }));
         continue;
       }

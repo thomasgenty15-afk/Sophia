@@ -126,10 +126,6 @@ const PROACTIVE_GREETING_RELAUNCH_THRESHOLD_HOURS = 6;
 // Proactive outreach (morning nudges, daily/weekly bilan, momentum outreach)
 // must not be delivered — or retried — more than this long after it was due.
 const PROACTIVE_CHECKIN_MAX_STALENESS_MS = 2 * 60 * 60 * 1000;
-const RECURRING_REMINDER_TEMPLATE_MONTHLY_LIMIT = 5;
-const RECURRING_REMINDER_TEMPLATE_QUOTA_KEY = "recurring_reminder_template";
-const RECURRING_REMINDER_TEMPLATE_MIN_INTERVAL_MS = 3 * 24 * 60 * 60 * 1000;
-const RECURRING_REMINDER_LIVE_TARGET_STATUSES = ["active", "in_maintenance"];
 const DAILY_BILAN_WINBACK_PLATFORM_ACTIVE_WINDOW_HOURS = Math.max(
   1,
   Number.parseInt(
@@ -440,173 +436,12 @@ async function markScheduledCheckinAwaitingTemplateUser(params: {
   });
 }
 
-function getRecurringReminderIdFromEventContext(
-  eventContext: string,
-): string | null {
-  const raw = String(eventContext ?? "").trim();
-  const prefix = "recurring_reminder:";
-  if (!raw.startsWith(prefix)) return null;
-  const id = raw.slice(prefix.length).trim();
-  return id || null;
-}
+// RETRAIT RÉSIDUS GRAND PUBLIC (2026-08-08) — tout le pipeline « rappels
+// récurrents » de cette fonction est parti avec `user_recurring_reminders`
+// (migration 20260808080000, décision humaine: 0 utilisateur grand public).
+// Les rappels PONCTUELS (one_shot_reminder → scheduled_checkins) ne passaient
+// pas par ici et ne sont pas touchés.
 
-function recurringReminderHasLiveLifecycle(
-  reminder: Record<string, unknown>,
-): boolean {
-  const lifecycle = cleanText(reminder.target_lifecycle_policy);
-  return lifecycle === "while_target_active" ||
-    lifecycle === "while_family_in_current_plan";
-}
-
-function recurringReminderPlanItemFamilyKey(
-  item: Record<string, unknown>,
-): string {
-  return buildActionFamilyKey({
-    id: cleanText(item.id),
-    title: cleanText(item.title),
-    kind: cleanText(item.kind),
-    dimension: cleanText(item.dimension),
-    start_after_item_id: cleanText(item.start_after_item_id),
-    payload: item.payload && typeof item.payload === "object"
-      ? item.payload as Record<string, unknown>
-      : null,
-  });
-}
-
-function buildRecurringReminderLiveGrounding(
-  reminder: Record<string, unknown>,
-  item: Record<string, unknown> | null,
-): string {
-  if (!item) {
-    return [
-      "Rappel lié à une action du plan.",
-      `Statut cible: indisponible (${
-        cleanText(reminder.target_lifecycle_policy) || "n/a"
-      }).`,
-      "Ne pas envoyer un message qui suppose que l'action existe encore.",
-    ].join("\n");
-  }
-  return [
-    "Rappel lié à une action active du plan.",
-    `Action actuelle: ${cleanText(item.title) || "Action sans titre"}`,
-    cleanText(item.description)
-      ? `Description actuelle: ${cleanText(item.description).slice(0, 500)}`
-      : "",
-    `Type: ${cleanText(item.kind) || "n/a"} | Dimension: ${
-      cleanText(item.dimension) || "n/a"
-    } | Statut: ${cleanText(item.status) || "n/a"}`,
-    cleanText(item.cadence_label)
-      ? `Cadence actuelle: ${cleanText(item.cadence_label)}`
-      : "",
-    Array.isArray(item.scheduled_days) && item.scheduled_days.length
-      ? `Jours prévus actuellement: ${
-        (item.scheduled_days as unknown[]).map(cleanText).filter(Boolean).join(
-          ", ",
-        )
-      }`
-      : "",
-    cleanText(item.time_of_day)
-      ? `Horaire plan actuel: ${cleanText(item.time_of_day)}`
-      : "",
-    Number.isFinite(Number(item.target_reps))
-      ? `Objectif actuel: ${Number(item.target_reps)} répétition(s)`
-      : "",
-    `Famille d'action: ${recurringReminderPlanItemFamilyKey(item)}`,
-    "Rédige le rappel avec ces détails actuels, pas avec une ancienne version stockée.",
-  ].filter(Boolean).join("\n");
-}
-
-async function resolveRecurringReminderLiveTarget(params: {
-  supabaseAdmin: any;
-  userId: string;
-  reminder: Record<string, unknown>;
-}): Promise<{
-  available: boolean;
-  item: Record<string, unknown> | null;
-  grounding: string;
-  unavailableReason: string | null;
-}> {
-  const reminder = params.reminder;
-  if (!recurringReminderHasLiveLifecycle(reminder)) {
-    return {
-      available: true,
-      item: null,
-      grounding: "",
-      unavailableReason: null,
-    };
-  }
-  const targetKind = cleanText(reminder.target_kind);
-  const targetPlanItemId = cleanText(reminder.target_plan_item_id);
-  const targetFamilyKey = cleanText(reminder.target_action_family_key);
-  const targetGeneratedTempId = cleanText(reminder.target_generated_temp_id);
-  const selectColumns =
-    "id,user_id,cycle_id,transformation_id,plan_id,dimension,kind,status,title,description,current_habit_state,target_reps,current_reps,cadence_label,scheduled_days,time_of_day,start_after_item_id,payload,updated_at";
-
-  if (targetKind === "plan_item" && targetPlanItemId) {
-    const { data: item } = await params.supabaseAdmin
-      .from("user_plan_items")
-      .select(selectColumns)
-      .eq("id", targetPlanItemId)
-      .eq("user_id", params.userId)
-      .in("status", RECURRING_REMINDER_LIVE_TARGET_STATUSES)
-      .maybeSingle();
-    const resolved = (item as Record<string, unknown> | null) ?? null;
-    return {
-      available: Boolean(resolved),
-      item: resolved,
-      grounding: buildRecurringReminderLiveGrounding(reminder, resolved),
-      unavailableReason: resolved
-        ? null
-        : "target_plan_item_inactive_or_missing",
-    };
-  }
-
-  if (
-    targetKind === "action_family" &&
-    (targetFamilyKey || targetGeneratedTempId || targetPlanItemId)
-  ) {
-    let query = params.supabaseAdmin
-      .from("user_plan_items")
-      .select(selectColumns)
-      .eq("user_id", params.userId)
-      .in("status", RECURRING_REMINDER_LIVE_TARGET_STATUSES)
-      .order("updated_at", { ascending: false })
-      .limit(50);
-    const transformationId = cleanText(reminder.transformation_id);
-    if (transformationId) {
-      query = query.eq("transformation_id", transformationId);
-    }
-    const { data: items } = await query;
-    const resolved =
-      ((items ?? []) as Array<Record<string, unknown>>).find((item) => {
-        const payload = item.payload && typeof item.payload === "object"
-          ? item.payload as Record<string, unknown>
-          : {};
-        const generatedTempId = cleanText(payload.generated_temp_id) ||
-          cleanText(payload.generatedTempId);
-        return (targetFamilyKey &&
-          recurringReminderPlanItemFamilyKey(item) === targetFamilyKey) ||
-          (targetGeneratedTempId &&
-            generatedTempId === targetGeneratedTempId) ||
-          (targetPlanItemId && cleanText(item.id) === targetPlanItemId);
-      }) ?? null;
-    return {
-      available: Boolean(resolved),
-      item: resolved,
-      grounding: buildRecurringReminderLiveGrounding(reminder, resolved),
-      unavailableReason: resolved
-        ? null
-        : "target_action_family_inactive_or_missing",
-    };
-  }
-
-  return {
-    available: false,
-    item: null,
-    grounding: buildRecurringReminderLiveGrounding(reminder, null),
-    unavailableReason: "target_binding_missing",
-  };
-}
 
 function buildMomentumDeliveryPayload(
   checkin: any,
@@ -702,56 +537,6 @@ async function persistWhatsappTempMemory(params: {
       temp_memory: params.tempMemory,
     },
   );
-}
-
-
-async function consumeUnansweredRecurringProbe(params: {
-  supabaseAdmin: ReturnType<typeof createClient>;
-  userId: string;
-  recurringReminderId: string;
-}): Promise<number> {
-  const { supabaseAdmin, userId, recurringReminderId } = params;
-  const eventContext = `recurring_reminder:${recurringReminderId}`;
-  const { data: pendingRows, error } = await supabaseAdmin
-    .from("pending_actions")
-    .select("id,scheduled_checkin_id,status,payload")
-    .eq("user_id", userId)
-    .eq("kind", "scheduled_checkin")
-    .eq("status", "pending")
-    .filter("payload->>event_context", "eq", eventContext)
-    .order("created_at", { ascending: true });
-  if (error) throw error;
-
-  if (!pendingRows || pendingRows.length === 0) return 0;
-
-  for (const row of pendingRows as any[]) {
-    await supabaseAdmin
-      .from("pending_actions")
-      .update({ status: "expired", processed_at: new Date().toISOString() })
-      .eq("id", row.id)
-      .eq("status", "pending");
-
-    if (row.scheduled_checkin_id) {
-      await supabaseAdmin
-        .from("scheduled_checkins")
-        .update({ status: "cancelled", processed_at: new Date().toISOString() })
-        .eq("id", row.scheduled_checkin_id)
-        .eq("status", "awaiting_user");
-    }
-  }
-
-  return pendingRows.length;
-}
-
-function monthKeyInTimezone(now: Date, timezone: string): string {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: timezone,
-    year: "numeric",
-    month: "2-digit",
-  }).formatToParts(now);
-  const year = parts.find((p) => p.type === "year")?.value ?? "0000";
-  const month = parts.find((p) => p.type === "month")?.value ?? "01";
-  return `${year}-${month}`;
 }
 
 function parseIsoMs(value: unknown): number | null {
@@ -866,30 +651,6 @@ async function loadRecentPlatformActivity(params: {
     source: `user_chat_states:${cleanText((stateResult.data as any)?.scope)}`,
     lastAt: stateAt,
   };
-}
-
-async function shouldSuppressRecurringReminderForDailyBilanWinback(params: {
-  supabaseAdmin: ReturnType<typeof createClient>;
-  userId: string;
-  profile: Record<string, unknown> | null | undefined;
-}): Promise<boolean> {
-  const decision = evaluateDailyBilanWinbackForProfile(params.profile);
-  if (
-    !decision ||
-    (!decision.suppress_other_proactives && decision.decision !== "send")
-  ) {
-    return false;
-  }
-  const sinceIso = new Date(
-    Date.now() -
-      DAILY_BILAN_WINBACK_PLATFORM_ACTIVE_WINDOW_HOURS * 60 * 60 * 1000,
-  ).toISOString();
-  const platformActivity = await loadRecentPlatformActivity({
-    supabaseAdmin: params.supabaseAdmin,
-    userId: params.userId,
-    sinceIso,
-  });
-  return !platformActivity.recent;
 }
 
 async function processDueDailyBilanWinbacks(params: {
@@ -1443,49 +1204,6 @@ async function processDueReengagementOutcomes(params: {
   return processed;
 }
 
-async function consumeMonthlyWhatsappQuota(params: {
-  supabaseAdmin: ReturnType<typeof createClient>;
-  userId: string;
-  quotaKey: string;
-  monthKey: string;
-  limit: number;
-}): Promise<{ allowed: boolean; usedCount: number }> {
-  const { data, error } = await params.supabaseAdmin.rpc(
-    "consume_whatsapp_monthly_quota",
-    {
-      p_user_id: params.userId,
-      p_quota_key: params.quotaKey,
-      p_month_key: params.monthKey,
-      p_limit: params.limit,
-    },
-  );
-  if (error) throw error;
-  const row = Array.isArray(data) ? data[0] : data;
-  return {
-    allowed: Boolean((row as any)?.allowed),
-    usedCount: Number((row as any)?.used_count ?? 0),
-  };
-}
-
-async function releaseMonthlyWhatsappQuota(params: {
-  supabaseAdmin: ReturnType<typeof createClient>;
-  userId: string;
-  quotaKey: string;
-  monthKey: string;
-}): Promise<number> {
-  const { data, error } = await params.supabaseAdmin.rpc(
-    "release_whatsapp_monthly_quota",
-    {
-      p_user_id: params.userId,
-      p_quota_key: params.quotaKey,
-      p_month_key: params.monthKey,
-    },
-  );
-  if (error) throw error;
-  const row = Array.isArray(data) ? data[0] : data;
-  return Number((row as any)?.used_count ?? 0);
-}
-
 async function processPendingProactiveTemplateCandidates(params: {
   supabaseAdmin: ReturnType<typeof createClient>;
   requestId: string;
@@ -1541,52 +1259,6 @@ async function processPendingProactiveTemplateCandidates(params: {
       continue;
     }
 
-    let recurringQuotaMonthKey: string | null = null;
-    let recurringQuotaConsumed = false;
-    if (String(payload.follow_up_kind ?? "") === "recurring_reminder") {
-      recurringQuotaMonthKey = monthKeyInTimezone(
-        new Date(),
-        String(payload.user_timezone ?? "Europe/Paris"),
-      );
-      try {
-        const quotaResult = await consumeMonthlyWhatsappQuota({
-          supabaseAdmin: params.supabaseAdmin,
-          userId,
-          quotaKey: RECURRING_REMINDER_TEMPLATE_QUOTA_KEY,
-          monthKey: recurringQuotaMonthKey,
-          limit: RECURRING_REMINDER_TEMPLATE_MONTHLY_LIMIT,
-        });
-        if (!quotaResult.allowed) {
-          await params.supabaseAdmin
-            .from("pending_actions")
-            .update({
-              status: "cancelled",
-              processed_at: new Date().toISOString(),
-            })
-            .eq("id", winner.id)
-            .eq("status", "pending");
-          if (payload.scheduled_checkin_id) {
-            await params.supabaseAdmin
-              .from("scheduled_checkins")
-              .update({
-                status: "cancelled",
-                processed_at: new Date().toISOString(),
-              })
-              .eq("id", payload.scheduled_checkin_id)
-              .eq("status", "pending");
-          }
-          continue;
-        }
-        recurringQuotaConsumed = true;
-      } catch (e) {
-        console.error(
-          `[process-checkins] request_id=${params.requestId} candidate_quota_check_failed user_id=${userId}`,
-          e,
-        );
-        continue;
-      }
-    }
-
     let sendRes: any = null;
     try {
       sendRes = await callWhatsappSend({
@@ -1604,14 +1276,6 @@ async function processPendingProactiveTemplateCandidates(params: {
         },
       });
     } catch (e) {
-      if (recurringQuotaConsumed && recurringQuotaMonthKey) {
-        await releaseMonthlyWhatsappQuota({
-          supabaseAdmin: params.supabaseAdmin,
-          userId,
-          quotaKey: RECURRING_REMINDER_TEMPLATE_QUOTA_KEY,
-          monthKey: recurringQuotaMonthKey,
-        }).catch(() => undefined);
-      }
       const status = (e as any)?.status;
       if (status === 429) continue;
       await params.supabaseAdmin
@@ -1633,24 +1297,6 @@ async function processPendingProactiveTemplateCandidates(params: {
     }
 
     const skipped = Boolean(sendRes?.skipped);
-    if (skipped && recurringQuotaConsumed && recurringQuotaMonthKey) {
-      await releaseMonthlyWhatsappQuota({
-        supabaseAdmin: params.supabaseAdmin,
-        userId,
-        quotaKey: RECURRING_REMINDER_TEMPLATE_QUOTA_KEY,
-        monthKey: recurringQuotaMonthKey,
-      }).catch(() => undefined);
-      if (payload.scheduled_checkin_id) {
-        await params.supabaseAdmin
-          .from("scheduled_checkins")
-          .update({
-            status: "cancelled",
-            processed_at: new Date().toISOString(),
-          })
-          .eq("id", payload.scheduled_checkin_id)
-          .in("status", ["pending", "awaiting_user"] as any);
-      }
-    }
 
     if (!skipped && purpose === "daily_bilan_winback") {
       // Chantier réengagement (19/07) : armer le flow conversationnel À LA
@@ -1667,45 +1313,6 @@ async function processPendingProactiveTemplateCandidates(params: {
       ) as WinbackStep;
     }
 
-    if (!skipped) {
-      const followUpKind = String(payload.follow_up_kind ?? "").trim();
-      if (followUpKind === "recurring_reminder") {
-        if (payload.recurring_reminder_id) {
-          await params.supabaseAdmin
-            .from("user_recurring_reminders")
-            .update({
-              probe_last_sent_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            } as any)
-            .eq("id", payload.recurring_reminder_id)
-            .eq("user_id", userId);
-        }
-        await params.supabaseAdmin
-          .from("pending_actions")
-          .insert({
-            user_id: userId,
-            kind: "scheduled_checkin",
-            status: "pending",
-            scheduled_checkin_id: payload.scheduled_checkin_id ?? null,
-            payload: {
-              draft_message: payload.draft_message ?? null,
-              event_context: payload.event_context ?? null,
-              message_mode: payload.message_mode ?? "static",
-              message_payload: payload.message_payload ?? {},
-              recurring_reminder_id: payload.recurring_reminder_id ?? null,
-            },
-            expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000)
-              .toISOString(),
-          });
-        if (payload.scheduled_checkin_id) {
-          await params.supabaseAdmin
-            .from("scheduled_checkins")
-            .update({ status: "awaiting_user" })
-            .eq("id", payload.scheduled_checkin_id)
-            .eq("status", "pending");
-        }
-      }
-    }
 
     await params.supabaseAdmin
       .from("pending_actions")
@@ -1717,25 +1324,11 @@ async function processPendingProactiveTemplateCandidates(params: {
       .eq("status", "pending");
 
     for (const loser of losers) {
-      const loserPayload = (loser?.payload ?? {}) as any;
       await params.supabaseAdmin
         .from("pending_actions")
         .update({ status: "cancelled", processed_at: new Date().toISOString() })
         .eq("id", loser.id)
         .eq("status", "pending");
-      if (
-        String(loserPayload.follow_up_kind ?? "") === "recurring_reminder" &&
-        loserPayload.scheduled_checkin_id
-      ) {
-        await params.supabaseAdmin
-          .from("scheduled_checkins")
-          .update({
-            status: "cancelled",
-            processed_at: new Date().toISOString(),
-          })
-          .eq("id", loserPayload.scheduled_checkin_id)
-          .eq("status", "pending");
-      }
     }
 
     processed++;
@@ -2550,16 +2143,9 @@ Deno.serve(async (req) => {
           continue;
         }
       }
-      const recurringReminderId = getRecurringReminderIdFromEventContext(
-        eventContext,
-      );
       let userTimezone = "Europe/Paris";
       let userProfileSnapshot: Record<string, unknown> | null = null;
       let morningPlan: any = null;
-      let recurringReminderLiveGrounding = "";
-      let recurringReminderLiveTargetPayload: Record<string, unknown> | null =
-        null;
-      let forceDynamicRecurringReminder = false;
 
       if (isActionMorningFollowup) {
         await markScheduledCheckinDeliveryState({
@@ -2621,158 +2207,6 @@ Deno.serve(async (req) => {
             `[process-checkins] request_id=${requestId} proactive_checkin_expired checkin_id=${checkin.id} event_context=${eventContext} original_scheduled_for=${originalScheduledForIso}`,
           );
           continue;
-        }
-      }
-
-      // Recurring reminders: if previous consent probes were unanswered, count them.
-      // After 2 unanswered probes, auto-pause the reminder and stop future sends.
-      if (recurringReminderId) {
-        try {
-          const newlyUnanswered = await consumeUnansweredRecurringProbe({
-            supabaseAdmin,
-            userId: checkin.user_id,
-            recurringReminderId,
-          });
-
-          const { data: reminder } = await supabaseAdmin
-            .from("user_recurring_reminders")
-            .select(
-              "id,user_id,transformation_id,status,initiative_kind,ends_at,unanswered_probe_count,probe_last_sent_at,message_instruction,target_kind,target_plan_item_id,target_action_family_key,target_generated_temp_id,target_binding_policy,target_lifecycle_policy",
-            )
-            .eq("id", recurringReminderId)
-            .eq("user_id", checkin.user_id)
-            .maybeSingle();
-
-          if (!reminder || (reminder as any).status !== "active") {
-            await supabaseAdmin
-              .from("scheduled_checkins")
-              .update({
-                status: "cancelled",
-                processed_at: new Date().toISOString(),
-              })
-              .eq("id", checkin.id);
-            continue;
-          }
-
-          const endsAt = parseIsoMs((reminder as any)?.ends_at);
-          if (endsAt !== null && endsAt <= Date.now()) {
-            await supabaseAdmin
-              .from("user_recurring_reminders")
-              .update({
-                status: "expired",
-                ended_reason: "expired",
-                deactivated_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-              } as any)
-              .eq("id", recurringReminderId)
-              .eq("user_id", checkin.user_id);
-
-            await supabaseAdmin
-              .from("scheduled_checkins")
-              .update({
-                status: "cancelled",
-                processed_at: new Date().toISOString(),
-              })
-              .eq("id", checkin.id);
-            continue;
-          }
-
-          const currentMisses = Number(
-            (reminder as any).unanswered_probe_count ?? 0,
-          );
-          const misses = Math.max(
-            0,
-            Math.min(2, currentMisses + newlyUnanswered),
-          );
-          if (newlyUnanswered > 0) {
-            await supabaseAdmin
-              .from("user_recurring_reminders")
-              .update({
-                unanswered_probe_count: misses,
-                updated_at: new Date().toISOString(),
-              } as any)
-              .eq("id", recurringReminderId)
-              .eq("user_id", checkin.user_id);
-          }
-
-          if (misses >= 2) {
-            await supabaseAdmin
-              .from("user_recurring_reminders")
-              .update({
-                status: "inactive",
-                deactivated_at: new Date().toISOString(),
-                probe_paused_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-              } as any)
-              .eq("id", recurringReminderId)
-              .eq("user_id", checkin.user_id);
-
-            await supabaseAdmin
-              .from("scheduled_checkins")
-              .update({
-                status: "cancelled",
-                processed_at: new Date().toISOString(),
-              })
-              .eq("id", checkin.id);
-            continue;
-          }
-
-          const liveTarget = await resolveRecurringReminderLiveTarget({
-            supabaseAdmin,
-            userId: String(checkin.user_id),
-            reminder: reminder as Record<string, unknown>,
-          });
-          if (!liveTarget.available) {
-            await supabaseAdmin
-              .from("user_recurring_reminders")
-              .update({
-                status: "expired",
-                ended_reason: liveTarget.unavailableReason ?? "target_inactive",
-                deactivated_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-              } as any)
-              .eq("id", recurringReminderId)
-              .eq("user_id", checkin.user_id);
-
-            await supabaseAdmin
-              .from("scheduled_checkins")
-              .update({
-                status: "cancelled",
-                processed_at: new Date().toISOString(),
-              })
-              .eq("id", checkin.id);
-            continue;
-          }
-          if (
-            recurringReminderHasLiveLifecycle(
-              reminder as Record<string, unknown>,
-            )
-          ) {
-            recurringReminderLiveGrounding = liveTarget.grounding;
-            recurringReminderLiveTargetPayload = {
-              live_target_item_id: liveTarget.item
-                ? cleanText(liveTarget.item.id)
-                : null,
-              live_target_refreshed_at: new Date().toISOString(),
-              target_kind: (reminder as any).target_kind ?? null,
-              target_plan_item_id: (reminder as any).target_plan_item_id ??
-                null,
-              target_action_family_key:
-                (reminder as any).target_action_family_key ?? null,
-              target_generated_temp_id:
-                (reminder as any).target_generated_temp_id ?? null,
-              target_binding_policy: (reminder as any).target_binding_policy ??
-                null,
-              target_lifecycle_policy:
-                (reminder as any).target_lifecycle_policy ?? null,
-            };
-            forceDynamicRecurringReminder = true;
-          }
-        } catch (e) {
-          console.warn(
-            `[process-checkins] request_id=${requestId} recurring_probe_policy_failed checkin_id=${checkin.id}`,
-            e,
-          );
         }
       }
 
@@ -3021,34 +2455,6 @@ Deno.serve(async (req) => {
       let payload = ((checkin as any)?.message_payload ?? {}) as any;
       let bodyText = String((checkin as any)?.draft_message ?? "").trim();
       let tempMemory: Record<string, unknown> = {};
-      if (recurringReminderId && forceDynamicRecurringReminder) {
-        const existingGrounding = cleanText(payload?.event_grounding);
-        payload = {
-          ...payload,
-          ...(recurringReminderLiveTargetPayload ?? {}),
-          instruction: cleanText(payload?.instruction) ||
-            cleanText(payload?.reminder_instruction),
-          event_grounding: [existingGrounding, recurringReminderLiveGrounding]
-            .filter(Boolean)
-            .join("\n\n"),
-          source: cleanText(payload?.source) ||
-            "recurring_reminder_live_action",
-        };
-        mode = "dynamic";
-        try {
-          await supabaseAdmin
-            .from("scheduled_checkins")
-            .update({ message_payload: payload, message_mode: "dynamic" })
-            .eq("id", checkin.id);
-          (checkin as any).message_payload = payload;
-          (checkin as any).message_mode = "dynamic";
-        } catch (error) {
-          console.warn(
-            `[process-checkins] request_id=${requestId} persist_recurring_live_payload_failed checkin_id=${checkin.id}`,
-            error,
-          );
-        }
-      }
       if (isMomentumMorningNudge) {
         tempMemory = await fetchWhatsappTempMemory(
           supabaseAdmin,
@@ -3781,9 +3187,7 @@ Deno.serve(async (req) => {
       // Needed for purpose tagging in both WhatsApp and fallback logging paths.
       const isMorningNudgeKind = isMomentumMorningNudge ||
         isActionMorningEncouragement || isMorningLightGreeting;
-      const checkinPurpose = recurringReminderId
-        ? "recurring_reminder"
-        : isBirthdayGreeting
+      const checkinPurpose = isBirthdayGreeting
         ? "birthday_greeting"
         // KEEL W4.6: these two purposes are what puts the send in the OPT-IN
         // throttling category of whatsapp-send. Tagged as "scheduled_checkin"
@@ -3796,102 +3200,10 @@ Deno.serve(async (req) => {
         : isMorningNudgeKind
         ? "morning_nudge"
         : "scheduled_checkin";
-      const recurringReminderNeedsTemplate = Boolean(recurringReminderId) &&
-        !in24hConversationWindow;
-      let recurringReminderQuotaConsumed = false;
-      let recurringReminderQuotaMonthKey: string | null = null;
       const attemptCount = Math.max(
         1,
         Number((checkin as any)?.delivery_attempt_count ?? 0) + 1,
       );
-
-      if (recurringReminderNeedsTemplate) {
-        const { data: reminder } = await supabaseAdmin
-          .from("user_recurring_reminders")
-          .select("probe_last_sent_at")
-          .eq("id", recurringReminderId as string)
-          .eq("user_id", checkin.user_id)
-          .maybeSingle();
-        const lastProbeSentMs = parseIsoMs(
-          (reminder as any)?.probe_last_sent_at,
-        );
-        if (
-          lastProbeSentMs !== null &&
-          Date.now() - lastProbeSentMs <
-            RECURRING_REMINDER_TEMPLATE_MIN_INTERVAL_MS
-        ) {
-          await supabaseAdmin
-            .from("scheduled_checkins")
-            .update({
-              status: "cancelled",
-              processed_at: new Date().toISOString(),
-            })
-            .eq("id", checkin.id);
-          console.log(
-            `[process-checkins] request_id=${requestId} recurring_reminder_template_cooldown checkin_id=${checkin.id} user_id=${checkin.user_id}`,
-          );
-          continue;
-        }
-
-        if (
-          await shouldSuppressRecurringReminderForDailyBilanWinback({
-            supabaseAdmin,
-            userId: String(checkin.user_id),
-            profile: userProfileSnapshot,
-          })
-        ) {
-          await supabaseAdmin
-            .from("scheduled_checkins")
-            .update({
-              status: "cancelled",
-              processed_at: new Date().toISOString(),
-            })
-            .eq("id", checkin.id);
-          console.log(
-            `[process-checkins] request_id=${requestId} recurring_reminder_skipped_for_bilan_winback checkin_id=${checkin.id} user_id=${checkin.user_id}`,
-          );
-          continue;
-        }
-        const reminderTemplateName =
-          (Deno.env.get("WHATSAPP_RECURRING_REMINDER_TEMPLATE_NAME") ??
-            "sophia_reminder_consent_v1_").trim();
-        const reminderTemplateLang =
-          (Deno.env.get("WHATSAPP_RECURRING_REMINDER_TEMPLATE_LANG") ?? "fr")
-            .trim();
-        await enqueueProactiveTemplateCandidate(supabaseAdmin as any, {
-          userId: checkin.user_id,
-          purpose: "recurring_reminder",
-          message: {
-            type: "template",
-            name: reminderTemplateName,
-            language: reminderTemplateLang,
-          },
-          requireOptedIn: true,
-          forceTemplate: true,
-          metadataExtra: {
-            source: "scheduled_checkin",
-            event_context: checkin.event_context,
-            original_checkin_id: checkin.id,
-            purpose: checkinPurpose,
-            scheduled_checkin_origin: cleanText((checkin as any)?.origin) ||
-              null,
-            checkin_kind: cleanText(payload?.checkin_kind) || null,
-            recurring_reminder_id: recurringReminderId,
-          },
-          payloadExtra: {
-            follow_up_kind: "recurring_reminder",
-            scheduled_checkin_id: checkin.id,
-            draft_message: renderedDraftMessage,
-            event_context: checkin.event_context,
-            message_mode: (checkin as any)?.message_mode ?? "static",
-            message_payload: (checkin as any)?.message_payload ?? {},
-            recurring_reminder_id: recurringReminderId,
-            user_timezone: userTimezone,
-          },
-          dedupeKey: `recurring_reminder:${checkin.id}`,
-        });
-        continue;
-      }
 
       try {
         const resp = await callWhatsappSend({
@@ -3907,32 +3219,12 @@ Deno.serve(async (req) => {
             scheduled_checkin_origin: cleanText((checkin as any)?.origin) ||
               null,
             checkin_kind: cleanText(payload?.checkin_kind) || null,
-            recurring_reminder_id: recurringReminderId,
             morning_nudge_v2: payload?.morning_nudge_v2 ?? null,
           },
         });
         const skipped = Boolean((resp as any)?.skipped);
         usedTemplate = Boolean((resp as any)?.used_template);
         sentViaWhatsapp = !skipped;
-        if (
-          skipped && recurringReminderQuotaConsumed &&
-          recurringReminderQuotaMonthKey
-        ) {
-          try {
-            await releaseMonthlyWhatsappQuota({
-              supabaseAdmin,
-              userId: checkin.user_id,
-              quotaKey: RECURRING_REMINDER_TEMPLATE_QUOTA_KEY,
-              monthKey: recurringReminderQuotaMonthKey,
-            });
-            recurringReminderQuotaConsumed = false;
-          } catch (releaseErr) {
-            console.error(
-              `[process-checkins] request_id=${requestId} recurring_reminder_monthly_quota_release_failed checkin_id=${checkin.id}`,
-              releaseErr,
-            );
-          }
-        }
         if (skipped) {
           if (isMomentumOutreach) {
             const skipReason = String(
@@ -4063,21 +3355,6 @@ Deno.serve(async (req) => {
           typeof downstreamData?.request_id === "string"
             ? String(downstreamData.request_id)
             : requestId;
-        if (recurringReminderQuotaConsumed && recurringReminderQuotaMonthKey) {
-          try {
-            await releaseMonthlyWhatsappQuota({
-              supabaseAdmin,
-              userId: checkin.user_id,
-              quotaKey: RECURRING_REMINDER_TEMPLATE_QUOTA_KEY,
-              monthKey: recurringReminderQuotaMonthKey,
-            });
-          } catch (releaseErr) {
-            console.error(
-              `[process-checkins] request_id=${requestId} recurring_reminder_monthly_quota_release_failed checkin_id=${checkin.id}`,
-              releaseErr,
-            );
-          }
-        }
         await logEdgeFunctionError({
           functionName: "process-checkins",
           error: msg,
@@ -4220,17 +3497,6 @@ Deno.serve(async (req) => {
 
       // If we had to use a template, we are outside the 24h window. We now wait for an explicit "Oui".
       if (sentViaWhatsapp && usedTemplate) {
-        if (recurringReminderId) {
-          await supabaseAdmin
-            .from("user_recurring_reminders")
-            .update({
-              probe_last_sent_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            } as any)
-            .eq("id", recurringReminderId)
-            .eq("user_id", checkin.user_id);
-        }
-
         // Create pending action for this user, and mark checkin as awaiting_user to avoid spamming.
         const { error: pendErr } = await supabaseAdmin
           .from("pending_actions")
@@ -4245,7 +3511,6 @@ Deno.serve(async (req) => {
               event_context: checkin.event_context,
               message_mode: (checkin as any)?.message_mode ?? "static",
               message_payload: (checkin as any)?.message_payload ?? {},
-              recurring_reminder_id: recurringReminderId,
             },
             expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000)
               .toISOString(),

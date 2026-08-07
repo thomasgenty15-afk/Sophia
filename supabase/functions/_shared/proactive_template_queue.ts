@@ -4,7 +4,6 @@ export const PROACTIVE_TEMPLATE_CANDIDATE_KIND = "proactive_template_candidate";
 
 export const PROACTIVE_TEMPLATE_PURPOSE_PRIORITIES: Record<string, number> = {
   daily_bilan_winback: 100,
-  recurring_reminder: 10,
 };
 
 export function proactiveTemplatePriorityForPurpose(

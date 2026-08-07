@@ -45,13 +45,6 @@ export type DispatcherSignals = {
     fields?: string[];
     preference_keys?: string[];
   };
-  dashboard_recurring_reminder_intent: {
-    detected: boolean;
-    confidence?: number;
-    fields?: string[];
-    reminder_fields?: string[];
-    from_bilan?: boolean;
-  };
 };
 
 export const DEFAULT_SIGNALS: DispatcherSignals = {
@@ -64,5 +57,4 @@ export const DEFAULT_SIGNALS: DispatcherSignals = {
   plan_feedback: { detected: false },
   track_progress_plan_item: { detected: false },
   dashboard_preferences_intent: { detected: false },
-  dashboard_recurring_reminder_intent: { detected: false },
 };
