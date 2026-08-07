@@ -15,7 +15,7 @@ Public
 - "/auth" : Connexion / auth
 
 App (après accès)
-- "/dashboard" : Tableau de bord V3 (phases, heartbeat, defense card, inspirations)
+- "/dashboard" : Tableau de bord V3 (phases, heartbeat, inspirations)
 - "/onboarding-v2" : Onboarding V3 (capture, validation, questionnaire, profil, roadmap)
 - "/chat" : Chat
 - "/global-plan" : Plan global
@@ -31,7 +31,6 @@ App (après accès)
 Dashboard V3 sections
 - StrategyHeader : titre, résumé, progression multi-part
 - PhaseProgression : phases séquentielles avec heartbeat
-- DefenseCard : 4 rôles (stratège, surveillant, défenseur, comptable)
 - AtelierInspirations : principes japonais + récit narratif
 - RemindersSection : rappels personnalisés
 - PreferencesSection : préférences de relation

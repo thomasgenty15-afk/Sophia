@@ -924,35 +924,6 @@ export async function loadContextForMode(
     }
   }
 
-  // 14a. Defense card win addon (victory acknowledged by dispatcher)
-  const defenseCardWinAddon = (opts.tempMemory as any)
-    ?.__defense_card_win_addon;
-  if (
-    defenseCardWinAddon &&
-    opts.mode === "companion"
-  ) {
-    context.defenseCardWinAddon = formatDefenseCardWinAddon(
-      defenseCardWinAddon,
-    );
-    if (context.defenseCardWinAddon) {
-      elementsLoaded.push("defense_card_win_addon");
-    }
-  }
-
-  // 14b. Defense card pending triggers (detected by watcher batch)
-  const defenseCardPendingTriggers = (opts.tempMemory as any)
-    ?.__defense_card_pending_triggers;
-  if (
-    defenseCardPendingTriggers &&
-    opts.mode === "companion"
-  ) {
-    context.defenseCardPendingTriggersAddon =
-      formatDefenseCardPendingTriggersAddon(defenseCardPendingTriggers);
-    if (context.defenseCardPendingTriggersAddon) {
-      elementsLoaded.push("defense_card_pending_triggers_addon");
-    }
-  }
-
   // 14b. Dashboard preferences intent addon (dedicated UX/UI settings redirect)
   if (dashboardPreferencesIntentAddon && opts.mode === "companion") {
     context.dashboardPreferencesIntentAddon =
@@ -1229,10 +1200,6 @@ export function buildContextString(loaded: LoadedContext): string {
   }
   if (loaded.dashboardCapabilitiesAddon) {
     ctx += loaded.dashboardCapabilitiesAddon;
-  }
-  if (loaded.defenseCardWinAddon) ctx += loaded.defenseCardWinAddon;
-  if (loaded.defenseCardPendingTriggersAddon) {
-    ctx += loaded.defenseCardPendingTriggersAddon;
   }
   if (loaded.expiredBilanContext) ctx += loaded.expiredBilanContext;
   if (loaded.checkupNotTriggerableAddon) {
@@ -2529,81 +2496,6 @@ async function loadRendezVousSummary(
   }
 }
 
-function formatDefenseCardPendingTriggersAddon(addon: any): string {
-  if (!addon || typeof addon !== "object") return "";
-
-  const triggers = Array.isArray(addon.triggers) ? addon.triggers : [];
-  if (triggers.length === 0) return "";
-
-  const detectedAt = String(addon.detected_at ?? "").trim();
-  if (detectedAt) {
-    const ageMs = Date.now() - new Date(detectedAt).getTime();
-    if (ageMs > 48 * 60 * 60 * 1000) return "";
-  }
-
-  const triggerLines = triggers
-    .slice(0, 3)
-    .map((t: any, i: number) => {
-      const situation = String(t.situation ?? "").trim().slice(0, 160);
-      const signal = String(t.signal ?? "").trim().slice(0, 160);
-      const impulseId = String(t.impulse_id ?? "").trim();
-      return `${
-        i + 1
-      }. Pulsion "${impulseId}" — Situation: "${situation}" | Signal: "${signal}"`;
-    })
-    .join("\n");
-
-  return (
-    `\n\n=== ADDON NOUVELLES SITUATIONS DÉTECTÉES (carte de défense) ===\n` +
-    `Le veilleur a détecté de nouvelles situations à risque dans les conversations récentes.\n` +
-    `Tu peux PROPOSER (sans forcer) à l'utilisateur de les ajouter à sa carte de défense.\n` +
-    `Formule la proposition naturellement, ex: "J'ai remarqué que tu as mentionné [situation]. Tu veux qu'on l'ajoute à ta carte de défense ?"\n` +
-    `Ne propose que si le moment s'y prête (pas en plein sujet émotionnel).\n` +
-    `${triggerLines}\n`
-  );
-}
-
-function formatDefenseCardWinAddon(addon: any): string {
-  if (!addon || typeof addon !== "object") return "";
-
-  const situationHint = String(addon.situation_hint ?? "").trim().slice(0, 160);
-  const winLogged = Boolean(addon.win_logged);
-  const impulseId = String(addon.impulse_id ?? "").trim().slice(0, 80);
-  const cardSummary = String(addon.card_summary ?? "").trim().slice(0, 400);
-
-  const lines = [
-    "\n\n=== ADDON VICTOIRE CARTE DE DEFENSE ===",
-    "Le dispatcher a détecté que l'utilisateur a RÉSISTÉ à une pulsion/tentation.",
-  ];
-
-  if (situationHint) {
-    lines.push(`Situation décrite: "${situationHint}"`);
-  }
-
-  if (winLogged && impulseId) {
-    lines.push(
-      `Victoire loguée automatiquement pour la pulsion "${impulseId}".`,
-    );
-    lines.push(
-      "Confirme brièvement et chaleureusement cette victoire (ex: 'Bien joué ! Je note cette victoire dans ta carte.').",
-    );
-  } else {
-    lines.push(
-      "La victoire n'a pas encore pu être loguée — félicite quand même l'utilisateur pour sa résistance.",
-    );
-  }
-
-  if (cardSummary) {
-    lines.push(`Carte de défense: ${cardSummary}`);
-  }
-
-  lines.push(
-    "Reste naturelle, concise, empathique. Ne mentionne pas les termes techniques (dispatcher, addon, signal).\n",
-  );
-
-  return lines.join("\n");
-}
-
 /**
  * Format lightweight onboarding addon for the Companion agent.
  * State is stored in temp_memory.__onboarding_active and expires in router.
@@ -3060,7 +2952,6 @@ export async function loadDurableEffectsSummary(
     })();
     const [
       attackRes,
-      defenseRes,
       checkinsRes,
       cancelledRes,
       prefsRes,
@@ -3070,13 +2961,6 @@ export async function loadDurableEffectsSummary(
     ] = await Promise.all([
       supabase
         .from("user_attack_cards")
-        .select("id,content,generated_at")
-        .eq("user_id", userId)
-        .eq("status", "active")
-        .order("generated_at", { ascending: false })
-        .limit(1),
-      supabase
-        .from("user_defense_cards")
         .select("id,content,generated_at")
         .eq("user_id", userId)
         .eq("status", "active")
@@ -3152,7 +3036,6 @@ export async function loadDurableEffectsSummary(
     ]);
 
     const attack = (attackRes.data ?? [])[0] as any;
-    const defense = (defenseRes.data ?? [])[0] as any;
     const checkins = (checkinsRes.data ?? []) as any[];
     // Total DB réel (count exact), potentiellement > lignes chargées: le
     // rendu ne doit jamais annoncer un total dérivé d'une liste tronquée.
@@ -3170,7 +3053,7 @@ export async function loadDurableEffectsSummary(
       String(row?.source_type ?? "") === "system_default"
     );
 
-    const hasAnything = Boolean(attack) || Boolean(defense) ||
+    const hasAnything = Boolean(attack) ||
       checkins.length > 0 || prefs.length > 0 || recurring.length > 0 ||
       potions.length > 0;
     if (!hasAnything) return null;
@@ -3201,15 +3084,6 @@ export async function loadDurableEffectsSummary(
       );
     } else {
       lines.push("- Carte d'attaque active: aucune.");
-    }
-
-    if (defense) {
-      const title = extractCardTitleFromContent(defense?.content) ||
-        "carte de défense";
-      const age = ageLabelFromIso(defense?.generated_at) || "récente";
-      lines.push(`- Carte de défense active (${age}): "${title}".`);
-    } else {
-      lines.push("- Carte de défense active: aucune.");
     }
 
     if (checkinsRes.error) {

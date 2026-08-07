@@ -19,7 +19,7 @@ const connectionPath = path.join(root, "tests/real-personas", persona, "connecti
 const connection = JSON.parse(fs.readFileSync(connectionPath, "utf8"));
 const outDir = path.join(root, "tests/real-personas", persona, "runs", "operations");
 fs.mkdirSync(outDir, { recursive: true });
-const prefix = `qa-prepare-defense-card-${persona}-${date}-${runId}`;
+const prefix = `qa-prepare-attack-card-${persona}-${date}-${runId}`;
 const snapshotPath = path.join(outDir, `${date}-attack-${runId}.snapshot.json`);
 const inspectPath = path.join(outDir, `${date}-attack-${runId}.inspect.json`);
 
@@ -92,7 +92,7 @@ async function selectState() {
   const userId = encodeURIComponent(connection.user_id);
   const [attackCards, planItems] = await Promise.all([
     rest(`user_attack_cards?user_id=eq.${userId}&select=id,plan_item_id,status,source,scope_kind,content,metadata,generated_at,last_updated_at&order=generated_at.desc&limit=100`),
-    rest(`user_plan_items?user_id=eq.${userId}&select=id,title,status,cards_status,attack_card_id,defense_card_id,cards_generated_at,updated_at&order=activation_order.asc`),
+    rest(`user_plan_items?user_id=eq.${userId}&select=id,title,status,cards_status,attack_card_id,cards_generated_at,updated_at&order=activation_order.asc`),
   ]);
   return {
     persona,

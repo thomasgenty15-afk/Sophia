@@ -89,8 +89,6 @@ export interface LoadedContext {
   onboardingAddon?: string;
   checkupNotTriggerableAddon?: string;
   bilanJustStoppedAddon?: string;
-  defenseCardWinAddon?: string;
-  defenseCardPendingTriggersAddon?: string;
   /**
    * Résumé compact des effets durables en cours côté DB (carte d'attaque
    * active, carte de défense active, rappels ponctuels en attente,

@@ -188,7 +188,7 @@ Deno.test("global redispatch after local exit uses note without active flow owne
     skipGlobalDispatcherForActiveLocalFlow: false,
     dispatcherInput: {
       user_message:
-        "explique-moi en deux phrases la difference entre une carte d'attaque et une carte de defense",
+        "explique-moi en deux phrases ce qu'est une carte d'attaque",
       recent_messages: [],
       user_id: "u-local-exit",
       channel: "web",

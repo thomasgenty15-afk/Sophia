@@ -132,7 +132,6 @@ export function buildPhase1Context(args: {
 
   const classification = extractPlanTypeClassification(args.transformation.handoff_payload);
   const recommendedLabObjects: Phase1RecommendedLabObject[] = [
-    "defense_card",
     "attack_card",
   ];
 
@@ -169,7 +168,6 @@ export function buildDefaultPhase1Runtime(now: string): Phase1Runtime {
     updated_at: now,
     story_viewed_or_validated: false,
     deep_why_answered: false,
-    defense_card_ready: false,
     attack_card_ready: false,
     support_card_ready: false,
   };
@@ -182,7 +180,6 @@ function computePhase1RuntimeStatus(runtime: Phase1Runtime): Phase1RuntimeStatus
 
   const anyProgress = runtime.story_viewed_or_validated ||
     runtime.deep_why_answered ||
-    runtime.defense_card_ready ||
     runtime.attack_card_ready ||
     runtime.support_card_ready;
   return anyProgress ? "in_progress" : "pending";
@@ -210,7 +207,7 @@ function normalizePhase1LabState(
   if (!value) return null;
   const normalizeCandidates = (
     candidates: unknown,
-  ): NonNullable<Phase1LabState["defense_candidates"]> =>
+  ): NonNullable<Phase1LabState["attack_candidates"]> =>
     Array.isArray(candidates)
       ? candidates.flatMap((item) => {
         if (!isRecord(item)) return [];
@@ -235,16 +232,12 @@ function normalizePhase1LabState(
       : [];
   return {
     prepared_at: value.prepared_at ?? null,
-    defense_revealed_at:
-      typeof value.defense_revealed_at === "string" ? value.defense_revealed_at : null,
     attack_revealed_at:
       typeof value.attack_revealed_at === "string" ? value.attack_revealed_at : null,
     support_card_suggested: Boolean(value.support_card_suggested),
     support_card_reason: value.support_card_reason ?? null,
-    defense_card_id: value.defense_card_id ?? null,
     attack_card_id: value.attack_card_id ?? null,
     support_card_id: value.support_card_id ?? null,
-    defense_candidates: normalizeCandidates(value.defense_candidates),
     attack_candidates: normalizeCandidates(value.attack_candidates),
   };
 }

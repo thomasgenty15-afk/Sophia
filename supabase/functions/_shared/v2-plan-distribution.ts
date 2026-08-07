@@ -476,7 +476,6 @@ function buildUserPlanItemRow(params: {
     start_after_item_id: null,
     phase_id: params.phaseId ?? null,
     phase_order: params.phaseOrder ?? null,
-    defense_card_id: null,
     attack_card_id: null,
     cards_status: cardsRequired ? "not_started" : "not_required",
     cards_generated_at: null,

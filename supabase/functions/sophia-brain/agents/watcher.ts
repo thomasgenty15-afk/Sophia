@@ -23,7 +23,6 @@ import {
 } from "../momentum_state.ts";
 import { listMorningNudgeEventContexts } from "../momentum_morning_nudge.ts";
 import { buildWatcherConversationPulse } from "../conversation_pulse_builder.ts";
-import { detectDefenseCardNewTriggers } from "./defense_card_watcher.ts";
 
 type ExistingCheckin = {
   scheduled_for: string;
@@ -846,26 +845,6 @@ ${exclusionSnapshotBlock}
   } catch (e) {
     console.error(
       `[Veilleur] event_detection_error user=${userId} scope=${scope}`,
-      e,
-    );
-  }
-
-  // Defense card: detect new triggers from recent conversation
-  try {
-    const dcResult = await detectDefenseCardNewTriggers({
-      supabase,
-      userId,
-      transcript: fullTranscript,
-      meta: { requestId: meta?.requestId },
-    });
-    if (dcResult.triggers_found > 0) {
-      console.log(
-        `[Veilleur] defense_card_triggers_detected=${dcResult.triggers_found} user=${userId} stored=${dcResult.stored}`,
-      );
-    }
-  } catch (e) {
-    console.warn(
-      `[Veilleur] defense_card_trigger_detection_error user=${userId}`,
       e,
     );
   }

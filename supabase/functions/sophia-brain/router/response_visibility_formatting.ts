@@ -45,9 +45,7 @@ export function stripHiddenHtmlComments(text: unknown): string {
 // techniques. Garde de rendu déterministe: tout slug/enum interne connu se
 // traduit en libellé français — aucun token technique n'atteint le user.
 const INTERNAL_SLUG_LABELS: Array<[RegExp, string]> = [
-  [/\bprepare_defense_card\b/g, "carte de défense"],
   [/\bprepare_attack_card\b/g, "carte d'attaque"],
-  [/\bdefense_card\b/g, "carte de défense"],
   [/\battack_card\b/g, "carte d'attaque"],
   [/\bstate_potion\b/g, "potion d'état"],
   [/\bcoach_preferences\b/g, "préférences coach"],

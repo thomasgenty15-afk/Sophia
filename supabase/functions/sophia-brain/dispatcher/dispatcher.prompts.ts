@@ -821,7 +821,7 @@ export function buildDispatcherPrompt(input: {
           },
         },
         {
-          user_message: "C'est quoi une carte de defense ?",
+          user_message: "C'est quoi une carte d'attaque ?",
           expected: {
             direct_effects: [],
             skill_signals: {
@@ -900,7 +900,7 @@ export function buildDispatcherPrompt(input: {
           },
         },
         {
-          user_message: "J'ai quelles cartes de defense actives ?",
+          user_message: "J'ai quelles cartes d'attaque actives ?",
           expected: {
             direct_effects: [],
             skill_signals: {},

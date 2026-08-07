@@ -47,6 +47,12 @@ const ACTIVE_SKILL_STATE_KEYS = [
   "active_skill_state",
 ];
 
+// Ces listes sont des listes de PURGE (`clearTempMemoryKeys`), pas un registre
+// de features vivantes: une entrée existe précisément PARCE QUE la feature est
+// morte, pour balayer l'état résiduel déjà écrit en base. Les clés `defense`
+// SURVIVENT donc au retrait de la carte de défense (2026-08-07) — les retirer
+// laisserait `__active_defense_card_handoff` orphelin dans
+// `user_chat_states.temp_memory`, pour toujours et sans nettoyeur.
 const LEGACY_RUNTIME_STATE_KEYS = [
   legacyKey("__clarification", "flow", "state"),
   legacyKey("__status", "recap", "flow", "state", "v1"),

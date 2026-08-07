@@ -1,21 +1,4 @@
-import type { UserAttackCardRow, UserDefenseCardRow } from "../types/v2";
-
-export function resolveDefensePreview(card: UserDefenseCardRow | null) {
-  const impulse = card?.content.impulses.find((entry) =>
-    Array.isArray(entry.triggers) && entry.triggers.length > 0
-  );
-  const trigger = impulse?.triggers?.[0];
-
-  if (!card || !impulse || !trigger) return null;
-
-  return {
-    title: impulse.label?.trim() || "Plan anti-piege",
-    moment: trigger.situation,
-    trap: trigger.signal,
-    move: trigger.defense_response,
-    planB: String(trigger.plan_b ?? impulse.generic_defense ?? "").trim() || null,
-  };
-}
+import type { UserAttackCardRow } from "../types/v2";
 
 export function resolveAttackPreview(card: UserAttackCardRow | null) {
   const technique = card?.content.techniques.find((entry) => entry.generated_result) ??

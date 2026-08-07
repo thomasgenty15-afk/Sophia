@@ -31,13 +31,13 @@ Deno.test("stripDeprecatedProductVocabulary traduit les slugs internes (P3-E, ni
   );
   assertEquals(
     stripDeprecatedProductVocabulary(
-      "Je t'ai parlé de defense_card et d'une potion apaisement (state_potion).",
+      "Je t'ai parlé de attack_card et d'une potion apaisement (state_potion).",
     ),
-    "Je t'ai parlé de carte de défense et d'une potion apaisement (potion d'état).",
+    "Je t'ai parlé de carte d'attaque et d'une potion apaisement (potion d'état).",
   );
   // Anti-faux-positif: le texte normal ne bouge pas.
   assertEquals(
-    stripDeprecatedProductVocabulary("Ta carte de défense est prête."),
-    "Ta carte de défense est prête.",
+    stripDeprecatedProductVocabulary("Ta carte d'attaque est prête."),
+    "Ta carte d'attaque est prête.",
   );
 });

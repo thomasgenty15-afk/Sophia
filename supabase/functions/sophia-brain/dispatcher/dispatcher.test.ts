@@ -157,7 +157,7 @@ Deno.test({
 });
 
 Deno.test("dispatcher treats personal active-state requests as normal fallback", async () => {
-  const frame = await dispatch("J'ai quelles cartes de defense actives ?", {
+  const frame = await dispatch("J'ai quelles cartes d'attaque actives ?", {
     skill_signals: {},
     memory_plan: {
       response_intent: "personal_state_question",

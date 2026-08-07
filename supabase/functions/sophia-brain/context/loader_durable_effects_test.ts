@@ -84,7 +84,6 @@ function makeFakeSupabase(rowsByTable: TableRowsByName) {
 Deno.test("loadDurableEffectsSummary returns null when nothing durable exists", async () => {
   const supabase = makeFakeSupabase({
     user_attack_cards: [],
-    user_defense_cards: [],
     scheduled_checkins: [],
     user_profile_facts: [],
   });
@@ -105,7 +104,6 @@ Deno.test("loadDurableEffectsSummary lists an active attack card and forbids 'pa
         },
       },
     }],
-    user_defense_cards: [],
     scheduled_checkins: [],
     user_profile_facts: [],
   });
@@ -122,7 +120,7 @@ Deno.test("loadDurableEffectsSummary lists an active attack card and forbids 'pa
   );
 });
 
-Deno.test("loadDurableEffectsSummary mentions absence explicitly when defense card is missing", async () => {
+Deno.test("loadDurableEffectsSummary mentions absence explicitly when attack card is missing", async () => {
   const recent = new Date(Date.now() - 2 * 60 * 1000).toISOString();
   const supabase = makeFakeSupabase({
     user_attack_cards: [{
@@ -130,21 +128,18 @@ Deno.test("loadDurableEffectsSummary mentions absence explicitly when defense ca
       generated_at: recent,
       content: { operation_draft: { title: "Tri PDF Express" } },
     }],
-    user_defense_cards: [],
     scheduled_checkins: [],
     user_profile_facts: [],
   });
   const summary = await loadDurableEffectsSummary(supabase, "u1");
   if (!summary) throw new Error("expected non-null summary");
   assertStringIncludes(summary, "Carte d'attaque active");
-  assertStringIncludes(summary, "Carte de défense active: aucune.");
 });
 
 Deno.test("loadDurableEffectsSummary lists pending one-shot reminders with scheduled_for and instruction", async () => {
   const inOneHour = new Date(Date.now() + 60 * 60 * 1000).toISOString();
   const supabase = makeFakeSupabase({
     user_attack_cards: [],
-    user_defense_cards: [],
     scheduled_checkins: [{
       id: "r-1",
       scheduled_for: inOneHour,
@@ -175,7 +170,6 @@ Deno.test("loadDurableEffectsSummary lists every pending reminder with the real 
   }));
   const supabase = makeFakeSupabase({
     user_attack_cards: [],
-    user_defense_cards: [],
     scheduled_checkins: rows,
     user_profile_facts: [],
   });
@@ -199,7 +193,6 @@ Deno.test("loadDurableEffectsSummary never claims exhaustivity on a truncated re
   }));
   const supabase = makeFakeSupabase({
     user_attack_cards: [],
-    user_defense_cards: [],
     scheduled_checkins: rows,
     user_profile_facts: [],
   });
@@ -218,7 +211,6 @@ Deno.test("loadDurableEffectsSummary formats scheduled_for in user timezone (A4-
   const isoUtc = "2026-05-28T09:21:00.000Z";
   const supabase = makeFakeSupabase({
     user_attack_cards: [],
-    user_defense_cards: [],
     scheduled_checkins: [{
       id: "r-1",
       scheduled_for: isoUtc,
@@ -248,7 +240,6 @@ Deno.test("loadDurableEffectsSummary formats scheduled_for in user timezone (A4-
 Deno.test("loadDurableEffectsSummary falls back to Europe/Paris when profile has no timezone", async () => {
   const supabase = makeFakeSupabase({
     user_attack_cards: [],
-    user_defense_cards: [],
     scheduled_checkins: [{
       id: "r-1",
       scheduled_for: "2026-05-28T09:21:00.000Z",
@@ -271,7 +262,6 @@ Deno.test("loadDurableEffectsSummary details ALL pending reminders (A4-r5 T11)",
   const inTwoHours = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
   const supabase = makeFakeSupabase({
     user_attack_cards: [],
-    user_defense_cards: [],
     scheduled_checkins: [
       {
         id: "r-1",
@@ -312,7 +302,6 @@ Deno.test("loadDurableEffectsSummary details ALL pending reminders (A4-r5 T11)",
 Deno.test("loadDurableEffectsSummary lists explicit coach preferences with key=value format", async () => {
   const supabase = makeFakeSupabase({
     user_attack_cards: [],
-    user_defense_cards: [],
     scheduled_checkins: [],
     user_profile_facts: [
       {
@@ -342,11 +331,6 @@ Deno.test("loadDurableEffectsSummary distingue les defaults système des préfé
   const recent = new Date(Date.now() - 5 * 60 * 1000).toISOString();
   const supabase = makeFakeSupabase({
     user_attack_cards: [],
-    user_defense_cards: [{
-      id: "d-1",
-      generated_at: recent,
-      content: { operation_draft: { title: "Dossier captures vs Devis" } },
-    }],
     scheduled_checkins: [],
     user_profile_facts: [
       {
@@ -379,7 +363,6 @@ Deno.test("loadDurableEffectsSummary distingue les defaults système des préfé
 Deno.test("loadDurableEffectsSummary liste les rappels récurrents actifs (E6)", async () => {
   const supabase = makeFakeSupabase({
     user_attack_cards: [],
-    user_defense_cards: [],
     scheduled_checkins: [],
     user_profile_facts: [],
     user_recurring_reminders: [{
@@ -400,7 +383,6 @@ Deno.test("loadDurableEffectsSummary liste les rappels récurrents actifs (E6)",
 Deno.test("loadDurableEffectsSummary remonte une session de potion (A3-r10 T15)", async () => {
   const supabase = makeFakeSupabase({
     user_attack_cards: [],
-    user_defense_cards: [],
     scheduled_checkins: [],
     user_profile_facts: [],
     user_potion_sessions: [{

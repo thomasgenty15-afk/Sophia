@@ -281,7 +281,6 @@ export type Phase1RuntimeStatus =
   | "completed";
 
 export type Phase1RecommendedLabObject =
-  | "defense_card"
   | "attack_card"
   | "support_card";
 
@@ -454,7 +453,6 @@ export type UserPlanItemRow = {
   start_after_item_id: string | null;
   phase_id: string | null;
   phase_order?: number | null;
-  defense_card_id?: string | null;
   attack_card_id?: string | null;
   cards_status?:
     | "not_required"
@@ -542,66 +540,6 @@ export type UserRendezVousRow = {
   created_at: string;
   updated_at: string;
   delivered_at: string | null;
-};
-
-// Section 3b - Defense Card tables
-
-export type ImpulseTrigger = {
-  trigger_id: string;
-  label?: string | null;
-  difficulty_preview?: string | null;
-  illustration?: {
-    icon: string;
-    palette: string[];
-    accent: string;
-    scene: string;
-  } | null;
-  situation: string;
-  signal: string;
-  defense_response: string;
-  plan_b?: string | null;
-};
-
-export type DominantImpulse = {
-  impulse_id: string;
-  label: string;
-  triggers: ImpulseTrigger[];
-  generic_defense: string;
-};
-
-export type DefenseCardContent = {
-  impulses: DominantImpulse[];
-  difficulty_map_summary?: string | null;
-  review?: {
-    decision: "allow" | "allow_with_fixes";
-    reason_short: string;
-    checked_at?: string | null;
-  } | null;
-};
-
-export type UserDefenseCardRow = {
-  id: string;
-  user_id: string;
-  cycle_id: string;
-  scope_kind: LabScopeKind;
-  transformation_id: string | null;
-  phase_id: string | null;
-  plan_item_id?: string | null;
-  source?: LabSurfaceSource;
-  status?: LabSurfaceStatus;
-  content: DefenseCardContent;
-  metadata: Record<string, unknown>;
-  generated_at: string;
-  last_updated_at: string;
-};
-
-export type UserDefenseWinRow = {
-  id: string;
-  defense_card_id: string;
-  impulse_id: string;
-  trigger_id: string | null;
-  source: "quick_log" | "conversation";
-  logged_at: string;
 };
 
 export type AttackCardContent = {
@@ -1352,26 +1290,17 @@ export type Phase1Runtime = {
   updated_at: string;
   story_viewed_or_validated: boolean;
   deep_why_answered: boolean;
-  defense_card_ready: boolean;
   attack_card_ready: boolean;
   support_card_ready: boolean;
 };
 
 export type Phase1LabState = {
   prepared_at: string | null;
-  defense_revealed_at?: string | null;
   attack_revealed_at?: string | null;
   support_card_suggested: boolean;
   support_card_reason: string | null;
-  defense_card_id: string | null;
   attack_card_id: string | null;
   support_card_id: string | null;
-  defense_candidates?: Array<{
-    card_id: string;
-    title: string;
-    rationale: string | null;
-    selection_state: "pending" | "selected" | "not_selected";
-  }>;
   attack_candidates?: Array<{
     card_id: string;
     title: string;

@@ -52,12 +52,6 @@ export type DispatcherSignals = {
     reminder_fields?: string[];
     from_bilan?: boolean;
   };
-  defense_card_win: {
-    detected: boolean;
-    confidence?: number;
-    card_id?: string | null;
-    situation_hint?: string | null;
-  };
 };
 
 export const DEFAULT_SIGNALS: DispatcherSignals = {
@@ -71,5 +65,4 @@ export const DEFAULT_SIGNALS: DispatcherSignals = {
   track_progress_plan_item: { detected: false },
   dashboard_preferences_intent: { detected: false },
   dashboard_recurring_reminder_intent: { detected: false },
-  defense_card_win: { detected: false },
 };

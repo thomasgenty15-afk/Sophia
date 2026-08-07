@@ -177,7 +177,6 @@ export type WeeklyProgressReviewV2 = {
     dashboard_recommendations: Array<{
       kind:
         | "adjust_next_week_planning"
-        | "create_defense_card"
         | "create_attack_card"
         | "review_action_scope"
         | "use_state_potion"

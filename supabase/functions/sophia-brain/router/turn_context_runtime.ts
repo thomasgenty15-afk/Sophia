@@ -338,24 +338,6 @@ export function attachDynamicAddons(args: {
     }
   }
 
-  const defenseCardWinSignal = dispatcherSignals.defense_card_win;
-  if (
-    defenseCardWinSignal?.detected &&
-    Number(defenseCardWinSignal.confidence ?? 0) >= 0.6
-  ) {
-    (tempMemory as any).__defense_card_win_addon = {
-      detected_at: new Date().toISOString(),
-      confidence: Number(defenseCardWinSignal.confidence ?? 0),
-      situation_hint: String(defenseCardWinSignal.situation_hint ?? "").trim()
-        .slice(0, 160) || null,
-    };
-  } else {
-    try {
-      delete (tempMemory as any).__defense_card_win_addon;
-    } catch {
-      // best effort
-    }
-  }
 }
 
 export function clearOneShotKeys(
@@ -374,8 +356,6 @@ export function clearOneShotKeys(
     "__dual_tool_addon",
     "__resume_message_prefix",
     "__abandon_message",
-    "__defense_card_win_addon",
-    "__defense_card_pending_triggers",
   ];
   for (const key of keys) {
     try {
