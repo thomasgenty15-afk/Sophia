@@ -107,6 +107,8 @@ export interface FoodPreferencesCardProps {
   /** Les autres clés de `practical_constraints`, à ne pas écraser. */
   practicalConstraints: Record<string, unknown>;
   onSaved: () => void | Promise<void>;
+  /** Dans la fenêtre de réglages: sans cadre, sans titre, sans repli. */
+  embedded?: boolean;
 }
 
 export default function FoodPreferencesCard(props: FoodPreferencesCardProps) {
@@ -287,27 +289,17 @@ export default function FoodPreferencesCard(props: FoodPreferencesCardProps) {
   // Rien à replier tant qu'il n'y a ni ligne gardée ni proposition: la carte
   // vide EST sa propre explication, et la plier cacherait la seule phrase qui
   // dit comment la remplir.
-  const foldable = props.hasGoal && (kept.length > 0 || proposals.length > 0);
+  // DANS LA FENÊTRE, RIEN NE SE PLIE. Le repli sert à protéger la page des
+  // repas; une section repliée dans un dialogue qu'on a ouvert exprès se lit
+  // comme une section absente — et ici, ce qui serait caché, ce sont des
+  // suggestions qui attendent une décision.
+  const foldable = !props.embedded && props.hasGoal &&
+    (kept.length > 0 || proposals.length > 0);
   const summary = kept.length === 1
     ? COPY.summary_one
     : COPY.summary_many.replace("{count}", String(kept.length));
 
-  return (
-    <Card>
-      <div className="flex items-start justify-between gap-3">
-        <SectionLabel className="mb-0">{COPY.title}</SectionLabel>
-        {foldable && (
-          <button
-            type="button"
-            onClick={() => setOpen((o) => !o)}
-            aria-expanded={open}
-            className="shrink-0 text-xs font-medium text-gray-700 underline underline-offset-2 hover:text-gray-900"
-          >
-            {open ? COPY.close : COPY.open}
-          </button>
-        )}
-      </div>
-
+  const body = (
       <>
         {/* Repliée, elle dit ce qu'elle contient — y compris qu'il reste des
             suggestions à trancher, qui sinon attendraient sans que personne le
@@ -323,7 +315,11 @@ export default function FoodPreferencesCard(props: FoodPreferencesCardProps) {
           </p>
         )}
 
-        {(!foldable || open) && (
+        {/* PAS DANS LA FENÊTRE: `SetupSection` porte déjà cette phrase, en une
+            ligne. Les deux ensemble faisaient quatre lignes qui disent la même
+            chose en tête d'une section — le mur de texte que la fenêtre existe
+            pour supprimer. */}
+        {!props.embedded && (!foldable || open) && (
           <p className="mt-2 text-sm text-gray-600">{COPY.subtitle}</p>
         )}
 
@@ -453,6 +449,27 @@ export default function FoodPreferencesCard(props: FoodPreferencesCardProps) {
           </>
         )}
       </>
+  );
+
+  // Dans la fenêtre: `SetupSection` porte le cadre, la couleur et le titre.
+  if (props.embedded) return body;
+
+  return (
+    <Card>
+      <div className="flex items-start justify-between gap-3">
+        <SectionLabel className="mb-0">{COPY.title}</SectionLabel>
+        {foldable && (
+          <button
+            type="button"
+            onClick={() => setOpen((o) => !o)}
+            aria-expanded={open}
+            className="shrink-0 text-xs font-medium text-gray-700 underline underline-offset-2 hover:text-gray-900"
+          >
+            {open ? COPY.close : COPY.open}
+          </button>
+        )}
+      </div>
+      {body}
     </Card>
   );
 }

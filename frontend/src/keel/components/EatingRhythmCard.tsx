@@ -104,6 +104,20 @@ export interface EatingRhythmCardProps {
   practicalConstraints: Record<string, unknown>;
   rhythm: readonly EatingOccasionSlot[];
   onSaved: () => void | Promise<void>;
+  /**
+   * DANS LA FENÊTRE DE RÉGLAGES: pas d'encadré, pas de titre, pas de repli.
+   *
+   * Le repli existe parce que cette carte vivait sur la page, au-dessus des
+   * repas que l'élève vient voir — dépliée en permanence, elle les repoussait
+   * hors de l'écran. Dans une fenêtre qu'on a ouverte EXPRÈS pour régler ses
+   * questions, la même mécanique devient un obstacle: il faudrait déplier
+   * chacune des quatre sections avant de pouvoir répondre, et une section
+   * repliée dans un dialogue se lit comme une section absente.
+   *
+   * `SetupSection` fournit alors le cadre, la couleur et le titre. Ce qui reste
+   * ici est le formulaire et son enregistrement.
+   */
+  embedded?: boolean;
 }
 
 export default function EatingRhythmCard(props: EatingRhythmCardProps) {
@@ -210,39 +224,18 @@ export default function EatingRhythmCard(props: EatingRhythmCardProps) {
     }
   }
 
-  return (
-    <Card>
-      <div className="flex items-start justify-between gap-3">
-        <SectionLabel>{COPY.title}</SectionLabel>
-        <button
-          type="button"
-          onClick={() => {
-            setFlash(null);
-            setOpen((o) => !o);
-          }}
-          aria-expanded={open}
-          aria-controls="eating-rhythm-editor"
-          className="shrink-0 text-xs font-medium text-gray-700 underline underline-offset-2 hover:text-gray-900"
-        >
-          {open ? COPY.close : COPY.open}
-        </button>
-      </div>
-
-      {/* REPLIÉE, ELLE DOIT ENCORE DIRE CE QU'ELLE CONTIENT. Un bloc plié qui
-          n'affiche qu'un titre oblige à l'ouvrir pour savoir sur quoi sa semaine
-          est construite — et « rien d'écrit » est une réponse à afficher, pas un
-          vide: c'est le repli sur trois repas, et l'élève doit le lire sans
-          déplier. */}
-      {!open && (
-        <div className="mt-2">
-          <p className="text-sm text-gray-900">{savedSummary ?? COPY.summary_none}</p>
-          {dirty && <p className="mt-1 text-xs text-amber-700">{COPY.unsaved}</p>}
-        </div>
-      )}
-
-      {open && (
+  // LE FORMULAIRE, une seule fois, quel que soit le cadre qui l'entoure.
+  // Hissé hors du `return` pour que le mode intégré et le mode carte ne soient
+  // pas deux copies de la même saisie — deux copies divergeraient, et c'est
+  // toujours celle qu'on ne regarde pas qui garde le vieux comportement.
+  const editor = (
       <div id="eating-rhythm-editor">
-      <p className="mt-2 text-xs leading-5 text-gray-500">{COPY.intro}</p>
+      {/* L'intro n'existe QUE sur la page: dans la fenêtre, `SetupSection` la
+          porte déjà, en une ligne. La répéter ferait le mur de texte que la
+          fenêtre existe pour supprimer. */}
+      {!props.embedded && (
+        <p className="mt-2 text-xs leading-5 text-gray-500">{COPY.intro}</p>
+      )}
 
       <ul className="mt-4 space-y-2">
         {EATING_OCCASIONS.map((slot) => {
@@ -316,7 +309,52 @@ export default function EatingRhythmCard(props: EatingRhythmCardProps) {
         </Button>
       </div>
       </div>
+  );
+
+  // ── DANS LA FENÊTRE ─────────────────────────────────────────────────────
+  // Pas de cadre, pas de titre, pas de repli — mais l'erreur et la
+  // confirmation restent, parce qu'elles disent si le geste a pris.
+  if (props.embedded) {
+    return (
+      <>
+        {editor}
+        {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+        {flash && <p className="mt-3 text-xs text-emerald-700">{flash}</p>}
+      </>
+    );
+  }
+
+  return (
+    <Card>
+      <div className="flex items-start justify-between gap-3">
+        <SectionLabel>{COPY.title}</SectionLabel>
+        <button
+          type="button"
+          onClick={() => {
+            setFlash(null);
+            setOpen((o) => !o);
+          }}
+          aria-expanded={open}
+          aria-controls="eating-rhythm-editor"
+          className="shrink-0 text-xs font-medium text-gray-700 underline underline-offset-2 hover:text-gray-900"
+        >
+          {open ? COPY.close : COPY.open}
+        </button>
+      </div>
+
+      {/* REPLIÉE, ELLE DOIT ENCORE DIRE CE QU'ELLE CONTIENT. Un bloc plié qui
+          n'affiche qu'un titre oblige à l'ouvrir pour savoir sur quoi sa semaine
+          est construite — et « rien d'écrit » est une réponse à afficher, pas un
+          vide: c'est le repli sur trois repas, et l'élève doit le lire sans
+          déplier. */}
+      {!open && (
+        <div className="mt-2">
+          <p className="text-sm text-gray-900">{savedSummary ?? COPY.summary_none}</p>
+          {dirty && <p className="mt-1 text-xs text-amber-700">{COPY.unsaved}</p>}
+        </div>
       )}
+
+      {open && editor}
 
       {/* Hors du bloc dépliable: un échec d'écriture, comme la confirmation
           qui suit le repli automatique, doit rester lisible dans les deux

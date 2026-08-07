@@ -60,7 +60,14 @@ export type DeliverChatMessageParams = {
   /** `false` = composé pour un état qui n'existe plus ⇒ ne part pas. */
   composedStateStillValid?: boolean | null;
   requestId?: string;
-  /** Fusionné dans `chat_messages.metadata`. */
+  /**
+   * Fusionné dans `chat_messages.metadata` ET dans `outbound_messages.metadata`.
+   *
+   * ⚠️ LE LEDGER NE LA RECEVAIT PAS — corrigé le 2026-08-07, voir
+   * `ledgerMetadata`. Les gardes de cadence lisent le LEDGER, pas la bulle: une
+   * métadonnée qui n'atteint que `chat_messages` est une métadonnée que rien
+   * dans le produit ne relit.
+   */
   metadata?: Record<string, unknown>;
   /** Injectable pour les tests. */
   now?: Date;
@@ -207,6 +214,56 @@ async function loadProfile(
  * aller-retour, il ne garantit rien sous concurrence (mesuré : 6/6 livrés pour
  * un plafond de 2 avant cette fonction).
  */
+/**
+ * LES MÉTADONNÉES DE LA LIGNE DE LEDGER — celles de l'appelant, PUIS les nôtres.
+ *
+ * ── 🔴 LE DÉFAUT QUE CETTE FONCTION CORRIGE, MESURÉ EN RUN RÉEL LE 2026-08-07 ──
+ * Cette liste de clés était écrite en dur, à DEUX endroits, et elle jetait
+ * silencieusement `params.metadata`. `chat_messages`, lui, la fusionnait bien.
+ * Conséquence exacte, et l'en-tête de `keel-daily-pulse-v1` l'avait ÉCRITE mot
+ * pour mot en la croyant évitée:
+ *
+ *   « Sans ce drapeau, `loadAskCadence` compterait chaque récapitulatif comme
+ *     une question posée, `daysSinceLastAsk` vaudrait éternellement 0, et LA
+ *     QUESTION NE REPARTIRAIT JAMAIS. »
+ *
+ * C'est ce qui a été mesuré: sept soirs consécutifs sur six élèves, la question
+ * du soir partie UNE fois (le premier soir, sur le seul élève sans historique)
+ * et jamais plus. `pulse_asked` est absent de la ligne de ledger, `rowCarriedAsk`
+ * lit une clé absente comme « oui, on a demandé », et la cadence se fige.
+ *
+ * Le job passait pourtant le drapeau. C'est la couche de livraison qui le
+ * perdait — d'où la correction ici plutôt que chez l'appelant: n'importe quel
+ * autre `purpose` qui compterait sur sa métadonnée dans le ledger aurait le
+ * même sort, en silence.
+ *
+ * ── L'ORDRE EST LE CONTRAT ────────────────────────────────────────────────
+ * Les clés de la livraison écrasent celles de l'appelant. `counts_as_unsolicited`
+ * et `purpose` sont lus par le compteur de plafond et par les gardes de
+ * cadence; un appelant qui les redéfinirait pourrait s'exempter du plafond
+ * depuis son propre payload.
+ */
+function ledgerMetadata(args: {
+  callerMetadata: Record<string, unknown>;
+  purpose: string;
+  decision: DeliveryDecision;
+  localDate: string;
+  chatMessageId: string | null;
+  buttons: ChatButton[];
+}): Record<string, unknown> {
+  return {
+    ...args.callerMetadata,
+    purpose: args.purpose || null,
+    delivery_reason: args.decision.reason,
+    // Le compteur de plafond lit CE champ, pas le purpose : c'est la
+    // décision qui dit ce qu'un message consomme, pas son étiquette.
+    counts_as_unsolicited: args.decision.countsAsUnsolicited,
+    local_date: args.localDate,
+    chat_message_id: args.chatMessageId,
+    buttons: args.buttons.map((b) => b.payload),
+  };
+}
+
 async function writeOutboundRow(
   admin: SupabaseClient,
   args: {
@@ -219,6 +276,8 @@ async function writeOutboundRow(
     buttons: ChatButton[];
     chatMessageId: string | null;
     localDate: string;
+    /** Ce que l'APPELANT a demandé d'écrire. Voir `ledgerMetadata`. */
+    callerMetadata: Record<string, unknown>;
   },
 ): Promise<{ id: string | null; capRejected: boolean; claimFailed: boolean }> {
   // `subjectToCap`, PAS `countsAsUnsolicited` : un bilan consomme un créneau
@@ -232,16 +291,14 @@ async function writeOutboundRow(
     p_content_preview: args.contentPreview,
     p_status: args.status,
     p_last_error_code: args.status === "skipped" ? args.decision.reason : null,
-    p_metadata: {
-      purpose: args.purpose || null,
-      delivery_reason: args.decision.reason,
-      // Le compteur de plafond lit CE champ, pas le purpose : c'est la
-      // décision qui dit ce qu'un message consomme, pas son étiquette.
-      counts_as_unsolicited: args.decision.countsAsUnsolicited,
-      local_date: args.localDate,
-      chat_message_id: args.chatMessageId,
-      buttons: args.buttons.map((b) => b.payload),
-    },
+    p_metadata: ledgerMetadata({
+      callerMetadata: args.callerMetadata,
+      purpose: args.purpose,
+      decision: args.decision,
+      localDate: args.localDate,
+      chatMessageId: args.chatMessageId,
+      buttons: args.buttons,
+    }),
     p_enforce_cap: enforceCap,
     p_cap: DAILY_UNSOLICITED_CAP,
     p_local_date: args.localDate,
@@ -435,6 +492,7 @@ export async function deliverChatMessage(
       buttons,
       chatMessageId: null,
       localDate,
+      callerMetadata: params.metadata ?? {},
     });
     return {
       delivered: false,
@@ -459,6 +517,7 @@ export async function deliverChatMessage(
     buttons,
     chatMessageId: null,
     localDate,
+    callerMetadata: params.metadata ?? {},
   });
   if (claim.capRejected || claim.claimFailed) {
     // Deux motifs DISTINCTS, jamais confondus :
@@ -485,6 +544,7 @@ export async function deliverChatMessage(
       buttons,
       chatMessageId: null,
       localDate,
+      callerMetadata: params.metadata ?? {},
     });
     return {
       delivered: false,
@@ -547,14 +607,17 @@ export async function deliverChatMessage(
     const { error: linkError } = await admin
       .from("outbound_messages")
       .update({
-        metadata: {
-          purpose: purpose || null,
-          delivery_reason: decision.reason,
-          counts_as_unsolicited: decision.countsAsUnsolicited,
-          local_date: localDate,
-          chat_message_id: chatMessageId,
-          buttons: buttons.map((b) => b.payload),
-        },
+        // MÊME fonction que l'écriture initiale. Les deux listes étaient
+        // recopiées à la main, et la seconde écrasait la première: un appelant
+        // dont la métadonnée aurait survécu à l'insert l'aurait perdue ici.
+        metadata: ledgerMetadata({
+          callerMetadata: params.metadata ?? {},
+          purpose,
+          decision,
+          localDate,
+          chatMessageId,
+          buttons,
+        }),
         updated_at: new Date().toISOString(),
       } as never)
       .eq("id", claim.id);

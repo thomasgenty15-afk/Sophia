@@ -4,11 +4,15 @@ import { KeelAppShell } from "../components/KeelAppShell";
 import { Button } from "../components/ui/Button";
 import { Card, SectionLabel } from "../components/ui/Card";
 import { Field, inputClass } from "../components/ui/Field";
+import Modal from "../components/ui/Modal";
+import SetupSection from "../components/ui/SetupSection";
 import MealBuilder from "../components/MealBuilder";
 import EatingRhythmCard from "../components/EatingRhythmCard";
 import CookingCapacityCard from "../components/CookingCapacityCard";
 import FoodPreferencesCard from "../components/FoodPreferencesCard";
 import { parseEatingRhythm } from "../api/mealGeneration";
+import { dishDayLabel, mealCopy } from "../api/mealLabels";
+import { keptFrom } from "../api/foodPreferences";
 import { sendChatMessage } from "../api/chat";
 import {
   axisReading,
@@ -489,7 +493,26 @@ export default function StudentWeekPlanPage() {
    * au-dessus du plan donne l'impression qu'il reste quelque chose à remplir,
    * et repousse vers le bas la seule chose que l'élève vient voir: sa semaine.
    */
-  const [goalOpen, setGoalOpen] = React.useState(false);
+  /**
+   * LA FENÊTRE DE RÉGLAGES — les quatre questions au même endroit.
+   *
+   * ── LE DÉFAUT QUE ÇA CORRIGE ──────────────────────────────────────────
+   * Quatre cartes empilées entre le titre de la page et les repas: l'objectif,
+   * le rythme, la cuisine, ce qu'on a retenu de la conversation. Chacune avec
+   * son propre lien « Change », son propre repli, son propre « Save ». Quatre
+   * endroits pour une seule chose — se décrire — et il fallait faire défiler
+   * l'écran entier avant d'atteindre ce qu'on venait voir: sa semaine.
+   *
+   * Mesuré en vrai: quelqu'un est arrivé sur cette page et n'a pas compris ce
+   * qu'on lui demandait. Ce n'est pas un défaut de copie dans une carte, c'est
+   * la dispersion elle-même.
+   *
+   * La page ne garde donc plus qu'UN résumé et UN bouton. Le reste est dans une
+   * fenêtre, en quatre sections colorées.
+   */
+  const [setupOpen, setSetupOpen] = React.useState(false);
+  /** L'ouverture automatique n'a lieu qu'une fois — voir `refresh`. */
+  const openedOnce = React.useRef(false);
   const [busy, setBusy] = React.useState<string | null>(null);
   const [failure, setFailure] = React.useState<string | null>(null);
   const [reviews, setReviews] = React.useState<ReviewRow[]>([]);
@@ -580,9 +603,17 @@ export default function StudentWeekPlanPage() {
         axis: g.focus_axis ?? "",
       });
     }
-    // Rien d'écrit => la carte s'ouvre d'elle-même: c'est le premier passage,
-    // et un élève sans objectif ne peut rien générer.
-    if (!g) setGoalOpen(true);
+    // RIEN D'ÉCRIT => LA FENÊTRE S'OUVRE D'ELLE-MÊME. C'est le premier passage,
+    // un élève sans objectif ne peut rien générer, et personne ne clique sur un
+    // bouton pour découvrir une question qu'il ignore.
+    //
+    // À l'ouverture SEULEMENT, et pas à chaque `refresh()`: une sauvegarde dans
+    // la fenêtre rappelle `refresh`, et rouvrir sur cette relecture ferait
+    // resurgir la fenêtre que l'élève vient de fermer.
+    if (!g && !openedOnce.current) {
+      openedOnce.current = true;
+      setSetupOpen(true);
+    }
 
     const rows = (reviewRes.data ?? []) as Array<ReviewRow & { risk_band?: string }>;
     // La ligne la plus récente décide: la garde est un ÉTAT courant, pas un
@@ -633,6 +664,53 @@ export default function StudentWeekPlanPage() {
     if (goal.aspiration) parts.push(`“${goal.aspiration}”`);
     return parts.length > 0 ? parts.join(" · ") : null;
   }, [goal]);
+
+  /**
+   * LES QUATRE RÉSUMÉS D'UNE LIGNE — ce que la page montre à la place des
+   * quatre cartes.
+   *
+   * Ils sont calculés ICI et pas dans les cartes: la page doit pouvoir dire ce
+   * qui est réglé SANS monter les formulaires, sinon on n'a rien gagné. Chacun
+   * rend `null` quand rien n'est écrit, et c'est un état à afficher — pas un
+   * vide à masquer: « pas encore réglé » est précisément ce que l'élève doit
+   * lire pour savoir qu'il reste quelque chose à faire.
+   */
+  // `useMemo` et pas une expression nue: `?? {}` fabrique un objet neuf à
+  // chaque rendu, donc `preferencesSummary` (qui dépend de `pc` entier) se
+  // recalculerait à chaque frappe de clavier de la page.
+  const pc = React.useMemo(
+    () => (goal?.practical_constraints ?? {}) as Record<string, unknown>,
+    [goal],
+  );
+
+  const rhythmSummary = React.useMemo(() => {
+    const slots = parseEatingRhythm(pc.eating_rhythm);
+    if (slots.length === 0) return null;
+    return slots
+      .map((o) => {
+        const label = mealCopy(`meals.slot.${o.slot}` as Parameters<typeof mealCopy>[0]);
+        return o.at ? `${label} ${o.at}` : label;
+      })
+      .join(" · ");
+  }, [pc.eating_rhythm]);
+
+  const cookingSummary = React.useMemo(() => {
+    const days = Array.isArray(pc.cook_days)
+      ? (pc.cook_days as unknown[]).map(String)
+      : [];
+    if (days.length === 0) return null;
+    const named = days.map((d) => dishDayLabel(d) ?? d).join(" · ");
+    const minutes = Number(pc.cooking_time_min);
+    return Number.isFinite(minutes) && minutes > 0
+      ? `${named} · ${minutes} min`
+      : named;
+  }, [pc.cook_days, pc.cooking_time_min]);
+
+  const preferencesSummary = React.useMemo(() => {
+    const kept = keptFrom(pc);
+    if (kept.length === 0) return null;
+    return kept.length === 1 ? "1 thing kept" : `${kept.length} things kept`;
+  }, [pc]);
 
   async function run(label: string, fn: () => Promise<void>) {
     setBusy(label);
@@ -687,9 +765,11 @@ export default function StudentWeekPlanPage() {
       }, { onConflict: "user_id" });
       if (error) throw new Error(error.message);
       await refresh();
-      // Enregistré => la carte se replie. Le geste suivant est de générer sa
-      // semaine, pas de relire le formulaire qu'on vient de remplir.
-      setGoalOpen(false);
+      // LA FENÊTRE NE SE FERME PAS ICI, et c'est le contraire de ce que la
+      // carte faisait. Les trois sections d'en dessous ne sont remplissables
+      // qu'une fois l'objectif écrit (`hasGoal`); refermer sur ce Save
+      // renverrait l'élève à la page juste au moment où le reste devient
+      // disponible. Il ferme quand il a fini, avec « Done ».
     });
 
   /**
@@ -783,48 +863,70 @@ export default function StudentWeekPlanPage() {
           </Card>
         ) : null}
 
+        {/*
+          UNE CARTE, UN BOUTON — et les quatre réponses lisibles sans rien
+          ouvrir.
+
+          Ce que la page montrait avant: quatre encadrés, quatre liens
+          « Change », quatre « Save », et les repas repoussés sous la ligne de
+          flottaison. Ce qu'elle montre maintenant: où on en est, et une porte.
+        */}
         <Card>
-          <div className="flex items-start justify-between gap-3">
-            <SectionLabel>Your goal</SectionLabel>
-            {goal ? (
-              <button
-                type="button"
-                onClick={() => setGoalOpen((o) => !o)}
-                aria-expanded={goalOpen}
-                aria-controls="goal-editor"
-                className="shrink-0 text-xs font-medium text-gray-700 underline underline-offset-2 hover:text-gray-900"
-              >
-                {goalOpen ? "Close" : "Change"}
-              </button>
-            ) : null}
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <SectionLabel className="mb-0">About you</SectionLabel>
+            <Button variant="secondary" onClick={() => setSetupOpen(true)}>
+              {goal ? "Change" : "Set up"}
+            </Button>
           </div>
 
-          {/*
-            REPLIÉE, ELLE DOIT ENCORE DIRE CE QU'ELLE CONTIENT.
+          {/* SANS OBJECTIF, RIEN NE PEUT ÊTRE COMPOSÉ — et c'est la seule
+              phrase de la carte, parce que c'est le seul geste qui compte
+              tant qu'il n'est pas fait. */}
+          {!goal ? (
+            <p className="mt-3 text-sm text-gray-600">
+              Four short questions, one window. Your week gets built from your
+              answers — nothing here is shared with your coach.
+            </p>
+          ) : (
+            <dl className="mt-3 space-y-2">
+              {([
+                ["Goal", GOALS.find((g) => g.value === goal.goal)?.label ?? goal.goal],
+                ["Your day", rhythmSummary],
+                ["Cooking", cookingSummary],
+                ["Told me", preferencesSummary],
+              ] as const).map(([label, value]) => (
+                <div key={label} className="flex flex-wrap gap-x-2 text-sm">
+                  <dt className="w-20 shrink-0 text-gray-500">{label}</dt>
+                  {/* `min-w-0` sur l'enfant flex: sans lui, `min-width:auto`
+                      empêche le texte long de se replier et la carte déborde
+                      à 320 px. */}
+                  <dd className="min-w-0 flex-1 text-gray-900">
+                    {value ?? <span className="text-gray-400">Not set yet</span>}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          )}
+        </Card>
 
-            Un bloc replié qui n'affiche qu'un titre oblige à l'ouvrir pour
-            savoir ce qu'on avait mis. Le résumé porte donc les deux choses que
-            l'élève vient vérifier: sa direction, et ce qu'il vise.
-          */}
-          {goal && !goalOpen ? (
-            <div className="mt-2">
-              <p className="text-sm text-gray-900">
-                {GOALS.find((g) => g.value === goal.goal)?.label ?? goal.goal}
-              </p>
-              {goalSummary ? (
-                <p className="mt-1 text-xs leading-5 text-gray-600">{goalSummary}</p>
-              ) : null}
-            </div>
-          ) : null}
-
-          {goal && !goalOpen ? null : (
-          <>
-          <p className="mt-2 text-xs leading-5 text-gray-500">
-            This is what decides which parts of your coach's method matter for
-            you this week. Your coach stays the author of the method — your goal
-            only changes what gets brought forward.
-          </p>
-          <div id="goal-editor" className="mt-4 space-y-4">
+        {/* LA FENÊTRE. Montée en permanence (voir `Modal`: `open === false`
+            rend `null` mais l'appelant garde son état), donc un brouillon de
+            saisie survit à une fermeture accidentelle. */}
+        <Modal
+          open={setupOpen}
+          onClose={() => setSetupOpen(false)}
+          title="About you"
+          closeLabel="Done"
+          size="lg"
+        >
+        <div className="space-y-4">
+        <SetupSection
+          accent="violet"
+          title="Your goal"
+          intro="What you are after. It decides which parts of your coach's method get brought forward for you."
+          summary={goal ? goalSummary : null}
+        >
+          <div id="goal-editor" className="space-y-4">
             {/*
               DES CARTES RADIO, PAS UN `<select>`.
 
@@ -956,9 +1058,63 @@ export default function StudentWeekPlanPage() {
               {busy === "goal" ? "…" : "Save"}
             </Button>
           </div>
-          </>
-          )}
-        </Card>
+        </SetupSection>
+
+        {/* LA FORME DE SA JOURNÉE — ce qui décide COMBIEN de plats il y aura et
+            QUAND. Le moteur imposait trois repas à tout le monde, en dur; une
+            faim de 17h n'avait aucun endroit où exister. */}
+        <SetupSection
+          accent="sky"
+          title="How your day runs"
+          intro="Tick the moments you actually eat. Nothing you did not name, none of yours dropped."
+          summary={rhythmSummary}
+        >
+          <EatingRhythmCard
+            embedded
+            hasGoal={goal !== null}
+            practicalConstraints={goal?.practical_constraints ?? {}}
+            rhythm={parseEatingRhythm(goal?.practical_constraints?.eating_rhythm)}
+            onSaved={refresh}
+          />
+        </SetupSection>
+
+        {/* CE QUE L'ÉLÈVE PEUT VRAIMENT FAIRE. Après le rythme: on dit d'abord
+            quand on mange, puis ce qu'on peut cuisiner. `cooking_time_min` et
+            `budget_band` existaient dans la colonne depuis le premier jour du
+            pivot — lues par le générateur, remplies par personne. */}
+        <SetupSection
+          accent="teal"
+          title="How you cook"
+          intro="Which days you can cook, and for how long. Your sessions get built around this."
+          summary={cookingSummary}
+        >
+          <CookingCapacityCard
+            embedded
+            hasGoal={goal !== null}
+            practicalConstraints={goal?.practical_constraints ?? {}}
+            onSaved={refresh}
+          />
+        </SetupSection>
+
+        {/* CE QU'IL A DIT SUR SA BOUFFE, remonté de la conversation. En DERNIER
+            parce que c'est la couche la plus personnelle — et la seule qu'il
+            n'a pas eu à remplir: elle se remplit à partir de ce qu'il a déjà
+            raconté, et il n'a qu'à confirmer. */}
+        <SetupSection
+          accent="orange"
+          title="What you have told me"
+          intro="Picked up from your conversations. Keep what is right, edit it, or drop it."
+          summary={preferencesSummary}
+        >
+          <FoodPreferencesCard
+            embedded
+            hasGoal={goal !== null}
+            practicalConstraints={goal?.practical_constraints ?? {}}
+            onSaved={refresh}
+          />
+        </SetupSection>
+        </div>
+        </Modal>
 
         {/*
           LA CARTE OÙ ON NE COMPRENAIT RIEN.
@@ -988,43 +1144,6 @@ export default function StudentWeekPlanPage() {
             Le constructeur ci-dessous produit des plats avec leurs ingrédients,
             jour par jour, à partir de cette même doctrine — sans jamais la
             citer. Les IDÉES que le coach dépose vivent sur `/app/meals`. */}
-        {/* LA FORME DE SA JOURNÉE — juste au-dessus du constructeur, parce que
-            c'est ce qui décide COMBIEN de plats il y aura et QUAND. Le moteur
-            imposait trois repas à tout le monde, en dur; une faim de 17h n'avait
-            aucun endroit où exister. La carte est ici et pas dans le formulaire
-            de génération: le nombre de fois qu'on mange est une propriété d'une
-            vie, pas d'une semaine. */}
-        <EatingRhythmCard
-          hasGoal={goal !== null}
-          practicalConstraints={goal?.practical_constraints ?? {}}
-          rhythm={parseEatingRhythm(goal?.practical_constraints?.eating_rhythm)}
-          onSaved={refresh}
-        />
-
-        {/* CE QUE L'ÉLÈVE PEUT VRAIMENT FAIRE. Sous le rythme, et avant le
-            constructeur: on dit d'abord quand on mange, puis ce qu'on peut
-            cuisiner, et seulement ensuite on compose. `cooking_time_min` et
-            `budget_band` existaient dans la colonne depuis le premier jour du
-            pivot — lues par le générateur, remplies par personne. */}
-        <CookingCapacityCard
-          hasGoal={goal !== null}
-          practicalConstraints={goal?.practical_constraints ?? {}}
-          onSaved={refresh}
-        />
-
-        {/* CE QU'IL A DIT SUR SA BOUFFE, remonté de la conversation. En
-            DERNIER des trois cartes et juste avant le constructeur, parce que
-            c'est la couche la plus personnelle: le rythme dit quand il mange,
-            la capacité ce qu'il peut cuisiner, et ceci ce qu'il aime — dans ses
-            mots. C'est aussi la seule des trois qu'il n'a pas eu à remplir:
-            elle se remplit toute seule à partir de ce qu'il a déjà raconté, et
-            il n'a qu'à confirmer. */}
-        <FoodPreferencesCard
-          hasGoal={goal !== null}
-          practicalConstraints={goal?.practical_constraints ?? {}}
-          onSaved={refresh}
-        />
-
         <MealBuilder />
       </div>
     </KeelAppShell>

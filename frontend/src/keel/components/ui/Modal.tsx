@@ -26,17 +26,34 @@ import { createPortal } from "react-dom";
 // recettes dépliées survivent à une fermeture. C'est le comportement voulu —
 // on referme pour aller relire un plat, pas pour tout recommencer.
 
+/**
+ * DEUX LARGEURS, PAS UNE PAR APPELANT.
+ *
+ * `md` est celle d'origine et reste le défaut: une liste de courses ou une
+ * session de cuisine se lit en colonne étroite. `lg` existe pour la fenêtre de
+ * réglages, qui porte des champs côte à côte sur un écran large — à `max-w-lg`
+ * ses grilles `sm:grid-cols-2` se retrouvaient à l'étroit alors que la place
+ * était là.
+ */
+export type ModalSize = "md" | "lg";
+
+const SIZE: Record<ModalSize, string> = {
+  md: "max-w-lg",
+  lg: "max-w-2xl",
+};
+
 export interface ModalProps {
   open: boolean;
   onClose: () => void;
   /** Nommée: c'est le `aria-label` autant que le titre affiché. */
   title: string;
   closeLabel?: string;
+  size?: ModalSize;
   children: React.ReactNode;
 }
 
 export default function Modal(
-  { open, onClose, title, closeLabel = "Close", children }: ModalProps,
+  { open, onClose, title, closeLabel = "Close", size = "md", children }: ModalProps,
 ) {
   // ── ÉCHAP FERME, ET LA PAGE DERRIÈRE NE DÉFILE PLUS ─────────────────────
   // Les deux moitiés du même contrat, posées et retirées ensemble.
@@ -83,7 +100,7 @@ export default function Modal(
         aria-modal="true"
         aria-label={title}
         tabIndex={-1}
-        className="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-t-2xl bg-gray-50 shadow-xl outline-none sm:rounded-2xl"
+        className={`flex max-h-[90vh] w-full ${SIZE[size]} flex-col overflow-hidden rounded-t-2xl bg-gray-50 shadow-xl outline-none sm:rounded-2xl`}
       >
         <div className="flex items-center justify-between gap-3 border-b border-gray-200 bg-white px-4 py-3">
           <h2 className="text-base font-semibold text-gray-900">{title}</h2>

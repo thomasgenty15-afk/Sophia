@@ -81,6 +81,8 @@ type Day = (typeof DAYS)[number];
 export interface CookingCapacityCardProps {
   /** `false` tant qu'aucune ligne `student_goals` n'existe: rien à mettre à jour. */
   hasGoal: boolean;
+  /** Dans la fenêtre de réglages: sans cadre, sans titre, sans repli. */
+  embedded?: boolean;
   /** Les autres clés de `practical_constraints`, à ne pas écraser. */
   practicalConstraints: Record<string, unknown>;
   onSaved: () => void | Promise<void>;
@@ -166,42 +168,9 @@ export default function CookingCapacityCard(props: CookingCapacityCardProps) {
     }
   }
 
-  return (
-    // MÊME EN-TÊTE QUE LES CARTES VOISINES, et c'est le sujet.
-    //
-    // Cette carte portait son titre HORS de l'encadré et son ouverture dans un
-    // BOUTON posé sous le résumé, là où « Your goal » et « How your day runs »
-    // ont un lien « Change » discret en haut à droite. Trois cartes qui font la
-    // même chose de trois façons obligent à relire chacune pour comprendre
-    // qu'elles se plient toutes — et le bouton pleine hauteur ajoutait une
-    // ligne de plus à un empilement déjà long avant les repas.
-    <Card>
-      <div className="flex items-start justify-between gap-3">
-        <SectionLabel className="mb-0">{COPY.title}</SectionLabel>
-        <button
-          type="button"
-          onClick={() => setOpen((o) => !o)}
-          aria-expanded={open}
-          className="shrink-0 text-xs font-medium text-gray-700 underline underline-offset-2 hover:text-gray-900"
-        >
-          {open ? COPY.summary_close : (declared.length > 0 ? COPY.summary_open : COPY.summary_edit)}
-        </button>
-      </div>
-
-      <>
-        {!open && (
-          <div className="mt-2">
-            <p className="text-sm text-gray-800">
-              {declared.length > 0
-                ? declared.map((d) => dishDayLabel(d) ?? d).join(" · ")
-                : COPY.none_picked}
-            </p>
-            {flash && <p className="mt-1 text-sm text-emerald-700">{flash}</p>}
-          </div>
-        )}
-
-        {open && (
-          <div className="mt-4 space-y-4">
+  // LE FORMULAIRE, une seule fois — voir la même hissée dans `EatingRhythmCard`.
+  const editor = (
+          <div className="space-y-4">
             <Field label={COPY.days_label} hint={COPY.days_hint}>
               <div className="flex flex-wrap gap-2">
                 {DAYS.map((day) => (
@@ -284,7 +253,53 @@ export default function CookingCapacityCard(props: CookingCapacityCardProps) {
               {busy ? COPY.saving : COPY.save}
             </Button>
           </div>
+  );
+
+  // Dans la fenêtre: `SetupSection` porte le cadre, la couleur et le titre.
+  if (props.embedded) {
+    return (
+      <>
+        {editor}
+        {flash && <p className="mt-3 text-sm text-emerald-700">{flash}</p>}
+      </>
+    );
+  }
+
+  return (
+    // MÊME EN-TÊTE QUE LES CARTES VOISINES, et c'est le sujet.
+    //
+    // Cette carte portait son titre HORS de l'encadré et son ouverture dans un
+    // BOUTON posé sous le résumé, là où « Your goal » et « How your day runs »
+    // ont un lien « Change » discret en haut à droite. Trois cartes qui font la
+    // même chose de trois façons obligent à relire chacune pour comprendre
+    // qu'elles se plient toutes — et le bouton pleine hauteur ajoutait une
+    // ligne de plus à un empilement déjà long avant les repas.
+    <Card>
+      <div className="flex items-start justify-between gap-3">
+        <SectionLabel className="mb-0">{COPY.title}</SectionLabel>
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          aria-expanded={open}
+          className="shrink-0 text-xs font-medium text-gray-700 underline underline-offset-2 hover:text-gray-900"
+        >
+          {open ? COPY.summary_close : (declared.length > 0 ? COPY.summary_open : COPY.summary_edit)}
+        </button>
+      </div>
+
+      <>
+        {!open && (
+          <div className="mt-2">
+            <p className="text-sm text-gray-800">
+              {declared.length > 0
+                ? declared.map((d) => dishDayLabel(d) ?? d).join(" · ")
+                : COPY.none_picked}
+            </p>
+            {flash && <p className="mt-1 text-sm text-emerald-700">{flash}</p>}
+          </div>
         )}
+
+        {open && <div className="mt-4">{editor}</div>}
       </>
     </Card>
   );
