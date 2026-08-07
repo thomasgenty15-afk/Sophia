@@ -89,6 +89,12 @@ const NAV: Record<ShellVariant, NavItem[]> = {
     // le même changement — et il compte double: une allergie que l'élève ne
     // trouve pas où déclarer est une allergie que le produit ne connaît pas.
     { to: "/app/health", label: () => t("app.nav.health") },
+    // LE FOYER. Il arrive avec son entrée dans le même changement, pour la
+    // règle en tête de ce fichier: une route sans lien est une fonctionnalité
+    // que personne n'a. Et elle compte double ici — sans cette page, un
+    // deuxième membre n'a AUCUNE raison d'ouvrir l'app, ce qui rend le modèle
+    // multi-comptes infacturable (PIVOT-FOYER §8.2c).
+    { to: "/app/household", label: () => t("app.nav.household") },
     // PAS D'ENTRÉE « Cards », ET CE N'EST PAS UN OUBLI À RÉPARER.
     // `/app/cards` a eu son entrée ici, au nom de la règle en tête de ce
     // fichier. La règle était bien appliquée et la conclusion était fausse: la

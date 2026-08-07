@@ -53,6 +53,7 @@ import CoachWeeklyPage from "./keel/pages/CoachWeeklyPage";
 import StudentWeekPlanPage from "./keel/pages/StudentWeekPlanPage";
 import StudentProgressPage from "./keel/pages/StudentProgressPage";
 import StudentHealthPage from "./keel/pages/StudentHealthPage";
+import HouseholdPage from "./keel/pages/HouseholdPage";
 import NotFoundPage from "./keel/pages/NotFoundPage";
 import CoachBillingPage from "./keel/pages/CoachBillingPage";
 import TemplatesPage from "./keel/pages/TemplatesPage";
@@ -157,6 +158,21 @@ function App() {
                 element={
                   <KeelStudentRoute>
                     <StudentHealthPage />
+                  </KeelStudentRoute>
+                }
+              />
+              {/* KEEL — /app/household. Qui mange ici, ce dont chacun a envie
+                  cette semaine, et ce que la maison ne sert pas à qui.
+                  Autorité produit: docs/keel/PIVOT-FOYER.md §8.
+                  Même garde que les écrans au-dessus: la route est de la
+                  navigation, RLS reste la vraie frontière — et ici elle porte
+                  davantage que d'habitude, puisque `keel_household_of` décide
+                  seul de ce que chaque membre peut lire du foyer. */}
+              <Route
+                path="/app/household"
+                element={
+                  <KeelStudentRoute>
+                    <HouseholdPage />
                   </KeelStudentRoute>
                 }
               />

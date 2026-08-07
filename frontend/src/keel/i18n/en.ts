@@ -1326,6 +1326,7 @@ export const en = {
   "app.nav.progress": "Progress",
   "app.nav.chat": "Chat",
   "app.nav.health": "Health",
+  "app.nav.household": "Household",
   // `app.nav.cards` a été retirée avec l'onglet « Cards »: la page exigeait un
   // plan publié que le modèle 1:N ne produit jamais. Rien ne la lit plus.
   // Libellés courts: la barre d'onglets du téléphone donne 75 px par colonne,
@@ -2853,6 +2854,7 @@ export const en = {
   "household.consent.revoke": "Undo it",
   "household.restriction.title": "Foods this household does not serve",
   "household.restriction.add": "Add a food",
+  "household.restriction.for_whom": "For whom",
   "household.restriction.placeholder": "Nutella",
   "household.restriction.notice_owner": "Not served here — {owner} decided that.",
   "household.restriction.notice_me": "You decided that.",
