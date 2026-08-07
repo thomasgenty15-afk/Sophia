@@ -857,9 +857,71 @@ est la **citation**, mangée en aval.
 - **Migrations** : les deux appliquées **localement** par `docker exec … psql`,
   versions enregistrées dans `supabase_migrations.schema_migrations`. **Aucun
   `db reset`, aucun `db push`, aucun `functions deploy`.**
-- **Fixtures** : les élèves de QA portent l'e-mail `chat-qa-*@test.dev` (et
-  `chat-coach-*`, `chat-mate-*`). Ils sont laissés en base **exprès** — ils
-  portent les preuves citées ci-dessus. La requête de nettoyage est dans le
-  récapitulatif.
+- **Fixtures — NETTOYÉES.** Les 41 comptes de QA (`chat-qa-*`, `chat-coach-*`,
+  `chat-mate-*` en `@test.dev`), leurs 5 foyers et leurs 3 plans de foyer sont
+  supprimés, dans l'ordre des dépendances (les FK de `student_generated_meals`
+  et `households` ne cascadent pas depuis `auth.users`). Vérifié par relecture :
+  0 compte restant, 0 foyer QA, **0 `protocol_events` orphelin, 0
+  `weekly_reviews` orphelin**. Les preuves citées plus haut ont été relevées
+  avant la purge.
 
 ---
+
+---
+
+## Récapitulatif du chantier
+
+### Les sept commits
+
+| Commit | Fiche |
+|---|---|
+| `5391586f` | FF-008 — le poids annoncé |
+| `7aa9d683` | FF-009 — le repas hors plan |
+| `30dfc5fd` | FF-013 — lire au lieu de redemander |
+| `088d323a` | FF-011 — le soutien groundé |
+| `1e4713a8` | FF-012 — la fin de la sollicitation |
+| `8ed2cab4` | FF-010 — la lecture du foyer |
+| `1d2b0193` | les deux correctifs du run réel |
+
+**Aucun push.** Branche `ff-001-quotidien-du-coach`.
+
+### Les cinq défauts trouvés en chemin, tous préexistants au chantier
+
+1. **La ceinture TCA était armée sur un coffre vide.** `restriction_guard`
+   lisait `outcomes.weight_7d_avg`, que personne n'écrit dans le modèle pivot ;
+   `rapid_weight_loss` ne voyait donc **jamais** aucun poids d'élève.
+2. **`chez ma mère` était lu comme un tiers**, ce qui désarmait le hors-plan le
+   plus courant de FF-009.
+3. **Le corps du prompt FR du compagnon était à 13 caractères de son plafond**
+   de 13 000 — le test de budget est tombé à la première ligne ajoutée.
+4. **`plan_relation` était perdue dès que le dispatcher parlait le premier.**
+5. **`keel_household_roster()` était inatteignable depuis le serveur** —
+   `auth.uid()` NULL sous `service_role`, et aucun GRANT pour ce rôle.
+
+### Ce qui reste ouvert, et c'est écrit
+
+- 🔴 **TEST 9 échoué** : `ack_guard` mange la phrase qui cite le fait sur un
+  tour de découragement. Diagnostic complet plus haut. **Un lot à lui seul.**
+- ⚠️ `weekReviewPromptBlock` n'est pas filtré par le plancher de restriction
+  (signalé au lot 3, non corrigé — couvert en aval par le flow clinique).
+- ⚠️ `weekly_flow_io.hasAnsweredWeek` teste `source === "whatsapp_flow"` alors
+  que le seul écrivain écrit `in_app_*` (signalé au lot 1, sans rapport).
+- ⚠️ La langue de réponse ne suit pas `profiles.locale` : un élève `fr-FR`
+  reçoit des réponses anglaises. Défaut connu du dépôt, observé à chaque tour de
+  ce run, hors périmètre.
+
+### Les commandes de déploiement — à lancer par un humain
+
+Rien n'a été déployé. Dans l'ordre :
+
+```bash
+supabase db push
+```
+
+```bash
+npm run functions:deploy:changed
+```
+
+Les deux migrations à pousser sont `20260808050000_protocol_event_plan_relation`
+et `20260808060000_household_roster_for_server`. Toutes deux portent un contrôle
+final qui **rejoue le geste** et échoue bruyamment si la garde ne mord pas.

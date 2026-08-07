@@ -129,9 +129,8 @@ const PIVOT_TABLES = [
   { table: "student_daily_checkins", owner: "user_id", marker: null },
   { table: "recurring_meals", owner: "user_id", marker: "A13SEED-REPAS" },
   { table: "student_facts", owner: "user_id", marker: "A13SEED-AVERSION" },
-  { table: "student_cards", owner: "user_id", marker: "A13SEED-CARTE" },
-  { table: "card_armings", owner: "user_id", marker: null },
-  { table: "card_wins", owner: "user_id", marker: "A13SEED-VICTOIRE" },
+  // `student_cards`, `card_armings`, `card_wins`: droppées par 20260808070000
+  // (retrait résidus grand public) — leurs marqueurs sont partis avec elles.
   { table: "meal_ideas", owner: "student_id", marker: "A13SEED-IDEE" },
   { table: "protocol_events", owner: "user_id", marker: "A13SEED-PHOTO" },
   { table: "weekly_reviews", owner: "user_id", marker: "A13SEED-BILAN" },
@@ -265,7 +264,7 @@ async function seedFullStudent(
     content: "A13SEED-MESSAGE",
     scope: "whatsapp",
   });
-  const contextId = await ins("upcoming_contexts", {
+  await ins("upcoming_contexts", {
     user_id: userId,
     local_date: "2026-08-05",
     kind: "restaurant",
@@ -273,71 +272,6 @@ async function seedFullStudent(
     note: "A13SEED-CONTEXTE",
     content_locale: "fr-FR",
   });
-
-  // Les cartes : le gabarit global existe depuis 20260727230000. On le
-  // RÉUTILISE — en fabriquer un ici obligerait à satisfaire ses propres
-  // validateurs de rendu, ce que ce test n'a pas à tester.
-  const { data: tmpl, error: tmplErr } = await admin
-    .from("card_templates")
-    .select("id,variables")
-    .eq("owner_scope", "global")
-    .limit(1)
-    .maybeSingle();
-  if (tmplErr) throw tmplErr;
-  if (tmpl) {
-    // Le gabarit valide ses valeurs (`keel_render_card`) : une variable
-    // `choice` n'accepte que ses options, une `time` une heure. On respecte le
-    // type plutôt que d'écrire le marqueur partout — c'est la carte rendue
-    // qu'on veut retrouver dans l'archive, pas un rejet à l'insert.
-    const vars = (tmpl.variables ?? []) as Array<
-      { key: string; type?: string; options?: Array<{ value: string }> }
-    >;
-    const values: Record<string, string> = {};
-    let markerPlaced = false;
-    for (const v of vars) {
-      if (v.type === "choice") {
-        values[v.key] = String(v.options?.[0]?.value ?? "");
-      } else if (v.type === "time") values[v.key] = "08:00";
-      else if (!markerPlaced) {
-        values[v.key] = "A13SEED-CARTE";
-        markerPlaced = true;
-      } else values[v.key] = "x";
-    }
-    assert(
-      markerPlaced,
-      "le gabarit choisi doit avoir au moins une variable texte",
-    );
-    const cardId = await ins("student_cards", {
-      user_id: userId,
-      template_id: tmpl.id,
-      variable_values: values,
-      keyword: `a13${nonce.slice(0, 6).toLowerCase()}`,
-      content_locale: "fr-FR",
-      status: "active",
-      created_by: "system",
-    });
-    const armingId = await ins("card_armings", {
-      user_id: userId,
-      student_card_id: cardId,
-      trigger_kind: "upcoming_context",
-      trigger_ref_id: contextId,
-      local_date: "2026-08-05",
-      arm_at: new Date(Date.now() + 3600_000).toISOString(),
-      event_at: new Date(Date.now() + 7200_000).toISOString(),
-      status: "pending",
-    });
-    await ins("card_wins", {
-      user_id: userId,
-      student_card_id: cardId,
-      arming_id: armingId,
-      occurred_at: new Date().toISOString(),
-      local_date: "2026-08-05",
-      outcome: "held",
-      source: "chat",
-      note: "A13SEED-VICTOIRE",
-      content_locale: "fr-FR",
-    });
-  }
 
   await ins("meal_ideas", {
     author_kind: "coach",
@@ -445,14 +379,10 @@ Deno.test(
       [],
       `tables absentes de l'archive: ${missing.join(", ")}`,
     );
-    // Les deux tables sans prose se prouvent par leur vocabulaire propre.
+    // La table sans prose se prouve par son vocabulaire propre.
     assert(
       archive.includes("whatsapp_button"),
       "student_daily_checkins absent de l'archive",
-    );
-    assert(
-      archive.includes("upcoming_context"),
-      "card_armings absent de l'archive",
     );
     // Et l'archive ne doit PAS mentir sur ce qui manque.
     const manifest = JSON.parse(decoder.decode(files["fichiers.json"]));

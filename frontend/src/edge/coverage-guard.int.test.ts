@@ -132,10 +132,9 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       "get-memory-trace",
       "get-momentum-scorecard",
       "get-momentum-trace",
-      // KEEL W8 — the card runtime. Four student actions behind a JWT and two
-      // internal ones (the hourly arming sweep and its due list) behind
-      // X-Internal-Secret. Zero model calls: the render is deterministic.
-      "keel-cards-v1",
+      // `keel-cards-v1` est partie avec le retrait des résidus grand public
+      // (2026-08-08, 0 utilisateur confirmé): tables card_* droppées par
+      // 20260808070000, fonction et écran supprimés.
       // Le message de cohorte (20260806180500): le coach écrit une fois, N
       // élèves reçoivent dans leur fil, signé de son nom. Interne
       // (X-Internal-Secret), appelée par le cron `keel-coach-broadcast` toutes
@@ -253,6 +252,10 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       // coach's 4-of-7 display gate on its own.
       "meal_ideas_food_groups_valid",
       "meal_plan_entries_touch",
+      // `student_cards_render` est mort avec sa table (20260808070000, retrait
+      // résidus grand public) — le nom reste ici parce que le scanner lit le
+      // `create trigger` de l'HISTORIQUE des migrations, même règle que
+      // `meal_plan_entries_touch` juste au-dessus.
       "student_cards_render",
       // La note 1:1 du coach sur un élève (20260805180000). Simple horodatage
       // de `updated_at` — aucune règle métier dedans. Acquitté ici parce que ce

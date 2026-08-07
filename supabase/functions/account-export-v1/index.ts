@@ -400,15 +400,12 @@ const SCOPE = {
   studentFacts:
     "id,kind,value,note,content_locale,status,invalidated_at,superseded_by_fact_id,source_message_id,declared_by,created_at,updated_at",
 
-  // --- CARTES (20260727230000) -----------------------------------------------
-  // `approved_by` est retiré (id d'un tiers, même règle que `published_by`).
-  studentCards:
-    "id,template_id,plan_version_id,commitment_id,variable_values,rendered,rendered_at,keyword,coach_approved,approved_at,content_locale,status,created_by,created_at",
-  cardArmings:
-    "id,student_card_id,trigger_kind,trigger_ref_id,local_date,slot_key,event_at,arm_at,status,delivered_at,delivery_channel,created_at",
-  // `source_message_id` exclu: transport interne (wamid), comme sur protocol_events.
-  cardWins:
-    "id,student_card_id,arming_id,occurred_at,local_date,slot_key,outcome,source,note,content_locale,created_at",
+  // --- CARTES: RETIRÉES DE L'EXPORT (retrait résidus grand public) -----------
+  // `student_cards`, `card_armings`, `card_wins` sont DROPPÉES par
+  // 20260808070000 — cartes démontées au pivot (route et cron débranchés le
+  // 2026-08-03), retrait confirmé par l'humain le 2026-08-08 (0 utilisateur
+  // grand public). Même traitement que recurring_meals/student_facts plus bas:
+  // la section reste dans le bundle, vide, sans interroger la base.
 
   // --- ÉCHAFAUDAGE REPAS: RETIRÉ DE L'EXPORT (20260804210000) ---------------
   // `meal_ideas` était exporté scopé sur `meal_ideas.student_id`, et
@@ -732,9 +729,11 @@ async function buildExportPayload(
     // indisponibilité.
     Promise.resolve([] as Record<string, unknown>[]),
     Promise.resolve([] as Record<string, unknown>[]),
-    fetchKeelRows(admin, "student_cards", SCOPE.studentCards, "user_id", user.id, keelUnavailable),
-    fetchKeelRows(admin, "card_armings", SCOPE.cardArmings, "user_id", user.id, keelUnavailable),
-    fetchKeelRows(admin, "card_wins", SCOPE.cardWins, "user_id", user.id, keelUnavailable),
+    // `student_cards`, `card_armings`, `card_wins`: droppées (20260808070000),
+    // même règle que les deux lignes au-dessus — vide, sans sonde, sans bruit.
+    Promise.resolve([] as Record<string, unknown>[]),
+    Promise.resolve([] as Record<string, unknown>[]),
+    Promise.resolve([] as Record<string, unknown>[]),
     // --- PIVOT: le matériel du coach (vide pour un élève) --------------------
     fetchKeelRows(
       admin,

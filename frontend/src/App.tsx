@@ -184,10 +184,12 @@ function App() {
                   KEEL. Il redirige vers `/app/today` plutôt que de 404 — même
                   raison que `/chat` plus haut: un lien en circulation ne doit
                   pas mourir.
-                  `CardsPage.tsx`, `keel/api/cards.ts`, `keel-cards-v1`, le cron
-                  `keel-arm-cards` et les quatre tables restent EN PLACE: le
-                  produit grand public tourne encore depuis ce même code sur un
-                  autre projet Supabase. Démonté, pas détruit. */}
+                  `CardsPage.tsx`, `keel/api/cards.ts`, `keel-cards-v1` et les
+                  quatre tables `card_*` sont SUPPRIMÉS depuis le 2026-08-08
+                  (migration 20260808070000): l'humain a confirmé que le produit
+                  grand public n'a plus aucun utilisateur. Seule la redirection
+                  ci-dessous survit — un lien en circulation ne doit pas
+                  mourir. */}
               <Route path="/app/cards" element={<Navigate to="/app/today" replace />} />
               {/* KEEL — coach space (W6.1). Guarded by an ACTIVE `coaches`
                   row, not by `keel_role` and not by the legacy subscription
@@ -357,8 +359,9 @@ function App() {
                   ET supprimées. C'étaient les deux écrans du produit grand
                   public: le tableau de bord des plans, des cartes d'attaque et
                   de défense, et son onboarding. Aucun des deux n'avait de
-                  lecteur dans KEEL — la page des cartes de l'élève passe par
-                  `keel-cards-v1` et `card_templates`, pas par ces panneaux. */}
+                  lecteur dans KEEL — la page des cartes de l'élève passait par
+                  `keel-cards-v1` et `card_templates`, pas par ces panneaux
+                  (chaîne elle-même supprimée le 2026-08-08). */}
               {/* W2.A: routes legacy démontées (/architecte/*, /grimoire/*,
                   /formules, /l-architecte, /tdah, /parrainage,
                   /transformations/new). Les fichiers de pages restent en

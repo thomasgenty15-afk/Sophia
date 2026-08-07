@@ -51,10 +51,9 @@ const KEEL_EDGE_FUNCTIONS = [
   // nothing calls is the most expensive shape of the "thirteen unwired modules"
   // failure: it is silent, and the silence looks like "no seats to bill".
   "stripe-reconcile-seats",
-  // W8 — the card runtime. Its arming sweep is the only thing that puts a card
-  // in front of a student BEFORE the meal; unwired, the cards exist and never
-  // arrive, which looks exactly like "the students do not use cards".
-  "keel-cards-v1",
+  // `keel-cards-v1` a été RETIRÉE de cette liste: la fonction est partie avec
+  // le retrait des résidus grand public (2026-08-08, 0 utilisateur confirmé,
+  // tables card_* droppées par 20260808070000) — même règle que ci-dessous.
   // `keel-meal-plan-v1` a été RETIRÉE de cette liste: la fonction a disparu
   // avec la composition 1:1 de la semaine de repas (migration 20260804210000),
   // et la liste continuait d'exiger son `index.ts`. Une attente qui survit à

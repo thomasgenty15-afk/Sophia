@@ -494,13 +494,9 @@ verify_jwt = false
 verify_jwt = false
 [functions.evaluate-adherence-v1]
 verify_jwt = false
-# KEEL W8 — cards. Two doors in one function: the student's JWT for the four
-# user actions, and X-Internal-Secret for the hourly arming sweep. verify_jwt is
-# off for the same reason as its siblings (GoTrue local signs ES256, the gateway
-# cannot verify it) — the JWT is checked INSIDE the function, on every user
-# action, and the two internal actions have no JWT path at all.
-[functions.keel-cards-v1]
-verify_jwt = false
+# `keel-cards-v1` a été RETIRÉE ici: la fonction est partie avec le retrait des
+# résidus grand public (2026-08-08, 0 utilisateur grand public confirmé), ses
+# quatre tables card_* avec elle (20260808070000). Même règle que ci-dessous.
 
 # `keel-meal-plan-v1` a été RETIRÉE ici: la fonction n'existe plus depuis la fin
 # de la composition 1:1 de la semaine de repas (migration 20260804210000). Le
