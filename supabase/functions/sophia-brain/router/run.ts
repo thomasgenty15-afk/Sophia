@@ -277,7 +277,17 @@ import { weekReviewPromptBlock } from "../../_shared/keel/week_review.ts";
 import {
   loadLatestWeekReview,
   type StoredWeekReview,
+  weekStartOfLocalDate,
+  writeDeclaredBodyMeasure,
 } from "../../_shared/keel/week_review_io.ts";
+import {
+  type DisplayUnitSystem,
+  detectDeclaredBodyMeasure,
+} from "../../_shared/keel/body_measure_floor.ts";
+import {
+  assessBirthDate,
+  type BirthDateVerdict,
+} from "../../_shared/keel/student_age.ts";
 import { detectDeclaredSafetyConstraint } from "../../_shared/keel/safety_constraint_floor.ts";
 import {
   CLINICAL_DEFERRAL_BLOCK,
@@ -922,6 +932,26 @@ export type KeelTurnContext = {
   content_locale: string | null;
   /** YYYY-MM-DD résolu dans le fuseau de l'élève par le runtime, pas ici. */
   local_date: string | null;
+  /**
+   * FF-008 — `profiles.display_unit_system`, tel quel.
+   *
+   * OBLIGATOIRE et jamais optionnel: `detectDeclaredBodyMeasure` s'en sert pour
+   * lire « je suis à 172 » chez quelqu'un qui pense en livres, et ce dépôt a
+   * déjà mesuré qu'« un paramètre de garde optionnel est une garde désarmée ».
+   * `'metric'` est le DÉFAUT DE LA COLONNE (not null default 'metric'), pas une
+   * valeur inventée ici.
+   */
+  display_unit_system: "metric" | "imperial";
+  /**
+   * FF-008 — le verdict d'âge, pour la garde « aucune mesure enregistrée depuis
+   * le chat chez un mineur ».
+   *
+   * C'est `assessBirthDate` qui décide, jamais un booléen recalculé: le dépôt a
+   * UNE définition du mineur, elle porte déjà la ceinture qui refuse un plan
+   * nutritionnel à un enfant, et une seconde divergerait au premier ajustement.
+   * `null` hors élève KEEL ou sans date locale.
+   */
+  age_verdict: BirthDateVerdict | null;
   plan_context: KeelPlanContext | null;
   plan_version_id: string | null;
   /** Le bloc à injecter (dispatcher ET composeur). Null = rien à dire. */
@@ -1007,6 +1037,8 @@ export const LEGACY_KEEL_TURN_CONTEXT: KeelTurnContext = {
   country: null,
   content_locale: null,
   local_date: null,
+  display_unit_system: "metric",
+  age_verdict: null,
   plan_context: null,
   plan_version_id: null,
   plan_block: null,
@@ -1058,7 +1090,11 @@ export async function loadKeelTurnContext(args: {
   try {
     const { data, error } = await args.supabase
       .from("profiles")
-      .select("keel_role, country, locale")
+      // FF-008 ajoute DEUX colonnes à une requête qui existait déjà, plutôt
+      // qu'un second aller-retour: `display_unit_system` lève l'ambiguïté
+      // d'unité d'une mesure annoncée, `birth_date` porte la garde « pas de
+      // suivi de poids chez un mineur ».
+      .select("keel_role, country, locale, display_unit_system, birth_date")
       .eq("id", args.userId)
       .maybeSingle();
     if (error) throw error;
@@ -1078,6 +1114,20 @@ export async function loadKeelTurnContext(args: {
   const country = String(profileRow?.country ?? "").trim() || null;
   const contentLocale = String(profileRow?.locale ?? "").trim() || null;
   const localDate = keelLocalDateFrom(args.userLocalDatetime);
+  // La colonne est `not null default 'metric'` et son CHECK n'accepte que ces
+  // deux valeurs. On ne « corrige » donc rien: on refuse simplement d'inventer
+  // une troisième lecture si la colonne portait un jour autre chose.
+  const displayUnitSystem: DisplayUnitSystem =
+    String(profileRow?.display_unit_system ?? "").trim() === "imperial"
+      ? "imperial"
+      : "metric";
+  // Le verdict d'âge a besoin de la date LOCALE de l'élève pour être rejouable
+  // (deux appels le même jour doivent rendre le même verdict, y compris à
+  // cheval sur minuit UTC). Sans elle, pas de verdict — et le plancher de
+  // mesure ne s'arme pas, ce qui est la direction sûre.
+  const ageVerdict = localDate
+    ? assessBirthDate(profileRow?.birth_date, localDate)
+    : null;
 
   let planContext: KeelPlanContext | null = null;
   if (localDate) {
@@ -1191,6 +1241,8 @@ export async function loadKeelTurnContext(args: {
     country,
     content_locale: contentLocale,
     local_date: localDate,
+    display_unit_system: displayUnitSystem,
+    age_verdict: ageVerdict,
     plan_context: planContext,
     plan_version_id: planContext?.plan_version_id ?? null,
     plan_block: selection.block,
@@ -3619,6 +3671,147 @@ export async function processMessage(
           },
         ],
       };
+    }
+
+    // ── FF-008 · LE PLANCHER DE MESURE CORPORELLE ANNONCÉE ───────────────────
+    //
+    // Même forme, même place et même raison que le plancher de repas juste
+    // au-dessus — avec un enjeu qui n'est PAS le même.
+    //
+    // Ce n'est pas une commodité: `restriction_guard` détecte
+    // `rapid_weight_loss` sur des poids hebdomadaires, et un élève qui annonce
+    // sa perte DANS LE CHAT et seulement là est un élève dont la perte rapide
+    // n'est jamais détectée. Ouvrir ce chemin sans brancher la ceinture, ce
+    // serait désarmer une garde en croyant ajouter une commodité (FF-007 R5).
+    //
+    // TROIS DIFFÉRENCES AVEC SES VOISINS, toutes assumées:
+    //
+    //  1. IL ÉCRIT LUI-MÊME, il ne pose pas d'effet sur le frame. La mesure ne
+    //     va pas dans `protocol_events` mais sur la ligne de semaine, là où le
+    //     point du dimanche la range — il n'existe donc aucun `effect_type` à
+    //     demander, et en inventer un forkerait le schéma pour une écriture
+    //     qui a déjà son chemin (`week_review_io`). R9 (« ne rien faire si le
+    //     frame porte déjà l'effet ») est vide par construction: aucun effet du
+    //     dispatcher n'écrit une mesure corporelle.
+    //
+    //  2. IL RÉ-ÉVALUE LA CEINTURE. `loadKeelTurnContext` a évalué le plancher
+    //     TCA AVANT que cette mesure n'existe. Sans re-lecture, la ceinture ne
+    //     verrait le poids qu'au tour suivant — soit exactement le tour où
+    //     l'élève annonce une perte de 3 %/semaine et reçoit une réponse
+    //     normale. `keelRoutingInputs()` est calculé plus bas, donc la
+    //     ré-évaluation arrive à temps pour la route.
+    //
+    //  3. IL S'ARRÊTE SUR UN MINEUR. Un mineur n'a pas de cible
+    //     nutritionnelle; il n'a pas non plus de suivi de poids (FF-008 §7).
+    //     `weekPlanAgeGate` mord déjà ailleurs et le chat ne crée pas une porte
+    //     latérale.
+    const declaredMeasure = detectDeclaredBodyMeasure(
+      userMessage,
+      keelTurn.display_unit_system,
+    );
+    if (declaredMeasure && keelTurn.age_verdict?.status === "minor") {
+      console.warn("[keel] body_measure_floor refused (minor student)", {
+        request_id: requestId,
+        kind: declaredMeasure.kind,
+        detail:
+          "un mineur n'a pas de suivi de poids: la mesure n'est pas enregistrée " +
+          "et n'est pas mentionnée.",
+      });
+    } else if (declaredMeasure) {
+      // Liés en locaux: le compilateur ne sait pas rétrécir un champ de
+      // `keelTurn`, qui est un `let` réassigné plus bas.
+      const measureLocalDate = keelTurn.local_date;
+      const measureLocale = keelTurn.content_locale;
+      const weekStart = measureLocalDate
+        ? weekStartOfLocalDate(measureLocalDate)
+        : null;
+      if (!weekStart || !measureLocalDate || !measureLocale) {
+        // Sans date locale on ne sait pas DANS QUELLE SEMAINE ranger la mesure,
+        // et sans locale persistée la ligne mentirait sur la langue de sa
+        // prose (R2). Les deux se nomment plutôt que de se deviner.
+        console.warn("[keel] body_measure_floor could not write", {
+          request_id: requestId,
+          reason: !weekStart ? "missing_local_date" : "missing_content_locale",
+        });
+      } else {
+        try {
+          const written = await writeDeclaredBodyMeasure(supabase, {
+            userId,
+            weekStart,
+            kind: declaredMeasure.kind,
+            valueSi: declaredMeasure.valueSi,
+            // L'instant du tour en heure LOCALE de l'élève, résolue par le
+            // runtime. Jamais `new Date()`: un fait dont la date dépend du
+            // serveur qui l'a écrit est la famille de bugs nocturnes que ce
+            // dépôt a déjà payée.
+            measuredAt: userTime?.user_local_datetime ?? measureLocalDate,
+            contentLocale: measureLocale,
+          });
+          console.warn("[keel] body_measure_floor raised", {
+            request_id: requestId,
+            kind: declaredMeasure.kind,
+            unit: declaredMeasure.unit,
+            unit_source: declaredMeasure.unitSource,
+            matched: declaredMeasure.matched,
+            outcome: written.outcome,
+            // La valeur RELUE, pas celle qu'on a envoyée.
+            stored_value: written.storedValue,
+            week_start: weekStart,
+            detail:
+              "mesure annoncée en conversation, écrite là où le point du " +
+              "dimanche la range. La ceinture est ré-évaluée sur ce tour.",
+          });
+
+          // LA MOITIÉ QUI FAIT LA FICHE (FF-008 R7). Sans elle, on aurait
+          // ajouté un chemin d'écriture et laissé la ceinture aveugle.
+          try {
+            const rearmed = await evaluateRestrictionForStudent(
+              supabase as never,
+              {
+                userId,
+                asOfLocalDate: measureLocalDate,
+                turnMessage: userMessage,
+                turnLocale: measureLocale,
+              },
+            );
+            if (
+              rearmed.restriction_flag !== keelTurn.restriction?.restriction_flag
+            ) {
+              console.warn("[keel] restriction guard re-evaluated after a chat measure", {
+                request_id: requestId,
+                was: keelTurn.restriction?.restriction_flag ?? null,
+                now: rearmed.restriction_flag,
+                triggers: rearmed.triggers.map((t) => t.code),
+              });
+            }
+            keelTurn = { ...keelTurn, restriction: rearmed };
+          } catch (error) {
+            // Même arbitrage fail-open NOMMÉ que le chargeur: une panne de
+            // lecture n'enferme pas tous les élèves dans le flow clinique. Le
+            // verdict d'avant le tour reste en place, et l'incident est
+            // bruyant.
+            console.warn(
+              "[keel] restriction guard re-evaluation failed after a chat measure",
+              error,
+            );
+          }
+        } catch (error) {
+          // R7 de FF-008 §7: l'erreur REMONTE du chargeur et est journalisée
+          // ici. Elle n'interrompt pas le tour — un élève privé de réponse
+          // parce que son poids n'a pas pu s'écrire perdrait deux fois — mais
+          // elle est journalisée en `error`, pas en `warn`: c'est une donnée
+          // de sécurité qui n'a pas atteint la base.
+          console.error("[keel] body_measure_floor WRITE FAILED", {
+            request_id: requestId,
+            kind: declaredMeasure.kind,
+            week_start: weekStart,
+            error: error instanceof Error ? error.message : String(error),
+            detail:
+              "la mesure annoncée n'a PAS été enregistrée; la ceinture ne la " +
+              "verra pas. Le tour continue sans elle.",
+          });
+        }
+      }
     }
 
     // ── LE PLANCHER DE DÉCLARATION DE MALADIE ────────────────────────────────

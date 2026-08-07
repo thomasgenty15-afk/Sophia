@@ -224,6 +224,190 @@ function biofeedbackAxes(raw: unknown): Record<string, number> | null {
   return Object.keys(out).length > 0 ? out : null;
 }
 
+// ---------------------------------------------------------------------------
+// FF-008 — LA MESURE ANNONCÉE EN CONVERSATION
+// ---------------------------------------------------------------------------
+
+/** Le lundi de la semaine qui contient `localDate`. */
+export function weekStartOfLocalDate(localDate: string): string | null {
+  const raw = String(localDate ?? "").trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(raw)) return null;
+  const d = new Date(`${raw}T00:00:00Z`);
+  if (Number.isNaN(d.getTime())) return null;
+  const dow = (d.getUTCDay() + 6) % 7;
+  d.setUTCDate(d.getUTCDate() - dow);
+  return d.toISOString().slice(0, 10);
+}
+
+export interface DeclaredBodyMeasureWrite {
+  userId: string;
+  weekStart: string;
+  /** `weight` écrit `weight_kg`, `waist` écrit `waist_cm`. */
+  kind: "weight" | "waist";
+  /** En SI: kg ou cm. C'est le plancher qui a converti, pas ce module. */
+  valueSi: number;
+  /** L'instant du tour, en heure LOCALE de l'élève, ISO. */
+  measuredAt: string;
+  contentLocale: string;
+}
+
+export interface DeclaredBodyMeasureWriteResult {
+  /** `inserted` quand la ligne de semaine n'existait pas encore. */
+  outcome: "inserted" | "updated";
+  /** La valeur RELUE. Vérité d'exécution: on n'affirme que ce que la base rend. */
+  storedValue: number;
+}
+
+/**
+ * Écrit une mesure ANNONCÉE EN CONVERSATION sur la ligne de semaine courante.
+ *
+ * ── POURQUOI ICI, ET PAS DANS UNE TABLE NEUVE ─────────────────────────────
+ * FF-008 §3: « pas de nouvelle table ». Le poids vit déjà dans DEUX modèles de
+ * la même table (`biofeedback.weight_kg`, écrit par le point du dimanche et la
+ * carte des mesures; `outcomes.weight_7d_avg`, le chemin 1:1). Un troisième
+ * lieu de stockage serait le bug écrivain/lecteur qui a laissé la carte poids
+ * vide, à l'échelle d'une donnée de sécurité.
+ *
+ * ── ELLE REMPLACE, ELLE N'AJOUTE PAS ──────────────────────────────────────
+ * La revue du dimanche n'a qu'UN poids par semaine. Deux lignes créeraient une
+ * variation fantôme, et `restriction_guard` JETTE sur une semaine dupliquée
+ * (« weekly_outcomes has a duplicate week_start_date »). La dernière
+ * déclaration gagne, quelle que soit sa source: un élève qui se corrige
+ * (« pardon, 78 pas 87 ») doit pouvoir le faire en parlant.
+ *
+ * ── FUSION, PAS ÉCRASEMENT ────────────────────────────────────────────────
+ * Le jsonb existant est relu et fusionné, comme `writeWeeklyFlowReply` le fait
+ * déjà: une mesure dite mardi ne doit pas effacer les six axes remplis
+ * dimanche, et un formulaire rempli dimanche prochain ne doit pas effacer ce
+ * qui a été dit mardi.
+ *
+ * ── SELECT PUIS UPDATE-PAR-ID OU INSERT — JAMAIS D'UPSERT ─────────────────
+ * Même raison que `writeWeekFacts` juste en dessous: l'unicité de cette table
+ * pour le pivot est portée par un index PARTIEL (`where plan_version_id is
+ * null`) et `ON CONFLICT (a,b)` ne peut pas le choisir — PostgREST n'émet
+ * jamais le `WHERE` qu'il faudrait, et le seul écrivain de cette table a passé
+ * sa vie à répondre 42P10 sans que rien ne le dise.
+ *
+ * ── ELLE NE RATTRAPE RIEN EN SILENCE ──────────────────────────────────────
+ * Toute erreur REMONTE. Un chargeur qui avale son erreur raconte qu'un élève
+ * n'a rien saisi alors qu'on a échoué à écrire — et ici, l'appelant a besoin de
+ * savoir qu'il ne doit accuser réception de rien.
+ */
+export async function writeDeclaredBodyMeasure(
+  db: Db,
+  args: DeclaredBodyMeasureWrite,
+): Promise<DeclaredBodyMeasureWriteResult> {
+  const userId = String(args.userId ?? "").trim();
+  if (!userId) throw new Error("[keel/week_review] writeDeclaredBodyMeasure: userId is required");
+  const weekStart = String(args.weekStart ?? "").trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(weekStart)) {
+    throw new Error(
+      `[keel/week_review] writeDeclaredBodyMeasure: weekStart is not YYYY-MM-DD: ${
+        JSON.stringify(args.weekStart)
+      }`,
+    );
+  }
+  const column = args.kind === "weight" ? "weight_kg" : "waist_cm";
+
+  async function readExisting(): Promise<
+    { id: string; biofeedback: unknown } | null
+  > {
+    const res = await db
+      .from("weekly_reviews")
+      .select("id, biofeedback")
+      .eq("user_id", userId)
+      .eq("week_start_date", weekStart)
+      .is("plan_version_id", null)
+      .maybeSingle();
+    if (res.error) throw res.error;
+    return (res.data ?? null) as { id: string; biofeedback: unknown } | null;
+  }
+
+  function merged(previous: unknown): Record<string, unknown> {
+    const before = (previous && typeof previous === "object" && !Array.isArray(previous))
+      ? previous as Record<string, unknown>
+      : {};
+    return {
+      ...before,
+      [column]: args.valueSi,
+      // La PROVENANCE, honnête. `source` est lu (par `/app/progress` et par la
+      // synthèse coach): laisser une mesure dite en conversation se faire
+      // passer pour un formulaire rendrait l'historique inexploitable le jour
+      // où on voudra comparer les deux gestes.
+      source: "chat",
+      measured_at: args.measuredAt,
+    };
+  }
+
+  /**
+   * RELECTURE, pas écho. La valeur rendue vient de la base: si un trigger l'a
+   * normalisée ou si l'écriture n'a touché aucune ligne, l'appelant l'apprend
+   * ici et pas trois couches plus loin sur une donnée qui paraît valide.
+   */
+  async function readBack(id: string): Promise<number> {
+    const res = await db
+      .from("weekly_reviews")
+      .select("biofeedback")
+      .eq("id", id)
+      .maybeSingle();
+    if (res.error) throw res.error;
+    const row = (res.data ?? null) as { biofeedback: unknown } | null;
+    const bio = (row?.biofeedback ?? null) as Record<string, unknown> | null;
+    const stored = Number(bio?.[column]);
+    if (!Number.isFinite(stored)) {
+      throw new Error(
+        `[keel/week_review] body measure write-through violated: ${column} is ` +
+          `not readable back on weekly_reviews ${id}`,
+      );
+    }
+    return stored;
+  }
+
+  const existing = await readExisting();
+  if (existing) {
+    const res = await db
+      .from("weekly_reviews")
+      .update({ biofeedback: merged(existing.biofeedback) })
+      .eq("id", existing.id);
+    if (res.error) throw res.error;
+    return { outcome: "updated", storedValue: await readBack(existing.id) };
+  }
+
+  const res = await db
+    .from("weekly_reviews")
+    .insert({
+      user_id: userId,
+      week_start_date: weekStart,
+      plan_version_id: null,
+      biofeedback: merged(null),
+      content_locale: args.contentLocale,
+    })
+    .select("id")
+    .single();
+  if (res.error) {
+    // 23505 = l'index partiel a mordu, une écriture concurrente a créé la ligne
+    // entre notre SELECT et notre INSERT. C'est exactement ce que la ceinture
+    // doit faire: on relit et on fusionne dedans.
+    if (String((res.error as { code?: string }).code ?? "") !== "23505") throw res.error;
+    const raced = await readExisting();
+    if (!raced) throw res.error;
+    const retry = await db
+      .from("weekly_reviews")
+      .update({ biofeedback: merged(raced.biofeedback) })
+      .eq("id", raced.id);
+    if (retry.error) throw retry.error;
+    return { outcome: "updated", storedValue: await readBack(raced.id) };
+  }
+  const insertedId = String((res.data as Record<string, unknown> | null)?.id ?? "").trim();
+  if (!insertedId) {
+    throw new Error(
+      "[keel/week_review] weekly_reviews insert returned no readable id " +
+        "(write-through violated)",
+    );
+  }
+  return { outcome: "inserted", storedValue: await readBack(insertedId) };
+}
+
 /**
  * Écrit `week_facts` sur la ligne (élève, semaine).
  *

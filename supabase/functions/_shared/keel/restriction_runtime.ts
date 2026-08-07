@@ -141,6 +141,53 @@ function dedupeWeeklyRows(
   );
 }
 
+/**
+ * LE POIDS DE LA SEMAINE, DEPUIS LES DEUX MODÈLES QUI COEXISTENT.
+ *
+ * ⚠️ CE LECTEUR N'EN LISAIT QU'UN, ET C'ÉTAIT LE MORT.
+ *
+ * `weekly_reviews` porte le poids à deux endroits, et le dépôt le documente
+ * déjà à trois: `student_body_io.readMeasure`,
+ * `frontend/.../studentProgressWeight.ts` et l'en-tête de
+ * `weekly_flow.weeklyBiofeedbackPayload`.
+ *
+ *   `biofeedback.weight_kg`   — le point du dimanche, la carte des mesures de
+ *                               `/app/plan`, et depuis FF-008 la conversation.
+ *                               C'est le SEUL que le modèle pivot alimente.
+ *   `outcomes.weight_7d_avg`  — le chemin 1:1, gardé exprès. Vérifié le
+ *                               2026-08-03 puis à nouveau ici: AUCUN écrivain
+ *                               dans le modèle pivot.
+ *
+ * Ce chargeur ne lisait que le second. Conséquence, et elle n'est pas
+ * théorique: `rapid_weight_loss` — l'entrée n°1 de la ceinture, celle qui
+ * détecte une perte de plus de 1,2 %/semaine sur 14 jours — ne voyait JAMAIS un
+ * poids saisi par un élève du pivot. Une ceinture armée sur un coffre vide,
+ * exactement la famille de défaut que ce dépôt a déjà nommée.
+ *
+ * L'ordre de préférence est celui de `student_body_io`: le saisi d'abord, le
+ * dérivé 1:1 en repli. Une seule règle, quatre lecteurs, aucune divergence
+ * possible.
+ *
+ * Un mot sur la moyenne: le champ du garde s'appelle `weight_7d_avg_kg` et
+ * reçoit ici une mesure PONCTUELLE. Ce n'est pas un abus — le modèle pivot n'a
+ * qu'un poids par semaine, la « moyenne sur 7 jours » d'une semaine à une
+ * mesure EST cette mesure, et le garde compare de semaine à semaine. Lisser ce
+ * qu'on n'a pas mesuré fabriquerait une donnée.
+ */
+function weekWeightKg(row: Record<string, unknown>): number | null {
+  const biofeedback = (row.biofeedback ?? {}) as Record<string, unknown>;
+  const declared = numberOrNull(
+    biofeedback.weight_kg,
+    "weekly_reviews.biofeedback.weight_kg",
+  );
+  if (declared !== null) return declared;
+  const outcomes = (row.outcomes ?? {}) as Record<string, unknown>;
+  return numberOrNull(
+    outcomes.weight_7d_avg,
+    "weekly_reviews.outcomes.weight_7d_avg",
+  );
+}
+
 export async function loadWeeklyOutcomeSamples(
   db: KeelDbClient,
   params: { userId: string; asOfLocalDate: string },
@@ -149,7 +196,7 @@ export async function loadWeeklyOutcomeSamples(
   const { data, error } = await db
     .from("weekly_reviews")
     .select(
-      "week_start_date, self_rated_adherence, logging_coverage, outcomes, created_at",
+      "week_start_date, self_rated_adherence, logging_coverage, outcomes, biofeedback, created_at",
     )
     .eq("user_id", params.userId)
     .gte("week_start_date", since)
@@ -158,13 +205,9 @@ export async function loadWeeklyOutcomeSamples(
   if (error) throw error;
   return dedupeWeeklyRows((data ?? []) as Array<Record<string, unknown>>).map(
     (row) => {
-      const outcomes = (row.outcomes ?? {}) as Record<string, unknown>;
       return {
         week_start_date: String(row.week_start_date),
-        weight_7d_avg_kg: numberOrNull(
-          outcomes.weight_7d_avg,
-          "weekly_reviews.outcomes.weight_7d_avg",
-        ),
+        weight_7d_avg_kg: weekWeightKg(row),
         self_rated_adherence: numberOrNull(
           row.self_rated_adherence,
           "weekly_reviews.self_rated_adherence",
