@@ -1,25 +1,33 @@
-export type SurfaceFamily = "utility" | "transformational";
+// RETRAIT ARCHITECTE (2026-08-08) — les cinq surfaces `architect.*`
+// (coaching/wishlist/stories/reflections/quotes) sont retirées de ce registre.
+// Leurs trois tables avaient déjà été droppées le 2026-08-03 par
+// `20260803140000_pivot_drop_non_spine_legacy.sql`, et leurs écrans
+// (`/architecte/*`) sont démontés depuis `App.tsx` W2.A.
+//
+// L'absence est portée par `getSurfaceDefinition()`: un `surface_id`
+// `architect.*` persisté dans un état conversationnel d'avant le pivot ne
+// résout plus rien, et `loadSurfaceOpportunityAddon()` rend `null` avant tout
+// accès DB.
+//
+// Ce qui reste ici (les trois surfaces `dashboard.*`) n'a **aucun écrivain**:
+// personne ne pose `tempMemory.__surface_opportunity_addon`, seule entrée du
+// système. Le registre entier est donc inerte — son verdict dépend des lots
+// « plans d'action » et « rappels récurrents », et n'est pas rendu ici.
 
-// to be evolved into ProductSurfaceRegistry v2 in S4
+// `"transformational"` disparaît avec les surfaces `architect.*`: c'était la
+// famille des cinq, et il n'en reste aucune.
+export type SurfaceFamily = "utility";
+
 export type SurfaceId =
   | "dashboard.personal_actions"
   | "dashboard.reminders"
-  | "dashboard.preferences"
-  | "architect.coaching"
-  | "architect.wishlist"
-  | "architect.stories"
-  | "architect.reflections"
-  | "architect.quotes";
+  | "dashboard.preferences";
 
 export type SurfaceContentSource =
   | "none"
   | "personal_actions"
   | "reminders"
-  | "preferences"
-  | "wishlist"
-  | "stories"
-  | "reflections"
-  | "quotes";
+  | "preferences";
 
 export interface SurfaceDefinition {
   id: SurfaceId;
@@ -114,123 +122,6 @@ export const SURFACE_REGISTRY: SurfaceDefinition[] = [
       "plus court",
       "moins de questions",
       "challenge-moi",
-    ],
-  },
-  {
-    id: "architect.coaching",
-    family: "transformational",
-    label: "L'Atelier",
-    goal:
-      "Orienter vers le travail de transformation identitaire et les modules de coaching/rituels.",
-    whenRelevant:
-      "Reconstruction de soi, blocages profonds, transformation identitaire, besoin d'un travail structuré.",
-    antiNoise:
-      "Ne pas pousser pour une simple réponse pratique ou un souci très local sans enjeu identitaire.",
-    defaultLevelCap: 4,
-    contentSource: "none",
-    aliases: ["atelier", "l'atelier", "coaching", "temple"],
-    triggerKeywords: [
-      "forge",
-      "transformation",
-      "identité",
-      "blocage profond",
-      "me reconstruire",
-      "travail de fond",
-    ],
-  },
-  {
-    id: "architect.wishlist",
-    family: "transformational",
-    label: "Envies",
-    goal:
-      "Capturer ce qui attire profondément le user et dessine la vie qu'il veut construire.",
-    whenRelevant:
-      "Désirs, aspirations, envies de vie, bucket list, ce qui l'appelle ou le fait vibrer.",
-    antiNoise:
-      "Ne pas pousser sur une simple idée logistique ou une tâche immédiate.",
-    defaultLevelCap: 4,
-    contentSource: "wishlist",
-    aliases: ["envies", "wishlist", "life wishlist"],
-    triggerKeywords: [
-      "désirs",
-      "desirs",
-      "aspirations",
-      "j'ai envie",
-      "ça m'attire",
-      "vie que je veux",
-      "me fait vibrer",
-      "j'aimerais vivre",
-    ],
-  },
-  {
-    id: "architect.stories",
-    family: "transformational",
-    label: "Histoires",
-    goal:
-      "Transformer le vécu réel du user en récits transmissibles, utiles et réutilisables.",
-    whenRelevant:
-      "Raconter une expérience, mieux parler de soi, prise de parole, vente, dating, connexion.",
-    antiNoise:
-      "Ne pas pousser si le user ne parle pas d'un vécu, d'un récit ou d'un besoin de narration.",
-    defaultLevelCap: 4,
-    contentSource: "stories",
-    aliases: ["histoires", "story journal"],
-    triggerKeywords: [
-      "histoire",
-      "récit",
-      "recit",
-      "story",
-      "raconter",
-      "anecdote",
-      "ce que j'ai vécu",
-      "prise de parole",
-      "transmettre",
-    ],
-  },
-  {
-    id: "architect.reflections",
-    family: "transformational",
-    label: "Réflexions",
-    goal:
-      "Structurer des idées, intuitions et observations pour clarifier la pensée du user.",
-    whenRelevant:
-      "Introspection, idée à développer, observation, intuition, besoin de structurer une pensée.",
-    antiNoise:
-      "Ne pas pousser pour une demande purement opérationnelle ou un simple besoin de réponse courte.",
-    defaultLevelCap: 4,
-    contentSource: "reflections",
-    aliases: ["réflexions", "reflexions", "réflexion", "reflexion"],
-    triggerKeywords: [
-      "idée",
-      "j'ai une idée",
-      "je me disais",
-      "intuition",
-      "observation",
-      "structurer ma pensée",
-    ],
-  },
-  {
-    id: "architect.quotes",
-    family: "transformational",
-    label: "Citations",
-    goal:
-      "Ancrer des phrases fortes et retrouver rapidement la bonne citation selon le moment.",
-    whenRelevant:
-      "Besoin d'inspiration légère, de phrase choc, de mantra, de rappel de perspective.",
-    antiNoise:
-      "Ne pas pousser face à un besoin d'analyse longue ou à un sujet qui demande autre chose qu'une ancre courte.",
-    defaultLevelCap: 3,
-    contentSource: "quotes",
-    aliases: ["citations", "citation", "quotes"],
-    triggerKeywords: [
-      "phrase",
-      "mantra",
-      "quote",
-      "inspire-moi",
-      "phrase forte",
-      "citation",
-      "mantra",
-      "rappel mental",
     ],
   },
 ];

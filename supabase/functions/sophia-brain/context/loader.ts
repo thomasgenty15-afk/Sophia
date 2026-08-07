@@ -1306,110 +1306,12 @@ async function loadPreferencesSurfaceSummary(
   return `${lines.join("\n")}\n`;
 }
 
-async function loadWishlistSurfaceSummary(
-  supabase: SupabaseClient,
-  userId: string,
-  query: string,
-  limit: number,
-): Promise<string | null> {
-  const { data, error } = await supabase
-    .from("user_architect_wishes")
-    .select("title,description,category,status,completed_at,created_at")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false })
-    .limit(12);
-  if (error) return null;
-  const rows = Array.isArray(data)
-    ? data as Array<Record<string, unknown>>
-    : [];
-  if (rows.length === 0) return null;
-  const ranked = rankSurfaceItems(
-    rows,
-    query,
-    (row) =>
-      `${String(row.title ?? "")} ${String(row.description ?? "")} ${
-        String(row.category ?? "")
-      }`,
-    limit,
-  );
-  const lines = ranked.map((row) =>
-    `- ${String(row.title ?? "").trim().slice(0, 90)}${
-      String(row.description ?? "").trim()
-        ? ` — ${String(row.description ?? "").trim().slice(0, 120)}`
-        : ""
-    }`
-  );
-  return lines.length > 0 ? `${lines.join("\n")}\n` : null;
-}
-
-async function loadStoriesSurfaceSummary(
-  supabase: SupabaseClient,
-  userId: string,
-  query: string,
-  limit: number,
-): Promise<string | null> {
-  const { data, error } = await supabase
-    .from("user_architect_stories")
-    .select(
-      "title,duration_label,bullet_points,speech_map,topic_tags,updated_at",
-    )
-    .eq("user_id", userId)
-    .order("updated_at", { ascending: false })
-    .limit(12);
-  if (error) return null;
-  const rows = Array.isArray(data) ? data as Array<Record<string, any>> : [];
-  if (rows.length === 0) return null;
-  const ranked = rankSurfaceItems(
-    rows,
-    query,
-    (row) =>
-      `${String(row.title ?? "")} ${String(row.speech_map ?? "")} ${
-        Array.isArray(row.topic_tags) ? row.topic_tags.join(" ") : ""
-      } ${Array.isArray(row.bullet_points) ? row.bullet_points.join(" ") : ""}`,
-    limit,
-  );
-  const lines = ranked.map((row) => {
-    const title = String(row.title ?? "").trim().slice(0, 90);
-    const tags = Array.isArray(row.topic_tags)
-      ? row.topic_tags.slice(0, 4).join(", ")
-      : "";
-    return `- ${title}${tags ? ` | tags: ${tags}` : ""}`;
-  });
-  return lines.length > 0 ? `${lines.join("\n")}\n` : null;
-}
-
-async function loadReflectionsSurfaceSummary(
-  supabase: SupabaseClient,
-  userId: string,
-  query: string,
-  limit: number,
-): Promise<string | null> {
-  const { data, error } = await supabase
-    .from("user_architect_reflections")
-    .select("title,content,tags,updated_at")
-    .eq("user_id", userId)
-    .order("updated_at", { ascending: false })
-    .limit(12);
-  if (error) return null;
-  const rows = Array.isArray(data) ? data as Array<Record<string, any>> : [];
-  if (rows.length === 0) return null;
-  const ranked = rankSurfaceItems(
-    rows,
-    query,
-    (row) =>
-      `${String(row.title ?? "")} ${String(row.content ?? "")} ${
-        Array.isArray(row.tags) ? row.tags.join(" ") : ""
-      }`,
-    limit,
-  );
-  const lines = ranked.map((row) => {
-    const title = String(row.title ?? "").trim().slice(0, 90);
-    const preview = String(row.content ?? "").trim().replace(/\s+/g, " ")
-      .slice(0, 120);
-    return `- ${title}${preview ? ` — ${preview}` : ""}`;
-  });
-  return lines.length > 0 ? `${lines.join("\n")}\n` : null;
-}
+// RETRAIT ARCHITECTE — `loadWishlistSurfaceSummary`,
+// `loadStoriesSurfaceSummary` et `loadReflectionsSurfaceSummary` sont parties
+// avec les surfaces `architect.*`. Leurs tables (`user_architect_wishes`,
+// `_stories`, `_reflections`) avaient déjà été droppées le 2026-08-03 par
+// `20260803140000_pivot_drop_non_spine_legacy.sql`: ces trois lectures
+// interrogeaient des tables inexistantes et rendaient `null` en silence.
 
 async function loadSurfaceSupportingContent(args: {
   supabase: SupabaseClient;
@@ -1418,9 +1320,13 @@ async function loadSurfaceSupportingContent(args: {
   message: string;
   runtime?: ActiveTransformationRuntime | null;
 }): Promise<string> {
-  const query = String(args.addon.query_hint ?? args.message ?? "").trim();
-  const contentLimit = args.addon.level >= 4 ? 2 : 1;
   const definition = getSurfaceDefinition(args.addon.surface_id);
+  // RETRAIT ARCHITECTE — c'est CE test qui porte l'absence des surfaces
+  // `architect.*` (wishlist/stories/reflections/quotes), retirées du registre
+  // avec leurs tables. Un `surface_id` d'avant le pivot peut encore arriver
+  // d'un état conversationnel persisté: il ne résout plus aucune définition et
+  // s'arrête ici, avant tout accès DB. Ne remplace pas ce garde par un
+  // `default:` du switch — le switch ne serait jamais atteint.
   if (!definition) return "";
 
   switch (definition.contentSource) {
@@ -1433,34 +1339,6 @@ async function loadSurfaceSupportingContent(args: {
     case "preferences":
       return await loadPreferencesSurfaceSummary(args.supabase, args.userId) ??
         "";
-    case "wishlist":
-      return await loadWishlistSurfaceSummary(
-        args.supabase,
-        args.userId,
-        query,
-        contentLimit,
-      ) ?? "";
-    case "stories":
-      return await loadStoriesSurfaceSummary(
-        args.supabase,
-        args.userId,
-        query,
-        contentLimit,
-      ) ?? "";
-    case "reflections":
-      return await loadReflectionsSurfaceSummary(
-        args.supabase,
-        args.userId,
-        query,
-        contentLimit,
-      ) ?? "";
-    // PIVOT — la surface "quotes" (Architecte) est supprimée avec sa table.
-    // Le case reste NOMMÉ plutôt que retiré du switch: le token peut encore
-    // arriver d'un état conversationnel persisté d'avant le pivot, et un
-    // `default: return ""` silencieux serait indiscernable d'un bug de
-    // routage. Ici l'absence est explicite.
-    case "quotes":
-      return "";
     default:
       return "";
   }
