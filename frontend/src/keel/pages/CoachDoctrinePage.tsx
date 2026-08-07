@@ -1608,7 +1608,15 @@ function PracticeRowEditor({
           décisions du classifieur qui changent ce que la cohorte reçoit. Le
           `kind`, le `target` et l'`unit` ne sont pas éditables ici — ils
           décrivent la phrase du coach, et la façon de les corriger est de
-          réécrire la phrase, ce que « Read it again » fait. */}
+          réécrire la phrase, ce que « Read it again » fait.
+
+          ⚠️ ELLES DISPARAISSENT SUR UNE PRATIQUE BLOQUÉE, et ce n'est pas de
+          l'esthétique. Aucune des quatre ne peut lever une collision — la
+          ceinture se rejoue sur le LABEL, à chaque lecture. Les laisser à
+          l'écran inviterait le coach à décocher des cases jusqu'à ce que « ça
+          reparte », et rien ne repartirait: le seul geste utile est de
+          réécrire la phrase ou de la retirer. */}
+      {blocked ? null : (
       <div className="mt-3 space-y-1.5">
         <label className="flex items-start gap-2 text-xs text-gray-700">
           <input
@@ -1647,7 +1655,9 @@ function PracticeRowEditor({
           </span>
         </label>
       </div>
+      )}
 
+      {blocked ? null : (
       <div className="mt-2">
         <p className="text-xs font-medium text-gray-500">{t("coach.practices.scope_label")}</p>
         <div className="mt-1 flex flex-wrap gap-1.5">
@@ -1683,6 +1693,7 @@ function PracticeRowEditor({
           ))}
         </div>
       </div>
+      )}
 
       <div className="mt-2 flex gap-3">
         <button

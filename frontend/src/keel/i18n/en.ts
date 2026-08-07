@@ -2898,8 +2898,15 @@ export const en = {
   "coach.practices.add_button": "Add",
   "coach.practices.adding": "Reading it…",
   "coach.practices.full": "Seven is the most a rotation can carry before your students stop being able to tell one evening from the next.",
+  // ⚠️ LE NOMBRE EST UNE LONGUEUR DE CYCLE, PAS UN COMPTE DE PRATIQUES, et la
+  // première rédaction disait « 3 practices » sur trois pratiques dont une
+  // bloquée et une comptant double. Le chiffre était juste et la phrase fausse:
+  // le coach lisait « mes trois pratiques partent » sur une méthode qui n'en
+  // sert que deux. C'est exactement le genre de nombre que ce dépôt refuse
+  // ailleurs (« 5 des 3 » dans le message du soir).
   "coach.practices.rotation_one": "One practice — it goes out every evening.",
-  "coach.practices.rotation_many": "{count} practices — each student sees a different one each evening.",
+  "coach.practices.rotation_many":
+    "A different one each evening — the rotation comes back round every {count} days.",
   "coach.practices.reach_label": "Goes to",
   // Le verdict de la classification est MONTRÉ et CORRIGEABLE: c'est la moitié
   // de la valeur du stockage (même patron que `coach_food_proposals`).

@@ -3,8 +3,8 @@
 | | |
 |---|---|
 | **Identifiant** | `FF-001-quotidien-du-coach` |
-| **Statut** | 🟡 Spécifiée — non construite |
-| **Date** | 2026-08-07 |
+| **Statut** | 🟠 En cours — construite et éprouvée en local, **non déployée** ([§12](#12-état-de-livraison)) |
+| **Date** | 2026-08-07 (spécifiée) · 2026-08-07 (construite) |
 | **Autorité produit** | [MODEL.md](../../keel/MODEL.md) (1:N, aucun canal 1:1) · [CONTRACT.md](../../keel/CONTRACT.md) (planchers) · [PIVOT-FOYER.md](../../keel/PIVOT-FOYER.md) §7.5 (conseil, pas surveillance) |
 | **Dépend de** | `keel-daily-pulse-v1` · `daily_recap_io.ts` · `restriction_guard.ts` · `doctrine.ts` · `student_age.ts` |
 | **Effort estimé** | 2 à 3 jours |
@@ -234,3 +234,86 @@ la page du lundi du coach.
 - Les pratiques valent-elles aussi pour un **foyer** sans coach, servies par la
   méthode de la maison ? La délégation existe déjà
   (`doctrine_delegation.ts`) — la question est produit, pas technique.
+
+---
+
+## 12. État de livraison
+
+**Construit et éprouvé en local le 2026-08-07. Rien n'est déployé.**
+
+### Ce qui existe
+
+| Étage | Où |
+|---|---|
+| La colonne, avec son `COMMENT` et ses privilèges refermés | `supabase/migrations/20260808010000_coach_daily_practices.sql` |
+| Les décisions pures (forme, portée, rotation, mode, bloc injecté) | `_shared/keel/daily_practices.ts` + son test |
+| Le prompt de classification et la relecture de son verdict | `_shared/keel/daily_practices_classify.ts` + son test |
+| L'action `classify_practice` | `coach-doctrine-v1` — pas une fonction neuve, voir le commentaire en tête de l'action |
+| L'injection du soir, dans l'appel modèle qui a déjà lieu | `_shared/keel/daily_recap.ts` · `daily_recap_io.ts` · `keel-daily-pulse-v1` |
+| L'écran, verdict visible et corrigeable | `frontend/src/keel/api/dailyPractices.ts` · `CoachDoctrinePage` |
+
+Les dix critères d'acceptation de §8 sont passés en **run réel**, sur une
+fixture locale de six élèves × sept soirs (42 messages composés, zéro repli,
+zéro échec), chaque assertion relue dans `chat_messages` / `outbound_messages` /
+`llm_usage_events` — jamais dans la réponse HTTP. La fixture est nettoyée.
+
+**Contre-épreuve.** Un coach sans pratique reçoit le message d'avant: prouvé
+deux fois, et la première est la plus forte — `buildRecapSystemPrompt` avec
+`practice: null` rend le prompt d'avant FF-001 **octet pour octet**, contre un
+attendu recopié en dur (`daily_recap_test.ts`). Le message final, lui, n'est pas
+comparable au caractère près: le modèle échantillonne. Ce qui est comparable —
+tout ce qui le détermine de notre côté — l'est.
+
+### Ce qui manque pour passer 🟢
+
+1. **Le déploiement.** `supabase db push` puis
+   `supabase functions deploy coach-doctrine-v1 keel-daily-pulse-v1`, à lancer
+   par un humain (hook `block-risky-commands.sh`).
+2. **`schema.sql` n'est pas régénéré.** `npm run db:dump` sur la base locale
+   PARTAGÉE embarquerait le travail en cours des autres sessions.
+3. **Les mesures de §10 n'ont qu'une moitié.** `keel-daily-pulse-v1` rend
+   désormais `practice_modes` (part des messages portant une pratique, et
+   répartition rappel/question). « `needs_review` depuis plus de 7 jours » et
+   « pratiques `blocked`, et lesquelles » n'ont aucune surface de lecture — ce
+   sont deux requêtes, pas un écran.
+4. **La contre-mesure de §10 n'est pas instrumentée.** Le taux de réponse au
+   pulse avant/après demande une comparaison dans le temps que rien n'agrège
+   aujourd'hui.
+
+### Décisions prises en construisant, que la spécification ne tranchait pas
+
+- **Les plafonds du message du soir s'ouvrent d'une phrase quand une pratique
+  voyage** (220→320 caractères, 2→3 phrases). FF-001 ne dit rien de la
+  longueur, et 220/2 était écrit pour UNE chose. Les laisser aurait fait
+  rejeter des compositions correctes en `too_long`, le repli déterministe
+  serait devenu le cas nominal, et le symptôme lu aurait été « la voix du coach
+  a disparu » — le piège de R10 sous un autre nom.
+- **Une garde de sortie neuve, `minor_quantity`.** R5 exige que le chiffre
+  n'apparaisse pas; or `allowedNumbers` ne vérifie un nombre que devant un nom
+  comptable (`meals`, `dishes`, `days`), et « verres » n'en est pas un. Retirer
+  le `target` des nombres autorisés n'interdisait donc **rien**. La liste
+  négative est ce qui rend le critère vérifiable au lieu qu'il soit espéré.
+- **Le chiffre est aussi retiré du `label` et du `brief` pour un mineur**
+  (`redactQuantities`). Le label du coach EST « 4 verres d'eau »: le premier jet
+  retirait la ligne dédiée et laissait passer le chiffre par la porte à côté.
+- **La liste des ceintures qu'une pratique peut incarner est fermée à quatre**
+  (`weight_readout`, `calorie_readout`, `streak_display`, `adherence_score`).
+  `compliance_reminder` en est **exclu délibérément**: R4 dit qu'une question de
+  pratique EN EST une, donc l'y mettre aurait bloqué toutes les pratiques dans
+  leur propre garde-fou.
+
+### Observations, hors périmètre, à trancher ailleurs
+
+- **Un élève sous plancher TCA reçoit encore la question du pulse.**
+  `decideDailyPulse` lit `safetyBand` (toujours `null` faute d'état de crise
+  persisté), jamais le plancher TCA. R4 gouverne la PRATIQUE, et elle est
+  respectée; « How was today? » part quand même. Comportement antérieur à ce
+  lot, mais il touche la même surface.
+- **Un coach qui n'écrirait QUE des pratiques n'en sert aucune.**
+  `composeRecapBody` exige `reason === "loaded"`, et une doctrine sans
+  conviction ni interdit compile `isEmpty`. Les pratiques voyagent dans la voix
+  du coach; sans méthode publiée, il n'y a pas de voix. L'écran le dit.
+- **Le modèle recopie parfois le `brief` mot pour mot** dans la bulle. Le brief
+  est écrit dans la voix du coach, donc la phrase reste juste, mais c'est la
+  répétition que « un brief, pas une phrase figée » existe pour éviter. À
+  surveiller sur la vraie cohorte avant de durcir le prompt.
