@@ -7,13 +7,16 @@ import {
   createHousehold,
   ENVY_MAX_CHARS,
   envyRound,
+  generateHouseholdMeal,
   grantRestrictionConsent,
   type HouseholdKind,
+  type HouseholdMealView,
   type HouseholdMemberView,
   type HouseholdView,
   inviteToHousehold,
   loadEnvies,
   loadHousehold,
+  loadHouseholdMeal,
   loadRestrictions,
   removeRestriction,
   restrictionBlock,
@@ -62,6 +65,7 @@ export default function HouseholdPage(): React.ReactElement {
   const [household, setHousehold] = React.useState<HouseholdView | null>(null);
   const [restrictions, setRestrictions] = React.useState<RestrictionView[]>([]);
   const [envies, setEnvies] = React.useState<Array<{ userId: string; body: string }>>([]);
+  const [meal, setMeal] = React.useState<HouseholdMealView | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [busy, setBusy] = React.useState(false);
 
@@ -75,6 +79,7 @@ export default function HouseholdPage(): React.ReactElement {
       if (hh) {
         setRestrictions(await loadRestrictions());
         setEnvies(await loadEnvies(weekStart));
+        setMeal(await loadHouseholdMeal(weekStart));
       }
       setPhase("ready");
     } catch (e) {
@@ -130,6 +135,8 @@ export default function HouseholdPage(): React.ReactElement {
                 busy={busy}
                 onSubmit={(body) => run(() => submitEnvy(weekStart, body))}
               />
+              <ComposeCard household={household} onDone={refresh} />
+              {meal ? <TableCard meal={meal} /> : null}
               <ConsentCard household={household} busy={busy} onRun={run} />
               <RestrictionsCard
                 household={household}
@@ -501,4 +508,98 @@ function inviteErrorText(reason: string): string | null {
     default:
       return null;
   }
+}
+
+function ComposeCard(
+  { household, onDone }: { household: HouseholdView; onDone: () => Promise<void> },
+) {
+  const [working, setWorking] = React.useState(false);
+  const [silent, setSilent] = React.useState<number | null>(null);
+  const [failure, setFailure] = React.useState<string | null>(null);
+
+  // SEUL LE COMPTE MAÎTRE COMPOSE. Ce n'est pas une hiérarchie de confort: la
+  // composition RETIRE le plan courant de la personne pour qui elle est écrite,
+  // donc laisser n'importe quel membre la déclencher laisserait un colocataire
+  // effacer la semaine d'un autre. La fonction edge refuse déjà (403); l'écran
+  // ne montre pas un bouton qui sera refusé.
+  if (household.me?.role !== "owner") return null;
+
+  return (
+    <Card>
+      <SectionLabel>{t("household.compose.title")}</SectionLabel>
+      <p className="mb-3 text-sm text-neutral-600">{t("household.compose.body")}</p>
+      <Button
+        disabled={working}
+        onClick={async () => {
+          setWorking(true);
+          setFailure(null);
+          setSilent(null);
+          try {
+            const res = await generateHouseholdMeal({
+              window: { kind: "until_sunday" },
+              intent: "prepare_next",
+            });
+            // QUI S'EST TU EST DIT APRÈS COUP, jamais réclamé avant. Le plan
+            // sort quand même — c'est la règle de survie du conseil de famille
+            // (§8.4) — mais le foyer doit savoir pour qui on a composé d'office.
+            setSilent(res.silent.length);
+            await onDone();
+          } catch (e) {
+            setFailure(e instanceof Error ? e.message : String(e));
+          } finally {
+            setWorking(false);
+          }
+        }}
+      >
+        {working ? t("household.compose.working") : t("household.compose.submit")}
+      </Button>
+      {silent !== null && silent > 0 ? (
+        <p className="mt-2 text-sm text-neutral-600">
+          {t("household.compose.silent_note", { count: silent })}
+        </p>
+      ) : null}
+      {failure ? <p className="mt-2 text-sm text-red-700">{failure}</p> : null}
+    </Card>
+  );
+}
+
+/**
+ * À TABLE — qui met quoi dans son assiette.
+ *
+ * ── POURQUOI ICI ET PAS SUR `/app/plan` ───────────────────────────────────
+ * Le plan montre ce qu'on CUISINE; ceci montre comment on SERT. Et c'est la
+ * seule vue du produit qui n'a de sens qu'à plusieurs — la mettre sur le plan
+ * ferait porter un bloc vide au chemin individuel, qui est le majoritaire.
+ *
+ * ── AUCUNE RAISON N'EST AFFICHÉE, PARCE QU'IL N'Y EN A PAS ────────────────
+ * `portion_note` est une INSTRUCTION DE SERVICE, garantie sans raison ni
+ * vocabulaire de corps par `sanitizePortionNote` côté serveur. C'est ce qui
+ * permet d'afficher toute la table à tout le monde: l'instruction est
+ * publique, le pourquoi ne l'est pas.
+ */
+function TableCard({ meal }: { meal: HouseholdMealView }) {
+  if (meal.portions.length === 0) return null;
+  return (
+    <Card>
+      <SectionLabel>{t("household.portions.title")}</SectionLabel>
+      <ul className="flex flex-col gap-3">
+        {meal.portions.map((p) => (
+          <li key={p.userId}>
+            <p className="text-sm">
+              <span className="font-medium">{p.displayName}</span>
+              {" — "}
+              <span className="text-neutral-600">
+                {p.portionNote ?? t("household.portions.standard")}
+              </span>
+            </p>
+            {p.shares.length > 0 ? (
+              <ul className="mt-1 flex flex-col gap-0.5 pl-4 text-sm text-neutral-500">
+                {p.shares.map((s) => <li key={s.preparationId}>{s.note}</li>)}
+              </ul>
+            ) : null}
+          </li>
+        ))}
+      </ul>
+    </Card>
+  );
 }

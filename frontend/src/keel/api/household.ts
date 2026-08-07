@@ -157,41 +157,45 @@ function asResult(data: unknown): RpcResult {
   return { ...row, ok: row.ok === true, reason: String(row.reason ?? "") };
 }
 
+/**
+ * LE FOYER ET SES MEMBRES.
+ *
+ * ── POURQUOI UNE RPC POUR LA LISTE ET PAS UN SELECT SUR `profiles` ────────
+ * DÉFAUT VU AU NAVIGATEUR: la première rédaction lisait `profiles` avec un
+ * `.in(ids)`. RLS sur `profiles` ne laisse lire QUE sa propre ligne — tous les
+ * autres membres s'affichaient donc « — », sans nom ni étiquette « enfant »,
+ * sans la moindre erreur. Un foyer à un seul habitant.
+ *
+ * Et on ne peut PAS ouvrir `profiles` par une policy: une policy RLS ne
+ * restreint pas les COLONNES, donc la rendre lisible aux co-membres livrerait
+ * téléphone, e-mail et identifiant Stripe pour afficher un prénom.
+ * `keel_household_roster` rend quatre champs choisis un par un.
+ */
 export async function loadHousehold(myUserId: string): Promise<HouseholdView | null> {
   const { data: hh, error: hhErr } = await supabase
     .from("households").select("id, kind, name").maybeSingle();
   if (hhErr) throw new Error(hhErr.message);
   if (!hh) return null;
 
-  const { data: rows, error: memErr } = await supabase
-    .from("household_members")
-    .select("user_id, role, restriction_consent_at");
-  if (memErr) throw new Error(memErr.message);
+  const { data: rows, error: rosterErr } = await supabase.rpc("keel_household_roster");
+  if (rosterErr) throw new Error(rosterErr.message);
 
-  const ids = (rows ?? []).map((r) => String((r as Record<string, unknown>).user_id));
-  const { data: profiles, error: pErr } = await supabase
-    .from("profiles").select("id, full_name, birth_date").in("id", ids);
-  if (pErr) throw new Error(pErr.message);
-  const byId = new Map(
-    (profiles ?? []).map((p) => [String((p as Record<string, unknown>).id), p as Record<string, unknown>]),
-  );
-
-  const members: HouseholdMemberView[] = (rows ?? []).map((raw) => {
-    const r = raw as Record<string, unknown>;
-    const userId = String(r.user_id);
-    const p = byId.get(userId) ?? {};
+  const members: HouseholdMemberView[] = (rows ?? []).map((raw: unknown) => {
+    const r = (raw ?? {}) as Record<string, unknown>;
     return {
-      userId,
-      // Le prénom seul. Le nom complet d'un enfant n'a pas à s'afficher sur un
-      // écran partagé par le foyer.
-      displayName: String(p.full_name ?? "").trim().split(/\s+/)[0] || "—",
+      userId: String(r.user_id ?? ""),
+      // Un prénom vide rend le libellé de l'écran, JAMAIS l'e-mail en repli:
+      // ça divulguerait une adresse à tout le foyer.
+      displayName: String(r.first_name ?? "").trim() || "—",
       role: (String(r.role) === "owner" ? "owner" : "member") as HouseholdRole,
-      isMinor: isMinorBirthDate(p.birth_date),
+      // DÉRIVÉ EN BASE. La date de naissance ne traverse jamais le réseau: le
+      // foyer a besoin de savoir qu'il y a un enfant à table, pas de sa date.
+      isMinor: r.is_minor === true,
       restrictionConsentAt: typeof r.restriction_consent_at === "string"
         ? r.restriction_consent_at
         : null,
     };
-  });
+  }).filter((m: HouseholdMemberView) => m.userId);
 
   const row = hh as Record<string, unknown>;
   return {
@@ -340,5 +344,72 @@ export async function generateHouseholdMeal(args: {
     spoken: Array.isArray(hh.spoken) ? hh.spoken.map(String) : [],
     silent: Array.isArray(hh.silent) ? hh.silent.map(String) : [],
     issues: Array.isArray(row.issues) ? row.issues.map(String) : [],
+  };
+}
+
+export interface MemberPortionView {
+  userId: string;
+  displayName: string;
+  /** `null` = part standard. L'écran rend son propre libellé. */
+  portionNote: string | null;
+  shares: Array<{ preparationId: string; note: string }>;
+}
+
+export interface HouseholdMealView {
+  mealId: string;
+  startsOn: string;
+  durationDays: number;
+  portions: MemberPortionView[];
+}
+
+/**
+ * LA COMPOSITION VIVANTE DU FOYER, s'il y en a une.
+ *
+ * ── POURQUOI ELLE SE LIT ICI ET PAS SUR `/app/plan` ───────────────────────
+ * `/app/plan` montre les PLATS et les courses — ce qu'on cuisine. Les portions
+ * par membre sont l'objet du FOYER: « qui met quoi dans son assiette ». Les
+ * mettre sur le plan obligerait le chemin individuel, qui est le majoritaire
+ * (l'entrée du produit est à 1, §5), à porter un bloc vide en permanence.
+ *
+ * `retired_at is null` et `ends_on >= today`: la même définition de « vivant »
+ * que `following_io.ts`. Une composition remplacée ou périmée ne décrit plus ce
+ * qu'on mange ce soir.
+ */
+export async function loadHouseholdMeal(today: string): Promise<HouseholdMealView | null> {
+  const { data, error } = await supabase
+    .from("student_generated_meals")
+    .select("id, starts_on, duration_days, member_portions")
+    .not("household_id", "is", null)
+    .is("retired_at", null)
+    .gte("ends_on", today)
+    .order("starts_on", { ascending: false })
+    .limit(1);
+  if (error) throw new Error(error.message);
+  const row = (data ?? [])[0] as Record<string, unknown> | undefined;
+  if (!row) return null;
+
+  const raw = Array.isArray(row.member_portions) ? row.member_portions : [];
+  return {
+    mealId: String(row.id),
+    startsOn: String(row.starts_on ?? ""),
+    durationDays: Number(row.duration_days) || 1,
+    portions: raw.map((entry) => {
+      const p = (entry ?? {}) as Record<string, unknown>;
+      const shares = Array.isArray(p.preparation_shares) ? p.preparation_shares : [];
+      return {
+        userId: String(p.user_id ?? ""),
+        displayName: String(p.display_name ?? ""),
+        portionNote: typeof p.portion_note === "string" && p.portion_note.trim()
+          ? p.portion_note
+          : null,
+        shares: shares.map((s) => {
+          const share = (s ?? {}) as Record<string, unknown>;
+          return {
+            preparationId: String(share.preparation_id ?? ""),
+            note: String(share.note ?? ""),
+          };
+        }).filter((s) => s.preparationId && s.note),
+      };
+    }).filter((p) => p.userId),
   };
 }

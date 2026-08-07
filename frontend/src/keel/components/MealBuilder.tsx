@@ -784,11 +784,19 @@ export default function MealBuilder() {
               pour un plan mort. */}
           {!building && (
             <>
+              {/* LES VAGUES D'ACHAT (PIVOT-FOYER §3) arrivent par les trois
+                  dernières props. Les entrées existent DÉJÀ sur la ligne: les
+                  préparations portent leur `cook_on`, la fenêtre porte ses
+                  dates. Le panneau en déduit quand acheter quoi, et se rabat
+                  sur la liste plate d'avant quand il manque l'une des trois. */}
               <ShoppingListPanel
                 items={result?.shoppingList ?? []}
                 mealId={result?.mealId ?? null}
                 open={shoppingOpen}
                 onClose={() => setShoppingOpen(false)}
+                preparations={result?.preparations ?? []}
+                startsOn={result?.startsOn ?? null}
+                durationDays={result?.durationDays ?? null}
               />
               {/* MONTÉE MÊME FERMÉE — `Modal` rend `null`, il ne démonte pas —
                   donc les recettes dépliées survivent à un aller-retour vers un

@@ -1,6 +1,7 @@
 import React from "react";
 
-import { type ShoppingItem } from "../api/mealGeneration";
+import { type MealPreparation, type ShoppingItem } from "../api/mealGeneration";
+import { waveAssignments, wavesAreMeaningful } from "../api/groceryWaves";
 import { aisleLabel } from "../api/mealLabels";
 import { groupByAisle } from "../lib/mealBuilderModel";
 import { requestMealDocument } from "../api/mealDocument";
@@ -59,7 +60,32 @@ const COPY = {
   pdf_download: "Open the PDF",
   title: "Shopping list",
   close: "Close",
+  // ── LES VAGUES ─────────────────────────────────────────────────────────
+  // La raison est la FRAÎCHEUR, et elle est DITE. Une seconde liste sans
+  // explication se lit comme une corvée arbitraire — c'est-à-dire comme
+  // exactement ce que ce produit promet de retirer.
+  wave_now: "Buy now",
+  wave_later: "Buy on {date}",
+  wave_serves: "so it is fresh for the {day} cooking",
+  wave_intro:
+    "Split by when it has to be fresh: the mid-week meat does not keep from Monday.",
 } as const;
+
+/** « Friday 7 August ». Locale du navigateur: c'est une date qu'on lit, pas
+ *  une donnée qu'on compare. */
+function longDate(iso: string): string {
+  const d = new Date(`${iso}T00:00:00Z`);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString(undefined, {
+    weekday: "long", day: "numeric", month: "long", timeZone: "UTC",
+  });
+}
+
+function weekdayOf(iso: string): string {
+  const d = new Date(`${iso}T00:00:00Z`);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString(undefined, { weekday: "long", timeZone: "UTC" });
+}
 
 export interface ShoppingListPanelProps {
   items: readonly ShoppingItem[];
@@ -80,6 +106,17 @@ export interface ShoppingListPanelProps {
    */
   open: boolean;
   onClose: () => void;
+  /**
+   * DE QUOI DÉDUIRE LES VAGUES D'ACHAT (PIVOT-FOYER §3).
+   *
+   * Optionnels et absents par défaut: une composition lue avant
+   * `20260807090000_meal_plan_window` n'a pas de fenêtre, et une composition
+   * sans préparations datées n'a rien à répartir. Dans les deux cas la liste
+   * reste exactement celle d'avant — l'ajout est additif, jamais régressif.
+   */
+  preparations?: readonly MealPreparation[];
+  startsOn?: string | null;
+  durationDays?: number | null;
 }
 
 export default function ShoppingListPanel(props: ShoppingListPanelProps) {
@@ -93,6 +130,25 @@ export default function ShoppingListPanel(props: ShoppingListPanelProps) {
 
   const groups = React.useMemo(() => groupByAisle(props.items), [props.items]);
   const left = props.items.length - ticked.size;
+
+  // LES VAGUES. Calculées ici et pas au chargement: elles ne dépendent que de
+  // ce que le panneau reçoit déjà, et les recalculer ailleurs ferait deux
+  // sources pour la même répartition.
+  const waves = React.useMemo(() => {
+    if (!props.startsOn || !props.preparations?.length) return [];
+    return waveAssignments({
+      startsOn: props.startsOn,
+      durationDays: props.durationDays ?? 7,
+      shoppingList: props.items,
+      preparations: props.preparations,
+    });
+  }, [props.startsOn, props.durationDays, props.items, props.preparations]);
+
+  // UNE SEULE VAGUE NE SE MONTRE PAS: c'est la liste plate d'avant, et un
+  // en-tête posé sur la totalité n'ajoute qu'un mot à lire.
+  const showWaves = wavesAreMeaningful(
+    waves.map((w) => ({ buyOn: w.buyOn, items: [], servesCookOn: w.servesCookOn })),
+  );
 
   const toggle = (index: number) => {
     setTicked((prev) => {
@@ -125,6 +181,56 @@ export default function ShoppingListPanel(props: ShoppingListPanelProps) {
     }
   }
 
+  /**
+   * UN RAYON. Extrait pour être rendu deux fois — à plat, ou dans une vague —
+   * sans que les deux chemins puissent diverger. Il continue de travailler sur
+   * l'INDEX D'ORIGINE, qui est ce qui identifie une rature.
+   */
+  function renderGroup(group: { aisle: string; items: Array<{ item: ShoppingItem; index: number }> }) {
+    return (
+      <div key={group.aisle}>
+        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
+          {aisleLabel(group.aisle)}
+        </h3>
+        <Card padded={false}>
+          <ul className="divide-y divide-gray-100">
+            {group.items.map(({ item, index }) => {
+              const done = ticked.has(index);
+              return (
+                <li key={`${item.term}-${index}`}>
+                  {/* TOUTE LA LIGNE EST LA CIBLE. On coche ça d'une main,
+                      debout, avec un chariot dans l'autre: une case de 16px
+                      serait une case qu'on rate. */}
+                  <label className="flex cursor-pointer items-baseline gap-3 px-4 py-3">
+                    <input
+                      type="checkbox"
+                      checked={done}
+                      onChange={() => toggle(index)}
+                      aria-label={`${COPY.have}: ${item.term}`}
+                      className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 text-gray-900 focus:ring-gray-900"
+                    />
+                    <span
+                      className={`flex flex-wrap items-baseline gap-2 text-sm ${
+                        done ? "text-gray-400 line-through" : "text-gray-800"
+                      }`}
+                    >
+                      <span>{item.term}</span>
+                      {item.quantity && (
+                        <span className={done ? "text-gray-300" : "text-gray-500"}>
+                          {item.quantity}
+                        </span>
+                      )}
+                    </span>
+                  </label>
+                </li>
+              );
+            })}
+          </ul>
+        </Card>
+      </div>
+    );
+  }
+
   if (props.items.length === 0) return null;
 
   return (
@@ -139,48 +245,42 @@ export default function ShoppingListPanel(props: ShoppingListPanelProps) {
             <p className="mt-1 text-xs leading-5 text-gray-500">{COPY.ephemeral}</p>
           </Card>
 
-          {groups.map((group) => (
-            <div key={group.aisle}>
-              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
-                {aisleLabel(group.aisle)}
-              </h3>
-              <Card padded={false}>
-                <ul className="divide-y divide-gray-100">
-                  {group.items.map(({ item, index }) => {
-                    const done = ticked.has(index);
-                    return (
-                      <li key={`${item.term}-${index}`}>
-                        {/* TOUTE LA LIGNE EST LA CIBLE. On coche ça d'une main,
-                            debout, avec un chariot dans l'autre: une case de
-                            16px serait une case qu'on rate. */}
-                        <label className="flex cursor-pointer items-baseline gap-3 px-4 py-3">
-                          <input
-                            type="checkbox"
-                            checked={done}
-                            onChange={() => toggle(index)}
-                            aria-label={`${COPY.have}: ${item.term}`}
-                            className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 text-gray-900 focus:ring-gray-900"
-                          />
-                          <span
-                            className={`flex flex-wrap items-baseline gap-2 text-sm ${
-                              done ? "text-gray-400 line-through" : "text-gray-800"
-                            }`}
-                          >
-                            <span>{item.term}</span>
-                            {item.quantity && (
-                              <span className={done ? "text-gray-300" : "text-gray-500"}>
-                                {item.quantity}
-                              </span>
-                            )}
-                          </span>
-                        </label>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </Card>
-            </div>
-          ))}
+          {showWaves && (
+            <p className="text-xs leading-5 text-gray-500">{COPY.wave_intro}</p>
+          )}
+
+          {showWaves
+            ? waves.map((wave, w) => {
+              const inWave = new Set(wave.indices);
+              const waveGroups = groups
+                .map((g) => ({
+                  aisle: g.aisle,
+                  items: g.items.filter((entry) => inWave.has(entry.index)),
+                }))
+                .filter((g) => g.items.length > 0);
+              return (
+                <section key={wave.buyOn} className="space-y-2">
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-900">
+                      {w === 0
+                        ? COPY.wave_now
+                        : COPY.wave_later.replace("{date}", longDate(wave.buyOn))}
+                    </h3>
+                    {/* LA RAISON, à côté de la date. Sans elle, la seconde
+                        vague est un déplacement de plus qu'on ne s'explique
+                        pas — et on cesse de la suivre. */}
+                    {wave.servesCookOn && (
+                      <p className="text-xs leading-5 text-gray-500">
+                        {COPY.wave_serves.replace("{day}", weekdayOf(wave.servesCookOn))}
+                      </p>
+                    )}
+                  </div>
+                  {waveGroups.map((group) => renderGroup(group))}
+                </section>
+              );
+            })
+            : groups.map((group) => renderGroup(group))}
+
 
           {/* L'EXPORT, EN BAS DU PANNEAU: on l'utilise une fois, avant de
               partir, pas à chaque coup d'œil sur la liste. */}
