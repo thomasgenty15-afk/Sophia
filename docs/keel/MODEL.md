@@ -103,10 +103,17 @@ du haut, aucun coach ne publie. Un élève pouvait composer toute sa semaine et 
 encore de plan » tous les jours. L'écran lit maintenant, **quand il n'y a pas de plan publié**,
 les deux choses que `/app/plan` écrit réellement :
 
-- `student_generated_meals` — les **plats** (`MealBuilder`), fenêtrés sur la semaine en cours.
-  La table ne porte pas de `week_start` et un plat ne nomme qu'un jour de semaine (`tue`), jamais
-  une date : sans la fenêtre, le dîner du mardi d'une composition vieille de trois semaines
-  s'afficherait comme le plat du jour ;
+- `student_generated_meals` — les **plats** (`MealBuilder`), bornés par la fenêtre que la
+  ligne PORTE (`starts_on`, `duration_days`, `ends_on`, depuis
+  `20260807090000_meal_plan_window`). Avant cette migration la table n'avait aucune date et un
+  plat ne nommait qu'un jour de semaine (`tue`) : la fenêtre était alors DÉDUITE de `created_at`,
+  à trois endroits différents, et la déduction devenait fausse dès qu'un plan pouvait commencer
+  plus tard.
+
+  **Un élève peut avoir DEUX plans vivants** : celui d'aujourd'hui et celui qu'il a préparé pour
+  plus tard. « Le suivant devient le courant » n'est pas un événement — ce sont les mêmes lignes
+  avec `today` avancé d'un jour, donc aucun cron, aucun statut, rien qui puisse cesser d'être
+  écrit. Une contrainte d'exclusion garantit que deux plans vivants ne partagent jamais un jour ;
 - `student_week_plans` — la semaine de **méthode**, `status='adopted'` uniquement (générer n'est
   pas adopter).
 

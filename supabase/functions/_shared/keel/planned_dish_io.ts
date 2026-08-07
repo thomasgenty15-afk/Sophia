@@ -11,7 +11,8 @@
  *   2. `student_generated_meals` — la DERNIÈRE composition de cet élève, puis
  *      les plats dont la date résolue est celle du repas. Le fenêtrage
  *      appartient à `meal_stretch.ts`, pas à une requête SQL: un plat ne nomme
- *      qu'un jour de semaine, et la table n'a pas de `week_start`.
+ *      qu'un jour de semaine — et depuis le 2026-08-07 la table porte sa
+ *      FENÊTRE (`starts_on`, `duration_days`), donc le jeton a enfin une date.
  *
  * ── CE QU'ELLE NE FAIT JAMAIS ─────────────────────────────────────────────
  * Aucune écriture. Aucune décision. Une lecture en panne rend un contexte VIDE

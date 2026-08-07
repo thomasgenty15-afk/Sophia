@@ -7,6 +7,8 @@ import { type DayToken } from "./types";
 // LES DEUX DÉFAUTS QUE CE MODULE FERME, ET ILS AVAIENT LA MÊME CAUSE
 // ===========================================================================
 // Un plat ne nomme qu'un JOUR DE SEMAINE (« tue »), jamais une date, et
+// ⚠️ PÉRIMÉ AU 2026-08-07: la table PORTE maintenant sa fenêtre (`starts_on`, `duration_days`, `ends_on`). Ce module reste pour les lignes antérieures et pour le découpage par jeton; la source de vérité de « quel plan possède ce jour » est `meal_plan_window.ts` / `api/mealWindow.ts`.
+// 
 // `student_generated_meals` ne porte aucune `week_start`. Tant que personne ne
 // résolvait ce jeton en date, deux choses étaient impossibles:
 //

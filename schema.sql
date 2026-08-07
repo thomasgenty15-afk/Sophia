@@ -9198,6 +9198,7 @@ CREATE TABLE IF NOT EXISTS "public"."student_generated_meals" (
     "starts_on" "date" NOT NULL,
     "duration_days" smallint NOT NULL,
     "retired_at" timestamp with time zone,
+    "ends_on" "date" GENERATED ALWAYS AS (("starts_on" + ("duration_days" - 1))) STORED,
     CONSTRAINT "student_generated_meals_context_check" CHECK ((("context" IS NULL) OR ("length"("context") <= 2000))),
     CONSTRAINT "student_generated_meals_dishes_check" CHECK (("jsonb_typeof"("dishes") = 'array'::"text")),
     CONSTRAINT "student_generated_meals_duration_days_check" CHECK ((("duration_days" >= 1) AND ("duration_days" <= 7))),
@@ -9240,6 +9241,10 @@ COMMENT ON COLUMN "public"."student_generated_meals"."duration_days" IS 'Nombre 
 
 
 COMMENT ON COLUMN "public"."student_generated_meals"."retired_at" IS 'Cette ligne a été REMPLACÉE par une autre. Ne répond JAMAIS à « est-elle courante » — ça, ce sont les dates qui le disent, à chaque lecture.';
+
+
+
+COMMENT ON COLUMN "public"."student_generated_meals"."ends_on" IS 'Dernier jour couvert. GÉNÉRÉE: cinq prédicats la lisent, et cinq recopies de la même addition divergeraient.';
 
 
 
@@ -12166,6 +12171,10 @@ CREATE UNIQUE INDEX "student_generated_meals_one_live_start_idx" ON "public"."st
 
 
 CREATE INDEX "student_generated_meals_user_created_idx" ON "public"."student_generated_meals" USING "btree" ("user_id", "created_at" DESC);
+
+
+
+CREATE INDEX "student_generated_meals_user_ends_idx" ON "public"."student_generated_meals" USING "btree" ("user_id", "ends_on") WHERE ("retired_at" IS NULL);
 
 
 

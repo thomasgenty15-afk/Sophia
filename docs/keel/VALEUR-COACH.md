@@ -166,15 +166,24 @@ matériau que ni une formation ni une communauté ne produisent.**
 
 ### Pourquoi cette donnée vaut mieux que celle d'un tracker
 
-**Elle est vérifiable.** Sophia ne compte pas les calories, et c'est un refus mesuré :
-sur 85 analyses réelles notées contre les références USDA, l'estimation calorique à
-partir d'une photo sous-évaluait de **26,6% en moyenne**, avec un biais qui s'aggrave
-à mesure que l'assiette se remplit. Pire, quand le modèle propose sa propre marge
-d'erreur, la vérité tombe dedans à peine plus d'une fois sur deux.
+**Elle est vérifiable.** Et « vérifiable » est le mot exact, pas « chiffrée » : sur
+85 analyses réelles notées contre les références USDA, l'estimation calorique **à
+partir d'une photo seule** sous-évaluait de **26,6% en moyenne**, avec un biais qui
+s'aggrave à mesure que l'assiette se remplit. Pire, quand le modèle propose sa propre
+marge d'erreur, la vérité tombe dedans à peine plus d'une fois sur deux. La même
+mesure donne **2,3% d'erreur quand les quantités sont fournies** : ce n'est donc pas
+le calcul qui est faible, c'est la photo nue comme source de quantité.
 
-Ce qui est gardé — **quoi, quand, quelle taille** — l'élève peut le vérifier d'un
-coup d'œil, et une erreur se corrige en un message. Un filtre déterministe retire
-toute cible chiffrée que le modèle produirait quand même, et le journalise.
+Le socle reste **quoi, quand, quelle taille** — ça, l'élève le vérifie d'un coup
+d'œil, et une erreur se corrige en un message.
+
+> **Révision 2026-08-06.** Ce paragraphe disait « Sophia ne compte pas les calories »
+> et « un filtre déterministe retire toute cible chiffrée ». La décision produit a
+> changé : un chiffre peut exister, à condition de **porter sa base** — calculé quand
+> les quantités sont déclarées, estimé quand elles sont devinées. Le filtre total
+> décrit ici est encore ce que le code applique ; voir
+> [CONTRACT.md](CONTRACT.md) amendement non-input #4 et
+> [CALORIE_REVERSAL.md](CALORIE_REVERSAL.md).
 
 **Et c'est la moitié qui porte le résultat** : la *fréquence* à laquelle un élève
 déclare est le meilleur prédicteur d'issue connu ; la *précision*, elle, ne prédit

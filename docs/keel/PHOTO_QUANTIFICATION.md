@@ -1,5 +1,31 @@
 # Réponse au fondateur — les photos, la quantité, et où est vraiment le trou
 
+> ### ⚠️ AMENDEMENT 2026-08-06 — la conclusion de ce document a été renversée par décision produit
+>
+> **Ce document reste vrai. Ce qu'on en a conclu ne l'est plus.**
+>
+> Les mesures ci-dessous ne bougent pas d'un chiffre : 85 appels réels, `gemini-3.1-pro-preview`,
+> payload exact de `buildVisionPayload`, vérité terrain USDA SR Legacy. Biais **−26,6 %** en
+> condition photo nue ; **MAPE 2,3 %** en condition FULL, quantités fournies. C'est la mesure, elle
+> tient.
+>
+> Ce qui change, c'est la décision qu'on en avait tirée. §5 concluait « on ne touche pas au
+> contrat » et « pas de calories ». **KEEL va fournir un calcul approximatif**, et la §2 de ce
+> document explique déjà pourquoi c'est défendable : ce n'est pas le calcul qui est mauvais, c'est
+> **la photo nue comme source de quantité**. Le produit sépare donc désormais les deux conditions
+> au lieu de les interdire ensemble.
+>
+> La règle qui remplace le refus : **tout chiffre porte sa base** — `declared_quantities` (calculé)
+> ou `photo_estimate` (deviné) — ou n'existe pas. Et l'élève le voit, pas seulement le coach.
+>
+> Contrat à jour : [CONTRACT.md](CONTRACT.md), amendement non-input #4.
+> Règle marketing à jour : [LEGAL.md](LEGAL.md) §6.4.
+> Ce qu'il reste à écrire en code, dans l'ordre : [CALORIE_REVERSAL.md](CALORIE_REVERSAL.md).
+>
+> **Ne corrige pas les sections ci-dessous pour les aligner sur la nouvelle décision.** C'est un
+> rapport de mesure daté ; sa valeur est d'être ce qu'on savait au moment où on a tranché, deux
+> fois, dans deux sens opposés.
+
 Tu as challengé une position que j'avais prise vite. Tu avais raison de le faire, et le résultat n'est pas celui que tu attendais ni celui que je défendais. J'ai fait tourner 85 appels réels sur **notre** modèle (`gemini-3.1-pro-preview`, payload exact de `buildVisionPayload`, vérité terrain calculée depuis USDA SR Legacy) avant d'écrire une ligne. Verdict en une phrase : **le trou existe, mais ce n'est pas les calories — c'est la quantité. Et la solution ne demande pas de toucher au contrat.**
 
 ---

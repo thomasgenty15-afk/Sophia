@@ -20,6 +20,8 @@
  * LE PROBLÈME, EN UNE PHRASE
  * ---------------------------------------------------------------------------
  * Un plat ne nomme qu'un JOUR DE SEMAINE (« tue »), jamais une date, et
+ * ⚠️ PÉRIMÉ AU 2026-08-07: la table PORTE maintenant sa fenêtre (`starts_on`, `duration_days`, `ends_on`). Ce module reste pour les lignes antérieures et pour le découpage par jeton; la source de vérité de « quel plan possède ce jour » est `meal_plan_window.ts` / `api/mealWindow.ts`.
+ * 
  * `student_generated_meals` ne porte aucune `week_start`. « Mardi de QUELLE
  * semaine » n'a donc pas de réponse dans les données — il faut une ancre.
  *

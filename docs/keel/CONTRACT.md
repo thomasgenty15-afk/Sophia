@@ -133,8 +133,45 @@ The evaluator must not import or read:
    `micronutrient` evaluation (nutrient line). The two lines are the coach's two distinct
    prescriptions. No nutrient-composition table exists in P0, deliberately.
 4. **Photos as quantity sources** — a photo may evidence `presence`/`composition`/`portion`/
-   `serving`; it never produces a `micronutrient` or `energy`/`macro_*` fact. Calorie counts are
-   never displayed as facts.
+   `serving`; it never produces a `micronutrient` or `energy`/`macro_*` fact **as an unqualified
+   fact**. See the amendment below: an energy figure may now exist, but never bare.
+
+### ⚠️ AMENDEMENT non-input #4 — 2026-08-06, décision produit
+
+**Ce qui change.** KEEL cesse de refuser le chiffre. Il refuse le chiffre **NU**.
+
+La position précédente — « aucune énergie, jamais, nulle part » — traitait le calcul et la photo
+comme un seul problème. [PHOTO_QUANTIFICATION.md](PHOTO_QUANTIFICATION.md) les sépare, et c'est
+mesuré sur notre propre modèle, sur 85 appels réels, vérité terrain USDA :
+
+| Condition | Erreur |
+|---|---|
+| Quantités **fournies** au modèle | MAPE **2,3 %**, biais +1,9 % non significatif |
+| Quantités **devinées** sur photo | biais **−26,6 %**, toujours dans le même sens |
+
+Le calcul n'est pas le problème. La photo nue comme source de quantité l'est. Interdire les deux
+au nom de la seconde nous a coûté la première pendant six mois.
+
+**La règle qui remplace.** Tout chiffre d'énergie porte sa BASE, dans un champ typé, ou n'existe
+pas :
+
+- `declared_quantities` — l'élève a donné les quantités (grammes, portion d'une recette du coach).
+  C'est un calcul.
+- `photo_estimate` — le modèle les a devinées. C'est une estimation, et elle s'affiche comme telle.
+
+Un chiffre en prose libre reste interdit et reste supprimé : c'est exactement le chiffre qui
+voyage sans sa base. La forme du marqueur reprend celle qui existe déjà pour
+`AssumptionBasis` (`visible_cue` / `standard_default`) — preuve contre supposition, distinction
+déjà portée par le type et déjà testée.
+
+**Qui le voit.** L'élève aussi, pas seulement le coach.
+
+**⛔ ÉTAT D'APPLICATION AU 2026-08-06 : DÉCIDÉ, PAS ENCORE APPLIQUÉ.** Le code applique toujours
+l'interdiction totale — `stripMeasurementFacts`, le type `MealAnalysis` sans champ d'énergie, le
+prompt (« YOU ARE NOT A CALORIE COUNTER »), et le test de propriété 3 couches
+`no_calorie_to_student_property_test.ts`. Cette section décrit la CIBLE. Le chantier qui l'implémente
+est écrit dans [CALORIE_REVERSAL.md](CALORIE_REVERSAL.md), et il ne peut pas commencer par ouvrir la
+vanne : **l'élève est le destinataire, donc la garde `disordered_eating_guard` se rouvre d'abord.**
 
 ## Supplement safety notes (P0) — the coach is the prescriber
 

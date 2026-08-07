@@ -383,14 +383,38 @@ détruit exactement l'actif qu'on vend — et c'est le seul argument qui rende l
 réglementaire indolore : ici, la règle et le positionnement disent la même chose.
 
 ### 6.4 Photos et calories — la ligne à ne jamais franchir en marketing
-La recherche interne ([PHOTO_QUANTIFICATION.md](PHOTO_QUANTIFICATION.md)) mesure un biais de
-**−26,6 %** sur l'estimation calorique par photo, avec une couverture d'intervalle réelle de
-**58 %** pour un intervalle demandé à 90 % — le modèle **ne sait pas qu'il ne sait pas**.
+*Révisé le 2026-08-06, après l'amendement non-input #4 du CONTRACT. La mesure n'a pas bougé ; ce
+qu'on en déduit, si.*
 
-Conséquence marketing, non négociable : **ne jamais annoncer un comptage calorique par photo**,
-ni « suivi des macros par photo ». Le CONTRACT l'interdit déjà côté produit (non-input #4) ;
-l'interdire aussi côté copy évite de vendre une fonctionnalité que le code refuse — la forme la
-plus coûteuse de dette, parce qu'elle arrive en support et pas en CI.
+La recherche interne ([PHOTO_QUANTIFICATION.md](PHOTO_QUANTIFICATION.md)) mesure un biais de
+**−26,6 %** sur l'estimation calorique **par photo seule**, avec une couverture d'intervalle réelle
+de **58 %** pour un intervalle demandé à 90 % — le modèle **ne sait pas qu'il ne sait pas**. Et le
+biais penche du côté flatteur : un élève en surplus lit un chiffre rassurant.
+
+La même recherche mesure **2,3 % d'erreur quand les quantités sont fournies**. Les deux conditions
+n'ont donc pas la même véracité, et la règle marketing suit cette ligne-là, pas celle du mot
+« calorie » :
+
+**Ce qui reste interdit, sans négociation :**
+- annoncer un **comptage calorique par photo** ou un « suivi des macros par photo » — c'est
+  précisément la condition à −26,6 % ;
+- présenter un chiffre issu d'une photo comme un **fait**, une **cible**, ou une base de décision ;
+- toute copy qui laisse croire que le chiffre est vérifié quand il est deviné.
+
+**Ce qui devient permis, à une condition :** annoncer un chiffre **qui porte sa base**. Calculé
+quand l'élève a donné les quantités, estimé quand le modèle les a devinées, et l'interface le dit.
+Le marqueur n'est pas un ornement juridique : c'est ce qui fait la différence entre les deux
+conditions mesurées ci-dessus.
+
+**⚖️ À FAIRE VALIDER avant que le chiffre atteigne l'élève** — la décision produit du 2026-08-06 le
+rend visible à l'élève, pas seulement au coach. Cela rouvre un risque qui avait été fermé par le
+refus total : `no_calorie_to_student_property_test.ts` cite **Levinson 2017 — 73 % des patients TCA
+déclarent qu'un tracker de calories a contribué à leur trouble** (et note au passage que le « 83 % »
+de la revue 2025 est une erreur de citation, à ne pas propager). Un chiffre visible par l'élève
+demande donc, au minimum : une interaction explicite avec `disordered_eating_guard`, et une règle
+écrite disant qui ne le voit pas. Tant que ce n'est pas tranché, la copy publique reste au point
+neutre — elle ne promet aucun chiffre (voir `landing.doctrine.no_calories_*`, formulé au
+conditionnel exprès).
 
 ---
 

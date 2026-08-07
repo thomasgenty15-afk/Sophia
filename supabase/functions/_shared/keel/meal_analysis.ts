@@ -8,6 +8,26 @@
  *    portion/serving; it never produces a `micronutrient` or `energy`/`macro_*`
  *    fact. Calorie counts are never displayed as facts."
  *
+ * ┌─ ⚠️ CE MODULE EST EN RETARD SUR SON CONTRAT — 2026-08-06 ────────────────┐
+ * │                                                                          │
+ * │ La citation ci-dessus est encore CE QUE CE FICHIER APPLIQUE, et elle     │
+ * │ n'est plus la position du produit. L'amendement non-input #4 du CONTRACT │
+ * │ (2026-08-06) remplace « aucune énergie » par « aucune énergie NUE »: un  │
+ * │ chiffre peut exister s'il porte sa base — `declared_quantities` quand    │
+ * │ l'élève a donné les quantités (mesuré à 2,3% d'erreur), `photo_estimate` │
+ * │ quand le modèle les devine (mesuré à −26,6% de biais). Et l'élève le     │
+ * │ voit, pas seulement le coach.                                            │
+ * │                                                                          │
+ * │ RIEN N'EST OUVERT ICI, ET C'EST DÉLIBÉRÉ. Le marqueur de base n'existe   │
+ * │ pas encore; retirer le filtre avant lui ne livre pas le chiffre décidé,  │
+ * │ ça livre le chiffre nu que la décision interdit — biaisé de −26,6% dans  │
+ * │ le sens flatteur, à un élève. La marche à suivre, dans l'ordre, avec la  │
+ * │ garde TCA en étape 0 bloquante: docs/keel/CALORIE_REVERSAL.md.           │
+ * │                                                                          │
+ * │ Ne « corrige » donc pas les filtres ni le prompt isolément. Le premier   │
+ * │ commit de ce chantier est une décision de sécurité, pas un refactor.     │
+ * └──────────────────────────────────────────────────────────────────────────┘
+ *
  * THE ONE FACT THAT DICTATES THIS ARCHITECTURE: on a meal photo, food
  * IDENTIFICATION is reliable (~87-97%); QUANTIFICATION is not. Every design
  * decision below follows from that asymmetry:
