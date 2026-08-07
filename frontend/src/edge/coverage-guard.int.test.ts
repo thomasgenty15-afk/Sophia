@@ -112,6 +112,18 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       // supabase/functions/evaluate-adherence-v1/snapshot_test.ts and by
       // _shared/keel/{evaluator,adherence}_test.ts.
       "evaluate-adherence-v1",
+      // LE FOYER — une cuisson, des portions qui divergent (PIVOT-FOYER §3).
+      // La fonction n'est qu'une COUTURE: le moteur, le verrou de doctrine, le
+      // parseur et l'écriture transactionnelle sont ceux de generate-meal-v1,
+      // importés et pas recopiés. Ce qui lui est propre est couvert par
+      // _shared/keel/household_meal_generation_test.ts (les trois blocs greffés
+      // au prompt, dont les règles de maison qui ne sont JAMAIS une raison
+      // nutritionnelle), household_portions_test.ts (la bifurcation et la
+      // ceinture sur les consignes) et household_envies_test.ts (le silence est
+      // une réponse valide). Les gardes d'accès — seul le compte maître
+      // compose, et un mineur n'a pas d'objectif — sont affirmées en base par
+      // _shared/keel/household_rls_test.sql.
+      "generate-household-meal-v1",
       "generate-meal-v1",
       "generate-week-plan-v1",
       "get-coaching-intervention-scorecard",
