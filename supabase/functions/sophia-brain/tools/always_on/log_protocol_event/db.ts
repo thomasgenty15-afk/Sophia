@@ -28,7 +28,7 @@ import type {
  */
 const READ_BACK_COLUMNS =
   "id,user_id,local_date,occurred_at,slot_key,source,source_message_id,recognized," +
-  "food_group_ref,substance_ref";
+  "food_group_ref,substance_ref,plan_relation";
 
 const UNIQUE_VIOLATION = "23505";
 
@@ -71,6 +71,9 @@ function asRow(value: unknown): ProtocolEventRow | null {
     substance_ref: row.substance_ref === null || row.substance_ref === undefined
       ? null
       : String(row.substance_ref),
+    plan_relation: row.plan_relation === null || row.plan_relation === undefined
+      ? null
+      : String(row.plan_relation),
   };
 }
 
@@ -122,6 +125,7 @@ export function createProtocolEventWrite(args: {
         recognized: recognizedFor(input),
         student_note: input.student_note,
         content_locale: input.content_locale,
+        plan_relation: input.plan_relation,
         evidence_weight: input.evidence_weight,
         source_message_id: input.source_message_id,
       })

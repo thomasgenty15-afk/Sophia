@@ -216,7 +216,10 @@ export default function StudentProgressPage() {
             // prends des photos ». C'est un chemin de bucket privé, pas une
             // URL — il est signé plus bas.
             .select(
+              // FF-009 — `source` et `plan_relation` séparent les trois
+              // comptes; sans eux l'agrégat afficherait trois zéros.
               "local_date, occurred_at, slot_key, portion_band, food_group_ref, " +
+              "source, plan_relation, " +
                 "recognized, disqualified_reason, media_path",
             )
             // LE FILTRE DE SUJET, à la source. `disqualified_reason` existe
@@ -499,6 +502,20 @@ export default function StudentProgressPage() {
               <p>
                 Vegetables at {food.vegMeals} of {food.meals} meals · protein
                 at {food.proteinMeals} · fruit at {food.fruitMeals}.
+              </p>
+              {/*
+                FF-009 — LES TROIS COMPTES, CÔTE À CÔTE ET JAMAIS ADDITIONNÉS.
+                Une coche est exacte, une photo est biaisée, un repas hors plan
+                est autre chose: trois nombres, jamais un. Aucune somme, aucun
+                taux, aucune étiquette de valeur — le verrou de doctrine interdit
+                déjà les six formes de « cheat meal », et le produit ne les
+                réintroduit pas par un libellé d'écran.
+                Les trois valent 0 tant que rien ne les alimente, et un 0 lu est
+                un 0 compté: la colonne existe sur toutes les lignes neuves.
+              */}
+              <p className="text-gray-700">
+                Ticked as planned: {food.asPlannedMeals} · eaten off plan:{" "}
+                {food.offPlanMeals} · photographed: {food.photoMeals}.
               </p>
               {food.topFoods.length > 0 ? (
                 <p className="text-gray-700">

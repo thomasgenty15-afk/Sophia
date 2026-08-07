@@ -7,7 +7,7 @@
  * LÂCHER est une garde qui mordra un innocent.
  */
 import { assert, assertEquals } from "jsr:@std/assert@1";
-import { detectDeclaredMeal } from "./meal_declaration_floor.ts";
+import { detectDeclaredMeal, detectOffPlanMarker } from "./meal_declaration_floor.ts";
 
 function refs(message: string, slot: string | null = null): string[] {
   const hit = detectDeclaredMeal(message, slot);
@@ -141,4 +141,153 @@ Deno.test("les mots de l'élève sont conservés tels quels", () => {
   const hit = detectDeclaredMeal("J'ai mangé du poulet grillé, très bon");
   assert(hit);
   assertEquals(hit!.studentNote, "J'ai mangé du poulet grillé, très bon");
+});
+
+// ===========================================================================
+// FF-009 — LE MARQUEUR DE HORS-PLAN
+//
+// Chaque frontière est jouée en FRANÇAIS et en ANGLAIS. Ce dépôt a déjà payé
+// une garde testée dans une seule langue: `not` ne couvrait pas `doesn't`, et
+// une garde à moitié désarmée est une garde qu'on croit avoir.
+// ===========================================================================
+
+Deno.test("FF-009 — UN MARQUEUR SEUL SUFFIT, SANS AUCUN ALIMENT (le cas nominal)", () => {
+  // C'est la différence de fond avec la déclaration de repas: exiger un
+  // composant perdrait exactement ce qu'on cherche à capter.
+  const fr = detectDeclaredMeal("j'ai commandé");
+  assertEquals(fr?.planRelation, "off_plan");
+  assertEquals(fr?.components.length, 0);
+  assertEquals(fr?.gate, "off_plan_marker");
+
+  const en = detectDeclaredMeal("I ordered");
+  assertEquals(en?.planRelation, "off_plan");
+  assertEquals(en?.components.length, 0);
+  assertEquals(en?.gate, "off_plan_marker");
+});
+
+Deno.test("FF-009 — MARQUEUR + ALIMENTS: la relation ET les composants", () => {
+  const fr = detectDeclaredMeal("j'ai commandé une pizza ce soir");
+  assertEquals(fr?.planRelation, "off_plan");
+  // « pizza » n'est pas dans le lexique fermé, donc aucun aliment n'est
+  // inventé — R3. Le fait existe quand même, et c'est le point.
+  assertEquals(fr?.components.length, 0);
+
+  const en = detectDeclaredMeal("I ordered takeout last night");
+  assertEquals(en?.planRelation, "off_plan");
+});
+
+Deno.test("FF-009 — les aliments RECONNUS voyagent avec le hors-plan", () => {
+  assertEquals(refs("on a mangé au resto hier, du saumon et des brocolis"), [
+    "cruciferous_veg",
+    "fatty_fish",
+  ]);
+  assertEquals(
+    detectDeclaredMeal("on a mangé au resto hier, du saumon et des brocolis")
+      ?.planRelation,
+    "off_plan",
+  );
+  assertEquals(
+    detectDeclaredMeal("we ate out last night, salmon and green beans")
+      ?.planRelation,
+    "off_plan",
+  );
+});
+
+Deno.test("FF-009 — SANS marqueur, la relation reste NULL et JAMAIS as_planned", () => {
+  // R5: `null` ne devient jamais `as_planned`. Le déduire d'un silence
+  // fabriquerait de l'adhérence, ce que FF-007 interdit globalement.
+  assertEquals(detectDeclaredMeal("j'ai mangé du poulet")?.planRelation, null);
+  assertEquals(detectDeclaredMeal("I had eggs and rice for lunch")?.planRelation, null);
+});
+
+Deno.test("FF-009 — L'INTENTION FUTURE N'ÉCRIT RIEN, FR et EN", () => {
+  assertEquals(detectDeclaredMeal("je vais commander ce soir"), null);
+  assertEquals(detectDeclaredMeal("on va commander ce soir"), null);
+  assertEquals(detectDeclaredMeal("I'll order tonight"), null);
+  assertEquals(detectDeclaredMeal("I'm going to order takeout tonight"), null);
+});
+
+Deno.test("FF-009 — COMMANDER POUR QUELQU'UN D'AUTRE N'EST PAS MANGER, FR et EN", () => {
+  assertEquals(detectDeclaredMeal("on a commandé pour les enfants"), null);
+  assertEquals(detectDeclaredMeal("j'ai commandé pour mes enfants"), null);
+  assertEquals(detectDeclaredMeal("we ordered for the kids"), null);
+  assertEquals(detectDeclaredMeal("I ordered for my children"), null);
+});
+
+Deno.test("FF-009 — « chez ma mère » est hors plan, « chez moi » ne l'est pas", () => {
+  // La frontière la plus fine de la fiche, et elle tient par CONSTRUCTION:
+  // la liste ne nomme que des lieux qui ne sont pas la cuisine de l'élève.
+  assertEquals(
+    detectDeclaredMeal("j'ai mangé chez ma mère hier soir")?.planRelation,
+    "off_plan",
+  );
+  assertEquals(detectOffPlanMarker("j'ai mangé chez moi hier soir"), null);
+  assertEquals(
+    detectDeclaredMeal("I had dinner at my mum's last night")?.planRelation,
+    "off_plan",
+  );
+  assertEquals(detectOffPlanMarker("I had dinner at home last night"), null);
+});
+
+Deno.test("FF-009 — « on est sortis » SEUL est ambigu et ne mord pas", () => {
+  assertEquals(detectOffPlanMarker("on est sortis hier soir"), null);
+  assertEquals(detectOffPlanMarker("we went out last night"), null);
+  // …mais accompagné d'un mot de repas, il mord.
+  assertEquals(
+    detectOffPlanMarker("on est sortis manger hier soir")?.selfSufficient,
+    true,
+  );
+  assertEquals(
+    detectOffPlanMarker("we went out to eat last night")?.selfSufficient,
+    true,
+  );
+});
+
+Deno.test("FF-009 — UN MARQUEUR DE LIEU SEUL n'ouvre pas la porte", () => {
+  // « au resto » peut être un projet. Il qualifie une porte, il n'en est pas
+  // une: sans verbe au passé ni créneau, rien n'est écrit.
+  assertEquals(detectDeclaredMeal("au resto"), null);
+  assertEquals(detectOffPlanMarker("au resto")?.selfSufficient, false);
+  assertEquals(detectDeclaredMeal("at a restaurant"), null);
+  assertEquals(detectOffPlanMarker("at a restaurant")?.selfSufficient, false);
+});
+
+Deno.test("FF-009 — une QUESTION sur un hors-plan n'écrit rien, FR et EN", () => {
+  assertEquals(detectDeclaredMeal("je peux commander ce soir ?"), null);
+  assertEquals(detectDeclaredMeal("can I order takeout tonight?"), null);
+});
+
+Deno.test("FF-009 — le marqueur exact est journalisé, pas deviné", () => {
+  assertEquals(detectDeclaredMeal("j'ai commandé une pizza")?.offPlanMatched, "j ai commande");
+  assertEquals(detectDeclaredMeal("I ordered a pizza")?.offPlanMatched, "i ordered");
+  assertEquals(detectDeclaredMeal("j'ai mangé du poulet")?.offPlanMatched, null);
+});
+
+Deno.test("FF-009 — le désarme « quelqu'un d'autre » mord TOUJOURS sur un SUJET", () => {
+  // La contre-épreuve de la correction ci-dessus: rétrécir le désarme pour les
+  // lieux ne doit pas l'ouvrir pour les personnes.
+  assertEquals(detectDeclaredMeal("ma mère a mangé du poulet hier soir"), null);
+  assertEquals(detectDeclaredMeal("ma fille a mangé des pâtes à midi"), null);
+  assertEquals(detectDeclaredMeal("my mum had chicken for dinner"), null);
+  assertEquals(detectDeclaredMeal("my daughter had pasta for lunch"), null);
+});
+
+Deno.test("FF-009 — « chez moi » et « chez nous » ne sont JAMAIS un hors-plan", () => {
+  // La contre-épreuve du marqueur « chez »: il ne mord que sur un lieu qui
+  // n'est pas la cuisine de l'élève.
+  for (const home of [
+    "j'ai mangé chez moi hier soir",
+    "on a dîné chez nous hier soir",
+    "j'ai mangé chez moi du poulet hier soir",
+  ]) {
+    assertEquals(detectOffPlanMarker(home), null, `hors-plan à tort: ${home}`);
+    assertEquals(
+      detectDeclaredMeal(home)?.planRelation ?? null,
+      null,
+      `relation posée à tort: ${home}`,
+    );
+  }
+  for (const home of ["I had dinner at home last night", "I ate at home"]) {
+    assertEquals(detectOffPlanMarker(home), null, `hors-plan à tort: ${home}`);
+  }
 });

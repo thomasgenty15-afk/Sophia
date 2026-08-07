@@ -418,7 +418,13 @@ function FoodAndNumbers({ studentId }: { studentId: string }) {
       const [eventsRes, reviewsRes] = await Promise.all([
         supabase
           .from("coach_student_events")
-          .select("local_date, slot_key, portion_band, food_group_ref, recognized")
+          .select(
+            "local_date, slot_key, portion_band, food_group_ref, recognized, " +
+              // FF-009 — les deux axes qui séparent les trois comptes. Sans
+              // eux, `aggregateWeekInFood` lirait `undefined` et afficherait
+              // trois zéros là où la semaine porte des faits.
+              "source, plan_relation",
+          )
           .eq("user_id", studentId)
           .gte("local_date", isoDaysAgo(13)),
         supabase
@@ -484,6 +490,20 @@ function FoodAndNumbers({ studentId }: { studentId: string }) {
               <span className="font-medium">{food.meals}</span> meal{food.meals > 1 ? "s" : ""} across{" "}
               <span className="font-medium">{food.daysLogged}</span> day{food.daysLogged > 1 ? "s" : ""} ·
               vegetables at {food.vegMeals} · protein at {food.proteinMeals} · fruit at {food.fruitMeals}.
+            </p>
+            {/*
+              FF-009 — LES TROIS COMPTES, CÔTE À CÔTE ET JAMAIS ADDITIONNÉS.
+              Une coche est exacte, une photo est biaisée, un repas hors plan
+              est autre chose: trois nombres, jamais un. Aucune somme, aucun
+              taux, aucune étiquette de valeur — le verrou de doctrine interdit
+              déjà les six formes de « cheat meal », et le produit ne les
+              réintroduit pas par un libellé d'écran.
+              Les trois valent 0 tant que rien ne les alimente, et un 0 lu est
+              un 0 compté: la colonne existe sur toutes les lignes neuves.
+            */}
+            <p className="text-gray-700">
+              Ticked as planned: {food.asPlannedMeals} · eaten off plan:{" "}
+              {food.offPlanMeals} · photographed: {food.photoMeals}.
             </p>
             {food.topFoods.length > 0 ? (
               <p className="text-gray-700">

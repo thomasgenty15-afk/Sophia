@@ -96,6 +96,19 @@ export interface DayFacts {
   plannedCount: number;
   /** Photos de repas envoyées aujourd'hui. */
   photoCount: number;
+  /**
+   * FF-009 — repas HORS PLAN déclarés aujourd'hui (`plan_relation='off_plan'`).
+   *
+   * ⚠️ LE TROISIÈME COMPTE, ET IL NE S'ADDITIONNE À AUCUN DES DEUX AUTRES.
+   * Une coche est exacte, une photo est biaisée, un hors-plan est autre chose:
+   * trois nombres, jamais un. Les fondre en « repas suivis cette semaine »
+   * donnerait un chiffre que personne en aval ne peut plus défaire, et que le
+   * coach lirait comme un fait (FF-007 R8, FF-009 R4).
+   *
+   * Une bonne part de ces faits ne portent AUCUN aliment — c'est le cas
+   * nominal (« j'ai commandé »), pas une anomalie.
+   */
+  offPlanCount: number;
 }
 
 export const EMPTY_DAY_FACTS: DayFacts = {
@@ -104,6 +117,7 @@ export const EMPTY_DAY_FACTS: DayFacts = {
   tickedTitles: [],
   plannedCount: 0,
   photoCount: 0,
+  offPlanCount: 0,
 };
 
 /**
@@ -129,7 +143,12 @@ export function recapGround(facts: DayFacts): RecapGround {
   // elle mérite son message même si la phrase devra la compter au lieu de la
   // nommer.
   if (facts.tickedCount > 0) return "ticked";
-  if (facts.photoCount > 0) return "logged";
+  // FF-009 — un repas hors plan déclaré EST de la matière. Sans cette ligne, un
+  // élève qui écrit « j'ai commandé une pizza ce soir » verrait sa soirée
+  // enregistrée en base et son message du soir la traiter comme une journée
+  // vide: le fait existerait et resterait invisible, ce qui est la moitié du
+  // défaut qu'on répare.
+  if (facts.photoCount > 0 || facts.offPlanCount > 0) return "logged";
   return "none";
 }
 
@@ -280,6 +299,19 @@ export function describeDayFacts(facts: DayFacts): string {
   }
 
   lines.push(`- Meal photos the student sent today: ${facts.photoCount}`);
+  // FF-009 — LE TROISIÈME COMPTE, ÉNONCÉ SÉPARÉMENT ET JAMAIS FONDU. Le prompt
+  // le dit explicitement au modèle: le refus de sommer est une règle produit,
+  // pas une omission, et un modèle à qui l'on donne trois nombres sans le dire
+  // en fabriquera un quatrième.
+  lines.push(
+    `- Meals the student reported eating OFF the plan today (ordered in, ate ` +
+      `out, at someone else's place): ${facts.offPlanCount}`,
+  );
+  lines.push(
+    "- These three counts are separate facts. Never add them together and " +
+      "never present a total or a rate: a tick, a photo and an off-plan meal " +
+      "are not the same kind of evidence.",
+  );
   return lines.join("\n");
 }
 
@@ -503,6 +535,12 @@ export function allowedNumbers(
     facts.tickedForPlanCount,
     facts.plannedCount,
     facts.photoCount,
+    // FF-009. Absent d'ici, un message parfaitement exact qui cite le hors-plan
+    // serait rejeté en `invented_number` et replierait sur le texte
+    // déterministe: la voix du coach disparaîtrait sans qu'aucune erreur
+    // n'apparaisse nulle part — le piège que `tickedForPlanCount` documente
+    // trois lignes plus haut.
+    facts.offPlanCount,
     // Le nombre de titres CITÉS. Il ne vaut pas toujours `tickedCount` (coche
     // sans titre), et un texte qui énumère les plats qu'on lui a donnés puis
     // les compte a raison — le refuser ferait replier une composition exacte.

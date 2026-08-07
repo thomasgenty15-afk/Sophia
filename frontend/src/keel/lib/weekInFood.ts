@@ -36,6 +36,17 @@ export interface FoodEventRow {
   slot_key: string | null;
   portion_band: string | null;
   food_group_ref: string | null;
+  /**
+   * FF-009 — `protocol_events.source`. Optionnel: certains appelants ne le
+   * sélectionnent pas, et `undefined` veut alors dire « pas lu », jamais
+   * « pas une photo ».
+   */
+  source?: string | null;
+  /**
+   * FF-009 — `protocol_events.plan_relation`: `as_planned` | `off_plan` | null.
+   * `null` est un état (« inconnu »), jamais un défaut à combler.
+   */
+  plan_relation?: string | null;
   recognized: {
     detected_foods?: Array<{ label?: string | null }> | null;
     food_groups_present?: string[] | null;
@@ -117,6 +128,18 @@ export interface WeekInFoodSummary {
   meals: number;
   daysLogged: number;
   daysInRange: number;
+  /**
+   * FF-009 — LES TROIS COMPTES, ET ILS NE SE SOMMENT JAMAIS.
+   *
+   * Une coche est exacte, une photo est biaisée, un repas hors plan est autre
+   * chose. `meals` reste le total des faits LUS, ce qui est vrai; ces trois-là
+   * disent de quoi il est fait, et aucune surface n'a le droit d'en afficher la
+   * somme ni un taux. « 71 % de repas comme prévu » est un score d'adhérence
+   * déguisé, et `adherence_score` est suspendu par la garde de restriction.
+   */
+  asPlannedMeals: number;
+  offPlanMeals: number;
+  photoMeals: number;
   /** Repas où au moins un groupe protéiné est présent. */
   proteinMeals: number;
   vegMeals: number;
@@ -219,6 +242,9 @@ export function aggregateWeekInFood(
 
   return {
     meals: rows.length,
+    asPlannedMeals: rows.filter((r) => r.plan_relation === "as_planned").length,
+    offPlanMeals: rows.filter((r) => r.plan_relation === "off_plan").length,
+    photoMeals: rows.filter((r) => r.source === "photo").length,
     daysLogged: daysWith.size,
     daysInRange: dates.length,
     proteinMeals: mealsWithAny(rows, PROTEIN_GROUPS),

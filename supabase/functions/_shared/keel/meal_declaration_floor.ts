@@ -58,12 +58,33 @@ export type DeclaredComponent = {
   matched: string;
 };
 
+/**
+ * LA RELATION AU PLAN (FF-009). `null` = inconnu, et c'est un ÉTAT.
+ *
+ * `off_plan` est la seule valeur que ce plancher produit. `as_planned` est
+ * délibérément hors de sa portée: il n'existe que là où l'élève désigne
+ * lui-même une ligne du plan — la coche d'un plat prévu, ou une liaison
+ * explicite à un engagement. Le déduire d'un silence (« il a déclaré un repas
+ * et n'a pas dit qu'il était hors plan, donc il était prévu ») fabriquerait de
+ * l'adhérence à partir de rien, ce que FF-007 interdit globalement (« aucune
+ * coche automatique, rien n'est jamais inféré d'un silence ») et que R5 de
+ * FF-009 interdit nommément pour cette colonne.
+ */
+export type DeclaredPlanRelation = "off_plan";
+
 export type MealDeclarationHit = {
   components: DeclaredComponent[];
   /** Les mots de l'élève, tels quels. */
   studentNote: string;
-  /** Ce qui a ouvert la porte: verbe au passé, ou groupe nominal + créneau. */
-  gate: "past_tense_verb" | "noun_phrase_with_slot";
+  /** Ce qui a ouvert la porte: verbe au passé, groupe nominal + créneau, ou marqueur hors-plan. */
+  gate: "past_tense_verb" | "noun_phrase_with_slot" | "off_plan_marker";
+  /**
+   * FF-009 — `off_plan` si le message porte un marqueur de hors-plan, `null`
+   * sinon. `null` ne devient JAMAIS `as_planned`.
+   */
+  planRelation: DeclaredPlanRelation | null;
+  /** Le marqueur exact qui a mordu, pour que le log soit lisible. */
+  offPlanMatched: string | null;
 };
 
 function normalize(text: string): string {
@@ -281,14 +302,125 @@ const DISARM: readonly RegExp[] = [
   /\bi (didn t|did not|haven t|have not|couldn t) (eat|have)\b/,
   /\bje n ai (pas|rien) (mange|pris)\b/,
   /\brien mange\b/,
-  // QUELQU'UN D'AUTRE.
-  /\b(my|his|her|their|our) (son|daughter|child|kid|wife|husband|partner|mother|father|mum|mom|dad|friend|colleague)\b/,
-  /\b(mon|ma|mes) (fils|fille|enfant|femme|mari|conjoint|mere|pere|ami|amie|collegue)\b/,
+  // QUELQU'UN D'AUTRE — MAIS PAS QUAND C'EST UN LIEU (FF-009).
+  //
+  // ⚠️ La négation en tête est une CORRECTION, et elle vient d'un cas mesuré:
+  // « j'ai mangé chez ma mère hier soir » était désarmé par ce motif, alors
+  // que c'est l'élève qui a mangé — sa mère est l'adresse, pas le mangeur.
+  // Le désarme visait « ma mère a mangé du poulet » et attrapait aussi le
+  // hors-plan le plus courant de la fiche.
+  //
+  // La distinction est structurelle et pas heuristique: après « chez » (FR) ou
+  // « at » (EN), un proche est un LIEU. Partout ailleurs, il reste un sujet et
+  // le désarme mord comme avant — les deux directions sont testées.
+  /(?<!at )\b(my|his|her|their|our) (son|daughter|child|kid|wife|husband|partner|mother|father|mum|mom|dad|friend|colleague)\b/,
+  /(?<!chez )\b(mon|ma|mes) (fils|fille|enfant|femme|mari|conjoint|mere|pere|ami|amie|collegue)\b/,
   // HYPOTHÈSE.
   /\b(if i|si je|suppose|imagine)\b/,
   // CONSIGNE DU COACH rapportée, pas un repas mangé.
   /\b(you said|tu as dit|le coach|my coach) /,
+  // FF-009 — QUELQU'UN D'AUTRE, la forme sans possessif. « On a commandé pour
+  // les enfants » ne dit pas que l'élève a mangé. Le désarme « quelqu'un
+  // d'autre » ci-dessus ne couvrait QUE les possessifs (`mes enfants`), donc
+  // pas la formulation la plus courante quand on commande pour la maisonnée.
+  /\bpour (les|mes|ses|leurs|nos) (enfants|petits|gosses|filles|garcons)\b/,
+  /\bfor (the|my|our|their) (kids|children|kid|child|little ones)\b/,
 ];
+
+// ---------------------------------------------------------------------------
+// FF-009 — LE MARQUEUR DE HORS-PLAN
+// ---------------------------------------------------------------------------
+
+/**
+ * LES MARQUEURS QUI SE SUFFISENT À EUX-MÊMES.
+ *
+ * Ils portent leur propre verbe au passé, donc ils ouvrent la porte SEULS —
+ * y compris sans aucun aliment reconnu. C'est la différence de fond avec
+ * `detectDeclaredMeal`, qui exige un composant, et c'est le CAS NOMINAL de
+ * FF-009: « j'ai commandé » est très exactement ce qu'on cherche à capter, et
+ * exiger un aliment le perdrait (R2).
+ */
+const OFF_PLAN_PAST_MARKERS: readonly RegExp[] = [
+  // FR
+  /\b(j ai|on a) commande[es]?\b/,
+  /\bon s est fait livrer\b/,
+  // ⚠️ « chez » N'EST PAS UN MARQUEUR À LUI SEUL. « J'ai mangé chez moi » est
+  // le contraire d'un hors-plan, et c'est la frontière que la fiche nomme
+  // explicitement. Le lieu doit donc ne PAS être la maison de l'élève, et
+  // c'est dit par exclusion plutôt que par une liste de proches — une liste se
+  // serait fait déborder au premier « chez ma tante ».
+  /\b(j ai|on a) (dine|dejeune|mange|grignote) (?:au |a la |dehors\b|chez (?!moi\b|nous\b))/,
+  /\bon est (alles?|allees?|sortis|sorties) (au|a la|manger|diner|dejeuner)\b/,
+  /\b(j ai|on a) fait (un|une) (resto|restau|restaurant)\b/,
+  // EN
+  /\b(i|we) ordered\b/,
+  /\b(i|we) (had|got|grabbed) (some )?(takeout|takeaway|delivery|a takeaway|a takeout)\b/,
+  /\b(i|we) (ate|dined) out\b/,
+  /\b(i|we) went (out to eat|out for dinner|out for lunch|to a restaurant)\b/,
+];
+
+/**
+ * LES MARQUEURS DE LIEU, qui ont besoin d'une porte de `detectDeclaredMeal`.
+ *
+ * Ils disent OÙ, pas QUAND: « au resto » tout seul peut être un projet. Ils ne
+ * qualifient donc un fait que si le message porte par ailleurs un verbe au
+ * passé ou un mot de créneau.
+ *
+ * ── LA FRONTIÈRE, ET ELLE EST FINE ────────────────────────────────────────
+ * « Chez ma mère » est hors plan, « chez moi » ne l'est pas: la liste ne nomme
+ * QUE des lieux qui ne sont pas la cuisine de l'élève, donc « chez moi » ne
+ * peut pas y mordre, par construction et pas par chance.
+ * « On est sortis » est ambigu et reste dehors — il n'y entre qu'accompagné
+ * d'un mot de repas, ce que porte la liste des marqueurs au passé.
+ */
+const OFF_PLAN_PLACE_MARKERS: readonly RegExp[] = [
+  // FR
+  /\bau (resto|restau|restaurant)\b/,
+  /\ba emporter\b/,
+  /\ben livraison\b/,
+  /\bchez (des amis|des potes|un ami|une amie|ma mere|mon pere|mes parents|ma belle mere|mes beaux parents)\b/,
+  /\bau (mariage|bapteme|anniversaire)\b/,
+  /\ba la cantine\b/,
+  /\bau (mcdo|kebab|fast food)\b/,
+  // EN
+  /\bat (a|the) restaurant\b/,
+  /\bat (a )?(wedding|birthday|christening)\b/,
+  /\bat (my )?(mum s|mom s|parents|friends|a friend s)\b/,
+  /\b(takeout|takeaway)\b/,
+  /\bat the canteen\b/,
+  /\bat (mcdonalds|kfc|a fast food place)\b/,
+];
+
+export type OffPlanMarkerHit = {
+  /** Le marqueur exact qui a mordu. */
+  matched: string;
+  /** `true` si le marqueur porte son propre passé et n'a besoin d'aucune autre porte. */
+  selfSufficient: boolean;
+};
+
+/**
+ * Le marqueur de hors-plan, DÉTERMINISTE et sans le modèle.
+ *
+ * Il ne DÉSARME pas: cette fonction ne fait que reconnaître un marqueur. Les
+ * désarmes (intention future, tiers, question, négation) restent portés par
+ * `detectDeclaredMeal`, qui les applique sur le message entier AVANT d'appeler
+ * celle-ci — une seule liste de désarmes pour les deux reconnaissances, sinon
+ * elles divergeraient au premier ajout.
+ */
+export function detectOffPlanMarker(userMessage: unknown): OffPlanMarkerHit | null {
+  const raw = String(userMessage ?? "").trim();
+  if (!raw) return null;
+  const text = ` ${normalize(raw)} `;
+  for (const marker of OFF_PLAN_PAST_MARKERS) {
+    const match = marker.exec(text);
+    if (match) return { matched: match[0].trim(), selfSufficient: true };
+  }
+  for (const marker of OFF_PLAN_PLACE_MARKERS) {
+    const match = marker.exec(text);
+    if (match) return { matched: match[0].trim(), selfSufficient: false };
+  }
+  return null;
+}
 
 /**
  * Le plancher. Rend `null` dès qu'il n'est pas SÛR — jamais une approximation.
@@ -313,7 +445,16 @@ export function detectDeclaredMeal(
 
   const pastTense = PAST_TENSE_GATES.some((re) => re.test(text));
   const hasSlot = slotNamed !== null || SLOT_MARKERS.some((re) => re.test(text));
-  if (!pastTense && !hasSlot) return null;
+
+  // FF-009 — LA TROISIÈME PORTE. Un marqueur qui porte son propre passé
+  // (« j'ai commandé ») ouvre SEUL, y compris sans aucun aliment reconnu: c'est
+  // le cas nominal du hors-plan, et exiger un composant le perdrait (R2). Un
+  // marqueur de LIEU, lui, n'ouvre rien tout seul — il qualifie une porte que
+  // le message a par ailleurs.
+  const offPlan = detectOffPlanMarker(raw);
+  const offPlanOpensTheDoor = offPlan?.selfSufficient === true;
+
+  if (!pastTense && !hasSlot && !offPlanOpensTheDoor) return null;
 
   // Les aliments, terme le plus long d'abord, sans chevauchement: une fois
   // « brown rice » consommé, « rice » ne peut plus mordre sur les mêmes
@@ -330,11 +471,23 @@ export function detectDeclaredMeal(
     components.push({ food_group_ref: entry.ref, matched: entry.term });
   }
 
-  if (components.length === 0) return null;
+  // ⚠️ LA LIGNE QUI CHANGE AVEC FF-009. Sans marqueur, un message sans aliment
+  // reconnu ne produit toujours RIEN — c'est la règle « seul ce qui est nommé
+  // devient un fait ». Avec un marqueur, le fait existe SANS aliment: « j'ai
+  // commandé » est une soirée, et la perdre était le défaut à corriger.
+  if (components.length === 0 && offPlan === null) return null;
 
   return {
     components,
     studentNote: raw.slice(0, 2000),
-    gate: pastTense ? "past_tense_verb" : "noun_phrase_with_slot",
+    gate: offPlanOpensTheDoor && !pastTense && !hasSlot
+      ? "off_plan_marker"
+      : pastTense
+      ? "past_tense_verb"
+      : "noun_phrase_with_slot",
+    // R3: un hors-plan sans détail n'invente AUCUN `food_group_ref`. La
+    // relation au plan est la SEULE chose que le marqueur ajoute.
+    planRelation: offPlan === null ? null : "off_plan",
+    offPlanMatched: offPlan?.matched ?? null,
   };
 }

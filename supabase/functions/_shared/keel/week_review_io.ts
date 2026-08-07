@@ -157,7 +157,7 @@ export async function loadWeekFacts(
   try {
     const { data, error } = await db
       .from("protocol_events")
-      .select("local_date, food_group_ref, portion_band, recognized")
+      .select("local_date, food_group_ref, portion_band, recognized, source, plan_relation")
       .eq("user_id", userId)
       .is("disqualified_reason", null)
       .gte("local_date", args.weekStart)
@@ -167,6 +167,11 @@ export async function loadWeekFacts(
       localDate: String(row.local_date ?? ""),
       foodGroups: foodGroupsOfRow(row),
       portionBand: row.portion_band == null ? null : String(row.portion_band),
+      // FF-009 — les deux axes qui séparent les trois comptes. Ils ne
+      // participent à AUCUN jugement d'alignement: ils sont comptés, et rien
+      // d'autre.
+      source: row.source == null ? null : String(row.source),
+      planRelation: row.plan_relation == null ? null : String(row.plan_relation),
     }));
   } catch (error) {
     // Une semaine illisible ne devient pas une semaine vide: rendre `[]` ici

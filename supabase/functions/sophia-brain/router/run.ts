@@ -3645,6 +3645,10 @@ export async function processMessage(
         gate: declaredMeal.gate,
         components: declaredMeal.components.map((c) => c.food_group_ref),
         matched: declaredMeal.components.map((c) => c.matched),
+        // FF-009. `off_plan` avec zéro composant est le CAS NOMINAL du
+        // hors-plan (« j'ai commandé »), pas une anomalie de log.
+        plan_relation: declaredMeal.planRelation,
+        off_plan_matched: declaredMeal.offPlanMatched,
         detail:
           "le dispatcher n'avait demandé aucun log_protocol_event; le plancher " +
           "déterministe l'ajoute. Un repas confirmé sans ligne est un accusé " +
@@ -3667,6 +3671,11 @@ export async function processMessage(
                 food_group_ref: c.food_group_ref,
               })),
               student_note: declaredMeal.studentNote,
+              // FF-009. Absente quand le message ne porte aucun marqueur:
+              // `null` reste `null`, et ne devient JAMAIS `as_planned`.
+              ...(declaredMeal.planRelation
+                ? { plan_relation: declaredMeal.planRelation }
+                : {}),
             },
           },
         ],

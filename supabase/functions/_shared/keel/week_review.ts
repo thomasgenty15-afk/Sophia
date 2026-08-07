@@ -102,6 +102,16 @@ export interface WeekFactInput {
   foodGroups: readonly string[];
   /** `portion_band`, ou null (la quasi-totalité des faits non-photo). */
   portionBand: string | null;
+  /**
+   * FF-009 — `protocol_events.source`, tel quel. Sert UNIQUEMENT à séparer les
+   * trois comptes; il n'entre dans aucun jugement d'alignement.
+   */
+  source?: string | null;
+  /**
+   * FF-009 — `protocol_events.plan_relation`. `null` = inconnu, et `null` ne
+   * devient jamais `as_planned`.
+   */
+  planRelation?: string | null;
 }
 
 export interface WeekReviewInput {
@@ -211,10 +221,37 @@ export interface WeekReviewQuestion {
   rationale: string | null;
 }
 
+/**
+ * FF-009 — LES TROIS COMPTES, ET ILS NE SE SOMMENT JAMAIS.
+ *
+ * Une coche est exacte, une photo est biaisée, un hors-plan est autre chose.
+ * Fondus en « repas suivis cette semaine », ils donnent un chiffre que personne
+ * en aval ne peut plus défaire, et que le coach lira comme un fait (R4).
+ *
+ * ⚠️ `null` SUR UNE LECTURE ANCIENNE, ET C'EST DÉLIBÉRÉ. Les bilans gelés avant
+ * FF-009 ne portent pas ce bloc. Le lire à zéro affirmerait « aucune photo,
+ * aucune coche cette semaine-là », ce qui est faux. Absent, il dit « je ne sais
+ * pas comment cette semaine se répartissait » — et aucune surface n'imprime un
+ * zéro qu'elle n'a pas compté. C'est ce qui permet d'AJOUTER ce bloc sans
+ * bumper `WEEK_REVIEW_FACTS_VERSION`: une version neuve rendrait illisibles
+ * tous les gels existants, et la conversation perdrait une semaine entière de
+ * chiffres citables pour un champ purement additif.
+ */
+export interface WeekEvidenceSplit {
+  /** Faits que l'élève a rattachés au plan (coche d'un plat prévu). */
+  asPlanned: number;
+  /** Faits marqués hors plan (`plan_relation='off_plan'`). */
+  offPlan: number;
+  /** Faits venus d'une photo (`source='photo'`). */
+  photo: number;
+}
+
 export interface WeekReviewReading {
   version: typeof WEEK_REVIEW_FACTS_VERSION;
   window: { start: string; end: string; days: number };
   coverage: WeekCoverage;
+  /** FF-009 — voir `WeekEvidenceSplit`. `null` sur un gel antérieur à la fiche. */
+  evidence: WeekEvidenceSplit | null;
   portions: PortionBandSummary;
   livability: LivabilitySummary;
   alignment: readonly AlignmentItem[];
@@ -549,8 +586,16 @@ export function computeWeekReview(input: WeekReviewInput): WeekReviewReading {
     ? pickWeekQuestion(alignment, input.previouslyAskedGroup)
     : null;
 
+  // FF-009 — les trois comptes, calculés séparément et rendus séparément.
+  const evidence: WeekEvidenceSplit = {
+    asPlanned: input.facts.filter((f) => f.planRelation === "as_planned").length,
+    offPlan: input.facts.filter((f) => f.planRelation === "off_plan").length,
+    photo: input.facts.filter((f) => f.source === "photo").length,
+  };
+
   return {
     version: WEEK_REVIEW_FACTS_VERSION,
+    evidence,
     window: {
       start: cleanToken(input.weekStart),
       end: cleanToken(input.weekEnd),
@@ -640,8 +685,20 @@ export function parseWeekReview(raw: unknown): WeekReviewReading | null {
     };
   }
 
+  // FF-009 — bloc ABSENT sur un gel antérieur à la fiche: on rend `null`, pas
+  // des zéros. Un zéro imprimé serait une affirmation qu'on n'a pas mesurée.
+  const rawEvidence = raw.evidence;
+  const evidence: WeekEvidenceSplit | null = isRecord(rawEvidence)
+    ? {
+      asPlanned: num(rawEvidence.asPlanned),
+      offPlan: num(rawEvidence.offPlan),
+      photo: num(rawEvidence.photo),
+    }
+    : null;
+
   return {
     version: WEEK_REVIEW_FACTS_VERSION,
+    evidence,
     window: {
       start: cleanToken(window.start),
       end: cleanToken(window.end),

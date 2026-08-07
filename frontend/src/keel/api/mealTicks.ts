@@ -97,6 +97,17 @@ export async function tickMeal(args: {
     // ici par confort — c'est la valeur que `evidenceWeightForSource` donne à
     // `quick_tap`, et la répéter à la main ailleurs les ferait diverger.
     evidence_weight: 0.4,
+    // FF-009 — LE SEUL ÉCRIVAIN HONNÊTE DE `as_planned`.
+    //
+    // Cocher un plat du plan, c'est littéralement dire « j'ai mangé ce qui
+    // était prévu ». L'élève DÉSIGNE la ligne: rien n'est déduit.
+    //
+    // ⚠️ Et c'est pour ça que le chat, lui, n'écrit JAMAIS `as_planned`. Un
+    // « j'ai mangé du poulet » ne dit rien du plan; le marquer comme prévu
+    // fabriquerait de l'adhérence à partir d'un silence — ce que FF-007
+    // interdit globalement et ce que FF-009 R5 interdit pour cette colonne.
+    // Le chat n'écrit que `off_plan`, quand un marqueur déterministe a mordu.
+    plan_relation: "as_planned",
     source_message_id: key,
   });
   if (!inserted.error) return;

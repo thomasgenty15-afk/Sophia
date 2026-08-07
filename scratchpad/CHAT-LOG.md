@@ -190,3 +190,125 @@ FF-008 ne l'aggrave pas : une mesure dite en conversation n'est légitimement pa
 un formulaire rempli.)
 
 ---
+## Lot 2 — FF-009 · Le repas hors plan
+
+**Début** : 2026-08-08 · **Fin** : 2026-08-08 · **Verdict : RÉUSSI.**
+
+### Arbitrage préalable demandé par la fiche — `planned_deviations`
+
+Fait, et le verdict est **ce n'est pas un doublon**. Détail au lot 0 §3 :
+`planned_deviations` est un flex déclaré **à l'avance** qui retire un
+jour/créneau du **dénominateur** d'adhérence, et son écriture rétroactive sur un
+jour résolu est refusée par contrat (`retroactive_on_resolved_day`). FF-009 vise
+un repas **déjà mangé**, déclaré **après coup**, qui ne retire rien et n'annule
+aucune coche. Aucun arbitrage humain requis.
+
+### Ce qui a été écrit
+
+| Fichier | Nature |
+|---|---|
+| `migrations/20260808050000_protocol_event_plan_relation.sql` | **neuf** — colonne + index partiel + vue coach + 3 contrôles rejoués |
+| `_shared/keel/meal_declaration_floor.ts` | `detectOffPlanMarker`, la 3ᵉ porte, 2 corrections de désarme |
+| `_shared/keel/meal_declaration_floor_test.ts` | +11 tests FF-009, chacun FR **et** EN |
+| `log_protocol_event/{contract,intake,db,executor}.ts` | `plan_relation` de bout en bout, relu et vérifié |
+| `sophia-brain/router/run.ts` | le plancher passe la relation |
+| `_shared/keel/daily_recap.ts` + `daily_recap_io.ts` | `offPlanCount` — le 3ᵉ compte de la journée |
+| `_shared/keel/week_review.ts` + `week_review_io.ts` | `WeekEvidenceSplit` — les 3 comptes de la semaine |
+| `frontend/src/keel/lib/weekInFood.ts` + 2 pages | les 3 comptes affichés séparément |
+| `frontend/src/keel/api/mealTicks.ts` | la coche écrit `as_planned` |
+
+### Décisions de fond, et pourquoi
+
+1. **`as_planned` n'est JAMAIS écrit par le chat.** Le schéma de FF-009 §4
+   annote la branche « composants seuls » d'un `as_planned (comportement
+   actuel)`. Appliqué à la lettre, chaque « j'ai mangé du poulet » deviendrait
+   un repas *conforme au plan* — alors que la phrase ne dit rien du plan. C'est
+   fabriquer de l'adhérence à partir d'un silence : interdit globalement par
+   FF-007 (« aucune coche automatique, rien n'est jamais inféré d'un silence »)
+   et nommément par R5 de FF-009 pour cette colonne.
+   La parenthèse « (comportement actuel) » se lit donc comme « cette branche ne
+   change pas », et c'est ce qui est livré : le chat n'écrit que `off_plan`.
+   **`as_planned` a un écrivain honnête et un seul** — la coche d'un plat prévu
+   (`tickMeal`), où l'élève DÉSIGNE la ligne. Rien n'y est déduit.
+
+2. **`null` reste `null` en base**, pas de jeton `'unknown'` (lot 0 §4).
+
+3. **Aucun bump de `WEEK_REVIEW_FACTS_VERSION`.** Le bloc `evidence` est
+   purement additif ; une version neuve rendrait illisibles **tous** les gels
+   existants et la conversation perdrait une semaine entière de chiffres
+   citables. Le parseur rend `null` — pas des zéros — quand le bloc est absent :
+   un gel d'avant la fiche dit « je ne sais pas comment cette semaine se
+   répartissait », et aucune surface n'imprime un zéro qu'elle n'a pas compté.
+
+### 🔴 Deux désarmes préexistants corrigés — les deux mordaient à tort
+
+1. **`chez ma mère` était traité comme un tiers.** Le désarme « quelqu'un
+   d'autre » (`/(mon|ma|mes) (…|mere|…)/`) attrapait « j'ai mangé chez ma mère
+   hier soir » — alors que c'est l'élève qui a mangé, et que sa mère est
+   l'adresse. C'est très exactement le hors-plan le plus courant de la fiche.
+   Corrigé par une négation en tête (`(?<!chez )` en FR, `(?<!at )` en EN) : la
+   distinction est structurelle, pas heuristique — après « chez »/« at », un
+   proche est un **lieu**. La contre-épreuve est testée : « ma mère a mangé du
+   poulet » désarme toujours, dans les deux langues.
+
+2. **`chez` était un marqueur hors-plan trop large.** Première écriture du
+   marqueur : `(j ai|on a) (mange|…) (au|a la|chez|dehors)`. Il mordait sur
+   « j'ai mangé **chez moi** » — le contraire d'un hors-plan, et la frontière
+   que la fiche nomme explicitement. Remplacé par une exclusion
+   (`chez (?!moi\b|nous\b)`) plutôt qu'une liste de proches : une liste se
+   serait fait déborder au premier « chez ma tante ».
+
+**Ces deux-là ne sont pas des détails de lexique** : le premier existait avant
+ce lot et rendait un hors-plan sur deux invisible ; le second, non corrigé,
+aurait marqué hors-plan des repas cuisinés à la maison — soit l'exact
+contre-mesure de §10 (« déplacer une étiquette au lieu de capter de la vie »).
+
+### Vérifications
+
+1. **Unitaires du lot — VERT.** `meal_declaration_floor_test.ts` : 25 tests,
+   dont 11 neufs FF-009, **tous joués FR et EN** — marqueur seul sans aliment,
+   marqueur + aliments, absence de marqueur (`null`, jamais `as_planned`),
+   intention future, commande pour les enfants, `chez ma mère` vs `chez moi`,
+   `on est sortis` ambigu, marqueur de lieu seul, question, marqueur journalisé,
+   et les deux contre-épreuves des désarmes corrigés.
+   `log_protocol_event/` : 52 tests verts.
+   `daily_recap` + `week_review` : 79 verts.
+
+2. **Migration appliquée LOCALEMENT** par
+   `docker exec supabase_db_Sophia_2 psql`, version enregistrée dans
+   `supabase_migrations.schema_migrations`. **Aucun `db reset`, aucun
+   `db push`.** Les trois contrôles finaux **rejouent le geste** et sont passés :
+   le CHECK refuse `'cheat_meal'`, une ligne neuve porte bien `NULL`, et
+   `coach_student_events` a **gardé** `security_invoker=off` après le
+   `create or replace view` — vérifié dans `pg_class.reloptions`, pas dans le
+   texte de la vue. Les lignes de contrôle sont annulées (relu : 0 ligne).
+
+3. **Suite Deno complète** : `2613 passed | 1 failed | 16 ignored`.
+   Le rouge est **le même qu'au lot 1**, préexistant et déjà prouvé par
+   remisage (`run_keel_conversation_loop_test.ts:166`, langue de rendu).
+   **Zéro rouge nouveau** ; +13 tests par rapport au lot 1.
+
+4. **Frontend** : `npx tsc -b` (depuis `frontend/`, c'est `tsconfig.app.json`
+   qui travaille) — vert. `npx vitest run` : **508 passed | 20 skipped**, zéro
+   échec.
+
+5. **Longueur du contexte assemblé** : +2 lignes dans `describeDayFacts`, qui
+   n'alimente **que** le prompt du **message du soir**
+   (`buildRecapSystemPrompt`), pas le compagnon. Mesuré : le bloc de faits passe
+   de 4 à 6 lignes, **≈ +43 tokens**, sur un prompt du soir dont le plafond
+   n'est pas `COMPANION_PROMPT_MAX_TOKENS`. **Le prompt du compagnon est
+   inchangé, à l'octet près** — ce lot n'y ajoute rien.
+
+6. **Fixtures `chat_`** : aucune. Les contrôles SQL sont annulés dans leur
+   sous-transaction, vérifié par relecture.
+
+### Deux fixtures de test corrigées, et pourquoi c'était nécessaire
+
+`daily_recap_test.ts :: facts()` ne renseignait pas `offPlanCount` : sous
+`--no-check`, `allowedNumbers` recevait donc `undefined` et le mettait dans
+l'ensemble des nombres autorisés — une ceinture qui accepte `undefined` accepte
+ensuite n'importe quoi. La fixture décrit maintenant une journée **complète**, et
+les deux assertions `new Set([2, 4, 1])` deviennent `new Set([2, 4, 1, 0])` : le
+`0` est celui du hors-plan, et zéro est un fait de la journée comme un autre.
+
+---

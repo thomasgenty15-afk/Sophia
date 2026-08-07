@@ -79,7 +79,7 @@ export async function loadDayFacts(
   try {
     const { data, error } = await db
       .from("protocol_events")
-      .select("source, student_note, source_message_id")
+      .select("source, student_note, source_message_id, plan_relation")
       .eq("user_id", userId)
       .eq("local_date", localDate)
       // Une ligne décochée SURVIT (`protocol_events` est append-only) et porte
@@ -99,8 +99,15 @@ export async function loadDayFacts(
   // sont poussés ensemble, sur la même ligne d'événement.
   const tickedMealIds: string[] = [];
   let photoCount = 0;
+  let offPlanCount = 0;
   for (const row of events) {
     const source = String(row.source ?? "");
+    // FF-009 — LE HORS-PLAN SE COMPTE EN PREMIER ET SUR SON PROPRE AXE.
+    // `plan_relation` n'est PAS `source`: une photo peut parfaitement être un
+    // repas hors plan. On compte donc la relation au plan avant de brancher sur
+    // la provenance, et un `continue` ici ferait disparaître la photo de son
+    // propre compte — ce qui est exactement la fusion que R4 interdit.
+    if (String(row.plan_relation ?? "") === "off_plan") offPlanCount++;
     if (source === "photo") {
       photoCount++;
       continue;
@@ -153,6 +160,7 @@ export async function loadDayFacts(
     tickedTitles: tickedTitles.filter((t) => t.length > 0),
     plannedCount: Math.max(plannedCount, 0),
     photoCount,
+    offPlanCount,
   };
 }
 

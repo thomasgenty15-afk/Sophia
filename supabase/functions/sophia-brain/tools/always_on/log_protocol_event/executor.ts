@@ -72,6 +72,7 @@ export async function executeLogProtocolEventWrite(args: {
       commitment_id: requested.commitment_id,
       student_note: requested.student_note,
       content_locale: requested.content_locale,
+      plan_relation: requested.plan_relation,
       evidence_weight: requested.evidence_weight,
       source_message_id: requested.source_message_id,
       precision_answer_to: requested.precision_answer_to,
@@ -161,6 +162,21 @@ export async function executeLogProtocolEventWrite(args: {
         detail: "substance_ref",
       };
     }
+    // FF-009, même règle appliquée à la relation au plan. Un `off_plan`
+    // demandé et non revenu (CHECK rejeté, colonne absente d'un environnement
+    // pas encore migré) laisserait un repas hors plan indiscernable d'un repas
+    // ordinaire — et le compte séparé que la fiche existe pour produire serait
+    // faux sans que rien ne le dise.
+    if (
+      requested.plan_relation !== null &&
+      row.plan_relation !== requested.plan_relation
+    ) {
+      return {
+        status: "failed",
+        reason_code: "readback_mismatch",
+        detail: "plan_relation",
+      };
+    }
   }
 
   return {
@@ -178,6 +194,7 @@ export async function executeLogProtocolEventWrite(args: {
       commitment_id: row.bound_commitment_id,
       quantity: requested.quantity,
       unit: requested.unit,
+      plan_relation: row.plan_relation,
     },
   };
 }

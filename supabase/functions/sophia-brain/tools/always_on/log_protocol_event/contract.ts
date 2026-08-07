@@ -45,6 +45,26 @@ export const PROTOCOL_EVENT_SOURCES = [
 export type ProtocolEventSource = (typeof PROTOCOL_EVENT_SOURCES)[number];
 
 /**
+ * FF-009 — `protocol_events.plan_relation`, CHECK-constrained in
+ * `20260808050000_protocol_event_plan_relation.sql`.
+ *
+ * A THIRD AXIS, and it is not any of the two that already exist:
+ *   `source`              — WHERE the fact came from (a photo can be off plan);
+ *   `evidence_weight`     — HOW RELIABLE it is (a well-described off-plan meal
+ *                           is reliable);
+ *   `disqualified_reason` — a RETRACTION. An off-plan meal is a meal that was
+ *                           EATEN; a disqualified one was not. The two columns
+ *                           live side by side and a hurried reader will
+ *                           conflate them.
+ *
+ * `null` is a STATE, not a default to be filled in: it is what every row
+ * written before FF-009 carries, and flipping those to `as_planned` would
+ * manufacture retroactive adherence.
+ */
+export const PLAN_RELATIONS = ["as_planned", "off_plan"] as const;
+export type PlanRelation = (typeof PLAN_RELATIONS)[number];
+
+/**
  * The row as READ BACK from the database. Every field the ledger and the
  * renderer quote comes from here — never from the request. That is the
  * difference between "I wrote it" and "the database has it".
@@ -76,6 +96,12 @@ export type ProtocolEventRow = {
    */
   food_group_ref: string | null;
   substance_ref: string | null;
+  /**
+   * READ-BACK relation to the plan. Here for the same reason
+   * `food_group_ref` is: the ledger states what the database holds, and a
+   * relation the CHECK rejected must never be reported as recorded.
+   */
+  plan_relation: string | null;
 };
 
 export type ProtocolEventWriteInput = {
@@ -108,6 +134,11 @@ export type ProtocolEventWriteInput = {
   student_note: string | null;
   /** R2: the row states its own language; the caller passes it, no guessing. */
   content_locale: string;
+  /**
+   * FF-009 — classified DETERMINISTICALLY upstream, never by the model, and
+   * `null` when unknown. See `PlanRelation`.
+   */
+  plan_relation: PlanRelation | null;
   evidence_weight: number;
   /**
    * Idempotence key of the schema: unique partial (user_id, source_message_id).
@@ -189,6 +220,8 @@ export type LogProtocolEventRequestedEffect = {
   commitment_id: string | null;
   student_note: string | null;
   content_locale: string;
+  /** FF-009 — see ProtocolEventWriteInput. */
+  plan_relation: PlanRelation | null;
   evidence_weight: number;
   source_message_id: string;
   /** See ProtocolEventWriteInput: the meal row this fact completes, or null. */
@@ -225,6 +258,11 @@ export type LogProtocolEventCommittedEffect = {
   commitment_id: string | null;
   quantity: number | null;
   unit: Unit | null;
+  /**
+   * READ-BACK, like every other identity field here. FF-009 R4: this value is
+   * one of THREE counts that are reported separately and never summed.
+   */
+  plan_relation: string | null;
 };
 
 export type LogProtocolEventStatus =

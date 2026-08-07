@@ -31,9 +31,11 @@ import {
 } from "../../../../_shared/keel/tokens.ts";
 import {
   MAX_PROTOCOL_EVENT_COMPONENTS,
+  PLAN_RELATIONS,
   PROTOCOL_EVENT_SOURCES,
   protocolEventComponentKey,
   type LogProtocolEventRequestedEffect,
+  type PlanRelation,
   type ProtocolEventSource,
 } from "./contract.ts";
 
@@ -257,6 +259,28 @@ function readComponents(payload: Record<string, unknown>): ComponentDraft[] {
   return components;
 }
 
+/**
+ * FF-009 — la relation au plan portée par le payload.
+ *
+ * ABSENTE = `null`, et `null` est un ÉTAT (« on ne sait pas »), pas un défaut
+ * à combler. Un jeton inconnu n'est PAS silencieusement ramené à `null`: le
+ * CHECK de la base le refuserait de toute façon, et découvrir la faute au
+ * moment de l'INSERT ferait perdre le fait entier au lieu de nommer le
+ * problème ici (R7).
+ */
+function parsePlanRelation(value: unknown): PlanRelation | null {
+  const raw = optionalString(value);
+  if (raw === null) return null;
+  if ((PLAN_RELATIONS as readonly string[]).includes(raw)) {
+    return raw as PlanRelation;
+  }
+  throw new Error(
+    `Unknown protocol_events.plan_relation '${raw}' (expected one of: ${
+      PLAN_RELATIONS.join(", ")
+    })`,
+  );
+}
+
 function parseSource(value: unknown, fallback: ProtocolEventSource) {
   const raw = optionalString(value);
   if (raw === null) return fallback;
@@ -351,6 +375,7 @@ export function runLogProtocolEventIntake(input: {
 
   let slotKey: SlotKey | null = null;
   let source: ProtocolEventSource;
+  let planRelation: PlanRelation | null = null;
   let components: ComponentDraft[];
   try {
     const rawSlot = optionalString(payload.slot_key);
@@ -369,6 +394,11 @@ export function runLogProtocolEventIntake(input: {
       ? (input.slot_named_in_message ?? null)
       : parseSlotKey(rawSlot);
     source = parseSource(payload.source, input.default_source ?? "chat");
+    // FF-009. La relation décrit LE MESSAGE, comme `slot_key` et
+    // `student_note`: un message qui dit « j'ai commandé une pizza et une
+    // salade » est UN repas hors plan en deux composants, pas un composant
+    // hors plan et un composant prévu.
+    planRelation = parsePlanRelation(payload.plan_relation);
     components = readComponents(payload);
   } catch (error) {
     return {
@@ -454,8 +484,12 @@ export function runLogProtocolEventIntake(input: {
     c.commitment_id !== null || c.quantity !== null
   );
   if (
-    !saysSomething && slotKey === null && studentNote === null &&
-    mediaPath === null
+    // FF-009 R2 — `plan_relation` COMPTE comme « ce message dit quelque chose ».
+    // C'est le cas nominal du hors-plan: « j'ai commandé » ne nomme aucun
+    // aliment, aucune quantité, aucun engagement, et c'est très exactement le
+    // fait qu'on cherche à ne plus perdre.
+    !saysSomething && planRelation === null && slotKey === null &&
+    studentNote === null && mediaPath === null
   ) {
     return {
       detected: true,
@@ -486,6 +520,7 @@ export function runLogProtocolEventIntake(input: {
       // to which food — a deduction, and D2's product rule forbids deductions.
       student_note: studentNote,
       content_locale: contentLocale,
+      plan_relation: planRelation,
       evidence_weight: evidenceWeightForSource(source),
       source_message_id: `${sourceMessageId}#${key}`,
       precision_answer_to: optionalString(input.precision_answer_to),

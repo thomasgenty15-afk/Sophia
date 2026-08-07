@@ -33,6 +33,10 @@ function facts(over: Partial<DayFacts> = {}): DayFacts {
     tickedTitles: ["Greek yoghurt and berries", "Chicken and rice bowl"],
     plannedCount: 4,
     photoCount: 1,
+    // FF-009 — le troisième compte. Explicite dans la fixture: une journée
+    // décrite à moitié ferait passer `undefined` dans `allowedNumbers`, et la
+    // ceinture accepterait alors n'importe quoi qui ressemble à un nombre.
+    offPlanCount: 0,
     ...over,
   };
   return {
@@ -198,7 +202,9 @@ Deno.test("a number that was not given is a number that was invented", () => {
 
 Deno.test("...AND ITS DISARMING CONDITION: the given numbers pass, and pronouns are not counts", () => {
   const f = facts({ tickedCount: 2, plannedCount: 4, photoCount: 1 });
-  assertEquals(allowedNumbers(f, null), new Set([2, 4, 1]));
+  // Le 0 est celui du hors-plan (FF-009): une journée sans repas hors plan en
+  // porte zéro, et « zéro » est un fait de la journée comme les autres.
+  assertEquals(allowedNumbers(f, null), new Set([2, 4, 1, 0]));
 
   for (
     const text of [
@@ -404,7 +410,7 @@ Deno.test("CONTRE-ÉPREUVE: sans pratique, le prompt est CELUI D'AVANT, octet po
   // Et la ceinture juge à l'identique: mêmes plafonds, même interdiction de
   // question, mêmes nombres.
   assertEquals(RECAP_MAX_CHARS, 220);
-  assertEquals(allowedNumbers(facts(), null), new Set([2, 4, 1]));
+  assertEquals(allowedNumbers(facts(), null), new Set([2, 4, 1, 0]));
 });
 
 Deno.test("R10: le target de la pratique rejoint les nombres autorisés", () => {
