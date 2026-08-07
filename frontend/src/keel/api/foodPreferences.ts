@@ -18,6 +18,7 @@
 // voisines. Rien ici n'a besoin de service_role.
 
 import { supabase } from "../../lib/supabase";
+import { mergePracticalConstraints } from "./practicalConstraints";
 
 /** La clé lue par les deux générateurs. */
 export const FOOD_PREFERENCES_KEY = "food_preferences";
@@ -351,18 +352,16 @@ export async function saveFoodPreferences(args: {
     if (keys.has(key)) origin[key] = entry;
   }
 
-  const { error } = await supabase
-    .from("student_goals")
-    .update({
-      practical_constraints: {
-        ...(args.practicalConstraints ?? {}),
-        [FOOD_PREFERENCES_KEY]: kept,
-        [FOOD_PREFERENCES_DISMISSED_KEY]: capDismissed(args.dismissed),
-        [FOOD_PREFERENCES_ORIGIN_KEY]: origin,
-      },
-    })
-    .eq("user_id", args.userId);
-  if (error) throw new Error(`[keel/api] saveFoodPreferences: ${error.message}`);
+  await mergePracticalConstraints({
+    userId: args.userId,
+    current: args.practicalConstraints,
+    patch: {
+      [FOOD_PREFERENCES_KEY]: kept,
+      [FOOD_PREFERENCES_DISMISSED_KEY]: capDismissed(args.dismissed),
+      [FOOD_PREFERENCES_ORIGIN_KEY]: origin,
+    },
+    source: "saveFoodPreferences",
+  });
 }
 
 /**

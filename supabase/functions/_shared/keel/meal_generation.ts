@@ -145,6 +145,17 @@ export const DEFAULT_EATING_RHYTHM: readonly EatingOccasionSlot[] = [
  * Un rythme entièrement illisible rend `[]`, et l'appelant retombe sur le
  * défaut — jamais sur une journée vide.
  *
+ * DEUX FORMES D'ENTRÉE, ET C'EST DÉLIBÉRÉ. `{"slot":"lunch","at":null}` est ce
+ * qu'écrit la carte; `"lunch"` tout court est ce qu'écrivent les jsonb posés à
+ * la main (fixtures, seeds). La migration qui a créé cette clé a renoncé au
+ * CHECK de forme en écrivant que « le lecteur sait déjà réparer » — il ne
+ * réparait pas, il JETAIT, et le coût était invisible parce que le repli
+ * ressemble à une réponse: la fixture d'un élève déclaré SANS petit-déjeuner
+ * (`["lunch","dinner"]`) rendait `[]`, retombait sur le défaut, et servait un
+ * petit-déjeuner. Toute la flotte QA validait le défaut en croyant tester trois
+ * rythmes distincts. La chaîne nue vaut donc le moment SANS heure — c'est la
+ * seule lecture possible, il n'y a rien à deviner.
+ *
  * L'ORDRE EST CELUI DE LA JOURNÉE, pas celui du tableau reçu. On lit sa journée
  * du réveil au coucher; laisser l'ordre de saisie décider ferait lire un dîner
  * avant un petit-déjeuner.
@@ -153,6 +164,19 @@ export function parseEatingRhythm(raw: unknown): EatingOccasionSlot[] {
   if (!Array.isArray(raw)) return [];
   const bySlot = new Map<EatingOccasion, string | null>();
   for (const entry of raw) {
+    // La chaîne nue: un moment pris, sans heure. Traitée AVANT le rejet des
+    // non-objets, qui la mangeait en silence.
+    if (typeof entry === "string") {
+      const slot = entry.trim().toLowerCase();
+      if (!(EATING_OCCASIONS as readonly string[]).includes(slot)) continue;
+      // `set` et pas `set` conditionnel: une chaîne nue ne porte pas d'heure,
+      // et ne doit pas effacer celle qu'une entrée objet du même tableau
+      // aurait déjà posée pour ce moment.
+      if (!bySlot.has(slot as EatingOccasion)) {
+        bySlot.set(slot as EatingOccasion, null);
+      }
+      continue;
+    }
     if (!entry || typeof entry !== "object" || Array.isArray(entry)) continue;
     const e = entry as Record<string, unknown>;
     const slot = String(e.slot ?? "").trim().toLowerCase();

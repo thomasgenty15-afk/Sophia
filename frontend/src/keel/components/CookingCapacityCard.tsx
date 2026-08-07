@@ -2,6 +2,7 @@ import React from "react";
 
 import { supabase } from "../../lib/supabase";
 import { dishDayLabel } from "../api/mealLabels";
+import { mergePracticalConstraints } from "../api/practicalConstraints";
 import { Button } from "./ui/Button";
 import { Card, SectionLabel } from "./ui/Card";
 import { Field, inputClass } from "./ui/Field";
@@ -139,24 +140,22 @@ export default function CookingCapacityCard(props: CookingCapacityCardProps) {
       const uid = auth.user?.id;
       if (!uid) throw new Error("not signed in");
 
-      // UPDATE et pas UPSERT: un upsert partiel écraserait `goal` et
-      // `content_locale`, qui sont NOT NULL. Les autres clés pratiques —
-      // `eating_rhythm` en tête — sont conservées par l'étalement.
-      const { error: err } = await supabase
-        .from("student_goals")
-        .update({
-          practical_constraints: {
-            ...props.practicalConstraints,
-            // L'ORDRE DE LA SEMAINE, pas celui des clics.
-            cook_days: DAYS.filter((d) => days.has(d)),
-            cooking_time_min: Number(time) || 30,
-            recipe_difficulty: difficulty,
-            variety,
-            budget_band: budget,
-          },
-        })
-        .eq("user_id", uid);
-      if (err) throw new Error(err.message);
+      // La fusion, et la garantie qu'une ligne a bougé, appartiennent au
+      // module: un update qui ne matche rien répond 204 sans erreur, et cette
+      // carte affichait alors « Saved » sur une saisie partie nulle part.
+      await mergePracticalConstraints({
+        userId: uid,
+        current: props.practicalConstraints,
+        patch: {
+          // L'ORDRE DE LA SEMAINE, pas celui des clics.
+          cook_days: DAYS.filter((d) => days.has(d)),
+          cooking_time_min: Number(time) || 30,
+          recipe_difficulty: difficulty,
+          variety,
+          budget_band: budget,
+        },
+        source: "CookingCapacityCard",
+      });
       setFlash(COPY.saved);
       await props.onSaved();
       setOpen(false);

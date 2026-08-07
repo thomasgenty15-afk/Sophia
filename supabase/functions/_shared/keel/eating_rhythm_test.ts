@@ -72,6 +72,56 @@ Deno.test("ce qui n'est pas reconnu est écarté, jamais deviné", () => {
   );
 });
 
+Deno.test("la chaîne nue est un moment, pas un déchet", () => {
+  // LE DÉFAUT QUE CE TEST GARDE, ET IL ÉTAIT INVISIBLE PARCE QUE LE REPLI
+  // RESSEMBLE À UNE RÉPONSE.
+  //
+  // Deux formes cohabitent dans la colonne: `{slot, at}` qu'écrit la carte, et
+  // la chaîne nue que posent les jsonb écrits à la main. Le parseur ne lisait
+  // que la première et JETAIT la seconde en silence; l'appelant retombait
+  // alors sur `DEFAULT_EATING_RHYTHM` — petit-déjeuner, déjeuner, dîner. Donc:
+  //
+  //   · la fixture d'un élève déclaré SANS petit-déjeuner recevait un
+  //     petit-déjeuner, ce qui est exactement le symptôme rapporté en vrai;
+  //   · et la flotte QA était VERTE, parce que la fixture nominale déclare
+  //     `["breakfast","lunch","dinner"]` — ce que le repli rend aussi. Trois
+  //     rythmes distincts en fixture, un seul jamais exercé.
+  //
+  // La migration qui a créé la clé a renoncé au CHECK de forme en écrivant que
+  // « le lecteur sait déjà réparer ». C'est ce test qui rend la phrase vraie.
+  assertEquals(parseEatingRhythm(["lunch", "dinner"]), [
+    { slot: "lunch", at: null },
+    { slot: "dinner", at: null },
+  ]);
+
+  // L'ORDRE DE LA JOURNÉE VAUT AUSSI POUR ELLE.
+  assertEquals(
+    parseEatingRhythm(["dinner", "breakfast", "snack_pm"]).map((o) => o.slot),
+    ["breakfast", "snack_pm", "dinner"],
+  );
+
+  // Les deux formes dans le même tableau: une chaîne nue ne porte pas d'heure,
+  // et ne doit donc pas effacer celle qu'une entrée objet a déjà posée.
+  assertEquals(
+    parseEatingRhythm([{ slot: "lunch", at: "12:30" }, "lunch", "dinner"]),
+    [{ slot: "lunch", at: "12:30" }, { slot: "dinner", at: null }],
+  );
+
+  // Écarter reste la règle: la tolérance porte sur la FORME, pas sur le
+  // vocabulaire.
+  assertEquals(parseEatingRhythm(["brunch", "snack", ""]), []);
+
+  // ET LE REPLI NE SE DÉCLENCHE PLUS SUR UN RYTHME QUI EXISTE. C'est la ligne
+  // qui compte: c'est elle qui faisait servir un petit-déjeuner à quelqu'un
+  // qui n'en prend pas.
+  const declared = parseEatingRhythm(["lunch", "dinner"]);
+  assertEquals(declared.length > 0, true);
+  assertEquals(
+    (declared.length > 0 ? declared : DEFAULT_EATING_RHYTHM).map((o) => o.slot),
+    ["lunch", "dinner"],
+  );
+});
+
 Deno.test("le plafond suit le rythme, et ne bouge pas sans lui", () => {
   // LE POINT: cinq occasions par jour ne tiennent pas dans un plafond calculé
   // pour trois. Les deux dernières tomberaient — c'est-à-dire disparaîtraient,

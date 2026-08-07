@@ -7,6 +7,7 @@ import {
   type EatingOccasionSlot,
 } from "../api/mealGeneration";
 import { mealCopy } from "../api/mealLabels";
+import { mergePracticalConstraints } from "../api/practicalConstraints";
 import { Button } from "./ui/Button";
 import { Card, SectionLabel } from "./ui/Card";
 
@@ -186,16 +187,15 @@ export default function EatingRhythmCard(props: EatingRhythmCardProps) {
         .filter((slot) => picked.has(slot))
         .map((slot) => ({ slot, at: times[slot]?.trim() || null }));
 
-      // UPDATE et pas UPSERT: un upsert partiel écraserait `goal` et
-      // `content_locale`, qui sont NOT NULL et n'ont rien à faire ici. Les
-      // autres clés pratiques sont conservées par l'étalement.
-      const { error: err } = await supabase
-        .from("student_goals")
-        .update({
-          practical_constraints: { ...props.practicalConstraints, eating_rhythm },
-        })
-        .eq("user_id", uid);
-      if (err) throw new Error(err.message);
+      // La fusion, et la garantie qu'une ligne a bougé, appartiennent au
+      // module: un update qui ne matche rien répond 204 sans erreur, et cette
+      // carte affichait alors « Saved » sur une saisie partie nulle part.
+      await mergePracticalConstraints({
+        userId: uid,
+        current: props.practicalConstraints,
+        patch: { eating_rhythm },
+        source: "EatingRhythmCard",
+      });
       setFlash(COPY.saved);
       await props.onSaved();
       // Enregistré => la carte se replie, comme celle de l'objectif. Le geste

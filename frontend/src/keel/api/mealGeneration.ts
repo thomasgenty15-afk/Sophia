@@ -74,12 +74,22 @@ export interface EatingOccasionSlot {
  * MÊMES RÈGLES QUE `parseEatingRhythm` DU MOTEUR, et c'est délibéré: les deux
  * lisent la même colonne, et deux lectures qui divergent produiraient un écran
  * qui affiche autre chose que ce avec quoi on a composé. Écarter plutôt que
- * deviner, ordre de la journée plutôt qu'ordre de saisie, heure facultative.
+ * deviner, ordre de la journée plutôt qu'ordre de saisie, heure facultative,
+ * et la chaîne nue (`"lunch"`) lue comme le moment sans heure — voir l'en-tête
+ * du moteur pour ce que cette dernière règle a coûté tant qu'elle manquait.
  */
 export function parseEatingRhythm(raw: unknown): EatingOccasionSlot[] {
   if (!Array.isArray(raw)) return [];
   const bySlot = new Map<EatingOccasion, string | null>();
   for (const entry of raw) {
+    if (typeof entry === "string") {
+      const slot = entry.trim().toLowerCase();
+      if (!(EATING_OCCASIONS as readonly string[]).includes(slot)) continue;
+      if (!bySlot.has(slot as EatingOccasion)) {
+        bySlot.set(slot as EatingOccasion, null);
+      }
+      continue;
+    }
     if (!entry || typeof entry !== "object" || Array.isArray(entry)) continue;
     const e = entry as Record<string, unknown>;
     const slot = String(e.slot ?? "").trim().toLowerCase();

@@ -598,3 +598,93 @@ export function goalScopeApplies(
   if (goal === null) return false;
   return goalScope.includes(goal);
 }
+
+/**
+ * Un jeton qui n'est aucun objectif, donc qui n'atteint personne.
+ *
+ * C'est la valeur de repli d'une portée MALFORMÉE, et le choix du repli est la
+ * seule décision de sécurité de `parseGoalScope`.
+ */
+export const MALFORMED_GOAL_SCOPE: readonly string[] = ["!malformed"];
+
+/**
+ * Lire la portée d'une entrée. Absente = globale; illisible = personne.
+ *
+ * ── ELLE VIT ICI, À CÔTÉ DE `goalScopeApplies`, ET C'EST RÉCENT ──────────
+ * Elle était privée à `doctrine.ts`, qui était son seul lecteur. Les pratiques
+ * quotidiennes (FF-001) portent la MÊME portée avec la MÊME sémantique, et
+ * FF-001 l'écrit noir sur blanc: « même sémantique et même filtre que
+ * `DoctrineBelief.goalScope` / `goalScopeApplies` ». Une seconde lecture aurait
+ * divergé au premier jeton ajouté, et la divergence aurait été silencieuse d'un
+ * côté (croyance muette) et fuyante de l'autre (pratique servie à tout le
+ * monde). Le lecteur et le filtre sont donc dans le même fichier, sans rien
+ * importer, ce qui est la seule raison pour laquelle aucun cycle d'import ne
+ * peut naître de ce partage.
+ *
+ * ── LA DIRECTION DE L'ÉCHEC EST TOUT ────────────────────────────────────
+ * Il y a deux façons de rater la lecture d'une portée, et elles ne coûtent pas
+ * la même chose:
+ *
+ *   lâcher le jeton inconnu  → la portée devient vide, donc GLOBALE, donc
+ *                              l'entrée ciblée part chez tout le monde. C'est
+ *                              exactement la fuite que la portée existe pour
+ *                              fermer, et elle serait silencieuse.
+ *   garder le jeton inconnu  → la portée reste non vide et ne matche aucun
+ *                              objectif: l'entrée n'atteint personne. Le coach
+ *                              perd l'entrée, et il le lit dans `issues`.
+ *
+ * On garde. Une entrée muette est un défaut visible; une entrée servie au
+ * mauvais élève ne se voit que le jour où le coach lit la conversation.
+ *
+ * ABSENT ≠ VIDE-ET-ILLISIBLE: une entrée SANS champ `goal_scope` (toute
+ * doctrine écrite avant la portée) est globale, et c'est la rétrocompatibilité.
+ * Une entrée AVEC un `goal_scope` qu'on n'arrive pas à lire (un objet, un
+ * nombre, un tableau de chaînes vides) n'est pas la même chose: l'auteur a
+ * voulu restreindre, on ne sait pas à quoi, et le repli est « personne ».
+ */
+export function parseGoalScope(
+  raw: unknown,
+  where: string,
+  issues: string[],
+): readonly string[] {
+  if (raw === undefined || raw === null) return [];
+
+  let candidates: unknown[];
+  if (Array.isArray(raw)) {
+    candidates = raw;
+  } else if (typeof raw === "string") {
+    // Une chaîne seule est une intention lisible ("fat_loss"), pas une erreur.
+    candidates = raw.trim() ? [raw] : [];
+  } else {
+    issues.push(
+      `${where}: goal_scope is not a list, kept as unreachable — this entry reaches nobody`,
+    );
+    return MALFORMED_GOAL_SCOPE;
+  }
+
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const value of candidates) {
+    const token = String(value ?? "").trim();
+    if (!token || seen.has(token)) continue;
+    seen.add(token);
+    if (!(GOAL_TOKENS as readonly string[]).includes(token)) {
+      issues.push(
+        `${where}: unknown goal ${JSON.stringify(token)} in goal_scope, ` +
+          `kept — this entry reaches nobody until you fix it`,
+      );
+    }
+    out.push(token);
+  }
+
+  // L'auteur a écrit une portée, et il n'en reste rien de lisible. Retomber sur
+  // « globale » ici publierait l'entrée à toute la cohorte au motif qu'on n'a
+  // pas su lire la restriction.
+  if (out.length === 0 && candidates.length > 0) {
+    issues.push(
+      `${where}: goal_scope has no readable goal, kept as unreachable — this entry reaches nobody`,
+    );
+    return MALFORMED_GOAL_SCOPE;
+  }
+  return out;
+}

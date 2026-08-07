@@ -514,10 +514,33 @@ export default function StudentWeekPlanPage() {
     const uid = sess.user?.id;
     if (!uid) throw new Error("not_signed_in");
 
+    // ── `user_id` SUR CHAQUE LECTURE, ET RLS N'EN DISPENSE PAS ──────────────
+    // Deux de ces trois tables portent une policy COACH en plus de celle du
+    // propriétaire (`student_goals_select_coach`, `weekly_reviews_select_coach`),
+    // et les policies s'additionnent. Sans `user_id`, cette page rendait donc à
+    // quelqu'un qui est À LA FOIS coach et mangeur — le parent qui pilote le
+    // foyer — les lignes de ses élèves mélangées aux siennes:
+    //
+    //   · `student_goals` — un coach avec UN élève et pas de ligne à lui
+    //     recevait la ligne de l'élève. Les trois cartes affichaient le rythme
+    //     de quelqu'un d'autre, `hasGoal` passait à vrai, et le Save d'à côté
+    //     écrivait sur `user_id = <lui>`: zéro ligne touchée, 204, « Saved ».
+    //     Avec deux élèves ou plus, `maybeSingle()` renvoyait PGRST116 et la
+    //     page ne s'ouvrait plus du tout.
+    //   · `weekly_reviews` — le tri par date mélangeait les corps, et `rows[0]`
+    //     pouvait être la revue d'un élève. Le PLANCHER TCA juste au-dessus se
+    //     calcule là-dessus: mesuré, un coach dont le drapeau courant est
+    //     `restriction_flag` lisait le `watch` de son élève et retrouvait sous
+    //     les yeux la carte qui propose de VISER un poids.
+    //
+    // `student_week_plans` n'a pas de policy coach aujourd'hui. Elle est scopée
+    // pareil: ce qui protège cette page ne doit pas dépendre de la liste des
+    // policies d'une table voisine, qui change sans que ce fichier soit relu.
     const [planRes, goalRes, reviewRes] = await Promise.all([
       supabase
         .from("student_week_plans")
         .select("id, week_start, items, status, adopted_at")
+        .eq("user_id", uid)
         .eq("week_start", weekStart)
         .maybeSingle(),
       supabase
@@ -526,12 +549,14 @@ export default function StudentWeekPlanPage() {
           "goal, situation, aspiration, focus_axis, target_weight_kg, " +
             "target_waist_cm, practical_constraints",
         )
+        .eq("user_id", uid)
         .maybeSingle(),
       // Douze semaines: assez pour une tendance lisible, assez court pour que
       // « les dernières semaines » veuille encore dire quelque chose.
       supabase
         .from("weekly_reviews")
         .select("week_start_date, biofeedback, outcomes, risk_band")
+        .eq("user_id", uid)
         .order("week_start_date", { ascending: false })
         .limit(12),
     ]);
