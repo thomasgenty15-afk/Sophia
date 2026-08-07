@@ -626,3 +626,97 @@ façon. **Consigné comme trouvaille, pas comme obstacle.**
   l'interdiction alimentaire l'a rejoint. Le pin reste un pin.
 
 ---
+## Lot indépendant — FF-010 · La lecture du foyer
+
+**Début** : 2026-08-08 · **Fin** : 2026-08-08 · **Verdict : RÉUSSI.**
+
+### Ce qui a été écrit
+
+| Fichier | Nature |
+|---|---|
+| `_shared/keel/household.ts` | `memberVisibility` devient **la primitive** |
+| `_shared/keel/household_turn_context.ts` | **neuf** — `loadHouseholdTurnContext` + le bloc |
+| `_shared/keel/household_turn_context_test.ts` | **neuf** — 16 tests |
+| `sophia-brain/router/run.ts` | `household` sur le tour + injection |
+
+### `memberVisibility` n'existait pas — arbitrage du lot 0 §1, appliqué
+
+`household.ts` portait `goalVisibility(kind, viewer, viewed) → full | own_only`.
+La fiche nomme `memberVisibility(...) → full | presence_only` et **interdit**
+d'écrire un `if (kind === 'shared')` local dans le chargeur du chat.
+`memberVisibility` est donc ajoutée **comme la primitive**, et `goalVisibility`
+devient un adaptateur d'une ligne au-dessus d'elle. Une règle, deux noms, zéro
+divergence possible. Les 14 tests existants de `household.ts` restent verts sans
+modification.
+
+La tension avec l'en-tête de `household.ts` sur les portions (lot 0 §2) est
+écrite **dans le code**, à côté de la fonction, pour qu'elle ne passe pas pour
+un accident : l'écran est une table qu'on consulte, la conversation est
+quelqu'un à qui on demande.
+
+### Décisions
+
+1. **Le filtre s'applique AU CHARGEMENT.** C'est le point qui gouverne tout le
+   module et le test central du fichier : en `shared`, la portion d'un autre
+   membre n'est pas « non dite », elle **n'est pas dans le contexte**. Le test
+   le vérifie deux fois — sur la structure **et** sur le texte du bloc.
+
+2. **Le roster passe par la RPC, jamais par `profiles`.** Le fait que
+   `keel_household_roster()` existe **est** la garde : une policy RLS ne
+   restreint pas les colonnes, et ouvrir `profiles` aux co-membres livrerait
+   téléphone, e-mail et identifiant Stripe pour afficher un prénom.
+   `is_minor` vient dérivé de la base ; on ne le recalcule pas.
+
+3. **Le jour courant, et seulement lui.** Un plat de jeudi n'entre pas dans le
+   contexte de mercredi : c'est ce que la question pose, et le reste se regarde
+   à l'écran. Le plan doit **couvrir** la date locale (`starts_on ≤ jour ≤
+   ends_on`, `retired_at is null`) — un plan fini hier est traité comme absent,
+   pas comme celui d'hier.
+
+4. **Le bloc n'est PAS filtré par le plancher de restriction**, contrairement à
+   ceux de FF-011 et FF-013. « On mange quoi ce soir ? » est une question de
+   cuisine, pas une surface d'adhérence : le bloc ne porte ni score, ni poids,
+   ni progression — rien de ce que `SUPPRESSED_STUDENT_SURFACES` suspend. Le
+   taire sous plancher levé priverait quelqu'un en difficulté de la seule
+   information pratique dont il a besoin pour dîner. **Décision explicite**, pas
+   un oubli.
+
+5. **Sans plat composé : on le dit et on porte vers la composition.** Le bloc
+   interdit littéralement « ton coach prépare ton plan » — MODEL.md, il n'existe
+   **aucun** canal 1:1, et c'est la copie la plus souvent violée du produit. Un
+   test vérifie l'absence de toute formule d'attente d'un tiers.
+
+6. **Deux blocs de plan ne se confondent pas.** Le titre dit « WHAT THIS
+   HOUSEHOLD IS EATING », jamais « the plan », et la première phrase interdit la
+   fusion — `keel_plan_context.ts` porte la règle : « two plan blocks in one
+   prompt is how a model gets to pick the more flattering one ».
+
+### Vérifications
+
+1. **Unitaires du lot — VERT.** 16 tests, sur un PostgREST en mémoire **qui
+   applique vraiment ses filtres** : plat du jour + portion à mon nom ;
+   portions visibles en `family` ; **la fuite `shared` testée sur la structure
+   et sur le texte** ; sans foyer → `null` ; plan périmé hier → absent ; plan
+   retiré → non lu ; sans plat → sortie vers la composition et zéro attente
+   d'un tiers ; panne sur trois tables différentes → `null` + journal ; sans
+   date locale → rien ; restriction qui me vise (attribuée, non justifiée) ;
+   restriction qui vise un autre (non chargée) ; mineur = mangeur ; les deux
+   no-go structurels ; les bornes.
+
+2. **Suite Deno complète** : `2674 passed | 1 failed | 16 ignored`.
+   Même rouge préexistant. **Zéro rouge nouveau** ; +16 tests.
+
+3. **Frontend** : non touché.
+
+4. **📏 LONGUEUR — bornée et pinnée.** Le bloc est plafonné à 4 plats,
+   3 préparations, 6 portions, 6 restrictions, **jour courant uniquement**, et
+   un test refuse qu'il dépasse **2 200 caractères** (≈ 550 tokens, 6,9 % du
+   budget compagnon) même sur un foyer de vingt avec vingt plats.
+
+   **Cumul du chantier dans le prompt du compagnon** (pire cas, tout présent) :
+   FF-013+FF-012 375 + FF-011 242 + FF-010 550 = **≈ 1 167 tokens, 14,6 %** des
+   8 000. Le bloc doctrine, injecté **en tête**, reste très loin de la queue.
+
+5. **Fixtures `chat_`** : aucune. Tests en mémoire.
+
+---

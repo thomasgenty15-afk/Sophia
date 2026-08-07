@@ -302,6 +302,11 @@ import {
 } from "../../_shared/keel/grounded_support.ts";
 import { type DayFacts, EMPTY_DAY_FACTS } from "../../_shared/keel/daily_recap.ts";
 import { loadDayFacts } from "../../_shared/keel/daily_recap_io.ts";
+import {
+  householdContextBlock,
+  type HouseholdTurnContext,
+  loadHouseholdTurnContext,
+} from "../../_shared/keel/household_turn_context.ts";
 import { detectDeclaredSafetyConstraint } from "../../_shared/keel/safety_constraint_floor.ts";
 import {
   CLINICAL_DEFERRAL_BLOCK,
@@ -1051,6 +1056,19 @@ export type KeelTurnContext = {
    */
   support_ground: SupportGround;
   /**
+   * FF-010 — LE FOYER DE CET ÉLÈVE, filtré, ou `null`.
+   *
+   * `null` couvre quatre cas qui se comportent pareil: pas de foyer, plan
+   * périmé, lecture en panne, roster illisible. Aucun ne produit « ton foyer
+   * n'a rien prévu » à quelqu'un qui vit seul (R8) — le bloc n'est simplement
+   * pas injecté.
+   *
+   * ⚠️ LA VISIBILITÉ EST DÉJÀ APPLIQUÉE ICI. Ce que le chargeur a refusé
+   * n'entre pas dans le contexte, donc il n'y a rien à ne pas dire: un prompt
+   * qui porte la donnée et une consigne de la taire est un prompt qui la dira.
+   */
+  household: HouseholdTurnContext | null;
+  /**
    * LA QUESTION DE PRÉCISION armée par CE tour, ou `null`.
    *
    * Elle voyage ici et pas sur le `turn_frame` pour une raison mesurée: un
@@ -1103,6 +1121,7 @@ export const LEGACY_KEEL_TURN_CONTEXT: KeelTurnContext = {
   daily_pulse: null,
   day_facts: null,
   support_ground: "none",
+  household: null,
 };
 
 const ISO_LOCAL_DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -1321,6 +1340,19 @@ export async function loadKeelTurnContext(args: {
     restrictionRaised ? null : (weekReview?.reading ?? null),
   );
 
+  // FF-010 — LE FOYER. Il n'est PAS filtré par le plancher de restriction, et
+  // c'est délibéré: « on mange quoi ce soir ? » est une question de cuisine,
+  // pas une surface d'adhérence. Le bloc ne porte ni score, ni poids, ni
+  // progression — rien de ce que `SUPPRESSED_STUDENT_SURFACES` suspend. Le
+  // taire sous plancher levé priverait quelqu'un en difficulté de la seule
+  // information pratique dont il a besoin pour dîner.
+  const household = localDate
+    ? await loadHouseholdTurnContext(args.supabase, {
+      userId: args.userId,
+      localDate,
+    })
+    : null;
+
   return {
     role,
     is_student: true,
@@ -1347,6 +1379,7 @@ export async function loadKeelTurnContext(args: {
     daily_pulse: dailyPulse,
     day_facts: dayFacts,
     support_ground: groundOfSupport,
+    household,
   };
 }
 
@@ -2085,6 +2118,22 @@ export function withKeelDoctrineBlock(
   //
   // Sous plancher de restriction, `day_facts` vaut déjà `null` (filtré au
   // CHARGEMENT) et le bloc ne porte que sa règle de conduite.
+  // FF-010 — CE QUE LE FOYER MANGE, s'il y en a un.
+  //
+  // ⚠️ IL SE NOMME DISTINCTEMENT DU BLOC PLAN DU COACH, et ce n'est pas de la
+  // typographie: `keel_plan_context.ts` porte la règle — « two plan blocks in
+  // one prompt is how a model gets to pick the more flattering one ». Les
+  // ENGAGEMENTS du coach et les PLATS du foyer sont deux couches différentes.
+  // Le titre de celui-ci dit « what this household is eating », jamais « the
+  // plan », et sa première phrase interdit explicitement de les confondre.
+  //
+  // ABSENT ⇒ AUCUN BLOC (R8): pas de « ton foyer n'a rien prévu » à quelqu'un
+  // qui vit seul.
+  const householdBlock = keel.household
+    ? householdContextBlock(keel.household)
+    : null;
+  if (householdBlock && householdBlock.trim()) blocks.push(householdBlock);
+
   const supportBlock = groundedSupportBlock(keel.day_facts, keel.support_ground);
   if (supportBlock.trim()) blocks.push(supportBlock);
 

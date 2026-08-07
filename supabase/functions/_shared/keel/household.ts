@@ -131,13 +131,53 @@ export function canRestrict(
  */
 export type GoalVisibility = "full" | "own_only";
 
+/**
+ * CE QU'UN MEMBRE VOIT D'UN AUTRE — la primitive, et il n'y en a qu'une.
+ *
+ * `full`          = tout ce que le foyer partage sur cette personne.
+ * `presence_only` = elle est là, et c'est tout ce qu'on en dit.
+ *
+ * ── FF-010, ET POURQUOI CETTE FONCTION EXISTE À CÔTÉ DE `goalVisibility` ──
+ * La conversation a besoin de la MÊME décision sur plus que l'objectif: une
+ * portion nommée, une mesure, une restriction qui vise quelqu'un d'autre. La
+ * tentation était d'écrire un `if (kind === 'shared')` dans le chargeur du
+ * chat; ce serait une seconde vérité, et elle divergerait au premier
+ * ajustement. `goalVisibility` devient donc un adaptateur au-dessus de
+ * celle-ci: une règle, deux noms, zéro divergence possible.
+ *
+ * ⚠️ LE FILTRE S'APPLIQUE AU CHARGEMENT, PAS À LA RÉDACTION. Un prompt qui
+ * porte la donnée et une consigne de ne pas la dire est un prompt qui la dira
+ * (FF-010 R2). Ce que cette fonction refuse n'entre pas dans le contexte.
+ *
+ * ── UNE DIFFÉRENCE ASSUMÉE AVEC LES ÉCRANS ────────────────────────────────
+ * L'en-tête de `goalVisibility` explique que les CONSIGNES DE PORTION restent
+ * visibles de tout le foyer sur les écrans, dans les deux modes: « Marc,
+ * 1,5 part » est une instruction de service, pas un diagnostic. FF-010 R3
+ * tranche autrement pour la CONVERSATION en mode `shared`: un colocataire qui
+ * demande la part d'un autre ne l'obtient pas, et la donnée n'était pas dans
+ * son contexte. La différence est délibérée — l'écran est une table qu'on
+ * consulte, la conversation est quelqu'un à qui on demande — et elle est
+ * écrite ici pour qu'elle ne passe pas pour un accident.
+ */
+export type MemberVisibility = "full" | "presence_only";
+
+export function memberVisibility(
+  kind: HouseholdKind,
+  viewer: HouseholdMemberSnapshot,
+  viewed: HouseholdMemberSnapshot,
+): MemberVisibility {
+  if (viewer.userId === viewed.userId) return "full";
+  return kind === "family" ? "full" : "presence_only";
+}
+
 export function goalVisibility(
   kind: HouseholdKind,
   viewer: HouseholdMemberSnapshot,
   viewed: HouseholdMemberSnapshot,
 ): GoalVisibility {
-  if (viewer.userId === viewed.userId) return "full";
-  return kind === "family" ? "full" : "own_only";
+  // Un adaptateur, pas une seconde règle: `presence_only` sur l'axe général
+  // est exactement `own_only` sur l'axe de l'objectif.
+  return memberVisibility(kind, viewer, viewed) === "full" ? "full" : "own_only";
 }
 
 /**
