@@ -288,6 +288,11 @@ import {
   assessBirthDate,
   type BirthDateVerdict,
 } from "../../_shared/keel/student_age.ts";
+import {
+  type CitablePulse,
+  pulseContextBlock,
+} from "../../_shared/keel/daily_pulse.ts";
+import { loadLatestPulse } from "../../_shared/keel/daily_pulse_io.ts";
 import { detectDeclaredSafetyConstraint } from "../../_shared/keel/safety_constraint_floor.ts";
 import {
   CLINICAL_DEFERRAL_BLOCK,
@@ -1002,6 +1007,22 @@ export type KeelTurnContext = {
    */
   week_review: StoredWeekReview | null;
   /**
+   * FF-013 — LE DERNIER TAP DU SOIR CITABLE, ou `null`.
+   *
+   * ── POURQUOI IL VOYAGE SUR LE TOUR ─────────────────────────────────────
+   * L'énergie, la faim et le sommeil sont déjà pris DEUX fois. Le chat les
+   * redemandait parce qu'il ne les connaissait pas: `sophia-brain` ne lisait
+   * NI `student_daily_checkins` NI le biofeedback de la semaine. Un agent qui
+   * ignore une donnée finit toujours par la demander, quelle que soit la
+   * consigne — d'où le chargement AVANT l'interdiction, et pas l'inverse.
+   *
+   * `null` couvre trois cas qui se comportent pareil et se journalisent
+   * différemment: aucun tap dans la fenêtre, lecture en panne, plancher de
+   * restriction levé. Dans les trois, l'agent ne sait rien — et « ne rien
+   * savoir » n'est JAMAIS « la journée s'est bien passée ».
+   */
+  daily_pulse: CitablePulse | null;
+  /**
    * LA QUESTION DE PRÉCISION armée par CE tour, ou `null`.
    *
    * Elle voyage ici et pas sur le `turn_frame` pour une raison mesurée: un
@@ -1051,6 +1072,7 @@ export const LEGACY_KEEL_TURN_CONTEXT: KeelTurnContext = {
   doctrine: null,
   coach_note: null,
   week_review: null,
+  daily_pulse: null,
 };
 
 const ISO_LOCAL_DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -1235,6 +1257,25 @@ export async function loadKeelTurnContext(args: {
   // distinguer d'un vrai.
   const weekReview = await loadLatestWeekReview(args.supabase, args.userId);
 
+  // FF-013 — LE TAP DU SOIR, FILTRÉ AU CHARGEMENT.
+  //
+  // ⚠️ LE FILTRE DE RESTRICTION EST ICI, PAS À LA RÉDACTION. C'est la règle que
+  // FF-010 formule et que celle-ci applique: « un prompt qui porte la donnée et
+  // une consigne de ne pas la dire est un prompt qui la dira ». Sous plancher
+  // levé, la matière n'entre pas — il n'y a donc rien à ne pas dire.
+  //
+  // `restriction === null` (lecture en panne) NE ferme PAS la porte, et c'est
+  // le même arbitrage fail-open nommé que le plancher lui-même vingt lignes
+  // plus haut: un tour non filtré est un risque borné, tous les élèves privés
+  // de contexte pendant un hoquet Postgres est une panne produit.
+  const restrictionRaised = restriction?.restriction_flag === true;
+  const dailyPulse = restrictionRaised || !localDate
+    ? null
+    : await loadLatestPulse(args.supabase, {
+      userId: args.userId,
+      localDate,
+    });
+
   return {
     role,
     is_student: true,
@@ -1258,6 +1299,7 @@ export async function loadKeelTurnContext(args: {
     doctrine,
     coach_note: coachNote,
     week_review: weekReview,
+    daily_pulse: dailyPulse,
   };
 }
 
@@ -1963,6 +2005,28 @@ export function withKeelDoctrineBlock(
     ? weekReviewPromptBlock(keel.week_review.reading, keel.week_review.biofeedback)
     : null;
   if (weekReview && weekReview.trim()) blocks.push(weekReview);
+
+  // FF-013 — CE QU'ON SAIT DÉJÀ DE SON ÉNERGIE, DE SA FAIM ET DE SON SOMMEIL.
+  //
+  // APRÈS le bilan hebdo, exprès: le bloc renvoie vers les six notes du
+  // dimanche (« elles sont plus haut »), donc il doit les suivre. Et il est le
+  // moins cher des six à perdre par la queue — son absence rouvre une question
+  // de trop, pas une assiette.
+  //
+  // IL EST POUSSÉ MÊME SANS TAP, et c'est délibéré: sans matière, sa moitié
+  // utile est l'INTERDICTION de demander, qui est justement ce qui compte le
+  // plus quand l'agent ne sait rien. Le bloc ne dit jamais « il n'a rien
+  // tapé » — il dit qu'on ne sait pas, et qu'un silence n'est pas une bonne
+  // journée.
+  //
+  // Sous plancher de restriction, `daily_pulse` vaut déjà `null` (filtré au
+  // CHARGEMENT), donc ce bloc ne porte que son interdiction. Rien à ne pas
+  // dire, parce que rien n'est là.
+  const pulseBlock = pulseContextBlock(
+    keel.daily_pulse,
+    Boolean(keel.week_review?.biofeedback),
+  );
+  if (pulseBlock.trim()) blocks.push(pulseBlock);
 
   if (blocks.length === 0) return context;
   const base = String(context ?? "");

@@ -527,3 +527,123 @@ export function renderPulseAck(level: PulseLevel, axis: PulseAxis | null): strin
   if (axis === null) return "Got it.";
   return "Got it, thanks.";
 }
+
+// ---------------------------------------------------------------------------
+// FF-013 — LE BLOC DE CONTEXTE : CE QU'ON SAIT DÉJÀ, ET CE QU'ON NE REDEMANDE PAS
+// ---------------------------------------------------------------------------
+
+/** Ce que le bloc a besoin de savoir du dernier tap. Voir `loadLatestPulse`. */
+export interface CitablePulse {
+  localDate: string;
+  level: PulseLevel;
+  axis: PulseAxis | null;
+  daysAgo: number;
+}
+
+/** L'axe, en anglais lisible. Table fermée: pas de `slug.replace('_',' ')`. */
+const AXIS_LABEL: Readonly<Record<PulseAxis, string>> = {
+  energy: "energy",
+  hunger: "hunger",
+  sleep: "sleep",
+};
+
+/** Le niveau, tel qu'il est écrit sur le bouton que l'élève a touché. */
+const LEVEL_LABEL: Readonly<Record<PulseLevel, string>> = {
+  good: "Good",
+  mixed: "Mixed",
+  hard: "Rough",
+};
+
+/**
+ * LE BLOC DE L'ÉNERGIE, DE LA FAIM ET DU SOMMEIL — dans cet ordre : d'abord ce
+ * qu'on SAIT, ensuite l'interdiction de le demander.
+ *
+ * ── L'ORDRE EST LE SUJET DE LA FICHE ───────────────────────────────────────
+ * FF-013 §4 le dit en une phrase: « on ne corrige pas ça par une interdiction
+ * dans le prompt. Un agent qui ignore une donnée la redemandera, quelle que
+ * soit la consigne. On la lui donne, et ALORS SEULEMENT on lui interdit de
+ * demander. » L'interdiction seule est le correctif prompt-only que ce dépôt a
+ * déjà mesuré en régression.
+ *
+ * ── CE QU'IL PORTE, ET CE QU'IL REFUSE DE PORTER ───────────────────────────
+ * Un tap, daté. Pas de moyenne, pas de tendance, pas de série: l'en-tête de ce
+ * module le dit déjà — « quand ça coince chez Julie, c'est la faim 4 fois sur
+ * 5 » est actionnable, « énergie moyenne 6,4 » ne dit rien et se lit comme un
+ * score.
+ *
+ * ── LE SILENCE N'EST PAS UNE BONNE JOURNÉE ─────────────────────────────────
+ * Sans tap, le bloc n'énonce PAS « il n'a rien tapé »: il dit à l'agent qu'il
+ * ne sait rien, et lui interdit quand même de demander. Écrire l'absence ferait
+ * ressortir l'état interne dans la bouche de l'agent — la leçon de
+ * `NO_COACH_METHOD_BLOCK`, dont le titre sortait mot pour mot.
+ *
+ * @param pulse le dernier tap citable, ou `null`.
+ * @param hasWeeklyAxes `true` si les six axes du dimanche sont DÉJÀ dans le
+ *   prompt (bloc du bilan hebdo). REQUIS, jamais optionnel: c'est ce qui décide
+ *   si le bloc dit « tu as ses notes plus haut » ou pas, et un paramètre de
+ *   garde optionnel est une garde désarmée.
+ */
+export function pulseContextBlock(
+  pulse: CitablePulse | null,
+  hasWeeklyAxes: boolean,
+): string {
+  const lines: string[] = [];
+  lines.push("== HOW THEY HAVE BEEN FEELING — ALREADY COLLECTED, NEVER ASK AGAIN ==");
+  lines.push("");
+
+  if (pulse) {
+    const when = pulse.daysAgo === 0
+      ? `today (${pulse.localDate})`
+      : pulse.daysAgo === 1
+      ? `yesterday evening (${pulse.localDate})`
+      : `${pulse.daysAgo} days ago (${pulse.localDate})`;
+    const axis = pulse.axis
+      ? `, and the thing that gave way was ${AXIS_LABEL[pulse.axis]}`
+      : "";
+    lines.push(
+      `- Their last evening check-in was ${when}: they tapped ` +
+        `"${LEVEL_LABEL[pulse.level]}"${axis}.`,
+    );
+    lines.push(
+      "- You may refer to it, but ALWAYS with its date. A fact from three days " +
+        "ago presented as today's is a lie about freshness, and they will know.",
+    );
+  } else {
+    lines.push(
+      "- You have no recent evening check-in from them. That is an ABSENCE OF " +
+        "DATA, not a calm week: never imply the day went well, and never " +
+        "mention that they have not tapped.",
+    );
+  }
+
+  if (hasWeeklyAxes) {
+    lines.push(
+      "- Their own 1-to-5 ratings for the reviewed week are in the block above. " +
+        "Use those; do not ask them to rate anything again.",
+    );
+  }
+
+  lines.push("");
+  lines.push("HARD RULE — energy, hunger, sleep and digestion:");
+  lines.push(
+    "- NEVER ask about them. Not 'how's your energy?', not 'how are you " +
+      "sleeping?', not 'how's your appetite been?', not a softened version of " +
+      "any of those. They are already collected twice — every evening in one " +
+      "tap, every Sunday in six ratings — and a third ask is what kills the " +
+      "first two.",
+  );
+  lines.push(
+    "- If they bring it up themselves, take it as context for your reply. It " +
+      "records nothing, and you must not treat it as an entry.",
+  );
+  lines.push(
+    "- Never average them, never call out a trend, never turn a run of taps " +
+      "into a streak.",
+  );
+  lines.push(
+    "- If they contradict what they tapped, believe what they are telling you " +
+      "NOW. Do not correct the record and do not point out the contradiction.",
+  );
+
+  return lines.join("\n");
+}

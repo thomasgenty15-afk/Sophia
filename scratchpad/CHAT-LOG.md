@@ -312,3 +312,98 @@ les deux assertions `new Set([2, 4, 1])` deviennent `new Set([2, 4, 1, 0])` : le
 `0` est celui du hors-plan, et zéro est un fait de la journée comme un autre.
 
 ---
+## Lot 3 — FF-013 · Lire au lieu de redemander
+
+**Début** : 2026-08-08 · **Fin** : 2026-08-08 · **Verdict : RÉUSSI.**
+
+### Ce que le repérage a changé au périmètre
+
+Les **six axes du dimanche étaient déjà dans le prompt**. `loadKeelTurnContext`
+charge `loadLatestWeekReview`, qui rend `biofeedback`, et
+`weekReviewPromptBlock(reading, biofeedback)` l'écrit
+(« WHAT THEY RATED THEMSELVES, 1 to 5: … »). La moitié manquante était donc
+plus étroite que la fiche ne le laisse croire : **le tap du soir**
+(`student_daily_checkins`), qui n'était lu nulle part dans `sophia-brain`, **et
+l'interdiction de demander**, qui n'existait pas du tout.
+
+### Ce qui a été écrit
+
+| Fichier | Nature |
+|---|---|
+| `_shared/keel/daily_pulse_io.ts` | `loadLatestPulse` + `PULSE_CITABLE_LOOKBACK_DAYS` |
+| `_shared/keel/daily_pulse.ts` | `pulseContextBlock` — la matière **puis** l'interdiction |
+| `_shared/keel/daily_pulse_context_test.ts` | **neuf** — 16 tests, les deux moitiés |
+| `sophia-brain/router/run.ts` | `daily_pulse` sur le contexte de tour + injection |
+
+### Décisions
+
+1. **L'ordre est le sujet, et il est respecté dans le code.** Le bloc écrit
+   d'abord ce qu'on SAIT, ensuite l'interdiction. §4 de la fiche : « un agent
+   qui ignore une donnée la redemandera, quelle que soit la consigne ».
+
+2. **Le bloc est poussé même SANS tap.** Sans matière, sa moitié utile est
+   l'interdiction — précisément ce qui compte le plus quand l'agent ne sait
+   rien. Il ne dit jamais « il n'a rien tapé » : il dit qu'on ne sait pas, et
+   qu'un silence n'est pas une bonne journée. (La leçon de
+   `NO_COACH_METHOD_BLOCK`, dont le titre ressortait mot pour mot.)
+
+3. **Fenêtre de fraîcheur : 7 jours** — la question ouverte de §11, tranchée et
+   écrite. Le tap est un geste quotidien : au-delà d'une semaine il ne décrit
+   plus la période dont l'élève parle, et le citer donnerait à l'agent l'air de
+   **mal lire** plutôt que de ne pas savoir — la contre-mesure nommée en §10.
+   En deçà, il est citable **toujours avec sa date** (R3), sans exception.
+
+4. **Le filtre de restriction est au CHARGEMENT**, pas à la rédaction : sous
+   plancher levé, `daily_pulse` vaut `null` et le bloc ne porte que son
+   interdiction. Il n'y a rien à ne pas dire, parce que rien n'est là.
+   `restriction === null` (lecture en panne) ne ferme pas la porte — même
+   arbitrage fail-open **nommé** que le plancher lui-même.
+
+5. **Placé après le bilan hebdo**, exprès : le bloc renvoie vers les six notes
+   du dimanche (« elles sont plus haut »), donc il doit les suivre ; et c'est
+   le moins cher des six à perdre par la queue — son absence rouvre une
+   question de trop, pas une assiette.
+
+### Vérifications
+
+1. **Unitaires du lot — VERT.** 16 tests, les deux directions à chaque fois :
+   ce qui doit être là (niveau, axe, **date toujours**) et ce qui ne doit jamais
+   l'être (moyenne, tendance, série, « il n'a rien tapé », un axe inventé sur un
+   tap sans axe). Le chargeur est testé sur le tap le plus récent, la fenêtre
+   bornée, la panne (`null`, jamais une journée calme), un niveau hors
+   vocabulaire (refusé, jamais coercé) et l'absence de date locale.
+
+2. **Suite Deno complète** : `2629 passed | 1 failed | 16 ignored`.
+   Même rouge préexistant qu'aux lots 1 et 2, déjà prouvé par remisage.
+   **Zéro rouge nouveau** ; +16 tests.
+
+3. **Frontend** : non touché par ce lot.
+
+4. **📏 LONGUEUR DU CONTEXTE ASSEMBLÉ — mesurée, avant/après.**
+
+   | | chars | ≈ tokens | part du budget compagnon |
+   |---|---|---|---|
+   | avant ce lot | — | — | 0 |
+   | bloc avec tap + renvoi aux axes (pire cas) | **1 160** | **290** | **3,62 %** |
+   | bloc sans aucune matière | 936 | 234 | 2,93 % |
+
+   `COMPANION_PROMPT_MAX_TOKENS = 8000`, soit 32 000 caractères, et la
+   troncature coupe **par la queue**. Le bloc est **borné par construction** —
+   un seul tap cité, jamais une liste — et un test le pinne sous 1 400
+   caractères. Le bloc doctrine reste très loin de la queue.
+   **Cumul à surveiller au lot 4 et à FF-010** : les trois poussent dans le
+   même budget.
+
+5. **Fixtures `chat_`** : aucune. Tests en mémoire.
+
+### Observation reportée, hors périmètre
+
+`weekReviewPromptBlock` est injecté **sans filtre de restriction** : sous
+plancher levé, le bloc du bilan hebdo entre quand même dans le prompt avec ses
+comptes de repas, ses assiettes et sa vivabilité. Le tour route certes vers
+`disordered_eating_guard`, qui porte sa propre ceinture anti-chiffres — donc le
+risque est couvert en aval, pas à la source. FF-013 exige le filtre au
+chargement pour **sa** matière, ce qui est fait ; étendre la règle au bilan
+hebdo est un changement de comportement d'un autre lot. **Signalé, non corrigé.**
+
+---

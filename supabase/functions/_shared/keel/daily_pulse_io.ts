@@ -362,3 +362,89 @@ export async function writePulseAxis(
     return { written: false, reason_code: "write_failed" };
   }
 }
+
+// ---------------------------------------------------------------------------
+// FF-013 — LIRE LE TAP AU LIEU DE LE REDEMANDER
+// ---------------------------------------------------------------------------
+
+/**
+ * Combien de jours en arrière on va chercher le dernier tap.
+ *
+ * SEPT, et c'est un arbitrage, pas un chiffre rond. Le tap est un geste
+ * quotidien: au-delà d'une semaine, il ne décrit plus la période dont l'élève
+ * est en train de parler, et le citer donnerait à l'agent l'air de mal lire
+ * plutôt que de ne pas savoir — ce que §10 de FF-013 nomme comme la
+ * contre-mesure à surveiller.
+ *
+ * En dessous, un tap de mardi reste citable un vendredi À CONDITION DE PORTER
+ * SA DATE (R3), ce que le bloc fait sans exception: « tu as tapé Rough » sans
+ * date laisse croire que c'est d'aujourd'hui.
+ */
+export const PULSE_CITABLE_LOOKBACK_DAYS = 7;
+
+export interface LatestPulse {
+  /** La date LOCALE du tap. Jamais omise: c'est elle qui rend la citation honnête. */
+  localDate: string;
+  level: PulseLevel;
+  /** L'axe qui coinçait, ou `null` — le tap ne le demande que quand ça coince. */
+  axis: PulseAxis | null;
+  /** Écart en jours avec la date locale du tour. 0 = ce soir, 1 = hier soir. */
+  daysAgo: number;
+}
+
+/**
+ * Le DERNIER tap du soir citable, ou `null`.
+ *
+ * ── POURQUOI CE CHARGEUR EXISTE ────────────────────────────────────────────
+ * L'énergie, la faim et le sommeil sont déjà pris DEUX fois — le tap du soir et
+ * les six axes du dimanche. Le chat les redemandait, non pas par une règle
+ * écrite mais parce qu'il ne les CONNAISSAIT pas: `sophia-brain` ne lisait ni
+ * `student_daily_checkins` ni le biofeedback de la semaine. Un agent qui ignore
+ * une donnée finit toujours par la demander — c'est le chemin de moindre effort
+ * d'un modèle qui veut être utile, et aucune consigne de prompt ne le corrige.
+ *
+ * ── UNE PANNE REND `null`, JAMAIS UNE JOURNÉE CALME ────────────────────────
+ * Traité comme « pas de donnée » et journalisé. Le pire cas de l'alternative
+ * serait de faire dire à l'agent que la journée s'est bien passée sur une
+ * lecture ratée — un silence lu comme une bonne nouvelle, ce que le produit
+ * interdit partout ailleurs.
+ */
+export async function loadLatestPulse(
+  db: Db,
+  args: { userId: string; localDate: string },
+): Promise<LatestPulse | null> {
+  const userId = String(args.userId ?? "").trim();
+  const localDate = String(args.localDate ?? "").trim();
+  if (!userId || !localDate) return null;
+  const earliest = addDays(localDate, -PULSE_CITABLE_LOOKBACK_DAYS);
+  try {
+    const { data, error } = await db
+      .from("student_daily_checkins")
+      .select("local_date, overall, axis")
+      .eq("user_id", userId)
+      .gte("local_date", earliest)
+      .lte("local_date", localDate)
+      .order("local_date", { ascending: false })
+      .limit(1);
+    if (error) throw error;
+    const row = ((data ?? []) as Array<Record<string, unknown>>)[0] ?? null;
+    if (!row) return null;
+    const level = String(row.overall ?? "").trim();
+    if (!(PULSE_LEVELS as readonly string[]).includes(level)) return null;
+    const tapDate = String(row.local_date ?? "").trim();
+    if (!tapDate) return null;
+    return {
+      localDate: tapDate,
+      level: level as PulseLevel,
+      // La base garantit déjà la cohérence (`student_daily_checkins_axis_
+      // coherent_check`: pas d'axe qui coince sur une journée où rien ne
+      // coinçait). Le lecteur ne la revérifie donc pas, et surtout ne la
+      // contourne pas.
+      axis: row.axis ? (String(row.axis) as PulseAxis) : null,
+      daysAgo: daysBetween(tapDate, localDate),
+    };
+  } catch (error) {
+    console.warn("[keel/pulse] latest tap unreadable", error);
+    return null;
+  }
+}
