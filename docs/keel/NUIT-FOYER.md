@@ -246,3 +246,55 @@ npx supabase stop && npx supabase start
 - La **composition foyer depuis `/app/meals`** : la fonction existe, l'API
   frontend aussi (`generateHouseholdMeal`), mais aucun bouton ne l'appelle.
 - Panier externe, tarification foyer, livraison proactive.
+
+
+---
+
+## Phase 5b — rendre le pivot atteignable (ajoutée après coup)
+
+Le moteur des vagues était écrit, testé et prouvé en run réel — **et aucune
+surface ne le rendait**. Un module que rien n'appelle est un module qui
+n'existe pas.
+
+**Correction de cap avant de coder** : le plan visait `/app/meals`. L'en-tête
+de ce fichier pose une frontière explicite — `/app/meals` = la bibliothèque du
+coach, « rien ici n'est cochable, badgé, compté » ; `/app/plan` = ce que l'IA
+compose. Le bon écran était `/app/plan` (via `MealBuilder` →
+`ShoppingListPanel`). Construit là.
+
+- `frontend/src/keel/api/groceryWaves.ts` (16 tests) — jumeau assumé du module
+  Deno, non importable depuis Vite (résolution par URL). Les deux fichiers se
+  citent et **leurs tests portent les mêmes noms**.
+- `waveAssignments` rend des **index**, pas des sous-listes : le panneau
+  identifie une rature par son index d'origine, et l'appariement se fait par
+  identité d'objet — deux lignes « poulet » reçoivent deux index différents.
+- `ShoppingListPanel` : vagues avec leur **raison** ; une seule vague ne se
+  montre pas (c'est la liste plate d'avant).
+- `HouseholdPage` : carte « composer pour le foyer » (compte maître seul) et
+  carte « à table » avec les portions par membre.
+
+### ⚠️ DÉFAUT RÉEL TROUVÉ AU NAVIGATEUR — le foyer à un seul habitant
+
+La liste des membres lisait `profiles` avec un `.in(ids)`. **RLS sur `profiles`
+ne laisse lire que sa propre ligne** : tous les autres membres s'affichaient
+« — », sans nom ni étiquette « enfant », et le sélecteur de restriction
+proposait deux tirets. Aucune erreur, aucun log.
+
+Et on ne peut **pas** ouvrir `profiles` par une policy : une policy RLS ne
+restreint pas les **colonnes**, donc la rendre lisible aux co-membres livrerait
+téléphone, e-mail et identifiant Stripe pour afficher un prénom. D'où
+`20260808002000_household_roster.sql` — quatre champs choisis un par un, dont un
+booléen mineur **dérivé**, jamais la date de naissance.
+
+### Vérifié au navigateur
+```
+✓ les deux membres nommés, étiquette « Child » sur la mineure
+✓ portions divergentes rendues à table
+✓ liste de courses en DEUX vagues, avec la raison :
+    Buy now                 → carottes, lentilles
+    Buy on dimanche 9 août  → « so it is fresh for the mercredi cooking » · poulet
+✓ 320 px mesuré (scrollWidth === innerWidth), zéro erreur console
+```
+
+**Il reste** : 2 warnings eslint préexistants dans `MealBuilder` (dépendances
+de `useMemo`, lignes 314 et 349) — pas touchés, pas les miens.
