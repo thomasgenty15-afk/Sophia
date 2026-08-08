@@ -48,6 +48,7 @@ import {
   markInboundProcessed,
 } from "../_shared/chat/inbound_pipeline.ts";
 import { CHAT_SCOPE, deliverChatMessage } from "../_shared/chat/delivery.ts";
+import { loadRecentChatHistory } from "../_shared/chat/recent_history.ts";
 import { closeKeelReengagementEpisodeOnInbound } from "../_shared/keel/reengagement_io.ts";
 import { ACTIVE_FLOW_STATE_TABLE } from "../sophia-brain/router/active_flow_state.ts";
 import {
@@ -368,15 +369,51 @@ Deno.serve(async (req) => {
       }, { status: 200 });
     }
 
-    // ── GARDE 6 : LE MOTEUR DE TOUR ──────────────────────────────────────────
-    // Inchangé. Safety, dispatcher global, flows locaux, mémoire, doctrine :
-    // tout est derrière cet appel, et ce chantier n'y touche pas.
+    // ── GARDE 6 : L'HISTORIQUE RÉCENT (FF-023) ───────────────────────────────
+    //
+    // CE FICHIER PASSAIT `history: []`. C'était le seul appelant de production
+    // de `processMessage` à le faire, et ça rendait TOUJOURS vides les blocs
+    // « RECENT VISIBLE HISTORY » (companion) et « HISTORIQUE RÉCENT » (context
+    // loader). Mesuré en run réel: au tour 2 d'une conversation, sur « and so,
+    // what do you think about it? », la réponse parlait d'un sujet jamais
+    // abordé. Pas un oubli — une confabulation, et c'est le RED le plus grave
+    // de la fiche.
+    //
+    // APRÈS la journalisation (garde 4) et pas avant, exprès: la lecture doit
+    // voir un fil COMPLET, et le tour courant en est retiré explicitement par
+    // son `id` (le passer deux fois au modèle fabriquerait une fausse
+    // répétition, que le companion sait détecter et commenter).
+    //
+    // Best-effort assumé, comme les deux blocs au-dessus: un historique
+    // illisible dégrade le tour en tour sans contexte — le comportement d'avant
+    // ce chantier — au lieu de refuser un message. Le motif est journalisé,
+    // parce que « aucun message avant » et « lecture en panne » doivent rester
+    // discernables dans les logs.
+    const recentHistory = await loadRecentChatHistory(admin, {
+      userId: user.id,
+      scope: CHAT_SCOPE,
+      nowIso: message.received_at,
+      excludeMessageId: inboundChatId,
+      excludeClientMessageId: message.client_message_id,
+    });
+    console.log(JSON.stringify({
+      tag: recentHistory.diagnostics.error
+        ? "chat_inbound_history_load_failed"
+        : "chat_inbound_history_loaded",
+      request_id: requestId,
+      user_id: user.id,
+      ...recentHistory.diagnostics,
+    }));
+
+    // ── GARDE 7 : LE MOTEUR DE TOUR ──────────────────────────────────────────
+    // Safety, dispatcher global, flows locaux, mémoire, doctrine : tout est
+    // derrière cet appel, et ce chantier n'y touche pas.
     const response = await withTimeout(
       processMessage(
         admin,
         user.id,
         message.text,
-        [],
+        recentHistory.messages,
         {
           requestId,
           channel: "web",
@@ -401,7 +438,7 @@ Deno.serve(async (req) => {
       "chat_inbound_brain",
     );
 
-    // ── GARDE 7 : LA LIVRAISON ───────────────────────────────────────────────
+    // ── GARDE 8 : LA LIVRAISON ───────────────────────────────────────────────
     // `isReply: true` : c'est l'autre moitié d'un échange, pas une
     // notification. Elle ne traverse aucun plafond et n'en consomme aucun.
     const visible = extractHiddenFilRougeNote(String(response?.content ?? ""));
