@@ -20,6 +20,7 @@ import {
 } from "../skills/_shared/keel_output_locks.ts";
 import { NO_COACH_METHOD_BLOCK } from "../../_shared/keel/doctrine_loader.ts";
 import { compileDoctrineBlock } from "../../_shared/keel/doctrine.ts";
+import { compileProtocol } from "../../_shared/keel/protocol_compiler.ts";
 
 function keel(over: Partial<KeelTurnContext> = {}): KeelTurnContext {
   return {
@@ -52,6 +53,9 @@ function keel(over: Partial<KeelTurnContext> = {}): KeelTurnContext {
     ],
     safety_constraints_unavailable_reason: null,
     doctrine: null,
+    // FF-016 — absent par défaut: le bloc mapping ne doit rien pousser chez un
+    // élève dont le coach n'a pas publié de protocole.
+    protocol: null,
     coach_note: null,
     week_review: null,
     ...over,
@@ -198,6 +202,96 @@ Deno.test("no doctrine loaded -> the NO-METHOD block, never an empty layer", () 
   });
   assert(ctx.includes(NO_COACH_METHOD_BLOCK));
   assert(ctx.includes("ANSWER THE QUESTION"));
+});
+
+// ---------------------------------------------------------------------------
+// FF-016 — LES ALIMENTS RECOMMANDÉS DU COACH, et leur RANG.
+//
+// `protocolFoodBlock` avait deux appelants, les deux générateurs de repas, et
+// zéro dans `sophia-brain`: le chat connaissait les interdits du coach et
+// jamais ses encouragés. Ces trois tests tiennent le branchement ET sa place
+// dans l'ordre de survie — le budget tronque par la queue, donc le rang EST la
+// garantie.
+// ---------------------------------------------------------------------------
+
+const PROTOCOL_LOADED = {
+  compiled: compileProtocol(
+    {
+      coachId: "coach-1",
+      contentLocale: "en-GB",
+      foodRules: [
+        {
+          food_group_ref: "eggs" as const,
+          stance: "encouraged" as const,
+          goal_scope: [],
+          rationale: "cheapest complete protein",
+        },
+      ],
+      timingRules: [],
+      terms: [],
+    },
+    null,
+  ),
+  coachId: "coach-1",
+  protocolId: "p-1",
+  reason: "loaded" as const,
+  goal: null,
+};
+
+Deno.test("FF-016: le mapping alimentaire du coach atteint le composeur", () => {
+  const compiled = compileDoctrineBlock(DOCTRINE_CTX.doctrine!.doctrine!, null);
+  const ctx = withKeelDoctrineBlock("=== PLAN ===", {
+    ...DOCTRINE_CTX,
+    doctrine: { ...DOCTRINE_CTX.doctrine!, compiled },
+    protocol: PROTOCOL_LOADED,
+  });
+  assert(ctx.includes("REACH FOR THESE FIRST"), "le bloc mapping n'est pas injecté");
+  assert(ctx.includes("eggs"), "l'aliment encouragé du coach n'atteint pas le tour");
+  // LE NOM VIENT DE LA DOCTRINE, pas d'une seconde lecture de `coaches`: deux
+  // sources pour le même nom, c'est un prompt qui nomme la même personne de
+  // deux façons dans deux blocs voisins.
+  assert(ctx.includes("MARC'S FOOD MAPPING"));
+});
+
+Deno.test("FF-016: le mapping passe APRÈS la sécurité et la doctrine, AVANT la note", () => {
+  const compiled = compileDoctrineBlock(DOCTRINE_CTX.doctrine!.doctrine!, null);
+  const ctx = withKeelDoctrineBlock("=== PLAN ===", {
+    ...keel(), // celui-ci porte une contrainte médicale (peanut)
+    doctrine: { ...DOCTRINE_CTX.doctrine!, compiled },
+    protocol: PROTOCOL_LOADED,
+    coach_note: { note: "Travaille de nuit.", reason: "loaded" },
+  });
+  // L'ORDRE EST LA GARANTIE, et il est un classement par COÛT DE PERTE.
+  // Remonter le mapping au-dessus des contraintes dures apprendrait au modèle
+  // qu'une aversion de méthode et une allergie sont le même registre.
+  assert(ctx.indexOf("HARD CONSTRAINTS") < ctx.indexOf("MARC'S METHOD"));
+  assert(ctx.indexOf("MARC'S METHOD") < ctx.indexOf("MARC'S FOOD MAPPING"));
+  assert(ctx.indexOf("MARC'S FOOD MAPPING") < ctx.indexOf("Travaille de nuit."));
+  assert(ctx.indexOf("Travaille de nuit.") < ctx.indexOf("=== PLAN ==="));
+});
+
+Deno.test("FF-016: pas de protocole publié ⇒ AUCUN bloc mapping", () => {
+  // Et surtout pas « ton coach n'a pas de méthode alimentaire »: c'est la
+  // doctrine qui porte « il n'a pas tranché » (SILENCE IS NOT A POSITION), et
+  // le dire deux fois dans deux vocabulaires est comment un modèle finit par
+  // choisir la formulation la plus flatteuse.
+  for (
+    const protocol of [
+      null,
+      { ...PROTOCOL_LOADED, reason: "no_published_protocol" as const },
+      { ...PROTOCOL_LOADED, reason: "load_failed" as const },
+      { ...PROTOCOL_LOADED, compiled: [], reason: "empty_protocol" as const },
+    ]
+  ) {
+    const ctx = withKeelDoctrineBlock("=== PLAN ===", {
+      ...DOCTRINE_CTX,
+      protocol,
+    });
+    assert(
+      !ctx.includes("FOOD MAPPING"),
+      `un bloc mapping est sorti pour ${protocol?.reason ?? "null"}`,
+    );
+  }
 });
 
 // ---------------------------------------------------------------------------

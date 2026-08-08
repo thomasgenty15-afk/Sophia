@@ -802,3 +802,222 @@ export function protocolFoodBlock(
 
   return lines.join("\n");
 }
+
+// ---------------------------------------------------------------------------
+// FF-016 — LE MÊME MAPPING, DIT À UN TOUR DE CHAT
+// ---------------------------------------------------------------------------
+//
+// ── LE TROU QUE CETTE FONCTION FERME ────────────────────────────────────────
+// `protocolFoodBlock` avait DEUX appelants, les deux générateurs de repas, et
+// ZÉRO dans `sophia-brain`. Le chat connaissait donc ce que le coach INTERDIT
+// (la doctrine porte les interdits, et un verrou déterministe mord dessus) et
+// jamais ce qu'il RECOMMANDE. Sophia pouvait conseiller de bonne foi un aliment
+// que la méthode déconseille, ou ignorer celui qu'elle met en avant — c'est le
+// même produit qui compose le plan la veille et le contredit le lendemain.
+//
+// ── POURQUOI UN SECOND RENDU, ET PAS L'APPEL DU PREMIER ─────────────────────
+// Deux raisons, et aucune n'est cosmétique.
+//
+//  1. LE REGISTRE. Le bloc du générateur parle à un COMPOSEUR DE PLAT: « never
+//     put one in a meal you propose » est une instruction d'exécution. Servie à
+//     un tour de conversation, elle se rend en PRESCRIPTION — « tu dois manger
+//     des œufs » — alors que « reach for these first » est une PRÉFÉRENCE de
+//     méthode. Le rabbit hole est nommé dans la fiche (« recommandé ≠
+//     prescrit ») et le juge a déjà son rubric `non_prescription`.
+//  2. LE BUDGET. Le prompt du compagnon tronque PAR LA QUEUE à 8 000 tokens.
+//     Le bloc du générateur n'a AUCUNE borne: un coach qui coche ses trente
+//     pastilles avec ses trente « pourquoi » produit un bloc qui pousse la
+//     matière suivante hors budget. R7 de la fiche l'exige borné.
+//
+// ⚠️ CE N'EST PAS UN BLOC DE SÉCURITÉ, exactement comme son jumeau. Un
+// `excluded` de coach est la sévérité maximale d'une MÉTHODE. Les allergies
+// vivent dans `student_safety_constraints`, arrivent par leur propre bloc et
+// sont vérifiées par un verrou déterministe que rien d'ici ne touche.
+
+/**
+ * LES BORNES, exportées parce qu'elles sont la garantie R7 et qu'une garantie
+ * qu'on ne peut pas lire depuis un test n'en est pas une.
+ *
+ * `maxChars` est la borne DURE; les caps par section sont le point de départ.
+ * Quand le rendu dépasse, les caps sont réduits par la QUEUE de l'ordre
+ * ci-dessous — jamais un `slice()` au milieu d'une ligne, qui produirait une
+ * demi-règle de coach que le modèle lirait comme une règle entière.
+ */
+export const PROTOCOL_CHAT_BLOCK_LIMITS = {
+  encouraged: 6,
+  discouraged: 4,
+  excluded: 4,
+  timing: 3,
+  /** Le « pourquoi » du coach, coupé au mot. */
+  rationaleChars: 110,
+  maxChars: 2400,
+} as const;
+
+type ChatSectionCaps = {
+  encouraged: number;
+  discouraged: number;
+  excluded: number;
+  timing: number;
+};
+
+function truncateRationale(raw: string): string {
+  const why = raw.trim();
+  if (why.length <= PROTOCOL_CHAT_BLOCK_LIMITS.rationaleChars) return why;
+  const cut = why.slice(0, PROTOCOL_CHAT_BLOCK_LIMITS.rationaleChars);
+  const lastSpace = cut.lastIndexOf(" ");
+  return `${(lastSpace > 40 ? cut.slice(0, lastSpace) : cut).trimEnd()}…`;
+}
+
+function renderChatBlock(
+  who: string,
+  groups: {
+    encouraged: readonly CompiledCommitment[];
+    discouraged: readonly CompiledCommitment[];
+    excluded: readonly CompiledCommitment[];
+    timing: readonly CompiledCommitment[];
+  },
+  caps: ChatSectionCaps,
+): string {
+  const lines: string[] = [];
+  lines.push(`== ${who.toUpperCase()}'S FOOD MAPPING — WHAT HE BUILDS PLATES WITH ==`);
+  lines.push("");
+  lines.push(
+    "This is this coach's METHOD, not a medical restriction. The student's " +
+      "hard constraints arrive separately and always win over anything here.",
+  );
+  // LA LIGNE QUI SÉPARE « RECOMMANDÉ » DE « PRESCRIT ».
+  //
+  // Sans elle, le modèle rend une préférence de méthode comme une obligation,
+  // et l'app qui devait conseiller se met à commander. Le juge a un rubric
+  // pour ça (`non_prescription`); un rubric mesure, il n'empêche pas.
+  lines.push(
+    "WHEN THEY ASK WHAT TO EAT, answer from these lists before anything you " +
+      "know on your own. They are this coach's PREFERENCES, never orders: say " +
+      `"${who} builds with X", never "you must eat X", and never turn one of ` +
+      "these into a rule the student has to obey.",
+  );
+
+  const section = (
+    header: string,
+    items: readonly CompiledCommitment[],
+    cap: number,
+    moreLabel: string,
+    lead?: string,
+  ) => {
+    if (items.length === 0) return;
+    lines.push("");
+    lines.push(header);
+    if (lead) lines.push(lead);
+    for (const c of items.slice(0, cap)) {
+      const why = truncateRationale(String(c.student_instruction ?? ""));
+      lines.push(why ? `- ${previewSentence(c)} (${why})` : `- ${previewSentence(c)}`);
+    }
+    // ⚠️ CETTE LIGNE EST PORTEUSE, PAS DÉCORATIVE. La doctrine injecte
+    // « SILENCE IS NOT A POSITION »: ce que le bloc ne dit pas, le coach ne
+    // l'a pas tranché. Une liste tronquée SANS ce marqueur transformerait
+    // donc une règle réelle du coach en « il n'a rien dit là-dessus » — une
+    // affirmation fausse fabriquée par notre propre borne.
+    const hidden = items.length - cap;
+    if (hidden > 0) lines.push(`- (+${hidden} more ${moreLabel}, not listed here)`);
+  };
+
+  section(
+    "-- REACH FOR THESE FIRST --",
+    groups.encouraged,
+    caps.encouraged,
+    "he encourages",
+  );
+  section(
+    "-- HE STEERS AWAY FROM THESE --",
+    groups.discouraged,
+    caps.discouraged,
+    "he steers away from",
+    // LE REGISTRE, DIT EXPLICITEMENT. Un `discouraged` rendu comme un danger
+    // apprend à l'élève que son coach lui interdit un aliment pour sa santé —
+    // et c'est l'inverse exact de ce que la ligne dit. La cicatrice est déjà
+    // écrite en tête de ce fichier: confondre les deux registres, dans un sens
+    // ou dans l'autre, est le défaut qu'on paie.
+    "A method preference, not an allergy. If they ask about one, say he does " +
+      "not build with it and name what he uses instead — never answer as if " +
+      "it were unsafe.",
+  );
+  section(
+    "-- HE DOES NOT USE THESE --",
+    groups.excluded,
+    caps.excluded,
+    "he does not use",
+    "Same register as above: his method, not a medical ban.",
+  );
+  section(
+    "-- HIS RULES ON FREQUENCY AND TIMING --",
+    groups.timing,
+    caps.timing,
+    "timing rules",
+  );
+
+  return lines.join("\n");
+}
+
+/**
+ * Le mapping du coach, BORNÉ, pour UN tour de conversation.
+ *
+ * Rend `""` quand le coach n'a rien coché, pour la raison de son jumeau: un
+ * en-tête sans rien dessous se lit « ce coach a une méthode alimentaire, et
+ * elle est vide », ce qui n'est pas « il n'en a pas écrit ».
+ *
+ * DÉTERMINISTE: `compileProtocol` trie déjà sa sortie, la réduction des caps
+ * est une boucle sur un ordre fixe, et rien ici ne lit d'horloge.
+ */
+export function protocolChatFoodBlock(
+  compiled: readonly CompiledCommitment[],
+  coachDisplayName?: string | null,
+): string {
+  if (compiled.length === 0) return "";
+  const who = (coachDisplayName ?? "").trim() || "the coach";
+
+  const groups = {
+    encouraged: compiled.filter((c) => c.preview.kind === "encourage"),
+    discouraged: compiled.filter((c) => c.preview.kind === "discourage"),
+    excluded: compiled.filter((c) => c.preview.kind === "exclude"),
+    timing: compiled.filter((c) =>
+      ["portions", "every_meal", "not_after", "at_slot"].includes(c.preview.kind)
+    ),
+  };
+
+  const caps: ChatSectionCaps = {
+    encouraged: PROTOCOL_CHAT_BLOCK_LIMITS.encouraged,
+    discouraged: PROTOCOL_CHAT_BLOCK_LIMITS.discouraged,
+    excluded: PROTOCOL_CHAT_BLOCK_LIMITS.excluded,
+    timing: PROTOCOL_CHAT_BLOCK_LIMITS.timing,
+  };
+
+  // L'ORDRE DE RÉDUCTION EST UN CLASSEMENT PAR COÛT DE PERTE, comme l'ordre des
+  // blocs dans `withKeelDoctrineBlock`. On coupe d'abord l'horaire (une règle
+  // de fréquence qui manque produit un conseil imprécis), puis les exclus et
+  // les déconseillés (que la doctrine porte souvent DÉJÀ, avec son verrou
+  // déterministe derrière), et en DERNIER les encouragés — qui sont la raison
+  // d'être de ce bloc: sans eux, on retombe exactement sur le défaut que
+  // FF-016 corrige.
+  const order: (keyof ChatSectionCaps)[] = [
+    "timing",
+    "excluded",
+    "discouraged",
+    "encouraged",
+  ];
+  let text = renderChatBlock(who, groups, caps);
+  let guard = 0;
+  while (
+    text.length > PROTOCOL_CHAT_BLOCK_LIMITS.maxChars &&
+    guard++ < 200
+  ) {
+    const reducible = order.find((key) => caps[key] > 1);
+    // Plus rien à réduire: chaque section est déjà à une ligne. On rend tel
+    // quel plutôt que de couper au milieu d'une règle — un `slice()` ici
+    // fabriquerait une demi-consigne de coach, et une demi-consigne se lit
+    // comme une consigne entière.
+    if (!reducible) break;
+    caps[reducible] -= 1;
+    text = renderChatBlock(who, groups, caps);
+  }
+  return text;
+}

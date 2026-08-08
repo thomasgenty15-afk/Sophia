@@ -42,6 +42,7 @@ import {
   type CoachTimingRule,
   type CompiledCommitment,
   compileProtocol,
+  protocolChatFoodBlock,
   protocolFoodBlock,
 } from "./protocol_compiler.ts";
 import type { FoodGroupRef, GoalToken, SlotKey } from "./tokens.ts";
@@ -244,4 +245,27 @@ export function protocolBlockFor(
 ): string {
   if (loaded.reason !== "loaded") return "";
   return protocolFoodBlock(loaded.compiled, coachDisplayName);
+}
+
+/**
+ * FF-016 — LE MÊME MAPPING, POUR UN TOUR DE CHAT (borné, non prescriptif).
+ *
+ * Deuxième porte du même chargement, et pas un second chargement: la lecture,
+ * la compilation et la portée par objectif sont exactement celles du
+ * générateur. Deux lectures divergeraient au premier changement de portée, et
+ * ce serait le chat qui contredirait le plan — précisément ce que FF-016
+ * existe pour supprimer.
+ *
+ * Même arbitrage d'absence que `protocolBlockFor`: `reason !== "loaded"` ⇒
+ * `""`. Pas de bloc de repli, pas de « ton coach n'a pas de méthode
+ * alimentaire » — c'est la doctrine qui porte la posture « il n'a pas tranché »
+ * (`SILENCE IS NOT A POSITION`), et la dire deux fois dans deux vocabulaires
+ * différents est la manière dont un modèle finit par choisir la plus flatteuse.
+ */
+export function protocolChatBlockFor(
+  loaded: LoadedProtocol,
+  coachDisplayName?: string | null,
+): string {
+  if (loaded.reason !== "loaded") return "";
+  return protocolChatFoodBlock(loaded.compiled, coachDisplayName);
 }

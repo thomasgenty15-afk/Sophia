@@ -272,6 +272,15 @@ import {
   type LoadedDoctrine,
   loadPublishedDoctrine,
 } from "../../_shared/keel/doctrine_loader.ts";
+// FF-016 — LES ALIMENTS RECOMMANDÉS DU COACH, jusqu'au tour de conversation.
+// `protocolFoodBlock` n'avait que deux appelants, les deux générateurs de
+// repas: le chat connaissait les interdits (la doctrine) et jamais les
+// encouragés.
+import {
+  type LoadedProtocol,
+  loadPublishedProtocol,
+  protocolChatBlockFor,
+} from "../../_shared/keel/protocol_loader.ts";
 import { weekReviewPromptBlock } from "../../_shared/keel/week_review.ts";
 import {
   loadLatestWeekReview,
@@ -1000,6 +1009,25 @@ export type KeelTurnContext = {
   /** PIVOT §3.3 — la doctrine publiée du coach de cet élève. */
   doctrine: LoadedDoctrine | null;
   /**
+   * FF-016 — LE MAPPING ALIMENTAIRE PUBLIÉ du coach, ou `null` hors élève KEEL.
+   *
+   * ── CE QU'IL RÉPARE ────────────────────────────────────────────────────
+   * La doctrine porte ce que le coach INTERDIT, et un verrou déterministe mord
+   * dessus. Ce que le coach RECOMMANDE vivait dans `coach_food_rules`, compilé,
+   * rendu — et lu par les deux générateurs de repas seulement. « Je mange quoi
+   * au petit-déj ? » repartait donc avec une réponse plausible, polie, et qui
+   * contredisait le plan que la même app avait composé la veille.
+   *
+   * IL VOYAGE SUR LE TOUR, à côté de la doctrine, et pour la même raison
+   * qu'elle: il est injecté par le MÊME composeur, et un second chargement
+   * ailleurs serait une deuxième source de vérité pour le même mapping.
+   *
+   * ⚠️ CE N'EST PAS UNE COUCHE DE SÉCURITÉ. Un `excluded` de coach est une
+   * sévérité de MÉTHODE; les allergies sont dans `safety_constraints`, un cran
+   * plus haut dans l'ordre des blocs, et rien ici ne les touche.
+   */
+  protocol: LoadedProtocol | null;
+  /**
    * LA NOTE 1:1 DU COACH SUR CET ÉLÈVE (2026-08-05), ou `null` hors élève KEEL.
    *
    * Elle voyage sur le contexte de tour, à côté de la doctrine, parce qu'elle
@@ -1135,6 +1163,7 @@ export const LEGACY_KEEL_TURN_CONTEXT: KeelTurnContext = {
   safety_constraints: null,
   safety_constraints_unavailable_reason: null,
   doctrine: null,
+  protocol: null,
   coach_note: null,
   week_review: null,
   daily_pulse: null,
@@ -1314,6 +1343,16 @@ export async function loadKeelTurnContext(args: {
   // porte son propre arbitrage de panne (bloc de prudence).
   const doctrine = await loadPublishedDoctrine(args.supabase, args.userId);
 
+  // FF-016 — la moitié « aliments encouragés » de la méthode. Ne throw jamais:
+  // le chargeur porte son propre arbitrage de panne, et une lecture ratée rend
+  // simplement `reason: "load_failed"` — donc aucun bloc, donc l'agent répond
+  // sans l'orientation par groupe, exactement comme avant ce lot.
+  //
+  // Il lit `student_goals.goal` LUI-MÊME (cf. son en-tête): la variante servie
+  // est la même que celle de la doctrine par construction, et pas parce qu'un
+  // appelant a pensé à passer le bon argument.
+  const protocol = await loadPublishedProtocol(args.supabase, args.userId);
+
   // La moitié « 1:1 assumé » — mode optionnel, absent chez la quasi-totalité
   // des élèves. Ne throw jamais et porte son propre arbitrage de panne.
   const coachNote = await loadCoachNote(args.supabase, args.userId);
@@ -1393,6 +1432,7 @@ export async function loadKeelTurnContext(args: {
     safety_constraints: safetyConstraints,
     safety_constraints_unavailable_reason: safetyConstraintsUnavailableReason,
     doctrine,
+    protocol,
     coach_note: coachNote,
     week_review: weekReview,
     daily_pulse: dailyPulse,
@@ -2201,6 +2241,55 @@ export function withKeelDoctrineBlock(
 
   const doctrine = keel.doctrine ? doctrineBlockFor(keel.doctrine) : null;
   if (doctrine && doctrine.trim()) blocks.push(doctrine);
+
+  // FF-016 — LES ALIMENTS QUE LE COACH MET EN AVANT, JUSTE APRÈS LA DOCTRINE.
+  //
+  // ── POURQUOI CE RANG, ET PAS UN AUTRE ──────────────────────────────────
+  // Deux raisons, et la première est un contrat:
+  //
+  //  1. §3.3 range la couche `[DOCTRINE COACH]` AVANT le protocole et la
+  //     mémoire de l'élève (c'est écrit dans l'en-tête de cette fonction).
+  //     L'ordre du contexte reproduit l'ordre du contrat, ici comme ailleurs.
+  //  2. L'ordre de ces blocs est un classement par COÛT DE PERTE, parce que le
+  //     budget tronque par la queue. Perdre ce bloc, c'est le chat qui
+  //     recommande ce que la méthode déconseille pendant que le générateur,
+  //     lui, l'évite: l'app se contredit elle-même, et c'est l'incohérence la
+  //     plus visible qu'un élève puisse rencontrer. Ça coûte plus cher que la
+  //     note 1:1 (un service dégradé d'un cran) et moins cher que la doctrine
+  //     (l'agent devient générique) — donc juste entre les deux.
+  //
+  // ⚠️ IL PASSE APRÈS `safetyConstraintsPromptBlock`, ET C'EST STRUCTUREL.
+  // Un `excluded` de coach et une allergie ne sont pas le même registre; le
+  // bloc le dit lui-même en toutes lettres. Le remonter au-dessus des
+  // contraintes dures apprendrait au modèle à traiter une aversion de méthode
+  // comme un risque vital — ou, ce qui est pire, l'inverse.
+  //
+  // ABSENT ⇒ AUCUN BLOC. Pas de « ton coach n'a pas de méthode alimentaire »:
+  // c'est la doctrine qui porte « il n'a pas tranché » (SILENCE IS NOT A
+  // POSITION), et le dire deux fois dans deux vocabulaires est exactement
+  // comment un modèle finit par choisir la formulation la plus flatteuse.
+  //
+  // LE NOM DU COACH VIENT DE LA DOCTRINE, pas d'une seconde lecture de
+  // `coaches`: une deuxième source pour le même nom, c'est un prompt qui
+  // nomme la même personne de deux façons dans deux blocs voisins.
+  const protocolBlock = keel.protocol
+    ? protocolChatBlockFor(keel.protocol, keel.doctrine?.coachDisplayName ?? null)
+    : "";
+  if (protocolBlock.trim()) {
+    blocks.push(protocolBlock);
+    // La PREUVE d'injection. Le texte du prompt n'est stocké nulle part, donc
+    // « le bloc est-il parti ? » ne se répond que par un log — et une mesure de
+    // budget qu'on ne peut pas relire est une mesure qu'on n'a pas faite.
+    try {
+      console.info("keel.protocol.chat_block", {
+        reason: keel.protocol?.reason ?? null,
+        rules_kept: keel.protocol?.compiled.length ?? 0,
+        block_chars: protocolBlock.length,
+      });
+    } catch {
+      // non bloquant
+    }
+  }
 
   // LA NOTE 1:1 DU COACH — dernière des trois, exprès, et pour la raison
   // donnée deux blocs plus haut sur l'ordre: le budget de prompt tronque PAR
