@@ -1,0 +1,57 @@
+# FF-025 run réel — suite=medium repeats=3 cas=4
+🟢 M1 EN « I ordered takeout last night »
+    invite=edu attendu=invite
+    ledger=["photo_invitation | chat | - | 855ad2a2-dfbf-4b58-b2a3-61cc71bf46b1 | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."]
+    events=["off_plan | - | chat | false | - | -"]
+    reply="Got it. For takeout, the main thing is to keep the next meal simple: protein, vegetables, and not too much extra fat or sugar.\n\nIf you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."
+🟢 M1 EN « I ordered takeout last night »
+    invite=edu attendu=invite
+    ledger=["photo_invitation | chat | - | 576a7e58-2a3e-42d0-b7c2-60ea44f18325 | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."]
+    events=["off_plan | - | chat | false | - | -"]
+    reply="Noted. You’ve got the takeout from last night in the mix now.\n\nIf you want, I can help you think through how to fit that into today’s lunch protein and vegetables.\n\nIf you have a photo of it, send it over: even a rough one tells me more than a description, and"
+🟢 M1 EN « I ordered takeout last night »
+    invite=edu attendu=invite
+    ledger=["photo_invitation | chat | - | 72db19c7-1545-4b3a-b256-f1bda47fa925 | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."]
+    events=["off_plan | - | chat | false | - | -"]
+    reply="Noted. Since I have no food details from that, I can’t say anything concrete about the meal itself.\n\nIf you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."
+🟢 M2 FR « on a mangé au resto hier »
+    invite=edu attendu=invite
+    ledger=["photo_invitation | chat | - | 7e6646dc-dee9-4afd-b6f9-1f836ce235c3 | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."]
+    events=["off_plan | - | chat | false | - | -"]
+    reply="You ate at a restaurant yesterday.\n\nIf you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."
+🟢 M2 FR « on a mangé au resto hier »
+    invite=edu attendu=invite
+    ledger=["photo_invitation | chat | - | e61ae446-8fbb-4978-9445-6342daa91957 | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."]
+    events=["off_plan | - | chat | false | - | -"]
+    reply="Protein and vegetables are still the lunch items listed for today, but “we ate at a restaurant yesterday” doesn’t tell me whether those were covered or not.\n\nIf you meant a specific lunch item from today, name it directly.\n\nIf you have a photo of it, send it o"
+🟢 M2 FR « on a mangé au resto hier »
+    invite=edu attendu=invite
+    ledger=["photo_invitation | chat | - | 3a8ea31c-5c40-4410-af28-add10644d686 | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."]
+    events=["off_plan | - | chat | false | - | -"]
+    reply="Protein and vegetables are the two lunch commitments listed for today, but “we ate at a restaurant yesterday” doesn’t tell me whether either one was met.\n\nIf you have a photo of it, send it over: even a rough one tells me more than a description, and if you do"
+ℹ️  M2b R7 côté rendu — l'épingle pilote décide, pas le fil
+    ancre_avant=["fr-FR"] ancre_apres=["en-US"]
+    invite=edu phraseFR=false (attendu false tant que PILOT_FORCED_LOCALE='en-US')
+    reply="Pizza for dinner is fine. The useful bit is what you do around it: keep the rest of the meal simple and, if you can, add a bit of vegetables or a side salad so it’s less one-note.\n\nIf you have a photo"
+ℹ️  M2b R7 côté rendu — l'épingle pilote décide, pas le fil
+    ancre_avant=["fr-FR"] ancre_apres=["en-US"]
+    invite=edu phraseFR=false (attendu false tant que PILOT_FORCED_LOCALE='en-US')
+    reply="Noted. A pizza tonight is a clear dinner choice; if you want, I can help you fit it into the rest of the day without making it a whole thing.\n\nIf you have a photo of it, send it over: even a rough one"
+ℹ️  M2b R7 côté rendu — l'épingle pilote décide, pas le fil
+    ancre_avant=["fr-FR"] ancre_apres=["en-US"]
+    invite=edu phraseFR=false (attendu false tant que PILOT_FORCED_LOCALE='en-US')
+    reply="Got it — a pizza tonight. That’s useful context, especially for the rest of the day.\n\nIf you want, I can help you think through how to fit that into the day without overcomplicating it.\n\nIf you have a"
+🟢 M3 « non » → rien, et zéro mention ensuite
+    invite1=edu mentionsPhoto=[false,false]
+    t2="Okay — then I’ll work from the pizza itself as you described it. A pizza can range from fairly light to very heavy depending on crust, cheese, and toppings."
+    t3="A simple, solid choice for tomorrow: a lean protein, a starchy side, and vegetables.\n\nIf you want the easiest shape to follow, think chicken or tofu with rice or potatoes, plus any non-starchy veg you"
+🟢 M3 « non » → rien, et zéro mention ensuite
+    invite1=edu mentionsPhoto=[false,false]
+    t2="Understood — pizza can still work if you keep the lunch protein and vegetables in view."
+    t3="For tomorrow, keep it simple and cover the two lunch items: a protein and some vegetables. A practical move is something like chicken or tofu with roasted veg, or eggs with a big salad."
+🟢 M3 « non » → rien, et zéro mention ensuite
+    invite1=edu mentionsPhoto=[false,false]
+    t2="Got it. Just treat the pizza as the meal and carry on."
+    t3="Something simple and complete: a protein, a vegetable, and a carb. For example, chicken or tofu with roasted vegetables and rice, or pasta with lentils and a salad.\n\nIf you want, I can give you one ve"
+
+# élèves nettoyés: 12

@@ -1,0 +1,33 @@
+# FF-025 run réel — suite=easy repeats=3 cas=2
+🟢 E1 « j'ai commandé une pizza » → UNE invitation
+    invite=edu attendu=invite
+    ledger=["photo_invitation | chat | - | 4df3e61d-7f06-4a11-9f40-fb093f3ca48e | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."]
+    events=["off_plan | - | chat | false | - | -"]
+    reply="Noted — you ordered a pizza.\n\nIf you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."
+🟢 E1 « j'ai commandé une pizza » → UNE invitation
+    invite=edu attendu=invite
+    ledger=["photo_invitation | chat | - | 2d8249dd-5681-4a86-ab72-c4c1c12940df | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."]
+    events=["off_plan | fried_food | chat | false | - | -"]
+    reply="A pizza can fit, but it depends on the rest of the meal. If you want, I can help you judge whether to treat it as a full lunch or just the protein/veg parts to look for next.\n\nIf you have a photo of it, send it over: even a rough one tells me more than a descr"
+🟢 E1 « j'ai commandé une pizza » → UNE invitation
+    invite=edu attendu=invite
+    ledger=["photo_invitation | chat | - | cbc57cd0-5aaf-4bc9-8d85-bc273d07c50e | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."]
+    events=["off_plan | sugar_sweets | chat | false | - | -"]
+    reply="Got it — you ordered a pizza.\n\nIf you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."
+🟢 E2 « I ordered a pizza » → UNE invitation
+    invite=edu attendu=invite
+    ledger=["photo_invitation | chat | - | f30f2541-80da-41d9-b73a-ad46ba126242 | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."]
+    events=["off_plan | refined_grain | chat | false | - | -"]
+    reply="A pizza can fit, but it’s usually the topping balance and the rest of the day that matter more than the fact that you ordered one.\n\nIf you want the quick nutrition take: add a protein- or veg-heavy side if you can, and avoid turning one pizza into a whole even"
+🟢 E2 « I ordered a pizza » → UNE invitation
+    invite=edu attendu=invite
+    ledger=["photo_invitation | chat | - | 35569ae6-1722-484f-9ecd-df1c4aa82cf4 | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."]
+    events=["off_plan | - | chat | false | - | -"]
+    reply="Got it. For the lunch protein slot, pizza can count if it has a real protein topping, but it doesn’t cover the vegetables slot.\n\nIf you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."
+🟢 E2 « I ordered a pizza » → UNE invitation
+    invite=edu attendu=invite
+    ledger=["photo_invitation | chat | - | 3689304b-3e39-4ccb-8f39-600f8d0f9987 | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."]
+    events=["off_plan | other_added_fat | chat | false | - | -"]
+    reply="Got it — pizza ordered.\n\nIf you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."
+
+# élèves nettoyés: 6

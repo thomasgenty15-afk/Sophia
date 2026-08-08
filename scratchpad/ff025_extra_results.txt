@@ -1,0 +1,60 @@
+# FF-025 run réel — suite=extra repeats=3 cas=5
+🟢 X1 la photo enrichit le fait — UN seul repas en base
+    inv=edu attached=true lignes 1→1
+    avant=["off_plan | - | chat | false | - | -"]
+    apres=["off_plan | - | photo | true | - | moderate"]
+🟢 X1 la photo enrichit le fait — UN seul repas en base
+    inv=edu attached=true lignes 3→3
+    avant=["off_plan | refined_grain | chat | false | - | -","off_plan | sauce_dressing | chat | false | - | -","off_plan | dairy_cheese | chat | false | - | -"]
+    apres=["off_plan | refined_grain | photo | true | - | moderate","off_plan | sauce_dressing | chat | false | - | -","off_plan | dairy_cheese | chat | false | - | -"]
+🟢 X1 la photo enrichit le fait — UN seul repas en base
+    inv=edu attached=true lignes 1→1
+    avant=["off_plan | refined_grain | chat | false | - | -"]
+    apres=["off_plan | refined_grain | photo | true | - | moderate"]
+🟢 X2 photo de MENU → le hors plan reste tel quel
+    attached=false lignes 2→3
+    apres=["off_plan | refined_grain | chat | false | - | -","off_plan | sauce_dressing | chat | false | - | -","NULL | - | photo | true | food_not_eaten | unclear"]
+🟢 X2 photo de MENU → le hors plan reste tel quel
+    attached=false lignes 1→2
+    apres=["off_plan | - | chat | false | - | -","NULL | - | photo | true | food_not_eaten | unclear"]
+🟢 X2 photo de MENU → le hors plan reste tel quel
+    attached=false lignes 1→2
+    apres=["off_plan | refined_grain | chat | false | - | -","NULL | - | photo | true | food_not_eaten | unclear"]
+🟢 X3 l'éducation est dite une fois par PERSONNE
+    inv1=edu (attendu edu) inv2=bare (attendu bare)
+    ledger=["photo_invitation | chat | - | 8af2c760-2f7f-4e30-8d83-b3af5970162c | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries.","photo_invitation | chat | - | 1130b2b9-933f-4695-9722-b51d7fa6ca46 | If you have a photo of it, send it over — it helps the tracking."]
+    reply2="Got it — restaurant meal, so the main thing is that it’s usually richer and more variable than food you control at home.\n\nIf you’re just asking for a read on it: one meal out isn’t a problem on its own; the useful question is what the meal mostly was — protein"
+🟢 X3 l'éducation est dite une fois par PERSONNE
+    inv1=edu (attendu edu) inv2=bare (attendu bare)
+    ledger=["photo_invitation | chat | - | 90e8dfd7-0c64-4443-92fb-a7b84fb3221f | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries.","photo_invitation | chat | - | b97c3b42-ce13-4f1d-bac1-155f41fa7c1b | If you have a photo of it, send it over — it helps the tracking."]
+    reply2="Thanks for telling me. Pizza at a restaurant usually means the meal is heavier on carbs and fat than on protein and vegetables, unless you also had a topping or side with those.\n\nIf you have a photo of it, send it over — it helps the tracking."
+🟢 X3 l'éducation est dite une fois par PERSONNE
+    inv1=edu (attendu edu) inv2=bare (attendu bare)
+    ledger=["photo_invitation | chat | - | fbd579c1-853d-4579-8169-fdf7ce0871f4 | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries.","photo_invitation | chat | - | 24553ba8-a49e-4b22-bbb5-3c3b6fb33c0f | If you have a photo of it, send it over — it helps the tracking."]
+    reply2="That still fits fine. Restaurant pizza can be a bit heavier, but the main question is the same: did it have any protein or vegetables with it, or was it mostly just crust, cheese, and sauce?\n\nIf you have a photo of it, send it over — it helps the tracking."
+ℹ️  X4 invitation puis rétractation (observation)
+    inv1=edu inv2=none
+    events=["off_plan | refined_grain | chat | false | - | -","off_plan | sauce_dressing | chat | false | - | -","off_plan | other_added_fat | chat | false | - | -","off_plan | dairy_cheese | chat | false | - | -","NULL | refined_grain | chat | false | - | -"]
+    ledger=["photo_invitation | chat | - | abac24df-8178-4735-b4ad-28ebb6f743ee | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."]
+    reply2="Got it — then the pizza isn’t an eaten meal.\n\nIf you want, I can treat it as not consumed for today."
+ℹ️  X4 invitation puis rétractation (observation)
+    inv1=edu inv2=none
+    events=["off_plan | refined_grain | chat | false | - | -","off_plan | other_added_fat | chat | false | - | -","NULL | - | chat | false | - | -"]
+    ledger=["photo_invitation | chat | - | 97038bde-5ded-4f72-b4d7-0c3c67f4f439 | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."]
+    reply2="Got it — then the pizza doesn’t count. Your lunch is still unreported as eaten, so there’s nothing to mark from that."
+ℹ️  X4 invitation puis rétractation (observation)
+    inv1=edu inv2=none
+    events=["off_plan | refined_grain | chat | false | - | -"]
+    ledger=["photo_invitation | chat | - | 3973b06d-01b4-43a7-9ba5-dff34389b5b8 | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."]
+    reply2="Got it — then the pizza doesn’t count as eaten. That leaves lunch protein and vegetables still unreported."
+🟢 X5 hors fenêtre → la photo reste son propre fait
+    attached=false lignes 1→2
+    apres=["off_plan | other_fruit | chat | false | - | -","NULL | other_fruit | photo | true | - | small"]
+🟢 X5 hors fenêtre → la photo reste son propre fait
+    attached=false lignes 1→2
+    apres=["off_plan | other_added_fat | chat | false | - | -","NULL | other_fruit | photo | true | - | small"]
+🟢 X5 hors fenêtre → la photo reste son propre fait
+    attached=false lignes 2→3
+    apres=["off_plan | refined_grain | chat | false | - | -","off_plan | sauce_dressing | chat | false | - | -","NULL | other_fruit | photo | true | - | small"]
+
+# élèves nettoyés: 15

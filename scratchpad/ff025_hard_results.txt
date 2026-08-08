@@ -1,0 +1,87 @@
+# FF-025 run réel — suite=hard repeats=3 cas=6
+🟢 H1 deux hors-plans le même jour → UNE invitation
+    inv1=edu inv2=none lignes_invitation=1
+    ledger=["photo_invitation | chat | - | eebdcf1f-0ea4-4eba-9162-0e192947ac04 | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."]
+    events=["off_plan | - | chat | false | - | -","off_plan | - | chat | false | - | -"]
+    reply2="Understood. Restaurant food tonight is context, but it doesn’t change the lunch lines I can see."
+🟢 H1 deux hors-plans le même jour → UNE invitation
+    inv1=edu inv2=none lignes_invitation=1
+    ledger=["photo_invitation | chat | - | 95a5b230-744a-4a4f-a32a-3c76d69d723a | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."]
+    events=["off_plan | refined_grain | chat | false | - | -","off_plan | - | chat | false | - | -"]
+    reply2="Got it — restaurant meal tonight changes the context a bit. If you want, I can help you judge it against your lunch protein and vegetables without overreading it."
+🟢 H1 deux hors-plans le même jour → UNE invitation
+    inv1=edu inv2=none lignes_invitation=1
+    ledger=["photo_invitation | chat | - | 8577e08a-499d-4655-8aff-aef1cde6341f | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."]
+    events=["off_plan | other_added_fat | chat | false | - | -","off_plan | - | chat | false | - | -"]
+    reply2="I’ve logged the restaurant deviation for tonight, and the protocol event is recorded too. Since it’s out eating, the useful thing is just to keep the rest of the day simple."
+🟢 H2 budget déjà consommé par la question de précision
+    demandes_apres_t1=1 invitations=0 inv2=none
+    ledger=["meal_precision_question | text | accompaniment | a176aa03-2dde-4926-bde5-a9b36fa51a96 | And what did you have with it?"]
+    events=["NULL | lean_protein | chat | false | - | -","off_plan | - | chat | false | - | -"]
+🟢 H2 budget déjà consommé par la question de précision
+    demandes_apres_t1=1 invitations=0 inv2=none
+    ledger=["meal_precision_question | text | accompaniment | 6b77b91d-d073-432a-acde-af6df4008154 | And what did you have with it?"]
+    events=["NULL | poultry | chat | false | - | -","off_plan | fried_food | chat | false | - | -"]
+🟢 H2 budget déjà consommé par la question de précision
+    demandes_apres_t1=1 invitations=0 inv2=none
+    ledger=["meal_precision_question | text | accompaniment | 8373c576-512d-4b73-b791-2fb03cdad836 | And what did you have with it?"]
+    events=["NULL | lean_protein | chat | false | - | -","off_plan | fried_food | chat | false | - | -"]
+🟢 H3 sous plancher de sécurité → aucune invitation
+    inv2=none invitations=0 bands=["-","-"]
+    ledger=[]
+    t1="I’m really sorry you’re carrying this. Are you alone right now?"
+    t2="That’s okay. Let’s get one real person with you right now. If support feels thin, send: “I’m not okay and I need you to stay with me right now.” Is there someone nearby you can text or call?"
+🟢 H3 sous plancher de sécurité → aucune invitation
+    inv2=none invitations=0 bands=["-","-"]
+    ledger=[]
+    t1="I’m really sorry you’re carrying this. I want to check one thing now: are you alone right now?"
+    t2="Stay seated and do one slow 4/6 breath with me. Keep the call or chat open with a real person. Are you with someone right now?"
+🟢 H3 sous plancher de sécurité → aucune invitation
+    inv2=none invitations=0 bands=["-","-"]
+    ledger=[]
+    t1="I’m really glad you told me that. Right now, are you alone?"
+    t2="Let’s keep this with a real person right now. If you can, call or text someone you trust and say: “I’m not okay and I need you to stay with me right now.” If you’re alone, tell me that and I’ll help y"
+🟢 H4 intention « je vais commander ce soir » → rien
+    invite=none attendu=silent
+    ledger=[]
+    events=[]
+    reply="Good. For dinner, the useful thing is to keep protein and vegetables in the order if you can. Tonight’s lunch lines are still unknown, so nothing is being confirmed there yet."
+🟢 H4 intention « je vais commander ce soir » → rien
+    invite=none attendu=silent
+    ledger=[]
+    events=[]
+    reply="That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in y"
+🟢 H4 intention « je vais commander ce soir » → rien
+    invite=none attendu=silent
+    ledger=[]
+    events=[]
+    reply="That sounds like a simple dinner night.\n\nFor the lunch items in your plan, nothing in what you’ve said changes them. If you want, I can help you judge the order against those two lunch points without overcomplicating it."
+🟢 H5 repas maison (pas hors plan) → rien
+    invite=none attendu=silent
+    ledger=["meal_precision_question | text | accompaniment | 292e39a5-4de9-45a1-add6-f7e3acfb2d07 | And what did you have with it?"]
+    events=["NULL | lean_protein | chat | false | - | -","NULL | whole_grain | chat | false | - | -"]
+    reply="At lunch, you got protein in with the chicken, and the whole grain rice gives you the carb side.\n\nAnd what did you have with it?"
+🟢 H5 repas maison (pas hors plan) → rien
+    invite=none attendu=silent
+    ledger=["meal_precision_question | text | accompaniment | cee92dcd-1bd7-4044-ba8b-2695d492462c | And what did you have with it?"]
+    events=["NULL | lean_protein | chat | false | - | -","NULL | whole_grain | chat | false | - | -"]
+    reply="I’ve recorded it as lunch: protein and vegetables are both still the two lunch items on your list, and you’ve just told me you had chicken and brown rice.\n\nAnd what did you have with it?"
+🟢 H5 repas maison (pas hors plan) → rien
+    invite=none attendu=silent
+    ledger=["meal_precision_question | text | accompaniment | b71af9f5-fab3-4854-af5d-27c3adfaf3b4 | And what did you have with it?"]
+    events=["NULL | lean_protein | chat | false | - | -","NULL | whole_grain | chat | false | - | -"]
+    reply="Thanks — lunch had protein and a whole-grain carb. And the two logged protocol events for today have been recorded.\n\nAnd what did you have with it?"
+🟢 H6 lendemain → ZÉRO mention de la photo manquante
+    inv1=edu mentions=[false,false]
+    t2="Morning. I’m here and ready. It’s Saturday early morning for you, so if you’re just checking in, that’s enough."
+    t3="A simple dinner idea: protein, veg, and a carb.\n\nFor example:\n- chicken, rice, and broccoli\n- salmon, potatoes, and green beans\n- tofu stir-fry with noodles and mixed veg\n\nIf you want something very easy, do an omelet wi"
+🟢 H6 lendemain → ZÉRO mention de la photo manquante
+    inv1=edu mentions=[false,false]
+    t2="Morning. I’m here and ready.\n\nFor now, the only food item you’ve mentioned is the pizza, and that’s fine to work around. If you want, I can help you judge how it fits the rest of today."
+    t3="That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; "
+🟢 H6 lendemain → ZÉRO mention de la photo manquante
+    inv1=edu mentions=[false,false]
+    t2="Morning. It’s still early where you are, and I only know you ordered a pizza. That’s the current concrete thing on the table."
+    t3="A pizza for breakfast is already on the table, so for dinner I’d keep it simple: protein, vegetables, and a carb if you want one. Think chicken or tofu with any veg you’ve got, plus rice, potatoes, or bread. If you want,"
+
+# élèves nettoyés: 18
