@@ -442,3 +442,68 @@ Deno.test("FF-009 — les AUTRES désarmes restent ABSOLUS malgré un marqueur p
     );
   }
 });
+
+Deno.test("FF-009 — LA JOB STORY DE LA FICHE: « à un mariage » compte, FR et EN", () => {
+  // 🔴 Mesuré en run réel (2026-08-08, 2 tours sur 2 dans chaque langue):
+  //   « j'étais à un mariage samedi, j'ai mangé de tout »   → NULL
+  //   « I was at a wedding on Saturday, I ate everything »  → off_plan
+  // Le motif français ne portait que la forme CONTRACTÉE (« au mariage »), et
+  // la fiche donne son exemple sous la forme naturelle. La cicatrice
+  // `guard-tested-in-one-language-only`, à l'endroit exact où la fiche dit ce
+  // qu'elle veut: « quand j'étais à un mariage, je veux que ça compte comme un
+  // repas de ma vie ».
+  for (
+    const message of [
+      "j'étais à un mariage samedi, j'ai mangé de tout",
+      "on est allés à un anniversaire hier, j'ai mangé de tout",
+      "j'étais à un baptême dimanche, j'ai mangé de tout",
+      "j'ai mangé au mariage de ma cousine",
+      "I was at a wedding on Saturday, I ate everything",
+      // « at THE wedding » rendait NULL quand « at A wedding » mordait: la même
+      // asymétrie, à l'intérieur d'une seule langue.
+      "I was at the wedding on Saturday, I ate everything",
+      "I ate at a birthday party yesterday",
+    ]
+  ) {
+    assertEquals(
+      detectDeclaredMeal(message)?.planRelation ?? null,
+      "off_plan",
+      `hors-plan perdu: ${message}`,
+    );
+  }
+});
+
+Deno.test("FF-009 — `chez` par EXCLUSION: la liste de proches débordait vraiment", () => {
+  // L'en-tête du fichier annonçait le débordement (« une liste se serait fait
+  // déborder au premier chez ma tante ») pendant que la liste des LIEUX en
+  // était une. La forme collée au verbe passait par le marqueur
+  // auto-suffisant; c'est la forme DÉTACHÉE qui tombait.
+  for (
+    const message of [
+      "j'étais chez ma soeur hier soir, on a mangé une raclette",
+      "j'étais chez ma belle-famille dimanche, j'ai mangé du gigot",
+      "j'ai mangé chez ma tante hier soir",
+    ]
+  ) {
+    assertEquals(
+      detectDeclaredMeal(message)?.planRelation ?? null,
+      "off_plan",
+      `hors-plan perdu: ${message}`,
+    );
+  }
+  // CONTRE-ÉPREUVE — les deux seules exclusions sont la cuisine de l'élève, et
+  // elles tiennent par construction.
+  for (
+    const home of [
+      "j'ai mangé chez moi hier soir",
+      "on a dîné chez nous hier soir",
+      "hier soir j'ai mangé chez moi, du saumon et des brocolis",
+    ]
+  ) {
+    assertEquals(
+      detectDeclaredMeal(home)?.planRelation ?? null,
+      null,
+      `« chez moi » lu comme un hors-plan: ${home}`,
+    );
+  }
+});

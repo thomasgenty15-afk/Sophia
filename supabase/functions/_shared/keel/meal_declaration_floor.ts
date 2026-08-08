@@ -402,13 +402,30 @@ const OFF_PLAN_PLACE_MARKERS: readonly RegExp[] = [
   /\bau (resto|restau|restaurant)\b/,
   /\ba emporter\b/,
   /\ben livraison\b/,
-  /\bchez (des amis|des potes|un ami|une amie|ma mere|mon pere|mes parents|ma belle mere|mes beaux parents)\b/,
-  /\bau (mariage|bapteme|anniversaire)\b/,
+  // ⚠️ `chez` PAR EXCLUSION, et pas par liste de proches. La liste précédente
+  // nommait sept proches et ratait « chez ma sœur », « chez ma tante », « chez
+  // ma belle-famille » — c'est le débordement que l'en-tête de ce fichier
+  // annonçait, et il était live. La forme collée au verbe (« j'ai mangé chez
+  // ma sœur ») passait déjà par le marqueur auto-suffisant, qui exclut déjà;
+  // c'est la forme DÉTACHÉE (« j'étais chez ma sœur hier soir, on a mangé une
+  // raclette ») qui tombait. Mesuré NULL.
+  // Les deux seules exclusions sont la cuisine de l'élève: par construction,
+  // « chez moi » ne peut pas y mordre.
+  /\bchez (?!moi\b|nous\b)/,
+  // « à un mariage » ET « au mariage ». MESURÉ: le motif ne portait que la
+  // forme contractée, donc la JOB STORY DE LA FICHE — « quand j'étais à un
+  // mariage, je veux que ça compte comme un repas de ma vie » — rendait NULL
+  // en français (2 tours sur 2) pendant que son équivalent anglais rendait
+  // `off_plan`. La cicatrice `guard-tested-in-one-language-only`, à l'endroit
+  // exact où la fiche donne son exemple.
+  /\b(au|a un|a une|a l|a la) (mariage|bapteme|anniversaire|communion|enterrement)\b/,
   /\ba la cantine\b/,
   /\bau (mcdo|kebab|fast food)\b/,
   // EN
   /\bat (a|the) restaurant\b/,
-  /\bat (a )?(wedding|birthday|christening)\b/,
+  // `the` autant que `a`: « at the wedding » rendait NULL alors que « at a
+  // wedding » mordait — la même asymétrie, à l'intérieur d'une seule langue.
+  /\bat (a |the |my |his |her |their )?(wedding|birthday|christening|funeral)\b/,
   /\bat (my )?(mum s|mom s|parents|friends|a friend s)\b/,
   /\b(takeout|takeaway)\b/,
   /\bat the canteen\b/,
