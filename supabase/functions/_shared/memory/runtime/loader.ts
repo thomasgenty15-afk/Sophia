@@ -633,46 +633,12 @@ function numberOrNull(value: unknown): number | null {
 }
 
 async function loadActiveActionSignals(
-  supabase: any,
-  userId: string,
+  _supabase: any,
+  _userId: string,
 ): Promise<ActiveActionSignal[]> {
-  const rows = await runQuery<any>(
-    supabase
-      .from("user_plan_items")
-      .select(
-        "id,title,kind,dimension,status,target_reps,current_reps,cadence_label,scheduled_days,time_of_day,start_after_item_id,payload",
-      )
-      .eq("user_id", userId)
-      .in("status", ["active", "in_maintenance"])
-      .limit(80),
-  );
-  return rows.map((row) => {
-    const payload = row.payload && typeof row.payload === "object"
-      ? row.payload as Record<string, unknown>
-      : {};
-    const source = {
-      id: row.id,
-      title: row.title,
-      kind: row.kind,
-      dimension: row.dimension,
-      start_after_item_id: row.start_after_item_id,
-      payload,
-    };
-    return {
-      plan_item_id: String(row.id ?? ""),
-      title: String(row.title ?? ""),
-      kind: row.kind ?? null,
-      dimension: row.dimension ?? null,
-      action_family_key: buildActionFamilyKey(source),
-      aliases: actionFamilyAliases(source),
-      target_reps: numberOrNull(row.target_reps),
-      current_reps: numberOrNull(row.current_reps),
-      cadence_label: row.cadence_label ?? null,
-      scheduled_days: toStringArray(row.scheduled_days),
-      time_of_day: row.time_of_day ?? null,
-      start_after_item_id: row.start_after_item_id ?? null,
-    };
-  }).filter((signal) => signal.plan_item_id);
+  // RETRAIT RÉSIDUS (2026-08-08): user_plan_items est supprimée (plan V2,
+  // 0 utilisateur grand public). Tableau vide, même motif que la phase 1.
+  return [];
 }
 
 function selectActionSignalsForMessage(args: {

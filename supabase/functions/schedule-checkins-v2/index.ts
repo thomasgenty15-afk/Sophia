@@ -10,36 +10,16 @@ import {
   ACTION_LATE_AFTERNOON_EVENT_CONTEXT,
   ACTION_MORNING_EVENT_CONTEXT,
   ACTION_NIGHT_PREP_EVENT_CONTEXT,
-  buildActionLateAfternoonFallbackMessage,
-  buildActionLateAfternoonInstruction,
-  buildActionMorningFallbackMessage,
-  buildActionMorningGrounding,
-  buildActionMorningInstruction,
-  buildActionNightPrepFallbackMessage,
-  buildActionNightPrepGrounding,
-  buildActionNightPrepInstruction,
   buildLightMorningFallbackMessage,
   buildLightMorningInstruction,
-  loadTodayActionOccurrences,
   localDateYmdInTimezone,
   MORNING_LIGHT_GREETING_EVENT_CONTEXT,
   shouldScheduleLightMorningGreeting,
-  type TodayActionOccurrenceSchedule,
 } from "../_shared/action_occurrences.ts";
 import { computeScheduledForFromLocal } from "../_shared/scheduled_checkins.ts";
 import { classifyProvisioningTimezones } from "./timezone_gate.ts";
 import {
-  isEveningActionTimeOfDay,
-  isLateActionTimeOfDay,
-  isMorningSlotTimeOfDay,
-  isNightActionTimeOfDay,
-  isWakeUpTimeOfDay,
-} from "../_shared/time_of_day.ts";
-import {
-  randomEveningReviewLocalTime,
-  randomLateAfternoonNudgeLocalTime,
   randomMorningEncouragementLocalTime,
-  randomNightPrepLocalTime,
 } from "../_shared/proactive_checkin_timing.ts";
 import { provisionKeelDayForUser } from "../_shared/keel/provision_day.ts";
 import { tierGrantsProtocolExecution } from "../_shared/billing-tier.ts";
@@ -54,20 +34,13 @@ import {
 import {
   listMorningNudgeEventContexts,
 } from "../sophia-brain/momentum_morning_nudge.ts";
-import {
-  buildWeeklyProgressReviewFallbackMessage,
-  buildWeeklyProgressReviewGrounding,
-  buildWeeklyProgressReviewInstruction,
-  currentWeekStartForTimezone,
-  loadWeeklyProgressReview,
-  localWeekdayForTimezone,
-  WEEKLY_PLANNING_VALIDATION_PROMPT_EVENT_CONTEXT,
-  WEEKLY_PROGRESS_REVIEW_EVENT_CONTEXT,
-  weeklyPlanningDashboardUrl,
-} from "../_shared/weekly_progress_review.ts";
+// RETRAIT RÉSIDUS (2026-08-08): la revue hebdo du plan V2 est partie avec
+// le système de plan. Les deux contexts restent pour que les annulations
+// (pause, mute, reset) continuent de drainer les lignes encore en base.
+const WEEKLY_PROGRESS_REVIEW_EVENT_CONTEXT = "weekly_progress_review_v2";
+const WEEKLY_PLANNING_VALIDATION_PROMPT_EVENT_CONTEXT =
+  "weekly_planning_validation_prompt";
 
-const MORNING_ENCOURAGEMENT_START_LOCAL_TIME = "08:00";
-const WEEKLY_PROGRESS_REVIEW_LOCAL_TIME = "18:30";
 const MORNING_PENDING_STATUSES = ["pending", "retrying", "awaiting_user"];
 const LEGACY_ACTION_MORNING_FOLLOWUP_EVENT_CONTEXT =
   "action_morning_followup_v2";
@@ -77,30 +50,6 @@ function cleanText(value: unknown, fallback = ""): string {
   return text || fallback;
 }
 
-function filterScheduleOccurrences(
-  schedule: TodayActionOccurrenceSchedule,
-  predicate: (
-    occurrence:
-      TodayActionOccurrenceSchedule["transformations"][number]["occurrences"][
-        number
-      ],
-  ) => boolean,
-): TodayActionOccurrenceSchedule {
-  return {
-    ...schedule,
-    transformations: schedule.transformations.flatMap((transformation) => {
-      const occurrences = transformation.occurrences.filter(predicate);
-      return occurrences.length > 0 ? [{ ...transformation, occurrences }] : [];
-    }),
-  };
-}
-
-function occurrenceCount(schedule: TodayActionOccurrenceSchedule): number {
-  return schedule.transformations.reduce(
-    (total, transformation) => total + transformation.occurrences.length,
-    0,
-  );
-}
 
 function errorToMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
@@ -313,13 +262,7 @@ Deno.serve(async (req) => {
     let scheduled = 0;
     let timezoneGateSkipped = 0;
     let skippedInvalidTimezone = 0;
-    let actionMorningScheduled = 0;
-    let actionMorningFollowupScheduled = 0;
     let lightGreetingScheduled = 0;
-    let actionLateAfternoonScheduled = 0;
-    let actionNightPrepScheduled = 0;
-    let weeklyProgressReviewScheduled = 0;
-    let weeklyProgressReviewSkippedNewUser = 0;
     let birthdayGreetingScheduled = 0;
     let keelSlotRemindersScheduled = 0;
     let keelRestrictionFlagged = 0;
@@ -494,108 +437,29 @@ Deno.serve(async (req) => {
 
       const allowsMorning = true;
       const allowsEvening = true;
-
-      const todayScheduleRaw = await loadTodayActionOccurrences(
-        supabaseAdmin as any,
-        {
-          userId,
-          timezone,
-          localTimeHHMM: MORNING_ENCOURAGEMENT_START_LOCAL_TIME,
-          now,
-        },
-      );
-      const morningEncouragementLocalTime = randomMorningEncouragementLocalTime(
-        {
-          userId,
-          localDate: todayScheduleRaw.local_date,
-        },
-      );
-      const todaySchedule = {
-        ...todayScheduleRaw,
-        scheduled_for: computeScheduledForFromLocal({
-          timezone,
-          dayOffset: 0,
-          localTimeHHMM: morningEncouragementLocalTime,
-          now,
-        }),
-      };
-      const canScheduleMorningToday =
-        new Date(todaySchedule.scheduled_for).getTime() > now.getTime();
-      const yesterdayScheduleRaw = await loadTodayActionOccurrences(
-        supabaseAdmin as any,
-        {
-          userId,
-          timezone,
-          localTimeHHMM: MORNING_ENCOURAGEMENT_START_LOCAL_TIME,
-          now: new Date(now.getTime() - 24 * 60 * 60 * 1000),
-        },
-      );
-      let yesterdaySchedule = {
-        ...yesterdayScheduleRaw,
-        scheduled_for: todaySchedule.scheduled_for,
-      };
-
-      const hasActionsToday = todaySchedule.transformations.some((entry) =>
-        entry.occurrences.length > 0
-      );
-      // Créneau du matin: seulement les actions du matin/après-midi/anytime.
-      // Les actions soir (evening), nuit (night) et réveil (wake_up) ont leur
-      // propre créneau (fin d'après-midi ou ~21h35) — les encourager le matin
-      // tombe à côté du moment de levier.
-      const morningSlotSchedule = filterScheduleOccurrences(
-        todaySchedule,
-        (occurrence) => isMorningSlotTimeOfDay(occurrence.time_of_day),
-      );
-      const hasMorningSlotActions = occurrenceCount(morningSlotSchedule) > 0;
-      const hasOpenActionsFromYesterday = yesterdaySchedule.transformations
-        .some((entry) => entry.occurrences.length > 0);
-      // Pré-engagement wake_up: les actions au réveil de DEMAIN se nudgent la
-      // veille au soir (~21h35), jamais le matin même (trop tard).
-      const nightPrepLocalTime = randomNightPrepLocalTime({
+      // RETRAIT RÉSIDUS (2026-08-08): les nudges d'action (matin, fin
+      // d'après-midi, veille de nuit) et la revue hebdo sont partis avec le
+      // plan V2. Survivent la salutation légère du matin et l'anniversaire.
+      const morningEncouragementLocalTime = randomMorningEncouragementLocalTime({
         userId,
-        localDate: todaySchedule.local_date,
+        localDate,
       });
-      const nightPrepScheduledFor = computeScheduledForFromLocal({
+      const morningScheduledFor = computeScheduledForFromLocal({
         timezone,
         dayOffset: 0,
-        localTimeHHMM: nightPrepLocalTime,
+        localTimeHHMM: morningEncouragementLocalTime,
         now,
       });
-      const tomorrowScheduleRaw = await loadTodayActionOccurrences(
-        supabaseAdmin as any,
-        {
-          userId,
-          timezone,
-          localTimeHHMM: MORNING_ENCOURAGEMENT_START_LOCAL_TIME,
-          now: new Date(now.getTime() + 24 * 60 * 60 * 1000),
-        },
-      );
-      const tomorrowWakeUpSchedule = filterScheduleOccurrences(
-        {
-          ...tomorrowScheduleRaw,
-          scheduled_for: nightPrepScheduledFor,
-        },
-        (occurrence) => isWakeUpTimeOfDay(occurrence.time_of_day),
-      );
-      const hasTomorrowWakeUpActions =
-        occurrenceCount(tomorrowWakeUpSchedule) > 0;
+      const canScheduleMorningToday =
+        new Date(morningScheduledFor).getTime() > now.getTime();
       const shouldSendLightGreeting = canScheduleMorningToday &&
-        !hasActionsToday &&
         allowsMorning &&
         await shouldScheduleLightMorningGreeting(supabaseAdmin as any, {
           userId,
           timezone,
-          localDate: todaySchedule.local_date,
+          localDate,
           now,
         });
-      const localWeekday = localWeekdayForTimezone(timezone, now);
-      const siteUrl = getSiteUrl();
-      const dashboardUrl = weeklyPlanningDashboardUrl(siteUrl);
-      // W2.B: le prompt de validation du planning hebdo (lundi matin) est
-      // supprimé — l'élève ne note plus sa propre copie. Les jours épinglés du
-      // plan SONT la prescription.
-      const shouldTryWeeklyProgressReview = allowsEvening &&
-        localWeekday === "sun";
       const birthdayMatch = birthdayMatchesLocalDate({
         birthDate: profile.birth_date,
         timezone,
@@ -603,12 +467,8 @@ Deno.serve(async (req) => {
       });
       const shouldTryBirthdayGreeting = birthdayMatch.matches &&
         (allowsMorning || allowsEvening);
-      const hasAnyCandidate = (allowsMorning && canScheduleMorningToday &&
-        (hasMorningSlotActions || shouldSendLightGreeting)) ||
-        (allowsEvening &&
-          (hasActionsToday || hasOpenActionsFromYesterday ||
-            hasTomorrowWakeUpActions)) ||
-        shouldTryWeeklyProgressReview ||
+      const hasAnyCandidate =
+        (allowsMorning && shouldSendLightGreeting) ||
         shouldTryBirthdayGreeting;
 
       if (!hasAnyCandidate) {
@@ -675,30 +535,12 @@ Deno.serve(async (req) => {
         }
       }
 
-      if (
-        allowsMorning &&
-        canScheduleMorningToday &&
-        (hasMorningSlotActions || shouldSendLightGreeting)
-      ) {
+      if (allowsMorning && canScheduleMorningToday && shouldSendLightGreeting) {
         await cancelFutureMorningCheckins({
           supabaseAdmin,
           userId,
           nowIso,
         });
-
-        const eventContext = hasMorningSlotActions
-          ? ACTION_MORNING_EVENT_CONTEXT
-          : MORNING_LIGHT_GREETING_EVENT_CONTEXT;
-        const draftMessage = hasMorningSlotActions
-          ? buildActionMorningFallbackMessage(morningSlotSchedule)
-          : buildLightMorningFallbackMessage();
-        const instruction = hasMorningSlotActions
-          ? buildActionMorningInstruction(morningSlotSchedule)
-          : buildLightMorningInstruction();
-        const eventGrounding = hasMorningSlotActions
-          ? buildActionMorningGrounding(morningSlotSchedule)
-          : `local_date=${todaySchedule.local_date}\nweekday=${todaySchedule.weekday}\nno_confirmed_action_occurrence=true`;
-        const selectedSchedule = morningSlotSchedule;
 
         const { error: upsertErr } = await supabaseAdmin
           .from("scheduled_checkins")
@@ -706,40 +548,22 @@ Deno.serve(async (req) => {
             {
               user_id: userId,
               origin: "action_morning",
-              event_context: eventContext,
-              draft_message: draftMessage,
+              event_context: MORNING_LIGHT_GREETING_EVENT_CONTEXT,
+              draft_message: buildLightMorningFallbackMessage(),
               message_mode: "dynamic",
               message_payload: {
                 source: "schedule_action_morning_v2",
                 version: 1,
-                checkin_kind: hasMorningSlotActions
-                  ? "action_morning_encouragement"
-                  : "morning_light_greeting",
+                checkin_kind: "morning_light_greeting",
                 timezone,
-                local_date: selectedSchedule.local_date,
-                week_start_date: selectedSchedule.week_start_date,
-                weekday: selectedSchedule.weekday,
-                reviewed_local_date: null,
+                local_date: localDate,
                 morning_encouragement_local_time: morningEncouragementLocalTime,
-                transformations: selectedSchedule.transformations,
-                occurrence_ids: selectedSchedule.transformations.flatMap((
-                  entry,
-                ) =>
-                  entry.occurrences.map((occurrence) =>
-                    occurrence.occurrence_id
-                  )
-                ),
-                plan_item_ids: selectedSchedule.transformations.flatMap((
-                  entry,
-                ) =>
-                  entry.occurrences.map((occurrence) => occurrence.plan_item_id)
-                ),
-                instruction,
-                event_grounding: eventGrounding,
-                chat_capability: "track_progress_only",
+                instruction: buildLightMorningInstruction(),
+                event_grounding:
+                  `local_date=${localDate}\nno_confirmed_action_occurrence=true`,
                 generated_at: nowIso,
               },
-              scheduled_for: selectedSchedule.scheduled_for,
+              scheduled_for: morningScheduledFor,
               status: "pending",
             } as any,
             { onConflict: "user_id,event_context,scheduled_for" },
@@ -751,264 +575,15 @@ Deno.serve(async (req) => {
           );
         } else {
           scheduled++;
-          if (hasMorningSlotActions) {
-            actionMorningScheduled++;
-          } else {
-            lightGreetingScheduled++;
-          }
+          lightGreetingScheduled++;
         }
       }
 
-      // Créneau fin d'après-midi (~16h45-17h45): nudge des actions du SOIR
-      // (time_of_day=evening) avant que la soirée commence.
-      if (allowsEvening && hasActionsToday) {
-        const lateAfternoonLocalTime = randomLateAfternoonNudgeLocalTime({
-          userId,
-          localDate: todaySchedule.local_date,
-        });
-        const lateAfternoonBase = await loadTodayActionOccurrences(
-          supabaseAdmin as any,
-          {
-            userId,
-            timezone,
-            localTimeHHMM: lateAfternoonLocalTime,
-            now,
-          },
-        );
-        const lateAfternoonSchedule = filterScheduleOccurrences(
-          lateAfternoonBase,
-          (occurrence) => isEveningActionTimeOfDay(occurrence.time_of_day),
-        );
-        const lateAfternoonOccurrenceIds = lateAfternoonSchedule
-          .transformations
-          .flatMap((entry) =>
-            entry.occurrences.map((occurrence) => occurrence.occurrence_id)
-          );
-        const canScheduleLateAfternoon =
-          new Date(lateAfternoonSchedule.scheduled_for).getTime() >
-            now.getTime();
-        if (canScheduleLateAfternoon && lateAfternoonOccurrenceIds.length > 0) {
-          const { error: lateAfternoonErr } = await supabaseAdmin
-            .from("scheduled_checkins")
-            .upsert(
-              {
-                user_id: userId,
-                origin: "action_late_afternoon",
-                event_context: ACTION_LATE_AFTERNOON_EVENT_CONTEXT,
-                draft_message: buildActionLateAfternoonFallbackMessage(
-                  lateAfternoonSchedule,
-                ),
-                message_mode: "dynamic",
-                message_payload: {
-                  source: "schedule_action_late_afternoon_v1",
-                  version: 1,
-                  checkin_kind: "action_late_afternoon_encouragement",
-                  timezone,
-                  local_date: lateAfternoonSchedule.local_date,
-                  week_start_date: lateAfternoonSchedule.week_start_date,
-                  weekday: lateAfternoonSchedule.weekday,
-                  reviewed_local_date: null,
-                  late_afternoon_local_time: lateAfternoonLocalTime,
-                  transformations: lateAfternoonSchedule.transformations,
-                  occurrence_ids: lateAfternoonOccurrenceIds,
-                  plan_item_ids: lateAfternoonSchedule.transformations
-                    .flatMap((entry) =>
-                      entry.occurrences.map((occurrence) =>
-                        occurrence.plan_item_id
-                      )
-                    ),
-                  instruction: buildActionLateAfternoonInstruction(
-                    lateAfternoonSchedule,
-                  ),
-                  event_grounding: buildActionMorningGrounding(
-                    lateAfternoonSchedule,
-                  ),
-                  chat_capability: "track_progress_only",
-                  generated_at: nowIso,
-                },
-                scheduled_for: lateAfternoonSchedule.scheduled_for,
-                status: "pending",
-              } as any,
-              { onConflict: "user_id,event_context,scheduled_for" },
-            );
-          if (lateAfternoonErr) {
-            console.error(
-              `[schedule-checkins-v2] request_id=${requestId} late_afternoon_upsert_failed user_id=${userId}`,
-              lateAfternoonErr,
-            );
-          } else {
-            scheduled++;
-            actionLateAfternoonScheduled++;
-          }
-        }
-      }
 
       // Créneau ~21h35-22h: actions de NUIT de ce soir (time_of_day=night) +
       // pré-engagement des actions au RÉVEIL de demain (time_of_day=wake_up).
       // Fenêtre volontairement après la fin de la review du soir (21h30).
-      if (allowsEvening && (hasActionsToday || hasTomorrowWakeUpActions)) {
-        const nightBase = await loadTodayActionOccurrences(
-          supabaseAdmin as any,
-          {
-            userId,
-            timezone,
-            localTimeHHMM: nightPrepLocalTime,
-            now,
-          },
-        );
-        const nightSchedule = filterScheduleOccurrences(
-          nightBase,
-          (occurrence) => isNightActionTimeOfDay(occurrence.time_of_day),
-        );
-        const nightOccurrenceIds = nightSchedule.transformations
-          .flatMap((entry) =>
-            entry.occurrences.map((occurrence) => occurrence.occurrence_id)
-          );
-        const wakeUpOccurrenceIds = tomorrowWakeUpSchedule.transformations
-          .flatMap((entry) =>
-            entry.occurrences.map((occurrence) => occurrence.occurrence_id)
-          );
-        const nightPrepOccurrenceIds = [
-          ...nightOccurrenceIds,
-          ...wakeUpOccurrenceIds,
-        ];
-        const canScheduleNightPrep =
-          new Date(nightPrepScheduledFor).getTime() > now.getTime();
-        if (canScheduleNightPrep && nightPrepOccurrenceIds.length > 0) {
-          const { error: nightPrepErr } = await supabaseAdmin
-            .from("scheduled_checkins")
-            .upsert(
-              {
-                user_id: userId,
-                origin: "action_night_prep",
-                event_context: ACTION_NIGHT_PREP_EVENT_CONTEXT,
-                draft_message: buildActionNightPrepFallbackMessage({
-                  nightSchedule,
-                  wakeUpSchedule: tomorrowWakeUpSchedule,
-                }),
-                message_mode: "dynamic",
-                message_payload: {
-                  source: "schedule_action_night_prep_v1",
-                  version: 1,
-                  checkin_kind: "action_night_prep",
-                  timezone,
-                  local_date: nightBase.local_date,
-                  week_start_date: nightBase.week_start_date,
-                  weekday: nightBase.weekday,
-                  reviewed_local_date: null,
-                  night_prep_local_time: nightPrepLocalTime,
-                  transformations: [
-                    ...nightSchedule.transformations,
-                    ...tomorrowWakeUpSchedule.transformations,
-                  ],
-                  occurrence_ids: nightPrepOccurrenceIds,
-                  night_occurrence_ids: nightOccurrenceIds,
-                  wake_up_occurrence_ids: wakeUpOccurrenceIds,
-                  plan_item_ids: [
-                    ...nightSchedule.transformations,
-                    ...tomorrowWakeUpSchedule.transformations,
-                  ].flatMap((entry) =>
-                    entry.occurrences.map((occurrence) =>
-                      occurrence.plan_item_id
-                    )
-                  ),
-                  instruction: buildActionNightPrepInstruction({
-                    nightSchedule,
-                    wakeUpSchedule: tomorrowWakeUpSchedule,
-                  }),
-                  event_grounding: buildActionNightPrepGrounding({
-                    localDate: nightBase.local_date,
-                    weekday: nightBase.weekday,
-                    nightSchedule,
-                    wakeUpSchedule: tomorrowWakeUpSchedule,
-                  }),
-                  chat_capability: "track_progress_only",
-                  generated_at: nowIso,
-                },
-                scheduled_for: nightPrepScheduledFor,
-                status: "pending",
-              } as any,
-              { onConflict: "user_id,event_context,scheduled_for" },
-            );
-          if (nightPrepErr) {
-            console.error(
-              `[schedule-checkins-v2] request_id=${requestId} night_prep_upsert_failed user_id=${userId}`,
-              nightPrepErr,
-            );
-          } else {
-            scheduled++;
-            actionNightPrepScheduled++;
-          }
-        }
-      }
 
-      if (shouldTryWeeklyProgressReview) {
-        if (isAccountCreatedToday) {
-          weeklyProgressReviewSkippedNewUser++;
-          continue;
-        }
-        const weekStartDate = currentWeekStartForTimezone(timezone, now);
-        const review = await loadWeeklyProgressReview(supabaseAdmin as any, {
-          userId,
-          timezone,
-          weekStartDate,
-          now,
-          dashboardUrl,
-        });
-        const scheduledFor = computeScheduledForFromLocal({
-          timezone,
-          dayOffset: 0,
-          localTimeHHMM: WEEKLY_PROGRESS_REVIEW_LOCAL_TIME,
-          now,
-        });
-        const summary = review.transformations.reduce(
-          (acc, transformation) => {
-            acc.done += transformation.summary.done_count;
-            acc.partial += transformation.summary.partial_count;
-            acc.missed += transformation.summary.missed_count;
-            acc.planned += transformation.summary.planned_count;
-            return acc;
-          },
-          { done: 0, partial: 0, missed: 0, planned: 0 },
-        );
-        const { error: weeklyReviewErr } = await supabaseAdmin
-          .from("scheduled_checkins")
-          .upsert(
-            {
-              user_id: userId,
-              origin: "weekly_review",
-              event_context: WEEKLY_PROGRESS_REVIEW_EVENT_CONTEXT,
-              draft_message: buildWeeklyProgressReviewFallbackMessage(
-                summary,
-              ),
-              message_mode: "dynamic",
-              message_payload: {
-                source: "schedule_weekly_progress_review_v2",
-                version: 1,
-                timezone,
-                week_start_date: review.week_start_date,
-                week_end_date: review.week_end_date,
-                dashboard_url: dashboardUrl,
-                weekly_progress_review: review,
-                instruction: buildWeeklyProgressReviewInstruction(review),
-                event_grounding: buildWeeklyProgressReviewGrounding(review),
-                generated_at: nowIso,
-              },
-              scheduled_for: scheduledFor,
-              status: "pending",
-            } as any,
-            { onConflict: "user_id,event_context,scheduled_for" },
-          );
-        if (weeklyReviewErr) {
-          console.error(
-            `[schedule-checkins-v2] request_id=${requestId} weekly_review_upsert_failed user_id=${userId}`,
-            weeklyReviewErr,
-          );
-        } else {
-          scheduled++;
-          weeklyProgressReviewScheduled++;
-        }
-      }
     }
 
     return jsonResponse(
@@ -1016,14 +591,7 @@ Deno.serve(async (req) => {
       {
         success: true,
         scheduled,
-        action_morning_scheduled: actionMorningScheduled,
-        action_morning_followup_scheduled: actionMorningFollowupScheduled,
         light_greeting_scheduled: lightGreetingScheduled,
-        action_late_afternoon_scheduled: actionLateAfternoonScheduled,
-        action_night_prep_scheduled: actionNightPrepScheduled,
-        weekly_progress_review_scheduled: weeklyProgressReviewScheduled,
-        weekly_progress_review_skipped_new_user:
-          weeklyProgressReviewSkippedNewUser,
         birthday_greeting_scheduled: birthdayGreetingScheduled,
         keel_slot_reminders_scheduled: keelSlotRemindersScheduled,
         keel_restriction_flagged: keelRestrictionFlagged,
@@ -1044,7 +612,7 @@ Deno.serve(async (req) => {
         invalid_timezones: [...timezoneClassification.invalid].sort(),
         request_id: requestId,
         user_id: userIdFilter || null,
-        event_context: ACTION_MORNING_EVENT_CONTEXT,
+        event_context: MORNING_LIGHT_GREETING_EVENT_CONTEXT,
       },
       { includeCors: false },
     );

@@ -71,7 +71,6 @@ import {
   ACTION_NIGHT_PREP_EVENT_CONTEXT,
   buildLightMorningFallbackMessage,
   buildLightMorningInstruction,
-  loadTodayActionOccurrences,
   localDateYmdInTimezone,
   MORNING_LIGHT_GREETING_EVENT_CONTEXT,
 } from "../_shared/action_occurrences.ts";
@@ -82,24 +81,19 @@ import {
   persistMomentumSnapshotV2,
 } from "../_shared/momentum_v2.ts";
 import { buildActionFamilyKey } from "../_shared/memory/action_family.ts";
-import {
-  buildWeeklyPlanningValidationMessage,
-  buildWeeklyProgressReviewFallbackMessage,
-  buildWeeklyProgressReviewGrounding,
-  loadWeeklyProgressReview,
-  WEEKLY_PLANNING_VALIDATION_PROMPT_EVENT_CONTEXT,
-  WEEKLY_PROGRESS_REVIEW_EVENT_CONTEXT,
-  weeklyPlanningDashboardUrl,
-} from "../_shared/weekly_progress_review.ts";
+// RETRAIT RÉSIDUS (2026-08-08): la revue hebdo du plan V2 est partie avec
+// le système de plan. Ses deux event contexts restent pour ANNULER À VUE
+// les lignes encore en base (motif action_morning_followup_removed).
+const WEEKLY_PROGRESS_REVIEW_EVENT_CONTEXT = "weekly_progress_review_v2";
+const WEEKLY_PLANNING_VALIDATION_PROMPT_EVENT_CONTEXT =
+  "weekly_planning_validation_prompt";
 import {
   getMomentumOutreachStateFromEventContext,
   isMomentumOutreachEventContext,
 } from "../sophia-brain/momentum_outreach.ts";
 import {
-  type ActionNudgeSlot,
   buildMomentumMorningPlan,
   buildMorningNudgePayloadV2,
-  evaluateActionNudgeMomentumGate,
   isMorningNudgeEventContext,
   resolveMorningNudgePlanV2,
 } from "../sophia-brain/momentum_morning_nudge.ts";
@@ -275,46 +269,6 @@ function publicSiteUrl(): string {
     Deno.env.get("APP_BASE_URL") ?? Deno.env.get("SITE_URL") ??
       Deno.env.get("PUBLIC_SITE_URL"),
   ) || "https://app.sophia.app";
-}
-
-function weeklyPlanningTemplateMessage(dashboardUrl: string) {
-  // Hardcoded default: never degrade to global_reach_template because an env
-  // secret is missing (root cause of the 2026-07-12 duplicate-template incident).
-  const name = cleanText(
-    Deno.env.get("WHATSAPP_WEEKLY_PLANNING_TEMPLATE_NAME"),
-  ) || "weekly_planning_validation_v1";
-  return {
-    type: "template" as const,
-    name,
-    language: cleanText(
-      Deno.env.get("WHATSAPP_WEEKLY_PLANNING_TEMPLATE_LANG"),
-    ) || "fr",
-    components: [
-      {
-        type: "body",
-        parameters: [{ type: "text", text: dashboardUrl }],
-      },
-    ],
-  };
-}
-
-function weeklyProgressReviewTemplateMessage() {
-  // Hardcoded default: never degrade to global_reach_template because an env
-  // secret is missing. Meta-approved sophia_bilan_weekly_v1 has {{1}} = first
-  // name: leave components undefined so whatsapp-send injects the user's name
-  // (its default when the fallback purpose declares injectBodyNameParam).
-  const name = cleanText(
-    Deno.env.get("WHATSAPP_WEEKLY_PROGRESS_REVIEW_TEMPLATE_NAME") ??
-      Deno.env.get("WHATSAPP_WEEKLY_BILAN_TEMPLATE_NAME"),
-  ) || "sophia_bilan_weekly_v1";
-  return {
-    type: "template" as const,
-    name,
-    language: cleanText(
-      Deno.env.get("WHATSAPP_WEEKLY_PROGRESS_REVIEW_TEMPLATE_LANG") ??
-        Deno.env.get("WHATSAPP_WEEKLY_BILAN_TEMPLATE_LANG"),
-    ) || "fr",
-  };
 }
 
 /**
@@ -2147,12 +2101,20 @@ Deno.serve(async (req) => {
       let userProfileSnapshot: Record<string, unknown> | null = null;
       let morningPlan: any = null;
 
-      if (isActionMorningFollowup) {
+      // RETRAIT RÉSIDUS (2026-08-08): tous les check-ins du système de plan
+      // V2 (nudges d'action, revue hebdo, validation de planning) sont
+      // annulés À VUE — le scheduler ne les produit plus, ceci draine les
+      // lignes encore en base. Même motif que action_morning_followup_removed.
+      if (
+        isActionMorningFollowup || isActionMorningEncouragement ||
+        isActionLateAfternoon || isActionNightPrep ||
+        isWeeklyPlanningValidationPrompt || isWeeklyProgressReview
+      ) {
         await markScheduledCheckinDeliveryState({
           supabaseAdmin,
           checkinId: checkin.id,
           status: "cancelled",
-          errorMessage: "action_morning_followup_removed",
+          errorMessage: "legacy_plan_checkin_removed",
           requestId,
         });
         continue;
@@ -2167,8 +2129,7 @@ Deno.serve(async (req) => {
       // A slot reminder is ABOUT a moment: "Lunch — on your plan today" landing at
       // 16:00 because delivery backed off is not a late message, it is a wrong one.
       const isPeremptibleProactiveCheckin = isMomentumMorningNudge ||
-        isActionMorningEncouragement || isMorningLightGreeting ||
-        isWeeklyProgressReview || isMomentumOutreach ||
+        isMorningLightGreeting || isMomentumOutreach ||
         isKeelProactive;
       if (isPeremptibleProactiveCheckin) {
         const stalenessPayload =
@@ -2275,65 +2236,6 @@ Deno.serve(async (req) => {
             })
             .eq("id", checkin.id);
           continue;
-        }
-        if (isMomentumMorningNudge || isMorningLightGreeting) {
-          try {
-            const todayActionSchedule = await loadTodayActionOccurrences(
-              supabaseAdmin as any,
-              {
-                userId: String(checkin.user_id),
-                timezone: userTimezone,
-                localTimeHHMM: "08:00",
-              },
-            );
-            const todayActionCount = todayActionSchedule.transformations
-              .reduce(
-                (total, transformation) =>
-                  total + transformation.occurrences.length,
-                0,
-              );
-            if (todayActionCount > 0) {
-              if (isMomentumMorningNudge) {
-                await logMomentumObservabilityEvent({
-                  supabase: supabaseAdmin as any,
-                  userId: checkin.user_id,
-                  requestId,
-                  channel: "whatsapp",
-                  scope: "whatsapp",
-                  sourceComponent: "process_checkins",
-                  eventName: "momentum_morning_nudge_cancelled",
-                  payload: buildMomentumMorningDeliveryPayload(checkin, {
-                    delivery_status: "cancelled",
-                    transport: "priority_guard",
-                    skip_reason: "morning_action_priority_active_today",
-                    plan_item_ids_targeted: todayActionSchedule
-                      .transformations.flatMap((entry) =>
-                        entry.occurrences.map((occurrence) =>
-                          occurrence.plan_item_id
-                        )
-                      ),
-                    plan_item_titles_targeted: todayActionSchedule
-                      .transformations.flatMap((entry) =>
-                        entry.occurrences.map((occurrence) => occurrence.title)
-                      ),
-                  }),
-                });
-              }
-              await markScheduledCheckinDeliveryState({
-                supabaseAdmin,
-                checkinId: checkin.id,
-                status: "cancelled",
-                errorMessage: "morning_action_priority_active_today",
-                requestId,
-              });
-              continue;
-            }
-          } catch (error) {
-            console.warn(
-              `[process-checkins] request_id=${requestId} morning_action_priority_guard_failed checkin_id=${checkin.id}`,
-              error,
-            );
-          }
         }
         // KEEL W4.6 — the restriction floor, at DELIVERY time.
         //
@@ -2599,102 +2501,18 @@ Deno.serve(async (req) => {
           );
         }
       }
-      // ── Gate momentum des nudges d'action (règle B: priorité au système
-      // d'état). Évalué à la LIVRAISON pour lire l'état frais du jour.
-      // - état soutien_emotionnel → le nudge d'action est REMPLACÉ par un
-      //   message doux (au plus un par jour), puis les autres nudges d'action
-      //   de la journée se taisent;
-      // - pause_consentie / policy sans proactif → nudge annulé;
-      // - sinon → le nudge d'action part normalement.
-      const isActionSlotNudge = isActionMorningEncouragement ||
-        isActionLateAfternoon || isActionNightPrep;
-      if (isActionSlotNudge) {
-        const gateSlot: ActionNudgeSlot = isActionMorningEncouragement
-          ? "morning"
-          : isActionLateAfternoon
-          ? "late_afternoon"
-          : "night_prep";
-        const gateTempMemory = await fetchWhatsappTempMemory(
-          supabaseAdmin,
-          String(checkin.user_id),
-        ).catch(() => ({} as Record<string, unknown>));
-        const todayLocalDate = localDateYmdInTimezone(
-          userTimezone,
-          new Date(),
-        );
-        const supportSentToday = String(
-          (gateTempMemory as any)?.__action_nudge_support_sent_local_date ??
-            "",
-        ) === todayLocalDate;
-        if (supportSentToday) {
-          await markScheduledCheckinDeliveryState({
-            supabaseAdmin,
-            checkinId: checkin.id,
-            status: "cancelled",
-            errorMessage: "action_nudge_muted_support_presence_sent_today",
-            requestId,
-          });
-          continue;
-        }
-        const gate = evaluateActionNudgeMomentumGate({
-          tempMemory: gateTempMemory,
-          slot: gateSlot,
-        });
-        if (gate.outcome === "cancel") {
-          await markScheduledCheckinDeliveryState({
-            supabaseAdmin,
-            checkinId: checkin.id,
-            status: "cancelled",
-            errorMessage: gate.reason,
-            requestId,
-          });
-          continue;
-        }
-        if (gate.outcome === "support_softly") {
-          mode = "dynamic";
-          payload = {
-            ...payload,
-            source: "process_checkins:action_nudge_support_softly",
-            presence_kind: "support_softly",
-            momentum_state: gate.state,
-            instruction: gate.instruction,
-            event_grounding:
-              `event_context=${eventContext}\naction_nudge_gate=support_softly\nmomentum_state=${gate.state}`,
-            chat_capability: "track_progress_only",
-          };
-          bodyText = gate.fallback_text;
-          console.log(
-            `[process-checkins] request_id=${requestId} action_nudge_gate=support_softly checkin_id=${checkin.id} slot=${gateSlot} state=${gate.state}`,
-          );
-        }
-      }
 
       if (
-        (isActionMorningEncouragement || isMorningLightGreeting) &&
+        isMorningLightGreeting &&
         payload?.presence_kind !== "support_softly"
       ) {
-        const occurrenceIds = parseStringArray(payload?.occurrence_ids);
-        if (isActionMorningEncouragement && occurrenceIds.length === 0) {
-          await markScheduledCheckinDeliveryState({
-            supabaseAdmin,
-            checkinId: checkin.id,
-            status: "cancelled",
-            errorMessage: "action_morning_no_occurrences",
-            requestId,
-          });
-          continue;
-        }
 
         mode = "dynamic";
         payload = {
           ...payload,
-          source: isActionMorningEncouragement
-            ? "process_checkins:action_morning_encouragement"
-            : "process_checkins:morning_light_greeting",
+          source: "process_checkins:morning_light_greeting",
           instruction: String(payload?.instruction ?? "").trim() ||
-            (isMorningLightGreeting
-              ? buildLightMorningInstruction()
-              : "Message WhatsApp du matin: encourage brièvement le user à réaliser les actions prévues aujourd'hui."),
+            buildLightMorningInstruction(),
           event_grounding: String(payload?.event_grounding ?? "").trim() ||
             `event_context=${eventContext}`,
           chat_capability: "track_progress_only",
@@ -2714,304 +2532,6 @@ Deno.serve(async (req) => {
             e,
           );
         }
-      }
-      if (isWeeklyPlanningValidationPrompt) {
-        const attemptCount = Math.max(
-          1,
-          Number((checkin as any)?.delivery_attempt_count ?? 0) + 1,
-        );
-        const dashboardUrl = cleanText(payload?.dashboard_url) ||
-          weeklyPlanningDashboardUrl(publicSiteUrl());
-        const nextWeekStartDate = cleanText(payload?.next_week_start_date);
-        const reviewBody = cleanText(bodyText) ||
-          buildWeeklyPlanningValidationMessage({
-            nextWeekStartDate,
-            dashboardUrl,
-          });
-        const message = in24hConversationWindow
-          ? { type: "text" as const, body: reviewBody }
-          : weeklyPlanningTemplateMessage(dashboardUrl);
-
-        try {
-          const resp = await callWhatsappSend({
-            user_id: checkin.user_id,
-            message,
-            purpose: "weekly_planning_validation",
-            require_opted_in: true,
-            force_template: !in24hConversationWindow,
-            metadata_extra: {
-              source: "scheduled_checkin",
-              event_context: checkin.event_context,
-              original_checkin_id: checkin.id,
-              purpose: "weekly_planning_validation",
-              dashboard_url: dashboardUrl,
-              next_week_start_date: nextWeekStartDate || null,
-            },
-          });
-          if (Boolean((resp as any)?.skipped)) {
-            await markScheduledCheckinDeliveryState({
-              supabaseAdmin,
-              checkinId: checkin.id,
-              status: "cancelled",
-              attemptCount,
-              draftMessage: reviewBody,
-              errorMessage: String(
-                (resp as any)?.skip_reason ??
-                  "weekly_planning_validation_skipped",
-              ),
-              requestId: String((resp as any)?.request_id ?? requestId),
-            });
-            continue;
-          }
-          if (Boolean((resp as any)?.used_template)) {
-            await markScheduledCheckinDeliveryState({
-              supabaseAdmin,
-              checkinId: checkin.id,
-              status: "sent",
-              attemptCount,
-              draftMessage: reviewBody,
-              errorMessage: null,
-              requestId: String((resp as any)?.request_id ?? requestId),
-            });
-            processedCount++;
-            continue;
-          }
-          await markScheduledCheckinDeliveryState({
-            supabaseAdmin,
-            checkinId: checkin.id,
-            status: "sent",
-            attemptCount,
-            draftMessage: reviewBody,
-            errorMessage: null,
-            requestId: String((resp as any)?.request_id ?? requestId),
-          });
-          processedCount++;
-          continue;
-        } catch (e) {
-          const status = (e as any)?.status;
-          const msg = e instanceof Error ? e.message : String(e);
-          await markScheduledCheckinDeliveryState({
-            supabaseAdmin,
-            checkinId: checkin.id,
-            status: shouldRetryScheduledCheckinDelivery(status)
-              ? "retrying"
-              : "failed",
-            attemptCount,
-            scheduledFor: shouldRetryScheduledCheckinDelivery(status)
-              ? computeNextRetryAtIso(attemptCount)
-              : null,
-            draftMessage: reviewBody,
-            errorMessage: msg,
-            requestId,
-          });
-          continue;
-        }
-      }
-      if (isWeeklyProgressReview) {
-        const attemptCount = Math.max(
-          1,
-          Number((checkin as any)?.delivery_attempt_count ?? 0) + 1,
-        );
-        const weekStartDate = cleanText(payload?.week_start_date);
-        const dashboardUrl = cleanText(payload?.dashboard_url) ||
-          weeklyPlanningDashboardUrl(publicSiteUrl());
-        const review = await loadWeeklyProgressReview(supabaseAdmin as any, {
-          userId: String(checkin.user_id),
-          timezone: userTimezone,
-          weekStartDate,
-          dashboardUrl,
-        });
-        const summary = review.transformations.reduce(
-          (acc, transformation) => {
-            acc.done += transformation.summary.done_count;
-            acc.partial += transformation.summary.partial_count;
-            acc.missed += transformation.summary.missed_count;
-            acc.planned += transformation.summary.planned_count;
-            return acc;
-          },
-          { done: 0, partial: 0, missed: 0, planned: 0 },
-        );
-        // planned === 0 (week never validated, no recorded activity) is a real
-        // weekly scenario, not a cancellation: the review opens on "no action
-        // tracked this week" and pivots to framing next week. Sending it also
-        // unlocks the planning validation prompt chain afterwards.
-        let momentumSnapshot: MomentumSnapshotV2 | null = null;
-        try {
-          const loadedMomentum = await loadMomentumSnapshotV2(
-            supabaseAdmin as any,
-            {
-              userId: String(checkin.user_id),
-              timezone: userTimezone,
-              now: new Date(),
-            },
-          );
-          momentumSnapshot = loadedMomentum.snapshot;
-          await persistMomentumSnapshotV2(supabaseAdmin as any, {
-            userId: String(checkin.user_id),
-            cycleId: loadedMomentum.cycleId,
-            snapshot: loadedMomentum.snapshot,
-          });
-        } catch (e) {
-          console.warn(
-            `[process-checkins] request_id=${requestId} weekly_review_momentum_snapshot_failed checkin_id=${checkin.id}`,
-            e,
-          );
-        }
-        const weeklyReviewPayload = {
-          ...payload,
-          source: "process_checkins:weekly_progress_review",
-          weekly_progress_review: review,
-          momentum_snapshot_v2: momentumSnapshot,
-          event_grounding: momentumSnapshot
-            ? `${
-              buildWeeklyProgressReviewGrounding(review)
-            }\n\nmomentum_snapshot_v2=${JSON.stringify(momentumSnapshot)}`
-            : buildWeeklyProgressReviewGrounding(review),
-        };
-        let weeklyReviewIntro = "";
-        try {
-          const { data: profileForGreeting } = await supabaseAdmin
-            .from("profiles")
-            .select("chat_last_inbound_at, chat_last_outbound_at")
-            .eq("id", checkin.user_id)
-            .maybeSingle();
-          const allowRelaunchGreeting = allowRelaunchGreetingFromLastMessage({
-            lastInboundAt: (profileForGreeting as any)
-              ?.chat_last_inbound_at,
-            lastOutboundAt: (profileForGreeting as any)
-              ?.chat_last_outbound_at,
-          });
-          // Demolition B2C (2026-08-06): l'ouverture etait composee par le
-          // flow `weekly_adaptive_review_v1`, supprime. Le check-in part avec
-          // son gabarit, sans intro generee.
-          void allowRelaunchGreeting;
-          weeklyReviewIntro = "";
-        } catch (e) {
-          const msg = e instanceof Error ? e.message : String(e);
-          console.warn(
-            `[process-checkins] request_id=${requestId} weekly_adaptive_review_opening_generation_failed checkin_id=${checkin.id}`,
-            e,
-          );
-          await markScheduledCheckinDeliveryState({
-            supabaseAdmin,
-            checkinId: checkin.id,
-            status: "retrying",
-            attemptCount,
-            errorMessage:
-              `weekly_adaptive_review_opening_generation_failed:${msg}`,
-            requestId,
-          });
-          continue;
-        }
-        try {
-          await supabaseAdmin
-            .from("scheduled_checkins")
-            .update({
-              message_payload: weeklyReviewPayload,
-              draft_message: weeklyReviewIntro,
-            })
-            .eq("id", checkin.id);
-          (checkin as any).message_payload = weeklyReviewPayload;
-          (checkin as any).draft_message = weeklyReviewIntro;
-        } catch (e) {
-          console.warn(
-            `[process-checkins] request_id=${requestId} persist_weekly_review_payload_failed checkin_id=${checkin.id}`,
-            e,
-          );
-        }
-        if (!in24hConversationWindow) {
-          const reviewBody = weeklyReviewIntro;
-          const templateMessage = weeklyProgressReviewTemplateMessage();
-
-          try {
-            const resp = await callWhatsappSend({
-              user_id: checkin.user_id,
-              message: templateMessage,
-              purpose: "weekly_progress_review",
-              require_opted_in: true,
-              force_template: true,
-              metadata_extra: {
-                source: "scheduled_checkin",
-                event_context: checkin.event_context,
-                original_checkin_id: checkin.id,
-                purpose: "weekly_progress_review",
-                dashboard_url: dashboardUrl,
-                week_start_date: review.week_start_date,
-                week_end_date: review.week_end_date,
-                planned_count: summary.planned,
-                done_count: summary.done,
-                partial_count: summary.partial,
-                missed_count: summary.missed,
-                // Demolition B2C (2026-08-06): `habit_verdict` et
-                // `week_strategy` venaient de la revue ADAPTATIVE, supprimee.
-                // Les compteurs ci-dessus, eux, viennent de `review`.
-              },
-            });
-            if (Boolean((resp as any)?.skipped)) {
-              await markScheduledCheckinDeliveryState({
-                supabaseAdmin,
-                checkinId: checkin.id,
-                status: "cancelled",
-                attemptCount,
-                draftMessage: reviewBody,
-                errorMessage: String(
-                  (resp as any)?.skip_reason ??
-                    "weekly_progress_review_skipped",
-                ),
-                requestId: String((resp as any)?.request_id ?? requestId),
-              });
-              continue;
-            }
-            const { error: pendErr } = await supabaseAdmin
-              .from("pending_actions")
-              .insert({
-                user_id: checkin.user_id,
-                kind: "scheduled_checkin",
-                status: "pending",
-                scheduled_checkin_id: checkin.id,
-                payload: {
-                  draft_message: reviewBody,
-                  event_context: checkin.event_context,
-                  message_mode: "dynamic",
-                  message_payload: weeklyReviewPayload,
-                },
-                expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000)
-                  .toISOString(),
-              });
-            if (pendErr) throw pendErr;
-            await markScheduledCheckinDeliveryState({
-              supabaseAdmin,
-              checkinId: checkin.id,
-              status: "awaiting_user",
-              attemptCount,
-              draftMessage: reviewBody,
-              errorMessage: null,
-              requestId: String((resp as any)?.request_id ?? requestId),
-            });
-            processedCount++;
-            continue;
-          } catch (e) {
-            const status = (e as any)?.status;
-            const msg = e instanceof Error ? e.message : String(e);
-            const retrying = shouldRetryScheduledCheckinDelivery(status);
-            await markScheduledCheckinDeliveryState({
-              supabaseAdmin,
-              checkinId: checkin.id,
-              status: retrying ? "retrying" : "failed",
-              attemptCount,
-              scheduledFor: retrying
-                ? computeNextRetryAtIso(attemptCount)
-                : null,
-              draftMessage: reviewBody,
-              errorMessage: msg,
-              requestId,
-            });
-          }
-          continue;
-        }
-        mode = "static";
-        payload = weeklyReviewPayload;
-        bodyText = weeklyReviewIntro;
       }
       // Out-of-24h "bonne journée" (nothing planned): ship a self-contained
       // template variant directly — no teaser, no "Go !" pending. Inside the
@@ -3186,7 +2706,7 @@ Deno.serve(async (req) => {
       }
       // Needed for purpose tagging in both WhatsApp and fallback logging paths.
       const isMorningNudgeKind = isMomentumMorningNudge ||
-        isActionMorningEncouragement || isMorningLightGreeting;
+        isMorningLightGreeting;
       const checkinPurpose = isBirthdayGreeting
         ? "birthday_greeting"
         // KEEL W4.6: these two purposes are what puts the send in the OPT-IN

@@ -719,27 +719,9 @@ export async function loadContextForMode(
   // Wait for plan metadata before loading dependent elements
   await Promise.all(promises);
 
-  const activePlanId = opts.v2Runtime?.plan?.id ?? null;
-
-  if (activePlanId && opts.mode === "companion") {
-    const [currentWeekPlanContext, indicators] = await Promise.all([
-      loadCurrentWeekPlanContext(
-        opts.supabase,
-        opts.userId,
-        activePlanId,
-        opts.userTime?.prompt_block,
-      ),
-      loadPlanItemIndicators(opts.supabase, opts.userId, activePlanId),
-    ]);
-    if (currentWeekPlanContext) {
-      context.currentWeekPlanContext = currentWeekPlanContext;
-      elementsLoaded.push("current_week_plan_context");
-    }
-    if (indicators) {
-      context.planItemIndicators = indicators;
-      elementsLoaded.push("plan_item_indicators");
-    }
-  }
+  // RETRAIT RÉSIDUS (2026-08-08): la projection « semaine de plan V2 »
+  // (currentWeekPlanContext + planItemIndicators) est partie avec le
+  // système de plan grand public — 0 utilisateur, tables supprimées.
 
   // 8. Short-term context (fil rouge synthétisé)
   if (profile.short_term && !scopedMemoryEligible) {
@@ -1012,7 +994,7 @@ export async function loadContextForMode(
       v2LayersLoaded.add("relational");
     }
     if (
-      context.shortTerm || context.planItemIndicators ||
+      context.shortTerm ||
       context.momentumBlockersAddon ||
       context.coachingInterventionAddon
     ) {
@@ -1196,10 +1178,6 @@ export function buildContextString(loaded: LoadedContext): string {
   if (loaded.dailyConversationPulseContext) {
     ctx += loaded.dailyConversationPulseContext;
   }
-  if (loaded.currentWeekPlanContext) {
-    ctx += loaded.currentWeekPlanContext + "\n\n";
-  }
-  if (loaded.planItemIndicators) ctx += loaded.planItemIndicators + "\n\n";
   if (loaded.identity) ctx += loaded.identity;
   if (loaded.eventMemories) ctx += loaded.eventMemories;
   if (loaded.globalMemories) ctx += loaded.globalMemories;
@@ -1829,33 +1807,6 @@ export function formatPlanItemIndicatorsBlock(
   return block;
 }
 
-type CurrentWeekPlanItemRow = {
-  id: string;
-  dimension?: string | null;
-  kind?: string | null;
-  status?: string | null;
-  title?: string | null;
-  description?: string | null;
-  tracking_type?: string | null;
-  activation_order?: number | null;
-  current_habit_state?: string | null;
-  support_mode?: string | null;
-  support_function?: string | null;
-  target_reps?: number | null;
-  current_reps?: number | null;
-  cadence_label?: string | null;
-  scheduled_days?: string[] | null;
-  time_of_day?: string | null;
-  payload?: unknown;
-  created_at?: string | null;
-  updated_at?: string | null;
-  activated_at?: string | null;
-  completed_at?: string | null;
-  phase_id?: string | null;
-  phase_order?: number | null;
-  cards_status?: string | null;
-  cards_generated_at?: string | null;
-};
 
 type CurrentWeekPlanRow = {
   plan_item_id: string;
@@ -1893,14 +1844,7 @@ type CurrentWeekEntryRow = {
   effective_at?: string | null;
 };
 
-type CurrentWeekPlanContextInput = {
-  timezone: string;
-  weekStart: string;
-  items: CurrentWeekPlanItemRow[];
-  weekPlans: CurrentWeekPlanRow[];
-  occurrences: CurrentWeekOccurrenceRow[];
-  entries: CurrentWeekEntryRow[];
-};
+
 
 const CURRENT_WEEK_VISIBLE_ITEM_STATUSES = new Set([
   "active",
@@ -1972,19 +1916,6 @@ function extractTimezoneFromUserTimeBlock(block?: string): string {
   return fallback;
 }
 
-function sortCurrentWeekItems(
-  items: CurrentWeekPlanItemRow[],
-): CurrentWeekPlanItemRow[] {
-  return items.slice().sort((left, right) => {
-    const phaseDelta = Number(left.phase_order ?? 999) -
-      Number(right.phase_order ?? 999);
-    if (phaseDelta !== 0) return phaseDelta;
-    const activationDelta = Number(left.activation_order ?? 999) -
-      Number(right.activation_order ?? 999);
-    if (activationDelta !== 0) return activationDelta;
-    return String(left.title ?? "").localeCompare(String(right.title ?? ""));
-  });
-}
 
 function groupByPlanItemId<T extends { plan_item_id: string }>(
   rows: T[],
@@ -2030,141 +1961,6 @@ function formatEntryForPrompt(row: CurrentWeekEntryRow): string {
   return `    - ${parts.join(" | ")}`;
 }
 
-export function formatCurrentWeekPlanContextBlock(
-  input: CurrentWeekPlanContextInput,
-): string {
-  const weekEnd = addDaysYmd(input.weekStart, 6);
-  const weekPlanByItemId = new Map(
-    input.weekPlans.map((row) => [String(row.plan_item_id), row]),
-  );
-  const occurrencesByItemId = groupByPlanItemId(input.occurrences);
-  const entriesByItemId = groupByPlanItemId(input.entries);
-
-  const relevantItems = sortCurrentWeekItems(input.items).filter((item) => {
-    const id = String(item.id ?? "").trim();
-    if (!id) return false;
-    return weekPlanByItemId.has(id) || occurrencesByItemId.has(id) ||
-      entriesByItemId.has(id) ||
-      CURRENT_WEEK_VISIBLE_ITEM_STATUSES.has(String(item.status ?? ""));
-  }).slice(0, 16);
-
-  if (relevantItems.length === 0) return "";
-
-  let block = "=== SEMAINE COURANTE PLAN / ACTIONS (SOURCE DB) ===\n";
-  block +=
-    `Semaine locale: ${input.weekStart} -> ${weekEnd} | timezone=${input.timezone}\n`;
-  block +=
-    "Usage: source factuelle pour répondre aux questions sur actions, jours, validation et exécution. Ne cite pas les ids; distingue prévu, validé et fait.\n";
-  block +=
-    "Pour un point/recap de la semaine (« où j'en suis »), executions_semaine ci-dessous EST la liste des exécutions enregistrées (fait/raté/partiel par action, y compris celles de cette session): appuie-toi dessus, ne dis jamais que la liste des séances faites te manque quand ce bloc est présent.\n";
-  block +=
-    "Le crochet [dimension/kind] de chaque item fait foi: « mes habitudes » = seulement [habits/*]; un item [clarifications/framework] ou [missions/*] n'est JAMAIS une habitude, même si son titre décrit un comportement. Pour une question ciblant une dimension, filtre strictement par ce crochet; pour une liste globale, groupe par dimension.\n";
-
-  for (const item of relevantItems) {
-    const id = String(item.id);
-    const weekPlan = weekPlanByItemId.get(id);
-    const occurrences = (occurrencesByItemId.get(id) ?? []).slice().sort(
-      (left, right) => Number(left.ordinal ?? 99) - Number(right.ordinal ?? 99),
-    );
-    const allEntries = (entriesByItemId.get(id) ?? []).slice().sort((
-      left,
-      right,
-    ) =>
-      String(right.effective_at ?? right.created_at ?? "").localeCompare(
-        String(left.effective_at ?? left.created_at ?? ""),
-      )
-    );
-    const entries = allEntries.slice(0, 3);
-    const hiddenEntriesCount = allEntries.length - entries.length;
-    const scheduledDays = formatDayList(item.scheduled_days);
-    const occurrenceDays = formatOccurrenceDayList(occurrences);
-    const payload = formatPayloadForPrompt(item.payload);
-
-    block += `- ${compactContextValue(item.title, 90)} [${
-      item.dimension ?? "dimension?"
-    }/${item.kind ?? "kind?"}] | item_status=${item.status ?? "unknown"}`;
-    if (item.tracking_type) block += ` | tracking=${item.tracking_type}`;
-    if (item.cadence_label) {
-      block += ` | cadence=${compactContextValue(item.cadence_label, 80)}`;
-    }
-    if (item.target_reps !== null && item.target_reps !== undefined) {
-      block += ` | reps=${item.current_reps ?? 0}/${item.target_reps}`;
-    }
-    if (occurrenceDays) {
-      const daysLabel = weekPlan?.status === "pending_confirmation"
-        ? "jours_proposes"
-        : "jours_planifies";
-      block += ` | ${daysLabel}=${occurrenceDays}`;
-    } else if (scheduledDays) {
-      block += ` | jours_conseilles=${scheduledDays}`;
-    }
-    if (item.time_of_day) block += ` | moment=${item.time_of_day}`;
-    block += "\n";
-
-    if (item.description) {
-      block += `  description: ${compactContextValue(item.description, 220)}\n`;
-    }
-    if (
-      item.current_habit_state || item.support_mode || item.support_function
-    ) {
-      block += `  posture: ${
-        [
-          item.current_habit_state
-            ? `habit_state=${item.current_habit_state}`
-            : "",
-          item.support_mode ? `support_mode=${item.support_mode}` : "",
-          item.support_function
-            ? `support_function=${item.support_function}`
-            : "",
-        ].filter(Boolean).join(" | ")
-      }\n`;
-    }
-    if (item.cards_status && item.cards_status !== "not_required") {
-      block += `  cartes: status=${item.cards_status}${
-        item.cards_generated_at
-          ? ` | generated_at=${item.cards_generated_at}`
-          : ""
-      }\n`;
-    }
-    if (payload) block += `  details_payload: ${payload}\n`;
-    if (item.activated_at || item.completed_at || item.updated_at) {
-      block += `  item_dates: ${
-        [
-          item.activated_at ? `activated_at=${item.activated_at}` : "",
-          item.completed_at ? `completed_at=${item.completed_at}` : "",
-          item.updated_at ? `updated_at=${item.updated_at}` : "",
-        ].filter(Boolean).join(" | ")
-      }\n`;
-    }
-    if (weekPlan) {
-      block += `  validation_semaine: status=${weekPlan.status ?? "unknown"}${
-        weekPlan.confirmed_at ? ` | confirmed_at=${weekPlan.confirmed_at}` : ""
-      }${weekPlan.updated_at ? ` | updated_at=${weekPlan.updated_at}` : ""}\n`;
-    } else {
-      block += "  validation_semaine: absent_for_current_week\n";
-    }
-    if (occurrences.length > 0) {
-      block += "  occurrences_semaine:\n";
-      for (const occurrence of occurrences) {
-        block += `${formatOccurrenceForPrompt(occurrence)}\n`;
-      }
-    }
-    if (entries.length > 0) {
-      block += "  executions_semaine:\n";
-      for (const entry of entries) {
-        block += `${formatEntryForPrompt(entry)}\n`;
-      }
-      if (hiddenEntriesCount > 0) {
-        // No silent caps: le LLM doit savoir que la liste est tronquée pour
-        // ne pas presenter les 3 dernieres comme le total de la semaine.
-        block +=
-          `    (+${hiddenEntriesCount} autre(s) execution(s) cette semaine non detaillee(s) ici)\n`;
-      }
-    }
-  }
-
-  return block.trimEnd();
-}
 
 function shouldInjectWeeklyRecapContext(args: {
   mode: AgentMode;
@@ -2958,111 +2754,4 @@ export type {
   OnDemandTriggers,
 } from "./types.ts";
 
-async function loadCurrentWeekPlanContext(
-  supabase: SupabaseClient,
-  userId: string,
-  planId: string,
-  userTimePromptBlock?: string,
-): Promise<string> {
-  try {
-    const timezone = extractTimezoneFromUserTimeBlock(userTimePromptBlock);
-    const weekStart = isoWeekStartYmdInTz(new Date(), timezone);
-    const weekEndExclusive = addDaysYmd(weekStart, 7);
 
-    const [
-      itemsResult,
-      weekPlansResult,
-      occurrencesResult,
-      entriesResult,
-    ] = await Promise.all([
-      supabase
-        .from("user_plan_items")
-        .select(
-          "id,dimension,kind,status,title,description,tracking_type,activation_order,current_habit_state,support_mode,support_function,target_reps,current_reps,cadence_label,scheduled_days,time_of_day,payload,created_at,updated_at,activated_at,completed_at,phase_id,phase_order,cards_status,cards_generated_at",
-        )
-        .eq("user_id", userId)
-        .eq("plan_id", planId)
-        .order("phase_order", { ascending: true, nullsFirst: false })
-        .order("activation_order", { ascending: true, nullsFirst: false })
-        .order("created_at", { ascending: true })
-        .limit(80),
-      supabase
-        .from("user_habit_week_plans")
-        .select(
-          "plan_item_id,week_start_date,status,confirmed_at,created_at,updated_at",
-        )
-        .eq("user_id", userId)
-        .eq("plan_id", planId)
-        .eq("week_start_date", weekStart)
-        .limit(80),
-      supabase
-        .from("user_habit_week_occurrences")
-        .select(
-          "plan_item_id,week_start_date,ordinal,planned_day,original_planned_day,actual_day,default_day,status,source,validated_at,created_at,updated_at",
-        )
-        .eq("user_id", userId)
-        .eq("plan_id", planId)
-        .eq("week_start_date", weekStart)
-        .order("ordinal", { ascending: true })
-        .limit(160),
-      supabase
-        .from("user_plan_item_entries")
-        .select(
-          "plan_item_id,entry_kind,outcome,value_numeric,value_text,difficulty_level,blocker_hint,created_at,effective_at",
-        )
-        .eq("user_id", userId)
-        .eq("plan_id", planId)
-        .gte("effective_at", `${weekStart}T00:00:00.000Z`)
-        .lt("effective_at", `${weekEndExclusive}T00:00:00.000Z`)
-        .order("effective_at", { ascending: false })
-        .limit(120),
-    ]);
-
-    if (itemsResult.error) throw itemsResult.error;
-    if (weekPlansResult.error) throw weekPlansResult.error;
-    if (occurrencesResult.error) throw occurrencesResult.error;
-    if (entriesResult.error) throw entriesResult.error;
-
-    return formatCurrentWeekPlanContextBlock({
-      timezone,
-      weekStart,
-      items: Array.isArray(itemsResult.data)
-        ? itemsResult.data as CurrentWeekPlanItemRow[]
-        : [],
-      weekPlans: Array.isArray(weekPlansResult.data)
-        ? weekPlansResult.data as CurrentWeekPlanRow[]
-        : [],
-      occurrences: Array.isArray(occurrencesResult.data)
-        ? occurrencesResult.data as CurrentWeekOccurrenceRow[]
-        : [],
-      entries: Array.isArray(entriesResult.data)
-        ? entriesResult.data as CurrentWeekEntryRow[]
-        : [],
-    });
-  } catch (e) {
-    console.warn(
-      "[ContextLoader] failed to load current week plan context (non-blocking):",
-      e,
-    );
-    return "";
-  }
-}
-
-async function loadPlanItemIndicators(
-  supabase: SupabaseClient,
-  userId: string,
-  planId: string,
-): Promise<string> {
-  try {
-    const runtime = await getPlanItemRuntime(supabase, planId, {
-      maxEntriesPerItem: 5,
-    });
-    return formatPlanItemIndicatorsBlock(runtime);
-  } catch (e) {
-    console.warn(
-      "[ContextLoader] failed to load plan item indicators (non-blocking):",
-      e,
-    );
-    return "";
-  }
-}

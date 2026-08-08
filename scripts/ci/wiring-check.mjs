@@ -46,7 +46,6 @@ const KEEL_EDGE_FUNCTIONS = [
   "evaluate-adherence-v1",
   "meal-photo-upload-v1",
   "analyze-meal-photo-v1",
-  "keel-week-rollover-v1",
   // W10 — the monthly seat reconciliation. Listed here because a billing job
   // nothing calls is the most expensive shape of the "thirteen unwired modules"
   // failure: it is silent, and the silence looks like "no seats to bill".
@@ -70,12 +69,13 @@ const EXEMPT = new Map([
   // NOT a hiding place — a dated debt, visible on every CI run.
   // day_targets.ts is the KEEL slot-aware loader written in W4.3 to replace the
   // legacy `alreadyLoggedItemIds` filter (logging breakfast made dinner vanish
-  // from every follow-up). It is unwired: process-checkins and
-  // schedule-checkins-v2 still import `_shared/action_occurrences.ts`,
-  // so the defect is LIVE for KEEL students today.
+  // from every follow-up). Retrait résidus 2026-08-08: le chargeur legacy
+  // (`loadTodayActionOccurrences`) est SUPPRIMÉ avec le plan V2 — le défaut
+  // n'est plus vivant, mais day_targets reste sans lecteur tant que W7
+  // (evening review) n'est pas construit.
   // Owner: W7 (evening review). Remove this line when the evening review reads
   // day_targets — the check must go red if W7 ships without it.
-  ["day_targets.ts", "W7-PENDING: written in W4.3, still unwired; the legacy loader it replaces is the one in use."],
+  ["day_targets.ts", "W7-PENDING: written in W4.3, still unwired; its intended reader (W7 evening review) does not exist yet."],
 ]);
 
 // ---------------------------------------------------------------------------

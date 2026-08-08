@@ -392,8 +392,10 @@ memory_v2_alerts_enabled = "env(memory_v2_alerts_enabled)"
 # They are protected by `X-Internal-Secret` instead, so JWT verification must be disabled locally.
 [functions.process-checkins]
 verify_jwt = false
-[functions.keel-week-rollover-v1]
-verify_jwt = false
+# `keel-week-rollover-v1` a été RETIRÉE ici (retrait résidus, 2026-08-08):
+# malgré son nom, c'était le rollover hebdo du plan V2 grand public — parti
+# avec le système de plan (0 utilisateur confirmé). Son cron est déprogrammé
+# par la migration de retrait de la cascade plan.
 # W10 — the monthly seat reconciliation. Cron-invoked, so no JWT; the guard is
 # `X-Internal-Secret` (ensureInternalRequest), like every other internal job.
 [functions.stripe-reconcile-seats]

@@ -151,7 +151,8 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       // et le créneau d'un élève nommé — il écrit une bibliothèque, et l'élève
       // la lit sans placement. La fonction n'avait plus de table à écrire.
       "keel-reengage-v1",
-      "keel-week-rollover-v1",
+      // `keel-week-rollover-v1` et `review-plan-v1` sont parties avec le
+      // système de plan V2 grand public (retrait résidus, 2026-08-08).
       "keel-weekly-flow-v1",
       // Q6 — le PDF d'un repas. Depuis de-whatsapp il s'annonce dans la bulle
       // au lieu d'être envoyé par Graph.
@@ -181,7 +182,6 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       // 23:5x), and re-seeds it on republication.
       "provision-day-v1",
       "purge-deleted-accounts",
-      "review-plan-v1",
       "schedule-checkins-v2",
       "send-welcome-email",
       "sophia-brain",
