@@ -221,7 +221,15 @@ export interface RecapPracticeContext {
   localDate: string;
   /** Dérivé de `profiles.birth_date`, jamais figé (`student_age.ts`). R5. */
   isMinor: boolean;
-  /** Le plancher TCA (`isRestrictionFlagged`). R4. */
+  /**
+   * Le plancher TCA. R4.
+   *
+   * ⚠️ Son seul producteur (`isRestrictionFlagged`, sur
+   * `weekly_reviews.risk_band`) a été retiré en L3 le 2026-08-08: la colonne
+   * n'avait aucun écrivain. `keel-daily-pulse-v1` passe donc `false`. Le champ
+   * reste REQUIS — c'est lui qui rendra le réarmement visible le jour où une
+   * source alimentée sera rebranchée.
+   */
   restrictionFlag: boolean;
   /** Le pulse pose-t-il SA question ce soir ? (`decideDailyPulse().ask`) R3. */
   pulseAsks: boolean;

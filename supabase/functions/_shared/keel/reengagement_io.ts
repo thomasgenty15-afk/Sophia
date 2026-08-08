@@ -233,7 +233,13 @@ export async function loadReengageCandidates(
       optedOut: Boolean(row.proactive_muted_at),
       nudgedThisEpisode: episodeUnavailable || Boolean(openEpisode),
       lastNudgeAt: openEpisode ? String(openEpisode.opened_at ?? "") || null : null,
-      restrictionFlag: await isRestrictionFlagged(db, userId),
+      // ⚠️ FAUX, ET DIT COMME TEL — voir le pavé « LE PLANCHER TCA *DURABLE*
+      // N'EXISTE PLUS » sous cette fonction. La lecture qui remplissait ce
+      // champ interrogeait `weekly_reviews.risk_band`, colonne sans écrivain:
+      // elle rendait déjà `false` pour 100 % des élèves réels. Ce littéral ne
+      // change donc RIEN au comportement — il arrête juste de payer une
+      // requête par élève et par tick pour obtenir un `false`.
+      restrictionFlag: false,
       declaredHardWeek: await hasDeclaredHardWeek(db, {
         userId,
         now: args.now,
@@ -244,33 +250,47 @@ export async function loadReengageCandidates(
   return candidates;
 }
 
-/**
- * Le plancher TCA (§3.4): la dernière `weekly_reviews.risk_band` de l'élève.
- *
- * ICI et nulle part ailleurs. Cette lecture existait dans `keel-weekly-flow-v1`
- * et NULLE PART dans la relance, qui posait `restrictionFlag: false` en dur
- * pendant qu'un commentaire affirmait le contraire. Résultat mesurable: sur le
- * même élève et la même ligne, le point hebdo écartait et la relance armait.
- * Un seul lecteur, importé par les deux, et la divergence n'a plus où naître.
- *
- * Une lecture qui échoue REMONTE. C'est l'asymétrie inverse de celle de
- * l'épisode: rater une relance coûte une relance, rater le plancher TCA envoie
- * de la pression d'adhérence à quelqu'un qu'il faut laisser tranquille.
- */
-export async function isRestrictionFlagged(
-  db: Db,
-  userId: string,
-): Promise<boolean> {
-  const { data, error } = await db
-    .from("weekly_reviews")
-    .select("risk_band")
-    .eq("user_id", userId)
-    .order("week_start_date", { ascending: false })
-    .limit(1);
-  if (error) throw error;
-  const row = ((data ?? [])[0] ?? null) as { risk_band?: string } | null;
-  return row?.risk_band === "restriction_flag";
-}
+// ═══════════════════════════════════════════════════════════════════════════
+// LE PLANCHER TCA *DURABLE* N'EXISTE PLUS. LIS CECI AVANT DE LE RECÂBLER.
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// `isRestrictionFlagged(db, userId)` vivait ici. Elle lisait la dernière
+// `weekly_reviews.risk_band` de l'élève et rendait `risk_band ===
+// 'restriction_flag'`. QUATRE crons l'appelaient — la relance (juste au-dessus),
+// `keel-weekly-flow-v1`, `keel-daily-pulse-v1` et `daily_recommendation_engine`.
+//
+// ── POURQUOI ELLE PART (décision humaine L3, 2026-08-08) ────────────────────
+// La colonne appartient à l'ANCIENNE weekly review 1:1 — celle qui portait
+// aussi `student_narrative`, `coach_draft_reply`, `lapse_context`,
+// `top_failing_commitment_id` — retirée avec la surface coach 1:1. La table a
+// survécu et le bilan alimentaire hebdo la réutilise, mais son écrivain
+// (`week_review_io.ts`) n'écrit QUE `week_facts`, `week_facts_computed_at` et
+// `content_locale`. Épreuves d'absence refaites le 2026-08-08 — code (chaque
+// payload inspecté, pas seulement les greps sur la même ligne), `prosrc`, vues,
+// et la base: 3 lignes non-NULL sur 4 en local, toutes des fixtures de QA.
+//
+// Cette fonction rendait donc `false` pour 100 % des élèves réels. Quatre
+// gardes cliniques armées sur un coffre vide (cicatrice
+// `safety-constraints-armed-belt-empty-vault`).
+//
+// ── CE QUI RESTE, ET QUI MARCHE ─────────────────────────────────────────────
+//   · le plancher DU TOUR: `__last_turn_risk_band`, écrit par
+//     `sophia-brain/router/run.ts`, relu par `safety_band_io.ts`. Mécanisme
+//     DIFFÉRENT, vivant, testé. Rien ici ne le touche.
+//   · le module de plancher lui-même (`restriction_guard.ts` /
+//     `restriction_runtime.ts`): 4 déclencheurs vivants, intact.
+//   · l'escalade qu'il produit:
+//     `contract_change_requests(reason_code='restriction_signal', status='open')`,
+//     écrite par `escalateRestrictionSignal` (`provision_day.ts`, `run.ts`).
+//
+// ── SI ON VEUT RÉARMER LE PLANCHER DURABLE ──────────────────────────────────
+// Ne PAS ressusciter la lecture de `weekly_reviews.risk_band`: elle n'aura
+// toujours pas d'écrivain. Lire l'escalade ci-dessus — c'est la seule source
+// alimentée, et c'est déjà celle que la synthèse coach interroge.
+// ⚠️ Ce serait un CHANGEMENT DE COMPORTEMENT, pas une réparation: 4 gardes
+// aujourd'hui inertes se mettraient à mordre sur des élèves réels (9 escalades
+// ouvertes en base locale au 2026-08-08). À arbitrer, pas à glisser.
+// ═══════════════════════════════════════════════════════════════════════════
 
 /**
  * Fenêtre de lecture d'une « semaine difficile », en jours locaux.
@@ -357,11 +377,14 @@ export function decideForCandidates(
       // persisté ni interrogeable dans ce dépôt. Le champ est requis pour que
       // l'omission ne puisse plus passer inaperçue.
       //
-      // `restrictionFlag` et `declaredHardWeek` ci-dessus, eux, sont désormais
-      // LUS EN BASE (`weekly_reviews.risk_band`, `student_daily_checkins`). Ils
-      // étaient figés à `false` sous ce même commentaire, qui affirmait déjà
-      // qu'ils mordaient — d'où la règle qu'on s'applique maintenant: un
-      // commentaire ne certifie pas un câblage, un test le fait.
+      // `declaredHardWeek` ci-dessus, lui, est LU EN BASE
+      // (`student_daily_checkins`). `restrictionFlag` ne l'est PLUS (L3,
+      // 2026-08-08): sa source, `weekly_reviews.risk_band`, n'a aucun écrivain
+      // — voir le pavé sous `loadReengageCandidates`. Les deux étaient jadis
+      // figés à `false` sous ce même commentaire, qui affirmait déjà qu'ils
+      // mordaient; d'où la règle qu'on s'applique ici — un commentaire ne
+      // certifie pas un câblage, un test le fait, et ce champ-ci DIT
+      // maintenant qu'il ne mord pas.
       safetyBand: null,
       now,
     }),

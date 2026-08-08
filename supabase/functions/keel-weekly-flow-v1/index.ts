@@ -22,10 +22,7 @@ import {
 } from "../_shared/keel/weekly_flow_io.ts";
 import { resolveStudentFollowing } from "../_shared/keel/following_io.ts";
 import { deliverChatMessage } from "../_shared/chat/delivery.ts";
-import {
-  isRestrictionFlagged,
-  localHourFor,
-} from "../_shared/keel/reengagement_io.ts";
+import { localHourFor } from "../_shared/keel/reengagement_io.ts";
 import { computeAndStoreWeekReview } from "../_shared/keel/week_review_io.ts";
 import { resolveArtifactLocale } from "../_shared/keel/locale.ts";
 
@@ -119,16 +116,12 @@ function localDowFor(now: Date, tz: string | null): number {
   return new Date(`${date}T00:00:00Z`).getUTCDay();
 }
 
-// Le plancher TCA (`weekly_reviews.risk_band`) se lit désormais dans
-// `_shared/keel/reengagement_io.ts::isRestrictionFlagged`, importé ci-dessus.
-//
-// Il vivait ICI et nulle part ailleurs, et `keel-reengage-v1` posait
-// `restrictionFlag: false` en dur: sur le même élève et la même ligne, ce job
-// écartait pendant que la relance armait. Deux lecteurs pour un plancher
-// clinique, c'est un lecteur de trop. La raison de lire le bilan le plus
-// récent quel que soit son âge — un drapeau de restriction ne se périme pas, et
-// le lever par simple écoulement du temps serait une décision clinique prise
-// par un `order by` — est partie avec la fonction.
+// Le plancher TCA DURABLE n'existe plus (L3, 2026-08-08). Il se lisait ici,
+// puis dans `_shared/keel/reengagement_io.ts::isRestrictionFlagged` quand les
+// deux lecteurs ont été fusionnés — et il interrogeait `weekly_reviews.risk_band`,
+// colonne de l'ancienne weekly review 1:1 qui n'a JAMAIS eu d'écrivain dans ce
+// dépôt. Le pavé qui explique le retrait, ce qui reste vivant, et comment
+// réarmer sans rebrancher une colonne morte, est resté dans `reengagement_io.ts`.
 
 Deno.serve(async (req) => {
   const requestId = getRequestId(req);
@@ -230,11 +223,17 @@ Deno.serve(async (req) => {
             // EXPLICITE, parce que le type l'exige. Ce dépôt n'a aujourd'hui
             // aucun état de crise persisté et interrogeable: la bande vit dans
             // le tour, pas dans une table. Passer `null` est donc une
-            // DÉCLARATION — « ce job ne sait pas » — et pas un oubli. Le
-            // plancher TCA ci-dessous est le signal clinique réel dont on
-            // dispose, et il couvre précisément le risque de cette question.
+            // DÉCLARATION — « ce job ne sait pas » — et pas un oubli.
             safetyBand: null,
-            restrictionFlagged: await isRestrictionFlagged(admin, cursor),
+            // ⚠️ FAUX, ET DIT COMME TEL (L3, 2026-08-08). Cette ligne appelait
+            // `isRestrictionFlagged`, qui lisait `weekly_reviews.risk_band` —
+            // colonne de l'ancienne weekly review 1:1, SANS AUCUN ÉCRIVAIN
+            // (épreuves d'absence: code, `prosrc`, vues, base). Elle rendait
+            // déjà `false` pour 100 % des élèves réels; le littéral ne change
+            // donc rien au comportement. Le raisonnement complet, et la façon
+            // de RÉARMER ce plancher sans le rebrancher sur une colonne morte,
+            // sont dans le pavé de `_shared/keel/reengagement_io.ts`.
+            restrictionFlagged: false,
             // ── DE-WHATSAPP — LE MUTE VIENT DU RÉGLAGE PRODUIT, PAS DE META ──
             //
             // 🔴 LE DÉFAUT QUE CETTE LIGNE CORRIGE, MESURÉ EN LOCAL LE 2026-08-04:

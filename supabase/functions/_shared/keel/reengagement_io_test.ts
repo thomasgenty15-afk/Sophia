@@ -140,11 +140,20 @@ Deno.test("a candidate in the clear is armed with a tone", () => {
 // Le câblage — les tests qui manquaient
 // ---------------------------------------------------------------------------
 
-Deno.test("restriction_flag is READ from the DB, not hardcoded false", async () => {
-  // Le défaut exact: `loadReengageCandidates` posait `restrictionFlag: false`
-  // en dur pendant qu'un commentaire affirmait qu'il « EST câblé et mord
-  // réellement ». Sur le même élève, `keel-weekly-flow-v1` écartait et la
-  // relance armait. Un test de décideur ne pouvait pas le voir.
+Deno.test("weekly_reviews.risk_band ne pilote PLUS la relance (L3)", async () => {
+  // ── CE TEST DISAIT L'INVERSE, ET IL AVAIT RAISON À SON ÉPOQUE ─────────────
+  // « restriction_flag is READ from the DB, not hardcoded false » gardait un
+  // vrai défaut: `loadReengageCandidates` posait `false` en dur sous un
+  // commentaire qui affirmait le contraire.
+  //
+  // Ce qu'il ne pouvait pas voir, c'est que la colonne qu'il faisait lire —
+  // `weekly_reviews.risk_band` — n'a AUCUN écrivain (épreuves d'absence du
+  // 2026-08-08: code, `prosrc`, vues, base). La lecture était donc verte ici et
+  // morte en production: `false` pour 100 % des élèves réels.
+  //
+  // Le test est INVERSÉ plutôt que supprimé: sans témoin, rien n'empêcherait
+  // de rebrancher demain une lecture sur cette colonne en croyant réparer.
+  // Le réarmement passe par `contract_change_requests`, pas par ici.
   const db = fakeDb({
     profiles: [STUDENT],
     chat_messages: [SILENT_INBOUND],
@@ -154,9 +163,27 @@ Deno.test("restriction_flag is READ from the DB, not hardcoded false", async () 
     student_daily_checkins: [],
   });
   const [c] = await loadReengageCandidates(db, { now: NOW });
-  assertEquals(c.restrictionFlag, true);
+  assertEquals(c.restrictionFlag, false);
 
   const out = decideForCandidates([c], NOW);
+  assertEquals(out[0].decision.decision, "send");
+});
+
+Deno.test("le décideur, LUI, mord toujours sur restrictionFlag (module intact)", async () => {
+  // La condition de désarmement du test précédent: ce n'est pas la RÈGLE qui a
+  // disparu, c'est sa SOURCE. `decideReengagement` doit continuer d'écarter dès
+  // qu'un appelant sait dire `true` — sinon le jour où on rebranche une source
+  // vivante, on découvrirait que la garde était partie avec elle.
+  const db = fakeDb({
+    profiles: [STUDENT],
+    chat_messages: [SILENT_INBOUND],
+    plan_versions: [PUBLISHED_PLAN],
+    reengagement_episodes: [],
+    weekly_reviews: [],
+    student_daily_checkins: [],
+  });
+  const [c] = await loadReengageCandidates(db, { now: NOW });
+  const out = decideForCandidates([{ ...c, restrictionFlag: true }], NOW);
   assertEquals(out[0].decision.decision, "skip");
   if (out[0].decision.decision === "skip") {
     assertEquals(out[0].decision.reason, "restriction_flag");

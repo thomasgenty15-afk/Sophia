@@ -55,7 +55,7 @@ import { countSatietyAdaptations, loadHungerDays } from "./hunger_signal_io.ts";
 import { loadPublishedDoctrine } from "./doctrine_loader.ts";
 import { readLastTurnSafetyBand } from "./safety_band_io.ts";
 import { resolveStudentFollowing } from "./following_io.ts";
-import { isRestrictionFlagged, localDateFor, localHourFor } from "./reengagement_io.ts";
+import { localDateFor, localHourFor } from "./reengagement_io.ts";
 import { weekStartOf } from "./weekly_flow_io.ts";
 
 /** La fenêtre du soir, en heure LOCALE. Strictement AVANT celle du tap. */
@@ -123,7 +123,17 @@ export async function runRecommendationStep(
   // moteur se tait correctement » de « ce moteur ne peut pas parler ». Le coût
   // est d'une poignée de lectures indexées, une fois par élève et par jour, sur
   // une seule heure locale.
-  const restrictionFlag = await isRestrictionFlagged(admin, userId);
+  // ⚠️ FAUX, ET DIT COMME TEL (L3, 2026-08-08). C'était
+  // `await isRestrictionFlagged(admin, userId)`, qui lisait
+  // `weekly_reviews.risk_band` — colonne de l'ancienne weekly review 1:1, sans
+  // aucun écrivain (épreuves d'absence: code, `prosrc`, vues, base). Elle
+  // rendait déjà `false` pour 100 % des élèves réels.
+  //
+  // Ce que ce `false` coûte quand la bande était renseignée, mesuré 3/3: le
+  // motif de silence passe de `restriction_flag` à `nothing_significant` — et
+  // sur un élève qui AURAIT de la matière, la recommandation part au lieu de se
+  // taire. Réarmement: voir le pavé de `_shared/keel/reengagement_io.ts`.
+  const restrictionFlag = false;
   const safetyBand = await readLastTurnSafetyBand(admin, {
     userId,
     scope: CHAT_SCOPE,

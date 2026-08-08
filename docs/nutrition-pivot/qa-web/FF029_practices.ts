@@ -293,10 +293,20 @@ const students = [
   { name: "Dana (plancher TCA)", s: dana },
 ];
 
-// LE PLANCHER DE DANA, POSÉ LÀ OÙ LE PRODUIT LE LIT.
-// `isRestrictionFlagged` — l'unique lecteur du dépôt — interroge
-// `weekly_reviews.risk_band`, PAS `student_safety_constraints`. Une fixture
-// posée à côté rendrait ce test vert et faux (T-15).
+// 🔴 CETTE FIXTURE NE PILOTE PLUS RIEN DEPUIS LE 2026-08-08 (L3). NE PAS
+//    RELANCER C3 SANS LIRE CECI.
+//
+// Elle posait le plancher « là où le produit le lit »: `isRestrictionFlagged`,
+// unique lecteur du dépôt, interrogeait `weekly_reviews.risk_band`. Ce lecteur
+// est RETIRÉ — la colonne appartient à l'ancienne weekly review 1:1 et n'a
+// jamais eu d'écrivain (épreuves d'absence: code, `prosrc`, vues, base).
+// `keel-daily-pulse-v1` passe désormais `restrictionFlag: false` en dur.
+//
+// Conséquence pour ce script: C3 (« sous plancher, AUCUNE question de
+// pratique ») va tomber en RED, et ce RED est ATTENDU — il mesure exactement ce
+// que le retrait a coûté. Le rendre vert exige de rebrancher le plancher sur
+// `contract_change_requests(reason_code='restriction_signal', status='open')`,
+// pas de remettre une ligne ici.
 {
   const monday = (() => {
     const c = new Date(`${localDate(0)}T00:00:00Z`);

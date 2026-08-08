@@ -25,7 +25,6 @@ import { wasRecommendationSentToday } from "../_shared/keel/daily_recommendation
 import { composeRecapBody, loadDayFacts } from "../_shared/keel/daily_recap_io.ts";
 import { resolveArtifactLocale } from "../_shared/keel/locale.ts";
 import {
-  isRestrictionFlagged,
   localDateFor,
   localHourFor,
 } from "../_shared/keel/reengagement_io.ts";
@@ -304,19 +303,22 @@ Deno.serve(async (req) => {
           cadenceReasons[cadence.reason] = (cadenceReasons[cadence.reason] ?? 0) + 1;
 
           if (!dryRun) {
-            // ── LE PLANCHER TCA (FF-001 R4) ────────────────────────────────
+            // ── LE PLANCHER TCA DURABLE (FF-001 R4) EST RETIRÉ ─────────────
             //
-            // Lu par `isRestrictionFlagged`, l'unique lecteur du dépôt: cette
-            // fonction existe parce que la relance posait `restrictionFlag:
-            // false` en dur pendant qu'un commentaire affirmait le contraire, et
-            // que le point hebdo, lui, lisait la base. Une seconde lecture ici
-            // referait exactement la même divergence.
+            // ⚠️ FAUX, ET DIT COMME TEL (L3, 2026-08-08). Cette ligne appelait
+            // `isRestrictionFlagged`, seul lecteur du dépôt, qui interrogeait
+            // `weekly_reviews.risk_band`. Cette colonne appartient à l'ancienne
+            // weekly review 1:1 et n'a AUCUN écrivain — épreuves d'absence
+            // (code, `prosrc`, vues, base) refaites le 2026-08-08. Elle rendait
+            // donc `false` pour 100 % des élèves réels, et ce littéral ne change
+            // rien au comportement mesurable.
             //
-            // Elle REMONTE en cas d'échec, et c'est voulu: le tour de cet élève
-            // est compté en `failures`. Rater un message coûte un message; rater
-            // le plancher envoie une question d'observance à quelqu'un qu'il
-            // faut laisser tranquille.
-            const restrictionFlag = await isRestrictionFlagged(admin, cursor);
+            // Ce que ce `false` COÛTE quand la bande était renseignée, mesuré
+            // 3/3: la pratique CHIFFRÉE du coach repasse dans la sélection
+            // (2 pratiques au lieu d'1) et le mode redevient `ask` au lieu de
+            // `remind`. Le raisonnement complet et la façon de réarmer sont
+            // dans le pavé de `_shared/keel/reengagement_io.ts`.
+            const restrictionFlag = false;
 
             // ── LE MINEUR (FF-001 R5) ──────────────────────────────────────
             // Dérivé de la date de naissance À CHAQUE LECTURE, sur le jour LOCAL
