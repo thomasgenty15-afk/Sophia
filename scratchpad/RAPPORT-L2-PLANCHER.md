@@ -1,7 +1,8 @@
 # L2 — Sous plancher, la donnée entre ; c'est la RÉPONSE qui se tait
 
-Branche `ff-001-quotidien-du-coach` · 2 commits · aucun push · aucune migration
-Commits : `45a42e90` (chemin texte), `da506c6e` (chemin photo)
+Branche `ff-001-quotidien-du-coach` · aucun push · aucune migration
+Commits de CODE : `45a42e90` (chemin texte), `da506c6e` (chemin photo).
+Commits de RAPPORT : `3195406b`, `062ae056`.
 
 ---
 
@@ -19,7 +20,7 @@ Commits : `45a42e90` (chemin texte), `da506c6e` (chemin photo)
 Le cinquième faisait l'inverse : il écrivait le fait et commentait l'assiette
 pendant une crise suicidaire.** Les cinq ont maintenant la même propriété.
 
-Après le lot, en run réel : **71 vérifications GREEN / 0 RED** sur 6 phases,
+Après le lot, en run réel : **77 vérifications GREEN / 0 RED** sur 7 phases,
 FR et EN, 3 rejeux, un élève neuf par cas. Avant : **A1/A2 RED**, **D RED 2/2**,
 **G RED 4/4**.
 
@@ -241,7 +242,7 @@ pas faire taire les photos de tout le monde (même arbitrage fail-open nommé qu
 | **G2** ×3 | photo sous **plancher de restriction** | **RED 2/2** | **3/3 GREEN** | idem |
 | **G3** ×3 | **témoin photo** | GREEN | **3/3 GREEN** | `protocol_events=1`, `accuses=1`, texte identique |
 
-Total run réel : **71 GREEN / 0 RED** après le lot ; **8 RED** avant, tous
+Total run réel : **77 GREEN / 0 RED** après le lot ; **8 RED** avant, tous
 fermés.
 
 ### 3.2 Déterministe
@@ -294,7 +295,7 @@ j'ai vérifié :
   surfaces supprimées par FF-021 le restent.
 - **Le budget de demande ne s'est pas ouvert.** `DAILY_ASK_BUDGET = 1`, 4 genres
   fermés, `daily_ask_budget.ts` non modifié. Mesuré : `demandes_budget=0` sur
-  **36 tours sous plancher** (B, D, E) ; `demandes=1` sur le témoin, comme avant.
+  **18 tours sous plancher** (B, D, E) ; `demandes=1` sur le témoin, comme avant.
 - **Les gates de FF-021 (`b36e5de9`) ne sont pas désarmés.** Ni
   `armPhotoInvitation` ni `armMealPrecisionQuestion` n'ont été touchés ; ils
   reçoivent toujours le drapeau **brut** en paramètre **requis** et refusent
@@ -380,7 +381,7 @@ Les réponses FR sont **réellement en français** (« Les indicateurs de
 progression et les rappels de check-in sont en pause de mon côté »), y compris
 sur le chemin de crise (« Je suis vraiment désolée que tu traverses ça… »).
 C'est la première campagne où les tests bilingues mesurent la vraie langue de
-rendu. Aucun symptôme de T-2/T-19 observé sur mes 71 tours.
+rendu. Aucun symptôme de T-2/T-19 observé sur mes 48 tours réels.
 
 ---
 
