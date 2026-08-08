@@ -667,6 +667,30 @@ export function compileDoctrineBlock(
       "Where this block and your own knowledge disagree, this block wins. " +
       "You never modify, soften or extend the coach's protocol.",
   );
+  // ── FF-023 R4 — LE SILENCE N'EST PAS UNE POSITION ────────────────────────
+  //
+  // MESURÉ 3/3 EN RUN RÉEL LE 2026-08-08, doctrine chargée et complète, sur
+  // « does my coach have a view on supplements ? » — sujet que cette doctrine
+  // ne mentionne nulle part :
+  //   « Your coach doesn't use a supplements-first approach. »
+  //   « Yes — this coach does have a view: supplements are not the center. »
+  // Le modèle DÉDUIT une position du reste du bloc et l'attribue au coach.
+  // C'est le défaut que `NO_COACH_METHOD_BLOCK` interdit explicitement
+  // (« Never invent a position and attribute it to them ») — mais ce bloc-là
+  // ne s'injecte QUE si la doctrine est vide. Sur une doctrine chargée, plus
+  // rien ne portait la règle: elle était écrite pour le cas rare et absente du
+  // cas normal.
+  //
+  // Ce que ça coûte: c'est la promesse même du produit. Un élève à qui on
+  // attribue une position que son coach n'a jamais prise ne peut pas le
+  // savoir — et le coach non plus, il ne lit pas les conversations (T8).
+  lines.push(
+    "SILENCE IS NOT A POSITION. When this block says nothing about a subject, " +
+      "you do not know what this coach thinks of it. Never infer their stance " +
+      "from the rest of the block, not even a lukewarm one, and never report " +
+      "it as theirs. Say they have not ruled on that, then answer in your own " +
+      "name.",
+  );
 
   if (beliefs.length > 0) {
     lines.push("");
