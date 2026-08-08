@@ -66,6 +66,51 @@ function parseVisibleMessage(raw: unknown): string | null {
   }
 }
 
+/**
+ * FF-020 §8 — LA LIGNE DE RESSOURCES DU REPLI.
+ *
+ * 🔴 DÉFAUT MESURÉ (run contrôlé 2026-08-08, vraie clé coupée, vrai visible
+ * agent, 4 scénarios sur 5):
+ *   bande `high`, « je pense a me suicider », modèle indisponible
+ *   → reply = « Une chose d'abord : est-ce que tu es en danger immédiat, là,
+ *     maintenant ? » — AUCUNE ressource.
+ * §8 est explicite: « Étant donné un tour de crise et un modèle indisponible …
+ * Alors la réponse visible existe ET ELLE CONTIENT DES RESSOURCES ».
+ *
+ * POURQUOI LE REPLI PERDAIT LES NUMÉROS. Le dispatcher local et le visible
+ * agent partagent le MÊME modèle. Quand il tombe, les deux tombent: le reducer
+ * ne reçoit plus aucun signal, la phase retombe sur `immediate_risk_check`, et
+ * `must_include_emergency_numbers` passe à false. La panne du modèle
+ * DÉCLASSAIT donc une crise aiguë en question de triage sans hotline — y
+ * compris au deuxième tour, avec `immediate_danger: true` déjà PERSISTÉ dans
+ * le working state (l'échelle de phase lit le signal du tour, pas le fait
+ * acquis, et il n'y a plus de signal).
+ *
+ * LA RÈGLE: sur le chemin de REPLI, et seulement lui, le phasage de hotline
+ * (R5-B01: ne pas ré-réciter les numéros à chaque tour) cède devant §8. Le
+ * phasage est une préférence de confort; §1 dit qu'il n'existe « pas de version
+ * dégradée acceptable ». Le modèle nominal, lui, garde son phasage: cette
+ * fonction n'est appelée que quand il a échoué.
+ *
+ * R1 TENUE: concaténation de chaînes, rien d'autre. Aucun `await`, aucune
+ * lecture, aucun throw — mettre le mode de panne dans le gestionnaire de panne
+ * est précisément ce que §3 interdit.
+ */
+function withCrisisResourceLine(
+  message: string,
+  emergency: string,
+  suicide: string,
+): string {
+  const contacts = [emergency, suicide].map((c) => c.trim()).filter(Boolean);
+  if (contacts.length === 0) return message;
+  // Déjà cité ? On n'empile pas. Le test porte sur le contact lui-même et pas
+  // sur une phrase: `safety_escalation` et `acute_grounding` interpolent déjà
+  // les deux, et une seconde ligne y serait un doublon.
+  if (contacts.some((contact) => message.includes(contact))) return message;
+  const listed = contacts.join(" · ");
+  return `${message}\n\nEn cas de danger immédiat : ${listed}.`;
+}
+
 // Invariant anti-vide du rendu safety: si le visible agent echoue, le skill
 // rend ce message deterministe au lieu d'une reponse vide (jamais de tour
 // safety silencieux). L'echec reste observable via visible_generation_failed.
@@ -113,7 +158,22 @@ export function safetyCrisisDeterministicVisibleMessage(
     safety_escalation:
       `Appelle maintenant le ${emergency}. Si c'est lié à des idées suicidaires, le ${suicide} répond 24h/24. Si tu peux, rapproche-toi d'une personne tout de suite.`,
   };
-  return messages[kind];
+  // R5 — LE PLANCHER DU PLANCHER.
+  //
+  // `messages` est indexé par un type fermé, et le typecheck garantit
+  // aujourd'hui la totalité de la table: `visibleTaskKindFor` mappe les sept
+  // phases sur les onze `kind`, `resolved` et `entry` compris. Mais ce `??`
+  // n'est pas de la ceinture décorative: le jour où un `kind` s'ajoute au
+  // contrat sans sa copie ici, la version d'avant rendait `undefined`, donc
+  // `decision.reply = ""` — UN TOUR DE SÉCURITÉ VIDE, l'unique chose que ce
+  // module existe pour rendre impossible, et invisible au typecheck si le
+  // `kind` arrive d'un état persisté. Et depuis §8 il rendrait pire qu'un
+  // vide: un TypeError dans le gestionnaire de panne (§3).
+  const template = messages[kind] ??
+    "On reste sur ta sécurité, une chose à la fois.";
+  // §8: la réponse de repli EXISTE **et contient des ressources**. Les onze
+  // gabarits ci-dessus n'en portent que trois; les huit autres partaient nus.
+  return withCrisisResourceLine(template, emergency, suicide);
 }
 
 const STAGE_PROMPTS: Record<SafetyCrisisVisibleTaskKind, string> = {

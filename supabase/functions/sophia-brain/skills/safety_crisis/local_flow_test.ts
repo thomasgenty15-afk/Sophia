@@ -17,9 +17,11 @@ import {
 import { mergeSafetyCrisisLocalState, reduceSafetyCrisis } from "./reducer.ts";
 import { runSafetyCrisisSkill } from "./skill.ts";
 import {
+  safetyCrisisDeterministicVisibleMessage,
   setSafetyCrisisVisibleAgentForTest,
   visibleSystemPromptForSafetyCrisisTest,
 } from "./visible_agent.ts";
+import { resolveSafetyResourceNumbers } from "../../../_shared/keel/crisis_resources.ts";
 import {
   applySafetyCrisisExitStateIfNeeded,
   buildSafetyCrisisActivationNoteInformation,
@@ -1931,5 +1933,193 @@ Deno.test("safety_crisis reducer: aucune consigne moyens quand aucun moyen évoq
       line.includes("no means were ever mentioned")
     ),
     true,
+  );
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FF-020 §8 — LE REPLI DÉTERMINISTE PORTE DES RESSOURCES
+//
+// 🔴 DÉFAUT MESURÉ (run contrôlé 2026-08-08, clé du modèle coupée, vrai visible
+// agent): bande `high`, « je pense a me suicider », modèle indisponible →
+// « Une chose d'abord : est-ce que tu es en danger immédiat, là, maintenant ? »
+// et RIEN d'autre. §8 exige « la réponse visible existe ET elle contient des
+// ressources ». Huit des onze gabarits partaient nus.
+//
+// Le mécanisme du défaut: le dispatcher local et le visible agent partagent le
+// modèle. Sa panne vide les signaux, la phase retombe sur `immediate_risk_check`
+// et `must_include_emergency_numbers` passe à false — la panne DÉCLASSAIT une
+// crise aiguë en triage muet.
+// ═══════════════════════════════════════════════════════════════════════════
+
+const FF020_ALL_VISIBLE_KINDS = [
+  "immediate_risk_check",
+  "acute_grounding",
+  "support_contact",
+  "stabilizing",
+  "exit_check",
+  "resolved_exit",
+  "repeat_current_step",
+  "product_tool_boundary",
+  "stop_or_cancel",
+  "safety_transition",
+  "safety_escalation",
+] as const;
+
+Deno.test("FF-020 §8 — chaque message déterministe porte au moins une ressource, pour chaque pays", () => {
+  for (const country of ["FR", "US", "GB", null]) {
+    const numbers = resolveSafetyResourceNumbers(country, { conjunction: "ou" });
+    for (const kind of FF020_ALL_VISIBLE_KINDS) {
+      const message = safetyCrisisDeterministicVisibleMessage(kind, numbers);
+      assert(message.trim().length > 0, `${country}/${kind}: message vide (R5)`);
+      assert(
+        message.includes(numbers.emergency_numbers) ||
+          message.includes(numbers.suicide_prevention_number),
+        `${country}/${kind}: aucune ressource dans le repli (§8) — "${message}"`,
+      );
+    }
+  }
+});
+
+Deno.test("FF-020 §8 — les ressources du repli sont celles du PAYS, jamais d'un voisin", () => {
+  const us = safetyCrisisDeterministicVisibleMessage(
+    "immediate_risk_check",
+    resolveSafetyResourceNumbers("US", { conjunction: "ou" }),
+  );
+  assert(us.includes("911") && us.includes("988"));
+  assertEquals(us.includes("3114"), false);
+  assertEquals(us.includes("116 123"), false);
+  const de = safetyCrisisDeterministicVisibleMessage(
+    "stabilizing",
+    resolveSafetyResourceNumbers("DE", { conjunction: "ou" }),
+  );
+  // Pays non ensemencé => jeu international, JAMAIS le 3114 d'un voisin.
+  assertEquals(de.includes("3114"), false);
+  assertEquals(de.includes("15 ou 112"), false);
+  assert(de.includes("112") || de.includes("findahelpline"));
+});
+
+Deno.test("FF-020 §8 — la ligne de ressources ne se DOUBLE pas quand le gabarit les cite déjà", () => {
+  const numbers = resolveSafetyResourceNumbers("FR", { conjunction: "ou" });
+  const escalation = safetyCrisisDeterministicVisibleMessage(
+    "safety_escalation",
+    numbers,
+  );
+  assertEquals(escalation.split("15 ou 112").length - 1, 1);
+  assertEquals(escalation.split("3114").length - 1, 1);
+  assertEquals(escalation.includes("En cas de danger immédiat"), false);
+});
+
+Deno.test("FF-020 §3/R1 — le repli reste PUR: ressources vides en entrée, aucun throw, message non vide", () => {
+  for (const kind of FF020_ALL_VISIBLE_KINDS) {
+    const message = safetyCrisisDeterministicVisibleMessage(kind, {
+      emergency_numbers: "",
+      suicide_prevention_number: "",
+    });
+    assert(message.trim().length > 0, `${kind}: vide sur ressources vides`);
+  }
+});
+
+Deno.test("FF-020 §8 — le tour de repli du SKILL porte les ressources, pas seulement du texte", async () => {
+  try {
+    // Le modèle est mort: le dispatcher local ne rend RIEN (comme en vrai —
+    // les deux partagent la même clé) et le visible agent échoue.
+    setSafetyCrisisLocalDispatcherForTest(async () => null);
+    setSafetyCrisisVisibleAgentForTest(async () => null);
+    const context = await loadSafetyCrisisContext(contextInput({
+      turn_frame: turnFrame({
+        safety: {
+          risk_band: "high",
+          reason_codes: ["suicidal_ideation"],
+          evidence: ["ff020"],
+        },
+      }),
+    }));
+    const output = await runSafetyCrisisSkill({
+      user_message: "je pense a me suicider",
+      context: { ...context, student_country: "US" } as never,
+    });
+    const diagnosis = output.diagnosis as Record<string, unknown>;
+    assertEquals(diagnosis.visible_fallback_used, true);
+    const reply = String(output.reply ?? "");
+    assert(reply.trim().length > 0, "R5: tour de sécurité vide");
+    assert(
+      reply.includes("911") || reply.includes("988"),
+      `§8: aucune ressource dans le tour de repli — "${reply}"`,
+    );
+    assertEquals(reply.includes("3114"), false);
+  } finally {
+    setSafetyCrisisLocalDispatcherForTest(null);
+    setSafetyCrisisVisibleAgentForTest(null);
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FF-020 R2 — L'AXE PAYS DU REDUCER, TESTÉ
+//
+// Les 47 tests de ce fichier appelaient tous `reduceSafetyCrisis` SANS
+// `userCountry`/`userLocale` (deux paramètres optionnels). Ils résolvaient donc
+// tous, en silence, le défaut déclaré de la branche française — et l'axe que
+// W4.2 a câblé n'était vérifié qu'au niveau du résolveur, jamais au niveau du
+// reducer qui décide quoi en faire.
+// ═══════════════════════════════════════════════════════════════════════════
+
+function ff020Resources(args: {
+  userCountry?: string | null;
+  userLocale?: string | null;
+}) {
+  return reduceSafetyCrisis({
+    previousState: {},
+    sourceRiskBand: "high",
+    signals: emptySafetySignal({ immediate_danger: true, uncertainty: "low" }),
+    dispatcherOutput: dispatcherOutput({ flow_action: "answer_safety_check" }),
+    ...args,
+  }).visibleTask.conversation_context.safety_resources;
+}
+
+Deno.test("FF-020 R2 — le pays du profil gouverne les ressources du reducer", () => {
+  assertEquals(ff020Resources({ userCountry: "US" }).emergency_numbers, "911");
+  assertEquals(
+    ff020Resources({ userCountry: "US" }).suicide_prevention_number,
+    "988",
+  );
+  assertEquals(
+    ff020Resources({ userCountry: "GB" }).emergency_numbers,
+    "999 ou 112",
+  );
+  assertEquals(
+    ff020Resources({ userCountry: "FR" }).suicide_prevention_number,
+    "3114",
+  );
+});
+
+Deno.test("FF-020 R2 — le pays gagne sur la locale, et un pays non ensemencé ne prend JAMAIS un voisin", () => {
+  // Locale française, pays américain: 911, pas 15.
+  assertEquals(
+    ff020Resources({ userCountry: "US", userLocale: "fr-FR" })
+      .emergency_numbers,
+    "911",
+  );
+  const de = ff020Resources({ userCountry: "DE", userLocale: "fr-FR" });
+  assertEquals(de.emergency_numbers, "112");
+  assertEquals(de.suicide_prevention_number, "https://findahelpline.com");
+});
+
+Deno.test("FF-020 §7/§11 — pays ABSENT: la locale décide, et c'est un ÉCART assumé avec §7", () => {
+  // §7 de la fiche dit « Pays absent du profil → jeu ZZ ». Le code retombe
+  // d'abord sur la LOCALE (§11 le reconnaît). `profiles.locale` valant
+  // `fr-FR` par défaut pour toute la flotte, un élève sans pays reçoit donc
+  // les numéros FRANÇAIS. Ce test FIGE le comportement réel pour qu'un
+  // arbitrage produit soit un changement visible, pas une dérive.
+  const fr = ff020Resources({ userCountry: null, userLocale: "fr-FR" });
+  assertEquals(fr.emergency_numbers, "15 ou 112");
+  assertEquals(fr.suicide_prevention_number, "3114");
+  // Une locale sans pays ensemencé, elle, atterrit bien sur le jeu ZZ.
+  const zz = ff020Resources({ userCountry: null, userLocale: "de-DE" });
+  assertEquals(zz.emergency_numbers, "112");
+  assertEquals(zz.suicide_prevention_number, "https://findahelpline.com");
+  // Ni pays ni locale: défaut déclaré de la branche (FR).
+  assertEquals(
+    ff020Resources({ userCountry: null, userLocale: null }).emergency_numbers,
+    "15 ou 112",
   );
 });
