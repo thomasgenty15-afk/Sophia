@@ -1000,3 +1000,48 @@ avant d'atteindre la garde, et ligne semée hors de la fenêtre que la synthèse
 keel-daily-recommendation-v1 coach-synthesis-v1 chat-inbound-v1 generate-week-plan-v1`
 (7 fonctions importent les modules `_shared` modifiés — liste greppée, pas devinée) ·
 `supabase db push` (commentaire de colonne seul).
+
+## L3 — TERMINÉ (`2eaf39cd`→`86044c3a`, 4 commits) · rapport `RAPPORT-L3-RISK-BAND.md`
+
+**La prémisse est VÉRIFIÉE, cette fois pour de bon.** Chaque payload d'`insert`/`update` **ouvert et
+lu** (pas un grep sur la même ligne — l'erreur du master) ; `prosrc` 0 ; vues 0 ; base : 3 lignes
+non-NULL sur 4, **toutes des fixtures de QA**.
+Formulation de l'agent : **« l'écrivain n'est pas mort, il n'a jamais existé. »**
+
+**Mais le périmètre que j'avais annoncé était faux.** Pas 4 lectures : **2 SELECT backend → 5
+surfaces**. `isRestrictionFlagged` avait **4 appelants**, dont `keel-daily-pulse-v1` et
+`daily_recommendation_engine`, **absents de tous les diagnostics précédents** (les miens comme ceux
+de FF-021) ; et `weekly_flow.ts:529` n'était pas une lecture. Plus 3 SELECT front dont **2 non
+listés**.
+
+**Ce que l'humain perd, chiffré 3/3 — sept comportements, pas quatre :**
+relance `skip`→`send` (HTTP réel `armed` 0→1) · point hebdo `skip`→`send` · reco
+`restriction_flag`→`nothing_significant` · pratiques 1→2 et `remind`→`ask` · synthèse coach sévérité
+0→1 · fourchettes kcal démasquées.
+
+### 🟢 LE RÉSULTAT QUI DÉPASSE LE LOT — la protection durable était DÉJÀ à 0 %
+Sur un élève portant une escalade **vivante** (`contract_change_requests`, 9 ouvertes, 2 écrivains),
+**seule la synthèse coach le voit**. Relance, point hebdo, reco et pratiques ne le voient pas —
+**avant comme après le lot**.
+Autrement dit : **l'humain a perdu l'apparence de la protection, pas la protection.** Elle n'existait
+pas. Et la source vivante, elle, existe.
+→ **Rebrancher les 4 crons sur `contract_change_requests` ≈ 5 lignes.** C'est un changement de
+comportement, donc un lot à part — mais c'est le meilleur rapport valeur/coût qui reste ouvert.
+**Recommandation : c'est le lot L5.**
+
+**Gardé exprès** : la colonne (2 écrans élève la sélectionnent encore — un `drop` ferait 42703), les
+3 mentions RGPD (purge-list + classifieur à la lecture, cicatrice
+`legacy-references-that-must-survive-removal`), `__last_turn_risk_band`, le module de plancher, et le
+paramètre `restrictionFlag` **requis** des décideurs.
+
+17 vérifications / 16 vertes · 3701 déterministes · `tsc -b` vert · RGPD export vert ·
+**2 faux verts trouvés dans ses propres sondes** (T-15, septième occurrence) · 1 RED préexistant
+prouvé par `git stash` scopé, non réparé.
+
+**Reste ouvert** : 2 lectures front hors périmètre (`StudentProgressPage`, `StudentWeekPlanPage` — ce
+dernier édité par l'autre agent) ; C3 de `FF029_practices.ts` passera RED (attendu, avertissement
+posé) ; le `drop column` deviendra sûr une fois ces 2 écrans traités.
+
+**Commandes** : `supabase functions deploy keel-reengage-v1 keel-weekly-flow-v1 keel-daily-pulse-v1
+keel-daily-recommendation-v1 coach-synthesis-v1 chat-inbound-v1 generate-week-plan-v1`
+(7 fonctions **greppées, pas devinées**) · `supabase db push` (commentaire de colonne seul).
