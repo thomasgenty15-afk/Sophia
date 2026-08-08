@@ -846,7 +846,7 @@ run réel, preuve en base, rapport, commit scopé, aucun push.
 |---|---|---|---|---|---|
 | L1 | Locale : désarmer l'épingle **et** rendre le repli de crise bilingue | « Désarmer + repli bilingue » | EN COURS | — | — |
 | L2 | Sous plancher : **écrire le fait**, taire la réponse | « Écrire le fait, taire la réponse » | EN ATTENTE | — | — |
-| L3 | Retirer les **4 gardes mortes** `weekly_reviews.risk_band` | « Retirer les 4 gardes mortes » | EN ATTENTE | — | — |
+| L3 | Retirer les **4 gardes mortes** `weekly_reviews.risk_band` | « Retirer les 4 gardes mortes » | **TERMINÉ** | `2eaf39cd`→`056376b5` | RAPPORT-L3-RISK-BAND.md |
 | L4 | **Plafonner le bloc foyer** (seul bloc sans plafond) | « Plafonner le bloc foyer » | EN ATTENTE | — | — |
 
 ## ⚠️ Correction du diagnostic F1 — je m'étais trompé, et l'humain m'a repris
@@ -946,3 +946,57 @@ antérieur par `git blame`** (`7aa9d683`, `e4d1e71e`) ; ② l'allergie est exemp
 gate se contredisent sur `distress_support` ; ④ le **crédit** de la photo reste non gaté.
 
 **Commande** : `supabase functions deploy sophia-brain meal-photo-upload-v1` — aucune migration.
+
+
+## L3 — TERMINÉ (`2eaf39cd`, `6f6fe1ec`, `056376b5`) · rapport `RAPPORT-L3-RISK-BAND.md`
+
+**La prémisse est VÉRIFIÉE, le périmètre était FAUX.** `weekly_reviews.risk_band` n'a bien aucun
+écrivain — les quatre épreuves refaites: code (chaque payload d'`insert`/`update` **ouvert et lu**,
+la seule méthode qui voit une écriture via objet), `prosrc` (0), vues (0, aucune vue ne lit même la
+table), base (**3 lignes non-NULL sur 4, toutes des fixtures de QA**, `@keeltest.dev` / `@test.dev`).
+L'écrivain n'est pas mort: il n'a **jamais existé** sur cette branche (`git log -S`).
+
+**Mais ce n'était pas « 4 lectures ».** `weekly_flow.ts:529` n'est pas une lecture (commentaire d'un
+module pur). Le vrai inventaire: **2 SELECT backend → 5 surfaces de décision** —
+`isRestrictionFlagged` avait **4 appelants**, dont **`keel-daily-pulse-v1` et
+`daily_recommendation_engine`, absents de tous les diagnostics** — plus **3 SELECT front**, dont
+**2 non listés** (`StudentProgressPage`, `StudentWeekPlanPage`).
+
+**LE RÉSULTAT QUI DÉPASSE LE LOT (S2, 3/3).** Sur un élève portant une escalade **vivante**
+(`contract_change_requests(restriction_signal, open)`, 9 ouvertes en base, 2 écrivains vivants) et
+aucun `risk_band`: **la synthèse coach le voit** (sévérité 0) — **et rien d'autre ne le voit**.
+Relance, point hebdo, recommandation, pratiques: toutes `send` / `ask`, avant comme après ce lot.
+**Le plancher durable était déjà à 0 % d'efficacité pour un élève réellement repéré.** L'humain n'a
+donc pas perdu la détection dans la durée: il a perdu son **apparence**. Rebrancher les 4 crons sur
+la source vivante ≈ 5 lignes, mais c'est un **changement de comportement** — à arbitrer.
+→ **C'est le lot qui devrait suivre.**
+
+**Ce que la bande faisait quand elle était renseignée** (contre-test S1, 3/3, run réel):
+relance `skip/restriction_flag` (HTTP réel: `armed` 1→0) · point hebdo `skip/restriction_flagged` ·
+recommandation `silent/restriction_flag` · pratiques **1 au lieu de 2** (la chiffrée écartée) et
+`remind` au lieu de `ask` · synthèse coach **sévérité 0** au lieu de 1 · fiche coach: fourchettes
+kcal masquées. **Sept comportements, pas quatre.**
+
+**Ce que ça ne coûte pas**: pour un élève réel (S0), les décisions sont **identiques ligne pour
+ligne avant et après**, 3 rejeux sur 3.
+
+**Gardé exprès**: `__last_turn_risk_band` (mécanisme différent, vivant) · `restriction_guard` /
+`restriction_runtime` · **la colonne elle-même** (2 écrans élève la sélectionnent encore: un `drop`
+ferait 42703 et changerait 2 écrans morts en 2 écrans en panne) · **les 3 mentions RGPD**
+d'`account-export-v1` — ce sont une purge-list et un classifieur à la lecture, les retirer serait
+le bug (cicatrice `legacy-references-that-must-survive-removal`).
+
+Les décideurs gardent leur paramètre `restrictionFlag` **REQUIS**: la règle survit, seule la source
+part. Un test neuf le prouve. Deux tests sont **inversés** plutôt que supprimés — sans témoin, on
+rebrancherait la colonne morte demain en croyant réparer.
+
+3701 tests déterministes verts · `tsc -b` vert · RGPD export vert. **2 faux verts trouvés dans mes
+propres sondes** (T-15, 7e et 8e de la campagne): fixture de pratiques dégradée en `needs_review`
+avant d'atteindre la garde, et ligne semée hors de la fenêtre que la synthèse lit.
+**RED préexistant** prouvé par `git stash` scopé: `keel_gdpr_lifecycle_test` sème
+`recurring_meals`, table droppée en `0269bc30`.
+
+**Commande**: `supabase functions deploy keel-reengage-v1 keel-weekly-flow-v1 keel-daily-pulse-v1
+keel-daily-recommendation-v1 coach-synthesis-v1 chat-inbound-v1 generate-week-plan-v1`
+(7 fonctions importent les modules `_shared` modifiés — liste greppée, pas devinée) ·
+`supabase db push` (commentaire de colonne seul).
