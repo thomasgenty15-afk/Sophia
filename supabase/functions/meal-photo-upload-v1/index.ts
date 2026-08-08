@@ -351,7 +351,13 @@ function objectPath(args: {
 const EVENT_COLUMNS =
   "id, user_id, occurred_at, local_date, slot_key, source, media_path, " +
   "food_group_ref, portion_band, recognized, recognition_confidence, " +
-  "disqualified_reason, media_sha256, source_message_id";
+  // `analyzed_at` — AJOUTÉE POUR FF-025, et son absence était un défaut mesuré:
+  // le rattachement demande « l'analyse a-t-elle tourné ET rendu un repas ? »,
+  // il lisait `analyzed_at` sur une ligne qui ne la portait pas, et rendait
+  // donc TOUJOURS « pas encore analysée ». Le rattachement ne s'est jamais
+  // produit en run réel: 1 → 2 lignes sur le cas nominal, le double comptage
+  // que R4 interdit, obtenu par une colonne absente d'un SELECT.
+  "analyzed_at, disqualified_reason, media_sha256, source_message_id";
 
 async function sha256Hex(bytes: Uint8Array): Promise<string> {
   // La copie n'est pas décorative: `crypto.subtle` n'accepte pas une vue dont
