@@ -101,7 +101,7 @@ export async function loadStudentNames(
 }
 
 /**
- * QUI PORTE UN SIGNAL RESTRICTIF, sur la fenêtre couverte.
+ * QUI PORTE UN SIGNAL RESTRICTIF OUVERT.
  *
  * TROUVÉ EN QA (2026-08-03, cohorte réelle de 7 élèves): `StudentWeekInput`
  * porte `restrictionFlag` depuis le premier jour, `classifyRisk` le fait
@@ -113,23 +113,40 @@ export async function loadStudentNames(
  * l'artefact était déclarée et désarmée (classe « paramètre de garde optionnel
  * = garde désarmée », déjà payée sur `safetyBand` dans les crons).
  *
- * DEUX SOURCES, PARCE QU'ELLES RÉPONDENT À DEUX INSTANTS DIFFÉRENTS:
- *   1. `contract_change_requests(reason_code='restriction_signal', status='open')`
- *      — l'escalade VIVANTE, écrite par `escalateRestrictionSignal` (provision
- *      du jour, routeur conversationnel) et ouverte tant qu'aucun coach ne l'a
- *      fermée. C'est le chemin qui a réellement des écrivains aujourd'hui.
- *   2. `weekly_reviews.risk_band = 'restriction_flag'` sur la semaine couverte
- *      — la bande du bilan, celle que `keel-weekly-flow-v1` lit déjà pour
- *      couper ses envois. Lire les deux évite de re-signer la même erreur en
- *      pariant sur un seul écrivain.
+ * UNE SEULE SOURCE, ET C'EST LA VIVANTE:
+ *   `contract_change_requests(reason_code='restriction_signal', status='open')`
+ *   — l'escalade écrite par `escalateRestrictionSignal` (provision du jour,
+ *   routeur conversationnel), ouverte tant qu'aucun coach ne l'a fermée.
  *
- * Un OU, jamais un ET: rater un signal restrictif coûte infiniment plus cher
- * qu'un faux positif, dont le coût est « le coach regarde ».
+ * ── LA SECONDE SOURCE EST PARTIE, ET CE N'EST PAS UN RELÂCHEMENT (L3) ───────
+ * Elle lisait `weekly_reviews.risk_band = 'restriction_flag'`. Cette colonne
+ * appartient à l'ANCIENNE weekly review 1:1 (celle qui portait aussi
+ * `student_narrative`, `coach_draft_reply`, `lapse_context`), retirée avec la
+ * surface coach 1:1. La table a survécu — le bilan alimentaire hebdo la
+ * réutilise — mais son écrivain n'écrit QUE `week_facts`,
+ * `week_facts_computed_at` et `content_locale` (`week_review_io.ts`).
+ *
+ * Les trois épreuves d'absence ont été refaites le 2026-08-08: aucun écrivain
+ * dans le code (payloads inspectés un par un), aucune fonction Postgres
+ * (`prosrc`), aucune vue. En base locale, 3 lignes non-NULL sur 4 — les trois
+ * sont des fixtures de QA (`@keeltest.dev`, `@test.dev`).
+ *
+ * Le commentaire qui justifiait la redondance disait « lire les deux évite de
+ * parier sur un seul écrivain ». La mesure a rendu le verdict inverse: le
+ * second n'avait AUCUN écrivain, et cette lecture-là ne pouvait donc rien
+ * ajouter. Mesuré 3/3 sur un élève réel portant une escalade VIVANTE et aucun
+ * `risk_band`: la ligne sort quand même en `restriction_flag` / sévérité 0.
+ * C'est la source ci-dessous qui la porte, et elle seule.
+ *
+ * ⚠️ LA FENÊTRE A DISPARU DE LA SIGNATURE, ET C'EST DÉLIBÉRÉ. Elle ne servait
+ * qu'à borner la lecture du bilan (`week_start_date` entre `periodStart` et
+ * `periodEnd`). L'escalade, elle, n'est pas datée par semaine: elle est OUVERTE
+ * ou fermée. Garder un paramètre qu'on ignore aurait laissé croire à un
+ * bornage qui n'existe plus — et un appelant aurait fini par s'appuyer dessus.
  */
 export async function loadRestrictionFlags(
   db: Db,
   studentUserIds: readonly string[],
-  window: SynthesisWindow,
 ): Promise<Set<string>> {
   const flagged = new Set<string>();
   if (studentUserIds.length === 0) return flagged;
@@ -143,19 +160,6 @@ export async function loadRestrictionFlags(
     .eq("status", "open");
   if (escalations.error) throw escalations.error;
   for (const row of (escalations.data ?? []) as Array<Record<string, unknown>>) {
-    const id = String(row.user_id ?? "").trim();
-    if (id) flagged.add(id);
-  }
-
-  const reviews = await db
-    .from("weekly_reviews")
-    .select("user_id, risk_band, week_start_date")
-    .in("user_id", ids)
-    .eq("risk_band", "restriction_flag")
-    .gte("week_start_date", window.periodStart)
-    .lte("week_start_date", window.periodEnd);
-  if (reviews.error) throw reviews.error;
-  for (const row of (reviews.data ?? []) as Array<Record<string, unknown>>) {
     const id = String(row.user_id ?? "").trim();
     if (id) flagged.add(id);
   }
@@ -477,7 +481,7 @@ export async function buildAndWriteCoachSynthesis(
   }
 
   const names = await loadStudentNames(db, studentIds);
-  const restricted = await loadRestrictionFlags(db, studentIds, window);
+  const restricted = await loadRestrictionFlags(db, studentIds);
   const students: StudentWeekInput[] = [];
   for (const studentUserId of studentIds) {
     students.push(await loadStudentWeek(db, {

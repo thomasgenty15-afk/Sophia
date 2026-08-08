@@ -312,11 +312,20 @@ Deno.test("an OPEN restriction escalation reaches the synthesis (the live writer
   );
 });
 
-Deno.test("a restriction_flag risk band on the covered week also reaches it", async () => {
+Deno.test("a risk_band on weekly_reviews no longer reaches the synthesis (L3)", async () => {
+  // ── LA CEINTURE DE NON-RÉGRESSION DU RETRAIT ──────────────────────────────
+  // Ce test disait l'inverse: `weekly_reviews.risk_band='restriction_flag'`
+  // levait le drapeau. La colonne n'a AUCUN écrivain (épreuves d'absence
+  // refaites le 2026-08-08: code, `prosrc`, vues, base), donc cette branche ne
+  // pouvait mordre que sur une fixture. Elle est retirée.
+  //
+  // Le test est INVERSÉ plutôt que supprimé, exprès: la garde qui compte
+  // maintenant est « une ligne semée à la main ne doit PLUS accuser personne ».
+  // Une suppression pure aurait laissé le retrait sans témoin.
   const { db, writes } = fakeDb(restrictionFixture({
+    contract_change_requests: [],
     weekly_reviews: [
       { user_id: "s2", risk_band: "restriction_flag", week_start_date: "2026-07-27" },
-      // Hors fenêtre: la semaine d'avant ne doit pas rouvrir un drapeau baissé.
       { user_id: "s1", risk_band: "restriction_flag", week_start_date: "2026-07-13" },
     ],
   }));
@@ -326,12 +335,9 @@ Deno.test("a restriction_flag risk band on the covered week also reaches it", as
     now: new Date("2026-08-03T09:00:00Z"),
   });
   const flagged = writes[0].flagged_students as Array<Record<string, unknown>>;
-  assertEquals(flagged[0].student_user_id, "s2");
-  assertEquals(flagged[0].reason_code, "restriction_signal");
   assert(
-    !flagged.some((f) =>
-      f.student_user_id === "s1" && f.reason_code === "restriction_signal"
-    ),
+    !flagged.some((f) => f.reason_code === "restriction_signal"),
+    JSON.stringify(flagged),
   );
 });
 

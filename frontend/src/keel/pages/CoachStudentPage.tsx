@@ -388,7 +388,6 @@ export default function CoachStudentPage() {
 interface FoodReviewRow {
   week_start_date: string;
   biofeedback: Record<string, unknown> | null;
-  risk_band: string | null;
 }
 
 function isoDaysAgo(n: number): string {
@@ -429,7 +428,10 @@ function FoodAndNumbers({ studentId }: { studentId: string }) {
           .gte("local_date", isoDaysAgo(13)),
         supabase
           .from("weekly_reviews")
-          .select("week_start_date, biofeedback, risk_band")
+          // `risk_band` est parti (L3, 2026-08-08): la colonne appartient à
+          // l'ancienne weekly review 1:1 et n'a AUCUN écrivain. Voir le bloc
+          // « Starting numbers » plus bas pour ce que sa lecture faisait.
+          .select("week_start_date, biofeedback")
           .eq("user_id", studentId)
           .order("week_start_date", { ascending: false })
           .limit(8),
@@ -471,7 +473,6 @@ function FoodAndNumbers({ studentId }: { studentId: string }) {
     .map((r) => Number((r.biofeedback ?? {})["weight_kg"]))
     .find((w) => Number.isFinite(w) && w > 0) ?? null;
   const numbers = latestWeight === null ? null : coachStartingNumbers(latestWeight);
-  const restrictionFlagged = reviews[0]?.risk_band === "restriction_flag";
 
   return (
     <div className="mt-6 space-y-6">
@@ -541,15 +542,24 @@ function FoodAndNumbers({ studentId }: { studentId: string }) {
         <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
           Starting numbers
         </p>
-        {restrictionFlagged ? (
-          // Clinical prudence outranks convenience: handing out deficit-ready
-          // brackets in a restriction-flagged week invites exactly the wrong
-          // move. The flag itself already reached you on the Monday page.
-          <p className="mt-2 text-sm leading-6 text-gray-800">
-            Restriction signals this week — numbers are the wrong tool right
-            now. Reach out first.
-          </p>
-        ) : numbers === null ? (
+        {/*
+          ── LA GARDE « SIGNAUX RESTRICTIFS » EST PARTIE (L3, 2026-08-08) ─────
+          Elle remplaçait ces fourchettes par « numbers are the wrong tool right
+          now » quand `weekly_reviews.risk_band === 'restriction_flag'`.
+          L'intention était juste; l'oracle, lui, ne répondait jamais: cette
+          colonne appartient à l'ancienne weekly review 1:1 et n'a AUCUN
+          écrivain (épreuves d'absence — code, `prosrc`, vues, base — refaites
+          le 2026-08-08). MESURÉ 3/3 sur un élève réel portant une escalade
+          restrictive VIVANTE (`contract_change_requests`, la seule source
+          alimentée): la bannière ne s'affichait DÉJÀ PAS, et les fourchettes
+          kcal sortaient quand même.
+
+          POUR LA RÉARMER — et c'est le bon geste, pas le retour de cette
+          ligne — il faut lire la source vivante, celle-là même qui alimente la
+          page du lundi: `contract_change_requests` avec
+          `reason_code='restriction_signal'` et `status='open'`.
+        */}
+        {numbers === null ? (
           <p className="mt-2 text-sm text-gray-600">
             No weigh-in yet. Ranges appear after their first Sunday check-in
             with a weight.
