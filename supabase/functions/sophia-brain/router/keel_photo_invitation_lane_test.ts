@@ -63,6 +63,7 @@ const BASE = {
   responseLocale: "en-GB",
   committed: OFF_PLAN,
   safetyBand: "none" as string | null | undefined,
+  restrictionFlag: false,
   futureIntent: false,
   hasMedia: false,
   flowAlreadyOpen: false,
@@ -171,4 +172,25 @@ Deno.test("une inscription en échec RETIRE l'invitation — pas de demande hors
   });
   assertEquals(result.reason_code, "budget_record_failed");
   assertEquals(result.sentence, null);
+});
+
+// ── FF-021 R7 · LE PLANCHER DE RESTRICTION, AU NIVEAU DE LA LANE ────────────
+//
+// Le refus doit arriver AU GATE BON MARCHÉ, donc sans le moindre aller-retour
+// en base: `reads` reste vide, et aucune place de budget n'est consommée. Un
+// refus qui brûlerait la place du jour ferait taire la surface légitime du
+// lendemain pour rien.
+Deno.test("FF-021 — plancher levé: aucune invitation, aucune lecture, aucune place prise", async () => {
+  const inserts: Insert[] = [];
+  const reads: string[] = [];
+  const result = await armPhotoInvitation({
+    ...BASE,
+    restrictionFlag: true,
+    supabase: fakeDb({ inserts, reads }),
+  });
+  assertEquals(result.reason_code, "restriction_flag");
+  assertEquals(result.sentence, null);
+  assertEquals(result.invitedEventId, null);
+  assertEquals(inserts.length, 0);
+  assertEquals(reads.length, 0);
 });

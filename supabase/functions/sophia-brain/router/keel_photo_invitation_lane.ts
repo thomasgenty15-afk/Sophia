@@ -68,6 +68,16 @@ export async function armPhotoInvitation(args: {
   responseLocale: string;
   committed: readonly CommittedOffPlanFact[];
   safetyBand: string | null | undefined;
+  /**
+   * FF-021 R7 — le verdict BRUT de `restriction_guard` pour ce tour, REQUIS.
+   *
+   * ⚠️ LE DRAPEAU BRUT, PAS CELUI DU ROUTEUR. `conversationalRestrictionGuardForRouters`
+   * rend `null` une fois l'épisode clinique clos, ce qui est correct pour le
+   * ROUTAGE (un flow qu'on ne peut pas quitter est un piège) et faux pour la
+   * SUPPRESSION (elle ne se lève que par une revue coach). Mesuré 3/3 avant ce
+   * paramètre: épisode clos + plancher levé ⇒ l'invitation repartait.
+   */
+  restrictionFlag: boolean;
   futureIntent: boolean;
   /**
    * `false` sur le chemin du cerveau, et c'est EXACT: une photo ne traverse pas
@@ -105,6 +115,7 @@ export async function armPhotoInvitation(args: {
     locale: args.responseLocale,
     planRelation: offPlan?.plan_relation ?? null,
     safetyBand: args.safetyBand,
+    restrictionFlag: args.restrictionFlag,
     hasMedia: args.hasMedia,
     futureIntent: args.futureIntent,
     committedEventCount: committed.length,
@@ -127,6 +138,7 @@ export async function armPhotoInvitation(args: {
     locale: args.responseLocale,
     planRelation: offPlan?.plan_relation ?? null,
     safetyBand: args.safetyBand,
+    restrictionFlag: args.restrictionFlag,
     hasMedia: args.hasMedia,
     futureIntent: args.futureIntent,
     committedEventCount: committed.length,

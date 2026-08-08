@@ -17,6 +17,7 @@ const NOMINAL = {
   locale: "fr-FR",
   planRelation: "off_plan",
   safetyBand: "none" as string | null | undefined,
+  restrictionFlag: false,
   hasMedia: false,
   futureIntent: false,
   committedEventCount: 1,
@@ -242,4 +243,42 @@ Deno.test("une question déjà posée par le composeur ne la fait PAS tomber", (
 Deno.test("un corps vide rend l'invitation seule, sans saut de ligne en tête", () => {
   assertEquals(appendPhotoInvitation("", "Envoie."), "Envoie.");
   assertEquals(appendPhotoInvitation("   ", "Envoie."), "Envoie.");
+});
+
+// ── FF-021 R7 · LE PLANCHER DE RESTRICTION FERME LA LANE ────────────────────
+//
+// Mesuré 3/3 en run réel le 2026-08-08: une fois l'épisode clinique clos, le
+// routeur ne voit plus le drapeau et cette lane repartait. Ces trois tests
+// épinglent le refus, sa place dans l'ordre, et le fait que le paramètre est
+// REQUIS (le compilateur le tient — l'omettre ne compile pas).
+Deno.test("FF-021 — plancher de restriction levé ⇒ aucune invitation", () => {
+  const result = gatePhotoInvitation({ ...NOMINAL, restrictionFlag: true });
+  assertEquals(result.invite, false);
+  assertEquals(result.sentence, null);
+  assertEquals(result.educating, false);
+  assertEquals(result.reason_code, "restriction_flag");
+});
+
+Deno.test("FF-021 — la safety passe DEVANT le plancher de restriction", () => {
+  const result = gatePhotoInvitation({
+    ...NOMINAL,
+    safetyBand: "high",
+    restrictionFlag: true,
+  });
+  // Les deux ferment; le motif rendu est le plus grave, comme dans routers.ts.
+  assertEquals(result.reason_code, "safety_band");
+});
+
+Deno.test("FF-021 — le plancher passe devant TOUS les refus plus bénins", () => {
+  // Budget consommé ET intention future ET flow ouvert: le motif reste celui du
+  // plancher, parce qu'un refus de sécurité ne se laisse pas masquer par un
+  // refus de cadence.
+  const result = gatePhotoInvitation({
+    ...NOMINAL,
+    restrictionFlag: true,
+    futureIntent: true,
+    flowAlreadyOpen: true,
+    asksMadeToday: 99,
+  });
+  assertEquals(result.reason_code, "restriction_flag");
 });

@@ -5277,6 +5277,20 @@ export async function processMessage(
       // là où la question textuelle n'ouvre qu'un axe et demande une phrase.
       // Sur le repas le plus pauvre du produit — « j'ai commandé », zéro
       // aliment — c'est la seule des deux qui peut remplir la ligne.
+      // FF-021 R7 — LE DRAPEAU BRUT DU PLANCHER, pour les deux lanes de demande.
+      //
+      // `keelTurn.restriction`, PAS `conversationalRestrictionGuardForRouters`:
+      // le second rend `null` une fois l'épisode clinique clos (condition de
+      // désarmement du flow, doctrine P9), et la suppression des surfaces ne
+      // suit PAS cette fermeture — « la CONVERSATION se ferme; la SUSPENSION,
+      // non » (maillon 5, plus bas). Mesuré 3/3 avant ce raccord: plancher
+      // levé + épisode clos ⇒ la question de précision repartait.
+      //
+      // `null` (lecture en panne) ne ferme PAS, et c'est le même arbitrage
+      // fail-open NOMMÉ que le chargeur: un tour non filtré est un risque
+      // borné, tous les élèves privés de réponse est une panne produit.
+      const restrictionRaisedForAsks = keelTurn.restriction?.restriction_flag ===
+        true;
       const invitation = await armPhotoInvitation({
         supabase,
         userId,
@@ -5286,6 +5300,7 @@ export async function processMessage(
             turnFrame?.safety?.risk_band === undefined
           ? null
           : String(turnFrame.safety.risk_band),
+        restrictionFlag: restrictionRaisedForAsks,
         futureIntent: isTrackProgressFutureIntent(userMessage),
         // EXACT, pas un raccourci: une photo ne traverse pas le cerveau, elle
         // passe par `meal-photo-upload-v1`. Même constat que `hasMedia: false`
@@ -5315,6 +5330,7 @@ export async function processMessage(
             turnFrame?.safety?.risk_band === undefined
           ? null
           : String(turnFrame.safety.risk_band),
+        restrictionFlag: restrictionRaisedForAsks,
         // La même ceinture déterministe que la lane d'écriture: on ne demande
         // pas de précisions sur un repas qui n'a pas eu lieu.
         futureIntent: isTrackProgressFutureIntent(userMessage),

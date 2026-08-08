@@ -352,6 +352,22 @@ export async function armMealPrecisionQuestion(args: {
   planLines: readonly PrecisionPlanLine[];
   slotKey: string | null;
   safetyBand: string | null | undefined;
+  /**
+   * FF-021 R7 — le verdict BRUT de `restriction_guard` pour ce tour, REQUIS.
+   *
+   * ⚠️ LE DRAPEAU BRUT, PAS CELUI DU ROUTEUR. Le routeur vide bien
+   * `direct_effects_to_run` quand le plancher est levé (`routers.ts`,
+   * `restriction_flag_priority`), mais il ne le voit plus une fois l'épisode
+   * clinique CLOS — `conversationalRestrictionGuardForRouters` rend `null`
+   * exprès, pour qu'un flow clinique ne devienne pas un piège. La SUSPENSION,
+   * elle, ne se lève que par une revue coach.
+   *
+   * Mesuré 3/3 en run réel le 2026-08-08 avant ce paramètre: plancher levé +
+   * épisode clos ⇒ `owner=normal_reply`, le repas s'écrivait et la question
+   * « And what did you have with it? » partait — de la police alimentaire
+   * adressée à quelqu'un que le plancher existe pour laisser tranquille.
+   */
+  restrictionFlag: boolean;
   futureIntent: boolean;
   flowAlreadyOpen: boolean;
   localDate: string | null;
@@ -361,6 +377,18 @@ export async function armMealPrecisionQuestion(args: {
   const committed = args.committed.filter((fact) =>
     String(fact.protocol_event_id ?? "").trim() !== ""
   );
+
+  // ── LE PLANCHER DE RESTRICTION, AVANT TOUT LE RESTE ─────────────────────
+  //
+  // Il est ICI et pas dans `gateMealPrecisionQuestion` pour UNE raison, qui
+  // n'est pas une préférence de conception: `_shared/keel/meal_precision.ts`
+  // est réservé à un autre chantier en cours (2026-08-08). Sa place naturelle
+  // est dans le gate, à côté de `safety_band`, avec les autres refus nommés —
+  // à déplacer dès que le fichier est libéré. Le refus reste NOMMÉ, et le
+  // paramètre reste REQUIS, ce qui est la moitié qui compte.
+  if (args.restrictionFlag === true) {
+    return { armed: null, reason_code: "restriction_flag" };
+  }
 
   const assessment = assessMealPrecision({
     components: committed.map((fact) => ({

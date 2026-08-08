@@ -89,6 +89,18 @@ export type PhotoInvitationGateReason =
   | "invite"
   /** R5 — plancher de sécurité. Hors débat. */
   | "safety_band"
+  /**
+   * FF-021 R7 — LE PLANCHER DE RESTRICTION ALIMENTAIRE EST LEVÉ.
+   *
+   * Mesuré le 2026-08-08, 3/3 en run réel: une fois l'épisode clinique FERMÉ
+   * (plafond de 6 tours du reducer), le routeur cesse de voir le drapeau —
+   * `conversationalRestrictionGuardForRouters` rend `null` par conception — et
+   * cette lane repartait. Une personne dont le plancher TCA est levé recevait
+   * « And what did you have with it? ». La suspension, elle, n'est levée que
+   * par une revue coach (`run.ts`, « la CONVERSATION se ferme; la SUSPENSION,
+   * non »): le gate lit donc le drapeau BRUT, jamais celui du routeur.
+   */
+  | "restriction_flag"
   /** T4 — le budget du jour est déjà consommé, par n'importe quelle surface. */
   | "budget_consumed"
   /** Une photo accompagne déjà ce tour: il n'y a rien à inviter. */
@@ -124,6 +136,11 @@ export interface PhotoInvitationGateResult {
  * ── L'ORDRE DES REFUS EST LE CONTRAT, du plus grave au plus bénin ───────────
  *  1. safety — demander une image de l'assiette à quelqu'un qui va mal est
  *     exactement ce que le plancher interdit (R5). Toute bande ≠ `none` ferme;
+ *  1bis. plancher de restriction (FF-021 R7) — juste SOUS la safety et
+ *     AU-DESSUS de tout le reste, exactement l'ordre de `routers.ts`: rien
+ *     n'est plus urgent qu'un danger vital, et tout le reste est de la
+ *     pression. Demander la photo d'une assiette à quelqu'un qui restreint
+ *     est la forme la plus littérale de la pression que le plancher suspend;
  *  2. intention future — on n'invite pas à photographier un repas qui n'a pas
  *     eu lieu;
  *  3. une photo est déjà là — il n'y a plus rien à inviter, et le redemander
@@ -147,6 +164,15 @@ export function gatePhotoInvitation(args: {
   planRelation: string | null;
   /** REQUIS. Toute bande ≠ `none` ferme. */
   safetyBand: string | null | undefined;
+  /**
+   * FF-021 — le verdict BRUT de `restriction_guard`, REQUIS.
+   *
+   * `boolean` et pas `boolean | undefined`: c'est la cicatrice
+   * `optional-gate-params-are-disarmed-gates`, et elle a déjà été payée sur
+   * `safetyBand?` juste au-dessus. Un appelant qui ne sait pas si le plancher
+   * est levé doit le dire en passant `true` (le côté sûr), pas en omettant.
+   */
+  restrictionFlag: boolean;
   /** Le tour porte-t-il déjà une image. */
   hasMedia: boolean;
   /** La ceinture déterministe partagée avec la lane d'écriture. */
@@ -173,6 +199,7 @@ export function gatePhotoInvitation(args: {
 
   const band = String(args.safetyBand ?? "none").trim().toLowerCase() || "none";
   if (band !== "none") return deny("safety_band");
+  if (args.restrictionFlag === true) return deny("restriction_flag");
   if (args.futureIntent) return deny("future_intent");
   if (args.hasMedia) return deny("photo_attached");
   if (args.committedEventCount <= 0) return deny("no_committed_fact");
