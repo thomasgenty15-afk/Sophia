@@ -299,7 +299,12 @@ export async function handleDeterministicButton(
         userId: message.user_id,
         requestId: args.requestId,
         purpose: "keel_weekly_flow_ack",
-        // ── CE QUI REVIENT APRÈS HUIT CHAMPS REMPLIS ──────────────────────
+        // ── CE QUI REVIENT APRÈS LE FORMULAIRE REMPLI ─────────────────────
+        //
+        // « Huit champs » était le chiffre B2B: depuis R4, les six axes ne se
+        // collectent que là où un coach humain les lit, et un dimanche B2C ne
+        // porte que deux mesures. La réponse ne change pas pour autant — elle
+        // vient de la lecture des FAITS de la semaine, pas des axes.
         //
         // C'était `renderWeeklyFlowAck` — « Got it, thanks for taking the two
         // minutes ». Deux minutes du temps de l'élève contre une phrase, sur
@@ -335,7 +340,7 @@ export async function handleDeterministicButton(
           : [err?.code, err?.message, err?.details].filter(Boolean).join(" — ") ||
             String(error),
       }));
-      // L'élève a rempli huit champs : le silence complet lui ferait croire que
+      // L'élève a rempli son formulaire : le silence complet lui ferait croire que
       // c'est enregistré. On le dit, sans lui renvoyer un chiffre.
       await ack(admin, {
         userId: message.user_id,

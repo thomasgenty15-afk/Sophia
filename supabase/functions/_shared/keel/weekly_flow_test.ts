@@ -134,17 +134,35 @@ Deno.test("PRÉMISSE FAUSSE: chaînes et nombres restent lisibles", () => {
   assertEquals(r.issues, []);
 });
 
-Deno.test("a MISSING axis is named as missing, never as an out-of-range zero", () => {
-  // `Number("")` vaut 0: un axe absent ressortait « 0 is outside 1-5 », soit un
-  // chiffre inventé dans le seul canal censé dire ce qui a été écarté. Le
-  // formulaire déclare ces six champs `required`: leur absence signale un Flow
-  // publié qui a divergé de ce fichier, et c'est CETTE information qui compte.
+Deno.test("R4 — un axe ABSENT est silencieux, un axe PRÉSENT et vide est nommé", () => {
+  // ── CE QUI A CHANGÉ, ET POURQUOI ────────────────────────────────────────
+  // Ce test exigeait l'inverse: six « missing, dropped » dès qu'un axe manquait,
+  // parce que le Flow publié chez Meta déclarait les six champs `required` et que
+  // leur absence signalait une divergence entre le Flow et ce fichier. Ce Flow
+  // n'existe plus, et deux cas LÉGITIMES produisent des clés absentes: une
+  // notation partielle, et le dimanche B2C où l'écran ne demande aucun axe (R4).
+  // Un canal d'anomalies rempli de cas nominaux ne sert plus le jour où il a
+  // raison — même arbitrage que pour la carte des mesures, une échelle au-dessus.
   const r = parseWeeklyFlowResponse(JSON.stringify({ energy: "4" }));
   assertEquals(r.biofeedback, { energy: 4 });
-  for (const axis of ["hunger", "sleep", "digestion", "mood", "training"]) {
-    assert(r.issues.includes(`${axis}: missing, dropped`), `${axis}: ${r.issues.join(" | ")}`);
-  }
-  assert(!r.issues.some((i) => i.includes("outside")), r.issues.join(" | "));
+  assertEquals(r.issues, []);
+
+  // ...ET CE QUI CRIE ENCORE. Une divergence réelle envoie une valeur cassée,
+  // pas rien du tout. `Number("")` vaut 0: sans cette branche, un axe présent et
+  // vide ressortirait « 0 is outside 1-5 » — un chiffre inventé dans le seul
+  // canal censé dire ce qui a été écarté.
+  const present = parseWeeklyFlowResponse(
+    JSON.stringify({ energy: "4", hunger: "", sleep: "9", mood: {} }),
+  );
+  assertEquals(present.biofeedback, { energy: 4 });
+  assert(present.issues.includes("hunger: missing, dropped"), present.issues.join(" | "));
+  assert(present.issues.some((i) => i.startsWith("sleep:") && i.includes("outside")));
+  assert(present.issues.some((i) => i.startsWith("mood:")));
+  // Le zéro inventé ne revient pas par la fenêtre.
+  assert(!present.issues.some((i) => i.includes("0 is outside")), present.issues.join(" | "));
+  // Et les axes jamais mentionnés (`digestion`, `training`) restent muets.
+  assert(!present.issues.some((i) => i.startsWith("digestion:")));
+  assert(!present.issues.some((i) => i.startsWith("training:")));
 });
 
 Deno.test("garbage in response_json degrades without throwing", () => {
@@ -435,9 +453,17 @@ Deno.test("la carte des mesures ne réclame PAS les six axes", () => {
   assertEquals(r.weightKg, 78.4);
   assertEquals(r.biofeedback, {});
 
-  // CONTRE-FACTUEL: le point du dimanche, lui, continue de le dire.
+  // ── R4 — LE CONTRE-FACTUEL EST TOMBÉ, ET C'EST LE LOT ───────────────────
+  // Il disait: « le point du dimanche, lui, continue de signaler les axes
+  // absents ». Un dimanche poids-seul est désormais le cas NOMINAL en B2C —
+  // l'écran ne demande les six axes que là où un coach humain les lit — donc
+  // les deux origines se taisent maintenant sur une clé absente. Ce qui les
+  // distingue reste ENTIER, et c'est ça qu'on épingle à la place: la provenance.
   const weekly = parseWeeklyFlowResponse(JSON.stringify({ weight_kg: "78,4" }));
-  assert(weekly.issues.length > 0, "le mode weekly_form doit encore signaler les axes absents");
+  assertEquals(weekly.issues, []);
+  assertEquals(weekly.weightKg, 78.4);
+  assertEquals(weeklyBiofeedbackPayload(weekly, "weekly_form").source, "in_app_weekly_form");
+  assertEquals(weeklyBiofeedbackPayload(r, "measures_card").source, "in_app_measures_card");
 });
 
 Deno.test("les bornes mordent AUSSI depuis la carte des mesures", () => {

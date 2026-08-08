@@ -1391,12 +1391,23 @@ export const en = {
 
   "chat.weekly.title": "How the week actually went",
   "chat.weekly.subtitle": "Six quick reads. Two minutes, and nothing here is graded.",
+  // R4 — LE SOUS-TITRE DU DIMANCHE POIDS-SEUL. Les six axes ne se demandent
+  // qu'aux élèves dont un coach humain lit la synthèse; sans lecteur, l'écran se
+  // réduit aux deux mesures. « Six quick reads » sous deux champs annoncerait
+  // quatre questions qu'on a décidé de ne pas poser.
+  "chat.weekly.subtitle.measures":
+    "Two numbers, if you track them. Nothing here is graded.",
   "chat.weekly.optional": "Optional — only if you track them.",
   "chat.weekly.weight": "Weight (kg)",
   "chat.weekly.waist": "Waist (cm)",
   "chat.weekly.submit": "Send",
   "chat.weekly.cancel": "Not now",
-  "chat.weekly.error.empty": "Give at least one of the six a score.",
+  // Les deux vacuités, et elles ne disent pas la même chose. Avec les axes, un
+  // score OU une mesure suffit — refuser un poids seul au nom d'une question non
+  // remplie était le défaut que R4 a trouvé. Sans les axes, il ne reste que les
+  // deux nombres, et le message ne doit pas citer « les six ».
+  "chat.weekly.error.empty": "Give one of the six a score, or fill in a number.",
+  "chat.weekly.error.empty.measures": "Fill in at least one of the two.",
   "chat.weekly.error.number": "{field} should be a number.",
   // Hors bornes = refusé et NOMMÉ, jamais ramené au bord: une valeur corrigee
   // en silence est une donnee fausse qui a l'air vraie.

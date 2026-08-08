@@ -214,6 +214,22 @@ export interface StoredWeekReview {
   biofeedback: Record<string, number> | null;
 }
 
+/**
+ * Les axes 1-5 d'une ligne `weekly_reviews`, ou `null`.
+ *
+ * ── R4 — `null` EST LE CAS NOMINAL EN B2C, PAS UN ÉTAT PARTIEL ─────────────
+ * Les six axes ne sont collectés que là où quelqu'un les LIT: leur seul
+ * consommateur est la synthèse de cohorte du coach, et en B2C il n'y a pas de
+ * coach humain pour l'ouvrir (le coach « maison » n'a pas de synthèse). L'écran
+ * ne les demande donc pas — `WeeklyCheckInDialog`, gate `showAxes` — et un
+ * dimanche ne porte plus que le poids et le tour de taille.
+ *
+ * Conséquence pour tout lecteur d'ici: `null` veut dire « on ne les a pas
+ * demandés », pas « la semaine est incomplète ». Traiter « pas d'axes » comme
+ * « pas de revue » casserait la boucle du poids, qui est justement ce que le
+ * point hebdo garde en B2C. La règle mère du dossier est citée en entier dans
+ * `20260808110000_biofeedback_reader_gate.sql`.
+ */
 function biofeedbackAxes(raw: unknown): Record<string, number> | null {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
   const out: Record<string, number> = {};
@@ -677,10 +693,17 @@ export interface ComposedWeekReview {
  * Le bilan, dans la voix du coach quand il en a une.
  *
  * ⚠️ `body` N'EST JAMAIS VIDE. Contrairement au fait du soir, il n'existe pas
- * de cas « rien à dire »: l'élève vient de remplir huit champs, et un silence
- * après ça dit « ça n'a servi à rien ». Tout échec — pas de doctrine, modèle en
- * panne, ceinture qui refuse — rend le texte déterministe: on perd la voix,
- * jamais l'information.
+ * de cas « rien à dire »: l'élève vient de remplir un formulaire et attend
+ * quelque chose en retour, et un silence après ça dit « ça n'a servi à rien ».
+ * Tout échec — pas de doctrine, modèle en panne, ceinture qui refuse — rend le
+ * texte déterministe: on perd la voix, jamais l'information.
+ *
+ * R4 — « HUIT CHAMPS » ÉTAIT LE CHIFFRE B2B, et il ne l'est plus partout. En
+ * B2C le formulaire n'en porte que deux (poids, tour de taille): les six axes ne
+ * se collectent que là où un coach humain les lit. La règle ci-dessus ne bouge
+ * pas pour autant — deux champs remplis méritent la même réponse que huit, et
+ * cette fonction ne LIT pas le biofeedback de toute façon: elle compose depuis
+ * `reading`, qui est le décompte des faits contre la méthode du coach.
  */
 export async function composeWeekReviewBody(
   db: Db,

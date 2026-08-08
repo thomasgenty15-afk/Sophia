@@ -3,11 +3,19 @@
  * coach, et la SEULE question qu'on a le droit de lui poser dessus.
  *
  * ── LE DÉFAUT PRODUIT QUE CE MODULE CORRIGE ─────────────────────────────────
- * L'élève remplit huit champs le dimanche soir — six axes, un poids, un tour de
- * taille — et reçoit en retour: *« Got it — thanks for taking the two minutes. »*
- * Deux minutes de son temps contre une phrase. Le point hebdomadaire mesurait,
- * il ne RENDAIT rien, et c'est la surface où le produit a le plus à dire: c'est
- * le seul moment de la semaine où l'élève s'arrête et regarde ce qu'il a fait.
+ * L'élève remplit son formulaire le dimanche soir et reçoit en retour:
+ * *« Got it — thanks for taking the two minutes. »* Deux minutes de son temps
+ * contre une phrase. Le point hebdomadaire mesurait, il ne RENDAIT rien, et
+ * c'est la surface où le produit a le plus à dire: c'est le seul moment de la
+ * semaine où l'élève s'arrête et regarde ce qu'il a fait.
+ *
+ * R4 — LE FORMULAIRE N'A PLUS UNE SEULE TAILLE. Il portait huit champs pour tout
+ * le monde (six axes, un poids, un tour de taille). Les six axes ne se collectent
+ * plus que là où quelqu'un les LIT — la synthèse de cohorte du coach — donc en
+ * B2C le dimanche se réduit à deux mesures. Rien dans ce fichier n'en dépend: la
+ * lecture rendue ici compte des FAITS ALIMENTAIRES contre la méthode du coach,
+ * pas des axes. Le biofeedback n'entre que par `weekReviewPromptBlock`, en
+ * paramètre optionnel, et son absence y est le cas nominal.
  *
  * ── LA RÈGLE QUI GOUVERNE TOUT LE FICHIER ───────────────────────────────────
  * LES NOMBRES SONT CALCULÉS, JAMAIS NARRÉS. Même règle, mot pour mot, que la
@@ -774,8 +782,10 @@ function askText(ask: AlignmentAsk): string {
  * ⚠️ IL N'EST JAMAIS `null`, contrairement au fait du soir. La différence est
  * produit et elle est nette: le soir, une journée sans fait n'a rien à dire et
  * le silence est la bonne réponse. Ici l'élève VIENT de remplir un formulaire —
- * un silence après huit champs remplis dit « ça n'a servi à rien », et c'est
- * précisément le message qu'on est en train de supprimer.
+ * un silence après ça dit « ça n'a servi à rien », et c'est précisément le
+ * message qu'on est en train de supprimer. Le nombre de champs ne change pas la
+ * règle: en B2C il n'y en a plus que deux (R4), et deux champs remplis méritent
+ * la même réponse que huit.
  */
 export function renderDeterministicWeekReview(reading: WeekReviewReading): string {
   const { coverage, branch, alignment, question } = reading;
@@ -942,6 +952,11 @@ export function weekReviewPromptBlock(
     );
   }
 
+  // R4 — PAS D'AXES EST NORMAL, et le bloc n'en dit alors rien du tout. Ils ne
+  // sont collectés que là où quelqu'un les lit (la synthèse du coach); en B2C
+  // personne ne les lit, donc l'écran ne les demande pas. Aucune phrase de
+  // remplacement ici: « ils n'ont pas rempli les six axes » inviterait le modèle
+  // à réclamer une donnée que le produit a décidé de ne plus demander.
   const bio = biofeedback ?? null;
   if (bio && Object.keys(bio).length > 0) {
     const axes = Object.keys(bio).sort().map((k) => `${k} ${bio[k]}/5`).join(", ");

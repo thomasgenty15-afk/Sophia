@@ -17,6 +17,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
+  buildWeeklySubmission,
   isWeeklyCheckInToken,
   WAIST_CM_MAX,
   WAIST_CM_MIN,
@@ -26,6 +27,7 @@ import {
   WEIGHT_KG_MAX,
   WEIGHT_KG_MIN,
 } from "./weeklyCheckIn";
+import { en as EN } from "../i18n/en";
 
 const BACKEND = readFileSync(
   resolve(__dirname, "../../../../supabase/functions/_shared/keel/weekly_flow.ts"),
@@ -84,6 +86,162 @@ describe("le formulaire hebdo ne peut pas dériver du parseur", () => {
 
   it("le préfixe de jeton est celui que le serveur sait relire", () => {
     expect(BACKEND).toContain('WEEKLY_FLOW_TOKEN_PREFIX = "KEEL_WEEKLY_"');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// R4 — LE DIMANCHE POIDS-SEUL EST LE CAS NOMINAL, PAS UN ÉTAT PARTIEL
+//
+// Les six axes n'ont qu'un lecteur — la synthèse de cohorte du coach — donc ils
+// ne se demandent que là où un coach HUMAIN existe. Poids et tour de taille
+// restent pour tous: leurs lecteurs (`/app/progress`, la ceinture restrictive,
+// FF-008) ne dépendent pas du coach.
+//
+// Ce bloc existe parce que le retrait a failli casser la boucle du poids: la
+// garde de vacuité ne comptait que les axes, donc un écran sans axe était un
+// écran insoumettable. Ce dépôt n'a pas de jsdom — la décision a été sortie du
+// composant exprès pour pouvoir être épinglée ici.
+// ---------------------------------------------------------------------------
+
+describe("R4 — le point hebdo se réduit sans casser la boucle du poids", () => {
+  const NO_SCORES = {};
+
+  it("sans axes, un POIDS SEUL passe — c'est le dimanche B2C nominal", () => {
+    const built = buildWeeklySubmission({
+      showAxes: false,
+      scores: NO_SCORES,
+      weight: "78,4",
+      waist: "",
+    });
+    expect(built.ok).toBe(true);
+    if (!built.ok) return;
+    // La virgule décimale est ce que tape la moitié de l'Europe.
+    expect(built.values).toEqual({ weight_kg: 78.4 });
+  });
+
+  it("sans axes, un TOUR DE TAILLE SEUL passe aussi", () => {
+    const built = buildWeeklySubmission({
+      showAxes: false,
+      scores: NO_SCORES,
+      weight: "",
+      waist: "82",
+    });
+    expect(built.ok).toBe(true);
+    if (!built.ok) return;
+    expect(built.values).toEqual({ waist_cm: 82 });
+  });
+
+  it("sans axes, un formulaire VIDE est refusé — et pas au nom des six", () => {
+    const built = buildWeeklySubmission({
+      showAxes: false,
+      scores: NO_SCORES,
+      weight: "",
+      waist: "",
+    });
+    expect(built.ok).toBe(false);
+    if (built.ok) return;
+    expect(built.error).toEqual({ kind: "empty", axesShown: false });
+  });
+
+  it("un score n'est JAMAIS envoyé depuis un écran qui ne l'affiche pas", () => {
+    // L'état `scores` peut être non vide (l'élève a noté, puis la visibilité a
+    // changé). Envoyer ces valeurs écrirait une donnée que personne n'a saisie
+    // sur l'écran qu'il a sous les yeux, et le serveur l'accepterait.
+    const built = buildWeeklySubmission({
+      showAxes: false,
+      scores: { energy: 4, sleep: 2 },
+      weight: "70",
+      waist: "",
+    });
+    expect(built.ok).toBe(true);
+    if (!built.ok) return;
+    expect(built.values).toEqual({ weight_kg: 70 });
+  });
+
+  it("AVEC les axes, un poids seul passe aussi: la question reste optionnelle", () => {
+    // La règle est la même des deux côtés — « vacuité = rien du tout ». Un élève
+    // coaché qui ne veut donner que son poids n'a pas à noter six axes pour ça.
+    const built = buildWeeklySubmission({
+      showAxes: true,
+      scores: NO_SCORES,
+      weight: "70",
+      waist: "",
+    });
+    expect(built.ok).toBe(true);
+  });
+
+  it("AVEC les axes, les scores partent, et le message de vacuité les cite", () => {
+    const built = buildWeeklySubmission({
+      showAxes: true,
+      scores: { energy: 4, sleep: 2 },
+      weight: "",
+      waist: "",
+    });
+    expect(built.ok).toBe(true);
+    if (!built.ok) return;
+    expect(built.values).toEqual({ energy: 4, sleep: 2 });
+
+    const vide = buildWeeklySubmission({
+      showAxes: true,
+      scores: NO_SCORES,
+      weight: "",
+      waist: "",
+    });
+    expect(vide.ok).toBe(false);
+    if (vide.ok) return;
+    expect(vide.error).toEqual({ kind: "empty", axesShown: true });
+  });
+
+  it("hors bornes est REFUSÉ ET NOMMÉ, jamais ramené au bord", () => {
+    // Un 500 kg ramené à 400 produit une donnée fausse qui a l'air vraie. Et la
+    // garde mord dans les DEUX modes: le retrait des axes ne relâche rien.
+    for (const showAxes of [true, false]) {
+      const lourd = buildWeeklySubmission({
+        showAxes,
+        scores: NO_SCORES,
+        weight: "500",
+        waist: "",
+      });
+      expect(lourd.ok, `showAxes=${showAxes}`).toBe(false);
+      if (lourd.ok) return;
+      expect(lourd.error).toEqual({
+        kind: "out_of_range",
+        field: "weight",
+        min: WEIGHT_KG_MIN,
+        max: WEIGHT_KG_MAX,
+      });
+
+      const mot = buildWeeklySubmission({
+        showAxes,
+        scores: NO_SCORES,
+        weight: "",
+        waist: "beaucoup",
+      });
+      expect(mot.ok, `showAxes=${showAxes}`).toBe(false);
+      if (mot.ok) return;
+      expect(mot.error).toEqual({ kind: "not_a_number", field: "waist" });
+    }
+  });
+
+  it("chaque erreur possible a un libellé dans le catalogue", () => {
+    // Une erreur sans message affiche une chaîne vide sous le formulaire, et
+    // l'élève ne sait pas ce qu'on lui refuse. `error.empty.measures` est né avec
+    // R4: sans lui, le mode poids-seul aurait cité « les six ».
+    for (
+      const key of [
+        "chat.weekly.error.empty",
+        "chat.weekly.error.empty.measures",
+        "chat.weekly.error.number",
+        "chat.weekly.error.range",
+        "chat.weekly.subtitle",
+        "chat.weekly.subtitle.measures",
+      ]
+    ) {
+      expect(EN[key], `clé absente: ${key}`).toBeTruthy();
+    }
+    // Et le message du mode poids-seul ne parle PAS des six axes.
+    expect(EN["chat.weekly.error.empty.measures"]).not.toMatch(/six/i);
+    expect(EN["chat.weekly.subtitle.measures"]).not.toMatch(/six/i);
   });
 });
 

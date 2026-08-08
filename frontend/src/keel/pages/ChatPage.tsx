@@ -32,7 +32,7 @@ import { Button } from "../components/ui/Button";
 import WeeklyCheckInDialog, {
   type WeeklyCheckInValues,
 } from "../components/WeeklyCheckInDialog";
-import { isWeeklyCheckInToken } from "../api/weeklyCheckIn";
+import { isWeeklyCheckInToken, loadBiofeedbackHasReader } from "../api/weeklyCheckIn";
 import {
   ACCEPTED_PHOTO_MIME_TYPES,
   MAX_PHOTO_BYTES,
@@ -129,6 +129,11 @@ export default function ChatPage() {
   // Le jeton de la semaine dont le formulaire est ouvert, ou null. Il ne porte
   // QUE la semaine: l'élève est identifié par son JWT, côté serveur.
   const [weeklyToken, setWeeklyToken] = React.useState<string | null>(null);
+  /**
+   * R4 — quelqu'un lit-il les six axes de cet élève ? `null` = pas encore su, et
+   * le formulaire hebdo ne se monte pas tant que ça vaut `null`.
+   */
+  const [axesHaveReader, setAxesHaveReader] = React.useState<boolean | null>(null);
   // chemin de bucket -> URL signée. `meal-photos` est privé et sans policy, donc
   // une photo ne s'affiche qu'après cet échange (voir `signMealPhotoUrls`).
   const [photoUrls, setPhotoUrls] = React.useState<Record<string, string>>({});
@@ -252,6 +257,21 @@ export default function ChatPage() {
       } catch {
         // Voir ci-dessus.
       }
+    })();
+    // R4 — LES SIX AXES DU DIMANCHE, RÉSOLUS AU MONTAGE ET PAS À L'OUVERTURE.
+    //
+    // Le formulaire n'apparaît qu'après un clic sur le bouton du bilan. Résoudre
+    // la question à ce moment-là ferait apparaître les six axes puis les
+    // retirerait — d'où la lecture ici, pendant que l'élève lit son fil. Tant que
+    // la réponse n'est pas là, `axesHaveReader` vaut `null` et le dialogue ne se
+    // monte pas (voir sa gate de montage).
+    //
+    // Le loader ne jette jamais: il rend `false` quand il ne sait pas. « Je ne
+    // peux pas prouver qu'un aval consomme » se comporte comme « aucun aval ne
+    // consomme », ce qui est exactement la règle mère du dossier.
+    (async () => {
+      const hasReader = await loadBiofeedbackHasReader();
+      if (!cancelled) setAxesHaveReader(hasReader);
     })();
     setNotifyOptIn(isDesktopNotificationOptIn());
     return () => { cancelled = true; };
@@ -749,6 +769,7 @@ export default function ChatPage() {
         {weeklyToken && (
           <WeeklyCheckInDialog
             busy={sending}
+            showAxes={axesHaveReader}
             onSubmit={submitWeekly}
             onCancel={() => setWeeklyToken(null)}
           />

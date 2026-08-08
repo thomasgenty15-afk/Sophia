@@ -355,10 +355,17 @@ function readMeasure(
 /**
  * D'OÙ VIENT UNE MESURE. Deux écrans écrivent maintenant `biofeedback`.
  *
- *   'weekly_form'   · le point du dimanche: six axes vécus + deux mesures.
+ *   'weekly_form'   · le point du dimanche. Six axes vécus + deux mesures là où
+ *                     un coach humain lit la synthèse; les deux mesures SEULES
+ *                     ailleurs (R4 — on ne collecte que ce qu'un aval consomme).
  *   'measures_card' · la carte de `/app/plan`, où l'élève corrige son poids
  *                     entre deux dimanches. Aucun axe: l'écran ne les demande
  *                     pas, donc leur absence n'est pas une anomalie.
+ *
+ * ⚠️ L'ORIGINE NE DIT PLUS COMBIEN DE CHAMPS SONT ATTENDUS, elle dit QUEL GESTE
+ * a produit la ligne. Un `weekly_form` sans axe est désormais légitime, et c'est
+ * pour ça que la distinction survit: sans elle, un dimanche B2C et une correction
+ * de poids du mardi deviendraient indiscernables dans l'historique.
  *
  * Ce n'est pas de la décoration: `source` est LU (par la synthèse coach et par
  * `/app/progress`), et deux origines confondues rendent l'historique
@@ -407,6 +414,24 @@ export function parseWeeklyFlowResponse(
   const biofeedback: Partial<Record<WeeklyAxis, number>> = {};
   if (origin === "weekly_form") {
     for (const axis of WEEKLY_AXES) {
+      // ── R4 — UN AXE ABSENT N'EST PLUS UNE ANOMALIE ───────────────────────
+      // La clé absente signalait « un Flow publié chez Meta a divergé de ce
+      // fichier », parce que les six champs y étaient déclarés `required`. Ce
+      // Flow n'existe plus (`weeklyFlowJson()` n'a plus d'appelant hors test)
+      // et le formulaire in-app n'envoie QUE ce qu'il a recueilli. Deux cas
+      // légitimes produisent donc des clés absentes:
+      //   · l'élève note 3 axes sur 6 — permis depuis toujours par l'écran;
+      //   · l'écran ne demande AUCUN axe, faute de coach humain pour les lire
+      //     (R4). En B2C c'est le cas NOMINAL de chaque dimanche.
+      //
+      // Les laisser crier remplissait de bruit attendu le seul canal censé
+      // dire ce qui a été écarté — le défaut déjà corrigé pour la carte des
+      // mesures, ici à l'échelle de tous les dimanches B2C.
+      //
+      // CE QUI CRIE ENCORE, et c'est ce qui compte: une clé PRÉSENTE dont la
+      // valeur est illisible, vide ou hors bornes. Une divergence réelle
+      // envoie une valeur cassée, pas rien du tout.
+      if (!(axis in obj)) continue;
       const v = readScale(obj[axis], axis, issues);
       if (v !== null) biofeedback[axis] = v;
     }
