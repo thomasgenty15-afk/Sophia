@@ -385,15 +385,44 @@ const MEASUREMENT_KEY_PATTERNS: readonly RegExp[] = [
  * Prose claims. A rationale reading "roughly 600 kcal" is the same contract
  * violation as a `calories` field -- it just travels in a string.
  *
- * DISARM CONDITION (doctrine P9 -- a belt states when it does NOT fire): these
- * patterns require a DIGIT adjacent to an energy/macro word. "a protein-rich
- * plate" and "high in fiber" are untouched; only quantified claims are.
+ * ── CE QUE CE BLOC N'OUVRE PAS ──────────────────────────────────────────────
+ * Rien. `CALORIE_REVERSAL.md` §2 dit que ces motifs restent « inchangés, et
+ * c'est le cœur de la garde »: un chiffre en PROSE reste interdit avant comme
+ * après le renversement, parce que c'est la seule forme sous laquelle un nombre
+ * voyage sans sa base. Les motifs ajoutés le 2026-08-08 ne DÉSARMENT rien — ils
+ * couvrent deux formes que la garde laissait passer, mesurées à l'accusé rendu
+ * à l'élève (FF-018, rapport):
+ *
+ *   « This is about four hundred calories. »  → traversait, EN et FR
+ *   « Il y a 32 g de protéines. »             → traversait (lexique EN seul, T9)
+ *
+ * Le premier est un chiffre d'énergie NU, celui que R3 et §8 interdisent
+ * verbatim; le second est la cicatrice `guard-tested-in-one-language-only`
+ * exactement: la garde mordait `protein` et pas `protéines`.
+ *
+ * DISARM CONDITION (doctrine P9 -- a belt states when it does NOT fire):
+ * chaque motif exige une QUANTITÉ — un chiffre, ou un nombre écrit en lettres —
+ * ADJACENTE à un mot d'énergie/macro. « a protein-rich plate », « high in
+ * fiber » et « une assiette riche en protéines » sont intacts; seules les
+ * affirmations chiffrées tombent.
  */
 const MEASUREMENT_PROSE_PATTERNS: readonly RegExp[] = [
   /\b\d[\d.,]*\s*(kcal|calories|calorie|cals?)\b/gi,
   /\b\d[\d.,]*\s*(g|gr|grams?|mg)\s*(of\s+)?(protein|carbs?|carbohydrates?|fat|fats|fibre|fiber|sugar|sodium)\b/gi,
   /\b(protein|carbs?|carbohydrates?|fat|fibre|fiber|sugar|sodium)\s*[:=]?\s*\d[\d.,]*\s*(g|gr|grams?|mg)\b/gi,
   /\b(about|around|approx\.?|approximately|roughly|~)\s*\d[\d.,]*\s*(kcal|calories)\b/gi,
+  // ── LE NOMBRE ÉCRIT EN LETTRES, FR ET EN ─────────────────────────────────
+  // « environ deux cents calories » n'est pas moins un chiffre d'énergie que
+  // « 200 kcal ». Les mots d'échelle (`hundred`/`cent`/`mille`/`and`/`et`) sont
+  // AUTORISÉS ENTRE le nombre et l'unité, et rien d'autre: le motif ne saute
+  // pas par-dessus une phrase entière, donc « two plates, no calories counted »
+  // reste intact.
+  /\b(zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|z[ée]ro|une?|deux|trois|quatre|cinq|sept|huit|neuf|dix|quinze|vingt|trente|quarante|cinquante|soixante|cents?|mille)(?:[\s-]+(?:hundred|thousand|and|cents?|mille|et)){0,3}[\s-]+(kcal|calories?|kilojoules?|kj)\b/gi,
+  // ── LE LEXIQUE FRANÇAIS DES MACROS (T9) ──────────────────────────────────
+  // Même règle, même exigence de chiffre. `sel` et `sucres` sont là pour la
+  // même raison que `salt` et `sugar` côté anglais.
+  /\b\d[\d.,]*\s*(g|gr|mg|grammes?|grams?)\s*(?:de\s+|d'|of\s+)?(prot[eé]ines?|glucides?|lipides?|fibres?|sucres?|graisses?|sodium|sel)\b/gi,
+  /\b(prot[eé]ines?|glucides?|lipides?|fibres?|sucres?|graisses?|sodium)\s*[:=]?\s*\d[\d.,]*\s*(g|gr|mg|grammes?)\b/gi,
 ];
 
 function normalizeKey(key: string): string {

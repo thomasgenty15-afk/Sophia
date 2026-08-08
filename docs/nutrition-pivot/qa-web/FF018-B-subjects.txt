@@ -1,0 +1,95 @@
+# FF-018 · PHASE B — filtre de sujet sur dix images
+
+
+▌ assiette (nominal)  (assiette-poulet-riz-brocolis.png, 1848 Ko) — attendu: compte
+  passe 1 (HTTP 200) : 1 ligne(s) — src=photo disq=null subject=eaten_meal fgr=null band=moderate qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[grilled chicken breast, brown rice, broccoli] dropped=[]
+    accusé : I see grilled chicken breast, brown rice, broccoli. I can see "Protein at lunch" and "Vegetables at lunch" here, but one photo cannot settle which one it is - tell me which one to count and I will log it. A small amount of oil may have been used to grill the chicken. Tell me if that is wrong.
+    ✅ attendu compte → compté
+
+▌ assiette qui cache (sauce)  (assiette-saumon-sauce-luisante.png, 1665 Ko) — attendu: compte
+  passe 1 (HTTP 200) : 1 ligne(s) — src=photo disq=null subject=eaten_meal fgr=non_starchy_veg band=moderate qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[cooked salmon fillet, couscous, green beans, butter or oil sauce with dill] dropped=[]
+    accusé : I see cooked salmon fillet, couscous, green beans, butter or oil sauce with dill. Counted toward "Vegetables at lunch".
+    ✅ attendu compte → compté
+
+▌ assiette qui ne cache rien  (assiette-pomme-entiere.png, 1320 Ko) — attendu: compte
+  passe 1 (HTTP 200) : 1 ligne(s) — src=photo disq=null subject=eaten_meal fgr=other_fruit band=small qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[red apple] dropped=[]
+    accusé : I see red apple. I have not attached it to a line on your plan - it is on file for your coach.
+    ✅ attendu compte → compté
+
+▌ menu de restaurant  (menu-restaurant.jpg, 85 Ko) — attendu: refuse
+  passe 1 (HTTP 200) : 1 ligne(s) — src=photo disq=food_not_eaten subject=food_not_eaten fgr=null band=unclear qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[] dropped=[]
+    accusé : That looks like food you have not eaten yet — a menu, a shelf or a packet. I have not counted it as a meal. Send me the plate once it is in front of you.
+    ✅ attendu refuse → refusé
+    ✅ aucun aliment retenu sur la ligne (detected_foods=0)
+
+▌ capture d'app de livraison  (capture-app-livraison.jpg, 83 Ko) — attendu: refuse
+  passe 1 (HTTP 200) : 1 ligne(s) — src=photo disq=food_not_eaten subject=food_not_eaten fgr=null band=unclear qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[] dropped=[]
+    accusé : That looks like food you have not eaten yet — a menu, a shelf or a packet. I have not counted it as a meal. Send me the plate once it is in front of you.
+    ✅ attendu refuse → refusé
+    ✅ aucun aliment retenu sur la ligne (detected_foods=0)
+
+▌ rayon de supermarché  (rayon-supermarche.png, 2200 Ko) — attendu: refuse
+  passe 1 (HTTP 200) : 1 ligne(s) — src=photo disq=food_not_eaten subject=food_not_eaten fgr=null band=unclear qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[] dropped=[]
+    accusé : That looks like food you have not eaten yet — a menu, a shelf or a packet. I have not counted it as a meal. Send me the plate once it is in front of you.
+    ✅ attendu refuse → refusé
+    ✅ aucun aliment retenu sur la ligne (detected_foods=0)
+
+▌ selfie  (selfie.png, 1557 Ko) — attendu: refuse
+  passe 1 (HTTP 200) : 1 ligne(s) — src=photo disq=not_food subject=not_food fgr=null band=unclear qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[] dropped=[]
+    accusé : That does not look like food, so I have not counted it as a meal. Send me your plate when you sit down and I will take it from there.
+    ✅ attendu refuse → refusé
+    ✅ aucun aliment retenu sur la ligne (detected_foods=0)
+
+▌ paysage  (paysage.png, 1664 Ko) — attendu: refuse
+  passe 1 (HTTP 200) : 1 ligne(s) — src=photo disq=not_food subject=not_food fgr=null band=unclear qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[] dropped=[]
+    accusé : That does not look like food, so I have not counted it as a meal. Send me your plate when you sit down and I will take it from there.
+    ✅ attendu refuse → refusé
+    ✅ aucun aliment retenu sur la ligne (detected_foods=0)
+
+▌ étiquette nutritionnelle  (etiquette-nutritionnelle.jpg, 115 Ko) — attendu: refuse
+  passe 1 (HTTP 200) : 1 ligne(s) — src=photo disq=not_food subject=not_food fgr=null band=unclear qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[] dropped=[]
+    accusé : That does not look like food, so I have not counted it as a meal. Send me your plate when you sit down and I will take it from there.
+    ✅ attendu refuse → refusé
+    ✅ aucun aliment retenu sur la ligne (detected_foods=0)
+
+▌ photo illisible (trop sombre)  (photo-trop-sombre.jpg, 50 Ko) — attendu: refuse
+  passe 1 (HTTP 200) : 1 ligne(s) — src=photo disq=unreadable subject=eaten_meal fgr=null band=unclear qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[] dropped=[]
+    accusé : I could not read that photo well enough to say anything useful, so I have not logged what is on it. Another one, a little brighter, and I will.
+    ✅ attendu refuse → refusé
+    ✅ aucun aliment retenu sur la ligne (detected_foods=0)
+  passe 2 (HTTP 200) : 1 ligne(s) — src=photo disq=unreadable subject=eaten_meal fgr=null band=unclear qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[] dropped=[]
+    accusé : I could not read that photo well enough to say anything useful, so I have not logged what is on it. Another one, a little brighter, and I will.
+    ✅ attendu refuse → refusé
+    ✅ aucun aliment retenu sur la ligne (detected_foods=0)
+  passe 3 (HTTP 200) : 1 ligne(s) — src=photo disq=unreadable subject=eaten_meal fgr=null band=unclear qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[] dropped=[]
+    accusé : I could not read that photo well enough to say anything useful, so I have not logged what is on it. Another one, a little brighter, and I will.
+    ✅ attendu refuse → refusé
+    ✅ aucun aliment retenu sur la ligne (detected_foods=0)
+  ✅ stabilité sur 3 passes : ["eaten_meal/unreadable/unclear","eaten_meal/unreadable/unclear","eaten_meal/unreadable/unclear"]
+
+
+▌ DÉDUP — même client_upload_id, puis même image sous une AUTRE clé
+  1re photo               → HTTP 200, events=1
+  MÊME clé, MÊME image    → HTTP 200, idempotent=true duplicate=false, events=1  ✅ une seule ligne
+  AUTRE clé, MÊME image   → HTTP 200, idempotent=false duplicate=true, events=1  ✅ une seule ligne
+  AUTRE image             → HTTP 200, events=2  ✅ deux photos = deux faits
+  bulle (8 messages) :
+   · user: [photo]
+   · assistant: I see grilled chicken breast, brown rice, broccoli. I can see "Protein at lunch" and "Vegetables at lunch" here, but one photo cannot settle which one
+   · user: [photo]
+   · assistant: I already have that photo — it is the same one, so I have not logged it twice.
+   · user: [photo]
+   · assistant: I already have that photo — it is the same one, so I have not logged it twice.
+   · user: [photo]
+   · assistant: I see red apple. I have not attached it to a line on your plan - it is on file for your coach.
+
+
+▌ LIGNE ROUGE — aucun accusé ne porte d'énergie (chiffres ET lettres, FR+EN)
+  ✅ I see grilled chicken breast, brown rice, broccoli. I can see "Protein at lunch" and "Vegetables at lunch" here, but one photo cannot settle which one it is - tell me which one to 
+  ✅ I see cooked salmon fillet, couscous, green beans, butter or oil sauce with dill. Counted toward "Vegetables at lunch".
+  ✅ I see red apple. I have not attached it to a line on your plan - it is on file for your coach.
+  ✅ That looks like food you have not eaten yet — a menu, a shelf or a packet. I have not counted it as a meal. Send me the plate once it is in front of you.
+  ✅ That does not look like food, so I have not counted it as a meal. Send me your plate when you sit down and I will take it from there.
+  ✅ I could not read that photo well enough to say anything useful, so I have not logged what is on it. Another one, a little brighter, and I will.
+
+nettoyage OK

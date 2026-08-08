@@ -268,6 +268,103 @@ Deno.test("measurement filter: disarm condition -- unquantified prose is untouch
   assertEquals(analysis.dropped_measurement_fields, []);
 });
 
+// ── FF-018 — LES DEUX FORMES QUI TRAVERSAIENT LA GARDE ──────────────────────
+//
+// Mesurées le 2026-08-08 jusqu'à l'ACCUSÉ rendu à l'élève, sur `renderMealPhotoAck`:
+// une énergie écrite EN LETTRES et un macro nommé EN FRANÇAIS n'étaient pas
+// couverts. R3 et §8 de la fiche disent « AUCUNE valeur d'énergie », pas
+// « aucun chiffre arabe d'énergie ».
+Deno.test("FF-018 — une énergie ÉCRITE EN LETTRES est rédigée (EN)", () => {
+  const analysis = parseMealAnalysis(
+    modelOutput({
+      portion: { band: "moderate", rationale: "This is about four hundred calories." },
+      assumptions: [
+        {
+          subject: "cooking_fat",
+          assumption: "Cooked in oil, which adds roughly two hundred kcal.",
+          basis: "standard_default",
+        },
+      ],
+      clarifying_question: "Was that about two hundred calories of rice, or more?",
+    }),
+    [ID_A],
+  );
+  assert(
+    !analysis.portion_rationale.toLowerCase().includes("hundred calories"),
+    analysis.portion_rationale,
+  );
+  assert(
+    !analysis.assumptions[0].assumption.toLowerCase().includes("hundred kcal"),
+    analysis.assumptions[0].assumption,
+  );
+  assert(
+    !String(analysis.clarifying_question).toLowerCase().includes("hundred calories"),
+    String(analysis.clarifying_question),
+  );
+  // Et ça atteint l'accusé, qui est la seule surface que l'élève lit.
+  const ack = renderMealPhotoAck({
+    analysis,
+    binding: { kind: "none" },
+    credit: null,
+    commitmentTitles: {},
+    hasPrescription: false,
+    tickedDish: null,
+    locale: "en-US",
+  });
+  assert(!ack.toLowerCase().includes("hundred calories"), ack);
+  assert(!ack.toLowerCase().includes("hundred kcal"), ack);
+});
+
+Deno.test("FF-018 — une énergie écrite en lettres est rédigée en FRANÇAIS aussi (T9)", () => {
+  const analysis = parseMealAnalysis(
+    modelOutput({
+      portion: { band: "moderate", rationale: "Environ deux cents calories." },
+    }),
+    [ID_A],
+  );
+  assert(!analysis.portion_rationale.includes("deux cents calories"), analysis.portion_rationale);
+  assert(analysis.portion_rationale.includes("[removed]"), analysis.portion_rationale);
+});
+
+Deno.test("FF-018 — le lexique FRANÇAIS des macros est couvert (T9)", () => {
+  for (
+    const [prose, forbidden] of [
+      ["Il y a 32 g de protéines.", "32 g de protéines"],
+      ["45 grammes de glucides.", "45 grammes de glucides"],
+      ["protéines: 32 g", "32 g"],
+      ["12 g de lipides visibles.", "12 g de lipides"],
+    ] as const
+  ) {
+    const analysis = parseMealAnalysis(
+      modelOutput({ portion: { band: "moderate", rationale: prose } }),
+      [ID_A],
+    );
+    assert(
+      !analysis.portion_rationale.includes(forbidden),
+      `« ${prose} » → « ${analysis.portion_rationale} »`,
+    );
+  }
+});
+
+Deno.test("FF-018 — condition de désarmement: la prose QUALITATIVE survit, FR et EN", () => {
+  // La garde ne doit pas mordre sur une description. Sinon on la débranche.
+  for (
+    const prose of [
+      "A protein-rich plate, high in fiber.",
+      "Une assiette riche en protéines, peu de sucre ajouté.",
+      "Two plates on the table, no calorie counting here.",
+      "Deux tranches de pain complet.",
+    ]
+  ) {
+    const analysis = parseMealAnalysis(
+      modelOutput({ portion: { band: "moderate", rationale: prose } }),
+      [ID_A],
+    );
+    assertEquals(analysis.portion_rationale, prose);
+    assertEquals(analysis.dropped_measurement_fields, []);
+  }
+});
+
 Deno.test("measurement filter: stripMeasurementFacts does not mutate its input", () => {
   const input = { calories: 500, portion: { band: "small" } };
   const out = stripMeasurementFacts(input);

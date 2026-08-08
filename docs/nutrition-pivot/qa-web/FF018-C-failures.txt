@@ -1,0 +1,33 @@
+# FF-018 · PHASE C — modes de défaillance
+
+
+▌ C1 — non-image déclarée image/jpeg
+  HTTP 400 : {"error":"The uploaded bytes are not a JPEG, PNG or WebP image","request_id":"2c2baf0f-fe5e-4eeb-bcfe-944bbd5fa66f"}
+  ✅ refusée, 0 ligne écrite
+
+▌ C5 — PNG déclaré image/jpeg
+  HTTP 400 : {"error":"Declared type image/jpeg does not match the actual image type image/png","request_id":"92eb591d-7277-4dd1-8855-218a11d059c1"}
+  ✅ refusée, 0 ligne écrite
+
+▌ C2 — en-tête PNG valide + octets illisibles
+  HTTP 200, analysis={"status":"failed","http_status":500,"error":"Vision error: Unable to process input image. Please retry or report in https://developers.generativeai.google/guide/troubleshooting"}
+  lignes : 1 — src=photo disq=null subject=- fgr=null band=null qty=null/null subst=null weight=1 analyzed=no plan_rel=null foods=[] dropped=[]
+  accusé : Saved. I could not analyse it just now — it is on file either way.
+  ✅ la photo est enregistrée malgré tout
+  ✅ analysis.status = failed
+  ✅ aucun fait inventé (recognized=null, analyzed_at=null)
+  ✅ ni groupe ni bande inventés
+  ✅ l'échec est VISIBLE dans la bulle
+
+▌ C3 — élève SANS plan publié (le cas NORMAL du modèle KEEL)
+  HTTP 200, lignes : 1 — src=photo disq=null subject=eaten_meal fgr=null band=moderate qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[brown rice, broccoli, grilled chicken breast] dropped=[]
+  accusé : I see brown rice, broccoli, grilled chicken breast. The chicken was likely grilled using some cooking fat or oil. Tell me if that is wrong.
+  ✅ la photo compte quand même
+  ✅ fait non disqualifié
+  ✅ l'accusé ne parle pas d'un plan qui n'existe pas
+
+▌ C4 — charge au-dessus du plafond du schéma
+  HTTP 400 : {"error":"Invalid request body","request_id":"7a167d30-a089-4b7e-81c7-ceb6264ecc14","details":[{"path":["base64"],"message":"String must contain at most 12000000 character(s)"}]}
+  ✅ refusée, 0 ligne écrite
+
+nettoyage OK

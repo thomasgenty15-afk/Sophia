@@ -1,0 +1,76 @@
+# FF-018 · PHASE D — croisements
+
+
+▌ D1 — même clé, même image
+  HTTP 200/200 — idempotent=false/true duplicate=undefined/undefined
+  lignes protocol_events : 1 (dont photo: 1)
+   · 0e9e9632-1732-4f01-b651-5251d217b5fd → src=photo disq=null subject=eaten_meal fgr=null band=moderate qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[grilled chicken breast, brown rice, broccoli] dropped=[]
+  bulle : 2 accusé(s)
+  ✅ attendu 1 ligne(s) photo
+
+▌ D2 — clés différentes, même image
+  HTTP 200/200 — idempotent=false/true duplicate=undefined/undefined
+  lignes protocol_events : 1 (dont photo: 1)
+   · 26f26afa-e10f-4001-ac7d-dc1ab4358970 → src=photo disq=null subject=eaten_meal fgr=null band=moderate qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[grilled chicken breast, brown rice, broccoli] dropped=[]
+  bulle : 2 accusé(s)
+  ✅ attendu 1 ligne(s) photo
+
+▌ D3 — clés différentes, images différentes
+  HTTP 200/200 — idempotent=false/false duplicate=undefined/undefined
+  lignes protocol_events : 2 (dont photo: 2)
+   · 105a8511-9112-40be-bb24-45767b81263b → src=photo disq=null subject=eaten_meal fgr=null band=moderate qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[grilled chicken breast, brown rice, broccoli] dropped=[]
+   · dc677d34-1a73-4c2b-bb2d-2087a1d32ad3 → src=photo disq=null subject=eaten_meal fgr=other_fruit band=small qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[red apple] dropped=[]
+  bulle : 2 accusé(s)
+  ✅ attendu 2 ligne(s) photo
+
+▌ D4 — photo + note portant des quantités DÉCLARÉES
+  note envoyée : « I ate 180 g of chicken, 200 g of rice and about 150 g of broccoli. »
+  HTTP 200 — 1 ligne(s) : src=photo disq=null subject=eaten_meal fgr=null band=moderate qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[grilled chicken breast, brown rice, broccoli florets] dropped=[]
+  student_note en base : « I ate 180 g of chicken, 200 g of rice and about 150 g of broccoli. »
+  accusé : I see grilled chicken breast, brown rice, broccoli florets. I can see "Protein at lunch" and "Vegetables at lunch" here, but one photo cannot settle which one it is - tell me which one to count and I will log it.
+  ✅ quantity/unit restent NULL malgré la déclaration
+  ✅ la déclaration est conservée TELLE QUELLE (et nulle part ailleurs)
+  ✅ l'accusé ne reprend aucun chiffre nutritionnel — []
+  bulle élève : « I ate 180 g of chicken, 200 g of rice and about 150 g of broccoli. »
+
+▌ D5 — photo pendant une conversation active, puis texte immédiat
+  tour 1 (texte)  : « That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in yo »
+  temp_memory AVANT photo : ["__conversation_risk_scores","__keel_meal_photo_flow_state","__last_turn_risk_band","conversation_locale"]
+  HTTP 200 — event e8d07072-c8eb-4fc3-b1b0-15f765e9d567
+  temp_memory APRÈS photo : ["__conversation_risk_scores","__keel_meal_photo_flow_state","__last_turn_risk_band","conversation_locale"]
+  ✅ aucune clé perdue par l'écriture photo — perdues=[]
+  flow de précision ouvert : oui
+  tour 2 (correction) : « Got it — turkey, not chicken. That reads like protein at lunch, and the broccoli is the vegetables. »
+  lignes après correction : 2
+   · 39275f61-d913-4391-890f-fac00d27cdc8 → src=chat disq=null subject=- fgr=refined_grain band=null qty=null/null subst=null weight=0.8 analyzed=no plan_rel=null foods=[] dropped=[]
+   · e8d07072-c8eb-4fc3-b1b0-15f765e9d567 → src=photo disq=null subject=eaten_meal fgr=null band=moderate qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[grilled chicken breast, brown rice, broccoli] dropped=[]
+  🔴 la correction n'a pas écrit un SECOND repas (2 lignes, 1 photo)
+  temp_memory APRÈS correction : ["__conversation_risk_scores","__last_turn_risk_band","companion_question_rhythm","conversation_locale"]
+
+  ▹ course réelle photo ‖ texte
+    photo HTTP 200, texte HTTP 200
+    temp_memory avant : ["__conversation_risk_scores","__last_turn_risk_band","companion_question_rhythm","conversation_locale"]
+    temp_memory après : ["__conversation_risk_scores","__keel_meal_photo_flow_state","__last_turn_risk_band","companion_question_rhythm","conversation_locale"]
+    lignes : 1 — src=photo disq=null subject=eaten_meal fgr=null band=moderate qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[grilled chicken breast, brown rice, broccoli] dropped=[]
+    flow photo présent après la course : oui
+
+▌ D6 — photo d'assiette après invitation
+  avant photo : 1 ligne(s) — src=text disq=null subject=- fgr=null band=null qty=null/null subst=null weight=0.8 analyzed=no plan_rel=off_plan foods=[] dropped=[]
+  HTTP 200, attached_to_declared_meal=true
+  après photo : 1 ligne(s)
+   · aff6934e-cd76-4173-b53e-eb2d9bfe54c2 (déclaré) → src=photo disq=null subject=eaten_meal fgr=null band=moderate qty=null/null subst=null weight=0.8 analyzed=yes plan_rel=off_plan foods=[grilled chicken breast, brown rice, broccoli] dropped=[]
+  ✅ un seul repas (1)
+  ✅ la ligne déclarée porte la photo
+  ✅ la ligne déclarée reste off_plan
+
+▌ D7 — photo de MENU après invitation
+  avant photo : 1 ligne(s) — src=text disq=null subject=- fgr=null band=null qty=null/null subst=null weight=0.8 analyzed=no plan_rel=off_plan foods=[] dropped=[]
+  HTTP 200, attached_to_declared_meal=false
+  après photo : 2 ligne(s)
+   · 3f0c58dd-fc69-45b8-be07-55fb5a1fd248 (déclaré) → src=text disq=null subject=- fgr=null band=null qty=null/null subst=null weight=0.8 analyzed=no plan_rel=off_plan foods=[] dropped=[]
+   · 4100f396-8c5d-422f-b9c4-7530964f9ee4 → src=photo disq=food_not_eaten subject=food_not_eaten fgr=null band=unclear qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[] dropped=[]
+  ✅ la photo de menu reste son PROPRE fait (2 lignes)
+  ✅ le repas déclaré N'A PAS été disqualifié (disq=null)
+  ✅ le repas déclaré n'a PAS reçu la photo de menu
+
+nettoyage OK

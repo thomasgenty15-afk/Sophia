@@ -1,0 +1,35 @@
+# FF-018 · PHASE F — le mauvais plat prévu (jour sat, 2026-08-08)
+
+
+▌ F1 — DEUX plats jumeaux (poulet / canard)
+  HTTP 200, 1 ligne(s)
+   · src=photo disq=null subject=eaten_meal fgr=null band=moderate qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[grilled chicken breast, brown rice, broccoli] dropped=[] note=-
+  planned_dish : {"title":"Chicken, brown rice and broccoli bowl","reason":"several_plausible","meal_id":"831a2521-af47-498b-bcd7-a83da624b0ee","verdict":"probable","coverage":1,"dish_index":0,"missing_groups":[]}
+  coches quick_tap : 0 — 
+  accusé : I see grilled chicken breast, brown rice, broccoli. I can see "Protein at lunch" and "Vegetables at lunch" here, but one photo cannot settle which one it is - tell me which one to count and I will log it. The chicken may have been lightly oiled before grilling to prevent sticking. Tell me if that is wrong.
+  ✅ coche attendue=false → obtenue=false
+  ✅ aucun plat au canard coché
+  ✅ l'accusé ne nomme pas le plat au canard
+
+▌ F2 — UN SEUL plat, au CANARD, assiette de poulet
+  HTTP 200, 1 ligne(s)
+   · src=photo disq=null subject=eaten_meal fgr=null band=moderate qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[grilled chicken breast, brown rice, broccoli florets] dropped=[] note=-
+  planned_dish : {"title":"Duck, brown rice and broccoli bowl","reason":"groups_match_terms_do_not","meal_id":"37662a9b-478f-42d9-bf6d-38f1b40ab614","verdict":"probable","coverage":1,"dish_index":0,"missing_groups":[]}
+  coches quick_tap : 0 — 
+  accusé : I see grilled chicken breast, brown rice, broccoli florets. I can see "Protein at lunch" and "Vegetables at lunch" here, but one photo cannot settle which one it is - tell me which one to count and I will log it. The chicken was likely grilled with a small amount of oil to prevent sticking. Tell me if that is wrong.
+  ✅ coche attendue=false → obtenue=false
+  ✅ aucun plat au canard coché
+  ✅ l'accusé ne nomme pas le plat au canard
+
+▌ F3 — UN SEUL plat, au POULET (cas nominal)
+  HTTP 200, 2 ligne(s)
+   · src=photo disq=null subject=eaten_meal fgr=null band=moderate qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[grilled chicken breast, brown rice, broccoli] dropped=[] note=-
+   · src=quick_tap disq=null subject=- fgr=null band=null qty=null/null subst=null weight=0.4 analyzed=no plan_rel=null foods=[] dropped=[] note=Chicken, brown rice and broccoli bowl
+  planned_dish : {"title":"Chicken, brown rice and broccoli bowl","reason":"single_full_cover","meal_id":"35c77220-ae94-4b24-b006-842ab682d59a","verdict":"confident","coverage":1,"dish_index":0,"missing_groups":[]}
+  coches quick_tap : 1 — Chicken, brown rice and broccoli bowl
+  accusé : I see grilled chicken breast, brown rice, broccoli. Looks like your planned "Chicken, brown rice and broccoli bowl" — I have ticked it off. Tell me if that was not it. I can see "Protein at lunch" and "Vegetables at lunch" here, but one photo cannot settle which one it is - tell me which one to count and I will log it. A small amount of oil may have been used on the grill to prevent the chicken from sticking. Tell me if that is wrong.
+  ✅ coche attendue=true → obtenue=true
+  ✅ aucun plat au canard coché
+  ✅ l'accusé ne nomme pas le plat au canard
+
+nettoyage OK

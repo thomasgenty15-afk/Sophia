@@ -1,0 +1,50 @@
+# FF-018 — sonde du FILTRE 1 (énergie/macro), FR et EN
+
+## 1. Prose soumise à `stripMeasurementFacts`
+
+  ✅ EN chiffre + kcal            | doit tomber   | REDACTÉ | « Roughly [removed] on this plate. »
+  ✅ EN chiffre + calories        | doit tomber   | REDACTÉ | « About [removed]. »
+  ✅ EN 'approximately' + calories | doit tomber   | REDACTÉ | « approximately [removed] »
+  ✅ EN chiffre + g protein       | doit tomber   | REDACTÉ | « There are [removed] here. »
+  ✅ EN protein: 32 g             | doit tomber   | REDACTÉ | « [removed] »
+  ✅ EN LETTRES + calories        | doit tomber   | REDACTÉ | « This is about [removed]. »
+  ✅ EN LETTRES + kcal            | doit tomber   | REDACTÉ | « roughly [removed] »
+  ✅ EN qualitatif seul           | doit survivre | intact  | « A protein-rich plate, high in fiber. »
+  ✅ FR chiffre + calories        | doit tomber   | REDACTÉ | « Environ [removed] dans cette assiette. »
+  ✅ FR chiffre + kcal            | doit tomber   | REDACTÉ | « à peu près [removed] »
+  ✅ FR LETTRES + calories        | doit tomber   | REDACTÉ | « Environ [removed]. »
+  ✅ FR chiffre + g de protéines  | doit tomber   | REDACTÉ | « Il y a [removed]. »
+  ✅ FR chiffre + grammes de glucides | doit tomber   | REDACTÉ | « [removed]. »
+  ✅ FR qualitatif seul           | doit survivre | intact  | « Une assiette riche en protéines. »
+
+  → 0 écart(s) sur 14
+
+## 2. Clés soumises à `stripMeasurementFacts`
+
+  ✅ calories                 | attendu retiré  | obtenu retiré  | reste={}
+  ✅ total_kcal               | attendu retiré  | obtenu retiré  | reste={}
+  ✅ Calories (casse)         | attendu retiré  | obtenu retiré  | reste={}
+  ✅ nutritionFacts           | attendu retiré  | obtenu retiré  | reste={}
+  ✅ macro_protein_g          | attendu retiré  | obtenu retiré  | reste={}
+  ✅ estimated_calories       | attendu retiré  | obtenu retiré  | reste={}
+  ✅ energy_kj                | attendu survit  | obtenu survit  | reste={"energy_kj":1880}
+  ✅ calories_estimees (FR)   | attendu survit  | obtenu survit  | reste={"calories_estimees":450}
+  ✅ energie (FR)             | attendu survit  | obtenu survit  | reste={"energie":450}
+  ✅ apport_calorique (FR)    | attendu survit  | obtenu survit  | reste={"apport_calorique":450}
+
+  → 0 surprise(s). NOTE: une clé inconnue qui survit au filtre ne rejoint PAS
+    la base : `buildRecognizedPayload` ne recopie que des champs typés.
+
+## 3. Le chemin complet — une sortie modèle hostile jusqu'à l'accusé
+
+  dropped_measurement_fields : ["detected_foods[0].label","detected_foods[1].label","portion.rationale","portion.rationale","assumptions[0].assumption","clarifying_question","calories","macros"]
+  detected_foods             : ["grilled chicken (about [removed])","brown rice, roughly [removed]"]
+  portion_rationale          : « About [removed] in total, [removed]. »
+  assumptions                : ["Cooked in oil, which adds roughly [removed]."]
+  clarifying_question        : « Was that about [removed] of rice, or more? »
+
+  ACCUSÉ RENDU À L'ÉLÈVE :
+  « I see grilled chicken (about [removed]), brown rice, roughly [removed]. Was that about [removed] of rice, or more? »
+
+  ✅ aucun chiffre d'énergie dans l'accusé — []
+  ✅ aucune énergie EN TOUTES LETTRES dans l'accusé — []
