@@ -1,0 +1,189 @@
+{
+  "ledgerBefore": 1,
+  "ledgerAfter": [
+    {
+      "ask_kind": "meal_precision_question",
+      "local_date": "2026-08-08",
+      "question": "And what did you have with it?"
+    }
+  ],
+  "photoHits": 0,
+  "foodHits": 0,
+  "rows": [
+    {
+      "turn": 1,
+      "message": "I had a takeaway pizza for dinner.",
+      "reply": "That’s a clean update. I’ve got the dinner note, and the day’s lunch lines still stand as the two plan items for today.",
+      "photo": [],
+      "food": []
+    },
+    {
+      "turn": 2,
+      "message": "We got takeaway last night, a big curry.",
+      "reply": "Got it — dinner was takeaway curry last night. For today, the lunch items still on record are protein at lunch and vegetables at lunch.",
+      "photo": [],
+      "food": []
+    },
+    {
+      "turn": 3,
+      "message": "I ate at a restaurant with colleagues at lunch.",
+      "reply": "Got it — lunch was at a restaurant with colleagues. The two lunch items still on record are protein at lunch and vegetables at lunch.",
+      "photo": [],
+      "food": []
+    },
+    {
+      "turn": 4,
+      "message": "I had lunch at the canteen today.",
+      "reply": "Got it — lunch was at the canteen today. The two lunch items still on record are protein at lunch and vegetables at lunch.",
+      "photo": [],
+      "food": []
+    },
+    {
+      "turn": 5,
+      "message": "We had dinner at my mum's, a roast.",
+      "reply": "Got it — dinner was at your mum’s, roast. The two lunch items still on record are protein at lunch and vegetables at lunch.",
+      "photo": [],
+      "food": []
+    },
+    {
+      "turn": 6,
+      "message": "I grabbed takeaway noodles on the way home.",
+      "reply": "Noted — dinner was takeaway noodles on the way home. The two lunch items still on record are protein at lunch and vegetables at lunch.",
+      "photo": [],
+      "food": []
+    },
+    {
+      "turn": 7,
+      "message": "I ate at a wedding on Saturday, buffet and cake.",
+      "reply": "Noted — on Saturday you ate at a wedding: buffet and cake.",
+      "photo": [],
+      "food": []
+    },
+    {
+      "turn": 8,
+      "message": "Lunch was at a restaurant, a burger and chips.",
+      "reply": "Noted — lunch was at a restaurant: a burger and chips.",
+      "photo": [],
+      "food": []
+    },
+    {
+      "turn": 9,
+      "message": "I had takeaway fish and chips for dinner.",
+      "reply": "Noted — dinner was takeaway fish and chips.",
+      "photo": [],
+      "food": []
+    },
+    {
+      "turn": 10,
+      "message": "J'ai mangé à la cantine ce midi.",
+      "reply": "Noted — you ate at the canteen at lunch.",
+      "photo": [],
+      "food": []
+    },
+    {
+      "turn": 11,
+      "message": "On a mangé au kebab hier soir.",
+      "reply": "Noted — yesterday evening you ate at a kebab place.",
+      "photo": [],
+      "food": []
+    },
+    {
+      "turn": 12,
+      "message": "J'étais au mcdo à midi, un menu classique.",
+      "reply": "Noted — lunch was at McDonald’s, with a classic menu.",
+      "photo": [],
+      "food": []
+    },
+    {
+      "turn": 13,
+      "message": "I had a takeaway kebab after football.",
+      "reply": "Noted — takeaway kebab after football.",
+      "photo": [],
+      "food": []
+    },
+    {
+      "turn": 14,
+      "message": "We ate at a friend's, lasagne and salad.",
+      "reply": "Noted — lasagne and salad at a friend’s.",
+      "photo": [],
+      "food": []
+    },
+    {
+      "turn": 15,
+      "message": "I had takeout sushi for dinner.",
+      "reply": "Noted — takeout sushi for dinner.",
+      "photo": [],
+      "food": []
+    },
+    {
+      "turn": 16,
+      "message": "I had chicken for lunch.",
+      "reply": "Noted — chicken for lunch.",
+      "photo": [],
+      "food": []
+    },
+    {
+      "turn": 17,
+      "message": "I ate some pasta earlier.",
+      "reply": "Noted — pasta earlier.",
+      "photo": [],
+      "food": []
+    },
+    {
+      "turn": 18,
+      "message": "I had a sandwich at midday.",
+      "reply": "Noted — sandwich at midday.",
+      "photo": [],
+      "food": []
+    },
+    {
+      "turn": 19,
+      "message": "I had eggs this morning.",
+      "reply": "Noted — eggs this morning.",
+      "photo": [],
+      "food": []
+    },
+    {
+      "turn": 20,
+      "message": "I had rice and something with it for dinner.",
+      "reply": "Noted — rice and something with it for dinner.",
+      "photo": [],
+      "food": []
+    },
+    {
+      "turn": 21,
+      "message": "J'ai mangé du poulet à midi.",
+      "reply": "Noted — chicken at midday.",
+      "photo": [],
+      "food": []
+    },
+    {
+      "turn": 22,
+      "message": "J'ai pris une salade ce midi.",
+      "reply": "You had a salad at lunch.",
+      "photo": [],
+      "food": []
+    },
+    {
+      "turn": 23,
+      "message": "I had soup for lunch.",
+      "reply": "You had soup for lunch.",
+      "photo": [],
+      "food": []
+    },
+    {
+      "turn": 24,
+      "message": "I ate a bowl of porridge at breakfast.",
+      "reply": "Noted: porridge at breakfast.",
+      "photo": [],
+      "food": []
+    },
+    {
+      "turn": 25,
+      "message": "I had steak last night.",
+      "reply": "Noted: steak last night.",
+      "photo": [],
+      "food": []
+    }
+  ]
+}

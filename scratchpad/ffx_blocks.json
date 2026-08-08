@@ -1,0 +1,58 @@
+{
+  "userId": "b030051c-aab1-4b8c-a708-3c42f268f1a7",
+  "localDate": "2026-08-08",
+  "ground": "day",
+  "hunger": {
+    "days": 3,
+    "recurrent": true,
+    "windowStart": "2026-08-02",
+    "windowEnd": "2026-08-08"
+  },
+  "satietyBlockChars": 1173,
+  "satietyInChatPrompt": false,
+  "blocks": [
+    {
+      "rank": 3,
+      "name": "DOCTRINE DU COACH",
+      "start": 0,
+      "end": 1467,
+      "len": 1465
+    },
+    {
+      "rank": 4,
+      "name": "protocole (aliments encouragés)",
+      "start": 1467,
+      "end": 2668,
+      "len": 1199
+    },
+    {
+      "rank": 5,
+      "name": "foyer (plats, portions, courses)",
+      "start": 2668,
+      "end": 5302,
+      "len": 2632
+    },
+    {
+      "rank": 7,
+      "name": "bilan hebdo",
+      "start": 5302,
+      "end": 6199,
+      "len": 895
+    },
+    {
+      "rank": 8,
+      "name": "pouls du soir",
+      "start": 6199,
+      "end": 7492,
+      "len": 1291
+    },
+    {
+      "rank": 9,
+      "name": "soutien groundé",
+      "start": 7492,
+      "end": 8886,
+      "len": 1392
+    }
+  ],
+  "keelBlocksTotalChars": 8886
+}

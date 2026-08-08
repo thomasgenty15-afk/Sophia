@@ -1,0 +1,320 @@
+{
+  "userId": "b030051c-aab1-4b8c-a708-3c42f268f1a7",
+  "turns": 30,
+  "ledgerBefore": [
+    "meal_precision_question|2026-08-08|And what did you have with it?"
+  ],
+  "ledgerAfter": [
+    "meal_precision_question|2026-08-08|And what did you have with it?"
+  ],
+  "solicitations": 0,
+  "byKind": {
+    "food": 0,
+    "state": 0,
+    "photo": 0,
+    "reAsk": 0
+  },
+  "withQuestionMark": 1,
+  "rows": [
+    {
+      "turn": 1,
+      "message": "My sister is moving flat next weekend and I said I'd help.",
+      "reply": "That’s a concrete thing on your plate: your sister’s move, next weekend, and you already said yes. If you want, I can help you think through what to pack or what to bring on the day.",
+      "food": [],
+      "state": [],
+      "photo": [],
+      "reAsk": [],
+      "hasQuestionMark": false
+    },
+    {
+      "turn": 2,
+      "message": "I finally fixed the shelf in the kitchen, it only took two months.",
+      "reply": "That shelf is finally done, after two months of it hanging over you. Nice to have one stubborn little job off your back.",
+      "food": [],
+      "state": [],
+      "photo": [],
+      "reAsk": [],
+      "hasQuestionMark": false
+    },
+    {
+      "turn": 3,
+      "message": "Do you know if a cast iron pan can go in the dishwasher?",
+      "reply": "No — cast iron doesn’t belong in the dishwasher. The soap and long soak can strip the seasoning and invite rust.",
+      "food": [],
+      "state": [],
+      "photo": [],
+      "reAsk": [],
+      "hasQuestionMark": false
+    },
+    {
+      "turn": 4,
+      "message": "The dog chewed through a phone charger again.",
+      "reply": "That’s annoying, and it’s the kind of damage that keeps repeating until the cable is out of reach. Unplug it, keep it away from the dog, and if the charger’s outer jacket is cut through, don’t use it.",
+      "food": [],
+      "state": [],
+      "photo": [],
+      "reAsk": [],
+      "hasQuestionMark": false
+    },
+    {
+      "turn": 5,
+      "message": "Work has been a lot of meetings this week, nothing dramatic.",
+      "reply": "A lot of meetings can drain you without anything dramatic happening. That kind of week still counts as heavy, just in a quieter way.",
+      "food": [],
+      "state": [],
+      "photo": [],
+      "reAsk": [],
+      "hasQuestionMark": false
+    },
+    {
+      "turn": 6,
+      "message": "What's the difference between a stock and a broth?",
+      "reply": "A stock is usually made by simmering bones, so it’s richer in body and gelatin. A broth is usually made more from meat and aromatics, so it’s lighter and ready to drink as-is.",
+      "food": [],
+      "state": [],
+      "photo": [],
+      "reAsk": [],
+      "hasQuestionMark": false
+    },
+    {
+      "turn": 7,
+      "message": "I'm reading a book about the history of canals, oddly gripping.",
+      "reply": "That’s a good kind of odd: canals give you movement, trade, engineering, and politics all in one thread. What’s pulling you in most so far — the practical engineering or the human history?",
+      "food": [],
+      "state": [],
+      "photo": [],
+      "reAsk": [],
+      "hasQuestionMark": true
+    },
+    {
+      "turn": 8,
+      "message": "Mon frère vient dîner samedi, il ne mange pas de porc.",
+      "reply": "Recorded for 2026-08-08 (dinner): Red meat.",
+      "food": [],
+      "state": [],
+      "photo": [],
+      "reAsk": [],
+      "hasQuestionMark": false
+    },
+    {
+      "turn": 9,
+      "message": "Il pleut sans arrêt depuis trois jours ici.",
+      "reply": "Three straight rainy days will wear you down. It’s the kind of weather that flattens the whole day and makes everything feel slower.",
+      "food": [],
+      "state": [],
+      "photo": [],
+      "reAsk": [],
+      "hasQuestionMark": false
+    },
+    {
+      "turn": 10,
+      "message": "How long does a bag of flour keep once it's open?",
+      "reply": "If it’s white flour, usually about 6 to 12 months at room temperature. Whole wheat goes bad faster, often 1 to 3 months, and nut-based flours even sooner.\n\nWatch for a sour or rancid smell, mold, bugs, or clumps from moisture.",
+      "food": [],
+      "state": [],
+      "photo": [],
+      "reAsk": [],
+      "hasQuestionMark": false
+    },
+    {
+      "turn": 11,
+      "message": "We repainted the hallway and I regret the colour already.",
+      "reply": "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "food": [],
+      "state": [],
+      "photo": [],
+      "reAsk": [],
+      "hasQuestionMark": false
+    },
+    {
+      "turn": 12,
+      "message": "My neighbour asked me to water her plants for a fortnight.",
+      "reply": "That’s a straightforward ask, and it’s the kind of favour that can quietly become a responsibility if the details stay vague. If you’re going to do it, get the start date, how often, and where the watering can is.",
+      "food": [],
+      "state": [],
+      "photo": [],
+      "reAsk": [],
+      "hasQuestionMark": false
+    },
+    {
+      "turn": 13,
+      "message": "Any idea why my bread never rises properly?",
+      "reply": "Usually it comes down to one of three things: the yeast is weak or dead, the dough is too cold, or the dough is too dry/stiff. If you want, I can help you narrow it down from how you mix and proof it.",
+      "food": [],
+      "state": [],
+      "photo": [],
+      "reAsk": [],
+      "hasQuestionMark": false
+    },
+    {
+      "turn": 14,
+      "message": "I've started walking to the station instead of driving.",
+      "reply": "That’s a real shift in the routine, and it counts as a concrete change in how you move through the day.\n\nIf you want, I can help you pin down the next line that matches it.",
+      "food": [],
+      "state": [],
+      "photo": [],
+      "reAsk": [],
+      "hasQuestionMark": false
+    },
+    {
+      "turn": 15,
+      "message": "Est-ce qu'un couteau en céramique s'aiguise comme un couteau normal ?",
+      "reply": "No. Ceramic knives usually don’t get sharpened like steel ones, because the blade is much harder and more brittle. They’re typically sharpened with a diamond sharpener or sent to a service that handles ceramic blades.",
+      "food": [],
+      "state": [],
+      "photo": [],
+      "reAsk": [],
+      "hasQuestionMark": false
+    },
+    {
+      "turn": 16,
+      "message": "The washing machine is making a new and worrying noise.",
+      "reply": "That’s a real thing to flag, and it’s the kind of noise that can turn into a bigger fault if you keep running it. If you can, stop it after the current cycle and check for anything caught in the drum or filter.",
+      "food": [],
+      "state": [],
+      "photo": [],
+      "reAsk": [],
+      "hasQuestionMark": false
+    },
+    {
+      "turn": 17,
+      "message": "I might repot the basil, it looks cramped.",
+      "reply": "That’s a sensible read: “cramped” usually means the basil is running out of room, and repotting can help it keep growing. If you do it, be gentle with the roots and give it fresh compost.",
+      "food": [],
+      "state": [],
+      "photo": [],
+      "reAsk": [],
+      "hasQuestionMark": false
+    },
+    {
+      "turn": 18,
+      "message": "What temperature should a fridge actually be at?",
+      "reply": "A fridge should be at 4°C or below, ideally around 3–4°C. That keeps food cold enough without freezing most items.",
+      "food": [],
+      "state": [],
+      "photo": [],
+      "reAsk": [],
+      "hasQuestionMark": false
+    },
+    {
+      "turn": 19,
+      "message": "My cousin is visiting from Lisbon in September.",
+      "reply": "Nice. A visit from Lisbon in September is a concrete thing on the horizon. If you want, I can help you think through the dates or what needs lining up.",
+      "food": [],
+      "state": [],
+      "photo": [],
+      "reAsk": [],
+      "hasQuestionMark": false
+    },
+    {
+      "turn": 20,
+      "message": "I keep forgetting to buy bin bags, every single week.",
+      "reply": "That’s the kind of small repeat that quietly keeps biting you. If you want, I can help you pin it to something you already do so it stops slipping.",
+      "food": [],
+      "state": [],
+      "photo": [],
+      "reAsk": [],
+      "hasQuestionMark": false
+    },
+    {
+      "turn": 21,
+      "message": "Le voisin du dessus refait sa salle de bain, c'est bruyant.",
+      "reply": "That’s a real nuisance, especially when it’s overhead and constant. If it’s only for a few days, the cleanest move is usually to block out the worst of it where you can.",
+      "food": [],
+      "state": [],
+      "photo": [],
+      "reAsk": [],
+      "hasQuestionMark": false
+    },
+    {
+      "turn": 22,
+      "message": "Is a pressure cooker worth the cupboard space?",
+      "reply": "Yes, if you cook beans, stews, stock, or tougher cuts with any regularity. It saves a lot of time; if you only ever use it once in a blue moon, it’s harder to justify the space.",
+      "food": [],
+      "state": [],
+      "photo": [],
+      "reAsk": [],
+      "hasQuestionMark": false
+    },
+    {
+      "turn": 23,
+      "message": "I signed up for a pottery class on Thursdays.",
+      "reply": "Got it — Thursdays are now your pottery class day.",
+      "food": [],
+      "state": [],
+      "photo": [],
+      "reAsk": [],
+      "hasQuestionMark": false
+    },
+    {
+      "turn": 24,
+      "message": "The bus route changed and now it's ten minutes longer.",
+      "reply": "That’s annoying in exactly the wrong way: not a disaster, just enough to throw off the day. If it’s a regular trip, you may need to leave a bit earlier and let that become the new default.",
+      "food": [],
+      "state": [],
+      "photo": [],
+      "reAsk": [],
+      "hasQuestionMark": false
+    },
+    {
+      "turn": 25,
+      "message": "Do I need to sharpen scissors or just replace them?",
+      "reply": "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "food": [],
+      "state": [],
+      "photo": [],
+      "reAsk": [],
+      "hasQuestionMark": false
+    },
+    {
+      "turn": 26,
+      "message": "I watched a documentary about the deep sea last night.",
+      "reply": "Nice — the deep sea is a strong choice: strange, quiet, and a bit unsettling in a good way. If something from it stuck with you, you can leave it there; not every interesting thing needs to become a task.",
+      "food": [],
+      "state": [],
+      "photo": [],
+      "reAsk": [],
+      "hasQuestionMark": false
+    },
+    {
+      "turn": 27,
+      "message": "My phone battery dies by four in the afternoon now.",
+      "reply": "That’s a real drag — it turns the last part of the day into a countdown. If it’s becoming routine, the practical fix is to treat earlier charging as part of the day, not something you remember when it’s already low.",
+      "food": [],
+      "state": [],
+      "photo": [],
+      "reAsk": [],
+      "hasQuestionMark": false
+    },
+    {
+      "turn": 28,
+      "message": "J'ai retrouvé une vieille cocotte en fonte au grenier.",
+      "reply": "That’s a good find — cast iron can outlast almost anything if it’s sound. If you want to use it, the key thing is to check for cracks and heavy rust before you trust it on heat.",
+      "food": [],
+      "state": [],
+      "photo": [],
+      "reAsk": [],
+      "hasQuestionMark": false
+    },
+    {
+      "turn": 29,
+      "message": "There's a new bakery two streets over, huge queue.",
+      "reply": "That usually means they’re either very good or very new. If you’re tempted, the queue is a clue, but not a guarantee.",
+      "food": [],
+      "state": [],
+      "photo": [],
+      "reAsk": [],
+      "hasQuestionMark": false
+    },
+    {
+      "turn": 30,
+      "message": "I need to book a dentist appointment and keep putting it off.",
+      "reply": "That’s a very normal kind of delay: it’s small, annoying, and easy to keep deferring. The useful move is to separate “finding a slot” from “solving the whole problem” so it stops feeling like one big task.",
+      "food": [],
+      "state": [],
+      "photo": [],
+      "reAsk": [],
+      "hasQuestionMark": false
+    }
+  ]
+}

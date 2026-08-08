@@ -1,0 +1,106 @@
+{
+  "today": "2026-08-08",
+  "timezone": "Asia/Bangkok",
+  "created": [
+    "a3c4b229-60b5-4309-955f-adc322849e26",
+    "f67c0637-cbc4-4cb2-99fc-1b31943e48ba",
+    "4c5f4c1a-575e-4147-a548-a94aac135c07",
+    "420a61e4-fa41-4e16-9c71-15f4f6f3b31d",
+    "f077a9fb-6f36-4c2a-ac1f-deaec8a77b20",
+    "3a9850b5-3577-4581-b803-7fba1cf90318"
+  ],
+  "results": {
+    "C": [
+      {
+        "run": 1,
+        "userId": "a3c4b229-60b5-4309-955f-adc322849e26",
+        "trace": [
+          {
+            "step": "precision",
+            "out": "Protein at lunch is covered.\n\nAnd what did you have with it?",
+            "ledgerAfter": 1
+          },
+          {
+            "step": "photo",
+            "out": "Got it. Dinner is logged for today.",
+            "ledgerAfter": 1
+          },
+          {
+            "step": "practice",
+            "out": "{\"source\":\"composed\",\"reason\":\"\",\"practiceMode\":\"remind\",\"body\":\"Bud, you ticked off chicken and greens and beef and root vegetables, and you had one off-plan meal. Sit down to eat, away from a screen.\"}",
+            "ledgerAfter": 1
+          },
+          {
+            "step": "reco",
+            "out": "{\"outcome\":\"silent\",\"reason\":\"daily_ask_budget\"}",
+            "ledgerAfter": 1
+          }
+        ],
+        "finalLedger": [
+          "meal_precision_question|2026-08-08|text|accompaniment|And what did you have with it?"
+        ],
+        "verdict": "GREEN"
+      },
+      {
+        "run": 2,
+        "userId": "4c5f4c1a-575e-4147-a548-a94aac135c07",
+        "trace": [
+          {
+            "step": "precision",
+            "out": "Lunch protein is on record.\n\nAnd what did you have with it?",
+            "ledgerAfter": 1
+          },
+          {
+            "step": "photo",
+            "out": "Dinner protein is on record.\n\nPizza is the main event here, and it doesn’t give you the protein anchor this coach builds meals around.",
+            "ledgerAfter": 1
+          },
+          {
+            "step": "practice",
+            "out": "{\"source\":\"composed\",\"reason\":\"\",\"practiceMode\":\"remind\",\"body\":\"Bud, chicken and greens and beef and root vegetables were ticked today, and no meal photos came through. Sit down to eat, away from a screen.\"}",
+            "ledgerAfter": 1
+          },
+          {
+            "step": "reco",
+            "out": "{\"outcome\":\"silent\",\"reason\":\"daily_ask_budget\"}",
+            "ledgerAfter": 1
+          }
+        ],
+        "finalLedger": [
+          "meal_precision_question|2026-08-08|text|accompaniment|And what did you have with it?"
+        ],
+        "verdict": "GREEN"
+      },
+      {
+        "run": 3,
+        "userId": "f077a9fb-6f36-4c2a-ac1f-deaec8a77b20",
+        "trace": [
+          {
+            "step": "precision",
+            "out": "Protein at lunch is covered.\n\nAnd what did you have with it?",
+            "ledgerAfter": 1
+          },
+          {
+            "step": "photo",
+            "out": "Protein at lunch is covered.\n\nTakeaway pizza for dinner is logged.",
+            "ledgerAfter": 1
+          },
+          {
+            "step": "practice",
+            "out": "{\"source\":\"composed\",\"reason\":\"\",\"practiceMode\":\"remind\",\"body\":\"Bud, you ticked off chicken and greens and beef and root vegetables, and you reported three meals off the plan. Sit down to eat, away from a screen.\"}",
+            "ledgerAfter": 1
+          },
+          {
+            "step": "reco",
+            "out": "{\"outcome\":\"silent\",\"reason\":\"daily_ask_budget\"}",
+            "ledgerAfter": 1
+          }
+        ],
+        "finalLedger": [
+          "meal_precision_question|2026-08-08|text|accompaniment|And what did you have with it?"
+        ],
+        "verdict": "GREEN"
+      }
+    ]
+  }
+}

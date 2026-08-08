@@ -1,0 +1,115 @@
+{
+  "constants": {
+    "MAX_CHARS": 32000,
+    "FULL_WHEN_TRUNCATED": 32222,
+    "LANG_OVERHEAD": 226
+  },
+  "results": {
+    "decouragement": [
+      {
+        "run": 1,
+        "http": 200,
+        "requestId": "10d02107-3bd7-47f1-a76f-969191b373c1",
+        "stable": 10536,
+        "semi": 2110,
+        "volatile": 24330,
+        "full": 32222,
+        "untruncated": 37202,
+        "overflow": 4980,
+        "baseContextChars": 15392,
+        "cutInBase": 5040,
+        "keelBlocksChars": 8886,
+        "cutReachesKeelBlocks": false,
+        "verdict": "TRONQUÉ",
+        "reply": "What’s on record today is 2 commitment(s) scheduled and 2 still unknown, not a failed week. The part that feels horrible is real, but I won’t pretend the record says you got nowhere."
+      },
+      {
+        "run": 2,
+        "http": 200,
+        "requestId": "0af9e331-6eae-4feb-806e-cdd7eaa5eeb0",
+        "stable": 10536,
+        "semi": 1988,
+        "volatile": 24649,
+        "full": 32221,
+        "untruncated": 37399,
+        "overflow": 5177,
+        "baseContextChars": 15711,
+        "cutInBase": 0,
+        "keelBlocksChars": 8886,
+        "cutReachesKeelBlocks": false,
+        "verdict": "entier",
+        "reply": "What’s on record today is 2 commitments scheduled and 2 still unknown, not a failed week. The part that feels horrible is real, but I won’t pretend the record says you got nowhere."
+      },
+      {
+        "run": 3,
+        "http": 200,
+        "requestId": "9554aba2-7ce5-4a86-8037-da68f37ff945",
+        "stable": 10536,
+        "semi": 1842,
+        "volatile": 24341,
+        "full": 32222,
+        "untruncated": 36945,
+        "overflow": 4723,
+        "baseContextChars": 15403,
+        "cutInBase": 4783,
+        "keelBlocksChars": 8886,
+        "cutReachesKeelBlocks": false,
+        "verdict": "TRONQUÉ",
+        "reply": "What’s on record today is 2 commitments scheduled and 2 still unknown, not a failed week. The part that feels horrible is real, but I won’t pretend the record says you got nowhere."
+      }
+    ],
+    "doctrine": [
+      {
+        "run": 1,
+        "http": 200,
+        "requestId": "cc3b4556-fb3b-428a-8d36-d15f6f4360e7",
+        "stable": 10536,
+        "semi": 1696,
+        "volatile": 24045,
+        "full": 32222,
+        "untruncated": 36503,
+        "overflow": 4281,
+        "baseContextChars": 15107,
+        "cutInBase": 4341,
+        "keelBlocksChars": 8886,
+        "cutReachesKeelBlocks": false,
+        "verdict": "TRONQUÉ",
+        "reply": "Marlow doesn’t use calorie counting. He builds the plate around a protein anchor, with vegetables for volume."
+      },
+      {
+        "run": 2,
+        "http": 200,
+        "requestId": "a5a43252-78e9-49c1-9a11-417be17f7a53",
+        "stable": 10536,
+        "semi": 1599,
+        "volatile": 20556,
+        "full": 32222,
+        "untruncated": 32917,
+        "overflow": 695,
+        "baseContextChars": 11618,
+        "cutInBase": 755,
+        "keelBlocksChars": 8886,
+        "cutReachesKeelBlocks": false,
+        "verdict": "TRONQUÉ",
+        "reply": "Marlow doesn’t use calorie counting. He builds the plate around a protein anchor, with vegetables for volume."
+      },
+      {
+        "run": 3,
+        "http": 200,
+        "requestId": "90cf0b75-9940-4573-a2ea-1132ded75fd9",
+        "stable": 10536,
+        "semi": 1504,
+        "volatile": 19788,
+        "full": 32054,
+        "untruncated": 32054,
+        "overflow": -168,
+        "baseContextChars": 10850,
+        "cutInBase": 0,
+        "keelBlocksChars": 8886,
+        "cutReachesKeelBlocks": false,
+        "verdict": "entier",
+        "reply": "Marlow doesn’t use calorie counting. He builds the plate around a protein anchor, with vegetables for volume."
+      }
+    ]
+  }
+}

@@ -1,0 +1,63 @@
+horloge: 2026-08-08T12:43:54.139Z — Asia/Bangkok = 2026-08-08 19h
+soir simulé: 2026-08-08T14:15:00.000Z (21h15 Asia/Bangkok) — ≥ réel: true
+decideAskCadence({daysSinceLastAsk:1}) → ask=false (too_soon) — la question de pratique est atteignable: true
+
+============================================================================
+▌ ORDRE C · run 1 — élève a3c4b229-60b5-4309-955f-adc322849e26
+============================================================================
+— FF-017 · repas vague déclaré (chat)
+  → Protein at lunch is covered.  And what did you have with it?
+  ledger: 1 ligne(s)
+— FF-025 · repas HORS PLAN déclaré (chat)
+  → Got it. Dinner is logged for today.
+  ledger: 1 ligne(s)
+— FF-029 · composeRecapBody (21h local, pulseAsks=false)
+  → {"source":"composed","reason":"","practiceMode":"remind","body":"Bud, you ticked off chicken and greens and beef and root vegetables, and you had one off-plan meal. Sit down to eat, away from a screen."}
+  ledger: 1 ligne(s)
+— FF-028 · runRecommendationStep (19h-20h local)
+  → {"outcome":"silent","reason":"daily_ask_budget"}
+  ledger: 1 ligne(s)
+
+LEDGER FINAL (1 ligne(s)):
+  meal_precision_question|2026-08-08|text|accompaniment|And what did you have with it?
+VERDICT ordre C run 1: GREEN
+
+============================================================================
+▌ ORDRE C · run 2 — élève 4c5f4c1a-575e-4147-a548-a94aac135c07
+============================================================================
+— FF-017 · repas vague déclaré (chat)
+  → Lunch protein is on record.  And what did you have with it?
+  ledger: 1 ligne(s)
+— FF-025 · repas HORS PLAN déclaré (chat)
+  → Dinner protein is on record.  Pizza is the main event here, and it doesn’t give you the protein anchor this coach builds meals around.
+  ledger: 1 ligne(s)
+— FF-029 · composeRecapBody (21h local, pulseAsks=false)
+  → {"source":"composed","reason":"","practiceMode":"remind","body":"Bud, chicken and greens and beef and root vegetables were ticked today, and no meal photos came through. Sit down to eat, away from a screen."}
+  ledger: 1 ligne(s)
+— FF-028 · runRecommendationStep (19h-20h local)
+  → {"outcome":"silent","reason":"daily_ask_budget"}
+  ledger: 1 ligne(s)
+
+LEDGER FINAL (1 ligne(s)):
+  meal_precision_question|2026-08-08|text|accompaniment|And what did you have with it?
+VERDICT ordre C run 2: GREEN
+
+============================================================================
+▌ ORDRE C · run 3 — élève f077a9fb-6f36-4c2a-ac1f-deaec8a77b20
+============================================================================
+— FF-017 · repas vague déclaré (chat)
+  → Protein at lunch is covered.  And what did you have with it?
+  ledger: 1 ligne(s)
+— FF-025 · repas HORS PLAN déclaré (chat)
+  → Protein at lunch is covered.  Takeaway pizza for dinner is logged.
+  ledger: 1 ligne(s)
+— FF-029 · composeRecapBody (21h local, pulseAsks=false)
+  → {"source":"composed","reason":"","practiceMode":"remind","body":"Bud, you ticked off chicken and greens and beef and root vegetables, and you reported three meals off the plan. Sit down to eat, away from a screen."}
+  ledger: 1 ligne(s)
+— FF-028 · runRecommendationStep (19h-20h local)
+  → {"outcome":"silent","reason":"daily_ask_budget"}
+  ledger: 1 ligne(s)
+
+LEDGER FINAL (1 ligne(s)):
+  meal_precision_question|2026-08-08|text|accompaniment|And what did you have with it?
+VERDICT ordre C run 3: GREEN

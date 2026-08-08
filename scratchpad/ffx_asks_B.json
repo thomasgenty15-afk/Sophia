@@ -1,0 +1,106 @@
+{
+  "today": "2026-08-08",
+  "timezone": "Asia/Bangkok",
+  "created": [
+    "8c23fba7-f7d0-47e5-bdc2-cdcaae9d4e0f",
+    "4e635c26-9f87-48e1-b536-c48c72772562",
+    "1a41e321-acdc-498e-96c9-e8b56c07c414",
+    "3c14a502-61fd-47ab-ac1b-ef4ce10bf370",
+    "d70d3233-15ac-4d5b-ab05-61f21781f1aa",
+    "9109ae2b-699b-476f-9fc8-2a218fd2d0e8"
+  ],
+  "results": {
+    "B": [
+      {
+        "run": 1,
+        "userId": "8c23fba7-f7d0-47e5-bdc2-cdcaae9d4e0f",
+        "trace": [
+          {
+            "step": "reco",
+            "out": "{\"outcome\":\"proposed\",\"proposalId\":\"87afa472-ebe2-494d-a394-0ae126044c80\",\"action\":\"add_afternoon_snack\",\"fingerprint\":\"rhythm=breakfast,dinner,lunch|doctrine=1\"}",
+            "ledgerAfter": 1
+          },
+          {
+            "step": "practice",
+            "out": "{\"source\":\"composed\",\"reason\":\"\",\"practiceMode\":\"remind\",\"body\":\"Bud, you ticked off chicken and greens and beef and root vegetables today. Sit down to eat, away from a screen.\"}",
+            "ledgerAfter": 1
+          },
+          {
+            "step": "photo",
+            "out": "Noted — you had takeaway pizza for dinner.\n\nIf you want, I can help you fit the next meal around a protein anchor and vegetables.",
+            "ledgerAfter": 1
+          },
+          {
+            "step": "precision",
+            "out": "Chicken at lunch is noted.",
+            "ledgerAfter": 1
+          }
+        ],
+        "finalLedger": [
+          "daily_recommendation|2026-08-08|chat|-|You've told me more than once that you were still hungry, an"
+        ],
+        "verdict": "GREEN"
+      },
+      {
+        "run": 2,
+        "userId": "1a41e321-acdc-498e-96c9-e8b56c07c414",
+        "trace": [
+          {
+            "step": "reco",
+            "out": "{\"outcome\":\"proposed\",\"proposalId\":\"4455b2ba-1057-48d2-8176-515df033c676\",\"action\":\"add_afternoon_snack\",\"fingerprint\":\"rhythm=breakfast,dinner,lunch|doctrine=1\"}",
+            "ledgerAfter": 1
+          },
+          {
+            "step": "practice",
+            "out": "{\"source\":\"composed\",\"reason\":\"\",\"practiceMode\":\"remind\",\"body\":\"Bud, you ticked off chicken and greens and beef and root vegetables. Sit down to eat, away from a screen.\"}",
+            "ledgerAfter": 1
+          },
+          {
+            "step": "photo",
+            "out": "Noted. Dinner is on record as takeaway pizza for this evening.\n\nFor the plan, lunch still has two open pieces today: protein and vegetables.",
+            "ledgerAfter": 1
+          },
+          {
+            "step": "precision",
+            "out": "Noted. Lunch now has protein on record.",
+            "ledgerAfter": 1
+          }
+        ],
+        "finalLedger": [
+          "daily_recommendation|2026-08-08|chat|-|You've told me more than once that you were still hungry, an"
+        ],
+        "verdict": "GREEN"
+      },
+      {
+        "run": 3,
+        "userId": "d70d3233-15ac-4d5b-ab05-61f21781f1aa",
+        "trace": [
+          {
+            "step": "reco",
+            "out": "{\"outcome\":\"proposed\",\"proposalId\":\"1e32d728-7178-458a-a124-3eb7db18204f\",\"action\":\"add_afternoon_snack\",\"fingerprint\":\"rhythm=breakfast,dinner,lunch|doctrine=1\"}",
+            "ledgerAfter": 1
+          },
+          {
+            "step": "practice",
+            "out": "{\"source\":\"composed\",\"reason\":\"\",\"practiceMode\":\"remind\",\"body\":\"Bud, you ticked off chicken and greens and beef and root vegetables today. Sit down to eat, away from a screen, with a protein anchor on the plate.\"}",
+            "ledgerAfter": 1
+          },
+          {
+            "step": "photo",
+            "out": "Got it. Dinner is in the book, and the dinner reminder for 2026-08-08 has just been handled.\n\nIf you want, I can help you look at what to do next around the meal structure.",
+            "ledgerAfter": 1
+          },
+          {
+            "step": "precision",
+            "out": "Lunch protein is in for today.",
+            "ledgerAfter": 1
+          }
+        ],
+        "finalLedger": [
+          "daily_recommendation|2026-08-08|chat|-|You've told me more than once that you were still hungry, an"
+        ],
+        "verdict": "GREEN"
+      }
+    ]
+  }
+}
