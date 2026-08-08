@@ -414,35 +414,10 @@ async function loadRecentTransformationHandoff(args: {
   userId: string;
   runtime: RuntimeRefs;
 }): Promise<RecentTransformationHandoffSummary | null> {
-  if (!args.runtime.cycleId || !args.runtime.transformationId) return null;
-
-  const { data, error } = await args.supabase
-    .from("user_transformations")
-    .select("id,title,completed_at,handoff_payload")
-    .eq("cycle_id", args.runtime.cycleId)
-    .neq("id", args.runtime.transformationId)
-    .eq("status", "completed")
-    .not("handoff_payload", "is", null)
-    .order("completed_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (error) throw error;
-  if (!data) return null;
-
-  const summary = extractConversationPulseHandoffSummary(
-    (data as any).handoff_payload ?? null,
-  );
-  if (!summary) return null;
-
-  return {
-    ...summary,
-    transformation_id: String((data as any)?.id ?? "").trim() ||
-      summary.transformation_id,
-    title: String((data as any)?.title ?? "").trim() || summary.title,
-    completed_at: String((data as any)?.completed_at ?? "").trim() ||
-      summary.completed_at,
-  };
+  // RETRAIT RÉSIDUS (2026-08-08): `user_transformations` est supprimée
+  // (cascade plan/transformation, 0 utilisateur grand public) — il n'existe
+  // plus de handoff de transformation à résumer.
+  return null;
 }
 
 async function insertConversationPulseSnapshot(args: {

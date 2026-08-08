@@ -485,27 +485,15 @@ async function buildExportPayload(
 
   const [cycles, transformations, plans, planItems, planEntries, memories, conversations] =
     await Promise.all([
-      fetchAllRows(admin, "user_cycles", SCOPE.cycles, "user_id", user.id),
-      // user_transformations hangs off user_cycles (no user_id of its own).
-      (async () => {
-        const { data: cycleIds, error } = await admin
-          .from("user_cycles")
-          .select("id")
-          .eq("user_id", user.id);
-        if (error) throw error;
-        const ids = (cycleIds ?? []).map((c) => c.id);
-        if (ids.length === 0) return [];
-        const { data, error: trErr } = await admin
-          .from("user_transformations")
-          .select(SCOPE.transformations)
-          .in("cycle_id", ids)
-          .order("created_at", { ascending: true });
-        if (trErr) throw trErr;
-        return data ?? [];
-      })(),
-      fetchAllRows(admin, "user_plans_v2", SCOPE.plans, "user_id", user.id),
-      fetchAllRows(admin, "user_plan_items", SCOPE.planItems, "user_id", user.id),
-      fetchAllRows(admin, "user_plan_item_entries", SCOPE.planEntries, "user_id", user.id),
+      // RETRAIT RÉSIDUS (2026-08-08): la cascade plan/transformation B2C est
+      // DROPPÉE (0 utilisateur grand public, décision humaine). Même motif que
+      // recurring_meals plus bas: les clés de bundle restent (un lecteur
+      // d'export antérieur ne tombe pas sur un trou), vides, sans sonde.
+      Promise.resolve([] as Record<string, unknown>[]),
+      Promise.resolve([] as Record<string, unknown>[]),
+      Promise.resolve([] as Record<string, unknown>[]),
+      Promise.resolve([] as Record<string, unknown>[]),
+      Promise.resolve([] as Record<string, unknown>[]),
       fetchAllRows(
         admin,
         "memory_items",

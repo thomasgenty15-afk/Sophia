@@ -844,77 +844,11 @@ export async function executeTransformationHandoff(
     model?: string;
   } = {},
 ): Promise<ExecuteTransformationHandoffResult> {
-  const nowIso = options.nowIso ?? new Date().toISOString();
-  const context = await loadTransformationHandoffContext({
-    supabase,
-    userId,
-    transformationId,
-  });
-  assertTransformationCanGenerateHandoff(context.transformation);
-
-  let transformation = context.transformation;
-  let stored = extractStoredTransformationHandoff(
-    transformation.handoff_payload,
+  // RETRAIT RÉSIDUS (2026-08-08): la cascade plan/transformation est
+  // supprimée (0 utilisateur grand public) et cet exécuteur n'avait plus
+  // AUCUN appelant de production. Échec bruyant plutôt que lecture d'une
+  // table absente.
+  throw new Error(
+    "transformation_handoff_removed: le systeme de transformation B2C est retire (retrait residus 2026-08-08)",
   );
-  let persisted = false;
-  const eventWarnings: string[] = [];
-
-  if (!stored) {
-    stored = await generateStoredTransformationHandoff({
-      requestId: options.requestId,
-      userId,
-      context,
-      model: options.model,
-      nowIso,
-    });
-    transformation = await persistStoredTransformationHandoff({
-      supabase,
-      transformation,
-      stored,
-      nowIso,
-    });
-    persisted = true;
-
-    const warning = await tryLogTransformationHandoffGenerated({
-      supabase,
-      userId,
-      cycleId: context.cycle.id,
-      transformationId: transformation.id,
-      stored,
-    });
-    if (warning) eventWarnings.push(warning);
-  }
-
-  const rendezVousCreated = await ensureTransitionHandoffRendezVous({
-    supabase,
-    userId,
-    cycle: context.cycle,
-    transformation,
-    nextTransformation: context.nextTransformation,
-    stored,
-    nowIso,
-  });
-  try {
-    await ensureLevelExecutionHandoffMemoryItem({
-      supabase,
-      userId,
-      cycle: context.cycle,
-      transformation,
-      nextTransformation: context.nextTransformation,
-      stored,
-      nowIso,
-    });
-  } catch (error) {
-    eventWarnings.push(eventWarning("LEVEL_EXECUTION_HANDOFF_MEMORY", error));
-  }
-
-  return {
-    cycle: context.cycle,
-    transformation,
-    nextTransformation: context.nextTransformation,
-    stored,
-    persisted,
-    rendezVousCreated,
-    eventWarnings,
-  };
 }

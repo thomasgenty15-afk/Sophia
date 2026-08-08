@@ -446,6 +446,20 @@ export async function runTrackProgressRuntimeLane(params: {
     (params.tempMemory as any)[TRACK_PROGRESS_PLAN_ITEM_RUNTIME_KEY]
         .source_message_id === sourceMessageId;
   if (alreadyLogged) return null;
+  // RETRAIT RÉSIDUS (2026-08-08): le plan V2 est supprimé (0 utilisateur grand
+  // public) — la lane track n'a plus AUCUNE cible possible. Sortie par le
+  // chemin d'échec existant: les ceintures anti-commit-fantôme portent le
+  // discours honnête (« pas enregistré »), et la base n'est jamais touchée.
+  // La dépose complète de la lane (contrats turn_frame, gates, prompts
+  // dispatcher, outil) est un chantier nommé à part — voir
+  // docs/keel/RETRAIT-RESIDUS-GRAND-PUBLIC.md.
+  applyTrackProgressDirectEffectFailureState({
+    temp_memory: params.tempMemory,
+    source_message_id: sourceMessageId,
+    reason_code: "track_progress_lane_removed",
+  });
+  return null;
+  // deno-lint-ignore no-unreachable -- corps conservé pour la dépose complète
   try {
     const previousSourceMessageId = String(
       (params.tempMemory as any)?.[TRACK_PROGRESS_PLAN_ITEM_RUNTIME_KEY]

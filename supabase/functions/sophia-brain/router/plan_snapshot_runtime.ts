@@ -436,78 +436,9 @@ export async function loadDirectV2PlanItemSnapshotFallback(
   userId: string,
   runtime?: ActiveTransformationRuntime | null,
 ): Promise<V2PlanItemSnapshotItem[]> {
-  let query = supabase
-    .from("user_plan_items")
-    .select(
-      "id,title,description,dimension,kind,status,cadence_label,target_reps,current_reps,scheduled_days,time_of_day,phase_id,phase_order,payload,created_at,activation_order,updated_at",
-    )
-    .eq("user_id", userId);
-  if (runtime?.plan?.id) {
-    query = query.eq("plan_id", runtime.plan.id);
-  } else if (runtime?.transformation?.id) {
-    query = query.eq("transformation_id", runtime.transformation.id);
-  }
-  const { data, error } = await query
-    .order("activation_order", { ascending: true, nullsFirst: false })
-    .order("created_at", { ascending: true })
-    .limit(30);
-  if (error) throw error;
-  const weeklyAvailabilityByTempId =
-    buildWeeklyAvailabilityByTempIdForPlanSnapshot(
-      (runtime?.plan as any)?.content,
-    );
-  return (((data as UserPlanItemRow[] | null) ?? [])
-    .filter((item) => !SNAPSHOT_EXCLUDED_STATUSES.has(item.status))
-    .map((item) => {
-      const generatedTempId = readPlanItemGeneratedTempId(item);
-      const weekScope = generatedTempId
-        ? weeklyAvailabilityByTempId.get(generatedTempId) ?? null
-        : null;
-      const availabilityStatus = weekScope?.availability_status ??
-        "not_assigned_to_level_weeks";
-      return {
-        id: item.id,
-        title: item.title,
-        description: item.description ?? null,
-        dimension: item.dimension,
-        item_type: item.kind,
-        status: item.status,
-        cadence_label: item.cadence_label ?? null,
-        target_reps: item.target_reps ?? null,
-        current_reps: item.current_reps ?? null,
-        scheduled_days: Array.isArray((item as any).scheduled_days)
-          ? (item as any).scheduled_days
-          : null,
-        time_of_day: (item as any).time_of_day ?? null,
-        phase_id: (item as any).phase_id ?? null,
-        phase_order: (item as any).phase_order ?? null,
-        generated_temp_id: generatedTempId,
-        source_kind: readPlanItemSourceKind(item),
-        item_nature: readPlanItemNature(item),
-        available_this_week: availabilityStatus === "available_this_week",
-        availability_status: availabilityStatus,
-        week_scope: weekScope
-          ? {
-            level_order: weekScope.level_order,
-            level_title: weekScope.level_title,
-            week_order: weekScope.week_order,
-            week_title: weekScope.week_title,
-            week_status: weekScope.week_status,
-            week_start: weekScope.week_start,
-            week_end: weekScope.week_end,
-            weekly_reps: weekScope.weekly_reps,
-            weekly_cadence_label: weekScope.weekly_cadence_label,
-            weekly_description_override: weekScope.weekly_description_override,
-            mission_days: weekScope.mission_days,
-          }
-          : null,
-        streak_current: 0,
-        last_entry_at: null,
-        payload: item.payload && typeof item.payload === "object"
-          ? item.payload as Record<string, unknown>
-          : null,
-      };
-    }));
+  // RETRAIT RÉSIDUS (2026-08-08): user_plan_items est supprimée (plan V2,
+  // 0 utilisateur grand public) — snapshot vide, sans lecture.
+  return [];
 }
 
 

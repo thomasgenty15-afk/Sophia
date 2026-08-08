@@ -1,13 +1,6 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
 
 import { computeActiveLoad } from "./v2-active-load.ts";
-import {
-  computeCurrentWeekOrder,
-  firstAssignedWeekForTempId,
-  firstAssignedWeekOrderByTempId,
-  isWeekUnlocked,
-  readGeneratedTempId,
-} from "./v2-week-activation.ts";
 import { logV2Event, V2_EVENT_TYPES } from "./v2-events.ts";
 
 import type {
@@ -130,74 +123,8 @@ function computePlanItemCounts(
   return counts;
 }
 
-async function getActiveCycle(
-  supabase: SupabaseClient,
-  userId: string,
-): Promise<UserCycleRow | null> {
-  const result = await supabase
-    .from("user_cycles")
-    .select("*")
-    .eq("user_id", userId)
-    .eq("status", "active")
-    .order("updated_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
 
-  if (result.error) throw result.error;
-  return (result.data as UserCycleRow | null) ?? null;
-}
 
-async function getCycleActiveTransformation(
-  supabase: SupabaseClient,
-  cycle: UserCycleRow,
-): Promise<UserTransformationRow | null> {
-  if (cycle.active_transformation_id) {
-    const byIdResult = await supabase
-      .from("user_transformations")
-      .select("*")
-      .eq("id", cycle.active_transformation_id)
-      .eq("cycle_id", cycle.id)
-      .limit(1)
-      .maybeSingle();
-
-    if (byIdResult.error) throw byIdResult.error;
-    if (byIdResult.data) {
-      return byIdResult.data as UserTransformationRow;
-    }
-  }
-
-  const activeResult = await supabase
-    .from("user_transformations")
-    .select("*")
-    .eq("cycle_id", cycle.id)
-    .eq("status", "active")
-    .order("activated_at", { ascending: false })
-    .order("updated_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (activeResult.error) throw activeResult.error;
-  return (activeResult.data as UserTransformationRow | null) ?? null;
-}
-
-async function getActivePlanForTransformation(
-  supabase: SupabaseClient,
-  transformation: UserTransformationRow,
-): Promise<UserPlanV2Row | null> {
-  const result = await supabase
-    .from("user_plans_v2")
-    .select("*")
-    .eq("transformation_id", transformation.id)
-    .eq("cycle_id", transformation.cycle_id)
-    .eq("status", "active")
-    .order("activated_at", { ascending: false })
-    .order("updated_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (result.error) throw result.error;
-  return (result.data as UserPlanV2Row | null) ?? null;
-}
 
 function mapEntriesByPlanItem(
   entries: UserPlanItemEntryRow[],
@@ -400,84 +327,28 @@ export function scopePlanItemsToCurrentPhase<T extends PhaseScopedPlanItem>(
 }
 
 async function loadPlanRow(
-  supabase: SupabaseClient,
-  planId: string,
+  _supabase: SupabaseClient,
+  _planId: string,
 ): Promise<UserPlanV2Row | null> {
-  const result = await supabase
-    .from("user_plans_v2")
-    .select("*")
-    .eq("id", planId)
-    .limit(1)
-    .maybeSingle();
-
-  if (result.error) throw result.error;
-  return (result.data as UserPlanV2Row | null) ?? null;
+  // RETRAIT RÉSIDUS (2026-08-08): user_plans_v2 supprimée.
+  return null;
 }
 
 export async function getActiveTransformationRuntime(
-  supabase: SupabaseClient,
-  userId: string,
+  _supabase: SupabaseClient,
+  _userId: string,
 ): Promise<ActiveTransformationRuntime> {
-  const cycle = await getActiveCycle(supabase, userId);
-
-  if (!cycle) {
-    return {
-      cycle: null,
-      transformation: null,
-      plan: null,
-      progress_markers: [],
-      plan_item_counts: emptyPlanItemCounts(),
-    };
-  }
-
-  const transformation = await getCycleActiveTransformation(supabase, cycle);
-
-  if (!transformation) {
-    return {
-      cycle,
-      transformation: null,
-      plan: null,
-      progress_markers: [],
-      plan_item_counts: emptyPlanItemCounts(),
-    };
-  }
-
-  const [plan, progressMarkersResult] = await Promise.all([
-    getActivePlanForTransformation(supabase, transformation),
-    supabase
-      .from("user_metrics")
-      .select("*")
-      .eq("user_id", userId)
-      .eq("cycle_id", cycle.id)
-      .eq("transformation_id", transformation.id)
-      .eq("scope", "transformation")
-      .eq("kind", "progress_marker")
-      .eq("status", "active")
-      .order("updated_at", { ascending: false }),
-  ]);
-
-  if (progressMarkersResult.error) throw progressMarkersResult.error;
-
-  let planItemCounts = emptyPlanItemCounts();
-
-  if (plan) {
-    const planItemsResult = await supabase
-      .from("user_plan_items")
-      .select("*")
-      .eq("plan_id", plan.id);
-
-    if (planItemsResult.error) throw planItemsResult.error;
-    const planItems = (planItemsResult.data as UserPlanItemRow[] | null) ?? [];
-    planItemCounts = computePlanItemCounts(planItems);
-  }
-
+  // RETRAIT RÉSIDUS (2026-08-08): le runtime de transformation B2C est
+  // ÉTRANGLÉ ICI, à son unique point d'entrée — 0 utilisateur grand public,
+  // tables de la cascade plan/transformation supprimées. Chaque consommateur
+  // (loader, checkin_scope, momentum, snapshot) reçoit le runtime vide
+  // qu'un élève KEEL a toujours reçu; aucun ne touche plus la base.
   return {
-    cycle,
-    transformation,
-    plan,
-    progress_markers: (progressMarkersResult.data as UserMetricRow[] | null) ??
-      [],
-    plan_item_counts: planItemCounts,
+    cycle: null,
+    transformation: null,
+    plan: null,
+    progress_markers: [],
+    plan_item_counts: emptyPlanItemCounts(),
   };
 }
 
@@ -489,8 +360,9 @@ export async function getPlanItemRuntime(
     scope?: PlanRuntimeScope | null;
   },
 ): Promise<PlanItemRuntimeRow[]> {
-  const scoped = await getScopedPlanItemRuntime(supabase, planId, options);
-  return scoped.planItems;
+  // RETRAIT RÉSIDUS (2026-08-08): plus de plan V2 — liste vide, même motif
+  // que getActiveTransformationRuntime ci-dessus.
+  return [];
 }
 
 export async function getScopedPlanItemRuntime(
@@ -501,216 +373,34 @@ export async function getScopedPlanItemRuntime(
     scope?: PlanRuntimeScope | null;
   },
 ): Promise<ScopedPlanItemRuntime> {
-  const [planItemsResult, entriesResult] = await Promise.all([
-    supabase
-      .from("user_plan_items")
-      .select("*")
-      .eq("plan_id", planId)
-      .order("dimension", { ascending: true })
-      .order("activation_order", { ascending: true, nullsFirst: false })
-      .order("created_at", { ascending: true }),
-    supabase
-      .from("user_plan_item_entries")
-      .select("*")
-      .eq("plan_id", planId)
-      .order("effective_at", { ascending: false })
-      .order("created_at", { ascending: false }),
-  ]);
-
-  if (planItemsResult.error) throw planItemsResult.error;
-  if (entriesResult.error) throw entriesResult.error;
-
-  const planItems = (planItemsResult.data as UserPlanItemRow[] | null) ?? [];
-  const entries = (entriesResult.data as UserPlanItemEntryRow[] | null) ?? [];
-  const maxEntriesPerItem = options?.maxEntriesPerItem == null
-    ? 5
-    : Math.max(-1, Math.floor(options.maxEntriesPerItem));
-  const entriesByItem = mapEntriesByPlanItem(entries, maxEntriesPerItem);
-
-  const planItemsRuntime = planItems.map((item) => {
-    const recentEntries = entriesByItem.get(item.id) ?? [];
-    return {
-      ...item,
-      last_entry_at: recentEntries[0]?.effective_at ?? null,
-      recent_entries: recentEntries,
-    };
-  });
-
-  if ((options?.scope ?? "all") !== "current_phase") {
-    return { planItems: planItemsRuntime, phaseContext: null };
-  }
-
-  const plan = await loadPlanRow(supabase, planId);
-  return scopePlanItemsToCurrentPhase(plan, planItemsRuntime);
+  // RETRAIT RÉSIDUS (2026-08-08): plan V2 supprimé — runtime scopé vide.
+  return {
+    planItems: [],
+    phaseContext: resolveCurrentPhaseRuntimeContext(null, []),
+  };
 }
 
 export async function getWeeklyPlanItemRuntime(
   supabase: SupabaseClient,
   planId: string,
 ): Promise<PlanItemRuntimeRow[]> {
-  return await getPlanItemRuntime(supabase, planId, {
-    // Weekly bilan needs the full rolling week, not the default 5-entry cap.
-    maxEntriesPerItem: Number.MAX_SAFE_INTEGER,
-    scope: "current_phase",
-  });
+  // RETRAIT RÉSIDUS (2026-08-08): plan V2 supprimé — voir le choke de
+  // getActiveTransformationRuntime plus haut.
+  return [];
 }
 
 export async function getActiveLoad(
   supabase: SupabaseClient,
   planId: string,
 ): Promise<ActiveLoadRuntime> {
-  const [planItemsResult, entriesResult, plan] = await Promise.all([
-    supabase
-      .from("user_plan_items")
-      .select("*")
-      .eq("plan_id", planId),
-    supabase
-      .from("user_plan_item_entries")
-      .select("*")
-      .eq("plan_id", planId)
-      .order("effective_at", { ascending: false })
-      .order("created_at", { ascending: false }),
-    loadPlanRow(supabase, planId),
-  ]);
-
-  if (planItemsResult.error) throw planItemsResult.error;
-  if (entriesResult.error) throw entriesResult.error;
-
-  const planItems = (planItemsResult.data as UserPlanItemRow[] | null) ?? [];
-  const entries = (entriesResult.data as UserPlanItemEntryRow[] | null) ?? [];
-  const phaseContext = resolveCurrentPhaseRuntimeContext(plan, planItems);
-
-  return computeActiveLoad(
-    planItems,
-    mapEntriesByPlanItem(entries),
-    phaseContext,
-  );
+  // RETRAIT RÉSIDUS (2026-08-08): plan V2 supprimé — voir le choke de
+  // getActiveTransformationRuntime plus haut.
+  return computeActiveLoad([], new Map(), null);
 }
 
-/**
- * P0-4: Activate pending items in the current phase.
- * When a phase becomes current (e.g. after the previous phase was completed),
- * its items remain "pending". This function activates items whose activation
- * conditions are satisfied, preventing the "dead zone" with 0 active items.
- *
- * P0-6: Also serves as the sole entry-point for phase progression, ensuring
- * items in future phases cannot be activated prematurely.
- */
-export async function tryAdvancePhaseItems(
-  supabase: SupabaseClient,
-  planId: string,
-  userId: string,
-): Promise<{ activatedCount: number; phaseId: string | null }> {
-  const plan = await loadPlanRow(supabase, planId);
-  if (!plan || !isPlanContentV3(plan.content)) {
-    return { activatedCount: 0, phaseId: null };
-  }
 
-  const itemsResult = await supabase
-    .from("user_plan_items")
-    .select("*")
-    .eq("plan_id", planId)
-    .eq("user_id", userId);
-
-  if (itemsResult.error) throw itemsResult.error;
-  const items = (itemsResult.data as UserPlanItemRow[] | null) ?? [];
-
-  const phaseContext = resolveCurrentPhaseRuntimeContext(plan, items);
-  if (!phaseContext?.current_phase_id) {
-    return { activatedCount: 0, phaseId: null };
-  }
-
-  const pendingInCurrentPhase = items.filter(
-    (item) =>
-      item.phase_id === phaseContext.current_phase_id &&
-      item.status === "pending",
-  );
-
-  if (pendingInCurrentPhase.length === 0) {
-    return { activatedCount: 0, phaseId: phaseContext.current_phase_id };
-  }
-
-  const now = new Date().toISOString();
-  let activatedCount = 0;
-
-  // Déblocage par semaine: un item pending de la phase courante s'active dès
-  // que sa première semaine assignée est commencée. Les activation_condition
-  // héritées ne sont plus évaluées.
-  const currentWeekOrder = computeCurrentWeekOrder(plan.content);
-  const firstWeekByTempId = firstAssignedWeekOrderByTempId(
-    plan.content,
-    phaseContext.current_phase_id,
-  );
-
-  for (const item of pendingInCurrentPhase) {
-    const weekUnlocked = isWeekUnlocked({
-      firstAssignedWeekOrder: firstAssignedWeekForTempId(
-        readGeneratedTempId(item),
-        firstWeekByTempId,
-      ),
-      currentWeekOrder,
-    });
-
-    if (weekUnlocked) {
-      const { error: updateError } = await supabase
-        .from("user_plan_items")
-        .update({
-          status: "active" as PlanItemStatus,
-          activated_at: now,
-          updated_at: now,
-          current_habit_state: item.dimension === "habits"
-            ? "active_building"
-            : item.current_habit_state,
-        })
-        .eq("id", item.id)
-        .eq("user_id", userId);
-
-      if (!updateError) activatedCount++;
-    }
-  }
-
-  if (activatedCount > 0) {
-    const cycleId = items[0]?.cycle_id;
-    const transformationId = items[0]?.transformation_id;
-    if (cycleId && transformationId) {
-      try {
-        await logV2Event(supabase, V2_EVENT_TYPES.PHASE_ITEMS_ACTIVATED, {
-          user_id: userId,
-          cycle_id: cycleId,
-          transformation_id: transformationId,
-          plan_id: planId,
-          reason: "phase_advance",
-          metadata: {
-            phase_id: phaseContext.current_phase_id,
-            activated_count: activatedCount,
-          },
-        });
-      } catch {
-        // Non-blocking event logging
-      }
-
-      if (phaseContext.completed_phase_ids.length > 0) {
-        try {
-          await logV2Event(supabase, V2_EVENT_TYPES.PHASE_TRANSITION, {
-            user_id: userId,
-            cycle_id: cycleId,
-            transformation_id: transformationId,
-            plan_id: planId,
-            reason: "phase_completed",
-            metadata: {
-              completed_phase_ids: phaseContext.completed_phase_ids,
-              new_current_phase_id: phaseContext.current_phase_id,
-            },
-          });
-        } catch {
-          // Non-blocking event logging
-        }
-      }
-    }
-  }
-
-  return { activatedCount, phaseId: phaseContext.current_phase_id };
-}
+// RETRAIT RÉSIDUS (2026-08-08): tryAdvancePhaseItems est parti avec le
+// rollover et la distribution de plan (aucun appelant vivant).
 
 /**
  * P0-6: Check whether a plan item belongs to the current (or completed) phase.

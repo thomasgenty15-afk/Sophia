@@ -1117,14 +1117,9 @@ async function processDueReengagementOutcomes(params: {
             .lte("updated_at", windowEndIso)
             .limit(1)
             .maybeSingle(),
-          params.supabaseAdmin
-            .from("user_plan_item_entries")
-            .select("id")
-            .eq("user_id", userId)
-            .gt("created_at", closedIso)
-            .lte("created_at", windowEndIso)
-            .limit(1)
-            .maybeSingle(),
+          // RETRAIT RÉSIDUS (2026-08-08): user_plan_item_entries supprimée —
+          // le signal d'activité « plan_entry » ne peut plus exister.
+          Promise.resolve({ data: null, error: null }),
         ]);
       if (waResult.error) throw waResult.error;
       if (platformMsgResult.error) throw platformMsgResult.error;
@@ -1536,6 +1531,9 @@ async function processDueRendezVous(params: {
   supabaseAdmin: ReturnType<typeof createClient>;
   requestId: string;
 }): Promise<number> {
+  // RETRAIT RÉSIDUS (2026-08-08): user_rendez_vous est droppée avec la cascade
+  // plan/transformation (0 utilisateur grand public) — plus rien à livrer.
+  if (params.requestId !== undefined) return 0;
   const nowIso = new Date().toISOString();
 
   const { data: dueRdvs, error } = await params.supabaseAdmin

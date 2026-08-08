@@ -223,6 +223,12 @@ export async function createRendezVousFromProactiveDecision(
   proactiveOutput: ProactiveWindowOutput,
   context: RendezVousDecisionContext,
 ): Promise<string> {
+  // RETRAIT RÉSIDUS (2026-08-08): user_rendez_vous est droppée avec la cascade
+  // plan/transformation — la création proactive n'a plus de support.
+  throw new Error(
+    "rendez_vous_removed: le systeme de rendez-vous B2C est retire (retrait residus 2026-08-08)",
+  );
+  // deno-lint-ignore no-unreachable
   const activeRdvs = await getActiveRendezVous(
     supabase,
     context.userId,
@@ -399,6 +405,8 @@ async function loadRecentVictoryTitles(
   transformationId: string | null,
   nowIso: string,
 ): Promise<string[]> {
+  // RETRAIT RÉSIDUS (2026-08-08): table de la cascade plan/transformation supprimée (0 utilisateur grand public) — plus de victory ledger.
+  if (userId) return [];
   const lookbackIso = new Date(
     parseIsoMs(nowIso) - RECENT_VICTORIES_LOOKBACK_MS,
   ).toISOString();

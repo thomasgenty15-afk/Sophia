@@ -528,17 +528,11 @@ async function loadActiveRuntimeRefs(
   transformationIds: string[];
   planIds: string[];
 }> {
-  const cycleResult = await supabase
-    .from("user_cycles")
-    .select("id")
-    .eq("user_id", userId)
-    .eq("status", "active")
-    .order("updated_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (cycleResult.error) throw cycleResult.error;
-  const cycleId = cleanText((cycleResult.data as { id?: string } | null)?.id) ||
-    null;
+  // RETRAIT RÉSIDUS (2026-08-08): user_cycles est supprimée (cascade
+  // plan/transformation, 0 utilisateur grand public). Le cycle nul ci-dessous
+  // court-circuite TOUTES les lectures legacy du module — le snapshot momentum
+  // se construit depuis les seules sources vivantes (checkins, messages).
+  const cycleId: string | null = null;
   if (!cycleId) return { cycleId: null, transformationIds: [], planIds: [] };
 
   const [transformationsResult, plansResult] = await Promise.all([

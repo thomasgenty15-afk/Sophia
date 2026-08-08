@@ -89,6 +89,8 @@ export async function checkAndUnlockPrinciples(
   transformationId: string,
   event: PrincipleUnlockEvent,
 ): Promise<UnlockedPrinciples | null> {
+  // RETRAIT RÉSIDUS (2026-08-08): table de la cascade plan/transformation supprimée (0 utilisateur grand public) — plus rien à déverrouiller.
+  if (transformationId || event) return null;
   try {
     const { data, error } = await supabase
       .from("user_transformations")

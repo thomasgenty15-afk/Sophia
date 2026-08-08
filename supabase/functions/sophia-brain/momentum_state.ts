@@ -1912,30 +1912,11 @@ async function fetchMomentumSnapshot(args: {
       .gte("created_at", messagesSinceIso)
       .order("created_at", { ascending: true })
       .limit(120),
-    args.supabase
-      .from("user_plan_items")
-      .select("id")
-      .eq("user_id", args.userId)
-      .eq("status", "active"),
-    args.supabase
-      .from("user_plan_item_entries")
-      .select("plan_item_id, outcome, value_text, entry_kind, effective_at")
-      .eq("user_id", args.userId)
-      .gte("effective_at", actionsSinceIso)
-      .order("effective_at", { ascending: true })
-      .limit(120),
-    args.supabase
-      .from("user_plan_item_entries")
-      .select("plan_item_id, outcome, value_text, entry_kind, effective_at")
-      .eq("user_id", args.userId)
-      .gte("effective_at", blockersSinceIso)
-      .order("effective_at", { ascending: true })
-      .limit(180),
-    args.supabase
-      .from("user_metrics")
-      .select("id, target_value, current_value")
-      .eq("user_id", args.userId)
-      .eq("kind", "progress_marker"),
+    // RETRAIT RÉSIDUS (2026-08-08): table de la cascade plan/transformation supprimée (0 utilisateur grand public).
+    Promise.resolve({ data: [], error: null }),
+    Promise.resolve({ data: [], error: null }),
+    Promise.resolve({ data: [], error: null }),
+    Promise.resolve({ data: [], error: null }),
   ]);
 
   // `user_metric_entries` N'EXISTE PAS — ni en base, ni dans une migration du

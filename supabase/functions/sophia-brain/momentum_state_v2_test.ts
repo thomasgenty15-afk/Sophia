@@ -472,40 +472,6 @@ Deno.test("V2 plan_fit: active item without entry becomes zombie only after 7 da
   );
 });
 
-Deno.test("V2 watcher consolidation reads runtime entries and reacts when repetitions move", async () => {
-  const positive = await consolidateMomentumStateV2({
-    supabase: makeMockSupabase(
-      makeRuntimeTables(["checkin", "progress", "partial"]),
-    ) as any,
-    userId: "user-1",
-    scope: "web",
-    tempMemory: {},
-    nowIso: "2026-03-24T09:00:00.000Z",
-  });
-
-  assertEquals(positive.dimensions.execution_traction.level, "up");
-  assertEquals(
-    positive.dimensions.execution_traction.reason,
-    "majority_positive_entries",
-  );
-  assertEquals(positive.current_state, "momentum");
-  assertEquals(positive.posture.recommended_posture, "push_lightly");
-
-  const negative = await consolidateMomentumStateV2({
-    supabase: makeMockSupabase(
-      makeRuntimeTables(["skip", "blocker", "skip"]),
-    ) as any,
-    userId: "user-1",
-    scope: "web",
-    tempMemory: positive,
-    nowIso: "2026-03-24T10:00:00.000Z",
-  });
-
-  assertEquals(negative.dimensions.execution_traction.level, "down");
-  assertEquals(
-    negative.dimensions.execution_traction.reason,
-    "majority_negative_entries",
-  );
-  assertEquals(negative.current_state, "friction_legere");
-  assertEquals(negative.posture.recommended_posture, "simplify");
-});
+// RETRAIT RÉSIDUS (2026-08-08): le test « runtime entries » est parti
+// avec user_plan_item_entries — la traction d'exécution ne se lit plus
+// depuis les entrées de plan (lectures vidées dans momentum_state).

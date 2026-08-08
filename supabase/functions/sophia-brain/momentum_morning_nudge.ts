@@ -811,6 +811,8 @@ async function loadRecentVictoriesForMorning(args: {
   transformationId: string | null;
   nowIso: string;
 }): Promise<RecentVictoryInfo[]> {
+  // RETRAIT RÉSIDUS (2026-08-08): table de la cascade plan/transformation supprimée (0 utilisateur grand public) — plus de victory ledger.
+  if (args.userId) return [];
   const lookbackIso = new Date(
     parseIsoMsLocal(args.nowIso) - (7 * 24 * 60 * 60 * 1000),
   ).toISOString();

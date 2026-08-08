@@ -66,21 +66,9 @@ Deno.test("gdpr export: re-auth, rate limit, zip content and scope guarantees", 
     timezone: "Europe/Paris",
   }).eq("id", userId);
 
-  const { data: cycle, error: cycleErr } = await admin.from("user_cycles").insert({
-    user_id: userId,
-    status: "draft",
-    raw_intake_text: "Je veux reprendre le sport et mieux dormir.",
-  }).select("id").single();
-  if (cycleErr) throw cycleErr;
-  const { error: trErr } = await admin.from("user_transformations").insert({
-    cycle_id: cycle.id,
-    priority_order: 1,
-    status: "draft",
-    title: "Reprendre le sport",
-    internal_summary: "INTERNAL_ONLY_SUMMARY_MUST_NOT_LEAK",
-    user_summary: "Tu veux retrouver une pratique sportive régulière.",
-  });
-  if (trErr) throw trErr;
+  // RETRAIT RÉSIDUS (2026-08-08): la cascade plan/transformation est droppée —
+  // le seed legacy est parti avec elle. transformations.json reste dans le
+  // bundle, vide (voir l'export), et l'assertion plus bas vérifie ce vide.
 
   const { error: chatErr } = await admin.from("chat_messages").insert([
     {
@@ -228,14 +216,11 @@ Deno.test("gdpr export: re-auth, rate limit, zip content and scope guarantees", 
     }
   }
 
-  // Transformations: user_summary yes, internal_summary never.
+  // Transformations: tables droppées (retrait résidus 2026-08-08) — la clé de
+  // bundle survit pour les lecteurs d'exports antérieurs, et elle est VIDE.
   const transfos = JSON.parse(text("transformations.json"));
   const trs = transfos.transformations as Array<Record<string, unknown>>;
-  assert(trs.some((t) => t.title === "Reprendre le sport"));
-  for (const t of trs) {
-    assert(!("internal_summary" in t), "internal_summary must not be exported");
-    assert(!("handoff_payload" in t), "handoff_payload must not be exported");
-  }
+  assert(trs.length === 0, "transformations export must be empty after drop");
 
   // Global leak sweep across the whole archive.
   const everything = names.map(text).join("\n");
