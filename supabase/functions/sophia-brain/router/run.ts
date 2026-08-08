@@ -311,6 +311,7 @@ import {
 } from "../../_shared/keel/medical_condition_floor.ts";
 import {
   detectDeclaredMeal,
+  isMealForSomeoneElse,
   type MealDeclarationHit,
 } from "../../_shared/keel/meal_declaration_floor.ts";
 import {
@@ -1737,7 +1738,31 @@ export async function runKeelDirectEffectLane(
     blocked.push({ type: "log_protocol_event", reason_code: "future_intent" });
   }
 
-  if (runLog && !futureIntentTurn) {
+  // CEINTURE « LE REPAS DE QUELQU'UN D'AUTRE » — FF-009 §7, même forme et même
+  // place que la ceinture d'intention future juste au-dessus.
+  //
+  // MESURÉ (run réel 2026-08-08, 1 tour sur 3): « on a commandé pour les
+  // enfants » écrivait une ligne `protocol_events` sans aliment ni créneau. Le
+  // plancher avait bien désarmé — son `DISARM` porte le motif — mais désarmer
+  // le plancher n'est pas un veto sur le dispatcher: le plancher est un
+  // MINIMUM. La ligne dit « l'élève a mangé » là où le message dit le
+  // contraire, dans une table APPEND-ONLY, et le coach la lira comme un fait.
+  //
+  // CONDITION DE DÉSARMEMENT: portée par `isMealForSomeoneElse` (un « j'ai
+  // mangé » au passé retire la ceinture), et comme sa voisine, elle ne vaut QUE
+  // pour `log_protocol_event`.
+  const forSomeoneElseTurn = isMealForSomeoneElse(input.userMessage);
+  if (runLog && !futureIntentTurn && forSomeoneElseTurn) {
+    handlers.push("log_protocol_event");
+    statuses.push("blocked");
+    reasons.push("meal_for_someone_else");
+    blocked.push({
+      type: "log_protocol_event",
+      reason_code: "meal_for_someone_else",
+    });
+  }
+
+  if (runLog && !futureIntentTurn && !forSomeoneElseTurn) {
     absorb(
       "log_protocol_event",
       await runLogProtocolEventDirectEffect({

@@ -7,7 +7,11 @@
  * LÂCHER est une garde qui mordra un innocent.
  */
 import { assert, assertEquals } from "jsr:@std/assert@1";
-import { detectDeclaredMeal, detectOffPlanMarker } from "./meal_declaration_floor.ts";
+import {
+  detectDeclaredMeal,
+  detectOffPlanMarker,
+  isMealForSomeoneElse,
+} from "./meal_declaration_floor.ts";
 
 function refs(message: string, slot: string | null = null): string[] {
   const hit = detectDeclaredMeal(message, slot);
@@ -309,4 +313,67 @@ Deno.test("FF-009 — LE MARQUEUR SURVIT QUAND LE MODÈLE PARLE LE PREMIER", () 
   // Et en anglais, la même chose.
   const en = detectDeclaredMeal("I ordered a pizza tonight");
   assertEquals(en?.planRelation, "off_plan");
+});
+
+Deno.test("FF-009 §7 — le repas de quelqu'un d'autre, dans les deux langues", () => {
+  // 🔴 Mesuré en run réel (2026-08-08, 1 tour sur 3): « on a commandé pour les
+  // enfants » écrivait une ligne `protocol_events`. Le plancher désarmait bien
+  // — mais désarmer le plancher n'est pas un veto sur le dispatcher, et la
+  // fiche dit RIEN. La ceinture rend ce « rien » exécutoire.
+  for (
+    const message of [
+      "on a commandé pour les enfants",
+      "j'ai commandé une pizza pour les enfants",
+      "on a commandé pour mes enfants ce soir",
+      "on a commandé des pâtes pour les gosses",
+      "we ordered for the kids",
+      "I ordered a pizza for the children last night",
+      "we got takeaway for our kids",
+    ]
+  ) {
+    assert(isMealForSomeoneElse(message), `ceinture muette sur: ${message}`);
+    // Le plancher, lui, désarme déjà: les deux disent la même chose.
+    assertEquals(detectDeclaredMeal(message), null, `plancher mord: ${message}`);
+  }
+});
+
+Deno.test("FF-009 §7 — CONDITION DE DÉSARMEMENT: un message mixte garde le repas de l'élève", () => {
+  // « J'ai mangé X ET on a commandé pour les enfants » porte DEUX repas. Perdre
+  // celui de l'élève pour protéger celui des enfants coûterait plus cher que le
+  // faux positif qu'on ferme.
+  for (
+    const message of [
+      "j'ai mangé du poulet et on a commandé une pizza pour les enfants",
+      "I had salmon and we ordered pizza for the kids",
+      "j'ai pris une salade, et pour les enfants on a commandé",
+    ]
+  ) {
+    assertEquals(
+      isMealForSomeoneElse(message),
+      false,
+      `ceinture mord un innocent: ${message}`,
+    );
+  }
+});
+
+Deno.test("FF-009 §7 — la ceinture ne mord QUE le motif « pour les enfants »", () => {
+  // Une ceinture qui déborderait attraperait des déclarations ordinaires. Ce
+  // test est la contre-épreuve: aucun des cas nominaux de la fiche ne la
+  // déclenche.
+  for (
+    const message of [
+      "j'ai commandé une pizza ce soir",
+      "on a mangé au resto hier",
+      "I ordered takeout last night",
+      "j'ai mangé chez ma mère hier soir",
+      "j'ai mangé du poulet et du riz complet à midi",
+      "j'ai fait des pâtes pour toute la famille et j'en ai mangé",
+    ]
+  ) {
+    assertEquals(
+      isMealForSomeoneElse(message),
+      false,
+      `ceinture mord un innocent: ${message}`,
+    );
+  }
 });

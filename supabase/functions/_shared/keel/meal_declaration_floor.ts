@@ -398,6 +398,55 @@ export type OffPlanMarkerHit = {
   selfSufficient: boolean;
 };
 
+// ---------------------------------------------------------------------------
+// FF-009 §7 — « ON A COMMANDÉ POUR LES ENFANTS » → RIEN
+// ---------------------------------------------------------------------------
+
+/**
+ * LE REPAS DE QUELQU'UN D'AUTRE, reconnu sur le MESSAGE et sans le modèle.
+ *
+ * ── LE DÉFAUT MESURÉ (run réel, 2026-08-08, 1 tour sur 3) ───────────────────
+ *   élève  : « on a commandé pour les enfants »
+ *   base   : une ligne `protocol_events` (aucun aliment, aucun créneau)
+ *   attendu: RIEN (FF-009 §7)
+ * Le plancher, lui, avait bien désarmé — son `DISARM` porte le motif depuis
+ * FF-009. Mais désarmer le plancher n'empêche pas le dispatcher d'écrire: le
+ * plancher est un MINIMUM, pas un veto. Le fait écrit dit « l'élève a mangé »
+ * là où le message dit le contraire, dans une table APPEND-ONLY que le chat ne
+ * sait pas rétracter, et l'évaluateur le comptera ce soir.
+ *
+ * Même forme, même place et même raison que la ceinture d'intention future
+ * (`isTrackProgressFutureIntent`), qui a été posée pour l'exact symétrique:
+ * une règle de prompt est une intention, pas une garantie.
+ *
+ * ── CONDITION DE DÉSARMEMENT (P9), et elle est la moitié de la ceinture ─────
+ * Un message MIXTE — « j'ai mangé du poulet et on a commandé pour les
+ * enfants » — porte un repas de l'élève ET un repas des enfants. La ceinture
+ * se retire dès que l'élève dit, au passé et à la première personne, qu'il a
+ * mangé: perdre son repas pour protéger celui des enfants coûterait plus cher
+ * que le faux positif qu'on ferme.
+ */
+const MEAL_FOR_SOMEONE_ELSE: readonly RegExp[] = [
+  /\bpour (les|mes|ses|leurs|nos) (enfants|petits|gosses|filles|garcons)\b/,
+  /\bfor (the|my|our|their) (kids|children|kid|child|little ones)\b/,
+];
+
+/** Ce qui désarme: l'élève dit qu'il a mangé, lui, et au passé. */
+const FIRST_PERSON_ATE: readonly RegExp[] = [
+  /\bi (had|ate|have eaten|just had|just ate)\b/,
+  /\bfor (breakfast|lunch|dinner) i (had|ate)\b/,
+  /\bj ai (mange|mangee|pris|prise|grignote|termine|fini|avale|degust)/,
+  /\bje me suis (fait|prepare)\b/,
+];
+
+export function isMealForSomeoneElse(userMessage: unknown): boolean {
+  const raw = String(userMessage ?? "").trim();
+  if (!raw) return false;
+  const text = ` ${normalize(raw)} `;
+  if (!MEAL_FOR_SOMEONE_ELSE.some((re) => re.test(text))) return false;
+  return !FIRST_PERSON_ATE.some((re) => re.test(text));
+}
+
 /**
  * Le marqueur de hors-plan, DÉTERMINISTE et sans le modèle.
  *
