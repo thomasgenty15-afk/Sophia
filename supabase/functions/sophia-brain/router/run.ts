@@ -2291,6 +2291,37 @@ export function withKeelDoctrineBlock(
     }
   }
 
+  // FF-010 — CE QUE LE FOYER MANGE, s'il y en a un.
+  //
+  // ⚠️ IL SE NOMME DISTINCTEMENT DU BLOC PLAN DU COACH, et ce n'est pas de la
+  // typographie: `keel_plan_context.ts` porte la règle — « two plan blocks in
+  // one prompt is how a model gets to pick the more flattering one ». Les
+  // ENGAGEMENTS du coach et les PLATS du foyer sont deux couches différentes.
+  // Le titre de celui-ci dit « what this household is eating », jamais « the
+  // plan », et sa première phrase interdit explicitement de les confondre.
+  //
+  // ── SON RANG DANS L'ORDRE DE SURVIE, ET POURQUOI IL A MONTÉ ───────────────
+  // L'ordre de ces blocs est un classement par COÛT DE PERTE, parce que le
+  // budget tronque par la queue. Il était AVANT-DERNIER (entre le pouls et le
+  // soutien groundé); il est maintenant CINQUIÈME, juste après le protocole du
+  // coach et avant la note 1:1.
+  //
+  // La raison est le coût, pas la nouveauté: perdre ce bloc ne dégrade pas la
+  // réponse d'un cran, il fait CUISINER LE MAUVAIS PLAT. Mesuré sans lui, sur
+  // « What do I need to buy? »: l'agent fabrique une liste de courses à partir
+  // des titres de plats. Le classement se lit donc: verrou clinique >
+  // allergène > doctrine > protocole > CE QUE LE FOYER MANGE > note du coach >
+  // bilan hebdo > pouls > soutien. Il reste sous les quatre premiers — une
+  // allergie qui saute met un aliment dans une assiette, ce qui coûte plus
+  // qu'un dîner faux.
+  //
+  // ABSENT ⇒ AUCUN BLOC (R8): pas de « ton foyer n'a rien prévu » à quelqu'un
+  // qui vit seul.
+  const householdBlock = keel.household
+    ? householdContextBlock(keel.household)
+    : null;
+  if (householdBlock && householdBlock.trim()) blocks.push(householdBlock);
+
   // LA NOTE 1:1 DU COACH — dernière des trois, exprès, et pour la raison
   // donnée deux blocs plus haut sur l'ordre: le budget de prompt tronque PAR
   // LA QUEUE. Des trois, c'est celle dont la perte coûte le moins — un
@@ -2356,22 +2387,6 @@ export function withKeelDoctrineBlock(
   //
   // Sous plancher de restriction, `day_facts` vaut déjà `null` (filtré au
   // CHARGEMENT) et le bloc ne porte que sa règle de conduite.
-  // FF-010 — CE QUE LE FOYER MANGE, s'il y en a un.
-  //
-  // ⚠️ IL SE NOMME DISTINCTEMENT DU BLOC PLAN DU COACH, et ce n'est pas de la
-  // typographie: `keel_plan_context.ts` porte la règle — « two plan blocks in
-  // one prompt is how a model gets to pick the more flattering one ». Les
-  // ENGAGEMENTS du coach et les PLATS du foyer sont deux couches différentes.
-  // Le titre de celui-ci dit « what this household is eating », jamais « the
-  // plan », et sa première phrase interdit explicitement de les confondre.
-  //
-  // ABSENT ⇒ AUCUN BLOC (R8): pas de « ton foyer n'a rien prévu » à quelqu'un
-  // qui vit seul.
-  const householdBlock = keel.household
-    ? householdContextBlock(keel.household)
-    : null;
-  if (householdBlock && householdBlock.trim()) blocks.push(householdBlock);
-
   const supportBlock = groundedSupportBlock(keel.day_facts, keel.support_ground);
   if (supportBlock.trim()) blocks.push(supportBlock);
 
@@ -4855,6 +4870,85 @@ export async function processMessage(
         ...routeDecision,
         response_owner: "normal_reply",
         reason_code: "plan_question_no_target_general_path",
+      };
+    }
+
+    // ── FF-010 — « ON MANGE QUOI CE SOIR ? » N'EST PAS UNE DEMANDE DE
+    //    CHANGEMENT DE CONTRAT.
+    //
+    // MESURÉ EN RUN RÉEL LE 2026-08-08, quatre foyers provisionnés, 4 passes
+    // sur 8 (ana 2/2, « On mange quoi ce soir ? » 1/2, rich 1/2, solo 1/2):
+    // le dispatcher classe la question la plus évidente de l'app
+    // `plan_question` / kind=`eating_out` — la personne n'est pourtant nulle
+    // part ailleurs qu'à sa cuisine — le resolver Tier 0 sort
+    // `unresolved_food_group` faute de groupe, et l'élève reçoit:
+    //   « That one sits outside what your coach set on this line […] Your
+    //     question is with them now, word for word. »
+    // Relu en base: `contract_change_requests` avec `reason_code='social_event'`,
+    // `commitment_id: null`, `slot_key: null`, `commitment_title: null` — une
+    // escalade qui ne nomme AUCUNE ligne, chez un coach qui n'a pas de canal
+    // 1:1 pour y répondre (MODEL.md). Et `full_chars` du prompt compagnon vaut
+    // `null` sur ces passes: la lane rend AVANT le composeur, donc le bloc
+    // foyer — chargé, filtré, exact — est jeté sans avoir servi.
+    //
+    // ⚠️ SA CONDITION N'EST PAS CELLE DE FF-016, ET LA DIFFÉRENCE EST LE SUJET.
+    // FF-016 exige l'absence des DEUX groupes; ce gate n'exige que l'absence du
+    // groupe DEMANDÉ. Mesuré après la première version de ce gate (qui reprenait
+    // les deux conditions): sur « What do I need to cook today? », le dispatcher
+    // remplit `prescribed_food_group: "non_starchy_veg"` — un groupe qui EXISTE
+    // vraiment dans le plan d'Ana — donc `noGroundedPrescription` est faux, les
+    // deux gates se taisent, et l'escalade repart (relu:
+    // `conversation_turn_traces` du 2026-08-08 08:51:19, escalade
+    // `dislikes_food` sur « Vegetables at lunch »). Le prescrit ne discrimine
+    // rien ici: « qu'est-ce que je cuisine aujourd'hui ? » TOUCHE la ligne du
+    // coach sans proposer de la remplacer.
+    //
+    // ── CE QUE CETTE DIFFÉRENCE COÛTE, ET POURQUOI ELLE EST PRISE ────────────
+    // FF-016 garde exprès l'escalade sur « prescrit sans demandé » (« j'ai plus
+    // de saumon, je fais quoi ? »): l'élève a nommé un aliment qu'il n'a pas.
+    // Cette même forme, chez quelqu'un dont le foyer a composé un plat pour ce
+    // soir, part maintenant au chemin général. C'est assumé et borné:
+    //   · le champ de tir est étroit — il faut un foyer ET un plat composé
+    //     AUJOURD'HUI; sans l'un des deux, tout se comporte comme avant;
+    //   · aucune ceinture ne dépend de cette lane: les contraintes dures sont le
+    //     2ᵉ bloc du prompt, le verrou de doctrine est déterministe en sortie,
+    //     et le bloc foyer porte son propre LECTURE SEULE;
+    //   · en face, le défaut mesuré est une escalade qui ne nomme AUCUNE ligne
+    //     et une phrase qui fait attendre l'élève après un canal 1:1 qui
+    //     n'existe pas — la copie la plus souvent violée du produit (MODEL.md).
+    //
+    // Il est DÉTERMINISTE et lit deux faits persistés — le contexte foyer
+    // chargé en base et l'absence de cible dans le signal —, jamais une
+    // décision du modèle: ce qui FERME une lane ne transite pas plus par le LLM
+    // que ce qui l'ouvre.
+    // ── LA CONDITION EST « IL A UN FOYER », PAS « IL A UN PLAT CE SOIR » ─────
+    // Mesuré avec la borne au plat composé, 9 passes sur 9 en foyer SANS plat
+    // du jour (plan retiré, puis fenêtre finie hier): la lane reprenait la
+    // main et rendait « Your question is with them now ». Or c'est EXACTEMENT
+    // le cas que R6 nomme — « sans plan composé: on le DIT, et on porte vers la
+    // composition » —, et le bloc foyer porte déjà la consigne littérale pour
+    // ce cas (« NOTHING IS COMPOSED FOR TODAY … NEVER say their coach is
+    // preparing anything »). Faire dépendre le gate du plat, c'était le
+    // désarmer précisément là où la fiche l'exige.
+    if (
+      routeDecision.response_owner === "plan_question" &&
+      keelTurn.household !== null &&
+      noRequestedGroup
+    ) {
+      console.warn("[keel] plan_question sur repas du foyer → chemin général", {
+        request_id: requestId,
+        kind: pqContext?.kind ?? null,
+        household_id: keelTurn.household?.householdId ?? null,
+        dishes_today: keelTurn.household?.todayDishes.length ?? 0,
+        detail:
+          "l'élève a un foyer et le signal ne désigne aucune ligne du coach: " +
+          "la lane escaladait « on mange quoi ce soir ? » en demande de " +
+          "changement de contrat. FF-010 §7 et R6.",
+      });
+      routeDecision = {
+        ...routeDecision,
+        response_owner: "normal_reply",
+        reason_code: "plan_question_household_meal_general_path",
       };
     }
   }

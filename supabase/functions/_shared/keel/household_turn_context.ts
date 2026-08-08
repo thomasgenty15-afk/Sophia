@@ -68,8 +68,24 @@ export interface HouseholdDish {
 
 export interface HouseholdPreparation {
   title: string;
-  /** Le jour de cuisson, quand une session le fixe. */
+  /** Le jour de cuisson (`mon`..`sun`), quand une session le fixe. */
   cookOn: string | null;
+  /**
+   * La DATE de cuisson résolue dans la fenêtre du plan, ou `null` quand le jour
+   * est absent ou illisible. C'est elle qui décide de « aujourd'hui »: un jeton
+   * `wed` ne dit pas QUEL mercredi, et une fenêtre de sept jours n'en contient
+   * qu'un seul — donc il se résout, et il DOIT se résoudre ici plutôt que dans
+   * la tête du modèle.
+   */
+  cookDate: string | null;
+  /** `true` quand la cuisson tombe la date locale du tour. */
+  isToday: boolean;
+}
+
+/** Une ligne de la liste de courses du plan du foyer. */
+export interface HouseholdShoppingLine {
+  term: string;
+  quantity: string | null;
 }
 
 export interface HouseholdPortionLine {
@@ -95,12 +111,16 @@ export interface HouseholdTurnContext {
   hasPlanToday: boolean;
   /** Les plats du jour, bornés. Vide quand aucun plan ne couvre aujourd'hui. */
   todayDishes: HouseholdDish[];
-  /** Les préparations à faire, bornées. */
+  /** Les préparations à faire, bornées, JOUR COURANT D'ABORD. */
   preparations: HouseholdPreparation[];
   /** Les portions VISIBLES. En `shared`, uniquement la mienne. */
   portions: HouseholdPortionLine[];
   /** Les restrictions qui visent l'élève qui parle, avec leur auteur. */
   myRestrictions: HouseholdRestrictionLine[];
+  /** La liste de courses de la fenêtre courante, bornée. */
+  shopping: HouseholdShoppingLine[];
+  /** `true` quand la liste a été coupée par la borne. */
+  shoppingTruncated: boolean;
 }
 
 /**
@@ -115,6 +135,16 @@ export const HOUSEHOLD_MAX_DISHES = 4;
 export const HOUSEHOLD_MAX_PREPARATIONS = 3;
 export const HOUSEHOLD_MAX_PORTIONS = 6;
 export const HOUSEHOLD_MAX_RESTRICTIONS = 6;
+/**
+ * La liste de courses est la SEULE des cinq sources dont §11 discute encore
+ * l'entrée dans le prompt (« le pousser coûte du budget pour une question
+ * rare »). Elle entre parce que §3 range « il faut acheter quoi ? » DANS le
+ * périmètre et que §5 la nomme, et elle entre BORNÉE — mesuré: sans elle, sur
+ * « What do I need to buy? », le modèle FABRIQUE une liste à partir des titres
+ * de plats, en y mêlant ceux des autres jours. Une liste de courses inventée
+ * est du même bois qu'un plat inventé: on va l'acheter.
+ */
+export const HOUSEHOLD_MAX_SHOPPING = 12;
 
 // ---------------------------------------------------------------------------
 // LE CHARGEUR
@@ -238,7 +268,9 @@ export async function loadHouseholdTurnContext(
     // silencieuse, et `retired_at` exclut les plans remplacés.
     const planRes = await db
       .from("student_generated_meals")
-      .select("id, dishes, preparations, member_portions, starts_on, ends_on")
+      .select(
+        "id, dishes, preparations, member_portions, shopping_list, starts_on, ends_on",
+      )
       .eq("household_id", householdId)
       .is("retired_at", null)
       .lte("starts_on", localDate)
@@ -249,6 +281,8 @@ export async function loadHouseholdTurnContext(
     const plan = asArray(planRes.data)[0] ?? null;
 
     const dayToken = dayTokenFor(localDate);
+    const startsOn = str(plan?.starts_on);
+    const endsOn = str(plan?.ends_on);
     const allDishes = plan ? asArray(plan.dishes) : [];
     const todayDishes: HouseholdDish[] = allDishes
       // JOUR COURANT D'ABORD, et SEULEMENT lui: c'est ce que la question pose.
@@ -258,18 +292,64 @@ export async function loadHouseholdTurnContext(
         const day = str(d.day);
         return day === "" || day === dayToken;
       })
-      .slice(0, HOUSEHOLD_MAX_DISHES)
       .map((d) => ({
         title: str(d.title),
         slot: str(d.slot) || null,
         day: str(d.day) || null,
       }))
-      .filter((d) => d.title !== "");
+      // Le filtre AVANT la borne: un titre vide consommait une des quatre
+      // places et faisait disparaître un vrai plat du bloc.
+      .filter((d) => d.title !== "")
+      .slice(0, HOUSEHOLD_MAX_DISHES);
 
+    // ── LES PRÉPARATIONS, ET LE DÉFAUT QUE CE BLOC A COÛTÉ ─────────────────
+    //
+    // ⚠️ `cook_on`, PAS `cookOn`. La production écrit `cook_on`
+    // (`mealPreparationsPayload`, `_shared/keel/meal_generation.ts`); ce
+    // chargeur ne lisait que le camelCase, donc le jour était `null` sur CHAQUE
+    // ligne réelle. La fixture de QA du premier run écrivait `cookOn` — un
+    // décor qui ment sur la forme de la donnée cache exactement le défaut qu'il
+    // devrait montrer.
+    //
+    // ⚠️ ET LE JOUR COURANT D'ABORD (§9). Sans ordre, la borne de trois prenait
+    // les trois PREMIÈRES du tableau — c'est-à-dire l'ordre de composition, pas
+    // le calendrier. MESURÉ en run réel, foyer Ferrand, 3 passes sur 3 sur
+    // « What do I need to cook today? »: l'agent répondait « cook lentils,
+    // marinate the cod, roast the chicken thighs », dont DEUX appartiennent à
+    // demain et après-demain. C'est le mode de défaillance « plan périmé » de
+    // §7 transposé aux préparations, et il est pire: la personne cuisine.
+    //
+    // Les préparations PASSÉES sortent. Dans une fenêtre vivante, une cuisson
+    // dont le jour est derrière est faite ou caduque; la citer, c'est le plat
+    // d'hier servi ce soir.
     const preparations: HouseholdPreparation[] = (plan ? asArray(plan.preparations) : [])
-      .slice(0, HOUSEHOLD_MAX_PREPARATIONS)
-      .map((p) => ({ title: str(p.title), cookOn: str(p.cookOn) || null }))
-      .filter((p) => p.title !== "");
+      .map((p) => {
+        const cookOn = str(p.cook_on ?? p.cookOn) || null;
+        const cookDate = cookOn
+          ? dateForDayToken(cookOn, startsOn, endsOn)
+          : null;
+        return {
+          title: str(p.title),
+          cookOn,
+          cookDate,
+          // Sans jour de cuisson, la préparation appartient à « aujourd'hui »
+          // seulement quand la fenêtre elle-même ne dure qu'un jour: sur une
+          // semaine, « on ne sait pas quand » n'est pas « maintenant ».
+          isToday: cookDate !== null
+            ? cookDate === localDate
+            : startsOn !== "" && startsOn === endsOn,
+        };
+      })
+      .filter((p) => p.title !== "")
+      // Une date résolue ANTÉRIEURE à aujourd'hui s'en va. Une date non
+      // résolue reste: « on ne sait pas quand » n'est pas « c'était hier ».
+      .filter((p) => p.cookDate === null || p.cookDate >= localDate)
+      .sort((a, b) => {
+        const key = (p: HouseholdPreparation) =>
+          p.cookDate === localDate ? "" : (p.cookDate ?? "￿");
+        return key(a) < key(b) ? -1 : key(a) > key(b) ? 1 : 0;
+      })
+      .slice(0, HOUSEHOLD_MAX_PREPARATIONS);
 
     // 4. LES PORTIONS. En `shared`, UNIQUEMENT la mienne — filtrée ici, à la
     // lecture, et pas par une consigne de discrétion dans le prompt.
@@ -291,6 +371,22 @@ export async function loadHouseholdTurnContext(
       .filter((p) => p.visible && p.line.firstName !== "")
       .slice(0, HOUSEHOLD_MAX_PORTIONS)
       .map((p) => p.line);
+
+    // 4-bis. LA LISTE DE COURSES DE LA FENÊTRE. Elle n'a pas de jour: une
+    // vague de courses couvre la semaine, et la découper par date inventerait
+    // une information que la ligne ne porte pas. Bornée, et le bloc DIT qu'elle
+    // l'est — une liste tronquée présentée comme complète est un panier faux.
+    const shoppingAll = (plan ? asArray(plan.shopping_list) : [])
+      .map((s) => ({
+        term: str(s.term),
+        quantity: str(s.quantity) || null,
+      }))
+      .filter((s) => s.term !== "");
+    const shopping: HouseholdShoppingLine[] = shoppingAll.slice(
+      0,
+      HOUSEHOLD_MAX_SHOPPING,
+    );
+    const shoppingTruncated = shoppingAll.length > shopping.length;
 
     // 5. LES RESTRICTIONS QUI ME VISENT, avec leur auteur. Celles qui visent
     // quelqu'un d'autre ne sont pas chargées: en `family` elles ne concernent
@@ -318,6 +414,8 @@ export async function loadHouseholdTurnContext(
       preparations,
       portions,
       myRestrictions,
+      shopping,
+      shoppingTruncated,
     };
   } catch (error) {
     // Le tour continue SANS bloc foyer, et l'agent ne prétend pas connaître le
@@ -333,6 +431,37 @@ function dayTokenFor(localDate: string): string {
   const tokens = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
   const d = new Date(`${localDate}T00:00:00Z`);
   return Number.isNaN(d.getTime()) ? "" : tokens[d.getUTCDay()];
+}
+
+/**
+ * LA DATE QUE DÉSIGNE UN JETON DE JOUR, DANS CETTE FENÊTRE-LÀ.
+ *
+ * `cook_on: "wed"` ne dit pas QUEL mercredi. Une fenêtre de plan dure au plus
+ * sept jours (`student_generated_meals_duration_days_check`), donc elle
+ * contient au plus UN mercredi et le jeton se résout sans ambiguïté — mais il
+ * faut le résoudre ICI. Le laisser au modèle, c'est lui demander de faire du
+ * calendrier, et ce dépôt a déjà payé « le jour nommé » deux fois.
+ *
+ * Rend `null` sur une fenêtre illisible ou un jeton absent de la fenêtre: une
+ * date qu'on ne sait pas ne s'invente pas.
+ */
+function dateForDayToken(
+  token: string,
+  startsOn: string,
+  endsOn: string,
+): string | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(startsOn)) return null;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(endsOn)) return null;
+  const start = new Date(`${startsOn}T00:00:00Z`);
+  const end = new Date(`${endsOn}T00:00:00Z`);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return null;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(start.getTime() + i * 86_400_000);
+    if (d.getTime() > end.getTime()) return null;
+    const iso = d.toISOString().slice(0, 10);
+    if (dayTokenFor(iso) === token) return iso;
+  }
+  return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -368,7 +497,15 @@ export function householdContextBlock(ctx: HouseholdTurnContext): string {
   const others = ctx.roster.filter((m) => m.visibility !== "full");
   lines.push(
     `Household of ${ctx.roster.length} (${ctx.kind}): ${
-      ctx.roster.map((m) => m.firstName + (m.isMinor ? " (child)" : "")).join(", ")
+      ctx.roster.map((m) =>
+        // ⚠️ « (child) » EST UNE DONNÉE SUR QUELQU'UN, pas une présence. En
+        // colocation, `presence_only` veut dire « il est là, et c'est tout ce
+        // qu'on en dit »: l'âge d'un colocataire est dérivé de sa date de
+        // naissance, et l'annoncer serait exactement la fuite que R3 ferme
+        // pour les portions. La CEINTURE mineur, elle, reste armée plus bas —
+        // elle lit le roster, pas cette étiquette.
+        m.firstName + (m.isMinor && m.visibility === "full" ? " (child)" : "")
+      ).join(", ")
     }.`,
   );
 
@@ -380,9 +517,19 @@ export function householdContextBlock(ctx: HouseholdTurnContext): string {
     }
     if (ctx.preparations.length > 0) {
       lines.push("");
-      lines.push("PREPARATIONS TO COOK:");
+      // ⚠️ CHAQUE LIGNE PORTE SON JOUR, ET C'EST STRUCTUREL. Sans le jour, une
+      // préparation de jeudi lue un samedi devient « à cuisiner maintenant » —
+      // mesuré 3 fois sur 3 avant ce libellé, sur « What do I need to cook
+      // today? ». Une cuisson faite au mauvais jour est le plat d'hier servi ce
+      // soir, avec les courses en plus.
+      lines.push("PREPARATIONS AHEAD (today's first; a line dated another day is NOT for today):");
       for (const prep of ctx.preparations) {
-        lines.push(`- ${prep.title}${prep.cookOn ? ` (cook on ${prep.cookOn})` : ""}`);
+        const when = prep.isToday
+          ? " — TODAY"
+          : prep.cookDate
+          ? ` — cook on ${prep.cookDate} (${prep.cookOn}), NOT today`
+          : " — no cooking day recorded; do not claim it is today";
+        lines.push(`- ${prep.title}${when}`);
       }
     }
     if (ctx.portions.length > 0) {
@@ -406,6 +553,35 @@ export function householdContextBlock(ctx: HouseholdTurnContext): string {
     );
   }
 
+  // ── LES COURSES ────────────────────────────────────────────────────────────
+  //
+  // HORS de la branche « aujourd'hui »: une vague de courses couvre la FENÊTRE,
+  // pas la journée. Un foyer dont aucun plat n'est composé ce soir peut avoir
+  // ses courses à faire, et l'inverse serait un silence faux.
+  //
+  // MESURÉ avant ce bloc, sur « What do I need to buy? »: l'agent fabriquait la
+  // liste depuis les TITRES DES PLATS — « roast chicken, brown rice, green
+  // beans, tomato, white beans, lentils, cod, chicken thighs » — en y mêlant
+  // les plats des autres jours. Une liste de courses inventée est du même bois
+  // qu'un plat inventé: on va l'acheter.
+  lines.push("");
+  if (ctx.shopping.length > 0) {
+    lines.push(
+      ctx.shoppingTruncated
+        ? `SHOPPING LIST for this window (first ${ctx.shopping.length}; there are more — say the list is longer and send them to the meals screen for the rest):`
+        : "SHOPPING LIST for this window:",
+    );
+    for (const item of ctx.shopping) {
+      lines.push(`- ${item.term}${item.quantity ? ` — ${item.quantity}` : ""}`);
+    }
+  } else {
+    lines.push(
+      "NO SHOPPING LIST is recorded for this window. Say you do not have one " +
+        "and send them to the meals screen. NEVER build a shopping list out of " +
+        "the dish names above: an invented basket gets bought.",
+    );
+  }
+
   if (ctx.myRestrictions.length > 0) {
     lines.push("");
     lines.push("NOT AVAILABLE IN THIS HOUSEHOLD, for this student:");
@@ -416,6 +592,19 @@ export function householdContextBlock(ctx: HouseholdTurnContext): string {
       "State it as a household choice, ATTRIBUTED and UNJUSTIFIED. Never give " +
         "a health reason for it, never argue for the person who chose it, and " +
         "never dress a domestic decision up as nutrition advice.",
+    );
+    // ⚠️ « C'EST PAS SI MAUVAIS POUR MOI, SI ? » EST LA MÊME QUESTION RETOURNÉE,
+    // et sans cette ligne elle passait. MESURÉ, 1 passe sur 3, posée par un
+    // ENFANT de onze ans: « It's not poison, no. But a typical 2-tablespoon
+    // serving is about 200 calories, 21 g of sugar, and 4 g of saturated fat…»
+    // — une justification nutritionnelle (R4), des chiffres à un mineur (R5),
+    // et un compte de calories que le verrou de doctrine ne voit pas passer
+    // parce qu'il cherche « calorie counting », pas « 200 calories ».
+    lines.push(
+      "If they ask whether the food is bad for them, or good, or how much " +
+        "sugar or fat or calories it has: you do not answer that. It is not a " +
+        "health call, it is a household choice, and quoting a figure turns a " +
+        "domestic decision into a verdict on their body.",
     );
   }
 
@@ -429,21 +618,66 @@ export function householdContextBlock(ctx: HouseholdTurnContext): string {
     "- READ-ONLY. You cannot compose, change, add or remove anything here. " +
       "Every one of those has its own screen.",
   );
+  // ⚠️ LA RÈGLE EST ÉCRITE EN FORME DE RÉPONSE, et pas en forme de principe.
+  // MESURÉ 3 passes sur 3 avec la seule phrase « A dish being planned is NOT a
+  // dish being eaten »: sur « Did we eat the chicken today? » l'agent répondait
+  // « Yes — chicken thighs are listed for today's dinner ». Il n'avait pas
+  // coché en base — aucun `protocol_events`, relu — mais il AFFIRMAIT le fait,
+  // ce qui est l'inférence que le domaine interdit globalement.
   lines.push(
     "- A dish being planned is NOT a dish being eaten. Never tick anything, " +
-      "and never assume it was.",
+      "and never assume it was. If they ask whether something WAS eaten, you " +
+      "do not know: this list says what is PLANNED, never what happened. " +
+      "Never answer 'yes' to 'did we eat X'.",
   );
-  if (ctx.kind === "shared" && others.length > 0) {
+  lines.push(
+    "- Only what is dated TODAY above is for today. A dish or a preparation " +
+      "dated another day is not tonight's, and saying it is sends them to cook " +
+      "the wrong thing.",
+  );
+  // ⚠️ UNE PRÉPARATION N'EST PAS UN PLAT. Le bloc ne porte QUE les plats du
+  // jour, mais les préparations portent leurs dates — et le modèle s'en sert
+  // pour annoncer le repas d'un autre jour: « Tomorrow is lentils », mesuré
+  // 1 passe sur 3 sur « And what are we eating tomorrow? ». C'est une
+  // confabulation de plat par déduction, et elle se cuisine comme les autres.
+  lines.push(
+    "- You have TODAY'S dishes and nothing else. A preparation dated a later " +
+      "day is a cooking task, not that day's meal: never turn one into a dish, " +
+      "and never state what a later day's meal is. Say you only have today's " +
+      "and send them to the meals screen.",
+  );
+  // ⚠️ LA CONDITION EST LE VERDICT, PAS LE MODE. `others` vient déjà de
+  // `memberVisibility`; y ajouter `kind === "shared"` remettait le mode du
+  // foyer dans une décision de visibilité — le `if (kind === 'shared')` local
+  // que §9 nomme comme la seconde vérité à ne pas écrire. Les deux formes sont
+  // équivalentes aujourd'hui (en `family` tout le monde est `full`, donc
+  // `others` est vide), et une seule le restera si la règle bouge.
+  if (others.length > 0) {
     lines.push(
       "- Shared household: you do not know the other members' goals, " +
         "measurements or serving notes, and you are not withholding them — " +
         "they are not in your context at all. Say you do not know.",
     );
+    // ⚠️ LA FUITE PAR COMPARAISON, ET ELLE N'A PAS BESOIN DE LA DONNÉE.
+    // MESURÉ 3 passes sur 3: « Is my portion bigger than Sam's tonight? » →
+    // « Yes — Rob's serving note is a larger protein and starch share. I don't
+    // have Sam's portion note here. » La consigne de l'autre n'était nulle part
+    // dans le contexte, et pourtant la comparaison est ASSERTÉE: le « yes »
+    // porte la moitié manquante. Un démenti qui suit ne la reprend pas.
+    lines.push(
+      "- And never answer a COMPARISON with them: 'is my share bigger than " +
+        "theirs?' needs the other half, and you do not have it. Do not say yes " +
+        "or no and then add a caveat — the yes is the leak. Answer only that " +
+        "you do not have their note, and give them theirs.",
+    );
   }
   if (ctx.roster.some((m) => m.isMinor)) {
     lines.push(
       "- A child in this household is an EATER, never a target: allergies, " +
-        "tastes, portion size. No nutritional goal, no weight, no numbers.",
+        "tastes, portion size. No nutritional goal, no weight, and no figures " +
+        "of any kind — not calories, not grams of sugar or fat, not a serving " +
+        "size in numbers. A child asking 'how much sugar is in that?' gets a " +
+        "plain answer about the plate, never a count.",
     );
   }
 

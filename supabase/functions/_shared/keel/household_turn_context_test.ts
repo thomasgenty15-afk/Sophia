@@ -115,10 +115,23 @@ function tables(kind: "family" | "shared", over: Partial<Tables> = {}): Tables {
         { title: "Roast chicken bowl", slot: "dinner", day: "wed" },
         { title: "Lentil soup", slot: "dinner", day: "thu" },
       ],
-      preparations: [{ title: "Roast chicken thighs", cookOn: "wed" }],
+      // ⚠️ LA FORME DE LA PRODUCTION, ET C'EST LE SUJET. `mealPreparationsPayload`
+      // écrit `cook_on`; `memberPortionsPayload` écrit `user_id` /
+      // `display_name` / `portion_note`. La première version de ce fichier
+      // écrivait du camelCase, et c'est exactement ce qui a caché, jusqu'au run
+      // réel, que le chargeur ne lisait PAS le jour de cuisson des vraies
+      // lignes. Un décor qui ment sur la forme de la donnée cache le défaut
+      // qu'il devrait montrer.
+      preparations: [
+        { title: "Lentils", cook_on: "thu" },
+        { title: "Roast chicken thighs", cook_on: "wed" },
+      ],
       member_portions: [
-        { userId: ME, displayName: "Ana", portionNote: "larger protein share" },
-        { userId: OTHER, displayName: "Marc", portionNote: "smaller starch share" },
+        { user_id: ME, display_name: "Ana", portion_note: "larger protein share" },
+        { user_id: OTHER, display_name: "Marc", portion_note: "smaller starch share" },
+      ],
+      shopping_list: [
+        { term: "chicken thighs", quantity: "1 kg", aisle: "butcher" },
       ],
     }],
     household_food_restrictions: [],
@@ -143,6 +156,88 @@ Deno.test("le plat DU JOUR et la portion À MON NOM sont chargés", async () => 
   const mine = ctx.portions.find((p) => p.isMe);
   assertEquals(mine?.firstName, "Ana");
   assertEquals(mine?.note, "larger protein share");
+});
+
+Deno.test("LE JOUR DE CUISSON EST LU — `cook_on`, la clé de la production", async () => {
+  // Le chargeur ne lisait que `cookOn`. Sur une vraie ligne, le jour valait
+  // donc `null` PARTOUT, et la borne de trois prenait les trois premières du
+  // tableau — l'ordre de composition, pas le calendrier. Mesuré en run réel:
+  // « What do I need to cook today? » rendait deux préparations de demain et
+  // d'après-demain, 3 passes sur 3.
+  const db = stubDb(tables("family"), [rosterRow(ME, "Ana")]);
+  const ctx = await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY });
+  assert(ctx);
+  // JOUR COURANT D'ABORD, même si le tableau le met en second.
+  assertEquals(ctx.preparations.map((p) => p.title), [
+    "Roast chicken thighs",
+    "Lentils",
+  ]);
+  assertEquals(ctx.preparations[0].cookOn, "wed");
+  assertEquals(ctx.preparations[0].cookDate, TODAY);
+  assertEquals(ctx.preparations[0].isToday, true);
+  assertEquals(ctx.preparations[1].isToday, false);
+  assertEquals(ctx.preparations[1].cookDate, "2026-08-06");
+
+  const block = householdContextBlock(ctx);
+  assertStringIncludes(block, "Roast chicken thighs — TODAY");
+  assertStringIncludes(block, "Lentils — cook on 2026-08-06 (thu), NOT today");
+});
+
+Deno.test("UNE PRÉPARATION D'UN JOUR PASSÉ ne remonte pas", async () => {
+  const db = stubDb(
+    tables("family", {
+      student_generated_meals: [{
+        id: "plan-1",
+        household_id: HOUSE,
+        retired_at: null,
+        starts_on: "2026-08-03",
+        ends_on: "2026-08-09",
+        dishes: [{ title: "Roast chicken bowl", slot: "dinner", day: "wed" }],
+        preparations: [
+          { title: "Soak the beans", cook_on: "mon" }, // 2026-08-03, DERRIÈRE
+          { title: "Roast chicken thighs", cook_on: "wed" },
+        ],
+        member_portions: [],
+        shopping_list: [],
+      }],
+    }),
+    [rosterRow(ME, "Ana")],
+  );
+  const ctx = await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY });
+  assertEquals(ctx?.preparations.map((p) => p.title), ["Roast chicken thighs"]);
+});
+
+Deno.test("LA LISTE DE COURSES est lue, et son absence est DITE", async () => {
+  // Sans elle, mesuré: l'agent fabriquait la liste depuis les titres de plats,
+  // en y mêlant ceux des autres jours. Une liste inventée se fait acheter.
+  const withList = stubDb(tables("family"), [rosterRow(ME, "Ana")]);
+  const ctx = await loadHouseholdTurnContext(withList, { userId: ME, localDate: TODAY });
+  assertEquals(ctx?.shopping, [{ term: "chicken thighs", quantity: "1 kg" }]);
+  assertEquals(ctx?.shoppingTruncated, false);
+  assertStringIncludes(householdContextBlock(ctx!), "SHOPPING LIST for this window:");
+
+  const without = stubDb(
+    tables("family", {
+      student_generated_meals: [{
+        id: "plan-1",
+        household_id: HOUSE,
+        retired_at: null,
+        starts_on: "2026-08-03",
+        ends_on: "2026-08-09",
+        dishes: [{ title: "Roast chicken bowl", slot: "dinner", day: "wed" }],
+        preparations: [],
+        member_portions: [],
+        shopping_list: [],
+      }],
+    }),
+    [rosterRow(ME, "Ana")],
+  );
+  const bare = await loadHouseholdTurnContext(without, { userId: ME, localDate: TODAY });
+  assertEquals(bare?.shopping, []);
+  assertStringIncludes(
+    householdContextBlock(bare!),
+    "NEVER build a shopping list out of the dish names",
+  );
 });
 
 Deno.test("EN FAMILLE, les portions des autres sont visibles", async () => {
@@ -371,12 +466,16 @@ Deno.test("LE BLOC EST BORNÉ — le budget tronque par la queue", async () => {
         })),
         preparations: Array.from({ length: 20 }, (_, i) => ({
           title: `Prep ${i}`,
-          cookOn: "wed",
+          cook_on: "wed",
         })),
         member_portions: Array.from({ length: 20 }, (_, i) => ({
-          userId: `u-${i}`,
-          displayName: `M${i}`,
-          portionNote: "standard",
+          user_id: `u-${i}`,
+          display_name: `M${i}`,
+          portion_note: "standard",
+        })),
+        shopping_list: Array.from({ length: 40 }, (_, i) => ({
+          term: `item ${i}`,
+          quantity: "1 unit",
         })),
       }],
     }),
@@ -389,9 +488,32 @@ Deno.test("LE BLOC EST BORNÉ — le budget tronque par la queue", async () => {
   assertEquals(ctx.todayDishes.length, 4);
   assertEquals(ctx.preparations.length, 3);
   assert(ctx.portions.length <= 6);
+  assertEquals(ctx.shopping.length, 12);
+  assertEquals(ctx.shoppingTruncated, true);
   const block = householdContextBlock(ctx);
+  // La liste tronquée le DIT: une liste coupée présentée comme complète est un
+  // panier faux.
+  assertStringIncludes(block, "there are more");
   assert(
-    block.length < 2200,
-    `le bloc fait ${block.length} caractères — il doit rester sous 2 200`,
+    block.length < 3200,
+    `le bloc fait ${block.length} caractères — il doit rester sous 3 200`,
   );
+});
+
+Deno.test("EN COLOCATION, « (child) » n'est pas une présence", async () => {
+  // `presence_only` veut dire « il est là, et c'est tout ce qu'on en dit ».
+  // L'âge d'un colocataire est dérivé de sa date de naissance; l'annoncer est
+  // la même fuite que R3 ferme sur les portions. La CEINTURE mineur, elle,
+  // reste armée — elle lit le roster, pas l'étiquette.
+  const db = stubDb(tables("shared"), [
+    rosterRow(ME, "Ana"),
+    rosterRow(CHILD, "Léo", { is_minor: true }),
+  ]);
+  const block = householdContextBlock(
+    (await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY }))!,
+  );
+  assertStringIncludes(block, "Léo");
+  assertEquals(block.includes("Léo (child)"), false);
+  // …et la ceinture mord quand même.
+  assertStringIncludes(block, "is an EATER, never a target");
 });
