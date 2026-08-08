@@ -328,6 +328,7 @@ import {
   isNoMealDeclared,
   type MealDeclarationHit,
 } from "../../_shared/keel/meal_declaration_floor.ts";
+import { floorSilencedWriteForTurn } from "../../_shared/keel/floor_silenced_write.ts";
 import {
   recordAllowedEffect,
   recordBlockedEffect,
@@ -1636,6 +1637,16 @@ export type KeelDirectEffectLaneInput = {
   suppressComponentKeys?: readonly string[];
   /** La ligne d'origine à laquelle rattacher un composant ajouté. */
   precisionAnswerTo?: string | null;
+  /**
+   * L2 — cette exécution est l'ÉCRITURE SILENCIEUSE sous plancher.
+   *
+   * Elle change UNE chose et une seule: le gate cesse de refuser
+   * `log_protocol_event` sur la bande safety (`safetyBandBlocksEffect`). Elle
+   * n'ouvre aucun genre de demande, elle ne rend aucun texte, et son runtime
+   * ne rejoint jamais le frame — voir le bloc « L2 » de `processMessage`.
+   * Absente ⇒ comportement d'avant, gardes fermées.
+   */
+  floorSilencedWrite?: boolean;
 };
 
 /**
@@ -1856,6 +1867,10 @@ export async function runKeelDirectEffectLane(
         // Le tour de chat EST la source: ni photo ni tap. `evidence_weight`
         // en découle (0.8), il n'est jamais choisi à la main.
         default_source: "chat",
+        // L2 — l'unique effet de ce drapeau: le gate cesse de refuser sur la
+        // bande safety. Tout le reste du chemin est identique, y compris
+        // l'intake, l'idempotence et l'exécuteur write-through.
+        floor_silenced_write: input.floorSilencedWrite === true,
         // Le créneau que l'élève a NOMMÉ, lu dans son message. Repli seulement:
         // `payload_hint.slot_key` prime quand le modèle l'émet. Mesuré 0/3 sans
         // ce repli — « for lunch », « at breakfast », « for dinner » écrivaient
@@ -5411,6 +5426,113 @@ export async function processMessage(
     tempMemory,
     userMessage,
   }));
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // L2 · SOUS PLANCHER, LA DONNÉE ENTRE — C'EST LA RÉPONSE QUI SE TAIT
+  //
+  // 🔴 DÉFAUT MESURÉ 3/3 (FF-017) puis 6/6 EN FR ET EN (FF-020), relu en psql:
+  //      élève  : « j'ai mangé du poulet à midi. franchement je n'en peux
+  //                plus, j'ai envie de disparaître »
+  //      route  : owner=safety (ou disordered_eating_guard)
+  //      frame  : turn_frame.direct_effects = 1 — le plancher AVAIT posé l'effet
+  //      route  : direct_effects_to_run = []
+  //      base   : protocol_events → ZÉRO ligne
+  // Le fait était perdu. Arbitrage humain du 2026-08-08: « écrire le fait,
+  // taire la réponse ». La sollicitation reste avalée sans condition (elle est
+  // de la pression par définition); l'EFFET s'écrit.
+  //
+  // ── POURQUOI ICI, ET NULLE PART AILLEURS ────────────────────────────────
+  // Trois lignes plus haut, `turnFrameWithDirectEffectRuntime` a SCELLÉ le
+  // frame. Écrire APRÈS ce point est ce qui rend la réponse structurellement
+  // muette, et c'est exactement la propriété du patron de référence (FF-008,
+  // FF-027): le fait n'atteint jamais la couche qui parle.
+  //   · il n'entre pas dans `turnFrame.direct_effect_lane` ⇒ ni le prompt du
+  //     skill clinique, ni celui de la crise, ni `ensureCommittedRenderParity`,
+  //     ni le contrat de confirmation du composeur n'en voient la trace;
+  //   · son `content` est VIDÉ ⇒ la reply déterministe du renderer ne peut pas
+  //     remonter par `mergeVisibleTextForTest` (qui retomberait dessus si le
+  //     skill rendait un texte vide);
+  //   · aucun genre de demande ne s'ouvre: les deux lanes de FF-021 ont déjà
+  //     refusé plus haut sur le drapeau BRUT, et le budget n'est pas touché.
+  // La comptabilité, elle, reste vraie: le runtime est fusionné dans
+  // `operationRuntime`, donc le ledger et la trace portent la ligne. Un commit
+  // muet pour la personne n'est pas un commit muet pour l'audit.
+  //
+  // ── CE QUI N'EST PAS TOUCHÉ ─────────────────────────────────────────────
+  // `routers.ts` est inchangé: le tour appartient toujours à la lane de
+  // sécurité, `direct_effects_to_run` reste vide, et les six surfaces
+  // supprimées par FF-021 le restent. On ne relit pas non plus le plancher: on
+  // relit `blocked_paths`, la décision que le routeur vient d'écrire (FF-021 a
+  // prouvé qu'elle porte l'effet et son motif, 3/3, sur les deux branches).
+  // ══════════════════════════════════════════════════════════════════════════
+  const floorSilenced = floorSilencedWriteForTurn({
+    blockedPaths: routeDecision.blocked_paths,
+    isKeelStudent: keelTurn.is_student,
+  });
+  if (
+    floorSilenced.effect_types.length > 0 &&
+    // La lane de précision a retiré l'effet EXPRÈS (une CORRECTION n'ajoute
+    // rien): rejouer ici reconstruirait le doublon qu'elle vient de fermer.
+    mealPrecisionLane.suppressLogProtocolEvent !== true
+  ) {
+    const silencedRuntime = await runKeelDirectEffectLane({
+      supabase,
+      userId,
+      userMessage,
+      channel,
+      turnFrame,
+      routeDecision: {
+        ...routeDecision,
+        direct_effects_to_run: floorSilenced.effect_types,
+      },
+      tempMemory,
+      keel: keelTurn,
+      suppressComponentKeys: mealPrecisionLane.suppressComponentKeys,
+      precisionAnswerTo: mealPrecisionLane.linkToEventId,
+      // LE SECOND VERROU, et il fallait le nommer: `runDirectEffectGate`
+      // refuse `log_protocol_event` dès `risk_band >= medium`
+      // (`safetyBandBlocksEffect`, default-deny). Sans ce drapeau, ouvrir
+      // `direct_effects_to_run` ne suffisait pas — le tour de crise serait
+      // resté à zéro ligne, et on aurait cru avoir corrigé. C'est la classe
+      // « cinq points de contrôle, et le cinquième est muet ».
+      floorSilencedWrite: true,
+    });
+    if (silencedRuntime) {
+      const committedCount =
+        (silencedRuntime.toolSkillRun.committed_effects as unknown[]).length;
+      console.warn("[keel] floor_silenced_write", {
+        request_id: requestId,
+        route_owner: routeDecision.response_owner,
+        floor_reason: floorSilenced.reason_code,
+        effect_types: floorSilenced.effect_types,
+        status: silencedRuntime.toolSkillRun.status,
+        committed: committedCount,
+        blocked:
+          (silencedRuntime.toolSkillRun.blocked_effects as unknown[]).length,
+        detail:
+          "le plancher a pris le tour; le FAIT est écrit quand même et la " +
+          "restitution n'existe pas — le runtime ne rejoint pas le frame et " +
+          "ne porte aucun texte.",
+      });
+      operationRuntime = mergeDirectEffectRuntimeIntoVisibleRuntime({
+        directRuntime: {
+          ...silencedRuntime,
+          // LE MUSELIÈRE, et elle est littérale: aucune chaîne de ce runtime
+          // ne peut atteindre la bulle.
+          content: "",
+          toolSkillRun: {
+            ...silencedRuntime.toolSkillRun,
+            // Nommé dans la trace: un audit doit pouvoir distinguer une
+            // écriture nominale d'une écriture faite sous plancher.
+            status: `floor_silenced:${silencedRuntime.toolSkillRun.status}`,
+            reason:
+              `${floorSilenced.reason_code}+silenced_write:${silencedRuntime.toolSkillRun.reason}`,
+          },
+        },
+        visibleRuntime: operationRuntime,
+      });
+    }
+  }
 
   let skillExitInjectedContext: string | undefined;
   let localFlowExitSkillRun: Record<string, unknown> | undefined;

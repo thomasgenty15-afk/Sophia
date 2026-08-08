@@ -281,3 +281,51 @@ Deno.test("QA agent 4 — le vocabulaire du ROUTEUR == celui du gate (parité de
     "tout effet connu du gate doit être exécutable par le routeur, sinon il est muet",
   );
 });
+
+// ── L2 (2026-08-08) — L'ÉCRITURE SILENCIEUSE SOUS PLANCHER ──────────────────
+//
+// « Écrire le fait, taire la réponse » (arbitrage humain). Le drapeau ouvre UN
+// effet et un seul, et son ABSENCE garde la garde fermée — c'est la polarité
+// qui rend le défaut sûr, à l'inverse de la cicatrice
+// `optional-gate-params-are-disarmed-gates`.
+
+Deno.test("L2 — sans le drapeau, la bande safety bloque log_protocol_event (défaut fermé)", () => {
+  for (const band of ["medium", "high", "critical"] as const) {
+    assertEquals(safetyBandBlocksEffect("log_protocol_event", band), true, band);
+    // Et l'oubli du paramètre donne exactement le même verdict.
+    assertEquals(
+      safetyBandBlocksEffect("log_protocol_event", band, false),
+      true,
+      band,
+    );
+  }
+});
+
+Deno.test("L2 — avec le drapeau, log_protocol_event traverse la bande safety", () => {
+  for (const band of ["medium", "high", "critical"] as const) {
+    assertEquals(
+      safetyBandBlocksEffect("log_protocol_event", band, true),
+      false,
+      band,
+    );
+  }
+});
+
+Deno.test("L2 — le drapeau n'ouvre AUCUN autre effet", () => {
+  // La coche de progrès est de la pression d'adhérence, l'écart planifié est
+  // une négociation de plan: ni l'un ni l'autre n'est un fait déclaré.
+  for (const effect of ["track_progress_plan_item", "declare_deviation"]) {
+    assertEquals(
+      safetyBandBlocksEffect(effect, "high", true),
+      true,
+      effect,
+    );
+  }
+});
+
+Deno.test("L2 — hors bande bloquante, le drapeau ne change rien (témoin)", () => {
+  for (const band of ["none", "low"] as const) {
+    assertEquals(safetyBandBlocksEffect("log_protocol_event", band, false), false);
+    assertEquals(safetyBandBlocksEffect("log_protocol_event", band, true), false);
+  }
+});

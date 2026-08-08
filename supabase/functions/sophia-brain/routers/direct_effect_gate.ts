@@ -82,14 +82,53 @@ const SAFETY_BLOCK_EXEMPT_EFFECT_TYPES: ReadonlySet<string> = new Set([
 ]);
 
 /**
+ * L2 (2026-08-08) — LES EFFETS QU'UNE ÉCRITURE SOUS PLANCHER PEUT DÉBLOQUER.
+ *
+ * Liste FERMÉE, et volontairement séparée de `SAFETY_BLOCK_EXEMPT_EFFECT_TYPES`
+ * ci-dessus: l'exemption du rappel et de l'allergie vaut pour TOUT le tour, y
+ * compris quand la lane parle. Celle-ci ne vaut que pour le chemin d'écriture
+ * SILENCIEUX de `run.ts` — le fait entre en base, et la restitution n'existe
+ * pas. Les mélanger reviendrait à laisser un accusé de repas remonter dans un
+ * tour de crise, ce qui est exactement ce que le lot interdit.
+ *
+ * DÉCISION PRODUIT ÉCRITE, exigée par le paragraphe de
+ * `SAFETY_BLOCK_EXEMPT_EFFECT_TYPES` (« rien d'autre n'y entre sans une
+ * décision produit écrite »): arbitrage humain du 2026-08-08, « écrire le fait,
+ * taire la réponse ». Mesuré 3/3 (FF-017) puis 6/6 FR+EN (FF-020): sous
+ * `safety_band`, une déclaration de repas produisait ZÉRO ligne — le fait
+ * disparaissait au moment exact où le message le portait, et la revue du coach
+ * devenait aveugle précisément sur la semaine qui compte.
+ *
+ * L'asymétrie qui tranche, et c'est la même que pour l'allergie: un fait écrit
+ * de trop se corrige (l'élève rétracte, la ligne se disqualifie), un fait
+ * perdu ne revient jamais — `protocol_events` est APPEND-ONLY et personne ne
+ * redemande à quelqu'un en crise ce qu'il a mangé.
+ */
+const FLOOR_SILENCED_WRITE_EXEMPT_EFFECT_TYPES: ReadonlySet<string> = new Set([
+  "log_protocol_event",
+]);
+
+/**
  * Un effet durable est-il bloqué par la bande safety de ce tour ?
  * Défaut-deny : tout ce qui n'est pas explicitement exempté est bloqué.
+ *
+ * @param floorSilencedWrite ce tour est-il l'écriture SILENCIEUSE de `run.ts`
+ *   sous plancher ? Le défaut est `false`, et la POLARITÉ est ce qui rend ce
+ *   défaut sûr: un appelant qui l'oublie garde la garde FERMÉE. C'est l'inverse
+ *   exact de la cicatrice `optional-gate-params-are-disarmed-gates`, où l'oubli
+ *   ouvrait. Un paramètre requis ici forcerait l'édition des quatre chaînes
+ *   d'effet pour un drapeau qui n'en concerne qu'une.
  */
 export function safetyBandBlocksEffect(
   effectType: string,
   riskBand: TurnFrame["safety"]["risk_band"],
+  floorSilencedWrite = false,
 ): boolean {
   if (!blocksDirectEffects(riskBand)) return false;
+  if (
+    floorSilencedWrite === true &&
+    FLOOR_SILENCED_WRITE_EXEMPT_EFFECT_TYPES.has(effectType)
+  ) return false;
   return !SAFETY_BLOCK_EXEMPT_EFFECT_TYPES.has(effectType);
 }
 
@@ -98,6 +137,12 @@ export type DirectEffectGateInput = {
   turn_frame: TurnFrame;
   recent_writes_idempotency: { source_message_ids: string[] };
   db_idempotency_check: (key: string) => Promise<boolean>;
+  /**
+   * L2 — ce tour est l'écriture SILENCIEUSE sous plancher (`run.ts`,
+   * `floorSilencedWriteForTurn`). Voir `safetyBandBlocksEffect`: absent ⇒ la
+   * garde reste fermée.
+   */
+  floor_silenced_write?: boolean;
 };
 
 type GateBlockedReason = Extract<
@@ -214,7 +259,13 @@ export async function runDirectEffectGate(
       "Recurring reminder requests are never armed as one-shot effects.",
     );
   }
-  if (safetyBandBlocksEffect(toolId, input.turn_frame.safety.risk_band)) {
+  if (
+    safetyBandBlocksEffect(
+      toolId,
+      input.turn_frame.safety.risk_band,
+      input.floor_silenced_write === true,
+    )
+  ) {
     return blocked(
       toolId,
       "safety_high",

@@ -64,6 +64,13 @@ export type LogProtocolEventRouterInput = {
   precision_answer_to?: string | null;
   recent_writes_idempotency?: { source_message_ids: string[] };
   db_idempotency_check?: (key: string) => Promise<boolean>;
+  /**
+   * L2 — ce tour est l'écriture SILENCIEUSE sous plancher: le fait entre en
+   * base et la restitution n'existe pas (`run.ts`, `floorSilencedWriteForTurn`).
+   * Il n'ouvre RIEN d'autre que l'exemption de bande safety du gate, et son
+   * absence garde la garde fermée.
+   */
+  floor_silenced_write?: boolean;
   write_protocol_event: ProtocolEventWrite;
 };
 
@@ -179,6 +186,7 @@ export async function runLogProtocolEventDirectEffect(
       { source_message_ids: [] },
     db_idempotency_check: input.db_idempotency_check ??
       ((_key: string) => Promise.resolve(false)),
+    floor_silenced_write: input.floor_silenced_write === true,
   });
   if (gate.decision !== "allow") {
     return refusal({
