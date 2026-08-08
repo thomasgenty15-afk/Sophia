@@ -282,6 +282,143 @@ Deno.test("one ignored question is not a pattern: the interval stays nominal", (
 });
 
 // ---------------------------------------------------------------------------
+// R3 — LE VERROU: LA QUESTION D'ÉTAT N'EST PAS QUOTIDIENNE
+//
+// ── POURQUOI CE VERROU EXISTE, ET CE QU'IL ATTRAPE ─────────────────────────
+// « Le "comment tu te sens ?" quotidien » est HORS PÉRIMÈTRE
+// (`docs/fonctionnalites/conversation/README.md`, « Hors périmètre —
+// engageant »). Le tap n'est PAS supprimé pour autant: il garde un
+// consommateur — l'axe faim alimente FF-027, et le message du soir est le
+// véhicule de FF-029 et FF-028. Ce qui est interdit, c'est la CADENCE
+// quotidienne, pas la question.
+//
+// Les tests ci-dessus décrivent tous la cadence en fonction de
+// `PULSE_ASK_INTERVAL_DAYS`, donc ils restent VERTS si quelqu'un ramène la
+// constante à 1: la boucle `days < PULSE_ASK_INTERVAL_DAYS` ne tourne plus
+// qu'une fois et continue de passer. Un test paramétré par la constante qu'il
+// devrait protéger ne protège rien. D'où les deux épreuves qui suivent: l'une
+// pinne la VALEUR, l'autre simule sept jours et compte.
+// ---------------------------------------------------------------------------
+
+Deno.test("R3 — la cadence vaut 3 jours, et la valeur est PINNÉE avec son pourquoi", () => {
+  // Trois et pas un: à un jour le tap redevient le formulaire quotidien que le
+  // produit démonte. Trois et pas sept: au-dessus, la mesure devient trop
+  // grossière pour dire à un coach qu'une semaine s'est dégradée.
+  //
+  // Changer ce chiffre est une DÉCISION PRODUIT, pas un réglage: elle se prend
+  // dans `docs/fonctionnalites/conversation/README.md` avant de se prendre ici.
+  // Si cette ligne casse, c'est le rappel que la décision manque — pas une
+  // valeur à mettre à jour pour faire passer la suite.
+  assertEquals(PULSE_ASK_INTERVAL_DAYS, 3);
+
+  // Et les deux bornes qui l'encadrent, pour la même raison: l'escalade est le
+  // SEUL chemin qui autorise un rythme quotidien, et elle est conditionnée à un
+  // `hard` déclaré. Une escalade dont la condition tomberait rendrait la
+  // question quotidienne pour tout le monde, sans toucher à la constante
+  // ci-dessus.
+  assertEquals(PULSE_ASK_INTERVAL_WHEN_HARD, 1);
+  assertEquals(PULSE_ASK_INTERVAL_WHEN_IGNORED, 7);
+});
+
+Deno.test("R3 — sur 7 jours consécutifs ordinaires, la question part au plus ⌈7/3⌉ fois", () => {
+  // « Ordinaire » = aucune situation particulière: l'élève répond, et il ne
+  // déclare pas `hard`. C'est le pire cas pour le nombre de questions —
+  // répondre remet `unansweredStreak` à zéro, donc rien ne déclenche le repli
+  // qui espacerait davantage. Le silence, lui, est testé juste en dessous.
+  const DAYS = 7;
+  // ⌈7/3⌉ = 3, ÉCRIT EN DUR et pas dérivé de la constante. Le dériver
+  // (`Math.ceil(DAYS / PULSE_ASK_INTERVAL_DAYS)`) rendrait ce test vert pour
+  // TOUTE valeur de la constante, y compris 1 — c'est-à-dire exactement le
+  // défaut des tests d'au-dessus, reproduit dans le verrou censé le corriger.
+  const CEILING = 3;
+
+  let asked = 0;
+  let daysSinceLastAsk: number | null = null;
+  const journal: string[] = [];
+
+  for (let day = 1; day <= DAYS; day++) {
+    const decision = decideAskCadence({
+      daysSinceLastAsk,
+      lastAnsweredLevel: "good",
+      unansweredStreak: 0,
+    });
+    journal.push(`j${day}:${decision.ask ? "ASK" : decision.reason}`);
+    if (decision.ask) {
+      asked++;
+      daysSinceLastAsk = 0;
+    } else if (daysSinceLastAsk !== null) {
+      daysSinceLastAsk++;
+    }
+    // Un jour passe. `daysSinceLastAsk === null` ne dure que jusqu'au premier
+    // envoi: « jamais posée » est un état d'amorçage, pas un état stable.
+    if (daysSinceLastAsk === 0) daysSinceLastAsk = 1;
+  }
+
+  assertEquals(
+    asked <= CEILING,
+    true,
+    `${asked} questions sur ${DAYS} jours (plafond ${CEILING}) — ${journal.join(" ")}`,
+  );
+  // Et pas zéro non plus: un tap qui ne part jamais ne mesure rien, et FF-027
+  // n'aurait plus d'axe faim à lire. Le retrait vise la cadence, pas la mesure.
+  assert(asked >= 2, `${asked} question(s) — le tap doit rester vivant`);
+});
+
+Deno.test("R3 — le FAIT du soir, lui, peut partir chaque soir: c'est le véhicule", () => {
+  // La dissymétrie est tout l'objet du retrait. La question est plafonnée à une
+  // tous les trois jours; le fait sort chaque soir où il y a matière, parce
+  // qu'il DONNE au lieu de demander (`evening-message-give-before-ask`). Un
+  // test qui ne vérifierait que la rareté de la question laisserait quelqu'un
+  // « simplifier » en coupant le message entier.
+  for (let day = 1; day <= 7; day++) {
+    const d = decideDailyPulse(input({
+      hasGround: true,
+      // La question n'est PAS due — c'est justement le cas à couvrir.
+      askDue: false,
+    }));
+    assertEquals(d.decision, "send", `jour ${day}`);
+    if (d.decision === "send") assertEquals(d.ask, false, `jour ${day}`);
+  }
+});
+
+Deno.test("R3 — une question restée sans réponse ne se relance pas le lendemain", () => {
+  // Le troisième interdit du filet: « ni relance d'une question restée sans
+  // réponse ». Deux chemins la portent, et il faut les deux — la garde du jour
+  // (`already_sent_today`) empêche le second tick de la MÊME soirée, le repli
+  // sur silence empêche le lendemain.
+  const sameEvening = decideDailyPulse(input({ sentToday: true, askDue: true }));
+  assertEquals(sameEvening.decision, "skip");
+  if (sameEvening.decision === "skip") {
+    assertEquals(sameEvening.reason, "already_sent_today");
+  }
+
+  // Et sur sept jours de silence complet: le repli rend la question PLUS rare
+  // que la cadence nominale, jamais plus fréquente.
+  let asked = 0;
+  let daysSinceLastAsk: number | null = null;
+  let unansweredStreak = 0;
+  for (let day = 1; day <= 7; day++) {
+    const d = decideAskCadence({
+      daysSinceLastAsk,
+      // L'élève s'est tu: il n'y a AUCUN niveau répondu, donc pas d'escalade
+      // `hard` possible. C'est ce qui rend l'arbitrage lisible.
+      lastAnsweredLevel: null,
+      unansweredStreak,
+    });
+    if (d.ask) {
+      asked++;
+      unansweredStreak++;
+      daysSinceLastAsk = 1;
+    } else if (daysSinceLastAsk !== null) {
+      daysSinceLastAsk++;
+    }
+  }
+  // 3 en dur, pour la raison écrite au-dessus. Le silence doit faire MOINS que
+  // la cadence nominale, donc ce plafond est déjà généreux.
+  assertEquals(asked <= 3, true, `${asked} questions sur 7 jours de silence`);
+});
+
+// ---------------------------------------------------------------------------
 // THE MESSAGE — three shapes, and the invariant that binds them
 // ---------------------------------------------------------------------------
 

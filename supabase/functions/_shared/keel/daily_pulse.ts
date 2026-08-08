@@ -234,6 +234,18 @@ export type PulseSkipReason = (typeof PULSE_SKIP_REASONS)[number];
  * démonte; au-dessus, la mesure devient trop grossière pour dire à un coach
  * qu'une semaine s'est dégradée. Le fait du soir, lui, reste quotidien — c'est
  * ce qui permet de baisser la fréquence de l'ASK sans laisser le canal refroidir.
+ *
+ * ⚠️ CE CHIFFRE EST UNE DÉCISION PRODUIT, ET IL EST VERROUILLÉ (R3).
+ * « Le "comment tu te sens ?" quotidien » est hors périmètre —
+ * `docs/fonctionnalites/conversation/README.md`, « Hors périmètre — engageant ».
+ * Le tap n'est PAS supprimé: il garde des consommateurs (l'axe faim de FF-027,
+ * et ce message est le véhicule de FF-029 et FF-028). C'est la CADENCE
+ * quotidienne qui est interdite, pas la question.
+ *
+ * `daily_pulse_test.ts` pinne donc la VALEUR (« R3 — la cadence vaut 3 jours »)
+ * et simule sept jours en écrivant ⌈7/3⌉ en dur. Les deux épreuves tombent si on
+ * ramène ce chiffre à 1 — écrire la décision dans le README d'abord est le seul
+ * chemin, et c'est voulu.
  */
 export const PULSE_ASK_INTERVAL_DAYS = 3;
 
