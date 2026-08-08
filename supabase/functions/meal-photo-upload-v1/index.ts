@@ -25,6 +25,7 @@ import {
   blocksDurableWrite,
   readLastTurnSafetyBand,
 } from "../_shared/keel/safety_band_io.ts";
+import { evaluateRestrictionForStudent } from "../_shared/keel/restriction_runtime.ts";
 import { openMealPrecisionFlowState } from "../_shared/keel/meal_precision_flow_state.ts";
 import { protocolEventComponentKey } from "../_shared/keel/protocol_event_key.ts";
 import { studentBindingIn } from "../_shared/keel/meal_analysis.ts";
@@ -1099,6 +1100,83 @@ Deno.serve(async (req) => {
       }));
     }
 
+    // ══════════════════════════════════════════════════════════════════════
+    // L2 · SOUS PLANCHER, LE FAIT RESTE — C'EST L'ACCUSÉ QUI SE TAIT
+    //
+    // 🔴 MESURÉ 3/3 par FF-018 (E4), re-mesuré 2/2 par L2 sur LES DEUX
+    //    planchers, le 2026-08-08:
+    //      bande  : `__last_turn_risk_band = critical` (crise du tour d'avant)
+    //      base   : 1 ligne `protocol_events` — le fait entre, très bien
+    //      bulle  : « I see grilled chicken breast, brown rice, broccoli. […]
+    //                tell me which one to count and I will log it. »
+    //    Une copie enjouée sur le poulet et le riz, avec sa sollicitation, un
+    //    tour après une réponse de crise suicidaire. Et le MÊME résultat sous
+    //    plancher de restriction levé — que ce chemin ne lisait nulle part.
+    //
+    // L'en-tête de `safety_band_io.ts` (l. 13-27) nommait déjà les deux
+    // survivants comme « un arbitrage produit » resté ouvert: le CRÉDIT écrit
+    // sur la ligne photo, et la LIVRAISON de l'accusé. L'arbitrage humain du
+    // 2026-08-08 tranche la seconde moitié — « écrire le fait, taire la
+    // réponse » — et laisse la première ouverte (le crédit est de l'adhérence,
+    // pas un fait déclaré; il n'est pas dans le périmètre décidé).
+    //
+    // ── CE QUE « SE TAIRE » VEUT DIRE ICI, EXACTEMENT ───────────────────────
+    // La photo de l'élève entre dans la bulle comme d'habitude (sa propre
+    // ligne `chat_messages` role=user): il voit ce qu'il a envoyé. Ce qui ne
+    // part pas, c'est le commentaire sur son assiette. On ne demande pas à
+    // quelqu'un en crise laquelle de ses lignes de plan compter.
+    //
+    // ── ET LE FLOW DE PRÉCISION RESTE FERMÉ, PAR CONSTRUCTION ──────────────
+    // Il ne s'ouvre que `if (chatDelivered)`. Sans accusé, il n'y a rien à
+    // corriger et rien à ouvrir — donc la garde de bande plus bas devient
+    // redondante sur ce chemin, et on la garde quand même: elle couvre le cas
+    // où l'accusé partirait pour une autre raison.
+    //
+    // ── LES DEUX PLANCHERS, LUS SÉPARÉMENT ────────────────────────────────
+    // La bande safety se relit dans `user_chat_states` (déjà le cas plus bas);
+    // le plancher de restriction se relit par le VRAI chargeur, celui que le
+    // chat appelle — jamais une seconde définition. Les deux échouent en
+    // « ouvert »: une panne de lecture ne doit pas faire taire toutes les
+    // photos de tous les élèves (même arbitrage fail-open NOMMÉ que
+    // `readLastTurnSafetyBand`), et elle est TRACÉE.
+    // ══════════════════════════════════════════════════════════════════════
+    const ackSafetyBand = await readLastTurnSafetyBand(admin, {
+      userId,
+      scope: CHAT_SCOPE,
+    });
+    let ackRestrictionFlag = false;
+    try {
+      const floor = await evaluateRestrictionForStudent(admin as never, {
+        userId,
+        asOfLocalDate: localDate,
+        turnMessage: String(body.student_note ?? "").trim() || null,
+        turnLocale: resolveArtifactLocale({
+          studentProfile: studentProfileLocale,
+          tenantDefault: null,
+        }),
+      });
+      ackRestrictionFlag = floor.restriction_flag === true;
+    } catch (floorError) {
+      console.warn(JSON.stringify({
+        tag: "meal_photo_restriction_floor_unreadable",
+        user_id: userId,
+        error: floorError instanceof Error
+          ? floorError.message
+          : String(floorError),
+      }));
+    }
+    const ackSilenced = blocksDurableWrite(ackSafetyBand) || ackRestrictionFlag;
+    if (ackSilenced) {
+      console.log(JSON.stringify({
+        tag: "meal_photo_ack_silenced",
+        user_id: userId,
+        safety_band: ackSafetyBand,
+        restriction_flag: ackRestrictionFlag,
+        detail:
+          "le fait photo est écrit; l'accusé et sa sollicitation ne partent pas.",
+      }));
+    }
+
     // ── DE-WHATSAPP — LA PHOTO ENTRE DANS LA CONVERSATION ────────────────────
     // Après tout le reste, jamais avant: un échec ici ne doit pas défaire un
     // fait déjà écrit et déjà analysé. Une photo enregistrée sans message dans
@@ -1154,14 +1232,20 @@ Deno.serve(async (req) => {
           // laisser un silence qui ressemble à une photo ignorée.
           const body_text = ack ||
             "Saved. I could not analyse it just now — it is on file either way.";
-          const res = await deliverChatMessage(admin, {
-            userId,
-            content: body_text,
-            isReply: true,
-            purpose: "keel_meal_photo_ack",
-            requestId,
-            metadata: { media_path: path, event_id: eventId },
-          });
+          // L2 — SOUS PLANCHER, RIEN NE PART. Voir le bloc du dessus: le fait
+          // est déjà écrit, la photo est déjà dans la bulle, et le
+          // commentaire sur l'assiette n'a pas sa place ici. `chatDelivered`
+          // reste `null`, donc le flow de précision ne s'ouvre pas non plus.
+          const res = ackSilenced
+            ? { chatMessageId: null as string | null }
+            : await deliverChatMessage(admin, {
+              userId,
+              content: body_text,
+              isReply: true,
+              purpose: "keel_meal_photo_ack",
+              requestId,
+              metadata: { media_path: path, event_id: eventId },
+            });
           chatDelivered = res.chatMessageId;
         }
       } catch (chatError) {
