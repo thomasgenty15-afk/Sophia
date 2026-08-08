@@ -12,6 +12,14 @@
 Jamais à la racine. Si aucun domaine ne convient, c'est probablement que la
 fonctionnalité en recouvre deux — coupe-la, ou ouvre un domaine et dis-le ici.
 
+**1 bis. La DIRECTION d'un domaine vit dans son README, jamais dans une fiche.**
+Une fiche décrit une fonctionnalité — quelque chose qui permet de faire. Ce qui
+gouverne un domaine entier (sa règle mère, son circuit d'ensemble, ses règles
+transverses, ce qu'il s'interdit) va dans le README du sous-dossier, où tout le
+monde le lit en arrivant. Une « fiche de direction » se retrouve numérotée,
+statutée et triée comme les autres — c'est-à-dire perdue.
+Le modèle à suivre : [`conversation/README.md`](conversation/README.md).
+
 **2. La fiche suit [TEMPLATE.md](TEMPLATE.md), section par section.**
 Les onze sections sont obligatoires. Une section sans contenu s'écrit
 « *néant* » — jamais supprimée : une section absente se lit « on n'y a pas
@@ -149,12 +157,54 @@ des crons, observabilité, files de reprise.
 
 | ID | Fonctionnalité | Domaine | Statut |
 |---|---|---|---|
-| [FF-001](methode-du-coach/FF-001-quotidien-du-coach.md) | Le quotidien du coach | `methode-du-coach` | 🟡 Spécifiée |
+| [FF-001](methode-du-coach/FF-001-quotidien-du-coach.md) | Le quotidien du coach | `methode-du-coach` | 🟠 En cours |
+| [FF-002](composition-des-repas/FF-002-dire-son-absence.md) | Dire qu'on ne sera pas là | `composition-des-repas` | 🟡 Spécifiée |
+| [FF-003](composition-des-repas/FF-003-intake-structure.md) | Lire ce que l'élève écrit avant de composer | `composition-des-repas` | 🔵 Idée |
+| [FF-004](composition-des-repas/FF-004-conservation-et-decongelation.md) | Ce qui se garde, et le mot la veille | `composition-des-repas` | 🔵 Idée |
+| [FF-005](composition-des-repas/FF-005-strategie-de-courses.md) | Une course ou deux — l'élève choisit | `composition-des-repas` | 🟡 Spécifiée |
+| [FF-006](composition-des-repas/FF-006-cycle-de-vie-du-plan.md) | Refaire sa semaine sans perdre celle d'avant | `composition-des-repas` | 🔵 Idée |
+| ~~FF-007~~ | *brûlé* — la direction d'un domaine n'est pas une fonctionnalité : elle vit dans son [README](conversation/README.md) | — | — |
+| [FF-008](conversation/FF-008-le-poids-annonce.md) | Le poids annoncé | `conversation` | 🟡 Spécifiée |
+| [FF-009](conversation/FF-009-le-repas-hors-plan.md) | Le repas hors plan | `conversation` | 🟡 Spécifiée |
+| [FF-010](conversation/FF-010-la-lecture-du-foyer.md) | La lecture du foyer | `conversation` | 🟡 Spécifiée |
+| [FF-011](conversation/FF-011-le-soutien-grounde.md) | Le soutien groundé | `conversation` | 🟡 Spécifiée |
+| ~~FF-012~~ | *brûlé* — le retrait de la sollicitation est un chantier, pas une fonctionnalité | — | — |
+| ~~FF-013~~ | *brûlé* — absorbé par FF-023 (ne jamais redemander) et FF-027 | — | — |
+| ~~FF-014~~ | *brûlé* — devenu [RETRAIT-CARTE-DE-DEFENSE.md](../keel/RETRAIT-CARTE-DE-DEFENSE.md) | — | — |
+| ~~FF-015~~ | *brûlé* — devenu [RETRAIT-RESIDUS-GRAND-PUBLIC.md](../keel/RETRAIT-RESIDUS-GRAND-PUBLIC.md) | — | — |
+| [FF-016](conversation/FF-016-la-question-d-alimentation.md) | La question d'alimentation | `conversation` | 🟠 En cours |
+| [FF-017](conversation/FF-017-le-repas-declare.md) | Le repas déclaré (+ la question d'approfondissement) | `conversation` | 🟠 En cours |
+| [FF-018](conversation/FF-018-la-photo-de-repas.md) | La photo de repas | `conversation` | 🟠 En cours |
+| ~~FF-019~~ | *brûlé* — absorbé par FF-017 §3 | — | — |
+| [FF-020](conversation/FF-020-l-accompagnement-de-crise.md) | L'accompagnement de crise | `conversation` | 🟢 Livrée |
+| [FF-021](conversation/FF-021-le-plancher-de-restriction-alimentaire.md) | Le plancher de restriction alimentaire | `conversation` | 🟢 Livrée |
+| ~~FF-022~~ | *brûlé* — fiche rétroactive retirée au tri de valeur ; le code reste l'autorité | — | — |
+| [FF-023](conversation/FF-023-la-conversation-normale.md) | La conversation normale | `conversation` | 🟠 En cours |
+| ~~FF-024~~ | *brûlé* — le message du soir est le véhicule de FF-028/FF-029, pas une fonctionnalité | — | — |
+| [FF-025](conversation/FF-025-l-invitation-a-la-photo.md) | L'invitation à la photo | `conversation` | 🟡 Spécifiée |
+| [FF-026](conversation/FF-026-la-preference-captee.md) | La préférence captée | `conversation` | 🟠 En cours |
+| [FF-027](conversation/FF-027-la-faim-branchee-au-plan.md) | La faim branchée au plan | `conversation` | 🟡 Spécifiée |
+| [FF-028](conversation/FF-028-la-recommandation-quotidienne.md) | La recommandation quotidienne | `conversation` | 🟡 Spécifiée (V1) |
+| [FF-029](conversation/FF-029-les-pratiques-quotidiennes.md) | Les pratiques quotidiennes | `conversation` | 🟠 En cours |
 
-> Les fonctionnalités **déjà construites** n'ont pas encore de fiche. Elles sont
-> décrites par les en-têtes de leurs modules et par `docs/keel/`. On en écrit
-> une **quand on y retouche** — écrire quarante fiches rétroactives produirait
-> quarante documents que personne n'a vérifiés.
+> **Un identifiant ne se réutilise jamais** — y compris quand deux sessions
+> écrivent en parallèle, et y compris quand la fiche disparaît. `FF-002` a été
+> attribué deux fois le 2026-08-07 (la fiche du chat a été renumérotée en
+> `FF-007`) ; `FF-014` et `FF-015` ont été **brûlés** le même jour quand les
+> deux retraits ont quitté ce dossier. Avant d'ouvrir une fiche :
+> `grep -rho 'FF-[0-9]\{3\}' docs/ | sort -u`.
+
+> **Un retrait n'est pas une fonctionnalité.** Il n'a ni utilisateur, ni job
+> story durable, ni métrique de succès au-delà de « zéro ». Les chantiers de
+> suppression vivent dans `docs/keel/`, pas ici.
+
+> **Fiches rétroactives.** La règle reste : *on écrit une fiche quand on
+> retouche.* Une exception assumée existe — les neuf fiches `conversation`
+> `FF-016` à `FF-024`, écrites le 2026-08-07 à partir du code parce qu'un
+> chantier entier allait s'appuyer dessus. Elles portent toutes, en §11, la
+> mention de ce qu'elles transcrivent (le code et ses tests) et de ce qu'elles
+> **ne** prouvent pas (les mesures de leur §10). Ne pas généraliser sans la
+> même honnêteté.
 
 ---
 

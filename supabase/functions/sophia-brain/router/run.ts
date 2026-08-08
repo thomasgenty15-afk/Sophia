@@ -309,7 +309,10 @@ import {
   CLINICAL_DEFERRAL_BLOCK,
   detectDeclaredMedicalCondition,
 } from "../../_shared/keel/medical_condition_floor.ts";
-import { detectDeclaredMeal } from "../../_shared/keel/meal_declaration_floor.ts";
+import {
+  detectDeclaredMeal,
+  type MealDeclarationHit,
+} from "../../_shared/keel/meal_declaration_floor.ts";
 import {
   recordAllowedEffect,
   recordBlockedEffect,
@@ -1575,6 +1578,85 @@ export type KeelDirectEffectLaneInput = {
   /** La ligne d'origine à laquelle rattacher un composant ajouté. */
   precisionAnswerTo?: string | null;
 };
+
+/**
+ * L'EFFET DU PLANCHER DE REPAS — une seule écriture de ce payload, parce qu'il
+ * a maintenant DEUX appelants: l'ajout sur silence du dispatcher, et le FILET
+ * qui le rejoue quand la demande du dispatcher a été refusée. Deux copies
+ * auraient divergé au premier champ ajouté, et la divergence serait invisible
+ * (le filet ne se déclenche qu'une fois sur dix).
+ */
+export function mealDeclarationFloorEffect(
+  hit: MealDeclarationHit,
+): TurnFrame["direct_effects"][number] {
+  return {
+    effect_type: "log_protocol_event",
+    explicitness: "explicit",
+    target_status: "identified",
+    confidence_band: "high",
+    payload_hint: {
+      // `components` porte la CARDINALITÉ (règle D2 de l'intake): un message
+      // qui nomme trois aliments écrit trois lignes, jamais « l'entrée la plus
+      // porteuse ».
+      components: hit.components.map((c) => ({
+        food_group_ref: c.food_group_ref,
+      })),
+      student_note: hit.studentNote,
+      // FF-009. Absente quand le message ne porte aucun marqueur: `null` reste
+      // `null`, et ne devient JAMAIS `as_planned`.
+      ...(hit.planRelation ? { plan_relation: hit.planRelation } : {}),
+    },
+  };
+}
+
+/**
+ * FF-009 — LES REFUS QUI ARMENT LE FILET DU PLANCHER, et EUX SEULS.
+ *
+ * Ce sont les quatre refus de FORME du payload (`log_protocol_event/router.ts`
+ * les range déjà ensemble en `needs_clarify`): le modèle a écrit quelque chose
+ * que l'intake ne sait pas lire. Ce sont exactement les cas où un plancher
+ * déterministe doit tenir, et ce sont les seuls.
+ *
+ * ⚠️ CONDITION DE DÉSARMEMENT (P9), et elle est la moitié de la ceinture.
+ * `future_intent` (« je vais commander »), `components_already_logged` (la
+ * lane de précision a déjà écrit ces composants) et `duplicate_db` sont des
+ * refus JUSTES: rejouer dessus écrirait un fait sur une intention, ou un
+ * doublon sur un fait déjà en base. Le filet ne les touche pas.
+ */
+const MEAL_FLOOR_NET_REASONS: ReadonlySet<string> = new Set([
+  "unknown_token",
+  "unknown_commitment",
+  "too_many_components",
+  "empty_payload",
+]);
+
+export function mealFloorNetArms(args: {
+  /** Le fait que le plancher a reconnu, ou `null` s'il n'a rien reconnu. */
+  floorHit: MealDeclarationHit | null;
+  committedEffects: readonly unknown[];
+  blockedEffects: readonly unknown[];
+  /** La lane de précision a-t-elle retiré l'effet EXPRÈS ? */
+  suppressedByPrecision: boolean;
+}): boolean {
+  if (args.floorHit === null) return false;
+  if (args.suppressedByPrecision) return false;
+  const typeOf = (effect: unknown): string =>
+    Boolean(effect) && typeof effect === "object" && !Array.isArray(effect)
+      ? String((effect as Record<string, unknown>).type ?? "")
+      : "";
+  // Une seule ligne écrite suffit à désarmer: le fait existe, et le filet ne
+  // sert qu'à l'absence totale.
+  if (args.committedEffects.some((e) => typeOf(e) === "log_protocol_event")) {
+    return false;
+  }
+  return args.blockedEffects.some((effect) => {
+    if (typeOf(effect) !== "log_protocol_event") return false;
+    const reason = String(
+      (effect as Record<string, unknown>).reason_code ?? "",
+    );
+    return MEAL_FLOOR_NET_REASONS.has(reason);
+  });
+}
 
 export async function runKeelDirectEffectLane(
   input: KeelDirectEffectLaneInput,
@@ -3836,6 +3918,12 @@ export async function processMessage(
   //
   // Même famille et même place que le plancher TCA et le gate `plan_question`:
   // ce qui OUVRE un effet médical ne transite pas par le LLM du dispatcher.
+  // FF-009 — LE FAIT DÉTERMINISTE DU TOUR, hissé hors du bloc parce que le
+  // FILET (plus bas, après la lane d'effets) en a besoin: le plancher ne peut
+  // s'effacer devant la demande du dispatcher que si cette demande ABOUTIT, et
+  // ça ne se sait qu'une fois l'écriture tentée.
+  let floorDeclaredMeal: MealDeclarationHit | null = null;
+
   if (keelTurn.is_student) {
     // ── PLANCHER DE DÉCLARATION DE REPAS ────────────────────────────────────
     //
@@ -3854,6 +3942,7 @@ export async function processMessage(
       userMessage,
       slotKeyNamedIn(userMessage),
     );
+    floorDeclaredMeal = declaredMeal;
     const mealAlreadyRequested = turnFrame.direct_effects.some(
       (effect) => effect.effect_type === "log_protocol_event",
     );
@@ -3925,26 +4014,7 @@ export async function processMessage(
         ...turnFrame,
         direct_effects: [
           ...turnFrame.direct_effects,
-          {
-            effect_type: "log_protocol_event",
-            explicitness: "explicit",
-            target_status: "identified",
-            confidence_band: "high",
-            payload_hint: {
-              // `components` porte la CARDINALITÉ (règle D2 de l'intake): un
-              // message qui nomme trois aliments écrit trois lignes, jamais
-              // « l'entrée la plus porteuse ».
-              components: declaredMeal.components.map((c) => ({
-                food_group_ref: c.food_group_ref,
-              })),
-              student_note: declaredMeal.studentNote,
-              // FF-009. Absente quand le message ne porte aucun marqueur:
-              // `null` reste `null`, et ne devient JAMAIS `as_planned`.
-              ...(declaredMeal.planRelation
-                ? { plan_relation: declaredMeal.planRelation }
-                : {}),
-            },
-          },
+          mealDeclarationFloorEffect(declaredMeal),
         ],
       };
     }
@@ -4549,7 +4619,7 @@ export async function processMessage(
       ),
     };
   }
-  const keelDirectEffectRuntime = await runKeelDirectEffectLane({
+  let keelDirectEffectRuntime = await runKeelDirectEffectLane({
     supabase,
     userId,
     userMessage,
@@ -4564,6 +4634,108 @@ export async function processMessage(
     suppressComponentKeys: mealPrecisionLane.suppressComponentKeys,
     precisionAnswerTo: mealPrecisionLane.linkToEventId,
   });
+
+  // ══════════════════════════════════════════════════════════════════════
+  // FF-009 · LE FILET DU PLANCHER DE REPAS
+  //
+  // 🔴 DÉFAUT MESURÉ EN RUN RÉEL (2026-08-08, stack locale, vrai modèle,
+  //    1 tour sur 10 sur « j'ai commandé une pizza margherita »):
+  //      frame  : le dispatcher demande le log avec
+  //               `food_group_ref: "pizza_margherita"` — un slug qu'il vient
+  //               d'inventer, absent du vocabulaire fermé
+  //      intake : `unknown_token` — et R7 refuse le payload ENTIER plutôt que
+  //               de rabattre le jeton sur un voisin, ce qui est la bonne
+  //               posture
+  //      base   : ZÉRO ligne
+  //      réponse: « A margherita pizza is mostly fine as a meal… »
+  //
+  // Le plancher s'était effacé — c'est sa règle quand le dispatcher a déjà
+  // demandé l'effet — et il ne restait donc RIEN pour rattraper le refus. La
+  // soirée hors plan disparaît au moment exact où le message la portait le
+  // plus clairement, pendant que la réponse en parle. C'est l'accusé fantôme
+  // que le plancher existe pour rendre impossible.
+  //
+  // LA RÈGLE QUE CE FILET RÉTABLIT: le plancher ne s'efface que devant une
+  // demande qui ABOUTIT. Une demande refusée est un silence, et un silence
+  // est exactement ce sur quoi le plancher est censé écrire.
+  //
+  // POURQUOI APRÈS, ET PAS AVANT. Prédire le refus reviendrait à réimplémenter
+  // l'intake ici — et ce dépôt a déjà payé la copie locale d'une liste de
+  // jetons (`effect_gate_orchestrator.ts`: une copie de la liste des effets
+  // rejetait en silence tout effet ajouté sans double édition). On interroge
+  // donc le résultat RÉEL de l'écriture, pas une prédiction.
+  //
+  // Il ne s'arme que sur les quatre refus de FORME et jamais sur un refus
+  // JUSTE (`mealFloorNetArms`, dont le désarmement est la moitié du travail).
+  if (
+    mealFloorNetArms({
+      floorHit: floorDeclaredMeal,
+      committedEffects:
+        (keelDirectEffectRuntime?.toolSkillRun.committed_effects ??
+          []) as unknown[],
+      blockedEffects:
+        (keelDirectEffectRuntime?.toolSkillRun.blocked_effects ??
+          []) as unknown[],
+      suppressedByPrecision: mealPrecisionLane.suppressLogProtocolEvent === true,
+    }) && floorDeclaredMeal !== null && keelDirectEffectRuntime !== null
+  ) {
+    const refused = keelDirectEffectRuntime;
+    console.warn("[keel] meal_declaration_floor net", {
+      request_id: requestId,
+      reason: refused.toolSkillRun.reason,
+      gate: floorDeclaredMeal.gate,
+      plan_relation: floorDeclaredMeal.planRelation,
+      components: floorDeclaredMeal.components.map((c) => c.food_group_ref),
+      detail:
+        "le payload du dispatcher a été refusé pour sa FORME et rien n'a été " +
+        "écrit; le plancher rejoue son propre payload déterministe. Sans ce " +
+        "filet, le fait est perdu pendant que la réponse en parle.",
+    });
+    const netRuntime = await runKeelDirectEffectLane({
+      supabase,
+      userId,
+      userMessage,
+      channel,
+      // Le payload du modèle est REMPLACÉ, pas complété: c'est lui qui vient
+      // d'être jugé illisible.
+      turnFrame: {
+        ...turnFrame,
+        direct_effects: [mealDeclarationFloorEffect(floorDeclaredMeal)],
+      },
+      // ⚠️ `log_protocol_event` SEUL. Les deux autres effets de la lane ont
+      // déjà tourné au premier passage; les relancer les doublerait.
+      routeDecision: {
+        ...routeDecision,
+        direct_effects_to_run: ["log_protocol_event"],
+      },
+      tempMemory,
+      keel: keelTurn,
+      suppressComponentKeys: mealPrecisionLane.suppressComponentKeys,
+      precisionAnswerTo: mealPrecisionLane.linkToEventId,
+    });
+    if (netRuntime) {
+      // La COMPTABILITÉ reste vraie: le refus du modèle ne disparaît pas du
+      // ledger sous prétexte que le filet a réussi. Deux tentatives, deux
+      // traces, une seule ligne en base.
+      keelDirectEffectRuntime = {
+        ...netRuntime,
+        toolSkillRun: {
+          ...netRuntime.toolSkillRun,
+          status: `${refused.toolSkillRun.status}+floor_net:${netRuntime.toolSkillRun.status}`,
+          reason: `${refused.toolSkillRun.reason}+floor_net`,
+          requested_effects: [
+            ...(refused.toolSkillRun.requested_effects as unknown[]),
+            ...(netRuntime.toolSkillRun.requested_effects as unknown[]),
+          ],
+          blocked_effects: [
+            ...(refused.toolSkillRun.blocked_effects as unknown[]),
+            ...(netRuntime.toolSkillRun.blocked_effects as unknown[]),
+          ],
+        },
+      };
+    }
+  }
+
   if (keelDirectEffectRuntime) {
     operationRuntime = mergeDirectEffectRuntimeIntoVisibleRuntime({
       directRuntime: keelDirectEffectRuntime,
