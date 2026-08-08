@@ -284,15 +284,39 @@ const SLOT_MARKERS: readonly RegExp[] = [
  * Condition de désarmement explicite (doctrine P9): une ceinture sans elle est
  * une ceinture qu'on ne sait pas retirer. Chacune ferme un faux positif nommé.
  */
-const DISARM: readonly RegExp[] = [
-  // INTENTION FUTURE. Le prompt et la lane d'écriture l'excluent déjà; le
-  // plancher doit l'exclure aussi, sinon il écrit ce qu'ils refusent.
+/**
+ * L'INTENTION FUTURE — désarme à part, parce que c'est le SEUL désarme qui
+ * porte lui-même une condition de retrait.
+ *
+ * ── LE DÉFAUT MESURÉ (run réel 2026-08-08, 3 tours sur 3) ───────────────────
+ *   élève  : « hier j'ai commandé et demain je cuisine »
+ *   base   : ZÉRO ligne
+ * Le message porte un acte PASSÉ explicite (« j'ai commandé ») ET une phrase au
+ * futur. Le désarme était vérifié sur le message ENTIER, donc la clause de
+ * demain effaçait la soirée d'hier. C'est très exactement le fait que FF-009
+ * existe pour ne plus perdre, et la job story le nomme: « quand j'ai commandé
+ * au lieu de cuisiner, je veux pouvoir le dire ».
+ *
+ * ── CE QUI LE RETIRE, ET RIEN D'AUTRE ───────────────────────────────────────
+ * Un marqueur hors-plan AUTO-SUFFISANT — « j'ai commandé », « on est allés au
+ * resto », « I ordered », « we ate out ». Ces formes portent leur propre passé
+ * à la première personne: aucune ne peut être une intention. Un marqueur de
+ * LIEU (« takeout », « au resto ») ne suffit PAS, et c'est ce qui garde
+ * « I'm going to order takeout tonight » désarmé — le lieu dit où, pas quand.
+ *
+ * Les autres désarmes (question, négation, tiers, hypothèse, consigne du coach)
+ * restent ABSOLUS: aucun marqueur ne les retire.
+ */
+const DISARM_FUTURE_INTENT: readonly RegExp[] = [
   /\b(i m going to|i am going to|i ll|i will|later i|tonight i ll|tomorrow i)\b/,
   /\bi (plan|want|intend|was thinking)\b/,
   /\bje vais\b/,
   /\bje (compte|prevois|pense|voudrais|aimerais)\b/,
   /\bdemain\b/,
   /\bce soir je\b/,
+];
+
+const DISARM: readonly RegExp[] = [
   // QUESTION. « what should I eat for dinner? » nomme des aliments sans en
   // déclarer aucun.
   /\?/,
@@ -492,9 +516,6 @@ export function detectDeclaredMeal(
     if (disarm.test(text)) return null;
   }
 
-  const pastTense = PAST_TENSE_GATES.some((re) => re.test(text));
-  const hasSlot = slotNamed !== null || SLOT_MARKERS.some((re) => re.test(text));
-
   // FF-009 — LA TROISIÈME PORTE. Un marqueur qui porte son propre passé
   // (« j'ai commandé ») ouvre SEUL, y compris sans aucun aliment reconnu: c'est
   // le cas nominal du hors-plan, et exiger un composant le perdrait (R2). Un
@@ -502,6 +523,18 @@ export function detectDeclaredMeal(
   // le message a par ailleurs.
   const offPlan = detectOffPlanMarker(raw);
   const offPlanOpensTheDoor = offPlan?.selfSufficient === true;
+
+  // L'intention future désarme — SAUF quand le message porte par ailleurs un
+  // acte passé explicite. Voir `DISARM_FUTURE_INTENT` pour le défaut mesuré:
+  // « hier j'ai commandé et demain je cuisine » perdait la soirée d'hier.
+  if (!offPlanOpensTheDoor) {
+    for (const disarm of DISARM_FUTURE_INTENT) {
+      if (disarm.test(text)) return null;
+    }
+  }
+
+  const pastTense = PAST_TENSE_GATES.some((re) => re.test(text));
+  const hasSlot = slotNamed !== null || SLOT_MARKERS.some((re) => re.test(text));
 
   if (!pastTense && !hasSlot && !offPlanOpensTheDoor) return null;
 

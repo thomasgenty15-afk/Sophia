@@ -377,3 +377,68 @@ Deno.test("FF-009 §7 — la ceinture ne mord QUE le motif « pour les enfants �
     );
   }
 });
+
+Deno.test("FF-009 — une clause au FUTUR n'efface pas un acte PASSÉ explicite", () => {
+  // 🔴 Mesuré en run réel (2026-08-08, 3/3): « hier j'ai commandé et demain je
+  // cuisine » n'écrivait RIEN. Le désarme d'intention future était vérifié sur
+  // le message entier, donc la clause de demain effaçait la soirée d'hier —
+  // exactement le fait que FF-009 existe pour ne plus perdre.
+  for (
+    const message of [
+      "hier j'ai commandé et demain je cuisine",
+      "on a commandé hier soir, demain je fais des pâtes",
+      "I ordered last night and tomorrow I'll cook",
+      "we ate out yesterday, I'm going to cook tonight",
+    ]
+  ) {
+    const hit = detectDeclaredMeal(message);
+    assertEquals(
+      hit?.planRelation ?? null,
+      "off_plan",
+      `acte passé perdu par la clause future: ${message}`,
+    );
+  }
+});
+
+Deno.test("FF-009 — CONTRE-ÉPREUVE: l'intention SEULE reste désarmée, FR et EN", () => {
+  // Le retrait ne vaut QUE pour un marqueur AUTO-SUFFISANT. Un marqueur de
+  // LIEU dit où, pas quand — « I'm going to order takeout tonight » porte
+  // « takeout » et doit rester muet.
+  for (
+    const message of [
+      "je vais commander ce soir",
+      "je vais commander une pizza demain",
+      "I'm going to order takeout tonight",
+      "I'll get a takeaway later",
+      "je compte aller au resto demain",
+      "je vais manger du poulet ce soir",
+    ]
+  ) {
+    assertEquals(
+      detectDeclaredMeal(message),
+      null,
+      `l'intention future doit rester muette: ${message}`,
+    );
+  }
+});
+
+Deno.test("FF-009 — les AUTRES désarmes restent ABSOLUS malgré un marqueur passé", () => {
+  // Le retrait est réservé à l'intention future. Une question, une négation ou
+  // un tiers ne se retire JAMAIS, même quand le message contient « j'ai
+  // commandé » — sinon on rouvrirait tous les faux positifs d'un coup.
+  for (
+    const message of [
+      "on a commandé pour les enfants",
+      "we ordered for the kids",
+      "j'ai commandé, c'était bien ? est-ce que ça compte ?",
+      "si je commande, est-ce que j'ai commandé au sens du plan ?",
+      "mon fils a commandé une pizza",
+    ]
+  ) {
+    assertEquals(
+      detectDeclaredMeal(message),
+      null,
+      `un désarme absolu a été retiré à tort: ${message}`,
+    );
+  }
+});
