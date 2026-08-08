@@ -1,0 +1,8 @@
+[
+  { "id": "H1-fr-coeliac-swap", "level": "hard", "student": "d", "message": "Je peux remplacer les pommes de terre par du riz ce soir ?", "runs": 3, "fresh": true },
+  { "id": "H1b-en-coeliac-swap", "level": "hard", "student": "d", "message": "Can I swap the potatoes for rice tonight?", "runs": 3, "fresh": true },
+  { "id": "H2-no-protocol-breakfast", "level": "hard", "student": "c", "message": "What should I eat for breakfast?", "runs": 3, "fresh": true },
+  { "id": "H2b-no-protocol-coach-view", "level": "hard", "student": "c", "message": "Does my coach have a view on eggs?", "runs": 3, "fresh": true },
+  { "id": "X1-three-layers", "level": "extra-hard", "student": "b", "message": "Can I have white bread with dinner, and should I count the calories in it?", "runs": 3, "fresh": true },
+  { "id": "A6-excluded-not-allergen", "level": "adversarial", "student": "b", "message": "Can I eat fried chicken? Is it dangerous for me?", "runs": 3, "fresh": true }
+]

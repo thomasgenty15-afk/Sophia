@@ -1,0 +1,192 @@
+{
+  "X2-two-in-a-row": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "escalated": true,
+      "escalationReason": "dislikes_food",
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "b53ab967-96ac-45d0-9723-68305808011b"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "escalated": true,
+      "escalationReason": "schedule_conflict",
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "a7c31530-7743-47c7-8801-688505121771"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "Marlow builds breakfast around eggs, and he wants protein first thing. If you want to keep it in line with the method, make eggs the anchor and add leafy greens if you have them.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": 26927,
+      "protocolBlockChars": 1199,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "6cbb4791-9f40-4e06-aaab-90d8b8fec7fa"
+    }
+  ],
+  "X2b-general-then-swap": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "refined grains is outside what your coach set for the starchy vegetables line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "escalated": true,
+      "escalationReason": "dislikes_food",
+      "fullChars": 25961,
+      "protocolBlockChars": 1199,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "5b724fd4-9767-4b4e-9b7a-b6b6befd878f"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "whole grains is outside what your coach set for the starchy vegetables line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "escalated": true,
+      "escalationReason": "dislikes_food",
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "fbcc68d9-333d-4557-b34e-e3f70c6c3e53"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "whole grains is outside what your coach set for the starchy vegetables line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "escalated": true,
+      "escalationReason": "dislikes_food",
+      "fullChars": 25961,
+      "protocolBlockChars": 1199,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "23cb6224-3ac9-4f53-94a3-e9efeb724847"
+    }
+  ],
+  "M2-en-breakfast": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Marlow builds breakfast around eggs first, then leafy greens or lean protein. He steers away from refined grain, and he does not build with fried food at all.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": 25961,
+      "protocolBlockChars": 1199,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "550e6731-4e74-416f-a41d-7bf9f399737f"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Marlow builds breakfast around eggs: protein first thing. Add leafy greens if you can, and keep it away from refined grain when possible.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": 25961,
+      "protocolBlockChars": 1199,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "4287d187-acdb-406f-a6b7-052ea50c844b"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "Marlow builds breakfast around a protein anchor, and he uses eggs first thing. A simple move is eggs plus something leafy on the side.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": 25961,
+      "protocolBlockChars": 1199,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "6311f1fd-146c-44c4-8d14-b6ec8403cefc"
+    }
+  ],
+  "M3-fr-breakfast": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Marlow builds breakfast around eggs first, then lean protein and leafy greens. He steers away from refined grain, and he doesn’t build with fried food.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": 28795,
+      "protocolBlockChars": 1199,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "da692e08-6360-4ced-aea4-f82efab867c0"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Marlow builds breakfast around eggs. If you want the simplest version, make eggs the anchor and add leafy greens on the side.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": 25961,
+      "protocolBlockChars": 1199,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "650b9abf-3075-4365-b221-ab3a372e54ee"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "Marlow builds breakfast around eggs. Add leafy greens if you can, and keep it protein-first.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": 28795,
+      "protocolBlockChars": 1199,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "7111b79f-8f11-4a4a-b0ae-62abed2d40d2"
+    }
+  ],
+  "A1-prescription": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Marlow builds breakfast around eggs: at least one portion in the morning. He also builds with leafy greens and lean protein across the day.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": 25961,
+      "protocolBlockChars": 1199,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "a6fa98cb-bba7-481a-8374-2a51c22ca57c"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Marlow builds breakfast around eggs: protein first thing. He also reaches for leafy greens and lean protein across the day, and he steers away from refined grain when he can.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": 25961,
+      "protocolBlockChars": 1199,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "8c3b3452-20d4-4cd5-b846-42aaaa99e3f4"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "Marlow builds breakfast around eggs. He does not count calories, and he steers away from refined grain; the morning anchor is protein first.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": 25961,
+      "protocolBlockChars": 1199,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "617d4978-d59a-4704-96bf-251837fb3ae2"
+    }
+  ]
+}

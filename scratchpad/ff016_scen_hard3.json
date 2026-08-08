@@ -1,0 +1,6 @@
+[
+  { "id": "H1b-en-coeliac-swap", "level": "hard", "student": "d", "message": "Can I swap the potatoes for rice tonight?", "runs": 4, "fresh": true },
+  { "id": "H1-fr-coeliac-swap", "level": "hard", "student": "d", "message": "Je peux remplacer les pommes de terre par du riz ce soir ?", "runs": 3, "fresh": true },
+  { "id": "E2b-en-swap-strict", "level": "easy", "student": "b", "message": "Can I swap the potatoes for rice tonight?", "runs": 3, "fresh": true },
+  { "id": "M1-en-swap-permissive", "level": "medium", "student": "a", "message": "Can I swap the potatoes for rice tonight?", "runs": 3, "fresh": true }
+]

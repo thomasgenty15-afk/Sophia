@@ -1,0 +1,116 @@
+{
+  "M2-en-breakfast": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Marlow builds breakfast around eggs first. If you want a simple plate, add leafy greens on the side and keep it centered on a lean protein anchor.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": 25190,
+      "protocolBlockChars": 1199,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "5a698291-67d6-49ee-840e-45aa96db76d6"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "escalated": true,
+      "escalationReason": "dislikes_food",
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "67df043e-cd40-4991-9695-0558dee470f7"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "Marlow builds breakfast around eggs: protein first thing. If you want it fuller, add leafy greens on the side; he steers away from refined grain and doesn’t build with fried food.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": 25190,
+      "protocolBlockChars": 1199,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "407be1f6-784b-4a1b-8435-049aaf93700d"
+    }
+  ],
+  "M3-fr-breakfast": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Marlow builds breakfast around eggs: protein first thing. He also builds with leafy greens and lean protein, and he steers away from refined grain when he can.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": 25190,
+      "protocolBlockChars": 1199,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "f6e239d5-69e6-48ad-bf6f-f6db71639b74"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Marlow builds breakfast around eggs: that’s the protein first thing he wants. If you want a simple plate, start with eggs and add leafy greens or another lean protein beside them.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": 25190,
+      "protocolBlockChars": 1199,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "5c317d46-3457-4866-82b2-78f807aa5452"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "Marlow builds breakfast around eggs first, with lean protein and leafy greens alongside if you can. He steers away from refined grain, and he does not build with fried food at all.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": 25190,
+      "protocolBlockChars": 1199,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "70dd916c-0be9-4744-ad78-f50bf6dbde2b"
+    }
+  ],
+  "M4-en-shopping": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "escalated": true,
+      "escalationReason": "dislikes_food",
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "90773684-c12a-495b-9b53-2c41c8abccc8"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Marlow builds meals around a protein anchor, so stock up on eggs, lean protein, and leafy greens first. He also steers away from refined grain, and he does not build with fried food.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": 25190,
+      "protocolBlockChars": 1199,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "e4ca91e6-a4cd-4186-9246-cb5233713e9d"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "escalated": true,
+      "escalationReason": "social_event",
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "e7f07fa1-d672-4aee-8dd8-52bd49cc5d73"
+    }
+  ]
+}

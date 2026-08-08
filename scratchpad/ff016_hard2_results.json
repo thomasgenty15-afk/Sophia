@@ -1,0 +1,230 @@
+{
+  "H1b-en-coeliac-swap": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "No — I cannot clear that one for you, and I have not changed anything. It is flagged to your coach right now so they can look at it straight away. If you have any physical reaction, treat it as urgent and get medical help rather than waiting for a reply here.",
+      "escalated": true,
+      "escalationReason": "allergen_violation",
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "2c8d328d-6027-4019-9367-98e21d4696ee"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Yes — starchy vegetables is exactly what the line asks for. Log it as usual.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "772ae9ac-647f-4909-804d-1de3e6353807"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "No — I cannot clear that one for you, and I have not changed anything. It is flagged to your coach right now so they can look at it straight away. If you have any physical reaction, treat it as urgent and get medical help rather than waiting for a reply here.",
+      "escalated": true,
+      "escalationReason": "allergen_violation",
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "6ea5ed1f-5c5b-4c95-8afc-d699a4392f77"
+    }
+  ],
+  "H1-fr-coeliac-swap": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "escalated": true,
+      "escalationReason": "dislikes_food",
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "5c0c6284-9cd5-4bcd-90a2-1e64c726f1b7"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "No — I cannot clear that one for you, and I have not changed anything. It is flagged to your coach right now so they can look at it straight away. If you have any physical reaction, treat it as urgent and get medical help rather than waiting for a reply here.",
+      "escalated": true,
+      "escalationReason": "allergen_violation",
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "a1e7f7dc-621e-4b1b-9a8c-8945d6be7003"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "No — I cannot clear that one for you, and I have not changed anything. It is flagged to your coach right now so they can look at it straight away. If you have any physical reaction, treat it as urgent and get medical help rather than waiting for a reply here.",
+      "escalated": true,
+      "escalationReason": "allergen_violation",
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "251a065c-8325-464c-9e94-6c1974adee0e"
+    }
+  ],
+  "E2-fr-swap-strict": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "escalated": true,
+      "escalationReason": "dislikes_food",
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "e66a5080-5cc9-4376-a2fa-d0553cc1f92c"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "whole grains is outside what your coach set for the starchy vegetables line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "escalated": true,
+      "escalationReason": "dislikes_food",
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "64394094-f155-4898-a5ea-2480d77ab2a1"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "escalated": true,
+      "escalationReason": "dislikes_food",
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "672149e9-41a5-4878-ac98-d58ae6642ef8"
+    }
+  ],
+  "E2b-en-swap-strict": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "whole grains is outside what your coach set for the starchy vegetables line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "escalated": true,
+      "escalationReason": "dislikes_food",
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "9406219b-c605-4e5d-8cc8-13816b46f945"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "escalated": true,
+      "escalationReason": "dislikes_food",
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "5ba99b66-13c2-415e-9c94-6730cfb3b279"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "escalated": true,
+      "escalationReason": "dislikes_food",
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "4b8a3970-2461-44ae-9b08-1facd8a10913"
+    }
+  ],
+  "E1-fr-swap-permissive": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Yes — refined grains instead of starchy vegetables works here. Your coach listed it as an accepted substitute on this line, so nothing needs changing.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "9b15f3b1-b2e6-45f3-8e82-e958c314103d"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "escalated": true,
+      "escalationReason": "dislikes_food",
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "58957556-3376-4f57-ba9f-484b4a062a8c"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "Yes — whole grains instead of starchy vegetables works here. Your coach listed it as an accepted substitute on this line, so nothing needs changing.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "07f8b315-c6b2-482e-b2ea-4f67c2300bbd"
+    }
+  ],
+  "M1-en-swap-permissive": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Yes — whole grains instead of starchy vegetables works here. Your coach listed it as an accepted substitute on this line, so nothing needs changing.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "52b3d6d4-e60c-4732-9fc4-68719ea42f60"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Yes — refined grains instead of starchy vegetables works here. Your coach listed it as an accepted substitute on this line, so nothing needs changing.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "69901313-7a44-42fa-a093-bdf2ceef1b58"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "escalated": true,
+      "escalationReason": "dislikes_food",
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "839ab1b9-f04c-4722-aa3a-193bdde3875f"
+    }
+  ]
+}

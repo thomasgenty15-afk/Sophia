@@ -1,0 +1,192 @@
+{
+  "E1-fr-swap-permissive": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Yes — whole grains instead of starchy vegetables works here. Your coach listed it as an accepted substitute on this line, so nothing needs changing.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "3358e1e1-503c-43a2-97ac-aba90edf4806"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Yes — refined grains instead of starchy vegetables works here. Your coach listed it as an accepted substitute on this line, so nothing needs changing.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "ce5ccb3e-1fa2-465e-8ece-30aa11dc44ad"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "Yes — refined grains instead of starchy vegetables works here. Your coach listed it as an accepted substitute on this line, so nothing needs changing.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "5f367b76-55a6-407c-8eda-c896ad3137ed"
+    }
+  ],
+  "E2-fr-swap-strict": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "refined grains is outside what your coach set for the starchy vegetables line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "escalated": true,
+      "escalationReason": "dislikes_food",
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "f7a3ec8e-fb0a-4b7f-bb4a-492dec0728ab"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "refined grains is outside what your coach set for the starchy vegetables line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "escalated": true,
+      "escalationReason": "dislikes_food",
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "f73bb422-3abc-4c17-8cce-8f1b696267b4"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "whole grains is outside what your coach set for the starchy vegetables line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "escalated": true,
+      "escalationReason": "dislikes_food",
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "7ad39f41-8987-4614-9339-fc24c0a49a90"
+    }
+  ],
+  "M1-en-swap-permissive": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Yes — starchy vegetables is exactly what the line asks for. Log it as usual.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "f6a8afdb-b39b-4984-a5d9-d60c4edb4977"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Yes — whole grains instead of starchy vegetables works here. Your coach listed it as an accepted substitute on this line, so nothing needs changing.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "1b0cf381-83e8-44f1-a3c3-f09d82d01136"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "Yes — refined grains instead of starchy vegetables works here. Your coach listed it as an accepted substitute on this line, so nothing needs changing.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "bb1271d3-1901-4415-a611-845580202a11"
+    }
+  ],
+  "M2-en-breakfast": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Marlow builds breakfast around eggs, with leafy greens on the plate and lean protein if you need more. He steers away from refined grain; if you want, I can map that onto what you already have.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": 24796,
+      "protocolBlockChars": 1199,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "1c62d466-f31a-49d4-bb15-43a8d7109c15"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "escalated": true,
+      "escalationReason": "dislikes_food",
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "70a8a770-9abc-4be9-a8c9-c9408a926d62"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "Marlow builds breakfast around eggs first, then leafy greens if you can. If you want the simplest version, think eggs plus something green, with lean protein if needed.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": 24928,
+      "protocolBlockChars": 1199,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "5c345201-a51d-4b40-95c4-aa8039434e9f"
+    }
+  ],
+  "M3-fr-breakfast": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "escalated": true,
+      "escalationReason": "other",
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "ce728a59-17d8-4fb2-908c-7d621fb63cfe"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "escalated": true,
+      "escalationReason": "dislikes_food",
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "7cea6719-63c5-4927-8c48-6350825b1d03"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "Marlow builds breakfast around eggs: that’s his protein first move. He also reaches for leafy greens and lean protein; he steers away from refined grain, and he doesn’t build with fried food.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": 25190,
+      "protocolBlockChars": 1199,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "1e521fba-646d-4be1-95b7-244caa11be41"
+    }
+  ]
+}

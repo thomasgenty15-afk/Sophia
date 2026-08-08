@@ -1,0 +1,154 @@
+{
+  "budget-breakfast-published": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Marlow builds breakfast around eggs first. If you want it simple, keep it to eggs plus a lean protein or some leafy greens.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": 29183,
+      "protocolBlockChars": 1199,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "aa79729e-0b86-4fd2-ba20-5deb572c5ea3"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Marlow builds breakfast around eggs first. If you want it simple, keep it to eggs plus a lean protein or some leafy greens.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": 28939,
+      "protocolBlockChars": 1199,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "c8578281-c3d5-480e-bd7b-915040b58b42"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "Marlow builds breakfast around eggs first. If you want it simple, keep it to eggs plus a lean protein or some leafy greens.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": 28903,
+      "protocolBlockChars": 1199,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "27da10e0-0e47-4be3-9196-471afff08f31"
+    }
+  ],
+  "budget-doctrine-published": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Marlow doesn’t use calorie counting. He treats it like accounting, and builds the meal around a protein anchor instead.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": 28850,
+      "protocolBlockChars": 1199,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "de2e6bd0-2525-4f42-813a-14477481829d"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Marlow doesn’t use calorie counting. He treats it like accounting, and builds the meal around a protein anchor instead.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": 28922,
+      "protocolBlockChars": 1199,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "8abcd208-9c61-40d0-9fa0-4692a7d9105c"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "Marlow doesn’t use calorie counting. He treats it like accounting, and builds the meal around a protein anchor instead.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": 28852,
+      "protocolBlockChars": 1199,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "afa5d474-df73-4e71-adc4-8e295f6cf289"
+    }
+  ],
+  "budget-breakfast-draft": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Marlow builds breakfast around eggs first. If you want it simple, keep it to eggs plus a lean protein or some leafy greens.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": 27610,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "33fe4263-92d4-4b94-b143-c8b01c65f406"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Marlow builds breakfast around eggs first. Keep it simple with eggs plus a lean protein, or eggs with some leafy greens.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": 27605,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "c844647d-f5b7-4c0f-af94-7faa7fd581ec"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "Marlow builds breakfast around eggs first. Keep it simple with eggs plus a lean protein, or eggs with some leafy greens.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": 27522,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "c01b9f63-44df-4caf-b9f2-be40ec984203"
+    }
+  ],
+  "budget-doctrine-draft": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Marlow doesn’t use calorie counting. He treats it like accounting, and builds the meal around a protein anchor instead.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": 27500,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "d8c68cc6-d377-4642-8bc5-b99a6e3a5ccf"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Marlow doesn’t use calorie counting. He treats it like accounting, and builds the meal around a protein anchor instead.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": 27532,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "f439a422-6d9a-4848-bea0-76c015cc1cfb"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "Marlow doesn’t use calorie counting. He treats it like accounting, and builds the meal around a protein anchor instead.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": 27547,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "57b0fc9a-5c18-4c34-a425-486231f0fe43"
+    }
+  ]
+}

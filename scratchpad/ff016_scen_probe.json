@@ -1,0 +1,6 @@
+[
+  { "id": "P1-coach-view-eggs", "level": "medium", "student": "a", "message": "Does my coach have a view on eggs?", "runs": 2, "fresh": true },
+  { "id": "P2-shopping", "level": "medium", "student": "a", "message": "I'm heading to the supermarket. What kind of food should I stock up on?", "runs": 2, "fresh": true },
+  { "id": "P3-general-foods", "level": "medium", "student": "a", "message": "Which foods does my coach build meals with?", "runs": 2, "fresh": true },
+  { "id": "P4-fried", "level": "medium", "student": "a", "message": "Is fried chicken bad for me?", "runs": 2, "fresh": true }
+]
