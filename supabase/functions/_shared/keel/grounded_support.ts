@@ -203,6 +203,34 @@ export function groundedSupportBlock(
     "- Answer with something they did not already know: a fact they reported. " +
       "The fact IS the support. An adjective on top of it is not.",
   );
+  // ── CE QU'ILS DISENT DE LEUR SEMAINE N'EST PAS UN FAIT ENREGISTRÉ ────────
+  //
+  // MESURÉ (run réel, 6 élèves neufs, historique vide, même décor de 5 coches,
+  // même route `normal_reply`):
+  //     « this week has been horrible »                        → cite les faits 3/3
+  //     « …, I missed all my meals this week »                 → cite les faits 0/3
+  // Dès que le message porte l'auto-évaluation alimentaire de l'élève, le
+  // composeur la prend POUR ground et abandonne `day_facts` — il a répondu
+  // « you missed all your meals » à quelqu'un dont la base portait 5 coches
+  // du jour, puis a bâti un conseil nutrition dessus.
+  //
+  // ⚠️ AUCUNE CEINTURE NE PEUT VOIR ÇA. La phrase ne porte ni verdict connu de
+  // `findQualifyingVerdict`, ni chiffre à soumettre à `allowedNumbers`: il n'y
+  // a littéralement rien à mordre. C'est donc une consigne de prompt, et une
+  // consigne de prompt n'est pas une ceinture — le défaut reste STRUCTUREL et
+  // il est consigné comme tel. Ce qui suit réduit sa fréquence; ça ne la ferme
+  // pas.
+  lines.push(
+    "- What they SAY about their week is not a recorded fact. 'I missed " +
+      "everything', 'I stuck to nothing', 'I gave up' are feelings and " +
+      "summaries, not the record. NEVER repeat one back as if it were " +
+      "established, and never build advice on top of it.",
+  );
+  lines.push(
+    "- If what they say CONTRADICTS the counts above, the counts win and you " +
+      "say so plainly, without arguing about the feeling: state what is on " +
+      "record, and leave the judgement to them.",
+  );
   lines.push(
     "- NO hollow encouragement. Not 'well done', not 'keep it up', not 'you've " +
       "got this', not 'tomorrow is a new day', not 'bien joué', not 'continue " +
@@ -217,6 +245,21 @@ export function groundedSupportBlock(
       "- WITH NO MATERIAL: keep it SHORT AND PLAIN. You may say you do not know. " +
         "Do not compensate with warmth — warmth instead of a fact is exactly " +
         "what makes this channel stop being believed.",
+    );
+    // ── LE SOUVENIR N'EST PAS DE LA MATIÈRE ────────────────────────────────
+    //
+    // Rabbit hole §9 de la fiche, et il est ATTEINT: mesuré 3/3 en run réel
+    // sur un élève SANS aucun fait. Le compagnon comblait le vide avec une
+    // préférence remontée par la mémoire longue — « the one concrete thing
+    // you've told me is that Sunday cooking is a calm, happy pocket for you ».
+    //
+    // C'est du RAPPEL, pas du soutien groundé, et c'est précisément la chaleur
+    // compensatoire que R5 existe pour couper: présentée comme « the one
+    // concrete thing », elle emprunte à un fait son autorité sans en être un.
+    lines.push(
+      "- A memory or a preference is NOT material. Something they once told " +
+        "you they enjoy is a recollection, not a fact about this week. Do not " +
+        "reach for it to fill the silence, and never call it 'concrete'.",
     );
   }
   lines.push(

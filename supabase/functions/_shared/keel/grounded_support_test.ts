@@ -243,3 +243,48 @@ Deno.test("le vide traverse sans mordre", () => {
   assertEquals(belt("").reasons, []);
   assertEquals(belt("   ").reasons, []);
 });
+
+// ---------------------------------------------------------------------------
+// CE QUE LE RUN RÉEL A MESURÉ — épinglé pour que la prochaine session hérite
+// d'une PREUVE et pas d'une affirmation
+// ---------------------------------------------------------------------------
+
+Deno.test("le bloc refuse que l'auto-évaluation de l'élève tienne lieu de fait", () => {
+  // MESURÉ (6 élèves neufs, historique vide, décor identique de 5 coches,
+  // route `normal_reply` dans les six cas):
+  //     « this week has been horrible »            → cite les faits 3/3
+  //     « …, I missed all my meals this week »     → cite les faits 0/3
+  // Le composeur prenait l'affirmation POUR ground et répondait « you missed
+  // all your meals » à quelqu'un qui avait 5 coches en base.
+  const block = groundedSupportBlock(facts({ tickedCount: 5, plannedCount: 7 }), "day");
+  assertStringIncludes(block, "not a recorded fact");
+  assertStringIncludes(block, "the counts win");
+});
+
+Deno.test("R5 — sans matière, un SOUVENIR ne comble pas le silence", () => {
+  // Rabbit hole §9, ATTEINT en run réel 3/3: « the one concrete thing you've
+  // told me is that Sunday cooking is a calm, happy pocket for you » sur un
+  // élève sans aucun fait. C'est du rappel présenté comme du fait.
+  const block = groundedSupportBlock(null, "none");
+  assertStringIncludes(block, "A memory or a preference is NOT material");
+  // La règle ne s'invite PAS quand il y a de la matière: elle n'a pas lieu
+  // d'être, et chaque ligne du bloc se paie en budget de prompt (§9).
+  assert(
+    !groundedSupportBlock(facts({ tickedCount: 3 }), "day").includes(
+      "A memory or a preference",
+    ),
+  );
+});
+
+Deno.test("le bloc reste sous son plafond de budget (il tronque PAR LA QUEUE)", () => {
+  // FF-011 est le DERNIER des sept blocs, donc le PREMIER à sauter. Sa taille
+  // est ce qui décide s'il survit; une croissance non mesurée le ferait
+  // disparaître en silence, et le bloc doctrine avec lui.
+  const withGround = groundedSupportBlock(
+    facts({ tickedCount: 5, plannedCount: 7, photoCount: 2, offPlanCount: 1 }),
+    "day",
+  );
+  const without = groundedSupportBlock(null, "none");
+  assert(withGround.length < 1800, `bloc avec matière: ${withGround.length} car.`);
+  assert(without.length < 1800, `bloc sans matière: ${without.length} car.`);
+});
