@@ -1,0 +1,38 @@
+[
+  {
+    "id": "H1-hors-fenetre-EN",
+    "run": 1,
+    "verdict": "GREEN",
+    "proof": "2 tours de contexte · fil 6 lignes · reply=\"I don’t have a specific “odd story” stored from a few days back.  If you want, give me one detail and I’ll help you pin it down.\""
+  },
+  {
+    "id": "H1-hors-fenetre-EN",
+    "run": 2,
+    "verdict": "GREEN",
+    "proof": "2 tours de contexte · fil 6 lignes · reply=\"I don’t have that story in the loaded context, so I can’t pull it back reliably.  If you want, give me one detail and I can try to reconstru\""
+  },
+  {
+    "id": "H1-hors-fenetre-EN",
+    "run": 3,
+    "verdict": "GREEN",
+    "proof": "2 tours de contexte · fil 6 lignes · reply=\"I can’t see any “odd story” from a few days back in the loaded context. If you want, give me a clue or a phrase from it and I’ll pin it down\""
+  },
+  {
+    "id": "H2-photo-au-milieu-EN",
+    "run": 1,
+    "verdict": "GREEN",
+    "proof": "2 tours de contexte · fil 6 lignes · reply=\"The presentation is the thing pressing on you, and the photo was lunch: chicken and rice. My take is to keep this simple tonight — don’t try\""
+  },
+  {
+    "id": "H2-photo-au-milieu-EN",
+    "run": 2,
+    "verdict": "AMBER",
+    "proof": "2 tours de contexte · fil 6 lignes · reply=\"Keep it simple: pick one clear point, make the rest support it, and practice the first 30 seconds until it’s automatic.  If you want, I can \""
+  },
+  {
+    "id": "H2-photo-au-milieu-EN",
+    "run": 3,
+    "verdict": "GREEN",
+    "proof": "2 tours de contexte · fil 6 lignes · reply=\"Yeah: your Friday presentation sounds like the main thing here, and the stress is probably coming from the speaking part or how it will land\""
+  }
+]

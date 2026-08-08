@@ -1,0 +1,74 @@
+
+==============================================================================
+▌ X3 — 20 tours denses — élève 8757572a-a075-4150-a785-d43042efa1ba
+==============================================================================
+T01 → Noted. Iris is your daughter, and kiwi is off-limits for her.
+T02 → You’re thinking about the week’s layout, batch cooking, and avoiding the 9 p.m. takeaway trap. That’s the right problem to look at
+T03 → You’re looking at the week’s layout, batch cooking, and the 9 p.m. takeaway moment again. That’s a real pressure point.  One thing
+T04 → You’re still circling the same three pressure points: week layout, advance cooking, and the 9 p.m. ordering moment. That usually m
+T05 → You’re still on the same three things: the week’s layout, advance cooking, and the 9 p.m. ordering moment.  The main pressure poin
+T06 → That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now
+T07 → That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now
+T08 → That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now
+T09 → That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now
+T10 → You’re still on the same three pressure points: the week’s layout, advance cooking, and the 9 p.m. takeaway trap. That’s the real 
+T11 → You’re still circling the same three pressure points: the week’s layout, advance cooking, and the 9 p.m. takeaway trap.  At this p
+T12 → You’re still on the same three pressure points: the week’s layout, advance cooking, and the 9 p.m. takeaway trap.  The real issue 
+T13 → That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now
+T14 → That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now
+T15 → That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now
+T16 → You’re still on the same three pressure points: the week’s layout, cooking ahead, and the 9 p.m. takeaway trap.  I’m not treating 
+T17 → You’re still circling the same three pressure points: the week’s layout, cooking ahead, and the 9 p.m. takeaway trap.  I’m not tre
+T18 → You’re still circling the same three pressure points: the week’s layout, cooking ahead, and the 9 p.m. takeaway trap.  I’m not tre
+T19 → You’re still on the same three pressure points: the week’s layout, cooking ahead, and the 9 p.m. takeaway trap.  I’m not reading t
+T20 → I would rather not answer that one from memory - it touches something medical, and that is not mine to guess at. That is one to pu
+
+TAILLES DE PROMPT (stable | semi | volatile | full) — budget = 32 000 :
+  tour 01 : 10536 | 583 | 15497 | 26842
+  tour 02 : 10536 | 969 | 15044 | 26775
+  tour 03 : 10536 | 1456 | 15716 | 27934
+  tour 04 : 10536 | 1921 | 13612 | 26295
+  tour 05 : 10536 | 2237 | 17151 | 30150
+  tour 06 : 10536 | 2236 | 20511 | 32222  ⚠️ DÉPASSEMENT
+  tour 07 : 10536 | 2219 | 17674 | 30655
+  tour 08 : 10536 | 2193 | 17584 | 30539
+  tour 09 : 10536 | 2236 | 17970 | 30968
+  tour 10 : 10536 | 2184 | 17871 | 30817
+  tour 11 : 10536 | 2137 | 20611 | 32222  ⚠️ DÉPASSEMENT
+  tour 12 : 10536 | 2090 | 20559 | 32222  ⚠️ DÉPASSEMENT
+  tour 13 : 10536 | 2089 | 20531 | 32222  ⚠️ DÉPASSEMENT
+
+MAX full_chars = 32222 (plafond dur 32 000 = 8 000 tokens + bloc langue)
+AVANT/APRÈS dans le MÊME élève — tour 1 (0 message d'historique) vs tour 13 (20 messages) : semi 583 → 2089, volatile 15497 → 20531, full 26842 → 32222
+VERDICT budget : GREEN
+TOURS SATURÉS (troncature effective) : 4/13
+
+SONDE DOCTRINE (au tour le plus saturé) : Marlow doesn’t do calorie counting. He builds the plate: a protein anchor, with vegetables as the volume.
+
+If you want, I can help you think in those terms instead.
+VERDICT doctrine sous troncature : GREEN
+
+DIAGNOSTICS D'HISTORIQUE (cet élève) :
+  {"tag":"chat_inbound_history_loaded","request_id":"87900e96-d6d2-4de4-afb9-1c3a161be8e1","user_id":"8757572a-a075-4150-a785-d43042efa1ba","rows_read":1,"excluded_current":1,"stale_dropped":0,"kept":0,"error":null}
+  {"tag":"chat_inbound_history_loaded","request_id":"d821643a-e128-4bba-9622-1f22448081c6","user_id":"8757572a-a075-4150-a785-d43042efa1ba","rows_read":3,"excluded_current":1,"stale_dropped":0,"kept":2,"error":null}
+  {"tag":"chat_inbound_history_loaded","request_id":"3ecd080f-9575-440d-a971-be1668dfa869","user_id":"8757572a-a075-4150-a785-d43042efa1ba","rows_read":5,"excluded_current":1,"stale_dropped":0,"kept":4,"error":null}
+  {"tag":"chat_inbound_history_loaded","request_id":"66da424d-2ca9-486e-b5db-76bab2d8ae25","user_id":"8757572a-a075-4150-a785-d43042efa1ba","rows_read":7,"excluded_current":1,"stale_dropped":0,"kept":6,"error":null}
+  {"tag":"chat_inbound_history_loaded","request_id":"28ab3d45-0216-421b-bb9b-0e2717dc70eb","user_id":"8757572a-a075-4150-a785-d43042efa1ba","rows_read":9,"excluded_current":1,"stale_dropped":0,"kept":8,"error":null}
+  {"tag":"chat_inbound_history_loaded","request_id":"9561cb5a-b9d1-4461-bdaf-14078b3ab65e","user_id":"8757572a-a075-4150-a785-d43042efa1ba","rows_read":11,"excluded_current":1,"stale_dropped":0,"kept":10,"error":null}
+  {"tag":"chat_inbound_history_loaded","request_id":"61c0fff3-9b48-48cf-b6dc-c60f00bfd26d","user_id":"8757572a-a075-4150-a785-d43042efa1ba","rows_read":13,"excluded_current":1,"stale_dropped":0,"kept":12,"error":null}
+  {"tag":"chat_inbound_history_loaded","request_id":"cfdca4a7-43e1-4e21-bbf9-d6ceb27b2727","user_id":"8757572a-a075-4150-a785-d43042efa1ba","rows_read":15,"excluded_current":1,"stale_dropped":0,"kept":14,"error":null}
+  {"tag":"chat_inbound_history_loaded","request_id":"8a03ae7b-5277-4a71-bb70-4cf5577ad536","user_id":"8757572a-a075-4150-a785-d43042efa1ba","rows_read":17,"excluded_current":1,"stale_dropped":0,"kept":16,"error":null}
+  {"tag":"chat_inbound_history_loaded","request_id":"f3984f49-cfff-42d0-9f10-3069b6167a1b","user_id":"8757572a-a075-4150-a785-d43042efa1ba","rows_read":19,"excluded_current":1,"stale_dropped":0,"kept":18,"error":null}
+  {"tag":"chat_inbound_history_loaded","request_id":"b598a7b6-2c92-4ff3-9fb6-1f51f0d65792","user_id":"8757572a-a075-4150-a785-d43042efa1ba","rows_read":21,"excluded_current":1,"stale_dropped":0,"kept":20,"error":null}
+  {"tag":"chat_inbound_history_loaded","request_id":"c3f978f1-bba2-4bf1-b1d4-b9df78c313fa","user_id":"8757572a-a075-4150-a785-d43042efa1ba","rows_read":23,"excluded_current":1,"stale_dropped":0,"kept":20,"error":null}
+  {"tag":"chat_inbound_history_loaded","request_id":"3f56d6f2-2f56-403b-9a4c-fd35a7d76e57","user_id":"8757572a-a075-4150-a785-d43042efa1ba","rows_read":25,"excluded_current":1,"stale_dropped":0,"kept":20,"error":null}
+  {"tag":"chat_inbound_history_loaded","request_id":"0d1a1d8b-53ab-45f5-a863-f771a7841543","user_id":"8757572a-a075-4150-a785-d43042efa1ba","rows_read":25,"excluded_current":1,"stale_dropped":0,"kept":20,"error":null}
+  {"tag":"chat_inbound_history_loaded","request_id":"a9a09b5f-412d-48ed-b13e-8e362ead1866","user_id":"8757572a-a075-4150-a785-d43042efa1ba","rows_read":25,"excluded_current":1,"stale_dropped":0,"kept":20,"error":null}
+  {"tag":"chat_inbound_history_loaded","request_id":"4827cd64-e4dd-487d-a85b-f0bc33add723","user_id":"8757572a-a075-4150-a785-d43042efa1ba","rows_read":25,"excluded_current":1,"stale_dropped":0,"kept":20,"error":null}
+  {"tag":"chat_inbound_history_loaded","request_id":"0320dff0-8a7c-48a8-a707-96ed0464d17e","user_id":"8757572a-a075-4150-a785-d43042efa1ba","rows_read":25,"excluded_current":1,"stale_dropped":0,"kept":20,"error":null}
+  {"tag":"chat_inbound_history_loaded","request_id":"18b32919-1484-42bd-9d7c-811c3193ecd7","user_id":"8757572a-a075-4150-a785-d43042efa1ba","rows_read":25,"excluded_current":1,"stale_dropped":0,"kept":20,"error":null}
+  {"tag":"chat_inbound_history_loaded","request_id":"fb22a6d0-d1c9-435a-93da-588eee3692fc","user_id":"8757572a-a075-4150-a785-d43042efa1ba","rows_read":25,"excluded_current":1,"stale_dropped":0,"kept":20,"error":null}
+  {"tag":"chat_inbound_history_loaded","request_id":"5edf170c-b807-4745-b44e-4f9e2bd707be","user_id":"8757572a-a075-4150-a785-d43042efa1ba","rows_read":25,"excluded_current":1,"stale_dropped":0,"kept":20,"error":null}
+  {"tag":"chat_inbound_history_loaded","request_id":"500f3065-7247-4753-8850-c5fcdc4e3429","user_id":"8757572a-a075-4150-a785-d43042efa1ba","rows_read":25,"excluded_current":1,"stale_dropped":0,"kept":20,"error":null}
+
+CONTRAINTES DE SÉCURITÉ EN BASE : allergy|kiwi|medical|active

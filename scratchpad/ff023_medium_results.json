@@ -1,0 +1,56 @@
+[
+  {
+    "id": "M1-sonde-tour4-EN",
+    "run": 1,
+    "verdict": "GREEN",
+    "proof": "4 tours de contexte · fil 8 lignes · reply=\"You said Tuesdays and Thursdays, because of the night shifts.\""
+  },
+  {
+    "id": "M1-sonde-tour4-EN",
+    "run": 2,
+    "verdict": "GREEN",
+    "proof": "4 tours de contexte · fil 8 lignes · reply=\"You said Tuesdays and Thursdays are hard because those are your night-shift days.\""
+  },
+  {
+    "id": "M1-sonde-tour4-EN",
+    "run": 3,
+    "verdict": "GREEN",
+    "proof": "4 tours de contexte · fil 8 lignes · reply=\"You said Tuesdays and Thursdays were hard, because you work night shifts then.\""
+  },
+  {
+    "id": "M2-sonde-tour8-FR",
+    "run": 1,
+    "verdict": "AMBER",
+    "proof": "8 tours de contexte · fil 16 lignes · reply=\"You told me night work is complicated on Tuesday and Thursday.\""
+  },
+  {
+    "id": "M2-sonde-tour8-FR",
+    "run": 2,
+    "verdict": "AMBER",
+    "proof": "8 tours de contexte · fil 16 lignes · reply=\"You told me Tuesday and Thursday nights were complicated because you work nights then.\""
+  },
+  {
+    "id": "M2-sonde-tour8-FR",
+    "run": 3,
+    "verdict": "AMBER",
+    "proof": "8 tours de contexte · fil 16 lignes · reply=\"You said Tuesday and Thursday were complicated because you work nights on those days.\""
+  },
+  {
+    "id": "M3-contradiction-EN",
+    "run": 1,
+    "verdict": "GREEN",
+    "proof": "3 tours de contexte · fil 6 lignes · reply=\"Keep the anchor meal simple: eggs as the protein base, then add vegetables for volume. If you want, make it the same breakfast shape you alr\""
+  },
+  {
+    "id": "M3-contradiction-EN",
+    "run": 2,
+    "verdict": "GREEN",
+    "proof": "3 tours de contexte · fil 6 lignes · reply=\"For tomorrow morning, keep the breakfast as your protein anchor and pair it with vegetables if that fits. Eggs are already a solid base, so \""
+  },
+  {
+    "id": "M3-contradiction-EN",
+    "run": 3,
+    "verdict": "AMBER",
+    "proof": "3 tours de contexte · fil 6 lignes · reply=\"That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for\""
+  }
+]

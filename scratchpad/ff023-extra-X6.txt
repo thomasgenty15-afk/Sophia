@@ -1,0 +1,16 @@
+
+==============================================================================
+▌ X6 — planchers dans le fil — élève 831ef518-fe68-4b2d-957c-73cf9cf2e7e1
+==============================================================================
+T1 → Protein at lunch is in. Vegetables at lunch are in as well.
+T2 → Noted — 78 kg this morning.
+T3 → Noted. I’ll treat cooked mushrooms as a no.
+T4 → Yes — lean protein is exactly what the line asks for. Log it as usual.
+T5 → Tonight, the target is your lunch line only: protein anchor and vegetables. If you’re asking about dinner, I don’t have 
+
+COMPTEURS : 3|0|0|0
+LIGNES protocol_events :
+  2026-08-08 03:26:02.027825+00|lean_protein|<compté>
+  2026-08-08 03:26:02.03336+00|cruciferous_veg|<compté>
+  2026-08-08 03:26:05.186332+00|-|<compté>
+LIGNES weekly_reviews (le poids y atterrit) :
