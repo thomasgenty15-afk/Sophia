@@ -31,6 +31,22 @@ import {
   renderPulseAxisQuestion,
 } from "../keel/daily_pulse.ts";
 import { writePulseAxis, writePulseLevel } from "../keel/daily_pulse_io.ts";
+import {
+  recommendationAction,
+  RECOMMENDATION_APPLY_FAILED_ACK,
+  RECOMMENDATION_STALE_ACK,
+  RECOMMENDATION_UNKNOWN_ACK,
+  readRecommendationReply,
+} from "../keel/daily_recommendation.ts";
+import {
+  applyRecommendation,
+  claimResponse,
+  currentFingerprint,
+  expireProposal,
+  markApplied,
+  releaseClaim,
+} from "../keel/daily_recommendation_io.ts";
+import { loadPublishedDoctrine } from "../keel/doctrine_loader.ts";
 import { localDateFor } from "../keel/reengagement_io.ts";
 import {
   parseMeasuresToken,
@@ -240,6 +256,193 @@ async function weeklyReplyBody(
   }
 }
 
+/**
+ * FF-028 — LE « OUI » ET LE « NON », ET LA VÉRITÉ D'EXÉCUTION ENTRE LES DEUX.
+ *
+ * ── L'ORDRE EST LA GARANTIE, ET IL N'EST PAS NÉGOCIABLE ────────────────────
+ *   1. recalculer l'empreinte ACTUELLE (rythme + version de doctrine);
+ *   2. RÉCLAMER la proposition — transition atomique `proposed → accepted`,
+ *      conditionnée à l'empreinte ET à l'élève. Le second tap reçoit zéro
+ *      ligne, donc n'applique rien;
+ *   3. ÉCRIRE la directive, puis la RELIRE depuis la base;
+ *   4. ACCUSER — et seulement là.
+ *
+ * ⚠️ POURQUOI L'ACCUSÉ EST ICI ET PAS DANS LA LANE DE RÉPONSE. T-1 (FF-008) l'a
+ * mesuré: la lane de réponse ne sait ni ce que le déterministe a écrit ni ce
+ * qu'il a refusé, et elle produit des accusés fantômes. Ce chemin ne descend
+ * donc jamais au dispatcher: il écrit, relit, et pose LUI-MÊME la phrase qui
+ * correspond au fait relu. Il n'existe ici aucun chemin qui dise « c'est fait »
+ * sans avoir relu la ligne — c'est l'angle adversarial que la fiche nomme en
+ * propre.
+ *
+ * ── CE QU'IL NE FAIT PAS ───────────────────────────────────────────────────
+ * Il ne touche pas au plan de la semaine EN COURS. V1 écrit une directive
+ * durable que la PROCHAINE composition consomme (§3, V2/V3 hors périmètre): la
+ * cascade plan-courses-cuissons en milieu de semaine est l'endroit exact où
+ * l'état devient incohérent sans erreur visible.
+ */
+async function handleRecommendationTap(
+  admin: SupabaseClient,
+  args: {
+    message: InboundMessage;
+    requestId: string;
+    reply: { kind: "accept" | "decline"; proposalId: string };
+  },
+): Promise<InboundStepOutcome> {
+  const { message, reply } = args;
+  const say = (body: string) =>
+    ack(admin, {
+      userId: message.user_id,
+      requestId: args.requestId,
+      purpose: "keel_daily_recommendation_ack",
+      body,
+    });
+
+  try {
+    // La version de doctrine entre dans l'empreinte: un coach qui republie sa
+    // méthode entre la proposition et le tap a pu, entre-temps, interdire
+    // exactement ce qu'on proposait. La relire ici plutôt que de la supposer
+    // est ce qui rend R5 vraie AU MOMENT DE L'APPLICATION, et pas seulement au
+    // moment de la proposition.
+    const loaded = await loadPublishedDoctrine(admin, message.user_id);
+    if (loaded.reason === "load_failed") {
+      // On ne peut pas savoir si l'empreinte tient. On ne devine pas, et
+      // surtout on n'applique pas: le fail-closed est du côté du silence.
+      console.warn(JSON.stringify({
+        tag: "keel.daily_recommendation.doctrine_unreadable_on_tap",
+        user_id: message.user_id,
+        proposal_id: reply.proposalId,
+      }));
+      await say(RECOMMENDATION_APPLY_FAILED_ACK);
+      return handled("keel_daily_recommendation_doctrine_unreadable");
+    }
+
+    const { fingerprint } = await currentFingerprint(admin, {
+      userId: message.user_id,
+      doctrineVersion: loaded.doctrine?.version ?? null,
+    });
+
+    const claim = await claimResponse(admin, {
+      id: reply.proposalId,
+      userId: message.user_id,
+      kind: reply.kind,
+      currentFingerprint: fingerprint,
+    });
+
+    if (claim.outcome === "unknown") {
+      // Ligne absente, ou payload qui désigne la proposition d'un autre élève.
+      // La phrase ne distingue pas les deux — un accusé qui le ferait serait un
+      // oracle d'énumération sur des identifiants d'autrui.
+      console.warn(JSON.stringify({
+        tag: "keel.daily_recommendation.unknown_proposal",
+        user_id: message.user_id,
+        proposal_id: reply.proposalId,
+      }));
+      await say(RECOMMENDATION_UNKNOWN_ACK);
+      return handled("keel_daily_recommendation_unknown");
+    }
+
+    if (claim.outcome === "stale") {
+      // §7 — « l'action ne s'applique pas ; la personne en est informée d'une
+      // phrase ». La proposition est fermée pour de bon: la laisser ouverte
+      // ferait retenter la même action sur le même état périmé.
+      await expireProposal(admin, {
+        id: claim.row.id,
+        reason: "plan_changed",
+      });
+      console.info(JSON.stringify({
+        tag: "keel.daily_recommendation.stale",
+        user_id: message.user_id,
+        proposal_id: claim.row.id,
+        proposed_fingerprint: claim.row.planFingerprint,
+        current_fingerprint: fingerprint,
+      }));
+      await say(RECOMMENDATION_STALE_ACK);
+      return handled("keel_daily_recommendation_stale");
+    }
+
+    if (claim.outcome === "already") {
+      // DOUBLE TAP, ou tap sur une vieille bulle remontée dans l'historique.
+      // Aucune seconde écriture. La phrase dit l'état RÉEL de la ligne, pas
+      // celui du bouton qui vient d'être touché: quelqu'un qui a dit non hier
+      // puis retape « Oui » aujourd'hui doit lire que rien n'a bougé.
+      const row = claim.row;
+      const action = recommendationAction(row.actionId);
+      if (row.state === "accepted") {
+        await say(
+          row.appliedAt ? action.appliedAck : RECOMMENDATION_APPLY_FAILED_ACK,
+        );
+      } else if (row.state === "declined") {
+        await say(action.declinedAck);
+      } else {
+        await say(RECOMMENDATION_UNKNOWN_ACK);
+      }
+      return handled("keel_daily_recommendation_replay");
+    }
+
+    const row = claim.row;
+    const action = recommendationAction(row.actionId);
+
+    if (reply.kind === "decline") {
+      // R8 — le non est respecté. Le cooldown se DÉRIVE de cette ligne: il n'y
+      // a rien d'autre à écrire, et surtout aucun compteur.
+      console.info(JSON.stringify({
+        tag: "keel.daily_recommendation.declined",
+        user_id: message.user_id,
+        proposal_id: row.id,
+        action: row.actionId,
+      }));
+      await say(action.declinedAck);
+      return handled("keel_daily_recommendation_declined");
+    }
+
+    // ── L'APPLICATION: ÉCRIRE, RELIRE, PUIS SEULEMENT ACCUSER ──────────────
+    const applied = await applyRecommendation(admin, {
+      userId: message.user_id,
+      slot: action.slot,
+    });
+    if (applied.outcome !== "applied") {
+      // La ligne n'existe pas après l'écriture. On REND la proposition à son
+      // état ouvert plutôt que de la garder acceptée-sans-effet: l'écriture est
+      // idempotente, donc une seconde tentative est sûre, et une proposition
+      // acceptée dont rien n'a bougé est un mensonge qui dort en base.
+      await releaseClaim(admin, { id: row.id, userId: message.user_id });
+      console.error(JSON.stringify({
+        tag: "keel.daily_recommendation.apply_unverified",
+        user_id: message.user_id,
+        proposal_id: row.id,
+        action: row.actionId,
+        detail: applied.detail,
+      }));
+      await say(RECOMMENDATION_APPLY_FAILED_ACK);
+      return handled("keel_daily_recommendation_apply_failed");
+    }
+
+    await markApplied(admin, { id: row.id, userId: message.user_id });
+    console.info(JSON.stringify({
+      tag: "keel.daily_recommendation.applied",
+      user_id: message.user_id,
+      proposal_id: row.id,
+      action: row.actionId,
+      rhythm: applied.rhythm.map((r) => r.slot).join(","),
+    }));
+    await say(action.appliedAck);
+    return handled("keel_daily_recommendation_accepted");
+  } catch (error) {
+    // NE JETTE JAMAIS: l'élève a tapé un bouton, et un 500 le laisserait sans
+    // savoir si son geste a compté. On dit qu'on n'a pas pu — jamais qu'on a
+    // fait.
+    console.error(JSON.stringify({
+      tag: "keel.daily_recommendation.tap_failed",
+      user_id: message.user_id,
+      proposal_id: reply.proposalId,
+      error: error instanceof Error ? error.message : String(error),
+    }));
+    await say(RECOMMENDATION_APPLY_FAILED_ACK);
+    return handled("keel_daily_recommendation_failed");
+  }
+}
+
 export async function handleDeterministicButton(
   admin: SupabaseClient,
   args: { message: InboundMessage; requestId: string },
@@ -354,6 +557,21 @@ export async function handleDeterministicButton(
   }
 
   if (message.kind !== "button") return PASS;
+
+  // ── FF-028 · LE TAP SUR UNE RECOMMANDATION ────────────────────────────────
+  //
+  // AVANT le tap du soir, et c'est sans conséquence: les deux préfixes sont
+  // disjoints (`KEEL_RECO_` / `KEEL_PULSE_`) et chaque lecteur rend `none` sur
+  // ce qui ne le concerne pas. L'ordre est celui de la spécificité — le lecteur
+  // le plus contraint (il exige un UUID) passe en premier.
+  const reco = readRecommendationReply(message.button_payload);
+  if (reco.kind !== "none") {
+    return await handleRecommendationTap(admin, {
+      message,
+      requestId: args.requestId,
+      reply: reco,
+    });
+  }
 
   // ── LE TAP DU SOIR ────────────────────────────────────────────────────────
   const pulse = readPulseReply(message.button_payload);

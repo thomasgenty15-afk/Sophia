@@ -17,6 +17,7 @@ import {
   wasPulseSentToday,
 } from "../_shared/keel/daily_pulse_io.ts";
 import { hasRecapGround } from "../_shared/keel/daily_recap.ts";
+import { wasRecommendationSentToday } from "../_shared/keel/daily_recommendation_io.ts";
 import { composeRecapBody, loadDayFacts } from "../_shared/keel/daily_recap_io.ts";
 import { resolveArtifactLocale } from "../_shared/keel/locale.ts";
 import {
@@ -189,6 +190,34 @@ Deno.serve(async (req) => {
             cursor,
             weekStartOf(localDate),
           );
+
+          // ── FF-028 · UN SEUL MESSAGE PAR SOIR ───────────────────────────
+          //
+          // La recommandation quotidienne vit dans la fenêtre 19h-20h locales,
+          // strictement AVANT celle-ci (20h-22h). Quand elle a parlé ce soir,
+          // le tap se retire — deux messages seraient deux notifications,
+          // c'est-à-dire le problème que `daily_recap.ts` répare, doublé.
+          //
+          // La priorité va à la recommandation, et c'est un arbitrage assumé:
+          // elle est RARE (faim récurrente + deux compositions rassasiantes
+          // insuffisantes, puis un mois de cooldown) là où le tap est quotidien
+          // et porte déjà son propre repli de cadence. Perdre un tap ce soir-là
+          // ne coûte rien; perdre la proposition coûte un mois.
+          //
+          // Le motif n'entre PAS dans `PULSE_SKIP_REASONS`: c'est une garde
+          // d'ORDONNANCEMENT entre deux jobs, pas une décision du pouls, et
+          // elle se compte comme les refus de livraison — par une clé nommée
+          // dans `bySkip`, lisible dans le compte-rendu.
+          if (
+            await wasRecommendationSentToday(admin, {
+              userId: cursor,
+              localDate,
+            })
+          ) {
+            bySkip.recommendation_sent_today =
+              (bySkip.recommendation_sent_today ?? 0) + 1;
+            continue;
+          }
 
           // ── LES DEUX LECTURES QUI NOURRISSENT LA DÉCISION ───────────────
           // Les faits d'abord: ils décident s'il y a quelque chose à DIRE. La
