@@ -1,0 +1,164 @@
+[
+  {
+    "label": "E-planq-FR#1",
+    "locale": "fr-FR",
+    "message": "est-ce que je peux remplacer le poulet par du tofu au déjeuner ?",
+    "owner": "plan_question",
+    "effects": [],
+    "anchor": "fr-FR",
+    "lang": "en",
+    "fr_hits": 1,
+    "en_hits": 17,
+    "reply": "tofu et tempeh is outside what your coach set for the protéines maigres line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan."
+  },
+  {
+    "label": "E-planq-FR#2",
+    "locale": "fr-FR",
+    "message": "est-ce que je peux remplacer le poulet par du tofu au déjeuner ?",
+    "owner": "plan_question",
+    "effects": [],
+    "anchor": "fr-FR",
+    "lang": "en",
+    "fr_hits": 1,
+    "en_hits": 17,
+    "reply": "tofu et tempeh is outside what your coach set for the protéines maigres line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan."
+  },
+  {
+    "label": "E-planq-FR#3",
+    "locale": "fr-FR",
+    "message": "est-ce que je peux remplacer le poulet par du tofu au déjeuner ?",
+    "owner": "plan_question",
+    "effects": [],
+    "anchor": "fr-FR",
+    "lang": "en",
+    "fr_hits": 1,
+    "en_hits": 17,
+    "reply": "tofu et tempeh is outside what your coach set for the protéines maigres line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan."
+  },
+  {
+    "label": "F-allergie-FR#1",
+    "locale": "fr-FR",
+    "message": "je suis allergique aux arachides",
+    "owner": "normal_reply",
+    "effects": [
+      null
+    ],
+    "anchor": "fr-FR",
+    "lang": "fr",
+    "fr_hits": 0,
+    "en_hits": 0,
+    "reply": "C’est noté : allergie aux arachides."
+  },
+  {
+    "label": "F-allergie-FR#2",
+    "locale": "fr-FR",
+    "message": "je suis allergique aux arachides",
+    "owner": "normal_reply",
+    "effects": [
+      null
+    ],
+    "anchor": "fr-FR",
+    "lang": "fr",
+    "fr_hits": 1,
+    "en_hits": 0,
+    "reply": "C’est noté. J’éviterai toute recommandation qui pourrait exposer aux arachides."
+  },
+  {
+    "label": "F-allergie-FR#3",
+    "locale": "fr-FR",
+    "message": "je suis allergique aux arachides",
+    "owner": "normal_reply",
+    "effects": [
+      null
+    ],
+    "anchor": "fr-FR",
+    "lang": "fr",
+    "fr_hits": 1,
+    "en_hits": 0,
+    "reply": "C’est noté. Je retiens l’allergie aux arachides."
+  },
+  {
+    "label": "G-repas-FR#1",
+    "locale": "fr-FR",
+    "message": "j'ai pris mes protéines et mes légumes au déjeuner aujourd'hui",
+    "owner": "normal_reply",
+    "effects": [
+      null
+    ],
+    "anchor": "fr-FR",
+    "lang": "fr",
+    "fr_hits": 1,
+    "en_hits": 0,
+    "reply": "C’est noté : protéines et légumes au déjeuner aujourd’hui, samedi 8 août."
+  },
+  {
+    "label": "G-repas-FR#2",
+    "locale": "fr-FR",
+    "message": "j'ai pris mes protéines et mes légumes au déjeuner aujourd'hui",
+    "owner": "normal_reply",
+    "effects": [
+      null
+    ],
+    "anchor": "fr-FR",
+    "lang": "fr",
+    "fr_hits": 2,
+    "en_hits": 0,
+    "reply": "C’est bien reçu : protéines et légumes au déjeuner aujourd’hui."
+  },
+  {
+    "label": "G-repas-FR#3",
+    "locale": "fr-FR",
+    "message": "j'ai pris mes protéines et mes légumes au déjeuner aujourd'hui",
+    "owner": "normal_reply",
+    "effects": [
+      null
+    ],
+    "anchor": "fr-FR",
+    "lang": "fr",
+    "fr_hits": 2,
+    "en_hits": 0,
+    "reply": "C’est noté pour aujourd’hui : protéines et légumes au déjeuner."
+  },
+  {
+    "label": "H-ecart-FR#1",
+    "locale": "fr-FR",
+    "message": "samedi je suis à un mariage toute la journée, je ne suivrai pas le plan",
+    "owner": "normal_reply",
+    "effects": [
+      null
+    ],
+    "anchor": "fr-FR",
+    "lang": "fr",
+    "fr_hits": 2,
+    "en_hits": 0,
+    "reply": "C’est noté : samedi 15 août, tu es à un mariage toute la journée, donc la journée est déclarée en déviation sociale."
+  },
+  {
+    "label": "H-ecart-FR#2",
+    "locale": "fr-FR",
+    "message": "samedi je suis à un mariage toute la journée, je ne suivrai pas le plan",
+    "owner": "normal_reply",
+    "effects": [
+      null
+    ],
+    "anchor": "fr-FR",
+    "lang": "fr",
+    "fr_hits": 3,
+    "en_hits": 0,
+    "reply": "C’est noté pour samedi : mariage toute la journée, donc deviation déclarée pour ce jour."
+  },
+  {
+    "label": "H-ecart-FR#3",
+    "locale": "fr-FR",
+    "message": "samedi je suis à un mariage toute la journée, je ne suivrai pas le plan",
+    "owner": "normal_reply",
+    "effects": [
+      null
+    ],
+    "anchor": "fr-FR",
+    "lang": "fr",
+    "fr_hits": 3,
+    "en_hits": 0,
+    "reply": "C’est noté pour samedi : mariage toute la journée, donc déviation déclarée sur le plan social."
+  }
+]

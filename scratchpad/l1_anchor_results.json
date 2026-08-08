@@ -1,0 +1,57 @@
+[
+  {
+    "label": "D1-fil-neuf",
+    "http": 200,
+    "owner": "normal_reply",
+    "anchor": "fr-FR",
+    "lang": "fr",
+    "fr_hits": 12,
+    "en_hits": 0,
+    "reply": "Je n’ai pas ton dîner du soir dans ce qui est visible ici. Si tu veux, je peux t’aider à choisir vite avec ce que tu as sous la main 🙂",
+    "user_id": "6916b93d-87a3-427f-9723-597ee66fafe0"
+  },
+  {
+    "label": "D2-ancre-empoisonnee",
+    "http": 200,
+    "owner": "plan_question",
+    "anchor": "en-US",
+    "lang": "en",
+    "fr_hits": 1,
+    "en_hits": 17,
+    "reply": "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+    "user_id": "6916b93d-87a3-427f-9723-597ee66fafe0"
+  },
+  {
+    "label": "D3-ancre-empoisonnee-bis",
+    "http": 200,
+    "owner": "normal_reply",
+    "anchor": "en-US",
+    "lang": "en",
+    "fr_hits": 0,
+    "en_hits": 14,
+    "reply": "For breakfast, a solid default is:\n\n- protein: eggs, Greek yogurt, skyr, cottage cheese, tofu, or a protein shake\n- carbs: oats, whole-grain toast, fruit, or muesli\n- fat if needed: nuts, seeds, peanut butter, or avocado\n\nIf you want it simple, aim for one protein + one carb + one fruit. That’s usually enough to keep you going through the morning.",
+    "user_id": "6916b93d-87a3-427f-9723-597ee66fafe0"
+  },
+  {
+    "label": "D4-apres-purge",
+    "http": 200,
+    "owner": "normal_reply",
+    "anchor": "fr-FR",
+    "lang": "fr",
+    "fr_hits": 8,
+    "en_hits": 0,
+    "reply": "Pour demain midi, vise simple et complet : une source de protéines, des légumes, et un féculent si tu as faim.  \nExemple facile : poulet ou thon, riz ou pâtes complètes, et une portion de légumes.",
+    "user_id": "6916b93d-87a3-427f-9723-597ee66fafe0"
+  },
+  {
+    "label": "D5-apres-purge-bis",
+    "http": 200,
+    "owner": "normal_reply",
+    "anchor": "fr-FR",
+    "lang": "fr",
+    "fr_hits": 4,
+    "en_hits": 0,
+    "reply": "Pour le petit-déjeuner, fais simple : une source de protéines, un féculent ou un fruit, et un peu de gras si besoin.\n\nExemple facile : yaourt grec ou œufs, pain complet ou flocons d’avoine, et un fruit.",
+    "user_id": "6916b93d-87a3-427f-9723-597ee66fafe0"
+  }
+]
