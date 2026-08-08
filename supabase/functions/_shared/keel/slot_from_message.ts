@@ -80,14 +80,43 @@ const SLOT_SURFACE_FORMS: ReadonlyArray<readonly [string, SlotKey]> = [
   ["first thing", "on_waking"],
   ["au reveil", "on_waking"],
   ["evening meal", "dinner"],
+  // --- LES FORMES DÉICTIQUES DE REPAS, et pourquoi elles sont ici
+  //
+  // MESURÉ (FF-017, run réel 2026-08-08, 3 tours sur 3):
+  //   « Poulet grillé, riz complet et brocolis à midi »  -> slot_key NULL
+  //   « Grilled salmon … for dinner »                    -> slot_key dinner
+  // Le créneau le plus courant du français — « à midi » — n'était dans aucune
+  // des deux listes, alors que le plancher de FF-017 l'accepte comme mot de
+  // créneau pour OUVRIR sa porte (`SLOT_MARKERS`). La déclaration passait donc
+  // la porte grâce à « à midi » et s'écrivait sans le créneau que « à midi »
+  // nommait. C'est la cicatrice `guard-tested-in-one-language-only` à
+  // l'intérieur d'une même fonctionnalité, et R6 de FF-017 la nomme.
+  //
+  // ⚠️ CE QUI RESTE DEHORS, ET C'EST LA MOITIÉ DE LA DÉCISION. « ce matin » et
+  // « this morning » ne sont PAS des créneaux: un fruit à 10 h n'est pas un
+  // petit-déjeuner, et les mapper inventerait le repas le plus souvent sauté.
+  // Le module préfère un `null` honnête à un créneau supposé — c'est déjà sa
+  // règle pour `snack`, et elle vaut identiquement dans les deux langues.
+  ["a midi", "lunch"],
+  ["ce midi", "lunch"],
+  ["le midi", "lunch"],
+  ["hier midi", "lunch"],
+  ["ce soir", "dinner"],
+  ["hier soir", "dinner"],
+  ["this evening", "dinner"],
+  ["at lunchtime", "lunch"],
   // --- formes simples
   ["breakfast", "breakfast"],
   ["lunch", "lunch"],
+  ["lunchtime", "lunch"],
+  ["midday", "lunch"],
   ["dinner", "dinner"],
   ["supper", "dinner"],
+  ["tonight", "dinner"],
   ["dejeuner", "lunch"],
   ["diner", "dinner"],
   ["souper", "dinner"],
+  ["midi", "lunch"],
 ];
 
 /**

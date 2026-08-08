@@ -99,6 +99,103 @@ function normalize(text: string): string {
 }
 
 /**
+ * LA MÊME NORMALISATION, MAIS QUI GARDE LES ACCENTS.
+ *
+ * `normalize` jette les diacritiques — c'est ce qui permet à « brocolis » de
+ * mordre sur « brocolis » comme sur « broccolis ». Mais l'accent est parfois la
+ * SEULE chose qui distingue un aliment d'un mot-outil de l'autre langue:
+ * « thé » devient « the » (l'article anglais), « maïs » devient « mais » (la
+ * conjonction française). Cette seconde lecture existe uniquement pour que les
+ * gardes de `AMBIGUOUS_TERMS` puissent regarder ce que `normalize` a effacé.
+ */
+function normalizeKeepingAccents(text: string): string {
+  return String(text ?? "")
+    .toLowerCase()
+    .normalize("NFC")
+    .replace(/['’]/g, " ")
+    .replace(/[^a-z0-9À-ɏ\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * Un motif de contexte, délimité par des ESPACES et jamais par `\b`.
+ *
+ * ⚠️ `\b` ne mord pas après « é »: en JavaScript la frontière de mot est
+ * ASCII, donc `/\bthé\b/` ne matche PAS « thé » suivi d'une espace. C'est la
+ * cicatrice `guard-tested-in-one-language-only`, et une garde écrite avec `\b`
+ * sur un mot accentué est une garde qui ne s'arme jamais. Le foin est déjà
+ * entouré d'espaces par l'appelant.
+ */
+function ctx(pattern: string): RegExp {
+  return new RegExp(`(?:^| )(?:${pattern})(?: |$)`);
+}
+
+/**
+ * LES TERMES AMBIGUS — un aliment dans une langue, un mot-outil dans l'autre.
+ *
+ * ── LE DÉFAUT MESURÉ (run réel, 2026-08-08, 3 tours sur 3) ──────────────────
+ *   élève  : « I had pain in my stomach after lunch »
+ *   base   : une ligne `protocol_events`, `food_group_ref = refined_grain`
+ *   réponse: parle de douleur d'estomac, ne mentionne aucun pain
+ * L'élève signale un SYMPTÔME et repart avec un pain au déjeuner. Il ne peut
+ * même pas le corriger: rien dans la réponse ne lui dit que la ligne existe —
+ * l'asymétrie R4 (« sur-déclarer est récupérable ») ne s'applique donc pas, et
+ * c'est le coach qui lira le faux fait lundi.
+ *
+ * Trois autres, de la même famille, trouvés en relisant le lexique à l'envers:
+ *   « the »  → thé, sur l'ARTICLE DÉFINI anglais (« I had the chicken »)
+ *   « mais » → maïs, sur la CONJONCTION française (« c'était bon mais cher »)
+ *   « bar »  → le poisson, sur la BARRE anglaise (« a protein bar »)
+ *   « mure » → la baie, sur l'adjectif (« une banane bien mûre »)
+ * Ce sont les deux mots les plus fréquents des deux langues servies: sans
+ * garde, une majorité de messages anglais écrit un thé et une bonne part des
+ * messages français écrit du maïs.
+ *
+ * ── CE QUE LA GARDE EST, ET CE QU'ELLE N'EST PAS ────────────────────────────
+ * Ce n'est PAS une détection de langue, et ce n'est pas une inférence: chaque
+ * terme ambigu porte une liste FERMÉE de contextes qui prouvent qu'il s'agit
+ * bien de l'aliment (l'accent, ou un déterminant/qualificatif français). Sans
+ * l'un d'eux, le terme ne mord pas — R2 dit que seul ce que le message nomme
+ * EXPLICITEMENT devient un fait, et « mais » ne nomme pas du maïs.
+ *
+ * ── CE QUE ÇA COÛTE, ET POURQUOI C'EST LE BON CÔTÉ ──────────────────────────
+ * On perd le thé d'un élève qui écrit « du the » sans accent ET sans
+ * déterminant — c'est-à-dire presque personne, et sur un groupe alimentaire
+ * sans enjeu. On garde en échange la donnée centrale du produit propre. R4
+ * autorise un lexique large, §9 interdit un lexique BAVARD: « un terme trop
+ * générique fabrique des faits », et c'est très exactement ce qui se passait.
+ *
+ * Les contextes sont évalués sur la lecture QUI GARDE LES ACCENTS.
+ */
+const AMBIGUOUS_TERMS: Readonly<Record<string, readonly RegExp[]>> = {
+  the: [
+    // ⚠️ `thés?` et PAS `th[ée]s?`: la classe de caractères aurait re-couvert
+    // « the » anglais et désarmé la garde au premier essai. Mesuré.
+    ctx("thés?"),
+    ctx("(?:un|une|du|le|la|les|mon|ma|ce|deux|trois) the"),
+    ctx("the (?:vert|noir|blanc|glac[ée]|glace|au lait|nature|infus[ée]|infuse|à la menthe|a la menthe)"),
+  ],
+  mais: [
+    ctx("maïs"),
+    ctx("(?:du|le|des|au|de) mais"),
+    ctx("mais (?:doux|en grains|grill[ée]|grille|grillée)"),
+  ],
+  bar: [
+    ctx("(?:du|le|un|des|de) bar"),
+    ctx("bar (?:grill[ée]|grille|grillée|au four|de ligne|en cro[uû]te)"),
+  ],
+  pain: [
+    ctx("(?:du|le|un|des|de|deux|mon|petit|gros) pain"),
+    ctx(
+      "pain (?:complet|blanc|de mie|grill[ée]|grille|au levain|perdu|frais|beurr[ée]|beurre|aux c[ée]r[ée]ales)",
+    ),
+  ],
+  mure: [ctx("(?:des|de|aux|les|quelques|une|deux|trois) m[uû]res?")],
+  mures: [ctx("(?:des|de|aux|les|quelques) m[uû]res")],
+};
+
+/**
  * LE LEXIQUE. Table FERMÉE, FR + EN, terme → groupe alimentaire.
  *
  * Chaque entrée est un mot que l'élève écrit vraiment. Aucune inférence : un
@@ -252,15 +349,36 @@ const INDEX = buildIndex();
  */
 const PAST_TENSE_GATES: readonly RegExp[] = [
   // EN
-  /\bi (had|ate|have eaten|had had|just had|just ate|finished)\b/,
-  /\bi (was|we were) (eating|having)\b/,
+  /\bi (had|ate|have eaten|had had|just had|just ate|finished|just finished)\b/,
+  // ⚠️ « I've had » — `normalize` remplace l'apostrophe par une ESPACE, donc la
+  // forme élidée s'écrit « i ve had » et ne pouvait matcher aucune des lignes
+  // ci-dessus. Mesuré NULL sur « I've had chicken », qui est pourtant la forme
+  // la plus courante de l'anglais parlé.
+  /\bi ve (had|eaten|just had|just eaten)\b/,
+  // ⚠️ ÉTAIT `\bi (was|we were) (eating|having)\b`: l'alternative « we were »
+  // était collée derrière un « i » obligatoire, donc « we were eating » était
+  // INATTEIGNABLE — un désaccord entre l'intention écrite et le motif écrit.
+  // Mesuré NULL sur « we were eating pasta ».
+  /\b(i was|we were) (eating|having)\b/,
   /\bfor (breakfast|lunch|dinner) i (had|ate)\b/,
   /\b(breakfast|lunch|dinner|snack) (was|has been)\b/,
   /\bwe (had|ate)\b/,
   // FR — passé composé, les deux auxiliaires courants
   /\bj ai (mange|mangee|pris|prise|grignote|termine|fini|avale|degust)/,
+  // Les VERBES DE REPAS, qui portent leur propre passé et manquaient à la
+  // liste: « j'ai dîné d'une salade » rendait NULL alors que c'est exactement
+  // la porte que §3 décrit (« verbe au passé »). Perdre une déclaration est le
+  // côté NON récupérable de l'asymétrie R4.
+  /\b(j ai|on a) (dine|dejeune|goute|soupe)\b/,
   /\bon a (mange|pris)\b/,
   /\bje me suis (fait|prepare)\b/,
+  // « je viens de manger » — passé immédiat, forme très courante à l'oral.
+  /\b(je viens|on vient) de (manger|prendre|finir|terminer|grignoter|deguster)\b/,
+  // BOIRE est une consommation: le lexique porte l'eau, le thé, l'alcool et les
+  // sodas, donc une porte qui refuse « j'ai bu » ferme ces groupes-là à clé.
+  // Ancré à part (`\b` final) — collé à l'alternation en préfixe, « bu »
+  // mordrait dans « j'ai bugué ».
+  /\b(j ai|on a) bu\b/,
   /\b(petit dejeuner|dejeuner|diner|gouter|repas) (etait|c etait)\b/,
 ];
 
@@ -474,6 +592,63 @@ const MEAL_FOR_SOMEONE_ELSE: readonly RegExp[] = [
   /\bfor (the|my|our|their) (kids|children|kid|child|little ones)\b/,
 ];
 
+/**
+ * LE TIERS QUI EST LE SUJET DU VERBE — FF-017 §7, « ma fille a mangé des pâtes ».
+ *
+ * ── LE DÉFAUT MESURÉ (run réel, 2026-08-08, 2 tours sur 3) ──────────────────
+ *   élève  : « ma fille a mangé des pâtes à midi »
+ *   base   : une ligne `protocol_events` au nom de l'ÉLÈVE
+ *   attendu: RIEN (FF-017 §7)
+ * Le plancher désarmait déjà (son `DISARM` porte les possessifs), mais la
+ * ceinture posée par FF-009 ne couvrait QUE la forme « pour les enfants ». La
+ * forme la plus naturelle — le proche en SUJET — n'était donc vetoée nulle
+ * part, et le dispatcher écrivait le repas de la fille sur la semaine de la
+ * mère.
+ *
+ * ── POURQUOI LE VERBE, ET PAS SEULEMENT LE PROCHE ───────────────────────────
+ * Mentionner un proche ne dit rien de qui a mangé: « ma fille adore les
+ * brocolis, j'ai pris du poulet » parle du repas de l'élève. La ceinture exige
+ * donc le proche EN SUJET d'un verbe de consommation au passé, ce qui est la
+ * seule forme qui affirme que c'est l'autre qui a mangé. Et le désarmement
+ * (`FIRST_PERSON_ATE`) reste le même que pour sa voisine.
+ */
+const SOMEONE_ELSE_ATE: readonly RegExp[] = [
+  /\b(my|his|her|their|our) (son|daughter|child|kid|kids|children|wife|husband|partner|mother|father|mum|mom|dad|friend|colleague|flatmate|roommate)s? (had|ate|has eaten|have eaten|was eating|were eating|finished)\b/,
+  /\b(mon|ma|mes) (fils|fille|filles|enfant|enfants|femme|mari|conjoint|conjointe|mere|pere|ami|amie|amis|collegue|colocataire)s? (a|ont) (mange|mangee|mangees|pris|prise|dine|dejeune|goute|grignote|termine|fini)\b/,
+];
+
+/**
+ * « JE N'AI RIEN MANGÉ » → RIEN. FF-017 §7, premier mode de défaillance.
+ *
+ * ── LE DÉFAUT MESURÉ (run réel, 2026-08-08, 1 tour sur 3 dans CHAQUE langue) ─
+ *   élève  : « je n'ai rien mangé aujourd'hui » / « I didn't eat anything today »
+ *   base   : une ligne `protocol_events`, et une question de précision partie
+ *            dessus (« And what did you have with it? »)
+ *   attendu: RIEN
+ * Encore une fois le plancher avait bien désarmé — la négation est dans son
+ * `DISARM` depuis le premier jour. Mais un désarme de plancher n'est pas un
+ * veto, et le tirage du dispatcher écrivait un repas sur l'énoncé qui dit
+ * exactement le contraire. La ligne est APPEND-ONLY, le coach la lira, et
+ * l'élève s'est vu demander avec quoi il avait mangé le repas qu'il venait de
+ * dire n'avoir pas pris.
+ *
+ * ── CONDITION DE DÉSARMEMENT (P9) ───────────────────────────────────────────
+ * La même que ses deux voisines: un « j'ai mangé » au passé et à la première
+ * personne retire la ceinture. « Je n'ai rien mangé ce matin mais j'ai pris du
+ * poulet à midi » porte les deux, et c'est le repas qui doit gagner.
+ */
+const NO_MEAL_EATEN: readonly RegExp[] = [
+  // FR
+  /\bje n ai (pas|rien) (mange|mangee|pris|dine|dejeune|goute)\b/,
+  /\b(j ai|je n ai) rien mange\b/,
+  /\brien mange (aujourd hui|ce matin|ce midi|ce soir|hier)\b/,
+  /\bj ai (saute|zappe) (le petit dejeuner|le dejeuner|le diner|un repas|le repas)\b/,
+  // EN
+  /\bi (didn t|did not|haven t|have not|hadn t|couldn t|could not) (eat|eaten|have|had)\b/,
+  /\bi ate nothing\b/,
+  /\bi (skipped|missed) (breakfast|lunch|dinner|a meal|the meal|my breakfast|my lunch|my dinner)\b/,
+];
+
 /** Ce qui désarme: l'élève dit qu'il a mangé, lui, et au passé. */
 const FIRST_PERSON_ATE: readonly RegExp[] = [
   /\bi (had|ate|have eaten|just had|just ate)\b/,
@@ -486,7 +661,24 @@ export function isMealForSomeoneElse(userMessage: unknown): boolean {
   const raw = String(userMessage ?? "").trim();
   if (!raw) return false;
   const text = ` ${normalize(raw)} `;
-  if (!MEAL_FOR_SOMEONE_ELSE.some((re) => re.test(text))) return false;
+  const someoneElse = MEAL_FOR_SOMEONE_ELSE.some((re) => re.test(text)) ||
+    SOMEONE_ELSE_ATE.some((re) => re.test(text));
+  if (!someoneElse) return false;
+  return !FIRST_PERSON_ATE.some((re) => re.test(text));
+}
+
+/**
+ * L'élève dit qu'il n'a RIEN mangé. Ceinture de veto, pas un désarme.
+ *
+ * Même forme, même place et même désarmement que `isMealForSomeoneElse`: elle
+ * ne vaut que pour `log_protocol_event`, et elle se retire dès que le message
+ * porte par ailleurs un « j'ai mangé » au passé à la première personne.
+ */
+export function isNoMealDeclared(userMessage: unknown): boolean {
+  const raw = String(userMessage ?? "").trim();
+  if (!raw) return false;
+  const text = ` ${normalize(raw)} `;
+  if (!NO_MEAL_EATEN.some((re) => re.test(text))) return false;
   return !FIRST_PERSON_ATE.some((re) => re.test(text));
 }
 
@@ -529,6 +721,8 @@ export function detectDeclaredMeal(
   // Un copier-coller n'est pas une déclaration de repas.
   if (raw.length > 600) return null;
   const text = ` ${normalize(raw)} `;
+  // La lecture QUI GARDE LES ACCENTS, pour les seules gardes d'ambiguïté.
+  const accented = ` ${normalizeKeepingAccents(raw)} `;
   if (!text.trim()) return null;
 
   for (const disarm of DISARM) {
@@ -566,6 +760,11 @@ export function detectDeclaredMeal(
   for (const entry of INDEX) {
     const boundary = new RegExp(`(^|\\s)${entry.term}(\\s|$)`);
     if (!boundary.test(remaining)) continue;
+    // LA GARDE D'AMBIGUÏTÉ, AVANT la consommation des caractères: un terme qui
+    // ne prouve pas son contexte ne mord pas, et il ne mange donc pas non plus
+    // les caractères qu'un autre terme pourrait revendiquer.
+    const guards = AMBIGUOUS_TERMS[entry.term];
+    if (guards && !guards.some((re) => re.test(accented))) continue;
     remaining = remaining.replace(new RegExp(`(^|\\s)${entry.term}(\\s|$)`, "g"), " ");
     if (seen.has(entry.ref)) continue;
     seen.add(entry.ref);

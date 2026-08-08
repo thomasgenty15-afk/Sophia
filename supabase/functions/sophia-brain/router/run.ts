@@ -314,6 +314,7 @@ import {
 import {
   detectDeclaredMeal,
   isMealForSomeoneElse,
+  isNoMealDeclared,
   type MealDeclarationHit,
 } from "../../_shared/keel/meal_declaration_floor.ts";
 import {
@@ -1777,7 +1778,34 @@ export async function runKeelDirectEffectLane(
     });
   }
 
-  if (runLog && !futureIntentTurn && !forSomeoneElseTurn) {
+  // CEINTURE « JE N'AI RIEN MANGÉ » — FF-017 §7, premier mode de défaillance,
+  // et troisième membre de la même famille que ses deux voisines.
+  //
+  // MESURÉ (run réel 2026-08-08, 1 tour sur 3 dans CHAQUE langue):
+  //   élève  : « je n'ai rien mangé aujourd'hui » / « I didn't eat anything today »
+  //   base   : une ligne `protocol_events`
+  //   réponse: une question de précision — « And what did you have with it? »
+  // On demande donc à l'élève avec quoi il a mangé le repas qu'il vient de dire
+  // n'avoir pas pris, et le coach lira lundi un repas qui n'a pas eu lieu. Le
+  // plancher désarme sur la négation depuis le premier jour; ça n'a jamais été
+  // un veto sur le dispatcher.
+  //
+  // CONDITION DE DÉSARMEMENT: portée par `isNoMealDeclared` — « je n'ai rien
+  // mangé ce matin mais j'ai pris du poulet à midi » porte les deux, et c'est le
+  // repas qui gagne. Comme ses voisines, elle ne vaut QUE pour
+  // `log_protocol_event`.
+  const noMealTurn = isNoMealDeclared(input.userMessage);
+  if (runLog && !futureIntentTurn && !forSomeoneElseTurn && noMealTurn) {
+    handlers.push("log_protocol_event");
+    statuses.push("blocked");
+    reasons.push("no_meal_declared");
+    blocked.push({
+      type: "log_protocol_event",
+      reason_code: "no_meal_declared",
+    });
+  }
+
+  if (runLog && !futureIntentTurn && !forSomeoneElseTurn && !noMealTurn) {
     absorb(
       "log_protocol_event",
       await runLogProtocolEventDirectEffect({

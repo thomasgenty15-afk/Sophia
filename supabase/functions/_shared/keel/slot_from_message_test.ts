@@ -75,3 +75,39 @@ Deno.test("pas de match à l'intérieur d'un autre mot", () => {
   assertEquals(slotKeyNamedIn("we discussed the lunchbox industry"), null);
   assertEquals(slotKeyNamedIn("brunchtime"), null);
 });
+
+// ===========================================================================
+// FF-017 R6 — LES DÉICTIQUES DE REPAS, et la parité entre les deux langues
+// ===========================================================================
+
+Deno.test("« à midi » et « ce soir » nomment un créneau — mesuré NULL 3/3", () => {
+  // Run réel 2026-08-08: « Poulet grillé, riz complet et brocolis à midi »
+  // écrivait trois faits avec `slot_key = NULL`, pendant que son équivalent
+  // anglais « … for dinner » écrivait `dinner`. Le plancher de FF-017 accepte
+  // pourtant « à midi » comme mot de créneau pour OUVRIR sa porte: la
+  // déclaration passait grâce au créneau et s'écrivait sans lui.
+  assertEquals(
+    slotKeyNamedIn("Poulet grillé, riz complet et brocolis à midi"),
+    "lunch",
+  );
+  assertEquals(slotKeyNamedIn("j'ai mangé une salade ce midi"), "lunch");
+  assertEquals(slotKeyNamedIn("hier soir j'ai mangé du saumon"), "dinner");
+  assertEquals(slotKeyNamedIn("j'ai mangé du poulet ce soir"), "dinner");
+  // La parité anglaise des mêmes formes déictiques.
+  assertEquals(slotKeyNamedIn("I had chicken tonight"), "dinner");
+  assertEquals(slotKeyNamedIn("I had a sandwich at lunchtime"), "lunch");
+  assertEquals(slotKeyNamedIn("I had soup at midday"), "lunch");
+});
+
+Deno.test("« ce matin » n'est PAS un petit-déjeuner, dans les deux langues", () => {
+  // Un fruit à 10 h n'est pas un petit-déjeuner. Le mapper inventerait le repas
+  // le plus souvent sauté — et le module préfère un `null` honnête à un créneau
+  // supposé, exactement comme pour `snack`.
+  assertEquals(slotKeyNamedIn("j'ai mangé une pomme ce matin"), null);
+  assertEquals(slotKeyNamedIn("I had an apple this morning"), null);
+});
+
+Deno.test("les déictiques comptent AUSSI dans la règle « deux créneaux = aucun »", () => {
+  assertEquals(slotKeyNamedIn("j'ai mangé à midi et ce soir"), null);
+  assertEquals(slotKeyNamedIn("eggs at breakfast, chicken tonight"), null);
+});

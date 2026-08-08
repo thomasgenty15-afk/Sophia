@@ -11,6 +11,7 @@ import {
   detectDeclaredMeal,
   detectOffPlanMarker,
   isMealForSomeoneElse,
+  isNoMealDeclared,
 } from "./meal_declaration_floor.ts";
 
 function refs(message: string, slot: string | null = null): string[] {
@@ -509,4 +510,125 @@ Deno.test("FF-009 — `chez` par EXCLUSION: la liste de proches débordait vraim
       `« chez moi » lu comme un hors-plan: ${home}`,
     );
   }
+});
+
+// ===========================================================================
+// FF-017 — LES TERMES AMBIGUS: un aliment ici, un mot-outil là
+// ===========================================================================
+
+Deno.test("« the » anglais n'écrit pas un thé — mesuré en run réel", () => {
+  // L'ARTICLE DÉFINI. `normalize` jette l'accent, donc « thé » et « the »
+  // devenaient le même jeton et une majorité de messages anglais écrivait un
+  // thé que personne n'avait bu.
+  assertEquals(refs("I had the chicken for lunch"), ["poultry"]);
+  assertEquals(refs("I had chicken and the rice was good"), [
+    "poultry",
+    "refined_grain",
+  ]);
+  assertEquals(refs("I finished the salmon"), ["fatty_fish"]);
+  // Le cas le plus cher: « the » était le SEUL composant, donc il ouvrait à lui
+  // seul une ligne sur un message qui ne nomme aucun aliment.
+  assertEquals(detectDeclaredMeal("I had the usual for lunch"), null);
+  // CONTRE-ÉPREUVE — le thé reste un thé, accentué ou porté par un déterminant.
+  assertEquals(refs("j'ai pris un thé ce matin"), ["coffee_tea"]);
+  assertEquals(refs("j'ai pris un the ce matin"), ["coffee_tea"]);
+  assertEquals(refs("j'ai bu du thé vert"), ["coffee_tea"]);
+  assertEquals(refs("I had tea and toast"), ["coffee_tea", "refined_grain"]);
+});
+
+Deno.test("« mais » français n'écrit pas du maïs", () => {
+  assertEquals(refs("hier soir j'ai mangé une salade mais bon"), ["leafy_greens"]);
+  assertEquals(
+    refs("j'ai mangé une pomme mais j'avais encore faim"),
+    ["other_fruit"],
+  );
+  // CONTRE-ÉPREUVE — le maïs reste du maïs.
+  assertEquals(refs("j'ai mangé du maïs"), ["starchy_veg"]);
+  assertEquals(refs("j'ai mangé du mais grillé"), ["starchy_veg"]);
+});
+
+Deno.test("« pain » anglais (la douleur) n'écrit pas du pain — mesuré 3/3", () => {
+  // Run réel 2026-08-08: « I had pain in my stomach after lunch » écrivait une
+  // ligne `refined_grain`. L'élève signale un SYMPTÔME et repart avec un pain
+  // qu'il ne peut même pas corriger — la réponse ne le mentionne pas.
+  assertEquals(detectDeclaredMeal("I had pain in my stomach after lunch"), null);
+  assertEquals(detectDeclaredMeal("I had chest pain after dinner"), null);
+  // CONTRE-ÉPREUVE — le pain reste du pain.
+  assertEquals(refs("j'ai mangé du pain"), ["refined_grain"]);
+  assertEquals(refs("j'ai mangé une tranche de pain"), ["refined_grain"]);
+  assertEquals(refs("j'ai mangé du pain complet"), ["whole_grain"]);
+});
+
+Deno.test("« bar » anglais (la barre) n'écrit pas du poisson", () => {
+  assertEquals(detectDeclaredMeal("I had a protein bar for breakfast"), null);
+  assertEquals(refs("I had a chocolate bar this morning"), ["sugar_sweets"]);
+  // CONTRE-ÉPREUVE — le bar reste un poisson.
+  assertEquals(refs("j'ai mangé du bar"), ["white_fish"]);
+  assertEquals(refs("j'ai mangé du bar grillé"), ["white_fish"]);
+});
+
+Deno.test("« mûre » l'adjectif n'écrit pas une baie", () => {
+  assertEquals(refs("j'ai mangé une banane bien mûre"), ["other_fruit"]);
+  assertEquals(refs("j'ai mangé des mûres"), ["berries"]);
+});
+
+// ===========================================================================
+// FF-017 §3 — LA PORTE « VERBE AU PASSÉ », dans toutes ses formes courantes
+// ===========================================================================
+
+Deno.test("les formes de passé qui manquaient à la porte", () => {
+  // ⚠️ `\bi (was|we were) (eating|having)\b` collait « we were » derrière un
+  // « i » obligatoire: l'alternative était INATTEIGNABLE.
+  assertEquals(refs("we were eating pasta"), ["refined_grain"]);
+  assertEquals(refs("I was eating chicken"), ["poultry"]);
+  // L'apostrophe devient une espace: « I've had » s'écrit « i ve had ».
+  assertEquals(refs("I've had chicken"), ["poultry"]);
+  assertEquals(refs("I've just had some eggs"), ["eggs"]);
+  // Les verbes de repas français portent leur propre passé.
+  assertEquals(refs("j'ai dîné d'une salade"), ["leafy_greens"]);
+  assertEquals(refs("j'ai déjeuné d'un poulet"), ["poultry"]);
+  assertEquals(refs("j'ai goûté un yaourt"), ["dairy_yogurt"]);
+  // Le passé immédiat, très courant à l'oral.
+  assertEquals(refs("je viens de manger du poulet"), ["poultry"]);
+  // Boire est une consommation: le lexique porte l'eau, le thé et l'alcool.
+  assertEquals(refs("j'ai bu un café"), ["coffee_tea"]);
+  // CONTRE-ÉPREUVE — la porte reste ÉTROITE (R4).
+  assertEquals(detectDeclaredMeal("je vais manger du poulet"), null);
+  assertEquals(detectDeclaredMeal("du poulet et du riz"), null);
+});
+
+// ===========================================================================
+// FF-017 §7 — LES CEINTURES DE VETO (le plancher désarme, elles bloquent)
+// ===========================================================================
+
+Deno.test("« ma fille a mangé des pâtes » est vetoé, pas seulement désarmé", () => {
+  // Mesuré 2/3 en run réel: le plancher désarmait, le DISPATCHER écrivait.
+  assert(isMealForSomeoneElse("ma fille a mangé des pâtes à midi"));
+  assert(isMealForSomeoneElse("my daughter had pasta for lunch"));
+  assert(isMealForSomeoneElse("mes enfants ont mangé des pâtes"));
+  assert(isMealForSomeoneElse("my kids had pasta"));
+  // La forme de FF-009 continue de mordre.
+  assert(isMealForSomeoneElse("on a commandé pour les enfants"));
+  // CONDITION DE DÉSARMEMENT — un message MIXTE garde le repas de l'élève.
+  assert(!isMealForSomeoneElse("ma fille a mangé des pâtes et j'ai mangé du poulet"));
+  assert(!isMealForSomeoneElse("my daughter had pasta and I had chicken"));
+  // MENTIONNER un proche ne suffit pas: il faut qu'il soit le SUJET du verbe.
+  assert(!isMealForSomeoneElse("ma fille adore les brocolis, j'ai pris du poulet"));
+  assert(!isMealForSomeoneElse("j'ai mangé chez ma mère hier soir"));
+});
+
+Deno.test("« je n'ai rien mangé » est vetoé, dans les deux langues", () => {
+  // Mesuré 1/3 dans CHAQUE langue: une ligne écrite, et une question de
+  // précision posée dessus.
+  assert(isNoMealDeclared("je n'ai rien mangé aujourd'hui"));
+  assert(isNoMealDeclared("I didn't eat anything today"));
+  assert(isNoMealDeclared("I haven't eaten today"));
+  assert(isNoMealDeclared("j'ai sauté le déjeuner"));
+  assert(isNoMealDeclared("I skipped lunch"));
+  // CONDITION DE DÉSARMEMENT — le repas gagne sur la négation qui le précède.
+  assert(!isNoMealDeclared("je n'ai rien mangé ce matin mais j'ai pris du poulet à midi"));
+  assert(!isNoMealDeclared("I didn't eat this morning but I had chicken at lunch"));
+  // CONTRE-ÉPREUVE — une déclaration normale n'est jamais vetoée.
+  assert(!isNoMealDeclared("j'ai mangé du poulet"));
+  assert(!isNoMealDeclared("I had chicken"));
 });
