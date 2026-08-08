@@ -373,7 +373,7 @@ const OFF_PLAN_PAST_MARKERS: readonly RegExp[] = [
   // explicitement. Le lieu doit donc ne PAS être la maison de l'élève, et
   // c'est dit par exclusion plutôt que par une liste de proches — une liste se
   // serait fait déborder au premier « chez ma tante ».
-  /\b(j ai|on a) (dine|dejeune|mange|grignote) (?:au |a la |dehors\b|chez (?!moi\b|nous\b))/,
+  /\b(j ai|on a) (dine|dejeune|mange|grignote) (?:au |a la |dehors\b|chez (?!moi\b|nous\b|soi\b))/,
   /\bon est (alles?|allees?|sortis|sorties) (au|a la|manger|diner|dejeuner)\b/,
   /\b(j ai|on a) fait (un|une) (resto|restau|restaurant)\b/,
   // EN
@@ -409,9 +409,11 @@ const OFF_PLAN_PLACE_MARKERS: readonly RegExp[] = [
   // ma sœur ») passait déjà par le marqueur auto-suffisant, qui exclut déjà;
   // c'est la forme DÉTACHÉE (« j'étais chez ma sœur hier soir, on a mangé une
   // raclette ») qui tombait. Mesuré NULL.
-  // Les deux seules exclusions sont la cuisine de l'élève: par construction,
-  // « chez moi » ne peut pas y mordre.
-  /\bchez (?!moi\b|nous\b)/,
+  // Les seules exclusions sont la cuisine de l'élève: par construction,
+  // « chez moi », « chez nous » et « chez soi » ne peuvent pas y mordre.
+  // (`chez soi` a été trouvé en relisant la garde à l'envers — il rendait
+  // `off_plan` sur un repas fait à la maison, soit l'exact contraire.)
+  /\bchez (?!moi\b|nous\b|soi\b)/,
   // « à un mariage » ET « au mariage ». MESURÉ: le motif ne portait que la
   // forme contractée, donc la JOB STORY DE LA FICHE — « quand j'étais à un
   // mariage, je veux que ça compte comme un repas de ma vie » — rendait NULL

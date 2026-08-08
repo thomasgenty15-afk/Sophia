@@ -497,6 +497,9 @@ Deno.test("FF-009 — `chez` par EXCLUSION: la liste de proches débordait vraim
     const home of [
       "j'ai mangé chez moi hier soir",
       "on a dîné chez nous hier soir",
+      // Trouvé en relisant la garde à l'envers: « chez soi » rendait
+      // `off_plan` sur un repas fait à la maison — l'exact contraire.
+      "on a mangé chez soi hier soir",
       "hier soir j'ai mangé chez moi, du saumon et des brocolis",
     ]
   ) {
