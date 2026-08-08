@@ -834,3 +834,40 @@ qu'elles disent quelque chose sur la méthode :
 
 Dans les deux cas, l'agent placé après moi a vérifié l'énoncé au lieu de le reprendre. C'est la seule
 raison pour laquelle ces erreurs ne sont pas dans le livrable final.
+
+---
+
+# PHASE 2 — les lots correctifs (décidés par l'humain le 2026-08-08)
+
+Quatre décisions prises. Lots lancés en séquentiel, même régime que la nuit :
+run réel, preuve en base, rapport, commit scopé, aucun push.
+
+| # | Lot | Décision | Statut | Commit | Rapport |
+|---|---|---|---|---|---|
+| L1 | Locale : désarmer l'épingle **et** rendre le repli de crise bilingue | « Désarmer + repli bilingue » | EN COURS | — | — |
+| L2 | Sous plancher : **écrire le fait**, taire la réponse | « Écrire le fait, taire la réponse » | EN ATTENTE | — | — |
+| L3 | Retirer les **4 gardes mortes** `weekly_reviews.risk_band` | « Retirer les 4 gardes mortes » | EN ATTENTE | — | — |
+| L4 | **Plafonner le bloc foyer** (seul bloc sans plafond) | « Plafonner le bloc foyer » | EN ATTENTE | — | — |
+
+## ⚠️ Correction du diagnostic F1 — je m'étais trompé, et l'humain m'a repris
+
+Ce que j'avais écrit plus haut (« sept gardes armées sur un coffre vide », corroboré par
+« 368 occurrences, zéro insert/update ») était **mal étayé** :
+- mon grep ne regardait que la **même ligne** de code, or l'écriture passe par un objet `payload` —
+  il ne pouvait structurellement rien trouver. Ce n'était pas une corroboration.
+- la table `weekly_reviews` **existe et est activement écrite** par `week_review_io.ts:472` (le
+  chantier bilan hebdo). Simplement, son payload ne porte que `week_facts`,
+  `week_facts_computed_at`, `content_locale` — **jamais `risk_band`**.
+- les valeurs `watch` / `restriction_flag` / `on_track` visibles en base local sont des **fixtures de
+  QA**, semées par FF-021 pour pouvoir tester les gardes.
+
+**Le bon énoncé** : `risk_band` appartient à l'**ancienne** weekly review (celle qui portait aussi
+`student_narrative`, `coach_draft_reply`, `lapse_context`), retirée avec la surface coach 1:1. La
+table a survécu, le nouveau bilan la réutilise sans la remplir. Ce ne sont donc pas des « gardes à
+armer » : ce sont **quatre chemins vivants qui interrogent l'oracle d'un produit disparu**.
+
+La formulation de FF-021 suggérait de remplir le coffre ; c'était la mauvaise direction, et je l'ai
+amplifiée au lieu de la vérifier. **Décision humaine : retirer les 4 lectures mortes** (L3), en
+sachant que la protection *dans la durée* disparaît et que celle *du tour de conversation*
+(`__last_turn_risk_band`, écrite par `run.ts:613`, relue par `safety_band_io.ts`) reste intacte —
+elle, elle marche.
