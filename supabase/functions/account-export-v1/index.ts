@@ -380,6 +380,10 @@ const SCOPE = {
   studentWeekPlans:
     "id,week_start,generated_from,items,status,adopted_at,content_locale,created_at,updated_at",
   studentDailyCheckins: "id,local_date,overall,axis,source,created_at",
+  // FF-027 — la faim déclarée en conversation. `student_note` porte LES MOTS DE
+  // L'ÉLÈVE: c'est de la donnée personnelle, elle sort donc dans l'archive.
+  studentHungerReports:
+    "id,local_date,source,matched,student_note,content_locale,created_at",
   // Le repas généré porte le CONTEXTE DE VIE que l'élève a écrit (« mariage
   // mardi ») et le contenu de ses placards. C'est de la donnée personnelle au
   // sens plein, et elle sort avec le reste.
@@ -541,6 +545,7 @@ async function buildExportPayload(
     studentGoals,
     studentWeekPlans,
     studentDailyCheckins,
+    studentHungerReports,
     studentGeneratedMeals,
     studentMealDocuments,
     recurringMeals,
@@ -687,6 +692,14 @@ async function buildExportPayload(
       admin,
       "student_daily_checkins",
       SCOPE.studentDailyCheckins,
+      "user_id",
+      user.id,
+      keelUnavailable,
+    ),
+    fetchKeelRows(
+      admin,
+      "student_hunger_reports",
+      SCOPE.studentHungerReports,
       "user_id",
       user.id,
       keelUnavailable,
@@ -867,6 +880,10 @@ async function buildExportPayload(
         objectif: studentGoals,
         semaines: studentWeekPlans,
         points_du_soir: studentDailyCheckins,
+        // FF-027. Rangée AVEC les points du soir parce que c'est le MÊME
+        // signal par une autre porte: l'axe `hunger` du tap et la faim dite en
+        // passant. Les séparer dans l'archive ferait croire à deux choses.
+        faim_declaree: studentHungerReports,
       },
       // Séparé de `mon_plan.json`: un plan de semaine est un ENGAGEMENT que
       // l'élève adopte, un repas généré est un SERVICE rendu à la demande. Les

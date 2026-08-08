@@ -21,6 +21,13 @@ import { foodPreferencesForPrompt } from "../_shared/keel/food_preference_promot
 import { reconcileFoodPreferencesFor } from "../_shared/keel/food_preference_promotion_io.ts";
 import { dayTokenInZone, localDateInZone } from "../_shared/keel/local_date.ts";
 import {
+  countHungerDays,
+  type HungerWindowSignal,
+  hungerSignalProvenance,
+  satietyUserSuffix,
+} from "../_shared/keel/hunger_signal.ts";
+import { loadHungerDays } from "../_shared/keel/hunger_signal_io.ts";
+import {
   type MealWindowRequest,
   resolveRequestedWindow,
   windowDayOrder,
@@ -38,6 +45,7 @@ import {
   mealSessionsPayload,
   mealShoppingPayload,
   type PantryItem,
+  parseAwayDays,
   parseEatingRhythm,
   parseGeneratedMeal,
 } from "../_shared/keel/meal_generation.ts";
@@ -439,6 +447,14 @@ Deno.serve(async (req) => {
       (goalRow.practical_constraints as Record<string, unknown> | null)
         ?.eating_rhythm,
     );
+    // LES MOMENTS OÙ IL NE MANGE PAS ICI. Même `const` hissé que le rythme, et
+    // pour la même raison: la valeur passée au prompt et celle passée au
+    // parseur doivent être LA MÊME lecture, pas deux relectures à tenir
+    // d'accord.
+    const awayDays = parseAwayDays(
+      (goalRow.practical_constraints as Record<string, unknown> | null)
+        ?.away_days,
+    );
 
     // LUE UNE FOIS, servie deux fois: le prompt ANNONCE le plafond de temps,
     // le parseur le VÉRIFIE. Deux lectures du même jsonb finiraient par
@@ -447,6 +463,45 @@ Deno.serve(async (req) => {
     const capacity = readCookingCapacity(
       goalRow.practical_constraints as Record<string, unknown> | null,
     );
+
+    // ── FF-027 · LE SIGNAL DE FAIM DE LA FENÊTRE ──────────────────────────
+    //
+    // Le tap du soir « Rough → Hunger » et la faim déclarée en conversation
+    // font UN signal. Décompte DÉRIVÉ à la lecture, sur une fenêtre glissante:
+    // aucun compteur n'est entretenu, aucun trait n'est écrit (R4).
+    //
+    // Best-effort: un hoquet de lecture compose le repas sans le bloc, donc
+    // exactement comme avant cette fiche. Priver quelqu'un de son dîner parce
+    // qu'on n'a pas su lire sa faim serait la mauvaise moitié de l'arbitrage.
+    let hungerSignal: HungerWindowSignal = {
+      days: 0,
+      recurrent: false,
+      windowStart: todayDate,
+      windowEnd: todayDate,
+    };
+    try {
+      hungerSignal = countHungerDays(
+        await loadHungerDays(admin, { userId, todayLocalDate: todayDate }),
+        todayDate,
+      );
+    } catch (error) {
+      console.warn(`[${FN_NAME}] hunger signal unavailable`, error);
+    }
+    // ⚠️ GREFFÉ EN SUFFIXE, ET PAS EN PARAMÈTRE NOMMÉ DE `buildMealPrompt`.
+    // Même mécanique que `buildHouseholdPromptBlocks().userSuffix`, qui existe
+    // déjà pour la même raison. Le suffixe est `""` sans signal: l'appelant n'a
+    // aucune condition à écrire, donc aucune condition à se tromper.
+    const hungerSuffix = satietyUserSuffix(hungerSignal);
+    if (hungerSuffix) {
+      console.log(JSON.stringify({
+        tag: "keel.meal.satiety_priority",
+        user_id: userId,
+        // Journalisé ici, JAMAIS dans le prompt: ce qui entre dans un prompt
+        // finit par sortir dans un texte (fiche §9).
+        hunger_days: hungerSignal.days,
+        window: [hungerSignal.windowStart, hungerSignal.windowEnd],
+      }));
+    }
 
     const { systemPrompt, userMessage } = buildMealPrompt({
       doctrineBlock: doctrineBlockFor(doctrine),
@@ -473,6 +528,7 @@ Deno.serve(async (req) => {
       country,
       daysToFill,
       eatingRhythm,
+      awayDays,
       // CE QUE L'ÉLÈVE PEUT VRAIMENT FAIRE. Quatre entrées qui décidaient de
       // tout et que le moteur devinait: le jour de cuisine, le temps, le niveau
       // de recette, le budget. `cooking_time_min` et `budget_band` existaient
@@ -493,7 +549,12 @@ Deno.serve(async (req) => {
     });
 
     const result = await generateWithGemini(
-      systemPrompt, userMessage, 0.6, true, [], "auto",
+      // FF-027 — le bloc satiété EN QUEUE du message, donc au plus près de la
+      // demande: un modèle lit la contrainte la plus proche de la fin comme la
+      // plus contraignante (la raison est écrite dans
+      // `household_meal_generation.ts`, qui applique la même règle à ses
+      // règles de maison).
+      systemPrompt, userMessage + hungerSuffix, 0.6, true, [], "auto",
       { source: FN_NAME, requestId, userId },
     );
     if (typeof result !== "string") {
@@ -516,6 +577,10 @@ Deno.serve(async (req) => {
         // MÊME RAISON: le plafond du parseur doit être celui du prompt, et il
         // dérive du nombre de jours réellement demandés.
         daysToFill,
+        // ET LA MÊME ENCORE pour les absences: la consigne les interdit, le
+        // parseur les rejette. Une contrainte qui ne vit que dans le prompt
+        // n'est pas une garantie.
+        awayDays,
         // Le temps par session est un PLAFOND. Le prompt l'annonce, le parseur
         // le vérifie: mesuré 30 déclarées contre 55 produites.
         cookingTimeMin: capacity.cookingTimeMin,
@@ -584,6 +649,12 @@ Deno.serve(async (req) => {
             // aucune trace du motif. Le contrôle existait et personne ne
             // pouvait le lire — c'est-à-dire qu'il n'existait pas.
             issues: [...issues, ...meal.issues],
+            // FF-027 — la provenance de l'adaptation, archivée avec la
+            // composition. C'est ce qui rend « la faim persiste malgré deux
+            // adaptations » (§10) lisible sans qu'aucun compteur ne vive sur
+            // l'élève. Le décompte est archivé ici; il n'est pas entré dans le
+            // prompt.
+            ...hungerSignalProvenance(hungerSignal),
           },
         },
       },

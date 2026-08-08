@@ -26,6 +26,13 @@ import {
   loadStudentBody,
 } from "../_shared/keel/student_body_io.ts";
 import { localDateFor } from "../_shared/keel/reengagement_io.ts";
+import {
+  countHungerDays,
+  type HungerWindowSignal,
+  hungerSignalProvenance,
+  satietyPromptBlock,
+} from "../_shared/keel/hunger_signal.ts";
+import { loadHungerDays } from "../_shared/keel/hunger_signal_io.ts";
 import type { WeeklyAxis } from "../_shared/keel/weekly_flow.ts";
 import {
   buildWeekPlanPrompt,
@@ -312,6 +319,50 @@ Deno.serve(async (req) => {
       }, { status: 409 });
     }
 
+    // ── FF-027 · LE SIGNAL DE FAIM DE LA FENÊTRE ──────────────────────────
+    //
+    // C'EST LA RAISON D'ÊTRE DE LA FICHE: le tap du soir « Rough → Hunger »
+    // écrivait une ligne que personne ne lisait, et la semaine suivante était
+    // identique à celle qui affamait. Voici le lecteur.
+    //
+    // DEUX SOURCES, UN SIGNAL: l'axe du tap et la faim déclarée en
+    // conversation. Le décompte est DÉRIVÉ ici, à la lecture, sur une fenêtre
+    // glissante — jamais entretenu comme un compteur, jamais promu en trait
+    // (R4: « a souvent faim » serait faux le mois suivant).
+    //
+    // LA LECTURE EST BEST-EFFORT, comme les contraintes de sécurité plus haut
+    // et contrairement au corps: un hoquet compose la semaine sans le bloc,
+    // c'est-à-dire exactement comme avant cette fiche. Refuser de générer
+    // parce qu'on n'a pas pu lire la faim priverait l'élève de son plan pour
+    // une amélioration.
+    let hungerSignal: HungerWindowSignal = {
+      days: 0,
+      recurrent: false,
+      windowStart: todayLocal,
+      windowEnd: todayLocal,
+    };
+    try {
+      hungerSignal = countHungerDays(
+        await loadHungerDays(admin, { userId, todayLocalDate: todayLocal }),
+        todayLocal,
+      );
+    } catch (error) {
+      console.warn(`[${FN_NAME}] hunger signal unavailable`, error);
+    }
+    // Le bloc, ou `null`. Il n'existe aucune troisième valeur — voir
+    // `hunger_signal.ts` (R2: le chemin « moins de nourriture » n'existe pas).
+    const hungerSignalBlock = satietyPromptBlock(hungerSignal);
+    if (hungerSignalBlock) {
+      console.log(JSON.stringify({
+        tag: "keel.week_plan.satiety_priority",
+        user_id: userId,
+        // Le décompte est journalisé ICI et n'entre PAS dans le prompt: ce qui
+        // entre dans un prompt finit par sortir dans un texte (fiche §9).
+        hunger_days: hungerSignal.days,
+        window: [hungerSignal.windowStart, hungerSignal.windowEnd],
+      }));
+    }
+
     const goal = String(goalRow.goal ?? "health") as StudentGoal;
     const { systemPrompt, userMessage, allowedKeys, maxNutrition } = buildWeekPlanPrompt({
       principles,
@@ -356,6 +407,9 @@ Deno.serve(async (req) => {
       // `null` ici (lecture en panne) est explicite et voulu — voir le catch
       // ci-dessus, qui log et n'interrompt pas.
       safetyConstraints: constraints,
+      // FF-027. `null` quand la fenêtre ne porte pas de faim récurrente, et le
+      // prompt est alors mot pour mot celui d'avant cette fiche.
+      hungerSignalBlock,
     });
 
     const result = await generateWithGemini(
@@ -433,6 +487,15 @@ Deno.serve(async (req) => {
             waist_trend: trendOf(studentBody.waists, WAIST_NOISE_CM),
             max_nutrition: maxNutrition,
           },
+          // FF-027 — LA PROVENANCE DE L'ADAPTATION, archivée avec le plan.
+          //
+          // C'est ce qui permet à FF-028 de répondre à « la faim persiste-t-elle
+          // MALGRÉ deux adaptations ? » (§10) sans qu'aucun compteur ne vive sur
+          // l'élève. Un compteur aurait été le trait durable que R4 interdit;
+          // ici on compte des lignes de plan, qui s'effacent avec les plans.
+          //
+          // Le décompte est archivé, il n'est PAS entré dans le prompt.
+          ...hungerSignalProvenance(hungerSignal),
         },
         status: "draft",
         // `adopted_at` remis à NULL avec le statut, et pas laissé tel quel.

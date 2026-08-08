@@ -412,6 +412,23 @@ export function buildWeekPlanPrompt(args: {
    * `principles`, et `parseWeekPlan` rejette le reste.
    */
   coachNoteBlock: string | null;
+  /**
+   * FF-027 — LE BLOC SATIÉTÉ, ou `null` quand la fenêtre ne porte pas de faim
+   * récurrente. Produit par `satietyPromptBlock`.
+   *
+   * REQUIS, `T | null`, jamais `T?`, pour la raison exacte donnée sur
+   * `safetyConstraints` et `coachNoteBlock` au-dessus — et ici elle a un nom
+   * précis: la fiche entière existe parce qu'une donnée collectée n'avait aucun
+   * consommateur. Un paramètre optionnel serait un consommateur qu'un appelant
+   * oublie de brancher, c'est-à-dire le même défaut re-signé dans le fichier
+   * qui le répare.
+   *
+   * ⚠️ Ce paramètre ne peut porter QU'UN bloc de satiété. Il n'existe aucune
+   * valeur qui demanderait moins de nourriture: `satietyPromptBlock` rend `null`
+   * ou un littéral gelé, et rien d'autre (R2, prouvé par énumération dans
+   * `hunger_signal_test.ts`).
+   */
+  hungerSignalBlock: string | null;
 }): {
   systemPrompt: string;
   userMessage: string;
@@ -496,6 +513,20 @@ export function buildWeekPlanPrompt(args: {
     args.situation.context
       ? `what is going on for them THIS WEEK: ${args.situation.context}`
       : "nothing special going on this week.",
+    // ── FF-027 · LA PLACE A ÉTÉ DÉPLACÉE APRÈS UN RUN RÉEL ROUGE ───────────
+    //
+    // Le bloc était ICI, sous les contraintes pratiques. Mesuré le 2026-08-08:
+    // un élève portant « I do not eat pasta, rice, bread or potatoes » ET un
+    // signal de faim recevait « such as potatoes, brown rice… »; le même élève
+    // SANS signal, joué trois fois, ne recevait aucun aliment refusé — 3/3.
+    // Un modèle lit la consigne la plus proche de la fin comme la plus
+    // contraignante (la raison est écrite dans `household_meal_generation.ts`),
+    // et la satiété écrasait donc la préférence.
+    //
+    // Il passe AVANT les contraintes pratiques: les préférences de l'élève ont
+    // le dernier mot, et le bloc porte en plus sa propre subordination. Les
+    // deux, parce qu'une seule des deux serait une convention.
+    ...(args.hungerSignalBlock ? [args.hungerSignalBlock, ""] : []),
     `practical constraints: ${JSON.stringify(args.situation.practicalConstraints ?? {})}`,
     "",
     `week starting: ${args.weekStart} (Monday)`,

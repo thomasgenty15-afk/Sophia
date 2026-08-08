@@ -21,6 +21,13 @@ import { foodPreferencesForPrompt } from "../_shared/keel/food_preference_promot
 import { reconcileFoodPreferencesFor } from "../_shared/keel/food_preference_promotion_io.ts";
 import { dayTokenInZone, localDateInZone } from "../_shared/keel/local_date.ts";
 import {
+  countHungerDays,
+  type HungerWindowSignal,
+  hungerSignalProvenance,
+  satietyUserSuffix,
+} from "../_shared/keel/hunger_signal.ts";
+import { loadHungerDays } from "../_shared/keel/hunger_signal_io.ts";
+import {
   type MealWindowRequest,
   resolveRequestedWindow,
   windowDayOrder,
@@ -433,6 +440,41 @@ Deno.serve(async (req) => {
     const scope: MealScope = durationDays === 1 ? "day" : "several_days";
     const daysToFill = windowDayOrder(startsOn, durationDays);
 
+    // ── FF-027 · LE SIGNAL DE FAIM DE LA FENÊTRE ──────────────────────────
+    //
+    // LU SUR LE PROPRIÉTAIRE DU FOYER, comme le rythme, les absences et la
+    // capacité de cuisine juste au-dessus: c'est sa ligne `student_goals` qui
+    // gouverne la composition. La faim d'un autre membre n'a pas de chemin de
+    // collecte aujourd'hui — le tap du soir et le plancher de conversation sont
+    // tous deux individuels — et inventer une agrégation ici ferait grossir le
+    // dîner de quatre personnes sur le signal d'une seule, sans que personne
+    // puisse relire pourquoi.
+    //
+    // Best-effort: un hoquet compose comme avant cette fiche.
+    let hungerSignal: HungerWindowSignal = {
+      days: 0,
+      recurrent: false,
+      windowStart: todayDate,
+      windowEnd: todayDate,
+    };
+    try {
+      hungerSignal = countHungerDays(
+        await loadHungerDays(admin, { userId, todayLocalDate: todayDate }),
+        todayDate,
+      );
+    } catch (error) {
+      console.warn(`[${FN_NAME}] hunger signal unavailable`, error);
+    }
+    const hungerSuffix = satietyUserSuffix(hungerSignal);
+    if (hungerSuffix) {
+      console.log(JSON.stringify({
+        tag: "keel.household_meal.satiety_priority",
+        user_id: userId,
+        hunger_days: hungerSignal.days,
+        window: [hungerSignal.windowStart, hungerSignal.windowEnd],
+      }));
+    }
+
     const { systemPrompt, userMessage } = buildMealPrompt({
       doctrineBlock: doctrineBlockFor(doctrine),
       coachNoteBlock: coachNotePromptBlock(coachNote),
@@ -468,7 +510,11 @@ Deno.serve(async (req) => {
 
     const result = await generateWithGemini(
       systemPrompt + household.systemSuffix,
-      userMessage + household.userSuffix,
+      // FF-027 AVANT les règles de maison, et l'ordre est le sujet: le bloc de
+      // `household_meal_generation.ts` doit rester le DERNIER, parce que c'est
+      // lui qui doit survivre à une envie contradictoire. La satiété est une
+      // priorité de composition, pas une règle de maison.
+      userMessage + hungerSuffix + household.userSuffix,
       0.6,
       true,
       [],
@@ -599,6 +645,10 @@ Deno.serve(async (req) => {
               restriction_count: restrictions.length,
             },
             issues: [...issues, ...meal.issues, ...portionIssues],
+            // FF-027 — la provenance de l'adaptation, archivée avec la
+            // composition (voir `hungerSignalProvenance`). Le décompte est
+            // archivé ici; il n'est pas entré dans le prompt.
+            ...hungerSignalProvenance(hungerSignal),
           },
         },
       },

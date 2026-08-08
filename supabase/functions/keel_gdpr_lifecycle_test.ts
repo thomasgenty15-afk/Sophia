@@ -127,6 +127,15 @@ const PIVOT_TABLES = [
   { table: "student_goals", owner: "user_id", marker: "A13SEED-OBJECTIF" },
   { table: "student_week_plans", owner: "user_id", marker: "A13SEED-SEMAINE" },
   { table: "student_daily_checkins", owner: "user_id", marker: null },
+  // FF-027 — la faim déclarée en conversation. Elle porte LES MOTS DE L'ÉLÈVE,
+  // donc elle doit sortir dans l'archive et disparaître à la purge, comme le
+  // reste. Une table neuve que le lifecycle ne réclame pas est une cicatrice
+  // connue de ce dépôt.
+  {
+    table: "student_hunger_reports",
+    owner: "user_id",
+    marker: "A13SEED-FAIM",
+  },
   { table: "recurring_meals", owner: "user_id", marker: "A13SEED-REPAS" },
   { table: "student_facts", owner: "user_id", marker: "A13SEED-AVERSION" },
   // `student_cards`, `card_armings`, `card_wins`: droppées par 20260808070000
@@ -210,6 +219,14 @@ async function seedFullStudent(
     overall: "hard",
     axis: "hunger",
     source: "whatsapp_button",
+  });
+  await ins("student_hunger_reports", {
+    user_id: userId,
+    local_date: "2026-08-04",
+    source: "chat",
+    matched: "j ai eu faim",
+    student_note: "A13SEED-FAIM",
+    content_locale: "fr-FR",
   });
   await ins("recurring_meals", {
     user_id: userId,

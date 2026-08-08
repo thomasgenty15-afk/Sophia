@@ -283,6 +283,8 @@ import {
   type DisplayUnitSystem,
   detectDeclaredBodyMeasure,
 } from "../../_shared/keel/body_measure_floor.ts";
+import { detectHungerReport } from "../../_shared/keel/hunger_signal.ts";
+import { writeHungerReport } from "../../_shared/keel/hunger_signal_io.ts";
 import {
   assessBirthDate,
   type BirthDateVerdict,
@@ -4238,6 +4240,84 @@ export async function processMessage(
             detail:
               "la mesure annoncée n'a PAS été enregistrée; la ceinture ne la " +
               "verra pas. Le tour continue sans elle.",
+          });
+        }
+      }
+    }
+
+    // ── FF-027 · LE PLANCHER DE LA FAIM DÉCLARÉE ─────────────────────────────
+    //
+    // Le tap du soir attrape la faim de ceux qui tapent. Ceux qui l'écrivent en
+    // passant — « j'ai eu trop faim ces derniers jours » — n'étaient nulle part,
+    // et FF-027 §3 exige que les deux sources produisent LE MÊME signal.
+    //
+    // TROIS TRAITS QU'IL FAUT LIRE ENSEMBLE:
+    //
+    //  1. IL ÉCRIT LUI-MÊME, comme le plancher de mesure corporelle juste
+    //     au-dessus. Le fait ne va pas dans `protocol_events` (ce n'est pas un
+    //     repas) mais dans `student_hunger_reports`, où le décompte fenêtré le
+    //     lira. Il n'y a donc aucun `effect_type` à demander, et en inventer un
+    //     forkerait le schéma pour une écriture qui a déjà son chemin.
+    //
+    //  2. IL NE PRODUIT AUCUN TEXTE VISIBLE, et c'est la fiche, pas une
+    //     omission. §3: « pas de conversation sur la faim ». R5: sous plancher
+    //     de restriction, le signal s'enregistre, la satiété s'applique et RIEN
+    //     ne s'affiche — ce qui est vrai ici pour tout le monde, donc vrai sans
+    //     branche conditionnelle à oublier. Un accusé serait de surcroît un
+    //     accusé sur un fait dont l'élève n'a rien demandé.
+    //
+    //  3. IL N'EST PAS DANS `direct_effects`, DONC LA BANDE DE SÉCURITÉ NE
+    //     L'AVALE PAS. Sous `safety_band`, `direct_effects_to_run` est vidé et
+    //     une déclaration passée par le frame est PERDUE (défaut transverse T-7,
+    //     mesuré 3/3 sur FF-017). Écrire directement est ce qui rend R5
+    //     réalisable: la seule adaptation compatible avec le plancher est aussi
+    //     la seule que ce chemin sait produire.
+    //
+    // Il ne lit pas l'horloge: la date du fait est la journée LOCALE de l'élève,
+    // résolue par le runtime. Sans elle, on ne sait pas dans quelle fenêtre
+    // ranger le jour, et on préfère ne rien écrire à écrire au mauvais jour.
+    const declaredHunger = detectHungerReport(userMessage);
+    if (declaredHunger) {
+      const hungerLocalDate = keelTurn.local_date;
+      if (!hungerLocalDate) {
+        console.warn("[keel] hunger_signal_floor could not write", {
+          request_id: requestId,
+          reason: "missing_local_date",
+          detail:
+            "faim déclarée reconnue mais la journée locale de l'élève est " +
+            "inconnue: un jour de faim rangé au mauvais jour fausserait la " +
+            "fenêtre de récurrence.",
+        });
+      } else {
+        try {
+          const written = await writeHungerReport(supabase, {
+            userId,
+            localDate: hungerLocalDate,
+            matched: declaredHunger.matched,
+            studentNote: declaredHunger.studentNote,
+            contentLocale: keelTurn.content_locale,
+          });
+          console.warn("[keel] hunger_signal_floor raised", {
+            request_id: requestId,
+            gate: declaredHunger.gate,
+            matched: declaredHunger.matched,
+            local_date: hungerLocalDate,
+            outcome: written.outcome,
+            detail:
+              "faim déclarée en conversation, écrite comme un jour de faim. " +
+              "Elle compte comme un tap du soir à la prochaine composition. " +
+              "Aucune réponse n'en parle: FF-027 §3.",
+          });
+        } catch (error) {
+          // Le tour continue. Un élève privé de réponse parce que son jour de
+          // faim n'a pas pu s'écrire perdrait deux fois — mais l'incident est
+          // journalisé en `error`, pas en `warn`: le signal n'a pas atteint la
+          // base, donc la composition suivante ne le verra pas.
+          console.error("[keel] hunger_signal_floor WRITE FAILED", {
+            request_id: requestId,
+            gate: declaredHunger.gate,
+            local_date: hungerLocalDate,
+            error: error instanceof Error ? error.message : String(error),
           });
         }
       }

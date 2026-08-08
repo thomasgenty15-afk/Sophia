@@ -12,6 +12,7 @@
 //   * "un plan qui contredit la doctrine ne part pas"
 
 import { assert, assertEquals, assertThrows } from "jsr:@std/assert@1";
+import { satietyPromptBlock } from "./hunger_signal.ts";
 
 import {
   ALLOWED_ACTION_KINDS,
@@ -496,6 +497,7 @@ Deno.test("the prompt carries the convictions and forbids numbers", () => {
     coachNoteBlock: null,
     weekStart: "2026-08-03",
     safetyConstraints: null,
+    hungerSignalBlock: null,
   });
   assertEquals(allowedKeys.length, 3);
   assert(userMessage.includes("satiety_before_arithmetic"));
@@ -554,6 +556,7 @@ function promptWith(over: Record<string, unknown>): string {
     coachNoteBlock: null,
     weekStart: "2026-08-03",
     safetyConstraints: null,
+    hungerSignalBlock: null,
   }).userMessage;
 }
 
@@ -588,4 +591,52 @@ Deno.test("CONDITION DE DÉSARMEMENT: sans aspiration ni axe, la consigne le DIT
   const msg = promptWith({});
   assert(msg.includes("what they are after: not stated"));
   assert(msg.includes("no single axis singled out"));
+});
+
+// ---------------------------------------------------------------------------
+// FF-027 — LE BLOC SATIÉTÉ ARRIVE, ET SEULEMENT QUAND IL EXISTE
+// ---------------------------------------------------------------------------
+
+Deno.test("FF-027 — sans signal, le prompt ne dit RIEN de la faim", () => {
+  const msg = promptWith({});
+  assert(!msg.toLowerCase().includes("satiety priority"));
+  // Et surtout: pas d'en-tête vide, pas de « aucune faim rapportée ». Écrire
+  // l'absence ferait sortir l'état interne dans la bouche du produit.
+  assert(!msg.toLowerCase().includes("hunger"));
+});
+
+Deno.test("FF-027 — avec signal, le bloc est dans le prompt, après l'élève", () => {
+  const block = satietyPromptBlock({
+    days: 3,
+    recurrent: true,
+    windowStart: "2026-08-01",
+    windowEnd: "2026-08-07",
+  })!;
+  const msg = buildWeekPlanPrompt({
+    principles: PRINCIPLES,
+    situation: {
+      goal: "fat_loss",
+      situation: "canteen at midday",
+      context: null,
+      aspiration: null,
+      focusAxis: null,
+      practicalConstraints: {},
+      body: UNKNOWN_BODY,
+    },
+    doctrineBlock: "== MARC'S METHOD ==",
+    coachNoteBlock: null,
+    weekStart: "2026-08-03",
+    safetyConstraints: null,
+    hungerSignalBlock: block,
+  }).userMessage;
+  assert(msg.includes("== SATIETY PRIORITY =="));
+  // L'ORDRE DIT LE RANG, et il a été corrigé sur un run réel rouge: le bloc
+  // suit ce que l'élève a dit de lui-même, mais il PRÉCÈDE ses contraintes
+  // pratiques — un modèle lit la consigne la plus proche de la fin comme la
+  // plus contraignante, et la satiété écrasait une préférence alimentaire.
+  assert(msg.indexOf("their situation") < msg.indexOf("== SATIETY PRIORITY =="));
+  assert(msg.indexOf("== SATIETY PRIORITY ==") < msg.indexOf("practical constraints:"));
+  assert(msg.indexOf("== SATIETY PRIORITY ==") < msg.indexOf("week starting:"));
+  // Et le décompte n'a PAS voyagé jusqu'au prompt.
+  assert(!msg.includes("3 of the last"));
 });
