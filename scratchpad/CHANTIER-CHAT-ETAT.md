@@ -909,3 +909,40 @@ du **refus allergène**) · le patron « composé localisé / repli anglais » r
 anglophone et le réveil la rend **inopérante** · ≈ 40 sites sans axe de langue inventoriés.
 **T-20** : mécanisme inchangé, atténué sur sa marge mais **rendu plus discret sur son cœur** —
 des numéros français dans une phrase française se relisent comme cohérents.
+
+## L2 — TERMINÉ (`45a42e90`→`7cec2f68`, 4 commits) · rapport `RAPPORT-L2-PLANCHER.md`
+
+**L'inventaire des 5 chemins, qui n'avait jamais été fait :**
+- **2 avalaient l'effet** : déclaration de repas + hors-plan (même effet `log_protocol_event`) ;
+- **2 l'écrivaient déjà** : poids (FF-008) et faim (FF-027) — parce qu'ils écrivent **hors**
+  `direct_effects`. C'est pour ça que FF-008 « faisait déjà bien » : par un autre chemin, pas par
+  une meilleure règle ;
+- **1 faisait l'INVERSE** : la photo écrivait le fait **mais livrait son accusé avec une
+  sollicitation en pleine crise** — et le chemin photo **ne lisait le plancher de restriction nulle
+  part**. Trouvé par L2, absent de tous les diagnostics précédents.
+
+**Un second verrou, non vu au départ** : ouvrir la route ne suffisait pas — `safetyBandBlocksEffect`
+(`direct_effect_gate.ts`) refusait encore dès `medium`. Même forme que le no-op de L1 : le geste
+évident aurait laissé le défaut en place en donnant l'impression de l'avoir corrigé.
+
+**La preuve du silence est structurelle, pas cosmétique** : le runtime silencieux ne rejoint jamais
+`turnFrame.direct_effect_lane` — donc ni le prompt du skill clinique, ni celui de la crise, ni le
+contrat de confirmation, ni les ceintures de rendu — et son `content` est vide.
+Mesuré `fuites=[]` et `demandes_budget=0` sur **18 tours sous plancher** ; témoin hors plancher
+inchangé (`demandes=1`, accusé normal).
+
+**Le test qui faisait le lot passe de 0/6 à 18/18** : crise + déclaration dans le même message →
+`owner=safety`, `protocol_events=2`, réponse de crise **sans un mot du repas**.
+Run réel **77 GREEN / 0 RED** (FR+EN, 3 rejeux, élève neuf par cas), l'**avant** prouvé par
+`git stash` scopé (A 2 RED, D 2 RED, G 4 RED). 13 tests neufs, balayage 2440/0.
+
+**Limite énoncée par l'agent lui-même** : ses élèves n'avaient pas de doctrine publiée, donc le
+**composeur** du récap du soir n'a pas tourné — il prouve que le **repli** ne félicite pas, pas que
+le composeur ne félicite pas.
+
+**REDs ouverts** : ① « 0 meals logged today » sur une journée à un hors-plan sans photo — **prouvé
+antérieur par `git blame`** (`7aa9d683`, `e4d1e71e`) ; ② l'allergie est exemptée sous la crise mais
+**avalée sous le plancher de restriction** (asymétrie lue dans le code, non mesurée) ; ③ routeur et
+gate se contredisent sur `distress_support` ; ④ le **crédit** de la photo reste non gaté.
+
+**Commande** : `supabase functions deploy sophia-brain meal-photo-upload-v1` — aucune migration.
