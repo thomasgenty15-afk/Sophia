@@ -424,7 +424,7 @@ export function parseDailyPractices(raw: unknown): ParsedDailyPractices {
 /**
  * Les pratiques qui peuvent atteindre CET élève ce soir.
  *
- * TROIS FILTRES, dans cet ordre, et chacun porte une règle:
+ * QUATRE FILTRES, dans cet ordre, et chacun porte une règle:
  *
  *   1. le STATUT (R7)     — `needs_review` et `blocked` ne partent pas. Ce
  *                           filtre est ici plutôt que dans la sélection pour
@@ -435,20 +435,38 @@ export function parseDailyPractices(raw: unknown): ParsedDailyPractices {
  *                           utilise déjà. Pas une seconde: FF-001 exige la même
  *                           sémantique, et deux implémentations divergeraient.
  *   3. `minor_safe` (R5)  — registre éducatif, jamais correctif sur le corps.
+ *   4. le PLANCHER (FF-029 §7) — voir ci-dessous.
  *
- * `goal` et `isMinor` sont REQUIS. Un `isMinor` optionnel valant `false` par
- * défaut serait une garde désarmée par oubli — la classe de défaut la plus
- * fréquente de ce dépôt (`safetyBand: null`, documenté dans `daily_pulse.ts`).
+ * ── LE PLANCHER DE RESTRICTION FAIT TAIRE LES PRATIQUES CHIFFRÉES ─────────
+ * FF-029 le dit à deux endroits — §3: « sous plancher de restriction, les
+ * pratiques chiffrées se taisent »; §7: « les autres suivent la
+ * classification ». FF-001 R4 était plus étroit (« plus aucune QUESTION, le
+ * rappel survit) et le code ne portait que ça: un élève sous plancher recevait
+ * « pense à tes 4 verres » — une cible d'observance chiffrée, c'est-à-dire
+ * exactement la famille que `SUPPRESSED_STUDENT_SURFACES` suspend, servie sous
+ * la forme la plus anodine possible.
+ *
+ * Ce n'est PAS un refus sur la méthode du coach (R8): la pratique n'est ni
+ * bloquée ni corrigée, elle se tait pour CET élève-là, le temps du plancher,
+ * exactement comme une croyance hors portée se tait pour un autre objectif. Les
+ * pratiques non chiffrées, elles, continuent de passer — en rappel (R4).
+ *
+ * `goal`, `isMinor` et `restrictionFlag` sont REQUIS. Un paramètre de garde
+ * optionnel valant `false` par défaut est une garde désarmée par oubli — la
+ * classe de défaut la plus fréquente de ce dépôt (`safetyBand: null`, documenté
+ * dans `daily_pulse.ts`).
  */
 export function practicesFor(
   practices: readonly DailyPractice[],
   goal: GoalToken | null,
   isMinor: boolean,
+  restrictionFlag: boolean,
 ): readonly DailyPractice[] {
   return practices.filter((p) =>
     SHIPPABLE_STATUSES.includes(p.status) &&
     goalScopeApplies(p.goalScope, goal) &&
-    (!isMinor || p.minorSafe)
+    (!isMinor || p.minorSafe) &&
+    (!restrictionFlag || !p.quantified)
   );
 }
 

@@ -1,0 +1,138 @@
+horloge simulée soir 0 : 2026-08-08T10:24:02.675Z (réelle 2026-08-08T10:21:02.681Z)
+fuseau « il est 20h30 chez lui » : Etc/GMT-10
+dates locales : 2026-08-08 2026-08-09 2026-08-10 2026-08-11 2026-08-12 2026-08-13 2026-08-14
+
+════════════════════════════════════════════════════════════════════════════
+▌ A · EASY — coach avec 3 pratiques, 7 soirs consécutifs
+════════════════════════════════════════════════════════════════════════════
+coach maison : 00000000-0000-4000-8000-00000000d15c (Sophia)
+
+soir 0 (2026-08-08) → sent=4 asked=4 practice_modes={"remind":4} body_sources={"composed":4} fallbacks={}
+  Alice (coach humain)     msgs=1 mode=remind key=eddbbe2a ask=true src=composed
+      « Alice ticked off Chicken and rice. Drink water across the day.
+
+How was today? »
+  Bob (B2C maison)         msgs=1 mode=remind key=0f29e57c ask=true src=composed
+      « Bob, you ticked off Chicken and rice today. Keeping meal times roughly steady from one day to the next is what makes eating stop being a decision.
+
+How was today? »
+  Chloe (mineure)          msgs=1 mode=remind key=534fb1ad ask=true src=composed
+      « Chloe ticked off Chicken and rice from the plan today. Glasses of water across the day.
+
+How was today? »
+  Dana (plancher TCA)      msgs=1 mode=remind key=5b905f8f ask=true src=composed
+      « Dana ticked off Chicken and rice. Walk after dinner when you can.
+
+How was today? »
+
+soir 1 (2026-08-09) → sent=4 asked=0 practice_modes={"remind":1,"ask":3} body_sources={"composed":4} fallbacks={}
+  Alice (coach humain)     msgs=1 mode=ask key=0f29e57c ask=false src=composed
+      « Alice ticked off Chicken and rice today. Do you want to keep meal times roughly the same each day? »
+  Bob (B2C maison)         msgs=1 mode=ask key=eb4db292 ask=false src=composed
+      « Bob, you ticked off Chicken and rice. Drink water across the day, not all at once — how does that fit into your evening? »
+  Chloe (mineure)          msgs=1 mode=ask key=5b905f8f ask=false src=composed
+      « Chloe, you ticked off Chicken and rice. Walk after dinner when you can? »
+  Dana (plancher TCA)      msgs=1 mode=remind key=5b905f8f ask=false src=composed
+      « Dana ticked off Chicken and rice. Walk after dinner when you can. »
+
+soir 2 (2026-08-10) → sent=4 asked=0 practice_modes={"remind":1,"ask":3} body_sources={"composed":4} fallbacks={}
+  Alice (coach humain)     msgs=1 mode=ask key=eddbbe2a ask=false src=composed
+      « Alice, you ticked off Chicken and rice. How was drinking water across the day? »
+  Bob (B2C maison)         msgs=1 mode=ask key=3bed4dc5 ask=false src=composed
+      « Chicken and rice was the dish you ticked off, and there were no meal photos or off-plan meals reported. Move a little every day, even when it is only a walk? »
+  Chloe (mineure)          msgs=1 mode=ask key=534fb1ad ask=false src=composed
+      « Today there was one plan dish ticked off: Chicken and rice. How were the glasses of water across the day? »
+  Dana (plancher TCA)      msgs=1 mode=remind key=5b905f8f ask=false src=composed
+      « Dana ticked off Chicken and rice. Walk after dinner when you can. »
+
+soir 3 (2026-08-11) → sent=4 asked=4 practice_modes={"remind":4} body_sources={"composed":4} fallbacks={}
+  Alice (coach humain)     msgs=1 mode=remind key=3bed4dc5 ask=true src=composed
+      « Alice ticked off Chicken and rice. A walk counts.
+
+How was today? »
+  Bob (B2C maison)         msgs=1 mode=remind key=eb4db292 ask=true src=composed
+      « Bob ticked off Chicken and rice from the plan, and there was no plan dish set for today. Drink water across the day, not all at once.
+
+How was today? »
+  Chloe (mineure)          msgs=1 mode=remind key=5b905f8f ask=true src=composed
+      « Chloe ticked off Chicken and rice. Walk after dinner when you can.
+
+How was today? »
+  Dana (plancher TCA)      msgs=1 mode=remind key=5b905f8f ask=true src=composed
+      « Dana ticked off Chicken and rice. Walk after dinner when you can.
+
+How was today? »
+
+soir 4 (2026-08-12) → sent=4 asked=0 practice_modes={"remind":1,"ask":3} body_sources={"composed":4} fallbacks={}
+  Alice (coach humain)     msgs=1 mode=ask key=eddbbe2a ask=false src=composed
+      « Alice ticked off Chicken and rice from the plan, and there were no meal photos or off-plan meals sent today. How did drink water across the day feel? »
+  Bob (B2C maison)         msgs=1 mode=ask key=0f29e57c ask=false src=composed
+      « Bob, you ticked off Chicken and rice. How are you finding keeping meal times roughly steady from one day to the next? »
+  Chloe (mineure)          msgs=1 mode=ask key=534fb1ad ask=false src=composed
+      « Chloe, you ticked off Chicken and rice from the plan, and there were no meal photos or off-plan meals today. How were the glasses of water across the day? »
+  Dana (plancher TCA)      msgs=1 mode=remind key=5b905f8f ask=false src=composed
+      « Dana ticked off Chicken and rice. Walk after dinner when you can. »
+
+soir 5 (2026-08-13) → sent=4 asked=0 practice_modes={"remind":1,"ask":3} body_sources={"composed":4} fallbacks={}
+  Alice (coach humain)     msgs=1 mode=ask key=0f29e57c ask=false src=composed
+      « Alice ticked off Chicken and rice today. How do you want to keep meal times roughly the same each day? »
+  Bob (B2C maison)         msgs=1 mode=ask key=eb4db292 ask=false src=composed
+      « Bob, you ticked off Chicken and rice today, and no meal photos or off-plan meals were sent. Drink water across the day, not all at once — how does that look for you? »
+  Chloe (mineure)          msgs=1 mode=ask key=5b905f8f ask=false src=composed
+      « Chloe, you ticked off Chicken and rice today. Would you like a short walk after dinner? »
+  Dana (plancher TCA)      msgs=1 mode=remind key=5b905f8f ask=false src=composed
+      « Chicken and rice was ticked off today. Walk after dinner when you can. »
+
+soir 6 (2026-08-14) → sent=4 asked=0 practice_modes={"remind":1,"ask":3} body_sources={"composed":4} fallbacks={}
+  Alice (coach humain)     msgs=1 mode=ask key=eddbbe2a ask=false src=composed
+      « Alice ticked off Chicken and rice today. How was drinking water across the day? »
+  Bob (B2C maison)         msgs=1 mode=ask key=3bed4dc5 ask=false src=composed
+      « You ticked off Chicken and rice, and you sent no meal photos or off-plan meals today. Move a little every day, even when it is only a walk? »
+  Chloe (mineure)          msgs=1 mode=ask key=534fb1ad ask=false src=composed
+      « Chloe, you ticked off Chicken and rice. How were your glasses of water across the day? »
+  Dana (plancher TCA)      msgs=1 mode=remind key=5b905f8f ask=false src=composed
+      « Dana ticked off Chicken and rice from the plan. Walk after dinner when you can. »
+
+════════════════════════════════════════════════════════════════════════════
+▌ VERDICTS
+════════════════════════════════════════════════════════════════════════════
+  ✅ Alice (coach humain): JAMAIS deux messages le même soir
+      max messages/soir = 1 (outbound_messages, purpose=keel_daily_pulse)
+  ✅ Bob (B2C maison): JAMAIS deux messages le même soir
+      max messages/soir = 1 (outbound_messages, purpose=keel_daily_pulse)
+  ✅ Chloe (mineure): JAMAIS deux messages le même soir
+      max messages/soir = 1 (outbound_messages, purpose=keel_daily_pulse)
+  ✅ Dana (plancher TCA): JAMAIS deux messages le même soir
+      max messages/soir = 1 (outbound_messages, purpose=keel_daily_pulse)
+  ✅ Alice: chaque soir porte au plus UNE pratique
+      modes = ["remind","ask","ask","remind","ask","ask","ask"]
+  ✅ R3: une question de pratique et la question du pulse ne coexistent JAMAIS
+      soirs en ask = 5, collisions = 0
+  ✅ jamais plus de questions que la bulle n'en autorise
+      0 dépassement
+  ✅ R6: la rotation ne piège pas l'élève sur une seule pratique
+      3 pratiques distinctes sur 7 soirs: eddbbe2a,0f29e57c,3bed4dc5
+  ✅ MEDIUM: un élève B2C sans coach humain reçoit les pratiques MAISON
+      7/7 soirs avec pratique, clés 0f29e57c,eb4db292,3bed4dc5
+  ✅ la cadence `pulse_asked` tient: la question ne part pas tous les soirs
+      2 questions du pulse sur 7 messages
+  ✅ HARD: « pèse-toi chaque matin » n'atteint JAMAIS l'élève
+      stocké="active" · fuite dans les bulles = false
+  ✅ HARD: la mineure ne lit AUCUN chiffre
+      7 bulles, 0 chiffre
+      pratiques servies à la mineure : 534fb1ad,5b905f8f
+  ✅ R4: sous plancher, AUCUNE question de pratique
+      flag=true, soirs en ask=0
+  ✅ FF-029 §7: sous plancher, la pratique CHIFFRÉE se tait
+      aucune bulle ne porte le chiffre
+  ✅ T4: la question de pratique est INSCRITE au budget partagé
+      15 lignes ask_kind=practice_question dans meal_precision_questions
+
+════════════════════════════════════════════════════════════════════════════
+▌ NETTOYAGE
+════════════════════════════════════════════════════════════════════════════
+comptes nettoyés : 6
+
+════════════════════════════════════════════════════════════════════════════
+PASS 15 · FAIL 0
+════════════════════════════════════════════════════════════════════════════

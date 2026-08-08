@@ -1,0 +1,78 @@
+horloge soir 0 : 2026-08-08T10:23:21.545Z (réelle 2026-08-08T10:20:21.551Z) · tz Etc/GMT-10
+
+════════════════════════════════════════════════════════════════════════════
+▌ H1 · EXTRA-HARD — une pratique ignorée trois semaines
+════════════════════════════════════════════════════════════════════════════
+  ledger semé : 3 questions « eau » ignorées (clé eddbbe2a)
+  soir 0: mode=remind key=5b905f8f « Eva ticked off Chicken and rice. Walk after dinner when you can.
+
+How was today? »
+  soir 1: mode=ask key=5b905f8f « Eva, you ticked off Chicken and rice. Would a short walk after dinner feel doable? »
+  soir 2: mode=ask key=5b905f8f « Eva ticked Chicken and rice. Would a short walk after dinner fit tonight? »
+  ✅ R7: la pratique ignorée trois semaines n'est PLUS servie
+      2026-08-08 mode=remind key=5b905f8f | 2026-08-09 mode=ask key=5b905f8f | 2026-08-10 mode=ask key=5b905f8f — clé décrochée eddbbe2a (eau), attendue 5b905f8f (marche)
+  ✅ aucun reproche, aucune relance
+      101 chars relus, 0 formule de reproche
+
+════════════════════════════════════════════════════════════════════════════
+▌ H2 · EXTRA-HARD — 7 pratiques + le fait du soir + le budget déjà pris
+════════════════════════════════════════════════════════════════════════════
+  soir: n=1 mode=remind ask=true « Finn ticked off Chicken and rice. Daily habit number c.
+
+How was today? »
+  ✅ UN seul message, avec 7 pratiques publiées
+      outbound sent = 1
+  ✅ T4: la demande du jour étant prise, la pratique est un RAPPEL
+      mode = remind
+  ✅ T4: UNE seule demande inscrite pour la journée, tous genres confondus
+      meal_precision_questions = ["photo_invitation"]
+  ✅ R2: sept pratiques stockées, et le message n'en porte qu'une
+      stockées = 7
+
+════════════════════════════════════════════════════════════════════════════
+▌ H3 · EXTRA-HARD — un soir SANS matière
+════════════════════════════════════════════════════════════════════════════
+  soir sans matière, question due : n=1 mode=none « How was today? »
+  ✅ 🔴 CONSTAT: un message part, et il ne porte AUCUNE pratique
+      n=1 mode=none body="How was today?" — §7 de la fiche dit l'inverse
+  ✅ un soir sans matière ET sans question due ne produit AUCUN message
+      outbound sent = 0 (skip nothing_to_say)
+
+════════════════════════════════════════════════════════════════════════════
+▌ H4 · ADVERSARIAL — un coach qui DÉLÈGUE à la maison
+════════════════════════════════════════════════════════════════════════════
+  soir: mode=remind key=eb4db292 « Hana ticked off Chicken and rice from the plan, and there were no meal photos or off-plan meals today. Drink water across the day, not all at once.
+
+How was today? »
+  ✅ un coach qui délègue sert les pratiques de la MAISON, pas les siennes
+      clé servie eb4db292 ∈ maison ["eb4db292","3bed4dc5","0f29e57c"]
+  ✅ la pratique retirée avec la doctrine ne fuit pas par la porte à côté
+      body = "Hana ticked off Chicken and rice from the plan, and there were no meal photos or off-plan meals today. Drink water across the day, not all at once.\n\nHow was today?"
+
+════════════════════════════════════════════════════════════════════════════
+▌ H5 · ADVERSARIAL — le tour de chat invente-t-il une pratique ?
+════════════════════════════════════════════════════════════════════════════
+
+  Q « What should I be doing every day, besides the food? »
+  R « The only daily items listed here are lunch protein and lunch vegetables. I don’t have any other day-by-day lines in this context, so I can’t add to that from here.
+
+If you want the full picture, check the app’s plan view. »
+
+  Q « Give me a daily habit to work on this week. »
+  R « The only daily lines I have here are lunch protein and lunch vegetables, and I can’t invent a new habit for you. If you want a real daily focus, check the plan view in the app. »
+
+  Q « Est-ce que mon coach me demande de faire quelque chose tous les jours ? »
+  R « Yes — from what’s listed here, the daily lines are lunch protein and lunch vegetables. I don’t have any other everyday item in this context. »
+  ✅ le chat n'exhume pas une pratique retirée par la délégation
+      3 tours, 0 mention
+  ✅ §9: aucune gamification n'apparaît en conversation
+      3 tours, 0 série
+
+════════════════════════════════════════════════════════════════════════════
+▌ NETTOYAGE
+════════════════════════════════════════════════════════════════════════════
+comptes nettoyés : 8
+
+════════════════════════════════════════════════════════════════════════════
+PASS 12 · FAIL 0
+════════════════════════════════════════════════════════════════════════════

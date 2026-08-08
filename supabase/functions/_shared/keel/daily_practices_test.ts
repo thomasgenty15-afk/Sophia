@@ -199,8 +199,8 @@ Deno.test("une portée illisible n'atteint PERSONNE, jamais tout le monde", () =
   // restreindre, on ne sait pas à quoi, et « globale » serait la fuite exacte
   // que la portée existe pour fermer.
   const { practices } = parseDailyPractices([row({ goal_scope: { fat_loss: true } })]);
-  assertEquals(practicesFor(practices, "fat_loss", false).length, 0);
-  assertEquals(practicesFor(practices, null, false).length, 0);
+  assertEquals(practicesFor(practices, "fat_loss", false, false).length, 0);
+  assertEquals(practicesFor(practices, null, false, false).length, 0);
 });
 
 // ---------------------------------------------------------------------------
@@ -215,17 +215,17 @@ Deno.test("R7: needs_review et blocked ne sont jamais servis", () => {
     practice({ label: "remind only", status: "remind_only" }),
   ];
   assertEquals(
-    practicesFor(list, null, false).map((p) => p.label),
+    practicesFor(list, null, false, false).map((p) => p.label),
     ["ok", "remind only"],
   );
 });
 
 Deno.test("une pratique de portée fat_loss n'atteint pas un muscle_gain", () => {
   const list = [practice({ label: "cut", goalScope: ["fat_loss"] })];
-  assertEquals(practicesFor(list, "muscle_gain", false).length, 0);
-  assertEquals(practicesFor(list, "fat_loss", false).length, 1);
+  assertEquals(practicesFor(list, "muscle_gain", false, false).length, 0);
+  assertEquals(practicesFor(list, "fat_loss", false, false).length, 1);
   // Un élève sans objectif déclaré n'est pas un élève qui a tous les objectifs.
-  assertEquals(practicesFor(list, null, false).length, 0);
+  assertEquals(practicesFor(list, null, false, false).length, 0);
 });
 
 Deno.test("R5: un mineur ne reçoit que ce qui est marqué minor_safe", () => {
@@ -233,8 +233,8 @@ Deno.test("R5: un mineur ne reçoit que ce qui est marqué minor_safe", () => {
     practice({ label: "safe", minorSafe: true }),
     practice({ label: "not safe", minorSafe: false }),
   ];
-  assertEquals(practicesFor(list, null, true).map((p) => p.label), ["safe"]);
-  assertEquals(practicesFor(list, null, false).length, 2);
+  assertEquals(practicesFor(list, null, true, false).map((p) => p.label), ["safe"]);
+  assertEquals(practicesFor(list, null, false, false).length, 2);
 });
 
 // ---------------------------------------------------------------------------
@@ -523,4 +523,31 @@ Deno.test("practiceKey est stable, insensible à la casse et aux accents", () =>
   // phrase d'avant, et remettre le compteur à zéro est la bonne réponse.
   assert(practiceKey("Drink water") !== practiceKey("Drink more water"));
   assertThrows(() => practiceKey("   "));
+});
+
+Deno.test("FF-029 §7: sous plancher de restriction, les pratiques CHIFFRÉES se taisent", () => {
+  // Le défaut fermé: R4 ne coupait que la QUESTION. Un élève sous plancher
+  // recevait donc « pense à tes 4 verres » en rappel — une cible d'observance
+  // chiffrée, c'est-à-dire la famille exacte que `SUPPRESSED_STUDENT_SURFACES`
+  // suspend, servie sous la forme la plus anodine possible.
+  const list = [
+    practice({ label: "4 glasses of water", quantified: true, target: 4, unit: "glasses" }),
+    practice({ label: "Walk when you can", quantified: false, target: null, unit: null }),
+  ];
+  assertEquals(
+    practicesFor(list, null, false, true).map((p) => p.label),
+    ["Walk when you can"],
+  );
+  // Hors plancher, les deux passent: la garde porte sa condition de désarmement.
+  assertEquals(practicesFor(list, null, false, false).length, 2);
+});
+
+Deno.test("R8: le plancher fait TAIRE, il ne BLOQUE pas — la pratique du coach survit", () => {
+  // La distinction est produit, pas cosmétique: `blocked` est un verdict que le
+  // coach doit lire et corriger; se taire pour UN élève le temps d'un plancher
+  // ne dit rien de sa méthode, exactement comme une croyance hors portée.
+  const quantified = practice({ quantified: true, target: 4, unit: "glasses" });
+  assertEquals(quantified.status, "active");
+  assertEquals(practicesFor([quantified], null, false, true).length, 0);
+  assertEquals(practicesFor([quantified], null, false, false).length, 1);
 });

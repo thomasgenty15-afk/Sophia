@@ -487,3 +487,49 @@ Deno.test("le bloc de la pratique entre dans le prompt, et la règle de question
   assert(prompt.indexOf(p.block) > prompt.indexOf("WHAT YOU KNOW"), "la pratique passe après les faits");
   assert(prompt.indexOf(p.block) < prompt.indexOf("THE COACH'S METHOD"), "la pratique passe avant la doctrine");
 });
+
+// ---------------------------------------------------------------------------
+// FF-029 — REVUE ADVERSARIALE: CE QUE LA CEINTURE NE VOIT PAS, ET LE STREAK
+// ---------------------------------------------------------------------------
+
+Deno.test("🔴 ADVERSARIAL: un chiffre INVENTÉ chez un mineur n'est PAS retenu", () => {
+  // HYPOTHÈSE ÉCRITE AVANT LE TEST: `minor_quantity` n'interdit QUE le `target`
+  // de la pratique. Un modèle qui écrirait « eight glasses » là où le coach a
+  // écrit « 4 » sortirait un chiffre que RIEN ne justifie — et « glasses »
+  // n'étant pas un nom comptable d'`allowedNumbers`, la seconde ceinture ne
+  // regarde pas non plus.
+  //
+  // MESURÉ: l'hypothèse est VRAIE. Ce test PINNE le trou plutôt que de le
+  // cacher — il échouera le jour où quelqu'un le referme, ce qui est le signal
+  // voulu. Ce qui le rend supportable aujourd'hui: le prompt du mineur ne
+  // contient AUCUN chiffre (`redactQuantities` retire le label ET le brief), et
+  // le run réel sur sept soirs n'a produit aucun chiffre inventé. Ce n'est pas
+  // une garde, c'est une absence d'occasion.
+  const f = facts();
+  const minor = injection({ numbers: [], forbiddenNumbers: [4] });
+  const invented = acceptComposedRecap(
+    "Yoghurt ticked off. Water across the day — eight glasses.",
+    f,
+    minor,
+  );
+  assertEquals(invented.ok, true, "trou connu: seul le target est interdit");
+});
+
+Deno.test("la série et le score ne peuvent pas entrer dans le message du soir", () => {
+  // §9 de FF-029, « la gamification rampante »: le premier « 5 jours de suite »
+  // réintroduit `streak_display`, qui est une surface SUPPRIMÉE. Deux ceintures
+  // se relaient ici, et aucune n'est une consigne de prompt.
+  const f = facts();
+  const p = injection();
+  for (
+    const text of [
+      // `invented_number`: 5 n'est aucun des faits du jour.
+      "Yoghurt ticked off. That is 5 days in a row on the water.",
+      // `qualifies_the_day`: le verdict, quelle que soit la formulation.
+      "Yoghurt ticked off. Great job on the water this week.",
+      "Yaourt coché. Bien joué, continue comme ça.",
+    ]
+  ) {
+    assertEquals(acceptComposedRecap(text, f, p).ok, false, text);
+  }
+});

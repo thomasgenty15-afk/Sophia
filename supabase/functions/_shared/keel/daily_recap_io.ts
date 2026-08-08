@@ -305,6 +305,7 @@ export async function composeRecapBody(
       loaded.doctrine?.dailyPractices ?? [],
       loaded.goal,
       args.practiceContext.isMinor,
+      args.practiceContext.restrictionFlag,
     );
 
     // ── FF-029 R7 — LA ROTATION PASSE À CÔTÉ DE CE QUI NE PORTE PLUS ──────
