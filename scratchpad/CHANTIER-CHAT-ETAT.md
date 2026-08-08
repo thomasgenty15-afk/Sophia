@@ -37,6 +37,21 @@ Autorité produit : `docs/fonctionnalites/conversation/` (fiches + README règle
 
 Statuts : EN ATTENTE · EN COURS · TERMINÉ · À COMMITER · ÉCHOUÉ · SAUTÉ
 
+### Bilan de la nuit
+**15 fonctionnalités sur 15 + la passe transverse. Zéro ÉCHOUÉ, zéro SAUTÉ, zéro À COMMITER.**
+39 commits sur `ff-001-quotidien-du-coach`, **rien de poussé**, 16 rapports.
+Les fichiers de l'autre chantier n'ont **jamais** été modifiés ; il a continué à commiter en
+parallèle sans conflit.
+
+**Ce que le chantier a réellement appris, en trois lignes :**
+1. **Le presque-fini domine le pas-commencé.** Sur 15 fiches, **8 étaient déjà « livrées »** — et
+   presque toutes étaient fausses en run réel (0 ligne en base, fixture qui ment, garde qui ne mord
+   que dans une langue). Les blocs annonçaient l'inverse.
+2. **Le motif structurel** : *le déterministe décide, la couche qui parle ne le sait pas et n'est pas
+   contrainte* (T-1, T-6, T-12, T-16, T-22). Six fiches ont buté dessus indépendamment.
+3. **Le pire défaut n'était dans aucune fiche** : F1, sept gardes de sécurité armées sur une colonne
+   que rien n'écrit. Seule une revue transverse pouvait le voir.
+
 ## Commandes pour l'humain (à exécuter au réveil)
 
 > ### 🛑 BLOCAGE À TRAITER AVANT LE PREMIER `supabase db push`
@@ -82,9 +97,41 @@ supabase functions deploy generate-household-meal-v1 trigger-memorizer-daily
 # FF-028 — migration `student_daily_recommendations` + RPC atomique + cron 19h-20h.
 #   ⚠️ L'ORDRE COMPTE : commandes exactes en §7.3 de RAPPORT-FF-028.md.
 #   Le cron n'est PAS appliqué en local, exprès (404 sur environnement partagé).
+
+# FF-016 / FF-010 / FF-011 / FF-018 / FF-020 / FF-021 / FF-029 — modules _shared et sophia-brain.
+#   (tous couverts par le deploy sophia-brain en tête de liste)
+# FF-016 touche aussi protocol_compiler.ts, partagé avec les générateurs :
+supabase functions deploy generate-meal-v1
+
+# Passe transverse — AUCUNE commande : aucune migration, aucun deploy, aucun secret.
 ```
 
-## Décisions humaines en attente (aucune n'est bloquante pour la file)
+**Récapitulatif minimal** (si tu ne veux qu'une séquence) :
+1. régler le doublon de version de migration ci-dessus ;
+2. `supabase db push` (3 migrations de la nuit : compteur partagé, faim, recommandation) ;
+3. `supabase functions deploy sophia-brain chat-inbound-v1 generate-meal-v1 generate-household-meal-v1 meal-photo-upload-v1 trigger-memorizer-daily` ;
+4. le cron de FF-028 (§7.3 de son rapport), **l'ordre compte**.
+
+## Les 6 décisions qui comptent, par ordre d'importance
+
+1. 🔴 **F1 — `weekly_reviews.risk_band` n'a aucun écrivain.** 7 gardes de sécurité armées sur un
+   coffre vide, dont l'écran chiffré de l'élève. Rien d'autre n'a cette portée.
+2. 🔴 **T-19 + T-2 — l'épingle `PILOT_FORCED_LOCALE`.** Elle **inverse les deux chemins de crise** :
+   la prose part en anglais chez un élève FR, le **repli déterministe** est monolingue français chez
+   un élève US. Ils ne peuvent pas être justes ensemble. Le repli est le filet de dernier recours.
+3. 🔴 **T-22 — l'arbitrage de budget de prompt.** Perdre la mémoire longue (ce qui se produit
+   aujourd'hui, silencieusement, sur 5 tours sur 6) ou plafonner les blocs KEEL ? **Seul le bloc
+   foyer n'a aucun plafond, et il grandit avec le foyer.**
+4. 🔴 **T-7 — sous plancher, l'effet durable est-il avalé ou écrit ?** La *sollicitation* est déjà
+   avalée (corrigé, 6/6). L'*effet* est un choix produit. La trace existe déjà dans `blocked_paths` —
+   il manque un lecteur.
+5. **Le lot « le déterministe décide, la couche qui parle ne le sait pas »** — T-1, T-6, T-12, T-16,
+   T-22. Six fiches ont buté dessus ; c'est le motif structurel de la nuit. Il attend surtout que
+   `companion.ts` soit libéré par l'autre chantier.
+6. **T-21** (l'énoncé littéral « ce n'était pas prévu ») et **T-3** (décomposition des plats
+   composés) — deux lots courts et bien cernés.
+
+## Autres décisions en attente (aucune n'est bloquante)
 
 1. **T-2 — désarmer `PILOT_FORCED_LOCALE` ?** Le pilote force-t-il encore `en-US` ? Tant qu'il est
    armé, toute la copie FR runtime est morte au rendu.
@@ -270,7 +317,54 @@ _Isolée par FF-016, **non touchée exprès** : plusieurs agents mesurent dessus
 C'est ce dernier point qui a produit le défaut de sécurité de FF-016 (ci-dessous).
 → Candidat à un lot dédié, avec T-1 et T-2. Ne pas y toucher tant que la file mesure dessus.
 
-### T-14 · Le budget de contexte, mesuré cumulativement — **il tient**
+### 🔴 T-21 · « ce n'était pas prévu » n'est **pas** un marqueur de hors-plan (8/8, FR+EN)
+_Trouvé par la passe transverse, témoins verts._ L'énoncé **littéral** — « ce n'était pas prévu »,
+« it wasn't on the plan », « hors plan » — ne déclenche pas `detectOffPlanMarker`.
+Conséquence en chaîne : le repas **s'enregistre**, mais **sa relation au plan est perdue**, et
+**FF-025 ne peut plus armer** son invitation (elle est adossée au fait hors-plan).
+C'est le trou complémentaire de celui que FF-009 avait bouché (elle avait réparé « à un mariage »
+en français) : la formulation la plus **explicite** de toutes est celle qui passe à travers.
+→ Lot à ouvrir. Chip de suivi créée par l'agent.
+
+### T-23 · `voice.address: "tu"` sort comme le mot « tu » dans un message anglais du soir
+_Petit, mais visible par l'élève._ Un paramètre de voix fuit en texte — même famille que les
+identifiants internes que FF-016 a retirés de la bulle (`fried_food`, `lean_protein`).
+
+### 🔴 T-22 · Le classement de survie est vrai et **inopérant** — la queue ne lui appartient pas
+_Trouvé par la passe transverse._ Les blocs KEEL sont **préfixés** au contexte ; la coupe par la
+queue mange donc la **fin du contexte du chargeur** — c'est-à-dire la **mémoire longue**
+(`topicMemories`, `globalMemories`, `eventMemories`) et les add-ons de coaching. Le classement écrit
+dans `withKeelDoctrineBlock` (« doctrine d'abord, puis… ») est **exact et sans effet** : la queue
+appartient à `buildContextString`.
+Marge avant que le soutien groundé (FF-011) soit entamé : **11 746 car.**
+→ **Arbitrage humain** : perdre la mémoire longue, ou plafonner les blocs KEEL ? **Seul le bloc foyer
+n'a aucun plafond, et il grandit avec le foyer.**
+Même famille structurelle que T-1/T-6/T-12/T-16 : *une décision écrite quelque part que la couche
+qui exécute n'applique pas.*
+
+### ❌ T-14 · « Le budget tient » — **CET ÉNONCÉ ÉTAIT FAUX, corrigé par la passe transverse**
+J'avais consigné (d'après FF-023 puis FF-010) que le plafond n'était « jamais atteint » et qu'il
+restait « une marge de 4 908 car. ». **C'est une mauvaise lecture, et je l'ai propagée.**
+
+**`full_chars = 32 222` n'est pas une marge : c'est la SIGNATURE d'une troncature.** Arithmétique
+revérifiée au caractère près sur les mesures mêmes de FF-023. Sur le tour saturé portant tous les
+blocs : **5 tours sur 6 tronqués**, dépassement jusqu'à **5 178 car.**
+
+**La bonne nouvelle tient quand même** : la **doctrine est appliquée 3/3** au tour saturé, et
+**aucun bloc KEEL ne tombe** — parce qu'ils sont préfixés (voir T-22). Ce qui tombe, c'est la mémoire
+longue, silencieusement.
+
+Poids mesurés ensemble sur l'élève qui les porte tous : doctrine 1 465 · protocole 1 199 (= le
+chiffre de FF-016) · foyer 2 632 (= celui de FF-010) · bilan 895 · pouls 1 291 · soutien 1 392 =
+**8 886 car.**
+
+⚠️ **Et il y a QUATRE blocs dans le prompt du chat, pas cinq** : le bloc satiété de FF-027 **n'entre
+jamais** dans `sophia-brain` (0 occurrence de `satiety`, corroboré par le master). C'est **conforme**
+à ce que FF-027 avait livré — son bloc va aux **générateurs** via le suffixe de l'appelant — mais
+j'avais listé FF-027 parmi les contributeurs du prompt de chat en briefant la passe : **mon erreur,
+relevée par l'agent.**
+
+### T-14bis · Les mesures par fiche (exactes, mais chacune ne voyait que son bloc)
 Trois fiches ont ajouté de la matière au même prompt cette nuit. Mesures successives sur élève riche :
 - FF-023 (historique récent) : `full_chars` 26 842 → 32 222 sur 20 tours denses, doctrine appliquée
   au tour saturé ;
@@ -721,3 +815,22 @@ branche), mais la leçon est réelle : **un `git add <chemins>` scopé commite q
   au lieu de `asked_at`, « pizza » pris pour un composant) — les trois trouvés par la base,
   jamais par un test vert ; chaque en-tête de sonde porte son faux départ.
   **Aucune commande pour l'humain** : aucune migration, aucun deploy, aucun secret.
+
+---
+
+## Clôture — 2026-08-08 15:10
+
+La file est vide et la passe transverse est rendue. Rien n'est poussé, la branche est intacte,
+l'arbre est propre sur tous les chemins du chantier (le reste de `git status` appartient à l'autre
+agent, qui travaille toujours).
+
+**Deux corrections que le master a dû faire sur ses propres consignes**, consignées ici parce
+qu'elles disent quelque chose sur la méthode :
+- j'ai listé **FF-027 parmi les contributeurs du prompt de chat** en briefant la passe transverse.
+  C'était faux : son bloc va aux **générateurs**. L'agent l'a relevé (0 occurrence de `satiety` dans
+  `sophia-brain`) — ce sont **quatre** blocs, pas cinq.
+- j'ai propagé « le budget tient, marge 4 908 car. » d'après FF-023 et FF-010. **C'était une mauvaise
+  lecture** : `full_chars = 32 222` est la **signature d'une troncature**. Voir T-14 et T-22.
+
+Dans les deux cas, l'agent placé après moi a vérifié l'énoncé au lieu de le reprendre. C'est la seule
+raison pour laquelle ces erreurs ne sont pas dans le livrable final.
