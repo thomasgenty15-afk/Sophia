@@ -25,30 +25,151 @@ import {
 const NO_INPUTS = {
   userExplicit: null,
   persisted: null,
+  studentProfile: null,
   tenantDefault: null,
   detectedRecent: null,
 } as const;
 
-Deno.test("R3 — pendant le pilote, toute resolution rend en-US", () => {
-  // Desarmement: suppression de `PILOT_FORCED_LOCALE` et de ses deux gardes,
-  // le jour ou le multi-langue est livre. C'est le POINT UNIQUE de changement:
-  // ce test echouera alors, et c'est le signal attendu (BELT_AUDIT §W9), pas
-  // une regression.
-  assertEquals(resolveResponseLocale(NO_INPUTS), "en-US");
+Deno.test("R3 — l'epingle pilote est RETIREE: la chaine decide, plus la constante", () => {
+  // CE TEST REMPLACE « pendant le pilote, toute resolution rend en-US ».
+  // L'ancien affirmait le contraire de chaque ligne ci-dessous; sa condition de
+  // desarmement etait ecrite dans `locale.ts` (« supprimer la constante et ses
+  // deux gardes »), et elle a ete honoree le 2026-08-08 (lot L1).
+  //
+  // Ce qu'il garde maintenant: la chaine LIT ses entrees. Le mode de panne
+  // qu'on ferme n'est plus « le pilote force une langue », c'est « quelqu'un
+  // re-pose un court-circuit au-dessus de la chaine » — un `return` constant
+  // en tete de fonction rendrait TOUTES les assertions suivantes fausses.
+  //
+  // Condition de desarmement: aucune. Une langue imposee a toute une flotte se
+  // pose sur une colonne de tenant (`tenantDefault`), jamais dans le module.
   assertEquals(
     resolveResponseLocale({ ...NO_INPUTS, persisted: "fr-FR" }),
-    "en-US",
+    "fr-FR",
   );
   assertEquals(
     resolveResponseLocale({ ...NO_INPUTS, userExplicit: "fr-FR" }),
-    "en-US",
+    "fr-FR",
   );
-  // Le frere R2 porte la MEME epingle: sans ca, la bascule livrerait des
-  // artefacts francais dans un produit encore anglais, sur un seul des deux
-  // axes. Les deux se retirent ensemble ou pas du tout.
   assertEquals(
     resolveArtifactLocale({ studentProfile: "fr-FR", tenantDefault: null }),
+    "fr-FR",
+  );
+  // Le repli final n'a pas bouge: sans AUCUNE entree, c'est en-US.
+  assertEquals(resolveResponseLocale(NO_INPUTS), "en-US");
+  assertEquals(
+    resolveArtifactLocale({ studentProfile: null, tenantDefault: null }),
     "en-US",
+  );
+});
+
+Deno.test("R3 — l'ordre de priorite, entree par entree", () => {
+  // Une chaine de priorite non testee entree par entree est une liste de
+  // souhaits: l'epingle a vecu deux mois au-dessus d'une chaine « ecrite,
+  // relue, jamais executee ».
+  // Cinq tags DISTINCTS et tous LIVRÉS (en/fr): un tag non livré serait ramené
+  // au repli par la ceinture R7 ci-dessous et le test ne mesurerait plus
+  // l'ordre, mais la clameur.
+  const all = {
+    userExplicit: "fr-FR",
+    persisted: "en-GB",
+    studentProfile: "fr-CA",
+    tenantDefault: "en-AU",
+    detectedRecent: "fr-BE",
+  };
+  assertEquals(resolveResponseLocale(all), "fr-FR");
+  assertEquals(resolveResponseLocale({ ...all, userExplicit: null }), "en-GB");
+  assertEquals(
+    resolveResponseLocale({ ...all, userExplicit: null, persisted: null }),
+    "fr-CA",
+  );
+  assertEquals(
+    resolveResponseLocale({
+      ...all,
+      userExplicit: null,
+      persisted: null,
+      studentProfile: null,
+    }),
+    "en-AU",
+  );
+  assertEquals(
+    resolveResponseLocale({
+      ...all,
+      userExplicit: null,
+      persisted: null,
+      studentProfile: null,
+      tenantDefault: null,
+    }),
+    "fr-BE",
+  );
+  // Une chaine d'espaces n'est pas une reponse: elle ne doit pas court-circuiter
+  // le maillon suivant (meme regle que l'ancre `readPersisted...`).
+  assertEquals(
+    resolveResponseLocale({ ...NO_INPUTS, persisted: "   ", studentProfile: "fr-FR" }),
+    "fr-FR",
+  );
+});
+
+Deno.test("R7 — une langue NON LIVREE degrade au resolveur, pas dans un pack", () => {
+  // L'epingle rendait le throw de `localePackKey` INATTEIGNABLE: tout arrivait
+  // en `en`. Une seule ligne `profiles.locale = 'de-DE'` suffit, l'epingle
+  // retiree, a le faire jeter dans `render.ts`, `labels.ts`,
+  // `photo_invitation.ts` et `meal_precision.ts` — donc a tuer un tour, une
+  // journee de cron ou une edge function.
+  //
+  // La degradation se fait ICI, une fois, sur le tour ENTIER. Un tour
+  // entierement anglais est coherent; un tour a moitie anglais est exactement
+  // ce que R7 interdit.
+  //
+  // Condition de desarmement: livrer le pack de la langue (labels + render +
+  // packs), puis l'ajouter a `DELIVERED_LANGUAGE_PREFIXES`. Jamais l'inverse.
+  assertEquals(
+    resolveResponseLocale({ ...NO_INPUTS, studentProfile: "de-DE" }),
+    "en-US",
+  );
+  assertEquals(
+    resolveResponseLocale({ ...NO_INPUTS, userExplicit: "sw-KE" }),
+    "en-US",
+  );
+  assertEquals(
+    resolveArtifactLocale({ studentProfile: "de-DE", tenantDefault: null }),
+    "en-US",
+  );
+  // Les deux langues livrees traversent, region comprise.
+  assertEquals(
+    resolveResponseLocale({ ...NO_INPUTS, studentProfile: "fr-CA" }),
+    "fr-CA",
+  );
+  assertEquals(
+    resolveResponseLocale({ ...NO_INPUTS, studentProfile: "en-GB" }),
+    "en-GB",
+  );
+  // Et le resultat du resolveur est TOUJOURS un argument valide de
+  // `localePackKey`: c'est le contrat que cette ceinture etablit.
+  for (const input of ["de-DE", "sw-KE", "fr-CA", "en-GB", "xx"]) {
+    localePackKey(
+      resolveResponseLocale({ ...NO_INPUTS, studentProfile: input }),
+    );
+  }
+});
+
+Deno.test("R3 — `studentProfile` existe, et le retirer re-fabrique le defaut de l'epingle", () => {
+  // LA LEÇON DU LOT L1, figee ici. Retirer `PILOT_FORCED_LOCALE` etait un
+  // NO-OP tant que la chaine ne portait aucune entree issue de l'eleve:
+  // `tenantDefault` n'a pas encore de producteur, `detectedRecent` n'en aura
+  // jamais (c'est l'oscillation que R3 nomme). Un eleve `fr-FR` tout neuf,
+  // sans ancre, serait donc tombe sur le repli final `en-US` — meme reponse
+  // anglaise, par un chemin plus long.
+  //
+  // Condition de desarmement: le jour ou `tenantDefault` ET un autre porteur
+  // de la langue de l'eleve existent, et seulement si l'un d'eux est LU.
+  assertEquals(
+    resolveResponseLocale({ ...NO_INPUTS, studentProfile: "fr-FR" }),
+    "fr-FR",
+  );
+  assertEquals(
+    resolveResponseLocale({ ...NO_INPUTS, studentProfile: "en-GB" }),
+    "en-GB",
   );
 });
 
@@ -64,6 +185,7 @@ Deno.test("R3 — la chaine de priorite est TYPEE: aucune entree ne s'omet", () 
   assertEquals(Object.keys(inputs).sort(), [
     "detectedRecent",
     "persisted",
+    "studentProfile",
     "tenantDefault",
     "userExplicit",
   ]);

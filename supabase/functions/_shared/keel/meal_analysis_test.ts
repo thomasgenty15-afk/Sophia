@@ -1383,17 +1383,42 @@ Deno.test("ack: the binding is a REQUIRED argument, so it cannot be forgotten", 
   assertThrows(() => renderMealPhotoAck(args));
 });
 
-Deno.test("ack: an unsupported locale still throws (R7)", () => {
+Deno.test("ack: une locale non livrée DÉGRADE en anglais, elle ne tue plus le tour photo (L1)", () => {
+  // CE TEST AFFIRMAIT L'INVERSE (« an unsupported locale still throws »), et il
+  // avait raison tant que l'épingle pilote forçait `en-US` pour toute la
+  // flotte: son unique appelant (`analyze-meal-photo-v1`, qui passe
+  // `readBack.content_locale`) ne pouvait apporter que de l'anglais, donc le
+  // throw n'était jamais atteint.
+  //
+  // L'épingle retirée, `resolveArtifactLocale` rend la vraie locale: le throw
+  // devenait un **HTTP 500 sur toute analyse de photo francophone** — 729
+  // profils `fr-FR` sur 1 150 en base locale. Un accusé dans la mauvaise langue
+  // est un défaut de copie; une photo qui ne s'analyse pas est une panne.
+  //
+  // Condition de désarmement de CE test: livrer le pack français de
+  // `renderMealPhotoAck`. Il faudra alors assertir du français ici, pas un
+  // throw — le throw ne revient dans aucun des deux mondes.
   const analysis = analysisWithGroups(["berries"]);
-  assertThrows(() =>
+  const rendered = renderMealPhotoAck({
+    analysis,
+    binding: { kind: "none" },
+    commitmentTitles: TITLES,
+    hasPrescription: true,
+    tickedDish: null,
+    locale: "fr-FR",
+  });
+  assert(rendered.trim().length > 0, "un accusé vide serait pire que l'anglais");
+  assertEquals(
+    rendered,
     renderMealPhotoAck({
       analysis,
       binding: { kind: "none" },
       commitmentTitles: TITLES,
       hasPrescription: true,
       tickedDish: null,
-      locale: "fr",
-    })
+      locale: "en",
+    }),
+    "la dégradation doit rendre EXACTEMENT la copie anglaise, pas une variante",
   );
 });
 

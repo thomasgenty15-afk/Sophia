@@ -9,6 +9,7 @@ import {
   LEGACY_FRENCH_BRANCH_COUNTRY,
   resolveSafetyResourceNumbers,
 } from "../../../_shared/keel/crisis_resources.ts";
+import { isFrenchLocale } from "../../../_shared/keel/locale.ts";
 import {
   normalizeSafetyPhase,
   normalizeSafetyRiskBand,
@@ -413,8 +414,26 @@ function summarizeInboundNote(
  * international set, because handing 3114 to a German user is the bug this
  * whole lot exists to remove.
  *
- * The conjunction is French because these sentences are French (R3: the
- * language of the sentence is the caller's business, not the resolver's).
+ * THE CONJUNCTION FOLLOWS THE STUDENT'S LANGUAGE, NOT THE BRANCH'S HISTORY.
+ * It used to be a hardcoded `"ou"`, on the (then true) premise that "these
+ * sentences are French". They are not, since the pilot pin came off: an
+ * `en-GB` student in crisis read `"999 ou 112"` inside an English reply — a
+ * French word planted in the one sentence that must be read without effort.
+ * `userLocale` is `profiles.locale` in production (it travels through
+ * `direct_effect_time_context.user_locale`, which `user_time_context.ts` reads
+ * from the profile row), so it names the language of the sentence around the
+ * numbers. NO locale at all keeps the French conjunction: that is the same
+ * declared legacy branch the country falls back to, unchanged.
+ * `isFrenchLocale` and never `localePackKey`: R7 makes the latter throw, and a
+ * throw on the crisis path is the empty safety turn (§3).
+ *
+ * ⚠️ `userLocale` IS OPTIONAL HERE, and an optional gate parameter is a gate
+ * that can be disarmed by an omission (cicatrice
+ * `optional-gate-params-are-disarmed-gates`). It is left optional because 47
+ * existing belts call this reducer without it and their subject is the NUMBERS,
+ * not the language. The production call site passes it (`skill.ts`, single
+ * site) — if it ever stops, this conjunction silently returns to French for
+ * everyone, which is the small version of the defect L1 just closed.
  */
 function safetyResourceNumbersFor(args: {
   userCountry?: string | null;
@@ -425,7 +444,11 @@ function safetyResourceNumbersFor(args: {
     : args.userLocale
     ? crisisCountryFromLocale(args.userLocale)
     : LEGACY_FRENCH_BRANCH_COUNTRY;
-  return resolveSafetyResourceNumbers(country, { conjunction: "ou" });
+  const localeGiven = Boolean(String(args.userLocale ?? "").trim());
+  const french = !localeGiven || isFrenchLocale(args.userLocale);
+  return resolveSafetyResourceNumbers(country, {
+    conjunction: french ? "ou" : "or",
+  });
 }
 
 function buildConversationContext(args: {

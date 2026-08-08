@@ -248,9 +248,19 @@ Deno.test("(a) a reported fact writes ONE protocol_events row and the acknowledg
   // base. Ce qui n'a pas traversé la base ne s'énonce pas: le fake ci-dessus
   // renvoie `substance_ref`, donc l'accusé peut la nommer; s'il ne la renvoyait
   // pas, l'écriture serait refusée en `readback_mismatch` plutôt qu'annoncée.
+  // L1 — L'ACCUSÉ EST MAINTENANT ENTIÈREMENT FRANÇAIS, et cette ligne est la
+  // mesure du réveil. L'élève de cette fixture porte `content_locale: 'fr-FR'`
+  // (asserté vingt lignes plus haut). Sous l'épingle pilote, l'accusé sortait
+  // « Recorded for 2026-07-27 (breakfast): Magnesium glycinate. » Le
+  // désarmement seul l'a fait passer à « Recorded for … : Glycinate de
+  // magnésium. » — le libellé suivait la locale, le gabarit non: une phrase
+  // anglaise avec un mot français dedans. Le gabarit et la conjonction suivent
+  // désormais la même langue.
+  // ⚠️ `(breakfast)` reste un jeton machine brut, dans les deux langues:
+  // consigné dans RAPPORT-L1-LOCALE, hors périmètre L1.
   assertEquals(
     runtime.content,
-    "Recorded for 2026-07-27 (breakfast): Magnesium glycinate.",
+    "Enregistré pour le 2026-07-27 (breakfast): Glycinate de magnésium.",
   );
 
   // Et le ledger porte l'écriture, avec sa table et son id — c'est ce que

@@ -23,6 +23,7 @@ import {
   type LocalePack,
   localePackFor,
 } from "../../../../_shared/keel/labels.ts";
+import { isFrenchLocale } from "../../../../_shared/keel/locale.ts";
 import type {
   LogProtocolEventCommittedEffect,
   LogProtocolEventDirectEffectResult,
@@ -52,15 +53,26 @@ function itemNameOf(
   }
 }
 
-/** `"A"`, `"A and B"`, `"A, B and C"` — the cardinality is legible in the list. */
+/**
+ * `"A"`, `"A and B"`, `"A, B and C"` — the cardinality is legible in the list.
+ *
+ * 🔴 L1 — LA CONJONCTION AUSSI EST DE LA COPIE. Elle était `" and "` en dur, au
+ * milieu d'une liste dont les éléments, eux, étaient déjà traduits par
+ * `labelFor`. Mesuré au réveil de l'épingle: « Recorded for 2026-07-27
+ * (breakfast): Glycinate de magnésium. » — une phrase anglaise avec un mot
+ * français dedans. Un accusé mi-anglais mi-français est plus déroutant qu'un
+ * accusé entièrement dans la mauvaise langue.
+ */
 function nameList(
   effects: readonly LogProtocolEventCommittedEffect[],
   pack: LocalePack,
+  french: boolean,
 ): string {
   const names = effects.map((e) => itemNameOf(e, pack)).filter((n): n is string => n !== null);
   if (names.length === 0) return "";
   if (names.length === 1) return `: ${names[0]}`;
-  return `: ${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+  const conjunction = french ? " et " : " and ";
+  return `: ${names.slice(0, -1).join(", ")}${conjunction}${names[names.length - 1]}`;
 }
 
 /**
@@ -85,21 +97,41 @@ export function renderLogProtocolEventLoggedReply(
   const committed = (effects ?? []).filter((e) => Boolean(e?.protocol_event_id));
   if (committed.length === 0) return null;
   const pack = localePackFor(locale);
+  // `isFrenchLocale` et pas `localePackKey`: ce dernier a déjà été appelé juste
+  // au-dessus (`localePackFor`), donc une langue non livrée a déjà jeté là où
+  // c'est son rôle. Ici on choisit une PHRASE, et une phrase n'a pas à jeter.
+  const french = isFrenchLocale(locale);
 
   const head = committed[0];
+  // ⚠️ `slot_key` est rendu BRUT (« breakfast »), dans les deux langues: c'est
+  // un jeton machine dans un texte visible. Ce n'est pas un défaut de langue et
+  // ce n'est pas le lot L1 — c'est consigné dans RAPPORT-L1-LOCALE, parce que
+  // le corriger change AUSSI la sortie anglaise et demande sa propre mesure.
   const slot = head.slot_key ? ` (${head.slot_key})` : "";
-  const where = `for ${head.local_date}${slot}`;
+  const where = french
+    ? `pour le ${head.local_date}${slot}`
+    : `for ${head.local_date}${slot}`;
   const fresh = committed.filter((e) => !e.already_logged);
   const existing = committed.filter((e) => e.already_logged);
 
   // Idempotence must be legible: the student should not wonder whether the
   // retry created a second entry.
   if (fresh.length === 0) {
-    return `Already recorded ${where}${nameList(existing, pack)} — nothing added.`;
+    return french
+      ? `Déjà enregistré ${where}${nameList(existing, pack, french)} — rien d'ajouté.`
+      : `Already recorded ${where}${nameList(existing, pack, french)} — nothing added.`;
   }
-  const recorded = `Recorded ${where}${nameList(fresh, pack)}.`;
+  const recorded = french
+    ? `Enregistré ${where}${nameList(fresh, pack, french)}.`
+    : `Recorded ${where}${nameList(fresh, pack, french)}.`;
   if (existing.length === 0) return recorded;
-  return `${recorded} Already recorded${nameList(existing, pack)} — nothing added.`;
+  return french
+    ? `${recorded} Déjà enregistré${
+      nameList(existing, pack, french)
+    } — rien d'ajouté.`
+    : `${recorded} Already recorded${
+      nameList(existing, pack, french)
+    } — nothing added.`;
 }
 
 export function renderLogProtocolEventRefusal(

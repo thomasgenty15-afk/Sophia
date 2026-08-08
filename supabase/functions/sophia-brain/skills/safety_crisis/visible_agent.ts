@@ -7,7 +7,10 @@ import {
 // `resolveResponseLocale({})`: une chaine de priorite sans aucune entree, donc
 // une langue decidee par son repli. Le bloc RESPONSE_LANGUAGE part en DERNIERE
 // instruction du prompt (la position est le mecanisme: la recence gagne).
-import { appendResponseLanguageBlock } from "../../../_shared/keel/locale.ts";
+import {
+  appendResponseLanguageBlock,
+  isFrenchLocale,
+} from "../../../_shared/keel/locale.ts";
 import {
   committedOneShotReminderKnown,
   directEffectContextCommittedThisTurn,
@@ -100,6 +103,7 @@ function withCrisisResourceLine(
   message: string,
   emergency: string,
   suicide: string,
+  french: boolean,
 ): string {
   const contacts = [emergency, suicide].map((c) => c.trim()).filter(Boolean);
   if (contacts.length === 0) return message;
@@ -108,33 +112,23 @@ function withCrisisResourceLine(
   // les deux, et une seconde ligne y serait un doublon.
   if (contacts.some((contact) => message.includes(contact))) return message;
   const listed = contacts.join(" · ");
-  return `${message}\n\nEn cas de danger immédiat : ${listed}.`;
+  return french
+    ? `${message}\n\nEn cas de danger immédiat : ${listed}.`
+    : `${message}\n\nIf you are in immediate danger: ${listed}.`;
 }
 
-// Invariant anti-vide du rendu safety: si le visible agent echoue, le skill
-// rend ce message deterministe au lieu d'une reponse vide (jamais de tour
-// safety silencieux). L'echec reste observable via visible_generation_failed.
-export function safetyCrisisDeterministicVisibleMessage(
-  kind: SafetyCrisisVisibleTaskKind,
-  safetyResources: {
-    emergency_numbers: string;
-    suicide_prevention_number: string;
-  },
-): string {
-  // W3.3: no hardcoded country. If the reducer handed us empty strings, the
-  // resource resolution upstream failed — degrade onto the documented
-  // international set, LOUDLY (resolveSafetyResourceNumbers logs the
-  // fallback), never onto a French number the caller may not be able to dial.
-  const needsFallback = !safetyResources.emergency_numbers ||
-    !safetyResources.suicide_prevention_number;
-  const resolved = needsFallback
-    ? resolveSafetyResourceNumbers(null, { conjunction: "ou" })
-    : null;
-  const emergency = safetyResources.emergency_numbers ||
-    resolved?.emergency_numbers || "";
-  const suicide = safetyResources.suicide_prevention_number ||
-    resolved?.suicide_prevention_number || "";
-  const messages: Record<SafetyCrisisVisibleTaskKind, string> = {
+/**
+ * Les onze gabarits, dans une langue, en fonction des deux contacts.
+ *
+ * Une fonction et pas deux `Record` littéraux: les contacts s'interpolent, et
+ * deux tables construites séparément dérivent (l'une gagne un `kind`, l'autre
+ * pas — exactement le trou que le `??` de R5 rattrape déjà en aval).
+ */
+function frenchTemplates(
+  emergency: string,
+  suicide: string,
+): Record<SafetyCrisisVisibleTaskKind, string> {
+  return {
     immediate_risk_check:
       "Une chose d'abord : est-ce que tu es en danger immédiat, là, maintenant ?",
     acute_grounding:
@@ -158,6 +152,97 @@ export function safetyCrisisDeterministicVisibleMessage(
     safety_escalation:
       `Appelle maintenant le ${emergency}. Si c'est lié à des idées suicidaires, le ${suicide} répond 24h/24. Si tu peux, rapproche-toi d'une personne tout de suite.`,
   };
+}
+
+function englishTemplates(
+  emergency: string,
+  suicide: string,
+): Record<SafetyCrisisVisibleTaskKind, string> {
+  return {
+    immediate_risk_check:
+      "One thing first: are you in immediate danger right now?",
+    acute_grounding:
+      `Right now: move anything that could hurt you out of reach, and get closer to another person. If the danger is immediate, call ${emergency}; ${suicide} is also there 24/7.`,
+    support_contact:
+      "The most useful thing now: staying connected to someone you trust. Is there someone you can reach right now?",
+    stabilizing:
+      "Let's keep to the essentials: stay where you are, stay connected to the person supporting you, and breathe calmly (4 seconds in, 6 seconds out).",
+    exit_check:
+      "Before we move on: there is no immediate danger for you right now, is that right?",
+    resolved_exit:
+      "All right. The immediate situation is stable, we can pick up wherever you want.",
+    repeat_current_step:
+      "We stay on the current step, at your pace. Tell me where you are with it.",
+    product_tool_boundary:
+      "I'm keeping your request aside for later. For now, we stay on your safety, one thing at a time.",
+    stop_or_cancel:
+      `All right, we stop here. If you need it, ${suicide} is there 24/7.`,
+    safety_transition:
+      "We'll set the rest aside for a moment. Are you safe right now?",
+    safety_escalation:
+      `Call ${emergency} now. If this is about suicidal thoughts, ${suicide} is there 24/7. If you can, get to another person straight away.`,
+  };
+}
+
+/**
+ * Invariant anti-vide du rendu safety: si le visible agent echoue, le skill
+ * rend ce message deterministe au lieu d'une reponse vide (jamais de tour
+ * safety silencieux). L'echec reste observable via visible_generation_failed.
+ *
+ * 🔴 L1 — POURQUOI `locale` EST UN PARAMETRE, ET POURQUOI IL EST REQUIS.
+ * Jusqu'au 2026-08-08 cette fonction ne recevait AUCUNE langue: ses onze
+ * gabarits etaient des chaines francaises en dur. Mesure FF-020 (§C.1):
+ * `looks_french = true` **33 fois sur 33** (11 kinds x 3 pays). Ce qu'un eleve
+ * americain lisait quand le modele tombait:
+ *   « Appelle maintenant le 911. Si c'est lie a des idees suicidaires, le 988
+ *     repond 24h/24. »
+ * Les bons numeros, dans une langue qu'il ne lit peut-etre pas, au moment ou
+ * il demande de l'aide. Et c'est le chemin de DERNIER RECOURS: celui qui sert
+ * quand tout le reste est deja tombe.
+ *
+ * REQUIS, pas optionnel, et c'est le mecanisme (cicatrice
+ * `optional-gate-params-are-disarmed-gates`): un `locale?` avec un defaut
+ * francais rendrait exactement le meme defaut, en ayant l'air cable.
+ *
+ * `isFrenchLocale` ET JAMAIS `localePackKey`: ce dernier THROW pour une langue
+ * non livree (R7). Un throw ici produirait le tour de securite VIDE que ce
+ * module existe pour rendre impossible — la panne dans le gestionnaire de
+ * panne (§3). Toute locale non francaise atterrit donc sur l'anglais, qui est
+ * aussi le repli final du resolveur: le degrade est declare, pas devine.
+ *
+ * R1 TENUE: deux tables de chaines et une concatenation. Aucun `await`, aucune
+ * lecture, aucun throw.
+ */
+export function safetyCrisisDeterministicVisibleMessage(
+  kind: SafetyCrisisVisibleTaskKind,
+  safetyResources: {
+    emergency_numbers: string;
+    suicide_prevention_number: string;
+  },
+  locale: string,
+): string {
+  const french = isFrenchLocale(locale);
+  // W3.3: no hardcoded country. If the reducer handed us empty strings, the
+  // resource resolution upstream failed — degrade onto the documented
+  // international set, LOUDLY (resolveSafetyResourceNumbers logs the
+  // fallback), never onto a French number the caller may not be able to dial.
+  const needsFallback = !safetyResources.emergency_numbers ||
+    !safetyResources.suicide_prevention_number;
+  const resolved = needsFallback
+    // La conjonction appartient a la PHRASE, pas au resolveur: « 15 ou 112 »
+    // dans un message anglais est le meme defaut que le message anglais chez
+    // un eleve francais, en plus petit.
+    ? resolveSafetyResourceNumbers(null, {
+      conjunction: french ? "ou" : "or",
+    })
+    : null;
+  const emergency = safetyResources.emergency_numbers ||
+    resolved?.emergency_numbers || "";
+  const suicide = safetyResources.suicide_prevention_number ||
+    resolved?.suicide_prevention_number || "";
+  const messages = french
+    ? frenchTemplates(emergency, suicide)
+    : englishTemplates(emergency, suicide);
   // R5 — LE PLANCHER DU PLANCHER.
   //
   // `messages` est indexé par un type fermé, et le typecheck garantit
@@ -170,10 +255,12 @@ export function safetyCrisisDeterministicVisibleMessage(
   // `kind` arrive d'un état persisté. Et depuis §8 il rendrait pire qu'un
   // vide: un TypeError dans le gestionnaire de panne (§3).
   const template = messages[kind] ??
-    "On reste sur ta sécurité, une chose à la fois.";
+    (french
+      ? "On reste sur ta sécurité, une chose à la fois."
+      : "We stay on your safety, one thing at a time.");
   // §8: la réponse de repli EXISTE **et contient des ressources**. Les onze
   // gabarits ci-dessus n'en portent que trois; les huit autres partaient nus.
-  return withCrisisResourceLine(template, emergency, suicide);
+  return withCrisisResourceLine(template, emergency, suicide, french);
 }
 
 const STAGE_PROMPTS: Record<SafetyCrisisVisibleTaskKind, string> = {

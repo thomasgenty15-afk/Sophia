@@ -1842,14 +1842,30 @@ function quotedList(titles: readonly string[]): string {
  * exactly this string, so the constraint lives in one place for both surfaces.
  */
 export function renderMealPhotoAck(args: MealPhotoAckArgs): string {
-  // R7 : on échoue fort sur une langue qu'on ne sait pas rendre, mais `en-GB`
-  // n'est pas une langue inconnue — c'est le token que ce dépôt stocke le plus
-  // souvent (59 occurrences contre 27 pour `en`). Le garde exact rendait cette
-  // fonction impossible à appeler avec le `content_locale` d'une ligne, et le
-  // seul appelant le contournait en passant "en" en dur. La famille est donc
-  // acceptée, tout le reste échoue toujours bruyamment.
+  // R7 : cette fonction ne sait rendre QUE l'anglais — ses trente et quelques
+  // phrases n'existent que dans une langue. Elle JETAIT donc sur tout le reste.
+  //
+  // 🔴 L1 — CE THROW EST DEVENU UNE PANNE LE JOUR DU DÉSARMEMENT DE L'ÉPINGLE.
+  // Tant que `PILOT_FORCED_LOCALE = "en-US"` forçait la flotte, l'unique
+  // appelant (`analyze-meal-photo-v1`, qui passe `readBack.content_locale`) ne
+  // pouvait apporter que de l'anglais. `resolveArtifactLocale` rendant
+  // maintenant la vraie locale de l'élève, un élève `fr-FR` — 729 lignes sur
+  // 1 150 en base locale — faisait jeter cette fonction: **HTTP 500 sur toute
+  // analyse de photo francophone**, et pas un accusé dans la mauvaise langue.
+  //
+  // On dégrade donc, BRUYAMMENT, au lieu de jeter. La distinction est celle
+  // que `crisis_resources.ts` énonce déjà: « loud » veut dire journalisé et
+  // documenté, pas « throws », dès que le throw emporte plus que le texte qu'il
+  // garde. Ce qui manque ici n'est pas une garde: c'est le pack français, et
+  // il est nommé dans RAPPORT-L1-LOCALE comme un lot à part.
   if (String(args.locale ?? "").slice(0, 2).toLowerCase() !== "en") {
-    throw new Error(`R7: unsupported render locale "${args.locale}"`);
+    console.warn("keel.meal_analysis.ack_locale_not_delivered", {
+      requested_locale: args.locale,
+      served_language: "en",
+      detail:
+        "renderMealPhotoAck only has English copy. Rendering it in English " +
+        "rather than failing the photo turn. Deliver the pack to fix it.",
+    });
   }
   if (!args.binding) {
     // Explicit, not incidental: without the binding this function is back to

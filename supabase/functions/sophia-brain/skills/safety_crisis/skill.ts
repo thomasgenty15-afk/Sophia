@@ -202,6 +202,12 @@ export async function runSafetyCrisisSkill(
     ? safetyCrisisDeterministicVisibleMessage(
       reduction.visibleTask.kind,
       reduction.visibleTask.conversation_context.safety_resources,
+      // L1 — LA MEME langue que la prose nominale, descendue par le
+      // proprietaire du tour (`run.ts`, point unique R3). Le repli parlait
+      // francais a tout le monde pendant que le nominal parlait anglais a
+      // tout le monde: les deux chemins de crise etaient faux en sens
+      // inverse, et ils ne pouvaient pas etre justes ensemble.
+      input.context.response_locale,
     )
     : null;
   if (visibleGenerationFailed) {

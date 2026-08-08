@@ -1965,25 +1965,131 @@ const FF020_ALL_VISIBLE_KINDS = [
   "safety_escalation",
 ] as const;
 
-Deno.test("FF-020 §8 — chaque message déterministe porte au moins une ressource, pour chaque pays", () => {
-  for (const country of ["FR", "US", "GB", null]) {
-    const numbers = resolveSafetyResourceNumbers(country, { conjunction: "ou" });
-    for (const kind of FF020_ALL_VISIBLE_KINDS) {
-      const message = safetyCrisisDeterministicVisibleMessage(kind, numbers);
-      assert(message.trim().length > 0, `${country}/${kind}: message vide (R5)`);
-      assert(
-        message.includes(numbers.emergency_numbers) ||
-          message.includes(numbers.suicide_prevention_number),
-        `${country}/${kind}: aucune ressource dans le repli (§8) — "${message}"`,
-      );
+Deno.test("FF-020 §8 — chaque message déterministe porte au moins une ressource, pour chaque pays ET chaque langue", () => {
+  // L1 — la boucle balaie maintenant les DEUX langues. Avant, elle balayait
+  // 11 kinds × 4 pays = 44 combinaisons, toutes en français, et c'est cette
+  // exhaustivité-là qui rendait le monolinguisme invisible: aucun axe de la
+  // matrice ne portait la langue.
+  for (const locale of ["fr-FR", "en-US"]) {
+    const conjunction = locale === "fr-FR" ? "ou" : "or";
+    for (const country of ["FR", "US", "GB", null]) {
+      const numbers = resolveSafetyResourceNumbers(country, { conjunction });
+      for (const kind of FF020_ALL_VISIBLE_KINDS) {
+        const message = safetyCrisisDeterministicVisibleMessage(
+          kind,
+          numbers,
+          locale,
+        );
+        assert(
+          message.trim().length > 0,
+          `${locale}/${country}/${kind}: message vide (R5)`,
+        );
+        assert(
+          message.includes(numbers.emergency_numbers) ||
+            message.includes(numbers.suicide_prevention_number),
+          `${locale}/${country}/${kind}: aucune ressource dans le repli (§8) — "${message}"`,
+        );
+      }
     }
   }
+});
+
+/**
+ * L1 — LE REPLI PARLE LA LANGUE DE L'ÉLÈVE.
+ *
+ * 🔴 DÉFAUT MESURÉ (FF-020 §C.1): les onze gabarits étaient des chaînes
+ * françaises en dur, `looks_french = true` **33 fois sur 33** (11 kinds × 3
+ * pays). Un élève américain dont le modèle tombait lisait « Appelle maintenant
+ * le 911… le 988 répond 24h/24 »: les bons numéros, dans une langue qu'il ne
+ * lit peut-être pas, sur le chemin de DERNIER recours.
+ *
+ * Condition de désarmement: aucune tant que le produit livre deux packs. Une
+ * troisième langue s'ajoute ici et dans `visible_agent.ts`, dans cet ordre.
+ */
+Deno.test("L1 §8 — les onze gabarits de repli existent dans les DEUX langues, et ne se mélangent pas", () => {
+  // Marqueurs choisis pour ne pas dépendre d'une phrase exacte: des mots
+  // qu'une langue a et que l'autre n'a pas, sur des gabarits sans numéro.
+  const FRENCH_MARKERS = [
+    "danger immédiat",
+    "sécurité",
+    "à ton rythme",
+    "de côté",
+    "en danger",
+    "d'accord",
+    "reprendre",
+    "l'essentiel",
+    "personne de confiance",
+  ];
+  const numbers = resolveSafetyResourceNumbers("US", { conjunction: "or" });
+  for (const kind of FF020_ALL_VISIBLE_KINDS) {
+    const en = safetyCrisisDeterministicVisibleMessage(kind, numbers, "en-US")
+      .toLowerCase();
+    assertEquals(
+      FRENCH_MARKERS.filter((m) => en.includes(m)),
+      [],
+      `${kind}: du français a fui dans le gabarit anglais — "${en}"`,
+    );
+    // Et le contrôle inverse, sans quoi la ceinture passerait sur deux packs
+    // anglais identiques.
+    const fr = safetyCrisisDeterministicVisibleMessage(
+      kind,
+      resolveSafetyResourceNumbers("FR", { conjunction: "ou" }),
+      "fr-FR",
+    );
+    assert(
+      fr !== safetyCrisisDeterministicVisibleMessage(
+        kind,
+        resolveSafetyResourceNumbers("FR", { conjunction: "ou" }),
+        "en-US",
+      ),
+      `${kind}: FR et EN rendent le MÊME texte — un des deux packs est un alias`,
+    );
+  }
+});
+
+Deno.test("L1 §3 — une locale non livrée ne JETTE pas: elle dégrade sur l'anglais", () => {
+  // `localePackKey` throw pour une langue non livrée (R7). Un throw ici serait
+  // la panne DANS le gestionnaire de panne (§3): le repli utilise donc
+  // `isFrenchLocale`, qui ne jette jamais.
+  for (const locale of ["de-DE", "sw-KE", "", "  ", "xx"]) {
+    const message = safetyCrisisDeterministicVisibleMessage(
+      "safety_escalation",
+      resolveSafetyResourceNumbers("US", { conjunction: "or" }),
+      locale,
+    );
+    assert(message.includes("911"), `${locale}: ressource perdue`);
+    assertEquals(
+      message.includes("Appelle maintenant"),
+      false,
+      `${locale}: dégrade sur le FRANÇAIS au lieu de l'anglais`,
+    );
+  }
+});
+
+Deno.test("L1 §8 — la ligne de ressources ajoutée est dans la langue du gabarit", () => {
+  // `withCrisisResourceLine` est ce qui a fermé le §8 (FF-020 B.1). Elle
+  // portait « En cas de danger immédiat : … » en dur — donc une phrase
+  // française collée sous un gabarit qui, lui, allait devenir anglais.
+  const numbers = resolveSafetyResourceNumbers("US", { conjunction: "or" });
+  const en = safetyCrisisDeterministicVisibleMessage(
+    "immediate_risk_check",
+    numbers,
+    "en-US",
+  );
+  assert(en.includes("If you are in immediate danger: 911 · 988."), en);
+  const fr = safetyCrisisDeterministicVisibleMessage(
+    "immediate_risk_check",
+    resolveSafetyResourceNumbers("FR", { conjunction: "ou" }),
+    "fr-FR",
+  );
+  assert(fr.includes("En cas de danger immédiat : 15 ou 112 · 3114."), fr);
 });
 
 Deno.test("FF-020 §8 — les ressources du repli sont celles du PAYS, jamais d'un voisin", () => {
   const us = safetyCrisisDeterministicVisibleMessage(
     "immediate_risk_check",
-    resolveSafetyResourceNumbers("US", { conjunction: "ou" }),
+    resolveSafetyResourceNumbers("US", { conjunction: "or" }),
+    "en-US",
   );
   assert(us.includes("911") && us.includes("988"));
   assertEquals(us.includes("3114"), false);
@@ -1991,6 +2097,7 @@ Deno.test("FF-020 §8 — les ressources du repli sont celles du PAYS, jamais d'
   const de = safetyCrisisDeterministicVisibleMessage(
     "stabilizing",
     resolveSafetyResourceNumbers("DE", { conjunction: "ou" }),
+    "fr-FR",
   );
   // Pays non ensemencé => jeu international, JAMAIS le 3114 d'un voisin.
   assertEquals(de.includes("3114"), false);
@@ -2003,6 +2110,7 @@ Deno.test("FF-020 §8 — la ligne de ressources ne se DOUBLE pas quand le gabar
   const escalation = safetyCrisisDeterministicVisibleMessage(
     "safety_escalation",
     numbers,
+    "fr-FR",
   );
   assertEquals(escalation.split("15 ou 112").length - 1, 1);
   assertEquals(escalation.split("3114").length - 1, 1);
@@ -2010,12 +2118,17 @@ Deno.test("FF-020 §8 — la ligne de ressources ne se DOUBLE pas quand le gabar
 });
 
 Deno.test("FF-020 §3/R1 — le repli reste PUR: ressources vides en entrée, aucun throw, message non vide", () => {
-  for (const kind of FF020_ALL_VISIBLE_KINDS) {
-    const message = safetyCrisisDeterministicVisibleMessage(kind, {
-      emergency_numbers: "",
-      suicide_prevention_number: "",
-    });
-    assert(message.trim().length > 0, `${kind}: vide sur ressources vides`);
+  for (const locale of ["fr-FR", "en-US"]) {
+    for (const kind of FF020_ALL_VISIBLE_KINDS) {
+      const message = safetyCrisisDeterministicVisibleMessage(kind, {
+        emergency_numbers: "",
+        suicide_prevention_number: "",
+      }, locale);
+      assert(
+        message.trim().length > 0,
+        `${locale}/${kind}: vide sur ressources vides`,
+      );
+    }
   }
 });
 

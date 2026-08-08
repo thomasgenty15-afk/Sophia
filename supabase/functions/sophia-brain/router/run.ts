@@ -3611,9 +3611,18 @@ export async function processMessage(
   // `detectedRecent` n'a DÉLIBÉRÉMENT pas de producteur: la détection par
   // message est exactement le mode d'oscillation que R3 nomme. Les deux sont
   // `null` déclarés, pas des champs oubliés.
+  //
+  // L1 — `studentProfile` EST LA MOITIÉ DU DÉSARMEMENT DE L'ÉPINGLE.
+  // `PILOT_FORCED_LOCALE` retiré, cette chaîne ne portait TOUJOURS aucune
+  // entrée venant de l'élève: un élève `fr-FR` sans ancre serait tombé sur le
+  // repli final `en-US`. `keelTurn.content_locale` est `profiles.locale`, lu
+  // une fois par tour (`loadKeelTurnContext`, une seule requête profils) —
+  // aucun aller-retour de plus. Il vaut `null` hors élève KEEL (coach, compte
+  // legacy): ces tours-là gardent le repli `en-US`, et c'est déclaré.
   const responseLocale = resolveResponseLocale({
     userExplicit: readExplicitConversationLocale(tempMemory),
     persisted: readPersistedConversationLocale(tempMemory),
+    studentProfile: keelTurn.content_locale,
     tenantDefault: null,
     detectedRecent: null,
   });

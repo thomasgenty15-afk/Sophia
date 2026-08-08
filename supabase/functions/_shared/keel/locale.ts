@@ -13,19 +13,24 @@ import { normalizeLocale } from "../locale.ts"
 const FINAL_FALLBACK_LOCALE = "en-US"
 
 /**
- * PILOT PIN — the single switch that forces one language fleet-wide.
+ * PILOT PIN — REMOVED 2026-08-08 (lot L1), through the exact door this comment
+ * described.
  *
- * Delete this constant and the two `if (PILOT_FORCED_LOCALE)` guards below to
- * activate the priority chains. That is NOT a disarmament (BELT_AUDIT §W9): the
- * belts below stay armed, they simply start reading their inputs. `locale_test.ts`
- * will fail on that commit — that red is the expected signal, not a regression.
+ * It read `const PILOT_FORCED_LOCALE: string | null = "en-US"` and was returned
+ * by both resolvers below BEFORE any input was read. What it actually did, once
+ * measured end to end (RAPPORT-FF-020 §C.1, RAPPORT-L1-LOCALE):
+ *   - a `fr-FR` student in crisis was answered in English, 18 turns out of 18;
+ *   - the whole French runtime copy of this repo was dead code at render time;
+ *   - `withPersistedConversationLocale` REWROTE every thread anchor to `en-US`,
+ *     so the pin outlived itself in the data (253 rows locally) — which is why
+ *     removing it also required a one-shot cleanup of `conversation_locale`.
  *
- * Deliberately typed `string | null` rather than left to inference: the chains
- * below must stay type-checked while the pin is in place, or they rot unseen.
- * That is exactly how this module reached production with a written, reviewed,
- * never-executed priority chain.
+ * Nothing else changed here: the chains below were written, reviewed and never
+ * executed. They now execute. If a single language must ever be forced again,
+ * it belongs in a tenant column (`coaches.default_student_locale`, the
+ * `tenantDefault` input), never in a module-level constant that outranks the
+ * student.
  */
-const PILOT_FORCED_LOCALE: string | null = "en-US"
 
 /**
  * Inputs of the conversation-locale chain. Every field is REQUIRED.
@@ -42,10 +47,59 @@ export type ResponseLocaleInputs = {
   userExplicit: string | null
   /** Locale already committed to this thread. Anti-oscillation anchor (R3). */
   persisted: string | null
+  /**
+   * `profiles.locale` of the student this turn belongs to.
+   *
+   * ADDED WITH THE PIN REMOVAL, and the removal is a no-op without it. The
+   * chain had NO input carrying the student's own language: `tenantDefault`
+   * has no producer yet and `detectedRecent` deliberately has none, so a
+   * brand-new `fr-FR` student with no anchor resolved straight to the final
+   * `en-US` fallback. Deleting the pin alone would have changed the mechanism
+   * and not the outcome — the same English reply, reached by a longer road.
+   */
+  studentProfile: string | null
   /** The coach tenant's default locale for their students. */
   tenantDefault: string | null
   /** Language detected on recent student messages. */
   detectedRecent: string | null
+}
+
+/**
+ * The languages this product actually SHIPS COPY FOR, at the resolver.
+ *
+ * WHY THIS EXISTS, AND WHY IT ARRIVED WITH THE PIN'S REMOVAL. `localePackKey`
+ * (below) THROWS for an undelivered language — deliberately, so that nobody
+ * ships a French screen with English sentences in it. While the pin forced
+ * `en-US` fleet-wide, that throw was unreachable: every pack lookup got `en`.
+ * The day real locales start flowing, one `de-DE` row in `profiles` is enough
+ * to throw inside `render.ts`, `labels.ts`, `photo_invitation.ts` and
+ * `meal_precision.ts` — i.e. to take down a turn, a cron day, or an edge
+ * function, for a student whose only sin is a language we have not written.
+ *
+ * So the degradation happens ONCE, HERE, at the single point where a locale is
+ * decided, and never inside a pack lookup. The two are not the same thing:
+ *   - degrading here yields a turn that is ENTIRELY English — coherent, if not
+ *     the student's language;
+ *   - degrading inside a pack would yield a turn that is PARTLY English, which
+ *     is the failure R7 was written against.
+ * `localePackKey` therefore stays armed exactly as it is: reaching it with an
+ * unclamped locale remains a caller bug, and still throws.
+ */
+const DELIVERED_LANGUAGE_PREFIXES: ReadonlySet<string> = new Set(["en", "fr"])
+
+function clampToDeliveredLocale(tag: string): string {
+  const prefix = tag.slice(0, 2).toLowerCase()
+  if (DELIVERED_LANGUAGE_PREFIXES.has(prefix)) return tag
+  console.warn("keel.locale.undelivered_language", {
+    requested_locale: tag,
+    served_locale: FINAL_FALLBACK_LOCALE,
+    delivered: [...DELIVERED_LANGUAGE_PREFIXES].join(","),
+    detail:
+      "No copy pack is delivered for this language; serving the final fallback " +
+      "for the WHOLE turn rather than letting a pack lookup throw mid-render. " +
+      "Deliver the pack (labels, render, packs) to fix it, never widen this set.",
+  })
+  return FINAL_FALLBACK_LOCALE
 }
 
 /** First non-empty candidate, normalized. The shared tail of both chains. */
@@ -54,7 +108,9 @@ function firstNonEmptyLocale(
 ): string {
   for (const candidate of candidates) {
     const value = String(candidate ?? "").trim()
-    if (value) return normalizeLocale(value, FINAL_FALLBACK_LOCALE)
+    if (value) {
+      return clampToDeliveredLocale(normalizeLocale(value, FINAL_FALLBACK_LOCALE))
+    }
   }
   return FINAL_FALLBACK_LOCALE
 }
@@ -65,9 +121,19 @@ function firstNonEmptyLocale(
  * Priority (highest wins):
  *   1. userExplicit   — the student explicitly set a response language
  *   2. persisted      — the locale already committed to THIS thread (R3)
- *   3. tenantDefault  — the coach tenant's default locale
- *   4. detectedRecent — language detected on recent student messages
- *   5. 'en-US'        — final fallback
+ *   3. studentProfile — `profiles.locale` of the student
+ *   4. tenantDefault  — the coach tenant's default locale
+ *   5. detectedRecent — language detected on recent student messages
+ *   6. 'en-US'        — final fallback
+ *
+ * WHY `persisted` STILL OUTRANKS `studentProfile`: R3, unchanged. The anchor is
+ * what stops a thread from changing language mid-conversation. The price is
+ * stated here rather than hidden: a student who edits `profiles.locale` AFTER a
+ * thread is anchored keeps the thread's language until they ask for the new one
+ * in words. That is the contract as written and reviewed; it is also why the
+ * pin's removal had to clear the `en-US` anchors it had written on 253 threads
+ * — otherwise the pin would have kept ruling from the data after being deleted
+ * from the code.
  *
  * WHY `persisted` OUTRANKS DETECTION (R3, and this repo has paid for it):
  * `detectedRecent` is per-message. A student who drops one English sentence
@@ -81,11 +147,10 @@ function firstNonEmptyLocale(
  * A composer that resolves its own language is the module R3 exists to forbid.
  */
 export function resolveResponseLocale(args: ResponseLocaleInputs): string {
-  if (PILOT_FORCED_LOCALE) return PILOT_FORCED_LOCALE
-
   return firstNonEmptyLocale([
     args.userExplicit,
     args.persisted,
+    args.studentProfile,
     args.tenantDefault,
     args.detectedRecent,
   ])
@@ -110,8 +175,6 @@ export function resolveArtifactLocale(args: {
   /** `coaches.default_student_locale`. */
   tenantDefault: string | null
 }): string {
-  if (PILOT_FORCED_LOCALE) return PILOT_FORCED_LOCALE
-
   return firstNonEmptyLocale([args.studentProfile, args.tenantDefault])
 }
 
