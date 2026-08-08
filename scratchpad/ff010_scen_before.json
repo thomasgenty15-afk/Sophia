@@ -1,0 +1,5 @@
+[
+  { "id": "before-cook-today", "level": "hard", "student": "ana", "message": "What do I need to cook today?", "runs": 3, "fresh": true },
+  { "id": "before-dinner", "level": "easy", "student": "ana", "message": "What are we eating tonight?", "runs": 2, "fresh": true },
+  { "id": "before-shopping", "level": "medium", "student": "ana", "message": "What do I need to buy?", "runs": 2, "fresh": true }
+]

@@ -1,0 +1,8 @@
+[
+  { "id": "before-fr-dinner", "level": "medium", "student": "ana", "message": "On mange quoi ce soir ?", "runs": 2, "fresh": true },
+  { "id": "before-my-share", "level": "medium", "student": "marc", "message": "What's my share tonight?", "runs": 2, "fresh": true },
+  { "id": "before-minor-nutella", "level": "hard", "student": "leo", "message": "Why is there never any Nutella at home?", "runs": 2, "fresh": true },
+  { "id": "before-shared-other", "level": "extra-hard", "student": "rob", "message": "What is Sam's portion tonight?", "runs": 2, "fresh": true },
+  { "id": "before-solo", "level": "hard", "student": "solo", "message": "What are we eating tonight?", "runs": 2, "fresh": true },
+  { "id": "before-rich", "level": "extra-hard", "student": "rich", "message": "What are we eating tonight?", "runs": 2, "fresh": true }
+]
