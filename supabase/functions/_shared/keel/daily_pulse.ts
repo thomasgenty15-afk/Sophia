@@ -658,12 +658,28 @@ export function pulseContextBlock(
   );
   lines.push("");
   lines.push("And the same rule for energy, hunger, sleep and digestion:");
+  // R4 — LE COMPTE DES COLLECTES SUIT CE QUI EXISTE VRAIMENT POUR CET ÉLÈVE.
+  //
+  // Cette ligne disait « already collected twice — every evening in one tap,
+  // every Sunday in six ratings » à TOUT LE MONDE. Depuis R4, les six notes du
+  // dimanche ne se demandent qu'aux élèves dont un coach humain les lit: pour
+  // tous les autres la deuxième collecte n'existe plus, et la phrase devenait un
+  // fait faux dans le seul bloc censé dire au modèle ce qu'il sait déjà. Le
+  // paramètre `hasWeeklyAxes` était DÉJÀ là — il décidait de la ligne au-dessus,
+  // et pas de celle-ci.
+  //
+  // L'interdiction ne bouge pas d'un mot: elle ne dépend pas du nombre de
+  // collectes, elle dépend du fait que personne ne consomme la réponse.
   lines.push(
     "- NEVER ask about them. Not 'how's your energy?', not 'how are you " +
       "sleeping?', not 'how's your appetite been?', not a softened version of " +
-      "any of those. They are already collected twice — every evening in one " +
-      "tap, every Sunday in six ratings — and a third ask is what kills the " +
-      "first two.",
+      "any of those. " +
+      (hasWeeklyAxes
+        ? "They are already collected twice — every evening in one tap, every " +
+          "Sunday in six ratings — and a third ask is what kills the first two."
+        : "The evening tap already collects this, once, and a second ask is " +
+          "what kills the first.") +
+      " Asking is not warmth here: nothing downstream reads the answer.",
   );
   lines.push(
     "- If they bring it up themselves, take it as context for your reply. It " +

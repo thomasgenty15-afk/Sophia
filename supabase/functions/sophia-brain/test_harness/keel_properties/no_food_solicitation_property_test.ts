@@ -27,7 +27,11 @@ import {
   MEAL_PRECISION_DAILY_CAP,
   type MealPrecisionAssessment,
 } from "../../../_shared/keel/meal_precision.ts";
-import { pulseContextBlock } from "../../../_shared/keel/daily_pulse.ts";
+import {
+  decideAskCadence,
+  decideDailyPulse,
+  pulseContextBlock,
+} from "../../../_shared/keel/daily_pulse.ts";
 import { buildCompanionSystemPrompt } from "../../agents/companion.ts";
 
 const TURNS = 20;
@@ -228,6 +232,156 @@ Deno.test("PROPRIÉTÉ — l'interdiction de réclamer un repas est là dans les
       assert(block.includes("never collect"));
     }
   }
+});
+
+// ---------------------------------------------------------------------------
+// 4. L'AUTRE DEMANDE NON SOLLICITÉE: « COMMENT TU TE SENS ? »
+//
+// Le filet du chantier nomme TROIS interdits, pas un: « ni "t'as mangé quoi ?",
+// ni "comment tu te sens ?", ni relance d'une question restée sans réponse ».
+// Les blocs 1 à 3 ne couvraient que le premier — l'état et la relance
+// n'existaient que dans les tests d'unité de `daily_pulse`, donc rien ne les
+// tenait ENSEMBLE, sur le même élève, tour après tour.
+//
+// La cadence elle-même (⌈7/3⌉ sur sept jours) est prouvée dans
+// `daily_pulse_test.ts`, où vit la constante. Ici on prouve la propriété
+// CONVERSATIONNELLE: quel que soit ce que l'élève a tapé ou pas, le contexte
+// injecté à chaque tour INTERDIT la question d'état au lieu de l'inviter.
+// ---------------------------------------------------------------------------
+
+/** Les formulations que la fiche nomme, et leurs variantes adoucies. */
+const STATE_ASK_PATTERNS: RegExp[] = [
+  /how('s| is) your energy/i,
+  /how are you sleeping/i,
+  /how('s| has) your appetite/i,
+  /how do you feel/i,
+  /how are you feeling/i,
+  /rate your/i,
+  /comment tu te sens/i,
+  /comment te sens-tu/i,
+];
+
+Deno.test("PROPRIÉTÉ — 20 tours consécutifs, le contexte n'invite JAMAIS la question d'état", () => {
+  // On balaie les états qui existent réellement: aucun tap, un tap récent, un
+  // tap ancien, avec et sans les six axes du dimanche. C'est le produit cartésien
+  // des situations dans lesquelles un prompt bavard irait « prendre des
+  // nouvelles » pour occuper le tour.
+  for (let turn = 0; turn < TURNS; turn++) {
+    const pulse = turn % 3 === 0 ? null : {
+      localDate: "2026-08-07",
+      level: (turn % 2 === 0 ? "hard" : "good") as "hard" | "good",
+      axis: null,
+      daysAgo: turn % 5,
+    };
+    for (const hasAxes of [true, false]) {
+      const block = pulseContextBlock(pulse, hasAxes);
+      const where = `tour ${turn}, axes=${hasAxes}`;
+
+      // L'interdiction est LÀ, dans les deux états.
+      assert(
+        block.includes("NEVER ask about them"),
+        `interdiction d'état absente — ${where}`,
+      );
+      assert(
+        block.includes("NEVER ASK AGAIN"),
+        `en-tête « déjà collecté » absent — ${where}`,
+      );
+
+      // Et aucune formulation de la question ne survit AILLEURS que dans la
+      // liste des interdits. Le bloc les CITE pour les interdire, donc on
+      // vérifie que chaque citation reste du côté « NEVER ».
+      const banIndex = block.indexOf("NEVER ask about them");
+      for (const pattern of STATE_ASK_PATTERNS) {
+        const match = pattern.exec(block);
+        if (!match) continue;
+        assert(
+          match.index > banIndex,
+          `« ${match[0]} » apparaît AVANT l'interdiction — ${where}`,
+        );
+      }
+    }
+  }
+});
+
+Deno.test("PROPRIÉTÉ — le compte des collectes ne mentionne le dimanche que s'il existe", () => {
+  // R4: les six notes du dimanche ne se collectent que là où un coach humain les
+  // lit. Dire « every Sunday in six ratings » à un élève à qui on ne les demande
+  // plus est un fait FAUX dans le seul bloc censé dire au modèle ce qu'il sait
+  // déjà — et c'est ce genre de phrase qui autorise ensuite le modèle à réclamer
+  // une donnée « manquante ».
+  const withAxes = pulseContextBlock(null, true);
+  assert(withAxes.includes("every Sunday in six ratings"));
+
+  const withoutAxes = pulseContextBlock(null, false);
+  assertEquals(withoutAxes.includes("six ratings"), false);
+  assertEquals(withoutAxes.includes("every Sunday"), false);
+  // L'interdiction, elle, est identique: elle ne dépend pas du nombre de
+  // collectes mais du fait que personne ne consomme la réponse.
+  assert(withoutAxes.includes("NEVER ask about them"));
+  assert(withoutAxes.includes("nothing downstream reads the answer"));
+});
+
+// ---------------------------------------------------------------------------
+// 5. LA RELANCE D'UNE QUESTION RESTÉE SANS RÉPONSE
+//
+// Troisième interdit du filet, et le plus facile à réintroduire par accident: un
+// silence se lit très naturellement comme « il n'a pas vu, renvoie ». Deux
+// chemins doivent tenir, et il faut LES DEUX — la garde du jour empêche le
+// second tick de la même soirée (la fenêtre fait deux heures, le cron est
+// horaire), le repli empêche le lendemain.
+// ---------------------------------------------------------------------------
+
+Deno.test("PROPRIÉTÉ — 20 soirs de silence: aucune relance, et le repli s'allonge", () => {
+  // Le pire cas: un élève à qui on a envoyé le message et qui ne répond jamais.
+  let sends = 0;
+  let asks = 0;
+  let daysSinceLastAsk: number | null = null;
+  let unansweredStreak = 0;
+
+  for (let day = 0; day < TURNS; day++) {
+    const cadence = decideAskCadence({
+      daysSinceLastAsk,
+      lastAnsweredLevel: null,
+      unansweredStreak,
+    });
+
+    // Deux ticks dans la fenêtre de deux heures, comme en production.
+    let sentToday = false;
+    for (const hour of [20, 21]) {
+      const decision = decideDailyPulse({
+        localHour: hour,
+        answeredToday: false,
+        sentToday,
+        minutesSinceLastExchange: null,
+        hasGround: true,
+        askDue: cadence.ask,
+        safetyBand: null,
+        hasActivePlan: true,
+      });
+      if (decision.decision === "send") {
+        sends++;
+        sentToday = true;
+        if (decision.ask) asks++;
+      } else if (hour === 21) {
+        // Le second tick doit être refusé POUR LA BONNE RAISON.
+        assertEquals(decision.reason, "already_sent_today", `jour ${day}`);
+      }
+    }
+
+    if (cadence.ask) {
+      unansweredStreak++;
+      daysSinceLastAsk = 1;
+    } else if (daysSinceLastAsk !== null) {
+      daysSinceLastAsk++;
+    }
+  }
+
+  // Un message par soir au maximum: jamais deux dans la même fenêtre.
+  assertEquals(sends, TURNS, `${sends} envois sur ${TURNS} soirs`);
+  // Et sur vingt soirs de silence, une poignée de questions — pas vingt. Le
+  // chiffre EN DUR: sans repli ce serait ~7, avec repli 4. Le pinner est ce qui
+  // fait tomber le test si quelqu'un « répare » le silence en relançant.
+  assertEquals(asks <= 4, true, `${asks} questions sur ${TURNS} soirs de silence`);
 });
 
 Deno.test("PROPRIÉTÉ — la question de précision N'EST PAS supprimée (hors périmètre)", () => {
