@@ -54,6 +54,16 @@ export const DAILY_ASK_KINDS = [
   "photo_invitation",
   /** FF-028 — la recommandation du jour. Ne porte AUCUN axe. */
   "daily_recommendation",
+  /**
+   * FF-029 — la question de pratique du soir. Ne porte AUCUN axe.
+   *
+   * ⚠️ SEULE LA QUESTION EST ICI. Le RAPPEL de pratique n'entre pas dans ce
+   * compteur et n'a pas à le lire: il énonce et n'attend rien. Le budget compte
+   * des DEMANDES; y soumettre un rappel ferait taire la voix du coach les jours
+   * où une question de précision est partie à midi, ce qui est l'inverse exact
+   * de ce que T4 protège.
+   */
+  "practice_question",
 ] as const;
 export type DailyAskKind = (typeof DAILY_ASK_KINDS)[number];
 

@@ -26,6 +26,7 @@ import {
   practiceBriefBlock,
   practiceForbiddenNumbers,
   practiceInjectionFor,
+  practiceKey,
   practicesFor,
   redactQuantities,
   selectPracticeForEvening,
@@ -328,11 +329,11 @@ Deno.test("aucune pratique ⇒ null, et une date illisible LÈVE", () => {
 
 Deno.test("R3: le soir où le pulse demande, la pratique est un RAPPEL", () => {
   assertEquals(
-    decidePracticeMode({ pulseAsks: true, restrictionFlag: false, practice: practice() }),
+    decidePracticeMode({ pulseAsks: true, restrictionFlag: false, askBudgetSpent: false, practiceIgnored: false, practice: practice() }),
     "remind",
   );
   assertEquals(
-    decidePracticeMode({ pulseAsks: false, restrictionFlag: false, practice: practice() }),
+    decidePracticeMode({ pulseAsks: false, restrictionFlag: false, askBudgetSpent: false, practiceIgnored: false, practice: practice() }),
     "ask",
   );
 });
@@ -341,7 +342,7 @@ Deno.test("R4: plancher TCA levé ⇒ plus aucune question, le rappel survit", (
   // Le rappel ne demande rien et ne mesure rien. Le supprimer priverait l'élève
   // de la voix de son coach au moment précis où elle vaut le plus.
   assertEquals(
-    decidePracticeMode({ pulseAsks: false, restrictionFlag: true, practice: practice() }),
+    decidePracticeMode({ pulseAsks: false, restrictionFlag: true, askBudgetSpent: false, practiceIgnored: false, practice: practice() }),
     "remind",
   );
 });
@@ -352,6 +353,8 @@ Deno.test("R7: une pratique non servable n'a pas de mode", () => {
       decidePracticeMode({
         pulseAsks: false,
         restrictionFlag: false,
+        askBudgetSpent: false,
+        practiceIgnored: false,
         practice: practice({ status }),
       }),
       "none",
@@ -365,6 +368,8 @@ Deno.test("`askable: false` et `remind_only` ne deviennent jamais une question",
     decidePracticeMode({
       pulseAsks: false,
       restrictionFlag: false,
+      askBudgetSpent: false,
+      practiceIgnored: false,
       practice: practice({ askable: false }),
     }),
     "remind",
@@ -373,6 +378,8 @@ Deno.test("`askable: false` et `remind_only` ne deviennent jamais une question",
     decidePracticeMode({
       pulseAsks: false,
       restrictionFlag: false,
+      askBudgetSpent: false,
+      practiceIgnored: false,
       practice: practice({ status: "remind_only" }),
     }),
     "remind",
@@ -459,4 +466,61 @@ Deno.test("l'injection assemble les trois d'un coup, ou rien", () => {
   assertEquals(injection!.mode, "ask");
   assertEquals(injection!.numbers, [4]);
   assert(injection!.block.includes("4 glasses"));
+});
+
+// ---------------------------------------------------------------------------
+// FF-029 — LE BUDGET DE DEMANDE (T4) ET L'IDENTITÉ D'UNE PRATIQUE
+// ---------------------------------------------------------------------------
+
+Deno.test("T4: la demande du jour déjà partie ⇒ RAPPEL, jamais une question", () => {
+  // Le défaut fermé: une question de précision à midi (FF-017) PUIS une question
+  // de pratique à 20h30 font deux demandes dans la journée, obtenues en
+  // respectant deux fois une règle qui en interdit une.
+  assertEquals(
+    decidePracticeMode({
+      pulseAsks: false,
+      restrictionFlag: false,
+      askBudgetSpent: true,
+      practiceIgnored: false,
+      practice: practice(),
+    }),
+    "remind",
+  );
+});
+
+Deno.test("T4: le budget ne fait JAMAIS taire le rappel", () => {
+  // Le budget compte des DEMANDES. Un rappel n'en est pas une: le soumettre au
+  // plafond retirerait la voix du coach au motif qu'on a déjà pris ailleurs.
+  const mode = decidePracticeMode({
+    pulseAsks: false,
+    restrictionFlag: false,
+    askBudgetSpent: true,
+    practiceIgnored: true,
+    practice: practice({ askable: false }),
+  });
+  assertEquals(mode, "remind");
+});
+
+Deno.test("R7: une pratique décrochée cesse d'être une question, pas d'exister", () => {
+  assertEquals(
+    decidePracticeMode({
+      pulseAsks: false,
+      restrictionFlag: false,
+      askBudgetSpent: false,
+      practiceIgnored: true,
+      practice: practice(),
+    }),
+    "remind",
+  );
+});
+
+Deno.test("practiceKey est stable, insensible à la casse et aux accents", () => {
+  assertEquals(
+    practiceKey("Bois de l'eau régulièrement"),
+    practiceKey("BOIS DE L'EAU REGULIEREMENT"),
+  );
+  // Reformuler EST une autre pratique: la lassitude mesurée portait sur la
+  // phrase d'avant, et remettre le compteur à zéro est la bonne réponse.
+  assert(practiceKey("Drink water") !== practiceKey("Drink more water"));
+  assertThrows(() => practiceKey("   "));
 });

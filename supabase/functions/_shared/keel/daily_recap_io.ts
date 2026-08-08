@@ -24,9 +24,21 @@
  */
 
 import {
+  countDailyAsks,
+  DAILY_ASK_BUDGET,
+  recordDailyAsk,
+} from "./daily_ask_budget.ts";
+import {
+  durablyIgnoredKeys,
+  readPracticeAdherence,
+  rotationPool,
+} from "./daily_practice_adherence.ts";
+import { loadPracticeAskRecords } from "./daily_practice_adherence_io.ts";
+import {
   decidePracticeMode,
   type PracticeInjection,
   practiceInjectionFor,
+  practiceKey,
   practicesFor,
   selectPracticeForEvening,
 } from "./daily_practices.ts";
@@ -185,6 +197,16 @@ export interface ComposedRecapBody {
    * empêcher un étage plus haut.
    */
   practiceMode: "remind" | "ask" | "none";
+  /**
+   * FF-029 — QUELLE pratique est partie (`practiceKey`), ou `null`.
+   *
+   * Elle sort d'ici pour être ÉCRITE dans le ledger par l'appelant, et pour
+   * aucune autre raison. Sans elle, « une question de pratique est partie ce
+   * soir » ne se rattache à aucune pratique trois semaines plus tard, et R7
+   * (« une pratique ignorée durablement se remplace ») n'a rien à lire: le
+   * remplacement deviendrait une intention écrite dans une fiche.
+   */
+  practiceKey: string | null;
 }
 
 /**
@@ -240,17 +262,25 @@ export async function composeRecapBody(
     // compte, il n'a pas de voix. Y coller une phrase de coach écrite à la main
     // serait la phrase figée que tout ce lot refuse.
     practiceMode: "none",
+    practiceKey: null,
   });
 
   // Pas de sol, pas de message: rien à composer, et surtout rien à inventer.
   // C'est ici que se tient la promesse « une journée vide n'a pas d'ouverture »
   // — le modèle n'est jamais appelé sur une journée qu'il devrait meubler.
   if (deterministic === null) {
-    return { body: null, source: "fallback", reason: "no_ground", practiceMode: "none" };
+    return {
+      body: null,
+      source: "fallback",
+      reason: "no_ground",
+      practiceMode: "none",
+      practiceKey: null,
+    };
   }
 
   let doctrineBlock: string;
   let practice: PracticeInjection | null = null;
+  let chosenKey: string | null = null;
   try {
     const loaded = await loadPublishedDoctrine(db, args.userId);
     // PAS DE COMPOSITION SANS DOCTRINE: sans méthode publiée il n'y a aucune
@@ -276,22 +306,64 @@ export async function composeRecapBody(
       loaded.goal,
       args.practiceContext.isMinor,
     );
+
+    // ── FF-029 R7 — LA ROTATION PASSE À CÔTÉ DE CE QUI NE PORTE PLUS ──────
+    //
+    // La lecture n'a lieu QUE s'il y a une pratique à servir: sur l'écrasante
+    // majorité des coachs, qui n'en ont écrit aucune, elle ne coûte rien. Elle
+    // ne remonte jamais — une panne rend « rien d'ignoré », donc la rotation
+    // d'avant FF-029, à l'identique.
+    const pool = eligible.length > 0
+      ? rotationPool(
+        eligible,
+        durablyIgnoredKeys(
+          readPracticeAdherence(
+            await loadPracticeAskRecords(db, {
+              userId: args.userId,
+              todayLocalDate: args.practiceContext.localDate,
+            }),
+          ),
+        ),
+      )
+      : { practices: eligible, allIgnored: false };
+
     const chosen = selectPracticeForEvening({
-      practices: eligible,
+      practices: pool.practices,
       userId: args.userId,
       localDate: args.practiceContext.localDate,
     });
+
+    // ── T4 — LE BUDGET DE DEMANDE, LU AVANT DE DÉCIDER DU MODE ────────────
+    //
+    // UNE demande par jour, TOUTES surfaces confondues. Sans cette lecture, une
+    // question de précision partie à midi (FF-017) et une question de pratique
+    // partie à 20h30 font deux demandes dans la journée — obtenues en
+    // respectant deux fois une règle qui en interdit une.
+    //
+    // Elle ne se paie que s'il y a une pratique à servir, et `countDailyAsks`
+    // est fail-closed: une lecture en panne rend le plafond ATTEINT, donc un
+    // RAPPEL. On perd la question, jamais la voix du coach.
+    const askBudgetSpent = chosen
+      ? (await countDailyAsks(db, {
+        userId: args.userId,
+        localDate: args.practiceContext.localDate,
+      })).count >= DAILY_ASK_BUDGET
+      : true;
+
     practice = practiceInjectionFor({
       practice: chosen,
       mode: chosen
         ? decidePracticeMode({
           pulseAsks: args.practiceContext.pulseAsks,
           restrictionFlag: args.practiceContext.restrictionFlag,
+          askBudgetSpent,
+          practiceIgnored: pool.allIgnored,
           practice: chosen,
         })
         : "none",
       isMinor: args.practiceContext.isMinor,
     });
+    chosenKey = practice && chosen ? practiceKey(chosen.label) : null;
   } catch (error) {
     return fallback(
       `doctrine_load_failed:${error instanceof Error ? error.message : String(error)}`,
@@ -339,10 +411,45 @@ export async function composeRecapBody(
 
   const verdict = acceptComposedRecap(raw, args.facts, practice);
   if (!verdict.ok) return fallback(`rejected:${verdict.reason}:${verdict.detail}`);
+
+  // ── T4 — LA PLACE EST PRISE AVANT QUE LA DEMANDE NE PARTE ───────────────
+  //
+  // L'ordre est le contrat de `daily_ask_budget.ts`, mot pour mot: « une demande
+  // hors compteur rend le plafond décoratif ». La réservation a lieu APRÈS le
+  // verdict — une composition refusée ne porte aucune question, donc lui faire
+  // consommer une place condamnerait au silence une surface qui, elle, aurait
+  // parlé.
+  //
+  // ⚠️ ÉCHOUER ICI FAIT REPLIER TOUT LE MESSAGE, et c'est délibéré. Le texte
+  // composé porte DÉJÀ le point d'interrogation: on ne peut plus le retirer sans
+  // réécrire la phrase du modèle. Entre « une demande non comptée » et « un soir
+  // sans la voix du coach », c'est la seconde qui est réparable — et la première
+  // est exactement l'élève à huit demandes par jour.
+  //
+  // La clé d'idempotence est la journée locale et pas un message entrant: il n'y
+  // en a pas ici. Un rejeu du job le même soir retombe sur `alreadyRecorded` et
+  // ne consomme pas une seconde place.
+  if (practice?.mode === "ask") {
+    const recorded = await recordDailyAsk(db, {
+      userId: args.userId,
+      localDate: args.practiceContext.localDate,
+      kind: "practice_question",
+      source: "chat",
+      // `axis: null` OBLIGATOIRE: le CHECK conditionnel en base refuse un axe
+      // sur tout autre genre que la question de précision.
+      axis: null,
+      text: verdict.text,
+      protocolEventId: null,
+      askedForMessageId: `practice:${args.practiceContext.localDate}`,
+    });
+    if (!recorded.ok) return fallback("ask_record_failed");
+  }
+
   return {
     body: verdict.text,
     source: "composed",
     reason: "",
     practiceMode: practice?.mode ?? "none",
+    practiceKey: chosenKey,
   };
 }

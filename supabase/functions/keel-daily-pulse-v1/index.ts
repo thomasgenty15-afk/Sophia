@@ -16,6 +16,10 @@ import {
   PULSE_ASKED_METADATA_KEY,
   wasPulseSentToday,
 } from "../_shared/keel/daily_pulse_io.ts";
+import {
+  PRACTICE_KEY_METADATA_KEY,
+  PRACTICE_MODE_METADATA_KEY,
+} from "../_shared/keel/daily_practice_adherence_io.ts";
 import { hasRecapGround } from "../_shared/keel/daily_recap.ts";
 import { wasRecommendationSentToday } from "../_shared/keel/daily_recommendation_io.ts";
 import { composeRecapBody, loadDayFacts } from "../_shared/keel/daily_recap_io.ts";
@@ -398,6 +402,21 @@ Deno.serve(async (req) => {
                 [PULSE_ASKED_METADATA_KEY]: decision.ask,
                 body_source: recap.source,
                 body_fallback_reason: recap.reason || null,
+                // ── FF-029 — CE QUE CE MESSAGE PORTAIT COMME PRATIQUE ─────
+                //
+                // Deux clés, écrites parce qu'elles seront RELUES: R7 (« une
+                // pratique ignorée durablement se remplace, ne se répète pas »)
+                // demande de savoir, trois semaines plus tard, quelle pratique
+                // a été QUESTIONNÉE et si l'élève a écrit après. Sans cette
+                // trace, la règle est une intention dans une fiche.
+                //
+                // C'est un FAIT (ce qui est parti), jamais un score: le compte
+                // n'existe nulle part en base, il se dérive à la lecture
+                // (`daily_practice_adherence.ts`). `adherence_score` est l'une
+                // des quatre surfaces qu'une pratique n'a pas le droit d'être;
+                // la fabriquer en coulisse serait la même chose sans le nom.
+                [PRACTICE_MODE_METADATA_KEY]: recap.practiceMode,
+                [PRACTICE_KEY_METADATA_KEY]: recap.practiceKey,
               },
               // L'HORLOGE DU JOB EST AUSSI CELLE DE SES EFFETS.
               // Sans ce passage, `now` gouvernait la DÉCISION (fenêtre 20-22 h

@@ -484,12 +484,43 @@ export function studentFingerprint(userId: string): number {
   if (!text) {
     throw new Error("[keel/daily_practices] studentFingerprint: empty userId");
   }
+  return fnv1a(text);
+}
+
+function fnv1a(text: string): number {
   let h = 0x811c9dc5;
   for (let i = 0; i < text.length; i++) {
     h = (h ^ text.charCodeAt(i)) >>> 0;
     h = Math.imul(h, 0x01000193) >>> 0;
   }
   return h;
+}
+
+/**
+ * FF-029 — L'IDENTITÉ D'UNE PRATIQUE, DÉRIVÉE DE SES MOTS.
+ *
+ * ── POURQUOI PAS UN `id` STOCKÉ ────────────────────────────────────────────
+ * Une pratique n'a pas de clé primaire: elle vit dans un `jsonb` sur la ligne
+ * de doctrine, et FF-001 a délibérément refusé une table à part (« revenir en
+ * arrière ramène TOUT, parce que tout est sur la même ligne »). Lui coller un
+ * UUID maintenant obligerait à le faire naître à l'écriture, à le préserver au
+ * `rollback`, et à le rattraper sur toutes les lignes déjà écrites — trois
+ * occasions de produire une pratique sans identité.
+ *
+ * L'empreinte du LABEL replié est stable tant que le coach ne réécrit pas ses
+ * mots, et c'est exactement la sémantique qu'on veut: reformuler une pratique
+ * en fait une AUTRE aux yeux de l'adhérence, ce qui est la bonne réponse — la
+ * lassitude mesurée portait sur la phrase d'avant.
+ *
+ * `fold` et pas le texte brut: une majuscule ou un accent changé ne doit pas
+ * remettre le compteur d'une pratique à zéro.
+ */
+export function practiceKey(label: string): string {
+  const folded = fold(label);
+  if (!folded) {
+    throw new Error("[keel/daily_practices] practiceKey: empty label");
+  }
+  return fnv1a(folded).toString(16).padStart(8, "0");
 }
 
 /**
@@ -603,26 +634,58 @@ export type PracticeMode = "remind" | "ask" | "none";
  *                            demande rien et ne mesure rien: le supprimer
  *                            priverait l'élève de la voix de son coach au
  *                            moment précis où elle vaut le plus.
- *   3. le pulse demande (R3) — une seule question par bulle. Deux questions dans
+ *   3. le budget de demande (T4) — UNE demande par jour, toutes surfaces
+ *                            confondues. Voir ci-dessous.
+ *   4. le pulse demande (R3) — une seule question par bulle. Deux questions dans
  *                            un message du soir, c'est le formulaire quotidien
  *                            qu'on vient de démonter, en pire.
- *   4. `askable`           — certaines pratiques ne deviennent jamais une
+ *   5. `askable`           — certaines pratiques ne deviennent jamais une
  *                            question, et c'est le coach qui le dit.
  *
- * `restrictionFlag` est REQUIS. Une garde à paramètre optionnel est une garde
- * désarmée: ce dépôt a expédié `safetyBand` en optionnel, l'unique appelant de
- * production ne le passait pas, et la garde était verte et morte.
+ * ── T4, ET POURQUOI LE RAPPEL N'Y EST PAS SOUMIS (FF-029) ──────────────────
+ * « Une seule demande par jour, toutes surfaces confondues » est la règle
+ * transverse du domaine conversation, et son compteur est UNIQUE
+ * (`daily_ask_budget.ts`). Sans ce gate, un élève pouvait recevoir une question
+ * de précision à midi (FF-017) PUIS une question de pratique à 20h30 — deux
+ * demandes dans la journée, obtenues en respectant deux fois une règle qui en
+ * interdit une.
+ *
+ * Le RAPPEL, lui, ne consomme rien et ne lit rien: il ne demande pas. Le budget
+ * compte des DEMANDES — une phrase qui énonce une pratique et n'attend aucune
+ * réponse n'en est pas une, et l'y soumettre ferait taire la voix du coach les
+ * jours où une question de précision est partie. C'est exactement l'inverse de
+ * ce que T4 protège.
+ *
+ * ── R7 (FF-029) — ET POURQUOI IL SE RÈGLE ICI PLUTÔT QU'À LA SÉLECTION ─────
+ * « Une pratique ignorée durablement se remplace, ne se répète pas. » Le
+ * remplacement se fait à la SÉLECTION (`rotationPool`), qui passe à côté d'une
+ * pratique décrochée tant qu'il en reste une autre. `practiceIgnored` couvre le
+ * cas que la sélection ne peut pas régler: quand TOUTES sont décrochées, il n'y
+ * a plus personne à qui passer le relais. On arrête alors de DEMANDER sans
+ * arrêter de PARLER — se taire retirerait à l'élève la seule chose que ce
+ * message lui donne, en punition d'un silence que R5 déclare légitime.
+ *
+ * `restrictionFlag`, `askBudgetSpent` et `practiceIgnored` sont REQUIS. Une
+ * garde à paramètre optionnel est une garde désarmée: ce dépôt a expédié
+ * `safetyBand` en optionnel, l'unique appelant de production ne le passait pas,
+ * et la garde était verte et morte.
  */
 export function decidePracticeMode(args: {
   /** Le pulse pose-t-il SA question ce soir ? (`decideDailyPulse().ask`) */
   pulseAsks: boolean;
   /** Le plancher TCA est-il levé pour cet élève ? REQUIS. */
   restrictionFlag: boolean;
+  /** La demande du jour est-elle déjà partie ? (T4) REQUIS. */
+  askBudgetSpent: boolean;
+  /** Cette pratique-là a-t-elle été durablement ignorée ? (R7) REQUIS. */
+  practiceIgnored: boolean;
   practice: DailyPractice;
 }): PracticeMode {
   const p = args.practice;
   if (!SHIPPABLE_STATUSES.includes(p.status)) return "none";
   if (args.restrictionFlag) return "remind";
+  if (args.askBudgetSpent) return "remind";
+  if (args.practiceIgnored) return "remind";
   if (args.pulseAsks) return "remind";
   if (!p.askable || p.status === "remind_only") return "remind";
   return "ask";

@@ -82,11 +82,15 @@ Deno.test("le plafond est UN, et la table est celle du repas déclaré", () => {
   assertEquals(DAILY_ASK_LEDGER_TABLE, "meal_precision_questions");
 });
 
-Deno.test("les trois genres sont là, et la liste est fermée", () => {
+Deno.test("les quatre genres sont là, et la liste est fermée", () => {
+  // Miroir EXACT du CHECK `meal_precision_questions_ask_kind_check`
+  // (migration 20260808190100). Un genre ajouté ici sans l'être en base est
+  // refusé à l'écriture au runtime; ce test le dit avant.
   assertEquals([...DAILY_ASK_KINDS], [
     "meal_precision_question",
     "photo_invitation",
     "daily_recommendation",
+    "practice_question",
   ]);
 });
 
