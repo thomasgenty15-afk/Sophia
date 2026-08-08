@@ -1,0 +1,107 @@
+
+══════════════════════════════════════════════════════════════════════════════
+▌ PHASE A — LA CAPTURE (easy FR · medium EN · R7 le plat · tiers)
+══════════════════════════════════════════════════════════════════════════════
+
+── passage 1/3 ──
+  → « t'as mis du riz, mais j'aime pas ça »
+    Got it — the rice is the part you don’t want. The lunch line still just needs protein and something that grew; rice isn’t the point here.
+  → « I don't like mushrooms »
+    Got it — mushrooms are out. The lunch line still just needs protein and something that grew; mushrooms aren’t the point here.
+  → « j'ai pas aimé le curry »
+    Got it — curry is out too. The lunch line still just needs protein and something that grew; curry isn’t the point here.
+  → « mon fils déteste les épinards »
+    Got it — spinach is out too. The lunch line still just needs protein and something that grew; spinach isn’t the point here.
+  ✅ [adversarial] H10/R6 la capture est silencieuse — aucune demande de confirmation
+      preuve: 4 tours, aucune formule de confirmation ("veux-tu que j'enregistre", "should I remember that", …)
+
+  ── memory_items ──
+    0742c5d5 statement  candidate  c=0.98 sens=normal    [sante.alimentation] Dislikes rice.
+    46282681 statement  candidate  c=0.99 sens=normal    [sante.alimentation] Dislikes mushrooms.
+    427d43f6 statement  candidate  c=0.92 sens=normal    [sante.alimentation] Disliked the curry.
+    a3dcf969 statement  candidate  c=0.97 sens=sensitive [relations.famille] His son hates spinach.
+  ✅ [easy] FR courte « t'as mis du riz, mais j'aime pas ça » → item alimentaire
+      preuve: memory_items 0742c5d5 status=candidate c=0.98 [sante.alimentation] « Dislikes rice. »
+  ✅ [medium] EN courte « I don't like mushrooms » → item alimentaire
+      preuve: memory_items 46282681 status=candidate c=0.99 « Dislikes mushrooms. »
+  ✅ [medium] R7 « j'ai pas aimé le curry » → le PLAT, pas ses ingrédients
+      preuve: item « Disliked the curry. » ; items décomposés en ingrédients: aucun
+  ⚪ [xhard] préférence pour un tiers (« mon fils déteste les épinards ») — NON TRANCHÉ par la fiche §11
+      observé: memory_items a3dcf969 [relations.famille] « His son hates spinach. »
+      proposé au plan de l'ÉLÈVE par le pont: non (sensitivity=sensitive, clés=[relations.famille])
+      propositions totales du pont ce passage: 3 — ["Dislikes rice.","Dislikes mushrooms.","Disliked the curry."]
+
+── passage 2/3 ──
+  → « t'as mis du riz, mais j'aime pas ça »
+    You’re saying the rice is there, but you don’t like it. That’s a straight mismatch with your preference, so don’t force it just because it’s on the pl
+  → « I don't like mushrooms »
+    Got it — mushrooms are a no. Keep them off the plate.
+  → « j'ai pas aimé le curry »
+    You didn’t like the curry. Keep that off the plate.
+  → « mon fils déteste les épinards »
+    Noted — spinach is off the plate.
+  ✅ [adversarial] H10/R6 la capture est silencieuse — aucune demande de confirmation
+      preuve: 4 tours, aucune formule de confirmation ("veux-tu que j'enregistre", "should I remember that", …)
+
+  ── memory_items ──
+    51a280ba statement  candidate  c=0.95 sens=normal    [sante.alimentation] Does not like rice.
+    090dbcab statement  candidate  c=0.98 sens=normal    [sante.alimentation] Does not like mushrooms.
+    8a6fbe1e statement  candidate  c=0.90 sens=normal    [sante.alimentation] Did not like curry.
+    c3009000 statement  active     c=0.97 sens=sensitive [relations.famille,sante.alimentation] Son hates spinach.
+  ✅ [easy] FR courte « t'as mis du riz, mais j'aime pas ça » → item alimentaire
+      preuve: memory_items 51a280ba status=candidate c=0.95 [sante.alimentation] « Does not like rice. »
+  ✅ [medium] EN courte « I don't like mushrooms » → item alimentaire
+      preuve: memory_items 090dbcab status=candidate c=0.98 « Does not like mushrooms. »
+  ✅ [medium] R7 « j'ai pas aimé le curry » → le PLAT, pas ses ingrédients
+      preuve: item « Did not like curry. » ; items décomposés en ingrédients: aucun
+  ⚪ [xhard] préférence pour un tiers (« mon fils déteste les épinards ») — NON TRANCHÉ par la fiche §11
+      observé: memory_items c3009000 [relations.famille,sante.alimentation] « Son hates spinach. »
+      proposé au plan de l'ÉLÈVE par le pont: non (sensitivity=sensitive, clés=[relations.famille,sante.alimentation])
+      propositions totales du pont ce passage: 3 — ["Does not like rice.","Does not like mushrooms.","Did not like curry."]
+
+── passage 3/3 ──
+  → « t'as mis du riz, mais j'aime pas ça »
+    Got it — rice is the issue, not the rest. We’ll leave rice out.
+  → « I don't like mushrooms »
+    Got it — no mushrooms either. I’ll leave them out.
+  → « j'ai pas aimé le curry »
+    Got it — no curry either. I’ll leave that out.
+  → « mon fils déteste les épinards »
+    Got it — no spinach either. I’ll leave that out.
+  ✅ [adversarial] H10/R6 la capture est silencieuse — aucune demande de confirmation
+      preuve: 4 tours, aucune formule de confirmation ("veux-tu que j'enregistre", "should I remember that", …)
+
+  ── memory_items ──
+    e294882f statement  active     c=0.95 sens=normal    [sante.alimentation] Alix does not like rice.
+    ef5a0d28 statement  active     c=0.98 sens=normal    [sante.alimentation] Alix does not like mushrooms.
+    8d4b6c38 statement  active     c=0.93 sens=normal    [sante.alimentation] Alix did not like curry.
+    45eacdd5 statement  active     c=0.97 sens=sensitive [relations.famille,sante.alimentation] Alix's son dislikes spinach.
+  ✅ [easy] FR courte « t'as mis du riz, mais j'aime pas ça » → item alimentaire
+      preuve: memory_items e294882f status=active c=0.95 [sante.alimentation] « Alix does not like rice. »
+  ✅ [medium] EN courte « I don't like mushrooms » → item alimentaire
+      preuve: memory_items ef5a0d28 status=active c=0.98 « Alix does not like mushrooms. »
+  ✅ [medium] R7 « j'ai pas aimé le curry » → le PLAT, pas ses ingrédients
+      preuve: item « Alix did not like curry. » ; items décomposés en ingrédients: aucun
+  ⚪ [xhard] préférence pour un tiers (« mon fils déteste les épinards ») — NON TRANCHÉ par la fiche §11
+      observé: memory_items 45eacdd5 [relations.famille,sante.alimentation] « Alix's son dislikes spinach. »
+      proposé au plan de l'ÉLÈVE par le pont: non (sensitivity=sensitive, clés=[relations.famille,sante.alimentation])
+      propositions totales du pont ce passage: 3 — ["Alix does not like rice.","Alix does not like mushrooms.","Alix did not like curry."]
+
+══════════════════════════════════════════════════════════════════════════════
+▌ SYNTHÈSE
+══════════════════════════════════════════════════════════════════════════════
+12/12 verdicts au vert
+  ✅ [adversarial] H10/R6 la capture est silencieuse — aucune demande de confirmation
+  ✅ [easy] FR courte « t'as mis du riz, mais j'aime pas ça » → item alimentaire
+  ✅ [medium] EN courte « I don't like mushrooms » → item alimentaire
+  ✅ [medium] R7 « j'ai pas aimé le curry » → le PLAT, pas ses ingrédients
+  ✅ [adversarial] H10/R6 la capture est silencieuse — aucune demande de confirmation
+  ✅ [easy] FR courte « t'as mis du riz, mais j'aime pas ça » → item alimentaire
+  ✅ [medium] EN courte « I don't like mushrooms » → item alimentaire
+  ✅ [medium] R7 « j'ai pas aimé le curry » → le PLAT, pas ses ingrédients
+  ✅ [adversarial] H10/R6 la capture est silencieuse — aucune demande de confirmation
+  ✅ [easy] FR courte « t'as mis du riz, mais j'aime pas ça » → item alimentaire
+  ✅ [medium] EN courte « I don't like mushrooms » → item alimentaire
+  ✅ [medium] R7 « j'ai pas aimé le curry » → le PLAT, pas ses ingrédients
+
+nettoyage: 6 compte(s)

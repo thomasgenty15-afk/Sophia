@@ -316,7 +316,7 @@ et vérifier que R5 passe 3/3.
 | **H6** | `generate-household-meal-v1` ne réconcilie pas : une préférence démentie y reste servie indéfiniment. | 🔴 **CONFIRMÉE et corrigée** — §2.1 E3. |
 | **H7** | La fenêtre « invisible le jour même » de la fiche est en réalité **non bornée** : nuit + visite de l'écran + péremption à J+14. | 🔴 **CONFIRMÉE** — nuit + clic + péremption J+14 ; amendement A2 proposé. |
 | **H8** | Le plafond de 20 ne vaut que pour le **prompt** ; la liste `kept` en base n'a aucun plafond et croît sans fin. | 🔴 **CONFIRMÉE, non corrigée** (faible gravité) — voir ci-dessous. |
-| **H9** | Le zéro de **R5** : l'item est écrit, gardé, servi — et le générateur remet quand même l'aliment. | 🔴 **CONFIRMÉE** — R5 rate en run réel ; cause localisée §2.4, correctif bloqué. |
+| **H9** | Le zéro de **R5** : l'item est écrit, gardé, servi — et le générateur remet quand même l'aliment. | ✅ **INFIRMÉE** — 3/3 avec témoin, une fois la sonde réparée. Les 2 « rouges » initiaux étaient les miens (encadré §4.1). |
 | **H10** | Le formulaire déguisé (**R6**) : la réponse demande confirmation avant d'enregistrer. | ✅ **INFIRMÉE** — R6 tenue, aucune formule de confirmation sur l'ensemble des tours (§4.0). |
 
 ### Les deux tranchées par lecture de code (pas de run nécessaire)
@@ -357,7 +357,7 @@ Décor de chaque passage : coach avec doctrine publiée, élève KEEL
 |---|---|---|---|
 | **A** | capture FR/EN, R7, tiers, R6 | 3 | **12/12 ✅** |
 | **B** | R1 allergie ≠ préférence, 2 langues | 2 × 2 élèves | **8/8 ✅** |
-| **C** | la boucle jusqu'au plat, rétractation | 2 runs × 3 | **R5 et R3 : voir §4.1 / §4.2** |
+| **C** | la boucle jusqu'au plat, rétractation | 3 runs × 3 | **R5 3/3 ✅** (sonde corrigée) · **R3 8/9**, 1 🔴 non déterministe |
 | **E** | 8 préférences accumulées | 1 | voir §4.1quinquies |
 | **F** | préférences contradictoires | 2 | **✅**, avec une réserve sur §7 |
 | **G** | sur-capture (ma propre contre-mesure) | 2 | **2/2 ✅** |
@@ -407,10 +407,30 @@ protection existe et qu'elle est **accidentelle**.
 |---|---|---|---|
 | easy | phrase courte FR → `memory_items` | **6/6 ✅** | ex. `a6ea8f16 statement candidate c=0.95 [sante.alimentation] « Does not like rice. »` |
 | easy | la préférence gardée atteint `practical_constraints` | **6/6 ✅** | `student_goals.practical_constraints.food_preferences = ["Does not like rice."]` ; vue prompt : `["2026-08-08 — Does not like rice."]` |
-| easy | **R5 — le repas suivant ne contient pas de riz** | **5/6 ✅, 1 🔴** | témoin AVANT : `« chicken stir-fry rice bowl »` ; APRÈS : plus de riz sur 5 passages. Le rouge : riz revenu alors que la préférence était servie |
-| hard | §7 génération le jour même, avant memorizer | **6/6 ✅** | `food_preferences en base: []` — limite documentée, pas un défaut |
-| hard | **R3 — la rétractation est honorée** | **RED, ~1/3** | voir §4.2 |
-| adversarial | **H3** le résumé interne ne fuit pas en texte visible | **6/6 ✅** | aucune préférence retrouvée mot pour mot dans le plan ; prénom absent |
+| easy | **R5 — le repas suivant ne contient pas de riz** | **3/3 ✅** (sonde corrigée) | témoin AVANT : `« Chicken, roasted peppers and green beans with rice »` ; APRÈS : `94 termes d'assiette, aucun` · `98, aucun` · `87, aucun` ; préférence servie : `["2026-08-08 — Does not like rice."]` |
+| hard | §7 génération le jour même, avant memorizer | **9/9 ✅** | `food_preferences en base: []` — limite documentée, pas un défaut |
+| hard | **R3 — la rétractation est honorée** | **8/9 ✅, 1 🔴** | verts : `items retirés par la mémoire: 1944a292=superseded` ; le rouge : voir §4.2 |
+| adversarial | **H3** le résumé interne ne fuit pas en texte visible | **9/9 ✅** | aucune préférence retrouvée mot pour mot dans le plan ; prénom absent |
+
+> #### ⚠️ Correction de méthode — deux « ROUGES » de R5 étaient les miens
+>
+> Les deux premiers runs de la phase C ont rendu un rouge R5 chacun. **Les
+> deux venaient de ma sonde, pas du code.** Elle cherchait « rice » dans le
+> JSON **entier** de la réponse, et a mordu sur une phrase de `rationale` :
+>
+> ```
+> « …keeps the meal satisfying WITHOUT LEANING ON RICE. »
+> ```
+>
+> c'est-à-dire sur le modèle **expliquant qu'il avait évité le riz**. Sonde
+> refaite pour ne lire que les titres de plats, les ingrédients et la liste de
+> courses (`foodOnPlate`), puis **re-mesure à code identique** — rien n'avait
+> changé entre les deux runs côté générateur : **18/18, R5 3/3**.
+>
+> Ce n'est donc **pas** un rouge re-couru jusqu'au vert : c'est un instrument
+> réparé et une mesure refaite. La distinction est celle qui compte, et je la
+> pose explicitement parce que le contraire — re-lancer jusqu'à obtenir le
+> vert — est précisément ce que ce dépôt s'interdit.
 
 ### 4.1bis Phase B — R1, l'allergie n'est pas une préférence (2 passages × 2 langues)
 
@@ -560,10 +580,11 @@ tours joués — la capture est bien silencieuse.
 
 ## 5. Ce qui reste ouvert
 
-### RED-1 · La rétractation n'est honorée qu'une fois sur deux à trois
+### RED-1 · La rétractation n'est pas toujours honorée (1 échec sur 9)
 
-Mesuré §4.2. La cause est le `correction` du memorizer, produit par un LLM,
-donc non déterministe. **Non corrigé** — le corriger demande soit un plancher
+Mesuré §4.2 : **8 passages sur 9** honorent la rétractation (`superseded` +
+réconciliation), **un** ne l'honore pas. La cause est le `correction` du
+memorizer, produit par un LLM, donc non déterministe. **Non corrigé** — le corriger demande soit un plancher
 déterministe de rétractation (chantier à part, et le dépôt s'est déjà interdit
 un second écrivain de la mémoire), soit une réconciliation serveur qui
 n'attende pas le lien : par exemple brancher `preferencesWorthRechecking`
@@ -575,11 +596,18 @@ Le risque le plus cher n'est pas la ligne périmée en soi : c'est qu'elle est
 modèle peut s'en sortir ; mais si l'élève ne garde jamais la nouvelle ligne
 (il faut un clic), le prompt ne contient QUE la périmée.
 
-### RED-2 · R5 rate ~1 fois sur 6
+### ~~RED-2 · R5~~ — **retiré : c'était ma sonde**
 
-Cause probable identifiée et localisée : la préférence est servie comme un
-**témoignage** et non comme une contrainte (§2.4). Correctif d'une ligne
-proposé, **non appliqué** — le fichier appartient à l'autre agent.
+R5 n'est **pas** un rouge. Mesuré proprement, **3/3**, avec témoin
+(`« …green beans with rice »` avant, rien après). Voir l'encadré §4.1.
+
+Ce qui **reste vrai** de l'observation §2.4 : la préférence est servie au
+modèle comme un **témoignage** (« in their own words ») sans verbe
+d'obligation, là où les interdits de doctrine ont un double verrou et les
+allergies une table dédiée. Ce n'est plus « la cause d'un rouge » — c'est une
+**fragilité de conception** qui n'a pas mordu sur 3 passages. À garder en tête
+si R5 se met à rater ailleurs ; le correctif d'une ligne est prêt en §2.4,
+**non appliqué** (fichier de l'autre agent).
 
 ### Ouvert et NON tranché (je ne tranche pas)
 
