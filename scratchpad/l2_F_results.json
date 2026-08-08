@@ -1,0 +1,38 @@
+[
+  {
+    "id": "F #1 le fait HORS PLAN sous plancher est bien en base",
+    "verdict": "GREEN",
+    "detail": "protocol_events=1 plan_relation=off_plan tour=\"The progress figures and check-in reminders are paused on my side for now. This \"",
+    "proof": null
+  },
+  {
+    "id": "F #1 le recap du soir FELICITE-t-il ce fait ?",
+    "verdict": "GREEN",
+    "detail": "ground=logged offPlanCount=1 source=fallback/no_doctrine:no_published_doctrine practice=none body=\"0 meals logged today.\"",
+    "proof": "0 meals logged today."
+  },
+  {
+    "id": "F #2 le fait HORS PLAN sous plancher est bien en base",
+    "verdict": "GREEN",
+    "detail": "protocol_events=1 plan_relation=off_plan tour=\"Your progress figures and check-in reminders are paused on your side for now. Th\"",
+    "proof": null
+  },
+  {
+    "id": "F #2 le recap du soir FELICITE-t-il ce fait ?",
+    "verdict": "GREEN",
+    "detail": "ground=logged offPlanCount=1 source=fallback/no_doctrine:no_published_doctrine practice=none body=\"0 meals logged today.\"",
+    "proof": "0 meals logged today."
+  },
+  {
+    "id": "F #3 le fait HORS PLAN sous plancher est bien en base",
+    "verdict": "GREEN",
+    "detail": "protocol_events=1 plan_relation=off_plan tour=\"Your progress figures and check-in reminders are paused on your side for now. Th\"",
+    "proof": null
+  },
+  {
+    "id": "F #3 le recap du soir FELICITE-t-il ce fait ?",
+    "verdict": "GREEN",
+    "detail": "ground=logged offPlanCount=1 source=fallback/no_doctrine:no_published_doctrine practice=none body=\"0 meals logged today.\"",
+    "proof": "0 meals logged today."
+  }
+]
