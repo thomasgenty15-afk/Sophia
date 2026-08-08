@@ -207,6 +207,8 @@ import {
   armMealPrecisionQuestion,
   runMealPrecisionLane,
 } from "./keel_meal_precision_lane.ts";
+import { armPhotoInvitation } from "./keel_photo_invitation_lane.ts";
+import { appendPhotoInvitation } from "../../_shared/keel/photo_invitation.ts";
 import type { PrecisionPlanLine } from "../../_shared/keel/meal_precision.ts";
 import type { MealPrecisionFlowState } from "../../_shared/keel/meal_precision_flow.ts";
 import {
@@ -1084,6 +1086,19 @@ export type KeelTurnContext = {
    * quantité ne sort, quelle que soit l'humeur du composeur.
    */
   meal_precision_question?: string | null;
+  /**
+   * FF-025 — L'INVITATION À LA PHOTO armée par CE tour, ou `null`.
+   *
+   * Même véhicule et même raison que `meal_precision_question` ci-dessus: un
+   * redispatch de sortie de flow reconstruit le `turn_frame` et perdrait ce
+   * qu'on y aurait posé, alors que `keelTurn` est passé OBLIGATOIREMENT à
+   * `finalVisibleText` sur les six chemins de sortie.
+   *
+   * Le TEXTE est un gabarit fermé (`photo_invitation.ts`), jamais une
+   * génération: c'est la seule garantie structurelle que le registre reste
+   * l'utilité et jamais le contrôle (R6), quelle que soit l'humeur du composeur.
+   */
+  meal_photo_invitation?: string | null;
   /**
    * LE JETON DE MALADIE DÉCLARÉE CE TOUR-CI, ou null.
    *
@@ -2366,6 +2381,21 @@ export function finalVisibleText(
       }
     }
 
+    // ── FF-025 · L'INVITATION À LA PHOTO ────────────────────────────────────
+    //
+    // AVANT la question de précision, et dans le même bloc non-crise, pour
+    // trois raisons:
+    //  1. les deux ne peuvent pas sortir ensemble — le budget partagé (T4) a
+    //     empêché l'armement de la seconde dès que la première a pris sa
+    //     place, et c'est le SEUL mécanisme d'exclusion (il n'y a pas de
+    //     vérification ici, exprès: elle serait un second lieu de vérité);
+    //  2. `!isSafetyRoute(...)` est la seconde barrière de R5. Le gate ferme
+    //     déjà sur toute bande ≠ `none`, mais une route de crise reconstruite
+    //     APRÈS l'armement doit encore pouvoir taire la phrase;
+    //  3. après la ceinture d'accusé fantôme, comme la question: une
+    //     invitation ne prétend rien avoir enregistré, et la faire passer dans
+    //     un détecteur d'accusé ne pourrait que la mutiler.
+    out = appendPhotoInvitation(out, keel.meal_photo_invitation);
     out = appendMealPrecisionQuestion(
       out,
       keel.meal_precision_question,
@@ -4818,6 +4848,14 @@ export async function processMessage(
           slot_key: effect.slot_key === null || effect.slot_key === undefined
             ? null
             : String(effect.slot_key),
+          // FF-025 — LA RELATION AU PLAN TELLE QUE LA BASE L'A RENDUE.
+          // `executor.ts` la relit sur la ligne écrite et refuse le commit si
+          // elle diverge de la demande: l'invitation s'adosse donc à un fait
+          // dont le hors-plan est prouvé, jamais à une intention du modèle.
+          plan_relation: effect.plan_relation === null ||
+              effect.plan_relation === undefined
+            ? null
+            : String(effect.plan_relation),
         }));
     if (committedFacts.length > 0) {
       const planLines: PrecisionPlanLine[] =
@@ -4830,6 +4868,48 @@ export async function processMessage(
           grain: line.grain,
           slot_kind: line.slot_kind,
         }));
+      // ══════════════════════════════════════════════════════════════════
+      // FF-025 · L'INVITATION À LA PHOTO — AVANT la question de précision.
+      //
+      // Les deux surfaces partagent UN budget (T4) et le lisent toutes les
+      // deux avant qu'aucune n'écrive: l'ordre d'appel EST donc l'arbitrage,
+      // et il n'y a pas de troisième endroit où le poser. L'invitation passe
+      // d'abord SUR UN REPAS HORS PLAN uniquement — partout ailleurs son gate
+      // rend `not_off_plan` sans lire la base, et la question de précision
+      // garde la main entière.
+      //
+      // L'arbitrage, en une phrase: une photo répond à la composition, à la
+      // préparation ET à l'accompagnement d'un seul geste de trois secondes,
+      // là où la question textuelle n'ouvre qu'un axe et demande une phrase.
+      // Sur le repas le plus pauvre du produit — « j'ai commandé », zéro
+      // aliment — c'est la seule des deux qui peut remplir la ligne.
+      const invitation = await armPhotoInvitation({
+        supabase,
+        userId,
+        responseLocale,
+        committed: committedFacts,
+        safetyBand: turnFrame?.safety?.risk_band === null ||
+            turnFrame?.safety?.risk_band === undefined
+          ? null
+          : String(turnFrame.safety.risk_band),
+        futureIntent: isTrackProgressFutureIntent(userMessage),
+        // EXACT, pas un raccourci: une photo ne traverse pas le cerveau, elle
+        // passe par `meal-photo-upload-v1`. Même constat que `hasMedia: false`
+        // de la lane de précision, quatre-vingts lignes plus haut.
+        hasMedia: false,
+        flowAlreadyOpen: readMealPrecisionFlowState(tempMemory) !== null,
+        localDate: keelTurn.local_date,
+        sourceMessageId: loggedMessageId ?? requestId,
+      });
+      console.log(
+        `[keel] request_id=${requestId} photo_invitation` +
+          ` reason=${invitation.reason_code}` +
+          ` educating=${invitation.educating}` +
+          ` event=${invitation.invitedEventId ?? "none"}`,
+      );
+      if (invitation.sentence) {
+        keelTurn.meal_photo_invitation = invitation.sentence;
+      }
       const armed = await armMealPrecisionQuestion({
         responseLocale,
         supabase,

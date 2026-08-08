@@ -29,6 +29,12 @@ import { openMealPrecisionFlowState } from "../_shared/keel/meal_precision_flow_
 import { protocolEventComponentKey } from "../_shared/keel/protocol_event_key.ts";
 import { studentBindingIn } from "../_shared/keel/meal_analysis.ts";
 import { sniffImageMime } from "../_shared/keel/image_sniff.ts";
+import {
+  attachPhotoToInvitedFact,
+  decidePhotoAttachment,
+  findInvitedOffPlanFact,
+  PHOTO_INVITATION_ATTACH_WINDOW_MINUTES,
+} from "../_shared/keel/photo_invitation_attach.ts";
 
 /**
  * KEEL W5 — `meal-photo-upload-v1`: the WEB path for a meal photo.
@@ -890,10 +896,16 @@ Deno.serve(async (req) => {
     } else {
       eventRow = inserted.data as Record<string, unknown>;
     }
-    const eventId = String(eventRow.id ?? "");
+    // `let`, et FF-025 en est la raison: quand la photo répond à une invitation,
+    // la ligne qui SURVIT est celle du repas déclaré, pas celle-ci. Tout l'aval
+    // (l'accusé, la métadonnée du message, le flow de correction) doit alors
+    // désigner la survivante — sinon la correction « non c'était du poulet »
+    // amenderait une ligne qui n'existe plus.
+    let eventId = String(eventRow.id ?? "");
     if (!eventId) {
       throw new Error("protocol_events returned no readable id");
     }
+    const photoRowId = eventId;
 
     // ---- 8. the analysis. Its failure costs the verdict, never the fact ----
     let analysis: Record<string, unknown> = {
@@ -953,6 +965,132 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (!refreshed.error && refreshed.data) {
       eventRow = refreshed.data as Record<string, unknown>;
+    }
+
+    // ---- 9bis. FF-025 R4 — LA PHOTO ENRICHIT LE FAIT, ELLE NE LE DOUBLE PAS -
+    //
+    // Quand cette photo répond à une invitation partie il y a quelques minutes
+    // (« j'ai commandé une pizza » → « si tu as une photo, envoie-la »), elle
+    // n'est pas un second repas: c'est la MÊME soirée, montrée au lieu d'être
+    // décrite. Deux lignes fausseraient tous les comptes du coach, et
+    // l'invitation deviendrait le mécanisme qui fabrique l'erreur.
+    //
+    // APRÈS l'analyse, jamais avant: une photo de MENU doit rester son propre
+    // fait disqualifié. Rattachée d'abord, sa disqualification tomberait sur la
+    // ligne du repas hors plan et le ferait disparaître de la vue du coach —
+    // la personne aurait dit la vérité et perdu son repas. Le raisonnement
+    // complet est en tête de `photo_invitation_attach.ts`.
+    let attachedToInvitedFact = false;
+    try {
+      const candidate = await findInvitedOffPlanFact(admin, { userId });
+      const decision = decidePhotoAttachment({
+        candidate,
+        photoLocalDate: localDate,
+        photoAt: new Date(),
+        // La vérité de l'ANALYSE, relue sur la ligne (étape 9) et pas sur la
+        // réponse HTTP de l'analyseur.
+        photoIsAMeal:
+          (eventRow as { disqualified_reason?: unknown }).disqualified_reason ==
+            null &&
+          (eventRow as { analyzed_at?: unknown }).analyzed_at != null,
+        // Un doublon ou un rejeu désigne une ligne ANTÉRIEURE, que quelqu'un a
+        // peut-être déjà lue. On ne déplace que ce que cette requête a créé.
+        photoRowIsFresh: !idempotent,
+        windowMinutes: PHOTO_INVITATION_ATTACH_WINDOW_MINUTES,
+      });
+      if (decision.attach) {
+        const invitedRead = await admin
+          .from("protocol_events")
+          .select("id, food_group_ref, slot_key, student_note")
+          .eq("id", decision.eventId)
+          .eq("user_id", userId)
+          .maybeSingle();
+        const invited = (invitedRead.data ?? null) as
+          | Record<string, unknown>
+          | null;
+        if (invited) {
+          const attach = await attachPhotoToInvitedFact(admin, {
+            userId,
+            invitedEventId: decision.eventId,
+            photoEventId: photoRowId,
+            photo: {
+              mediaPath: path,
+              mediaSha256,
+              recognized: (eventRow as { recognized?: unknown }).recognized ??
+                null,
+              recognitionConfidence: (() => {
+                const raw =
+                  (eventRow as { recognition_confidence?: unknown })
+                    .recognition_confidence;
+                return raw === null || raw === undefined ? null : Number(raw);
+              })(),
+              foodGroupRef:
+                (eventRow as { food_group_ref?: unknown }).food_group_ref ==
+                    null
+                  ? null
+                  : String((eventRow as { food_group_ref: unknown }).food_group_ref),
+              portionBand:
+                (eventRow as { portion_band?: unknown }).portion_band == null
+                  ? null
+                  : String((eventRow as { portion_band: unknown }).portion_band),
+              analyzedAt: (eventRow as { analyzed_at?: unknown }).analyzed_at ==
+                  null
+                ? null
+                : String((eventRow as { analyzed_at: unknown }).analyzed_at),
+              slotKey: slotKey,
+              studentNote: body.student_note ?? null,
+            },
+            invited: {
+              foodGroupRef: invited.food_group_ref == null
+                ? null
+                : String(invited.food_group_ref),
+              slotKey: invited.slot_key == null
+                ? null
+                : String(invited.slot_key),
+              studentNote: invited.student_note == null
+                ? null
+                : String(invited.student_note),
+            },
+          });
+          if (attach.ok) {
+            attachedToInvitedFact = attach.photoRowRemoved;
+            eventId = attach.eventId;
+            const merged = await admin
+              .from("protocol_events")
+              .select(EVENT_COLUMNS)
+              .eq("id", eventId)
+              .maybeSingle();
+            if (!merged.error && merged.data) {
+              eventRow = merged.data as Record<string, unknown>;
+            }
+          }
+          console.log(JSON.stringify({
+            tag: "photo_invitation_attach",
+            user_id: userId,
+            invited_event_id: decision.eventId,
+            photo_event_id: photoRowId,
+            surviving_event_id: eventId,
+            result: attach.reason,
+          }));
+        }
+      } else {
+        console.log(JSON.stringify({
+          tag: "photo_invitation_attach_skipped",
+          user_id: userId,
+          reason: decision.reason,
+        }));
+      }
+    } catch (attachError) {
+      // Best-effort par contrat: un échec ici laisse les deux lignes en place —
+      // c'est le comportement d'avant FF-025, visible et réparable. Il ne doit
+      // jamais coûter une photo déjà enregistrée.
+      console.warn(JSON.stringify({
+        tag: "photo_invitation_attach_failed",
+        user_id: userId,
+        error: attachError instanceof Error
+          ? attachError.message
+          : String(attachError),
+      }));
     }
 
     // ── DE-WHATSAPP — LA PHOTO ENTRE DANS LA CONVERSATION ────────────────────
@@ -1153,6 +1291,11 @@ Deno.serve(async (req) => {
       // `idempotent: true` means this exact upload was already on file. The
       // caller must not present it as a new fact.
       idempotent,
+      // FF-025 R4: `true` quand cette photo a ENRICHI un repas déjà déclaré au
+      // lieu d'en écrire un second. L'appelant ne doit alors pas la présenter
+      // comme un repas de plus — et un run de QA peut le vérifier sans lire
+      // les logs.
+      attached_to_declared_meal: attachedToInvitedFact,
       chat_message_id: chatDelivered,
       event: eventRow,
       // Read from the row, not from the analysis response: this is what the
