@@ -721,9 +721,9 @@ export function diffCompiled(
 // l'inverse.
 
 /** Rendu sans locale (R2): le slug quand le coach n'a pas posé son propre mot. */
-function previewSentence(c: CompiledCommitment): string {
+function previewSentence(c: CompiledCommitment, nameOverride?: string): string {
   const p = c.preview;
-  const name = c.title;
+  const name = nameOverride ?? c.title;
   switch (p.kind) {
     case "encourage":
       return `${name} — build with it, at least ${p.perDay} portion a day`;
@@ -860,6 +860,29 @@ type ChatSectionCaps = {
   timing: number;
 };
 
+/**
+ * LE NOM DU GROUPE, EN MOTS — et c'est une correction mesurée, pas du style.
+ *
+ * `labelForGroup` retombe sur le SLUG quand le coach n'a pas posé son propre
+ * mot, et c'est correct pour un générateur: le slug y est aussi un jeton de
+ * jointure. Dans un tour de chat, le bloc est la seule source de vocabulaire du
+ * modèle, et il le RECOPIE. Mesuré en run réel le 2026-08-08, 2 passes sur 2:
+ *
+ *   « Marlow doesn't build with fried_food at all. […] he uses lean_protein
+ *     instead. »
+ *
+ * L'élève reçoit deux identifiants internes dans une phrase qui se veut
+ * humaine. C'est la cicatrice `recall-composition-leaks-internal-slugs`, sur
+ * une autre surface — et une consigne de prompt (« écris-les en toutes
+ * lettres ») n'est pas une garantie: le nom lisible se pose ICI, à la source.
+ *
+ * Un mot du coach (« green volume ») ne contient pas d'underscore et traverse
+ * donc inchangé.
+ */
+function spokenLabel(title: string): string {
+  return title.includes("_") ? title.replace(/_/g, " ") : title;
+}
+
 function truncateRationale(raw: string): string {
   const why = raw.trim();
   if (why.length <= PROTOCOL_CHAT_BLOCK_LIMITS.rationaleChars) return why;
@@ -910,7 +933,8 @@ function renderChatBlock(
     if (lead) lines.push(lead);
     for (const c of items.slice(0, cap)) {
       const why = truncateRationale(String(c.student_instruction ?? ""));
-      lines.push(why ? `- ${previewSentence(c)} (${why})` : `- ${previewSentence(c)}`);
+      const sentence = previewSentence(c, spokenLabel(c.title));
+      lines.push(why ? `- ${sentence} (${why})` : `- ${sentence}`);
     }
     // ⚠️ CETTE LIGNE EST PORTEUSE, PAS DÉCORATIVE. La doctrine injecte
     // « SILENCE IS NOT A POSITION »: ce que le bloc ne dit pas, le coach ne

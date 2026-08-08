@@ -4756,6 +4756,109 @@ export async function processMessage(
     routeDecision = { ...routeDecision, response_owner: "normal_reply" };
   }
 
+  // ── FF-016 §7 — SANS CIBLE, IL N'Y A PAS DE TIER 0: LA QUESTION REPART AU
+  //    CHEMIN GÉNÉRAL.
+  //
+  // MESURÉ EN RUN RÉEL LE 2026-08-08, élève avec plan publié et protocole
+  // publié, 3/3 en anglais ET 3/3 en français, sur « What should I eat for
+  // breakfast? » / « Je mange quoi au petit-dej ? » — c'est-à-dire le CRITÈRE
+  // D'ACCEPTATION §8 de la fiche, mot pour mot:
+  //   - le dispatcher classe la question `plan_question` / `food_swap`;
+  //   - il ne capte AUCUN `requested_food_group` (il n'y en a pas: personne
+  //     n'a proposé de remplacement), et aucune ligne ne se laisse identifier;
+  //   - le resolver sort `unresolved_food_group` — sa PREMIÈRE branche, celle
+  //     qui existe pour l'hallucination de slug — et la lane escalade;
+  //   - l'élève reçoit « That one sits outside what your coach set on this
+  //     line », qui ne répond pas à sa question et lui parle d'une ligne qu'il
+  //     n'a pas évoquée;
+  //   - et une ligne `contract_change_requests` part chez le coach, classée
+  //     `reason_code='dislikes_food'`, pour une question qui n'exprimait aucun
+  //     dégoût.
+  //
+  // La lane n'a donc RIEN à résoudre, et elle ne le sait pas: sans slug
+  // demandé et sans ligne identifiée, aucune des branches de `resolveTier0Swap`
+  // ne peut décider quoi que ce soit. §7 de la fiche le dit déjà pour le cas
+  // voisin (« aucun engagement ouvert aujourd'hui ⇒ pas de Tier 0; la question
+  // repart au chemin général »); c'est la même absence de cible.
+  //
+  // ⚠️ CE QUE CE GATE NE FAIT PAS, ET C'EST LA MOITIÉ QUI COMPTE. Il ne touche
+  // PAS la dégradation délibérée du slug illisible: le prompt du dispatcher
+  // promet qu'un `requested_food_group` qu'il n'a pas su nommer « dégrade en
+  // escalade nommée » plutôt qu'en autorisation fausse. Cette promesse tient
+  // dès qu'UN des deux groupes est nommé — c'est là qu'il y a une substitution
+  // à refuser. Le gate ne mord que sur l'absence des DEUX.
+  //
+  // RESTE OUVERT, ET CONSIGNÉ: `commitment_not_identified` (un groupe nommé,
+  // aucune ligne à qui le rattacher) escalade toujours, alors que §7 range ce
+  // cas au chemin général lui aussi. On ne l'a pas élargi ici parce que ce
+  // n'est pas ce qui a été mesuré, et qu'y toucher ferait tomber au composeur
+  // de vraies demandes de substitution.
+  //
+  // Il est DÉTERMINISTE: il ne lit que le signal du tour, jamais une décision
+  // du modèle. Ce qui FERME une lane ne transite pas plus par le LLM que ce
+  // qui l'ouvre.
+  if (routeDecision.response_owner === "plan_question") {
+    const pqContext = turnFrame.skill_signals.plan_question?.context;
+    // LA SIGNATURE EXACTE DE « CE N'EST PAS UNE SUBSTITUTION »: personne n'a
+    // nommé de remplacement, et rien de ce qu'on remplacerait ne se retrouve
+    // dans le plan LU EN BASE. Une vraie question de substitution porte
+    // toujours au moins un des deux — « j'ai plus de saumon, je fais quoi ? »
+    // porte le prescrit sans le demandé, et elle doit continuer d'escalader.
+    // ⚠️ `"null"` EN CHAÎNE EST UNE VALEUR ABSENTE, ET ELLE ARRIVE VRAIMENT.
+    // Mesuré 1 fois sur 6 le 2026-08-08: `"requested_food_group": "null"` —
+    // le modèle a écrit le mot au lieu du littéral JSON. Le resolver le rendra
+    // de toute façon illisible (`parseFoodGroupRef` jette), donc le traiter
+    // comme rempli ne fait qu'une chose: rouvrir la lane sur du vide.
+    const absentGroup = (value: unknown): boolean => {
+      const raw = String(value ?? "").trim().toLowerCase();
+      return raw === "" || raw === "null" || raw === "none" || raw === "n/a";
+    };
+    const noRequestedGroup = absentGroup(pqContext?.requested_food_group);
+    // ⚠️ LE PRESCRIT EST VÉRIFIÉ CONTRE LE PLAN, PAS CRU SUR PAROLE.
+    //
+    // Mesuré le 2026-08-08 sur « What should I eat for breakfast? », 3 fois
+    // sur 6: le dispatcher remplit `prescribed_food_group: "whole_grain"` chez
+    // un élève dont AUCUNE ligne ne porte ce groupe. Le signal n'était donc
+    // pas la trace d'une ligne visée, mais une invention — et elle suffisait à
+    // rouvrir la lane et à renvoyer l'élève vers « cette ligne » chez son
+    // coach. Un groupe absent du plan ne désigne aucune ligne à substituer:
+    // c'est §7 mot pour mot, et le contexte plan est lu en base, pas écrit par
+    // le modèle.
+    const planGroups = new Set(
+      [
+        ...(keelTurn.plan_context?.today ?? []),
+        ...(keelTurn.plan_context?.week ?? []),
+      ]
+        .map((line) => String(line.food_group_ref ?? "").trim())
+        .filter((group) => group !== ""),
+    );
+    const prescribed = String(pqContext?.prescribed_food_group ?? "").trim();
+    const noGroundedPrescription = absentGroup(prescribed) ||
+      !planGroups.has(prescribed);
+    // `eating_out` et `meal_shifted` sont EXCLUS: ils n'ont jamais de groupe
+    // par construction, et leur escalade vers le coach est le comportement
+    // voulu de la fiche — les faire tomber ici les supprimerait. `other` entre,
+    // lui: c'est le fourre-tout du dispatcher, et il a servi une fois sur six
+    // à ce même faux positif de petit-déjeuner.
+    const gateableKind = pqContext?.kind === "food_swap" ||
+      pqContext?.kind === "other";
+    if (gateableKind && noRequestedGroup && noGroundedPrescription) {
+      console.warn("[keel] plan_question sans cible → chemin général", {
+        request_id: requestId,
+        reason: pqContext?.reason ?? null,
+        detail:
+          "ni groupe demandé ni ligne identifiable: la lane escaladait une " +
+          "question générale d'alimentation en demande de changement de " +
+          "contrat. FF-016 §7.",
+      });
+      routeDecision = {
+        ...routeDecision,
+        response_owner: "normal_reply",
+        reason_code: "plan_question_no_target_general_path",
+      };
+    }
+  }
+
   let { riskBand: runtimeSafetyRiskBand } = runtimeSafetyContextForTurn({
     safetyContextOutput,
     routeDecision,

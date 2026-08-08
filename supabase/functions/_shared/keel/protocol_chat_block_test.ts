@@ -83,6 +83,37 @@ Deno.test("R3: what the coach encourages is in the block, first section", () => 
   );
 });
 
+Deno.test("aucun identifiant interne ne sort en mots", () => {
+  // MESURÉ EN RUN RÉEL, 2/2: « Marlow doesn't build with fried_food at all […]
+  // he uses lean_protein instead. » Le bloc est la seule source de vocabulaire
+  // du modèle, et il le recopie tel quel.
+  const block = protocolChatFoodBlock(
+    compiled([
+      food("lean_protein", "encouraged"),
+      food("fried_food", "excluded"),
+      food("non_starchy_veg", "discouraged"),
+    ]),
+    "Marlow",
+  );
+  for (const slug of ["lean_protein", "fried_food", "non_starchy_veg"]) {
+    assert(!block.includes(slug), `slug interne dans le bloc: ${slug}`);
+  }
+  assert(block.includes("lean protein") && block.includes("fried food"));
+});
+
+Deno.test("le mot du coach traverse intact", () => {
+  const rules = compileProtocol({
+    coachId: "c-1",
+    contentLocale: "en-GB",
+    foodRules: [food("leafy_greens", "encouraged")],
+    timingRules: [],
+    terms: [{ term: "green volume", food_group_ref: "leafy_greens" }],
+  }, null);
+  const block = protocolChatFoodBlock(rules, "Marlow");
+  assert(block.includes("green volume"), "le mot du coach doit porter le titre");
+  assert(!block.includes("leafy_greens"));
+});
+
 Deno.test("le nom du coach est celui du coach, jamais un nom inventé", () => {
   const rules = compiled([food("eggs", "encouraged")]);
   assert(protocolChatFoodBlock(rules, "Marlow").includes("MARLOW'S FOOD MAPPING"));

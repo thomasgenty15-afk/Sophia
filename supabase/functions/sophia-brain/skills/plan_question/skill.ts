@@ -83,7 +83,22 @@ export function resolvePlanQuestion(input: {
 }): PlanQuestionResolution {
   const verdict = resolveTier0Swap({
     commitment: input.runtime.commitment,
-    requested_food_group: input.requested_food_group,
+    // FF-016 — LE NETTOYAGE EST ICI, ET IL COMPARE À LA LIGNE LUE EN BASE.
+    //
+    // Pas au `prescribed_food_group` du signal: mesuré le 2026-08-08, le
+    // dispatcher le laisse à `null` sur une passe sur trois tout en recopiant
+    // le groupe de la ligne dans `requested_food_group`. Comparer deux champs
+    // du modèle laisse donc passer exactement le cas qu'on ferme. La ligne,
+    // elle, vient de `plan_commitments`.
+    //
+    // Et l'identité n'est atteignable QU'AVEC une ligne: sans elle,
+    // `resolveTier0Swap` escalade en `commitment_not_identified` avant d'en
+    // arriver là. Cette comparaison est donc complète.
+    requested_food_group: requestedFoodGroupForResolution(
+      input.question_kind,
+      input.requested_food_group,
+      input.runtime.commitment?.food_group_ref ?? null,
+    ),
     food_group_classes: input.runtime.food_group_classes,
     safety_constraints: input.runtime.safety_constraints,
   });
@@ -158,6 +173,63 @@ function runtimeOf(input: RunSkillInput): PlanQuestionSkillRuntime {
   return runtime;
 }
 
+/**
+ * FF-016 R1/R2 — « À LA PLACE DE » NE PEUT PAS ÊTRE LA MÊME CHOSE.
+ *
+ * Sur un `food_swap`, le contrat du dispatcher est explicite:
+ * `requested_food_group` porte « le slug de ce que l'élève veut manger A LA
+ * PLACE ». Quand il rend le MÊME slug que le prescrit, le modèle n'a pas lu le
+ * remplacement — il a recopié la ligne. Le verdict qui suit n'est alors pas une
+ * permission, c'est un accident: `resolveTier0Swap` classe l'identité en
+ * « ce n'est pas une substitution » et répond OUI, avant la politique et avant
+ * l'autonomie.
+ *
+ * ⚠️ LE « PRESCRIT » DE CETTE COMPARAISON EST LA LIGNE LUE EN BASE
+ * (`plan_commitments.food_group_ref`), jamais le `prescribed_food_group` du
+ * signal: mesuré une passe sur trois avec un prescrit à `null` et le groupe de
+ * la ligne recopié dans « demandé ». Comparer deux champs écrits par le même
+ * modèle laisse passer exactement le cas qu'on ferme.
+ *
+ * MESURÉ LE 2026-08-08, RUN RÉEL, ET C'EST LA CICATRICE T9 (une garde testée
+ * dans une seule langue). Sur « Je peux remplacer les pommes de terre par du
+ * riz ? » le dispatcher rend `refined_grain` 3 fois sur 3; sur sa traduction
+ * « Can I swap the potatoes for rice tonight? » il rend `starchy_veg` —
+ * c'est-à-dire le prescrit — 2 fois sur 3. Conséquences relues en base:
+ *   - un élève CŒLIAQUE (`gluten`, severity medical) reçoit « Yes — starchy
+ *     vegetables is exactly what the line asks for. Log it as usual. » Le
+ *     contrôle allergène de l'étape 2 a bien tourné, sur `starchy_veg`: il n'a
+ *     jamais vu la céréale que l'élève, lui, allait mettre dans son assiette;
+ *   - un élève sur une ligne `autonomy='strict'` reçoit le même OUI, alors que
+ *     §8 exige un refus.
+ *
+ * L'ARBITRAGE EST DÉJÀ ÉCRIT DANS CE DOSSIER, en tête d'`allergen_bridge.ts`:
+ * « Over-blocking escalates to the coach; under-blocking feeds an allergen.
+ * Only the first is recoverable. » On dégrade donc vers l'escalade nommée que
+ * le système a déjà — exactement comme un slug illisible — plutôt que vers une
+ * autorisation.
+ *
+ * CE QUE ÇA COÛTE, ET C'EST ASSUMÉ: une vraie substitution DANS le même groupe
+ * (pommes de terre → patates douces, toutes deux `starchy_veg`) n'est plus
+ * accordée en deux secondes; elle part en brouillon chez le coach. Un refus de
+ * trop se répare; un allergène servi ne se répare pas.
+ *
+ * HORS `food_swap`, RIEN NE CHANGE: sur `other` ou `eating_out`, « je peux
+ * manger du poulet ce midi ? » sur une ligne `lean_protein` EST une question de
+ * confirmation, et « oui, c'est exactement ce que la ligne demande » est la
+ * bonne réponse.
+ */
+export function requestedFoodGroupForResolution(
+  kind: PlanQuestionKind,
+  requested: string | null | undefined,
+  prescribed: string | null | undefined,
+): string | null {
+  const req = String(requested ?? "").trim();
+  if (req === "") return null;
+  if (kind !== "food_swap") return req;
+  const presc = String(prescribed ?? "").trim();
+  return presc !== "" && presc.toLowerCase() === req.toLowerCase() ? null : req;
+}
+
 export async function runPlanQuestionSkill(
   input: RunSkillInput,
 ): Promise<ConversationSkillOutput> {
@@ -169,6 +241,8 @@ export async function runPlanQuestionSkill(
   const resolution = resolvePlanQuestion({
     user_id: input.context.user_id,
     question_kind: questionKind,
+    // BRUT: le nettoyage vit dans `resolvePlanQuestion`, qui a la LIGNE lue en
+    // base. Le faire ici comparerait deux champs écrits par le même modèle.
     requested_food_group: context?.requested_food_group ?? null,
     student_words: input.user_message,
     runtime,

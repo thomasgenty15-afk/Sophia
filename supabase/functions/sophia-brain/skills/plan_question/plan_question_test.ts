@@ -33,7 +33,7 @@ import {
   buildChangeRequest,
 } from "./escalation.ts";
 import { renderPlanQuestion } from "./renderer.ts";
-import { resolvePlanQuestion } from "./skill.ts";
+import { requestedFoodGroupForResolution, resolvePlanQuestion } from "./skill.ts";
 import {
   foodGroupsCoveredBy,
   unresolvableMedicalConstraints,
@@ -611,4 +611,80 @@ Deno.test("renderer: the allowed reply states no number, no percentage, no plan 
   assertEquals(/\d+\s*%/.test(render.reply), false);
   assertEquals(render.reply.toLowerCase().includes("i changed"), false);
   assertEquals(render.reply.toLowerCase().includes("updated your plan"), false);
+});
+
+// ---------------------------------------------------------------------------
+// FF-016 — « À LA PLACE DE » NE PEUT PAS ÊTRE LA MÊME CHOSE.
+//
+// Le défaut mesuré n'est pas dans le resolver: il est dans ce que le resolver
+// REÇOIT. Sur la traduction anglaise d'une question de substitution, le
+// dispatcher recopie le groupe PRESCRIT dans le champ « demandé » (2 fois sur
+// 3, run réel du 2026-08-08), et l'identité qui en résulte répond OUI avant la
+// politique, avant l'autonomie, et sans jamais avoir vu l'aliment que l'élève
+// allait réellement manger.
+// ---------------------------------------------------------------------------
+
+Deno.test("FF-016: sur un food_swap, un « demandé » égal au prescrit est une non-lecture", () => {
+  // C'est la valeur EXACTE relue dans `conversation_turn_traces` sur
+  // « Can I swap the potatoes for rice tonight? » chez l'élève cœliaque.
+  assertEquals(
+    requestedFoodGroupForResolution("food_swap", "starchy_veg", "starchy_veg"),
+    null,
+  );
+  // La casse ne sauve pas le modèle de lui-même.
+  assertEquals(
+    requestedFoodGroupForResolution("food_swap", "Starchy_Veg", "starchy_veg"),
+    null,
+  );
+  // Une vraie substitution traverse intacte.
+  assertEquals(
+    requestedFoodGroupForResolution("food_swap", "refined_grain", "starchy_veg"),
+    "refined_grain",
+  );
+  // Sans prescrit, il n'y a rien à comparer: on ne jette pas ce qu'on a.
+  assertEquals(
+    requestedFoodGroupForResolution("food_swap", "refined_grain", null),
+    "refined_grain",
+  );
+  // HORS food_swap, l'identité est une QUESTION DE CONFIRMATION, et « oui,
+  // c'est exactement ce que la ligne demande » en est la bonne réponse.
+  assertEquals(
+    requestedFoodGroupForResolution("other", "lean_protein", "lean_protein"),
+    "lean_protein",
+  );
+  assertEquals(
+    requestedFoodGroupForResolution("eating_out", "lean_protein", "lean_protein"),
+    "lean_protein",
+  );
+});
+
+Deno.test("FF-016: la non-lecture dégrade en escalade nommée, jamais en OUI", () => {
+  // Le bout à bout: ce que le dispatcher a produit, passé par le nettoyage,
+  // puis par le resolver — et le cœliaque ne reçoit plus « yes, log it ».
+  const verdict = resolveTier0Swap({
+    commitment: commitment({ food_group_ref: "starchy_veg" }),
+    requested_food_group: requestedFoodGroupForResolution(
+      "food_swap",
+      "starchy_veg",
+      "starchy_veg",
+    ),
+    food_group_classes: FOOD_GROUP_CLASSES,
+    safety_constraints: [
+      {
+        id: "c-gluten",
+        userId: "student-1",
+        kind: "allergy",
+        allergenRef: "gluten",
+        substanceRef: null,
+        medicationClass: null,
+        conditionRef: null,
+        severity: "medical",
+        declaredBy: "student",
+        notes: null,
+        contentLocale: "en",
+      },
+    ],
+  });
+  assertEquals(verdict.decision, "escalate");
+  assertEquals(verdict.reason_code, "unresolved_food_group");
 });
