@@ -78,6 +78,56 @@ export function classifyAntiNoise(
   const durableShortStatement =
     /\b(mon objectif|j'apprends|j apprends|je veux|je prefere|je préfère|je ne veux pas|ne memorise pas|limite claire|doit etre|doit être|a payer|à payer|avant le \d{1,2}|sujet professionnel|projet personnel|ma cousine|mon cousin|ma soeur|ma sœur|mon frere|mon frère|ma collegue|mon collegue|ma collègue|mon collègue|ma comptable|mon comptable|ma assistante|mon assistant|assistante administrative|assistant administratif|coach de natation|client|client de consulting|contrat|contrats signes|contrats signés|facture|factures impayees|factures impayées|compatible avec mon allergie|compatibles avec mon allergie)\b/
       .test(normalized);
+  // ── LE GOUT, ET POURQUOI IL A SA PROPRE PORTE (FF-026) ───────────────────
+  // Mesure du 2026-08-08, sur les phrases EXACTES de la fiche FF-026:
+  // 10 des 15 formulations canoniques n'atteignaient JAMAIS le LLM
+  // d'extraction, arretees ici par `smart_pre_filter`. Dont les deux que la
+  // fiche cite mot pour mot:
+  //
+  //   « t'as mis du riz, mais j'aime pas ça »   10 mots -> skip
+  //   « I don't like mushrooms »                 5 mots -> skip
+  //
+  // La cause n'est pas le seuil de 15 mots — c'est qu'une preference
+  // alimentaire s'exprime COURT, et qu'aucune des deux echappatoires
+  // existantes ne la reconnait: `durableShortStatement` porte `je prefere`
+  // mais aucun verbe de rejet (`j'aime pas`, `je deteste`, `j'ai pas aime`),
+  // et il est integralement FRANCAIS — un anglophone n'avait aucune porte.
+  // Les deux seules phrases de la fiche qui passaient le faisaient PAR
+  // ACCIDENT: « j'ai pas aimé le curry d'hier » par le signal `dated_reference`
+  // (le mot « hier »), « en fait j'aime bien le riz » par le signal
+  // `correction` (« en fait »). Retirez le mot de date, la capture meurt.
+  //
+  // Consequence produite: la boucle T6 du domaine — « ce qui est donné doit se
+  // voir dans le plan suivant » — etait ouverte a son PREMIER maillon. Aucun
+  // item, donc aucune proposition, donc aucune preference dans le prompt du
+  // generateur, pour la phrase meme qui motive la fonctionnalite.
+  //
+  // ── POURQUOI PERMISSIF ICI, ET PAS AILLEURS ──────────────────────────────
+  // Ce filtre arbitre un COUT, pas une verite: ce qui passe est ensuite juge
+  // par le LLM d'extraction, puis par `validate` (confiance >= 0.55), puis par
+  // `proposeFoodPreferences` (confiance >= 0.70, ligne medicale, cles de
+  // domaine), puis par l'eleve lui-meme qui doit garder la ligne. Cinq filtres
+  // en aval. Une porte trop large coute des tokens et se rattrape; une porte
+  // trop etroite perd la donnee EN SILENCE et ne se rattrape jamais — c'est
+  // l'erreur qu'on vient de mesurer. `i like` / `adore` sont donc admis malgre
+  // leur usage bavard.
+  //
+  // ── CE QUI N'EST PAS ICI, ET C'EST VOULU: L'ALLERGIE ─────────────────────
+  // `allergique` / `allergic` sont volontairement ABSENTS. FF-026 R1: une
+  // allergie n'est pas une preference, elle passe par
+  // `declare_safety_constraint` — un chemin deterministe, synchrone, au tour
+  // meme. Lui ouvrir une porte vers la memoire souple serait exactement la
+  // confusion des deux couches que R1 interdit: une ceinture de securite
+  // servie par un canal best-effort nocturne.
+  //
+  // Bilingue par construction: la cicatrice `guard-tested-in-one-language-only`
+  // dit qu'une garde ecrite dans une seule langue est verte en etant morte.
+  // Les formes sont ecrites APRES `normalizeText`, qui retire les accents et
+  // remplace l'apostrophe par une ESPACE: « j'aime pas » y devient
+  // « j aime pas », « don't like » devient « don t like ».
+  const durableFoodStatement =
+    /\b(aime pas|aime plus|pas aime|aime bien|adore|deteste|detestes|supporte pas|raffole pas|pas fan|horreur de|degoute|ecoeure|don t like|dont like|do not like|didn t like|didnt like|did not like|i like|i love|loves|hate|hates|can t stand|cant stand|cannot stand|not a fan|puts me off|makes me gag|prefer|prefers)\b/
+      .test(normalized);
   // memorize: intention de memorisation explicite ("retiens que...") — un
   // fait confie ne doit jamais etre perdu par le filtre de cout, quelle que
   // soit sa longueur (rose-r2 T13, BF-MEMORY-01). Le LLM d'extraction reste
@@ -93,6 +143,7 @@ export function classifyAntiNoise(
     signals.high_emotion.detected ||
     signals.cross_topic_profile_query.detected ||
     durableShortStatement ||
+    durableFoodStatement ||
     selfBlame;
   if (!normalized) return { skip: true, reason: "empty" };
   if (PURE_ACK.test(normalized)) return { skip: true, reason: "pure_ack" };

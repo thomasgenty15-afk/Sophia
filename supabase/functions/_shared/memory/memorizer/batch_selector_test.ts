@@ -199,3 +199,66 @@ Deno.test("batch selector keeps short durable preference, goal and deadline stat
   ]);
   assertEquals(batch.skipped_noise_messages.length, 0);
 });
+
+Deno.test("batch selector keeps short food preferences, in BOTH languages (FF-026)", async () => {
+  // Mesure du 2026-08-08: 10 des 15 formulations canoniques de FF-026 etaient
+  // arretees par `smart_pre_filter`, dont les deux que la fiche cite mot pour
+  // mot. Une preference alimentaire s'exprime COURT — le seuil de 15 mots la
+  // coupait, et la boucle T6 etait ouverte a son premier maillon.
+  //
+  // Les deux moities du test comptent autant l'une que l'autre: l'ancienne
+  // echappatoire `durableShortStatement` etait integralement francaise, donc
+  // verte en etant morte pour la moitie des eleves servis.
+  const batch = await selectMemorizerBatch({
+    messages: [
+      // FR — la phrase de la fiche §1, mot pour mot.
+      {
+        id: "fr_dislike",
+        user_id: "u",
+        role: "user",
+        content: "t'as mis du riz, mais j'aime pas ça",
+      },
+      // EN — la phrase de la fiche §8, mot pour mot.
+      { id: "en_dislike", user_id: "u", role: "user", content: "I don't like mushrooms" },
+      // R7: le plat, sans mot de date. AVANT le correctif, celle-ci ne passait
+      // que grace au mot « hier » (signal `dated_reference`) — un accident de
+      // formulation, pas une garde.
+      { id: "fr_dish", user_id: "u", role: "user", content: "j'ai pas aimé le curry" },
+      // La retractation, dans les deux langues. La FR passait deja par le
+      // signal `correction` (« en fait »); l'EN n'avait aucune porte.
+      { id: "fr_retract", user_id: "u", role: "user", content: "en fait j'aime bien le riz" },
+      { id: "en_retract", user_id: "u", role: "user", content: "actually I like rice now" },
+      // La contradiction de §7, et la preference pour un tiers de §11.
+      { id: "fr_love", user_id: "u", role: "user", content: "j'adore le risotto" },
+      { id: "en_third", user_id: "u", role: "user", content: "my son hates spinach" },
+    ],
+  });
+  assertEquals(batch.skipped_noise_messages.map((m) => m.id), []);
+  assertEquals(batch.primary_messages.length, 7);
+});
+
+Deno.test("batch selector still routes allergies to the safety path, not soft memory (FF-026 R1)", async () => {
+  // R1: une allergie n'est PAS une preference. Elle passe par
+  // `declare_safety_constraint`, deterministe et au tour meme. Lui ouvrir une
+  // porte vers la memoire souple nocturne mettrait une ceinture de securite
+  // dans un canal best-effort — la confusion des deux couches que le pivot a
+  // tranchee. L'absence de `allergique` / `allergic` de l'echappatoire
+  // alimentaire est donc une DECISION, et ce test la tient.
+  for (const content of ["je suis allergique aux noix", "I'm allergic to peanuts"]) {
+    assertEquals(
+      classifyAntiNoise({ id: "a", user_id: "u", role: "user", content }).reason,
+      "smart_pre_filter",
+      content,
+    );
+  }
+
+  // L'anti-faux-positif du bavardage court reste intact: la porte alimentaire
+  // ne doit pas devenir un passe-partout.
+  for (const content of ["haha oui c'est clair, trop bien.", "non creve", "ok"]) {
+    assertEquals(
+      classifyAntiNoise({ id: "c", user_id: "u", role: "user", content }).skip,
+      true,
+      content,
+    );
+  }
+});

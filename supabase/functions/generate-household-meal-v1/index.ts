@@ -18,6 +18,7 @@ import {
   type StudentSafetyConstraint,
 } from "../_shared/keel/safety_constraints.ts";
 import { foodPreferencesForPrompt } from "../_shared/keel/food_preference_promotion.ts";
+import { reconcileFoodPreferencesFor } from "../_shared/keel/food_preference_promotion_io.ts";
 import { dayTokenInZone, localDateInZone } from "../_shared/keel/local_date.ts";
 import {
   type MealWindowRequest,
@@ -32,6 +33,7 @@ import {
   mealPreparationsPayload,
   mealSessionsPayload,
   mealShoppingPayload,
+  parseAwayDays,
   parseEatingRhythm,
   parseGeneratedMeal,
 } from "../_shared/keel/meal_generation.ts";
@@ -397,8 +399,36 @@ Deno.serve(async (req) => {
 
     // ── LE PROMPT ───────────────────────────────────────────────────────
     const goalRow = ownerGoal as Record<string, unknown>;
+
+    // ── CE QUE L'ÉLÈVE A DÉMENTI DEPUIS — LE TROISIÈME CHEMIN ─────────────
+    // `generate-meal-v1` porte ce raccord avec cette raison écrite: « Une garde
+    // qui ne couvre qu'un des deux chemins d'un même jsonb est une garde qu'on
+    // croit posée. » Il y a TROIS chemins, et celui-ci était le découvert:
+    // vérifié le 2026-08-08, ce fichier n'importait que le module PUR
+    // (`food_preference_promotion.ts`) et jamais son module d'I/O, donc il
+    // servait `practical_constraints` tel quel.
+    //
+    // Ce que ça coûtait, et c'est exactement FF-026 R3 (« la rétractation est
+    // honorée »): un foyer qui ne compose QUE des repas de foyer ne
+    // réconciliait jamais. La préférence que l'élève a rétractée dans la
+    // conversation — proprement enregistrée par le memorizer en `superseded` —
+    // continuait d'être servie au modèle, sans limite de temps, puisque rien
+    // sur ce chemin ne relit la mémoire. La réconciliation PERSISTE en plus de
+    // corriger, donc poser le raccord ici répare aussi les deux autres.
+    goalRow.practical_constraints = await reconcileFoodPreferencesFor({
+      admin,
+      userId,
+      constraints: (goalRow.practical_constraints ?? {}) as Record<string, unknown>,
+      source: FN_NAME,
+    });
+
     const pc = goalRow.practical_constraints as Record<string, unknown> | null;
     const eatingRhythm = parseEatingRhythm(pc?.eating_rhythm);
+    // LES ABSENCES DU FOYER, lues sur la ligne du PROPRIÉTAIRE — comme le
+    // rythme et la capacité juste au-dessus. Une absence individuelle d'un
+    // membre est une autre question (voir FF-002 §9): elle ne supprime pas la
+    // session de cuisson, elle change les portions.
+    const awayDays = parseAwayDays(pc?.away_days);
     const capacity = readCookingCapacity(pc);
     const scope: MealScope = durationDays === 1 ? "day" : "several_days";
     const daysToFill = windowDayOrder(startsOn, durationDays);
@@ -425,6 +455,7 @@ Deno.serve(async (req) => {
       country,
       daysToFill,
       eatingRhythm,
+      awayDays,
       ...capacity,
       foodPreferences: foodPreferencesForPrompt(pc),
     });
@@ -462,6 +493,7 @@ Deno.serve(async (req) => {
         beliefKeys,
         eatingRhythm,
         daysToFill,
+        awayDays,
         cookingTimeMin: capacity.cookingTimeMin,
       });
     } catch (error) {
