@@ -871,3 +871,41 @@ amplifiée au lieu de la vérifier. **Décision humaine : retirer les 4 lectures
 sachant que la protection *dans la durée* disparaît et que celle *du tour de conversation*
 (`__last_turn_risk_band`, écrite par `run.ts:613`, relue par `safety_band_io.ts`) reste intacte —
 elle, elle marche.
+
+## L1 — TERMINÉ (`f1f8f8cc`, `db3ab37a`) · rapport `RAPPORT-L1-LOCALE.md`
+
+**Le désarmement seul était un NO-OP.** Retirer `PILOT_FORCED_LOCALE` et ses deux gardes ne suffisait
+pas : la chaîne de priorité **ne portait aucune entrée venant de l'élève** (`tenantDefault` sans
+producteur, `detectedRecent` délibérément sans). Un élève `fr-FR` neuf serait tombé sur le repli final
+`en-US` — le même symptôme, par un autre chemin. L'agent a dû ajouter `studentProfile`
+(= `profiles.locale`, déjà lu par `loadKeelTurnContext`).
+**542 élèves `fr-FR` sur 639** en base locale.
+
+**Trois pannes DURES que l'épingle masquait** — pas de la copie, du 500 :
+- `renderMealPhotoAck` **jetait** sur toute locale non-`en` → **HTTP 500 sur toute analyse de photo
+  francophone**. Inatteignable sous l'épingle, atteignable dès qu'elle tombe.
+- `localePackKey` **jette** hors `en`/`fr` — atteignable dès la première ligne `de-DE` (5 sites).
+- l'accusé `log_protocol_event` rendait `Recorded for … : **Glycinate de magnésium**`.
+Toutes fermées.
+
+**Les deux chemins de crise sont réparés** : prose FR→français / US→anglais **15/15** ; repli avec
+**clé du modèle retirée** (vraie panne, pas un mock) **20/20** sur 4 profils × 5 scénarios — bonne
+langue, ressources présentes, jamais vide, **zéro I/O ajoutée**, `isFrenchLocale` et jamais
+`localePackKey`. La conjonction `or` était `ou` **en dur** pour les anglophones.
+
+52 tours réels, 3 rejeux par scénario ; 3 483 + 204 déterministes verts ; 8 ceintures neuves.
+**3 faux verts trouvés dans ses propres sondes** avant conclusion (T-15, sixième occurrence).
+
+### 🔴 CONTRAINTE D'ORDRE POUR TON DÉPLOIEMENT — ne l'inverse pas
+L'épingle a écrit `en-US` dans l'ancre de **253 fils, dont 191 élèves `fr-FR`**, et `persisted`
+**prime sur** `profiles.locale`. Sans purge, ces 191 élèves resteraient en anglais malgré le correctif.
+La purge SQL est en **§8.1 de `RAPPORT-L1-LOCALE.md`** et doit partir **APRÈS**
+`supabase functions deploy sophia-brain` — lancée avant, le runtime encore épinglé la ré-écrit
+immédiatement. Prouvé dans les deux sens sur une ligne contrôlée.
+
+**REDs ouverts** : `plan_question` rend une phrase anglaise avec libellés français, 3/3 (c'est la lane
+du **refus allergène**) · le patron « composé localisé / repli anglais » revient **six fois** ·
+`daily_pulse` bilingue dans une seule bulle (fichier réservé) · la garde `invented_number` est
+anglophone et le réveil la rend **inopérante** · ≈ 40 sites sans axe de langue inventoriés.
+**T-20** : mécanisme inchangé, atténué sur sa marge mais **rendu plus discret sur son cœur** —
+des numéros français dans une phrase française se relisent comme cohérents.
