@@ -153,6 +153,47 @@ Deno.test("UN PASSÉ LOINTAIN N'EST PAS LA MESURE DU JOUR — FR et EN", () => {
   refused(["last year I weighed 200 lbs", "I used to weigh 200 lbs"]);
 });
 
+/**
+ * LE PASSÉ *PROCHE*, et il passait à travers.
+ *
+ * MESURÉ EN RUN RÉEL (2026-08-08, FF-008 A5): « la semaine dernière je pesais
+ * 85 kg » et « last Monday I was 85 kg » s'écrivaient dans la semaine
+ * COURANTE — un poids périmé rangé dans la case exacte que
+ * `restriction_guard` compare de semaine à semaine. La liste des désarmes
+ * disait l'intention (« la revue ne sait pas ranger un passé ») mais ne
+ * nommait que le passé lointain.
+ */
+Deno.test("UN PASSÉ PROCHE ET DATÉ N'EST PAS LA MESURE DU JOUR — FR et EN", () => {
+  // Les deux formes exactes mesurées en run réel.
+  refused(["la semaine dernière je pesais 85 kg", "last Monday I was 85 kg"]);
+  // Hier, et la veille.
+  refused(["hier je pesais 85 kg", "avant-hier je faisais 85 kg"]);
+  refused(["yesterday I weighed 185 lbs", "I was 185 lbs yesterday"]);
+  // Un jour NOMMÉ désarme seul: « lundi je pesais 85 » ne porte aucun
+  // marqueur d'antériorité, et exiger « dernier » raterait la forme courante.
+  refused(["lundi je pesais 85 kg", "dimanche je faisais 85 kg"]);
+  refused(["monday I was 185 lbs", "on friday I weighed 185 lbs"]);
+  // La semaine / le mois passés, dans les deux langues.
+  refused(["le mois dernier je pesais 85 kg", "la semaine passée je faisais 85 kg"]);
+  refused(["last week I was 185 lbs", "last month I weighed 185 lbs"]);
+  // « il y a N jours » — la forme que la liste ne couvrait qu'à partir des
+  // semaines.
+  refused(["il y a 3 jours je pesais 85 kg"]);
+  refused(["3 days ago I weighed 185 lbs", "2 weeks ago I was 185 lbs"]);
+});
+
+/**
+ * LA NON-RÉGRESSION QUI COMPTE. Le désarme du passé proche ne doit PAS manger
+ * le cas nominal: « ce matin » et « this morning » sont AUJOURD'HUI, et ce
+ * sont les formulations de §8.
+ */
+Deno.test("« ce matin » / « this morning » restent le cas NOMINAL", () => {
+  assertEquals(hit("je suis à 78 kg ce matin")?.valueSi, 78);
+  assertEquals(hit("je me suis pesé ce matin à 78 kg")?.valueSi, 78);
+  assertEquals(hit("I'm at 172 lbs this morning", "metric")?.valueSi, 78);
+  assertEquals(hit("je suis à 78 kg aujourd'hui")?.valueSi, 78);
+});
+
 // ---------------------------------------------------------------------------
 // §7 — les bornes, et le refus EXPLICITE plutôt que l'écriture silencieuse
 // ---------------------------------------------------------------------------

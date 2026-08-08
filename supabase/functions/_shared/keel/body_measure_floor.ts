@@ -297,8 +297,34 @@ const DISARM: readonly RegExp[] = [
   // ── LE PASSÉ LOINTAIN. « L'an dernier je faisais 92 » est une anecdote, pas
   // la mesure d'aujourd'hui, et la revue de semaine ne sait pas ranger un
   // passé (question ouverte de FF-008 §11, donc interdit tant qu'ouvert).
-  /\b(?:l an dernier|l annee derniere|avant|autrefois|a l epoque|il y a \d+ (?:ans|mois|semaines))\b/,
+  /\b(?:l an dernier|l annee derniere|avant|autrefois|a l epoque|il y a \d+ (?:jours?|semaines?|mois|ans?))\b/,
   /\b(?:last year|back then|years ago|months ago|used to)\b/,
+  // ── LE PASSÉ *PROCHE*, ET IL MANQUAIT.
+  //
+  // ⚠️ MESURÉ EN RUN RÉEL (2026-08-08, FF-008 A5). « La semaine dernière je
+  // pesais 85 kg » et « last Monday I was 85 kg » mordaient les portes
+  // `je pesais` / `i was` et s'écrivaient dans la semaine COURANTE — un poids
+  // périmé rangé dans la case que `restriction_guard` compare. C'est le pire
+  // des trois sorts possibles: pas un refus, pas la bonne date, mais une
+  // FAUSSE mesure d'aujourd'hui. Une perte réelle s'en trouve diluée (la
+  // semaine courante porte un poids trop ancien) ou inventée (un poids
+  // d'il y a un mois lu comme celui de cette semaine).
+  //
+  // La liste ci-dessus disait déjà l'intention — « la revue de semaine ne sait
+  // pas ranger un passé » — mais ne nommait que le passé LOINTAIN. Un jour
+  // nommé et la semaine dernière sont exactement le passé qu'un élève écrit,
+  // et ils passaient par le trou entre les deux.
+  //
+  // Le jour nommé désarme SEUL, sans exiger « dernier »: « lundi je pesais
+  // 85 » n'a pas de marqueur d'antériorité, et exiger « dernier » raterait la
+  // forme la plus courante. Coût assumé: « je me pèse le lundi, je suis à
+  // 78 » est refusé aussi. C'est le sens du refus qui est récupérable (R2) —
+  // l'élève réécrit son poids sans le jour, et il est enregistré.
+  /\b(?:hier|la semaine derniere|la semaine passee|le mois dernier|le mois passe|le week end dernier)\b/,
+  /\b(?:lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)\b/,
+  /\b(?:yesterday|last (?:week|month|weekend|night|monday|tuesday|wednesday|thursday|friday|saturday|sunday))\b/,
+  /\b(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/,
+  /\b(?:days? ago|weeks? ago)\b/,
   // ── LA CONSIGNE RAPPORTÉE.
   /\b(?:tu as dit|le coach|my coach|you said) /,
 ];
