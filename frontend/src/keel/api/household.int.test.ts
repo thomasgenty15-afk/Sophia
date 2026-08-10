@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  claimableMembers,
   envyRound,
   type HouseholdMemberView,
   type HouseholdView,
@@ -27,6 +28,17 @@ import {
  * décision à un humain, et compter qui a parlé cette semaine.
  */
 
+/**
+ * ⚠️ L'IDENTIFIANT DE MEMBRE DIFFÈRE DE L'IDENTIFIANT DE COMPTE, ET C'EST LE
+ * POINT DE CETTE FIXTURE (corrigé au lot 6).
+ *
+ * La rédaction précédente écrivait `userId = memberId`. Une fonction qui aurait
+ * confondu les deux — rendre un `memberId` là où un `userId` est attendu,
+ * chercher une restriction par le mauvais identifiant — passait tous les tests
+ * de ce fichier sans exception. Depuis le lot 1 les deux clés coexistent sur la
+ * même ligne, et c'est exactement la classe d'erreur qu'un décor doit rendre
+ * impossible plutôt que probable.
+ */
 function member(
   memberId: string,
   opts: {
@@ -38,7 +50,7 @@ function member(
 ): HouseholdMemberView {
   return {
     memberId,
-    userId: opts.userId === undefined ? memberId : opts.userId,
+    userId: opts.userId === undefined ? `acct-${memberId}` : opts.userId,
     displayName: memberId,
     role: opts.role ?? "member",
     ageState: opts.ageState ?? "adult",
@@ -73,7 +85,10 @@ describe("restrictionNotice — la décision est attribuée, jamais anonyme", ()
     // plus rien de ce que dit Sophia n'a de poids.
     const hh = household([OWNER, KID], "kid");
     const got = restrictionNotice(hh, {
-      id: "r1", memberId: "kid", label: "nutella", createdByUserId: "owner",
+      // L'AUTEUR EST UN COMPTE, pas une bouche: `restrictionNotice` cherche
+      // dans `members` par `userId`. Avec l'ancienne fixture (userId ===
+      // memberId) une implémentation qui aurait cherché par `memberId` passait.
+      id: "r1", memberId: "kid", label: "nutella", createdByUserId: "acct-owner",
     });
     expect(got).toEqual({ kind: "set_by_owner", ownerName: "owner" });
   });
@@ -81,7 +96,7 @@ describe("restrictionNotice — la décision est attribuée, jamais anonyme", ()
   it("le compte maître voit que c'est lui", () => {
     const hh = household([OWNER, KID]);
     const got = restrictionNotice(hh, {
-      id: "r1", memberId: "kid", label: "nutella", createdByUserId: "owner",
+      id: "r1", memberId: "kid", label: "nutella", createdByUserId: "acct-owner",
     });
     expect(got).toEqual({ kind: "set_by_me" });
   });
@@ -98,9 +113,11 @@ describe("restrictionNotice — la décision est attribuée, jamais anonyme", ()
 describe("envyRound — le silence est un état, pas une attente", () => {
   it("sépare ceux qui ont parlé de ceux qui se sont tus", () => {
     const hh = household([OWNER, ADULT, KID]);
-    expect(envyRound(hh, [{ userId: "adult" }])).toEqual({
-      spoken: ["adult"],
-      silent: ["owner"],
+    // Les deux listes sont des identifiants de COMPTE — c'est ce que la table
+    // des envies porte (`household_envy_submissions.user_id`).
+    expect(envyRound(hh, [{ userId: "acct-adult" }])).toEqual({
+      spoken: ["acct-adult"],
+      silent: ["acct-owner"],
     });
   });
 
@@ -112,9 +129,10 @@ describe("envyRound — le silence est un état, pas une attente", () => {
     // exactement la charge mentale que le produit promet de supprimer.
     const hh = household([OWNER, ADULT, KID]);
     const got = envyRound(hh, []);
-    expect(got.silent).toEqual(["owner", "adult"]);
+    expect(got.silent).toEqual(["acct-owner", "acct-adult"]);
     expect(got.spoken).toEqual([]);
     expect([...got.spoken, ...got.silent]).not.toContain("kid");
+    expect([...got.spoken, ...got.silent]).not.toContain("acct-kid");
   });
 
   it("un foyer entièrement muet reste un foyer valide", () => {
@@ -122,12 +140,38 @@ describe("envyRound — le silence est un état, pas une attente", () => {
     // qui tient le foyer se croirait obligé de relancer tout le monde — et on
     // aurait recréé la charge mentale qu'on promet de supprimer.
     const hh = household([OWNER, ADULT]);
-    expect(envyRound(hh, [])).toEqual({ spoken: [], silent: ["owner", "adult"] });
+    expect(envyRound(hh, [])).toEqual({
+      spoken: [],
+      silent: ["acct-owner", "acct-adult"],
+    });
   });
 
   it("l'ordre suit le foyer, pas l'ordre d'arrivée", () => {
     const hh = household([OWNER, ADULT]);
-    const got = envyRound(hh, [{ userId: "adult" }, { userId: "owner" }]);
-    expect(got.spoken).toEqual(["owner", "adult"]);
+    const got = envyRound(hh, [{ userId: "acct-adult" }, { userId: "acct-owner" }]);
+    expect(got.spoken).toEqual(["acct-owner", "acct-adult"]);
+  });
+});
+
+describe("claimableMembers — on n'invite que ce qui reste à réclamer (lot 6)", () => {
+  it("ne propose que les bouches SANS COMPTE", () => {
+    // ⚠️ LA FIXTURE DISTINGUE MEMBRE ET COMPTE. `member("kid", {userId: null})`
+    // porte un `memberId` et pas de `userId`: c'est exactement l'état d'une
+    // bouche saisie par le maître, et c'est le seul cas que la base accepte
+    // d'inviter (`already_claimed` sinon).
+    const hh = household([OWNER, ADULT, KID]);
+    expect(claimableMembers(hh).map((m) => m.memberId)).toEqual(["kid"]);
+  });
+
+  it("un foyer entièrement réclamé ne propose personne", () => {
+    // Ce cas N'EST PAS théorique: c'est l'état d'un couple où les deux ont un
+    // compte. L'écran doit alors DIRE qu'il n'y a personne à inviter plutôt que
+    // d'ouvrir un menu vide — un sélecteur sans option se lit comme une panne.
+    const hh = household([OWNER, ADULT]);
+    expect(claimableMembers(hh)).toEqual([]);
+  });
+
+  it("un foyer absent ne fait pas exploser l'écran", () => {
+    expect(claimableMembers(null)).toEqual([]);
   });
 });

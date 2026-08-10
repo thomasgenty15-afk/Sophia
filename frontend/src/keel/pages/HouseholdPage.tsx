@@ -6,6 +6,7 @@ import {
   addHouseholdMember,
   addRestriction,
   type AllergyView,
+  claimableMembers,
   createHousehold,
   createOwnerGoalRow,
   ENVY_MAX_CHARS,
@@ -922,11 +923,39 @@ function EnvyCard(
  * plus de sujet.
  */
 
+/**
+ * INVITER QUELQU'UN À RÉCLAMER SA LIGNE (lot 6).
+ *
+ * ── LA QUESTION QUI A CHANGÉ ───────────────────────────────────────────────
+ * Cette carte demandait une adresse. Elle demande maintenant DEUX choses, et
+ * l'ordre compte: QUI, puis OÙ envoyer. L'invitation attache un compte à une
+ * bouche qui existe déjà — si la cible était choisie à l'arrivée, un lien qui
+ * fuite deviendrait le droit de se déclarer n'importe qui du foyer.
+ *
+ * ── LE SÉLECTEUR NE PROPOSE QUE LES BOUCHES LIBRES ─────────────────────────
+ * Une ligne qui porte déjà un compte est refusée par la base
+ * (`already_claimed`), et proposer un choix qui sera refusé est une promesse
+ * qu'on ne tient pas. Quand il n'en reste aucune, la carte le DIT plutôt que
+ * d'afficher un menu vide.
+ */
 function InviteCard(
   { household, busy }: { household: HouseholdView; busy: boolean },
 ) {
+  // UNE BOUCHE LIBRE = pas de compte attaché. C'est la même définition qu'en
+  // base (`user_id is null`), et le roster la rend telle quelle.
+  const claimable = claimableMembers(household);
+  const [memberId, setMemberId] = React.useState(claimable[0]?.memberId ?? "");
+  // LA SÉLECTION EST DÉRIVÉE, PAS SEULEMENT INITIALISÉE. La carte ne se démonte
+  // pas entre deux rafraîchissements: un `useState` seul garderait la bouche
+  // choisie même après qu'elle a été réclamée ou retirée, et le maître enverrait
+  // un lien pour quelqu'un d'autre que celui qu'il lit à l'écran.
+  const selected = claimable.some((m) => m.memberId === memberId)
+    ? memberId
+    : (claimable[0]?.memberId ?? "");
   const [email, setEmail] = React.useState("");
-  const [token, setToken] = React.useState<string | null>(null);
+  const [invite, setInvite] = React.useState<{ token: string; firstName: string } | null>(
+    null,
+  );
   const [reason, setReason] = React.useState<string | null>(null);
   const [working, setWorking] = React.useState(false);
 
@@ -936,42 +965,77 @@ function InviteCard(
     <Card>
       <SectionLabel>{t("household.invite.title")}</SectionLabel>
       <p className="mb-3 text-sm text-neutral-600">{t("household.invite.body")}</p>
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
-        <Field label={t("household.invite.email")}>
-          <input
-            className={`${inputClass} min-w-0`}
-            value={email}
-            type="email"
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </Field>
-        <Button
-          disabled={busy || working || !email.trim()}
-          onClick={async () => {
-            setWorking(true);
-            setToken(null);
-            setReason(null);
-            try {
-              const res = await inviteToHousehold(email.trim());
-              if (res.ok) setToken(String(res.token ?? ""));
-              else setReason(res.reason);
-            } finally {
-              setWorking(false);
-            }
-          }}
-        >
-          {t("household.invite.submit")}
-        </Button>
-      </div>
+      {/* CE QUE LA RÉCLAMATION DONNE, DIT AU MAÎTRE AVANT QU'IL PROMETTE. Il
+          est celui qui écrit le message d'accompagnement: s'il annonce « tu
+          pourras composer », la base le démentira et c'est lui qui aura menti. */}
+      <p className="mb-3 text-sm text-neutral-500">{t("household.invite.grants")}</p>
+      {claimable.length === 0 ? (
+        <p className="rounded-md bg-neutral-50 p-3 text-sm text-neutral-600">
+          {t("household.invite.nobody_left")}
+        </p>
+      ) : (
+        <>
+          <div className="flex flex-col gap-2">
+            <Field
+              label={t("household.invite.who")}
+              hint={t("household.invite.who_hint")}
+            >
+              <select
+                className={inputClass}
+                value={selected}
+                onChange={(e) => setMemberId(e.target.value)}
+              >
+                {claimable.map((m) => (
+                  <option key={m.memberId} value={m.memberId}>{m.displayName}</option>
+                ))}
+              </select>
+            </Field>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+              <Field label={t("household.invite.email")}>
+                <input
+                  className={`${inputClass} min-w-0`}
+                  value={email}
+                  type="email"
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </Field>
+              <Button
+                disabled={busy || working || !email.trim() || !selected}
+                onClick={async () => {
+                  setWorking(true);
+                  setInvite(null);
+                  setReason(null);
+                  try {
+                    const res = await inviteToHousehold(email.trim(), selected);
+                    if (res.ok) {
+                      setInvite({
+                        token: String(res.token ?? ""),
+                        // Le prénom vient de la RÉPONSE, pas de l'état local:
+                        // c'est la ligne que la base a réellement visée.
+                        firstName: String(res.first_name ?? ""),
+                      });
+                    } else setReason(res.reason);
+                  } finally {
+                    setWorking(false);
+                  }
+                }}
+              >
+                {t("household.invite.submit")}
+              </Button>
+            </div>
+          </div>
+        </>
+      )}
       {/* LE JETON N'EST RENDU QU'UNE FOIS, par la RPC. On l'affiche donc en
-          entier: le regénérer plus tard produirait un second lien, et deux
-          liens vivants pour une même personne est exactement ce que
-          `consumed_at` existe pour éviter. */}
-      {token ? (
+          entier, ET on nomme la bouche qu'il vise: le maître en émet plusieurs
+          dans la même minute, et un lien anonyme part à la mauvaise personne. */}
+      {invite ? (
         <div className="mt-3 text-sm">
-          <p className="mb-1 text-neutral-600">{t("household.invite.link_ready")}</p>
+          <p className="mb-1 text-neutral-600">
+            {t("household.invite.link_ready", { name: invite.firstName })}
+          </p>
           <code className="block overflow-x-auto rounded bg-neutral-100 p-2 text-xs">
-            {`${globalThis.location?.origin ?? ""}/join-household?token=${token}`}
+            {`${globalThis.location?.origin ?? ""}/join-household?token=${invite.token}`}
           </code>
         </div>
       ) : null}
@@ -1004,6 +1068,15 @@ function inviteErrorText(reason: string): string | null {
       return t("household.invite.error.bad_email");
     case "not_owner":
       return t("household.invite.error.not_owner");
+    // LOT 6 — les deux refus que la CIBLE peut produire. Ils sont rares à
+    // l'écran (le sélecteur ne propose que des bouches libres du foyer) et ils
+    // arrivent quand même: deux onglets ouverts, ou une bouche réclamée entre
+    // le chargement et le clic. Sans étiquette, l'écran afficherait le jeton
+    // brut `already_claimed` à quelqu'un.
+    case "already_claimed":
+      return t("household.invite.error.already_claimed");
+    case "not_a_member":
+      return t("household.error.not_a_member");
     default:
       return null;
   }

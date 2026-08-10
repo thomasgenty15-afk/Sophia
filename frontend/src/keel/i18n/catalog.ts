@@ -57,6 +57,15 @@ export const PUBLIC_NAMESPACES_PENDING_TRANSLATION = [
   "start",
   "join",
   "invite",
+  // `/join-household` (chantier foyer, lot 6). PUBLIQUE comme `/join`: la
+  // personne qui ouvre le lien de réclamation n'a le plus souvent aucun compte.
+  //
+  // ⚠️ NAMESPACE À PART, ET PAS `household.*`. Les clés de `/app/household`
+  // vivent dans le produit connecté, qui est ANGLAIS PAR CHOIX et n'attend
+  // aucune traduction. Ranger cette page sous `household` déclarerait une dette
+  // de traduction pour tout l'écran du foyer — c'est-à-dire une dette qu'on
+  // croirait avoir, ce que la liste ci-dessus existe précisément pour éviter.
+  "household_claim",
 ] as const;
 
 export type PublicNamespace = typeof PUBLIC_NAMESPACES[number];

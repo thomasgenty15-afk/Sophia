@@ -46,6 +46,8 @@ import CoachStudentPage from "./keel/pages/CoachStudentPage";
 // la place de `/coach/clients/:studentId/meals`.
 import StudentMealPlanPage from "./keel/pages/mealPlan/StudentMealPlanPage";
 import { KeelStudentRoute } from "./keel/components/KeelStudentRoute";
+import { KeelHouseholdRoute } from "./keel/components/KeelHouseholdRoute";
+import JoinHouseholdPage from "./keel/pages/JoinHouseholdPage";
 import CoachHomePage from "./keel/pages/CoachHomePage";
 import CoachDoctrinePage from "./keel/pages/CoachDoctrinePage";
 import CoachProtocolPage from "./keel/pages/CoachProtocolPage";
@@ -167,13 +169,20 @@ function App() {
                   Même garde que les écrans au-dessus: la route est de la
                   navigation, RLS reste la vraie frontière — et ici elle porte
                   davantage que d'habitude, puisque `keel_household_of` décide
-                  seul de ce que chaque membre peut lire du foyer. */}
+                  seul de ce que chaque membre peut lire du foyer.
+                  ⚠️ GARDE ÉLARGIE AU LOT 6: quelqu'un qui a RÉCLAMÉ son profil
+                  n'est l'élève de personne — `profiles.keel_role` n'est écrit
+                  que par les trois portes de coaching. `KeelHouseholdRoute`
+                  laisse entrer un membre de foyer, et retombe sur la garde
+                  élève pour tous les autres. Sans elle, la réclamation
+                  aboutissait en base et la personne atterrissait sur « tu n'es
+                  pas un élève ». */}
               <Route
                 path="/app/household"
                 element={
-                  <KeelStudentRoute>
+                  <KeelHouseholdRoute>
                     <HouseholdPage />
-                  </KeelStudentRoute>
+                  </KeelHouseholdRoute>
                 }
               />
               {/* KEEL — `/app/cards` est DÉMONTÉE (cartes d'attaque/défense,
@@ -300,6 +309,16 @@ function App() {
                   (preview_coach_invitation) that returns the coach's first
                   name and the invited email, and nothing else. */}
               <Route path="/join" element={<JoinPage />} />
+              {/* KEEL — /join-household?token=… — RÉCLAMER SON PROFIL DE FOYER
+                  (chantier foyer, lot 6). PUBLIQUE, comme /join et pour la même
+                  raison: la personne qui ouvre le lien n'a le plus souvent
+                  aucun compte. Elle parle à UNE seule RPC anon,
+                  `keel_household_preview_invitation`, qui rend trois champs —
+                  le nom du foyer, le prénom de la bouche, l'adresse invitée —
+                  tous déjà entre les mains de qui détient le lien. La
+                  réclamation elle-même exige une session, et la base compare
+                  l'adresse du compte à celle de l'invitation. */}
+              <Route path="/join-household" element={<JoinHouseholdPage />} />
               {/* KEEL — la porte d'entrée LIBRE, sans invitation. PUBLIQUE, et
                   elle parle à une seule RPC anon (keel_free_signup_available)
                   qui rend un booléen sur l'état de NOTRE programme de découverte

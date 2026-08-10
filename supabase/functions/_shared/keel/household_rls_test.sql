@@ -34,6 +34,12 @@
 --  16. allergie et règle de maison sont dans DEUX tables         -> 0 / 0 / 1 (lot 4)
 --  17. le prénom et la date se corrigent, par la bonne personne  -> ok / not_your_line
 --  18. poser la date fait passer `unknown` à `adult`             -> 1         (lot 4)
+--  19. l'invitation VISE une bouche, et le lien la nomme         -> ok / Lea  (lot 6)
+--  20. on n'invite ni une ligne déjà réclamée ni un voisin       -> already_claimed / not_a_member
+--  21. `anon` LIT l'invitation, et rien d'autre du foyer         -> valid     (lot 6)
+--  22. réclamer ATTACHE: même member_id, rien de perdu           -> 1 / 8     (lot 6)
+--  23. un compte déjà logé ailleurs ne réclame pas               -> already_in_household
+--  24. le profil réclamé pose SON objectif et RIEN d'autre       -> ok / 4× not_owner
 --
 -- Chaque assertion RAISE en cas d'écart: un vert silencieux sur une policy
 -- cassée est le seul résultat que ce fichier existe pour empêcher.
@@ -186,6 +192,21 @@ select pg_temp.become('f0ed0000-0000-0000-0000-000000000005');
 select pg_temp.assert_ok('02 création du foyer voisin',
 public.keel_household_create('Ailleurs'));
 
+-- ⚠️ L'IDENTIFIANT DU VOISIN, CAPTURÉ SOUS POSTGRES — et c'est une correction
+-- de fixture, pas une commodité. Les assertions « une bouche d'un AUTRE foyer
+-- est refusée » lisaient ce `member_id` sous le JWT du compte maître, à qui RLS
+-- ne rend RIEN du foyer d'à côté: le sous-select rendait NULL, la RPC recevait
+-- `p_member = null` et refusait « membre inconnu ». Le test passait pour la
+-- mauvaise raison — il prouvait qu'un NULL est refusé, pas qu'un identifiant
+-- ÉTRANGER l'est. Capturé ici, il est réel.
+select pg_temp.become_super();
+create temporary table pg_temp_neighbour on commit drop as
+  select member_id from public.household_members
+   where user_id = 'f0ed0000-0000-0000-0000-000000000005';
+-- Créée sous `postgres`, lue sous `authenticated`: sans ce grant, la lecture
+-- lève « permission denied » et la fixture meurt au lieu d'affirmer.
+grant select on pg_temp_neighbour to authenticated;
+
 -- ---------------------------------------------------------------------------
 -- 1–3. Ce qui se lit, et par qui
 -- ---------------------------------------------------------------------------
@@ -320,6 +341,34 @@ select pg_temp.assert_eq('10f authenticated les exécute toutes les quatre',
      ('public.keel_household_set_member_birth_date(uuid,date)')) t(f)
    where has_function_privilege('authenticated', t.f, 'EXECUTE')), 4);
 
+-- LOT 6 — LES DEUX PORTES DE LA RÉCLAMATION, ET L'EXCEPTION ASSUMÉE.
+-- `revoke from public` NE RETIRE PAS `anon`: chaque fonction neuve est
+-- exécutable par tout le monde tant qu'on ne l'a pas révoquée nommément.
+select pg_temp.assert_eq('10g anon n''émet ni ne consomme une invitation',
+  (select count(*) from (values
+     ('public.keel_household_invite(text,uuid)'),
+     ('public.keel_household_join(text)')) t(f)
+   where has_function_privilege('anon', t.f, 'EXECUTE')), 0);
+
+-- L'EXCEPTION, ET ELLE EST VOULUE: l'aperçu est la SEULE fonction de foyer
+-- qu'`anon` exécute, parce que la personne qui ouvre le lien n'a pas encore de
+-- compte. Elle ne rend que trois champs déjà détenus par qui tient le lien, et
+-- elle ne consomme rien. L'affirmer ici rend le choix VISIBLE plutôt que
+-- découvert un jour par un audit.
+select pg_temp.assert_eq('10h anon LIT l''aperçu d''invitation, et lui seul',
+  (select count(*) from (values
+     ('public.keel_household_preview_invitation(text)')) t(f)
+   where has_function_privilege('anon', t.f, 'EXECUTE')), 1);
+
+-- ET L'ANCIENNE SIGNATURE EST PARTIE. Deux arités sont deux fonctions: laisser
+-- `keel_household_invite(text)` en place garderait vivante une porte qui émet
+-- un jeton SANS CIBLE, que la nouvelle réclamation ne saurait pas honorer.
+select pg_temp.assert_eq('10i l''invitation sans cible n''existe plus',
+  (select count(*) from pg_proc p
+    join pg_namespace n on n.oid = p.pronamespace
+   where n.nspname = 'public' and p.proname = 'keel_household_invite'
+     and pg_get_function_identity_arguments(p.oid) = 'text'), 0);
+
 -- TRUNCATE, en conditions réelles. RLS ne le filtre PAS: c'est la seule
 -- écriture que l'absence de policy ne protège pas, donc la seule qui exige que
 -- le privilège lui-même ait été retiré.
@@ -382,8 +431,7 @@ public.keel_household_add_restriction(
 -- 8. Mais PAS quelqu'un d'un AUTRE foyer. La garde qui reste est celle-là.
 select pg_temp.assert_refused('17 une bouche d''un autre foyer: refusé',
   public.keel_household_add_restriction(
-    (select member_id from public.household_members
-      where user_id = 'f0ed0000-0000-0000-0000-000000000005'), 'nutella'),
+    (select member_id from pg_temp_neighbour), 'nutella'),
   'not_a_member');
 
 -- 9. §8.5 règle 3, ET LA CONTREPARTIE DU CONSENTEMENT DISPARU: la personne
@@ -482,8 +530,7 @@ public.keel_household_add_allergy(
 -- 42. Pas dans le foyer d'à côté.
 select pg_temp.assert_refused('42 une bouche d''un autre foyer: refusé',
   public.keel_household_add_allergy(
-    (select member_id from public.household_members
-      where user_id = 'f0ed0000-0000-0000-0000-000000000005'), 'peanut'),
+    (select member_id from pg_temp_neighbour), 'peanut'),
   'not_a_member');
 
 -- 43. LA SÉPARATION, SUR LA MÊME BOUCHE. Léa porte « champignons » (règle de
@@ -576,42 +623,210 @@ select pg_temp.assert_eq('56 après: elle est adulte, et son objectif s''appliqu
       and public.keel_household_member_age(member_id) = 'adult'), 1);
 
 -- ---------------------------------------------------------------------------
--- 12–13. L'INVITATION: usage unique, et liée à une adresse
+-- 12–13 + 60–72. L'INVITATION EST UNE RÉCLAMATION DE PROFIL (lot 6)
+--
+-- CE QUI A CHANGÉ DE NATURE ICI: `keel_household_join` n'INSÈRE plus une ligne,
+-- elle en ATTACHE une. L'invitation vise donc une bouche précise, choisie par
+-- le compte maître, et la réclamation ne doit RIEN faire perdre à cette bouche.
+--
+-- ⚠️ CE QUE CETTE SECTION NE FAIT PLUS, ET POURQUOI C'EST UN RENFORCEMENT:
+-- l'ancienne rédaction SORTAIT l'intrus de son foyer avant de lui faire voler
+-- un jeton, parce que `already_in_household` était vérifié AVANT l'adresse — le
+-- test annonçait « un jeton volé ne sert à personne » et prouvait « un compte
+-- déjà logé ne rejoint pas », ce qui n'est pas la même propriété. L'ordre des
+-- refus a été inversé dans la RPC; le vol est maintenant testé sur un voleur
+-- QUI GARDE SON FOYER, et le motif attendu vient bien de l'adresse.
 -- ---------------------------------------------------------------------------
 
 select pg_temp.become('f0ed0000-0000-0000-0000-000000000001');
-create temporary table pg_temp_invite on commit drop as
-  select public.keel_household_invite('nightfoyer_invitee@example.com') as r;
 
-select pg_temp.assert_ok('23 invitation émise',
+-- LA CIBLE: Léa, la bouche SANS COMPTE, qui porte déjà une règle de maison
+-- (« champignons », posée en 15) et une allergie (« arachide », posée en 41).
+-- C'est exactement ce qui doit lui rester après la réclamation.
+create temporary table pg_temp_lea on commit drop as
+  select member_id from public.household_members
+   where household_id = public.keel_household_of('f0ed0000-0000-0000-0000-000000000001')
+     and user_id is null and first_name = 'Lea';
+
+create temporary table pg_temp_invite on commit drop as
+  select public.keel_household_invite(
+    'nightfoyer_invitee@example.com', (select member_id from pg_temp_lea)) as r;
+
+select pg_temp.assert_ok('60 invitation émise POUR UNE BOUCHE',
 (select r from pg_temp_invite));
 
--- 13. Le jeton qui fuite: un TIERS ne peut pas s'en servir. L'intrus a déjà un
--- foyer, on le sort d'abord pour que le refus vienne bien de l'adresse et non
--- de `already_in_household` — un test qui passe pour la mauvaise raison ne
--- teste rien.
-select pg_temp.become_super();
-delete from public.household_members
- where user_id = 'f0ed0000-0000-0000-0000-000000000005';
+-- 61. Le lien NOMME sa cible. Le maître émet plusieurs invitations dans la même
+-- minute; un jeton anonyme est un jeton qu'on envoie à la mauvaise personne.
+select pg_temp.assert_eq('61 l''invitation nomme la bouche qu''elle vise',
+  (select count(*) from pg_temp_invite where r->>'first_name' = 'Lea'), 1);
 
+-- 62. On n'émet pas un lien MORT: la ligne du maître a déjà un compte.
+select pg_temp.assert_refused('62 une ligne déjà réclamée ne s''invite pas',
+  public.keel_household_invite('nightfoyer_invitee2@example.com',
+    (select member_id from public.household_members
+      where user_id = 'f0ed0000-0000-0000-0000-000000000002')),
+  'already_claimed');
+
+-- 63. Ni une bouche du foyer d'à côté. Même motif que partout ailleurs:
+-- `not_a_member` ne distingue pas « inexistante » de « chez le voisin », sinon
+-- la RPC devient un moyen de tester l'existence d'un identifiant.
+select pg_temp.assert_refused('63 une bouche d''un autre foyer ne s''invite pas',
+  public.keel_household_invite('nightfoyer_invitee2@example.com',
+    (select member_id from pg_temp_neighbour)),
+  'not_a_member');
+
+-- 64. `anon` LIT L'INVITATION — la seule fonction de foyer qu'il exécute, et
+-- c'est son objet: la personne qui ouvre le lien n'a pas encore de compte.
+-- Le jeton est lu SOUS postgres puis le rôle bascule, parce qu'`anon` n'a
+-- aucun privilège sur une table temporaire de cette session.
+do $$
+declare v_token text; v_res jsonb;
+begin
+  select r->>'token' into v_token from pg_temp_invite;
+  perform set_config('request.jwt.claims', '', true);
+  execute 'set local role anon';
+  v_res := public.keel_household_preview_invitation(v_token);
+  execute 'reset role';
+  if coalesce((v_res->>'valid')::boolean, false) is not true then
+    raise exception 'FAIL 64 : anon ne peut pas lire l''invitation (%)', v_res;
+  end if;
+  if v_res->>'first_name' <> 'Lea' or v_res->>'household_name' <> 'Maison'
+     or v_res->>'email' <> 'nightfoyer_invitee@example.com' then
+    raise exception 'FAIL 64 : l''aperçu ne dit pas ce qu''il doit dire (%)', v_res;
+  end if;
+  -- ET RIEN D'AUTRE. Un aperçu qui rendrait un identifiant de membre donnerait
+  -- à un jeton qui fuite de quoi viser une autre ligne.
+  if v_res ? 'member_id' or v_res ? 'household_id' or v_res ? 'goal' then
+    raise exception 'FAIL 64 : l''aperçu rend plus que les trois champs (%)', v_res;
+  end if;
+  raise notice 'PASS 64 anon lit l''invitation, et strictement trois champs';
+end;
+$$;
+
+-- 65. LE JETON VOLÉ. L'intrus GARDE son foyer: le refus doit venir de
+-- l'adresse, pas de son état de compte (voir l'avertissement en tête).
 select pg_temp.become('f0ed0000-0000-0000-0000-000000000005');
-select pg_temp.assert_refused('24 un jeton volé ne sert à personne d''autre',
+select pg_temp.assert_refused('65 un jeton volé ne sert à personne d''autre',
   public.keel_household_join((select r->>'token' from pg_temp_invite)),
   'email_mismatch');
 
--- 12. Usage unique: le bon destinataire l'utilise, puis plus personne.
+-- 66. LA RÉCLAMATION.
 select pg_temp.become('f0ed0000-0000-0000-0000-000000000009');
-select pg_temp.assert_ok('25 le destinataire rejoint',
+select pg_temp.assert_ok('66 le destinataire réclame le profil',
 public.keel_household_join((select r->>'token' from pg_temp_invite)));
 
+-- 67. LE MÊME `member_id` PORTE MAINTENANT UN COMPTE. C'est l'assertion pour
+-- laquelle ce lot existe: pas une ligne créée, une ligne attachée.
 select pg_temp.become_super();
-delete from public.household_members
- where user_id = 'f0ed0000-0000-0000-0000-000000000009';
+select pg_temp.assert_eq('67 la MÊME ligne porte le compte, prénom intact',
+  (select count(*) from public.household_members hm
+    where hm.member_id = (select member_id from pg_temp_lea)
+      and hm.user_id = 'f0ed0000-0000-0000-0000-000000000009'
+      and hm.first_name = 'Lea'
+      and hm.role = 'member'), 1);
 
+-- 68. ET RIEN N'A ÉTÉ PERDU: sa règle de maison et son allergie pendent au
+-- `member_id`, pas à un compte, donc elles ne bougent pas d'un cheveu.
+select pg_temp.assert_eq('68 sa règle de maison lui reste',
+  (select count(*) from public.household_food_restrictions
+    where member_id = (select member_id from pg_temp_lea)
+      and label = 'champignons'), 1);
+select pg_temp.assert_eq('69 son allergie lui reste',
+  (select count(*) from public.household_member_allergies
+    where member_id = (select member_id from pg_temp_lea)
+      and label = 'arachide'), 1);
+
+-- 70. LE FOYER N'A PAS GRANDI. Une réclamation qui INSÈRE laisserait 9 lignes
+-- ici, et le générateur composerait une portion pour un fantôme.
+select pg_temp.assert_eq('70 le foyer compte toujours 8 bouches',
+  (select count(*) from public.household_members
+    where household_id = public.keel_household_of('f0ed0000-0000-0000-0000-000000000001')), 8);
+
+-- 71. NON REJOUABLE — et testé SANS sortir la personne de son foyer, pour que
+-- le motif rendu soit bien `already_used` et pas un effet de bord.
 select pg_temp.become('f0ed0000-0000-0000-0000-000000000009');
-select pg_temp.assert_refused('26 le jeton ne resert pas',
+select pg_temp.assert_refused('71 le jeton ne resert pas',
   public.keel_household_join((select r->>'token' from pg_temp_invite)),
   'already_used');
+
+-- 72. Et l'aperçu le dit aussi, plutôt que de laisser croire à un lien vivant.
+do $$
+declare v_token text; v_res jsonb;
+begin
+  select r->>'token' into v_token from pg_temp_invite;
+  perform set_config('request.jwt.claims', '', true);
+  execute 'set local role anon';
+  v_res := public.keel_household_preview_invitation(v_token);
+  execute 'reset role';
+  if coalesce(v_res->>'reason', '') <> 'already_used' then
+    raise exception 'FAIL 72 : l''aperçu d''un lien consommé rend % ', v_res;
+  end if;
+  raise notice 'PASS 72 l''aperçu d''un lien consommé dit already_used';
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- 73–78. CE QUE LA RÉCLAMATION DONNE, ET CE QU'ELLE NE DONNE PAS
+--
+-- UNE SEULE PERSONNE GOUVERNE LE MENU. C'est ce qui évite le marécage d'un
+-- arbitrage entre un parent et son enfant, et c'est pour ça que les quatre
+-- refus ci-dessous comptent autant que le succès qui les précède.
+-- ---------------------------------------------------------------------------
+
+-- 73. LA SEULE AUTORITÉ GAGNÉE: son propre objectif.
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000009');
+select pg_temp.assert_ok('73 le profil réclamé pose SON objectif',
+public.keel_household_set_member_goal(
+    (select member_id from pg_temp_lea), 'health'));
+select pg_temp.become_super();
+select pg_temp.assert_eq('74 et l''objectif est VRAIMENT écrit',
+  (select count(*) from public.household_members
+    where member_id = (select member_id from pg_temp_lea) and goal = 'health'), 1);
+
+-- 75–78. LES QUATRE REFUS.
+--
+-- « Composer » n'est pas une RPC: `generate-household-meal-v1` lit
+-- `household_members.role` et rend 403 `not_owner` (index.ts:220). Ce que SQL
+-- peut prouver, et prouve, c'est l'entrée de cette garde — le rôle de la ligne
+-- réclamée vaut `member` (assertion 67) et aucun membre ne peut l'écrire en
+-- direct (assertions 10 et 10b).
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000009');
+select pg_temp.assert_refused('75 il n''AJOUTE pas de bouche',
+  public.keel_household_add_member('Clandestin', null, null), 'not_owner');
+select pg_temp.assert_refused('76 il ne RETIRE personne',
+  public.keel_household_remove_member(
+    (select member_id from public.household_members
+      where user_id = 'f0ed0000-0000-0000-0000-000000000003')),
+  'not_owner');
+select pg_temp.assert_refused('77 il ne RESTREINT personne',
+  public.keel_household_add_restriction(
+    (select member_id from public.household_members
+      where user_id = 'f0ed0000-0000-0000-0000-000000000003'), 'nutella'),
+  'not_owner');
+select pg_temp.assert_refused('78 il ne déclare aucune allergie',
+  public.keel_household_add_allergy(
+    (select member_id from public.household_members
+      where user_id = 'f0ed0000-0000-0000-0000-000000000003'), 'peanut'),
+  'not_owner');
+
+-- 79. UN COMPTE = UN FOYER. L'intrus reçoit une invitation VALIDE, à SON
+-- adresse, pour une bouche libre — et il est refusé parce qu'il habite déjà
+-- ailleurs. C'est `household_members_one_per_user`, l'invariant scalaire dont
+-- dépend `keel_household_of`, donc toutes les policies du foyer.
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000001');
+create temporary table pg_temp_invite2 on commit drop as
+  select public.keel_household_invite(
+    'nightfoyer_intruder@example.com',
+    (select member_id from public.household_members
+      where household_id = public.keel_household_of('f0ed0000-0000-0000-0000-000000000001')
+        and first_name = 'Bouche1')) as r;
+select pg_temp.assert_ok('79 invitation émise pour une bouche libre',
+(select r from pg_temp_invite2));
+
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000005');
+select pg_temp.assert_refused('80 un compte déjà logé ailleurs ne réclame pas',
+  public.keel_household_join((select r->>'token' from pg_temp_invite2)),
+  'already_in_household');
 
 -- ---------------------------------------------------------------------------
 -- 14–15. La composition: partagée par le foyer, privée sans foyer

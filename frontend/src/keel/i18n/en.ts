@@ -2913,16 +2913,33 @@ export const en = {
   "household.allergy.placeholder": "Peanuts",
   "household.allergy.add": "Add the allergy",
   "household.allergy.remove": "Remove",
-  "household.invite.title": "Invite someone",
+  // ── L'INVITATION EST UNE RÉCLAMATION DE PROFIL (lot 6) ───────────────────
+  // Elle n'ajoute personne au foyer: elle donne à quelqu'un le moyen de poser
+  // son compte sur une ligne QUI EXISTE DÉJÀ. D'où la question « qui ? » avant
+  // « quelle adresse ? », et d'où `household.invite.grants`, qui dit au maître
+  // ce qu'il est en train de promettre — c'est lui qui écrit le message
+  // d'accompagnement, et une promesse que la base dément est la sienne.
+  "household.invite.title": "Let someone claim their profile",
   "household.invite.body":
-    "They need their own profile: without it, the plan is wrong for them.",
+    "Their portions, their allergies and what this house does not serve are already on their line. Claiming it attaches their account to that same line — nothing is created, nothing is lost.",
+  "household.invite.grants":
+    "What they get: they read the household plan and set their own direction. Not: composing, adding or removing anyone, or deciding what the house does not serve.",
+  "household.invite.who": "Who is this for?",
+  "household.invite.who_hint":
+    "Only people who have no account yet are listed. The link claims that exact line.",
+  "household.invite.nobody_left":
+    "Everyone here already has an account. Add someone first, then invite them.",
   "household.invite.email": "Their email",
   "household.invite.submit": "Create the invitation",
+  // ⚠️ `{name}` EST LOAD-BEARING: le maître émet plusieurs liens dans la même
+  // minute, et un lien anonyme part à la mauvaise personne.
   "household.invite.link_ready":
-    "Send them this link. It works once, for that address, and expires in 14 days.",
+    "Send this link to claim {name}'s profile. It works once, for that address, and expires in 14 days.",
   "household.invite.error.rate_limited": "That is enough invitations for today.",
   "household.invite.error.bad_email": "That address does not look usable.",
   "household.invite.error.not_owner": "Only the person who runs the household can invite.",
+  "household.invite.error.already_claimed":
+    "That line already has an account on it. Nothing to claim.",
   // ── LE CONSENTEMENT A DISPARU (lot 2, 2026-08-10) ────────────────────────
   // `household.consent.*` et `household.join.consent_notice` décrivaient un
   // majeur qui accorde puis révoque le droit d'être restreint. Le modèle arrêté
@@ -2960,6 +2977,76 @@ export const en = {
     "{count} people said nothing this week and were composed from their profile.",
   "household.portions.title": "At the table",
   "household.portions.standard": "A standard serving",
+  // ── /join-household — RÉCLAMER SON PROFIL (lot 6) ────────────────────────
+  //
+  // DEUX MOITIÉS, MÊME POIDS. « Ce que ça donne » et « ce que ça ne donne
+  // pas » sont côte à côte parce qu'une seule personne gouverne le menu, et
+  // que ce choix est INVISIBLE si on ne l'écrit pas: quelqu'un qui réclame en
+  // croyant pouvoir composer l'apprendrait par un bouton absent.
+  //
+  // Aucune phrase ici ne parle de ce qui est « bon » pour quelqu'un — même
+  // règle que le reste du bloc foyer: le domestique et l'épistémique ne se
+  // mélangent jamais.
+  //
+  // ⚠️ NAMESPACE `household_claim` ET NON `household`, alors que la page est
+  // voisine. La raison est la frontière de traduction (i18n/catalog.ts): cette
+  // page est PUBLIQUE — elle s'ouvre sans compte — donc elle appartient à la
+  // liste des surfaces de vitrine pas encore traduites. `household.*`, lui,
+  // vit dans le produit connecté, anglais par choix et sans dette. Les mêler
+  // ferait croire à une traduction due pour tout l'écran du foyer.
+  "household_claim.seo_title": "Claim your profile — Sophia",
+  "household_claim.seo_description":
+    "Attach your account to the line someone already set up for you in their household.",
+  "household_claim.checking": "Checking this link...",
+  "household_claim.title": "{name}'s place in {household}",
+  "household_claim.lead":
+    "Someone already set up this line: {name}'s first name, allergies, and what the house does not serve. Claiming it attaches your account to that same line — it does not create a second one, and nothing already on it is lost.",
+  "household_claim.gains_label": "What claiming gives you",
+  "household_claim.gains_1": "You read what the household is cooking, and your own serving.",
+  "household_claim.gains_2":
+    "You set your own direction — losing fat, building muscle, or none — and your serving follows it.",
+  "household_claim.gains_3": "Your first name, your allergies and your line stay yours.",
+  "household_claim.limits_label": "What it does not give you",
+  "household_claim.limits_1":
+    "You do not compose the plan, and you do not add or remove anyone. One person runs the menu.",
+  "household_claim.limits_2":
+    "You do not decide what the house does not serve — and whoever does is named on screen, never hidden.",
+  "household_claim.signed_in_as": "You are signed in as {email}.",
+  "household_claim.submit": "Claim this profile",
+  "household_claim.working": "Claiming...",
+  "household_claim.signed_out.body":
+    "This invitation was sent to {email}. Sign in with that address to claim it — the account has to match.",
+  "household_claim.signed_out.cta": "Sign in and claim",
+  "household_claim.signed_out.no_account":
+    "No account on that address yet? Ask the person who sent you this link — signing up on your own is not open today.",
+  "household_claim.no_token.title": "This link is incomplete",
+  "household_claim.no_token.body":
+    "The address is missing its invitation code. Open the link you were sent in full, or ask for a new one.",
+  "household_claim.refused.title": "This link cannot be used",
+  "household_claim.refused.generic":
+    "We could not use this invitation. Ask for a new one.",
+  "household_claim.refused.unknown_token":
+    "We do not recognise this invitation. Check that you copied the whole link, or ask for a new one.",
+  "household_claim.refused.expired": "This invitation has expired. Ask for a new one.",
+  "household_claim.refused.already_used":
+    "This invitation has already been used. If that was you, sign in — your place is waiting.",
+  "household_claim.refused.already_claimed":
+    "That line already has an account on it. If it is yours, sign in.",
+  "household_claim.refused.email_mismatch":
+    "This invitation was sent to a different address. Sign in with the one it was sent to.",
+  "household_claim.refused.already_in_household":
+    "Your account is already in a household, and an account belongs to one household at a time.",
+  "household_claim.refused.not_authenticated":
+    "Your session ended before we could finish. Sign in and open the link again.",
+  "household_claim.refused.unreachable":
+    "We could not reach the server. The invitation is fine — reload the page and try again.",
+  "household_claim.refused.ask_again":
+    "Whoever runs that household can send a new link in a few seconds.",
+  "household_claim.done.title": "You are in {household}",
+  "household_claim.done.body":
+    "Your account is attached to the line that was already set up for you. Set your direction whenever you like — it changes your serving, not anyone else's.",
+  "household_claim.done.cta": "Open the household",
+  "household_claim.home_link": "Back to the home page",
   // ── FF-001 — LES GESTES QUOTIDIENS DU COACH ──────────────────────────────
   // La doctrine dit comment COMPOSER; elle ne dit nulle part quoi FAIRE tous
   // les jours. Cette carte est le seul endroit du produit où un coach peut

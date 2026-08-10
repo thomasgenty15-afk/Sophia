@@ -107,6 +107,23 @@ export function restrictionNotice(
   return { kind: "set_by_owner", ownerName: owner?.displayName ?? "" };
 }
 
+/**
+ * LES BOUCHES QU'ON PEUT ENCORE INVITER À RÉCLAMER LEUR PROFIL (lot 6).
+ *
+ * Une seule règle, et c'est celle de la base: une ligne qui porte déjà un
+ * compte n'a plus rien à réclamer (`already_claimed`). Proposer un choix que la
+ * base refusera est une promesse qu'on ne tient pas — d'où ce filtre, ici et
+ * pas dans le JSX, pour qu'il soit testable sans monter un écran.
+ *
+ * ⚠️ CE N'EST PAS « les gens sans e-mail »: le roster ne rend aucune adresse.
+ * `userId === null` est l'état de la LIGNE, et c'est le seul fait disponible.
+ */
+export function claimableMembers(
+  household: HouseholdView | null,
+): HouseholdMemberView[] {
+  return (household?.members ?? []).filter((m) => !m.userId);
+}
+
 /** Qui a parlé cette semaine — pour la carte du conseil de famille. */
 export interface EnvyRoundView {
   spoken: string[];
@@ -301,12 +318,76 @@ export async function setMemberBirthDate(memberId: string, birthDate: string | n
   return asResult(data);
 }
 
-export async function inviteToHousehold(email: string) {
-  const { data, error } = await supabase.rpc("keel_household_invite", { p_email: email });
+/**
+ * INVITER QUELQU'UN À RÉCLAMER UNE BOUCHE PRÉCISE (lot 6).
+ *
+ * ⚠️ `memberId` N'EST PAS UN CONFORT D'AFFICHAGE. L'invitation porte sa cible
+ * parce que sinon la personne qui arrive CHOISIRAIT quelle bouche elle devient
+ * — et un lien qui fuite deviendrait le droit de se déclarer n'importe qui du
+ * foyer. La base l'exige (`keel_household_invite(text, uuid)`), l'écran demande
+ * donc « qui invites-tu ? » avant de créer le lien.
+ *
+ * La réponse porte `first_name`: le maître invite plusieurs personnes dans la
+ * même minute, et un jeton anonyme est un jeton envoyé à la mauvaise personne.
+ */
+export async function inviteToHousehold(email: string, memberId: string) {
+  const { data, error } = await supabase.rpc("keel_household_invite", {
+    p_email: email,
+    p_member: memberId,
+  });
   if (error) throw new Error(error.message);
   return asResult(data);
 }
 
+/**
+ * CE QU'UN LIEN DIT AVANT TOUTE AUTHENTIFICATION.
+ *
+ * La personne qui ouvre le lien n'a le plus souvent aucun compte: elle ne peut
+ * RIEN lire du foyer (toutes les policies passent par `keel_household_of`).
+ * Sans cet aperçu, l'écran de réclamation demanderait de se connecter pour une
+ * raison qu'il ne saurait pas nommer — et la personne devinerait l'adresse à
+ * employer, alors que se tromper d'adresse coûte un compte inutile.
+ *
+ * Trois champs, et rien d'autre: le foyer, le prénom de la bouche, l'adresse
+ * invitée. Tous déjà entre les mains de qui détient le lien.
+ */
+export interface HouseholdInvitationPreview {
+  valid: boolean;
+  reason: string;
+  householdName: string;
+  firstName: string;
+  email: string;
+}
+
+export async function previewHouseholdInvitation(
+  token: string,
+): Promise<HouseholdInvitationPreview> {
+  const { data, error } = await supabase.rpc("keel_household_preview_invitation", {
+    p_token: token,
+  });
+  if (error) throw new Error(error.message);
+  const row = (data ?? {}) as Record<string, unknown>;
+  return {
+    valid: row.valid === true,
+    reason: String(row.reason ?? ""),
+    householdName: String(row.household_name ?? ""),
+    firstName: String(row.first_name ?? ""),
+    email: String(row.email ?? ""),
+  };
+}
+
+/**
+ * RÉCLAMER SON PROFIL — attacher son compte à une ligne qui existe déjà.
+ *
+ * ⚠️ CE N'EST PLUS « rejoindre » au sens d'entrer dans le produit. `member_id`
+ * ne change pas, `user_id` passe de NULL à une valeur, et les portions, les
+ * contraintes, les allergies et l'objectif de cette bouche lui restent. Le
+ * prénom saisi par le maître n'est PAS écrasé par `profiles.full_name`.
+ *
+ * Ce que la réclamation donne: lire le foyer, et poser SON objectif. Rien
+ * d'autre — composer, ajouter, retirer et restreindre restent au compte maître,
+ * et la base rend `not_owner` à qui essaie.
+ */
 export async function joinHousehold(token: string) {
   const { data, error } = await supabase.rpc("keel_household_join", { p_token: token });
   if (error) throw new Error(error.message);
