@@ -13,6 +13,8 @@ import {
   callDoctrine,
   cancelSection,
   closeSection,
+  COMPOSITION_FORKS,
+  NO_STEERING,
   type DoctrineDraft,
   type DoctrineSource,
   entriesForScope,
@@ -584,6 +586,14 @@ export default function CoachDoctrinePage() {
               contentLocale={contentLocale}
               hasMethod={!nothingWritten}
             />
+
+            {/*
+              FF-041 — LE DÉBAT DE COMPOSITION, après les pratiques et avant
+              les dynamiques. C'est une question de MÉTHODE globale: elle
+              gouverne toutes les cohortes du coach, comme sa voix, et pas une
+              par objectif.
+            */}
+            <CompositionForksCard draft={draft} onChange={setDraft} section={section} />
 
             <SpecificEditor draft={draft} onChange={setDraft} section={section} />
           </>
@@ -1422,6 +1432,116 @@ function SpecificEditor({
  * incorrigible, et un coach qui ne peut pas corriger une machine qui parle en
  * son nom arrête de lui confier quoi que ce soit.
  */
+/**
+ * FF-041 — LE DÉBAT DE COMPOSITION.
+ *
+ * ── CE QUE LE COACH VOIT, ET LA LIGNE QUE CETTE CARTE TIENT ──────────────
+ * Des POSITIONS, dans son langage, et ce que chacune PRODUIT en langage
+ * plan/aliment. Jamais un axe du moteur, jamais un cadran, jamais un chiffre
+ * destiné à un élève (§3.0 du design). Les jetons exécutables sont dérivés à
+ * l'enregistrement par `coach-doctrine-v1`; ils ne traversent pas cette
+ * frontière.
+ *
+ * ── POURQUOI L'EFFET EST ÉCRIT SOUS CHAQUE POSITION ──────────────────────
+ * La règle zéro-chiffre est un plancher FACE À L'ÉLÈVE, pas une raison
+ * d'aveugler l'auteur d'une méthode. Un coach qui choisit sans savoir ce que
+ * ça change dans les assiettes de sa cohorte ne choisit pas.
+ */
+function CompositionForksCard({
+  draft,
+  onChange,
+  section,
+}: {
+  draft: DoctrineDraft;
+  onChange: (next: DoctrineDraft) => void;
+  section: SectionApi;
+}) {
+  const positions = draft.composition_positions ?? {};
+  const answered = COMPOSITION_FORKS.filter(
+    (f) => positions[f.key] && positions[f.key] !== NO_STEERING,
+  );
+
+  const choose = (forkKey: string, positionKey: string) =>
+    onChange({
+      ...draft,
+      composition_positions: { ...positions, [forkKey]: positionKey },
+    });
+
+  return (
+    <Card>
+      <EditorSection
+        title="How you compose a plate"
+        hint="Four questions about your method. Your students never see any of this — they see the food."
+        editing={section.isEditing("composition")}
+        onEdit={() => section.edit("composition")}
+        onDone={section.done}
+        onCancel={section.done}
+        summary={answered.length === 0
+          ? (
+            <p className="text-sm text-gray-400">
+              Nothing set — Sophia composes in her default order.
+            </p>
+          )
+          : (
+            <SummaryList
+              empty=""
+              items={answered.map((fork) => {
+                const chosen = fork.positions.find((p) => p.key === positions[fork.key]);
+                return (
+                  <>
+                    <span className="text-gray-500">{fork.subject}</span>
+                    <br />
+                    {chosen?.label ?? ""}
+                  </>
+                );
+              })}
+            />
+          )}
+      >
+        <div className="space-y-5">
+          {COMPOSITION_FORKS.map((fork) => (
+            <fieldset key={fork.key} className="space-y-2">
+              <legend className="text-sm font-medium text-gray-900">{fork.subject}</legend>
+              {fork.positions.map((position) => {
+                const checked = (positions[fork.key] ?? NO_STEERING) === position.key;
+                return (
+                  <label
+                    key={position.key}
+                    className={`block cursor-pointer rounded-md border p-2.5 ${
+                      checked
+                        ? "border-gray-900/40 bg-gray-50"
+                        : "border-gray-200 hover:border-gray-400"
+                    }`}
+                  >
+                    <span className="flex items-start gap-2">
+                      <input
+                        type="radio"
+                        name={`fork-${fork.key}`}
+                        className="mt-1 shrink-0"
+                        checked={checked}
+                        onChange={() => choose(fork.key, position.key)}
+                      />
+                      <span className="min-w-0">
+                        <span className="block text-sm leading-6 text-gray-900">
+                          {position.label}
+                        </span>
+                        {/* CE QUE ÇA PRODUIT — en plan et en aliment. */}
+                        <span className="mt-0.5 block text-xs leading-5 text-gray-500">
+                          {position.effect}
+                        </span>
+                      </span>
+                    </span>
+                  </label>
+                );
+              })}
+            </fieldset>
+          ))}
+        </div>
+      </EditorSection>
+    </Card>
+  );
+}
+
 function DailyPracticesCard({
   draft,
   onChange,

@@ -321,6 +321,13 @@ Alors elle réussit les deux fois
   « rice pudding » ne se réduit pas — ce n'est pas du riz avec un adjectif,
   c'est un autre plat. Un modificateur ajouté doit passer le test « la
   réduction change-t-elle l'aliment ? ».
+- **Le jumeau côté écran.** `frontend/src/keel/api/mealGeneration.ts` duplique
+  le PARSEUR. **Vérifié fichier en main le 2026-08-10** : son `readIngredients`
+  lit `term`, `quantity` et `in_pantry`, et ignore tout le reste — les quatre
+  champs de l'étage B lui passent au-dessus sans rien casser, ce qui est le bon
+  comportement (ils sont de l'instrumentation, pas de l'affichage). Ce n'est
+  pas une dispense générale : c'est le résultat d'une vérification, à refaire
+  au prochain lot qui touche la sortie.
 - **Croire que `food_items` suffisait.** Il porte `typical_amount`, ce qui
   ressemble à de la composition et n'en est pas : c'est la taille d'une portion
   pour l'écran du coach, pas la densité d'un aliment. Les deux tables coexistent,

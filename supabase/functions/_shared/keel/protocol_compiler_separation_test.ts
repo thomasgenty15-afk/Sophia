@@ -51,6 +51,7 @@ const PEANUT_ALLERGY: StudentSafetyConstraint = {
   substanceRef: null,
   medicationClass: null,
     conditionRef: null,
+    dietRef: null,
   severity: "medical",
   declaredBy: "student",
   notes: "choc anaphylactique en 2019",

@@ -78,6 +78,23 @@ export type StudentSafetyConstraint = {
    * ligne que personne ne relit, c'est le même accusé fantôme, en différé.
    */
   conditionRef: string | null;
+  /**
+   * FF-042 — LE JETON DE RÉGIME (`diet_ref`): `vegan`, `vegetarian`,
+   * `pescatarian`.
+   *
+   * ⚠️ IL N'ENTRE JAMAIS DANS LA LISTE D'ÉVITEMENT, et c'est le piège que
+   * `dietary_regime.ts` documente en tête: armer la ceinture sur « vegan »
+   * ferait rejeter toute réponse qui décrit un plat comme végan — donc
+   * précisément les bonnes réponses, et seulement pour les végans. C'est le
+   * même défaut que `allergen_ref='diabetes'` a produit en run réel le
+   * 2026-08-06. La ceinture reçoit l'EXPANSION (viande, poisson, œuf…), jamais
+   * le nom du régime.
+   *
+   * Il est lu ici parce que la colonne existait en base sans lecteur — et ce
+   * fichier porte déjà, sur `conditionRef` juste au-dessus, ce que coûte une
+   * colonne qu'on écrit et que personne ne relit.
+   */
+  dietRef: string | null;
   severity: SafetyConstraintSeverity;
   declaredBy: "student" | "coach";
   /** Prose, optional. NEVER used for matching (R1: identifiers, not prose). */
@@ -93,6 +110,7 @@ type StudentSafetyConstraintRow = {
   substance_ref: string | null;
   medication_class: string | null;
   condition_ref: string | null;
+  diet_ref: string | null;
   severity: string;
   declared_by: string;
   notes: string | null;
@@ -152,7 +170,7 @@ export async function loadStudentSafetyConstraints(
       .from("student_safety_constraints")
       .select(
         "id, user_id, kind, allergen_ref, substance_ref, medication_class, " +
-          "condition_ref, severity, declared_by, notes, content_locale",
+          "condition_ref, diet_ref, severity, declared_by, notes, content_locale",
       )
       .eq("user_id", id)
       // RÉTRACTATION (migration 20260803160000). Une contrainte retirée reste
@@ -174,6 +192,7 @@ export async function loadStudentSafetyConstraints(
     substanceRef: row.substance_ref,
     medicationClass: row.medication_class,
     conditionRef: row.condition_ref,
+    dietRef: row.diet_ref,
     severity: row.severity as SafetyConstraintSeverity,
     declaredBy: row.declared_by as "student" | "coach",
     notes: row.notes,

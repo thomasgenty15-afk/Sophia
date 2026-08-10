@@ -177,6 +177,7 @@ export function householdAllergyConstraints(
         substanceRef: null,
         medicationClass: null,
         conditionRef: null,
+        dietRef: null,
         severity: "medical",
         declaredBy: "student",
         // La prose n'est JAMAIS matchée (R1). Le libellé est gardé pour qu'un

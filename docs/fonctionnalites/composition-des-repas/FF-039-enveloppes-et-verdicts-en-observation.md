@@ -367,7 +367,27 @@ Alors ils n'en ont aucun
    là où la bande est la plus étroite. C'est un arbitrage à part : demander une
    activité pour affiner un calcul invisible est une question posée à l'élève
    dont il ne verra jamais le bénéfice.
-4. **k = 5 est écrit et n'a aucun lecteur.** Aucun agrégat coach n'est livré ici.
+4. **`missing` peut nommer `fried_food`, et c'est absurde.** La règle de
+   porteur (`SENTINEL_CARRIER_SHARE`, deux tiers) retient les groupes dont les
+   aliments portent CARACTÉRISTIQUEMENT un nutriment. Sur le référentiel réel,
+   `fried_food` y entre — ses deux entrées (frites, poulet frit) sont toutes
+   deux sources de fer et de zinc au seuil réglementaire. Un jeton
+   `place_missing_sentinel` qui servirait ce groupe recommanderait de la
+   friture pour combler un trou en fer.
+
+   **Sans conséquence aujourd'hui** — rien ne lit `missing`, c'est de
+   l'observation — et c'est pour ça que ce n'est pas corrigé à la va-vite. Ce
+   qu'il ne faut PAS faire: une liste noire écrite à la main, qui divergerait
+   du seed au premier aliment déplacé. La correction appartient à l'étape 5,
+   quand le jeton devient exécutable, et elle passe probablement par une
+   propriété du groupe qui n'existe pas encore (le produit n'a nulle part la
+   notion de « groupe qu'on ne prescrit pas »).
+5. **Le seuil de deux tiers est calibré sur 208 entrées.** La première version
+   de la règle disait « au moins un aliment porte un drapeau » et rendait
+   **26 groupes sur 30** — mesuré, pas supposé. Le seuil se relit quand le
+   référentiel double de taille, et le test qui le tient mute le référentiel
+   plutôt que d'épingler un nombre.
+6. **k = 5 est écrit et n'a aucun lecteur.** Aucun agrégat coach n'est livré ici.
    La règle est posée à la source pour que le premier qui en écrira un la
    trouve — mais une règle sans lecteur est une règle qui peut être oubliée. La
    parade réelle viendra avec la synthèse coach de l'étape 8.

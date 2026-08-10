@@ -45,6 +45,7 @@ function keel(over: Partial<KeelTurnContext> = {}): KeelTurnContext {
         substanceRef: null,
         medicationClass: null,
     conditionRef: null,
+    dietRef: null,
         severity: "medical",
         declaredBy: "student",
         notes: null,
