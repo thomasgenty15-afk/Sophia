@@ -21,6 +21,24 @@ const OTHER = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
 const CHILD = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
 const HOUSE = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
 
+/**
+ * ⚠️ LES IDENTIFIANTS DE MEMBRE SONT DIFFÉRENTS DES IDENTIFIANTS DE COMPTE, ET
+ * C'EST TOUT L'INTÉRÊT DU DÉCOR.
+ *
+ * Les réutiliser ferait passer un chargeur qui apparie encore les portions sur
+ * `user_id` — c'est-à-dire exactement le défaut que le re-clavetage du
+ * 2026-08-10 doit rendre impossible. Ce dépôt a déjà payé une fixture qui
+ * mentait sur la forme de la donnée (`cookOn` ≠ `cook_on`): elle rendait la
+ * fonctionnalité verte sans qu'elle marche.
+ *
+ * Et LÉO N'A PAS DE COMPTE (`user_id: null`). C'est le cas NOMINAL du produit
+ * depuis ce lot, pas un cas limite: un enfant de huit ans n'a pas d'adresse
+ * e-mail.
+ */
+const ME_MEMBER = "11111111-1111-4111-8111-111111111111";
+const OTHER_MEMBER = "22222222-2222-4222-8222-222222222222";
+const CHILD_MEMBER = "33333333-3333-4333-8333-333333333333";
+
 const TODAY = "2026-08-05"; // un mercredi → jeton `wed`
 
 type Tables = Record<string, Array<Record<string, unknown>>>;
@@ -90,21 +108,27 @@ function stubDb(tables: Tables, roster: Array<Record<string, unknown>>, opts: {
   };
 }
 
-function rosterRow(userId: string, firstName: string, over: Record<string, unknown> = {}) {
+function rosterRow(
+  memberId: string,
+  firstName: string,
+  over: Record<string, unknown> = {},
+) {
   return {
-    user_id: userId,
+    member_id: memberId,
+    // Le compte par défaut: celui qui parle. Les autres lignes le surchargent,
+    // et une bouche sans compte porte `user_id: null`.
+    user_id: memberId === ME_MEMBER ? ME : null,
     first_name: firstName,
-    is_minor: false,
+    age_state: "adult",
     role: "member",
-    restriction_consent_at: null,
+    goal: null,
     ...over,
   };
 }
 
-function tables(kind: "family" | "shared", over: Partial<Tables> = {}): Tables {
+function tables(over: Partial<Tables> = {}): Tables {
   return {
     household_members: [{ user_id: ME, household_id: HOUSE }],
-    households: [{ id: HOUSE, kind }],
     student_generated_meals: [{
       id: "plan-1",
       household_id: HOUSE,
@@ -116,7 +140,7 @@ function tables(kind: "family" | "shared", over: Partial<Tables> = {}): Tables {
         { title: "Lentil soup", slot: "dinner", day: "thu" },
       ],
       // ⚠️ LA FORME DE LA PRODUCTION, ET C'EST LE SUJET. `mealPreparationsPayload`
-      // écrit `cook_on`; `memberPortionsPayload` écrit `user_id` /
+      // écrit `cook_on`; `memberPortionsPayload` écrit `member_id` /
       // `display_name` / `portion_note`. La première version de ce fichier
       // écrivait du camelCase, et c'est exactement ce qui a caché, jusqu'au run
       // réel, que le chargeur ne lisait PAS le jour de cuisson des vraies
@@ -127,8 +151,16 @@ function tables(kind: "family" | "shared", over: Partial<Tables> = {}): Tables {
         { title: "Roast chicken thighs", cook_on: "wed" },
       ],
       member_portions: [
-        { user_id: ME, display_name: "Ana", portion_note: "larger protein share" },
-        { user_id: OTHER, display_name: "Marc", portion_note: "smaller starch share" },
+        {
+          member_id: ME_MEMBER,
+          display_name: "Ana",
+          portion_note: "larger protein share",
+        },
+        {
+          member_id: OTHER_MEMBER,
+          display_name: "Marc",
+          portion_note: "smaller starch share",
+        },
       ],
       shopping_list: [
         { term: "chicken thighs", quantity: "1 kg", aisle: "butcher" },
@@ -144,9 +176,9 @@ function tables(kind: "family" | "shared", over: Partial<Tables> = {}): Tables {
 // ---------------------------------------------------------------------------
 
 Deno.test("le plat DU JOUR et la portion À MON NOM sont chargés", async () => {
-  const db = stubDb(tables("family"), [
-    rosterRow(ME, "Ana"),
-    rosterRow(OTHER, "Marc"),
+  const db = stubDb(tables(), [
+    rosterRow(ME_MEMBER, "Ana"),
+    rosterRow(OTHER_MEMBER, "Marc"),
   ]);
   const ctx = await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY });
   assert(ctx);
@@ -164,7 +196,7 @@ Deno.test("LE JOUR DE CUISSON EST LU — `cook_on`, la clé de la production", a
   // tableau — l'ordre de composition, pas le calendrier. Mesuré en run réel:
   // « What do I need to cook today? » rendait deux préparations de demain et
   // d'après-demain, 3 passes sur 3.
-  const db = stubDb(tables("family"), [rosterRow(ME, "Ana")]);
+  const db = stubDb(tables(), [rosterRow(ME_MEMBER, "Ana")]);
   const ctx = await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY });
   assert(ctx);
   // JOUR COURANT D'ABORD, même si le tableau le met en second.
@@ -185,7 +217,7 @@ Deno.test("LE JOUR DE CUISSON EST LU — `cook_on`, la clé de la production", a
 
 Deno.test("UNE PRÉPARATION D'UN JOUR PASSÉ ne remonte pas", async () => {
   const db = stubDb(
-    tables("family", {
+    tables({
       student_generated_meals: [{
         id: "plan-1",
         household_id: HOUSE,
@@ -201,7 +233,7 @@ Deno.test("UNE PRÉPARATION D'UN JOUR PASSÉ ne remonte pas", async () => {
         shopping_list: [],
       }],
     }),
-    [rosterRow(ME, "Ana")],
+    [rosterRow(ME_MEMBER, "Ana")],
   );
   const ctx = await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY });
   assertEquals(ctx?.preparations.map((p) => p.title), ["Roast chicken thighs"]);
@@ -210,14 +242,14 @@ Deno.test("UNE PRÉPARATION D'UN JOUR PASSÉ ne remonte pas", async () => {
 Deno.test("LA LISTE DE COURSES est lue, et son absence est DITE", async () => {
   // Sans elle, mesuré: l'agent fabriquait la liste depuis les titres de plats,
   // en y mêlant ceux des autres jours. Une liste inventée se fait acheter.
-  const withList = stubDb(tables("family"), [rosterRow(ME, "Ana")]);
+  const withList = stubDb(tables(), [rosterRow(ME_MEMBER, "Ana")]);
   const ctx = await loadHouseholdTurnContext(withList, { userId: ME, localDate: TODAY });
   assertEquals(ctx?.shopping, [{ term: "chicken thighs", quantity: "1 kg" }]);
   assertEquals(ctx?.shoppingTruncated, false);
   assertStringIncludes(householdContextBlock(ctx!), "SHOPPING LIST for this window:");
 
   const without = stubDb(
-    tables("family", {
+    tables({
       student_generated_meals: [{
         id: "plan-1",
         household_id: HOUSE,
@@ -230,7 +262,7 @@ Deno.test("LA LISTE DE COURSES est lue, et son absence est DITE", async () => {
         shopping_list: [],
       }],
     }),
-    [rosterRow(ME, "Ana")],
+    [rosterRow(ME_MEMBER, "Ana")],
   );
   const bare = await loadHouseholdTurnContext(without, { userId: ME, localDate: TODAY });
   assertEquals(bare?.shopping, []);
@@ -240,49 +272,36 @@ Deno.test("LA LISTE DE COURSES est lue, et son absence est DITE", async () => {
   );
 });
 
-Deno.test("EN FAMILLE, les portions des autres sont visibles", async () => {
-  const db = stubDb(tables("family"), [
-    rosterRow(ME, "Ana"),
-    rosterRow(OTHER, "Marc"),
-  ]);
-  const ctx = await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY });
-  assertEquals(ctx?.portions.map((p) => p.firstName).sort(), ["Ana", "Marc"]);
-});
-
-// ---------------------------------------------------------------------------
-// LA MÉTRIQUE DONT LA CIBLE EST ZÉRO
-// ---------------------------------------------------------------------------
-
-Deno.test("⚠️ EN COLOCATION, la portion d'un autre N'EST PAS DANS LE CONTEXTE", async () => {
-  // Pas « l'agent ne la dit pas »: elle n'est pas là. C'est la seule garde qui
-  // tienne — un prompt qui porte la donnée et une consigne de la taire est un
-  // prompt qui la dira.
-  const db = stubDb(tables("shared"), [
-    rosterRow(ME, "Ana"),
-    rosterRow(OTHER, "Marc"),
+Deno.test("les portions de TOUT LE FOYER sont chargées, la mienne marquée", async () => {
+  // Le repas est partagé: `member_portions` EST ce qu'on lit à table. La
+  // distinction qui existait ici — « en colocation, uniquement la mienne » —
+  // est partie avec la colocation (lot 2, 2026-08-10). Ce qui reste hors du
+  // bloc, c'est le CORPS: aucune mesure, aucun objectif, aucune raison.
+  const db = stubDb(tables(), [
+    rosterRow(ME_MEMBER, "Ana"),
+    rosterRow(OTHER_MEMBER, "Marc"),
   ]);
   const ctx = await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY });
   assert(ctx);
-  assertEquals(ctx.portions.map((p) => p.firstName), ["Ana"]);
-  assertEquals(ctx.roster.find((r) => r.userId === OTHER)?.visibility, "presence_only");
-
-  // Et la preuve qui compte vraiment: le TEXTE du bloc ne contient pas la
-  // consigne de l'autre, où qu'on la cherche.
-  const block = householdContextBlock(ctx);
-  assertEquals(block.includes("smaller starch share"), false);
-  // La présence, elle, reste — c'est ce que `presence_only` veut dire.
-  assertStringIncludes(block, "Marc");
+  assertEquals(ctx.portions.map((p) => p.firstName).sort(), ["Ana", "Marc"]);
+  assertEquals(ctx.portions.filter((p) => p.isMe).map((p) => p.firstName), ["Ana"]);
 });
 
-Deno.test("en colocation, le bloc DIT qu'il ne sait pas, sans faire mystère", async () => {
-  const db = stubDb(tables("shared"), [
-    rosterRow(ME, "Ana"),
-    rosterRow(OTHER, "Marc"),
+Deno.test("⚠️ MA PART est appariée sur ma LIGNE MEMBRE, pas sur mon compte", async () => {
+  // LA GARDE DU RE-CLAVETAGE. `member_portions` est clé sur `member_id`, et le
+  // décor donne à chacun un identifiant de membre DIFFÉRENT de son compte: un
+  // chargeur qui apparierait encore sur `user_id` ne trouverait plus personne,
+  // et `isMe` serait faux partout — donc « c'est quoi ma part ? », le cœur de
+  // la fiche, tomberait en silence.
+  const db = stubDb(tables(), [
+    rosterRow(ME_MEMBER, "Ana"),
+    rosterRow(OTHER_MEMBER, "Marc"),
   ]);
   const ctx = await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY });
-  const block = householdContextBlock(ctx!);
-  assertStringIncludes(block, "not in your context at all");
-  assertStringIncludes(block, "Say you do not know");
+  assert(ctx);
+  assertEquals(ctx.viewerId, ME_MEMBER);
+  const mine = ctx.portions.find((p) => p.isMe);
+  assertEquals(mine?.note, "larger protein share");
 });
 
 // ---------------------------------------------------------------------------
@@ -299,7 +318,7 @@ Deno.test("SANS FOYER, aucun contexte — donc aucune mention (R8)", async () =>
 
 Deno.test("UN PLAN PÉRIMÉ HIER est traité comme ABSENT, pas comme celui d'hier", async () => {
   const db = stubDb(
-    tables("family", {
+    tables({
       student_generated_meals: [{
         id: "plan-old",
         household_id: HOUSE,
@@ -311,7 +330,7 @@ Deno.test("UN PLAN PÉRIMÉ HIER est traité comme ABSENT, pas comme celui d'hie
         member_portions: [],
       }],
     }),
-    [rosterRow(ME, "Ana")],
+    [rosterRow(ME_MEMBER, "Ana")],
   );
   const ctx = await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY });
   assert(ctx);
@@ -321,7 +340,7 @@ Deno.test("UN PLAN PÉRIMÉ HIER est traité comme ABSENT, pas comme celui d'hie
 
 Deno.test("UN PLAN RETIRÉ n'est pas lu", async () => {
   const db = stubDb(
-    tables("family", {
+    tables({
       student_generated_meals: [{
         id: "plan-retired",
         household_id: HOUSE,
@@ -333,7 +352,7 @@ Deno.test("UN PLAN RETIRÉ n'est pas lu", async () => {
         member_portions: [],
       }],
     }),
-    [rosterRow(ME, "Ana")],
+    [rosterRow(ME_MEMBER, "Ana")],
   );
   const ctx = await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY });
   assertEquals(ctx?.hasPlanToday, false);
@@ -343,8 +362,8 @@ Deno.test("SANS PLAT COMPOSÉ, le bloc porte vers la composition — JAMAIS vers
   // MODEL.md: « ton coach prépare ton plan » est FAUX, il n'existe aucun canal
   // 1:1 coach → élève. C'est la copie la plus souvent violée du produit.
   const db = stubDb(
-    tables("family", { student_generated_meals: [] }),
-    [rosterRow(ME, "Ana")],
+    tables({ student_generated_meals: [] }),
+    [rosterRow(ME_MEMBER, "Ana")],
   );
   const ctx = await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY });
   const block = householdContextBlock(ctx!);
@@ -355,8 +374,20 @@ Deno.test("SANS PLAT COMPOSÉ, le bloc porte vers la composition — JAMAIS vers
 });
 
 Deno.test("UNE LECTURE EN PANNE rend null et journalise — jamais « rien de prévu »", async () => {
-  for (const failOn of ["households", "rpc", "student_generated_meals"]) {
-    const db = stubDb(tables("family"), [rosterRow(ME, "Ana")], { failOn });
+  // ⚠️ `households` N'EST PLUS DANS CETTE LISTE, et ce n'est pas un oubli: le
+  // chargeur ne la lit plus depuis que `kind` a disparu (lot 2). L'y laisser
+  // ferait un cas qui passe pour une raison FAUSSE — la panne ne se produirait
+  // sur rien. `household_food_restrictions` la remplace: c'est une lecture
+  // réelle, et son échec doit rendre `null` comme les autres.
+  for (
+    const failOn of [
+      "household_members",
+      "rpc",
+      "student_generated_meals",
+      "household_food_restrictions",
+    ]
+  ) {
+    const db = stubDb(tables(), [rosterRow(ME_MEMBER, "Ana")], { failOn });
     assertEquals(
       await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY }),
       null,
@@ -366,7 +397,7 @@ Deno.test("UNE LECTURE EN PANNE rend null et journalise — jamais « rien de pr
 });
 
 Deno.test("sans date locale, on ne va rien chercher", async () => {
-  const db = stubDb(tables("family"), [rosterRow(ME, "Ana")]);
+  const db = stubDb(tables(), [rosterRow(ME_MEMBER, "Ana")]);
   assertEquals(await loadHouseholdTurnContext(db, { userId: ME, localDate: "" }), null);
 });
 
@@ -376,12 +407,19 @@ Deno.test("sans date locale, on ne va rien chercher", async () => {
 
 Deno.test("une restriction qui ME vise est ATTRIBUÉE et NON JUSTIFIÉE", async () => {
   const db = stubDb(
-    tables("family", {
+    tables({
       household_food_restrictions: [
-        { label: "Nutella", member_user_id: ME, created_by: OTHER, household_id: HOUSE },
+        { label: "Nutella", member_id: ME_MEMBER, created_by: OTHER, household_id: HOUSE },
       ],
     }),
-    [rosterRow(ME, "Ana"), rosterRow(OTHER, "Marc", { role: "owner" })],
+    // Marc porte son `user_id`: `created_by` est un identifiant de COMPTE, et
+    // seul quelqu'un qui en a un peut poser une règle de maison. C'est ce qui
+    // permet à l'écran d'attribuer la décision à un humain plutôt que de la
+    // rendre impersonnelle — donc de la faire passer pour un avis du produit.
+    [
+      rosterRow(ME_MEMBER, "Ana"),
+      rosterRow(OTHER_MEMBER, "Marc", { role: "owner", user_id: OTHER }),
+    ],
   );
   const ctx = await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY });
   assertEquals(ctx?.myRestrictions, [{ label: "Nutella", chosenBy: "Marc" }]);
@@ -394,12 +432,12 @@ Deno.test("une restriction qui ME vise est ATTRIBUÉE et NON JUSTIFIÉE", async 
 
 Deno.test("une restriction qui vise QUELQU'UN D'AUTRE n'est pas chargée", async () => {
   const db = stubDb(
-    tables("family", {
+    tables({
       household_food_restrictions: [
-        { label: "Nutella", member_user_id: OTHER, created_by: ME, household_id: HOUSE },
+        { label: "Nutella", member_id: OTHER_MEMBER, created_by: ME, household_id: HOUSE },
       ],
     }),
-    [rosterRow(ME, "Ana"), rosterRow(OTHER, "Marc")],
+    [rosterRow(ME_MEMBER, "Ana"), rosterRow(OTHER_MEMBER, "Marc")],
   );
   const ctx = await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY });
   assertEquals(ctx?.myRestrictions, []);
@@ -410,9 +448,9 @@ Deno.test("une restriction qui vise QUELQU'UN D'AUTRE n'est pas chargée", async
 // ---------------------------------------------------------------------------
 
 Deno.test("un mineur est un MANGEUR, jamais une cible", async () => {
-  const db = stubDb(tables("family"), [
-    rosterRow(ME, "Ana"),
-    rosterRow(CHILD, "Léo", { is_minor: true }),
+  const db = stubDb(tables(), [
+    rosterRow(ME_MEMBER, "Ana"),
+    rosterRow(CHILD_MEMBER, "Léo", { age_state: "minor" }),
   ]);
   const ctx = await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY });
   const block = householdContextBlock(ctx!);
@@ -428,7 +466,7 @@ Deno.test("DEUX BLOCS DE PLAN NE SE CONFONDENT PAS", async () => {
   // `keel_plan_context.ts`: « two plan blocks in one prompt is how a model gets
   // to pick the more flattering one ». Le titre de celui-ci ne dit jamais
   // « plan », et sa première phrase interdit la fusion.
-  const db = stubDb(tables("family"), [rosterRow(ME, "Ana")]);
+  const db = stubDb(tables(), [rosterRow(ME_MEMBER, "Ana")]);
   const block = householdContextBlock(
     (await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY }))!,
   );
@@ -438,7 +476,7 @@ Deno.test("DEUX BLOCS DE PLAN NE SE CONFONDENT PAS", async () => {
 });
 
 Deno.test("LECTURE SEULE, et le bloc le dit", async () => {
-  const db = stubDb(tables("family"), [rosterRow(ME, "Ana")]);
+  const db = stubDb(tables(), [rosterRow(ME_MEMBER, "Ana")]);
   const block = householdContextBlock(
     (await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY }))!,
   );
@@ -452,7 +490,7 @@ Deno.test("LE BLOC EST BORNÉ — le budget tronque par la queue", async () => {
   // Un foyer de six avec sept jours de préparations dépasserait le prompt. On
   // borne au jour courant, et on pinne la taille.
   const db = stubDb(
-    tables("family", {
+    tables({
       student_generated_meals: [{
         id: "plan-big",
         household_id: HOUSE,
@@ -480,7 +518,7 @@ Deno.test("LE BLOC EST BORNÉ — le budget tronque par la queue", async () => {
       }],
     }),
     Array.from({ length: 20 }, (_, i) => rosterRow(`u-${i}`, `M${i}`)).concat([
-      rosterRow(ME, "Ana"),
+      rosterRow(ME_MEMBER, "Ana"),
     ]),
   );
   const ctx = await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY });
@@ -500,20 +538,36 @@ Deno.test("LE BLOC EST BORNÉ — le budget tronque par la queue", async () => {
   );
 });
 
-Deno.test("EN COLOCATION, « (child) » n'est pas une présence", async () => {
-  // `presence_only` veut dire « il est là, et c'est tout ce qu'on en dit ».
-  // L'âge d'un colocataire est dérivé de sa date de naissance; l'annoncer est
-  // la même fuite que R3 ferme sur les portions. La CEINTURE mineur, elle,
-  // reste armée — elle lit le roster, pas l'étiquette.
-  const db = stubDb(tables("shared"), [
-    rosterRow(ME, "Ana"),
-    rosterRow(CHILD, "Léo", { is_minor: true }),
+Deno.test("UNE BOUCHE SANS COMPTE est au roster, nommée, et arme la ceinture", async () => {
+  // LE CAS NOMINAL DU PRODUIT depuis le lot 1: Léo a huit ans, donc pas
+  // d'adresse e-mail, donc `user_id: null`. Avant le re-clavetage il ne pouvait
+  // pas exister — il fallait un compte pour être une bouche.
+  const db = stubDb(tables(), [
+    rosterRow(ME_MEMBER, "Ana"),
+    rosterRow(CHILD_MEMBER, "Léo", { age_state: "minor", user_id: null }),
+  ]);
+  const ctx = await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY });
+  assert(ctx);
+  assertEquals(ctx.roster.find((r) => r.memberId === CHILD_MEMBER)?.userId, null);
+
+  const block = householdContextBlock(ctx);
+  assertStringIncludes(block, "Léo (child)");
+  assertStringIncludes(block, "is an EATER, never a target");
+});
+
+Deno.test("⚠️ UN ÂGE INCONNU ne porte AUCUNE étiquette", async () => {
+  // Écrire « (adult) » par défaut affirmerait un fait qu'on n'a pas, et le
+  // modèle s'en servirait pour dimensionner. C'est l'inversion du lot 2 rendue
+  // visible dans le texte: une bouche sans date est un prénom, rien de plus.
+  const db = stubDb(tables(), [
+    rosterRow(ME_MEMBER, "Ana"),
+    rosterRow(OTHER_MEMBER, "Sam", { age_state: "unknown", user_id: null }),
   ]);
   const block = householdContextBlock(
     (await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY }))!,
   );
-  assertStringIncludes(block, "Léo");
-  assertEquals(block.includes("Léo (child)"), false);
-  // …et la ceinture mord quand même.
-  assertStringIncludes(block, "is an EATER, never a target");
+  assertStringIncludes(block, "Sam");
+  assertEquals(block.includes("Sam ("), false);
+  // Et la ceinture mineur NE s'arme pas: personne n'est déclaré mineur ici.
+  assertEquals(block.includes("is an EATER, never a target"), false);
 });

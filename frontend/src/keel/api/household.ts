@@ -3,23 +3,22 @@
 //
 // Autorité produit: docs/keel/PIVOT-FOYER.md §8.5, « les deux autorités ».
 //
-// ── LA DÉCISION QUI MÉRITE UN TEST ──────────────────────────────────────────
-// `restrictionBlock` répond à « puis-je poser une restriction sur cette
-// personne, et sinon POURQUOI ». Le motif est le sujet: la RPC en rend déjà un,
-// mais l'écran doit pouvoir désactiver le bouton AVANT le clic et dire pourquoi
-// — un bouton actif sur une action que la base refuse, c'est un utilisateur qui
-// clique et ne comprend pas.
+// ── CE QUI A DISPARU ICI LE 2026-08-10 (lots 1 et 2) ────────────────────────
+// `restrictionBlock` anticipait le refus de la base pour griser un bouton, et
+// `canSeeGoalOf` décidait si l'objectif d'un autre était affichable. Les deux
+// dépendaient de règles qui n'existent plus: le consentement du majeur (le
+// compte maître gouverne, et la contrepartie est que QUI a posé la règle reste
+// affiché) et le mode colocation (sorti du produit).
 //
-// ── LE MOTIF EST DUPLIQUÉ, ET C'EST ASSUMÉ ──────────────────────────────────
-// La règle vit en base (`keel_household_add_restriction`), qui reste la seule
-// AUTORITÉ: cette copie ne fait qu'anticiper le refus pour l'afficher. Elle ne
-// peut donc pas ouvrir une porte que la base ferme — au pire elle grise un
-// bouton que la base aurait accepté, ce qui est la direction inoffensive.
+// `isMinorBirthDate` part aussi. L'âge est DÉRIVÉ EN BASE, à trois états, et
+// une seconde définition côté navigateur divergerait au premier ajustement —
+// après quoi personne ne saurait laquelle ment.
 
 import { supabase } from "../../lib/supabase";
 
-export type HouseholdKind = "family" | "shared";
 export type HouseholdRole = "owner" | "member";
+/** Jumeau de `keel_household_member_age` en base et de `household.ts` côté edge. */
+export type MemberAgeState = "minor" | "adult" | "unknown";
 
 /** ⚠️ COPIES DE CONFORT. L'autorité est la CHECK correspondante en base. */
 export const HOUSEHOLD_NAME_MAX = 80;
@@ -27,26 +26,28 @@ export const RESTRICTION_LABEL_MAX = 120;
 export const ENVY_MAX_CHARS = 500;
 
 export interface HouseholdMemberView {
-  userId: string;
+  /** L'identité d'une bouche. Ne change pas le jour où elle réclame son profil. */
+  memberId: string;
+  /** `null` = pas de compte. C'est le cas NOMINAL d'un enfant. */
+  userId: string | null;
   displayName: string;
   role: HouseholdRole;
-  isMinor: boolean;
-  /** `null` = ce majeur n'a pas accepté d'être restreint. */
-  restrictionConsentAt: string | null;
+  ageState: MemberAgeState;
+  /** Six jetons, ou `null` = part standard. */
+  goal: string | null;
 }
 
 export interface HouseholdView {
   id: string;
-  kind: HouseholdKind;
   name: string;
   members: HouseholdMemberView[];
-  /** Moi, retrouvé dans `members`. Jamais recalculé par l'écran. */
+  /** Moi, retrouvé dans `members` PAR MON COMPTE. Jamais recalculé par l'écran. */
   me: HouseholdMemberView | null;
 }
 
 export interface RestrictionView {
   id: string;
-  memberUserId: string;
+  memberId: string;
   label: string;
   createdByUserId: string;
 }
@@ -54,51 +55,6 @@ export interface RestrictionView {
 // ───────────────────────────────────────────────────────────────────────────
 // LES DÉCISIONS PURES
 // ───────────────────────────────────────────────────────────────────────────
-
-/**
- * Pourquoi le bouton « restreindre » est fermé — ou `null` quand il est ouvert.
- *
- * L'ORDRE VA DU PLUS STRUCTUREL AU PLUS CORRIGEABLE, comme `broadcastGate`:
- * dans une colocation, la réponse est non quels que soient les rôles et les
- * consentements, et dire d'abord « tu n'es pas le compte maître » enverrait
- * l'utilisateur chercher un pouvoir qui n'existe pas dans son foyer.
- */
-export type RestrictionBlock =
-  | "not_a_family"
-  | "not_owner"
-  | "self"
-  | "adult_without_consent";
-
-export function restrictionBlock(
-  household: HouseholdView | null,
-  target: HouseholdMemberView | null,
-): RestrictionBlock | null {
-  if (!household || !target || !household.me) return "not_owner";
-  if (household.kind !== "family") return "not_a_family";
-  if (household.me.role !== "owner") return "not_owner";
-  if (household.me.userId === target.userId) return "self";
-  if (target.isMinor) return null;
-  if (!target.restrictionConsentAt) return "adult_without_consent";
-  return null;
-}
-
-/**
- * L'objectif de cette personne est-il affichable à ce lecteur ?
- *
- * Jumeau de `goalVisibility` dans `_shared/keel/household.ts`. Qu'un parent
- * voie l'objectif d'un enfant de sept ans est normal; qu'un colocataire
- * apprenne que l'autre est en sèche parce qu'ils partagent des courses ne l'est
- * pas. La vraie protection n'est pas ici — `student_goals` n'a gagné aucune
- * policy de foyer — mais l'écran ne doit pas non plus le DEMANDER.
- */
-export function canSeeGoalOf(
-  household: HouseholdView | null,
-  target: HouseholdMemberView,
-): boolean {
-  if (!household?.me) return false;
-  if (household.me.userId === target.userId) return true;
-  return household.kind === "family";
-}
 
 /**
  * Ce que la personne restreinte doit lire.
@@ -137,6 +93,10 @@ export function envyRound(
   const spoken: string[] = [];
   const silent: string[] = [];
   for (const m of household?.members ?? []) {
+    // UNE BOUCHE SANS COMPTE NE PEUT PAS PARLER, et ne compte donc ni dans les
+    // silencieux ni dans ceux qui ont parlé: la faire figurer comme « n'a rien
+    // dit » reprocherait un silence à quelqu'un qui n'a pas de voix.
+    if (!m.userId) continue;
     (said.has(m.userId) ? spoken : silent).push(m.userId);
   }
   return { spoken, silent };
@@ -173,7 +133,7 @@ function asResult(data: unknown): RpcResult {
  */
 export async function loadHousehold(myUserId: string): Promise<HouseholdView | null> {
   const { data: hh, error: hhErr } = await supabase
-    .from("households").select("id, kind, name").maybeSingle();
+    .from("households").select("id, name").maybeSingle();
   if (hhErr) throw new Error(hhErr.message);
   if (!hh) return null;
 
@@ -182,67 +142,94 @@ export async function loadHousehold(myUserId: string): Promise<HouseholdView | n
 
   const members: HouseholdMemberView[] = (rows ?? []).map((raw: unknown) => {
     const r = (raw ?? {}) as Record<string, unknown>;
+    const age = String(r.age_state ?? "");
     return {
-      userId: String(r.user_id ?? ""),
+      memberId: String(r.member_id ?? ""),
+      userId: typeof r.user_id === "string" && r.user_id ? r.user_id : null,
       // Un prénom vide rend le libellé de l'écran, JAMAIS l'e-mail en repli:
       // ça divulguerait une adresse à tout le foyer.
       displayName: String(r.first_name ?? "").trim() || "—",
       role: (String(r.role) === "owner" ? "owner" : "member") as HouseholdRole,
-      // DÉRIVÉ EN BASE. La date de naissance ne traverse jamais le réseau: le
-      // foyer a besoin de savoir qu'il y a un enfant à table, pas de sa date.
-      isMinor: r.is_minor === true,
-      restrictionConsentAt: typeof r.restriction_consent_at === "string"
-        ? r.restriction_consent_at
-        : null,
+      // DÉRIVÉ EN BASE, à trois états. La date de naissance ne traverse jamais
+      // le réseau: le foyer a besoin de savoir qu'il y a un enfant à table, pas
+      // de sa date. Une valeur hors vocabulaire vaut `unknown`, jamais
+      // `adult` — c'est la direction sûre, la même qu'en base.
+      ageState: (age === "minor" || age === "adult" ? age : "unknown") as MemberAgeState,
+      goal: typeof r.goal === "string" && r.goal ? r.goal : null,
     };
-  }).filter((m: HouseholdMemberView) => m.userId);
+  }).filter((m: HouseholdMemberView) => m.memberId);
 
   const row = hh as Record<string, unknown>;
   return {
     id: String(row.id),
-    kind: String(row.kind) === "shared" ? "shared" : "family",
     name: String(row.name ?? ""),
     members,
-    me: members.find((m) => m.userId === myUserId) ?? null,
+    // PAR LE COMPTE, et c'est le seul endroit où `userId` sert à identifier:
+    // celui qui regarde l'écran en a forcément un.
+    me: members.find((m) => m.userId && m.userId === myUserId) ?? null,
   };
-}
-
-/**
- * L'ÂGE SE RELIT, IL NE SE FIGE PAS. Même règle que `keel_household_is_minor`
- * en base et `student_age.ts` côté serveur: une date ABSENTE ou aberrante vaut
- * MAJEUR, donc non restreignable sans accord. La direction est
- * contre-intuitive et c'est la sûre — voir l'en-tête de `household.ts`.
- */
-export function isMinorBirthDate(raw: unknown, today: Date = new Date()): boolean {
-  const text = typeof raw === "string" ? raw.trim() : "";
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return false;
-  const born = new Date(`${text}T00:00:00Z`);
-  if (Number.isNaN(born.getTime())) return false;
-  const eighteenth = new Date(born);
-  eighteenth.setUTCFullYear(eighteenth.getUTCFullYear() + 18);
-  return eighteenth.getTime() > today.getTime();
 }
 
 export async function loadRestrictions(): Promise<RestrictionView[]> {
   const { data, error } = await supabase
     .from("household_food_restrictions")
-    .select("id, member_user_id, label, created_by");
+    .select("id, member_id, label, created_by");
   if (error) throw new Error(error.message);
   return (data ?? []).map((raw) => {
     const r = raw as Record<string, unknown>;
     return {
       id: String(r.id),
-      memberUserId: String(r.member_user_id),
+      memberId: String(r.member_id),
       label: String(r.label ?? ""),
       createdByUserId: String(r.created_by),
     };
   });
 }
 
-export async function createHousehold(name: string, kind: HouseholdKind) {
-  const { data, error } = await supabase.rpc("keel_household_create", {
-    p_name: name,
-    p_kind: kind,
+export async function createHousehold(name: string) {
+  const { data, error } = await supabase.rpc("keel_household_create", { p_name: name });
+  if (error) throw new Error(error.message);
+  return asResult(data);
+}
+
+/**
+ * AJOUTER UNE BOUCHE — sans compte, sans invitation, sans attendre personne.
+ *
+ * C'est le geste que tout le chantier existe pour permettre. `birthDate` est
+ * FACULTATIVE (le flux ne se bloque pas) mais tant qu'elle manque, la personne
+ * reçoit une part standard: l'objectif ne s'applique qu'à un âge connu.
+ */
+export async function addHouseholdMember(
+  firstName: string,
+  birthDate: string | null,
+  goal: string | null,
+) {
+  const { data, error } = await supabase.rpc("keel_household_add_member", {
+    p_first_name: firstName,
+    p_birth_date: birthDate,
+    p_goal: goal,
+  });
+  if (error) throw new Error(error.message);
+  return asResult(data);
+}
+
+export async function removeHouseholdMember(memberId: string) {
+  const { data, error } = await supabase.rpc("keel_household_remove_member", {
+    p_member: memberId,
+  });
+  if (error) throw new Error(error.message);
+  return asResult(data);
+}
+
+/**
+ * DEUX ÉCRIVAINS, UN SEUL CHAMP. Le compte maître pose l'objectif de n'importe
+ * quelle bouche; une personne qui a réclamé son profil pose le SIEN, et rien
+ * d'autre. La base tranche (`not_your_line`), l'écran ne fait que demander.
+ */
+export async function setMemberGoal(memberId: string, goal: string | null) {
+  const { data, error } = await supabase.rpc("keel_household_set_member_goal", {
+    p_member: memberId,
+    p_goal: goal,
   });
   if (error) throw new Error(error.message);
   return asResult(data);
@@ -260,9 +247,9 @@ export async function joinHousehold(token: string) {
   return asResult(data);
 }
 
-export async function addRestriction(memberUserId: string, label: string) {
+export async function addRestriction(memberId: string, label: string) {
   const { data, error } = await supabase.rpc("keel_household_add_restriction", {
-    p_member: memberUserId,
+    p_member: memberId,
     p_label: label,
   });
   if (error) throw new Error(error.message);
@@ -271,23 +258,6 @@ export async function addRestriction(memberUserId: string, label: string) {
 
 export async function removeRestriction(id: string) {
   const { data, error } = await supabase.rpc("keel_household_remove_restriction", { p_id: id });
-  if (error) throw new Error(error.message);
-  return asResult(data);
-}
-
-/**
- * Le consentement se pose et se retire PAR SOI. Aucune de ces deux fonctions ne
- * prend d'identifiant, exactement comme les RPC: un paramètre serait la porte
- * par laquelle le compte maître consentirait à la place de l'autre.
- */
-export async function grantRestrictionConsent() {
-  const { data, error } = await supabase.rpc("keel_household_grant_consent");
-  if (error) throw new Error(error.message);
-  return asResult(data);
-}
-
-export async function revokeRestrictionConsent() {
-  const { data, error } = await supabase.rpc("keel_household_revoke_consent");
   if (error) throw new Error(error.message);
   return asResult(data);
 }
@@ -309,6 +279,9 @@ export async function loadEnvies(weekStart: string) {
   if (error) throw new Error(error.message);
   return (data ?? []).map((raw) => {
     const r = raw as Record<string, unknown>;
+    // ⚠️ UN IDENTIFIANT DE COMPTE, ET C'EST CORRECT ICI: seule une personne
+    // qui a un compte peut avoir soumis une envie. La table entière change de
+    // forme au lot 5 (une ligne écrite par le maître remplace la récolte).
     return { userId: String(r.user_id), body: String(r.body ?? "") };
   });
 }
@@ -348,7 +321,7 @@ export async function generateHouseholdMeal(args: {
 }
 
 export interface MemberPortionView {
-  userId: string;
+  memberId: string;
   displayName: string;
   /** `null` = part standard. L'écran rend son propre libellé. */
   portionNote: string | null;
@@ -397,7 +370,7 @@ export async function loadHouseholdMeal(today: string): Promise<HouseholdMealVie
       const p = (entry ?? {}) as Record<string, unknown>;
       const shares = Array.isArray(p.preparation_shares) ? p.preparation_shares : [];
       return {
-        userId: String(p.user_id ?? ""),
+        memberId: String(p.member_id ?? ""),
         displayName: String(p.display_name ?? ""),
         portionNote: typeof p.portion_note === "string" && p.portion_note.trim()
           ? p.portion_note
@@ -410,6 +383,6 @@ export async function loadHouseholdMeal(today: string): Promise<HouseholdMealVie
           };
         }).filter((s) => s.preparationId && s.note),
       };
-    }).filter((p) => p.userId),
+    }).filter((p) => p.memberId),
   };
 }

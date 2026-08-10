@@ -44,7 +44,10 @@ import {
   parseEatingRhythm,
   parseGeneratedMeal,
 } from "../_shared/keel/meal_generation.ts";
-import { assessBirthDate } from "../_shared/keel/student_age.ts";
+import {
+  MEMBER_AGE_STATES,
+  type MemberAgeState,
+} from "../_shared/keel/household.ts";
 import { applyHouseRuleLock } from "../_shared/keel/household_restriction_lock.ts";
 import {
   buildHouseholdPromptBlocks,
@@ -86,11 +89,23 @@ import type { EnvySubmission } from "../_shared/keel/household_envies.ts";
  * un autre chantier, et un générateur qui notifie est un générateur qu'on ne
  * peut plus appeler pour essayer.
  *
- * ── LE MINEUR N'EST PAS UNE CIBLE (§8.4) ────────────────────────────────
- * `student_goals` n'est LU QUE pour les majeurs. Ce n'est pas un `if` de
- * confort: la lecture est filtrée en amont, donc il n'existe aucun chemin par
- * lequel l'objectif d'un enfant pourrait atteindre le prompt — même si
- * quelqu'un en écrivait un en base par un autre chemin.
+ * ── LE MINEUR N'EST PAS UNE CIBLE (§8.4), ET « JE NE SAIS PAS » NON PLUS ─
+ * L'objectif d'une bouche vit sur SA LIGNE DE FOYER depuis le 2026-08-10, plus
+ * dans `student_goals` — sans quoi une personne sans compte n'en aurait aucun,
+ * et la bifurcation des portions serait muette pour exactement les gens que le
+ * produit veut servir.
+ *
+ * La ceinture a donc changé de nature. Elle n'est plus « on ne LIT PAS la table
+ * pour un mineur » (un filtre de requête); elle est `goalApplies` dans
+ * `household.ts`, et elle refuse DEUX cas au lieu d'un: le mineur, et la bouche
+ * dont l'âge est INCONNU. Le second est le cas neuf et le plus mordant — depuis
+ * que le compte maître saisit des bouches à la main, une ligne peut n'avoir
+ * aucune date, et l'ancienne garde SQL (`coalesce(is_minor, false)`) l'aurait
+ * traitée comme un adulte.
+ *
+ * `student_goals` reste lu, pour le COMPTE MAÎTRE seul: sa `situation`, ses
+ * contraintes pratiques et sa langue gouvernent la composition entière. Ce
+ * n'est plus une source de portion.
  */
 
 const FN_NAME = "generate-household-meal-v1";
@@ -145,6 +160,12 @@ function readCookingCapacity(pc: Record<string, unknown> | null) {
 }
 
 interface LoadedMember extends PortionMember {
+  /**
+   * `null` pour une bouche sans compte. Sert UNIQUEMENT à savoir où chercher
+   * ses contraintes de sécurité et son corps, qui restent clés sur
+   * `auth.users`. Ce n'est PAS son identité: `memberId` l'est.
+   */
+  userId: string | null;
   /** Pour l'union des contraintes de sécurité du foyer. */
   isOwner: boolean;
 }
@@ -192,37 +213,47 @@ Deno.serve(async (req) => {
     }
     const householdId = me.household_id;
 
-    const hhRes = await admin
-      .from("households").select("kind").eq("id", householdId).maybeSingle();
-    if (hhRes.error) throw hhRes.error;
-    const householdKind = String((hhRes.data as { kind?: unknown } | null)?.kind ?? "family");
-
-    // ── LES MEMBRES ─────────────────────────────────────────────────────
-    const rosterRes = await admin
-      .from("household_members")
-      .select("user_id, role")
-      .eq("household_id", householdId);
+    // ── LES MEMBRES, PAR LA MÊME PORTE QUE LE CHAT ──────────────────────
+    // `keel_household_roster_for` et pas une lecture de table: c'est le SEUL
+    // lecteur du roster, partagé avec `household_turn_context`. Deux SELECT sur
+    // `household_members` divergeraient au premier ajustement, et la divergence
+    // serait silencieuse — le générateur composerait pour un foyer que le chat
+    // décrit autrement.
+    //
+    // Il rend `member_id` (l'identité d'une bouche), `user_id` (NULL tant que
+    // la personne n'a pas réclamé son profil), le prénom, l'état d'âge à trois
+    // valeurs et l'objectif — tout ce dont la bifurcation a besoin, et rien qui
+    // exige un compte.
+    const rosterRes = await admin.rpc("keel_household_roster_for", { p_user: userId });
     if (rosterRes.error) throw rosterRes.error;
-    const roster = (rosterRes.data ?? []) as Array<{ user_id: string; role: string }>;
+    const roster = (rosterRes.data ?? []) as Array<{
+      member_id: string;
+      user_id: string | null;
+      first_name: string;
+      age_state: string;
+      role: string;
+      goal: string | null;
+    }>;
     if (roster.length === 0) {
       return jsonResponse(req, { error: "empty_household", request_id: requestId }, { status: 409 });
     }
-    const memberIds = roster.map((r) => r.user_id);
-
-    const profilesRes = await admin
-      .from("profiles")
-      .select("id, full_name, birth_date, timezone, country, locale")
-      .in("id", memberIds);
-    if (profilesRes.error) throw profilesRes.error;
-    const profiles = new Map(
-      ((profilesRes.data ?? []) as Array<Record<string, unknown>>).map((p) => [String(p.id), p]),
-    );
+    // LES COMPTES DU FOYER — un sous-ensemble, désormais. Sert l'union des
+    // contraintes de sécurité, qui reste clée sur `auth.users`.
+    const accountIds = roster
+      .map((r) => r.user_id)
+      .filter((id): id is string => typeof id === "string" && id.length > 0);
 
     // --- LE JOUR DU COMPTE MAÎTRE, dans SON fuseau ------------------------
     // Le foyer cuisine ensemble: il n'a qu'un seul calendrier, et c'est celui
     // de la personne qui compose. Faire la moyenne de quatre fuseaux
     // produirait une date que personne n'habite.
-    const ownerProfile = profiles.get(userId) ?? {};
+    const ownerProfileRes = await admin
+      .from("profiles")
+      .select("id, timezone, country, locale")
+      .eq("id", userId)
+      .maybeSingle();
+    if (ownerProfileRes.error) throw ownerProfileRes.error;
+    const ownerProfile = (ownerProfileRes.data ?? {}) as Record<string, unknown>;
     const timezone = String(ownerProfile.timezone ?? "").trim();
     if (!timezone) {
       return jsonResponse(req, {
@@ -236,35 +267,19 @@ Deno.serve(async (req) => {
     const todayDate = localDateInZone(timezone, new Date());
     const country = String(ownerProfile.country ?? "").trim() || null;
 
-    // ── L'OBJECTIF: LU POUR LES MAJEURS SEULEMENT ───────────────────────
-    // La ceinture est ICI, en amont de toute lecture. Un mineur n'a pas
-    // d'objectif dans ce produit (§8.4) — et le filtre est sur la REQUÊTE,
-    // pas sur son résultat, pour qu'aucune ligne d'objectif écrite par un
-    // autre chemin ne puisse atteindre le prompt.
-    const adults: string[] = [];
-    const minors = new Set<string>();
-    for (const id of memberIds) {
-      const verdict = assessBirthDate(
-        (profiles.get(id)?.birth_date as string | null) ?? null,
-        todayDate,
-      );
-      if (verdict.status === "minor") minors.add(id);
-      else adults.push(id);
-    }
-
-    const goalsRes = adults.length > 0
-      ? await admin
-        .from("student_goals")
-        .select("user_id, goal, situation, practical_constraints, content_locale")
-        .in("user_id", adults)
-      : { data: [], error: null };
-    if (goalsRes.error) throw goalsRes.error;
-    const goals = new Map(
-      ((goalsRes.data ?? []) as Array<Record<string, unknown>>)
-        .map((g) => [String(g.user_id), g]),
-    );
-
-    const ownerGoal = goals.get(userId);
+    // ── L'OBJECTIF DU MAÎTRE: LA DOCTRINE DU REPAS ──────────────────────
+    // `student_goals` du compte maître SEUL, et pour une raison qui n'est plus
+    // celle d'avant: cette ligne ne sert plus à dimensionner des portions, elle
+    // porte la SITUATION, les contraintes pratiques et la langue — c'est-à-dire
+    // ce qui gouverne la composition entière. Les objectifs des membres, eux,
+    // vivent désormais sur leur ligne de foyer.
+    const ownerGoalRes = await admin
+      .from("student_goals")
+      .select("user_id, goal, situation, practical_constraints, content_locale")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (ownerGoalRes.error) throw ownerGoalRes.error;
+    const ownerGoal = ownerGoalRes.data as Record<string, unknown> | null;
     if (!ownerGoal) {
       return jsonResponse(req, {
         error: "goal_required",
@@ -273,40 +288,53 @@ Deno.serve(async (req) => {
       }, { status: 409 });
     }
 
+    // ── LES BOUCHES ─────────────────────────────────────────────────────
+    // L'objectif vient de la LIGNE MEMBRE, plus jamais de `student_goals`. La
+    // ceinture n'est plus « on ne lit pas la table pour un mineur » — elle est
+    // `goalApplies`, dans `household.ts`, et elle refuse DEUX cas: le mineur,
+    // et la bouche dont l'âge est inconnu. Le second est neuf, et c'est celui
+    // qui mordait: une bouche saisie sans date aurait reçu la direction de son
+    // objectif comme si on savait qu'elle est adulte.
     const members: LoadedMember[] = roster.map((r) => {
-      const p = profiles.get(r.user_id) ?? {};
-      const rawGoal = String(goals.get(r.user_id)?.goal ?? "").trim();
+      const rawGoal = String(r.goal ?? "").trim();
       const goal = (MEMBER_GOALS as readonly string[]).includes(rawGoal)
         ? (rawGoal as MemberGoal)
         : null;
+      const ageState = (MEMBER_AGE_STATES as readonly string[]).includes(r.age_state)
+        ? (r.age_state as MemberAgeState)
+        // Un état inconnu du vocabulaire vaut `unknown`, jamais `adult`: c'est
+        // la même direction sûre que la fonction SQL, et elle doit survivre à
+        // un désalignement entre les deux.
+        : "unknown";
       return {
+        memberId: r.member_id,
         userId: r.user_id,
-        // Le prénom seul: le nom complet d'un enfant n'a rien à faire dans un
-        // prompt, et « Marc » suffit à une consigne de service.
-        displayName: String(p.full_name ?? "").trim().split(/\s+/)[0] || "Member",
-        goal: minors.has(r.user_id) ? null : goal,
-        isMinor: minors.has(r.user_id),
+        // Le prénom vient de la LIGNE, plus de `profiles`. Une seule source,
+        // donc aucune branche entre une bouche avec compte et une sans.
+        displayName: String(r.first_name ?? "").trim() || "Member",
+        goal,
+        ageState,
         isOwner: r.role === "owner",
       };
     });
 
     // ── LES RESTRICTIONS DE MAISON ──────────────────────────────────────
-    // Lues telles quelles. Le fait qu'elles soient LÉGITIMES a déjà été
-    // tranché à l'écriture (`keel_household_add_restriction`): mode famille,
-    // compte maître, mineur ou majeur consentant. Les rejuger ici ferait une
-    // seconde définition de la règle, qui divergerait.
+    // Lues telles quelles. Le fait qu'elles soient LÉGITIMES a déjà été tranché
+    // à l'écriture (`keel_household_add_restriction`: compte maître, membre de
+    // ce foyer). Les rejuger ici ferait une seconde définition de la règle, qui
+    // divergerait.
     const restrRes = await admin
       .from("household_food_restrictions")
-      .select("member_user_id, label")
+      .select("member_id, label")
       .eq("household_id", householdId);
     if (restrRes.error) throw restrRes.error;
-    const nameOf = new Map(members.map((m) => [m.userId, m.displayName]));
+    const nameOf = new Map(members.map((m) => [m.memberId, m.displayName]));
     const restrictions: HouseholdRestriction[] =
-      ((restrRes.data ?? []) as Array<{ member_user_id: string; label: string }>)
-        .filter((r) => nameOf.has(r.member_user_id))
+      ((restrRes.data ?? []) as Array<{ member_id: string; label: string }>)
+        .filter((r) => nameOf.has(r.member_id))
         .map((r) => ({
-          memberUserId: r.member_user_id,
-          memberDisplayName: nameOf.get(r.member_user_id)!,
+          memberId: r.member_id,
+          memberDisplayName: nameOf.get(r.member_id)!,
           label: r.label,
         }));
 
@@ -340,8 +368,22 @@ Deno.serve(async (req) => {
       .eq("household_id", householdId)
       .eq("week_start", startsOn);
     if (envyRes.error) throw envyRes.error;
+    // LA TRADUCTION SE FAIT ICI, ET UNE SEULE FOIS. `household_envy_submissions`
+    // reste clée sur `auth.users` — seul quelqu'un qui a un compte peut avoir
+    // parlé. Le bloc de prompt, lui, ne connaît que `member_id`. On traduit au
+    // bord plutot que de laisser deux vocabulaires circuler dans le module pur.
+    // (La table entiere change de forme au lot 5 : une ligne ecrite par le
+    // maitre remplace la recolte. Ce pont disparaitra avec elle.)
+    const memberIdByUser = new Map(
+      roster
+        .filter((r) => r.user_id)
+        .map((r) => [String(r.user_id), r.member_id]),
+    );
     const envies = ((envyRes.data ?? []) as Array<{ user_id: string; body: string }>)
-      .map((e): EnvySubmission => ({ userId: e.user_id, body: e.body }));
+      .flatMap((e): EnvySubmission[] => {
+        const memberId = memberIdByUser.get(String(e.user_id));
+        return memberId ? [{ memberId, body: e.body }] : [];
+      });
 
     // ── LA MÉTHODE: CELLE DU COMPTE MAÎTRE ──────────────────────────────
     // Un foyer suit UNE méthode. Mélanger celles de deux coachs produirait un
@@ -385,7 +427,7 @@ Deno.serve(async (req) => {
     // FOYER, y compris aux enfants. On refuse la composition plutôt que de la
     // rendre sans ceinture.
     const constraints: StudentSafetyConstraint[] = [];
-    for (const id of memberIds) {
+    for (const id of accountIds) {
       try {
         constraints.push(...await loadStudentSafetyConstraints(admin as never, id));
       } catch (error) {
@@ -657,9 +699,16 @@ Deno.serve(async (req) => {
             intent,
             household: {
               id: householdId,
-              kind: householdKind,
               member_count: members.length,
-              minor_count: minors.size,
+              // TROIS COMPTES, PAS UN. « combien de mineurs » ne suffit plus a
+              // relire une composition: une bouche dont l'age est INCONNU recoit
+              // la meme part standard qu'un mineur, pour une raison toute
+              // differente. Sans `unknown_age_count`, « pourquoi Marc a-t-il eu
+              // une part standard ? » n'a pas de reponse trois jours plus tard.
+              minor_count: members.filter((m) => m.ageState === "minor").length,
+              unknown_age_count:
+                members.filter((m) => m.ageState === "unknown").length,
+              accountless_count: members.filter((m) => !m.userId).length,
               // QUI A PARLÉ ET QUI S'EST TU, écrit sur la ligne. Sans ça,
               // « pourquoi Léa a-t-elle eu ça ? » n'a pas de réponse trois
               // jours plus tard — et c'est exactement la question qu'un foyer
@@ -694,7 +743,10 @@ Deno.serve(async (req) => {
       window: { starts_on: startsOn, duration_days: durationDays },
       household: {
         id: householdId,
-        kind: householdKind,
+        // `kind` a disparu avec la colocation (lot 2). L'ecran ne le lisait que
+        // pour choisir un libelle; le retirer de la reponse evite qu'un client
+        // continue de brancher dessus une distinction qui n'existe plus.
+        member_count: members.length,
         spoken: household.spoken,
         silent: household.silent,
       },

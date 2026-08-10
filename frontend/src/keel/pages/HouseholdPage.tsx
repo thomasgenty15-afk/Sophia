@@ -3,13 +3,10 @@ import React from "react";
 import { useAuth } from "../../context/AuthContext";
 import {
   addRestriction,
-  canSeeGoalOf,
   createHousehold,
   ENVY_MAX_CHARS,
   envyRound,
   generateHouseholdMeal,
-  grantRestrictionConsent,
-  type HouseholdKind,
   type HouseholdMealView,
   type HouseholdMemberView,
   type HouseholdView,
@@ -19,10 +16,8 @@ import {
   loadHouseholdMeal,
   loadRestrictions,
   removeRestriction,
-  restrictionBlock,
   type RestrictionView,
   restrictionNotice,
-  revokeRestrictionConsent,
   submitEnvy,
 } from "../api/household";
 import { t } from "../i18n/t";
@@ -125,7 +120,7 @@ export default function HouseholdPage(): React.ReactElement {
         ) : null}
 
         {!household
-          ? <CreateCard busy={busy} onCreate={(n, k) => run(() => createHousehold(n, k))} />
+          ? <CreateCard busy={busy} onCreate={(n) => run(() => createHousehold(n))} />
           : (
             <>
               <MembersCard household={household} restrictions={restrictions} />
@@ -137,7 +132,6 @@ export default function HouseholdPage(): React.ReactElement {
               />
               <ComposeCard household={household} onDone={refresh} />
               {meal ? <TableCard meal={meal} /> : null}
-              <ConsentCard household={household} busy={busy} onRun={run} />
               <RestrictionsCard
                 household={household}
                 restrictions={restrictions}
@@ -154,13 +148,15 @@ export default function HouseholdPage(): React.ReactElement {
 }
 
 function CreateCard(
-  { busy, onCreate }: { busy: boolean; onCreate: (name: string, kind: HouseholdKind) => void },
+  { busy, onCreate }: { busy: boolean; onCreate: (name: string) => void },
 ) {
   const [name, setName] = React.useState("");
-  // LE MODE EST UN CHOIX EXPLICITE, sans valeur par défaut cochée. Il gouverne
-  // le droit de restreindre ET la visibilité des objectifs (§8.5): le
-  // pré-cocher ferait choisir « famille » par inadvertance à deux colocataires.
-  const [kind, setKind] = React.useState<HouseholdKind | null>(null);
+  // ── LE CHOIX DU MODE A DISPARU (lot 2, 2026-08-10) ────────────────────────
+  // Il fallait cocher « famille » ou « colocation », et ce choix gouvernait le
+  // droit de restreindre et la visibilité des objectifs. La colocation est
+  // sortie du produit: un foyer est un foyer, et la personne qui cuisine
+  // gouverne le menu. Un écran de moins, une question de moins, et surtout plus
+  // aucune façon de se tromper de mode en s'inscrivant.
 
   return (
     <Card>
@@ -174,30 +170,10 @@ function CreateCard(
           onChange={(e) => setName(e.target.value)}
         />
       </Field>
-      <fieldset className="mt-3">
-        <legend className="mb-2 text-sm font-medium">{t("household.create.kind")}</legend>
-        {(["family", "shared"] as const).map((k) => (
-          <label key={k} className="mb-2 flex items-start gap-2 text-sm">
-            <input
-              type="radio"
-              name="household-kind"
-              className="mt-1 shrink-0"
-              checked={kind === k}
-              onChange={() => setKind(k)}
-            />
-            <span className="min-w-0">
-              <span className="font-medium">{t(`household.create.kind.${k}`)}</span>
-              <span className="block text-neutral-500">
-                {t(`household.create.kind.${k}_hint`)}
-              </span>
-            </span>
-          </label>
-        ))}
-      </fieldset>
       <Button
         className="mt-3"
-        disabled={busy || !name.trim() || !kind}
-        onClick={() => kind && onCreate(name.trim(), kind)}
+        disabled={busy || !name.trim()}
+        onClick={() => onCreate(name.trim())}
       >
         {t("household.create.submit")}
       </Button>
@@ -213,25 +189,23 @@ function MembersCard(
       <SectionLabel>{t("household.members.title")}</SectionLabel>
       <ul className="flex flex-col gap-2">
         {household.members.map((m) => {
-          const mine = restrictions.filter((r) => r.memberUserId === m.userId);
+          const mine = restrictions.filter((r) => r.memberId === m.memberId);
           return (
-            <li key={m.userId} className="flex flex-wrap items-center gap-2 text-sm">
+            <li key={m.memberId} className="flex flex-wrap items-center gap-2 text-sm">
               <span className="font-medium">{m.displayName}</span>
               {m.role === "owner"
                 ? <Badge>{t("household.members.owner")}</Badge>
                 : null}
               {/* L'ÉTIQUETTE, JAMAIS L'ÂGE. Un enfant n'a pas à voir son âge
-                  affiché sur un écran que tout le foyer regarde. */}
-              {m.isMinor ? <Badge>{t("household.members.child")}</Badge> : null}
+                  affiché sur un écran que tout le foyer regarde.
+                  ⚠️ `unknown` ne porte AUCUNE étiquette: écrire « adulte » par
+                  défaut affirmerait un fait qu'on n'a pas. */}
+              {m.ageState === "minor" ? <Badge>{t("household.members.child")}</Badge> : null}
               {mine.map((r) => (
                 <span key={r.id} className="rounded bg-neutral-100 px-2 py-0.5 text-neutral-600">
                   {r.label}
                 </span>
               ))}
-              {/* `canSeeGoalOf` gouverne ce qu'on DEMANDE. En colocation on ne
-                  lit même pas l'objectif de l'autre — la vraie protection est
-                  que `student_goals` n'a aucune policy de foyer. */}
-              {canSeeGoalOf(household, m) ? null : null}
             </li>
           );
         })}
@@ -281,38 +255,19 @@ function EnvyCard(
   );
 }
 
-function ConsentCard(
-  { household, busy, onRun }: {
-    household: HouseholdView;
-    busy: boolean;
-    onRun: (a: () => Promise<{ ok: boolean; reason: string }>) => void;
-  },
-) {
-  const me = household.me;
-  // Un mineur ne voit pas cette carte: son consentement n'existe pas comme
-  // notion, sa restreignabilité vient de son âge (§8.5 règle 1).
-  if (!me || me.isMinor || household.kind !== "family") return null;
-  const owner = household.members.find((m) => m.role === "owner");
-  const on = Boolean(me.restrictionConsentAt);
-
-  return (
-    <Card>
-      <SectionLabel>{t("household.consent.title")}</SectionLabel>
-      <p className="mb-3 text-sm text-neutral-600">
-        {on
-          ? t("household.consent.on", { owner: owner?.displayName ?? "" })
-          : t("household.consent.off")}
-      </p>
-      <Button
-        disabled={busy}
-        onClick={() =>
-          onRun(on ? revokeRestrictionConsent : grantRestrictionConsent)}
-      >
-        {on ? t("household.consent.revoke") : t("household.consent.grant")}
-      </Button>
-    </Card>
-  );
-}
+/*
+ * ── LA CARTE DE CONSENTEMENT A ÉTÉ RETIRÉE (lot 2, 2026-08-10) ──────────────
+ *
+ * Elle permettait à un majeur d'accepter, puis de révoquer, le droit du compte
+ * maître de lui poser des interdits. Elle protégeait un adulte d'un autre
+ * adulte, dans un monde où chaque bouche avait un compte.
+ *
+ * Le modèle arrêté le 2026-08-08 dit qu'une seule personne gouverne le menu —
+ * c'est ce qui évite le marécage d'un arbitrage entre un parent et son enfant.
+ * LA CONTREPARTIE N'EST PAS RIEN, et elle est plus bas dans ce fichier: chaque
+ * contrainte reste affichée AVEC QUI L'A POSÉE (`restrictionNotice`). Ce qui
+ * distingue ce modèle du contrôle coercitif, c'est que rien n'est secret.
+ */
 
 function RestrictionsCard(
   { household, restrictions, busy, onAdd, onRemove }: {
@@ -328,11 +283,10 @@ function RestrictionsCard(
   const [target, setTarget] = React.useState<string>("");
   const [label, setLabel] = React.useState("");
 
-  const selected = household.members.find((m) => m.userId === target) ?? null;
-  const block = restrictionBlock(household, selected);
+  const selected = household.members.find((m) => m.memberId === target) ?? null;
 
   // CÔTÉ MEMBRE RESTREINT: la MÊME donnée, attribuée. §8.5 règle 3.
-  const mine = restrictions.filter((r) => r.memberUserId === me?.userId);
+  const mine = restrictions.filter((r) => r.memberId === me?.memberId);
 
   if (!isOwner) {
     if (mine.length === 0) return null;
@@ -363,7 +317,7 @@ function RestrictionsCard(
       <SectionLabel>{t("household.restriction.title")}</SectionLabel>
       <ul className="mb-3 flex flex-col gap-1 text-sm">
         {restrictions.map((r) => {
-          const who = household.members.find((m) => m.userId === r.memberUserId);
+          const who = household.members.find((m) => m.memberId === r.memberId);
           return (
             <li key={r.id} className="flex flex-wrap items-center gap-2">
               <span className="font-medium">{who?.displayName ?? "—"}</span>
@@ -391,8 +345,10 @@ function RestrictionsCard(
           >
             <option value="">—</option>
             {household.members
-              .filter((m) => m.userId !== me?.userId)
-              .map((m) => <option key={m.userId} value={m.userId}>{m.displayName}</option>)}
+              .filter((m) => m.memberId !== me?.memberId)
+              .map((m) => (
+                <option key={m.memberId} value={m.memberId}>{m.displayName}</option>
+              ))}
           </select>
         </Field>
         <input
@@ -404,21 +360,19 @@ function RestrictionsCard(
           placeholder={t("household.restriction.placeholder")}
           onChange={(e) => setLabel(e.target.value)}
         />
+        {/* PLUS DE MOTIF DE BLOCAGE À AFFICHER. `restrictionBlock` anticipait
+            le refus de la base — colocation, consentement du majeur — et ces
+            règles n'existent plus: le compte maître pose une contrainte sur
+            n'importe quelle bouche de son foyer, et elle est attribuée. Le seul
+            refus que la base rende encore est structurel (`not_owner`,
+            `not_a_member`), et cette carte n'est rendue qu'au compte maître. */}
         <Button
-          disabled={busy || !selected || !label.trim() || block !== null}
-          onClick={() => selected && onAdd(selected.userId, label.trim())}
+          disabled={busy || !selected || !label.trim()}
+          onClick={() => selected && onAdd(selected.memberId, label.trim())}
         >
           {t("household.restriction.add")}
         </Button>
       </div>
-      {/* LE MOTIF EST DIT AVANT LE CLIC. Un bouton grisé sans explication
-          produit un écran mystérieusement cassé — c'est pour ça que
-          `restrictionBlock` rend un motif et pas un booléen. */}
-      {selected && block ? (
-        <p className="mt-2 text-sm text-neutral-600">
-          {t(`household.restriction.blocked.${block}`, { name: selected.displayName })}
-        </p>
-      ) : null}
     </Card>
   );
 }
@@ -584,7 +538,7 @@ function TableCard({ meal }: { meal: HouseholdMealView }) {
       <SectionLabel>{t("household.portions.title")}</SectionLabel>
       <ul className="flex flex-col gap-3">
         {meal.portions.map((p) => (
-          <li key={p.userId}>
+          <li key={p.memberId}>
             <p className="text-sm">
               <span className="font-medium">{p.displayName}</span>
               {" — "}

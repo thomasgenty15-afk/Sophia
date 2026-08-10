@@ -1,162 +1,108 @@
 import { assertEquals } from "jsr:@std/assert@1";
 
-import { assessBirthDate } from "./student_age.ts";
 import {
-  canInvite,
-  canRestrict,
-  goalVisibility,
-  type HouseholdMemberSnapshot,
-  isMinorMember,
+  ageStateFromVerdict,
+  goalApplies,
+  MEMBER_AGE_STATES,
 } from "./household.ts";
+import { assessBirthDate } from "./student_age.ts";
 
-const TODAY = "2026-08-08";
+/**
+ * ── CE QUE CE FICHIER TESTE, ET CE QU'IL NE TESTE PLUS ──────────────────────
+ *
+ * Il testait `canRestrict`, `canInvite`, `memberVisibility` et `goalVisibility`
+ * — quatorze cas sur le pouvoir domestique et la visibilité en colocation. Les
+ * quatre fonctions sont parties le 2026-08-10 (lot 2): les deux premières
+ * n'avaient JAMAIS eu d'appelant en production (la règle vivait en SQL), les
+ * deux autres n'existaient que pour un mode que le produit ne vend plus.
+ *
+ * Ce qui les remplace est plus petit et plus mordant: l'ÂGE À TROIS ÉTATS, et
+ * la règle qui en dépend. C'est le seul endroit du foyer où une erreur se
+ * traduit par une direction nutritionnelle servie à un enfant.
+ */
 
-function member(
-  userId: string,
-  opts: {
-    role?: "owner" | "member";
-    birth?: string | null;
-    consented?: boolean;
-  } = {},
-): HouseholdMemberSnapshot {
-  return {
-    userId,
-    role: opts.role ?? "member",
-    birthDateVerdict: assessBirthDate(opts.birth ?? null, TODAY),
-    restrictionConsentAt: opts.consented ? "2026-08-01T10:00:00Z" : null,
-  };
+const TODAY = "2026-08-10";
+
+function stateOf(birthDate: string | null): string {
+  return ageStateFromVerdict(assessBirthDate(birthDate, TODAY));
 }
 
-const OWNER = member("owner", { role: "owner", birth: "1985-04-02" });
-const ADULT = member("adult", { birth: "1990-06-11" });
-const ADULT_OK = member("adult", { birth: "1990-06-11", consented: true });
-const KID = member("kid", { birth: "2014-03-20" });
-
-// ───────────────────────────────────────────────────────────────────────────
-// LE MODE DU FOYER PASSE AVANT TOUT LE RESTE
-// ───────────────────────────────────────────────────────────────────────────
-
-Deno.test("hors mode famille, personne ne restreint personne — pas même un mineur", () => {
-  // LE CAS QUI COÛTERAIT LE PLUS CHER SI ON LE RATAIT: tous les autres feux
-  // sont au vert (compte maître, cible mineure), et la réponse reste non. Un
-  // ordre de tests différent laisserait passer une colocation où quelqu'un
-  // verrouille l'alimentation de l'autre.
-  assertEquals(canRestrict("shared", OWNER, KID), {
-    allowed: false,
-    reason: "not_a_family",
-  });
+Deno.test("un enfant de huit ans est mineur", () => {
+  assertEquals(stateOf("2018-03-04"), "minor");
 });
 
-Deno.test("hors mode famille, un majeur consentant reste intouchable", () => {
-  // Le consentement ne rachète PAS le mode. Sinon « shared + accord » serait
-  // une porte dérobée vers le pouvoir domestique dans une colocation.
-  assertEquals(canRestrict("shared", OWNER, ADULT_OK), {
-    allowed: false,
-    reason: "not_a_family",
-  });
+Deno.test("un adulte est adulte", () => {
+  assertEquals(stateOf("1990-03-04"), "adult");
 });
 
-// ───────────────────────────────────────────────────────────────────────────
-// QUI AGIT
-// ───────────────────────────────────────────────────────────────────────────
-
-Deno.test("un membre n'est pas un compte maître", () => {
-  const sibling = member("sibling");
-  assertEquals(canRestrict("family", sibling, KID), {
-    allowed: false,
-    reason: "not_owner",
-  });
+Deno.test("le jour des dix-huit ans, on bascule adulte", () => {
+  assertEquals(stateOf("2008-08-10"), "adult");
+  assertEquals(stateOf("2008-08-11"), "minor");
 });
 
-Deno.test("le compte maître ne se restreint pas lui-même par ce chemin", () => {
-  // Ce n'est pas un interdit moral: c'est que « je ne veux plus de chips chez
-  // moi » est une PRÉFÉRENCE alimentaire, qui a déjà son chemin, et qui n'a
-  // rien à faire dans la table du pouvoir domestique. Les confondre ferait
-  // apparaître « posée par toi » sur ses propres goûts.
-  assertEquals(canRestrict("family", OWNER, OWNER), {
-    allowed: false,
-    reason: "self",
-  });
+/**
+ * ⚠️ LES QUATRE FORMES DE « ON NE SAIT PAS » RENDENT TOUTES `unknown`.
+ *
+ * C'est l'INVERSION du lot 2, et c'est la ligne qui compte le plus du fichier.
+ * L'ancienne garde SQL faisait `coalesce(…, false)` — « date absente ⇒ traité
+ * comme majeur » — ce qui était la direction sûre dans un monde où toute bouche
+ * avait un compte et où « majeur » voulait dire « protégé du pouvoir d'un
+ * autre ». Depuis que le compte maître saisit des bouches à la main, la même
+ * valeur veut dire « on lui applique une direction d'objectif d'adulte », et un
+ * enfant dont personne n'a renseigné la date la recevrait.
+ */
+Deno.test("aucune date, date illisible, future ou aberrante: toutes 'unknown'", () => {
+  assertEquals(stateOf(null), "unknown");
+  assertEquals(stateOf(""), "unknown");
+  assertEquals(stateOf("pas une date"), "unknown");
+  assertEquals(stateOf("2099-01-01"), "unknown");
+  assertEquals(stateOf("1820-01-01"), "unknown");
 });
 
-// ───────────────────────────────────────────────────────────────────────────
-// LE MINEUR, LE MAJEUR, ET CELUI DONT ON NE SAIT RIEN
-// ───────────────────────────────────────────────────────────────────────────
-
-Deno.test("un mineur est restreignable", () => {
-  assertEquals(canRestrict("family", OWNER, KID), { allowed: true });
+Deno.test("le vocabulaire est fermé à trois valeurs", () => {
+  assertEquals([...MEMBER_AGE_STATES], ["minor", "adult", "unknown"]);
 });
 
-Deno.test("un majeur SANS accord ne l'est pas — c'est le défaut", () => {
-  assertEquals(canRestrict("family", OWNER, ADULT), {
-    allowed: false,
-    reason: "adult_without_consent",
-  });
+// ---------------------------------------------------------------------------
+// `goalApplies` — la règle que le générateur ET l'écran lisent
+// ---------------------------------------------------------------------------
+
+Deno.test("un adulte avec objectif reçoit sa direction", () => {
+  assertEquals(goalApplies({ ageState: "adult", goal: "fat_loss" }), true);
 });
 
-Deno.test("un majeur qui a donné son accord l'est", () => {
-  assertEquals(canRestrict("family", OWNER, ADULT_OK), { allowed: true });
+Deno.test("un adulte sans objectif n'en reçoit aucune", () => {
+  assertEquals(goalApplies({ ageState: "adult", goal: null }), false);
+  assertEquals(goalApplies({ ageState: "adult", goal: "" }), false);
 });
 
-Deno.test("une date ABSENTE vaut majeur, donc non restreignable sans accord", () => {
-  // LA DIRECTION CONTRE-INTUITIVE, ET C'EST POUR ÇA QU'ELLE EST TESTÉE.
-  // « On ne sait pas » ne doit PAS donner au compte maître un pouvoir sur
-  // quelqu'un qui n'a rien renseigné. Le jumeau SQL (`keel_household_is_minor`)
-  // rend `false` pour la même raison, et le test de la base le pinne aussi:
-  // deux implémentations de la même règle, deux tests qui la disent.
-  const unknown = member("unknown", { birth: null });
-  assertEquals(isMinorMember(unknown), false);
-  assertEquals(canRestrict("family", OWNER, unknown), {
-    allowed: false,
-    reason: "adult_without_consent",
-  });
+Deno.test("un mineur n'a pas d'objectif, même si la colonne en porte un", () => {
+  // La colonne PEUT porter une valeur — un enfant grandit, et l'objectif saisi
+  // à ses dix-sept ans reste écrit. C'est `goalApplies` qui décide, pas la
+  // présence de la donnée, sinon la garde dépendrait d'un nettoyage.
+  assertEquals(goalApplies({ ageState: "minor", goal: "fat_loss" }), false);
 });
 
-Deno.test("une date ABERRANTE vaut aussi majeur", () => {
-  // `assessBirthDate` distingue `unreadable` / `future` / `implausible` de
-  // `minor`, et aucun de ces trois n'est un enfant. Un module qui aurait
-  // testé `status !== "adult"` aurait rendu restreignable tout profil au
-  // format cassé.
-  const broken = member("broken", { birth: "pas-une-date" });
-  assertEquals(isMinorMember(broken), false);
-  assertEquals(canRestrict("family", OWNER, broken), {
-    allowed: false,
-    reason: "adult_without_consent",
-  });
+Deno.test("⚠️ âge INCONNU: aucun objectif, même déclaré", () => {
+  // LE CAS NEUF. Sans cette ligne, une bouche saisie sans date recevrait la
+  // direction de son objectif comme si on savait qu'elle est adulte — c'est
+  // exactement ce que l'ancien `coalesce(false)` produisait.
+  assertEquals(goalApplies({ ageState: "unknown", goal: "fat_loss" }), false);
+  assertEquals(goalApplies({ ageState: "unknown", goal: "muscle_gain" }), false);
 });
 
-Deno.test("le jour des 18 ans, la restriction tombe", () => {
-  // Les enfants grandissent (PIVOT-FOYER §8.5). L'âge se relit à chaque
-  // décision; un booléen figé à l'entrée dans le foyer survivrait à sa cause.
-  const justEighteen = member("teen", { birth: "2008-08-08" });
-  assertEquals(isMinorMember(justEighteen), false);
-  assertEquals(canRestrict("family", OWNER, justEighteen), {
-    allowed: false,
-    reason: "adult_without_consent",
-  });
-
-  const dayBefore = member("teen", { birth: "2008-08-09" });
-  assertEquals(isMinorMember(dayBefore), true);
-  assertEquals(canRestrict("family", OWNER, dayBefore), { allowed: true });
-});
-
-// ───────────────────────────────────────────────────────────────────────────
-// CE QU'ON VOIT DE L'OBJECTIF D'UN AUTRE
-// ───────────────────────────────────────────────────────────────────────────
-
-Deno.test("en colocation, l'objectif d'un autre ne se montre pas", () => {
-  assertEquals(goalVisibility("shared", ADULT, OWNER), "own_only");
-});
-
-Deno.test("en famille, l'objectif d'un autre se montre", () => {
-  assertEquals(goalVisibility("family", ADULT, OWNER), "full");
-});
-
-Deno.test("chacun voit toujours le sien, y compris en colocation", () => {
-  assertEquals(goalVisibility("shared", ADULT, ADULT), "full");
-});
-
-Deno.test("seul le compte maître invite", () => {
-  assertEquals(canInvite(OWNER), true);
-  assertEquals(canInvite(ADULT), false);
+/**
+ * ⚠️ CE TEST MUTE LA RÈGLE POUR PROUVER QU'IL LA MESURE.
+ *
+ * Ce dépôt a déjà payé « un test paramétré par sa propre constante »: vert quoi
+ * qu'on change. Ici on vérifie que les trois états ne donnent PAS le même
+ * verdict — donc qu'une implémentation qui rendrait toujours `true` (ou
+ * toujours `false`) ferait tomber quelque chose.
+ */
+Deno.test("les trois états ne se comportent pas pareil", () => {
+  const verdicts = (["minor", "adult", "unknown"] as const).map((ageState) =>
+    goalApplies({ ageState, goal: "fat_loss" })
+  );
+  assertEquals(verdicts, [false, true, false]);
+  assertEquals(new Set(verdicts).size, 2, "une garde qui rend toujours la même chose n'est pas une garde");
 });

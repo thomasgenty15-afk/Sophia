@@ -8,13 +8,13 @@ import {
 } from "./household_meal_generation.ts";
 
 const DAD: PortionMember = {
-  userId: "u-dad", displayName: "Marc", goal: "fat_loss", isMinor: false,
+  memberId: "m-dad", displayName: "Marc", goal: "fat_loss", ageState: "adult",
 };
 const SON: PortionMember = {
-  userId: "u-son", displayName: "Tom", goal: "muscle_gain", isMinor: false,
+  memberId: "m-son", displayName: "Tom", goal: "muscle_gain", ageState: "adult",
 };
 const KID: PortionMember = {
-  userId: "u-kid", displayName: "Léa", goal: null, isMinor: true,
+  memberId: "m-kid", displayName: "Léa", goal: null, ageState: "minor",
 };
 
 Deno.test("chaque membre apparaît avec son id EXACT, une fois", () => {
@@ -25,10 +25,10 @@ Deno.test("chaque membre apparaît avec son id EXACT, une fois", () => {
     members: [DAD, SON, KID], envies: [], restrictions: [],
   });
   for (const m of [DAD, SON, KID]) {
-    const occurrences = userSuffix.split(m.userId).length - 1;
-    assert(occurrences >= 1, `${m.userId} doit être cité`);
+    const occurrences = userSuffix.split(m.memberId).length - 1;
+    assert(occurrences >= 1, `${m.memberId} doit être cité`);
     assert(
-      userSuffix.includes(`- ${m.displayName} = ${m.userId}`),
+      userSuffix.includes(`- ${m.displayName} = ${m.memberId}`),
       `${m.displayName} doit être associé à son id`,
     );
   }
@@ -40,7 +40,7 @@ Deno.test("LES RÈGLES DE MAISON NE SONT JAMAIS UNE RAISON NUTRITIONNELLE", () =
   // expliquerait spontanément pourquoi — et ferait passer la décision d'un
   // parent pour une vérité de santé.
   const restrictions: HouseholdRestriction[] = [
-    { memberUserId: "u-kid", memberDisplayName: "Léa", label: "nutella" },
+    { memberUserId: "m-kid", memberDisplayName: "Léa", label: "nutella" },
   ];
   const { userSuffix } = buildHouseholdPromptBlocks({
     members: [DAD, KID], envies: [], restrictions,
@@ -63,8 +63,8 @@ Deno.test("les restrictions d'une même personne sont regroupées", () => {
     members: [KID],
     envies: [],
     restrictions: [
-      { memberUserId: "u-kid", memberDisplayName: "Léa", label: "nutella" },
-      { memberUserId: "u-kid", memberDisplayName: "Léa", label: "nuggets" },
+      { memberUserId: "m-kid", memberDisplayName: "Léa", label: "nutella" },
+      { memberUserId: "m-kid", memberDisplayName: "Léa", label: "nuggets" },
     ],
   });
   assert(userSuffix.includes("- Léa: never serve nutella, nuggets"));
@@ -76,9 +76,9 @@ Deno.test("LES RÈGLES DE MAISON PASSENT APRÈS LES ENVIES", () => {
   // contrainte la plus proche de la fin comme la plus contraignante.
   const { userSuffix } = buildHouseholdPromptBlocks({
     members: [KID],
-    envies: [{ userId: "u-kid", body: "du nutella partout" }],
+    envies: [{ memberId: "m-kid", body: "du nutella partout" }],
     restrictions: [
-      { memberUserId: "u-kid", memberDisplayName: "Léa", label: "nutella" },
+      { memberUserId: "m-kid", memberDisplayName: "Léa", label: "nutella" },
     ],
   });
   assert(userSuffix.indexOf("HOUSE RULES") > userSuffix.indexOf("du nutella partout"));
@@ -107,14 +107,14 @@ Deno.test("le schéma supplémentaire n'est demandé que côté système", () =>
 Deno.test("le brief de portions et les envies sont tous les deux là", () => {
   const { userSuffix, spoken, silent } = buildHouseholdPromptBlocks({
     members: [DAD, SON],
-    envies: [{ userId: "u-dad", body: "un curry" }],
+    envies: [{ memberId: "m-dad", body: "un curry" }],
     restrictions: [],
   });
   assert(userSuffix.includes("HOUSEHOLD SERVING PLAN"));
   assert(userSuffix.includes("Do NOT propose separate dishes"));
   assert(userSuffix.includes("un curry"));
-  assertEquals(spoken, ["u-dad"]);
-  assertEquals(silent, ["u-son"]);
+  assertEquals(spoken, ["m-dad"]);
+  assertEquals(silent, ["m-son"]);
 });
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -124,18 +124,18 @@ Deno.test("le brief de portions et les envies sont tous les deux là", () => {
 Deno.test("extrait member_portions d'une réponse normale", () => {
   const raw = JSON.stringify({
     dishes: [],
-    member_portions: [{ user_id: "u-dad", portion_note: "1 part" }],
+    member_portions: [{ member_id: "m-dad", portion_note: "1 part" }],
   });
   assertEquals(extractMemberPortions(raw), [
-    { user_id: "u-dad", portion_note: "1 part" },
+    { member_id: "m-dad", portion_note: "1 part" },
   ]);
 });
 
 Deno.test("extrait à travers un bloc de code markdown", () => {
   // Le modèle enrobe régulièrement sa réponse. On cherche les accolades, comme
   // le parseur principal.
-  const raw = "```json\n" + JSON.stringify({ member_portions: [{ user_id: "x" }] }) + "\n```";
-  assertEquals(extractMemberPortions(raw), [{ user_id: "x" }]);
+  const raw = "```json\n" + JSON.stringify({ member_portions: [{ member_id: "x" }] }) + "\n```";
+  assertEquals(extractMemberPortions(raw), [{ member_id: "x" }]);
 });
 
 Deno.test("UNE RÉPONSE ILLISIBLE REND null, ELLE NE LÈVE PAS", () => {

@@ -38,7 +38,7 @@ import { buildPortionBrief, type PortionMember } from "./household_portions.ts";
 import { type EnvyMember, type EnvySubmission, mergeEnvies } from "./household_envies.ts";
 
 export interface HouseholdRestriction {
-  memberUserId: string;
+  memberId: string;
   memberDisplayName: string;
   label: string;
 }
@@ -74,10 +74,10 @@ function restrictionBlock(restrictions: readonly HouseholdRestriction[]): string
   if (restrictions.length === 0) return "";
   const byMember = new Map<string, { name: string; labels: string[] }>();
   for (const r of restrictions) {
-    const entry = byMember.get(r.memberUserId) ??
+    const entry = byMember.get(r.memberId) ??
       { name: r.memberDisplayName, labels: [] };
     entry.labels.push(r.label);
-    byMember.set(r.memberUserId, entry);
+    byMember.set(r.memberId, entry);
   }
   const lines = [...byMember.values()].map(
     (e) => `- ${e.name}: never serve ${e.labels.join(", ")}`,
@@ -98,11 +98,11 @@ const PORTION_SCHEMA_BLOCK = [
   "== ADDITIONAL OUTPUT FIELD (household) ==",
   "Add ONE more top-level key to the JSON you return:",
   '  "member_portions": [',
-  '    { "user_id": "<exact id given above>",',
+  '    { "member_id": "<exact id given above>",',
   '      "portion_note": "how much of what goes on this plate",',
   '      "preparation_shares": [{ "preparation_id": "prep_x", "note": "..." }] }',
   "  ]",
-  "One entry per person listed, using their EXACT user_id. Serving",
+  "One entry per person listed, using their EXACT member_id. Serving",
   "instructions only — never a reason, a goal, a calorie count, or anything",
   "about a person's body.",
 ] as const;
@@ -129,12 +129,12 @@ export function buildHouseholdPromptBlocks(
   input: HouseholdPromptInput,
 ): HouseholdPromptBlocks {
   const envyMembers: EnvyMember[] = input.members.map((m) => ({
-    userId: m.userId,
+    memberId: m.memberId,
     displayName: m.displayName,
   }));
   const merged = mergeEnvies(envyMembers, input.envies);
 
-  const idLines = input.members.map((m) => `- ${m.displayName} = ${m.userId}`);
+  const idLines = input.members.map((m) => `- ${m.displayName} = ${m.memberId}`);
 
   const parts = [
     "== THE HOUSEHOLD ==",

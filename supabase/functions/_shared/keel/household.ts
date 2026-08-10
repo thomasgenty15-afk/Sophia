@@ -1,190 +1,112 @@
 /**
- * LE FOYER — qui peut quoi, et qui voit quoi. PUR.
+ * LE FOYER — l'identité d'une bouche, et son âge. PUR.
  *
- * Autorité produit: docs/keel/PIVOT-FOYER.md §8.5, « les deux autorités ».
+ * Autorité produit: docs/keel/CHANTIER-FOYER-PROFILS.md (lots 1, 2, 3).
+ * PIVOT-FOYER §7, §7.5 et son modèle d'invitation sont PÉRIMÉS.
  *
- * ── LE PARTAGE QUE CE MODULE TIENT ───────────────────────────────────────
- * Il y a dans ce produit DEUX pouvoirs de nature différente, et les confondre
- * casse les deux:
+ * ── CE QUE CE MODULE NE CONTIENT PLUS, ET POURQUOI ───────────────────────────
  *
- *   SOPHIA        épistémique  — explique, ne BLOQUE JAMAIS, dans aucun mode.
- *   COMPTE MAÎTRE domestique   — restreint, sous conditions strictes.
+ * Il portait `canRestrict`, `canInvite`, `memberVisibility` et `goalVisibility`.
+ * Les quatre sont parties le 2026-08-10, et le motif n'est pas le même pour
+ * toutes — il est écrit ici parce qu'un lecteur qui les cherche doit trouver la
+ * raison, pas un vide:
  *
- * Ce module ne décrit QUE le second. On n'y trouvera aucune fonction qui
- * autorise ou refuse un aliment à quelqu'un « pour son bien »: ça n'existe
- * pas dans ce produit, et l'absence est le sujet.
+ *   `canRestrict` et `canInvite` n'ont JAMAIS eu d'appelant en production. La
+ *   règle a toujours vécu en SQL (`keel_household_add_restriction`,
+ *   `keel_household_invite`). Elles décrivaient un modèle, elles ne le
+ *   tenaient pas — et un module pur qui a l'air d'être la règle sans l'être
+ *   est pire qu'une absence.
  *
- * ── POURQUOI DEUX RÉPONSES À « PEUT-IL RESTREINDRE ? » NE SUFFISENT PAS ──
- * `canRestrict` rend un MOTIF, pas un booléen. Une policy RLS rend « autorisé »
- * ou « zéro ligne », jamais POURQUOI — et l'écran doit dire laquelle des
- * raisons a mordu, sinon le produit paraît cassé au hasard. Le motif est donc
- * une donnée de premier ordre, pas un message d'erreur.
+ *   `memberVisibility` et `goalVisibility` n'existaient que pour le mode
+ *   `shared` (la colocation). Le modèle arrêté le 2026-08-08 sort la
+ *   colocation du produit: un compte, un foyer, une personne qui gouverne le
+ *   menu. En mode `family`, `memberVisibility` rendait DÉJÀ `full` pour tout
+ *   le monde — les retirer ne change aucun comportement, ça supprime un mode
+ *   qui n'a plus de sujet.
  *
- * ── L'ÂGE NE SE RECALCULE PAS ICI ────────────────────────────────────────
- * On prend un `BirthDateVerdict` de `student_age.ts`, jamais un `isMinor:
- * boolean`. Ce dépôt a déjà une définition du mineur, elle porte la ceinture
- * qui refuse un plan nutritionnel à un enfant, et une seconde définition
- * divergerait au premier ajustement — après quoi personne ne saurait laquelle
- * ment. La règle SQL (`keel_household_is_minor`) est le jumeau de celle-ci et
- * le test de la base la pinne.
+ * Conséquence assumée, et elle est réelle: FF-010 R3 cachait la part d'autrui
+ * DANS LA CONVERSATION en colocation. Un profil réclamé qui demande « c'est
+ * quoi la part de Marc ? » l'obtient désormais. Cohérent avec la règle du
+ * chantier — « ce qui touche le repas est partagé, ce qui touche le corps est à
+ * soi » — mais c'est un changement, pas une simplification neutre.
+ *
+ * ── CE QU'IL CONTIENT MAINTENANT ────────────────────────────────────────────
+ *
+ * L'ÂGE, À TROIS ÉTATS. C'est le cœur du lot 2. `is_minor: boolean` ne peut
+ * plus décrire le monde depuis qu'une bouche peut être saisie à la main sans
+ * date: « je ne sais pas » et « majeur » doivent produire des résultats
+ * OPPOSÉS — le premier ne donne AUCUNE direction d'objectif, le second en
+ * donne une. Un booléen les confond, et l'ancien `coalesce(…, false)` de
+ * `keel_household_is_minor` les confondait du mauvais côté: un enfant sans
+ * date renseignée aurait reçu une direction d'adulte, en silence.
  */
 
 import type { BirthDateVerdict } from "./student_age.ts";
 
-/** Reflet du CHECK `households_kind_check`. */
-export const HOUSEHOLD_KINDS = ["family", "shared"] as const;
-export type HouseholdKind = (typeof HOUSEHOLD_KINDS)[number];
-
 export const HOUSEHOLD_ROLES = ["owner", "member"] as const;
 export type HouseholdRole = (typeof HOUSEHOLD_ROLES)[number];
 
+/**
+ * LE JUMEAU DE `keel_household_member_age(uuid)`.
+ *
+ * Les deux définitions doivent rendre les mêmes trois valeurs pour les mêmes
+ * dates; le test de la base pinne la version SQL, celui d'ici pinne celle-ci.
+ * Une divergence se verrait comme une portion d'adulte servie à un enfant —
+ * c'est-à-dire trop tard.
+ */
+export const MEMBER_AGE_STATES = ["minor", "adult", "unknown"] as const;
+export type MemberAgeState = (typeof MEMBER_AGE_STATES)[number];
+
+/**
+ * Une bouche, telle que le roster la rend.
+ *
+ * `userId` est `null` tant que la personne n'a pas réclamé son profil. Ce n'est
+ * PAS son identité — `memberId` l'est, et il ne change jamais, y compris le
+ * jour de la réclamation. C'est ce qui fait que ses portions, ses contraintes
+ * et son historique lui restent attachés.
+ */
 export interface HouseholdMemberSnapshot {
-  userId: string;
+  memberId: string;
+  userId: string | null;
+  firstName: string;
   role: HouseholdRole;
-  /**
-   * Le verdict de `student_age.ts`, tel quel. Voir l'en-tête: jamais un
-   * booléen recalculé.
-   */
-  birthDateVerdict: BirthDateVerdict;
-  /** `household_members.restriction_consent_at`. `null` = pas d'accord. */
-  restrictionConsentAt: string | null;
+  ageState: MemberAgeState;
+  /** Six jetons, ou `null` = aucune direction = part standard. */
+  goal: string | null;
 }
 
 /**
- * Les motifs, en liste FERMÉE. Ils sont rendus à l'écran, donc ils font partie
- * du contrat: un motif ajouté sans étiquette d'affichage casse le typecheck du
- * front, et c'est voulu.
- */
-export type RestrictVerdict =
-  | { allowed: true }
-  | { allowed: false; reason: RestrictRefusal };
-
-export type RestrictRefusal =
-  /** Le foyer n'est pas une famille: aucun verrouillage, pour personne. */
-  | "not_a_family"
-  /** L'acteur n'est pas le compte maître. */
-  | "not_owner"
-  /** La cible n'appartient pas à ce foyer. */
-  | "not_a_member"
-  /** Majeur qui n'a pas donné son accord — le défaut. */
-  | "adult_without_consent"
-  /** On ne se restreint pas soi-même par ce chemin. */
-  | "self";
-
-/**
- * LE MAJEUR EST LE DÉFAUT, ET C'EST LA DÉCISION QUI COMPTE.
+ * Le verdict riche de `student_age.ts`, projeté sur les trois états.
  *
- * Une date de naissance absente ou illisible donne « majeur », donc NON
- * restreignable sans accord explicite. La direction est contre-intuitive —
- * « on ne sait pas » se traduit d'habitude par « on protège » — et elle est
- * pourtant la sûre ici: traiter l'inconnu comme un mineur donnerait au compte
- * maître un pouvoir sur tout adulte qui n'a pas renseigné sa date.
+ * Ses six statuts se réduisent à trois, et la réduction n'est pas une perte:
+ * `absent`, `unreadable`, `future` et `implausible` disent tous la même chose
+ * du point de vue d'une portion — ON NE SAIT PAS. Les distinguer ici
+ * autoriserait un appelant à traiter « date aberrante » différemment de « pas
+ * de date », ce qui est exactement la nuance qui se perd puis se retourne.
  */
-export function isMinorMember(member: HouseholdMemberSnapshot): boolean {
-  return member.birthDateVerdict.status === "minor";
+export function ageStateFromVerdict(verdict: BirthDateVerdict): MemberAgeState {
+  if (verdict.status === "minor") return "minor";
+  if (verdict.status === "adult") return "adult";
+  return "unknown";
 }
 
 /**
- * Le compte maître peut-il poser une restriction sur ce membre ?
+ * L'OBJECTIF S'APPLIQUE-T-IL À CETTE BOUCHE ?
  *
- * L'ORDRE DES REFUS N'EST PAS ARBITRAIRE. Le mode du foyer passe en premier
- * parce qu'il est la question la plus générale: dans une colocation, la
- * réponse est non quels que soient les rôles, les âges et les consentements,
- * et un écran qui dirait d'abord « tu n'es pas le compte maître » enverrait
- * l'utilisateur chercher un pouvoir qui n'existe pas dans son foyer.
+ * La règle du lot 3, en un endroit, parce qu'elle est lue par le générateur ET
+ * par l'écran — et que deux copies divergeraient sur le cas `unknown`, qui est
+ * précisément celui qui compte.
+ *
+ * ⚠️ `unknown` rend `false`, et c'est le sens SÛR. L'âge reste facultatif à la
+ * saisie — le flux de 90 secondes ne se bloque pas — mais tant qu'il manque, la
+ * personne reçoit une part standard. La garde échoue du bon côté, et
+ * l'incitation à compléter est intégrée: renseigner l'âge est ce qui active
+ * l'objectif.
  */
-export function canRestrict(
-  kind: HouseholdKind,
-  actor: HouseholdMemberSnapshot,
-  target: HouseholdMemberSnapshot,
-): RestrictVerdict {
-  if (kind !== "family") return { allowed: false, reason: "not_a_family" };
-  if (actor.role !== "owner") return { allowed: false, reason: "not_owner" };
-  if (actor.userId === target.userId) return { allowed: false, reason: "self" };
-  if (isMinorMember(target)) return { allowed: true };
-  if (!target.restrictionConsentAt) {
-    return { allowed: false, reason: "adult_without_consent" };
-  }
-  return { allowed: true };
-}
-
-/**
- * CE QU'UN MEMBRE VOIT DE L'OBJECTIF D'UN AUTRE.
- *
- * `full` = l'écran peut afficher l'objectif nutritionnel de cette personne.
- * `own_only` = il ne le peut pas.
- *
- * ── POURQUOI ÇA NE PORTE QUE SUR L'OBJECTIF ──────────────────────────────
- * Qu'un parent voie l'objectif d'un enfant de sept ans est normal; qu'un
- * colocataire apprenne que l'autre est en sèche parce qu'ils partagent des
- * courses ne l'est pas.
- *
- * En revanche les CONSIGNES DE PORTION restent visibles de tout le foyer dans
- * les deux modes, et ce n'est pas une inconséquence: « Marc, 1,5 part » est une
- * instruction de service, pas un diagnostic. C'est exactement pour ça que
- * `household_portions.ts` interdit de faire figurer la RAISON dans la consigne
- * — l'instruction est publique, le pourquoi ne l'est pas.
- *
- * Et la protection réelle n'est pas cette fonction: c'est que `student_goals`
- * n'a gagné AUCUNE policy dans la migration du foyer. Celle-ci décide ce qu'on
- * demande; la base décide ce qu'on peut obtenir.
- */
-export type GoalVisibility = "full" | "own_only";
-
-/**
- * CE QU'UN MEMBRE VOIT D'UN AUTRE — la primitive, et il n'y en a qu'une.
- *
- * `full`          = tout ce que le foyer partage sur cette personne.
- * `presence_only` = elle est là, et c'est tout ce qu'on en dit.
- *
- * ── FF-010, ET POURQUOI CETTE FONCTION EXISTE À CÔTÉ DE `goalVisibility` ──
- * La conversation a besoin de la MÊME décision sur plus que l'objectif: une
- * portion nommée, une mesure, une restriction qui vise quelqu'un d'autre. La
- * tentation était d'écrire un `if (kind === 'shared')` dans le chargeur du
- * chat; ce serait une seconde vérité, et elle divergerait au premier
- * ajustement. `goalVisibility` devient donc un adaptateur au-dessus de
- * celle-ci: une règle, deux noms, zéro divergence possible.
- *
- * ⚠️ LE FILTRE S'APPLIQUE AU CHARGEMENT, PAS À LA RÉDACTION. Un prompt qui
- * porte la donnée et une consigne de ne pas la dire est un prompt qui la dira
- * (FF-010 R2). Ce que cette fonction refuse n'entre pas dans le contexte.
- *
- * ── UNE DIFFÉRENCE ASSUMÉE AVEC LES ÉCRANS ────────────────────────────────
- * L'en-tête de `goalVisibility` explique que les CONSIGNES DE PORTION restent
- * visibles de tout le foyer sur les écrans, dans les deux modes: « Marc,
- * 1,5 part » est une instruction de service, pas un diagnostic. FF-010 R3
- * tranche autrement pour la CONVERSATION en mode `shared`: un colocataire qui
- * demande la part d'un autre ne l'obtient pas, et la donnée n'était pas dans
- * son contexte. La différence est délibérée — l'écran est une table qu'on
- * consulte, la conversation est quelqu'un à qui on demande — et elle est
- * écrite ici pour qu'elle ne passe pas pour un accident.
- */
-export type MemberVisibility = "full" | "presence_only";
-
-export function memberVisibility(
-  kind: HouseholdKind,
-  viewer: HouseholdMemberSnapshot,
-  viewed: HouseholdMemberSnapshot,
-): MemberVisibility {
-  if (viewer.userId === viewed.userId) return "full";
-  return kind === "family" ? "full" : "presence_only";
-}
-
-export function goalVisibility(
-  kind: HouseholdKind,
-  viewer: HouseholdMemberSnapshot,
-  viewed: HouseholdMemberSnapshot,
-): GoalVisibility {
-  // Un adaptateur, pas une seconde règle: `presence_only` sur l'axe général
-  // est exactement `own_only` sur l'axe de l'objectif.
-  return memberVisibility(kind, viewer, viewed) === "full" ? "full" : "own_only";
-}
-
-/**
- * Qui peut être invité, et par qui. Le plafond quotidien vit en base
- * (`keel_household_invite`) parce qu'une limite d'écran n'est pas une limite;
- * ici on ne décide que du rôle.
- */
-export function canInvite(actor: HouseholdMemberSnapshot): boolean {
-  return actor.role === "owner";
+export function goalApplies(member: {
+  ageState: MemberAgeState;
+  goal: string | null;
+}): boolean {
+  return member.ageState === "adult" && member.goal !== null &&
+    member.goal !== "";
 }

@@ -31,14 +31,21 @@
  * doctrine, et elle utilise LE MÊME moteur (`forbidden_matcher.ts`) plutôt
  * qu'une seconde implémentation qui divergerait.
  *
- * ── UN MINEUR N'A PAS D'OBJECTIF ─────────────────────────────────────────
- * `PortionMember.goal` est `null` pour un mineur, et ce n'est pas une
- * convention: l'appelant ne LIT PAS `student_goals` pour un mineur. La
- * ceinture est en amont (`student_age.ts`, `weekPlanAgeGate`), ici on ne fait
- * que ne pas pouvoir la contourner — il n'existe aucune direction de service
- * dérivée d'un objectif pour un mineur, parce qu'il n'y a pas d'objectif.
+ * ── NI UN MINEUR, NI UNE BOUCHE SANS ÂGE N'ONT D'OBJECTIF ────────────────
+ * Deux cas, une seule conséquence: aucune direction dérivée d'un objectif.
+ *
+ *   MINEUR    — la ceinture est en amont (`student_age.ts`, `weekPlanAgeGate`);
+ *               ici on ne fait que ne pas pouvoir la contourner.
+ *   ÂGE INCONNU — le cas NEUF, et celui qui compte. Depuis que le compte maître
+ *               saisit des bouches à la main, une ligne peut n'avoir aucune
+ *               date. L'ancienne garde traitait « pas de date » comme
+ *               « majeur » et aurait servi une direction d'adulte à un enfant
+ *               dont personne n'avait renseigné l'âge. `goalApplies` refuse les
+ *               deux, et c'est `household.ts` qui porte la règle — un seul
+ *               endroit, parce que l'écran la lit aussi.
  */
 
+import { goalApplies, type MemberAgeState } from "./household.ts";
 import { findForbiddenMatches, type ForbiddenTerm } from "./forbidden_matcher.ts";
 
 /** Reflet du CHECK `student_goals_goal_check`. */
@@ -53,15 +60,20 @@ export const MEMBER_GOALS = [
 export type MemberGoal = (typeof MEMBER_GOALS)[number];
 
 export interface PortionMember {
-  userId: string;
+  /**
+   * L'identité de la bouche, PAS son compte. Une bouche sans compte en a un;
+   * c'est tout l'objet du re-clavetage du 2026-08-10.
+   */
+  memberId: string;
   displayName: string;
   /**
-   * `null` = aucune direction dérivée d'un objectif. Vrai pour tout mineur, et
-   * pour tout majeur qui n'a pas déclaré d'objectif.
+   * `null` = aucune direction dérivée d'un objectif. Vrai pour tout mineur,
+   * pour toute bouche dont l'âge est inconnu, et pour tout majeur qui n'a rien
+   * déclaré.
    */
   goal: MemberGoal | null;
-  /** Sert le libellé d'âge, jamais un calcul. */
-  isMinor: boolean;
+  /** Trois états. Sert le libellé d'âge et la garde, jamais un calcul. */
+  ageState: MemberAgeState;
 }
 
 export interface PreparationShare {
@@ -70,7 +82,7 @@ export interface PreparationShare {
 }
 
 export interface MemberPortion {
-  userId: string;
+  memberId: string;
   displayName: string;
   /**
    * `null` = part standard. DÉLIBÉRÉMENT PAS une phrase par défaut: une phrase
@@ -123,9 +135,16 @@ const CHILD_DIRECTION = "child-size share of the same dish";
 export function buildPortionBrief(members: readonly PortionMember[]): string {
   if (members.length === 0) return "";
   const lines = members.map((m) => {
-    const direction = m.isMinor || !m.goal
-      ? (m.isMinor ? CHILD_DIRECTION : SERVING_DIRECTION.maintenance)
-      : SERVING_DIRECTION[m.goal];
+    // L'ORDRE DES TROIS CAS EST LA RÈGLE, pas un style. Le mineur d'abord: il a
+    // sa propre direction, qui est une TAILLE et jamais une orientation.
+    // Ensuite `goalApplies`, qui refuse aussi l'âge inconnu — sans lui, une
+    // bouche saisie sans date recevrait la direction de son objectif comme si
+    // on savait qu'elle est adulte.
+    const direction = m.ageState === "minor"
+      ? CHILD_DIRECTION
+      : goalApplies(m) && m.goal
+      ? SERVING_DIRECTION[m.goal]
+      : SERVING_DIRECTION.maintenance;
     return `- ${m.displayName}: ${direction}`;
   });
   return [
@@ -250,28 +269,32 @@ export function reconcilePortions(
   raw: unknown,
 ): ReconciledPortions {
   const issues: string[] = [];
-  const byUser = new Map<string, Record<string, unknown>>();
+  const byMember = new Map<string, Record<string, unknown>>();
 
   if (Array.isArray(raw)) {
     for (const entry of raw) {
       if (!entry || typeof entry !== "object") continue;
       const row = entry as Record<string, unknown>;
-      const userId = String(row.user_id ?? row.userId ?? "").trim();
-      if (!userId) continue;
-      if (!members.some((m) => m.userId === userId)) {
-        issues.push(`portion_for_unknown_member:${userId}`);
+      // AUCUN REPLI SUR `user_id`, et c'est délibéré. Un lecteur qui accepte
+      // les deux clés accepte aussi un générateur qui a cessé d'émettre la
+      // bonne — après quoi le repli DEVIENT le chemin nominal sans que rien ne
+      // le dise. Il n'y a pas d'utilisateur réel: la bascule est sèche.
+      const memberId = String(row.member_id ?? row.memberId ?? "").trim();
+      if (!memberId) continue;
+      if (!members.some((m) => m.memberId === memberId)) {
+        issues.push(`portion_for_unknown_member:${memberId}`);
         continue;
       }
-      byUser.set(userId, row);
+      byMember.set(memberId, row);
     }
   }
 
   const portions = members.map((member) => {
-    const row = byUser.get(member.userId);
+    const row = byMember.get(member.memberId);
     if (!row) {
-      issues.push(`portion_missing:${member.userId}`);
+      issues.push(`portion_missing:${member.memberId}`);
       return {
-        userId: member.userId,
+        memberId: member.memberId,
         displayName: member.displayName,
         portionNote: null,
         preparationShares: [],
@@ -282,11 +305,11 @@ export function reconcilePortions(
       row.portion_note ?? row.portionNote,
     );
     for (const v of violations) {
-      issues.push(`portion_note_rejected:${member.userId}:${v}`);
+      issues.push(`portion_note_rejected:${member.memberId}:${v}`);
     }
 
     return {
-      userId: member.userId,
+      memberId: member.memberId,
       displayName: member.displayName,
       portionNote: note,
       preparationShares: parseShares(row, member, issues),
@@ -311,7 +334,7 @@ function parseShares(
     if (!preparationId) continue;
     const { note, violations } = sanitizePortionNote(e.note);
     for (const v of violations) {
-      issues.push(`share_note_rejected:${member.userId}:${preparationId}:${v}`);
+      issues.push(`share_note_rejected:${member.memberId}:${preparationId}:${v}`);
     }
     // Une part sans consigne lisible n'apporte rien à l'écran: on la laisse
     // tomber plutôt que d'afficher une ligne vide sous un plat.
@@ -325,7 +348,7 @@ export function memberPortionsPayload(
   portions: readonly MemberPortion[],
 ): Array<Record<string, unknown>> {
   return portions.map((p) => ({
-    user_id: p.userId,
+    member_id: p.memberId,
     display_name: p.displayName,
     portion_note: p.portionNote,
     preparation_shares: p.preparationShares.map((s) => ({

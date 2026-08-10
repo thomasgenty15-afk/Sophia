@@ -18,10 +18,11 @@
  * de courses — dont personne n'avait rebranché le fil.
  *
  * ── LE POINT QUI GOUVERNE TOUT LE MODULE ───────────────────────────────────
- * `memberVisibility` filtre AU CHARGEMENT, pas à la rédaction. Un prompt qui
- * porte la donnée et une consigne de ne pas la dire est un prompt qui la dira.
- * Ce que la visibilité refuse n'entre jamais dans le contexte — il n'y a donc
- * rien à ne pas dire.
+ * CE QUI NE DOIT PAS ÊTRE DIT N'ENTRE PAS. Un prompt qui porte la donnée et une
+ * consigne de ne pas la dire est un prompt qui la dira; tout filtrage se fait
+ * donc AU CHARGEMENT. La règle survit au retrait de `memberVisibility` (lot 2):
+ * ce qui a disparu, c'est la colocation qui rendait ce filtre non trivial — pas
+ * le principe, qui gouverne encore le corps, les mesures et l'objectif.
  *
  * ── LECTURE SEULE, SANS EXCEPTION ──────────────────────────────────────────
  * Aucune écriture. Chaque écriture du foyer a une RPC gatée et un écran
@@ -34,13 +35,10 @@
  */
 
 import {
-  type HouseholdKind,
-  HOUSEHOLD_KINDS,
-  type HouseholdMemberSnapshot,
   type HouseholdRole,
-  memberVisibility,
+  MEMBER_AGE_STATES,
+  type MemberAgeState,
 } from "./household.ts";
-import type { BirthDateVerdict } from "./student_age.ts";
 
 /** Structural type: les tests injectent un faux, la prod un SupabaseClient. */
 // deno-lint-ignore no-explicit-any
@@ -51,13 +49,31 @@ type Db = any;
 // ---------------------------------------------------------------------------
 
 export interface HouseholdRosterEntry {
-  userId: string;
+  /** L'identité d'une bouche. Ne change jamais, compte ou pas. */
+  memberId: string;
+  /** `null` tant que la personne n'a pas réclamé son profil. */
+  userId: string | null;
   firstName: string;
-  isMinor: boolean;
+  ageState: MemberAgeState;
   role: HouseholdRole;
-  /** `full` ⇒ on peut dire ce qui le concerne. `presence_only` ⇒ il est là. */
-  visibility: "full" | "presence_only";
 }
+
+/**
+ * ── CE QUI A DISPARU ICI, ET POURQUOI (lot 2, 2026-08-10) ──────────────────
+ *
+ * `visibility` portait la distinction `full` / `presence_only`, qui n'existait
+ * que pour la colocation. Le modèle arrêté le 2026-08-08 la sort du produit: un
+ * compte, un foyer, une personne qui gouverne le menu. En mode `family` —
+ * c'est-à-dire dans tous les foyers réels — `memberVisibility` rendait DÉJÀ
+ * `full` pour tout le monde: le champ était constant, et un champ constant qui
+ * a l'air d'être une décision est un piège pour le prochain lecteur.
+ *
+ * CE QUE ÇA CHANGE POUR DE VRAI, et il faut le dire: FF-010 R3 refusait la part
+ * d'autrui DANS LA CONVERSATION en colocation. Un profil réclamé qui demande
+ * « c'est quoi la part de Marc ? » l'obtient désormais. C'est cohérent avec la
+ * règle du chantier — ce qui touche le repas est partagé, ce qui touche le
+ * corps est à soi — mais c'est un changement de comportement, pas un nettoyage.
+ */
 
 export interface HouseholdDish {
   title: string;
@@ -104,7 +120,14 @@ export interface HouseholdRestrictionLine {
 
 export interface HouseholdTurnContext {
   householdId: string;
-  kind: HouseholdKind;
+  /**
+   * LA LIGNE MEMBRE de celui qui parle — un `member_id`, pas un `user_id`,
+   * parce que c'est la clé de `member_portions`. Le bloc en a besoin pour que
+   * le plafond ne puisse jamais couper SA part: sans lui, « garde ma part » se
+   * réduit à « garde la première », ce qui est faux dès qu'on n'est pas premier
+   * dans le tableau.
+   */
+  viewerId: string;
   /** Le foyer, filtré. Toujours au moins l'élève lui-même. */
   roster: HouseholdRosterEntry[];
   /** `true` quand une fenêtre de plan COUVRE la date locale du tour. */
@@ -146,12 +169,92 @@ export const HOUSEHOLD_MAX_RESTRICTIONS = 6;
  */
 export const HOUSEHOLD_MAX_SHOPPING = 12;
 
+/**
+ * ── L4 · LE PLAFOND DU BLOC, ET POURQUOI LES BORNES CI-DESSUS NE SUFFISAIENT
+ *    PAS ─────────────────────────────────────────────────────────────────────
+ *
+ * Les cinq `HOUSEHOLD_MAX_*` bornent des CARDINALITÉS. Aucune ne borne des
+ * CARACTÈRES, et tout le texte de ce bloc — titres de plats, titres de
+ * préparations, consignes de service, termes de courses — est écrit par un
+ * modèle (`generate-household-meal-v1`) que rien ne contraint en longueur:
+ * `sanitizePortionNote` filtre le VOCABULAIRE d'une consigne, jamais sa taille.
+ *
+ * MESURÉ sur le pire cas de la fiche (6 membres × 7 jours), à cardinalité
+ * IDENTIQUE, en ne faisant varier que la verbosité du générateur:
+ *
+ *     titres courts   2 217 car.  ← le « 2 632 » de la passe transverse
+ *     titres réels    4 125 car.
+ *     titres bavards  9 223 car.
+ *
+ * Et la taille du foyer n'y est presque pour rien: 12 membres pèsent 5 501 et
+ * 20 membres 5 562, parce que les portions sont déjà bornées à six. La loi de
+ * croissance n'est pas le NOMBRE de convives, c'est la LONGUEUR de ce que le
+ * générateur a écrit — et c'est elle qui n'a aucun plafond.
+ *
+ * D'où deux mécanismes, et ils ne font pas le même travail:
+ *
+ *   1. `HOUSEHOLD_MAX_*_CHARS` borne CHAQUE LIGNE, au chargement. Il garantit
+ *      qu'aucune ligne seule ne peut emporter le budget. Une ligne coupée porte
+ *      son « … »: le modèle doit voir qu'elle est coupée, sinon il la complète.
+ *   2. `HOUSEHOLD_BLOCK_MAX_CHARS` borne LE BLOC, à la composition, en jetant
+ *      la matière optionnelle dans un ordre déclaré — et EN LE DISANT. C'est le
+ *      patron que la liste de courses porte déjà: « une liste tronquée
+ *      présentée comme complète est un panier faux ».
+ *
+ * ⚠️ CE PLAFOND N'EST PAS UN SECOND ENDROIT OÙ LA VISIBILITÉ SE DÉCIDE. Il
+ * n'opère que sur de la matière DÉJÀ filtrée par `memberVisibility`, il ne lit
+ * jamais `kind`, et il ne peut donc rien faire entrer que la visibilité aurait
+ * refusé — ni prétendre protéger quoi que ce soit. §9 de la fiche nomme le
+ * `if (kind === 'shared')` local comme la seconde vérité à ne pas écrire.
+ */
+export const HOUSEHOLD_BLOCK_MAX_CHARS = 3000;
+/**
+ * LES BORNES DE LIGNE, ET POURQUOI CES VALEURS-LÀ.
+ *
+ * Relevé en base locale sur toutes les lignes écrites par le générateur:
+ * titre de plat max 50 / moyenne 29, titre de préparation max 50 / moyenne 25,
+ * terme de courses max 32 / moyenne 10. Les bornes ci-dessous laissent donc
+ * une marge large sur ce que la production écrit VRAIMENT, et ne mordent que
+ * sur la queue — celle qu'aucune contrainte n'empêche d'arriver.
+ *
+ * ⚠️ 120 est le CHECK de la base pour un libellé de restriction; 80 est la
+ * borne de ce bloc. Un libellé de restriction est un ALIMENT, pas une phrase
+ * (« pâte à tartiner », « céréales sucrées du petit-déjeuner »): la marge est
+ * confortable, et R4 est portée par les deux paragraphes qui suivent la liste,
+ * pas par la longueur des libellés.
+ */
+export const HOUSEHOLD_MAX_TITLE_CHARS = 80;
+export const HOUSEHOLD_MAX_NOTE_CHARS = 120;
+export const HOUSEHOLD_MAX_TERM_CHARS = 48;
+export const HOUSEHOLD_MAX_NAME_CHARS = 20;
+export const HOUSEHOLD_MAX_LABEL_CHARS = 80;
+
 // ---------------------------------------------------------------------------
 // LE CHARGEUR
 // ---------------------------------------------------------------------------
 
 function str(value: unknown): string {
   return String(value ?? "").trim();
+}
+
+/**
+ * Une ligne de texte de modèle, ramenée à sa borne.
+ *
+ * Le « … » n'est pas de la typographie: sans lui, le modèle lit une phrase
+ * grammaticalement finie et la tient pour complète. Avec lui, il voit qu'elle
+ * est coupée — et la règle du bloc lui dit quoi en faire.
+ *
+ * La coupe cherche une frontière de mot dans le dernier quart, parce qu'un
+ * titre coupé au milieu d'un mot (« sauce béar ») se relit comme un aliment qui
+ * n'existe pas.
+ */
+function clampLine(value: unknown, max: number): string {
+  const text = str(value);
+  if (text.length <= max) return text;
+  const hard = text.slice(0, max);
+  const space = hard.lastIndexOf(" ");
+  const cut = space > max * 0.75 ? hard.slice(0, space) : hard;
+  return `${cut.trimEnd()}…`;
 }
 
 function asArray(value: unknown): Array<Record<string, unknown>> {
@@ -163,27 +266,29 @@ function asArray(value: unknown): Array<Record<string, unknown>> {
 }
 
 /**
- * Un membre du roster, dans la forme que `memberVisibility` attend.
+ * Une ligne de roster, telle que la RPC la rend.
  *
- * ⚠️ `is_minor` VIENT DE LA RPC, DÉRIVÉ CÔTÉ BASE, et on ne recalcule rien:
- * ce dépôt a UNE définition du mineur (`keel_household_is_minor`, jumelle de
- * `student_age.ts`), et une seconde divergerait au premier ajustement. Le
- * `BirthDateVerdict` est reconstruit à MINIMA — statut seulement — parce que la
- * RPC ne rend délibérément PAS la date de naissance: ouvrir `profiles` aux
- * co-membres livrerait téléphone, e-mail et identifiant Stripe pour afficher un
- * prénom.
+ * ⚠️ `age_state` VIENT DE LA BASE, DÉRIVÉ À CHAQUE APPEL, et on ne recalcule
+ * rien: ce dépôt a UNE définition de l'âge d'une bouche
+ * (`keel_household_member_age`, jumelle de `household.ts`), et une seconde
+ * divergerait au premier ajustement. La RPC ne rend délibérément PAS la date de
+ * naissance — le foyer a besoin de savoir qu'il y a un enfant à table, pas de
+ * connaître sa date.
+ *
+ * Une valeur hors vocabulaire vaut `unknown`, JAMAIS `adult`: c'est la même
+ * direction sûre que la fonction SQL, et elle doit survivre à un désalignement
+ * entre les deux.
  */
-function snapshotOf(row: Record<string, unknown>): HouseholdMemberSnapshot {
-  const verdict: BirthDateVerdict = row.is_minor === true
-    ? { status: "minor", isoDate: "", age: 0 }
-    : { status: "adult", isoDate: "", age: 0 };
+function rosterEntryOf(row: Record<string, unknown>): HouseholdRosterEntry {
+  const rawAge = str(row.age_state);
   return {
-    userId: str(row.user_id),
+    memberId: str(row.member_id),
+    userId: row.user_id == null ? null : str(row.user_id),
+    firstName: clampLine(row.first_name, HOUSEHOLD_MAX_NAME_CHARS),
+    ageState: (MEMBER_AGE_STATES as readonly string[]).includes(rawAge)
+      ? (rawAge as MemberAgeState)
+      : "unknown",
     role: str(row.role) === "owner" ? "owner" : "member",
-    birthDateVerdict: verdict,
-    restrictionConsentAt: row.restriction_consent_at == null
-      ? null
-      : str(row.restriction_consent_at),
   };
 }
 
@@ -222,16 +327,6 @@ export async function loadHouseholdTurnContext(
     );
     if (!householdId) return null;
 
-    const householdRes = await db
-      .from("households")
-      .select("id, kind")
-      .eq("id", householdId)
-      .maybeSingle();
-    if (householdRes.error) throw householdRes.error;
-    const rawKind = str((householdRes.data as Record<string, unknown> | null)?.kind);
-    if (!(HOUSEHOLD_KINDS as readonly string[]).includes(rawKind)) return null;
-    const kind = rawKind as HouseholdKind;
-
     // 2. LE ROSTER, par la RPC — jamais par `profiles`. Le fait que la RPC
     // existe EST la garde: une policy RLS ne restreint pas les COLONNES, et
     // ouvrir `profiles` aux co-membres livrerait téléphone, e-mail et
@@ -243,25 +338,17 @@ export async function loadHouseholdTurnContext(
     // pouvait donc pas aboutir, le chargeur avalait l'échec (par conception),
     // et l'agent répondait avec les lignes du COACH à quelqu'un qui demandait
     // ce qu'on mange ce soir. Aucune erreur nulle part.
-    // Les deux fonctions partagent UN corps (20260808060000): le navigateur
+    // Les deux fonctions partagent UN corps (20260808061000): le navigateur
     // garde sa garde `auth.uid()`, le serveur passe l'élève explicitement.
     const rosterRes = await db.rpc("keel_household_roster_for", { p_user: userId });
     if (rosterRes.error) throw rosterRes.error;
     const rosterRows = asArray(rosterRes.data);
-    const me = rosterRows.map(snapshotOf).find((m) => m.userId === userId);
+    const roster: HouseholdRosterEntry[] = rosterRows.map(rosterEntryOf);
+    // MA LIGNE, retrouvée par le compte. C'est le SEUL endroit où `user_id`
+    // sert à identifier: partout ailleurs c'est `member_id`. Une personne qui
+    // parle a forcément un compte — les bouches sans compte ne parlent pas.
+    const me = roster.find((m) => m.userId === userId);
     if (!me) return null;
-
-    const roster: HouseholdRosterEntry[] = rosterRows.map((row) => {
-      const snapshot = snapshotOf(row);
-      return {
-        userId: snapshot.userId,
-        firstName: str(row.first_name),
-        isMinor: row.is_minor === true,
-        role: snapshot.role,
-        // LE FILTRE, ET IL EST ICI. Pas dans le prompt, pas dans la réponse.
-        visibility: memberVisibility(kind, me, snapshot),
-      };
-    });
 
     // 3. LE PLAN DU FOYER qui COUVRE aujourd'hui. Une fenêtre finie hier est
     // traitée comme absente: un plat d'hier servi ce soir est une erreur
@@ -293,8 +380,8 @@ export async function loadHouseholdTurnContext(
         return day === "" || day === dayToken;
       })
       .map((d) => ({
-        title: str(d.title),
-        slot: str(d.slot) || null,
+        title: clampLine(d.title, HOUSEHOLD_MAX_TITLE_CHARS),
+        slot: clampLine(d.slot, 24) || null,
         day: str(d.day) || null,
       }))
       // Le filtre AVANT la borne: un titre vide consommait une des quatre
@@ -329,7 +416,7 @@ export async function loadHouseholdTurnContext(
           ? dateForDayToken(cookOn, startsOn, endsOn)
           : null;
         return {
-          title: str(p.title),
+          title: clampLine(p.title, HOUSEHOLD_MAX_TITLE_CHARS),
           cookOn,
           cookDate,
           // Sans jour de cuisson, la préparation appartient à « aujourd'hui »
@@ -351,24 +438,40 @@ export async function loadHouseholdTurnContext(
       })
       .slice(0, HOUSEHOLD_MAX_PREPARATIONS);
 
-    // 4. LES PORTIONS. En `shared`, UNIQUEMENT la mienne — filtrée ici, à la
-    // lecture, et pas par une consigne de discrétion dans le prompt.
-    const visibleById = new Map(roster.map((r) => [r.userId, r]));
+    // 4. LES PORTIONS. Toutes celles du foyer: le repas est partagé. Ce qui
+    // reste filtré, c'est le CORPS — il n'entre pas dans ce bloc, ni pour moi
+    // ni pour les autres.
+    //
+    // ⚠️ AUCUN REPLI SUR `user_id` DANS LE PAYLOAD. Le générateur écrit
+    // `member_id` depuis le 2026-08-10; accepter les deux clés ferait du repli
+    // le chemin nominal le jour où l'un des deux cesse d'émettre la bonne.
+    const byMemberId = new Map(roster.map((r) => [r.memberId, r]));
     const portions: HouseholdPortionLine[] = (plan ? asArray(plan.member_portions) : [])
       .map((p) => {
-        const memberId = str(p.userId ?? p.user_id);
-        const entry = visibleById.get(memberId);
+        const memberId = str(p.memberId ?? p.member_id);
+        const entry = byMemberId.get(memberId);
         return {
           memberId,
-          visible: memberId === userId || entry?.visibility === "full",
+          visible: true,
           line: {
-            firstName: entry?.firstName || str(p.displayName ?? p.display_name),
-            note: str(p.portionNote ?? p.portion_note) || null,
-            isMe: memberId === userId,
+            firstName: entry?.firstName ||
+              clampLine(p.displayName ?? p.display_name, HOUSEHOLD_MAX_NAME_CHARS),
+            note: clampLine(p.portionNote ?? p.portion_note, HOUSEHOLD_MAX_NOTE_CHARS) ||
+              null,
+            isMe: memberId === me.memberId,
           },
         };
       })
       .filter((p) => p.visible && p.line.firstName !== "")
+      // ⚠️ MA PART D'ABORD, ET C'EST UN DÉFAUT RÉPARÉ, PAS UN CONFORT.
+      // `slice(0, 6)` prenait les six PREMIÈRES du tableau, sans priorité.
+      // MESURÉ: dans un foyer de douze où je suis douzième dans
+      // `member_portions`, ma propre consigne de service — « c'est quoi ma
+      // part ? », le cœur de la fiche — tombait, pendant que celle de cinq
+      // personnes que je ne suis pas restait. L'ordre du tableau vient de
+      // l'ordre des MEMBRES chez le générateur; rien ne garantit que j'y sois
+      // tôt. Ma part n'est candidate à aucune coupe, ici ni plus bas.
+      .sort((a, b) => (a.line.isMe ? 0 : 1) - (b.line.isMe ? 0 : 1))
       .slice(0, HOUSEHOLD_MAX_PORTIONS)
       .map((p) => p.line);
 
@@ -378,8 +481,8 @@ export async function loadHouseholdTurnContext(
     // l'est — une liste tronquée présentée comme complète est un panier faux.
     const shoppingAll = (plan ? asArray(plan.shopping_list) : [])
       .map((s) => ({
-        term: str(s.term),
-        quantity: str(s.quantity) || null,
+        term: clampLine(s.term, HOUSEHOLD_MAX_TERM_CHARS),
+        quantity: clampLine(s.quantity, 24) || null,
       }))
       .filter((s) => s.term !== "");
     const shopping: HouseholdShoppingLine[] = shoppingAll.slice(
@@ -395,19 +498,30 @@ export async function loadHouseholdTurnContext(
       .from("household_food_restrictions")
       .select("label, created_by")
       .eq("household_id", householdId)
-      .eq("member_user_id", userId)
+      // MA LIGNE MEMBRE, pas mon compte. Une bouche sans compte porte des
+      // contraintes depuis le lot 1 — c'était même le cas nominal impossible
+      // avant lui — et `member_user_id` n'existe plus.
+      .eq("member_id", me.memberId)
       .limit(HOUSEHOLD_MAX_RESTRICTIONS);
     if (restrictionsRes.error) throw restrictionsRes.error;
     const myRestrictions: HouseholdRestrictionLine[] = asArray(restrictionsRes.data)
       .map((r) => ({
-        label: str(r.label),
-        chosenBy: visibleById.get(str(r.created_by))?.firstName || null,
+        // Le CHECK de la base plafonne déjà à 120; on le REFLÈTE plutôt que de
+        // faire confiance, parce que ce chargeur lit aussi des bases de test.
+        label: clampLine(r.label, HOUSEHOLD_MAX_LABEL_CHARS),
+        // ⚠️ `created_by` EST UN `user_id`, PAS UN `member_id`: c'est le compte
+        // qui a posé la règle, et seul quelqu'un qui a un compte peut en poser.
+        // Le chercher dans une table clée `member_id` rendrait `null` à tous les
+        // coups — et l'écran retomberait sur une phrase impersonnelle, c'est-à-
+        // dire ferait passer une décision parentale pour un avis du produit.
+        chosenBy: roster.find((m) => m.userId && m.userId === str(r.created_by))
+          ?.firstName || null,
       }))
       .filter((r) => r.label !== "");
 
     return {
       householdId,
-      kind,
+      viewerId: me.memberId,
       roster,
       hasPlanToday: todayDishes.length > 0,
       todayDishes,
@@ -485,7 +599,99 @@ function dateForDayToken(
  * composition, que l'élève fait lui-même.
  */
 export function householdContextBlock(ctx: HouseholdTurnContext): string {
+  // ── LE PLAFOND, ET L'ORDRE DE COUPE ARGUMENTÉ ─────────────────────────────
+  //
+  // On rend le bloc, on le MESURE, et tant qu'il dépasse on retire UNE unité de
+  // matière optionnelle — puis on re-rend. Le texte émis est donc toujours
+  // exactement celui qu'on a mesuré: pas de longueur estimée, pas d'écart
+  // possible entre le calcul et la sortie.
+  //
+  // L'ORDRE, du premier jeté au dernier, et pourquoi:
+  //
+  //   1. LA LISTE DE COURSES. C'est la seule des cinq sources dont §11 de la
+  //      fiche discute encore l'entrée dans le prompt (« le pousser coûte du
+  //      budget pour une question rare »), elle porte DÉJÀ une phrase de
+  //      troncature, et l'écran des repas tient la liste entière. Sa perte
+  //      coûte un aller à l'écran.
+  //   2. LES PRÉPARATIONS D'UN AUTRE JOUR. Le bloc les étiquette lui-même
+  //      « NOT today ». Leur perte ne coûte rien ce soir — et surtout, elle ne
+  //      touche PAS la cuisson du jour, qui est la seule que la personne va
+  //      vraiment faire. « Un plafond qui coupe le jour courant serait pire que
+  //      pas de plafond. »
+  //   3. LES CONSIGNES DE SERVICE DES AUTRES. Une instruction pour l'assiette
+  //      de quelqu'un d'autre. R3 démontre déjà que le produit tient sans
+  //      elles: c'est exactement le mode `shared`. MA part, elle, n'est jamais
+  //      candidate — c'est le cœur de la fiche.
+  //   4. LES PRÉNOMS DU FOYER, réduits à un compte. En DERNIER, parce que la
+  //      présence est précisément ce que `presence_only` autorise: « qui
+  //      cuisine ce soir ? » est une question légitime en colocation. MON
+  //      prénom reste, quoi qu'il arrive.
+  //
+  // JAMAIS COUPÉ: les plats du jour, les préparations DU JOUR, ma part, les
+  // restrictions qui me visent, les règles dures, la ceinture mineur et la
+  // ceinture colocation. Ce sont les seules choses dont la perte se paie dans
+  // une casserole ou dans une fuite.
+  const laterPreps = ctx.preparations.filter((p) => !p.isToday).length;
+  const otherPortions = ctx.portions.filter((p) => !p.isMe).length;
+  const state: BlockBudgetState = {
+    shopping: ctx.shopping.length,
+    laterPreps,
+    otherPortions,
+    rosterNames: ctx.roster.length,
+  };
+  // L'ordre de réduction, en une liste — et c'est la liste qu'on lit pour
+  // savoir ce que le budget sacrifie.
+  const reducers: Array<() => boolean> = [
+    () => state.shopping > 0 && (state.shopping--, true),
+    () => state.laterPreps > 0 && (state.laterPreps--, true),
+    () => state.otherPortions > 0 && (state.otherPortions--, true),
+  ];
+
+  let block = renderHouseholdBlock(ctx, state);
+  for (const reduce of reducers) {
+    while (block.length > HOUSEHOLD_BLOCK_MAX_CHARS && reduce()) {
+      block = renderHouseholdBlock(ctx, state);
+    }
+    if (block.length <= HOUSEHOLD_BLOCK_MAX_CHARS) return block;
+  }
+
+  // ── LE DERNIER RECOURS NE SE DÉPENSE QUE S'IL ACHÈTE LE BUT ───────────────
+  //
+  // Réduire les prénoms du foyer à un compte rapporte peu (quelques dizaines de
+  // caractères) et coûte la PRÉSENCE — la seule chose que `presence_only`
+  // autorise, et la réponse à « qui cuisine ce soir ? ». Le dépenser alors
+  // qu'on restera de toute façon au-dessus du plafond, c'est perdre la présence
+  // pour rien.
+  //
+  // Donc: on l'essaie EN ENTIER, et on ne garde le résultat que s'il passe.
+  // Sinon on rend le bloc avec ses prénoms — au-dessus du plafond, ce qui est
+  // le cas où le bloc n'est plus fait que de matière que la fiche INTERDIT de
+  // couper (plats du jour, cuissons du jour, ma part, mes restrictions, les
+  // ceintures). Ce plancher-là est nommé et testé; il n'est pas une fuite du
+  // plafond, c'est sa condition de désarmement.
+  const withNames = block;
+  const collapsed: BlockBudgetState = { ...state, rosterNames: 1 };
+  const collapsedBlock = renderHouseholdBlock(ctx, collapsed);
+  return collapsedBlock.length <= HOUSEHOLD_BLOCK_MAX_CHARS
+    ? collapsedBlock
+    : withNames;
+}
+
+/** Ce que le budget a laissé entrer, section par section. */
+interface BlockBudgetState {
+  shopping: number;
+  laterPreps: number;
+  otherPortions: number;
+  rosterNames: number;
+}
+
+function renderHouseholdBlock(
+  ctx: HouseholdTurnContext,
+  state: BlockBudgetState,
+): string {
   const lines: string[] = [];
+  /** Ce qui a été retiré, dit à la fin — jamais amputé en silence. */
+  const dropped: string[] = [];
   lines.push("== WHAT THIS HOUSEHOLD IS EATING (read-only) ==");
   lines.push("");
   lines.push(
@@ -494,20 +700,34 @@ export function householdContextBlock(ctx: HouseholdTurnContext): string {
   );
   lines.push("");
 
-  const others = ctx.roster.filter((m) => m.visibility !== "full");
+  // MON PRÉNOM D'ABORD quand la liste est réduite. Le reste garde son ordre
+  // (la RPC rend le compte maître en tête, puis l'ordre d'arrivée).
+  const rosterOrdered = [
+    ...ctx.roster.filter((m) => m.memberId === ctx.viewerId),
+    ...ctx.roster.filter((m) => m.memberId !== ctx.viewerId),
+  ];
+  const rosterShown = rosterOrdered.slice(0, Math.max(1, state.rosterNames));
+  const rosterHidden = rosterOrdered.length - rosterShown.length;
   lines.push(
-    `Household of ${ctx.roster.length} (${ctx.kind}): ${
-      ctx.roster.map((m) =>
-        // ⚠️ « (child) » EST UNE DONNÉE SUR QUELQU'UN, pas une présence. En
-        // colocation, `presence_only` veut dire « il est là, et c'est tout ce
-        // qu'on en dit »: l'âge d'un colocataire est dérivé de sa date de
-        // naissance, et l'annoncer serait exactement la fuite que R3 ferme
-        // pour les portions. La CEINTURE mineur, elle, reste armée plus bas —
-        // elle lit le roster, pas cette étiquette.
-        m.firstName + (m.isMinor && m.visibility === "full" ? " (child)" : "")
+    `Household of ${ctx.roster.length}: ${
+      rosterShown.map((m) =>
+        // ⚠️ « (child) » EST UNE DONNÉE SUR QUELQU'UN, et elle a sa place ici:
+        // qui est à table gouverne ce qu'on cuisine, et la ceinture mineur plus
+        // bas s'arme sur le roster. Ce qui n'y a PAS sa place, c'est la DATE
+        // qui l'a produite — la RPC ne la rend délibérément pas.
+        //
+        // `unknown` ne porte AUCUNE étiquette, et c'est le point neuf: écrire
+        // « (adult) » par défaut affirmerait un fait qu'on n'a pas, et le modèle
+        // s'en servirait pour dimensionner. Une bouche sans âge est un prénom.
+        m.firstName + (m.ageState === "minor" ? " (child)" : "")
       ).join(", ")
-    }.`,
+    }${rosterHidden > 0 ? `, and ${rosterHidden} more` : ""}.`,
   );
+  if (rosterHidden > 0) {
+    dropped.push(
+      `${rosterHidden} household member name(s) — you do not have them here`,
+    );
+  }
 
   if (ctx.hasPlanToday) {
     lines.push("");
@@ -515,7 +735,13 @@ export function householdContextBlock(ctx: HouseholdTurnContext): string {
     for (const dish of ctx.todayDishes) {
       lines.push(`- ${dish.title}${dish.slot ? ` (${dish.slot})` : ""}`);
     }
-    if (ctx.preparations.length > 0) {
+    // LE JOUR COURANT NE SE COUPE PAS. Les préparations d'aujourd'hui passent
+    // en entier; seules celles d'un autre jour sont soumises au budget.
+    const todayPreps = ctx.preparations.filter((p) => p.isToday);
+    const laterAll = ctx.preparations.filter((p) => !p.isToday);
+    const laterShown = laterAll.slice(0, state.laterPreps);
+    const shownPreps = [...todayPreps, ...laterShown];
+    if (shownPreps.length > 0) {
       lines.push("");
       // ⚠️ CHAQUE LIGNE PORTE SON JOUR, ET C'EST STRUCTUREL. Sans le jour, une
       // préparation de jeudi lue un samedi devient « à cuisiner maintenant » —
@@ -523,7 +749,7 @@ export function householdContextBlock(ctx: HouseholdTurnContext): string {
       // today? ». Une cuisson faite au mauvais jour est le plat d'hier servi ce
       // soir, avec les courses en plus.
       lines.push("PREPARATIONS AHEAD (today's first; a line dated another day is NOT for today):");
-      for (const prep of ctx.preparations) {
+      for (const prep of shownPreps) {
         const when = prep.isToday
           ? " — TODAY"
           : prep.cookDate
@@ -532,16 +758,33 @@ export function householdContextBlock(ctx: HouseholdTurnContext): string {
         lines.push(`- ${prep.title}${when}`);
       }
     }
-    if (ctx.portions.length > 0) {
+    if (laterAll.length > laterShown.length) {
+      dropped.push(
+        `${laterAll.length - laterShown.length} later-day preparation(s) — ` +
+          `today's are all above`,
+      );
+    }
+    // MA PART EN TÊTE, ET HORS BUDGET.
+    const minePortions = ctx.portions.filter((p) => p.isMe);
+    const otherAll = ctx.portions.filter((p) => !p.isMe);
+    const otherShown = otherAll.slice(0, state.otherPortions);
+    const shownPortions = [...minePortions, ...otherShown];
+    if (shownPortions.length > 0) {
       lines.push("");
       lines.push("SERVING NOTES:");
-      for (const portion of ctx.portions) {
+      for (const portion of shownPortions) {
         lines.push(
           `- ${portion.firstName}${portion.isMe ? " (this student)" : ""}: ${
             portion.note ?? "standard share"
           }`,
         );
       }
+    }
+    if (otherAll.length > otherShown.length) {
+      dropped.push(
+        `${otherAll.length - otherShown.length} other member(s)' serving ` +
+          `note(s) — you do not have them`,
+      );
     }
   } else {
     lines.push("");
@@ -564,16 +807,28 @@ export function householdContextBlock(ctx: HouseholdTurnContext): string {
   // beans, tomato, white beans, lentils, cod, chicken thighs » — en y mêlant
   // les plats des autres jours. Une liste de courses inventée est du même bois
   // qu'un plat inventé: on va l'acheter.
+  const shoppingShown = ctx.shopping.slice(0, state.shopping);
+  const shoppingCut = ctx.shoppingTruncated ||
+    shoppingShown.length < ctx.shopping.length;
   lines.push("");
-  if (ctx.shopping.length > 0) {
+  if (shoppingShown.length > 0) {
     lines.push(
-      ctx.shoppingTruncated
-        ? `SHOPPING LIST for this window (first ${ctx.shopping.length}; there are more — say the list is longer and send them to the meals screen for the rest):`
+      shoppingCut
+        ? `SHOPPING LIST for this window (first ${shoppingShown.length}; there are more — say the list is longer and send them to the meals screen for the rest):`
         : "SHOPPING LIST for this window:",
     );
-    for (const item of ctx.shopping) {
+    for (const item of shoppingShown) {
       lines.push(`- ${item.term}${item.quantity ? ` — ${item.quantity}` : ""}`);
     }
+  } else if (ctx.shopping.length > 0) {
+    // La liste EXISTE, elle n'a simplement pas tenu dans le budget. Dire
+    // « aucune liste » ici serait un silence FAUX — le mode de défaillance que
+    // §7 nomme pour le chargeur, transposé au plafond.
+    lines.push(
+      "A SHOPPING LIST exists for this window but it is not in this block. " +
+        "Say it exists and send them to the meals screen for it. NEVER build " +
+        "one out of the dish names above: an invented basket gets bought.",
+    );
   } else {
     lines.push(
       "NO SHOPPING LIST is recorded for this window. Say you do not have one " +
@@ -646,38 +901,49 @@ export function householdContextBlock(ctx: HouseholdTurnContext): string {
       "and never state what a later day's meal is. Say you only have today's " +
       "and send them to the meals screen.",
   );
-  // ⚠️ LA CONDITION EST LE VERDICT, PAS LE MODE. `others` vient déjà de
-  // `memberVisibility`; y ajouter `kind === "shared"` remettait le mode du
-  // foyer dans une décision de visibilité — le `if (kind === 'shared')` local
-  // que §9 nomme comme la seconde vérité à ne pas écrire. Les deux formes sont
-  // équivalentes aujourd'hui (en `family` tout le monde est `full`, donc
-  // `others` est vide), et une seule le restera si la règle bouge.
-  if (others.length > 0) {
-    lines.push(
-      "- Shared household: you do not know the other members' goals, " +
-        "measurements or serving notes, and you are not withholding them — " +
-        "they are not in your context at all. Say you do not know.",
-    );
-    // ⚠️ LA FUITE PAR COMPARAISON, ET ELLE N'A PAS BESOIN DE LA DONNÉE.
-    // MESURÉ 3 passes sur 3: « Is my portion bigger than Sam's tonight? » →
-    // « Yes — Rob's serving note is a larger protein and starch share. I don't
-    // have Sam's portion note here. » La consigne de l'autre n'était nulle part
-    // dans le contexte, et pourtant la comparaison est ASSERTÉE: le « yes »
-    // porte la moitié manquante. Un démenti qui suit ne la reprend pas.
-    lines.push(
-      "- And never answer a COMPARISON with them: 'is my share bigger than " +
-        "theirs?' needs the other half, and you do not have it. Do not say yes " +
-        "or no and then add a caveat — the yes is the leak. Answer only that " +
-        "you do not have their note, and give them theirs.",
-    );
-  }
-  if (ctx.roster.some((m) => m.isMinor)) {
+  // ⚠️ LA CEINTURE COLOCATION EST PARTIE AVEC SON SUJET (lot 2, 2026-08-10).
+  //
+  // Elle interdisait de rendre la consigne de service d'un autre, et surtout d'y
+  // répondre PAR COMPARAISON — mesuré 3 passes sur 3: « ma part est-elle plus
+  // grosse que celle de Sam ? » recevait un « oui » qui portait la moitié
+  // manquante, alors que la consigne de Sam n'était nulle part dans le contexte.
+  //
+  // Elle n'avait de sujet qu'en colocation. Dans un foyer, `member_portions` EST
+  // ce qu'on lit à table, et toutes les portions entrent désormais dans le bloc:
+  // la comparaison redevient une question à laquelle on répond avec les deux
+  // moitiés. CE QUI RESTE INTERDIT est ailleurs et n'a pas bougé — la RAISON
+  // d'une portion, que `household_portions.ts` refuse déjà de façon
+  // déterministe et bilingue. C'est cette ceinture-là qui tient la promesse.
+  if (ctx.roster.some((m) => m.ageState === "minor")) {
     lines.push(
       "- A child in this household is an EATER, never a target: allergies, " +
         "tastes, portion size. No nutritional goal, no weight, and no figures " +
         "of any kind — not calories, not grams of sugar or fat, not a serving " +
         "size in numbers. A child asking 'how much sugar is in that?' gets a " +
         "plain answer about the plate, never a count.",
+    );
+  }
+
+  // ── QUAND ON TRONQUE, ON LE DIT ────────────────────────────────────────────
+  //
+  // C'est le patron que la liste de courses portait déjà, généralisé: « une
+  // liste tronquée présentée comme complète est un panier faux ». Un bloc
+  // silencieusement amputé fait confabuler — le modèle ne peut pas distinguer
+  // « ce foyer n'a que ça » de « on ne t'a donné que ça », et il comble.
+  //
+  // La phrase est en ANGLAIS, comme tout ce bloc et comme la doctrine, le
+  // protocole, le bilan et le pouls: aucun bloc KEEL n'est localisé, la langue
+  // de la RÉPONSE est portée par `RESPONSE_LANGUAGE`, en dernière instruction.
+  // C'est donc au niveau de la réponse que le bilinguisme se vérifie, et c'est
+  // la surface que la personne lit.
+  if (dropped.length > 0) {
+    lines.push("");
+    lines.push("NOT IN THIS BLOCK (the record holds more than fits here):");
+    for (const d of dropped) lines.push(`- ${d}`);
+    lines.push(
+      "Say plainly you do not have these here and send them to the meals " +
+        "screen. Never guess them, never rebuild them from the lines above, " +
+        "and never present what is above as the whole picture.",
     );
   }
 

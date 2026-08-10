@@ -150,26 +150,37 @@ on conflict (id) do update
 
 select pg_temp.become('f0ed0000-0000-0000-0000-000000000001');
 select pg_temp.assert_ok('01 création du foyer famille',
-public.keel_household_create('Maison', 'family'));
+public.keel_household_create('Maison'));
 
 select pg_temp.become_super();
 -- Les trois autres rejoignent. On insère l'appartenance en direct SOUS
 -- postgres: le chemin d'invitation est testé séparément (12/13), et le monter
 -- ici à coups de jetons rendrait ce bloc illisible.
-insert into public.household_members (household_id, user_id, role)
-select h.id, u, 'member'
+insert into public.household_members
+  (household_id, user_id, role, first_name, birth_date)
+select h.id, m.u, 'member', m.n, m.b
 from public.households h,
-     unnest(array[
-       'f0ed0000-0000-0000-0000-000000000002'::uuid,
-       'f0ed0000-0000-0000-0000-000000000003'::uuid,
-       'f0ed0000-0000-0000-0000-000000000004'::uuid
-     ]) as u
+     (values
+       ('f0ed0000-0000-0000-0000-000000000002'::uuid, 'Adulte', '1990-06-11'::date),
+       ('f0ed0000-0000-0000-0000-000000000003'::uuid, 'Enfant', '2014-03-20'::date),
+       -- PAS DE DATE: le cas « on ne sait pas ». Il vaut désormais `unknown`,
+       -- et surtout PLUS `adult` — c'est l'inversion du lot 2.
+       ('f0ed0000-0000-0000-0000-000000000004'::uuid, 'Sansage', null)
+     ) as m(u, n, b)
 where h.created_by = 'f0ed0000-0000-0000-0000-000000000001';
+
+-- ── LA BOUCHE SANS COMPTE, par sa propre RPC ────────────────────────────────
+-- C'est le geste que tout le chantier existe pour permettre, et il passe par le
+-- JWT du compte maître comme n'importe quelle écriture du foyer.
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000001');
+select pg_temp.assert_ok('01b une bouche SANS COMPTE est ajoutée',
+public.keel_household_add_member('Lea', '2018-05-04', null));
+select pg_temp.become_super();
 
 -- Le foyer VOISIN, celui que l'intrus habite.
 select pg_temp.become('f0ed0000-0000-0000-0000-000000000005');
 select pg_temp.assert_ok('02 création du foyer voisin',
-public.keel_household_create('Ailleurs', 'shared'));
+public.keel_household_create('Ailleurs'));
 
 -- ---------------------------------------------------------------------------
 -- 1–3. Ce qui se lit, et par qui
@@ -178,8 +189,12 @@ public.keel_household_create('Ailleurs', 'shared'));
 select pg_temp.become('f0ed0000-0000-0000-0000-000000000002');
 select pg_temp.assert_eq('03 un membre lit son foyer',
   (select count(*) from public.households), 1);
-select pg_temp.assert_eq('04 un membre lit les 4 membres',
-  (select count(*) from public.household_members), 4);
+-- CINQ, et la cinquième est le sujet: Léa n'a pas de compte, et elle est
+-- pourtant une ligne de plein droit que tout le foyer lit. Un roster qui ne
+-- rendrait que les comptes rendrait 4 — et la moitié du foyer serait invisible
+-- au chat comme au générateur.
+select pg_temp.assert_eq('04 un membre lit les 5 bouches, compte ou pas',
+  (select count(*) from public.household_members), 5);
 
 -- L'INTRUS. Il a son propre foyer, donc `keel_household_of` lui rend quelque
 -- chose — ce qui est exactement le cas piégeux: une policy qui aurait comparé
@@ -288,86 +303,120 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
--- 5–9, 11. LES GARDES DE RESTRICTION — le cœur de §8.5
--- ---------------------------------------------------------------------------
-
--- 6. Un membre non-owner ne restreint personne, même un mineur.
-select pg_temp.become('f0ed0000-0000-0000-0000-000000000002');
-select pg_temp.assert_refused('11 non-owner ne restreint pas',
-  public.keel_household_add_restriction(
-    'f0ed0000-0000-0000-0000-000000000003', 'nutella'), 'not_owner');
-
--- 5. Hors mode famille, AUCUN verrouillage — c'est le compte maître du foyer
--- « shared » qui essaie, sur lui-même faute d'autre membre: même en étant
--- owner, le mode suffit à refuser.
-select pg_temp.become('f0ed0000-0000-0000-0000-000000000005');
-select pg_temp.assert_refused('12 mode partagé: aucune restriction',
-  public.keel_household_add_restriction(
-    'f0ed0000-0000-0000-0000-000000000005', 'nutella'), 'not_a_family');
-
-select pg_temp.become('f0ed0000-0000-0000-0000-000000000001');
-
--- 7. Un MAJEUR sans consentement n'est pas restreignable.
-select pg_temp.assert_refused('13 majeur sans accord: refusé',
-  public.keel_household_add_restriction(
-    'f0ed0000-0000-0000-0000-000000000002', 'nutella'), 'adult_without_consent');
-
--- 11. Date de naissance ABSENTE = traité MAJEUR. La direction est
--- contre-intuitive et c'est pour ça qu'elle est testée: « on ne sait pas » ne
--- doit pas donner au compte maître un pouvoir qu'on ne lui a pas accordé.
-select pg_temp.assert_refused('14 date absente: traité majeur, refusé',
-  public.keel_household_add_restriction(
-    'f0ed0000-0000-0000-0000-000000000004', 'nutella'), 'adult_without_consent');
-
--- 8. Un MINEUR l'est.
-select pg_temp.assert_ok('15 mineur: autorisé',
-public.keel_household_add_restriction(
-    'f0ed0000-0000-0000-0000-000000000003', 'nutella'));
-
--- 9. Un majeur CONSENTANT l'est. Le consentement se pose par lui, jamais par
--- le compte maître: la RPC n'a aucun paramètre.
-select pg_temp.become('f0ed0000-0000-0000-0000-000000000002');
-select pg_temp.assert_ok('16 le majeur pose son accord',
-public.keel_household_grant_consent());
-
-select pg_temp.become('f0ed0000-0000-0000-0000-000000000001');
-select pg_temp.assert_ok('17 majeur consentant: autorisé',
-public.keel_household_add_restriction(
-    'f0ed0000-0000-0000-0000-000000000002', 'chips'));
-
--- §8.5 règle 3: la personne restreinte VOIT qu'elle l'est, et par qui.
-select pg_temp.become('f0ed0000-0000-0000-0000-000000000002');
-select pg_temp.assert_eq('18 le restreint voit sa restriction et son auteur',
-  (select count(*) from public.household_food_restrictions
-    where member_user_id = 'f0ed0000-0000-0000-0000-000000000002'
-      and created_by = 'f0ed0000-0000-0000-0000-000000000001'), 1);
-
--- ---------------------------------------------------------------------------
--- 10. LA RÉVOCATION SUPPRIME CE QUI EXISTE DÉJÀ
+-- 5–11. LES GARDES DE RESTRICTION — réécrites le 2026-08-10 (lots 1 et 2)
 --
--- L'assertion la plus importante du fichier. Ne retirer que le droit de poser
--- de NOUVELLES restrictions laisserait toutes les anciennes en place — un
--- retrait de consentement sans effet, c'est-à-dire pire qu'un consentement
--- jamais demandé.
+-- CE QUI A DISPARU DE CETTE SECTION, ET POURQUOI IL NE FAUT PAS LE REMETTRE:
+--
+--   « hors mode famille, aucun verrouillage »  → la colocation est sortie du
+--     produit, `households.kind` n'existe plus.
+--   « un majeur sans consentement n'est pas restreignable » → le consentement
+--     n'existe plus. Le compte maître gouverne le menu; LA CONTREPARTIE est que
+--     `created_by` reste et que l'écran l'affiche (assertion 18 plus bas).
+--   « date absente = traité MAJEUR » → INVERSÉ. Sans date, l'âge vaut
+--     `unknown`, et `unknown` n'applique AUCUNE direction d'objectif.
+--
+-- Ce qui reste est ce qui protège encore vraiment quelque chose: seul le compte
+-- maître écrit, seulement dans SON foyer, et la décision porte un auteur.
 -- ---------------------------------------------------------------------------
 
-select pg_temp.assert_eq('19 la révocation supprime 1 restriction déjà posée',
-  (public.keel_household_revoke_consent()->>'restrictions_removed')::bigint, 1);
-
-select pg_temp.assert_eq('20 plus aucune restriction ne vise ce majeur',
-  (select count(*) from public.household_food_restrictions
-    where member_user_id = 'f0ed0000-0000-0000-0000-000000000002'), 0);
-
--- Et le mineur, lui, n'est pas affecté: la révocation est PAR PERSONNE.
-select pg_temp.assert_eq('21 la restriction du mineur survit',
-  (select count(*) from public.household_food_restrictions
-    where member_user_id = 'f0ed0000-0000-0000-0000-000000000003'), 1);
-
--- Le compte maître ne peut plus reposer la restriction sur ce majeur.
-select pg_temp.become('f0ed0000-0000-0000-0000-000000000001');
-select pg_temp.assert_refused('22 après révocation: refusé de nouveau',
+-- 6. Un membre non-owner ne restreint personne.
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000002');
+select pg_temp.assert_refused('14 un membre ne restreint personne',
   public.keel_household_add_restriction(
-    'f0ed0000-0000-0000-0000-000000000002', 'chips'), 'adult_without_consent');
+    (select member_id from public.household_members
+      where user_id = 'f0ed0000-0000-0000-0000-000000000003'), 'nutella'),
+  'not_owner');
+
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000001');
+
+-- 5. LE GESTE NOMINAL, ET IL ÉTAIT IMPOSSIBLE AVANT CE LOT: une contrainte sur
+-- une bouche SANS COMPTE. `member_user_id references auth.users` rendait la
+-- ligne inécrivable — c'est-à-dire que « pas de champignons pour Léa » ne
+-- pouvait pas exister pour une Léa de huit ans.
+select pg_temp.assert_ok('15 une bouche SANS COMPTE porte une contrainte',
+public.keel_household_add_restriction(
+    (select member_id from public.household_members
+      where household_id = public.keel_household_of('f0ed0000-0000-0000-0000-000000000001')
+        and user_id is null and first_name = 'Lea'), 'champignons'));
+
+-- 7. Un majeur du foyer aussi, et sans rien lui demander. C'est le modèle:
+-- une seule personne gouverne le menu.
+select pg_temp.assert_ok('16 un majeur est restreignable, sans consentement',
+public.keel_household_add_restriction(
+    (select member_id from public.household_members
+      where user_id = 'f0ed0000-0000-0000-0000-000000000002'), 'chips'));
+
+-- 8. Mais PAS quelqu'un d'un AUTRE foyer. La garde qui reste est celle-là.
+select pg_temp.assert_refused('17 une bouche d''un autre foyer: refusé',
+  public.keel_household_add_restriction(
+    (select member_id from public.household_members
+      where user_id = 'f0ed0000-0000-0000-0000-000000000005'), 'nutella'),
+  'not_a_member');
+
+-- 9. §8.5 règle 3, ET LA CONTREPARTIE DU CONSENTEMENT DISPARU: la personne
+-- restreinte voit qu'elle l'est, ET par qui. Sans `created_by`, l'écran
+-- n'aurait d'autre choix qu'une phrase impersonnelle — c'est-à-dire faire
+-- passer une décision domestique pour un avis du produit.
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000002');
+select pg_temp.assert_eq('18 le restreint voit sa contrainte et son auteur',
+  (select count(*) from public.household_food_restrictions r
+    join public.household_members m on m.member_id = r.member_id
+    where m.user_id = 'f0ed0000-0000-0000-0000-000000000002'
+      and r.created_by = 'f0ed0000-0000-0000-0000-000000000001'), 1);
+
+-- 10. L'ÂGE À TROIS ÉTATS, RELU EN BASE. C'est l'assertion la plus importante
+-- de la section: `unknown` et `adult` doivent être DISTINCTS, sinon une bouche
+-- saisie sans date reçoit une direction d'objectif d'adulte en silence.
+select pg_temp.become_super();
+-- `assert_eq` compare des bigint: on compte les lignes dont l'état d'âge est
+-- celui attendu. Une comparaison de texte demanderait une seconde surcharge de
+-- l'assertion, et une assertion qui existe en deux formes finit par diverger.
+select pg_temp.assert_eq('19 un enfant est mineur',
+  (select count(*) from public.household_members
+    where user_id = 'f0ed0000-0000-0000-0000-000000000003'
+      and public.keel_household_member_age(member_id) = 'minor'), 1);
+select pg_temp.assert_eq('20 un adulte est adulte',
+  (select count(*) from public.household_members
+    where user_id = 'f0ed0000-0000-0000-0000-000000000002'
+      and public.keel_household_member_age(member_id) = 'adult'), 1);
+select pg_temp.assert_eq('21 SANS DATE: unknown, et surtout PAS adult',
+  (select count(*) from public.household_members
+    where user_id = 'f0ed0000-0000-0000-0000-000000000004'
+      and public.keel_household_member_age(member_id) = 'unknown'), 1);
+select pg_temp.assert_eq('21b la contre-épreuve: cette bouche n''est PAS adulte',
+  (select count(*) from public.household_members
+    where user_id = 'f0ed0000-0000-0000-0000-000000000004'
+      and public.keel_household_member_age(member_id) = 'adult'), 0);
+
+-- 11. L'OBJECTIF SE POSE PAR SON PROPRIÉTAIRE, OU PAR LE MAÎTRE — et par
+-- personne d'autre. C'est la seule autorité que réclamer son profil donne.
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000002');
+select pg_temp.assert_refused('22 un membre ne pose pas l''objectif d''un autre',
+  public.keel_household_set_member_goal(
+    (select member_id from public.household_members
+      where user_id = 'f0ed0000-0000-0000-0000-000000000003'), 'fat_loss'),
+  'not_your_line');
+select pg_temp.assert_ok('23 mais il pose LE SIEN',
+public.keel_household_set_member_goal(
+    (select member_id from public.household_members
+      where user_id = 'f0ed0000-0000-0000-0000-000000000002'), 'fat_loss'));
+
+-- Et le plafond de 8 tient EN BASE, pas à l'écran (lot 7).
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000001');
+do $$
+declare v_i int; v_res jsonb;
+begin
+  -- Le foyer en compte 5 (maître + 3 comptes + Léa). On pousse jusqu'au refus.
+  for v_i in 1..5 loop
+    v_res := public.keel_household_add_member('Bouche' || v_i, null, null);
+    exit when (v_res->>'reason') = 'household_full';
+  end loop;
+  if (v_res->>'reason') is distinct from 'household_full' then
+    raise exception 'FAIL 24 : le plafond de 8 n''a pas mordu (dernier: %)', v_res;
+  end if;
+  raise notice 'PASS 24 le plafond de 8 mord EN BASE';
+end;
+$$;
 
 -- ---------------------------------------------------------------------------
 -- 12–13. L'INVITATION: usage unique, et liée à une adresse

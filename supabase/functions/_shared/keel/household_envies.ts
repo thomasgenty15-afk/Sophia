@@ -33,12 +33,12 @@
 
 /** Ce qu'on sait d'un membre pour composer le bloc. Rien de nutritionnel. */
 export interface EnvyMember {
-  userId: string;
+  memberId: string;
   displayName: string;
 }
 
 export interface EnvySubmission {
-  userId: string;
+  memberId: string;
   body: string;
 }
 
@@ -81,14 +81,14 @@ export function mergeEnvies(
   members: readonly EnvyMember[],
   submissions: readonly EnvySubmission[],
 ): MergedEnvies {
-  const byUser = new Map<string, string>();
+  const byMember = new Map<string, string>();
   for (const s of submissions) {
     const body = typeof s?.body === "string" ? clamp(s.body) : "";
     // Une soumission d'un non-membre est ignorée SANS BRUIT: elle ne peut
     // venir que d'un membre parti, et le foyer n'a pas à voir son nom
     // ressurgir dans le plan de la semaine.
-    if (body && members.some((m) => m.userId === s.userId)) {
-      byUser.set(s.userId, body);
+    if (body && members.some((m) => m.memberId === s.memberId)) {
+      byMember.set(s.memberId, body);
     }
   }
 
@@ -100,12 +100,12 @@ export function mergeEnvies(
   const lines: string[] = [];
 
   for (const m of rendered) {
-    const body = byUser.get(m.userId);
+    const body = byMember.get(m.memberId);
     if (body) {
-      spoken.push(m.userId);
+      spoken.push(m.memberId);
       lines.push(`- ${m.displayName} asked for: ${body}`);
     } else {
-      silent.push(m.userId);
+      silent.push(m.memberId);
       lines.push(`- ${m.displayName} did not say anything this week.`);
     }
   }
