@@ -49,7 +49,12 @@ export interface RestrictionView {
   id: string;
   memberId: string;
   label: string;
-  createdByUserId: string;
+  /**
+   * `null` = le compte de l'auteur a été EFFACÉ (purge RGPD). La règle, elle,
+   * survit — l'effacer changerait le menu de quelqu'un en silence. C'est
+   * l'attribution qui disparaît avec la personne, pas le fait.
+   */
+  createdByUserId: string | null;
 }
 
 /**
@@ -66,7 +71,8 @@ export interface AllergyView {
   id: string;
   memberId: string;
   label: string;
-  createdByUserId: string;
+  /** `null` = compte de l'auteur effacé. L'ALLERGIE, elle, ne s'efface jamais. */
+  createdByUserId: string | null;
 }
 
 /** Les six jetons, dans l'ordre où l'écran les propose. Miroir du CHECK. */
@@ -102,8 +108,16 @@ export function restrictionNotice(
   restriction: RestrictionView,
 ): RestrictionNotice {
   const me = household?.me?.userId;
-  if (me && restriction.createdByUserId === me) return { kind: "set_by_me" };
-  const owner = household?.members.find((m) => m.userId === restriction.createdByUserId);
+  const author = restriction.createdByUserId;
+  if (me && author === me) return { kind: "set_by_me" };
+  // ⚠️ `m.userId &&` N'EST PAS DÉFENSIF, C'EST LA GARDE. Depuis que
+  // `created_by` peut être NULL (compte de l'auteur effacé), un `find` naïf
+  // comparerait `null === null` et attribuerait la règle à la PREMIÈRE bouche
+  // sans compte du foyer — c'est-à-dire, le plus souvent, à l'enfant qu'elle
+  // restreint. Deux inconnues ne sont pas la même personne.
+  const owner = author
+    ? household?.members.find((m) => m.userId && m.userId === author)
+    : undefined;
   return { kind: "set_by_owner", ownerName: owner?.displayName ?? "" };
 }
 
@@ -217,7 +231,10 @@ export async function loadRestrictions(): Promise<RestrictionView[]> {
       id: String(r.id),
       memberId: String(r.member_id),
       label: String(r.label ?? ""),
-      createdByUserId: String(r.created_by),
+      // `null` quand le compte de l'auteur a été effacé. `String(null)` rendrait
+      // la chaîne « null », qui ne vaut aucun `userId` mais n'est pas non plus
+      // une absence — et l'écran ne saurait plus laquelle des deux il lit.
+      createdByUserId: r.created_by == null ? null : String(r.created_by),
     };
   });
 }
@@ -251,6 +268,69 @@ export async function addHouseholdMember(
 
 export async function removeHouseholdMember(memberId: string) {
   const { data, error } = await supabase.rpc("keel_household_remove_member", {
+    p_member: memberId,
+  });
+  if (error) throw new Error(error.message);
+  return asResult(data);
+}
+
+/**
+ * MA PLACE DANS UN FOYER — ce que le tunnel de suppression de compte doit
+ * savoir AVANT de poser sa question (chantier 2, D3).
+ *
+ * Trois faits, et pas un de plus: est-ce que j'ai une place, est-ce que je la
+ * gouverne, et comment s'appelle la maison. Sans eux, la case « retirer aussi
+ * ma place dans ce foyer » s'afficherait pour tout le monde — y compris les
+ * comptes sans foyer, à qui elle ne veut rien dire, et le compte maître, à qui
+ * la base la refusera (`cannot_remove_owner`).
+ *
+ * ⚠️ CE N'EST PAS LA GARDE. Elle est en base, dans
+ * `keel_household_set_departure`. Ceci ne décide que de ce qu'on AFFICHE — et
+ * en cas d'échec de lecture on n'affiche rien plutôt que de deviner.
+ */
+export async function loadMyHouseholdPlace(userId: string): Promise<
+  { inHousehold: boolean; isOwner: boolean; householdName: string | null }
+> {
+  const none = { inHousehold: false, isOwner: false, householdName: null };
+  if (!userId) return none;
+  const { data, error } = await supabase
+    .from("household_members")
+    // ⚠️ LA CLÉ EST NOMMÉE, ET C'EST OBLIGATOIRE. `households(name)` tout court
+    // rend PGRST201 « ambiguous embedding »: il existe DEUX relations entre ces
+    // deux tables depuis que `households.reference_member_id` pointe sur
+    // `household_members` (chantier 1). Mesuré contre la pile locale — et le
+    // symptôme aurait été muet, parce que cette fonction retombe sur « pas de
+    // foyer » quand la lecture échoue: la case ne se serait jamais affichée.
+    .select("role, households!household_members_household_id_fkey(name)")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error || !data) return none;
+  const row = data as Record<string, unknown>;
+  const nested = row.households as { name?: unknown } | { name?: unknown }[] | null;
+  const named = Array.isArray(nested) ? nested[0] : nested;
+  const name = named?.name;
+  return {
+    inHousehold: true,
+    isOwner: String(row.role ?? "") === "owner",
+    householdName: name ? String(name) : null,
+  };
+}
+
+/**
+ * RETIRER L'ACCÈS — et ce n'est PAS retirer du foyer (chantier 2, D2).
+ *
+ * `user_id` repasse à NULL, la ligne RESTE: la personne continue de manger là,
+ * avec sa portion, ses allergies et ses contraintes, et `member_id` ne bouge
+ * pas. Ce qu'elle perd, c'est la lecture du foyer et le droit de poser SON
+ * objectif — pas sa place à table.
+ *
+ * Les deux gestes vivent côte à côte à l'écran, avec deux libellés, parce
+ * qu'un seul bouton « retirer » signifierait deux choses irréversibles
+ * différentes selon la ligne. Refus nommés de la base: `not_owner`,
+ * `not_a_member`, `cannot_detach_owner`, `not_claimed`.
+ */
+export async function detachHouseholdMember(memberId: string) {
+  const { data, error } = await supabase.rpc("keel_household_detach_member", {
     p_member: memberId,
   });
   if (error) throw new Error(error.message);
@@ -420,7 +500,10 @@ export async function loadAllergies(): Promise<AllergyView[]> {
       id: String(r.id),
       memberId: String(r.member_id),
       label: String(r.label ?? ""),
-      createdByUserId: String(r.created_by),
+      // `null` quand le compte de l'auteur a été effacé. `String(null)` rendrait
+      // la chaîne « null », qui ne vaut aucun `userId` mais n'est pas non plus
+      // une absence — et l'écran ne saurait plus laquelle des deux il lit.
+      createdByUserId: r.created_by == null ? null : String(r.created_by),
     };
   });
 }

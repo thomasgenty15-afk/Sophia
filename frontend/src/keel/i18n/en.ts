@@ -2871,6 +2871,16 @@ export const en = {
   "household.member.edit": "Edit",
   "household.member.close": "Close",
   "household.member.remove": "Remove from the household",
+  // ── DEUX GESTES, DEUX LIBELLÉS (chantier 2, D2) ──────────────────────────
+  // Retirer l'accès et retirer du foyer ne font PAS la même chose, et la
+  // différence est invisible si les deux s'appellent « retirer ». Le premier
+  // laisse la personne à table; le second efface sa portion, ses allergies et
+  // ses contraintes. Les phrases disent ce qui reste, pas ce qui part.
+  "household.member.detach": "Remove their access",
+  "household.member.detach_hint":
+    "Removing their access signs them out of this household — they stay at the table, with their serving and their allergies. Removing them from the household deletes all of it.",
+  "household.member.remove_hint":
+    "This deletes their serving, their allergies and anything this house does not serve them.",
   "household.goal.fat_loss": "Losing fat",
   "household.goal.muscle_gain": "Building muscle",
   "household.goal.recomposition": "Recomposition",
@@ -2897,6 +2907,10 @@ export const en = {
   "household.error.no_household": "You are not in a household.",
   "household.error.cannot_remove_owner":
     "The person who runs the household cannot be removed from it.",
+  "household.error.cannot_detach_owner":
+    "The person who runs the household cannot lose access to it — nobody else could compose a meal.",
+  "household.error.not_claimed":
+    "They have no account here, so there is no access to remove.",
   "household.error.not_found": "That is already gone.",
   // ── LES DEUX NATURES D'UNE CONTRAINTE, DEMANDÉES À L'ÉCRAN ───────────────
   // La question n'est pas une commodité de rangement: la réponse change ce que

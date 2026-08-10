@@ -261,6 +261,32 @@ async function purgeOneUser(
   // passer ici rendrait une purge « réussie » avec le nom encore en base.
   if (anonErr) throw anonErr;
 
+  // 3ter) LE FOYER — LA BOUCHE NE PART PAS AVEC LE COMPTE (chantier 2, D3).
+  //
+  // La ligne de `household_members` n'est pas le dossier de la personne: c'est
+  // ce que le compte maître a saisi pour cuisiner, et elle porte la portion,
+  // les allergies et les contraintes qui composent le repas de tout le foyer.
+  // Elle est donc DÉTACHÉE (`user_id` → NULL) et survit — sauf si la personne
+  // a coché « retirer aussi ma place dans ce foyer » à T0, auquel cas elle
+  // part ici, avec le compte, sans délai propre.
+  //
+  // EXPLICITE, alors que la FK ferait déjà `set null` toute seule: même règle
+  // que `inbound_dedup` plus haut — ne rien laisser dépendre d'un ON DELETE
+  // qu'on n'a pas relu. Et AVANT le delete auth, pour que le résultat soit
+  // lisible ('removed' / 'detached') plutôt que déduit d'une cascade muette.
+  //
+  // ⚠️ ON NE L'AVALE PAS, ET ÇA IMPOSE UN ORDRE DE DÉPLOIEMENT: la migration
+  // `20260811040000` AVANT ce deploy. Le voisin `endCoachClientLinks` avale
+  // une table absente; ici ce serait un piège, parce que sur une pile sans la
+  // migration la FK vaut encore ON DELETE CASCADE — avaler l'erreur rendrait
+  // donc une purge « réussie » qui a DÉTRUIT la bouche en silence, c'est-à-dire
+  // exactement le défaut que ce lot ferme. Un échec bruyant se rejoue au tick
+  // suivant; une bouche effacée ne revient pas.
+  const { error: householdErr } = await admin.rpc("keel_household_purge_user", {
+    p_user: userId,
+  });
+  if (householdErr) throw householdErr;
+
   // 4) Final step: delete the auth user (SQL RPC — see purge_auth_user in the
   //    migration). This cascades profiles and every ON DELETE CASCADE table,
   //    and anonymises llm_usage_events via SET NULL. Deleting an already-gone

@@ -9,6 +9,7 @@ import {
   claimableMembers,
   createHousehold,
   createOwnerGoalRow,
+  detachHouseholdMember,
   ENVY_MAX_CHARS,
   generateHouseholdMeal,
   hasOwnerGoalRow,
@@ -121,6 +122,10 @@ function householdErrorText(reason: string): string | null {
       return t("household.error.no_household");
     case "cannot_remove_owner":
       return t("household.error.cannot_remove_owner");
+    case "cannot_detach_owner":
+      return t("household.error.cannot_detach_owner");
+    case "not_claimed":
+      return t("household.error.not_claimed");
     case "not_found":
       return t("household.error.not_found");
     default:
@@ -294,6 +299,7 @@ export default function HouseholdPage(): React.ReactElement {
                 busy={busy}
                 onSave={(member, patch) => saveMember(member, patch, { userId })}
                 onRemove={(memberId) => run(() => removeHouseholdMember(memberId))}
+                onDetach={(memberId) => run(() => detachHouseholdMember(memberId))}
                 onAddAllergy={(m, l) => run(() => addAllergy(m, l))}
                 onRemoveAllergy={(id) => run(() => removeAllergy(id))}
                 onAddRestriction={(m, l) => run(() => addRestriction(m, l))}
@@ -611,7 +617,7 @@ function AddMouthCard(
  * quelle nature est cette contrainte.
  */
 function MembersCard(
-  { household, restrictions, allergies, busy, onSave, onRemove, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction }: {
+  { household, restrictions, allergies, busy, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction }: {
     household: HouseholdView;
     restrictions: RestrictionView[];
     allergies: AllergyView[];
@@ -621,6 +627,7 @@ function MembersCard(
       patch: { firstName: string; birthDate: string | null; goal: MemberGoal | null },
     ) => Promise<boolean>;
     onRemove: (memberId: string) => void;
+    onDetach: (memberId: string) => void;
     onAddAllergy: (memberId: string, label: string) => void;
     onRemoveAllergy: (id: string) => void;
     onAddRestriction: (memberId: string, label: string) => void;
@@ -678,6 +685,7 @@ function MembersCard(
             busy={busy}
             onSave={(patch) => onSave(m, patch)}
             onRemove={() => onRemove(m.memberId)}
+            onDetach={() => onDetach(m.memberId)}
             onAddAllergy={(label) => onAddAllergy(m.memberId, label)}
             onRemoveAllergy={onRemoveAllergy}
             onAddRestriction={(label) => onAddRestriction(m.memberId, label)}
@@ -704,7 +712,7 @@ function MemberBadges({ member }: { member: HouseholdMemberView }) {
 }
 
 function MemberRow(
-  { member, isMe, allergies, restrictions, busy, onSave, onRemove, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction }: {
+  { member, isMe, allergies, restrictions, busy, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction }: {
     member: HouseholdMemberView;
     isMe: boolean;
     allergies: AllergyView[];
@@ -714,6 +722,7 @@ function MemberRow(
       patch: { firstName: string; birthDate: string | null; goal: MemberGoal | null },
     ) => Promise<boolean>;
     onRemove: () => void;
+    onDetach: () => void;
     onAddAllergy: (label: string) => void;
     onRemoveAllergy: (id: string) => void;
     onAddRestriction: (label: string) => void;
@@ -783,16 +792,38 @@ function MemberRow(
             >
               {t("household.member.save")}
             </Button>
-            {/* LE MAÎTRE NE SE RETIRE PAS. La base refuse
-                (`cannot_remove_owner`) parce qu'un foyer sans personne pour
-                composer laisse ses bouches sans compte sans recours; l'écran ne
-                montre pas un bouton qui sera refusé. */}
+            {/* DEUX GESTES, DEUX LIBELLÉS, JAMAIS UN SEUL BOUTON (chantier 2).
+                « Retirer l'accès » DÉTACHE: la personne perd la lecture du
+                foyer, et reste une bouche à table avec sa portion et ses
+                allergies. « Retirer du foyer » SUPPRIME la ligne. Un seul
+                bouton « retirer » voudrait dire deux choses irréversibles
+                différentes selon la ligne qu'on regarde.
+
+                LE MAÎTRE NE SE RETIRE PAS, ET NE SE DÉTACHE PAS. La base
+                refuse les deux (`cannot_remove_owner`, `cannot_detach_owner`)
+                parce qu'un foyer sans personne pour composer laisse ses
+                bouches sans compte sans recours; l'écran ne montre pas un
+                bouton qui sera refusé. */}
+            {member.role !== "owner" && member.userId ? (
+              <Button variant="secondary" disabled={busy} onClick={onDetach}>
+                {t("household.member.detach")}
+              </Button>
+            ) : null}
             {member.role !== "owner" ? (
               <Button variant="danger" disabled={busy} onClick={onRemove}>
                 {t("household.member.remove")}
               </Button>
             ) : null}
           </div>
+          {/* Les deux gestes ne se distinguent pas par leur couleur: on ÉCRIT
+              ce que chacun fait, à côté d'eux, au moment de choisir. */}
+          {member.role !== "owner" ? (
+            <p className="text-xs text-neutral-500">
+              {member.userId
+                ? t("household.member.detach_hint")
+                : t("household.member.remove_hint")}
+            </p>
+          ) : null}
 
           <div className="border-t border-gray-200 pt-3">
             <Field

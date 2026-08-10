@@ -115,6 +115,32 @@ describe("restrictionNotice — la décision est attribuée, jamais anonyme", ()
     });
     expect(got).toEqual({ kind: "set_by_owner", ownerName: "" });
   });
+
+  it("un auteur EFFACÉ n'est attribué à personne — surtout pas à l'enfant", () => {
+    // ⚠️ LE PIÈGE DU CHANTIER 2. Depuis que `created_by` peut être NULL (purge
+    // RGPD du compte de l'auteur), un `find` naïf compare `null === null` et
+    // rend la PREMIÈRE bouche sans compte du foyer — c'est-à-dire, ici,
+    // l'enfant que la règle restreint. L'écran lui dirait alors « tu t'es
+    // restreint toi-même », ce qui est faux et indémentable.
+    //
+    // Deux inconnues ne sont pas la même personne. On n'attribue rien.
+    const hh = household([OWNER, KID], "kid");
+    const got = restrictionNotice(hh, {
+      id: "r1", memberId: "kid", label: "nutella", createdByUserId: null,
+    });
+    expect(got).toEqual({ kind: "set_by_owner", ownerName: "" });
+  });
+
+  it("et pas non plus à MOI quand je n'ai pas de compte sur ma ligne", () => {
+    // Le miroir du cas précédent: la personne qui REGARDE est la bouche sans
+    // compte. `me?.userId` vaut `null`, l'auteur aussi: un `me && …` absent
+    // ferait dire « c'est toi qui l'as décidé » à un enfant de huit ans.
+    const hh = household([OWNER, KID], "kid");
+    const got = restrictionNotice(hh, {
+      id: "r1", memberId: "kid", label: "nutella", createdByUserId: null,
+    });
+    expect(got.kind).toBe("set_by_owner");
+  });
 });
 
 describe("claimableMembers — on n'invite que ce qui reste à réclamer (lot 6)", () => {

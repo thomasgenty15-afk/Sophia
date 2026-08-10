@@ -86,9 +86,32 @@ Deno.serve(async (req) => {
     const { error: updErr } = await admin.from("profiles").update(update).eq("id", user.id);
     if (updErr) throw updErr;
 
+    // LE FOYER (chantier 2, D3). « Retirer aussi ma place dans ce foyer » est
+    // une INTENTION posée à T0 et honorée à J+7. Annuler la suppression doit
+    // l'annuler aussi: sans ce reset, quelqu'un qui revient garderait une
+    // demande de départ armée, et sa bouche disparaîtrait à la prochaine
+    // suppression même s'il ne cochait rien.
+    //
+    // Best-effort explicitement: la RPC n'est pas sur toutes les piles, et une
+    // restauration ne doit pas échouer pour un foyer injoignable. Mais l'échec
+    // est DIT dans la réponse, jamais avalé — `household_intent_cleared:false`
+    // veut dire « une intention de départ peut encore traîner ».
+    let householdIntentCleared = false;
+    try {
+      const { error: hhErr } = await admin.rpc("keel_household_set_departure", {
+        p_user: user.id,
+        p_depart: false,
+      });
+      if (hhErr) throw hhErr;
+      householdIntentCleared = true;
+    } catch (err) {
+      console.warn("[account-restore-v1] household departure intent not cleared", err);
+    }
+
     return jsonResponse(req, {
       ok: true,
       restored: true,
+      household_intent_cleared: householdIntentCleared,
       proactive_relances_restored: !wasMutedBefore,
       // Stated in the UI: the Stripe subscription is NOT restored automatically.
       subscription_restored: false,

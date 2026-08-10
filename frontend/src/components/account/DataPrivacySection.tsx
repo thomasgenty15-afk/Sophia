@@ -9,6 +9,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
 import { newRequestId, requestHeaders } from "../../lib/requestId";
+import { loadMyHouseholdPlace } from "../../keel/api/household";
 
 type Props = {
   isArchitect: boolean;
@@ -79,6 +80,26 @@ export default function DataPrivacySection({ isArchitect }: Props) {
   const [purgeDate, setPurgeDate] = useState<string | null>(null);
   const [hadSubscription, setHadSubscription] = useState(false);
 
+  // ── LE FOYER, ET LE GESTE EXPLICITE (chantier 2, D3) ──────────────────────
+  //
+  // Supprimer son compte DÉTACHE, ça n'efface pas la bouche: la ligne du foyer
+  // n'est pas le dossier de la personne, c'est ce que le compte maître a saisi
+  // pour cuisiner — un prénom, un âge, une allergie, une portion. Elle survit,
+  // et le repas de tout le foyer avec.
+  //
+  // En contrepartie, la question est POSÉE, et la réponse par défaut est NON:
+  // une case décochée qui laisse la place, une case cochée qui la retire. Le
+  // défaut est le comportement protecteur, jamais le destructeur.
+  //
+  // ⚠️ CE N'EST PAS LA GARDE: le compte maître ne peut pas quitter son foyer,
+  // et c'est la base qui le refuse (`cannot_remove_owner`). L'écran ne fait
+  // que ne pas proposer un geste qui sera refusé.
+  const [place, setPlace] = useState<
+    { inHousehold: boolean; isOwner: boolean; householdName: string | null }
+  >({ inHousehold: false, isOwner: false, householdName: null });
+  const [leaveHousehold, setLeaveHousehold] = useState(false);
+  const canChooseDeparture = place.inHousehold && !place.isOwner;
+
   const cardClass = `p-4 rounded-xl border mb-4 ${
     isArchitect ? "bg-emerald-900/30 border-emerald-800" : "bg-slate-50 border-slate-200"
   }`;
@@ -122,7 +143,18 @@ export default function DataPrivacySection({ isArchitect }: Props) {
     setDeletePassword("");
     setTypedWord("");
     setDeleteError(null);
+    setLeaveHousehold(false);
+    setPlace({ inHousehold: false, isOwner: false, householdName: null });
     setDeleteOpen(true);
+    // Lue À L'OUVERTURE, pas au montage de la page: un formulaire figé au
+    // montage affiche du vide non lu. Une lecture qui échoue laisse `place` à
+    // son défaut — pas de foyer, donc pas de question — plutôt que de deviner.
+    (async () => {
+      const { data } = await supabase.auth.getUser();
+      const uid = data?.user?.id ?? "";
+      if (!uid) return;
+      setPlace(await loadMyHouseholdPlace(uid));
+    })();
   };
 
   const handleDeleteConfirm = async () => {
@@ -151,6 +183,11 @@ export default function DataPrivacySection({ isArchitect }: Props) {
         action: "confirm",
         token: prepare.data.token,
         typed_confirmation: typedWord.trim(),
+        // TOUJOURS ENVOYÉ, jamais conditionné à l'affichage: un paramètre
+        // optionnel est une garde désarmée. Quand la question n'a pas été
+        // posée (pas de foyer, ou compte maître), la réponse est `false` — et
+        // `false` est exactement ce que la base doit écrire.
+        leave_household: canChooseDeparture && leaveHousehold,
       });
       if (!confirm.ok) {
         if (confirm.code === "confirmation_word_mismatch") {
@@ -355,6 +392,24 @@ export default function DataPrivacySection({ isArchitect }: Props) {
                       You can change your mind: sign in again before that date and your account is
                       restored in one click (the subscription is not reactivated automatically).
                     </li>
+                    {/* LE FOYER EST DIT ICI, avant le mot de passe, parce que
+                        c'est une conséquence sur les repas d'AUTRES personnes
+                        — pas un réglage de compte. */}
+                    {place.inHousehold && !place.isOwner && (
+                      <li>
+                        Your place in {place.householdName || "your household"} is{" "}
+                        <strong>kept by default</strong>: your serving and your allergies
+                        stay part of the household so nobody there loses a meal. You can
+                        ask for it to go too, on the next screen.
+                      </li>
+                    )}
+                    {place.inHousehold && place.isOwner && (
+                      <li>
+                        You run {place.householdName || "a household"}. It is{" "}
+                        <strong>not deleted</strong> — the people in it keep their servings,
+                        their allergies and their meals. What you lose is your access to it.
+                      </li>
+                    )}
                   </ul>
                   <div className="mt-4 rounded-xl border border-amber-100 bg-amber-50 p-3 text-xs text-amber-900">
                     <p className="font-semibold flex items-center gap-1.5">
@@ -391,6 +446,36 @@ export default function DataPrivacySection({ isArchitect }: Props) {
                     Last step. Confirm your password, then type{" "}
                     <strong>{CONFIRMATION_WORD}</strong> to delete your account.
                   </p>
+
+                  {/* LA QUESTION DU FOYER (chantier 2, D3). Elle n'est posée
+                      qu'à qui a une place à perdre, et jamais au compte maître
+                      — un foyer sans personne pour composer laisse ses bouches
+                      sans compte sans recours, et la base le refuse. */}
+                  {canChooseDeparture && (
+                    <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-700">
+                      <label className="flex items-start gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={leaveHousehold}
+                          onChange={(e) => setLeaveHousehold(e.target.checked)}
+                          className="mt-0.5"
+                        />
+                        <span>
+                          <strong>
+                            Also remove my place in{" "}
+                            {place.householdName || "this household"}?
+                          </strong>
+                          <span className="mt-1 block">
+                            Leave this unticked and your place stays: your first name,
+                            your serving and your allergies remain part of the household,
+                            and nobody there loses a meal. Tick it and all of that is
+                            deleted along with your account, on the same day.
+                          </span>
+                        </span>
+                      </label>
+                    </div>
+                  )}
+
                   <div className="mt-4 space-y-3">
                     <div>
                       <label className="block text-xs font-medium mb-1.5 text-slate-500">

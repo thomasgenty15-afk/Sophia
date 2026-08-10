@@ -37,6 +37,75 @@ import {
 
 const OPERATION_TYPE = "account_deletion";
 
+// ── LE FOYER, ET LE GESTE EXPLICITE (chantier 2, D3) ────────────────────────
+//
+// Une ligne de `household_members` n'est PAS le dossier de la personne: c'est
+// ce que le compte maître a saisi pour cuisiner. Un enfant de huit ans est une
+// bouche sans compte, avec un prénom, un âge et une allergie — c'est le cas
+// nominal du produit. Supprimer son compte DÉTACHE donc (`user_id` → NULL) et
+// n'efface pas la bouche: la personne continue de manger là, sa portion et son
+// allergie restent.
+//
+// En contrepartie, la personne doit pouvoir dire l'inverse, et ce geste est
+// EXPLICITE. `leave_household` est FAUX par défaut, et il l'est aussi côté
+// base (`household_members.departs_with_account default false`): un paramètre
+// de garde optionnel est une garde désarmée, mais ici le défaut est le
+// comportement PROTECTEUR, pas le destructeur.
+//
+// ⚠️ L'INTENTION EST ÉCRITE À T0, HONORÉE À J+7. La suppression de compte est
+// réversible jusqu'à la purge; retirer la bouche maintenant introduirait un
+// effet irréversible au milieu d'un geste réversible, et quelqu'un qui annule
+// retrouverait un compte sans foyer sans que rien ne le lui ait dit.
+// `keel_household_purge_user` fait le travail dans `purge-deleted-accounts`,
+// et `account-restore-v1` remet l'intention à false.
+type HouseholdDeparture = {
+  /** `false` = pas de foyer du tout. La très grande majorité des comptes. */
+  inHousehold: boolean;
+  /** L'intention effectivement ÉCRITE en base, jamais celle qui a été demandée. */
+  departs: boolean;
+  isOwner: boolean;
+  /** Motif nommé quand la base a refusé (le maître ne quitte pas son foyer). */
+  refused: string | null;
+  /** `true` = la RPC est absente de cette pile (migration non appliquée). */
+  unavailable: boolean;
+};
+
+async function recordHouseholdDeparture(
+  admin: ReturnType<typeof createClient>,
+  userId: string,
+  leaveHousehold: boolean,
+): Promise<HouseholdDeparture> {
+  const empty: HouseholdDeparture = {
+    inHousehold: false,
+    departs: false,
+    isOwner: false,
+    refused: null,
+    unavailable: false,
+  };
+  try {
+    const { data, error } = await admin.rpc("keel_household_set_departure", {
+      p_user: userId,
+      p_depart: leaveHousehold,
+    });
+    if (error) throw error;
+    const row = (data ?? {}) as Record<string, unknown>;
+    return {
+      inHousehold: row.in_household === true,
+      departs: row.departs === true,
+      isOwner: row.is_owner === true,
+      refused: typeof row.reason === "string" ? row.reason : null,
+      unavailable: false,
+    };
+  } catch (err) {
+    // La RPC n'est pas sur toutes les piles (une migration et un deploy sont
+    // deux portes distinctes). Un foyer injoignable ne doit pas coincer une
+    // suppression que la personne vient de confirmer — mais l'échec est DIT,
+    // jamais compté comme « pas de foyer ».
+    console.warn("[account-deletion-v1] household departure not recorded", err);
+    return { ...empty, unavailable: true };
+  }
+}
+
 function requireEnv(name: string): string {
   const v = (Deno.env.get(name) ?? "").trim();
   if (!v) throw new Error(`Missing env var: ${name}`);
@@ -429,6 +498,12 @@ Deno.serve(async (req) => {
         Date.now() + DELETION_GRACE_DAYS * 24 * 3600 * 1000,
       ).toISOString();
 
+      // ⚠️ AUCUN FAIT DE FOYER N'EST RENDU ICI, ET C'EST DÉLIBÉRÉ. `prepare` et
+      // `confirm` sont appelés l'un après l'autre dans le même geste côté
+      // écran: une réponse de `prepare` ne peut pas servir à décider quoi
+      // AFFICHER avant `confirm`. L'écran lit son propre foyer par RLS
+      // (`loadMyHouseholdPlace`), et la seule garde qui compte reste ici:
+      // `keel_household_set_departure` refuse le départ du compte maître.
       return jsonResponse(req, {
         ok: true,
         token,
@@ -509,10 +584,23 @@ Deno.serve(async (req) => {
         return jsonResponse(req, { error: "profile_not_found", request_id: requestId }, { status: 404 });
       }
       if (profile.account_status === ACCOUNT_STATUS_DELETION_PENDING) {
+        // LA SUPPRESSION EST DÉJÀ ACQUISE, MAIS PAS LE CHOIX DE FOYER. Sortir
+        // ici sans l'écrire perdrait silencieusement une case cochée sur un
+        // second passage — et la personne croirait avoir demandé son départ.
+        const retryDeparture = await recordHouseholdDeparture(
+          admin,
+          user.id,
+          String(body?.leave_household ?? "") === "true" ||
+            body?.leave_household === true,
+        );
         return jsonResponse(req, {
           ok: true,
           already_pending: true,
           purge_at: profile.purge_at,
+          in_household: retryDeparture.inHousehold,
+          household_departs: retryDeparture.departs,
+          household_refused: retryDeparture.refused,
+          household_unavailable: retryDeparture.unavailable,
           request_id: requestId,
         });
       }
@@ -561,6 +649,17 @@ Deno.serve(async (req) => {
       //    it is never undone by the rollback above — past this point the
       //    deletion is committed.
       const endedCoachLinks = await endCoachClientLinks(admin, user.id, nowIso);
+
+      // 3-ter) LE FOYER (chantier 2, D3). Rien n'est effacé ici: on écrit
+      //        l'intention, et la purge J+7 la lit. Sans la case, la bouche se
+      //        DÉTACHE et survit — c'est le défaut, et c'est le comportement
+      //        protecteur.
+      const departure = await recordHouseholdDeparture(
+        admin,
+        user.id,
+        String(body?.leave_household ?? "") === "true" ||
+          body?.leave_household === true,
+      );
 
       // 3-bis) W1.4 R4: tell each student their coach is gone and that their
       //        plan and data stay theirs. BEST-EFFORT, always: this whole block
@@ -637,6 +736,15 @@ Deno.serve(async (req) => {
         students_notify_failed: studentNotice.failed,
         students_notify_truncated: studentNotice.truncated,
         deletion_notified: deletionNotified,
+        // LE FOYER, VÉRITÉ D'EXÉCUTION: ce qui a été ÉCRIT, pas ce qui a été
+        // demandé. `household_departs=false` avec `in_household=true` veut dire
+        // « la bouche restera » — y compris quand la case était cochée et que
+        // la base a refusé (maître). `household_unavailable=true` veut dire
+        // qu'on n'a rien pu écrire du tout, et surtout pas « pas de foyer ».
+        in_household: departure.inHousehold,
+        household_departs: departure.departs,
+        household_refused: departure.refused,
+        household_unavailable: departure.unavailable,
         request_id: requestId,
       });
     }

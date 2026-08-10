@@ -53,6 +53,15 @@
 --      une quantité de facture
 --  29. une réclamation ANNULÉE redescend le compte                -> 3 / 7     (lot 7)
 --  30. compter une facture est réservé au SERVEUR                 -> 0 / 1 / lève
+--  31. DÉTACHER: quatre refus nommés                              -> not_owner /  (ch. 2)
+--      not_a_member / cannot_detach_owner / not_claimed
+--  32. une personne détachée GARDE tout, `member_id` compris      -> 1 / 1 / 1 (ch. 2)
+--  33. et son profil REDEVIENT réclamable                         -> ok / même member_id
+--  34. supprimer son compte SANS la case détache et ne détruit    -> 1 / 1     (ch. 2)
+--      rien — prouvé par `purge_auth_user`, pas par une RPC
+--  35. avec la case, la bouche part, allergies comprises          -> 0 / 0     (ch. 2)
+--  36b. purger le MAÎTRE ne lève plus, et le foyer survit         -> 1 / null  (ch. 2)
+--  36c. les deux portes de purge sont réservées au SERVEUR        -> 0 / 0 / 2
 --
 -- Chaque assertion RAISE en cas d'écart: un vert silencieux sur une policy
 -- cassée est le seul résultat que ce fichier existe pour empêcher.
@@ -1241,6 +1250,230 @@ select pg_temp.assert_eq('45b seul ''household'' est admis sur un ABONNEMENT',
             where c.conname = 'subscriptions_tier_check'
               and c.conrelid = 'public.subscriptions'::regclass)
           like '%''' || t.v || '''%'), 1);
+
+-- ---------------------------------------------------------------------------
+-- 46. LE DÉTACHEMENT (chantier 2, D2 + D3)
+--
+-- LE FAIT MESURÉ QUI COMMANDE CES ASSERTIONS. Avant la migration
+-- `20260811040000`, sur cette même base:
+--   · purger le compte du MAÎTRE levait `23503 / households_created_by_fkey`
+--     — le droit à l'effacement était INAPPLICABLE pour lui;
+--   · purger le compte d'un MEMBRE emportait sa ligne de foyer, sa portion et
+--     ses allergies, et le repas du lendemain était composé pour une bouche de
+--     moins sans que personne ne l'ait décidé.
+--
+-- ⚠️ CE BLOC EST EN DERNIER, ET C'EST STRUCTUREL: il supprime des lignes de
+-- `auth.users` pour prouver la purge. Tout est dans la transaction qui finit
+-- par ROLLBACK, mais aucune assertion ne doit tourner APRÈS lui.
+-- ---------------------------------------------------------------------------
+
+-- ⚠️ LE PRÉNOM EST CAPTURÉ, PAS ÉCRIT EN DUR. Les assertions 49–52 l'ont déjà
+-- corrigé (« Adulte » est devenu « Adulte2 »): un littéral ici prouverait
+-- surtout que quelqu'un a relu le fichier. On garde l'état d'AVANT le
+-- détachement et on affirme qu'il est identique après.
+select pg_temp.become_super();
+create temporary table pg_temp_adulte on commit drop as
+  select member_id, first_name, birth_date from public.household_members
+   where user_id = 'f0ed0000-0000-0000-0000-000000000002';
+create temporary table pg_temp_enfant on commit drop as
+  select member_id, first_name from public.household_members
+   where user_id = 'f0ed0000-0000-0000-0000-000000000003';
+create temporary table pg_temp_sansage on commit drop as
+  select member_id from public.household_members
+   where user_id = 'f0ed0000-0000-0000-0000-000000000004';
+create temporary table pg_temp_bouche on commit drop as
+  select member_id from public.household_members
+   where household_id = public.keel_household_of('f0ed0000-0000-0000-0000-000000000001')
+     and user_id is null
+   limit 1;
+grant select on pg_temp_adulte, pg_temp_enfant, pg_temp_sansage, pg_temp_bouche
+  to authenticated;
+
+-- L'Adulte porte une règle de maison ET une allergie: c'est ce qu'il doit
+-- GARDER en perdant son accès. Les poser ici, sous le maître, par les vraies
+-- RPC.
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000001');
+select pg_temp.assert_ok('46 une règle de maison sur l''Adulte',
+public.keel_household_add_restriction((select member_id from pg_temp_adulte), 'anchois'));
+select pg_temp.assert_ok('46b une allergie sur l''Adulte',
+public.keel_household_add_allergy((select member_id from pg_temp_adulte), 'crustaces'));
+
+-- 46c–46f. LES QUATRE REFUS NOMMÉS.
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000002');
+select pg_temp.assert_refused('46c un profil réclamé ne détache personne',
+  public.keel_household_detach_member((select member_id from pg_temp_enfant)),
+  'not_owner');
+
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000001');
+-- LE VOISIN. Identifiant RÉEL d'une autre maison, capturé sous postgres —
+-- pas un NULL, qui prouverait seulement qu'un NULL est refusé.
+select pg_temp.assert_refused('46d une bouche du foyer d''à côté est inconnue',
+  public.keel_household_detach_member((select member_id from pg_temp_neighbour)),
+  'not_a_member');
+-- LE MAÎTRE NE SE DÉTACHE PAS LUI-MÊME (preuve d'acceptation n°5). Sans cette
+-- garde, un foyer se retrouve sans personne pour composer, et ses bouches sans
+-- compte n'ont par construction personne pour reprendre la main.
+select pg_temp.assert_refused('46e le maître ne se détache pas lui-même',
+  public.keel_household_detach_member(
+    (select member_id from public.household_members
+      where user_id = 'f0ed0000-0000-0000-0000-000000000001')),
+  'cannot_detach_owner');
+-- RIEN À DÉTACHER. Rendre `ok` ici ferait annoncer à l'écran un accès retiré
+-- qui n'a jamais existé.
+select pg_temp.assert_refused('46f une bouche sans compte n''a pas d''accès à retirer',
+  public.keel_household_detach_member((select member_id from pg_temp_bouche)),
+  'not_claimed');
+
+-- 46g. LE DÉTACHEMENT NE PERD RIEN (preuve d'acceptation n°1).
+select pg_temp.assert_ok('46g le maître retire l''accès de l''Adulte',
+public.keel_household_detach_member((select member_id from pg_temp_adulte)));
+select pg_temp.become_super();
+select pg_temp.assert_eq('46h même member_id, même prénom, même date, plus de compte',
+  (select count(*) from public.household_members hm
+    where hm.member_id = (select member_id from pg_temp_adulte)
+      and hm.user_id is null
+      and hm.first_name = (select first_name from pg_temp_adulte)
+      and hm.birth_date is not distinct from (select birth_date from pg_temp_adulte)), 1);
+select pg_temp.assert_eq('46i sa règle de maison lui reste',
+  (select count(*) from public.household_food_restrictions
+    where member_id = (select member_id from pg_temp_adulte) and label = 'anchois'), 1);
+select pg_temp.assert_eq('46j son allergie lui reste',
+  (select count(*) from public.household_member_allergies
+    where member_id = (select member_id from pg_temp_adulte) and label = 'crustaces'), 1);
+-- ET LE FOYER N'A PAS RÉTRÉCI: sept bouches avant, sept après. C'est toute la
+-- différence entre « retirer l'accès » et « retirer du foyer ».
+select pg_temp.assert_eq('46k le foyer compte toujours sept bouches',
+  (select count(*) from public.household_members
+    where household_id = public.keel_household_of('f0ed0000-0000-0000-0000-000000000001')), 7);
+-- ET LA FACTURE SUIT: un accès retiré n'est plus un accès facturé. Trois
+-- profils réclamés (39b), moins l'Adulte, égale deux.
+select pg_temp.assert_eq('46l deux profils facturables après le détachement',
+  public.keel_household_billable_profiles(
+    public.keel_household_of('f0ed0000-0000-0000-0000-000000000001')), 2);
+-- L'ADULTE N'EST PLUS DANS AUCUN FOYER: il ne lit plus rien, et c'est ce que
+-- « retirer l'accès » veut dire. Une ligne détachée qui laisserait la lecture
+-- ouverte ne retirerait rien du tout.
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000002');
+select pg_temp.assert_eq('46m la personne détachée ne lit plus le foyer',
+  (select count(*) from public.household_members), 0);
+
+-- 46n. LE PROFIL REDEVIENT RÉCLAMABLE (preuve d'acceptation n°4).
+-- Par un lien NEUF: l'ancien est consommé et doit le rester. `0009` a perdu sa
+-- ligne en 39, il n'est donc dans aucun foyer.
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000001');
+create temporary table pg_temp_reinvite on commit drop as
+  select public.keel_household_invite(
+    'nightfoyer_invitee@example.com', (select member_id from pg_temp_adulte)) as r;
+grant select on pg_temp_reinvite to authenticated;
+select pg_temp.assert_ok('46n on réinvite sur la bouche détachée',
+  (select r from pg_temp_reinvite));
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000009');
+select pg_temp.assert_ok('46o et la re-réclamation aboutit',
+  public.keel_household_join((select r->>'token' from pg_temp_reinvite)));
+select pg_temp.become_super();
+select pg_temp.assert_eq('46p la MÊME ligne porte le nouveau compte',
+  (select count(*) from public.household_members hm
+    where hm.member_id = (select member_id from pg_temp_adulte)
+      and hm.user_id = 'f0ed0000-0000-0000-0000-000000000009'
+      and hm.first_name = (select first_name from pg_temp_adulte)), 1);
+
+-- 46q. LES DEUX PORTES DE PURGE SONT AU SERVEUR. `auth.uid()` est NULL sous
+--      `service_role`: ces fonctions prennent donc le compte en PARAMÈTRE, et
+--      le GRANT est leur seule garde. Ouvertes à `authenticated`, elles
+--      rendraient à n'importe qui le droit d'effacer la bouche d'un autre.
+select pg_temp.assert_eq('46q ni anon ni authenticated n''exécutent les portes de purge',
+  (select count(*)
+     from (values ('anon'), ('authenticated')) t(r)
+     cross join (values
+       ('public.keel_household_set_departure(uuid, boolean)'),
+       ('public.keel_household_purge_user(uuid)')) f(sig)
+    where has_function_privilege(t.r, f.sig, 'EXECUTE')), 0);
+select pg_temp.assert_eq('46r le serveur, lui, les exécute',
+  (select count(*)
+     from (values
+       ('public.keel_household_set_departure(uuid, boolean)'),
+       ('public.keel_household_purge_user(uuid)')) f(sig)
+    where has_function_privilege('service_role', f.sig, 'EXECUTE')), 2);
+
+-- 46s. LES CLAUSES ON DELETE, DANS LE CATALOGUE. Faible toute seule — d'où les
+--      assertions de comportement qui suivent — mais elle nomme la régression
+--      exacte si quelqu'un repose une de ces clés sans y penser.
+select pg_temp.assert_eq('46s aucune FK du foyer ne CASCADE plus sur auth.users, sauf les envies',
+  (select count(*) from pg_catalog.pg_constraint c
+    where c.contype = 'f'
+      and c.confrelid = 'auth.users'::regclass
+      and c.conrelid::regclass::text like 'household%'
+      and c.confdeltype <> 'n'), 1);
+
+-- ══════════════════════════════════════════════════════════════════════════
+-- 46t–46z. LA PURGE RGPD. À partir d'ici on SUPPRIME des `auth.users`.
+-- ══════════════════════════════════════════════════════════════════════════
+
+-- 46t. SANS LA CASE: la bouche se détache et ne perd rien (preuve n°2).
+--      L'Enfant part — c'est le cas qui compte, parce que son allergie est ce
+--      que le générateur lit fail-closed.
+select pg_temp.assert_ok('46t l''Enfant ne demande PAS à quitter le foyer',
+  public.keel_household_set_departure('f0ed0000-0000-0000-0000-000000000003', false));
+select pg_temp.assert_ok('46u la purge du foyer précède le delete auth',
+  public.keel_household_purge_user('f0ed0000-0000-0000-0000-000000000003'));
+select public.purge_auth_user('f0ed0000-0000-0000-0000-000000000003');
+select pg_temp.assert_eq('46v la bouche de l''Enfant a SURVÉCU à son compte',
+  (select count(*) from public.household_members hm
+    where hm.member_id = (select member_id from pg_temp_enfant)
+      and hm.user_id is null
+      and hm.first_name = (select first_name from pg_temp_enfant)), 1);
+select pg_temp.assert_eq('46w et le foyer compte toujours sept bouches',
+  (select count(*) from public.household_members
+    where household_id = public.keel_household_of('f0ed0000-0000-0000-0000-000000000001')), 7);
+
+-- 46x. AVEC LA CASE: tout part (preuve n°3). Sansage le demande.
+select pg_temp.assert_ok('46x Sansage demande à quitter le foyer',
+  public.keel_household_set_departure('f0ed0000-0000-0000-0000-000000000004', true));
+select public.keel_household_purge_user('f0ed0000-0000-0000-0000-000000000004');
+select public.purge_auth_user('f0ed0000-0000-0000-0000-000000000004');
+select pg_temp.assert_eq('46y la bouche de Sansage est partie avec son compte',
+  (select count(*) from public.household_members
+    where member_id = (select member_id from pg_temp_sansage)), 0);
+select pg_temp.assert_eq('46z six bouches: une seule ligne a disparu',
+  (select count(*) from public.household_members
+    where household_id = public.keel_household_of('f0ed0000-0000-0000-0000-000000000001')), 6);
+
+-- 46aa. LE MAÎTRE NE QUITTE PAS SON FOYER. Même règle que
+--       `cannot_remove_owner`, et pour la même raison exactement.
+select pg_temp.assert_refused('46aa le maître ne peut pas demander son départ',
+  public.keel_household_set_departure('f0ed0000-0000-0000-0000-000000000001', true),
+  'cannot_remove_owner');
+
+-- 46bb. ET SA PURGE NE LÈVE PLUS. C'est l'assertion qui rend le droit à
+--       l'effacement APPLICABLE: avant ce lot, cette ligne levait 23503 et le
+--       cron `purge-deleted-accounts` rejouait le même échec tous les jours.
+do $$
+declare v_house uuid := public.keel_household_of('f0ed0000-0000-0000-0000-000000000001');
+        v_rows bigint; v_created uuid;
+begin
+  perform public.keel_household_purge_user('f0ed0000-0000-0000-0000-000000000001');
+  begin
+    perform public.purge_auth_user('f0ed0000-0000-0000-0000-000000000001');
+  exception when foreign_key_violation then
+    raise exception
+      'FAIL 46bb : purger le maître lève encore (%) — le droit à l''effacement '
+      'reste inapplicable pour lui', sqlerrm;
+  end;
+  select count(*) into v_rows from public.households where id = v_house;
+  if v_rows <> 1 then
+    raise exception
+      'FAIL 46bb : le foyer a disparu avec son créateur — et les données de '
+      'tous les autres avec';
+  end if;
+  select created_by into v_created from public.households where id = v_house;
+  if v_created is not null then
+    raise exception
+      'FAIL 46bb : households.created_by pointe encore sur un compte effacé';
+  end if;
+  raise notice
+    'PASS 46bb le maître est purgé, le foyer survit, created_by est NULL';
+end;
+$$;
 
 select pg_temp.become_super();
 rollback;
