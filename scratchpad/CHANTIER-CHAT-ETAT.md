@@ -54,19 +54,50 @@ parallèle sans conflit.
 
 ## Commandes pour l'humain (à exécuter au réveil)
 
-> ### 🛑 BLOCAGE À TRAITER AVANT LE PREMIER `supabase db push`
+> ### ✅ BLOCAGE RÉSOLU LE 2026-08-10 — ne pas le re-réparer
 >
-> **Deux migrations portent la même version `20260808060000`** :
-> `20260808060000_household_roster_for_server.sql` et
-> `20260808060000_retrait_residus_raisons_de_conservation.sql`.
+> **Deux migrations portaient la même version `20260808060000`** :
+> `household_roster_for_server` et `retrait_residus_raisons_de_conservation`.
 >
-> C'est la cicatrice connue `duplicate-migration-versions-block-lineage` : la lignée ne peut pas
-> s'établir, et **les trois migrations de la nuit sont derrière ce doublon**. Vérifié par
-> `ls supabase/migrations/*.sql | xargs -n1 basename | cut -d_ -f1 | sort | uniq -d`.
+> **Ce qui a été fait, et pourquoi dans ce sens** : `household_roster_for_server` est passée à
+> `20260808061000`. C'est elle qui devait bouger, pas l'autre —
+> `retrait_residus_raisons_de_conservation` documente 18 tables dont **17 sont droppées par les
+> quatre migrations qui la suivent** (`070000`, `080000`, `090000`, `100000`), et son bloc *fail
+> loud* lève une exception si l'une d'elles manque. La renuméroter en avant la ferait échouer.
+> Ordre chronologique concordant : `be1ac89e` 00:47 (résidus) puis `1d2b0193` 01:16 (roster).
 >
-> **Le doublon est ANTÉRIEUR au chantier chat** (aucun agent de la file ne l'a produit) — je ne l'ai
-> donc pas réparé : renommer une migration déjà appliquée quelque part est une décision qui
-> t'appartient. Renomme l'une des deux (typiquement `…060001_…`) **avant** de pousser.
+> **État de la base locale, vérifié par les EFFETS et pas par le ledger** : les deux avaient déjà
+> tourné (`keel_household_roster_for(uuid)` existe, le commentaire de `planned_deviations` est
+> posé), mais une seule ligne les enregistrait — nommée `retrait_residus…`. La ligne
+> `20260808061000 | household_roster_for_server` a donc été insérée pour enregistrer ce qui était
+> déjà vrai. Aucune migration n'a été rejouée. Réconciliation ledger ↔ disque : chaque version
+> enregistrée a son fichier, au bon nom.
+>
+> **Écart de lignée résolu dans la foulée (même jour).** Cinq fichiers manquaient au ledger local.
+> Vérifiés un par un PAR LEURS EFFETS, premier ET dernier artefact du fichier :
+>
+> - déjà appliquées, jamais enregistrées → ligne de ledger insérée, **rien rejoué** :
+>   `20260806220000_llm_usage_cached_prompt_tokens` (colonne + commentaire posés),
+>   `20260806230000_doctrine_delegation` (0 coach à backfiller, 0 doctrine portant l'ancien texte),
+>   `20260807090000_meal_plan_window` (contrainte anti-chevauchement, index `one_live_start`,
+>   policy `owner_all` bien partie et `owner_read` en place) ;
+> - réellement absentes → appliquées par `supabase migration up --include-all` (local) :
+>   `20260808171000_daily_recommendation_cron`, `20260810090000_student_body_measures`.
+>
+> ⚠️ Le `--include-all` était nécessaire : `daily_recommendation_cron` est ANTÉRIEURE à des
+> migrations déjà appliquées. Contrôle final : 0 fichier non appliqué, 0 ligne de ledger sans
+> fichier, 0 doublon de version.
+>
+> **Deux migrations non commitées, emmenées dans ce même commit** —
+> `20260808020000_profile_height.sql` et `20260808040000_eating_rhythm_size.sql`. Ce n'était pas un
+> confort : du code DÉJÀ commité lit `profiles.height_cm` (`student_body_io.ts:51,77`,
+> `meal_body.ts:69`) jusqu'à relire sa contrainte `profiles_height_cm_range_check`. Un clone frais
+> du dépôt produisait une base où ce code casse.
+>
+> ⚠️ **Non commité exprès** : la correction de la référence `20260808060000` → `20260808061000`
+> dans `_shared/keel/household_turn_context.ts:332`. Ce fichier porte 286 lignes insérées d'un
+> autre chantier en cours (plafond de bloc, `clampLine`, `viewerId`) ; la correction part avec
+> celui-là, pas avec la lignée.
 
 ```bash
 # FF-008 — module _shared modifié (plancher de mesure corporelle).
