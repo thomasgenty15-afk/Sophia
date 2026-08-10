@@ -10,7 +10,6 @@ import {
   createHousehold,
   createOwnerGoalRow,
   ENVY_MAX_CHARS,
-  envyRound,
   generateHouseholdMeal,
   hasOwnerGoalRow,
   type HouseholdMealView,
@@ -18,7 +17,7 @@ import {
   type HouseholdView,
   inviteToHousehold,
   loadAllergies,
-  loadEnvies,
+  loadEnvyLine,
   loadHousehold,
   loadHouseholdMeal,
   loadRestrictions,
@@ -34,6 +33,7 @@ import {
   setMemberName,
   submitEnvy,
 } from "../api/household";
+import { weekStartFor } from "../api/dates";
 import { t } from "../i18n/t";
 import KeelAppShell from "../components/KeelAppShell";
 import { Badge } from "../components/ui/Badge";
@@ -156,7 +156,9 @@ export default function HouseholdPage(): React.ReactElement {
   const [household, setHousehold] = React.useState<HouseholdView | null>(null);
   const [restrictions, setRestrictions] = React.useState<RestrictionView[]>([]);
   const [allergies, setAllergies] = React.useState<AllergyView[]>([]);
-  const [envies, setEnvies] = React.useState<Array<{ userId: string; body: string }>>([]);
+  // `null` = le maître n'a rien écrit cette semaine. C'est un état NORMAL, pas
+  // une attente: rien à l'écran ne le présente comme un manque.
+  const [envyLine, setEnvyLine] = React.useState<string | null>(null);
   const [meal, setMeal] = React.useState<HouseholdMealView | null>(null);
   // `null` = pas encore lu. C'est la garde de montage: tant qu'on ne SAIT pas
   // si la ligne `student_goals` existe, on ne rend ni la carte qui la crée ni
@@ -166,6 +168,17 @@ export default function HouseholdPage(): React.ReactElement {
   const [busy, setBusy] = React.useState(false);
 
   const weekStart = React.useMemo(() => new Date().toISOString().slice(0, 10), []);
+  /**
+   * L'ANCRE DES ENVIES, ET CE N'EST PAS `weekStart` CI-DESSUS.
+   *
+   * `weekStart` porte AUJOURD'HUI (c'est ce que `loadHouseholdMeal` attend: la
+   * composition courante est celle dont la fenêtre couvre ce jour). La ligne
+   * d'envies, elle, est ancrée au LUNDI ISO — sinon une phrase écrite lundi
+   * serait relue « rien écrit » mardi, et la composition ne la trouverait pas
+   * non plus. La base recale à l'écriture; on recale ici aussi parce que la
+   * RELECTURE filtre en SQL sur la valeur rangée.
+   */
+  const envyWeek = React.useMemo(() => weekStartFor(weekStart, "mon"), [weekStart]);
 
   const refresh = React.useCallback(async () => {
     if (!userId) return;
@@ -175,7 +188,7 @@ export default function HouseholdPage(): React.ReactElement {
       if (hh) {
         setRestrictions(await loadRestrictions());
         setAllergies(await loadAllergies());
-        setEnvies(await loadEnvies(weekStart));
+        setEnvyLine(await loadEnvyLine(envyWeek));
         setMeal(await loadHouseholdMeal(weekStart));
         setOwnerGoalRow(await hasOwnerGoalRow(userId));
       }
@@ -282,9 +295,9 @@ export default function HouseholdPage(): React.ReactElement {
 
               <EnvyCard
                 household={household}
-                envies={envies}
+                line={envyLine}
                 busy={busy}
-                onSubmit={(body) => run(() => submitEnvy(weekStart, body))}
+                onSubmit={(body) => run(() => submitEnvy(envyWeek, body))}
               />
               {canCompose ? <ComposeCard household={household} onDone={refresh} /> : null}
               {meal ? <TableCard meal={meal} /> : null}
@@ -855,17 +868,44 @@ function MemberRow(
   );
 }
 
+/**
+ * LES ENVIES DE LA SEMAINE — UNE LIGNE, ÉCRITE PAR LE COMPTE MAÎTRE (lot 5).
+ *
+ * ── CE QUE CETTE CARTE NE FAIT PLUS, ET POURQUOI ON NE LE REMET PAS ───────
+ * Elle demandait à CHACUN de déposer son envie, et affichait « 2 ont parlé ·
+ * 3 n'ont rien dit ». Les deux sont partis avec le conseil de famille:
+ *
+ *   — le décompte se lisait « il en reste 3 à relancer », quoi qu'en dise la
+ *     copie à côté — c'est-à-dire exactement la charge mentale que le produit
+ *     promet de supprimer;
+ *   — et Sophia arbitrant publiquement entre un parent et son enfant est un
+ *     marécage.
+ *
+ * Ce qui reste: une phrase, écrite pour tout le monde. « Léa veut des pâtes,
+ * Marc en a marre du poulet. »
+ *
+ * ── UN SEUL AUTEUR, ET LE REFUS VIT EN BASE ──────────────────────────────
+ * La carte n'apparaît que pour le compte maître. Ce n'est PAS la garde: la
+ * RPC refuse tout autre membre par `not_owner` (une limite d'UI n'est pas une
+ * limite). L'écran ne montre simplement pas un champ dont l'envoi serait
+ * refusé.
+ */
 function EnvyCard(
-  { household, envies, busy, onSubmit }: {
+  { household, line, busy, onSubmit }: {
     household: HouseholdView;
-    envies: Array<{ userId: string; body: string }>;
+    /** `null` = rien d'écrit cette semaine. Un état, pas un manque. */
+    line: string | null;
     busy: boolean;
     onSubmit: (body: string) => void;
   },
 ) {
-  const mine = envies.find((e) => e.userId === household.me?.userId);
-  const [body, setBody] = React.useState(mine?.body ?? "");
-  const round = envyRound(household, envies);
+  // ⚠️ INSTANTANÉ DE MONTAGE. Il est sûr parce que l'écran entier ne rend rien
+  // tant que `phase === "loading"`, et que la ligne est lue dans le même
+  // `refresh()` que le foyer: la carte ne peut pas se monter sur du vide puis
+  // l'écraser au Save.
+  const [body, setBody] = React.useState(line ?? "");
+
+  if (household.me?.role !== "owner") return null;
 
   return (
     <Card>
@@ -882,15 +922,6 @@ function EnvyCard(
         <Button disabled={busy || !body.trim()} onClick={() => onSubmit(body.trim())}>
           {t("household.envy.save")}
         </Button>
-        {/* LE SILENCE EST COMPTÉ, PAS RÉCLAMÉ. Aucun bouton « relancer »
-            n'existe ici, et c'est le sujet: si celui qui tient le foyer devait
-            courir après tout le monde, on aurait recréé la charge mentale
-            qu'on promet de supprimer (§10.3). */}
-        <span className="text-sm text-neutral-500">
-          {t("household.envy.spoken", { count: round.spoken.length })}
-          {" · "}
-          {t("household.envy.silent", { count: round.silent.length })}
-        </span>
       </div>
     </Card>
   );
@@ -1086,7 +1117,6 @@ function ComposeCard(
   { household, onDone }: { household: HouseholdView; onDone: () => Promise<void> },
 ) {
   const [working, setWorking] = React.useState(false);
-  const [silent, setSilent] = React.useState<number | null>(null);
   const [failure, setFailure] = React.useState<string | null>(null);
 
   // SEUL LE COMPTE MAÎTRE COMPOSE. Ce n'est pas une hiérarchie de confort: la
@@ -1105,16 +1135,15 @@ function ComposeCard(
         onClick={async () => {
           setWorking(true);
           setFailure(null);
-          setSilent(null);
           try {
-            const res = await generateHouseholdMeal({
+            // LA COMPOSITION NE REND PLUS DE DÉCOMPTE DE SILENCIEUX (lot 5).
+            // Rien ne le remplace ici: une phrase « personne n'a rien demandé
+            // cette semaine » remettrait le reproche de silence que ce lot
+            // retire, sous une autre forme.
+            await generateHouseholdMeal({
               window: { kind: "until_sunday" },
               intent: "prepare_next",
             });
-            // QUI S'EST TU EST DIT APRÈS COUP, jamais réclamé avant. Le plan
-            // sort quand même — c'est la règle de survie du conseil de famille
-            // (§8.4) — mais le foyer doit savoir pour qui on a composé d'office.
-            setSilent(res.silent.length);
             await onDone();
           } catch (e) {
             setFailure(e instanceof Error ? e.message : String(e));
@@ -1125,11 +1154,6 @@ function ComposeCard(
       >
         {working ? t("household.compose.working") : t("household.compose.submit")}
       </Button>
-      {silent !== null && silent > 0 ? (
-        <p className="mt-2 text-sm text-neutral-600">
-          {t("household.compose.silent_note", { count: silent })}
-        </p>
-      ) : null}
       {failure ? <p className="mt-2 text-sm text-red-700">{failure}</p> : null}
     </Card>
   );

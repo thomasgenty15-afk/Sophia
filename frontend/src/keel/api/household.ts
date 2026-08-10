@@ -124,28 +124,19 @@ export function claimableMembers(
   return (household?.members ?? []).filter((m) => !m.userId);
 }
 
-/** Qui a parlé cette semaine — pour la carte du conseil de famille. */
-export interface EnvyRoundView {
-  spoken: string[];
-  silent: string[];
-}
-
-export function envyRound(
-  household: HouseholdView | null,
-  submissions: ReadonlyArray<{ userId: string }>,
-): EnvyRoundView {
-  const said = new Set(submissions.map((s) => s.userId));
-  const spoken: string[] = [];
-  const silent: string[] = [];
-  for (const m of household?.members ?? []) {
-    // UNE BOUCHE SANS COMPTE NE PEUT PAS PARLER, et ne compte donc ni dans les
-    // silencieux ni dans ceux qui ont parlé: la faire figurer comme « n'a rien
-    // dit » reprocherait un silence à quelqu'un qui n'a pas de voix.
-    if (!m.userId) continue;
-    (said.has(m.userId) ? spoken : silent).push(m.userId);
-  }
-  return { spoken, silent };
-}
+/*
+ * ── `envyRound` A ÉTÉ RETIRÉE (lot 5, 2026-08-10) ──────────────────────────
+ *
+ * Elle séparait ceux qui avaient déposé une envie de ceux qui s'étaient tus,
+ * et l'écran en rendait le décompte. Les deux sont partis avec le conseil de
+ * famille: un compteur « 3 personnes n'ont rien dit » se lit « il en reste 3 à
+ * relancer », quoi qu'en dise la copie à côté — donc il recréait exactement la
+ * charge mentale que le produit promet de supprimer.
+ *
+ * Ne pas le remettre sous une autre forme (« 2/5 ont répondu », une pastille,
+ * une relance). Les envies sont UNE ligne, écrite par le compte maître pour
+ * tout le monde.
+ */
 
 // ───────────────────────────────────────────────────────────────────────────
 // LES APPELS
@@ -502,6 +493,15 @@ export async function createOwnerGoalRow(userId: string, goal: MemberGoal): Prom
   return Boolean(data && data.length > 0);
 }
 
+/**
+ * LA LIGNE D'ENVIES DE LA SEMAINE. Compte maître uniquement — la RPC refuse
+ * tout autre membre par `not_owner`, et c'est la base qui le dit, pas l'écran.
+ *
+ * `weekStart` est recalée sur le lundi ISO PAR LA BASE. On la passe quand même
+ * déjà normalisée (voir `HouseholdPage`) parce que la relecture, elle, filtre
+ * en SQL: envoyer un mardi à l'écriture et relire un lundi rendrait « rien
+ * écrit » juste après avoir écrit.
+ */
 export async function submitEnvy(weekStart: string, body: string) {
   const { data, error } = await supabase.rpc("keel_household_submit_envy", {
     p_week_start: weekStart,
@@ -511,26 +511,28 @@ export async function submitEnvy(weekStart: string, body: string) {
   return asResult(data);
 }
 
-export async function loadEnvies(weekStart: string) {
+/**
+ * @param weekStart LUNDI ISO de la semaine. Une autre date rend `null` — la
+ *        table n'ancre que des lundis depuis le lot 5.
+ * @returns la phrase du maître, ou `null` s'il n'a rien écrit cette semaine.
+ *          `null` est un état NORMAL, jamais une attente: la composition sort
+ *          quand même, depuis les profils seuls.
+ */
+export async function loadEnvyLine(weekStart: string): Promise<string | null> {
   const { data, error } = await supabase
     .from("household_envy_submissions")
-    .select("user_id, body")
-    .eq("week_start", weekStart);
+    .select("body")
+    .eq("week_start", weekStart)
+    .limit(1);
   if (error) throw new Error(error.message);
-  return (data ?? []).map((raw) => {
-    const r = raw as Record<string, unknown>;
-    // ⚠️ UN IDENTIFIANT DE COMPTE, ET C'EST CORRECT ICI: seule une personne
-    // qui a un compte peut avoir soumis une envie. La table entière change de
-    // forme au lot 5 (une ligne écrite par le maître remplace la récolte).
-    return { userId: String(r.user_id), body: String(r.body ?? "") };
-  });
+  const row = (data ?? [])[0] as Record<string, unknown> | undefined;
+  const body = String(row?.body ?? "").trim();
+  return body ? body : null;
 }
 
 export interface HouseholdMealResult {
   ok: boolean;
   mealId: string | null;
-  spoken: string[];
-  silent: string[];
   issues: string[];
 }
 
@@ -550,12 +552,12 @@ export async function generateHouseholdMeal(args: {
   });
   if (error) throw new Error(error.message);
   const row = (data ?? {}) as Record<string, unknown>;
-  const hh = (row.household ?? {}) as Record<string, unknown>;
+  // `household.spoken` / `household.silent` ne sont plus rendus par la fonction
+  // edge (lot 5). On ne les lit plus non plus: garder un lecteur tolérant
+  // laisserait croire que le champ peut revenir.
   return {
     ok: row.ok === true,
     mealId: ((row.meal ?? null) as Record<string, unknown> | null)?.id as string ?? null,
-    spoken: Array.isArray(hh.spoken) ? hh.spoken.map(String) : [],
-    silent: Array.isArray(hh.silent) ? hh.silent.map(String) : [],
     issues: Array.isArray(row.issues) ? row.issues.map(String) : [],
   };
 }

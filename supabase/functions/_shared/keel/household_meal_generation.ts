@@ -18,8 +18,9 @@
  *   1. QUI mange — le brief de portions (`household_portions.ts`), qui porte
  *      les directions de service divergentes ET l'interdiction d'écrire une
  *      raison.
- *   2. CE QUE LE FOYER A DEMANDÉ — les envies mises en commun
- *      (`household_envies.ts`), avec la règle du silence.
+ *   2. CE QUE LE FOYER A DEMANDÉ — LA ligne d'envies de la semaine
+ *      (`household_envies.ts`), écrite par le compte maître pour tout le
+ *      monde. Elle est facultative: pas de ligne, pas de bloc.
  *   3. CE QUI N'ENTRE PAS DANS CETTE MAISON — les restrictions parentales,
  *      énoncées comme un FAIT DOMESTIQUE et jamais comme un conseil.
  *
@@ -35,7 +36,7 @@
  */
 
 import { buildPortionBrief, type PortionMember } from "./household_portions.ts";
-import { type EnvyMember, type EnvySubmission, mergeEnvies } from "./household_envies.ts";
+import { buildEnvyBlock } from "./household_envies.ts";
 
 export interface HouseholdRestriction {
   memberId: string;
@@ -45,7 +46,12 @@ export interface HouseholdRestriction {
 
 export interface HouseholdPromptInput {
   members: readonly PortionMember[];
-  envies: readonly EnvySubmission[];
+  /**
+   * LA ligne d'envies de la semaine, ou `null`. UNE phrase pour tout le foyer,
+   * pas une liste par personne (lot 5). L'appelant est responsable de son
+   * ancrage: une ligne d'une semaine passée ne doit jamais arriver ici.
+   */
+  envyLine: string | null;
   restrictions: readonly HouseholdRestriction[];
 }
 
@@ -112,9 +118,16 @@ export interface HouseholdPromptBlocks {
   userSuffix: string;
   /** À concaténer au `systemPrompt`: le schéma de sortie supplémentaire. */
   systemSuffix: string;
-  /** Qui a parlé, qui n'a rien dit. Remonté à l'écran, pas seulement au modèle. */
-  spoken: string[];
-  silent: string[];
+  /**
+   * La ligne d'envies est-elle entrée dans le prompt ? Rendu pour la TRACE,
+   * pas pour l'écran: « pourquoi ce plan ne ressemble-t-il pas à ce que j'ai
+   * demandé ? » n'a pas de réponse trois jours plus tard si on ne sait pas si
+   * la demande a seulement été lue.
+   *
+   * (Remplace `spoken`/`silent`, partis avec le conseil de famille: un
+   * décompte de silencieux se lit « il en reste 3 à relancer ».)
+   */
+  envyLineUsed: boolean;
 }
 
 /**
@@ -128,11 +141,7 @@ export interface HouseholdPromptBlocks {
 export function buildHouseholdPromptBlocks(
   input: HouseholdPromptInput,
 ): HouseholdPromptBlocks {
-  const envyMembers: EnvyMember[] = input.members.map((m) => ({
-    memberId: m.memberId,
-    displayName: m.displayName,
-  }));
-  const merged = mergeEnvies(envyMembers, input.envies);
+  const envyBlock = buildEnvyBlock(input.envyLine);
 
   const idLines = input.members.map((m) => `- ${m.displayName} = ${m.memberId}`);
 
@@ -142,15 +151,14 @@ export function buildHouseholdPromptBlocks(
     ...idLines,
     "",
     buildPortionBrief(input.members),
-    merged.promptBlock,
+    envyBlock,
     restrictionBlock(input.restrictions),
   ].filter((p) => p && p.trim().length > 0);
 
   return {
     userSuffix: `\n\n${parts.join("\n\n")}`,
     systemSuffix: `\n\n${PORTION_SCHEMA_BLOCK.join("\n")}`,
-    spoken: merged.spoken,
-    silent: merged.silent,
+    envyLineUsed: envyBlock.length > 0,
   };
 }
 

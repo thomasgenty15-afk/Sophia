@@ -45,11 +45,18 @@ import {
   parseGeneratedMeal,
 } from "../_shared/keel/meal_generation.ts";
 import { proteinAnchorRetryInstruction } from "../_shared/keel/protein_anchor.ts";
+import type { CompositionIndex } from "../_shared/keel/food_composition.ts";
+import { loadCompositionIndex } from "../_shared/keel/food_composition_io.ts";
 import {
   MEMBER_AGE_STATES,
   type MemberAgeState,
 } from "../_shared/keel/household.ts";
 import { applyHouseRuleLock } from "../_shared/keel/household_restriction_lock.ts";
+import {
+  type HouseholdAllergyRow,
+  householdHardConstraints,
+  loadHouseholdAllergies,
+} from "../_shared/keel/household_safety.ts";
 import {
   buildHouseholdPromptBlocks,
   extractMemberPortions,
@@ -63,13 +70,22 @@ import {
   reconcilePortions,
 } from "../_shared/keel/household_portions.ts";
 import { loadHouseholdMemberBodies } from "../_shared/keel/household_bodies.ts";
-import type { EnvySubmission } from "../_shared/keel/household_envies.ts";
+import {
+  memberDeltasPayload,
+  resolveHousehold,
+  toHouseholdMember,
+} from "../_shared/keel/household_composition.ts";
+import { envelopeFor } from "../_shared/keel/meal_envelope.ts";
+import { GOAL_TOKENS, type GoalToken } from "../_shared/keel/tokens.ts";
+import { weekStartOf } from "../_shared/keel/weekly_flow_io.ts";
 
 /**
  * `generate-household-meal-v1` — UNE cuisson, des portions qui divergent.
  *
  * Autorité produit: docs/keel/PIVOT-FOYER.md §3 (l'unité est la session de
- * cuisine) et §8 (le conseil de famille).
+ * cuisine). Le CONSEIL DE FAMILLE de §8 est mort le 2026-08-08: les envies
+ * sont UNE ligne écrite par le compte maître pour tout le monde
+ * (CHANTIER-FOYER-PROFILS.md, lot 5), et plus une récolte par membre.
  *
  * ── POURQUOI UNE FONCTION DE PLUS PLUTÔT QU'UN DRAPEAU SUR L'EXISTANTE ───
  * `generate-meal-v1` marche, il est couvert, et il sert le chemin MAJORITAIRE:
@@ -352,11 +368,75 @@ Deno.serve(async (req) => {
       };
     });
 
+    // ── FF-043 · LA RÉSOLUTION FOYER ────────────────────────────────────
+    // L'ordre est l'algorithme du design §4.1, et il n'est pas négociable: le
+    // VERROU DE LANE d'abord, avant tout calcul. Évalué après le
+    // dimensionnement, il faudrait défaire des enveloppes déjà posées — et un
+    // défaisage se rate en silence.
+    //
+    // ⚠️ LE CORPS RESTE `null` DANS LE PROMPT (plus bas, et le commentaire y
+    // est). Ce qui suit dimensionne dans le MOTEUR: le modèle ne reçoit jamais
+    // une enveloppe, il reçoit un plat et des directions de service.
+    const refRes = await admin
+      .from("households")
+      .select("reference_member_id")
+      .eq("id", householdId)
+      .maybeSingle();
+    if (refRes.error) throw refRes.error;
+    const composerMemberId =
+      members.find((m) => m.userId === userId)?.memberId ?? null;
+    const resolution = resolveHousehold({
+      members: members.map((m) =>
+        toHouseholdMember(
+          m,
+          // L'enveloppe PAR MEMBRE. `goalApplies` a déjà mis `goal` à `null`
+          // pour un mineur et pour une bouche d'âge inconnu, donc aucune
+          // enveloppe n'en dérive — la garde vit là-bas, pas ici.
+          m.goal === null || m.body === null ? null : envelopeFor(
+            (GOAL_TOKENS as readonly string[]).includes(m.goal)
+              ? (m.goal as GoalToken)
+              : "health",
+            m.body,
+            m.body.ageBand,
+            // FAIL-CLOSED, comme sur la lane individuelle.
+            m.body.restrictionFlag ?? true,
+            // Le pilotage du coach du foyer n'entre pas ici: le tronc est
+            // commun, et la doctrine qui le gouverne est celle du RÉFÉRENT,
+            // pas celle de chaque membre. À instruire avec FF-043 §11.
+            null,
+          ),
+        )
+      ),
+      declaredReferenceMemberId: refRes.data?.reference_member_id ?? null,
+      composerMemberId,
+      daysCovered: 7,
+    });
+    issues.push(...resolution.issues);
+    console.log(JSON.stringify({
+      tag: "keel.household_meal.composition",
+      user_id: userId,
+      household_id: householdId,
+      // LE MODE MÉLANGE les deux populations (un membre protégé, ou aucune
+      // enveloppe calculable): il ne désigne personne. C'est la raison pour
+      // laquelle il est journalisable.
+      mode: resolution.mode,
+      deltas: resolution.deltas.length,
+      family_service: resolution.familyService,
+      // L'INSTRUMENTATION D'A3: sans elle, la décision d'armer le slot de
+      // dressage se prendrait à l'aveugle.
+      residual_gaps: resolution.residualGaps.map((g) => g.gapKcalPerDay),
+    }));
+
     // ── LES RESTRICTIONS DE MAISON ──────────────────────────────────────
     // Lues telles quelles. Le fait qu'elles soient LÉGITIMES a déjà été tranché
     // à l'écriture (`keel_household_add_restriction`: compte maître, membre de
     // ce foyer). Les rejuger ici ferait une seconde définition de la règle, qui
     // divergerait.
+    //
+    // ⚠️ CETTE TABLE NE CONTIENT QUE DU POUVOIR DOMESTIQUE. Les allergies du
+    // foyer vivent dans `household_member_allergies`, lue plus bas avec l'union
+    // de sécurité — voir l'en-tête de `household_safety.ts` pour la raison, qui
+    // est que le verrou d'en dessous EFFACE le « pourquoi » du plat.
     const restrRes = await admin
       .from("household_food_restrictions")
       .select("member_id, label")
@@ -396,28 +476,26 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
+    // ── L'ANCRE EST LE LUNDI, PAS LE JOUR DE DÉPART (lot 5) ─────────────
+    // La lecture filtrait sur `week_start = startsOn`. Une ligne écrite lundi
+    // n'était alors PAS trouvée par une composition lancée mercredi: le foyer
+    // recevait un plan qui ignorait ce qu'il avait demandé, sans une seule
+    // erreur nulle part. `keel_household_submit_envy` recale à l'écriture sur
+    // le lundi ISO; on recale ici à la lecture, avec la même arithmétique.
+    // Une semaine PASSÉE ne remonte donc jamais — c'est toute la raison pour
+    // laquelle cette table garde une ancre plutôt qu'une colonne éternelle.
+    const envyWeek = weekStartOf(startsOn);
     const envyRes = await admin
       .from("household_envy_submissions")
-      .select("user_id, body")
+      .select("body")
       .eq("household_id", householdId)
-      .eq("week_start", startsOn);
+      .eq("week_start", envyWeek)
+      .maybeSingle();
     if (envyRes.error) throw envyRes.error;
-    // LA TRADUCTION SE FAIT ICI, ET UNE SEULE FOIS. `household_envy_submissions`
-    // reste clée sur `auth.users` — seul quelqu'un qui a un compte peut avoir
-    // parlé. Le bloc de prompt, lui, ne connaît que `member_id`. On traduit au
-    // bord plutot que de laisser deux vocabulaires circuler dans le module pur.
-    // (La table entiere change de forme au lot 5 : une ligne ecrite par le
-    // maitre remplace la recolte. Ce pont disparaitra avec elle.)
-    const memberIdByUser = new Map(
-      roster
-        .filter((r) => r.user_id)
-        .map((r) => [String(r.user_id), r.member_id]),
-    );
-    const envies = ((envyRes.data ?? []) as Array<{ user_id: string; body: string }>)
-      .flatMap((e): EnvySubmission[] => {
-        const memberId = memberIdByUser.get(String(e.user_id));
-        return memberId ? [{ memberId, body: e.body }] : [];
-      });
+    // UNE LIGNE, ÉCRITE PAR LE COMPTE MAÎTRE POUR TOUT LE MONDE. La récolte
+    // par membre est morte au lot 5 (elle faisait relancer tout le monde), et
+    // avec elle le pont user_id → member_id: le bloc n'a plus de nom à porter.
+    const envyLine = ((envyRes.data ?? null) as { body: string } | null)?.body ?? null;
 
     // ── LA MÉTHODE: CELLE DU COMPTE MAÎTRE ──────────────────────────────
     // Un foyer suit UNE méthode. Mélanger celles de deux coachs produirait un
@@ -480,8 +558,62 @@ Deno.serve(async (req) => {
       }
     }
 
+    // ── LES ALLERGIES DES BOUCHES SANS COMPTE (lot 4) ───────────────────
+    //
+    // La boucle du dessus ne parcourt que `accountIds`, et c'était le trou:
+    // `student_safety_constraints` est clée sur `user_id`, donc l'allergie
+    // d'un enfant de six ans n'entrait dans AUCUNE union — alors que l'écran
+    // du foyer la réclamait. Le produit promettait ce qu'il ne tenait pas, et
+    // le silence tombait du côté dangereux.
+    //
+    // MÊME FAIL-CLOSED, ET C'EST NON NÉGOCIABLE. Un `catch` qui avale l'erreur
+    // ici retirerait sa ceinture à la seule population qui ne peut pas la
+    // redéclarer elle-même. `loadHouseholdAllergies` lève; on refuse la
+    // composition, exactement comme au-dessus.
+    let householdAllergies: HouseholdAllergyRow[];
+    try {
+      householdAllergies = await loadHouseholdAllergies(admin as never, householdId);
+    } catch (error) {
+      await logEdgeFunctionError({
+        functionName: FN_NAME,
+        requestId,
+        error,
+        metadata: { source: "household_allergies", household: householdId },
+      });
+      return jsonResponse(req, {
+        error: "safety_constraints_unreadable",
+        detail: "We could not read this household's hard constraints, and we " +
+          "will not cook without them.",
+        request_id: requestId,
+      }, { status: 503 });
+    }
+
     // ── LE PROMPT ───────────────────────────────────────────────────────
     const goalRow = ownerGoal as Record<string, unknown>;
+
+    // LA SÉPARATION DES DEUX NATURES, décidée en UN endroit et pas ici.
+    // `householdHardConstraints` rend l'union de sécurité d'un côté et les
+    // libellés du verrou de l'autre; les calculer séparément aux deux points
+    // d'appel remettrait la question « et si on mélangeait ? » à chaque
+    // lecture. Une allergie qui passerait par le verrou verrait sa raison
+    // MÉDICALE effacée du plat, au même rang qu'un Nutella interdit.
+    const householdSplit = householdHardConstraints({
+      allergies: householdAllergies,
+      houseRules: restrictions,
+      // La langue du foyer est celle de la ligne du compte maître, comme le
+      // reste de ce qui gouverne la composition.
+      contentLocale: String(goalRow.content_locale ?? "").trim() || "en-GB",
+    });
+    constraints.push(...householdSplit.safetyConstraints);
+    if (householdSplit.safetyConstraints.length > 0) {
+      console.log(JSON.stringify({
+        tag: "keel.household_meal.member_allergies",
+        user_id: userId,
+        household_id: householdId,
+        rows: householdAllergies.length,
+        refs: householdSplit.safetyConstraints.length,
+      }));
+    }
 
     // ── CE QUE L'ÉLÈVE A DÉMENTI DEPUIS — LE TROISIÈME CHEMIN ─────────────
     // `generate-meal-v1` porte ce raccord avec cette raison écrite: « Une garde
@@ -551,6 +683,24 @@ Deno.serve(async (req) => {
       }));
     }
 
+    // ── FF-038 · LE RÉFÉRENTIEL DE COMPOSITION ────────────────────────────
+    // EN OMBRE: il ne change aucune assiette. Il sert à RECALCULER les grammes
+    // que le modèle déclare, pour que la mesure du chantier porte sur des
+    // chiffres que le produit a faits lui-même — l'arithmétique du modèle
+    // n'est jamais une preuve (garantie 2 de `meal_generation.ts`).
+    //
+    // FAIL-OPEN NOMMÉ: une lecture en panne rend `null`, le parseur le COMPTE,
+    // et la génération continue. L'instrumentation ne doit jamais coûter un
+    // dîner à un élève — et l'échec est journalisé pour qu'un référentiel
+    // indisponible en boucle ne ressemble pas à un modèle qui n'écrit pas ses
+    // quantités.
+    let composition: CompositionIndex | null = null;
+    try {
+      composition = await loadCompositionIndex(admin);
+    } catch (error) {
+      console.warn(`[${FN_NAME}] composition index unavailable`, error);
+    }
+
     const { systemPrompt, userMessage } = buildMealPrompt({
       // ── FF-030 · LES CONTRAINTES DURES, ICI AUSSI ──────────────────────
       // Cette lane portait exactement le même trou que `generate-meal-v1`:
@@ -613,7 +763,7 @@ Deno.serve(async (req) => {
 
     const household = buildHouseholdPromptBlocks({
       members,
-      envies,
+      envyLine,
       restrictions,
     });
 
@@ -652,6 +802,12 @@ Deno.serve(async (req) => {
       daysToFill,
       awayDays,
       cookingTimeMin: capacity.cookingTimeMin,
+      // FF-038 — LE RÉFÉRENTIEL DE COMPOSITION.
+      // Chargé plus haut dans un try/catch: `null` quand la lecture a
+      // échoué. L'instrumentation ne doit jamais coûter un dîner, et le
+      // parseur compte l'indisponibilité nommément plutôt que de la
+      // laisser ressembler à un modèle qui n'écrit pas ses quantités.
+      composition,
     } as const;
 
     let meal;
@@ -730,9 +886,14 @@ Deno.serve(async (req) => {
     // l'enfant que sa demande a été refusée et l'attribue au plan plutôt qu'à
     // son parent. Une consigne de prompt régresse en réel; le verrou est
     // déterministe.
+    // LES LIBELLÉS VIENNENT DU SPLIT, pas de `restrictions.map(...)`. La
+    // différence n'est pas cosmétique: c'est la seule ligne du fichier qui
+    // décide ce que ce verrou a le droit de taire, et la faire passer par
+    // `householdHardConstraints` est ce qui rend structurellement impossible
+    // qu'une allergie y entre un jour par distraction.
     const lock = applyHouseRuleLock(
       mealDishesPayload(meal),
-      restrictions.map((r) => r.label),
+      householdSplit.houseRuleLabels,
     );
     if (lock.violations.length > 0) {
       // SERVIR l'aliment exclu est autre chose que le nommer: là, le fond est
@@ -785,6 +946,13 @@ Deno.serve(async (req) => {
           content_locale: String(goalRow.content_locale ?? "en"),
           household_id: householdId,
           member_portions: memberPortionsPayload(portions),
+          // FF-043 — LES ADD-ONS, EN GRAMMES D'ALIMENT.
+          //
+          // ⚠️ NE SORTENT JAMAIS: la raison d'un delta, l'objectif d'un
+          // membre, un différentiel lisible, toute mention de corps ou de
+          // flag. Ce payload porte un aliment et des grammes, comme n'importe
+          // quelle ligne de recette — et il n'y a AUCUNE prose à assainir.
+          member_deltas: memberDeltasPayload(resolution.deltas),
           generated_from: {
             coach_id: doctrine.coachId,
             doctrine_version: doctrine.doctrine?.version ?? null,
@@ -810,12 +978,15 @@ Deno.serve(async (req) => {
               unknown_age_count:
                 members.filter((m) => m.ageState === "unknown").length,
               accountless_count: members.filter((m) => !m.userId).length,
-              // QUI A PARLÉ ET QUI S'EST TU, écrit sur la ligne. Sans ça,
-              // « pourquoi Léa a-t-elle eu ça ? » n'a pas de réponse trois
-              // jours plus tard — et c'est exactement la question qu'un foyer
-              // pose.
-              spoken: household.spoken,
-              silent: household.silent,
+              // LA LIGNE D'ENVIES A-T-ELLE ÉTÉ LUE, ET POUR QUELLE SEMAINE.
+              // Sans ça, « pourquoi ce plan ignore-t-il ce que j'ai demandé ? »
+              // n'a pas de réponse trois jours plus tard: on ne saurait pas
+              // distinguer « rien n'a été écrit » de « la demande a été lue et
+              // arbitrée ». (`spoken`/`silent` sont partis avec le conseil de
+              // famille au lot 5: un décompte de silencieux se lit « il en
+              // reste 3 à relancer ».)
+              envy_line_used: household.envyLineUsed,
+              envy_week: envyWeek,
               restriction_count: restrictions.length,
             },
             issues: [...issues, ...meal.issues, ...portionIssues],
@@ -848,14 +1019,18 @@ Deno.serve(async (req) => {
         // pour choisir un libelle; le retirer de la reponse evite qu'un client
         // continue de brancher dessus une distinction qui n'existe plus.
         member_count: members.length,
-        spoken: household.spoken,
-        silent: household.silent,
+        // `spoken`/`silent` sont partis avec le conseil de famille (lot 5).
+        // Rien ne les remplace DANS LA RÉPONSE: l'écran n'a plus rien à rendre
+        // sur qui a parlé, et rendre `envy_line_used` inviterait à réafficher
+        // « personne n'a rien demandé cette semaine » — c'est-à-dire à
+        // remettre le reproche de silence que ce lot retire.
       },
       dishes,
       preparations: mealPreparationsPayload(meal),
       cooking_sessions: mealSessionsPayload(meal),
       shopping_list: mealShoppingPayload(meal),
       member_portions: memberPortionsPayload(portions),
+      member_deltas: memberDeltasPayload(resolution.deltas),
       issues: [...issues, ...meal.issues, ...portionIssues],
       request_id: requestId,
     });

@@ -120,9 +120,10 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       // _shared/keel/household_meal_generation_test.ts (les trois blocs greffés
       // au prompt, dont les règles de maison qui ne sont JAMAIS une raison
       // nutritionnelle), household_portions_test.ts (la bifurcation et la
-      // ceinture sur les consignes) et household_envies_test.ts (le silence est
-      // une réponse valide). Les gardes d'accès — seul le compte maître
-      // compose, et un mineur n'a pas d'objectif — sont affirmées en base par
+      // ceinture sur les consignes) et household_envies_test.ts (LA ligne
+      // d'envies du maître entre au prompt, et pas de ligne ⇒ pas de bloc).
+      // Les gardes d'accès — seul le compte maître compose et écrit l'envie,
+      // et un mineur n'a pas d'objectif — sont affirmées en base par
       // _shared/keel/household_rls_test.sql.
       "generate-household-meal-v1",
       "generate-meal-v1",

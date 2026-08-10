@@ -2960,21 +2960,29 @@ export const en = {
   // griser un bouton, sur des règles qui n'existent plus (colocation,
   // consentement du majeur). Les refus que la base rend encore sont
   // structurels, et ils passent par `household.error.*` ci-dessus.
-  "household.envy.title": "What do you feel like this week?",
+  // ── LES ENVIES (lot 5, 2026-08-10) ──────────────────────────────────────
+  // CINQ CLÉS SONT PARTIES AVEC LE CONSEIL DE FAMILLE: `envy.saved` (déjà
+  // orpheline), `envy.spoken`, `envy.silent` et `compose.silent_note` — les
+  // trois dernières rendaient un décompte de silencieux, qui se lit « il en
+  // reste 3 à relancer » quoi qu'on écrive à côté.
+  //
+  // ⚠️ NE PAS LES REMETTRE SOUS UNE AUTRE FORME. « 2/5 ont répondu », une
+  // pastille, un bouton « relancer »: tous recréent la charge mentale que le
+  // produit promet de supprimer.
+  //
+  // Le « tu » de l'ancienne copie a disparu du même geste: la ligne n'est plus
+  // ce dont L'AUTEUR a envie, c'est ce dont LE FOYER a envie, écrit par la
+  // personne qui tient la maison pour tout le monde.
+  "household.envy.title": "What does the house feel like this week?",
   "household.envy.body":
-    "Say it before the plan is made. Nobody has to answer: whoever says nothing is simply composed from their profile.",
-  "household.envy.placeholder": "A curry, and something quick on Thursday.",
+    "One line, for everyone. Write it before the plan is made — nobody else has to fill anything in, and leaving it empty is fine.",
+  "household.envy.placeholder": "Lea wants pasta, Marc is sick of chicken.",
   "household.envy.save": "Save it",
-  "household.envy.saved": "Noted.",
-  "household.envy.spoken": "{count} said what they want",
-  "household.envy.silent": "{count} said nothing — that is fine",
   "household.compose.title": "Make this week's plan",
   "household.compose.body":
     "One cooking session, portions that follow each person's direction, and the shopping split by when it has to be fresh.",
   "household.compose.submit": "Compose for the household",
   "household.compose.working": "Composing...",
-  "household.compose.silent_note":
-    "{count} people said nothing this week and were composed from their profile.",
   "household.portions.title": "At the table",
   "household.portions.standard": "A standard serving",
   // ── /join-household — RÉCLAMER SON PROFIL (lot 6) ────────────────────────

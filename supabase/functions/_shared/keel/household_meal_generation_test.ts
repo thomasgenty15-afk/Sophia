@@ -25,7 +25,7 @@ Deno.test("chaque membre apparaît avec son id EXACT, une fois", () => {
   // fait tomber la consigne dans `portion_for_unknown_member` et la personne se
   // retrouve en part standard sans qu'on sache pourquoi.
   const { userSuffix } = buildHouseholdPromptBlocks({
-    members: [DAD, SON, KID], envies: [], restrictions: [],
+    members: [DAD, SON, KID], envyLine: null, restrictions: [],
   });
   for (const m of [DAD, SON, KID]) {
     const occurrences = userSuffix.split(m.memberId).length - 1;
@@ -46,7 +46,7 @@ Deno.test("LES RÈGLES DE MAISON NE SONT JAMAIS UNE RAISON NUTRITIONNELLE", () =
     { memberId: "m-kid", memberDisplayName: "Léa", label: "nutella" },
   ];
   const { userSuffix } = buildHouseholdPromptBlocks({
-    members: [DAD, KID], envies: [], restrictions,
+    members: [DAD, KID], envyLine: null, restrictions,
   });
   // NORMALISÉ, parce que le bloc est enroulé pour rester lisible dans le
   // source: une assertion sur le texte brut casserait au premier reflow, et un
@@ -64,7 +64,7 @@ Deno.test("LES RÈGLES DE MAISON NE SONT JAMAIS UNE RAISON NUTRITIONNELLE", () =
 Deno.test("les restrictions d'une même personne sont regroupées", () => {
   const { userSuffix } = buildHouseholdPromptBlocks({
     members: [KID],
-    envies: [],
+    envyLine: null,
     restrictions: [
       { memberId: "m-kid", memberDisplayName: "Léa", label: "nutella" },
       { memberId: "m-kid", memberDisplayName: "Léa", label: "nuggets" },
@@ -79,7 +79,7 @@ Deno.test("LES RÈGLES DE MAISON PASSENT APRÈS LES ENVIES", () => {
   // contrainte la plus proche de la fin comme la plus contraignante.
   const { userSuffix } = buildHouseholdPromptBlocks({
     members: [KID],
-    envies: [{ memberId: "m-kid", body: "du nutella partout" }],
+    envyLine: "du nutella partout",
     restrictions: [
       { memberId: "m-kid", memberDisplayName: "Léa", label: "nutella" },
     ],
@@ -91,14 +91,14 @@ Deno.test("sans restriction, aucun bloc de règles n'apparaît", () => {
   // Un en-tête « règles de maison » vide ferait croire au modèle qu'il y a des
   // interdits, et il composerait prudemment sans savoir contre quoi.
   const { userSuffix } = buildHouseholdPromptBlocks({
-    members: [DAD], envies: [], restrictions: [],
+    members: [DAD], envyLine: null, restrictions: [],
   });
   assert(!userSuffix.includes("HOUSE RULES"));
 });
 
 Deno.test("le schéma supplémentaire n'est demandé que côté système", () => {
   const { systemSuffix, userSuffix } = buildHouseholdPromptBlocks({
-    members: [DAD], envies: [], restrictions: [],
+    members: [DAD], envyLine: null, restrictions: [],
   });
   assert(systemSuffix.includes('"member_portions"'));
   assert(systemSuffix.includes("never a reason"));
@@ -107,17 +107,31 @@ Deno.test("le schéma supplémentaire n'est demandé que côté système", () =>
   assert(!userSuffix.includes('"member_portions"'));
 });
 
-Deno.test("le brief de portions et les envies sont tous les deux là", () => {
-  const { userSuffix, spoken, silent } = buildHouseholdPromptBlocks({
+Deno.test("le brief de portions et la ligne d'envies sont tous les deux là", () => {
+  const { userSuffix, envyLineUsed } = buildHouseholdPromptBlocks({
     members: [DAD, SON],
-    envies: [{ memberId: "m-dad", body: "un curry" }],
+    envyLine: "un curry, et Tom en a marre du poulet",
     restrictions: [],
   });
   assert(userSuffix.includes("HOUSEHOLD SERVING PLAN"));
   assert(userSuffix.includes("Do NOT propose separate dishes"));
-  assert(userSuffix.includes("un curry"));
-  assertEquals(spoken, ["m-dad"]);
-  assertEquals(silent, ["m-son"]);
+  assert(userSuffix.includes("un curry, et Tom en a marre du poulet"));
+  assertEquals(envyLineUsed, true);
+});
+
+Deno.test("SANS LIGNE D'ENVIES, aucun en-tête d'envies n'apparaît", () => {
+  // ⚠️ CE TEST EST LA PREUVE QUE LE FIL EST REBRANCHÉ, dans les deux sens: le
+  // bloc entre quand il y a une phrase (test ci-dessus) et n'entre PAS quand il
+  // n'y en a pas. Un en-tête « voici ce que le foyer a demandé » suivi de rien
+  // ferait composer le modèle contre une demande imaginaire.
+  const { userSuffix, envyLineUsed } = buildHouseholdPromptBlocks({
+    members: [DAD, SON], envyLine: null, restrictions: [],
+  });
+  assert(!userSuffix.includes("WHAT THIS HOUSEHOLD ASKED FOR"));
+  assertEquals(envyLineUsed, false);
+  // Et le décompte des silencieux ne revient pas par la bande: Tom n'a rien
+  // écrit, et rien dans le prompt ne le lui reproche.
+  assert(!userSuffix.toLowerCase().includes("did not say anything"));
 });
 
 // ───────────────────────────────────────────────────────────────────────────

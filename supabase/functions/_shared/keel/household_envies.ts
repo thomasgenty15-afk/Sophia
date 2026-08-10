@@ -1,58 +1,46 @@
 /**
- * LE CONSEIL DE FAMILLE — mettre les envies en commun. PUR.
+ * LES ENVIES DU FOYER — une ligne, écrite par le compte maître. PUR.
  *
- * Autorité produit: docs/keel/PIVOT-FOYER.md §8.
+ * Autorité produit: docs/keel/CHANTIER-FOYER-PROFILS.md, lot 5.
  *
- * Le week-end, chacun dit ce dont il a envie. Le produit met en commun et
- * compose. C'est le rituel autour duquel tout s'organise, et ce module est la
- * moitié qui prépare le prompt.
+ * ── CE QUI A ÉTÉ RETIRÉ LE 2026-08-10, ET POURQUOI ON NE LE REMET PAS ────
+ * Ce module portait `mergeEnvies`: une récolte PAR MEMBRE, un bloc qui listait
+ * qui avait parlé et qui s'était tu, et une consigne au modèle sur la façon de
+ * traiter le silence. Deux raisons de l'avoir jeté, aucune esthétique:
  *
- * ── LA RÈGLE DE SURVIE: LE SILENCE EST UNE RÉPONSE VALIDE (§8.4) ─────────
- * C'est la contrainte la plus importante du fichier, et elle a une raison
- * mesurable: si le plan attend que quatre personnes répondent, celui qui tient
- * le foyer doit courir après tout le monde — et on a **recréé la charge
- * mentale qu'on promettait de supprimer**. Le produit se retourne alors contre
- * sa propre promesse.
+ *   1. La récolte par membre demandait à celui qui tient le foyer de courir
+ *      après tout le monde. Un décompte « 3 personnes n'ont rien dit » se lit
+ *      « il en reste 3 à relancer », quoi qu'en dise la copie à côté — donc on
+ *      avait recréé la charge mentale que le produit promet de supprimer.
+ *   2. Sophia arbitrant publiquement entre un parent et son enfant est un
+ *      marécage: le produit n'a aucune autorité pour trancher qui l'emporte à
+ *      table.
  *
- * Donc: absence de ligne = état légitime, jamais un « en attente ». Le plan
- * sort quand même, la personne est composée depuis son profil, et le bloc le
- * DIT — parce qu'on doit pouvoir lui répondre « voilà ce qui a été choisi pour
- * toi » plutôt que de faire comme si elle avait parlé.
+ * Ce qui reste: UNE PHRASE, écrite par le maître pour tout le monde — « Léa
+ * veut des pâtes, Marc en a marre du poulet ». On garde la variété et le
+ * sentiment que chacun compte; on jette la modération et l'arbitrage public.
  *
- * ── DEUX ENVIES CONTRADICTOIRES NE SE RÉSOLVENT PAS ICI ──────────────────
- * « Je veux du poisson » et « je déteste le poisson » partent tous les deux
- * dans le prompt, tels quels. L'arbitrage appartient au générateur, avec
- * l'obligation de DIRE ce qu'il a arbitré. Trancher ici, en code, produirait
- * un arbitrage muet — et un foyer à qui l'on retire son envie sans un mot
- * cesse de déposer des envies.
+ * ── LE SILENCE N'A PLUS BESOIN D'ÊTRE EXPLIQUÉ AU MODÈLE ─────────────────
+ * L'ancien bloc devait DIRE au modèle que l'absence de réponse est un état
+ * légitime, parce qu'il listait des noms suivis de « n'a rien dit » — et un
+ * modèle à qui l'on montre une case vide la remplit ou l'attend. Ici, pas de
+ * ligne ⇒ pas de bloc du tout: il n'y a rien à attendre, donc rien à
+ * expliquer. La règle de survie (§8.4) est inchangée, elle est juste devenue
+ * structurelle au lieu d'être une consigne.
+ *
+ * ── L'ARBITRAGE RESTE AU GÉNÉRATEUR, ET IL DOIT LE DIRE ──────────────────
+ * Une seule phrase peut se contredire elle-même (« du poisson, mais pas de
+ * poisson jeudi ») ou contredire les règles de maison. On ne tranche pas ici:
+ * trancher en code produirait un arbitrage muet, et un foyer à qui l'on retire
+ * son envie sans un mot cesse d'en déposer.
  *
  * ── ET IL NE REND JAMAIS « IMPOSSIBLE » ──────────────────────────────────
  * Aucun chemin de ce module ne lève. Un générateur qui renvoie une erreur à
  * une famille le samedi soir est un produit mort (§8.4).
  */
 
-/** Ce qu'on sait d'un membre pour composer le bloc. Rien de nutritionnel. */
-export interface EnvyMember {
-  memberId: string;
-  displayName: string;
-}
-
-export interface EnvySubmission {
-  memberId: string;
-  body: string;
-}
-
-export interface MergedEnvies {
-  /** Le bloc à injecter. Vide quand il n'y a rien à dire. */
-  promptBlock: string;
-  /** Ceux qui ont parlé, dans l'ordre du foyer. */
-  spoken: string[];
-  /** Ceux qui n'ont rien dit. Rendu à l'écran, pas seulement au modèle. */
-  silent: string[];
-}
-
 /**
- * PLAFOND PAR ENVIE. La base en pose déjà un (`household_envy_body_check`,
+ * PLAFOND DE LA LIGNE. La base en pose déjà un (`household_envy_body_check`,
  * 500 caractères), et celui-ci n'est pas un doublon: ce module peut être appelé
  * avec du texte qui n'est pas passé par la RPC (un import, un test, un chemin
  * futur). Un prompt de 20 Ko est un défaut que ce dépôt a déjà payé sur le
@@ -60,75 +48,39 @@ export interface MergedEnvies {
  */
 export const MAX_ENVY_CHARS = 500;
 
-/**
- * PLAFOND DE MEMBRES RENDUS. Un foyer réel en compte deux à six. Au-delà, on
- * tronque et on le DIT dans le bloc — jamais en silence: une troncature muette
- * se lit « tout le monde a été pris en compte » alors que c'est faux.
- */
-export const MAX_ENVY_MEMBERS = 12;
-
 function clamp(body: string): string {
   const text = body.trim().replace(/\s+/g, " ");
   return text.length <= MAX_ENVY_CHARS ? text : `${text.slice(0, MAX_ENVY_CHARS)}…`;
 }
 
 /**
- * @param members l'ordre du foyer. Il gouverne l'ordre de sortie: un bloc dont
- *        l'ordre changerait d'une semaine à l'autre rendrait les diffs de
- *        prompt illisibles et casserait le cache d'invite.
+ * Le bloc de prompt pour la ligne d'envies de la semaine.
+ *
+ * @param line ce que le maître a écrit pour CETTE semaine, ou `null`/vide s'il
+ *        n'a rien écrit. Le lecteur est responsable de l'ancrage temporel: une
+ *        phrase d'une semaine passée ne doit jamais arriver ici.
+ * @returns le bloc, ou `""` quand il n'y a rien à dire. Une chaîne vide est
+ *          filtrée par l'appelant — un en-tête « voici ce que le foyer a
+ *          demandé » suivi de rien ferait composer le modèle contre une
+ *          demande imaginaire.
  */
-export function mergeEnvies(
-  members: readonly EnvyMember[],
-  submissions: readonly EnvySubmission[],
-): MergedEnvies {
-  const byMember = new Map<string, string>();
-  for (const s of submissions) {
-    const body = typeof s?.body === "string" ? clamp(s.body) : "";
-    // Une soumission d'un non-membre est ignorée SANS BRUIT: elle ne peut
-    // venir que d'un membre parti, et le foyer n'a pas à voir son nom
-    // ressurgir dans le plan de la semaine.
-    if (body && members.some((m) => m.memberId === s.memberId)) {
-      byMember.set(s.memberId, body);
-    }
-  }
+export function buildEnvyBlock(line: string | null | undefined): string {
+  const body = typeof line === "string" ? clamp(line) : "";
+  if (!body) return "";
 
-  const rendered = members.slice(0, MAX_ENVY_MEMBERS);
-  const dropped = members.length - rendered.length;
-
-  const spoken: string[] = [];
-  const silent: string[] = [];
-  const lines: string[] = [];
-
-  for (const m of rendered) {
-    const body = byMember.get(m.memberId);
-    if (body) {
-      spoken.push(m.memberId);
-      lines.push(`- ${m.displayName} asked for: ${body}`);
-    } else {
-      silent.push(m.memberId);
-      lines.push(`- ${m.displayName} did not say anything this week.`);
-    }
-  }
-
-  if (rendered.length === 0) return { promptBlock: "", spoken, silent };
-
-  const block = [
-    "WHAT THE HOUSEHOLD ASKED FOR THIS WEEK.",
+  return [
+    "WHAT THIS HOUSEHOLD ASKED FOR THIS WEEK.",
+    "The person who runs this home wrote this, in their own words, for",
+    "everyone at the table:",
     "",
-    ...lines,
-    ...(dropped > 0 ? [`- (${dropped} more people in this household are not listed here.)`] : []),
+    `  "${body}"`,
     "",
-    // Le silence: une consigne, pas une excuse. Sans elle, un modèle attend
-    // ou invente une envie pour celui qui n'a rien dit.
-    "Anyone who did not say anything is composed from their profile alone.",
-    "That is a normal outcome, not a missing input: never wait for them, never",
-    "invent a request on their behalf.",
-    "",
-    // L'arbitrage: obligatoire, et DIT.
-    "These requests may contradict each other. Compose ONE plan anyway and say",
-    "plainly, in one short sentence, what you traded off and for whom.",
+    // L'arbitrage: obligatoire, et DIT. Sans cette consigne, un modèle qui
+    // rencontre « pas de poulet » et une règle de maison contradictoire choisit
+    // en silence, et le foyer ne sait pas ce qui a été sacrifié.
+    "This line may contradict itself, or contradict the house rules below.",
+    "Compose ONE plan anyway and say plainly, in one short sentence, what you",
+    "traded off and for whom.",
     "Never answer that the week is impossible.",
   ].join("\n");
-
-  return { promptBlock: block, spoken, silent };
 }

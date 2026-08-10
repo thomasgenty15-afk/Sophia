@@ -1,109 +1,66 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
-import {
-  type EnvyMember,
-  MAX_ENVY_CHARS,
-  MAX_ENVY_MEMBERS,
-  mergeEnvies,
-} from "./household_envies.ts";
+import { buildEnvyBlock, MAX_ENVY_CHARS } from "./household_envies.ts";
 
-const DAD: EnvyMember = { memberId: "m-dad", displayName: "Marc" };
-const MUM: EnvyMember = { memberId: "m-mum", displayName: "Claire" };
-const KID: EnvyMember = { memberId: "m-kid", displayName: "Léa" };
-
-Deno.test("LE SILENCE EST UNE RÉPONSE VALIDE, et le bloc le dit", () => {
-  // LA RÈGLE DE SURVIE DU PRODUIT. Si le plan attendait que tout le monde
-  // réponde, celui qui tient le foyer devrait courir après chacun — c'est-à-
-  // dire qu'on aurait recréé la charge mentale qu'on promet de supprimer.
-  const got = mergeEnvies([DAD, MUM, KID], [{ memberId: "m-dad", body: "un curry" }]);
-  assertEquals(got.spoken, ["m-dad"]);
-  assertEquals(got.silent, ["m-mum", "m-kid"]);
-  assert(got.promptBlock.includes("Claire did not say anything this week."));
-  assert(got.promptBlock.includes("composed from their profile alone"));
-  assert(got.promptBlock.includes("never wait for them"));
+Deno.test("la ligne du maître part au modèle TELLE QUELLE", () => {
+  const got = buildEnvyBlock("Léa veut des pâtes, Marc en a marre du poulet");
+  assert(got.includes("Léa veut des pâtes, Marc en a marre du poulet"));
+  assert(got.includes("WHAT THIS HOUSEHOLD ASKED FOR THIS WEEK."));
 });
 
-Deno.test("personne n'a parlé: le plan sort quand même", () => {
-  const got = mergeEnvies([DAD, MUM], []);
-  assertEquals(got.spoken, []);
-  assertEquals(got.silent, ["m-dad", "m-mum"]);
-  assert(got.promptBlock.length > 0, "un foyer muet a quand même droit à son plan");
+Deno.test("PAS DE LIGNE ⇒ PAS DE BLOC, et surtout pas un bloc vide", () => {
+  // C'est la règle de survie (§8.4) devenue structurelle: il n'y a rien à
+  // attendre, donc rien à expliquer au modèle. Un en-tête « voici ce que le
+  // foyer a demandé » suivi de rien ferait composer contre une demande
+  // imaginaire — ou attendre une réponse qui ne viendra pas.
+  assertEquals(buildEnvyBlock(null), "");
+  assertEquals(buildEnvyBlock(undefined), "");
+  assertEquals(buildEnvyBlock(""), "");
+  assertEquals(buildEnvyBlock("   \n  "), "");
 });
 
-Deno.test("deux envies CONTRADICTOIRES partent toutes les deux", () => {
-  // L'arbitrage appartient au générateur, avec obligation de le DIRE. Trancher
-  // ici produirait un arbitrage muet, et un foyer à qui on retire son envie
-  // sans un mot cesse de déposer des envies.
-  const got = mergeEnvies([DAD, MUM], [
-    { memberId: "m-dad", body: "du poisson" },
-    { memberId: "m-mum", body: "surtout pas de poisson" },
-  ]);
-  assert(got.promptBlock.includes("du poisson"));
-  assert(got.promptBlock.includes("surtout pas de poisson"));
-  assert(got.promptBlock.includes("what you traded off and for whom"));
+Deno.test("AUCUNE TRACE DE L'ANCIEN CONSEIL DE FAMILLE", () => {
+  // ⚠️ CE TEST EXISTE POUR EMPÊCHER UN RETOUR PAR INADVERTANCE. Le décompte
+  // des silencieux a été retiré parce qu'il faisait relancer tout le monde;
+  // le remettre dans le prompt le remettrait dans la tête du modèle, qui
+  // demanderait alors « et les autres ? ».
+  const got = buildEnvyBlock("un curry");
+  for (const dead of ["did not say anything", "said nothing", "silent", "waiting"]) {
+    assert(!got.toLowerCase().includes(dead), `« ${dead} » ne doit plus exister`);
+  }
+});
+
+Deno.test("une ligne CONTRADICTOIRE part quand même, avec l'ordre de l'arbitrer À VOIX HAUTE", () => {
+  // Trancher en code produirait un arbitrage muet, et un foyer à qui l'on
+  // retire son envie sans un mot cesse d'en déposer.
+  const got = buildEnvyBlock("du poisson jeudi, mais surtout pas de poisson");
+  assert(got.includes("du poisson jeudi, mais surtout pas de poisson"));
+  assert(got.includes("what you"));
+  assert(got.includes("traded off and for whom"));
 });
 
 Deno.test("le bloc interdit de répondre « impossible »", () => {
   // Un générateur qui renvoie une erreur à une famille le samedi soir est un
   // produit mort (PIVOT-FOYER §8.4).
-  const got = mergeEnvies([DAD], [{ memberId: "m-dad", body: "n'importe quoi" }]);
-  assert(got.promptBlock.includes("Never answer that the week is impossible."));
+  const got = buildEnvyBlock("n'importe quoi");
+  assert(got.includes("Never answer that the week is impossible."));
 });
 
-Deno.test("l'ordre suit le FOYER, jamais l'ordre d'arrivée des envies", () => {
-  // Un bloc dont l'ordre change d'une semaine à l'autre rend les diffs de
-  // prompt illisibles et casse le cache d'invite.
-  const got = mergeEnvies([DAD, MUM, KID], [
-    { memberId: "m-kid", body: "des pâtes" },
-    { memberId: "m-dad", body: "un curry" },
-  ]);
-  const order = got.promptBlock.split("\n")
-    .filter((l) => l.startsWith("- "))
-    .map((l) => l.slice(2, l.indexOf(" ", 2)));
-  assertEquals(order, ["Marc", "Claire", "Léa"]);
-});
-
-Deno.test("une envie trop longue est bornée, pas rejetée", () => {
+Deno.test("une ligne trop longue est BORNÉE, pas rejetée", () => {
   // Le plafond de la base est à 500; celui-ci existe pour les chemins qui ne
   // passent pas par la RPC. Un prompt de 20 Ko est un défaut déjà payé par ce
   // dépôt sur le composeur.
   const long = "a".repeat(MAX_ENVY_CHARS + 400);
-  const got = mergeEnvies([DAD], [{ memberId: "m-dad", body: long }]);
-  assertEquals(got.spoken, ["m-dad"]);
-  const line = got.promptBlock.split("\n").find((l) => l.startsWith("- Marc"))!;
-  assert(line.length < MAX_ENVY_CHARS + 60, `ligne de ${line.length} caractères`);
-  assert(line.endsWith("…"), "la troncature doit se voir");
+  const got = buildEnvyBlock(long);
+  assert(got.length > 0, "une ligne trop longue reste une envie");
+  const quoted = got.split("\n").find((l) => l.trim().startsWith('"'))!;
+  assert(quoted.length < MAX_ENVY_CHARS + 60, `ligne de ${quoted.length} caractères`);
+  assert(quoted.trim().endsWith('…"'), "la troncature doit se voir");
 });
 
-Deno.test("une envie d'un NON-MEMBRE est ignorée sans bruit", () => {
-  // Elle ne peut venir que de quelqu'un qui est parti, et le foyer n'a pas à
-  // voir son nom ressurgir dans le plan de la semaine.
-  const got = mergeEnvies([DAD], [
-    { memberId: "m-dad", body: "un curry" },
-    { memberId: "m-ex", body: "des sushis" },
-  ]);
-  assert(!got.promptBlock.includes("sushis"));
-  assertEquals(got.spoken, ["m-dad"]);
-});
-
-Deno.test("une envie vide vaut silence", () => {
-  const got = mergeEnvies([DAD], [{ memberId: "m-dad", body: "   " }]);
-  assertEquals(got.spoken, []);
-  assertEquals(got.silent, ["m-dad"]);
-});
-
-Deno.test("un foyer démesuré est tronqué, et la troncature EST DITE", () => {
-  // « no silent caps »: une troncature muette se lit « tout le monde a été
-  // pris en compte » alors que c'est faux.
-  const many = Array.from({ length: MAX_ENVY_MEMBERS + 3 }, (_, i) => ({
-    memberId: `u-${i}`,
-    displayName: `P${i}`,
-  }));
-  const got = mergeEnvies(many, []);
-  assertEquals(got.silent.length, MAX_ENVY_MEMBERS);
-  assert(got.promptBlock.includes("3 more people in this household are not listed"));
-});
-
-Deno.test("un foyer vide ne produit pas de bloc", () => {
-  assertEquals(mergeEnvies([], []), { promptBlock: "", spoken: [], silent: [] });
+Deno.test("les blancs sont écrasés, la phrase reste sur une ligne", () => {
+  // Sans ça, une ligne saisie avec des retours chariot casse la forme du bloc
+  // et le modèle lit les morceaux comme des consignes séparées.
+  const got = buildEnvyBlock("des pâtes\n\n   et   du poisson");
+  assert(got.includes('"des pâtes et du poisson"'));
 });

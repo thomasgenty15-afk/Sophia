@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import {
   claimableMembers,
-  envyRound,
   type HouseholdMemberView,
   type HouseholdView,
   restrictionNotice,
@@ -24,8 +23,16 @@ import {
  *     navigateur divergerait au premier ajustement, et personne ne saurait
  *     alors laquelle ment.
  *
+ * ── ET CE QU'IL NE TESTE PLUS DEPUIS LE LOT 5 ──────────────────────────────
+ *
+ * `envyRound` (quatre cas sur qui a parlé et qui s'est tu) est partie avec le
+ * conseil de famille. Les envies sont UNE ligne écrite par le compte maître
+ * pour tout le monde: il n'y a plus de tour de table à compter, donc plus rien
+ * à décider au navigateur. Le refus d'écriture d'un non-maître est affirmé là
+ * où il vit — en base, par `household_rls_test.sql` (assertions 30 à 34).
+ *
  * Ce qui reste ici est ce que l'écran DÉCIDE encore vraiment: attribuer une
- * décision à un humain, et compter qui a parlé cette semaine.
+ * décision à un humain, et savoir quelle bouche reste à réclamer.
  */
 
 /**
@@ -72,8 +79,8 @@ function household(
 
 const OWNER = member("owner", { role: "owner" });
 // LÉA N'A PAS DE COMPTE — le cas nominal depuis le lot 1. Son `userId` est
-// `null`, et c'est ce qui fait qu'elle ne compte ni parmi ceux qui ont parlé ni
-// parmi les silencieux: on ne reproche pas un silence à qui n'a pas de voix.
+// `null`, et c'est ce qui fait d'elle la seule ligne encore RÉCLAMABLE du
+// foyer (lot 6).
 const KID = member("kid", { ageState: "minor", userId: null });
 const ADULT = member("adult");
 
@@ -107,49 +114,6 @@ describe("restrictionNotice — la décision est attribuée, jamais anonyme", ()
       id: "r1", memberId: "kid", label: "nutella", createdByUserId: "parti",
     });
     expect(got).toEqual({ kind: "set_by_owner", ownerName: "" });
-  });
-});
-
-describe("envyRound — le silence est un état, pas une attente", () => {
-  it("sépare ceux qui ont parlé de ceux qui se sont tus", () => {
-    const hh = household([OWNER, ADULT, KID]);
-    // Les deux listes sont des identifiants de COMPTE — c'est ce que la table
-    // des envies porte (`household_envy_submissions.user_id`).
-    expect(envyRound(hh, [{ userId: "acct-adult" }])).toEqual({
-      spoken: ["acct-adult"],
-      silent: ["acct-owner"],
-    });
-  });
-
-  it("⚠️ une bouche SANS COMPTE n'est ni parlante ni silencieuse", () => {
-    // Léa a huit ans: elle n'a pas de compte, donc aucun moyen de soumettre une
-    // envie. La compter parmi les silencieux reprocherait un silence à
-    // quelqu'un qui n'a pas de voix — et gonflerait un compteur que celui qui
-    // tient le foyer lit comme « il en reste trois à relancer ». C'est
-    // exactement la charge mentale que le produit promet de supprimer.
-    const hh = household([OWNER, ADULT, KID]);
-    const got = envyRound(hh, []);
-    expect(got.silent).toEqual(["acct-owner", "acct-adult"]);
-    expect(got.spoken).toEqual([]);
-    expect([...got.spoken, ...got.silent]).not.toContain("kid");
-    expect([...got.spoken, ...got.silent]).not.toContain("acct-kid");
-  });
-
-  it("un foyer entièrement muet reste un foyer valide", () => {
-    // Aucun statut « en attente » n'existe: si l'écran en inventait un, celui
-    // qui tient le foyer se croirait obligé de relancer tout le monde — et on
-    // aurait recréé la charge mentale qu'on promet de supprimer.
-    const hh = household([OWNER, ADULT]);
-    expect(envyRound(hh, [])).toEqual({
-      spoken: [],
-      silent: ["acct-owner", "acct-adult"],
-    });
-  });
-
-  it("l'ordre suit le foyer, pas l'ordre d'arrivée", () => {
-    const hh = household([OWNER, ADULT]);
-    const got = envyRound(hh, [{ userId: "acct-adult" }, { userId: "acct-owner" }]);
-    expect(got.spoken).toEqual(["acct-owner", "acct-adult"]);
   });
 });
 
