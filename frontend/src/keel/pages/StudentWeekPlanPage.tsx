@@ -3,25 +3,34 @@ import { supabase } from "../../lib/supabase";
 import { KeelAppShell } from "../components/KeelAppShell";
 import { Button } from "../components/ui/Button";
 import { Card, SectionLabel } from "../components/ui/Card";
-import { Field, inputClass } from "../components/ui/Field";
+// `Field` n'est plus utilisé: les deux zones de texte qu'il habillait ont
+// disparu de cet écran (« Your situation » retirée, l'aspiration passée dans
+// l'option choisie, avec son propre `label`).
+import { inputClass } from "../components/ui/Field";
 import Modal from "../components/ui/Modal";
 import SetupSection from "../components/ui/SetupSection";
 import MealBuilder from "../components/MealBuilder";
 import EatingRhythmCard from "../components/EatingRhythmCard";
 import CookingCapacityCard from "../components/CookingCapacityCard";
 import FoodPreferencesCard from "../components/FoodPreferencesCard";
-import { parseEatingRhythm } from "../api/mealGeneration";
+import { type AwayDay, parseAwayDays, parseEatingRhythm } from "../api/mealGeneration";
 import { dishDayLabel, mealCopy } from "../api/mealLabels";
 import { keptFrom } from "../api/foodPreferences";
+import { mergePracticalConstraints } from "../api/practicalConstraints";
 import { sendChatMessage } from "../api/chat";
+import { addDays } from "../api/dates";
 import {
   axisReading,
-  datedMeasures,
+  type BodyMeasureRow,
   type DatedMeasure,
   FOCUS_AXES,
   FOCUS_AXIS_LABELS,
   type FocusAxis,
+  HEIGHT_CM_MAX,
+  HEIGHT_CM_MIN,
   indicatorFor,
+  lastMeasuredOn,
+  latest,
   readIndicator,
   readMeasureInput,
   type ReviewRow,
@@ -30,6 +39,7 @@ import {
   WAIST_CM_MIN,
   WEIGHT_KG_MAX,
   WEIGHT_KG_MIN,
+  weeklyMeasures,
   weeksInsideBand,
 } from "../api/bodyMeasures";
 import type { GoalToken } from "../api/coachDoctrine";
@@ -138,8 +148,13 @@ type LoadState =
  */
 const GOALS: Array<{ value: string; label: string; blurb: string }> = [
   {
+    // LE JETON RESTE `fat_loss` — il est écrit dans le CHECK de
+    // `student_goals.goal`, dans la doctrine du coach (`goalScope`) et dans les
+    // lignes déjà en base. Seul le LIBELLÉ change: « Lose fat » demande à
+    // l'élève de savoir ce qu'il perd, ce que personne ne sait avant de
+    // commencer; « Lose weight » est ce qu'il vient chercher, dans ses mots.
     value: "fat_loss",
-    label: "Lose fat",
+    label: "Lose weight",
     blurb: "You want the scale to come down — without the week becoming unlivable.",
   },
   {
@@ -179,6 +194,16 @@ const GOALS: Array<{ value: string; label: string; blurb: string }> = [
  */
 
 /** Monday of the current week, in local date. */
+/** Aujourd'hui, dans le fuseau du navigateur. Borne haute d'une naissance. */
+function todayIso(): string {
+  const d = new Date();
+  return [
+    d.getFullYear(),
+    String(d.getMonth() + 1).padStart(2, "0"),
+    String(d.getDate()).padStart(2, "0"),
+  ].join("-");
+}
+
 function currentMonday(): string {
   const d = new Date();
   const day = (d.getDay() + 6) % 7;
@@ -203,6 +228,21 @@ function weekLabel(weekStart: string): string {
 }
 
 /**
+ * LE JOUR D'UNE MESURE — « 7 Aug », et pas « week of 3 Aug ».
+ *
+ * FF-031: la granularité de stockage n'est plus la semaine, donc la date
+ * affichée n'a plus de raison de l'être. Rend `null` quand on ne connaît pas le
+ * jour, et l'appelant retombe alors sur le libellé de semaine — dire « lundi »
+ * d'une pesée du vendredi était précisément le défaut.
+ */
+function dayLabel(localDate: string | null): string | null {
+  if (!localDate) return null;
+  const d = new Date(`${localDate}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+}
+
+/**
  * LES MESURES DE CETTE DIRECTION-LÀ.
  *
  * Trois blocs, et le premier est le seul obligatoire:
@@ -215,20 +255,254 @@ function weekLabel(weekStart: string): string {
  * l'affichage — c'est ce qui permet à la règle « poids ↑ = victoire en prise
  * de masse » d'être la même à l'écran et dans le générateur.
  */
-function MeasuresBlock(props: {
+/**
+ * CE QUE CETTE DYNAMIQUE VISE — un chiffre, ou un axe, jamais les deux.
+ *
+ * ── POURQUOI C'EST DANS L'OPTION ET PLUS DANS UN ENCADRÉ EN DESSOUS ───────
+ * Ça vivait dans un bloc « What this goal tracks » posé sous la liste des six
+ * dynamiques. Deux défauts, et le second est le vrai:
+ *
+ *   1. la question n'était pas rattachée visuellement à ce qui la déclenche —
+ *      on choisit « perdre du poids » en haut, et le champ du poids visé
+ *      apparaît ailleurs, dans un cadre qui a son propre titre;
+ *   2. ce bloc CHANGEAIT DE CONTENU selon l'option cochée sans qu'on regarde
+ *      au bon endroit. Cocher « Eat better » remplaçait le champ de poids par
+ *      un menu d'axes, en dehors du champ de vision de qui vient de cliquer.
+ *
+ * La cible appartient à la dynamique: elle apparaît AVEC elle, à l'endroit
+ * où on vient d'appuyer, et disparaît avec elle.
+ */
+function GoalTargetField(props: {
   goal: GoalToken;
   reviews: ReviewRow[];
   target: string;
   onTargetChange: (v: string) => void;
   axis: string;
   onAxisChange: (v: string) => void;
+  /** Le plancher TCA: aucun chiffre à VISER pour un élève signalé. */
+  restricted: boolean;
+}) {
+  const indicator = indicatorFor(props.goal);
+  const targetUnit = indicator.target === "waist" ? "cm" : "kg";
+  const targetLabel = indicator.target === "band"
+    ? "Weight I want to stay around"
+    : indicator.target === "waist"
+    ? "Waist I am aiming for"
+    : "Weight I am aiming for";
+  const axis = props.axis && (FOCUS_AXES as readonly string[]).includes(props.axis)
+    ? axisReading(props.reviews, props.axis as FocusAxis)
+    : null;
+
+  // LE PLANCHER MORD ICI AUSSI, et pas seulement sur les mesures.
+  // Il couvrait l'encadré entier; en éclatant l'encadré, la cible se serait
+  // retrouvée dehors — c'est-à-dire un champ « poids que je vise » remis sous
+  // les yeux de la personne que la garde protège. L'AXE, lui, reste: ce n'est
+  // pas un nombre à atteindre, c'est ce qu'on veut voir s'améliorer.
+  if (indicator.target !== null && props.restricted) return null;
+
+  if (indicator.target !== null) {
+    return (
+      <div className="mt-3">
+        <label htmlFor="goal-target" className="block text-xs font-medium text-gray-700">
+          {targetLabel}
+        </label>
+        {/* Un champ étroit avec son unité collée: trois chiffres dans une
+            boîte pleine largeur donnent l'impression d'attendre une phrase. */}
+        {/* LA LARGEUR EST SUR UN CONTENEUR, PAS SUR L'INPUT.
+            `inputClass` porte `w-full`, et `w-full` gagne contre `w-24` quel
+            que soit l'ordre dans l'attribut `class` — c'est l'ordre du CSS
+            généré par Tailwind qui tranche, pas celui qu'on écrit. Le
+            `${inputClass} w-24` d'avant était donc un no-op: mesuré, ce champ
+            faisait 606 px au lieu de 96. */}
+        <div className="mt-1 flex flex-wrap items-center gap-2">
+          <div className="w-24">
+            <input
+              id="goal-target"
+              className={inputClass}
+              inputMode="decimal"
+              value={props.target}
+              placeholder="—"
+              onChange={(e) => props.onTargetChange(e.target.value)}
+            />
+          </div>
+          <span className="text-sm text-gray-600">{targetUnit}</span>
+          <span className="text-xs text-gray-400">optional</span>
+        </div>
+        <p className="mt-1.5 text-xs leading-5 text-gray-500">
+          Nothing counts down, and nobody is scored against it.
+        </p>
+      </div>
+    );
+  }
+
+  // L'AXE, pour les deux dynamiques qu'aucun chiffre ne porte. Les six valeurs
+  // sont celles du point du dimanche: l'objectif est mesurable sans une seule
+  // saisie de plus.
+  return (
+    <div className="mt-3">
+      <label htmlFor="goal-axis" className="block text-xs font-medium text-gray-700">
+        The one thing I want to see improve
+      </label>
+      <select
+        id="goal-axis"
+        className={`${inputClass} mt-1`}
+        value={props.axis}
+        onChange={(e) => props.onAxisChange(e.target.value)}
+      >
+        <option value="">Nothing in particular</option>
+        {FOCUS_AXES.map((a) => (
+          <option key={a} value={a}>{FOCUS_AXIS_LABELS[a]}</option>
+        ))}
+      </select>
+      <p className="mt-1.5 text-xs leading-5 text-gray-500">
+        One of the six you rate on Sunday — nothing extra to fill in.
+      </p>
+      {axis ? (
+        <p className="mt-2 text-sm text-gray-700">
+          {axis.latest === null
+            ? `Nothing rated yet — you set this at Sunday's check-in.`
+            : axis.trend === "unknown"
+            ? `Last Sunday: ${axis.latest.value} out of 5.`
+            : axis.improving
+            ? `${axis.label} is going up — that is the one you picked.`
+            : axis.trend === "falling"
+            ? `${axis.label} is going down.`
+            : `${axis.label} is holding steady.`}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * LES TROIS FAITS QUI NE BOUGENT PAS. Vides = jamais renseignés.
+ *
+ * `birthDate` et pas `age`: l'âge se déduit et se périme, la date non. Stocker
+ * l'âge obligerait à le corriger chaque année, ce que personne ne fait — après
+ * quoi le générateur compose pour quelqu'un qui a trois ans de moins.
+ */
+export interface Basics {
+  height: string;
+  birthDate: string;
+  gender: string;
+}
+
+/** L'âge en années révolues, ou `null`. Dérivé, jamais stocké. */
+function ageFrom(birthDate: string): number | null {
+  const b = birthDate.trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(b)) return null;
+  const d = new Date(`${b}T12:00:00Z`);
+  if (Number.isNaN(d.getTime())) return null;
+  const now = new Date();
+  let years = now.getUTCFullYear() - d.getUTCFullYear();
+  const m = now.getUTCMonth() - d.getUTCMonth();
+  if (m < 0 || (m === 0 && now.getUTCDate() < d.getUTCDate())) years -= 1;
+  return years >= 0 && years < 130 ? years : null;
+}
+
+/**
+ * LE DUO SAVE/CANCEL D'UNE CELLULE — écrit une fois pour les cinq.
+ *
+ * Cinq copies du même couple de boutons, c'est cinq endroits où l'un peut
+ * cesser d'être désactivé pendant une écriture. Le composant porte la règle:
+ * on n'enregistre pas deux cellules à la fois.
+ */
+function CellActions(
+  { busy, disabled, onSave, onCancel }: {
+    busy: boolean;
+    disabled: boolean;
+    onSave: () => void;
+    onCancel: () => void;
+  },
+) {
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-2">
+      <Button onClick={onSave} disabled={disabled} variant="secondary">
+        {busy ? "…" : "Save"}
+      </Button>
+      <button
+        type="button"
+        onClick={onCancel}
+        className="text-xs text-gray-500 underline underline-offset-2 hover:text-gray-900"
+      >
+        Cancel
+      </button>
+    </div>
+  );
+}
+
+/** Les trois valeurs que la base accepte (`profiles_gender_check`). */
+const GENDERS = [
+  { value: "female", label: "Female" },
+  { value: "male", label: "Male" },
+  { value: "other", label: "Other" },
+] as const;
+
+/**
+ * TES INFOS DE BASE — la section qui n'existait pas, et la taille qui
+ * n'existait nulle part.
+ *
+ * ── POURQUOI ELLE EST À PART, ET EN HAUT ──────────────────────────────────
+ * La taille et le poids ne sont pas des propriétés d'un OBJECTIF: ce sont des
+ * propriétés d'un CORPS. Elles ne changent pas quand on passe de « perdre du
+ * poids » à « mieux manger », et elles servent à la même chose dans les deux
+ * cas — poser les portions. Les ranger sous l'objectif faisait croire le
+ * contraire, et les faisait disparaître pour les deux dynamiques qui n'ont pas
+ * de cible chiffrée.
+ *
+ * ── LE PLANCHER TCA COUVRE CETTE SECTION, PAS LA TAILLE ───────────────────
+ * `restriction_flag` retire le poids, le tour de taille et toute lecture de
+ * tendance: c'est la garde de `CONTRACT.md`, et cet écran est le seul qui
+ * propose de VISER un nombre. La taille reste: elle ne se vise pas, elle ne
+ * bouge pas, et elle est nécessaire aux portions de quelqu'un qu'on continue
+ * de nourrir.
+ */
+function PersonalNumbers(props: {
+  goal: GoalToken;
+  reviews: ReviewRow[];
+  /**
+   * FF-031 — les pesées DATÉES, source de vérité depuis ce chantier.
+   * `reviews` reste passé: son `biofeedback` comble les semaines antérieures à
+   * la reprise, et il porte les six axes, qui ne sont pas des mesures.
+   */
+  measures: BodyMeasureRow[];
+  target: string;
+  /**
+   * LES TROIS FAITS DURABLES DE LA PERSONNE — taille, naissance, sexe.
+   *
+   * `draft` est ce qui est TAPÉ, `saved` ce qui est EN BASE. Le récapitulatif
+   * ne lit que `saved`: un résumé qui afficherait « 180 cm » parce qu'on vient
+   * de le taper dirait que le générateur connaît un chiffre que personne ne lui
+   * a donné.
+   */
+  basics: Basics;
+  savedBasics: Basics;
+  onBasicsChange: (next: Basics) => void;
+  /** Enregistre UN champ. Les trois ne se saisissent jamais ensemble. */
+  onSaveBasic: (field: keyof Basics) => void;
   draft: { weight: string; waist: string };
   onDraftChange: (d: { weight: string; waist: string }) => void;
   onSaveMeasures: () => void;
   busy: string | null;
+  restricted: boolean;
 }) {
-  const weights = datedMeasures(props.reviews, "weight");
-  const waists = datedMeasures(props.reviews, "waist");
+  const weights = weeklyMeasures({
+    reviews: props.reviews,
+    measures: props.measures,
+    kind: "weight",
+  });
+  const waists = weeklyMeasures({
+    reviews: props.reviews,
+    measures: props.measures,
+    kind: "waist",
+  });
+  // LE JOUR de la dernière pesée, quand on le connaît. L'écran affichait
+  // « week of 3 Aug » sous une mesure du vendredi, parce que la case de
+  // stockage était la semaine et que la date affichée l'était devenue aussi.
+  const lastOn: Record<"weight" | "waist", string | null> = {
+    weight: lastMeasuredOn(props.measures, "weight"),
+    waist: lastMeasuredOn(props.measures, "waist"),
+  };
   const indicator = indicatorFor(props.goal);
   // La conversion vit dans `targetValueOf`, PAS ici: `Number("")` vaut 0, et
   // un champ vide devenait une fourchette centrée sur zéro kilo.
@@ -244,17 +518,6 @@ function MeasuresBlock(props: {
   const weeksHeld = indicator.target === "band"
     ? weeksInsideBand(weights, targetNumber)
     : 0;
-  const axis = props.axis && (FOCUS_AXES as readonly string[]).includes(props.axis)
-    ? axisReading(props.reviews, props.axis as FocusAxis)
-    : null;
-
-  /** L'unité et le libellé de la cible, selon ce que cette dynamique vise. */
-  const targetUnit = indicator.target === "waist" ? "cm" : "kg";
-  const targetLabel = indicator.target === "band"
-    ? "Weight I want to stay around"
-    : indicator.target === "waist"
-    ? "Waist I am aiming for"
-    : "Weight I am aiming for";
 
   /**
    * LA MESURE QUI PORTE L'OBJECTIF PASSE EN PREMIER.
@@ -264,213 +527,472 @@ function MeasuresBlock(props: {
    * « il tient ». Mettre en premier ce qui compte le moins, c'est enseigner
    * l'inverse de ce que la carte explique juste au-dessus.
    */
-  const rows: Array<{ label: string; m: DatedMeasure | null; unit: string }> = [];
-  const weightRow = { label: "Weight", m: reading.weight, unit: "kg" };
-  const waistRow = { label: "Waist", m: reading.waist, unit: "cm" };
+  type MeasureCell = {
+    which: "weight" | "waist";
+    label: string;
+    m: DatedMeasure | null;
+    unit: string;
+  };
+  const measureCells: MeasureCell[] = [];
+  const weightCell: MeasureCell = {
+    which: "weight",
+    label: "Weight",
+    m: reading.weight,
+    unit: "kg",
+  };
+  const waistCell: MeasureCell = {
+    which: "waist",
+    label: "Waist",
+    m: reading.waist,
+    unit: "cm",
+  };
   if (indicator.primary === "waist") {
-    rows.push(waistRow, weightRow);
+    measureCells.push(waistCell, weightCell);
   } else {
-    rows.push(weightRow);
-    if (showsWaist) rows.push(waistRow);
+    measureCells.push(weightCell);
+    if (showsWaist) measureCells.push(waistCell);
   }
-  const recorded = rows.filter((r) => r.m !== null);
+  const recorded = measureCells.filter((r) => r.m !== null);
+
+  /**
+   * L'HISTORIQUE, DU PLUS RÉCENT AU PLUS ANCIEN.
+   *
+   * `weeklyMeasures` rend l'inverse (du plus ancien au plus récent) parce que
+   * c'est ce dont les calculs de tendance ont besoin. Un tableau se lit dans
+   * l'autre sens: la ligne du haut est celle d'aujourd'hui.
+   *
+   * L'écart est calculé contre la semaine PESÉE précédente, pas contre la ligne
+   * du dessus: une semaine où seul le tour de taille a été saisi ne doit pas
+   * faire un écart de poids de zéro.
+   */
+  const weekKeys = new Set<string>(weights.map((m) => m.weekStart));
+  if (showsWaist) waists.forEach((m) => weekKeys.add(m.weekStart));
+  const weeksDesc = [...weekKeys].sort().reverse();
+  const weightByWeek = new Map(weights.map((m) => [m.weekStart, m.value]));
+  const waistByWeek = new Map(waists.map((m) => [m.weekStart, m.value]));
+  const history = weeksDesc.map((week, i) => {
+    const w = weightByWeek.get(week) ?? null;
+    let delta: number | null = null;
+    if (w !== null) {
+      for (let j = i + 1; j < weeksDesc.length; j += 1) {
+        const older = weightByWeek.get(weeksDesc[j]);
+        if (older !== undefined) {
+          delta = Math.round((w - older) * 10) / 10;
+          break;
+        }
+      }
+    }
+    return { week, weight: w, waist: waistByWeek.get(week) ?? null, delta };
+  });
+
+  /**
+   * QUELLE MESURE EST EN COURS D'ÉDITION — une seule à la fois.
+   *
+   * ── LE DÉFAUT QUE ÇA CORRIGE ───────────────────────────────────────────
+   * La section portait un bloc « Update » permanent avec deux à trois champs
+   * VIDES en bas, sous le récapitulatif. Des cases vides en permanence sous des
+   * chiffres déjà renseignés, ça occupe la moitié de la section pour un geste
+   * qu'on fait une fois par semaine — et ça donne l'impression qu'il reste
+   * quelque chose à remplir alors que tout est rempli.
+   *
+   * Chaque mesure porte donc son propre lien, et le champ n'existe que pendant
+   * qu'on s'en sert.
+   */
+  const [editing, setEditing] = React.useState<
+    null | "height" | "birthDate" | "gender" | "weight" | "waist"
+  >(null);
+
+  /**
+   * L'ÉDITEUR SE FERME QUAND LA VALEUR ENREGISTRÉE A CHANGÉ SOUS LUI.
+   *
+   * Et pas au clic sur « Save »: `run()` avale les erreurs dans la bannière de
+   * la page et ne rejette jamais, donc fermer sur le clic fermerait AUSSI sur
+   * un échec — l'élève verrait sa saisie disparaître en croyant qu'elle est
+   * passée. Ici, ce qui ferme est la preuve que l'écriture a eu lieu: la
+   * relecture a rapporté autre chose. Même posture que `EatingRhythmCard`.
+   */
+  const savedPrint = [
+    props.savedBasics.height.trim(),
+    props.savedBasics.birthDate.trim(),
+    props.savedBasics.gender.trim(),
+    reading.weight?.value ?? "",
+    reading.waist?.value ?? "",
+  ].join("|");
+  const [syncedFrom, setSyncedFrom] = React.useState(savedPrint);
+  if (syncedFrom !== savedPrint) {
+    setSyncedFrom(savedPrint);
+    setEditing(null);
+  }
+
+  /** Le lien discret qui ouvre une cellule. Même forme pour les cinq. */
+  const editLink = (
+    which: "height" | "birthDate" | "gender" | "weight" | "waist",
+    hasValue: boolean,
+  ) => (
+    <button
+      type="button"
+      onClick={() => {
+        setEditing(which);
+        // Rouvrir sur un brouillon abandonné ferait réenregistrer une valeur
+        // que l'élève avait renoncé à poser.
+        if (which === "weight" || which === "waist") {
+          props.onDraftChange({ ...props.draft, [which]: "" });
+        } else {
+          props.onBasicsChange({ ...props.savedBasics });
+        }
+      }}
+      className="mt-1 block text-xs font-medium text-gray-700 underline underline-offset-2 hover:text-gray-900"
+    >
+      {hasValue ? "Change" : "Add"}
+    </button>
+  );
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white">
+    <div className="space-y-4">
       {/*
-        UN TITRE PAR IDÉE, ET LE TITRE DIT CE QUE LA CHOSE EST.
+        ── CINQ CELLULES, UN SEUL GROUPE ──────────────────────────────────
+        Taille, naissance, sexe, poids, tour de taille: cinq faits que l'élève
+        donne sur lui-même. Les séparer ferait plusieurs blocs là où il n'y a
+        qu'une question.
 
-        La version d'avant empilait « What you are aiming for » puis, juste en
-        dessous, « Waist you are aiming for (cm) » — deux fois la même phrase,
-        dont une en étiquette de champ. Et la phrase de consigne (« ta taille
-        qui descend pendant que le poids tient ») était rangée sous « Where you
-        are now », où elle décrit tout sauf l'état actuel.
+        Que les trois premiers vivent sur `profiles` et les deux derniers dans
+        `weekly_reviews` est une différence de PLOMBERIE. Elle n'a aucune raison
+        de se voir à l'écran.
 
-        Trois parties, séparées visuellement, chacune répondant à UNE question:
-        qu'est-ce que je vise · où j'en suis · comment je mets à jour.
+        LES TROIS PREMIERS SURVIVENT AU PLANCHER TCA: ils ne se visent pas, ils
+        ne bougent pas, et ils sont nécessaires aux portions de quelqu'un qu'on
+        continue de nourrir. Les deux derniers montent et descendent, et cet
+        écran est le seul qui propose d'en viser un.
       */}
-      <div className="border-b border-gray-200 px-3 py-2">
-        <p className="text-sm font-medium text-gray-900">What this goal tracks</p>
-        <p className="mt-0.5 text-xs leading-5 text-gray-600">{indicator.reading}</p>
-      </div>
-
-      {/* 1. LA CIBLE — un chiffre, ou un axe, jamais les deux */}
-      <div className="border-b border-gray-200 px-3 py-3">
-        {indicator.target !== null ? (
-          <>
-            <label
-              htmlFor="goal-target"
-              className="block text-xs font-medium text-gray-700"
-            >
-              {targetLabel}
-            </label>
-            {/* Un champ étroit avec son unité collée: trois chiffres dans une
-                boîte pleine largeur donnent l'impression d'attendre une phrase. */}
-            <div className="mt-1 flex items-center gap-2">
-              <input
-                id="goal-target"
-                className={`${inputClass} w-24`}
-                inputMode="decimal"
-                value={props.target}
-                placeholder="—"
-                onChange={(e) => props.onTargetChange(e.target.value)}
-              />
-              <span className="text-sm text-gray-600">{targetUnit}</span>
-              <span className="text-xs text-gray-400">optional</span>
-            </div>
-            <p className="mt-1.5 text-xs leading-5 text-gray-500">
-              Nothing counts down, and nobody is scored against it.
-            </p>
-          </>
-        ) : (
-          // L'AXE, pour les deux dynamiques qu'aucun chiffre ne porte. Les six
-          // valeurs sont celles du point du dimanche: l'objectif est mesurable
-          // sans une seule saisie de plus.
-          <>
-            <label htmlFor="goal-axis" className="block text-xs font-medium text-gray-700">
-              The one thing I want to see improve
-            </label>
-            <select
-              id="goal-axis"
-              className={`${inputClass} mt-1`}
-              value={props.axis}
-              onChange={(e) => props.onAxisChange(e.target.value)}
-            >
-              <option value="">Nothing in particular</option>
-              {FOCUS_AXES.map((a) => (
-                <option key={a} value={a}>{FOCUS_AXIS_LABELS[a]}</option>
-              ))}
-            </select>
-            <p className="mt-1.5 text-xs leading-5 text-gray-500">
-              One of the six you rate on Sunday — nothing extra to fill in.
-            </p>
-            {axis ? (
-              <p className="mt-2 text-sm text-gray-700">
-                {axis.latest === null
-                  ? `Nothing rated yet — you set this at Sunday's check-in.`
-                  : axis.trend === "unknown"
-                  ? `Last Sunday: ${axis.latest.value} out of 5.`
-                  : axis.improving
-                  ? `${axis.label} is going up — that is the one you picked.`
-                  : axis.trend === "falling"
-                  ? `${axis.label} is going down.`
-                  : `${axis.label} is holding steady.`}
-              </p>
-            ) : null}
-          </>
-        )}
-      </div>
-
-      {/* 2. OÙ J'EN SUIS */}
-      <div className="border-b border-gray-200 px-3 py-3">
-        <p className="text-xs font-medium text-gray-700">Where you are now</p>
-
-        {recorded.length === 0 ? (
-          // ÉTAT VIDE NON HONTEUX, ET QUI DIT D'OÙ VIENNENT LES CHIFFRES.
-          // Deux tirets sous « Weight » et « Waist » ressemblent à une panne;
-          // ils n'apprennent pas que la mesure se saisit juste en dessous.
-          <p className="mt-1 text-sm text-gray-600">
-            Nothing recorded yet. Add a measurement below, or at Sunday's
-            check-in.
-          </p>
-        ) : (
-          <>
-            <div className="mt-2 flex flex-wrap gap-x-8 gap-y-3">
-              {recorded.map((r) => (
-                <div key={r.label}>
-                  <p className="text-xs text-gray-500">{r.label}</p>
-                  <p className="text-lg font-semibold leading-tight text-gray-900">
-                    {r.m!.value}
-                    <span className="ml-1 text-sm font-normal text-gray-500">{r.unit}</span>
-                  </p>
-                  {/* La date sous la valeur, toujours: « 78 kg » ne dit rien,
-                      « 78 kg il y a trois semaines » dit quelque chose. */}
-                  <p className="text-xs text-gray-500">{weekLabel(r.m!.weekStart)}</p>
+      <div className="flex flex-wrap gap-x-8 gap-y-4">
+        {/* LA TAILLE */}
+        <div className="min-w-[7rem]">
+          <p className="text-xs text-gray-500">Height</p>
+          {editing === "height" ? (
+            <div className="mt-1">
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Largeur sur le conteneur — voir `GoalTargetField`. */}
+                <div className="w-20">
+                  <input
+                    id="profile-height"
+                    className={inputClass}
+                    inputMode="decimal"
+                    autoFocus
+                    value={props.basics.height}
+                    placeholder="—"
+                    onChange={(e) =>
+                      props.onBasicsChange({ ...props.basics, height: e.target.value })}
+                  />
                 </div>
-              ))}
-            </div>
-
-            {reading.sentence ? (
-              <p className="mt-3 text-sm text-gray-700">{reading.sentence}</p>
-            ) : (
-              <p className="mt-3 text-xs leading-5 text-gray-500">
-                One more entry and this can start showing a direction — a single
-                measurement on its own is just a number.
-              </p>
-            )}
-
-            {/*
-              TROIS ÉTATS, ET LE TROISIÈME MANQUAIT.
-
-              « Tu es sorti de ta fourchette » suppose une fourchette. Sans
-              référence saisie, `insideBand` vaut `null` et on ne conclut RIEN —
-              on dit ce qui manque pour pouvoir conclure. Le cas est fréquent:
-              c'est celui de tout élève qui vient de choisir « Hold what I
-              have » et n'a pas encore posé son poids de référence.
-            */}
-            {indicator.target === "band" && targetNumber === null ? (
-              <p className="mt-1 text-xs leading-5 text-gray-500">
-                Set the weight you want to stay around, above, and this will
-                tell you when you drift.
-              </p>
-            ) : weeksHeld > 0 ? (
-              <p className="mt-1 text-sm text-gray-700">
-                {weeksHeld} week{weeksHeld > 1 ? "s" : ""} inside your range.
-              </p>
-            ) : reading.insideBand === false ? (
-              <p className="mt-1 text-sm text-gray-700">
-                You have drifted outside your range.
-              </p>
-            ) : null}
-          </>
-        )}
-      </div>
-
-      {/* 3. METTRE À JOUR, SANS ATTENDRE DIMANCHE */}
-      <div className="px-3 py-3">
-        <p className="text-xs font-medium text-gray-700">Add a measurement</p>
-        <p className="mt-0.5 text-xs leading-5 text-gray-500">
-          Weighed yourself since Sunday? It goes to the same place as your
-          Sunday check-in.
-        </p>
-        <div className="mt-2 flex flex-wrap items-end gap-3">
-          <div>
-            <label htmlFor="measure-weight" className="block text-xs text-gray-500">
-              Weight (kg)
-            </label>
-            <input
-              id="measure-weight"
-              className={`${inputClass} mt-1 w-24`}
-              inputMode="decimal"
-              value={props.draft.weight}
-              onChange={(e) => props.onDraftChange({ ...props.draft, weight: e.target.value })}
-            />
-          </div>
-          {showsWaist ? (
-            <div>
-              <label htmlFor="measure-waist" className="block text-xs text-gray-500">
-                Waist (cm)
-              </label>
-              <input
-                id="measure-waist"
-                className={`${inputClass} mt-1 w-24`}
-                inputMode="decimal"
-                value={props.draft.waist}
-                onChange={(e) => props.onDraftChange({ ...props.draft, waist: e.target.value })}
+                <span className="text-sm text-gray-600">cm</span>
+              </div>
+              <CellActions
+                busy={props.busy === "basics"}
+                disabled={props.busy !== null}
+                onSave={() => props.onSaveBasic("height")}
+                onCancel={() => {
+                  props.onBasicsChange({ ...props.savedBasics });
+                  setEditing(null);
+                }}
               />
             </div>
-          ) : null}
-          {/* « Save » tout court était ambigu: il y en a un second en bas de
-              carte, pour l'objectif. Le bouton dit ce qu'il enregistre. */}
-          <Button
-            onClick={props.onSaveMeasures}
-            disabled={props.busy !== null}
-            variant="secondary"
-          >
-            {props.busy === "measures" ? "…" : "Save measurement"}
-          </Button>
+          ) : (
+            <>
+              <p className="text-lg font-semibold leading-tight text-gray-900">
+                {props.savedBasics.height.trim()
+                  ? (
+                    <>
+                      {props.savedBasics.height.trim()}
+                      <span className="ml-1 text-sm font-normal text-gray-500">cm</span>
+                    </>
+                  )
+                  : <span className="text-gray-400">—</span>}
+              </p>
+              {editLink("height", props.savedBasics.height.trim() !== "")}
+            </>
+          )}
         </div>
+
+        {/* L'ÂGE, DÉRIVÉ DE LA DATE. On AFFICHE l'âge — c'est ce qui parle et
+            ce dont la composition a besoin — et on SAISIT la date, qui ne se
+            périme pas. Stocker l'âge obligerait à le corriger chaque année. */}
+        <div className="min-w-[7rem]">
+          <p className="text-xs text-gray-500">Age</p>
+          {editing === "birthDate" ? (
+            <div className="mt-1">
+              <input
+                id="profile-birth-date"
+                type="date"
+                className={inputClass}
+                autoFocus
+                max={todayIso()}
+                value={props.basics.birthDate}
+                onChange={(e) =>
+                  props.onBasicsChange({ ...props.basics, birthDate: e.target.value })}
+              />
+              <CellActions
+                busy={props.busy === "basics"}
+                disabled={props.busy !== null}
+                onSave={() => props.onSaveBasic("birthDate")}
+                onCancel={() => {
+                  props.onBasicsChange({ ...props.savedBasics });
+                  setEditing(null);
+                }}
+              />
+            </div>
+          ) : (
+            <>
+              <p className="text-lg font-semibold leading-tight text-gray-900">
+                {ageFrom(props.savedBasics.birthDate) !== null
+                  ? ageFrom(props.savedBasics.birthDate)
+                  : <span className="text-gray-400">—</span>}
+              </p>
+              {props.savedBasics.birthDate.trim() && (
+                <p className="text-xs text-gray-500">
+                  {props.savedBasics.birthDate.trim()}
+                </p>
+              )}
+              {editLink("birthDate", props.savedBasics.birthDate.trim() !== "")}
+            </>
+          )}
+        </div>
+
+        {/* LE SEXE — liste fermée, celle que la base accepte
+            (`profiles_gender_check`). Un champ libre ici produirait des valeurs
+            que le CHECK refuse, donc une erreur SQL que personne ne sait lire. */}
+        <div className="min-w-[7rem]">
+          <p className="text-xs text-gray-500">Sex</p>
+          {editing === "gender" ? (
+            <div className="mt-1">
+              <select
+                id="profile-gender"
+                className={inputClass}
+                autoFocus
+                value={props.basics.gender}
+                onChange={(e) =>
+                  props.onBasicsChange({ ...props.basics, gender: e.target.value })}
+              >
+                <option value="">—</option>
+                {GENDERS.map((g) => (
+                  <option key={g.value} value={g.value}>{g.label}</option>
+                ))}
+              </select>
+              <CellActions
+                busy={props.busy === "basics"}
+                disabled={props.busy !== null}
+                onSave={() => props.onSaveBasic("gender")}
+                onCancel={() => {
+                  props.onBasicsChange({ ...props.savedBasics });
+                  setEditing(null);
+                }}
+              />
+            </div>
+          ) : (
+            <>
+              <p className="text-lg font-semibold leading-tight text-gray-900">
+                {GENDERS.find((g) => g.value === props.savedBasics.gender)?.label ??
+                  <span className="text-gray-400">—</span>}
+              </p>
+              {editLink("gender", props.savedBasics.gender.trim() !== "")}
+            </>
+          )}
+        </div>
+
+        {/* LE PLANCHER TCA — ces deux-là sont des nombres qui montent et
+            descendent, et cet écran est le seul qui propose d'en viser un. */}
+        {props.restricted ? null : measureCells.map((cell) => (
+          <div key={cell.which} className="min-w-[7rem]">
+            <p className="text-xs text-gray-500">{cell.label}</p>
+            {editing === cell.which ? (
+              <div className="mt-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="w-20">
+                    <input
+                      id={`measure-${cell.which}`}
+                      className={inputClass}
+                      inputMode="decimal"
+                      autoFocus
+                      value={props.draft[cell.which]}
+                      placeholder="—"
+                      onChange={(e) =>
+                        props.onDraftChange({ ...props.draft, [cell.which]: e.target.value })}
+                    />
+                  </div>
+                  <span className="text-sm text-gray-600">{cell.unit}</span>
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <Button
+                    onClick={props.onSaveMeasures}
+                    disabled={props.busy !== null}
+                    variant="secondary"
+                  >
+                    {props.busy === "measures" ? "…" : "Save"}
+                  </Button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      props.onDraftChange({ ...props.draft, [cell.which]: "" });
+                      setEditing(null);
+                    }}
+                    className="text-xs text-gray-500 underline underline-offset-2 hover:text-gray-900"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <p className="text-lg font-semibold leading-tight text-gray-900">
+                  {cell.m === null
+                    ? <span className="text-gray-400">—</span>
+                    : (
+                      <>
+                        {cell.m.value}
+                        <span className="ml-1 text-sm font-normal text-gray-500">
+                          {cell.unit}
+                        </span>
+                      </>
+                    )}
+                </p>
+                {/* La date sous la valeur, toujours: « 78 kg » ne dit rien,
+                    « 78 kg il y a trois semaines » dit quelque chose. */}
+                {cell.m ? (
+                  <p className="text-xs text-gray-500">
+                    {/* Le JOUR quand la table datée le connaît, le libellé de
+                        semaine sinon — pour une mesure d'avant la reprise, la
+                        semaine est la seule chose vraie qu'on puisse dire. */}
+                    {dayLabel(lastOn[cell.which]) ?? weekLabel(cell.m.weekStart)}
+                  </p>
+                ) : null}
+                {editLink(cell.which, cell.m !== null)}
+              </>
+            )}
+          </div>
+        ))}
       </div>
+
+      {/* La phrase n'apparaît QUE pendant la saisie: elle explique où va le
+          chiffre, ce qui n'intéresse personne le reste du temps. */}
+      {!props.restricted && (editing === "weight" || editing === "waist") ? (
+        <p className="text-xs leading-5 text-gray-500">
+          Weighed yourself since Sunday? It goes to the same place as your Sunday
+          check-in.
+        </p>
+      ) : null}
+
+      {props.restricted ? null : (
+      <>
+      {recorded.length === 0 ? (
+        // ÉTAT VIDE NON HONTEUX, ET QUI DIT D'OÙ VIENNENT LES CHIFFRES.
+        <p className="text-sm text-gray-600">
+          No weight recorded yet. Add one above, or at Sunday's check-in.
+        </p>
+      ) : (
+        <div>
+          {reading.sentence ? (
+            <p className="text-sm text-gray-700">{reading.sentence}</p>
+          ) : (
+            <p className="text-xs leading-5 text-gray-500">
+              One more entry and this can start showing a direction — a single
+              measurement on its own is just a number.
+            </p>
+          )}
+
+          {/*
+            TROIS ÉTATS, ET LE TROISIÈME MANQUAIT.
+
+            « Tu es sorti de ta fourchette » suppose une fourchette. Sans
+            référence saisie, `insideBand` vaut `null` et on ne conclut RIEN —
+            on dit ce qui manque pour pouvoir conclure. Le cas est fréquent:
+            c'est celui de tout élève qui vient de choisir « Hold what I have »
+            et n'a pas encore posé son poids de référence.
+          */}
+          {indicator.target === "band" && targetNumber === null ? (
+            <p className="mt-1 text-xs leading-5 text-gray-500">
+              Set the weight you want to stay around and this will tell you when
+              you drift.
+            </p>
+          ) : weeksHeld > 0 ? (
+            <p className="mt-1 text-sm text-gray-700">
+              {weeksHeld} week{weeksHeld > 1 ? "s" : ""} inside your range.
+            </p>
+          ) : reading.insideBand === false ? (
+            <p className="mt-1 text-sm text-gray-700">
+              You have drifted outside your range.
+            </p>
+          ) : null}
+        </div>
+      )}
+
+      {/*
+        ── L'HISTORIQUE ────────────────────────────────────────────────────
+        Une phrase de tendance dit une direction; elle ne montre pas le chemin.
+        « Tu as perdu du poids » et douze semaines de chiffres ne se lisent pas
+        pareil, et c'est le second qu'on vient chercher quand on doute.
+
+        À PARTIR DE DEUX LIGNES: un tableau d'une ligne est un chiffre déjà
+        affiché juste au-dessus, avec une bordure autour.
+
+        AUCUNE COULEUR SUR L'ÉCART, et c'est une règle produit, pas un oubli.
+        Du vert sur −0,4 kg et du rouge sur +0,4 serait une NOTE — exactement ce
+        que « nothing counts down, and nobody is scored against it » refuse deux
+        sections plus haut. Le signe suffit à lire le sens.
+      */}
+      {history.length >= 2 ? (
+        <div>
+          <p className="text-xs font-medium text-gray-700">Week by week</p>
+          {/* Le tableau défile DANS son conteneur: à 320 px, trois colonnes
+              chiffrées débordent, et c'est la page entière qui partirait de
+              travers. */}
+          <div className="mt-2 overflow-x-auto">
+            <table className="w-full min-w-[18rem] text-sm">
+              <thead>
+                <tr className="border-b border-gray-200 text-left text-xs text-gray-500">
+                  <th scope="col" className="py-1.5 pr-3 font-medium">Week</th>
+                  <th scope="col" className="py-1.5 pr-3 font-medium">Weight</th>
+                  <th scope="col" className="py-1.5 pr-3 font-medium">Change</th>
+                  {showsWaist ? (
+                    <th scope="col" className="py-1.5 font-medium">Waist</th>
+                  ) : null}
+                </tr>
+              </thead>
+              <tbody>
+                {history.map((h) => (
+                  <tr key={h.week} className="border-b border-gray-100 last:border-0">
+                    <th
+                      scope="row"
+                      className="whitespace-nowrap py-1.5 pr-3 text-left font-normal text-gray-500"
+                    >
+                      {weekLabel(h.week).replace("week of ", "")}
+                    </th>
+                    <td className="whitespace-nowrap py-1.5 pr-3 text-gray-900">
+                      {h.weight === null
+                        ? <span className="text-gray-300">—</span>
+                        : `${h.weight} kg`}
+                    </td>
+                    <td className="whitespace-nowrap py-1.5 pr-3 text-gray-500">
+                      {h.delta === null
+                        ? <span className="text-gray-300">—</span>
+                        : h.delta === 0
+                        ? "="
+                        : `${h.delta > 0 ? "+" : ""}${h.delta.toFixed(1)}`}
+                    </td>
+                    {showsWaist ? (
+                      <td className="whitespace-nowrap py-1.5 text-gray-900">
+                        {h.waist === null
+                          ? <span className="text-gray-300">—</span>
+                          : `${h.waist} cm`}
+                      </td>
+                    ) : null}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : null}
+      </>
+      )}
     </div>
   );
 }
@@ -478,12 +1000,32 @@ function MeasuresBlock(props: {
 export default function StudentWeekPlanPage() {
   const [state, setState] = React.useState<LoadState>({ kind: "loading" });
   const [goal, setGoal] = React.useState<GoalRow | null>(null);
+  // `situation` a disparu du formulaire — voir le commentaire de `saveGoal`.
   const [goalDraft, setGoalDraft] = React.useState({
     goal: "health",
-    situation: "",
     aspiration: "",
     target: "",
     axis: "",
+  });
+  /**
+   * La taille, lue et écrite sur `profiles` — pas sur `student_goals`.
+   *
+   * DEUX ÉTATS, ET C'EST LA RÈGLE DE LA MAISON. `height` est ce qui est TAPÉ,
+   * `heightSaved` ce qui est EN BASE. Le récapitulatif et la carte de la page
+   * lisent le second: un résumé qui afficherait « 180 cm » parce qu'on vient de
+   * le taper — sans avoir enregistré — dirait que le générateur connaît un
+   * chiffre que personne ne lui a donné. `EatingRhythmCard` tient déjà cette
+   * distinction, avec son avertissement « changed but not saved ».
+   */
+  const [basics, setBasics] = React.useState<Basics>({
+    height: "",
+    birthDate: "",
+    gender: "",
+  });
+  const [savedBasics, setSavedBasics] = React.useState<Basics>({
+    height: "",
+    birthDate: "",
+    gender: "",
   });
   /**
    * LA CARTE SE REPLIE — même règle que l'interview de doctrine côté coach.
@@ -516,6 +1058,10 @@ export default function StudentWeekPlanPage() {
   const [busy, setBusy] = React.useState<string | null>(null);
   const [failure, setFailure] = React.useState<string | null>(null);
   const [reviews, setReviews] = React.useState<ReviewRow[]>([]);
+  // FF-031 — les pesées datées. Séparées de `reviews` et pas fusionnées dedans:
+  // `reviews` porte aussi les six axes de vivabilité, qui ne sont pas des
+  // mesures corporelles et n'ont rien à faire dans la même liste.
+  const [measures, setMeasures] = React.useState<BodyMeasureRow[]>([]);
   /**
    * LE PLANCHER TCA. `weekly_reviews.risk_band = 'restriction_flag'` ⇒ la carte
    * des mesures n'existe pas pour cet élève cette semaine.
@@ -559,7 +1105,7 @@ export default function StudentWeekPlanPage() {
     // `student_week_plans` n'a pas de policy coach aujourd'hui. Elle est scopée
     // pareil: ce qui protège cette page ne doit pas dépendre de la liste des
     // policies d'une table voisine, qui change sans que ce fichier soit relu.
-    const [planRes, goalRes, reviewRes] = await Promise.all([
+    const [planRes, goalRes, reviewRes, measureRes, profileRes] = await Promise.all([
       supabase
         .from("student_week_plans")
         .select("id, week_start, items, status, adopted_at")
@@ -582,6 +1128,27 @@ export default function StudentWeekPlanPage() {
         .eq("user_id", uid)
         .order("week_start_date", { ascending: false })
         .limit(12),
+      // FF-031 — les pesées DATÉES. Scopées sur `user_id` pour la même raison
+      // que leurs voisines: la policy coach s'additionne à celle du
+      // propriétaire, et sans ce filtre un parent qui pilote le foyer lirait la
+      // courbe de son élève à la place de la sienne.
+      //
+      // La même fenêtre que les bilans: douze semaines, bornées sur le LUNDI
+      // pour que les deux requêtes couvrent exactement les mêmes semaines. Une
+      // fenêtre plus large ici ferait apparaître dans le tableau des semaines
+      // que la tendance juste au-dessus ne regarde pas.
+      supabase
+        .from("student_body_measures")
+        .select("local_date, kind, value_si, measured_at")
+        .eq("user_id", uid)
+        .gte("local_date", addDays(weekStart, -7 * 11))
+        .order("local_date", { ascending: true })
+        .order("measured_at", { ascending: true })
+        .order("id", { ascending: true }),
+      // LA TAILLE VIT SUR `profiles`, pas sur `student_goals`: c'est une
+      // propriété de la personne, à côté de `birth_date` et `gender`.
+      supabase.from("profiles").select("height_cm, birth_date, gender").eq("id", uid)
+        .maybeSingle(),
     ]);
     // Fail loud: "you have no plan yet" and "we could not read it" are two
     // different sentences, and showing the first for the second invites the
@@ -589,6 +1156,8 @@ export default function StudentWeekPlanPage() {
     if (planRes.error) throw new Error(planRes.error.message);
     if (goalRes.error) throw new Error(goalRes.error.message);
     if (reviewRes.error) throw new Error(reviewRes.error.message);
+    if (measureRes.error) throw new Error(measureRes.error.message);
+    if (profileRes.error) throw new Error(profileRes.error.message);
 
     const g = (goalRes.data ?? null) as GoalRow | null;
     setGoal(g);
@@ -597,12 +1166,27 @@ export default function StudentWeekPlanPage() {
       const current = kind === "waist" ? g.target_waist_cm : g.target_weight_kg;
       setGoalDraft({
         goal: g.goal,
-        situation: g.situation ?? "",
         aspiration: g.aspiration ?? "",
         target: current === null || current === undefined ? "" : String(current),
         axis: g.focus_axis ?? "",
       });
     }
+    const prof = (profileRes.data ?? {}) as {
+      height_cm?: number | null;
+      birth_date?: string | null;
+      gender?: string | null;
+    };
+    const loaded: Basics = {
+      height: prof.height_cm === null || prof.height_cm === undefined
+        ? ""
+        : String(prof.height_cm),
+      birthDate: (prof.birth_date ?? "").slice(0, 10),
+      gender: prof.gender ?? "",
+    };
+    setSavedBasics(loaded);
+    // Le brouillon suit ce qui est relu: après un enregistrement, les deux
+    // coïncident et l'éditeur de la cellule se referme (voir `savedPrint`).
+    setBasics(loaded);
     // RIEN D'ÉCRIT => LA FENÊTRE S'OUVRE D'ELLE-MÊME. C'est le premier passage,
     // un élève sans objectif ne peut rien générer, et personne ne clique sur un
     // bouton pour découvrir une question qu'il ignore.
@@ -621,6 +1205,7 @@ export default function StudentWeekPlanPage() {
     // pas retirer l'écran à quelqu'un qui va bien maintenant.
     setRestricted(rows[0]?.risk_band === "restriction_flag");
     setReviews(rows);
+    setMeasures((measureRes.data ?? []) as BodyMeasureRow[]);
   }, [weekStart]);
 
   React.useEffect(() => {
@@ -651,19 +1236,29 @@ export default function StudentWeekPlanPage() {
     if (!goal) return null;
     const parts: string[] = [];
     const kind = indicatorFor(goal.goal as GoalToken).target;
-    if (kind === "waist" && goal.target_waist_cm !== null) {
-      parts.push(`aiming for ${goal.target_waist_cm} cm`);
-    } else if (kind === "band" && goal.target_weight_kg !== null) {
-      parts.push(`staying around ${goal.target_weight_kg} kg`);
-    } else if (kind !== null && goal.target_weight_kg !== null) {
-      parts.push(`aiming for ${goal.target_weight_kg} kg`);
+    // ── LE PLANCHER TCA COUVRE AUSSI CE RÉSUMÉ ────────────────────────────
+    // Trou mesuré le 2026-08-07: la garde retirait le CHAMP « poids que je
+    // vise », et ce résumé continuait d'afficher « aiming for 95 kg » juste
+    // au-dessus. Le nombre restait donc sous les yeux de la personne que la
+    // garde protège — sans même le moyen de l'effacer, puisque le champ pour
+    // le changer avait disparu.
+    //
+    // L'axe et l'aspiration restent: ni l'un ni l'autre n'est un poids.
+    if (!restricted) {
+      if (kind === "waist" && goal.target_waist_cm !== null) {
+        parts.push(`aiming for ${goal.target_waist_cm} cm`);
+      } else if (kind === "band" && goal.target_weight_kg !== null) {
+        parts.push(`staying around ${goal.target_weight_kg} kg`);
+      } else if (kind !== null && goal.target_weight_kg !== null) {
+        parts.push(`aiming for ${goal.target_weight_kg} kg`);
+      }
     }
     if (goal.focus_axis && (FOCUS_AXES as readonly string[]).includes(goal.focus_axis)) {
       parts.push(`working on ${FOCUS_AXIS_LABELS[goal.focus_axis as FocusAxis].toLowerCase()}`);
     }
     if (goal.aspiration) parts.push(`“${goal.aspiration}”`);
     return parts.length > 0 ? parts.join(" · ") : null;
-  }, [goal]);
+  }, [goal, restricted]);
 
   /**
    * LES QUATRE RÉSUMÉS D'UNE LIGNE — ce que la page montre à la place des
@@ -689,7 +1284,7 @@ export default function StudentWeekPlanPage() {
     return slots
       .map((o) => {
         const label = mealCopy(`meals.slot.${o.slot}` as Parameters<typeof mealCopy>[0]);
-        return o.at ? `${label} ${o.at}` : label;
+        return o.size ? `${label} (${o.size})` : label;
       })
       .join(" · ");
   }, [pc.eating_rhythm]);
@@ -712,6 +1307,30 @@ export default function StudentWeekPlanPage() {
     return kept.length === 1 ? "1 thing kept" : `${kept.length} things kept`;
   }, [pc]);
 
+  /**
+   * TES CHIFFRES, EN UNE LIGNE — la taille, puis le dernier poids.
+   *
+   * LE PLANCHER TCA VAUT AUSSI POUR LE RÉSUMÉ. Il est affiché sur la PAGE, hors
+   * de la fenêtre: y laisser passer un poids remettrait sous les yeux d'un
+   * élève signalé, à chaque chargement, exactement le nombre que la garde
+   * retire à l'intérieur. La taille, elle, reste — elle ne se vise pas.
+   */
+  const personalSummary = React.useMemo(() => {
+    const parts: string[] = [];
+    if (savedBasics.height.trim()) parts.push(`${savedBasics.height.trim()} cm`);
+    if (!restricted) {
+      // `latest()` et PAS `[0]`: `weeklyMeasures` rend du plus ANCIEN au plus
+      // récent. Le `[0]` d'ici affichait donc le premier poids jamais saisi,
+      // pendant que la section, elle, montrait le dernier — deux chiffres
+      // différents pour la même chose, sur le même écran.
+      const last = latest(
+        weeklyMeasures({ reviews, measures, kind: "weight" }),
+      );
+      if (last) parts.push(`${last.value} kg`);
+    }
+    return parts.length > 0 ? parts.join(" · ") : null;
+  }, [savedBasics, reviews, measures, restricted]);
+
   async function run(label: string, fn: () => Promise<void>) {
     setBusy(label);
     setFailure(null);
@@ -723,6 +1342,105 @@ export default function StudentWeekPlanPage() {
       setBusy(null);
     }
   }
+
+  /**
+   * LA TAILLE — sur `profiles`, et seule de son espèce sur cet écran.
+   *
+   * `update` et pas `upsert`: la ligne `profiles` existe pour tout compte
+   * authentifié (créée à l'inscription). `select()` derrière, pour la même
+   * raison que `mergePracticalConstraints`: un update qui ne matche aucune
+   * ligne répond 204 sans erreur, et l'écran dirait « enregistré » sur une
+   * saisie partie nulle part.
+   */
+  /**
+   * UN FAIT DURABLE, ÉCRIT SUR `profiles`.
+   *
+   * UN CHAMP À LA FOIS, et c'est le sens du paramètre: les trois cellules ne se
+   * saisissent jamais ensemble, et écrire les trois à chaque Save renverrait en
+   * base deux valeurs que l'élève n'a pas touchées — dont un brouillon
+   * abandonné dans une cellule qu'il avait ouverte puis annulée.
+   *
+   * `update` et pas `upsert`: la ligne `profiles` existe pour tout compte
+   * authentifié. `select()` derrière, pour la même raison que
+   * `mergePracticalConstraints`: un update qui ne matche aucune ligne répond
+   * 204 sans erreur, et l'écran dirait « enregistré » sur une saisie partie
+   * nulle part.
+   */
+  const saveBasic = (field: keyof Basics) =>
+    run("basics", async () => {
+      const { data: sess } = await supabase.auth.getUser();
+      const uid = sess.user?.id;
+      if (!uid) throw new Error("not_signed_in");
+
+      // VIDER UN CHAMP L'EFFACE — c'est un geste légitime (on s'est trompé),
+      // et le seul moyen de le faire sans un bouton de plus.
+      const patch: Record<string, unknown> = {};
+      if (field === "height") {
+        const raw = basics.height.trim();
+        if (raw === "") patch.height_cm = null;
+        else {
+          const parsed = readMeasureInput(raw, HEIGHT_CM_MIN, HEIGHT_CM_MAX, "Height");
+          if (!parsed.ok) throw new Error(parsed.message);
+          patch.height_cm = parsed.value;
+        }
+      } else if (field === "birthDate") {
+        const raw = basics.birthDate.trim();
+        // BORNES LARGES, ET ELLES EXISTENT QUAND MÊME: elles n'attrapent pas
+        // une erreur d'un an, elles attrapent le doigt qui glisse sur le siècle
+        // — après quoi l'âge dérivé est absurde et personne ne voit d'où il
+        // vient.
+        if (raw === "") patch.birth_date = null;
+        else {
+          const age = ageFrom(raw);
+          if (age === null || age < 10 || age > 110) {
+            throw new Error("That date of birth does not look right.");
+          }
+          patch.birth_date = raw;
+        }
+      } else {
+        const raw = basics.gender.trim();
+        // LISTE FERMÉE, celle du CHECK `profiles_gender_check`. Envoyer autre
+        // chose produirait une violation de contrainte que personne ne sait
+        // lire — et l'écran ne propose que ces trois valeurs, donc y arriver
+        // signifierait que quelqu'un a contourné le `<select>`.
+        if (raw !== "" && !["male", "female", "other"].includes(raw)) {
+          throw new Error("Unknown value.");
+        }
+        patch.gender = raw === "" ? null : raw;
+      }
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .update(patch)
+        .eq("id", uid)
+        .select("id");
+      if (error) throw new Error(error.message);
+      if (!data || data.length === 0) {
+        throw new Error("Nothing was saved — we could not find your profile.");
+      }
+      await refresh();
+    });
+
+  /**
+   * LES MOMENTS ÉCARTÉS — écrits par la grille du constructeur.
+   *
+   * Passe par le même propriétaire que les trois cartes de réglages
+   * (`mergePracticalConstraints`): la fusion des autres clés et la garantie
+   * qu'une ligne a bougé valent ici aussi, et les dupliquer ferait une
+   * quatrième écriture à tenir d'accord avec les trois autres.
+   */
+  const saveAwayDays = async (next: AwayDay[]) => {
+    const { data: sess } = await supabase.auth.getUser();
+    const uid = sess.user?.id;
+    if (!uid) throw new Error("not_signed_in");
+    await mergePracticalConstraints({
+      userId: uid,
+      current: goal?.practical_constraints ?? {},
+      patch: { away_days: next },
+      source: "MealPickerGrid",
+    });
+    await refresh();
+  };
 
   const saveGoal = () =>
     run("goal", async () => {
@@ -753,10 +1471,21 @@ export default function StudentWeekPlanPage() {
         ? goalDraft.axis || null
         : null;
 
+      // ── `situation` N'EST PLUS DANS CE PAYLOAD, ET C'EST DÉLIBÉRÉ ────────
+      // Le champ « Your situation » a été retiré de l'écran (doublon assumé
+      // avec « Anything going on this week » du constructeur). La COLONNE
+      // reste, et elle est toujours lue par les deux générateurs — voir
+      // `buildMealPrompt`, qui l'injecte comme entrée STABLE, séparée du
+      // contexte daté.
+      //
+      // Elle est absente du payload plutôt qu'envoyée à `null`: PostgREST ne
+      // touche pas, sur conflit, les colonnes qu'on ne lui donne pas (vérifié
+      // le 2026-08-07 sur cette table). Les élèves qui avaient écrit une
+      // situation la gardent donc, et leurs plans continuent d'en tenir compte.
+      // Les nouveaux n'en auront pas — c'est la conséquence à assumer.
       const { error } = await supabase.from("student_goals").upsert({
         user_id: uid,
         goal: goalDraft.goal,
-        situation: goalDraft.situation.trim() || null,
         aspiration: goalDraft.aspiration.trim() || null,
         focus_axis: axis,
         target_weight_kg: kind === "weight" || kind === "band" ? value : null,
@@ -889,7 +1618,12 @@ export default function StudentWeekPlanPage() {
             </p>
           ) : (
             <dl className="mt-3 space-y-2">
+              {/* UNE LIGNE PAR SECTION DE LA FENÊTRE, DANS LE MÊME ORDRE.
+                  Cette carte est l'index du dialogue: une section qui n'y a pas
+                  sa ligne est une section qu'on ne sait pas avoir oublié de
+                  remplir. */}
               {([
+                ["Numbers", personalSummary],
                 ["Goal", GOALS.find((g) => g.value === goal.goal)?.label ?? goal.goal],
                 ["Your day", rhythmSummary],
                 ["Cooking", cookingSummary],
@@ -920,6 +1654,32 @@ export default function StudentWeekPlanPage() {
           size="lg"
         >
         <div className="space-y-4">
+        {/* TES CHIFFRES, EN PREMIER — parce que ce sont des propriétés du
+            CORPS, pas de l'objectif. Elles ne changent pas quand l'objectif
+            change, et elles servent aux portions dans les six cas. */}
+        <SetupSection
+          accent="rose"
+          title="Basic info"
+          intro="Who you are and where you are now. Used to size your portions."
+          summary={personalSummary}
+        >
+          <PersonalNumbers
+            goal={goalDraft.goal as GoalToken}
+            reviews={reviews}
+            measures={measures}
+            target={goalDraft.target}
+            basics={basics}
+            savedBasics={savedBasics}
+            onBasicsChange={setBasics}
+            onSaveBasic={saveBasic}
+            draft={measureDraft}
+            onDraftChange={setMeasureDraft}
+            onSaveMeasures={saveMeasures}
+            busy={busy}
+            restricted={restricted}
+          />
+        </SetupSection>
+
         <SetupSection
           accent="violet"
           title="Your goal"
@@ -928,14 +1688,31 @@ export default function StudentWeekPlanPage() {
         >
           <div id="goal-editor" className="space-y-4">
             {/*
-              DES CARTES RADIO, PAS UN `<select>`.
+              DES CARTES RADIO, PAS UN `<select>`. Un menu déroulant ne montre
+              qu'une ligne à la fois: pour comparer six directions il faut les
+              ouvrir une par une, et personne ne le fait — on prend la première
+              qui ressemble. C'est le mécanisme par lequel « Performance »
+              ramassait les élèves en prise de masse. Les six titres restent
+              donc visibles ensemble, et c'est ce qui compte ici.
 
-              Un menu déroulant ne montre qu'une ligne à la fois: pour comparer
-              six directions il faut les ouvrir une par une, et personne ne le
-              fait — on prend la première qui ressemble. C'est le mécanisme par
-              lequel « Performance » ramassait les élèves en prise de masse.
-              Six options tiennent à l'écran; la description ne sert à choisir
-              que si elle est lisible AVANT le clic.
+              ── LA LÉGENDE NE S'AFFICHE QUE SUR LA DYNAMIQUE CHOISIE ────────
+              Décision du propriétaire, 2026-08-07, et elle RENVERSE ce que ce
+              commentaire disait avant: « la description ne sert à choisir que
+              si elle est lisible AVANT le clic ».
+
+              Ce qui l'a emporté: six titres suivis chacun de deux lignes font
+              une section de quinze lignes en tête d'une fenêtre qui en compte
+              quatre — et c'est cette section-là que quelqu'un a eue sous les
+              yeux sans rien y comprendre. Une liste qu'on ne peut pas parcourir
+              du regard ne se lit pas non plus.
+
+              CE QU'ON ACCEPTE EN ÉCHANGE, et il faut le savoir: le premier clic
+              se fait sur le titre seul. Le garde-fou est que la légende arrive
+              AVANT l'enregistrement — l'élève lit ce qu'il vient de choisir et
+              peut encore en changer, ce qu'un `<select>` ne permettait pas. Si
+              une dynamique se remet à ramasser des élèves qui n'y ont rien à
+              faire, c'est ici qu'il faut revenir, et les titres doivent alors
+              porter seuls la distinction.
             */}
             <fieldset>
               <legend className="mb-1 block text-sm font-medium text-gray-700">
@@ -985,75 +1762,84 @@ export default function StudentWeekPlanPage() {
                         <span className="block text-sm font-medium text-gray-900">
                           {g.label}
                         </span>
-                        <span className="mt-0.5 block text-xs leading-5 text-gray-600">
-                          {g.blurb}
-                        </span>
+                        {/* La légende de la dynamique CHOISIE — voir l'arbitrage
+                            au-dessus du `fieldset`. Rendue conditionnellement et
+                            pas masquée en CSS: une description présente dans le
+                            DOM serait annoncée par un lecteur d'écran pour les
+                            six, et l'élève au clavier entendrait un écran qui ne
+                            ressemble à rien de ce qui est affiché. */}
+                        {/* TOUT CE QUE LA DYNAMIQUE CHOISIE ENTRAÎNE, ICI —
+                            sa légende, sa cible, et les mots de l'élève.
+                            Rendu conditionnellement et pas masqué en CSS: un
+                            contenu présent dans le DOM pour les six serait
+                            annoncé six fois par un lecteur d'écran, et il y
+                            aurait six champs `goal-target` de même `id`. */}
+                        {selected ? (
+                          <>
+                            <span className="mt-0.5 block text-xs leading-5 text-gray-600">
+                              {g.blurb}
+                            </span>
+                            {/* Un `div` serait invalide ici: le parent est un
+                                `span` dans un `label`. */}
+                            <span className="block">
+                              <GoalTargetField
+                                goal={goalDraft.goal as GoalToken}
+                                reviews={reviews}
+                                target={goalDraft.target}
+                                onTargetChange={(v) =>
+                                  setGoalDraft((p) => ({ ...p, target: v }))}
+                                axis={goalDraft.axis}
+                                onAxisChange={(v) =>
+                                  setGoalDraft((p) => ({ ...p, axis: v }))}
+                                restricted={restricted}
+                              />
+                            </span>
+                            {/*
+                              SES MOTS, RATTACHÉS À LA DYNAMIQUE QU'IL VIENT DE
+                              CHOISIR.
+
+                              C'était un champ « What you are actually after »
+                              posé plus bas, sous les mesures, sans lien visible
+                              avec le choix — et à côté d'un second champ « Your
+                              situation ». Les deux se remplissaient avec les
+                              mêmes phrases, et le constructeur en demande
+                              encore une troisième (« Anything going on this
+                              week »). Il n'en reste qu'un, et il arrive au
+                              moment où on a quelque chose à dire.
+                            */}
+                            <span className="mt-3 block">
+                              <label
+                                htmlFor="aspiration"
+                                className="block text-xs font-medium text-gray-700"
+                              >
+                                In your own words
+                              </label>
+                              <textarea
+                                id="aspiration"
+                                rows={2}
+                                className={`${inputClass} mt-1`}
+                                placeholder="Play football with my kids without being wrecked"
+                                value={goalDraft.aspiration}
+                                onChange={(e) =>
+                                  setGoalDraft((p) => ({ ...p, aspiration: e.target.value }))}
+                                // Le `label` parent transmet le clic à la radio;
+                                // sans ça, cliquer dans la zone de texte
+                                // rebasculerait la sélection.
+                                onClick={(e) => e.preventDefault()}
+                              />
+                              <span className="mt-1 block text-xs leading-5 text-gray-500">
+                                Optional. Why this matters to you — better than a
+                                number.
+                              </span>
+                            </span>
+                          </>
+                        ) : null}
                       </span>
                     </label>
                   );
                 })}
               </div>
             </fieldset>
-
-            {/*
-              LES MESURES — celles que cette direction-là demande, et rien de
-              plus. Deux dynamiques sur six n'ont pas d'indicateur chiffré, et
-              leur en fabriquer un serait la mesure décorative que ce produit
-              refuse: on affiche alors la phrase, pas un champ.
-
-              Le bloc entier disparaît sous la garde restrictive. Voir l'état
-              `restricted` plus haut pour ce que ça protège.
-            */}
-            {restricted ? null : (
-              <MeasuresBlock
-                goal={goalDraft.goal as GoalToken}
-                reviews={reviews}
-                target={goalDraft.target}
-                onTargetChange={(v) => setGoalDraft((p) => ({ ...p, target: v }))}
-                axis={goalDraft.axis}
-                onAxisChange={(v) => setGoalDraft((p) => ({ ...p, axis: v }))}
-                draft={measureDraft}
-                onDraftChange={setMeasureDraft}
-                onSaveMeasures={saveMeasures}
-                busy={busy}
-              />
-            )}
-            {/*
-              CE QU'IL VEUT, PUIS CE QUI L'EMPÊCHE — et les deux sont deux
-              champs, pas un.
-
-              `situation` ne captait que les contraintes. Un élève décrivait sa
-              cantine et ses horaires, et rien nulle part ne disait pourquoi il
-              est là. C'est pourtant ce dont Sophia a besoin pour argumenter au
-              lieu d'asséner, et ce qu'un coach lit en premier de sa cohorte.
-              Le générateur reçoit l'aspiration AVANT les contraintes.
-            */}
-            <Field
-              label="What you are actually after"
-              htmlFor="aspiration"
-              hint="In your words. « Play football with my kids without being wrecked » is a better answer than a number."
-            >
-              <textarea
-                id="aspiration"
-                rows={2}
-                className={inputClass}
-                value={goalDraft.aspiration}
-                onChange={(e) => setGoalDraft((p) => ({ ...p, aspiration: e.target.value }))}
-              />
-            </Field>
-            <Field
-              label="Your situation"
-              htmlFor="situation"
-              hint="What makes a week possible or impossible: canteen, shifts, training, weekends."
-            >
-              <textarea
-                id="situation"
-                rows={3}
-                className={inputClass}
-                value={goalDraft.situation}
-                onChange={(e) => setGoalDraft((p) => ({ ...p, situation: e.target.value }))}
-              />
-            </Field>
             <Button onClick={saveGoal} disabled={busy !== null} variant="secondary">
               {busy === "goal" ? "…" : "Save"}
             </Button>
@@ -1144,7 +1930,15 @@ export default function StudentWeekPlanPage() {
             Le constructeur ci-dessous produit des plats avec leurs ingrédients,
             jour par jour, à partir de cette même doctrine — sans jamais la
             citer. Les IDÉES que le coach dépose vivent sur `/app/meals`. */}
-        <MealBuilder />
+        {/* LE RYTHME ET LES ABSENCES DESCENDENT D'ICI. Cette page lit déjà
+            `student_goals`; les relire dans le constructeur ferait un second
+            lecteur de la même colonne, et la grille montrerait alors autre
+            chose que ce que le générateur reçoit. */}
+        <MealBuilder
+          rhythm={parseEatingRhythm(pc.eating_rhythm)}
+          awayDays={parseAwayDays(pc.away_days)}
+          onAwaySaved={saveAwayDays}
+        />
       </div>
     </KeelAppShell>
   );

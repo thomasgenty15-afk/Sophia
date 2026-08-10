@@ -336,6 +336,16 @@ const SCOPE = {
   // reste dehors.
   mealPrecisionQuestions:
     "id,local_date,asked_at,source,axis,protocol_event_id,question",
+  // FF-031 — LES MESURES CORPORELLES DATÉES.
+  //
+  // Table neuve (`20260810090000`), et elle porte de la donnée personnelle de
+  // santé: ce que l'élève a déclaré de son corps, jour par jour, avec ses mots
+  // quand il l'a dit en conversation. C'est la TROISIÈME fois qu'une table du
+  // pivot doit être réclamée au cycle de vie après coup; celle-ci l'est dans le
+  // même lot que sa création. `id` est exporté parce qu'il est la seule façon
+  // de distinguer deux pesées du même jour l'une de l'autre.
+  bodyMeasures:
+    "id,measured_at,local_date,kind,value_si,source,content_locale,student_note,created_at",
   // risk_band is named in the header as a non-exportable classification;
   // coach_draft_reply is the coach's unsent draft, not the student's data.
   weeklyReviews:
@@ -532,6 +542,7 @@ async function buildExportPayload(
     plannedDeviations,
     upcomingContexts,
     mealPrecisionQuestions,
+    bodyMeasures,
     weeklyReviews,
     changeRequests,
     safetyConstraints,
@@ -603,6 +614,14 @@ async function buildExportPayload(
       // silence, et la table serait ressortie en `tables_indisponibles` —
       // c'est-à-dire absente de l'export tout en ayant l'air prise en compte.
       "asked_at",
+    ),
+    fetchKeelRows(
+      admin,
+      "student_body_measures",
+      SCOPE.bodyMeasures,
+      "user_id",
+      user.id,
+      keelUnavailable,
     ),
     fetchKeelRows(admin, "weekly_reviews", SCOPE.weeklyReviews, "user_id", user.id, keelUnavailable),
     fetchKeelRows(
@@ -869,6 +888,11 @@ async function buildExportPayload(
         questions_de_precision: mealPrecisionQuestions,
       },
       "protocole_bilans.json": {
+        // FF-031 — les pesées, à la journée. Elles sont ici et pas dans
+        // `protocole_suivi.json` parce que c'est le fichier qui porte déjà le
+        // corps: le bilan hebdomadaire en garde le miroir le temps de la double
+        // écriture, et les deux doivent se relire côte à côte.
+        mesures_corporelles: bodyMeasures,
         bilans_hebdomadaires: weeklyReviews,
         demandes_ajustement: changeRequests,
       },

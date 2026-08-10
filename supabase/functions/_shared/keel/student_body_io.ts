@@ -20,6 +20,14 @@
 
 import { assessBirthDate, type BirthDateVerdict } from "./student_age.ts";
 import type { DatedMeasure } from "./student_body.ts";
+import {
+  type BodyMeasureKind,
+  type DatedBodyMeasure,
+  isoWeekStartOf,
+  weeklyBodyPoints,
+} from "./body_measure_series.ts";
+import { loadBodyMeasures } from "./body_measure_io.ts";
+import { addDays } from "./local_date.ts";
 
 // deno-lint-ignore no-explicit-any
 type Db = { from(table: string): any };
@@ -112,19 +120,82 @@ export async function loadStudentBody(
     .slice()
     .reverse();
 
+  // ── FF-031 — LA TABLE DATÉE D'ABORD, LE MIROIR EN REPLI ──────────────────
+  // Même ordre que `restriction_runtime.loadWeeklyOutcomeSamples`, et pour la
+  // même raison: une règle de préférence écrite deux fois différemment
+  // divergerait, et ici l'écran de l'élève et la ceinture afficheraient alors
+  // deux poids pour la même semaine.
+  //
+  // Une lecture en panne ne vide pas la série: elle retombe sur le miroir,
+  // c'est-à-dire sur le comportement d'avant ce chantier, et elle le dit.
+  let measures: DatedBodyMeasure[] = [];
+  try {
+    measures = await loadBodyMeasures(db as never, {
+      userId,
+      sinceLocalDate: addDays(todayLocalIso, -7 * BODY_HISTORY_WEEKS),
+      untilLocalDate: todayLocalIso,
+    });
+  } catch (error) {
+    console.warn("keel.student_body.body_measures_unreadable", {
+      user_id: userId,
+      detail: error instanceof Error ? error.message : String(error),
+      effect: "repli sur weekly_reviews.biofeedback (comportement d'avant FF-031)",
+    });
+  }
+
+  const derived: Record<BodyMeasureKind, Map<string, number>> = {
+    weight: new Map(),
+    waist: new Map(),
+  };
+  for (const kind of ["weight", "waist"] as const) {
+    const min = kind === "weight" ? WEIGHT_KG_MIN : WAIST_CM_MIN;
+    const max = kind === "weight" ? WEIGHT_KG_MAX : WAIST_CM_MAX;
+    for (const point of weeklyBodyPoints(measures, kind)) {
+      // Les mêmes bornes de lecture que le miroir: une valeur aberrante déjà
+      // écrite ne doit pas produire une « tendance » sur un 780 kg, quelle que
+      // soit la table d'où elle sort.
+      if (point.value >= min && point.value <= max) {
+        derived[kind].set(point.weekStart, point.value);
+      }
+    }
+  }
+
   const weights: DatedMeasure[] = [];
   const waists: DatedMeasure[] = [];
+  const seen: Record<BodyMeasureKind, Set<string>> = {
+    weight: new Set(),
+    waist: new Set(),
+  };
   for (const row of rows) {
     const weekStart = String(row.week_start_date ?? "").trim();
     if (!weekStart) continue;
+    const week = isoWeekStartOf(weekStart, "weekly_reviews.week_start_date");
     const typed = { biofeedback: row.biofeedback, outcomes: row.outcomes };
-    const w = readMeasure(typed, "weight_kg", "weight_7d_avg", WEIGHT_KG_MIN, WEIGHT_KG_MAX);
-    if (w !== null) weights.push({ weekStart, value: w });
-    // Pas de repli pour le tour de taille: aucun autre écrivain n'existe, et
-    // inventer une clé de repli créerait un lecteur sans écrivain — le défaut
-    // exact que le repli du poids documente.
-    const c = readMeasure(typed, "waist_cm", null, WAIST_CM_MIN, WAIST_CM_MAX);
-    if (c !== null) waists.push({ weekStart, value: c });
+    const w = derived.weight.get(week) ??
+      readMeasure(typed, "weight_kg", "weight_7d_avg", WEIGHT_KG_MIN, WEIGHT_KG_MAX);
+    if (w !== null) {
+      weights.push({ weekStart: week, value: w });
+      seen.weight.add(week);
+    }
+    // Pas de repli `outcomes` pour le tour de taille: aucun autre écrivain n'y
+    // existe, et inventer une clé de repli créerait un lecteur sans écrivain —
+    // le défaut exact que le repli du poids documente.
+    const c = derived.waist.get(week) ??
+      readMeasure(typed, "waist_cm", null, WAIST_CM_MIN, WAIST_CM_MAX);
+    if (c !== null) {
+      waists.push({ weekStart: week, value: c });
+      seen.waist.add(week);
+    }
+  }
+
+  // Les semaines que SEULE la table datée connaît — un élève qui se pèse en
+  // conversation sans jamais remplir de point hebdo n'a aucune ligne de revue,
+  // et sa série serait vide si on n'ajoutait que ce que `weekly_reviews` porte.
+  for (const [kind, out] of [["weight", weights], ["waist", waists]] as const) {
+    for (const [week, value] of derived[kind]) {
+      if (!seen[kind].has(week)) out.push({ weekStart: week, value });
+    }
+    out.sort((a, b) => a.weekStart.localeCompare(b.weekStart));
   }
 
   return {

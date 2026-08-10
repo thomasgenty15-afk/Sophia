@@ -43,6 +43,10 @@ import {
   WAIST_NOISE_CM,
   WEIGHT_NOISE_KG,
 } from "../../../../supabase/functions/_shared/keel/student_body.ts";
+import {
+  type DatedBodyMeasure,
+  weeklyBodyPoints,
+} from "../../../../supabase/functions/_shared/keel/body_measure_series.ts";
 import type { GoalToken } from "../../../../supabase/functions/_shared/keel/tokens.ts";
 
 export type { DatedMeasure, MeasureTrend };
@@ -68,6 +72,20 @@ export const WEIGHT_KG_MIN = 25;
 export const WEIGHT_KG_MAX = 400;
 export const WAIST_CM_MIN = 30;
 export const WAIST_CM_MAX = 250;
+
+/**
+ * LA TAILLE — même posture, et les mêmes bornes que le CHECK SQL.
+ *
+ * Elle ne passe PAS par le formulaire du dimanche (elle ne bouge pas d'une
+ * semaine à l'autre, elle vit sur `profiles`), donc la coïncidence à tenir
+ * n'est pas avec `weeklyCheckIn.ts` mais avec
+ * `profiles_height_cm_range_check` — migration `20260808020000_profile_height`.
+ * Un écran qui accepte ce que la base refuse fait saisir dans le vide, et ici
+ * l'erreur remontée serait une violation de contrainte que personne ne sait
+ * lire.
+ */
+export const HEIGHT_CM_MIN = 90;
+export const HEIGHT_CM_MAX = 250;
 
 // ---------------------------------------------------------------------------
 // 1. LIRE LES MESURES — un seul lecteur, et il connaît les deux modèles
@@ -113,7 +131,115 @@ export function datedMeasures(
     .filter((m) => Number.isFinite(m.value) && m.value >= min && m.value <= max);
 }
 
-/** La plus récente, ou `null` si l'élève n'a jamais rien saisi. */
+/** Une ligne de `student_body_measures`, telle que la requête la rend. */
+export interface BodyMeasureRow {
+  local_date: string;
+  kind: "weight" | "waist";
+  /** `numeric` de PostgREST: nombre ou chaîne selon le client. */
+  value_si: number | string;
+  measured_at: string;
+}
+
+/**
+ * LES MESURES D'UNE SÉRIE, DEPUIS LA TABLE DATÉE — et le bilan hebdo en repli.
+ *
+ * ── FF-031 A DÉPLACÉ LA SOURCE DE VÉRITÉ ──────────────────────────────────
+ * Le poids ne vit plus dans une case de semaine. Une semaine vaut la moyenne de
+ * ses jours (le dernier de chaque jour), et cette règle-là n'est PAS réécrite
+ * ici: `weeklyBodyPoints` est importé du module serveur, celui que le plancher
+ * TCA exécute. Recopier la règle côté écran ferait exactement le défaut que ce
+ * fichier documente déjà pour `directionIsWorking` — deux implémentations
+ * d'accord jusqu'au jour où l'une change, et un écran qui devient MENTEUR.
+ *
+ * ── L'ORDRE DES SOURCES EST CELUI DU SERVEUR ──────────────────────────────
+ * La table d'abord, `biofeedback` pour COMBLER les semaines qu'elle n'a pas
+ * (antérieures à la reprise, ou dont l'écriture datée a échoué là où le miroir
+ * a réussi). Même ordre que `restriction_runtime.loadWeeklyOutcomeSamples` et
+ * `student_body_io`: une préférence écrite trois fois différemment ferait
+ * afficher à l'élève un poids que la ceinture ne regarde pas.
+ */
+export function weeklyMeasures(args: {
+  reviews: readonly ReviewRow[];
+  measures: readonly BodyMeasureRow[];
+  kind: "weight" | "waist";
+}): DatedMeasure[] {
+  const { kind } = args;
+  const min = kind === "weight" ? WEIGHT_KG_MIN : WAIST_CM_MIN;
+  const max = kind === "weight" ? WEIGHT_KG_MAX : WAIST_CM_MAX;
+
+  const derived = new Map<string, number>();
+  for (const point of weeklyBodyPoints(usableMeasures(args.measures), kind)) {
+    // Les mêmes bornes de lecture que le miroir: une valeur aberrante déjà en
+    // base ne doit pas produire une « tendance » sur un 780 kg, quelle que soit
+    // la table d'où elle sort.
+    if (point.value >= min && point.value <= max) derived.set(point.weekStart, point.value);
+  }
+
+  const out = datedMeasures(args.reviews, kind).filter((m) => !derived.has(m.weekStart));
+  for (const [weekStart, value] of derived) out.push({ weekStart, value });
+  return out.sort((a, b) => a.weekStart.localeCompare(b.weekStart));
+}
+
+/**
+ * LES LIGNES EXPLOITABLES, converties une fois.
+ *
+ * `numeric` de PostgREST arrive en nombre ou en chaîne selon le client, et
+ * `row.value_si as number` aurait compilé en mentant — « un `as` sur un type
+ * étranger désarme le typecheck ». `Number("")` valant 0, une absence
+ * deviendrait un poids de zéro kilo dans une moyenne.
+ *
+ * Une ligne inexploitable est ÉCARTÉE, pas jetée, et c'est le seul endroit de
+ * cette famille où c'est le bon arbitrage: le module serveur jette parce qu'il
+ * nourrit une ceinture, celui-ci dessine une carte, et une exception en cours
+ * de rendu retirerait tout l'écran pour une ligne. Le CHECK SQL rend le cas
+ * impossible en pratique; le `warn` est là pour qu'il ne devienne pas
+ * invisible s'il arrive quand même.
+ */
+function usableMeasures(rows: readonly BodyMeasureRow[]): DatedBodyMeasure[] {
+  const out: DatedBodyMeasure[] = [];
+  for (const row of rows) {
+    const raw = row.value_si;
+    const usable = typeof raw === "number" || (typeof raw === "string" && raw.trim() !== "");
+    const value = usable ? Number(raw) : Number.NaN;
+    if (!Number.isFinite(value)) {
+      console.warn("[keel/bodyMeasures] mesure illisible écartée", row);
+      continue;
+    }
+    out.push({
+      localDate: row.local_date,
+      kind: row.kind,
+      valueSi: value,
+      measuredAt: row.measured_at,
+    });
+  }
+  return out;
+}
+
+/**
+ * LE JOUR DE LA DERNIÈRE PESÉE — la vraie date, pas le lundi de sa semaine.
+ *
+ * Elle existe parce que l'écran affichait « week of 3 Aug » sous une mesure du
+ * vendredi: la case de stockage était la semaine, alors la date affichée
+ * l'était aussi. Rend `null` quand seule la source hebdomadaire porte la
+ * mesure — auquel cas le libellé de semaine reste la seule chose vraie qu'on
+ * puisse dire.
+ */
+export function lastMeasuredOn(
+  measures: readonly BodyMeasureRow[],
+  kind: "weight" | "waist",
+): string | null {
+  const points = weeklyBodyPoints(usableMeasures(measures), kind);
+  return points.length > 0 ? points[points.length - 1].lastLocalDate : null;
+}
+
+/**
+ * La plus récente, ou `null` si l'élève n'a jamais rien saisi.
+ *
+ * ELLE EXISTE PARCE QUE `datedMeasures` REND DU PLUS ANCIEN AU PLUS RÉCENT, et
+ * que `[0]` a l'air d'être la dernière. C'est arrivé (2026-08-07, le résumé de
+ * `/app/plan`): le premier poids jamais saisi s'affichait comme s'il était
+ * d'aujourd'hui. Passer par cette fonction plutôt que par un index.
+ */
 export function latest(measures: readonly DatedMeasure[]): DatedMeasure | null {
   return measures.length > 0 ? measures[measures.length - 1] : null;
 }

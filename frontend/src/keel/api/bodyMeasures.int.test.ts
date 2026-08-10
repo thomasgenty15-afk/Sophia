@@ -10,8 +10,10 @@ import { describe, expect, it } from "vitest";
 
 import {
   axisReading,
+  type BodyMeasureRow,
   datedMeasures,
   FOCUS_AXES,
+  lastMeasuredOn,
   indicatorFor,
   latest,
   MAINTENANCE_BAND_KG,
@@ -19,6 +21,7 @@ import {
   readMeasureInput,
   type ReviewRow,
   targetValueOf,
+  weeklyMeasures,
   weeksInsideBand,
   WAIST_CM_MAX,
   WAIST_CM_MIN,
@@ -36,6 +39,113 @@ import { GOAL_TOKENS } from "../../../../supabase/functions/_shared/keel/tokens.
 function review(week: string, bio: Record<string, unknown>, out: Record<string, unknown> = {}): ReviewRow {
   return { week_start_date: week, biofeedback: bio, outcomes: out };
 }
+
+function measure(
+  localDate: string,
+  valueSi: number | string,
+  kind: "weight" | "waist" = "weight",
+  at = "07:00:00Z",
+): BodyMeasureRow {
+  return {
+    local_date: localDate,
+    kind,
+    value_si: valueSi,
+    measured_at: `${localDate}T${at}`,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// FF-031 — la table datée, et le bilan hebdo en repli
+// ---------------------------------------------------------------------------
+
+describe("les mesures viennent de la table datée, le bilan hebdo comble", () => {
+  it("une semaine vaut la MOYENNE de ses jours, pas la dernière pesée", () => {
+    const rows = weeklyMeasures({
+      reviews: [],
+      measures: [
+        measure("2026-08-03", 98.5),
+        measure("2026-08-05", 98.1),
+        measure("2026-08-07", 97.9),
+      ],
+      kind: "weight",
+    });
+    expect(rows).toEqual([{ weekStart: "2026-08-03", value: 98.2 }]);
+  });
+
+  it("la table L'EMPORTE sur le miroir pour une semaine que les deux portent", () => {
+    // Le miroir n'a gardé que la dernière pesée; la table les a toutes. Si le
+    // repli gagnait, l'écran afficherait un chiffre que la ceinture ne regarde
+    // pas.
+    const rows = weeklyMeasures({
+      reviews: [review("2026-08-03", { weight_kg: 97.9 })],
+      measures: [measure("2026-08-03", 98.5), measure("2026-08-07", 97.9)],
+      kind: "weight",
+    });
+    expect(rows).toEqual([{ weekStart: "2026-08-03", value: 98.2 }]);
+  });
+
+  it("le miroir COMBLE une semaine antérieure à la reprise", () => {
+    const rows = weeklyMeasures({
+      reviews: [review("2026-07-20", { weight_kg: 100 })],
+      measures: [measure("2026-08-03", 98)],
+      kind: "weight",
+    });
+    expect(rows).toEqual([
+      { weekStart: "2026-07-20", value: 100 },
+      { weekStart: "2026-08-03", value: 98 },
+    ]);
+  });
+
+  it("une correction du même jour ne se moyenne pas avec ce qu'elle corrige", () => {
+    const rows = weeklyMeasures({
+      reviews: [],
+      measures: [
+        measure("2026-08-05", 87, "weight", "08:00:00Z"),
+        measure("2026-08-05", 78, "weight", "08:02:00Z"),
+      ],
+      kind: "weight",
+    });
+    expect(rows).toEqual([{ weekStart: "2026-08-03", value: 78 }]);
+  });
+
+  it("écarte une valeur aberrante venue de la table, comme celles du miroir", () => {
+    const rows = weeklyMeasures({
+      reviews: [],
+      measures: [measure("2026-08-03", 780)],
+      kind: "weight",
+    });
+    expect(rows).toEqual([]);
+  });
+
+  it("une valeur illisible est ÉCARTÉE, elle ne devient pas zéro kilo", () => {
+    // `Number("")` vaut 0. Une carte qui afficherait « 0 kg » ou une tendance
+    // calculée dessus serait pire qu'une carte vide.
+    const rows = weeklyMeasures({
+      reviews: [],
+      measures: [measure("2026-08-03", ""), measure("2026-08-05", "78.4")],
+      kind: "weight",
+    });
+    expect(rows).toEqual([{ weekStart: "2026-08-03", value: 78.4 }]);
+  });
+
+  it("les grandeurs ne se mélangent pas", () => {
+    const measures = [measure("2026-08-05", 78), measure("2026-08-05", 84, "waist")];
+    expect(weeklyMeasures({ reviews: [], measures, kind: "waist" })).toEqual([
+      { weekStart: "2026-08-03", value: 84 },
+    ]);
+  });
+
+  it("LE JOUR de la dernière pesée, pas le lundi de sa semaine", () => {
+    // Le défaut nommé par FF-031: « week of 3 Aug » affiché sous une mesure du
+    // vendredi.
+    const measures = [measure("2026-08-03", 98.5), measure("2026-08-07", 97.9)];
+    expect(lastMeasuredOn(measures, "weight")).toBe("2026-08-07");
+    // Sans mesure datée, on ne prétend pas connaître le jour: l'appelant
+    // retombe sur le libellé de semaine.
+    expect(lastMeasuredOn([], "weight")).toBeNull();
+    expect(lastMeasuredOn(measures, "waist")).toBeNull();
+  });
+});
 
 describe("l'indicateur de chaque dynamique", () => {
   it("CHAQUE objectif du vocabulaire en a un — aucun n'est laissé sans réponse", () => {

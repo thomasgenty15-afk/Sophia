@@ -119,6 +119,150 @@ Deno.test("weekly rows are de-duplicated by week, newest row wins", async () => 
   assertEquals(weeks[0].logging_coverage_days, 2);
 });
 
+// ---------------------------------------------------------------------------
+// FF-031 — LES TROIS SOURCES DE POIDS, ET LEUR ORDRE
+//
+// Le poids vit maintenant dans `student_body_measures`. `weekly_reviews` reste
+// lu pour l'adhérence et la couverture, et son `biofeedback` sert de REPLI. Ces
+// cas tiennent l'ordre: si le repli l'emportait, la finesse à la journée serait
+// perdue en silence; s'il disparaissait, une semaine antérieure à la reprise
+// sortirait de la série et le plancher cesserait de comparer quatorze jours.
+// ---------------------------------------------------------------------------
+
+const MEASURE_TABLE = "student_body_measures";
+
+function weightRow(localDate: string, valueSi: number) {
+  return {
+    local_date: localDate,
+    kind: "weight",
+    value_si: valueSi,
+    measured_at: `${localDate}T07:00:00Z`,
+  };
+}
+
+Deno.test("FF-031 — la table datée l'emporte sur le miroir hebdomadaire", async () => {
+  const db = stubDb({
+    weekly_reviews: [{
+      week_start_date: "2026-07-27",
+      self_rated_adherence: 8,
+      logging_coverage: 2 / 7,
+      // Le miroir n'a gardé que la DERNIÈRE pesée de la semaine: 69,0.
+      biofeedback: { weight_kg: 69.0, source: "chat" },
+      created_at: "2026-07-27T10:00:00Z",
+    }],
+    [MEASURE_TABLE]: [
+      weightRow("2026-07-27", 70.0),
+      weightRow("2026-07-29", 69.5),
+      weightRow("2026-07-31", 69.0),
+    ],
+  });
+  const weeks = await loadWeeklyOutcomeSamples(db, {
+    userId: USER,
+    asOfLocalDate: TODAY,
+  });
+  assertEquals(weeks.length, 1);
+  // La moyenne des trois jours, pas le dernier.
+  assertEquals(weeks[0].weight_7d_avg_kg, 69.5);
+  // Et l'adhérence, elle, vient toujours de `weekly_reviews`.
+  assertEquals(weeks[0].self_rated_adherence, 8);
+  assertEquals(weeks[0].logging_coverage_days, 2);
+});
+
+Deno.test("FF-031 — le miroir COMBLE une semaine que la table n'a pas", async () => {
+  // Une semaine antérieure à la reprise, ou une écriture datée qui a échoué là
+  // où le miroir a réussi (R9). Sans ce repli, elle sortirait de la série — et
+  // la fenêtre de quatorze jours du déclencheur n° 1 n'aurait plus de bord.
+  const db = stubDb({
+    weekly_reviews: [
+      {
+        week_start_date: "2026-07-13",
+        biofeedback: { weight_kg: 72.0 },
+        created_at: "2026-07-13T10:00:00Z",
+      },
+      {
+        week_start_date: "2026-07-27",
+        biofeedback: null,
+        created_at: "2026-07-27T10:00:00Z",
+      },
+    ],
+    [MEASURE_TABLE]: [weightRow("2026-07-27", 69.0)],
+  });
+  const weeks = await loadWeeklyOutcomeSamples(db, {
+    userId: USER,
+    asOfLocalDate: TODAY,
+  });
+  assertEquals(weeks.map((w) => w.week_start_date), ["2026-07-13", "2026-07-27"]);
+  assertEquals(weeks.map((w) => w.weight_7d_avg_kg), [72.0, 69.0]);
+  // 72,0 -> 69,0 sur 14 jours = 2,08 %/semaine: la ceinture mord, et elle ne
+  // mordrait pas si le repli avait laissé tomber la première semaine.
+  const result = evaluateRestrictionGuard({
+    as_of_local_date: TODAY,
+    weekly_outcomes: weeks,
+    energy_days: [],
+    texts: [],
+  });
+  assertEquals(result.triggers.map((t) => t.code), ["rapid_weight_loss"]);
+});
+
+Deno.test("FF-031 — une semaine SANS ligne de revue entre par la table", async () => {
+  // L'élève qui ne fait que parler à Sophia et n'a jamais rempli de point
+  // hebdo. Avant l'union, sa pesée était invisible au plancher.
+  const db = stubDb({
+    weekly_reviews: [],
+    [MEASURE_TABLE]: [weightRow("2026-07-28", 69.0)],
+  });
+  const weeks = await loadWeeklyOutcomeSamples(db, {
+    userId: USER,
+    asOfLocalDate: TODAY,
+  });
+  assertEquals(weeks, [{
+    week_start_date: "2026-07-27",
+    weight_7d_avg_kg: 69.0,
+    self_rated_adherence: null,
+    logging_coverage_days: null,
+  }]);
+});
+
+Deno.test("FF-031 — une lecture de mesures EN PANNE retombe sur le miroir, pas sur du vide", async () => {
+  // La seule exception nommée à « nothing here is best-effort ». Propager
+  // ferait JETER la ceinture, et une ceinture qui jette est une ceinture qui ne
+  // mord pas. On retombe sur la source d'avant FF-031, bruyamment.
+  const healthy = stubDb({
+    weekly_reviews: [
+      {
+        week_start_date: "2026-07-13",
+        biofeedback: { weight_kg: 72.0 },
+        created_at: "2026-07-13T10:00:00Z",
+      },
+      {
+        week_start_date: "2026-07-27",
+        biofeedback: { weight_kg: 69.0 },
+        created_at: "2026-07-27T10:00:00Z",
+      },
+    ],
+  });
+  const broken: KeelDbClient = {
+    from(table: string) {
+      if (table === MEASURE_TABLE) throw new Error("relation does not exist");
+      return healthy.from(table);
+    },
+  };
+  const weeks = await loadWeeklyOutcomeSamples(broken, {
+    userId: USER,
+    asOfLocalDate: TODAY,
+  });
+  assertEquals(weeks.map((w) => w.weight_7d_avg_kg), [72.0, 69.0]);
+  assertEquals(
+    evaluateRestrictionGuard({
+      as_of_local_date: TODAY,
+      weekly_outcomes: weeks,
+      energy_days: [],
+      texts: [],
+    }).restriction_flag,
+    true,
+  );
+});
+
 Deno.test("energy days aggregate per date and never read silence as zero intake", async () => {
   const db = stubDb({
     plan_commitments: [{ id: "c-energy" }, { id: "c-energy-training" }],

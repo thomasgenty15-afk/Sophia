@@ -39,6 +39,13 @@ import {
   type StudentTextSample,
   type WeeklyOutcomeSample,
 } from "./restriction_guard.ts";
+import {
+  type DatedBodyMeasure,
+  deriveWeeklyOutcomeSamples,
+  isoWeekStartOf,
+  type WeeklyContextRow,
+} from "./body_measure_series.ts";
+import { loadBodyMeasures } from "./body_measure_io.ts";
 
 /**
  * The narrow slice of a supabase-js client this module uses. Structural, so a
@@ -188,6 +195,40 @@ function weekWeightKg(row: Record<string, unknown>): number | null {
   );
 }
 
+/**
+ * LA SÉRIE HEBDOMADAIRE DU PLANCHER, DEPUIS DEUX TABLES ET DANS CET ORDRE.
+ *
+ * ⚠️ FF-031 A DÉPLACÉ LA SOURCE DE VÉRITÉ. Le poids ne vit plus dans une case
+ * de semaine: il vit dans `student_body_measures`, une ligne par pesée, et la
+ * valeur d'une semaine en est DÉRIVÉE (dernier de chaque jour, puis moyenne
+ * des jours — `body_measure_series.ts`).
+ *
+ * ── POURQUOI CETTE FONCTION LIT ENCORE `weekly_reviews` ────────────────────
+ * Parce que les deux déclencheurs ne lisent pas la même chose, et que leurs
+ * données ne vivent pas au même endroit:
+ *   · `rapid_weight_loss` lit le POIDS — la table datée;
+ *   · `overclaimed_adherence_with_hidden_logging` lit `self_rated_adherence`
+ *     et `logging_coverage` — `weekly_reviews`, et elles n'iront pas ailleurs.
+ * C'est donc une UNION, pas un choix: n'en lire qu'une éteint l'autre, en
+ * silence.
+ *
+ * ── LES TROIS SOURCES DE POIDS, DANS L'ORDRE DE PRÉFÉRENCE ─────────────────
+ *   1. `student_body_measures` — la vérité depuis FF-031, à la journée près;
+ *   2. `biofeedback.weight_kg` — le MIROIR, que les trois écrivains alimentent
+ *      encore (FF-031 R7). Il ne sert qu'à COMBLER une semaine que la table
+ *      n'a pas: une semaine antérieure à la reprise, ou une pesée dont
+ *      l'écriture datée a échoué là où le miroir a réussi (R9);
+ *   3. `outcomes.weight_7d_avg` — le chemin 1:1, gardé exprès, sans écrivain
+ *      dans le modèle pivot.
+ *
+ * ── UNE LECTURE DE MESURES EN PANNE NE VIDE PAS LA SÉRIE ───────────────────
+ * Elle retombe sur le miroir, c'est-à-dire sur le comportement d'avant ce
+ * chantier — et elle le DIT bruyamment. C'est la seule exception à la règle
+ * « nothing here is best-effort » de l'en-tête, et elle est nommée: la
+ * propagation ferait JETER la ceinture, et une ceinture qui jette est une
+ * ceinture qui ne mord pas. Retomber sur la source précédente n'est pas avaler
+ * une erreur, c'est refuser de perdre les deux sources pour la panne d'une.
+ */
 export async function loadWeeklyOutcomeSamples(
   db: KeelDbClient,
   params: { userId: string; asOfLocalDate: string },
@@ -203,20 +244,55 @@ export async function loadWeeklyOutcomeSamples(
     .lte("week_start_date", params.asOfLocalDate)
     .order("week_start_date", { ascending: true });
   if (error) throw error;
-  return dedupeWeeklyRows((data ?? []) as Array<Record<string, unknown>>).map(
-    (row) => {
-      return {
-        week_start_date: String(row.week_start_date),
-        weight_7d_avg_kg: weekWeightKg(row),
-        self_rated_adherence: numberOrNull(
-          row.self_rated_adherence,
-          "weekly_reviews.self_rated_adherence",
-        ),
-        logging_coverage_days: loggingCoverageDaysFromFraction(
-          row.logging_coverage,
-        ),
-      };
-    },
+
+  const rows = dedupeWeeklyRows((data ?? []) as Array<Record<string, unknown>>);
+  const weeks: WeeklyContextRow[] = rows.map((row) => ({
+    weekStartDate: String(row.week_start_date),
+    selfRatedAdherence: numberOrNull(
+      row.self_rated_adherence,
+      "weekly_reviews.self_rated_adherence",
+    ),
+    loggingCoverageDays: loggingCoverageDaysFromFraction(row.logging_coverage),
+  }));
+  // Les clés du miroir sont recalées sur le lundi comme celles de la
+  // dérivation: sinon une `week_start_date` héritée qui n'est pas un lundi
+  // rendrait le repli introuvable pour la semaine qu'il devait combler.
+  const mirror = new Map<string, number | null>();
+  for (const row of rows) {
+    mirror.set(
+      isoWeekStartOf(String(row.week_start_date), "weekly_reviews.week_start_date"),
+      weekWeightKg(row),
+    );
+  }
+
+  let measures: DatedBodyMeasure[] = [];
+  try {
+    measures = await loadBodyMeasures(db as never, {
+      userId: params.userId,
+      sinceLocalDate: since,
+      untilLocalDate: params.asOfLocalDate,
+      kinds: ["weight"],
+    });
+  } catch (measuresError) {
+    console.warn("keel.restriction_runtime.body_measures_unreadable", {
+      user_id: params.userId,
+      as_of: params.asOfLocalDate,
+      detail: measuresError instanceof Error
+        ? measuresError.message
+        : String(measuresError),
+      effect:
+        "la serie retombe sur weekly_reviews.biofeedback — comportement d'avant " +
+        "FF-031, pas une serie vide",
+    });
+  }
+
+  return deriveWeeklyOutcomeSamples({ measures, weeks }).map((sample) =>
+    sample.weight_7d_avg_kg === null
+      ? {
+        ...sample,
+        weight_7d_avg_kg: mirror.get(sample.week_start_date) ?? null,
+      }
+      : sample
   );
 }
 

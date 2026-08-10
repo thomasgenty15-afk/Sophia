@@ -143,6 +143,15 @@ const PIVOT_TABLES = [
   { table: "meal_ideas", owner: "student_id", marker: "A13SEED-IDEE" },
   { table: "protocol_events", owner: "user_id", marker: "A13SEED-PHOTO" },
   { table: "weekly_reviews", owner: "user_id", marker: "A13SEED-BILAN" },
+  // FF-031 — les mesures corporelles datées. Donnée personnelle de santé, et
+  // elle porte LES MOTS DE L'ÉLÈVE quand la pesée a été dite en conversation.
+  // Réclamée ici dans le même lot que sa migration: c'est la troisième table du
+  // pivot que ce fichier a dû rattraper après coup, et la cicatrice est connue.
+  {
+    table: "student_body_measures",
+    owner: "user_id",
+    marker: "A13SEED-PESEE",
+  },
   {
     table: "student_safety_constraints",
     owner: "user_id",
@@ -264,6 +273,16 @@ async function seedFullStudent(
       training: 5,
     },
     student_narrative: "A13SEED-BILAN",
+    content_locale: "fr-FR",
+  });
+  await ins("student_body_measures", {
+    user_id: userId,
+    measured_at: "2026-08-05T07:12:00Z",
+    local_date: "2026-08-05",
+    kind: "weight",
+    value_si: 78.4,
+    source: "chat",
+    student_note: "A13SEED-PESEE",
     content_locale: "fr-FR",
   });
   await ins("student_safety_constraints", {
