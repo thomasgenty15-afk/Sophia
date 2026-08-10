@@ -254,9 +254,10 @@ begin
       else 'sunday_flow'
     end as source,
     wr.content_locale,
-    (k.kind = 'weight' and (wr.biofeedback ->> k.json_key)::numeric between 25 and 400)
+    (
+      (k.kind = 'weight' and (wr.biofeedback ->> k.json_key)::numeric between 25 and 400)
       or (k.kind = 'waist' and (wr.biofeedback ->> k.json_key)::numeric between 30 and 250)
-      as in_range
+    ) as in_range
   from public.weekly_reviews wr
   cross join (values
     ('weight', 'weight_kg'),
