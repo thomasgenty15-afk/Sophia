@@ -50,6 +50,10 @@ const KEEL_EDGE_FUNCTIONS = [
   // nothing calls is the most expensive shape of the "thirteen unwired modules"
   // failure: it is silent, and the silence looks like "no seats to bill".
   "stripe-reconcile-seats",
+  // LE FOYER — même raison, mot pour mot: un job de facturation que personne
+  // n'appelle est la forme la plus chère de « module non branché », parce que
+  // son silence ressemble à « aucun foyer n'a de profil à facturer ».
+  "stripe-reconcile-households",
   // `keel-cards-v1` a été RETIRÉE de cette liste: la fonction est partie avec
   // le retrait des résidus grand public (2026-08-08, 0 utilisateur confirmé,
   // tables card_* droppées par 20260808070000) — même règle que ci-dessous.

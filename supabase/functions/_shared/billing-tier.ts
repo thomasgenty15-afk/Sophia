@@ -11,9 +11,32 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 //             `recompute_profile_access_tier` derives it from `coach_clients`.
 // The three legacy B2C tiers are kept because live rows still carry them; KEEL
 // does not issue them any more.
+//
+// ---------------------------------------------------------------------------
+// LE FOYER — DEUX JETONS DE PLUS (chantier 1; migration 20260811030000)
+// ---------------------------------------------------------------------------
+// 'household'        — LE COMPTE MAÎTRE. Vendu: 12,99 €/mois le foyer entier,
+//                      +2 €/mois par PROFIL RÉCLAMÉ. Porté par SA ligne
+//                      `subscriptions` — `subscriptions.user_id` est UNIQUE et
+//                      le foyer n'a pas d'identité Stripe, donc l'abonnement
+//                      est celui du maître, jamais celui du foyer.
+// 'household_member' — UN PROFIL RÉCLAMÉ. HÉRITÉ, comme 'student': jamais
+//                      vendu, jamais sur une ligne `subscriptions` (la CHECK
+//                      SQL l'y refuse), parce que c'est le maître qui paie et
+//                      que demander une carte pour 2 € est disproportionné.
+//
+// DEUX JETONS ET PAS UN: dériver l'accès d'un profil réclamé de l'état du
+// foyer obligerait `getEffectiveTierForUser` à interroger le foyer, soit une
+// SECONDE source de vérité sur l'accès à côté de `profiles.access_tier`.
+//
+// ⚠️ 'household_member' N'A PAS ENCORE D'ÉCRIVAIN — la branche « héritée » de
+// `recompute_profile_access_tier` a besoin de la fonction de couverture du
+// chantier 3 (le gel), qui doit avoir une seule définition. Le jeton est au
+// vocabulaire parce que les quatre sites bougent ensemble ou aucun; ce qui
+// l'écrira est nommé dans la migration, pas simulé ici.
 export type PaidTier = "system" | "alliance" | "architecte";
-export type KeelTier = "coach" | "student";
-export type SellableTier = PaidTier | "coach";
+export type KeelTier = "coach" | "student" | "household" | "household_member";
+export type SellableTier = PaidTier | "coach" | "household";
 export type EffectiveTier = PaidTier | KeelTier | "none";
 export type BillingInterval = "monthly" | "yearly";
 
@@ -30,13 +53,15 @@ export type BillingInterval = "monthly" | "yearly";
 export function tierGrantsProtocolExecution(tierRaw: unknown): boolean {
   const t = String(tierRaw ?? "").trim().toLowerCase();
   return t === "coach" || t === "student" || t === "trial" ||
+    t === "household" || t === "household_member" ||
     t === "alliance" || t === "architecte" || t === "system";
 }
 
-/** True for the two KEEL tiers only. */
+/** True for the KEEL tiers only (coach, élève, foyer, profil réclamé). */
 export function isKeelTier(tierRaw: unknown): tierRaw is KeelTier {
   const t = String(tierRaw ?? "").trim().toLowerCase();
-  return t === "coach" || t === "student";
+  return t === "coach" || t === "student" ||
+    t === "household" || t === "household_member";
 }
 
 function env(name: string): string | null {
@@ -87,7 +112,8 @@ function normalizeStoredTier(value: unknown): EffectiveTier | null {
   const t = String(value ?? "").trim().toLowerCase();
   if (
     t === "system" || t === "alliance" || t === "architecte" ||
-    t === "coach" || t === "student"
+    t === "coach" || t === "student" ||
+    t === "household" || t === "household_member"
   ) {
     return t;
   }
@@ -154,9 +180,92 @@ export function isKeelPlatformPriceId(priceId: string | null | undefined): boole
     /^price_test_coach_platform_(monthly|yearly)$/.test(id);
 }
 
+// ---------------------------------------------------------------------------
+// LE FOYER — DEUX ARTICLES SUR UN ABONNEMENT (chantier 1)
+//   HOUSEHOLD_MONTHLY         — le forfait, 12,99 €/mois, quantité 1, IMMUABLE.
+//   HOUSEHOLD_PROFILE_MONTHLY — le profil réclamé, 2 €/mois, quantité
+//                               RECOMPUTÉE tous les mois par
+//                               `stripe-reconcile-households`.
+//
+// Les deux rendent le MÊME palier ('household'): deux lignes d'un contrat, pas
+// deux produits entre lesquels on choisit. Mensuel seulement — il n'existe pas
+// d'annuel côté foyer, et en inventer un ici créerait une variable que
+// personne ne pose.
+// ---------------------------------------------------------------------------
+export const KEEL_HOUSEHOLD_PRICE_ENV = {
+  flatMonthly: "STRIPE_PRICE_ID_HOUSEHOLD_MONTHLY",
+  profileMonthly: "STRIPE_PRICE_ID_HOUSEHOLD_PROFILE_MONTHLY",
+} as const;
+
+/** Le prix du FORFAIT, ou `null` s'il n'est pas configuré. */
+export function keelHouseholdFlatPriceId(): string | null {
+  return env(KEEL_HOUSEHOLD_PRICE_ENV.flatMonthly) || null;
+}
+
+/**
+ * Le prix du PROFIL RÉCLAMÉ, ou `null` s'il n'est pas configuré.
+ *
+ * C'est le SEUL article que le job redimensionne. Le forfait ne bouge jamais:
+ * le redimensionner à N facturerait 12,99 € par tête, ce qui est exactement la
+ * faute que `findSeatItemFor` a corrigée côté coach.
+ */
+export function keelHouseholdProfilePriceId(): string | null {
+  return env(KEEL_HOUSEHOLD_PRICE_ENV.profileMonthly) || null;
+}
+
+export function isKeelHouseholdPriceId(priceId: string | null | undefined): boolean {
+  const id = (priceId ?? "").trim();
+  if (!id) return false;
+  return id === keelHouseholdFlatPriceId() || id === keelHouseholdProfilePriceId();
+}
+
+/**
+ * L'ESSAI DU FOYER — 30 jours, D4bis.
+ *
+ * La constante est ici pour être citée, pas pour être appliquée: la date
+ * effective vit sur `households.free_until`, POSÉE sur la ligne. Une règle
+ * recalculée à la volée (`created_at + 30`) devient irreproductible dès que
+ * quelqu'un change le 30, et réécrirait rétroactivement ce qui a été promis.
+ */
+export const HOUSEHOLD_TRIAL_DAYS = 30;
+
+/**
+ * Ce foyer est-il COUVERT PAR SON ESSAI aujourd'hui ?
+ *
+ * `free_until` est un DERNIER JOUR INCLUS: un foyer dont l'essai finit
+ * aujourd'hui n'est pas facturé aujourd'hui. Comparaison sur la DATE civile
+ * UTC et pas sur l'instant — sinon un job qui tourne à 03:40 UTC facturerait un
+ * foyer dont l'essai expire « ce jour-là », douze heures avant sa fin dans sa
+ * propre journée.
+ *
+ * `null`/absent = AUCUN essai posé, donc pas couvert. Ce n'est pas « gratuit à
+ * vie »: c'est « personne n'a fait le geste », et le job le dit par un motif
+ * nommé plutôt que de deviner.
+ *
+ * ⚠️ CE N'EST PAS LE PRÉDICAT DE GEL. Il répond « faut-il facturer ce mois-ci »
+ * et rien d'autre. « Le foyer est-il gelé » (ni abonnement ni essai) est le
+ * chantier 3, et il aura UNE définition, en SQL.
+ */
+export function householdTrialCovers(
+  freeUntil: string | null | undefined,
+  now: Date = new Date(),
+): boolean {
+  const raw = String(freeUntil ?? "").trim();
+  if (!raw) return false;
+  const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return false;
+  const today = `${now.getUTCFullYear()}-${
+    String(now.getUTCMonth() + 1).padStart(2, "0")
+  }-${String(now.getUTCDate()).padStart(2, "0")}`;
+  // Comparaison lexicographique sur `YYYY-MM-DD`: exacte, et sans le piège du
+  // fuseau que `new Date("2026-08-11")` introduit (minuit UTC interprété en
+  // local par certaines lectures).
+  return today <= `${m[1]}-${m[2]}-${m[3]}`;
+}
+
 export function tierFromStripePriceId(
   priceId: string | null | undefined,
-): PaidTier | "coach" | null {
+): SellableTier | null {
   const id = (priceId ?? "").trim();
   if (!id) return null;
 
@@ -164,6 +273,11 @@ export function tierFromStripePriceId(
   // resolve to 'coach'. A webhook that reads the seat line and returns null
   // would silently blank the coach's tier and drop their whole roster.
   if (isKeelPlatformPriceId(id) || isKeelSeatPriceId(id)) return "coach";
+  // Le foyer, même raison: SES deux articles rendent tous les deux 'household'.
+  // Un webhook qui lirait la ligne « profil réclamé » et rendrait null
+  // effacerait le palier du maître — c'est-à-dire son accès — parce qu'il a
+  // ajouté une bouche.
+  if (isKeelHouseholdPriceId(id)) return "household";
 
   const system = new Set([env("STRIPE_PRICE_ID_SYSTEM_MONTHLY"), env("STRIPE_PRICE_ID_SYSTEM_YEARLY")].filter(Boolean) as string[]);
   const alliance = new Set([env("STRIPE_PRICE_ID_ALLIANCE_MONTHLY"), env("STRIPE_PRICE_ID_ALLIANCE_YEARLY")].filter(Boolean) as string[]);
@@ -184,9 +298,12 @@ export function tierFromStripePriceId(
  */
 export function tierFromStripePriceIds(
   priceIds: ReadonlyArray<string | null | undefined>,
-): PaidTier | "coach" | null {
+): SellableTier | null {
   for (const id of priceIds) {
     if (isKeelPlatformPriceId(id) || isKeelSeatPriceId(id)) return "coach";
+  }
+  for (const id of priceIds) {
+    if (isKeelHouseholdPriceId(id)) return "household";
   }
   for (const id of priceIds) {
     const t = tierFromStripePriceId(id);

@@ -10,14 +10,35 @@
 //             `subscriptions` row, never derivable from a Stripe price id.
 //             It exists only on `profiles.access_tier`, written by the DB.
 // ---------------------------------------------------------------------------
+//
+// LE FOYER — DEUX JETONS DE PLUS (chantier 1; migration 20260811030000)
+// 'household'        — le COMPTE MAÎTRE. Vendu: 12,99 €/mois le foyer entier,
+//                      +2 €/mois par profil réclamé, sur SON abonnement.
+// 'household_member' — un PROFIL RÉCLAMÉ. HÉRITÉ comme 'student': jamais
+//                      vendu, jamais sur un `subscriptions` — le maître paie.
+// Les reconnaître ICI n'est pas cosmétique: un palier inconnu s'effondre sur
+// 'none' (`normalizeAccessTierValue`), et 'none' déclenche le tunnel de vente
+// grand public. Sans ces deux lignes, un foyer QUI PAIE se verrait proposer de
+// s'abonner à un produit qui n'existe plus.
 export type PaidTier = "system" | "alliance" | "architecte";
-export type KeelTier = "coach" | "student";
+export type KeelTier = "coach" | "student" | "household" | "household_member";
 export type EffectiveTier = PaidTier | KeelTier | "none";
 /** Everything `profiles.access_tier` can hold, including the time-based one. */
 export type AccessTierValue = EffectiveTier | "trial";
 
+/**
+ * ⚠️ PAS DE `as any` ICI, ET CE N'EST PAS DE L'HYGIÈNE DE LINTER. Un cast vers
+ * `any` désarme le typecheck sur TOUT ce qui suit la propriété — ce dépôt a
+ * déjà payé « 200 en log, null en silence » pour exactement ce motif. Le type
+ * étroit ci-dessous dit la seule chose vraie de `import.meta.env` : un sac de
+ * chaînes dont aucune clé n'est garantie.
+ */
+type ViteImportMeta = ImportMeta & {
+  env?: Record<string, string | undefined>;
+};
+
 function env(name: string): string | undefined {
-  const v = (import.meta as any)?.env?.[name];
+  const v = (import.meta as ViteImportMeta).env?.[name];
   return typeof v === "string" && v.trim().length > 0 ? v.trim() : undefined;
 }
 
@@ -64,10 +85,13 @@ export function getEffectiveTier(subscription: {
 } | null): EffectiveTier {
   if (!subscription) return "none";
   if (!isSubscriptionActive(subscription)) return "none";
-  const t = (subscription as any)?.effective_tier;
+  // Le paramètre DÉCLARE déjà `effective_tier?: EffectiveTier | null`: le cast
+  // qui était ici ne protégeait de rien et masquait la déclaration.
+  const t = subscription.effective_tier;
   if (
     t === "system" || t === "alliance" || t === "architecte" ||
-    t === "coach" || t === "student"
+    t === "coach" || t === "student" ||
+    t === "household" || t === "household_member"
   ) {
     return t;
   }
@@ -86,6 +110,7 @@ export function normalizeAccessTierValue(value: unknown): AccessTierValue {
   const raw = String(value ?? "none").trim().toLowerCase();
   if (
     raw === "trial" || raw === "coach" || raw === "student" ||
+    raw === "household" || raw === "household_member" ||
     raw === "system" || raw === "alliance" || raw === "architecte"
   ) {
     return raw;
@@ -106,9 +131,19 @@ export function tierGrantsProtocolExecution(value: unknown): boolean {
   return t !== "none";
 }
 
-/** Is the student's access inherited from a coach rather than bought? */
+/**
+ * Is this access inherited from somebody else's payment rather than bought?
+ *
+ * Deux cas, une même conséquence à l'écran: on ne propose JAMAIS d'acheter à
+ * quelqu'un dont l'accès n'est pas à lui.
+ *   'student'          — le coach paie le siège.
+ *   'household_member' — le compte maître paie le profil réclamé; demander une
+ *                        carte pour 2 € est disproportionné, et il en a déjà
+ *                        une.
+ */
 export function isInheritedEntitlement(value: unknown): boolean {
-  return normalizeAccessTierValue(value) === "student";
+  const t = normalizeAccessTierValue(value);
+  return t === "student" || t === "household_member";
 }
 
 /**
@@ -117,6 +152,9 @@ export function isInheritedEntitlement(value: unknown): boolean {
  * 'student' is excluded on purpose: their access is not theirs to buy, and
  * offering it is the exact "your trial is over" screen B6 describes. 'coach'
  * is excluded too — their billing lives on /coach/billing, not /upgrade.
+ * Idem pour le foyer: 'household_member' n'a rien à acheter (le maître paie),
+ * et 'household' paie déjà — l'un et l'autre sont exclus par la règle « seuls
+ * 'none' et 'trial' voient le tunnel », sans exception à écrire.
  */
 export function shouldOfferSelfServeUpgrade(value: unknown): boolean {
   const t = normalizeAccessTierValue(value);

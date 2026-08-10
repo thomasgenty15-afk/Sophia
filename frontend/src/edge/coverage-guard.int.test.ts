@@ -188,6 +188,10 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       "sophia-brain",
       "stripe-create-checkout-session",
       "stripe-create-portal-session",
+      // LE FOYER — réconciliation mensuelle des profils réclamés (cron).
+      // 12,99 €/mois le foyer + 2 €/mois par profil réclamé, quantité
+      // recomputée depuis `keel_household_billable_profiles`.
+      "stripe-reconcile-households",
       // W10 — monthly per-active-student seat reconciliation (cron).
       "stripe-reconcile-seats",
       "stripe-sync-subscription",

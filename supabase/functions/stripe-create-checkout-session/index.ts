@@ -10,27 +10,44 @@ import {
   z,
 } from "../_shared/http.ts";
 import { stripeRequest } from "../_shared/stripe.ts";
-import { countSeats, type SeatLedgerRow } from "../_shared/billing-tier.ts";
+import {
+  countSeats,
+  householdTrialCovers,
+  KEEL_HOUSEHOLD_PRICE_ENV,
+  type SeatLedgerRow,
+} from "../_shared/billing-tier.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
 
-// W10 — two shapes on one endpoint.
-//   plan omitted        : the legacy B2C checkout (one price, one item).
-//   plan='keel_coach'   : the KEEL coach contract — 49 $/mo platform (qty 1)
-//                         PLUS 12 $/mo per ACTIVE student (qty = seats today).
+// W10 — three shapes on one endpoint.
+//   plan omitted           : the legacy B2C checkout (one price, one item).
+//   plan='keel_coach'      : the KEEL coach contract — UN SEUL POSTE, le siège
+//                            (le forfait de plateforme a été supprimé, voir
+//                            plus bas). qty = sièges actifs aujourd'hui.
+//   plan='keel_household'  : LE FOYER — deux articles: le forfait 12,99 €/mois
+//                            (quantité 1) et le profil réclamé 2 €/mois
+//                            (quantité = keel_household_billable_profiles).
 // `tier` is optional now, and required only on the legacy shape; the refine
 // below is what enforces that, so a malformed body is a 400 and never a
 // silently-defaulted subscription.
 const BodySchema = z
   .object({
-    plan: z.literal("keel_coach").optional(),
+    plan: z.enum(["keel_coach", "keel_household"]).optional(),
     tier: z.enum(["system", "alliance", "architecte"]).optional(),
     interval: z.enum(["monthly", "yearly"]),
     return_path: z.string().optional(),
   })
   .strict()
-  .refine((b) => b.plan === "keel_coach" || Boolean(b.tier), {
-    message: "tier is required unless plan='keel_coach'",
+  .refine((b) => Boolean(b.plan) || Boolean(b.tier), {
+    message: "tier is required unless plan is a KEEL plan",
     path: ["tier"],
+  })
+  // LE FOYER N'A PAS D'ANNUEL. Les deux prix sont mensuels et il n'en existe
+  // pas d'autres: accepter `yearly` ici enverrait `requireEnv` chercher une
+  // variable que personne ne posera jamais, et l'erreur ressemblerait à une
+  // panne de configuration au lieu d'une demande impossible.
+  .refine((b) => b.plan !== "keel_household" || b.interval === "monthly", {
+    message: "the household plan is monthly only",
+    path: ["interval"],
   });
 
 type StripeSub = { id?: string; status?: string };
@@ -92,6 +109,7 @@ Deno.serve(async (req) => {
     const stripeSecretKey = requireEnv("STRIPE_SECRET_KEY");
     const appBaseUrl = requireEnv("APP_BASE_URL").replace(/\/+$/, "");
     const isKeelCoach = body.plan === "keel_coach";
+    const isKeelHousehold = body.plan === "keel_household";
     // LE CONTRAT KEEL N'A PLUS DE FORFAIT DE PLATEFORME, donc plus de prix à
     // résoudre ici pour un coach: son unique poste est le siège, lu juste en
     // dessous. `legacyTierPriceId` ne sert qu'aux paliers du produit grand
@@ -100,11 +118,21 @@ Deno.serve(async (req) => {
     //
     // Il est réclamé PARESSEUSEMENT: `requireEnv` sur le chemin coach ferait
     // échouer un abonnement pour une variable dont ce chemin n'a plus besoin.
-    const legacyTierPriceId = isKeelCoach ? null : requireEnv(
+    const legacyTierPriceId = (isKeelCoach || isKeelHousehold) ? null : requireEnv(
       `STRIPE_PRICE_ID_${String(body.tier).toUpperCase()}_${body.interval.toUpperCase()}`,
     );
     const seatPriceId = isKeelCoach
       ? requireEnv(`STRIPE_PRICE_ID_COACH_SEAT_${body.interval.toUpperCase()}`)
+      : null;
+    // LE FOYER: DEUX PRIX, EXIGÉS ENSEMBLE. Le profil réclamé n'existe pas sans
+    // le forfait — ce sont deux postes d'un même contrat, pas deux options. En
+    // réclamer un seul laisserait passer une configuration à moitié posée, et
+    // le tunnel vendrait un forfait sans jamais facturer les profils.
+    const householdFlatPriceId = isKeelHousehold
+      ? requireEnv(KEEL_HOUSEHOLD_PRICE_ENV.flatMonthly)
+      : null;
+    const householdProfilePriceId = isKeelHousehold
+      ? requireEnv(KEEL_HOUSEHOLD_PRICE_ENV.profileMonthly)
       : null;
 
     const authHeader = req.headers.get("Authorization") ?? "";
@@ -176,6 +204,110 @@ Deno.serve(async (req) => {
         initialSeatQuantity = countSeats(
           (ledger ?? []) as unknown as SeatLedgerRow[],
         ).active;
+      }
+    }
+
+    // ── LE FOYER — LE CONTRAT EST VENDU AU COMPTE MAÎTRE ───────────────────
+    //
+    // `subscriptions.user_id` est UNIQUE et le foyer n'a pas d'identité
+    // Stripe: l'abonnement est celui du MAÎTRE. C'est aussi lui qui a la
+    // carte, et c'est pour ça que les 2 € du profil réclamé sont une ligne de
+    // SON abonnement — demander une carte à quelqu'un pour 2 € est
+    // disproportionné.
+    //
+    // L'identité du foyer est résolue côté serveur depuis le JWT, jamais prise
+    // dans le corps: un membre qui demanderait `plan='keel_household'` doit
+    // être refusé, pas vendu un abonnement dont personne ne réconcilierait la
+    // ligne de profils.
+    let householdId: string | null = null;
+    let householdProfileQuantity = 0;
+    if (isKeelHousehold) {
+      const { data: memberRow, error: memberErr } = await supabaseAdmin
+        .from("household_members")
+        .select("household_id,role")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (memberErr) {
+        console.error("[stripe-create-checkout-session] household read error", memberErr);
+        await logEdgeFunctionError({
+          functionName: "stripe-create-checkout-session",
+          error: memberErr,
+          severity: "error",
+          title: "household_read_failed",
+          requestId,
+          userId: currentUserId,
+          source: "stripe",
+        });
+        return serverError(req, requestId);
+      }
+      if (!memberRow || (memberRow as any).role !== "owner") {
+        return jsonResponse(
+          req,
+          { error: "not_household_owner", request_id: requestId },
+          { status: 403 },
+        );
+      }
+      householdId = String((memberRow as any).household_id);
+
+      // L'ESSAI (D4bis). Un foyer couvert n'est pas facturé — PROFILS RÉCLAMÉS
+      // COMPRIS, « un seul abonnement, un seul état ». La même règle vaut aux
+      // DEUX portes: ici on refuse d'ouvrir le tunnel, et
+      // `stripe-reconcile-households` refuse de pousser une quantité. Une
+      // seule source (`households.free_until`), deux refus nommés.
+      //
+      // ⚠️ CE REFUS EST UN ARBITRAGE, pas une évidence: quelqu'un qui VEUT
+      // payer pendant son essai est renvoyé. L'alternative (ouvrir le tunnel
+      // avec `subscription_data.trial_end`) fait dépendre la promesse d'une
+      // contrainte Stripe sur la date, et un essai qui finit dans moins de
+      // 48 h la viole silencieusement. On préfère un refus lisible à une
+      // promesse à moitié tenue.
+      const { data: houseRow, error: houseErr } = await supabaseAdmin
+        .from("households")
+        .select("free_until")
+        .eq("id", householdId)
+        .maybeSingle();
+      if (houseErr) {
+        console.error("[stripe-create-checkout-session] household free_until read error", houseErr);
+        await logEdgeFunctionError({
+          functionName: "stripe-create-checkout-session",
+          error: houseErr,
+          severity: "error",
+          title: "household_free_until_read_failed",
+          requestId,
+          userId: currentUserId,
+          source: "stripe",
+        });
+        return serverError(req, requestId);
+      }
+      const freeUntil = (houseRow as { free_until?: string | null } | null)?.free_until ?? null;
+      if (householdTrialCovers(freeUntil)) {
+        return jsonResponse(req, {
+          error: "household_in_trial",
+          detail: "This household is covered by its trial; nothing is billed until it ends.",
+          free_until: freeUntil,
+          request_id: requestId,
+        }, { status: 409 });
+      }
+
+      // LA QUANTITÉ DE PROFILS RÉCLAMÉS, PAR LA DÉFINITION UNIQUE DE LA BASE.
+      // `keel_household_billable_profiles` exclut le maître et les bouches
+      // sans compte. Recompter ici, en TypeScript, ferait diverger l'écran de
+      // la facture — et l'écart ne se verrait qu'au premier prélèvement.
+      //
+      // Sur échec de lecture on démarre à ZÉRO profil plutôt que de deviner:
+      // le job de réconciliation est l'autorité et il tourne tous les mois.
+      // Sur-facturer sur une lecture ratée est la seule issue qu'un nouvel
+      // essai ne répare pas.
+      const { data: billableRaw, error: billableErr } = await supabaseAdmin
+        .rpc("keel_household_billable_profiles", { p_household: householdId });
+      if (billableErr) {
+        console.warn(
+          "[stripe-create-checkout-session] billable profiles read failed; starting at 0",
+          billableErr,
+        );
+      } else {
+        const n = Number(billableRaw ?? 0);
+        householdProfileQuantity = Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
       }
     }
 
@@ -254,7 +386,11 @@ Deno.serve(async (req) => {
     if (activeSub?.id) {
       const returnUrl = `${appBaseUrl}${
         body.return_path ??
-          (isKeelCoach ? "/coach/billing?billing=portal" : "/dashboard?billing=portal")
+          (isKeelCoach
+            ? "/coach/billing?billing=portal"
+            : isKeelHousehold
+            ? "/app/household?billing=portal"
+            : "/dashboard?billing=portal")
       }`;
       const portal = await stripeRequest<{ url?: string }>({
         method: "POST",
@@ -312,6 +448,27 @@ Deno.serve(async (req) => {
         }, { status: 409 });
       }
       lineItems.push({ price: seatPriceId, quantity: initialSeatQuantity });
+    } else if (isKeelHousehold) {
+      // ── DEUX ARTICLES, ET LE FORFAIT EN PREMIER ─────────────────────────
+      //
+      // Le foyer, LUI, a bien un forfait: 12,99 €/mois pour le foyer entier,
+      // bouches illimitées (plafond technique de 8). C'est le contraire du
+      // contrat coach, dont le forfait de plateforme a été supprimé — ne pas
+      // raisonner par analogie ici.
+      //
+      // Le second article, le profil réclamé à 2 €, est OMIS quand personne
+      // n'a réclamé son profil: Stripe refuse une quantité de 0, et démarrer
+      // à 1 facturerait un accès que personne n'a pris.
+      // `stripe-reconcile-households` crée l'article le mois où le premier
+      // profil est réclamé — il gère « article présent » comme « article
+      // absent », précisément pour que cette branche puisse rester honnête.
+      lineItems.push({ price: householdFlatPriceId, quantity: 1 });
+      if (householdProfileQuantity > 0) {
+        lineItems.push({
+          price: householdProfilePriceId,
+          quantity: householdProfileQuantity,
+        });
+      }
     } else {
       lineItems.push({ price: legacyTierPriceId, quantity: 1 });
     }
@@ -325,9 +482,13 @@ Deno.serve(async (req) => {
         customer: customerId,
         success_url: isKeelCoach
           ? `${appBaseUrl}/coach/billing?billing=success&session_id={CHECKOUT_SESSION_ID}`
+          : isKeelHousehold
+          ? `${appBaseUrl}/app/household?billing=success&session_id={CHECKOUT_SESSION_ID}`
           : `${appBaseUrl}/dashboard?billing=success&session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: isKeelCoach
           ? `${appBaseUrl}/coach/billing?billing=cancelled`
+          : isKeelHousehold
+          ? `${appBaseUrl}/app/household?billing=cancelled`
           : `${appBaseUrl}/upgrade?billing=cancelled`,
         line_items: lineItems,
         // LA LANGUE DU TUNNEL, ET SEULEMENT LA SIENNE.
@@ -351,14 +512,29 @@ Deno.serve(async (req) => {
             // this is the reverse edge, so a Stripe-side inspection can answer
             // "whose roster is this?" without a database.
             ...(coachId ? { keel_coach_id: coachId } : {}),
+            // Même arête inverse pour le foyer: le job part du foyer et
+            // trouve l'abonnement du maître; ceci permet à une inspection
+            // côté Stripe de répondre « quel foyer paie cette ligne ? » sans
+            // base de données.
+            ...(householdId ? { keel_household_id: householdId } : {}),
           },
         },
         metadata: {
           supabase_user_id: user.id,
-          requested_tier: isKeelCoach ? "coach" : String(body.tier),
+          requested_tier: isKeelCoach
+            ? "coach"
+            : isKeelHousehold
+            ? "household"
+            : String(body.tier),
           requested_interval: body.interval,
           ...(isKeelCoach
             ? { keel_initial_seat_quantity: String(initialSeatQuantity) }
+            : {}),
+          ...(isKeelHousehold
+            ? {
+              keel_household_id: String(householdId),
+              keel_initial_profile_quantity: String(householdProfileQuantity),
+            }
             : {}),
         },
       },
@@ -379,10 +555,12 @@ Deno.serve(async (req) => {
         mode: "checkout",
         checkout_session_id: checkout?.id ?? null,
         stripe_customer_id: customerId,
-        requested_tier: isKeelCoach ? "coach" : body.tier,
+        requested_tier: isKeelCoach ? "coach" : isKeelHousehold ? "household" : body.tier,
         requested_interval: body.interval,
         keel_coach_id: coachId,
         keel_initial_seat_quantity: isKeelCoach ? initialSeatQuantity : null,
+        keel_household_id: householdId,
+        keel_initial_profile_quantity: isKeelHousehold ? householdProfileQuantity : null,
       },
     });
 
@@ -393,6 +571,10 @@ Deno.serve(async (req) => {
       // The coach sees, before paying, the seat count they are about to be
       // charged for. Two numbers, never merged, all the way to the invoice.
       ...(isKeelCoach ? { seat_quantity: initialSeatQuantity } : {}),
+      // Le maître voit, AVANT de payer, combien de profils réclamés lui sont
+      // facturés en plus du forfait. Deux articles, deux nombres, jamais un
+      // total opaque.
+      ...(isKeelHousehold ? { profile_quantity: householdProfileQuantity } : {}),
       request_id: requestId,
     });
   } catch (err) {

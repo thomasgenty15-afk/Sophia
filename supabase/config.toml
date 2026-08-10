@@ -400,6 +400,12 @@ verify_jwt = false
 # `X-Internal-Secret` (ensureInternalRequest), like every other internal job.
 [functions.stripe-reconcile-seats]
 verify_jwt = false
+# LE FOYER — la réconciliation mensuelle des profils réclamés (chantier 1).
+# Même garde que les sièges: invoquée par cron, donc pas de JWT, et
+# `X-Internal-Secret` (ensureInternalRequest) est ce qui la protège. Un
+# `invoke` sans cet en-tête rend 403 à chaque envoi.
+[functions.stripe-reconcile-households]
+verify_jwt = false
 # W10 — Stripe sends a signed webhook, never a Supabase JWT. This function has
 # always carried a per-folder config.toml, which the CLI does NOT read (see the
 # comment in scripts/ci/wiring-check.mjs): the declaration has to be here.

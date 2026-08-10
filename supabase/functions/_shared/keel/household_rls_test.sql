@@ -1107,5 +1107,140 @@ begin
 end;
 $$;
 
+-- ---------------------------------------------------------------------------
+-- 41–45. L'ESSAI ET L'HISTORIQUE DE FACTURATION (chantier 1)
+--
+-- Le foyer est à 12,99 €/mois + 2 € par profil réclamé, et D4bis lui offre
+-- 30 jours à compter DU BRANCHEMENT de Stripe. Ce qui suit affirme deux
+-- choses que rien d'autre ne tient:
+--
+--   · l'essai NE CHANGE PAS le compte facturable. On CALCULE toujours, on ne
+--     POUSSE pas. Confondre les deux ferait disparaître les profils réclamés
+--     de l'historique pendant un mois, et personne ne saurait, à la fin de
+--     l'essai, ce qu'on aurait dû facturer;
+--   · la facture est au MAÎTRE. Le reste du foyer voit ce qu'on mange, pas ce
+--     qu'on paie.
+--
+-- État de la fixture ici: le foyer de 0001 a SEPT bouches et TROIS profils
+-- réclamés (Léa a été retirée en 39).
+-- ---------------------------------------------------------------------------
+
+select pg_temp.become_super();
+
+-- 41. L'ESSAI EST UNE DATE SUR LA LIGNE, pas une règle. On la pose comme le
+--     fera le geste humain du branchement.
+update public.households
+   set free_until = current_date + 30
+ where id = public.keel_household_of('f0ed0000-0000-0000-0000-000000000001');
+select pg_temp.assert_eq('41 l''essai est posé sur la ligne du foyer',
+  (select count(*) from public.households
+    where id = public.keel_household_of('f0ed0000-0000-0000-0000-000000000001')
+      and free_until = current_date + 30), 1);
+
+-- 42. ET LE COMPTE FACTURABLE NE BOUGE PAS D'UN CRAN. C'est l'invariant de ce
+--     bloc: `free_until` gouverne ce qu'on POUSSE à Stripe, jamais ce qu'on
+--     COMPTE. Un compte qui tomberait à zéro pendant l'essai rendrait la fin
+--     de l'essai illisible — on ne saurait pas quoi facturer le premier jour
+--     d'après.
+select pg_temp.assert_eq('42 l''essai ne change pas le compte facturable',
+  public.keel_household_billable_profiles(
+    public.keel_household_of('f0ed0000-0000-0000-0000-000000000001')), 3);
+
+-- 43. LA LIGNE DE PÉRIODE, ÉCRITE PAR LE SERVEUR. On y met l'état exact d'un
+--     foyer en essai: calculé, non poussé, et la raison NOMMÉE — un refus
+--     nommé et une panne ne se rangent pas dans la même colonne.
+insert into public.household_billing_periods
+  (household_id, period_month, active_profile_count, mouth_count,
+   free_until_at_computation, skip_reason)
+values (
+  public.keel_household_of('f0ed0000-0000-0000-0000-000000000001'),
+  date_trunc('month', now())::date, 3, 7, current_date + 30, 'in_trial');
+
+select pg_temp.assert_eq('43 un foyer en essai n''a POUSSÉ aucune quantité',
+  (select count(*) from public.household_billing_periods
+    where household_id = public.keel_household_of('f0ed0000-0000-0000-0000-000000000001')
+      and pushed_quantity is null
+      and skip_reason = 'in_trial'
+      and push_error is null), 1);
+-- 43b. LES DEUX NOMBRES SONT DEUX, jusque dans l'historique: sept bouches,
+--      trois facturées. Le plafond snapshotté vaut huit et ne facture rien.
+select pg_temp.assert_eq('43b sept bouches, trois facturées, plafond de huit',
+  (select count(*) from public.household_billing_periods
+    where household_id = public.keel_household_of('f0ed0000-0000-0000-0000-000000000001')
+      and mouth_count = 7
+      and active_profile_count = 3
+      and max_mouths_at_computation = public.keel_household_max_mouths()), 1);
+
+-- 43c. FACTURER PLUS DE PROFILS QUE DE BOUCHES EST REFUSÉ PAR LA BASE. C'est
+--      la seule forme d'erreur de comptage qui produirait un nombre plausible,
+--      et elle ne se verrait qu'à la facture.
+do $$
+begin
+  begin
+    update public.household_billing_periods
+       set active_profile_count = 8
+     where household_id = public.keel_household_of('f0ed0000-0000-0000-0000-000000000001');
+    raise exception
+      'FAIL 43c : 8 profils facturés pour 7 bouches ont été ACCEPTÉS';
+  exception
+    when check_violation then
+      raise notice 'PASS 43c la base refuse plus de profils que de bouches';
+  end;
+end;
+$$;
+
+-- 44. LA FACTURE EST AU MAÎTRE. Un membre du foyer ne la lit pas: il voit ce
+--     qu'on mange, pas ce qu'on paie. L'intrus non plus, évidemment.
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000001');
+select pg_temp.assert_eq('44 le maître lit SA période de facturation',
+  (select count(*) from public.household_billing_periods), 1);
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000002');
+select pg_temp.assert_eq('44b un membre ne lit AUCUNE facture',
+  (select count(*) from public.household_billing_periods), 0);
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000005');
+select pg_temp.assert_eq('44c l''intrus non plus',
+  (select count(*) from public.household_billing_periods), 0);
+
+-- 44d. ET PERSONNE N'ÉCRIT DEPUIS UN CLIENT. Aucune policy d'écriture
+--      n'existe, mais une policy ne suffit pas: `TRUNCATE` ÉCHAPPE À RLS, et
+--      toute table neuve donne TOUT à `authenticated` par défaut. On affirme
+--      donc le PRIVILÈGE, pas la policy.
+select pg_temp.become_super();
+select pg_temp.assert_eq('44d aucun privilège d''écriture pour anon ni authenticated',
+  (select count(*)
+     from (values ('anon'), ('authenticated')) t(r)
+     cross join (values ('INSERT'),('UPDATE'),('DELETE'),('TRUNCATE')) p(priv)
+    where has_table_privilege(t.r, 'public.household_billing_periods', p.priv)), 0);
+-- `revoke ... from public` NE RETIRE PAS `anon`: il a son propre GRANT, et
+-- c'est pour ça qu'il est affirmé séparément de la lecture d'`authenticated`.
+select pg_temp.assert_eq('44e anon ne LIT pas non plus les factures',
+  (select count(*) from (values ('anon')) t(r)
+    where has_table_privilege(t.r, 'public.household_billing_periods', 'SELECT')), 0);
+select pg_temp.assert_eq('44f le serveur, lui, écrit sa propre table',
+  (select count(*) from (values ('service_role')) t(r)
+    where has_table_privilege(t.r, 'public.household_billing_periods', 'INSERT')), 1);
+
+-- 45. LE VOCABULAIRE DE PALIER. Deux jetons neufs, et une ASYMÉTRIE voulue:
+--     'household' est vendable (le maître a un abonnement), 'household_member'
+--     ne l'est pas (droit HÉRITÉ, comme 'student' — le maître paie). L'admettre
+--     sur un abonnement mettrait sur une facture un accès dont on a promis
+--     qu'il ne coûterait rien à celui qui l'a.
+select pg_temp.assert_eq('45 les deux jetons sont admis sur un PROFIL',
+  (select count(*)
+     from (values ('household'), ('household_member')) t(v)
+    where (select pg_catalog.pg_get_constraintdef(c.oid)
+             from pg_catalog.pg_constraint c
+            where c.conname = 'profiles_access_tier_check'
+              and c.conrelid = 'public.profiles'::regclass)
+          like '%''' || t.v || '''%'), 2);
+select pg_temp.assert_eq('45b seul ''household'' est admis sur un ABONNEMENT',
+  (select count(*)
+     from (values ('household'), ('household_member')) t(v)
+    where (select pg_catalog.pg_get_constraintdef(c.oid)
+             from pg_catalog.pg_constraint c
+            where c.conname = 'subscriptions_tier_check'
+              and c.conrelid = 'public.subscriptions'::regclass)
+          like '%''' || t.v || '''%'), 1);
+
 select pg_temp.become_super();
 rollback;
