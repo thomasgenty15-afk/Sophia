@@ -40,6 +40,19 @@
 --  22. réclamer ATTACHE: même member_id, rien de perdu           -> 1 / 8     (lot 6)
 --  23. un compte déjà logé ailleurs ne réclame pas               -> already_in_household
 --  24. le profil réclamé pose SON objectif et RIEN d'autre       -> ok / 4× not_owner
+--  25. l'envie est écrite par le MAÎTRE SEUL, une par semaine    -> not_owner / 1 (lot 5)
+--  26. elle est ancrée au LUNDI, et une semaine passée reste     -> 1 / 2         (lot 5)
+--      rangée à sa date — c'est ce qui empêche de servir une
+--      phrase vieille de six semaines comme si elle datait de
+--      ce matin
+--  27. le compte FACTURABLE exclut le maître et les bouches       -> 4 / 0     (lot 7)
+--      sans compte — un foyer d'une seule personne facture
+--      ZÉRO profil réclamé, pas un
+--  28. le plafond de 8 et le compte facturable sont DEUX          -> 8 / 8 / 4 (lot 7)
+--      nombres, de deux natures: une garde de coût LLM, et
+--      une quantité de facture
+--  29. une réclamation ANNULÉE redescend le compte                -> 3 / 7     (lot 7)
+--  30. compter une facture est réservé au SERVEUR                 -> 0 / 1 / lève
 --
 -- Chaque assertion RAISE en cas d'écart: un vert silencieux sur une policy
 -- cassée est le seul résultat que ce fichier existe pour empêcher.
@@ -868,23 +881,231 @@ select pg_temp.assert_eq('29 l''intrus ne lit aucune composition',
   (select count(*) from public.student_generated_meals), 0);
 
 -- ---------------------------------------------------------------------------
--- 16. L'envie: déposée par soi, relue par le foyer, remplacée si redéposée
+-- 16. L'ENVIE — UNE LIGNE, ÉCRITE PAR LE COMPTE MAÎTRE (lot 5, 2026-08-10)
+--
+-- CE QUI A DISPARU DE CETTE SECTION: « chacun dépose la sienne ». La récolte
+-- par membre est morte — elle faisait courir celui qui tient le foyer après
+-- tout le monde — et l'écriture est réservée au maître. Les anciennes
+-- assertions 30/31 affirmaient donc l'INVERSE de la règle en vigueur: elles
+-- faisaient déposer une envie par `…0002`, qui est un simple membre.
 -- ---------------------------------------------------------------------------
 
+-- ⚠️ TOUT COMPTE SOUS `postgres` EST SCOPÉ AU FOYER DE LA FIXTURE. La base
+-- locale est PARTAGÉE: un `count(*)` global virerait au rouge dès qu'une autre
+-- session écrit une envie dans son propre foyer — un faux rouge que ce dépôt a
+-- déjà payé ailleurs. Sous `authenticated`, RLS scope déjà.
+create or replace function pg_temp.fixture_household()
+returns uuid language sql stable as $$
+  select id from public.households
+   where created_by = 'f0ed0000-0000-0000-0000-000000000001'
+$$;
+
+create or replace function pg_temp.this_monday()
+returns date language sql stable as $$
+  select current_date - (extract(isodow from current_date)::int - 1)
+$$;
+
+-- 30. LE REFUS D'ABORD. Un membre qui appelle la RPC en direct doit se heurter
+--     au même mur que celui qui ne voit pas le champ à l'écran: une limite
+--     d'UI n'est pas une limite.
 select pg_temp.become('f0ed0000-0000-0000-0000-000000000002');
-select pg_temp.assert_ok('30 envie déposée',
-public.keel_household_submit_envy(current_date, 'un curry'));
-select pg_temp.assert_ok('31 envie redéposée (remplace)',
+select pg_temp.assert_refused('30 un simple membre n''écrit PAS l''envie',
+public.keel_household_submit_envy(current_date, 'un curry'), 'not_owner');
+
+-- 30b. Et le refus est TOTAL, pas cosmétique: aucune ligne n'est entrée. Un
+--      `ok=false` qui aurait quand même écrit passerait l'assertion 30.
+select pg_temp.become_super();
+select pg_temp.assert_eq('30b le refus n''a rien écrit',
+  (select count(*) from public.household_envy_submissions
+    where household_id = pg_temp.fixture_household()), 0);
+
+-- 31. LE MAÎTRE ÉCRIT, ET RÉÉCRIT: la dernière REMPLACE. On change d'avis le
+--     samedi, ce n'est pas un journal.
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000001');
+select pg_temp.assert_ok('31 le compte maître écrit la ligne de la semaine',
+public.keel_household_submit_envy(current_date, 'Lea veut des pâtes'));
+select pg_temp.assert_ok('31b il la réécrit (remplace)',
 public.keel_household_submit_envy(current_date, 'plutôt un tajine'));
 
-select pg_temp.become('f0ed0000-0000-0000-0000-000000000001');
-select pg_temp.assert_eq('32 une seule envie par personne et par semaine',
+select pg_temp.become_super();
+select pg_temp.assert_eq('32 UNE SEULE ligne par foyer et par semaine',
   (select count(*) from public.household_envy_submissions
-    where user_id = 'f0ed0000-0000-0000-0000-000000000002'), 1);
+    where household_id = pg_temp.fixture_household()), 1);
 select pg_temp.assert_eq('33 c''est la DERNIÈRE qui reste',
   (select count(*) from public.household_envy_submissions
-    where user_id = 'f0ed0000-0000-0000-0000-000000000002'
+    where household_id = pg_temp.fixture_household()
       and body = 'plutôt un tajine'), 1);
+
+-- 34. L'ANCRE EST UN LUNDI, QUEL QUE SOIT LE JOUR OÙ ON ÉCRIT.
+--     C'est TOUTE la raison de garder cette table plutôt qu'une colonne sur
+--     `households`: sans ancre, « Marc en a marre du poulet » écrit ce matin
+--     et la même phrase oubliée depuis six semaines sont indiscernables, et le
+--     générateur les servirait pareil.
+select pg_temp.assert_eq('34 la ligne est rangée sur un LUNDI',
+  (select count(*) from public.household_envy_submissions
+    where household_id = pg_temp.fixture_household()
+      and week_start = pg_temp.this_monday()), 1);
+
+-- 34b. DEUX JOURS DE LA MÊME SEMAINE ÉCRIVENT LA MÊME LIGNE — et c'est le
+--      défaut que ce lot corrige: sans recalage, une phrase écrite lundi
+--      n'était plus trouvée par une composition lancée mercredi, et le foyer
+--      recevait un plan qui ignorait sa demande sans une seule erreur.
+--      MUTATION: si le recalage disparaissait de la RPC, 34c rendrait 2.
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000001');
+select pg_temp.assert_ok('34b il réécrit un autre jour de la même semaine',
+public.keel_household_submit_envy(pg_temp.this_monday() + 3,
+                                  'finalement des lasagnes'));
+select pg_temp.become_super();
+select pg_temp.assert_eq('34c toujours UNE ligne pour la semaine',
+  (select count(*) from public.household_envy_submissions
+    where household_id = pg_temp.fixture_household()), 1);
+select pg_temp.assert_eq('34d et c''est bien la phrase du jeudi',
+  (select count(*) from public.household_envy_submissions
+    where household_id = pg_temp.fixture_household()
+      and body = 'finalement des lasagnes'), 1);
+
+-- 34e. UNE SEMAINE PASSÉE EST UNE AUTRE LIGNE, jamais un écrasement. C'est ce
+--      qui permet au lecteur de ne PAS servir une envie périmée: il filtre sur
+--      le lundi de la semaine composée, et la phrase de la semaine dernière
+--      reste rangée à SA date.
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000001');
+select pg_temp.assert_ok('34e la semaine passée s''écrit à part',
+public.keel_household_submit_envy(current_date - 7, 'la semaine passée'));
+select pg_temp.become_super();
+select pg_temp.assert_eq('34f deux semaines, deux lignes',
+  (select count(*) from public.household_envy_submissions
+    where household_id = pg_temp.fixture_household()), 2);
+select pg_temp.assert_eq('34g la ligne de CETTE semaine n''a pas bougé',
+  (select count(*) from public.household_envy_submissions
+    where household_id = pg_temp.fixture_household()
+      and week_start = pg_temp.this_monday()
+      and body = 'finalement des lasagnes'), 1);
+select pg_temp.assert_eq('34h celle d''AVANT est rangée au lundi d''avant',
+  (select count(*) from public.household_envy_submissions
+    where household_id = pg_temp.fixture_household()
+      and week_start = pg_temp.this_monday() - 7
+      and body = 'la semaine passée'), 1);
+
+-- 35. LE FOYER LA LIT, TOUT ENTIER — y compris celui qui ne l'écrit pas.
+--     « On mange des pâtes cette semaine » n'est pas une donnée sensible;
+--     c'est même l'objet de la phrase. Ce qui reste privé (objectif, poids,
+--     contraintes de sécurité) n'est pas dans cette table.
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000002');
+select pg_temp.assert_eq('35 un membre LIT la ligne du maître',
+  (select count(*) from public.household_envy_submissions), 2);
+
+-- 36. LE CLOISONNEMENT. L'intrus a SON foyer, donc `keel_household_of` lui rend
+--     quelque chose: c'est le cas piégeux d'une policy qui aurait comparé
+--     « non nul » au lieu de « égal ».
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000005');
+select pg_temp.assert_eq('36 l''intrus ne lit aucune envie du foyer voisin',
+  (select count(*) from public.household_envy_submissions), 0);
+-- Il EST maître chez lui, donc son écriture réussit: ce qu'on affirme n'est pas
+-- un refus, c'est que sa phrase ne traverse pas la cloison.
+select pg_temp.assert_ok('36b l''intrus écrit dans SON foyer',
+public.keel_household_submit_envy(current_date, 'des sushis'));
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000002');
+select pg_temp.assert_eq('36c les sushis du voisin restent chez le voisin',
+  (select count(*) from public.household_envy_submissions
+    where body = 'des sushis'), 0);
+
+-- ---------------------------------------------------------------------------
+-- 37–40. LE COMPTE FACTURABLE, ET CE QU'IL N'EST PAS (lot 7)
+--
+-- Le foyer est à 12,99 €/mois entier, +2 €/mois PAR PROFIL RÉCLAMÉ — porté par
+-- une ligne sur l'abonnement du MAÎTRE. Ce qui suit affirme la QUANTITÉ de
+-- cette ligne, et rien d'autre: aucun prix, aucun appel Stripe, aucune
+-- intégration. Ce lot livre le nombre; le job qui le pousse est un geste
+-- humain (voir la migration 20260810260000, section 4).
+--
+-- La fixture est au PIRE endroit possible pour se tromper: le foyer est PLEIN
+-- (8 bouches, plafond atteint en 24), il contient un maître avec compte, trois
+-- membres avec compte, une bouche réclamée en cours de route (Léa, lot 6) et
+-- trois bouches sans compte. Les deux nombres qu'on refuse de confondre valent
+-- donc 8 et 4 — s'ils étaient confondus, la facture serait DOUBLE.
+-- ---------------------------------------------------------------------------
+
+select pg_temp.become_super();
+
+-- 37. LE COMPTE. Quatre profils réclamés: Adulte, Enfant, Sansage, et Léa
+--     réclamée en 66. Le MAÎTRE n'en fait pas partie — son accès est dans les
+--     12,99 €, et le compter ferait payer 2 € de plus à TOUS les foyers, y
+--     compris à celui d'une seule personne.
+select pg_temp.assert_eq('37 quatre profils réclamés, le maître EXCLU',
+  public.keel_household_billable_profiles(
+    public.keel_household_of('f0ed0000-0000-0000-0000-000000000001')), 4);
+
+-- 38. LE PLAFOND N'EST PAS LE COMPTE FACTURABLE. Huit bouches (le foyer est
+--     plein), quatre profils réclamés, un plafond de huit: trois nombres, deux
+--     natures. Le plafond est une garde de COÛT LLM; le compte est une
+--     quantité de facture. Les affirmer côte à côte est le seul moyen de voir
+--     le jour où quelqu'un branchera l'un sur l'autre.
+select pg_temp.assert_eq('38 le foyer est PLEIN: huit bouches',
+  (select count(*) from public.household_members
+    where household_id = public.keel_household_of('f0ed0000-0000-0000-0000-000000000001')), 8);
+select pg_temp.assert_eq('38b et le plafond vaut bien huit',
+  public.keel_household_max_mouths(), 8);
+select pg_temp.assert_eq('38c mais on n''en facture que quatre',
+  public.keel_household_billable_profiles(
+    public.keel_household_of('f0ed0000-0000-0000-0000-000000000001')), 4);
+
+-- 38d. LE FOYER D'UNE SEULE PERSONNE. Le voisin est seul chez lui, et il porte
+--      un compte: c'est LE cas où confondre « a un compte » et « profil
+--      réclamé » produit un nombre plausible (1) au lieu du bon (0).
+select pg_temp.assert_eq('38d un foyer d''une personne ne facture AUCUN profil',
+  public.keel_household_billable_profiles(
+    public.keel_household_of('f0ed0000-0000-0000-0000-000000000005')), 0);
+
+-- 39. LA RÉCLAMATION ANNULÉE REDESCEND. Le maître retire la bouche de Léa —
+--     aujourd'hui le seul geste de retrait qui existe. Le compte doit tomber à
+--     trois; s'il restait à quatre, le maître paierait un accès qu'il a retiré,
+--     et personne ne le verrait avant la facture.
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000001');
+select pg_temp.assert_ok('39 le maître retire la bouche réclamée',
+public.keel_household_remove_member(
+  (select member_id from pg_temp_lea)));
+select pg_temp.become_super();
+select pg_temp.assert_eq('39b trois profils réclamés après le retrait',
+  public.keel_household_billable_profiles(
+    public.keel_household_of('f0ed0000-0000-0000-0000-000000000001')), 3);
+-- 39c. ET LES BOUCHES SANS COMPTE SONT TOUJOURS LÀ, non facturées. Sept
+--      bouches pour trois profils: la promesse « bouches illimitées » est
+--      exactement cet écart-là.
+select pg_temp.assert_eq('39c sept bouches, dont trois seulement facturées',
+  (select count(*) from public.household_members
+    where household_id = public.keel_household_of('f0ed0000-0000-0000-0000-000000000001')), 7);
+
+-- 40. LE PRIVILÈGE. La fonction prend un foyer EN ARGUMENT et est
+--     `security definer`: ouverte à `authenticated`, elle rendrait le compte de
+--     n'importe quel foyer à qui devine un uuid. Elle est réservée au serveur,
+--     comme `keel_household_roster_for`. Et `revoke from public` NE RETIRE PAS
+--     `anon` — c'est pour ça qu'`anon` est affirmé à part.
+select pg_temp.assert_eq('40 ni anon ni authenticated ne comptent une facture',
+  (select count(*) from (values ('anon'), ('authenticated')) t(r)
+   where has_function_privilege(
+     t.r, 'public.keel_household_billable_profiles(uuid)', 'EXECUTE')), 0);
+select pg_temp.assert_eq('40b le serveur, lui, l''exécute',
+  (select count(*) from (values ('service_role')) t(r)
+   where has_function_privilege(
+     t.r, 'public.keel_household_billable_profiles(uuid)', 'EXECUTE')), 1);
+
+-- 40c. EN CONDITIONS RÉELLES, et pas seulement dans le catalogue: un membre
+--      authentifié qui appelle la fonction doit se faire jeter par le moteur.
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000002');
+do $$
+declare v_n integer;
+begin
+  begin
+    v_n := public.keel_household_billable_profiles(
+      public.keel_household_of('f0ed0000-0000-0000-0000-000000000001'));
+    raise exception
+      'FAIL 40c : un membre a pu compter la facture du foyer (%)', v_n;
+  exception
+    when insufficient_privilege then
+      raise notice 'PASS 40c un membre authentifié ne compte aucune facture';
+  end;
+end;
+$$;
 
 select pg_temp.become_super();
 rollback;
