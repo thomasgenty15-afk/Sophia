@@ -186,6 +186,8 @@ des crons, observabilité, files de reprise.
 | [FF-027](conversation/FF-027-la-faim-branchee-au-plan.md) | La faim branchée au plan | `conversation` | 🟡 Spécifiée |
 | [FF-028](conversation/FF-028-la-recommandation-quotidienne.md) | La recommandation quotidienne | `conversation` | 🟡 Spécifiée (V1) |
 | [FF-029](conversation/FF-029-les-pratiques-quotidiennes.md) | Les pratiques quotidiennes | `conversation` | 🟠 En cours |
+| [FF-030](composition-des-repas/FF-030-le-contexte-de-composition.md) | Le contexte de composition | `composition-des-repas` | 🟡 Spécifiée (volet coach) |
+| [FF-031](suivi-quotidien/FF-031-mesures-corporelles-datees.md) | Une mesure du corps est datée à l'instant, pas à la semaine | `suivi-quotidien` | 🟠 En cours |
 
 > **Un identifiant ne se réutilise jamais** — y compris quand deux sessions
 > écrivent en parallèle, et y compris quand la fiche disparaît. `FF-002` a été
