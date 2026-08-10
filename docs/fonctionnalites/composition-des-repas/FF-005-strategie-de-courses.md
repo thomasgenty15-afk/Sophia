@@ -3,11 +3,21 @@
 | | |
 |---|---|
 | **Identifiant** | `FF-005-strategie-de-courses` |
-| **Statut** | 🟡 Spécifiée — arbitrée le 2026-08-07 |
-| **Date** | 2026-08-07 |
+| **Statut** | 🟡 Spécifiée — arbitrée le 2026-08-07, **révisée le 2026-08-10** (le jumeau front n'existe plus) |
+| **Date** | 2026-08-10 |
 | **Autorité produit** | [MODEL.md](../../keel/MODEL.md) · [PIVOT-FOYER.md](../../keel/PIVOT-FOYER.md) |
-| **Dépend de** | `_shared/keel/grocery_waves.ts` · `frontend/src/keel/api/groceryWaves.ts` (jumeau) · `ShoppingListPanel` · [FF-004](FF-004-conservation-et-decongelation.md) |
+| **Dépend de** | `_shared/keel/grocery_waves.ts` (**la seule définition**) · `frontend/src/keel/api/groceryWaves.ts` (réexport + adaptateur de types, aucune règle) · `ShoppingListPanel` · [FF-004](FF-004-conservation-et-decongelation.md) |
 | **Effort estimé** | 2 jours |
+
+> ⚠️ **CE QUI A CHANGÉ SOUS CETTE FICHE, LE 2026-08-10.** Elle a été écrite dans
+> un monde où la règle des vagues était écrite **deux fois** — une copie serveur
+> et une copie écran, chacune avec son `MAX_FRIDGE_DAYS = 3`. Le lot 8 du
+> [chantier foyer](../../keel/CHANTIER-FOYER-PROFILS.md) a supprimé le jumeau :
+> `frontend/src/keel/api/groceryWaves.ts` importe désormais le module serveur et
+> ne fait que réexporter (72 lignes, contre 248). `MAX_FRIDGE_DAYS` n'a plus
+> qu'une définition, `meal_generation.ts:594`. Les passages qui parlaient du
+> jumeau comme d'un fait acquis ont été corrigés ; **R6 a changé de sens** et
+> n'est plus une contrainte de synchronisation mais une contrainte de test.
 
 ---
 
@@ -15,8 +25,9 @@
 
 Le produit a **une** stratégie de courses, et elle est bonne : les vagues.
 Ce qui est périssable et cuisiné tard attend sa vague ; on fait deux courses, et
-rien ne pourrit. `grocery_waves.ts` l'implémente, son jumeau côté écran aussi,
-les deux portent les mêmes tests.
+rien ne pourrit. `_shared/keel/grocery_waves.ts` l'implémente — **une seule
+fois**, depuis le 2026-08-10 : l'écran importe ce module au lieu d'en recopier
+l'algorithme.
 
 Elle suppose une chose qui n'est pas vraie de tout le monde : **qu'une seconde
 course en milieu de semaine est possible.** Pour qui habite loin, travaille en
@@ -59,10 +70,15 @@ arrêteront de suivre le plan à partir de mercredi.
 
 ### Hors périmètre — engageant
 - ❌ **On ne supprime pas les vagues.** Décision du 2026-08-07, contre
-  l'alternative « une course partout ». `grocery_waves.ts` et son jumeau sont
-  construits, testés et corrects ; les jeter pour une stratégie qui n'a pas
-  encore tourné en vrai contredirait la règle du dépôt : on ne mute pas ce qui
-  marche.
+  l'alternative « une course partout ». `grocery_waves.ts` est construit, testé
+  et correct ; le jeter pour une stratégie qui n'a pas encore tourné en vrai
+  contredirait la règle du dépôt : on ne mute pas ce qui marche.
+- ❌ **On ne réécrit pas la règle côté écran.** `single_run` s'implémente dans
+  `_shared/keel/grocery_waves.ts`, jamais dans `api/groceryWaves.ts` — ce
+  fichier est un réexport depuis le 2026-08-10, et y remettre une règle
+  reconstruirait exactement le jumeau qu'on vient de supprimer. Son en-tête le
+  dit en toutes lettres : *« si tu ajoutes une règle ici, tu as recréé le
+  jumeau »*.
 - ❌ **La stratégie n'est pas déduite du contexte.** Ni du congélateur, ni de la
   distance des courses, ni de la durée du plan. Une déduction ici est invisible
   et invérifiable, et l'élève n'aurait rien à lire pour comprendre pourquoi sa
@@ -124,7 +140,7 @@ rend le basculement sans régénération possible.
 | R3 | Basculer vers `single_run` sur un plan **déjà composé** change la liste, **pas** les plats | Honnête : le produit ne peut pas rendre congelable un plat composé pour être mangé frais. L'écran doit le dire, et proposer la régénération comme un choix. |
 | R4 | En `single_run`, une préparation dont l'écart de cuisson dépasse `MAX_FRIDGE_DAYS` **doit** être congelable | Sans ça, `single_run` est un mode qui promet une course et en exige deux. |
 | R5 | `freezer` dans `equipment_out` ⇒ `single_run` est **indisponible**, et l'écran dit pourquoi | Proposer un mode infaisable est pire que ne pas le proposer. |
-| R6 | Les deux stratégies portent **les mêmes tests**, des deux côtés du jumeau | Règle existante de `grocery_waves.ts` / `groceryWaves.ts`. Une stratégie testée d'un seul côté est une divergence programmée — le dépôt vient d'en payer une sur `parseEatingRhythm`, dont le jumeau côté écran n'avait aucun test. |
+| R6 | La règle des deux stratégies s'écrit **une seule fois**, dans `_shared/keel/grocery_waves.ts`, et les deux portent les mêmes tests | ⚠️ **Cette règle a changé de sens le 2026-08-10.** Elle exigeait avant « les mêmes tests des deux côtés du jumeau » — une discipline qui ne survit qu'à la vigilance. Le lot 8 a supprimé le jumeau et l'a prouvé par mutation : `MAX_FRIDGE_DAYS` 3→4 rend 4 tests deno **et** 3 vitest rouges, là où l'ancien jumeau sous la même mutation laissait 16/16 vitest verts — l'écran serait resté à 3 jours pendant que le générateur planifie à 4. Une règle unique remplace une discipline par une impossibilité. |
 
 ## 7. Modes de défaillance
 
@@ -169,8 +185,12 @@ Et l'écran dit que c'est parce qu'il n'a pas de congélateur
 ## 9. Rabbit holes
 
 - **Deux stratégies, c'est deux fois la surface de test.** Chaque cas de courses
-  se rejoue deux fois, et le jumeau front double encore. C'est le coût assumé de
-  l'arbitrage — mais il faut le porter dès le premier jour, pas après.
+  se rejoue deux fois. C'est le coût assumé de l'arbitrage — mais il faut le
+  porter dès le premier jour, pas après. *(Il ne double plus une troisième fois
+  : depuis le 2026-08-10 il n'y a plus de jumeau front à tester séparément.)*
+- **La tentation de rebrancher un calcul sur l'écran.** `api/groceryWaves.ts`
+  est le fichier qu'on ouvre quand on veut « juste » adapter l'affichage à
+  `single_run`. C'est là que le jumeau est né la première fois.
 - **La stratégie contamine la composition.** C'est ce qui la distingue d'un
   simple réglage d'affichage, et c'est ce qu'on oublie en la câblant : on la
   branche sur `ShoppingListPanel`, tout marche, et on découvre trois semaines

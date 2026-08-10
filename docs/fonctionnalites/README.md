@@ -86,11 +86,14 @@ de plan, liste de courses et ses vagues, précision de repas, export PDF.
 `StudentWeekPlanPage` · `MealBuilder` · `ShoppingListPanel`
 
 ### `le-foyer/`
-Plusieurs personnes, une cuisson. Appartenance, invitation, conseil de famille,
-restrictions domestiques, portions qui bifurquent.
+Plusieurs personnes, une cuisson. Appartenance et identité d'une bouche,
+invitation et réclamation de profil, allergies et règles domestiques, portions
+qui bifurquent, prix.
 
 `household*.ts` · `generate-household-meal-v1` · `HouseholdPage` ·
-autorité : [PIVOT-FOYER.md](../keel/PIVOT-FOYER.md)
+`JoinHouseholdPage` · direction : [le-foyer/README.md](le-foyer/README.md) ·
+autorités : [PIVOT-FOYER.md](../keel/PIVOT-FOYER.md) (⚠️ §7, §7.5, §8.1–§8.3
+périmés) · [CHANTIER-FOYER-PROFILS.md](../keel/CHANTIER-FOYER-PROFILS.md)
 
 ### `conversation/`
 Le dialogue et sa mémoire. Le cerveau, les compétences, le routage, la mémoire
@@ -188,10 +191,21 @@ des crons, observabilité, files de reprise.
 | [FF-029](conversation/FF-029-les-pratiques-quotidiennes.md) | Les pratiques quotidiennes | `conversation` | 🟠 En cours |
 | [FF-030](composition-des-repas/FF-030-le-contexte-de-composition.md) | Le contexte de composition | `composition-des-repas` | 🟡 Spécifiée (volet coach) |
 | [FF-031](suivi-quotidien/FF-031-mesures-corporelles-datees.md) | Une mesure du corps est datée à l'instant, pas à la semaine | `suivi-quotidien` | 🟠 En cours |
-| FF-032 → FF-036 | *réservés* — [CHANTIER-FOYER-PROFILS.md](../keel/CHANTIER-FOYER-PROFILS.md) §identifiants. Ne pas réattribuer | `le-foyer` | — |
+| ~~FF-032~~ ~~FF-033~~ ~~FF-034~~ ~~FF-035~~ ~~FF-036~~ | *brûlés* (2026-08-10) — réservés par [CHANTIER-FOYER-PROFILS.md](../keel/CHANTIER-FOYER-PROFILS.md) puis **jamais attribués** : le chantier foyer a livré sous FF-044 → FF-050, avec un découpage différent (sept fiches, pas cinq). **Ne pas réattribuer** | — | — |
 | [FF-037](composition-des-repas/FF-037-l-ancre-proteique.md) | L'ancre protéique | `composition-des-repas` | 🟠 En cours |
 | [FF-038](composition-des-repas/FF-038-le-referentiel-de-composition.md) | Le référentiel de composition, et les quantités qu'on recalcule | `composition-des-repas` | 🟠 En cours |
 | [FF-039](composition-des-repas/FF-039-enveloppes-et-verdicts-en-observation.md) | Les enveloppes et les verdicts, en observation | `composition-des-repas` | 🟠 En cours |
+| [FF-040](composition-des-repas/FF-040-la-boucle-de-correction.md) | La boucle de correction — les nombres dedans, les mots dehors | `composition-des-repas` | 🟠 En cours |
+| [FF-041](composition-des-repas/FF-041-la-methode-du-coach-executable.md) | La méthode du coach, rendue exécutable | `composition-des-repas` | 🟠 En cours |
+| ~~FF-042~~ | *réservé par [TEMPLATE.md](TEMPLATE.md)* — ne pas attribuer | — | — |
+| [FF-043](le-foyer/FF-043-la-resolution-foyer.md) | La résolution foyer — une cuisson, des assiettes qui divergent | `le-foyer` | 🟡 Spécifiée |
+| [FF-044](le-foyer/FF-044-la-bouche-sans-compte.md) | La bouche sans compte | `le-foyer` | 🟢 Livrée |
+| [FF-045](le-foyer/FF-045-decrire-son-foyer.md) | Décrire son foyer | `le-foyer` | 🟢 Livrée |
+| [FF-046](le-foyer/FF-046-l-allergie-d-une-bouche-sans-compte.md) | L'allergie d'une bouche sans compte | `le-foyer` | 🟠 En cours |
+| [FF-047](le-foyer/FF-047-le-corps-dans-la-part-du-foyer.md) | Le corps dans la part du foyer | `le-foyer` | 🟢 Livrée |
+| [FF-048](le-foyer/FF-048-reclamer-son-profil.md) | Réclamer son profil | `le-foyer` | 🟢 Livrée |
+| [FF-049](le-foyer/FF-049-le-prix-du-foyer.md) | Le prix du foyer | `le-foyer` | 🟠 En cours |
+| [FF-050](le-foyer/FF-050-l-envie-de-la-semaine.md) | L'envie de la semaine | `le-foyer` | 🟠 En cours (livrée sur le disque, non commitée) |
 
 > **Un identifiant ne se réutilise jamais** — y compris quand deux sessions
 > écrivent en parallèle, et y compris quand la fiche disparaît. `FF-002` a été
@@ -199,6 +213,15 @@ des crons, observabilité, files de reprise.
 > `FF-007`) ; `FF-014` et `FF-015` ont été **brûlés** le même jour quand les
 > deux retraits ont quitté ce dossier. Avant d'ouvrir une fiche :
 > `grep -rho 'FF-[0-9]\{3\}' docs/ | sort -u`.
+>
+> ⚠️ **`FF-040` EST ATTRIBUÉ DEUX FOIS, au 2026-08-10.** Deux fichiers portent
+> l'identifiant dans `composition-des-repas/` :
+> `FF-040-les-regimes-alimentaires.md` (commité en `6259fcab`) et
+> `FF-040-la-boucle-de-correction.md` (non commité, c'est celui que l'index
+> ci-dessus référence). Constaté par le lot 9 du chantier foyer, **non
+> arbitré** : les deux appartiennent à une session qui écrivait encore. L'un des
+> deux doit être renuméroté — et l'identifiant libéré est **brûlé**, pas
+> réutilisé.
 
 > **Un retrait n'est pas une fonctionnalité.** Il n'a ni utilisateur, ni job
 > story durable, ni métrique de succès au-delà de « zéro ». Les chantiers de

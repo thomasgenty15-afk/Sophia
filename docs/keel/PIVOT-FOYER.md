@@ -4,6 +4,23 @@
 > pas ce qui est construit. Ce qui est construit est décrit par [MODEL.md](MODEL.md) et
 > [VALEUR-COACH.md](VALEUR-COACH.md), qui restent vrais tant que ce pivot n'est pas livré.
 
+> ### 🧭 Une partie de ce document a été dépassée par la livraison
+>
+> Le chantier du 2026-08-10 a construit le foyer. **Ce document n'est plus
+> l'autorité sur les sections suivantes :**
+>
+> | Section | État | Autorité en vigueur |
+> |---|---|---|
+> | §7, §7.5 | périmées (décisions du 2026-08-08) | [CHANTIER-FOYER-PROFILS.md](CHANTIER-FOYER-PROFILS.md) |
+> | §8.1 → §8.3 (la récolte par membre) | **périmées** — voir le bandeau du §8 | [FF-050](../fonctionnalites/le-foyer/FF-050-l-envie-de-la-semaine.md) |
+> | §8.4, §8.5 | **en vigueur**, inchangées | ce document |
+> | le modèle d'invitation | périmé — rejoindre **attache**, ça n'insère pas | [FF-048](../fonctionnalites/le-foyer/FF-048-reclamer-son-profil.md) |
+> | §11 (le modèle économique) | la définition existe, **rien ne facture** | [FF-049](../fonctionnalites/le-foyer/FF-049-le-prix-du-foyer.md) |
+>
+> **La direction du domaine, telle qu'elle est appliquée aujourd'hui, vit dans
+> [docs/fonctionnalites/le-foyer/README.md](../fonctionnalites/le-foyer/README.md)** —
+> avec ses règles transverses et ses six trous connus.
+
 **Les deux décisions que ce document porte**, pour qui n'en lirait rien d'autre :
 
 1. **L'unité planifiée est la session de cuisine, pas le plat** — N jours pour M personnes,
@@ -282,6 +299,20 @@ graphe, lu à l'échelle de milliers de foyers.
 ---
 
 ## 8. ⭐ LE CONSEIL DE FAMILLE
+
+> ⚠️ **§8.1 à §8.3 SONT PÉRIMÉS depuis le 2026-08-08 — décision, pas oubli.**
+> La récolte par membre (« chacun dit ce dont il a envie ») est morte, et avec
+> elle le décompte des silencieux : elle demandait à celui qui tient le foyer de
+> courir après tout le monde, soit exactement la charge mentale que le produit
+> promet de supprimer — et elle mettait Sophia en arbitre public entre un parent
+> et son enfant. Ce qui la remplace, **livré au lot 5** : **une ligne de texte**
+> que le compte maître écrit pour tout le monde, ancrée à la semaine.
+> Autorité en vigueur : [CHANTIER-FOYER-PROFILS.md § Lot 5](CHANTIER-FOYER-PROFILS.md).
+>
+> **§8.4 (les trois contraintes non négociables) et §8.5 (les deux autorités)
+> RESTENT EN VIGUEUR** : le plan sort quand même quand personne n'a rien écrit,
+> le produit ne répond jamais « impossible », et une règle de maison n'est
+> jamais présentée comme une raison nutritionnelle.
 
 *La meilleure idée du pivot. Ce n'est pas une fonctionnalité, c'est le rituel autour duquel
 tout le produit s'organise.*
