@@ -44,6 +44,7 @@ import {
   parseEatingRhythm,
   parseGeneratedMeal,
 } from "../_shared/keel/meal_generation.ts";
+import { proteinAnchorRetryInstruction } from "../_shared/keel/protein_anchor.ts";
 import {
   MEMBER_AGE_STATES,
   type MemberAgeState,
@@ -61,6 +62,7 @@ import {
   type PortionMember,
   reconcilePortions,
 } from "../_shared/keel/household_portions.ts";
+import { loadHouseholdMemberBodies } from "../_shared/keel/household_bodies.ts";
 import type { EnvySubmission } from "../_shared/keel/household_envies.ts";
 
 /**
@@ -295,6 +297,34 @@ Deno.serve(async (req) => {
     // et la bouche dont l'âge est inconnu. Le second est neuf, et c'est celui
     // qui mordait: une bouche saisie sans date aurait reçu la direction de son
     // objectif comme si on savait qu'elle est adulte.
+    //
+    // ── LE CORPS, PAR BOUCHE QUI EN A UN (lot 3B) ───────────────────────
+    // Avant ce lot, réclamer son profil ne changeait RIEN à la portion servie
+    // par le foyer: `body: null` partait au prompt (et y reste, plus bas — un
+    // repas de foyer n'a pas UN corps), et la ligne de brief d'un membre ne
+    // portait qu'un jeton d'objectif. Le corps entre maintenant PAR MEMBRE,
+    // dans le brief de portions, où il a un sens: c'est la taille d'une
+    // assiette qu'il dimensionne, pas la composition du plat.
+    //
+    // Le jour local passé est celui du COMPTE MAÎTRE, comme partout ici.
+    const bodies = await loadHouseholdMemberBodies(admin, {
+      members: roster.map((r) => ({ memberId: r.member_id, userId: r.user_id })),
+      todayLocalDate: todayDate,
+    });
+    issues.push(...bodies.issues);
+    // LE COÛT, OBSERVABLE EN PRODUCTION ET PAS SEULEMENT DANS UN RAPPORT. Ce
+    // lot fait passer la lecture de corps de 1 à N par génération; un nombre
+    // qu'on ne journalise pas est un nombre que personne ne verra doubler.
+    console.log(JSON.stringify({
+      tag: "keel.household_meal.member_bodies",
+      user_id: userId,
+      household_id: householdId,
+      members: roster.length,
+      accounts: accountIds.length,
+      with_body: bodies.byMember.size,
+      reads: bodies.reads,
+    }));
+
     const members: LoadedMember[] = roster.map((r) => {
       const rawGoal = String(r.goal ?? "").trim();
       const goal = (MEMBER_GOALS as readonly string[]).includes(rawGoal)
@@ -314,6 +344,10 @@ Deno.serve(async (req) => {
         displayName: String(r.first_name ?? "").trim() || "Member",
         goal,
         ageState,
+        // APPARIÉ SUR `member_id`, jamais sur `user_id`. C'est le même
+        // re-clavetage que les portions, et pour la même raison: une bouche qui
+        // réclame son profil ne change pas d'identité ce jour-là.
+        body: bodies.byMember.get(r.member_id) ?? null,
         isOwner: r.role === "owner",
       };
     });
@@ -528,16 +562,25 @@ Deno.serve(async (req) => {
       // C'est le paramètre REQUIS qui a rendu cet appelant visible: le
       // compilateur l'a listé. Optionnel, il aurait gardé son trou.
       safetyConstraints: constraints,
-      // ── AUCUN CORPS, ET C'EST UNE DÉCISION (FF-030 R7) ─────────────────
+      // ── TOUJOURS AUCUN CORPS *ICI*, ET C'EST TOUJOURS UNE DÉCISION ─────
+      // (FF-030 R7, inchangé par le lot 3B.)
+      //
       // Un repas de foyer nourrit plusieurs personnes. Il n'y a pas UN corps à
-      // passer, et prendre celui du titulaire dimensionnerait l'assiette de
-      // tout le monde sur lui — un adulte de 1,90 m ferait servir des portions
-      // d'adulte de 1,90 m à ses enfants.
+      // passer à la consigne de COMPOSITION, et prendre celui du titulaire
+      // dimensionnerait l'assiette de tout le monde sur lui — un adulte de
+      // 1,90 m ferait servir des portions d'adulte de 1,90 m à ses enfants.
       //
       // `null` plutôt qu'un corps moyen: une moyenne serait une personne qui
       // n'existe pas, présentée au modèle comme une mesure. Le nombre de parts
       // (`servings`, ci-dessous) reste la seule chose qu'on sait vraiment de
       // cette tablée.
+      //
+      // ⚠️ CE `null` NE VEUT PLUS DIRE « le foyer ignore les corps ». Depuis le
+      // lot 3B ils entrent PAR MEMBRE, dans le brief de portions
+      // (`buildPortionBrief`, greffé par `household.userSuffix` ci-dessous):
+      // c'est la seule place où un corps s'adresse à UNE assiette et non au
+      // plat commun. Le remplacer par un corps ici recréerait exactement le
+      // défaut que ce commentaire décrit.
       body: null,
       // L'axe est une propriété de l'objectif d'UNE personne, pour la même
       // raison. Le foyer n'en a pas.
@@ -594,26 +637,79 @@ Deno.serve(async (req) => {
       }, { status: 502 });
     }
 
+    // Hissés en `const` pour la même raison que sur la lane individuelle: la
+    // relance FF-037 doit repasser par EXACTEMENT les mêmes verrous, et deux
+    // objets d'arguments écrits à la main divergent au premier paramètre
+    // ajouté.
+    const parseArgs = {
+      doctrine: doctrine.doctrine,
+      safetyConstraints: constraints,
+      mode: "to_shop",
+      scope,
+      pantry: [],
+      beliefKeys,
+      eatingRhythm,
+      daysToFill,
+      awayDays,
+      cookingTimeMin: capacity.cookingTimeMin,
+    } as const;
+
     let meal;
     try {
-      meal = parseGeneratedMeal(result, {
-        doctrine: doctrine.doctrine,
-        safetyConstraints: constraints,
-        mode: "to_shop",
-        scope,
-        pantry: [],
-        beliefKeys,
-        eatingRhythm,
-        daysToFill,
-        awayDays,
-        cookingTimeMin: capacity.cookingTimeMin,
-      });
+      meal = parseGeneratedMeal(result, parseArgs);
     } catch (error) {
       return jsonResponse(req, {
         error: "meal_unparseable",
         detail: error instanceof Error ? error.message : String(error),
         request_id: requestId,
       }, { status: 502 });
+    }
+
+    // ── FF-037 · LA MÊME RELANCE, ET C'EST DÉLIBÉRÉ ───────────────────────
+    // L'ancre protéique est une propriété de l'ASSIETTE, pas de la personne:
+    // rien en elle ne dépend d'un corps, d'un objectif ni d'un plancher — ce
+    // qui est précisément la raison pour laquelle `body` et `focusAxis` sont
+    // `null` sur cette lane et que l'ancre, elle, y survit. Ne pas la relancer
+    // ici ferait des foyers la seule population à qui le produit livre des
+    // dîners sans protéine, sans qu'aucune décision ne l'ait dit.
+    //
+    // Les règles de maison et les envies (`household.userSuffix`) sont
+    // rejouées telles quelles: une relance qui les perdrait rendrait un dîner
+    // qui contredit ce que le foyer a écrit.
+    let proteinAnchorRetry = false;
+    const anchorMissingBefore = meal.protein_anchor_missing.length;
+    if (anchorMissingBefore > 0) {
+      const retryInstruction = proteinAnchorRetryInstruction(meal.protein_anchor_missing);
+      try {
+        const retryResult = await generateWithGemini(
+          systemPrompt + household.systemSuffix,
+          `${userMessage}${hungerSuffix}${household.userSuffix}\n\n${retryInstruction}`,
+          0.6,
+          true,
+          [],
+          "auto",
+          { source: `${FN_NAME}.protein_anchor_retry`, requestId, userId },
+        );
+        if (typeof retryResult === "string") {
+          const retried = parseGeneratedMeal(retryResult, parseArgs);
+          if (
+            retried.dishes.length >= meal.dishes.length &&
+            retried.protein_anchor_missing.length < anchorMissingBefore
+          ) {
+            meal = retried;
+            proteinAnchorRetry = true;
+          }
+        }
+      } catch (error) {
+        console.warn(`[${FN_NAME}] protein anchor retry failed`, error);
+      }
+      console.log(JSON.stringify({
+        tag: "keel.household_meal.protein_anchor",
+        user_id: userId,
+        missing_before: anchorMissingBefore,
+        missing_after: meal.protein_anchor_missing.length,
+        retried: proteinAnchorRetry,
+      }));
     }
 
     if (meal.dishes.length === 0) {
@@ -697,6 +793,11 @@ Deno.serve(async (req) => {
             goal: String(goalRow.goal ?? "health"),
             prompt_version: `${MEAL_PROMPT_VERSION}+household`,
             intent,
+            // FF-037 — même trace que sur la lane individuelle. La mesure du
+            // §10 se lit sur les deux lanes ou sur aucune: un chiffre calculé
+            // sur la moitié de la population est un chiffre faux.
+            protein_anchor_retry: proteinAnchorRetry,
+            protein_anchor_missing: meal.protein_anchor_missing,
             household: {
               id: householdId,
               member_count: members.length,

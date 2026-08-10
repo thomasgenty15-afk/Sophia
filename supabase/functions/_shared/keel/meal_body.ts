@@ -36,6 +36,7 @@
 
 import type { AgeBand } from "./student_age.ts";
 import type { DatedMeasure } from "./student_body.ts";
+import type { MemberAgeState } from "./household.ts";
 
 /** Les trois valeurs que la base accepte (`profiles_gender_check`). */
 export const MEAL_BODY_GENDERS = ["male", "female", "other"] as const;
@@ -178,4 +179,93 @@ export function mealBodyBlocks(body: MealBodyContext | null): MealBodyBlocks {
   }
 
   return { whoTheyAre: who, whereTheyAreNow: now };
+}
+
+/**
+ * LE MÊME CORPS, POUR UNE BOUCHE PARMI D'AUTRES (lot 3B du chantier foyer).
+ *
+ * Autorité produit: `docs/keel/CHANTIER-FOYER-PROFILS.md` §« Lot 3B ».
+ *
+ * ── POURQUOI ICI, COLLÉ À `mealBodyBlocks`, ET PAS DANS LE MODULE FOYER ────
+ * Ce sont DEUX RENDUS DU MÊME JEU DE FAITS. Les séparer dans deux fichiers
+ * ferait diverger la liste des champs qu'une consigne de composition a le droit
+ * de lire — et la divergence serait muette: elle ne casserait rien, elle
+ * mettrait juste une donnée de plus (ou de moins) sous les yeux du modèle. Côte
+ * à côte, un champ ajouté à `MealBodyContext` se voit non traité ici.
+ *
+ * ── ⚠️ PLUS STRICT QUE `mealBodyBlocks`, DÉLIBÉRÉMENT ─────────────────────
+ * Sous `restrictionFlag`, `mealBodyBlocks` laisse passer la BANDE D'ÂGE et le
+ * SEXE (« on ne restreint pas pour changer son âge »). Ici, le plancher levé —
+ * ou ILLISIBLE, les deux valent `true` — ne laisse RIEN passer.
+ *
+ * Ce n'est pas un oubli, c'est l'arbitrage écrit du lot 3B: « un membre dont le
+ * plancher est illisible ne reçoit AUCUN fait corporel ». Deux raisons propres
+ * au foyer, qui n'existent pas sur le chemin individuel:
+ *
+ *   1. Ces faits arrivent NOMMÉMENT, à côté du prénom d'une personne, dans un
+ *      bloc dont la sortie attendue est lue à voix haute à table. « Léa: femme,
+ *      45 à 59 » n'a pas le même statut que la même phrase dans un prompt qui
+ *      ne parle que d'une seule personne, celle qui le lira.
+ *   2. Le rendement est nul: seuls, une bande d'âge et un sexe ne dimensionnent
+ *      pas une assiette — c'est la TAILLE qui le fait, et elle est justement ce
+ *      que le plancher retire. On paie donc le risque sans acheter la précision.
+ *
+ * Le coût assumé: un membre sous plancher est indiscernable d'un membre dont on
+ * ne sait rien. C'est voulu — voir `buildPortionBrief`, où c'est précisément ce
+ * qui empêche le plancher d'être observable dans le brief.
+ *
+ * ── ⚠️ `ageState` EST REQUIS, ET C'EST LA SECONDE GARDE ───────────────────
+ * Un MINEUR, et une bouche d'âge INCONNU, ne reçoivent aucun fait corporel.
+ *
+ * Ce n'est pas une redite de `goalApplies`, c'est la porte de derrière qu'il
+ * laissait ouverte. `goalApplies` refuse la DIRECTION dérivée d'un objectif;
+ * une taille et une pesée posées à côté du prénom d'un enfant rendent cette
+ * direction DÉRIVABLE — un modèle qui lit « 128 cm, 41 kg » compose l'assiette
+ * qu'il aurait composée pour `fat_loss` sans qu'on la lui ait demandée. Le
+ * chantier le dit en une ligne: on ne contourne pas `goalApplies` en passant
+ * par le corps.
+ *
+ * Et le registre du produit le veut aussi: « expliquer à un enfant que sa part
+ * est plus petite pour son poids est à une phrase d'un dégât réel » (§8.4).
+ * L'âge INCONNU suit le mineur, pour la raison habituelle — « je ne sais pas »
+ * et « majeur » doivent produire des résultats opposés, et un enfant dont
+ * personne n'a saisi la date ne doit pas être traité comme un adulte.
+ *
+ * Le paramètre est POSITIONNEL et REQUIS, pas optionnel: ce dépôt a payé
+ * « paramètre de garde optionnel = garde désarmée » (`safetyBand`, muet
+ * pendant des semaines). Le compilateur liste les appelants.
+ *
+ * Coût assumé: un adolescent qui a réclamé son profil ne gagne aucune précision
+ * de taille de part. C'est le produit d'aujourd'hui, et c'est le repli que tout
+ * ce lot prend partout ailleurs.
+ */
+export function householdBodyFacts(
+  body: MealBodyContext | null,
+  ageState: MemberAgeState,
+): string[] {
+  if (!body) return [];
+  if (ageState !== "adult") return [];
+  if (body.restrictionFlag) return [];
+
+  const facts: string[] = [];
+  if (body.heightCm !== null) facts.push(`height ${body.heightCm} cm`);
+  if (body.ageBand !== null) {
+    facts.push(`age band ${MEAL_AGE_BAND_PROSE[body.ageBand]}`);
+  }
+  if (body.gender !== null) facts.push(`gender ${body.gender}`);
+  // LA DATE VOYAGE AVEC LA MESURE, ici aussi. Même règle que `measureLine`:
+  // « 78 kg » ne dit rien, « 78 kg, semaine du 30 juin » dit quelque chose — et
+  // la retirer pour raccourcir la ligne ferait servir en août une pesée de
+  // février comme si c'était celle d'aujourd'hui.
+  if (body.latestWeight) {
+    facts.push(
+      `weight ${body.latestWeight.value} kg, measured week of ${body.latestWeight.weekStart}`,
+    );
+  }
+  if (body.latestWaist) {
+    facts.push(
+      `waist ${body.latestWaist.value} cm, measured week of ${body.latestWaist.weekStart}`,
+    );
+  }
+  return facts;
 }

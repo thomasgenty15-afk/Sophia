@@ -7,25 +7,42 @@ import {
   reconcilePortions,
   sanitizePortionNote,
 } from "./household_portions.ts";
+import type { MealBodyContext } from "./meal_body.ts";
 
 const DAD: PortionMember = {
   memberId: "m-dad",
   displayName: "Marc",
   goal: "fat_loss",
   ageState: "adult",
+  body: null,
 };
 const SON: PortionMember = {
   memberId: "m-son",
   displayName: "Tom",
   goal: "muscle_gain",
   ageState: "adult",
+  body: null,
 };
 const KID: PortionMember = {
   memberId: "m-kid",
   displayName: "Léa",
   goal: null,
   ageState: "minor",
+  body: null,
 };
+
+/** Un corps entièrement connu, plancher TCA baissé par une lecture réussie. */
+const KNOWN_BODY: MealBodyContext = {
+  heightCm: 186,
+  ageBand: "30_44",
+  gender: "male",
+  latestWeight: { weekStart: "2026-08-03", value: 84 },
+  latestWaist: { weekStart: "2026-08-03", value: 96 },
+  restrictionFlag: false,
+};
+
+const lineOf = (brief: string, name: string) =>
+  brief.split("\n").find((l) => l.startsWith(`- ${name}:`))!;
 
 // ───────────────────────────────────────────────────────────────────────────
 // LE BRIEF — ce qui part dans le prompt
@@ -80,10 +97,172 @@ Deno.test("un foyer d'une personne ne produit pas de brief", () => {
 Deno.test("un majeur sans objectif déclaré n'est pas traité comme un enfant", () => {
   const adultNoGoal: PortionMember = {
     memberId: "m-x", displayName: "Alex", goal: null, ageState: "adult",
+    body: null,
   };
   const line = buildPortionBrief([adultNoGoal]).split("\n")
     .find((l) => l.startsWith("- Alex:"))!;
   assertEquals(line, "- Alex: balanced share of every component");
+});
+
+// ───────────────────────────────────────────────────────────────────────────
+// LOT 3B — LE CORPS ENTRE DANS LE BRIEF, ET RIEN N'EN SORT
+//
+// Le foyer MIXTE est le décor de toute cette section, parce que c'est le cas
+// NOMINAL du produit et pas un cas limite: deux bouches avec un compte et un
+// corps, trois sans. Un décor homogène (tout le monde avec corps) laisserait
+// passer exactement les défauts que ce lot doit fermer.
+// ───────────────────────────────────────────────────────────────────────────
+
+/** Le foyer mixte: Marc a un corps, Tom en a un sous plancher, Léa n'a rien. */
+const MIXED: PortionMember[] = [
+  { ...DAD, body: KNOWN_BODY },
+  { ...SON, body: { ...KNOWN_BODY, heightCm: 174, restrictionFlag: true } },
+  KID,
+];
+
+Deno.test("PREUVE 1 — la consigne d'un membre AVEC corps diffère de celle SANS corps", () => {
+  // C'EST LA RAISON D'ÊTRE DU LOT. Avant lui, réclamer son profil ne changeait
+  // RIEN à la portion servie par le foyer: la ligne de Marc était la même avec
+  // et sans corps, et le cran 2 du chantier n'existait pas.
+  const withBody = lineOf(buildPortionBrief([{ ...DAD, body: KNOWN_BODY }]), "Marc");
+  const without = lineOf(buildPortionBrief([DAD]), "Marc");
+
+  assert(withBody !== without, `les deux lignes sont identiques: ${withBody}`);
+  // Et la DIFFÉRENCE est bien le corps, pas un espace de plus.
+  assert(withBody.includes("height 186 cm"), withBody);
+  assert(withBody.includes("age band 30 to 44"), withBody);
+  assert(withBody.includes("gender male"), withBody);
+  assert(withBody.includes("weight 84 kg, measured week of 2026-08-03"), withBody);
+  assert(withBody.includes("waist 96 cm, measured week of 2026-08-03"), withBody);
+  // LA DIRECTION D'OBJECTIF SURVIT. Le corps s'AJOUTE, il ne remplace rien:
+  // un lot qui écraserait la bifurcation des portions aurait cassé la douve
+  // du produit pour ajouter une mesure.
+  assert(withBody.includes("smaller starch share"), withBody);
+});
+
+Deno.test("PREUVE 3 — plancher TCA levé ou illisible: AUCUN fait corporel", () => {
+  // Le plancher part à `true` et n'est abaissé QUE par une lecture réussie
+  // (`household_bodies.ts`). Une lecture en panne arrive donc ici sous cette
+  // forme exacte, et elle ne doit rien laisser passer — ni la taille, ni les
+  // mesures, ni la bande d'âge, ni le sexe.
+  const closed = lineOf(
+    buildPortionBrief([{ ...DAD, body: { ...KNOWN_BODY, restrictionFlag: true } }]),
+    "Marc",
+  );
+  for (const leak of ["186", "84", "96", "30 to 44", "male", "height", "weight"]) {
+    assert(!closed.includes(leak), `« ${leak} » a fui sous plancher: ${closed}`);
+  }
+  // ÉGALITÉ DE CHAÎNES, pas inspection: un test qui vérifie « il n'y a pas de
+  // taille » laisserait passer un crochet vide, un « not stated », ou une
+  // marque quelconque — et le plancher deviendrait OBSERVABLE dans le brief,
+  // c'est-à-dire qu'il désignerait la personne qu'il protège.
+  assertEquals(closed, lineOf(buildPortionBrief([DAD]), "Marc"));
+});
+
+Deno.test("PREUVE 4 — une bouche sans compte ne casse rien et reste servie", () => {
+  // `body: null` est le cas d'une bouche sans compte (ses mesures resteraient
+  // clées sur `auth.users`, qu'elle n'a pas). Elle doit garder SA LIGNE et SA
+  // direction — pas disparaître du brief, pas se retrouver muette.
+  const brief = buildPortionBrief(MIXED);
+  assertEquals(lineOf(brief, "Léa"), "- Léa: child-size share of the same dish");
+  // Et les trois bouches sont bien là, dans l'ordre du foyer.
+  assertEquals(
+    brief.split("\n").filter((l) => l.startsWith("- ")).length,
+    3,
+  );
+});
+
+Deno.test("le foyer mixte reste HOMOGÈNE: la consigne d'égalité voyage avec les faits", () => {
+  // LE PIÈGE NOMMÉ DU LOT. Deux membres avec corps, trois sans: un modèle à qui
+  // on donne plus de matière sur une personne écrit spontanément une consigne
+  // plus longue et plus personnelle pour elle, et l'asymétrie se lit à table.
+  const brief = buildPortionBrief(MIXED);
+  assert(brief.includes("every line must read the same way"), brief);
+  assert(brief.includes("only an accident of"), brief);
+  // Et le garde-fou anti-dérivation voyage avec, pour la même raison que sur le
+  // chemin individuel: taille + poids + âge + sexe est la signature d'entrée
+  // d'une formule de métabolisme de base.
+  assert(brief.includes("no calorie figure"), brief);
+  assert(brief.includes("no BMI"), brief);
+});
+
+Deno.test("sans AUCUN corps, le brief est mot pour mot celui d'avant le lot", () => {
+  // LA CONDITION DE DÉSARMEMENT. C'est le cas de tous les foyers dont personne
+  // n'a réclamé son profil, et c'est ce qui rend le lot additif. Par égalité de
+  // chaînes: un garde-fou qui parlerait du corps dans un prompt qui n'en
+  // contient aucun serait précisément l'invitation qu'on veut éviter.
+  const brief = buildPortionBrief([DAD, SON, KID]);
+  assert(!brief.includes("bracketed facts"), brief);
+  assert(!brief.includes("["), brief);
+  assert(!brief.includes("no BMI"), brief);
+});
+
+Deno.test("un corps VIDE rend la même ligne qu'un corps absent", () => {
+  // Un compte réclamé qui n'a rien saisi ne doit pas se distinguer d'une bouche
+  // sans compte: sinon la ligne annonce « celui-là a un compte », ce que
+  // personne n'a demandé de publier.
+  const empty: MealBodyContext = {
+    heightCm: null,
+    ageBand: null,
+    gender: null,
+    latestWeight: null,
+    latestWaist: null,
+    restrictionFlag: false,
+  };
+  assertEquals(
+    buildPortionBrief([{ ...DAD, body: empty }]),
+    buildPortionBrief([DAD]),
+  );
+});
+
+Deno.test("UN MINEUR NE REÇOIT AUCUN FAIT CORPOREL, même avec un compte", () => {
+  // LA PORTE DE DERRIÈRE DE `goalApplies`. Elle refuse la DIRECTION dérivée
+  // d'un objectif; une taille et une pesée posées à côté du prénom d'un enfant
+  // rendent cette direction DÉRIVABLE — un modèle qui lit « 41 kg » compose
+  // l'assiette qu'il aurait composée pour `fat_loss`. On ne contourne pas
+  // `goalApplies` en passant par le corps.
+  const teen = buildPortionBrief([{
+    ...KID,
+    body: { ...KNOWN_BODY, heightCm: 152, latestWeight: { weekStart: "2026-08-03", value: 41 } },
+  }]);
+  assertEquals(lineOf(teen, "Léa"), "- Léa: child-size share of the same dish");
+  // Le brief entier, pas seulement la ligne: aucun garde-fou de corps ne doit
+  // apparaître non plus, sinon il annonce qu'il y avait quelque chose à cacher.
+  assertEquals(teen, buildPortionBrief([KID]));
+});
+
+Deno.test("une bouche d'ÂGE INCONNU suit le mineur, pas le majeur", () => {
+  // Le cas neuf depuis que le compte maître saisit des bouches à la main:
+  // « je ne sais pas » et « majeur » doivent produire des résultats OPPOSÉS. Un
+  // enfant dont personne n'a saisi la date ne doit pas recevoir les faits
+  // corporels d'un adulte.
+  const unknown: PortionMember = {
+    memberId: "m-u",
+    displayName: "Jo",
+    goal: "fat_loss",
+    ageState: "unknown",
+    body: KNOWN_BODY,
+  };
+  assertEquals(
+    buildPortionBrief([unknown]),
+    buildPortionBrief([{ ...unknown, body: null }]),
+  );
+});
+
+Deno.test("LA MUTATION — retirer le corps du rendu doit faire ROUGIR", () => {
+  // « Test paramétré par sa propre constante »: un test qui reste vert quand on
+  // change la règle ne mesure rien. On ne peut pas muter le module depuis ici,
+  // alors on mute l'ENTRÉE de la seule façon qui compte et on exige que la
+  // sortie bouge — dans les DEUX sens.
+  const base = buildPortionBrief(MIXED);
+  const taller = buildPortionBrief([
+    { ...DAD, body: { ...KNOWN_BODY, heightCm: 158 } },
+    MIXED[1],
+    MIXED[2],
+  ]);
+  assert(base !== taller, "changer la taille ne change pas le brief");
+  assert(taller.includes("height 158 cm"), taller);
+  assert(!taller.includes("height 186 cm"), taller);
 });
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -135,6 +314,83 @@ Deno.test("LA NÉGATION NE RACHÈTE RIEN ICI", () => {
   // lequel toute la ceinture est contournable d'un « sans ».
   assertEquals(sanitizePortionNote("une part sans perte de poids").note, null);
   assertEquals(sanitizePortionNote("a share with no weight loss").note, null);
+});
+
+Deno.test("PREUVE 2 — la ceinture est verte sur les DEUX sorties, FR et EN", () => {
+  // LA RÈGLE QUI TIENT LE LOT: l'entrée gagne des faits, la sortie n'en gagne
+  // aucun. Le membre AVEC corps et le membre SANS corps passent par la MÊME
+  // ceinture, et elle mord pareil sur les deux — c'est le sens de « verte sur
+  // les deux sorties ».
+  const withBody = { ...DAD, body: KNOWN_BODY };
+  const without = SON;
+
+  // (a) LE CAS NOMINAL PASSE, des deux côtés et dans les deux langues. Une
+  //     ceinture qui mord sur tout se fait désarmer dans la semaine.
+  const clean = reconcilePortions([withBody, without], [
+    { member_id: "m-dad", portion_note: "1,5 part de poulet, riz en plus" },
+    { member_id: "m-son", portion_note: "a palm-sized share, extra greens" },
+  ]);
+  assertEquals(clean.portions[0].portionNote, "1,5 part de poulet, riz en plus");
+  assertEquals(clean.portions[1].portionNote, "a palm-sized share, extra greens");
+  assertEquals(clean.issues, []);
+
+  // (b) LA FUITE MORD, des deux côtés et dans les deux langues. Le membre AVEC
+  //     corps n'a AUCUN passe-droit: c'est justement lui dont le modèle a de
+  //     quoi parler.
+  const leaked = reconcilePortions([withBody, without], [
+    { member_id: "m-dad", portion_note: "une part calée sur ton poids" },
+    { member_id: "m-son", portion_note: "a share sized for your weight" },
+  ]);
+  assertEquals(leaked.portions[0].portionNote, null);
+  assertEquals(leaked.portions[1].portionNote, null);
+  assert(leaked.issues.some((i) => i.startsWith("portion_note_rejected:m-dad:")));
+  assert(leaked.issues.some((i) => i.startsWith("portion_note_rejected:m-son:")));
+});
+
+Deno.test("LOT 3B — les fuites que le corps rend POSSIBLES sont mordues, FR et EN", () => {
+  // VÉRIFIÉ, PAS SUPPOSÉ: avant ce lot, les six phrases ci-dessous PASSAIENT
+  // toutes. La liste était armée sur le POIDS et l'OBJECTIF, c'est-à-dire sur
+  // ce que le modèle avait de quoi dire — et le brief lui donne maintenant la
+  // taille, la bande d'âge et le tour de taille.
+  for (const note of [
+    "1,5 part vu ta taille",
+    "a bigger share for your height",
+    "portion calculée selon tes mesures",
+    "based on your measurements, one and a half servings",
+    "à ton âge, une part plus légère",
+    "at your age, a lighter share",
+    "part calée sur ton tour de taille",
+    "sized on your waist",
+    // Le brief dit maintenant « no BMI » en toutes lettres, et ce qui entre
+    // dans un prompt finit par en sortir.
+    "un IMC correct",
+    "keeps your BMI in range",
+  ]) {
+    assertEquals(sanitizePortionNote(note).note, null, `« ${note} » doit être refusée`);
+  }
+});
+
+Deno.test("LA FRONTIÈRE — la ceinture ne mord PAS une vraie consigne de service", () => {
+  // L'AUTRE MOITIÉ DE L'ARBITRAGE, et elle compte autant. Une ceinture élargie
+  // qui mettrait en part standard quelqu'un dont la consigne dit « coupe en
+  // morceaux de 3 cm » ferait un dégât silencieux et quotidien.
+  //
+  // Chacune de ces phrases contient un mot VOISIN d'un interdit: `taille` sans
+  // possessif, `mesures` de cuisine, une unité nue, un fromage `affiné`.
+  for (const note of [
+    "une part de la taille d'une paume",
+    "a palm-sized share of the chicken",
+    "prends deux mesures de riz",
+    "measure the rice with a cup",
+    "coupe les carottes en morceaux de 3 cm",
+    "sers 150 g de riz et une grosse louche de ragoût",
+    "un morceau de fromage affiné",
+    "aged cheddar on the side",
+    "mets-en dans son assiette sans sauce",
+    "put it in the bowl without sauce",
+  ]) {
+    assertEquals(sanitizePortionNote(note).note, note, `« ${note} » doit passer`);
+  }
 });
 
 Deno.test("une consigne vide ou absente vaut part standard, sans violation", () => {

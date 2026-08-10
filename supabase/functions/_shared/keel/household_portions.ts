@@ -47,6 +47,7 @@
 
 import { goalApplies, type MemberAgeState } from "./household.ts";
 import { findForbiddenMatches, type ForbiddenTerm } from "./forbidden_matcher.ts";
+import { householdBodyFacts, type MealBodyContext } from "./meal_body.ts";
 
 /** Reflet du CHECK `student_goals_goal_check`. */
 export const MEMBER_GOALS = [
@@ -74,6 +75,20 @@ export interface PortionMember {
   goal: MemberGoal | null;
   /** Trois états. Sert le libellé d'âge et la garde, jamais un calcul. */
   ageState: MemberAgeState;
+  /**
+   * CE QU'ON SAIT DE SON CORPS — lot 3B.
+   *
+   * `null` pour une bouche sans compte (les mesures et le profil restent clés
+   * sur `auth.users`), pour un compte dont la lecture a échoué, et pour un
+   * compte qui n'a rien saisi. Les trois se ressemblent volontairement: voir
+   * `buildPortionBrief`.
+   *
+   * ⚠️ REQUIS, jamais optionnel. « Paramètre de garde optionnel = garde
+   * désarmée » est une leçon déjà payée par ce dépôt: un champ facultatif
+   * n'aurait fait remonter aucun appelant au compilateur, et le lot serait
+   * construit sans être branché — le mode d'échec n°1 d'ici.
+   */
+  body: MealBodyContext | null;
 }
 
 export interface PreparationShare {
@@ -126,14 +141,68 @@ const SERVING_DIRECTION: Record<MemberGoal, string> = {
 const CHILD_DIRECTION = "child-size share of the same dish";
 
 /**
+ * LE GARDE-FOU QUI VOYAGE AVEC LES FAITS CORPORELS — lot 3B.
+ *
+ * Il n'est ajouté au brief QUE si au moins une bouche porte des faits. Sans
+ * cette condition, un foyer où personne n'a rempli quoi que ce soit lirait une
+ * mise en garde sur des chiffres absents — et une consigne qui parle du corps
+ * dans un prompt où il n'y en a pas est exactement l'invitation qu'on veut
+ * éviter.
+ *
+ * DEUX PHRASES, DEUX PORTES DIFFÉRENTES:
+ *
+ *   1. « for ONE thing: the SIZE » — reprise de `mealBodyBlocks`, et pour la
+ *      même raison qu'elle y existe: taille + poids + âge + sexe est la
+ *      signature d'entrée d'une formule de métabolisme de base, et un modèle
+ *      sait la calculer sans qu'on le lui demande. `CONTRACT.md` refuse les
+ *      calories; livrer un compteur par la porte de derrière serait la même
+ *      chose en pire, puisque personne ne l'aurait décidé.
+ *
+ *   2. L'HOMOGÉNÉITÉ À TABLE — celle-ci est PROPRE au foyer et n'a aucun
+ *      équivalent sur le chemin individuel. Le foyer mixte est le cas nominal
+ *      (deux membres avec corps, trois sans), et un modèle à qui on donne plus
+ *      de matière sur une personne écrit spontanément une consigne plus longue
+ *      et plus personnelle pour elle. Cette asymétrie se lit à table: elle
+ *      annonce à tout le monde qui a rempli son profil, et laisse entendre que
+ *      la précision est une faveur. Personne ne l'a demandée.
+ */
+const BODY_FACTS_CAVEAT = [
+  "The bracketed facts are there for ONE thing: the SIZE of a portion. A palm",
+  "of protein is not the same palm on a small person and a tall one. Never",
+  "derive anything else from them: no daily energy need, no calorie figure,",
+  "no BMI, no category, no target.",
+  "We know more about some people than others, and that is only an accident of",
+  "who filled in what. It is NEVER a reason to write a longer, more precise or",
+  "more personal instruction for them: every line must read the same way when",
+  "it is said out loud at the table.",
+] as const;
+
+/**
  * LE BLOC QUI PART DANS LE PROMPT.
  *
  * Une ligne par membre, ordre stable (celui reçu), et une consigne finale qui
  * n'est pas décorative: sans elle, un modèle confronté à quatre directions
  * contradictoires propose parfois deux plats. Or le produit vend UNE cuisson.
+ *
+ * ── LOT 3B: L'ENTRÉE GAGNE DES FAITS, LA SORTIE N'EN GAGNE AUCUN ──────────
+ * La ligne d'un membre porte désormais ce qu'on sait de son corps, entre
+ * crochets. C'est la moitié ENTRÉE de la règle du lot; la moitié SORTIE ne
+ * bouge pas d'un pouce — `FORBIDDEN_PORTION_TERMS` et `sanitizePortionNote`
+ * sont exactement ce qui empêche « pour ton poids » de ressortir, et brancher
+ * le corps augmente mécaniquement la pression sur eux.
+ *
+ * ── TROIS ABSENCES QUI SE RESSEMBLENT, ET C'EST VOULU ─────────────────────
+ * Une bouche sans compte, un compte dont la lecture a échoué, un compte sous
+ * plancher TCA et un compte qui n'a rien saisi produisent TOUS la même ligne:
+ * celle d'avant ce lot. Aucun « height: not stated », aucune mention d'absence.
+ * Deux raisons: une ligne qui annonce un manque invite le modèle à le commenter
+ * (même posture que `mealBodyBlocks`), et surtout le plancher TCA deviendrait
+ * OBSERVABLE dans le brief — un membre marqué « on ne vous dira rien de lui »
+ * est un membre désigné.
  */
 export function buildPortionBrief(members: readonly PortionMember[]): string {
   if (members.length === 0) return "";
+  let anyBodyFacts = false;
   const lines = members.map((m) => {
     // L'ORDRE DES TROIS CAS EST LA RÈGLE, pas un style. Le mineur d'abord: il a
     // sa propre direction, qui est une TAILLE et jamais une orientation.
@@ -145,7 +214,15 @@ export function buildPortionBrief(members: readonly PortionMember[]): string {
       : goalApplies(m) && m.goal
       ? SERVING_DIRECTION[m.goal]
       : SERVING_DIRECTION.maintenance;
-    return `- ${m.displayName}: ${direction}`;
+    // AUCUNE DES DEUX GARDES N'EST APPLIQUÉE ICI — ni le plancher TCA, ni la
+    // règle du mineur. `householdBodyFacts` les porte toutes les deux, dans le
+    // même fichier que `mealBodyBlocks`: une garde qu'un appelant applique est
+    // une garde que le prochain appelant oublie (FF-030 R5). Les deux
+    // paramètres sont requis, donc il n'y a pas d'appel « partiel » possible.
+    const facts = householdBodyFacts(m.body, m.ageState);
+    if (facts.length === 0) return `- ${m.displayName}: ${direction}`;
+    anyBodyFacts = true;
+    return `- ${m.displayName}: ${direction} [${facts.join("; ")}]`;
   });
   return [
     "HOUSEHOLD SERVING PLAN — one cooking session, portions that differ.",
@@ -155,6 +232,10 @@ export function buildPortionBrief(members: readonly PortionMember[]): string {
     "",
     ...lines,
     "",
+    ...(anyBodyFacts ? [...BODY_FACTS_CAVEAT, ""] : []),
+    // EN DERNIER, ET ÇA RESTE LE CAS APRÈS LE LOT 3B. Un modèle lit la
+    // contrainte la plus proche de la fin comme la plus contraignante, et c'est
+    // celle-ci qui doit survivre aux faits corporels qu'on vient d'ajouter.
     "NEVER state a reason, a goal, a calorie count or anything about a person's",
     "body in these instructions. They are read aloud at the table by the whole",
     "household. Write what to serve, never why.",
@@ -167,6 +248,32 @@ export function buildPortionBrief(members: readonly PortionMember[]): string {
  * Les deux langues, parce que ce dépôt a déjà payé « garde testée dans une
  * seule langue »: une ceinture qui ne connaît que `weight` laisse passer
  * `poids`, et le produit sort en français par défaut (`profiles.locale`).
+ *
+ * ── CE QUE LE LOT 3B Y A AJOUTÉ, ET POURQUOI ──────────────────────────────
+ * La liste couvrait le POIDS et l'OBJECTIF, parce que c'était tout ce que le
+ * modèle avait de quoi dire. Depuis que le brief porte la TAILLE, la BANDE
+ * D'ÂGE et le TOUR DE TAILLE de chaque bouche, il a de quoi en dire davantage —
+ * et une ceinture armée sur ce qu'on lui donnait HIER est une ceinture désarmée.
+ *
+ * Vérifié plutôt que supposé: avant ce lot, « 1,5 part vu ta taille », « a
+ * bigger share for your height » et « selon tes mesures » PASSAIENT tous les
+ * trois, dans les deux langues.
+ *
+ * ── LA FRONTIÈRE, ET CE QUI RESTE DEHORS ──────────────────────────────────
+ * On n'ajoute que du vocabulaire qui DÉSIGNE LE CORPS D'UNE PERSONNE. Les
+ * unités nues (`kg`, `cm`) restent HORS liste, et c'est un arbitrage, pas un
+ * oubli: « coupe les carottes en morceaux de 3 cm » est une consigne de service
+ * parfaitement légitime, et une ceinture qui mord dessus met la personne en
+ * part standard sans que personne comprenne pourquoi. « Une ceinture qui mord
+ * sur tout se fait désarmer dans la semaine. »
+ *
+ * ⚠️ CONSÉQUENCE CONNUE ET NON REFERMÉE: un ÉCHO NUMÉRIQUE NU — « pour tes
+ * 84 kg », « tu mesures 186 cm » — n'est mordu par personne. Le moteur apparie
+ * des séquences de MOTS; il n'a aucun moyen d'exprimer « un nombre suivi d'une
+ * unité, rattaché à une personne ». Le refermer demande soit une seconde
+ * ceinture d'un autre genre (une expression régulière sur nombre+unité), soit
+ * d'accepter les faux positifs des unités nues. C'est une décision de produit,
+ * elle n'est pas prise ici.
  */
 export const FORBIDDEN_PORTION_TERMS: readonly ForbiddenTerm[] = [
   {
@@ -187,7 +294,61 @@ export const FORBIDDEN_PORTION_TERMS: readonly ForbiddenTerm[] = [
   {
     ruleId: "portion.goal",
     token: "calories",
-    surfaceForms: ["calorie", "kcal", "calorie deficit", "deficit calorique"],
+    // `bmi` / `imc`: le brief dit maintenant en toutes lettres « no BMI », et
+    // ce qui entre dans un prompt finit par en sortir. Un verdict sur un corps
+    // n'a rien à faire dans une phrase lue à table.
+    surfaceForms: [
+      "calorie",
+      "kcal",
+      "calorie deficit",
+      "deficit calorique",
+      "bmi",
+      "imc",
+    ],
+  },
+  // ── LOT 3B — LA TAILLE ET LE TOUR DE TAILLE ─────────────────────────────
+  // `taille` NUE reste hors liste: « une part de la taille d'une paume » est la
+  // bonne façon d'écrire une portion, et c'est même celle que le brief
+  // encourage. Ce sont les formes POSSESSIVES qui désignent le corps de
+  // quelqu'un, et elles seules.
+  {
+    ruleId: "portion.body",
+    token: "height",
+    surfaceForms: [
+      "ta taille",
+      "ta hauteur",
+      "votre taille",
+      "sa taille",
+      "your height",
+      "his height",
+      "her height",
+      "how tall",
+      "tour de taille",
+      "waist",
+    ],
+  },
+  // ── LOT 3B — LES MESURES, DÉSIGNÉES COMME TELLES ────────────────────────
+  // Encore les formes possessives seulement: « prends deux mesures de riz » est
+  // une consigne de cuisine, pas une fuite.
+  {
+    ruleId: "portion.body",
+    token: "measurements",
+    surfaceForms: [
+      "tes mesures",
+      "vos mesures",
+      "ses mesures",
+      "your measurements",
+      "body measurements",
+    ],
+  },
+  // ── LOT 3B — L'ÂGE ──────────────────────────────────────────────────────
+  // La bande d'âge entre désormais dans le brief. Le jeton nu suffit et couvre
+  // les deux langues d'un coup (`âge` se normalise en `age`); aucune consigne
+  // de service n'a de raison légitime de nommer l'âge de quelqu'un.
+  {
+    ruleId: "portion.body",
+    token: "age",
+    surfaceForms: ["years old", "year old", "ans"],
   },
   {
     ruleId: "portion.goal",

@@ -327,17 +327,38 @@ Deno.test("un corps entièrement inconnu SOUS plancher rend la même chose encor
 });
 
 // ---------------------------------------------------------------------------
-// LA LANE FOYER — aucun corps, et c'est une décision (R7)
+// LA LANE FOYER — aucun corps DANS LA CONSIGNE DE COMPOSITION (R7), et depuis
+// le lot 3B un corps PAR MEMBRE dans le brief de portions
 // ---------------------------------------------------------------------------
 
-Deno.test("la lane foyer passe les contraintes dures et AUCUN corps", () => {
+Deno.test("la lane foyer passe les contraintes dures et AUCUN corps global", () => {
   const caller = Deno.readTextFileSync(
     new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   );
   // Les contraintes de TOUS les membres entrent dans la consigne: c'est le
   // trou que le paramètre requis a rendu visible sur cette lane.
   assertStringIncludes(caller, "safetyConstraints: constraints");
-  // Et pas de corps: il n'y en a pas UN pour une tablée, et prendre celui du
-  // titulaire servirait ses portions à ses enfants.
+  // Et pas de corps GLOBAL: il n'y en a pas UN pour une tablée, et prendre
+  // celui du titulaire servirait ses portions à ses enfants.
   assertStringIncludes(caller, "body: null");
+});
+
+Deno.test("LOT 3B — la lane foyer charge bien un corps PAR MEMBRE", () => {
+  // « Un morceau construit dont personne n'a rebranché le fil » est le mode
+  // d'échec n°1 de ce dépôt: le chargeur peut exister, être testé, et n'avoir
+  // aucun appelant. Le test précédent prouve une ABSENCE (`body: null`), et une
+  // absence prouvée sans sa contrepartie laisserait le lot 3B passer pour livré
+  // alors qu'il ne serait que compilé.
+  const caller = Deno.readTextFileSync(
+    new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
+  );
+  assertStringIncludes(caller, "loadHouseholdMemberBodies(admin");
+  // APPARIÉ SUR `member_id`. Un appariement resté sur `user_id` rendrait
+  // `undefined` pour chaque bouche et le foyer composerait sans aucun corps,
+  // en silence.
+  assertStringIncludes(caller, "bodies.byMember.get(r.member_id)");
+  // Et le coût est journalisé: le lot fait passer la lecture de corps de 1 à N
+  // par génération, et un nombre qu'on ne journalise pas est un nombre que
+  // personne ne verra doubler.
+  assertStringIncludes(caller, "keel.household_meal.member_bodies");
 });

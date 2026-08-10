@@ -9,12 +9,15 @@ import {
 
 const DAD: PortionMember = {
   memberId: "m-dad", displayName: "Marc", goal: "fat_loss", ageState: "adult",
+  body: null,
 };
 const SON: PortionMember = {
   memberId: "m-son", displayName: "Tom", goal: "muscle_gain", ageState: "adult",
+  body: null,
 };
 const KID: PortionMember = {
   memberId: "m-kid", displayName: "Léa", goal: null, ageState: "minor",
+  body: null,
 };
 
 Deno.test("chaque membre apparaît avec son id EXACT, une fois", () => {
@@ -40,7 +43,7 @@ Deno.test("LES RÈGLES DE MAISON NE SONT JAMAIS UNE RAISON NUTRITIONNELLE", () =
   // expliquerait spontanément pourquoi — et ferait passer la décision d'un
   // parent pour une vérité de santé.
   const restrictions: HouseholdRestriction[] = [
-    { memberUserId: "m-kid", memberDisplayName: "Léa", label: "nutella" },
+    { memberId: "m-kid", memberDisplayName: "Léa", label: "nutella" },
   ];
   const { userSuffix } = buildHouseholdPromptBlocks({
     members: [DAD, KID], envies: [], restrictions,
@@ -63,8 +66,8 @@ Deno.test("les restrictions d'une même personne sont regroupées", () => {
     members: [KID],
     envies: [],
     restrictions: [
-      { memberUserId: "m-kid", memberDisplayName: "Léa", label: "nutella" },
-      { memberUserId: "m-kid", memberDisplayName: "Léa", label: "nuggets" },
+      { memberId: "m-kid", memberDisplayName: "Léa", label: "nutella" },
+      { memberId: "m-kid", memberDisplayName: "Léa", label: "nuggets" },
     ],
   });
   assert(userSuffix.includes("- Léa: never serve nutella, nuggets"));
@@ -78,7 +81,7 @@ Deno.test("LES RÈGLES DE MAISON PASSENT APRÈS LES ENVIES", () => {
     members: [KID],
     envies: [{ memberId: "m-kid", body: "du nutella partout" }],
     restrictions: [
-      { memberUserId: "m-kid", memberDisplayName: "Léa", label: "nutella" },
+      { memberId: "m-kid", memberDisplayName: "Léa", label: "nutella" },
     ],
   });
   assert(userSuffix.indexOf("HOUSE RULES") > userSuffix.indexOf("du nutella partout"));
