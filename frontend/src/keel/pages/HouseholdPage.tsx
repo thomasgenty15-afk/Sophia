@@ -197,7 +197,14 @@ export default function HouseholdPage(): React.ReactElement {
       setError(e instanceof Error ? e.message : String(e));
       setPhase("error");
     }
-  }, [userId, weekStart]);
+    // ⚠️ `envyWeek` DOIT être dans les dépendances, et ce n'est pas de
+    // l'hygiène de linter. Le lot 5 vient de corriger en base exactement cette
+    // classe de défaut — une envie rangée au lundi mais relue avec la date du
+    // jour, donc introuvable dès le mardi. Une fermeture périmée ici referait
+    // le même trou côté écran : le lundi capturé au montage survivrait au
+    // passage à la semaine suivante, et la carte lirait la mauvaise ligne sans
+    // qu'aucune erreur ne se produise.
+  }, [userId, weekStart, envyWeek]);
 
   React.useEffect(() => {
     void refresh();
