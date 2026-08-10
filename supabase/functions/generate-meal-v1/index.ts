@@ -17,6 +17,13 @@ import {
   protocolBlockFor,
 } from "../_shared/keel/protocol_loader.ts";
 import { loadStudentSafetyConstraints } from "../_shared/keel/safety_constraints.ts";
+import { evaluateRestrictionForStudent } from "../_shared/keel/restriction_runtime.ts";
+import {
+  loadStudentBody,
+  mealBodyContextFrom,
+} from "../_shared/keel/student_body_io.ts";
+import type { MealBodyContext } from "../_shared/keel/meal_body.ts";
+import { type WeeklyAxis, WEEKLY_AXES } from "../_shared/keel/weekly_flow.ts";
 import { foodPreferencesForPrompt } from "../_shared/keel/food_preference_promotion.ts";
 import { reconcileFoodPreferencesFor } from "../_shared/keel/food_preference_promotion_io.ts";
 import { dayTokenInZone, localDateInZone } from "../_shared/keel/local_date.ts";
@@ -285,7 +292,12 @@ Deno.serve(async (req) => {
     // soient les heures auxquelles l'élève a réellement faim.
     const goalRes = await admin
       .from("student_goals")
-      .select("goal, situation, practical_constraints, content_locale")
+      // FF-030 — `focus_axis` entre dans le `select`, et il n'y était pas.
+      // La colonne est collectée depuis le 2026-08-05 sur `/app/plan`, elle a
+      // son CHECK, et cette lane ne la nommait nulle part: pour un élève en
+      // `health` ou en `performance`, le jeton `goal` est le SEUL indicateur de
+      // direction, et il ne dit rien de plus que « santé ».
+      .select("goal, situation, focus_axis, practical_constraints, content_locale")
       .eq("user_id", userId)
       .maybeSingle();
     if (goalRes.error) throw goalRes.error;
@@ -464,6 +476,60 @@ Deno.serve(async (req) => {
       goalRow.practical_constraints as Record<string, unknown> | null,
     );
 
+    // ── FF-030 · LE PLANCHER TCA, PUIS LE CORPS ───────────────────────────
+    //
+    // L'ORDRE COMPTE: on ne construit pas un contexte de corps avant de savoir
+    // si on a le droit d'en envoyer les chiffres. `MealBodyContext` exige
+    // `restrictionFlag`, donc l'inversion ne compile pas — c'est la moitié
+    // « type » de la garde décrite dans `meal_body.ts`.
+    //
+    // FAIL-CLOSED, et c'est l'inverse de l'arbitrage de
+    // `meal-photo-upload-v1`, exprès. Là-bas, se fermer ferait taire un accusé
+    // de réception pour un élève qui va bien; ici, se fermer rend EXACTEMENT le
+    // produit d'hier — une portion dimensionnée sans le corps — pendant que
+    // s'ouvrir met un poids sous les yeux du modèle pour un élève qu'on n'a pas
+    // su évaluer. Les deux coûts ne sont pas du même ordre (FF-030 R6).
+    let restrictionFlag = true;
+    try {
+      const floor = await evaluateRestrictionForStudent(admin as never, {
+        userId,
+        asOfLocalDate: todayDate,
+      });
+      restrictionFlag = floor.restriction_flag === true;
+    } catch (error) {
+      console.warn(JSON.stringify({
+        tag: "keel.meal.restriction_floor_unreadable",
+        user_id: userId,
+        error: error instanceof Error ? error.message : String(error),
+        // Journalisé nommément: sans cette ligne, un plancher qui échoue en
+        // boucle est indiscernable d'un élève qui n'a jamais saisi de mesure —
+        // les deux produisent une consigne sans corps.
+        effect: "fail-closed: ni taille ni poids dans la consigne",
+      }));
+    }
+
+    // LE CORPS. Best-effort, contrairement au plancher: une portion moins bien
+    // dimensionnée est le produit d'hier, et refuser le dîner de quelqu'un
+    // parce qu'on n'a pas su lire sa balance serait la mauvaise moitié de
+    // l'arbitrage. `loadStudentBody` ne rattrape RIEN de son côté (son en-tête
+    // le dit), donc l'arbitrage se prend ici, en le nommant.
+    // `studentBody` et pas `body`: dans cette fonction, `body` est déjà le
+    // corps de la REQUÊTE HTTP.
+    let studentBody: MealBodyContext | null = null;
+    try {
+      studentBody = mealBodyContextFrom(
+        await loadStudentBody(admin, userId, todayDate),
+        restrictionFlag,
+      );
+    } catch (error) {
+      console.warn(JSON.stringify({
+        tag: "keel.meal.student_body_unreadable",
+        user_id: userId,
+        error: error instanceof Error ? error.message : String(error),
+        effect: "composition sans corps (comportement d'avant FF-030)",
+      }));
+    }
+
     // ── FF-027 · LE SIGNAL DE FAIM DE LA FENÊTRE ──────────────────────────
     //
     // Le tap du soir « Rough → Hunger » et la faim déclarée en conversation
@@ -504,6 +570,26 @@ Deno.serve(async (req) => {
     }
 
     const { systemPrompt, userMessage } = buildMealPrompt({
+      // ── FF-030 · LES CONTRAINTES DURES ENTRENT DANS LA CONSIGNE ────────
+      // Elles étaient chargées vingt lignes plus haut et ne partaient QU'au
+      // parseur — c'est-à-dire au verrou de sortie. Le modèle composait à
+      // l'aveugle, et le verrou est binaire: un seul plat qui touche
+      // l'allergène vidait la semaine entière (`empty_meal`, 422).
+      //
+      // Le même tableau part maintenant aux DEUX endroits, et c'est bien le
+      // double verrou du §3.3 du pivot: la consigne informe, la ceinture
+      // garantit. `null` (lecture en panne) reste `null` des deux côtés.
+      safetyConstraints: constraints,
+      body: studentBody,
+      // L'AXE. La lecture est défensive contre la liste FERMÉE plutôt que
+      // recopiée: le CHECK SQL tient la base, mais une valeur écrite avant lui
+      // partirait telle quelle dans la consigne, et `WEEKLY_AXIS_LABELS_EN`
+      // rendrait `undefined` sur elle.
+      focusAxis: (WEEKLY_AXES as readonly string[]).includes(
+          String(goalRow.focus_axis ?? "").trim(),
+        )
+        ? (String(goalRow.focus_axis).trim() as WeeklyAxis)
+        : null,
       doctrineBlock: doctrineBlockFor(doctrine),
       coachNoteBlock: coachNotePromptBlock(coachNote),
       protocolBlock,

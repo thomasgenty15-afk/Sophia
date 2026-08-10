@@ -75,6 +75,7 @@ function parse(payload: Record<string, unknown>, over: Record<string, unknown> =
     // Les jours réellement demandés: le plafond en dérive, exactement comme
     // dans le prompt. Un seul jour ici, pour coller au `scope: "day"`.
     daysToFill: ["mon"],
+    awayDays: [],
     cookingTimeMin: null,
     ...over,
   });
@@ -316,6 +317,9 @@ Deno.test("an invented conviction key is dropped but does NOT cost the dish", ()
 
 Deno.test("the prompt separates the STABLE situation from the DATED context", () => {
   const { userMessage, systemPrompt } = buildMealPrompt({
+    safetyConstraints: null,
+    body: null,
+    focusAxis: null,
     doctrineBlock: "== MARC'S METHOD ==",
     coachNoteBlock: null,
     protocolBlock: "",
@@ -339,6 +343,9 @@ Deno.test("the prompt separates the STABLE situation from the DATED context", ()
 
 Deno.test("from_pantry puts the pantry in the prompt, to_shop does not pretend to", () => {
   const base = {
+    safetyConstraints: null,
+    body: null,
+    focusAxis: null,
     doctrineBlock: "d",
     coachNoteBlock: null,
     protocolBlock: "",
@@ -369,6 +376,7 @@ Deno.test("a non-JSON model output throws instead of shipping an empty meal", ()
     beliefKeys: [],
     eatingRhythm: [],
     daysToFill: ["mon"],
+    awayDays: [],
     cookingTimeMin: null,
   }));
 });
@@ -394,6 +402,9 @@ Deno.test("the aisle vocabulary is closed and non-empty", () => {
 
 Deno.test("les préférences confirmées entrent dans le prompt, dans les mots de l'élève", () => {
   const withPrefs = buildMealPrompt({
+    safetyConstraints: null,
+    body: null,
+    focusAxis: null,
     doctrineBlock: "== MARC'S METHOD ==",
     coachNoteBlock: null,
     protocolBlock: "",
@@ -417,6 +428,9 @@ Deno.test("sans préférence, le prompt est EXACTEMENT celui d'avant", () => {
   // L'ajout doit être additif: un élève qui n'a rien confirmé reçoit la même
   // journée qu'hier. C'est ce qui rend le lot sans risque de régression.
   const base = {
+    safetyConstraints: null,
+    body: null,
+    focusAxis: null,
     doctrineBlock: "== MARC'S METHOD ==",
     coachNoteBlock: null,
     protocolBlock: "",

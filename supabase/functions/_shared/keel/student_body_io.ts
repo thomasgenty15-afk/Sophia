@@ -18,7 +18,12 @@
  * élève n'a rien saisi alors qu'on a échoué à le lire. Les erreurs remontent.
  */
 
-import { assessBirthDate, type BirthDateVerdict } from "./student_age.ts";
+import {
+  ageBandOf,
+  assessBirthDate,
+  type BirthDateVerdict,
+  usableAge,
+} from "./student_age.ts";
 import type { DatedMeasure } from "./student_body.ts";
 import {
   type BodyMeasureKind,
@@ -28,6 +33,11 @@ import {
 } from "./body_measure_series.ts";
 import { loadBodyMeasures } from "./body_measure_io.ts";
 import { addDays } from "./local_date.ts";
+import {
+  MEAL_BODY_GENDERS,
+  type MealBodyContext,
+  type MealBodyGender,
+} from "./meal_body.ts";
 
 // deno-lint-ignore no-explicit-any
 type Db = { from(table: string): any };
@@ -37,6 +47,23 @@ export type { DatedMeasure };
 export interface StudentBodySnapshot {
   verdict: BirthDateVerdict;
   timezone: string | null;
+  /**
+   * `profiles.height_cm`, en centimètres, ou `null`.
+   *
+   * ── POURQUOI ELLE ARRIVE ICI, ET PAS DANS UN SECOND CHARGEUR ─────────────
+   * Ce module lit déjà `profiles`. La colonne existe depuis le 2026-08-08, avec
+   * son écran, sa contrainte de bornes et un commentaire de migration qui dit
+   * en toutes lettres « sert aux PORTIONS des repas composés » — et elle
+   * n'avait AUCUN lecteur (FF-030 volet élève, §1). Deux colonnes de plus dans
+   * un `select` qui part de toute façon, plutôt qu'un aller-retour de plus et
+   * un second chargeur à tenir d'accord avec celui-ci.
+   *
+   * Elle n'entre dans AUCUNE tendance: la taille d'un adulte ne bouge pas, et
+   * c'est écrit sur la migration.
+   */
+  heightCm: number | null;
+  /** `profiles.gender`. Liste FERMÉE; une valeur hors liste vaut `null`. */
+  gender: MealBodyGender | null;
   /** Du plus ancien au plus récent. Vide = l'élève n'a jamais saisi de mesure. */
   weights: DatedMeasure[];
   waists: DatedMeasure[];
@@ -47,6 +74,39 @@ const WEIGHT_KG_MIN = 25;
 const WEIGHT_KG_MAX = 350;
 const WAIST_CM_MIN = 40;
 const WAIST_CM_MAX = 200;
+/** Celles de `profiles_height_cm_range_check`, relues plutôt que supposées. */
+const HEIGHT_CM_MIN = 90;
+const HEIGHT_CM_MAX = 250;
+
+/**
+ * La taille, ou `null`.
+ *
+ * Le CHECK SQL tient déjà les bornes; on les relit quand même. Pas par défiance
+ * envers la contrainte, mais parce que ce lecteur sert un PROMPT: une taille
+ * aberrante entrée avant que la contrainte n'existe produirait une portion
+ * absurde que personne ne saurait rattacher à sa cause. Le repli est le
+ * comportement d'avant FF-030 — pas de taille, pas de ligne.
+ */
+function readHeightCm(raw: unknown): number | null {
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n < HEIGHT_CM_MIN || n > HEIGHT_CM_MAX) return null;
+  return n;
+}
+
+/**
+ * Le sexe déclaré, contre la liste FERMÉE de `profiles_gender_check`.
+ *
+ * Hors liste vaut `null` et jamais la valeur brute: elle partirait telle quelle
+ * dans une consigne (« gender, as they picked it: <n'importe quoi> ») et le
+ * modèle en ferait ce qu'il veut. Même posture que `readCookingCapacity`:
+ * absent vaut mieux que faux.
+ */
+function readGender(raw: unknown): MealBodyGender | null {
+  const value = String(raw ?? "").trim().toLowerCase();
+  return (MEAL_BODY_GENDERS as readonly string[]).includes(value)
+    ? (value as MealBodyGender)
+    : null;
+}
 
 /**
  * Lit une mesure d'un `biofeedback`, avec repli documenté.
@@ -100,7 +160,7 @@ export async function loadStudentBody(
 ): Promise<StudentBodySnapshot> {
   const profileRes = await db
     .from("profiles")
-    .select("birth_date, timezone")
+    .select("birth_date, timezone, height_cm, gender")
     .eq("id", userId)
     .maybeSingle();
   if (profileRes.error) throw profileRes.error;
@@ -201,6 +261,8 @@ export async function loadStudentBody(
   return {
     verdict: assessBirthDate(profile.birth_date, todayLocalIso),
     timezone: String(profile.timezone ?? "").trim() || null,
+    heightCm: readHeightCm(profile.height_cm),
+    gender: readGender(profile.gender),
     weights,
     waists,
   };
@@ -209,6 +271,45 @@ export async function loadStudentBody(
 /** La dernière mesure d'une série, ou `null`. */
 export function latest(measures: readonly DatedMeasure[]): DatedMeasure | null {
   return measures.length > 0 ? measures[measures.length - 1] : null;
+}
+
+/**
+ * FF-030 — LE CORPS, MIS À LA FORME QU'UNE CONSIGNE DE COMPOSITION LIT.
+ *
+ * ── POURQUOI CETTE JOINTURE VIT DANS LA COUCHE IO ──────────────────────────
+ * C'est ici qu'on sait que l'âge se DÉRIVE d'un `birth_date` (jamais d'une
+ * colonne d'âge, qui serait fausse le lendemain d'un anniversaire), et que la
+ * « dernière » mesure est la queue d'une série rendue du plus ancien au plus
+ * récent. `meal_body.ts` reste pur et ne connaît que la forme d'arrivée.
+ *
+ * ── `restrictionFlag` EST UN PARAMÈTRE, PAS UNE LECTURE ────────────────────
+ * Ce module ne va PAS chercher le plancher lui-même, et c'est délibéré:
+ * `evaluateRestrictionForStudent` fait trois requêtes et son arbitrage
+ * d'échec appartient à l'appelant (FF-030 R6 le veut fail-closed sur cette
+ * lane, là où `meal-photo-upload-v1` le veut fail-open sur la sienne, pour des
+ * raisons écrites des deux côtés). Le rendre implicite ici imposerait un des
+ * deux arbitrages à l'autre lane, en silence.
+ *
+ * Il reste REQUIS: on ne peut pas construire ce contexte sans avoir répondu à
+ * la question. C'est la moitié « type » de la garde dont `meal_body.ts` porte
+ * la moitié « comportement ».
+ */
+export function mealBodyContextFrom(
+  snapshot: StudentBodySnapshot,
+  restrictionFlag: boolean,
+): MealBodyContext {
+  return {
+    heightCm: snapshot.heightCm,
+    // DÉRIVÉE, à chaque lecture, et en BANDE (FF-030 R8). `usableAge` rend
+    // `null` sur tout ce qui n'est ni `minor` ni `adult`, donc une date
+    // illisible ou aberrante ne produit pas de bande — elle n'en invente pas
+    // une « par défaut », qui serait une propriété fausse sur une personne.
+    ageBand: ageBandOf(usableAge(snapshot.verdict)),
+    gender: snapshot.gender,
+    latestWeight: latest(snapshot.weights),
+    latestWaist: latest(snapshot.waists),
+    restrictionFlag,
+  };
 }
 
 // ---------------------------------------------------------------------------

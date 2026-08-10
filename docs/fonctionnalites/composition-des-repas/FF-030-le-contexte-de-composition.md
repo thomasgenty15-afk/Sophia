@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Identifiant** | `FF-030-le-contexte-de-composition` |
-| **Statut** | 🟡 Spécifiée — volet coach arbitré · 🟠 volet élève en cours |
+| **Statut** | 🟡 volet coach spécifié · 🟢 volet élève livré, **non déployé** |
 | **Date** | 2026-08-10 |
 | **Autorité produit** | [MODEL.md](../../keel/MODEL.md) (1:N, la doctrine est le produit du coach) · [CONTRACT.md](../../keel/CONTRACT.md) |
 | **Dépend de** | `doctrine.ts` (`compileDoctrineBlock`) · `doctrine_loader.ts` · `protocol_compiler.ts` (`protocolFoodBlock`) · `meal_generation.ts` (`buildMealPrompt`) |
@@ -266,7 +266,7 @@ Alors la consigne porte le même bloc de repli qu'avant ce chantier
 
 | | |
 |---|---|
-| **Statut** | 🟠 En cours — arbitrages tranchés le 2026-08-08, câblage en cours |
+| **Statut** | 🟢 Livrée en local, **non déployée** — `supabase functions deploy` demande une validation humaine |
 | **Date** | 2026-08-10 |
 | **Dépend de** | `meal_generation.ts` (`buildMealPrompt`) · `safety_constraints.ts` (`safetyConstraintsPromptBlock`) · `student_body_io.ts` (`loadStudentBody`) · `student_age.ts` (`ageBandOf`) · `restriction_runtime.ts` (`evaluateRestrictionForStudent`) |
 | **Effort estimé** | 1 jour — câblage, aucun appel modèle de plus |
@@ -283,7 +283,7 @@ jamais.** Vérifié le 2026-08-08, zéro occurrence dans
 | contraintes dures (allergies, maladies) | `student_safety_constraints` | chargées, mais passées **seulement** à `parseGeneratedMeal` — le verrou de SORTIE |
 | `height_cm` | `/app/plan` → Basic info | colonne, écran, et un commentaire de migration qui dit « sert aux PORTIONS ». **Zéro lecteur.** |
 | `birth_date`, `gender` | `/app/plan` → Basic info | ajoutés le 2026-08-08. Zéro lecteur. |
-| poids, tour de taille | `weekly_reviews.biofeedback` (miroir alimenté par les trois gestes) | le générateur de repas ne lit jamais cette table |
+| poids, tour de taille | `student_body_measures` (FF-031), miroir `weekly_reviews.biofeedback` | le générateur de repas ne lit ni l'une ni l'autre |
 | `focus_axis` | `/app/plan` → Your goal | pas même dans le `select` de `student_goals` |
 
 Conséquence directe : **pour dimensionner une portion, le moteur a le nombre de
@@ -373,8 +373,10 @@ n'en fait rien.
   plan. À écrire comme fiche.
 - ❌ **Toucher au stockage du poids.** Un chantier séparé le fait
   (FF-031, `student_body_measures`). Ici on LIT ce qui existe, par le chemin qui
-  existe (`loadStudentBody`, qui lit le miroir `weekly_reviews.biofeedback` que
-  les trois écrivains alimentent — FF-031 R7).
+  existe: `loadStudentBody`, qui interroge la table datée d'abord et retombe sur
+  le miroir `weekly_reviews.biofeedback`. Ce chargeur est passé à la table datée
+  pendant l'écriture de ce volet, et ça n'a rien changé ici — c'est exactement
+  ce qu'un lecteur qui n'invente pas son propre accès à la donnée doit coûter.
 - ❌ **Aucun appel modèle supplémentaire.** Tout ce volet est du câblage.
 - ❌ **Aucun IMC, aucun besoin énergétique, aucune catégorie.** Même frontière
   que `student_body_io.ts` : on rend ce que l'élève a déclaré, on ne le
@@ -449,8 +451,8 @@ qu'il traite.
 | `height_cm` | `profiles` | saisi | **aucun** | `loadStudentBody` |
 | `gender` | `profiles` | saisi, liste fermée | **aucun** | `loadStudentBody` |
 | bande d'âge | dérivée de `profiles.birth_date` | **dérivée à chaque lecture** | `generate-week-plan-v1` | + `generate-meal-v1` |
-| dernier poids | `weekly_reviews.biofeedback.weight_kg` | saisi (3 gestes, miroir FF-031 R7) | `generate-week-plan-v1` (en TENDANCE) | + `generate-meal-v1` (en VALEUR) |
-| dernier tour de taille | `weekly_reviews.biofeedback.waist_cm` | saisi | idem | idem |
+| dernier poids | `student_body_measures`, repli `weekly_reviews.biofeedback.weight_kg` | saisi (3 gestes) | `generate-week-plan-v1` (en TENDANCE) | + `generate-meal-v1` (en VALEUR) |
+| dernier tour de taille | idem, clé `waist_cm` | saisi | idem | idem |
 | `focus_axis` | `student_goals` | saisi, liste fermée, `health`/`performance` seulement | `generate-week-plan-v1` | + `generate-meal-v1` |
 | `restriction_flag` | dérivé à la lecture par `evaluateRestrictionForStudent` | **jamais stocké** | 5 lanes | + `generate-meal-v1` |
 
@@ -470,7 +472,7 @@ que le corps prend pour entrer dans une consigne. Il vit dans un module pur.
 | R7 | Le corps est **`null` sur la lane foyer** | `generate-household-meal-v1` compose pour plusieurs personnes. Il n'y a pas UN corps à passer, et en choisir un — celui du titulaire — dimensionnerait l'assiette de tout le foyer sur lui. Les contraintes dures, elles, y entrent : elles sont l'UNION des membres, et c'est déjà ce que la lane charge. |
 | R8 | L'âge part en **bande**, jamais en nombre | Arbitrage déjà écrit sur `ageBandOf` : « le modèle n'a aucun usage légitime de *34* qu'il n'ait de *adulte* », et une bande ne peut pas ressortir telle quelle dans une prose (« à 34 ans, vous… »), ce qu'un nombre exact finit toujours par faire. On l'applique ici plutôt que d'en réinventer un autre. |
 | R9 | La consigne **interdit explicitement de citer les mesures** à l'élève | `findNumericTarget` ne mord que sur l'énergie et les macros : « à 178 cm, ton dîner… » traverserait le filtre sans une alerte. La même clause existe déjà sur la lane hebdo (`trendClause`, `student_body.ts:218`) et y est accrochée **aux deux branches** exprès. On copie la phrase. |
-| R10 | Un élève dont on ne sait **rien** reçoit la consigne d'avant, au caractère près | Condition de désarmement. C'est le cas de tous les élèves existants, et c'est ce qui rend le lot additif plutôt que régressif. Testé par égalité de chaînes, pas par inspection. |
+| R10 | Un élève dont on ne sait **rien** reçoit la même consigne qu'un élève **sans corps du tout** — et le plancher n'y change rien | Condition de désarmement, et c'est le cas de tous les élèves existants. Testée par **égalité de chaînes**, pas par inspection: un test qui vérifie « il n'y a pas de ligne de taille » laisserait passer un en-tête vide, un saut de ligne de plus, ou un « not stated » ajouté six mois plus tard. La seconde moitié compte autant: si le plancher rendait une consigne DIFFÉRENTE pour quelqu'un dont on ne sait rien, il deviendrait observable dans le prompt — et un modèle qui remarque une absence la commente. |
 
 ## 7. Modes de défaillance
 
@@ -574,13 +576,20 @@ Alors elle est identique, caractère pour caractère, à celle d'avant ce volet
 
 ## 11. Questions ouvertes
 
-1. **Le poids lu est celui du miroir, et le miroir a une date de péremption.**
-   `loadStudentBody` lit `weekly_reviews.biofeedback`, que les trois écrivains
-   alimentent encore (FF-031 R7, double écriture transitoire). Le jour où cette
-   double écriture s'arrête, ce lecteur-ci devient muet **sans erreur** — le cas
-   exact que la migration FF-031 dit vouloir éviter. La condition de retrait de
-   la double écriture doit donc nommer ce lecteur. À porter dans la fiche
-   FF-031, pas ici.
+1. ~~**Le poids lu est celui du miroir.**~~ Réglé pendant l'écriture de ce
+   volet: `loadStudentBody` interroge `student_body_measures` d'abord et ne
+   retombe sur `weekly_reviews.biofeedback` qu'en repli. Ce lecteur-ci ne verra
+   donc rien passer le jour où la double écriture s'arrête.
+
+   Ce qui reste ouvert est plus étroit, et c'est **la granularité**: la table
+   datée porte une mesure par PESÉE, `loadStudentBody` en dérive un point par
+   SEMAINE, et ce volet n'affiche que le dernier de ces points. Un élève pesé
+   mardi et vendredi voit donc partir la moyenne de sa semaine, pas sa pesée de
+   vendredi. Pour dimensionner une assiette c'est sans conséquence — la
+   moyenne est même la plus juste des deux — mais ce n'est pas ce que la ligne
+   de consigne dit (« measured week of… », et c'est écrit exprès). Le jour où
+   quelqu'un voudra la dernière pesée à la journée près, il faudra un second
+   accesseur, pas un ajustement de celui-ci.
 2. **La lane foyer n'a pas de corps, et ce n'est peut-être pas définitif.**
    R7 tranche « aucun corps » parce qu'il n'y en a pas un seul. Une portion de
    foyer pourrait légitimement se dimensionner sur la composition du foyer

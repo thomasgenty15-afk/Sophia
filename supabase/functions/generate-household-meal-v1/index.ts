@@ -476,6 +476,30 @@ Deno.serve(async (req) => {
     }
 
     const { systemPrompt, userMessage } = buildMealPrompt({
+      // ── FF-030 · LES CONTRAINTES DURES, ICI AUSSI ──────────────────────
+      // Cette lane portait exactement le même trou que `generate-meal-v1`:
+      // l'UNION des contraintes de tous les membres était chargée (et son
+      // échec est BLOQUANT ici, ce qui est le bon arbitrage pour un foyer),
+      // puis passée au seul `parseGeneratedMeal`. Le modèle composait le dîner
+      // d'une tablée sans savoir qui y est allergique.
+      //
+      // C'est le paramètre REQUIS qui a rendu cet appelant visible: le
+      // compilateur l'a listé. Optionnel, il aurait gardé son trou.
+      safetyConstraints: constraints,
+      // ── AUCUN CORPS, ET C'EST UNE DÉCISION (FF-030 R7) ─────────────────
+      // Un repas de foyer nourrit plusieurs personnes. Il n'y a pas UN corps à
+      // passer, et prendre celui du titulaire dimensionnerait l'assiette de
+      // tout le monde sur lui — un adulte de 1,90 m ferait servir des portions
+      // d'adulte de 1,90 m à ses enfants.
+      //
+      // `null` plutôt qu'un corps moyen: une moyenne serait une personne qui
+      // n'existe pas, présentée au modèle comme une mesure. Le nombre de parts
+      // (`servings`, ci-dessous) reste la seule chose qu'on sait vraiment de
+      // cette tablée.
+      body: null,
+      // L'axe est une propriété de l'objectif d'UNE personne, pour la même
+      // raison. Le foyer n'en a pas.
+      focusAxis: null,
       doctrineBlock: doctrineBlockFor(doctrine),
       coachNoteBlock: coachNotePromptBlock(coachNote),
       protocolBlock,

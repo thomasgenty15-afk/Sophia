@@ -45,9 +45,14 @@ import {
   type OutputLockResult,
 } from "../../sophia-brain/skills/_shared/keel_output_locks.ts";
 import type { CoachDoctrine } from "./doctrine.ts";
-import type { StudentSafetyConstraint } from "./safety_constraints.ts";
+import {
+  safetyConstraintsPromptBlock,
+  type StudentSafetyConstraint,
+} from "./safety_constraints.ts";
 import { findNumericTarget } from "./week_plan_generation.ts";
 import { normalizeForMatch } from "./forbidden_matcher.ts";
+import { mealBodyBlocks, type MealBodyContext } from "./meal_body.ts";
+import { type WeeklyAxis, WEEKLY_AXIS_LABELS_EN } from "./weekly_flow.ts";
 
 // ---------------------------------------------------------------------------
 // Entrées / sorties
@@ -110,17 +115,141 @@ export const MEAL_SLOTS = [...EATING_OCCASIONS, "snack"] as const;
 export type MealSlot = (typeof MEAL_SLOTS)[number];
 
 /**
- * UN MOMENT DE LA JOURNÉE DE CET ÉLÈVE, avec son heure si elle a été donnée.
+ * LA TAILLE D'UN MOMENT — liste fermée, et facultative.
  *
- * L'heure est FACULTATIVE et le reste: « je grignote l'après-midi » est une
- * information utile même sans « à 17h ». Exiger l'heure ferait inventer une
- * précision que l'élève n'a pas — et une heure inventée, le moteur la traite
- * comme une contrainte.
+ * ── CE QUI ÉTAIT LÀ AVANT, ET POURQUOI ÇA A SAUTÉ ─────────────────────────
+ * Ce champ portait une HEURE (« 17:00 »). Vérifié le 2026-08-07: elle n'était
+ * lue qu'à UN endroit, `rhythmLines`, qui en faisait une annotation de prose
+ * (`- afternoon snack (17:00)`). Elle ne gouvernait ni le plafond de plats, ni
+ * le choix des créneaux, ni la composition. Une question posée à chaque élève,
+ * un champ dans le jsonb, une contrainte de format à valider — pour une
+ * parenthèse.
+ *
+ * La taille, elle, décide de quelque chose: « petit-déjeuner léger, gros
+ * dîner » et « trois repas égaux » ne se composent pas pareil, à rythme et
+ * objectif identiques. C'est la même case, au même endroit, qui rapporte.
+ *
+ * ── CE N'EST PAS UNE QUANTITÉ, ET LA DISTINCTION COMPTE ───────────────────
+ * `small`/`medium`/`large` est RELATIF et sans unité: c'est une préférence de
+ * composition déclarée par l'élève, de la même famille que `cooking_time_min`
+ * ou `budget_band`. Les règles de CONTRACT.md sur les quantités portent sur
+ * les chiffres d'ÉNERGIE tirés de ce qui a été mangé (analyse de repas,
+ * photos) — un autre couloir, et rien ici n'y touche.
+ */
+export const MEAL_SIZES = ["small", "medium", "large"] as const;
+export type MealSize = (typeof MEAL_SIZES)[number];
+
+/**
+ * UN MOMENT DE LA JOURNÉE DE CET ÉLÈVE, avec sa taille si elle a été donnée.
+ *
+ * La taille est FACULTATIVE et le reste: « je grignote l'après-midi » est une
+ * information utile sans savoir si c'est gros ou petit. Exiger la taille ferait
+ * inventer une précision que l'élève n'a pas — et une précision inventée, le
+ * moteur la traite comme une contrainte.
  */
 export interface EatingOccasionSlot {
   slot: EatingOccasion;
-  /** « 17:00 », ou `null`. */
-  at: string | null;
+  /** « large », ou `null` quand l'élève n'a rien dit. */
+  size: MealSize | null;
+}
+
+/**
+ * UN MOMENT OÙ L'ÉLÈVE NE MANGE PAS ICI — cantine, restaurant, absent.
+ *
+ * ── CE QUE ÇA VEUT DIRE, ET CE QUE ÇA NE VEUT PAS DIRE ────────────────────
+ * « Je ne mange pas ici » : aucun plat composé, rien dans la liste de courses,
+ * aucune portion. Ce n'est PAS « je mange mais je gère moi-même » — un moment
+ * écarté sort complètement de la composition.
+ *
+ * ── PAR JOUR DE SEMAINE, ET C'EST SANS AMBIGUÏTÉ ──────────────────────────
+ * Une fenêtre de plan fait AU PLUS sept jours (`MAX_WINDOW_DAYS`, et la base
+ * l'impose: `duration_days between 1 and 7`). Chaque jour de semaine y apparaît
+ * donc au plus une fois, et « ce mardi » et « les mardis » désignent la même
+ * case. C'est ce qui rend cette clé lisible à la fois comme un choix ponctuel
+ * dans la grille et comme une habitude d'une génération à l'autre.
+ *
+ * `slots` VIDE VAUT LA JOURNÉE ENTIÈRE. C'est la forme que FF-002 avait posée
+ * pour l'absence récurrente, et la grille du constructeur écrit dans la même
+ * clé: deux mécanismes pour « je ne mange pas ici » divergeraient, et c'est
+ * celui qu'on regarde le moins qui garderait l'ancien état.
+ */
+export interface AwayDay {
+  /** `mon`…`sun`. */
+  day: string;
+  /** Les moments écartés. Vide = toute la journée. */
+  slots: EatingOccasion[];
+}
+
+/**
+ * Les absences lues depuis `practical_constraints.away_days`.
+ *
+ * MÊME POSTURE QUE `parseEatingRhythm`: ce qui n'est pas reconnu est écarté,
+ * jamais deviné. Un jeton de jour inconnu fait tomber SON entrée et garde les
+ * autres — une absence illisible ne doit pas faire disparaître les absences
+ * lisibles, sinon un plan compose un repas que l'élève a dit ne pas prendre.
+ */
+export function parseAwayDays(raw: unknown): AwayDay[] {
+  if (!Array.isArray(raw)) return [];
+  const byDay = new Map<string, Set<EatingOccasion>>();
+  const wholeDay = new Set<string>();
+  for (const entry of raw) {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) continue;
+    const e = entry as Record<string, unknown>;
+    const day = String(e.day ?? "").trim().toLowerCase();
+    if (!DAY_TOKENS.includes(day)) continue;
+    // ── « AUCUN CRÉNEAU DEMANDÉ » ET « AUCUN CRÉNEAU LISIBLE » NE SONT PAS
+    //    LA MÊME CHOSE ────────────────────────────────────────────────────
+    // Sans clé `slots`, ou avec une liste vide, l'élève dit « toute la
+    // journée ». Avec une liste dont RIEN n'est reconnu, il a nommé des
+    // moments et on ne sait pas lesquels — traiter ça comme une journée
+    // entière transformerait une faute de frappe en absence complète, et
+    // supprimerait des repas que personne n'a demandé de supprimer.
+    const askedSlots = Array.isArray(e.slots) && e.slots.length > 0;
+    const slots = askedSlots
+      ? (e.slots as unknown[])
+        .map((s) => String(s ?? "").trim().toLowerCase())
+        .filter((s): s is EatingOccasion =>
+          (EATING_OCCASIONS as readonly string[]).includes(s)
+        )
+      : [];
+    if (askedSlots && slots.length === 0) continue;
+    if (!askedSlots) {
+      wholeDay.add(day);
+      byDay.delete(day);
+      continue;
+    }
+    if (wholeDay.has(day)) continue;
+    const set = byDay.get(day) ?? new Set<EatingOccasion>();
+    slots.forEach((s) => set.add(s));
+    byDay.set(day, set);
+  }
+  const out: AwayDay[] = [];
+  for (const day of DAY_TOKENS) {
+    if (wholeDay.has(day)) out.push({ day, slots: [] });
+    else if (byDay.has(day)) {
+      out.push({
+        day,
+        slots: EATING_OCCASIONS.filter((s) => byDay.get(day)!.has(s)),
+      });
+    }
+  }
+  return out;
+}
+
+/** Ce moment-là, ce jour-là, est-il écarté ? */
+export function isAway(
+  away: readonly AwayDay[],
+  day: string | null,
+  slot: string | null,
+): boolean {
+  if (!day) return false;
+  const row = away.find((a) => a.day === day);
+  if (!row) return false;
+  // Journée entière: le créneau ne compte pas, et un plat SANS créneau nommé
+  // tombe aussi — c'est bien un repas de ce jour-là.
+  if (row.slots.length === 0) return true;
+  if (!slot) return false;
+  return (row.slots as readonly string[]).includes(slot);
 }
 
 /**
@@ -131,9 +260,9 @@ export interface EatingOccasionSlot {
  * qui ne remplit rien reçoit la même semaine qu'hier.
  */
 export const DEFAULT_EATING_RHYTHM: readonly EatingOccasionSlot[] = [
-  { slot: "breakfast", at: null },
-  { slot: "lunch", at: null },
-  { slot: "dinner", at: null },
+  { slot: "breakfast", size: null },
+  { slot: "lunch", size: null },
+  { slot: "dinner", size: null },
 ];
 
 /**
@@ -141,20 +270,26 @@ export const DEFAULT_EATING_RHYTHM: readonly EatingOccasionSlot[] = [
  *
  * DÉFENSIF DANS UNE SEULE DIRECTION: ce qui n'est pas reconnu est laissé de
  * côté, jamais deviné. Un jeton inconnu deviendrait un moment que le rendu ne
- * sait pas nommer, et une heure mal formée deviendrait une contrainte fausse.
+ * sait pas nommer, et une taille mal formée deviendrait une contrainte fausse.
  * Un rythme entièrement illisible rend `[]`, et l'appelant retombe sur le
  * défaut — jamais sur une journée vide.
  *
- * DEUX FORMES D'ENTRÉE, ET C'EST DÉLIBÉRÉ. `{"slot":"lunch","at":null}` est ce
- * qu'écrit la carte; `"lunch"` tout court est ce qu'écrivent les jsonb posés à
- * la main (fixtures, seeds). La migration qui a créé cette clé a renoncé au
- * CHECK de forme en écrivant que « le lecteur sait déjà réparer » — il ne
- * réparait pas, il JETAIT, et le coût était invisible parce que le repli
+ * DEUX FORMES D'ENTRÉE, ET C'EST DÉLIBÉRÉ. `{"slot":"lunch","size":"large"}`
+ * est ce qu'écrit la carte; `"lunch"` tout court est ce qu'écrivent les jsonb
+ * posés à la main (fixtures, seeds). La migration qui a créé cette clé a
+ * renoncé au CHECK de forme en écrivant que « le lecteur sait déjà réparer » —
+ * il ne réparait pas, il JETAIT, et le coût était invisible parce que le repli
  * ressemble à une réponse: la fixture d'un élève déclaré SANS petit-déjeuner
  * (`["lunch","dinner"]`) rendait `[]`, retombait sur le défaut, et servait un
  * petit-déjeuner. Toute la flotte QA validait le défaut en croyant tester trois
- * rythmes distincts. La chaîne nue vaut donc le moment SANS heure — c'est la
+ * rythmes distincts. La chaîne nue vaut donc le moment SANS taille — c'est la
  * seule lecture possible, il n'y a rien à deviner.
+ *
+ * L'ANCIENNE CLÉ `at` EST IGNORÉE, PAS MIGRÉE. Les lignes écrites avant le
+ * 2026-08-07 portent une heure; elle ne servait qu'à une parenthèse de prose
+ * (voir `MEAL_SIZES`). La lire pour en déduire une taille serait deviner —
+ * « 20:00 » ne dit pas si le dîner est gros. Le moment est gardé, l'heure
+ * tombe, et l'élève reverra une carte où il peut dire la taille s'il veut.
  *
  * L'ORDRE EST CELUI DE LA JOURNÉE, pas celui du tableau reçu. On lit sa journée
  * du réveil au coucher; laisser l'ordre de saisie décider ferait lire un dîner
@@ -162,16 +297,16 @@ export const DEFAULT_EATING_RHYTHM: readonly EatingOccasionSlot[] = [
  */
 export function parseEatingRhythm(raw: unknown): EatingOccasionSlot[] {
   if (!Array.isArray(raw)) return [];
-  const bySlot = new Map<EatingOccasion, string | null>();
+  const bySlot = new Map<EatingOccasion, MealSize | null>();
   for (const entry of raw) {
-    // La chaîne nue: un moment pris, sans heure. Traitée AVANT le rejet des
+    // La chaîne nue: un moment pris, sans taille. Traitée AVANT le rejet des
     // non-objets, qui la mangeait en silence.
     if (typeof entry === "string") {
       const slot = entry.trim().toLowerCase();
       if (!(EATING_OCCASIONS as readonly string[]).includes(slot)) continue;
-      // `set` et pas `set` conditionnel: une chaîne nue ne porte pas d'heure,
-      // et ne doit pas effacer celle qu'une entrée objet du même tableau
-      // aurait déjà posée pour ce moment.
+      // Conditionnel: une chaîne nue ne porte pas de taille, et ne doit pas
+      // effacer celle qu'une entrée objet du même tableau aurait déjà posée
+      // pour ce moment.
       if (!bySlot.has(slot as EatingOccasion)) {
         bySlot.set(slot as EatingOccasion, null);
       }
@@ -181,15 +316,17 @@ export function parseEatingRhythm(raw: unknown): EatingOccasionSlot[] {
     const e = entry as Record<string, unknown>;
     const slot = String(e.slot ?? "").trim().toLowerCase();
     if (!(EATING_OCCASIONS as readonly string[]).includes(slot)) continue;
-    const at = String(e.at ?? "").trim();
-    // `HH:MM` ou rien. Une heure qu'on ne sait pas lire n'annule pas le moment:
-    // « je mange l'après-midi » reste vrai sans l'heure.
-    const valid = /^([01]\d|2[0-3]):[0-5]\d$/.test(at) ? at : null;
+    const size = String(e.size ?? "").trim().toLowerCase();
+    // La liste est FERMÉE. Une taille qu'on ne sait pas lire n'annule pas le
+    // moment: « je grignote l'après-midi » reste vrai sans elle.
+    const valid = (MEAL_SIZES as readonly string[]).includes(size)
+      ? (size as MealSize)
+      : null;
     bySlot.set(slot as EatingOccasion, valid);
   }
   return EATING_OCCASIONS.filter((s) => bySlot.has(s)).map((s) => ({
     slot: s,
-    at: bySlot.get(s) ?? null,
+    size: bySlot.get(s) ?? null,
   }));
 }
 
@@ -344,7 +481,16 @@ export interface GeneratedMeal {
   lock: OutputLockResult;
 }
 
-export const MEAL_PROMPT_VERSION = "meal.en.v3_preparations";
+/**
+ * ── POURQUOI CETTE VERSION BOUGE (FF-030, volet élève) ────────────────────
+ * Elle est écrite sur chaque ligne `student_generated_meals.generated_from`, et
+ * c'est le seul moyen de dire d'un plan s'il a été composé AVANT ou APRÈS que
+ * le modèle connaisse les contraintes dures et le corps de l'élève. Sans
+ * bascule, les deux populations se mélangent dans la même colonne et la mesure
+ * du §10 de la fiche (« la part de `empty_meal` médicaux a-t-elle baissé ? »)
+ * devient impossible à faire après coup.
+ */
+export const MEAL_PROMPT_VERSION = "meal.en.v4_student_body";
 
 const DAY_TOKENS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
 
@@ -394,17 +540,44 @@ export function occasionList(rhythm: readonly EatingOccasionSlot[]): string {
 }
 
 /**
- * Les moments, un par ligne, avec l'heure quand elle a été donnée.
+ * Les moments, un par ligne, avec leur taille quand elle a été donnée.
  *
- * L'heure est REPRISE TELLE QUELLE et jamais complétée: « 17:00 » quand il l'a
- * dit, rien quand il ne l'a pas dit. Inventer « vers 16h » pour faire joli
- * poserait une contrainte que personne n'a exprimée, et le modèle la
- * respecterait — c'est bien le problème.
+ * LA TAILLE EST REPRISE TELLE QUELLE et jamais complétée: « large » quand il
+ * l'a dit, rien quand il ne l'a pas dit. Écrire « medium » par défaut sur les
+ * moments muets poserait une contrainte que personne n'a exprimée, et le modèle
+ * la respecterait — c'est bien le problème. Un moment sans taille est un moment
+ * que le modèle compose comme il l'entend.
+ *
+ * « for them » et pas « large » tout court: sans le possessif, le modèle lit
+ * une consigne de portion absolue. C'est la journée de CET élève qu'on décrit,
+ * et gros pour lui n'est pas gros dans l'absolu.
  */
 function rhythmLines(rhythm: readonly EatingOccasionSlot[]): string {
   return rhythm
-    .map((o) => (o.at ? `- ${OCCASION_PROSE[o.slot]} (${o.at})` : `- ${OCCASION_PROSE[o.slot]}`))
+    .map((o) =>
+      o.size
+        ? `- ${OCCASION_PROSE[o.slot]} (${o.size} for them)`
+        : `- ${OCCASION_PROSE[o.slot]}`
+    )
     .join("\n");
+}
+
+/**
+ * Le jour, en mots. Même raison que `OCCASION_PROSE`: le modèle lit de
+ * l'anglais, et « tue » dans une phrase se lit aussi bien comme un verbe.
+ */
+const DAY_PROSE: Record<string, string> = {
+  mon: "Monday",
+  tue: "Tuesday",
+  wed: "Wednesday",
+  thu: "Thursday",
+  fri: "Friday",
+  sat: "Saturday",
+  sun: "Sunday",
+};
+
+function dayProse(day: string): string {
+  return DAY_PROSE[day] ?? day;
 }
 
 /** Le jeton, en mots. Le modèle lit de l'anglais, pas des slugs. */
@@ -732,6 +905,54 @@ mode = to_shop
 Day tokens are exactly: mon tue wed thu fri sat sun. Never translated.`;
 
 export function buildMealPrompt(args: {
+  /**
+   * FF-030 — LES CONTRAINTES DURES DE L'ÉLÈVE. `null` quand la lecture a
+   * échoué; `[]` quand il n'en a aucune. Rendues EN TÊTE du message.
+   *
+   * ── CE QUE SON ABSENCE COÛTAIT, mesuré le 2026-08-08 ─────────────────────
+   * `generate-meal-v1` chargeait bien `student_safety_constraints`, et ne les
+   * passait qu'à `parseGeneratedMeal` — c'est-à-dire au VERROU DE SORTIE. Le
+   * modèle composait donc à l'aveugle, et le verrou est BINAIRE: `clean` est
+   * calculé sur la concaténation de TOUS les plats, donc un seul plat qui
+   * touche l'allergène vide la semaine entière et rend `empty_meal` en 422.
+   * L'élève allergique payait sa sécurité en semaines vides, sans explication.
+   *
+   * Les deux autres lanes injectaient déjà ce bloc (`week_plan_generation.ts`,
+   * `sophia-brain/router/run.ts`), par la MÊME fonction. On copie le placement
+   * plutôt que d'en inventer un: une seconde façon de rendre des contraintes
+   * médicales divergerait de la première.
+   *
+   * REQUIS, `T | null`, jamais `T?` — voir `eatingRhythm` plus bas pour la
+   * phrase que ce fichier a déjà payée trois fois. Ici la preuve d'un oubli
+   * serait une assiette.
+   */
+  safetyConstraints: readonly StudentSafetyConstraint[] | null;
+  /**
+   * FF-030 — CE QU'ON SAIT DE LEUR CORPS, ou `null` quand on ne sait rien (et
+   * sur la lane FOYER, qui compose pour plusieurs personnes: il n'y a pas UN
+   * corps, et en choisir un dimensionnerait l'assiette de tout le monde sur
+   * lui).
+   *
+   * C'est ce qui dimensionne une portion. Le prompt système DEMANDE de
+   * dimensionner (« one adult portion is roughly a palm of protein ») et rien
+   * ne lui disait de qui: `height_cm` avait un écran, une colonne, une
+   * contrainte de bornes et zéro lecteur.
+   *
+   * REQUIS, `T | null`, jamais `T?`, et le type porte sa propre garde: le
+   * plancher TCA est un champ OBLIGATOIRE de `MealBodyContext` (FF-030 R5).
+   */
+  body: MealBodyContext | null;
+  /**
+   * FF-030 — L'AXE QUE L'ÉLÈVE VEUT VOIR MONTER, ou `null`.
+   *
+   * Sans lui, `performance` et `health` n'ont aucun indicateur de direction:
+   * le jeton `goal` dit « santé » et s'arrête là, pendant que `fat_loss` dit
+   * au moins « ça descend ». La colonne est collectée depuis le 2026-08-05 et
+   * n'était même pas dans le `select` de cette lane.
+   *
+   * REQUIS, même raison que les deux ci-dessus.
+   */
+  focusAxis: WeeklyAxis | null;
   doctrineBlock: string;
   /**
    * LE MAPPING ALIMENTAIRE DU COACH — `protocolBlockFor()`, vide s'il n'a rien
@@ -832,6 +1053,11 @@ export function buildMealPrompt(args: {
    * et on retombe sur les trois repas que le moteur imposait jusqu'ici.
    */
   eatingRhythm?: readonly EatingOccasionSlot[];
+  /**
+   * Les moments où l'élève NE MANGE PAS ICI. Vide = il mange tout ce que son
+   * rythme nomme, tous les jours de la fenêtre.
+   */
+  awayDays?: readonly AwayDay[];
 }): { systemPrompt: string; userMessage: string } {
   const rhythm = args.eatingRhythm && args.eatingRhythm.length > 0
     ? args.eatingRhythm
@@ -841,11 +1067,112 @@ export function buildMealPrompt(args: {
   // déjà produit la divergence exacte que `dishCapFor` documente — la consigne
   // demandait trois plats, le plafond en autorisait quatre.
   const cap = dishCapFor(args.scope, rhythm, args.daysToFill?.length || 7);
+  // Les absences, en prose, une ligne par jour. Calculées ici pour être
+  // insérées plus bas dans la même liste que le reste des contraintes.
+  const awayLines = (args.awayDays ?? []).map((a) =>
+    a.slots.length === 0
+      ? `- ${dayProse(a.day)}: the whole day`
+      : `- ${dayProse(a.day)}: ${a.slots.map((s) => OCCASION_PROSE[s]).join(", ")}`
+  );
   const pantryLines = args.pantry
     .map((p) => (p.quantity ? `- ${p.term} (${p.quantity})` : `- ${p.term}`))
     .join("\n");
 
+  // ── LES CONTRAINTES DURES, EN TÊTE ────────────────────────────────────────
+  // Même placement que `buildWeekPlanPrompt`, et pour la raison qui y est
+  // écrite: si le budget de prompt tronque quoi que ce soit, ce n'est pas la
+  // ligne qui dit « pas d'arachide » qui doit sauter.
+  const safetyBlock = safetyConstraintsPromptBlock(args.safetyConstraints);
+
+  // Le corps, en deux blocs qui atterrissent à deux rangs différents. Le
+  // plancher TCA est appliqué DANS `mealBodyBlocks`, pas ici (FF-030 R5).
+  const bodyBlocks = mealBodyBlocks(args.body);
+
+  // ── LES CONTRAINTES DE CUISINE, calculées ici pour être posées sous
+  //    `-- WHAT THEY CAN COOK --` ────────────────────────────────────────────
+  // LES JOURS DE CUISINE, INTERSECTÉS AVEC LA FENÊTRE. Mesuré: un élève qui
+  // déclare cuisiner « dimanche et mercredi », plan généré un JEUDI, recevait
+  // une session le MERCREDI — un jour déjà passé. Ses jours de cuisine sont
+  // une propriété de sa semaine type; la fenêtre est ce qu'il en reste, et
+  // c'est l'intersection qui est exécutable.
+  //
+  // L'INTERSECTION VIDE RETOMBE SUR LA FENÊTRE, jamais sur rien: quelqu'un
+  // qui ne cuisine que le lundi, un vendredi, doit quand même manger. Mieux
+  // vaut une session posée un jour non déclaré — qu'il déplacera — qu'un plan
+  // sans aucun jour de cuisine.
+  const cookDayLines = ((): string[] => {
+    const window = args.daysToFill ?? [];
+    const declared = args.cookDays ?? [];
+    if (declared.length === 0) return [];
+    const usable = window.length > 0
+      ? declared.filter((d) => window.includes(d))
+      : declared;
+
+    // ── LA CONTRAINTE DOIT RESTER SATISFAISABLE ─────────────────────────
+    // MESURÉ: jours déclarés `sun, wed`, fenêtre jeudi→dimanche.
+    // L'intersection ne laisse que DIMANCHE — le dernier jour. Le modèle a
+    // donc fait manger jeudi, vendredi et samedi sur un lot cuisiné le
+    // dimanche: quatre repas antérieurs à leur propre cuisson. Quatre
+    // `issues` sur un vrai plan, et un plan inexécutable.
+    //
+    // Un jour de cuisine qui arrive APRÈS les repas qu'il doit nourrir n'est
+    // pas une contrainte, c'est une impasse. On ajoute donc le PREMIER jour
+    // de la fenêtre — et on DIT que c'est un ajout, pour que le modèle
+    // n'aille pas croire que l'élève l'a déclaré. Le pire cas est une session
+    // posée un jour non déclaré, qu'il déplacera; l'autre pire cas est une
+    // semaine qu'il ne peut pas cuisiner.
+    const first = window[0];
+    const tooLate = usable.length > 0 && first !== undefined &&
+      !usable.includes(first) &&
+      Math.min(...usable.map((d) => window.indexOf(d))) > 0;
+
+    if (usable.length === 0) {
+      return [
+        `they usually cook on ${declared.join(", ")}, but none of those days ` +
+        "are left in this stretch. Put the cooking sessions on the days you " +
+        "do have, as early as possible.",
+      ];
+    }
+    if (tooLate) {
+      return [
+        `they usually cook on ${usable.join(", ")} -- all of which fall after ` +
+        `${first}, so nothing cooked then can feed the days before it. Cook ` +
+        `on ${first} as well, and say so: it is a day they did not ask for. ` +
+        "Everything before their usual day is cooked fresh, not from a batch.",
+      ];
+    }
+    return [
+      `they can only cook on: ${usable.join(", ")}. Put every cooking ` +
+      "session on those days, and no others.",
+    ];
+  })();
+
+  const canCookLines = [
+    ...cookDayLines,
+    ...(args.cookingTimeMin
+      ? [
+        `time per cooking session: about ${args.cookingTimeMin} minutes. A ` +
+        "session that does not fit is a session they skip.",
+      ]
+      : []),
+    ...(args.recipeDifficulty
+      ? [`recipe level they want: ${args.recipeDifficulty}`]
+      : []),
+    ...(args.variety ? [`repetition they accept: ${args.variety}`] : []),
+    ...(args.budgetBand
+      ? [
+        `budget: ${args.budgetBand}. On a tight budget, favour cheap staples ` +
+        "and skip expensive proteins and out-of-season produce.",
+      ]
+      : []),
+  ];
+
   const userMessage = [
+    // ── LES CONTRAINTES DURES AVANT TOUT LE RESTE ───────────────────────────
+    // Avant la doctrine, avant l'élève, avant la demande. Elles gagnent sur
+    // tout, y compris sur la méthode du coach: un coach dont la doctrine
+    // recommande les fruits à coque n'a pas écrit ça pour un anaphylactique.
+    ...(safetyBlock ? [safetyBlock, ""] : []),
     args.doctrineBlock.trim(),
     // Le mapping suit IMMÉDIATEMENT la doctrine, et avant tout ce qui est
     // propre à l'élève: c'est la partie commune à toute la cohorte du coach,
@@ -859,18 +1186,124 @@ export function buildMealPrompt(args: {
     // `buildWeekPlanPrompt`: après tout ce qui est collectif et cacheable,
     // avant tout ce que l'élève a dit de lui-même. Absente, aucune ligne.
     ...(args.coachNoteBlock ? [args.coachNoteBlock, ""] : []),
+    // ── CE QUI EST DURABLE, ET CE QUI EST DATÉ, NE SE LISENT PLUS AU MÊME
+    //    RANG ─────────────────────────────────────────────────────────────
+    // Tout ce qui suit tenait dans une seule liste plate sous cet en-tête: la
+    // cantine du midi, le mariage de mardi, la balance de dimanche et le
+    // budget serré, à égalité. Une contrainte d'une semaine s'y lisait comme
+    // une propriété permanente.
+    //
+    // Le dépôt avait déjà tranché ce problème une fois, en séparant
+    // `situation` (stable) de `context` (daté). Les sous-sections généralisent
+    // cet arbitrage: ce qu'ils SONT, ce qu'ils VISENT, où ils EN SONT, comment
+    // leur journée TOURNE — puis, en dernier, ce qui n'est vrai que cette fois.
+    //
+    // UNE SOUS-SECTION SANS CONTENU N'EXISTE PAS. Un en-tête vide est du bruit
+    // qui coûte du cache, et « height: not stated » est pire que le silence:
+    // ça occupe le rang d'une contrainte et ça invite le modèle à commenter
+    // une absence.
     "== THIS STUDENT ==",
+    ...(bodyBlocks.whoTheyAre.length > 0
+      ? ["", "-- WHO THEY ARE --", ...bodyBlocks.whoTheyAre]
+      : []),
+    "",
+    "-- WHAT THEY ARE AFTER --",
     `goal: ${args.goal}`,
+    // L'AXE, ET CE QU'IL AUTORISE À FAIRE. Repris de `buildWeekPlanPrompt`, y
+    // compris son garde-fou: un axe que le coach n'a jamais traité ne donne
+    // PAS le droit d'inventer un conseil dessus. Le produit du coach est sa
+    // méthode; un axe est une direction dans laquelle la chercher, pas une
+    // permission d'en écrire une.
+    ...(args.focusAxis
+      ? [
+        `the one thing they want to see improve: ${
+          WEEKLY_AXIS_LABELS_EN[args.focusAxis] ?? args.focusAxis
+        }. Let it rank your choices among the dishes the method allows. If the ` +
+        `coach has taught nothing that bears on it, say nothing about it rather ` +
+        `than teaching something he never taught.`,
+      ]
+      : []),
     args.situation
       ? `their situation, in their words: ${args.situation}`
       : "their situation: not stated.",
-    // Le contexte est présenté SÉPARÉMENT de la situation, et après elle. La
-    // situation est stable (« je mange à la cantine »), le contexte est daté
-    // (« mariage mardi »). Les fondre en un seul bloc ferait traiter un mariage
-    // comme une habitude de vie.
+    ...(bodyBlocks.whereTheyAreNow.length > 0
+      ? ["", "-- WHERE THEY ARE NOW --", ...bodyBlocks.whereTheyAreNow]
+      : []),
+    "",
+    // ── LA FORME DE LEUR JOURNÉE ────────────────────────────────────────
+    // Sa propre sous-section, et pas une ligne perdue dans « what to cook »:
+    // c'est la contrainte qui décide COMBIEN de plats existent et QUAND. Une
+    // faim de 17h qu'on ne nomme pas est une faim qu'on comble ailleurs, et le
+    // plan le plus juste du monde s'écroule dessus.
+    "-- HOW THEIR DAY RUNS --",
+    rhythmLines(rhythm),
+    args.eatingRhythm && args.eatingRhythm.length > 0
+      ? "Those are the moments they actually eat. Do not add a meal they did " +
+        "not name, and do not drop one they did: an extra meal is a meal they " +
+        "skip, a missing one is the hour they raid the cupboard."
+      : "They have not told us their rhythm, so this is the default assumption " +
+        "— treat it as ordinary, not as something they chose.",
+    // ── CE QU'ILS NE MANGENT PAS ICI ──────────────────────────────────────
+    // Nommé moment par moment, et en NÉGATIF explicite: « skip » plutôt qu'une
+    // liste de ce qu'il reste. Le modèle qui reçoit une liste positive la
+    // complète — c'est le comportement même d'un modèle de composition, et
+    // c'est pour ça que le parseur revérifie derrière (voir `isAway`).
+    ...(awayLines.length > 0
+      ? [
+        "",
+        "-- WHEN THEY ARE NOT HERE --",
+        "they are NOT eating here at these moments — compose nothing, buy " +
+        "nothing, and count no portion for them:",
+        ...awayLines,
+      ]
+      : []),
+    // LES CONTRAINTES DE CUISINE. Elles décrivent une CAPACITÉ durable (les
+    // jours où il peut cuisiner, le temps qu'il a, ce qu'il sait faire, ce
+    // qu'il peut dépenser), donc elles vivent avec l'élève et non avec la
+    // demande. Un plan parfait et inapplicable est la première cause
+    // d'abandon.
+    ...(canCookLines.length > 0
+      ? ["", "-- WHAT THEY CAN COOK --", ...canCookLines]
+      : []),
+    // CE QU'IL A DIT LUI-MÊME, et il l'a confirmé sur un écran. Ce ne sont ni
+    // des interdits du coach (ceux-là sont dans la doctrine, avec leur double
+    // verrou) ni des contraintes médicales (celles-là sont maintenant en tête
+    // du message): ce sont des goûts et des contextes de vie, et ils décident
+    // si une semaine est vivable.
+    ...(args.foodPreferences && args.foodPreferences.length > 0
+      ? [
+        "",
+        "-- WHAT THEY HAVE TOLD ME --",
+        "what they have told you about their eating, in their own words:",
+        ...args.foodPreferences.map((p) => `- ${p}`),
+      ]
+      : []),
+    // ── CE QUI N'EST VRAI QUE CETTE FOIS ──────────────────────────────────
+    // En DERNIER de la section, et c'est le point de la séparation: le
+    // contexte est daté (« mariage mardi »), l'envie a été tapée il y a dix
+    // secondes, le garde-manger est l'état d'un placard ce soir. Les fondre
+    // avec ce qui précède ferait traiter un mariage comme une habitude de vie
+    // — et « mezze d'été cette semaine » reviendrait en février.
+    "",
+    "-- THIS TIME --",
     args.context
       ? `what is going on for them RIGHT NOW: ${args.context}`
       : "nothing special going on this week.",
+    ...(args.preferences
+      ? [`what they feel like eating THIS TIME: ${args.preferences}`]
+      : []),
+    `people at the table: ${args.servings}`,
+    // LE GARDE-MANGER EST UNE SOUS-SECTION, PAS UNE SECTION. Il portait un
+    // en-tête `==` posé au milieu de sous-titres `--`: pour un modèle qui lit
+    // une hiérarchie, ça ferme `== THIS STUDENT ==` au mauvais endroit et
+    // rattache la suite à autre chose. Le niveau suit maintenant le rang.
+    args.mode === "from_pantry"
+      ? [
+        "",
+        "-- WHAT THEY ALREADY HAVE --",
+        pantryLines || "- (they listed nothing)",
+      ].join("\n")
+      : "\n-- THEY HAVE NOT SHOPPED YET: give the full list --",
     "",
     // ── LA SAISON, ET CE QUI POUSSE LÀ OÙ ILS SONT ──────────────────────
     //
@@ -901,20 +1334,16 @@ export function buildMealPrompt(args: {
     "you are not looking at their shops. It ranks your choices; it does not " +
     "veto anything.",
     "",
-    // ── LA FORME DE LEUR JOURNÉE ────────────────────────────────────────
-    // Son propre en-tête, et pas une ligne perdue dans « what to cook »: c'est
-    // la contrainte qui décide COMBIEN de plats existent et QUAND. Une faim de
-    // 17h qu'on ne nomme pas est une faim qu'on comble ailleurs, et le plan le
-    // plus juste du monde s'écroule dessus.
-    "== THE SHAPE OF A NORMAL DAY FOR THEM ==",
-    rhythmLines(rhythm),
-    args.eatingRhythm && args.eatingRhythm.length > 0
-      ? "Those are the moments they actually eat. Do not add a meal they did " +
-        "not name, and do not drop one they did: an extra meal is a meal they " +
-        "skip, a missing one is the hour they raid the cupboard."
-      : "They have not told us their rhythm, so this is the default assumption " +
-        "— treat it as ordinary, not as something they chose.",
-    "",
+    // ── LA DEMANDE, EN DERNIER ────────────────────────────────────────────
+    // Ce bloc ne décrit plus l'élève: il décrit ce qu'on demande MAINTENANT.
+    // Tout ce qui appartenait à la personne (son rythme, sa capacité de
+    // cuisine, ses parts, ses placards) est remonté sous `== THIS STUDENT ==`.
+    //
+    // Et il reste EN DERNIER exprès: ce dépôt a mesuré qu'un modèle lit la
+    // consigne la plus proche de la fin comme la plus contraignante (la raison
+    // est écrite dans `household_meal_generation.ts`, et le bloc satiété a été
+    // déplacé pour ça après un run rouge). La chose la plus contraignante
+    // ici, c'est la commande.
     "== WHAT TO COOK ==",
     `mode: ${args.mode}`,
     `how much: ${args.scope} (at most ${cap} dish${cap > 1 ? "es" : ""})`,
@@ -950,117 +1379,12 @@ export function buildMealPrompt(args: {
     // LE JOUR OÙ L'ON EST, et il n'y était pas. Le modèle repartait de lundi
     // par habitude: un plan généré le mercredi rendait trois jours déjà passés.
     ...(args.todayToken ? [`today is: ${args.todayToken}`] : []),
-    // LES CONTRAINTES DE CUISINE, juste à côté de la demande. Une session
-    // proposée un dimanche à quelqu'un qui travaille le dimanche est un plan
-    // qu'on ne suit pas, et le modèle n'avait aucun moyen de le savoir.
-    // LES JOURS DE CUISINE, INTERSECTÉS AVEC LA FENÊTRE. Mesuré: un élève qui
-    // déclare cuisiner « dimanche et mercredi », plan généré un JEUDI, recevait
-    // une session le MERCREDI — un jour déjà passé. Ses jours de cuisine sont
-    // une propriété de sa semaine type; la fenêtre est ce qu'il en reste, et
-    // c'est l'intersection qui est exécutable.
-    //
-    // L'INTERSECTION VIDE RETOMBE SUR LA FENÊTRE, jamais sur rien: quelqu'un
-    // qui ne cuisine que le lundi, un vendredi, doit quand même manger. Mieux
-    // vaut une session posée un jour non déclaré — qu'il déplacera — qu'un plan
-    // sans aucun jour de cuisine.
-    ...((() => {
-      const window = args.daysToFill ?? [];
-      const declared = args.cookDays ?? [];
-      if (declared.length === 0) return [];
-      const usable = window.length > 0
-        ? declared.filter((d) => window.includes(d))
-        : declared;
-
-      // ── LA CONTRAINTE DOIT RESTER SATISFAISABLE ─────────────────────────
-      // MESURÉ: jours déclarés `sun, wed`, fenêtre jeudi→dimanche.
-      // L'intersection ne laisse que DIMANCHE — le dernier jour. Le modèle a
-      // donc fait manger jeudi, vendredi et samedi sur un lot cuisiné le
-      // dimanche: quatre repas antérieurs à leur propre cuisson. Quatre
-      // `issues` sur un vrai plan, et un plan inexécutable.
-      //
-      // Un jour de cuisine qui arrive APRÈS les repas qu'il doit nourrir n'est
-      // pas une contrainte, c'est une impasse. On ajoute donc le PREMIER jour
-      // de la fenêtre — et on DIT que c'est un ajout, pour que le modèle
-      // n'aille pas croire que l'élève l'a déclaré. Le pire cas est une session
-      // posée un jour non déclaré, qu'il déplacera; l'autre pire cas est une
-      // semaine qu'il ne peut pas cuisiner.
-      const first = window[0];
-      const tooLate = usable.length > 0 && first !== undefined &&
-        !usable.includes(first) &&
-        Math.min(...usable.map((d) => window.indexOf(d))) > 0;
-
-      if (usable.length === 0) {
-        return [
-          `they usually cook on ${declared.join(", ")}, but none of those days ` +
-          "are left in this stretch. Put the cooking sessions on the days you " +
-          "do have, as early as possible.",
-        ];
-      }
-      if (tooLate) {
-        return [
-          `they usually cook on ${usable.join(", ")} -- all of which fall after ` +
-          `${first}, so nothing cooked then can feed the days before it. Cook ` +
-          `on ${first} as well, and say so: it is a day they did not ask for. ` +
-          "Everything before their usual day is cooked fresh, not from a batch.",
-        ];
-      }
-      return [
-        `they can only cook on: ${usable.join(", ")}. Put every cooking ` +
-        "session on those days, and no others.",
-      ];
-    })()),
-    ...(args.cookingTimeMin
-      ? [
-        `time per cooking session: about ${args.cookingTimeMin} minutes. A ` +
-        "session that does not fit is a session they skip.",
-      ]
-      : []),
-    ...(args.recipeDifficulty
-      ? [`recipe level they want: ${args.recipeDifficulty}`]
-      : []),
-    ...(args.variety ? [`repetition they accept: ${args.variety}`] : []),
-    ...(args.budgetBand
-      ? [
-        `budget: ${args.budgetBand}. On a tight budget, favour cheap staples ` +
-        "and skip expensive proteins and out-of-season produce.",
-      ]
-      : []),
-    // CE QU'IL A DIT LUI-MÊME, et il l'a confirmé sur un écran. Ce ne sont ni
-    // des interdits du coach (ceux-là sont dans la doctrine, avec leur double
-    // verrou) ni des contraintes médicales (celles-là ont leur propre table et
-    // n'arrivent jamais ici): ce sont des goûts et des contextes de vie, et ils
-    // décident si une semaine est vivable.
-    ...(args.foodPreferences && args.foodPreferences.length > 0
-      ? [
-        "what they have told you about their eating, in their own words:",
-        ...args.foodPreferences.map((p) => `- ${p}`),
-      ]
-      : []),
-    // CE DONT ILS ONT ENVIE *MAINTENANT* — séparé de la ligne au-dessus, et
-    // après elle, exactement comme `context` est séparé de `situation`.
-    //
-    // La liste au-dessus est DURABLE: elle vient de la conversation, elle a été
-    // confirmée sur un écran, elle vaut pour toutes leurs semaines. Celle-ci est
-    // DATÉE: elle a été tapée dans le formulaire il y a dix secondes et ne vaut
-    // que pour cette composition. Les fondre ferait traiter « mezze d'été cette
-    // semaine » comme un goût permanent — et ça reviendrait en février.
-    ...(args.preferences
-      ? [`what they feel like eating THIS TIME: ${args.preferences}`]
-      : []),
     ...(args.daysToFill && args.daysToFill.length > 0
       ? [
         `days to fill, in this order: ${args.daysToFill.join(", ")}`,
         "Do not use any other day token. Do not start earlier than today.",
       ]
       : []),
-    `people at the table: ${args.servings}`,
-    "",
-    args.mode === "from_pantry"
-      ? [
-        "== WHAT THEY ALREADY HAVE ==",
-        pantryLines || "- (they listed nothing)",
-      ].join("\n")
-      : "== THEY HAVE NOT SHOPPED YET — give the full list ==",
   ].join("\n");
 
   return { systemPrompt: MEAL_SYSTEM_PROMPT, userMessage };
@@ -1138,6 +1462,16 @@ export function parseGeneratedMeal(
      * sept, ce qui est exactement le débordement qu'on répare.
      */
     daysToFill: readonly string[];
+    /**
+     * LES MOMENTS ÉCARTÉS — les mêmes que ceux passés à `buildMealPrompt`.
+     *
+     * REQUIS, avec `[]` pour « aucun », jamais `T?`. C'est la troisième fois
+     * que ce fichier écrit la même phrase, et elle a été payée trois fois: un
+     * paramètre optionnel est un paramètre qu'un appelant oublie, après quoi la
+     * consigne interdit un moment que le parseur accepte — et le plat interdit
+     * arrive dans l'assiette avec l'air d'avoir été voulu.
+     */
+    awayDays: readonly AwayDay[];
     /**
      * LE TEMPS PAR SESSION DÉCLARÉ PAR L'ÉLÈVE, ou `null` s'il ne l'a pas dit.
      *
@@ -1239,6 +1573,33 @@ export function parseGeneratedMeal(
       issues.push(`dishes[${i}]: empty title, dropped`);
       continue;
     }
+
+    // ── LE JOUR ET LE CRÉNEAU, RÉSOLUS AVANT LE PLAFOND ──────────────────
+    // L'ordre compte: un plat posé sur un moment ÉCARTÉ ne doit pas consommer
+    // une place du plafond. Le laisser passer la garde du plafond avant de le
+    // rejeter ferait tomber, en fin de liste, des plats parfaitement valides —
+    // et l'élève verrait un jour vide sans savoir pourquoi.
+    const slotRaw = cleanText(d.slot).toLowerCase();
+    const slot = (MEAL_SLOTS as readonly string[]).includes(slotRaw)
+      ? (slotRaw as MealSlot)
+      : null;
+    if (slotRaw && !slot) issues.push(`dishes[${i}]: unknown slot ${JSON.stringify(slotRaw)}, dropped`);
+
+    const dayRaw = cleanText(d.day).toLowerCase();
+    const day = DAY_TOKENS.includes(dayRaw) ? dayRaw : null;
+    if (dayRaw && !day) issues.push(`dishes[${i}]: unknown day token ${JSON.stringify(dayRaw)}, dropped`);
+
+    // ── LE MOMENT ÉCARTÉ MORD ICI, PAS SEULEMENT DANS LA CONSIGNE ────────
+    // Une contrainte qui n'existe que dans le prompt n'est pas une garantie:
+    // un modèle de composition COMPLÈTE ce qu'on lui donne, c'est son métier.
+    // Même posture que le plafond de plats et que le refus des chiffres.
+    if (isAway(args.awayDays, day, slot)) {
+      issues.push(
+        `dishes[${i}]: ${day}/${slot ?? "any"} is a moment they are away -- dropped`,
+      );
+      continue;
+    }
+
     if (dishes.length >= cap) {
       issues.push(`dishes[${i}]: over the ${cap}-dish cap for ${args.scope}, dropped`);
       continue;
@@ -1260,16 +1621,6 @@ export function parseGeneratedMeal(
       );
       continue;
     }
-
-    const slotRaw = cleanText(d.slot).toLowerCase();
-    const slot = (MEAL_SLOTS as readonly string[]).includes(slotRaw)
-      ? (slotRaw as MealSlot)
-      : null;
-    if (slotRaw && !slot) issues.push(`dishes[${i}]: unknown slot ${JSON.stringify(slotRaw)}, dropped`);
-
-    const dayRaw = cleanText(d.day).toLowerCase();
-    const day = DAY_TOKENS.includes(dayRaw) ? dayRaw : null;
-    if (dayRaw && !day) issues.push(`dishes[${i}]: unknown day token ${JSON.stringify(dayRaw)}, dropped`);
 
     // ── LES INGRÉDIENTS, ET LA GARANTIE 2 ───────────────────────────────
     const ingredients: DishIngredient[] = [];

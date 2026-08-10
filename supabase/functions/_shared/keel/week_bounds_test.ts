@@ -60,6 +60,9 @@ Deno.test("le plafond suit le nombre de jours RÉELLEMENT demandés", () => {
 Deno.test("le prompt annonce le plafond de la fenêtre, pas celui de sept jours", () => {
   const days = daysUntilSunday("thu");
   const { userMessage } = buildMealPrompt({
+    safetyConstraints: null,
+    body: null,
+    focusAxis: null,
     doctrineBlock: "== METHOD ==",
     coachNoteBlock: null,
     protocolBlock: "",
@@ -89,6 +92,9 @@ Deno.test("un jour de cuisine hors fenêtre ne survit pas à la consigne", () =>
   // déjà passé. Ses jours de cuisine décrivent sa semaine type, la fenêtre est
   // ce qu'il en reste, et seule l'intersection est exécutable.
   const { userMessage } = buildMealPrompt({
+    safetyConstraints: null,
+    body: null,
+    focusAxis: null,
     doctrineBlock: "== METHOD ==",
     coachNoteBlock: null,
     protocolBlock: "",
@@ -117,6 +123,9 @@ Deno.test("aucun jour de cuisine dans la fenêtre: on ne reste pas sans session"
   // Mieux vaut une session posée un jour non déclaré — qu'il déplacera — qu'un
   // plan sans aucun jour de cuisine.
   const { userMessage } = buildMealPrompt({
+    safetyConstraints: null,
+    body: null,
+    focusAxis: null,
     doctrineBlock: "== METHOD ==",
     coachNoteBlock: null,
     protocolBlock: "",
@@ -180,6 +189,7 @@ Deno.test("un lot mangé AVANT d'être cuisiné est signalé", () => {
       beliefKeys: [],
       eatingRhythm: [],
       daysToFill: ["thu", "fri", "sat", "sun"],
+      awayDays: [],
       cookingTimeMin: null,
     },
   );
@@ -223,6 +233,7 @@ Deno.test("cuisiner AVANT de manger ne déclenche rien", () => {
       beliefKeys: [],
       eatingRhythm: [],
       daysToFill: ["thu", "fri", "sat", "sun"],
+      awayDays: [],
       cookingTimeMin: null,
     },
   );
@@ -280,6 +291,7 @@ function planWith(args: {
       beliefKeys: [],
       eatingRhythm: [],
       daysToFill: ["thu", "fri", "sat", "sun", "mon", "tue", "wed"],
+      awayDays: [],
       cookingTimeMin: args.declaredMinutes ?? null,
     },
   );
@@ -351,6 +363,9 @@ Deno.test("un jour de cuisine qui arrive APRÈS les repas ouvre le premier jour"
   //
   // Une contrainte qui rend le plan inexécutable n'est plus une contrainte.
   const { userMessage } = buildMealPrompt({
+    safetyConstraints: null,
+    body: null,
+    focusAxis: null,
     doctrineBlock: "== METHOD ==",
     coachNoteBlock: null,
     protocolBlock: "",
@@ -382,6 +397,9 @@ Deno.test("un jour de cuisine assez tôt n'ouvre rien du tout", () => {
   // mais jeudi est le premier jour et il se cuisine frais. Rien à ajouter —
   // ouvrir un jour ici piétinerait une contrainte parfaitement tenable.
   const { userMessage } = buildMealPrompt({
+    safetyConstraints: null,
+    body: null,
+    focusAxis: null,
     doctrineBlock: "== METHOD ==",
     coachNoteBlock: null,
     protocolBlock: "",

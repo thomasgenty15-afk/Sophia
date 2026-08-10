@@ -21,6 +21,9 @@ import { buildMealPrompt } from "./meal_generation.ts";
 
 function promptWith(args: { today?: string | null; country?: string | null }): string {
   return buildMealPrompt({
+    safetyConstraints: null,
+    body: null,
+    focusAxis: null,
     doctrineBlock: "== METHOD ==",
     coachNoteBlock: null,
     protocolBlock: "",

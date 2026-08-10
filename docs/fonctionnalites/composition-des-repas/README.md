@@ -15,7 +15,7 @@ vérifiés.
 | [FF-004 · Ce qui se garde, et le mot la veille](FF-004-conservation-et-decongelation.md) | 🔵 Idée | Où ranger chaque préparation, et le message du soir qui dit de sortir le plat de demain. |
 | [FF-005 · Une course ou deux — l'élève choisit](FF-005-strategie-de-courses.md) | 🟡 Spécifiée | Les vagues restent le défaut ; « une seule course, je congèle » devient un second mode, choisi et jamais déduit. |
 | [FF-006 · Refaire sa semaine sans perdre celle d'avant](FF-006-cycle-de-vie-du-plan.md) | 🔵 Idée | La mécanique transactionnelle est solide ; ce qui n'a jamais été observé, c'est ce que l'élève comprend avant d'appuyer. |
-| [FF-030 · Le contexte de composition](FF-030-le-contexte-de-composition.md) | 🟡 coach · 🟠 élève | Deux volets. Côté coach : 36 % du bloc doctrine est écrit pour la conversation. Côté élève : cinq entrées collectées — allergies, taille, corps, axe — n'atteignent jamais le générateur. |
+| [FF-030 · Le contexte de composition](FF-030-le-contexte-de-composition.md) | 🟡 coach · 🟢 élève | Deux volets. Côté coach : 36 % du bloc doctrine est écrit pour la conversation. Côté élève : cinq entrées collectées — allergies, taille, corps, axe — n'atteignent jamais le générateur. |
 
 ## Ce que ces fiches ne couvrent pas
 

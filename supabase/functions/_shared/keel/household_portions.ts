@@ -83,9 +83,14 @@ export interface MemberPortion {
 
 /**
  * LA DIRECTION DE SERVICE, par objectif. En anglais parce que c'est la langue
- * du prompt (`MEAL_PROMPT_VERSION = "meal.en.v3_preparations"`), et ces
+ * du prompt (`MEAL_PROMPT_VERSION`, dont le préfixe est `meal.en.`), et ces
  * phrases ne sont JAMAIS montrées à l'utilisateur — elles instruisent le
  * modèle, qui rend ensuite la consigne dans la langue de l'élève.
+ *
+ * La version EXACTE n'est plus recopiée ici: elle a bougé au premier chantier
+ * qui a touché la consigne (FF-030), et une valeur figée dans un commentaire
+ * survit toujours à sa cause. Ce qui compte est le `en`, et il est dans le
+ * préfixe.
  *
  * Aucune ne nomme une raison. « bigger share of the protein » se lit à table;
  * « because you are cutting » se lirait aussi, et par tout le monde.

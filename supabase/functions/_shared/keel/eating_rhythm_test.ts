@@ -16,7 +16,7 @@ import {
 // LE DÉFAUT QUE CE FICHIER GARDE. Le moteur imposait « breakfast, lunch and
 // dinner » à tout le monde, en dur, et le vocabulaire n'avait qu'un jeton
 // `snack` — donc 10h et 17h étaient le même mot et le modèle choisissait. Un
-// élève ne pouvait NI dire qu'il mange quatre fois, NI dire quand.
+// élève ne pouvait NI dire qu'il mange quatre fois, NI dire lesquels comptent.
 //
 // Ce qui est testé n'est donc pas « la fonction rend un tableau »: c'est que
 // ce que l'élève déclare ARRIVE jusqu'à la consigne, que ce qu'il ne déclare
@@ -40,24 +40,48 @@ Deno.test("un rythme déclaré est lu, dans l'ordre de la journée", () => {
   // Saisi en désordre exprès: on lit sa journée du réveil au coucher, pas dans
   // l'ordre où les cases ont été cochées.
   const rhythm = parseEatingRhythm([
-    { slot: "dinner", at: "20:00" },
-    { slot: "snack_pm", at: "17:00" },
-    { slot: "breakfast", at: null },
+    { slot: "dinner", size: "large" },
+    { slot: "snack_pm", size: "small" },
+    { slot: "breakfast", size: null },
   ]);
   assertEquals(rhythm.map((o) => o.slot), ["breakfast", "snack_pm", "dinner"]);
-  assertEquals(rhythm.map((o) => o.at), [null, "17:00", "20:00"]);
+  assertEquals(rhythm.map((o) => o.size), [null, "small", "large"]);
 });
 
-Deno.test("l'heure est facultative et jamais inventée", () => {
+Deno.test("la taille est facultative et jamais inventée", () => {
   const rhythm = parseEatingRhythm([{ slot: "snack_pm" }]);
-  assertEquals(rhythm, [{ slot: "snack_pm", at: null }]);
+  assertEquals(rhythm, [{ slot: "snack_pm", size: null }]);
 
-  // Une heure illisible n'annule pas le moment: « je grignote l'après-midi »
-  // reste vrai sans l'heure. Elle n'est simplement pas retenue — la garder
+  // Une taille illisible n'annule pas le moment: « je grignote l'après-midi »
+  // reste vrai sans elle. Elle n'est simplement pas retenue — la garder
   // poserait une contrainte fausse, la jeter avec le moment perdrait la faim.
-  const fuzzy = parseEatingRhythm([{ slot: "snack_pm", at: "vers 17h" }]);
-  assertEquals(fuzzy, [{ slot: "snack_pm", at: null }]);
-  assertEquals(parseEatingRhythm([{ slot: "dinner", at: "25:00" }])[0].at, null);
+  // Et surtout: PAS de repli sur « medium ». Écrire une taille que l'élève n'a
+  // pas dite poserait exactement la contrainte inventée qu'on refuse.
+  assertEquals(parseEatingRhythm([{ slot: "snack_pm", size: "huge" }]), [
+    { slot: "snack_pm", size: null },
+  ]);
+  assertEquals(parseEatingRhythm([{ slot: "dinner", size: "" }])[0].size, null);
+});
+
+Deno.test("l'ancienne clé `at` est ignorée, et le moment survit", () => {
+  // LE DÉFAUT QUE CE TEST GARDE. `eating_rhythm` a porté une HEURE jusqu'au
+  // 2026-08-07; des lignes en base en ont encore. Elle ne servait qu'à une
+  // parenthèse de prose dans la consigne, et elle a été remplacée par la
+  // TAILLE, qui décide de quelque chose.
+  //
+  // Ce qui compte ici est que le remplacement ne fasse pas DISPARAÎTRE le
+  // moment: un parseur qui rejetterait l'entrée entière parce qu'elle porte une
+  // clé qu'il ne connaît plus rendrait `[]` sur ces lignes-là, donc le repli
+  // petit-déjeuner/déjeuner/dîner — exactement le bug qu'on vient de corriger,
+  // repris par l'autre bout.
+  assertEquals(
+    parseEatingRhythm([{ slot: "lunch", at: "12:30" }, { slot: "dinner", at: "20:00" }]),
+    [{ slot: "lunch", size: null }, { slot: "dinner", size: null }],
+  );
+
+  // Et l'heure n'est PAS traduite en taille: « 20:00 » ne dit pas si le dîner
+  // est gros. Deviner ici serait poser une contrainte que personne n'a dite.
+  assertEquals(parseEatingRhythm([{ slot: "dinner", at: "20:00" }])[0].size, null);
 });
 
 Deno.test("ce qui n'est pas reconnu est écarté, jamais deviné", () => {
@@ -67,8 +91,8 @@ Deno.test("ce qui n'est pas reconnu est écarté, jamais deviné", () => {
   assertEquals(parseEatingRhythm(null), []);
   // Un doublon ne crée pas deux fois le même moment.
   assertEquals(
-    parseEatingRhythm([{ slot: "lunch", at: null }, { slot: "lunch", at: "12:30" }]),
-    [{ slot: "lunch", at: "12:30" }],
+    parseEatingRhythm([{ slot: "lunch", size: null }, { slot: "lunch", size: "large" }]),
+    [{ slot: "lunch", size: "large" }],
   );
 });
 
@@ -76,7 +100,7 @@ Deno.test("la chaîne nue est un moment, pas un déchet", () => {
   // LE DÉFAUT QUE CE TEST GARDE, ET IL ÉTAIT INVISIBLE PARCE QUE LE REPLI
   // RESSEMBLE À UNE RÉPONSE.
   //
-  // Deux formes cohabitent dans la colonne: `{slot, at}` qu'écrit la carte, et
+  // Deux formes cohabitent dans la colonne: `{slot, size}` qu'écrit la carte, et
   // la chaîne nue que posent les jsonb écrits à la main. Le parseur ne lisait
   // que la première et JETAIT la seconde en silence; l'appelant retombait
   // alors sur `DEFAULT_EATING_RHYTHM` — petit-déjeuner, déjeuner, dîner. Donc:
@@ -90,8 +114,8 @@ Deno.test("la chaîne nue est un moment, pas un déchet", () => {
   // La migration qui a créé la clé a renoncé au CHECK de forme en écrivant que
   // « le lecteur sait déjà réparer ». C'est ce test qui rend la phrase vraie.
   assertEquals(parseEatingRhythm(["lunch", "dinner"]), [
-    { slot: "lunch", at: null },
-    { slot: "dinner", at: null },
+    { slot: "lunch", size: null },
+    { slot: "dinner", size: null },
   ]);
 
   // L'ORDRE DE LA JOURNÉE VAUT AUSSI POUR ELLE.
@@ -100,11 +124,11 @@ Deno.test("la chaîne nue est un moment, pas un déchet", () => {
     ["breakfast", "snack_pm", "dinner"],
   );
 
-  // Les deux formes dans le même tableau: une chaîne nue ne porte pas d'heure,
-  // et ne doit donc pas effacer celle qu'une entrée objet a déjà posée.
+  // Les deux formes dans le même tableau: une chaîne nue ne porte pas de
+  // taille, et ne doit donc pas effacer celle qu'une entrée objet a déjà posée.
   assertEquals(
-    parseEatingRhythm([{ slot: "lunch", at: "12:30" }, "lunch", "dinner"]),
-    [{ slot: "lunch", at: "12:30" }, { slot: "dinner", at: null }],
+    parseEatingRhythm([{ slot: "lunch", size: "large" }, "lunch", "dinner"]),
+    [{ slot: "lunch", size: "large" }, { slot: "dinner", size: null }],
   );
 
   // Écarter reste la règle: la tolérance porte sur la FORME, pas sur le
@@ -162,6 +186,9 @@ Deno.test("le plafond du PROMPT et celui du PARSEUR ne peuvent pas diverger", ()
   );
 
   const { userMessage } = buildMealPrompt({
+    safetyConstraints: null,
+    body: null,
+    focusAxis: null,
     doctrineBlock: "== METHOD ==",
     coachNoteBlock: null,
     protocolBlock: "",
@@ -203,6 +230,7 @@ Deno.test("le plafond du PROMPT et celui du PARSEUR ne peuvent pas diverger", ()
       beliefKeys: [],
       eatingRhythm: five,
       daysToFill: ["mon"],
+      awayDays: [],
       cookingTimeMin: null,
     },
   );
@@ -214,7 +242,7 @@ Deno.test("la consigne nomme SES moments, en prose", () => {
   const rhythm = parseEatingRhythm([
     { slot: "breakfast" },
     { slot: "lunch" },
-    { slot: "snack_pm", at: "17:00" },
+    { slot: "snack_pm", size: "small" },
     { slot: "dinner" },
   ]);
   const line = occasionList(rhythm);
@@ -227,4 +255,47 @@ Deno.test("la consigne nomme SES moments, en prose", () => {
   // Le repli est le comportement d'avant, mot pour mot.
   assertEquals(occasionList([]), "breakfast, lunch and dinner");
   assertEquals(occasionList(DEFAULT_EATING_RHYTHM), "breakfast, lunch and dinner");
+});
+
+Deno.test("la TAILLE d'un moment arrive jusqu'à la consigne", () => {
+  // LE DÉFAUT QUE CE TEST GARDE, ET IL AURAIT ÉTÉ INVISIBLE.
+  //
+  // La taille a remplacé l'heure le 2026-08-07 parce qu'elle DÉCIDE de quelque
+  // chose. Mais rien ne le vérifiait: `occasionList` (testé juste au-dessus) ne
+  // porte que les noms, et la taille passe par `rhythmLines`, qui est privée.
+  // On pouvait donc demander la taille à l'élève, l'écrire en base, l'afficher
+  // cochée — et ne jamais l'envoyer au modèle. Une question posée pour rien,
+  // verte de bout en bout.
+  const rhythm = parseEatingRhythm([
+    { slot: "breakfast", size: "small" },
+    { slot: "lunch" },
+    { slot: "dinner", size: "large" },
+  ]);
+  const { userMessage } = buildMealPrompt({
+    safetyConstraints: null,
+    body: null,
+    focusAxis: null,
+    doctrineBlock: "== METHOD ==",
+    coachNoteBlock: null,
+    protocolBlock: "",
+    beliefKeys: [],
+    goal: "health",
+    situation: null,
+    context: null,
+    mode: "to_shop",
+    scope: "day",
+    slot: null,
+    servings: 1,
+    pantry: [],
+    todayToken: "mon",
+    eatingRhythm: rhythm,
+  });
+
+  assert(userMessage.includes("(small for them)"), userMessage);
+  assert(userMessage.includes("(large for them)"), userMessage);
+
+  // ET LE MOMENT SANS TAILLE PART NU. Écrire « medium » sur le déjeuner
+  // poserait une contrainte que l'élève n'a pas exprimée — et le modèle la
+  // respecterait, ce qui est bien le problème.
+  assert(!userMessage.includes("(medium for them)"), userMessage);
 });
