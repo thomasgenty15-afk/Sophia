@@ -8,10 +8,18 @@ import {
   wavesAreMeaningful,
 } from "./groceryWaves";
 
-// LES MÊMES CAS que `supabase/functions/_shared/keel/grocery_waves_test.ts`,
-// nommés pareil. C'est le seul garde-fou honnête d'une duplication assumée:
-// si l'un des deux fichiers change et pas l'autre, la comparaison des deux
-// listes de tests le montre en un coup d'œil.
+// CE FICHIER NE TESTE PLUS UN JUMEAU — il n'y en a plus.
+//
+// La règle vit une seule fois, dans
+// `supabase/functions/_shared/keel/grocery_waves.ts`, et ce sont ses propres
+// tests Deno qui la couvrent. Ce qui reste ici est l'épreuve du BRANCHEMENT:
+// que les types de l'écran (`ShoppingItem` au rayon `string`, `MealPreparation`
+// en snake_case avec ses `ingredients`) traversent l'adaptateur et produisent
+// les vagues attendues.
+//
+// Les cas gardent les noms de leurs jumeaux Deno exprès: si un jour les deux
+// listes divergent, c'est que quelqu'un a réécrit une règle de ce côté-ci — le
+// défaut que ce lot vient de retirer.
 
 // Lundi 2026-08-03 → mon=03, tue=04, wed=05, thu=06, fri=07, sat=08, sun=09.
 const MONDAY = "2026-08-03";

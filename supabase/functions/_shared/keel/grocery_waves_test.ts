@@ -2,9 +2,13 @@ import { assert, assertEquals } from "jsr:@std/assert@1";
 
 import type { ShoppingItem } from "./meal_generation.ts";
 import {
+  MAX_FRIDGE_DAYS,
   planGroceryWaves,
-  type WavePreparation,
+  waveAssignments,
   waveItemCount,
+  type WavePreparation,
+  wavePreparationsFromRows,
+  wavesAreMeaningful,
 } from "./grocery_waves.ts";
 
 // Lundi 2026-08-03. Les jetons de jour suivent donc: mon=03 … sun=09.
@@ -173,4 +177,188 @@ Deno.test("les vagues sortent dans l'ordre chronologique", () => {
   });
   const dates = waves.map((w) => w.buyOn);
   assertEquals([...dates].sort(), dates);
+});
+
+// ===========================================================================
+// SANS FENÊTRE, AUCUNE VAGUE
+// ===========================================================================
+// La garde vivait côté écran tant que le jumeau existait. Elle est REMONTÉE
+// ici avec le reste: une ligne écrite avant `20260807090000_meal_plan_window`
+// n'a pas de `starts_on`, et le PDF du frigo la lira comme l'écran la lit.
+
+Deno.test("sans date de départ, aucune vague — on ne devine pas un jour de courses", () => {
+  for (const startsOn of ["", "pas une date", "2026-8-3"]) {
+    assertEquals(
+      planGroceryWaves({
+        startsOn,
+        durationDays: 7,
+        shoppingList: [item("poulet", "protein")],
+        preparations: [{ id: "p1", cookOn: "fri", ingredientTerms: ["poulet"] }],
+      }),
+      [],
+      `"${startsOn}" ne doit produire aucune vague`,
+    );
+  }
+});
+
+// ===========================================================================
+// LA BORNE VIENT D'AILLEURS, ET ELLE GOUVERNE VRAIMENT LE DÉCOUPAGE
+// ===========================================================================
+// Ce test est écrit EN FONCTION de `MAX_FRIDGE_DAYS`: il affirme que le
+// découpage LIT la borne, où qu'elle soit fixée. Il ne remplace pas les tests
+// qui pinnent "2026-08-04" en dur — ce sont eux qui pinnent la VALEUR, et qui
+// virent au rouge le jour où quelqu'un la change. Les deux ensemble disent:
+// « la borne vaut 3, et c'est bien elle qui décide ».
+Deno.test("la date d'achat de la seconde vague est déduite de MAX_FRIDGE_DAYS", () => {
+  const waves = planGroceryWaves({
+    startsOn: MONDAY,
+    durationDays: 7,
+    shoppingList: [item("sel", "pantry"), item("poulet", "protein")],
+    preparations: [{ id: "p1", cookOn: "sun", ingredientTerms: ["poulet"] }],
+  });
+  // Dimanche 09 moins la borne.
+  const cook = new Date("2026-08-09T12:00:00Z");
+  cook.setUTCDate(cook.getUTCDate() - MAX_FRIDGE_DAYS);
+  assertEquals(waves.length, 2);
+  assertEquals(waves[1].buyOn, cook.toISOString().slice(0, 10));
+  assertEquals(waves[1].items.map((i) => i.term), ["poulet"]);
+});
+
+// ===========================================================================
+// LA FORME PERSISTÉE — ce que l'écran et le PDF lisent réellement
+// ===========================================================================
+
+Deno.test("wavePreparationsFromRows: la ligne snake_case devient l'entrée du calcul", () => {
+  const preps = wavePreparationsFromRows([
+    {
+      id: "p1",
+      cook_on: "fri",
+      ingredients: [{ term: "poulet" }, { term: "thym" }],
+    },
+  ]);
+  assertEquals(preps, [
+    { id: "p1", cookOn: "fri", ingredientTerms: ["poulet", "thym"] },
+  ]);
+});
+
+Deno.test("wavePreparationsFromRows tolère une ligne creuse sans rien inventer", () => {
+  // Une préparation sans `cook_on` ni ingrédients est le cas normal quand le
+  // modèle n'a pas rendu de session: elle doit passer, pas exploser.
+  assertEquals(wavePreparationsFromRows([{}]), [
+    { id: "", cookOn: null, ingredientTerms: [] },
+  ]);
+  assertEquals(
+    wavePreparationsFromRows([{ id: "p1", cook_on: null, ingredients: null }]),
+    [{ id: "p1", cookOn: null, ingredientTerms: [] }],
+  );
+});
+
+Deno.test("la ligne persistée produit les MÊMES vagues que la forme camelCase", () => {
+  // Le seul geste que l'écran fait encore: passer sa ligne à l'adaptateur.
+  // Si les deux chemins divergeaient, le jumeau serait revenu par la fenêtre.
+  const shoppingList = [item("lentilles", "pantry"), item("poulet", "protein")];
+  const fromRows = planGroceryWaves({
+    startsOn: MONDAY,
+    durationDays: 7,
+    shoppingList,
+    preparations: wavePreparationsFromRows([
+      { id: "p1", cook_on: "mon", ingredients: [{ term: "lentilles" }] },
+      { id: "p2", cook_on: "fri", ingredients: [{ term: "poulet" }] },
+    ]),
+  });
+  const fromCamel = planGroceryWaves({
+    startsOn: MONDAY,
+    durationDays: 7,
+    shoppingList,
+    preparations: [
+      { id: "p1", cookOn: "mon", ingredientTerms: ["lentilles"] },
+      { id: "p2", cookOn: "fri", ingredientTerms: ["poulet"] },
+    ],
+  });
+  assertEquals(fromRows, fromCamel);
+  assertEquals(fromRows.length, 2);
+});
+
+// ===========================================================================
+// MONTRER, OU NE PAS MONTRER
+// ===========================================================================
+// Règle de PRODUIT, pas de rendu: un PDF se pose exactement la même question.
+// Elle vivait côté écran, elle vit ici.
+
+Deno.test("wavesAreMeaningful: une seule vague ne se montre pas", () => {
+  assertEquals(wavesAreMeaningful([]), false);
+  assertEquals(wavesAreMeaningful([{ buyOn: "a", items: [], servesCookOn: null }]), false);
+  assertEquals(
+    wavesAreMeaningful([
+      { buyOn: "a", items: [], servesCookOn: null },
+      { buyOn: "b", items: [], servesCookOn: null },
+    ]),
+    true,
+  );
+});
+
+// ===========================================================================
+// LES INDEX D'ORIGINE — pour ne pas casser les ratures
+// ===========================================================================
+
+Deno.test("waveAssignments rend des INDEX, jamais des copies d'articles", () => {
+  const shoppingList = [
+    item("lentilles", "pantry"),
+    item("poulet", "protein"),
+    item("carottes", "produce"),
+  ];
+  const got = waveAssignments({
+    startsOn: MONDAY,
+    durationDays: 7,
+    shoppingList,
+    preparations: [
+      { id: "p1", cookOn: "mon", ingredientTerms: ["lentilles"] },
+      { id: "p2", cookOn: "fri", ingredientTerms: ["poulet"] },
+    ],
+  });
+  assertEquals(got.length, 2);
+  assertEquals(got[0].indices, [0, 2]);
+  assertEquals(got[1].indices, [1]);
+});
+
+Deno.test("DEUX ARTICLES AU MÊME TERME reçoivent DEUX index différents", () => {
+  // Le piège de l'appariement par terme: la cuisse et le blanc s'appellent
+  // tous les deux « poulet », et cocher l'un rayerait l'autre.
+  const got = waveAssignments({
+    startsOn: MONDAY,
+    durationDays: 7,
+    shoppingList: [item("poulet", "protein"), item("poulet", "protein")],
+    preparations: [{ id: "p1", cookOn: "fri", ingredientTerms: ["poulet"] }],
+  });
+  assertEquals(got.flatMap((w) => w.indices).sort(), [0, 1]);
+});
+
+Deno.test("chaque index apparaît EXACTEMENT une fois — rien perdu, rien doublé", () => {
+  const shoppingList = [
+    item("lentilles", "pantry"),
+    item("poulet", "protein"),
+    item("carottes", "produce"),
+  ];
+  const got = waveAssignments({
+    startsOn: MONDAY,
+    durationDays: 7,
+    shoppingList,
+    preparations: [
+      { id: "p1", cookOn: "mon", ingredientTerms: ["lentilles"] },
+      { id: "p2", cookOn: "fri", ingredientTerms: ["poulet"] },
+    ],
+  });
+  assertEquals(got.flatMap((w) => w.indices).sort((a, b) => a - b), [0, 1, 2]);
+});
+
+Deno.test("sans fenêtre, aucune affectation", () => {
+  assertEquals(
+    waveAssignments({
+      startsOn: "",
+      durationDays: 7,
+      shoppingList: [item("poulet", "protein")],
+      preparations: [],
+    }),
+    [],
+  );
 });

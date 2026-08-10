@@ -16,12 +16,36 @@
  * au lieu d'un est une conséquence, jamais un objectif — l'inverse serait
  * exactement le conflit d'intérêt que §7.3 reproche au modèle dominant.
  *
+ * ── CE FICHIER EST LA SEULE DÉFINITION DE LA RÈGLE ───────────────────────
+ * Il a existé jusqu'au 2026-08-10 un JUMEAU côté écran
+ * (`frontend/src/keel/api/groceryWaves.ts`) qui recopiait l'algorithme ET la
+ * borne `MAX_FRIDGE_DAYS = 3`. Deux définitions d'une même règle physique sont
+ * une divergence en attente: le jour où le frigo passe à quatre jours, l'une
+ * des deux ment, et c'est l'écran le moins regardé qui garde l'ancienne.
+ *
+ * Le jumeau est mort. `frontend/src/keel/api/groceryWaves.ts` IMPORTE ce
+ * fichier et ne fait plus qu'adapter la forme des lignes (snake_case de la base
+ * → camelCase d'ici). Le module ne dépend d'aucun global Deno ni d'aucun
+ * spécificateur `jsr:`/`npm:` — c'est ce qui rend l'import possible depuis Vite,
+ * et c'est une propriété à préserver.
+ *
+ * ── POURQUOI ICI, ET PAS CÔTÉ ÉCRAN ──────────────────────────────────────
+ * Les surfaces à venir — PDF du frigo, liste de courses partageable sans
+ * compte, widget « ce soir » — sont HORS NAVIGATEUR et ne peuvent pas exécuter
+ * un calcul React. Garder la règle au client, c'est garantir de la réécrire à
+ * la première de ces surfaces.
+ *
+ * ── LES VAGUES SE CALCULENT À LA LECTURE, ELLES NE SE STOCKENT PAS ───────
+ * `cook_on` et la liste de courses sont déjà dans la ligne du plan. Stocker les
+ * vagues créerait un TROISIÈME état à invalider chaque fois qu'une préparation
+ * change de jour — et ce dépôt paie en boucle le statut stocké dont l'écrivain
+ * a disparu.
+ *
  * ── LA BORNE N'EST PAS INVENTÉE ICI ──────────────────────────────────────
  * `MAX_FRIDGE_DAYS` vient de `meal_generation.ts`, où elle gouverne déjà
  * combien de jours un plat cuisiné peut être mangé. C'est la même question
- * physique posée à l'autre bout de la chaîne, et deux constantes recopiées
- * divergeraient au premier ajustement — après quoi le produit dirait « garde-le
- * 3 jours » en cuisine et « achète-le 4 jours avant » aux courses.
+ * physique posée à l'autre bout de la chaîne. Elle est RÉEXPORTÉE ici pour que
+ * les consommateurs des vagues n'aient qu'un seul endroit où la lire.
  *
  * ── LA PROPRIÉTÉ QUI COMPTE LE PLUS: RIEN NE DISPARAÎT ───────────────────
  * Un article dont on ne sait pas rattacher le terme à une préparation part en
@@ -29,8 +53,10 @@
  * en silence est pire qu'une liste plate: on s'en aperçoit devant la casserole.
  */
 
-import { MAX_FRIDGE_DAYS, type ShoppingAisle, type ShoppingItem } from "./meal_generation.ts";
+import { MAX_FRIDGE_DAYS, type ShoppingAisle } from "./meal_generation.ts";
 import { addDays, windowDates } from "./meal_plan_window.ts";
+
+export { MAX_FRIDGE_DAYS };
 
 /**
  * LES RAYONS QUI NE SE GARDENT PAS.
@@ -44,12 +70,26 @@ import { addDays, windowDates } from "./meal_plan_window.ts";
  * par aliment, qui n'existe pas — et se tromper dans ce sens coûte un achat
  * une semaine trop tard (agaçant), tandis que l'inverse coûte des légumes
  * jetés (coûteux, et le produit promet le contraire).
+ *
+ * La liste est ÉCRITE en `ShoppingAisle` (une faute de frappe ne compile pas)
+ * mais EXPOSÉE en `ReadonlySet<string>`: l'appelant écran tient ses rayons en
+ * `string`, et lui imposer l'union l'obligerait à un cast — c'est-à-dire à
+ * désarmer le typage au lieu de le renforcer.
  */
-export const PERISHABLE_AISLES: ReadonlySet<ShoppingAisle> = new Set<ShoppingAisle>([
-  "produce",
-  "protein",
-  "dairy",
-]);
+const PERISHABLE: readonly ShoppingAisle[] = ["produce", "protein", "dairy"];
+export const PERISHABLE_AISLES: ReadonlySet<string> = new Set<string>(PERISHABLE);
+
+/**
+ * LE MINIMUM QU'UN ARTICLE DOIT PORTER pour être routé.
+ *
+ * Volontairement structurel, et pas `ShoppingItem`: le serveur tient son rayon
+ * en union fermée, l'écran le tient en `string` (il vient d'un JSON). Les deux
+ * satisfont ceci, donc les deux passent sans couche de conversion.
+ */
+export interface WaveItem {
+  term: string;
+  aisle: string;
+}
 
 /** Une préparation, réduite à ce dont ce module a besoin. */
 export interface WavePreparation {
@@ -60,10 +100,37 @@ export interface WavePreparation {
   ingredientTerms: readonly string[];
 }
 
-export interface GroceryWave {
+/**
+ * LA FORME PERSISTÉE d'une préparation — celle de `student_generated_meals`,
+ * donc celle que reçoit l'écran ET celle que lira le PDF.
+ *
+ * Elle vit ICI et pas côté écran: l'adaptation snake_case → camelCase est la
+ * seule chose que le jumeau front faisait légitimement, et la laisser là-bas
+ * garantirait qu'on la réécrive à la première surface hors navigateur.
+ */
+export interface WavePreparationRow {
+  id?: string | null;
+  cook_on?: string | null;
+  ingredients?: readonly { term?: string | null }[] | null;
+}
+
+/** La ligne du plan devient l'entrée du calcul. Aucune règle ici, une forme. */
+export function wavePreparationsFromRows(
+  rows: readonly WavePreparationRow[],
+): WavePreparation[] {
+  return rows.map((row) => ({
+    id: String(row.id ?? ""),
+    cookOn: row.cook_on ?? null,
+    ingredientTerms: (row.ingredients ?? [])
+      .map((ing) => String(ing?.term ?? ""))
+      .filter((term) => term.length > 0),
+  }));
+}
+
+export interface GroceryWave<T extends WaveItem = WaveItem> {
   /** Date d'achat, `YYYY-MM-DD`, dans le calendrier local du plan. */
   buyOn: string;
-  items: ShoppingItem[];
+  items: T[];
   /**
    * La cuisson la plus proche que cette vague sert. `null` en première vague
    * quand elle ne porte que de l'épicerie. Sert la phrase de l'écran
@@ -74,7 +141,7 @@ export interface GroceryWave {
 }
 
 /** Normalisation minimale pour rapprocher un terme de liste d'un ingrédient. */
-function normalize(term: string): string {
+function normalize(term: unknown): string {
   return String(term ?? "")
     .toLowerCase()
     .normalize("NFD")
@@ -83,6 +150,8 @@ function normalize(term: string): string {
     .replace(/\s+/g, " ")
     .trim();
 }
+
+const CALENDAR_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 /**
  * Répartir la liste de courses en vagues d'achat.
@@ -94,15 +163,22 @@ function normalize(term: string): string {
  * Si le plan tient dans `MAX_FRIDGE_DAYS`, tout se garde jusqu'à sa cuisson et
  * une seconde vague n'apporterait qu'un déplacement en plus. La cadence doit
  * servir la fraîcheur; quand la fraîcheur ne l'exige pas, elle disparaît.
+ *
+ * ── SANS FENÊTRE, AUCUNE VAGUE ───────────────────────────────────────────
+ * Une ligne écrite avant `20260807090000_meal_plan_window` n'a pas de
+ * `starts_on`. Inventer une date d'achat enverrait quelqu'un au magasin un jour
+ * qui n'est écrit nulle part. Rendre `[]` ne perd rien: l'appelant qui n'a pas
+ * de vagues rend la liste PLATE, celle d'avant ce module.
  */
-export function planGroceryWaves(args: {
+export function planGroceryWaves<T extends WaveItem>(args: {
   startsOn: string;
   durationDays: number;
-  shoppingList: readonly ShoppingItem[];
+  shoppingList: readonly T[];
   preparations: readonly WavePreparation[];
-}): GroceryWave[] {
+}): GroceryWave<T>[] {
   const { startsOn, durationDays, shoppingList, preparations } = args;
   if (shoppingList.length === 0) return [];
+  if (!CALENDAR_DATE.test(String(startsOn ?? ""))) return [];
 
   const dates = windowDates(startsOn, durationDays);
 
@@ -121,11 +197,11 @@ export function planGroceryWaves(args: {
     }
   }
 
-  const byDate = new Map<string, { items: ShoppingItem[]; serves: string | null }>();
+  const byDate = new Map<string, { items: T[]; serves: string | null }>();
 
   for (const item of shoppingList) {
     const cookDate = earliestCook.get(normalize(item.term)) ?? null;
-    const perishable = PERISHABLE_AISLES.has(item.aisle);
+    const perishable = PERISHABLE_AISLES.has(String(item.aisle));
 
     let buyOn = startsOn;
     let serves: string | null = null;
@@ -137,7 +213,7 @@ export function planGroceryWaves(args: {
       if (buyOn > startsOn) serves = cookDate;
     }
 
-    const bucket = byDate.get(buyOn) ?? { items: [], serves: null };
+    const bucket = byDate.get(buyOn) ?? { items: [] as T[], serves: null };
     bucket.items.push(item);
     // La vague annonce la cuisson la plus PROCHE qu'elle sert.
     if (serves && (!bucket.serves || serves < bucket.serves)) bucket.serves = serves;
@@ -157,6 +233,68 @@ export function planGroceryWaves(args: {
  * Le total, pour la propriété « rien ne disparaît ». Exporté parce que
  * l'appelant doit pouvoir l'affirmer aussi, pas seulement le test.
  */
-export function waveItemCount(waves: readonly GroceryWave[]): number {
+export function waveItemCount(waves: readonly GroceryWave<WaveItem>[]): number {
   return waves.reduce((n, w) => n + w.items.length, 0);
+}
+
+/**
+ * Faut-il MONTRER les vagues ?
+ *
+ * Une seule vague = la liste plate d'avant, et un en-tête « à acheter
+ * maintenant » posé sur la totalité n'ajoute rien qu'un mot à lire. Les vagues
+ * ne se montrent que quand elles disent quelque chose.
+ *
+ * C'est une règle de PRODUIT, pas de rendu — un PDF a exactement la même
+ * question à se poser — donc elle vit ici avec le calcul.
+ */
+export function wavesAreMeaningful(waves: readonly GroceryWave<WaveItem>[]): boolean {
+  return waves.length > 1;
+}
+
+/**
+ * LES VAGUES, EXPRIMÉES EN INDEX DE LA LISTE D'ORIGINE.
+ *
+ * ── POURQUOI CETTE FORME EN PLUS DE L'AUTRE ──────────────────────────────
+ * `ShoppingListPanel` identifie une rature par son INDEX dans la liste
+ * d'origine (voir `groupByAisle`), et pas par son terme — deux articles
+ * peuvent porter le même mot. Rendre des sous-listes d'articles obligerait à
+ * réindexer, donc à faire sauter une rature quand la vague change de taille.
+ */
+export interface WaveAssignment {
+  buyOn: string;
+  servesCookOn: string | null;
+  /** Index dans la liste passée à `planGroceryWaves`. */
+  indices: number[];
+}
+
+export function waveAssignments<T extends WaveItem>(args: {
+  startsOn: string;
+  durationDays: number;
+  shoppingList: readonly T[];
+  preparations: readonly WavePreparation[];
+}): WaveAssignment[] {
+  const waves = planGroceryWaves(args);
+  if (waves.length === 0) return [];
+
+  // On rejoue l'appartenance par IDENTITÉ D'OBJET, pas par terme: les articles
+  // rendus par `planGroceryWaves` sont les mêmes références que ceux de
+  // `shoppingList`, donc l'égalité est exacte même quand deux lignes portent
+  // le même mot.
+  const indexOf = new Map<T, number[]>();
+  args.shoppingList.forEach((item, index) => {
+    const list = indexOf.get(item) ?? [];
+    list.push(index);
+    indexOf.set(item, list);
+  });
+
+  return waves.map((wave) => ({
+    buyOn: wave.buyOn,
+    servesCookOn: wave.servesCookOn,
+    indices: wave.items.map((item) => {
+      const pool = indexOf.get(item);
+      // `shift()` consomme: deux références identiques dans la même liste
+      // reçoivent deux index différents, dans l'ordre.
+      return pool && pool.length > 0 ? pool.shift()! : -1;
+    }).filter((i) => i >= 0),
+  }));
 }
