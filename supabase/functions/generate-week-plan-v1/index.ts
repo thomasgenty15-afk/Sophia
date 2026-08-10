@@ -15,6 +15,7 @@ import { coachNotePromptBlock, loadCoachNote } from "../_shared/keel/coach_note.
 import { constraintsForPrompt } from "../_shared/keel/food_preference_promotion.ts";
 import { reconcileFoodPreferencesFor } from "../_shared/keel/food_preference_promotion_io.ts";
 import { loadStudentSafetyConstraints } from "../_shared/keel/safety_constraints.ts";
+import { keelGenerationModel } from "../_shared/keel/generation_model.ts";
 import { ageBandOf, usableAge, weekPlanAgeGate } from "../_shared/keel/student_age.ts";
 import {
   trendOf,
@@ -414,7 +415,10 @@ Deno.serve(async (req) => {
 
     const result = await generateWithGemini(
       systemPrompt, userMessage, 0.4, true, [], "auto",
-      { source: FN_NAME, requestId, userId },
+      // Même modèle de composition que `generate-meal-v1` — voir
+      // `generation_model.ts`. Un plan de semaine porte encore plus de
+      // contraintes simultanées qu'un repas.
+      { source: FN_NAME, requestId, userId, model: keelGenerationModel() },
     );
     // `generateWithGemini` rend `string | {tool, args}`. Le vérifier plutôt que
     // de caster: un cast rend "" en silence et produit un plan vide.

@@ -523,6 +523,52 @@ export const parseFoodGroupRef = makeParser<FoodGroupRef>(
   },
 );
 
+/**
+ * LES GROUPES QUI PORTENT UNE ANCRE PROTÉIQUE — FF-037.
+ *
+ * Fiche: `docs/fonctionnalites/composition-des-repas/FF-037-l-ancre-proteique.md`
+ *
+ * ── POURQUOI C'EST UN SOUS-ENSEMBLE ET PAS UNE LISTE ──────────────────────
+ * Le type est `readonly FoodGroupRef[]`, donc un slug inventé ne compile pas.
+ * Une seconde liste de chaînes aurait divergé des trente le jour où un groupe
+ * change de nom — c'est exactement la duplication de vocabulaire alimentaire
+ * que ce dépôt a déjà payée, et que le design du chantier interdit nommément.
+ *
+ * ── CE QUI N'Y EST PAS, ET C'EST UN ARBITRAGE ÉCRIT ───────────────────────
+ * `dairy_cheese` est EXCLU. Une pincée de parmesan n'est pas une ancre, et
+ * l'inclure rendrait la garantie vraie pour presque tous les plats — donc
+ * vide. Le coût accepté est une salade réellement construite autour de 150 g
+ * de feta qui reçoit une issue et une relance qu'elle ne mérite pas; la
+ * relance propose alors une autre ancre végétarienne, toutes présentes ici.
+ * La révision de cet arbitrage passe par le calcul en GRAMMES (FF-039), pas
+ * par un ajustement d'intuition (FF-037 §9).
+ *
+ * `nuts_seeds` est exclu pour la même raison, en plus net: 30 g d'amandes sont
+ * une matière grasse avec de la protéine dedans, pas une ancre.
+ *
+ * ── CE QUE ÇA MESURE, ET CE QUE ÇA NE MESURE PAS ─────────────────────────
+ * La PRÉSENCE d'un aliment de ces groupes. Jamais la quantité: « deux œufs »
+ * et « une omelette de six » sont indiscernables ici, et c'est assumé — le
+ * gramme est la question de FF-039, qui a le référentiel pour y répondre.
+ */
+export const PROTEIN_SOURCES = [
+  "lean_protein",
+  "fatty_fish",
+  "white_fish",
+  "shellfish",
+  "poultry",
+  "red_meat",
+  "eggs",
+  "legumes",
+  "tofu_tempeh",
+  "dairy_yogurt",
+  // `satisfies` et pas une annotation: l'annotation élargirait le type à
+  // `FoodGroupRef` et un `Record<ProteinSourceGroup, …>` exigerait alors les
+  // TRENTE groupes. Ici le sous-ensemble reste étroit ET vérifié — un slug
+  // inventé ne compile pas, et une table indexée dessus n'a que ces dix clés.
+] as const satisfies readonly FoodGroupRef[];
+export type ProteinSourceGroup = typeof PROTEIN_SOURCES[number];
+
 // ---------------------------------------------------------------------------
 // GOAL TOKENS — `student_goals.goal`, and the SCOPE of everything a coach
 // writes that does not apply to every student he has.

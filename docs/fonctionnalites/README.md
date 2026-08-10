@@ -188,6 +188,10 @@ des crons, observabilité, files de reprise.
 | [FF-029](conversation/FF-029-les-pratiques-quotidiennes.md) | Les pratiques quotidiennes | `conversation` | 🟠 En cours |
 | [FF-030](composition-des-repas/FF-030-le-contexte-de-composition.md) | Le contexte de composition | `composition-des-repas` | 🟡 Spécifiée (volet coach) |
 | [FF-031](suivi-quotidien/FF-031-mesures-corporelles-datees.md) | Une mesure du corps est datée à l'instant, pas à la semaine | `suivi-quotidien` | 🟠 En cours |
+| FF-032 → FF-036 | *réservés* — [CHANTIER-FOYER-PROFILS.md](../keel/CHANTIER-FOYER-PROFILS.md) §identifiants. Ne pas réattribuer | `le-foyer` | — |
+| [FF-037](composition-des-repas/FF-037-l-ancre-proteique.md) | L'ancre protéique | `composition-des-repas` | 🟠 En cours |
+| [FF-038](composition-des-repas/FF-038-le-referentiel-de-composition.md) | Le référentiel de composition, et les quantités qu'on recalcule | `composition-des-repas` | 🟠 En cours |
+| [FF-039](composition-des-repas/FF-039-enveloppes-et-verdicts-en-observation.md) | Les enveloppes et les verdicts, en observation | `composition-des-repas` | 🟠 En cours |
 
 > **Un identifiant ne se réutilise jamais** — y compris quand deux sessions
 > écrivent en parallèle, et y compris quand la fiche disparaît. `FF-002` a été

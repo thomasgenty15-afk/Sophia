@@ -6,6 +6,7 @@ import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import { generateWithGemini } from "../_shared/gemini.ts";
+import { keelGenerationModel } from "../_shared/keel/generation_model.ts";
 import {
   doctrineBeliefsFor,
   doctrineBlockFor,
@@ -56,6 +57,7 @@ import {
   parseEatingRhythm,
   parseGeneratedMeal,
 } from "../_shared/keel/meal_generation.ts";
+import { proteinAnchorRetryInstruction } from "../_shared/keel/protein_anchor.ts";
 
 /**
  * `generate-meal-v1` — l'élève se fait composer un repas.
@@ -641,42 +643,112 @@ Deno.serve(async (req) => {
       // `household_meal_generation.ts`, qui applique la même règle à ses
       // règles de maison).
       systemPrompt, userMessage + hungerSuffix, 0.6, true, [], "auto",
-      { source: FN_NAME, requestId, userId },
+      // LE MODÈLE DE COMPOSITION, pas celui du chat. Voir `generation_model.ts`:
+      // cette fonction tient des dizaines de contraintes simultanées, dont des
+      // négatives, et c'est le seul endroit où la capacité du modèle se paie en
+      // assiettes fausses. `KEEL_GENERATION_MODEL` est la soupape de retour
+      // arrière — nécessaire parce que ce chemin n'a PAS de repli automatique.
+      { source: FN_NAME, requestId, userId, model: keelGenerationModel() },
     );
     if (typeof result !== "string") {
       return jsonResponse(req, { error: "model_returned_tool_call", request_id: requestId }, { status: 502 });
     }
 
+    // Hissés en `const`: la relance FF-037 doit repasser par EXACTEMENT les
+    // mêmes verrous et les mêmes plafonds que le premier passage. Deux objets
+    // d'arguments écrits à la main divergeraient au premier paramètre ajouté,
+    // et la sortie de relance serait vérifiée moins fort que celle qu'elle
+    // remplace — c'est-à-dire une porte de sortie pour tout ce que le premier
+    // passage refuse.
+    const parseArgs = {
+      doctrine: doctrine.doctrine,
+      safetyConstraints: constraints,
+      mode,
+      scope,
+      pantry,
+      beliefKeys,
+      // LA MÊME VALEUR que celle passée au prompt, et c'est tout l'objet du
+      // `const` hissé au-dessus: relire `practical_constraints` ici rendrait
+      // deux rythmes à tenir d'accord au lieu d'un seul à lire.
+      eatingRhythm,
+      // MÊME RAISON: le plafond du parseur doit être celui du prompt, et il
+      // dérive du nombre de jours réellement demandés.
+      daysToFill,
+      // ET LA MÊME ENCORE pour les absences: la consigne les interdit, le
+      // parseur les rejette. Une contrainte qui ne vit que dans le prompt
+      // n'est pas une garantie.
+      awayDays,
+      // Le temps par session est un PLAFOND. Le prompt l'annonce, le parseur
+      // le vérifie: mesuré 30 déclarées contre 55 produites.
+      cookingTimeMin: capacity.cookingTimeMin,
+    } as const;
+
     let meal;
     try {
-      meal = parseGeneratedMeal(result, {
-        doctrine: doctrine.doctrine,
-        safetyConstraints: constraints,
-        mode,
-        scope,
-        pantry,
-        beliefKeys,
-        // LA MÊME VALEUR que celle passée au prompt, et c'est tout l'objet du
-        // `const` hissé au-dessus: relire `practical_constraints` ici rendrait
-        // deux rythmes à tenir d'accord au lieu d'un seul à lire.
-        eatingRhythm,
-        // MÊME RAISON: le plafond du parseur doit être celui du prompt, et il
-        // dérive du nombre de jours réellement demandés.
-        daysToFill,
-        // ET LA MÊME ENCORE pour les absences: la consigne les interdit, le
-        // parseur les rejette. Une contrainte qui ne vit que dans le prompt
-        // n'est pas une garantie.
-        awayDays,
-        // Le temps par session est un PLAFOND. Le prompt l'annonce, le parseur
-        // le vérifie: mesuré 30 déclarées contre 55 produites.
-        cookingTimeMin: capacity.cookingTimeMin,
-      });
+      meal = parseGeneratedMeal(result, parseArgs);
     } catch (error) {
       return jsonResponse(req, {
         error: "meal_unparseable",
         detail: error instanceof Error ? error.message : String(error),
         request_id: requestId,
       }, { status: 502 });
+    }
+
+    // ── FF-037 · UNE SEULE RELANCE POUR L'ANCRE PROTÉIQUE ─────────────────
+    // Patron `doctrineRetryInstruction`: la relance NOMME ce qui a manqué. Une
+    // relance aveugle rejoue le même dé — c'est écrit sur
+    // `assertNoDoctrineViolation` et c'est mesuré.
+    //
+    // UNE SEULE, et la borne est un arbitrage écrit (FF-037 R7): la deuxième
+    // coûte une génération complète pour un gain non mesuré, et le plan sort de
+    // toute façon avec ses issues.
+    //
+    // LA RELANCE NE PEUT PAS COÛTER LE PLAN. Elle n'est adoptée que si elle
+    // parse, rend au moins autant de plats, et laisse STRICTEMENT moins de
+    // repas sans ancre. Tout le reste — modèle en erreur, sortie illisible,
+    // plan appauvri — garde silencieusement la première sortie: un élève ne
+    // perd pas son dîner parce qu'une amélioration a raté.
+    let proteinAnchorRetry = false;
+    // Capturé AVANT la relance: `meal` est réassigné quand elle est adoptée, et
+    // journaliser `meal.protein_anchor_missing.length` après coup rendrait le
+    // chiffre d'APRÈS sous le nom de celui d'AVANT — un compteur qui ment est
+    // pire qu'un compteur absent, et celui-ci arme la mesure du §10.
+    const anchorMissingBefore = meal.protein_anchor_missing.length;
+    if (anchorMissingBefore > 0) {
+      const retryInstruction = proteinAnchorRetryInstruction(meal.protein_anchor_missing);
+      try {
+        const retryResult = await generateWithGemini(
+          systemPrompt,
+          `${userMessage}${hungerSuffix}\n\n${retryInstruction}`,
+          0.6,
+          true,
+          [],
+          "auto",
+          { source: `${FN_NAME}.protein_anchor_retry`, requestId, userId, model: keelGenerationModel() },
+        );
+        if (typeof retryResult === "string") {
+          const retried = parseGeneratedMeal(retryResult, parseArgs);
+          if (
+            retried.dishes.length >= meal.dishes.length &&
+            retried.protein_anchor_missing.length < anchorMissingBefore
+          ) {
+            meal = retried;
+            proteinAnchorRetry = true;
+          }
+        }
+      } catch (error) {
+        // Journalisé, jamais remonté: la relance est une amélioration, pas une
+        // dépendance. Sans le nom, une relance qui échoue en boucle
+        // ressemblerait à des plans que le modèle compose mal.
+        console.warn(`[${FN_NAME}] protein anchor retry failed`, error);
+      }
+      console.log(JSON.stringify({
+        tag: "keel.meal.protein_anchor",
+        user_id: userId,
+        missing_before: anchorMissingBefore,
+        missing_after: meal.protein_anchor_missing.length,
+        retried: proteinAnchorRetry,
+      }));
     }
 
     if (meal.dishes.length === 0) {
@@ -735,6 +807,14 @@ Deno.serve(async (req) => {
             // aucune trace du motif. Le contrôle existait et personne ne
             // pouvait le lire — c'est-à-dire qu'il n'existait pas.
             issues: [...issues, ...meal.issues],
+            // FF-037 — CE QUE L'ANCRE A COÛTÉ ET RAPPORTÉ, SUR LA LIGNE.
+            // Le §10 de la fiche demande deux chiffres: la part de repas
+            // principaux sans ancre, et la part de relances qui règlent
+            // vraiment le problème. Le second n'est lisible qu'ici: une
+            // relance dont on ne garde pas la trace est une relance qu'on
+            // paiera sans jamais savoir si elle sert.
+            protein_anchor_retry: proteinAnchorRetry,
+            protein_anchor_missing: meal.protein_anchor_missing,
             // FF-027 — la provenance de l'adaptation, archivée avec la
             // composition. C'est ce qui rend « la faim persiste malgré deux
             // adaptations » (§10) lisible sans qu'aucun compteur ne vive sur

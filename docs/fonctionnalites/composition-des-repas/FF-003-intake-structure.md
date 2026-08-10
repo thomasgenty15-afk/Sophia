@@ -220,3 +220,26 @@ Et aucun champ du JSON n'est utilisé, même les valides
    contre `cooking_time_min = 45`. Le ponctuel doit sans doute l'emporter, comme
    en [FF-002](FF-002-dire-son-absence.md) R2 — mais ici il l'emporterait sur une
    saisie explicite de l'élève, ce qui n'est pas la même chose.
+4. **Le champ que cette fiche veut lire a changé de métier.** Décision produit
+   du 2026-08-08, en deux temps : « Anything going on this week » (`context`) a
+   été retiré du constructeur, puis remis le jour même — mais recentré.
+
+   Il servait à tout dire, y compris « je mange dehors vendredi ». Cette
+   moitié-là appartient maintenant à la grille de
+   [FF-002](FF-002-dire-son-absence.md), qui l'exprime au jour et au repas près
+   et que le parseur fait respecter. Ce qui reste au champ est ce que la grille
+   **ne peut pas** dire : l'**événement**. Le placeholder le montre plutôt que
+   de le décrire — « guests on Saturday · the oven is broken · back from
+   holiday, empty fridge ».
+
+   Conséquence pour l'intake : la matière à classer est plus étroite et plus
+   homogène qu'à l'écriture de cette fiche. `away` (§5) est désormais couvert
+   en amont par la grille et n'a plus à être déduit de la prose ; `events` et
+   `equipment_out` deviennent le cœur du travail.
+
+   Reste en suspens : `situation` — la prose DURABLE — est partie et n'est pas
+   revenue. Sa colonne est toujours lue par les deux générateurs, donc les
+   élèves qui l'avaient remplie en profitent encore, mais aucun nouveau ne peut
+   l'écrire. La piste la plus prometteuse, et jamais instruite : la récupérer
+   dans **la conversation**, où l'élève dit déjà ces choses au memorizer,
+   plutôt que de redemander un champ.

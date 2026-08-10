@@ -53,6 +53,11 @@ import { findNumericTarget } from "./week_plan_generation.ts";
 import { normalizeForMatch } from "./forbidden_matcher.ts";
 import { mealBodyBlocks, type MealBodyContext } from "./meal_body.ts";
 import { type WeeklyAxis, WEEKLY_AXIS_LABELS_EN } from "./weekly_flow.ts";
+import {
+  detectProteinAnchor,
+  isMainMealSlot,
+  PROTEIN_ANCHOR_PROMPT_LINE,
+} from "./protein_anchor.ts";
 
 // ---------------------------------------------------------------------------
 // Entrées / sorties
@@ -477,6 +482,19 @@ export interface GeneratedMeal {
   rejected_numeric: string[];
   /** Rayons hors liste close. */
   rejected_aisles: string[];
+  /**
+   * FF-037 — LES TITRES DES REPAS PRINCIPAUX SANS ANCRE PROTÉIQUE.
+   *
+   * Un CONSTAT, pas une décision: les plats concernés sont dans `dishes`, et
+   * ils y restent (pass-with-issue, FF-037 R5). C'est l'appelant qui décide
+   * d'une relance — ce module est pur et ne peut rappeler aucun modèle. Même
+   * partage que `findDoctrineViolations` (constate) et sa lane (relance).
+   *
+   * Vide quand le verrou de sortie a mordu: relancer pour une ancre alors que
+   * la semaine entière est vidée pour un allergène serait une relance qui
+   * répare la mauvaise chose.
+   */
+  protein_anchor_missing: string[];
   issues: string[];
   lock: OutputLockResult;
 }
@@ -489,8 +507,15 @@ export interface GeneratedMeal {
  * bascule, les deux populations se mélangent dans la même colonne et la mesure
  * du §10 de la fiche (« la part de `empty_meal` médicaux a-t-elle baissé ? »)
  * devient impossible à faire après coup.
+ *
+ * ── POURQUOI ELLE BOUGE ENCORE (FF-037) ──────────────────────────────────
+ * La consigne gagne une section: chaque repas principal est bâti autour d'un
+ * aliment protéique. Le §10 de la fiche compare la part de plats principaux
+ * porteurs d'une ancre AVANT et APRÈS — et cette comparaison n'est faisable que
+ * si la colonne sait séparer les deux populations. Bumper est donc la moitié
+ * mesurable du lot, pas une formalité.
  */
-export const MEAL_PROMPT_VERSION = "meal.en.v4_student_body";
+export const MEAL_PROMPT_VERSION = "meal.en.v5_protein_anchor";
 
 const DAY_TOKENS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
 
@@ -735,6 +760,8 @@ Sanity, before you write a quantity: one adult portion is roughly a palm of
 protein, a fist of starch, and vegetables on top. Scale from there. You never
 tell the student those figures; you use them so the numbers you DO write are
 believable.
+
+${PROTEIN_ANCHOR_PROMPT_LINE}
 
 == THE STRETCH STARTS TODAY ==
 
@@ -1807,6 +1834,34 @@ export function parseGeneratedMeal(
   });
   const clean = lock.reason === "clean" || lock.reason.startsWith("disarmed");
 
+  // ── FF-037 : L'ANCRE PROTÉIQUE DES REPAS PRINCIPAUX ─────────────────────
+  // Une règle qui n'existe que dans le prompt n'est pas une garantie. Ce
+  // fichier l'écrit déjà trois fois — pour le plafond de plats, les moments
+  // écartés et le temps de session — et l'a payée les trois fois. La consigne
+  // demande une ancre; ceci VÉRIFIE qu'elle est là.
+  //
+  // PASS-WITH-ISSUE. Le plat est conservé. Seul le verrou binaire de sécurité
+  // vide un repas; un constat de composition n'a jamais ce pouvoir, et un
+  // `empty_meal` sur un motif pareil serait un refus dont l'élève ne peut rien
+  // faire (FF-037 R5).
+  //
+  // LES INGRÉDIENTS DE LA PRÉPARATION COMPTENT. Le prompt système demande
+  // explicitement qu'un plat qui puise dans un lot NE RÉPÈTE PAS sa recette:
+  // ne regarder que `dish.ingredients` ferait donc signaler tous les plats de
+  // batch, c'est-à-dire précisément l'architecture qu'on a demandée.
+  const proteinAnchorMissing: string[] = [];
+  for (const [i, dish] of dishes.entries()) {
+    if (!isMainMealSlot(dish.slot)) continue;
+    const fromPreparations = dish.uses.flatMap((u) =>
+      preparations.find((p) => p.id === u.preparationId)?.ingredients ?? []
+    );
+    if (detectProteinAnchor([...dish.ingredients, ...fromPreparations])) continue;
+    proteinAnchorMissing.push(dish.title);
+    issues.push(
+      `dishes[${i}]: protein_source_missing -- ${dish.slot} carries no protein food`,
+    );
+  }
+
   // ── LES SESSIONS DE CUISINE ─────────────────────────────────────────────
   // Une session qui ne fait AUCUNE préparation connue est jetée: elle
   // annoncerait un dimanche de cuisine sans rien à cuisiner.
@@ -1951,6 +2006,11 @@ export function parseGeneratedMeal(
     shopping_list: clean ? finalShopping : [],
     rejected_numeric: rejectedNumeric,
     rejected_aisles: rejectedAisles,
+    // Gardé sur `clean` comme les plats eux-mêmes: relancer pour une ancre
+    // quand la semaine entière vient d'être vidée par un allergène ferait
+    // réparer la mauvaise chose, et à la deuxième sortie sale on aurait dépensé
+    // deux générations pour rien.
+    protein_anchor_missing: clean ? proteinAnchorMissing : [],
     issues,
     lock,
   };
