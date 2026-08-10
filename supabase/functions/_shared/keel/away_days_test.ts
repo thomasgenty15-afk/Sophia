@@ -97,6 +97,8 @@ Deno.test("l'absence arrive jusqu'à la consigne, en négatif explicite", () => 
     focusAxis: null,
     doctrineBlock: "== METHOD ==",
     coachNoteBlock: null,
+    fixedIntakes: [],
+    dayProperties: [],
     protocolBlock: "",
     beliefKeys: [],
     goal: "health",
@@ -143,6 +145,9 @@ Deno.test("le parseur REJETTE un plat posé sur un moment écarté", () => {
     daysToFill: ["mon", "tue", "sat"],
     awayDays: parseAwayDays([{ day: "tue", slots: ["lunch"] }, { day: "sat" }]),
     cookingTimeMin: null,
+    composition: null,
+    fixedIntakes: [],
+    dayProperties: [],
   });
 
   const kept = parsed.dishes.map((d) => d.title);
@@ -185,6 +190,9 @@ Deno.test("un plat écarté ne consomme PAS une place du plafond", () => {
     daysToFill: ["mon", "tue"],
     awayDays: away,
     cookingTimeMin: null,
+    composition: null,
+    fixedIntakes: [],
+    dayProperties: [],
   });
 
   // `scope: "day"` avec un rythme d'UN moment donne un plafond de 1. Les six
@@ -207,6 +215,9 @@ Deno.test("sans absence, rien ne change — le chantier est additif", () => {
     eatingRhythm: parseEatingRhythm(["lunch", "dinner"]),
     daysToFill: ["mon"],
     cookingTimeMin: null,
+    composition: null,
+    fixedIntakes: [],
+    dayProperties: [],
   };
   const withNone = parseGeneratedMeal({ dishes, shopping_list: [] }, {
     ...args,
@@ -221,6 +232,8 @@ Deno.test("sans absence, rien ne change — le chantier est additif", () => {
     focusAxis: null,
     doctrineBlock: "== METHOD ==",
     coachNoteBlock: null,
+    fixedIntakes: [],
+    dayProperties: [],
     protocolBlock: "",
     beliefKeys: [],
     goal: "health",

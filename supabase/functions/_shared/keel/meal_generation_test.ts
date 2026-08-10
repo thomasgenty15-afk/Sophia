@@ -49,6 +49,7 @@ const PEANUT: StudentSafetyConstraint = {
   substanceRef: null,
   medicationClass: null,
     conditionRef: null,
+    dietRef: null,
   severity: "medical",
   declaredBy: "student",
   notes: null,
@@ -77,6 +78,12 @@ function parse(payload: Record<string, unknown>, over: Record<string, unknown> =
     daysToFill: ["mon"],
     awayDays: [],
     cookingTimeMin: null,
+    // FF-038: REQUIS. `null` = pas de référentiel, donc pas de grammes —
+    // et les trois champs structurés sont quand même lus. Les cas qui
+    // testent le recalcul passent un index.
+    composition: null,
+    fixedIntakes: [],
+    dayProperties: [],
     ...over,
   });
 }
@@ -322,6 +329,8 @@ Deno.test("the prompt separates the STABLE situation from the DATED context", ()
     focusAxis: null,
     doctrineBlock: "== MARC'S METHOD ==",
     coachNoteBlock: null,
+    fixedIntakes: [],
+    dayProperties: [],
     protocolBlock: "",
     beliefKeys: ["protein_anchors_the_plate"],
     goal: "fat_loss",
@@ -348,6 +357,8 @@ Deno.test("from_pantry puts the pantry in the prompt, to_shop does not pretend t
     focusAxis: null,
     doctrineBlock: "d",
     coachNoteBlock: null,
+    fixedIntakes: [],
+    dayProperties: [],
     protocolBlock: "",
     beliefKeys: [],
     goal: "health",
@@ -378,6 +389,9 @@ Deno.test("a non-JSON model output throws instead of shipping an empty meal", ()
     daysToFill: ["mon"],
     awayDays: [],
     cookingTimeMin: null,
+    composition: null,
+    fixedIntakes: [],
+    dayProperties: [],
   }));
 });
 
@@ -407,6 +421,8 @@ Deno.test("les préférences confirmées entrent dans le prompt, dans les mots d
     focusAxis: null,
     doctrineBlock: "== MARC'S METHOD ==",
     coachNoteBlock: null,
+    fixedIntakes: [],
+    dayProperties: [],
     protocolBlock: "",
     beliefKeys: [],
     goal: "health",
@@ -433,6 +449,8 @@ Deno.test("sans préférence, le prompt est EXACTEMENT celui d'avant", () => {
     focusAxis: null,
     doctrineBlock: "== MARC'S METHOD ==",
     coachNoteBlock: null,
+    fixedIntakes: [],
+    dayProperties: [],
     protocolBlock: "",
     beliefKeys: [],
     goal: "health" as const,

@@ -26,6 +26,8 @@ function promptWith(args: { today?: string | null; country?: string | null }): s
     focusAxis: null,
     doctrineBlock: "== METHOD ==",
     coachNoteBlock: null,
+    fixedIntakes: [],
+    dayProperties: [],
     protocolBlock: "",
     beliefKeys: [],
     goal: "health",

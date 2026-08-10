@@ -20,6 +20,8 @@ import type { StudentSafetyConstraint } from "./safety_constraints.ts";
 const PROMPT_BASE = {
   doctrineBlock: "== MARC'S METHOD ==",
   coachNoteBlock: null,
+  fixedIntakes: [],
+  dayProperties: [],
   protocolBlock: "",
   beliefKeys: [],
   goal: "health" as const,
@@ -53,6 +55,7 @@ const PEANUT: StudentSafetyConstraint = {
   substanceRef: null,
   medicationClass: null,
   conditionRef: null,
+  dietRef: null,
   severity: "medical",
   declaredBy: "student",
   notes: null,
@@ -119,6 +122,9 @@ Deno.test("le VERROU DE SORTIE mord toujours â€” la consigne ne l'a pas remplacÃ
     daysToFill: ["mon"],
     awayDays: [],
     cookingTimeMin: null,
+    composition: null,
+    fixedIntakes: [],
+    dayProperties: [],
   });
   assertEquals(meal.dishes.length, 0);
   assert(meal.lock.reason !== "clean", meal.lock.reason);

@@ -711,6 +711,23 @@ Deno.serve(async (req) => {
       //
       // C'est le paramètre REQUIS qui a rendu cet appelant visible: le
       // compilateur l'a listé. Optionnel, il aurait gardé son trou.
+      // ── FF-051 · LES APPORTS FIXES NE SONT PAS ENCORE UNE DONNÉE DE FOYER
+      // Le shaker d'un membre n'est pas celui de la table: il appartient au
+      // canal des DELTAS (FF-043), que `DELTA_CHANNELS` ne porte pas encore.
+      // Lire ici `practical_constraints` du seul titulaire ferait sauter le
+      // petit-déjeuner de TOUTE la tablée parce qu'UNE personne prend un
+      // shaker — un substitut à une dépendance manquante, exactement ce que
+      // ce paramètre requis existe pour rendre visible.
+      //
+      // `[]` est donc le comportement d'AVANT, assumé et nommé. Le trou est
+      // écrit en toutes lettres dans FF-051 §11 Q1.
+      fixedIntakes: [],
+      // ── FF-052 · LES PROPRIÉTÉS DE JOUR NE SONT PAS ENCORE UNE DONNÉE DE
+      // FOYER. Le dimanche batch d'un membre n'est pas celui de la table, et
+      // la question est la même que pour l'apport fixe juste au-dessus: le
+      // canal des deltas ne la porte pas. `[]` est le comportement d'AVANT,
+      // assumé et nommé (FF-052 §11 Q3).
+      dayProperties: [],
       safetyConstraints: constraints,
       // ── TOUJOURS AUCUN CORPS *ICI*, ET C'EST TOUJOURS UNE DÉCISION ─────
       // (FF-030 R7, inchangé par le lot 3B.)
@@ -794,6 +811,10 @@ Deno.serve(async (req) => {
     const parseArgs = {
       doctrine: doctrine.doctrine,
       safetyConstraints: constraints,
+      // FF-051 — la MÊME valeur que la consigne, et pour la même raison
+      // qu'elle est vide: voir le bloc au-dessus de `buildMealPrompt`.
+      fixedIntakes: [],
+      dayProperties: [],
       mode: "to_shop",
       scope,
       pantry: [],

@@ -42,6 +42,7 @@ import {
 } from "../_shared/keel/meal_plan_window.ts";
 import {
   buildMealPrompt,
+  type GeneratedMeal,
   MEAL_MODES,
   MEAL_PROMPT_VERSION,
   MEAL_SLOTS,
@@ -58,6 +59,33 @@ import {
   parseGeneratedMeal,
 } from "../_shared/keel/meal_generation.ts";
 import { proteinAnchorRetryInstruction } from "../_shared/keel/protein_anchor.ts";
+import type { CompositionIndex } from "../_shared/keel/food_composition.ts";
+import { loadCompositionIndex } from "../_shared/keel/food_composition_io.ts";
+import { isFriedMethod, resolveIngredients } from "../_shared/keel/food_composition.ts";
+import { envelopeFor } from "../_shared/keel/meal_envelope.ts";
+import { type CompositionVerdict, verdictFor } from "../_shared/keel/meal_verdict.ts";
+import {
+  fixedIntakeInputsFor,
+  parseFixedIntakes,
+} from "../_shared/keel/fixed_intakes.ts";
+import { parseDayProperties } from "../_shared/keel/day_properties.ts";
+import {
+  correctionPlanFor,
+  correctionRetryInstruction,
+} from "../_shared/keel/meal_correction.ts";
+import {
+  assessCoverage,
+  coverageFlagAfterCorrection,
+} from "../_shared/keel/meal_coverage.ts";
+import { GOAL_TOKENS, type GoalToken } from "../_shared/keel/tokens.ts";
+import {
+  parseDietaryRegime,
+  uncoverableSentinelsFor,
+} from "../_shared/keel/dietary_regime.ts";
+import {
+  offAxesFor,
+  steeringFor,
+} from "../_shared/keel/composition_steering.ts";
 
 /**
  * `generate-meal-v1` — l'élève se fait composer un repas.
@@ -80,6 +108,22 @@ import { proteinAnchorRetryInstruction } from "../_shared/keel/protein_anchor.ts
  */
 
 const FN_NAME = "generate-meal-v1";
+
+/**
+ * FF-040 — COMBIEN DE GRANDEURS SONT HORS BANDE.
+ *
+ * Le critère d'adoption d'une relance. `not_computable` NE COMPTE PAS comme un
+ * écart: une relance qui rendrait un plan moins lisible passerait pour une
+ * amélioration, et le produit préférerait l'ignorance à l'imperfection.
+ */
+function offBandCount(v: CompositionVerdict): number {
+  let n = 0;
+  if (v.energy === "above" || v.energy === "below") n++;
+  if (v.protein === "under") n++;
+  if (v.density === "above") n++;
+  n += v.sentinels.missing.length;
+  return n;
+}
 
 function requireEnv(name: string): string {
   const v = Deno.env.get(name);
@@ -470,6 +514,33 @@ Deno.serve(async (req) => {
         ?.away_days,
     );
 
+    // FF-051 · CE QU'IL MANGE DÉJÀ. Troisième `const` hissé de la même
+    // colonne, et pour la même raison que les deux au-dessus: cette lecture
+    // sert à TROIS endroits — la consigne, le parseur, le verdict — et trois
+    // relectures d'un même jsonb sont trois occasions de diverger.
+    //
+    // `discarded` est LOGUÉ, jamais rendu à l'élève: c'est le compteur qui
+    // distingue « il n'a rien déclaré » de « on n'a pas su lire ce qu'il a
+    // déclaré », et il n'a de sens que pour qui peut corriger la forme.
+    const fixedIntakeParse = parseFixedIntakes(
+      (goalRow.practical_constraints as Record<string, unknown> | null)
+        ?.fixed_intakes,
+    );
+    const fixedIntakes = fixedIntakeParse.intakes;
+    if (fixedIntakeParse.discarded > 0) {
+      console.log(
+        `[keel/meal] fixed_intakes: ${fixedIntakeParse.discarded} malformed entries discarded`,
+      );
+    }
+
+    // FF-052 · CE QUE CERTAINS JOURS SONT. Même `const` hissé, même raison:
+    // la consigne les annonce, le parseur les tient, et deux relectures du même
+    // jsonb sont deux occasions de diverger.
+    const dayProperties = parseDayProperties(
+      (goalRow.practical_constraints as Record<string, unknown> | null)
+        ?.day_properties,
+    );
+
     // LUE UNE FOIS, servie deux fois: le prompt ANNONCE le plafond de temps,
     // le parseur le VÉRIFIE. Deux lectures du même jsonb finiraient par
     // diverger, et la divergence se paierait sur le seul contrôle qui dit à
@@ -571,6 +642,24 @@ Deno.serve(async (req) => {
       }));
     }
 
+    // ── FF-038 · LE RÉFÉRENTIEL DE COMPOSITION ────────────────────────────
+    // EN OMBRE: il ne change aucune assiette. Il sert à RECALCULER les grammes
+    // que le modèle déclare, pour que la mesure du chantier porte sur des
+    // chiffres que le produit a faits lui-même — l'arithmétique du modèle
+    // n'est jamais une preuve (garantie 2 de `meal_generation.ts`).
+    //
+    // FAIL-OPEN NOMMÉ: une lecture en panne rend `null`, le parseur le COMPTE,
+    // et la génération continue. L'instrumentation ne doit jamais coûter un
+    // dîner à un élève — et l'échec est journalisé pour qu'un référentiel
+    // indisponible en boucle ne ressemble pas à un modèle qui n'écrit pas ses
+    // quantités.
+    let composition: CompositionIndex | null = null;
+    try {
+      composition = await loadCompositionIndex(admin);
+    } catch (error) {
+      console.warn(`[${FN_NAME}] composition index unavailable`, error);
+    }
+
     const { systemPrompt, userMessage } = buildMealPrompt({
       // ── FF-030 · LES CONTRAINTES DURES ENTRENT DANS LA CONSIGNE ────────
       // Elles étaient chargées vingt lignes plus haut et ne partaient QU'au
@@ -617,6 +706,13 @@ Deno.serve(async (req) => {
       daysToFill,
       eatingRhythm,
       awayDays,
+      // FF-051 — CE QU'IL MANGE DÉJÀ, en négatif explicite juste après les
+      // moments où il n'est pas là. Les deux façons dont une case de la grille
+      // peut être prise avant que le modèle n'y touche.
+      fixedIntakes,
+      // FF-052 — le pendant POSITIF de l'absence: batch le dimanche, restes le
+      // lundi. Deux propriétés, chacune avec sa branche.
+      dayProperties,
       // CE QUE L'ÉLÈVE PEUT VRAIMENT FAIRE. Quatre entrées qui décidaient de
       // tout et que le moteur devinait: le jour de cuisine, le temps, le niveau
       // de recette, le budget. `cooking_time_min` et `budget_band` existaient
@@ -678,12 +774,24 @@ Deno.serve(async (req) => {
       // parseur les rejette. Une contrainte qui ne vit que dans le prompt
       // n'est pas une garantie.
       awayDays,
+      // ET LA MÊME ENCORE pour les apports fixes: la consigne dit « ne compose
+      // rien là », le parseur drop le plat s'il arrive quand même.
+      fixedIntakes,
+      // ET LES MÊMES propriétés de jour: la consigne dit « rien de neuf ce
+      // jour-là », le parseur retire le plat neuf s'il arrive quand même.
+      dayProperties,
       // Le temps par session est un PLAFOND. Le prompt l'annonce, le parseur
       // le vérifie: mesuré 30 déclarées contre 55 produites.
       cookingTimeMin: capacity.cookingTimeMin,
+      // FF-038 — LE RÉFÉRENTIEL DE COMPOSITION.
+      // Chargé plus haut dans un try/catch: `null` quand la lecture a
+      // échoué. L'instrumentation ne doit jamais coûter un dîner, et le
+      // parseur compte l'indisponibilité nommément plutôt que de la
+      // laisser ressembler à un modèle qui n'écrit pas ses quantités.
+      composition,
     } as const;
 
-    let meal;
+    let meal: GeneratedMeal;
     try {
       meal = parseGeneratedMeal(result, parseArgs);
     } catch (error) {
@@ -748,6 +856,165 @@ Deno.serve(async (req) => {
         missing_before: anchorMissingBefore,
         missing_after: meal.protein_anchor_missing.length,
         retried: proteinAnchorRetry,
+      }));
+    }
+
+    // ── FF-039 + FF-040 · MESURER, PUIS CORRIGER UNE FOIS ─────────────────
+    // L'enveloppe et le verdict remontent AVANT l'écriture du plan: en
+    // observation (FF-039) ils n'avaient pas besoin d'être là, mais une boucle
+    // de correction qui tournerait après l'écriture corrigerait un plan déjà
+    // servi. C'est le seul changement d'ordre du lot.
+    const goalToken: GoalToken =
+      (GOAL_TOKENS as readonly string[]).includes(String(goalRow.goal ?? ""))
+        ? (String(goalRow.goal) as GoalToken)
+        : "health";
+    // FAIL-CLOSED: une lecture du plancher en panne a déjà rendu
+    // `restrictionFlag = true` en amont (FF-030 R6), et `studentBody` absent
+    // dégrade de toute façon par la MÊME branche de `envelopeFor`.
+    // ── FF-042 R6 · LE RÉGIME DÉCLARÉ, ET CE QU'IL REND INCOUVRABLE ───────
+    // Lu depuis les contraintes déjà chargées, jamais par une seconde requête:
+    // deux lectures de la même table divergent, et c'est celle qu'on regarde le
+    // moins qui garde l'ancien comportement.
+    //
+    // ⚠️ `dietRef` n'entre PAS dans la liste d'évitement — la ceinture reçoit
+    // l'expansion (viande, poisson, œuf…), jamais le nom du régime. Ce dépôt a
+    // payé le contraire en run réel avec `allergen_ref='diabetes'`.
+    const declaredRegime = (constraints ?? [])
+      .map((c) => parseDietaryRegime(c.dietRef))
+      .find((r): r is NonNullable<typeof r> => r !== null) ?? null;
+    const uncoverableForStudent = declaredRegime
+      ? uncoverableSentinelsFor(declaredRegime)
+      : [];
+
+    // FF-041 — LE PILOTAGE DU COACH, s'il en a publié un. `null` = personne ne
+    // pilote, ce qui est l'état de toute la base aujourd'hui et doit rendre
+    // exactement le produit d'avant.
+    const steering = steeringFor(
+      doctrine.doctrine?.compositionSteering ?? [],
+      goalToken,
+    );
+    const envelope = envelopeFor(
+      goalToken,
+      studentBody,
+      studentBody?.ageBand ?? null,
+      studentBody?.restrictionFlag ?? true,
+      steering,
+    );
+    const verdictDishesOf = (m: GeneratedMeal) =>
+      m.dishes.map((d) => ({
+        slot: d.slot,
+        method: d.method,
+        ingredients: d.ingredients.map((i) => ({
+          term: i.term,
+          amount: i.amount,
+          unit: i.unit,
+          state: i.state,
+        })),
+      }));
+    const measure = (m: GeneratedMeal) => {
+      if (!composition) return null;
+      const verdict = verdictFor({
+        dishes: verdictDishesOf(m),
+        envelope,
+        index: composition,
+        daysCovered: durationDays,
+        friedMethod: isFriedMethod,
+        // FF-042 R6 — CE QU'AUCUN ALIMENT NE PEUT APPORTER À CET ÉLÈVE.
+        // Retiré des trous RÉPARABLES avant que la boucle de correction ne les
+        // voie: sans ça, un plan végan serait repris à chaque génération pour
+        // une B12 qu'aucune recette ne place.
+        uncoverableSentinels: uncoverableForStudent,
+        // FF-051 — CE QUI EST DÉJÀ MANGÉ COMPTE. Une entrée par occurrence sur
+        // la fenêtre: sans elles, le plan empile sa protéine et son énergie
+        // par-dessus un moment déjà pris, et le verdict dit « within » sur une
+        // journée qui déborde.
+        fixedIntakeInputs: fixedIntakeInputsFor(fixedIntakes, daysToFill),
+      });
+      const coverage = assessCoverage({
+        dishes: verdictDishesOf(m),
+        index: composition,
+        daysCovered: durationDays,
+        // On ne prétend rien sur la couverture d'un plan qu'on n'a pas su
+        // mesurer: `unverified`, jamais `ok` (FF-040 R10).
+        verdictComputable: verdict.energy !== "not_computable",
+      });
+      const resolution = resolveIngredients(
+        composition,
+        m.dishes.flatMap((d) =>
+          d.ingredients.map((i) => ({
+            term: i.term,
+            amount: i.amount,
+            unit: i.unit,
+            state: i.state,
+          }))
+        ),
+      );
+      return { verdict, coverage, resolution };
+    };
+
+    let measured = measure(meal);
+    let correctionTokens: string[] = [];
+    let correctionRetried = false;
+    if (measured) {
+      const plan = correctionPlanFor({
+        verdict: measured.verdict,
+        envelope,
+        declarations: {
+          foodPreferences: readFoodPreferences(
+            goalRow.practical_constraints as Record<string, unknown> | null,
+          ),
+        },
+        coverageFloorHit: measured.coverage.floorHit,
+        // FF-041 — LES AXES QUE LA DOCTRINE GOUVERNANTE A ÉTEINTS.
+        // `off` retire l'ARBITRE, jamais l'instrument: le verdict a été
+        // calculé et sera écrit, il ne sert simplement pas de correction.
+        offAxes: offAxesFor(steering),
+      });
+      correctionTokens = [...plan.tokens];
+      const instruction = correctionRetryInstruction(plan);
+      // ── UNE SEULE RELANCE, ET ELLE NE PEUT PAS COÛTER LE PLAN ──────────
+      // Adoptée seulement si elle rend au moins autant de plats ET qu'elle
+      // améliore réellement le verdict. Tout le reste — modèle en erreur,
+      // sortie illisible, plan appauvri — garde silencieusement la première.
+      if (instruction) {
+        try {
+          const retryResult = await generateWithGemini(
+            systemPrompt,
+            `${userMessage}${hungerSuffix}\n\n${instruction}`,
+            0.6,
+            true,
+            [],
+            "auto",
+            {
+              source: `${FN_NAME}.composition_retry`,
+              requestId,
+              userId,
+              model: keelGenerationModel(),
+            },
+          );
+          if (typeof retryResult === "string") {
+            const retried = parseGeneratedMeal(retryResult, parseArgs);
+            const after = measure(retried);
+            if (
+              retried.dishes.length >= meal.dishes.length && after !== null &&
+              offBandCount(after.verdict) < offBandCount(measured.verdict)
+            ) {
+              meal = retried;
+              measured = after;
+              correctionRetried = true;
+            }
+          }
+        } catch (error) {
+          console.warn(`[${FN_NAME}] composition correction retry failed`, error);
+        }
+      }
+      console.log(JSON.stringify({
+        tag: "keel.meal.composition_correction",
+        user_id: userId,
+        tokens: correctionTokens,
+        suppressed: plan.suppressed,
+        retried: correctionRetried,
+        coverage_flag: measured.coverage.flag,
       }));
     }
 
@@ -847,6 +1114,44 @@ Deno.serve(async (req) => {
     const written = writtenRow
       ? { id: writtenRow.meal_id, starts_on: startsOn, duration_days: durationDays }
       : null;
+
+    // ── FF-039 + FF-040 · LE VERDICT, ÉCRIT ────────────────────────────────
+    // APRÈS l'écriture du plan, et dans un try/catch qui n'échoue jamais vers
+    // l'élève: personne ne perd son dîner parce qu'une table d'instrumentation
+    // était indisponible.
+    //
+    // C'est la mesure FINALE qui est écrite — celle d'après la correction. La
+    // mesure d'avant a servi à décider; l'écrire à sa place ferait croire à un
+    // lecteur que le plan servi était celui-là.
+    if (written && measured) {
+      try {
+        const { error: verdictErr } = await admin
+          .from("meal_composition_verdicts")
+          .insert({
+            user_id: userId,
+            meal_id: written.id,
+            verdict: measured.verdict,
+            // SANS LA RAISON. Le plancher TCA et le corps inconnu produisent
+            // la même valeur, par la même branche: la déduction est fausse par
+            // construction, pas seulement interdite.
+            envelope_mode: envelope.mode,
+            resolution_coverage: measured.resolution.coverage,
+            unresolved_terms: measured.resolution.unresolvedTerms,
+            tokens_served: correctionTokens,
+            coverage_flag: coverageFlagAfterCorrection(
+              measured.coverage,
+              measured.verdict.sentinels.missing.length > 0,
+            ),
+            prompt_version: MEAL_PROMPT_VERSION,
+            doctrine_version: doctrine.doctrine?.version ?? null,
+          });
+        if (verdictErr) throw new Error(verdictErr.message);
+      } catch (error) {
+        // NOMMÉ: sans le nom, une table indisponible en boucle ressemblerait à
+        // des élèves qui n'ont pas de verdicts.
+        console.warn(`[${FN_NAME}] composition verdict not written`, error);
+      }
+    }
 
     return jsonResponse(req, {
       ok: true,

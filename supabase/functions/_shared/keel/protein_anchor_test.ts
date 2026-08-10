@@ -210,6 +210,12 @@ function parse(payload: Record<string, unknown>, over: Record<string, unknown> =
     daysToFill: ["mon"],
     awayDays: [],
     cookingTimeMin: null,
+    // FF-038: REQUIS. `null` = pas de référentiel, donc pas de grammes —
+    // et les trois champs structurés sont quand même lus. Les cas qui
+    // testent le recalcul passent un index.
+    composition: null,
+    fixedIntakes: [],
+    dayProperties: [],
     ...over,
   });
 }
@@ -280,10 +286,17 @@ Deno.test("un plat qui PUISE dans une préparation hérite de son ancre", () => 
   assertEquals(meal.protein_anchor_missing, []);
 });
 
-Deno.test("condition de désarmement: un plan entièrement ancré est INCHANGÉ", () => {
+Deno.test("condition de désarmement: un plan entièrement ancré ne déclenche RIEN", () => {
+  // ── LE RÉFÉRENTIEL DU DÉSARMEMENT EST LA VERSION COURANTE DU PRODUIT ────
+  // Pas les octets d'avant le chantier. FF-038 a ajouté ses propres constats
+  // (quantités structurées absentes, référentiel indisponible) et ils
+  // s'appliquent à TOUT LE MONDE, versionnés par `MEAL_PROMPT_VERSION`. Ce que
+  // ce test tient, c'est que l'ANCRE PROTÉIQUE, elle, n'ajoute rien quand elle
+  // est satisfaite — et le filtre nommé est ce qui empêche le test de devenir
+  // vert par accident au prochain constat ajouté ailleurs.
   const meal = parse({ dishes: [dish()], shopping_list: [] });
   assertEquals(meal.protein_anchor_missing, []);
-  assertEquals(meal.issues, []);
+  assertEquals(meal.issues.filter((i) => i.includes("protein_source_missing")), []);
   assertEquals(meal.rejected_numeric, []);
   assertEquals(meal.dishes.length, 1);
 });
@@ -330,6 +343,7 @@ Deno.test("un verrou de sortie qui mord vide aussi le constat d'ancre", () => {
       substanceRef: null,
       medicationClass: null,
       conditionRef: null,
+      dietRef: null,
       severity: "medical",
       declaredBy: "student",
       notes: null,

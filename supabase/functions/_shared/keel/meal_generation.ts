@@ -58,6 +58,23 @@ import {
   isMainMealSlot,
   PROTEIN_ANCHOR_PROMPT_LINE,
 } from "./protein_anchor.ts";
+import {
+  COMPOSITION_STATES,
+  COMPOSITION_UNITS,
+  type CompositionIndex,
+  type CompositionState,
+  type CompositionUnit,
+  gramsRawOf,
+  resolveIngredient,
+} from "./food_composition.ts";
+import { fixedIntakePromptLines, slotIsTaken } from "./fixed_intakes.ts";
+import type { FixedIntake } from "./fixed_intakes.ts";
+import {
+  dayHasProperty,
+  dayPropertyPromptLines,
+  daysWithProperty,
+} from "./day_properties.ts";
+import type { DayPropertyEntry } from "./day_properties.ts";
 
 // ---------------------------------------------------------------------------
 // Entrées / sorties
@@ -359,12 +376,42 @@ export interface PantryItem {
 
 export interface DishIngredient {
   term: string;
+  /**
+   * LA QUANTITÉ EN PROSE, destinée à l'humain. Inchangée par FF-038: c'est
+   * elle que l'élève lit sur sa liste de courses, et `ENERGY_UNIT_RE` reste
+   * armé dessus. Les trois champs structurés en dessous la DOUBLENT, ils ne la
+   * remplacent pas.
+   */
   quantity: string | null;
   /**
    * VRAI seulement si le terme a été retrouvé dans le garde-manger de l'élève.
    * Calculé ici, jamais recopié du modèle (voir garantie 2 de l'en-tête).
    */
   in_pantry: boolean;
+  /**
+   * FF-038 — LA MÊME QUANTITÉ, STRUCTURÉE.
+   *
+   * `null` quand le modèle ne l'a pas rendue ou l'a rendue illisible, et
+   * COMPTÉ dans les issues. Jamais défaut-é: un `state` deviné « raw » sur du
+   * riz fausse le calcul d'un facteur 2,6, et toujours dans le sens qui
+   * gonfle.
+   */
+  amount: number | null;
+  unit: CompositionUnit | null;
+  state: CompositionState | null;
+  /**
+   * LES GRAMMES CRUS, RECALCULÉS PAR CE PARSEUR.
+   *
+   * Jamais lu d'un champ du modèle, même s'il en rendait un. Précédent
+   * `in_pantry`, garantie 2 de l'en-tête: l'arithmétique du modèle n'est pas
+   * une preuve. Un modèle qui rend « grams: 400 » sur « 2 filets » a écrit un
+   * nombre, pas une mesure.
+   *
+   * `null` quand l'ingrédient n'est pas résolu par le référentiel, quand la
+   * quantité n'est pas convertible, ou quand le référentiel n'a pas pu être
+   * chargé. Les trois cas sont comptés séparément.
+   */
+  gramsRaw: number | null;
 }
 
 export interface GeneratedDish {
@@ -514,8 +561,21 @@ export interface GeneratedMeal {
  * porteurs d'une ancre AVANT et APRÈS — et cette comparaison n'est faisable que
  * si la colonne sait séparer les deux populations. Bumper est donc la moitié
  * mesurable du lot, pas une formalité.
+ *
+ * ── ET ENCORE (FF-038, étage B) ──────────────────────────────────────────
+ * Le contrat de sortie gagne `amount` / `unit` / `state` sur chaque
+ * ingrédient. Le §10 de FF-038 demande de surveiller `rejected_numeric` après
+ * ce bump — un contrat qui gagne trois champs NUMÉRIQUES est exactement le
+ * genre de changement qui pousse un modèle à écrire des chiffres ailleurs — et
+ * la part d'ingrédients qui arrivent sans quantité structurée. Ni l'une ni
+ * l'autre n'est lisible si les deux populations se mélangent dans la colonne.
  */
-export const MEAL_PROMPT_VERSION = "meal.en.v5_protein_anchor";
+// ── UN SEUL BUMP POUR FF-051 ET FF-052 ────────────────────────────────────
+// Les apports fixes et les propriétés de jour touchent tous deux la consigne.
+// Deux bumps successifs invalideraient deux fois le cache et rendraient
+// illisible toute comparaison avant/après entre les deux lots — c'est pour ça
+// que les propriétés de jour ont été faites EN DERNIER.
+export const MEAL_PROMPT_VERSION = "meal.en.v7_fixed_intakes_and_days";
 
 const DAY_TOKENS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
 
@@ -878,6 +938,28 @@ No calories. No macro grams. No percentages of anything nutritional. Not as a ta
 
 Shopping quantities are DIFFERENT and expected: "400 g chicken thighs", "2 onions", "a bunch of parsley". A quantity says how much to buy or use; a target claims a measurement of the person. Put quantities on ingredients, never on the student.
 
+== SAY THE SAME QUANTITY TWICE: ONCE FOR THE COOK, ONCE IN FIGURES ==
+
+Every ingredient carries "quantity" — the phrase a person reads, exactly as you
+write it today — AND three plain fields that repeat it:
+
+  "amount": the number.
+  "unit":   one of "g", "ml", "unit", "tbsp", "tsp". Nothing else exists. If
+            what you meant is a handful, a cup, a bunch or a pinch, leave
+            "amount" and "unit" null and keep the phrase in "quantity".
+  "state":  "raw" or "cooked" — the weight you just wrote, before or after
+            cooking.
+
+"state" is REQUIRED for anything that takes on or loses water in the pan: rice,
+pasta, couscous, lentils, dried beans, meat, poultry, fish. A hundred grams of
+rice is not the same food before and after it is boiled, and leaving it out
+makes the line unusable. It does not matter for oil, nuts, cheese, yogurt or
+fruit — say it anyway when you know it.
+
+Never guess. An ingredient whose weight you do not actually know keeps its
+phrase and leaves the three fields null. A made-up number is worse than a
+missing one.
+
 == THE STUDENT'S SITUATION IS NOT DECORATION ==
 
 They tell you what their week actually looks like — a wedding on Tuesday, a holiday, a weekend away, a late shift. Cook around it. A meal that assumes an evening they do not have is a meal they will not make.
@@ -901,7 +983,10 @@ mode = to_shop
       "title": "...",
       "slot": "breakfast"|"snack_am"|"lunch"|"snack_pm"|"dinner"|"before_bed"|null,
       "day": "mon"|"tue"|"wed"|"thu"|"fri"|"sat"|"sun"|null,
-      "ingredients": [{ "term": "...", "quantity": "..."|null }],
+      "ingredients": [{ "term": "...", "quantity": "..."|null,
+                        "amount": <number>|null,
+                        "unit": "g"|"ml"|"unit"|"tbsp"|"tsp"|null,
+                        "state": "raw"|"cooked"|null }],
       "method": "how to make it, plainly, in a short paragraph",
       "why": "one sentence: why THIS dish for THIS student this week",
       "uses": [{ "preparation_id": "prep_chicken", "servings": 1 }],
@@ -912,7 +997,10 @@ mode = to_shop
   "preparations": [
     { "id": "prep_chicken", "title": "Roast chicken thighs",
       "servings_made": 4,
-      "ingredients": [{ "term": "...", "quantity": "<for the WHOLE batch>" }],
+      "ingredients": [{ "term": "...", "quantity": "<for the WHOLE batch>",
+                        "amount": <number>|null,
+                        "unit": "g"|"ml"|"unit"|"tbsp"|"tsp"|null,
+                        "state": "raw"|"cooked"|null }],
       "method": "how to cook the batch",
       "active_minutes": <minutes of HANDS-ON work>,
       "total_minutes": <minutes from starting to finished, waiting included>,
@@ -1085,6 +1173,25 @@ export function buildMealPrompt(args: {
    * rythme nomme, tous les jours de la fenêtre.
    */
   awayDays?: readonly AwayDay[];
+  /**
+   * FF-051 — CE QUE L'ÉLÈVE MANGE DÉJÀ, hors de ce qu'on compose.
+   *
+   * REQUIS, avec `[]` pour « aucun », jamais `T?`. C'est la CINQUIÈME fois que
+   * ce fichier écrit cette phrase, et il l'a payée les quatre précédentes
+   * (`eatingRhythm`, `awayDays`, `cookingTimeMin`, `composition`): un paramètre
+   * optionnel est un paramètre qu'un appelant oublie. Ici l'oubli coûte un
+   * petit-déjeuner de trop tous les matins, à quelqu'un qui avait pris la peine
+   * de le dire — et rien n'échouerait.
+   */
+  fixedIntakes: readonly FixedIntake[];
+  /**
+   * FF-052 — CE QUE CERTAINS JOURS SONT, en positif.
+   *
+   * REQUIS, `[]` pour « rien de déclaré ». Sixième fois que ce fichier écrit
+   * cette phrase; l'oubli coûterait ici un dîner neuf composé un jour de
+   * restes, c'est-à-dire la moitié d'un batch jetée.
+   */
+  dayProperties: readonly DayPropertyEntry[];
 }): { systemPrompt: string; userMessage: string } {
   const rhythm = args.eatingRhythm && args.eatingRhythm.length > 0
     ? args.eatingRhythm
@@ -1284,6 +1391,16 @@ export function buildMealPrompt(args: {
         ...awayLines,
       ]
       : []),
+    // ── CE QU'ILS MANGENT DÉJÀ ────────────────────────────────────────────
+    // Le PENDANT POSITIF de la section au-dessus, et posé juste après elle
+    // pour qu'elles se lisent ensemble: « pas ici » et « déjà ça » sont les
+    // deux façons dont une case de la grille peut être prise avant que le
+    // modèle n'y touche.
+    ...fixedIntakePromptLines(args.fixedIntakes),
+    // ── CE QUE CERTAINS JOURS SONT ────────────────────────────────────────
+    // Troisième façon dont une case de la grille peut être décidée avant que
+    // le modèle n'y touche — et la seule des trois qui soit POSITIVE.
+    ...dayPropertyPromptLines(args.dayProperties),
     // LES CONTRAINTES DE CUISINE. Elles décrivent une CAPACITÉ durable (les
     // jours où il peut cuisiner, le temps qu'il a, ce qu'il sait faire, ce
     // qu'il peut dépenser), donc elles vivent avec l'élève et non avec la
@@ -1454,6 +1571,56 @@ function readMinutes(value: unknown): number | null {
  */
 const ENERGY_UNIT_RE = /\d[\d.,]*\s*(kcal|kj|cal(?:orie)?s?)\b/i;
 
+/**
+ * FF-038 — LA QUANTITÉ STRUCTURÉE D'UN INGRÉDIENT, LUE PUIS RECALCULÉE.
+ *
+ * ── LECTURE TOLÉRANTE, JAMAIS RÉPARATRICE ────────────────────────────────
+ * Un champ absent, hors liste fermée ou illisible vaut `null` et se compte.
+ * Il ne se complète pas: un `state` deviné « raw » sur du riz fausse d'un
+ * facteur 2,6, et toujours dans le sens qui gonfle. Le silence d'un modèle
+ * n'est pas une valeur.
+ *
+ * ── LES GRAMMES SONT RECALCULÉS, PAS LUS ─────────────────────────────────
+ * Même si le modèle rendait un champ `grams`, il ne serait pas lu. Précédent
+ * `in_pantry` (garantie 2 de l'en-tête): l'arithmétique du modèle n'est pas
+ * une preuve.
+ *
+ * `composition === null` (référentiel indisponible) ⇒ les trois champs sont
+ * quand même lus et gardés, seuls les grammes manquent. La donnée structurée
+ * survit à une panne de la table qui l'exploite.
+ */
+function readStructuredQuantity(
+  ing: Record<string, unknown>,
+  composition: CompositionIndex | null,
+  term: string,
+): Pick<DishIngredient, "amount" | "unit" | "state" | "gramsRaw"> {
+  const rawAmount = Number(ing.amount);
+  const amount = Number.isFinite(rawAmount) && rawAmount > 0 ? rawAmount : null;
+  const unitRaw = cleanText(ing.unit).toLowerCase();
+  const unit = (COMPOSITION_UNITS as readonly string[]).includes(unitRaw)
+    ? (unitRaw as CompositionUnit)
+    : null;
+  const stateRaw = cleanText(ing.state).toLowerCase();
+  const state = (COMPOSITION_STATES as readonly string[]).includes(stateRaw)
+    ? (stateRaw as CompositionState)
+    : null;
+
+  let gramsRaw: number | null = null;
+  if (composition) {
+    const ref = resolveIngredient(composition, term);
+    if (ref) {
+      gramsRaw = gramsRawOf({
+        amount,
+        unit,
+        state,
+        yieldClass: ref.yieldClass,
+        unitGrams: ref.unitGrams,
+      });
+    }
+  }
+  return { amount, unit, state, gramsRaw };
+}
+
 export function parseGeneratedMeal(
   raw: unknown,
   args: {
@@ -1508,11 +1675,46 @@ export function parseGeneratedMeal(
      * plan à la main. Mesuré le 2026-08-06: 30 minutes déclarées, 55 produites.
      */
     cookingTimeMin: number | null;
+    /**
+     * FF-038 — LE RÉFÉRENTIEL DE COMPOSITION, ou `null` quand il n'a pas pu
+     * être chargé.
+     *
+     * REQUIS, `T | null`, jamais `T?`. C'est la QUATRIÈME fois que ce fichier
+     * écrit cette phrase, et il l'a payée les trois précédentes
+     * (`eatingRhythm`, `awayDays`, `cookingTimeMin`): un paramètre optionnel
+     * est un paramètre qu'un appelant oublie, et la seule preuve serait une
+     * colonne de grammes vide que personne ne regarde. Ici la casse de
+     * compilation est LE mécanisme qui recense les deux lanes.
+     *
+     * `null` est un fail-open ASSUMÉ: les trois champs structurés sont quand
+     * même lus et gardés, seuls les grammes manquent. L'instrumentation ne
+     * doit jamais coûter un dîner à un élève.
+     */
+    composition: CompositionIndex | null;
+    /**
+     * FF-051 — LES MÊMES APPORTS QUE CEUX PASSÉS À `buildMealPrompt`.
+     *
+     * REQUIS, `[]` pour « aucun ». Les deux bouts, comme pour `awayDays`: une
+     * consigne « ne compose pas de petit-déjeuner » sans vérification derrière
+     * est une consigne qu'un modèle de composition respectera la plupart du
+     * temps — et « la plupart du temps » veut dire que l'élève doit vérifier.
+     */
+    fixedIntakes: readonly FixedIntake[];
+    /**
+     * FF-052 — LES MÊMES propriétés que celles passées à `buildMealPrompt`.
+     *
+     * REQUIS, `[]` pour « rien ». Les deux bouts: la consigne dit « ne compose
+     * rien de neuf ce jour-là », le parseur retire le plat neuf s'il arrive
+     * quand même.
+     */
+    dayProperties: readonly DayPropertyEntry[];
   },
 ): GeneratedMeal {
   const issues: string[] = [];
   const rejectedNumeric: string[] = [];
   const rejectedAisles: string[] = [];
+  let unstructuredIngredients = 0;
+  let ingredientCount = 0;
 
   let parsed: unknown = raw;
   if (typeof raw === "string") {
@@ -1570,7 +1772,12 @@ export function parseGeneratedMeal(
       if (quantity && ENERGY_UNIT_RE.test(quantity)) { prepNumeric = "energy_unit_in_quantity"; break; }
       const termNumeric = findNumericTarget(`${quantity ?? ""} ${term}`);
       if (termNumeric) { prepNumeric = termNumeric; break; }
-      prepIngredients.push({ term, quantity, in_pantry: isInPantry(term, args.pantry) });
+      prepIngredients.push({
+        term,
+        quantity,
+        in_pantry: isInPantry(term, args.pantry),
+        ...readStructuredQuantity(ing, args.composition, term),
+      });
     }
     if (prepNumeric) {
       if (!rejectedNumeric.includes(prepNumeric)) rejectedNumeric.push(prepNumeric);
@@ -1627,6 +1834,35 @@ export function parseGeneratedMeal(
       continue;
     }
 
+    // ── FF-051 · LE CRÉNEAU DÉJÀ PRIS ───────────────────────────────────
+    // Même posture que l'absence juste au-dessus, et même raison: la consigne
+    // le dit, le parseur le tient. Seuls les apports REMPLAÇANTS occupent
+    // (A5) — un café au lait au petit-déjeuner nomme un moment sans le
+    // prendre.
+    if (slotIsTaken(args.fixedIntakes, day, slot)) {
+      issues.push(
+        `dishes[${i}]: ${day ?? "any"}/${slot} is already taken by a fixed intake -- dropped`,
+      );
+      continue;
+    }
+
+    // ── FF-052 · UN JOUR DE RESTES NE COMPOSE RIEN DE NEUF ──────────────
+    // Un plat qui PUISE dans une préparation reste — c'est exactement ce
+    // qu'on mange un jour de restes. Un plat qui part de zéro tombe: l'élève
+    // a déclaré qu'il finirait ce qui existe, et le lui composer par-dessus
+    // fait jeter la moitié de son lot.
+    //
+    // Le `uses` est lu PLUS BAS, mais il est déjà lisible ici sur la sortie
+    // brute: le vérifier après coûterait un plat construit puis jeté, et
+    // surtout un `honours_belief_keys` déjà compté.
+    const usesSomething = Array.isArray(d.uses) && d.uses.length > 0;
+    if (!usesSomething && dayHasProperty(args.dayProperties, day, "leftovers")) {
+      issues.push(
+        `dishes[${i}]: ${day} is a leftovers day -- a dish with no \`uses\` was dropped`,
+      );
+      continue;
+    }
+
     if (dishes.length >= cap) {
       issues.push(`dishes[${i}]: over the ${cap}-dish cap for ${args.scope}, dropped`);
       continue;
@@ -1671,6 +1907,16 @@ export function parseGeneratedMeal(
         numericInIngredients = termNumeric;
         break;
       }
+      ingredientCount++;
+      const structured = readStructuredQuantity(ing, args.composition, term);
+      // ── CE QUI N'A PAS PU ÊTRE PESÉ EST COMPTÉ ────────────────────────
+      // Sans ce compteur, un contrat de quantités structurées que le modèle
+      // ignore ressemble exactement à un contrat qu'il honore: des grammes
+      // absents, et rien pour dire lequel des deux. C'est la mesure du §10 de
+      // FF-038, et c'est elle qui dira s'il faut durcir la consigne.
+      if (structured.amount === null || structured.unit === null) {
+        unstructuredIngredients++;
+      }
       ingredients.push({
         term,
         quantity,
@@ -1679,6 +1925,7 @@ export function parseGeneratedMeal(
         // et elle se paye ici en disant « tu as tout » à quelqu'un qui n'a pas
         // les œufs, un dimanche soir, magasins fermés.
         in_pantry: isInPantry(term, args.pantry),
+        ...structured,
       });
     }
     if (numericInIngredients) {
@@ -1862,6 +2109,23 @@ export function parseGeneratedMeal(
     );
   }
 
+  // ── FF-038 : CE QUE LE CONTRAT DE QUANTITÉS A RENDU ─────────────────────
+  // UNE SEULE issue agrégée, et pas une par ingrédient: le contrat est
+  // nouveau, un modèle qui l'ignore en entier produirait quarante lignes
+  // identiques qui noieraient les constats utiles (un allergène, un lot gardé
+  // six jours). Le CHIFFRE est ce qu'on veut lire, pas la liste.
+  if (ingredientCount > 0 && unstructuredIngredients > 0) {
+    issues.push(
+      `structured_quantity_missing: ${unstructuredIngredients}/${ingredientCount} ingredients`,
+    );
+  }
+  if (args.composition === null) {
+    // NOMMÉ, sinon un référentiel indisponible en boucle ressemblerait à un
+    // modèle qui n'écrit pas ses quantités — deux causes opposées, une seule
+    // apparence.
+    issues.push("composition_index_unavailable: grams not computed");
+  }
+
   // ── LES SESSIONS DE CUISINE ─────────────────────────────────────────────
   // Une session qui ne fait AUCUNE préparation connue est jetée: elle
   // annoncerait un dimanche de cuisine sans rien à cuisiner.
@@ -1964,6 +2228,27 @@ export function parseGeneratedMeal(
     }
   }
 
+  // ── FF-052 · UN JOUR DE BATCH SANS SESSION ───────────────────────────────
+  // ON COMPTE, ON N'INVENTE PAS. C'est l'asymétrie délibérée avec `leftovers`
+  // (qui, lui, RETIRE): on peut supprimer un plat qui n'aurait pas dû exister,
+  // on ne peut pas inventer une session que le modèle n'a pas écrite —
+  // fabriquer une préparation produirait une recette que personne n'a rédigée,
+  // avec des quantités que personne n'a posées.
+  //
+  // Un `issues` compté est ce que ce dépôt fait des non-conformités du modèle,
+  // et c'est ce qui dira, en production, si la consigne mord. Si elle ne mord
+  // pas, c'est le PROMPT qu'il faut corriger, pas le parseur.
+  //
+  // Restreint à la FENÊTRE: réclamer une session un jour qu'on n'a pas demandé
+  // de remplir produirait une issue sur chaque plan, pour toujours.
+  for (const day of daysWithProperty(args.dayProperties, "batch_cook")) {
+    if (args.daysToFill.length > 0 && !args.daysToFill.includes(day)) continue;
+    if (preparations.some((p) => p.cookOn === day)) continue;
+    issues.push(
+      `${day} is a batch-cooking day -- no preparation was cooked there`,
+    );
+  }
+
   // ── UN LOT MANGÉ AVANT D'ÊTRE CUISINÉ ────────────────────────────────────
   // MESURÉ: fenêtre jeudi→dimanche, seul jour de cuisine déclaré encore
   // disponible le dimanche, et le modèle a fait puiser le déjeuner de JEUDI
@@ -2016,17 +2301,39 @@ export function parseGeneratedMeal(
   };
 }
 
+/**
+ * Un ingrédient, en base. R1: clés ASCII, snake_case.
+ *
+ * ── LES QUATRE CHAMPS DE FF-038 SONT PERSISTÉS ────────────────────────────
+ * Écrire les grammes recalculés plutôt que de les refaire à chaque lecture est
+ * ce qui rend un plan RELISIBLE: le verdict de FF-039 et tout rejeu ultérieur
+ * lisent la même valeur que celle qui a été calculée le jour de la
+ * composition, avec le référentiel de ce jour-là. Recalculer à la lecture
+ * ferait bouger l'histoire d'un plan à chaque curation d'alias.
+ *
+ * Aucun de ces champs n'est AFFICHÉ. Ce sont des grammes d'ALIMENT, du même
+ * côté de la frontière que « 400 g de cuisses de poulet » — mais l'écran
+ * continue de lire `quantity`, la prose.
+ */
+function ingredientPayload(i: DishIngredient): Record<string, unknown> {
+  return {
+    term: i.term,
+    quantity: i.quantity,
+    in_pantry: i.in_pantry,
+    amount: i.amount,
+    unit: i.unit,
+    state: i.state,
+    grams_raw: i.gramsRaw,
+  };
+}
+
 /** Le payload `dishes` écrit en base. R1: clés ASCII. */
 export function mealDishesPayload(meal: GeneratedMeal): Array<Record<string, unknown>> {
   return meal.dishes.map((d) => ({
     title: d.title,
     slot: d.slot,
     day: d.day,
-    ingredients: d.ingredients.map((i) => ({
-      term: i.term,
-      quantity: i.quantity,
-      in_pantry: i.in_pantry,
-    })),
+    ingredients: d.ingredients.map(ingredientPayload),
     method: d.method,
     why: d.why,
     honours_belief_keys: d.honours_belief_keys,
@@ -2044,11 +2351,7 @@ export function mealPreparationsPayload(
     id: p.id,
     title: p.title,
     servings_made: p.servingsMade,
-    ingredients: p.ingredients.map((i) => ({
-      term: i.term,
-      quantity: i.quantity,
-      in_pantry: i.in_pantry,
-    })),
+    ingredients: p.ingredients.map(ingredientPayload),
     method: p.method,
     active_minutes: p.activeMinutes,
     total_minutes: p.totalMinutes,

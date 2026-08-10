@@ -191,6 +191,8 @@ Deno.test("le plafond du PROMPT et celui du PARSEUR ne peuvent pas diverger", ()
     focusAxis: null,
     doctrineBlock: "== METHOD ==",
     coachNoteBlock: null,
+    fixedIntakes: [],
+    dayProperties: [],
     protocolBlock: "",
     beliefKeys: [],
     goal: "health",
@@ -232,6 +234,9 @@ Deno.test("le plafond du PROMPT et celui du PARSEUR ne peuvent pas diverger", ()
       daysToFill: ["mon"],
       awayDays: [],
       cookingTimeMin: null,
+      composition: null,
+      fixedIntakes: [],
+      dayProperties: [],
     },
   );
   assertEquals(meal.dishes.length, 5);
@@ -277,6 +282,8 @@ Deno.test("la TAILLE d'un moment arrive jusqu'à la consigne", () => {
     focusAxis: null,
     doctrineBlock: "== METHOD ==",
     coachNoteBlock: null,
+    fixedIntakes: [],
+    dayProperties: [],
     protocolBlock: "",
     beliefKeys: [],
     goal: "health",

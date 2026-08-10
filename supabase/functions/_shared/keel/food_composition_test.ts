@@ -371,6 +371,8 @@ function parseWith(
     awayDays: [],
     cookingTimeMin: null,
     composition: INDEX,
+    fixedIntakes: [],
+    dayProperties: [],
     ...over,
   });
 }
