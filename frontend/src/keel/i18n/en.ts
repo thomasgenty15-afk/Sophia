@@ -2833,17 +2833,86 @@ export const en = {
   "household.empty.body":
     "Add the people you cook for. One cooking session, portions that follow each person's own direction.",
   "household.create.name": "What do you call it?",
-  "household.create.kind": "Who lives here?",
-  "household.create.kind.family": "A family",
-  "household.create.kind.family_hint":
-    "Includes children. You can set foods the household does not serve to a given person.",
-  "household.create.kind.shared": "Adults sharing a kitchen",
-  "household.create.kind.shared_hint":
-    "A couple, a flatshare. Nobody can restrict anybody, and nobody sees anyone else's goal.",
+  // ── LE CHOIX DU MODE A DISPARU (lot 2, 2026-08-10) ────────────────────────
+  // `household.create.kind.*` posait « famille ou colocation ? », et la réponse
+  // gouvernait le droit de restreindre et la visibilité des objectifs. La
+  // colocation est sortie du produit; les cinq clés sont parties avec elle au
+  // lot 4, après vérification qu'aucune n'avait plus d'appelant.
   "household.create.submit": "Create the household",
   "household.members.title": "Who eats here",
   "household.members.owner": "Runs the household",
   "household.members.child": "Child",
+  // ── LE MAÎTRE EST LA PREMIÈRE BOUCHE (lot 4) ─────────────────────────────
+  // Il est un convive, pas un administrateur. Et c'est ce qui supprime une
+  // falaise réelle: la composition refuse de démarrer tant qu'il n'a pas
+  // d'objectif à lui, ce qu'on découvrait jusqu'ici APRÈS avoir saisi trois
+  // personnes.
+  "household.me.title": "You eat here too",
+  "household.me.body":
+    "Start with yourself: it is the same three things you will fill in for everyone else.",
+  "household.me.unlock":
+    "Your direction is also what lets us compose for the household. One minute now, and the plan is available.",
+  "household.member.first_name": "First name",
+  "household.member.first_name_hint": "How the plan names their portion.",
+  "household.member.birth_date": "Date of birth",
+  // L'ÂGE EST FACULTATIF ET GOUVERNANT. La phrase dit les deux, parce qu'un
+  // champ facultatif dont l'absence change le repas sans le dire est un piège.
+  "household.member.birth_date_hint":
+    "Optional. Until we have it, they get a standard serving — a direction only applies at a known age.",
+  "household.member.birth_date_kept":
+    "Already on file. Leave this empty to keep it, or pick a new date to replace it.",
+  "household.member.goal": "Their direction",
+  "household.member.goal_mine": "Your direction",
+  "household.member.goal_none": "No particular direction",
+  "household.member.goal_inactive":
+    "Saved, and not applied yet: a direction needs an age. Add their date of birth above.",
+  "household.member.save": "Save",
+  "household.member.saved": "Saved.",
+  "household.member.edit": "Edit",
+  "household.member.close": "Close",
+  "household.member.remove": "Remove from the household",
+  "household.goal.fat_loss": "Losing fat",
+  "household.goal.muscle_gain": "Building muscle",
+  "household.goal.recomposition": "Recomposition",
+  "household.goal.performance": "Performance",
+  "household.goal.health": "Health",
+  "household.goal.maintenance": "Staying where they are",
+  "household.add.title": "Add someone who eats here",
+  "household.add.body":
+    "No account, no invitation, no waiting for anyone. A first name is enough to start.",
+  "household.add.submit": "Add them",
+  // LE PLAFOND REND SON MOTIF, il ne grise pas un bouton en silence. La limite
+  // vit en base (`household_full`), pas ici: cet écran ne fait que la dire.
+  "household.add.full":
+    "Eight is the most a household can hold. Every mouth is another serving to compose at each generation.",
+  "household.error.bad_first_name": "A first name is between 1 and 40 characters.",
+  "household.error.bad_birth_date": "That date is in the future.",
+  "household.error.bad_goal": "That direction is not one we know.",
+  "household.error.bad_label": "That is either empty or too long (120 characters).",
+  "household.error.household_full":
+    "Eight is the most a household can hold. Remove someone first.",
+  "household.error.not_owner": "Only the person who runs the household can do this.",
+  "household.error.not_a_member": "That person is not in your household.",
+  "household.error.not_your_line": "You can only change your own line.",
+  "household.error.no_household": "You are not in a household.",
+  "household.error.cannot_remove_owner":
+    "The person who runs the household cannot be removed from it.",
+  "household.error.not_found": "That is already gone.",
+  // ── LES DEUX NATURES D'UNE CONTRAINTE, DEMANDÉES À L'ÉCRAN ───────────────
+  // La question n'est pas une commodité de rangement: la réponse change ce que
+  // le produit fait. Une allergie gouverne toute la casserole et rien ne se
+  // compose sans elle; une règle de maison est une décision du foyer, gardée
+  // telle quelle, et jamais présentée comme un conseil de santé.
+  "household.constraint.kind": "What is it?",
+  "household.constraint.kind.allergy": "An allergy",
+  "household.constraint.kind.allergy_hint":
+    "Medical. It rules the whole pot, for everyone at the table, and nothing gets cooked without it.",
+  "household.constraint.kind.house_rule": "Something this house does not serve",
+  "household.constraint.kind.house_rule_hint":
+    "Your call as the household. We keep it, and we never dress it up as health advice.",
+  "household.allergy.placeholder": "Peanuts",
+  "household.allergy.add": "Add the allergy",
+  "household.allergy.remove": "Remove",
   "household.invite.title": "Invite someone",
   "household.invite.body":
     "They need their own profile: without it, the plan is wrong for them.",
@@ -2854,30 +2923,26 @@ export const en = {
   "household.invite.error.rate_limited": "That is enough invitations for today.",
   "household.invite.error.bad_email": "That address does not look usable.",
   "household.invite.error.not_owner": "Only the person who runs the household can invite.",
-  "household.join.consent_notice":
-    "In this household, {owner} can decide that some foods are not served to you.",
-  "household.consent.title": "Foods others can rule out for you",
-  "household.consent.off":
-    "Nobody can rule out foods for you. This is the default.",
-  "household.consent.on":
-    "You allowed {owner} to rule out some foods for you. You can undo this at any time, and it removes what is already set.",
-  "household.consent.grant": "Allow it",
-  "household.consent.revoke": "Undo it",
+  // ── LE CONSENTEMENT A DISPARU (lot 2, 2026-08-10) ────────────────────────
+  // `household.consent.*` et `household.join.consent_notice` décrivaient un
+  // majeur qui accorde puis révoque le droit d'être restreint. Le modèle arrêté
+  // le 2026-08-08 dit qu'une seule personne gouverne le menu; LA CONTREPARTIE
+  // est plus bas et elle est toujours là — `notice_owner` nomme qui a décidé.
+  // Six clés retirées au lot 4, après vérification qu'aucune n'avait plus
+  // d'appelant hors de ce fichier.
   "household.restriction.title": "Foods this household does not serve",
-  "household.restriction.add": "Add a food",
-  "household.restriction.for_whom": "For whom",
+  "household.restriction.add": "Add it",
+  // `household.restriction.for_whom` est partie au lot 4: la contrainte se pose
+  // sur la ligne de la personne qu'on regarde, il n'y a plus de sélecteur.
   "household.restriction.placeholder": "Nutella",
   "household.restriction.notice_owner": "Not served here — {owner} decided that.",
   "household.restriction.notice_me": "You decided that.",
   "household.restriction.remove": "Remove",
-  "household.restriction.blocked.not_a_family":
-    "This household is adults sharing a kitchen. Nobody rules out food for anybody here.",
-  "household.restriction.blocked.not_owner":
-    "Only the person who runs the household can do this.",
-  "household.restriction.blocked.self":
-    "For your own food, use your preferences instead.",
-  "household.restriction.blocked.adult_without_consent":
-    "{name} has not allowed this. They can turn it on from their own household page.",
+  // `household.restriction.blocked.*` (quatre clés) est parti au lot 4.
+  // `restrictionBlock` les rendait: il anticipait le refus de la base pour
+  // griser un bouton, sur des règles qui n'existent plus (colocation,
+  // consentement du majeur). Les refus que la base rend encore sont
+  // structurels, et ils passent par `household.error.*` ci-dessus.
   "household.envy.title": "What do you feel like this week?",
   "household.envy.body":
     "Say it before the plan is made. Nobody has to answer: whoever says nothing is simply composed from their profile.",

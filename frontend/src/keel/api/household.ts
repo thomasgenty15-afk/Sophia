@@ -52,6 +52,34 @@ export interface RestrictionView {
   createdByUserId: string;
 }
 
+/**
+ * UNE ALLERGIE DE FOYER — et ce n'est PAS une `RestrictionView`.
+ *
+ * Deux tables, deux natures, et le type les sépare pour la même raison que la
+ * base: `household_food_restrictions` est le POUVOIR DOMESTIQUE, dont le verrou
+ * serveur EFFACE le « pourquoi » du plat; une allergie est MÉDICALE et rejoint
+ * l'union de sécurité du générateur, fail-closed. Les fondre dans un seul type
+ * ferait de la distinction une convention, c'est-à-dire quelque chose qu'un
+ * écran peut oublier.
+ */
+export interface AllergyView {
+  id: string;
+  memberId: string;
+  label: string;
+  createdByUserId: string;
+}
+
+/** Les six jetons, dans l'ordre où l'écran les propose. Miroir du CHECK. */
+export const MEMBER_GOALS = [
+  "fat_loss",
+  "muscle_gain",
+  "recomposition",
+  "performance",
+  "health",
+  "maintenance",
+] as const;
+export type MemberGoal = (typeof MEMBER_GOALS)[number];
+
 // ───────────────────────────────────────────────────────────────────────────
 // LES DÉCISIONS PURES
 // ───────────────────────────────────────────────────────────────────────────
@@ -235,6 +263,44 @@ export async function setMemberGoal(memberId: string, goal: string | null) {
   return asResult(data);
 }
 
+/**
+ * LE PRÉNOM SE CORRIGE — et ce n'est pas cosmétique.
+ *
+ * `household_turn_context.ts` filtre en silence toute portion dont le prénom
+ * est vide, et le brief de portions le cite tel quel. `keel_household_create`
+ * retombe sur « Me » quand `profiles.full_name` est vide: sans cette porte, le
+ * compte maître part au modèle sous le nom « Me », définitivement.
+ */
+export async function setMemberName(memberId: string, firstName: string) {
+  const { data, error } = await supabase.rpc("keel_household_set_member_name", {
+    p_member: memberId,
+    p_first_name: firstName,
+  });
+  if (error) throw new Error(error.message);
+  return asResult(data);
+}
+
+/**
+ * LA DATE DE NAISSANCE — séparée du prénom, et l'appelant doit le savoir.
+ *
+ * ⚠️ LE ROSTER NE REND JAMAIS LA DATE (le foyer doit savoir qu'il y a un enfant
+ * à table, pas son âge exact). Un écran ne peut donc pas la préremplir, et une
+ * RPC qui prendrait prénom+date recevrait `null` à chaque correction de prénom
+ * — c'est-à-dire EFFACERAIT la date sans que personne ne l'ait demandé. D'où
+ * deux portes, une par champ.
+ *
+ * `null` est légitime côté base (« je retire la date que j'avais mise ») et
+ * remet l'âge à `unknown`, donc RETIRE la direction d'objectif.
+ */
+export async function setMemberBirthDate(memberId: string, birthDate: string | null) {
+  const { data, error } = await supabase.rpc("keel_household_set_member_birth_date", {
+    p_member: memberId,
+    p_birth_date: birthDate,
+  });
+  if (error) throw new Error(error.message);
+  return asResult(data);
+}
+
 export async function inviteToHousehold(email: string) {
   const { data, error } = await supabase.rpc("keel_household_invite", { p_email: email });
   if (error) throw new Error(error.message);
@@ -260,6 +326,99 @@ export async function removeRestriction(id: string) {
   const { data, error } = await supabase.rpc("keel_household_remove_restriction", { p_id: id });
   if (error) throw new Error(error.message);
   return asResult(data);
+}
+
+/**
+ * LES ALLERGIES DU FOYER — la table que le lot 4 ajoute, et le trou qu'elle
+ * ferme.
+ *
+ * `student_safety_constraints` est clée sur `user_id`: une bouche sans compte
+ * n'avait nulle part où porter son allergie, alors que l'écran la réclamait.
+ * Ces lignes-ci rejoignent l'union de sécurité du générateur avec le MÊME
+ * fail-closed — lecture impossible, aucune composition.
+ */
+export async function loadAllergies(): Promise<AllergyView[]> {
+  const { data, error } = await supabase
+    .from("household_member_allergies")
+    .select("id, member_id, label, created_by");
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((raw) => {
+    const r = raw as Record<string, unknown>;
+    return {
+      id: String(r.id),
+      memberId: String(r.member_id),
+      label: String(r.label ?? ""),
+      createdByUserId: String(r.created_by),
+    };
+  });
+}
+
+export async function addAllergy(memberId: string, label: string) {
+  const { data, error } = await supabase.rpc("keel_household_add_allergy", {
+    p_member: memberId,
+    p_label: label,
+  });
+  if (error) throw new Error(error.message);
+  return asResult(data);
+}
+
+export async function removeAllergy(id: string) {
+  const { data, error } = await supabase.rpc("keel_household_remove_allergy", { p_id: id });
+  if (error) throw new Error(error.message);
+  return asResult(data);
+}
+
+/**
+ * LA FALAISE QUE LE LOT 4 SUPPRIME.
+ *
+ * `generate-household-meal-v1` refuse de démarrer si le compte maître n'a pas
+ * de ligne `student_goals` (`goal_required`, 409) — et jusqu'ici on se prenait
+ * ce mur APRÈS avoir saisi trois personnes. Cette ligne ne dimensionne aucune
+ * portion: elle porte la SITUATION, les contraintes pratiques et la langue,
+ * c'est-à-dire ce qui gouverne la composition entière.
+ *
+ * @returns `true` si la ligne existe déjà.
+ */
+export async function hasOwnerGoalRow(userId: string): Promise<boolean> {
+  // `.eq("user_id", …)` EXPLICITE, et pas seulement RLS: quelqu'un qui est à la
+  // fois coach et mangeur lit aussi les lignes de ses élèves
+  // (`student_goals_select_coach`), et une lecture non scopée lui rendrait la
+  // ligne de l'un d'eux. Le dépôt a déjà payé ce défaut sur cette table.
+  const { data, error } = await supabase
+    .from("student_goals")
+    .select("user_id")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return Boolean(data);
+}
+
+/**
+ * Écrit la ligne `student_goals` du compte maître SI ELLE N'EXISTE PAS.
+ *
+ * ⚠️ `ignoreDuplicates` N'EST PAS UNE PRÉCAUTION DE CONFORT. La table porte des
+ * CHECK croisés (`target_weight_kg` n'est légal que sur trois objectifs,
+ * `focus_axis` que sur deux): écraser `goal` sur une ligne existante ferait
+ * échouer l'écriture chez exactement les gens qui ont déjà rempli une cible —
+ * et personne ne l'aurait demandé depuis cet écran. Changer son objectif se
+ * fait là où vivent ses cibles, sur `/app/plan`.
+ *
+ * @returns `true` si une ligne a VRAIMENT été écrite.
+ */
+export async function createOwnerGoalRow(userId: string, goal: MemberGoal): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("student_goals")
+    .upsert({
+      user_id: userId,
+      goal,
+      // La langue DÉCLARÉE de l'app authentifiée (voir i18n/catalog.ts: la
+      // vitrine est bilingue, le produit connecté est en anglais). Même valeur
+      // que l'autre écrivain de cette colonne, `StudentWeekPlanPage`.
+      content_locale: "en-GB",
+    }, { onConflict: "user_id", ignoreDuplicates: true })
+    .select("user_id");
+  if (error) throw new Error(error.message);
+  return Boolean(data && data.length > 0);
 }
 
 export async function submitEnvy(weekStart: string, body: string) {

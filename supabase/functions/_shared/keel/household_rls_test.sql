@@ -14,22 +14,26 @@
 -- exactement telle qu'on l'a trouvée. C'est non négociable ici — la base
 -- locale est partagée avec d'autres sessions.
 --
--- CE QUI EST AFFIRMÉ
---   1. un membre lit son foyer                                  -> 1
---   2. un intrus ne lit RIEN du foyer voisin                    -> 0 partout
---   3. `anon` ne lit rien, nulle part                            -> 0
---   4. personne n'ÉCRIT en direct (tout passe par les RPC)       -> refusé
---   5. hors mode famille, aucune restriction n'est possible      -> not_a_family
---   6. un membre non-owner ne restreint personne                 -> not_owner
---   7. un MAJEUR sans consentement n'est pas restreignable       -> adult_without_consent
---   8. un MINEUR l'est                                           -> ok
---   9. un majeur CONSENTANT l'est                                -> ok
---  10. LA RÉVOCATION SUPPRIME LES RESTRICTIONS DÉJÀ POSÉES       -> 1 supprimée
---  11. une date de naissance ABSENTE = traité majeur             -> refusé sans accord
---  12. le jeton d'invitation est à USAGE UNIQUE                  -> already_used
---  13. un jeton qui fuite ne sert à personne d'autre             -> email_mismatch
---  14. la composition du foyer se lit par tout le foyer          -> 1
---  15. une composition SANS foyer reste privée à son auteur      -> 0
+-- CE QUI EST AFFIRMÉ (liste réécrite au lot 4 — l'ancienne décrivait le
+-- consentement du majeur et le mode colocation, tous deux sortis du produit)
+--   1. un membre lit son foyer, bouches SANS COMPTE comprises    -> 5
+--   2. un intrus ne lit RIEN du foyer voisin                     -> 0 partout
+--   3. `anon` n'a pas même le PRIVILÈGE de lire                  -> lève
+--   4. personne n'ÉCRIT en direct (TRUNCATE compris)             -> refusé
+--   5. seul le compte maître restreint, et seulement chez lui    -> not_owner / not_a_member
+--   6. une bouche SANS COMPTE est restreignable                  -> ok
+--   7. la personne restreinte voit sa contrainte ET son auteur   -> 1
+--   8. l'âge a TROIS états, et `unknown` n'est PAS `adult`       -> 1 / 0
+--   9. l'objectif se pose par son propriétaire ou par le maître  -> not_your_line / ok
+--  10. le plafond de 8 mord EN BASE, pas à l'écran               -> household_full
+--  11. le jeton d'invitation est à USAGE UNIQUE                  -> already_used
+--  12. un jeton qui fuite ne sert à personne d'autre             -> email_mismatch
+--  13. la composition du foyer se lit par tout le foyer          -> 1
+--  14. une composition SANS foyer reste privée à son auteur      -> 0
+--  15. une ALLERGIE se pose sur une bouche sans compte           -> ok        (lot 4)
+--  16. allergie et règle de maison sont dans DEUX tables         -> 0 / 0 / 1 (lot 4)
+--  17. le prénom et la date se corrigent, par la bonne personne  -> ok / not_your_line
+--  18. poser la date fait passer `unknown` à `adult`             -> 1         (lot 4)
 --
 -- Chaque assertion RAISE en cas d'écart: un vert silencieux sur une policy
 -- cassée est le seul résultat que ce fichier existe pour empêcher.
@@ -242,7 +246,11 @@ select pg_temp.become_super();
 select pg_temp.assert_eq('09 anon n''a aucun privilège sur households',
   (select count(*) from (values
      ('households'),('household_members'),('household_invitations'),
-     ('household_food_restrictions'),('household_envy_submissions')) t(n)
+     ('household_food_restrictions'),('household_envy_submissions'),
+     -- LOT 4. Une table neuve donne TOUT à `authenticated` par défaut, et
+     -- `revoke from public` ne retire PAS `anon`. Celle-ci porte des allergies
+     -- d'enfants: elle ne doit pas être la première à l'oublier.
+     ('household_member_allergies')) t(n)
    where has_table_privilege('anon', 'public.' || t.n, 'SELECT')), 0);
 
 -- ---------------------------------------------------------------------------
@@ -283,9 +291,34 @@ select pg_temp.assert_eq('10 un membre n''a pas pu se promouvoir compte maître'
 select pg_temp.assert_eq('10b authenticated n''a AUCUN privilège d''écriture',
   (select count(*) from (values
      ('households'),('household_members'),('household_invitations'),
-     ('household_food_restrictions'),('household_envy_submissions')) t(n),
+     ('household_food_restrictions'),('household_envy_submissions'),
+     ('household_member_allergies')) t(n),
    unnest(array['INSERT','UPDATE','DELETE','TRUNCATE']) as verb
    where has_table_privilege('authenticated', 'public.' || t.n, verb)), 0);
+
+-- ET LE SERVEUR, LUI, DOIT POUVOIR LIRE. Une table verrouillée si fort que le
+-- générateur n'y accède plus rendrait `safety_constraints_unreadable` à chaque
+-- composition — c'est-à-dire un fail-closed permanent, qui a exactement la même
+-- tête qu'une fonctionnalité absente.
+select pg_temp.assert_eq('10d le service_role lit les allergies du foyer',
+  (select count(*) from (values ('household_member_allergies')) t(n)
+   where has_table_privilege('service_role', 'public.' || t.n, 'SELECT')), 1);
+
+-- Les portes d'écriture du lot 4, côté privilège de FONCTION.
+select pg_temp.assert_eq('10e anon n''exécute aucune RPC du lot 4',
+  (select count(*) from (values
+     ('public.keel_household_add_allergy(uuid,text)'),
+     ('public.keel_household_remove_allergy(uuid)'),
+     ('public.keel_household_set_member_name(uuid,text)'),
+     ('public.keel_household_set_member_birth_date(uuid,date)')) t(f)
+   where has_function_privilege('anon', t.f, 'EXECUTE')), 0);
+select pg_temp.assert_eq('10f authenticated les exécute toutes les quatre',
+  (select count(*) from (values
+     ('public.keel_household_add_allergy(uuid,text)'),
+     ('public.keel_household_remove_allergy(uuid)'),
+     ('public.keel_household_set_member_name(uuid,text)'),
+     ('public.keel_household_set_member_birth_date(uuid,date)')) t(f)
+   where has_function_privilege('authenticated', t.f, 'EXECUTE')), 4);
 
 -- TRUNCATE, en conditions réelles. RLS ne le filtre PAS: c'est la seule
 -- écriture que l'absence de policy ne protège pas, donc la seule qui exige que
@@ -417,6 +450,130 @@ begin
   raise notice 'PASS 24 le plafond de 8 mord EN BASE';
 end;
 $$;
+
+-- ---------------------------------------------------------------------------
+-- 40–49. LES ALLERGIES DU FOYER, ET L'IDENTITÉ QU'ON CORRIGE (lot 4)
+--
+-- Ce que cette section existe pour empêcher: qu'une allergie posée sur un
+-- enfant sans compte n'arrive nulle part, et qu'une règle de maison et une
+-- allergie finissent dans la même table — auquel cas le verrou qui EFFACE le
+-- « pourquoi » du plat s'appliquerait à une raison médicale.
+-- ---------------------------------------------------------------------------
+
+-- 40. Un membre non-owner ne déclare rien pour personne.
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000002');
+select pg_temp.assert_refused('40 un membre ne déclare pas une allergie',
+  public.keel_household_add_allergy(
+    (select member_id from public.household_members
+      where user_id = 'f0ed0000-0000-0000-0000-000000000003'), 'peanut'),
+  'not_owner');
+
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000001');
+
+-- 41. LE GESTE NOMINAL: une allergie sur une bouche SANS COMPTE. C'est
+-- littéralement impossible dans `student_safety_constraints`, dont `user_id`
+-- est NOT NULL et référence `auth.users`.
+select pg_temp.assert_ok('41 une bouche SANS COMPTE porte une allergie',
+public.keel_household_add_allergy(
+    (select member_id from public.household_members
+      where household_id = public.keel_household_of('f0ed0000-0000-0000-0000-000000000001')
+        and user_id is null and first_name = 'Lea'), 'arachide'));
+
+-- 42. Pas dans le foyer d'à côté.
+select pg_temp.assert_refused('42 une bouche d''un autre foyer: refusé',
+  public.keel_household_add_allergy(
+    (select member_id from public.household_members
+      where user_id = 'f0ed0000-0000-0000-0000-000000000005'), 'peanut'),
+  'not_a_member');
+
+-- 43. LA SÉPARATION, SUR LA MÊME BOUCHE. Léa porte « champignons » (règle de
+-- maison, posée en 15) et « arachide » (allergie, posée en 41). Aucune des deux
+-- tables ne contient le libellé de l'autre — c'est ce que deux tables
+-- garantissent et qu'une colonne `kind` n'aurait garanti qu'au prix d'un
+-- `where` dans chaque lecteur.
+select pg_temp.become_super();
+select pg_temp.assert_eq('43 la règle de maison n''est PAS une allergie',
+  (select count(*) from public.household_member_allergies
+    where label = 'champignons'), 0);
+select pg_temp.assert_eq('44 l''allergie n''est PAS une règle de maison',
+  (select count(*) from public.household_food_restrictions
+    where label = 'arachide'), 0);
+select pg_temp.assert_eq('45 et les deux existent bien, chacune chez elle',
+  (select count(*) from public.household_member_allergies a
+    join public.household_food_restrictions r on r.member_id = a.member_id
+   where a.label = 'arachide' and r.label = 'champignons'), 1);
+
+-- 46. Le foyer lit ses allergies; l'intrus n'en lit aucune.
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000002');
+select pg_temp.assert_eq('46 le foyer lit ses allergies',
+  (select count(*) from public.household_member_allergies), 1);
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000005');
+select pg_temp.assert_eq('47 l''intrus ne lit aucune allergie',
+  (select count(*) from public.household_member_allergies), 0);
+
+-- 48. Le retrait: seulement chez soi. Un identifiant du foyer voisin ne se
+-- supprime pas, et le refus dit `not_found` plutôt que de mentir en `ok`.
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000001');
+select pg_temp.assert_refused('48 un identifiant inconnu ne se supprime pas',
+  public.keel_household_remove_allergy('f0ed0000-0000-0000-0000-0000000000ff'),
+  'not_found');
+
+-- ── L'IDENTITÉ D'UNE BOUCHE SE CORRIGE ────────────────────────────────────
+
+-- 49. Le prénom. Sans cette porte, `keel_household_create` fige « Me » pour un
+-- compte dont `profiles.full_name` est vide — et ce « Me » part au modèle.
+select pg_temp.assert_ok('49 le compte maître corrige un prénom',
+public.keel_household_set_member_name(
+    (select member_id from public.household_members
+      where user_id = 'f0ed0000-0000-0000-0000-000000000003'), 'Enfant2'));
+select pg_temp.become_super();
+select pg_temp.assert_eq('50 et le prénom a VRAIMENT changé',
+  (select count(*) from public.household_members
+    where user_id = 'f0ed0000-0000-0000-0000-000000000003'
+      and first_name = 'Enfant2'), 1);
+
+-- 51. Un membre non-owner ne renomme pas la ligne d'un autre.
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000002');
+select pg_temp.assert_refused('51 un membre ne renomme pas un autre',
+  public.keel_household_set_member_name(
+    (select member_id from public.household_members
+      where user_id = 'f0ed0000-0000-0000-0000-000000000003'), 'Pirate'),
+  'not_your_line');
+select pg_temp.assert_ok('52 mais il renomme LA SIENNE',
+public.keel_household_set_member_name(
+    (select member_id from public.household_members
+      where user_id = 'f0ed0000-0000-0000-0000-000000000002'), 'Adulte2'));
+
+-- 53. La date de naissance. Une date FUTURE est un lapsus de saisie: refusée
+-- ici plutôt que devenue un `unknown` silencieux.
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000001');
+select pg_temp.assert_refused('53 une date future est refusée',
+  public.keel_household_set_member_birth_date(
+    (select member_id from public.household_members
+      where user_id = 'f0ed0000-0000-0000-0000-000000000004'),
+    (current_date + 1)),
+  'bad_birth_date');
+
+-- 54. ET LA CONSÉQUENCE, QUI EST TOUT L'INTÉRÊT DE LA PORTE: la bouche sans
+-- date vaut `unknown`, donc AUCUNE direction d'objectif ne lui est appliquée
+-- (`goalApplies`). Poser la date la fait passer à `adult`, ce qui ACTIVE son
+-- objectif. Sans cette RPC, l'écran afficherait un champ qui ne fait rien.
+select pg_temp.become_super();
+select pg_temp.assert_eq('54 avant: la bouche sans date est unknown',
+  (select count(*) from public.household_members
+    where user_id = 'f0ed0000-0000-0000-0000-000000000004'
+      and public.keel_household_member_age(member_id) = 'unknown'), 1);
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000001');
+select pg_temp.assert_ok('55 le compte maître pose la date',
+public.keel_household_set_member_birth_date(
+    (select member_id from public.household_members
+      where user_id = 'f0ed0000-0000-0000-0000-000000000004'),
+    '1992-03-15'));
+select pg_temp.become_super();
+select pg_temp.assert_eq('56 après: elle est adulte, et son objectif s''applique',
+  (select count(*) from public.household_members
+    where user_id = 'f0ed0000-0000-0000-0000-000000000004'
+      and public.keel_household_member_age(member_id) = 'adult'), 1);
 
 -- ---------------------------------------------------------------------------
 -- 12–13. L'INVITATION: usage unique, et liée à une adresse
