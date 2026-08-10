@@ -19,6 +19,11 @@ vérifiés.
 | [FF-037 · L'ancre protéique](FF-037-l-ancre-proteique.md) | 🟠 En cours | Rien ne vérifie qu'un déjeuner porte de quoi tenir jusqu'au dîner. Une consigne, une vérification au parseur, un retry — et aucun gramme sur la personne. |
 | [FF-038 · Le référentiel de composition](FF-038-le-referentiel-de-composition.md) | 🟠 En cours | Le produit ne sait pas ce qu'il met dans l'assiette. Une table Ciqual, un résolveur qui n'invente rien, et des quantités que le parseur recalcule au lieu de croire le modèle. |
 | [FF-039 · Enveloppes et verdicts, en observation](FF-039-enveloppes-et-verdicts-en-observation.md) | 🟠 En cours | Deux formes d'enveloppe dont l'une ne peut structurellement rien viser. Les verdicts sont écrits et jamais actionnés — et ils portent la gate du chantier. |
+| [FF-040 · La boucle de correction](FF-040-la-boucle-de-correction.md) | 🟠 En cours | Le verdict devient un jeton, sans un chiffre et sans un mot du registre du régime. Porte aussi le plancher de couverture et le ré-ancrage. |
+| [FF-041 · La méthode du coach, exécutable](FF-041-la-methode-du-coach-executable.md) | 🟠 En cours | Le coach répond à un débat de doctrine ; la publication en dérive des jetons. Il ne voit jamais un axe du moteur. |
+| [FF-042 · Les régimes alimentaires](FF-042-les-regimes-alimentaires.md) | 🟠 Fondations + R6 livré | Un végan reçoit encore un plan avec de la viande dedans : le verrou n'est pas câblé. Ce qui est livré, c'est le signalement de ce qu'aucune assiette ne peut apporter — sans jamais prescrire. |
+| [FF-051 · Les apports fixes](FF-051-les-apports-fixes.md) | 🟢 Livré | « Je prends un shaker tous les matins » : le premier input qui alimente le calcul et non la sélection. Il occupe un moment, il compte dans le plancher, il compte dans l'enveloppe. |
+| [FF-052 · Les propriétés de jour](FF-052-les-proprietes-de-jour.md) | 🟢 Livré | Le pendant positif de l'absence. Deux propriétés qui mordent — le jour de batch, le jour de restes — parce qu'une propriété sans branche est pire que son absence. |
 
 ## Le chantier des unités de composition
 
@@ -28,6 +33,11 @@ Les quatre étages suivants (boucle de correction, méthode du coach rendue
 exécutable, résolution foyer, sentinelles et ré-ancrage) **ne démarrent que si
 la gate de FF-039 §10 est passée** : sous 80 % de couverture de résolution
 médiane, corriger un plan reviendrait à le corriger sur du bruit.
+
+**La gate est passée le 2026-08-10 — 96,2 % de couverture médiane** (rapport :
+`scratchpad/RAPPORT-UNITES-COMPOSITION.md`). La phase II est donc ouverte :
+FF-040 et FF-041 ici, [FF-043](../le-foyer/FF-043-la-resolution-foyer.md) dans
+`le-foyer/`.
 
 ## Ce que ces fiches ne couvrent pas
 
