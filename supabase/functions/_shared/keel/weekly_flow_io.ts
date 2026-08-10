@@ -13,6 +13,11 @@ import {
   weeklyBiofeedbackPayload,
   type WeeklyFlowReply,
 } from "./weekly_flow.ts";
+import {
+  type BodyMeasureWrite,
+  insertBodyMeasures,
+  resolveMeasureLocalDate,
+} from "./body_measure_io.ts";
 
 /** Le lundi de la semaine qui contient `localDate`. */
 export function weekStartOf(localDate: string): string {
@@ -27,6 +32,16 @@ export interface WeeklyFlowWriteResult {
   reply: WeeklyFlowReply;
   /** True quand la ligne existait déjà et a été mise à jour. */
   updated: boolean;
+  /**
+   * FF-031 — combien de mesures datées ont été écrites dans
+   * `student_body_measures`, et le motif quand il y en a moins que prévu.
+   *
+   * RENDU, jamais avalé: c'est la seule chose qui distingue « cet élève n'a
+   * rien saisi » de « on a échoué à ranger ce qu'il a saisi », et la seconde
+   * est ce qui désarme le plancher TCA sans bruit.
+   */
+  bodyMeasuresWritten: number;
+  bodyMeasuresIssue: string | null;
 }
 
 /**
@@ -71,6 +86,12 @@ export async function writeWeeklyFlowReply(
      * plutôt que de laisser un défaut décider à sa place.
      */
     origin: MeasureOrigin;
+    /**
+     * L'instant du geste. REQUIS, pas `new Date()` par défaut: la date locale
+     * de la mesure en dépend, et une horloge implicite est une horloge qu'un
+     * test ne peut pas tenir.
+     */
+    now: Date;
   },
 ): Promise<WeeklyFlowWriteResult> {
   const reply = parseWeeklyFlowResponse(args.responseJson, args.origin);
@@ -124,9 +145,17 @@ export async function writeWeeklyFlowReply(
       const raced = await readExisting();
       if (!raced) throw res.error;
       await updateRow(raced.id, mergedWith(raced));
-      return { weekStart: args.weekStart, reply, updated: true };
+      const raceMeasures = await writeDatedMeasures(admin, args, reply);
+      return {
+        weekStart: args.weekStart,
+        reply,
+        updated: true,
+        ...raceMeasures,
+      };
     }
   }
+
+  const measures = await writeDatedMeasures(admin, args, reply);
 
   if (reply.issues.length > 0) {
     // Bruyant par construction: une valeur écartée signale soit une faute de
@@ -139,7 +168,96 @@ export async function writeWeeklyFlowReply(
     });
   }
 
-  return { weekStart: args.weekStart, reply, updated: Boolean(existing) };
+  return {
+    weekStart: args.weekStart,
+    reply,
+    updated: Boolean(existing),
+    ...measures,
+  };
+}
+
+/**
+ * FF-031 — LA MOITIÉ DATÉE DE LA MÊME ÉCRITURE.
+ *
+ * Le formulaire porte une SEMAINE dans son jeton, pas un jour. Le jour est
+ * donc résolu ici, depuis le fuseau de l'élève, et `resolveMeasureLocalDate`
+ * garantit qu'il tombe dans la semaine que le jeton nomme — sans quoi la même
+ * pesée atterrirait dans deux semaines dérivées différentes selon qu'on la lit
+ * par la table ou par le miroir.
+ *
+ * ── ELLE N'EMPORTE PAS L'ÉCRITURE MIROIR AVEC ELLE (FF-031 R9) ────────────
+ * Tant que la double écriture dure, `weekly_reviews.biofeedback` reste le
+ * chemin qui marche aujourd'hui. Une panne ici le laisserait intact et l'élève
+ * garderait sa mesure. Le motif est RENDU à l'appelant, pas seulement
+ * journalisé: un échec qu'on ne peut lire que dans les logs d'un cron est un
+ * échec qu'on découvre le jour où la ceinture n'a pas mordu.
+ */
+async function writeDatedMeasures(
+  admin: SupabaseClient,
+  args: { userId: string; weekStart: string; origin: MeasureOrigin; now: Date },
+  reply: WeeklyFlowReply,
+): Promise<{ bodyMeasuresWritten: number; bodyMeasuresIssue: string | null }> {
+  if (reply.weightKg === null && reply.waistCm === null) {
+    return { bodyMeasuresWritten: 0, bodyMeasuresIssue: null };
+  }
+  try {
+    // Le fuseau seul: `resolveMeasureLocalDate` sait déjà quoi faire de son
+    // absence, et une lecture de profil qui échoue ne doit pas coûter la
+    // mesure.
+    let timezone: string | null = null;
+    try {
+      const res = await admin
+        .from("profiles")
+        .select("timezone")
+        .eq("id", args.userId)
+        .maybeSingle();
+      if (!res.error) {
+        timezone = String((res.data as { timezone?: unknown } | null)?.timezone ?? "")
+          .trim() || null;
+      }
+    } catch {
+      timezone = null;
+    }
+
+    const localDate = resolveMeasureLocalDate({
+      weekStart: args.weekStart,
+      timezone,
+      now: args.now,
+    });
+    const source = args.origin === "measures_card" ? "plan_card" : "sunday_flow";
+    const rows: BodyMeasureWrite[] = [];
+    if (reply.weightKg !== null) {
+      rows.push({
+        userId: args.userId,
+        kind: "weight",
+        valueSi: reply.weightKg,
+        source,
+        measuredAt: args.now.toISOString(),
+        localDate,
+      });
+    }
+    if (reply.waistCm !== null) {
+      rows.push({
+        userId: args.userId,
+        kind: "waist",
+        valueSi: reply.waistCm,
+        source,
+        measuredAt: args.now.toISOString(),
+        localDate,
+      });
+    }
+    const written = await insertBodyMeasures(admin, rows);
+    return { bodyMeasuresWritten: written.written, bodyMeasuresIssue: null };
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    console.warn("keel.body_measures.write_failed", {
+      user_id: args.userId,
+      week_start: args.weekStart,
+      origin: args.origin,
+      detail,
+    });
+    return { bodyMeasuresWritten: 0, bodyMeasuresIssue: detail };
+  }
 }
 
 /** Le `purpose` sous lequel le point hebdo part, et sous lequel on le relit. */

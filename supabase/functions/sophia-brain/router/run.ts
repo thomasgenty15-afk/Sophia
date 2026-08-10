@@ -4304,7 +4304,14 @@ export async function processMessage(
             // serveur qui l'a écrit est la famille de bugs nocturnes que ce
             // dépôt a déjà payée.
             measuredAt: userTime?.user_local_datetime ?? measureLocalDate,
+            // FF-031 — le JOUR de l'élève, tel que le runtime l'a déjà résolu.
+            // La table datée groupe dessus; le recalculer depuis `measuredAt`
+            // referait, mal, une conversion de fuseau déjà faite juste.
+            localDate: measureLocalDate,
             contentLocale: measureLocale,
+            // Les mots de l'élève, pour qu'une mesure qui arme une ceinture
+            // reste relisible.
+            studentNote: declaredMeasure.studentNote,
           });
           console.warn("[keel] body_measure_floor raised", {
             request_id: requestId,
@@ -4316,9 +4323,15 @@ export async function processMessage(
             // La valeur RELUE, pas celle qu'on a envoyée.
             stored_value: written.storedValue,
             week_start: weekStart,
+            // FF-031 — la mesure DATÉE est la source de vérité; le miroir
+            // hebdomadaire au-dessus n'est plus que le repli transitoire. Si
+            // ce drapeau est faux, la ceinture lit encore le miroir mais la
+            // série quotidienne, elle, a perdu un point.
+            dated_measure_written: written.datedMeasureWritten,
+            dated_measure_issue: written.datedMeasureIssue,
             detail:
-              "mesure annoncée en conversation, écrite là où le point du " +
-              "dimanche la range. La ceinture est ré-évaluée sur ce tour.",
+              "mesure annoncée en conversation, écrite comme mesure datée et " +
+              "dans le miroir hebdomadaire. La ceinture est ré-évaluée sur ce tour.",
           });
 
           // LA MOITIÉ QUI FAIT LA FICHE (FF-008 R7). Sans elle, on aurait

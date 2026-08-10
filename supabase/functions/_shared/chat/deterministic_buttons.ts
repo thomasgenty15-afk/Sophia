@@ -161,6 +161,9 @@ async function writeMeasures(
       weekStart: args.week,
       responseJson: message.form_response,
       origin: "measures_card",
+      // FF-031 — l'instant du geste. La date LOCALE de la mesure en dérive
+      // (`resolveMeasureLocalDate`), et le jeton ne porte que la semaine.
+      now: new Date(),
     });
     // Rien de lisible dans ce que l'élève a envoyé: on le DIT, au lieu
     // d'accuser réception d'une écriture qui n'a rien écrit.
@@ -497,6 +500,9 @@ export async function handleDeterministicButton(
         weekStart: week,
         responseJson: message.form_response,
         origin: "weekly_form",
+        // FF-031 — voir `writeMeasures` juste au-dessus: le jeton porte la
+        // semaine, l'instant donne le jour.
+        now: new Date(),
       });
       await ack(admin, {
         userId: message.user_id,

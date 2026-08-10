@@ -37,6 +37,7 @@ import {
   type WeekFactInput,
   type WeekReviewReading,
 } from "./week_review.ts";
+import { insertBodyMeasures } from "./body_measure_io.ts";
 import { doctrineBlockFor, loadPublishedDoctrine } from "./doctrine_loader.ts";
 import { loadPublishedProtocol } from "./protocol_loader.ts";
 import { appendResponseLanguageBlock } from "./locale.ts";
@@ -269,7 +270,16 @@ export interface DeclaredBodyMeasureWrite {
   valueSi: number;
   /** L'instant du tour, en heure LOCALE de l'élève, ISO. */
   measuredAt: string;
+  /**
+   * FF-031 — le JOUR de l'élève, YYYY-MM-DD. `weekStart` en dérive déjà chez
+   * l'appelant; il est demandé en plus parce que la table datée groupe sur le
+   * jour et que le recalculer ici referait, mal, une conversion de fuseau que
+   * l'appelant avait faite juste.
+   */
+  localDate: string;
   contentLocale: string;
+  /** Les mots de l'élève, pour que la mesure reste auditable. */
+  studentNote?: string | null;
 }
 
 export interface DeclaredBodyMeasureWriteResult {
@@ -277,6 +287,9 @@ export interface DeclaredBodyMeasureWriteResult {
   outcome: "inserted" | "updated";
   /** La valeur RELUE. Vérité d'exécution: on n'affirme que ce que la base rend. */
   storedValue: number;
+  /** FF-031 — la mesure datée a-t-elle été rangée, et sinon pourquoi. */
+  datedMeasureWritten: boolean;
+  datedMeasureIssue: string | null;
 }
 
 /**
@@ -289,12 +302,25 @@ export interface DeclaredBodyMeasureWriteResult {
  * lieu de stockage serait le bug écrivain/lecteur qui a laissé la carte poids
  * vide, à l'échelle d'une donnée de sécurité.
  *
- * ── ELLE REMPLACE, ELLE N'AJOUTE PAS ──────────────────────────────────────
+ * ── ⚠️ FF-031 A RENVERSÉ LE PREMIER PARAGRAPHE ────────────────────────────
+ * « Pas de nouvelle table » était le bon arbitrage de FF-008 et il ne l'est
+ * plus: la granularité de stockage d'une mesure n'est pas la semaine. Le poids
+ * vit maintenant dans `student_body_measures`, une ligne par pesée, et c'est
+ * de LÀ que la série du plancher TCA est dérivée
+ * (`body_measure_series.deriveWeeklyOutcomeSamples`).
+ *
+ * Cette fonction écrit donc AUX DEUX ENDROITS, le temps de la double écriture
+ * transitoire (FF-031 R7, qui porte sa condition de retrait). Le paragraphe
+ * ci-dessous décrit ce que fait encore le MIROIR — il n'est plus la vérité.
+ *
+ * ── LE MIROIR REMPLACE, IL N'AJOUTE PAS ───────────────────────────────────
  * La revue du dimanche n'a qu'UN poids par semaine. Deux lignes créeraient une
  * variation fantôme, et `restriction_guard` JETTE sur une semaine dupliquée
  * (« weekly_outcomes has a duplicate week_start_date »). La dernière
  * déclaration gagne, quelle que soit sa source: un élève qui se corrige
- * (« pardon, 78 pas 87 ») doit pouvoir le faire en parlant.
+ * (« pardon, 78 pas 87 ») doit pouvoir le faire en parlant. Dans la table
+ * datée, la correction s'AJOUTE et c'est la dérivation qui tranche — même
+ * règle, même résultat, sans perdre ce qui a été démenti.
  *
  * ── FUSION, PAS ÉCRASEMENT ────────────────────────────────────────────────
  * Le jsonb existant est relu et fusionné, comme `writeWeeklyFlowReply` le fait
@@ -384,6 +410,41 @@ export async function writeDeclaredBodyMeasure(
     return stored;
   }
 
+  /**
+   * FF-031 — la mesure DATÉE, source de vérité depuis ce chantier.
+   *
+   * Elle ne fait pas échouer l'écriture miroir (R9): tant que la double
+   * écriture dure, `biofeedback` est le chemin qui marche, et le perdre pour
+   * une panne de la table neuve serait une régression sur un accusé que
+   * l'élève reçoit déjà. Le motif est RENDU, pas seulement journalisé.
+   */
+  async function writeDated(): Promise<
+    { datedMeasureWritten: boolean; datedMeasureIssue: string | null }
+  > {
+    try {
+      await insertBodyMeasures(db, [{
+        userId,
+        kind: args.kind,
+        valueSi: args.valueSi,
+        source: "chat",
+        measuredAt: args.measuredAt,
+        localDate: args.localDate,
+        contentLocale: args.contentLocale,
+        studentNote: args.studentNote ?? null,
+      }]);
+      return { datedMeasureWritten: true, datedMeasureIssue: null };
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error);
+      console.warn("keel.body_measures.write_failed", {
+        user_id: userId,
+        kind: args.kind,
+        source: "chat",
+        detail,
+      });
+      return { datedMeasureWritten: false, datedMeasureIssue: detail };
+    }
+  }
+
   const existing = await readExisting();
   if (existing) {
     const res = await db
@@ -391,7 +452,11 @@ export async function writeDeclaredBodyMeasure(
       .update({ biofeedback: merged(existing.biofeedback) })
       .eq("id", existing.id);
     if (res.error) throw res.error;
-    return { outcome: "updated", storedValue: await readBack(existing.id) };
+    return {
+      outcome: "updated",
+      storedValue: await readBack(existing.id),
+      ...(await writeDated()),
+    };
   }
 
   const res = await db
@@ -417,7 +482,11 @@ export async function writeDeclaredBodyMeasure(
       .update({ biofeedback: merged(raced.biofeedback) })
       .eq("id", raced.id);
     if (retry.error) throw retry.error;
-    return { outcome: "updated", storedValue: await readBack(raced.id) };
+    return {
+      outcome: "updated",
+      storedValue: await readBack(raced.id),
+      ...(await writeDated()),
+    };
   }
   const insertedId = String((res.data as Record<string, unknown> | null)?.id ?? "").trim();
   if (!insertedId) {
@@ -426,7 +495,11 @@ export async function writeDeclaredBodyMeasure(
         "(write-through violated)",
     );
   }
-  return { outcome: "inserted", storedValue: await readBack(insertedId) };
+  return {
+    outcome: "inserted",
+    storedValue: await readBack(insertedId),
+    ...(await writeDated()),
+  };
 }
 
 /**
