@@ -27,8 +27,11 @@ import {
 } from "../../../_shared/gemini.ts";
 import {
   isWeightDivergenceCategory,
+  isWeightDivergenceSlot,
   WEIGHT_DIVERGENCE_CATEGORIES,
+  WEIGHT_DIVERGENCE_SLOTS,
   type WeightDivergenceCategory,
+  type WeightDivergenceSlot,
 } from "./contract.ts";
 
 // ---------------------------------------------------------------------------
@@ -115,6 +118,15 @@ export interface DivergenceClassificationInput {
 export interface DivergenceClassification {
   category: WeightDivergenceCategory;
   /**
+   * LE MOMENT NOMMÉ, dans un ensemble fermé. `unspecified` par défaut, et sur
+   * toute catégorie autre que `named_spot`.
+   *
+   * ⚠️ C'est ce qui empêche d'agir AILLEURS que là où la personne a nommé — le
+   * défaut mesuré en run réel (« le matin je grignote » → une collation
+   * l'après-midi). Voir `WEIGHT_DIVERGENCE_SLOTS`.
+   */
+  namedSlot: WeightDivergenceSlot;
+  /**
    * Comment on y est arrivé. `decline_floor` = le plancher déterministe;
    * `model` = le modèle a choisi dans l'ensemble; `out_of_set` = il a répondu
    * autre chose et on a replié sur `other`; `unavailable` = pas de réponse.
@@ -155,6 +167,15 @@ const SYSTEM_PROMPT = [
   '- "declined": they do not want to talk about it.',
   '- "other": anything that does not clearly fit one of the above.',
   "",
+  'ALSO return "slot": WHEN in the day the extra eating happens, ONLY if the',
+  'person named it. Closed list: "morning", "midday", "afternoon", "evening",',
+  '"night", "unspecified".',
+  '- Use "unspecified" whenever they named a food or a habit but no time of day,',
+  '  and for every category other than "named_spot".',
+  "- NEVER guess the slot. If they did not say when, it is \"unspecified\". A",
+  "  wrong slot makes the plan change the wrong meal, which is worse than no",
+  "  change at all.",
+  "",
   "RULES:",
   "- If it could be two labels, pick the one the person's OWN WORDS support most",
   "  literally. Never infer a cause they did not state.",
@@ -163,17 +184,21 @@ const SYSTEM_PROMPT = [
   "  and that is worse than admitting the reply was unclear.",
   '- Never invent a label outside the list.',
   "",
-  'Return strictly one JSON object: {"category":"..."}.',
+  'Return strictly one JSON object: {"category":"...","slot":"..."}.',
 ].join("\n");
 
-function parseCategory(raw: unknown): string | null {
+function parseAnswer(raw: unknown): { category: string | null; slot: string | null } {
   try {
     // deno-lint-ignore no-explicit-any
     const root: any = typeof raw === "string" ? JSON.parse(extractJson(raw)) : raw;
-    const value = root?.category;
-    return typeof value === "string" ? value.trim() : null;
+    const category = root?.category;
+    const slot = root?.slot;
+    return {
+      category: typeof category === "string" ? category.trim() : null,
+      slot: typeof slot === "string" ? slot.trim() : null,
+    };
   } catch {
-    return null;
+    return { category: null, slot: null };
   }
 }
 
@@ -202,7 +227,7 @@ export async function classifyDivergenceReply(
   // LE PLANCHER D'ABORD, TOUJOURS. Il gagne contre le modèle, y compris quand
   // le modèle dirait autre chose — c'est le sens de « plancher ».
   if (detectDeclineFloor(input.userMessage)) {
-    return { category: "declined", source: "decline_floor" };
+    return { category: "declined", namedSlot: "unspecified", source: "decline_floor" };
   }
 
   let raw: unknown = null;
@@ -229,21 +254,37 @@ export async function classifyDivergenceReply(
       );
   } catch (error) {
     console.warn("[WeightDivergence] classifier failed", error);
-    return { category: "other", source: "unavailable" };
+    return { category: "other", namedSlot: "unspecified", source: "unavailable" };
   }
 
-  const value = parseCategory(raw);
-  if (value === null) return { category: "other", source: "unavailable" };
+  const parsed = parseAnswer(raw);
+  const value = parsed.category;
+  // Le moment suit la MÊME discipline que la catégorie: hors ensemble ⇒
+  // `unspecified`, c'est-à-dire « aucune action », jamais une action ailleurs.
+  const namedSlot: WeightDivergenceSlot = isWeightDivergenceSlot(parsed.slot)
+    ? parsed.slot
+    : "unspecified";
+  if (value === null) {
+    return { category: "other", namedSlot: "unspecified", source: "unavailable" };
+  }
   if (isWeightDivergenceCategory(value)) {
     // ⚠️ LE MODÈLE NE PEUT PAS PRONONCER `declined`. Le refus est un effet
     // durable: seul le plancher déterministe l'ouvre. Un modèle qui le rend ici
     // est un modèle qui aurait pu le rendre au hasard, et un refus tiré au sort
     // est pire qu'un refus ignoré — il apprend que dire non marche parfois.
-    if (value === "declined") return { category: "other", source: "out_of_set" };
-    return { category: value, source: "model" };
+    if (value === "declined") {
+      return { category: "other", namedSlot: "unspecified", source: "out_of_set" };
+    }
+    return {
+      category: value,
+      // Un moment n'a de sens que sur `named_spot`. Le porter ailleurs ferait
+      // entrer une valeur que rien ne lit — et qu'un jour quelqu'un lira.
+      namedSlot: value === "named_spot" ? namedSlot : "unspecified",
+      source: "model",
+    };
   }
   console.warn("weight_divergence.classification_out_of_set", { value });
-  return { category: "other", source: "out_of_set" };
+  return { category: "other", namedSlot: "unspecified", source: "out_of_set" };
 }
 
 /** Exporté pour le test de contrat: l'ensemble du prompt EST l'ensemble du type. */
@@ -251,4 +292,9 @@ export function promptMentionsEveryCategory(): boolean {
   return WEIGHT_DIVERGENCE_CATEGORIES.every((category) =>
     SYSTEM_PROMPT.includes(`"${category}"`)
   );
+}
+
+/** Idem pour les moments: un moment du type absent du prompt est inatteignable. */
+export function promptMentionsEverySlot(): boolean {
+  return WEIGHT_DIVERGENCE_SLOTS.every((slot) => SYSTEM_PROMPT.includes(`"${slot}"`));
 }

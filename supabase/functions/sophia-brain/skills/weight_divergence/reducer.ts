@@ -23,11 +23,14 @@
 
 import {
   isWeightDivergenceCategory,
+  isWeightDivergenceSlot,
+  SLOT_TO_RECOMMENDATION_ACTION,
   WEIGHT_DIVERGENCE_MAX_QUESTIONS,
   WEIGHT_DIVERGENCE_MAX_TURNS,
   type WeightDivergenceCategory,
   type WeightDivergencePhase,
   type WeightDivergenceReduction,
+  type WeightDivergenceSlot,
   type WeightDivergenceVisibleTask,
   type WeightDivergenceVisibleTaskKind,
   type WeightDivergenceWorkingState,
@@ -37,6 +40,11 @@ export interface WeightDivergenceReducerInput {
   previousState: WeightDivergenceWorkingState;
   /** La catégorie rendue par le dispatcher local. Hors liste ⇒ `other`. */
   category: string | null;
+  /**
+   * LE MOMENT NOMMÉ par la personne. Hors liste ⇒ `unspecified`, c'est-à-dire
+   * AUCUNE action — jamais une action à un autre moment.
+   */
+  namedSlot: string | null;
   /** Les mots de la personne, tels quels. */
   userMessage: string;
   /**
@@ -181,24 +189,42 @@ export function normalizeCategory(value: unknown): WeightDivergenceCategory {
   return isWeightDivergenceCategory(value) ? value : "other";
 }
 
+/** Idem pour le moment: tout ce qui n'est pas un membre exact ⇒ `unspecified`. */
+export function normalizeSlot(value: unknown): WeightDivergenceSlot {
+  return isWeightDivergenceSlot(value) ? value : "unspecified";
+}
+
 /**
- * QUELLE ACTION POUR UN `named_spot`, ET POURQUOI CE N'EST PAS UN CHOIX.
+ * L'ACTION POUR UN `named_spot` — À L'ENDROIT NOMMÉ, OU NULLE PART.
  *
- * L'espace est PRÉ-CALCULÉ par FF-028 depuis le rythme réel de l'élève; il ne
- * contient que ce qui change vraiment quelque chose pour cette personne. On
- * prend la première entrée disponible dans un ordre FIXE, pas la « meilleure »:
- * un classement dépendant du texte remettrait un tirage sur le chemin qui OUVRE
- * un effet durable, ce que la règle transverse du dépôt interdit.
+ * Deux conditions, cumulatives, et la première est celle qui manquait:
+ *   1. le MOMENT nommé par la personne doit correspondre à l'action
+ *      (`SLOT_TO_RECOMMENDATION_ACTION`, table explicite et trouée);
+ *   2. l'action doit être dans l'espace PRÉ-CALCULÉ par FF-028 — c'est-à-dire
+ *      qu'elle doit changer réellement quelque chose pour cette personne.
  *
- * Vide ⇒ `null`, et le flow le dit. Inventer une action ici serait exactement
- * « proposer une collation du soir à quelqu'un dont le problème est le matin ».
+ * ── CE QUE LA PREMIÈRE CONDITION A COÛTÉ D'ÊTRE ABSENTE ────────────────────
+ * Mesuré en run réel, sur la job story de la fiche elle-même. « Le matin je
+ * grignote en me levant » chez quelqu'un qui a DÉJÀ un petit-déjeuner dans son
+ * rythme: `add_breakfast` n'était donc pas dans l'espace, et la version
+ * précédente prenait « la première entrée disponible » —
+ *
+ *   « Le plan peut ajouter une collation l'après-midi pour calmer ça. »
+ *
+ * §1 de la fiche décrit ce cas mot pour mot comme la façon de « se tromper deux
+ * fois et perdre sa confiance ». Aucun test unitaire ne pouvait l'attraper: il
+ * fallait un rythme réel où l'action évidente n'est PAS disponible.
+ *
+ * Rien ⇒ `null`, et le flow DIT qu'il a noté sans rien proposer. C'est une
+ * bonne fin.
  */
 export function pickNamedSpotAction(
   available: readonly string[],
+  namedSlot: WeightDivergenceSlot,
 ): string | null {
-  const ordered = ["add_breakfast", "add_afternoon_snack"];
-  for (const id of ordered) if (available.includes(id)) return id;
-  return null;
+  const wanted = SLOT_TO_RECOMMENDATION_ACTION[namedSlot];
+  if (!wanted) return null;
+  return available.includes(wanted) ? wanted : null;
 }
 
 /** La catégorie → la tâche visible. Table exhaustive, sans branche par défaut. */
@@ -288,8 +314,9 @@ export function reduceWeightDivergence(
   const turnCount = (typeof state.turn_count === "number" ? state.turn_count : 0) + 1;
   const category = normalizeCategory(input.category);
 
+  const namedSlot = normalizeSlot(input.namedSlot);
   const actionId = category === "named_spot" && !input.planChanged
-    ? pickNamedSpotAction(input.availableActionIds)
+    ? pickNamedSpotAction(input.availableActionIds, namedSlot)
     : null;
   const hasAction = actionId !== null;
 
@@ -351,6 +378,7 @@ export function reduceWeightDivergence(
       phase,
       turn_count: turnCount,
       last_category: category,
+      last_named_slot: namedSlot,
       reformulated: state.reformulated === true || kind === "reformulate_once",
       last_visible_task: kind,
     },

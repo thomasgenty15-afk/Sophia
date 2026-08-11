@@ -37,7 +37,7 @@ import {
 import { planFingerprint } from "./daily_recommendation.ts";
 import { loadRhythm } from "./daily_recommendation_io.ts";
 import { loadPublishedDoctrine } from "./doctrine_loader.ts";
-import { readLastTurnSafetyBand } from "./safety_band_io.ts";
+import { blocksDurableWrite, readLastTurnSafetyBand } from "./safety_band_io.ts";
 import { resolveStudentFollowing } from "./following_io.ts";
 import { localDateFor, localHourFor } from "./reengagement_io.ts";
 import { weekStartOf } from "./weekly_flow_io.ts";
@@ -334,11 +334,20 @@ export async function runWeightDivergenceStep(
     return { outcome: "skipped", reason: "restriction_flag" };
   }
 
+  // ⚠️ `blocksDurableWrite`, PAS `!== "none"`. Le dépôt a UNE définition de
+  // « la bande bloque » (`medium`/`high`/`critical`); en écrire une seconde,
+  // plus stricte, muselait ce mécanisme pour tout élève dont le dernier tour
+  // était classé `low` — c'est-à-dire un tour ordinaire.
+  //
+  // MESURÉ par la sonde de ce lot: « je n'ai pas envie d'en parler » remonte la
+  // bande au-dessus de `none`. Avec la garde stricte, un refus se serait donc
+  // transformé en silence permanent par un chemin AUTRE que le cooldown — un
+  // effet durable posé par accident, et invisible.
   const safetyBand = await readLastTurnSafetyBand(admin, {
     userId,
     scope: CHAT_SCOPE,
   });
-  if (safetyBand !== null && safetyBand !== "none") {
+  if (safetyBand !== null && blocksDurableWrite(safetyBand)) {
     return { outcome: "skipped", reason: "safety_band" };
   }
 

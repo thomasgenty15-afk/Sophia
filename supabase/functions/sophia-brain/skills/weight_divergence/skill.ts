@@ -113,6 +113,7 @@ export async function runWeightDivergenceSkill(
   const reduction = reduceWeightDivergence({
     previousState,
     category: runtime.classification.category,
+    namedSlot: runtime.classification.namedSlot,
     userMessage: input.user_message,
     restrictionFlagged: runtime.restriction_flagged === true,
     crisis: runtime.crisis === true,
@@ -202,6 +203,7 @@ export async function runWeightDivergenceSkill(
     reason_code: reduction.reasonCode,
     category: reduction.episodeCategory,
     classification_source: runtime.classification.source,
+    named_slot: runtime.classification.namedSlot,
     proposed_action: reduction.proposedActionId,
     episode_state: reduction.episodeState,
     opens_observation_window: reduction.opensObservationWindow,

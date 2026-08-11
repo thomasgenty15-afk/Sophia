@@ -66,6 +66,70 @@ export function isWeightDivergenceCategory(
 }
 
 // ---------------------------------------------------------------------------
+// LE MOMENT NOMMÉ — l'autre moitié de `named_spot`
+// ---------------------------------------------------------------------------
+
+/**
+ * LE MOMENT DE LA JOURNÉE QUE LA PERSONNE A NOMMÉ. Liste FERMÉE.
+ *
+ * ── POURQUOI CETTE LISTE EXISTE, ET CE QU'ELLE A COÛTÉ DE NE PAS L'AVOIR ───
+ * Sans elle, `named_spot` prenait la première action DISPONIBLE de l'espace
+ * FF-028. Mesuré en run réel sur « le matin je grignote en me levant »: le
+ * rythme par défaut contient déjà un petit-déjeuner, donc `add_breakfast`
+ * n'était pas dans l'espace, et le flow a répondu
+ *
+ *   « Le plan peut ajouter une collation l'après-midi pour calmer ça. »
+ *
+ * C'est-à-dire EXACTEMENT le mode de défaillance que §1 de la fiche décrit en
+ * toutes lettres: « proposer une collation du soir à quelqu'un dont le problème
+ * est le matin — c'est se tromper deux fois et perdre sa confiance ».
+ *
+ * ── CE QUE ÇA N'EST PAS ────────────────────────────────────────────────────
+ * Ce n'est pas de la spéculation: le moment est celui que LA PERSONNE a nommé,
+ * lu dans ses mots, dans un ensemble fermé. Le flow ne devine rien — il refuse
+ * simplement d'agir ailleurs qu'à l'endroit nommé. Quand le moment ne
+ * correspond à aucune action pré-calculée, il le DIT et n'invente rien.
+ */
+export const WEIGHT_DIVERGENCE_SLOTS = [
+  "morning",
+  "midday",
+  "afternoon",
+  "evening",
+  "night",
+  /** Nommé un aliment ou une habitude, sans moment. */
+  "unspecified",
+] as const;
+export type WeightDivergenceSlot = (typeof WEIGHT_DIVERGENCE_SLOTS)[number];
+
+export function isWeightDivergenceSlot(
+  value: unknown,
+): value is WeightDivergenceSlot {
+  return (WEIGHT_DIVERGENCE_SLOTS as readonly string[])
+    .includes(String(value ?? ""));
+}
+
+/**
+ * LE MOMENT → L'ACTION FF-028 QUI TOMBE DESSUS. Table explicite et TROUÉE.
+ *
+ * Les trous sont le sujet: l'espace de FF-028 ne contient que deux actions
+ * (`add_breakfast` sur `breakfast`, `add_afternoon_snack` sur `snack_pm`).
+ * `midday`, `evening`, `night` et `unspecified` n'ont donc AUCUNE action, et
+ * c'est correct — le plan ne sait pas encore absorber une reprise à table le
+ * soir. Un `else` qui retomberait sur l'action disponible la plus proche
+ * refabriquerait le défaut du run réel.
+ */
+export const SLOT_TO_RECOMMENDATION_ACTION: Readonly<
+  Record<WeightDivergenceSlot, string | null>
+> = Object.freeze({
+  morning: "add_breakfast",
+  afternoon: "add_afternoon_snack",
+  midday: null,
+  evening: null,
+  night: null,
+  unspecified: null,
+});
+
+// ---------------------------------------------------------------------------
 // LES BORNES
 // ---------------------------------------------------------------------------
 
@@ -168,6 +232,8 @@ export interface WeightDivergenceWorkingState {
   turn_count?: number;
   /** La catégorie retenue au dernier tour classé. */
   last_category?: string;
+  /** Le moment nommé au dernier tour classé. */
+  last_named_slot?: string;
   /** Une seule reformulation par épisode. */
   reformulated?: boolean;
   last_visible_task?: string;

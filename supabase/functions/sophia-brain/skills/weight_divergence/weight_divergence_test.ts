@@ -16,12 +16,15 @@ import {
   WEIGHT_DIVERGENCE_MAX_TURNS,
   WEIGHT_DIVERGENCE_OBSERVATION_DAYS,
   WEIGHT_DIVERGENCE_OPEN_FOR_DAYS,
+  WEIGHT_DIVERGENCE_SLOTS,
   WEIGHT_DIVERGENCE_VISIBLE_TASKS,
+  SLOT_TO_RECOMMENDATION_ACTION,
   type WeightDivergenceVisibleTask,
   type WeightDivergenceVisibleTaskKind,
 } from "./contract.ts";
 import {
   normalizeCategory,
+  normalizeSlot,
   pickNamedSpotAction,
   reduceWeightDivergence,
   type WeightDivergenceReducerInput,
@@ -29,6 +32,7 @@ import {
 import {
   detectDeclineFloor,
   promptMentionsEveryCategory,
+  promptMentionsEverySlot,
 } from "./local_dispatcher.ts";
 import {
   validateWeightDivergenceMessage,
@@ -46,6 +50,7 @@ function reducerInput(
   return {
     previousState: {},
     category: "other",
+    namedSlot: "unspecified",
     userMessage: "hmm",
     // ⚠️ LES DEUX TRAPPES SONT REQUISES par le type. Une fixture qui les
     // omettrait ne compilerait pas — c'est la cicatrice
@@ -85,6 +90,7 @@ Deno.test("FF-056 · la CRISE rend la main sans un mot, et passe devant tout", (
     crisis: true,
     restrictionFlagged: true,
     category: "named_spot",
+    namedSlot: "morning",
   }));
   assertEquals(out.kind, "hand_over");
   if (out.kind !== "hand_over") throw new Error("unreachable");
@@ -113,6 +119,7 @@ Deno.test("FF-056 · une trappe ne produit AUCUNE catégorie et AUCUNE action", 
   const out = reduceWeightDivergence(reducerInput({
     restrictionFlagged: true,
     category: "named_spot",
+    namedSlot: "morning",
   }));
   if (out.kind !== "hand_over") throw new Error("attendu hand_over");
   // Rien d'exploitable ne sort d'une trappe: pas de `visibleTask`, pas de
@@ -179,7 +186,12 @@ const EXPECTED: Record<string, {
 
 Deno.test("FF-056 · chaque catégorie a SA tâche et SA fin — les neuf, énumérées", () => {
   for (const category of WEIGHT_DIVERGENCE_CATEGORIES) {
-    const out = reduceWeightDivergence(reducerInput({ category }));
+    // `named_spot` a besoin de son MOMENT: sans lui il n'y a pas d'action, et
+    // c'est justement la propriété que le lot suivant a dû ajouter.
+    const out = reduceWeightDivergence(reducerInput({
+      category,
+      namedSlot: category === "named_spot" ? "morning" : "unspecified",
+    }));
     if (out.kind !== "reduction") throw new Error(`hand_over inattendu: ${category}`);
     const expected = EXPECTED[category];
     assertEquals(out.visibleTask.kind, expected.task, `tâche de ${category}`);
@@ -206,6 +218,7 @@ Deno.test("FF-056 · R5 — `not_a_divergence` conclut « rien à changer », et
 Deno.test("FF-056 · `named_spot` propose une action de l'espace PRÉ-CALCULÉ", () => {
   const out = reduceWeightDivergence(reducerInput({
     category: "named_spot",
+    namedSlot: "morning",
     userMessage: "le matin je grignote en me levant",
     availableActionIds: ["add_breakfast"],
   }));
@@ -218,6 +231,7 @@ Deno.test("FF-056 · `named_spot` propose une action de l'espace PRÉ-CALCULÉ",
 Deno.test("FF-056 · `named_spot` SANS action disponible ne bricole rien", () => {
   const out = reduceWeightDivergence(reducerInput({
     category: "named_spot",
+    namedSlot: "morning",
     availableActionIds: [],
   }));
   if (out.kind !== "reduction") throw new Error("unreachable");
@@ -226,12 +240,63 @@ Deno.test("FF-056 · `named_spot` SANS action disponible ne bricole rien", () =>
   assertEquals(out.episodeState, "nothing_to_change");
 });
 
-Deno.test("FF-056 · l'action est choisie dans un ORDRE FIXE, jamais selon le texte", () => {
-  assertEquals(pickNamedSpotAction(["add_afternoon_snack", "add_breakfast"]), "add_breakfast");
-  assertEquals(pickNamedSpotAction(["add_afternoon_snack"]), "add_afternoon_snack");
-  assertEquals(pickNamedSpotAction([]), null);
+Deno.test("FF-056 · 🔴 LE DÉFAUT DU RUN RÉEL — on n'agit JAMAIS ailleurs qu'au moment nommé", () => {
+  // Mesuré en run réel sur la job story de la fiche: « le matin je grignote »
+  // chez quelqu'un qui a DÉJÀ un petit-déjeuner. `add_breakfast` n'est donc pas
+  // dans l'espace, et la version précédente prenait « la première disponible »:
+  // une collation l'après-midi. §1 nomme ce cas mot pour mot.
+  assertEquals(
+    pickNamedSpotAction(["add_afternoon_snack"], "morning"),
+    null,
+    "le matin ne doit JAMAIS produire une action de l'après-midi",
+  );
+  // Le cas qui passe: le moment nommé ET l'action disponible.
+  assertEquals(pickNamedSpotAction(["add_breakfast"], "morning"), "add_breakfast");
+  assertEquals(
+    pickNamedSpotAction(["add_afternoon_snack", "add_breakfast"], "afternoon"),
+    "add_afternoon_snack",
+  );
+  // Les moments SANS action: le plan ne sait pas encore les absorber, et le
+  // flow le dit plutôt que d'agir à côté.
+  for (const slot of ["midday", "evening", "night", "unspecified"] as const) {
+    assertEquals(
+      pickNamedSpotAction(["add_breakfast", "add_afternoon_snack"], slot),
+      null,
+      `le moment ${slot} n'a aucune action`,
+    );
+  }
+  assertEquals(pickNamedSpotAction([], "morning"), null);
   // Un identifiant inventé ne peut pas entrer dans l'espace.
-  assertEquals(pickNamedSpotAction(["add_midnight_feast"]), null);
+  assertEquals(pickNamedSpotAction(["add_midnight_feast"], "morning"), null);
+});
+
+Deno.test("FF-056 · le moment nommé est un ensemble FERMÉ, `unspecified` par défaut", () => {
+  for (const value of [null, undefined, "", "matin", "MORNING", "brunch", 3, {}]) {
+    assertEquals(normalizeSlot(value), "unspecified", JSON.stringify(value));
+  }
+  for (const slot of WEIGHT_DIVERGENCE_SLOTS) assertEquals(normalizeSlot(slot), slot);
+  // La table moment → action ne connaît QUE des actions de l'espace FF-028.
+  for (const target of Object.values(SLOT_TO_RECOMMENDATION_ACTION)) {
+    if (target !== null) {
+      assertEquals(
+        ["add_breakfast", "add_afternoon_snack"].includes(target),
+        true,
+        `action inconnue de FF-028: ${target}`,
+      );
+    }
+  }
+});
+
+Deno.test("FF-056 · un moment nommé sans action correspondante → on le DIT", () => {
+  const out = reduceWeightDivergence(reducerInput({
+    category: "named_spot",
+    namedSlot: "evening",
+    userMessage: "le soir je me ressers",
+    availableActionIds: ["add_breakfast", "add_afternoon_snack"],
+  }));
+  if (out.kind !== "reduction") throw new Error("unreachable");
+  assertEquals(out.visibleTask.kind, "acknowledge_named_spot_without_action");
+  assertEquals(out.proposedActionId, null);
 });
 
 Deno.test("FF-056 · `unknown` ouvre la fenêtre d'observation, bornée", () => {
@@ -289,6 +354,9 @@ Deno.test("FF-056 · le prompt du classifieur nomme LES NEUF catégories", () =>
   // Sans ce test, une catégorie ajoutée au type sans l'être au prompt serait
   // simplement inatteignable — un chemin mort qu'aucune erreur ne signale.
   assertEquals(promptMentionsEveryCategory(), true);
+  // Idem pour les moments: un moment du type absent du prompt est un chemin
+  // mort qu'aucune erreur ne signale.
+  assertEquals(promptMentionsEverySlot(), true);
 });
 
 // ---------------------------------------------------------------------------
@@ -383,6 +451,7 @@ Deno.test("FF-056 · R6 — le plafond de tours sort, quoi que le modèle répon
 Deno.test("FF-056 · §7 — un plan changé sous l'épisode n'applique RIEN", () => {
   const out = reduceWeightDivergence(reducerInput({
     category: "named_spot",
+    namedSlot: "morning",
     planChanged: true,
   }));
   if (out.kind !== "reduction") throw new Error("unreachable");
