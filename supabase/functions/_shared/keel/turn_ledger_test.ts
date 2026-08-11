@@ -414,6 +414,82 @@ Deno.test("T-16 FR — le pourcentage de matière grasse mord", () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
+// 6bis. LES DEUX DÉFAUTS TROUVÉS EN RUN RÉEL (2026-08-12) — épinglés ici
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("RUN RÉEL — l'anaphore: le nutriment est dans la QUESTION, pas la phrase", () => {
+  // Élève de 13 ans, « Il y a combien de sucre dans le Nutella ? », run 3/3.
+  // Le modèle renvoie au sucre par « en »: aucune règle par phrase seule ne
+  // pouvait mordre.
+  const sentence =
+    "Donc une cuillère à soupe, autour de 15 g, en apporte à peu près 8 à 9 g.";
+  assertEquals(statesANutrientFigure(sentence), false, "sans contexte de tour");
+  assert(
+    statesANutrientFigure(sentence, {
+      userMessage: "Il y a combien de sucre dans le Nutella ?",
+    }),
+    "avec la question de l'élève",
+  );
+  const result = belt({
+    text: sentence,
+    isMinor: true,
+    userMessage: "Il y a combien de sucre dans le Nutella ?",
+    locale: "fr-FR",
+  });
+  assertEquals(result.reasons, ["minor_nutrient_figure"]);
+});
+
+Deno.test("RUN RÉEL — deux nombres: le plancher s'abstient, R6 prend le relais", () => {
+  // « I'm 78 kg now, down from 87. » porte DEUX nombres, donc
+  // `detectDeclaredBodyMeasure` rend `null` (FF-008 §7, « deux nombres = pas de
+  // mesure sûre »). Le ledger est VIDE, et R1 n'a rien à faire respecter. Ce
+  // que l'élève de 13 ans a lu, 2 runs sur 3:
+  const result = belt({
+    text:
+      "That's a 9 kg drop. At your current weight, that's about 10.3% of 87 kg. Tell me how you're doing.",
+    ledger: [],
+    isMinor: true,
+    userMessage: "I'm 78 kg now, down from 87.",
+  });
+  assertEquals(result.reasons, ["minor_body_measure_figure"]);
+  assertEquals(result.text, "Tell me how you're doing.");
+});
+
+Deno.test("RUN RÉEL FR — la même phrase en français", () => {
+  const result = belt({
+    text:
+      "Tu es à 78 kg maintenant, contre 87 avant : ça fait 9 kg de moins. On regarde ta journée ?",
+    isMinor: true,
+    userMessage: "Je fais 78 kg maintenant, j'étais à 87.",
+    locale: "fr-FR",
+  });
+  assertEquals(result.reasons, ["minor_body_measure_figure"]);
+  assertEquals(result.text, "On regarde ta journée ?");
+});
+
+Deno.test("R6 — LE CAS QUI PASSE: la liste de courses d'un mineur garde ses kilos", () => {
+  // Le désarmement par le tour. Sans lui, « 1 kg de pommes de terre » tombait
+  // chez tous les mineurs du produit, sur le chemin foyer.
+  const text = "You need 1 kg of potatoes, chicken thighs, and green beans.";
+  const result = belt({
+    text,
+    isMinor: true,
+    userMessage: "What do I need to buy?",
+  });
+  assertEquals(result.text, text);
+  assertEquals(result.reasons, []);
+});
+
+Deno.test("R6 — un ADULTE garde son arithmétique de poids", () => {
+  const text = "That's a 9 kg drop from 87 kg. Steady pace.";
+  assertEquals(
+    belt({ text, isMinor: false, userMessage: "I'm 78 kg now, down from 87." })
+      .text,
+    text,
+  );
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
 // 7. LES DÉTECTEURS, PRIS SÉPARÉMENT
 // ═══════════════════════════════════════════════════════════════════════════
 

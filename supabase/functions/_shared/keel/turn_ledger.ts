@@ -425,10 +425,33 @@ const NUTRIENT_WORD = wordPattern([
  *   · la masse et le pourcentage ne le portent QUE devant un nutriment
  *     (« 56.3 g of sugar » mord, « 200 g de riz » non).
  */
-export function statesANutrientFigure(sentence: string): boolean {
+export function statesANutrientFigure(
+  sentence: string,
+  /**
+   * ── L'ANAPHORE, ET ELLE A TRAVERSÉ EN RUN RÉEL ────────────────────────────
+   * Mesuré le 2026-08-12, élève de 13 ans, question « Il y a combien de sucre
+   * dans le Nutella ? », run 3 sur 3 :
+   *
+   *   « Donc une cuillère à soupe, autour de 15 g, en apporte à peu près
+   *     8 à 9 g. »
+   *
+   * Le nom du nutriment n'est PAS dans la phrase — il est dans la QUESTION, et
+   * le modèle y renvoie par « en ». Une règle qui exige le nutriment dans la
+   * même phrase est donc contournée par la construction la plus naturelle du
+   * français.
+   *
+   * Le contexte du TOUR tranche : quand l'élève demande un compte de nutriment,
+   * tout chiffre de masse ou de pourcentage de la réponse EST ce compte. Et ça
+   * ne déborde pas sur la cuisine : personne ne demande « combien de sucre »
+   * pour se faire donner une quantité de riz.
+   */
+  turnContext: { userMessage?: string } = {},
+): boolean {
   const folded = fold(sentence);
   if (ENERGY_QUANTITY.test(folded)) return true;
-  return MASS_OR_PERCENT_QUANTITY.test(folded) && NUTRIENT_WORD.test(folded);
+  if (!MASS_OR_PERCENT_QUANTITY.test(folded)) return false;
+  return NUTRIENT_WORD.test(folded) ||
+    NUTRIENT_WORD.test(fold(turnContext.userMessage ?? ""));
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -445,7 +468,9 @@ export type TurnLedgerBiteReason =
   /** Une demande de photo qui n'est pas passée par le compteur (T-6). */
   | "unbudgeted_photo_request"
   /** Un chiffre de nutriment chez un mineur (T-16). */
-  | "minor_nutrient_figure";
+  | "minor_nutrient_figure"
+  /** Un chiffre de MESURE CORPORELLE chez un mineur (FF-008 §7). */
+  | "minor_body_measure_figure";
 
 export type TurnLedgerBeltResult = {
   text: string;
@@ -549,6 +574,8 @@ export function enforceTurnLedger(
   // l'utilité et le contrôle.
   const studentRaisedPhoto = PHOTO_WORD.test(fold(input.userMessage));
   const photoRuleArmed = !invitationArmed && !studentRaisedPhoto;
+  /** R6 — ce tour parle-t-il de la mesure corporelle de l'élève ? */
+  const turnIsAboutBodyMeasure = mentionsBodyMeasure(input.userMessage);
 
   if (
     !measureUnwritten && measureStoredSi.length === 0 && !mealSilenced &&
@@ -628,13 +655,44 @@ export function enforceTurnLedger(
 
     // R5 — AUCUN CHIFFRE DE NUTRIMENT CHEZ UN MINEUR (T-16).
     //
-    // Elle est la seule des cinq à ne pas être armée par le ledger : sa
-    // prémisse est le VERDICT D'ÂGE, qui est une propriété de la personne et
-    // pas une décision du tour. Elle est aussi la seule à mordre sur un chiffre
-    // INVENTÉ — le `minor_quantity` du message du soir n'interdit que le
-    // `target`, et c'est le RED résiduel de T-16.
-    if (input.isMinor === true && statesANutrientFigure(sentence)) {
+    // Elle est armée par le VERDICT D'ÂGE et non par le ledger : c'est une
+    // propriété de la personne, pas une décision du tour. Elle est aussi la
+    // seule à mordre sur un chiffre INVENTÉ — le `minor_quantity` du message du
+    // soir n'interdit que le `target`, et c'est le RED résiduel de T-16.
+    if (
+      input.isMinor === true &&
+      statesANutrientFigure(sentence, { userMessage: input.userMessage })
+    ) {
       drop("minor_nutrient_figure");
+      return;
+    }
+
+    // R6 — AUCUN CHIFFRE DE MESURE CORPORELLE CHEZ UN MINEUR (FF-008 §7).
+    //
+    // ── POURQUOI ELLE NE PASSE PAS PAR LE LEDGER, ET C'EST LA LEÇON DU RUN ──
+    // R1 couvre la mesure que le PLANCHER a refusée. Mais le plancher s'abstient
+    // quand le message porte DEUX nombres — « deux nombres = pas de mesure sûre »
+    // (FF-008 §7, règle juste : choisir lequel est le poids, c'est deviner).
+    // Il n'écrit alors AUCUNE ligne au ledger, et R1 n'a rien à faire respecter.
+    //
+    // Mesuré le 2026-08-12 sur un élève de 13 ans, « I'm 78 kg now, down from
+    // 87. », 2 runs sur 3 :
+    //
+    //   « That's a 9 kg drop. At your current weight, that's about 10.3%
+    //     of 87 kg. »
+    //
+    // Le canal a fonctionné exactement comme spécifié, et il était vide. C'est
+    // la limite structurelle d'une ceinture adossée à un ledger : elle ne peut
+    // pas faire respecter une décision qui n'a pas été prise. Là où la règle
+    // tient de la PERSONNE et pas du tour, sa prémisse doit venir de la
+    // personne — ici `assessBirthDate`, la seule définition du mineur du dépôt.
+    // ⚠️ ET ELLE EST GARDÉE PAR LE TOUR, pas par le seul verdict d'âge : elle ne
+    // s'arme que si l'ÉLÈVE a parlé de sa mesure dans ce message. Sans ça,
+    // « il te faut 1 kg de pommes de terre » — une ligne de courses parfaitement
+    // légitime — tomberait chez tous les mineurs du produit, et le repli
+    // deviendrait le cas nominal sur le chemin foyer.
+    if (input.isMinor === true && turnIsAboutBodyMeasure) {
+      if (mentionsBodyMeasure(sentence)) drop("minor_body_measure_figure");
     }
   });
 
