@@ -23,7 +23,12 @@ import {
 import { hasRecapGround } from "../_shared/keel/daily_recap.ts";
 import { wasRecommendationSentToday } from "../_shared/keel/daily_recommendation_io.ts";
 import { composeRecapBody, loadDayFacts } from "../_shared/keel/daily_recap_io.ts";
-import { resolveArtifactLocale } from "../_shared/keel/locale.ts";
+import { buildEveningStrip } from "../_shared/keel/evening_strip.ts";
+import {
+  loadEveningStripContext,
+  respondsForHousehold,
+} from "../_shared/keel/evening_strip_io.ts";
+import { isFrenchLocale, resolveArtifactLocale } from "../_shared/keel/locale.ts";
 import {
   localDateFor,
   localHourFor,
@@ -113,6 +118,17 @@ Deno.serve(async (req) => {
     let sent = 0;
     /** Messages partis AVEC la question. `sent - asked` = les faits seuls. */
     let asked = 0;
+    /**
+     * FF-058 — messages partis AVEC la bande, et ceux qui portaient en plus la
+     * ligne de courses.
+     *
+     * Comptés séparément pour la même raison que `body_sources`: « aucun élève
+     * n'a de plan pour aujourd'hui » et « la bande ne se construit jamais »
+     * produisent le même `sent`, et sans ces deux compteurs la panne se lirait
+     * comme un produit qui marche.
+     */
+    let stripsSent = 0;
+    let stripShoppingLines = 0;
     /**
      * D'où venait l'ouverture: voix du coach, ou décompte déterministe.
      *
@@ -237,6 +253,48 @@ Deno.serve(async (req) => {
             }),
           );
 
+          // ── FF-058 · LA BANDE DU SOIR ───────────────────────────────────
+          //
+          // Construite AVANT la décision, parce qu'elle en est une entrée: une
+          // soirée sans fait et sans question due peut quand même porter la
+          // bande (§7), et c'est même le soir où elle sert le plus.
+          //
+          // ⚠️ ELLE NE CONSOMME PAS LE BUDGET T4 (R6). Elle n'appelle jamais
+          // `recordDailyAsk`, et elle ne lit jamais le compteur: une affordance
+          // n'est pas une demande. La pratique (FF-029) et la recommandation
+          // (FF-028), elles, restent adossées au budget, dans le code qu'elles
+          // avaient déjà — c'est structurel, pas une discipline.
+          //
+          // ⚠️ ELLE COÛTE UNE SECONDE RÉSOLUTION DU PLAN DU JOUR. `loadDayFacts`
+          // a déjà appelé `loadPlannedDishContext` pour son DÉNOMINATEUR, mais
+          // il n'en rend que le compte. Faire remonter les plats jusqu'ici
+          // demanderait d'élargir `DayFacts`, dont le test appartient à un autre
+          // chantier cette nuit. Le coût est borné aux élèves de la fenêtre
+          // 20h-22h, et le noter ici vaut mieux qu'une optimisation non relue.
+          const stripLanguage = isFrenchLocale(
+              resolveArtifactLocale({
+                studentProfile: String(row.locale ?? "").trim() || null,
+                tenantDefault: null,
+              }),
+            )
+            ? "fr" as const
+            : "en" as const;
+          const stripContext = await loadEveningStripContext(admin, {
+            userId: cursor,
+            localDate,
+          });
+          const strip = stripContext.mealId
+            ? buildEveningStrip({
+              mealId: stripContext.mealId,
+              dishes: stripContext.dishes,
+              language: stripLanguage,
+              shopping: stripContext.shopping,
+              // R14 — la vague de courses est un fait de FOYER: la ligne ne part
+              // qu'au maître. Un profil réclamé reçoit ses plats et jamais elle.
+              masterOnly: await respondsForHousehold(admin, cursor),
+            })
+            : null;
+
           const decision = decideDailyPulse({
             localHour,
             answeredToday: day.answeredToday,
@@ -251,6 +309,10 @@ Deno.serve(async (req) => {
             }),
             hasGround: hasRecapGround(facts),
             askDue: cadence.ask,
+            // FF-058 — la troisième raison de parler, et la seule que ce lot
+            // ajoute. `null` = aucun plat prévu ce jour (R7): le message du soir
+            // reste exactement ce qu'il était.
+            hasStrip: strip !== null,
             // Le mode `attach` demande le dernier échange; ce job ne l'a pas
             // sous la main et l'attachement se décide côté conversation. Ici
             // on envoie toujours en standalone, ce qui est le cas nominal du
@@ -364,7 +426,29 @@ Deno.serve(async (req) => {
             const message = renderPulseMessage({
               recapBody: recap.body,
               ask: decision.ask,
+              strip,
             });
+            // FF-058 §10 / R6 — LA MESURE DU SAPIN DE NOËL, dans le journal du
+            // job. Longueur du message et nombre d'éléments interactifs sont les
+            // deux chiffres qui disent si l'ajout reste lisible; sans eux, « le
+            // message est devenu illisible » n'est constatable que par un humain
+            // qui regarde une bulle, c'est-à-dire jamais.
+            if (strip) {
+              stripsSent++;
+              if (strip.carriesShopping) stripShoppingLines++;
+              console.info(JSON.stringify({
+                tag: "keel.evening_strip.sent",
+                user_id: cursor,
+                local_date: localDate,
+                language: stripLanguage,
+                dishes: strip.dishCount,
+                carries_shopping: strip.carriesShopping,
+                practice_mode: recap.practiceMode,
+                pulse_asked: decision.ask,
+                message_chars: message.body.length,
+                interactive_count: message.buttons.length,
+              }));
+            }
             // DE-WHATSAPP — la livraison est une ÉCRITURE, plus un appel Graph.
             //
             // Ce qui disparaît avec Meta, et ce que ça supprime de complexité:
@@ -480,6 +564,11 @@ Deno.serve(async (req) => {
       // possible tant que le message ÉTAIT la question; ça ne l'est plus, et un
       // soir où « 40 messages sont partis » ne dit rien de ce qui a été mesuré.
       asked,
+      // FF-058 — combien de bandes sont parties, et combien portaient la ligne
+      // de courses. `strips_sent: 0` sur une cohorte qui a des plans est une
+      // panne; `sent: 40` ne l'aurait jamais dit.
+      strips_sent: stripsSent,
+      strip_shopping_lines: stripShoppingLines,
       // La voix du coach a-t-elle porté ? `{"composed":8,"fallback":2}` se lit;
       // `sent: 10` ne dit rien de ce que les élèves ont reçu.
       body_sources: bodySources,

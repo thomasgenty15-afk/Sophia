@@ -44,6 +44,9 @@ function input(over: Partial<PulseDecisionInput> = {}): PulseDecisionInput {
     // question is due. Tests that care about either one say so explicitly.
     hasGround: true,
     askDue: true,
+    // FF-058 — le cas nominal d'AVANT la bande: pas de plat offert. Les tests
+    // qui parlent de la bande le disent explicitement.
+    hasStrip: false,
     ...over,
   };
 }
@@ -427,15 +430,15 @@ Deno.test("no buttons without a question, no question without buttons", () => {
   // wants none. A question with no buttons is worse: `readPulseReply` only ever
   // reads button ids, so a typed reply goes to the dispatcher and the day is
   // never measured at all.
-  const factOnly = renderPulseMessage({ recapBody: "Ticked off today: Oats.", ask: false });
+  const factOnly = renderPulseMessage({ recapBody: "Ticked off today: Oats.", ask: false, strip: null });
   assertEquals(factOnly.buttons.length, 0);
   assertEquals(factOnly.body, "Ticked off today: Oats.");
 
-  const askOnly = renderPulseMessage({ recapBody: null, ask: true });
+  const askOnly = renderPulseMessage({ recapBody: null, ask: true, strip: null });
   assertEquals(askOnly.buttons.length, 3);
   assertEquals(askOnly.body, "How was today?");
 
-  const both = renderPulseMessage({ recapBody: "Ticked off today: Oats.", ask: true });
+  const both = renderPulseMessage({ recapBody: "Ticked off today: Oats.", ask: true, strip: null });
   assertEquals(both.buttons.length, 3);
   // The blank line is load-bearing, not cosmetic: run together, the count reads
   // as the preamble to the question, which is the measurement bias the recap
@@ -448,7 +451,7 @@ Deno.test("neither ground nor ask cannot be rendered — the decider already ref
   // caller that reaches the renderer without it has bypassed the decision.
   let threw = false;
   try {
-    renderPulseMessage({ recapBody: null, ask: false });
+    renderPulseMessage({ recapBody: null, ask: false, strip: null });
   } catch {
     threw = true;
   }
@@ -456,7 +459,7 @@ Deno.test("neither ground nor ask cannot be rendered — the decider already ref
   // Whitespace is not a fact either.
   let threwOnBlank = false;
   try {
-    renderPulseMessage({ recapBody: "   \n ", ask: false });
+    renderPulseMessage({ recapBody: "   \n ", ask: false, strip: null });
   } catch {
     threwOnBlank = true;
   }
@@ -592,4 +595,106 @@ Deno.test("the template carries the payloads the reader actually accepts", () =>
 
 Deno.test("PRÉMISSE FAUSSE: no buttons, no components — never a bare index", () => {
   assertEquals(pulseTemplateButtonComponents([]), []);
+});
+
+// ---------------------------------------------------------------------------
+// FF-058 — LA BANDE DU SOIR DANS LE MESSAGE QUI EXISTE DÉJÀ
+// ---------------------------------------------------------------------------
+
+const STRIP = {
+  line: "Today : Soup · Yoghurt",
+  buttons: [
+    { id: "KEEL_STRIP_ALL|m|0,1", title: "✓ All as planned" },
+    { id: "KEEL_STRIP_SOME|m|0,1", title: "Not everything" },
+  ],
+};
+
+Deno.test("FF-058 — the strip alone is a reason to send, and it is the ONLY new one", () => {
+  // §7: « le message part sans matière (pas de fait du jour) ⇒ la bande peut
+  // porter le message seule, si des plats sont prévus ». Le soir où rien n'a été
+  // coché est exactement celui où cocher coûtait trop cher.
+  const withStrip = decideDailyPulse(
+    input({ hasGround: false, askDue: false, hasStrip: true }),
+  );
+  assertEquals(withStrip.decision, "send");
+  if (withStrip.decision === "send") assertEquals(withStrip.ask, false);
+
+  // Et sans elle, le silence d'avant, à l'identique.
+  const withoutStrip = decideDailyPulse(
+    input({ hasGround: false, askDue: false, hasStrip: false }),
+  );
+  assertEquals(withoutStrip.decision, "skip");
+  if (withoutStrip.decision === "skip") {
+    assertEquals(withoutStrip.reason, "nothing_to_say");
+  }
+});
+
+Deno.test("FF-058 — the strip NEVER overrides a guard that comes before it", () => {
+  // L'ordre des gardes est le contrat. Une bande n'est pas une raison de parler
+  // à quelqu'un en crise, muet, sans plan, ou déjà servi ce soir.
+  for (
+    const [over, reason] of [
+      [{ optedOut: true }, "opted_out"],
+      [{ safetyBand: "high" as const }, "safety_active"],
+      [{ hasActivePlan: false }, "no_active_plan"],
+      [{ answeredToday: true }, "already_answered_today"],
+      [{ sentToday: true }, "already_sent_today"],
+      [{ localHour: 9 }, "outside_window"],
+    ] as const
+  ) {
+    const d = decideDailyPulse(
+      input({ ...over, hasGround: false, askDue: false, hasStrip: true }),
+    );
+    assertEquals(d.decision, "skip", reason);
+    if (d.decision === "skip") assertEquals(d.reason, reason);
+  }
+});
+
+Deno.test("FF-058 — the order is fact, strip, question — and the buttons follow it", () => {
+  const all = renderPulseMessage({
+    recapBody: "Ticked off today: Oats.",
+    ask: true,
+    strip: STRIP,
+  });
+  assertEquals(
+    all.body,
+    "Ticked off today: Oats.\n\nToday : Soup · Yoghurt\n\nHow was today?",
+  );
+  // La bande d'abord, les niveaux ENSUITE: le dernier texte lu est la question,
+  // et les derniers boutons sont ses réponses.
+  assertEquals(all.buttons.map((b) => b.title), [
+    "✓ All as planned",
+    "Not everything",
+    "All good",
+    "So-so",
+    "Rough",
+  ]);
+});
+
+Deno.test("FF-058 — the strip can carry the message alone, with no question and no buttons of the pulse", () => {
+  const stripOnly = renderPulseMessage({
+    recapBody: null,
+    ask: false,
+    strip: STRIP,
+  });
+  assertEquals(stripOnly.body, "Today : Soup · Yoghurt");
+  assertEquals(stripOnly.buttons.length, 2);
+  // Aucun bouton de niveau: pas de question, donc rien à mesurer.
+  assertEquals(stripOnly.buttons.some((b) => b.id.startsWith("KEEL_PULSE_")), false);
+});
+
+Deno.test("FF-058 — a null strip renders EXACTLY the message of before, byte for byte", () => {
+  // La contre-épreuve du lot: l'ajout est additif, jamais régressif.
+  const before = renderPulseMessage({
+    recapBody: "Ticked off today: Oats.",
+    ask: true,
+    strip: null,
+  });
+  assertEquals(before.body, "Ticked off today: Oats.\n\nHow was today?");
+  assertEquals(before.buttons.length, 3);
+  assertEquals(
+    renderPulseMessage({ recapBody: "Ticked off today: Oats.", ask: false, strip: null })
+      .buttons.length,
+    0,
+  );
 });

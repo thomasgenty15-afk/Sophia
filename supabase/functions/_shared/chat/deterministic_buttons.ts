@@ -46,7 +46,21 @@ import {
   markApplied,
   releaseClaim,
 } from "../keel/daily_recommendation_io.ts";
+import {
+  readStripReply,
+  renderStripAck,
+  renderStripDishStep,
+  type StripLanguage,
+  type StripReply,
+} from "../keel/evening_strip.ts";
+import {
+  applyStripTicks,
+  loadStripDishes,
+  writeGroceryWaveState,
+} from "../keel/evening_strip_io.ts";
+import { MEAL_UNTICK_REASON } from "../keel/meal_tick.ts";
 import { loadPublishedDoctrine } from "../keel/doctrine_loader.ts";
+import { isFrenchLocale } from "../keel/locale.ts";
 import { localDateFor } from "../keel/reengagement_io.ts";
 import {
   parseMeasuresToken,
@@ -446,6 +460,174 @@ async function handleRecommendationTap(
   }
 }
 
+/**
+ * FF-058 — LE TAP DE LA BANDE DU SOIR.
+ *
+ * ── CE QU'IL FAIT, ET CE QU'IL S'INTERDIT ─────────────────────────────────
+ * Il ÉCRIT (par le chemin de l'écran, `evening_strip_io.ts`), il RELIT le
+ * résultat de l'écriture, et il accuse ce qu'il a relu. Rien de plus:
+ *
+ *   · ce que devient un `✗`         → FF-057, pas ici (R9);
+ *   · ce que devient un `Pas encore` → FF-057, pas ici (R17);
+ *   · aucun verdict, aucun score, aucune série (R4) — `renderStripAck` applique
+ *     la ceinture du soir sur le texte exact, dans les deux langues;
+ *   · aucune coche par procuration (R11) — le seul `user_id` que ce chemin
+ *     connaisse est `message.user_id`, c'est-à-dire le porteur du JWT. Il n'y a
+ *     ici aucun paramètre, aucune agrégation de foyer et aucun identifiant
+ *     entrant par lequel un compte pourrait écrire chez un autre.
+ *
+ * ⚠️ L'ACCUSÉ NE DESCEND JAMAIS AU DISPATCHER. Cicatrice mesurée sur T-1
+ * (FF-008): la lane de réponse ne sait ni ce que le déterministe a écrit ni ce
+ * qu'il a refusé, et elle produit des accusés fantômes. Ce chemin écrit, relit,
+ * et pose lui-même la phrase qui correspond au fait relu.
+ */
+async function handleStripTap(
+  admin: SupabaseClient,
+  args: {
+    message: InboundMessage;
+    requestId: string;
+    reply: Exclude<StripReply, { kind: "none" }>;
+  },
+): Promise<InboundStepOutcome> {
+  const { message, reply } = args;
+  const now = new Date(message.received_at);
+  const voice = await studentVoiceContext(admin, message.user_id);
+  const language: StripLanguage = isFrenchLocale(voice.contentLocale)
+    ? "fr"
+    : "en";
+  const say = (body: string, buttons?: { payload: string; label: string }[]) =>
+    ack(admin, {
+      userId: message.user_id,
+      requestId: args.requestId,
+      purpose: "keel_evening_strip_ack",
+      body,
+      buttons,
+    });
+
+  try {
+    // ── `Pas tout` — ON N'ÉCRIT RIEN, ON DÉPLIE ───────────────────────────
+    // Le geste ne dit rien encore: il demande à voir. Écrire quoi que ce soit
+    // ici serait une coche que personne n'a posée.
+    if (reply.kind === "some") {
+      const dishes = await loadStripDishes(admin, {
+        mealId: reply.mealId,
+        dishIndexes: reply.dishIndexes,
+      });
+      const step = renderStripDishStep({
+        mealId: reply.mealId,
+        dishes,
+        language,
+      });
+      if (!step) {
+        await say(renderStripAck("stale", language));
+        return handled("keel_evening_strip_some_stale");
+      }
+      await say(
+        step.body,
+        step.buttons.map((b) => ({ payload: b.id, label: b.title })),
+      );
+      return handled("keel_evening_strip_some");
+    }
+
+    if (reply.kind === "shopping") {
+      const localDate = localDateFor(
+        now,
+        await timezoneFor(admin, message.user_id),
+      );
+      const wrote = await writeGroceryWaveState(admin, {
+        userId: message.user_id,
+        mealId: reply.mealId,
+        buyOn: reply.buyOn,
+        done: reply.done,
+        answeredLocalDate: localDate,
+        now,
+      });
+      if (wrote.outcome !== "written") {
+        // On ne dit JAMAIS « c'est noté » sur une écriture qu'on n'a pas faite:
+        // c'est l'accusé fantôme, le défaut le plus cher de ce dépôt.
+        await say(renderStripAck("stale", language));
+        return handled("keel_evening_strip_shopping_failed");
+      }
+      console.info(JSON.stringify({
+        tag: "keel.evening_strip.wave_state",
+        user_id: message.user_id,
+        meal_id: reply.mealId,
+        buy_on: reply.buyOn,
+        done: reply.done,
+      }));
+      // R17 — on CONSTATE. Un `Pas encore` n'ouvre rien ce soir: la proposition
+      // de décalage appartient à FF-057, et « la cuisson est dans quatre jours »
+      // n'est pas un danger.
+      await say(
+        renderStripAck(
+          reply.done ? "shopping_done" : "shopping_later",
+          language,
+        ),
+      );
+      return handled(
+        reply.done
+          ? "keel_evening_strip_shopping_done"
+          : "keel_evening_strip_shopping_later",
+      );
+    }
+
+    // ── LES COCHES ────────────────────────────────────────────────────────
+    // `all` porte la liste des index que la bande a NOMMÉS; `tick`/`untick` en
+    // portent un seul. Le même écrivain dans les trois cas — la seule différence
+    // est `disqualified_reason`, exactement comme l'en-tête de `meal_tick.ts`
+    // le décrit.
+    const indexes = reply.kind === "all"
+      ? reply.dishIndexes
+      : [reply.dishIndex];
+    const result = await applyStripTicks(admin, {
+      userId: message.user_id,
+      mealId: reply.mealId,
+      dishIndexes: indexes,
+      disqualified: reply.kind === "untick" ? MEAL_UNTICK_REASON : null,
+      now,
+    });
+    console.info(JSON.stringify({
+      tag: "keel.evening_strip.ticks",
+      user_id: message.user_id,
+      meal_id: reply.mealId,
+      kind: reply.kind,
+      asked: indexes.length,
+      written: result.written,
+      rearmed: result.rearmed,
+      stale: result.stale,
+      failed: result.failed,
+    }));
+
+    // RIEN N'A PU S'ÉCRIRE ⇒ ON LE DIT. Le plan a été régénéré plus court, ou la
+    // ligne a disparu. « C'est noté » sur zéro écriture serait le mensonge que
+    // ce chemin existe pour empêcher.
+    if (result.written + result.rearmed === 0) {
+      await say(renderStripAck("stale", language));
+      return handled("keel_evening_strip_stale");
+    }
+
+    await say(
+      renderStripAck(
+        reply.kind === "untick" ? "untick" : reply.kind === "all" ? "all" : "tick",
+        language,
+      ),
+    );
+    return handled(`keel_evening_strip_${reply.kind}`);
+  } catch (error) {
+    // NE JETTE JAMAIS: l'élève a tapé un bouton, et un 500 le laisserait sans
+    // savoir si son geste a compté. On dit qu'on n'a pas pu — jamais qu'on a
+    // fait.
+    console.error(JSON.stringify({
+      tag: "keel.evening_strip.tap_failed",
+      user_id: message.user_id,
+      kind: reply.kind,
+      error: error instanceof Error ? error.message : String(error),
+    }));
+    await say(renderStripAck("stale", language));
+    return handled("keel_evening_strip_failed");
+  }
+}
+
 export async function handleDeterministicButton(
   admin: SupabaseClient,
   args: { message: InboundMessage; requestId: string },
@@ -576,6 +758,23 @@ export async function handleDeterministicButton(
       message,
       requestId: args.requestId,
       reply: reco,
+    });
+  }
+
+  // ── FF-058 · LE TAP DE LA BANDE DU SOIR ───────────────────────────────────
+  //
+  // Les trois vocabulaires sont DISJOINTS (`KEEL_RECO_` / `KEEL_STRIP_` /
+  // `KEEL_PULSE_`) et chaque lecteur rend « rien » sur ce qui ne le concerne
+  // pas: l'ordre n'a donc aucune conséquence, et un test le pinne
+  // (`evening_strip_test.ts`, « the three deterministic vocabularies do not
+  // collide »). Il est placé avant le pouls parce que sa charge est plus
+  // contrainte — elle doit se relire par `parseMealTickKey` ou par une date.
+  const strip = readStripReply(message.button_payload);
+  if (strip.kind !== "none") {
+    return await handleStripTap(admin, {
+      message,
+      requestId: args.requestId,
+      reply: strip,
     });
   }
 

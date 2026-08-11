@@ -375,6 +375,24 @@ export interface PulseDecisionInput {
   /** La question est-elle due ? (`decideAskCadence`) REQUIS, même raison. */
   askDue: boolean;
   /**
+   * FF-058 — Y A-T-IL UNE BANDE DU SOIR À OFFRIR ? (`buildEveningStrip !== null`)
+   *
+   * REQUIS, comme `hasGround` et `safetyBand`, et pour la raison que ce module
+   * répète: un booléen optionnel qui vaut `false` par défaut aurait transformé
+   * « l'appelant n'a pas lu le plan » en « cet élève n'a rien de prévu », et les
+   * deux se seraient comptés en `nothing_to_say` sans qu'aucun test ne les
+   * distingue.
+   *
+   * ── POURQUOI ELLE COMPTE COMME UNE RAISON D'ENVOYER ────────────────────────
+   * FF-058 §7: « le message part sans matière (pas de fait du jour) ⇒ la bande
+   * peut porter le message seule, si des plats sont prévus ». Et c'est le cas où
+   * elle sert le plus: le soir où rien n'a été coché est exactement celui où
+   * cocher coûtait trop cher. Ce n'est PAS un reproche passif — la bande OFFRE,
+   * là où « voilà ce que tu aurais dû manger » énumérerait (le sol que
+   * `daily_recap.ts` refuse explicitement).
+   */
+  hasStrip: boolean;
+  /**
    * REQUIS, pas optionnel — corrigé en C4.
    *
    * Il était optionnel, et VÉRIFICATION FAITE, l'unique appelant de production
@@ -455,8 +473,9 @@ export function decideDailyPulse(input: PulseDecisionInput): PulseDecision {
     return { decision: "skip", reason: "outside_window" };
   }
 
-  // Rien de vrai à dire et rien à demander: on se tait. C'est la moitié du lot.
-  if (!input.hasGround && !input.askDue) {
+  // Rien de vrai à dire, rien à demander ET rien à offrir: on se tait. C'était
+  // la moitié du lot N2; FF-058 ajoute le troisième terme, et lui seul.
+  if (!input.hasGround && !input.askDue && !input.hasStrip) {
     return { decision: "skip", reason: "nothing_to_say" };
   }
 
@@ -481,44 +500,76 @@ export function renderPulseQuestion(): PulseMessage {
 }
 
 /**
- * LE MESSAGE DU SOIR TEL QUEL — le fait, puis la question quand elle est due.
+ * LE MESSAGE DU SOIR TEL QUEL — le fait, puis la bande, puis la question.
  *
- * Les trois formes que l'élève peut recevoir, et aucune autre:
+ * Les formes que l'élève peut recevoir, et aucune autre:
  *
  *   fait + question   « Ticked off today: … — 2 of the 4 on the plan.
  *                       \n\n How was today? »          [3 boutons]
  *   fait seul         « Ticked off today: … »          [aucun bouton]
  *   question seule    « How was today? »               [3 boutons]
+ *   fait + bande      « Ticked off today: …
+ *                       \n\n Today : Soup · Yoghurt »  [2 boutons de bande]
+ *   bande seule       « Today : Soup · Yoghurt »       [2 boutons de bande]
+ *   les trois         fait \n\n bande \n\n question    [2 + 3 boutons]
  *
- * ── PAS DE BOUTON SANS QUESTION, PAS DE QUESTION SANS BOUTON ─────────────
- * C'est la seule invariance de rendu qui compte, et elle est tenue ici plutôt
- * que par une convention d'appelant. Des boutons sous un simple constat
- * demanderaient une réponse à un message qui n'en attend pas; une question sans
- * bouton renverrait l'élève au clavier alors que `readPulseReply` ne lit QUE
- * des identifiants de bouton — sa réponse texte partirait au dispatcher et la
- * journée ne serait jamais mesurée.
+ * ── L'ORDRE EST CELUI DE LA FICHE, ET IL EST ARBITRÉ ────────────────────────
+ * FF-058: « le fait du jour d'abord (gratuit à recevoir), la bande ensuite ». La
+ * QUESTION passe en dernier, après la bande, et les boutons suivent le même
+ * ordre — bande puis niveaux. C'est le seul agencement où le dernier texte lu
+ * est la question et où les DERNIERS boutons sont ses réponses: l'inverse
+ * ferait lire « ✓ Tout comme prévu » comme une réponse à « ta journée ? », et un
+ * niveau de pouls mal attribué est un bilan de coach faux, sans erreur nulle
+ * part (c'est le contrat que `pulseTemplateButtonComponents` documente déjà
+ * pour l'ordre des boutons).
  *
- * La ligne vide entre les deux n'est pas cosmétique: sans elle, le décompte et
+ * ── L'INVARIANCE « PAS DE BOUTON SANS QUESTION » EST AMENDÉE PAR FF-058 ─────
+ * Elle disait: des boutons sous un simple constat demanderaient une réponse à un
+ * message qui n'en attend pas. C'est vrai d'une QUESTION, et c'est précisément
+ * ce que la bande n'est pas: `[✓ poulet-riz]` OFFRE, « t'as mangé le poulet ? »
+ * INTERROGE. Le silence sur une bande n'écrit rien, ne relance rien et ne se
+ * remarque nulle part (R3). Ce qui SURVIT intact de l'invariance: une QUESTION
+ * ne part jamais sans ses boutons — `readPulseReply` ne lit que des
+ * identifiants, et une question au clavier ne serait jamais mesurée.
+ *
+ * La ligne vide entre les blocs n'est pas cosmétique: sans elle, le décompte et
  * la question se lisent comme une seule phrase, et « 2 des 4 du plan, et ta
  * journée ? » transforme le constat en préambule d'interrogatoire — exactement
  * le biais de mesure que `daily_recap.ts` existe pour éviter.
+ *
+ * @param strip FF-058 — la bande, ou `null`. REQUIS: une bande oubliée par un
+ *   appelant serait indiscernable d'une soirée sans plat, et le symptôme
+ *   (« la bande ne part jamais ») est exactement la panne silencieuse que
+ *   `body_sources` a déjà appris à ce job à rendre visible.
  */
 export function renderPulseMessage(
-  args: { recapBody: string | null; ask: boolean },
+  args: {
+    recapBody: string | null;
+    ask: boolean;
+    strip: { line: string; buttons: PulseButton[] } | null;
+  },
 ): PulseMessage {
   const recap = String(args.recapBody ?? "").trim();
-  if (!args.ask) {
-    // Un appel sans fait NI question ne rend rien de sensé: le décideur a déjà
-    // écarté ce cas en `nothing_to_say`, et le lever ici empêche qu'un futur
-    // appelant contourne la décision et poste une bulle vide (R7).
-    if (!recap) {
-      throw new Error("[keel/pulse] renderPulseMessage: neither ground nor ask");
-    }
-    return { body: recap, buttons: [] };
+  const stripLine = String(args.strip?.line ?? "").trim();
+  const stripButtons = stripLine ? args.strip?.buttons ?? [] : [];
+
+  const blocks: string[] = [];
+  if (recap) blocks.push(recap);
+  if (stripLine) blocks.push(stripLine);
+  if (args.ask) blocks.push(PULSE_QUESTION_EN);
+
+  if (blocks.length === 0) {
+    // Un appel sans fait, sans bande NI question ne rend rien de sensé: le
+    // décideur a déjà écarté ce cas en `nothing_to_say`, et le lever ici empêche
+    // qu'un futur appelant contourne la décision et poste une bulle vide (R7).
+    throw new Error(
+      "[keel/pulse] renderPulseMessage: neither ground, strip nor ask",
+    );
   }
+
   return {
-    body: recap ? `${recap}\n\n${PULSE_QUESTION_EN}` : PULSE_QUESTION_EN,
-    buttons: pulseLevelButtons(),
+    body: blocks.join("\n\n"),
+    buttons: [...stripButtons, ...(args.ask ? pulseLevelButtons() : [])],
   };
 }
 
