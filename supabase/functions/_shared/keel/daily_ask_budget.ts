@@ -64,6 +64,18 @@ export const DAILY_ASK_KINDS = [
    * de ce que T4 protège.
    */
   "practice_question",
+  /**
+   * FF-056 — la question d'ouverture d'un épisode de divergence. Ne porte
+   * AUCUN axe.
+   *
+   * ⚠️ ELLE ATTEND, ELLE NE DOUBLE JAMAIS. La divergence s'établit au rythme
+   * des pesées, pas à celui du budget: quand la place du jour est déjà prise,
+   * la question part le prochain soir calme (fiche §7). C'est ce qui la rend
+   * acceptable — une question sur le poids qui s'ajouterait à une demande déjà
+   * partie serait la deuxième sollicitation du jour sur le sujet le plus
+   * sensible du produit.
+   */
+  "weight_divergence_question",
 ] as const;
 export type DailyAskKind = (typeof DAILY_ASK_KINDS)[number];
 

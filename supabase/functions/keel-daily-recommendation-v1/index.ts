@@ -6,6 +6,7 @@ import { ensureInternalRequest } from "../_shared/internal-auth.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import { runRecommendationStep } from "../_shared/keel/daily_recommendation_engine.ts";
+import { runWeightDivergenceStep } from "../_shared/keel/weight_divergence_engine.ts";
 
 /**
  * FF-028 — LE MOTEUR DE RECOMMANDATION DU SOIR.
@@ -107,13 +108,32 @@ Deno.serve(async (req) => {
     /** Ce que la doctrine a retiré, et pourquoi. R5 rendue visible. */
     const doctrineRemoved: Record<string, number> = {};
     const bySkip: Record<string, number> = {};
+    /**
+     * FF-056 — LES TROIS COMPTEURS DE LA DIVERGENCE, SÉPARÉS DE CEUX DE FF-028.
+     *
+     * Séparés parce que les deux mécanismes se taisent pour des raisons
+     * différentes et que les fondre rendrait chacune illisible. Le tableau des
+     * VERDICTS est celui qui compte: il dit si le détecteur se tait parce que
+     * la série suit le plan (`aligned`), parce qu'elle est bruyante (`noisy`)
+     * ou parce que la personne ne se pèse pas (`irregular_measurements`,
+     * `stale_measurements`). Ce dernier chiffre est la contre-mesure de §10 —
+     * s'il monte après les premiers épisodes, le flow détruit sa propre entrée.
+     */
+    const divergenceSkip: Record<string, number> = {};
+    const divergenceVerdicts: Record<string, number> = {};
+    const divergenceShapes: Record<string, number> = {};
+    let divergenceAsked = 0;
     const failures: string[] = [];
     let exhausted = false;
 
     while (true) {
       let q = admin
         .from("profiles")
-        .select("id, timezone, proactive_muted_at")
+        // `birth_date` et `locale` sont là pour FF-056 (voir plus bas): la
+        // garde d'âge et la langue de la question d'ouverture. Deux colonnes de
+        // plus sur une page de 200, une fois par heure — le coût est nul
+        // comparé à une seconde pagination de `profiles`.
+        .select("id, timezone, proactive_muted_at, birth_date, locale")
         .eq("keel_role", "student")
         .order("id", { ascending: true })
         .limit(PAGE);
@@ -168,8 +188,7 @@ Deno.serve(async (req) => {
           proposedActions[step.action] = (proposedActions[step.action] ?? 0) + 1;
         } catch (error) {
           // Une erreur PostgREST n'est PAS une `Error`: sans ces champs, le
-          // journal ne dit que « [object Object] ». C'est exactement ce qui a
-          // masqué un 42P10 permanent dans le point hebdo.
+          // journal ne dit que « [object Object] ».
           const err = error as {
             message?: string;
             code?: string;
@@ -184,6 +203,62 @@ Deno.serve(async (req) => {
                 err?.details,
                 err?.hint,
               ].filter(Boolean).join(" — ") || String(error)
+            }`,
+          );
+        }
+
+        // ── FF-056 · LA DIVERGENCE CONSTATÉE ─────────────────────────────
+        //
+        // GREFFÉE ICI, ET PAS DANS UN SECOND CRON. Ce balayage tourne déjà
+        // toutes les heures sur `profiles` et n'agit que dans la fenêtre
+        // 19h-20h LOCALE — c'est-à-dire exactement la fenêtre calme dont
+        // FF-056 a besoin. Un second cron aurait doublé le coût du balayage
+        // et, surtout, rendu l'arbitrage du budget T4 dépendant de l'ordre
+        // d'exécution de deux jobs indépendants: non déterministe.
+        //
+        // ⚠️ APRÈS LA RECOMMANDATION, ET C'EST UN ARBITRAGE ASSUMÉ. Les deux
+        // veulent la place du jour (T4). La recommandation est armée par un
+        // déclencheur bien plus lent et porte trente jours de cooldown par
+        // action: la perdre ce soir coûte un mois. La question de divergence,
+        // elle, « attend » — la fiche le dit en toutes lettres (§7) — et se
+        // réarme au prochain soir calme. Perdre ce soir lui coûte un soir.
+        //
+        // ⚠️ SON PROPRE `try`. Une panne du constat de divergence ne doit pas
+        // faire disparaître une recommandation déjà envoyée du compte-rendu, ni
+        // l'inverse: deux mécanismes indépendants dans un seul `catch`
+        // rendraient chaque panne illisible.
+        try {
+          const div = await runWeightDivergenceStep(admin, {
+            userId: cursor,
+            timezone: row.timezone ? String(row.timezone) : null,
+            optedOut: Boolean(row.proactive_muted_at),
+            birthDate: row.birth_date ?? null,
+            locale: row.locale ? String(row.locale) : null,
+            now,
+            dryRun,
+            requestId,
+          });
+          if (div.outcome === "skipped") {
+            const key = `divergence_${div.reason}`;
+            divergenceSkip[key] = (divergenceSkip[key] ?? 0) + 1;
+          } else if (div.outcome === "no_divergence") {
+            divergenceVerdicts[div.verdict] =
+              (divergenceVerdicts[div.verdict] ?? 0) + 1;
+          } else if (div.outcome === "not_delivered") {
+            const key = `divergence_${div.reason}`;
+            divergenceSkip[key] = (divergenceSkip[key] ?? 0) + 1;
+          } else if (div.outcome === "asked") {
+            divergenceAsked++;
+            divergenceShapes[div.shape] = (divergenceShapes[div.shape] ?? 0) + 1;
+          } else if (div.outcome === "would_ask") {
+            divergenceAsked++;
+            const shape = div.verdict.shape ?? "unknown";
+            divergenceShapes[shape] = (divergenceShapes[shape] ?? 0) + 1;
+          }
+        } catch (error) {
+          failures.push(
+            `divergence ${cursor}: ${
+              error instanceof Error ? error.message : String(error)
             }`,
           );
         }
@@ -207,6 +282,12 @@ Deno.serve(async (req) => {
       proposed_actions: proposedActions,
       doctrine_removed: doctrineRemoved,
       skipped_by_reason: bySkip,
+      // FF-056 — rendu à part, jamais fondu: deux mécanismes qui se taisent
+      // pour des raisons différentes.
+      divergence_asked: divergenceAsked,
+      divergence_verdicts: divergenceVerdicts,
+      divergence_shapes: divergenceShapes,
+      divergence_skipped_by_reason: divergenceSkip,
       exhausted,
       next_after_user_id: exhausted ? null : cursor || null,
       failures: failures.slice(0, 50),

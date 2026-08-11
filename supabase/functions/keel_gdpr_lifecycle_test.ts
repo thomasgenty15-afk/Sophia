@@ -159,6 +159,25 @@ const PIVOT_TABLES = [
   },
   { table: "chat_messages", owner: "user_id", marker: "A13SEED-MESSAGE" },
   { table: "upcoming_contexts", owner: "user_id", marker: "A13SEED-CONTEXTE" },
+  // FF-056 — les épisodes de divergence. Donnée personnelle de santé: elle dit
+  // que le poids de quelqu'un n'a pas suivi son plan, et pourquoi (catégorie).
+  //
+  // ⚠️ ELLE N'A PAS DE MARQUEUR TEXTUEL, ET C'EST UNE PROPRIÉTÉ, PAS UN OUBLI:
+  // la table ne stocke AUCUNE prose de l'élève, seulement un token d'une liste
+  // fermée (fiche §5 — « stocker les mots de quelqu'un qui explique pourquoi il
+  // n'a pas perdu de poids créerait un dossier »). Le contrôle qui compte pour
+  // elle est donc la PURGE, pas la présence d'une chaîne dans l'archive.
+  //
+  // 🔴 DÉPENDANCE BLOQUÉE, NOMMÉE: le raccord d'EXPORT vit dans
+  // `supabase/functions/account-export-v1/index.ts`, fichier réservé à une
+  // autre session au moment de ce lot. Le diff exact est dans
+  // `scratchpad/RAPPORT-FF-056.md`. La purge, elle, est déjà garantie par
+  // `on delete cascade` et prouvée dans la migration (bloc (j)).
+  {
+    table: "student_weight_divergence_episodes",
+    owner: "user_id",
+    marker: null,
+  },
 ] as const;
 
 /** Remplit chaque table de PIVOT_TABLES pour `userId`. Renvoie l'id du coach. */
@@ -306,6 +325,21 @@ async function seedFullStudent(
     kind: "restaurant",
     source: "chat",
     note: "A13SEED-CONTEXTE",
+    content_locale: "fr-FR",
+  });
+
+  // FF-056 — un épisode de divergence. Aucune prose de l'élève: la table ne
+  // porte qu'une catégorie d'une liste fermée, et c'est voulu (§5).
+  await ins("student_weight_divergence_episodes", {
+    user_id: userId,
+    state: "nothing_to_change",
+    category: "not_a_divergence",
+    detector_version: "ff056.v1",
+    shape: "moving_away",
+    goal_direction: "down",
+    plan_fingerprint: "a13-fp",
+    opened_local_date: "2026-08-05",
+    closed_at: new Date().toISOString(),
     content_locale: "fr-FR",
   });
 
