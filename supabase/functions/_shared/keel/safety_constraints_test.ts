@@ -1,7 +1,8 @@
 // KEEL W3.3 — student safety constraints: every-turn load OUTSIDE the memory
 // path, and the deterministic medical validator.
-import { assertEquals, assertRejects, assertThrows } from "jsr:@std/assert@1";
+import { assert, assertEquals, assertRejects, assertThrows } from "jsr:@std/assert@1";
 import {
+  SAFETY_CONSTRAINT_KINDS,
   assertNoMedicalConstraintViolation,
   findMedicalConstraintViolations,
   loadStudentSafetyConstraints,
@@ -542,4 +543,25 @@ Deno.test("le bloc de prompt distingue « rien à dire » de « lecture en panne
     ]),
     null,
   );
+});
+
+Deno.test("la liste FERMÉE des catégories est le MIROIR du CHECK en base", () => {
+  // Constaté le 2026-08-11: `'diet'` était dans le CHECK depuis la migration
+  // FF-042 et absent de cette liste, et `row.kind as SafetyConstraintKind` — un
+  // cast qui ne vérifie rien — le cachait. Ce dépôt a une cicatrice nommée pour
+  // ça (« `as` sur un type étranger désarme le typecheck »).
+  //
+  // Le test lit le CHECK dans la MIGRATION, pas une copie: une liste comparée à
+  // une autre liste écrite à la main est une troisième liste à tenir d'accord.
+  const sql = Deno.readTextFileSync(
+    new URL(
+      "../../../migrations/20260810140000_dietary_regime_constraint.sql",
+      import.meta.url,
+    ),
+  );
+  // La forme posée par la migration: `kind in ('allergy', …, 'diet')`.
+  const m = sql.match(/kind\s+in\s*\(([^)]*)\)/i);
+  assert(m, "le CHECK de `kind` est introuvable dans la migration");
+  const inDb = [...m![1].matchAll(/'([a-z_]+)'/g)].map((x) => x[1]).sort();
+  assertEquals([...SAFETY_CONSTRAINT_KINDS].sort(), inDb);
 });

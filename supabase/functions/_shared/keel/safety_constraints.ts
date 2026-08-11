@@ -38,12 +38,38 @@ import { surfaceFormsFor } from "./allergen_surface_forms.ts";
 // Row shape
 // ---------------------------------------------------------------------------
 
+/**
+ * LES CATÉGORIES, ET LA SIXIÈME QUI MANQUAIT.
+ *
+ * ── `diet` ÉTAIT EN BASE ET PAS ICI, ET LE `as` LE CACHAIT ────────────────
+ * La migration `20260810140000` a ajouté `'diet'` au CHECK de la colonne
+ * (FF-042). Cette liste, elle, n'a pas bougé — et le mapper de lignes écrit
+ * `row.kind as SafetyConstraintKind`, un cast qui ne vérifie RIEN. Une ligne
+ * de régime se chargeait donc avec `kind: "diet"`, une valeur HORS UNION, sans
+ * qu'aucun test ne rougisse — puisque le type mentait.
+ *
+ * ⚠️ Vérifié: aucun appelant ne branche aujourd'hui sur `kind` (seul le bloc de
+ * consigne l'imprime en texte libre). Rien n'était donc encore FAUX — c'est le
+ * prochain `switch` exhaustif ou le prochain `Record<SafetyConstraintKind, …>`
+ * qui l'aurait été, et il l'aurait été en silence. C'est la classe de défaut la
+ * plus chère à trouver: elle n'existe pas encore le jour où on l'introduit.
+ *
+ * Ce dépôt a une cicatrice nommée pour exactement ça: « `as` sur un type
+ * étranger désarme le typecheck ». Constaté ici le 2026-08-11, en écrivant une
+ * fixture qui déclarait un végan et que le compilateur a refusée.
+ *
+ * La liste est FERMÉE et elle doit rester le miroir du CHECK. Un jeton présent
+ * en base et absent ici est pire qu'un jeton absent des deux: la ligne existe,
+ * l'élève la voit comme respectée, et le code la traite comme une catégorie
+ * qu'il ne connaît pas.
+ */
 export const SAFETY_CONSTRAINT_KINDS = [
   "allergy",
   "intolerance",
   "medical",
   "religious",
   "dislike",
+  "diet",
 ] as const;
 
 export const SAFETY_CONSTRAINT_SEVERITIES = [
