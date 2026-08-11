@@ -64,6 +64,14 @@ export const RECOMMENDATION_WINDOW_END_LOCAL = 20;
 
 export type RecommendationStepOutcome =
   | { outcome: "outside_window" }
+  /**
+   * Cet élève n'est PAS un candidat ce soir, et pas parce que le moteur a
+   * décidé de se taire: il est hors du produit à cet instant (foyer gelé). La
+   * distinction n'est pas cosmétique — `silent` est ce que §10 mesure (« part
+   * des soirs sans recommandation »), et y verser des gens qu'on n'a même pas
+   * analysés rendrait ce chiffre faux dans le sens rassurant.
+   */
+  | { outcome: "skipped"; reason: string }
   | { outcome: "silent"; reason: RecommendationSilentReason }
   /** Une place du budget n'a pas pu être prise, ou la livraison a été refusée. */
   | { outcome: "not_delivered"; reason: string }
@@ -112,6 +120,43 @@ export async function runRecommendationStep(
   ) {
     return { outcome: "outside_window" };
   }
+
+  // ── LE FOYER GELÉ (chantier 3, D4) ──────────────────────────────────────
+  //
+  // AVANT TOUTE AUTRE LECTURE, et juste après la fenêtre. D4 ferme deux
+  // portes: la génération et LA RECOMMANDATION QUOTIDIENNE. Un foyer qui ne
+  // paie plus ne reçoit plus de proposition du soir — il garde son plan, son
+  // écran et son chat.
+  //
+  // ⚠️ AUCUNE RÈGLE N'EST ÉCRITE ICI. `keel_household_coverage_for_user` est
+  // une dérivation de `keel_household_is_covered`, LA définition unique du
+  // dépôt (migration 20260811050000). Relire `free_until` en TypeScript ferait
+  // une seconde définition, qui divergerait au premier ajustement.
+  //
+  // LE COÛT EST APRÈS LA FENÊTRE, DÉLIBÉRÉMENT: une seule heure locale sur
+  // vingt-quatre, donc une lecture indexée pour ~4 % des élèves balayés. La
+  // mettre avant la fenêtre la paierait vingt-quatre fois par jour et par
+  // élève, pour un job qui tourne toutes les heures.
+  //
+  // FAIL-OPEN, ET NOMMÉ. Une lecture de facturation en panne ne doit pas
+  // couper un foyer qui paie — même arbitrage que le générateur. Ce qui rate
+  // ici coûte au pire une proposition envoyée à un foyer gelé; l'inverse
+  // couperait tout le monde le jour où la RPC manque.
+  let householdSkip: string | null = null;
+  try {
+    const cover = await admin.rpc("keel_household_coverage_for_user", {
+      p_user: userId,
+    });
+    if (cover.error) throw cover.error;
+    const row = (cover.data ?? {}) as { frozen?: unknown };
+    if (row.frozen === true) householdSkip = "household_frozen";
+  } catch (error) {
+    console.warn(
+      "[daily_recommendation] household coverage unreadable",
+      error,
+    );
+  }
+  if (householdSkip) return { outcome: "skipped", reason: householdSkip };
 
   // ── LES LECTURES, DANS L'ORDRE DES GATES ────────────────────────────────
   //

@@ -147,6 +147,14 @@ Deno.serve(async (req) => {
             bySkip.outside_window = (bySkip.outside_window ?? 0) + 1;
             continue;
           }
+          // AVANT `analysed++`, et c'est le sujet. Un foyer gelé (D4) n'a pas
+          // été analysé: le compter comme un « soir silencieux » gonflerait
+          // exactement la mesure de §10 dans le sens qui rassure. Il se compte
+          // avec les sauts, sous son motif nommé.
+          if (step.outcome === "skipped") {
+            bySkip[step.reason] = (bySkip[step.reason] ?? 0) + 1;
+            continue;
+          }
           analysed++;
           if (step.outcome === "silent") {
             silentReasons[step.reason] = (silentReasons[step.reason] ?? 0) + 1;

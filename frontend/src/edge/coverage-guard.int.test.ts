@@ -240,6 +240,14 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       // recompute trigger; the trial cap is enforced at the write.
       "on_coach_clients_change_recompute_access",
       "on_coach_clients_enforce_trial_cap",
+      // CHANTIER 3 (D4) — le palier `household_member` est HÉRITÉ de la
+      // couverture du foyer, exactement comme `student` l'est de la solvabilité
+      // du coach. Deux faits le déplacent, donc deux triggers: la ligne membre
+      // qui change de compte (réclamation, détachement, purge) et la couverture
+      // du foyer qui bouge (`free_until`). Sans eux, la branche existe et
+      // personne ne l'appelle — un morceau construit, le fil non rebranché.
+      "on_household_members_change_recompute_access",
+      "on_households_free_until_recompute_access",
       "on_coaches_change_recompute_roster",
       "on_coaches_default_trial_end",
       "on_profiles_trial_change_recompute_access",

@@ -76,6 +76,7 @@ function doctrine(patch: Partial<CoachDoctrine> = {}): CoachDoctrine {
     qa: [],
     voice: {},
     dailyPractices: [],
+    compositionSteering: [],
     contentLocale: "en-GB",
     ...patch,
   };

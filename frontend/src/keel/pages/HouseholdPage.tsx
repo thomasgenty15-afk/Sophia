@@ -13,6 +13,7 @@ import {
   ENVY_MAX_CHARS,
   generateHouseholdMeal,
   hasOwnerGoalRow,
+  type HouseholdCoverage,
   type HouseholdMealView,
   type HouseholdMemberView,
   type HouseholdView,
@@ -21,9 +22,11 @@ import {
   loadEnvyLine,
   loadHousehold,
   loadHouseholdMeal,
+  loadMyHouseholdCoverage,
   loadRestrictions,
   MEMBER_GOALS,
   type MemberGoal,
+  openHouseholdCheckout,
   removeAllergy,
   removeHouseholdMember,
   removeRestriction,
@@ -169,6 +172,15 @@ export default function HouseholdPage(): React.ReactElement {
   // si la ligne `student_goals` existe, on ne rend ni la carte qui la crée ni
   // le bouton de composition qui en dépend.
   const [ownerGoalRow, setOwnerGoalRow] = React.useState<boolean | null>(null);
+  /**
+   * LE GEL (chantier 3, D4). `null` = pas encore lu.
+   *
+   * ⚠️ L'ÉCRAN NE DÉCIDE PAS DU GEL, il l'affiche. La règle vit en base
+   * (`keel_household_is_covered`), la garde vit dans la fonction edge, et ceci
+   * n'est que la PHRASE — sans elle, le refus du serveur arriverait comme
+   * « non-2xx status code », c'est-à-dire comme une panne.
+   */
+  const [coverage, setCoverage] = React.useState<HouseholdCoverage | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [busy, setBusy] = React.useState(false);
 
@@ -196,6 +208,10 @@ export default function HouseholdPage(): React.ReactElement {
         setEnvyLine(await loadEnvyLine(envyWeek));
         setMeal(await loadHouseholdMeal(weekStart));
         setOwnerGoalRow(await hasOwnerGoalRow(userId));
+        // APRÈS les lectures de contenu, et c'est le sujet: elles ne dépendent
+        // PAS du gel. On gèle la production, pas la consultation — les bouches,
+        // les allergies, les envies et le plan courant se lisent gelés ou non.
+        setCoverage(await loadMyHouseholdCoverage());
       }
       setPhase("ready");
     } catch (e) {
@@ -249,7 +265,14 @@ export default function HouseholdPage(): React.ReactElement {
   // le rétrécissement de type ne survit pas à l'entrée dans une closure JSX.
   const me = household?.me ?? null;
   const isOwner = me?.role === "owner";
-  const canCompose = ownerGoalRow === true;
+  // ⚠️ `=== true`, PAS `?.frozen`. Tant que la lecture n'a pas eu lieu
+  // (`null`), on ne gèle rien à l'écran: annoncer une pause à quelqu'un qui
+  // paie sur la foi d'une lecture en cours est le pire des deux sens.
+  const frozen = coverage?.frozen === true;
+  // LA COMPOSITION EST LA PRODUCTION, donc elle tombe avec le gel. Le reste de
+  // l'écran ne bouge pas d'un pixel: c'est ce que D4 dit, et c'est ce que le
+  // foyer doit retrouver intact s'il revient dans trois mois.
+  const canCompose = ownerGoalRow === true && !frozen;
 
   return (
     <KeelAppShell title={t("household.title")}>
@@ -262,6 +285,10 @@ export default function HouseholdPage(): React.ReactElement {
           ? <CreateCard busy={busy} onCreate={(n) => run(() => createHousehold(n))} />
           : (
             <>
+              {/* EN PREMIER QUAND ELLE EXISTE. Un refus qu'on découvre en
+                  cliquant est un refus qu'on prend pour une panne. */}
+              {frozen ? <PausedCard isOwner={isOwner} /> : null}
+
               {/* LA PREMIÈRE BOUCHE EN PREMIER. Tant que la ligne d'objectif
                   du compte maître n'existe pas, la composition échouerait —
                   autant le lui dire AVANT qu'il saisisse trois personnes. */}
@@ -1151,6 +1178,78 @@ function inviteErrorText(reason: string): string | null {
   }
 }
 
+/**
+ * « TON FOYER EST EN PAUSE » (chantier 3, D4).
+ *
+ * ── CE QUE CETTE CARTE DOIT DIRE, ET DANS CET ORDRE ───────────────────────
+ *   1. RIEN N'EST PERDU. C'est la première phrase parce que c'est la première
+ *      peur, et parce que c'est vrai: D4 gèle et n'efface jamais. Les huit
+ *      bouches, leurs âges, leurs allergies et leurs objectifs sont là.
+ *   2. CE QUI S'ARRÊTE, nommément: on ne compose plus de nouvelle semaine.
+ *      Une pause qu'on ne délimite pas se lit comme une panne totale.
+ *   3. LE GESTE POUR REPRENDRE. Un écran qui annonce une coupure sans issue
+ *      fait ouvrir un ticket au lieu d'un paiement.
+ *
+ * ── ET CE QU'ELLE NE DIT PAS ──────────────────────────────────────────────
+ * Ni la date d'expiration, ni le montant, ni un décompte. La date est
+ * derrière le tunnel de Stripe, qui est la source, et l'afficher ici en
+ * ferait une seconde — celle qui se trompe le jour où quelqu'un prolonge un
+ * essai à la main.
+ *
+ * ── LE MEMBRE N'EST PAS LE MAÎTRE ─────────────────────────────────────────
+ * Un profil réclamé ne peut PAS reprendre l'abonnement: la carte Stripe est
+ * celle du maître (`not_household_owner`, 403). Lui montrer un bouton qui sera
+ * refusé serait exactement le défaut que ce chantier retire ailleurs — on lui
+ * dit l'état, et à qui s'adresser.
+ */
+function PausedCard({ isOwner }: { isOwner: boolean }) {
+  const [working, setWorking] = React.useState(false);
+  const [failure, setFailure] = React.useState<string | null>(null);
+
+  return (
+    <Card tone="warning">
+      <SectionLabel>{t("household.paused.title")}</SectionLabel>
+      <p className="text-sm text-amber-900">{t("household.paused.body")}</p>
+      <p className="mt-2 text-sm text-amber-900">{t("household.paused.kept")}</p>
+      {isOwner
+        ? (
+          <>
+            <Button
+              className="mt-3 border-amber-300 text-amber-900 hover:bg-amber-100"
+              disabled={working}
+              onClick={async () => {
+                setWorking(true);
+                setFailure(null);
+                try {
+                  window.location.assign(await openHouseholdCheckout());
+                } catch (e) {
+                  // LE MOTIF TEL QUEL. Tant qu'un humain n'a pas créé les prix
+                  // Stripe, la fonction edge refuse BRUYAMMENT — et « une
+                  // erreur est survenue » ne dirait pas que le produit n'est
+                  // pas encore en vente.
+                  setFailure(e instanceof Error ? e.message : String(e));
+                  setWorking(false);
+                }
+              }}
+            >
+              {working
+                ? t("household.paused.working")
+                : t("household.paused.resume_cta")}
+            </Button>
+            {failure
+              ? <p className="mt-2 text-sm text-amber-900">{failure}</p>
+              : null}
+          </>
+        )
+        : (
+          <p className="mt-2 text-sm text-amber-900">
+            {t("household.paused.owner_only")}
+          </p>
+        )}
+    </Card>
+  );
+}
+
 function ComposeCard(
   { household, onDone }: { household: HouseholdView; onDone: () => Promise<void> },
 ) {
@@ -1184,7 +1283,16 @@ function ComposeCard(
             });
             await onDone();
           } catch (e) {
-            setFailure(e instanceof Error ? e.message : String(e));
+            // LE MOTIF NOMMÉ, TRADUIT. `generateHouseholdMeal` remonte
+            // désormais le jeton du serveur (`household_frozen`) plutôt que
+            // « non-2xx status code ». La course existe: l'écran a lu sa
+            // couverture, l'essai a expiré entre-temps, on clique. Sans cette
+            // ligne, ce cas-là — le seul où le refus arrive par surprise — se
+            // lirait comme une panne.
+            const raw = e instanceof Error ? e.message : String(e);
+            setFailure(
+              raw === "household_frozen" ? t("household.paused.body") : raw,
+            );
           } finally {
             setWorking(false);
           }

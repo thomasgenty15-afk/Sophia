@@ -2999,6 +2999,33 @@ export const en = {
   "household.compose.working": "Composing...",
   "household.portions.title": "At the table",
   "household.portions.standard": "A standard serving",
+  // ── LA PAUSE (chantier 3, D4) ────────────────────────────────────────────
+  //
+  // L'ORDRE DES PHRASES EST LA DÉCISION. « Rien n'est perdu » vient AVANT « ce
+  // qui s'arrête », parce que c'est la première peur de quelqu'un qui a saisi
+  // huit personnes, leurs âges et leurs allergies — et parce que c'est vrai:
+  // D4 gèle, n'efface jamais. L'inverse (« votre accès est suspendu ») produit
+  // la conviction que les données sont parties, et cette conviction ne se
+  // rattrape pas avec un second paragraphe.
+  //
+  // AUCUN MONTANT, AUCUNE DATE. Le prix vit derrière le tunnel Stripe, qui en
+  // est la source; l'écrire ici en ferait une seconde, celle qui ment le jour
+  // où un humain prolonge un essai à la main.
+  //
+  // AUCUN REPROCHE. « Votre paiement a échoué » accuse quelqu'un dont la carte
+  // a expiré pendant ses vacances. On dit l'état, et le geste.
+  "household.paused.title": "Your household is paused",
+  "household.paused.body":
+    "New weeks are not being composed right now. Everything else still works — your current plan, this page, and the chat.",
+  "household.paused.kept":
+    "Nothing has been deleted. Everyone here, their ages, their allergies and their directions are exactly where you left them, and they come straight back.",
+  "household.paused.resume_cta": "Start it again",
+  "household.paused.working": "Opening...",
+  // Un profil réclamé ne porte pas la carte: c'est le compte maître qui paie
+  // (12,99 € le foyer, +2 € par profil réclamé). Lui montrer un bouton refusé
+  // par le serveur serait la version « écran » du défaut que ce lot retire.
+  "household.paused.owner_only":
+    "Whoever set this household up can start it again from their own account.",
   // ── /join-household — RÉCLAMER SON PROFIL (lot 6) ────────────────────────
   //
   // DEUX MOITIÉS, MÊME POIDS. « Ce que ça donne » et « ce que ça ne donne

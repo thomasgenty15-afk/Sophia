@@ -231,6 +231,60 @@ Deno.serve(async (req) => {
     }
     const householdId = me.household_id;
 
+    // ── LE GEL À L'IMPAYÉ (chantier 3, D4) ──────────────────────────────
+    //
+    // ON GÈLE LA PRODUCTION, PAS LA CONSULTATION. Cette porte-ci est la
+    // production: elle écrit un plan et RETIRE le plan courant. Le plan déjà
+    // écrit, l'écran du foyer et le chat restent ouverts — geler, ce n'est pas
+    // effacer, et un foyer qui revient dans trois mois doit retrouver
+    // exactement ce qu'il a laissé.
+    //
+    // ⚠️ AUCUNE RÈGLE N'EST ÉCRITE ICI. `keel_household_is_covered` est LA
+    // définition unique du dépôt (migration 20260811050000): abonnement du
+    // maître vivant, ou essai qui couvre encore. La réécrire en TypeScript —
+    // « si free_until < aujourd'hui » — ferait deux définitions qui
+    // divergeraient au premier ajustement, et personne ne saurait laquelle
+    // ment. C'est le piège n°1 de ce lot, nommé dans le chantier.
+    //
+    // LE REFUS EST NOMMÉ, ET C'EST LA MOITIÉ DU TRAVAIL. Un 500 ou un silence
+    // se lit comme une panne et fait ouvrir un ticket au lieu d'un paiement.
+    // 402 plutôt qu'un 409 de plus: le statut dit déjà de quoi il s'agit, et
+    // l'écran lit `error` pour choisir sa phrase.
+    //
+    // FAIL-OPEN, ET C'EST L'ARBITRAGE INVERSE DE CELUI DES ALLERGIES.
+    // Une lecture de sécurité en panne doit REFUSER de cuisiner (plus bas, en
+    // toutes lettres). Une lecture de FACTURATION en panne doit laisser
+    // passer: se tromper de sens ici coupe un client qui paie, ce qu'aucun
+    // nouvel essai ne répare — c'est le même arbitrage que
+    // `stripe-create-checkout-session`, qui démarre à zéro profil plutôt que
+    // de sur-facturer sur une lecture ratée. L'échec est journalisé BRUYAMMENT
+    // pour qu'une garde muette ne passe pas pour une garde qui ne mord jamais.
+    const coverRes = await admin.rpc("keel_household_is_covered", {
+      p_household: householdId,
+    });
+    if (coverRes.error) {
+      await logEdgeFunctionError({
+        functionName: FN_NAME,
+        requestId,
+        error: coverRes.error,
+        metadata: { source: "household_coverage", household: householdId },
+      });
+      issues.push("household_coverage_unreadable");
+    } else if (coverRes.data === false) {
+      console.log(JSON.stringify({
+        tag: "keel.household_meal.frozen",
+        user_id: userId,
+        household_id: householdId,
+      }));
+      return jsonResponse(req, {
+        error: "household_frozen",
+        detail: "This household is paused. Nothing has been deleted - the " +
+          "current plan stays readable, and composing resumes as soon as the " +
+          "subscription does.",
+        request_id: requestId,
+      }, { status: 402 });
+    }
+
     // ── LES MEMBRES, PAR LA MÊME PORTE QUE LE CHAT ──────────────────────
     // `keel_household_roster_for` et pas une lecture de table: c'est le SEUL
     // lecteur du roster, partagé avec `household_turn_context`. Deux SELECT sur

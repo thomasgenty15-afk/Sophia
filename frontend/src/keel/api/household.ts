@@ -266,6 +266,76 @@ export async function addHouseholdMember(
   return asResult(data);
 }
 
+/**
+ * MON FOYER EST-IL EN PAUSE ? (chantier 3, D4)
+ *
+ * ── POURQUOI L'ÉCRAN DEMANDE, AU LIEU D'ATTENDRE LE REFUS ─────────────────
+ * `supabase.functions.invoke` ne rend PAS le corps d'une réponse non-2xx: il
+ * rend « Edge Function returned a non-2xx status code ». Le refus nommé de
+ * `generate-household-meal-v1` (`household_frozen`, 402) arriverait donc à
+ * l'écran comme une panne générique — et « un refus muet se lit comme une
+ * panne » est exactement ce que ce chantier existe pour éviter. L'écran
+ * demande donc son état, et le serveur refuse quand même: la garde est en
+ * base, ceci n'est que la phrase.
+ *
+ * ── AUCUNE RÈGLE ICI ──────────────────────────────────────────────────────
+ * `keel_household_my_coverage` est une dérivation de
+ * `keel_household_is_covered`, la définition unique du dépôt. L'écran ne lit
+ * NI `free_until` NI `subscriptions`: une seconde définition côté navigateur
+ * afficherait « en pause » à quelqu'un qui compose très bien, ou l'inverse.
+ *
+ * En cas d'échec de lecture on rend `frozen: false` — ne pas savoir n'est pas
+ * une raison d'annoncer une pause à quelqu'un qui paie.
+ */
+export interface HouseholdCoverage {
+  inHousehold: boolean;
+  frozen: boolean;
+  /** Le dernier jour couvert par l'essai, ou `null` (aucun essai posé). */
+  freeUntil: string | null;
+}
+
+export async function loadMyHouseholdCoverage(): Promise<HouseholdCoverage> {
+  const open: HouseholdCoverage = {
+    inHousehold: false,
+    frozen: false,
+    freeUntil: null,
+  };
+  const { data, error } = await supabase.rpc("keel_household_my_coverage");
+  if (error) return open;
+  const row = (data ?? {}) as Record<string, unknown>;
+  return {
+    inHousehold: row.in_household === true,
+    frozen: row.frozen === true,
+    freeUntil: typeof row.free_until === "string" ? row.free_until : null,
+  };
+}
+
+/**
+ * LE GESTE POUR REPRENDRE — le tunnel de paiement du foyer.
+ *
+ * Il existe côté serveur depuis le chantier 1 (`plan='keel_household'`, deux
+ * articles) et n'avait AUCUN appelant. Un tunnel sans bouton est un tunnel que
+ * personne ne prend: c'est le mode d'échec n°1 de ce dépôt, et un écran de
+ * pause sans issue est sa version la plus chère — on annonce à quelqu'un qu'il
+ * est coupé, et on ne lui montre pas comment revenir.
+ *
+ * ⚠️ IL PEUT REFUSER, ET C'EST NORMAL AUJOURD'HUI: tant qu'un humain n'a pas
+ * créé les deux prix Stripe, la fonction edge échoue BRUYAMMENT plutôt que de
+ * dégrader. L'appelant affiche le message; il ne le transforme pas en succès.
+ */
+export async function openHouseholdCheckout(): Promise<string> {
+  const { data, error } = await supabase.functions.invoke(
+    "stripe-create-checkout-session",
+    { body: { plan: "keel_household", interval: "monthly" } },
+  );
+  if (error) throw error;
+  const url = String((data as { url?: unknown } | null)?.url ?? "").trim();
+  // R7: pas de no-op silencieux. Un bouton qui ne fait rien est indiscernable
+  // d'un bouton qui a marché, et celui-ci déplace de l'argent.
+  if (!url) throw new Error("no checkout url returned");
+  return url;
+}
+
 export async function removeHouseholdMember(memberId: string) {
   const { data, error } = await supabase.rpc("keel_household_remove_member", {
     p_member: memberId,
@@ -619,6 +689,32 @@ export interface HouseholdMealResult {
   issues: string[];
 }
 
+/**
+ * LE MOTIF NOMMÉ D'UN REFUS DE FONCTION EDGE, quand il y en a un.
+ *
+ * ⚠️ `supabase.functions.invoke` NE REND PAS LE CORPS d'une réponse non-2xx:
+ * `error.message` vaut « Edge Function returned a non-2xx status code », et
+ * c'est tout. Un refus soigneusement nommé côté serveur (`household_frozen`,
+ * `goal_required`, `no_coach`…) arrive donc à l'écran comme une panne
+ * générique — après quoi l'utilisateur ouvre un ticket au lieu de faire le
+ * geste qu'on attend de lui.
+ *
+ * `FunctionsHttpError` porte la `Response` dans `context`. On la lit, une
+ * fois, et on rend le jeton. `null` quand il n'y a rien à lire: on ne
+ * fabrique pas un motif à partir d'une panne réelle.
+ */
+async function namedEdgeRefusal(error: unknown): Promise<string | null> {
+  const ctx = (error as { context?: unknown } | null)?.context;
+  if (!ctx || typeof (ctx as Response).json !== "function") return null;
+  try {
+    const body = await (ctx as Response).json();
+    const named = String((body as { error?: unknown } | null)?.error ?? "").trim();
+    return named || null;
+  } catch {
+    return null;
+  }
+}
+
 export async function generateHouseholdMeal(args: {
   window: { kind: "until_sunday" } | { kind: "days"; count: number };
   intent?: "replace_current" | "prepare_next";
@@ -633,7 +729,7 @@ export async function generateHouseholdMeal(args: {
       context: args.context ?? null,
     },
   });
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(await namedEdgeRefusal(error) ?? error.message);
   const row = (data ?? {}) as Record<string, unknown>;
   // `household.spoken` / `household.silent` ne sont plus rendus par la fonction
   // edge (lot 5). On ne les lit plus non plus: garder un lecteur tolérant

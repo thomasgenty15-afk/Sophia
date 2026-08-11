@@ -1252,6 +1252,181 @@ select pg_temp.assert_eq('45b seul ''household'' est admis sur un ABONNEMENT',
           like '%''' || t.v || '''%'), 1);
 
 -- ---------------------------------------------------------------------------
+-- 45c–45n. LE GEL À L'IMPAYÉ (chantier 3, D4)
+--
+-- D4: un foyer impayé est GELÉ, jamais effacé. Le graphe du foyer est la douve;
+-- l'effacer à l'impayé détruirait la seule chose qui fait revenir. On gèle la
+-- PRODUCTION, jamais la CONSULTATION.
+--
+-- ⚠️ ON MUTE POUR PROUVER. Chaque assertion de gel est encadrée par son
+-- contraire SUR LE MÊME FOYER: un bloc qui n'affirmerait que « gelé » resterait
+-- vert si `keel_household_is_covered` rendait `false` en toutes circonstances —
+-- c'est-à-dire si le produit était coupé pour tout le monde.
+--
+-- État de la fixture ici: le foyer de 0001 porte `free_until = current_date+30`
+-- (posé en 41), SEPT bouches et TROIS profils réclamés. Le foyer VOISIN, lui,
+-- n'a jamais été touché: il porte ce que la RPC de création lui a donné.
+-- ---------------------------------------------------------------------------
+
+select pg_temp.become_super();
+
+-- 45c. L'ESSAI A UN ÉCRIVAIN. Le foyer voisin a été créé par la VRAIE RPC et
+--      personne ne lui a posé de date à la main: s'il n'en a pas, aucun foyer
+--      neuf n'expirera jamais et le gel est une garde désarmée.
+select pg_temp.assert_eq('45c un foyer créé par la RPC naît avec un essai daté',
+  (select count(*) from public.households
+    where id = public.keel_household_of('f0ed0000-0000-0000-0000-000000000005')
+      and free_until = current_date + public.keel_household_trial_days()), 1);
+
+-- 45d. ET LA FONCTION SAIT DIRE OUI. Sans cette ligne, la mutation de 45e ne
+--      prouverait rien.
+select pg_temp.assert_eq('45d un foyer en essai est COUVERT',
+  (select count(*) where public.keel_household_is_covered(
+    public.keel_household_of('f0ed0000-0000-0000-0000-000000000001'))), 1);
+
+-- L'ÉTAT COMPLET AVANT LE GEL. « Aucune donnée n'a bougé » ne se prouve pas en
+-- regardant: il se prouve en comparant.
+create temporary table pg_temp_before_freeze on commit drop as
+  select
+    (select count(*) from public.household_members
+      where household_id = public.keel_household_of('f0ed0000-0000-0000-0000-000000000001')) as mouths,
+    (select count(*) from public.household_member_allergies
+      where household_id = public.keel_household_of('f0ed0000-0000-0000-0000-000000000001')) as allergies,
+    (select count(*) from public.household_food_restrictions
+      where household_id = public.keel_household_of('f0ed0000-0000-0000-0000-000000000001')) as rules,
+    (select count(*) from public.household_members
+      where household_id = public.keel_household_of('f0ed0000-0000-0000-0000-000000000001')
+        and birth_date is not null) as births,
+    public.keel_household_billable_profiles(
+      public.keel_household_of('f0ed0000-0000-0000-0000-000000000001')) as claimed;
+grant select on pg_temp_before_freeze to authenticated;
+
+-- 45e. LA MUTATION: l'essai a expiré HIER, il n'y a pas d'abonnement.
+update public.households
+   set free_until = current_date - 1
+ where id = public.keel_household_of('f0ed0000-0000-0000-0000-000000000001');
+select pg_temp.assert_eq('45e un essai expiré HIER gèle le foyer',
+  (select count(*) where public.keel_household_is_covered(
+    public.keel_household_of('f0ed0000-0000-0000-0000-000000000001'))), 0);
+
+-- 45f. LA DÉRIVATION PAR COMPTE VOIT LA MÊME CHOSE. C'est elle que le cron
+--      quotidien et l'écran lisent: si elle disait autre chose que la
+--      définition, il y aurait deux vérités.
+select pg_temp.assert_eq('45f la porte du serveur voit le gel, sur le bon foyer',
+  (select count(*)
+    from (select public.keel_household_coverage_for_user(
+            'f0ed0000-0000-0000-0000-000000000001') as c) t
+   where (t.c->>'frozen')::boolean
+     and (t.c->>'household_id')::uuid
+         = public.keel_household_of('f0ed0000-0000-0000-0000-000000000001')), 1);
+-- Et un compte SANS foyer n'est PAS gelé: c'est l'écrasante majorité du
+-- produit, et un gel par défaut le couperait en entier.
+select pg_temp.assert_eq('45g un compte hors foyer n''est pas gelé',
+  (select count(*)
+    from (select public.keel_household_coverage_for_user(
+            '00000000-0000-0000-0000-0000000000ff') as c) t
+   where (t.c->>'frozen')::boolean is false
+     and (t.c->>'in_household')::boolean is false), 1);
+
+-- 45h. AUCUNE DONNÉE N'A BOUGÉ (preuve d'acceptation n°4). Sept bouches, leurs
+--      dates, leurs allergies, leurs règles de maison et le compte facturable
+--      sont exactement ce qu'ils étaient.
+select pg_temp.assert_eq('45h le gel n''a touché AUCUNE donnée du foyer',
+  (select count(*) from pg_temp_before_freeze b
+    where b.mouths = (select count(*) from public.household_members
+        where household_id = public.keel_household_of('f0ed0000-0000-0000-0000-000000000001'))
+      and b.allergies = (select count(*) from public.household_member_allergies
+        where household_id = public.keel_household_of('f0ed0000-0000-0000-0000-000000000001'))
+      and b.rules = (select count(*) from public.household_food_restrictions
+        where household_id = public.keel_household_of('f0ed0000-0000-0000-0000-000000000001'))
+      and b.births = (select count(*) from public.household_members
+        where household_id = public.keel_household_of('f0ed0000-0000-0000-0000-000000000001')
+          and birth_date is not null)
+      and b.claimed = public.keel_household_billable_profiles(
+        public.keel_household_of('f0ed0000-0000-0000-0000-000000000001'))), 1);
+
+-- 45i. LA CONSULTATION RESTE OUVERTE, ET C'EST LA MOITIÉ DE D4. Un foyer gelé
+--      se LIT: ses bouches, ses allergies, ses règles. Le jour où une policy
+--      `for select` tombera avec le gel, c'est cette assertion qui le dira.
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000002');
+select pg_temp.assert_eq('45i un membre lit encore les sept bouches d''un foyer GELÉ',
+  (select count(*) from public.household_members), 7);
+select pg_temp.assert_eq('45j et il lit encore ce que la maison ne sert pas',
+  (select count(*) from public.household_food_restrictions),
+  (select rules from pg_temp_before_freeze));
+-- ET IL SAIT POURQUOI. Sans cette porte, le refus du serveur arriverait à
+-- l'écran comme « non-2xx status code », c'est-à-dire comme une PANNE.
+select pg_temp.assert_eq('45k l''écran peut savoir qu''il est en pause',
+  (select count(*) where (public.keel_household_my_coverage()->>'frozen')::boolean), 1);
+
+-- 45l. L'ABONNEMENT DU MAÎTRE DÉGÈLE, SANS TOUCHER À `free_until`. La seconde
+--      branche de la définition doit valoir toute seule — sinon « payer »
+--      n'aurait aucun effet tant qu'un humain n'a pas rallongé l'essai à la
+--      main.
+select pg_temp.become_super();
+insert into public.subscriptions (user_id, tier, status)
+values ('f0ed0000-0000-0000-0000-000000000001', 'household', 'active');
+select pg_temp.assert_eq('45l le maître PAIE, le foyer dégèle',
+  (select count(*) where public.keel_household_is_covered(
+    public.keel_household_of('f0ed0000-0000-0000-0000-000000000001'))), 1);
+-- ET UN ABONNEMENT MORT NE COUVRE PAS. Sans ça, « il existe une ligne
+-- subscriptions » suffirait à dégeler pour toujours.
+update public.subscriptions set status = 'canceled'
+ where user_id = 'f0ed0000-0000-0000-0000-000000000001';
+select pg_temp.assert_eq('45m un abonnement ANNULÉ ne couvre plus',
+  (select count(*) where public.keel_household_is_covered(
+    public.keel_household_of('f0ed0000-0000-0000-0000-000000000001'))), 0);
+delete from public.subscriptions
+ where user_id = 'f0ed0000-0000-0000-0000-000000000001';
+
+-- 45n. LES PRIVILÈGES. La définition et la porte du SERVEUR sont fermées à
+--      `anon` ET à `authenticated` — ouvertes, elles rendraient l'état de
+--      facturation de n'importe quel foyer à qui devine un uuid. Seule la
+--      porte de l'écran est ouverte, et elle n'a PAS de paramètre.
+--      ⚠️ `revoke ... from public` NE RETIRE PAS `anon`.
+select pg_temp.assert_eq('45n la définition et la porte serveur sont au SERVEUR seul',
+  (select count(*)
+     from (values ('anon'), ('authenticated')) t(r)
+     cross join (values
+       ('public.keel_household_is_covered(uuid)'),
+       ('public.keel_household_coverage_for_user(uuid)')) f(sig)
+    where has_function_privilege(t.r, f.sig, 'EXECUTE')), 0);
+select pg_temp.assert_eq('45o anon ne lit AUCUN état de facturation',
+  (select count(*) from (values ('anon')) t(r)
+    where has_function_privilege(
+      t.r, 'public.keel_household_my_coverage()', 'EXECUTE')), 0);
+select pg_temp.assert_eq('45p l''écran connecté, lui, a sa porte',
+  (select count(*) from (values ('authenticated')) t(r)
+    where has_function_privilege(
+      t.r, 'public.keel_household_my_coverage()', 'EXECUTE')), 1);
+
+-- 45q. EN CONDITIONS RÉELLES, pas seulement dans le catalogue: un membre
+--      authentifié qui appelle la définition doit se faire jeter par le moteur.
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000002');
+do $$
+declare v_b boolean;
+begin
+  begin
+    v_b := public.keel_household_is_covered(
+      public.keel_household_of('f0ed0000-0000-0000-0000-000000000001'));
+    raise exception
+      'FAIL 45q : un membre a pu lire l''état de couverture du foyer (%)', v_b;
+  exception
+    when insufficient_privilege then
+      raise notice 'PASS 45q un membre authentifié ne lit pas la définition';
+  end;
+end;
+$$;
+
+-- ON DÉGÈLE, ET C'EST OBLIGATOIRE. Les blocs qui suivent décrivent le
+-- détachement, pas la facturation: les laisser tourner sur un foyer gelé
+-- ferait dépendre leurs assertions d'un état qu'elles ne nomment pas.
+select pg_temp.become_super();
+update public.households
+   set free_until = current_date + 30
+ where id = public.keel_household_of('f0ed0000-0000-0000-0000-000000000001');
+
+-- ---------------------------------------------------------------------------
 -- 46. LE DÉTACHEMENT (chantier 2, D2 + D3)
 --
 -- LE FAIT MESURÉ QUI COMMANDE CES ASSERTIONS. Avant la migration
