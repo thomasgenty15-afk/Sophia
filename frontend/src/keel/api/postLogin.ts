@@ -4,10 +4,30 @@
 // to their space) and by /auth after a plain sign-in. The order restates the
 // two route guards' own facts, in guard order of authority:
 //
-//   1. an ACTIVE `coaches` row      -> /coach      (CoachRoute's fact)
-//   2. profiles.keel_role='student' -> /app/today  (KeelStudentRoute's fact)
+//   1. an ACTIVE `coaches` row      -> /coach          (CoachRoute's fact)
+//   2. profiles.keel_role='student' -> /app/today      (KeelStudentRoute's fact)
+//   2bis. a row in a household      -> /app/household  (KeelHouseholdRoute's)
 //   3. read, but neither of those   -> /account
 //   4. NOTHING could be read        -> null, and the caller must not navigate
+//
+// ── POURQUOI 2bis EXISTE (chantier 4) ─────────────────────────────────────
+// Quelqu'un qui a RÉCLAMÉ son profil de foyer n'est l'élève de personne:
+// `profiles.keel_role` reste NULL, exprès (`student` ouvrirait /app/today,
+// /app/chat et /app/progress, trois écrans vides pour qui n'a ni coach ni
+// plan). Sans cette branche, il tombait sur `/account` — l'ancienne page grand
+// public — à CHAQUE connexion suivant la première. L'écran de réclamation
+// l'emmenait bien sur son foyer; la deuxième visite, elle, ne le savait pas.
+//
+// L'ORDRE compte et restitue celui du palier (20260811050000 §4): `student`
+// AVANT `household_member`, parce qu'un élève qui rejoint le foyer de son
+// conjoint garde le produit que son coach paie.
+//
+// LE FAIT LU EST LE MÊME QUE CELUI DE LA GARDE DE ROUTE: une ligne visible
+// dans `household_members`. Aucun `.eq("user_id")` — la policy scope déjà au
+// foyer de l'appelant, et une bouche SANS COMPTE du même foyer est une ligne
+// légitime à compter. La question est « ai-je un foyer », pas « ai-je une
+// ligne ». Toute autre lecture (le palier, par exemple) ferait diverger la
+// destination et la garde qui l'accueille.
 //
 // FAIL SAFE, NOT CLOSED: branches 1-3 are navigation, not access control — the
 // guards and RLS re-check on arrival. So an unreadable row degrades to a real
@@ -42,7 +62,7 @@
 import { supabase } from "../../lib/supabase";
 import { loadKeelRole } from "./keelClient";
 
-export type HomePath = "/coach" | "/app/today" | "/account";
+export type HomePath = "/coach" | "/app/today" | "/app/household" | "/account";
 
 /**
  * Resolve a signed-in user's home.
@@ -76,10 +96,31 @@ export async function resolveHomePath(userId: string): Promise<HomePath | null> 
   try {
     const role = await loadKeelRole(userId);
     // The read succeeded, so we know their role — including when it is neither
-    // coach nor student. That is branch 3, and it is a legitimate destination.
-    return role === "student" ? "/app/today" : "/account";
+    // coach nor student. That is a FACT, and it is what lets branch 2bis fall
+    // back to /account below rather than to `null`.
+    heldAFact = true;
+    if (role === "student") return "/app/today";
   } catch {
     // `loadKeelRole` throws on any error, transport included.
+  }
+
+  // BRANCHE 2bis — le foyer. Interrogée APRÈS le rôle et seulement quand il
+  // n'est pas 'student': voir l'en-tête pour l'ordre, qui est celui du palier.
+  //
+  // Un échec ici n'est PAS une autorisation et n'est pas non plus un refus: on
+  // retombe simplement sur la suite. La garde `KeelHouseholdRoute` re-pose la
+  // même question à l'arrivée, et RLS reste la vraie frontière.
+  try {
+    const household = await supabase
+      .from("household_members")
+      .select("member_id")
+      .limit(1);
+    if (!household.error) {
+      heldAFact = true;
+      if ((household.data ?? []).length > 0) return "/app/household";
+    }
+  } catch {
+    // Transport failure: `heldAFact` garde ce qu'il valait.
   }
 
   return heldAFact ? "/account" : null;

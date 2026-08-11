@@ -22,13 +22,15 @@ export const PRODUCT_LOCALE = "en-US";
 export const FREE_SIGNUP_INTENT = "student_free";
 
 /**
- * La forme d'un pays déclaré. La base valide la MÊME forme
- * (`profiles_country_iso3166_check`), et volontairement pas une liste fermée:
- * une liste refuserait un pays légitime le jour où quelqu'un s'y inscrit.
+ * La forme d'un pays déclaré — DÉFINIE UNE SEULE FOIS, dans `countries.ts`.
+ *
+ * Ré-exportée ici parce que ce module était son domicile d'origine et que ses
+ * appelants (la page `/start`, son test) la nomment par ce chemin. Elle a
+ * déménagé au chantier 4: la porte foyer applique EXACTEMENT la même règle, et
+ * deux copies d'une garde de pays sont deux copies à faire diverger — ce qui
+ * est précisément le défaut qui a rendu la hotline de crise fausse.
  */
-export function isDeclaredCountryValid(country: string): boolean {
-  return /^[A-Z]{2}$/.test(country);
-}
+export { isDeclaredCountryValid } from "./countries";
 
 export interface FreeSignupMetadataInput {
   fullName: string;

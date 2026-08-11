@@ -3066,8 +3066,54 @@ export const en = {
   "household_claim.signed_out.body":
     "This invitation was sent to {email}. Sign in with that address to claim it — the account has to match.",
   "household_claim.signed_out.cta": "Sign in and claim",
-  "household_claim.signed_out.no_account":
-    "No account on that address yet? Ask the person who sent you this link — signing up on your own is not open today.",
+  // ── LA PORTE D'INSCRIPTION (chantier 4, D1) ──────────────────────────────
+  //
+  // Elle remplace `signed_out.no_account`, qui DISAIT le trou plutôt que de le
+  // cacher: « signing up on your own is not open today ». Ce n'est plus vrai.
+  //
+  // ⚠️ AUCUNE de ces phrases ne promet un produit d'élève. Réclamer une place
+  // donne à lire le foyer et à poser SON objectif; le reste — composer,
+  // ajouter, retirer, restreindre — appartient au compte maître, et les deux
+  // moitiés sont déjà côte à côte plus haut sur le même écran.
+  "household_claim.signed_out.or": "No account on that address yet?",
+  "household_claim.signup.cta": "Create my account",
+  "household_claim.signup.title": "Create the account for {email}",
+  "household_claim.signup.lead":
+    "This address is the one the invitation was sent to, and the only one that can claim this place. Your account is yours — the household does not read your password, and you can leave at any time.",
+  "household_claim.signup.email_label": "Email address",
+  "household_claim.signup.email_hint":
+    "Fixed by the invitation. Claiming with another address is refused.",
+  "household_claim.signup.name_label": "Your name",
+  "household_claim.signup.name_hint":
+    "On your account. The first name on the household line stays as it was set up.",
+  "household_claim.signup.password_label": "Password",
+  "household_claim.signup.password_hint": "At least 8 characters.",
+  // LE PAYS. Le `hint` dit à quoi il sert: quelqu'un qui comprend pourquoi on
+  // le demande répond juste. Il n'est JAMAIS déduit de la langue — un compte
+  // sans pays reçoit la ligne d'écoute d'un autre pays.
+  "household_claim.signup.country_label": "Country",
+  "household_claim.signup.country_hint":
+    "Where you live. Used for crisis helplines and local formats — never guessed from your language.",
+  "household_claim.signup.country_placeholder": "Choose a country",
+  "household_claim.signup.legal_prefix": "I accept the",
+  "household_claim.signup.legal_terms": "Terms",
+  "household_claim.signup.legal_and": "and the",
+  "household_claim.signup.legal_privacy": "Privacy Policy",
+  "household_claim.signup.submit": "Create my account and claim",
+  "household_claim.signup.submitting": "Creating your account...",
+  "household_claim.signup.error.legal":
+    "Please accept the Terms and the Privacy Policy to continue.",
+  "household_claim.signup.error.country":
+    "Please choose the country you live in. It decides which helpline you are given, so it is never guessed.",
+  "household_claim.signup.error.existing":
+    "There is already an account on this address. Sign in instead — your place is waiting.",
+  "household_claim.signup.closed":
+    "Creating an account is closed right now (pre-launch). If you already have one, sign in above.",
+  "household_claim.signup.check_email.title": "Confirm your email address",
+  "household_claim.signup.check_email.body":
+    "Your account is created. Click the link we just sent to {email}, then open your invitation link again — claiming your place needs a confirmed address.",
+  "household_claim.country.required_lead":
+    "One thing is missing on your account before you can claim this place.",
   "household_claim.no_token.title": "This link is incomplete",
   "household_claim.no_token.body":
     "The address is missing its invitation code. Open the link you were sent in full, or ask for a new one.",
@@ -3085,6 +3131,14 @@ export const en = {
     "This invitation was sent to a different address. Sign in with the one it was sent to.",
   "household_claim.refused.already_in_household":
     "Your account is already in a household, and an account belongs to one household at a time.",
+  // LES DEUX MOTIFS DE PAYS (chantier 4). `country_required` n'est PAS une
+  // impasse à l'écran: la page montre alors le sélecteur. Le libellé existe
+  // pour le cas où le refus revient quand même — une garde sans phrase est une
+  // page muette.
+  "household_claim.refused.country_required":
+    "Your account does not say which country you live in, and a place in a household cannot be claimed without it — it decides which helpline you are given.",
+  "household_claim.refused.bad_country":
+    "That country code was not understood. Pick one from the list.",
   "household_claim.refused.not_authenticated":
     "Your session ended before we could finish. Sign in and open the link again.",
   "household_claim.refused.unreachable":

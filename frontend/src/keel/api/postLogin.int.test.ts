@@ -29,15 +29,35 @@ type CoachOutcome =
 /** Ce que `loadKeelRole` a répondu. Il THROW sur toute erreur, réseau inclus. */
 type RoleOutcome = { kind: "role"; value: string | null } | { kind: "throw" };
 
+/**
+ * Ce que la lecture `household_members` a répondu (chantier 4).
+ *
+ * `rows: 0` est un FAIT — « je n'ai pas de foyer » — et pas une panne. La
+ * distinction est la même que pour `coaches`, et elle décide de la même chose:
+ * un repli légitime, ou `null`.
+ */
+type HouseholdOutcome =
+  | { kind: "rows"; count: number }
+  | { kind: "error" }
+  | { kind: "throw" };
+
 let coachOutcome: CoachOutcome = { kind: "row", status: null };
 let roleOutcome: RoleOutcome = { kind: "role", value: null };
+let householdOutcome: HouseholdOutcome = { kind: "rows", count: 0 };
 
 vi.mock("../../lib/supabase", () => ({
   supabase: {
-    from: () => ({
+    // Deux tables, deux formes de requête: `coaches` finit sur `maybeSingle()`,
+    // `household_members` sur `limit(1)`. Le mock DISPATCHE sur le nom de la
+    // table plutôt que de rendre un objet qui satisfait les deux — sinon un
+    // appel qui viserait la mauvaise table passerait le test.
+    from: (table: string) => ({
       select: () => ({
         eq: () => ({
           maybeSingle: async () => {
+            if (table !== "coaches") {
+              throw new Error(`mock: eq().maybeSingle() inattendu sur ${table}`);
+            }
             // Un échec de transport REJETTE la promesse; une erreur PostgREST
             // (RLS, cache de schéma cassé) revient dans `error`. Les deux sont
             // distingués parce que le second prouve que le serveur répond.
@@ -54,6 +74,23 @@ vi.mock("../../lib/supabase", () => ({
             };
           },
         }),
+        limit: async () => {
+          if (table !== "household_members") {
+            throw new Error(`mock: select().limit() inattendu sur ${table}`);
+          }
+          if (householdOutcome.kind === "throw") {
+            throw new TypeError("Failed to fetch");
+          }
+          if (householdOutcome.kind === "error") {
+            return { data: null, error: { message: "permission denied" } };
+          }
+          return {
+            data: Array.from({ length: householdOutcome.count }, () => ({
+              member_id: "m",
+            })),
+            error: null,
+          };
+        },
       }),
     }),
   },
@@ -75,6 +112,7 @@ const USER = "00000000-0000-0000-0000-000000000001";
 beforeEach(() => {
   coachOutcome = { kind: "row", status: null };
   roleOutcome = { kind: "role", value: null };
+  householdOutcome = { kind: "rows", count: 0 };
 });
 
 describe("resolveHomePath — les branches qui savent", () => {
@@ -97,19 +135,74 @@ describe("resolveHomePath — les branches qui savent", () => {
     expect(await resolveHomePath(USER)).toBe("/app/today");
   });
 
-  it("lu, mais ni coach ni élève: /account est une destination légitime", async () => {
+  it("lu, mais ni coach ni élève ni foyer: /account reste légitime", async () => {
     roleOutcome = { kind: "role", value: null };
+    householdOutcome = { kind: "rows", count: 0 };
     expect(await resolveHomePath(USER)).toBe("/account");
+  });
+});
+
+// ── CHANTIER 4 — LA BRANCHE FOYER ─────────────────────────────────────────
+//
+// Le défaut qu'elle ferme: quelqu'un qui a RÉCLAMÉ son profil n'est l'élève de
+// personne (`keel_role` reste NULL, exprès), donc il tombait sur `/account` —
+// l'ancienne page grand public — à chaque connexion. L'écran de réclamation
+// l'emmenait bien sur son foyer; la deuxième visite, elle, ne le savait pas.
+describe("resolveHomePath — le foyer", () => {
+  it("une ligne de foyer envoie sur /app/household", async () => {
+    roleOutcome = { kind: "role", value: null };
+    householdOutcome = { kind: "rows", count: 1 };
+    expect(await resolveHomePath(USER)).toBe("/app/household");
+  });
+
+  it("`student` L'EMPORTE sur le foyer, et l'ordre n'est pas cosmétique", async () => {
+    // Un élève qui rejoint le foyer de son conjoint garde le produit que son
+    // coach paie. C'est la précédence de `recompute_profile_access_tier`
+    // (20260811050000 §4), restituée ici: (2) avant (3).
+    roleOutcome = { kind: "role", value: "student" };
+    householdOutcome = { kind: "rows", count: 1 };
+    expect(await resolveHomePath(USER)).toBe("/app/today");
+  });
+
+  it("un coach actif l'emporte aussi, même avec un foyer", async () => {
+    coachOutcome = { kind: "row", status: "active" };
+    householdOutcome = { kind: "rows", count: 1 };
+    expect(await resolveHomePath(USER)).toBe("/coach");
+  });
+
+  it("zéro ligne de foyer est un FAIT: /account, pas null", async () => {
+    // Les deux lectures ont abouti et disent « ni élève ni foyer ». C'est une
+    // destination, pas une ignorance.
+    coachOutcome = { kind: "error" };
+    roleOutcome = { kind: "role", value: null };
+    householdOutcome = { kind: "rows", count: 0 };
+    expect(await resolveHomePath(USER)).toBe("/account");
+  });
+
+  it("le foyer illisible ne vaut PAS autorisation", async () => {
+    // Une lecture qui échoue ne route pas vers `/app/household`: la garde
+    // `KeelHouseholdRoute` re-poserait la même question et refuserait.
+    roleOutcome = { kind: "role", value: null };
+    householdOutcome = { kind: "error" };
+    expect(await resolveHomePath(USER)).toBe("/account");
+  });
+
+  it("les TROIS lectures en panne ne routent toujours nulle part", async () => {
+    coachOutcome = { kind: "throw" };
+    roleOutcome = { kind: "throw" };
+    householdOutcome = { kind: "throw" };
+    expect(await resolveHomePath(USER)).toBeNull();
   });
 });
 
 describe("resolveHomePath — les branches qui ne savent pas", () => {
   it("ZÉRO lecture aboutie ne route nulle part", async () => {
-    // LE BUG, en une assertion. Les deux appels tombent au transport: on ne
+    // LE BUG, en une assertion. Les trois appels tombent au transport: on ne
     // détient aucun fait sur cette personne. Avant, ce cas rendait `/account`
     // et déposait un élève dans l'ancien produit, vide.
     coachOutcome = { kind: "throw" };
     roleOutcome = { kind: "throw" };
+    householdOutcome = { kind: "throw" };
     expect(await resolveHomePath(USER)).toBeNull();
   });
 
@@ -135,6 +228,10 @@ describe("resolveHomePath — les branches qui ne savent pas", () => {
     // refus valent zéro fait, exactement comme deux pannes.
     coachOutcome = { kind: "error" };
     roleOutcome = { kind: "throw" };
+    // ⚠️ CHANTIER 4: la lecture du foyer est le TROISIÈME candidat au fait. La
+    // laisser aboutir ici testerait autre chose que ce que le titre annonce —
+    // « zéro fait » exige que les trois échouent.
+    householdOutcome = { kind: "throw" };
     expect(await resolveHomePath(USER)).toBeNull();
   });
 });

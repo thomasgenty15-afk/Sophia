@@ -528,9 +528,21 @@ export async function previewHouseholdInvitation(
  * Ce que la réclamation donne: lire le foyer, et poser SON objectif. Rien
  * d'autre — composer, ajouter, retirer et restreindre restent au compte maître,
  * et la base rend `not_owner` à qui essaie.
+ *
+ * ⚠️ LE PAYS EST UN PARAMÈTRE OBLIGATOIRE depuis le chantier 4, et la 1-arité
+ * a été DROPPÉE en base: un paramètre de garde optionnel est une garde
+ * désarmée, et deux arités seraient deux portes dont une n'exige rien.
+ *
+ * `country` peut être la chaîne vide QUAND le compte a déjà un pays déclaré —
+ * c'est la base qui tranche (`country_required`), pas cet appelant, parce que
+ * `profiles.country` peut avoir été posé par une autre porte entre-temps. Un
+ * pays déjà déclaré n'est JAMAIS écrasé par celui qu'on passe ici.
  */
-export async function joinHousehold(token: string) {
-  const { data, error } = await supabase.rpc("keel_household_join", { p_token: token });
+export async function joinHousehold(token: string, country: string) {
+  const { data, error } = await supabase.rpc("keel_household_join", {
+    p_token: token,
+    p_country: country,
+  });
   if (error) throw new Error(error.message);
   return asResult(data);
 }

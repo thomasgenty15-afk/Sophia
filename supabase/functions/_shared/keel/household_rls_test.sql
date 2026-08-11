@@ -62,6 +62,14 @@
 --  35. avec la case, la bouche part, allergies comprises          -> 0 / 0     (ch. 2)
 --  36b. purger le MAÎTRE ne lève plus, et le foyer survit         -> 1 / null  (ch. 2)
 --  36c. les deux portes de purge sont réservées au SERVEUR        -> 0 / 0 / 2
+--  37. SANS PAYS, pas de place dans un foyer                      -> country_required (ch. 4)
+--      et un code malformé n'est pas un pays                      -> bad_country
+--      — la garde qui empêche la porte d'inscription de rouvrir
+--      le défaut « hotline déduite de la langue »
+--  38. la réclamation ÉCRIT le pays, normalisé, et rien d'autre   -> FR / tier / null
+--      (palier household_member, keel_role JAMAIS écrit)
+--  39. un pays déjà déclaré n'est ni redemandé ni écrasé          -> ok / FR
+--  40. la porte SANS pays n'existe plus à côté de la gardée       -> 0
 --
 -- Chaque assertion RAISE en cas d'écart: un vert silencieux sur une policy
 -- cassée est le seul résultat que ce fichier existe pour empêcher.
@@ -369,7 +377,8 @@ select pg_temp.assert_eq('10f authenticated les exécute toutes les quatre',
 select pg_temp.assert_eq('10g anon n''émet ni ne consomme une invitation',
   (select count(*) from (values
      ('public.keel_household_invite(text,uuid)'),
-     ('public.keel_household_join(text)')) t(f)
+     -- 2-ARITÉ depuis le chantier 4: le pays est un paramètre, pas une option.
+     ('public.keel_household_join(text,text)')) t(f)
    where has_function_privilege('anon', t.f, 'EXECUTE')), 0);
 
 -- L'EXCEPTION, ET ELLE EST VOULUE: l'aperçu est la SEULE fonction de foyer
@@ -727,15 +736,59 @@ $$;
 
 -- 65. LE JETON VOLÉ. L'intrus GARDE son foyer: le refus doit venir de
 -- l'adresse, pas de son état de compte (voir l'avertissement en tête).
+--
+-- ⚠️ CHANTIER 4 — LE VOLEUR DÉCLARE UN PAYS VALIDE, exprès. Sans ça, le refus
+-- pourrait venir de la garde de pays et le test annoncerait « un jeton volé ne
+-- sert à personne » en prouvant « un compte sans pays ne réclame pas ».
 select pg_temp.become('f0ed0000-0000-0000-0000-000000000005');
 select pg_temp.assert_refused('65 un jeton volé ne sert à personne d''autre',
-  public.keel_household_join((select r->>'token' from pg_temp_invite)),
+  public.keel_household_join((select r->>'token' from pg_temp_invite), 'FR'),
   'email_mismatch');
+select pg_temp.become_super();
+select pg_temp.assert_eq('65b et un refus n''écrit RIEN sur le profil du voleur',
+  (select count(*) from public.profiles
+    where id = 'f0ed0000-0000-0000-0000-000000000005' and country is not null), 0);
 
--- 66. LA RÉCLAMATION.
+-- ══════════════════════════════════════════════════════════════════════════
+-- 65c–65e. LA GARDE DE PAYS (chantier 4, D1) — LA PORTE D'INSCRIPTION FOYER
+--
+-- L'inscription générique a été retirée de `/auth` parce qu'un compte SANS
+-- PAYS route vers la MAUVAISE HOTLINE DE CRISE: `profiles.country` est lu en
+-- premier par le résolveur, son absence le fait retomber sur `locale`, et
+-- `locale` vaut `en-US` pour tout le monde. La migration 20260804180000 a fermé
+-- ce défaut sur une porte; ces trois assertions sont ce qui empêche la porte
+-- foyer de le rouvrir.
+--
+-- LA FIXTURE NE MENT PAS: aucun `f0ed…` n'a de pays (voir le bloc `profiles`
+-- en tête, qui écrit `locale` et rien d'autre). `0009` est donc EXACTEMENT le
+-- compte que ce chantier existe pour attraper.
+-- ══════════════════════════════════════════════════════════════════════════
+
 select pg_temp.become('f0ed0000-0000-0000-0000-000000000009');
-select pg_temp.assert_ok('66 le destinataire réclame le profil',
-public.keel_household_join((select r->>'token' from pg_temp_invite)));
+select pg_temp.assert_refused('65c SANS PAYS, pas de place dans un foyer',
+  public.keel_household_join((select r->>'token' from pg_temp_invite), ''),
+  'country_required');
+
+-- 65d. UN PAYS MALFORMÉ N'EST PAS UN PAYS. `FRA`, `f`, `12` ne peuvent venir
+-- que d'un client contourné — nos formulaires n'offrent qu'un sélecteur fermé —
+-- et les accepter écrirait n'importe quoi dans la colonne que le résolveur de
+-- crise lit en premier.
+select pg_temp.assert_refused('65d « FRA » n''est pas un code pays',
+  public.keel_household_join((select r->>'token' from pg_temp_invite), 'FRA'),
+  'bad_country');
+
+-- 65e. ET LA LIGNE N'A PAS BOUGÉ: deux refus, zéro effet.
+select pg_temp.become_super();
+select pg_temp.assert_eq('65e la bouche est toujours SANS compte après ces refus',
+  (select count(*) from public.household_members
+    where member_id = (select member_id from pg_temp_lea) and user_id is null), 1);
+
+-- 66. LA RÉCLAMATION, avec le pays. En MINUSCULES, pour prouver la
+-- normalisation: un `fr` stocké tel quel viole
+-- `profiles_country_iso3166_check` et ferait échouer la lecture du résolveur.
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000009');
+select pg_temp.assert_ok('66 le destinataire réclame le profil, pays déclaré',
+public.keel_household_join((select r->>'token' from pg_temp_invite), 'fr'));
 
 -- 67. LE MÊME `member_id` PORTE MAINTENANT UN COMPTE. C'est l'assertion pour
 -- laquelle ce lot existe: pas une ligne créée, une ligne attachée.
@@ -768,7 +821,7 @@ select pg_temp.assert_eq('70 le foyer compte toujours 8 bouches',
 -- le motif rendu soit bien `already_used` et pas un effet de bord.
 select pg_temp.become('f0ed0000-0000-0000-0000-000000000009');
 select pg_temp.assert_refused('71 le jeton ne resert pas',
-  public.keel_household_join((select r->>'token' from pg_temp_invite)),
+  public.keel_household_join((select r->>'token' from pg_temp_invite), 'FR'),
   'already_used');
 
 -- 72. Et l'aperçu le dit aussi, plutôt que de laisser croire à un lien vivant.
@@ -786,6 +839,46 @@ begin
   raise notice 'PASS 72 l''aperçu d''un lien consommé dit already_used';
 end;
 $$;
+
+-- ══════════════════════════════════════════════════════════════════════════
+-- 72b–72e. CE QUE LA RÉCLAMATION A LAISSÉ EN BASE (chantier 4)
+--
+-- La vérité est en base, jamais dans une réponse HTTP: 66 a rendu `ok`, ces
+-- quatre lignes disent ce qui a RÉELLEMENT été écrit — et surtout ce qui ne
+-- l'a pas été.
+-- ══════════════════════════════════════════════════════════════════════════
+
+select pg_temp.become_super();
+
+-- 72b. LE PAYS EST EN BASE, EN MAJUSCULES. C'est la preuve d'acceptation n°1.
+select pg_temp.assert_eq('72b le compte réclamé a un pays, normalisé en FR',
+  (select count(*) from public.profiles
+    where id = 'f0ed0000-0000-0000-0000-000000000009' and country = 'FR'), 1);
+
+-- 72c. LE PALIER, ET PERSONNE NE L'ÉCRIT ICI: le trigger
+-- `on_household_members_change_recompute_access` (20260811050000 §4b) part sur
+-- l'`update` de `user_id` que fait la réclamation. Preuve d'acceptation n°2.
+select pg_temp.assert_eq('72c le profil réclamé porte le palier household_member',
+  (select count(*) from public.profiles
+    where id = 'f0ed0000-0000-0000-0000-000000000009'
+      and access_tier = 'household_member'), 1);
+
+-- 72d. ET PAS `student`. Ce rôle ouvre /app/today, /app/chat et /app/progress,
+-- trois écrans vides pour qui n'a ni coach ni plan — c'est la raison même pour
+-- laquelle `KeelHouseholdRoute` existe.
+select pg_temp.assert_eq('72d la réclamation n''écrit AUCUN keel_role',
+  (select count(*) from public.profiles
+    where id = 'f0ed0000-0000-0000-0000-000000000009'
+      and keel_role is not null), 0);
+
+-- 72e. LA PORTE SANS PAYS N'EXISTE PLUS. Deux arités sont deux fonctions: la
+-- 1-arité laissée en place serait une seconde porte, à côté de la gardée, qui
+-- n'exige rien. C'est la même garde que 10i pour l'invitation sans cible.
+select pg_temp.assert_eq('72e keel_household_join(text) n''existe plus',
+  (select count(*) from pg_proc p
+    join pg_namespace n on n.oid = p.pronamespace
+   where n.nspname = 'public' and p.proname = 'keel_household_join'
+     and pg_get_function_identity_arguments(p.oid) = 'text'), 0);
 
 -- ---------------------------------------------------------------------------
 -- 73–78. CE QUE LA RÉCLAMATION DONNE, ET CE QU'ELLE NE DONNE PAS
@@ -845,9 +938,12 @@ create temporary table pg_temp_invite2 on commit drop as
 select pg_temp.assert_ok('79 invitation émise pour une bouche libre',
 (select r from pg_temp_invite2));
 
+-- ⚠️ PAYS VIDE, exprès (chantier 4): `already_in_household` est vérifié AVANT
+-- la garde de pays, et l'ordre est une garde à lui seul — un compte déjà logé
+-- doit s'entendre dire POURQUOI il est refusé, pas qu'il lui manque un pays.
 select pg_temp.become('f0ed0000-0000-0000-0000-000000000005');
 select pg_temp.assert_refused('80 un compte déjà logé ailleurs ne réclame pas',
-  public.keel_household_join((select r->>'token' from pg_temp_invite2)),
+  public.keel_household_join((select r->>'token' from pg_temp_invite2), ''),
   'already_in_household');
 
 -- ---------------------------------------------------------------------------
@@ -1542,15 +1638,21 @@ create temporary table pg_temp_reinvite on commit drop as
 grant select on pg_temp_reinvite to authenticated;
 select pg_temp.assert_ok('46n on réinvite sur la bouche détachée',
   (select r from pg_temp_reinvite));
+-- ⚠️ PAYS VIDE (chantier 4), et c'est le chemin RÉEL: `0009` a déclaré `FR` en
+-- 66, donc l'écran ne redemande rien et envoie une chaîne vide. Si la garde
+-- exigeait un pays à chaque réclamation, tout revenant serait bloqué.
 select pg_temp.become('f0ed0000-0000-0000-0000-000000000009');
-select pg_temp.assert_ok('46o et la re-réclamation aboutit',
-  public.keel_household_join((select r->>'token' from pg_temp_reinvite)));
+select pg_temp.assert_ok('46o et la re-réclamation aboutit, sans redemander le pays',
+  public.keel_household_join((select r->>'token' from pg_temp_reinvite), ''));
 select pg_temp.become_super();
 select pg_temp.assert_eq('46p la MÊME ligne porte le nouveau compte',
   (select count(*) from public.household_members hm
     where hm.member_id = (select member_id from pg_temp_adulte)
       and hm.user_id = 'f0ed0000-0000-0000-0000-000000000009'
       and hm.first_name = (select first_name from pg_temp_adulte)), 1);
+select pg_temp.assert_eq('46p2 et son pays déclaré n''a pas bougé',
+  (select count(*) from public.profiles
+    where id = 'f0ed0000-0000-0000-0000-000000000009' and country = 'FR'), 1);
 
 -- 46q. LES DEUX PORTES DE PURGE SONT AU SERVEUR. `auth.uid()` est NULL sous
 --      `service_role`: ces fonctions prennent donc le compte en PARAMÈTRE, et
