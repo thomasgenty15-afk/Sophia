@@ -27,6 +27,23 @@ const COPY = {
   // et faux dans une pop-up qui n'a pas de formulaire. Le vide est donc un
   // texte de l'APPELANT (`emptyLabel`), pas du rendu.
   "meals.result.today": "Today",
+  // ── FF-053 · LA VUE GLOBALE ─────────────────────────────────────────────
+  "meals.grid.title": "Your week at a glance",
+  // Le lot, dit sur la case. Sans lui, trois cases identiques se lisent comme
+  // une semaine paresseuse alors que c'est une seule casserole.
+  "meals.grid.from_batch": "from a batch",
+  // Les trois silences VOULUS. Ils se ressemblent entre eux, et c'est fait
+  // exprès: ce sont tous des « rien ici, et c'est normal ».
+  "meals.grid.away": "not eating here",
+  "meals.grid.leftovers": "leftovers",
+  // Le quatrième, et le seul qui soit un défaut.
+  "meals.grid.empty": "nothing here",
+  "meals.grid.empty_hint":
+    "Nothing was composed for this moment, and you did not ask for it to be skipped.",
+  // ── FF-053 · LE BLOC CUISINE ────────────────────────────────────────────
+  "meals.kitchen.title": "What you cook",
+  "meals.kitchen.cook_on": "cook it {day}",
+  "meals.kitchen.feeds": "feeds {days}",
   "meals.result.past": "Gone by",
   // Les sessions: le moment où l'on cuisine. Le déroulé est ce qu'on lit avant
   // de commencer, et aucun plat ne peut le porter — l'ordre des gestes se joue

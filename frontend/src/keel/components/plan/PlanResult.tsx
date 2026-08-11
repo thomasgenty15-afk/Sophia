@@ -1,15 +1,22 @@
 import React from "react";
 
 import type {
+  AwayDay,
   CookingSession,
+  EatingOccasionSlot,
   GeneratedDish,
   MealPreparation,
+  PlanDayProperty,
+  PlanFixedIntake,
 } from "../../api/mealGeneration";
 import { dishDayLabel, mealCopy } from "../../api/mealLabels";
 import { groupByDay } from "../../lib/mealBuilderModel";
 import { dishDate } from "../../api/mealStretch";
 import { windowDates, windowDayOrder } from "../../api/mealWindow";
 import DishCard from "../DishCard";
+import KitchenBlock from "./KitchenBlock";
+import PlanGrid from "./PlanGrid";
+import { buildPlanGrid } from "../../lib/planGridModel";
 import { type DishTick } from "../../lib/useMealTicks";
 import { Card } from "../ui/Card";
 
@@ -55,6 +62,24 @@ export interface PlanResultProps {
    */
   emptyLabel: string;
   /**
+   * LES LIGNES DE LA GRILLE — les moments d'une journée normale.
+   *
+   * Vide = pas de grille. On ne devine pas un rythme: une grille à six lignes
+   * fixes ferait relire chaque semaine des moments que l'élève a déjà dit ne
+   * pas prendre.
+   */
+  rhythm?: readonly EatingOccasionSlot[];
+  /**
+   * CE QUI EXPLIQUE UNE CASE VIDE (FF-053 R3).
+   *
+   * Les trois viennent de la RÉPONSE de la fonction, jamais d'une relecture de
+   * `practical_constraints` par l'écran: elle seule sait ce qu'elle a réellement
+   * lu, entrées malformées écartées.
+   */
+  awayDays?: readonly AwayDay[];
+  fixedIntakes?: readonly PlanFixedIntake[];
+  dayProperties?: readonly PlanDayProperty[];
+  /**
    * LA COCHE D'UN PLAT, quand l'appelant en fournit une.
    *
    * `undefined` = aucune case, et c'est le cas du brouillon: on ne rapporte pas
@@ -72,6 +97,18 @@ export default function PlanResult(props: PlanResultProps) {
     windowDayOrder(props.startsOn, props.durationDays),
   );
 
+  // LA GRILLE, sur la MÊME donnée que les sections: elle lit `groups`, donc
+  // l'expansion des lots par jour est déjà faite et les deux ne peuvent pas se
+  // contredire. Deux dérivations du même plan finiraient par diverger.
+  const grid = buildPlanGrid({
+    days: windowDayOrder(props.startsOn, props.durationDays),
+    rhythm: props.rhythm ?? [],
+    groups,
+    awayDays: props.awayDays ?? [],
+    fixedIntakes: props.fixedIntakes ?? [],
+    dayProperties: props.dayProperties ?? [],
+  });
+
   if (groups.length === 0) {
     return (
       <Card tone="dashed">
@@ -82,6 +119,17 @@ export default function PlanResult(props: PlanResultProps) {
 
   return (
     <div className="space-y-6">
+      {/* NIVEAU 1 — la semaine d'un coup d'œil. */}
+      <PlanGrid
+        grid={grid}
+        // `windowDates` est une TABLE jeton→date, pas une liste: on la lit dans
+        // l'ordre des colonnes pour que les deux ne puissent pas se décaler.
+        dates={grid.days.map((d) => dayDates[d] ?? "")}
+        today={props.today}
+      />
+      {/* NIVEAU 2 — ce qui se cuisine, et pour quels jours. */}
+      <KitchenBlock preparations={props.preparations} dishes={props.dishes} />
+      {/* NIVEAU 3 — le détail, jour par jour. */}
       {groups.map((group) => {
         // LA DATE DE CE GROUPE. C'est le groupe qui porte le jour où le plat se
         // MANGE — un plat en lot est déjà placé sur chacun des siens — donc

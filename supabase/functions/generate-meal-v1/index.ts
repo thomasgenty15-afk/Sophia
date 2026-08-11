@@ -1067,6 +1067,32 @@ Deno.serve(async (req) => {
             goal: String(goalRow.goal ?? "health"),
             prompt_version: MEAL_PROMPT_VERSION,
             intent,
+            // ── FF-053 · CE SOUS QUOI CE PLAN A ÉTÉ COMPOSÉ ───────────────
+            // La grille de l'écran doit expliquer chaque case vide. Renvoyer
+            // ces deux lectures dans la RÉPONSE ne suffit pas: au premier
+            // rafraîchissement, le plan est relu depuis cette ligne et les
+            // explications disparaîtraient — la grille expliquerait les cases
+            // pendant une minute, puis se tairait.
+            //
+            // Écrites ICI, elles disent ce qui était vrai AU MOMENT DE LA
+            // COMPOSITION, et c'est la bonne sémantique: un plan montre les
+            // contraintes sous lesquelles il a été fait, pas celles
+            // d'aujourd'hui. Un élève qui retire son shaker demain doit
+            // toujours comprendre pourquoi son plan de la semaine n'a pas de
+            // petit-déjeuner.
+            fixed_intakes: fixedIntakes.map((i) => ({
+              food_ref: i.foodRef,
+              label: i.label,
+              amount: i.amount,
+              unit: i.unit,
+              slot: i.placement === "at_slot" ? i.slot : null,
+              replaces_meal: i.placement === "at_slot" ? i.replacesMeal : false,
+              days: i.days,
+            })),
+            day_properties: dayProperties.map((d) => ({
+              day: d.day,
+              properties: d.properties,
+            })),
             // ── CE QUI A MORDU, ÉCRIT SUR LA LIGNE ────────────────────────
             // Les `issues` ne partaient que dans la RÉPONSE HTTP, donc elles
             // mouraient avec elle: un plan qui garde un lot six jours, ou dont
@@ -1184,6 +1210,35 @@ Deno.serve(async (req) => {
       preparations: mealPreparationsPayload(meal),
       cooking_sessions: mealSessionsPayload(meal),
       shopping_list: mealShoppingPayload(meal),
+      // ── FF-053 · CE QUI EXPLIQUE UNE CASE VIDE ────────────────────────────
+      // La grille de l'écran doit distinguer QUATRE silences: « je déjeune à la
+      // cantine » (FF-002), « mon shaker remplace ce moment » (FF-051), « c'est
+      // mon jour de restes » (FF-052), et « le modèle n'a rien composé » — le
+      // seul des quatre qui soit un défaut. Les rendre identiques rend le défaut
+      // invisible et les trois autres inquiétants.
+      //
+      // ⚠️ C'EST LA FONCTION QUI LES RENVOIE, PAS LE FRONT QUI LES RELIT.
+      // Elle seule sait ce qu'elle a RÉELLEMENT lu: elle écarte les entrées
+      // malformées et les jetons inconnus (FF-051 R4, FF-052 R2). Un front qui
+      // relirait `practical_constraints` dessinerait des marqueurs pour des
+      // déclarations que la composition a ignorées — un écran qui affiche une
+      // contrainte non respectée est pire qu'un écran qui n'affiche rien.
+      //
+      // Les APPORTS sont renvoyés dans la forme LUE, pas dans la forme stockée:
+      // c'est l'union à deux branches de FF-051, aplatie pour le transport.
+      fixed_intakes: fixedIntakes.map((i) => ({
+        food_ref: i.foodRef,
+        label: i.label,
+        amount: i.amount,
+        unit: i.unit,
+        slot: i.placement === "at_slot" ? i.slot : null,
+        replaces_meal: i.placement === "at_slot" ? i.replacesMeal : false,
+        days: i.days,
+      })),
+      day_properties: dayProperties.map((d) => ({
+        day: d.day,
+        properties: d.properties,
+      })),
       rejected_numeric: meal.rejected_numeric,
       rejected_aisles: meal.rejected_aisles,
       issues: [...issues, ...meal.issues],

@@ -56,16 +56,91 @@ export const MEAL_SLOTS = EATING_OCCASIONS;
 export type MealSlot = EatingOccasion;
 
 /**
- * Un moment de la journée de l'élève, avec son heure SI il l'a donnée.
+ * La taille d'un moment — liste FERMÉE, et facultative.
  *
- * L'heure est facultative et le reste: « je grignote l'après-midi » est utile
- * sans « à 17h », et une heure exigée serait une heure inventée — que le
- * moteur, lui, traiterait comme une contrainte.
+ * Remplace l'heure, qui ne servait qu'à une parenthèse de prose dans la
+ * consigne. Voir `MEAL_SIZES` du moteur pour l'arbitrage complet, et pour
+ * pourquoi ce n'est pas une quantité au sens de CONTRACT.md.
+ */
+export const MEAL_SIZES = ["small", "medium", "large"] as const;
+export type MealSize = (typeof MEAL_SIZES)[number];
+
+/**
+ * Un moment de la journée de l'élève, avec sa taille SI il l'a donnée.
+ *
+ * La taille est facultative et le reste: « je grignote l'après-midi » est utile
+ * sans savoir si c'est gros ou petit, et une taille exigée serait une taille
+ * inventée — que le moteur, lui, traiterait comme une contrainte.
  */
 export interface EatingOccasionSlot {
   slot: EatingOccasion;
-  /** « 17:00 », ou `null`. */
-  at: string | null;
+  /** « large », ou `null`. */
+  size: MealSize | null;
+}
+
+/**
+ * Un moment où l'élève NE MANGE PAS ICI — cantine, restaurant, absent.
+ *
+ * MIROIR de `AwayDay` du moteur. `slots` vide vaut la journée entière, et la
+ * clé est `practical_constraints.away_days` — celle que FF-002 a posée pour
+ * l'absence récurrente, pas une seconde pour la même chose.
+ */
+export interface AwayDay {
+  day: string;
+  slots: EatingOccasion[];
+}
+
+/**
+ * Les absences lues depuis `practical_constraints.away_days`.
+ *
+ * MÊMES RÈGLES QUE `parseAwayDays` DU MOTEUR, et pour la même raison que les
+ * deux `parseEatingRhythm`: les deux lisent la même colonne, et deux lectures
+ * qui divergent produiraient une grille qui montre autre chose que ce avec
+ * quoi on a composé.
+ *
+ * En particulier: « aucun créneau demandé » (journée entière) et « aucun
+ * créneau lisible » (faute de frappe) ne sont pas la même chose. Confondre les
+ * deux transformerait un mot mal tapé en journée entière supprimée.
+ */
+export function parseAwayDays(raw: unknown): AwayDay[] {
+  if (!Array.isArray(raw)) return [];
+  const byDay = new Map<string, Set<EatingOccasion>>();
+  const wholeDay = new Set<string>();
+  for (const entry of raw) {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) continue;
+    const e = entry as Record<string, unknown>;
+    const day = String(e.day ?? "").trim().toLowerCase();
+    if (!(DAY_TOKENS as readonly string[]).includes(day)) continue;
+    const askedSlots = Array.isArray(e.slots) && e.slots.length > 0;
+    const slots = askedSlots
+      ? (e.slots as unknown[])
+        .map((s) => String(s ?? "").trim().toLowerCase())
+        .filter((s): s is EatingOccasion =>
+          (EATING_OCCASIONS as readonly string[]).includes(s)
+        )
+      : [];
+    if (askedSlots && slots.length === 0) continue;
+    if (!askedSlots) {
+      wholeDay.add(day);
+      byDay.delete(day);
+      continue;
+    }
+    if (wholeDay.has(day)) continue;
+    const set = byDay.get(day) ?? new Set<EatingOccasion>();
+    slots.forEach((s) => set.add(s));
+    byDay.set(day, set);
+  }
+  const out: AwayDay[] = [];
+  for (const day of DAY_TOKENS) {
+    if (wholeDay.has(day)) out.push({ day, slots: [] });
+    else if (byDay.has(day)) {
+      out.push({
+        day,
+        slots: EATING_OCCASIONS.filter((s) => byDay.get(day)!.has(s)),
+      });
+    }
+  }
+  return out;
 }
 
 /**
@@ -74,13 +149,13 @@ export interface EatingOccasionSlot {
  * MÊMES RÈGLES QUE `parseEatingRhythm` DU MOTEUR, et c'est délibéré: les deux
  * lisent la même colonne, et deux lectures qui divergent produiraient un écran
  * qui affiche autre chose que ce avec quoi on a composé. Écarter plutôt que
- * deviner, ordre de la journée plutôt qu'ordre de saisie, heure facultative,
- * et la chaîne nue (`"lunch"`) lue comme le moment sans heure — voir l'en-tête
- * du moteur pour ce que cette dernière règle a coûté tant qu'elle manquait.
+ * deviner, ordre de la journée plutôt qu'ordre de saisie, taille facultative,
+ * la chaîne nue (`"lunch"`) lue comme le moment sans taille, et l'ancienne clé
+ * `at` ignorée sans être migrée — voir l'en-tête du moteur pour chacune.
  */
 export function parseEatingRhythm(raw: unknown): EatingOccasionSlot[] {
   if (!Array.isArray(raw)) return [];
-  const bySlot = new Map<EatingOccasion, string | null>();
+  const bySlot = new Map<EatingOccasion, MealSize | null>();
   for (const entry of raw) {
     if (typeof entry === "string") {
       const slot = entry.trim().toLowerCase();
@@ -94,15 +169,15 @@ export function parseEatingRhythm(raw: unknown): EatingOccasionSlot[] {
     const e = entry as Record<string, unknown>;
     const slot = String(e.slot ?? "").trim().toLowerCase();
     if (!(EATING_OCCASIONS as readonly string[]).includes(slot)) continue;
-    const at = String(e.at ?? "").trim();
+    const size = String(e.size ?? "").trim().toLowerCase();
     bySlot.set(
       slot as EatingOccasion,
-      /^([01]\d|2[0-3]):[0-5]\d$/.test(at) ? at : null,
+      (MEAL_SIZES as readonly string[]).includes(size) ? (size as MealSize) : null,
     );
   }
   return EATING_OCCASIONS.filter((s) => bySlot.has(s)).map((s) => ({
     slot: s,
-    at: bySlot.get(s) ?? null,
+    size: bySlot.get(s) ?? null,
   }));
 }
 
@@ -184,6 +259,28 @@ export interface ShoppingItem {
   aisle: string;
 }
 
+/**
+ * FF-053 — UN APPORT FIXE, TEL QUE LA FONCTION L'A LU.
+ *
+ * Aplati pour le transport: côté moteur c'est une union à deux branches
+ * (FF-051), ici `slot: null` dit « hors moment nommé ». La grille n'a besoin que
+ * de savoir QUEL créneau est pris, et par quel libellé le nommer.
+ */
+export interface PlanFixedIntake {
+  foodRef: string;
+  label: string;
+  slot: EatingOccasion | null;
+  replacesMeal: boolean;
+  /** Vide = tous les jours (même convention que `AwayDay.slots`). */
+  days: string[];
+}
+
+/** FF-053 — Ce qu'un jour EST, tel que la fonction l'a lu (FF-052). */
+export interface PlanDayProperty {
+  day: string;
+  properties: string[];
+}
+
 export interface GeneratedMealResult {
   mealId: string | null;
   dishes: GeneratedDish[];
@@ -192,6 +289,16 @@ export interface GeneratedMealResult {
   /** Quand on cuisine, et dans quel ordre. */
   cookingSessions: CookingSession[];
   shoppingList: ShoppingItem[];
+  /**
+   * FF-053 — CE QUI EXPLIQUE UNE CASE VIDE.
+   *
+   * Renvoyés par la FONCTION, jamais relus depuis `practical_constraints` par
+   * l'écran: elle seule sait ce qu'elle a réellement lu, entrées malformées
+   * écartées. Un marqueur pour une déclaration que la composition a ignorée est
+   * pire que pas de marqueur.
+   */
+  fixedIntakes: PlanFixedIntake[];
+  dayProperties: PlanDayProperty[];
   /**
    * LE CONTEXTE QUI A PRODUIT CETTE COMPOSITION, tel qu'il a été demandé.
    *
@@ -328,7 +435,53 @@ export async function generateMeal(
     // volontairement laissé de côté: la doctrine du coach ne s'affiche pas.
     dishes: readDishes(dishes),
     shoppingList: readShopping(shopping),
+    fixedIntakes: readFixedIntakes(payload.fixed_intakes),
+    dayProperties: readDayProperties(payload.day_properties),
   };
+}
+
+/**
+ * Les apports fixes de la réponse. Défensif dans une seule direction, comme
+ * tous les lecteurs de ce fichier: ce qu'on ne sait pas lire tombe SEUL.
+ */
+function readFixedIntakes(raw: unknown): PlanFixedIntake[] {
+  if (!Array.isArray(raw)) return [];
+  const out: PlanFixedIntake[] = [];
+  for (const entry of raw) {
+    if (!entry || typeof entry !== "object") continue;
+    const e = entry as Record<string, unknown>;
+    const foodRef = String(e.food_ref ?? "").trim();
+    if (!foodRef) continue;
+    const slot = String(e.slot ?? "").trim();
+    out.push({
+      foodRef,
+      // Le libellé retombe sur l'identifiant: la grille doit pouvoir nommer la
+      // case, et un identifiant est un plus mauvais nom que rien n'est pire.
+      label: String(e.label ?? "").trim() || foodRef,
+      slot: EATING_OCCASIONS.includes(slot as EatingOccasion)
+        ? (slot as EatingOccasion)
+        : null,
+      replacesMeal: e.replaces_meal === true,
+      days: Array.isArray(e.days) ? e.days.map((d) => String(d)) : [],
+    });
+  }
+  return out;
+}
+
+function readDayProperties(raw: unknown): PlanDayProperty[] {
+  if (!Array.isArray(raw)) return [];
+  const out: PlanDayProperty[] = [];
+  for (const entry of raw) {
+    if (!entry || typeof entry !== "object") continue;
+    const e = entry as Record<string, unknown>;
+    const day = String(e.day ?? "").trim();
+    const properties = Array.isArray(e.properties)
+      ? e.properties.map((p) => String(p)).filter(Boolean)
+      : [];
+    if (!day || properties.length === 0) continue;
+    out.push({ day, properties });
+  }
+  return out;
 }
 
 /** Les ingrédients d'un plat ou d'une préparation — même forme des deux côtés. */
@@ -446,7 +599,11 @@ async function readInvokeError(error: unknown): Promise<string | null> {
 /** Les colonnes qu'un plan doit rendre pour être affichable ET situable. */
 const MEAL_COLUMNS =
   "id, dishes, preparations, cooking_sessions, shopping_list, context, " +
-  "preferences, starts_on, duration_days, retired_at, created_at";
+  // `generated_from` porte, depuis FF-053, ce SOUS QUOI le plan a été composé —
+  // apports fixes et propriétés de jour. Sans cette colonne, la grille
+  // expliquerait ses cases vides juste après la génération et se tairait au
+  // premier rafraîchissement.
+  "preferences, starts_on, duration_days, retired_at, created_at, generated_from";
 
 /**
  * Une ligne de plan, telle que l'écran la lit.
@@ -464,6 +621,15 @@ function readMealRow(raw: unknown): GeneratedMealResult {
     preparations: readPreparations(row.preparations),
     cookingSessions: readSessions(row.cooking_sessions),
     shoppingList: readShopping(row.shopping_list),
+    // Les DEUX lectures figées à la composition. Une ligne écrite avant FF-053
+    // n'en a pas: la grille montre alors des cases vides sans explication, ce
+    // qui est exactement ce qui était vrai pour ce plan-là.
+    fixedIntakes: readFixedIntakes(
+      ((row.generated_from ?? {}) as Record<string, unknown>).fixed_intakes,
+    ),
+    dayProperties: readDayProperties(
+      ((row.generated_from ?? {}) as Record<string, unknown>).day_properties,
+    ),
     context: typeof row.context === "string" && row.context.trim() !== ""
       ? row.context
       : null,

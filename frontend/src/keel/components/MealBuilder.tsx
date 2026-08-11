@@ -955,6 +955,15 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                 durationDays={durationDays}
                 today={today}
                 emptyLabel={c("meals.result.empty")}
+                // ── FF-053 · CE QUI EXPLIQUE UNE CASE VIDE ─────────────────
+                // Le rythme donne les LIGNES; les trois autres donnent les
+                // quatre silences. `awayDays` vient de l'écran (il pilote déjà
+                // la grille de créneaux); les deux suivants viennent de la
+                // RÉPONSE de la fonction, qui seule sait ce qu'elle a lu.
+                rhythm={props.rhythm ?? []}
+                awayDays={props.awayDays ?? []}
+                fixedIntakes={result?.fixedIntakes ?? []}
+                dayProperties={result?.dayProperties ?? []}
                 // LA COCHE RESTE ICI. `PlanResult` ne sait pas qui est
                 // cochable — la règle (aujourd'hui et le passé, jamais
                 // l'avenir) vit dans `useMealTicks`, et le brouillon n'en
