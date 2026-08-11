@@ -1,8 +1,7 @@
 import { generateWithGemini, getGlobalAiModel } from "../../_shared/gemini.ts";
 import {
-  crisisCountryFromLocale,
+  crisisCountryForProfile,
   formatCrisisContacts,
-  LEGACY_FRENCH_BRANCH_COUNTRY,
   resolveCrisisResources,
 } from "../../_shared/keel/crisis_resources.ts";
 
@@ -34,14 +33,23 @@ export function buildSentryCrisisResources(input?: {
   country?: string | null;
   locale?: string | null;
 }): SentryCrisisResources {
-  // Priorité: pays explicite > région du locale > défaut DÉCLARÉ de la branche
-  // française. Un locale qui ne résout aucun pays semé (ex. 'de-DE') tombe sur
-  // le jeu international, bruyamment — jamais sur la France par défaut.
-  const country = input?.country
-    ? input.country
-    : input?.locale
-    ? crisisCountryFromLocale(input.locale)
-    : LEGACY_FRENCH_BRANCH_COUNTRY;
+  // T-20 (2026-08-12) — LA RÈGLE DE PRÉCÉDENCE VIT AILLEURS, ET ELLE A CHANGÉ.
+  //
+  // Ici se trouvait la deuxième des trois copies de « pays explicite > région
+  // du locale > défaut DÉCLARÉ de la branche française ». Le troisième terme
+  // était le défaut : sans pays ET sans locale, un tour de crise servait des
+  // numéros français à quelqu'un dont on ne savait rien. Et le deuxième ne
+  // valait pas mieux, parce que `profiles.locale` est
+  // `not null default 'fr-FR'` : une colonne à valeur par défaut lue comme un
+  // lieu de vie.
+  //
+  // `crisisCountryForProfile` est désormais la seule autorité, et elle rend
+  // `null` — donc le jeu international `ZZ`, bruyamment — dès que
+  // `profiles.country` est vide. Voir son en-tête pour le pourquoi et le prix.
+  const { country } = crisisCountryForProfile({
+    country: input?.country ?? null,
+    locale: input?.locale ?? null,
+  });
   const emergency = resolveCrisisResources(country, "emergency");
   const suicide = resolveCrisisResources(country, "suicide");
   const numbersBlock = [...emergency.resources, ...suicide.resources]

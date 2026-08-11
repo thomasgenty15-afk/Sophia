@@ -182,6 +182,12 @@ de ce qu'il protège.
 
 ## 11. Questions ouvertes
 
-- Le pays vient de `profiles.country`, avec repli sur la locale. Un pays **NULL**
-  chez un élève a déjà produit un mauvais routage ailleurs dans le produit ; la
-  couverture de ce champ n'est pas mesurée.
+- Le pays vient de `profiles.country`, **et de rien d'autre** (T-20, 2026-08-12).
+  Le repli sur la locale a été retiré : `profiles.locale` est
+  `not null default 'fr-FR'`, donc il servait la France à 204 des 208 lignes
+  locales sans `country` — §7 dit « jeu `ZZ` », et c'est §7 qui a raison.
+  **La question ouverte est déplacée, pas fermée** : personne ne CAPTE
+  `profiles.country` à l'inscription élève (`handle_new_user()` ne l'insère
+  jamais). Tant que c'est le cas, une part croissante de la flotte lit une
+  réponse de crise dégradée — la part est mesurable par
+  `keel.crisis_resources.fallback_used` (§10).

@@ -5,8 +5,7 @@ import {
   noteInformationSummary,
 } from "../../contracts/note_information.v1.ts";
 import {
-  crisisCountryFromLocale,
-  LEGACY_FRENCH_BRANCH_COUNTRY,
+  crisisCountryForProfile,
   resolveSafetyResourceNumbers,
 } from "../../../_shared/keel/crisis_resources.ts";
 import { isFrenchLocale } from "../../../_shared/keel/locale.ts";
@@ -408,11 +407,17 @@ function summarizeInboundNote(
 /**
  * W3.3 — emergency contacts resolved BY COUNTRY (`_shared/keel/crisis_resources.ts`).
  *
- * Priority: explicit country > region subtag of the turn locale > the branch's
- * declared default. A locale that resolves to no seeded country (say 'de-DE')
- * deliberately does NOT fall back to France: it lands on the loud
- * international set, because handing 3114 to a German user is the bug this
- * whole lot exists to remove.
+ * ⚠️ T-20, 2026-08-12 — LA RÈGLE DE PRÉCÉDENCE N'EST PLUS ÉCRITE ICI.
+ * Elle vivait en trois exemplaires (ce module, `agents/sentry.ts`, et
+ * `crisisCountryForProfile` que personne n'appelait), et les trois disaient
+ * « pays, sinon locale, sinon France ». Trois copies d'une règle, c'est trois
+ * endroits où la corriger et deux qu'on oublie : les deux call sites appellent
+ * maintenant `crisisCountryForProfile`, seule autorité.
+ *
+ * Ce qui a changé au passage, et c'est le lot : **pays absent ⇒ jeu `ZZ`**,
+ * conformément à FF-020 §7 et §8. Ni la locale ni un défaut de branche ne
+ * fabriquent plus un lieu de vie. Le pourquoi (et ce que ça coûte) est écrit
+ * une fois, sur `crisisCountryForProfile`.
  *
  * THE CONJUNCTION FOLLOWS THE STUDENT'S LANGUAGE, NOT THE BRANCH'S HISTORY.
  * It used to be a hardcoded `"ou"`, on the (then true) premise that "these
@@ -439,11 +444,10 @@ function safetyResourceNumbersFor(args: {
   userCountry?: string | null;
   userLocale?: string | null;
 }) {
-  const country = args.userCountry
-    ? args.userCountry
-    : args.userLocale
-    ? crisisCountryFromLocale(args.userLocale)
-    : LEGACY_FRENCH_BRANCH_COUNTRY;
+  const { country } = crisisCountryForProfile({
+    country: args.userCountry,
+    locale: args.userLocale,
+  });
   const localeGiven = Boolean(String(args.userLocale ?? "").trim());
   const french = !localeGiven || isFrenchLocale(args.userLocale);
   return resolveSafetyResourceNumbers(country, {

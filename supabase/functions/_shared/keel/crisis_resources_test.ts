@@ -323,15 +323,48 @@ Deno.test("crisisCountryForProfile — profiles.country wins over locale", () =>
   assertEquals(numbers.countrySource, "profile_country");
 });
 
-Deno.test("crisisCountryForProfile — locale is the fallback, not the default", () => {
+// ---------------------------------------------------------------------------
+// T-20 (2026-08-12) — LE REPLI PAR LA LOCALE EST RETIRÉ
+//
+// Ces trois tests attendaient l'inverse jusqu'au 2026-08-12, et c'est CE
+// RETOURNEMENT qui est le lot. Ils pinnaient « pays absent ⇒ la locale décide »
+// — la règle de W4.2. Mesuré depuis (RAPPORT-FF-020 §C.2) : `profiles.locale`
+// vaut `fr-FR` par DÉFAUT DE COLONNE pour toute la flotte, donc cette règle ne
+// servait pas de repli, elle servait la France à 204 des 208 lignes locales
+// sans `country`. FF-020 §7/§8 disent « pays absent ⇒ jeu ZZ » ; le code dit
+// désormais la même chose.
+// ---------------------------------------------------------------------------
+
+Deno.test("T-20 — pays absent: la locale NE décide PAS d'un lieu de vie", () => {
+  // Un sous-segment région explicite ne suffit pas non plus: `JoinPage` a déjà
+  // écrit `en-US` en dur pour toute une population (cicatrice
+  // `student-country-null-crisis-misrouting`). Une locale est une langue.
   assertEquals(crisisCountryForProfile({ country: null, locale: "en-GB" }), {
-    country: "GB",
-    source: "locale",
+    country: null,
+    source: "none",
   });
+  // Le cas des 204 lignes: le défaut de colonne, tel quel.
   assertEquals(crisisCountryForProfile({ locale: "fr-FR" }), {
-    country: "FR",
-    source: "locale",
+    country: null,
+    source: "none",
   });
+});
+
+Deno.test("T-20 — pays absent ⇒ jeu ZZ servi, bruyamment (FF-020 §7)", () => {
+  const { result, warnings } = captureWarnings(() =>
+    resolveSafetyResourceNumbersForProfile({ country: null, locale: "fr-FR" })
+  );
+  // Le coeur du défaut, en une assertion: plus de 3114 pour quelqu'un dont on
+  // ignore le pays.
+  assertEquals(result.suicide_prevention_number, "https://findahelpline.com");
+  assertEquals(result.emergency_numbers, "112");
+  assertEquals(result.country, INTERNATIONAL_FALLBACK_COUNTRY);
+  assertEquals(result.fallback_used, true);
+  assertEquals(result.countrySource, "none");
+  assertEquals(
+    warnings.some((w) => w.includes("keel.crisis_resources.fallback_used")),
+    true,
+  );
 });
 
 Deno.test("crisisCountryForProfile — nothing resolvable stays null, never a guess", () => {
@@ -340,11 +373,30 @@ Deno.test("crisisCountryForProfile — nothing resolvable stays null, never a gu
     source: "none",
   });
   assertEquals(crisisCountryForProfile(null), { country: null, source: "none" });
-  // A malformed country does not poison the resolution: locale still answers.
+  // Un `country` malformé ne se rattrape plus par la locale: il n'y a plus de
+  // second signal à rattraper avec. « usa! » n'est pas un pays, et « en-GB »
+  // n'en est pas un non plus.
   assertEquals(crisisCountryForProfile({ country: "usa!", locale: "en-GB" }), {
-    country: "GB",
-    source: "locale",
+    country: null,
+    source: "none",
   });
+});
+
+Deno.test("T-20 — le cas nominal traverse intact: un pays déclaré gouverne toujours", () => {
+  // LA GARDE A BESOIN D'UN CAS QUI PASSE. Une règle qui rendrait ZZ pour tout
+  // le monde ressemblerait, en test, à une règle qui marche.
+  const fr = resolveSafetyResourceNumbersForProfile(
+    { country: "FR", locale: "en-GB" },
+    { conjunction: "or" },
+  );
+  assertEquals(fr.suicide_prevention_number, "3114");
+  assertEquals(fr.emergency_numbers, "15 or 112");
+  assertEquals(fr.fallback_used, false);
+  assertEquals(fr.countrySource, "profile_country");
+
+  const us = resolveSafetyResourceNumbersForProfile({ country: "US", locale: "fr-FR" });
+  assertEquals(us.suicide_prevention_number, "988");
+  assertEquals(us.fallback_used, false);
 });
 
 Deno.test("crisisCountryForProfile — an unseeded country lands on the LOUD fallback", () => {

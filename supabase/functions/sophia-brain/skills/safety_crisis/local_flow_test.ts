@@ -677,6 +677,11 @@ Deno.test("safety_crisis reducer requires exit_check facts before resolved exit"
       consecutive_deescalated_turns: 1,
     },
     sourceRiskBand: "medium",
+    // T-20 (2026-08-12): `userCountry` est passé EXPRÈS. Ce test porte sur les
+    // faits exigés avant une sortie `resolved`, pas sur la résolution de pays;
+    // sans pays déclaré, le jeu international sortirait désormais et la
+    // dernière assertion mesurerait le mauvais sujet.
+    userCountry: "FR",
     signals: emptySafetySignal({
       immediate_danger: false,
       has_means_nearby: false,
@@ -2217,22 +2222,40 @@ Deno.test("FF-020 R2 — le pays gagne sur la locale, et un pays non ensemencé 
   assertEquals(de.suicide_prevention_number, "https://findahelpline.com");
 });
 
-Deno.test("FF-020 §7/§11 — pays ABSENT: la locale décide, et c'est un ÉCART assumé avec §7", () => {
-  // §7 de la fiche dit « Pays absent du profil → jeu ZZ ». Le code retombe
-  // d'abord sur la LOCALE (§11 le reconnaît). `profiles.locale` valant
-  // `fr-FR` par défaut pour toute la flotte, un élève sans pays reçoit donc
-  // les numéros FRANÇAIS. Ce test FIGE le comportement réel pour qu'un
-  // arbitrage produit soit un changement visible, pas une dérive.
+Deno.test("FF-020 §7 — pays ABSENT: jeu ZZ, quelle que soit la locale (T-20)", () => {
+  // ⚠️ CE TEST FIGEAIT L'ÉCART, IL FIGE MAINTENANT SA FERMETURE.
+  //
+  // Il attendait « 15 ou 112 · 3114 » et son nom disait « la locale décide, et
+  // c'est un ÉCART assumé avec §7 ». L'écart a été tranché le 2026-08-12 dans
+  // le sens de la fiche : « Pays absent du profil → jeu ZZ, warn,
+  // fallbackUsed: true ». Ce que l'écart coûtait, mesuré : `profiles.locale`
+  // vaut `fr-FR` par DÉFAUT DE COLONNE pour toute la flotte, donc « la locale
+  // décide » signifiait « la France décide » pour 204 des 208 lignes locales
+  // sans `country` — un numéro faux affirmé, là où le jeu ZZ est une
+  // dégradation déclarée (R2/R3).
   const fr = ff020Resources({ userCountry: null, userLocale: "fr-FR" });
-  assertEquals(fr.emergency_numbers, "15 ou 112");
-  assertEquals(fr.suicide_prevention_number, "3114");
-  // Une locale sans pays ensemencé, elle, atterrit bien sur le jeu ZZ.
+  assertEquals(fr.emergency_numbers, "112");
+  assertEquals(fr.suicide_prevention_number, "https://findahelpline.com");
+  // Une locale sans pays ensemencé y atterrissait déjà, et n'a pas bougé.
   const zz = ff020Resources({ userCountry: null, userLocale: "de-DE" });
   assertEquals(zz.emergency_numbers, "112");
   assertEquals(zz.suicide_prevention_number, "https://findahelpline.com");
-  // Ni pays ni locale: défaut déclaré de la branche (FR).
+  // Un sous-segment région explicite ne suffit pas non plus: `JoinPage` écrit
+  // `en-US` en dur (cicatrice `student-country-null-crisis-misrouting`).
+  assertEquals(
+    ff020Resources({ userCountry: null, userLocale: "en-GB" })
+      .suicide_prevention_number,
+    "https://findahelpline.com",
+  );
+  // Ni pays ni locale: le jeu ZZ, plus le défaut déclaré de la branche.
   assertEquals(
     ff020Resources({ userCountry: null, userLocale: null }).emergency_numbers,
-    "15 ou 112",
+    "112",
+  );
+  // LE CAS QUI PASSE, dans le même test: un pays déclaré n'est pas touché.
+  assertEquals(
+    ff020Resources({ userCountry: "FR", userLocale: null })
+      .suicide_prevention_number,
+    "3114",
   );
 });

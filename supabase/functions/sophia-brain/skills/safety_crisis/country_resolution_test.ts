@@ -15,11 +15,18 @@
  * France. It is the W3.3 incident ("an American is handed 3114") replayed
  * between a different pair of countries.
  *
- * WHY THE PREMISE-FALSE CASES ARE HERE TOO
+ * WHY THE NO-COUNTRY CASES ARE HERE TOO
  * A belt that fires when there is nothing to fix is its own defect. The last
- * two tests assert that with no country the behaviour is EXACTLY what it was
- * before this fix — locale, then the branch default. This belt can only ever
- * remove a wrong number; it can never introduce one.
+ * two tests used to assert that with no country the behaviour was EXACTLY what
+ * it was before the W4.2 fix — locale, then the branch default.
+ *
+ * ⚠️ T-20, 2026-08-12 — CES DEUX-LÀ ONT ÉTÉ RETOURNÉS, EXPRÈS. « Inchangé »
+ * était la bonne posture pour une ceinture qui ne devait rien introduire ; ce
+ * n'était pas la bonne posture pour le comportement lui-même, parce que
+ * l'« inchangé » en question servait des numéros français à 204 des 208 lignes
+ * `country IS NULL` de la base locale. Pays absent ⇒ jeu `ZZ` (FF-020 §7/§8).
+ * Le cas qui PASSE — un pays déclaré gouverne toujours ses numéros — est pinné
+ * par les quatre premiers tests, et il n'a pas bougé.
  */
 import { assertEquals } from "jsr:@std/assert@1";
 import { emptySafetySignal } from "./contract.ts";
@@ -81,12 +88,25 @@ Deno.test("an unseeded country lands on the international set, never a neighbour
   assertEquals(served.emergency, "112");
 });
 
-Deno.test("PREMISE FALSE — no country: behaviour is unchanged, the locale still decides", () => {
-  // La locale décide toujours du PAYS (999/116 123, inchangé). Depuis L1 elle
-  // décide aussi de la conjonction: « or » pour un lecteur anglais.
+Deno.test("T-20 — pays absent: le jeu international, plus jamais la locale", () => {
+  // ⚠️ CE TEST ATTENDAIT L'INVERSE JUSQU'AU 2026-08-12 (« la locale décide
+  // toujours du PAYS, 999/116 123 »). Le retournement EST le lot T-20:
+  // `profiles.locale` est `not null default 'fr-FR'` et `JoinPage` a écrit
+  // `en-US` en dur pour toute une population — dans les deux cas, la locale
+  // nomme une langue, jamais un lieu de vie. FF-020 §7: « pays absent du
+  // profil ⇒ jeu ZZ, warn, fallbackUsed: true ».
+  //
+  // La CONJONCTION, elle, suit toujours la langue: « or » pour un lecteur
+  // anglais. Les deux axes restent orthogonaux — c'est l'invariant L1.
   assertEquals(numbersFor({ userCountry: null, userLocale: "en-GB" }), {
-    emergency: "999 or 112",
-    suicide: "116 123",
+    emergency: "112",
+    suicide: "https://findahelpline.com",
+  });
+  // Le cas des 204 lignes locales `country IS NULL, locale like 'fr%'`: le
+  // défaut de colonne ne fabrique plus le 3114.
+  assertEquals(numbersFor({ userCountry: null, userLocale: "fr-FR" }), {
+    emergency: "112",
+    suicide: "https://findahelpline.com",
   });
 });
 
@@ -103,9 +123,16 @@ Deno.test("L1 — la conjonction suit la LANGUE, les numéros suivent le PAYS", 
   // `run.ts` reste le point unique de résolution (R3).
 });
 
-Deno.test("PREMISE FALSE — no country and no locale: the declared branch default, unchanged", () => {
+Deno.test("T-20 — ni pays ni locale: le jeu international, jamais le défaut de branche", () => {
+  // Attendait « 15 ou 112 · 3114 » jusqu'au 2026-08-12: le défaut DÉCLARÉ de
+  // la branche française. Un défaut déclaré reste un défaut — servi à
+  // quelqu'un dont on ne sait RIEN, c'est un numéro faux affirmé avec
+  // assurance, pas une dégradation signalée (R2/R3).
+  //
+  // La conjonction reste française sans locale: c'est la branche legacy, et
+  // elle n'a pas de seconde langue à choisir.
   assertEquals(numbersFor({}), {
-    emergency: "15 ou 112",
-    suicide: "3114",
+    emergency: "112",
+    suicide: "https://findahelpline.com",
   });
 });

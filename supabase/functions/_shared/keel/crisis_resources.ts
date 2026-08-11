@@ -89,17 +89,26 @@ const COUNTRY_ALIASES: Record<string, string> = {
 };
 
 /**
- * DECLARED default of the French legacy branch.
+ * ── PIERRE TOMBALE — `LEGACY_FRENCH_BRANCH_COUNTRY = "FR"`, RETIRÉ LE
+ *    2026-08-12 (T-20) ───────────────────────────────────────────────────────
  *
- * The safety_crisis reducer, its deterministic visible message and the sentry
- * agent all write in French, for French users, with no country column to read
- * (`profiles` has `locale`, not `country`). Until a country reaches those call
- * sites, 'FR' is what the branch means — declared at the call site, in the
- * open, never inside the resolver. It is used ONLY when no locale at all is
- * available: a locale that resolves to nothing (say 'de-DE') still lands on the
- * loud international fallback, because a German user must not be handed 3114.
+ * C'était le « défaut DÉCLARÉ de la branche française », lu par deux call sites
+ * (`safety_crisis/reducer.ts`, `agents/sentry.ts`) quand ils n'avaient ni pays
+ * ni locale. Son en-tête se justifiait ainsi : « `profiles` a `locale`, pas
+ * `country` ». Cette phrase est fausse depuis la migration 20260727190000, et
+ * c'est tout ce qui restait pour tenir le défaut en place.
+ *
+ * Ce qu'il produisait, mesuré (RAPPORT-FF-020 §C.2) : un tour de crise chez
+ * quelqu'un dont le produit ne sait RIEN servait « 15 ou 112 · 3114 ». Un
+ * défaut déclaré reste un défaut : la personne, elle, lit un numéro affirmé.
+ *
+ * ⚠️ NE PAS LE RECRÉER, sous aucun nom. La question qu'il prétendait résoudre
+ * (« quel pays pour un élève sans pays ? ») n'a pas de réponse dans le code :
+ * elle se répond en CAPTANT `profiles.country` à l'inscription élève —
+ * `handle_new_user()` ne l'insère jamais. Tant qu'elle est vide, la seule
+ * réponse honnête est `INTERNATIONAL_FALLBACK_COUNTRY`, et
+ * `crisisCountryForProfile` la rend.
  */
-export const LEGACY_FRENCH_BRANCH_COUNTRY = "FR";
 
 export type CrisisResource = {
   country: string;
@@ -235,7 +244,7 @@ export function crisisCountryFromLocale(
   return null;
 }
 
-export type CrisisCountrySource = "profile_country" | "locale" | "none";
+export type CrisisCountrySource = "profile_country" | "none";
 
 export type CrisisCountryResolution = {
   country: string | null;
@@ -243,8 +252,8 @@ export type CrisisCountryResolution = {
 };
 
 /**
- * KEEL W4.2 — resolve a student's country for the crisis path: `country` FIRST,
- * locale only as a fallback.
+ * KEEL W4.2 — resolve a student's country for the crisis path. THE ONE RULE:
+ * `profiles.country`, or nothing.
  *
  * THE DEFECT THIS CLOSES (EXECUTION_LOG W3.3, "reste inerte en production")
  * `crisis_resources` shipped with 23 seeded rows and a correct resolver, but
@@ -255,6 +264,38 @@ export type CrisisCountryResolution = {
  * 20260727190000) is the column that makes the resolver real, and this function
  * is the ordering rule.
  *
+ * ── T-20, 2026-08-12 — LE REPLI PAR LA LOCALE EST RETIRÉ ────────────────────
+ * W4.2 avait posé `country` D'ABORD et laissé la locale en second choix, « pour
+ * les lignes qui n'ont pas encore de pays ». Mesuré depuis (RAPPORT-FF-020
+ * §C.2, 34 élèves à l'époque, 208 lignes `country IS NULL` en local le
+ * 2026-08-12 dont 204 en locale `fr%`) : ce second choix N'EST PAS un repli,
+ * c'est LE chemin nominal de la flotte — et il rend la France.
+ *
+ * La raison est arithmétique, pas doctrinale : `profiles.locale` est
+ * `not null default 'fr-FR'`. Une colonne à valeur par défaut ne porte aucune
+ * information sur la personne ; la lire comme un signal déclaré, c'est habiller
+ * une DEVINETTE en donnée. Et la devinette tombe toujours du même côté, parce
+ * que le défaut est le même pour tout le monde. Le sous-segment région d'un
+ * `fr-FR` par défaut n'est pas plus un lieu de vie que le `en-US` que
+ * `JoinPage` écrivait en dur (cicatrice `student-country-null-crisis-misrouting`,
+ * qui décrivait l'AUTRE face de la même pièce : là c'était 'US' qui sortait).
+ *
+ * FF-020 §7 et §8 disent l'inverse du code depuis W4.2 :
+ *   « Pays absent du profil ⇒ jeu `ZZ`, warn, `fallbackUsed: true` »
+ *   « Étant donné un élève sans pays connu … Alors il rend le jeu international »
+ * C'est la fiche qui a raison, et c'est un arbitrage de SÉCURITÉ : le jeu `ZZ`
+ * (112 + findahelpline) est une réponse DÉGRADÉE ET DÉCLARÉE ; « 15 ou 112 ·
+ * 3114 » servi à quelqu'un dont on ignore le pays est une réponse FAUSSE ET
+ * AFFIRMÉE. Entre les deux, c'est la seconde qui consomme la seule tentative
+ * que la personne fera peut-être (R2).
+ *
+ * ⚠️ CE QUE ÇA COÛTE, ET IL FAUT LE DIRE : un élève réellement français sans
+ * `country` renseigné perd le 3114 et lit le jeu international. La réparation
+ * n'est pas de rouvrir ce repli — c'est de CAPTER `country` à l'inscription
+ * élève (`handle_new_user()` ne l'insère jamais). Tant que la colonne est vide,
+ * le produit ne SAIT pas où vit cette personne, et la seule phrase honnête est
+ * celle du jeu `ZZ`.
+ *
  * WHY COUNTRY WINS, ALWAYS
  * Locale is a language preference; country is a place. A Brit living in Paris
  * reading the app in English, a fr-FR speaker in Montreal, an American who
@@ -262,12 +303,13 @@ export type CrisisCountryResolution = {
  * declared country, and the answer here is a phone number that either connects
  * or does not.
  *
- * WHY A DISAGREEMENT IS LOGGED AND NOT RESOLVED
- * `country='US'` with `locale='fr-FR'` is a perfectly normal user (a French
- * speaker in the US), not an inconsistency to arbitrate. It is logged at debug
- * level ONCE per call, because when a crisis answer is later reviewed, "which
- * of the two signals did it use" is the first question — and never as a warning,
- * which would drown the genuinely degraded case (`fallbackUsed`).
+ * WHY LOCALE IS STILL A PARAMETER
+ * Not to decide — to be AUDITABLE. When a crisis answer is reviewed later,
+ * "what would the old rule have served, and did it differ" is the first
+ * question, and the log line is the only place it can be answered. `debug` and
+ * never `warn`: the genuinely degraded case already warns
+ * (`keel.crisis_resources.fallback_used`), and drowning it is how a real signal
+ * stops being read.
  */
 export function crisisCountryForProfile(
   profile: {
@@ -291,7 +333,17 @@ export function crisisCountryForProfile(
     return { country: fromCountry, source: "profile_country" };
   }
 
-  if (fromLocale) return { country: fromLocale, source: "locale" };
+  if (fromLocale) {
+    console.debug("keel.crisis_resources.locale_country_not_used", {
+      locale_would_have_served: fromLocale,
+      served_country: INTERNATIONAL_FALLBACK_COUNTRY,
+      detail:
+        "T-20: profiles.country is empty and the locale no longer decides a " +
+        "place. profiles.locale is `not null default 'fr-FR'`, so this value " +
+        "may be a column default rather than a declared signal. Serving the " +
+        "international set; capture profiles.country to fix it properly.",
+    });
+  }
   // Null, not a guess. `resolveCrisisResources` turns it into the loud
   // documented international fallback.
   return { country: null, source: "none" };
