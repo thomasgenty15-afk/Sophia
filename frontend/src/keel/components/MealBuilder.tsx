@@ -2,6 +2,8 @@ import React from "react";
 
 import { useAuth } from "../../context/AuthContext";
 import {
+  type AwayDay,
+  type EatingOccasionSlot,
   type GeneratedMealResult,
   generateMeal,
   loadMealPlans,
@@ -9,18 +11,19 @@ import {
   type MealMode,
 } from "../api/mealGeneration";
 import {
+  MAX_WINDOW_DAYS,
   type MealWindowRequest,
   planEndsOn,
   resolveRequestedWindow,
-  windowDates,
   windowDayOrder,
 } from "../api/mealWindow";
-import { dishDayLabel, dishSlotLabel, mealCopy } from "../api/mealLabels";
-import DishCard from "./DishCard";
+import { mealCopy } from "../api/mealLabels";
+import PlanResult from "./plan/PlanResult";
 import ShoppingListPanel from "./ShoppingListPanel";
 import CookingSessions from "./CookingSessions";
-import { dishDate } from "../api/mealStretch";
-import { addDays } from "../api/dates";
+import MealPickerGrid from "./MealPickerGrid";
+import { } from "../api/mealStretch";
+import { addDays, daysBetween } from "../api/dates";
 import { browserLocalDate, useMealTicks } from "../lib/useMealTicks";
 import { groupByDay, parsePantry } from "../lib/mealBuilderModel";
 import { Button } from "./ui/Button";
@@ -70,6 +73,15 @@ const COPY = {
   // LA FENÊTRE, ET CE QU'ELLE COUVRE VRAIMENT. « Until Sunday » un dimanche
   // fait UN jour — l'aperçu le dit, sinon le bouton a l'air cassé.
   "meals.form.window_label": "Which days",
+  // ── DEUX DATES, ET PLUS TROIS BOUTONS ──────────────────────────────────
+  // « Until Sunday » un dimanche faisait UN jour, « For 7 days » ne disait pas
+  // lesquels, et le nombre de jours obligeait à compter dans sa tête pour
+  // savoir où on atterrit. Les trois libellés restent ici tant que rien ne les
+  // affiche plus: les retirer dans le même geste que la refonte de l'écran
+  // ferait deux changements dans un seul diff, et c'est celui qu'on ne relit
+  // pas qui casse.
+  "meals.form.window_from": "From",
+  "meals.form.window_to": "To",
   "meals.form.window_until_sunday": "Until Sunday",
   "meals.form.window_seven_days": "For 7 days",
   "meals.form.window_exact": "Choose exactly",
@@ -94,9 +106,16 @@ const COPY = {
     "A mood for these meals. What you always like or never eat belongs in «What you have told me about your eating» — it is remembered on its own.",
   "meals.form.preferences_carried":
     "Kept from your last plan. Change it if you fancy something else.",
+  // ── CE CHAMP N'EST PLUS CELUI QU'IL ÉTAIT ─────────────────────────────
+  // Il servait à tout dire, y compris « je mange dehors vendredi » — ce que la
+  // grille « Which meals, which days » exprime maintenant au jour et au repas
+  // près. Ce qui reste ici est ce que la grille NE PEUT PAS dire: l'ÉVÉNEMENT.
+  // Des invités, un four en panne, un retour de vacances. Le placeholder le
+  // montre plutôt que de le décrire — trois exemples se lisent, une consigne
+  // de remplissage se saute.
   "meals.form.context_label": "Anything going on this week (optional)",
   "meals.form.context_placeholder":
-    "training Tue and Thu, eating out on Friday, short on time…",
+    "guests on Saturday · the oven is broken · back from holiday, empty fridge",
   // Le champ est repris de la dernière génération. La légende dit d'où il
   // vient: sans elle, « mariage mardi » — une contrainte qui ne se répète pas —
   // repartirait chaque semaine sans que personne le remarque.
@@ -145,7 +164,20 @@ function c(key: CopyKey): string {
 
 type LoadState = "loading" | "ready";
 
-export default function MealBuilder() {
+export interface MealBuilderProps {
+  /**
+   * LE RYTHME ET LES ABSENCES VIENNENT DE LA PAGE, qui lit déjà
+   * `student_goals`. Les relire ici ferait un SECOND lecteur de la même
+   * colonne, et la grille pourrait montrer autre chose que ce que le
+   * générateur reçoit — le défaut exact que ce dépôt a payé sur le rythme.
+   */
+  rhythm?: readonly EatingOccasionSlot[];
+  awayDays?: readonly AwayDay[];
+  /** Reçoit la liste complète à écrire dans `practical_constraints`. */
+  onAwaySaved?: (next: AwayDay[]) => Promise<void>;
+}
+
+export default function MealBuilder(props: MealBuilderProps = {}) {
   const { user } = useAuth();
   const userId = user?.id ?? "";
 
@@ -174,17 +206,84 @@ export default function MealBuilder() {
    * geste courant est « jusqu'à dimanche » ou « sept jours », et un sélecteur
    * de dates posé en permanence ferait payer à tout le monde le cas rare.
    */
-  const [windowRequest, setWindowRequest] = React.useState<MealWindowRequest>({
-    kind: "until_sunday",
-  });
-  const [exactOpen, setExactOpen] = React.useState(false);
-  const [slot, setSlot] = React.useState<string>("");
-  const [servings, setServings] = React.useState(1);
-  const [pantryText, setPantryText] = React.useState("");
+  // ── LA FENÊTRE, EN DEUX DATES ─────────────────────────────────────────
+  // L'état porte les deux BORNES, pas une intention. `MealWindowRequest` garde
+  // ses trois formes (le serveur et les tests s'en servent), et l'écran
+  // n'utilise plus que `exact`: le reste était trois façons de dire la même
+  // chose, dont deux qui ne montraient pas où on atterrit.
+  const [windowStart, setWindowStart] = React.useState(() => browserLocalDate());
+  const [windowEnd, setWindowEnd] = React.useState(() =>
+    addDays(browserLocalDate(), 6)
+  );
+
+  // Le début pousse la fin devant lui, et la borne de sept jours la retient.
+  // Sans ça on obtient une fin AVANT le début, que `resolveRequestedWindow`
+  // refuse — un refus qu'on peut éviter en le rendant impossible à composer.
+  React.useEffect(() => {
+    const maxEnd = addDays(windowStart, MAX_WINDOW_DAYS - 1);
+    if (windowEnd < windowStart) setWindowEnd(windowStart);
+    else if (windowEnd > maxEnd) setWindowEnd(maxEnd);
+  }, [windowStart, windowEnd]);
+
+  /**
+   * LES JOURS DE LA FENÊTRE DEMANDÉE — ceux que la grille montre.
+   *
+   * Calculés sur la fenêtre DEMANDÉE (les deux dates), pas sur celle du plan
+   * déjà généré: la grille sert à préparer la PROCHAINE composition.
+   */
+  const askedDays = React.useMemo(() => {
+    const n = Math.min(
+      MAX_WINDOW_DAYS,
+      Math.max(1, daysBetween(windowStart, windowEnd) + 1),
+    );
+    return {
+      tokens: windowDayOrder(windowStart, n),
+      dates: Array.from({ length: n }, (_, i) => addDays(windowStart, i)),
+    };
+  }, [windowStart, windowEnd]);
+
+  /** Combien de moments sont écartés DANS cette fenêtre — pour le bouton. */
+  const awayInWindow = React.useMemo(() => {
+    const inWindow = new Set<string>(askedDays.tokens);
+    const slots = (props.rhythm ?? []).length;
+    return (props.awayDays ?? [])
+      .filter((a) => inWindow.has(a.day))
+      .reduce((n, a) => n + (a.slots.length === 0 ? slots : a.slots.length), 0);
+  }, [askedDays, props.awayDays, props.rhythm]);
+
+  const windowRequest = React.useMemo<MealWindowRequest>(() => ({
+    kind: "exact",
+    startsOn: windowStart,
+    durationDays: Math.min(
+      MAX_WINDOW_DAYS,
+      Math.max(1, daysBetween(windowStart, windowEnd) + 1),
+    ),
+  }), [windowStart, windowEnd]);
+  const [pickerOpen, setPickerOpen] = React.useState(false);
+  const [pickerBusy, setPickerBusy] = React.useState(false);
+  // ── DEUX CHAMPS RETIRÉS DE L'ÉCRAN, DEUX COLONNES GARDÉES ──────────────
+  // `slot` (« A particular meal ») demandait UN créneau pour toute la fenêtre.
+  // La grille « Which meals, which days » dit la même chose au jour près, donc
+  // le menu déroulant ne pouvait plus qu'entrer en conflit avec elle.
+  //
+  // `context` (« Anything going on this week ») est parti sur décision produit
+  // du 2026-08-08. Ce N'EST PAS un doublon de la grille: la grille dit « je ne
+  // mange pas ici », elle ne dit ni « des invités samedi », ni « le four est en
+  // panne », ni « je rentre de vacances ». Avec `situation` déjà retiré, il ne
+  // reste plus AUCUN champ de contrainte en prose — seulement l'envie du
+  // moment. C'est noté en question ouverte dans FF-003, qui proposait de LIRE
+  // cette prose plutôt que de la supprimer.
+  //
+  // Les deux valeurs partent donc à `null` dans la requête, et les colonnes
+  // `meal_slot` / `context` restent: des lignes déjà écrites les portent, et
+  // `buildMealPrompt` sait toujours les lire.
+  const slot = "";
   const [context, setContext] = React.useState("");
   /** Vrai tant que le contexte affiché est celui de la dernière génération. */
   const [contextCarried, setContextCarried] = React.useState(false);
-  /** L'envie du moment. Reproposée comme le contexte, et pour la même raison. */
+  const [servings, setServings] = React.useState(1);
+  const [pantryText, setPantryText] = React.useState("");
+  /** L'envie du moment, reproposée d'une génération à l'autre. */
   const [preferences, setPreferences] = React.useState("");
   const [preferencesCarried, setPreferencesCarried] = React.useState(false);
   const [building, setBuilding] = React.useState(false);
@@ -243,11 +342,14 @@ export default function MealBuilder() {
           // Il est REPROPOSÉ, pas réappliqué en douce: le texte est dans un
           // champ ouvert, et la légende dit d'où il vient pour que « mariage
           // mardi », qui lui ne se répète pas, saute aux yeux.
+          // REPROPOSÉ, pas réappliqué en douce: le texte est dans un champ
+          // ouvert, et la légende dit d'où il vient pour que « mariage mardi »,
+          // qui lui ne se répète pas, saute aux yeux.
           if (latest?.context) {
             setContext(latest.context);
             setContextCarried(true);
           }
-          // MÊME REPRISE QUE LE CONTEXTE. « Mezze d'été » vaut souvent encore la
+          // MÊME REPRISE POUR L'ENVIE: « mezze d'été » vaut souvent encore la
           // semaine suivante, et la légende dit d'où le texte vient pour qu'une
           // envie périmée saute aux yeux plutôt que de repartir en silence.
           if (latest?.preferences) {
@@ -430,7 +532,6 @@ export default function MealBuilder() {
   // ne possède plus, sans qu'on ait touché à ses données.
   const startDate = result?.startsOn || browserLocalDate();
   const durationDays = result?.durationDays ?? 7;
-  const dayDates = windowDates(startDate, durationDays);
   // L'ordre du PLAN, pas celui du calendrier.
   const groups = groupByDay(
     result?.dishes ?? [],
@@ -485,39 +586,29 @@ export default function MealBuilder() {
                     <option value="from_pantry">{c("meals.form.mode_from_pantry")}</option>
                   </select>
                 </Field>
+                {/* ── LA FENÊTRE: UNE DATE DE DÉBUT, UNE DATE DE FIN ──────
+                    Trois boutons (« Until Sunday », « For 7 days », « Choose
+                    exactly ») plus un champ date plus un champ nombre, pour
+                    dire une chose que deux dates disent seules. Et les trois
+                    boutons mentaient à moitié: « Until Sunday » un dimanche
+                    fait un jour, « For 7 days » ne dit pas lesquels, et le
+                    nombre de jours obligeait à compter dans sa tête pour
+                    savoir où on atterrit.
+
+                    LA BORNE DE SEPT JOURS EST CELLE DE LA BASE, pas une
+                    préférence d'écran: `duration_days between 1 and 7`, et
+                    `MAX_WINDOW_DAYS` côté code. Le champ l'applique avec `max`
+                    plutôt que de laisser choisir trois semaines et récolter un
+                    refus au moment de générer. */}
                 <Field label={c("meals.form.window_label")} htmlFor="meals-window">
-                  {/* DEUX PRÉRÉGLAGES BIEN VISIBLES, le reste derrière un lien.
-                      Le geste courant est « jusqu'à dimanche » ou « sept jours »;
-                      un sélecteur de dates posé en permanence ferait payer à
-                      tout le monde le cas rare de celui qui prépare la semaine
-                      suivante. */}
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant={windowRequest.kind === "until_sunday" ? "primary" : "secondary"}
-                      onClick={() => setWindowRequest({ kind: "until_sunday" })}
-                    >
-                      {c("meals.form.window_until_sunday")}
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant={windowRequest.kind === "days" ? "primary" : "secondary"}
-                      onClick={() => setWindowRequest({ kind: "days", count: 7 })}
-                    >
-                      {c("meals.form.window_seven_days")}
-                    </Button>
-                    <button
-                      type="button"
-                      onClick={() => setExactOpen((o) => !o)}
-                      className="text-xs font-medium text-gray-700 underline underline-offset-2"
-                    >
-                      {c("meals.form.window_exact")}
-                    </button>
-                  </div>
-                  {exactOpen && (
-                    <div className="mt-2 flex flex-wrap items-end gap-2">
+                  <div className="flex flex-wrap items-end gap-3">
+                    <div>
+                      <label
+                        htmlFor="meals-window"
+                        className="block text-xs text-gray-500"
+                      >
+                        {c("meals.form.window_from")}
+                      </label>
                       <input
                         id="meals-window"
                         type="date"
@@ -525,54 +616,50 @@ export default function MealBuilder() {
                         // autoriserait sinon des coches rétroactives sur des
                         // jours qu'un plan précédent possédait.
                         min={browserLocalDate()}
-                        value={windowRequest.kind === "exact"
-                          ? windowRequest.startsOn
-                          : browserLocalDate()}
-                        onChange={(e) =>
-                          setWindowRequest({
-                            kind: "exact",
-                            startsOn: e.target.value,
-                            durationDays: windowRequest.kind === "exact"
-                              ? windowRequest.durationDays
-                              : 7,
-                          })}
-                        className={`${inputClass} w-auto`}
-                      />
-                      <input
-                        type="number"
-                        min={1}
-                        max={7}
-                        aria-label={c("meals.form.window_days_label")}
-                        value={windowRequest.kind === "exact" ? windowRequest.durationDays : 7}
-                        onChange={(e) =>
-                          setWindowRequest({
-                            kind: "exact",
-                            startsOn: windowRequest.kind === "exact"
-                              ? windowRequest.startsOn
-                              : browserLocalDate(),
-                            durationDays: Number(e.target.value) || 1,
-                          })}
-                        className={`${inputClass} w-20`}
+                        value={windowStart}
+                        onChange={(e) => setWindowStart(e.target.value)}
+                        className={`${inputClass} mt-1 w-auto`}
                       />
                     </div>
-                  )}
-                  {/* L'APERÇU DIT CE QUE LES BOUTONS FONT. « Until Sunday » un
-                      dimanche fait UN jour, et sans cette ligne le sélecteur
-                      aurait simplement l'air cassé. */}
+                    <div>
+                      <label
+                        htmlFor="meals-window-end"
+                        className="block text-xs text-gray-500"
+                      >
+                        {c("meals.form.window_to")}
+                      </label>
+                      <input
+                        id="meals-window-end"
+                        type="date"
+                        min={windowStart}
+                        max={addDays(windowStart, MAX_WINDOW_DAYS - 1)}
+                        value={windowEnd}
+                        onChange={(e) => setWindowEnd(e.target.value)}
+                        className={`${inputClass} mt-1 w-auto`}
+                      />
+                    </div>
+                  </div>
+                  {/* L'APERÇU DIT CE QUE LES DEUX DATES FONT — le nombre de
+                      jours, qu'on ne compte plus soi-même. */}
                   <p className="mt-1 text-xs text-gray-500">{windowPreview}</p>
-                </Field>
-                <Field label={c("meals.form.slot_label")} htmlFor="meals-slot">
-                  <select
-                    id="meals-slot"
-                    className={inputClass}
-                    value={slot}
-                    onChange={(e) => setSlot(e.target.value)}
-                  >
-                    <option value="">{c("meals.form.slot_any")}</option>
-                    {MEAL_SLOTS.map((s) => (
-                      <option key={s} value={s}>{dishSlotLabel(s)}</option>
-                    ))}
-                  </select>
+                  {/* CHOISIR LES REPAS, PLUS LES JOURS. « Choose exactly »
+                      servait à préciser une fenêtre; les deux dates le font
+                      seules. Le geste qui manquait est plus fin: dans cette
+                      fenêtre-là, quels MOMENTS je mange chez moi. */}
+                  {props.onAwaySaved && (
+                    <button
+                      type="button"
+                      onClick={() => setPickerOpen(true)}
+                      className="mt-2 text-xs font-medium text-gray-700 underline underline-offset-2 hover:text-gray-900"
+                    >
+                      {mealCopy("meals.picker.open")}
+                      {awayInWindow > 0 && (
+                        <span className="ml-1 font-normal text-gray-500">
+                          · {awayInWindow}
+                        </span>
+                      )}
+                    </button>
+                  )}
                 </Field>
                 <Field label={c("meals.form.servings_label")} htmlFor="meals-servings">
                   <input
@@ -633,6 +720,15 @@ export default function MealBuilder() {
                 />
               </Field>
 
+              {/* CE QUI ARRIVE CETTE SEMAINE-LÀ, et que la grille ne peut pas
+                  dire. Elle exprime l'ABSENCE — « je ne mange pas ici » — au
+                  jour et au repas près. Elle ne dit ni les invités, ni le four
+                  en panne, ni le frigo vide du retour de vacances, qui changent
+                  pourtant ce qu'il faut composer.
+
+                  APRÈS l'envie, et pas avant: on lit « ce dont j'ai envie »
+                  puis « ce qui contraint », et c'est l'ordre dans lequel le
+                  prompt les présente aussi. */}
               <Field
                 label={c("meals.form.context_label")}
                 hint={contextCarried ? c("meals.form.context_carried") : undefined}
@@ -745,12 +841,8 @@ export default function MealBuilder() {
                     // Le prochain plan démarre APRÈS le courant par défaut:
                     // c'est le cas sans troncature, donc celui qui ne coûte
                     // rien à personne.
-                    setWindowRequest({
-                      kind: "exact",
-                      startsOn: nextDefaultStart,
-                      durationDays: 7,
-                    });
-                    setExactOpen(true);
+                    setWindowStart(nextDefaultStart);
+                    setWindowEnd(addDays(nextDefaultStart, MAX_WINDOW_DAYS - 1));
                     setFormOpen(true);
                   }}
                 >
@@ -810,6 +902,30 @@ export default function MealBuilder() {
               />
             </>
           )}
+
+          {/* MONTÉE EN PERMANENCE, comme les deux fenêtres voisines: `Modal`
+              rend `null` fermé sans démonter l'appelant, donc une grille
+              modifiée survit à une fermeture accidentelle. */}
+          {props.onAwaySaved && (
+            <MealPickerGrid
+              open={pickerOpen}
+              onClose={() => setPickerOpen(false)}
+              days={askedDays.tokens}
+              dates={askedDays.dates}
+              rhythm={props.rhythm ?? []}
+              away={props.awayDays ?? []}
+              busy={pickerBusy}
+              onSave={async (next) => {
+                setPickerBusy(true);
+                try {
+                  await props.onAwaySaved!(next);
+                  setPickerOpen(false);
+                } finally {
+                  setPickerBusy(false);
+                }
+              }}
+            />
+          )}
           {/* UNE COCHE QUI N'A PAS PRIS SE DIT. Sans ça, la case revient à sa
               place sans un mot et l'élève croit avoir mal visé — puis retape,
               indéfiniment, sur une écriture que la base refuse. */}
@@ -831,68 +947,20 @@ export default function MealBuilder() {
               </Card>
             )
             : (
-              <div className="space-y-6">
-                {groups.map((group) => {
-                  // LA DATE DE CE GROUPE. C'est le groupe qui porte le jour où
-                  // le plat se MANGE — un plat en lot est déjà placé sur chacun
-                  // des siens — donc c'est lui qui tranche, jamais `dish.day`
-                  // qui ne nomme que la cuisson.
-                  const date = dishDate(group.day, dayDates, today);
-                  return (
-                  <div key={group.day ?? "undated"}>
-                    {group.day && (
-                      <h3 className="mb-2 flex items-baseline gap-2 text-sm font-semibold text-gray-900">
-                        {dishDayLabel(group.day)}
-                        {/* OÙ ON EN EST DANS LE PLAN. Sans repère, une semaine
-                            qui commence mercredi se lit comme une semaine en
-                            retard: on ne sait pas si le premier jour affiché
-                            est passé, courant ou à venir. */}
-                        {date === today && (
-                          <span className="text-[11px] font-normal uppercase tracking-wide text-emerald-700">
-                            {c("meals.result.today")}
-                          </span>
-                        )}
-                        {date !== null && date < today && (
-                          <span className="text-[11px] font-normal uppercase tracking-wide text-gray-400">
-                            {c("meals.result.past")}
-                          </span>
-                        )}
-                      </h3>
-                    )}
-                    <div className="space-y-3">
-                      {group.dishes.map((dish, index) => (
-                        <DishCard
-                          key={`${group.day}-${index}-${dish.title}`}
-                          dish={dish}
-                          // LE JOUR DE CUISSON DÉCIDE DE CE QU'ON AFFICHE.
-                          // `cook_on` prime sur `dish.day`: le modèle nomme
-                          // parfois le jour du premier repas et parfois celui
-                          // de la casserole, et seule la première valeur est
-                          // explicite sur ce point.
-                          // LES PRÉPARATIONS QUE CE PLAT CONSOMME, résolues
-                          // ici: le plat ne porte que des `id`, et une carte
-                          // qui irait les chercher elle-même dupliquerait la
-                          // résolution sur les deux écrans qui la montent.
-                          sources={dish.uses
-                            .map((u) =>
-                              (result?.preparations ?? []).find((p) =>
-                                p.id === u.preparation_id
-                              )
-                            )
-                            .filter((p): p is NonNullable<typeof p> => Boolean(p))
-                            .map((p) => ({ title: p.title, cookOn: p.cook_on }))}
-                          // Le passé et aujourd'hui se cochent, avec la date du
-                          // jour où le plat se mangeait; les plats à venir n'ont
-                          // pas de case. La règle est tenue par `bind`, pas ici:
-                          // deux écrans montrent ces plats.
-                          tick={ticks.bind(dish, date)}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                  );
-                })}
-              </div>
+              <PlanResult
+                dishes={result?.dishes ?? []}
+                preparations={result?.preparations ?? []}
+                cookingSessions={result?.cookingSessions ?? []}
+                startsOn={startDate}
+                durationDays={durationDays}
+                today={today}
+                emptyLabel={c("meals.result.empty")}
+                // LA COCHE RESTE ICI. `PlanResult` ne sait pas qui est
+                // cochable — la règle (aujourd'hui et le passé, jamais
+                // l'avenir) vit dans `useMealTicks`, et le brouillon n'en
+                // passera aucune.
+                tick={(dish, date) => ticks.bind(dish, date)}
+              />
             )}
         </section>
 
