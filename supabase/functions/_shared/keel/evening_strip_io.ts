@@ -43,7 +43,7 @@ import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
 
 import { planGroceryWaves, wavePreparationsFromRows } from "./grocery_waves.ts";
 import { MEAL_UNTICK_REASON, mealTickKey } from "./meal_tick.ts";
-import { stretchDates } from "./meal_stretch.ts";
+import { isReportable, stretchDates } from "./meal_stretch.ts";
 import { loadPlannedDishContext } from "./planned_dish_io.ts";
 import { type StripDish, type StripShoppingWave } from "./evening_strip.ts";
 
@@ -246,14 +246,31 @@ interface PlanForTick {
   dishes: Array<Record<string, unknown>>;
 }
 
+/**
+ * ⚠️ LE `.eq("user_id")` N'EST PAS DÉCORATIF — MESURÉ EN RUN ADVERSARIAL (H2).
+ *
+ * Ce chargeur tourne sous `service_role`: la RLS ne s'applique PAS, et le
+ * `mealId` vient de la CHARGE D'UN BOUTON, c'est-à-dire d'une chaîne que le
+ * client contrôle. Sans ce filtre, une charge forgée citant la composition d'un
+ * AUTRE élève écrivait une coche chez l'attaquant portant le TITRE DU PLAT DE
+ * LA VICTIME — mesuré: `student_note = "SECRET private dish of Vera"`, puis
+ * cité tel quel dans le message du soir de l'attaquant. Rien n'était écrit chez
+ * la victime (R11 tenait), mais sa composition fuyait.
+ *
+ * C'est la cicatrice `rls-is-not-a-substitute-for-eq-user-id`, exactement:
+ * « la ligne d'un élève rendue au coach ». Le filtre est ici, dans le chargeur,
+ * plutôt qu'au site d'appel — un second appelant l'oublierait.
+ */
 async function loadPlanForTick(
   admin: SupabaseClient,
   mealId: string,
+  userId: string,
 ): Promise<PlanForTick | null> {
   const { data, error } = await admin
     .from("student_generated_meals")
     .select("dishes, starts_on, duration_days, content_locale")
     .eq("id", mealId)
+    .eq("user_id", userId)
     .maybeSingle();
   if (error) {
     console.warn(JSON.stringify({
@@ -288,9 +305,9 @@ async function loadPlanForTick(
  */
 export async function loadStripDishes(
   admin: SupabaseClient,
-  args: { mealId: string; dishIndexes: readonly number[] },
+  args: { userId: string; mealId: string; dishIndexes: readonly number[] },
 ): Promise<StripDish[]> {
-  const plan = await loadPlanForTick(admin, args.mealId);
+  const plan = await loadPlanForTick(admin, args.mealId, args.userId);
   if (!plan) return [];
   const out: StripDish[] = [];
   for (const dishIndex of args.dishIndexes) {
@@ -304,8 +321,13 @@ export async function loadStripDishes(
 export type StripWriteOutcome =
   | "written"
   | "rearmed"
-  /** Le plan a disparu, ou l'index ne désigne plus rien. Rien n'est écrit. */
+  /** Le plan a disparu, n'est pas le sien, ou l'index ne désigne plus rien. */
   | "stale"
+  /**
+   * L'index désigne un plat d'un jour QUI N'EST PAS ENCORE ARRIVÉ. Rien n'est
+   * écrit — voir `writeMealTick`, la garde `isReportable`.
+   */
+  | "future"
   | "failed";
 
 export interface StripWriteResult {
@@ -333,6 +355,13 @@ export async function writeMealTick(
     disqualified: typeof MEAL_UNTICK_REASON | null;
     /** Chargé une fois par tap agrégé plutôt qu'une fois par plat. */
     plan: PlanForTick;
+    /**
+     * LE JOUR LOCAL DE LA PERSONNE AU MOMENT DU TAP. REQUIS.
+     *
+     * C'est le plafond de `isReportable`: on rattrape le passé, jamais le futur.
+     * Optionnel, il aurait laissé passer exactement le trou mesuré en H1.
+     */
+    today: string;
     now: Date;
   },
 ): Promise<StripWriteResult> {
@@ -356,6 +385,18 @@ export async function writeMealTick(
     : args.now.toISOString().slice(0, 10);
   if (!localDate) {
     return { outcome: "stale", key, localDate: null, detail: "day_out_of_window" };
+  }
+
+  // ⚠️ LE FUTUR NE SE COCHE PAS — MESURÉ EN RUN ADVERSARIAL (H1).
+  //
+  // Les index viennent de la CHARGE D'UN BOUTON. La bande n'y met que les plats
+  // du jour, mais la charge est une chaîne que le client contrôle: une charge
+  // forgée citant le plat de DEMAIN écrivait un « j'ai mangé » daté de demain,
+  // append-only, dans la table que le coach lit. `meal_stretch.ts` l'écrit
+  // depuis toujours: « ce n'est pas une imprécision, c'est une preuve
+  // fabriquée. » On réutilise SA garde plutôt que d'en écrire une seconde.
+  if (!isReportable(localDate, args.today)) {
+    return { outcome: "future", key, localDate, detail: "not_reportable_yet" };
   }
 
   const slotRaw = String(dish.slot ?? "").trim();
@@ -425,6 +466,8 @@ export interface StripTickBatchResult {
   written: number;
   rearmed: number;
   stale: number;
+  /** Index qui désignent un jour pas encore arrivé. Jamais écrits. */
+  future: number;
   failed: number;
   keys: string[];
 }
@@ -444,6 +487,8 @@ export async function applyStripTicks(
     mealId: string;
     dishIndexes: readonly number[];
     disqualified: typeof MEAL_UNTICK_REASON | null;
+    /** Le jour local de la personne au moment du tap. REQUIS — voir H1. */
+    today: string;
     now: Date;
   },
 ): Promise<StripTickBatchResult> {
@@ -451,10 +496,11 @@ export async function applyStripTicks(
     written: 0,
     rearmed: 0,
     stale: 0,
+    future: 0,
     failed: 0,
     keys: [],
   };
-  const plan = await loadPlanForTick(admin, args.mealId);
+  const plan = await loadPlanForTick(admin, args.mealId, args.userId);
   if (!plan) {
     out.stale = args.dishIndexes.length;
     return out;
@@ -466,6 +512,7 @@ export async function applyStripTicks(
       dishIndex,
       disqualified: args.disqualified,
       plan,
+      today: args.today,
       now: args.now,
     });
     out[result.outcome]++;
@@ -507,6 +554,28 @@ export async function writeGroceryWaveState(
     now: Date;
   },
 ): Promise<{ outcome: WaveStateOutcome; detail?: string }> {
+  // ⚠️ LE PLAN DOIT ÊTRE LE SIEN. Même trou que H2, sur l'autre écriture: le
+  // `mealId` vient de la charge d'un bouton, la FK ne contraint que l'existence
+  // de la ligne, et ce chemin tourne sous `service_role` (pas de RLS). Sans
+  // cette vérification, une charge forgée écrirait un état de vague attaché à
+  // la composition de quelqu'un d'autre — c'est-à-dire une ligne que FF-057
+  // relira demain comme un fait du foyer de la victime.
+  const owner = await admin
+    .from("student_generated_meals")
+    .select("id")
+    .eq("id", args.mealId)
+    .eq("user_id", args.userId)
+    .maybeSingle();
+  if (owner.error || !owner.data) {
+    console.warn(JSON.stringify({
+      tag: "keel.evening_strip.wave_state_foreign_plan",
+      user_id: args.userId,
+      meal_id: args.mealId,
+      error: owner.error?.message ?? "not_owned",
+    }));
+    return { outcome: "failed", detail: "plan_not_owned" };
+  }
+
   const { error } = await admin
     .from(GROCERY_WAVE_STATE_TABLE)
     .upsert({

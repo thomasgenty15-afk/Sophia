@@ -491,6 +491,11 @@ async function handleStripTap(
 ): Promise<InboundStepOutcome> {
   const { message, reply } = args;
   const now = new Date(message.received_at);
+  // LE JOUR LOCAL DE LA PERSONNE, résolu UNE fois: il plafonne ce qui peut être
+  // coché (on rattrape le passé, jamais le futur) et il date la réponse de
+  // courses. Deux résolutions du même jour finiraient par diverger — c'est le
+  // défaut que `localDateFor` a été extrait pour empêcher.
+  const localDate = localDateFor(now, await timezoneFor(admin, message.user_id));
   const voice = await studentVoiceContext(admin, message.user_id);
   const language: StripLanguage = isFrenchLocale(voice.contentLocale)
     ? "fr"
@@ -510,6 +515,7 @@ async function handleStripTap(
     // ici serait une coche que personne n'a posée.
     if (reply.kind === "some") {
       const dishes = await loadStripDishes(admin, {
+        userId: message.user_id,
         mealId: reply.mealId,
         dishIndexes: reply.dishIndexes,
       });
@@ -530,10 +536,6 @@ async function handleStripTap(
     }
 
     if (reply.kind === "shopping") {
-      const localDate = localDateFor(
-        now,
-        await timezoneFor(admin, message.user_id),
-      );
       const wrote = await writeGroceryWaveState(admin, {
         userId: message.user_id,
         mealId: reply.mealId,
@@ -584,6 +586,7 @@ async function handleStripTap(
       mealId: reply.mealId,
       dishIndexes: indexes,
       disqualified: reply.kind === "untick" ? MEAL_UNTICK_REASON : null,
+      today: localDate,
       now,
     });
     console.info(JSON.stringify({
@@ -595,6 +598,10 @@ async function handleStripTap(
       written: result.written,
       rearmed: result.rearmed,
       stale: result.stale,
+      // ⚠️ COMPTÉ À PART. Un index qui désigne un jour pas encore arrivé n'est
+      // pas une donnée périmée: c'est une charge qui essaie d'écrire une preuve
+      // fabriquée. Le fondre dans `stale` rendrait l'attaque invisible.
+      future: result.future,
       failed: result.failed,
     }));
 

@@ -16,6 +16,7 @@ import {
 } from "./evening_strip.ts";
 import { mealTickKey, parseMealTickKey } from "./meal_tick.ts";
 import { readPulseReply } from "./daily_pulse.ts";
+import { planGroceryWaves } from "./grocery_waves.ts";
 import { readRecommendationReply } from "./daily_recommendation.ts";
 
 const MEAL = "11111111-2222-3333-4444-555555555555";
@@ -35,6 +36,7 @@ Deno.test("R1 — a normal evening offers ONE aggregate tap, and it carries ever
     language: "en",
     shopping: null,
     masterOnly: true,
+    restrictionFlag: false,
   });
   if (!strip) throw new Error("expected a strip");
 
@@ -61,6 +63,7 @@ Deno.test("the line NAMES the dishes, in both languages", () => {
     language: "en",
     shopping: null,
     masterOnly: true,
+    restrictionFlag: false,
   });
   assertEquals(en?.line, "Today : Chicken and rice · Soup");
 
@@ -70,6 +73,7 @@ Deno.test("the line NAMES the dishes, in both languages", () => {
     language: "fr",
     shopping: null,
     masterOnly: true,
+    restrictionFlag: false,
   });
   assertEquals(fr?.line, "Aujourd'hui : Poulet-riz · Soupe");
 });
@@ -82,6 +86,7 @@ Deno.test("beyond the ceiling the line COUNTS instead of naming — and the tap 
     language: "en",
     shopping: null,
     masterOnly: true,
+    restrictionFlag: false,
   });
   if (!strip) throw new Error("expected a strip");
   assertEquals(strip.line.includes("2 more"), true);
@@ -105,6 +110,7 @@ Deno.test("R7 — no dish planned means no strip at all, shopping wave or not", 
       language: "en",
       shopping: null,
       masterOnly: true,
+      restrictionFlag: false,
     }),
     null,
   );
@@ -117,6 +123,7 @@ Deno.test("R7 — no dish planned means no strip at all, shopping wave or not", 
       language: "en",
       shopping: { buyOn: "2026-08-12" },
       masterOnly: true,
+      restrictionFlag: false,
     }),
     null,
   );
@@ -133,6 +140,7 @@ Deno.test("R15 — the shopping line shows only on a buyOn evening", () => {
     language: "en",
     shopping: { buyOn: "2026-08-12" },
     masterOnly: true,
+    restrictionFlag: false,
   });
   assertEquals(withWave?.carriesShopping, true);
   assertEquals(withWave?.buttons.length, 4);
@@ -146,6 +154,7 @@ Deno.test("R15 — the shopping line shows only on a buyOn evening", () => {
     language: "en",
     shopping: null,
     masterOnly: true,
+    restrictionFlag: false,
   });
   assertEquals(nextDay?.carriesShopping, false);
   assertEquals(nextDay?.buttons.length, 2);
@@ -158,6 +167,7 @@ Deno.test("R14 — a claimed profile receives its dishes and NEVER the shopping 
     language: "fr",
     shopping: { buyOn: "2026-08-12" },
     masterOnly: false,
+    restrictionFlag: false,
   });
   if (!claimed) throw new Error("expected a strip");
   // Sa bande existe — la consommation est un fait de personne (R10).
@@ -348,6 +358,7 @@ Deno.test("R2 — the real strip and step texts pass their own belt, EN and FR",
       language,
       shopping: { buyOn: "2026-08-12" },
       masterOnly: true,
+      restrictionFlag: false,
     });
     if (!strip) throw new Error(`no strip in ${language}`);
     assertEquals(strip.line.includes("?"), false);
@@ -372,6 +383,7 @@ Deno.test("a question mark inside a DISH TITLE is neutralised, not fatal", () =>
     language: "en",
     shopping: null,
     masterOnly: true,
+    restrictionFlag: false,
   });
   if (!strip) throw new Error("expected a strip");
   assertEquals(strip.line.includes("?"), false);
@@ -436,4 +448,79 @@ Deno.test("an aggregate id without a dish, or without a plan, is refused at buil
   assertThrows(() => stripAllId(MEAL, [1.5]));
   assertThrows(() => stripTickId("", 0));
   assertThrows(() => stripUntickId(MEAL, -1));
+});
+
+// ---------------------------------------------------------------------------
+// R8 — LE PLANCHER DE RESTRICTION, PAR PERSONNE
+// ---------------------------------------------------------------------------
+
+Deno.test("R8 — under the restriction floor there is NO strip at all", () => {
+  const base = {
+    mealId: MEAL,
+    dishes: dishes("Soup", "Yoghurt"),
+    language: "en" as const,
+    shopping: { buyOn: "2026-08-12" },
+    masterOnly: true,
+  };
+  // Le plancher passe AVANT tout le reste: ni plats, ni ligne de courses.
+  assertEquals(buildEveningStrip({ ...base, restrictionFlag: true }), null);
+  // La contre-épreuve: le MÊME élève, plancher désarmé, reçoit sa bande. Sans
+  // elle, une garde cassée qui bloque tout ressemblerait à une garde qui marche.
+  const free = buildEveningStrip({ ...base, restrictionFlag: false });
+  assertEquals(free !== null, true);
+  assertEquals(free?.carriesShopping, true);
+});
+
+Deno.test("R8 — the floor is PER PERSON: it does not travel between members", () => {
+  // Deux appels, deux personnes, deux réponses. Il n'existe aucun état partagé
+  // dans ce module par lequel le plancher d'un membre pourrait taire un autre.
+  const master = buildEveningStrip({
+    mealId: MEAL,
+    dishes: dishes("Soup"),
+    language: "fr",
+    shopping: { buyOn: "2026-08-12" },
+    masterOnly: true,
+    restrictionFlag: true,
+  });
+  const spouse = buildEveningStrip({
+    mealId: MEAL,
+    dishes: dishes("Soup"),
+    language: "fr",
+    shopping: { buyOn: "2026-08-12" },
+    masterOnly: false,
+    restrictionFlag: false,
+  });
+  assertEquals(master, null);
+  assertEquals(spouse !== null, true);
+  // Et le conjoint garde sa bande SANS la ligne de courses (R14).
+  assertEquals(spouse?.carriesShopping, false);
+});
+
+// ---------------------------------------------------------------------------
+// §7 — DEUX VAGUES LE MÊME JOUR ⇒ UNE SEULE LIGNE
+// ---------------------------------------------------------------------------
+
+Deno.test("§7 — two waves cannot fall on the same day: the calculation buckets by buyOn", () => {
+  // La règle n'est pas gardée par la bande, elle est IMPOSSIBLE À VIOLER en
+  // amont: `planGroceryWaves` range les articles dans une `Map` clé par date
+  // d'achat. Deux cuissons différentes qui produisent la même date d'achat
+  // partagent donc UNE vague, et la bande ne peut structurellement porter
+  // qu'une ligne. On le prouve plutôt que de le supposer.
+  const waves = planGroceryWaves({
+    startsOn: "2026-08-10",
+    durationDays: 7,
+    shoppingList: [
+      { term: "chicken", aisle: "protein" },
+      { term: "salmon", aisle: "protein" },
+      { term: "rice", aisle: "grain" },
+    ],
+    preparations: [
+      // Deux cuissons distinctes, toutes deux à J+3 de la même date d'achat.
+      { id: "a", cookOn: "thu", ingredientTerms: ["chicken"] },
+      { id: "b", cookOn: "thu", ingredientTerms: ["salmon"] },
+    ],
+  });
+  const buyDays = new Set(waves.map((w) => w.buyOn));
+  assertEquals(buyDays.size, waves.length, JSON.stringify(waves));
+  assertEquals(waves.filter((w) => w.buyOn === "2026-08-10").length, 1);
 });

@@ -279,6 +279,16 @@ Deno.serve(async (req) => {
             )
             ? "fr" as const
             : "en" as const;
+          // ── LE PLANCHER TCA DURABLE — LE MÊME LITTÉRAL, ET LE MÊME AVEU ──
+          //
+          // ⚠️ FAUX, ET DIT COMME TEL (L3, 2026-08-08): `isRestrictionFlagged`,
+          // seul lecteur du dépôt, interrogeait `weekly_reviews.risk_band`, une
+          // colonne SANS écrivain. La valeur est donc `false` pour 100 % des
+          // élèves réels, ici comme pour la pratique du soir trente lignes plus
+          // bas. On la passe quand même — la garde vit dans
+          // `buildEveningStrip`, armée et testée, et ce littéral est le seul
+          // endroit à changer le jour où une source alimentée sera rebranchée.
+          const restrictionFlag = false;
           const stripContext = await loadEveningStripContext(admin, {
             userId: cursor,
             localDate,
@@ -292,6 +302,8 @@ Deno.serve(async (req) => {
               // R14 — la vague de courses est un fait de FOYER: la ligne ne part
               // qu'au maître. Un profil réclamé reçoit ses plats et jamais elle.
               masterOnly: await respondsForHousehold(admin, cursor),
+              // R8 — muet sous plancher, PAR PERSONNE.
+              restrictionFlag,
             })
             : null;
 
@@ -365,22 +377,15 @@ Deno.serve(async (req) => {
           cadenceReasons[cadence.reason] = (cadenceReasons[cadence.reason] ?? 0) + 1;
 
           if (!dryRun) {
-            // ── LE PLANCHER TCA DURABLE (FF-001 R4) EST RETIRÉ ─────────────
-            //
-            // ⚠️ FAUX, ET DIT COMME TEL (L3, 2026-08-08). Cette ligne appelait
-            // `isRestrictionFlagged`, seul lecteur du dépôt, qui interrogeait
-            // `weekly_reviews.risk_band`. Cette colonne appartient à l'ancienne
-            // weekly review 1:1 et n'a AUCUN écrivain — épreuves d'absence
-            // (code, `prosrc`, vues, base) refaites le 2026-08-08. Elle rendait
-            // donc `false` pour 100 % des élèves réels, et ce littéral ne change
-            // rien au comportement mesurable.
+            // LE PLANCHER TCA (FF-001 R4) est résolu PLUS HAUT, avant la
+            // bande du soir qui en dépend aussi (FF-058 R8). Le pavé qui
+            // explique pourquoi il vaut `false` est à sa déclaration.
             //
             // Ce que ce `false` COÛTE quand la bande était renseignée, mesuré
             // 3/3: la pratique CHIFFRÉE du coach repasse dans la sélection
             // (2 pratiques au lieu d'1) et le mode redevient `ask` au lieu de
             // `remind`. Le raisonnement complet et la façon de réarmer sont
             // dans le pavé de `_shared/keel/reengagement_io.ts`.
-            const restrictionFlag = false;
 
             // ── LE MINEUR (FF-001 R5) ──────────────────────────────────────
             // Dérivé de la date de naissance À CHAQUE LECTURE, sur le jour LOCAL

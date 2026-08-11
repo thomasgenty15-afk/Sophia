@@ -512,6 +512,16 @@ export interface EveningStrip {
  *   rien, et sa réponse serait du bruit. Requis parce que le défaut inverse
  *   (`false` par omission) ferait taire la ligne pour tout le monde sans qu'un
  *   seul test ne tombe.
+ * @param restrictionFlag REQUIS (R8). Le plancher de restriction alimentaire.
+ *   Sous plancher, AUCUNE bande — et le plancher est PAR PERSONNE: un maître
+ *   sous plancher n'en reçoit pas, son conjoint reçoit la sienne normalement.
+ *
+ *   ⚠️ SON SEUL PRODUCTEUR A ÉTÉ RETIRÉ EN L3 LE 2026-08-08
+ *   (`isRestrictionFlagged`, sur `weekly_reviews.risk_band`, colonne sans
+ *   écrivain). `keel-daily-pulse-v1` passe donc `false`, exactement comme il le
+ *   fait déjà pour la pratique du soir. La garde est ici, ARMÉE et testée,
+ *   plutôt que chez l'appelant: c'est ce qui la rendra vivante le jour où une
+ *   source alimentée sera rebranchée, au lieu d'être une ligne à retrouver.
  */
 export function buildEveningStrip(args: {
   mealId: string;
@@ -520,7 +530,13 @@ export function buildEveningStrip(args: {
   /** La vague du jour, ou `null`. Voir R15: seulement le soir d'un `buyOn`. */
   shopping: StripShoppingWave | null;
   masterOnly: boolean;
+  restrictionFlag: boolean;
 }): EveningStrip | null {
+  // R8 — LE PLANCHER PRIME SUR TOUT, ET IL PASSE EN PREMIER. Une bande sous
+  // plancher nommerait des plats à quelqu'un dont on vient de décider qu'on ne
+  // lui parle pas de nourriture; l'ordre des gardes est le contrat (T7).
+  if (args.restrictionFlag) return null;
+
   const copy = COPY[args.language];
   const dishes = args.dishes
     .map((d) => ({ dishIndex: d.dishIndex, title: cleanTitle(d.title) }))
