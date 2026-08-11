@@ -114,7 +114,7 @@ Aucune colonne neuve pour cette fiche : elle est la **surface** du modèle de
 | Ajouter une bouche | `keel_household_add_member(text, date, text)` (`20260810260000:126`) | Maître seul, plafond cité, valide prénom / objectif / date |
 | Corriger le prénom | `keel_household_set_member_name(uuid, text)` (`20260810170000:292`) | Autorité identique à `set_member_goal`, **mot pour mot** |
 | Corriger la date | `keel_household_set_member_birth_date(uuid, date)` (`20260810170000:352`) | RPC **séparée** — voir R4 |
-| Poser son objectif | `keel_household_set_member_goal(uuid, text)` (`20260810120000:566`) | Maître, ou la personne sur **sa** ligne |
+| Poser son objectif | `keel_household_set_member_goal(uuid, text)` (`20260811070000`) | Bouches **sans compte** uniquement. Refuse `has_account` sinon — y compris au maître pour lui-même (D1, voir R9) |
 | Ligne du maître | `createOwnerGoalRow` (`frontend/src/keel/api/household.ts`) | `upsert … ignoreDuplicates: true` : n'écrase **jamais** une ligne existante |
 
 ## 6. Règles et garanties
@@ -129,6 +129,7 @@ Aucune colonne neuve pour cette fiche : elle est la **surface** du modèle de
 | R6 | **Le plafond de 8 vit en base**, et l'écran ne fait que le dire | Une limite d'UI n'est pas une limite : le plafond doit tenir face à un appel direct de la RPC. Il existe à cause du **coût LLM** — 8 bouches, ce sont 8 consignes de service à chaque génération. `keel_household_max_mouths()` (`20260810260000:101`) le nomme, `keel_household_add_member` le **cite** au lieu de le recopier. |
 | R7 | **Tout refus porte un motif nommé, traduit par une liste fermée** | Afficher `household_full` à quelqu'un n'est pas une information ; afficher « une erreur est survenue » non plus. Un motif inconnu est rendu tel quel — le silence forcerait à tolérer l'étiquette manquante au lieu de l'ajouter. |
 | R8 | **Le plafond compte les BOUCHES, pas les comptes** | Il n'a rien à voir avec ce qui est facturé. Les confondre ferait facturer des enfants — voir [FF-049](FF-049-le-prix-du-foyer.md) R1. |
+| R9 | **Un objectif ne vit qu'à UN endroit, et lequel dépend du compte** | Ajoutée le 2026-08-11 (D1). Bouche **sans** compte → `household_members.goal`, posé par le maître. Bouche **avec** compte → son « about you » (`student_goals`), et `keel_household_set_member_goal` refuse `has_account` — y compris au maître pour lui-même. Deux sources qui peuvent diverger sans que rien ne dise laquelle gagne, c'est le doublon qui produit un bug six mois plus tard : quelqu'un change son objectif dans son profil et son assiette ne bouge pas. La résolution est faite **une seule fois**, dans `keel_household_roster_for` (`20260811070000`) : les trois lecteurs — générateur, contexte de tour du chat, écran — passent tous par là, donc aucun ne peut l'oublier. **Conséquence à l'écran :** le sélecteur d'objectif disparaît dès que la bouche a un compte, remplacé par la valeur en lecture et la phrase qui dit où la changer. Un contrôle qui échoue à tous les coups est pire qu'un contrôle absent. |
 
 ## 7. Modes de défaillance
 

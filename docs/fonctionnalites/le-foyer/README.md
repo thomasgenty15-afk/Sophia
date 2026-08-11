@@ -239,11 +239,11 @@ vérifié.
 | Fiche | Statut | En une phrase |
 |---|---|---|
 | [FF-043 · La résolution foyer](FF-043-la-resolution-foyer.md) | 🟠 En cours | Une cuisson, des assiettes qui divergent sans que la divergence soit lisible à table. Le tronc se dimensionne sur le MIN, jamais sur le référent, et un seul membre sous plancher fait dégrader toute la lane. |
-| [FF-044 · La bouche sans compte](FF-044-la-bouche-sans-compte.md) | 🟢 Livrée | `member_id` est la clé du foyer, le compte est optionnel, l'âge a trois états et l'objectif vit sur la ligne membre. |
+| [FF-044 · La bouche sans compte](FF-044-la-bouche-sans-compte.md) | 🟢 Livrée | `member_id` est la clé du foyer, le compte est optionnel, l'âge a trois états. L'objectif vit sur la ligne membre **pour une bouche sans compte** ; dès qu'elle en a un, il vit dans son « about you » (D1, 2026-08-11 — R6). |
 | [FF-045 · Décrire son foyer](FF-045-decrire-son-foyer.md) | 🟢 Livrée | Le maître se décrit en premier, puis les bouches s'ajoutent d'affilée. Plafond de 8, en base et pas à l'écran. |
 | [FF-046 · L'allergie d'une bouche sans compte](FF-046-l-allergie-d-une-bouche-sans-compte.md) | 🟢 Livrée | Une table à part, un slug dérivé à la lecture, la même union fail-closed. Le fil du générateur est commité (`9cd01739`), et **le chat la voit** (`5dfdddb2`) — deux blocs de prompt, une seule ceinture. |
 | [FF-047 · Le corps dans la part du foyer](FF-047-le-corps-dans-la-part-du-foyer.md) | 🟢 Livrée | Réclamer son profil change vraiment l'assiette : le générateur du foyer lit enfin taille, âge, sexe et mesures — et la ceinture a été rearmée sur ce que ça rend dicible. |
-| [FF-048 · Réclamer son profil](FF-048-reclamer-son-profil.md) | 🟢 Livrée | Rejoindre un foyer **attache** un compte à une ligne existante ; ça n'en crée pas une. Lecture du plan et son propre objectif, rien d'autre. |
+| [FF-048 · Réclamer son profil](FF-048-reclamer-son-profil.md) | 🟢 Livrée | Rejoindre un foyer **attache** un compte à une ligne existante ; ça n'en crée pas une. Lecture du plan et son propre objectif, rien d'autre — l'objectif se réglant depuis son « about you » et non plus depuis sa ligne de foyer (D1, 2026-08-11 — R8). |
 | [FF-049 · Le prix du foyer](FF-049-le-prix-du-foyer.md) | 🟠 En cours | Le job, la table de période, `free_until` et le **gel** existent et sont testés (`73ab25c9`, `a2d650b6`). Il ne manque que les **gestes humains Stripe** — deux prix, deux secrets, un deploy. |
 | [FF-050 · L'envie de la semaine](FF-050-l-envie-de-la-semaine.md) | 🟢 Livrée | Une ligne de texte que le maître écrit pour tout le monde, ancrée au lundi ISO à l'écriture **et** à la lecture. Remplace la récolte par membre. Commit `9cd01739` (+ `461fd500` pour la carte). |
 

@@ -6,7 +6,7 @@
 | **Statut** | 🟠 En cours — moteur livré, surfaces d'écran à faire (§11 n°1) |
 | **Date** | 2026-08-10 |
 | **Autorité produit** | [PIVOT-FOYER.md](../../keel/PIVOT-FOYER.md) · [MODEL.md](../../keel/MODEL.md) · [CONTRACT.md](../../keel/CONTRACT.md) · design d'origine : `scratchpad/DESIGN-UNITES-DE-COMPOSITION.md` (§4, arbitrage A3) |
-| **Dépend de** | [FF-039](FF-039-enveloppes-et-verdicts-en-observation.md) (l'enveloppe) · [FF-040](FF-040-la-boucle-de-correction.md) · [FF-041](FF-041-la-methode-du-coach-executable.md) · `household_portions.ts` (`sanitizePortionNote`, `FORBIDDEN_PORTION_TERMS`) · `household_meal_generation.ts` · `restriction_runtime.ts` |
+| **Dépend de** | [FF-039](../composition-des-repas/FF-039-enveloppes-et-verdicts-en-observation.md) (l'enveloppe) · [FF-040](../composition-des-repas/FF-040-la-boucle-de-correction.md) · [FF-041](../composition-des-repas/FF-041-la-methode-du-coach-executable.md) · `household_portions.ts` (`sanitizePortionNote`, `FORBIDDEN_PORTION_TERMS`) · `household_meal_generation.ts` · `restriction_runtime.ts` |
 | **Effort estimé** | 3 jours |
 
 ---

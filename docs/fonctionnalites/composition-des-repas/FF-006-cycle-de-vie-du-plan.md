@@ -17,6 +17,30 @@ La mécanique est **construite, transactionnelle et testée** : deux intentions
 (`replace_current`, `prepare_next`), un verrou consultatif par élève, la
 troncature du plan qui chevauche, un refus nommé `plan_overlaps_existing`, un
 index UNIQUE qui garantit une seule composition vivante par jour de départ.
+
+> ⚠️ **Mise à jour du 2026-08-11 — « une seule » est tenu par TROIS mécanismes,
+> et la fiche n'en nommait qu'un.** À la boucle de chevauchement de la RPC
+> s'ajoutent un **index unique** et une **contrainte d'exclusion**, toutes deux
+> sur la table. Les deux couches physiques refusent la ligne *avant* que la
+> fonction ait son mot à dire : l'appelant reçoit alors une violation de
+> contrainte Postgres, pas le refus nommé que cette fiche décrit. Qui touche à
+> la règle doit les déplacer **ensemble** — elles n'ont été trouvées qu'en
+> exécutant un test, l'une après l'autre, la première masquant la seconde.
+>
+> **Mais trois mécanismes ne font que DEUX garanties distinctes.** Mesuré le
+> 2026-08-11 : `duration_days` est borné `>= 1`
+> (`student_generated_meals_duration_days_check`), donc deux lignes vivantes de
+> même `(user_id, plan_kind, starts_on)` ont **toujours** des `daterange` qui se
+> chevauchent. La contrainte d'exclusion refuse donc déjà tout ce que l'index
+> unique refuse : l'index ne change que **le nom de l'erreur**, jamais
+> l'ensemble des lignes admises. Ne pas le prendre pour une défense
+> indépendante.
+>
+> Depuis la même date, la clé porte aussi **`plan_kind`** (`personal` |
+> `household`) : le maître d'un foyer doit pouvoir tenir son plan personnel
+> **et** le plan commun sur la même semaine. L'unicité est donc « un seul plan
+> vivant par personne, par **nature**, et par jour de départ ». Détail et motif :
+> [CHANTIER-PLANS-INDIVIDUELS-ET-FUSION.md](../../keel/CHANTIER-PLANS-INDIVIDUELS-ET-FUSION.md).
 Elle a même déjà encaissé une correction réelle : le 2026-08-07, l'intention se
 **déduisait** de l'occupation de l'onglet, et « préparer la suite » retirait le
 plan en cours — l'élève perdait la semaine pour laquelle il avait fait ses
@@ -85,7 +109,8 @@ relisant le code — pas par un signal.
       ├─ verrou consultatif par élève
       ├─ le plan qui chevauche est TRONQUÉ (pas supprimé)
       ├─ chevauchement irréductible → `plan_overlaps_existing`
-      └─ index UNIQUE (user_id, starts_on) where retired_at is null
+      ├─ index UNIQUE (user_id, plan_kind, starts_on) where retired_at is null
+      └─ contrainte d'EXCLUSION (user_id, plan_kind, daterange) idem
       ↓
   ┌────────────────────────────────────────────────────┐
   │  LE TROU DE CETTE FICHE — il est ICI, en amont     │
