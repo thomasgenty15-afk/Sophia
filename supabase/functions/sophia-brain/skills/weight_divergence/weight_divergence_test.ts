@@ -680,3 +680,44 @@ Deno.test("FF-056 · aucun repli ne parle du foyer, du coach ni de la balance", 
     }
   }
 });
+
+Deno.test("FF-056 · PERSONNE NE PRÉPARE LE PLAN DE L'ÉLÈVE, FR et EN", () => {
+  // Les deux premières phrases ont été MESURÉES en run réel le 2026-08-11, sur
+  // le chemin nominal de ce flow. Les quatre familles précédentes les
+  // laissaient passer: aucune ne parle de qui fabrique le plan.
+  // `CLAUDE.md`: le coach ne produit rien de personnel, l'élève compose sa
+  // semaine, et « ton coach prépare ton plan » est faux.
+  for (
+    const message of [
+      "Le plan garde ça en tête, et ça guidera la semaine prochaine qu'il construit.",
+      "Ça va orienter la semaine prochaine que je te prépare.",
+      "Je te prépare une semaine plus rassasiante.",
+      "Ton coach prépare ton plan pour la semaine.",
+      "On te prépare quelque chose de plus simple.",
+      "I'm preparing your next week around that.",
+      "Your coach will prepare your plan.",
+      "It will be prepared for you.",
+    ]
+  ) {
+    const verdict = validateWeightDivergenceMessage(message, task("close_out"));
+    assertEquals(verdict.ok, false, `laissé passer: ${message}`);
+  }
+});
+
+Deno.test("FF-056 · la garde de livraison NE MORD PAS sur l'élève qui prépare", () => {
+  // ⚠️ LE CAS QUI PASSE. Une garde sans cas passant bloque tout et ressemble à
+  // une garde qui marche (cicatrice `guards-need-a-passing-case`). Ici le verbe
+  // « préparer » est légitime dès que c'est l'ÉLÈVE qui prépare — c'est même ce
+  // que ce flow propose.
+  for (
+    const message of [
+      "Si tu prépares ton petit-déjeuner la veille, le matin devient plus simple.",
+      "Prépare-toi quelque chose de rassasiant le soir.",
+      "Tu peux préparer ta semaine depuis l'écran de plan.",
+      "If you prepare your breakfast the night before, mornings get easier.",
+    ]
+  ) {
+    const verdict = validateWeightDivergenceMessage(message, task("close_out"));
+    assertEquals(verdict.ok, true, `bloqué à tort: ${message} (${verdict.reason ?? ""})`);
+  }
+});

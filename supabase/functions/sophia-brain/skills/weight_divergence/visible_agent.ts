@@ -40,6 +40,7 @@ import { VISIBLE_OUTPUT_STYLE_RULES } from "../../router/response_style_policy.t
 import {
   FORBIDDEN_BLAME_TERMS,
   FORBIDDEN_ENERGY_TERMS,
+  FORBIDDEN_PLAN_DELIVERY_PHRASES,
   FORBIDDEN_SUSPICION_PHRASES,
   FORBIDDEN_WEIGH_IN_LINK_PHRASES,
   type WeightDivergenceVisibleTask,
@@ -51,7 +52,7 @@ import {
 // ---------------------------------------------------------------------------
 
 /**
- * Les quatre familles, en termes du matcher DU DÉPÔT.
+ * Les cinq familles, en termes du matcher DU DÉPÔT.
  *
  * ⚠️ PAS DE MATCHER MAISON. La cicatrice `never-hand-roll-a-matcher-here` a été
  * payée douze fois sur douze (« laitue » attrapé par « lait »).
@@ -67,6 +68,9 @@ function forbiddenTerms(): ForbiddenTerm[] {
     ...build("suspicion", FORBIDDEN_SUSPICION_PHRASES),
     ...build("blame", FORBIDDEN_BLAME_TERMS),
     ...build("weigh_in_link", FORBIDDEN_WEIGH_IN_LINK_PHRASES),
+    // La règle mère du produit: personne ne prépare le plan de l'élève.
+    // Mesurée en run réel le 2026-08-11 sur le chemin nominal de ce flow.
+    ...build("plan_delivery", FORBIDDEN_PLAN_DELIVERY_PHRASES),
   ];
 }
 

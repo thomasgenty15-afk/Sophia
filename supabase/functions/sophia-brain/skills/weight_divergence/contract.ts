@@ -467,6 +467,73 @@ export const FORBIDDEN_WEIGH_IN_LINK_PHRASES: readonly string[] = Object
   ]);
 
 /**
+ * PERSONNE NE PRÉPARE LE PLAN DE L'ÉLÈVE — ET C'EST LA RÈGLE MÈRE DU PRODUIT.
+ *
+ * `CLAUDE.md` l'écrit en tête de fichier: le coach ne produit RIEN de personnel
+ * pour un élève, il n'existe AUCUN canal 1:1, et « ton coach prépare ton plan »
+ * est faux. C'est **l'élève** qui compose sa semaine (`student_goals` →
+ * `generate-week-plan-v1` → `student_week_plans`). Une copie qui annonce une
+ * semaine « préparée » ou « construite » pour lui le fait attendre une livraison
+ * qui n'arrivera jamais.
+ *
+ * MESURÉ EN RUN RÉEL (QA FF-056, 2026-08-11), sur le chemin NOMINAL de ce flow —
+ * deux sorties de l'agent visible sur cinq:
+ *   « ça va orienter la semaine prochaine QUE JE TE PRÉPARE »
+ *   « ça guidera la semaine prochaine QU'IL CONSTRUIT »
+ * Les quatre familles précédentes ne mordaient pas: aucune ne parle de qui
+ * fabrique le plan.
+ *
+ * ⚠️ ON VISE LA CONSTRUCTION, PAS LE VERBE. « prépare-toi un petit-déjeuner »
+ * (l'élève prépare) doit passer — c'est même ce que ce flow propose. Ce qui est
+ * interdit, c'est un TIERS (Sophia, le plan, le coach, « on ») qui prépare POUR
+ * l'élève. D'où des locutions complètes, jamais « preparer » seul.
+ *
+ * Les apostrophes sont converties en espaces AVANT le scan: « qu'il construit »
+ * arrive comme « qu il construit ».
+ */
+export const FORBIDDEN_PLAN_DELIVERY_PHRASES: readonly string[] = Object
+  .freeze([
+    // --- FR : Sophia prépare ---
+    "je te prepare",
+    "je te la prepare",
+    "je te le prepare",
+    "que je te prepare",
+    "je vais te preparer",
+    "je prepare ta semaine",
+    "je prepare ton plan",
+    "je te prepare ta semaine",
+    "je construis ta semaine",
+    "je construis ton plan",
+    "je vais te construire",
+    // --- FR : le plan ou le coach préparent ---
+    "qu il construit",
+    "qu il te prepare",
+    "il te prepare",
+    "il construit ta semaine",
+    "ton coach prepare",
+    "ton coach te prepare",
+    "ton coach prepare ton plan",
+    "on te prepare",
+    "on prepare ta semaine",
+    "sera prepare pour toi",
+    // --- EN ---
+    "i m preparing your",
+    "i am preparing your",
+    "i ll prepare your",
+    "i will prepare your",
+    "i m building your",
+    "i am building your",
+    "i ll build your",
+    "i will build your",
+    "that i prepare",
+    "your coach is preparing",
+    "your coach will prepare",
+    "we re preparing your",
+    "we are preparing your",
+    "will be prepared for you",
+  ]);
+
+/**
  * LE MAXIMUM DE QUESTIONS PAR TÂCHE.
  *
  * Zéro partout sauf trois endroits, et c'est ce qui empêche le flow de
