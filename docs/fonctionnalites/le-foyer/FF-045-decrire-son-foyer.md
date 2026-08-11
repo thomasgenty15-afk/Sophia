@@ -202,6 +202,8 @@ Et sa propre carte ne lui promet pas de débloquer la composition
 2. **Aucun run réel du générateur** depuis cet écran : `POST
    generate-household-meal-v1` rend 404 en local, reproduit sur la version
    commitée — le registre du routeur edge est figé au démarrage du CLI.
-3. **Le retrait d'une bouche est destructif et sans confirmation dédiée.** Voir
-   le trou n°4 du [README](README.md) : il n'existe pas de « retirer seulement
-   l'accès ».
+3. **Le retrait d'une bouche est destructif et sans confirmation dédiée.** Le
+   trou n°4 du [README](README.md) est **refermé** (`e2899897`) : « retirer
+   l'accès » existe désormais, distinct de « retirer du foyer », avec son propre
+   libellé à l'écran. Ce qui reste ouvert ici est le geste **destructif**
+   lui-même — il n'a toujours pas de confirmation dédiée.

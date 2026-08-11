@@ -15,11 +15,12 @@
 > | §8.1 → §8.3 (la récolte par membre) | **périmées** — voir le bandeau du §8 | [FF-050](../fonctionnalites/le-foyer/FF-050-l-envie-de-la-semaine.md) |
 > | §8.4, §8.5 | **en vigueur**, inchangées | ce document |
 > | le modèle d'invitation | périmé — rejoindre **attache**, ça n'insère pas | [FF-048](../fonctionnalites/le-foyer/FF-048-reclamer-son-profil.md) |
-> | §11 (le modèle économique) | la définition existe, **rien ne facture** | [FF-049](../fonctionnalites/le-foyer/FF-049-le-prix-du-foyer.md) |
+> | §11 (le modèle économique) | le code existe **en entier** (job, table de période, `free_until`, gel) ; **rien ne facture** tant que les prix Stripe ne sont pas posés | [FF-049](../fonctionnalites/le-foyer/FF-049-le-prix-du-foyer.md) |
 >
 > **La direction du domaine, telle qu'elle est appliquée aujourd'hui, vit dans
 > [docs/fonctionnalites/le-foyer/README.md](../fonctionnalites/le-foyer/README.md)** —
-> avec ses règles transverses et ses six trous connus.
+> avec ses règles transverses et ses trous connus — **ouverts et refermés**,
+> chacun avec le commit qui l'a fermé.
 
 **Les deux décisions que ce document porte**, pour qui n'en lirait rien d'autre :
 

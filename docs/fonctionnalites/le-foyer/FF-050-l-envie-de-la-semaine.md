@@ -3,8 +3,8 @@
 | | |
 |---|---|
 | **Identifiant** | `FF-050-l-envie-de-la-semaine` |
-| **Statut** | 🟠 **En cours** — livrée **sur le disque et verte**, **non commitée** au 2026-08-10 (§11 n°1) |
-| **Date** | 2026-08-10 |
+| **Statut** | 🟢 **Livrée** — commit `9cd01739` (2026-08-11), plus `461fd500` pour la carte d'écran (§11 n°1) |
+| **Date** | 2026-08-11 |
 | **Autorité produit** | [le-foyer/README.md](README.md) (F1) · [PIVOT-FOYER.md](../../keel/PIVOT-FOYER.md) §8.4 et §8.5 — ⚠️ **ses §8.1 à §8.3 sont périmés par cette fiche** · [CHANTIER-FOYER-PROFILS.md](../../keel/CHANTIER-FOYER-PROFILS.md) lot 5 |
 | **Dépend de** | [FF-044](FF-044-la-bouche-sans-compte.md) (le rôle `owner` sur la ligne membre) |
 | **Effort estimé** | livré — 0,5 jour |
@@ -141,6 +141,7 @@ entrer en collision deux lignes qui coexistaient légalement.
 | R6 | **La borne de longueur existe des DEUX côtés** | La base pose `household_envy_body_check` (500) ; `MAX_ENVY_CHARS` la reflète côté prompt parce que ce module peut être appelé avec du texte qui n'est pas passé par la RPC (un import, un test, un chemin futur). Un prompt de 20 Ko est un défaut que ce dépôt a déjà payé sur le composeur. |
 | R7 | **`envyLineUsed` est une trace, pas un affichage** | « Pourquoi ce plan ne ressemble-t-il pas à ce que j'ai demandé ? » n'a pas de réponse trois jours plus tard si on ne sait pas si la demande a seulement été **lue**. Il remplace `spoken`/`silent`, partis avec le conseil de famille. |
 | R8 | **Aucun chemin de ce module ne lève** | §8.4. |
+| R9 | **Le recalage au lundi vaut aussi À L'ÉCRAN, et il est une DÉPENDANCE, pas une constante** | La base recale à l'écriture, la lecture SQL filtre sur la valeur rangée — et une fermeture React qui capture le lundi **au montage** relit la semaine précédente dès le lundi suivant, sans erreur. Trois recalages, trois endroits : la RPC, la requête de lecture, et `HouseholdPage.tsx:228`. |
 
 ## 7. Modes de défaillance
 
@@ -153,6 +154,7 @@ entrer en collision deux lignes qui coexistaient légalement.
 | La ligne contredit une règle de maison | Idem : la règle de maison gagne (elle passe par son verrou), et l'arbitrage doit rester explicable. |
 | Un membre non-maître appelle la RPC | `not_owner`. |
 | Un membre ouvre l'écran | Il **ne voit pas** la ligne, même en lecture seule. La policy `for select` de tout le foyer reste ouverte : c'est l'écran qui ne rend rien. Voir §11 n°2. |
+| L'onglet reste ouvert du dimanche au lundi | La carte relit la **bonne** semaine. C'était faux jusqu'à `461fd500` : le lundi capturé au montage survivait au changement de semaine, et la carte servait la ligne périmée — sans erreur, sans trace (R9). |
 
 ## 8. Critères d'acceptation
 
@@ -207,13 +209,25 @@ Alors le motif rendu est not_owner
 
 ## 11. Questions ouvertes
 
-1. **⚠️ CE LOT N'EST PAS COMMITÉ** (2026-08-10). Il est terminé sur le disque et
-   vert. Il change l'interface `envies → envyLine`, donc il **exige**
-   `generate-household-meal-v1/index.ts` dans le même commit — et ce fichier
-   importe `food_composition.ts`, non suivi, d'une session qui écrit **en ce
-   moment**. Committer un chantier en vol serait pire que d'attendre. Tant que
-   ce commit n'est pas fait, `HEAD` porte encore `mergeEnvies` et la récolte par
-   membre.
+1. ✅ **COMMITÉ** (`9cd01739`, 2026-08-11). Le blocage était réel : le lot change
+   l'interface `envies → envyLine`, donc il **exige**
+   `generate-household-meal-v1/index.ts` dans le même commit, et ce fichier
+   importait cinq modules non suivis d'une autre session. Il a été débloqué par
+   `11f895d2`, qui met à l'abri **exactement** ces cinq modules et les trois
+   migrations que le code commité lit réellement — le strict minimum, pas le
+   chantier voisin entier. Le même commit **rebranche le fil des allergies du
+   lot 4**, resté sur le disque pour la même raison ; c'est pourquoi les deux
+   partent ensemble.
+   **Et un second défaut a été trouvé à l'écran, refermé par `461fd500` :**
+   `refresh` lisait `envyWeek` sans le déclarer en dépendance de son
+   `useCallback` (`HouseholdPage.tsx:200`, dépendances `:228`). Le lundi calculé **au montage**
+   survivait au passage à la semaine suivante, et la carte relisait la ligne de
+   la semaine **précédente** — sans erreur, sans trace. C'est exactement la
+   classe de défaut que R2 vient de fermer en base ; la refermer d'un côté et
+   la laisser ouverte de l'autre aurait déplacé le silence, pas corrigé quoi que
+   ce soit. Signalé par eslint en **avertissement** au commit précédent — un
+   avertissement de dépendance manquante n'est pas du bruit de linter quand la
+   valeur capturée est une **date**.
 2. **La ligne devrait-elle être visible en lecture seule par tout le foyer ?**
    Faisable sans toucher à la base : la policy `for select` est déjà ouverte à
    tout le foyer, c'est l'écran qui ne rend rien. **Question ouverte, pas

@@ -10,11 +10,18 @@
 | **Branche** | `ff-001-quotidien-du-coach` |
 | **Autorités produit** | [MODEL.md](MODEL.md) · [CONTRACT.md](CONTRACT.md) · [PIVOT-FOYER.md](PIVOT-FOYER.md) (⚠️ ses §7, §7.5, §8.1–§8.3 et son modèle d'invitation sont **périmés** par les décisions des 2026-08-08 et 2026-08-10) |
 | **État du dépôt** | **rien de déployé** ; base locale à jour ; lignée de migrations saine |
-| **Direction du domaine** | [docs/fonctionnalites/le-foyer/README.md](../fonctionnalites/le-foyer/README.md) — la règle mère, les crans d'intake, F1–F10, les six trous |
+| **Direction du domaine** | [docs/fonctionnalites/le-foyer/README.md](../fonctionnalites/le-foyer/README.md) — la règle mère, les crans d'intake, F1–F10, les trous connus (ouverts **et** refermés) |
+| **La suite** | [CHANTIER-FOYER-SUITE.md](CHANTIER-FOYER-SUITE.md) — six chantiers, tous livrés le 2026-08-11 ; c'est **lui** qui referme les lots 4, 5 et 7 laissés ouverts ci-dessous |
 
 ---
 
-## L'état réel, lot par lot — 2026-08-10
+## L'état réel, lot par lot — 2026-08-10, **relu le 2026-08-11**
+
+> ⚠️ **Trois lignes de ce tableau ont changé d'état le lendemain.** Les lots 4,
+> 5 et 7 attendaient, et ils attendaient pour des raisons écrites. Ils sont
+> livrés par [CHANTIER-FOYER-SUITE.md](CHANTIER-FOYER-SUITE.md) ; l'état de la
+> colonne « État » est celui du 2026-08-11, la colonne « Preuve » garde les
+> chiffres du lot d'origine.
 
 > **Ce tableau est la réponse à « qu'est-ce qui tourne, qu'est-ce qui attend, et
 > pourquoi ».** Le détail de chaque lot suit ; la fiche produit dit l'intention,
@@ -26,14 +33,20 @@
 | **1+2+3** | `member_id`, gardes retournées, objectif sur la ligne | ✅ livré | `9dc442d2` | 1750 deno · 514 vitest · typecheck 0 · **36** assertions `household_rls_test.sql` sur la base réelle |
 | *(voisin)* | FF-037 → FF-040, mis à l'abri | ✅ livré | `6259fcab` | 1798 deno · `deno check` propre sur deux fonctions |
 | **3B** | Le corps dans la bifurcation des portions | ✅ livré | `c95706ee` | 1798 deno · **6 mutations → 6 rouges** · coût mesuré : 7 lectures/bouche avec compte, 0 sans |
-| **4** | L'ajout en 90 s + l'allergie d'une bouche sans compte | ⚠️ **livré à ⅔** | `26de20ab` | 1880 deno · **56** assertions RLS · 2 mutations vérifiées — **mais le câblage du générateur reste sur le disque** |
+| **4** | L'ajout en 90 s + l'allergie d'une bouche sans compte | ✅ **livré** — le tiers manquant est arrivé par `9cd01739` | `26de20ab` + `9cd01739` | 1880 deno · **56** assertions RLS · 2 mutations vérifiées ; **le câblage du générateur est commité** depuis `9cd01739`, et `household_safety.ts` a désormais deux importeurs de production |
 | **6** | Réclamer son profil = ATTACHER un compte | ✅ livré | `193e228a` | **76** assertions RLS · 1880 deno · mutation vérifiée (assertion 67) |
-| **7** | Le compte facturable + le plafond cité | ⚠️ **définition seule** | `f9efc488` | **101** assertions RLS (+11) · privilèges vérifiés · 2 mutations → 2 rouges — **rien ne facture** |
+| **7** | Le compte facturable + le plafond cité | ✅ **livré** — son appelant existe depuis `73ab25c9` | `f9efc488` + `73ab25c9` | **101** assertions RLS (+11) · privilèges vérifiés · 2 mutations → 2 rouges ; puis **114** assertions, 4 mutations et un **run réel** au chantier 1. **Rien ne facture toujours pas** — il ne manque plus que les gestes humains Stripe |
 | **8** | Une seule définition des vagues de courses | ✅ livré | `476a4acb` | 3961 deno · 513 vitest · mutation avec **contrefactuel** (16/16 verts avec l'ancien jumeau) · `wiring-check` 3 orphelins → 2 |
-| **5** | L'envie de la semaine, version maître | 🟠 **NON COMMITÉ** | — | terminé et vert sur le disque ; voir « Pourquoi le lot 5 attend » ci-dessous |
+| **5** | L'envie de la semaine, version maître | ✅ **livré** — débloqué par `11f895d2` | `9cd01739` (+ `461fd500`) | **90** assertions RLS sur la base réelle · 3980 deno · 513 vitest · typecheck 0 · mutation prouvée · preuve **base → prompt** sur fixture réelle |
 | **9** | Les documents | ✅ livré | *(ce commit)* | 7 fiches `FF-044` → `FF-050`, la direction du domaine, FF-005 corrigée |
 
-### Pourquoi le lot 5 attend, et pourquoi c'est le bon choix
+### Pourquoi le lot 5 a attendu, et pourquoi c'était le bon choix
+
+> ✅ **Résolu le 2026-08-11.** `11f895d2` a mis à l'abri **exactement** les cinq
+> modules non suivis dont le générateur dépend (pas le chantier voisin entier),
+> puis `9cd01739` a emporté le fichier partagé **avec les deux moitiés** : la
+> ligne d'envies **et** le câblage des allergies du lot 4. Ce qui suit est le
+> raisonnement d'origine, gardé parce qu'il dit pourquoi on a attendu.
 
 Le lot 5 change l'interface du prompt : `envies: EnvySubmission[]` devient
 `envyLine: string | null`, et `spoken`/`silent` deviennent `envyLineUsed`. Un
@@ -51,6 +64,13 @@ encore `mergeEnvies` et la récolte par membre — c'est-à-dire le comportement
 comme mort.
 
 ### Le même piège, une deuxième fois : le lot 4
+
+> ✅ **Résolu le 2026-08-11 par le MÊME commit** (`9cd01739`), et c'est le
+> point : le premier commit qui touchait `generate-household-meal-v1/index.ts`
+> devait emporter les deux moitiés, et il l'a fait.
+> `_shared/keel/household_safety.ts` a désormais **deux** importeurs de
+> production — `generate-household-meal-v1/index.ts:59` et, depuis `5dfdddb2`,
+> `sophia-brain/router/run.ts:331`.
 
 Le câblage du générateur pour les allergies de foyer
 (`loadHouseholdAllergies`, `householdHardConstraints`, `applyHouseRuleLock`
@@ -786,6 +806,9 @@ consommateur `MealBuilder.tsx` appartient à une autre session.
    transverses `F1`–`F10`, le hors-périmètre engageant, et **les six trous
    connus** dans un tableau qui nomme le fichier et la ligne de chacun. Modèle
    suivi : `docs/fonctionnalites/conversation/README.md`.
+   *(Relu le 2026-08-11 : quatre des six sont refermés, cinq autres se sont
+   ouverts, et le tableau distingue désormais l'ouvert du refermé — avec le
+   commit qui a fermé chacun.)*
 2. **Sept fiches, `FF-044` → `FF-050`.**
 3. **[`FF-005`](../fonctionnalites/composition-des-repas/FF-005-strategie-de-courses.md)
    corrigée** — elle était devenue **fausse** au lot 8 : elle décrivait le jumeau

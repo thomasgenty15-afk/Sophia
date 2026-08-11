@@ -3,11 +3,11 @@
 | | |
 |---|---|
 | **Identifiant** | `FF-046-l-allergie-d-une-bouche-sans-compte` |
-| **Statut** | 🟠 **En cours** — la table, le module et l'écran sont livrés (`26de20ab`) ; **le fil du générateur n'est pas commité**, et le chat ne voit rien (§7) |
-| **Date** | 2026-08-10 |
+| **Statut** | 🟢 **Livrée** — la table, le module et l'écran (`26de20ab`) ; **le fil du générateur** (`9cd01739`) ; **le chat** (`5dfdddb2`). Un trou résiduel nommé en §7 : `plan_question` |
+| **Date** | 2026-08-11 |
 | **Autorité produit** | [CONTRACT.md](../../keel/CONTRACT.md) · [le-foyer/README.md](README.md) (F9, F10) · [FF-021](../conversation/FF-021-le-plancher-de-restriction-alimentaire.md) pour la famille de ceintures |
 | **Dépend de** | [FF-044](FF-044-la-bouche-sans-compte.md) — la table est clée `member_id` · [FF-045](FF-045-decrire-son-foyer.md) — l'écran qui la remplit |
-| **Effort estimé** | livré à ~⅔ ; le reste = un commit + une ceinture de chat |
+| **Effort estimé** | livrée — 1,5 jour |
 
 ---
 
@@ -109,9 +109,40 @@ de confort, c'est un trou de sécurité que l'interface **rend invisible**.
 ```
 
 **L'endroit où deux chemins se rejoignent** est `householdHardConstraints`
-(`_shared/keel/household_safety.ts:200`). La séparation y est décidée **une
+(`_shared/keel/household_safety.ts:201`). La séparation y est décidée **une
 fois** ; la calculer aux deux points d'appel remettrait la question « et si on
 mélangeait ? » à chaque lecture.
+
+### La seconde lane — le chat (`5dfdddb2`)
+
+```
+   sophia-brain/router/run.ts   ← le chemin de TOUTES les conversations
+        │
+        │ resolveHouseholdIdFor(supabase, userId)        (run.ts:1453)
+        │   UNE SEULE résolution, partagée par les deux lanes du foyer
+        │   pas de foyer → la constante NO_HOUSEHOLD_SAFETY, ZÉRO requête
+        ▼
+   loadHouseholdTurnSafety({householdId, contentLocale})  (run.ts:1463)
+        │   ne lève JAMAIS. Deux états, jamais confondus:
+        │     constraints: [...]         unreadableReason: null
+        │     constraints: []            unreadableReason: "<panne>"
+        ▼
+   ┌──────────────────────────┐        ┌──────────────────────────────┐
+   │ LE PROMPT — DEUX BLOCS   │        │ LA CEINTURE — UNE SEULE      │
+   │ householdAllergyPrompt   │        │ beltConstraints =            │
+   │   Block()   (run.ts:2349)│        │   locuteur ∪ foyer           │
+   │                          │        │             (run.ts:2694-97) │
+   │ « THIS STUDENT'S HARD    │        │ + les refs du foyer sont     │
+   │   CONSTRAINTS » reste    │        │   RETIRÉES du désarmement    │
+   │   au locuteur SEUL       │        │   par rétractation (:2706)   │
+   └──────────────────────────┘        └──────────────────────────────┘
+```
+
+**Le point qui gouverne ce second dessin** : *les deux listes se rejoignent là
+où l'attribution ne compte pas, et restent séparées là où elle compte.* Verser
+l'allergie d'un enfant dans le bloc titré « THIS STUDENT'S HARD CONSTRAINTS »
+ferait dire au modèle qu'un **parent** est allergique — un fait faux sur une
+personne. `safety_constraints.ts` n'a pas été touché.
 
 ## 5. Modèle de données
 
@@ -140,6 +171,10 @@ remettre donnerait une clé qui a l'air composite sans l'être.
 | R6 | **Fail-closed au sens FORT** — lecture impossible ⇒ **aucune composition** | À ne pas confondre avec le corps ([FF-047](FF-047-le-corps-dans-la-part-du-foyer.md)), qui est best-effort : une portion mal dimensionnée est le produit d'hier ; un dîner sans verrou d'allergène est un danger. |
 | R7 | **La prose n'est jamais matchée** | Le `notes` garde le libellé pour qu'un journal de violation soit lisible par un humain, **pas** pour mordre. Ce qui mord est l'identifiant. |
 | R8 | **Une allergie d'une seule bouche gouverne toute la casserole** | Le produit vend **une** cuisson. Un plat « sans arachide sauf pour les autres » n'existe pas dans une seule casserole. |
+| R9 | **Deux blocs de prompt, une seule ceinture** | Le prompt ATTRIBUE (il dit « tes contraintes »), la ceinture NOMME (elle refuse un mot). Mélanger les listes là où le prompt attribue produit un **fait faux sur une personne** ; les séparer là où la ceinture refuse produirait une allergie non armée. `householdAllergyPromptBlock` (`household_safety.ts:469`) est le second bloc ; `beltConstraints` (`run.ts:2694-2697`) est l'union. |
+| R10 | **Une rétractation ne désarme JAMAIS une contrainte du foyer** | Le désarmement n°5 de la ceinture existe pour qu'on puisse s'entendre nommer **sa propre** contrainte quand on vient de la retirer. Une allergie de foyer n'est pas la sienne : la rétractation du chat n'écrit que dans `student_safety_constraints`, la ligne du foyer **survit**, et l'honorer ferait taire l'allergie d'un enfant parce qu'un adulte a dit que la sienne avait disparu. `householdConstraintRefs` (`household_safety.ts:420`) filtre le désarmement (`run.ts:2706`). |
+| R11 | **Panne de lecture dans le chat : on ne coupe pas le tour, on coupe LE VERBE** | Le générateur répond 503 et ne compose rien — juste, sa seule sortie **est** un repas. Un tour de chat porte aussi le routage de crise et le renvoi clinicien ; refuser le tour serait **plus strict que la lane individuelle**, qui fail-open nommément pendant la même panne. Retenu : interdiction de proposer, nommer ou recommander un aliment pour ce foyer ce tour-ci, dite explicitement (`HOUSEHOLD_SAFETY_UNREADABLE_BLOCK`, `household_safety.ts:513`), le reste du tour intact. |
+| R12 | **La portée de la dégradation s'arrête à ce qu'on SAIT** | Une panne sur `household_members` (la résolution) n'arme **rien** : on ignore alors s'il y a un foyer, et la dégradation frapperait aussi ceux qui vivent seuls. Ce qui arme, c'est de savoir qu'il y a des bouches et de ne pas pouvoir lire leurs contraintes — le mode de panne réaliste d'une table jeune (grant, RLS, migration en vol). |
 
 ## 7. Modes de défaillance
 
@@ -150,8 +185,11 @@ remettre donnerait une clé qui a l'air composite sans l'être.
 | Un libellé vide | La ligne n'entre pas (`CHECK` en base) ; et `householdAllergenRefs("")` rend `[]`. |
 | La même allergie saisie deux fois sur la même bouche | Refusée par l'unique `(member_id, label)`. |
 | Une allergie écrite **aussi** en règle de maison | La règle de maison passe par le verrou qui tait le pourquoi ; l'allergie par l'union de sécurité. Les deux chemins coexistent, et une assertion de `household_rls_test.sql` rougit si les deux tables portent la même chose. |
-| **⚠️ Le chat** — « je cuisine quoi ce soir ? » | **TROU CONNU, NON REFERMÉ (n°1 du [README](README.md)).** `sophia-brain/router/run.ts:1329` charge `student_safety_constraints` du **seul locuteur** ; le seul lecteur serveur de `household_member_allergies` est `_shared/keel/household_safety.ts:273`, appelé uniquement par `generate-household-meal-v1`. Un parent qui pose la question dans le chat **n'a pas l'allergie de son enfant armée**. La ceinture de sortie du chat (`applyKeelOutputLocks`) n'a donc rien à comparer. |
-| **⚠️ À ce jour, le générateur lui-même** | Le câblage (`loadHouseholdAllergies`, `householdHardConstraints`, `applyHouseRuleLock` alimenté par les seules règles de maison) est **sur le disque et non commité** : `generate-household-meal-v1/index.ts` importe aussi des modules d'une autre session en vol. Tant que ce commit n'est pas fait, `household_member_allergies` est écrite par l'écran et lue par **personne** côté serveur. C'est la raison du statut 🟠. |
+| La lecture du foyer échoue **dans le chat** | La conversation continue. Le tour porte l'interdiction explicite de **proposer, nommer ou recommander un aliment** pour ce foyer (R11), et `unreadableReason` + un `console.warn` bruyant rendent la panne lisible. Jamais « ce foyer n'a pas d'allergie » : c'est toute la raison d'être des deux états. |
+| Le locuteur **rétracte** une allergie dans le chat | Sa ligne à lui se retire de `student_safety_constraints` ; **les refs du foyer restent armées** (R10). Retirer une allergie de foyer se fait sur l'écran du foyer, là où elle a été écrite. |
+| ~~**⚠️ Le chat** — « je cuisine quoi ce soir ? »~~ | ✅ **TROU n°1 — REFERMÉ (`5dfdddb2`, chantier 5).** `run.ts` résout le foyer une fois (`:1453`), charge son union (`:1463`), pousse un second bloc de prompt (`:2349`) et unit les deux listes sur la ceinture de sortie (`:2694-2697`). Un parent qui demande « je cuisine quoi ce soir ? » a désormais l'allergie de son enfant armée. Prouvé sur le pire cas : foyer de 8, sept jours de préparations, le bloc coupe sa liste de courses et dépasse son plancher documenté — `AVOID: peanut, arachide` est intact. La garde mord dans les **deux langues** : « arachide » couvre `peanut butter`, `nut butter`, `PB`, `satay`, `beurre de cacahuète`, `cacahuètes`. |
+| ~~**⚠️ À ce jour, le générateur lui-même**~~ | ✅ **REFERMÉ (`9cd01739`).** Le câblage est commité, dans le commit qui portait aussi la ligne d'envies : lecture des allergies de foyer sous le **même** fail-closed 503, `householdHardConstraints`, et `applyHouseRuleLock` alimenté par les **seules** règles de maison — un allergène ne doit jamais passer par le verrou qui **tait** le pourquoi du plat. `household_safety.ts` a désormais deux importeurs de production : `generate-household-meal-v1/index.ts:59` et `sophia-brain/router/run.ts:331`. |
+| **⚠️ Le skill `plan_question`** — « je peux remplacer le poulet par quoi ? » | **TROU CONNU n°8, NON REFERMÉ.** `loadPlanQuestionRuntime` (`run.ts:2099`) **recharge** les contraintes par `loadStudentSafetyConstraints` seul (`run.ts:2155-2159`) — sans l'union du foyer — et les passe au résolveur d'échange (`skills/plan_question/swap_resolver.ts:93,150`). Conséquence exacte : le résolveur peut **approuver** un échange que la ceinture de sortie mange ensuite. La sécurité tient (la ceinture, elle, connaît le foyer) ; la **cohérence** non — l'élève lit une proposition amputée sans savoir pourquoi. |
 
 ## 8. Critères d'acceptation
 
@@ -182,6 +220,20 @@ Quand les identifiants sont résolus
 Alors `peanut` ET `tree_nut` sont tous les deux rendus
 ```
 
+```gherkin
+Étant donné un parent dont l'enfant SANS COMPTE est allergique à l'arachide
+Quand il demande « je cuisine quoi ce soir ? » DANS LE CHAT
+Alors la ceinture de sortie porte le ref `peanut`
+Et le bloc de prompt du foyer ne dit pas que le PARENT est allergique
+```
+
+```gherkin
+Étant donné un utilisateur SANS foyer
+Quand il envoie un message
+Alors `household_members` est lue UNE fois
+Et `household_member_allergies` est lue ZÉRO fois
+```
+
 ## 9. Rabbit holes
 
 - **La colonne `kind` qui paraît économe.** Une colonne sur
@@ -194,10 +246,16 @@ Alors `peanut` ET `tree_nut` sont tous les deux rendus
   plus rien pour les lignes existantes.
 - **Choisir un slug quand le libellé est ambigu.** C'est un arbitrage médical
   déguisé en détail d'implémentation.
-- **Croire que la ceinture du chat est armée parce qu'elle existe.** Elle l'est
-  — sur les contraintes du locuteur. C'est le trou n°1, et c'est exactement le
-  motif « une garantie écrite comme globale, implémentée sur 1 chemin sur N »
-  que `keel_output_locks.ts` documente dans son propre en-tête.
+- **Croire qu'une ceinture est armée parce qu'elle existe.** C'était le trou
+  n°1 : elle l'était, sur les contraintes du **locuteur** seul. C'est le motif
+  « une garantie écrite comme globale, implémentée sur 1 chemin sur N » que
+  `keel_output_locks.ts` documente dans son propre en-tête — et le trou n°8
+  (`plan_question`) est **le même motif, un cran plus bas** : la ceinture de
+  sortie connaît le foyer, le résolveur qui décide **avant elle** ne le connaît
+  pas. Refermer une lane ne referme pas la famille.
+- **Verser les deux listes dans le même bloc de prompt.** Le raccourci coûte un
+  fait faux sur une personne : « tu es allergique à l'arachide » dit à un parent
+  qui ne l'est pas. Voir R9.
 
 ## 10. Ce qu'on mesure
 
@@ -211,15 +269,29 @@ Alors `peanut` ET `tree_nut` sont tous les deux rendus
 
 ## 11. Questions ouvertes
 
-1. **Le chat.** Refermer le trou n°1 demande de décider **quoi** charger : les
-   allergies du foyer du locuteur, ou seulement les siennes ? Charger le foyer
-   arme la ceinture pour la bonne conversation, et fait aussi apparaître, dans
-   un message, une allergie que le locuteur n'a pas déclarée lui-même. Ce n'est
-   pas une ligne de code, c'est un arbitrage de vie privée intra-familiale.
-2. **Aucun run réel du générateur** n'a validé cette lane : `POST
+1. ✅ **Le chat — TRANCHÉ (`5dfdddb2`).** La question était : charger les
+   allergies du foyer arme la ceinture pour la bonne conversation, et fait
+   aussi apparaître, dans un message, une allergie que le locuteur n'a pas
+   déclarée lui-même. **Arbitrage retenu** : on charge le foyer, et le bloc
+   **ne NOMME pas** de qui est l'allergie — pas de jointure roster, donc aucune
+   dépendance à `localDate` non plus. La vie privée intra-familiale est
+   protégée par l'**anonymat de la contrainte**, pas par son absence.
+2. **La ceinture mord sur TOUT le tour, pas seulement sur la casserole.**
+   Décision produit non tranchée (n°B du [README](README.md)) : dans un foyer
+   où une allergie au lait est déclarée, Sophia cesse de nommer le lait même à
+   propos de l'assiette du seul locuteur. Sur-blocage assumé — c'est déjà le
+   comportement du générateur — mais désormais **visible** dans la
+   conversation.
+3. **`plan_question` (trou n°8).** Refermer demande de décider où l'union
+   entre : dans `loadPlanQuestionRuntime`, ou en amont pour tous les skills.
+   Le second est le bon geste et le plus large ; personne ne l'a tranché.
+4. **Aucun run réel du générateur** n'a validé cette lane : `POST
    generate-household-meal-v1` rend 404 en local (registre du routeur edge figé
-   au démarrage du CLI), et la version commitée reproduit le symptôme.
-3. **La table des formes de surface est-elle assez large en français ?** Elle a
+   au démarrage du CLI), et la version commitée reproduit le symptôme. Le
+   chantier 5 n'a **pas** eu de run réel non plus — un restart du runtime edge
+   était nécessaire et n'a pas été fait, une autre session travaillant en
+   parallèle.
+5. **La table des formes de surface est-elle assez large en français ?** Elle a
    été écrite pour le chemin individuel, où l'intake passe par le modèle. Ici
    c'est un parent qui tape à la main, et personne n'a mesuré la couverture
    réelle des mots qu'un parent français écrit spontanément.

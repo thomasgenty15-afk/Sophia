@@ -198,14 +198,14 @@ des crons, observabilité, files de reprise.
 | [FF-040](composition-des-repas/FF-040-la-boucle-de-correction.md) | La boucle de correction — les nombres dedans, les mots dehors | `composition-des-repas` | 🟠 En cours |
 | [FF-041](composition-des-repas/FF-041-la-methode-du-coach-executable.md) | La méthode du coach, rendue exécutable | `composition-des-repas` | 🟠 En cours |
 | ~~FF-042~~ | *réservé par [TEMPLATE.md](TEMPLATE.md)* — ne pas attribuer | — | — |
-| [FF-043](le-foyer/FF-043-la-resolution-foyer.md) | La résolution foyer — une cuisson, des assiettes qui divergent | `le-foyer` | 🟡 Spécifiée |
+| [FF-043](le-foyer/FF-043-la-resolution-foyer.md) | La résolution foyer — une cuisson, des assiettes qui divergent | `le-foyer` | 🟠 En cours |
 | [FF-044](le-foyer/FF-044-la-bouche-sans-compte.md) | La bouche sans compte | `le-foyer` | 🟢 Livrée |
 | [FF-045](le-foyer/FF-045-decrire-son-foyer.md) | Décrire son foyer | `le-foyer` | 🟢 Livrée |
-| [FF-046](le-foyer/FF-046-l-allergie-d-une-bouche-sans-compte.md) | L'allergie d'une bouche sans compte | `le-foyer` | 🟠 En cours |
+| [FF-046](le-foyer/FF-046-l-allergie-d-une-bouche-sans-compte.md) | L'allergie d'une bouche sans compte | `le-foyer` | 🟢 Livrée |
 | [FF-047](le-foyer/FF-047-le-corps-dans-la-part-du-foyer.md) | Le corps dans la part du foyer | `le-foyer` | 🟢 Livrée |
 | [FF-048](le-foyer/FF-048-reclamer-son-profil.md) | Réclamer son profil | `le-foyer` | 🟢 Livrée |
 | [FF-049](le-foyer/FF-049-le-prix-du-foyer.md) | Le prix du foyer | `le-foyer` | 🟠 En cours |
-| [FF-050](le-foyer/FF-050-l-envie-de-la-semaine.md) | L'envie de la semaine | `le-foyer` | 🟠 En cours (livrée sur le disque, non commitée) |
+| [FF-050](le-foyer/FF-050-l-envie-de-la-semaine.md) | L'envie de la semaine | `le-foyer` | 🟢 Livrée |
 
 > **Un identifiant ne se réutilise jamais** — y compris quand deux sessions
 > écrivent en parallèle, et y compris quand la fiche disparaît. `FF-002` a été

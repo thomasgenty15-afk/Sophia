@@ -148,7 +148,8 @@ vers `household_members` au lieu d'`auth.users` (`:252-282`).
 | Une bouche sans objectif | Part standard. C'est le défaut, pas un échec. |
 | Un prénom vide arrive quand même en base | Impossible : `CHECK` de longueur sur `first_name`. C'est la garde qui remplace le filtre silencieux d'avant. |
 | Le compte maître renomme son profil | Son prénom au foyer **ne suit pas**. Assumé (R2) : il le change au foyer. |
-| Un membre est retiré | `keel_household_remove_member` **détruit la ligne** — voir le trou n°4 du [README](README.md) : c'est le seul retrait qui existe, et il n'a pas de variante « retirer seulement l'accès ». |
+| Un membre est retiré | `keel_household_remove_member` **détruit la ligne**. Depuis `e2899897` (trou n°4 **refermé**), ce n'est plus le seul retrait : `keel_household_detach_member` remet `user_id` à NULL et **garde la bouche**. Deux gestes, deux libellés — voir [FF-048](FF-048-reclamer-son-profil.md) §4. |
+| Le compte attaché à une bouche est **supprimé** | La bouche **survit**, `user_id` repasse à NULL (FK en `ON DELETE SET NULL` depuis `e2899897`). Sauf geste explicite `departs_with_account`, coché à T0 et honoré à J+7. Avant ce commit, la cascade emportait la ligne entière : le foyer maigrissait sans que personne l'ait décidé. |
 | Deux bouches portent le même prénom | Rien ne l'interdit, et c'est volontaire (deux Léa existent). Le brief de portions les distingue par leur ligne, l'écran par sa liste ; le texte lu à table, lui, sera ambigu. **Non traité.** |
 
 ## 8. Critères d'acceptation
