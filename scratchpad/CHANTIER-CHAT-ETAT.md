@@ -1109,3 +1109,45 @@ Deux adjacences signalées à l'agent, absentes de son bloc :
    pointe droit dessus. Consigne : aucun chemin d'activité parallèle, dépendance bloquée si besoin.
 2. **`account-export-v1/index.ts` est modifié par un autre**, alors que la table d'épisode de FF-056
    doit rejoindre le cycle de vie RGPD (cicatrice : 9 tables déjà hors export).
+
+## FF-056 · La divergence constatée — TERMINÉ (`15af7a63`→`796ddb2d`, 5 commits)
+Rapport : `scratchpad/RAPPORT-FF-056.md`. **Aucun fichier réservé touché** (vérifié).
+
+**État initial** : rien de FF-056 (0 fichier, 0 table). Les briques amont vérifiées une par une et
+vivantes : série de poids datée (`body_measure_series.ts`), budget T4 à 4 genres, canal FF-028.
+
+**Livré** : ① détecteur pur · ② déclencheur greffé sur le batch du soir **existant** (pas de second
+cron) · ③ table + RLS + privilèges **prouvés** · ④ sous-flow complet + câblage `routers.ts`/`run.ts`
+· ⑤ actions via FF-028. **⑥ à moitié** : ouverture et bornes de la fenêtre d'observation livrées, le
+**recalage J+3 n'a aucun appelant**.
+
+**Seuils du détecteur**, avec leur raisonnement :
+3 semaines consécutives à contre-sens / **5** pour une stagnation — asymétrie **délibérée**, un
+plateau de 3 semaines est normal · amplitude **1,2 %**, **empruntée à `restriction_guard`** plutôt
+qu'inventée · pas ≥ 0,1 % (c'est lui qui tient le critère §8) · fenêtre 56 j · péremption 10 j.
+
+**Le run réel a trouvé le défaut que la fiche décrit elle-même en §1** : « le matin je grignote » →
+« ajouter une collation **l'après-midi** ». C'est exactement la confabulation de cause que la
+fonctionnalité existe pour empêcher, et elle est apparue dans son propre premier jet. Corrigé
+(moment nommé, table moment→action explicitement trouée). Plus 5 autres défauts trouvés dans son
+propre travail, **dont sa sonde qui mentait** (horloge simulée dans le futur) — T-15, huitième
+occurrence de la campagne.
+
+**Tests** : 73 déterministes (28+12+33) tous verts · **23 scénarios en conditions réelles (vrai
+modèle, vraie base) : 23 GREEN, 0 RED** · suite Deno 4181 verts, 3 rouges **prouvés pré-existants**
+(bump de `MEAL_PROMPT_VERSION` par une autre session, `recent_history` rouge au HEAD).
+
+**Dépendances bloquées** (fichiers d'autrui, respectées) :
+- **export RGPD** — `account-export-v1/index.ts` réservé ; **le diff exact est fourni** dans le
+  rapport et la purge par cascade est prouvée. C'est la cicatrice « le lifecycle RGPD ne réclame pas
+  les tables neuves » : à appliquer dès que le fichier se libère ;
+- **le raccord activité vers FF-055**, en cours d'écriture par une autre session.
+
+**Reste à faire (deux trous nommés)** :
+1. le **recalage de fin de fenêtre** d'observation n'a pas d'appelant ;
+2. le **tap FF-028 doit faire passer l'épisode à `acted`** — sans lui, **la mesure de §10 sera
+   structurellement à zéro**. Un indicateur qui ne peut jamais s'allumer est pire que pas
+   d'indicateur : à traiter avant de croire les chiffres de cette fiche.
+
+**3 amendements de fiche proposés, aucun appliqué.** Le principal : **R9 (« cooldown ≥ 1 cycle de
+plan ») contredit §3 (« mensuel, il devient une convocation »)** — arbitrage humain.
