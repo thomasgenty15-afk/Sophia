@@ -6768,8 +6768,30 @@ export async function processMessage(
     >[0]["ledgerEntries"] = [];
     if (skillResult.episodeAdvance) {
       const advance = skillResult.episodeAdvance;
+      // ── L'AVANCEMENT S'ÉCRIT EN SERVICE-ROLE, ET C'EST STRUCTUREL ─────────
+      // Mesuré en run réel (QA FF-056 du 2026-08-11) : ce bloc passait
+      // `supabase`, le client porté par le JWT DE L'ÉLÈVE, donc le rôle
+      // `authenticated` — qui n'a que `SELECT` sur cette table (la migration
+      // ne lui accorde rien d'autre, volontairement). Chaque tour rendait donc
+      // `permission denied for table student_weight_divergence_episodes`,
+      // l'épisode restait à `proposed/category=null/turn_count=0`, et le flow
+      // parlait sans jamais rien retenir : classification correcte, mémoire nulle.
+      //
+      // Le `as never` d'origine est ce qui a rendu la faute invisible au
+      // typecheck — la cicatrice « `as` sur un type étranger désarme le
+      // typecheck », payée une fois de plus ici.
+      //
+      // On NE relâche PAS les privilèges d'`authenticated` : cette table est
+      // écrite par le runtime, jamais par le navigateur.
+      const episodeWriter = serviceRoleLedgerReadClient();
+      if (!episodeWriter) {
+        throw new Error(
+          "service-role client indisponible: l'avancement d'épisode ne peut pas " +
+            "être écrit avec le client de l'élève (authenticated n'a que SELECT)",
+        );
+      }
       try {
-        const written = await advanceEpisode(supabase as never, {
+        const written = await advanceEpisode(episodeWriter, {
           id: episode.id,
           userId,
           state: advance.state as never,
