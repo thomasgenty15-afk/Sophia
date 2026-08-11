@@ -28,6 +28,10 @@ import { type WeeklyAxis, WEEKLY_AXES } from "../_shared/keel/weekly_flow.ts";
 import { foodPreferencesForPrompt } from "../_shared/keel/food_preference_promotion.ts";
 import { reconcileFoodPreferencesFor } from "../_shared/keel/food_preference_promotion_io.ts";
 import { dayTokenInZone, localDateInZone } from "../_shared/keel/local_date.ts";
+// LOT 3 — le plan personnel d'un membre de foyer doit PORTER son foyer, sinon
+// la fusion ne le retrouve jamais. Même résolveur que le chat, pour qu'il n'y
+// ait qu'une seule définition de « quel foyer est celui de cette personne ».
+import { resolveHouseholdIdFor } from "../_shared/keel/household_turn_context.ts";
 import {
   countHungerDays,
   type HungerWindowSignal,
@@ -304,6 +308,27 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
     const replaces = String(body.replaces ?? "").trim() || null;
+
+    // ── CE QUI EST DÉCIDABLE ICI NE SE PAIE PAS AU PRIX D'UN APPEL MODÈLE ──
+    // Mesuré le 2026-08-11, en conditions réelles: 225 s et DEUX appels modèle
+    // réussis, jetés à l'arrivée parce que `write_student_meal_plan` refuse
+    // `replaces_required`. Or la condition ne dépend que du corps de la requête
+    // — aucune lecture, aucun état. Elle était vérifiable 430 lignes et un
+    // appel modèle plus tôt.
+    //
+    // Aggravant: `replace_current` est le DÉFAUT ci-dessus, c'est-à-dire la
+    // seule branche qui ne peut jamais aboutir sans `replaces`. Le défaut n'est
+    // pas changé ici — le changer modifierait le comportement d'un appelant qui
+    // omet `intent` mais fournit `replaces` — mais il échoue désormais tout de
+    // suite, et en le disant.
+    if (intent === "replace_current" && replaces === null) {
+      return jsonResponse(req, {
+        error: "replaces_required",
+        detail:
+          "intent=replace_current must name the plan it replaces (`replaces`).",
+        request_id: requestId,
+      }, { status: 400 });
+    }
 
     const slotRaw = String(body.meal_slot ?? "").trim();
     const slot = (MEAL_SLOTS as readonly string[]).includes(slotRaw)
@@ -1039,6 +1064,21 @@ Deno.serve(async (req) => {
     //
     // La RPC porte aussi la contrainte d'exclusion en filet: elle refuse
     // nommément un plan qui chevauche un autre sans pouvoir le raccourcir.
+    // LOT 3 — LE FOYER SUR LE PLAN PERSONNEL.
+    //
+    // Best-effort ASSUMÉ: une personne sans foyer rend `null`, et c'est le cas
+    // nominal du produit individuel. Ce qui ne doit PAS arriver, c'est qu'une
+    // panne de lecture fasse silencieusement un plan orphelin — un plan qui
+    // n'entrera dans aucune fusion sans que personne ne le remarque. C'est
+    // pour ça que l'échec est tracé dans `generated_from`, plus bas.
+    let householdId: string | null = null;
+    let householdLookupFailed = false;
+    try {
+      householdId = await resolveHouseholdIdFor(admin, userId);
+    } catch (_error) {
+      householdLookupFailed = true;
+    }
+
     const { data: writtenRows, error: writeErr } = await admin.rpc(
       "write_student_meal_plan",
       {
@@ -1051,6 +1091,11 @@ Deno.serve(async (req) => {
           mode,
           meal_slot: slot,
           servings,
+          household_id: householdId,
+          // Toujours explicite, même hors foyer: ce générateur ne produit QUE
+          // des plans personnels, et le dire ici évite qu'un défaut silencieux
+          // le range un jour ailleurs.
+          plan_kind: "personal",
           context,
           preferences,
           pantry,
@@ -1067,6 +1112,10 @@ Deno.serve(async (req) => {
             goal: String(goalRow.goal ?? "health"),
             prompt_version: MEAL_PROMPT_VERSION,
             intent,
+            // La panne de résolution du foyer, TRACÉE. Sans elle, un plan
+            // orphelin est indiscernable du plan d'une personne qui n'a
+            // simplement pas de foyer.
+            ...(householdLookupFailed ? { household_lookup_failed: true } : {}),
             // ── FF-053 · CE SOUS QUOI CE PLAN A ÉTÉ COMPOSÉ ───────────────
             // La grille de l'écran doit expliquer chaque case vide. Renvoyer
             // ces deux lectures dans la RÉPONSE ne suffit pas: au premier

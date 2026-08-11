@@ -108,10 +108,17 @@ import { weekStartOf } from "../_shared/keel/weekly_flow_io.ts";
  * peut plus appeler pour essayer.
  *
  * ── LE MINEUR N'EST PAS UNE CIBLE (§8.4), ET « JE NE SAIS PAS » NON PLUS ─
- * L'objectif d'une bouche vit sur SA LIGNE DE FOYER depuis le 2026-08-10, plus
- * dans `student_goals` — sans quoi une personne sans compte n'en aurait aucun,
- * et la bifurcation des portions serait muette pour exactement les gens que le
+ * L'objectif d'une bouche SANS COMPTE vit sur sa ligne de foyer depuis le
+ * 2026-08-10 — sans quoi une personne sans compte n'en aurait aucun, et la
+ * bifurcation des portions serait muette pour exactement les gens que le
  * produit veut servir.
+ *
+ * ⚠️ CORRIGÉ LE 2026-08-11 (D1): dès que la bouche A UN COMPTE, son objectif
+ * vient de SON « about you » (`student_goals`), pas de sa ligne. Deux sources
+ * qui divergent sans arbitre écrit, c'est le doublon qui produit un bug six
+ * mois plus tard. La résolution est faite UNE SEULE FOIS, dans
+ * `keel_household_roster_for`, donc ce fichier n'a pas à la connaître — mais
+ * ce commentaire, lui, affirmait le contraire de ce que le code fait.
  *
  * La ceinture a donc changé de nature. Elle n'est plus « on ne LIT PAS la table
  * pour un mineur » (un filtre de requête); elle est `goalApplies` dans
@@ -285,6 +292,33 @@ Deno.serve(async (req) => {
       }, { status: 402 });
     }
 
+    // ── CE QUI EST DÉCIDABLE ICI NE SE PAIE PAS AU PRIX D'UN APPEL MODÈLE ──
+    // Ces deux valeurs ne dépendent QUE du corps de la requête. Elles étaient
+    // lues et validées juste avant l'écriture, c'est-à-dire APRÈS la
+    // génération: mesuré le 2026-08-11, 28,6 s de modèle brûlées pour finir sur
+    // `replaces_required`. Le refus remonte donc ici, avant toute dépense.
+    //
+    // `replace_current` reste le défaut — le changer modifierait le
+    // comportement d'un appelant qui omet `intent` mais fournit `replaces` —
+    // mais il échoue désormais immédiatement, et en le nommant.
+    const intent = String(body.intent ?? "replace_current").trim();
+    if (intent !== "replace_current" && intent !== "prepare_next") {
+      return jsonResponse(req, {
+        error: "unknown_intent",
+        detail: "intent must be replace_current or prepare_next",
+        request_id: requestId,
+      }, { status: 400 });
+    }
+    const replaces = String(body.replaces ?? "").trim() || null;
+    if (intent === "replace_current" && replaces === null) {
+      return jsonResponse(req, {
+        error: "replaces_required",
+        detail:
+          "intent=replace_current must name the plan it replaces (`replaces`).",
+        request_id: requestId,
+      }, { status: 400 });
+    }
+
     // ── LES MEMBRES, PAR LA MÊME PORTE QUE LE CHAT ──────────────────────
     // `keel_household_roster_for` et pas une lecture de table: c'est le SEUL
     // lecteur du roster, partagé avec `household_turn_context`. Deux SELECT sur
@@ -361,7 +395,9 @@ Deno.serve(async (req) => {
     }
 
     // ── LES BOUCHES ─────────────────────────────────────────────────────
-    // L'objectif vient de la LIGNE MEMBRE, plus jamais de `student_goals`. La
+    // L'objectif vient de la ligne membre pour une bouche SANS compte, et de
+    // son « about you » dès qu'elle en a un — arbitré le 2026-08-11 (D1) et
+    // résolu dans `keel_household_roster_for`, jamais ici. La
     // ceinture n'est plus « on ne lit pas la table pour un mineur » — elle est
     // `goalApplies`, dans `household.ts`, et elle refuse DEUX cas: le mineur,
     // et la bouche dont l'âge est inconnu. Le second est neuf, et c'est celui
@@ -989,16 +1025,9 @@ Deno.serve(async (req) => {
     );
 
     // ── L'ÉCRITURE: LA MÊME RPC QUE LE CHEMIN INDIVIDUEL ────────────────
-    const intent = String(body.intent ?? "replace_current").trim();
-    if (intent !== "replace_current" && intent !== "prepare_next") {
-      return jsonResponse(req, {
-        error: "unknown_intent",
-        detail: "intent must be replace_current or prepare_next",
-        request_id: requestId,
-      }, { status: 400 });
-    }
-    const replaces = String(body.replaces ?? "").trim() || null;
-
+    // `intent` et `replaces` sont validés TOUT EN HAUT, avant le modèle — ils
+    // ne dépendent que du corps de la requête. Les relire ici en ferait deux
+    // sources qui divergeraient au premier ajustement.
     const { data: writtenRows, error: writeErr } = await admin.rpc(
       "write_student_meal_plan",
       {
@@ -1020,6 +1049,11 @@ Deno.serve(async (req) => {
           shopping_list: mealShoppingPayload(meal),
           content_locale: String(goalRow.content_locale ?? "en"),
           household_id: householdId,
+          // LA NATURE EST EXIGÉE DÈS QU'IL Y A UN FOYER (lot 3, 2026-08-11).
+          // `write_student_meal_plan` refuse `plan_kind_required` sans elle: un
+          // plan commun rangé comme personnel écraserait la fenêtre du plan
+          // perso du maître au lieu de vivre à côté.
+          plan_kind: "household",
           member_portions: memberPortionsPayload(portions),
           // FF-043 — LES ADD-ONS, EN GRAMMES D'ALIMENT.
           //
@@ -1027,7 +1061,13 @@ Deno.serve(async (req) => {
           // membre, un différentiel lisible, toute mention de corps ou de
           // flag. Ce payload porte un aliment et des grammes, comme n'importe
           // quelle ligne de recette — et il n'y a AUCUNE prose à assainir.
-          member_deltas: memberDeltasPayload(resolution.deltas),
+          // `member_deltas` NE PART PLUS ICI (2026-08-12). La clé était envoyée
+          // à `write_student_meal_plan`, qui ne la nomme jamais, vers une
+          // colonne qui n'existe pas: un chemin d'écriture structurellement
+          // mort, et un appelant qui se croyait écrivain. Les deltas restent
+          // dans la RÉPONSE HTTP plus bas — leur seule destination réelle
+          // aujourd'hui. Leur persistance appartient à FF-043, dont la
+          // conception n'est pas finie: l'y ajouter serait décider à sa place.
           generated_from: {
             coach_id: doctrine.coachId,
             doctrine_version: doctrine.doctrine?.version ?? null,
