@@ -243,6 +243,25 @@ import {
   type PlanQuestionSkillRuntime,
   runPlanQuestionSkill,
 } from "../skills/plan_question/skill.ts";
+// FF-056 — la divergence constatée. Continuation seule: l'épisode est ouvert
+// hors conversation par le batch du soir, et relu EN BASE à chaque tour.
+import {
+  runWeightDivergenceSkill,
+  type WeightDivergenceSkillRuntime,
+} from "../skills/weight_divergence/skill.ts";
+import { classifyDivergenceReply } from "../skills/weight_divergence/local_dispatcher.ts";
+import {
+  advanceEpisode,
+  loadLiveEpisode,
+  type WeightDivergenceEpisodeRow,
+} from "../../_shared/keel/weight_divergence_io.ts";
+import {
+  buildActionSpace,
+  planFingerprint,
+  recommendationAction,
+  RECOMMENDATION_ACTION_IDS,
+} from "../../_shared/keel/daily_recommendation.ts";
+import { loadRhythm } from "../../_shared/keel/daily_recommendation_io.ts";
 import type {
   PlanQuestionChangeRequest,
   PlanQuestionCommitment,
@@ -4731,6 +4750,32 @@ export async function processMessage(
   // appliquées aux QUATRE appels. Leçon P3 de ce dépôt: un gate posé sur le
   // seul chemin nominal est un gate troué — un re-dispatch de sortie de flow
   // perdrait le plancher au tour exact où il compte.
+  // ── FF-056 — L'ÉPISODE DE DIVERGENCE VIVANT ─────────────────────────────
+  //
+  // ⚠️ LU EN BASE, ET PAS DANS `temp_memory`. `user_chat_states.temp_memory` a
+  // DEUX écrivains concurrents en lecture-modification-écriture complète (le
+  // tour texte et le chemin photo): le dernier gagne. Un épisode qu'on peut
+  // perdre est un épisode qui reste ouvert pour toujours — et l'index unique
+  // de la table ferait alors taire ce mécanisme définitivement pour cette
+  // personne, en silence. La table EST l'état.
+  //
+  // Le coût est une lecture indexée par tour, sur un index PARTIEL
+  // (`weight_divergence_one_open_per_user`, `where state in
+  // ('proposed','in_flow')`): il ne contient que les épisodes vivants, c'est-à-
+  // dire presque rien.
+  //
+  // FAIL-CLOSED VERS LE SILENCE, ET NOMMÉ. Une lecture en panne rend « pas
+  // d'épisode »: le pire cas est une réponse qui atterrit dans la conversation
+  // normale (l'épisode expirera tout seul à J+2). L'inverse — router vers un
+  // flow dont on n'a pas pu lire l'épisode — ouvrirait une conversation sur le
+  // poids de quelqu'un sur la foi d'une erreur.
+  let weightDivergenceEpisode: WeightDivergenceEpisodeRow | null = null;
+  try {
+    weightDivergenceEpisode = await loadLiveEpisode(supabase as never, userId);
+  } catch (error) {
+    console.warn("[weight_divergence] live episode unreadable", error);
+  }
+
   const keelRoutingInputs = () => ({
     keel_student: keelTurn.is_student,
     restriction_guard: conversationalRestrictionGuardForRouters({
@@ -4738,6 +4783,7 @@ export async function processMessage(
       tempMemory,
       userMessage,
     }),
+    weight_divergence_episode: { live: weightDivergenceEpisode !== null },
   });
   let routeDecision = runConversationRouters({
     turn_frame: turnFrame,
@@ -6600,6 +6646,205 @@ export async function processMessage(
         skillId: "keel_reengagement_resume_v1" as never,
         skillOutput,
         skillLatencyMs,
+      });
+    }
+  }
+
+  // ── FF-056 — LA DIVERGENCE CONSTATÉE ──────────────────────────────────
+  //
+  // L'épisode a été ouvert HORS conversation par le batch du soir; ce maillon
+  // ne fait que lire la réponse. Trois choses arrivent par la base et jamais
+  // par le turn frame: l'épisode lui-même, le plancher TCA et la bande de
+  // crise. C'est la doctrine du dépôt — ce qui ouvre ou ferme un flow ne
+  // transite pas par un modèle.
+  if (routeDecision.response_owner === "weight_divergence") {
+    if (!weightDivergenceEpisode) {
+      // Ceinture: `routers.ts` gate cette lane sur la présence d'un épisode
+      // vivant. L'atteindre sans lui signifierait que le gate a sauté — et la
+      // lane parlerait alors du poids de quelqu'un sans raison.
+      throw new Error(
+        "[weight_divergence] route armée sans épisode vivant. " +
+          `reason_code=${routeDecision.reason_code}`,
+      );
+    }
+    const episode = weightDivergenceEpisode;
+    const skillStart = Date.now();
+
+    // ── L'ESPACE D'ACTION, PRÉ-CALCULÉ DEPUIS LE PLAN RÉEL ─────────────────
+    // Le canal est celui de FF-028, pas un canal à nous: `buildActionSpace`
+    // n'y met que ce qui CHANGE quelque chose pour cette personne (le moment
+    // n'est pas déjà dans son rythme). L'empreinte est calculée par la MÊME
+    // fonction que le soir — deux définitions de « le plan a changé »
+    // divergeraient, et la divergence se paierait sur un tap qui ne fait rien.
+    let availableActionIds: string[] = [];
+    let planChanged = false;
+    try {
+      const rhythm = await loadRhythm(supabase as never, userId);
+      availableActionIds = buildActionSpace(rhythm.effective).map((a) => a.id);
+      const nowFingerprint = planFingerprint({
+        rhythm: rhythm.effective,
+        doctrineVersion: keelTurn.doctrine?.doctrine?.version ?? null,
+      });
+      planChanged = nowFingerprint !== episode.plan_fingerprint;
+    } catch (error) {
+      // FAIL-CLOSED SUR L'ACTION. Une lecture ratée rend l'espace vide et le
+      // plan « changé »: le flow dit alors qu'il a noté et ne propose rien.
+      // L'inverse proposerait une modification durable sur un plan qu'on n'a
+      // pas pu lire.
+      console.warn("[weight_divergence] action space unreadable", error);
+      availableActionIds = [];
+      planChanged = true;
+    }
+    const actionTexts: Record<string, string> = {};
+    for (const id of RECOMMENDATION_ACTION_IDS) {
+      actionTexts[id] = recommendationAction(id).proposal;
+    }
+
+    // La classification. Le plancher de refus mord AVANT le modèle, dedans.
+    const classification = await classifyDivergenceReply({
+      user_id: userId,
+      request_id: requestId,
+      userMessage,
+    });
+
+    const skillResult = await runWeightDivergenceSkill({
+      user_message: userMessage,
+      context: {
+        skill_id: "weight_divergence",
+        user_id: userId,
+        response_locale: responseLocale,
+        recent_messages: recentMessagesForTurnFrame,
+        // La continuité vit sur la LIGNE D'ÉPISODE (turn_count), pas dans
+        // `temp_memory`: deux écrivains concurrents, le dernier gagne, et un
+        // compteur de tours qu'on peut perdre est un flow sans fin.
+        // Cast NOMMÉ (via `unknown`), et volontairement pas `as never`: le
+        // skill ne lit que `.working_state`, et les champs de registre
+        // (version, skill_id, status…) n'existent pas pour un flow qui ne
+        // transite PAS par le registre des flows locaux. Les inventer
+        // fabriquerait des faits que rien ne lit; `as never` sur l'objet entier
+        // avalerait tout champ manquant du contexte.
+        active_skill_working_state: {
+          working_state: {
+            episode_id: episode.id,
+            phase: episode.state === "proposed" ? undefined : "deepening",
+            turn_count: episode.turn_count,
+            last_category: episode.category ?? undefined,
+            reformulated: episode.category === "other",
+          },
+        } as unknown as ActiveConversationSkillWorkingState,
+        turn_frame: turnFrame,
+        relevant_memory_items: [],
+        // Zéro projection de plan: l'invariant du flow est qu'il ne parle que
+        // de ce que la personne vient de dire.
+        plan_items: [],
+        product_surfaces: [],
+        exclusions: [],
+        weight_divergence_runtime: {
+          episode_id: episode.id,
+          classification,
+          restriction_flagged: keelTurn.restriction?.restriction_flag === true,
+          // La trappe crise, à CE tour. `high` et `critical` seulement: la
+          // détresse `medium` est déjà écartée à la route (`distress === null`),
+          // et la redoubler ici ferait disparaître le flow sur un signal que le
+          // routeur a jugé compatible.
+          crisis: runtimeSafetyRiskBand === "high" ||
+            runtimeSafetyRiskBand === "critical",
+          available_action_ids: availableActionIds,
+          action_texts: actionTexts,
+          plan_changed: planChanged,
+          local_date: keelTurn.local_date ?? "",
+        } satisfies WeightDivergenceSkillRuntime,
+      },
+    });
+    const skillLatencyMs = Date.now() - skillStart;
+
+    // ── L'AVANCEMENT EST ÉCRIT PAR LE RUNTIME, ET RELU ─────────────────────
+    // `advanceEpisode` compte les lignes REVUES: un update à zéro ligne rend
+    // 204 sans erreur, et l'épisode qu'on croit clos resterait vivant — donc
+    // bloquerait tous les suivants par l'index unique, en silence et pour
+    // toujours.
+    const ledgerEntries: Parameters<
+      typeof finishKeelSkillTurn
+    >[0]["ledgerEntries"] = [];
+    if (skillResult.episodeAdvance) {
+      const advance = skillResult.episodeAdvance;
+      try {
+        const written = await advanceEpisode(supabase as never, {
+          id: episode.id,
+          userId,
+          state: advance.state as never,
+          category: advance.category,
+          turnCount: advance.turnCount,
+          observationOpenedOn: advance.observationOpenedOn,
+          observationEndsOn: advance.observationEndsOn,
+        });
+        ledgerEntries.push({
+          status: written.updated > 0 ? "committed" : "failed",
+          effect_type: "weight_divergence_episode.advance",
+          operation_type: "weight_divergence_episode",
+          table: "student_weight_divergence_episodes",
+          committed_id: written.updated > 0 ? episode.id : null,
+          reason_code: written.updated > 0
+            ? `state:${advance.state}`
+            : "episode_update_matched_no_row",
+          payload_summary: {
+            category: advance.category,
+            turn_count: advance.turnCount,
+            observation_window: advance.observationEndsOn !== null,
+          },
+        });
+      } catch (error) {
+        console.error("[weight_divergence] episode advance failed", error);
+        ledgerEntries.push({
+          status: "failed",
+          effect_type: "weight_divergence_episode.advance",
+          operation_type: "weight_divergence_episode",
+          table: "student_weight_divergence_episodes",
+          committed_id: null,
+          reason_code: "episode_update_failed",
+          payload_summary: { category: advance.category },
+        });
+      }
+    }
+
+    // LA TRAPPE. Le flow s'efface SANS TEXTE et le tour continue vers la
+    // ceinture (plancher TCA ou crise). On ne renvoie pas un message vide, et
+    // on ne dit pas au revoir: dire au revoir à quelqu'un en détresse au motif
+    // qu'on change de lane serait la dernière phrase qu'il lirait de nous.
+    if (skillResult.handOver !== null) {
+      // ⚠️ ON NE RE-DISPATCHE PAS, ET C'EST DÉLIBÉRÉ.
+      //
+      // `routers.ts` place DÉJÀ les deux ceintures au-dessus de cette lane
+      // (safety haute/critique, crise active, idéation medium, plancher TCA) et
+      // exige `distress === null` pour l'atteindre. Atteindre ce point signifie
+      // donc que quelque chose a changé ENTRE la route et le tour — c'est de la
+      // défense en profondeur, pas un chemin nominal.
+      //
+      // Rejouer le routeur ici ne servirait à rien: le maillon du plancher TCA
+      // est PLUS HAUT dans cette chaîne de `if` et a déjà été franchi. Le tour
+      // tombe donc vers le composeur, qui porte lui-même la bande de sécurité
+      // du tour — c'est le comportement qu'aurait eu ce message si aucun
+      // épisode n'avait existé, et c'est exactement ce qu'on veut: le flow
+      // disparaît, il ne parle pas, et il ne laisse pas un tour muet derrière
+      // lui.
+      console.warn("[weight_divergence] hand over to floor", {
+        to: skillResult.handOver,
+        episode_id: episode.id,
+        request_id: requestId,
+      });
+      weightDivergenceEpisode = null;
+    } else {
+      console.log(
+        `[weight_divergence] request_id=${requestId}` +
+          ` status=${skillResult.output.status}` +
+          ` category=${skillResult.episodeAdvance?.category ?? "none"}` +
+          ` classification_source=${classification.source}`,
+      );
+      return await finishKeelSkillTurn({
+        skillId: "weight_divergence" as never,
+        skillOutput: skillResult.output,
+        skillLatencyMs,
+        ledgerEntries,
       });
     }
   }

@@ -208,6 +208,11 @@ export function runConversationRouters(input: {
   // Absent/false ⇒ la lane plan_question n'existe pas pour ce tour (le legacy
   // n'a ni commitments ni swap_policy: il n'y aurait rien à résoudre).
   keel_student?: boolean;
+  // FF-056 — un ÉPISODE DE DIVERGENCE vivant, relu en base par le runtime.
+  // Comme `restriction_guard`, et pour la même raison: il n'existe
+  // volontairement aucun `skill_signals.weight_divergence`, sans quoi un modèle
+  // pourrait ouvrir de lui-même une conversation sur le poids de quelqu'un.
+  weight_divergence_episode?: { live: boolean } | null;
 }): RouteDecision {
   void input.flow_intervention_context;
 
@@ -425,6 +430,56 @@ export function runConversationRouters(input: {
       ],
       arbitration_decision: "enter_disordered_eating_guard",
       resume_policy: "enter_fresh",
+    });
+  }
+
+  // ── FF-056 · LA DIVERGENCE CONSTATÉE ────────────────────────────────────
+  // La place est le fond du lot, et elle se lit de haut en bas:
+  //   · SOUS les trois branches safety et SOUS le plancher TCA. Ce flow parle
+  //     de poids qui ne descend pas — c'est le pire terrain du produit, et il
+  //     doit s'effacer devant les deux ceintures sans discuter (R8). Le reducer
+  //     porte les mêmes trappes une seconde fois, à chaque tour: ici c'est la
+  //     route, là-bas c'est le contenu, et les deux doivent tenir.
+  //   · SOUS la reprise après relance: un cadre de reprise a un seul tour pour
+  //     exister, un épisode de divergence en a deux jours.
+  //   · AU-DESSUS du reste, parce que la personne vient de recevoir une
+  //     question et que sa réponse doit atterrir dans le flow qui l'a posée.
+  //     Sans cette branche, « le matin je grignote » tomberait dans la
+  //     conversation normale et l'épisode resterait ouvert pour rien.
+  //
+  // CONTINUATION SEULE. `weight_divergence_episode.live` est une lecture de
+  // BASE, faite par le runtime. Aucun signal de dispatcher n'ouvre ce flow.
+  //
+  // Les effets directs PASSENT: quelqu'un qui répond « le matin je grignote,
+  // et d'ailleurs j'ai mangé des pâtes ce midi » doit voir sa déclaration
+  // écrite. Les avaler ferait de ce flow le seul endroit du produit où parler
+  // ne sert à rien — et il est déjà celui où c'est le plus dur de parler.
+  //   · ET LA DÉTRESSE PASSE DEVANT, explicitement. `distress === "support"`
+  //     est traité PLUS BAS dans ce fichier; sans ce test, un épisode ouvert
+  //     avalerait « je n'en peux plus » et répondrait par une proposition de
+  //     petit-déjeuner. C'est le mode de défaillance §7 « réponse détresse →
+  //     trappe », et il se ferme ici, à la route, avant même le reducer — qui
+  //     porte la même trappe une seconde fois.
+  if (input.weight_divergence_episode?.live === true && distress === null) {
+    return buildRouteDecision({
+      response_owner: "weight_divergence",
+      selected_handler: "weight_divergence",
+      direct_effects_to_run: directEffectsToRun,
+      blocked_paths: [
+        ...blockedPaths,
+        // Aucune AUTRE demande dans ce tour. Le budget T4 a déjà payé la
+        // question d'ouverture; une recommandation empilée dessus serait la
+        // deuxième sollicitation du jour, sur le sujet le plus sensible.
+        { path: "coaching_recommendation", reason_code: "weight_divergence_episode" },
+        { path: "plan_realignment", reason_code: "weight_divergence_episode" },
+        { path: "normal_reply", reason_code: "weight_divergence_episode" },
+      ],
+      active_owner: "weight_divergence",
+      arbitration_decision: "continue_active",
+      resume_policy: "resume_active",
+      reason_code: directEffectsToRun.length > 0
+        ? "active_weight_divergence_with_direct_effects"
+        : "active_weight_divergence",
     });
   }
 

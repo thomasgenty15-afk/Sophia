@@ -15,6 +15,11 @@ export type SkillId =
   // Phase B — reprise apres une relance KEEL. Arme HORS conversation, a la
   // fermeture de l'episode de decrochage; aucun signal dispatcher ne l'ouvre.
   | "keel_reengagement_resume_v1"
+  // FF-056 — la divergence constatée. Son entrée ne vient d'AUCUN signal du
+  // dispatcher: elle vient d'un ÉPISODE ouvert hors conversation par le batch
+  // du soir, relu en base à chaque tour. Même doctrine que le plancher TCA —
+  // ce qui ouvre une lane ne transite jamais par un modèle.
+  | "weight_divergence"
 ;
 
 export type SkillMemoryItem = {
@@ -95,6 +100,14 @@ export type SkillContext = {
    */
   disordered_eating_guard_runtime?: unknown;
   plan_question_runtime?: unknown;
+  /**
+   * FF-056 — l'épisode vivant, la classification déjà faite, et LES DEUX
+   * TRAPPES (plancher TCA, bande de crise) telles que le runtime les a lues ce
+   * tour-ci. Mêmes raisons que les deux au-dessus, plus une: ce flow parle de
+   * poids qui ne descend pas, et ses trappes doivent être vraies à CHAQUE tour,
+   * pas seulement à l'entrée.
+   */
+  weight_divergence_runtime?: unknown;
 };
 
 export type LoadSkillContextInput = {

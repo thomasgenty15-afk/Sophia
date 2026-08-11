@@ -9,6 +9,11 @@ export type ResponseOwner =
   // branche de continuation, la question se répond en un tour.
   | "plan_question"
   | "keel_reengagement_resume_v1"
+  // FF-056 — la divergence constatée. CONTINUATION SEULE: cet owner n'est
+  // jamais sélectionné par un signal du dispatcher. Il s'arme hors
+  // conversation, quand le batch du soir ouvre un épisode, et le runtime relit
+  // cet épisode en base à chaque tour.
+  | "weight_divergence"
   // W2.A: "feature_opportunity" retiré de l'union — plus aucun owner possible.
   | "direct_effect"
   | "normal_reply";
