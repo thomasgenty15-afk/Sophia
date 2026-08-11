@@ -75,6 +75,14 @@ mesure en confiance perdue d'un coup, pas en qualité dégradée.
 - `safety_constraints.ts` — `dietRef` dans le type, dans le `select` du loader,
   dans le mapping. **Absent de `safetyConstraintTokens()`** (R1), avec la
   cicatrice `allergen_ref='diabetes'` écrite au-dessus.
+- `SAFETY_CONSTRAINT_KINDS` — **`'diet'` ajouté**. Il était dans le CHECK depuis
+  la migration `20260810140000` et **absent du type**, et
+  `row.kind as SafetyConstraintKind` — un cast qui ne vérifie rien — le cachait.
+  Une ligne de régime se chargeait avec une valeur hors union. Vérifié : aucun
+  appelant ne branche sur `kind` aujourd'hui, donc rien n'était encore faux ;
+  c'est le prochain `switch` exhaustif qui l'aurait été, en silence. Un
+  test-miroir lit désormais le CHECK **dans la migration**, et il a été muté
+  pour prouver qu'il mord.
 - `meal_verdict.ts` — `sentinels` scindé en `missing` / `uncoverable`,
   `SENTINEL_FLAG_BY_COLUMN` (fermée, `satisfies`), `uncoverableSentinels`
   **paramètre requis** de `verdictFor`.

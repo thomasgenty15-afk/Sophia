@@ -12,10 +12,10 @@
 | **B · la B12 du végan** | ✅ **Livré** | R6 de FF-042 fermé ; la boucle infinie est écartée en amont, pas filtrée en aval |
 | **C · les apports fixes** | ✅ **Livré** | FF-051 neuve ; 3 branches, 26 tests, prouvé en run réel |
 | **D · les propriétés de jour** | ✅ **Livré** | FF-052 neuve ; **2** propriétés retenues sur 4 instruites, 18 tests, prouvé en run réel |
-| **A · le banc d'essai** | ❌ **Non fait** | Porte **ouverte** — mais la campagne coûte ~5 h de run réel et n'a pas été lancée. Détails et amorçage en §4 |
+| **A · le banc d'essai** | ✅ **Livré** | 180 générations, 5 modèles, $12,57. Gagnant **`gpt-5.6-terra`** ; le retour arrière documenté (`gpt-5.4-mini`) est le SEUL à servir des aliments interdits. [`RAPPORT-BANC-MODELES.md`](RAPPORT-BANC-MODELES.md) |
 
 **Trois chantiers livrés complètement plutôt que quatre à moitié**, comme le plan
-le demandait. La suite `deno test` complète est verte, le typecheck front est
+le demandait — puis le quatrième, une fois la porte rouverte et l'accord donné. La suite `deno test` complète est verte, le typecheck front est
 propre, et un run réel local vérifie chaque branche livrée dans une vraie sortie.
 
 ### ⚠️ Une correction à porter avant tout le reste
@@ -380,7 +380,13 @@ commité d'autres lanes, et l'emporter serait leur voler leur lot.
 
 ## 8 · Ce que je n'ai pas fait
 
-1. **Le chantier A** — §4. Porte ouverte, campagne non lancée, amorçage fourni.
+1. ~~**Le chantier A**~~ — **fait** après coup, voir
+   [`RAPPORT-BANC-MODELES.md`](RAPPORT-BANC-MODELES.md). Trois choses en sont
+   sorties qui dépassent le choix d'un modèle : le moteur **s'abstient sur 67 %
+   des générations** faute de résolution (la curation d'alias vaut plus que
+   n'importe quel changement de modèle) ; le retour arrière documenté par
+   `generation_model.ts` est **dangereux** ; et le défaut actuel est le plus
+   lent et le plus cher des cinq.
 2. **Le canal coach du drapeau B12** — il n'existe pas, la règle k=5 renforcée
    qui l'attend est écrite (§1.1).
 3. **Les apports fixes et les propriétés de jour au foyer** — `DELTA_CHANNELS` ne
