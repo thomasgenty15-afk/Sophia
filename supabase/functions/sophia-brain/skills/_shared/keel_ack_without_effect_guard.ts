@@ -665,6 +665,20 @@ export function acknowledgementClaimSentenceIndexes(text: string): number[] {
  * Avec `u`, la classe contient quatre points de code et le lookbehind ne peut
  * plus tomber au milieu d'une paire.
  */
+/**
+ * ⚠️ DÉFAUT CONNU, NON CORRIGÉ ICI (constaté le 2026-08-12, lot « couture »):
+ * ce découpage coupe sur le POINT DÉCIMAL. « Nutella has 56.3 g of sugar. »
+ * devient `["Nutella has 56.", "3 g of sugar."]`, et une ceinture qui retire
+ * la seconde laisse « Nutella has 56. » dans la bulle.
+ *
+ * Non touché EXPRÈS: `guardKeelAckWithoutCommittedEffect` est la garde la plus
+ * importante du produit, épinglée par 7 tests et par une cicatrice de mémoire
+ * (`ack-guard-eats-grounded-citations`). En changer le découpage déplace CHAQUE
+ * frontière de phrase de la garde, donc chaque morsure — c'est un lot à soi,
+ * avec sa campagne de mesure. `_shared/keel/turn_ledger.ts` porte le découpage
+ * corrigé (`splitBeltSentences`) et explique pourquoi il n'emprunte pas
+ * celui-ci.
+ */
 function splitSentences(text: string): string[] {
   return text.split(/(?<=[.!?\n✅✔☑🟢])/u);
 }

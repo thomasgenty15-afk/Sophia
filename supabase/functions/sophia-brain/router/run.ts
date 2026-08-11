@@ -361,6 +361,13 @@ import {
 } from "../../_shared/keel/meal_declaration_floor.ts";
 import { floorSilencedWriteForTurn } from "../../_shared/keel/floor_silenced_write.ts";
 import {
+  EMPTY_TURN_LEDGER,
+  enforceTurnLedger,
+  recordTurnLedger,
+  TURN_LEDGER_BELT_NAME,
+  type TurnLedger,
+} from "../../_shared/keel/turn_ledger.ts";
+import {
   recordAllowedEffect,
   recordBlockedEffect,
   recordCommittedEffect,
@@ -1192,6 +1199,28 @@ export type KeelTurnContext = {
    * FR 0/3 et EN 1/3 quand il dépendait du LLM.
    */
   declared_medical_condition: string | null;
+  /**
+   * ── LE CANAL DÉTERMINISTE → PAROLE ────────────────────────────────────────
+   *
+   * Ce que les planchers de CE tour ont écrit, refusé, ou écrit en silence —
+   * avec leur motif. Voir `_shared/keel/turn_ledger.ts` pour le pourquoi ; en
+   * une phrase : « le déterministe décide, la couche qui parle ne le sait pas
+   * et n'est pas contrainte » est le motif structurel de cinq REDs, et ce champ
+   * est la moitié « le sait ».
+   *
+   * OBLIGATOIRE, jamais optionnel, et il voyage ICI plutôt que sur le
+   * `turn_frame` pour la raison déjà mesurée par `meal_precision_question`: un
+   * redispatch de sortie de flow RECONSTRUIT le frame et perd ce qu'on y avait
+   * posé. `keelTurn` est passé OBLIGATOIREMENT à `finalVisibleText` sur les six
+   * chemins de sortie, et le compilateur refuse d'en oublier un.
+   *
+   * ⚠️ MUTABLE, ET C'EST VOULU. Les planchers décident à des endroits différents
+   * de `run`, entre le chargement et le rendu ; `keelTurn` est réassigné par
+   * spread plusieurs fois entre-temps, et un tableau survit au spread par
+   * référence. Écrire passe TOUJOURS par `recordTurnLedger`, qui refuse hors
+   * élève KEEL et sur le ledger gelé du contexte legacy.
+   */
+  turn_ledger: TurnLedger;
 };
 
 export const LEGACY_KEEL_TURN_CONTEXT: KeelTurnContext = {
@@ -1220,6 +1249,10 @@ export const LEGACY_KEEL_TURN_CONTEXT: KeelTurnContext = {
   day_facts: null,
   support_ground: "none",
   household: null,
+  // GELÉ, et partagé par tous les tours non-KEEL: c'est un const de module, et
+  // un tableau mutable ici fuirait d'un tour à l'autre. `recordTurnLedger`
+  // refuse d'écrire hors élève KEEL; le gel est le filet sous cette règle.
+  turn_ledger: EMPTY_TURN_LEDGER,
 };
 
 const ISO_LOCAL_DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -1527,6 +1560,9 @@ export async function loadKeelTurnContext(args: {
     day_facts: dayFacts,
     support_ground: groundOfSupport,
     household,
+    // NEUF À CHAQUE TOUR. Le chargeur n'y met rien: il n'a pris aucune décision
+    // de plancher — les planchers tournent plus bas, dans `run`, après lui.
+    turn_ledger: [],
   };
 }
 
@@ -2573,6 +2609,64 @@ export function finalVisibleText(
   out = stripTrackClaimWithoutCommit(out, turnFrame ?? null);
   out = ensureCommittedRenderParity(out, turnFrame ?? null, userMessage);
   out = stripRetractedSessionMention(out, history, userMessage, turnFrame);
+
+  // ── LA CEINTURE DU CANAL DÉTERMINISTE → PAROLE ─────────────────────────────
+  //
+  // Voir `_shared/keel/turn_ledger.ts` pour le mécanisme et les cinq règles.
+  // Ici, seulement le PLACEMENT, qui porte trois décisions:
+  //
+  //  1. HORS du `if (!isSafetyRoute(...))`, et c'est la moitié qui répare T-7.
+  //     Le silence du plancher se joue précisément sur les routes de crise et
+  //     de restriction; une ceinture qui les évite ne verrait jamais le cas
+  //     qu'elle existe pour couvrir. Les quatre autres règles y sont inertes
+  //     par construction (aucun plancher de mesure ni d'invitation photo ne
+  //     s'arme sur un tour de crise).
+  //
+  //  2. AVANT `appendPhotoInvitation`, et c'est la moitié qui rend T-6
+  //     réparable sans se mordre la queue. La règle « aucune demande de photo
+  //     hors budget » retire les sollicitations du COMPOSEUR; l'invitation
+  //     ARMÉE par le compteur est ajoutée après, et sort donc intacte. Inverser
+  //     l'ordre ferait manger la seule demande légitime du tour.
+  //
+  //  3. APRÈS les ceintures de contrat de frame (`ensureCommittedRenderParity`,
+  //     `stripTrackClaimWithoutCommit`), parce qu'elles réécrivent le corps et
+  //     qu'un accusé réinjecté après vérification sortirait intact — même
+  //     raisonnement que la note de `stripKeelAckWithoutCommittedEffect`.
+  {
+    const ledgerBelt = enforceTurnLedger({
+      text: out,
+      ledger: keel.turn_ledger,
+      isKeelStudent: keel.is_student === true,
+      isMinor: keel.age_verdict?.status === "minor",
+      userMessage: String(userMessage ?? ""),
+      locale: keel.content_locale ?? "en-GB",
+    });
+    if (ledgerBelt.reasons.length > 0) {
+      // ⚠️ LE MOTIF, JAMAIS LE CONTENU (R9 de FF-007: le coach ne lit jamais
+      // les conversations). Et le taux se lit ici: SI CETTE LIGNE EST
+      // FRÉQUENTE SUR DES TOURS ORDINAIRES, C'EST LE PROMPT QU'IL FAUT
+      // CORRIGER, PAS LA CEINTURE QU'IL FAUT DESSERRER. Un repli devenu
+      // nominal est un composeur mort, et il est invisible autrement.
+      console.warn("[keel] turn_ledger belt bit", {
+        reasons: ledgerBelt.reasons,
+        stripped_sentences: ledgerBelt.stripped_sentences,
+        ledger: keel.turn_ledger.map((entry) =>
+          `${entry.subject}:${entry.outcome}:${entry.reason_code}`
+        ),
+      });
+      logRuntimeGuardEvent({
+        guard: TURN_LEDGER_BELT_NAME,
+        userId: (turnFrame as { user_id?: string } | null)?.user_id ?? null,
+        detail: {
+          turn_id: (turnFrame as { turn_id?: string } | null)?.turn_id ?? null,
+          reasons: ledgerBelt.reasons,
+          stripped_sentences: ledgerBelt.stripped_sentences,
+        },
+      });
+    }
+    out = ledgerBelt.text;
+  }
+
   if (!isSafetyRoute(routeDecision)) {
     out = ensureVisibleSophiaEmoji(out);
     out = ensureClarifyQuestionVisible(out, turnFrame ?? null);
@@ -4430,6 +4524,22 @@ export async function processMessage(
           "un mineur n'a pas de suivi de poids: la mesure n'est pas enregistrée " +
           "et n'est pas mentionnée.",
       });
+      // LE CANAL — la seconde moitié de « et n'est pas mentionnée ».
+      //
+      // Jusqu'ici, ce refus n'existait QUE dans ce `console.warn`. Le composeur
+      // recevait le message brut de l'élève et répondait « 78 kg is now your
+      // current weight » — mesuré 3/3, à un mineur, sur une ligne qui n'existe
+      // pas. La règle qui l'interdisait vivait dans le prompt.
+      recordTurnLedger({
+        ledger: keelTurn.turn_ledger,
+        isKeelStudent: keelTurn.is_student,
+        entry: {
+          subject: "body_measure",
+          outcome: "refused",
+          reason_code: "minor_no_weight_tracking",
+          stored_value_si: null,
+        },
+      });
     } else if (declaredMeasure) {
       // Liés en locaux: le compilateur ne sait pas rétrécir un champ de
       // `keelTurn`, qui est un `let` réassigné plus bas.
@@ -4445,6 +4555,18 @@ export async function processMessage(
         console.warn("[keel] body_measure_floor could not write", {
           request_id: requestId,
           reason: !weekStart ? "missing_local_date" : "missing_content_locale",
+        });
+        recordTurnLedger({
+          ledger: keelTurn.turn_ledger,
+          isKeelStudent: keelTurn.is_student,
+          entry: {
+            subject: "body_measure",
+            outcome: "failed",
+            reason_code: !weekStart
+              ? "missing_local_date"
+              : "missing_content_locale",
+            stored_value_si: null,
+          },
         });
       } else {
         try {
@@ -4486,6 +4608,23 @@ export async function processMessage(
             detail:
               "mesure annoncée en conversation, écrite comme mesure datée et " +
               "dans le miroir hebdomadaire. La ceinture est ré-évaluée sur ce tour.",
+          });
+
+          // LE CANAL — et c'est `written.storedValue`, la valeur RELUE, jamais
+          // celle qu'on a envoyée. T-1 en une ligne: « Got it — 78, not 87 »
+          // était vrai pour le composeur (l'élève avait dit 78) et faux pour la
+          // personne (la base porte 87). Seule la valeur relue tranche.
+          recordTurnLedger({
+            ledger: keelTurn.turn_ledger,
+            isKeelStudent: keelTurn.is_student,
+            entry: {
+              subject: "body_measure",
+              outcome: "written",
+              reason_code: written.outcome,
+              stored_value_si: typeof written.storedValue === "number"
+                ? written.storedValue
+                : null,
+            },
           });
 
           // LA MOITIÉ QUI FAIT LA FICHE (FF-008 R7). Sans elle, on aurait
@@ -4535,6 +4674,19 @@ export async function processMessage(
             detail:
               "la mesure annoncée n'a PAS été enregistrée; la ceinture ne la " +
               "verra pas. Le tour continue sans elle.",
+          });
+          // LE CANAL — et ici il fait plus que documenter: sans lui, le tour
+          // continuait « sans elle » côté base ET « avec elle » côté prose. Le
+          // composeur accusait réception d'une écriture qui venait d'échouer.
+          recordTurnLedger({
+            ledger: keelTurn.turn_ledger,
+            isKeelStudent: keelTurn.is_student,
+            entry: {
+              subject: "body_measure",
+              outcome: "failed",
+              reason_code: "write_failed",
+              stored_value_si: null,
+            },
           });
         }
       }
@@ -5537,6 +5689,24 @@ export async function processMessage(
       if (invitation.sentence) {
         keelTurn.meal_photo_invitation = invitation.sentence;
       }
+      // LE CANAL — T-6, ET C'EST LE SENS DE LA LIGNE `refused`.
+      //
+      // Le budget partagé (`daily_ask_budget.ts`, `DAILY_ASK_BUDGET = 1`) vient
+      // de décider. Jusqu'ici, un refus ne laissait qu'un `console.log`: le
+      // composeur, lui, ajoutait parfois SA propre demande de photo (~1/25), et
+      // le compteur ne la voyait jamais. Le budget était donc contournable par
+      // le haut. La ceinture de sortie lit cette ligne et retire toute
+      // sollicitation photo que le compteur n'a pas armée.
+      recordTurnLedger({
+        ledger: keelTurn.turn_ledger,
+        isKeelStudent: keelTurn.is_student,
+        entry: {
+          subject: "photo_invitation",
+          outcome: invitation.sentence ? "written" : "refused",
+          reason_code: invitation.reason_code,
+          stored_value_si: null,
+        },
+      });
       const armed = await armMealPrecisionQuestion({
         responseLocale,
         supabase,
@@ -5707,6 +5877,32 @@ export async function processMessage(
           "le plancher a pris le tour; le FAIT est écrit quand même et la " +
           "restitution n'existe pas — le runtime ne rejoint pas le frame et " +
           "ne porte aucun texte.",
+      });
+
+      // ── LE LECTEUR QUI MANQUAIT (T-7) ────────────────────────────────────
+      //
+      // L'en-tête de `floor_silenced_write.ts` dit « la trace existait déjà;
+      // c'est le lecteur qui manquait », et le module EST ce lecteur — côté
+      // ÉCRITURE. Côté PAROLE, la moitié « taire la réponse » de l'arbitrage
+      // humain du 2026-08-08 n'avait aucun mécanisme: le runtime est muselé
+      // (`content: ""`), mais la prose du skill clinique, elle, n'est
+      // contrainte par rien, et `guardKeelAckWithoutCommittedEffect` est
+      // DÉSARMÉE sur ces deux routes exprès (`disarmed_safety_turn`,
+      // `disarmed_restriction_floor_turn` — son dégradé poserait une question
+      // de liage de plan, soit de la pression d'adhérence).
+      //
+      // `written_silently` n'est PAS `written`: la première dit « c'est en
+      // base », la seconde dirait « tu peux le dire ». La ceinture de sortie
+      // retire tout accusé sur ce tour, et n'ajoute rien.
+      recordTurnLedger({
+        ledger: keelTurn.turn_ledger,
+        isKeelStudent: keelTurn.is_student,
+        entry: {
+          subject: "meal_declaration",
+          outcome: committedCount > 0 ? "written_silently" : "failed",
+          reason_code: floorSilenced.reason_code ?? "floor_silenced",
+          stored_value_si: null,
+        },
       });
       operationRuntime = mergeDirectEffectRuntimeIntoVisibleRuntime({
         directRuntime: {
