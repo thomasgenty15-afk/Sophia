@@ -46,7 +46,7 @@ prennent la main, et les comptes individuels sans foyer.
 | **D10** | La fusion est **manuelle**, déclenchée par le maître, sur proposition : *« le plan de X a été validé, voulez-vous le fusionner ? »* | ⬜ à faire |
 | **D11** | Plafond : `N + 3` fusions par foyer et par semaine ISO, N = comptes actifs. Compté en base, refus nommé `merge_quota_exhausted`. | ⬜ à faire |
 | **D12** | Pas de reprise des plans produits par l'ancien chemin : ils seront régénérés. | ✅ acté |
-| **D13** | **Le verrou de paiement est au niveau du FOYER.** Foyer impayé ⇒ plus personne ne génère, ni maître ni secondaire. Un compte **sans foyer** n'est pas concerné : les comptes individuels existent et ne demandent pas de foyer. | ⬜ à faire |
+| **D13** | **Le verrou de paiement est au niveau du FOYER.** Foyer impayé ⇒ plus personne ne génère, ni maître ni secondaire. Un compte **sans foyer** n'est pas concerné : les comptes individuels existent et ne demandent pas de foyer. | ✅ livré (L1) |
 | **D14** | **La présence se déclare.** Le maître doit pouvoir marquer **qui est là, et quand**. Tout le monde présent est le cas simple ; une absence se marque, et elle change les parts sans supprimer la session de cuisson. | ⬜ à faire |
 | **D15** | **La fusion opère sur l'INTERSECTION des fenêtres.** Un secondaire peut couvrir mercredi→dimanche quand le foyer couvre lundi→dimanche. Elle s'arrête d'elle-même là où les fenêtres divergent. | ⬜ à faire |
 | **D16** | **Le pivot est le premier jour non encore consommé**, pas la date de courses. Une fusion ne touche que les jours à venir, et la proposition le dit : *« son plan couvre 5 jours, dont 2 déjà passés — je peux fusionner les 3 restants. »* | ⬜ à faire |
@@ -95,7 +95,7 @@ Campagne de test du 2026-08-11, 5 lanes en conditions réelles, ~80 vérificatio
 
 | # | Lot | Dépend de | Pourquoi maintenant |
 |---|---|---|---|
-| **L1** | **Le verrou de paiement (D13)** — refuser AVANT l'appel modèle, dans les deux générateurs, quand le foyer de l'appelant n'est pas couvert. Refus nommé, 402. Un appelant sans foyer passe. | — | C'est un trou de coût mesuré : 19 805 jetons consommés par un compte sans droit |
+| ~~**L1**~~ | ~~**Le verrou de paiement (D13)**~~ | — | ✅ **livré le 2026-08-12** — voir §« L1, ce qui est prouvé » |
 | **L2** | **La présence (D14)** — marquer qui est là et quand. Aujourd'hui `away_days` est lu sur la ligne du **propriétaire** seul ; l'absence individuelle d'un membre est un trou nommé dans FF-002 §9. | — | Le maître compose pour tout le monde : sans ça il cuisine pour des absents |
 | **L3** | **La prise de main (D7, D2)** — un secondaire génère son plan ; sinon il est composé dans celui du maître. Le générateur de foyer doit **exclure** les membres qui ont un plan personnel validé sur la fenêtre. | L1 | C'est la bascule du modèle révisé |
 | **L4** | **Le moteur de fusion (D6, D15, D16)** — lit les plans personnels validés, applique l'échelle, opère sur l'**intersection** des fenêtres, s'arrête au premier jour non consommé, écrit `merged_from`. | L3 | Le cœur |
@@ -105,6 +105,50 @@ Campagne de test du 2026-08-11, 5 lanes en conditions réelles, ~80 vérificatio
 | **L8** | **Les écrans (D9)** — plan du foyer, plan perso, la proposition, ce qui n'a pas fusionné et pourquoi. | L4, L5 | |
 | **L9** | **La date de naissance (D18)** — sur la fiche de bouche (existe déjà) et dans « about you » pour le maître (à vérifier). | — | Sans elle l'objectif du maître est inactif par défaut |
 | **L10** | **QA réelle** sur un foyer à objectifs divergents : la prise de main, la fusion, la défusion, le repli séparé, les fenêtres décalées. | tout | |
+
+## L1, ce qui est prouvé — 2026-08-12
+
+La garde est en `generate-meal-v1/index.ts:386-411` (résolution du foyer remontée
+à `:350`, premier appel modèle `:841`) et inchangée en
+`generate-household-meal-v1/index.ts:269-292`. Une seule lecture de foyer par
+requête : le site d'écriture consomme la valeur au lieu de re-résoudre.
+
+Mesuré en HTTP réel, trois comptes, mêmes corps de requête :
+
+| Cas | Résultat |
+|---|---|
+| Maître d'un foyer **non couvert** | `402 household_frozen` |
+| Le **même compte**, `free_until` basculé | `409 no_coach` — la garde est franchie |
+| Compte **sans aucun foyer** | franchit la garde |
+| Membre **non propriétaire** d'un foyer gelé | `402` par sa porte personnelle |
+| `generate-household-meal-v1` sur le foyer gelé | `402`, non cassé |
+
+**Le modèle n'est pas payé** : refus en 33–80 ms à chaud, contre ~180 s pour une
+génération réelle ; `llm_usage_events` reste à **0 ligne** pour les trois comptes.
+**Rien n'est écrit** : le plan préexistant est resté à l'octet près, `updated_at`
+inchangé. **Fail-open vérifié en vivant** : `execute` révoqué deux secondes sur
+`keel_household_is_covered` ⇒ le foyer gelé passe les deux portes, et l'échec est
+journalisé dans `system_error_logs`.
+
+**Deux défauts trouvés en chemin.**
+
+1. *Corrigé.* `jsonResponse` écrit dans `system_error_logs` **tout** statut ≥ 400,
+   au niveau `error` : 15 lignes d'incident pour des refus de paiement en une
+   session de test. Les deux 402 portent désormais `skipErrorLog`, et la trace
+   utile reste entière dans le `console.log` nommé. Test mutation-testé.
+2. *Accepté tel quel.* `if (householdId && !householdLookupFailed)` — la seconde
+   clause est morte par construction (`householdId` reste `null` quand la
+   résolution lève). Gardée comme ceinture ; ne pas la lire comme le mécanisme du
+   fail-open, qui tient au `null`.
+
+**Ce qui n'est pas prouvé** : qu'un foyer couvert compose **de bout en bout**. Les
+trois comptes de test s'arrêtent deux gardes plus loin sur `no_coach`, faute de
+coach avec doctrine publiée. La position de la garde est prouvée par la source
+(`indexOf` garde < `indexOf` modèle), pas par une génération complète.
+
+**Reste ouvert, hors L1** : `frontend/src/keel/api/mealGeneration.ts` ne mappe pas
+`household_frozen` — un secondaire de foyer gelé verra le jeton brut. À porter en
+**L8**.
 
 ## Ce que L4 défait
 

@@ -283,13 +283,18 @@ Deno.serve(async (req) => {
         user_id: userId,
         household_id: householdId,
       }));
+      // `skipErrorLog`: UN IMPAYÉ N'EST PAS UN INCIDENT. Voir le jumeau dans
+      // `generate-meal-v1`. La trace utile est juste au-dessus
+      // (`keel.household_meal.frozen`); ce qui partait en plus dans
+      // `system_error_logs`, au niveau `error`, était du bruit qu'un foyer
+      // gelé produit à chaque appui.
       return jsonResponse(req, {
         error: "household_frozen",
         detail: "This household is paused. Nothing has been deleted - the " +
           "current plan stays readable, and composing resumes as soon as the " +
           "subscription does.",
         request_id: requestId,
-      }, { status: 402 });
+      }, { status: 402, skipErrorLog: true });
     }
 
     // ── CE QUI EST DÉCIDABLE ICI NE SE PAIE PAS AU PRIX D'UN APPEL MODÈLE ──

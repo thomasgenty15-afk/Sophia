@@ -125,20 +125,180 @@ Deno.test("le défaut de households.free_until CITE la constante", async () => {
 // 2. LES DEUX PORTES CITENT LA DÉFINITION UNIQUE
 // ---------------------------------------------------------------------------
 
+/**
+ * L'APPEL, pas le mot.
+ *
+ * ⚠️ MESURÉ EN MUTANT, le 2026-08-11: un `src.includes("keel_household_is_
+ * covered")` reste VERT quand on renomme la RPC en
+ * `keel_household_is_covered_XX` (le nom cassé contient l'ancien) ET quand on
+ * supprime l'appel, parce que le gros commentaire qui explique la garde cite
+ * le nom. Deux fois la cicatrice « un audit d'appelants au grep naïf compte
+ * des faux vivants » — dans le fichier même qui la nomme.
+ *
+ * Donc: commentaires retirés, et la forme d'APPEL exigée, guillemet fermant
+ * compris.
+ */
+function callsCoverageRpc(src: string): boolean {
+  return /rpc\(\s*["']keel_household_is_covered["']/.test(stripComments(src));
+}
+
+/** Le motif NOMMÉ, rendu comme valeur — pas cité dans une prose. */
+function returnsFrozenReason(src: string): boolean {
+  return /["']household_frozen["']/.test(stripComments(src));
+}
+
 Deno.test("la génération de repas de foyer interroge la couverture", async () => {
   const src = await Deno.readTextFile(
     new URL("generate-household-meal-v1/index.ts", FUNCTIONS_DIR),
   );
   assert(
-    src.includes("keel_household_is_covered"),
+    callsCoverageRpc(src),
     "generate-household-meal-v1 n'appelle plus keel_household_is_covered: la " +
       "porte que D4 ferme est rouverte, et rien ne le dit.",
   );
   assert(
-    src.includes("household_frozen"),
+    returnsFrozenReason(src),
     "generate-household-meal-v1 ne rend plus le motif NOMMÉ `household_frozen`: " +
       "un refus muet se lit comme une panne.",
   );
+});
+
+Deno.test("la génération de repas PERSONNELLE interroge la couverture", async () => {
+  // D13 — LA PORTE VOISINE. Mesuré le 2026-08-11: un foyer gelé se voyait
+  // refuser `generate-household-meal-v1`, puis obtenait 200 ici, et le plan
+  // écrit portait quand même le `household_id` de ce foyer. Un 402 qui se
+  // contourne par une porte voisine n'est pas un 402.
+  const src = await Deno.readTextFile(
+    new URL("generate-meal-v1/index.ts", FUNCTIONS_DIR),
+  );
+  assert(
+    callsCoverageRpc(src),
+    "generate-meal-v1 n'appelle plus keel_household_is_covered: le gel du " +
+      "foyer se contourne par la porte du plan personnel, et rien ne le dit.",
+  );
+  assert(
+    returnsFrozenReason(src),
+    "generate-meal-v1 ne rend plus le motif NOMMÉ `household_frozen`: le " +
+      "front mappe CE mot (HouseholdPage), et deux vocabulaires pour un même " +
+      "refus est une dette payée deux fois.",
+  );
+});
+
+Deno.test("le gel personnel ne coûte pas un appel modèle", async () => {
+  // ⚠️ LE SEUL TEST QUI PROTÈGE LE COÛT. Une garde posée APRÈS la génération
+  // refuse tout aussi correctement — en HTTP, elle est indiscernable — et
+  // brûle les 19 805 jetons qu'elle existe pour ne pas dépenser. La position
+  // ne se prouve donc pas par le comportement, seulement par la source.
+  for (
+    const fn of ["generate-meal-v1/index.ts", "generate-household-meal-v1/index.ts"]
+  ) {
+    const src = stripComments(
+      await Deno.readTextFile(new URL(fn, FUNCTIONS_DIR)),
+    );
+    const guard = src.search(/rpc\(\s*["']keel_household_is_covered["']/);
+    const model = src.indexOf("generateWithGemini(");
+    assert(guard >= 0, `${fn}: garde de couverture absente`);
+    assert(model >= 0, `${fn}: appel modèle introuvable — test à réviser`);
+    assert(
+      guard < model,
+      `${fn}: la garde de couverture est APRÈS le premier appel modèle. Le ` +
+        `refus reste juste, et c'est ce qui le rend invisible: il se paie ` +
+        `désormais au prix d'une génération complète.`,
+    );
+  }
+});
+
+Deno.test("un impayé n'écrit pas dans le journal d'incidents", async () => {
+  // MESURÉ LE 2026-08-12, sur la campagne réelle de L1: 15 lignes de
+  // `system_error_logs` au niveau `error` — 9 pour `generate-meal-v1`, 6 pour
+  // le foyer — produites par des refus de paiement, en UNE session de test.
+  //
+  // `jsonResponse` journalise tout statut >= 400 sauf `skipErrorLog`. Un foyer
+  // gelé qui retape « Composer » écrit donc une ligne d'incident par appui.
+  // Un journal où l'état produit le plus banal est majoritaire est un journal
+  // qu'on cesse de lire — et c'est là qu'on cherche les vraies pannes.
+  //
+  // La trace reste ENTIÈRE: le `console.log` nommé (`keel.*.frozen`) porte la
+  // personne et le foyer, juste au-dessus du refus. Ce test garde le silence
+  // du journal d'incidents, pas le silence tout court.
+  for (
+    const fn of ["generate-meal-v1/index.ts", "generate-household-meal-v1/index.ts"]
+  ) {
+    const src = stripComments(
+      await Deno.readTextFile(new URL(fn, FUNCTIONS_DIR)),
+    );
+    const at = src.search(/["']household_frozen["']/);
+    assert(at >= 0, `${fn}: le motif nommé a disparu — test à réviser`);
+    // La fin de l'appel `jsonResponse`, donc l'objet d'options qui porte le
+    // statut. On ne cherche pas dans tout le fichier: `skipErrorLog` ailleurs
+    // ne prouverait rien sur CE refus.
+    const tail = src.slice(at, at + 600);
+    const opts = tail.match(/\{\s*status:\s*402[^}]*\}/);
+    assert(
+      opts,
+      `${fn}: le refus \`household_frozen\` ne rend plus 402 dans les 600 ` +
+        `caractères qui suivent son motif — test à réviser.`,
+    );
+    assert(
+      /skipErrorLog:\s*true/.test(opts[0]),
+      `${fn}: le refus de paiement repart dans \`system_error_logs\` au ` +
+        `niveau \`error\`. Ce n'est pas un incident, c'est l'état produit le ` +
+        `plus banal du foyer impayé, et il noie le journal où l'on cherche ` +
+        `les pannes.`,
+    );
+  }
+});
+
+Deno.test("le gel personnel ne mord QUE sur un foyer connu et non couvert", async () => {
+  // UNE GARDE A BESOIN D'UN CAS QUI PASSE. Cassée, elle refuse tout et
+  // ressemble trait pour trait à une garde qui marche. Les trois cas qui
+  // DOIVENT passer sont rejoués ici sur la logique elle-même:
+  //
+  //   • sans foyer — arbitrage D13, mot pour mot: « il y a des comptes
+  //     individuels qui nécessiteront pas de foyer on s'en fout ». La RPC
+  //     n'est même pas interrogée.
+  //   • foyer couvert — le cas nominal.
+  //   • lecture de foyer EN PANNE — fail-open, l'inverse des allergies: on ne
+  //     peut pas geler quelqu'un dont on n'a pas su lire le foyer, et une
+  //     lecture de facturation cassée qui refuse coupe un client qui paie.
+  const decide = (
+    householdId: string | null,
+    lookupFailed: boolean,
+    covered: boolean | null,
+  ): "refuse" | "pass" => {
+    if (householdId && !lookupFailed) {
+      if (covered === false) return "refuse";
+    }
+    return "pass";
+  };
+
+  // ⚠️ `decide` est une COPIE de la condition, et une copie qui dérive est un
+  // test faux-vert — ce dépôt a déjà mesuré « un test paramétré par sa propre
+  // constante reste vert quand on change la constante ». Les deux lignes
+  // ci-dessous rattachent la copie à l'original: si la condition de la source
+  // change, ce test tombe avant d'avoir pu mentir.
+  const src = await Deno.readTextFile(
+    new URL("generate-meal-v1/index.ts", FUNCTIONS_DIR),
+  );
+  assert(
+    src.includes("if (householdId && !householdLookupFailed) {"),
+    "la condition d'entrée de la garde a changé dans generate-meal-v1: " +
+      "`decide` ci-dessous n'en est plus la copie, et ses cas qui passent ne " +
+      "prouvent plus rien.",
+  );
+  assert(
+    stripComments(src).includes('coverRes.data === false'),
+    "generate-meal-v1 ne compare plus la couverture à `false`: un `!coverRes." +
+      "data` refuserait aussi sur `null`, c'est-à-dire sur une lecture " +
+      "illisible — l'inverse exact du fail-open voulu.",
+  );
+
+  assertEquals(decide(null, false, null), "pass", "compte sans foyer (D13)");
+  assertEquals(decide("h1", false, true), "pass", "foyer couvert");
+  assertEquals(decide("h1", true, null), "pass", "résolution du foyer en panne");
+  assertEquals(decide(null, true, null), "pass", "pas de foyer, lecture ratée");
+  assertEquals(decide("h1", false, null), "pass", "couverture illisible");
+  assertEquals(decide("h1", false, false), "refuse", "foyer gelé");
 });
 
 Deno.test("la recommandation quotidienne saute les foyers gelés", async () => {

@@ -31,6 +31,8 @@ import { dayTokenInZone, localDateInZone } from "../_shared/keel/local_date.ts";
 // LOT 3 — le plan personnel d'un membre de foyer doit PORTER son foyer, sinon
 // la fusion ne le retrouve jamais. Même résolveur que le chat, pour qu'il n'y
 // ait qu'une seule définition de « quel foyer est celui de cette personne ».
+// L1/D13 — ce même foyer décide aussi du DROIT de composer (gel à l'impayé),
+// donc il est résolu avant le modèle et pas juste avant l'écriture.
 import { resolveHouseholdIdFor } from "../_shared/keel/household_turn_context.ts";
 import {
   countHungerDays,
@@ -328,6 +330,93 @@ Deno.serve(async (req) => {
           "intent=replace_current must name the plan it replaces (`replaces`).",
         request_id: requestId,
       }, { status: 400 });
+    }
+
+    // ── LE FOYER, RÉSOLU ICI ET UNE SEULE FOIS (L1, D13) ─────────────────
+    // Cette résolution vivait 740 lignes plus bas, juste avant l'écriture, et
+    // ne servait qu'à ESTAMPER le plan. Elle remonte parce qu'elle porte
+    // maintenant une garde, et une garde qui coûte un appel modèle n'est pas
+    // une garde: c'est une facture. La valeur est CONSOMMÉE plus bas — il n'y
+    // a toujours qu'une seule lecture du foyer dans cette fonction.
+    //
+    // Best-effort ASSUMÉ: une personne sans foyer rend `null`, et c'est le cas
+    // nominal du produit individuel. Ce qui ne doit PAS arriver, c'est qu'une
+    // panne de lecture fasse silencieusement un plan orphelin — un plan qui
+    // n'entrera dans aucune fusion sans que personne ne le remarque. C'est
+    // pour ça que l'échec est tracé dans `generated_from`, à l'écriture.
+    let householdId: string | null = null;
+    let householdLookupFailed = false;
+    try {
+      householdId = await resolveHouseholdIdFor(admin, userId);
+    } catch (_error) {
+      householdLookupFailed = true;
+    }
+
+    // ── LE GEL À L'IMPAYÉ, PAR CETTE PORTE AUSSI (L1, D13) ───────────────
+    //
+    // MESURÉ LE 2026-08-11: cette fonction n'avait AUCUNE garde de droit
+    // d'accès. Un foyer gelé se voyait refuser `generate-household-meal-v1`,
+    // puis obtenait 200 ici — et le plan écrit portait quand même le
+    // `household_id` de ce foyer. Le 402 du foyer se contournait donc par une
+    // porte voisine, pour 19 805 jetons.
+    //
+    // UN APPELANT SANS FOYER PASSE, et ce n'est pas un oubli: il existe des
+    // comptes individuels qui n'auront jamais de foyer (arbitrage D13). Sans
+    // `householdId`, il n'y a rien à interroger — on ne descend même pas dans
+    // la RPC.
+    //
+    // ⚠️ AUCUNE RÈGLE N'EST ÉCRITE ICI. `keel_household_is_covered` est LA
+    // définition unique du dépôt (migration 20260811050000): abonnement du
+    // maître vivant, ou essai qui couvre encore. La réécrire en TypeScript —
+    // « si free_until < aujourd'hui » — ferait deux définitions qui
+    // divergeraient au premier ajustement, et personne ne saurait laquelle
+    // ment.
+    //
+    // LE MOTIF EST LE MÊME MOT QUE L'AUTRE PORTE. `household_frozen`, déjà
+    // mappé par l'écran du foyer: deux vocabulaires pour un même refus est une
+    // dette que le front paie deux fois.
+    //
+    // FAIL-OPEN, ET C'EST L'ARBITRAGE INVERSE DE CELUI DES ALLERGIES.
+    // Une lecture de sécurité en panne doit REFUSER de cuisiner. Une lecture de
+    // FACTURATION en panne doit laisser passer: se tromper de sens ici coupe un
+    // client qui paie, ce qu'aucun nouvel essai ne répare. Même raison pour
+    // `householdLookupFailed`: on ne peut pas geler quelqu'un dont on n'a pas
+    // su lire le foyer. L'échec est journalisé BRUYAMMENT pour qu'une garde
+    // muette ne passe pas pour une garde qui ne mord jamais.
+    if (householdId && !householdLookupFailed) {
+      const coverRes = await admin.rpc("keel_household_is_covered", {
+        p_household: householdId,
+      });
+      if (coverRes.error) {
+        await logEdgeFunctionError({
+          functionName: FN_NAME,
+          requestId,
+          error: coverRes.error,
+          metadata: { source: "household_coverage", household: householdId },
+        });
+        issues.push("household_coverage_unreadable");
+      } else if (coverRes.data === false) {
+        console.log(JSON.stringify({
+          tag: "keel.meal.frozen",
+          user_id: userId,
+          household_id: householdId,
+        }));
+        // `skipErrorLog`: UN IMPAYÉ N'EST PAS UN INCIDENT. `jsonResponse`
+        // écrit dans `system_error_logs` tout statut >= 400, au niveau
+        // `error`. Mesuré le 2026-08-12: 15 lignes pour une seule session de
+        // test, et un foyer gelé qui retape « Composer » en écrit une par
+        // appui. Un journal d'incidents où l'état produit le plus banal est
+        // majoritaire est un journal qu'on cesse de lire. La trace reste
+        // entière juste au-dessus (`keel.meal.frozen`, avec le foyer et la
+        // personne), et le 402 rendu à l'appelant ne change pas.
+        return jsonResponse(req, {
+          error: "household_frozen",
+          detail: "This household is paused. Nothing has been deleted - the " +
+            "current plan stays readable, and composing resumes as soon as the " +
+            "subscription does.",
+          request_id: requestId,
+        }, { status: 402, skipErrorLog: true });
+      }
     }
 
     const slotRaw = String(body.meal_slot ?? "").trim();
@@ -1064,21 +1153,12 @@ Deno.serve(async (req) => {
     //
     // La RPC porte aussi la contrainte d'exclusion en filet: elle refuse
     // nommément un plan qui chevauche un autre sans pouvoir le raccourcir.
-    // LOT 3 — LE FOYER SUR LE PLAN PERSONNEL.
     //
-    // Best-effort ASSUMÉ: une personne sans foyer rend `null`, et c'est le cas
-    // nominal du produit individuel. Ce qui ne doit PAS arriver, c'est qu'une
-    // panne de lecture fasse silencieusement un plan orphelin — un plan qui
-    // n'entrera dans aucune fusion sans que personne ne le remarque. C'est
-    // pour ça que l'échec est tracé dans `generated_from`, plus bas.
-    let householdId: string | null = null;
-    let householdLookupFailed = false;
-    try {
-      householdId = await resolveHouseholdIdFor(admin, userId);
-    } catch (_error) {
-      householdLookupFailed = true;
-    }
-
+    // LOT 3 — LE FOYER SUR LE PLAN PERSONNEL. `householdId` et
+    // `householdLookupFailed` viennent du HAUT de la fonction (L1, D13): ils y
+    // sont résolus avant le modèle parce que le gel s'y adosse. Ne PAS
+    // re-résoudre ici — deux lectures du même foyer dans un même tour, c'est
+    // deux réponses possibles pour une seule ligne écrite.
     const { data: writtenRows, error: writeErr } = await admin.rpc(
       "write_student_meal_plan",
       {

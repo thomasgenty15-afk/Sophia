@@ -121,7 +121,12 @@ sont **les bouches**, c'est-à-dire les enfants.
    keel_household_is_covered(uuid)  (20260811050000:163)
        LA DÉFINITION UNIQUE. Ne lit PAS subscriptions.tier.
        │
-       ├──► generate-household-meal-v1 : 402 `household_frozen`  (index.ts:279-285)
+       ├──► generate-household-meal-v1 : 402 `household_frozen`  (index.ts:269-292)
+       ├──► generate-meal-v1 (LE PLAN PERSONNEL) : 402 idem  (index.ts:386-411)
+       │      Ajouté le 2026-08-12 (L1/D13). Sans cette porte, le 402 du foyer
+       │      se contournait: refus ici, 200 là, et le plan écrit portait quand
+       │      même le household_id du foyer gelé. 19 805 jetons par contournement.
+       │      SANS FOYER, ON PASSE — les comptes individuels existent (D13).
        ├──► la reco du soir : outcome=skipped, reason=household_frozen
        │                      (daily_recommendation_engine.ts:152)
        └──► deux dérivations qui la CITENT sans la recopier
@@ -182,7 +187,7 @@ son foyer couvert sans les 12,99 €. Population négligeable aujourd'hui.
 
 | Situation | Comportement attendu |
 |---|---|
-| **⚠️ Aujourd'hui, quel que soit l'état de l'abonnement** | **TROU n°6 — PARTIELLEMENT REFERMÉ, et il faut dire exactement où.** La **garde existe** : `keel_household_is_covered` (`20260811050000:163`), refus **402 `household_frozen`** sur le générateur (`generate-household-meal-v1/index.ts:279-285`), saut nommé sur la reco du soir (`daily_recommendation_engine.ts:152`), et la branche `household_member` de `recompute_profile_access_tier` (`:408`) avec trois déclencheurs. **Rien ne facture** pour autant, et rien ne gèle : tant que les prix Stripe ne sont pas posés (§7 ci-dessous), `free_until IS NULL` vaut **couvert** — l'inverse gèlerait tous les foyers existants d'un coup, en leur offrant un tunnel qui refuse faute de prix. Ni « ouvert » ni « fermé » : **branché et désarmé**. |
+| **⚠️ Aujourd'hui, quel que soit l'état de l'abonnement** | **TROU n°6 — PARTIELLEMENT REFERMÉ, et il faut dire exactement où.** La **garde existe** : `keel_household_is_covered` (`20260811050000:163`), refus **402 `household_frozen`** sur les **deux** générateurs — celui du foyer (`generate-household-meal-v1/index.ts:269-292`) et, depuis le 2026-08-12, celui du **plan personnel** (`generate-meal-v1/index.ts:386-411`, L1/D13 : sans lui le 402 se contournait par la porte voisine) —, saut nommé sur la reco du soir (`daily_recommendation_engine.ts:152`), et la branche `household_member` de `recompute_profile_access_tier` (`:408`) avec trois déclencheurs. **Rien ne facture** pour autant, et rien ne gèle : tant que les prix Stripe ne sont pas posés (§7 ci-dessous), `free_until IS NULL` vaut **couvert** — l'inverse gèlerait tous les foyers existants d'un coup, en leur offrant un tunnel qui refuse faute de prix. Ni « ouvert » ni « fermé » : **branché et désarmé**. |
 | **⚠️ `keel-daily-pulse-v1` et `keel-weekly-flow-v1`** | **TROU CONNU n°7, NON REFERMÉ.** Ni l'un ni l'autre ne porte une seule occurrence de `household` : ils tournent à l'identique sur un foyer gelé. D4 nomme **deux** portes, et ce sont exactement les deux qui ont été fermées. Reste à trancher si le tap du soir et le bilan hebdo comptent comme **production**. |
 | **⚠️ Un mineur avec un compte** | **Compté comme facturable.** Facturer 2 € l'accès d'un enfant est une décision commerciale ; elle est rendue **lisible et non prise**. |
 | Une bouche dont le compte est supprimé | Elle **cesse de compter** comme facturable — `user_id` passe à NULL — et **la ligne reste**. C'était faux avant `e2899897` : la cascade emportait la ligne entière, et le foyer maigrissait sans que personne l'ait décidé (ancien trou n°5, voir [FF-048](FF-048-reclamer-son-profil.md) §7). Le compte facturable était juste ; le foyer, lui, avait maigri. |
