@@ -14,6 +14,7 @@ import {
   householdContextBlock,
   type HouseholdTurnContext,
   loadHouseholdTurnContext,
+  resolveHouseholdIdFor,
 } from "./household_turn_context.ts";
 
 const ME = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
@@ -180,7 +181,7 @@ Deno.test("le plat DU JOUR et la portion À MON NOM sont chargés", async () => 
     rosterRow(ME_MEMBER, "Ana"),
     rosterRow(OTHER_MEMBER, "Marc"),
   ]);
-  const ctx = await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY });
+  const ctx = await loadHouseholdTurnContext(db, { householdId: HOUSE, userId: ME, localDate: TODAY });
   assert(ctx);
   assertEquals(ctx.hasPlanToday, true);
   // LE JOUR COURANT SEULEMENT: le plat de jeudi n'entre pas.
@@ -197,7 +198,7 @@ Deno.test("LE JOUR DE CUISSON EST LU — `cook_on`, la clé de la production", a
   // « What do I need to cook today? » rendait deux préparations de demain et
   // d'après-demain, 3 passes sur 3.
   const db = stubDb(tables(), [rosterRow(ME_MEMBER, "Ana")]);
-  const ctx = await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY });
+  const ctx = await loadHouseholdTurnContext(db, { householdId: HOUSE, userId: ME, localDate: TODAY });
   assert(ctx);
   // JOUR COURANT D'ABORD, même si le tableau le met en second.
   assertEquals(ctx.preparations.map((p) => p.title), [
@@ -235,7 +236,7 @@ Deno.test("UNE PRÉPARATION D'UN JOUR PASSÉ ne remonte pas", async () => {
     }),
     [rosterRow(ME_MEMBER, "Ana")],
   );
-  const ctx = await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY });
+  const ctx = await loadHouseholdTurnContext(db, { householdId: HOUSE, userId: ME, localDate: TODAY });
   assertEquals(ctx?.preparations.map((p) => p.title), ["Roast chicken thighs"]);
 });
 
@@ -243,7 +244,7 @@ Deno.test("LA LISTE DE COURSES est lue, et son absence est DITE", async () => {
   // Sans elle, mesuré: l'agent fabriquait la liste depuis les titres de plats,
   // en y mêlant ceux des autres jours. Une liste inventée se fait acheter.
   const withList = stubDb(tables(), [rosterRow(ME_MEMBER, "Ana")]);
-  const ctx = await loadHouseholdTurnContext(withList, { userId: ME, localDate: TODAY });
+  const ctx = await loadHouseholdTurnContext(withList, { householdId: HOUSE, userId: ME, localDate: TODAY });
   assertEquals(ctx?.shopping, [{ term: "chicken thighs", quantity: "1 kg" }]);
   assertEquals(ctx?.shoppingTruncated, false);
   assertStringIncludes(householdContextBlock(ctx!), "SHOPPING LIST for this window:");
@@ -264,7 +265,7 @@ Deno.test("LA LISTE DE COURSES est lue, et son absence est DITE", async () => {
     }),
     [rosterRow(ME_MEMBER, "Ana")],
   );
-  const bare = await loadHouseholdTurnContext(without, { userId: ME, localDate: TODAY });
+  const bare = await loadHouseholdTurnContext(without, { householdId: HOUSE, userId: ME, localDate: TODAY });
   assertEquals(bare?.shopping, []);
   assertStringIncludes(
     householdContextBlock(bare!),
@@ -281,7 +282,7 @@ Deno.test("les portions de TOUT LE FOYER sont chargées, la mienne marquée", as
     rosterRow(ME_MEMBER, "Ana"),
     rosterRow(OTHER_MEMBER, "Marc"),
   ]);
-  const ctx = await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY });
+  const ctx = await loadHouseholdTurnContext(db, { householdId: HOUSE, userId: ME, localDate: TODAY });
   assert(ctx);
   assertEquals(ctx.portions.map((p) => p.firstName).sort(), ["Ana", "Marc"]);
   assertEquals(ctx.portions.filter((p) => p.isMe).map((p) => p.firstName), ["Ana"]);
@@ -297,7 +298,7 @@ Deno.test("⚠️ MA PART est appariée sur ma LIGNE MEMBRE, pas sur mon compte"
     rosterRow(ME_MEMBER, "Ana"),
     rosterRow(OTHER_MEMBER, "Marc"),
   ]);
-  const ctx = await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY });
+  const ctx = await loadHouseholdTurnContext(db, { householdId: HOUSE, userId: ME, localDate: TODAY });
   assert(ctx);
   assertEquals(ctx.viewerId, ME_MEMBER);
   const mine = ctx.portions.find((p) => p.isMe);
@@ -309,10 +310,43 @@ Deno.test("⚠️ MA PART est appariée sur ma LIGNE MEMBRE, pas sur mon compte"
 // ---------------------------------------------------------------------------
 
 Deno.test("SANS FOYER, aucun contexte — donc aucune mention (R8)", async () => {
+  // LA RÉSOLUTION EST REMONTÉE D'UN CRAN (chantier 5): elle sert AUSSI la lane
+  // de sécurité, et la faire deux fois ferait payer un aller-retour de plus à
+  // tout le produit — dont la majorité n'a pas de foyer.
   const db = stubDb({ household_members: [], households: [] }, []);
+  assertEquals(await resolveHouseholdIdFor(db, ME), null);
+  // Et sans foyer résolu, le chargeur ne va rien chercher.
   assertEquals(
-    await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY }),
+    await loadHouseholdTurnContext(db, {
+      householdId: "",
+      userId: ME,
+      localDate: TODAY,
+    }),
     null,
+  );
+});
+
+Deno.test("la résolution du foyer LÈVE — « pas de foyer » ≠ « je n'ai pas pu savoir »", async () => {
+  // C'est la seule différence qui compte pour l'appelant: `loadHouseholdTurnContext`
+  // avale ses pannes exprès, mais une panne d'appartenance ne doit pas passer
+  // pour « cette personne vit seule » là où on décide d'armer une allergie.
+  const db = stubDb(tables(), [rosterRow(ME_MEMBER, "Ana")], {
+    failOn: "household_members",
+  });
+  let threw = false;
+  try {
+    await resolveHouseholdIdFor(db, ME);
+  } catch {
+    threw = true;
+  }
+  assert(threw, "une panne d'appartenance doit LEVER, pas rendre null");
+  // Le foyer nominal, lui, se résout.
+  assertEquals(
+    await resolveHouseholdIdFor(
+      stubDb(tables(), [rosterRow(ME_MEMBER, "Ana")]),
+      ME,
+    ),
+    HOUSE,
   );
 });
 
@@ -332,7 +366,7 @@ Deno.test("UN PLAN PÉRIMÉ HIER est traité comme ABSENT, pas comme celui d'hie
     }),
     [rosterRow(ME_MEMBER, "Ana")],
   );
-  const ctx = await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY });
+  const ctx = await loadHouseholdTurnContext(db, { householdId: HOUSE, userId: ME, localDate: TODAY });
   assert(ctx);
   assertEquals(ctx.hasPlanToday, false);
   assertEquals(ctx.todayDishes, []);
@@ -354,7 +388,7 @@ Deno.test("UN PLAN RETIRÉ n'est pas lu", async () => {
     }),
     [rosterRow(ME_MEMBER, "Ana")],
   );
-  const ctx = await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY });
+  const ctx = await loadHouseholdTurnContext(db, { householdId: HOUSE, userId: ME, localDate: TODAY });
   assertEquals(ctx?.hasPlanToday, false);
 });
 
@@ -365,7 +399,7 @@ Deno.test("SANS PLAT COMPOSÉ, le bloc porte vers la composition — JAMAIS vers
     tables({ student_generated_meals: [] }),
     [rosterRow(ME_MEMBER, "Ana")],
   );
-  const ctx = await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY });
+  const ctx = await loadHouseholdTurnContext(db, { householdId: HOUSE, userId: ME, localDate: TODAY });
   const block = householdContextBlock(ctx!);
   assertStringIncludes(block, "NOTHING IS COMPOSED FOR TODAY");
   assertStringIncludes(block, "they compose it themselves");
@@ -379,9 +413,14 @@ Deno.test("UNE LECTURE EN PANNE rend null et journalise — jamais « rien de pr
   // ferait un cas qui passe pour une raison FAUSSE — la panne ne se produirait
   // sur rien. `household_food_restrictions` la remplace: c'est une lecture
   // réelle, et son échec doit rendre `null` comme les autres.
+  //
+  // ⚠️ `household_members` N'Y EST PLUS NON PLUS: ce chargeur ne la lit plus
+  // depuis que la résolution du foyer est remontée chez l'appelant (chantier
+  // 5). Sa panne se teste au-dessus, sur `resolveHouseholdIdFor`, et elle
+  // LÈVE — parce que là-haut la différence entre « pas de foyer » et « je ne
+  // sais pas » décide si une allergie est armée.
   for (
     const failOn of [
-      "household_members",
       "rpc",
       "student_generated_meals",
       "household_food_restrictions",
@@ -389,7 +428,7 @@ Deno.test("UNE LECTURE EN PANNE rend null et journalise — jamais « rien de pr
   ) {
     const db = stubDb(tables(), [rosterRow(ME_MEMBER, "Ana")], { failOn });
     assertEquals(
-      await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY }),
+      await loadHouseholdTurnContext(db, { householdId: HOUSE, userId: ME, localDate: TODAY }),
       null,
       `panne sur ${failOn}`,
     );
@@ -398,7 +437,7 @@ Deno.test("UNE LECTURE EN PANNE rend null et journalise — jamais « rien de pr
 
 Deno.test("sans date locale, on ne va rien chercher", async () => {
   const db = stubDb(tables(), [rosterRow(ME_MEMBER, "Ana")]);
-  assertEquals(await loadHouseholdTurnContext(db, { userId: ME, localDate: "" }), null);
+  assertEquals(await loadHouseholdTurnContext(db, { householdId: HOUSE, userId: ME, localDate: "" }), null);
 });
 
 // ---------------------------------------------------------------------------
@@ -421,7 +460,7 @@ Deno.test("une restriction qui ME vise est ATTRIBUÉE et NON JUSTIFIÉE", async 
       rosterRow(OTHER_MEMBER, "Marc", { role: "owner", user_id: OTHER }),
     ],
   );
-  const ctx = await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY });
+  const ctx = await loadHouseholdTurnContext(db, { householdId: HOUSE, userId: ME, localDate: TODAY });
   assertEquals(ctx?.myRestrictions, [{ label: "Nutella", chosenBy: "Marc" }]);
 
   const block = householdContextBlock(ctx!);
@@ -439,7 +478,7 @@ Deno.test("une restriction qui vise QUELQU'UN D'AUTRE n'est pas chargée", async
     }),
     [rosterRow(ME_MEMBER, "Ana"), rosterRow(OTHER_MEMBER, "Marc")],
   );
-  const ctx = await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY });
+  const ctx = await loadHouseholdTurnContext(db, { householdId: HOUSE, userId: ME, localDate: TODAY });
   assertEquals(ctx?.myRestrictions, []);
 });
 
@@ -452,7 +491,7 @@ Deno.test("un mineur est un MANGEUR, jamais une cible", async () => {
     rosterRow(ME_MEMBER, "Ana"),
     rosterRow(CHILD_MEMBER, "Léo", { age_state: "minor" }),
   ]);
-  const ctx = await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY });
+  const ctx = await loadHouseholdTurnContext(db, { householdId: HOUSE, userId: ME, localDate: TODAY });
   const block = householdContextBlock(ctx!);
   assertStringIncludes(block, "is an EATER, never a target");
   assertStringIncludes(block, "No nutritional goal");
@@ -468,7 +507,7 @@ Deno.test("DEUX BLOCS DE PLAN NE SE CONFONDENT PAS", async () => {
   // « plan », et sa première phrase interdit la fusion.
   const db = stubDb(tables(), [rosterRow(ME_MEMBER, "Ana")]);
   const block = householdContextBlock(
-    (await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY }))!,
+    (await loadHouseholdTurnContext(db, { householdId: HOUSE, userId: ME, localDate: TODAY }))!,
   );
   assertStringIncludes(block, "WHAT THIS HOUSEHOLD IS EATING");
   assertStringIncludes(block, "This is NOT the coach's plan");
@@ -478,7 +517,7 @@ Deno.test("DEUX BLOCS DE PLAN NE SE CONFONDENT PAS", async () => {
 Deno.test("LECTURE SEULE, et le bloc le dit", async () => {
   const db = stubDb(tables(), [rosterRow(ME_MEMBER, "Ana")]);
   const block = householdContextBlock(
-    (await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY }))!,
+    (await loadHouseholdTurnContext(db, { householdId: HOUSE, userId: ME, localDate: TODAY }))!,
   );
   assertStringIncludes(block, "READ-ONLY");
   assertStringIncludes(block, "Never invent a dish");
@@ -521,7 +560,7 @@ Deno.test("LE BLOC EST BORNÉ — le budget tronque par la queue", async () => {
       rosterRow(ME_MEMBER, "Ana"),
     ]),
   );
-  const ctx = await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY });
+  const ctx = await loadHouseholdTurnContext(db, { householdId: HOUSE, userId: ME, localDate: TODAY });
   assert(ctx);
   assertEquals(ctx.todayDishes.length, 4);
   assertEquals(ctx.preparations.length, 3);
@@ -546,7 +585,7 @@ Deno.test("UNE BOUCHE SANS COMPTE est au roster, nommée, et arme la ceinture", 
     rosterRow(ME_MEMBER, "Ana"),
     rosterRow(CHILD_MEMBER, "Léo", { age_state: "minor", user_id: null }),
   ]);
-  const ctx = await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY });
+  const ctx = await loadHouseholdTurnContext(db, { householdId: HOUSE, userId: ME, localDate: TODAY });
   assert(ctx);
   assertEquals(ctx.roster.find((r) => r.memberId === CHILD_MEMBER)?.userId, null);
 
@@ -564,7 +603,7 @@ Deno.test("⚠️ UN ÂGE INCONNU ne porte AUCUNE étiquette", async () => {
     rosterRow(OTHER_MEMBER, "Sam", { age_state: "unknown", user_id: null }),
   ]);
   const block = householdContextBlock(
-    (await loadHouseholdTurnContext(db, { userId: ME, localDate: TODAY }))!,
+    (await loadHouseholdTurnContext(db, { householdId: HOUSE, userId: ME, localDate: TODAY }))!,
   );
   assertStringIncludes(block, "Sam");
   assertEquals(block.includes("Sam ("), false);

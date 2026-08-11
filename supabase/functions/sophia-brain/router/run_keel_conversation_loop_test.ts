@@ -35,6 +35,7 @@ import {
   runKeelDirectEffectLane,
 } from "./run.ts";
 import type { RestrictionGuardResult } from "../../_shared/keel/restriction_guard.ts";
+import { NO_HOUSEHOLD_SAFETY } from "../../_shared/keel/household_safety.ts";
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -61,6 +62,8 @@ const KEEL_STUDENT: KeelTurnContext = {
   // les effets, pas les verrous (ceux-ci ont leurs propres tests).
   safety_constraints: [],
   safety_constraints_unavailable_reason: null,
+  // Pas de foyer: cette boucle teste le plan et les effets d'un élève seul.
+  household_safety: NO_HOUSEHOLD_SAFETY,
   doctrine: null,
   coach_note: null,
   week_review: null,

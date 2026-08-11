@@ -316,7 +316,19 @@ import {
   householdContextBlock,
   type HouseholdTurnContext,
   loadHouseholdTurnContext,
+  resolveHouseholdIdFor,
 } from "../../_shared/keel/household_turn_context.ts";
+// LE FOYER, MOITIÉ SÉCURITÉ. `student_safety_constraints` est clée sur
+// `user_id`: l'allergie d'une bouche SANS COMPTE — un enfant, le cas nominal —
+// n'y est pas et n'entrait donc dans aucune union de conversation. Elle vit
+// dans `household_member_allergies`, et seul le générateur la lisait.
+import {
+  householdAllergyPromptBlock,
+  householdConstraintRefs,
+  type HouseholdTurnSafety,
+  loadHouseholdTurnSafety,
+  NO_HOUSEHOLD_SAFETY,
+} from "../../_shared/keel/household_safety.ts";
 import { detectDeclaredSafetyConstraint } from "../../_shared/keel/safety_constraint_floor.ts";
 import {
   CLINICAL_DEFERRAL_BLOCK,
@@ -1007,6 +1019,23 @@ export type KeelTurnContext = {
    */
   safety_constraints: StudentSafetyConstraint[] | null;
   safety_constraints_unavailable_reason: string | null;
+  /**
+   * LES CONTRAINTES DURES DU FOYER — l'autre moitié de l'union, et la seule qui
+   * puisse porter l'allergie d'une bouche SANS COMPTE.
+   *
+   * OBLIGATOIRE, jamais optionnel, et `NO_HOUSEHOLD_SAFETY` hors foyer: un
+   * champ de garde optionnel est une garde désarmée, cicatrice `safetyBand`.
+   *
+   * ⚠️ IL N'EST PAS FONDU DANS `safety_constraints`, ET C'EST UNE DÉCISION.
+   * Le bloc de prompt d'en face titre « THIS STUDENT'S HARD CONSTRAINTS
+   * (source: student_safety_constraints) »; y verser l'allergie d'un enfant
+   * ferait dire au modèle qu'un parent est allergique aux arachides, ce qui est
+   * un fait faux sur une personne. Les deux listes se rejoignent là où
+   * l'attribution ne compte pas — la CEINTURE DE SORTIE, qui ne fait que
+   * refuser de nommer un jeton médical — et restent séparées là où elle compte,
+   * le prompt. Le détail est écrit sur `householdAllergyPromptBlock`.
+   */
+  household_safety: HouseholdTurnSafety;
   /** PIVOT §3.3 — la doctrine publiée du coach de cet élève. */
   doctrine: LoadedDoctrine | null;
   /**
@@ -1163,6 +1192,7 @@ export const LEGACY_KEEL_TURN_CONTEXT: KeelTurnContext = {
   declared_medical_condition: null,
   safety_constraints: null,
   safety_constraints_unavailable_reason: null,
+  household_safety: NO_HOUSEHOLD_SAFETY,
   doctrine: null,
   protocol: null,
   coach_note: null,
@@ -1399,14 +1429,51 @@ export async function loadKeelTurnContext(args: {
     restrictionRaised ? null : (weekReview?.reading ?? null),
   );
 
+  // ── LE FOYER, RÉSOLU UNE FOIS POUR SES DEUX LANES ────────────────────────
+  //
+  // `run.ts` est le chemin de TOUTES les conversations, et la plupart des gens
+  // n'ont pas de foyer. Cette requête-ci EXISTAIT DÉJÀ (elle était le premier
+  // pas de `loadHouseholdTurnContext`); elle est simplement remontée d'un cran
+  // pour servir aussi la lane de sécurité. Quelqu'un sans foyer paie donc
+  // exactement ce qu'il payait avant ce lot: une lecture d'appartenance, qui
+  // rend `null`, et plus rien ensuite — pas de lecture d'allergies, pas de
+  // bloc, pas de changement de comportement.
+  //
+  // ⚠️ ELLE N'EST PAS GATÉE SUR `localDate`. Le CONTEXTE du foyer l'est (un
+  // plat sans date est un plat d'hier servi ce soir), la SÉCURITÉ non: une
+  // allergie ne se lit pas derrière une garde de calendrier.
+  //
+  // Une panne ICI n'arme PAS la dégradation « ne propose rien à manger »: on
+  // ignore alors s'il y a seulement un foyer, la panne frapperait aussi ceux
+  // qui vivent seuls, et la lane individuelle laisse déjà passer ce même tour
+  // (fail-open nommé, plus haut). L'arbitrage complet est écrit sur
+  // `loadHouseholdTurnSafety`.
+  let householdId: string | null = null;
+  try {
+    householdId = await resolveHouseholdIdFor(args.supabase, args.userId);
+  } catch (error) {
+    console.warn(
+      "[keel/household] membership unreadable for this turn (no household lane)",
+      error,
+    );
+  }
+
+  // LES ALLERGIES DU FOYER, dont celles des bouches sans compte. Ne lève
+  // jamais: le chargeur porte son propre arbitrage de panne, nommé et bruyant.
+  const householdSafety = await loadHouseholdTurnSafety(
+    args.supabase as never,
+    { householdId, contentLocale: contentLocale ?? "" },
+  );
+
   // FF-010 — LE FOYER. Il n'est PAS filtré par le plancher de restriction, et
   // c'est délibéré: « on mange quoi ce soir ? » est une question de cuisine,
   // pas une surface d'adhérence. Le bloc ne porte ni score, ni poids, ni
   // progression — rien de ce que `SUPPRESSED_STUDENT_SURFACES` suspend. Le
   // taire sous plancher levé priverait quelqu'un en difficulté de la seule
   // information pratique dont il a besoin pour dîner.
-  const household = localDate
+  const household = localDate && householdId
     ? await loadHouseholdTurnContext(args.supabase, {
+      householdId,
       userId: args.userId,
       localDate,
     })
@@ -1432,6 +1499,7 @@ export async function loadKeelTurnContext(args: {
     declared_medical_condition: null,
     safety_constraints: safetyConstraints,
     safety_constraints_unavailable_reason: safetyConstraintsUnavailableReason,
+    household_safety: householdSafety,
     doctrine,
     protocol,
     coach_note: coachNote,
@@ -2254,6 +2322,35 @@ export function withKeelDoctrineBlock(
   const safetyBlock = safetyConstraintsPromptBlock(keel.safety_constraints);
   if (safetyBlock && safetyBlock.trim()) blocks.push(safetyBlock);
 
+  // LES CONTRAINTES DURES DU FOYER, JUSTE DERRIÈRE CELLES DU LOCUTEUR.
+  //
+  // Même rang de survie qu'elles — l'ordre de ces blocs est un classement par
+  // COÛT DE PERTE et le budget tronque par la queue: perdre celui-ci met un
+  // allergène dans une assiette, et dans celle d'un enfant qui ne pouvait pas
+  // le déclarer lui-même. Il ne peut donc pas descendre sous la doctrine.
+  //
+  // ⚠️ ET IL N'EST PAS DANS LE BLOC « WHAT THIS HOUSEHOLD IS EATING », qui
+  // porte, lui, un plafond de caractères et un ordre de coupe. Une allergie
+  // n'a pas de rang acceptable dans une file d'attente: elle est hors de la
+  // file. C'est ce qui la rend insensible à un foyer de huit avec sept jours
+  // de préparations.
+  //
+  // DEUX ÉTATS, UN SEUL BLOC À LA FOIS: l'union du foyer quand la lecture a
+  // abouti, la dégradation nommée quand elle a échoué. « Aucune allergie » ne
+  // pousse RIEN — pas de bloc vide, donc rien du tout chez quelqu'un qui n'a
+  // pas de foyer.
+  //
+  // Le `??` n'est PAS un repli de garde: le champ est OBLIGATOIRE sur
+  // `KeelTurnContext`, et les deux seuls producteurs de production
+  // (`loadKeelTurnContext` et `LEGACY_KEEL_TURN_CONTEXT`) le posent tous les
+  // deux, vérifié par `deno check`. Il protège du seul cas restant — un décor
+  // de test écrit à la main avant ce lot — parce qu'un `TypeError` ici casse
+  // TOUTES les conversations, ce qui est un prix absurde pour une fixture.
+  const householdSafetyBlock = householdAllergyPromptBlock(
+    keel.household_safety ?? NO_HOUSEHOLD_SAFETY,
+  );
+  if (householdSafetyBlock) blocks.push(householdSafetyBlock);
+
   const doctrine = keel.doctrine ? doctrineBlockFor(keel.doctrine) : null;
   if (doctrine && doctrine.trim()) blocks.push(doctrine);
 
@@ -2570,10 +2667,47 @@ export function finalVisibleText(
   //
   // ET HORS DU `if (!isSafetyRoute(...))`, exprès: un tour de crise est le
   // dernier endroit où l'on veut suggérer un allergène médical.
+  // ── L'UNION DES DEUX LANES, ET C'EST ICI QU'ELLE SE FAIT ─────────────────
+  //
+  // La ceinture n'attribue rien: elle refuse qu'un jeton médical soit NOMMÉ.
+  // C'est le seul endroit où les contraintes du locuteur et celles des autres
+  // bouches du foyer font le même travail, donc le seul où les fondre ne peut
+  // pas produire un fait faux sur une personne (le prompt, lui, garde deux
+  // blocs — voir `household_safety` sur `KeelTurnContext`).
+  //
+  // ⚠️ `null` (« pas lu ») EST PRÉSERVÉ QUAND IL N'Y A RIEN À AJOUTER: la
+  // distinction null / [] de la lane individuelle est ce qui rend son incident
+  // lisible, et la piétiner avec un `[]` de complaisance la ferait passer pour
+  // une lecture réussie sans contrainte.
+  //
+  // ── CE QUE ÇA CHANGE POUR DE VRAI, ET IL FAUT LE DIRE ────────────────────
+  // La ceinture mord sur TOUT le tour, pas seulement sur ce qui parle de la
+  // casserole. Dans un foyer où une allergie médicale au lait est déclarée,
+  // Sophia cesse de nommer le lait, même à propos de l'assiette du seul
+  // locuteur. C'est le sur-blocage assumé de la doctrine de ce dépôt — « sur-
+  // bloquer escalade, sous-bloquer sert l'allergène, et seul le premier est
+  // récupérable » — et c'est la même règle que le générateur applique déjà à la
+  // casserole entière. Ce qui la rend tenable est en amont: une ligne de
+  // `household_member_allergies` est une allergie MÉDICALE, écrite comme telle;
+  // une préférence parentale a son propre chemin (`household_food_restrictions`)
+  // et n'arme rien ici.
+  const householdSafety = keel.household_safety ?? NO_HOUSEHOLD_SAFETY;
+  const beltConstraints = householdSafety.constraints.length === 0
+    ? keel.safety_constraints
+    : [...(keel.safety_constraints ?? []), ...householdSafety.constraints];
+  // ── CE QU'UNE RÉTRACTATION NE PEUT PAS DÉSARMER ──────────────────────────
+  //
+  // Le désarmement n°5 laisse quelqu'un faire nommer la contrainte qu'il vient
+  // de RETIRER — la sienne. Une allergie de foyer n'est pas la sienne: la
+  // rétractation du chat n'écrit que dans `student_safety_constraints`, la
+  // ligne du foyer survit, et l'honorer ferait taire l'allergie d'un enfant
+  // parce qu'un adulte a dit que la sienne avait disparu. On la retire sur
+  // l'écran du foyer, là où elle a été écrite.
+  const householdRefs = householdConstraintRefs(householdSafety.constraints);
   const locked = applyKeelOutputLocks({
     text: out,
     isKeelStudent: keel.is_student === true,
-    safetyConstraints: keel.safety_constraints,
+    safetyConstraints: beltConstraints,
     doctrine: keel.doctrine?.doctrine ?? null,
     // POUR SIGNER LA SUBSTITUTION. Passé ICI et pas dans les générateurs: quand
     // le verrou mord dans le chat, ce qui part est la phrase que le coach a
@@ -2589,7 +2723,8 @@ export function finalVisibleText(
     // (la demande de l'élève), pas depuis le texte généré — une ceinture qui
     // se désarmerait sur une phrase que le modèle a écrite se désarmerait
     // toute seule.
-    retractedConstraintRefs: retractedConstraintRefsIn(turnFrame),
+    retractedConstraintRefs: retractedConstraintRefsIn(turnFrame)
+      .filter((ref) => !householdRefs.has(ref.trim().toLowerCase())),
   });
   return locked.text;
 }

@@ -1,11 +1,20 @@
-import { assert, assertEquals, assertRejects } from "jsr:@std/assert@1";
+import {
+  assert,
+  assertEquals,
+  assertRejects,
+  assertStringIncludes,
+} from "jsr:@std/assert@1";
 
 import {
+  HOUSEHOLD_SAFETY_UNREADABLE_BLOCK,
   HouseholdAllergiesLoadError,
   householdAllergenRefs,
   householdAllergyConstraints,
+  householdAllergyPromptBlock,
+  householdConstraintRefs,
   householdHardConstraints,
   loadHouseholdAllergies,
+  loadHouseholdTurnSafety,
 } from "./household_safety.ts";
 import {
   medicalConstraintTokens,
@@ -295,4 +304,163 @@ Deno.test("loadHouseholdAllergies — une panne LÈVE, jamais « aucune allergie
 
 Deno.test("loadHouseholdAllergies — un ensemble vide est une réponse légitime", async () => {
   assertEquals(await loadHouseholdAllergies(fakeDb({ rows: [] }).db, "hh"), []);
+});
+
+// ---------------------------------------------------------------------------
+// 5. LA LANE DE LA CONVERSATION (chantier 5)
+//
+// Le générateur connaissait ces allergies; le chat non. Un parent qui demandait
+// « je cuisine quoi ce soir ? » n'avait pas l'allergie de son enfant armée.
+// ---------------------------------------------------------------------------
+
+/**
+ * ⚠️ UN IDENTIFIANT DE MEMBRE N'EST PAS UN IDENTIFIANT DE COMPTE, et c'est tout
+ * l'intérêt du décor: Léa a huit ans, elle n'a pas d'adresse e-mail, et sa ligne
+ * n'existe que sous `member_id`. Un décor qui réutiliserait le `user_id` du
+ * parent ferait passer un chargeur qui joint encore sur les comptes — c'est-à-
+ * dire exactement le trou que ce lot ferme.
+ */
+const LEA_MEMBER = "33333333-3333-4333-8333-333333333333";
+const HOUSE_ID = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
+
+Deno.test("loadHouseholdTurnSafety — l'allergie d'un ENFANT SANS COMPTE arme le tour du parent", async () => {
+  const { db, calls } = fakeDb({
+    rows: [{ id: "a1", member_id: LEA_MEMBER, label: "arachide" }],
+  });
+  const safety = await loadHouseholdTurnSafety(db as never, {
+    householdId: HOUSE_ID,
+    contentLocale: "fr-FR",
+  });
+  assertEquals(safety.unreadableReason, null);
+  // Les DEUX identifiants, et le premier est le point du lot: une allergie
+  // saisie en français mord sur `peanut` et sur ses formes de surface.
+  assertEquals(
+    safety.constraints.map((c) => c.allergenRef),
+    ["peanut", "arachide"],
+  );
+  assertEquals([...new Set(safety.constraints.map((c) => c.severity))], [
+    "medical",
+  ]);
+  // Le champ de COMPTE reste vide: Léa n'en a pas, et y ranger son `member_id`
+  // serait une fixture qui ment sur la forme de la donnée.
+  assertEquals([...new Set(safety.constraints.map((c) => c.userId))], [""]);
+  assert(calls.includes(`household_id=${HOUSE_ID}`), calls.join(" "));
+});
+
+Deno.test("loadHouseholdTurnSafety — SANS FOYER, aucune requête et aucune allocation", async () => {
+  // `run.ts` est le chemin de TOUTES les conversations du produit, et la
+  // majorité n'a pas de foyer. Ce test est la preuve n°3 du lot: rien n'est
+  // payé. `calls` VIDE, pas « calls sans la table des allergies ».
+  const { db, calls } = fakeDb({ rows: [{ id: "x", member_id: "m", label: "arachide" }] });
+  for (const householdId of [null, "", "   "]) {
+    const safety = await loadHouseholdTurnSafety(db as never, {
+      householdId,
+      contentLocale: "fr-FR",
+    });
+    assertEquals(calls, [], `une requête est partie pour ${JSON.stringify(householdId)}`);
+    assertEquals(safety.constraints, []);
+    assertEquals(safety.unreadableReason, null);
+    // Et le bloc de prompt ne pousse RIEN: pas de « ce foyer n'a pas
+    // d'allergie » chez quelqu'un qui vit seul.
+    assertEquals(householdAllergyPromptBlock(safety), null);
+  }
+});
+
+Deno.test("loadHouseholdTurnSafety — une panne NE LÈVE PAS, elle se NOMME", async () => {
+  // L'ARBITRAGE DU LOT, et il n'est pas celui du générateur. `generate-household
+  // -meal-v1` répond 503 et ne compose rien: sa seule sortie EST un repas. Un
+  // tour de chat porte aussi le routage de crise et le renvoi clinicien —
+  // refuser LE TOUR pour une lecture d'allergie ratée coûte plus qu'il ne
+  // protège, et serait plus strict que la lane individuelle, qui fail-open
+  // nommément pendant la MÊME panne.
+  for (const outcome of [{ error: { message: "boom" } }, { throws: true }]) {
+    const safety = await loadHouseholdTurnSafety(fakeDb(outcome).db as never, {
+      householdId: HOUSE_ID,
+      contentLocale: "fr-FR",
+    });
+    assertEquals(safety.constraints, []);
+    assert(safety.unreadableReason, "une panne doit se nommer");
+    // ⚠️ ET ELLE NE SE CONFOND PAS AVEC « aucune allergie »: c'est la capacité
+    // de PROPOSER à manger qui est coupée, pas la conversation.
+    const block = householdAllergyPromptBlock(safety);
+    assertEquals(block, HOUSEHOLD_SAFETY_UNREADABLE_BLOCK);
+    assertStringIncludes(block!, "do NOT propose");
+    assertStringIncludes(block!, "Everything else in this conversation is unaffected");
+    // Relire un plat DÉJÀ composé reste permis: il a été produit par le
+    // générateur, qui refuse de composer sans la ceinture.
+    assertStringIncludes(block!, "is NOT proposing food");
+  }
+});
+
+Deno.test("householdAllergyPromptBlock — il NOMME l'allergène et n'attribue PAS l'allergie", async () => {
+  const safety = await loadHouseholdTurnSafety(
+    fakeDb({ rows: [{ id: "a1", member_id: LEA_MEMBER, label: "arachide" }] })
+      .db as never,
+    { householdId: HOUSE_ID, contentLocale: "fr-FR" },
+  );
+  const block = householdAllergyPromptBlock(safety)!;
+  assertStringIncludes(block, "AVOID: peanut, arachide");
+  assertStringIncludes(block, "household_member_allergies");
+  // ⚠️ POURQUOI CE BLOC EXISTE AU LIEU D'ALLONGER CELUI DE L'ÉLÈVE: le bloc
+  // d'en face titre « THIS STUDENT'S HARD CONSTRAINTS », et y verser l'allergie
+  // d'un enfant ferait dire au modèle qu'un parent est allergique.
+  assertStringIncludes(block, "never tell the person you are talking to that");
+  assert(
+    !safetyConstraintsPromptBlock(safety.constraints)!.includes("household"),
+    "le bloc de l'élève ne parle pas du foyer — d'où le bloc séparé",
+  );
+});
+
+Deno.test("LA CEINTURE MORD DANS LES DEUX LANGUES — « arachide » couvre peanut et ses formes", async () => {
+  // « Une garde testée dans une seule langue est à moitié désarmée. » Le produit
+  // sort en français par défaut (`profiles.locale` = fr-FR) et l'allergie est
+  // saisie en toutes lettres par un humain; la réponse, elle, peut sortir dans
+  // l'une ou l'autre langue.
+  const safety = await loadHouseholdTurnSafety(
+    fakeDb({ rows: [{ id: "a1", member_id: LEA_MEMBER, label: "arachide" }] })
+      .db as never,
+    { householdId: HOUSE_ID, contentLocale: "fr-FR" },
+  );
+  for (
+    const text of [
+      "Add a spoon of peanut butter to the oats.",
+      "the nut butter option is the stronger bag snack", // la sortie réelle de 2026-08-03
+      "Try PB on rice cakes.",
+      "Satay sauce over chicken works well tonight.",
+      "Une cuillère de beurre de cacahuète dans les flocons.",
+      "Des cacahuètes grillées pour l'apéro.",
+      "Un peu d'arachide dans le wok.",
+    ]
+  ) {
+    assert(
+      findMedicalConstraintViolations(text, safety.constraints).length > 0,
+      `la ceinture n'a pas mordu sur: ${text}`,
+    );
+  }
+  // La NÉGATION reste licite, sinon on ne peut plus expliquer l'éviction — et
+  // un foyer allergique est littéralement fait d'évictions.
+  assertEquals(
+    findMedicalConstraintViolations(
+      "Ce plat ne contient pas d'arachide.",
+      safety.constraints,
+    ).length,
+    0,
+  );
+});
+
+Deno.test("householdConstraintRefs — une rétractation du locuteur ne désarme pas le foyer", async () => {
+  // Le désarmement n°5 de la ceinture laisse quelqu'un faire nommer la
+  // contrainte qu'il vient de RETIRER. Une allergie de foyer n'est pas la
+  // sienne: le chat n'écrit que dans `student_safety_constraints`, la ligne du
+  // foyer SURVIT, et l'honorer ferait taire l'allergie d'un enfant parce qu'un
+  // adulte a dit que la sienne avait disparu.
+  const safety = await loadHouseholdTurnSafety(
+    fakeDb({ rows: [{ id: "a1", member_id: LEA_MEMBER, label: "arachide" }] })
+      .db as never,
+    { householdId: HOUSE_ID, contentLocale: "fr-FR" },
+  );
+  const refs = householdConstraintRefs(safety.constraints);
+  assert(refs.has("peanut"), [...refs].join(","));
+  assert(refs.has("arachide"), [...refs].join(","));
+  assertEquals(refs.has("sesame"), false);
 });

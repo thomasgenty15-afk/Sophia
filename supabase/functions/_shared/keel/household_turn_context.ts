@@ -293,41 +293,80 @@ function rosterEntryOf(row: Record<string, unknown>): HouseholdRosterEntry {
 }
 
 /**
+ * LE FOYER DE CE COMPTE, RÉSOLU UNE FOIS PAR TOUR — et c'est le point d'entrée
+ * des DEUX lanes du foyer: ce contexte-ci, et l'union de sécurité
+ * (`household_safety.ts :: loadHouseholdTurnSafety`).
+ *
+ * ── POURQUOI IL EST SORTI DU CHARGEUR CI-DESSOUS ───────────────────────────
+ * La résolution vivait DANS `loadHouseholdTurnContext`. Le jour où les
+ * allergies du foyer sont entrées dans la conversation, la garder là aurait
+ * imposé un choix entre deux fautes: soit une SECONDE requête d'appartenance
+ * par tour — payée par tout le monde, y compris par ceux qui vivent seuls et
+ * n'ont pas de foyer du tout — soit brancher la lecture des allergies sur un
+ * chargeur qui rend `null` sur SEPT causes différentes et gate sur une date
+ * locale. Une allergie ne se lit pas derrière une garde de calendrier.
+ *
+ * ⚠️ IL LÈVE, et c'est la différence qui compte. `loadHouseholdTurnContext`
+ * avale ses pannes exprès (un bloc de plan absent vaut mieux qu'un tour perdu);
+ * ici l'appelant DOIT pouvoir distinguer « cette personne n'a pas de foyer » de
+ * « je n'ai pas pu savoir ». La première réponse est `null`, la seconde est une
+ * exception — et le fail-open silencieux de l'ancienne version cachait la
+ * seconde derrière la première.
+ *
+ * `keel_household_of` est la résolution unique: la contrainte
+ * `household_members_one_household_per_user` la garantit, et ce lecteur est le
+ * premier à casser le jour où elle tombe (V1, assumé).
+ */
+export async function resolveHouseholdIdFor(
+  db: Db,
+  userId: string,
+): Promise<string | null> {
+  const id = str(userId);
+  if (!id) return null;
+  const membership = await db
+    .from("household_members")
+    .select("household_id")
+    .eq("user_id", id)
+    .maybeSingle();
+  if (membership.error) throw membership.error;
+  return str(
+    (membership.data as Record<string, unknown> | null)?.household_id,
+  ) || null;
+}
+
+/**
  * Le foyer de cet élève, tel que le tour a le droit de le voir.
  *
- * Rend `null` — et le bloc n'est alors PAS injecté — dans quatre cas qui se
- * comportent pareil et se journalisent différemment: pas de foyer, plan
- * périmé, lecture en panne, roster illisible. Aucun d'eux ne produit « ton
- * foyer n'a rien prévu » à quelqu'un qui vit seul (R8).
+ * Rend `null` — et le bloc n'est alors PAS injecté — dans les cas qui se
+ * comportent pareil et se journalisent différemment: plan périmé, lecture en
+ * panne, roster illisible. Aucun d'eux ne produit « ton foyer n'a rien prévu »
+ * à quelqu'un qui vit seul (R8) — et « pas de foyer » ne passe même plus par
+ * ici, puisque l'appelant l'a déjà tranché avec `resolveHouseholdIdFor`.
  *
+ * @param householdId le foyer DÉJÀ RÉSOLU. Obligatoire, jamais optionnel: ce
+ *   dépôt a mesuré qu'« un paramètre de garde optionnel est une garde
+ *   désarmée », et un repli « résous-le toi-même si on ne te le donne pas »
+ *   rendrait la seconde requête invisible au relecteur.
  * @param localDate la date LOCALE de l'élève. C'est elle qui décide si une
  *   fenêtre de plan couvre « aujourd'hui »: un plat d'hier servi ce soir est
  *   une erreur silencieuse.
  */
 export async function loadHouseholdTurnContext(
   db: Db,
-  args: { userId: string; localDate: string },
+  args: { householdId: string; userId: string; localDate: string },
 ): Promise<HouseholdTurnContext | null> {
+  const householdId = str(args.householdId);
   const userId = str(args.userId);
   const localDate = str(args.localDate);
-  if (!userId || !/^\d{4}-\d{2}-\d{2}$/.test(localDate)) return null;
+  if (!householdId || !userId || !/^\d{4}-\d{2}-\d{2}$/.test(localDate)) {
+    return null;
+  }
 
   try {
-    // 1. LE FOYER. `keel_household_of` est la résolution unique: la contrainte
-    // `household_members_one_household_per_user` la garantit, et ce chargeur
-    // est le premier à casser le jour où elle tombe (V1, assumé).
-    const membership = await db
-      .from("household_members")
-      .select("household_id")
-      .eq("user_id", userId)
-      .maybeSingle();
-    if (membership.error) throw membership.error;
-    const householdId = str(
-      (membership.data as Record<string, unknown> | null)?.household_id,
-    );
-    if (!householdId) return null;
-
-    // 2. LE ROSTER, par la RPC — jamais par `profiles`. Le fait que la RPC
+    // 2. LE ROSTER, par la RPC — jamais par `profiles`. (L'étape 1, la
+    // résolution du foyer, est passée chez l'appelant: `resolveHouseholdIdFor`.
+    // La numérotation est gardée pour que les renvois d'ailleurs — §7, §9 —
+    // continuent de désigner les mêmes étapes.) Le fait que la RPC
     // existe EST la garde: une policy RLS ne restreint pas les COLONNES, et
     // ouvrir `profiles` aux co-membres livrerait téléphone, e-mail et
     // identifiant Stripe pour afficher un prénom.
@@ -631,6 +670,17 @@ export function householdContextBlock(ctx: HouseholdTurnContext): string {
   // restrictions qui me visent, les règles dures, la ceinture mineur et la
   // ceinture colocation. Ce sont les seules choses dont la perte se paie dans
   // une casserole ou dans une fuite.
+  //
+  // ⚠️ LES ALLERGIES DU FOYER NE SONT PAS DANS CE BLOC, ET C'EST LEUR GARDE.
+  // Elles ne sont pas « en haut de l'ordre de coupe »: elles sont HORS de
+  // l'ordre de coupe, dans leur propre bloc, poussé par le composeur juste
+  // après les contraintes dures de l'élève et bien avant celui-ci
+  // (`household_safety.ts :: householdAllergyPromptBlock`). Un plafond qui
+  // compte des caractères ne peut donc pas les atteindre, quelle que soit la
+  // taille du foyer et le nombre de préparations — ce n'est pas une place
+  // privilégiée dans une file, c'est l'absence de file. La même raison range
+  // déjà les contraintes de l'ÉLÈVE ailleurs: le budget du prompt tronque par
+  // la queue, et une allergie n'a pas de rang acceptable dans une queue.
   const laterPreps = ctx.preparations.filter((p) => !p.isToday).length;
   const otherPortions = ctx.portions.filter((p) => !p.isMe).length;
   const state: BlockBudgetState = {

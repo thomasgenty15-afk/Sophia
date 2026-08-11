@@ -19,6 +19,7 @@ import {
   MEDICAL_BLOCK_FALLBACK_EN,
 } from "../skills/_shared/keel_output_locks.ts";
 import { NO_COACH_METHOD_BLOCK } from "../../_shared/keel/doctrine_loader.ts";
+import { NO_HOUSEHOLD_SAFETY } from "../../_shared/keel/household_safety.ts";
 import { compileDoctrineBlock } from "../../_shared/keel/doctrine.ts";
 import { compileProtocol } from "../../_shared/keel/protocol_compiler.ts";
 
@@ -53,6 +54,10 @@ function keel(over: Partial<KeelTurnContext> = {}): KeelTurnContext {
       },
     ],
     safety_constraints_unavailable_reason: null,
+    // Par défaut: PAS DE FOYER. La lane du foyer ne doit rien changer à un tour
+    // qui n'en a pas — ces tests-ci le prouvent par leur seule existence, ils
+    // sont tous passés avant qu'elle n'existe.
+    household_safety: NO_HOUSEHOLD_SAFETY,
     doctrine: null,
     // FF-016 — absent par défaut: le bloc mapping ne doit rien pousser chez un
     // élève dont le coach n'a pas publié de protocole.

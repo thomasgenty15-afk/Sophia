@@ -284,3 +284,244 @@ export async function loadHouseholdAllergies(
     label: String(row.label ?? ""),
   }));
 }
+
+// ---------------------------------------------------------------------------
+// LA LANE DE LA CONVERSATION — et l'arbitrage de panne qui n'est PAS celui du
+// générateur
+// ---------------------------------------------------------------------------
+
+/**
+ * Ce qu'un TOUR DE CHAT sait des allergies du foyer.
+ *
+ * ── LE TROU QUE CETTE LANE FERME ───────────────────────────────────────────
+ * `run.ts` chargeait `loadStudentSafetyConstraints` du SEUL LOCUTEUR. Les
+ * allergies du foyer — clées sur `member_id`, donc les seules qui puissent
+ * porter celle d'un enfant SANS COMPTE — n'étaient lues que par
+ * `generate-household-meal-v1`. Un parent qui demandait « je cuisine quoi ce
+ * soir ? » dans le chat n'avait donc pas l'allergie de son enfant armée: le
+ * générateur la connaissait, la conversation non. C'est le même défaut de
+ * famille que le §3.3 a payé deux fois — une garantie énoncée globalement,
+ * câblée sur un chemin sur N.
+ *
+ * ── `[]` ET `unreadableReason` SONT DEUX ÉTATS, PAS UN ─────────────────────
+ * « ce foyer n'a déclaré aucune allergie » et « je n'ai pas pu lire ses
+ * allergies » ne se comportent pas pareil, et c'est exactement ce que
+ * `loadHouseholdAllergies` protège en LEVANT. Les fondre ici rendrait le
+ * fail-closed impossible à écrire.
+ */
+export interface HouseholdTurnSafety {
+  /** L'union du foyer, prête pour la ceinture. Vide = rien à armer. */
+  constraints: StudentSafetyConstraint[];
+  /**
+   * `null` ⇒ la lecture a abouti. Non-null ⇒ ON NE SAIT PAS, et le tour se
+   * comporte différemment (voir `HOUSEHOLD_SAFETY_UNREADABLE_BLOCK`).
+   */
+  unreadableReason: string | null;
+}
+
+/**
+ * L'état d'un tour SANS FOYER — et d'un tour hors élève KEEL.
+ *
+ * Une valeur, pas un `null`: le contexte de tour porte ce champ comme un champ
+ * OBLIGATOIRE, pour que le compilateur refuse un chemin qui l'oublierait. Un
+ * champ optionnel ici serait la cicatrice `safetyBand` refaite à l'identique.
+ */
+export const NO_HOUSEHOLD_SAFETY: HouseholdTurnSafety = Object.freeze({
+  constraints: Object.freeze([]) as unknown as StudentSafetyConstraint[],
+  unreadableReason: null,
+});
+
+/**
+ * Les allergies du foyer de ce tour. NE LÈVE JAMAIS.
+ *
+ * ── AUCUN FOYER ⇒ AUCUNE REQUÊTE, ET C'EST UNE EXIGENCE ────────────────────
+ * `run.ts` est le chemin de TOUTES les conversations du produit, dont
+ * l'immense majorité n'a pas de foyer. `householdId === null` sort
+ * immédiatement sur la constante: pas de requête, pas d'allocation, pas de
+ * bloc. Le foyer est résolu UNE fois par tour, en amont
+ * (`household_turn_context.ts :: resolveHouseholdIdFor`), et cette résolution
+ * existait déjà avant ce lot — personne ne paie un aller-retour de plus.
+ *
+ * ── L'ARBITRAGE DE PANNE, ET POURQUOI IL N'EST PAS CELUI DU GÉNÉRATEUR ─────
+ *
+ * `generate-household-meal-v1` répond **503 `safety_constraints_unreadable`**
+ * et ne compose rien. C'est juste là-bas: sa seule sortie EST un repas, et un
+ * repas composé sans ceinture est le produit défaillant lui-même. Il n'a rien
+ * d'autre à rendre.
+ *
+ * Un tour de chat n'a pas cette forme. Refuser LE TOUR parce qu'une lecture
+ * d'allergie a échoué, ce serait taire aussi le routage de crise, le renvoi
+ * clinicien, la doctrine du coach et le simple fait de répondre à quelqu'un —
+ * pour une table qui n'a rien à voir avec sa question. Et ce serait un
+ * fail-closed plus strict que celui de la lane INDIVIDUELLE: `run.ts`
+ * fail-OPEN, nommément, quand `student_safety_constraints` est illisible.
+ * Être plus dur sur le foyer que sur la propre allergie du locuteur, pendant
+ * la MÊME panne, n'est pas une position défendable.
+ *
+ * D'où l'arbitrage retenu, qui n'est ni l'un ni l'autre:
+ *
+ *   ON NE COUPE PAS LA CONVERSATION. ON COUPE LA CAPACITÉ QUE LA DONNÉE
+ *   MANQUANTE PROTÉGEAIT — proposer à manger.
+ *
+ * C'est l'analogue honnête du 503: le générateur refuse de CUISINER, le chat
+ * refuse de PROPOSER, et le dit. Tout le reste du tour est intact. La
+ * dégradation est bornée à un tour et à un verbe, elle est BRUYANTE
+ * (`unreadableReason` + log), et elle ne peut pas se confondre avec « ce foyer
+ * n'a pas d'allergie »: c'est toute la raison d'être des deux états.
+ *
+ * ⚠️ LA PORTÉE DE LA DÉGRADATION S'ARRÊTE À CE QU'ON SAIT. Une panne sur la
+ * RÉSOLUTION du foyer (`household_members`) n'arme rien du tout: on ignore
+ * alors s'il y a un foyer, la panne frapperait tous les élèves y compris ceux
+ * qui vivent seuls, et la lane individuelle laisse déjà passer ce tour-là. Ce
+ * qui arme la dégradation, c'est de SAVOIR qu'il y a des bouches et de ne pas
+ * pouvoir lire leurs contraintes — le mode de panne réaliste d'une table
+ * jeune (grant, RLS, migration en vol), pas d'un `household_members` chargé
+ * depuis le premier jour.
+ */
+export async function loadHouseholdTurnSafety(
+  db: HouseholdAllergiesDb,
+  args: { householdId: string | null; contentLocale: string },
+): Promise<HouseholdTurnSafety> {
+  const householdId = String(args.householdId ?? "").trim();
+  if (!householdId) return NO_HOUSEHOLD_SAFETY;
+  try {
+    const rows = await loadHouseholdAllergies(db, householdId);
+    return {
+      constraints: householdAllergyConstraints(
+        rows,
+        String(args.contentLocale ?? "").trim() || "en-GB",
+      ),
+      unreadableReason: null,
+    };
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    console.warn(
+      "[keel/household_safety] household allergies unreadable for this turn " +
+        "(NO FOOD MAY BE PROPOSED)",
+      reason,
+    );
+    return { constraints: [], unreadableReason: reason };
+  }
+}
+
+/**
+ * Les identifiants que le FOYER tient — pour les tours où quelqu'un en retire
+ * un.
+ *
+ * La ceinture de sortie se désarme sur ce que le tour RÉTRACTE
+ * (`retractedConstraintRefsIn`), et ce désarmement est écrit pour la lane
+ * individuelle: on retire sa PROPRE contrainte, donc on a le droit de
+ * l'entendre nommer. Il ne peut pas s'appliquer au foyer: la rétractation du
+ * chat n'écrit que dans `student_safety_constraints`, la ligne du foyer
+ * SURVIT, et l'honorer reviendrait à taire l'allergie d'une autre bouche parce
+ * qu'un tiers a dit qu'il n'avait plus la sienne. Retirer une allergie de
+ * foyer se fait sur l'écran du foyer, là où elle a été écrite.
+ */
+export function householdConstraintRefs(
+  constraints: readonly StudentSafetyConstraint[],
+): Set<string> {
+  const refs = new Set<string>();
+  for (const c of constraints) {
+    for (const ref of [c.allergenRef, c.substanceRef, c.medicationClass]) {
+      const token = String(ref ?? "").trim().toLowerCase();
+      if (token) refs.add(token);
+    }
+  }
+  return refs;
+}
+
+// ---------------------------------------------------------------------------
+// LES DEUX BLOCS DE PROMPT
+// ---------------------------------------------------------------------------
+
+/**
+ * L'union du foyer, rendue pour le PROMPT — la moitié « avant génération » du
+ * double verrou, côté foyer.
+ *
+ * ── POURQUOI CE BLOC EXISTE AU LIEU D'ALLONGER CELUI DE L'ÉLÈVE ────────────
+ * `safetyConstraintsPromptBlock` titre « THIS STUDENT'S HARD CONSTRAINTS
+ * (source: student_safety_constraints) ». Verser l'allergie d'un enfant dans
+ * cette liste rendrait les DEUX moitiés de cette phrase fausses, et le modèle
+ * dirait à un parent qu'IL est allergique aux arachides. Affirmer à quelqu'un
+ * qu'il porte une allergie qu'il n'a pas est un fait faux sur une personne —
+ * exactement le registre que ce dépôt refuse ailleurs (« coche auto = faits
+ * faux indémentables »).
+ *
+ * La ceinture de sortie, elle, n'attribue rien: elle refuse de NOMMER un jeton
+ * médical. L'union entre donc dans la ceinture (une seule liste, un seul
+ * matcher) et reste distincte dans le prompt (deux blocs, deux attributions).
+ *
+ * ── CE QU'IL NE DIT PAS, ET C'EST DÉLIBÉRÉ ────────────────────────────────
+ * Il ne dit pas DE QUI est chaque allergie. Le nommer demanderait de joindre le
+ * roster, donc de faire dépendre une garde médicale d'une date locale et d'une
+ * RPC — et n'ajouterait rien à ce qui gouverne la casserole. Le compte maître,
+ * lui, sait: c'est lui qui l'a écrite.
+ *
+ * ⚠️ IL NE PORTE QUE DES IDENTIFIANTS (R1), jamais la prose du libellé. Le mot
+ * de la personne y arrive quand même, mais par le seul chemin légitime: le
+ * cran 3 de `householdAllergenRefs` le rend comme identifiant littéral, donc
+ * « arachide » est là ET `peanut` aussi.
+ *
+ * Rend `null` quand il n'y a rien à dire — un bloc vide dans un prompt est du
+ * bruit qui coûte du cache, et « ce foyer n'a pas d'allergie » est une phrase
+ * que personne n'a demandée.
+ */
+export function householdAllergyPromptBlock(
+  safety: HouseholdTurnSafety,
+): string | null {
+  if (safety.unreadableReason) return HOUSEHOLD_SAFETY_UNREADABLE_BLOCK;
+  const refs: string[] = [];
+  for (const ref of householdConstraintRefs(safety.constraints)) refs.push(ref);
+  if (refs.length === 0) return null;
+  return [
+    "=== THIS HOUSEHOLD'S MEDICAL ALLERGIES (source: household_member_allergies) ===",
+    "They belong to the mouths at this table — possibly to a child who has no",
+    "account and cannot declare anything. They are loaded fresh every turn.",
+    "ONE MEMBER'S ALLERGY GOVERNS THE WHOLE POT: everything cooked, bought or",
+    "served in this household avoids all of them, for everyone.",
+    "",
+    `AVOID: ${refs.join(", ")}`,
+    "",
+    "Never suggest, recommend or include any of the above for this household,",
+    "and never suggest a food that ordinarily contains one (a nut butter for a",
+    "peanut constraint, a satay sauce, a tahini for sesame). Check anything you",
+    "propose to cook, buy or serve against this list first.",
+    "You MAY name them to warn, to exclude, or to answer a direct question about",
+    "them — avoiding a food requires being able to say its name.",
+    "This block does NOT say whose each allergy is, and you must not guess:",
+    "never tell the person you are talking to that THEY are allergic to",
+    "something. Say it is a constraint of this household.",
+    "Removing one is done on the household screen, never here.",
+  ].join("\n");
+}
+
+/**
+ * CE QU'ON DIT QUAND ON NE SAIT PAS — la dégradation, écrite en toutes lettres.
+ *
+ * Elle coupe UN VERBE, pas la conversation (l'arbitrage complet est sur
+ * `loadHouseholdTurnSafety`). Deux détails qui ne sont pas cosmétiques:
+ *
+ *   · elle interdit de PROPOSER, pas de LIRE. Les plats déjà composés que
+ *     porte le bloc du foyer ont été produits par un générateur qui, LUI,
+ *     refuse de composer sans la ceinture (503). Les relire n'est pas proposer
+ *     à manger, et les taire priverait le foyer du dîner qu'il a déjà validé;
+ *   · elle DIT qu'elle ne sait pas. Un modèle à qui on retire une capacité
+ *     sans lui dire pourquoi la contourne poliment; un silence sur une
+ *     allergie est indiscernable d'une absence d'allergie, et c'est le mode de
+ *     défaillance que toute cette lane existe pour empêcher.
+ */
+export const HOUSEHOLD_SAFETY_UNREADABLE_BLOCK = [
+  "=== THIS HOUSEHOLD'S ALLERGIES COULD NOT BE READ ON THIS TURN ===",
+  "Someone here may have a medical allergy that you cannot see right now, and a",
+  "child with no account cannot tell you about it.",
+  "So, on this turn only: do NOT propose, recommend, name as an option, or",
+  "endorse any food, dish, ingredient, recipe or shopping item for this",
+  "household. Not one you would invent, not one you remember, not one you infer",
+  "from anything above.",
+  "Say plainly that you cannot check this household's allergies right now, and",
+  "send them to the meals screen, which reads them itself before composing.",
+  "Reading back a dish that is already listed above is NOT proposing food: it",
+  "was composed with these constraints armed. Repeating it is fine; adding to",
+  "it, swapping it, or suggesting anything else is not.",
+  "Everything else in this conversation is unaffected. Answer it normally.",
+].join("\n");
