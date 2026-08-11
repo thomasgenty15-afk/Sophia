@@ -5,7 +5,19 @@
 # message below to the agent.
 #
 # Covered: supabase secrets set/unset · db reset · db push · functions deploy ·
-#          projects/branches delete · link · secret writes via the Management API.
+#          config push · projects/branches delete · link ·
+#          secret writes via the Management API.
+#
+# Why `config push` is here: it overwrites the LINKED project config with
+# supabase/config.toml, which carries deliberately local settings. One of them is
+# signing_keys_path, the fix that keeps the local stack on HS256 — see
+# docs/keel/JWT-HS256.md. Pushing it would reconfigure production auth.
+#
+# WARNING for editors: the python block below sits inside a $( ... ) command
+# substitution. On macOS bash 3.2 an apostrophe or a stray paren in that block
+# breaks the parse, and the hook then exits 2 for EVERY command — which looks
+# exactly like a hook that works. Keep that block ASCII and apostrophe-free, and
+# re-test with a benign command after any edit.
 set -uo pipefail
 
 payload="$(cat)"
@@ -24,6 +36,7 @@ risky = [
     r'\bsupabase\s+secrets\s+(set|unset)\b',
     r'\bsupabase\s+db\s+(reset|push)\b',
     r'\bsupabase\s+functions\s+deploy\b',
+    r'\bsupabase\s+config\s+push\b',
     r'\bsupabase\s+projects\s+delete\b',
     r'\bsupabase\s+branches\s+delete\b',
     r'\bsupabase\s+link\b',
@@ -46,7 +59,8 @@ if [ "$verdict" = "BLOCK" ]; then
 🚫 Commande à risque BLOQUÉE par la sécurité du projet (.claude/hooks/block-risky-commands.sh).
 
 Catégorie : secrets set/unset · db reset · db push · functions deploy ·
-projects/branches delete · link · écriture de secrets via la Management API.
+config push · projects/branches delete · link · écriture de secrets via la
+Management API.
 
 Un agent IA ne peut PAS exécuter ce type de commande seul. Elle exige la
 VALIDATION EXPLICITE de l'utilisateur humain, qui doit la lancer lui-même

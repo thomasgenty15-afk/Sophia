@@ -26,9 +26,39 @@ que l'utilisateur les lance lui-même. La liste complète et le pourquoi sont da
 [AGENTS.md](AGENTS.md).
 
 En résumé, JAMAIS seul : `supabase secrets set/unset`, `supabase db reset`,
-`supabase db push`, `supabase functions deploy`, `supabase projects/branches delete`,
-`supabase link`, et toute écriture de secrets via la Management API
-(`POST`/`DELETE` sur `api.supabase.com/.../secrets`).
+`supabase db push`, `supabase functions deploy`, `supabase config push`,
+`supabase projects/branches delete`, `supabase link`, et toute écriture de
+secrets via la Management API (`POST`/`DELETE` sur `api.supabase.com/.../secrets`).
 
 Si tu en as besoin : arrête-toi, donne à l'utilisateur la commande exacte à
 copier-coller, et laisse-le l'exécuter. Les lectures (GET/SELECT) restent permises.
+
+## 🔒 401 « Invalid JWT » en local : NE TOUCHE À RIEN, lis d'abord
+
+Si une fonction edge rend **401 `Invalid JWT`** pendant que PostgREST répond
+normalement, ce n'est **pas** un bug de l'écran qui échoue. C'est l'algorithme de
+signature de la pile locale. Ce piège a déjà coûté plusieurs journées, à
+plusieurs sessions.
+
+**Ton seul geste autorisé :**
+
+```bash
+./scripts/check-local-jwt-alg.sh
+```
+
+Puis lis **[docs/keel/JWT-HS256.md](docs/keel/JWT-HS256.md)**.
+
+**Interdits — chacun a déjà été tenté, aucun ne répare :**
+
+- ❌ Passer une fonction en `verify_jwt = false` dans `supabase/config.toml`.
+  C'est déplacer un défaut de poste de dev dans un fichier qui part en prod.
+  Le gate de commit refuse ce geste quand il est justifié par l'algorithme.
+- ❌ Écrire une clé dans `supabase/signing_keys.local.json`. **Ce fichier doit
+  rester `[]`** : c'est la seule façon d'obtenir HS256, et le vide est voulu.
+- ❌ Supprimer ce fichier, ou recommenter `signing_keys_path`.
+- ❌ Recréer le conteneur `auth` à la main.
+
+La réparation légitime, quand la pile est plus vieille que le correctif, est
+`supabase stop && supabase start` — puis se **déconnecter/reconnecter** dans
+l'app, car le jeton déjà en `localStorage` n'est pas renouvelé par un simple
+rechargement.

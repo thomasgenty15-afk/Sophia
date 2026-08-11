@@ -133,8 +133,28 @@ additional_redirect_urls = [
 jwt_expiry = 3600
 # JWT issuer URL. If not set, defaults to the local API URL (http://127.0.0.1:<port>/auth/v1).
 # jwt_issuer = ""
-# Path to JWT signing key. DO NOT commit your signing keys file to git.
-# signing_keys_path = "./signing_keys.json"
+# ⛔ NE TOUCHEZ PAS À CETTE LIGNE — ni humain, ni agent. Voir docs/keel/JWT-HS256.md
+#
+# Sans elle, le CLI fabrique une clé EC à chaque `supabase start` et GoTrue signe
+# en **ES256**. Le gateway du runtime edge, lui, ne reçoit que le secret
+# symétrique et jose refuse net:
+#     TypeError: Key for the ES256 algorithm must be of type CryptoKey
+# Résultat: TOUTE fonction en `verify_jwt = true` rend 401 `Invalid JWT` — alors
+# que PostgREST continue de répondre. On croit à un bug d'écran, il n'y en a pas.
+# Ça a coûté plusieurs journées, plusieurs fois.
+#
+# ⚠️ LE FICHIER POINTÉ EST UN TABLEAU VIDE `[]`, ET C'EST VOULU.
+# Il n'a pas été oublié, il n'est pas à remplir. On ne PEUT pas y mettre la clé:
+# le CLI refuse les clés symétriques — `must be one of [RS256 ES256]`. Le jeu de
+# clés vide est la SEULE façon d'exprimer « signe avec le secret symétrique »:
+# le CLI passe `GOTRUE_JWT_KEYS=[]`, GoTrue n'a alors aucune clé à préférer et
+# retombe sur `GOTRUE_JWT_SECRET`, donc HS256 — le même secret que
+# PGRST_JWT_SECRET et SUPABASE_INTERNAL_JWT_SECRET. Une seule clé pour toute la
+# pile, les trois moitiés d'accord.
+#
+# Si vous remplissez ce fichier, vous rallumez le bug. Si vous le supprimez,
+# vous le rallumez aussi. Vérifiez avec: ./scripts/check-local-jwt-alg.sh
+signing_keys_path = "./signing_keys.local.json"
 # If disabled, the refresh token will never expire.
 enable_refresh_token_rotation = true
 # Allows refresh tokens to be reused after expiry, up to the specified interval in seconds.
@@ -437,17 +457,38 @@ verify_jwt = false
 [functions.purge-deleted-accounts]
 verify_jwt = false
 
-# Account deletion/restore/export authenticate in-function via auth.getUser()
-# (gateway verify_jwt is redundant and rejects ES256 user tokens on the local
-# stack — see referral-and-deletion-design memory note).
+# Account deletion/restore/export authenticate in-function via auth.getUser().
+#
+# ⚠️ RAISON CORRIGÉE LE 2026-08-11. L'ancienne justification disait « le gateway
+# rejette les jetons ES256 de la pile locale ». Ce n'est PLUS VRAI: la pile
+# locale signe en HS256 depuis le correctif signing_keys_path (docs/keel/JWT-HS256.md).
+# La seule raison qui reste est que l'authentification se fait DANS la fonction.
+# Repasser ces trois-là à `verify_jwt = true` est désormais possible et sans
+# appelant cassé (tous les appelants du dépôt envoient un en-tête Authorization);
+# c'est un durcissement modeste — le portail laisse de toute façon passer la clé
+# anon, qui est publique — et un changement de comportement en production, donc
+# il attend une décision humaine.
 [functions.account-deletion-v1]
 verify_jwt = false
 [functions.account-restore-v1]
 verify_jwt = false
 [functions.account-export-v1]
 verify_jwt = false
-# KEEL — parse-only plan import (P0 demo). Auth in-function once coach accounts
-# exist (P3); gateway JWT check off for the same ES256-on-local reason as above.
+# KEEL — import de plan.
+#
+# 🔴 CETTE FONCTION N'A AUCUNE AUTHENTIFICATION. Ni au portail (verify_jwt =
+# false), ni dans la fonction: `plan-import-v1/index.ts` n'appelle jamais
+# auth.getUser(). L'ancien commentaire promettait « auth in-function once coach
+# accounts exist (P3) » — les comptes coach existent, l'authentification n'est
+# jamais arrivée. Et la fonction importe `generateWithGemini` et
+# `generateWithVision`: c'est donc un point d'entrée public qui consomme des
+# appels modèle. Seul `enforceRateLimit` la protège.
+#
+# L'ancienne seconde justification (« même raison ES256 qu'au-dessus ») est
+# morte: la pile locale signe en HS256 (docs/keel/JWT-HS256.md). Noter que
+# passer à `verify_jwt = true` ne refermerait PAS le trou — l'appelant envoie
+# `Bearer ANON_KEY`, et la clé anon satisfait le portail. Il faut une vraie
+# authentification dans la fonction.
 [functions.plan-import-v1]
 verify_jwt = false
 
@@ -456,26 +497,27 @@ verify_jwt = false
 #   coach-signup-v1  -> creates the `coaches` row (the table has no INSERT policy)
 #   plan-publish-v1  -> requires the student to be in coached_student_ids(),
 #                       evaluated under the coach's own JWT
-# Gateway verify_jwt stays off for the same ES256-on-local reason as the
-# account-* functions above: Kong rejects the local ES256 user token before the
-# function ever sees it. NOTE (verified 27/07): a per-function
+# ⚠️ RAISON CORRIGÉE LE 2026-08-11: le motif « ES256 en local » invoqué ici est
+# mort (docs/keel/JWT-HS256.md). Ce qui reste vrai, et suffit: l'authentification
+# se fait DANS la fonction. Voir le bloc account-* plus haut pour l'arbitrage.
+# NOTE (verified 27/07): a per-function
 # supabase/functions/<name>/config.toml is NOT read by the CLI — this file is
 # the only place a function's gateway setting takes effect.
 [functions.coach-signup-v1]
 verify_jwt = false
 [functions.plan-publish-v1]
 verify_jwt = false
-# KEEL W6.4 — template CRUD. The gateway check is off for the same
-# ES256-on-local reason: GoTrue signs user tokens with an asymmetric key the
-# gateway cannot verify, so a real coach JWT would be rejected before reaching
-# the function. Auth happens IN-FUNCTION (auth.getUser() -> coaches.user_id,
+# KEEL W6.4 — template CRUD.
+# ⚠️ RAISON CORRIGÉE LE 2026-08-11: le motif « ES256 en local » est mort
+# (docs/keel/JWT-HS256.md). Auth happens IN-FUNCTION (auth.getUser() -> coaches.user_id,
 # status='active'); `coach_id` is never read from the request body.
 [functions.plan-template-v1]
 verify_jwt = false
 
 # KEEL W5 — meal photos.
 # `meal-photo-upload-v1` authenticates the student in-function via
-# auth.getUser() (same ES256-on-local reason as the account-* functions);
+# auth.getUser() (⚠️ le motif « ES256 en local » qui figurait ici est mort le
+# 2026-08-11 — docs/keel/JWT-HS256.md; l'auth en-fonction, elle, tient);
 # `analyze-meal-photo-v1` is internal-only (X-Internal-Secret).
 # `meal-photo-upload-v1` porte AUSSI l'action `sign`, qui rend les URLs
 # permettant d'AFFICHER une photo déjà envoyée: le bucket est privé et sans
@@ -488,9 +530,9 @@ verify_jwt = false
 verify_jwt = false
 
 # KEEL W6.3 — student invitation. Same posture as its three sibling coach
-# functions above, and for the same verified reason: Kong rejects the local
-# ES256 user token before it reaches the function, so a real coach JWT would
-# 401 at the gateway. Auth is NOT weakened — it moves in-function:
+# functions above. ⚠️ RAISON CORRIGÉE LE 2026-08-11: le motif « ES256 en local »
+# invoqué ici est mort (docs/keel/JWT-HS256.md).
+# Auth is NOT weakened — it moves in-function:
 # auth.getUser() -> coaches.user_id with status='active', and the coach_id is
 # never taken from the request body.
 [functions.coach-invite-student-v1]

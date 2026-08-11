@@ -60,8 +60,43 @@ test_count() {
     2>/dev/null | wc -l | tr -d ' '
 }
 
+config_added_lines() {
+  if [ "$STAGED_ONLY" = "1" ]; then
+    git diff --cached --unified=0 -- supabase/config.toml | rg '^\+' || true
+  else
+    { git diff "$BASE_REF" --unified=0 -- supabase/config.toml || true
+      git diff --cached --unified=0 -- supabase/config.toml || true; } | rg '^\+' || true
+  fi
+}
+
 check_forbidden_patterns() {
-  info "forbidden pattern scan skipped"
+  # ── 1. L'alignement JWT local ne se défait pas ──────────────────────────
+  # Sans lui, GoTrue signe en ES256 et TOUTE fonction en verify_jwt = true rend
+  # 401 pendant que PostgREST répond — on cherche alors un bug d'écran qui
+  # n'existe pas. C'est arrivé plusieurs fois. docs/keel/JWT-HS256.md
+  if [ -f scripts/check-local-jwt-alg.sh ]; then
+    if ! bash scripts/check-local-jwt-alg.sh --static >/dev/null 2>&1; then
+      bash scripts/check-local-jwt-alg.sh --static >&2 || true
+      fail "alignement JWT local rompu — ce commit le propagerait (docs/keel/JWT-HS256.md)"
+    fi
+    info "alignement JWT local ok"
+  fi
+
+  # ── 2. On ne désarme pas le portail JWT au nom de l'algorithme local ────
+  # Le geste interdit: rencontrer un 401, conclure « c'est l'ES256 en local »,
+  # et passer une fonction en verify_jwt = false. Ça déplace un défaut de poste
+  # de dev dans un fichier qui part en production.
+  local added
+  added="$(config_added_lines)"
+  if printf '%s' "$added" | rg -qi 'verify_jwt[[:space:]]*=[[:space:]]*false' \
+     && printf '%s' "$added" | rg -qi 'es256|hs256|invalid jwt'; then
+    printf '%s\n' "$added" | rg -i 'verify_jwt|es256|hs256|invalid jwt' >&2 || true
+    fail "ce commit ajoute un verify_jwt = false en invoquant l'algorithme JWT local.
+       Ce n'est pas la réparation: lancez ./scripts/check-local-jwt-alg.sh et
+       lisez docs/keel/JWT-HS256.md. Si le verify_jwt = false est légitime
+       (webhook, appelant cron sans JWT), justifiez-le SANS citer ES256/HS256."
+  fi
+  info "forbidden pattern scan ok"
 }
 
 check_test_count() {

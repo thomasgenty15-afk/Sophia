@@ -10,7 +10,7 @@
 #     supabase() { "/Users/ahmedamara/Dev/Sophia 2/scripts/safe-supabase.sh" "$@"; }
 #
 # Covered subcommands: secrets set/unset · db reset · db push · functions deploy ·
-# projects delete · branches delete · link.
+# config push · projects delete · branches delete · link.
 set -uo pipefail
 
 lc() { printf '%s' "${1:-}" | tr '[:upper:]' '[:lower:]'; }
@@ -22,6 +22,9 @@ is_risky=0
 [ "$g" = "secrets" ] && { [ "$a" = "set" ] || [ "$a" = "unset" ]; } && is_risky=1
 [ "$g" = "db" ] && { [ "$a" = "reset" ] || [ "$a" = "push" ]; } && is_risky=1
 [ "$g" = "functions" ] && [ "$a" = "deploy" ] && is_risky=1
+# `config push` ecrase la config du projet lie avec supabase/config.toml, qui
+# porte des reglages voulus locaux (signing_keys_path -> docs/keel/JWT-HS256.md).
+[ "$g" = "config" ] && [ "$a" = "push" ] && is_risky=1
 [ "$g" = "projects" ] && [ "$a" = "delete" ] && is_risky=1
 [ "$g" = "branches" ] && [ "$a" = "delete" ] && is_risky=1
 
@@ -38,7 +41,7 @@ if [ "$is_risky" = "1" ]; then
   if [ -n "${CLAUDECODE:-}" ] || [ -n "${CLAUDE_CODE:-}" ] || [ -n "${CODEX:-}" ] \
      || [ -n "${OPENAI_AGENT:-}" ] || [ -n "${AI_AGENT:-}" ] || [ -n "${CI:-}" ] || [ ! -t 0 ]; then
     echo "🚫 INTERDIT aux agents IA / exécution non-interactive." >&2
-    echo "   secrets set · db reset · db push · functions deploy exigent une validation humaine explicite." >&2
+    echo "   secrets set · db reset · db push · functions deploy · config push exigent une validation humaine explicite." >&2
     echo "   → L'utilisateur doit taper la commande lui-même dans un terminal interactif." >&2
     exit 1
   fi

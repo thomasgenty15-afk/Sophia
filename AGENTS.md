@@ -11,6 +11,9 @@ pour qu'il l'exécute — ne la lance pas, ne la contourne pas.
 - `supabase db reset`
 - `supabase db push` (notamment `--linked`)
 - `supabase functions deploy`
+- `supabase config push` (écrase la config du projet lié avec `supabase/config.toml`,
+  qui porte des réglages **voulus locaux** — dont `signing_keys_path`, l'alignement
+  HS256 de la pile locale ; voir [docs/keel/JWT-HS256.md](docs/keel/JWT-HS256.md))
 - `supabase projects delete` / `supabase branches delete`
 - `supabase link`
 - Écriture de secrets via la Management API (`POST`/`DELETE` sur `api.supabase.com/.../secrets`)
