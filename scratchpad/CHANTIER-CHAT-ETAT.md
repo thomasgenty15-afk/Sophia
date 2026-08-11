@@ -1076,3 +1076,36 @@ posé) ; le `drop column` deviendra sûr une fois ces 2 écrans traités.
 **Commandes** : `supabase functions deploy keel-reengage-v1 keel-weekly-flow-v1 keel-daily-pulse-v1
 keel-daily-recommendation-v1 coach-synthesis-v1 chat-inbound-v1 generate-week-plan-v1`
 (7 fonctions **greppées, pas devinées**) · `supabase db push` (commentaire de colonne seul).
+
+---
+
+# REPRISE — 2026-08-11
+
+## L4 (plafonner le bloc foyer) — **N'A PAS ABOUTI**
+L'agent s'est arrêté avec la session précédente : **aucun rapport
+(`RAPPORT-L4-BUDGET.md` absent), aucun commit**. Son transcript est sur le disque.
+→ **À relancer si le sujet compte encore.** Rappel de son mandat : le bloc foyer est le seul des
+quatre blocs KEEL **sans plafond**, et le seul dont le coût **grandit avec la taille du foyer**
+(2 632 car. mesurés sur un foyer de 6 × 7 jours). Ce qui tombe aujourd'hui n'est pas la doctrine
+(les blocs KEEL sont préfixés) mais la **mémoire longue**, en silence — c'est T-22.
+⚠️ Le sujet a pu bouger : le domaine foyer a beaucoup avancé depuis (chantiers 1-5, FF-043 à FF-048).
+**Remesurer avant de relancer**, ne pas repartir des chiffres de la nuit.
+
+## L5 (recommandé par L3, jamais lancé)
+Rebrancher les 4 crons sur `contract_change_requests` (la source **vivante** de l'escalade) ≈ 5 lignes.
+L3 a prouvé que seule la synthèse coach voit une escalade vivante ; relance, point hebdo, reco et
+pratiques ne la voient pas, **avant comme après** son lot. C'est le meilleur rapport valeur/coût
+resté ouvert.
+
+## Le doublon de migration est RÉSOLU
+`73115206` (« la lignée de migrations réparée : un doublon levé, cinq versions reconciliées »).
+`uniq -d` rend vide. **Le blocage que je signalais en tête de la file de commandes est levé.**
+
+## FF-056 · La divergence constatée — LANCÉ
+Prompt = socle (l. 16-143) + le bloc fourni par l'humain + complément de chantier réactualisé.
+Deux adjacences signalées à l'agent, absentes de son bloc :
+1. **FF-055 « recommandations d'activité » est en cours d'écriture MAINTENANT**
+   (`activity_floor.ts`, `activity_stance.ts` modifiés) — or la catégorie `activity_drop` de FF-056
+   pointe droit dessus. Consigne : aucun chemin d'activité parallèle, dépendance bloquée si besoin.
+2. **`account-export-v1/index.ts` est modifié par un autre**, alors que la table d'épisode de FF-056
+   doit rejoindre le cycle de vie RGPD (cicatrice : 9 tables déjà hors export).
