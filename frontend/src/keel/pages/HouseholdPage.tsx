@@ -301,6 +301,10 @@ export default function HouseholdPage(): React.ReactElement {
                   // `student_goals` reste écrite (c'est la sienne), mais la
                   // carte ne lui raconte pas qu'elle ouvre une porte fermée.
                   needsGoalRow={isOwner && !ownerGoalRow}
+                  // D1: on n'offre le champ que tant que SA ligne n'existe pas
+                  // — pour le maître comme pour un profil réclamé. Après, elle
+                  // se modifie dans son « about you », pas ici.
+                  goalEditable={!ownerGoalRow}
                   busy={busy}
                   onSave={(patch) =>
                     saveMember(me, patch, {
@@ -375,7 +379,13 @@ export default function HouseholdPage(): React.ReactElement {
         const dated = await setMemberBirthDate(member.memberId, patch.birthDate);
         if (!dated.ok) return dated;
       }
-      if (patch.goal !== member.goal) {
+      // D1 (2026-08-11) — `keel_household_set_member_goal` REFUSE désormais
+      // toute bouche qui a un compte (`has_account`). L'appeler quand même
+      // ferait échouer l'enregistrement du prénom et de la date, qui eux
+      // viennent de passer: une carte cassée par un champ qu'on n'aurait pas
+      // dû soumettre. Pour un titulaire, la seule écriture d'objectif permise
+      // depuis cet écran est la CRÉATION de sa ligne, juste en dessous.
+      if (member.userId === null && patch.goal !== member.goal) {
         const aimed = await setMemberGoal(member.memberId, patch.goal);
         if (!aimed.ok) return aimed;
       }
@@ -441,13 +451,21 @@ interface MouthDraft {
  * ce qu'on fait d'un champ vide — et personne ne saurait laquelle est la règle.
  */
 function MouthFields(
-  { draft, onChange, mine, showKeptDateHint }: {
+  { draft, onChange, mine, showKeptDateHint, goalEditable = true }: {
     draft: MouthDraft;
     onChange: (next: MouthDraft) => void;
     /** Change le libellé de l'objectif, rien d'autre. */
     mine?: boolean;
     /** Vrai quand la ligne PORTE déjà une date qu'on ne peut pas préremplir. */
     showKeptDateHint?: boolean;
+    /**
+     * FAUX dès que la bouche a un COMPTE (D1, 2026-08-11). Son objectif vit
+     * alors dans son « about you » (`student_goals`), et la base refuse
+     * `keel_household_set_member_goal` avec `has_account`. Laisser le sélecteur
+     * afficherait un contrôle qui échoue à tous les coups — pire qu'un contrôle
+     * absent, parce qu'il promet.
+     */
+    goalEditable?: boolean;
   },
 ) {
   return (
@@ -483,18 +501,29 @@ function MouthFields(
       </Field>
       <Field
         label={mine ? t("household.member.goal_mine") : t("household.member.goal")}
+        hint={goalEditable ? undefined : t("household.member.goal_from_profile")}
       >
-        <select
-          className={inputClass}
-          value={draft.goal}
-          onChange={(e) =>
-            onChange({ ...draft, goal: e.target.value as MemberGoal | "" })}
-        >
-          <option value="">{t("household.member.goal_none")}</option>
-          {MEMBER_GOALS.map((g) => (
-            <option key={g} value={g}>{goalLabel(g)}</option>
-          ))}
-        </select>
+        {goalEditable
+          ? (
+            <select
+              className={inputClass}
+              value={draft.goal}
+              onChange={(e) =>
+                onChange({ ...draft, goal: e.target.value as MemberGoal | "" })}
+            >
+              <option value="">{t("household.member.goal_none")}</option>
+              {MEMBER_GOALS.map((g) => (
+                <option key={g} value={g}>{goalLabel(g)}</option>
+              ))}
+            </select>
+          )
+          : (
+            <p className="text-sm text-neutral-700">
+              {draft.goal
+                ? goalLabel(draft.goal as MemberGoal)
+                : t("household.member.goal_none")}
+            </p>
+          )}
       </Field>
     </div>
   );
@@ -509,9 +538,16 @@ function MouthFields(
  * et on le découvrait après avoir saisi tout le foyer.
  */
 function MeCard(
-  { me, needsGoalRow, busy, onSave }: {
+  { me, needsGoalRow, goalEditable, busy, onSave }: {
     me: HouseholdMemberView;
     needsGoalRow: boolean;
+    /**
+     * D1 — l'objectif d'un titulaire vit dans son « about you ». On ne l'offre
+     * ICI que tant que sa ligne `student_goals` N'EXISTE PAS: c'est la
+     * CRÉATION qui supprime la falaise. Une fois la ligne écrite, elle se
+     * modifie sur `/app/plan`, et ce champ devient une lecture.
+     */
+    goalEditable: boolean;
     busy: boolean;
     onSave: (patch: {
       firstName: string;
@@ -541,6 +577,7 @@ function MeCard(
         }}
         mine
         showKeptDateHint={me.ageState !== "unknown"}
+        goalEditable={goalEditable}
       />
       {/* L'INCITATION À COMPLÉTER EST INTÉGRÉE, et elle est vraie: un objectif
           posé sur une bouche sans âge est enregistré et NON APPLIQUÉ
@@ -799,6 +836,8 @@ function MemberRow(
             onChange={setDraft}
             mine={isMe}
             showKeptDateHint={member.ageState !== "unknown"}
+            // D1 — une bouche qui a un compte règle son objectif elle-même.
+            goalEditable={member.userId === null}
           />
           {member.goal && member.ageState === "unknown" ? (
             <p className="text-sm text-amber-800">

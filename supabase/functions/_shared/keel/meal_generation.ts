@@ -575,7 +575,18 @@ export interface GeneratedMeal {
 // Deux bumps successifs invalideraient deux fois le cache et rendraient
 // illisible toute comparaison avant/après entre les deux lots — c'est pour ça
 // que les propriétés de jour ont été faites EN DERNIER.
-export const MEAL_PROMPT_VERSION = "meal.en.v7_fixed_intakes_and_days";
+//
+// ── v8 (2026-08-11) — `health` A UNE DIRECTION À LUI ──────────────────────
+// Le brief de portions du foyer appartient à cette lignée (`household_portions
+// .ts` écrit en anglais POUR ce prompt). `SERVING_DIRECTION.health` rendait la
+// chaîne de `maintenance`: la consigne servie change, donc la version bouge —
+// sans quoi le cache continuerait de rendre l'ancienne assiette.
+//
+// ⚠️ LE PROCHAIN BUMP EST DÉJÀ DÛ. Le lot 4 du chantier « plans individuels et
+// fusion » change le CONTRAT de composition (les objectifs des membres cessent
+// d'être une consigne de service). Il devra passer en v9 — ne pas le glisser
+// dans v8, sinon la comparaison avant/après de ce lot-ci devient illisible.
+export const MEAL_PROMPT_VERSION = "meal.en.v8_distinct_health_direction";
 
 const DAY_TOKENS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
 

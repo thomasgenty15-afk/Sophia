@@ -483,3 +483,58 @@ Deno.test("le payload stocké est en snake_case, comme la colonne", () => {
     preparation_shares: [{ preparation_id: "p1", note: "sans riz" }],
   }]);
 });
+
+// ───────────────────────────────────────────────────────────────────────────
+// LES SIX OBJECTIFS DISENT SIX CHOSES (2026-08-11)
+//
+// Jusqu'à ce lot, `health` et `maintenance` rendaient la MÊME chaîne — qui
+// était en plus le repli « aucun objectif ». Un titulaire qui choisissait
+// « santé » voyait donc exactement l'assiette de qui n'a rien déclaré: un
+// champ qui promet un effet et n'en a aucun. Rien ne l'attrapait, parce
+// qu'aucun test n'interrogeait les six ENSEMBLE.
+//
+// Ce test échoue si deux objectifs re-fusionnent, quel que soit le couple.
+// ───────────────────────────────────────────────────────────────────────────
+const GOALS_UNDER_TEST = [
+  "fat_loss",
+  "muscle_gain",
+  "recomposition",
+  "performance",
+  "health",
+  "maintenance",
+] as const;
+
+function directionFor(goal: PortionMember["goal"]): string {
+  const line = buildPortionBrief([{
+    memberId: "m-solo",
+    displayName: "Solo",
+    goal,
+    ageState: "adult",
+    body: null,
+  }]).split("\n").find((l) => l.startsWith("- Solo:"))!;
+  return line.slice("- Solo: ".length);
+}
+
+Deno.test("chacun des six objectifs rend une direction DISTINCTE", () => {
+  const seen = new Map<string, string>();
+  for (const goal of GOALS_UNDER_TEST) {
+    const direction = directionFor(goal);
+    const clash = seen.get(direction);
+    assert(
+      clash === undefined,
+      `« ${goal} » rend la même direction que « ${clash} »: "${direction}"`,
+    );
+    seen.set(direction, goal);
+  }
+  assertEquals(seen.size, GOALS_UNDER_TEST.length);
+});
+
+Deno.test("« santé » ne rend pas l'assiette de qui n'a rien déclaré", () => {
+  // LE CAS QUI MANQUAIT. Le repli et `maintenance` peuvent légitimement dire la
+  // même chose — ne rien déclarer, c'est demander l'équilibre. `health`, non:
+  // c'est un choix, et un choix doit se voir dans l'assiette.
+  assert(
+    directionFor("health") !== directionFor(null),
+    "« santé » rend le repli « aucun objectif »",
+  );
+});

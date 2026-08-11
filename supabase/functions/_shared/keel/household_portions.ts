@@ -131,11 +131,36 @@ const SERVING_DIRECTION: Record<MemberGoal, string> = {
     "full protein share, moderate starch, generous vegetables",
   performance:
     "larger starch share around training, full protein share",
+  // ── `health` A CESSÉ D'ÊTRE MUET (2026-08-11) ────────────────────────────
+  // Il rendait EXACTEMENT la chaîne de `maintenance`, qui est aussi le repli
+  // « aucun objectif ». Choisir « santé » produisait donc l'assiette de qui n'a
+  // rien déclaré: un champ qui promet un effet et n'en a aucun. C'est le choix
+  // le plus naturel pour un titulaire sans objectif de performance — et c'est
+  // précisément lui qui paie pour être pris en compte.
+  //
+  // POURQUOI CETTE FORMULATION ET PAS UNE AUTRE. « Plus de légumes, céréales
+  // complètes, moins de transformé » serait une consigne de COMPOSITION: elle
+  // ne veut rien dire au moment de servir un plat qui est déjà décidé. Ce
+  // module ne dit que des PARTS. La seule chose que « santé » peut demander à
+  // une assiette, c'est la place des légumes — sans toucher au rapport
+  // protéine/féculent, ce qui la distingue de `recomposition` et de `fat_loss`.
   health:
-    "balanced share of every component",
+    "generous vegetables, balanced protein and starch share",
   maintenance:
     "balanced share of every component",
 };
+
+/**
+ * L'ASSIETTE DE QUI N'A RIEN DÉCLARÉ — nommée à part, exprès.
+ *
+ * Elle valait `SERVING_DIRECTION.maintenance`. La chaîne est la même
+ * aujourd'hui, et c'est correct: ne rien déclarer, c'est demander l'équilibre.
+ * Mais l'emprunter COUPLAIT le repli à un objectif: changer ce que dit
+ * `maintenance` déplaçait en silence l'assiette de tous ceux qui n'ont pas
+ * d'objectif. Deux intentions différentes méritent deux noms, même quand elles
+ * disent la même chose.
+ */
+const NEUTRAL_DIRECTION = "balanced share of every component";
 
 /** Ce qu'on dit d'un mineur au modèle. Une taille, jamais une direction. */
 const CHILD_DIRECTION = "child-size share of the same dish";
@@ -213,7 +238,7 @@ export function buildPortionBrief(members: readonly PortionMember[]): string {
       ? CHILD_DIRECTION
       : goalApplies(m) && m.goal
       ? SERVING_DIRECTION[m.goal]
-      : SERVING_DIRECTION.maintenance;
+      : NEUTRAL_DIRECTION;
     // AUCUNE DES DEUX GARDES N'EST APPLIQUÉE ICI — ni le plancher TCA, ni la
     // règle du mineur. `householdBodyFacts` les porte toutes les deux, dans le
     // même fichier que `mealBodyBlocks`: une garde qu'un appelant applique est
