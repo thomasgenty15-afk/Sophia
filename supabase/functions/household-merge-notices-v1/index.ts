@@ -7,6 +7,12 @@ import { getRequestId, jsonResponse } from "../_shared/http.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import { localDateInZone } from "../_shared/keel/local_date.ts";
 import { parseOwnPlans } from "../_shared/keel/household_hand.ts";
+import { parseMemberAway } from "../_shared/keel/household_presence.ts";
+import {
+  DEFAULT_EATING_RHYTHM,
+  type EatingOccasionSlot,
+  parseEatingRhythm,
+} from "../_shared/keel/meal_generation.ts";
 import {
   buildMergeNotices,
   type MergeSettingRow,
@@ -75,6 +81,13 @@ interface RosterRow {
   first_name: string;
   role: string;
   own_plans: unknown;
+  /**
+   * C3 ④ — L'UNION DES DEUX SOURCES D'ABSENCE, déjà faite par la RPC
+   * (`keel_away_tagged(self) || keel_away_tagged(household)`). Elle était
+   * rendue et jamais lue par cette fonction: c'est ce silence qui laissait la
+   * proposition offrir un bouton que le geste refusait.
+   */
+  away_days: unknown;
 }
 
 Deno.serve(async (req) => {
@@ -205,7 +218,45 @@ Deno.serve(async (req) => {
         durationDays: p.durationDays,
         validatedAt: p.validatedAt,
       })),
+      // C3 ④ — LA MÊME LECTURE QUE LE GÉNÉRATEUR, par la même fonction. Une
+      // seconde idée de « qui est absent » aurait divergé au premier
+      // ajustement, et c'est le défaut que ce chantier a fermé quatre fois.
+      away: parseMemberAway(r.away_days),
     }));
+
+    // ── C3 ④ · LE RYTHME DE REPAS DU FOYER, POUR PRÉDIRE LA PRÉSENCE ─────
+    //
+    // ⚠️ CELUI DU MAÎTRE, ET C'EST CE QUE LE GÉNÉRATEUR LIT AUSSI (`pc
+    // ?.eating_rhythm` sur SA ligne `student_goals`, avec le même repli sur
+    // `DEFAULT_EATING_RHYTHM`). Lire ailleurs, ou retomber sur autre chose,
+    // ferait dire au lecteur qu'une personne est absente d'un repas que le
+    // générateur composera quand même — c'est-à-dire remplacerait un bouton
+    // qui refuse par une proposition qui manque.
+    //
+    // FAIL-OPEN, comme tout ce qui filtre un AFFICHAGE ici: une lecture en
+    // panne rend le rythme par défaut, donc la présence la plus probable, donc
+    // la proposition. Se tromper dans l'autre sens masquerait en silence des
+    // fusions parfaitement valides.
+    let rhythm: readonly EatingOccasionSlot[] = DEFAULT_EATING_RHYTHM;
+    const rhythmRes = await admin
+      .from("student_goals")
+      .select("practical_constraints")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (rhythmRes.error) {
+      await logEdgeFunctionError({
+        functionName: FN_NAME,
+        requestId,
+        error: rhythmRes.error,
+        metadata: { source: "eating_rhythm", household: householdId },
+      });
+      issues.push("eating_rhythm_unreadable");
+    } else {
+      const pc = (rhythmRes.data as { practical_constraints?: unknown } | null)
+        ?.practical_constraints as Record<string, unknown> | null;
+      const declared = parseEatingRhythm(pc?.eating_rhythm);
+      if (declared.length > 0) rhythm = declared;
+    }
 
     // ── L7/D11 — LE PLAFOND, LU POUR NE PAS PROMETTRE ───────────────────
     //
@@ -245,6 +296,7 @@ Deno.serve(async (req) => {
       settings,
       today: todayDate,
       quota,
+      rhythm,
     });
 
     // ── D13 — LE GEL SE DIT, IL NE REFUSE PAS ────────────────────────────

@@ -175,8 +175,13 @@ export function divergenceLines(trace: HouseholdPlanTrace): DivergenceLine[] {
       hint: null,
     });
   }
-  for (const entry of trace.taken) {
-    lines.push({ memberId: entry.memberId, key: "household.plan.taken", hint: null });
+  // ⚠️ C3/O1 — UNE LIGNE PAR PERSONNE, PAS PAR PLAN. Depuis que deux plans
+  // personnels adjacents peuvent prendre la main ensemble, `taken` porte une
+  // entrée PAR PLAN: sans ce dédoublonnage, l'écran écrirait deux fois « Zoé
+  // mange son propre plan » l'une sous l'autre. La liste que le maître lit
+  // nomme des gens, pas des lignes de base.
+  for (const memberId of new Set(trace.taken.map((e) => e.memberId))) {
+    lines.push({ memberId, key: "household.plan.taken", hint: null });
   }
   for (const entry of trace.partial) {
     lines.push({ memberId: entry.memberId, key: "household.plan.partial", hint: null });

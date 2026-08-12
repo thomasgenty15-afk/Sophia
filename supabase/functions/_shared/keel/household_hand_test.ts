@@ -16,6 +16,7 @@ import { assert, assertEquals } from "jsr:@std/assert@1";
 
 import {
   HAND_REASON_COVERS,
+  HAND_REASON_COVERS_TOGETHER,
   HAND_REASON_PARTIAL,
   HAND_REASON_RECLAIMED,
   HAND_REASON_UNMERGED,
@@ -738,5 +739,135 @@ Deno.test("la trace du plan nomme aussi qui a été SORTI (D8)", async () => {
     "`generated_from.household.hand` n'écrit plus `unmerged`: « pourquoi ce " +
       "plan ne contient-il plus rien pour Zoé ? » n'a plus de réponse, et " +
       "surtout « son plan à elle ne couvrait pas ces jours-là » non plus.",
+  );
+});
+
+// ===========================================================================
+// C3 ⑤ / O1 — DEUX PLANS ADJACENTS QUI COUVRENT ENSEMBLE LA FENÊTRE
+//
+// MESURÉ SUR CE MODULE: plans `08-17 +2j` et `08-19 +1j` contre une fenêtre
+// `08-17 +3j` ⇒ `taken: 0`, `partial: 2`. La personne avait SON plan pour
+// CHAQUE jour de la fenêtre, et le foyer cuisinait quand même pour elle.
+//
+// Le motif écrit du recouvrement total — « le retirer, c'est cuisiner sans lui
+// deux jours où il n'a rien » — ne s'applique PAS ici: il n'a aucun jour sans
+// rien. La règle ne bouge pas (aucun jour découvert), seul le nombre de plans
+// autorisés à la satisfaire change.
+// ===========================================================================
+
+/** La fenêtre du registre, mot pour mot: lundi 17 → mercredi 19. */
+const O1_WINDOW = { startsOn: "2026-08-17", durationDays: 3 };
+const O1_PLANS = [
+  plan({ id: "p-head", startsOn: "2026-08-17", durationDays: 2 }),
+  plan({ id: "p-tail", startsOn: "2026-08-19", durationDays: 1 }),
+];
+
+Deno.test("C3 ⑤ — DEUX PLANS ADJACENTS PRENNENT LA MAIN, et la trace nomme les DEUX", () => {
+  const out = resolveHandOff({
+    members: [member("m-1", { ownPlans: O1_PLANS })],
+    window: O1_WINDOW,
+    reclaimed: [],
+    excluded: [],
+  });
+  assertEquals(out.composed.map((m) => m.memberId), []);
+  assertEquals(out.partial, [], "un jour couvert ne se déclare pas « partiel »");
+  assertEquals(out.taken.length, 2, "une entrée par plan qui sert");
+  assertEquals(out.taken.map((t) => t.plan_id), ["p-head", "p-tail"]);
+  for (const t of out.taken) {
+    assertEquals(t.reason, HAND_REASON_COVERS_TOGETHER);
+  }
+});
+
+Deno.test("C3 ⑤ — LE CAS QUI PASSE: un jour découvert au MILIEU laisse tout le monde à table", () => {
+  // ⚠️ SANS CE CAS, LA GARDE COUPERAIT TOUT — et le motif du lot serait retourné
+  // contre lui-même: mardi, cette personne n'aurait rien à manger.
+  const out = resolveHandOff({
+    members: [member("m-1", {
+      ownPlans: [
+        plan({ id: "p-head", startsOn: "2026-08-17", durationDays: 1 }),
+        // Trou le 18.
+        plan({ id: "p-tail", startsOn: "2026-08-19", durationDays: 1 }),
+      ],
+    })],
+    window: O1_WINDOW,
+    reclaimed: [],
+    excluded: [],
+  });
+  assertEquals(out.composed.map((m) => m.memberId), ["m-1"]);
+  assertEquals(out.taken, []);
+  assertEquals(out.partial.length, 2);
+  assertEquals(out.partial[0].reason, HAND_REASON_PARTIAL);
+});
+
+Deno.test("C3 ⑤ — UN SEUL PLAN QUI COUVRE GARDE SON MOTIF D'ORIGINE", () => {
+  // Le chemin nominal doit rester BYTE-IDENTIQUE: un motif neuf sur un cas
+  // ancien rendrait illisibles les plans écrits avant ce lot.
+  const out = resolveHandOff({
+    members: [member("m-1", { ownPlans: [plan()] })],
+    window: WEEK,
+    reclaimed: [],
+    excluded: [],
+  });
+  assertEquals(out.taken.length, 1);
+  assertEquals(out.taken[0].reason, HAND_REASON_COVERS);
+});
+
+Deno.test("C3 ⑤ — UN PLAN QUI NE SERT AUCUN JOUR N'ENTRE PAS DANS LA TRACE", () => {
+  // La trace nomme ce qui a RETIRÉ la personne, jamais ce qui traînait à côté.
+  const out = resolveHandOff({
+    members: [member("m-1", {
+      ownPlans: [
+        ...O1_PLANS,
+        plan({ id: "p-elsewhere", startsOn: "2026-09-01", durationDays: 3 }),
+      ],
+    })],
+    window: O1_WINDOW,
+    reclaimed: [],
+    excluded: [],
+  });
+  assertEquals(out.taken.map((t) => t.plan_id), ["p-head", "p-tail"]);
+});
+
+Deno.test("C3 ⑤ — UNE DÉFUSION SUR DEUX PLANS ADJACENTS N'ANNONCE PAS UN TROU", () => {
+  // `covers_window` porte la phrase « il n'a rien à manger ces jours-là »
+  // (L5 §4). La laisser sur « un seul plan couvre » ferait dire ça d'une
+  // personne qui a son plan tous les jours.
+  const out = resolveHandOff({
+    members: [member("m-1", { ownPlans: O1_PLANS })],
+    window: O1_WINDOW,
+    reclaimed: [],
+    excluded: ["m-1"],
+  });
+  assertEquals(out.unmerged.length, 1);
+  assertEquals(out.unmerged[0].covers_window, true);
+  assertEquals(out.unmerged[0].plan_id, "p-head");
+});
+
+Deno.test("C3 ⑤ — LE MAÎTRE RESTE HORS DE PORTÉE, même avec deux plans qui couvrent", () => {
+  // D2 passe avant tout: son plan personnel ne le retire pas de sa propre
+  // table, sinon il cuisinerait un repas qu'il ne mange pas.
+  const out = resolveHandOff({
+    members: [member("m-owner", { isOwner: true, ownPlans: O1_PLANS })],
+    window: O1_WINDOW,
+    reclaimed: [],
+    excluded: [],
+  });
+  assertEquals(out.composed.map((m) => m.memberId), ["m-owner"]);
+  assertEquals(out.taken, []);
+});
+
+Deno.test("C3 ⑤ — LE GÉNÉRATEUR NE COMPTE QU'UNE `issue` PAR PERSONNE", async () => {
+  // ⚠️ `hand.taken` porte désormais DEUX entrées pour UNE bouche. Une `issue`
+  // par entrée aurait fait lire « Zoé a pris la main » deux fois dans la même
+  // réponse, et tout décompte de `member_took_the_hand` aurait compté des plans
+  // en croyant compter des gens.
+  const src = await Deno.readTextFile(
+    new URL("generate-household-meal-v1/index.ts", FUNCTIONS_DIR),
+  );
+  assert(
+    /for \(const id of new Set\(handOff\.taken\.map\(\(t\) => t\.member_id\)\)\) \{/
+      .test(src),
+    "le générateur pousse de nouveau une `issue` par LIGNE DE PLAN au lieu " +
+      "d'une par personne.",
   );
 });

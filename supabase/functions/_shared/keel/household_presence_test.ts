@@ -1,6 +1,7 @@
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 
 import {
+  memberMealCells,
   parseMemberAway,
   type PresenceMember,
   resolveWindowPresence,
@@ -386,4 +387,105 @@ Deno.test("absent TOUT LUNDI mais là mardi: il garde son assiette", () => {
   });
   assertEquals(presence.absentAllWindow, []);
   assertEquals(presence.servings, 2);
+});
+
+// ===========================================================================
+// C3 ④/⑥ — `memberMealCells`, LA PRIMITIVE PARTAGÉE
+//
+// Trois lecteurs, une seule définition de « quels repas cette bouche prend
+// ici »: `absentAllWindow` (le refus du générateur), la PRÉDICTION du lecteur
+// de propositions (C3 ④), et le DÉNOMINATEUR du constat de forme (C3 ⑥). La
+// ré-écrire chez l'un d'eux ferait deux idées de la même chose, et c'est la
+// dette que ce chantier a payée quatre fois.
+// ===========================================================================
+
+const TWO_SLOTS: EatingOccasionSlot[] = [
+  { slot: "lunch", size: null },
+  { slot: "dinner", size: null },
+];
+
+Deno.test("C3 — `memberMealCells` rend la grille jour × moment, sans les absences", () => {
+  const cells = memberMealCells({
+    away: [{ day: "tue", slots: ["lunch"] }],
+    rhythm: TWO_SLOTS,
+    windowDays: ["mon", "tue"],
+  });
+  assertEquals(cells, [
+    { day: "mon", slot: "lunch" },
+    { day: "mon", slot: "dinner" },
+    { day: "tue", slot: "dinner" },
+  ]);
+});
+
+Deno.test("C3 — UNE JOURNÉE ENTIÈRE retire tous ses moments", () => {
+  // La forme COURTE de FF-002 §5 (`slots: []`) vaut « toute la journée », et
+  // elle doit survivre à un changement de rythme.
+  const cells = memberMealCells({
+    away: [{ day: "mon", slots: [] }],
+    rhythm: TWO_SLOTS,
+    windowDays: ["mon", "tue"],
+  });
+  assertEquals(cells.map((c) => c.day), ["tue", "tue"]);
+});
+
+Deno.test("C3 — AUCUNE CASE = l'absence totale, et c'est la définition du refus", () => {
+  // `merge_member_away_all_window` se décide là-dessus, dans le générateur ET
+  // dans le lecteur de propositions.
+  const cells = memberMealCells({
+    away: [{ day: "mon", slots: [] }, { day: "tue", slots: [] }],
+    rhythm: TWO_SLOTS,
+    windowDays: ["mon", "tue"],
+  });
+  assertEquals(cells, []);
+});
+
+Deno.test("C3 — `absentAllWindow` PASSE PAR LA PRIMITIVE (le cas qui passe)", () => {
+  // Le lien entre les deux est ce qui rend la prédiction du lecteur honnête. Si
+  // `resolveWindowPresence` reprenait son propre parcours, les deux
+  // pourraient diverger sans qu'un seul test ne tombe.
+  const members: PresenceMember[] = [
+    {
+      memberId: "m-here",
+      displayName: "Marc",
+      away: { effective: [], self: [], household: [] },
+    },
+    {
+      memberId: "m-gone",
+      displayName: "Zoe",
+      away: {
+        effective: [{ day: "mon", slots: [] }, { day: "tue", slots: [] }],
+        self: [],
+        household: [],
+      },
+    },
+  ];
+  const presence = resolveWindowPresence({
+    members,
+    rhythm: TWO_SLOTS,
+    windowDays: ["mon", "tue"],
+  });
+  assertEquals(presence.absentAllWindow, ["m-gone"]);
+  assertEquals(presence.fullyAway, false);
+});
+
+Deno.test("C3 — SANS RYTHME, la primitive rend `[]` et l'appelant décide", () => {
+  // ⚠️ ELLE NE PORTE PAS L'ÉCHEC OUVERT, et c'est écrit sur elle: « pas de
+  // repas dans une fenêtre vide » est le sens littéral. `resolveWindowPresence`
+  // sort AVANT d'arriver ici, et le lecteur de propositions se garde de la même
+  // façon — sinon un foyer sans rythme déclaré perdrait toutes ses
+  // propositions, en silence.
+  assertEquals(
+    memberMealCells({ away: [], rhythm: [], windowDays: ["mon"] }),
+    [],
+  );
+  const presence = resolveWindowPresence({
+    members: [{
+      memberId: "m-1",
+      displayName: "Marc",
+      away: { effective: [], self: [], household: [] },
+    }],
+    rhythm: [],
+    windowDays: ["mon"],
+  });
+  assertEquals(presence.absentAllWindow, [], "personne n'est déclaré absent");
 });

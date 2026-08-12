@@ -37,7 +37,14 @@ interface Trace {
   /** Chaque `.in("id", …)` observé, table par table. */
   inCalls: Array<{ table: string; ids: unknown[] }>;
   tablesRead: string[];
+  /**
+   * Les `.update(...)` DIRECTS. Depuis C3 ② il ne doit plus y en avoir aucun:
+   * l'écriture passe par la RPC ciblée. On garde le mouchard pour que le retour
+   * à l'écrasement de colonne se VOIE, au lieu de repasser en silence.
+   */
   updates: Array<Record<string, unknown>>;
+  /** Les RPC appelées, avec leurs arguments. */
+  rpcs: Array<{ name: string; params: Record<string, unknown> }>;
 }
 
 /**
@@ -51,8 +58,10 @@ function fakeAdmin(opts: {
   fullName?: string | null;
   failItemsRead?: boolean;
   failWrite?: boolean;
+  /** C3 ② — la course: quelqu'un a écrit sur la même clé entre-temps. */
+  staleSnapshot?: boolean;
 }) {
-  const trace: Trace = { inCalls: [], tablesRead: [], updates: [] };
+  const trace: Trace = { inCalls: [], tablesRead: [], updates: [], rpcs: [] };
 
   const from = (table: string) => ({
     select: (_cols: string) => {
@@ -99,7 +108,21 @@ function fakeAdmin(opts: {
     },
   });
 
-  return { admin: { from } as never, trace };
+  const rpc = (name: string, params: Record<string, unknown>) => {
+    trace.rpcs.push({ name, params });
+    if (opts.failWrite) {
+      return Promise.resolve({ data: null, error: { message: "write refused" } });
+    }
+    if (opts.staleSnapshot) {
+      return Promise.resolve({
+        data: { ok: false, reason: "stale_snapshot" },
+        error: null,
+      });
+    }
+    return Promise.resolve({ data: { ok: true, written: true }, error: null });
+  };
+
+  return { admin: { from, rpc } as never, trace };
 }
 
 /** Une ligne gardée avec son origine datée, comme la carte l'écrit. */
@@ -168,7 +191,10 @@ Deno.test("LES REMPLAÇANTS SONT CHARGÉS, sinon la garde de plausibilité est m
   assertEquals(memoryReads[1].ids, [NEW]);
   // Et la conséquence: la ligne démentie part, et l'écriture est faite.
   assertEquals(out[FOOD_PREFERENCES_KEY], []);
-  assertEquals(trace.updates.length, 1);
+  // C3 ② — l'écriture passe par la RPC ciblée, et par elle seule.
+  assertEquals(trace.rpcs.length, 1);
+  assertEquals(trace.rpcs[0].name, "keel_write_food_preferences");
+  assertEquals(trace.updates.length, 0);
 });
 
 Deno.test("LE PRÉNOM EST LU, sinon toutes les paires paraissent liées", async () => {
@@ -198,6 +224,7 @@ Deno.test("LE PRÉNOM EST LU, sinon toutes les paires paraissent liées", async 
   // La supersession n'est pas plausible: la ligne VRAIE est gardée.
   assertEquals(out[FOOD_PREFERENCES_KEY], ["Theo dislikes porridge for breakfast"]);
   assertEquals(trace.updates.length, 0, "rien à écrire");
+  assertEquals(trace.rpcs.length, 0, "rien à écrire");
 });
 
 Deno.test("RIEN À RÉCONCILIER: aucune lecture de memory_items", async () => {
@@ -240,6 +267,7 @@ Deno.test("RIEN N'A CHANGÉ: aucune écriture", async () => {
     source: "test",
   });
   assertEquals(trace.updates.length, 0);
+  assertEquals(trace.rpcs.length, 0);
   assertEquals(out, before);
 });
 
@@ -257,6 +285,7 @@ Deno.test("FAIL-SOFT: une lecture qui échoue ne casse pas la génération", asy
   });
   assertEquals(out, before);
   assertEquals(trace.updates.length, 0);
+  assertEquals(trace.rpcs.length, 0);
 });
 
 Deno.test("FAIL-SOFT: une écriture refusée rend les contraintes D'ORIGINE", async () => {
@@ -309,5 +338,106 @@ Deno.test("un profil illisible ne bloque PAS la réconciliation", async () => {
     source: "test",
   });
   assertEquals(out[FOOD_PREFERENCES_KEY], []);
-  assertEquals(trace.updates.length, 1);
+  assertEquals(trace.rpcs.length, 1);
+  assertEquals(trace.updates.length, 0);
+});
+
+// ---------------------------------------------------------------------------
+// C3 ② — L'ÉCRITURE CIBLÉE, SOUS CONCURRENCE OPTIMISTE
+//
+// Ce que ces trois cas gardent est la moitié qu'aucun test SQL ne peut voir: le
+// module envoie-t-il la BONNE copie comme témoin, et que fait-il du refus.
+// ---------------------------------------------------------------------------
+
+Deno.test("C3 ② — LA COLONNE N'EST PLUS ÉCRASÉE: deux clés, et le témoin est la copie LUE", async () => {
+  const { admin, trace } = fakeAdmin({
+    itemsById: {
+      [OLD]: {
+        id: OLD,
+        status: "superseded",
+        superseded_by_item_id: NEW,
+        normalized_summary: "Theo likes roasted broccoli",
+      },
+      [NEW]: { id: NEW, status: "active", normalized_summary: "Theo hates broccoli" },
+    },
+  });
+  const before = kept("Theo likes roasted broccoli", OLD, "2026-07-09");
+  // Une clé QUI N'APPARTIENT PAS à ce module, et qui doit rester hors de
+  // l'écriture: c'est très exactement celle qu'un titulaire perdait.
+  before.eating_rhythm = [{ slot: "dinner" }];
+
+  await reconcileFoodPreferencesFor({
+    admin,
+    userId: "u1",
+    constraints: before,
+    source: "test",
+  });
+
+  assertEquals(trace.updates.length, 0, "plus aucun update direct de la colonne");
+  assertEquals(trace.rpcs.length, 1);
+  const call = trace.rpcs[0];
+  assertEquals(call.name, "keel_write_food_preferences");
+  // ⚠️ LE TÉMOIN EST CE QU'ON A LU, pas ce qu'on écrit. L'inverse ferait un
+  // prédicat toujours vrai côté base, donc une garde désarmée en silence.
+  assertEquals(call.params.p_expected, ["Theo likes roasted broccoli"]);
+  assertEquals(call.params.p_preferences, []);
+  assertEquals(typeof call.params.p_origins, "object");
+  // Et le rythme de repas ne part PAS: il n'est dans aucun argument.
+  assert(
+    !JSON.stringify(call.params).includes("eating_rhythm"),
+    `une clé étrangère est partie à l'écriture: ${JSON.stringify(call.params)}`,
+  );
+});
+
+Deno.test("C3 ② — UNE COPIE PÉRIMÉE NE RÉESSAIE PAS, et la génération continue", async () => {
+  // Quelqu'un a écrit sur la MÊME clé entre la lecture et l'écriture. On ne
+  // réessaie pas: réessayer, c'est décider que notre copie gagne.
+  const { admin, trace } = fakeAdmin({
+    staleSnapshot: true,
+    itemsById: {
+      [OLD]: {
+        id: OLD,
+        status: "superseded",
+        superseded_by_item_id: NEW,
+        normalized_summary: "Theo likes roasted broccoli",
+      },
+      [NEW]: { id: NEW, status: "active", normalized_summary: "Theo hates broccoli" },
+    },
+  });
+  const out = await reconcileFoodPreferencesFor({
+    admin,
+    userId: "u1",
+    constraints: kept("Theo likes roasted broccoli", OLD, "2026-07-09"),
+    source: "test",
+  });
+  assertEquals(trace.rpcs.length, 1, "un seul essai, jamais deux");
+  // LE PROMPT DE CE RUN-CI reçoit quand même la version corrigée: une
+  // préférence rétractée n'a pas à être servie au modèle parce qu'une course a
+  // empêché de l'effacer en base.
+  assertEquals(out[FOOD_PREFERENCES_KEY], []);
+});
+
+Deno.test("C3 ② — UNE ÉCRITURE QUI ÉCHOUE NE CASSE PAS LA GÉNÉRATION", async () => {
+  // Même posture que la lecture: ce sont des goûts, pas des allergies.
+  const { admin } = fakeAdmin({
+    failWrite: true,
+    itemsById: {
+      [OLD]: {
+        id: OLD,
+        status: "superseded",
+        superseded_by_item_id: NEW,
+        normalized_summary: "Theo likes roasted broccoli",
+      },
+      [NEW]: { id: NEW, status: "active", normalized_summary: "Theo hates broccoli" },
+    },
+  });
+  const before = kept("Theo likes roasted broccoli", OLD, "2026-07-09");
+  const out = await reconcileFoodPreferencesFor({
+    admin,
+    userId: "u1",
+    constraints: before,
+    source: "test",
+  });
+  // Le filet rend les contraintes D'ORIGINE, pas une moitié de correction.
+  assertEquals(out, before);
 });

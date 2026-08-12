@@ -387,6 +387,34 @@ const SCOPE = {
   studentGoals:
     "id,goal,situation,aspiration,focus_axis,practical_constraints,target_weight_kg," +
     "target_waist_cm,content_locale,created_at,updated_at",
+
+  // --- C3 ③ · SA PLACE DANS UN FOYER (20260808000000, 20260810120000) --------
+  //
+  // ⚠️ CETTE TABLE N'APPARAISSAIT NULLE PART DANS CET EXPORT, et c'est le seul
+  // endroit du produit où survivent des données personnelles APRÈS la
+  // suppression du compte. La purge J+7 (`keel_household_purge_user`) DÉTACHE
+  // la ligne — `user_id` passe à NULL — au lieu de la supprimer: c'est
+  // l'arbitrage D3 (« une bouche sans compte reste une bouche du foyer »), il
+  // est voulu et testé. Ce qui n'avait jamais été décidé, c'est ce que la
+  // bouche GARDE: `first_name` et `birth_date` survivaient sans être ni
+  // exportés, ni nommés nulle part.
+  //
+  // TRANCHÉ PAR C3: ils survivent, et ils sont DÉCLARÉS ici. Le prénom sert la
+  // question « pour qui je cuisine »; la date de naissance sert l'âge, donc les
+  // PARTS des autres — l'effacer dégraderait la composition d'un foyer que la
+  // personne quitte, ce qui est exactement ce que D3 refuse. Ce qui manquait
+  // n'était pas l'effacement, c'était de le dire.
+  //
+  // ⚠️ SA LIGNE, ET SA LIGNE SEULE (`user_id = <lui>`). Les autres bouches du
+  // foyer sont d'autres personnes: exporter le roster ferait de l'export RGPD
+  // de l'un une divulgation sur les autres.
+  //
+  // `away_days` EST DEDANS: c'est une déclaration de la personne (ou de son
+  // foyer) sur son emploi du temps, donc de la donnée personnelle au sens
+  // plein. `goal` aussi, pour la même raison.
+  householdMembers:
+    "member_id,household_id,role,first_name,birth_date,goal,away_days," +
+    "departs_with_account,joined_at",
   studentWeekPlans:
     "id,week_start,generated_from,items,status,adopted_at,content_locale,created_at,updated_at",
   studentDailyCheckins: "id,local_date,overall,axis,source,created_at",
@@ -403,6 +431,18 @@ const SCOPE = {
   // `fichiers/`, et sans lui le manifeste et les octets ne se recollent pas.
   studentMealDocuments:
     "id,meal_id,kind,storage_path,filename,delivery_status,delivery_error,sent_at,created_at,updated_at",
+  // FF-039 — LE JOURNAL DE MESURE DE LA COMPOSITION.
+  //
+  // C'est de la donnée INTERNE (l'élève ne le voit nulle part) et c'est
+  // exactement pour ça qu'elle sort: ce que le système a calculé SUR SES
+  // repas lui appartient, et un export qui ne rend que ce qu'on lui a déjà
+  // montré n'est pas un export.
+  //
+  // `envelope_mode` sort tel qu'il est stocké — SANS sa raison. Il ne dit pas
+  // pourquoi une enveloppe a dégradé: le plancher TCA et le corps inconnu
+  // produisent la même valeur, par construction (FF-039 R2/R14).
+  mealCompositionVerdicts:
+    "id,meal_id,verdict,envelope_mode,resolution_coverage,unresolved_terms,tokens_served,coverage_flag,prompt_version,doctrine_version,created_at",
   // `portion_bias` est une calibration ORDINALE (bandes), pas un score interne:
   // elle est lisible par l'élève et sort avec le reste.
   recurringMeals:
@@ -559,6 +599,7 @@ async function buildExportPayload(
     studentHungerReports,
     studentGeneratedMeals,
     studentMealDocuments,
+    mealCompositionVerdicts,
     recurringMeals,
     studentFacts,
     studentCards,
@@ -571,6 +612,7 @@ async function buildExportPayload(
     coachDocuments,
     coachDocumentChunks,
     coachDocumentCitations,
+    householdMembership,
     storage,
   ] = await Promise.all([
     fetchKeelRows(admin, "plan_templates", SCOPE.planTemplates, "coach_id", coachId, keelUnavailable),
@@ -739,6 +781,17 @@ async function buildExportPayload(
       user.id,
       keelUnavailable,
     ),
+    // FF-039 — réclamée par le lifecycle DÈS SA MIGRATION, et pas après. Le
+    // dépôt a la cicatrice inverse: neuf tables neuves absentes de l'export
+    // pendant des mois, sans que rien ne le dise.
+    fetchKeelRows(
+      admin,
+      "meal_composition_verdicts",
+      SCOPE.mealCompositionVerdicts,
+      "user_id",
+      user.id,
+      keelUnavailable,
+    ),
     // `recurring_meals` et `student_facts` ont été DROPPÉES par le pivot
     // nutrition (le memorizer fait cette couche souple). Les sonder à chaque
     // export les rangeait dans `tables_indisponibles`, c'est-à-dire un bruit
@@ -803,6 +856,19 @@ async function buildExportPayload(
       "coach_id",
       coachId,
       keelUnavailable,
+    ),
+    // C3 ③ — SA PLACE DANS UN FOYER. `joined_at` et pas `created_at`: cette
+    // table n'a pas de `created_at`, et un tri sur une colonne inexistante
+    // ferait tomber la lecture dans le filet `tables_indisponibles` — donc un
+    // export silencieusement vide sur la seule table qui survit à la purge.
+    fetchKeelRows(
+      admin,
+      "household_members",
+      SCOPE.householdMembers,
+      "user_id",
+      user.id,
+      keelUnavailable,
+      "joined_at",
     ),
     collectStorageFiles(admin, user.id),
   ]);
@@ -900,6 +966,34 @@ async function buildExportPayload(
       // AGENT 13 — le pivot 1:N: le coach recommande, l'ÉLÈVE décide. Ce
       // fichier porte ce qu'il a décidé, pas ce qu'on lui a prescrit; c'est
       // pour ça qu'il est séparé de protocole.json.
+      // ── C3 ③ · SA PLACE DANS UN FOYER, ET CE QUI LUI SURVIT ─────────────
+      //
+      // Fichier à part, et pas une clé de `mon_plan.json`: c'est le SEUL
+      // endroit du produit où une donnée personnelle survit à la suppression
+      // du compte, et cette phrase-là ne doit pas se lire au milieu d'autre
+      // chose. Voir `SCOPE.householdMembers` pour l'arbitrage.
+      "mon_foyer.json": {
+        ma_place: householdMembership,
+        // ⚠️ CETTE PHRASE EST LA MOITIÉ QUI COMPTE. Sans elle, l'export dirait
+        // ce qu'on détient et se tairait sur ce qu'on garde — or c'est
+        // précisément ce qu'on garde qui n'avait jamais été décidé, ni dit.
+        ce_qui_survit_a_la_suppression: {
+          regle:
+            "Ta place dans le foyer n'est pas supprimée avec ton compte: elle est " +
+            "DÉTACHÉE. La bouche reste (le foyer continue de cuisiner pour le " +
+            "bon nombre de personnes), mais elle n'est plus reliée à toi.",
+          champs_conserves: ["first_name", "birth_date", "goal", "away_days"],
+          pourquoi:
+            "Le prénom répond à « pour qui je cuisine ». La date de naissance " +
+            "sert à calculer une part adaptée — l'effacer changerait les " +
+            "portions des autres personnes du foyer.",
+          comment_les_effacer:
+            "Coche « retirer aussi ma place dans ce foyer » au moment de " +
+            "supprimer ton compte: la ligne est alors supprimée, pas détachée. " +
+            "La personne qui gère le foyer peut aussi retirer la bouche à tout " +
+            "moment.",
+        },
+      },
       "mon_plan.json": {
         objectif: studentGoals,
         semaines: studentWeekPlans,
@@ -915,6 +1009,10 @@ async function buildExportPayload(
       "mes_repas_generes.json": {
         repas: studentGeneratedMeals,
         documents: studentMealDocuments,
+        // Ce que le moteur a MESURÉ sur ces repas, en mots. Aucun chiffre
+        // d'énergie ni de macro n'y figure — le verdict est en mots par
+        // construction (FF-039 R9).
+        mesures_de_composition: mealCompositionVerdicts,
       },
       "ma_memoire_alimentaire.json": {
         repas_recurrents: recurringMeals,
@@ -967,6 +1065,10 @@ function readmeText(exportedAtIso: string): string {
     "                           relations entre engagements) et, si tu es coach, tes",
     "                           modèles, documents importés, doctrine, cohortes et",
     "                           l'agrégat de tes synthèses hebdomadaires.",
+    "  - mon_foyer.json       : ta place dans un foyer (prénom, date de naissance,",
+    "                           objectif, absences) et — c'est important — ce qui en",
+    "                           SURVIT à la suppression de ton compte, et comment",
+    "                           l'effacer aussi.",
     "  - mon_plan.json        : ton objectif, les semaines que tu t'es fixées et tes",
     "                           points du soir.",
     "  - ma_memoire_alimentaire.json : tes repas récurrents, tes préférences et ton",

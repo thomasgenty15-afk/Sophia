@@ -40,9 +40,19 @@ import { foodPreferencesForPrompt } from "./food_preference_promotion.ts";
 import { reconcileFoodPreferencesFor } from "./food_preference_promotion_io.ts";
 import type { RawMemberVoice } from "./household_voices.ts";
 
-/** Le strict minimum de client Supabase dont ce module a besoin. */
+/**
+ * Le strict minimum de client Supabase dont ce module a besoin.
+ *
+ * ⚠️ `rpc` VIENT DE C3 ②: ce module ne l'appelle pas lui-même, mais il passe
+ * son client à `reconcileFoodPreferencesFor`, dont l'écriture est désormais une
+ * RPC ciblée (`keel_write_food_preferences`). Le compilateur a listé les
+ * appelants; le déclarer ici plutôt que d'élargir en `any` garde la garde.
+ */
 type MinimalClient = {
   from: (table: string) => any;
+  rpc: (name: string, params: Record<string, unknown>) => Promise<
+    { data: unknown; error: { message: string } | null }
+  >;
 };
 
 export interface VoiceMember {

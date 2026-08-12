@@ -66,6 +66,15 @@
  *   assiettes, alors que rétrécir après coup ne rend pas les dîners d'un
  *   secondaire qu'on avait cessé de compter.
  *
+ *   ⚠️ C3/O1 — « TOTAL » NE VEUT PLUS DIRE « PAR UN SEUL PLAN ». Depuis le
+ *   2026-08-12, PLUSIEURS plans à lui, adjacents, qui couvrent ENSEMBLE chaque
+ *   jour de la fenêtre, prennent la main (`plansCoveringWindow`, motif
+ *   `personal_plans_cover_window`). La règle n'a pas bougé — on n'exclut que
+ *   quelqu'un dont AUCUN jour n'est découvert — et le motif écrit ci-dessus ne
+ *   s'applique tout simplement pas à ce cas-là: il n'a pas « deux jours où il
+ *   n'a rien », il a son plan tous les jours. Retour arrière: retirer la
+ *   branche `coveringTogether`, une condition.
+ *
  * ── L4/D6 — LA FUSION REPREND, ELLE NE CONTOURNE PAS ────────────────────
  * Depuis le 2026-08-12, l'appelant peut nommer des bouches RECLAMÉES: le maître
  * a décidé de les reprendre dans la cuisine commune. Elles restent composées, et
@@ -84,7 +93,7 @@
  * ne mange pas. C'est la seule asymétrie de ce fichier, et elle est le modèle.
  */
 
-import { planEndsOn } from "./meal_plan_window.ts";
+import { planEndsOn, windowDates } from "./meal_plan_window.ts";
 
 /**
  * Un plan personnel candidat, tel que le roster le rend.
@@ -179,6 +188,60 @@ export function plansOverlap(
     planEndsOn(plan.startsOn, plan.durationDays) >= window.startsOn;
 }
 
+/**
+ * C3/O1 — SES PLANS, PRIS ENSEMBLE, COUVRENT-ILS CHAQUE JOUR DE LA FENÊTRE ?
+ *
+ * ── CE QUE ÇA RÉPARE, ET POURQUOI CE N'EST PAS UN ASSOUPLISSEMENT ─────────
+ * O1 du registre, mesuré sur le module pur: plans `08-17 +2j` et `08-19 +1j`
+ * contre une fenêtre `08-17 +3j` ⇒ `taken: 0`, `partial: 2`. La personne avait
+ * SON plan pour CHAQUE jour de la fenêtre, et le foyer cuisinait quand même
+ * pour elle.
+ *
+ * Le motif écrit du recouvrement TOTAL est « l'exclusion partielle affame:
+ * retirer quelqu'un du lundi parce qu'il a un plan à partir de mercredi, c'est
+ * cuisiner sans lui deux jours où il n'a rien ». Ici il **n'a aucun jour sans
+ * rien** — donc le motif ne s'applique pas, et l'arbitrage reste intact: on
+ * n'exclut QUE quelqu'un dont chaque jour de la fenêtre est couvert par un plan
+ * à lui. Ce qui change n'est pas la règle, c'est le nombre de plans qu'on
+ * autorise à la satisfaire.
+ *
+ * ── POURQUOI PAS `planCoversWindow` SUR UNE FENÊTRE FUSIONNÉE ─────────────
+ * Parce que la contrainte d'exclusion (`student_generated_meals_live_windows_
+ * dont_overlap`, scopée `user_id + plan_kind`) interdit le CHEVAUCHEMENT et pas
+ * l'ADJACENCE: deux plans personnels vivants et adjacents sont un état NOMINAL
+ * du produit, pas une bizarrerie. « Les recoller » en une fenêtre unique serait
+ * une seconde arithmétique de fenêtre; on demande donc, jour par jour, si
+ * quelqu'un couvre — c'est la même question, posée là où elle se décide.
+ *
+ * Rend LES PLANS QUI SERVENT, dans l'ordre des jours qu'ils couvrent, ou `[]`
+ * quand un seul jour manque. Un plan qui ne sert aucun jour n'y est pas: la
+ * trace nomme ce qui a retiré la personne, jamais ce qui traînait à côté.
+ */
+export function plansCoveringWindow<
+  T extends { startsOn: string; durationDays: number },
+>(
+  plans: readonly T[],
+  window: PlanWindow,
+): T[] {
+  // `windowDates` est LA primitive de fenêtre du dépôt (jeton → date, bornes
+  // et plafond compris). Trié: des dates ISO se trient comme le calendrier, et
+  // l'ordre des plans rendus est celui des jours qu'ils couvrent.
+  const days = Object.values(windowDates(window.startsOn, window.durationDays))
+    .sort();
+  if (days.length === 0) return [];
+  const used: T[] = [];
+  for (const day of days) {
+    const hit = plans.find((p) =>
+      p.startsOn <= day && planEndsOn(p.startsOn, p.durationDays) >= day
+    );
+    // UN SEUL JOUR DÉCOUVERT SUFFIT À TOUT RENDRE: c'est le recouvrement total,
+    // et c'est ce qui interdit d'affamer quelqu'un un lundi.
+    if (!hit) return [];
+    if (!used.includes(hit)) used.push(hit);
+  }
+  return used;
+}
+
 /** Ce que l'appelant doit porter pour être jugé. */
 export interface HandMember {
   memberId: string;
@@ -193,6 +256,17 @@ export interface HandMember {
  * pouvoir séparer les plans écrits avant de ceux écrits après.
  */
 export const HAND_REASON_COVERS = "personal_plan_covers_window";
+/**
+ * C3/O1 — PLUSIEURS PLANS À LUI, ADJACENTS, QUI COUVRENT ENSEMBLE LA FENÊTRE.
+ *
+ * MOTIF DISTINCT, et pas par goût du vocabulaire: un `covers` se relit sur UNE
+ * ligne de plan, celui-ci se relit sur DEUX (ou plus), et la trace en porte
+ * autant d'entrées que de plans qui ont servi. Les confondre rendrait
+ * indéchiffrable, trois jours plus tard, la question « quel plan l'a retiré de
+ * cette table » — et empêcherait de séparer les plans écrits avant C3 de ceux
+ * écrits après, ce qui est la raison d'être de tous les motifs de ce fichier.
+ */
+export const HAND_REASON_COVERS_TOGETHER = "personal_plans_cover_window";
 export const HAND_REASON_PARTIAL = "personal_plan_partial_window";
 /**
  * L4/D6 — LE MAÎTRE A REPRIS CETTE PERSONNE À SA TABLE.
@@ -373,12 +447,25 @@ export function resolveHandOff<T extends HandMember>(args: {
     }
 
     const covering = member.ownPlans.find((p) => planCoversWindow(p, args.window));
+    // C3/O1 — LE RECOUVREMENT PAR PLUSIEURS PLANS ADJACENTS.
+    //
+    // ⚠️ CALCULÉ SEULEMENT QUAND UN SEUL PLAN NE SUFFIT PAS, et l'ordre est le
+    // sujet: sur le chemin nominal (un plan qui couvre), `covering` gagne et la
+    // trace reste BYTE-IDENTIQUE à celle d'avant ce lot — même motif, une seule
+    // entrée. L'union n'entre en jeu que là où l'ancien code laissait la
+    // personne à table avec `partial: 2`.
+    const coveringTogether = covering
+      ? []
+      : plansCoveringWindow(member.ownPlans, args.window);
+    const covered = covering !== undefined || coveringTogether.length > 0;
+    /** Le plan à citer quand on n'en cite qu'un: le premier qui sert. */
+    const firstCovering = covering ?? coveringTogether[0] ?? null;
 
     // L5/D8 — LA DÉFUSION PASSE AVANT TOUT LE RESTE. Le maître a dit « refais
     // le plan SANS lui »: aucune règle de recouvrement, aucune reprise
     // collante, ne doit pouvoir le ramener à table par la bande.
     if (args.excluded.includes(member.memberId)) {
-      const fallback = covering ??
+      const fallback = firstCovering ??
         member.ownPlans.find((p) => plansOverlap(p, args.window)) ?? null;
       unmerged.push({
         member_id: member.memberId,
@@ -387,7 +474,12 @@ export function resolveHandOff<T extends HandMember>(args: {
         starts_on: fallback?.startsOn ?? null,
         duration_days: fallback?.durationDays ?? null,
         validated_at: fallback?.validatedAt ?? null,
-        covers_window: covering !== undefined,
+        // C3/O1 — « il a de quoi manger tous ces jours-là » est la question, et
+        // deux plans adjacents y répondent OUI aussi bien qu'un seul. Laisser
+        // ce booléen sur `covering` seul aurait fait dire à la trace « il n'a
+        // rien ces jours-là » d'une personne qui a son plan chaque jour — la
+        // seule phrase que ce champ existe pour porter (L5 §4).
+        covers_window: covered,
       });
       continue;
     }
@@ -398,7 +490,7 @@ export function resolveHandOff<T extends HandMember>(args: {
     // dans `taken` ET à table, deux affirmations contradictoires sur la même
     // ligne de plan.
     if (args.reclaimed.includes(member.memberId)) {
-      const source = covering ??
+      const source = firstCovering ??
         member.ownPlans.find((p) => plansOverlap(p, args.window)) ?? null;
       if (source) {
         reclaimed.push(traceOf(member.memberId, source, HAND_REASON_RECLAIMED));
@@ -409,6 +501,17 @@ export function resolveHandOff<T extends HandMember>(args: {
 
     if (covering) {
       taken.push(traceOf(member.memberId, covering, HAND_REASON_COVERS));
+      continue;
+    }
+
+    // C3/O1 — DEUX PLANS ADJACENTS QUI COUVRENT ENSEMBLE. Une entrée PAR PLAN,
+    // parce qu'il n'y a pas de « le » plan qui l'a retiré: il y en a deux, et
+    // n'en citer qu'un ferait de la trace un demi-mensonge sur la seule ligne
+    // qui doit permettre de relire l'exclusion.
+    if (coveringTogether.length > 0) {
+      for (const plan of coveringTogether) {
+        taken.push(traceOf(member.memberId, plan, HAND_REASON_COVERS_TOGETHER));
+      }
       continue;
     }
 

@@ -95,6 +95,23 @@ export type MergeWindowRefusal =
   | typeof MERGE_WINDOWS_DISJOINT
   | typeof MERGE_WINDOW_ALL_PAST;
 
+/**
+ * L4 — REPRENDRE QUELQU'UN QUI N'EST LÀ AUCUN REPAS DE LA FENÊTRE.
+ *
+ * ⚠️ EXTRAIT EN CONSTANTE PAR C3, ET LE MOTIF EST LA MOITIÉ QUI COMPTE. Ce
+ * refus était le SEUL des onze que la proposition ne savait pas prédire: le
+ * lecteur offrait `merge`, le geste rendait 409, et L8 promet précisément de
+ * ne jamais afficher un bouton qui refuse. Le refus et la prédiction lisent
+ * maintenant le même mot — et il n'est écrit qu'ici, sans quoi renommer l'un
+ * laisserait l'autre vert.
+ *
+ * ⚠️ CE N'EST PAS UN `SKIP_*` DU LECTEUR, EXPRÈS. Il a déjà ses mots dans
+ * `EDGE_REFUSAL_KEYS` (`plan.refusal.merge_member_away_all_window`); l'ajouter
+ * à `MERGE_SKIP_KEYS` ferait DEUX phrases pour un même jeton — le défaut que
+ * `mergeCardSkipKey` existe pour ne pas commettre.
+ */
+export const MERGE_MEMBER_AWAY_ALL_WINDOW = "merge_member_away_all_window";
+
 export interface MergeWindow {
   /** L'intersection BRUTE des deux fenêtres, avant le pivot (D15). */
   intersection: PlanSpan;
@@ -1012,18 +1029,74 @@ export const MERGE_SHAPE_NOT_HONOURED = "merge_shape_not_honoured";
 export interface MergeShapeObservation {
   /** Le barreau DEMANDÉ, recopié pour que les deux se lisent côte à côte. */
   requested: CookingShape;
-  /** Ce que le plan rendu porte: quelque chose à elle, ou la casserole commune. */
-  observed: "dedicated_dish" | "common_pot";
+  /**
+   * Ce que le plan rendu porte, EN TROIS ÉTATS ET PLUS EN DEUX (C3 ⑥).
+   *
+   * ⚠️ MESURÉ LE 2026-08-12: `observed = marks.length > 0 ? "dedicated_dish" :
+   * "common_pot"` faisait dire « plat dédié » à un plan où UN créneau sur NEUF
+   * portait quelque chose à elle. Le constat annonçait donc un succès pendant
+   * que la personne reprise mangeait la casserole commune huit fois sur neuf,
+   * malgré le conflit de direction de service qui avait fait descendre le
+   * barreau. Un constat qui ne distingue pas « servie à part » de « servie à
+   * part une fois sur neuf » ne constate rien.
+   *
+   *   `common_pot`           — aucun de ses repas ne porte quoi que ce soit à elle
+   *   `some_meals_dedicated` — certains oui, d'autres non
+   *   `dedicated_dish`       — chacun de ses repas porte un plat à part
+   */
+  observed: "dedicated_dish" | "some_meals_dedicated" | "common_pot";
   /** Les marques trouvées, nommées. Vide = rien de dédié dans ce plan. */
   marks: string[];
   /**
-   * `false` UNIQUEMENT quand ②/③ a été demandé et que rien de dédié n'existe.
+   * C3 ⑥ — LES COMPTES BRUTS, parce que l'étiquette ci-dessus est un mot et que
+   * la question posée est un nombre.
+   *
+   * Même posture que `week_review.ts`: « le texte rendu énonce toujours les
+   * comptes bruts, donc l'élève peut contester l'adjectif sans que la donnée
+   * bouge ». Ici, l'adjectif est `observed`, et ce sont ces trois nombres qui
+   * survivront à sa prochaine rédaction.
+   */
+  meals: {
+    /** Ses repas de la fenêtre — les cases où elle est à table. */
+    atTable: number;
+    /** Ceux qui portent un plat de plus, donc quelque chose à elle. */
+    dedicated: number;
+    /** Ceux où elle mange ce que la table mange. */
+    fromCommonPot: number;
+  };
+  /**
+   * `false` quand ②/③ a été demandé et qu'un seul de ses repas sort de la
+   * casserole commune.
+   *
+   * ── POURQUOI « TOUS », ET PAS « AU MOINS UN » NI UNE PROPORTION ─────────
+   * Le barreau ②/③ dit littéralement au modèle: « X ne peut PAS être servie
+   * depuis la casserole commune ». Un repas servi depuis la casserole commune
+   * est donc, un par un, la chose exacte que la consigne interdit — et le
+   * critère d'abandon de D6 ne parle pas de fréquence, il parle de direction de
+   * service. Un seuil (« la moitié », « les deux tiers ») aurait été un nombre
+   * inventé, et ce chantier en refuse un par lot.
+   *
+   * ⚠️ C'EST UN CONSTAT, PAS UN REFUS, ET ÇA NE CHANGE PAS. Rien ici ne rejette
+   * un plan, ne relance un modèle, ni ne consomme un quota: on pousse une
+   * `issue` nommée et on écrit `honoured` à côté de `shape` dans
+   * `generated_from`. Refuser ou relancer reste une sortie de produit que
+   * personne n'a tranchée (O5).
+   *
+   * ⚠️ CE QUE ÇA COÛTE, ASSUMÉ: ce constat sera FAUX plus souvent qu'avant, au
+   * sens où il dira « non » là où il disait « oui ». C'est le but. Le prix est
+   * qu'une fusion dont la fenêtre recomposée déborde le plan personnel
+   * (L10 ①) ne peut pas être honorée à 100 % dans son budget de plats — et
+   * c'est un FAIT sur le produit, pas un défaut du constat: ces repas-là sont
+   * bien servis depuis la casserole commune.
    *
    * ① est TOUJOURS honoré ici, et ce n'est pas une complaisance: sa promesse
    * est « pas de second plat », et le budget de plats ne lui en laisse aucune
    * place (`mergeDishBonus` rend 0). Y pousser un constat ferait dépendre le
    * barreau le plus fréquent d'une heuristique dont un faux positif salirait
    * toutes les compositions ordinaires.
+   *
+   * RETOUR ARRIÈRE: `observed !== "common_pot"` à la place de
+   * `observed === "dedicated_dish"`, une ligne — les trois compteurs restent.
    */
   honoured: boolean;
 }
@@ -1043,6 +1116,25 @@ export function observeMergeShape(args: {
   shape: CookingShape;
   dishes: readonly ObservedDish[];
   preparations: readonly ObservedPreparation[];
+  /**
+   * C3 ⑥ — LES REPAS QUE LA PERSONNE REPRISE PREND ICI, sur la fenêtre écrite.
+   *
+   * ⚠️ REQUIS, jamais optionnel — « un paramètre de garde optionnel est une
+   * garde désarmée ». C'est le DÉNOMINATEUR du constat: sans lui, « elle a un
+   * plat à elle » et « elle a un plat à elle une fois sur neuf » retombent sur
+   * la même phrase, ce qui est le défaut mesuré.
+   *
+   * ⚠️ CE SONT SES CASES À ELLE, PAS CELLES DU PLAN. Une bouche absente jeudi
+   * midi ne mange pas « la casserole commune » ce midi-là: elle ne mange pas.
+   * Compter la case ferait un faux négatif sur chaque absence partielle — et
+   * `memberMealCells` est justement la fonction qui décide déjà, côté présence,
+   * quels repas une bouche prend.
+   *
+   * `[]` (aucun repas) rend le constat MUET plutôt que faux: `atTable = 0`,
+   * `honoured` reste vrai. Le refus `merge_member_away_all_window` a déjà
+   * intercepté ce cas bien avant le modèle; ici, il n'y a rien à constater.
+   */
+  eaterCells: readonly { day: string; slot: string }[];
 }): MergeShapeObservation {
   const marks: string[] = [];
 
@@ -1059,15 +1151,40 @@ export function observeMergeShape(args: {
     const cell = `${dish.day ?? "any"}/${dish.slot}`;
     perCell.set(cell, (perCell.get(cell) ?? 0) + 1);
   }
+  const dedicatedCells = new Set<string>();
   for (const [cell, count] of perCell) {
-    if (count > 1) marks.push(`parallel_dishes:${cell}`);
+    if (count > 1) {
+      marks.push(`parallel_dishes:${cell}`);
+      dedicatedCells.add(cell);
+    }
   }
 
-  const observed = marks.length > 0 ? "dedicated_dish" : "common_pot";
+  // ── C3 ⑥ · REPAS PAR REPAS, ET PAS « QUELQUE PART DANS LE PLAN » ────────
+  // On ne compte QUE les cases où la personne est à table, et on n'en compte
+  // aucune deux fois: le même jour+moment ne se sert qu'une fois.
+  const atTable = new Set(
+    args.eaterCells.map((c) => `${c.day}/${c.slot}`),
+  );
+  const dedicated = [...atTable].filter((cell) => dedicatedCells.has(cell)).length;
+  const meals = {
+    atTable: atTable.size,
+    dedicated,
+    fromCommonPot: atTable.size - dedicated,
+  };
+
+  const observed: MergeShapeObservation["observed"] = meals.dedicated === 0
+    ? "common_pot"
+    : meals.fromCommonPot === 0
+    ? "dedicated_dish"
+    : "some_meals_dedicated";
   return {
     requested: args.shape,
     observed,
     marks,
-    honoured: !asksForASecondDish(args.shape) || observed === "dedicated_dish",
+    meals,
+    // ⚠️ `atTable === 0` REND VRAI, et c'est écrit sur le champ: on ne déclare
+    // pas trahie une consigne sur une personne qui ne mange ici aucun repas.
+    honoured: !asksForASecondDish(args.shape) || meals.atTable === 0 ||
+      observed === "dedicated_dish",
   };
 }

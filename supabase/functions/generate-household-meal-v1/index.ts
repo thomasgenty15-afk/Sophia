@@ -62,6 +62,7 @@ import {
 } from "../_shared/keel/meal_generation.ts";
 import {
   type MemberAway,
+  memberMealCells,
   parseMemberAway,
   resolveWindowPresence,
 } from "../_shared/keel/household_presence.ts";
@@ -74,6 +75,7 @@ import {
 import {
   bestMergePair,
   buildUnmergeBlock,
+  MERGE_MEMBER_AWAY_ALL_WINDOW,
   MERGE_SHAPE_NOT_HONOURED,
   MERGE_WINDOW_ALL_PAST,
   MERGE_WINDOW_UNREADABLE,
@@ -1330,8 +1332,14 @@ Deno.serve(async (req) => {
       excluded: unmerge === null ? [] : [unmerge.member.member_id],
     });
     const composedMembers = handOff.composed;
-    for (const t of handOff.taken) {
-      issues.push(`member_took_the_hand:${t.member_id}`);
+    // ⚠️ C3/O1 — UNE `issue` PAR PERSONNE, PAS PAR PLAN. `hand.taken` porte
+    // désormais DEUX entrées pour une bouche que deux plans adjacents couvrent
+    // ensemble (`personal_plans_cover_window`). Une `issue` par entrée aurait
+    // fait lire « Zoé a pris la main » deux fois dans la même réponse, et tout
+    // décompte de `member_took_the_hand` aurait compté des plans en croyant
+    // compter des gens. L'archive, elle, garde bien les deux lignes.
+    for (const id of new Set(handOff.taken.map((t) => t.member_id))) {
+      issues.push(`member_took_the_hand:${id}`);
     }
     for (const r of handOff.reclaimed) {
       issues.push(`member_reclaimed_by_merge:${r.member_id}`);
@@ -1745,10 +1753,10 @@ Deno.serve(async (req) => {
         user_id: userId,
         household_id: householdId,
         member_id: merge.member.member_id,
-        reason: "merge_member_away_all_window",
+        reason: MERGE_MEMBER_AWAY_ALL_WINDOW,
       }));
       return jsonResponse(req, {
-        error: "merge_member_away_all_window",
+        error: MERGE_MEMBER_AWAY_ALL_WINDOW,
         detail: "That person is marked away for every meal of those days, so " +
           "there is nothing to bring them back to. Take the absence back first.",
         request_id: requestId,
@@ -1800,6 +1808,20 @@ Deno.serve(async (req) => {
     for (const id of presence.absentAllWindow) {
       issues.push(`member_away_all_window:${id}`);
     }
+
+    // ── C3 ⑥ · LES REPAS DE LA PERSONNE REPRISE, pour le CONSTAT de forme ──
+    //
+    // Le dénominateur d'`observeMergeShape`: sans lui, « elle a un plat à elle »
+    // et « elle a un plat à elle une fois sur neuf » laissaient la même trace.
+    // ⚠️ MÊME RYTHME ET MÊME FENÊTRE que `resolveWindowPresence` juste
+    // au-dessus, par la MÊME fonction — un second parcours aurait fini par
+    // compter des repas que la casserole ne compte pas.
+    const mergedEaterCells = merge === null ? [] : memberMealCells({
+      away: composedMembers
+        .find((m) => m.memberId === merge.member.member_id)?.away.effective ?? [],
+      rhythm: eatingRhythm.length > 0 ? eatingRhythm : DEFAULT_EATING_RHYTHM,
+      windowDays: daysToFill,
+    });
 
     // ── D6 · L'ÉCHELLE DE FUSION, DÉCIDÉE ICI ET PAS PAR LE MODÈLE ────────
     //
@@ -2507,6 +2529,10 @@ Deno.serve(async (req) => {
       shape: ladder.shape,
       dishes: meal.dishes,
       preparations: meal.preparations,
+      // C3 ⑥ — REPAS PAR REPAS. `[]` hors fusion: `ladder` n'est non nul que
+      // sur une fusion, donc ce cas n'existe pas — et s'il naissait un jour, le
+      // constat se tairait au lieu de mentir.
+      eaterCells: mergedEaterCells,
     });
     if (mergeShape !== null && !mergeShape.honoured) {
       issues.push(`${MERGE_SHAPE_NOT_HONOURED}:${mergeShape.requested}`);
@@ -2517,6 +2543,12 @@ Deno.serve(async (req) => {
         member_id: merge?.member.member_id ?? null,
         requested: mergeShape.requested,
         observed: mergeShape.observed,
+        // C3 ⑥ — LES COMPTES BRUTS DANS LE JOURNAL, pas seulement l'étiquette.
+        // « `common_pot` » et « un plat à elle sur neuf repas » sont deux faits
+        // différents, et c'est le second qu'on veut pouvoir compter.
+        meals_at_table: mergeShape.meals.atTable,
+        meals_dedicated: mergeShape.meals.dedicated,
+        meals_from_common_pot: mergeShape.meals.fromCommonPot,
         dishes: meal.dishes.length,
         preparations: meal.preparations.length,
       }));
@@ -2867,6 +2899,16 @@ Deno.serve(async (req) => {
                       requested: mergeShape.requested,
                       observed: mergeShape.observed,
                       marks: mergeShape.marks,
+                      // ── C3 ⑥ · LES TROIS NOMBRES QUI SURVIVRONT À L'ÉTIQUETTE
+                      // `observed` est un mot, et un mot se réécrit. Ces trois
+                      // comptes disent CE QUI EST — « elle a mangé la casserole
+                      // commune 8 fois sur 9 » — et resteront lisibles sur des
+                      // plans écrits avant la prochaine rédaction du constat.
+                      meals: {
+                        at_table: mergeShape.meals.atTable,
+                        dedicated: mergeShape.meals.dedicated,
+                        from_common_pot: mergeShape.meals.fromCommonPot,
+                      },
                       ok: mergeShape.honoured,
                     },
                   }),

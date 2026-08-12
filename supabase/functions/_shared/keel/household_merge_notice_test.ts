@@ -48,6 +48,8 @@ import {
   UNMERGE_CLOSENESS_INSTRUCTION,
 } from "./household_merge.ts";
 import type { MergeQuotaState } from "./household_merge_quota.ts";
+import type { MemberAway } from "./household_presence.ts";
+import type { EatingOccasionSlot } from "./meal_generation.ts";
 
 const FUNCTIONS_DIR = new URL("../../", import.meta.url);
 
@@ -319,12 +321,30 @@ const carrying = (
     : { household: { merge: { merged_from: entries } } },
 });
 
-const ZOE = (validatedAt: string, id = "plan-zoe-1"): NoticeMember => ({
+/** C3 ④ — PRÉSENTE À TOUS LES REPAS, sauf indication contraire. */
+const HERE: MemberAway = { effective: [], self: [], household: [] };
+
+/** C3 ④ — absente TOUS les jours de la semaine, journées entières. */
+const AWAY_ALL_WEEK: MemberAway = {
+  effective: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"].map((day) => ({
+    day,
+    slots: [],
+  })),
+  self: [],
+  household: [],
+};
+
+const ZOE = (
+  validatedAt: string,
+  id = "plan-zoe-1",
+  away: MemberAway = HERE,
+): NoticeMember => ({
   memberId: "m-zoe",
   userId: "u-zoe",
   displayName: "Zoe",
   isOwner: false,
   ownPlans: [{ id, startsOn: "2026-08-12", durationDays: 5, validatedAt }],
+  away,
 });
 
 const OWNER: NoticeMember = {
@@ -338,7 +358,22 @@ const OWNER: NoticeMember = {
     durationDays: 7,
     validatedAt: "2026-08-11T10:00:00Z",
   }],
+  away: HERE,
 };
+
+/**
+ * C3 ④ — LE RYTHME DU FOYER, écrit ici et pas déduit.
+ *
+ * ⚠️ NON VIDE PAR DÉFAUT, et c'est la moitié qui compte: sur un rythme vide, la
+ * grille n'a AUCUNE case, donc tout le monde serait « absent partout » et plus
+ * aucune proposition ne sortirait. Un décor vide aurait rendu la prédiction
+ * indiscernable d'une prédiction désarmée.
+ */
+const RHYTHM: EatingOccasionSlot[] = [
+  { slot: "breakfast", size: null },
+  { slot: "lunch", size: null },
+  { slot: "dinner", size: null },
+];
 
 /**
  * L7/D11 — LE DÉCOR DE PLAFOND PAR DÉFAUT: DE LA PLACE, ET ÇA SE VOIT.
@@ -375,9 +410,11 @@ const notices = (args: {
   settings?: MergeSettingRow[];
   today?: string;
   quota?: MergeQuotaState | null;
+  rhythm?: EatingOccasionSlot[];
 }) =>
   buildMergeNotices({
     members: args.members,
+    rhythm: args.rhythm ?? RHYTHM,
     householdPlans: args.householdPlans ??
       [carrying(HOUSE_PLAN, ...(args.mergedFrom ?? []))],
     settings: args.settings ?? [],
@@ -581,6 +618,7 @@ Deno.test("un plan qui ne partage aucun jour ne se propose pas, et le dit", () =
     settings: [],
     today: "2026-08-14",
     quota: QUOTA_ROOM,
+    rhythm: RHYTHM,
   });
   assertEquals(out.notices, []);
   assertEquals(out.skipped[0].reason, "merge_windows_disjoint");
@@ -593,6 +631,7 @@ Deno.test("SANS PLAN DU FOYER, on ne propose rien — on n'invente pas de fenêt
     settings: [],
     today: "2026-08-14",
     quota: QUOTA_ROOM,
+    rhythm: RHYTHM,
   });
   assertEquals(out.notices, []);
   assertEquals(out.skipped[0].reason, "merge_windows_disjoint");
@@ -616,6 +655,7 @@ Deno.test("D8 avertit MÊME quand plus rien n'est fusionnable", () => {
     settings: [],
     today: "2026-08-14",
     quota: QUOTA_ROOM,
+    rhythm: RHYTHM,
   });
   assertEquals(out.notices.length, 1);
   assertEquals(out.notices[0].mergeable, null);
@@ -909,6 +949,7 @@ const TWO_PLANS: NoticeMember = {
   userId: "u-zoe",
   displayName: "Zoe",
   isOwner: false,
+  away: HERE,
   ownPlans: [
     // Celui de CETTE semaine — il croise le plan du foyer (10 → 16).
     {
@@ -1297,6 +1338,7 @@ Deno.test("D11 — le motif le PLUS PRÉCIS gagne sur le plafond", () => {
     settings: [],
     today: "2026-08-14",
     quota: QUOTA_FULL,
+    rhythm: RHYTHM,
   });
   assertEquals(out.skipped[0].reason, "merge_windows_disjoint");
 });
@@ -1311,4 +1353,102 @@ Deno.test("D11 — la reprise qui TIENT reste `already_merged`, pas le plafond",
   });
   assertEquals(out.skipped[0].reason, SKIP_ALREADY_MERGED);
   assertEquals(out.held, [HELD_ON_HOUSE_PLAN]);
+});
+
+// ===========================================================================
+// C3 ④ — LA PROPOSITION N'OFFRE PLUS UN BOUTON QUE LE GESTE REFUSE
+//
+// MESURÉ: secondaire absent sur toute la fenêtre, plan validé qui recouvre ⇒ le
+// lecteur rendait `exits: ["merge","dismiss"]`, et le geste rendait 409
+// `merge_member_away_all_window`. L5 avait fermé la divergence
+// proposition↔geste pour tous les autres cas (`bestMergePair` est le seul
+// choisisseur); celui-ci restait, écrit noir sur blanc au registre — « la
+// proposition ne prédit pas la présence ».
+// ===========================================================================
+
+Deno.test("C3 ④ — ABSENTE TOUS LES REPAS: pas de proposition, et le motif est celui du geste", () => {
+  const out = notices({
+    members: [OWNER, ZOE("2026-08-13T10:00:00Z", "plan-zoe-1", AWAY_ALL_WEEK)],
+  });
+  assertEquals(out.notices, []);
+  assertEquals(out.skipped.length, 2);
+  // ⚠️ LE MÊME MOT QUE LE 409 DU GÉNÉRATEUR. Deux orthographes en feraient deux
+  // faits pour qui lit des journaux, et l'écran a déjà sa phrase pour celui-ci.
+  assertEquals(
+    out.skipped.find((sk) => sk.memberId === "m-zoe")?.reason,
+    "merge_member_away_all_window",
+  );
+});
+
+Deno.test("C3 ④ — LE CAS QUI PASSE: absente DEUX repas, la proposition tient", () => {
+  // ⚠️ SANS CE CAS, LA PRÉDICTION SERAIT UNE GARDE QUI COUPE TOUT. Qui manque
+  // un dîner mange les autres jours: le retirer de la proposition serait
+  // exactement l'erreur que L2 a refusée sur `member_portions`.
+  const out = notices({
+    members: [
+      OWNER,
+      ZOE("2026-08-13T10:00:00Z", "plan-zoe-1", {
+        effective: [{ day: "thu", slots: ["dinner"] }, { day: "fri", slots: ["lunch"] }],
+        self: [],
+        household: [],
+      }),
+    ],
+  });
+  assertEquals(out.notices.length, 1);
+  assert(out.notices[0].exits.includes(EXIT_MERGE));
+});
+
+Deno.test("C3 ④ — UN RYTHME ILLISIBLE PROPOSE QUAND MÊME (échec ouvert)", () => {
+  // Sans rythme, la grille n'a aucune case — et « aucune case » se lirait comme
+  // « absente partout ». Se tromper dans ce sens-là couperait TOUTES les
+  // propositions d'un foyer qui n'a rien déclaré, en silence.
+  const out = notices({
+    members: [OWNER, ZOE("2026-08-13T10:00:00Z", "plan-zoe-1", AWAY_ALL_WEEK)],
+    rhythm: [],
+  });
+  assertEquals(out.notices.length, 1);
+  assert(out.notices[0].exits.includes(EXIT_MERGE));
+});
+
+Deno.test("C3 ④ — L'AVERTISSEMENT DE D8 SURVIT À L'ABSENCE, sans la sortie `merge`", () => {
+  // MÊME PARTAGE QUE D17 ET QUE LE PLAFOND: ce qui parle du plan d'un AUTRE se
+  // tait; ce qui parle du plan DU MAÎTRE ne se tait jamais. Sa ligne vivante
+  // porte une reprise périmée, et la défaire ne dépend pas de la présence de
+  // qui que ce soit.
+  const out = notices({
+    members: [OWNER, ZOE("2026-08-15T10:00:00Z", "plan-zoe-2", AWAY_ALL_WEEK)],
+    mergedFrom: [MERGED],
+  });
+  assertEquals(out.notices.length, 1);
+  assertEquals(out.notices[0].kind, NOTICE_MERGED_PLAN_REVALIDATED);
+  assert(
+    !out.notices[0].exits.includes(EXIT_MERGE),
+    "on offre encore de refusionner quelqu'un que le geste refusera",
+  );
+  assert(
+    out.notices[0].exits.includes(EXIT_UNMERGE),
+    "l'avertissement perd sa défusion à cause d'une absence qui ne la concerne pas",
+  );
+  assert(out.notices[0].exits.includes(EXIT_DISMISS));
+});
+
+Deno.test("C3 ④ — LA FENÊTRE JUGÉE EST CELLE QUE LE GESTE ÉCRIRA (`recomposed`)", async () => {
+  // ⚠️ LA MOITIÉ QUI REND LA PRÉDICTION HONNÊTE. Le générateur résout la
+  // présence sur `daysToFill = windowDayOrder(merge.window.recomposed)`. Juger
+  // sur `window` (les seuls jours de SON plan) ferait refuser une personne
+  // présente sur la queue du foyer, ou l'inverse — c'est-à-dire remplacerait un
+  // bouton qui refuse par une proposition qui manque.
+  const src = await Deno.readTextFile(
+    new URL("./household_merge_notice.ts", import.meta.url),
+  );
+  assert(
+    /windowDays: windowDayOrder\(\s*\n?\s*pair\.window\.recomposed\.startsOn/.test(src),
+    "la présence n'est plus prédite sur la fenêtre RECOMPOSÉE: la proposition " +
+      "et le geste se prononcent de nouveau sur deux fenêtres différentes.",
+  );
+  assert(
+    src.includes("memberMealCells({"),
+    "la prédiction n'utilise plus la primitive de présence: un second parcours " +
+      "rendrait deux réponses plausibles, et une seule vraie.",
+  );
 });

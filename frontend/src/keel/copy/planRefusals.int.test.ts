@@ -318,6 +318,41 @@ describe("les motifs de non-proposition", () => {
   it("laisse sortir un motif inconnu tel quel (R7)", () => {
     expect(mergeCardSkipKey("some_new_token")).toBeNull();
   });
+
+  /**
+   * C3 ④ — LE LECTEUR PRÉDIT DÉSORMAIS `merge_member_away_all_window`.
+   *
+   * C'était le SEUL refus de geste que la proposition ne savait pas prédire:
+   * `exits` portait `merge`, et le clic rendait 409. Le jeton part maintenant
+   * dans `skipped[]` — par la constante partagée, jamais par un littéral
+   * recopié.
+   *
+   * ⚠️ IL NE DOIT **PAS** ENTRER DANS `MERGE_SKIP_KEYS`. Il a déjà ses mots
+   * dans `EDGE_REFUSAL_KEYS`; l'y ajouter ferait DEUX phrases pour un même
+   * jeton et casserait la bijection inverse du scan des `SKIP_*`. C'est
+   * exactement l'arbitrage écrit au-dessus de `mergeCardSkipKey`.
+   */
+  it("traduit le refus de PRÉSENCE que le lecteur range dans skipped[]", () => {
+    const reader = withoutComments(
+      source("supabase/functions/_shared/keel/household_merge_notice.ts"),
+    );
+    expect(
+      reader,
+      "le lecteur ne prédit plus l'absence: le bouton `merge` redevient un " +
+        "bouton qui refuse",
+    ).toMatch(/skip\(\s*MERGE_MEMBER_AWAY_ALL_WINDOW\s*\)/);
+
+    const token = sharedConstants().get("MERGE_MEMBER_AWAY_ALL_WINDOW");
+    expect(token, "la constante partagée a disparu").toBe(
+      "merge_member_away_all_window",
+    );
+    // La table des SKIP_* ne le connaît PAS, et ne DOIT pas le connaître…
+    expect(mergeSkipKey(token!)).toBeNull();
+    // …et l'écran le rend quand même en mots, par le repli.
+    expect(mergeCardSkipKey(token!)).toBe(
+      "plan.refusal.merge_member_away_all_window",
+    );
+  });
 });
 
 /**

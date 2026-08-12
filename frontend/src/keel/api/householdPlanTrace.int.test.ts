@@ -191,3 +191,72 @@ describe("O5 — le barreau demandé n'a pas été tenu", () => {
     expect(readHouseholdPlanTrace(TRACE).mergeShapeHonoured).toBeNull();
   });
 });
+
+describe("C3 ⑤ — deux plans adjacents qui prennent la main ensemble", () => {
+  /**
+   * O1 refermé: `hand.taken` porte désormais une entrée PAR PLAN. Une bouche
+   * dont deux plans personnels adjacents couvrent la fenêtre en produit DEUX —
+   * et l'écran nomme des GENS, pas des lignes de base.
+   */
+  const TWO_PLANS = {
+    household: {
+      hand: {
+        taken: [
+          {
+            member_id: "m-zoe",
+            plan_id: "p-head",
+            starts_on: "2026-08-17",
+            duration_days: 2,
+            validated_at: "2026-08-16T09:00:00.000Z",
+            reason: "personal_plans_cover_window",
+          },
+          {
+            member_id: "m-zoe",
+            plan_id: "p-tail",
+            starts_on: "2026-08-19",
+            duration_days: 1,
+            validated_at: "2026-08-18T09:00:00.000Z",
+            reason: "personal_plans_cover_window",
+          },
+        ],
+        partial: [],
+        reclaimed: [],
+        unmerged: [],
+      },
+    },
+  };
+
+  it("n'écrit pas deux fois la même phrase sous le même nom", () => {
+    const lines = divergenceLines(readHouseholdPlanTrace(TWO_PLANS));
+    expect(lines).toEqual([
+      { memberId: "m-zoe", key: "household.plan.taken", hint: null },
+    ]);
+  });
+
+  it("garde les DEUX lignes dans la trace lue", () => {
+    // Le dédoublonnage est une décision d'ÉCRAN, pas une perte de donnée:
+    // `generated_from` porte bien les deux plans, et c'est ce qui permet de
+    // relire quelle ligne a retiré la personne.
+    const trace = readHouseholdPlanTrace(TWO_PLANS);
+    expect(trace.taken.map((e) => e.planId)).toEqual(["p-head", "p-tail"]);
+  });
+
+  it("nomme toujours deux personnes distinctes séparément", () => {
+    // Le cas qui PASSE du dédoublonnage: sans lui, on remplacerait un doublon
+    // par une disparition.
+    const lines = divergenceLines(readHouseholdPlanTrace({
+      household: {
+        hand: {
+          taken: [
+            { ...TWO_PLANS.household.hand.taken[0] },
+            { ...TWO_PLANS.household.hand.taken[1], member_id: "m-tom" },
+          ],
+          partial: [],
+          reclaimed: [],
+          unmerged: [],
+        },
+      },
+    }));
+    expect(lines.map((l) => l.memberId)).toEqual(["m-zoe", "m-tom"]);
+  });
+});

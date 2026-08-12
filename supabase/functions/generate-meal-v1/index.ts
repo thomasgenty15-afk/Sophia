@@ -32,6 +32,16 @@ import { type WeeklyAxis, WEEKLY_AXES } from "../_shared/keel/weekly_flow.ts";
 import { foodPreferencesForPrompt } from "../_shared/keel/food_preference_promotion.ts";
 import { reconcileFoodPreferencesFor } from "../_shared/keel/food_preference_promotion_io.ts";
 import { dayTokenInZone, localDateInZone } from "../_shared/keel/local_date.ts";
+// C3 ① — LE DROIT D'ACCÈS EST LU, JAMAIS APPLIQUÉ ICI. Voir l'en-tête du
+// module: aucune règle de facturation n'existe pour un compte sans foyer, et en
+// inventer une couperait des clients qui paient.
+import {
+  ACCESS_LOG_TAG,
+  ACCESS_NONE,
+  ACCESS_UNKNOWN,
+  describeAccess,
+  readAccessFacts,
+} from "../_shared/keel/solo_access.ts";
 // LOT 3 — le plan personnel d'un membre de foyer doit PORTER son foyer, sinon
 // la fusion ne le retrouve jamais. Même résolveur que le chat, pour qu'il n'y
 // ait qu'une seule définition de « quel foyer est celui de cette personne ».
@@ -561,6 +571,41 @@ Deno.serve(async (req) => {
     // au-dessus: elle ne rend aucune clé de conviction, donc `beliefKeys`
     // reste ce que `doctrineBeliefsFor` a filtré. Ne throw jamais.
     const coachNote = await loadCoachNote(admin, userId);
+
+    // ── C3 ① · À QUEL TITRE CE COMPTE PRODUIT-IL — ON MESURE, ON NE FERME PAS
+    //
+    // Question ouverte n°1 du registre, mesurée: 19 805 jetons consommés par un
+    // compte SANS FOYER, sans abonnement, essai expiré, coach insolvable. L1 a
+    // fermé la porte du foyer; D13 laisse passer un compte sans foyer, exprès.
+    //
+    // ⚠️ AUCUN REFUS ICI, ET C'EST LA DÉCISION. Il n'existe aucune règle de
+    // facturation décidée pour ce cas: brancher `has_app_write_access` — le
+    // piège nommé — couperait dès le premier déploiement les membres de foyer
+    // et les élèves dont le siège est payé par leur coach. On lit les droits qui
+    // EXISTENT, on écrit ce qu'on a lu, et le trou devient une requête SQL au
+    // lieu d'une hypothèse. Voir l'en-tête de `solo_access.ts`.
+    //
+    // PLACÉ ICI, après la résolution de doctrine: c'est le premier point où
+    // `coachId` est connu, et c'est encore AVANT tout appel modèle.
+    const access = describeAccess(
+      await readAccessFacts(admin, {
+        userId,
+        householdId,
+        coachId: doctrine.coachId,
+      }),
+    );
+    if (access.state === ACCESS_NONE || access.state === ACCESS_UNKNOWN) {
+      // ⚠️ SEULS CES DEUX ÉTATS SONT JOURNALISÉS, et pas les trois autres: un
+      // journal où l'état le plus banal est majoritaire est un journal qu'on
+      // cesse de lire (L1 l'a mesuré sur `system_error_logs`). La trace
+      // EXHAUSTIVE, elle, est sur la ligne du plan — voir `generated_from`.
+      console.log(JSON.stringify({
+        tag: ACCESS_LOG_TAG,
+        fn: FN_NAME,
+        user_id: userId,
+        ...access,
+      }));
+    }
 
     // --- LE MAPPING ALIMENTAIRE DU COACH ----------------------------------
     //
@@ -1453,6 +1498,14 @@ Deno.serve(async (req) => {
             goal: String(goalRow.goal ?? "health"),
             prompt_version: MEAL_PROMPT_VERSION,
             intent,
+            // ── C3 ① · À QUEL TITRE CE PLAN A ÉTÉ PRODUIT ────────────────
+            // ÉCRIT TOUJOURS, y compris sur le cas nominal: une clé qui
+            // n'apparaîtrait qu'au moment du trou ne se distinguerait pas d'un
+            // lot débranché. C'est ce qui rend la question ouverte n°1
+            // comptable en SQL au lieu de rester une hypothèse — et elle est
+            // écrite ICI, sur la ligne, parce qu'un journal de runtime
+            // s'efface alors que le plan reste.
+            access,
             // La panne de résolution du foyer, TRACÉE. Sans elle, un plan
             // orphelin est indiscernable du plan d'une personne qui n'a
             // simplement pas de foyer.

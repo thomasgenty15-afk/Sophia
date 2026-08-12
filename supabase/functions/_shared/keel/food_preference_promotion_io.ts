@@ -30,37 +30,48 @@
  * délibéré — on parle ici de goûts, pas d'allergies.
  *
  * ═══════════════════════════════════════════════════════════════════════════
- * ⚠️ DEUX DÉFAUTS CONNUS, NON CORRIGÉS ICI, QUE L6 A FAIT CHANGER D'ÉCHELLE
+ * L'ÉCRITURE, ET LES DEUX DÉFAUTS QUE L6 AVAIT FAIT CHANGER D'ÉCHELLE
  * ═══════════════════════════════════════════════════════════════════════════
- * Aucun des deux n'est né avec L6 (D4). Ce que L6 change, c'est le NOMBRE de
+ * Aucun des deux n'est né avec L6 (D4). Ce que L6 a changé, c'est le NOMBRE de
  * lignes concernées: cette fonction était appelée pour UNE personne — celle qui
  * compose, sur sa propre ligne — et `household_voices_io.ts` l'appelle
- * maintenant pour CHAQUE titulaire à table. On passe de « le maître écrit sur
- * sa propre ligne » à « le maître écrit sur celle de tout le monde ».
+ * maintenant pour CHAQUE titulaire à table. On est passé de « le maître écrit
+ * sur sa propre ligne » à « le maître écrit sur celle de tout le monde ».
  *
- *   1. ÉCRASEMENT DE `practical_constraints` EN ENTIER, SANS CONCURRENCE
- *      OPTIMISTE. L'`update` ci-dessous (« LE POINT 1 » en marge) écrit la
- *      colonne COMPLÈTE, reconstruite à partir d'une copie lue ~10 ms plus tôt
- *      dans la requête de quelqu'un d'AUTRE. Si le titulaire concerné modifie
- *      son rythme de repas, sa capacité de cuisine ou ses préférences dans cet
- *      intervalle, sa modification est perdue sans un mot — il n'y a ni
- *      `updated_at` comparé, ni numéro de version, ni écriture par clé jsonb.
- *      À un titulaire, la fenêtre était celle d'une personne contre elle-même;
- *      à N, c'est celle de N personnes contre le geste d'une seule.
+ *   1. ✅ CORRIGÉ PAR C3 (migration `20260812210000`). L'écriture passe par
+ *      `keel_write_food_preferences`: `jsonb_set` sur les DEUX seules clés que
+ *      ce module possède, et la copie lue (`p_expected`) comparée à la valeur
+ *      live DANS LE PRÉDICAT de l'`update`. Le rythme de repas ou la capacité
+ *      de cuisine qu'un titulaire enregistre pendant qu'un autre compose
+ *      survivent désormais PAR CONSTRUCTION — la colonne entière n'est plus
+ *      jamais réécrite à partir d'une copie. Une course sur la MÊME clé rend
+ *      `stale_snapshot`, et on ne réessaie pas: réessayer serait décider que
+ *      notre copie gagne.
  *
- *   2. `student_goals.updated_at` DU SECONDAIRE BOUGE QUAND LE MAÎTRE COMPOSE.
- *      Personne n'a touché à la ligne de ce titulaire; un lecteur qui prend
- *      cette colonne pour « la dernière fois que cette personne s'est occupée
- *      de son alimentation » se trompe désormais de personne.
+ *   2. ⚖️ TRANCHÉ, NON « CORRIGÉ », ET C'EST DÉLIBÉRÉ.
+ *      `student_goals.updated_at` du titulaire bouge toujours quand quelqu'un
+ *      d'autre compose. Le trigger `student_goals_set_updated_at` est
+ *      inconditionnel et sa fonction (`tg_set_updated_at`) est PARTAGÉE par
+ *      plusieurs tables: la contourner demanderait soit de la rendre
+ *      conditionnelle pour tout le monde, soit un `session_replication_role`
+ *      qui désarmerait en silence tout trigger futur sur cette table.
  *
- * ⚠️ NE PAS « RÉPARER » ÇA EN PASSANT. La correction demande une MIGRATION —
- * un jeton de version sur la ligne, ou une écriture ciblée sur la seule clé
- * `food_preferences` — et un lot à part. La rustine tentante (relire juste
- * avant d'écrire) ne ferme pas la fenêtre, elle la rétrécit, et elle ferait
- * passer une garde inexistante pour une garde qui marche.
+ *      Et ce n'est pas seulement le coût qui décide. La réconciliation n'écrit
+ *      QUE si le contenu change vraiment (`result.changed`), donc `updated_at`
+ *      dit une vérité sur LA LIGNE — « ce qui est déclaré ici a changé ». Ce
+ *      qu'il ne dit pas, c'est « cette personne a agi »: ce sont deux questions
+ *      différentes, et son nom pose la première.
+ *
+ *      VÉRIFIÉ LE 2026-08-12, ET LA NUANCE COMPTE: aucun lecteur ne
+ *      l'INTERPRÈTE — ni fonction edge, ni écran, ni SQL, ni `order by`. Le
+ *      seul consommateur est l'export RGPD, qui la DUMPE telle quelle
+ *      (allowlist `studentGoals` de `account-export-v1`), et un dump ne se
+ *      trompe pas de personne: il rend l'octet de la ligne. Le jour où un
+ *      lecteur l'INTERPRÈTE, la réponse est de lui faire lire le GESTE, pas de
+ *      faire mentir l'horodatage d'une ligne.
  *
  * Consigné aussi dans `docs/keel/CHANTIER-PLANS-INDIVIDUELS-ET-FUSION.md`,
- * §L6 « Ce qui n'est pas prouvé, et ce qui reste ouvert ».
+ * §C3 ②.
  */
 import {
   FOOD_PREFERENCES_KEY,
@@ -74,6 +85,14 @@ import {
 /** Le strict minimum de client Supabase dont ce module a besoin. */
 type MinimalClient = {
   from: (table: string) => any;
+  /**
+   * C3 ② — L'ÉCRITURE PASSE PAR UNE RPC, et plus par `.update()`. Déclarée ici
+   * plutôt que dans le corps: le compilateur a listé les appelants, et un
+   * client qui ne saurait pas l'appeler ne compile plus.
+   */
+  rpc: (name: string, params: Record<string, unknown>) => Promise<
+    { data: unknown; error: { message: string } | null }
+  >;
 };
 
 /**
@@ -179,18 +198,60 @@ export async function reconcileFoodPreferencesFor(args: {
     }
     if (!result.changed) return constraints;
 
-    // ⚠️ LE POINT 1 DE L'EN-TÊTE. Cet `update` écrase `practical_constraints`
-    // EN ENTIER, à partir de `constraints` — une copie lue plus haut dans la
-    // requête, qui n'est pas forcément celle de l'appelant depuis L6. Aucune
-    // concurrence optimiste: pas d'`updated_at` comparé, pas de version, pas
-    // d'écriture par clé jsonb. Et `updated_at` de CE titulaire bouge alors que
-    // c'est quelqu'un d'autre qui compose. Défauts connus, documentés en tête
-    // de fichier et au registre; leur correction demande une migration.
-    const { error: writeError } = await args.admin
-      .from("student_goals")
-      .update({ practical_constraints: result.constraints })
-      .eq("user_id", args.userId);
+    // ── C3 ② · L'ÉCRITURE CIBLÉE, SOUS CONCURRENCE OPTIMISTE ───────────────
+    //
+    // CE QUE ÇA REMPLACE, MOT POUR MOT:
+    //
+    //     .update({ practical_constraints: result.constraints })
+    //     .eq("user_id", args.userId)
+    //
+    // c'est-à-dire la colonne ENTIÈRE, reconstruite à partir d'une copie lue
+    // ~10 ms plus tôt dans la requête de QUELQU'UN D'AUTRE. Depuis L6, le
+    // maître déclenche ce chemin pour chaque titulaire à sa table: le rythme de
+    // repas qu'un secondaire venait d'enregistrer disparaissait sans un mot.
+    //
+    // LES DEUX MOITIÉS VIVENT EN BASE (`20260812210000`), et pas ici:
+    //   ① `jsonb_set` sur les DEUX seules clés que ce module possède — tout le
+    //      reste de la colonne est celui de la ligne VIVANTE;
+    //   ② la comparaison de `p_expected` à la valeur live est dans le PRÉDICAT
+    //      de l'`update`. « Une lecture-puis-écriture n'est pas une garde »:
+    //      ce dépôt l'a payé sur `keel_validate_meal_plan` puis sur le plafond
+    //      de fusions, et la rustine « relire juste avant d'écrire » ne ferme
+    //      pas la fenêtre, elle la rétrécit.
+    //
+    // ⚠️ `p_expected` EST LA VALEUR TELLE QU'ON L'A LUE, pas celle qu'on écrit.
+    // Passer `result.constraints[...]` ferait un prédicat toujours faux, donc
+    // une fonction qui n'écrit plus jamais — et rien ne tomberait.
+    const { data: writeData, error: writeError } = await args.admin.rpc(
+      "keel_write_food_preferences",
+      {
+        p_user: args.userId,
+        p_expected: constraints[FOOD_PREFERENCES_KEY] ?? null,
+        p_preferences: result.constraints[FOOD_PREFERENCES_KEY] ?? [],
+        p_origins: result.constraints[FOOD_PREFERENCES_ORIGIN_KEY] ?? {},
+      },
+    );
     if (writeError) throw new Error(writeError.message);
+    const written = (writeData ?? {}) as { ok?: boolean; reason?: string };
+    if (written.ok !== true) {
+      // QUELQU'UN A ÉCRIT ENTRE-TEMPS SUR LA MÊME CLÉ. On ne réessaie pas —
+      // réessayer, c'est décider que notre copie gagne, et c'est précisément la
+      // décision qu'on refuse de prendre à la place du titulaire. La correction
+      // est PERSISTANTE par nature (le memorizer a démenti, il démentira encore
+      // à la prochaine composition), donc la perdre une fois ne perd rien.
+      console.warn(JSON.stringify({
+        tag: "keel/food_preferences",
+        event: "reconcile_not_written",
+        source: args.source,
+        user_id: args.userId,
+        reason: written.reason ?? "unknown",
+        dropped: result.dropped,
+      }));
+      // On rend quand même la version corrigée: elle sert LE PROMPT DE CE
+      // RUN-CI, et une préférence rétractée n'a pas à être servie au modèle
+      // sous prétexte qu'une course a empêché de l'effacer en base.
+      return result.constraints;
+    }
 
     console.info(JSON.stringify({
       tag: "keel/food_preferences",

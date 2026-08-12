@@ -289,7 +289,7 @@ l'écrivain.
 
 | # | Défaut | Où | Décision |
 |---|---|---|---|
-| **O1** | Deux plans personnels **adjacents** qui couvrent ensemble toute la fenêtre ne prennent pas la main | `household_hand.ts:249` | **Laissé.** La direction d'erreur est sûre (une assiette de trop), mais le motif écrit du recouvrement total ne s'applique pas : la personne n'a aucun jour sans rien. **À trancher en L4**, qui travaille déjà par jour sur l'intersection — c'est là que l'union de couverture a sa place, pas ici |
+| ~~**O1**~~ | ~~Deux plans personnels **adjacents** qui couvrent ensemble toute la fenêtre ne prennent pas la main~~ | `household_hand.ts` | ✅ **refermé par C3 ⑤ le 2026-08-12** — `plansCoveringWindow` demande jour par jour, motif distinct `personal_plans_cover_window`, une entrée de trace par plan et une `issue` par personne. La règle n'a pas bougé : aucun jour découvert |
 | ~~**O2**~~ | ~~**Aucune surface produit n'appelle `keel_validate_meal_plan`**~~ | ni front, ni edge | ✅ **refermé par L8 le 2026-08-12** (`TakeTheHandCard` + `validateMealPlan`, et la route `/app/plan` élargie au foyer). ⚠️ Une DEUXIÈME porte reste fermée, hors L8: un secondaire n'a pas de coach, donc `generate-meal-v1` lui rend `no_coach` — voir §L8, « ce qui n'est pas prouvé » |
 | **O3** | La réponse HTTP ne porte pas `hand` — l'exclusion n'y est lisible que par un id opaque dans `issues` | `generate-household-meal-v1/index.ts:1982` | **L8** en aura besoin pour dire *pourquoi* on cuisine pour un de moins. *L4 a rendu `merge` dans la réponse, pas `hand`: la fenêtre fusionnée et le barreau ne se déduisent de rien d'autre.* |
 | **O4** | Un `reference_member_id` déclaré qui prend la main est écarté **en silence** | `household_composition.ts:110-119` | Mineur, reconstructible par `hand.taken`. Non exercé aujourd'hui (`reference_member_id` est NULL partout) |
@@ -394,7 +394,7 @@ invisible.
 | **Une fusion reprend UN plan** par appel | Grouper déciderait à la place de D10 (« manuelle, sur proposition ») | Les autres plans qui mordent sont tracés (`merge_other_overlapping_plan:<id>`), jamais silencieux |
 | **Le barreau se décide pour la table entière**, pas par créneau | D6 dit « forcerait **quelqu'un** hors de sa direction », pas « ce jour-là » | Un seul créneau incompatible fait descendre toute la fenêtre d'un barreau |
 | **Le modèle exécute le barreau, il ne le choisit pas** | « Critère vérifiable, pas jugement de goût » | La séparabilité réelle du plat (D5) n'est pas vérifiée : le critère ne parle que des directions |
-| **O1 n'est pas tranché** | Il concerne la prise de main, pas la fusion | Deux plans adjacents ne prennent toujours pas la main |
+| ~~**O1 n'est pas tranché**~~ | Il concerne la prise de main, pas la fusion | ✅ **tranché par C3 ⑤ le 2026-08-12**, et à sa place — dans `household_hand.ts`, pas dans le moteur de fusion |
 
 ### Ce qui n'est pas prouvé, et ce qui est ouvert
 
@@ -458,6 +458,9 @@ fusion n'existe que sur la lane foyer.
    quelque chose à elle, oui ou non ». Vérifier que la session dédiée de ③
    existe vraiment demanderait de rattacher chaque préparation à sa session et
    de comparer les jours — faisable, non fait.
+   ⚠️ **C3 ⑥ a changé la QUESTION, pas cette réponse-là** : il répond désormais
+   « **à combien de SES repas**, sur combien », et `observed` a trois états.
+   Séparer ② de ③ reste ouvert.
 2. **Le budget de SESSIONS ne suit pas le bonus de fusion**, exprès : ② promet
    « one session at the stove, two dishes out of it », et le gonfler
    contredirait la consigne dans le même message. ③ prend sa session dans un
@@ -645,12 +648,16 @@ rendent un prompt byte-identique à celui de v4, et trois tests le tiennent.
    sous le jeton de l'élève — c'est-à-dire une ligne de L8. Tant qu'elle manque,
    rien n'est jamais proposé et ce lot entier est inatteignable par un vrai
    utilisateur.
-3. **La proposition ne prédit pas la présence.** `merge_member_away_all_window`
-   se décide sur le rythme de repas et les absences résolus à la composition ; le
-   refaire dans le lecteur demanderait une seconde résolution de présence sur une
-   fenêtre qui n'est pas encore celle d'un plan. Une proposition peut donc être
-   refusée au moment du geste — nommément, sans appel modèle. C'est le seul écart
-   connu entre ce que la proposition annonce et ce que la fusion fait.
+3. ~~**La proposition ne prédit pas la présence.**~~ **Refermé par C3 ④ le
+   2026-08-12.** L'objection écrite ici — « une fenêtre qui n'est pas encore
+   celle d'un plan » — est tombée avec **L10 ①** : `bestMergePair` rend
+   `recomposed`, la fenêtre que le geste **écrira**, et c'est celle-là même sur
+   laquelle le générateur résout la présence
+   (`daysToFill = windowDayOrder(recomposed)`). Le lecteur prédit donc par la
+   **même** primitive (`memberMealCells`, extraite de `resolveWindowPresence`)
+   et avec le **même** mot (`MERGE_MEMBER_AWAY_ALL_WINDOW`, constante partagée).
+   Il coupe la **proposition** et jamais l'avertissement de D8 — même partage
+   que D17 et que le plafond.
 4. **`covers_window: false` est tracé, et rien n'agit dessus.** Une défusion peut
    sortir quelqu'un dont le plan personnel ne couvre pas tous les jours : il
    n'aura rien à manger ces jours-là. C'est le droit du maître (D8 : « refaire le
@@ -1007,7 +1014,12 @@ individuelle (`includes` sur un nom encore présent dans un import mort).
    d'erreur sûre, non tranchée par le registre.
 5. **`deploy-manifest-check`** reste à **52** violations, comme après L5 : ce lot
    n'en ajoute aucune.
-6. **Le chemin d'écriture des préférences n'a AUCUNE concurrence optimiste, et
+6. ⚠️ **Corrigé par C3 ② le 2026-08-12** (migration `20260812210000`,
+   `keel_write_food_preferences`) : écriture CIBLÉE sur les deux seules clés de
+   ce module, concurrence optimiste dans le PRÉDICAT de l'`update`. Ce qui
+   suit reste l'état mesuré qui l'a motivée — et `updated_at` n'est
+   volontairement **pas** préservé, voir §C3 ②.
+   **Le chemin d'écriture des préférences n'a AUCUNE concurrence optimiste, et
    L6 le fait passer de 1 à N titulaires.** `food_preference_promotion_io.ts`
    écrase `practical_constraints` **en entier**, reconstruite à partir d'une
    copie lue ~10 ms plus tôt **dans la requête de quelqu'un d'autre** : ni
@@ -1368,8 +1380,11 @@ Aucune colonne n'est créée par ce lot, donc rien de neuf à réclamer. Ce qui 
   `keel_gdpr_lifecycle_test.ts` ne la nomme pas. À la purge, sa ligne est
   **détachée** (D3), donc `first_name` et `birth_date` **survivent** au compte.
   C'est la cicatrice « le lifecycle RGPD ne réclame pas les tables neuves »,
-  antérieure à ce lot et non traitée ici. À trancher séparément : la survie de
-  la bouche est voulue, celle de sa date de naissance n'a jamais été décidée.
+  antérieure à ce lot et non traitée ici. ✅ **Tranché par C3 ③ le 2026-08-12** :
+  on GARDE (la date résout l'âge, donc les parts de TOUT le foyer — l'effacer
+  dégraderait la composition d'un foyer que la personne quitte), et on le
+  DÉCLARE — `household_members` entre dans l'export (`mon_foyer.json`, sa ligne
+  seule), avec la phrase qui dit ce qui survit et comment l'effacer aussi.
 - Les gardes de non-divulgation (`household_voices.ts`, `household_portions.ts`)
   ne bougent pas : le roster ne rend toujours que `minor | adult | unknown`,
   jamais une date.
@@ -2147,11 +2162,295 @@ d'échec n°1 de ce chantier, et il n'avait pas de test de câblage.
    `_shared/chat/recent_history_test.ts` et une erreur de typage dans
    `_shared/action_occurrences_test.ts`.
 
+## C3, ce qui est construit — 2026-08-12
+
+> ⚠️ **Rien n'a été exercé en conditions réelles.** Aucun appel HTTP, aucune
+> génération modèle. Ce qui suit est prouvé par des tests purs, des tests de
+> position sur la source, **un bloc de contrôle SQL rejoué et annulé** et
+> **23 mutations**. Suite keel : **2 630 verts** ; frontend keel : **597 verts**.
+> **Une migration** (`20260812210000`), inscrite au registre à la main.
+
+Six dettes nommées. **Deux sont des décisions de produit** (① et ③) : l'une se
+solde par *ne rien fermer et rendre le trou mesurable*, l'autre par *garder, et
+le déclarer*.
+
+### ① LE COMPTE SANS FOYER — ON MESURE, ON NE FERME RIEN
+
+**Décision : aucune garde neuve.** `_shared/keel/solo_access.ts` LIT les droits
+qui existent (`has_app_write_access`, `keel_coach_is_solvent`), n'en applique
+aucun, et écrit ce qu'il a lu — dans un log nommé (`keel.access.observed`, sur
+les deux portes, même `tag`) **et sur la ligne du plan**
+(`generated_from.access`, écrit **toujours**, cas nominal compris).
+
+Le trou de la question ouverte n°1 cesse d'être une hypothèse :
+
+```sql
+select generated_from -> 'access' ->> 'state', count(*)
+  from student_generated_meals group by 1;
+```
+
+| Option | Écartée parce que |
+|---|---|
+| Brancher `has_app_write_access` | **le piège nommé.** Elle PRÉCÈDE KEEL et lit `profiles.trial_end` + `subscriptions` **du compte lui-même** : elle couperait, dès le déploiement, le membre de foyer (dont le droit est celui du foyer) et l'élève dont le siège est payé par son coach. « Un refus qui coupe un client qui paie ne se répare par aucun nouvel essai » |
+| Refuser sur « pas de coach » | redirait `no_coach` avec un autre mot |
+| Inventer une règle | ce serait écrire un **prix**, un soir, sans l'utilisateur |
+
+**Les cinq états, et pourquoi `unknown` existe.** `household` (D13/L1 a déjà
+tranché) · `coach_seat` · `own_subscription_or_trial` · `none` · `unknown`.
+« Je n'ai pas su lire » et « il n'a aucun droit » sont deux faits différents :
+les confondre ferait grossir le compteur à chaque panne de base, et on
+réparerait la mauvaise chose. Un compte **sans coach** n'est PAS `unknown` —
+il n'y avait rien à interroger.
+
+**Coût : zéro lecture pour un membre de foyer** (court-circuit, testé), deux
+lectures pour un compte sans foyer. **Retour arrière** : retirer l'appel et la
+clé. Aucune migration, aucun refus à défaire.
+
+Un test de source tient l'**ABSENCE** du refus (`status: 402|403` interdit dans
+les 1 200 caractères qui suivent la mesure), sa position **avant** le modèle, et
+l'interdiction de recopier une règle de facturation en TypeScript.
+
+### ② LA RÉCONCILIATION N'ÉCRASE PLUS LA COLONNE D'UN TIERS
+
+Migration `20260812210000_food_preference_targeted_write.sql` :
+`keel_write_food_preferences(p_user, p_expected, p_preferences, p_origins)`,
+`service_role` seul.
+
+- **Écriture ciblée** : `jsonb_set` sur les deux seules clés que le module
+  possède. Le rythme de repas, la capacité de cuisine, les absences d'un
+  titulaire survivent **par construction**, pas par condition.
+- **Concurrence optimiste dans le PRÉDICAT** : `p_expected` comparé à la valeur
+  live dans le `where` de l'`update`, en un seul énoncé. Une course sur la même
+  clé rend `stale_snapshot`, **et on ne réessaie pas** — réessayer serait
+  décider que notre copie gagne. `is not distinct from`, pas `=` : la clé peut
+  être absente, et `null = null` vaut NULL (le trou exact que L7 avait trouvé
+  dans son propre bloc de contrôle).
+
+**Ce qu'on ne fait PAS, et c'est écrit dans la migration : `updated_at` n'est
+pas préservé.** Le trigger `student_goals_set_updated_at` est inconditionnel et
+sa fonction (`tg_set_updated_at`) est **partagée** ; le contourner demanderait
+soit de la rendre conditionnelle pour tout le monde, soit un
+`session_replication_role` qui désarmerait **en silence** tout trigger futur sur
+cette table. Et ce n'est pas que le coût : la réconciliation n'écrit que si le
+contenu change vraiment, donc `updated_at` dit une vérité sur **la ligne**. Ce
+qu'il ne dit pas, c'est « cette personne a agi » — deux questions différentes.
+**Vérifié le 2026-08-12 : aucun lecteur ne l'INTERPRÈTE** — ni edge, ni écran,
+ni SQL, ni `order by`. Le seul consommateur est l'**export RGPD**, qui la dumpe
+telle quelle ; un dump ne se trompe pas de personne, il rend l'octet de la
+ligne. Le jour où un lecteur l'interprète, la réponse est de lui faire lire le
+**geste**, pas de faire mentir l'horodatage d'une ligne.
+
+Bloc de contrôle SQL, **4 cas**, rejoué puis annulé : la copie à jour passe · la
+clé d'un tiers **survit** · une copie périmée rend `stale_snapshot` sans écrire ·
+une forme illégale est nommée. Deux mutations en base (prédicat désarmé ⇒ la
+copie périmée passe ; retour à l'écrasement ⇒ la clé du tiers disparaît), les
+deux vues rouges.
+
+### ③ LA DATE DE NAISSANCE SURVIT — ON GARDE, ET ON LE DÉCLARE
+
+**Décision : on garde.** Le prénom répond à « pour qui je cuisine ». La date de
+naissance résout l'âge (`keel_household_member_age`), donc la direction de
+service, donc les **parts** — et pas seulement les siennes : retirer une bouche
+datée change la casserole de **tout le foyer**. L'effacer dégraderait la
+composition d'un foyer que la personne quitte, ce qui est le dégât exact que D3
+existe pour empêcher.
+
+**Ce qui manquait n'était donc pas l'effacement, c'était la déclaration.**
+`household_members` entre dans `account-export-v1` — **sa ligne, et sa ligne
+seule** (`user_id = <lui>` ; exporter le roster ferait de l'export RGPD de l'un
+une divulgation sur les autres) — dans un fichier à part, `mon_foyer.json`, qui
+porte la ligne **et** la phrase : ce qui survit, quels champs, pourquoi, et
+comment l'effacer aussi (`departs_with_account`).
+
+*Option écartée* : effacer `birth_date` à la purge. Coût — toutes les bouches
+détachées repassent en `unknown`, donc en part standard, **en silence**, et le
+foyer ne peut pas la ressaisir puisqu'il ne sait pas qu'elle a disparu.
+*Retour arrière* : une ligne dans `keel_household_purge_user`, plus la ligne
+d'export. Un test épingle les deux moitiés ensemble — si la purge se met à
+effacer la date, l'assertion tombe **et** la phrase d'export devient fausse au
+même instant.
+
+⚠️ **`joined_at`, pas `created_at`** : cette table n'a pas de `created_at`, et
+un tri sur une colonne inexistante ferait tomber la lecture dans le filet
+`tables_indisponibles` — un export silencieusement **vide** sur la seule table
+qui survit à la purge. Mutation-testé.
+
+**Non traité, nommément** : `keel_gdpr_lifecycle_test.ts` (`PIVOT_TABLES`) exige
+« 0 ligne après la purge », ce que cette table ne peut pas satisfaire **par
+décision**. L'y ajouter demanderait une troisième catégorie (« détachée »), et
+ce test est de toute façon gaté par une pile vivante.
+
+### ④ LA PROPOSITION NE PROMET PLUS UN BOUTON QUE LE GESTE REFUSE
+
+C'était le **seul** écart connu entre la proposition et le geste, écrit au
+registre depuis L5 (§3, « la proposition ne prédit pas la présence »).
+
+**Ce qui a changé depuis L5, et qui rend la prédiction honnête** : l'objection
+d'alors était « une fenêtre qui n'est pas encore celle d'un plan ». Depuis
+L10 ①, `bestMergePair` rend `recomposed` — la fenêtre que le geste **écrira**,
+celle-là même sur laquelle le générateur résout la présence. Ce n'est donc plus
+une seconde idée de la fenêtre : c'est la même.
+
+| Où | Quoi |
+|---|---|
+| `_shared/keel/household_presence.ts` | `memberMealCells` — **extraite** de `resolveWindowPresence`, qui la lit désormais pour `absentAllWindow`. Une seule définition de « quels repas cette bouche prend ici », trois lecteurs |
+| `_shared/keel/household_merge.ts` | `MERGE_MEMBER_AWAY_ALL_WINDOW` — le mot du refus, **extrait en constante** et partagé par le refus et la prédiction |
+| `_shared/keel/household_merge_notice.ts` | la prédiction, **avant** le plafond (le motif le plus précis gagne : « il n'est pas là » ne se répare pas en attendant lundi) |
+| `household-merge-notices-v1/index.ts` | `away_days` du roster (rendu et jamais lu) + le rythme du maître, **avec le même repli** que le générateur |
+
+**Même partage que D17 et que le plafond** : ça coupe la **proposition**, jamais
+l'**avertissement** de D8 — `unmerge` et `dismiss` ne dépendent de la présence
+de personne. Et `rhythm` vide **ne prédit rien** : sans rythme la grille n'a
+aucune case, et « aucune case » se lirait comme « absente partout » — un foyer
+qui n'a rien déclaré perdrait **toutes** ses propositions, en silence.
+
+**Le jeton n'entre PAS dans `MERGE_SKIP_KEYS`**, exprès : il a déjà ses mots
+dans `EDGE_REFUSAL_KEYS`, et l'y ajouter ferait deux phrases pour un même mot —
+le défaut que `mergeCardSkipKey` existe pour ne pas commettre. Le test de dérive
+du front tient les deux moitiés.
+
+### ⑤ DEUX PLANS ADJACENTS PRENNENT LA MAIN (O1, refermé)
+
+`plansCoveringWindow` (`household_hand.ts`) demande, **jour par jour**, si un
+plan à lui couvre — au lieu de chercher un plan unique qui couvre tout.
+
+**La règle n'a pas bougé** : on n'exclut que quelqu'un dont **aucun jour** n'est
+découvert. Le motif écrit du recouvrement total — « le retirer, c'est cuisiner
+sans lui deux jours où il n'a rien » — ne s'applique tout simplement pas ici :
+il a son plan tous les jours. Ce qui change est le **nombre de plans** autorisés
+à satisfaire la règle, et pourquoi : la contrainte d'exclusion interdit le
+chevauchement, **pas l'adjacence** — deux plans personnels vivants adjacents
+sont un état **nominal**.
+
+- **Motif distinct** : `personal_plans_cover_window`, **une entrée de trace par
+  plan** (il n'y a pas « le » plan qui l'a retiré, il y en a deux). Le cas à un
+  seul plan garde `personal_plan_covers_window`, **byte-identique**.
+- **Une `issue` par PERSONNE, pas par plan** (générateur) et **une ligne d'écran
+  par personne** (`householdPlanTrace.ts`) : sans ça, « Zoé a pris la main »
+  s'écrivait deux fois, et tout décompte de `member_took_the_hand` comptait des
+  plans en croyant compter des gens.
+- `covers_window` d'une **défusion** suit l'union : le laisser sur « un seul
+  plan couvre » ferait dire « il n'a rien à manger ces jours-là » d'une personne
+  qui a son plan tous les jours — la seule phrase que ce champ porte (L5 §4).
+- **Retour arrière** : retirer la branche `coveringTogether`, une condition.
+
+### ⑥ LE CONSTAT DE FORME DIT CE QUI EST, REPAS PAR REPAS
+
+`observed = marks.length > 0 ? "dedicated_dish" : "common_pot"` : **une** marque
+suffisait. Un plat parallèle sur **neuf** créneaux rendait `ok: true` — donc un
+plan où la personne reprise mange la casserole commune **huit fois sur neuf**,
+malgré le conflit de direction de service qui avait fait descendre le barreau,
+passait pour un succès.
+
+**Ce n'est toujours qu'un CONSTAT** : aucune relance, aucun refus, aucun quota —
+une `issue` nommée, un log, et `generated_from`. Ce qui change est sa fidélité :
+
+- `observed` a **trois** états : `common_pot` · `some_meals_dedicated` ·
+  `dedicated_dish` ;
+- `meals: {atTable, dedicated, fromCommonPot}` — les **comptes bruts**, dans le
+  log et dans l'archive. Même posture que `week_review.ts` : l'étiquette est un
+  mot, et un mot se réécrit ; les nombres survivent ;
+- `honoured` est faux dès qu'**un** de ses repas sort de la casserole commune.
+  Pas de seuil inventé : le barreau ②/③ dit littéralement « X ne peut PAS être
+  servie depuis la casserole commune », et D6 parle de direction de service, pas
+  de fréquence.
+
+**Le dénominateur est REQUIS et ce sont SES cases** (`eaterCells`, résolues par
+`memberMealCells` — la même fonction que ④). Une bouche absente jeudi midi ne
+« mange pas la casserole commune » ce midi-là : elle ne mange pas. Compter la
+case ferait un faux négatif sur chaque absence partielle. `atTable === 0` rend
+le constat **muet** plutôt que faux.
+
+**Ce que ça coûte, assumé** : le constat dira « non » plus souvent. C'est le but,
+et une fusion dont la fenêtre recomposée déborde le plan personnel (L10 ①) ne
+peut pas être honorée à 100 % dans son budget de plats — c'est un **fait sur le
+produit**, pas un défaut du constat.
+**Retour arrière** : `observed !== "common_pot"`, une ligne ; les trois
+compteurs restent.
+
+### Les versions de prompt — aucune ne bouge, et voici pourquoi
+
+`MEAL_PROMPT_VERSION` et `HOUSEHOLD_PROMPT_VERSION` (`v8_plan_gaps`) sont
+**inchangées**. Règle de v4 appliquée telle quelle (« quelle **population** voit
+une **consigne** différente ») : **aucune**. Rien de ce lot n'entre dans un
+bloc de prompt — ni son texte, ni son ordre, ni leur nombre. ⑤ change **qui est
+à table**, donc une DONNÉE (`servings`, la liste des bouches) : c'est le cas de
+L3 mot pour mot, « une seconde raison qu'une ligne n'apparaisse pas, relisible
+sur `generated_from`, pas sur la version ». ⑥ est un filtre **après**
+génération. ①②③④ ne touchent aucun prompt. Bumper aurait invalidé le cache
+d'une population entière pour un prompt byte-identique.
+
+### Les 23 mutations — chacune cassée, vue rouge, restaurée
+
+**En base (2)** : le prédicat de concurrence désarmé (la copie périmée passe) ·
+l'écrasement de colonne rétabli (la clé du tiers disparaît).
+
+**① (4)** : l'ordre de lecture inversé (siège de coach vs droit du compte) · la
+panne de lecture comptée comme un trou · le court-circuit du foyer retiré ·
+`access` rendu conditionnel dans `generated_from`.
+
+**③ (4)** : le tri revenu sur `created_at` · la phrase de survie retirée ·
+`birth_date` retirée de l'allowlist · la lecture scopée par `household_id` (donc
+le roster entier dans l'export RGPD d'une seule personne).
+
+**④ (4)** : la prédiction désarmée · la fenêtre jugée redevenue `window` au lieu
+de `recomposed` · le bouton `merge` conservé malgré l'absence · l'absence qui
+coupe **aussi** l'avertissement de D8.
+
+**⑤ (5)** : l'union retirée · un jour manquant toléré (la garde coupe tout) · le
+motif de l'union appliqué au cas nominal · `covers_window` rétréci au plan
+unique · le dédoublonnage d'écran retiré (deux fois la même phrase sous le même
+nom).
+
+**⑥ (4)** : `observed` revenu à « une marque suffit » · `honoured` retombé sur
+`observed !== "common_pot"` · le dénominateur pris sur les cases du **plan** au
+lieu des siennes · `eaterCells` débranché dans le générateur.
+
+**Un faux-vert trouvé par la mutation, dans mon propre décor.** Le test « le
+siège de coach passe avant le droit du compte » posait `appWriteAccess: false` —
+où les **deux** ordres de lecture rendent le même mot. La mutation « inverser
+l'ordre » restait verte. Décor refait avec les deux vrais, et la mutation devient
+rouge.
+
+### Ce qui n'est pas prouvé, et ce qui reste ouvert
+
+1. **Aucun run réel.** Pas un appel HTTP, pas une génération. `generated_from.
+   access` n'a jamais été écrit par une vraie requête ; `mon_foyer.json` n'a
+   jamais été zippé ; `keel_write_food_preferences` n'a jamais été appelée
+   depuis une fonction edge (seulement depuis psql, dans son bloc de contrôle).
+2. **La prédiction de ④ n'a jamais été confrontée à un vrai roster.** Elle est
+   prouvée sur le module pur et par la source ; le fait que
+   `keel_household_roster_for` rende bien `away_days` à ce lecteur-ci est lu
+   dans la migration, pas mesuré en HTTP.
+3. **⑤ change QUI est composé, et ça n'a été exercé que sur le module pur.**
+   La direction est celle qui retire une assiette : si l'union se trompait, une
+   personne perdrait des repas. Le cas « un jour découvert au milieu » est testé
+   et mutation-testé, mais aucun plan réel n'a été composé avec deux plans
+   adjacents en base.
+4. **⑥ rendra `honoured: false` plus souvent, et personne ne l'a encore vu.**
+   L'écran de L8 affiche une ligne dans ce cas : sa fréquence réelle est
+   inconnue. Si elle devient permanente, c'est O5 qui appelle une décision
+   (refuser, relancer), pas le constat qu'il faut rétrécir.
+5. **② : la fenêtre reste ouverte sur les AUTRES clés.** Deux gestes qui
+   touchent `eating_rhythm` en même temps s'écrasent toujours — ce chemin-là
+   n'est pas passé par la nouvelle RPC, et il n'a jamais été mesuré.
+6. **`deploy-manifest-check` reste à 52** violations, comme après C2 : ce lot
+   n'en ajoute aucune.
+7. **Deux rouges préexistants NON touchés**, comme à L4→C2 :
+   `_shared/chat/recent_history_test.ts` et une erreur de typage dans
+   `_shared/action_occurrences_test.ts`.
+
 ## Questions encore ouvertes
 
 1. **Les comptes individuels sans foyer restent sans garde de paiement.** D13
    ferme la porte du foyer ; un compte solo continue de générer sans droit
-   vérifié. Mesuré : 19 805 jetons. À trancher séparément.
+   vérifié. Mesuré : 19 805 jetons. ⚠️ **C3 ① a tranché de NE RIEN FERMER** —
+   aucune règle de facturation n'existe pour ce cas, et le seul candidat
+   disponible (`has_app_write_access`) couperait des membres de foyer et des
+   sièges de coach qui paient. Le trou est désormais **mesurable** : un état
+   nommé sur chaque plan (`generated_from.access.state`, cinq valeurs, écrit
+   toujours) et un log `keel.access.observed` sur les deux portes. **La
+   décision de facturation reste à prendre, avec un chiffre en face.**
 2. **`generate-week-plan-v1` n'a jamais été testé** — troisième générateur, passé
    au crible par aucune campagne. ⚠️ **C2 y a posé deux gardes** (le repli de
    doctrine par le foyer, et le gel 402 de D13) et en a retiré une lecture

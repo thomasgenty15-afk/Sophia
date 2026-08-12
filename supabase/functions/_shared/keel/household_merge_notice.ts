@@ -37,6 +37,7 @@
 
 import {
   bestMergePair,
+  MERGE_MEMBER_AWAY_ALL_WINDOW,
   type MergedFromEntry,
   mergedFromEntry,
   type MergeWindow,
@@ -44,6 +45,14 @@ import {
   type PlanSpan,
   resolveTailWindow,
 } from "./household_merge.ts";
+// C3 ④ — LA PRÉSENCE, PAR LA FONCTION QUI LA DÉCIDE. Le générateur refuse
+// `merge_member_away_all_window` sur `absentAllWindow`, qui est « aucune case
+// de repas sur la fenêtre »; le lecteur pose la MÊME question par la MÊME
+// primitive. Un second parcours ici aurait rendu deux réponses plausibles.
+import { memberMealCells } from "./household_presence.ts";
+import type { MemberAway } from "./household_presence.ts";
+import type { EatingOccasionSlot } from "./meal_generation.ts";
+import { windowDayOrder } from "./meal_plan_window.ts";
 // L7/D11 — LE MOT DU REFUS, IMPORTÉ ET PAS RECOPIÉ. Le `skipped` du lecteur et
 // le 429 du générateur décrivent le même fait; deux orthographes en feraient
 // deux faits pour qui lit des journaux.
@@ -683,6 +692,17 @@ export interface NoticeMember {
   displayName: string;
   isOwner: boolean;
   ownPlans: readonly MemberLivePlan[];
+  /**
+   * C3 ④ — SON ABSENCE RÉSOLUE, telle que `keel_household_roster_for` la rend
+   * (l'union des deux sources, déjà faite en base).
+   *
+   * ⚠️ REQUIS, jamais optionnel, et jamais défaut-é à « personne n'est absent ».
+   * « Un paramètre de garde optionnel est une garde désarmée » — cicatrice de
+   * ce dépôt, payée sept fois: un appelant qui l'oublierait proposerait de
+   * nouveau la fusion d'une personne absente toute la fenêtre, et RIEN ne
+   * tomberait. Le compilateur a listé les appelants.
+   */
+  away: MemberAway;
 }
 
 /** Le réglage discret de D17, par bouche. */
@@ -785,6 +805,21 @@ export function buildMergeNotices(args: {
    * `keel_household_claim_merge_quota`.
    */
   quota: MergeQuotaState | null;
+  /**
+   * C3 ④ — LE RYTHME DE REPAS DU FOYER, RÉSOLU (jamais le brut de la colonne).
+   *
+   * ⚠️ REQUIS, comme `quota`, et pour le même motif exactement. C'est ce qui
+   * permet de dire « cette personne n'est là à aucun repas de ces jours-là »
+   * AVANT d'offrir le bouton — le seul écart connu qui restait entre ce que la
+   * proposition annonce et ce que la fusion fait (L5 §3).
+   *
+   * `[]` VAUT « ON NE SAIT PAS », ET ON PROPOSE QUAND MÊME: sans rythme, la
+   * grille n'a aucune case, et « aucune case » se lirait comme « absent
+   * partout » — donc plus AUCUNE proposition sur un foyer qui n'a rien
+   * déclaré. C'est l'échec ouvert de `resolveWindowPresence`, transposé au
+   * lecteur: le générateur, lui, retombe sur `DEFAULT_EATING_RHYTHM`.
+   */
+  rhythm: readonly EatingOccasionSlot[];
 }): MergeNoticeResult {
   // Une seule lecture du fait, en tête: le plafond est un fait de FOYER, pas
   // une propriété d'une bouche. Le relire dans la boucle inviterait à le rendre
@@ -884,6 +919,50 @@ export function buildMergeNotices(args: {
       continue;
     }
 
+    // ── C3 ④ — IL N'EST LÀ À AUCUN REPAS DE CES JOURS-LÀ ──────────────────
+    //
+    // ⚠️ LE DERNIER ÉCART CONNU ENTRE LA PROPOSITION ET LE GESTE, et il était
+    // écrit noir sur blanc au registre (L5 §3, « la proposition ne prédit pas la
+    // présence »). Mesuré: secondaire absent sur toute la fenêtre, plan validé
+    // qui recouvre ⇒ `exits: ["merge","dismiss"]`, puis 409
+    // `merge_member_away_all_window` au clic. L8 promet de ne jamais afficher un
+    // bouton qui refuse; c'était le seul qui restait.
+    //
+    // CE QUI A CHANGÉ DEPUIS L5, ET QUI REND LA PRÉDICTION HONNÊTE. L'objection
+    // écrite alors était « une fenêtre qui n'est pas encore celle d'un plan ».
+    // Depuis L10 ①, `bestMergePair` rend `recomposed` — la fenêtre que le geste
+    // ÉCRIRA, celle-là même sur laquelle le générateur résout la présence
+    // (`daysToFill = windowDayOrder(recomposed)`). Ce n'est donc plus une
+    // seconde idée de la fenêtre, c'est la même, par la même fonction.
+    //
+    // MÊME PARTAGE QUE D17 ET QUE LE PLAFOND: ça coupe la PROPOSITION (elle
+    // parle du plan d'un autre, et le geste la démentirait), jamais
+    // l'AVERTISSEMENT de D8 (il parle du plan du maître, dont la ligne vivante
+    // porte une reprise périmée qu'il faut pouvoir défaire).
+    //
+    // AVANT LE PLAFOND, ET C'EST LA RÈGLE DU MOTIF LE PLUS PRÉCIS: « il n'est
+    // pas là » ne se répare pas en attendant lundi.
+    //
+    // ⚠️ `rhythm` VIDE NE PRÉDIT RIEN, et c'est la même posture d'échec ouvert
+    // que `resolveWindowPresence`, qui sort avant sa boucle dans ce cas. Sans
+    // rythme, la grille n'a AUCUNE case, et « aucune case » se lirait comme
+    // « absente partout »: un foyer qui n'a rien déclaré perdrait TOUTES ses
+    // propositions, en silence. Le générateur, lui, retombe sur
+    // `DEFAULT_EATING_RHYTHM`; l'appelant fait de même.
+    const awayAllWindow = pair.ok && args.rhythm.length > 0 && memberMealCells({
+      away: member.away.effective,
+      rhythm: args.rhythm,
+      windowDays: windowDayOrder(
+        pair.window.recomposed.startsOn,
+        pair.window.recomposed.durationDays,
+      ),
+    }).length === 0;
+
+    if (awayAllWindow && !warns) {
+      skip(MERGE_MEMBER_AWAY_ALL_WINDOW);
+      continue;
+    }
+
     // ── L7/D11 — LA SEMAINE EST PLEINE ──────────────────────────────────
     //
     // ⚠️ APRÈS `pair.refusal`, ET C'EST L'ORDRE QUI COMPTE: quand il n'y a
@@ -954,10 +1033,15 @@ export function buildMergeNotices(args: {
       // répare une fusion (la taxer ferait payer deux fois la même erreur) et
       // « refuser » n'est qu'une ligne de réglage. Retirer les trois aurait
       // enfermé le maître avec un plan périmé jusqu'au lundi suivant.
+      //
+      // ⚠️ C3 ④ — `EXIT_MERGE` TOMBE AUSSI QUAND LA PERSONNE N'EST LÀ AUCUN
+      // REPAS de la fenêtre recomposée. Le geste rendrait 409, et un
+      // avertissement de D8 sur une personne absente reste parfaitement utile:
+      // `unmerge` et `dismiss` ne dépendent pas de sa présence.
       exits: warns
         ? [
           ...(carrier?.tail ? [EXIT_UNMERGE] : []),
-          ...(mergeable && !quotaExhausted ? [EXIT_MERGE] : []),
+          ...(mergeable && !quotaExhausted && !awayAllWindow ? [EXIT_MERGE] : []),
           EXIT_DISMISS,
         ]
         : [EXIT_MERGE, EXIT_DISMISS],

@@ -946,7 +946,9 @@ Deno.test("AUCUN REFUS DE FUSION NE SE PAIE AU PRIX D'UNE GÉNÉRATION", () => {
         '"unknown_operation"',
         '"merge_member_required"',
         "resolveMergeRequest({",
-        '"merge_member_away_all_window"',
+        // C3 ④ — rendu par la CONSTANTE partagée depuis que le lecteur de
+        // propositions prédit ce refus. Le littéral a quitté ce fichier.
+        "error: MERGE_MEMBER_AWAY_ALL_WINDOW",
         // L7/D11 — LE PLAFOND EST DE CETTE FAMILLE. Il se tranche sur un
         // compteur et une date; le payer d'une génération de 20 à 67 s serait
         // le refus le plus cher du produit. Les deux points de contrôle sont
@@ -1106,6 +1108,7 @@ import {
   bestMergePair,
   MERGE_SHAPE_NOT_HONOURED,
   mergeMaterialShown,
+  MERGE_MEMBER_AWAY_ALL_WINDOW,
   observeMergeShape,
 } from "./household_merge.ts";
 
@@ -1469,12 +1472,15 @@ Deno.test("② HONORÉ — une préparation d'UNE portion est la marque du plat 
   // ⚠️ LE CAS QUI PASSE, EN PREMIER.
   const seen = observeMergeShape({
     shape: "one_session",
-    dishes: [{ day: "wed", slot: "dinner" }],
+    dishes: [{ day: "wed", slot: "dinner" }, { day: "wed", slot: "dinner" }],
     preparations: [{ servingsMade: 4 }, { servingsMade: 1 }],
+    // C3 ⑥ — SON SEUL REPAS de la fenêtre, et il porte un plat à part.
+    eaterCells: [{ day: "wed", slot: "dinner" }],
   });
   assertEquals(seen.honoured, true);
   assertEquals(seen.observed, "dedicated_dish");
   assertEquals(seen.requested, "one_session");
+  assertEquals(seen.meals, { atTable: 1, dedicated: 1, fromCommonPot: 0 });
   assert(seen.marks.includes("single_serving_preparation:1"));
 });
 
@@ -1487,8 +1493,13 @@ Deno.test("③ HONORÉ — deux plats au MÊME jour et au MÊME moment", () => {
       { day: "thu", slot: "dinner" },
     ],
     preparations: [{ servingsMade: 4 }],
+    // Elle ne mange ici que mercredi soir: jeudi n'est pas un de ses repas, et
+    // le compter la ferait déclarer servie à la casserole commune un soir où
+    // elle n'est pas là.
+    eaterCells: [{ day: "wed", slot: "dinner" }],
   });
   assertEquals(seen.honoured, true);
+  assertEquals(seen.observed, "dedicated_dish");
   assert(seen.marks.includes("parallel_dishes:wed/dinner"));
 });
 
@@ -1502,9 +1513,13 @@ Deno.test("LE MENSONGE MESURÉ — ③ demandé, casserole commune servie", () =
       ["breakfast", "lunch", "dinner"].map((slot) => ({ day, slot }))
     ),
     preparations: [{ servingsMade: 5 }, { servingsMade: 4 }],
+    eaterCells: FIVE_DAYS.flatMap((day) =>
+      ["breakfast", "lunch", "dinner"].map((slot) => ({ day, slot }))
+    ),
   });
   assertEquals(seen.honoured, false);
   assertEquals(seen.observed, "common_pot");
+  assertEquals(seen.meals, { atTable: 15, dedicated: 0, fromCommonPot: 15 });
   assertEquals(seen.marks, []);
 });
 
@@ -1517,6 +1532,7 @@ Deno.test("① N'EST JAMAIS DÉCLARÉ NON HONORÉ", () => {
     shape: "one_dish",
     dishes: [{ day: "wed", slot: "dinner" }],
     preparations: [{ servingsMade: 4 }],
+    eaterCells: [{ day: "wed", slot: "dinner" }],
   });
   assertEquals(seen.honoured, true);
   assertEquals(seen.observed, "common_pot");
@@ -1530,9 +1546,121 @@ Deno.test("UN MOMENT NON DÉCLARÉ NE FABRIQUE PAS DE MARQUE", () => {
     shape: "one_session",
     dishes: [{ day: "wed", slot: null }, { day: "wed", slot: null }],
     preparations: [{ servingsMade: 4 }],
+    eaterCells: [{ day: "wed", slot: "dinner" }],
   });
   assertEquals(seen.honoured, false);
   assertEquals(seen.marks, []);
+});
+
+// ---------------------------------------------------------------------------
+// C3 ⑥ — LE CONSTAT DIT CE QUI EST, REPAS PAR REPAS
+//
+// MESURÉ: `observed = marks.length > 0 ? "dedicated_dish" : "common_pot"` — UNE
+// marque suffisait. Un plat parallèle sur neuf créneaux rendait `ok: true`,
+// c'est-à-dire qu'un plan où la personne reprise mange la casserole commune
+// HUIT fois sur neuf, malgré le conflit de direction de service qui avait fait
+// descendre le barreau, passait pour un succès.
+// ---------------------------------------------------------------------------
+
+Deno.test("C3 ⑥ — UN PLAT À ELLE SUR NEUF REPAS N'EST PLUS UN SUCCÈS", () => {
+  const cells = ["wed", "thu", "fri"].flatMap((day) =>
+    ["breakfast", "lunch", "dinner"].map((slot) => ({ day, slot }))
+  );
+  const seen = observeMergeShape({
+    shape: "one_session",
+    dishes: [
+      ...cells,
+      // LE seul plat dédié: mercredi soir, et rien d'autre.
+      { day: "wed", slot: "dinner" },
+    ],
+    preparations: [{ servingsMade: 4 }, { servingsMade: 1 }],
+    eaterCells: cells,
+  });
+  assertEquals(seen.meals, { atTable: 9, dedicated: 1, fromCommonPot: 8 });
+  assertEquals(seen.observed, "some_meals_dedicated");
+  assertEquals(
+    seen.honoured,
+    false,
+    "un plat à elle sur neuf repas passe encore pour un barreau honoré",
+  );
+  // Les marques restent: le constat dit AUSSI ce qu'il a trouvé.
+  assert(seen.marks.includes("parallel_dishes:wed/dinner"));
+  assert(seen.marks.includes("single_serving_preparation:1"));
+});
+
+Deno.test("C3 ⑥ — TOUS SES REPAS SERVIS À PART: le cas qui PASSE", () => {
+  // ⚠️ SANS CE CAS, LE CONSTAT SERAIT UNE GARDE QUI COUPE TOUT — et une garde
+  // qui refuse tout ressemble trait pour trait à une garde qui marche.
+  const cells = [
+    { day: "wed", slot: "dinner" },
+    { day: "thu", slot: "dinner" },
+  ];
+  const seen = observeMergeShape({
+    shape: "separate_sessions",
+    dishes: [...cells, ...cells],
+    preparations: [{ servingsMade: 4 }, { servingsMade: 1 }, { servingsMade: 1 }],
+    eaterCells: cells,
+  });
+  assertEquals(seen.meals, { atTable: 2, dedicated: 2, fromCommonPot: 0 });
+  assertEquals(seen.observed, "dedicated_dish");
+  assertEquals(seen.honoured, true);
+});
+
+Deno.test("C3 ⑥ — SES ABSENCES NE COMPTENT PAS COMME DES REPAS DE CASSEROLE", () => {
+  // Une bouche absente jeudi midi ne « mange pas la casserole commune » ce
+  // midi-là: elle ne mange pas. Compter la case ferait un faux négatif sur
+  // chaque absence partielle — et le plan serait déclaré trahi sans raison.
+  const seen = observeMergeShape({
+    shape: "one_session",
+    dishes: [
+      { day: "wed", slot: "dinner" },
+      { day: "wed", slot: "dinner" },
+      { day: "thu", slot: "lunch" },
+      { day: "thu", slot: "dinner" },
+    ],
+    preparations: [{ servingsMade: 3 }, { servingsMade: 1 }],
+    // Elle n'est là QUE mercredi soir.
+    eaterCells: [{ day: "wed", slot: "dinner" }],
+  });
+  assertEquals(seen.meals, { atTable: 1, dedicated: 1, fromCommonPot: 0 });
+  assertEquals(seen.honoured, true);
+});
+
+Deno.test("C3 ⑥ — AUCUN REPAS À ELLE: le constat se tait au lieu de mentir", () => {
+  // `merge_member_away_all_window` intercepte ce cas bien avant le modèle. S'il
+  // arrivait quand même, déclarer la consigne trahie sur quelqu'un qui ne mange
+  // ici aucun repas serait un fait faux.
+  const seen = observeMergeShape({
+    shape: "separate_sessions",
+    dishes: [{ day: "wed", slot: "dinner" }],
+    preparations: [{ servingsMade: 4 }],
+    eaterCells: [],
+  });
+  assertEquals(seen.meals, { atTable: 0, dedicated: 0, fromCommonPot: 0 });
+  assertEquals(seen.honoured, true);
+  assertEquals(seen.observed, "common_pot");
+});
+
+Deno.test("C3 ⑥ — LES COMPTES PARTENT DANS `generated_from`, pas seulement l'étiquette", async () => {
+  // `observed` est un mot, et un mot se réécrit. Les trois nombres sont ce qui
+  // reste lisible sur un plan écrit avant la prochaine rédaction du constat.
+  const src = await generatorSource();
+  assert(
+    /meals:\s*\{\s*\n\s*at_table: mergeShape\.meals\.atTable/.test(src),
+    "les comptes bruts ne sont plus archivés: `common_pot` et « un plat à elle " +
+      "sur neuf repas » redeviennent le même fait.",
+  );
+  assert(
+    src.includes("eaterCells: mergedEaterCells"),
+    "le dénominateur n'est plus passé au constat: `atTable` retombe à 0 et " +
+      "TOUTE fusion redevient honorée — la garde désarmée en silence.",
+  );
+  assert(
+    /const mergedEaterCells = merge === null \? \[\] : memberMealCells\(\{/.test(src),
+    "les repas de la personne reprise ne sont plus résolus par la fonction de " +
+      "présence: un second parcours finirait par compter des repas que la " +
+      "casserole ne compte pas.",
+  );
 });
 
 Deno.test("LE CONSTAT EST BRANCHÉ, ET IL S'ÉCRIT DANS `generated_from`", async () => {
@@ -1585,7 +1713,11 @@ Deno.test("LES ONZE REFUS DE FUSION SE COMPTENT TOUS", async () => {
   // autres motifs, aucune pour celui-là — et c'est le refus qui tombe sur une
   // personne QUE LE MAÎTRE VENAIT DE DÉSIGNER.
   const src = await generatorSource();
-  const at = src.indexOf('"merge_member_away_all_window"');
+  // ⚠️ C3 ④ — LE REFUS EST RENDU PAR UNE CONSTANTE PARTAGÉE depuis que le
+  // LECTEUR de propositions le prédit: le littéral n'est plus dans ce fichier,
+  // et un test qui le chercherait encore serait rouge sur un produit sain.
+  assertEquals(MERGE_MEMBER_AWAY_ALL_WINDOW, "merge_member_away_all_window");
+  const at = src.indexOf("error: MERGE_MEMBER_AWAY_ALL_WINDOW");
   assert(at >= 0, "le refus a disparu — test à réviser");
   // Le log doit être DANS la branche, donc juste avant la réponse: on regarde
   // les 900 caractères qui précèdent la réponse HTTP de ce refus.

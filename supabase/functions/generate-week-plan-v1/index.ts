@@ -22,6 +22,14 @@ import { constraintsForPrompt } from "../_shared/keel/food_preference_promotion.
 import { reconcileFoodPreferencesFor } from "../_shared/keel/food_preference_promotion_io.ts";
 import { loadStudentSafetyConstraints } from "../_shared/keel/safety_constraints.ts";
 import { keelGenerationModel } from "../_shared/keel/generation_model.ts";
+// C3 ① — LE DROIT D'ACCÈS EST LU, JAMAIS APPLIQUÉ ICI.
+import {
+  ACCESS_LOG_TAG,
+  ACCESS_NONE,
+  ACCESS_UNKNOWN,
+  describeAccess,
+  readAccessFacts,
+} from "../_shared/keel/solo_access.ts";
 import { ageBandOf, usableAge, weekPlanAgeGate } from "../_shared/keel/student_age.ts";
 import {
   trendOf,
@@ -276,6 +284,25 @@ Deno.serve(async (req) => {
       // coach: les trois retombent ici. Une garde sans cas qui refuse n'est pas
       // une garde.
       return jsonResponse(req, { error: "no_coach", request_id: requestId }, { status: 409 });
+    }
+
+    // ── C3 ① · À QUEL TITRE CE COMPTE PRODUIT-IL — ON MESURE, ON NE FERME PAS
+    //
+    // La MÊME lecture que `generate-meal-v1`, par le même module: la question
+    // ouverte n°1 porte sur un COMPTE, pas sur une porte, et deux mesures avec
+    // deux définitions ne se totalisent pas. Aucun refus — voir l'en-tête de
+    // `solo_access.ts` pour le piège nommé (`has_app_write_access` couperait
+    // des membres de foyer et des sièges de coach qui paient).
+    const access = describeAccess(
+      await readAccessFacts(admin, { userId, householdId, coachId }),
+    );
+    if (access.state === ACCESS_NONE || access.state === ACCESS_UNKNOWN) {
+      console.log(JSON.stringify({
+        tag: ACCESS_LOG_TAG,
+        fn: FN_NAME,
+        user_id: userId,
+        ...access,
+      }));
     }
 
     // LA PORTÉE PAR OBJECTIF PASSE PAR ICI AUSSI, et pas seulement par le bloc.
@@ -594,6 +621,10 @@ Deno.serve(async (req) => {
           goal,
           context: weekContext,
           prompt_version: WEEK_PLAN_PROMPT_VERSION,
+          // C3 ① — À QUEL TITRE CETTE SEMAINE A ÉTÉ PRODUITE. Écrit toujours,
+          // même sur le cas nominal: une clé qui n'apparaît qu'au moment du
+          // trou ne se distingue pas d'un lot débranché.
+          access,
           // LE CORPS QUI A PRODUIT CETTE SEMAINE, archivé avec elle.
           //
           // Des BANDES et des TENDANCES, pas des valeurs: `generated_from` est

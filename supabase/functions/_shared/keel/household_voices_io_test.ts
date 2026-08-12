@@ -23,6 +23,13 @@ interface Trace {
   inCalls: Array<{ table: string; column: string; ids: unknown[] }>;
   tablesRead: string[];
   updates: Array<{ table: string; patch: Record<string, unknown> }>;
+  /**
+   * C3 ② — LES RPC. L'écriture des préférences ne passe plus par `.update()`
+   * mais par `keel_write_food_preferences` (écriture CIBLÉE, concurrence
+   * optimiste dans le prédicat). On garde `updates` pour que le retour à
+   * l'écrasement de colonne se VOIE au lieu de repasser en silence.
+   */
+  rpcs: Array<{ name: string; params: Record<string, unknown> }>;
 }
 
 /**
@@ -37,7 +44,7 @@ function fakeAdmin(opts: {
   itemsById?: Record<string, Row>;
   failGoalsRead?: boolean;
 }) {
-  const trace: Trace = { inCalls: [], tablesRead: [], updates: [] };
+  const trace: Trace = { inCalls: [], tablesRead: [], updates: [], rpcs: [] };
 
   const from = (table: string) => ({
     select: (_cols: string) => {
@@ -75,7 +82,12 @@ function fakeAdmin(opts: {
     },
   });
 
-  return { admin: { from } as never, trace };
+  const rpc = (name: string, params: Record<string, unknown>) => {
+    trace.rpcs.push({ name, params });
+    return Promise.resolve({ data: { ok: true, written: true }, error: null });
+  };
+
+  return { admin: { from, rpc } as never, trace };
 }
 
 /** Une ligne gardée avec son origine datée, comme la carte l'écrit. */
@@ -236,13 +248,15 @@ Deno.test("LA RÉTRACTATION D'UN SECONDAIRE EST HONORÉE, ET PERSISTÉE", async 
   assertEquals(out.voices, [], "une préférence rétractée est encore servie");
   // ELLE PERSISTE, ELLE NE FILTRE PAS: la correction est écrite une fois et les
   // deux autres générateurs en profitent.
-  assertEquals(trace.updates.length, 1);
-  assertEquals(trace.updates[0].table, "student_goals");
-  assertEquals(
-    (trace.updates[0].patch.practical_constraints as Record<string, unknown>)[
-      FOOD_PREFERENCES_KEY
-    ],
-    [],
-  );
+  // ⚠️ C3 ② — L'ÉCRITURE EST CIBLÉE, ET C'EST TOUT LE SUJET DE CE CHEMIN-CI:
+  // c'est le MAÎTRE qui compose, et la ligne écrite est celle de ZOÉ. Écraser
+  // `practical_constraints` en entier à partir d'une copie lue 10 ms plus tôt
+  // perdait son rythme de repas sans un mot. Plus aucun `.update()` de colonne.
+  assertEquals(trace.updates.length, 0);
+  assertEquals(trace.rpcs.length, 1);
+  assertEquals(trace.rpcs[0].name, "keel_write_food_preferences");
+  assertEquals(trace.rpcs[0].params.p_preferences, []);
+  // Le témoin est ce qu'on a LU sur la ligne de Zoé, pas ce qu'on écrit.
+  assertEquals(trace.rpcs[0].params.p_expected, ["no fish"]);
   assert(trace.tablesRead.includes("memory_items"));
 });

@@ -158,6 +158,48 @@ export interface WindowPresence {
   absentAllWindow: readonly string[];
 }
 
+/** Une case de la grille: un jour de la fenêtre, un moment du rythme. */
+export interface MealCell {
+  day: string;
+  slot: EatingOccasion;
+}
+
+/**
+ * LES REPAS QU'UNE BOUCHE PREND ICI SUR CETTE FENÊTRE — la primitive.
+ *
+ * ⚠️ EXTRAITE DE `resolveWindowPresence`, PAS ÉCRITE À CÔTÉ. C'est la même
+ * boucle, le même `isAway`, le même `rhythm`: `absentAllWindow` la lit
+ * (« aucune case ⇒ absent partout »), le LECTEUR de propositions la lit pour
+ * ne pas offrir une fusion que le geste refuse (C3 ④), et le CONSTAT de forme
+ * la lit pour savoir de combien de repas on parle (C3 ⑥). Trois lecteurs, une
+ * seule définition — la ré-écrire chez l'un d'eux ferait deux idées de « qui
+ * mange quand », et c'est la dette que ce chantier a payée quatre fois.
+ *
+ * ── L'ÉCHEC RESTE OUVERT, MAIS PAS ICI ──────────────────────────────────
+ * Sans rythme ni fenêtre, cette fonction rend `[]` — ce qui veut dire « aucun
+ * repas », donc « absent ». C'est le sens LITTÉRAL, et il est juste: il n'y a
+ * pas de repas dans une fenêtre vide. La posture d'échec ouvert appartient aux
+ * APPELANTS, qui savent ce qu'ils refusent; `resolveWindowPresence` sort avant
+ * d'arriver ici, et le lecteur de propositions fait de même.
+ */
+export function memberMealCells(args: {
+  away: readonly AwayDay[];
+  /** Les moments d'une journée — RÉSOLUS, jamais le brut de la colonne. */
+  rhythm: readonly EatingOccasionSlot[];
+  /** Les jours de la fenêtre, en jetons (`mon`…`sun`), dans l'ordre. */
+  windowDays: readonly string[];
+}): MealCell[] {
+  const slots = args.rhythm.map((r) => r.slot);
+  const out: MealCell[] = [];
+  for (const day of args.windowDays) {
+    for (const slot of slots) {
+      if (isAway(args.away, day, slot)) continue;
+      out.push({ day, slot });
+    }
+  }
+  return out;
+}
+
 function awayPayload(days: readonly AwayDay[]): Array<{ day: string; slots: string[] }> {
   return days.map((d) => ({ day: d.day, slots: [...d.slots] }));
 }
@@ -296,11 +338,18 @@ export function resolveWindowPresence(args: {
   // par le MÊME `isAway`. Un second parcours avec sa propre idée de « la
   // fenêtre » finirait par diverger de celui qui dimensionne la casserole, et
   // on servirait une assiette à quelqu'un que le prompt ne compte pas.
+  //
+  // ⚠️ PASSÉ PAR `memberMealCells` DEPUIS C3, et c'est le sujet: le LECTEUR de
+  // propositions doit prédire ce refus-ci (« il n'est là aucun repas de cette
+  // fenêtre »), et il ne peut le faire sans mentir que par la fonction qui le
+  // décide. « Aucune case » EST la définition de l'absence totale.
   const absentAllWindow = args.members
     .filter((m) =>
-      args.windowDays.every((day) =>
-        slots.every((slot) => isAway(m.away.effective, day, slot))
-      )
+      memberMealCells({
+        away: m.away.effective,
+        rhythm: args.rhythm,
+        windowDays: args.windowDays,
+      }).length === 0
     )
     .map((m) => m.memberId);
 
