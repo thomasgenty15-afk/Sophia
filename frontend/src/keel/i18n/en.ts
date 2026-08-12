@@ -3272,6 +3272,11 @@ export const en = {
   // range dans une phrase, il n'en recalcule aucun.
   "household.merge.window": "Days that would be folded in: {days}, from {from}.",
   "household.merge.window_past": "{days} of their days are already behind us.",
+  // D1 — LA MOITIÉ DU GESTE QUE « jours repris » NE DIT PAS. Quand leur plan
+  // s'arrête avant la fin de la semaine du foyer, la fusion refait la semaine
+  // jusqu'au bout: sans ça, la fin de semaine se retrouverait sans aucun plan.
+  "household.merge.window_rebuilt":
+    "The household's {days} remaining days get rebuilt, so the end of the week keeps a plan.",
   "household.merge.unmerge_window": "Rebuilding would redo {days} day(s) from {from}.",
   // ── L7/D11 — LE PLAFOND, VISIBLE AVANT D'ÊTRE ATTEINT ───────────────────
   // « 2 fusions restantes cette semaine » est une ligne de L8, écrite parce

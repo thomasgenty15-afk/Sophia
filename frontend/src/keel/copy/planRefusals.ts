@@ -171,8 +171,9 @@ export function mergeSkipKey(reason: string): MessageKey | null {
  * LES REFUS DES DEUX RPC DE RÉGLAGE (D17 et « refuser » de D8).
  *
  * Les motifs partagés avec les autres RPC de foyer (`not_owner`,
- * `not_a_member`, `no_household`…) restent traduits par `householdErrorText`,
- * qui est la liste fermée de cet écran-là: les dédoubler ici ferait deux
+ * `not_a_member`, `no_household`…) ne sont PAS dédoublés ici: ils vivent une
+ * seule fois, dans `HOUSEHOLD_REFUSAL_KEYS`, et les deux écrans les atteignent
+ * par les chaînes composées du bas de ce fichier. Deux tables feraient deux
  * phrases pour un même mot.
  */
 export const MERGE_SETTING_REFUSAL_KEYS: Record<string, MessageKey> = {
@@ -185,4 +186,111 @@ export const MERGE_SETTING_REFUSAL_KEYS: Record<string, MessageKey> = {
 
 export function mergeSettingRefusalKey(reason: string): MessageKey | null {
   return MERGE_SETTING_REFUSAL_KEYS[reason.trim()] ?? null;
+}
+
+/**
+ * LES REFUS DES RPC DE FOYER — la liste que `/app/household` portait SEUL.
+ *
+ * ⚠️ ELLE A DÉMÉNAGÉ ICI, ET C'EST LE CORRECTIF DE D2. Elle vivait dans un
+ * `switch` privé de `HouseholdPage.tsx`, donc inatteignable depuis la carte de
+ * proposition — qui reçoit pourtant les MÊMES motifs, puisque les deux RPC de
+ * réglage refusent `not_a_member` et `not_authenticated` comme toutes les
+ * autres. Mesuré deux fois en HTTP réel: le maître lisait `not_a_member`, mot
+ * pour mot, sur la carte. Un commentaire de ce fichier affirmait le contraire
+ * (« restent traduits par `householdErrorText` »): c'était vrai d'un écran et
+ * faux de l'autre, et un commentaire qui ment coûte plus cher qu'un silence.
+ *
+ * `not_authenticated` — le jeton des deux RPC quand `auth.uid()` est NULL —
+ * pointe sur la MÊME phrase que `Unauthorized`, le jeton du portail edge. Un
+ * seul fait (« la session ne vaut plus »), une seule phrase, deux vocabulaires.
+ */
+export const HOUSEHOLD_REFUSAL_KEYS: Record<string, MessageKey> = {
+  bad_first_name: "household.error.bad_first_name",
+  bad_birth_date: "household.error.bad_birth_date",
+  bad_goal: "household.error.bad_goal",
+  bad_label: "household.error.bad_label",
+  bad_away: "household.error.bad_away",
+  household_full: "household.error.household_full",
+  not_owner: "household.error.not_owner",
+  not_a_member: "household.error.not_a_member",
+  not_your_line: "household.error.not_your_line",
+  no_household: "household.error.no_household",
+  cannot_remove_owner: "household.error.cannot_remove_owner",
+  cannot_detach_owner: "household.error.cannot_detach_owner",
+  not_claimed: "household.error.not_claimed",
+  not_found: "household.error.not_found",
+  not_authenticated: "plan.validate.error.not_authenticated",
+};
+
+export function householdRefusalKey(reason: string): MessageKey | null {
+  return HOUSEHOLD_REFUSAL_KEYS[reason.trim()] ?? null;
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * LES CHAÎNES — UN SEUL APPEL PAR SITE, ET LE TEST TESTE LA MÊME CHOSE.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * Chaque écran regarde plusieurs tables, dans un ordre qui lui est propre: la
+ * carte de proposition reçoit des refus de fonction edge ET des refus de RPC,
+ * `/app/household` l'inverse. Cet ordre EST la décision d'affichage — la
+ * recopier dans un test en ferait deux exemplaires, dont un seul serait
+ * exécuté par un utilisateur. Le dépôt a déjà payé ce patron (« un test
+ * paramétré par sa propre constante reste vert quand on change la constante »).
+ *
+ * D'où trois fonctions publiques: l'écran en appelle une, le test appelle la
+ * MÊME. Un ordre changé sans le vouloir se voit alors dans la suite.
+ *
+ * R7 tient partout: quand aucune table ne connaît le jeton, on rend `null` et
+ * l'appelant affiche le jeton tel quel. Un mot inconnu se rapporte; « une
+ * erreur est survenue » ne se rapporte pas.
+ */
+
+/**
+ * `/app/household` — la liste du foyer d'abord, les réglages de fusion ensuite.
+ *
+ * L'ordre compte: `member_is_owner` et `no_validated_plan` n'existent QUE dans
+ * la table de réglage, et les motifs de foyer ont leur phrase à eux depuis bien
+ * avant la fusion.
+ */
+export function householdErrorKey(reason: string): MessageKey | null {
+  return householdRefusalKey(reason) ?? mergeSettingRefusalKey(reason);
+}
+
+/**
+ * LA CARTE DE PROPOSITION, pour un GESTE refusé (fusion, défusion, « refuser »).
+ *
+ * Les refus de fonction edge d'abord: la carte parle de composition, et
+ * `not_owner` y veut dire « le serveur a refusé ce geste-là », pas « tu n'es
+ * pas maître de ce foyer ». Les deux derniers maillons sont ceux de D2.
+ */
+export function mergeCardRefusalKey(reason: string): MessageKey | null {
+  return edgeRefusalKey(reason) ??
+    mergeSettingRefusalKey(reason) ??
+    householdRefusalKey(reason);
+}
+
+/**
+ * POURQUOI UNE BOUCHE N'EST PAS PROPOSÉE — et c'est le correctif de D1.
+ *
+ * ⚠️ LE LECTEUR REVERSE DEUX VOCABULAIRES DANS UN SEUL. `household_merge_notice.ts`
+ * fait `skip(pair.refusal)`: le motif rangé dans `skipped[]` n'est alors pas un
+ * `SKIP_*` mais un refus de FENÊTRE (`merge_windows_disjoint`,
+ * `merge_window_all_past`, `merge_window_unreadable`), qui a déjà ses mots dans
+ * `EDGE_REFUSAL_KEYS`. Mesuré: le maître lisait `merge_windows_disjoint` en
+ * toutes lettres sous le nom de Zoé.
+ *
+ * ── POURQUOI ICI, ET PAS EN AJOUTANT LES DEUX CLÉS À `MERGE_SKIP_KEYS` ─────
+ * Parce que ce serait une SECONDE phrase pour un jeton qui en a déjà une, et
+ * parce que la bijection inverse du test (« n'invente aucun motif que le
+ * lecteur ne produit pas ») deviendrait fausse: elle scanne les déclarations
+ * `export const SKIP_… = "…"`, et `pair.refusal` n'en est pas une. Le repli
+ * respecte la forme du serveur au lieu de la contredire.
+ *
+ * L'ordre est celui de la précision: `merge_quota_exhausted` vit dans LES DEUX
+ * tables, et sa phrase de `skipped[]` (« le foyer a utilisé ses fusions de la
+ * semaine ») est celle qui répond à la question posée par cette liste-là.
+ */
+export function mergeCardSkipKey(reason: string): MessageKey | null {
+  return mergeSkipKey(reason) ?? edgeRefusalKey(reason);
 }

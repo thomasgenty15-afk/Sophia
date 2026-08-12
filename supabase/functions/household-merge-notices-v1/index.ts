@@ -328,6 +328,13 @@ Deno.serve(async (req) => {
             starts_on: n.mergeable.window.startsOn,
             duration_days: n.mergeable.window.durationDays,
           },
+          // D1 — CE QUE LE GESTE RECOMPOSERAIT, à côté de ce qu'il reprend. Les
+          // deux sont égaux dans le cas nominal; ils divergent quand le plan
+          // personnel s'arrête avant la fin de la semaine du foyer.
+          recomposed: {
+            starts_on: n.mergeable.recomposed.startsOn,
+            duration_days: n.mergeable.recomposed.durationDays,
+          },
           intersection: {
             starts_on: n.mergeable.intersection.startsOn,
             duration_days: n.mergeable.intersection.durationDays,

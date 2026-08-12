@@ -6,8 +6,13 @@ import { en } from "../i18n/en";
 import {
   EDGE_REFUSAL_KEYS,
   edgeRefusalKey,
+  HOUSEHOLD_REFUSAL_KEYS,
+  householdErrorKey,
+  householdRefusalKey,
   MERGE_SETTING_REFUSAL_KEYS,
   MERGE_SKIP_KEYS,
+  mergeCardRefusalKey,
+  mergeCardSkipKey,
   mergeSkipKey,
   validationRefusalKey,
   VALIDATION_REFUSAL_KEYS,
@@ -32,6 +37,39 @@ const ROOT = resolve(__dirname, "../../../..");
 
 function source(rel: string): string {
   return readFileSync(resolve(ROOT, rel), "utf8");
+}
+
+/**
+ * LA SOURCE SANS SES COMMENTAIRES.
+ *
+ * ⚠️ CICATRICE DU DÉPÔT: un audit d'appelants qui grep la source brute compte
+ * les MORTS. Un `includes("…")` vrai grâce à une ligne de commentaire est un
+ * faux vert, et ce fichier-ci sert précisément à séparer « le code appelle » de
+ * « quelqu'un en a parlé ». Les blocs partent, les lignes aussi — sauf quand le
+ * `//` suit un deux-points, qui fait une URL et pas un commentaire.
+ */
+function withoutComments(src: string): string {
+  return src
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .split("\n")
+    .map((line) => {
+      const at = line.indexOf("//");
+      if (at < 0) return line;
+      if (at > 0 && line[at - 1] === ":") return line;
+      return line.slice(0, at);
+    })
+    .join("\n");
+}
+
+/** Le corps d'une fonction plpgsql, borné par ses deux `$function$`. */
+function plpgsqlBody(sql: string, fn: string): string {
+  const start = sql.indexOf(`create or replace function ${fn}(`);
+  expect(start, `${fn}: déclaration introuvable`).toBeGreaterThan(0);
+  const open = sql.indexOf("as $function$", start);
+  expect(open, `${fn}: corps introuvable`).toBeGreaterThan(start);
+  const close = sql.indexOf("$function$;", open + 1);
+  expect(close, `${fn}: fin de corps introuvable`).toBeGreaterThan(open);
+  return sql.slice(open, close);
 }
 
 /**
@@ -216,6 +254,211 @@ describe("les motifs de non-proposition", () => {
     expect(mergeSkipKey("proposals_muted")).not.toBeNull();
     expect(mergeSkipKey("nothing_like_this")).toBeNull();
   });
+
+  /**
+   * D1 — LE LECTEUR REVERSE LE VOCABULAIRE DES FENÊTRES DANS `skipped[]`.
+   *
+   * ⚠️ CE QUE LE SCAN D'À CÔTÉ NE PEUT PAS VOIR, PAR CONSTRUCTION. Il lit les
+   * déclarations `export const SKIP_… = "…"`; `skip(pair.refusal)` n'en est pas
+   * une, et sa valeur ne se connaît qu'à l'exécution. Deux jetons de fenêtre
+   * arrivaient donc en jargon sous le nom d'une personne — mesuré:
+   * « Zoe — merge_windows_disjoint ».
+   *
+   * Le correctif est au SITE D'APPEL (`mergeCardSkipKey`), pas dans
+   * `MERGE_SKIP_KEYS`: ces jetons ont déjà leurs mots dans `EDGE_REFUSAL_KEYS`,
+   * et les y ajouter ferait deux phrases pour un mot ET casserait la bijection
+   * inverse juste au-dessus. Ce test épingle donc les deux moitiés: le
+   * reversement existe encore côté serveur, et la chaîne de l'écran le couvre.
+   */
+  it("traduit AUSSI les refus de FENÊTRE que le lecteur range dans skipped[]", () => {
+    const src = withoutComments(
+      source("supabase/functions/_shared/keel/household_merge_notice.ts"),
+    );
+    // La forme d'appel qui fait tout le défaut, dans le CODE et pas dans une
+    // ligne de commentaire qui en parle.
+    expect(src, "skip(pair.refusal) a disparu: ce test garde un chemin mort")
+      .toMatch(/skip\(\s*pair\.refusal\s*\)/);
+
+    const windowTokens = [...sharedConstants()]
+      .filter(([name]) => name.startsWith("MERGE_WINDOW"))
+      .map(([, value]) => value);
+    expect(windowTokens.length, "les refus de fenêtre ont changé de nom").toBe(3);
+
+    for (const token of windowTokens) {
+      // La table des SKIP_* ne les connaît PAS, et ne DOIT pas les connaître.
+      expect(mergeSkipKey(token), token).toBeNull();
+      // …et l'écran les rend quand même en mots, par le repli.
+      expect(mergeCardSkipKey(token), token).not.toBeNull();
+    }
+
+    // Les deux jetons que la QA a lus en clair, nommés. Un test qui ne dirait
+    // que « les trois sont couverts » resterait vert le jour où le scan des
+    // constantes cesse de voir le fichier.
+    expect(mergeCardSkipKey("merge_windows_disjoint")).toBe(
+      "plan.refusal.merge_windows_disjoint",
+    );
+    expect(mergeCardSkipKey("merge_window_all_past")).toBe(
+      "plan.refusal.merge_window_all_past",
+    );
+  });
+
+  it("garde la phrase de `skipped[]` quand un jeton vit dans les DEUX tables", () => {
+    // `merge_quota_exhausted` est un refus de geste ET un motif de
+    // non-proposition, avec deux phrases écrites exprès. L'ordre du repli
+    // décide laquelle un maître lit sous le nom d'une personne — et la QA a
+    // mesuré celle de `skipped[]`.
+    expect(mergeCardSkipKey("merge_quota_exhausted")).toBe(
+      "household.merge.skip.merge_quota_exhausted",
+    );
+    expect(edgeRefusalKey("merge_quota_exhausted")).toBe(
+      "plan.refusal.merge_quota_exhausted",
+    );
+  });
+
+  it("laisse sortir un motif inconnu tel quel (R7)", () => {
+    expect(mergeCardSkipKey("some_new_token")).toBeNull();
+  });
+});
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * D2 — LES DEUX RPC DE RÉGLAGE, CONFRONTÉES À LEUR SOURCE SQL.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⚠️ LE TROU QUE CE BLOC BOUCHE. `MERGE_SETTING_REFUSAL_KEYS` n'était confronté
+ * à RIEN: la seule vérification était que ses valeurs existent dans `en.ts`,
+ * c'est-à-dire qu'une table de cinq lignes est bien écrite en anglais. Les deux
+ * RPC en refusent NEUF, et quatre d'entre eux ne venaient pas de cette table
+ * (`not_owner`, `no_household`, `not_a_member`, `not_authenticated`). Deux
+ * arrivaient quand même en mots par la table des refus edge; les deux autres
+ * arrivaient en jargon — `not_a_member` mesuré deux fois en HTTP réel.
+ *
+ * On teste les CHAÎNES, pas les tables: c'est la composition qui décide ce
+ * qu'un humain lit, et elle diffère d'un écran à l'autre. Les deux fonctions
+ * appelées ici sont exactement celles qu'appellent `HouseholdMergeCard.tsx` et
+ * `HouseholdPage.tsx`.
+ */
+describe("les refus des deux RPC de réglage de fusion", () => {
+  const MIGRATION = "supabase/migrations/20260812160000_household_merge_settings.sql";
+
+  function settingReasons(): string[] {
+    const sql = source(MIGRATION);
+    const found = new Set<string>();
+    for (
+      const fn of [
+        "public.keel_household_mute_merge_proposals",
+        "public.keel_household_dismiss_merge_notice",
+      ]
+    ) {
+      const body = plpgsqlBody(sql, fn);
+      const reasons = [...body.matchAll(/'reason',\s*'([a-z_]+)'/g)].map((m) => m[1]);
+      // Chaque RPC prise SÉPARÉMENT doit avoir rendu quelque chose: une borne
+      // qui glisserait sur la mauvaise fonction laisserait l'autre à zéro sans
+      // que le total ne bouge beaucoup.
+      expect(reasons.length, `${fn}: aucun refus lu`).toBeGreaterThan(4);
+      for (const reason of reasons) found.add(reason);
+    }
+    return [...found];
+  }
+
+  it("chaque motif des deux RPC arrive en mots sur les DEUX écrans", () => {
+    const reasons = settingReasons();
+    expect(reasons.length).toBeGreaterThan(7);
+
+    // La carte de proposition: `merge`, `unmerge`, et « refuser » partent de là.
+    expect(reasons.filter((r) => mergeCardRefusalKey(r) === null)).toEqual([]);
+    // `/app/household`: le réglage discret (D17) part de là.
+    expect(reasons.filter((r) => householdErrorKey(r) === null)).toEqual([]);
+  });
+
+  it("nomme les deux motifs que la QA a lus en jargon", () => {
+    // LE CAS QUI PASSE, et il est nominatif. `not_a_member` était sur le chemin
+    // des deux RPC et sur aucune table que la carte consultait; `not_authenticated`
+    // n'était sur AUCUNE des deux, écrans compris.
+    for (const token of ["not_a_member", "not_authenticated"]) {
+      expect(mergeCardRefusalKey(token), `carte: ${token}`).not.toBeNull();
+      expect(householdErrorKey(token), `foyer: ${token}`).not.toBeNull();
+    }
+    // Une session périmée dit la MÊME chose des deux côtés du produit: le jeton
+    // du portail edge et celui des RPC pointent sur une seule phrase.
+    expect(householdErrorKey("not_authenticated")).toBe(
+      edgeRefusalKey("Unauthorized"),
+    );
+  });
+
+  it("n'invente aucun motif que les deux RPC ne rendent pas", () => {
+    const emitted = new Set(settingReasons());
+    expect(
+      Object.keys(MERGE_SETTING_REFUSAL_KEYS).filter((r) => !emitted.has(r)),
+    ).toEqual([]);
+  });
+
+  it("laisse sortir un motif inconnu tel quel (R7)", () => {
+    expect(mergeCardRefusalKey("some_new_token")).toBeNull();
+    expect(householdErrorKey("some_new_token")).toBeNull();
+  });
+});
+
+describe("la liste fermée des refus de foyer", () => {
+  it("ne perd aucun motif au passage de `HouseholdPage` au module partagé", () => {
+    // La table VIENT d'un `switch` privé de l'écran du foyer. Une ligne oubliée
+    // pendant le déménagement se lirait comme un jeton brut, sur un écran que
+    // ce lot ne mesure pas. Le catalogue est le témoin: chaque `household.error.*`
+    // écrit dans `en.ts` doit rester atteignable.
+    const written = Object.keys(en).filter((k) => k.startsWith("household.error."));
+    expect(written.length).toBeGreaterThan(10);
+    const reachable = new Set<string>(Object.values(HOUSEHOLD_REFUSAL_KEYS));
+    expect(written.filter((k) => !reachable.has(k))).toEqual([]);
+  });
+
+  it("les deux chaînes ne disent pas la même chose du même mot", () => {
+    // `not_owner` vit dans la table du foyer ET dans celle des refus edge, et
+    // les deux phrases sont justes chacune à sa place: sur `/app/household`
+    // « seul le maître peut faire ça » (l'écran refuse un réglage), sur la
+    // carte de proposition « le serveur a refusé CE geste ». C'est l'ordre de
+    // chaque chaîne qui décide, et le déménagement de la table ne l'a pas
+    // touché — un `householdRefusalKey` remonté en tête de la chaîne de la
+    // carte se verrait ici.
+    expect(householdErrorKey("not_owner")).toBe(householdRefusalKey("not_owner"));
+    expect(householdErrorKey("not_owner")).toBe("household.error.not_owner");
+    expect(mergeCardRefusalKey("not_owner")).toBe("plan.refusal.not_owner");
+
+    // ⚠️ CE QUI N'EST PAS PROUVÉ ICI, ET IL FAUT LE DIRE: l'ordre INTERNE de
+    // `householdErrorKey`. Ses deux tables sont aujourd'hui disjointes — aucun
+    // mot ne vit dans les deux — donc les inverser ne changerait rien, et un
+    // test qui prétendrait le contraire serait vert pour rien. Le jour où un
+    // motif se dédouble, c'est la bijection d'à côté (« n'invente aucun
+    // motif ») qui le fera remarquer.
+  });
+});
+
+/**
+ * LES DEUX ÉCRANS APPELLENT BIEN LES CHAÎNES, ET PAS UN MAILLON.
+ *
+ * ⚠️ SANS CE TEST, LES TROIS PRÉCÉDENTS SONT VERTS POUR RIEN. Ils prouvent
+ * qu'une fonction rend une clé; ils ne prouvent pas que l'écran l'appelle. Le
+ * défaut mesuré était exactement là: `mergeSkipKey` seul, `edgeRefusalKey ??
+ * mergeSettingRefusalKey` sans troisième maillon — deux compositions parfaites
+ * de tables parfaites.
+ */
+describe("le câblage des écrans", () => {
+  it("la carte de proposition passe par les chaînes, jamais par un maillon nu", () => {
+    const src = withoutComments(
+      source("frontend/src/keel/components/HouseholdMergeCard.tsx"),
+    );
+    expect(src).toContain("mergeCardSkipKey(");
+    expect(src).toContain("mergeCardRefusalKey(");
+    expect(src, "un maillon nu est revenu: le repli de D1 est perdu")
+      .not.toContain("mergeSkipKey(");
+    expect(src, "un maillon nu est revenu: le repli de D2 est perdu")
+      .not.toContain("mergeSettingRefusalKey(");
+  });
+
+  it("l'écran du foyer passe par la même chaîne, dans son ordre à lui", () => {
+    const src = withoutComments(source("frontend/src/keel/pages/HouseholdPage.tsx"));
+    expect(src).toContain("householdErrorKey(");
+    expect(src).not.toContain("mergeSettingRefusalKey(");
+  });
 });
 
 describe("toutes les clés citées existent dans le catalogue", () => {
@@ -228,6 +471,7 @@ describe("toutes les clés citées existent dans le catalogue", () => {
       ...Object.values(VALIDATION_REFUSAL_KEYS),
       ...Object.values(MERGE_SKIP_KEYS),
       ...Object.values(MERGE_SETTING_REFUSAL_KEYS),
+      ...Object.values(HOUSEHOLD_REFUSAL_KEYS),
     ];
     expect(keys.filter((k) => !(k in en))).toEqual([]);
   });

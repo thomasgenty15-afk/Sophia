@@ -9,7 +9,7 @@ import {
   type MergeNoticeView,
   unmergeMemberPlan,
 } from "../api/householdMerge";
-import { edgeRefusalKey, mergeSettingRefusalKey, mergeSkipKey } from "../copy/planRefusals";
+import { edgeRefusalKey, mergeCardRefusalKey, mergeCardSkipKey } from "../copy/planRefusals";
 import { dishDayLabel, dishSlotLabel } from "../api/mealLabels";
 import { t } from "../i18n/t";
 import { Button } from "./ui/Button";
@@ -103,7 +103,14 @@ export default function HouseholdMergeCard(
         // Les onze refus de fusion, les six de défusion, le 402 du gel et le
         // 429 du plafond ont tous un nom côté serveur. C'est ici qu'ils
         // cessent d'arriver en jargon.
-        const key = edgeRefusalKey(token) ?? mergeSettingRefusalKey(token);
+        //
+        // ⚠️ LA CHAÎNE EST DANS `copy/planRefusals.ts`, PAS ICI. Elle avait
+        // deux maillons et il en manquait un: `not_a_member` et
+        // `not_authenticated` — que les DEUX RPC de réglage refusent, et que
+        // « refuser une proposition » atteint depuis cette carte-ci — n'avaient
+        // d'étiquette sur aucune table consultée d'ici. Mesuré deux fois en
+        // HTTP réel. Le test appelle la même fonction que cette ligne.
+        const key = mergeCardRefusalKey(token);
         setFailure(key ? t(key) : token);
       }
       // On relit dans TOUS les cas, y compris après un refus: un refus signifie
@@ -215,7 +222,12 @@ export default function HouseholdMergeCard(
               </p>
               <ul className="mt-1 flex flex-col gap-1 text-sm text-gray-500">
                 {skipped.map((s) => {
-                  const key = mergeSkipKey(s.reason);
+                  // ⚠️ PAS `mergeSkipKey` SEUL. Le lecteur range aussi des
+                  // refus de FENÊTRE dans `skipped[]` (`skip(pair.refusal)`),
+                  // et ceux-là ont leurs mots dans la table des refus edge.
+                  // Sans le repli, « Zoe — merge_windows_disjoint » s'affiche
+                  // tel quel: mesuré.
+                  const key = mergeCardSkipKey(s.reason);
                   return (
                     <li key={s.memberId + s.reason}>
                       <span className="font-medium">{s.displayName}</span>
@@ -280,6 +292,20 @@ function NoticeRow(
               ? " " +
                 t("household.merge.window_past", {
                   days: notice.mergeable.daysAlreadyPast,
+                })
+              : ""}
+            {/* D1 — CE QUE LE GESTE REFERA EN PLUS. Muet dans le cas nominal
+                (`recomposed === window`): une carte qui explique toujours tout
+                finit par ne plus être lue. Elle parle quand leur plan s'arrête
+                avant la fin de la semaine du foyer — la fusion refait alors la
+                semaine jusqu'au bout, faute de quoi la fin de semaine n'aurait
+                plus aucun plan (mesuré: 409 après 16,1 s de modèle). */}
+            {notice.mergeable.recomposed &&
+                notice.mergeable.recomposed.durationDays >
+                  notice.mergeable.window.durationDays
+              ? " " +
+                t("household.merge.window_rebuilt", {
+                  days: notice.mergeable.recomposed.durationDays,
                 })
               : ""}
           </p>

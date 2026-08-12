@@ -643,6 +643,89 @@ export const FORBIDDEN_PORTION_TERMS: readonly ForbiddenTerm[] = [
     token: "diet",
     surfaceForms: ["regime", "objectif", "goal"],
   },
+  // ── D2 (QA du 2026-08-12) — LES SIX OBJECTIFS, PAR LEUR NOM ─────────────
+  //
+  // ⚠️ L'ASYMÉTRIE QUE CE BLOC FERME. L6 a réparé le 2026-08-12 la liste des
+  // ENTRÉES (`FORBIDDEN_VOICE_TERMS`) et cette liste-ci — celle des SORTIES,
+  // c'est-à-dire du texte LU À VOIX HAUTE À TABLE — a gardé le trou intact.
+  // Mesuré sur `findForbiddenMatches`, `allowNegatedMentions: false`:
+  //
+  //     « a smaller starch share for fat loss »   PASSAIT
+  //     « extra rice for muscle gain »            PASSAIT
+  //     « recomposition »                         PASSAIT
+  //     « perte de graisse »                      PASSAIT
+  //     « prise de masse »                        mordait (`cutting`)
+  //
+  // La liste était armée sur le POIDS, le CORPS et les CALORIES, et pas une
+  // seule fois sur les six valeurs de `MEMBER_GOALS` — c'est-à-dire sur ce que
+  // le produit range dans la colonne que D4 interdit d'énoncer. Rien n'avait
+  // fui (1 393 champs passés au crible, 0 morsure), mais parce que le modèle ne
+  // les avait pas écrits, pas parce que la garde les aurait arrêtés.
+  //
+  // ── LES TOKENS SONT LES VALEURS DE `MEMBER_GOALS`, MOT POUR MOT ─────────
+  // Pas par élégance: la trace devient alors le vocabulaire du produit
+  // (`voice_line_withheld:<membre>:fat_loss`), et un test peut BOUCLER sur la
+  // constante réelle plutôt que sur une liste recopiée à côté — un test
+  // paramétré par sa propre copie reste vert quand on ajoute un septième
+  // objectif.
+  //
+  // ── CE QUI RESTE DEHORS, ET CE QUE ÇA COÛTE ─────────────────────────────
+  //   `fat` NU        « low-fat yogurt », « retire le gras du jambon » sont des
+  //                   consignes de service ordinaires. Seul `fat loss` mord —
+  //                   le jeton est une SÉQUENCE, pas un mot.
+  //   `graisse` NU    « graisse de canard » est un ingrédient.
+  //   `muscle` NU     un plat peut nommer un muscle (« blanc », « paleron »).
+  //   `maintien` NU   « maintien au chaud » est de la cuisine. C'est
+  //                   `maintien du poids` qui parle de quelqu'un.
+  //
+  // ⚠️ `health`/`sante` ET `performance` MORDENT NUS, ET ILS COÛTENT. Mesuré
+  // sur le banc passant: « Il fait attention à sa santé » et « She is very
+  // health conscious » sont désormais RETENUES à l'entrée (2 lignes sur 16).
+  // C'est assumé dans ce sens-là — ce sont deux des six objectifs, ils se
+  // rendent EXACTEMENT par ce mot dans les deux langues (`household.goal.health`
+  // = « Health »), et une ceinture qui laisserait passer deux objectifs sur six
+  // serait la même asymétrie qu'on ferme ici. Le prix d'une morsure est une
+  // ligne non montrée au modèle (tracée), jamais un repas perdu.
+  {
+    ruleId: "portion.goal",
+    token: "fat_loss",
+    surfaceForms: [
+      "losing fat",
+      "lose fat",
+      "perte de graisse",
+      "perte de gras",
+      "perdre de la graisse",
+      "perdre du gras",
+    ],
+  },
+  {
+    ruleId: "portion.goal",
+    token: "muscle_gain",
+    surfaceForms: [
+      "gaining muscle",
+      "gain muscle",
+      "building muscle",
+      "build muscle",
+      "muscle building",
+      "prise de muscle",
+      "prendre du muscle",
+      "gain musculaire",
+    ],
+  },
+  {
+    ruleId: "portion.goal",
+    token: "recomposition",
+    // Le jeton couvre les deux langues d'un coup (« recomposition corporelle »,
+    // « body recomposition »): il est le même mot des deux côtés.
+    surfaceForms: ["recomp"],
+  },
+  { ruleId: "portion.goal", token: "performance" },
+  { ruleId: "portion.goal", token: "health", surfaceForms: ["sante"] },
+  {
+    ruleId: "portion.goal",
+    token: "maintenance",
+    surfaceForms: ["maintien du poids", "maintenir son poids"],
+  },
 ];
 
 export interface SanitizedNote {

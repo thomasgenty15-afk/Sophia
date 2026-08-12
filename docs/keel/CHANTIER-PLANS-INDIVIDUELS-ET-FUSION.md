@@ -48,7 +48,7 @@ prennent la main, et les comptes individuels sans foyer.
 | **D12** | Pas de reprise des plans produits par l'ancien chemin : ils seront régénérés. | ✅ acté |
 | **D13** | **Le verrou de paiement est au niveau du FOYER.** Foyer impayé ⇒ plus personne ne génère, ni maître ni secondaire. Un compte **sans foyer** n'est pas concerné : les comptes individuels existent et ne demandent pas de foyer. | ✅ livré (L1) |
 | **D14** | **La présence se déclare.** Le maître doit pouvoir marquer **qui est là, et quand**. Tout le monde présent est le cas simple ; une absence se marque, et elle change les parts sans supprimer la session de cuisson. | ✅ livré (L2) |
-| **D15** | **La fusion opère sur l'INTERSECTION des fenêtres.** Un secondaire peut couvrir mercredi→dimanche quand le foyer couvre lundi→dimanche. Elle s'arrête d'elle-même là où les fenêtres divergent. | ✅ livré (L4) |
+| **D15** | **La fusion REPREND l'INTERSECTION des fenêtres**, et elle s'arrête d'elle-même là où elles divergent — pour la TÊTE (les jours d'avant restent couverts par la ligne d'avant, tronquée). ⚠️ **Précisé le 2026-08-12 (L10 ①)** : ce qu'elle RECOMPOSE est la queue du plan du foyer, du pivot à son dernier jour. Une fenêtre plus courte que le plan du foyer laisserait des jours sans aucun plan — la base la refuse, ou pire l'accepte en silence. | ✅ livré (L4), précisé (L10) |
 | **D16** | **Le pivot est le premier jour non encore consommé**, pas la date de courses. Une fusion ne touche que les jours à venir, et la proposition le dit : *« son plan couvre 5 jours, dont 2 déjà passés — je peux fusionner les 3 restants. »* | ✅ livré (L4) |
 | **D17** | Un réglage **discret** permet au maître de ne plus se voir proposer la fusion pour une personne donnée. Assumé comme un peu brutal, donc caché. | ✅ livré (L5) |
 | **D18** | La date de naissance : **sur la fiche de la bouche** pour qui n'a pas de compte, et dans **« about you »** pour le maître. Pas à l'inscription. | ✅ livré (L9) |
@@ -1536,6 +1536,186 @@ remaining: 1` — où la soustraction rend exactement la même chose. Le décor 
 6. **Le test `coverage-guard` du frontend était rouge AVANT ce lot** (2 cas :
    une fonction edge et un trigger non déclarés, tous deux d'un autre
    chantier). Vérifié en remisant les changements. Non touché.
+
+## L10, l'aval — les trois défauts de la QA finale, corrigés le 2026-08-12
+
+> Trois défauts mesurés en HTTP réel après L8. Aucun run réel n'a été refait :
+> tout ce qui suit est prouvé par des tests purs, un banc de propriété, deux
+> bancs de vocabulaire et **cinq mutations**.
+
+### ① P0 — UNE FUSION NE RÉTRÉCIT PLUS LA COUVERTURE DU FOYER
+
+**Ce qui était mesuré.** Le foyer couvre `08-10→08-16`, Zoé `08-12→08-14` — la
+forme de fenêtre la plus banale du produit. La proposition annonçait « I can
+merge all 3 of them », le geste rendait **409 `plan_not_written` /
+`plan_overlaps_existing` après 16,1 s**, 7 335 jetons et **une unité du plafond
+de L7** consommée pour rien.
+
+**La règle de la base, relue plutôt que devinée.** `write_student_meal_plan`
+(migration `20260811140000`) refuse deux formes et en tronque une troisième :
+
+| Forme du plan vivant vs la fenêtre neuve | La RPC |
+|---|---|
+| commence **le même jour ou après** | refuse `plan_overlaps_existing` |
+| commence avant **et finit après** (fenêtre *englobée*) | refuse — correctif du 2026-08-11 |
+| commence avant et finit **dans** la fenêtre | **tronque**, légitimement (c'est D15) |
+
+**Le choix : produire une fenêtre écrivable, pas refuser plus tôt.** Le refus
+était l'option la plus étroite, et il a été écrit puis **abandonné** — parce
+qu'il est incohérent avec sa propre moitié jumelle :
+
+- refuser ne ferme que la branche `prepare_next`. L'autre branche **ne refusait
+  pas** : quand la fusion démarrait le même jour que le plan du foyer,
+  `replace_current` retirait la semaine entière pour la remplacer par trois
+  jours, et **la fin de semaine disparaissait en silence** ;
+- le remède qu'un refus aurait dû annoncer (« recompose ta semaine à partir de
+  ce jour, puis reprends la personne ») **produit exactement ce silence-là** :
+  la fusion suivante démarre alors le même jour et retombe dans la branche qui
+  raccourcit ;
+- l'exemple canonique de D16 lui-même — foyer 7 jours, plan personnel 5 jours,
+  fusion des 3 restants — devenait **impossible**.
+
+La règle livrée tient en une phrase : **une fusion recompose la QUEUE du plan du
+foyer, du pivot jusqu'à son dernier jour, avec la personne à table.**
+
+**Pourquoi ça ne peut régresser aucune fusion qui marche.** Quatre formes, deux
+seulement changent, et les deux sont cassées aujourd'hui :
+
+| Forme | Avant | Après |
+|---|---|---|
+| les deux fenêtres finissent ensemble (**le cas nominal** : deux plans « jusqu'à dimanche ») | s'écrit | **identique**, à l'octet près |
+| son plan déborde par la fin | s'écrit | **identique** |
+| son plan finit avant, fusion **à partir du même jour** | le foyer perd sa queue **en silence** | il la garde |
+| son plan finit avant, fusion **plus tard** | 409 payé au prix d'une génération | s'écrit |
+
+**Les jours ajoutés ne changent personne de place.** La prise de main de L3 est à
+recouvrement **total** (`planCoversWindow`) : un plan personnel qui ne couvre pas
+toute la fenêtre ne retire pas son porteur du plan du foyer. Ces jours-là, la
+personne était **déjà** composée — la fusion les recompose avec elle.
+
+**Où ça tombe, et pourquoi pas ailleurs.** Dans `resolveMergeWindow`, donc dans
+`bestMergePair`, donc dans **le seul choisisseur** — celui que la PROPOSITION
+(D10) et le GESTE partagent depuis L5. `MergeWindow` porte désormais deux
+fenêtres nommées : `window` (les jours de **son** plan qui reviennent, ce que la
+proposition annonce, ce qui choisit la paire) et `recomposed` (ce qui part à
+`write_student_meal_plan`). Le générateur écrit `recomposed`, et un test de
+source refuse `window`.
+
+**La proposition dit le geste entier.** `proposalSentence` garde sa phrase de
+D16 et lui ajoute, **seulement quand les deux fenêtres diffèrent** : *« Doing it
+rebuilds the household's 5 remaining days, so the end of the week keeps a
+plan. »* La carte porte la même ligne (`household.merge.window_rebuilt`), muette
+dans le cas nominal. Le journal, l'archive `generated_from.household.merge` et
+la réponse HTTP portent maintenant **les deux** fenêtres (`window` +
+`merged`).
+
+**Le plafond n'est pas consommé.** Il ne l'était déjà pas par un refus — les
+onze refus de fusion tombent dans `resolveMergeRequest`, avant la lecture rapide
+du quota (`keel_household_merge_quota_state`) et **très** avant la réclamation
+(`keel_household_claim_merge_quota`, juste avant le modèle). Ce qui a changé,
+c'est qu'il n'y a plus de fusion qui **paie** le plafond pour finir sur un 409 :
+la fenêtre est écrivable **par construction**, et un banc de propriété de 400
+formes le vérifie contre la règle de la RPC.
+
+**⚠️ La règle SQL est recopiée en TypeScript, et le fil est tendu.**
+`mergeWindowWritable` rejoue la boucle de chevauchement ; ce n'est pas une garde
+(personne ne lit son `false`), c'est **la mesure** qui rend l'invariant
+vérifiable. Un test relit la boucle **dans la migration** et tombe le jour où
+l'original bouge.
+
+### ② SÉCURITÉ — LES SIX OBJECTIFS MORDENT SUR LA LISTE DE SORTIE
+
+L6 avait réparé l'asymétrie sur la liste des **entrées** ; elle a survécu intacte
+sur la liste des **sorties**, celle du texte **lu à voix haute à table**. Mesuré
+sur un banc de 17 phrases (les six objectifs, EN et FR) : **2 mordaient sur 17**.
+
+Six termes ajoutés à `FORBIDDEN_PORTION_TERMS`, dont les `token` sont **les
+valeurs de `MEMBER_GOALS` mot pour mot** — la trace parle donc le vocabulaire du
+produit, et le test **boucle sur la constante réelle** plutôt que sur une copie.
+
+| Banc | Avant | Après |
+|---|---|---|
+| adverse (6 objectifs × EN/FR, 17 lignes) | 2 mordent | **17 mordent** |
+| passant — consignes de service (24 lignes) | 0 perdue | **0 perdue** |
+| passant — voix libres (16 lignes) | 0 retenue | **2 retenues** |
+
+**Ce que ça coûte, nommément.** « Il fait attention à sa santé » et « She is very
+health conscious » sont désormais **retenues à l'entrée** : `health` et `santé`
+mordent nus, parce que c'est **exactement** ainsi que cet objectif-là se rend
+dans les deux langues (`household.goal.health` = « Health »). Laisser passer deux
+objectifs sur six aurait reconduit l'asymétrie qu'on ferme. Le prix d'une morsure
+est une ligne non montrée au modèle, tracée — jamais un repas perdu.
+
+**Ce qui reste dehors, mesuré :** `fat` nu (« low-fat yogurt », « retire le gras
+du jambon »), `graisse` nu (« graisse de canard »), `muscle` nu (« le muscle du
+gîte »), `maintien` nu (« maintien au chaud »), et `healthy`. Ce qui mord est la
+**séquence** (`fat loss`, `maintien du poids`), jamais le mot seul.
+
+### ③ « REFUSER » NE TUE PLUS L'AVERTISSEMENT QUE LE MUTE ÉPARGNE
+
+`dismiss` s'exécutait **avant** le calcul de `warns`, donc sans la garde que le
+mute (D17) et le plafond (L7) portent tous les deux. Mesuré : plan du foyer
+portant une reprise périmée + `dismiss` ⇒ `notices: []`, `skipped:
+dismissed_by_owner` — la ligne vivante du maître gardait sa reprise obsolète et
+la sortie `unmerge` devenait **hors d'atteinte**.
+
+Les trois se lisent maintenant pareil, et c'est la seule ligne à retenir : **ce
+qui parle du plan de quelqu'un d'autre se tait sur demande ; ce qui parle du plan
+DU MAÎTRE ne se tait jamais.** `warns` est calculé **avant** les trois silences.
+Le coût assumé : sur un avertissement, « refuser » ne fait plus disparaître la
+carte — il pose la borne (la proposition ne reviendra pas à la validation
+suivante), et le bouton reste offert.
+
+### Les versions de prompt — aucune ne bouge, et voici pourquoi
+
+La règle établie est « quelle **population** voit une **consigne** différente ».
+
+- **`MEAL_PROMPT_VERSION` (tronc) : inchangée.** Rien de ce lot n'entre dans le
+  tronc. La lane individuelle rend un prompt byte-identique.
+- **`HOUSEHOLD_PROMPT_VERSION` (`v6_voices`) : inchangée.** ① change des
+  **dates** — la fenêtre d'une fusion, comme toute fenêtre, est une donnée de la
+  requête, et le gabarit de phrase (« from X to Y », « at most N dishes ») n'a
+  pas bougé d'un caractère. ② ne touche **pas** le prompt du tout côté sortie
+  (`sanitizePortionNote` est un filtre **après** génération) ; côté entrée, la
+  garde des voix peut retenir une ligne de plus, mais une ligne de données
+  retenue n'est pas une consigne différente — sinon tout changement de roster
+  bumperait la version. ③ ne concerne que le lecteur de propositions, qui
+  n'appelle aucun modèle.
+
+### Les cinq mutations — chacune cassée, vue rouge, restaurée
+
+| # | Ce qu'on casse | Ce qui rougit |
+|---|---|---|
+| 1 | `recomposed` redevient l'intersection coupée au pivot | les 3 tests D1 de fenêtre + le banc de propriété ; **les 3 tests du cas nominal restent verts** |
+| 2 | le générateur écrit `merge.window.window` au lieu de `recomposed` | « LA FENÊTRE DE FUSION SE DÉDUIT » (test de source) |
+| 3 | `dismiss` repasse avant `warns` | « D5 — REFUSER NE COUPE PAS L'AVERTISSEMENT » ; les deux autres tests de `dismiss` restent verts |
+| 4 | le terme `fat_loss` est désarmé | le banc adverse des six objectifs ; **le banc passant reste vert** |
+| 5 | le terme devient `fat` nu | le banc passant (`low-fat yogurt`) ; **le banc adverse reste vert** |
+
+Les mutations 1/4/5 sont celles qui comptent : elles prouvent que le décor
+**sépare** les deux moitiés au lieu de tout tenir d'un seul fil.
+
+### Ce qui n'est pas prouvé, et ce qui reste ouvert
+
+1. **Aucun run réel.** Pas un appel HTTP, pas une génération. Une fusion sur une
+   fenêtre englobée n'a jamais été **écrite** en base.
+2. **La porte `compose` porte la même famille de défaut, et n'est pas touchée.**
+   Un `window: {kind:"days", count:3}` ou une fenêtre `exact` intérieure au plan
+   du foyer se paie encore d'un 409 **après** le modèle. L'écran, lui, n'envoie
+   que `until_sunday` + `prepare_next`, dont la fin coïncide toujours avec celle
+   du plan courant : le chemin nominal ne l'atteint pas. Non corrigé exprès —
+   c'est une porte que le client paramètre, et refuser plus tôt y est une
+   décision de produit distincte.
+3. **`observeMergeShape` n'a pas été relu sur une fenêtre élargie.** Le constat
+   travaille sur ce que le modèle rend, pas sur la fenêtre ; aucune raison de
+   croire qu'il change, aucune mesure non plus.
+4. **`merge_member_away_all_window` se prononce sur la fenêtre ÉLARGIE**, et
+   c'est un effet de bord assumé : quelqu'un d'absent tous les jours de son
+   propre plan mais présent sur la queue du foyer n'est plus refusé — il a bien
+   une assiette, ce qui est la raison écrite de ce refus. Non mesuré.
+5. **Le test `coverage-guard` du frontend était rouge AVANT ce lot** (2 cas :
+   une fonction edge et un trigger non déclarés, d'un autre chantier). Vérifié
+   en remisant les changements.
 
 ## ⚠️ O7 — LA DERNIÈRE PORTE FERMÉE, ET ELLE A DE L'ARGENT DERRIÈRE
 

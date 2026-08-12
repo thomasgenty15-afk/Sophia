@@ -532,6 +532,40 @@ Deno.test("D8, 3e sortie — « refuser » se tait POUR CETTE VALIDATION-LÀ", (
   assertEquals(again.notices[0].planId, "plan-zoe-3");
 });
 
+Deno.test("D5 — « REFUSER » NE COUPE PAS L'AVERTISSEMENT DE D8 NON PLUS", () => {
+  // ⚠️ MESURÉ EN HTTP LE 2026-08-12, ET C'EST LE MÊME DÉGÂT QUE L'ARBITRAGE
+  // VOISIN INTERDIT. Le plan du foyer VIVANT porte la reprise d'un plan que Zoé
+  // a remplacé depuis; le maître avait « refusé » cette validation-là. Résultat:
+  // `notices: []`, `skipped: dismissed_by_owner` — sa propre ligne gardait une
+  // reprise obsolète, et `unmerge` (la seule sortie qui la défait, et elle ne
+  // coûte aucun quota) devenait hors d'atteinte jusqu'à ce que Zoé valide
+  // ENCORE autre chose.
+  //
+  // Le décor est celui du mute, à un réglage près: c'est ce qui prouve que les
+  // deux se lisent pareil.
+  const out = notices({
+    members: [ZOE("2026-08-15T08:00:00Z", "plan-zoe-2")],
+    mergedFrom: [MERGED],
+    settings: [{
+      memberId: "m-zoe",
+      proposalsMuted: false,
+      // La date écartée est CELLE DU PLAN LE PLUS RÉCENT: le refus est donc
+      // pleinement en vigueur, et il ne suffit toujours pas à taire la ligne du
+      // maître.
+      dismissedValidatedAt: "2026-08-15T08:00:00Z",
+    }],
+  });
+  assertEquals(out.notices.length, 1);
+  assertEquals(out.notices[0].kind, NOTICE_MERGED_PLAN_REVALIDATED);
+  // LA SORTIE QUI COMPTE, ET C'EST TOUTE LA RAISON DU LOT: la défusion reste
+  // atteignable.
+  assert(
+    out.notices[0].exits.includes(EXIT_UNMERGE),
+    "l'avertissement survit mais n'offre plus de défaire la reprise: le maître " +
+      "voit le dégât sans pouvoir le réparer.",
+  );
+});
+
 Deno.test("un plan qui ne partage aucun jour ne se propose pas, et le dit", () => {
   const out = buildMergeNotices({
     members: [{

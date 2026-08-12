@@ -959,8 +959,15 @@ Deno.serve(async (req) => {
         }
       }
       merge = resolvedMerge;
-      startsOn = merge.window.window.startsOn;
-      durationDays = merge.window.window.durationDays;
+      // ⚠️ `recomposed`, ET SURTOUT PAS `window` (D1, QA du 2026-08-12).
+      // `window` dit les jours de SON plan qui reviennent — c'est ce que la
+      // proposition annonce. Ce qu'on ÉCRIT est la queue du plan du foyer:
+      // écrire `window` quand elle est plus courte coûtait un 409
+      // `plan_overlaps_existing` APRÈS 16,1 s de modèle, ou faisait disparaître
+      // la fin de la semaine en silence quand la RPC acceptait. Voir le
+      // commentaire de `MergeWindow.recomposed`.
+      startsOn = merge.window.recomposed.startsOn;
+      durationDays = merge.window.recomposed.durationDays;
       // ── L'INTENTION SE DÉDUIT, ELLE NE SE DEMANDE PAS ─────────────────
       // Deux cas, et un seul est un remplacement.
       //   · La fusion commence LE MÊME JOUR que le plan du foyer ⇒ elle le
@@ -1004,8 +1011,14 @@ Deno.serve(async (req) => {
       // C'est la QUEUE du plan de base — ce qu'il lui reste à partir
       // d'aujourd'hui (D16). Un client qui pourrait la choisir pourrait refaire
       // hier, ou refaire une semaine que ce plan ne couvre pas.
-      startsOn = unmerge.window.window.startsOn;
-      durationDays = unmerge.window.window.durationDays;
+      //
+      // `recomposed` comme la fusion, et ici les deux sont ÉGAUX par
+      // construction: la queue d'un plan finit le même jour que lui
+      // (`resolveTailWindow` croise le plan avec lui-même). On lit quand même
+      // le même champ des deux côtés — le jour où la défusion changera de
+      // fenêtre, elle passera par la même porte, et un test le tient.
+      startsOn = unmerge.window.recomposed.startsOn;
+      durationDays = unmerge.window.recomposed.durationDays;
       intent = startsOn === unmerge.basePlan.startsOn
         ? "replace_current"
         : "prepare_next";
@@ -1770,6 +1783,14 @@ Deno.serve(async (req) => {
         reason: ladder.reason,
         conflicts: ladder.conflicts,
         window: [startsOn, durationDays],
+        // D1 — LES JOURS DE **SON** PLAN, À CÔTÉ DE CE QU'ON RECOMPOSE. Sans
+        // cette paire, une ligne de journal ne dit plus si la fenêtre écrite
+        // vient de l'intersection ou de la queue du plan du foyer — et c'est
+        // très exactement la question qu'on se pose en relisant une fusion.
+        merged: [
+          merge.window.window.startsOn,
+          merge.window.window.durationDays,
+        ],
         intersection: [
           merge.window.intersection.startsOn,
           merge.window.intersection.durationDays,
@@ -2691,6 +2712,14 @@ Deno.serve(async (req) => {
                     starts_on: merge.window.intersection.startsOn,
                     duration_days: merge.window.intersection.durationDays,
                   },
+                  // D1 — LES JOURS REPRIS DE SON PLAN, quand la fenêtre écrite
+                  // les DÉBORDE. La ligne porte déjà `starts_on` et
+                  // `duration_days`: sans ce couple-ci, rien ne dirait plus
+                  // lesquels de ces jours venaient de son plan.
+                  merged: {
+                    starts_on: merge.window.window.startsOn,
+                    duration_days: merge.window.window.durationDays,
+                  },
                   // D16 — OÙ ON A COUPÉ, ET COMBIEN DE JOURS SONT TOMBÉS.
                   pivot: merge.window.pivot,
                   days_already_past: merge.window.daysAlreadyPast,
@@ -2769,6 +2798,13 @@ Deno.serve(async (req) => {
           reason: ladder.reason,
           conflicts: ladder.conflicts,
           window: { starts_on: startsOn, duration_days: durationDays },
+          // D1 — CE QUE LA FENÊTRE ÉCRITE DOIT À SON PLAN. `window` est la
+          // queue du plan du foyer; `merged` les jours qui viennent d'elle.
+          // L'écran a besoin des deux pour dire la vérité en une phrase.
+          merged: {
+            starts_on: merge.window.window.startsOn,
+            duration_days: merge.window.window.durationDays,
+          },
           intersection: {
             starts_on: merge.window.intersection.startsOn,
             duration_days: merge.window.intersection.durationDays,

@@ -2,6 +2,8 @@ import { assert, assertEquals } from "jsr:@std/assert@1";
 
 import {
   buildPortionBrief,
+  MEMBER_GOALS,
+  type MemberGoal,
   memberPortionsPayload,
   type PortionMember,
   reconcilePortions,
@@ -367,6 +369,104 @@ Deno.test("LOT 3B — les fuites que le corps rend POSSIBLES sont mordues, FR et
     "keeps your BMI in range",
   ]) {
     assertEquals(sanitizePortionNote(note).note, null, `« ${note} » doit être refusée`);
+  }
+});
+
+// ───────────────────────────────────────────────────────────────────────────
+// D2 (QA du 2026-08-12) — LES SIX OBJECTIFS MORDENT, DANS LES DEUX LANGUES
+//
+// ⚠️ LA LISTE DE SORTIE EST CELLE DU TEXTE LU À VOIX HAUTE À TABLE, et c'est
+// elle qui avait gardé l'asymétrie que L6 avait réparée sur l'entrée. Mesuré
+// avant ce lot: 2 des 17 lignes ci-dessous mordaient.
+// ───────────────────────────────────────────────────────────────────────────
+
+/**
+ * LE BANC ADVERSE, ÉCRIT À LA MAIN, UNE ENTRÉE PAR OBJECTIF ET PAR LANGUE.
+ *
+ * ⚠️ IL N'EST PAS DÉRIVÉ DE LA LISTE D'INTERDITS — un banc qui se paramètre sur
+ * la chose qu'il teste reste vert quand on la change. Ce sont des PHRASES, du
+ * genre que le modèle écrit vraiment dans une consigne de portion.
+ */
+const GOAL_LEAKS: Record<MemberGoal, readonly string[]> = {
+  fat_loss: [
+    "a smaller starch share for fat loss",
+    "she is losing fat right now",
+    "part de féculent réduite, perte de graisse",
+    "perte de gras en cours",
+  ],
+  muscle_gain: [
+    "extra rice for muscle gain",
+    "he is building muscle",
+    "du riz en plus pour la prise de muscle",
+    "une part en plus, prise de masse",
+  ],
+  recomposition: [
+    "recomposition",
+    "body recomposition, same plate",
+    "recomposition corporelle",
+  ],
+  performance: [
+    "a bigger starch share for performance",
+    "féculent en plus pour la performance",
+  ],
+  health: [
+    "a lighter share, for health",
+    "une part plus légère, pour sa santé",
+  ],
+  maintenance: [
+    "same share as always, maintenance",
+    "même part que d'habitude, maintien du poids",
+  ],
+};
+
+Deno.test("D2 — LES SIX OBJECTIFS DE `MEMBER_GOALS` MORDENT, EN ET FR", () => {
+  // ⚠️ LA BOUCLE PORTE SUR LA CONSTANTE DU PRODUIT, pas sur les clés du banc:
+  // un septième objectif ajouté à `MEMBER_GOALS` fait tomber ce test tant que
+  // personne n'a écrit comment il se dit dans les deux langues.
+  for (const goal of MEMBER_GOALS) {
+    const lines = GOAL_LEAKS[goal];
+    assert(lines && lines.length >= 2, `aucun rendu écrit pour « ${goal} »`);
+    for (const note of lines) {
+      const out = sanitizePortionNote(note);
+      assertEquals(
+        out.note,
+        null,
+        `[${goal}] « ${note} » doit être refusée — c'est la colonne que D4 ` +
+          `interdit d'énoncer, lue à table par tout le foyer`,
+      );
+    }
+  }
+});
+
+Deno.test("D2 — CE QUI A MORDU EST NOMMÉ PAR LE JETON DE L'OBJECTIF", () => {
+  // La trace doit se relire avec le vocabulaire du produit. Trois objectifs
+  // dont le nom EST le jeton, et un dont la forme de surface diffère du sien.
+  assertEquals(sanitizePortionNote("for fat loss").violations, ["fat_loss"]);
+  assertEquals(sanitizePortionNote("for muscle gain").violations, ["muscle_gain"]);
+  assertEquals(sanitizePortionNote("recomposition").violations, ["recomposition"]);
+  assertEquals(sanitizePortionNote("pour sa santé").violations, ["sante"]);
+});
+
+Deno.test("D2 — LA MOITIÉ QUI COÛTE: `fat` NU NE MORD PAS", () => {
+  // ⚠️ « Une garde a besoin d'un cas qui passe. » Le faux positif est réel ici:
+  // le mot `fat` est du vocabulaire de cuisine ordinaire, et une ceinture qui
+  // mettrait en part standard quiconque reçoit un yaourt allégé se ferait
+  // désarmer dans la semaine. Ce qui mord est la SÉQUENCE `fat loss`, jamais le
+  // mot seul — et le même arbitrage vaut pour `graisse`, `muscle`, `maintien`
+  // et `healthy`.
+  for (const note of [
+    "low-fat yogurt on the side",
+    "trim the fat off the ham",
+    "a healthy plate for everyone",
+    "un yaourt allégé en matière grasse",
+    "graisse de canard pour les pommes de terre",
+    "retire le gras du jambon",
+    "le muscle du gîte, coupé fin",
+    "maintien au chaud pendant 10 minutes",
+    "recompose l'assiette avec plus de légumes",
+    "sers-lui la même part que d'habitude",
+  ]) {
+    assertEquals(sanitizePortionNote(note).note, note, `« ${note} » doit passer`);
   }
 });
 

@@ -15,6 +15,7 @@
 // après quoi personne ne saurait laquelle ment.
 
 import { supabase } from "../../lib/supabase";
+import { readEdgeRefusal } from "./edgeErrors";
 import {
   type AwayDay,
   DEFAULT_EATING_RHYTHM,
@@ -933,17 +934,16 @@ export interface HouseholdMealResult {
  * aurait divergé le jour où la forme de la réponse bouge, et la divergence
  * aurait été muette — on afficherait « non-2xx » à la place d'un refus qui a
  * un nom.
+ *
+ * ⚠️ ET C'EST EXACTEMENT CE QUI ÉTAIT ARRIVÉ, une porte plus loin:
+ * `mealGeneration.ts` avait SON lecteur, et les deux ignoraient le 401 dont le
+ * corps ne porte pas de clé `error` — le cas de la session périmée. La lecture
+ * du corps vit maintenant une seule fois, dans `api/edgeErrors.ts`; cette
+ * fonction-ci n'en garde que la FORME (un jeton, ou rien), celle qu'attendent
+ * ses appelants.
  */
 export async function namedEdgeRefusal(error: unknown): Promise<string | null> {
-  const ctx = (error as { context?: unknown } | null)?.context;
-  if (!ctx || typeof (ctx as Response).json !== "function") return null;
-  try {
-    const body = await (ctx as Response).json();
-    const named = String((body as { error?: unknown } | null)?.error ?? "").trim();
-    return named || null;
-  } catch {
-    return null;
-  }
+  return (await readEdgeRefusal(error))?.token ?? null;
 }
 
 export async function generateHouseholdMeal(args: {

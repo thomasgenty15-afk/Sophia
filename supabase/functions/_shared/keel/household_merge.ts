@@ -100,8 +100,67 @@ export interface MergeWindow {
   intersection: PlanSpan;
   /** Le premier jour non consommé, dans le fuseau de l'élève (D16). */
   pivot: string;
-  /** Ce que la fusion recompose vraiment: l'intersection, coupée au pivot. */
+  /**
+   * LES JOURS DE **SON** PLAN QUI REVIENNENT: l'intersection, coupée au pivot.
+   *
+   * ⚠️ CE N'EST PAS LA FENÊTRE ÉCRITE. Elle l'était jusqu'au 2026-08-12, et
+   * c'est ce qui a produit le P0 de la QA: écrire CETTE fenêtre-là quand elle
+   * est strictement intérieure au plan du foyer laisse la queue du foyer sans
+   * aucun plan, et `write_student_meal_plan` la refuse pour cette raison
+   * exacte. Ce qui part à la base est `recomposed`, juste en dessous.
+   *
+   * C'est ce nombre-ci que la PROPOSITION annonce (« je peux fusionner les 3
+   * restants ») et c'est lui qui choisit la paire dans `bestMergePair`: il
+   * parle des jours de la personne, et c'est la question que le maître se pose.
+   */
   window: PlanSpan;
+  /**
+   * CE QUE LA FUSION RECOMPOSE VRAIMENT, ET CE QUI PART À `write_student_meal_plan`.
+   *
+   * ── LE DÉFAUT QU'ELLE FERME (QA du 2026-08-12) ──────────────────────────
+   * Le foyer couvre lundi→dimanche, le secondaire mercredi→vendredi. La fenêtre
+   * partagée est mercredi→vendredi, et l'écrire coûtait:
+   *
+   *     POST merge → 409 plan_not_written / plan_overlaps_existing, APRÈS
+   *     16,1 s de modèle, 7 335 jetons, et UNE unité du plafond de L7.
+   *
+   * La base refuse exprès (correctif du 2026-08-11): un plan intérieur à un
+   * plan vivant tronquait l'ancien à sa tête et laissait sa QUEUE sans aucune
+   * couverture. Et l'autre moitié du même défaut ne refusait pas, elle: quand
+   * la fusion commençait LE MÊME JOUR que le plan du foyer, `replace_current`
+   * retirait la semaine entière pour la remplacer par trois jours — samedi et
+   * dimanche disparaissaient EN SILENCE.
+   *
+   * ── LA RÈGLE, EN UNE PHRASE ─────────────────────────────────────────────
+   * UNE FUSION NE RÉTRÉCIT JAMAIS LA COUVERTURE DU FOYER. Elle recompose la
+   * QUEUE du plan du foyer — du pivot jusqu'au dernier jour de ce plan — avec
+   * la personne à table. Les jours d'AVANT le pivot restent couverts par la
+   * ligne d'avant, tronquée par la RPC: c'est D15 (« hors intersection, chacun
+   * garde ce qu'il avait »), et elle est intacte pour la TÊTE.
+   *
+   * ── POURQUOI ÇA NE PEUT PAS RÉGRESSER UNE FUSION QUI MARCHE ─────────────
+   * Quatre formes, et deux seulement changent:
+   *
+   *   · les deux fenêtres finissent le même jour  ⇒ `recomposed` = `window`,
+   *     rien ne bouge (c'est le cas nominal: deux plans « jusqu'à dimanche »);
+   *   · son plan déborde par la fin                ⇒ idem, l'intersection
+   *     s'arrête déjà à la fin du plan du foyer;
+   *   · son plan finit AVANT, fusion à partir du même jour ⇒ aujourd'hui le
+   *     foyer perd sa queue en silence; désormais il la garde;
+   *   · son plan finit AVANT, fusion plus tard     ⇒ aujourd'hui 409 payé au
+   *     prix d'une génération; désormais ça s'écrit.
+   *
+   * ── CE QUE ÇA CHANGE POUR LES JOURS AJOUTÉS ────────────────────────────
+   * Rien sur QUI est à table. La prise de main de L3 est à recouvrement TOTAL
+   * (`planCoversWindow`): un plan personnel qui ne couvre pas toute la fenêtre
+   * ne retire PAS son porteur du plan du foyer. Ces jours-là, la personne était
+   * déjà composée — la fusion les recompose avec elle, elle ne l'y ajoute pas.
+   *
+   * ── LE RETOUR ARRIÈRE ───────────────────────────────────────────────────
+   * Une ligne: rendre `recomposed` égal à `window`. Le prix du retour est le
+   * P0 ci-dessus, et les deux moitiés reviennent ensemble.
+   */
+  recomposed: PlanSpan;
   /**
    * Combien de jours de l'intersection sont tombés parce qu'ils sont passés.
    *
@@ -120,6 +179,57 @@ export type MergeWindowResult =
 function spanUsable(span: PlanSpan | null | undefined): boolean {
   return !!span && DATE.test(span.startsOn) &&
     Number.isFinite(span.durationDays) && span.durationDays >= 1;
+}
+
+/**
+ * LA BORNE HAUTE, EXCLUE — `starts_on + duration_days`, exactement la borne de
+ * `daterange` que la base compare. Nommée plutôt que réécrite deux fois: les
+ * bornes de fin sont l'endroit où ce dépôt se trompe d'un jour.
+ */
+function endExclusive(span: PlanSpan): string {
+  return addDays(span.startsOn, span.durationDays);
+}
+
+/**
+ * CETTE FENÊTRE-LÀ S'ÉCRIT-ELLE ? PURE, ET C'EST LA RÈGLE DE LA BASE, LUE ICI.
+ *
+ * ⚠️ ELLE N'EST PAS UNE GARDE, ELLE EST UNE MESURE. Aucun appelant ne s'en sert
+ * pour refuser: `resolveMergeWindow` produit désormais une fenêtre qui la
+ * satisfait TOUJOURS (voir `recomposed`), et c'est un test de propriété qui
+ * l'exerce sur des dizaines de formes. Une fonction dont personne ne lit le
+ * `false` pourrait sembler morte — elle est ce qui rend l'invariant VÉRIFIABLE
+ * plutôt qu'affirmé, et c'est le seul moyen qu'a ce module de savoir avant le
+ * modèle ce que la base dira après.
+ *
+ * ── CE QUE `write_student_meal_plan` FAIT, DANS SON ORDRE ────────────────
+ * (migration 20260811140000, boucle de chevauchement) — pour chaque plan
+ * VIVANT du même compte ET DE LA MÊME NATURE qui croise la fenêtre neuve:
+ *
+ *   ① il commence LE MÊME JOUR ou APRÈS  ⇒ `plan_overlaps_existing`. Le
+ *      tronquer le ferait disparaître en silence.
+ *   ② il commence AVANT **et finit APRÈS** ⇒ `plan_overlaps_existing`. C'est le
+ *      correctif du 2026-08-11: sa QUEUE se retrouvait sans aucun plan.
+ *   ③ sinon ⇒ TRONQUÉ, légitimement, et c'est le mécanisme même de D15.
+ *
+ * Le plan explicitement REMPLACÉ (`replace_current`) est retiré AVANT cette
+ * boucle: il ne chevauche donc plus rien, d'où la première ligne ci-dessous.
+ *
+ * ⚠️ RECOPIER UNE RÈGLE SQL EN TYPESCRIPT SE PAIE, ET LE FIL EST TENDU: un test
+ * relit la boucle DANS LA MIGRATION et tombe le jour où l'original bouge.
+ */
+export function mergeWindowWritable(
+  household: PlanSpan,
+  window: PlanSpan,
+): boolean {
+  // La fenêtre démarre LE MÊME JOUR: l'appelant passe `replace_current`, la RPC
+  // retire la ligne AVANT sa boucle de chevauchement, et il n'y a donc plus
+  // rien à chevaucher.
+  if (window.startsOn === household.startsOn) return true;
+  // ① « commence le même jour ou après » — inatteignable sur une intersection,
+  // écrit pour que la règle se relise entière.
+  if (household.startsOn >= window.startsOn) return false;
+  // ② « commence avant ET finit après »: le correctif du 2026-08-11.
+  return endExclusive(household) <= endExclusive(window);
 }
 
 /** Nombre de jours de `start` à `end`, bornes incluses. `end < start` ⇒ 0. */
@@ -191,11 +301,39 @@ export function resolveMergeWindow(args: {
   const pivot = args.today > start ? args.today : start;
   if (pivot > end) return { ok: false, refusal: MERGE_WINDOW_ALL_PAST };
 
+  const window: PlanSpan = {
+    startsOn: pivot,
+    durationDays: dayCountInclusive(pivot, end),
+  };
+
+  // ── CE QUI PART VRAIMENT À L'ÉCRITURE (D1 de la QA du 2026-08-12) ────────
+  //
+  // La QUEUE du plan du foyer, du pivot jusqu'à son dernier jour. Elle vaut
+  // `window` dès que les deux fenêtres finissent ensemble — le cas nominal — et
+  // elle l'ÉTEND quand le plan personnel s'arrête plus tôt. Voir le long
+  // commentaire de `recomposed`: la fusion ne rétrécit jamais la couverture du
+  // foyer, ni par un 409 payé au prix d'une génération, ni en silence.
+  //
+  // ⚠️ C'EST ICI, ET PAS DANS LE GÉNÉRATEUR. `bestMergePair` appelle cette
+  // fonction, et il est le SEUL choisisseur — pour la PROPOSITION (D10) comme
+  // pour le GESTE. Une seconde arithmétique une couche plus haut aurait fait
+  // dire à la proposition autre chose que ce que la fusion écrit, ce que L5 a
+  // extrait cette fonction pour empêcher.
+  //
+  // Le `max` n'est pas décoratif: `end` vaut déjà `min(fin du foyer, fin du
+  // sien)`, donc il RÉTABLIT la fin du foyer quand c'est le plan personnel qui
+  // s'arrête le premier, et ne fait rien dans l'autre sens.
+  const recomposed: PlanSpan = {
+    startsOn: pivot,
+    durationDays: dayCountInclusive(pivot, householdEnd > end ? householdEnd : end),
+  };
+
   return {
     ok: true,
     intersection,
     pivot,
-    window: { startsOn: pivot, durationDays: dayCountInclusive(pivot, end) },
+    window,
+    recomposed,
     daysAlreadyPast: dayCountInclusive(start, addDays(pivot, -1)),
   };
 }
@@ -220,6 +358,7 @@ export function resolveMergeWindow(args: {
  * dit plus que « rien en commun »: les deux plans se touchent bien, et c'est le
  * pivot qui a tranché. Renvoyer `disjoint` là où le vrai motif est D16 enverrait
  * le maître vérifier des dates qui sont justes.
+ *
  */
 export function bestMergePair<H extends PlanSpan, P extends PlanSpan>(args: {
   householdPlans: readonly H[];

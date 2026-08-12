@@ -20,6 +20,7 @@
 // `honours_belief_keys`, pour qu'aucun écran ne puisse l'afficher par accident.
 
 import { supabase } from "../../lib/supabase";
+import { readEdgeRefusal } from "./edgeErrors";
 import { type MealWindowRequest, selectMealPlans } from "./mealWindow";
 import { type DayToken } from "./types";
 
@@ -674,18 +675,20 @@ function readSessions(raw: unknown): CookingSession[] {
   }).filter((s) => s.day !== "" && s.preparation_ids.length > 0);
 }
 
+/**
+ * « JETON: DÉTAIL » — la forme que `MealBuilder` découpe sur le premier `:`.
+ *
+ * ⚠️ LA LECTURE DU CORPS N'EST PLUS ICI. Ce fichier avait son propre lecteur,
+ * jumeau de `namedEdgeRefusal`, et les deux avaient le MÊME trou: un 401 dont
+ * le corps ne porte pas de clé `error` — c'est-à-dire la session périmée, le
+ * cas le plus banal qui soit — rendait `null`, et l'élève lisait la phrase de
+ * supabase-js (« Edge Function returned a non-2xx status code ») au lieu d'une
+ * phrase sur sa session. Voir `api/edgeErrors.ts`.
+ */
 async function readInvokeError(error: unknown): Promise<string | null> {
-  const context = (error as { context?: unknown })?.context;
-  if (!context || typeof (context as Response).json !== "function") return null;
-  try {
-    const body = await (context as Response).json();
-    const named = String((body as Record<string, unknown>)?.error ?? "").trim();
-    const detail = String((body as Record<string, unknown>)?.detail ?? "").trim();
-    if (!named) return null;
-    return detail ? `${named}: ${detail}` : named;
-  } catch {
-    return null;
-  }
+  const refusal = await readEdgeRefusal(error);
+  if (!refusal) return null;
+  return refusal.detail ? `${refusal.token}: ${refusal.detail}` : refusal.token;
 }
 
 /** Les colonnes qu'un plan doit rendre pour être affichable ET situable. */

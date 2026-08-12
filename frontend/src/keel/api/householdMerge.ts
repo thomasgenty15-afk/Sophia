@@ -48,8 +48,18 @@ export type MergeNoticeKind =
   | typeof NOTICE_MERGED_PLAN_REVALIDATED;
 
 export interface MergeableView {
-  /** Ce qu'une fusion prendrait vraiment: l'intersection coupée au pivot. */
+  /** Les jours de SON plan qu'une fusion reprendrait: l'intersection coupée au pivot. */
   window: PlanSpanView;
+  /**
+   * D1 — CE QUE LA FUSION RECOMPOSERAIT: la queue du plan du foyer.
+   *
+   * Égal à `window` dans le cas nominal (deux plans qui finissent ensemble). Il
+   * l'excède quand leur plan s'arrête plus tôt — la fusion refait alors la
+   * semaine du foyer jusqu'au bout, sinon la fin de semaine n'aurait plus aucun
+   * plan. `null` quand le serveur ne le rend pas encore (déploiement en cours):
+   * l'écran retombe alors sur `window`, ce qu'il faisait avant ce champ.
+   */
+  recomposed: PlanSpanView | null;
   /** Ce que les deux plans partagent, avant la coupe de D16. */
   intersection: PlanSpanView;
   /** Le premier jour non encore consommé. */
@@ -200,6 +210,7 @@ export function readNotice(raw: unknown): MergeNoticeView | null {
     mergeable: mergeableWindow && mergeableIntersection
       ? {
         window: mergeableWindow,
+        recomposed: span(mergeableRaw?.recomposed),
         intersection: mergeableIntersection,
         pivot: String(mergeableRaw?.pivot ?? ""),
         daysAlreadyPast: Number(mergeableRaw?.days_already_past) || 0,

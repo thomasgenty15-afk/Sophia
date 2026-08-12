@@ -49,7 +49,7 @@ import {
   windowDayOrder,
 } from "../api/mealWindow";
 import { loadMutedMembers, muteMergeProposals } from "../api/householdMerge";
-import { edgeRefusalKey, mergeSettingRefusalKey } from "../copy/planRefusals";
+import { edgeRefusalKey, householdErrorKey } from "../copy/planRefusals";
 import MealPickerGrid from "../components/MealPickerGrid";
 import HouseholdMergeCard from "../components/HouseholdMergeCard";
 import HouseholdPlanCard from "../components/HouseholdPlanCard";
@@ -119,45 +119,19 @@ type Loading = "loading" | "ready" | "error";
  * force à ajouter l'étiquette au lieu de la tolérer.
  */
 function householdErrorText(reason: string): string | null {
-  switch (reason) {
-    case "bad_first_name":
-      return t("household.error.bad_first_name");
-    case "bad_birth_date":
-      return t("household.error.bad_birth_date");
-    case "bad_goal":
-      return t("household.error.bad_goal");
-    case "bad_label":
-      return t("household.error.bad_label");
-    case "bad_away":
-      return t("household.error.bad_away");
-    case "household_full":
-      return t("household.error.household_full");
-    case "not_owner":
-      return t("household.error.not_owner");
-    case "not_a_member":
-      return t("household.error.not_a_member");
-    case "not_your_line":
-      return t("household.error.not_your_line");
-    case "no_household":
-      return t("household.error.no_household");
-    case "cannot_remove_owner":
-      return t("household.error.cannot_remove_owner");
-    case "cannot_detach_owner":
-      return t("household.error.cannot_detach_owner");
-    case "not_claimed":
-      return t("household.error.not_claimed");
-    case "not_found":
-      return t("household.error.not_found");
-    default: {
-      // L8/D17 — les motifs propres aux deux RPC de réglage de fusion
-      // (`muted_required`, `member_is_owner`, `notice_moved_on`…). Ils sont
-      // dans leur propre table plutôt qu'ici parce qu'ils sont partagés avec la
-      // carte de proposition; ce repli les fait quand même arriver en mots
-      // quand le geste part de cet écran-ci.
-      const merge = mergeSettingRefusalKey(reason);
-      return merge ? t(merge) : null;
-    }
-  }
+  // ⚠️ LA LISTE A DÉMÉNAGÉ DANS `copy/planRefusals.ts`, et ce n'est pas un
+  // rangement. Elle était un `switch` privé de ce fichier, donc invisible à la
+  // carte de proposition — qui reçoit pourtant les mêmes motifs et affichait
+  // `not_a_member` en toutes lettres (mesuré deux fois en HTTP réel). Une même
+  // liste fermée, deux écrans, un seul exemplaire: c'est la raison d'être du
+  // module de refus, écrite dans son en-tête.
+  //
+  // L'ORDRE EST CELUI D'AVANT: les motifs de foyer d'abord, les motifs propres
+  // aux deux RPC de réglage de fusion ensuite (`muted_required`,
+  // `member_is_owner`, `notice_moved_on`…). `householdErrorKey` le tient, et le
+  // test appelle la même fonction que cette ligne.
+  const key = householdErrorKey(reason);
+  return key ? t(key) : null;
 }
 
 function goalLabel(goal: MemberGoal): string {

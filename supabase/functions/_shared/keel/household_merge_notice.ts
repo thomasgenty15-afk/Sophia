@@ -564,7 +564,20 @@ export const EXIT_UNMERGE = "unmerge";
 export const EXIT_DISMISS = "dismiss";
 
 export interface MergeNoticeWindow {
+  /** Les jours de SON plan qui reviendraient. C'est la phrase de D16. */
   window: PlanSpan;
+  /**
+   * D1 — CE QUE LA FUSION RECOMPOSERAIT VRAIMENT: la queue du plan du foyer.
+   *
+   * ⚠️ RENDU PARCE QUE LA PROPOSITION DOIT DIRE LE GESTE, PAS LA MOITIÉ DU
+   * GESTE. Quand le plan personnel s'arrête avant la fin de la semaine du
+   * foyer, la fusion refait le foyer jusqu'à dimanche — sinon la fin de la
+   * semaine se retrouverait sans plan (voir `MergeWindow.recomposed`). Un
+   * maître à qui on annonce « 3 jours » et à qui on refait 5 dîners a le droit
+   * de le savoir AVANT de cliquer; il vaut égal à `window` dans le cas nominal,
+   * et l'écran ne dit alors rien de plus.
+   */
+  recomposed: PlanSpan;
   intersection: PlanSpan;
   pivot: string;
   daysAlreadyPast: number;
@@ -711,11 +724,33 @@ export interface MergeNoticeResult {
  *
  * ── « REFUSER », LA TROISIÈME SORTIE, DOIT DURER PLUS QU'UN ÉCRAN ────────
  * `dismissedValidatedAt` porte la validation que le maître a écartée. Elle
- * coupe les DEUX (proposition et avertissement) pour cette validation-là, et
- * pour elle seule: le jour où la personne valide un plan de plus, la date
- * change, et la question se repose. Sans cette borne, « refuser » serait soit
- * un silence d'un instant — l'écran reposerait la question au rechargement
- * suivant — soit un silence définitif, c'est-à-dire D17 déguisé.
+ * coupe la PROPOSITION pour cette validation-là, et pour elle seule: le jour où
+ * la personne valide un plan de plus, la date change, et la question se repose.
+ * Sans cette borne, « refuser » serait soit un silence d'un instant — l'écran
+ * reposerait la question au rechargement suivant — soit un silence définitif,
+ * c'est-à-dire D17 déguisé.
+ *
+ * ⚠️ ET IL NE COUPE PAS L'AVERTISSEMENT NON PLUS (D5, QA du 2026-08-12). Il le
+ * coupait, et le commentaire ci-dessus disait « les DEUX » sans jamais se
+ * demander ce que devenait le plan du maître. Mesuré: plan du foyer portant une
+ * reprise périmée + `dismiss` ⇒ `notices: []`, `skipped:
+ * dismissed_by_owner` — la ligne vivante gardait sa reprise obsolète et la
+ * sortie `unmerge` devenait HORS D'ATTEINTE jusqu'à ce que la personne valide
+ * encore autre chose. C'est mot pour mot le dégât que l'arbitrage de D17 juste
+ * au-dessus existe pour empêcher, et celui que L7 a repris pour le plafond.
+ *
+ * LES TROIS SE LISENT DONC PAREIL, et c'est la seule ligne à retenir: ce qui
+ * parle du plan de QUELQU'UN D'AUTRE se tait sur demande; ce qui parle du plan
+ * DU MAÎTRE ne se tait jamais. « Refuser » reste le plus explicite des trois —
+ * c'est un geste, pas un réglage — mais il n'a pas plus de droit que le mute sur
+ * une ligne qui n'est pas celle de l'autre.
+ *
+ * ⚠️ CE QUE ÇA COÛTE, ET C'EST ASSUMÉ: sur un avertissement, le bouton
+ * « refuser » ne fait plus disparaître la carte. Il reste offert (`EXIT_DISMISS`
+ * est dans `exits` des deux natures) parce qu'il POSE la borne — le jour où la
+ * personne valide un plan de plus, la proposition ne revient pas. Une carte qui
+ * revient est un rappel qu'on peut ignorer; un plan périmé qu'on ne peut plus
+ * défaire est un dégât qu'on ne peut pas.
  */
 export function buildMergeNotices(args: {
   /**
@@ -805,8 +840,16 @@ export function buildMergeNotices(args: {
       continue;
     }
 
+    // ⚠️ LU AVANT LES TROIS SILENCES, ET C'EST L'ORDRE QUI PORTE D5. Les trois
+    // — « refuser », le mute de D17, le plafond de L7 — partagent la même
+    // condition: ils ne se taisent que sur ce qui parle du plan D'UN AUTRE.
+    // Calculer `warns` après l'un d'eux le rendait aveugle, et c'est très
+    // exactement ce que la QA a mesuré sur `dismiss`.
+    const warns = standing?.warn === true;
+
     // « REFUSER » — la troisième sortie de D8, bornée à CETTE validation.
     if (
+      !warns &&
       setting?.dismissedValidatedAt &&
       instant(setting.dismissedValidatedAt) !== null &&
       instant(latest.validatedAt) !== null &&
@@ -815,8 +858,6 @@ export function buildMergeNotices(args: {
       skip(SKIP_DISMISSED);
       continue;
     }
-
-    const warns = standing?.warn === true;
 
     // D17 — le réglage discret. Il ne coupe QUE la proposition: un
     // avertissement parle du plan du maître, pas de celui d'un autre.
@@ -865,6 +906,7 @@ export function buildMergeNotices(args: {
     const mergeable: MergeNoticeWindow | null = pair.ok
       ? {
         window: pair.window.window,
+        recomposed: pair.window.recomposed,
         intersection: pair.window.intersection,
         pivot: pair.window.pivot,
         daysAlreadyPast: pair.window.daysAlreadyPast,
@@ -947,10 +989,26 @@ export function proposalSentence(notice: MergeNotice): string {
   const left = notice.mergeable.window.durationDays;
   const head = `${notice.displayName}'s plan covers ${covered} ` +
     `${covered === 1 ? "day" : "days"} of this household's week`;
-  return past === 0
+  const sentence = past === 0
     ? `${head} — I can merge ${left === 1 ? "the day" : `all ${left} of them`}.`
     : `${head}, ${past} of them already behind us — I can merge the ` +
       `${left} ${left === 1 ? "day" : "days"} that are left.`;
+  // ── D1 — CE QUE LA FUSION REFERA EN PLUS, DIT ICI OU NULLE PART ──────────
+  //
+  // Quand leur plan s'arrête avant la fin de la semaine du foyer, la fusion
+  // recompose la semaine JUSQU'AU BOUT — sinon la fin de semaine se retrouverait
+  // sans aucun plan, et la base refuse justement de l'écrire (mesuré: 409
+  // `plan_overlaps_existing` après 16,1 s de modèle). Le maître doit lire ce
+  // supplément AVANT de cliquer: c'est la moitié du geste que la première
+  // phrase, qui ne parle que des jours de la PERSONNE, ne peut pas porter.
+  //
+  // ⚠️ SILENCIEUX DANS LE CAS NOMINAL. Deux plans « jusqu'à dimanche » rendent
+  // `recomposed === window`, et cette phrase n'apparaît pas: une proposition
+  // qui explique toujours tout finit par ne plus être lue.
+  const rebuilt = notice.mergeable.recomposed.durationDays;
+  if (rebuilt <= left) return sentence;
+  return `${sentence} Doing it rebuilds the household's ${rebuilt} remaining ` +
+    `${rebuilt === 1 ? "day" : "days"}, so the end of the week keeps a plan.`;
 }
 
 /** Réexporté: tout consommateur de `mergeStandings` en manipule. */

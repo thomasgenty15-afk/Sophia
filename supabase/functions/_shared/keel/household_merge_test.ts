@@ -12,6 +12,10 @@
 
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
+// Le banc de propriété de D1 balaie des décalages de jours: `addDays` est la
+// MÊME arithmétique que le module sous test, pas une seconde.
+import { addDays } from "./meal_plan_window.ts";
+
 import {
   buildMergeBlock,
   dayCountInclusive,
@@ -24,7 +28,9 @@ import {
   MERGE_WINDOWS_DISJOINT,
   mergedFromEntry,
   mergeLadder,
+  mergeWindowWritable,
   resolveMergeWindow,
+  resolveTailWindow,
   servingConflicts,
 } from "./household_merge.ts";
 import {
@@ -204,7 +210,26 @@ Deno.test("D15 — la fusion s'arrête où les fenêtres se séparent", () => {
   assertEquals(out.intersection, { startsOn: WED, durationDays: 5 });
 });
 
-Deno.test("D15 — une fenêtre ENGLOBÉE rend l'englobée, pas l'englobante", () => {
+// ---------------------------------------------------------------------------
+// 2 bis. D1 (QA du 2026-08-12) — UNE FUSION NE RÉTRÉCIT JAMAIS LA COUVERTURE
+//        DU FOYER.
+//
+// Mesuré en HTTP: foyer 08-10→08-16, Zoé 08-12→08-14. La fusion écrivait
+// 08-12→08-14 et recevait 409 `plan_overlaps_existing` APRÈS 16,1 s de modèle,
+// 7 335 jetons et une unité du plafond de L7. La moitié jumelle du même défaut
+// ne refusait pas: quand la fusion démarrait le même jour que le plan du foyer,
+// `replace_current` retirait la semaine entière pour la remplacer par trois
+// jours, et la fin de semaine disparaissait EN SILENCE.
+//
+// ⚠️ LE CAS QUI PASSE EST JUSTE AU-DESSUS, et c'est le plus banal du produit:
+// foyer lundi→dimanche, secondaire mercredi→dimanche. Les deux fenêtres
+// finissent ensemble, `recomposed` VAUT `window`, et rien de ce lot ne bouge.
+// ---------------------------------------------------------------------------
+
+Deno.test("D1 — la fenêtre ÉCRITE couvre la queue du plan du foyer", () => {
+  // La forme mesurée en HTTP, en nombres: on reprend ses 2 jours (mer, jeu) et
+  // on recompose les 7 jours du foyer, pour que vendredi→dimanche gardent un
+  // plan.
   const out = resolveMergeWindow({
     household: { startsOn: MON, durationDays: 7 },
     personal: { startsOn: WED, durationDays: 2 },
@@ -212,6 +237,159 @@ Deno.test("D15 — une fenêtre ENGLOBÉE rend l'englobée, pas l'englobante", (
   });
   assert(out.ok);
   assertEquals(out.window, { startsOn: WED, durationDays: 2 });
+  assertEquals(out.recomposed, { startsOn: WED, durationDays: 5 });
+});
+
+Deno.test("D1 — le PIVOT coupe les deux fenêtres, jamais une seule", () => {
+  // Deux jours déjà consommés: la reprise porte sur les 3 jours restants de SON
+  // plan (mer→ven), et la recomposition sur les 5 jours restants du foyer.
+  // C'est la phrase de D16, et elle reste vraie mot pour mot.
+  const out = resolveMergeWindow({
+    household: { startsOn: MON, durationDays: 7 },
+    personal: { startsOn: MON, durationDays: 5 },
+    today: WED,
+  });
+  assert(out.ok);
+  assertEquals(out.window, { startsOn: WED, durationDays: 3 });
+  assertEquals(out.recomposed, { startsOn: WED, durationDays: 5 });
+  assertEquals(out.daysAlreadyPast, 2);
+});
+
+Deno.test("D1 — LE CAS NOMINAL NE BOUGE PAS: deux plans qui finissent ensemble", () => {
+  // ⚠️ LA MOITIÉ QUI PROUVE QUE LE LOT NE CHANGE PAS CE QUI MARCHAIT. Foyer
+  // lundi→dimanche, secondaire mercredi→dimanche: la fenêtre écrite est
+  // EXACTEMENT celle d'avant, à l'octet près.
+  const out = resolveMergeWindow({
+    household: { startsOn: MON, durationDays: 7 },
+    personal: { startsOn: WED, durationDays: 5 },
+    today: MON,
+  });
+  assert(out.ok);
+  assertEquals(out.window, { startsOn: WED, durationDays: 5 });
+  assertEquals(out.recomposed, out.window);
+});
+
+Deno.test("D1 — un plan personnel qui DÉBORDE ne fait pas déborder la fusion", () => {
+  // Le plan du foyer s'arrête avant: la recomposition s'arrête avec lui. Une
+  // fusion n'a jamais le droit d'allonger la semaine du foyer — elle ne fait
+  // que refuser de la raccourcir.
+  const out = resolveMergeWindow({
+    household: { startsOn: MON, durationDays: 3 },
+    personal: { startsOn: WED, durationDays: 7 },
+    today: MON,
+  });
+  assert(out.ok);
+  assertEquals(out.window, { startsOn: WED, durationDays: 1 });
+  assertEquals(out.recomposed, { startsOn: WED, durationDays: 1 });
+});
+
+Deno.test("D1 — LA DÉFUSION NE CHANGE PAS D'UN JOUR", () => {
+  // ⚠️ « La défusion a obéi 14/14 »: sa fenêtre ne bouge pas. La queue d'un plan
+  // finit par définition en même temps que lui, donc les deux champs sont égaux
+  // — prouvé sur la forme qui les aurait séparés (une queue coupée au pivot).
+  const tail = resolveTailWindow({
+    plan: { startsOn: MON, durationDays: 7 },
+    today: WED,
+  });
+  assert(tail.ok);
+  assertEquals(tail.window, { startsOn: WED, durationDays: 5 });
+  assertEquals(tail.recomposed, tail.window);
+});
+
+Deno.test("D1 — TOUTE fenêtre rendue est ÉCRIVABLE. Sur 400 formes.", () => {
+  // ⚠️ C'EST L'INVARIANT DU LOT, ET IL SE MESURE PLUTÔT QU'IL NE S'AFFIRME. La
+  // question « la base acceptera-t-elle cette fenêtre » se tranche avant le
+  // modèle: `mergeWindowWritable` rejoue la boucle de chevauchement de la RPC,
+  // et aucune des fenêtres produites ne doit lui déplaire.
+  //
+  // Le décor DOIT prouver qu'il a vu les deux réponses: un banc où rien ne
+  // serait jamais écrivable-faux resterait vert avec un prédicat qui rend
+  // toujours `true`. On compte donc les fenêtres SANS extension qui, elles,
+  // auraient été refusées — c'est-à-dire les cas que la QA a payés.
+  let ok = 0;
+  let wouldHaveFailed = 0;
+  for (let hDur = 1; hDur <= 7; hDur++) {
+    for (let pOffset = -3; pOffset <= 3; pOffset++) {
+      for (let pDur = 1; pDur <= 7; pDur++) {
+        for (const today of [MON, WED, SUN]) {
+          const household = { startsOn: MON, durationDays: hDur };
+          const personal = {
+            startsOn: addDays(MON, pOffset),
+            durationDays: pDur,
+          };
+          const out = resolveMergeWindow({ household, personal, today });
+          if (!out.ok) continue;
+          ok++;
+          assert(
+            mergeWindowWritable(household, out.recomposed),
+            `fenêtre non écrivable: foyer ${household.startsOn}/${hDur}, perso ` +
+              `${personal.startsOn}/${pDur}, today ${today} ⇒ ` +
+              `${out.recomposed.startsOn}/${out.recomposed.durationDays}`,
+          );
+          if (!mergeWindowWritable(household, out.window)) wouldHaveFailed++;
+        }
+      }
+    }
+  }
+  assert(ok > 200, `banc trop maigre: ${ok} fenêtres`);
+  assert(
+    wouldHaveFailed > 20,
+    `le banc ne contient pas le défaut qu'il garde: seulement ` +
+      `${wouldHaveFailed} fenêtres auraient été refusées sans l'extension`,
+  );
+});
+
+Deno.test("D1 — LA RÈGLE COPIÉE EST BIEN CELLE DE LA MIGRATION", async () => {
+  // ⚠️ UNE RÈGLE RECOPIÉE HORS DE SA SOURCE DOIT AVOIR UN FIL QUI LA RAMÈNE.
+  // `mergeWindowWritable` réécrit en TypeScript ce que la boucle de
+  // chevauchement de `write_student_meal_plan` décide en SQL. Le jour où la
+  // migration change d'avis, ce test tombe — c'est tout ce qu'il promet, et
+  // c'est ce qui manquait pour que la copie soit défendable.
+  const sql = await Deno.readTextFile(
+    new URL(
+      "../../../migrations/20260811140000_meal_plan_window_and_mode_guards.sql",
+      import.meta.url,
+    ),
+  );
+  const loop = sql.slice(
+    sql.indexOf("for v_clash in"),
+    sql.indexOf("end loop;"),
+  );
+  assert(loop.length > 0, "boucle de chevauchement introuvable — test à réviser");
+  // ① « commence le même jour ou après »
+  assert(
+    /if v_clash\.starts_on >= p_starts_on then\s*raise exception 'plan_overlaps_existing/
+      .test(loop),
+    "la RPC ne refuse plus le plan qui commence le même jour ou après",
+  );
+  // ② « commence avant ET finit après » — le correctif du 2026-08-11, celui que
+  //    la fusion payait au prix d'une génération.
+  assert(
+    /v_clash\.starts_on \+ v_clash\.duration_days\s*>\s*p_starts_on \+ p_duration_days/
+      .test(loop),
+    "la RPC ne refuse plus la fenêtre ENGLOBÉE: `mergeWindowWritable` refuse " +
+      "désormais des fusions que la base accepterait.",
+  );
+});
+
+Deno.test("D1 — le prédicat compte les jours, pas les cas de figure", () => {
+  const house = { startsOn: MON, durationDays: 7 } as const;
+  // Le dernier jour du foyer est couvert: écrivable, à un jour près.
+  assertEquals(
+    mergeWindowWritable(house, { startsOn: WED, durationDays: 5 }),
+    true,
+  );
+  // Un jour de moins, et la queue du foyer tombe dans le vide.
+  assertEquals(
+    mergeWindowWritable(house, { startsOn: WED, durationDays: 4 }),
+    false,
+  );
+  // Le même jour de départ reste écrivable QUELLE QUE SOIT la durée: c'est
+  // `replace_current`, et la ligne d'avant est retirée.
+  assertEquals(
+    mergeWindowWritable(house, { startsOn: MON, durationDays: 1 }),
+    true,
+  );
 });
 
 Deno.test("D15 — deux fenêtres qui ne partagent RIEN sont refusées, nommément", () => {
@@ -662,9 +840,20 @@ Deno.test("LA FENÊTRE DE FUSION SE DÉDUIT, ELLE NE SE DEMANDE PAS", async () =
   // serait une garde que l'appelant contourne en une ligne de JSON.
   const src = await generatorSource();
   assert(
-    /startsOn\s*=\s*merge\.window\.window\.startsOn/.test(src),
+    /startsOn\s*=\s*merge\.window\.recomposed\.startsOn/.test(src),
     "la fusion ne prend plus sa fenêtre de `resolveMergeWindow`: l'intersection " +
       "(D15) et le pivot (D16) ne gouvernent plus ce qui est recomposé.",
+  );
+  // ⚠️ D1 — ET C'EST `recomposed`, JAMAIS `window`. Écrire `window` est très
+  // exactement le P0 mesuré le 2026-08-12: 409 `plan_overlaps_existing` après
+  // 16,1 s de modèle quand elle est intérieure au plan du foyer, et une fin de
+  // semaine effacée en silence quand la RPC l'acceptait. Les deux champs ont le
+  // même type: seul ce test sépare les deux lectures.
+  assert(
+    !/(?:startsOn|durationDays)\s*=\s*merge\.window\.window\./.test(src),
+    "la fusion écrit de nouveau `window` (les jours de SON plan) au lieu de " +
+      "`recomposed` (la queue du plan du foyer): la fin de la semaine du foyer " +
+      "se retrouve sans plan.",
   );
   // ⚠️ RÉVISÉ PAR L5, ET LA GARANTIE N'A PAS BOUGÉ D'UN POUCE. L'expression
   // épinglée était `merge === null ? [] : [merge.member.member_id]`; depuis que
