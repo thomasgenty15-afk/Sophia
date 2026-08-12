@@ -138,10 +138,17 @@ export function isPendingTranslationNamespace(namespace: string): boolean {
  *
  * ── CE QUI N'EST PAS ICI, ET POURQUOI ──────────────────────────────────────
  * `/legal` ne passe par AUCUN `t()` (zéro clé dans le seed): il n'a pas de
- * namespace, donc rien à déclarer. `/auth` porte `auth.*`, traduit, mais tout
- * le reste de son écran est en dur — l'inscrire ici promettrait une page
- * entièrement française qu'elle n'est pas. Ces deux-là suivent donc la langue
- * choisie par le visiteur, comme avant.
+ * namespace, donc rien à déclarer. Il suit donc la langue choisie par le
+ * visiteur, comme avant.
+ *
+ * ⚠️ `/auth` ÉTAIT DANS CE PARAGRAPHE, ET C'EST CE QUI A CHANGÉ (2026-08-12).
+ * Il y était décrit comme portant `auth.*` « mais tout le reste de son écran
+ * est en dur » — 1 297 lignes sans un seul `t()` hors des quatre passerelles.
+ * C'était vrai, et c'était la couture la plus chère du site: `/auth` est la
+ * porte que TOUT LE MONDE traverse, et un visiteur venu d'une page française y
+ * lisait « Good to see you again. / Email address / Password ».
+ * L'écran est passé entièrement par `t()`; il est donc déclaré ci-dessous, et
+ * la garde de classe de `pageFrontier.int.test.ts` le couvre comme les autres.
  *
  * ⚠️ Une clé est un `pathname` EXACT, tel que React Router le rend. Pas de
  * préfixe: `/join` ne doit pas capturer `/join-household`, qui est une autre
@@ -161,6 +168,10 @@ export const PUBLIC_PAGE_NAMESPACES: Readonly<
   "/gyms": ["gyms"],
   "/communities": ["communities"],
   // ── LES PORTES FONCTIONNELLES ────────────────────────────────────────────
+  // La porte UNIQUE du produit: connexion de tout le monde, réinitialisation
+  // du mot de passe, confirmation d'e-mail, et inscription coach sous
+  // `?role=coach`. Un seul namespace, `auth`, qui écrit tout son corps.
+  "/auth": ["auth"],
   "/start": ["start"],
   // Deux namespaces sur une seule page, et c'est le cas qui justifie le
   // tableau plutôt qu'un namespace unique: `/join` affiche le texte de

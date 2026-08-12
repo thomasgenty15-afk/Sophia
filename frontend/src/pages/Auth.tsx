@@ -7,23 +7,14 @@ import { resolveHomePath } from '../keel/api/postLogin';
 // redonner un pays à quelqu'un qui n'en a pas déclaré: elle est nommée une fois.
 import { NO_COUNTRY_SELECTED } from '../keel/api/countries';
 import { consumePendingCoachInvitation } from '../keel/api/coachInvite';
-import { t as keelT } from '../keel/i18n/t';
+import SEO from '../components/SEO';
+import { LocaleSwitch } from '../keel/components/LocaleSwitch';
+import { Button, ButtonLink } from '../keel/components/ui/Button';
+import { t, type MessageKey } from '../keel/i18n/t';
 import { newRequestId, requestHeaders } from '../lib/requestId';
 import { getPrelaunchLockdownRawValue, isPrelaunchLockdownEnabled } from '../security/prelaunch';
 import { DEFAULT_TIMEZONE, detectBrowserTimezone, getAllSupportedTimezones } from '../lib/localization';
-import {
-  Mail,
-  Lock,
-  ArrowRight,
-  Sparkles,
-  ShieldCheck,
-  User,
-  AlertCircle,
-  Loader2,
-  Eye,
-  EyeOff,
-  CheckCircle2
-} from 'lucide-react';
+import { AlertCircle, CheckCircle2, Eye, EyeOff, Loader2 } from 'lucide-react';
 
 // Email-verification polling cadence. Each unconfirmed attempt is a 400 against
 // the auth token endpoint, so we start slow, grow, and eventually stop rather
@@ -65,6 +56,49 @@ function getErrorMessage(err: unknown, fallback: string) {
 // une panne totale.
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// REFONTE DU 2026-08-12 — LA LANGUE, LA DESTINATION, L'APPARENCE
+//
+// Trois choses ont changé, et AUCUNE n'est de l'authentification. Ni `signUp`,
+// ni `signInWithPassword`, ni la garde de pays, ni une redirection: les appels
+// et leur ordre sont ceux d'avant, ligne pour ligne.
+//
+// 1. LA LANGUE. Cet écran ne portait pas UN SEUL `t()` sur 1 297 lignes, hors
+//    les quatre passerelles coach. Un visiteur qui lisait le site en français
+//    cliquait « Se connecter » et tombait sur « Good to see you again. » — la
+//    couture au milieu de la page que `i18n/pageFrontier.int.test.ts` existe
+//    pour interdire, sur la seule page que tout le monde traverse. Tout passe
+//    désormais par le namespace `auth`, et `/auth` est déclarée dans
+//    `PUBLIC_PAGE_NAMESPACES`.
+//    ⚠️ CE N'EST PLUS UN CHOIX PAR CHAÎNE. Une seule chaîne laissée en dur ici
+//    rouvre le défaut, et aucun type ne la voit: le compilateur garde les CLÉS,
+//    pas les littéraux qu'on oublie de passer par `t()`.
+//
+// 2. LA DESTINATION. Le site a deux mondes (`?w=household`, `?w=pro`) qui n'ont
+//    ni le même acheteur ni la même inscription. Le paramètre décide UNIQUEMENT
+//    de la mise en avant en bas d'écran. Sans lui, l'écran reste NEUTRE et
+//    propose les deux à égalité — c'est le comportement d'avant, donc tous les
+//    liens `/auth` déjà en circulation marchent à l'identique.
+//    ⚠️ `?role=coach` est intouché: c'est lui, et lui seul, qui ouvre un
+//    formulaire d'inscription. `?w=` n'ouvre rien.
+//
+// 3. L'APPARENCE. La charte du site (« la fiche »), déjà posée dans
+//    `tokens.css`. Sont partis: l'ancien logo violet yin-yang, la mention
+//    « POWERED BY IKIZEN » (l'entité légale se déclare sur `/legal`, via
+//    `lib/legalEntity.ts`), toute la famille indigo `#7c3aed` — des jetons MORTS
+//    du produit grand public supprimé — et le fond `gray-50`.
+//    ⚠️ LA COULEUR SATURÉE RESTE LA PROPRIÉTÉ DU SENS. Rouge = échec, ambre =
+//    attention, bleu = en attente, émeraude = succès. La teinte de marque
+//    (figue) n'entre dans AUCUNE pastille d'état: elle est de l'encre, un filet,
+//    un bouton plein, une équerre.
+//
+// ⚠️ AUCUN EFFET NOUVEAU QUI DÉPENDE DE `user`. Le défaut voisin réparé la
+// veille (commit `a84e416f`, `/start` figé sur son écran de chargement en
+// navigation client DEPUIS cet écran) venait d'un verrou à vie annulé par un
+// nettoyage par exécution. Cette page ne lit pas `useAuth`, et les effets
+// ci-dessous sont ceux d'avant, avec les mêmes dépendances.
+// ---------------------------------------------------------------------------
+
 /**
  * Countries offered to a coach at signup. NOT a validation list — the database
  * CHECK (`profiles_country_iso3166_check`) validates the SHAPE only, on
@@ -73,26 +107,32 @@ function getErrorMessage(err: unknown, fallback: string) {
  * and `country` is asked rather than derived because country is not a language
  * (migration 20260727190000, at length): the crisis-resource resolver reads it
  * FIRST, and a wrong guess there hands an American student a French hotline.
+ *
+ * ⚠️ LES LIBELLÉS SONT DES CLÉS, ÉCRITES EN TOUTES LETTRES. Un
+ * `t(`auth.country.${code.toLowerCase()}`)` compilerait — le type accepte le
+ * littéral de gabarit — et ne prouverait plus rien: la clé absente ne serait
+ * découverte qu'au rendu, chez un visiteur. Le CODE reste la valeur écrite en
+ * base; seul le mot affiché est traduit.
  */
-const COACH_COUNTRIES: { code: string; label: string }[] = [
-  { code: "US", label: "United States" },
-  { code: "GB", label: "United Kingdom" },
-  { code: "FR", label: "France" },
-  { code: "CA", label: "Canada" },
-  { code: "AU", label: "Australia" },
-  { code: "IE", label: "Ireland" },
-  { code: "NZ", label: "New Zealand" },
-  { code: "BE", label: "Belgium" },
-  { code: "CH", label: "Switzerland" },
-  { code: "DE", label: "Germany" },
-  { code: "ES", label: "Spain" },
-  { code: "IT", label: "Italy" },
-  { code: "NL", label: "Netherlands" },
-  { code: "PT", label: "Portugal" },
-  { code: "SE", label: "Sweden" },
-  { code: "SG", label: "Singapore" },
-  { code: "AE", label: "United Arab Emirates" },
-  { code: "ZA", label: "South Africa" },
+const COACH_COUNTRIES: { code: string; label: MessageKey }[] = [
+  { code: "US", label: "auth.country.us" },
+  { code: "GB", label: "auth.country.gb" },
+  { code: "FR", label: "auth.country.fr" },
+  { code: "CA", label: "auth.country.ca" },
+  { code: "AU", label: "auth.country.au" },
+  { code: "IE", label: "auth.country.ie" },
+  { code: "NZ", label: "auth.country.nz" },
+  { code: "BE", label: "auth.country.be" },
+  { code: "CH", label: "auth.country.ch" },
+  { code: "DE", label: "auth.country.de" },
+  { code: "ES", label: "auth.country.es" },
+  { code: "IT", label: "auth.country.it" },
+  { code: "NL", label: "auth.country.nl" },
+  { code: "PT", label: "auth.country.pt" },
+  { code: "SE", label: "auth.country.se" },
+  { code: "SG", label: "auth.country.sg" },
+  { code: "AE", label: "auth.country.ae" },
+  { code: "ZA", label: "auth.country.za" },
 ];
 
 /** R3: the coach workspace is English. This is `ui_locale`, not content locale. */
@@ -106,18 +146,285 @@ const COACH_LOCALE = "en-US";
 // `phone_verified_at` dans `handle_new_user()`) reste en place pour les
 // imports: ce qui disparaît est la SAISIE, pas la protection.
 
+// ---------------------------------------------------------------------------
+// LE MONDE D'OÙ VIENT LE VISITEUR
+// ---------------------------------------------------------------------------
+
+/** `null` = aucun indice, et c'est un état valide: l'écran reste neutre. */
+type AuthWorld = "household" | "pro" | null;
+
+/**
+ * Deux valeurs admises, et rien d'autre.
+ *
+ * Une valeur inconnue (`?w=coach`, `?w=1`, un lien mal recopié) retombe sur
+ * `null` plutôt que de deviner: mettre en avant le mauvais monde est PIRE que
+ * n'en mettre aucun en avant, puisque l'écran neutre propose les deux.
+ */
+function parseWorld(raw: string | null): AuthWorld {
+  return raw === "household" || raw === "pro" ? raw : null;
+}
+
+/**
+ * Un lien vers cette page, qui EMPORTE le monde avec lui.
+ *
+ * Les deux portes de l'écran se renvoient l'une à l'autre (`?role=coach` et
+ * retour). Sans ce report, un professionnel qui va voir l'inscription coach et
+ * revient perd l'indice, et la page redevient neutre au milieu de son parcours.
+ */
+function authHref(world: AuthWorld, params: Record<string, string> = {}): string {
+  const search = new URLSearchParams(params);
+  if (world) search.set("w", world);
+  const query = search.toString();
+  return query ? `/auth?${query}` : "/auth";
+}
+
+// ---------------------------------------------------------------------------
+// LA CHROME, LA FICHE, ET LES CHAMPS — la charte, appliquée
+// ---------------------------------------------------------------------------
+
+/**
+ * La classe d'un contrôle de saisie.
+ *
+ * ⚠️ `text-base` sous `lg`, ET C'EST UNE RÈGLE DÉJÀ PAYÉE. `index.css` pose
+ * `font-size: 16px` sur les champs sous `lg` pour empêcher Safari iOS de zoomer
+ * au focus sans jamais dézoomer — mais cette règle vit dans `@layer base`, donc
+ * un utilitaire `text-sm` la BAT. Écrire `text-sm` ici contournerait la
+ * protection sans la retirer, c'est-à-dire de la façon la plus difficile à
+ * relire. `text-base lg:text-sm` la respecte à voix haute.
+ *
+ * ⚠️ `border-line-strong` et jamais `border-line`: WCAG 1.4.11 exige 3:1 pour
+ * une bordure de composant, et `line` est à 1,30:1 sur le papier — c'est un
+ * séparateur décoratif (CHARTE §2.2).
+ *
+ * L'anneau de focus est explicite parce que la règle `:focus-visible` de
+ * `tokens.css` ne couvre que `a`, `button` et `[tabindex]`: un champ n'en fait
+ * pas partie.
+ */
+const controlClass =
+  "block w-full min-w-0 rounded-card border border-line-strong bg-paper px-3 py-2.5 " +
+  "text-base text-ink transition-colors focus:border-fig-600 focus:outline-none " +
+  "focus:ring-2 focus:ring-fig-600 disabled:opacity-60 lg:text-sm";
+
+/**
+ * L'écran d'accès, dans sa chrome minimale.
+ *
+ * ⚠️ PAS `PublicHeader`, ET C'EST UN CHOIX. L'en-tête des pages de vente porte
+ * « Se connecter » et le geste commercial du monde courant. Posé SUR l'écran de
+ * connexion, le premier est un lien vers la page qu'on regarde et le second
+ * réclame la décision qu'on est en train de prendre. Ce qui manque vraiment ici
+ * est plus court: le nom de la marque (avec sa sortie) et le choix de la
+ * langue — que `/auth` n'offrait pas du tout.
+ *
+ * La sortie suit le monde: un professionnel repart vers `/pro`, tout le monde
+ * d'autre vers le hall du foyer.
+ */
+function Shell(
+  { world, title, children }: {
+    world: AuthWorld;
+    title: string;
+    children: React.ReactNode;
+  },
+) {
+  return (
+    <div className="flex min-h-screen flex-col bg-paper font-sans text-ink">
+      {/* `noindex`: `/auth` est une porte fonctionnelle, délibérément absente
+          du sitemap (voir son en-tête). `follow` reste, pour ne pas couper les
+          liens qu'elle porte vers `/legal`. */}
+      <SEO
+        title={title}
+        description={t("auth.seo.description")}
+        robots="noindex,follow"
+      />
+      <header className="border-b border-line">
+        <div className="mx-auto flex h-14 w-full max-w-lg items-center justify-between gap-3 px-5">
+          <Link
+            to={world === "pro" ? "/pro" : "/"}
+            className="eq shrink-0 font-display text-lg leading-none text-ink"
+          >
+            {t("brand.wordmark")}
+          </Link>
+          <LocaleSwitch />
+        </div>
+      </header>
+
+      <main className="mx-auto w-full max-w-lg flex-1 px-5 pb-16 pt-10 sm:pt-14">
+        {children}
+      </main>
+
+      <footer className="border-t border-line">
+        <div className="mx-auto flex w-full max-w-lg flex-wrap items-center gap-x-6 gap-y-1 px-5 py-5 text-sm text-ink-soft">
+          {/* L'entité légale se déclare ICI, en un lien, et pas en « POWERED BY
+              IKIZEN » sous un logo. `lib/legalEntity.ts` en est la source, et
+              `/legal` la page. */}
+          <Link to="/legal" className="hover:text-ink hover:underline">
+            {t("public.footer.legal")}
+          </Link>
+          <a
+            href={`mailto:${t("public.footer.contact_email")}`}
+            className="hover:text-ink hover:underline"
+          >
+            {t("public.footer.contact")}
+          </a>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+/** Le titre de l'écran. UN SEUL `h1` par rendu, et c'est celui-ci. */
+function Head({ title, lede }: { title: string; lede: string }) {
+  return (
+    <>
+      <h1 className="text-balance font-display text-title">{title}</h1>
+      <p className="mt-4 max-w-[46ch] text-lede text-ink-soft">{lede}</p>
+    </>
+  );
+}
+
+/**
+ * LA FICHE, ET SON FRONTON.
+ *
+ * C'est la signature de l'écran: `/auth` n'est pas quatre écrans, c'est UN
+ * document qui se reconfigure — connexion, compte coach, mot de passe,
+ * vérification de l'e-mail. Le fronton le nomme, et c'est la seule chose qui
+ * change d'un état à l'autre. L'équerre marque l'origine de ce qui est
+ * SPÉCIFIÉ (CHARTE §5), et elle a toujours un mot à sa droite.
+ *
+ * ⚠️ L'ÉQUERRE EST SUR UN ÉLÉMENT SANS PADDING HORIZONTAL. La classe `.eq` pose
+ * `padding-left: 1.125rem` hors de toute couche CSS, donc elle BAT un `px-5`
+ * utilitaire (les styles sans couche l'emportent sur les couches). Poser les
+ * deux sur le même nœud casse silencieusement la marge intérieure de gauche.
+ */
+function Sheet({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <section className="mt-8 overflow-hidden rounded-fiche border border-line bg-paper-2">
+      <div className="border-b border-line px-5 py-3 sm:px-6">
+        <p className="eq text-label font-semibold uppercase text-ink-soft">{label}</p>
+      </div>
+      <div className="px-5 py-6 sm:px-6">{children}</div>
+    </section>
+  );
+}
+
+function Field(
+  { label, htmlFor, hint, children }: {
+    label: string;
+    htmlFor: string;
+    hint?: string;
+    children: React.ReactNode;
+  },
+) {
+  return (
+    <div>
+      <label
+        htmlFor={htmlFor}
+        className="mb-2 block text-label font-semibold uppercase text-ink-soft"
+      >
+        {label}
+      </label>
+      {children}
+      {hint && <p className="mt-2 text-sm leading-6 text-ink-soft">{hint}</p>}
+    </div>
+  );
+}
+
+/**
+ * Un refus, dans la couleur de son SENS.
+ *
+ * Rouge, et pas figue: la teinte de marque n'entre jamais dans un objet d'état
+ * (CHARTE §2.1). `role="alert"` parce qu'un message qui apparaît après un clic
+ * doit être annoncé — sinon il n'existe que pour ceux qui regardent l'écran.
+ */
+function ErrorNote({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      role="alert"
+      className="flex items-start gap-2.5 rounded-card border border-red-200 bg-red-50 px-3 py-2.5"
+    >
+      <AlertCircle aria-hidden className="mt-1 h-4 w-4 shrink-0 text-red-600" />
+      <p className="min-w-0 whitespace-pre-line break-words text-sm leading-6 text-red-800">
+        {children}
+      </p>
+    </div>
+  );
+}
+
+/** Le filet qui sépare le formulaire de ce qui vient après. */
+function Divider({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative mt-12">
+      <div aria-hidden className="absolute inset-0 flex items-center">
+        <div className="w-full border-t border-line" />
+      </div>
+      <p className="relative flex justify-center">
+        <span className="bg-paper px-3 text-sm text-ink-soft">{children}</span>
+      </p>
+    </div>
+  );
+}
+
+/**
+ * Une destination MISE EN AVANT: une fiche bordée, avec son geste.
+ *
+ * L'écart entre celle-ci et `DoorLine` est toute la mise en avant. Pas de
+ * couleur de plus, pas de badge « recommandé »: une boîte contre une ligne.
+ */
+function DoorCard(
+  { label, body, to, cta }: {
+    label: string;
+    body: string;
+    to: string;
+    cta: string;
+  },
+) {
+  return (
+    <div className="flex min-w-0 flex-col rounded-fiche border border-line bg-paper-2 p-5">
+      <p className="text-label font-semibold uppercase text-ink-soft">{label}</p>
+      <p className="mt-2 flex-1 text-sm leading-6 text-ink-soft">{body}</p>
+      <ButtonLink to={to} variant="brand" className="mt-5 w-full">
+        {cta}
+      </ButtonLink>
+    </div>
+  );
+}
+
+/** L'autre destination: accessible, et discrète. Une ligne, un lien. */
+function DoorLine({ prompt, to, cta }: { prompt: string; to: string; cta: string }) {
+  return (
+    <p className="mt-5 text-sm leading-6 text-ink-soft">
+      {prompt}{" "}
+      <Link
+        to={to}
+        className="font-medium text-fig-700 underline underline-offset-2 hover:text-fig-800"
+      >
+        {cta}
+      </Link>
+    </p>
+  );
+}
+
 const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const redirectTo = new URLSearchParams(location.search).get('redirect');
-  const forbidden = new URLSearchParams(location.search).get('forbidden') === '1';
-  const debug = new URLSearchParams(location.search).get('debug') === '1';
-  const view = new URLSearchParams(location.search).get('view') || '';
+  // Une seule lecture de la query, au lieu de six constructions successives du
+  // même objet. Même valeurs, même rendu: `location.search` est la seule entrée.
+  const params = React.useMemo(
+    () => new URLSearchParams(location.search),
+    [location.search],
+  );
+  const redirectTo = params.get('redirect');
+  const forbidden = params.get('forbidden') === '1';
+  const debug = params.get('debug') === '1';
+  const view = params.get('view') || '';
   const prelaunchLockdown = isPrelaunchLockdownEnabled();
   const prelaunchRaw = debug ? getPrelaunchLockdownRawValue() : "";
 
   // KEEL W6.1 — coach mode. Everything downstream branches on this flag only.
-  const coachSignup = (new URLSearchParams(location.search).get('role') || '') === 'coach';
+  const coachSignup = (params.get('role') || '') === 'coach';
+
+  // Le monde d'où l'on vient. Il ne décide QUE de la mise en avant du bas
+  // d'écran: aucun formulaire, aucune redirection, aucun appel n'en dépend.
+  const world = parseWorld(params.get('w'));
 
   // `onboardingRedirect` a disparu avec `/onboarding-v2`: plus aucune route ne
   // peut viser cette cible, donc la branche « on arrive de l'entonnoir, ouvre
@@ -127,7 +434,7 @@ const Auth = () => {
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -182,16 +489,11 @@ const Auth = () => {
     if (prelaunchLockdown && isSignUp) setIsSignUp(false);
   }, [prelaunchLockdown, isSignUp]);
 
-  // KEEL — an American coach must not read a French tab title. The legacy
-  // index.html title stays for the consumer path; the coach door restates it.
-  useEffect(() => {
-    if (coachSignup) {
-      document.title = "Sophia — coach sign in";
-      // `lang` appartient a `keel/i18n/runtime.ts`: UN seul ecrivain.
-      // Trois composants l'ecrivaient au montage, chacun a "en" — donc la
-      // valeur dependait de l'ordre de rendu, ce qui n'est pas une decision.
-    }
-  }, [coachSignup]);
+  // L'EFFET QUI ÉCRIVAIT `document.title` A DISPARU (2026-08-12). Il posait
+  // « Sophia — coach sign in » en dur, en anglais, et seulement en mode coach:
+  // c'était un quatrième écrivain pour un attribut qui n'en veut qu'un. Le
+  // titre et `lang` sont désormais rendus par `SEO`, comme sur les huit pages
+  // publiques, et le titre suit la langue du visiteur.
 
   // KEEL — the coach and consumer doors cross-link via client-side navigation,
   // so the form mode must follow the URL after mount, not only at mount:
@@ -204,7 +506,7 @@ const Auth = () => {
   }, [coachSignup, prelaunchLockdown]);
 
   useEffect(() => {
-    const msg = "Access is restricted (pre-launch). Only the master_admin account can sign in.";
+    const msg = t("auth.error.prelaunch_forbidden");
     if (!forbidden) {
       // Clear stale "prelaunch forbidden" message if user navigated away from forbidden state.
       if (error === msg) setError(null);
@@ -235,7 +537,7 @@ const Auth = () => {
   // `?code=xxx`. Si jamais on reçoit ce `code` sur /auth (ex: ancienne config),
   // on redirige vers /email-verified pour afficher un message simple.
   // ---------------------------------------------------------------------------
-  const codeParam = new URLSearchParams(location.search).get('code');
+  const codeParam = params.get('code');
   useEffect(() => {
     if (!codeParam) return;
     // Ne pas interférer avec le flow de reset password
@@ -258,10 +560,17 @@ const Auth = () => {
   // "my password is wrong" — and they would start resetting an account that is
   // perfectly fine. So the message names what happened, and we stay on /auth,
   // which is a screen with a button they can press again.
+  //
+  // ⚠️ LA CLÉ A CHANGÉ DE NAMESPACE (2026-08-12), ET C'ÉTAIT NÉCESSAIRE.
+  // C'était `server_unreachable.after_signin` — hors vitrine, donc rendu en
+  // ANGLAIS même quand tout le reste de l'écran est en français. Le message le
+  // plus délicat de la page (« ton mot de passe est bon, c'est nous ») était
+  // exactement celui qui restait dans l'autre langue. Le texte est identique;
+  // seul son domicile change. La clé d'origine garde ses autres appelants.
   const navigateHome = async (userId: string): Promise<void> => {
     const home = await resolveHomePath(userId);
     if (home === null) {
-      setError(keelT("server_unreachable.after_signin"));
+      setError(t("auth.error.server_unreachable"));
       return;
     }
     navigate(home);
@@ -291,10 +600,7 @@ const Auth = () => {
       });
       if (coachErr) {
         console.error('[Auth] coach-signup-v1 failed:', coachErr);
-        setError(
-          "Your account was created, but the coach profile could not be set up. " +
-          "Sign in again to retry.",
-        );
+        setError(t("auth.error.coach_profile"));
         return;
       }
       navigate(redirectTo || '/coach');
@@ -338,12 +644,12 @@ const Auth = () => {
         await runPostSignupFlow(signInData.user.id);
       } else {
         setVerificationStatus('idle');
-        setError("Email not verified yet. Click the link in your email, then come back here.");
+        setError(t("auth.confirm.not_verified"));
       }
     } catch (err) {
       console.error('[Auth] Manual check error:', err);
       setVerificationStatus('idle');
-      setError(getErrorMessage(err, "Something went wrong while verifying."));
+      setError(getErrorMessage(err, t("auth.confirm.check_failed")));
     }
   };
 
@@ -474,23 +780,24 @@ const Auth = () => {
       const isLocalSupabase =
         !!supabaseUrl &&
         (supabaseUrl.includes('127.0.0.1:54321') || supabaseUrl.includes('localhost:54321'));
-      const localHint = isLocalSupabase ? " (local: open http://127.0.0.1:54324 to read the email)" : "";
-      alert(`If an account exists for ${email}, a reset email is on its way${localHint}.`);
+      // L'indice local est une PHRASE À PART, jamais un morceau collé: le pack
+      // français refuse une valeur avec un espace de bord (`parity.int.test.ts`),
+      // et une traduction qui doit commencer par un espace est une traduction
+      // qu'on écrira faux.
+      const sent = t("auth.reset.sent", { email });
+      alert(isLocalSupabase ? `${sent} ${t("auth.reset.sent_local")}` : sent);
       setIsResettingPassword(false);
     } catch (err: unknown) {
       console.error("Reset error:", err);
-      const msg = getErrorMessage(err, "Sending failed.");
+      const msg = getErrorMessage(err, t("auth.error.reset_failed"));
       // Supabase Auth returns a generic error when the mailer (SMTP) is misconfigured or unavailable.
       // Make it actionable for ops.
       if (typeof msg === "string" && msg.toLowerCase().includes("recovery email")) {
         setError(
-          "Could not send the password reset email.\n\n" +
-          "Check in Supabase Dashboard → Auth → SMTP:\n" +
-          "- custom SMTP enabled but incomplete / wrong credentials\n" +
-          "- sender/domain not verified\n\n" +
-          "And in Auth → URL Configuration:\n" +
-          `- Redirect URL allowlist: ${window.location.origin}/reset-password\n\n` +
-          `Detail: ${msg}`,
+          t("auth.error.reset_smtp", {
+            origin: window.location.origin,
+            detail: msg,
+          }),
         );
       } else {
         setError(msg);
@@ -508,13 +815,13 @@ const Auth = () => {
     try {
         if (isSignUp) {
         if (prelaunchLockdown) {
-          throw new Error("Sign-up is disabled (pre-launch). Sign in with the master_admin account.");
+          throw new Error(t("auth.error.prelaunch_signup"));
         }
         // --- INSCRIPTION ---
-        
+
         // Validation CGV/CGU
         if (!hasAcceptedLegal) {
-          throw new Error("Please accept the Terms and the Privacy Policy to continue.");
+          throw new Error(t("auth.error.legal"));
         }
 
         // ── LA FIN DU TÉLÉPHONE (2026-08-05) ────────────────────────────
@@ -540,16 +847,14 @@ const Auth = () => {
         // 20260805091000). `normalizePhone` et `is_verified_phone_in_use`
         // survivent pour les mêmes raisons — ils n'ont plus d'appelant ici.
         if (!coachSignup) {
-          throw new Error(
-            "Student sign-up has moved. Open /start to create your account, or use the link your coach emailed you.",
-          );
+          throw new Error(t("auth.error.student_signup_moved"));
         }
 
         // KEEL W6.1 — the coach's country is a SELECTOR value, validated for
         // shape here and again by the DB CHECK. R7: a bad value fails at the
         // write, not three layers later inside the crisis resolver.
         if (coachSignup && !/^[A-Z]{2}$/.test(coachCountry)) {
-          throw new Error("Please select the country where you practise.");
+          throw new Error(t("auth.error.country"));
         }
 
         const detectedTimezone = detectBrowserTimezone();
@@ -592,7 +897,7 @@ const Auth = () => {
           setLoading(false);
           return;
         }
-        
+
         if (data.user) {
             // Inscription réussie sans confirmation email → lancer le post-signup flow directement
             await runPostSignupFlow(data.user.id);
@@ -654,643 +959,600 @@ const Auth = () => {
       }
     } catch (err: unknown) {
       console.error("Auth error:", err);
-      setError(getErrorMessage(err, "Something went wrong."));
+      setError(getErrorMessage(err, t("auth.error.generic")));
     } finally {
       setLoading(false);
     }
   };
+
+  const documentTitle = coachSignup ? t("auth.seo.title_coach") : t("auth.seo.title");
 
   // ---------------------------------------------------------------------------
   // VUE "VÉRIFIEZ VOS EMAILS" (onglet d'origine, avec polling automatique)
   // ---------------------------------------------------------------------------
   if (confirmationPending) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans text-slate-900">
-        <div className="sm:mx-auto sm:w-full sm:max-w-md text-center animate-fade-in-up">
-          {verificationStatus === 'verified' ? (
+      <Shell world={world} title={documentTitle}>
+        {verificationStatus === 'verified'
+          ? (
             <>
-              <div className="mx-auto w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-lg mb-6">
-                <CheckCircle2 className="w-8 h-8" />
-              </div>
-              <h2 className="text-3xl font-bold text-emerald-600 mb-4">
-                Email verified!
-              </h2>
-              {/* `runPostSignupFlow` can fail AFTER the session exists — a
-                  `coach-signup-v1` that never answers, a role lookup that can't
-                  reach the backend. It reports that by calling `setError` and
-                  returning, and this screen used to render the spinner and
-                  nothing else: the message was set, invisible, and the page
-                  spun forever on an account that was in fact created. An error
-                  set on this branch has to be shown ON this branch, with a way
-                  to retry, or it is not an error report at all. */}
-              {error ? (
-                <>
-                  <div className="rounded-lg bg-red-50 p-3 flex items-start gap-2 max-w-xs mx-auto text-left mb-4">
-                    <AlertCircle className="h-4 w-4 text-red-400 mt-0.5 flex-shrink-0" />
-                    <p className="text-xs text-red-700 font-medium">{error}</p>
-                  </div>
-                  <button
-                    onClick={handleManualVerificationCheck}
-                    className="inline-flex justify-center items-center gap-2 py-3 px-6 rounded-2xl text-sm font-bold text-white bg-slate-900 hover:bg-indigo-600 transition-all"
-                  >
-                    Try again
-                  </button>
-                </>
-              ) : (
-                <>
-                  <p className="text-slate-600 mb-4">
-                    Setting up your space…
-                  </p>
-                  <Loader2 className="w-6 h-6 animate-spin text-slate-400 mx-auto" />
-                </>
-              )}
-            </>
-          ) : (
-            <>
-              <div className="relative mx-auto w-20 h-20 bg-slate-900 rounded-3xl flex items-center justify-center text-white shadow-xl shadow-slate-200 mb-8">
-                <Mail className="w-10 h-10" />
-                {verificationStatus === 'checking' && (
-                  <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-5 w-5 bg-indigo-500 border-2 border-white" />
-                  </span>
-                )}
-              </div>
-              <h2 className="text-3xl font-extrabold text-slate-900 mb-4 tracking-tight">
-                Check your inbox.
-              </h2>
-              <p className="text-lg text-slate-600 mb-8 max-w-md mx-auto leading-relaxed">
-                A confirmation link has been sent to <strong className="text-slate-900 font-semibold">{email}</strong>.<br />
-                Click it, then come back here — this page updates on its own.
-                <br />
-                <span className="text-sm text-slate-500 mt-2 block font-medium bg-slate-50 py-1 px-3 rounded-full inline-block mt-3 border border-slate-100">
-                   💡 If you cannot see it, check your spam folder too.
-                </span>
-              </p>
-
-              <div className="flex items-center justify-center gap-3 text-sm font-medium text-indigo-600 bg-indigo-50 py-2 px-4 rounded-full mx-auto w-fit mb-10 border border-indigo-100">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Waiting for verification…</span>
-              </div>
-
-              <div className="space-y-4 max-w-xs mx-auto">
-                {/* Bouton principal: vérification manuelle */}
-                <button
-                  onClick={handleManualVerificationCheck}
-                  disabled={verificationStatus === 'checking'}
-                  className="w-full flex justify-center py-4 px-6 border border-transparent rounded-2xl shadow-lg shadow-indigo-200 text-base font-bold text-white bg-slate-900 hover:bg-indigo-600 hover:shadow-indigo-300 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed items-center gap-3 group"
-                >
-                  {verificationStatus === 'checking' ? (
-                    <><Loader2 className="w-5 h-5 animate-spin" /> Verifying…</>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="w-5 h-5" /> I have clicked the link
-                    </>
+              <Head
+                title={t("auth.confirm.verified_title")}
+                lede={t("auth.confirm.verified_body")}
+              />
+              <Sheet label={t("auth.sheet.confirm")}>
+                {/* `runPostSignupFlow` can fail AFTER the session exists — a
+                    `coach-signup-v1` that never answers, a role lookup that
+                    can't reach the backend. It reports that by calling
+                    `setError` and returning, and this screen used to render the
+                    spinner and nothing else: the message was set, invisible,
+                    and the page spun forever on an account that was in fact
+                    created. An error set on this branch has to be shown ON this
+                    branch, with a way to retry, or it is not an error report at
+                    all. */}
+                {error
+                  ? (
+                    <div className="space-y-5">
+                      <ErrorNote>{error}</ErrorNote>
+                      <Button
+                        variant="brand"
+                        onClick={handleManualVerificationCheck}
+                        className="w-full py-3 text-base"
+                      >
+                        {t("auth.confirm.retry")}
+                      </Button>
+                    </div>
+                  )
+                  : (
+                    <p className="flex items-center gap-2.5 text-sm text-ink-soft">
+                      <CheckCircle2 aria-hidden className="h-4 w-4 shrink-0 text-emerald-700" />
+                      {t("auth.confirm.verified_body")}
+                      <Loader2 aria-hidden className="h-4 w-4 shrink-0 animate-spin" />
+                    </p>
                   )}
-                </button>
+              </Sheet>
+            </>
+          )
+          : (
+            <>
+              <Head
+                title={t("auth.confirm.title")}
+                lede={t("auth.confirm.body", { email })}
+              />
+              <Sheet label={t("auth.sheet.confirm")}>
+                <div className="space-y-5">
+                  {/* EN ATTENTE = BLEU, et c'est le kit d'état du produit
+                      (`ui/Badge.tsx`: `info` occupe le bleu). La figue n'entre
+                      jamais dans une pastille — CHARTE §2.1. */}
+                  <p
+                    aria-live="polite"
+                    className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700"
+                  >
+                    <Loader2 aria-hidden className="h-3.5 w-3.5 animate-spin" />
+                    {verificationStatus === 'checking'
+                      ? t("auth.confirm.checking")
+                      : t("auth.confirm.waiting")}
+                  </p>
 
-                {error && (
-                  <div className="rounded-lg bg-red-50 p-3 flex items-start gap-2">
-                    <AlertCircle className="h-4 w-4 text-red-400 mt-0.5 flex-shrink-0" />
-                    <p className="text-xs text-red-700 font-medium">{error}</p>
+                  <Button
+                    variant="brand"
+                    onClick={handleManualVerificationCheck}
+                    disabled={verificationStatus === 'checking'}
+                    className="w-full py-3 text-base"
+                  >
+                    {verificationStatus === 'checking'
+                      ? t("auth.confirm.checking")
+                      : t("auth.confirm.check_cta")}
+                  </Button>
+
+                  {error && <ErrorNote>{error}</ErrorNote>}
+
+                  <p className="text-sm leading-6 text-ink-soft">{t("auth.confirm.spam")}</p>
+
+                  <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-line pt-5 text-sm">
+                    <button
+                      type="button"
+                      onClick={handleResendConfirmation}
+                      disabled={resendCooldown > 0}
+                      className="font-medium text-fig-700 underline underline-offset-2 hover:text-fig-800 disabled:cursor-not-allowed disabled:text-ink-soft disabled:no-underline"
+                    >
+                      {resendCooldown > 0
+                        ? t("auth.confirm.resend_wait", { seconds: resendCooldown })
+                        : t("auth.confirm.resend")}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setConfirmationPending(false);
+                        setVerificationStatus('idle');
+                        setError(null);
+                      }}
+                      className="text-ink-soft underline underline-offset-2 hover:text-ink"
+                    >
+                      {t("auth.confirm.change_email")}
+                    </button>
                   </div>
-                )}
-
-                {/* Liens secondaires */}
-                <div className="flex flex-col items-center gap-2">
-                  <button
-                    onClick={handleResendConfirmation}
-                    disabled={resendCooldown > 0}
-                    className="text-sm font-medium text-indigo-600 hover:text-indigo-500 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors"
-                  >
-                    {resendCooldown > 0
-                      ? `Resend the email (${resendCooldown}s)`
-                      : "Resend the confirmation email"}
-                  </button>
-                  <button
-                    onClick={() => {
-                      setConfirmationPending(false);
-                      setVerificationStatus('idle');
-                      setError(null);
-                    }}
-                    className="text-xs text-slate-400 hover:text-slate-600 underline decoration-dotted transition-colors"
-                  >
-                    Change my email address
-                  </button>
                 </div>
-              </div>
+              </Sheet>
             </>
           )}
-        </div>
-      </div>
+      </Shell>
     );
   }
 
+  // ---------------------------------------------------------------------------
+  // L'ÉCRAN PRINCIPAL
+  // ---------------------------------------------------------------------------
+
+  const headTitle = isResettingPassword
+    ? t("auth.reset.title")
+    : coachSignup
+      ? (isSignUp ? t("auth.coach.signup_title") : t("auth.coach.signin_title"))
+      : t("auth.signin.title");
+
+  const headLede = isResettingPassword
+    ? t("auth.reset.lede")
+    : coachSignup
+      ? (isSignUp ? t("auth.coach.signup_lede") : t("auth.coach.signin_lede"))
+      : t("auth.signin.lede");
+
+  const sheetLabel = isResettingPassword
+    ? t("auth.sheet.reset")
+    : coachSignup
+      ? t("auth.sheet.coach")
+      : t("auth.sheet.signin");
+
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans text-slate-900">
-      
-      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        {/* LOGO */}
-        <div className="flex flex-col items-center gap-3 mb-8">
-          <img
-            src="/apple-touch-icon.png"
-            alt="Sophia Logo"
-            className="w-16 h-16"
-          />
-          <div className="flex flex-col items-center">
-            <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Sophia</h1>
-            <span className="text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase mt-1">
-              Powered by IKIZEN
-            </span>
-          </div>
-        </div>
+    <Shell world={world} title={documentTitle}>
+      <Head title={headTitle} lede={headLede} />
 
-        {coachSignup ? (
-          /* KEEL W6.1 — the coach header. English, and it states the one thing
-             a coach coming from France will not expect: no phone required. */
-          <div className="animate-fade-in-up">
-            <h2 className="text-3xl font-bold text-slate-900 mb-2">
-              {isSignUp ? "Create your coach account." : "Welcome back."}
-            </h2>
-            <p className="text-slate-600 max-w-sm mx-auto">
-              {isSignUp
-                ? "Your students get the app. You get the prescription tools. No phone number needed."
-                : "Sign in to your coach workspace."}
-            </p>
-            {error && (
-              <div className="mt-4 rounded-lg bg-red-50 p-3 text-left">
-                <p className="text-xs text-red-700 font-medium">{error}</p>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div>
-            <h2 className="text-3xl font-bold text-slate-900 mb-2">
-              {isResettingPassword 
-                ? "Reset your password" 
-                : isSignUp 
-                  ? "Welcome to Sophia." 
-                  : "Good to see you again."}
-            </h2>
-            <p className="text-slate-600">
-              {isResettingPassword 
-                ? "I will send you a magic link."
-                : isSignUp 
-                  ? "Create your account to get started." 
-                  : "Sign in to pick up where you left off."}
-            </p>
-            {prelaunchLockdown && !isResettingPassword && (
-              <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold">
-                Restricted access (pre-launch) · master_admin only
-              </div>
-            )}
-            {debug && (
-              <div className="mt-3 text-xs text-slate-500 font-mono">
-                VITE_PRELAUNCH_LOCKDOWN="{prelaunchRaw}" → prelaunchLockdown={String(prelaunchLockdown)}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+      {prelaunchLockdown && !isResettingPassword && (
+        <p className="mt-5 inline-flex rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-800">
+          {t("auth.prelaunch.badge")}
+        </p>
+      )}
+      {debug && (
+        // Relevé de configuration, gaté sur `?debug=1`. Pas de `t()`: il n'y a
+        // aucune phrase ici, seulement le nom d'une variable d'environnement et
+        // sa valeur. Traduire un identifiant le rendrait faux.
+        <p className="mt-3 break-all font-mono text-xs text-ink-soft">
+          VITE_PRELAUNCH_LOCKDOWN="{prelaunchRaw}" · prelaunchLockdown={String(prelaunchLockdown)}
+        </p>
+      )}
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md animate-fade-in-up delay-100">
-        <div className="bg-white py-8 px-4 shadow-xl shadow-slate-200 rounded-2xl sm:px-10 border border-slate-100">
-          
-          {isResettingPassword ? (
+      <Sheet label={sheetLabel}>
+        {isResettingPassword
+          ? (
             /* --- FORMULAIRE MOT DE PASSE OUBLIÉ --- */
-            <form className="space-y-6" onSubmit={handleResetPassword}>
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1">
-                  Email address
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail className="h-5 w-5 text-slate-400" />
-                  </div>
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="appearance-none block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent sm:text-sm transition-all"
-                    placeholder="name@example.com"
-                  />
-                </div>
-              </div>
+            <form className="space-y-5" onSubmit={handleResetPassword}>
+              <Field label={t("auth.field.email")} htmlFor="auth-reset-email">
+                <input
+                  id="auth-reset-email"
+                  type="email"
+                  required
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={controlClass}
+                />
+              </Field>
 
-              {error && (
-                <div className="rounded-lg bg-red-50 p-4 flex items-start gap-3">
-                  <AlertCircle className="h-5 w-5 text-red-400 mt-0.5" />
-                  <p className="text-sm text-red-700 font-medium">{error}</p>
-                </div>
-              )}
+              {error && <ErrorNote>{error}</ErrorNote>}
 
-              <div>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full flex justify-center py-4 px-4 border border-transparent rounded-xl shadow-lg text-sm font-bold text-white bg-slate-900 hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed items-center gap-2"
-                >
-                  {loading ? (
+              <Button
+                type="submit"
+                variant="brand"
+                disabled={loading}
+                className="w-full py-3 text-base"
+              >
+                {loading
+                  ? (
                     <>
-                      <Loader2 className="w-5 h-5 animate-spin" /> Sending…
+                      <Loader2 aria-hidden className="h-4 w-4 animate-spin" />
+                      {t("auth.action.sending")}
                     </>
-                  ) : (
-                    "Send the link"
-                  )}
-                </button>
-              </div>
+                  )
+                  : t("auth.action.send_link")}
+              </Button>
 
-              <div className="text-center">
-                <button 
+              <p className="text-sm">
+                <button
                   type="button"
                   onClick={() => setIsResettingPassword(false)}
-                  className="text-sm font-medium text-slate-500 hover:text-indigo-600"
+                  className="font-medium text-fig-700 underline underline-offset-2 hover:text-fig-800"
                 >
-                  Back to sign-in
+                  {t("auth.action.back_to_signin")}
                 </button>
-              </div>
+              </p>
             </form>
-          ) : (
+          )
+          : (
             /* --- FORMULAIRE AUTHENTIFICATION (LOGIN / SIGNUP) --- */
-            <form className="space-y-6" onSubmit={handleAuth}>
-            
-            {/* Champ NOM (Seulement si Inscription) */}
-            {isSignUp && !prelaunchLockdown && (
-              <>
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1">
-                    {coachSignup ? "Your name" : "First name"}
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <User className="h-5 w-5 text-slate-400" />
-                    </div>
-                    <input
-                      type="text"
-                      required={isSignUp}
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="appearance-none block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent sm:text-sm transition-all"
-                      placeholder={coachSignup ? "How your students will see you" : "Your first name"}
-                    />
-                  </div>
-                </div>
+            <form className="space-y-5" onSubmit={handleAuth}>
+              {/* Champ NOM (Seulement si Inscription — donc seulement en mode
+                  coach: hors `?role=coach`, l'effet ci-dessus remet `isSignUp`
+                  à false à chaque rendu). */}
+              {isSignUp && !prelaunchLockdown && (
+                <Field
+                  label={t("auth.field.name")}
+                  htmlFor="auth-name"
+                  hint={coachSignup ? t("auth.field.name_hint") : undefined}
+                >
+                  <input
+                    id="auth-name"
+                    type="text"
+                    required={isSignUp}
+                    autoComplete="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className={controlClass}
+                  />
+                </Field>
+              )}
 
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1">
-                    Email address
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Mail className="h-5 w-5 text-slate-400" />
-                    </div>
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="appearance-none block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent sm:text-sm transition-all"
-                      placeholder="name@example.com"
-                    />
-                  </div>
-                </div>
+              <Field label={t("auth.field.email")} htmlFor="auth-email">
+                <input
+                  id="auth-email"
+                  type="email"
+                  required
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={controlClass}
+                />
+              </Field>
 
-                {/* ── LE CHAMP TÉLÉPHONE A ÉTÉ RETIRÉ (2026-08-05) ──────────
-                    Il était OBLIGATOIRE sur ce chemin, normalisé en `+33`, et
-                    refusait tout ce qui ne faisait pas exactement 12 caractères
-                    avec le message « 10 digits expected for France » — sur un
-                    produit anglais qui vise les États-Unis.
-                    Le numéro était l'identité du compte quand Sophia parlait
-                    sur WhatsApp. La conversation vit dans l'app depuis le
-                    chantier de-whatsapp: plus aucun chemin élève ni coach
-                    n'alimente `profiles.phone_number`, et le demander était un
-                    MUR — invisible dans les tests parce que tout le monde passe
-                    par /join.
-                    Ce chemin d'inscription générique n'existe plus du tout ici:
-                    l'inscription élève est /start, qui demande le PAYS (ce que
-                    le numéro déduisait). Voir le switcher en bas de page. */}
+              {/* ── LE CHAMP TÉLÉPHONE A ÉTÉ RETIRÉ (2026-08-05) ──────────
+                  Il était OBLIGATOIRE sur ce chemin, normalisé en `+33`, et
+                  refusait tout ce qui ne faisait pas exactement 12 caractères
+                  avec le message « 10 digits expected for France » — sur un
+                  produit anglais qui vise les États-Unis.
+                  Le numéro était l'identité du compte quand Sophia parlait
+                  sur WhatsApp. La conversation vit dans l'app depuis le
+                  chantier de-whatsapp: plus aucun chemin élève ni coach
+                  n'alimente `profiles.phone_number`, et le demander était un
+                  MUR — invisible dans les tests parce que tout le monde passe
+                  par /join.
+                  Ce chemin d'inscription générique n'existe plus du tout ici:
+                  l'inscription élève est /start, qui demande le PAYS (ce que
+                  le numéro déduisait). Voir les destinations en bas de page. */}
 
-                {/* KEEL W6.1 — country. Asked, never derived from the locale:
-                    `profiles.country` is read FIRST by the crisis-resource
-                    resolver, and a fr-FR coach practising in Montreal must not
-                    be filed under France. */}
-                {coachSignup && (
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1">
-                    Country
-                  </label>
+              {/* KEEL W6.1 — country. Asked, never derived from the locale:
+                  `profiles.country` is read FIRST by the crisis-resource
+                  resolver, and a fr-FR coach practising in Montreal must not
+                  be filed under France. */}
+              {isSignUp && !prelaunchLockdown && coachSignup && (
+                <Field
+                  label={t("auth.field.country")}
+                  htmlFor="auth-country"
+                  hint={t("auth.field.country_hint")}
+                >
                   <select
+                    id="auth-country"
                     value={coachCountry}
                     onChange={(e) => setCoachCountry(e.target.value)}
-                    className="appearance-none block w-full px-3 py-3 border border-slate-200 rounded-xl bg-white text-slate-900 sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                    className={controlClass}
                   >
                     {/* L'option initiale. Elle n'est pas soumissible: la garde
                         de forme au-dessus refuse une valeur vide avec une
                         phrase lisible, avant tout appel réseau. */}
-                    <option value={NO_COUNTRY_SELECTED}>Choose a country</option>
+                    <option value={NO_COUNTRY_SELECTED}>
+                      {t("auth.field.country_placeholder")}
+                    </option>
                     {COACH_COUNTRIES.map((c) => (
                       <option key={c.code} value={c.code}>
-                        {c.label}
+                        {t(c.label)}
                       </option>
                     ))}
                   </select>
-                  <p className="mt-1 text-xs text-slate-500">
-                    Where you practise. Used for crisis resources and local formats — never
-                    guessed from your language.
-                  </p>
+                </Field>
+              )}
+
+              <Field label={t("auth.field.password")} htmlFor="auth-password">
+                <div className="relative">
+                  <input
+                    id="auth-password"
+                    type={showPassword ? "text" : "password"}
+                    required
+                    autoComplete={isSignUp ? "new-password" : "current-password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className={`${controlClass} pr-12`}
+                    minLength={6}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute inset-y-0 right-0 flex items-center px-3 text-ink-soft transition-colors hover:text-ink"
+                    aria-label={showPassword
+                      ? t("auth.field.password_hide")
+                      : t("auth.field.password_show")}
+                  >
+                    {showPassword
+                      ? <EyeOff aria-hidden className="h-5 w-5" />
+                      : <Eye aria-hidden className="h-5 w-5" />}
+                  </button>
                 </div>
-                )}
+              </Field>
 
-              </>
-            )}
-
-            {/* Pour le Login, on affiche juste l'email (sans les champs d'inscription) */}
-            {(!isSignUp || prelaunchLockdown) && (
-            <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1">
-                Email address
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-slate-400" />
-                </div>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent sm:text-sm transition-all"
-                  placeholder="name@example.com"
-                />
-              </div>
-            </div>
-            )}
-
-            <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1">
-                Password
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-slate-400" />
-                </div>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full pl-10 pr-10 py-3 border border-slate-200 rounded-xl placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent sm:text-sm transition-all"
-                  placeholder="••••••••"
-                  minLength={6}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                </button>
-              </div>
-            </div>
-
-            {/* Case à cocher CGV / CGU (déplacée après le mot de passe) */}
-            {isSignUp && !prelaunchLockdown && (
-                <div className="flex items-start gap-3">
-                  <div className="flex h-6 items-center">
-                    <input
-                      id="legal-checkbox"
-                      name="legal"
-                      type="checkbox"
-                      checked={hasAcceptedLegal}
-                      onChange={(e) => setHasAcceptedLegal(e.target.checked)}
-                      className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600 cursor-pointer"
-                    />
-                  </div>
-                  <div className="text-sm leading-6">
-                    <label htmlFor="legal-checkbox" className="font-medium text-slate-700 cursor-pointer select-none">
-                      {coachSignup ? (
-                        <>I accept the <a href="/legal" target="_blank" className="text-indigo-600 hover:text-indigo-500 hover:underline">Terms</a> and the <a href="/legal#confidentialite" target="_blank" className="text-indigo-600 hover:text-indigo-500 hover:underline">Privacy Policy</a>.</>
-                      ) : (
-                        <>I accept the <a href="/legal" target="_blank" className="text-indigo-600 hover:text-indigo-500 hover:underline">Terms</a> and the <a href="/legal#confidentialite" target="_blank" className="text-indigo-600 hover:text-indigo-500 hover:underline">Privacy Policy</a>.</>
-                      )}
-                    </label>
-                  </div>
-                </div>
-            )}
-
-            {/* Préférences (inscription uniquement) */}
-            {isSignUp && !prelaunchLockdown && (
-              <div className="rounded-xl border border-slate-200 overflow-hidden">
-                <button
-                  type="button"
-                  onClick={() => setPrefsOpen((v) => !v)}
-                  className="w-full px-4 py-3 flex items-center justify-between bg-white hover:bg-slate-50 transition-colors"
-                  aria-expanded={prefsOpen}
-                >
-                  <div className="text-left">
-                    <div className="text-sm font-bold text-slate-900">
-                      Preferences
-                    </div>
-                    <div className="text-xs text-slate-500">
-                      English · {tzFollowDevice ? `${detectBrowserTimezone() || timezone || DEFAULT_TIMEZONE} (device)` : `${timezone || DEFAULT_TIMEZONE} (profile)`}
-                    </div>
-                  </div>
-                  <div className="text-slate-400 text-sm font-bold">{prefsOpen ? "—" : "+"}</div>
-                </button>
-
-                {prefsOpen && (
-                  <div className="p-4 bg-white border-t border-slate-200 space-y-3">
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-1">
-                        Language
-                      </label>
-                      {/* R3: ui_locale. One locked value: the product ships in
-                          English on every surface. */}
-                      <input
-                        type="text"
-                        value="English"
-                        readOnly
-                        className="appearance-none block w-full px-3 py-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-700 sm:text-sm"
-                      />
-                      <p className="mt-1 text-xs text-slate-500">
-                        The workspace ships in English.
-                      </p>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-1">
-                        Time zone (IANA)
-                      </label>
-                      <select
-                        value={(timezone || "").trim()}
-                        onChange={(e) => setTimezone(e.target.value)}
-                        className="appearance-none block w-full px-3 py-3 border border-slate-200 rounded-xl bg-white text-slate-900 sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                      >
-                        {supportedTimezones.map((tz) => (
-                          <option key={tz} value={tz}>
-                            {tz}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 p-3">
-                      <div>
-                        <div className="text-sm font-bold text-slate-700">Roaming</div>
-                        <div className="text-xs text-slate-500">Follow the device time zone automatically.</div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setTzFollowDevice((value) => {
-                            const next = !value;
-                            if (next) {
-                              const detectedTimezone = detectBrowserTimezone();
-                              if (detectedTimezone) setTimezone(detectedTimezone);
-                            }
-                            return next;
-                          })}
-                        className={`w-11 h-6 rounded-full p-1 transition-colors ${tzFollowDevice ? "bg-indigo-600" : "bg-slate-200"}`}
-                        aria-pressed={tzFollowDevice}
-                        aria-label="Enable roaming"
-                      >
-                        <div className={`w-4 h-4 bg-white rounded-full shadow-sm transform transition-transform ${tzFollowDevice ? "translate-x-5" : "translate-x-0"}`} />
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {!isSignUp && (
-              <div className="flex items-center justify-end">
-                <div className="text-sm">
-                  <button 
+              {!isSignUp && (
+                <p className="text-sm">
+                  <button
                     type="button"
                     onClick={() => setIsResettingPassword(true)}
-                    className="font-medium text-indigo-600 hover:text-indigo-500"
+                    className="font-medium text-fig-700 underline underline-offset-2 hover:text-fig-800"
                   >
-                    Forgotten your password?
+                    {t("auth.field.forgot")}
                   </button>
+                </p>
+              )}
+
+              {/* Case à cocher CGV / CGU */}
+              {isSignUp && !prelaunchLockdown && (
+                <label className="flex items-start gap-3 text-sm leading-6 text-ink">
+                  <input
+                    id="legal-checkbox"
+                    name="legal"
+                    type="checkbox"
+                    checked={hasAcceptedLegal}
+                    onChange={(e) => setHasAcceptedLegal(e.target.checked)}
+                    className="mt-1 h-4 w-4 shrink-0 cursor-pointer accent-fig-700 focus:outline-none focus:ring-2 focus:ring-fig-600 focus:ring-offset-2"
+                  />
+                  <span className="cursor-pointer select-none">
+                    {t("auth.legal.prefix")}{" "}
+                    <a
+                      href="/legal"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-medium text-fig-700 underline underline-offset-2 hover:text-fig-800"
+                    >
+                      {t("auth.legal.terms")}
+                    </a>{" "}
+                    {t("auth.legal.and")}{" "}
+                    <a
+                      href="/legal#confidentialite"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-medium text-fig-700 underline underline-offset-2 hover:text-fig-800"
+                    >
+                      {t("auth.legal.privacy")}
+                    </a>
+                    .
+                  </span>
+                </label>
+              )}
+
+              {/* Préférences (inscription uniquement) */}
+              {isSignUp && !prelaunchLockdown && (
+                <div className="overflow-hidden rounded-card border border-line-strong bg-paper">
+                  <button
+                    type="button"
+                    onClick={() => setPrefsOpen((v) => !v)}
+                    className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-fig-50"
+                    aria-expanded={prefsOpen}
+                    aria-controls="auth-prefs"
+                  >
+                    <span className="min-w-0">
+                      <span className="block text-sm font-medium text-ink">
+                        {t("auth.prefs.title")}
+                      </span>
+                      <span className="mt-0.5 block break-words text-xs text-ink-soft">
+                        {t("auth.prefs.language_value")} ·{" "}
+                        {tzFollowDevice
+                          ? t("auth.prefs.tz_device", {
+                            timezone: detectBrowserTimezone() || timezone || DEFAULT_TIMEZONE,
+                          })
+                          : t("auth.prefs.tz_profile", {
+                            timezone: timezone || DEFAULT_TIMEZONE,
+                          })}
+                      </span>
+                    </span>
+                    <span aria-hidden className="shrink-0 text-lg leading-none text-ink-soft">
+                      {prefsOpen ? "−" : "+"}
+                    </span>
+                  </button>
+
+                  {prefsOpen && (
+                    <div id="auth-prefs" className="space-y-4 border-t border-line px-4 py-4">
+                      <Field
+                        label={t("auth.prefs.language")}
+                        htmlFor="auth-language"
+                        hint={t("auth.prefs.language_hint")}
+                      >
+                        {/* R3: ui_locale. One locked value: the coach
+                            workspace ships in English on every surface. */}
+                        <input
+                          id="auth-language"
+                          type="text"
+                          value={t("auth.prefs.language_value")}
+                          readOnly
+                          className={`${controlClass} bg-paper-2 text-ink-soft`}
+                        />
+                      </Field>
+
+                      <Field label={t("auth.prefs.timezone")} htmlFor="auth-timezone">
+                        <select
+                          id="auth-timezone"
+                          value={(timezone || "").trim()}
+                          onChange={(e) => setTimezone(e.target.value)}
+                          className={controlClass}
+                        >
+                          {supportedTimezones.map((tz) => (
+                            <option key={tz} value={tz}>
+                              {tz}
+                            </option>
+                          ))}
+                        </select>
+                      </Field>
+
+                      <div className="flex items-center justify-between gap-3 rounded-card border border-line px-3 py-3">
+                        <div className="min-w-0">
+                          <div className="text-sm font-medium text-ink">
+                            {t("auth.prefs.roaming")}
+                          </div>
+                          <div className="mt-0.5 text-xs leading-5 text-ink-soft">
+                            {t("auth.prefs.roaming_hint")}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setTzFollowDevice((value) => {
+                              const next = !value;
+                              if (next) {
+                                const detectedTimezone = detectBrowserTimezone();
+                                if (detectedTimezone) setTimezone(detectedTimezone);
+                              }
+                              return next;
+                            })}
+                          className={`h-6 w-11 shrink-0 rounded-full p-1 transition-colors ${
+                            tzFollowDevice ? "bg-fig-700" : "bg-line-strong"
+                          }`}
+                          aria-pressed={tzFollowDevice}
+                          aria-label={t("auth.prefs.roaming_toggle")}
+                        >
+                          <div
+                            className={`h-4 w-4 rounded-full bg-paper transition-transform ${
+                              tzFollowDevice ? "translate-x-5" : "translate-x-0"
+                            }`}
+                          />
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            )}
+              )}
 
-            {error && (
-              <div className="rounded-lg bg-red-50 p-4 flex items-start gap-3">
-                <AlertCircle className="h-5 w-5 text-red-400 mt-0.5" />
-                <p className="text-sm text-red-700 font-medium">{error}</p>
-              </div>
-            )}
+              {error && <ErrorNote>{error}</ErrorNote>}
 
-            <div>
-              <button
+              <Button
                 type="submit"
+                variant="brand"
                 disabled={loading || (isSignUp && !prelaunchLockdown && !hasAcceptedLegal)}
-                className="w-full flex justify-center py-4 px-4 border border-transparent rounded-xl shadow-lg text-sm font-bold text-white bg-slate-900 hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed items-center gap-2"
+                className="w-full py-3 text-base"
               >
-                {loading ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" /> Working…
-                  </>
-                ) : isSignUp ? (
-                  <>
-                    {coachSignup ? "Create my coach account" : "Create my account"}{" "}
-                    <ArrowRight className="w-5 h-5" />
-                  </>
-                ) : (
-                  "Sign in"
-                )}
-              </button>
-            </div>
+                {loading
+                  ? (
+                    <>
+                      <Loader2 aria-hidden className="h-4 w-4 animate-spin" />
+                      {t("auth.action.working")}
+                    </>
+                  )
+                  : isSignUp
+                    ? t("auth.action.coach_signup")
+                    : t("auth.action.signin")}
+              </Button>
             </form>
           )}
+      </Sheet>
 
-          {/* SWITCHER LOGIN/SIGNUP (Masqué si Reset Password / Pré-lancement) */}
-          {!isResettingPassword && !prelaunchLockdown && (
-            <div className="mt-6">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-slate-200" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-slate-500">
-                    {coachSignup
-                      ? (isSignUp ? "Already have a coach account?" : "No coach account yet?")
-                      : (isSignUp ? "Already have an account?" : "No account yet?")}
-                  </span>
-                </div>
-              </div>
+      {/* ── LES DEUX DESTINATIONS ────────────────────────────────────────────
+          DEUX GESTES QUI NE FONT PAS LA MÊME CHOSE, ET C'EST LE POINT.
+          Côté coach, le basculement inscription/connexion reste LOCAL: le
+          formulaire coach vit sur cette page.
+          Côté foyer, « créer un compte » est un LIEN vers /start, pas un
+          `setIsSignUp(true)`. Deux raisons, et la seconde est un bug qu'on
+          éviterait de justesse: (1) l'inscription élève doit demander le PAYS,
+          que cette page ne demande pas; (2) le `useEffect` qui suit
+          `?role=coach` remet `isSignUp` à false à chaque rendu hors mode coach,
+          donc le basculement local n'aurait affiché le formulaire qu'un
+          clignement.
 
-              <div className="mt-6 grid grid-cols-1 gap-3">
-                {/* DEUX BOUTONS QUI NE FONT PAS LA MÊME CHOSE, ET C'EST LE POINT.
-                    Côté coach, le basculement inscription/connexion reste LOCAL:
-                    le formulaire coach vit sur cette page.
-                    Côté élève, « créer un compte » est un LIEN vers /start, pas
-                    un `setIsSignUp(true)`. Deux raisons, et la seconde est un
-                    bug qu'on éviterait de justesse: (1) l'inscription élève doit
-                    demander le PAYS, que cette page ne demande pas; (2) le
-                    `useEffect` qui suit `?role=coach` remet `isSignUp` à false à
-                    chaque rendu hors mode coach, donc le basculement local
-                    n'aurait affiché le formulaire qu'un clignement. */}
-                {coachSignup ? (
-                  <button
+          ⚠️ LE MONDE DÉCIDE DE LA MISE EN AVANT, JAMAIS DE L'ACCÈS. Les deux
+          destinations sont TOUJOURS atteignables, quel que soit `?w=`: une
+          mise en avant qui cache l'autre porte n'est plus une mise en avant,
+          c'est un aiguillage — et il se tromperait sur le premier lien mal
+          recopié. */}
+      {!isResettingPassword && !prelaunchLockdown && (
+        <section>
+          <Divider>
+            {coachSignup
+              ? (isSignUp
+                ? t("auth.doors.coach_divider_signup")
+                : t("auth.doors.coach_divider_signin"))
+              : t("auth.doors.divider")}
+          </Divider>
+
+          {coachSignup
+            ? (
+              <>
+                <div className="mt-6">
+                  <Button
+                    variant="secondary"
                     onClick={() => setIsSignUp(!isSignUp)}
-                    className="w-full inline-flex justify-center py-3 px-4 border border-slate-200 rounded-xl shadow-sm bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                    className="w-full py-3 text-base"
                   >
-                    {isSignUp ? "Sign in" : "Create a coach account"}
-                  </button>
-                ) : (
-                  <Link
+                    {isSignUp ? t("auth.action.signin") : t("auth.coach_link.cta")}
+                  </Button>
+                </div>
+                {/* KEEL — the two doors reference each other. A coach landing
+                    on the consumer form must see their door without guessing a
+                    URL, and vice-versa. */}
+                <DoorLine
+                  prompt={t("auth.coach_link.back_prompt")}
+                  to={authHref(world)}
+                  cta={t("auth.coach_link.back_cta")}
+                />
+              </>
+            )
+            : world === "household"
+            ? (
+              <>
+                <div className="mt-6">
+                  <DoorCard
+                    label={t("auth.doors.household.label")}
+                    body={t("auth.doors.household.body")}
                     to="/start"
-                    className="w-full inline-flex justify-center py-3 px-4 border border-slate-200 rounded-xl shadow-sm bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
-                  >
-                    Create a free account
-                  </Link>
-                )}
+                    cta={t("auth.doors.household.cta")}
+                  />
+                </div>
+                <DoorLine
+                  prompt={t("auth.coach_link.prompt")}
+                  to={authHref(world, { role: "coach" })}
+                  cta={t("auth.coach_link.cta")}
+                />
+              </>
+            )
+            : world === "pro"
+            ? (
+              <>
+                <div className="mt-6">
+                  <DoorCard
+                    label={t("auth.doors.pro.label")}
+                    body={t("auth.doors.pro.body")}
+                    to={authHref(world, { role: "coach" })}
+                    cta={t("auth.coach_link.cta")}
+                  />
+                </div>
+                <DoorLine
+                  prompt={t("auth.doors.household.prompt")}
+                  to="/start"
+                  cta={t("auth.doors.household.cta")}
+                />
+              </>
+            )
+            : (
+              /* NEUTRE — le comportement d'avant, et celui de tout lien nu vers
+                 `/auth`. Les deux mondes à égalité: même cadre, même geste,
+                 même poids. */
+              <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                <DoorCard
+                  label={t("auth.doors.household.label")}
+                  body={t("auth.doors.household.body")}
+                  to="/start"
+                  cta={t("auth.doors.household.cta")}
+                />
+                <DoorCard
+                  label={t("auth.doors.pro.label")}
+                  body={t("auth.doors.pro.body")}
+                  to={authHref(world, { role: "coach" })}
+                  cta={t("auth.coach_link.cta")}
+                />
               </div>
-
-              {/* KEEL — the two doors reference each other. A coach landing on
-                  the consumer form must see their door without guessing a URL,
-                  and vice-versa. */}
-              <div className="mt-4 text-center text-sm text-slate-500">
-                {coachSignup ? (
-                  <>
-                    {keelT("auth.coach_link.back_prompt")}{" "}
-                    <Link
-                      to="/auth"
-                      className="font-medium text-indigo-600 hover:text-indigo-500"
-                    >
-                      {keelT("auth.coach_link.back_cta")}
-                    </Link>
-                  </>
-                ) : (
-                  <>
-                    {keelT("auth.coach_link.prompt")}{" "}
-                    <Link
-                      to="/auth?role=coach"
-                      className="font-medium text-indigo-600 hover:text-indigo-500"
-                    >
-                      {keelT("auth.coach_link.cta")}
-                    </Link>
-                  </>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Trust Signals */}
-        {isSignUp && !isResettingPassword && !prelaunchLockdown && (
-            <div className="mt-8 flex justify-center gap-6 text-xs text-slate-400 font-medium uppercase tracking-wider">
-                <span className="flex items-center gap-1"><ShieldCheck className="w-4 h-4" /> Private data</span>
-                <span className="flex items-center gap-1"><Sparkles className="w-4 h-4" /> Secured AI</span>
-            </div>
-        )}
-      </div>
-    </div>
+            )}
+        </section>
+      )}
+    </Shell>
   );
 };
 

@@ -119,6 +119,14 @@ describe("pack français de la vitrine", () => {
       "gyms.fig.monday_r3",
       "gyms.fig.monday_s3",
       "families.fig_gate.code", // `safety_constraints_unreadable`, un identifiant
+      // ── LES PAYS QUI S'ÉCRIVENT PAREIL DANS LES DEUX LANGUES ─────────────
+      // Le sélecteur de pays de `/auth` (inscription coach) est traduit — les
+      // quinze autres le sont visiblement (« États-Unis », « Royaume-Uni »,
+      // « Pays-Bas »…). Ces trois-là s'écrivent à l'identique en anglais et en
+      // français: les « traduire » demanderait d'inventer une différence.
+      "auth.country.fr",
+      "auth.country.ca",
+      "auth.country.pt",
       // ── LES CHIFFRES ET LES MOTS COMMUNS AUX DEUX LANGUES ────────────────
       // Un prix est un fait commercial, pas de la langue.
       "gyms.price.seat",

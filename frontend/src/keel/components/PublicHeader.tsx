@@ -66,6 +66,16 @@ type Door = { to: string; label: MessageKey };
  * première est une crédential, les deux autres appartiennent à l'acheteur qui a
  * déjà décidé.
  */
+// ── `?w=` — LA CONNEXION SE SOUVIENT DU MONDE D'OÙ ELLE VIENT ─────────────
+// `/auth` sert les deux mondes, et ils n'ont ni le même acheteur ni la même
+// inscription: un foyer s'inscrit sur `/start`, un professionnel ouvre un
+// compte coach. Sans indice, l'écran doit proposer les deux à égalité — ce qui
+// est juste pour un lien nu, et faux pour quelqu'un qui vient de lire une page
+// de vente: on lui redemande une décision qu'il vient de prendre.
+// Le paramètre ne décide QUE de la mise en avant. Il n'ouvre aucun formulaire
+// (c'est `?role=coach` qui fait ça, et il n'a pas bougé), et son absence reste
+// un état valide: tous les liens `/auth` déjà en circulation marchent comme
+// avant.
 const WORLDS = [
   {
     /** Le hall. `/` est B2C depuis la refonte du 2026-08-12. */
@@ -73,6 +83,8 @@ const WORLDS = [
     label: "public.nav.world_household" as MessageKey,
     /** Le geste de ce monde: l'inscription libre. */
     cta: { to: "/start", label: "public.header.start_household" as MessageKey },
+    /** La connexion, en disant d'où l'on vient. Voir la note ci-dessus. */
+    signIn: "/auth?w=household",
     doors: [
       { to: "/meal-prep", label: "public.nav.mealprep" },
       { to: "/couples", label: "public.nav.couples" },
@@ -84,6 +96,7 @@ const WORLDS = [
     label: "public.nav.world_pro" as MessageKey,
     /** Le geste de ce monde: l'essai coach, 14 jours et 3 élèves. */
     cta: { to: "/auth?role=coach", label: "public.header.start_trial" as MessageKey },
+    signIn: "/auth?w=pro",
     doors: [
       { to: "/coaches", label: "public.nav.coaches" },
       { to: "/gyms", label: "public.nav.gyms" },
@@ -239,8 +252,16 @@ export function PublicHeader({
                 <span
                   className={audience === "student" ? "contents" : "hidden sm:contents"}
                 >
+                  {/* ⚠️ `?w=` SEULEMENT SUR UNE PAGE DE VENTE. Sous
+                      `audience="student"` (`/join`, `/join-household`), il n'y
+                      a pas de monde courant: `world` est un REPLI arbitraire
+                      (WORLDS[0]) et non une lecture. Y accrocher le paramètre
+                      ferait dire à l'écran de connexion « vous venez du foyer »
+                      à quelqu'un qui vient d'ouvrir l'invitation d'un coach.
+                      Sans indice, `/auth` propose les deux à égalité — ce qui
+                      est exactement la bonne réponse ici. */}
                   <ButtonLink
-                    to="/auth"
+                    to={showWorlds ? world.signIn : "/auth"}
                     variant={audience === "student" ? "secondary" : "ghost"}
                   >
                     {t("public.header.sign_in")}

@@ -60,10 +60,154 @@ export const fr: PublicMessages = {
   "public.footer.contact_email": "sophia@sophia-coach.ai",
   "public.footer.copyright": "Sophia — logiciel de coaching",
 
+  // ── /auth — LA PORTE UNIQUE DU PRODUIT ───────────────────────────────────
+  //
+  // ⚠️ VOUVOIEMENT, ET C'EST UN ARBITRAGE ASSUMÉ. Le site n'a pas une seule
+  // adresse: `/`, `/pro`, `/couples`, `/families`, `/gyms`, `/communities` et
+  // le chrome disent « vous »; `/meal-prep`, `/coaches` et `/start` disent
+  // « tu ». Cet écran-ci est la porte des DEUX mondes — un coach y crée un
+  // compte professionnel — et c'est le moment le plus formel du site: on y
+  // confie un mot de passe. Il prend donc le registre majoritaire.
+  // Conséquence à connaître: le lien « Créer un compte gratuit » atterrit sur
+  // `/start`, qui tutoie. Le raccord est visible, il appartient au lot qui
+  // uniformisera le registre du site, pas à celui-ci.
+  //
+  // Les quatre clés `auth.coach_link.*` plus bas ont été REPASSÉES au
+  // vouvoiement pour la même raison: elles vivaient seules, tutoyantes, au
+  // milieu d'un écran anglais.
+  "auth.seo.title": "Connexion",
+  "auth.seo.title_coach": "Compte coach",
+  "auth.seo.description":
+    "Connectez-vous à Sophia, ou ouvrez le compte qui vous y fait entrer : pour un foyer, ou pour un coach et ses élèves.",
+
+  // Le fronton de la fiche — le nom du document, qui change avec son état.
+  "auth.sheet.signin": "Connexion",
+  "auth.sheet.coach": "Compte coach",
+  "auth.sheet.reset": "Mot de passe",
+  "auth.sheet.confirm": "Vérification de l’e-mail",
+
+  "auth.signin.title": "Vous revoilà.",
+  "auth.signin.lede": "La même porte pour les foyers et pour les coachs.",
+  "auth.coach.signup_title": "Créez votre compte coach.",
+  "auth.coach.signup_lede":
+    "Vos élèves ont l’app. Vous écrivez la méthode avec laquelle elle répond. Aucun numéro de téléphone à donner.",
+  "auth.coach.signin_title": "Retour à votre espace.",
+  "auth.coach.signin_lede": "Connectez-vous à votre espace coach.",
+  "auth.reset.title": "Réinitialisez votre mot de passe.",
+  "auth.reset.lede":
+    "Indiquez votre adresse. Nous envoyons un lien qui ouvre la page où choisir un nouveau mot de passe.",
+
+  "auth.field.email": "Adresse e-mail",
+  "auth.field.password": "Mot de passe",
+  "auth.field.password_show": "Afficher le mot de passe",
+  "auth.field.password_hide": "Masquer le mot de passe",
+  "auth.field.name": "Votre nom",
+  "auth.field.name_hint": "Le nom sous lequel vos élèves vous verront.",
+  "auth.field.country": "Pays",
+  "auth.field.country_placeholder": "Choisissez un pays",
+  "auth.field.country_hint":
+    "Le pays où vous exercez. Il décide des ressources d’urgence servies à vos élèves, et il n’est jamais déduit de votre langue.",
+  "auth.field.forgot": "Mot de passe oublié ?",
+
+  "auth.action.signin": "Se connecter",
+  "auth.action.coach_signup": "Créer mon compte coach",
+  "auth.action.working": "En cours…",
+  "auth.action.send_link": "Envoyer le lien",
+  "auth.action.sending": "Envoi en cours…",
+  "auth.action.back_to_signin": "Revenir à la connexion",
+
+  "auth.legal.prefix": "J’accepte les",
+  "auth.legal.terms": "conditions générales",
+  "auth.legal.and": "et la",
+  "auth.legal.privacy": "politique de confidentialité",
+
+  "auth.prefs.title": "Préférences",
+  "auth.prefs.language": "Langue",
+  "auth.prefs.language_value": "Anglais",
+  "auth.prefs.language_hint": "L’espace coach est en anglais.",
+  "auth.prefs.timezone": "Fuseau horaire",
+  "auth.prefs.tz_device": "{timezone} (appareil)",
+  "auth.prefs.tz_profile": "{timezone} (profil)",
+  "auth.prefs.roaming": "Itinérance",
+  "auth.prefs.roaming_hint": "Suivre automatiquement le fuseau de l’appareil.",
+  "auth.prefs.roaming_toggle": "Suivre le fuseau de l’appareil",
+
+  "auth.confirm.title": "Regardez votre boîte mail.",
+  "auth.confirm.body":
+    "Un lien de confirmation part vers {email}. Cliquez dessus, puis revenez ici : cette page se met à jour toute seule.",
+  "auth.confirm.spam": "Rien à cet endroit ? Regardez dans les indésirables.",
+  "auth.confirm.waiting": "En attente de la vérification…",
+  "auth.confirm.checking": "Vérification en cours…",
+  "auth.confirm.check_cta": "J’ai cliqué sur le lien",
+  "auth.confirm.resend": "Renvoyer l’e-mail de confirmation",
+  "auth.confirm.resend_wait": "Renvoyer dans {seconds} s",
+  "auth.confirm.change_email": "Utiliser une autre adresse",
+  "auth.confirm.not_verified":
+    "Pas encore vérifié. Cliquez sur le lien reçu par e-mail, puis revenez ici.",
+  "auth.confirm.check_failed": "La vérification n’a pas pu aboutir. Réessayez.",
+  "auth.confirm.verified_title": "E-mail vérifié.",
+  "auth.confirm.verified_body": "Préparation de votre espace…",
+  "auth.confirm.retry": "Réessayer",
+
+  "auth.doors.divider": "Pas encore de compte ?",
+  "auth.doors.household.label": "Foyer",
+  "auth.doors.household.body":
+    "Ouvrez votre compte et composez votre semaine vous-même, sans coach.",
+  "auth.doors.household.cta": "Créer un compte gratuit",
+  "auth.doors.household.prompt": "Vous cuisinez pour votre foyer ?",
+  "auth.doors.pro.label": "Professionnel",
+  "auth.doors.pro.body":
+    "Écrivez votre méthode une fois. Vos élèves composent leur semaine dedans.",
+  "auth.doors.coach_divider_signup": "Vous avez déjà un compte coach ?",
+  "auth.doors.coach_divider_signin": "Pas encore de compte coach ?",
+
+  "auth.error.legal":
+    "Acceptez les conditions générales et la politique de confidentialité pour continuer.",
+  "auth.error.country": "Choisissez le pays où vous exercez.",
+  "auth.error.student_signup_moved":
+    "L’inscription élève a déménagé. Ouvrez /start pour créer votre compte, ou utilisez le lien que votre coach vous a envoyé.",
+  "auth.error.prelaunch_signup":
+    "L’inscription est fermée (pré-lancement). Connectez-vous avec le compte master_admin.",
+  "auth.error.prelaunch_forbidden":
+    "L’accès est restreint (pré-lancement). Seul le compte master_admin peut se connecter.",
+  "auth.error.coach_profile":
+    "Votre compte existe, mais le profil coach n’a pas pu être créé. Reconnectez-vous pour réessayer.",
+  "auth.error.server_unreachable":
+    "Vous êtes bien connecté, mais le serveur ne répond pas pour ouvrir votre espace. Réessayez dans un instant.",
+  "auth.error.generic": "Une erreur est survenue.",
+  "auth.error.reset_failed": "L’e-mail n’a pas pu être envoyé.",
+  "auth.error.reset_smtp":
+    "L’e-mail de réinitialisation n’a pas pu être envoyé.\n\nSupabase Dashboard / Auth / SMTP : SMTP personnalisé activé mais incomplet, identifiants erronés, ou domaine d’expédition non vérifié.\nAuth / URL Configuration : la liste des URL de redirection autorisées doit contenir {origin}/reset-password.\n\nDétail : {detail}",
+  "auth.reset.sent":
+    "Si un compte existe pour {email}, un e-mail de réinitialisation est en route.",
+  "auth.reset.sent_local":
+    "Pile locale : ouvrez http://127.0.0.1:54324 pour le lire.",
+
+  "auth.prelaunch.badge": "Accès restreint (pré-lancement) · master_admin uniquement",
+
+  "auth.country.us": "États-Unis",
+  "auth.country.gb": "Royaume-Uni",
+  "auth.country.fr": "France",
+  "auth.country.ca": "Canada",
+  "auth.country.au": "Australie",
+  "auth.country.ie": "Irlande",
+  "auth.country.nz": "Nouvelle-Zélande",
+  "auth.country.be": "Belgique",
+  "auth.country.ch": "Suisse",
+  "auth.country.de": "Allemagne",
+  "auth.country.es": "Espagne",
+  "auth.country.it": "Italie",
+  "auth.country.nl": "Pays-Bas",
+  "auth.country.pt": "Portugal",
+  "auth.country.se": "Suède",
+  "auth.country.sg": "Singapour",
+  "auth.country.ae": "Émirats arabes unis",
+  "auth.country.za": "Afrique du Sud",
+
   // ── Passerelles d'authentification ───────────────────────────────────────
-  "auth.coach_link.prompt": "Tu es coach ?",
+  "auth.coach_link.prompt": "Vous êtes coach ?",
   "auth.coach_link.cta": "Créer un compte coach",
-  "auth.coach_link.back_prompt": "Tu n'es pas coach ?",
+  "auth.coach_link.back_prompt": "Vous n’êtes pas coach ?",
   "auth.coach_link.back_cta": "Aller à la connexion classique",
 
   // ── SEO ──────────────────────────────────────────────────────────────────

@@ -213,8 +213,14 @@ describe("la frontière de langue passe au bord des pages, jamais au milieu", ()
   });
 
   it("ne touche à rien en dehors de la vitrine", () => {
-    // L'app connectée et les pages sans namespace (`/legal`, `/auth`) suivent
-    // le choix du visiteur, exactement comme avant ce lot.
+    // L'app connectée et `/legal` (aucun namespace) suivent le choix du
+    // visiteur, exactement comme avant ce lot.
+    // ⚠️ `/auth` EST DANS CETTE LISTE POUR UNE AUTRE RAISON DEPUIS LE
+    // 2026-08-12. Il était ici comme « page sans namespace »; il en a un
+    // maintenant (`auth`, entièrement traduit). Il y reste parce que le
+    // résultat attendu est le même et que la propriété vaut d'être tenue: une
+    // page DÉCLARÉE et traduite suit le choix du visiteur, elle ne le force
+    // pas. C'est ce qui rougirait si `auth` repassait un jour en attente.
     setChosenUiLocaleForTest("fr");
     for (const path of ["/app/today", "/legal", "/auth", "/coach", "/nimporte"]) {
       expect(uiLocaleForPath(path), path).toBe("fr");
