@@ -51,6 +51,7 @@ Deno.test("chaque membre apparaît avec son id EXACT, une fois", () => {
   const { userSuffix } = buildHouseholdPromptBlocks({
     members: [DAD, SON, KID], envyLine: null, restrictions: [], presence: NOBODY_AWAY, merge: null,
     unmerge: null,
+    voices: [],
   });
   for (const m of [DAD, SON, KID]) {
     const occurrences = userSuffix.split(m.memberId).length - 1;
@@ -73,6 +74,7 @@ Deno.test("LES RÈGLES DE MAISON NE SONT JAMAIS UNE RAISON NUTRITIONNELLE", () =
   const { userSuffix } = buildHouseholdPromptBlocks({
     members: [DAD, KID], envyLine: null, restrictions, presence: NOBODY_AWAY, merge: null,
     unmerge: null,
+    voices: [],
   });
   // NORMALISÉ, parce que le bloc est enroulé pour rester lisible dans le
   // source: une assertion sur le texte brut casserait au premier reflow, et un
@@ -93,6 +95,7 @@ Deno.test("les restrictions d'une même personne sont regroupées", () => {
     envyLine: null,
     presence: NOBODY_AWAY, merge: null,
     unmerge: null,
+    voices: [],
     restrictions: [
       { memberId: "m-kid", memberDisplayName: "Léa", label: "nutella" },
       { memberId: "m-kid", memberDisplayName: "Léa", label: "nuggets" },
@@ -110,6 +113,7 @@ Deno.test("LES RÈGLES DE MAISON PASSENT APRÈS LES ENVIES", () => {
     envyLine: "du nutella partout",
     presence: NOBODY_AWAY, merge: null,
     unmerge: null,
+    voices: [],
     restrictions: [
       { memberId: "m-kid", memberDisplayName: "Léa", label: "nutella" },
     ],
@@ -123,6 +127,7 @@ Deno.test("sans restriction, aucun bloc de règles n'apparaît", () => {
   const { userSuffix } = buildHouseholdPromptBlocks({
     members: [DAD], envyLine: null, restrictions: [], presence: NOBODY_AWAY, merge: null,
     unmerge: null,
+    voices: [],
   });
   assert(!userSuffix.includes("HOUSE RULES"));
 });
@@ -131,6 +136,7 @@ Deno.test("le schéma supplémentaire n'est demandé que côté système", () =>
   const { systemSuffix, userSuffix } = buildHouseholdPromptBlocks({
     members: [DAD], envyLine: null, restrictions: [], presence: NOBODY_AWAY, merge: null,
     unmerge: null,
+    voices: [],
   });
   assert(systemSuffix.includes('"member_portions"'));
   assert(systemSuffix.includes("never a reason"));
@@ -146,6 +152,7 @@ Deno.test("le brief de portions et la ligne d'envies sont tous les deux là", ()
     restrictions: [],
     presence: NOBODY_AWAY, merge: null,
     unmerge: null,
+    voices: [],
   });
   assert(userSuffix.includes("HOUSEHOLD SERVING PLAN"));
   assert(userSuffix.includes("Do NOT propose separate dishes"));
@@ -161,6 +168,7 @@ Deno.test("SANS LIGNE D'ENVIES, aucun en-tête d'envies n'apparaît", () => {
   const { userSuffix, envyLineUsed } = buildHouseholdPromptBlocks({
     members: [DAD, SON], envyLine: null, restrictions: [], presence: NOBODY_AWAY, merge: null,
     unmerge: null,
+    voices: [],
   });
   assert(!userSuffix.includes("WHAT THIS HOUSEHOLD ASKED FOR"));
   assertEquals(envyLineUsed, false);
@@ -189,6 +197,7 @@ Deno.test("le bloc de présence entre dans le prompt, JUSTE APRÈS le brief de p
     presence,
     merge: null,
     unmerge: null,
+    voices: [],
   });
   assert(userSuffix.includes("WHO IS NOT AT THE TABLE"), userSuffix);
   // L'ORDRE EST LE SUJET: « pour combien » doit se lire juste après « pour
@@ -208,6 +217,7 @@ Deno.test("SANS ABSENCE, aucun en-tête de présence n'apparaît", () => {
   const { userSuffix } = buildHouseholdPromptBlocks({
     members: [DAD, SON], envyLine: null, restrictions: [], presence: NOBODY_AWAY, merge: null,
     unmerge: null,
+    voices: [],
   });
   assert(!userSuffix.includes("WHO IS NOT AT THE TABLE"), userSuffix);
 });
@@ -282,6 +292,7 @@ Deno.test("CHANGER LES BLOCS SANS BUMPER LA VERSION DOIT ÊTRE ROUGE", () => {
     presence,
     merge: null,
     unmerge: null,
+    voices: [],
   });
 
   // L'ORDRE EST UNE CONSIGNE, pas une mise en page: les règles de maison
@@ -353,6 +364,7 @@ Deno.test("SANS FUSION, LE PROMPT EST CELUI D'AVANT L4, À L'OCTET PRÈS", () =>
     members: [DAD, SON], envyLine: null, restrictions: [], presence: NOBODY_AWAY,
     merge: null,
     unmerge: null,
+    voices: [],
   });
   assert(!userSuffix.includes("BRINGING SOMEONE BACK"));
   assert(
@@ -380,6 +392,7 @@ Deno.test("le bloc de fusion entre APRÈS la présence et AVANT l'envie", () => 
     presence,
     merge: MERGE_PROMPT,
     unmerge: null,
+    voices: [],
   });
   // L'ORDRE EST UNE CONSIGNE. « Qui revient à table » appartient au groupe des
   // trois blocs qui disent qui mange quoi; le mettre après l'envie le ferait
@@ -420,6 +433,7 @@ Deno.test("LE BARREAU DE L'ÉCHELLE CHANGE LA LIGNE « COMBIEN DE PLATS »", () 
       presence: NOBODY_AWAY,
       merge: { ...MERGE_PROMPT, shape },
       unmerge: null,
+      voices: [],
     }).userSuffix;
 
   assert(of("one_dish").includes("Do NOT propose separate dishes."));
@@ -452,11 +466,13 @@ Deno.test("SANS DÉFUSION, LE PROMPT EST CELUI D'AVANT L5, À L'OCTET PRÈS", ()
     members: [DAD, SON], envyLine: null, restrictions: [], presence: NOBODY_AWAY,
     merge: null,
     unmerge: null,
+    voices: [],
   }).userSuffix;
   const merged = buildHouseholdPromptBlocks({
     members: [DAD, SON], envyLine: null, restrictions: [], presence: NOBODY_AWAY,
     merge: MERGE_PROMPT,
     unmerge: null,
+    voices: [],
   }).userSuffix;
   assert(!plain.includes("TAKING SOMEONE BACK OUT"));
   assert(!merged.includes("TAKING SOMEONE BACK OUT"));
@@ -485,6 +501,7 @@ Deno.test("le bloc de défusion entre APRÈS la présence et AVANT l'envie", () 
     presence,
     merge: null,
     unmerge: UNMERGE_PROMPT,
+    voices: [],
   });
   // MÊME PLACE QUE LA FUSION, ET POUR LA MÊME RAISON: « untel ne mange plus
   // ici » est encore « qui mange quoi ». Les règles de maison restent EN
@@ -519,6 +536,7 @@ Deno.test("UNE DÉFUSION NE DEMANDE JAMAIS UN SECOND PLAT", () => {
     members: [DAD, SON], envyLine: null, restrictions: [], presence: NOBODY_AWAY,
     merge: null,
     unmerge: UNMERGE_PROMPT,
+    voices: [],
   });
   assert(
     userSuffix.includes(
@@ -526,4 +544,169 @@ Deno.test("UNE DÉFUSION NE DEMANDE JAMAIS UN SECOND PLAT", () => {
     ),
     "le brief de portions d'une défusion demande un plat séparé.",
   );
+});
+
+// ───────────────────────────────────────────────────────────────────────────
+// L6/D4 — LES VOIX DE CHAQUE TITULAIRE
+// ───────────────────────────────────────────────────────────────────────────
+
+const VOICES = [
+  { memberId: "m-dad", displayName: "Marc", lines: ["hates broccoli"] },
+  { memberId: "m-son", displayName: "Tom", lines: ["no porridge in the morning"] },
+];
+
+Deno.test("SANS VOIX, LE PROMPT EST CELUI D'AVANT L6, À L'OCTET PRÈS", () => {
+  // ⚠️ LE TEST QUI PROTÈGE LE CHEMIN MAJORITAIRE — « l'entrée du produit est à
+  // 1 ». Un foyer où personne n'a rien confirmé ne doit pas changer de consigne
+  // pour un lot qui ne le concerne pas. C'est aussi ce qui rend le bump de
+  // version lisible: il ne parle QUE des foyers dont au moins une bouche parle.
+  const base = {
+    members: [DAD, SON], envyLine: null, restrictions: [], presence: NOBODY_AWAY,
+    merge: null,
+    unmerge: null,
+  };
+  const { userSuffix, voiceIssues, voicesHeard, voiceCounts } =
+    buildHouseholdPromptBlocks({ ...base, voices: [] });
+  assert(!userSuffix.includes("WHAT EACH PERSON HAS TOLD ME"));
+  assertEquals(voiceIssues, []);
+  assertEquals(voicesHeard, 0);
+  assertEquals(voiceCounts.linesIn, 0);
+  assertEquals(voiceCounts.linesUsed, 0);
+  assertEquals(voiceCounts.perMember, []);
+
+  // ⚠️ « À L'OCTET PRÈS » SE MESURE, IL NE SE DÉCLARE PAS. Mesuré en réel:
+  // `prompt_chars` 3 274 sans voix contre 4 458 avec — le bloc coûte
+  // EXACTEMENT 0 caractère quand il est vide, et pas « presque rien ».
+  const empty = buildHouseholdPromptBlocks({
+    ...base,
+    voices: [{ memberId: "m-dad", displayName: "Marc", lines: [] }],
+  });
+  assertEquals(
+    empty.userSuffix.length,
+    userSuffix.length,
+    "une bouche qui n'a RIEN confirmé coûte des caractères au prompt: le bloc " +
+      "vide n'est plus filtré, et le chemin majoritaire du produit change de " +
+      "consigne pour un lot qui ne le concerne pas.",
+  );
+  assertEquals(empty.userSuffix, userSuffix);
+
+  // ── ET LE POINT DE SÉCURITÉ, MESURÉ DE LA MÊME FAÇON ──────────────────
+  // Un foyer dont TOUTES les lignes sont divulgantes rend le MÊME prompt qu'un
+  // foyer muet, au caractère près: la ligne ne fuit ni par son texte, ni par la
+  // longueur qu'elle laisserait derrière elle.
+  const leaking = buildHouseholdPromptBlocks({
+    ...base,
+    voices: [{
+      memberId: "m-dad",
+      displayName: "Marc",
+      lines: ["Veut perdre du poids avant l'été.", "Elle pèse ses portions au gramme près."],
+    }],
+  });
+  assertEquals(
+    leaking.userSuffix,
+    userSuffix,
+    "une ligne divulgante a laissé une trace dans le prompt.",
+  );
+  assertEquals(leaking.voiceCounts.linesUsed, 0);
+  assertEquals(leaking.voiceCounts.linesWithheld, 2);
+});
+
+Deno.test("le bloc des voix entre APRÈS la tablée et AVANT l'envie", () => {
+  // L'ORDRE EST UNE CONSIGNE. Un goût est DURABLE: il se range du côté de ce
+  // qui vaut toutes les semaines, avant « ce dont on a envie cette fois ». Et
+  // les règles de maison restent EN DERNIER — sans quoi « Léa adore le
+  // Nutella » se lirait comme plus contraignant que « on ne sert pas de Nutella
+  // à Léa ».
+  const { userSuffix, voicesHeard } = buildHouseholdPromptBlocks({
+    members: [DAD, SON],
+    envyLine: "des pâtes",
+    restrictions: [{ memberId: "m-son", memberDisplayName: "Tom", label: "no nutella" }],
+    presence: NOBODY_AWAY,
+    merge: null,
+    unmerge: null,
+    voices: VOICES,
+  });
+  assertEquals(voicesHeard, 2);
+  const SECTIONS_WITH_VOICES = [
+    "== THE HOUSEHOLD ==",
+    "HOUSEHOLD SERVING PLAN",
+    "WHAT EACH PERSON HAS TOLD ME",
+    "WHAT THIS HOUSEHOLD ASKED FOR",
+    "HOUSE RULES",
+  ];
+  let cursor = -1;
+  for (const marker of SECTIONS_WITH_VOICES) {
+    const at = userSuffix.indexOf(marker);
+    assert(at >= 0, `bloc « ${marker} » absent du prompt`);
+    assert(
+      at > cursor,
+      `bloc « ${marker} » a changé de place. L'ordre est une consigne — bumpe ` +
+        `HOUSEHOLD_PROMPT_VERSION (actuellement ${HOUSEHOLD_PROMPT_VERSION}).`,
+    );
+    cursor = at;
+  }
+
+  // LE COMPTE, comme pour la composition sans fusion: une liste blanche ne voit
+  // jamais arriver le bloc qu'elle n'énumère pas.
+  const PARTS_WITH_VOICES = 16;
+  assertEquals(
+    userSuffix.split("\n\n").length,
+    PARTS_WITH_VOICES,
+    `le prompt du foyer AVEC VOIX ne compte plus ${PARTS_WITH_VOICES} blocs. ` +
+      `Bumpe HOUSEHOLD_PROMPT_VERSION (actuellement ${HOUSEHOLD_PROMPT_VERSION}).`,
+  );
+
+  // ⚠️ ET LA VERSION A DÛ BOUGER AVEC LE BLOC. Sans cette assertion, ce lot
+  // pourrait livrer un bloc de plus sous le numéro de L5 — et deux plans
+  // stampés pareil porteraient des consignes différentes, exactement le défaut
+  // mesuré le 2026-08-12 que le second axe de version existe pour empêcher.
+  for (const past of ["v2_presence", "v3_merge", "v4_merge_budget", "v5_unmerge"]) {
+    assert(
+      HOUSEHOLD_PROMPT_VERSION !== past,
+      `le bloc des voix existe sous la version ${past}: bumpe ` +
+        `HOUSEHOLD_PROMPT_VERSION.`,
+    );
+  }
+
+  // ET APRÈS LA FUSION, qui parle encore de « qui est à cette table ».
+  const withMerge = buildHouseholdPromptBlocks({
+    members: [DAD, SON], envyLine: null, restrictions: [], presence: NOBODY_AWAY,
+    merge: MERGE_PROMPT,
+    unmerge: null,
+    voices: VOICES,
+  }).userSuffix;
+  assert(
+    withMerge.indexOf("BRINGING SOMEONE BACK") <
+      withMerge.indexOf("WHAT EACH PERSON HAS TOLD ME"),
+    "les voix passent avant le bloc de fusion: « untel revient à table » se " +
+      "lirait comme une conséquence de ce que quelqu'un a dit.",
+  );
+});
+
+Deno.test("LA GARDE DE NON-DIVULGATION EST DANS LE CONSTRUCTEUR, PAS EN AMONT", () => {
+  // ⚠️ C'EST LE POINT LE PLUS FACILE À RATER DE TOUT LE LOT. Si le filtre vivait
+  // chez l'appelant, il suffirait qu'un appelant l'oublie — ou qu'un second
+  // appelant apparaisse — pour que le plan du foyer devienne l'endroit où tout
+  // le monde apprend qu'une personne a repris un régime. Rien n'échouerait: un
+  // prompt n'a pas de compilateur.
+  const { userSuffix, voiceIssues } = buildHouseholdPromptBlocks({
+    members: [DAD, SON], envyLine: null, restrictions: [], presence: NOBODY_AWAY,
+    merge: null,
+    unmerge: null,
+    voices: [
+      {
+        memberId: "m-son",
+        displayName: "Tom",
+        lines: ["Veut perdre du poids avant l'été.", "n'aime pas le poisson"],
+      },
+    ],
+  });
+  assert(!userSuffix.includes("perdre du poids"), "un objectif est entré dans le prompt");
+  assert(
+    voiceIssues.some((i) => i.startsWith("voice_line_withheld:m-son:")),
+    "la coupe n'est pas tracée",
+  );
+  // LE CAS QUI PASSE, du même côté: une garde qui coupe tout est indiscernable
+  // d'une garde qui marche.
+  assert(userSuffix.includes("- n'aime pas le poisson"));
 });

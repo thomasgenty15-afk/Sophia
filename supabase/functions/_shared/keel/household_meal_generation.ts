@@ -28,6 +28,12 @@
  *      monde. Elle est facultative: pas de ligne, pas de bloc.
  *   4. CE QUI N'ENTRE PAS DANS CETTE MAISON — les restrictions parentales,
  *      énoncées comme un FAIT DOMESTIQUE et jamais comme un conseil.
+ *   5. CE QUE CHAQUE TITULAIRE A DIT DE SA BOUFFE — le bloc des voix
+ *      (`household_voices.ts`, D4). Un plafond de tokens PAR MEMBRE et la garde
+ *      de non-divulgation y vivent, et nulle part ailleurs.
+ *
+ * (Plus les deux blocs de GESTE — fusion et défusion — qui ne paraissent que sur
+ * l'opération qui les demande. Voir `household_merge.ts`.)
  *
  * ── LE POINT LE PLUS FACILE À RATER (§8.5 règle 4) ───────────────────────
  * Une restriction parentale n'est PAS une raison nutritionnelle. Si le prompt
@@ -53,6 +59,11 @@ import {
   type MergeMaterialDish,
   type PlanSpan,
 } from "./household_merge.ts";
+import {
+  buildHouseholdVoices,
+  type RawMemberVoice,
+  type VoiceLineCounts,
+} from "./household_voices.ts";
 
 /**
  * LA VERSION DE LA LANE FOYER — le second axe, et il manquait.
@@ -100,6 +111,44 @@ import {
  *         tests le tiennent. Le bump vaut quand même, pour la raison de v3: la
  *         présence même d'un bloc distingue deux populations dans la colonne, et
  *         une version qui ne bouge que « quand ça se voit » ne se relit pas.
+ *   v6  — 2026-08-12 (L6/D4): + le bloc DES VOIX, entre la fusion/défusion et
+ *         l'envie. Il porte ce que CHAQUE titulaire a dit de sa bouffe, plafonné
+ *         par membre et passé par la garde de non-divulgation.
+ *         ⚠️ C'EST LE PREMIER BUMP QUI TOUCHE LA COMPOSITION ORDINAIRE, et c'est
+ *         la règle de v4 appliquée telle quelle, pas une entorse: la population
+ *         « composition de foyer » voit désormais une consigne différente dès
+ *         qu'une bouche a confirmé quelque chose. Les mots du MAÎTRE changent de
+ *         place en même temps — ils quittent `-- WHAT THEY HAVE TOLD ME --` du
+ *         tronc pour ce bloc-ci, sous son prénom, parce que la garde et le
+ *         plafond vivent ici et qu'un second chemin serait un chemin sans garde.
+ *         Un foyer où PERSONNE n'a rien confirmé rend un prompt byte-identique à
+ *         celui de v5, et un test le tient. La lane INDIVIDUELLE ne bouge pas
+ *         d'un octet: elle passe toujours `foodPreferences` au tronc, elle n'a
+ *         qu'un titulaire à entendre, et deux tests le tiennent — d'où
+ *         `MEAL_PROMPT_VERSION` INCHANGÉE.
+ *
+ * ── LE CORRECTIF DE LA GARDE DES VOIX N'A **PAS** BUMPÉ, ET C'EST UNE DÉCISION
+ * 2026-08-12, quatre défauts de L6 corrigés (plafond qui ne s'arrêtait pas,
+ * compteurs faux, trace qui nommait la forme de surface, garde asymétrique
+ * FR/EN et aveugle au registre TCA). Ça CHANGE ce qui entre dans le prompt: une
+ * ligne comme « Végétarien depuis 5 ans » y arrive maintenant, une ligne du
+ * registre TCA n'y arrive plus. La version reste pourtant `v6_voices`.
+ *
+ * La règle est « quelle population voit une consigne DIFFÉRENTE », et la
+ * réponse est: aucune. Aucun bloc n'a bougé — ni leur nombre, ni leur ordre, ni
+ * leur texte: l'en-tête et la consigne de non-divulgation du bloc des voix sont
+ * byte-identiques, le contrat de sortie ne change pas, et un foyer sans voix
+ * rend toujours le prompt de v5. Ce qui change est le FILTRE appliqué à des
+ * lignes que les membres écrivent eux-mêmes — c'est-à-dire exactement le cas
+ * de L3 ci-dessous: une seconde raison pour qu'une ligne n'apparaisse pas, qui
+ * ne se relit pas sur la version mais sur `generated_from.household.voices`,
+ * nommément et — depuis ce correctif — par membre.
+ *
+ * Bumper aurait de plus fabriqué une frontière vide: `v6_voices` n'a stampé
+ * AUCUNE ligne (`student_generated_meals`, mesuré: 0), rien n'est déployé, et
+ * une version qui sépare zéro plan de zéro plan ne se relit pas non plus. Ce
+ * correctif répare v6 avant qu'elle n'existe en base; il n'en écrit pas une
+ * seconde.
  *
  * ── POURQUOI v4 EST SUR CET AXE-CI ET PAS SUR LE TRONC ────────────────────
  * La question à laquelle une version répond est: « deux plans stampés pareil
@@ -131,7 +180,7 @@ import {
  * version doit suivre est la CONSIGNE; qui a été retiré de la table se relit,
  * lui, sur `generated_from.household.hand`, nommément et avec son motif.
  */
-export const HOUSEHOLD_PROMPT_VERSION = "v5_unmerge";
+export const HOUSEHOLD_PROMPT_VERSION = "v6_voices";
 
 export interface HouseholdRestriction {
   memberId: string;
@@ -194,6 +243,26 @@ export interface HouseholdPromptInput {
    * champ à trois valeurs.
    */
   unmerge: HouseholdUnmergePrompt | null;
+  /**
+   * CE QUE CHAQUE TITULAIRE A DIT DE SA BOUFFE (D4, 2026-08-12).
+   *
+   * Une entrée par bouche AVEC COMPTE qui a confirmé quelque chose, dans
+   * l'ordre du roster, avec ses lignes BRUTES: le plafond par membre et la
+   * garde de non-divulgation sont appliqués ICI, par `buildHouseholdVoices`, et
+   * nulle part ailleurs. Une bouche SANS compte n'a rien à dire et n'apparaît
+   * pas (D3); ce n'est pas un manque.
+   *
+   * ⚠️ REQUIS, `[]` pour « personne n'a rien confirmé », jamais `T?`. Un champ
+   * facultatif n'aurait fait remonter aucun appelant au compilateur, et D4
+   * serait construit sans être branché — le mode d'échec n°1 de ce chantier.
+   * `[]` rend un prompt byte-identique à celui de v5.
+   *
+   * ⚠️ ON PASSE LES LIGNES BRUTES, PAS DES LIGNES DÉJÀ FILTRÉES. Un appelant
+   * qui filtrerait de son côté pourrait un jour cesser de le faire, et rien
+   * n'échouerait: un prompt n'a pas de compilateur. Il n'y a qu'une porte, et
+   * elle garde.
+   */
+  voices: readonly RawMemberVoice[];
 }
 
 /** Ce que la fusion apporte au prompt. Décidé ailleurs — voir `household_merge.ts`. */
@@ -286,6 +355,35 @@ export interface HouseholdPromptBlocks {
    * décompte de silencieux se lit « il en reste 3 à relancer ».)
    */
   envyLineUsed: boolean;
+  /**
+   * D4 — CE QUI A ÉTÉ COUPÉ DANS LES VOIX, nommément: une ligne retenue par la
+   * garde de non-divulgation (`voice_line_withheld:<membre>:<motif>`), des
+   * lignes tombées du plafond (`voice_over_cap:<membre>:<n>`).
+   *
+   * ⚠️ RENDU, PAS AVALÉ. Une troncature muette est un mensonge sur ce que le
+   * modèle a vu: sans cette liste, « pourquoi ce plan ignore-t-il ce que j'ai
+   * dit ? » n'a aucune réponse trois jours plus tard, et un plafond mal calibré
+   * ressemblerait trait pour trait à un modèle distrait.
+   */
+  voiceIssues: string[];
+  /**
+   * Combien de titulaires ont réellement été entendus. Pour la trace et pour le
+   * coût — un nombre qu'on ne journalise pas est un nombre que personne ne
+   * verra doubler.
+   */
+  voicesHeard: number;
+  /**
+   * D4 — DES LIGNES, COMPTÉES LÀ OÙ ELLES PASSENT.
+   *
+   * ⚠️ RENDU PARCE QUE LE DÉRIVER DES `issues` A ÉTÉ MESURÉ FAUX. L'appelant
+   * comptait des chaînes: une ligne retenue sur trois formes de surface valait
+   * « 3 retenues », et deux lignes tombées au plafond valaient « 1 » (une seule
+   * `issue`, qui portait `:2` dans son texte). Les deux nombres du même objet
+   * étaient gonflé et dégonflé en sens inverses. `voiceIssues` reste la trace
+   * NOMMÉE (qui, pourquoi); ces compteurs-ci sont la trace CHIFFRÉE, et
+   * `linesUsed` est le seul nombre qui dise ce que le modèle a réellement vu.
+   */
+  voiceCounts: VoiceLineCounts;
 }
 
 /**
@@ -300,6 +398,7 @@ export function buildHouseholdPromptBlocks(
   input: HouseholdPromptInput,
 ): HouseholdPromptBlocks {
   const envyBlock = buildEnvyBlock(input.envyLine);
+  const voices = buildHouseholdVoices(input.voices);
 
   const idLines = input.members.map((m) => `- ${m.displayName} = ${m.memberId}`);
 
@@ -328,6 +427,17 @@ export function buildHouseholdPromptBlocks(
     // les règles de maison, qui restent EN DERNIER. Les deux ne paraissent
     // jamais ensemble — une requête porte une opération, pas deux.
     input.unmerge === null ? "" : buildUnmergeBlock(input.unmerge),
+    // ── D4 · APRÈS LA TABLÉE, AVANT L'ENVIE ─────────────────────────────────
+    // Les quatre blocs qui précèdent disent QUI mange et en quelle quantité; ce
+    // qui suit dit ce que le foyer veut CETTE FOIS. Les voix sont durables —
+    // c'est un goût, pas une envie — donc elles se rangent du côté de ce qui
+    // vaut toutes les semaines, et le tronc fait exactement le même partage
+    // (`-- WHAT THEY HAVE TOLD ME --` précède `-- THIS TIME --`).
+    //
+    // Les règles de maison restent EN DERNIER: c'est la seule chose qui doit
+    // survivre à tout, y compris à une préférence qui la contredirait
+    // (« Léa adore le Nutella » face à « on ne sert pas de Nutella à Léa »).
+    voices.block,
     envyBlock,
     restrictionBlock(input.restrictions),
   ].filter((p) => p && p.trim().length > 0);
@@ -336,6 +446,9 @@ export function buildHouseholdPromptBlocks(
     userSuffix: `\n\n${parts.join("\n\n")}`,
     systemSuffix: `\n\n${PORTION_SCHEMA_BLOCK.join("\n")}`,
     envyLineUsed: envyBlock.length > 0,
+    voiceIssues: voices.issues,
+    voicesHeard: voices.heard.length,
+    voiceCounts: voices.counts,
   };
 }
 

@@ -37,7 +37,7 @@ prennent la main, et les comptes individuels sans foyer.
 | **D1** | Pour une bouche avec compte, son « about you » (`student_goals`) fait autorité sur `household_members.goal`. Résolu une seule fois, dans `keel_household_roster_for`. | ✅ livré |
 | **D2** | ~~Plans individuels pour tous les titulaires~~ → **le plan du maître est le plan du foyer**; seuls les secondaires qui prennent la main ont un plan personnel. | ✅ livré (L3) |
 | **D3** | Les bouches sans compte n'ont pas de plan individuel. Elles n'existent que comme parts dans le plan du foyer. | ✅ tenu |
-| **D4** | Préférences durables **et** mémoire de chaque titulaire entrent dans la composition, avec un plafond de tokens par membre et la garde de non-divulgation étendue. | ⬜ à faire |
+| **D4** | Préférences durables **et** mémoire de chaque titulaire entrent dans la composition, avec un plafond de tokens par membre et la garde de non-divulgation étendue. | ✅ livré (L6) |
 | **D5** | Plats séparables en composants : servir `muscle_gain` et `fat_loss` d'une seule casserole n'est possible que si le plat se re-proportionne. Le répertoire se rétrécit, c'est le prix assumé. | ⬜ à faire |
 | **D6** | Échelle de fusion : ① même plat, ratios différents ② plats différents, même session de cuisson ③ sessions séparées. Renonce dès qu'un plat commun forcerait quelqu'un **hors de sa direction de service** — critère vérifiable, pas jugement de goût. | ✅ livré (L4) |
 | **D7** | Qui n'a pas de plan **validé** au moment où le maître compose est automatiquement pris dans le plan du foyer. La composition n'attend jamais personne. | ✅ livré (L3) |
@@ -100,7 +100,7 @@ Campagne de test du 2026-08-11, 5 lanes en conditions réelles, ~80 vérificatio
 | ~~**L3**~~ | ~~**La prise de main (D7, D2)**~~ | L1 | ✅ **livré le 2026-08-12** — voir §« L3, ce qui est prouvé » |
 | ~~**L4**~~ | ~~**Le moteur de fusion (D6, D15, D16)**~~ | L3 | ✅ **livré le 2026-08-12** — voir §« L4, ce qui est construit » |
 | ~~**L5**~~ | ~~**La proposition et la défusion (D8, D10, D17)**~~ | L4 | ✅ **livré le 2026-08-12** — voir §« L5, ce qui est construit » |
-| **L6** | **Mémoire et préférences par titulaire (D4)** — plafond de tokens par membre, garde de non-divulgation étendue à la composition. | L4 | |
+| ~~**L6**~~ | ~~**Mémoire et préférences par titulaire (D4)**~~ | L4 | ✅ **livré le 2026-08-12** — voir §« L6, ce qui est construit » |
 | **L7** | **Le plafond de fusions (D11)** — `N + 3` par semaine ISO, en base, `merge_quota_exhausted`. | L4 | |
 | **L8** | **Les écrans (D9)** — plan du foyer, plan perso, la proposition, ce qui n'a pas fusionné et pourquoi. | L4, L5 | |
 | **L9** | **La date de naissance (D18)** — sur la fiche de bouche (existe déjà) et dans « about you » pour le maître (à vérifier). | — | Sans elle l'objectif du maître est inactif par défaut |
@@ -813,6 +813,260 @@ propre fichier documente trente lignes plus haut. Le test manquant est écrit
 **cas qui passe** de l'autre côté (`revalider CE plan-là avertit bien`) — sans
 lui, on remplacerait un faux positif par un faux négatif, et « la fusion tient
 toujours » ressemblerait trait pour trait à une garde qui marche.
+
+## L6, ce qui est construit — 2026-08-12
+
+> ⚠️ **Rien n'a été exercé en conditions réelles.** Aucun appel HTTP, aucune
+> génération modèle. Tout ce qui suit est prouvé par des tests purs, des tests
+> de position sur la source, des `SELECT` de lecture sur le corpus local, et
+> **16 mutations**. Suite keel : **2 467 verts**. La campagne réelle est L10.
+
+**Aucune migration.** Ce lot ne crée aucune colonne : la donnée existait déjà,
+elle n'était lue que pour une personne sur N.
+
+### Le trou, en une phrase
+
+`reconcileFoodPreferencesFor` est **paramétré par utilisateur depuis le premier
+jour**, et `generate-household-meal-v1` ne l'appelait que pour le **maître**. Le
+« about you » d'un conjoint, d'un colocataire, d'un enfant majeur — tout ce
+qu'ils avaient confirmé sur leur propre écran — n'atteignait jamais la
+casserole. Un siège payé dont les préférences n'arrivent pas dans l'assiette
+n'achète rien.
+
+### L'architecture, et pourquoi
+
+| Où | Quoi |
+|---|---|
+| `_shared/keel/household_voices.ts` | Le module PUR : le plafond par membre, la garde de non-divulgation, le bloc |
+| `_shared/keel/household_voices_io.ts` | La lecture par titulaire — **une seule** requête `student_goals`, scopée `.in("user_id", …)` sur les comptes du roster |
+| `_shared/keel/household_meal_generation.ts` | `voices` (REQUIS, `[]` = personne), le bloc entre la tablée et l'envie, `voiceIssues` rendu |
+| `generate-household-meal-v1/index.ts` | `voiceMembers` sur `platedMembers`, `foodPreferences: []` au tronc, `generated_from.household.voices` |
+
+**Aucun second pont vers la mémoire, et c'est le piège nommé du lot.** Ce lot ne
+lit ni `memory_items`, ni `memory_v2`, ni le recall : il fait passer le pont
+existant (`food_preference_promotion`, « Keep » explicite, cinq clés de domaine)
+par **toutes les bouches au lieu d'une seule**. Un test l'interdit nommément,
+avec son cas passant du côté du chargeur.
+
+**Une seule porte, et elle garde.** Les mots du **maître** quittent
+`-- WHAT THEY HAVE TOLD ME --` du tronc (`foodPreferences: []` sur cette lane)
+pour rejoindre le bloc des voix sous son prénom. C'est l'arbitrage central du
+lot : laisser le maître passer par le tronc aurait fait deux chemins pour la
+même donnée, **dont un seul gardé et plafonné**, et le jour où la garde bouge
+rien n'échouerait. Une mutation le vérifie (rouvrir le chemin direct ⇒ rouge).
+
+### Le plafond — 150 tokens par membre
+
+Le nombre vient d'une **mesure**, pas d'une intuition (corpus local, 10 comptes,
+36 lignes gardées) :
+
+| | |
+|---|---|
+| ligne la plus longue | 120 car. · moyenne 52 · p90 77 |
+| titulaire le plus bavard | 6 lignes, 361 car. ⇒ **~110 tokens** avec les préfixes de date |
+| plafond retenu | **150 tokens** (≈ 36 % de marge au-dessus du pire cas réel) |
+
+**Ce que ça pèse vraiment**, bloc reconstruit sur les vraies lignes : un foyer de
+4 comptes (les 4 plus bavards du corpus) rend **1 897 car. ≈ 475 tokens, zéro
+coupe** — contre un prompt mesuré en production à ~11 400 + ~3 300 car., soit
+~3 700 tokens. Le pire cas **structurel** (8 bouches, le plafond de sièges en
+base) est borné à ~1 260 tokens. Avant ce lot, rien ne le bornait.
+
+**Il est PAR MEMBRE, et pas seulement global** — un plafond global se ferait
+manger par la première personne du roster et les suivantes disparaîtraient en
+silence : le siège payé d'un secondaire dépendrait de l'ordre des lignes en base.
+La mutation « plafond rendu global » a trouvé un **faux-vert** dans le test qui
+gardait précisément ça (le premier membre laissait 6 tokens de rab, la ligne
+courte du second passait quand même) ; les nombres du décor ont été refaits pour
+que le premier membre épuise le budget **exactement**.
+
+**Ce qui est coupé est tracé** : `voice_line_withheld:<membre>:<catégorie>` et
+`voice_over_cap:<membre>:<n>` dans les `issues` du plan, plus
+`generated_from.household.voices` (`accounts_at_table` · `heard` · **`lines_in`
+· `lines_used`** · `withheld` · `over_cap` · **`per_member`**). Sans lui, « son
+about-you n'a servi à rien » et « il n'avait rien confirmé » laissent la même
+trace. `lines_used` est le seul nombre qui dise **ce que le modèle a vu**.
+
+Il coupe **par la queue**, donc par le plus ancien : la liste arrive triée du
+plus récent au plus ancien (`foodPreferencesForPrompt`), et il **s'arrête** au
+premier dépassement (`break`) — il ne repêche pas une ligne plus vieille parce
+qu'elle est plus courte. Une ligne plus longue que le plafond tombe **entière**
+et fait taire ce qui la suit — on ne tronque pas une préférence, une phrase
+amputée peut inverser son sens (« ne mange pas de porc, sauf … »). Même posture
+que `sanitizePortionNote`.
+
+### La garde de non-divulgation, étendue à l'ENTRÉE
+
+**La même liste que la sortie** (`FORBIDDEN_PORTION_TERMS`), le même moteur
+(`forbidden_matcher.ts`), le même réglage absolu (`allowNegatedMentions: false`).
+Aucune seconde liste : c'est le doublon que `forbidden_matcher.ts` documente en
+tête de fichier comme sa raison d'être, et « jamais de matcher maison » vaut ici
+aussi.
+
+**Le bruit, mesuré AVANT d'écrire le code** : les 36 lignes réelles du corpus
+passées dans la garde ⇒ **0 morsure**. Sur 12 lignes adverses écrites à la main,
+5 mordent et doivent mordre (« repris son régime », « 1800 calories », « lose
+weight », « perdre du poids », « objectif … prise de masse »).
+
+| | |
+|---|---|
+| **Ce qui passe** | « il n'aime pas le poisson », « batch cooking le dimanche », « saute le petit-déjeuner », « travaille de nuit » — dans les **deux langues**, et c'est la moitié qui rend la garde discernable d'une garde qui coupe tout |
+| **Ce qui est coupé** | tout ce qui dit **pourquoi** quelqu'un mange autrement : objectif, régime, calories, poids, corps |
+
+Et le bloc **porte sa propre consigne**, en dernier (un modèle lit la contrainte
+la plus proche de la fin comme la plus contraignante) : *ne cite jamais ces
+lignes, ne dis jamais de qui vient quoi — ce plan est lu à voix haute par tout le
+foyer*. C'est la même famille de risque que le `why` des plats, que L4 refuse
+d'envoyer au prompt de fusion pour exactement cette raison.
+
+> ⚠️ **Ce paragraphe a été corrigé le 2026-08-12 — voir « Les quatre défauts
+> de bord » plus bas.** La liste des voix est désormais **dérivée** de celle des
+> portions (`FORBIDDEN_VOICE_TERMS`) : `age` en moins, le registre TCA en plus.
+> « Végétarien depuis 5 ans » **passe**, dans les deux langues.
+
+**Un trou connu, hérité, non refermé** : l'écho numérique nu (« il fait 1m90 et
+95 kg », « Zoe is 32 and eats late ») n'est mordu par personne — mesuré, ces
+lignes passent. Ce n'est pas un défaut de ce lot (le commentaire de
+`FORBIDDEN_PORTION_TERMS` le nomme déjà), et le corps de chaque membre est de
+toute façon **déjà** donné au modèle par le brief de portions.
+
+### Ce que ce lot NE lit pas, et pourquoi
+
+`platedMembers`, pas `members` : après les filtres de L3 (prise de main) **et**
+de L2 (présence). Qui n'est pas à cette table n'a pas à être lu — faire pencher
+la casserole du foyer vers le goût de quelqu'un qui mange son propre plan est
+exactement le défaut que L3 a fermé sur les portions. **Conséquence assumée** :
+un maître absent toute la fenêtre n'a pas de voix dans ce plan-là, alors que son
+rythme de repas et sa capacité de cuisine continuent, eux, de le gouverner.
+
+Une **bouche sans compte** n'a rien à lire (D3) : pas de `student_goals`, pas de
+mémoire. Ce n'est pas un manque.
+
+### Les versions de prompt
+
+`HOUSEHOLD_PROMPT_VERSION` bump **v5_unmerge → v6_voices** ;
+`MEAL_PROMPT_VERSION` **ne bouge pas**. Règle de v4 appliquée telle quelle
+(« quelle population voit une consigne différente ») :
+
+- **lane individuelle** — inchangée à l'octet près. Elle n'a qu'un titulaire et
+  son plan n'est lu par personne d'autre : ni le plafond par membre ni la garde
+  de table n'y ont d'objet, et elle continue de passer `foodPreferences` au
+  tronc. Deux tests le tiennent, dont un qui a été **renforcé après une mutation
+  faux-verte** (`includes("foodPreferencesForPrompt")` restait vrai en vidant le
+  corps de la fonction : la ligne d'import suffisait).
+- **foyer, personne n'a rien confirmé** — prompt byte-identique à v5, et un test
+  le tient. C'est le chemin majoritaire (« l'entrée du produit est à 1 »).
+- **foyer, au moins une bouche a confirmé** — consigne changée. C'est le premier
+  bump qui touche la composition **ordinaire**, et c'est la règle, pas une
+  entorse.
+
+### Les 16 mutations — chacune cassée, vue rouge, restaurée
+
+Garde désarmée · coupe non tracée · plafond désarmé · plafond rendu **global** ·
+plafond qui coupe par la **tête** · bloc des voix retiré du prompt · bloc placé
+**après** les règles de maison · version non bumpée · voix lues sur tout le
+roster · coupes non écrites dans les `issues` · échec de lecture non tracé · voix
+chargées mais jamais passées au prompt · lecture **non scopée** des lignes
+d'autrui · maître relu malgré ses contraintes en main · lane individuelle
+débranchée (le cas qui passe) · chemin direct rouvert dans le générateur du
+foyer.
+
+**Deux faux-verts trouvés par ces mutations**, tous deux réparés et re-mutés :
+le test du plafond par membre (décor trop lâche) et le test de la lane
+individuelle (`includes` sur un nom encore présent dans un import mort).
+
+### Ce qui n'est pas prouvé, et ce qui reste ouvert
+
+1. **Aucun run réel.** Le bloc n'a jamais été lu par un modèle. **O5 est un
+   précédent qui concerne directement ce lot** : deux fusions réelles sur deux
+   ont ignoré la consigne qu'on leur donnait. Rien ne dit que « ne cite jamais
+   ces lignes » sera mieux respecté — et rien, ici, ne le **constate** : il n'y a
+   pas d'équivalent d'`observeMergeShape` pour la divulgation. Écrire un
+   détecteur de fuite sur le `why` d'un plat demanderait de décider qu'une phrase
+   « parle de quelqu'un », un jugement qu'on ferait mal.
+2. **Le coût N'A PAS été mesuré en réel.** Ce lot fait passer la lecture de
+   préférences de 1 à N par génération (1 `SELECT` groupé + jusqu'à 3 lectures
+   par titulaire dans le pont). Le log `keel.household_meal.member_voices` le
+   rend observable ; personne ne l'a encore vu tourner.
+3. **La réconciliation d'un secondaire ÉCRIT sur sa ligne**, déclenchée par le
+   geste du maître. C'est une **correction** (elle retire ce que le memorizer a
+   démenti), jamais un ajout, et c'est la posture écrite du pont — mais c'est un
+   effet de bord sur le compte d'un tiers, et il est nommé ici plutôt que
+   découvert plus tard.
+4. **Un maître absent toute la fenêtre perd sa voix** (voir ci-dessus). Direction
+   d'erreur sûre, non tranchée par le registre.
+5. **`deploy-manifest-check`** reste à **52** violations, comme après L5 : ce lot
+   n'en ajoute aucune.
+6. **Le chemin d'écriture des préférences n'a AUCUNE concurrence optimiste, et
+   L6 le fait passer de 1 à N titulaires.** `food_preference_promotion_io.ts`
+   écrase `practical_constraints` **en entier**, reconstruite à partir d'une
+   copie lue ~10 ms plus tôt **dans la requête de quelqu'un d'autre** : ni
+   `updated_at` comparé, ni version, ni écriture par clé jsonb. Si le titulaire
+   concerné modifie son rythme de repas ou sa capacité de cuisine dans cet
+   intervalle, sa modification est perdue sans un mot. Et `student_goals.
+   updated_at` **du secondaire bouge quand le MAÎTRE compose** — un lecteur qui
+   prend cette colonne pour « la dernière fois que cette personne s'est occupée
+   de son alimentation » se trompe désormais de personne. **Aucun des deux n'est
+   créé par L6** : ce qui change, c'est l'échelle, de « le maître écrit sur sa
+   propre ligne » à « le maître écrit sur celle de tout le monde ». La
+   correction demande une **migration** (jeton de version, ou écriture ciblée
+   sur la seule clé `food_preferences`) et appartient à un autre lot ; la
+   rustine « relire juste avant d'écrire » ne ferme pas la fenêtre, elle la
+   rétrécit. Écrit aussi en tête de
+   `_shared/keel/food_preference_promotion_io.ts`.
+
+### Les quatre défauts de bord — corrigés le 2026-08-12
+
+> Mesurés en **HTTP réel** sur L6. **Le point de sécurité a tenu** : aucune
+> ligne divulgante n'a atteint le prompt ni le plan, au caractère près. Ce sont
+> les **bords** qui cédaient. Correctifs prouvés par tests purs, `SELECT` de
+> lecture et **6 mutations** ; aucun run modèle.
+
+| | Défaut | Correctif |
+|---|---|---|
+| **F2** | Le plafond faisait `continue` là où son propre commentaire promettait de s'**arrêter**. Mesuré sur un plan réel : `08-11 ✓ 08-10 ✓ 08-09 ✓ 08-08 ✓ 08-07 ✗ 08-06 ✗ **08-05 ✓**` — la plus ancienne sauvée par sa brièveté. **Son test était faux-vert** : ses 8 lignes étaient de longueur **identique**, où `break` et `continue` sont indiscernables. | `break`. Décor du test refait avec des longueurs divergentes (`break` → 5 gardées / 3 tombées ; `continue` → 7 / 1). |
+| **F1** | Les deux compteurs de `generated_from.household.voices` comptaient des **`issues`** : 1 ligne retenue ⇒ `withheld: 3` (3 formes de surface), 2 lignes tombées ⇒ `over_cap: 1` (une `issue` portant `:2`). Gonflé et dégonflé **en sens inverses**. Et **aucune trace ne disait combien de lignes le modèle avait vues**. | Les compteurs viennent du module, comptés là où les lignes passent. Ajout de `lines_in`, `lines_used` et `per_member`. Le log `member_voices` renomme `lines` → `lines_raw`, et un log `voices_used` part **avant** l'appel modèle (donc même sur un 422). |
+| **F3** | `voice_line_withheld:<membre>:<motif>` nommait la **forme de surface** (`kcal`, `tour de taille`, `prise de masse`, `ans`) : vocabulaire **ouvert**, pendant que le commentaire promettait `:age`. | Table needle → **catégorie**, locale et pure : la trace nomme le `token` du terme (`calories`, `height`, `body_image`…). Vocabulaire **fermé**, et il divulgue moins — ces `issues` reviennent au maître dans la réponse HTTP. |
+| **F4** | Garde **asymétrique** (« Végétarien depuis 5 ans » coupée, « Vegetarian for five years » passante) et **aveugle au registre TCA** : image du corps, compensation et pesée passaient intégralement. Banc adverse : **7 lignes sur 17**. | `FORBIDDEN_VOICE_TERMS` **dérivée** de `FORBIDDEN_PORTION_TERMS` : `age` en moins (voir ci-dessous), `VOICE_DISCLOSURE_TERMS` en plus. **La liste de sortie n'a pas bougé d'un caractère.** |
+
+**Pourquoi `age` sort de la garde des ENTRÉES, et de celle-là seulement.** La
+liste a été écrite pour la **sortie** — interdire à une consigne de portion,
+écrite par le modèle et lue à table, d'énoncer un âge. La voix d'un titulaire
+est une **entrée** : du texte libre, jamais rendu tel quel. Et l'âge n'y est pas
+un secret : `household_members.birth_date` le porte et `householdBodyFacts` le
+donne **déjà** au modèle. Symétriser vers le haut (ajouter `years`, `year`)
+aurait **doublé** le faux positif au lieu de le retirer. C'est l'option la plus
+réversible : remettre `"age"` dans `VOICE_GUARD_DROPPED_TOKENS` restaure
+exactement le comportement d'avant, sans autre changement.
+
+**Le banc adverse, avant → après** — une ligne par appel, **les deux langues** :
+
+| | avant | après |
+|---|---|---|
+| à couper (17 : 9 fr / 8 en) | 9 coupées, **8 passaient** | **17 coupées** |
+| à laisser passer (15 : 7 fr / 8 en) | 14 passaient, **1 coupée à tort** | **15 passent** |
+| corpus réel (36 lignes) | 0 morsure | **0 morsure** |
+
+Le cas passant mesuré est vital et il tient : « il n'aime pas le poisson », «
+doesn't like fish », le batch cooking, le saut du petit-déjeuner, le travail de
+nuit, les lentilles à midi — plus « Végétarien depuis 5 ans » et sa jumelle EN,
+plus deux pièges du nouveau registre (« coupe les morceaux trop gros », « uses a
+kitchen scale for bread dough »). **Une garde qui coupe tout rendrait D4
+décoratif, ce qui est le défaut que ce lot répare.**
+
+**`HOUSEHOLD_PROMPT_VERSION` ne bouge pas**, et c'est une décision écrite en
+tête de `household_meal_generation.ts` : aucun bloc n'a changé — ni leur nombre,
+ni leur ordre, ni leur **texte** ; ce qui change est le **filtre** appliqué à des
+lignes que les membres écrivent eux-mêmes, ce qui est le cas de **L3** (une
+seconde raison pour qu'une ligne n'apparaisse pas, relisible sur
+`generated_from`, pas sur la version). Et `v6_voices` n'a stampé **aucune**
+ligne (`student_generated_meals`, mesuré : 0) : bumper séparerait zéro plan de
+zéro plan.
+
+**Les 6 mutations** — chacune cassée, vue rouge, restaurée : plafond remis en
+`continue` · décor du plafond remis à longueurs égales (le faux-vert d'origine)
+· `age` remis dans la garde des voix · registre TCA retiré · trace remise sur
+l'aiguille au lieu de la catégorie · compteurs redérivés des `issues`.
 
 ## Questions encore ouvertes
 

@@ -17,8 +17,19 @@ import {
   loadStudentSafetyConstraints,
   type StudentSafetyConstraint,
 } from "../_shared/keel/safety_constraints.ts";
-import { foodPreferencesForPrompt } from "../_shared/keel/food_preference_promotion.ts";
 import { reconcileFoodPreferencesFor } from "../_shared/keel/food_preference_promotion_io.ts";
+// ── D4/L6 · LES MOTS DE CHAQUE TITULAIRE ────────────────────────────────────
+// `foodPreferencesForPrompt` N'EST PLUS IMPORTÉ ICI, et c'est le lot: sur la
+// lane du foyer, les préférences de TOUT LE MONDE — le maître compris — passent
+// désormais par `loadHouseholdVoices` puis `buildHouseholdVoices`, où vivent le
+// plafond par membre et la garde de non-divulgation. Un second chemin, même
+// pour une seule personne, serait un chemin SANS garde, et rien n'échouerait.
+// La lane INDIVIDUELLE, elle, continue de l'appeler: elle n'a qu'un titulaire,
+// et son plan n'est lu par personne d'autre.
+import {
+  loadHouseholdVoices,
+  type VoiceMember,
+} from "../_shared/keel/household_voices_io.ts";
 import { dayTokenInZone, localDateInZone } from "../_shared/keel/local_date.ts";
 import {
   countHungerDays,
@@ -1774,6 +1785,66 @@ Deno.serve(async (req) => {
       }));
     }
 
+    // ── D4/L6 · CE QUE CHAQUE TITULAIRE A DIT DE SA BOUFFE ────────────────
+    //
+    // LE TROU QUE ÇA FERME, ET IL SE MESURE EN EUROS. La réconciliation des
+    // préférences est paramétrée PAR UTILISATEUR depuis toujours, et cette
+    // fonction ne l'appelait que pour le maître (le « troisième chemin » plus
+    // haut).
+    // Les préférences durables d'un conjoint, d'un colocataire, d'un enfant
+    // majeur — tout ce qu'ils avaient CONFIRMÉ sur leur propre écran — ne sont
+    // jamais arrivées dans l'assiette. Un siège payé dont le « about you »
+    // n'atteint pas la casserole n'achète rien.
+    //
+    // ⚠️ `platedMembers`, PAS `members` NI `composedMembers`. Les deux filtres du
+    // chantier se composent déjà en cascade (L3 puis L2): qui n'est pas à cette
+    // table n'a pas à être lu — ni sa mémoire, ni son goût. Lire quelqu'un qui
+    // mange son propre plan ferait pencher la casserole du foyer vers une bouche
+    // qui n'y mange pas.
+    //
+    // ⚠️ UNE BOUCHE SANS COMPTE N'A RIEN À LIRE, et ce n'est pas un manque (D3):
+    // pas de `student_goals`, pas de mémoire. Le `filter` sur `userId` est donc
+    // la règle, pas une précaution.
+    //
+    // LE MAÎTRE PASSE SES CONTRAINTES DÉJÀ RÉCONCILIÉES (`pc`): sa ligne est lue
+    // bien plus haut pour le rythme et la capacité, et la re-réconcilier ici
+    // coûterait un second aller-retour vers `memory_items` pour un résultat
+    // identique. `constraints` est REQUIS et nullable côté module, donc aucun
+    // appelant ne peut l'oublier en silence.
+    const voiceMembers: VoiceMember[] = platedMembers
+      .filter((m) => m.userId)
+      .map((m) => ({
+        memberId: m.memberId,
+        userId: m.userId as string,
+        displayName: m.displayName,
+        constraints: m.userId === userId
+          ? ((pc ?? {}) as Record<string, unknown>)
+          : null,
+      }));
+    const voices = await loadHouseholdVoices(admin, {
+      members: voiceMembers,
+      source: FN_NAME,
+    });
+    issues.push(...voices.issues);
+    // LE COÛT, OBSERVABLE EN PRODUCTION. Même raison que le log des corps juste
+    // au-dessus: ce lot fait passer la lecture de préférences de 1 à N par
+    // génération, et un nombre qu'on ne journalise pas est un nombre que
+    // personne ne verra doubler.
+    console.log(JSON.stringify({
+      tag: "keel.household_meal.member_voices",
+      user_id: userId,
+      household_id: householdId,
+      accounts_at_table: voiceMembers.length,
+      with_lines: voices.voices.length,
+      // ⚠️ `lines_raw`, ET LE NOM EST LE SUJET. Ce nombre est celui des lignes
+      // AVANT les deux gardes — il ne dit PAS ce que le modèle a vu, et il
+      // s'appelait `lines`, ce qui laissait croire l'inverse. Ce que le modèle
+      // a vu est compté après la construction du prompt
+      // (`voiceCounts.linesUsed`), et journalisé juste après elle.
+      lines_raw: voices.voices.reduce((n, v) => n + v.lines.length, 0),
+      reads: voices.reads,
+    }));
+
     // ── FF-038 · LE RÉFÉRENTIEL DE COMPOSITION ────────────────────────────
     // EN OMBRE: il ne change aucune assiette. Il sert à RECALCULER les grammes
     // que le modèle déclare, pour que la mesure du chantier porte sur des
@@ -1874,7 +1945,24 @@ Deno.serve(async (req) => {
       eatingRhythm,
       awayDays,
       ...capacity,
-      foodPreferences: foodPreferencesForPrompt(pc),
+      // ── D4/L6 · LE TRONC N'ENTEND PLUS PERSONNE SUR CETTE LANE ───────────
+      //
+      // `[]`, et ce n'est PAS une perte: les mots du maître n'ont pas disparu,
+      // ils ont changé de bloc. Ils partent désormais dans le bloc DES VOIX
+      // (`buildHouseholdPromptBlocks`, juste en dessous), sous son prénom, avec
+      // ceux de tous les autres titulaires à cette table.
+      //
+      // POURQUOI DÉPLACER CE QUI MARCHAIT DÉJÀ. Le plafond par membre et la
+      // garde de non-divulgation vivent dans `household_voices.ts`. Laisser le
+      // maître passer par le tronc aurait fait DEUX chemins pour la même donnée,
+      // dont un seul gardé — et le jour où quelqu'un aurait déplacé la garde,
+      // rien n'aurait échoué. Il n'y a donc qu'une porte, et elle garde.
+      //
+      // ⚠️ CE `[]` NE VAUT QUE POUR LA LANE FOYER. `generate-meal-v1` continue
+      // de passer `foodPreferencesForPrompt(pc)` au tronc: son plan n'a qu'un
+      // titulaire et n'est lu par personne d'autre, donc ni le plafond par
+      // membre ni la garde de table n'ont d'objet là-bas.
+      foodPreferences: [],
       // ── L4/D6 · LA BOUCHE REPRISE ENTRE DANS LE BUDGET DE PLATS ────────
       //
       // MESURÉ LE 2026-08-12: sans elle, ce prompt annonçait « at most 15
@@ -1912,7 +2000,27 @@ Deno.serve(async (req) => {
         window: { startsOn, durationDays },
         dishes: unmergeMaterial,
       },
+      // D4/L6 — LES LIGNES BRUTES. Le plafond par membre et la garde de
+      // non-divulgation sont appliqués DANS `buildHouseholdPromptBlocks`, pas
+      // ici: filtrer de ce côté-ci ferait une garde qu'un appelant applique,
+      // c'est-à-dire une garde que le prochain appelant oublie.
+      voices: voices.voices,
     });
+    // CE QUI A ÉTÉ COUPÉ, DANS LES `issues` DU PLAN. Une troncature muette est
+    // un mensonge sur ce que le modèle a vu — et « pourquoi ce plan ignore-t-il
+    // ce que j'ai dit ? » n'a aucune réponse trois jours plus tard sans ça.
+    issues.push(...household.voiceIssues);
+    // ── CE QUE LE MODÈLE VA VOIR, EN CLAIR ────────────────────────────────
+    // `generated_from` porte les mêmes nombres, mais il n'est écrit QUE si la
+    // génération aboutit: un 422 `empty_meal` ou un échec modèle laissait la
+    // question sans réponse. Ce log-ci part avant l'appel, donc toujours.
+    console.log(JSON.stringify({
+      tag: "keel.household_meal.voices_used",
+      user_id: userId,
+      household_id: householdId,
+      heard: household.voicesHeard,
+      ...household.voiceCounts,
+    }));
 
     const result = await generateWithGemini(
       systemPrompt + household.systemSuffix,
@@ -2227,6 +2335,46 @@ Deno.serve(async (req) => {
               envy_line_used: household.envyLineUsed,
               envy_week: envyWeek,
               restriction_count: restrictions.length,
+              // ── D4 · QUI A ÉTÉ ENTENDU, ET CE QUI A ÉTÉ COUPÉ ───────────
+              // `accounts_at_table` dit combien de titulaires POUVAIENT parler;
+              // `heard` combien ont vraiment eu une ligne dans le prompt;
+              // `lines_in`/`lines_used`/`withheld`/`over_cap` où sont passées
+              // les LIGNES. Sans ça, « son about-you n'a servi à rien » et « il
+              // n'avait rien confirmé » laissent la même trace — et c'est
+              // exactement la question que D4 existe pour trancher.
+              //
+              // ⚠️ LES NOMBRES VIENNENT DU MODULE, PAS DES `issues`, ET C'EST
+              // UNE CORRECTION MESURÉE. Ils étaient dérivés en comptant des
+              // CHAÎNES: une ligne retenue par la garde sur trois formes de
+              // surface rendait `withheld: 3`, et deux lignes tombées au
+              // plafond rendaient `over_cap: 1` (une seule `issue`, qui portait
+              // `:2` dans son texte). Les deux nombres du même objet étaient
+              // gonflé et dégonflé, en sens inverses. Un compteur dérivé d'un
+              // format de trace ment dès que le format bouge.
+              //
+              // ⚠️ `lines_used` EST LE NOMBRE QUI MANQUAIT. `heard` compte des
+              // MEMBRES, et le log `member_voices` compte les lignes BRUTES,
+              // avant toute garde: aucune trace ne disait combien de lignes le
+              // modèle avait réellement vues, qui est pourtant la seule
+              // question pour relire une composition.
+              //
+              // ÉCRIT MÊME À ZÉRO, exprès: une clé absente ne se distingue pas
+              // d'un lot débranché, et ce dépôt paie en boucle la garde
+              // construite puis silencieusement débranchée.
+              voices: {
+                accounts_at_table: voiceMembers.length,
+                heard: household.voicesHeard,
+                lines_in: household.voiceCounts.linesIn,
+                lines_used: household.voiceCounts.linesUsed,
+                withheld: household.voiceCounts.linesWithheld,
+                over_cap: household.voiceCounts.linesOverCap,
+                // PAR BOUCHE, parce que c'est bon marché (un objet de quatre
+                // entiers par titulaire qui a parlé) et parce que c'est la
+                // maille de la question: « pourquoi le plan ignore-t-il ce que
+                // MOI j'ai dit ? ». Il porte les bouches dont TOUT est tombé —
+                // `heard` ne les porte pas.
+                per_member: household.voiceCounts.perMember,
+              },
               // ── D14 · QUI A ÉTÉ COMPTÉ ABSENT, ET PAR QUI ──────────────
               // Sans ce bloc, une absence marquée par erreur est SILENCIEUSE:
               // il manque une assiette, et personne — ni le maître, ni la

@@ -28,6 +28,39 @@
  * contraintes telles quelles et on journalise. C'est l'inverse de la posture
  * des contraintes médicales (`safety_constraints.ts`, qui THROW), et c'est
  * délibéré — on parle ici de goûts, pas d'allergies.
+ *
+ * ═══════════════════════════════════════════════════════════════════════════
+ * ⚠️ DEUX DÉFAUTS CONNUS, NON CORRIGÉS ICI, QUE L6 A FAIT CHANGER D'ÉCHELLE
+ * ═══════════════════════════════════════════════════════════════════════════
+ * Aucun des deux n'est né avec L6 (D4). Ce que L6 change, c'est le NOMBRE de
+ * lignes concernées: cette fonction était appelée pour UNE personne — celle qui
+ * compose, sur sa propre ligne — et `household_voices_io.ts` l'appelle
+ * maintenant pour CHAQUE titulaire à table. On passe de « le maître écrit sur
+ * sa propre ligne » à « le maître écrit sur celle de tout le monde ».
+ *
+ *   1. ÉCRASEMENT DE `practical_constraints` EN ENTIER, SANS CONCURRENCE
+ *      OPTIMISTE. L'`update` ci-dessous (« LE POINT 1 » en marge) écrit la
+ *      colonne COMPLÈTE, reconstruite à partir d'une copie lue ~10 ms plus tôt
+ *      dans la requête de quelqu'un d'AUTRE. Si le titulaire concerné modifie
+ *      son rythme de repas, sa capacité de cuisine ou ses préférences dans cet
+ *      intervalle, sa modification est perdue sans un mot — il n'y a ni
+ *      `updated_at` comparé, ni numéro de version, ni écriture par clé jsonb.
+ *      À un titulaire, la fenêtre était celle d'une personne contre elle-même;
+ *      à N, c'est celle de N personnes contre le geste d'une seule.
+ *
+ *   2. `student_goals.updated_at` DU SECONDAIRE BOUGE QUAND LE MAÎTRE COMPOSE.
+ *      Personne n'a touché à la ligne de ce titulaire; un lecteur qui prend
+ *      cette colonne pour « la dernière fois que cette personne s'est occupée
+ *      de son alimentation » se trompe désormais de personne.
+ *
+ * ⚠️ NE PAS « RÉPARER » ÇA EN PASSANT. La correction demande une MIGRATION —
+ * un jeton de version sur la ligne, ou une écriture ciblée sur la seule clé
+ * `food_preferences` — et un lot à part. La rustine tentante (relire juste
+ * avant d'écrire) ne ferme pas la fenêtre, elle la rétrécit, et elle ferait
+ * passer une garde inexistante pour une garde qui marche.
+ *
+ * Consigné aussi dans `docs/keel/CHANTIER-PLANS-INDIVIDUELS-ET-FUSION.md`,
+ * §L6 « Ce qui n'est pas prouvé, et ce qui reste ouvert ».
  */
 import {
   FOOD_PREFERENCES_KEY,
@@ -146,6 +179,13 @@ export async function reconcileFoodPreferencesFor(args: {
     }
     if (!result.changed) return constraints;
 
+    // ⚠️ LE POINT 1 DE L'EN-TÊTE. Cet `update` écrase `practical_constraints`
+    // EN ENTIER, à partir de `constraints` — une copie lue plus haut dans la
+    // requête, qui n'est pas forcément celle de l'appelant depuis L6. Aucune
+    // concurrence optimiste: pas d'`updated_at` comparé, pas de version, pas
+    // d'écriture par clé jsonb. Et `updated_at` de CE titulaire bouge alors que
+    // c'est quelqu'un d'autre qui compose. Défauts connus, documentés en tête
+    // de fichier et au registre; leur correction demande une migration.
     const { error: writeError } = await args.admin
       .from("student_goals")
       .update({ practical_constraints: result.constraints })
