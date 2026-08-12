@@ -149,3 +149,125 @@ export const CONTACT_LABEL: Record<ContactState, string> = {
   slipping: "Slipping",
   silent: "Silent",
 };
+
+/**
+ * ── C9 · « NOM MASQUÉ » DISAIT UNE CHOSE FAUSSE SUR UN LIEN VIVANT ──────────
+ *
+ * Vu à l'écran pendant la vérification navigateur du 2026-08-13: un élève au
+ * lien `active`, lisible, affiché « Name hidden while this link is not active ».
+ * Son `profiles.full_name` est simplement VIDE — l'annuaire rend bien sa ligne.
+ *
+ * MESURÉ en base locale: **9 liens actifs sur 359** portent un nom vide, et
+ * `profiles.full_name = ''` est l'état NORMAL de qui s'inscrit sans finir son
+ * onboarding (929 profils sur 1436). La phrase accusait donc le LIEN d'un défaut
+ * qui appartenait au PROFIL, et elle envoyait le coach vérifier une facturation
+ * qui va très bien.
+ *
+ * L'ORACLE EST LA PRÉSENCE DE LA LIGNE D'ANNUAIRE, PAS LE STATUT DU LIEN.
+ * `coach_student_directory` filtre sur `coached_student_ids()`: une ligne
+ * absente veut dire « le coach n'a pas le droit de lire cette identité » —
+ * c'est ça, « masqué ». Une ligne présente au nom vide veut dire « personne n'a
+ * encore écrit ce nom ». Deux faits différents, deux phrases différentes.
+ */
+export type StudentNameKind = "name" | "email" | "no_name" | "hidden" | "unnamed";
+
+export function studentNameState(args: {
+  fullName: string | null | undefined;
+  invitedEmail: string | null | undefined;
+  /** `true` dès que l'annuaire a rendu une ligne pour cet élève. */
+  hasDirectoryRow: boolean;
+  studentUserId: string | null;
+}): { kind: StudentNameKind; value: string | null } {
+  const name = args.fullName?.trim();
+  if (name) return { kind: "name", value: name };
+  const email = args.invitedEmail?.trim();
+  if (email) return { kind: "email", value: email };
+  // La ligne est là: le droit de lire existe, le nom n'a jamais été écrit.
+  if (args.hasDirectoryRow) return { kind: "no_name", value: null };
+  if (args.studentUserId) return { kind: "hidden", value: null };
+  return { kind: "unnamed", value: null };
+}
+
+/**
+ * ── C9 · L'ESCALADE QUE PERSONNE NE LISAIT ──────────────────────────────────
+ *
+ * `generate-week-plan-v1` refuse la semaine d'un mineur avec
+ * `409 minor_student`, et son détail dit à l'élève: « **Your coach has been
+ * told** ». C5 ① avait réparé l'écriture de cette ligne (elle partait sans
+ * `content_locale`, donc 500 à chaque fois, donc ZÉRO ligne en base). La
+ * contre-épreuve HTTP du 2026-08-13 prouve que la ligne atterrit maintenant, et
+ * qu'un jeton de coach la lit par RLS (`contract_change_requests_select_coach`).
+ *
+ * ⚠️ ELLE N'ÉTAIT LUE PAR RIEN. Épreuve d'absence faite dans le même geste:
+ * `contract_change_requests` n'apparaît dans `frontend/src` que dans TROIS
+ * commentaires, et le seul lecteur backend filtre `reason_code =
+ * 'restriction_signal'` (`coach_synthesis_io.ts`, `loadRestrictionFlags`). Une
+ * escalade `minor_student` était donc un fait vrai en base et invisible partout
+ * — la phrase rendue à l'élève était une promesse que le produit ne tenait pas.
+ *
+ * LE LIEN ACTIF EST UNE CONDITION, PAS UN DÉTAIL. Un lien `paused`/`ended` ne
+ * donne plus accès à l'identité (`coached_student_ids()` ne le renvoie pas),
+ * donc la ligne s'afficherait sans nom et son bouton ouvrirait un refus.
+ */
+export interface CoachEscalationRow {
+  id: string;
+  user_id: string;
+  reason_code: string;
+  status: string;
+  student_words: string | null;
+  created_at: string;
+}
+
+/** Un élève dont la génération est SUSPENDUE, tel que l'écran doit le lire. */
+export interface HeldStudent {
+  userId: string;
+  /** Le nom lisible, ou `null` quand l'annuaire ne le rend pas encore. */
+  name: string | null;
+  /** La phrase que la ligne porte — la raison, écrite par le système. */
+  words: string;
+  /** Depuis quand elle attend: c'est ce qui trie la liste. */
+  since: string;
+}
+
+/**
+ * Les élèves en attente d'une décision du coach, les plus anciens d'abord.
+ *
+ * L'ORDRE EST LE PLUS VIEUX D'ABORD, à l'inverse des invitations: une
+ * invitation récente est la plus susceptible d'être encore vivante, alors qu'une
+ * escalade `urgency='immediate'` qui traîne depuis six jours est précisément
+ * celle qu'on a oubliée.
+ *
+ * DÉDUPLIQUÉ PAR ÉLÈVE. `escalateMinorStudent` est idempotent par ligne ouverte
+ * et ne devrait jamais en produire deux — mais une reprise manuelle en base le
+ * peut, et deux lignes pour un seul fait afficheraient le même élève deux fois.
+ */
+export function heldStudents(
+  escalations: readonly CoachEscalationRow[],
+  clients: readonly { student_user_id: string | null; status: string }[],
+  nameOf: (userId: string) => string | null,
+): HeldStudent[] {
+  const live = new Set(
+    clients
+      .filter((c) => c.status === "active" && c.student_user_id)
+      .map((c) => c.student_user_id as string),
+  );
+  const byStudent = new Map<string, HeldStudent>();
+  for (const row of escalations) {
+    if (row.reason_code !== "minor_student") continue;
+    if (row.status !== "open") continue;
+    if (!live.has(row.user_id)) continue;
+    const existing = byStudent.get(row.user_id);
+    if (existing && Date.parse(existing.since) <= Date.parse(row.created_at)) {
+      continue;
+    }
+    byStudent.set(row.user_id, {
+      userId: row.user_id,
+      name: nameOf(row.user_id)?.trim() || null,
+      words: (row.student_words ?? "").trim(),
+      since: row.created_at,
+    });
+  }
+  return [...byStudent.values()].sort(
+    (a, b) => Date.parse(a.since) - Date.parse(b.since),
+  );
+}

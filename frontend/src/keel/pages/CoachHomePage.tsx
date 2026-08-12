@@ -16,12 +16,15 @@ import {
 import { t } from "../i18n/t";
 import {
   CONTACT_LABEL,
+  type CoachEscalationRow,
   type ContactState,
   contactStateFor,
   countActiveSeats,
   countPendingInvitationsFrom,
   type CoachInvitationRow,
+  heldStudents,
   type InvitationState,
+  studentNameState,
   visibleInvitations,
 } from "../api/coachCohort";
 
@@ -99,6 +102,14 @@ interface CoachHomeData {
   invitations: CoachInvitationRow[];
   directory: Map<string, DirectoryRow>;
   contact: Map<string, ContactRow>;
+  /**
+   * LES ESCALADES OUVERTES — voir `heldStudents` dans `api/coachCohort.ts` pour
+   * ce que cette lecture ferme. Résumé: `generate-week-plan-v1` dit à l'élève
+   * mineur « your coach has been told », et personne n'affichait la ligne.
+   */
+  escalations: CoachEscalationRow[];
+  /** La lecture a échoué: on le DIT, on ne rend pas une section vide. */
+  escalationsFailed: boolean;
 }
 
 const CONTACT_TONE: Record<ContactState, BadgeTone> = {
@@ -121,7 +132,8 @@ async function loadCoachHome(coachUserId: string): Promise<CoachHomeData> {
   // from it).
   void coachUserId;
 
-  const [clientsRes, directoryRes, contactRes, invitationsRes] = await Promise.all([
+  const [clientsRes, directoryRes, contactRes, invitationsRes, escalationsRes] =
+    await Promise.all([
     supabase
       .from("coach_clients")
       .select(
@@ -146,6 +158,16 @@ async function loadCoachHome(coachUserId: string): Promise<CoachHomeData> {
       .from("coach_invitations")
       .select("id, email, status, created_at, expires_at")
       .order("created_at", { ascending: false }),
+    // C9 — LES ESCALADES OUVERTES. La policy `contract_change_requests_select_coach`
+    // existait déjà (elle scope sur `coached_student_ids()`), et là encore le
+    // droit de lire était là sans lecteur. Le filtre est posé ICI et pas dans le
+    // rendu: `student_words` est de la prose sur un élève, et une escalade qu'on
+    // n'affiche pas n'a aucune raison de descendre dans le navigateur.
+    supabase
+      .from("contract_change_requests")
+      .select("id, user_id, reason_code, status, student_words, created_at")
+      .eq("reason_code", "minor_student")
+      .eq("status", "open"),
   ]);
 
   if (clientsRes.error) {
@@ -179,6 +201,19 @@ async function loadCoachHome(coachUserId: string): Promise<CoachHomeData> {
     console.warn("[keel/coach] coach_invitations failed", invitationsRes.error);
   }
 
+  // C9 — MÊME FAIL-SOFT, MAIS PAS LE MÊME SILENCE. Un badge « silencieux » qui
+  // manque coûte une nuance; une escalade qui manque efface une décision que le
+  // produit a promise à l'élève. La section se dégrade donc en AVEU (voir
+  // `escalationsFailed` plus bas), jamais en absence.
+  let escalations: CoachEscalationRow[] = [];
+  let escalationsFailed = false;
+  if (!escalationsRes.error) {
+    escalations = (escalationsRes.data ?? []) as unknown as CoachEscalationRow[];
+  } else {
+    escalationsFailed = true;
+    console.warn("[keel/coach] contract_change_requests failed", escalationsRes.error);
+  }
+
   const directory = new Map<string, DirectoryRow>();
   for (const row of (directoryRes.data ?? []) as unknown as DirectoryRow[]) {
     directory.set(row.id, row);
@@ -188,6 +223,8 @@ async function loadCoachHome(coachUserId: string): Promise<CoachHomeData> {
     directory,
     contact,
     invitations,
+    escalations,
+    escalationsFailed,
   };
 }
 
@@ -314,8 +351,79 @@ function CoachHomeBody({
     return <EmptyState setInviteOpen={setInviteOpen} />;
   }
 
+  // C9 — EN HAUT, AVANT LES COMPTEURS, et ce n'est pas de la mise en page.
+  // L'escalade porte `urgency='immediate'` en base et suspend la génération
+  // d'un élève: sous la liste, elle se lirait comme une note de bas de page sur
+  // un écran dont le premier tiers parle de facturation.
+  const held = heldStudents(
+    data.escalations,
+    data.clients,
+    (id) => data.directory.get(id)?.full_name ?? null,
+  );
+
   return (
     <>
+      {(held.length > 0 || data.escalationsFailed) && (
+        <section className="mb-8">
+          <SectionLabel>{t("coach.home.held_title")}</SectionLabel>
+          {data.escalationsFailed
+            ? (
+              <Card>
+                <p className="text-sm text-gray-800">{t("coach.home.held_unreadable")}</p>
+              </Card>
+            )
+            : (
+              <>
+                <Card padded={false}>
+                  <ul className="divide-y divide-gray-200">
+                    {held.map((student) => (
+                      <li key={student.userId} className="px-4 py-3">
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="min-w-0">
+                            {/* `heldStudents` n'a gardé que des liens ACTIFS,
+                                donc l'annuaire a forcément rendu la ligne: un
+                                nom absent ici veut dire « pas encore écrit »,
+                                jamais « masqué ». */}
+                            <div className="truncate text-sm font-medium text-gray-900">
+                              {student.name ?? t("coach.home.student_no_name")}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {t("coach.home.held_since", {
+                                date: formatDate(student.since),
+                              })}
+                            </div>
+                          </div>
+                          <div className="flex flex-shrink-0 items-center gap-2">
+                            <Badge tone="critical">{t("coach.home.held_badge")}</Badge>
+                            <ButtonLink
+                              to={`/coach/clients/${student.userId}`}
+                              size="sm"
+                            >
+                              {t("coach.home.open_student")}
+                            </ButtonLink>
+                          </div>
+                        </div>
+                        {/* LA PHRASE DE LA LIGNE, PAS UNE PARAPHRASE D'ÉCRAN.
+                            `student_words` est écrit par le système qui a
+                            bloqué (`minorEscalationRow`); la réécrire ici
+                            créerait une seconde source pour un même fait. */}
+                        {student.words && (
+                          <p className="mt-2 text-sm leading-5 text-gray-700">
+                            {student.words}
+                          </p>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </Card>
+                <p className="mt-2 text-xs leading-5 text-gray-500">
+                  {t("coach.home.held_hint")}
+                </p>
+              </>
+            )}
+        </section>
+      )}
+
       <section className="mb-8 grid grid-cols-2 gap-3">
         <StatTile
           label={t("coach.home.seats_label")}
@@ -571,17 +679,29 @@ function StudentRow({
   //                          consented links. So an identity is on screen if
   //                          and only if the coach currently has read access.
   //   invited_email       -> the invitation is out, nobody has accepted yet
+  //   no name yet         -> C9: the directory DID return the row, the name is
+  //                          simply empty. Measured 9/359 live links. Saying
+  //                          "hidden" here accused the link of a fault that
+  //                          belongs to the profile.
   //   linked but hidden   -> paused or ended: the row exists (billing history,
   //                          audit) but the name is no longer readable. Saying
   //                          so is more honest than showing "Invited student"
   //                          for someone who was a client for six months.
   // We never fall back to the raw uuid: an identifier on screen reads as
   // information and is none.
-  const name = directory?.full_name?.trim() ||
-    client.invited_email ||
-    (client.student_user_id
-      ? t("coach.home.student_hidden")
-      : t("coach.home.student_unnamed"));
+  const resolved = studentNameState({
+    fullName: directory?.full_name,
+    invitedEmail: client.invited_email,
+    hasDirectoryRow: directory !== null,
+    studentUserId: client.student_user_id,
+  });
+  const name = resolved.value ?? t(
+    resolved.kind === "no_name"
+      ? "coach.home.student_no_name"
+      : resolved.kind === "hidden"
+      ? "coach.home.student_hidden"
+      : "coach.home.student_unnamed",
+  );
 
   const secondary = client.student_user_id === null
     ? t("coach.home.no_name_yet")

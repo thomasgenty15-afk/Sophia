@@ -3684,6 +3684,132 @@ trouver** : une mutation qui ne compile pas ne mesure rien.
    `_shared/chat/recent_history_test.ts` est **repassé au vert** entre-temps
    (17/0), sans une ligne de ce lot. **La suite keel est verte : 2 829 / 0.**
 
+## C9, ce qui est corrigé — 2026-08-13
+
+> Deux corrections, et **aucune des deux n'est un bug de calcul**. La première
+> ferme la dernière réserve de la question ouverte n°2 — la ceinture « mineur »
+> avait été réparée sans que personne ne la voie mordre. La seconde vient de
+> cette contre-épreuve : en regardant l'écran du coach, une phrase s'est révélée
+> fausse. **Aucune migration**, **aucune version de prompt**, **aucun appel
+> modèle.**
+
+### ① LA CEINTURE « MINEUR » A ÉTÉ VUE MORDRE, EN HTTP RÉEL
+
+**Ce qui manquait** : C5 ① avait prouvé la ligne *contre la DDL* — complète au
+regard de toutes les colonnes `not null` sans défaut — mais **personne n'avait
+vu le refus arriver**. Une ligne juste sur le papier et un `409` que personne
+n'a lu, c'est exactement la situation d'avant : le défaut d'origine était déjà
+invisible parce qu'il s'appelait « 500 » et que personne ne regardait.
+
+**Le montage, en vrai** : inscription GoTrue réelle
+(`c9-minor-…@test.dev`), `birth_date = current_date - 15 ans`, un coach
+**maison** (le plafond d'essai est désarmé pour `coach_kind='house'`, donc rien
+d'autre du plateau n'a bougé), un `student_goals`. Puis deux appels avec un
+**vrai jeton**.
+
+| | Avant (QA-A, 2026-08-12) | Après (C9, 2026-08-13) |
+|---|---|---|
+| Statut | **500** `{"ok":false,"error":"[object Object]"}` | **409** `minor_student` |
+| Temps | 5,5 s | **0,50 s** |
+| Ligne `contract_change_requests` | **0** | **1**, `reason_code='minor_student'`, `raised_by='system'`, `urgency='immediate'`, `status='open'`, `content_locale='en'` |
+| La phrase | — | « This student is **15** — under 18. Plan generation is held until you decide… » |
+| 2ᵉ appel | — | **409** en **0,076 s**, et **toujours une seule ligne** |
+| `student_week_plans` écrits | — | **0** |
+
+**L'idempotence est prouvée par le journal, pas déduite** : deux lignes
+`keel.week_plan.minor_blocked` portant le **même** `contract_change_request_id`,
+la première `escalated:true / raised`, la seconde `escalated:false /
+already_open`.
+
+### ② « YOUR COACH HAS BEEN TOLD » ÉTAIT UNE PROMESSE QUE RIEN NE TENAIT
+
+C'est ① qui l'a fait apparaître : la ligne existe, **et ensuite ?** Épreuve
+d'absence, faite dans le même geste :
+
+- `contract_change_requests` n'apparaît dans `frontend/src` que dans **trois
+  commentaires**. Aucun écran ne la lit.
+- Le seul lecteur backend, `loadRestrictionFlags` (`coach_synthesis_io.ts`),
+  filtre `reason_code = 'restriction_signal'` — **`minor_student` n'y entre
+  jamais**.
+- Vérifié par un **jeton de coach réel** : `GET
+  /rest/v1/contract_change_requests` **rend la ligne**. Le droit de lire était
+  là depuis le début (policy `contract_change_requests_select_coach`), **il
+  manquait un lecteur**.
+
+Donc : la génération d'un mineur était bien bloquée, la ligne bien écrite, et le
+coach **n'apprenait toujours rien** — c'est-à-dire le défaut que C5 ① croyait
+avoir fermé, déplacé d'un cran.
+
+**Le lecteur** : une section en **tête** de `/coach`, au-dessus des compteurs —
+la ligne porte `urgency='immediate'`, et sous la liste elle se serait lue comme
+une note de bas de page sur un écran dont le premier tiers parle de facturation.
+Elle nomme l'élève, **cite la phrase de la ligne** (pas une paraphrase : deux
+sources pour un même fait divergent au premier ajustement), dit depuis quand, et
+ouvre sa page.
+
+**Trois arbitrages, et ce qu'ils refusent** :
+
+| Décision | Pourquoi, et ce qui a été vérifié |
+|---|---|
+| **Le filtre est dans la requête**, pas dans le rendu | `student_words` est de la prose sur un élève : une escalade qu'on n'affiche pas n'a aucune raison de descendre dans le navigateur |
+| **Une lecture ratée s'AVOUE** — les autres se taisent | Le contact et les invitations dégradent en silence, et c'est bien : un badge en moins coûte une nuance. Ici une section vide effacerait une décision promise à l'élève. Elle affiche donc « this list is missing, not empty » |
+| **Aucune copie ne promet un bouton de fermeture** | Épreuve faite : **aucune** policy `UPDATE` pour le coach, **aucune** RPC (`prosrc`), **aucun** écran. La seule sortie réelle est de terminer le lien — et `heldStudents` ne garde que les liens **actifs**, donc la carte disparaît alors d'elle-même. La copie dit exactement ça |
+
+### ③ « NOM MASQUÉ » ACCUSAIT LE LIEN D'UN DÉFAUT DU PROFIL
+
+**Vu à l'écran, pas déduit.** La vérification navigateur de ② affichait, sur un
+lien `active` parfaitement lisible : « *Name hidden while this link is not
+active* ». Le lien allait très bien — `profiles.full_name` était **vide**.
+
+**Mesuré en base locale** : **9 liens actifs sur 359** portent un nom vide, et
+`full_name = ''` est l'état **normal** de qui s'inscrit sans finir son
+onboarding (**929 profils sur 1436**). La phrase envoyait donc le coach vérifier
+une facturation qui n'a rien.
+
+**L'oracle juste n'est pas le statut du lien, c'est la présence de la ligne
+d'annuaire.** `coach_student_directory` filtre sur `coached_student_ids()` :
+ligne **absente** = le coach n'a pas le droit de lire cette identité — *ça*,
+c'est « masqué ». Ligne **présente** au nom vide = personne n'a encore écrit ce
+nom. Deux faits, deux phrases (`studentNameState`, `api/coachCohort.ts`).
+
+### Ce qui est prouvé, et comment
+
+1. **La contre-épreuve HTTP de ①**, ci-dessus, jetons réels, alignement JWT
+   vérifié avant (`check-local-jwt-alg.sh`, exit 0) et runtime edge **redémarré**
+   avant le run — sans quoi les `_shared` modifiés sont servis depuis un cache.
+2. **L'écran de ② et ③ vu en vrai**, session de coach réelle sur un port dédié
+   (5175, donc un `localStorage` qui n'est celui d'aucune autre lane) :
+   « HELD — WAITING ON YOU », le nom, la phrase de la ligne, la date, le badge,
+   le bouton. **Zéro erreur console** sur un onglet neuf.
+3. **8 mutations, chacune vue rouge puis restaurée** — garde `open` retirée,
+   garde « lien actif » retirée, tri inversé, dédoublonnage inversé, filtre de
+   motif retiré, branche « ligne présente » retirée, `trim` retiré, ordre
+   nom/e-mail inversé. Fichier restauré **identique à l'octet** après chaque
+   passe.
+4. **Tests ciblés** : `coachCohort.int.test.ts` **25 verts** (13 neufs), suite
+   Deno ciblée (corps de l'élève, âge, synthèse coach, fusion, appariement de
+   plats, préférences) **244 verts / 0**.
+
+### Ce qui n'est pas prouvé, et ce qui reste ouvert
+
+1. **Aucun coach humain n'a vu cette section.** Elle est vraie, elle est en
+   tête, elle est en anglais — mais que le coach SACHE quoi faire d'un mineur
+   bloqué est une question de produit, pas de code.
+2. **Il n'existe toujours aucun moyen de FERMER une escalade dans le produit.**
+   La copie ne le promet pas, et la carte disparaît si le lien se termine — mais
+   un coach qui décide d'accompagner ce mineur **dans son cadre** n'a aucun
+   geste : l'élève reste bloqué. Fermer demande une policy `UPDATE` ou une RPC,
+   plus un écran. **Non fait, et c'est un lot à part.**
+3. **`planRefusals.int.test.ts` est ROUGE, et ce n'est pas ce lot.** Sept clés
+   `household.error.*` écrites dans `en.ts` par le commit `c975eb0d` (« la part
+   de chacun etait une phrase… », lane FF-047) ne sont atteignables par aucune
+   entrée de `HOUSEHOLD_REFUSAL_KEYS` : `body_incomplete`, `bad_height`,
+   `bad_weight`, `bad_gender`, `minor_cannot_be_reference`,
+   `age_unknown_cannot_be_reference`, `not_your_household`. **Non corrigé
+   volontairement** : la table exige de connaître le jeton RPC qui produit
+   chaque refus, `HouseholdPage.tsx` porte 250 lignes non commitées d'une autre
+   session, et une entrée devinée serait un mapping faux qui passe au vert.
+
 ## Questions encore ouvertes
 
 1. **Les comptes individuels sans foyer restent sans garde de paiement.** D13
@@ -3704,16 +3830,25 @@ trouver** : une mutation qui ne compile pas ne mesure rien.
 2. ~~**`generate-week-plan-v1` n'a jamais été testé**~~ — **testé le
    2026-08-12** (lane QA-A), et la campagne y a trouvé le P0 de sécurité de
    §C5 ① : la ceinture « élève mineur » rendait 500 au lieu de son 409, et
-   **aucune ligne d'escalade n'avait jamais existé**. ⚠️ **Ce qui reste ouvert :
-   le CAS QUI PASSE de cette ceinture n'a pas de contre-épreuve HTTP.** La
-   correction est prouvée contre la DDL — la ligne est complète au regard de
-   toutes les colonnes `not null` sans défaut — mais personne n'a revu un
-   `409 minor_student` en vrai, ni la ligne `contract_change_requests` en base.
+   **aucune ligne d'escalade n'avait jamais existé**.
+   ~~⚠️ le CAS QUI PASSE n'a pas de contre-épreuve HTTP~~ — **fermé par C9 ①,
+   le 2026-08-13** : `409 minor_student` en **0,50 s**, **une** ligne
+   `contract_change_requests` complète, second appel `409` en **0,076 s** et
+   **toujours une seule ligne**. Détail et commandes : §C9 ①.
 3. ~~**Comment un secondaire sait-il qu'il PEUT prendre la main ?**~~
    **Répondu par L8** : `/app/plan` porte une carte qui dit la posture par
    défaut — être composé dans le plan du foyer est le cas NORMAL, aucune phrase
    ne reproche de ne rien faire — puis ce que prendre la main coûte (sa cuisson
-   et ses courses), puis le bouton. ⚠️ **Elle n'est pas encore atteignable** :
-   la route est ouverte, mais un secondaire sans coach reçoit `no_coach` du
-   générateur. Ce rattachement crée un siège, donc il touche la facturation, et
-   il attend une décision.
+   et ses courses), puis le bouton.
+   ~~⚠️ Elle n'est pas encore atteignable : un secondaire sans coach reçoit
+   `no_coach`, et ce rattachement crée un siège~~ — **CETTE RÉSERVE ÉTAIT
+   PÉRIMÉE, retirée le 2026-08-13.** Elle décrivait l'état d'AVANT C1. Deux
+   faits la renversent, tous deux dans le code d'aujourd'hui :
+   `generate-week-plan-v1` résout sa doctrine par `loadDoctrineForCaller`
+   (index.ts, en-tête « O7 · UN MEMBRE DE FOYER COMPOSE SOUS LA DOCTRINE DE SON
+   FOYER »), et ce repli **n'écrit aucune ligne** — `household_doctrine.ts` le
+   dit en toutes lettres : « ni `coach_clients`, ni `profiles.keel_role`, ni
+   quoi que ce soit ». **Il n'y a donc pas de siège créé, donc pas de décision
+   de facturation à prendre ici.** Le `409 no_coach` survit pour le cas qui le
+   mérite : un compte sans foyer ET sans coach, ou un foyer dont le maître n'a
+   pas de coach non plus.

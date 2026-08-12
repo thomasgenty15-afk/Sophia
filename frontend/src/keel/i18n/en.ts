@@ -50,6 +50,9 @@ export const en = {
   "coach.home.invite_expired_at": "Link expired on {date} — invite them again",
   "coach.home.student_unnamed": "Invited student",
   "coach.home.student_hidden": "Name hidden while this link is not active",
+  // C9 — la ligne d'annuaire EST là, le nom n'a jamais été écrit. Mesuré 9 liens
+  // actifs sur 359. Dire « masqué » accusait le lien d'un défaut du profil.
+  "coach.home.student_no_name": "No name on their profile yet",
   "coach.home.no_name_yet": "Has not created their account yet",
   "coach.home.since": "Client since {date}",
   "coach.home.load_error": "Your student list could not be loaded. Nothing is shown rather than something wrong.",
@@ -61,6 +64,22 @@ export const en = {
   "coach.home.seat.billed": "Billed",
   "coach.home.seat.trial": "Trial",
   "coach.home.seat.free": "Free",
+  // ── C9 · L'ESCALADE QUI ATTEND UNE DÉCISION ─────────────────────────────
+  // `generate-week-plan-v1` refuse la semaine d'un mineur et dit à l'élève
+  // « your coach has been told ». La ligne partait bien en base (C5 ① l'a
+  // réparée, la contre-épreuve HTTP du 2026-08-13 l'a vue atterrir) — mais
+  // AUCUN écran ne la lisait. Ces clés sont le lecteur qui manquait.
+  //
+  // ⚠️ AUCUNE COPIE NE PROMET UN BOUTON DE FERMETURE. Épreuve faite: pas de
+  // policy UPDATE pour le coach, pas de RPC (`prosrc`), pas d'écran. La seule
+  // sortie réelle est de terminer le lien — et c'est ce que la copie dit.
+  "coach.home.held_title": "Held — waiting on you",
+  "coach.home.held_badge": "Held",
+  "coach.home.held_since": "Held since {date}",
+  "coach.home.held_hint":
+    "Nothing is generated for these students until something changes. There is no button here to clear it: coaching a minor sits inside your professional framework, not ours, so the decision is yours — take it with them, or end the link from their page.",
+  "coach.home.held_unreadable":
+    "Open escalations could not be read. Someone may be waiting on a decision — this list is missing, not empty.",
 
   // ── LA BIBLIOTHÈQUE DE RECETTES DU COACH (/coach/meals) ─────────────────
   // Un artefact COLLECTIF, comme la doctrine: le coach écrit un plat une fois,

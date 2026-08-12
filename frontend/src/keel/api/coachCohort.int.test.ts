@@ -1,12 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
+  type CoachEscalationRow,
   CONTACT_SILENT_AFTER_HOURS,
   CONTACT_SLIPPING_AFTER_HOURS,
   contactStateFor,
   countActiveSeats,
   countInvitedLinks,
   countPendingInvitationsFrom,
+  heldStudents,
   invitationState,
+  studentNameState,
   visibleInvitations,
 } from "./coachCohort";
 
@@ -145,5 +148,156 @@ describe("visibleInvitations", () => {
     // n'aide personne. Un révoqué, le coach l'a annulé lui-même.
     const rows = [inv({ id: "a", status: "accepted" }), inv({ id: "r", status: "revoked" })];
     expect(visibleInvitations(rows, now)).toEqual([]);
+  });
+});
+
+// ── C9 · LES ESCALADES QUE PERSONNE NE LISAIT ───────────────────────────────
+//
+// Le défaut fermé ici n'est pas une erreur de code: `escalateMinorStudent`
+// écrivait la bonne ligne (prouvé en HTTP réel le 2026-08-13 — 409 en 0,50 s,
+// une ligne, `content_locale='en'`), et le coach avait le droit de la lire
+// (policy `contract_change_requests_select_coach`). PERSONNE NE LA LISAIT: trois
+// commentaires dans `frontend/src`, et un seul lecteur backend filtrant
+// `reason_code='restriction_signal'`. L'élève, lui, lisait « your coach has been
+// told ».
+describe("heldStudents", () => {
+  const active = (id: string) => ({ student_user_id: id, status: "active" });
+  const esc = (over: Partial<CoachEscalationRow> = {}): CoachEscalationRow => ({
+    id: "e1",
+    user_id: "s1",
+    reason_code: "minor_student",
+    status: "open",
+    student_words: "This student is 15 — under 18.",
+    created_at: "2026-08-10T09:00:00.000Z",
+    ...over,
+  });
+  const noName = () => null;
+
+  it("rend l'élève suspendu, avec la phrase de la ligne et sa date", () => {
+    const out = heldStudents([esc()], [active("s1")], () => "Nina");
+    expect(out).toEqual([{
+      userId: "s1",
+      name: "Nina",
+      words: "This student is 15 — under 18.",
+      since: "2026-08-10T09:00:00.000Z",
+    }]);
+  });
+
+  it("ignore une escalade FERMÉE — c'est une décision déjà prise", () => {
+    expect(heldStudents([esc({ status: "resolved" })], [active("s1")], noName)).toEqual([]);
+    expect(heldStudents([esc({ status: "dismissed" })], [active("s1")], noName)).toEqual([]);
+  });
+
+  it("ignore les AUTRES motifs, et c'est la garde qui compte", () => {
+    // `restriction_signal` a déjà son lecteur (la synthèse du lundi) et son
+    // propre traitement. Le remonter ici le doublerait sous un titre qui ment.
+    expect(
+      heldStudents([esc({ reason_code: "restriction_signal" })], [active("s1")], noName),
+    ).toEqual([]);
+  });
+
+  it("ignore un lien qui n'est plus actif", () => {
+    // `coached_student_ids()` ne renvoie pas un lien `paused`/`ended`: la ligne
+    // s'afficherait sans nom, et son bouton ouvrirait un panneau de refus.
+    for (const status of ["paused", "ended", "invited"]) {
+      expect(heldStudents([esc()], [{ student_user_id: "s1", status }], noName)).toEqual([]);
+    }
+  });
+
+  it("dédoublonne par élève et garde la PLUS ANCIENNE", () => {
+    // L'idempotence de `escalateMinorStudent` interdit la seconde ligne, mais
+    // une reprise en base peut la produire — et c'est la date d'attente réelle
+    // qui doit rester à l'écran.
+    const out = heldStudents(
+      [
+        esc({ id: "recent", created_at: "2026-08-12T09:00:00.000Z" }),
+        esc({ id: "ancienne", created_at: "2026-08-01T09:00:00.000Z" }),
+      ],
+      [active("s1")],
+      noName,
+    );
+    expect(out).toHaveLength(1);
+    expect(out[0].since).toBe("2026-08-01T09:00:00.000Z");
+  });
+
+  it("trie du plus ancien au plus récent, à l'inverse des invitations", () => {
+    // Une escalade `urgency='immediate'` qui traîne depuis six jours est celle
+    // qu'on a oubliée; une invitation récente est celle qui vit encore.
+    const out = heldStudents(
+      [
+        esc({ user_id: "s2", created_at: "2026-08-12T09:00:00.000Z" }),
+        esc({ user_id: "s1", created_at: "2026-08-05T09:00:00.000Z" }),
+      ],
+      [active("s1"), active("s2")],
+      noName,
+    );
+    expect(out.map((h) => h.userId)).toEqual(["s1", "s2"]);
+  });
+
+  it("rend `name: null` plutôt qu'un identifiant quand l'annuaire est muet", () => {
+    // Même règle que la liste: un uuid à l'écran se lit comme une information
+    // et n'en est pas. L'écran choisit alors sa propre phrase.
+    expect(heldStudents([esc()], [active("s1")], () => "   ")[0].name).toBeNull();
+    expect(heldStudents([esc()], [active("s1")], noName)[0].name).toBeNull();
+  });
+
+  it("ne fabrique pas de prose quand la ligne n'en porte pas", () => {
+    expect(heldStudents([esc({ student_words: null })], [active("s1")], noName)[0].words)
+      .toBe("");
+  });
+});
+
+// ── C9 · « NOM MASQUÉ » SUR UN LIEN VIVANT ──────────────────────────────────
+//
+// Vu à l'écran le 2026-08-13, pas déduit: un élève au lien `active` affiché
+// « Name hidden while this link is not active ». Mesuré ensuite en base:
+// 9 liens actifs sur 359 portent un `full_name` vide.
+describe("studentNameState", () => {
+  it("préfère le nom, puis l'e-mail d'invitation", () => {
+    expect(studentNameState({
+      fullName: "  Nina  ",
+      invitedEmail: "nina@test.dev",
+      hasDirectoryRow: true,
+      studentUserId: "s1",
+    })).toEqual({ kind: "name", value: "Nina" });
+    expect(studentNameState({
+      fullName: null,
+      invitedEmail: "nina@test.dev",
+      hasDirectoryRow: false,
+      studentUserId: null,
+    })).toEqual({ kind: "email", value: "nina@test.dev" });
+  });
+
+  it("LIGNE PRÉSENTE + NOM VIDE ⇒ « pas encore écrit », jamais « masqué »", () => {
+    // LE défaut du lot. Le blanc n'est pas un nom: `"   "` doit tomber ici et
+    // pas rendre trois espaces en gras.
+    for (const fullName of ["", "   ", null, undefined]) {
+      expect(studentNameState({
+        fullName,
+        invitedEmail: null,
+        hasDirectoryRow: true,
+        studentUserId: "s1",
+      })).toEqual({ kind: "no_name", value: null });
+    }
+  });
+
+  it("LIGNE ABSENTE ⇒ masqué, et c'est la seule phrase vraie là", () => {
+    // `coach_student_directory` filtre sur `coached_student_ids()`: pas de ligne
+    // = pas de droit de lecture. C'est ça, et rien d'autre, « masqué ».
+    expect(studentNameState({
+      fullName: null,
+      invitedEmail: null,
+      hasDirectoryRow: false,
+      studentUserId: "s1",
+    })).toEqual({ kind: "hidden", value: null });
+  });
+
+  it("sans compte du tout ⇒ l'invitation, pas un élève", () => {
+    expect(studentNameState({
+      fullName: null,
+      invitedEmail: null,
+      hasDirectoryRow: false,
+      studentUserId: null,
+    })).toEqual({ kind: "unnamed", value: null });
   });
 });
