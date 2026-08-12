@@ -561,6 +561,98 @@ export const FORBIDDEN_PLAN_DELIVERY_PHRASES: readonly string[] = Object
   ]);
 
 /**
+ * SIXIÈME FAMILLE — ON N'ANNONCE PAS UN EFFET SUR LA COMPOSITION À VENIR.
+ *
+ * ⚠️ MESURÉE EN RUN RÉEL LE 2026-08-12 (run `ff056-boutons-run1`, `BF-LEDGER-01`).
+ * Après un créneau nommé, les deux lanes disaient à l'élève:
+ *
+ *   « C'est noté, et la prochaine semaine que tu composeras EN TIENDRA COMPTE. »
+ *   « Le plan A BIEN PRIS EN COMPTE ce point, et IL GUIDERA la prochaine semaine. »
+ *
+ * Or `student_weight_divergence_episodes` n'est lu par PERSONNE côté composition:
+ * ni `week_plan_generation.ts`, ni `meal_generation.ts`, ni
+ * `generate-week-plan-v1`. La seule écriture durable du tour est la ligne
+ * d'épisode elle-même. Et la tâche s'appelle
+ * `acknowledge_named_spot_without_action` — « accuser réception SANS action »
+ * produisait une phrase qui annonçait une action.
+ *
+ * C'est la famille que ce dépôt paie le plus cher: l'accusé fantôme
+ * (« c'est noté » sans effet en base). Le jour où un lecteur existera côté
+ * composition, cette famille se retire — et pas avant.
+ *
+ * ⚠️ CE QUI DOIT SURVIVRE, et c'est la raison de la forme de cette liste:
+ * - « je construirai autour » / « i ll build around that » (`point_to_plan_fit`)
+ *   est VRAI: la personne parle AU MOMENT où elle compose, et sa parole entre
+ *   bien dans le plan. Ce qui est interdit, c'est l'effet AUTOMATIQUE d'un fait
+ *   noté aujourd'hui sur une composition future que personne ne relit.
+ * - « il n'y a rien à changer dans le plan » est un CONSTAT, pas une promesse.
+ *
+ * Les locutions sont normalisées comme partout ici (sans diacritique, les
+ * apostrophes remplacées par des espaces avant le scan).
+ */
+export const FORBIDDEN_COMPOSITION_EFFECT_PHRASES: readonly string[] = Object
+  .freeze([
+    // --- FR : « pris en compte », toutes les personnes et toutes les voix ---
+    // La forme PASSIVE et la forme SANS PRONOM sont là exprès: la cicatrice de
+    // `plan_delivery` (même fichier, même jour) était d'exiger un pronom objet,
+    // et deux confabulations mesurées passaient à travers pour cette raison.
+    "en tiendra compte",
+    "en tiendront compte",
+    "en tiendrai compte",
+    "tiendra compte",
+    "tiendront compte",
+    "a bien pris en compte",
+    "a pris en compte",
+    "est pris en compte",
+    "sera pris en compte",
+    "sera prise en compte",
+    "seront pris en compte",
+    "seront prises en compte",
+    // --- FR : « ça guidera la suite » ---
+    "guidera la prochaine",
+    "guidera ta prochaine",
+    "guideront la prochaine",
+    // --- FR : l'affirmation que les semaines se construisent là-dessus ---
+    "semaines sont construites",
+    "semaine sera construite",
+    // --- EN : « into account », actif et passif ---
+    "will take it into account",
+    "will take that into account",
+    "will take this into account",
+    "takes it into account",
+    "takes that into account",
+    "took it into account",
+    "has taken it into account",
+    "will be taken into account",
+    "is taken into account",
+    // --- EN : « factor in » ---
+    "will factor it in",
+    "will factor that in",
+    "will factor this in",
+    // --- EN : « it will guide » ---
+    "will guide the next",
+    "will guide your next",
+    // ⚠️ LES CONTRACTIONS, ET C'EST LE MÊME TROU QUE `plan_delivery` AVAIT.
+    // « I'll factor that in » est passé au travers de la première version de
+    // cette liste, qui ne portait que la forme pleine `will factor`. Le matcher
+    // remplace l'apostrophe par une ESPACE avant de scanner, donc la forme
+    // utile commence par `ll` — et `ll take…` couvre d'un coup « I'll »,
+    // « it'll » et « we'll ». Trouvé par le test de cette famille, pas en
+    // production, et c'est bien pour ça qu'il liste des contractions.
+    "ll take it into account",
+    "ll take that into account",
+    "ll take this into account",
+    "ll factor it in",
+    "ll factor that in",
+    "ll factor this in",
+    "ll guide the next",
+    "ll guide your next",
+    // --- EN : les semaines construites là-dessus ---
+    "weeks are built",
+    "week will be built",
+  ]);
+
+/**
  * LE MAXIMUM DE QUESTIONS PAR TÂCHE.
  *
  * Zéro partout sauf trois endroits, et c'est ce qui empêche le flow de

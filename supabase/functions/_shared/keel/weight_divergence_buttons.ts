@@ -51,6 +51,7 @@
 
 import {
   FORBIDDEN_BLAME_TERMS,
+  FORBIDDEN_COMPOSITION_EFFECT_PHRASES,
   FORBIDDEN_ENERGY_TERMS,
   FORBIDDEN_PLAN_DELIVERY_PHRASES,
   FORBIDDEN_SUSPICION_PHRASES,
@@ -304,6 +305,9 @@ function labelTerms(): ForbiddenTerm[] {
     ...build("weigh_in_link", FORBIDDEN_WEIGH_IN_LINK_PHRASES),
     ...build("plan_delivery", FORBIDDEN_PLAN_DELIVERY_PHRASES),
     ...build("self_blame", FORBIDDEN_SELF_BLAME_LABELS),
+    // On n'annonce pas un effet sur la composition à venir tant que personne
+    // ne relit l'épisode côté composition. Mesuré le 2026-08-12 (BF-LEDGER-01).
+    ...build("composition_effect", FORBIDDEN_COMPOSITION_EFFECT_PHRASES),
   ];
 }
 
@@ -441,9 +445,15 @@ const COPY: Readonly<Record<DivergenceLanguage, DivergenceCopy>> = {
       "collation l'après-midi, à partir de maintenant. On l'ajoute ?",
     yesAdd: "Oui, on l'ajoute",
     noThanks: "Non merci",
+    // ⚠️ CETTE PHRASE ANNONÇAIT UN EFFET QUE PERSONNE NE PRODUIT (BF-LEDGER-01,
+    // mesuré le 2026-08-12). Elle disait « la prochaine semaine que tu
+    // composeras en tiendra compte » alors qu'aucun code ne relit cet épisode
+    // côté composition. Le libellé retenu est celui que ce module écrivait
+    // DÉJÀ dans sa propre doc, plus bas: « c'est noté, il n'y a rien à changer
+    // dans le plan pour ça » — la copie avait dérivé de son cahier des charges.
     notedNoChange:
       "Merci de me le dire — c'est la partie que je ne pouvais pas voir. " +
-      "C'est noté, et la prochaine semaine que tu composeras en tiendra compte.",
+      "C'est noté, et il n'y a rien à changer dans le plan pour ça.",
   },
   en: {
     knowWhere: "I think I know where it comes from",
@@ -477,7 +487,7 @@ const COPY: Readonly<Record<DivergenceLanguage, DivergenceCopy>> = {
     noThanks: "No thanks",
     notedNoChange:
       "Thanks for telling me — that's the part I couldn't see. I've noted it, " +
-      "and the next week you put together will take it into account.",
+      "and there's nothing to change in the plan for that.",
   },
 };
 

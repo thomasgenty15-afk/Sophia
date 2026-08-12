@@ -39,6 +39,7 @@ import {
 import { VISIBLE_OUTPUT_STYLE_RULES } from "../../router/response_style_policy.ts";
 import {
   FORBIDDEN_BLAME_TERMS,
+  FORBIDDEN_COMPOSITION_EFFECT_PHRASES,
   FORBIDDEN_ENERGY_TERMS,
   FORBIDDEN_PLAN_DELIVERY_PHRASES,
   FORBIDDEN_SUSPICION_PHRASES,
@@ -71,6 +72,10 @@ function forbiddenTerms(): ForbiddenTerm[] {
     // La règle mère du produit: personne ne prépare le plan de l'élève.
     // Mesurée en run réel le 2026-08-11 sur le chemin nominal de ce flow.
     ...build("plan_delivery", FORBIDDEN_PLAN_DELIVERY_PHRASES),
+    // On n'annonce pas un effet sur la composition à venir: rien ne relit
+    // l'épisode côté composition. Mesuré le 2026-08-12 (BF-LEDGER-01), sur
+    // CETTE lane comme sur celle des boutons — les deux portaient la promesse.
+    ...build("composition_effect", FORBIDDEN_COMPOSITION_EFFECT_PHRASES),
   ];
 }
 
@@ -169,17 +174,26 @@ const EN: Pack = {
   // que ce test existe pour attraper.
   propose_named_spot_action:
     "Thanks for telling me — that's the part I couldn't see.",
+  // ⚠️ Cette phrase annonçait un effet que personne ne produit (BF-LEDGER-01,
+  // run réel du 2026-08-12). Elle est désormais IDENTIQUE à celle de la lane
+  // déterministe (`weight_divergence_buttons.ts`, `notedNoChange`): deux
+  // implémentations d'une même règle qui divergent sont la faute que ce dépôt
+  // paie en boucle, et aucune des deux n'est alors identifiable comme la menteuse.
   acknowledge_named_spot_without_action:
     "Thanks for telling me — that's the part I couldn't see. I've noted it, and " +
-    "the next week you put together will take it into account.",
+    "there's nothing to change in the plan for that.",
   point_to_plan_fit:
     "Then it's the plan that should move, not you. When you next put a week " +
     "together, tell me what actually fits your days and I'll build around that.",
   acknowledge_life_factor:
     "That's worth knowing, and I've noted it. I won't pretend I have a lever " +
     "for it — I don't.",
+  // Portait la MÊME affirmation sous une autre forme — « useful context for how
+  // your weeks are built » — trouvée en relisant le pack, pas par le grep qui
+  // avait servi à ouvrir le lot. Une garde calée sur une seule formulation est
+  // une garde absente.
   acknowledge_activity_drop:
-    "Noted, thank you. That's useful context for how your weeks are built.",
+    "Noted, thank you. I'm not drawing conclusions from it on my own.",
   acknowledge_medical:
     "Thank you for telling me. I've noted it and I won't try to read anything " +
     "into it — that's a conversation for your doctor.",
@@ -203,7 +217,7 @@ const FR: Pack = {
     "Merci de me le dire — c'est la partie que je ne pouvais pas voir.",
   acknowledge_named_spot_without_action:
     "Merci de me le dire — c'est la partie que je ne pouvais pas voir. C'est " +
-    "noté, et la prochaine semaine que tu composeras en tiendra compte.",
+    "noté, et il n'y a rien à changer dans le plan pour ça.",
   point_to_plan_fit:
     "Alors c'est le plan qui doit bouger, pas toi. À ta prochaine composition, " +
     "dis-moi ce qui rentre vraiment dans tes journées et je construirai autour.",
@@ -211,8 +225,7 @@ const FR: Pack = {
     "C'est bon à savoir, et c'est noté. Je ne vais pas faire semblant d'avoir " +
     "un levier là-dessus : je n'en ai pas.",
   acknowledge_activity_drop:
-    "C'est noté, merci. C'est un contexte utile pour la façon dont tes semaines " +
-    "sont construites.",
+    "C'est noté, merci. Je n'en déduis rien tout seul.",
   acknowledge_medical:
     "Merci de me l'avoir dit. C'est noté, et je ne vais rien en déduire — ça, " +
     "c'est une conversation pour ton médecin.",

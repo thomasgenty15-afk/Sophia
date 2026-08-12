@@ -11,6 +11,7 @@
  */
 import { assertEquals } from "jsr:@std/assert@1";
 import {
+  FORBIDDEN_COMPOSITION_EFFECT_PHRASES,
   WEIGHT_DIVERGENCE_CATEGORIES,
   WEIGHT_DIVERGENCE_MAX_QUESTIONS,
   WEIGHT_DIVERGENCE_MAX_TURNS,
@@ -736,4 +737,99 @@ Deno.test("FF-056 · la garde de livraison NE MORD PAS sur l'élève qui prépar
     const verdict = validateWeightDivergenceMessage(message, task("close_out"));
     assertEquals(verdict.ok, true, `bloqué à tort: ${message} (${verdict.reason ?? ""})`);
   }
+});
+
+// ---------------------------------------------------------------------------
+// BF-LEDGER-01 — ON N'ANNONCE PAS UN EFFET SUR LA COMPOSITION À VENIR
+// ---------------------------------------------------------------------------
+
+Deno.test("FF-056 · aucune phrase n'annonce un effet sur la composition, FR et EN", () => {
+  // Les DEUX PREMIÈRES ont été mesurées en run réel le 2026-08-12
+  // (`ff056-boutons-run1`): l'une sortait du repli déterministe, l'autre du
+  // modèle sur la lane texte. Les cinq familles de l'époque les laissaient
+  // toutes deux passer — aucune ne parle de ce qu'on fait du fait noté.
+  //
+  // Le fond: `student_weight_divergence_episodes` n'est lu par PERSONNE côté
+  // composition. La phrase promettait un effet qu'aucun code ne produit, et la
+  // tâche s'appelle pourtant `acknowledge_named_spot_without_action`.
+  for (
+    const message of [
+      // ── MESURÉES ────────────────────────────────────────────────────────
+      "C'est noté, et la prochaine semaine que tu composeras en tiendra compte.",
+      "Le plan a bien pris en compte ce point, et il guidera la prochaine semaine à construire.",
+      // ── SANS PRONOM, la forme qui avait troué `plan_delivery` ───────────
+      "Noté. Tiendra compte de ce créneau dès la prochaine composition.",
+      // ── PASSIF ──────────────────────────────────────────────────────────
+      "Ce sera pris en compte pour la suite.",
+      "Ton créneau du soir sera pris en compte.",
+      // ── L'AFFIRMATION QUE LES SEMAINES SE CONSTRUISENT LÀ-DESSUS ────────
+      "C'est un contexte utile pour la façon dont tes semaines sont construites.",
+      // ── EN, actif, passif, et « factor in » ─────────────────────────────
+      "I've noted it, and the next week you put together will take it into account.",
+      "It will be taken into account from now on.",
+      "Noted — I'll factor that in next time.",
+      "That's useful context for how your weeks are built.",
+      "It will guide the next week you build.",
+    ]
+  ) {
+    const verdict = validateWeightDivergenceMessage(message, task("close_out"));
+    assertEquals(verdict.ok, false, `laissé passer: ${message}`);
+  }
+});
+
+Deno.test("FF-056 · la garde de composition NE MORD PAS sur un constat ni sur une invitation", () => {
+  // ⚠️ LE CAS QUI PASSE — sans lui, une garde cassée bloque tout en ayant l'air
+  // de marcher (`guards-need-a-passing-case`).
+  //
+  // La frontière est celle-ci: est interdit l'effet AUTOMATIQUE d'un fait noté
+  // aujourd'hui sur une composition future que personne ne relit. Reste
+  // légitime le CONSTAT (« il n'y a rien à changer »), et l'INVITATION à parler
+  // au moment de composer — la parole de l'élève entre bien dans le plan, à ce
+  // moment-là, et c'est ce que `point_to_plan_fit` propose.
+  for (
+    const message of [
+      // Les deux nouveaux replis, les deux lanes, les deux langues.
+      "Merci de me le dire — c'est la partie que je ne pouvais pas voir. C'est noté, et il n'y a rien à changer dans le plan pour ça.",
+      "Thanks for telling me — that's the part I couldn't see. I've noted it, and there's nothing to change in the plan for that.",
+      "C'est noté, merci. Je n'en déduis rien tout seul.",
+      "Noted, thank you. I'm not drawing conclusions from it on my own.",
+      // `point_to_plan_fit`: l'élève parle AU MOMENT de composer.
+      "Alors c'est le plan qui doit bouger, pas toi. À ta prochaine composition, dis-moi ce qui rentre vraiment dans tes journées et je construirai autour.",
+      "When you next put a week together, tell me what actually fits your days and I'll build around that.",
+    ]
+  ) {
+    const verdict = validateWeightDivergenceMessage(message, task("close_out"));
+    assertEquals(verdict.ok, true, `bloqué à tort: ${message} (${verdict.reason ?? ""})`);
+  }
+});
+
+Deno.test("FF-056 · la garde de composition est ARMÉE PAR SA LISTE, pas par le hasard", () => {
+  // MUTATION. Un test paramétré par sa propre constante reste vert quand la
+  // constante change: il ne prouve alors rien. Ici on vérifie que la liste du
+  // contrat est bien ce qui fait mordre la garde, en cherchant les locutions
+  // MESURÉES dedans. Si quelqu'un les retire, ce test tombe — et le test
+  // ci-dessus tombera avec lui.
+  for (
+    const token of [
+      "en tiendra compte",
+      "a bien pris en compte",
+      "will take it into account",
+      "weeks are built",
+    ]
+  ) {
+    assertEquals(
+      FORBIDDEN_COMPOSITION_EFFECT_PHRASES.includes(token),
+      true,
+      `locution mesurée absente de la famille: ${token}`,
+    );
+  }
+  // Et la famille est bien CÂBLÉE: une locution présente dans la liste mais
+  // jamais passée au matcher serait une garde de façade.
+  assertEquals(
+    validateWeightDivergenceMessage(
+      "Le plan en tiendra compte.",
+      task("close_out"),
+    ).reason,
+    "composition_effect:en tiendra compte",
+  );
 });
