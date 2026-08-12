@@ -127,6 +127,57 @@ function normalizeError(err: unknown): {
   return { ...base, fields: extractErrorFields(err), cause }
 }
 
+/**
+ * C5 ⑥ — LE MESSAGE D'UNE ERREUR, MÊME QUAND CE N'EST PAS UNE `Error`.
+ *
+ * ── LE DÉFAUT, MESURÉ EN HTTP RÉEL LE 2026-08-12 ────────────────────────────
+ * `generate-week-plan-v1` rendait, dans le corps de sa 500:
+ *
+ *     {"ok":false,"error":"[object Object]"}
+ *
+ * Une `PostgrestError` est un OBJET NU (`{ code, message, details, hint }`), pas
+ * une instance d'`Error`: le raccourci `error instanceof Error ? error.message :
+ * String(error)` retombe sur `String({})`. L'élève, l'écran ET la ligne HTTP du
+ * journal ne disaient donc plus rien; le vrai message n'existait que dans
+ * `system_error_logs`, où il faut savoir aller le chercher.
+ *
+ * ── POURQUOI ICI, ET PAS UN QUATRIÈME EXEMPLAIRE ────────────────────────────
+ * Ce module possédait déjà `normalizeError` — la lecture la plus complète du
+ * dépôt (elle suit `.cause`, et récupère `code`/`details`/`hint`) — mais elle
+ * était PRIVÉE, donc trois autres fichiers en ont écrit chacun une variante:
+ * `readableErrorMessage` (trigger-memorizer-daily, avec son propre test),
+ * `errorText` (keel-weekly-flow-v1), et le raccourci ci-dessus, partout ailleurs.
+ * On expose celle qui existe au lieu d'en écrire une quatrième.
+ *
+ * ⚠️ CE N'EST PAS UNE FUITE. `normalizeError` ne rend jamais la pile ni le corps
+ * de la requête: `message`, `code`, `details`, `hint` — c'est ce que PostgREST
+ * renvoie déjà à un client authentifié, et c'est ce dont l'élève a besoin pour
+ * dire à quelqu'un ce qui s'est passé.
+ */
+export function readableErrorMessage(err: unknown, maxLen = 600): string {
+  const { message, fields, cause } = normalizeError(err)
+  const parts = [
+    message,
+    fields.code ? `code=${fields.code}` : "",
+    fields.details,
+    fields.hint,
+    cause ? `cause: ${cause.message}` : "",
+  ]
+    .map((p) => String(p ?? "").trim())
+    .filter(Boolean)
+  // Le dernier filet: un objet sans `message` lisible ne doit toujours PAS
+  // rendre « [object Object] ».
+  const text = parts.join(" | ") ||
+    (() => {
+      try {
+        return JSON.stringify(err ?? null)
+      } catch {
+        return "unreadable error"
+      }
+    })()
+  return scrubText(text, maxLen)
+}
+
 function scrubText(value: string, maxLen: number): string {
   const s = String(value ?? "")
   if (!s) return ""

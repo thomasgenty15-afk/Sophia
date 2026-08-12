@@ -343,3 +343,118 @@ Deno.test("personne ne relit `free_until` hors de la facturation", async () => {
       "que le chantier 3 existe pour retirer.",
   );
 });
+
+// ===========================================================================
+// C5 ⑦ — UNE LECTURE DE FOYER QUI TOMBE NE PEUT PLUS TOMBER EN SILENCE
+//
+// Le `catch` qui pose `householdLookupFailed` n'écrivait RIEN: ni log, ni
+// ligne d'erreur. Le fail-open, lui, est ASSUMÉ (« se tromper de sens coupe un
+// client qui paie »). Le silence ne l'était pas, et il coûte DEUX choses:
+//
+//   · le gel 402 est sauté — et c'est voulu;
+//   · `householdId` devient `null`, donc le repli de doctrine de C1/C2
+//     disparaît, et un secondaire PAYANT retombe sur `409 no_coach`.
+//
+// La seconde n'est écrite nulle part quand la fonction refuse avant d'écrire
+// une ligne: `generated_from.household_lookup_failed` ne vit que sur un plan
+// qui s'écrit. À comparer avec la lecture de COUVERTURE, juste en dessous, qui
+// appelle `logEdgeFunctionError` depuis L1.
+// ===========================================================================
+
+for (
+  const fn of [
+    "generate-meal-v1/index.ts",
+    "generate-week-plan-v1/index.ts",
+  ]
+) {
+  Deno.test(`C5 ⑦ — la panne de résolution du foyer est journalisée — ${fn}`, async () => {
+    const src = stripComments(
+      await Deno.readTextFile(new URL(fn, FUNCTIONS_DIR)),
+    );
+    const at = src.indexOf("resolveHouseholdIdFor(admin, userId)");
+    assert(at >= 0, `${fn}: la résolution du foyer a disparu — test à réviser`);
+    // Le `catch` de CETTE lecture-là, pas un `logEdgeFunctionError` ailleurs
+    // dans le fichier: il ne prouverait rien sur cette panne-ci.
+    const block = src.slice(at, at + 700);
+    assert(
+      /catch\s*\(\s*error\s*\)/.test(block),
+      `${fn}: l'erreur est de nouveau jetée (\`catch (_error)\`). Une panne ` +
+        `qui n'a pas de nom ne se journalise pas.`,
+    );
+    assert(
+      block.includes("logEdgeFunctionError("),
+      `${fn}: la panne de résolution du foyer ne laisse AUCUNE trace. Le gel ` +
+        `402 est sauté (fail-open assumé) ET le repli de doctrine disparaît — ` +
+        `un secondaire payant retombe sur \`no_coach\` sans qu'on puisse le ` +
+        `relier à quoi que ce soit.`,
+    );
+    assert(
+      /source:\s*"household_lookup"/.test(block),
+      `${fn}: la ligne d'erreur ne nomme plus sa source; elle se confondra ` +
+        `avec celle de la couverture, dix lignes plus bas.`,
+    );
+    // ET LE FAIL-OPEN SURVIT: la panne ne doit pas être devenue un refus.
+    assert(
+      !/status:\s*(40[0-9]|50[0-9])/.test(block),
+      `${fn}: la panne de lecture est devenue un REFUS. C'est l'inverse de ` +
+        `l'arbitrage de L1 — un refus qui coupe un client qui paie ne se ` +
+        `répare par aucun nouvel essai.`,
+    );
+  });
+}
+
+// ===========================================================================
+// C5 ⑥ — UN 500 DIT DE QUOI, ET PAS « [object Object] »
+//
+// MESURÉ: `HTTP=500 {"ok":false,"error":"[object Object]"}`. Une
+// `PostgrestError` est un objet nu; `String(...)` la rend illisible pour
+// l'élève ET pour la ligne HTTP du journal. Le vrai message n'existait que dans
+// `system_error_logs`.
+// ===========================================================================
+
+Deno.test("C5 ⑥ — aucun générateur ne rend `[object Object]` dans son corps", async () => {
+  for (
+    const fn of [
+      "generate-meal-v1/index.ts",
+      "generate-week-plan-v1/index.ts",
+      "generate-household-meal-v1/index.ts",
+    ]
+  ) {
+    const src = stripComments(
+      await Deno.readTextFile(new URL(fn, FUNCTIONS_DIR)),
+    );
+    assert(
+      !/instanceof Error \? \w+\.message : String\(/.test(src),
+      `${fn}: le raccourci \`instanceof Error ? … : String(…)\` est revenu. ` +
+        `Une PostgrestError n'est pas une \`Error\`: le corps rendra ` +
+        `« [object Object] », et la cause n'existera que dans les logs.`,
+    );
+    assert(
+      src.includes("readableErrorMessage("),
+      `${fn}: le lecteur d'erreur partagé n'est plus appelé.`,
+    );
+  }
+});
+
+Deno.test("C5 ⑥ — LE CAS QUI PASSE: une PostgrestError se lit", async () => {
+  const { readableErrorMessage } = await import("../error-log.ts");
+  // La forme EXACTE mesurée: un objet nu, sans prototype `Error`.
+  const pgError = {
+    code: "23502",
+    details: null,
+    hint: null,
+    message:
+      'null value in column "content_locale" of relation ' +
+      '"contract_change_requests" violates not-null constraint',
+  };
+  const text = readableErrorMessage(pgError);
+  assert(!text.includes("[object Object]"), text);
+  assert(text.includes("content_locale"), text);
+  assert(text.includes("23502"), text);
+  // Et le filet du filet: un objet SANS message ne retombe pas non plus sur
+  // « [object Object] ».
+  assert(!readableErrorMessage({ a: 1 }).includes("[object Object]"));
+  assert(!readableErrorMessage(Object.create(null)).includes("[object Object]"));
+  // Une vraie `Error` garde son message, mot pour mot.
+  assertEquals(readableErrorMessage(new Error("boom")), "boom");
+});

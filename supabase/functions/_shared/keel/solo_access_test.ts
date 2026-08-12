@@ -216,8 +216,9 @@ Deno.test("C3 ① — AUCUNE DES DEUX PORTES NE REFUSE SUR CE DROIT", async () =
 
 Deno.test("C3 ① — LA MESURE EST ÉCRITE SUR LA LIGNE, pas seulement journalisée", async () => {
   // Un journal de runtime s'efface; le plan reste. C'est ce qui rend la
-  // question ouverte n°1 comptable en SQL:
-  //   select generated_from -> 'access' ->> 'state', count(*) …
+  // question ouverte n°1 comptable en SQL — DEUX TABLES, et un filtre de
+  // nature sur la première (C5 ⑤; la requête complète est dans l'en-tête de
+  // `solo_access.ts`).
   //
   // ⚠️ ÉCRITE MÊME QUAND TOUT VA BIEN: une clé qui n'apparaîtrait que sur le
   // cas `none` ne se distinguerait pas d'un lot débranché — ce dépôt paie en
@@ -281,4 +282,98 @@ Deno.test("C3 ① — LE MODULE N'ÉCRIT RIEN, ET NE RÉÉCRIT AUCUNE RÈGLE", a
   // Le cas qui passe: il DOIT nommer les deux définitions du dépôt.
   assert(src.includes("has_app_write_access"));
   assert(src.includes("keel_coach_is_solvent"));
+});
+
+// ===========================================================================
+// C5 ⑤ — LA REQUÊTE DU REGISTRE COUVRE CE QU'ELLE PRÉTEND COUVRIR
+//
+// MESURÉ LE 2026-08-12, sur la base locale:
+//
+//     lane      | plan_kind | state            | count
+//     meal      | household | not_instrumented |    39
+//     meal      | personal  | coach_seat       |     1
+//     meal      | personal  | not_instrumented |   104
+//     week_plan |           | household        |     1
+//     week_plan |           | not_instrumented |   274
+//
+// La requête écrite au registre lisait `student_generated_meals` SANS filtrer
+// la nature: les 39 plans de FOYER (troisième porte, non instrumentée) et les
+// 104 lignes d'AVANT le lot tombaient dans un même compartiment `null`. Et la
+// seconde porte instrumentée écrit dans `student_week_plans`, que la requête ne
+// lisait pas du tout.
+//
+// DÉCISION: on corrige la REQUÊTE, on n'instrumente pas la troisième porte.
+// Elle est réservée au MAÎTRE, qui a un foyer par construction: son état serait
+// `household` sur chaque ligne, toujours. La mesurer coûterait une clé de plus
+// sur un chemin chaud pour un compartiment à valeur unique.
+// ===========================================================================
+
+Deno.test("C5 ⑤ — la requête du registre nomme les DEUX tables et la nature", async () => {
+  const src = await Deno.readTextFile(
+    new URL("./solo_access.ts", import.meta.url),
+  );
+  assert(
+    src.includes("student_generated_meals"),
+    "la table de la lane repas a disparu de la requête du registre",
+  );
+  assert(
+    src.includes("student_week_plans"),
+    "la requête du registre ne lit toujours pas `student_week_plans` — la " +
+      "moitié de la mesure est invisible.",
+  );
+  assert(
+    /where plan_kind = 'personal'/.test(src),
+    "la requête compte les plans de FOYER avec les plans individuels: ils " +
+      "tombent dans le même compartiment `null` que les lignes d'avant le lot.",
+  );
+  assert(
+    src.includes("not_instrumented"),
+    "les lignes d'AVANT le lot ne sont plus distinguées d'un état de runtime.",
+  );
+});
+
+Deno.test("C5 ⑤ — LE `where` ET LA TROISIÈME PORTE TIENNENT ENSEMBLE", async () => {
+  // ⚠️ SI QUELQU'UN INSTRUMENTE LA PORTE DU FOYER, LE `where plan_kind =
+  // 'personal'` DEVIENT FAUX — il jetterait la mesure neuve. Les deux moitiés
+  // sont donc épinglées ensemble: la première qui bouge fait tomber ce test, et
+  // c'est le seul moment où l'on peut encore réparer les deux d'un coup.
+  const generator = await generatorSource("generate-household-meal-v1");
+  const module = await Deno.readTextFile(
+    new URL("./solo_access.ts", import.meta.url),
+  );
+  const instrumented = generator.includes("describeAccess(");
+  const filtered = /where plan_kind = 'personal'/.test(module);
+  assertEquals(
+    instrumented,
+    false,
+    "la porte du foyer mesure désormais le droit d'accès. Ce n'est pas un " +
+      "défaut — mais la requête du registre doit alors PERDRE son `where " +
+      "plan_kind = 'personal'`, sinon elle jette la mesure neuve.",
+  );
+  assertEquals(
+    filtered,
+    true,
+    "le `where` a disparu alors que la porte du foyer n'est toujours pas " +
+      "instrumentée: les plans de foyer repartent dans le compartiment " +
+      "indistinct.",
+  );
+});
+
+Deno.test("C5 ⑨ — l'inatteignabilité de `none` en local est ÉCRITE", async () => {
+  // `app_config.disable_write_gate = 'true'` fait retourner `true` à
+  // `has_app_write_access` AVANT toute lecture de `profiles.trial_end` ou de
+  // `subscriptions` (vérifié dans `prosrc` le 2026-08-12). Tout compte local est
+  // donc au pire `own_subscription_or_trial`: l'état `none` — celui que ce lot
+  // existe pour compter — ne peut PAS apparaître en local.
+  //
+  // Sans cette phrase, la prochaine session mesurerait zéro `none` et
+  // conclurait que le trou n'existe pas.
+  const src = await Deno.readTextFile(
+    new URL("./solo_access.ts", import.meta.url),
+  );
+  assert(
+    src.includes("disable_write_gate"),
+    "le registre ne dit plus que `none` est inatteignable en local: on y " +
+      "mesurera zéro, et on en conclura que le trou n'existe pas.",
+  );
 });

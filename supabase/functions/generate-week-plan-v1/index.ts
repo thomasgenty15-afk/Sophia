@@ -4,7 +4,7 @@ import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2.8
 
 import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
-import { logEdgeFunctionError } from "../_shared/error-log.ts";
+import { logEdgeFunctionError, readableErrorMessage } from "../_shared/error-log.ts";
 import { generateWithGemini } from "../_shared/gemini.ts";
 import {
   doctrineBeliefsFor,
@@ -134,12 +134,41 @@ Deno.serve(async (req) => {
     //
     // Best-effort ASSUMÉ: une personne sans foyer rend `null`, et c'est le cas
     // nominal du produit individuel.
+    //
+    // ⚠️ C5 ⑦ — LE FAIL-OPEN EST ASSUMÉ, LE SILENCE NE L'ÉTAIT PAS. Ce `catch`
+    // n'écrivait RIEN: ni log, ni ligne d'erreur. Or cette lecture porte DEUX
+    // conséquences, et pas une:
+    //
+    //   · le gel 402 est sauté — fail-open voulu, « se tromper de sens coupe un
+    //     client qui paie »;
+    //   · `householdId` reste `null`, donc le REPLI DE DOCTRINE de C1/C2
+    //     disparaît, et un secondaire PAYANT retombe sur `409 no_coach` —
+    //     c'est-à-dire sur le défaut que O7 a fermé, rouvert sans une trace
+    //     nulle part.
+    //
+    // La lecture de couverture, dix lignes plus bas, appelle `logEdgeFunctionError`
+    // depuis L1. Celle-ci ne le faisait pas, et c'est la seule différence entre
+    // les deux — pas une décision.
     let householdId: string | null = null;
     let householdLookupFailed = false;
     try {
       householdId = await resolveHouseholdIdFor(admin, userId);
-    } catch (_error) {
+    } catch (error) {
       householdLookupFailed = true;
+      console.warn(JSON.stringify({
+        tag: "keel.week_plan.household_lookup_failed",
+        user_id: userId,
+      }));
+      await logEdgeFunctionError({
+        functionName: FN_NAME,
+        requestId,
+        error,
+        userId,
+        // `no_coach_risk`: ce qui rend cette panne-ci différente d'une autre.
+        // Sans ce mot, la ligne dirait « une lecture a raté » et personne ne
+        // ferait le lien avec un élève qui se voit refuser sa semaine.
+        metadata: { source: "household_lookup", no_coach_risk: true },
+      });
     }
 
     // ── LE GEL À L'IMPAYÉ, PAR CETTE PORTE AUSSI (L1, D13) ───────────────
@@ -437,6 +466,14 @@ Deno.serve(async (req) => {
       // L'escalade AVANT la réponse: si l'insert échoue, l'élève reçoit un 500
       // et réessaie, plutôt qu'un refus poli dont le coach n'entendrait jamais
       // parler. Un blocage silencieux serait le pire des deux mondes.
+      //
+      // ⚠️ CE RAISONNEMENT SUPPOSE QUE L'INSERT PEUT RÉUSSIR, ET IL NE LE
+      // POUVAIT PAS (C5 ①). La ligne était écrite sans `content_locale`,
+      // colonne `not null` sans défaut: `23502` à chaque tentative, donc 500 à
+      // chaque tentative, donc `409 minor_student` INATTEIGNABLE et ZÉRO ligne
+      // d'escalade en base — mesuré en HTTP réel le 2026-08-12. La ligne est
+      // désormais construite par `minorEscalationRow`, et un test la compare à
+      // TOUTES les colonnes obligatoires de la DDL, pas seulement à celle-ci.
       const escalation = await escalateMinorStudent(admin, {
         userId,
         age: ageGate.age ?? 0,
@@ -575,7 +612,7 @@ Deno.serve(async (req) => {
     } catch (error) {
       return jsonResponse(req, {
         error: "plan_unparseable",
-        detail: error instanceof Error ? error.message : String(error),
+        detail: readableErrorMessage(error),
         request_id: requestId,
       }, { status: 502 });
     }
@@ -691,7 +728,7 @@ Deno.serve(async (req) => {
     });
     return jsonResponse(req, {
       ok: false,
-      error: error instanceof Error ? error.message : String(error),
+      error: readableErrorMessage(error),
       request_id: requestId,
     }, { status: 500 });
   }

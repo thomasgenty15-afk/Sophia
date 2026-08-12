@@ -2588,6 +2588,336 @@ rendent le même zéro.
    qu'un état effacé sans geste. Si ça devient gênant, la réponse est de faire
    **agir** la personne (la carte le fait déjà), pas de réécrire sa ligne.
 
+## C5, ce qui est corrigé — 2026-08-12
+
+> ⚠️ **Rien n'a été exercé en conditions réelles.** Aucun appel HTTP, aucune
+> génération modèle — c'était la consigne du lot. Ce qui suit est prouvé par des
+> tests purs, un **banc de propriété de 3 136 formes**, des tests de position
+> sur la source, **deux `SELECT` en lecture** et **un bloc de contrôle SQL
+> rejoué puis annulé** sur la base locale, et **11 mutations**. **Aucune
+> migration**, **aucune version de prompt bumpée**. **17 tests ajoutés**
+> (20 cas — deux d'entre eux sont paramétrés par porte).
+
+Sept défauts, tous mesurés en HTTP réel quelques minutes plus tôt par deux lanes
+de QA.
+
+### ① SÉCURITÉ — LA CEINTURE « MINEUR » NE RENDAIT JAMAIS SON REFUS
+
+`contract_change_requests.content_locale` est `not null` **sans défaut**
+(20260727090000, « R2: prose rows carry a locale »). L'insert de
+`escalateMinorStudent` l'avait perdu en recopiant `escalateRestrictionSignal` :
+
+```
+HTTP=500  {"ok":false,"error":"[object Object]"}   en 5,5 s
+system_error_logs : 'null value in column "content_locale" … | code=23502'
+select count(*) from contract_change_requests where reason_code='minor_student';  →  0
+```
+
+**La génération était bloquée — par accident, pas par la garde.** Le
+`409 minor_student` était **inatteignable**, aucune ligne d'escalade n'a jamais
+existé, le coach n'a jamais appris qu'un mineur avait été bloqué, et
+`keel.week_plan.minor_blocked` n'a jamais été journalisé. Le commentaire de
+`generate-week-plan-v1` assumait un 500 « si l'insert échoue » : l'insert ne
+*pouvait pas* réussir.
+
+**La valeur, et d'où elle vient.** `content_locale: "en"` — repris du frère qui
+n'a pas le défaut. `restrictionEffect` type sa ligne avec un **littéral**
+`"en"`, pas une variable, parce que la prose de cette ligne est écrite **en dur
+en anglais par le module lui-même**. R3 (`_shared/keel/locale.ts`) sépare
+`ui_locale` / `conversation_locale` / `content_locale` : cette colonne dit la
+langue **du texte de la ligne**, pas celle de l'élève. Écrire `profiles.locale`
+ferait mentir la colonne — la phrase resterait anglaise et se déclarerait
+française. La constante est nommée (`MINOR_ESCALATION_CONTENT_LOCALE`) et un
+test la tient accrochée à la phrase : traduire l'une sans l'autre est rouge.
+
+**La preuve que la ligne atterrit maintenant** — bloc de contrôle SQL **rejoué
+puis annulé** sur la base locale (`begin` … `rollback` ; aucune ligne commitée,
+base partagée) :
+
+```
+ minor_rows_before | 0
+NOTICE:  AVANT LE CORRECTIF: 23502 / null value in column "content_locale" of
+         relation "contract_change_requests" violates not-null constraint
+ id                                   | reason_code   | urgency   | status | content_locale
+ 1889efd6-a3b4-4636-b52a-32084c147e65 | minor_student | immediate | open   | en
+ minor_rows_after  | 1
+ minor_rows_final  | 0        ← après rollback
+```
+
+La forme d'**avant** rend le `23502` mot pour mot ; la forme d'**après** atterrit
+et passe le CHECK de `reason_code` (`minor_student`, ajouté par 20260804171000)
+comme celui d'`urgency`.
+
+**Pourquoi aucun test ne pouvait le voir, et ce qui change.** La ligne naissait
+à l'intérieur d'un `.insert({…})` : elle n'existait pas avant d'être écrite.
+Elle est désormais construite par `minorEscalationRow(userId, age)`, pure, et le
+test central n'est **pas** « `content_locale` est là » : il **lit la DDL de la
+migration**, en extrait toute colonne `not null` sans `default`, et exige que la
+ligne les fournisse toutes. Il mordra sur la **prochaine** colonne obligatoire
+ajoutée à cette table.
+
+### ② LA FUSION VÉRIFIAIT UNE FENÊTRE ET EN ÉCRIVAIT UNE AUTRE
+
+`generate-household-meal-v1` dérivait `mergedSpan` de `best.window.**window**`
+— les jours de **son** plan, ce que la proposition annonce — puis filtrait
+contre lui les **autres** plans personnels qui mordent. Or ce qu'on **écrit**
+est `recomposed`, la queue du plan du foyer.
+
+**Mesuré** : plan du foyer `[2026-08-12 +3]`, il cuisine **vendredi 14** pour
+Iris ; le plan personnel **validé et vivant** d'Iris `[2026-08-14 +1]` couvre
+exactement ce jour. `other_overlapping_plan_ids: []`, aucune `issue`. **Le
+maître cuisinait une assiette pour quelqu'un qui avait son plan ce jour-là, et
+rien ne le disait.** Quand `recomposed` est plus **longue** que `window` — le
+plan personnel finit avant la fin de la semaine du foyer — les jours en trop
+n'étaient contrôlés par personne.
+
+⚠️ **C3 ⑤ rend ce cas atteignable** : c'est lui qui autorise deux plans
+personnels adjacents.
+
+### ③ `merged_from[].days` NOMMAIT DES JOURS QUE LE PLAN REPRIS NE COUVRE PAS
+
+Même racine, **prise par l'autre bout** : l'appelant passait la fenêtre
+**recomposée** à `mergedFromEntry`, là où le champ est documenté « les jours
+réellement repris ».
+
+**Mesuré** : `days: ["2026-08-12","2026-08-13","2026-08-14"]` pour une entrée
+dont `plan_duration_days` vaut **2**.
+
+**Combien de sites, et lesquels.** Les 20 lectures de `merge.window.*` du
+générateur ont été relues une par une. **Deux** se trompaient, et dans des sens
+**opposés** :
+
+| Site | Utilisait | Devait utiliser |
+|---|---|---|
+| `generate-household-meal-v1:501` — le contrôle O1 des autres plans | `window` | `recomposed` (ce qu'on écrit) |
+| `generate-household-meal-v1:2699` — l'entrée `merged_from` | `recomposed` | `window` (les jours de son plan) |
+
+Les autres sont justes, et il y a une raison arithmétique qui vaut la peine
+d'être écrite : `mergeMaterial`, `mergeBaseMaterial`, `personalCookingDays` et
+`unmergeMaterial` filtrent des plats **du plan personnel** par les jetons de la
+fenêtre recomposée — et `personnel ∩ recomposed = window` **par construction**
+(`recomposed = [pivot, fin du foyer]`, `window = (foyer ∩ personnel) ∩ [pivot,
+…]`). Les deux réponses sont identiques ; il n'y avait rien à corriger.
+
+**La réparation est à la RACINE, pas au site.** `mergedFromEntry` **coupe**
+désormais `days` à la fenêtre du plan repris. Une seule confusion, deux
+appelants : le second (`carryMergedFrom`, qui reporte les reprises tenues d'un
+plan à l'autre) portait la **même** erreur sans que personne ne l'ait nommée, et
+il est réparé par la même ligne. Le générateur nomme quand même
+`merge.window.window` — un appelant qui dit une chose et se fait corriger en
+silence est un appelant qu'on relira de travers.
+
+`days: []` est désormais possible, et c'est la réponse juste : une reprise
+reportée dont le plan est entièrement derrière le pivot n'a apporté aucun jour.
+L'entrée survit — elle porte `plan_id` et `validated_at`, c'est-à-dire ce dont
+D8 a besoin.
+
+### ④ LES DEUX REFUS NEUFS DE C2 PARTAIENT DANS LE JOURNAL D'INCIDENTS
+
+`jsonResponse` journalise **tout** statut ≥ 400 dans `system_error_logs`, au
+niveau `error`, sauf `skipErrorLog`. Le 402 du gel et le 429 du plafond l'ont,
+**avec le motif écrit** : *« un impayé n'est pas un incident »*. Les deux refus
+posés par C2 ne l'avaient pas.
+
+**Mesuré en une seule session** : 5 lignes `window_beyond_this_week` + 2 lignes
+`plan_overlaps_existing`, severity `error`. Or `plan_overlaps_existing` est
+atteignable **en trois clics** depuis `MealBuilder` : chaque élève qui choisit
+une fenêtre intérieure à son plan vivant produisait une ligne d'incident.
+
+**Ce qu'on a fait taire — quatre sites, et pas un de plus** :
+
+| Refus | Porte | Pourquoi il se tait |
+|---|---|---|
+| `window_beyond_this_week` (400) | `generate-meal-v1`, `generate-household-meal-v1` | deux dates que l'utilisateur choisit |
+| `plan_overlaps_existing` (409) | idem | une fenêtre que l'écran laisse composer |
+
+**Le critère, et il est étroit : se tait un refus causé par LA SAISIE DE
+L'UTILISATEUR ; un refus causé par une PANNE parle toujours.** C'est pour ça que
+le test a deux moitiés, et que la seconde est indispensable : elle exige que le
+`502 model_returned_tool_call` et le 500 général **restent bruyants**. Sans
+elle, la première serait satisfaite par un journal éteint — et « moins de
+lignes » n'est pas l'objectif.
+
+**Ce qu'on a laissé parler, exprès** : `live_plan_windows_unreadable` (une
+lecture en panne), les 502 du modèle, les 503, le 500 général, et tous les 400
+de validation de corps de requête que la QA n'a pas mesurés. Élargir le silence
+sans mesure serait le geste symétrique du défaut qu'on répare.
+
+### ⑤ LA REQUÊTE DE COMPTAGE DE C3 ① ÉTAIT STRUCTURELLEMENT INCOMPLÈTE
+
+`grep solo_access` dans `generate-household-meal-v1` : **0 occurrence**. La
+requête écrite au registre lisait `student_generated_meals` **sans filtrer la
+nature du plan**, sur une table qui porte les **deux**, et ne lisait pas du tout
+la table de la seconde porte instrumentée.
+
+**Mesuré en lecture, sur la base locale, le 2026-08-12** :
+
+| lane | `plan_kind` | state | count |
+|---|---|---|---|
+| meal | household | *(clé absente)* | **39** |
+| meal | personal | `coach_seat` | 1 |
+| meal | personal | *(clé absente)* | **104** |
+| week_plan | — | `household` | **1** |
+| week_plan | — | *(clé absente)* | 274 |
+
+Les 39 plans de foyer et les 104 lignes d'**avant le lot** tombaient dans le
+même compartiment indistinct ; la ligne `week_plan / household` n'était comptée
+nulle part.
+
+**Décision : on corrige la REQUÊTE, on n'instrumente pas la troisième porte.**
+`generate-household-meal-v1` est réservée au **maître** (`403 not_owner`
+sinon), qui a un foyer **par construction** : son état serait `household` sur
+chaque ligne, toujours. La mesurer coûterait une écriture de plus sur un chemin
+chaud pour un compartiment à **valeur unique**, et n'apprendrait rien sur la
+question ouverte n°1, qui porte sur les comptes **sans foyer**.
+`where plan_kind = 'personal'` dit la même chose en une ligne de SQL.
+*Retour arrière* : ajouter `describeAccess` dans le générateur du foyer **et**
+retirer le `where` — un test épingle les deux moitiés ensemble et tombe si l'une
+bouge seule.
+
+La requête juste vit dans l'en-tête de `_shared/keel/solo_access.ts`, avec ce
+qu'elle couvre. Elle nomme `not_instrumented` plutôt que `null` : ⚠️
+**`not_instrumented` n'est pas `unknown`.** `unknown` est un fait de **runtime**
+(« je n'ai pas su lire ce droit ») ; `not_instrumented` est un fait
+d'**histoire** (« cette ligne est plus vieille que le lot »). Les confondre
+ferait décroître un compteur avec le temps et raconterait une amélioration qui
+n'a pas eu lieu.
+
+### ⑥ UN 500 DONT LE CORPS DISAIT `[object Object]`
+
+Une `PostgrestError` est un **objet nu** (`{ code, message, details, hint }`),
+pas une instance d'`Error` : le raccourci
+`error instanceof Error ? error.message : String(error)` retombe sur
+`String({})`. L'élève, l'écran **et** la ligne HTTP du journal ne disaient donc
+plus rien ; le vrai message n'existait que dans `system_error_logs`.
+
+**Le dépôt avait déjà l'utilitaire, et il était privé.** `normalizeError`
+(`_shared/error-log.ts`) est la lecture la plus complète du dépôt — elle suit
+`.cause` et récupère `code`/`details`/`hint` — mais elle n'était pas exportée,
+et trois fichiers en avaient chacun écrit une variante :
+`readableErrorMessage` (`trigger-memorizer-daily`, avec son propre test),
+`errorText` (`keel-weekly-flow-v1`), et le raccourci ci-dessus partout ailleurs.
+**On expose celle qui existe** (`readableErrorMessage`, dans `error-log.ts`)
+plutôt que d'en écrire une quatrième, et les **10 occurrences** du raccourci
+dans les trois générateurs l'appellent. Un test de source interdit son retour.
+
+Ce n'est pas une fuite : `normalizeError` ne rend jamais la pile ni le corps de
+la requête — `message`, `code`, `details`, `hint`, c'est ce que PostgREST renvoie
+déjà à un client authentifié.
+
+### ⑦ LA PANNE DE RÉSOLUTION DU FOYER ÉTAIT TOTALEMENT MUETTE
+
+`catch (_error) { householdLookupFailed = true }` — aucun log, aucune ligne
+d'erreur. **Le fail-open est assumé ; le silence ne l'était pas.**
+
+Cette lecture porte **deux** conséquences, et pas une :
+
+- le gel 402 est sauté — voulu, « se tromper de sens coupe un client qui paie » ;
+- `householdId` devient `null`, donc le **repli de doctrine de C1/C2 disparaît**,
+  et un secondaire **payant** retombe sur `409 no_coach` — le défaut exact que O7
+  a fermé, rouvert sans une trace nulle part.
+
+**Le même trou existait dans `generate-meal-v1`**, et il y était plus subtil :
+`generated_from.household_lookup_failed` trace bien l'échec **sur la ligne
+écrite**, mais seulement si un plan finit par s'écrire. Quand la panne fait
+retomber le repli et que la fonction rend `no_coach` deux cents lignes plus bas,
+**aucune ligne n'est écrite**, donc l'échec ne laisse aucune trace. Le journal
+d'incidents est le seul endroit où les deux issues se rejoignent.
+
+Les deux appellent désormais `logEdgeFunctionError` avec
+`source: "household_lookup"` et `no_coach_risk: true` — sans ce mot, la ligne
+dirait « une lecture a raté » et personne ne ferait le lien avec un élève qui se
+voit refuser sa semaine. Un test tient aussi que le **fail-open survit** : la
+panne ne doit pas être devenue un refus.
+
+### Ce qui est documenté et NON corrigé
+
+**⑧ `reconcileFoodPreferencesFor` s'exécute avant la garde de fenêtre.**
+`generate-meal-v1:499` réconcilie les préférences alimentaires ; la garde
+`window_beyond_this_week` tombe à `:748` et `plan_overlaps_existing` à `:825`.
+**Mesuré** : une ligne `student_goals` a été corrigée par un appel qui a rendu
+`400`.
+
+Ce n'est **pas** une violation de C4 — la personne a bien agi, c'est sa propre
+ligne, `actor: "row_owner"` est juste. Mais **`student_goals` bouge sur une
+requête que l'utilisateur voit comme échouée**, et son `updated_at` avec.
+
+*Non corrigé, et voici l'arbitrage.* Déplacer la réconciliation **après** les
+gardes est tentant et se paie : elle alimente `constraintsForPrompt`, donc elle
+doit précéder la construction du prompt, et les deux gardes sont volontairement
+posées **juste avant le modèle** (C2 : « ce qui est décidable sans le modèle se
+refuse avant le modèle »). L'ordre actuel est le seul qui garde les deux
+propriétés. L'option réversible serait de rendre la **persistance** conditionnée
+à la réussite de la requête — c'est-à-dire de la déplacer après l'écriture du
+plan — ce qui change *quand* une correction juste atterrit, pour une requête sur
+mille. On l'écrit plutôt que de le faire un soir : **la correction est juste, sa
+date est discutable.**
+
+**⑨ L'état `none` de C3 ① est inatteignable en local.**
+`app_config.disable_write_gate = 'true'` fait retourner `true` à
+`has_app_write_access` **avant** toute lecture de `profiles.trial_end` ou de
+`subscriptions` (vérifié dans `prosrc` le 2026-08-12) :
+
+```
+if disable_gate then
+  return true;
+end if;
+```
+
+Tout compte local est donc au pire `own_subscription_or_trial`. **La mesure de
+la question ouverte n°1 ne vaut qu'en PRODUCTION.** Sans cette phrase, la
+prochaine session mesurerait zéro `none` et conclurait que le trou n'existe pas.
+C'est écrit à côté de la requête, dans `solo_access.ts`, et un test tient la
+phrase.
+
+⚠️ **`app_config` est une ligne partagée entre sessions : elle n'a pas été
+touchée.**
+
+### Les versions de prompt — aucune ne bouge, et voici pourquoi
+
+`MEAL_PROMPT_VERSION` et `WEEK_PLAN_PROMPT_VERSION` sont **inchangés**. Aucune
+des sept corrections ne touche un octet de ce qui part au modèle :
+
+- ① écrit une colonne de base sur un chemin qui **refuse** avant le modèle ;
+- ② ne change qu'une liste d'`issues` rendue dans la réponse ;
+- ③ ne change qu'un champ de `generated_from` (archive) — et la matière montrée
+  au modèle est **identique**, par l'égalité `personnel ∩ recomposed = window`
+  démontrée plus haut ;
+- ④, ⑥, ⑦ ne touchent que la journalisation et le corps des refus ;
+- ⑤ est une requête SQL dans un commentaire.
+
+Bumper une version ferait recomposer toute la population pour rien, et ferait
+perdre la comparabilité des lignes déjà écrites.
+
+### Les 11 mutations — chacune cassée, vue rouge, restaurée
+
+| # | Mutation | Rouge attendu, et vu |
+|---|---|---|
+| 1 | `content_locale` retiré de `minorEscalationRow` | 2 rouges — « CHAQUE COLONNE OBLIGATOIRE DE LA DDL EST FOURNIE » et « LA LANGUE EST CELLE DE LA PROSE » |
+| 2 | `mergedSpan` remis sur `best.window.window` | `C5 ② — LE GÉNÉRATEUR CONTRÔLE LA FENÊTRE QU'IL ÉCRIT` |
+| 3 | Le site `merged_from` remis sur `{ startsOn, durationDays }` | `C5 ③ — LE GÉNÉRATEUR NOMME LA FENÊTRE DE SON PLAN` |
+| 4 | La coupe retirée de `mergedFromEntry` (retour à `args.window` nu) | 2 rouges — le cas mesuré **et** le banc de 3 136 formes |
+| 5 | `skipErrorLog` retiré du 409 de `generate-meal-v1` | `C5 ④ — les deux refus de fenêtre se taisent` |
+| 6 | `skipErrorLog` **ajouté** au 502 du modèle | `C5 ④ — LE CAS QUI PARLE` — c'est la mutation qui prouve que le critère n'est pas « le journal se vide » |
+| 7 | `logEdgeFunctionError` retiré du `catch` du foyer | `C5 ⑦ — la panne de résolution du foyer est journalisée` |
+| 8 | `readableErrorMessage` désarmée (`return String(err)`) **puis** le raccourci `instanceof Error` remis dans un générateur | 2 rouges séparés — le cas qui passe, puis le test de source |
+| 9 | `where plan_kind = 'personal'` retiré de la requête du registre, **puis** `student_week_plans` | 2 rouges puis 1 — les deux moitiés de ⑤ |
+
+### Ce qui n'est pas prouvé
+
+1. **Aucun run réel — c'était la consigne du lot.** Le `409 minor_student` de ①
+   n'a jamais été rendu par une vraie requête, et la ligne d'escalade n'a jamais
+   été vue en base. Ce qui est prouvé, c'est que la ligne **est complète au
+   regard de la DDL** — la seule chose qui l'empêchait d'atterrir.
+2. **② n'a pas de contre-épreuve HTTP.** Le cas mesuré (Iris, vendredi 14)
+   devrait maintenant rendre `merge_other_overlapping_plan:<id>` dans les
+   `issues` ; personne ne l'a revu.
+3. **`days: []` n'a jamais été observé en base.** Le cas — une reprise reportée
+   dont le plan est entièrement derrière le pivot — est couvert par le banc de
+   propriété, pas par une ligne réelle.
+4. **⑤ ne se mesure qu'en production** (voir ⑨), et personne n'y a encore lancé
+   la requête.
+
 ## Questions encore ouvertes
 
 1. **Les comptes individuels sans foyer restent sans garde de paiement.** D13
@@ -2599,11 +2929,20 @@ rendent le même zéro.
    nommé sur chaque plan (`generated_from.access.state`, cinq valeurs, écrit
    toujours) et un log `keel.access.observed` sur les deux portes. **La
    décision de facturation reste à prendre, avec un chiffre en face.**
-2. **`generate-week-plan-v1` n'a jamais été testé** — troisième générateur, passé
-   au crible par aucune campagne. ⚠️ **C2 y a posé deux gardes** (le repli de
-   doctrine par le foyer, et le gel 402 de D13) et en a retiré une lecture
-   (`coach_clients`, qui doublait celle du chargeur). Tout y est prouvé par la
-   source et par des tests purs ; **rien n'y a jamais reçu un 200**.
+   ⚠️ **C5 ⑤ a corrigé la requête de comptage** — elle rangeait les plans de
+   FOYER et les lignes d'avant le lot dans un même compartiment, et ne lisait pas
+   `student_week_plans`. La requête juste vit dans l'en-tête de
+   `_shared/keel/solo_access.ts`. ⚠️ **C5 ⑨ : l'état `none` est INATTEIGNABLE en
+   local** (`app_config.disable_write_gate = 'true'` court-circuite
+   `has_app_write_access`) — **cette mesure ne vaut qu'en production**.
+2. ~~**`generate-week-plan-v1` n'a jamais été testé**~~ — **testé le
+   2026-08-12** (lane QA-A), et la campagne y a trouvé le P0 de sécurité de
+   §C5 ① : la ceinture « élève mineur » rendait 500 au lieu de son 409, et
+   **aucune ligne d'escalade n'avait jamais existé**. ⚠️ **Ce qui reste ouvert :
+   le CAS QUI PASSE de cette ceinture n'a pas de contre-épreuve HTTP.** La
+   correction est prouvée contre la DDL — la ligne est complète au regard de
+   toutes les colonnes `not null` sans défaut — mais personne n'a revu un
+   `409 minor_student` en vrai, ni la ligne `contract_change_requests` en base.
 3. ~~**Comment un secondaire sait-il qu'il PEUT prendre la main ?**~~
    **Répondu par L8** : `/app/plan` porte une carte qui dit la posture par
    défaut — être composé dans le plan du foyer est le cas NORMAL, aucune phrase

@@ -4,7 +4,7 @@ import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2.8
 
 import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
-import { logEdgeFunctionError } from "../_shared/error-log.ts";
+import { logEdgeFunctionError, readableErrorMessage } from "../_shared/error-log.ts";
 import { generateWithGemini } from "../_shared/gemini.ts";
 import {
   doctrineBeliefsFor,
@@ -498,7 +498,25 @@ async function resolveMergeRequest(args: {
     };
   }
 
-  const mergedSpan: PlanSpan = best.window.window;
+  // ⚠️ `recomposed`, ET SURTOUT PAS `window` — C5 ②, LE JUMEAU DU P0 DE L10 ①.
+  //
+  // MESURÉ EN HTTP RÉEL LE 2026-08-12. Plan du foyer `[2026-08-12 +3]`, il
+  // cuisine VENDREDI 14 pour Iris; le plan personnel VALIDÉ ET VIVANT d'Iris
+  // `[2026-08-14 +1]` couvre exactement ce jour-là. `other_overlapping_plan_ids`
+  // est rendu `[]`, aucune `issue`: le maître cuisinait une assiette pour
+  // quelqu'un qui avait son plan ce jour-là, et RIEN ne le disait.
+  //
+  // La cause est la même confusion que le P0 de L10 ①, à un site de plus: ce
+  // contrôle interrogeait `window` — les jours de SON plan qui reviennent —
+  // alors que ce qu'on ÉCRIT est `recomposed`, la queue du plan du foyer. Quand
+  // `recomposed` est plus LONGUE (le plan personnel finit avant la fin de la
+  // semaine du foyer), les jours en trop ne sont contrôlés par personne.
+  //
+  // ⚠️ C3 ⑤ REND CE CAS ATTEIGNABLE: c'est lui qui autorise deux plans
+  // personnels adjacents. Avant lui, un second plan mordant était rare.
+  //
+  // RETOUR ARRIÈRE: cette ligne. Son prix est le silence ci-dessus.
+  const mergedSpan: PlanSpan = best.window.recomposed;
   return {
     member,
     householdPlan: best.household,
@@ -1060,7 +1078,7 @@ Deno.serve(async (req) => {
       } catch (error) {
         return jsonResponse(req, {
           error: "bad_window",
-          detail: error instanceof Error ? error.message : String(error),
+          detail: readableErrorMessage(error),
           request_id: requestId,
         }, { status: 400 });
       }
@@ -1084,7 +1102,11 @@ Deno.serve(async (req) => {
             "only reach as far as this Sunday. Start your window this week, " +
             "or compose next week's plan once it has started.",
           request_id: requestId,
-        }, { status: 400 });
+          // C5 ④ — `skipErrorLog`: UNE DATE CHOISIE PAR LE MAÎTRE N'EST PAS UN
+          // INCIDENT. Même arbitrage, et même mot, que le 402 du gel et le 429
+          // du plafond de ce fichier. Le critère est étroit: se tait un refus
+          // causé par LA SAISIE; un refus causé par une PANNE parle toujours.
+        }, { status: 400, skipErrorLog: true });
       }
 
       // ══ C2 ③ — LE JUMEAU DU P0 DE LA FUSION, SUR LA PORTE `compose` ══════
@@ -1133,7 +1155,10 @@ Deno.serve(async (req) => {
             : "This household already has a plan that starts on that day or " +
               "later. Replace it, or start your window before it.",
           request_id: requestId,
-        }, { status: 409 });
+          // C5 ④ — `skipErrorLog`, MÊME CRITÈRE. La fenêtre de `compose` est
+          // PARAMÉTRÉE PAR LE CLIENT: une fenêtre intérieure au plan du foyer
+          // vivant est un geste de l'écran, pas une panne.
+        }, { status: 409, skipErrorLog: true });
       }
     }
 
@@ -2528,7 +2553,7 @@ Deno.serve(async (req) => {
     } catch (error) {
       return jsonResponse(req, {
         error: "meal_unparseable",
-        detail: error instanceof Error ? error.message : String(error),
+        detail: readableErrorMessage(error),
         request_id: requestId,
       }, { status: 502 });
     }
@@ -2696,7 +2721,17 @@ Deno.serve(async (req) => {
             durationDays: merge.personalPlan.durationDays,
             validatedAt: merge.personalPlan.validatedAt,
           },
-          window: { startsOn, durationDays },
+          // ⚠️ C5 ③ — `merge.window.window`, PAS `{startsOn, durationDays}`.
+          // Ces deux-là portent la fenêtre RECOMPOSÉE, c'est-à-dire ce qu'on
+          // ÉCRIT; ce champ demande LES JOURS DE SON PLAN qui reviennent. Les
+          // confondre a produit `days: [12,13,14]` sur une entrée dont
+          // `plan_duration_days` valait 2 (mesuré le 2026-08-12).
+          //
+          // `mergedFromEntry` coupe de toute façon à la fenêtre du plan depuis
+          // C5 ③ — l'invariant est tenu à la racine. On nomme quand même la
+          // bonne fenêtre ici: un appelant qui dit une chose et se fait
+          // corriger en silence est un appelant qu'on relira de travers.
+          window: merge.window.window,
         }),
       ]),
       ...carryMergedFrom({
@@ -3162,7 +3197,7 @@ Deno.serve(async (req) => {
     });
     return jsonResponse(req, {
       ok: false,
-      error: error instanceof Error ? error.message : String(error),
+      error: readableErrorMessage(error),
       request_id: requestId,
     }, { status: 500 });
   }

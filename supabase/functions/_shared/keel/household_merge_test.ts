@@ -34,6 +34,8 @@ import {
   resolveTailWindow,
   servingConflicts,
 } from "./household_merge.ts";
+// C5 ② — la MÊME fonction de recouvrement que le générateur, pas une seconde.
+import { plansOverlap } from "./household_hand.ts";
 import {
   buildPortionBrief,
   MEMBER_GOALS,
@@ -1845,4 +1847,144 @@ Deno.test("SANS AUCUNE PAIRE POSSIBLE, le refus reste `disjoint`", () => {
   });
   assertEquals(out.ok, false);
   if (!out.ok) assertEquals(out.refusal, MERGE_WINDOWS_DISJOINT);
+});
+
+// ===========================================================================
+// C5 ② ③ — UNE SEULE CONFUSION, DEUX SITES, DANS LES DEUX SENS
+//
+// `window` = les jours de SON plan qui reviennent (ce que la proposition
+// annonce). `recomposed` = la queue du plan du foyer (ce qu'on ÉCRIT).
+// L10 ① avait réparé l'écriture; deux lecteurs continuaient de se tromper de
+// fenêtre, chacun dans l'autre sens:
+//
+//   ② `otherOverlappingPlanIds` interrogeait `window` alors qu'on écrit
+//      `recomposed` — les jours en trop n'étaient contrôlés par personne;
+//   ③ `merged_from[].days` recevait `recomposed` alors qu'il dit les jours DE
+//      SON PLAN — il nommait trois jours pour un plan de deux.
+// ===========================================================================
+
+Deno.test("C5 ② — LES DEUX FENÊTRES DIFFÈRENT, ET C'EST L'ÉCRITE QUI COMPTE", () => {
+  // La forme mesurée le 2026-08-12: le foyer couvre 08-12 → 08-14 (3 jours), le
+  // plan personnel repris 08-12 → 08-13. On ÉCRIT jusqu'au 14; `window` s'arrête
+  // au 13. Un AUTRE plan personnel posé sur le 14 mord donc sur ce qu'on écrit
+  // et PAS sur `window`: c'est très exactement l'angle mort de ②.
+  const out = resolveMergeWindow({
+    household: { startsOn: "2026-08-12", durationDays: 3 },
+    personal: { startsOn: "2026-08-12", durationDays: 2 },
+    today: "2026-08-12",
+  });
+  assert(out.ok, "fenêtre irrésolue — test à réviser");
+  if (!out.ok) return;
+  assertEquals(out.window.durationDays, 2);
+  assertEquals(out.recomposed.durationDays, 3);
+
+  const other = { id: "iris-2", startsOn: "2026-08-14", durationDays: 1 };
+  // Contrôlé contre `window`: invisible. C'est ce que la QA a mesuré —
+  // `other_overlapping_plan_ids: []`, aucune `issue`.
+  assertEquals(plansOverlap(other, out.window), false);
+  // Contrôlé contre ce qu'on écrit: nommé.
+  assertEquals(plansOverlap(other, out.recomposed), true);
+});
+
+Deno.test("C5 ② — LE GÉNÉRATEUR CONTRÔLE LA FENÊTRE QU'IL ÉCRIT", async () => {
+  // ⚠️ LA SOURCE EST LE SEUL TÉMOIN. En HTTP, un contrôle porté sur la mauvaise
+  // fenêtre rend `[]` — indiscernable d'un foyer où personne n'a de second plan.
+  // C'est ce qui a laissé le maître cuisiner pour quelqu'un qui avait son plan
+  // ce jour-là.
+  const src = await generatorSource();
+  const at = src.indexOf("otherOverlappingPlanIds:");
+  assert(at >= 0, "le contrôle O1 a disparu");
+  const assign = /const mergedSpan: PlanSpan = best\.window\.(\w+);/.exec(src);
+  assert(assign, "`mergedSpan` n'est plus dérivé de `best.window`");
+  assertEquals(
+    assign![1],
+    "recomposed",
+    "le contrôle des AUTRES plans porte sur `window` — la fenêtre qu'on " +
+      "ANNONCE — alors qu'on écrit `recomposed`. Les jours en trop ne sont " +
+      "contrôlés par personne, et rien ne le dit.",
+  );
+});
+
+Deno.test("C5 ③ — `days` NE NOMME JAMAIS UN JOUR QUE LE PLAN NE COUVRE PAS", () => {
+  // La ligne mesurée: days = [12,13,14] pour `plan_duration_days: 2`.
+  const entry = mergedFromEntry({
+    memberId: "m-iris",
+    userId: "u-iris",
+    plan: {
+      id: "p-iris",
+      startsOn: "2026-08-12",
+      durationDays: 2,
+      validatedAt: "2026-08-12T09:00:00Z",
+    },
+    // La fenêtre RECOMPOSÉE, celle qu'on écrit. C'est ce que l'appelant
+    // passait, et le champ n'a jamais dit ça.
+    window: { startsOn: "2026-08-12", durationDays: 3 },
+  });
+  assertEquals(entry.days, ["2026-08-12", "2026-08-13"]);
+  assertEquals(entry.plan_duration_days, 2);
+});
+
+Deno.test("C5 ③ — BANC DE PROPRIÉTÉ: `days` ⊆ la fenêtre du plan, toujours", () => {
+  // Le champ est documenté « les jours réellement repris ». Un banc, pas trois
+  // exemples: une seule forme réparée laisserait les autres.
+  const base = "2026-08-10";
+  let checked = 0;
+  for (let planStart = -3; planStart <= 3; planStart++) {
+    for (let planLen = 1; planLen <= 8; planLen++) {
+      for (let winStart = -3; winStart <= 3; winStart++) {
+        for (let winLen = 1; winLen <= 8; winLen++) {
+          const plan = {
+            id: "p",
+            startsOn: addDays(base, planStart),
+            durationDays: planLen,
+            validatedAt: null,
+          };
+          const entry = mergedFromEntry({
+            memberId: "m",
+            userId: null,
+            plan,
+            window: { startsOn: addDays(base, winStart), durationDays: winLen },
+          });
+          const planDays = new Set(
+            Array.from({ length: planLen }, (_, i) => addDays(plan.startsOn, i)),
+          );
+          const winDays = new Set(
+            Array.from(
+              { length: winLen },
+              (_, i) => addDays(addDays(base, winStart), i),
+            ),
+          );
+          for (const d of entry.days) {
+            assert(
+              planDays.has(d),
+              `${d} n'est pas dans le plan [${plan.startsOn} +${planLen}]`,
+            );
+            assert(d && winDays.has(d), `${d} n'est pas dans la fenêtre`);
+          }
+          // LE CAS QUI PASSE, et il est la moitié du test: quand les deux se
+          // recouvrent, `days` n'est PAS vide. Sans lui, un `days: []`
+          // inconditionnel passerait ce banc.
+          const overlap = [...planDays].filter((d) => winDays.has(d));
+          assertEquals(entry.days.length, overlap.length);
+          checked++;
+        }
+      }
+    }
+  }
+  assertEquals(checked, 7 * 8 * 7 * 8);
+});
+
+Deno.test("C5 ③ — LE GÉNÉRATEUR NOMME LA FENÊTRE DE SON PLAN", async () => {
+  // L'invariant est tenu par `mergedFromEntry`; l'appelant le NOMME quand même.
+  // Un appelant qui dit une chose et se fait corriger en silence est un
+  // appelant qu'on relira de travers.
+  const src = await generatorSource();
+  const at = src.indexOf("mergedFromEntry({");
+  assert(at >= 0, "l'entrée de provenance a disparu");
+  const around = src.slice(at, at + 500);
+  assert(
+    around.includes("window: merge.window.window"),
+    "l'entrée `merged_from` repart de la fenêtre recomposée: elle nommerait " +
+      "des jours que le plan repris ne couvre pas.",
+  );
 });

@@ -110,16 +110,49 @@ Deno.test("C3 ③ — L'EXPORT DIT CE QU'IL GARDE, pas seulement ce qu'il détie
   );
 });
 
+/**
+ * LE CORPS DE LA PURGE **TELLE QU'ELLE TOURNE**, pas telle qu'elle a été écrite.
+ *
+ * ⚠️ CE LECTEUR A ÉTÉ RÉÉCRIT LE 2026-08-12, ET LE MOTIF EST LE DÉFAUT QU'IL
+ * VENAIT DE PRENDRE. Il lisait `20260811040000_household_detachment.sql` en
+ * dur — la migration qui a CRÉÉ `keel_household_purge_user`. Le lot du corps par
+ * bouche (`20260812220000`) la REMPLACE (`create or replace`), donc le test
+ * continuait d'asserter sur une définition que la base n'exécute plus: vert, et
+ * aveugle à tout ce que la nouvelle version fait ou cesse de faire.
+ *
+ * Il balaie donc les migrations dans l'ORDRE et garde la DERNIÈRE définition.
+ * C'est la seule forme qui suit la fonction quand elle déménage — et elle
+ * déménagera encore.
+ */
+async function latestPurgeBody(): Promise<string> {
+  const dir = new URL("../../../migrations/", import.meta.url);
+  const names: string[] = [];
+  for await (const entry of Deno.readDir(dir)) {
+    if (entry.isFile && entry.name.endsWith(".sql")) names.push(entry.name);
+  }
+  names.sort();
+  let body = "";
+  let from = "";
+  for (const name of names) {
+    const sql = await Deno.readTextFile(new URL(name, dir));
+    const at = sql.indexOf("create or replace function public.keel_household_purge_user");
+    if (at < 0) continue;
+    const end = sql.indexOf("comment on function public.keel_household_purge_user", at);
+    body = sql.slice(at, end > at ? end : undefined);
+    from = name;
+  }
+  assert(body !== "", "la purge a disparu de toutes les migrations — test à réviser");
+  // Nommée dans la sortie: quand ce test rougit, la première question est
+  // « quelle version lisait-il ? ».
+  console.log(`[household_export_test] purge lue dans ${from}`);
+  return body;
+}
+
 Deno.test("C3 ③ — LE DÉTACHEMENT RESTE LA RÈGLE (D3), et la purge ne l'a pas changée", async () => {
-  // Le cas qui PASSE de l'autre côté: ce lot ne touche PAS à la purge. Si un
-  // jour quelqu'un décide d'effacer la date, c'est ici que ça se verra — et le
-  // texte d'export ci-dessus deviendra faux au même instant.
-  const sql = await Deno.readTextFile(
-    new URL("../../../migrations/20260811040000_household_detachment.sql", import.meta.url),
-  );
-  const at = sql.indexOf("create or replace function public.keel_household_purge_user");
-  assert(at >= 0, "la purge a disparu — test à réviser");
-  const body = sql.slice(at, sql.indexOf("comment on function public.keel_household_purge_user"));
+  // Le cas qui PASSE de l'autre côté: si un jour quelqu'un décide d'effacer la
+  // date, c'est ici que ça se verra — et le texte d'export ci-dessus deviendra
+  // faux au même instant.
+  const body = await latestPurgeBody();
   assert(
     body.includes("set user_id = null"),
     "la purge ne DÉTACHE plus: D3 est renversé, et la phrase d'export ment.",
@@ -130,5 +163,109 @@ Deno.test("C3 ③ — LE DÉTACHEMENT RESTE LA RÈGLE (D3), et la purge ne l'a p
     "la purge efface désormais la date de naissance: c'est peut-être juste, " +
       "mais alors `ce_qui_survit_a_la_suppression` doit être réécrit — cette " +
       "assertion est là pour que les deux ne puissent pas diverger en silence.",
+  );
+});
+
+// ===========================================================================
+// LE CORPS DANS LE FOYER (20260812220000) — la table la plus sensible du
+// domaine, réclamée par l'export ET par la purge dès sa migration.
+//
+// Le trou n°10 du README portait sur six tables de foyer absentes de l'export.
+// Celle-ci porte taille, poids et sexe — y compris de MINEURS, y compris de
+// bouches qui n'ont jamais eu de compte. La laisser dehors aurait aggravé le
+// trou au lieu de le fermer.
+// ===========================================================================
+
+Deno.test("RGPD — `household_member_bodies` EST DANS L'EXPORT", async () => {
+  const src = await exportSource();
+  assert(
+    src.includes('"household_member_bodies"'),
+    "la table qui porte taille, poids et sexe — mineurs compris — n'est " +
+      "exportée nulle part. C'est le trou n°10, aggravé.",
+  );
+  const at = src.indexOf("householdMemberBody:");
+  assert(at >= 0, "l'allowlist de colonnes du corps a disparu");
+  const scope = src.slice(at, at + 200);
+  for (const column of ["height_cm", "weight_kg", "gender"]) {
+    assert(
+      scope.includes(column),
+      `${column} n'est plus exportée. L'allowlist est PAR COLONNE: une colonne ` +
+        `absente ne sort pas, en silence.`,
+    );
+  }
+});
+
+Deno.test("RGPD — le corps exporté est LE SIEN, jamais celui du foyer", async () => {
+  // ⚠️ LA SEULE FAÇON DE RENDRE CE LOT PIRE QUE LE TROU QU'IL FERME. La table
+  // n'a pas de `user_id`: elle est lue PAR `member_id`. Nourrir cette lecture
+  // des `member_id` du ROSTER mettrait le poids de ses enfants et de son
+  // conjoint dans SON archive — une divulgation médicale sur des tiers, servie
+  // par le droit d'accès de quelqu'un d'autre.
+  const src = await exportSource();
+  const at = src.indexOf('"household_member_bodies"');
+  assert(at >= 0, "la lecture du corps a disparu");
+  // ⚠️ BORNÉ PAR LA FIN DE L'APPEL, pas par un nombre de caractères. Un
+  // `at + 500` écrit à la main a déjà raté `"recorded_at"` ici dès qu'un
+  // commentaire s'est allongé — c'est-à-dire qu'il aurait fini par rendre vert
+  // un appel dont il ne lisait plus la moitié.
+  const end = src.indexOf("\n  );", at);
+  assert(end > at, "l'appel n'a plus la forme attendue — test à réviser");
+  const call = src.slice(at, end);
+  assert(
+    call.includes('"member_id"'),
+    "la lecture n'est plus faite par `member_id`.",
+  );
+  assert(
+    call.includes("householdMembership"),
+    "les identifiants ne viennent plus de `householdMembership` — c'est-à-dire " +
+      "de la lecture DÉJÀ scopée sur `user_id = <lui>`. Toute autre source " +
+      "(roster, foyer) exporte le corps d'autrui.",
+  );
+  assert(
+    !call.includes("roster"),
+    "un roster nourrit la liste d'identifiants: l'export d'une personne " +
+      "divulgue le corps des autres bouches du foyer.",
+  );
+  // Cette table n'a pas de `created_at` — même piège que `joined_at`, déjà payé
+  // une fois sur `household_members`.
+  assert(
+    call.includes('"recorded_at"'),
+    "le tri est revenu sur `created_at`, qui n'existe pas sur cette table: " +
+      "l'export rend du vide sans le dire, sur des données corporelles.",
+  );
+});
+
+Deno.test("RGPD — LA PURGE EFFACE LE CORPS, dans les DEUX branches", async () => {
+  // ⚠️ ARBITRAGE DIFFÉRENT DE CELUI DE `birth_date`, ET C'EST VOULU. Prénom et
+  // date SURVIVENT (D3: ils répondent à « pour qui je cuisine », les effacer
+  // dégraderait la composition d'un foyer que la personne quitte). Une taille et
+  // un poids, non: ce sont des métriques d'une personne qui a quitté le produit.
+  //
+  // DEUX branches, parce que la purge en a deux — « je pars avec ma place » et
+  // « ma bouche reste ». Un seul `delete` laisserait le corps derrière dans
+  // l'autre, et c'est précisément la branche NOMINALE (le détachement).
+  const body = await latestPurgeBody();
+  const deletes = body.split("delete from public.household_member_bodies").length - 1;
+  assertEquals(
+    deletes,
+    2,
+    `la purge efface le corps ${deletes} fois au lieu de 2: une de ses deux ` +
+      `branches laisse taille et poids derrière un compte supprimé.`,
+  );
+});
+
+Deno.test("RGPD — L'EXPORT DIT AUSSI CE QU'IL EFFACE", async () => {
+  // Un export qui n'énumère que ce qu'il GARDE laisse croire qu'il garde tout.
+  // La taille et le poids sont le seul endroit du foyer où la réponse est
+  // « non » — c'est la ligne qu'une personne inquiète vient chercher.
+  const src = await exportSource();
+  assert(
+    src.includes("mon_corps_pour_les_parts"),
+    "le corps n'est pas rendu dans `mon_foyer.json`.",
+  );
+  assert(
+    src.includes("ce_qui_est_efface"),
+    "l'archive dit ce qui survit et se tait sur ce qui est effacé: le lecteur " +
+      "en déduit qu'on garde tout.",
   );
 });

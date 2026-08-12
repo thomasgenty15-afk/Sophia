@@ -41,8 +41,63 @@
  * qu'on a lu — dans le journal ET sur la ligne du plan (`generated_from.
  * access`). Le trou cesse d'être une hypothèse: il devient une requête.
  *
- *     select generated_from -> 'access' ->> 'state', count(*)
- *       from student_generated_meals group by 1;
+ * ── LA REQUÊTE DU REGISTRE — CORRIGÉE PAR C5 ⑤ ──────────────────────────
+ *
+ * ⚠️ LA PREMIÈRE VERSION ÉTAIT STRUCTURELLEMENT INCOMPLÈTE, ET MESURÉE COMME
+ * TELLE LE 2026-08-12. Elle lisait `student_generated_meals` sans filtrer la
+ * NATURE du plan, et ne lisait pas du tout la table de l'autre porte:
+ *
+ *     lane      | plan_kind | state            | count
+ *     meal      | household | not_instrumented |    39   ← rangés en `null`
+ *     meal      | personal  | coach_seat       |     1
+ *     meal      | personal  | not_instrumented |   104   ← lignes d'AVANT le lot
+ *     week_plan |           | household        |     1   ← jamais lu
+ *     week_plan |           | not_instrumented |   274
+ *
+ * Les 39 plans de foyer et les 104 lignes d'avant le lot tombaient dans le même
+ * compartiment indistinct. La requête juste, et ce qu'elle couvre:
+ *
+ *     select 'meal' as lane,
+ *            coalesce(generated_from -> 'access' ->> 'state',
+ *                     'not_instrumented') as state,
+ *            count(*)
+ *       from public.student_generated_meals
+ *      where plan_kind = 'personal'      -- ⚠️ voir ci-dessous
+ *      group by 1, 2
+ *     union all
+ *     select 'week_plan',
+ *            coalesce(generated_from -> 'access' ->> 'state',
+ *                     'not_instrumented'),
+ *            count(*)
+ *       from public.student_week_plans
+ *      group by 1, 2
+ *      order by 1, 2;
+ *
+ * ── POURQUOI ON CORRIGE LA REQUÊTE PLUTÔT QUE D'INSTRUMENTER LA 3e PORTE ──
+ * `generate-household-meal-v1` est réservée au MAÎTRE d'un foyer
+ * (`403 not_owner` sinon), qui a donc un foyer PAR CONSTRUCTION. Son état
+ * serait `household` sur chaque ligne, toujours, quoi qu'il arrive: la mesurer
+ * n'apprendrait rien sur la question ouverte n°1 (« à quel titre un compte SANS
+ * FOYER produit-il ? »), et coûterait une clé de plus sur chaque plan de foyer.
+ * `plan_kind = 'personal'` dit la même chose en une ligne de SQL, et se défait
+ * en la retirant.
+ *
+ * *Option écartée*: instrumenter la troisième porte. Coût — une écriture de plus
+ * sur un chemin chaud pour un compartiment à valeur unique. *Retour arrière*:
+ * ajouter `describeAccess` dans `generate-household-meal-v1` et retirer le
+ * `where`.
+ *
+ * ⚠️ `not_instrumented` N'EST PAS `unknown`. `unknown` est un fait de RUNTIME
+ * (« je n'ai pas su lire ce droit »); `not_instrumented` est un fait d'HISTOIRE
+ * (« cette ligne est plus vieille que le lot »). Les confondre ferait décroître
+ * un compteur avec le temps et raconterait une amélioration qui n'a pas eu lieu.
+ *
+ * ⚠️ EN LOCAL, L'ÉTAT `none` EST INATTEIGNABLE — voir C5 ⑨ au registre.
+ * `app_config.disable_write_gate = 'true'` fait retourner `true` à
+ * `has_app_write_access` AVANT toute lecture de `profiles.trial_end` ou de
+ * `subscriptions` (vérifié dans `prosrc` le 2026-08-12). Tout compte local est
+ * donc `own_subscription_or_trial` au pire. Cette mesure ne vaut qu'en
+ * PRODUCTION.
  *
  * ⚠️ ÉCRIT MÊME QUAND TOUT VA BIEN. Une clé qui n'apparaîtrait que sur le cas
  * `none` ne se distinguerait pas d'un lot débranché — ce dépôt paie en boucle

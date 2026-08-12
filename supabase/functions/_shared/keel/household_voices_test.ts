@@ -649,6 +649,60 @@ Deno.test("AUCUN SECOND PONT VERS LA MÉMOIRE", async () => {
   assert(io.includes("foodPreferencesForPrompt("));
 });
 
+Deno.test("C4 — CHAQUE APPELANT DIT S'IL ÉCRIT, ET LA LANE FOYER DIT NON", async () => {
+  // ⚠️ CE QUE CE TEST TIENT, ET QUE LES TESTS D'I/O NE PEUVENT PAS TENIR: la
+  // RÉPARTITION. `food_preference_promotion_io_test.ts` prouve que la fonction
+  // se comporte bien pour chaque valeur d'`actor`; il ne peut pas dire que la
+  // lane foyer a passé la bonne. Un `"row_owner"` glissé dans
+  // `household_voices_io.ts` rendrait tous ses tests verts, et la ligne d'un
+  // titulaire recommencerait à changer pendant que le maître compose.
+  //
+  // Les commentaires sont retirés (`stripComments`): ils citent les deux
+  // valeurs, et un grep naïf serait vert sur un produit qui ne les passe pas.
+
+  /** Le bloc d'arguments de l'appel, et lui seul. */
+  function callArgs(src: string, rel: string): string {
+    const at = src.indexOf("reconcileFoodPreferencesFor({");
+    assert(at >= 0, `${rel} n'appelle plus la réconciliation du tout.`);
+    const rest = src.slice(at);
+    const end = rest.indexOf("});");
+    assert(end > 0, `${rel}: appel non refermé, la lecture ci-dessous mentirait.`);
+    return rest.slice(0, end);
+  }
+
+  // ── LES TROIS GÉNÉRATEURS ÉCRIVENT: c'est LEUR ligne, et LEUR geste ──────
+  // Sans cette moitié, la garde d'en dessous serait verte sur un produit où
+  // plus personne ne persiste jamais rien — une préférence rétractée resterait
+  // en base pour toujours, visible dans la carte et dans l'export RGPD.
+  for (
+    const rel of [
+      "generate-week-plan-v1/index.ts",
+      "generate-meal-v1/index.ts",
+      "generate-household-meal-v1/index.ts",
+    ]
+  ) {
+    const args = callArgs(await source(rel), rel);
+    assert(
+      args.includes('actor: "row_owner"'),
+      `${rel} ne persiste plus la correction sur la ligne de son propre ` +
+        `appelant: le cas qui passe a disparu, et plus rien ne s'écrit jamais.`,
+    );
+  }
+
+  // ── LE CHARGEUR DES VOIX N'ÉCRIT PAS: ce n'est pas SA ligne ──────────────
+  const io = await source("_shared/keel/household_voices_io.ts");
+  const voiceArgs = callArgs(io, "_shared/keel/household_voices_io.ts");
+  assert(
+    voiceArgs.includes('actor: "someone_else"'),
+    "le chargeur des voix réécrit la ligne d'un titulaire qui n'a rien fait: " +
+      "sa préférence disparaît sans geste, et rien ne peut le lui expliquer.",
+  );
+  assert(
+    !voiceArgs.includes('actor: "row_owner"'),
+    "le chargeur des voix se déclare propriétaire de la ligne qu'il lit.",
+  );
+});
+
 Deno.test("LA GARDE DÉRIVE LA LISTE DES PORTIONS, ELLE N'EN RECOPIE PAS UNE SECONDE", async () => {
   // « Jamais de matcher maison » sur du texte alimentaire, et jamais deux
   // listes: `forbidden_matcher.ts` documente en tête de fichier que sa raison

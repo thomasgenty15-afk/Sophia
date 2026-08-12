@@ -4,7 +4,7 @@ import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2.8
 
 import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
-import { logEdgeFunctionError } from "../_shared/error-log.ts";
+import { logEdgeFunctionError, readableErrorMessage } from "../_shared/error-log.ts";
 import { generateWithGemini } from "../_shared/gemini.ts";
 import { keelGenerationModel } from "../_shared/keel/generation_model.ts";
 import {
@@ -365,12 +365,31 @@ Deno.serve(async (req) => {
     // panne de lecture fasse silencieusement un plan orphelin — un plan qui
     // n'entrera dans aucune fusion sans que personne ne le remarque. C'est
     // pour ça que l'échec est tracé dans `generated_from`, à l'écriture.
+    //
+    // ⚠️ C5 ⑦ — LE MÊME TROU QUE `generate-week-plan-v1`, ET IL Y EST AUSSI.
+    // `generated_from.household_lookup_failed` trace bien l'échec SUR LA LIGNE
+    // ÉCRITE — mais seulement si un plan finit par s'écrire. Quand la panne
+    // fait retomber le repli de doctrine et que la fonction rend `409 no_coach`
+    // 200 lignes plus bas, AUCUNE ligne n'est écrite, donc l'échec ne laisse
+    // aucune trace. Le journal d'incidents est le seul endroit où les deux
+    // issues se rejoignent.
     let householdId: string | null = null;
     let householdLookupFailed = false;
     try {
       householdId = await resolveHouseholdIdFor(admin, userId);
-    } catch (_error) {
+    } catch (error) {
       householdLookupFailed = true;
+      console.warn(JSON.stringify({
+        tag: "keel.meal.household_lookup_failed",
+        user_id: userId,
+      }));
+      await logEdgeFunctionError({
+        functionName: FN_NAME,
+        requestId,
+        error,
+        userId,
+        metadata: { source: "household_lookup", no_coach_risk: true },
+      });
     }
 
     // ── LE GEL À L'IMPAYÉ, PAR CETTE PORTE AUSSI (L1, D13) ───────────────
@@ -496,6 +515,29 @@ Deno.serve(async (req) => {
     // plutôt qu'à un seul endroit: rien ne garantit qu'un élève génère une
     // semaine avant de générer un repas. Une garde qui ne couvre qu'un des
     // deux chemins d'un même jsonb est une garde qu'on croit posée.
+    //
+    // ⚠️ C5 ⑧ — CETTE ÉCRITURE PRÉCÈDE LES GARDES DE FENÊTRE, ET C'EST ASSUMÉ.
+    //
+    // MESURÉ LE 2026-08-12: une ligne `student_goals` a été corrigée par un
+    // appel qui a rendu `400 window_beyond_this_week` (garde posée ~250 lignes
+    // plus bas, avec `409 plan_overlaps_existing`). `student_goals` bouge donc —
+    // et son `updated_at` avec — sur une requête que l'utilisateur voit comme
+    // ÉCHOUÉE.
+    //
+    // Ce n'est PAS une violation de C4: la personne a bien agi, c'est sa propre
+    // ligne, `actor: "row_owner"` est juste. Ce qui est faux, c'est la DATE.
+    //
+    // POURQUOI ON NE DÉPLACE PAS. Cet appel alimente `constraintsForPrompt`,
+    // donc il doit précéder la construction du prompt; et les deux gardes sont
+    // volontairement posées JUSTE AVANT LE MODÈLE (C2: « ce qui est décidable
+    // sans le modèle se refuse avant le modèle », 28,6 s et 225 s brûlées pour
+    // l'avoir oublié). L'ordre actuel est le seul qui garde les deux propriétés.
+    //
+    // L'OPTION RÉVERSIBLE, écrite plutôt que faite un soir: conditionner la
+    // PERSISTANCE à la réussite de la requête, c'est-à-dire la déplacer après
+    // l'écriture du plan. Elle change QUAND une correction juste atterrit, pour
+    // une requête sur mille. La correction est juste; sa date est discutable.
+    // Voir §C5 ⑧ du registre.
     goalRow.practical_constraints = await reconcileFoodPreferencesFor({
       admin,
       userId,
@@ -714,7 +756,7 @@ Deno.serve(async (req) => {
     } catch (error) {
       return jsonResponse(req, {
         error: "bad_window",
-        detail: error instanceof Error ? error.message : String(error),
+        detail: readableErrorMessage(error),
         request_id: requestId,
       }, { status: 400 });
     }
@@ -752,7 +794,22 @@ Deno.serve(async (req) => {
           "reach as far as this Sunday. Start your window this week, or " +
           "compose next week's plan once it has started.",
         request_id: requestId,
-      }, { status: 400 });
+        // C5 ④ — `skipErrorLog`: UNE DATE CHOISIE PAR L'ÉLÈVE N'EST PAS UN
+        // INCIDENT. Même arbitrage, et même mot, que le 402 du gel et le 429 du
+        // plafond juste à côté: « un impayé n'est pas un incident ».
+        //
+        // MESURÉ: 5 lignes `window_beyond_this_week` au niveau `error` en UNE
+        // seule session. Ce refus ne dépend que de deux dates que l'écran laisse
+        // saisir — il est atteignable en trois clics, donc il serait
+        // MAJORITAIRE dans le journal, et un journal où l'état produit banal
+        // domine est un journal qu'on cesse de lire. La doctrine de ce chantier,
+        // violée deux lots après avoir été écrite.
+        //
+        // ⚠️ LE CRITÈRE, ET IL EST ÉTROIT: se tait un refus causé par LA SAISIE
+        // DE L'UTILISATEUR. Un refus causé par une PANNE parle toujours —
+        // `live_plan_windows_unreadable` reste journalisé, les 502 du modèle et
+        // les 500 aussi.
+      }, { status: 400, skipErrorLog: true });
     }
 
     // ══ C2 ③ — LE JUMEAU DU P0 DE LA FUSION, SUR LA PORTE `compose` ═════════
@@ -829,7 +886,13 @@ Deno.serve(async (req) => {
             : "You already have a plan that starts on that day or later. " +
               "Replace it, or start your window before it.",
           request_id: requestId,
-        }, { status: 409 });
+          // C5 ④ — `skipErrorLog`, MÊME CRITÈRE QUE CI-DESSUS, et ce refus-ci
+          // est le plus atteignable des deux: `MealBuilder` envoie deux dates
+          // que l'élève choisit, et « une fenêtre intérieure à mon plan vivant »
+          // est un geste de trois clics. Chaque élève qui compose une fenêtre
+          // intérieure produisait une ligne d'incident de niveau `error`.
+          // Mesuré: 2 lignes en une seule session de QA.
+        }, { status: 409, skipErrorLog: true });
       }
     } catch (error) {
       // FAIL-OPEN NOMMÉ. On ne peut pas refuser une composition sur une lecture
@@ -926,7 +989,7 @@ Deno.serve(async (req) => {
       console.warn(JSON.stringify({
         tag: "keel.meal.restriction_floor_unreadable",
         user_id: userId,
-        error: error instanceof Error ? error.message : String(error),
+        error: readableErrorMessage(error),
         // Journalisé nommément: sans cette ligne, un plancher qui échoue en
         // boucle est indiscernable d'un élève qui n'a jamais saisi de mesure —
         // les deux produisent une consigne sans corps.
@@ -951,7 +1014,7 @@ Deno.serve(async (req) => {
       console.warn(JSON.stringify({
         tag: "keel.meal.student_body_unreadable",
         user_id: userId,
-        error: error instanceof Error ? error.message : String(error),
+        error: readableErrorMessage(error),
         effect: "composition sans corps (comportement d'avant FF-030)",
       }));
     }
@@ -1166,7 +1229,7 @@ Deno.serve(async (req) => {
     } catch (error) {
       return jsonResponse(req, {
         error: "meal_unparseable",
-        detail: error instanceof Error ? error.message : String(error),
+        detail: readableErrorMessage(error),
         request_id: requestId,
       }, { status: 502 });
     }
@@ -1707,7 +1770,7 @@ Deno.serve(async (req) => {
     });
     return jsonResponse(req, {
       ok: false,
-      error: error instanceof Error ? error.message : String(error),
+      error: readableErrorMessage(error),
       request_id: requestId,
     }, { status: 500 });
   }

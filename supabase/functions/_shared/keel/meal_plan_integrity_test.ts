@@ -611,3 +611,80 @@ Deno.test("④ les trous CALCULÉS sont ceux qu'on passe aux deux blocs", async 
     "la lane foyer ne passe plus la même grille au constat qu'au tronc.",
   );
 });
+
+// ===========================================================================
+// C5 ④ — UN REFUS DE SAISIE N'EST PAS UN INCIDENT
+//
+// `jsonResponse` journalise TOUT statut >= 400 dans `system_error_logs`, au
+// niveau `error`, sauf `skipErrorLog`. Les deux refus que C2 a posés ne
+// l'avaient pas — contrairement au 402 du gel et au 429 du plafond, qui l'ont
+// AVEC leur motif écrit (« un impayé n'est pas un incident »).
+//
+// MESURÉ EN UNE SEULE SESSION: 5 lignes `window_beyond_this_week` + 2 lignes
+// `plan_overlaps_existing`, severity `error`. Or `plan_overlaps_existing` est
+// atteignable « en trois clics » depuis `MealBuilder`: chaque élève qui choisit
+// une fenêtre intérieure à son plan vivant produisait une ligne d'incident.
+//
+// ⚠️ LE CRITÈRE, ÉTROIT ET ÉCRIT: se tait un refus causé par LA SAISIE DE
+// L'UTILISATEUR. Un refus causé par une PANNE parle toujours — c'est pourquoi
+// la seconde moitié de ce test exige que les 502 du modèle, eux, restent
+// bruyants. Un `skipErrorLog` posé partout ne serait plus un arbitrage, ce
+// serait un journal éteint.
+// ===========================================================================
+
+for (const fn of ["generate-meal-v1", "generate-household-meal-v1"]) {
+  Deno.test(`C5 ④ — les deux refus de fenêtre se taisent — ${fn}`, async () => {
+    const src = (await edgeSource(fn))
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/(^|[^:])\/\/[^\n]*/g, "$1");
+    for (
+      const [token, status] of [
+        ['"window_beyond_this_week"', 400],
+        ['"plan_overlaps_existing"', 409],
+      ] as const
+    ) {
+      const at = src.indexOf(token);
+      assert(at >= 0, `${fn}: ${token} a disparu — test à réviser`);
+      // L'objet d'options de CE `jsonResponse`-là, pas un `skipErrorLog`
+      // ailleurs dans le fichier: il ne prouverait rien sur ce refus.
+      const tail = src.slice(at, at + 900);
+      const opts = new RegExp(`\\{\\s*status:\\s*${status}[^}]*\\}`).exec(tail);
+      assert(
+        opts,
+        `${fn}: ${token} ne rend plus ${status} dans les 900 caractères qui ` +
+          `suivent son motif — test à réviser.`,
+      );
+      assert(
+        /skipErrorLog:\s*true/.test(opts[0]),
+        `${fn}: ${token} repart dans \`system_error_logs\` au niveau ` +
+          `\`error\`. C'est une DATE CHOISIE PAR L'UTILISATEUR, pas une ` +
+          `panne — et ce refus est majoritaire dans le journal où l'on ` +
+          `cherche les vraies pannes.`,
+      );
+    }
+  });
+
+  Deno.test(`C5 ④ — LE CAS QUI PARLE: une panne du modèle reste un incident — ${fn}`, async () => {
+    // ⚠️ SANS CETTE MOITIÉ, LE TEST CI-DESSUS SERAIT SATISFAIT PAR UN JOURNAL
+    // ÉTEINT. Le critère n'est pas « moins de lignes », c'est « la saisie se
+    // tait, la panne parle ».
+    const src = (await edgeSource(fn))
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/(^|[^:])\/\/[^\n]*/g, "$1");
+    const at = src.indexOf('"model_returned_tool_call"');
+    assert(at >= 0, `${fn}: le refus modèle a disparu — test à réviser`);
+    const tail = src.slice(at, at + 400);
+    assert(
+      !/skipErrorLog/.test(tail),
+      `${fn}: une panne du modèle a été mise au silence. Le critère de C5 ④ ` +
+        `est « la saisie se tait, la panne parle » — pas « le journal se vide ».`,
+    );
+    // Et le 500 général non plus.
+    const catchAt = src.lastIndexOf("status: 500");
+    assert(catchAt >= 0, `${fn}: le 500 général a disparu — test à réviser`);
+    assert(
+      !/skipErrorLog/.test(src.slice(catchAt - 200, catchAt + 200)),
+      `${fn}: le 500 général ne journalise plus.`,
+    );
+  });
+}

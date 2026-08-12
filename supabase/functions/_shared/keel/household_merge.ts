@@ -632,19 +632,64 @@ export interface MergedFromEntry {
   plan_duration_days: number;
   /** D8: la date que L5 comparera à une validation POSTÉRIEURE. */
   validated_at: string | null;
-  /** Les jours réellement repris, en dates. Pas des jetons: un jeton se répète. */
+  /**
+   * Les jours réellement repris, en dates. Pas des jetons: un jeton se répète.
+   *
+   * ⚠️ INVARIANT, DEPUIS C5 ③: `days` EST TOUJOURS INCLUS DANS LA FENÊTRE DU
+   * PLAN REPRIS. C'est ce que « réellement repris » veut dire, et ce n'était pas
+   * vrai — mesuré le 2026-08-12:
+   *
+   *     days: ["2026-08-12","2026-08-13","2026-08-14"]
+   *     …pour une entrée dont `plan_duration_days` vaut 2.
+   *
+   * Le champ nommait des jours que le plan repris ne couvre pas. La cause est
+   * la même confusion `window` / `recomposed` que C5 ②, prise par l'autre bout:
+   * l'appelant passait la fenêtre RECOMPOSÉE (la queue du plan du foyer, ce
+   * qu'on ÉCRIT) là où le champ demande les jours DE SON PLAN. L'invariant est
+   * désormais tenu ICI plutôt que chez chaque appelant — il y en a deux, et le
+   * second (`carryMergedFrom`) portait la même erreur sans que personne ne
+   * l'ait nommée.
+   */
   days: string[];
 }
 
+/**
+ * ⚠️ `days` EST COUPÉ À LA FENÊTRE DU PLAN, ET C'EST LA RACINE DE C5 ③.
+ *
+ * L'appelant dit sur quelle fenêtre on recompose; ce champ-ci dit ce que CE
+ * PLAN-LÀ y apporte. Les deux se confondaient, et la confusion se lisait sur la
+ * ligne écrite: trois jours nommés pour un plan de deux.
+ *
+ * L'intersection est VIDE quand le plan repris ne touche plus la fenêtre (une
+ * reprise reportée dont le plan est entièrement derrière le pivot). `days: []`
+ * est alors la réponse juste: l'entrée survit — elle porte `plan_id` et
+ * `validated_at`, c'est-à-dire ce dont D8 a besoin — mais elle ne prétend pas
+ * avoir apporté un jour.
+ *
+ * RETOUR ARRIÈRE: repartir de `args.window` sans le couper. Le prix du retour
+ * est la ligne mesurée ci-dessus.
+ */
 export function mergedFromEntry(args: {
   memberId: string;
   userId: string | null;
   plan: { id: string; startsOn: string; durationDays: number; validatedAt: string | null };
   window: PlanSpan;
 }): MergedFromEntry {
+  const windowEnd = planEndsOn(
+    args.window.startsOn,
+    Math.max(1, args.window.durationDays),
+  );
+  const planEnd = planEndsOn(
+    args.plan.startsOn,
+    Math.max(1, args.plan.durationDays),
+  );
+  const from = args.window.startsOn > args.plan.startsOn
+    ? args.window.startsOn
+    : args.plan.startsOn;
+  const to = windowEnd < planEnd ? windowEnd : planEnd;
   const days: string[] = [];
-  for (let i = 0; i < Math.max(1, args.window.durationDays); i++) {
-    days.push(addDays(args.window.startsOn, i));
+  for (let i = 0; i < dayCountInclusive(from, to); i++) {
+    days.push(addDays(from, i));
   }
   return {
     member_id: args.memberId,

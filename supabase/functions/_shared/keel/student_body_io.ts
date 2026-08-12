@@ -323,6 +323,78 @@ export interface MinorEscalation {
 }
 
 /**
+ * C5 ① — LA LANGUE DE LA PROSE QUE **CE MODULE** ÉCRIT, PAS CELLE DE L'ÉLÈVE.
+ *
+ * ── LE DÉFAUT QU'ELLE FERME (QA du 2026-08-12) ────────────────────────────
+ * `contract_change_requests.content_locale` est `not null` SANS DÉFAUT
+ * (20260727090000, « R2: prose rows carry a locale »). L'insert ci-dessous
+ * l'avait perdu en recopiant `escalateRestrictionSignal`, et l'escalade ne
+ * pouvait donc JAMAIS atterrir:
+ *
+ *     HTTP 500  {"ok":false,"error":"[object Object]"}   en 5,5 s
+ *     system_error_logs: 'null value in column "content_locale" … 23502'
+ *     select count(*) … where reason_code='minor_student'  →  0
+ *
+ * Le `409 minor_student` était donc INATTEIGNABLE, aucune ligne d'escalade
+ * n'existait, et le coach n'apprenait jamais qu'un mineur avait été bloqué. La
+ * génération était bien bloquée — par un 500, c'est-à-dire par accident.
+ *
+ * ── D'OÙ VIENT LA VALEUR, ET POURQUOI CE N'EST PAS UNE DEVINETTE ──────────
+ * Du FRÈRE, qui n'a pas le défaut: `restrictionEffect` (restriction_guard.ts)
+ * type sa ligne avec `content_locale: "en"` — un littéral, pas une variable —
+ * parce que la prose de cette ligne est écrite EN DUR EN ANGLAIS par le module
+ * lui-même. R3 (`_shared/keel/locale.ts`) sépare `ui_locale`,
+ * `conversation_locale` et `content_locale`: cette colonne dit dans quelle
+ * langue est le TEXTE DE LA LIGNE, pas dans quelle langue l'élève parle.
+ * Écrire ici `profiles.locale` ferait mentir la colonne — la phrase resterait
+ * anglaise et se déclarerait française.
+ *
+ * ⚠️ LE JOUR OÙ CETTE PHRASE SERA TRADUITE, CETTE CONSTANTE DOIT BOUGER AVEC
+ * ELLE. Un test les tient ensemble (`student_body_test.ts`).
+ */
+export const MINOR_ESCALATION_CONTENT_LOCALE = "en";
+
+/** La ligne exacte que l'escalade insère. Type litéral sur `content_locale`,
+ * comme `RestrictionContractChangeRequest`: retirer la clé ne compile plus,
+ * au lieu de rendre `23502` en production. */
+export interface MinorEscalationRow {
+  user_id: string;
+  reason_code: "minor_student";
+  raised_by: "system";
+  urgency: "immediate";
+  status: "open";
+  student_words: string;
+  content_locale: typeof MINOR_ESCALATION_CONTENT_LOCALE;
+}
+
+/**
+ * LA LIGNE, CONSTRUITE À PART DE L'INSERT — et c'est ce qui la rend testable.
+ *
+ * Le défaut de ① était invisible à tout test pur parce qu'aucun test ne pouvait
+ * VOIR la ligne sans une base: elle naissait à l'intérieur d'un `.insert(…)`.
+ * Ici elle existe avant d'être écrite, donc une assertion sur ses colonnes
+ * `not null` ne demande plus une pile vivante.
+ */
+export function minorEscalationRow(userId: string, age: number): MinorEscalationRow {
+  return {
+    user_id: userId,
+    reason_code: "minor_student",
+    raised_by: "system",
+    urgency: "immediate",
+    status: "open",
+    // L'âge, pas la date: le coach a besoin de savoir qu'il accompagne un
+    // mineur et de combien, pas de sa date de naissance.
+    student_words: `This student is ${age} — under 18. Plan generation is held ` +
+      `until you decide: nutrition coaching for a minor sits inside your ` +
+      `professional framework, not ours.`,
+    // ⚠️ R2 — SANS ELLE, RIEN N'ATTERRIT. Voir
+    // `MINOR_ESCALATION_CONTENT_LOCALE` juste au-dessus: c'est la langue de la
+    // phrase ci-dessus, pas celle de l'élève.
+    content_locale: MINOR_ESCALATION_CONTENT_LOCALE,
+  };
+}
+
+/**
  * Écrit la ligne `contract_change_requests` qu'un mineur détecté doit au coach.
  *
  * Idempotent PAR LIGNE OUVERTE, pas par jour: l'élève va réessayer de générer
@@ -357,19 +429,7 @@ export async function escalateMinorStudent(
 
   const { data, error } = await db
     .from("contract_change_requests")
-    .insert({
-      user_id: params.userId,
-      reason_code: "minor_student",
-      raised_by: "system",
-      urgency: "immediate",
-      status: "open",
-      // L'âge, pas la date: le coach a besoin de savoir qu'il accompagne un
-      // mineur et de combien, pas de sa date de naissance.
-      student_words:
-        `This student is ${params.age} — under 18. Plan generation is held ` +
-        `until you decide: nutrition coaching for a minor sits inside your ` +
-        `professional framework, not ours.`,
-    })
+    .insert(minorEscalationRow(params.userId, params.age))
     // Vérité d'exécution: la ligne est RELUE, donc l'appelant ne journalise
     // jamais « escaladé » sur un insert qu'il n'a pas vu atterrir.
     .select("id")
