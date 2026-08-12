@@ -1,0 +1,205 @@
+ M .claude/hooks/block-risky-commands.sh
+ M AGENTS.md
+ M CLAUDE.md
+ M docs/fonctionnalites/README.md
+ M docs/fonctionnalites/composition-des-repas/FF-006-cycle-de-vie-du-plan.md
+ D docs/fonctionnalites/composition-des-repas/FF-040-les-regimes-alimentaires.md
+ M docs/fonctionnalites/composition-des-repas/README.md
+ M docs/fonctionnalites/conversation/README.md
+ M docs/fonctionnalites/le-foyer/FF-043-la-resolution-foyer.md
+ M docs/fonctionnalites/le-foyer/FF-044-la-bouche-sans-compte.md
+ M docs/fonctionnalites/le-foyer/FF-045-decrire-son-foyer.md
+ M docs/fonctionnalites/le-foyer/FF-048-reclamer-son-profil.md
+ M docs/fonctionnalites/le-foyer/README.md
+ M docs/fonctionnalites/suivi-quotidien/README.md
+ M feat/Git
+ M frontend/e2e/eating-rhythm.e2e.spec.ts
+ M frontend/src/keel/api/coachDoctrine.ts
+ M frontend/src/keel/api/dates.ts
+ M frontend/src/keel/api/eatingRhythm.int.test.ts
+ M frontend/src/keel/components/EatingRhythmCard.tsx
+ M frontend/src/keel/components/ui/SetupSection.tsx
+ M frontend/src/keel/i18n/en.ts
+ M frontend/src/keel/pages/HouseholdPage.tsx
+ M frontend/src/keel/pages/StartPage.tsx
+ M frontend/src/keel/pages/TodayPage.tsx
+ M scripts/agent-gate.sh
+ M scripts/local_auth_hs256.sh
+ M scripts/safe-supabase.sh
+ M supabase/config.toml
+ M supabase/functions/_shared/keel/daily_recap_io_test.ts
+ M supabase/functions/_shared/keel/daily_recommendation_test.ts
+ M supabase/functions/_shared/keel/day_properties_test.ts
+ M supabase/functions/_shared/keel/dietary_regime.ts
+ M supabase/functions/_shared/keel/dietary_regime_test.ts
+ M supabase/functions/_shared/keel/doctrine.ts
+ M supabase/functions/_shared/keel/doctrine_test.ts
+ M supabase/functions/_shared/keel/doctrine_versions_test.ts
+ M supabase/functions/_shared/keel/food_composition.ts
+ M supabase/functions/_shared/keel/food_composition_test.ts
+ M supabase/functions/_shared/keel/household_portions.ts
+ M supabase/functions/_shared/keel/household_portions_test.ts
+ M supabase/functions/_shared/keel/meal_generation.ts
+ M supabase/functions/_shared/keel/meal_verdict.ts
+ M supabase/functions/_shared/keel/meal_verdict_test.ts
+ M supabase/functions/_shared/keel/nutrition_lexicon.ts
+ M supabase/functions/_shared/keel/week_plan_generation_test.ts
+ M supabase/functions/account-export-v1/index.ts
+ M supabase/functions/coach-doctrine-v1/index.ts
+ M supabase/functions/generate-household-meal-v1/index.ts
+ M supabase/functions/generate-meal-v1/index.ts
+ M supabase/migrations_archive/20260522_pre_squash/20260504090000_drop_memory_v1.sql
+?? docs/fonctionnalites/composition-des-repas/FF-054-le-retour-de-fin-de-plan.md
+?? docs/fonctionnalites/composition-des-repas/FF-055-les-recommandations-d-activite.md
+?? docs/fonctionnalites/composition-des-repas/FF-057-la-procedure-accident.md
+?? docs/fonctionnalites/conversation/FF-056-la-divergence-constatee.md
+?? docs/fonctionnalites/suivi-quotidien/FF-058-la-bande-du-soir.md
+?? docs/keel/CHANTIER-PLANS-INDIVIDUELS-ET-FUSION.md
+?? docs/keel/JWT-HS256.md
+?? docs/keel/PROMPT-NUIT-PLANS-ET-FUSION.md
+?? docs/keel/RETRAIT-CARTE-DE-DEFENSE.md
+?? docs/keel/RETRAIT-RESIDUS-GRAND-PUBLIC.md
+?? docs/memory-v2-only-runbook.md
+?? feat/Untitled
+?? frontend/src/keel/components/KitchenToday.tsx
+?? frontend/src/keel/components/MealPickerGrid.tsx
+?? plan/
+?? scratchpad/DESIGN-UNITES-DE-COMPOSITION.md
+?? scratchpad/NUIT-ARBRE-DEPART.txt
+?? scratchpad/PLAN-IMPLEMENTATION-UNITES-DE-COMPOSITION.md
+?? scratchpad/PLAN-RETOUR-ET-ACTIVITE.md
+?? scratchpad/PLAN-SUITE-ENTREES-ET-MODELE.md
+?? scratchpad/PROMPT-A-mesures-par-mesure.md
+?? scratchpad/PROMPT-B-retrait-point-hebdo.md
+?? scratchpad/PROMPT-C-brancher-les-entrees.md
+?? scratchpad/PROMPT-CHANTIER-FOYER-AUTONOME.md
+?? scratchpad/PROMPT-FF-056-DIVERGENCE.md
+?? scratchpad/PROMPT-FF-057-ACCIDENT.md
+?? scratchpad/PROMPT-FF-058-BANDE-DU-SOIR.md
+?? scratchpad/PROMPT-MASTER-CHANTIER-CHAT.md
+?? scratchpad/PROMPT-MASTER-NUIT-057-058.md
+?? scratchpad/PROMPT-PARTENAIRE-FOYER.md
+?? scratchpad/PROMPT-QA-CHAT-CONTEXTE.md
+?? scratchpad/PROMPT-RETRAIT-COMPORTEMENTS-CHAT.md
+?? scratchpad/PROMPTS-REALIGNEMENT-CHAT.md
+?? scratchpad/RAPPORT-CORRECTIONS-ET-CAMPAGNE-20260811.md
+?? scratchpad/RAPPORT-FF-009.md
+?? scratchpad/RAPPORT-FF-017.md
+?? scratchpad/RAPPORT-FF-021.md
+?? scratchpad/RAPPORT-FF-028.md
+?? scratchpad/RAPPORT-FF-029.md
+?? scratchpad/RAPPORT-LIVENESS.md
+?? scratchpad/RAPPORT-NUTRITION-20260811.md
+?? scratchpad/RAPPORT-QA-REELLE-20260811.md
+?? scratchpad/RAPPORT-UNITES-COMPOSITION.md
+?? scratchpad/RETRAIT-LOG-PHASE2.md
+?? scratchpad/build_ciqual_migration.py
+?? scratchpad/chat_qa_household.ts
+?? scratchpad/chat_qa_household_probe.ts
+?? scratchpad/chat_qa_provision.ts
+?? scratchpad/chat_qa_pulse_probe.ts
+?? scratchpad/chat_qa_send.ts
+?? scratchpad/chat_qa_support_probe.ts
+?? scratchpad/chat_qa_twenty.ts
+?? scratchpad/ciqual_catalogue.py
+?? scratchpad/emit_seed_sql.py
+?? scratchpad/ff009_adv.ts
+?? scratchpad/ff009_adv_results.json
+?? scratchpad/ff009_easy_results.json
+?? scratchpad/ff009_extra.ts
+?? scratchpad/ff009_hard_results.json
+?? scratchpad/ff009_medium_results.json
+?? scratchpad/ff009_probe.ts
+?? scratchpad/ff009_run.ts
+?? scratchpad/ff017_adv_results.json
+?? scratchpad/ff017_easy_results.json
+?? scratchpad/ff017_extra_results.json
+?? scratchpad/ff017_hard_results.json
+?? scratchpad/ff017_medium_results.json
+?? scratchpad/ff017_run.ts
+?? scratchpad/ff020_adv_real_results.json
+?? scratchpad/ff020_adversarial_results.json
+?? scratchpad/ff020_easy_medium_results.json
+?? scratchpad/ff020_hard_extra_results.json
+?? scratchpad/ff020_model_down2_results.json
+?? scratchpad/ff020_model_down_results.json
+?? scratchpad/ff021_A_results.json
+?? scratchpad/ff021_A_triggers.ts
+?? scratchpad/ff021_B_r7.ts
+?? scratchpad/ff021_B_results.json
+?? scratchpad/ff021_C_results.json
+?? scratchpad/ff021_C_surfaces.ts
+?? scratchpad/ff021_E_fallback_locale.ts
+?? scratchpad/ff021_F_effects.ts
+?? scratchpad/ff021_F_results.json
+?? scratchpad/ff021_G_repeat.ts
+?? scratchpad/ff021_G_results.json
+?? scratchpad/ff021_H_after_fix.ts
+?? scratchpad/ff021_H_results.json
+?? scratchpad/ff021_lexicon_probe.ts
+?? scratchpad/ff021_lib.ts
+?? scratchpad/ff027-adv1.txt
+?? scratchpad/ff027-adv2.txt
+?? scratchpad/ff027-run1.txt
+?? scratchpad/ff027-run2.txt
+?? scratchpad/ff027_adversarial.ts
+?? scratchpad/ff027_gdpr_probe.ts
+?? scratchpad/ff027_memorizer_probe.ts
+?? scratchpad/ff027_x3b_control.ts
+?? scratchpad/ff027_x3b_retest.ts
+?? scratchpad/ff028_adversarial.ts
+?? scratchpad/ff028_adversarial_results.json
+?? scratchpad/ff028_easy.ts
+?? scratchpad/ff028_easy_results.json
+?? scratchpad/ff028_harness.ts
+?? scratchpad/ff028_loop.ts
+?? scratchpad/ff028_loop_results.json
+?? scratchpad/ff028_scenarios.ts
+?? scratchpad/ff028_scenarios_results.json
+?? scratchpad/ffx_fixture.json
+?? scratchpad/gen_composition_seed.py
+?? scratchpad/l4_block_probe.json
+?? scratchpad/l4_block_probe.ts
+?? scratchpad/liveness/
+?? scratchpad/populate_fixture_complete.sql
+?? scratchpad/qa_campagne_finale_20260811.ts
+?? scratchpad/qa_en.json
+?? scratchpad/qa_fam.json
+?? scratchpad/qa_fam2.json
+?? scratchpad/qa_fam3.json
+?? scratchpad/qa_fr.err
+?? scratchpad/qa_fr.json
+?? scratchpad/qa_fr2.json
+?? scratchpad/qa_fr3.json
+?? scratchpad/qa_fr4.json
+?? scratchpad/qa_grounded.json
+?? scratchpad/qa_loss.json
+?? scratchpad/qa_nutrition_review_20260811.ts
+?? scratchpad/qa_real_generation_20260811.ts
+?? scratchpad/qa_scaling_verify_20260811.ts
+?? scratchpad/qa_shared.json
+?? scratchpad/qa_t20.json
+?? scratchpad/replay-composition.ts
+?? scratchpad/t20_replies.txt
+?? scratchpad/verdict-smoke.ts
+?? scratchpad/worklist-alias-composition.json
+?? scripts/check-local-jwt-alg.sh
+?? supabase/functions/_shared/keel/activity_floor.ts
+?? supabase/functions/_shared/keel/activity_floor_test.ts
+?? supabase/functions/_shared/keel/activity_stance.ts
+?? supabase/functions/_shared/keel/plan_feedback.ts
+?? supabase/functions/_shared/keel/plan_feedback_test.ts
+?? supabase/functions/_shared/keel/portion_anchor.ts
+?? supabase/functions/_shared/keel/portion_anchor_test.ts
+?? supabase/functions/_shared/keel/portion_scaling.ts
+?? supabase/functions/_shared/keel/portion_scaling_test.ts
+?? supabase/migrations/20260811070000_household_goal_authority.sql
+?? supabase/migrations/20260811080000_meal_plan_kind_and_validation.sql
+?? supabase/migrations/20260811090000_meal_plan_feedback.sql
+?? supabase/migrations/20260811100000_doctrine_activity_stance.sql
+?? supabase/migrations/20260811110000_food_composition_gaps.sql
+?? supabase/migrations/20260811121000_food_composition_null_nutrients.sql
+?? supabase/migrations/20260811130000_food_composition_gaps_2.sql
+?? supabase/migrations/20260811140000_meal_plan_window_and_mode_guards.sql
+?? supabase/migrations/20260812090000_ciqual_full_import.sql
+?? supabase/signing_keys.local.json
