@@ -121,15 +121,45 @@ export default function StartPage() {
   // l'effet — un `useState` serait mis à jour trop tard.
   const entryResolved = React.useRef(false);
 
+  // ── ET SON ANNULATION, QUI DOIT AVOIR LA MÊME PORTÉE QUE LUI ────────────
+  //
+  // ⚠️ DÉFAUT MESURÉ LE 2026-08-12, ET IL LAISSAIT LA PAGE MORTE.
+  // Le verrou ci-dessus est à VIE (une seule résolution par montage). Son
+  // annulation, elle, était par EXÉCUTION: un `let cancelled` refermé par le
+  // nettoyage de l'effet, qui se rejoue à chaque changement de `user`.
+  //
+  // La séquence qui tuait l'écran, jouée en cliquant « Create a free account »
+  // depuis `/auth`:
+  //   1. l'effet part, pose `entryResolved = true`, lance la lecture;
+  //   2. `user` change (l'état d'auth se stabilise) ⇒ React rejoue l'effet et
+  //      exécute AVANT ça le nettoyage du n°1, qui met `cancelled = true`;
+  //   3. le rejeu voit `entryResolved` et sort immédiatement;
+  //   4. la lecture du n°1 revient, voit `cancelled`, et sort aussi.
+  // Personne n'appelle plus `setPhase`: la page reste sur « Getting things
+  // ready… » indéfiniment. Un rechargement direct marchait — l'auth y est
+  // stabilisée avant le montage — ce qui rendait le défaut invisible en test
+  // et systématique pour un visiteur qui vient de la page de connexion.
+  //
+  // La réparation n'est pas de retirer le verrou (il corrige le défaut décrit
+  // ci-dessus, mesuré lui aussi), mais de faire porter l'annulation par le
+  // MONTAGE, comme lui. Un `useRef` posé par un effet sans dépendances: il ne
+  // se ferme qu'au démontage réel.
+  const unmounted = React.useRef(false);
+  React.useEffect(() => {
+    unmounted.current = false;
+    return () => {
+      unmounted.current = true;
+    };
+  }, []);
+
   // ÉTAT D'ENTRÉE. Trois questions dans l'ordre où elles décident de l'écran.
   React.useEffect(() => {
     if (authLoading) return;
     if (entryResolved.current) return;
     entryResolved.current = true;
-    let cancelled = false;
     (async () => {
       const { data, error } = await supabase.rpc("keel_free_signup_available");
-      if (cancelled) return;
+      if (unmounted.current) return;
       if (error || data !== true) {
         // Une lecture qui échoue et un programme non publié donnent le même
         // écran: dans les deux cas on ne peut pas promettre un produit qui
@@ -149,7 +179,7 @@ export default function StartPage() {
         .eq("student_user_id", user.id)
         .in("status", ["invited", "active"])
         .maybeSingle();
-      if (cancelled) return;
+      if (unmounted.current) return;
       if (!link.error && link.data) {
         // `null` = aucun rôle n'a pu être lu, le backend ne répond plus. On ne
         // navigue pas vers un repli qui aurait besoin du même backend. Et PAS
@@ -157,7 +187,7 @@ export default function StartPage() {
         // pause », ce qui est un fait sur le produit. Une panne de serveur n'en
         // est pas un, et le visiteur repartirait avec une fausse nouvelle.
         const home = await resolveHomePath(user.id);
-        if (cancelled) return;
+        if (unmounted.current) return;
         if (home === null) {
           setPhase({ kind: "unreachable" });
           return;
@@ -167,9 +197,10 @@ export default function StartPage() {
       }
       setPhase({ kind: "repair" });
     })();
-    return () => {
-      cancelled = true;
-    };
+    // ⚠️ PAS DE NETTOYAGE QUI ANNULE ICI. Il se rejouerait au prochain
+    // changement de `user` et tuerait la seule exécution que le verrou autorise
+    // — voir la note au-dessus de `unmounted`. Le démontage est couvert par
+    // l'effet sans dépendances.
   }, [authLoading, user, navigate]);
 
   /** Le rattachement, seul appel qui écrit. Idempotent, rejouable. */
