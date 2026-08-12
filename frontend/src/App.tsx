@@ -134,12 +134,29 @@ function App() {
                   </KeelStudentRoute>
                 }
               />
+              {/* ⚠️ GARDE ÉLARGIE AU FOYER (L8/O2, 2026-08-12), et c'est la
+                  MÊME correction que le lot 6 a faite pour `/app/household`,
+                  pour la même population et la même raison.
+
+                  `KeelStudentRoute` exige `profiles.keel_role = 'student'`, et
+                  la réclamation d'un profil de foyer ne l'écrit PAS — c'est
+                  écrit en toutes lettres dans 20260811060000. Un compte
+                  secondaire tombait donc sur « tu n'es pas un élève » ICI,
+                  c'est-à-dire sur le seul écran où le modèle lui demande
+                  d'agir: D2 dit que `generate-meal-v1` ne sert QUE les comptes
+                  secondaires qui prennent la main et les comptes individuels
+                  sans foyer. Sans cette ligne, la prise de main (D7) et donc
+                  toute la chaîne de fusion restent inatteignables par un vrai
+                  utilisateur — le trou O2 du registre.
+
+                  C'est de la NAVIGATION, pas de la sécurité: RLS reste la
+                  frontière, et `generate-meal-v1` garde ses propres refus. */}
               <Route
                 path="/app/plan"
                 element={
-                  <KeelStudentRoute>
+                  <KeelHouseholdRoute>
                     <StudentWeekPlanPage />
-                  </KeelStudentRoute>
+                  </KeelHouseholdRoute>
                 }
               />
               <Route

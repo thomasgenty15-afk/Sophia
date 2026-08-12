@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { dishDaySplit, type GeneratedDish, readDishes } from "./mealGeneration";
+import {
+  cookedPlans,
+  dishDaySplit,
+  type GeneratedDish,
+  type GeneratedMealResult,
+  readDishes,
+} from "./mealGeneration";
 
 // ===========================================================================
 // LES PLATS DU JOUR — la seule chose qui décide ce que `/app/today` affiche
@@ -108,5 +114,85 @@ describe("readDishes", () => {
   it("rend une liste vide sur ce qui n'est pas un tableau", () => {
     expect(readDishes(null)).toEqual([]);
     expect(readDishes({ dishes: [] })).toEqual([]);
+  });
+});
+
+// ===========================================================================
+// L8/D9 — LA SURFACE DE CUISINE N'AFFICHE QUE LE PLAN QU'ON CUISINE
+//
+// > « Le maître ACCÈDE à tous les plans, mais sa surface de cuisine n'affiche
+// > QUE le plan qu'il cuisine. Un plan validé non fusionné n'y apparaît pas: le
+// > but est de simplifier sa cuisine, pas de lui faire suivre N plans. »
+//
+// LE DÉFAUT QUE CE BLOC GARDE, et il n'est pas théorique: la contrainte
+// d'exclusion de `student_generated_meals` est scopée `(user_id, plan_kind)`,
+// EXPRÈS (« sans ça le maître ne peut pas tenir les deux »). Deux plans du même
+// compte peuvent donc couvrir les MÊMES JOURS, et `selectMealPlans` — qui ne
+// connaît que des fenêtres — trancherait entre eux sur leur seule date de
+// début. Le maître verrait tantôt sa semaine de foyer, tantôt un plan personnel
+// oublié, sans rien à l'écran pour distinguer les deux.
+// ===========================================================================
+
+function plan(
+  id: string,
+  planKind: "personal" | "household",
+  startsOn: string,
+): GeneratedMealResult {
+  return {
+    mealId: id,
+    dishes: [],
+    preparations: [],
+    cookingSessions: [],
+    shoppingList: [],
+    fixedIntakes: [],
+    dayProperties: [],
+    context: null,
+    preferences: null,
+    createdAt: null,
+    startsOn,
+    durationDays: 7,
+    planKind,
+    validatedAt: null,
+  };
+}
+
+describe("cookedPlans", () => {
+  it("écarte le plan personnel du maître quand un plan de foyer est vivant", () => {
+    // ⚠️ LE DÉCOR SÉPARE: le plan personnel commence PLUS TARD, donc « le
+    // dernier écrit gagne » et « je ne garde que le foyer » ne rendent pas la
+    // même chose. Avec deux dates identiques, retirer le filtre serait
+    // indiscernable.
+    const kept = cookedPlans([
+      plan("p-perso", "personal", "2026-08-19"),
+      plan("p-foyer", "household", "2026-08-12"),
+    ]);
+    expect(kept.map((p) => p.mealId)).toEqual(["p-foyer"]);
+  });
+
+  it("rend les plans personnels quand aucun plan de foyer ne vit", () => {
+    // LE CAS QUI PASSE, et c'est le chemin MAJORITAIRE: le compte individuel
+    // (« l'entrée du produit est à 1 ») et le secondaire qui a pris la main.
+    // Sans lui, un filtre trop large viderait l'écran de tout le monde.
+    const kept = cookedPlans([
+      plan("p-courant", "personal", "2026-08-12"),
+      plan("p-suivant", "personal", "2026-08-19"),
+    ]);
+    expect(kept.map((p) => p.mealId)).toEqual(["p-courant", "p-suivant"]);
+  });
+
+  it("garde les DEUX plans du foyer, le courant et le suivant", () => {
+    // Deux plans du foyer sont vivants en même temps PAR CONTRAT (ce que
+    // `prepare_next` produit). Filtrer la nature ne doit pas se transformer en
+    // « un seul plan »: c'est `selectMealPlans` qui range, pas ce filtre.
+    const kept = cookedPlans([
+      plan("p-foyer-1", "household", "2026-08-12"),
+      plan("p-perso", "personal", "2026-08-12"),
+      plan("p-foyer-2", "household", "2026-08-19"),
+    ]);
+    expect(kept.map((p) => p.mealId)).toEqual(["p-foyer-1", "p-foyer-2"]);
+  });
+
+  it("ne rend rien quand il n'y a rien", () => {
+    expect(cookedPlans([])).toEqual([]);
   });
 });

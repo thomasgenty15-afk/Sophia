@@ -43,23 +43,70 @@ Deno.test("tout lecteur qui filtre par foyer filtre AUSSI par plan_kind", async 
     const src = await Deno.readTextFile(new URL(rel, ROOT));
     // On ne cherche pas n'importe où: seulement dans les requêtes qui visent
     // CETTE table. Un `household_id` ailleurs dans le fichier ne prouve rien.
-    const from = src.indexOf('.from("student_generated_meals")');
+    //
+    // ⚠️ TOUTES LES REQUÊTES, ET PLUS SEULEMENT LA PREMIÈRE (L8). Ce test
+    // lisait `indexOf` — donc la première occurrence — et un fichier déjà
+    // listé pouvait recevoir un SECOND lecteur sans qu'aucune garde ne le
+    // regarde. `frontend/src/keel/api/household.ts` en porte deux depuis L8
+    // (le plan du foyer, et l'accès du maître au plan d'un secondaire).
+    const offsets: number[] = [];
+    for (
+      let at = src.indexOf('.from("student_generated_meals")');
+      at >= 0;
+      at = src.indexOf('.from("student_generated_meals")', at + 1)
+    ) {
+      offsets.push(at);
+    }
     assert(
-      from >= 0,
+      offsets.length > 0,
       `${rel}: plus aucune requête sur student_generated_meals — ce test est ` +
         `à réviser, pas à supprimer.`,
     );
-    // La chaîne d'appel jusqu'au `.limit(` ou `;` qui la ferme.
-    const chain = src.slice(from, from + 1200);
-    const filtersByHousehold = /\.(eq|not)\(\s*["']household_id["']/.test(chain);
-    if (!filtersByHousehold) continue;
-    assert(
-      /\.eq\(\s*["']plan_kind["']\s*,\s*["']household["']\s*\)/.test(chain),
-      `${rel}: la requête filtre sur household_id SANS plan_kind. Un plan ` +
-        `PERSONNEL porte aussi household_id: ce lecteur va rendre le plan ` +
-        `d'un membre à la place de celui du foyer. C'est arrivé deux fois.`,
-    );
+    for (const from of offsets) {
+      // La chaîne d'appel jusqu'au `.limit(` ou `;` qui la ferme.
+      const chain = src.slice(from, from + 1200);
+      const filtersByHousehold = /\.(eq|not)\(\s*["']household_id["']/.test(chain);
+      if (!filtersByHousehold) continue;
+      assert(
+        /\.eq\(\s*["']plan_kind["']\s*,\s*["']household["']\s*\)/.test(chain),
+        `${rel}: la requête filtre sur household_id SANS plan_kind. Un plan ` +
+          `PERSONNEL porte aussi household_id: ce lecteur va rendre le plan ` +
+          `d'un membre à la place de celui du foyer. C'est arrivé deux fois.`,
+      );
+    }
   }
+});
+
+Deno.test("l'accès du maître au plan d'un secondaire est scopé (L8/D9)", async () => {
+  // ── POURQUOI CE TEST EXISTE ───────────────────────────────────────────────
+  // D9 donne au maître l'ACCÈS à tous les plans, et l'écran le lui ouvre
+  // (`loadMemberPersonalPlan`). Or la policy `student_generated_meals_household_read`
+  // rend TOUTE ligne portant le foyer — y compris le plan personnel d'un AUTRE
+  // secondaire. RLS ne remplace donc pas un `.eq("user_id")`: ce dépôt a déjà
+  // rendu la ligne d'un élève à son coach faute de ce filtre.
+  //
+  // Et `plan_kind` est l'autre moitié, dans l'autre sens: sans lui, demander
+  // « le plan de X » sur le compte du maître rendrait le plan DU FOYER.
+  const src = await Deno.readTextFile(
+    new URL("frontend/src/keel/api/household.ts", ROOT),
+  );
+  const at = src.indexOf("export async function loadMemberPersonalPlan");
+  assert(
+    at >= 0,
+    "loadMemberPersonalPlan a disparu: si l'accès du maître aux plans a été " +
+      "retiré, ce test est à retirer avec lui — pas à laisser passer.",
+  );
+  const body = src.slice(at, at + 1200);
+  assert(
+    /\.eq\(\s*["']user_id["']\s*,\s*userId\s*\)/.test(body),
+    "loadMemberPersonalPlan ne scope plus par user_id: un secondaire lirait " +
+      "le plan d'un autre secondaire.",
+  );
+  assert(
+    /\.eq\(\s*["']plan_kind["']\s*,\s*["']personal["']\s*\)/.test(body),
+    "loadMemberPersonalPlan ne filtre plus plan_kind='personal': elle peut " +
+      "rendre le plan DU FOYER à la place du plan personnel demandé.",
+  );
 });
 
 Deno.test("le générateur du foyer écrit bien plan_kind=household", async () => {

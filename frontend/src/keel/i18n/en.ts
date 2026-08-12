@@ -3230,4 +3230,233 @@ export const en = {
   "household.waves.now": "Buy now",
   "household.waves.on": "Buy on {date}",
   "household.waves.reason": "for the {day} cooking",
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // L8 — LES ÉCRANS DE LA FUSION (D9)
+  //
+  // Autorité produit: docs/keel/CHANTIER-PLANS-INDIVIDUELS-ET-FUSION.md.
+  //
+  // ── LA RÈGLE D'ÉCRITURE DE TOUT CE BLOC ─────────────────────────────────
+  // On dit la DIVERGENCE, jamais la personne comme fautive. « Le plan de Zoé
+  // n'a pas pu être fusionné » est faux ET blessant: rien n'a échoué, deux
+  // directions ne se servent simplement pas de la même casserole. Chaque
+  // phrase ci-dessous nomme un FAIT (« son plan couvre les mêmes jours ») et
+  // jamais une défaillance.
+  //
+  // ── CE QU'AUCUNE PHRASE D'ICI N'A LE DROIT DE DIRE ──────────────────────
+  // Un objectif, un poids, un nombre de calories, le « pourquoi » d'un plat.
+  // Le plan du foyer est lu À VOIX HAUTE PAR TOUT LE FOYER. Les gardes de
+  // non-divulgation du serveur (`household_voices.ts`, `household_portions.ts`)
+  // portent ces termes; les contredire à l'écran annulerait les deux.
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // ── LA PROPOSITION DE FUSION (D8, D10) — compte maître seulement ────────
+  "household.merge.title": "Someone is cooking on their own",
+  "household.merge.body":
+    "They built a plan of their own and validated it. You can fold it into the household plan, or leave it — in every case they keep their plan.",
+  // L'ÉTAT « RIEN À MONTRER », RÉDIGÉ. Ce dépôt a mesuré qu'un écran qui se
+  // vide est son pire échec: sans cette phrase, « personne n'a pris la main »
+  // et « la lecture a échoué » seraient le même blanc.
+  "household.merge.none":
+    "Nobody in the household is cooking on their own right now. Everyone eats from the household plan.",
+  "household.merge.merge_cta": "Fold their plan in",
+  "household.merge.unmerge_cta": "Rebuild without them",
+  "household.merge.dismiss_cta": "Leave it",
+  "household.merge.working": "Working...",
+  // D8 — L'AVERTISSEMENT. Il parle du plan DU MAÎTRE, pas de celui d'un autre:
+  // sa ligne vivante contient la reprise d'un plan que l'intéressé a remplacé.
+  "household.merge.revalidated_title": "A plan you folded in has moved on",
+  "household.merge.revalidated_body":
+    "The household plan still cooks what they had validated when you folded it in. They have validated a newer one since.",
+  // D16 — la fenêtre, en clair. Les nombres viennent du serveur; l'écran les
+  // range dans une phrase, il n'en recalcule aucun.
+  "household.merge.window": "Days that would be folded in: {days}, from {from}.",
+  "household.merge.window_past": "{days} of their days are already behind us.",
+  "household.merge.unmerge_window": "Rebuilding would redo {days} day(s) from {from}.",
+  // ── L7/D11 — LE PLAFOND, VISIBLE AVANT D'ÊTRE ATTEINT ───────────────────
+  // « 2 fusions restantes cette semaine » est une ligne de L8, écrite parce
+  // qu'un plafond qui ne se voit qu'au moment du refus se lit comme une panne.
+  "household.merge.quota_left": "{remaining} of {limit} merges left this week.",
+  "household.merge.quota_none":
+    "This household has used all {limit} of its merges for the week. Nothing is lost — it starts again on {date}.",
+  // D17 — LE RÉGLAGE DISCRET. Assumé « un peu brutal », donc il ne vit pas sur
+  // la carte de proposition: il est rangé dans la fiche de la personne.
+  "household.merge.mute": "Stop suggesting I merge their plan",
+  "household.merge.mute_hint":
+    "Their plan still exists and you can still fold it in whenever you want. You just stop being asked.",
+  "household.merge.unmute": "Suggest their plan again",
+  "household.merge.muted": "You are not being asked about their plan.",
+  // POURQUOI LES AUTRES BOUCHES N'APPARAISSENT PAS. Jamais un silence: le
+  // serveur nomme chaque motif, l'écran le rend.
+  "household.merge.skipped_title": "Not being suggested",
+  "household.merge.skip.member_is_owner": "This household's plan is already yours.",
+  "household.merge.skip.no_validated_plan":
+    "They have not validated a plan of their own.",
+  "household.merge.skip.proposals_muted": "You asked not to be asked about them.",
+  "household.merge.skip.dismissed_by_owner":
+    "You left this one. If they validate another plan, the question comes back.",
+  "household.merge.skip.already_merged":
+    "Their plan is already folded into the household plan.",
+  "household.merge.skip.merge_quota_exhausted":
+    "The household has used its merges for this week.",
+  // CE QUE LA PROCHAINE COMPOSITION REPRENDRA D'OFFICE (la fusion est
+  // collante, L5). Sa PORTÉE compte: hors de cette fenêtre, elle ne colle pas.
+  "household.merge.held": "Folded in until {to}: the next plan for those days keeps them.",
+  "household.merge.frozen":
+    "The household is paused, so nothing new can be composed. What is below is still true.",
+  "household.merge.load_failed":
+    "The suggestions could not be read. Nothing is shown rather than something wrong.",
+  // LE MAÎTRE ACCÈDE À TOUS LES PLANS — mais sa surface de cuisine n'affiche
+  // que celui qu'il cuisine (D9). D'où un dépliant, et jamais une carte.
+  "household.merge.open_plan": "See what their plan cooks",
+  "household.merge.close_plan": "Hide their plan",
+  "household.merge.plan_empty": "Their plan has no dish we can read.",
+  "household.merge.plan_unreadable": "Their plan could not be read.",
+
+  // ── CE QUI N'A PAS FUSIONNÉ, ET POURQUOI (D9, seconde moitié) ───────────
+  "household.plan.title": "What this plan cooks, and for whom",
+  // LA PHRASE PÉDAGOGIQUE DU LOT, mot pour mot l'arbitrage: ce n'est pas le
+  // système qui est nul, c'est la recherche d'un compromis qui est difficile.
+  "household.plan.divergence":
+    "Nothing failed here. Two directions cannot always come out of the same pan — when they cannot, they are cooked apart.",
+  "household.plan.taken":
+    "{name} is eating from a plan of their own over these days, so this one does not cook for them.",
+  "household.plan.partial":
+    "{name} has a plan of their own that covers only part of these days, so this one still cooks for them.",
+  "household.plan.reclaimed": "{name}'s plan was folded into this one.",
+  "household.plan.unmerged": "This plan was rebuilt without {name}.",
+  // L5 §4 — `covers_window: false` était tracé et rien n'agissait dessus.
+  // C'est le seul endroit du produit où quelqu'un peut apprendre qu'une
+  // personne n'a rien à manger certains jours.
+  "household.plan.unmerged_uncovered":
+    "Their own plan does not cover every one of those days.",
+  // O5 — LE BARREAU DEMANDÉ N'A PAS ÉTÉ TENU. Le serveur le CONSTATE et ne
+  // corrige pas; le taire ici laisserait un plan qui se contredit lui-même.
+  "household.plan.merge_shape_unmet":
+    "This merge asked for something cooked apart, and what came back is one pot for everyone. Check the portions before you serve.",
+  "household.plan.no_dishes":
+    "This plan has no dish we can read. Compose it again from the household page.",
+
+  // ── LE PLAN DU FOYER, VU PAR UN SECONDAIRE ──────────────────────────────
+  "household.plan.member_title": "What the household is cooking",
+  "household.plan.member_excluded":
+    "These days you are eating from your own plan, so the household plan does not cook for you.",
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // L8/O2 — LA GÂCHETTE: PRENDRE LA MAIN (D2, D7)
+  //
+  // Sans ce bouton, `keel_validate_meal_plan` n'a AUCUN appelant: personne ne
+  // peut prendre la main, donc rien n'est jamais proposé, donc ni fusion ni
+  // défusion n'existent pour un vrai utilisateur. Sept lots de serveur
+  // reposent dessus.
+  //
+  // ── LA POSTURE PAR DÉFAUT N'EST PAS UN REPROCHE ─────────────────────────
+  // Ne rien faire est le cas NORMAL et le plus courant: on est composé dans le
+  // plan du foyer comme une bouche ordinaire. Aucune phrase d'ici ne doit
+  // laisser croire qu'il faut prendre la main pour bien faire.
+  // ══════════════════════════════════════════════════════════════════════════
+  "plan.hand.title": "You are cooked for by the household",
+  "plan.hand.body":
+    "By default the household plan feeds you, and that is the ordinary way to be here. If you would rather cook your own, build a plan below and take it on — then you cook it and you shop for it.",
+  "plan.hand.take_cta": "Cook this one myself",
+  "plan.hand.taking": "Taking it on...",
+  "plan.hand.taken_title": "You are cooking this one",
+  "plan.hand.taken_body":
+    "The household plan does not cook for you over these days. Whoever runs the household can suggest folding this into it — you keep it either way.",
+  "plan.hand.taken_on": "Taken on {date}.",
+  // Le geste est IDEMPOTENT côté base: revalider ne redate pas. `already`
+  // n'est donc pas un échec, c'est « c'était déjà fait » — et le traiter comme
+  // une erreur ferait paniquer sur un double-clic.
+  "plan.hand.already": "That plan was already yours to cook.",
+  "plan.hand.owner_note":
+    "You run this household, so the plan you cook is the household one. Compose it from the household page.",
+
+  // ── LES REFUS NOMMÉS DU SERVEUR, TRADUITS (dette L1, L2, L3, L4, L5, L7) ──
+  //
+  // Chaque lot serveur a nommé son refus PUIS laissé l'écran afficher le jeton
+  // brut. C'est ici que la dette se solde. Liste FERMÉE, et un test de dérive
+  // lit les fonctions edge: un refus ajouté côté serveur sans étiquette ici
+  // fait rougir la suite au lieu de sortir en jargon devant quelqu'un.
+  "plan.refusal.household_frozen":
+    "This household is paused, so no new week is composed. Nothing has been deleted.",
+  "plan.refusal.no_household": "You are not in a household.",
+  "plan.refusal.not_owner": "Only whoever runs the household can do this.",
+  "plan.refusal.empty_household": "There is nobody at this table yet.",
+  "plan.refusal.goal_required":
+    "Set a direction and a situation first — that is what the whole plan is built on.",
+  "plan.refusal.no_coach":
+    "There is no published method to cook from yet.",
+  "plan.refusal.local_day_unresolved":
+    "We could not tell what day it is where you are, and a plan is counted in days.",
+  "plan.refusal.window_required": "That request named no days to cover.",
+  "plan.refusal.bad_window": "Those days could not be read.",
+  "plan.refusal.unknown_intent": "That request did not say what it replaces.",
+  "plan.refusal.replaces_required": "That request did not say which plan it replaces.",
+  "plan.refusal.mode_required": "Say where to start: from what you have, or shopping for it.",
+  "plan.refusal.pantry_required":
+    "Add what you have in, or switch to shopping for it.",
+  "plan.refusal.unknown_operation": "That is not a gesture this page knows.",
+  "plan.refusal.window_fully_away":
+    "Nobody is eating here over those days, so there is nothing to cook.",
+  "plan.refusal.all_members_have_own_plan":
+    "Everybody here is already cooking from a plan of their own over those days.",
+  "plan.refusal.safety_constraints_unreadable":
+    "We could not read this household's allergies, and we never cook without them.",
+  "plan.refusal.empty_meal":
+    "Nothing usable came back. Your previous plan is untouched — try again.",
+  "plan.refusal.meal_unparseable":
+    "The answer came back in a shape we could not read. Your previous plan is untouched — try again.",
+  "plan.refusal.model_returned_tool_call":
+    "The answer came back in a shape we could not read. Your previous plan is untouched — try again.",
+  "plan.refusal.plan_not_written":
+    "The plan could not be saved. Your previous plan is untouched — try again.",
+  "plan.refusal.house_rule_violated":
+    "What came back broke one of this household's rules, so it was not kept.",
+  // ── LES ONZE REFUS DE FUSION (L4) ───────────────────────────────────────
+  "plan.refusal.merge_member_required": "That gesture did not say whose plan to fold in.",
+  "plan.refusal.merge_member_not_in_household": "That person is not in this household.",
+  "plan.refusal.merge_member_is_owner":
+    "The household plan is already yours: there is nothing to bring back.",
+  "plan.refusal.merge_member_has_no_plan":
+    "They have no validated plan of their own to fold in.",
+  "plan.refusal.merge_no_household_plan":
+    "There is no live household plan to fold into. Compose one first.",
+  "plan.refusal.merge_windows_disjoint":
+    "Their plan and the household plan share no day, so there is nothing to fold in.",
+  "plan.refusal.merge_window_all_past":
+    "Every day their plan shares with this one is already behind us.",
+  "plan.refusal.merge_window_unreadable": "Those days could not be read.",
+  "plan.refusal.merge_plan_vanished": "That plan is no longer readable. Try again.",
+  "plan.refusal.merge_member_away_all_window":
+    "They are marked away for every meal of those days.",
+  "plan.refusal.merge_quota_exhausted":
+    "This household has used its merges for the week. Nothing is lost, and it starts again next week.",
+  // ── LES SIX REFUS DE DÉFUSION (L5) ──────────────────────────────────────
+  "plan.refusal.unmerge_member_required": "That gesture did not say whom to take back out.",
+  "plan.refusal.unmerge_member_not_in_household": "That person is not in this household.",
+  "plan.refusal.unmerge_member_is_owner":
+    "The household plan is yours: there is nobody to take out of it.",
+  "plan.refusal.unmerge_member_not_merged":
+    "No live household plan has brought them back to this table, so there is nothing to undo.",
+  "plan.refusal.unmerge_window_all_past":
+    "That household plan has no day left ahead of it. There is nothing left to cook differently.",
+  "plan.refusal.unmerge_window_unreadable": "Those days could not be read.",
+
+  // ── LES REFUS DES RPC DE LA PRISE DE MAIN ET DU RÉGLAGE ─────────────────
+  "plan.validate.error.not_authenticated": "You are not signed in any more.",
+  "plan.validate.error.not_your_plan": "That plan is not yours.",
+  "plan.validate.error.plan_retired": "That plan has been replaced.",
+  "plan.validate.error.not_a_personal_plan":
+    "The household plan is not something to take on — it is already what everyone eats.",
+  "household.merge.error.muted_required": "That switch sent no value.",
+  "household.merge.error.validated_at_required": "That suggestion carried no date.",
+  "household.merge.error.member_is_owner": "That line is yours.",
+  "household.merge.error.no_validated_plan":
+    "They have no validated plan any more, so there is nothing to leave.",
+  // Le piège nommé au registre: la date envoyée doit être celle de la NOTICE
+  // (`dismiss_validated_at`), pas celle du plan montré. Quand les plans ont
+  // bougé entre l'affichage et le clic, la base refuse — et la bonne réponse
+  // est de relire, pas de réessayer avec la même date.
+  "household.merge.error.notice_moved_on":
+    "Their plans have changed since this was shown. Reload to see where things stand.",
 } as const

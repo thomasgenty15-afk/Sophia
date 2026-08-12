@@ -18,6 +18,10 @@ import {
   windowDayOrder,
 } from "../api/mealWindow";
 import { mealCopy } from "../api/mealLabels";
+import { loadMyHouseholdPlace } from "../api/household";
+import { edgeRefusalKey } from "../copy/planRefusals";
+import { t } from "../i18n/t";
+import TakeTheHandCard, { type HouseholdPlace } from "./TakeTheHandCard";
 import PlanResult from "./plan/PlanResult";
 import ShoppingListPanel from "./ShoppingListPanel";
 import CookingSessions from "./CookingSessions";
@@ -195,6 +199,17 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
     next: GeneratedMealResult | null;
   }>({ current: null, next: null });
   const [tab, setTab] = React.useState<"current" | "next">("current");
+  /**
+   * L8/O2 — MA PLACE DANS UN FOYER, ou `null` tant qu'on ne l'a pas lue.
+   *
+   * Elle décide de ce que la carte de prise de main raconte, et les trois cas
+   * disent des choses OPPOSÉES: un compte individuel n'a rien à prendre, un
+   * secondaire peut prendre la main, un maître cuisine déjà le plan du foyer.
+   * D'où `null` explicite plutôt qu'un défaut: monter la carte sur une valeur
+   * non lue afficherait à quelqu'un une phrase qui ne le concerne pas — et un
+   * formulaire monté sur du vide est une cicatrice mesurée de ce dépôt.
+   */
+  const [place, setPlace] = React.useState<HouseholdPlace | null>(null);
 
   const [mode, setMode] = React.useState<MealMode>("to_shop");
   /**
@@ -324,6 +339,15 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
     let cancelled = false;
     (async () => {
       if (!userId) return;
+      // L8/O2 — LA PLACE, LUE À PART ET SANS BLOQUER LES PLATS. Un foyer
+      // illisible ne doit pas faire disparaître la semaine: la carte de prise
+      // de main se tait (`place` reste `null`), le plan s'affiche quand même.
+      try {
+        const mine = await loadMyHouseholdPlace(userId);
+        if (!cancelled) setPlace(mine);
+      } catch {
+        if (!cancelled) setPlace(null);
+      }
       try {
         const loaded = await loadMealPlans(userId, browserLocalDate());
         if (!cancelled) {
@@ -507,7 +531,14 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
         written.mealId && loaded.next?.mealId === written.mealId ? "next" : "current",
       );
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      // LE MOTIF NOMMÉ, TRADUIT (L8). `generateMeal` remonte « jeton: détail »,
+      // et l'élève lisait le jeton brut — `household_frozen` pour un secondaire
+      // de foyer impayé, écrit noir sur blanc comme une dette de L1. La table
+      // est fermée et partagée avec l'écran du foyer; un jeton inconnu ressort
+      // tel quel, jamais sous une phrase passe-partout.
+      const raw = e instanceof Error ? e.message : String(e);
+      const key = edgeRefusalKey(raw.split(":")[0]);
+      setError(key ? t(key) : raw);
       // ÉCHEC: le formulaire REVIENT, avec ce qui a été saisi et le motif. La
       // semaine précédente n'a pas bougé — le moteur écrit une ligne neuve ou
       // n'écrit rien — donc elle se réaffiche telle quelle sous le formulaire.
@@ -539,7 +570,25 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
   );
   // Rien à lire encore: le formulaire n'est pas « une option », c'est l'écran.
   const hasWeek = groups.length > 0;
-  const showForm = formOpen || !hasWeek;
+  /**
+   * ── D2/D9 · LE MAÎTRE D'UN FOYER NE COMPOSE PAS ICI ─────────────────────
+   *
+   * « Le plan du maître EST le plan du foyer », et il se compose depuis
+   * `/app/household`. Ce constructeur-ci appelle `generate-meal-v1`, qui écrit
+   * un plan PERSONNEL — que sa propre surface de cuisine masque ensuite (voir
+   * `cookedPlans`, D9). Le laisser cliquer ici produirait le pire des
+   * enchaînements: trente secondes d'attente, un appel modèle payé, un
+   * `replaces` qui ne retire rien (l'écriture est scopée par nature), et RIEN
+   * à l'écran. Un geste qui ne fait rien est indiscernable d'un geste qui a
+   * marché — le mode d'échec n°1 de ce dépôt.
+   *
+   * ⚠️ `place === null` NE FERME RIEN. La lecture peut être en cours (ou avoir
+   * échoué, auquel cas elle rend « pas de foyer »): le compte individuel, qui
+   * est le chemin majoritaire, garde son constructeur dans tous les cas.
+   * Retour arrière: retirer cette constante et ses deux usages.
+   */
+  const householdOwner = place?.inHousehold === true && place.isOwner;
+  const showForm = !householdOwner && (formOpen || !hasWeek);
   // AUJOURD'HUI, dans l'horloge du navigateur — la seule que cet écran ait, et
   // la même que celle qui calcule `week_start`.
   const today = browserLocalDate();
@@ -830,7 +879,7 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
               {/* PRÉPARER LA SUITE. N'apparaît que s'il n'y a pas déjà un plan
                   suivant: au plus deux plans vivants, et la contrainte
                   d'exclusion le refuserait de toute façon. */}
-              {hasWeek && !showForm && !plans.next && (
+              {hasWeek && !showForm && !householdOwner && !plans.next && (
                 <Button
                   variant="secondary"
                   size="sm"
@@ -852,7 +901,10 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
               {/* Il ne s'affiche pas quand le formulaire est déjà ouvert (il
                   ouvrirait ce qui est ouvert) ni quand il n'y a pas de semaine
                   (il n'y a pas d'« autre »). */}
-              {hasWeek && !showForm && (
+              {/* ⚠️ `!householdOwner` — voir la constante: le maître d'un
+                  foyer compose depuis `/app/household`, et ce bouton-ci lui
+                  écrirait un plan personnel que son propre écran masque. */}
+              {hasWeek && !showForm && !householdOwner && (
                 <Button
                   variant="secondary"
                   size="sm"
@@ -934,6 +986,24 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
               {mealCopy("meals.tick.failed")}
             </p>
           )}
+          {/* ── L8/O2 · LA GÂCHETTE DE LA PRISE DE MAIN ────────────────────
+              Elle est ICI, au-dessus du plan de l'onglet REGARDÉ, parce que le
+              geste porte sur CE plan-là et sur aucun autre — même prudence que
+              « Build another plan » juste au-dessus, qui a déjà coûté une
+              semaine de courses le jour où il devinait sa cible.
+
+              Sans ce bouton, `keel_validate_meal_plan` n'a aucun appelant:
+              personne ne prend la main, donc rien n'est jamais proposé au
+              maître, donc la fusion, la défusion et l'avertissement n'existent
+              pour aucun utilisateur réel. */}
+          <TakeTheHandCard
+            place={place}
+            plan={result ?? null}
+            onValidated={async () => {
+              const loaded = await loadMealPlans(userId, browserLocalDate());
+              setPlans({ current: loaded.current, next: loaded.next });
+            }}
+          />
           {building
             ? (
               <Card tone="dashed">
@@ -941,7 +1011,13 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
               </Card>
             )
             : groups.length === 0
-            ? (
+            // ⚠️ PAS CETTE PHRASE-LÀ AU MAÎTRE D'UN FOYER. Elle dit « dis-moi
+            // par où commencer CI-DESSUS », et il n'y a plus de formulaire
+            // au-dessus pour lui (D2: il compose depuis `/app/household`). La
+            // carte de prise de main juste au-dessus porte déjà l'explication
+            // ET la porte: ajouter une consigne qui vise un formulaire absent
+            // ferait chercher un bouton qui n'existe pas.
+            ? householdOwner ? null : (
               <Card tone="dashed">
                 <p className="text-sm text-gray-500">{c("meals.result.empty")}</p>
               </Card>

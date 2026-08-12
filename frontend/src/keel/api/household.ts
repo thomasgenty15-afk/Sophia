@@ -30,6 +30,10 @@ import {
   assessBirthDate,
   birthDateWritable,
 } from "../../../../supabase/functions/_shared/keel/student_age.ts";
+import {
+  type HouseholdPlanTrace,
+  readHouseholdPlanTrace,
+} from "./householdPlanTrace";
 
 export type HouseholdRole = "owner" | "member";
 /** Jumeau de `keel_household_member_age` en base et de `household.ts` côté edge. */
@@ -922,8 +926,15 @@ export interface HouseholdMealResult {
  * `FunctionsHttpError` porte la `Response` dans `context`. On la lit, une
  * fois, et on rend le jeton. `null` quand il n'y a rien à lire: on ne
  * fabrique pas un motif à partir d'une panne réelle.
+ *
+ * ⚠️ EXPORTÉE POUR `householdMerge.ts` (L8), et pas recopiée là-bas: les
+ * gestes de fusion et de défusion passent par la MÊME fonction edge que la
+ * composition, donc par les mêmes refus nommés. Une seconde lecture du corps
+ * aurait divergé le jour où la forme de la réponse bouge, et la divergence
+ * aurait été muette — on afficherait « non-2xx » à la place d'un refus qui a
+ * un nom.
  */
-async function namedEdgeRefusal(error: unknown): Promise<string | null> {
+export async function namedEdgeRefusal(error: unknown): Promise<string | null> {
   const ctx = (error as { context?: unknown } | null)?.context;
   if (!ctx || typeof (ctx as Response).json !== "function") return null;
   try {
@@ -969,11 +980,32 @@ export interface MemberPortionView {
   shares: Array<{ preparationId: string; note: string }>;
 }
 
+/**
+ * UN PLAT DU PLAN DU FOYER, RÉDUIT À CE QUI SE DIT À TABLE (L8, D9).
+ *
+ * ⚠️ NI `why` NI `ingredients`. Le « pourquoi » d'un plat est écrit pour la
+ * personne qu'il sert et le plan du foyer est lu à voix haute par tout le
+ * foyer: c'est la même famille de risque que L4 refuse d'envoyer au prompt de
+ * fusion, et que la garde de non-divulgation de L6 tient à l'entrée. Un écran
+ * qui l'affiche annule les deux.
+ *
+ * Le titre, le jour et le moment suffisent à « ce que la maison cuisine ».
+ */
+export interface HouseholdDishView {
+  title: string;
+  day: string | null;
+  slot: string | null;
+}
+
 export interface HouseholdMealView {
   mealId: string;
   startsOn: string;
   durationDays: number;
   portions: MemberPortionView[];
+  /** Ce que la maison cuisine — la moitié qu'un secondaire n'avait nulle part. */
+  dishes: HouseholdDishView[];
+  /** Ce qui n'a pas fusionné, et pourquoi (D9). Voir `householdPlanTrace.ts`. */
+  trace: HouseholdPlanTrace;
 }
 
 /**
@@ -992,7 +1024,10 @@ export interface HouseholdMealView {
 export async function loadHouseholdMeal(today: string): Promise<HouseholdMealView | null> {
   const { data, error } = await supabase
     .from("student_generated_meals")
-    .select("id, starts_on, duration_days, member_portions")
+    // `dishes` et `generated_from` sont arrivés avec L8: le premier parce qu'un
+    // secondaire n'avait NULLE PART où voir ce que la maison cuisine (D9), le
+    // second parce que « ce qui n'a pas fusionné » n'est lisible que là.
+    .select("id, starts_on, duration_days, member_portions, dishes, generated_from")
     .not("household_id", "is", null)
     // ⚠️ `plan_kind` EST LA MOITIÉ DU FILTRE — mesuré le 2026-08-12 sous un vrai
     // jeton. `household_id is not null` ne dit PAS « plan du foyer »: un plan
@@ -1035,5 +1070,67 @@ export async function loadHouseholdMeal(today: string): Promise<HouseholdMealVie
         }).filter((s) => s.preparationId && s.note),
       };
     }).filter((p) => p.memberId),
+    dishes: readHouseholdDishes(row.dishes),
+    trace: readHouseholdPlanTrace(row.generated_from),
   };
+}
+
+/**
+ * Les plats d'un plan, réduits à ce qui se dit à table. Voir `HouseholdDishView`
+ * pour ce qui est délibérément laissé de côté, et pourquoi.
+ */
+function readHouseholdDishes(raw: unknown): HouseholdDishView[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((entry) => {
+    const d = (entry ?? {}) as Record<string, unknown>;
+    return {
+      title: String(d.title ?? "").trim(),
+      day: typeof d.day === "string" && d.day.trim() ? d.day.trim() : null,
+      slot: typeof d.slot === "string" && d.slot.trim() ? d.slot.trim() : null,
+    };
+  }).filter((d) => d.title !== "");
+}
+
+/**
+ * LE MAÎTRE ACCÈDE À TOUS LES PLANS — et sa surface de cuisine n'en affiche
+ * qu'un (D9, mot pour mot).
+ *
+ * ── « ACCÉDER » ET « AFFICHER » NE SONT PAS LA MÊME CHOSE ─────────────────
+ * C'est tout l'arbitrage du lot. Sa cuisine ne montre QUE le plan qu'il
+ * cuisine — un plan validé non fusionné n'y apparaît pas, parce que le but est
+ * de simplifier sa cuisine et non de lui faire suivre N plans. Mais il doit
+ * pouvoir REGARDER celui d'un secondaire, sur un geste explicite, pour décider
+ * s'il le fusionne. D'où: derrière un dépliant, jamais sur une carte.
+ *
+ * ⚠️ `.eq("user_id", …)` EXPLICITE, ET RLS N'EN DISPENSE PAS. La policy
+ * `student_generated_meals_household_read` rend TOUTE ligne portant le foyer —
+ * y compris le plan personnel d'un AUTRE secondaire. Ce dépôt a déjà rendu la
+ * ligne d'un élève à son coach faute d'un `.eq(user_id)`; ici la même
+ * négligence ferait lire à un secondaire le plan d'un autre secondaire.
+ *
+ * ⚠️ `plan_kind = 'personal'` EST L'AUTRE MOITIÉ. `household_id is not null` ne
+ * veut pas dire « plan du foyer », et sa réciproque est vraie aussi: sans ce
+ * filtre, demander « le plan de Zoé » sur le compte du maître rendrait le plan
+ * DU FOYER. Voir `household_plan_kind_readers_test.ts`.
+ */
+export async function loadMemberPersonalPlan(
+  userId: string,
+  today: string,
+): Promise<HouseholdDishView[] | null> {
+  if (!userId) return null;
+  const { data, error } = await supabase
+    .from("student_generated_meals")
+    .select("id, dishes")
+    .eq("user_id", userId)
+    .eq("plan_kind", "personal")
+    .is("retired_at", null)
+    .gte("ends_on", today)
+    .order("starts_on", { ascending: true })
+    .limit(1);
+  // ÉCHOUE FORT. « Son plan ne contient rien » et « on n'a pas pu le lire »
+  // sont deux phrases différentes, et l'appelant en rend deux.
+  if (error) throw new Error(error.message);
+  const row = (data ?? [])[0] as Record<string, unknown> | undefined;
+  if (!row) return null;
+  return readHouseholdDishes(row.dishes);
 }

@@ -48,7 +48,11 @@ import {
   resolveRequestedWindow,
   windowDayOrder,
 } from "../api/mealWindow";
+import { loadMutedMembers, muteMergeProposals } from "../api/householdMerge";
+import { edgeRefusalKey, mergeSettingRefusalKey } from "../copy/planRefusals";
 import MealPickerGrid from "../components/MealPickerGrid";
+import HouseholdMergeCard from "../components/HouseholdMergeCard";
+import HouseholdPlanCard from "../components/HouseholdPlanCard";
 import { t } from "../i18n/t";
 import KeelAppShell from "../components/KeelAppShell";
 import { Badge } from "../components/ui/Badge";
@@ -144,8 +148,15 @@ function householdErrorText(reason: string): string | null {
       return t("household.error.not_claimed");
     case "not_found":
       return t("household.error.not_found");
-    default:
-      return null;
+    default: {
+      // L8/D17 — les motifs propres aux deux RPC de réglage de fusion
+      // (`muted_required`, `member_is_owner`, `notice_moved_on`…). Ils sont
+      // dans leur propre table plutôt qu'ici parce qu'ils sont partagés avec la
+      // carte de proposition; ce repli les fait quand même arriver en mots
+      // quand le geste part de cet écran-ci.
+      const merge = mergeSettingRefusalKey(reason);
+      return merge ? t(merge) : null;
+    }
   }
 }
 
@@ -194,6 +205,18 @@ export default function HouseholdPage(): React.ReactElement {
    * lignes à montrer dès que la lecture a eu lieu.
    */
   const [rhythm, setRhythm] = React.useState<EatingOccasionSlot[]>([]);
+  /**
+   * D17 — LES BOUCHES DONT LE MAÎTRE NE VEUT PLUS VOIR LES PROPOSITIONS.
+   *
+   * `null` = pas lu, ou lecture impossible — et les deux se traitent pareil à
+   * l'écran: pas d'interrupteur. Un interrupteur qui affiche toujours
+   * « éteint » se fait basculer deux fois.
+   *
+   * ⚠️ SEUL LE MAÎTRE PEUT LIRE CETTE TABLE (RLS, policy `owner`), et c'est
+   * voulu: un secondaire n'a pas à apprendre qu'on a coupé les propositions qui
+   * le concernent.
+   */
+  const [mutedMembers, setMutedMembers] = React.useState<Set<string> | null>(null);
   /**
    * LE GEL (chantier 3, D4). `null` = pas encore lu.
    *
@@ -258,7 +281,13 @@ export default function HouseholdPage(): React.ReactElement {
         // lignes de la grille — et lui seul peut les lire: RLS sur
         // `student_goals` ne rend que SA ligne. Le demander pour un membre
         // rendrait `null`, puis le défaut, c'est-à-dire une lecture inutile.
-        if (hh.me?.role === "owner") setRhythm(await loadHouseholdRhythm(userId));
+        if (hh.me?.role === "owner") {
+          setRhythm(await loadHouseholdRhythm(userId));
+          // D17 — même raison que la ligne au-dessus: la table n'est lisible
+          // que du maître, et la demander pour un membre rendrait zéro ligne,
+          // c'est-à-dire « personne n'est masqué » — un fait qu'on n'a pas.
+          setMutedMembers(await loadMutedMembers());
+        }
         // APRÈS les lectures de contenu, et c'est le sujet: elles ne dépendent
         // PAS du gel. On gèle la production, pas la consultation — les bouches,
         // les allergies, les envies et le plan courant se lisent gelés ou non.
@@ -379,8 +408,10 @@ export default function HouseholdPage(): React.ReactElement {
                 restrictions={restrictions}
                 allergies={allergies}
                 busy={busy}
+                mutedMembers={mutedMembers}
                 rhythm={rhythm}
                 awayWindow={awayWindow}
+                onMute={(memberId, next) => run(() => muteMergeProposals(memberId, next))}
                 onSaveAway={(memberId, next) => run(() => setMemberAway(memberId, next))}
                 onSave={(member, patch) => saveMember(member, patch, { userId })}
                 onRemove={(memberId) => run(() => removeHouseholdMember(memberId))}
@@ -398,7 +429,28 @@ export default function HouseholdPage(): React.ReactElement {
                 onSubmit={(body) => run(() => submitEnvy(envyWeek, body))}
               />
               {canCompose ? <ComposeCard household={household} onDone={refresh} /> : null}
+              {/* ── L8/D10 — CE QU'ON PROPOSE AU MAÎTRE ────────────────────
+                  APRÈS la composition et AVANT la table: une proposition de
+                  fusion se lit une fois qu'on sait qu'un plan existe, et elle
+                  explique la table qui vient juste en dessous. La carte se
+                  tait d'elle-même pour un secondaire (le serveur refuse 403,
+                  et D10 met le geste dans les mains du maître). */}
+              <HouseholdMergeCard isOwner={isOwner} onComposed={refresh} />
               {meal ? <TableCard meal={meal} /> : null}
+              {/* ── L8/D9 — CE QUE LA MAISON CUISINE, ET CE QUI N'A PAS
+                  FUSIONNÉ. Pour un secondaire c'est le seul endroit où le plan
+                  du foyer se voit; pour tout le monde, c'est là que la
+                  divergence est attribuée à la divergence. */}
+              {meal
+                ? (
+                  <HouseholdPlanCard
+                    meal={meal}
+                    members={household.members}
+                    meMemberId={me?.memberId ?? null}
+                    isOwner={isOwner}
+                  />
+                )
+                : null}
               <InviteCard household={household} busy={busy} />
             </>
           )}
@@ -755,15 +807,18 @@ function AddMouthCard(
  * quelle nature est cette contrainte.
  */
 function MembersCard(
-  { household, restrictions, allergies, busy, rhythm, awayWindow, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction }: {
+  { household, restrictions, allergies, busy, mutedMembers, rhythm, awayWindow, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction }: {
     household: HouseholdView;
     restrictions: RestrictionView[];
     allergies: AllergyView[];
     busy: boolean;
+    /** D17 — les bouches dont on ne veut plus voir les propositions. */
+    mutedMembers: Set<string> | null;
     /** Les LIGNES de la grille de présence — les moments d'une journée. */
     rhythm: EatingOccasionSlot[];
     /** Les COLONNES: la fenêtre que la composition va couvrir. */
     awayWindow: { tokens: string[]; dates: string[] };
+    onMute: (memberId: string, muted: boolean) => void;
     onSaveAway: (memberId: string, away: AwayDay[]) => Promise<boolean>;
     onSave: (
       member: HouseholdMemberView,
@@ -826,8 +881,13 @@ function MembersCard(
             allergies={allergies.filter((a) => a.memberId === m.memberId)}
             restrictions={restrictions.filter((r) => r.memberId === m.memberId)}
             busy={busy}
+            // D17 — `null` tant que le réglage n'est pas lu, et `null` aussi
+            // quand la lecture a échoué: on ne montre pas un interrupteur dont
+            // on ignore la position.
+            muted={mutedMembers === null ? null : mutedMembers.has(m.memberId)}
             rhythm={rhythm}
             awayWindow={awayWindow}
+            onMute={(next) => onMute(m.memberId, next)}
             onSaveAway={(next) => onSaveAway(m.memberId, next)}
             onSave={(patch) => onSave(m, patch)}
             onRemove={() => onRemove(m.memberId)}
@@ -858,14 +918,17 @@ function MemberBadges({ member }: { member: HouseholdMemberView }) {
 }
 
 function MemberRow(
-  { member, isMe, allergies, restrictions, busy, rhythm, awayWindow, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction }: {
+  { member, isMe, allergies, restrictions, busy, muted, rhythm, awayWindow, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction }: {
     member: HouseholdMemberView;
     isMe: boolean;
     allergies: AllergyView[];
     restrictions: RestrictionView[];
     busy: boolean;
+    /** D17 — `null` = le réglage n'a pas pu être lu. Voir l'interrupteur. */
+    muted: boolean | null;
     rhythm: EatingOccasionSlot[];
     awayWindow: { tokens: string[]; dates: string[] };
+    onMute: (muted: boolean) => void;
     onSaveAway: (away: AwayDay[]) => Promise<boolean>;
     onSave: (
       patch: { firstName: string; birthDate: string | null; goal: MemberGoal | null },
@@ -1043,6 +1106,39 @@ function MemberRow(
               {member.userId
                 ? t("household.member.detach_hint")
                 : t("household.member.remove_hint")}
+            </p>
+          ) : null}
+
+          {/* ── D17 · LE RÉGLAGE DISCRET (L8) ────────────────────────────────
+              « Un réglage discret permet au maître de ne plus se voir proposer
+              la fusion pour une personne donnée. Assumé comme un peu brutal,
+              donc caché. » Il est donc ICI, rangé dans la fiche de la
+              personne, et JAMAIS sur la carte de proposition: un bouton
+              « ne plus me parler de lui » à côté de « fusionner » ferait du
+              geste brutal le geste le plus facile.
+
+              ⚠️ IL NE BLOQUE PAS LA FUSION, et la phrase d'aide le dit: le
+              geste reste possible (`operation: "merge"` ne lit pas ce réglage,
+              un test de source le tient), et il ne coupe pas l'avertissement
+              de D8, qui parle du plan du MAÎTRE.
+
+              RÉSERVÉ AUX BOUCHES QUI ONT UN COMPTE: une bouche sans compte n'a
+              pas de plan à elle (D3), donc rien à proposer, donc rien à taire.
+              `muted === null` ⇒ on n'a pas pu lire le réglage: on ne montre
+              pas un interrupteur dont on ignore la position. */}
+          {member.role !== "owner" && member.userId && muted !== null ? (
+            <button
+              type="button"
+              className="self-start text-xs text-neutral-500 underline disabled:opacity-50"
+              disabled={busy}
+              onClick={() => onMute(!muted)}
+            >
+              {muted ? t("household.merge.unmute") : t("household.merge.mute")}
+            </button>
+          ) : null}
+          {member.role !== "owner" && member.userId && muted !== null ? (
+            <p className="text-xs text-neutral-500">
+              {muted ? t("household.merge.muted") : t("household.merge.mute_hint")}
             </p>
           ) : null}
 
@@ -1477,16 +1573,21 @@ function ComposeCard(
             });
             await onDone();
           } catch (e) {
-            // LE MOTIF NOMMÉ, TRADUIT. `generateHouseholdMeal` remonte
-            // désormais le jeton du serveur (`household_frozen`) plutôt que
-            // « non-2xx status code ». La course existe: l'écran a lu sa
-            // couverture, l'essai a expiré entre-temps, on clique. Sans cette
-            // ligne, ce cas-là — le seul où le refus arrive par surprise — se
-            // lirait comme une panne.
+            // LE MOTIF NOMMÉ, TRADUIT. `generateHouseholdMeal` remonte le
+            // jeton du serveur plutôt que « non-2xx status code ». La course
+            // existe: l'écran a lu sa couverture, l'essai a expiré entre-temps,
+            // on clique. Sans cette ligne, ce cas-là — le seul où le refus
+            // arrive par surprise — se lirait comme une panne.
+            //
+            // ⚠️ LA TABLE EST FERMÉE ET PARTAGÉE (L8). Elle ne portait qu'UN
+            // jeton (`household_frozen`) alors que ce bouton peut recevoir
+            // `window_fully_away` (L2), `all_members_have_own_plan` (L3),
+            // `goal_required`, `no_coach`, `empty_household`, `empty_meal`…
+            // Chacun de ces lots a laissé sa dette en la nommant; elle se solde
+            // dans `copy/planRefusals.ts`, avec un test de dérive.
             const raw = e instanceof Error ? e.message : String(e);
-            setFailure(
-              raw === "household_frozen" ? t("household.paused.body") : raw,
-            );
+            const key = edgeRefusalKey(raw);
+            setFailure(key ? t(key) : raw);
           } finally {
             setWorking(false);
           }

@@ -356,6 +356,24 @@ export interface GeneratedMealResult {
    */
   startsOn: string;
   durationDays: number;
+  /**
+   * L3 — LA NATURE DE CE PLAN, et elle n'est PAS déductible de `household_id`.
+   *
+   * `personal` est ce qu'un secondaire compose pour lui; `household` est ce que
+   * le maître cuisine pour toute la table. Un plan PERSONNEL porte aussi le
+   * `household_id` (`generate-meal-v1` l'estampe exprès, pour que la fusion le
+   * retrouve): deux lecteurs indépendants s'y sont trompés le 2026-08-12, et
+   * c'est pour ça que la colonne voyage désormais jusqu'ici.
+   */
+  planKind: "personal" | "household";
+  /**
+   * D7 — QUAND SON PORTEUR A DÉCLARÉ LE CUISINER LUI-MÊME. `null` = jamais.
+   *
+   * C'est ce que le foyer lit pour savoir qui a pris la main, et ce que D8
+   * compare pour détecter « validé APRÈS la fusion ». Écrit par la seule
+   * `keel_validate_meal_plan`, sous le jeton du titulaire.
+   */
+  validatedAt: string | null;
 }
 
 export interface PantryItem {
@@ -452,6 +470,65 @@ export async function generateMeal(
     shoppingList: readShopping(shopping),
     fixedIntakes: readFixedIntakes(payload.fixed_intakes),
     dayProperties: readDayProperties(payload.day_properties),
+    // `generate-meal-v1` ne compose QUE des plans personnels (D2: le plan du
+    // maître EST le plan du foyer, et il se compose depuis l'écran du foyer).
+    // Écrit en dur plutôt que lu dans la réponse: la fonction ne rend pas la
+    // nature, et la deviner d'un champ absent la rendrait `undefined` — donc
+    // « pas personnel » pour tout lecteur naïf.
+    planKind: "personal",
+    // Une composition neuve n'est JAMAIS validée: prendre la main est un geste
+    // séparé, et l'écran le demande explicitement (O2).
+    validatedAt: null,
+  };
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * O2 — LA GÂCHETTE. PRENDRE LA MAIN SUR SA PROPRE SEMAINE (D2, D7).
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⚠️ C'EST LE SEUL APPELANT DE `keel_validate_meal_plan` DU PRODUIT, et jusqu'à
+ * ce lot il n'y en avait AUCUN. Le registre l'a écrit trois lots de suite:
+ * « aucune surface produit n'appelle `keel_validate_meal_plan` — la prise de
+ * main est inatteignable par un vrai utilisateur ». Sans cette ligne, personne
+ * ne prend la main, donc rien n'est jamais proposé au maître, donc ni fusion,
+ * ni défusion, ni avertissement n'existent: sept lots de serveur reposent sur
+ * ce geste.
+ *
+ * ── POURQUOI PAR POSTGREST, ET PAS PAR UNE FONCTION EDGE ─────────────────
+ * La RPC est gatée sur `auth.uid()` et son `EXECUTE` est RÉVOQUÉ à
+ * `service_role` (migration 20260811140000, exprès: `auth.uid()` y est NULL, et
+ * l'appel rendait un 200 qui n'écrivait rien). AUCUNE fonction edge ne peut
+ * donc la porter. La gâchette est structurellement un appel PostgREST sous le
+ * jeton du titulaire — c'est-à-dire cette ligne-ci.
+ *
+ * ── `already` N'EST PAS UN ÉCHEC ─────────────────────────────────────────
+ * La RPC est idempotente SOUS CONCURRENCE: la garde est dans le prédicat de
+ * l'`update`, et quatre appels simultanés ne redatent pas la ligne (mesuré le
+ * 2026-08-11 sur six plans, zéro collision). `already: true` veut dire
+ * « c'était déjà validé », ce qui est le résultat souhaité — le traiter comme
+ * une erreur ferait d'un double-clic un écran rouge, et pousserait à recliquer.
+ */
+export interface ValidateMealPlanResult {
+  ok: boolean;
+  /** Vrai quand ce plan était DÉJÀ validé. Un succès, pas un refus. */
+  already: boolean;
+  /** Le motif NOMMÉ du refus, ou `""`. Traduit par `copy/planRefusals.ts`. */
+  reason: string;
+}
+
+export async function validateMealPlan(
+  planId: string,
+): Promise<ValidateMealPlanResult> {
+  const { data, error } = await supabase.rpc("keel_validate_meal_plan", {
+    p_plan: planId,
+  });
+  if (error) throw new Error(`[keel/mealGeneration] validate failed: ${error.message}`);
+  const row = (data ?? {}) as Record<string, unknown>;
+  return {
+    ok: row.ok === true,
+    already: row.already === true,
+    reason: String(row.reason ?? ""),
   };
 }
 
@@ -613,6 +690,9 @@ async function readInvokeError(error: unknown): Promise<string | null> {
 
 /** Les colonnes qu'un plan doit rendre pour être affichable ET situable. */
 const MEAL_COLUMNS =
+  // L8 — `plan_kind` sert à ne montrer QUE le plan qu'on cuisine (D9), et
+  // `validated_at` à dire si on a pris la main dessus (D7). Voir `cookedPlans`.
+  "plan_kind, validated_at, " +
   "id, dishes, preparations, cooking_sessions, shopping_list, context, " +
   // `generated_from` porte, depuis FF-053, ce SOUS QUOI le plan a été composé —
   // apports fixes et propriétés de jour. Sans cette colonne, la grille
@@ -654,7 +734,48 @@ function readMealRow(raw: unknown): GeneratedMealResult {
     createdAt: typeof row.created_at === "string" ? row.created_at : null,
     startsOn: String(row.starts_on ?? ""),
     durationDays: Number(row.duration_days) || 7,
+    // Hors vocabulaire ⇒ `personal`, qui est le DÉFAUT de la colonne en base
+    // (`not null default 'personal'`) et la direction sûre: se tromper vers
+    // « personnel » montre à quelqu'un un plan qui est le sien, se tromper vers
+    // « foyer » lui cacherait le seul plan qu'il a.
+    planKind: row.plan_kind === "household" ? "household" : "personal",
+    validatedAt: typeof row.validated_at === "string" ? row.validated_at : null,
   };
+}
+
+/**
+ * D9 — LE PLAN QU'ON CUISINE, ET LUI SEUL.
+ *
+ * > « Le maître ACCÈDE à tous les plans, mais sa surface de cuisine n'affiche
+ * > QUE le plan qu'il cuisine. Un plan validé non fusionné n'y apparaît pas: le
+ * > but est de simplifier sa cuisine, pas de lui faire suivre N plans. »
+ *
+ * ── POURQUOI LA RÈGLE SE LIT SUR LES LIGNES, ET PAS SUR LE RÔLE ──────────
+ * Seul un compte MAÎTRE porte des lignes `plan_kind = 'household'`: c'est la
+ * fonction du foyer qui les écrit, sur son user_id. « J'ai un plan de foyer
+ * vivant » est donc exactement « je suis le maître d'un foyer qui a composé »,
+ * sans lire ni `household_members`, ni un rôle, ni une seconde requête. Une
+ * lecture de plus aurait été une seconde définition de la même chose — et le
+ * jour où les deux divergent, personne ne sait laquelle ment.
+ *
+ * ⚠️ CE N'EST PAS DÉFENSIF, C'EST NÉCESSAIRE. Les deux natures peuvent couvrir
+ * LES MÊMES JOURS: la contrainte d'exclusion est scopée `(user_id, plan_kind)`,
+ * exprès (« sans ça le maître ne peut pas tenir les deux »). Sans ce filtre,
+ * `selectMealPlans` choisirait entre deux plans vivants du même jour selon leur
+ * seule date de début — le maître verrait tantôt sa semaine de foyer, tantôt un
+ * plan personnel oublié, sans rien pour distinguer les deux à l'écran.
+ *
+ * ── LE REPLI EST LE PLAN PERSONNEL ───────────────────────────────────────
+ * Aucun plan de foyer vivant ⇒ on rend tout le reste. C'est le cas du compte
+ * individuel (l'entrée du produit est à 1), celui du secondaire qui a pris la
+ * main, et celui du maître qui n'a pas encore composé — à qui on ne montre pas
+ * un écran vide alors qu'il a un plan.
+ */
+export function cookedPlans(
+  rows: readonly GeneratedMealResult[],
+): GeneratedMealResult[] {
+  const household = rows.filter((r) => r.planKind === "household");
+  return household.length > 0 ? household : rows.filter((r) => r.planKind !== "household");
 }
 
 /**
@@ -701,7 +822,10 @@ export async function loadMealPlans(
     throw new Error(`[keel/mealGeneration] load failed: ${result.error.message}`);
   }
 
-  const rows = ((result.data ?? []) as unknown[]).map(readMealRow);
+  // D9 — ON NE TRIE QUE CE QU'ON CUISINE. Le filtre est AVANT `selectMealPlans`
+  // et pas après: deux plans de natures différentes peuvent couvrir le même
+  // jour, et « le courant » n'a de sens qu'une fois la nature tranchée.
+  const rows = cookedPlans(((result.data ?? []) as unknown[]).map(readMealRow));
   const picked = selectMealPlans(rows, today);
   return {
     current: picked.current,

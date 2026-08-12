@@ -42,7 +42,7 @@ prennent la main, et les comptes individuels sans foyer.
 | **D6** | Échelle de fusion : ① même plat, ratios différents ② plats différents, même session de cuisson ③ sessions séparées. Renonce dès qu'un plat commun forcerait quelqu'un **hors de sa direction de service** — critère vérifiable, pas jugement de goût. | ✅ livré (L4) |
 | **D7** | Qui n'a pas de plan **validé** au moment où le maître compose est automatiquement pris dans le plan du foyer. La composition n'attend jamais personne. | ✅ livré (L3) |
 | **D8** | Validation **après** la fusion : le maître est averti, et il a trois sorties — refaire sans ce user (*défusion*), refusionner à partir de son plan, ou refuser. Dans tous les cas le user garde son plan. Consigne de défusion, mot pour mot : *rester au plus près du plan de base, sans user X*. | ✅ livré (L5) |
-| **D9** | Le maître **accède** à tous les plans, mais sa surface de cuisine n'affiche **que** le plan qu'il cuisine. Un plan validé non fusionné n'y apparaît pas : le but est de simplifier sa cuisine, pas de lui faire suivre N plans. Un secondaire voit le plan du foyer et le sien. | ⬜ à faire |
+| **D9** | Le maître **accède** à tous les plans, mais sa surface de cuisine n'affiche **que** le plan qu'il cuisine. Un plan validé non fusionné n'y apparaît pas : le but est de simplifier sa cuisine, pas de lui faire suivre N plans. Un secondaire voit le plan du foyer et le sien. | ✅ livré (L8) |
 | **D10** | La fusion est **manuelle**, déclenchée par le maître, sur proposition : *« le plan de X a été validé, voulez-vous le fusionner ? »* | ✅ livré (L5) — le lecteur ; le bouton est L8 |
 | **D11** | Plafond : `N + 3` fusions par foyer et par semaine ISO, N = comptes actifs. Compté en base, refus nommé `merge_quota_exhausted`. | ✅ livré (L7) |
 | **D12** | Pas de reprise des plans produits par l'ancien chemin : ils seront régénérés. | ✅ acté |
@@ -102,7 +102,7 @@ Campagne de test du 2026-08-11, 5 lanes en conditions réelles, ~80 vérificatio
 | ~~**L5**~~ | ~~**La proposition et la défusion (D8, D10, D17)**~~ | L4 | ✅ **livré le 2026-08-12** — voir §« L5, ce qui est construit » |
 | ~~**L6**~~ | ~~**Mémoire et préférences par titulaire (D4)**~~ | L4 | ✅ **livré le 2026-08-12** — voir §« L6, ce qui est construit » |
 | ~~**L7**~~ | ~~**Le plafond de fusions (D11)**~~ | L4 | ✅ **livré le 2026-08-12** — voir §« L7, ce qui est construit » |
-| **L8** | **Les écrans (D9)** — plan du foyer, plan perso, la proposition, ce qui n'a pas fusionné et pourquoi. | L4, L5 | |
+| ~~**L8**~~ | ~~**Les écrans (D9)**~~ | L4, L5 | ✅ **livré le 2026-08-12** — voir §« L8, ce qui est construit ». ⚠️ O2 est refermé côté écran ; un secondaire reste sans coach (voir point 1) |
 | ~~**L9**~~ | ~~**La date de naissance (D18)**~~ | — | ✅ **livré le 2026-08-12** — voir §« L9, ce qui est construit » |
 | **L10** | **QA réelle** sur un foyer à objectifs divergents : la prise de main, la fusion, la défusion, le repli séparé, les fenêtres décalées. | tout | |
 
@@ -289,7 +289,7 @@ l'écrivain.
 | # | Défaut | Où | Décision |
 |---|---|---|---|
 | **O1** | Deux plans personnels **adjacents** qui couvrent ensemble toute la fenêtre ne prennent pas la main | `household_hand.ts:249` | **Laissé.** La direction d'erreur est sûre (une assiette de trop), mais le motif écrit du recouvrement total ne s'applique pas : la personne n'a aucun jour sans rien. **À trancher en L4**, qui travaille déjà par jour sur l'intersection — c'est là que l'union de couverture a sa place, pas ici |
-| **O2** | **Aucune surface produit n'appelle `keel_validate_meal_plan`** — la prise de main est aujourd'hui inatteignable par un vrai utilisateur | ni front, ni edge | **Bloquant pour L5/L8.** Le mécanisme est juste, la gâchette manque. À ne pas laisser tomber entre deux lots |
+| ~~**O2**~~ | ~~**Aucune surface produit n'appelle `keel_validate_meal_plan`**~~ | ni front, ni edge | ✅ **refermé par L8 le 2026-08-12** (`TakeTheHandCard` + `validateMealPlan`, et la route `/app/plan` élargie au foyer). ⚠️ Une DEUXIÈME porte reste fermée, hors L8: un secondaire n'a pas de coach, donc `generate-meal-v1` lui rend `no_coach` — voir §L8, « ce qui n'est pas prouvé » |
 | **O3** | La réponse HTTP ne porte pas `hand` — l'exclusion n'y est lisible que par un id opaque dans `issues` | `generate-household-meal-v1/index.ts:1982` | **L8** en aura besoin pour dire *pourquoi* on cuisine pour un de moins. *L4 a rendu `merge` dans la réponse, pas `hand`: la fenêtre fusionnée et le barreau ne se déduisent de rien d'autre.* |
 | **O4** | Un `reference_member_id` déclaré qui prend la main est écarté **en silence** | `household_composition.ts:110-119` | Mineur, reconstructible par `hand.taken`. Non exercé aujourd'hui (`reference_member_id` est NULL partout) |
 
@@ -1394,6 +1394,185 @@ rouge · zéro ligne touchée traitée comme un succès → *7* rouge · la gard
   après ; ce qui sort reste trois jetons, jamais une date. Non élargi, non
   refermé.
 
+## L8, ce qui est construit — 2026-08-12
+
+> ⚠️ **Rien n'a été exercé en conditions réelles.** Aucun appel HTTP, aucune
+> génération modèle, aucun navigateur piloté. Ce qui suit est prouvé par des
+> tests purs, des tests de position sur la source et **12 mutations**. Suite
+> keel : 2 493 verts ; frontend keel : 570 verts. La campagne réelle est L10.
+
+**Aucune migration.** Ce lot ne crée ni table ni colonne : tout ce qu'il
+affiche existait déjà côté serveur et n'avait aucun lecteur.
+
+### O2 est refermé — et il l'était par DEUX portes, pas une
+
+La gâchette manquante est `frontend/src/keel/api/mealGeneration.ts`
+(`validateMealPlan`), appelée par `components/TakeTheHandCard.tsx`, monté dans
+`MealBuilder` sur `/app/plan`. Un appel PostgREST sous le jeton du titulaire,
+comme le registre l'avait prédit — `EXECUTE` est révoqué à `service_role`,
+aucune fonction edge ne peut la porter.
+
+**Mais la ligne ne suffisait pas, et la seconde porte n'était nommée nulle
+part.** `/app/plan` était derrière `KeelStudentRoute`, qui exige
+`profiles.keel_role = 'student'` — et la réclamation d'un profil de foyer ne
+l'écrit **pas** (20260811060000, en toutes lettres : « LE RÔLE N'EST PAS
+ÉCRIT »). Un compte secondaire lisait donc « tu n'es pas un élève » sur le seul
+écran où D2 lui demande d'agir. La route passe à `KeelHouseholdRoute` — la
+**même** correction que le lot 6 avait faite pour `/app/household`, pour la
+même population et la même raison. Un test de source la tient
+(`routeGuards.int.test.ts`), avec son cas passant : `/app/today`, `/app/chat`
+et `/app/progress` **restent** derrière la garde élève.
+
+**Une troisième porte reste fermée, et elle n'est pas de ce lot** : voir
+« ce qui n'est pas prouvé », point 1.
+
+### D9, appliqué des deux côtés
+
+| Surface | Ce qu'elle affiche |
+|---|---|
+| `/app/plan`, maître d'un foyer | **le plan du foyer, et lui seul** (`cookedPlans`). Son plan personnel, s'il en a un, n'y apparaît pas |
+| `/app/plan`, secondaire ou compte individuel | ses plans personnels, plus la carte de prise de main |
+| `/app/household`, secondaire | le plan du foyer (plats), la table, et ce qui n'a pas fusionné |
+| `/app/household`, maître | les propositions, la table, et ce qui n'a pas fusionné |
+
+**`cookedPlans` lit la RÈGLE SUR LES LIGNES, pas sur un rôle.** Seul un compte
+maître porte des lignes `plan_kind = 'household'` : « j'ai un plan de foyer
+vivant » **est** « je suis maître d'un foyer qui a composé », sans seconde
+requête ni seconde définition. Ce n'est pas défensif : la contrainte
+d'exclusion est scopée `(user_id, plan_kind)` **exprès**, donc les deux natures
+peuvent couvrir les mêmes jours, et `selectMealPlans` — qui ne connaît que des
+fenêtres — aurait tranché sur la date de début.
+
+**Le maître ACCÈDE, sans que sa cuisine AFFICHE** : un dépliant sur la carte de
+proposition (`loadMemberPersonalPlan`) montre les **titres** du plan d'un
+secondaire, jamais son `why` ni ses ingrédients. Le lecteur est scopé
+`user_id` **et** `plan_kind = 'personal'`, et le test des lecteurs le tient
+nommément — RLS rend ici *toute* ligne du foyer, y compris le plan personnel
+d'un autre secondaire.
+
+### Ce qui n'a pas fusionné, dit sans coupable
+
+`api/householdPlanTrace.ts` lit `generated_from.household` et rend des **lignes
+nommées**, jamais des phrases : l'écran traduit, le catalogue tient la règle
+d'écriture. Un FAIT (« son plan couvre les mêmes jours »), jamais une
+défaillance (« son plan n'a pas pu être fusionné »), et la phrase de divergence
+**avant** la liste des noms — lue après, la liste se serait déjà lue comme une
+liste de fautes.
+
+Sont dits : la reprise, la prise de main, le plan **partiel** (la seule ligne
+qui explique pourquoi quelqu'un qui a un plan reste à cette table), la
+défusion, et — première fois — **`covers_window: false`**, que L5 avait laissé
+tracé et sans lecteur (« le dire à l'écran est L8 »). **O5 aussi** : quand
+`merge.honoured.ok` est faux, l'écran le dit.
+
+Ne sont **pas** dits, exprès : `voices` (remonterait à ce qu'une personne a
+confié de son alimentation — la garde de non-divulgation de L6 existe pour que
+ça n'atteigne pas la table) et `presence` (déjà en grille, marquée par le
+maître lui-même).
+
+### Les refus, soldés en une table fermée et testée
+
+`copy/planRefusals.ts` mappe **tout** ce que les deux générateurs peuvent
+rendre : le gel de L1, `window_fully_away` de L2, `all_members_have_own_plan`
+de L3, les onze refus de fusion, les six de défusion, `merge_quota_exhausted`
+de L7, plus les motifs de `keel_validate_meal_plan` et des deux RPC de réglage.
+Un test de dérive **lit les sources** et exige la bijection dans les deux sens
+— la moitié qui compte étant « n'invente aucun jeton », le défaut qui avait
+laissé `restriction_flag` vivre des mois à côté du vrai `restriction_signal`.
+
+Le scan a trouvé deux trous **dans sa première rédaction** : les refus rendus
+par une CONSTANTE (`error: MERGE_QUOTA_EXHAUSTED` — c'est-à-dire précisément
+celui de L7) et les deux refus de défusion rendus par un **ternaire**.
+
+### Cinq décisions prises seules
+
+| Décision | Écarté | Pourquoi | Retour arrière |
+|---|---|---|---|
+| **`/app/plan` passe à `KeelHouseholdRoute`** | laisser la garde élève et documenter le trou | Sans elle la gâchette est du code inatteignable, et tout le chantier avec. C'est la correction déjà prise au lot 6 pour la même population | une ligne, et son test |
+| **Le maître ne compose plus depuis `/app/plan`** (formulaire et boutons masqués) | les laisser | `generate-meal-v1` lui écrirait un plan PERSONNEL que sa propre surface masque ensuite (D9) : trente secondes d'attente, un appel modèle payé, un `replaces` qui ne retire rien, et rien à l'écran. Un geste qui ne fait rien est indiscernable d'un geste qui a marché | une constante et ses trois usages |
+| **La carte de divergence vit sur `/app/household`**, pas sur `/app/plan` | la mettre sur la surface de cuisine du maître | La trace ne porte que des `member_id` : les nommer demande le roster, que seule cette page-là lit. Et c'est là que la table est déjà décrite | déplacer un composant |
+| **Le réglage de D17 est dans la fiche de la personne** | un bouton sur la carte de proposition | « Assumé comme un peu brutal, donc caché » : à côté de « fusionner », « ne plus me parler de lui » serait le geste le plus facile | déplacer un bouton |
+| **Le plan d'un secondaire est lisible en TITRES seulement** | tout le plat, ou rien | « Accéder » n'est pas « afficher ». Le `why` est écrit pour la personne qu'il sert, et le plan du foyer se lit à voix haute | supprimer un dépliant |
+
+### Les 12 mutations — chacune cassée, vue rouge, restaurée
+
+`exitsOf` qui rajoute un bouton absent d'`exits` · `dismiss_validated_at`
+confondu avec la date du plan montré · `remaining` recalculé côté navigateur ·
+le trou « il n'a rien à manger ces jours-là » jamais dit · `covers_window`
+absent lu comme « tout est couvert » · O5 jamais constaté · `cookedPlans`
+désarmé (D9) · `cookedPlans` qui ne rend QUE le foyer (le cas qui passe) · une
+étiquette de refus retirée · l'accès du maître non scopé par `user_id` · le
+même sans `plan_kind` · la porte `/app/plan` refermée sur la garde élève.
+
+**Un faux-vert trouvé par la mutation, et il était dans mon propre décor.** Le
+test « on ne recalcule pas `remaining` » passait avec `used: 4, limit: 5,
+remaining: 1` — où la soustraction rend exactement la même chose. Le décor a
+été refait sur une réponse **réelle** du serveur (la branche de refus rend
+`remaining: 0` avec `used > limit`), et la mutation devient rouge.
+
+### Ce qui n'est pas prouvé, et ce qui reste ouvert
+
+1. **⚠️ UN SECONDAIRE N'A PAS DE COACH, ET `generate-meal-v1` REFUSE
+   `no_coach`.** Mesuré par la lecture : `keel_household_join` n'écrit ni
+   `keel_role` ni ligne `coach_clients`, et `keel_signup_intent` vaut
+   `household_member` — le trigger de signup ne rattache au coach maison que
+   `student_free`. Le refus est désormais **nommé à l'écran**, mais la prise de
+   main reste **hors d'atteinte** tant que ce rattachement n'est pas décidé :
+   il crée un siège, donc il touche la facturation (le 4e siège, le paywall
+   J+15). **C'est une décision de produit, pas de code.** Sans elle, L10 ne
+   pourra pas exercer la chaîne complète.
+2. **Aucun écran n'a été monté ni piloté.** La suite frontend tourne en
+   environnement `node` et ne monte aucun composant : les décisions pures sont
+   testées, leur câblage ne l'est pas. Même limite qu'à L9.
+3. **`already: true` n'a pas été vu en vrai.** Le chemin est écrit et commenté,
+   la RPC est prouvée idempotente côté base (2026-08-11), mais aucun
+   double-clic réel n'a été mesuré à travers l'écran.
+4. **La proposition peut encore être refusée au moment du geste**
+   (`merge_member_away_all_window`, L5 §3). L'écran affiche le refus nommé et
+   relit — il ne le prédit pas.
+5. **Deux avertissements eslint PRÉEXISTANTS** dans `MealBuilder.tsx`
+   (`react-hooks/exhaustive-deps` sur deux `useMemo`), vérifiés au `HEAD` avant
+   ce lot. Non touchés.
+6. **Le test `coverage-guard` du frontend était rouge AVANT ce lot** (2 cas :
+   une fonction edge et un trigger non déclarés, tous deux d'un autre
+   chantier). Vérifié en remisant les changements. Non touché.
+
+## ⚠️ O7 — LA DERNIÈRE PORTE FERMÉE, ET ELLE A DE L'ARGENT DERRIÈRE
+
+**Un compte secondaire ne peut pas prendre la main.** Mesuré en HTTP réel le
+2026-08-12, sur le foyer de test :
+
+```
+POST /functions/v1/generate-meal-v1   (jeton du secondaire)
+  → 409 no_coach   en 373 ms
+select count(*) from coach_clients where student_user_id = <secondaire>  → 0
+select count(*) from coach_clients where student_user_id = <maître>      → 1
+```
+
+L8 a refermé **deux** des trois verrous — la gâchette de validation, qui n'existait
+nulle part, et la route `/app/plan`, qui exigeait `keel_role = 'student'` que la
+réclamation d'un profil de foyer n'écrit pas. Le troisième reste :
+`keel_household_join` **n'attache personne à un coach**, et `generate-meal-v1` exige
+un coach à doctrine publiée.
+
+Conséquence : **toute la chaîne « prendre la main → proposition → fusion » est
+inatteignable en production pour un secondaire.** Les sept lots serveur sont justes,
+prouvés, et personne ne peut les déclencher.
+
+**Je ne tranche pas, et c'est délibéré.** Rattacher un membre de foyer au coach
+maison à l'adhésion **crée un siège** — donc touche la facturation, le plafond du 4ᵉ
+siège et le paywall J+15. Une décision qui crée des sièges facturables ne se prend pas
+en passant, et elle n'est pas réversible de la même façon que le reste : les lignes
+créées existeraient.
+
+Trois sorties, à trancher :
+
+| Sortie | Ce que ça donne |
+|---|---|
+| **Rattacher à l'adhésion** | la chaîne s'ouvre, et chaque membre qui rejoint devient un siège — vérifier ce que ça fait au plafond et au paywall |
+| **Rattacher au premier geste** de prise de main | le siège n'existe que si la personne l'exerce vraiment ; plus étroit, plus tardif |
+| **Laisser** | le repli et la fusion restent du code juste que personne ne déclenche |
+
 ## Questions encore ouvertes
 
 1. **Les comptes individuels sans foyer restent sans garde de paiement.** D13
@@ -1401,5 +1580,11 @@ rouge · zéro ligne touchée traitée comme un succès → *7* rouge · la gard
    vérifié. Mesuré : 19 805 jetons. À trancher séparément.
 2. **`generate-week-plan-v1` n'a jamais été testé** — troisième générateur, passé
    au crible par aucune campagne.
-3. **Comment un secondaire sait-il qu'il PEUT prendre la main ?** L'écran doit le
-   dire, sinon la posture par défaut est invisible et personne ne l'exerce.
+3. ~~**Comment un secondaire sait-il qu'il PEUT prendre la main ?**~~
+   **Répondu par L8** : `/app/plan` porte une carte qui dit la posture par
+   défaut — être composé dans le plan du foyer est le cas NORMAL, aucune phrase
+   ne reproche de ne rien faire — puis ce que prendre la main coûte (sa cuisson
+   et ses courses), puis le bouton. ⚠️ **Elle n'est pas encore atteignable** :
+   la route est ouverte, mais un secondaire sans coach reçoit `no_coach` du
+   générateur. Ce rattachement crée un siège, donc il touche la facturation, et
+   il attend une décision.

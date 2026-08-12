@@ -53,6 +53,15 @@ export type HouseholdRole = (typeof HOUSEHOLD_ROLES)[number];
  * dates; le test de la base pinne la version SQL, celui d'ici pinne celle-ci.
  * Une divergence se verrait comme une portion d'adulte servie à un enfant —
  * c'est-à-dire trop tard.
+ *
+ * ⚠️ LE JUMELAGE PORTE SUR LA RÈGLE `date → état`, PAS SUR LA SOURCE DE LA
+ * DATE. Depuis D18 (20260812180000), la base résout DEUX colonnes avant
+ * d'appliquer la règle: `profiles.birth_date` — ce que la personne a rempli
+ * dans son « about you » — fait autorité dès qu'elle est utilisable, et
+ * `household_members.birth_date`, la fiche saisie par le maître, est le repli.
+ * Ce module ne voit jamais qu'UNE date, donc il n'a rien à arbitrer; le côté
+ * SQL de la règle s'appelle `keel_age_state(date)` et c'est le vrai jumeau
+ * d'`ageStateFromVerdict` ci-dessous.
  */
 export const MEMBER_AGE_STATES = ["minor", "adult", "unknown"] as const;
 export type MemberAgeState = (typeof MEMBER_AGE_STATES)[number];
