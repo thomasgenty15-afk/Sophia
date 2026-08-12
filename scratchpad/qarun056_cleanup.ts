@@ -29,6 +29,11 @@ const USERS = [
   // ── lot photo: exemption de budget ─────────────────────────────────────────
   "df80880e-7c9a-45e1-8c6b-d75ea8c5ee30", // budget consommé + sonde d'exclusion
   "d637b6bf-a359-4399-8d7d-d098fde09109", // preuve de bout en bout du tap « commandé »
+  // ── campagne cas limites ───────────────────────────────────────────────────
+  "388e4e3b-c86b-48b6-ae41-2ebd2a2e7dc7", // E1 tentative 1 (question désarmée)
+  "30d116e9-3112-447c-97c0-52602463cacc", // E1 REPRODUIT: le kebab perdu
+  "9a0e6ac0-a751-41be-aa40-cc9089510065", // E2/E4 persona A
+  "ad594af0-0e54-4475-a7aa-ceda41e061d2", // E2/E3 persona B (charge tronquée)
 ];
 const TABLES = [
   "student_weight_divergence_episodes",
