@@ -230,10 +230,14 @@ async function handleFormAnswer(
       slotKey: dish.slot,
       contentLocale: args.contentLocale,
       localDate: dishOn,
+      // ⚠️ LE PLAFOND DU PASSÉ (H1). Sans lui, une charge forgée citant le plat
+      // de DEMAIN écrivait un « j'ai mangé autre chose » daté de demain.
+      today: args.localDate,
       now: args.now,
     });
-    if (wrote.outcome === "failed") {
-      // On ne dit JAMAIS « c'est noté » sur une écriture qu'on n'a pas faite.
+    if (wrote.outcome !== "written" && wrote.outcome !== "already") {
+      // On ne dit JAMAIS « c'est noté » sur une écriture qu'on n'a pas faite —
+      // ni sur une écriture REFUSÉE parce qu'elle portait sur le futur.
       return STALE(language);
     }
     offPlanEventId = wrote.protocolEventId;
@@ -504,16 +508,68 @@ async function handleSessionAnswer(
     before_cook: cascade.beforeCookIndexes,
   }));
 
+  // ── L'ACTION N°5: DÉCALER LA SESSION ET CE QUI EN DÉPEND ────────────────
+  //
+  // C'est ici que le glissement devient réellement atteignable, et c'est la
+  // situation que la fiche décrit: la nourriture est peut-être achetée, la
+  // cuisson n'a pas eu lieu, et la question est « qu'est-ce qu'on en fait ».
+  //
+  // ⚠️ C'EST AUSSI LE SEUL CHEMIN OÙ `perishables_at_risk` PEUT MORDRE EN VRAI.
+  // Par la porte des courses, la vague qui nourrit la session est PAR
+  // CONSTRUCTION celle qu'on vient de déclarer non faite — donc rien n'est au
+  // frigo. Ici, au contraire, les courses PEUVENT avoir été faites: c'est
+  // exactement le « frigo plein » du §9, celui où rien n'échoue et où l'on
+  // trouve du poulet gâté trois jours plus tard.
+  const shift = await computeSessionShift(admin, {
+    userId: args.userId,
+    plan,
+    cookOn: reply.cookOn,
+  });
   const space = buildRealignmentSpace({
     plan,
     today: args.localDate,
     dishIndex: null,
     skippedSessionOn: reply.cookOn,
-    shift: null,
+    shift,
     maxFridgeDays: MAX_FRIDGE_DAYS,
   });
+  const head = renderCascadeOutcome({ cascade, language, space });
+
+  if (shift.ok) {
+    const proposal = buildShiftProposal({
+      plan,
+      shift,
+      language,
+      restrictionFlag: RESTRICTION_FLAG_HAS_NO_PRODUCER,
+    });
+    if (proposal) {
+      return {
+        body: `${head}\n${proposal.body}`,
+        buttons: proposal.buttons.map((b) => ({
+          payload: b.id,
+          label: b.title,
+        })),
+        handledAs: "keel_accident_session_skipped_shift_proposed",
+      };
+    }
+  } else if (shift.reason !== "no_session") {
+    // R15 — le motif est DIT, jamais un silence. Et AUCUN bouton: il n'y a rien
+    // à accepter, et une reproposition serait de l'insistance.
+    return {
+      body: `${head}\n${
+        renderShiftRefusal({
+          reason: shift.reason,
+          language,
+          offerNoCook: false,
+        })
+      }`,
+      buttons: [],
+      handledAs: `keel_accident_session_skipped_${shift.reason}`,
+    };
+  }
+
   return {
-    body: renderCascadeOutcome({ cascade, language, space }),
+    body: head,
     buttons: [],
     handledAs: "keel_accident_session_skipped",
   };

@@ -412,7 +412,7 @@ Deno.test(
     const bought: DoneWave[] = [{
       buyOn: "2026-08-10",
       purchasedOn: "2026-08-08",
-      carriesPerishable: true,
+      perishableTerms: ["white beans"],
     }];
     const out = planSessionShift({
       plan,
@@ -445,7 +445,7 @@ Deno.test(
     const bought: DoneWave[] = [{
       buyOn: "2026-08-10",
       purchasedOn: "2026-08-11",
-      carriesPerishable: true,
+      perishableTerms: ["white beans"],
     }];
     const call = (maxFridgeDays: number) =>
       planSessionShift({
@@ -464,6 +464,96 @@ Deno.test(
   },
 );
 
+Deno.test(
+  "🔴 DÉFAUT MESURÉ — le frais d'une cuisson QUI NE BOUGE PAS ne refuse rien",
+  () => {
+    // La première version refusait dès qu'une vague faite portait du frais et
+    // que la nouvelle date tombait après l'achat. Elle aurait donc refusé de
+    // décaler la cuisson de JEUDI à cause du poulet acheté pour celle de LUNDI —
+    // qui, elle, ne bouge pas. Un motif faux sur un glissement sûr.
+    const bought: DoneWave[] = [{
+      buyOn: "2026-08-10",
+      purchasedOn: "2026-08-10",
+      // Le poulet de la cuisson de LUNDI. La session décalée est celle de JEUDI.
+      perishableTerms: ["chicken thighs"],
+    }];
+    const out = planSessionShift({
+      plan: planOf(),
+      cookOn: "2026-08-13", // la session `thu`, qui cuit `prep_b` (haricots)
+      doneWaves: bought,
+      cookedPreparationIds: [],
+      maxFridgeDays: MAX_FRIDGE_DAYS,
+    });
+    // Le poulet attend la cuisson de lundi, qui reste lundi: rien ne change pour
+    // lui, donc rien à refuser.
+    assertEquals(out.ok, true, out.ok ? "" : `refusé: ${out.reason}`);
+  },
+);
+
+Deno.test(
+  "…et le MÊME décor refuse quand l'aliment attend la cuisson QUI BOUGE",
+  () => {
+    // La moitié qui prouve que la garde n'est pas simplement désarmée: le même
+    // glissement, mais l'aliment acheté est celui de la session décalée.
+    const bought: DoneWave[] = [{
+      buyOn: "2026-08-10",
+      purchasedOn: "2026-08-10",
+      perishableTerms: ["white beans"], // `prep_b`, cuit jeudi → décalé vendredi
+    }];
+    const out = planSessionShift({
+      plan: planOf(),
+      cookOn: "2026-08-13",
+      doneWaves: bought,
+      cookedPreparationIds: [],
+      maxFridgeDays: MAX_FRIDGE_DAYS,
+    });
+    assertEquals(out.ok, false);
+    if (out.ok) return;
+    assertEquals(out.reason, "perishables_at_risk");
+    // 2026-08-10 → 2026-08-14 = 4 jours > 3.
+    assertEquals(out.detail.includes("white beans"), true, out.detail);
+  },
+);
+
+Deno.test(
+  "la normalisation des termes suit celle des vagues, accents compris",
+  () => {
+    // Elle est RECOPIÉE de `grocery_waves.ts` (elle n'y est pas exportée). Ce
+    // test la pinne contre le comportement RÉEL de `planGroceryWaves`, pour que
+    // les deux ne puissent pas diverger en silence.
+    const plan = planOf({
+      preparations: [
+        prep("prep_a", "Poulet", "mon", ["Cuisses de Poulet"]),
+        prep("prep_b", "Stew", "thu", ["white beans"]),
+      ],
+      shopping_list: [
+        { term: "cuisses de poulet", aisle: "protein", quantity: "600 g" },
+      ],
+      dishes: [dish("Monday bowl", "dinner", "mon", ["prep_a"])],
+      cooking_sessions: [
+        { day: "mon", preparation_ids: ["prep_a"], run_through: "x" },
+      ],
+    });
+    const out = planSessionShift({
+      plan,
+      cookOn: "2026-08-10",
+      doneWaves: [{
+        buyOn: "2026-08-10",
+        purchasedOn: "2026-08-06",
+        // La casse et les accents diffèrent du terme de la préparation: si la
+        // normalisation ne suivait pas, l'aliment ne serait jamais rapproché et
+        // la garde serait muette.
+        perishableTerms: ["CUISSES  de   poulet"],
+      }],
+      cookedPreparationIds: [],
+      maxFridgeDays: MAX_FRIDGE_DAYS,
+    });
+    assertEquals(out.ok, false);
+    if (out.ok) return;
+    assertEquals(out.reason, "perishables_at_risk");
+  },
+);
+
 Deno.test("une vague faite SANS périssable ne bloque rien", () => {
   const out = planSessionShift({
     plan: planOf(),
@@ -471,7 +561,7 @@ Deno.test("une vague faite SANS périssable ne bloque rien", () => {
     doneWaves: [{
       buyOn: "2026-08-10",
       purchasedOn: "2026-08-01",
-      carriesPerishable: false,
+      perishableTerms: [],
     }],
     cookedPreparationIds: [],
     maxFridgeDays: MAX_FRIDGE_DAYS,

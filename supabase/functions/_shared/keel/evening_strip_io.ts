@@ -193,7 +193,15 @@ export async function loadEveningStripContext(
   try {
     const { data, error } = await admin
       .from("student_generated_meals")
-      .select("shopping_list, preparations, starts_on, duration_days, content_locale")
+      // ⚠️ `dishes` ET `cooking_sessions` SONT LÀ POUR FF-057, et leur absence a
+      // été MESURÉE (run adversarial H7). Sans elles, `parseAccidentPlan` rendait
+      // un plan SANS plats et SANS sessions: la cascade ne trouvait aucune
+      // session, n'invalidait rien, et la bande continuait d'annoncer un plat
+      // jamais cuisiné — exactement le défaut que FF-057 existe pour corriger.
+      // Le filtre était vert, et il ne filtrait rien.
+      .select(
+        "dishes, cooking_sessions, shopping_list, preparations, starts_on, duration_days, content_locale",
+      )
       .eq("id", planned.mealId)
       .maybeSingle();
     // ⚠️ « erreur » et « vide » ne se confondent pas. Une sonde qui les mélange a

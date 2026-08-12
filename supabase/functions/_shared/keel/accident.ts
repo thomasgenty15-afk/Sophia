@@ -622,8 +622,22 @@ export interface DoneWave {
    * `grocery_wave_states.answered_local_date` porte cette date.
    */
   purchasedOn: string;
-  /** `true` quand la vague porte au moins un rayon de `PERISHABLE_AISLES`. */
-  carriesPerishable: boolean;
+  /**
+   * LES TERMES PÉRISSABLES que cette vague a rapportés (`PERISHABLE_AISLES`).
+   *
+   * ⚠️ LES TERMES, PAS UN BOOLÉEN — ET C'EST UN DÉFAUT CORRIGÉ APRÈS MESURE.
+   * La première version portait `carriesPerishable: boolean`, et la règle
+   * refusait le glissement dès qu'une vague faite portait du frais et que la
+   * NOUVELLE date de cuisson tombait après son achat. C'est trop large: le frais
+   * acheté pour la cuisson de MARDI, qui ne bouge pas, n'a rien à voir avec le
+   * glissement de la cuisson de VENDREDI. Le produit aurait refusé des
+   * glissements parfaitement sûrs, avec un motif faux, et une garde qui mord à
+   * tort est une garde qu'on débranche dans la semaine.
+   *
+   * Avec les termes, on sait QUELLE cuisson chaque aliment attend, et donc
+   * lesquelles bougent. Voir `planSessionShift`.
+   */
+  perishableTerms: string[];
 }
 
 export interface ShiftPlan {
@@ -760,21 +774,27 @@ export function planSessionShift(args: {
     }
 
     // ── `perishables_at_risk` — DEPUIS LA DATE D'ACHAT RÉELLE ──────────────
-    // Une vague DÉJÀ FAITE, antérieure à la nouvelle cuisson, dont le frais
-    // dépasserait la fenêtre frigo. Faire glisser la cuisson ferait pourrir ce
-    // qui est au frigo — et rien ne lèverait.
-    const rotting = args.doneWaves.find((w) =>
-      w.carriesPerishable &&
-      w.buyOn <= newCookOn &&
-      daysBetween(w.purchasedOn, newCookOn) > args.maxFridgeDays
-    );
+    //
+    // Le piège le plus coûteux de la fiche (§9): rien n'échoue, rien ne lève, et
+    // la personne trouve du poulet gâté trois jours plus tard.
+    //
+    // ⚠️ ON MESURE L'ATTENTE DE CHAQUE ALIMENT DÉJÀ ACHETÉ CONTRE LA CUISSON
+    // QU'IL ATTEND **DANS LE PLAN DÉCALÉ**. C'est ce qui rend la garde JUSTE
+    // dans les deux sens: elle mord quand un aliment du frigo devrait attendre
+    // plus longtemps, et elle NE MORD PAS quand l'aliment attend une cuisson qui
+    // ne bouge pas. La version « n'importe quel frais acheté avant la nouvelle
+    // date » refusait des glissements sûrs, avec un motif faux — mesuré en run.
+    const shiftedForCheck = shiftPlanDates(plan, cookOn, delta);
+    const rotting = shiftedForCheck
+      ? findRottingWave(shiftedForCheck, args.doneWaves, args.maxFridgeDays)
+      : null;
     if (rotting) {
       const refusal: ShiftRefused = {
         ok: false,
         reason: "perishables_at_risk",
         detail:
-          `bought ${rotting.purchasedOn}, would be cooked ${newCookOn} (${
-            daysBetween(rotting.purchasedOn, newCookOn)
+          `"${rotting.term}" bought ${rotting.purchasedOn}, cooked ${rotting.cookOn} (${
+            daysBetween(rotting.purchasedOn, rotting.cookOn)
           } d > ${args.maxFridgeDays})`,
       };
       if (!firstRefusal) firstRefusal = refusal;
@@ -806,6 +826,72 @@ export function planSessionShift(args: {
     reason: "outside_plan_window",
     detail: `no viable delta within ${plan.durationDays} days`,
   };
+}
+
+/**
+ * Un aliment DÉJÀ ACHETÉ qui attendrait trop longtemps dans le plan décalé.
+ *
+ * ── LA MESURE EST « DE L'ACHAT À LA CUISSON », dans le plan APRÈS décalage ──
+ * Pour chaque terme périssable d'une vague faite, on cherche la cuisson la plus
+ * PRÉCOCE qui le consomme — c'est elle qui décide, parce que c'est le premier
+ * moment où l'aliment sert. Si même cette cuisson-là tombe au-delà de la fenêtre
+ * frigo depuis l'achat RÉEL, l'aliment aura tourné avant d'être utilisé.
+ *
+ * Un aliment dont la cuisson NE BOUGE PAS garde exactement l'attente qu'il
+ * avait: le calcul rend alors le même verdict qu'avant le glissement, donc il ne
+ * peut pas refuser à cause de lui. La garde est ainsi juste dans les deux sens,
+ * et c'est la moitié qui manquait à la première version.
+ */
+function findRottingWave(
+  shifted: AccidentPlan,
+  doneWaves: readonly DoneWave[],
+  maxFridgeDays: number,
+): { term: string; purchasedOn: string; cookOn: string } | null {
+  if (doneWaves.length === 0) return null;
+  const dates = planDates(shifted);
+
+  // Terme normalisé → date de cuisson la PLUS PRÉCOCE qui le consomme, dans le
+  // plan DÉCALÉ. Même normalisation que `planGroceryWaves`, par le même chemin.
+  const earliestCook = new Map<string, string>();
+  for (const prep of shifted.preparations) {
+    const date = prep.cookOn ? dates[prep.cookOn] : undefined;
+    if (!date) continue;
+    for (const raw of prep.ingredientTerms) {
+      const term = normalizeTerm(raw);
+      if (!term) continue;
+      const known = earliestCook.get(term);
+      if (!known || date < known) earliestCook.set(term, date);
+    }
+  }
+
+  for (const wave of doneWaves) {
+    for (const raw of wave.perishableTerms) {
+      const cookOn = earliestCook.get(normalizeTerm(raw));
+      if (!cookOn) continue;
+      if (daysBetween(wave.purchasedOn, cookOn) > maxFridgeDays) {
+        return { term: raw, purchasedOn: wave.purchasedOn, cookOn };
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * La normalisation de `grocery_waves.ts`, à l'identique.
+ *
+ * Recopiée plutôt qu'importée parce qu'elle n'y est pas exportée; le test
+ * `« la normalisation suit celle des vagues »` la pinne contre le comportement
+ * réel de `planGroceryWaves`, pour que les deux ne puissent pas diverger en
+ * silence.
+ */
+function normalizeTerm(term: unknown): string {
+  return String(term ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9 ]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 /** `b - a` en jours pleins. Les deux dates sont `YYYY-MM-DD`. */

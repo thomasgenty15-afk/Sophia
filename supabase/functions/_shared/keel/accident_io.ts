@@ -43,10 +43,11 @@ import {
   type ShiftOutcome,
   type ShiftRefusal,
   shiftPlanDates,
-  waveCarriesPerishable,
 } from "./accident.ts";
 import { GROCERY_WAVE_STATE_TABLE } from "./evening_strip_io.ts";
+import { PERISHABLE_AISLES } from "./grocery_waves.ts";
 import { MEAL_TICK_PREFIX, parseMealTickKey } from "./meal_tick.ts";
+import { isReportable } from "./meal_stretch.ts";
 
 /** La table de l'état de session. Une seule constante à citer. */
 export const COOKING_SESSION_STATE_TABLE = "cooking_session_states";
@@ -316,14 +317,15 @@ export async function loadDoneWaves(
       error: error.message,
     }));
     // FAIL-CLOSED DU CÔTÉ DE LA SÉCURITÉ ALIMENTAIRE: on ne sait pas ce qui est
-    // au frigo. On rend une vague fictive « achetée au début du plan » pour que
-    // `perishables_at_risk` puisse mordre plutôt que de laisser glisser à
-    // l'aveugle. Le pire cas est un décalage refusé à tort; le pire cas de
-    // l'inverse est un aliment gâté.
+    // au frigo. On rend UNE vague fictive achetée au début du plan et portant
+    // TOUS les termes périssables, pour que `perishables_at_risk` puisse mordre
+    // plutôt que de laisser glisser à l'aveugle. Le pire cas est un décalage
+    // refusé à tort — la personne garde son plan; le pire cas de l'inverse est
+    // un aliment gâté, et le produit promet exactement le contraire.
     return [{
       buyOn: args.plan.startsOn,
       purchasedOn: args.plan.startsOn,
-      carriesPerishable: true,
+      perishableTerms: perishableTermsOf(args.plan),
     }];
   }
 
@@ -333,14 +335,30 @@ export async function loadDoneWaves(
   for (const row of (data ?? []) as Array<Record<string, unknown>>) {
     const buyOn = String(row.buy_on ?? "");
     if (!/^\d{4}-\d{2}-\d{2}$/.test(buyOn)) continue;
+    // ⚠️ LA DATE D'ACHAT RÉELLE (`answered_local_date`), jamais le `buyOn`
+    // théorique. Quelqu'un qui a fait la vague de lundi le samedi d'avant a du
+    // frais au frigo depuis samedi, et compter depuis lundi donnerait deux jours
+    // de marge qui n'existent pas (fiche §9).
     const purchasedOn = String(row.answered_local_date ?? "") || buyOn;
+    const items = byBuyOn.get(buyOn) ?? [];
     out.push({
       buyOn,
       purchasedOn,
-      carriesPerishable: waveCarriesPerishable(byBuyOn.get(buyOn) ?? []),
+      // Les TERMES, pas un booléen: c'est ce qui permet de savoir quelle cuisson
+      // chaque aliment attend, donc de ne refuser que sur ce qui bouge.
+      perishableTerms: items
+        .filter((i) => PERISHABLE_AISLES.has(String(i.aisle)))
+        .map((i) => i.term),
     });
   }
   return out;
+}
+
+/** Tous les termes périssables du plan — le repli fail-closed de ci-dessus. */
+function perishableTermsOf(plan: AccidentPlan): string[] {
+  return plan.shoppingList
+    .filter((i) => PERISHABLE_AISLES.has(String(i.aisle)))
+    .map((i) => i.term);
 }
 
 // ---------------------------------------------------------------------------
@@ -458,7 +476,21 @@ export async function computeSessionShift(
 // LE FAIT HORS PLAN, DEPUIS UN TAP — et AUCUN aliment inventé
 // ---------------------------------------------------------------------------
 
-export type OffPlanTapOutcome = "written" | "already" | "failed";
+export type OffPlanTapOutcome =
+  | "written"
+  | "already"
+  /**
+   * 🔴 L'index désigne un jour QUI N'EST PAS ENCORE ARRIVÉ. Rien n'est écrit.
+   *
+   * MESURÉ EN RUN ADVERSARIAL (H1), et c'est la cicatrice H1 de FF-058 rouverte
+   * sur un SECOND écrivain: `writeMealTick` portait la garde `isReportable`,
+   * celui-ci ne l'avait pas. Une charge forgée citant le plat de DEMAIN écrivait
+   * `accident_off_plan:…:1|2026-08-13|off_plan` — un « j'ai mangé autre chose »
+   * daté de demain, append-only, dans la table que le coach lit. Ce n'est pas
+   * une imprécision, c'est une preuve fabriquée.
+   */
+  | "future"
+  | "failed";
 
 /**
  * ÉCRIRE UN FAIT `off_plan` DEPUIS UN BOUTON.
@@ -519,10 +551,42 @@ export async function writeOffPlanTapFact(
     contentLocale: string;
     /** La date LOCALE du repas concerné — celle du plat, pas celle du tap. */
     localDate: string;
+    /**
+     * LE JOUR LOCAL DE LA PERSONNE AU MOMENT DU TAP. REQUIS.
+     *
+     * ⚠️ C'EST LE PLAFOND, ET SON ABSENCE A ÉTÉ MESURÉE (H1). On rattrape le
+     * passé, jamais le futur. Requis et non optionnel: optionnel, il aurait
+     * laissé passer exactement le trou qu'il bouche — et c'est la définition
+     * même d'une garde désarmée.
+     */
+    today: string;
     now: Date;
   },
 ): Promise<OffPlanTapResult> {
   const key = accidentOffPlanKey(args.mealId, args.dishIndex);
+
+  // ⚠️ LE FUTUR NE SE DÉCLARE PAS. On réutilise LA garde du dépôt
+  // (`isReportable`, de `meal_stretch.ts`) plutôt que d'en écrire une seconde:
+  // deux définitions d'une même règle divergent, et c'est celle qu'on regarde le
+  // moins qui garde l'ancienne.
+  if (!isReportable(args.localDate, args.today)) {
+    console.warn(JSON.stringify({
+      tag: "keel.accident.off_plan_future_refused",
+      user_id: args.userId,
+      meal_id: args.mealId,
+      dish_index: args.dishIndex,
+      local_date: args.localDate,
+      today: args.today,
+    }));
+    return {
+      outcome: "future",
+      key,
+      protocolEventId: null,
+      localDate: args.localDate,
+      detail: "not_reportable_yet",
+    };
+  }
+
   const inserted = await admin
     .from("protocol_events")
     .insert({
