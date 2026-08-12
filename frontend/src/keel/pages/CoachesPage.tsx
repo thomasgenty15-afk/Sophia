@@ -19,8 +19,27 @@ import { t } from "../i18n/t";
  *
  *  S1  Aucun canal 1:1 élève vers coach, et cette absence EST le produit : rien
  *      ici n'évoque une boîte, une file de réponses, un « il te répondra ».
- *  S2  Élèves / cohorte / ta méthode / ta voix. JAMAIS « ton client », JAMAIS
- *      « suivi personnalisé ».
+ *  S2  ⚠️ RÈGLE AMENDÉE LE 2026-08-13 — LIS-LA AVANT DE « RÉPARER » UN MOT.
+ *      Elle disait: « élèves / cohorte / ta méthode / ta voix. JAMAIS *ton
+ *      client*, JAMAIS *suivi personnalisé* ». Les deux interdits n'avaient
+ *      pas la même valeur, et un seul survit.
+ *
+ *      « SUIVI PERSONNALISÉ » RESTE INTERDIT, partout, sans exception: le
+ *      produit ne suit personne individuellement, et le promettre est le
+ *      mensonge le plus coûteux du lot.
+ *
+ *      « CLIENT » EST DÉSORMAIS LE MOT JUSTE — SAUF ICI. La règle a été
+ *      écrite quand le seul acheteur était un coach qui vend une formation.
+ *      La vitrine en a trois, et deux n'enseignent rien: une SALLE a des
+ *      clients qui paient un abonnement, pas des élèves, et écrire « tes
+ *      élèves » sur `/gyms` décrit une relation qui n'existe pas — c'est ce
+ *      qui a fait écrire une douleur fausse pendant toute la première version
+ *      (« après mes trois heures de coaching », alors que la plupart de ces
+ *      gens n'ont jamais eu de coach).
+ *
+ *      DONC: `/gyms` et `/pro` disent CLIENTS. Cette page-ci garde ÉLÈVES,
+ *      parce qu'ici ils ont choisi quelqu'un pour apprendre de lui — et c'est
+ *      exactement ce qu'elle vend.
  *  S3  L'espace de l'élève est en PULL : il compose quand il l'ouvre.
  *  S4  NE JAMAIS réintroduire un « rien à ouvrir / rien à installer » : trois
  *      brouillons l'ont posé une rangée au-dessus de ce qu'il niait.
