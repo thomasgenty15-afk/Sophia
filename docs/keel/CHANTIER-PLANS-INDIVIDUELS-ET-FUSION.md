@@ -3772,6 +3772,41 @@ ligne **absente** = le coach n'a pas le droit de lire cette identité — *ça*,
 c'est « masqué ». Ligne **présente** au nom vide = personne n'a encore écrit ce
 nom. Deux faits, deux phrases (`studentNameState`, `api/coachCohort.ts`).
 
+### ④ LA MÊME CLASSE, PARTOUT AILLEURS — BALAYÉE, ET ELLE EST VIDE
+
+Le défaut de C5 ① n'est pas « une faute de frappe » : c'est une **classe** —
+*un écrivain qui omet une colonne `not null` sans défaut, donc qui échoue à
+chaque tentative, donc dont la porte est inatteignable*. Une correction qui ne
+regarde qu'un site laisse la classe vivante. Le balayage a donc été fait, dans
+les deux langages.
+
+**La population** : `information_schema` rend **23 tables** dont
+`content_locale` est `not null` **sans défaut** — la règle R2 (« une ligne de
+prose porte sa langue »).
+
+| Balayage | Sites | Résultat |
+|---|---|---|
+| TypeScript (`insert`/`upsert` sur ces 23 tables, `supabase/functions` + `frontend/src`) | **30** | **30 portent `content_locale`** |
+| Postgres (`prosrc` de `pg_proc`, schéma `public`) | **4** — `keel_coach_send_broadcast`, `keel_household_join`, `keel_provision_house_plan_version`, `write_student_meal_plan` | **4 le nomment dans leur liste de colonnes** |
+
+**Deux faux positifs, et ils disent comment lire ce balayage.** `evening_strip_io.ts`
+et `accident_io.ts` semblaient écrire `student_generated_meals` sans la colonne :
+en réalité le `.from("student_generated_meals")` y est un **SELECT de
+propriété**, et l'`upsert` qui suit vise une **autre table**
+(`grocery_wave_state`, `cooking_session_state`). Un balayage par fenêtre de
+lignes confond un chaînage et un voisinage — d'où la relecture de chaque site
+plutôt qu'un compte.
+
+⚠️ **CE QUE CE BALAYAGE NE PROUVE PAS.** Il prouve que la colonne est **écrite**,
+pas que sa **valeur** est juste. Une ligne anglaise déclarée `fr-FR` passerait
+toutes ces mailles — c'est le défaut d'à côté, et le seul garde-fou reste la
+règle du module qui écrit (le littéral `"en"` de `minorEscalationRow` et de
+`restrictionEffect`, quand la prose est en dur).
+
+**Et la contrainte reste le vrai garde-fou** : `not null` **sans défaut** fait
+échouer bruyamment. Poser un `default` fermerait cette classe et en ouvrirait
+une pire — une ligne qui **ment** sur sa langue au lieu de refuser d'exister.
+
 ### Ce qui est prouvé, et comment
 
 1. **La contre-épreuve HTTP de ①**, ci-dessus, jetons réels, alignement JWT
