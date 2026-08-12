@@ -141,7 +141,8 @@ import {
   resolveHousehold,
   toHouseholdMember,
 } from "../_shared/keel/household_composition.ts";
-import { envelopeFor } from "../_shared/keel/meal_envelope.ts";
+import { envelopeFor, type MouthBody } from "../_shared/keel/meal_envelope.ts";
+import { MEAL_BODY_GENDERS } from "../_shared/keel/meal_body.ts";
 import { GOAL_TOKENS, type GoalToken } from "../_shared/keel/tokens.ts";
 import { weekStartOf } from "../_shared/keel/weekly_flow_io.ts";
 
@@ -303,6 +304,19 @@ interface LoadedMember extends PortionMember {
    * seul.
    */
   ownPlans: MemberOwnPlan[];
+}
+
+/**
+ * Un nombre de PostgREST, ou `null`.
+ *
+ * `numeric` arrive en CHAÎNE (« 26.5 ») par la couche JSON de PostgREST, pas en
+ * nombre: un `typeof === "number"` aurait rendu `null` sur chaque corps saisi,
+ * et le lot serait inerte sans qu'aucun test de module ne le voie.
+ */
+function num(raw: unknown): number | null {
+  if (raw === null || raw === undefined || raw === "") return null;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : null;
 }
 
 /** Une ligne de `keel_household_roster_for`, telle que la base la rend. */
@@ -1426,6 +1440,49 @@ Deno.serve(async (req) => {
       .eq("id", householdId)
       .maybeSingle();
     if (refRes.error) throw refRes.error;
+
+    // ── LE CORPS DE CHAQUE BOUCHE, Y COMPRIS SANS COMPTE (2026-08-12) ────
+    //
+    // ⚠️ CE N'EST PAS `loadHouseholdMemberBodies`, ET LES DEUX COEXISTENT.
+    //   · `bodies` (plus haut, FF-047) lit le corps des bouches QUI ONT UN
+    //     COMPTE — série de pesées datées + plancher TCA — et sert le BRIEF,
+    //     c'est-à-dire ce que le modèle LIT. Il ne rend rien d'un mineur.
+    //   · `lineBodies` (ici) lit le corps que le maître a SAISI pour chaque
+    //     bouche, mineurs compris, et sert le MOTEUR: le MIN du tronc et les
+    //     add-ons. Il n'entre dans aucun prompt.
+    //
+    // C'est la ligne de partage du lot: on CALCULE avec, on n'ÉNONCE jamais.
+    //
+    // ⚠️ `keel_household_bodies_for` prend le foyer en ARGUMENT: `auth.uid()`
+    // est NULL sous la clé de service, et une RPC gatée dessus serait morte ici.
+    const lineBodyRes = await admin.rpc("keel_household_bodies_for", {
+      p_household: householdId,
+    });
+    if (lineBodyRes.error) throw lineBodyRes.error;
+    const lineBodies = new Map<string, MouthBody>();
+    for (const row of (lineBodyRes.data ?? []) as Array<Record<string, unknown>>) {
+      const memberId = String(row.member_id ?? "").trim();
+      if (!memberId) continue;
+      const height = num(row.height_cm);
+      const weight = num(row.weight_kg);
+      const rawGender = String(row.gender ?? "").trim();
+      const age = num(row.age_years);
+      // TOUT-OU-RIEN, comme en base. Un demi-corps n'existe pas côté table
+      // (les trois colonnes y sont `not null`); on ne le fabrique pas ici en
+      // acceptant une ligne partielle qu'une jointure future rendrait.
+      if (height === null || weight === null || rawGender === "") continue;
+      lineBodies.set(memberId, {
+        heightCm: height,
+        weightKg: weight,
+        gender: (MEAL_BODY_GENDERS as readonly string[]).includes(rawGender)
+          ? (rawGender as MouthBody["gender"])
+          // Une valeur hors vocabulaire vaut `null`, jamais un repli sur
+          // `male`: les équations ont des coefficients par sexe, et choisir
+          // serait assigner — sur le corps d'un enfant, le plus souvent.
+          : null,
+        ageYears: age,
+      });
+    }
     // ⚠️ `composedMembers`, PAS `members` (L3). Cette résolution décide la
     // DIRECTION DE SERVICE du tronc commun et les add-ons par bouche: y laisser
     // quelqu'un qui mange son propre plan tirerait la casserole vers un
@@ -1437,9 +1494,11 @@ Deno.serve(async (req) => {
       members: composedMembers.map((m) =>
         toHouseholdMember(
           m,
-          // L'enveloppe PAR MEMBRE. `goalApplies` a déjà mis `goal` à `null`
+          // ① L'ENVELOPPE DU COMPTE. `goalApplies` a déjà mis `goal` à `null`
           // pour un mineur et pour une bouche d'âge inconnu, donc aucune
-          // enveloppe n'en dérive — la garde vit là-bas, pas ici.
+          // enveloppe d'OBJECTIF n'en dérive — la garde vit là-bas, pas ici.
+          // Elle porte la série de pesées et le plancher TCA, et c'est pour ça
+          // qu'elle gagne toujours dans `mouthEnvelope`, y compris dégradée.
           m.goal === null || m.body === null ? null : envelopeFor(
             (GOAL_TOKENS as readonly string[]).includes(m.goal)
               ? (m.goal as GoalToken)
@@ -1453,6 +1512,13 @@ Deno.serve(async (req) => {
             // pas celle de chaque membre. À instruire avec FF-043 §11.
             null,
           ),
+          // ② LE CORPS DE LA FICHE — REQUIS, et c'est lui qui répare le lot.
+          // Il n'achète qu'une MAINTENANCE (pédiatrique pour un mineur), jamais
+          // un objectif: sans série de pesées il n'y a pas de plancher TCA
+          // derrière, donc rien qui puisse arrêter une restriction. Une
+          // maintenance ne peut que faire descendre le tronc ou ouvrir un
+          // add-on. `mouthEnvelope` porte la règle; ici on ne fait que fournir.
+          lineBodies.get(m.memberId) ?? null,
         )
       ),
       declaredReferenceMemberId: refRes.data?.reference_member_id ?? null,
@@ -1660,6 +1726,12 @@ Deno.serve(async (req) => {
       userId,
       constraints: (goalRow.practical_constraints ?? {}) as Record<string, unknown>,
       source: FN_NAME,
+      // C4 — ICI, et ici SEULEMENT sur cette lane, on écrit: `goalRow` est la
+      // ligne du compte AUTHENTIFIÉ (`.eq("user_id", userId)`), c'est-à-dire
+      // celle de la personne qui a appuyé sur le bouton. Les lignes des AUTRES
+      // titulaires sont lues plus bas par `loadHouseholdVoices`, qui passe
+      // `actor: "someone_else"` et n'écrit rien.
+      actor: "row_owner",
     });
 
     const pc = goalRow.practical_constraints as Record<string, unknown> | null;
@@ -2784,6 +2856,43 @@ Deno.serve(async (req) => {
                 deserted: presence.householdAway,
                 servings: presence.servings,
               },
+              // ── FF-059 · LES ADD-ONS, GELÉS AVEC LE PLAN ────────────────
+              //
+              // ⚠️ CE N'EST PAS LA PERSISTANCE QUE FF-043 SE DOIT, et il faut
+              // le dire clairement. FF-043 décidera d'une COLONNE, avec sa
+              // forme, ses index et ses lecteurs; sa conception n'est pas
+              // finie, et la trancher ici serait décider à sa place. Ceci est
+              // une TRACE, dans le blob que cette fonction écrit déjà, avec un
+              // seul lecteur nommé: `meal-energy-v1`.
+              //
+              // ── POURQUOI IL FALLAIT L'ÉCRIRE QUAND MÊME ─────────────────
+              // Les deltas ne vivaient que dans la RÉPONSE HTTP de la
+              // composition. Un rechargement de page les perdait — et avec eux
+              // la seule divergence NUMÉRIQUE du foyer. `member_portions` ne
+              // porte que des PHRASES (« generous vegetables, full protein
+              // share »), et `FORBIDDEN_PORTION_TERMS` y bannit « kcal ».
+              // Sans cette trace, FF-059 ne pouvait rendre à personne SA part:
+              // il ne pouvait qu'abstenir, ou diviser également — ce qui aurait
+              // rendu la bifurcation par objectif INVISIBLE, c'est-à-dire
+              // l'inverse exact de ce que le chiffre par portion existe pour
+              // montrer.
+              //
+              // ── GELÉ, ET C'EST LE MÊME ARBITRAGE QUE `grams_raw` ────────
+              // On écrit ce qui a été calculé LE JOUR DE LA COMPOSITION, avec
+              // les corps de ce jour-là. Recalculer à la lecture ferait bouger
+              // l'histoire d'un plan à chaque pesée — et afficherait une part
+              // qui ne correspond plus à l'assiette que le plan décrit.
+              //
+              // ⚠️ CE N'EST PAS UN CHIFFRE STOCKÉ au sens de FF-059 R5: c'est
+              // un ALIMENT et des GRAMMES, exactement comme une ligne de
+              // recette. L'énergie, elle, se recalcule à chaque lecture.
+              //
+              // ÉCRIT MÊME VIDE, comme `voices` juste au-dessus: une clé
+              // absente ne se distingue pas d'un lot débranché — et ici la
+              // distinction porte, parce qu'un plan SANS add-ons et un plan
+              // d'AVANT ce lot ne se lisent pas pareil (le premier a un chiffre
+              // exact, le second doit s'abstenir).
+              member_deltas: memberDeltasPayload(resolution.deltas),
               // ── D2 · D7 · QUI A PRIS LA MAIN, ET AVEC QUEL PLAN ────────
               // Sans ce bloc, le maître voit qu'il cuisine pour un de moins et
               // n'a AUCUN moyen de savoir pourquoi: ni l'écran, ni le plan, ni

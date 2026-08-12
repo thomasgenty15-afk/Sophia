@@ -2226,6 +2226,13 @@ Migration `20260812210000_food_preference_targeted_write.sql` :
   être absente, et `null = null` vaut NULL (le trou exact que L7 avait trouvé
   dans son propre bloc de contrôle).
 
+> ⚠️ **Le paragraphe ci-dessous est dépassé par §C4.** Il tranchait de *garder
+> l'écriture sur la ligne d'un tiers*, en assumant que son `updated_at` bouge
+> sans qu'elle ait rien fait. C4 a renversé la décision au niveau au-dessus :
+> **on n'écrit plus du tout la ligne de quelqu'un d'autre**, donc il n'y a plus
+> rien à préserver. Le raisonnement sur le trigger reste exact, et il vaut
+> toujours pour la ligne de la personne qui compose.
+
 **Ce qu'on ne fait PAS, et c'est écrit dans la migration : `updated_at` n'est
 pas préservé.** Le trigger `student_goals_set_updated_at` est inconditionnel et
 sa fonction (`tg_set_updated_at`) est **partagée** ; le contourner demanderait
@@ -2439,6 +2446,147 @@ rouge.
 7. **Deux rouges préexistants NON touchés**, comme à L4→C2 :
    `_shared/chat/recent_history_test.ts` et une erreur de typage dans
    `_shared/action_occurrences_test.ts`.
+
+## C4, ce qui est construit — 2026-08-12
+
+> ⚠️ **Rien n'a été exercé en conditions réelles.** Aucun appel HTTP, aucune
+> génération modèle. Ce qui suit est prouvé par le **compilateur** (le paramètre
+> est requis, il a listé ses 11 sites d'appel), par des **tests purs**, un test
+> de **position sur la source**, et **6 mutations**. Suite keel :
+> **2 694 verts** ; typecheck frontend et eslint verts (`agent-gate`).
+> **Aucune migration**, aucun changement de schéma, **aucune version de prompt
+> bumpée**. 4 tests ajoutés, 1 réécrit (il affirmait l'inverse).
+
+### La règle, et pourquoi elle passe au-dessus de C3 ②
+
+> **On ne réécrit jamais ce que quelqu'un a renseigné.** Une frustration sur un
+> état qu'on a laissé tel quel se lit « j'ai oublié de le retirer » ; la même
+> frustration sur un état qu'on a effacé tout seul se lit « ce truc fait
+> n'importe quoi ».
+
+Un seul endroit du chantier violait cette règle. `reconcileFoodPreferencesFor`
+**retire** de `student_goals.practical_constraints` une préférence dont le
+souvenir a été invalidé — une correction juste, qui suit ce que la personne a
+dit **ensuite**. Avant L6, elle ne concernait que le maître écrivant sur **sa
+propre** ligne. **L6 l'a fait passer de 1 à N titulaires** : depuis, la ligne
+d'un secondaire change et son `updated_at` bouge pendant que le maître compose.
+La personne n'a rien fait, et rien ne lui dira jamais pourquoi sa préférence a
+disparu — elle ne peut pas se l'attribuer.
+
+C3 ② avait attaqué le symptôme le plus visible (l'écrasement de la colonne
+entière) et **assumé** le reste. C4 remonte d'un cran : ce n'est pas *comment*
+on écrit sur la ligne d'un tiers qui posait problème, c'est *qu'on écrive*.
+
+### L'arbitrage : la correction s'applique, elle ne se persiste pas
+
+- **Le plan reste juste tout de suite.** La réconciliation est calculée en
+  mémoire **pour tout le monde**, à chaque composition, et alimente le prompt
+  exactement comme avant. Une préférence rétractée n'est jamais servie au
+  modèle, même quand c'est quelqu'un d'autre qui compose.
+- **Aucune écriture sur la ligne de quelqu'un d'autre.** Le rattrapage en base
+  se fera à la prochaine génération de cette personne — **de son fait**.
+- **Coût, borné et connu : rien.** La composition est déjà correcte ; seule la
+  **date** de la persistance se décale. Chaque lecture rejoue la réconciliation,
+  donc aucun prompt n'est faux entre-temps.
+
+### Le paramètre est REQUIS, et il nomme un FAIT
+
+`reconcileFoodPreferencesFor` prend `actor: "row_owner" | "someone_else"`.
+
+- **Requis, jamais `actor?`.** Ce dépôt a payé plusieurs fois « paramètre de
+  garde optionnel = garde désarmée » (`safetyBand` jamais passé) ; L4 et L6 ont
+  fait remonter leurs appelants au compilateur exprès. Un défaut à `"row_owner"`
+  aurait laissé passer sans un mot tout futur appelant composant pour autrui —
+  et ce chemin existe déjà.
+- **Il nomme QUI a déclenché le run, pas QUOI faire.** « Qui compose, par
+  rapport à la ligne qu'on corrige » est une chose que l'appelant **sait** ;
+  « faut-il écrire » est une chose qu'il devrait **deviner**. Si la règle change
+  un jour (écrire aussi pour un tiers, avec une trace que la personne voit),
+  elle change à **un** endroit et aucun appelant ne bouge.
+
+**Les quatre appelants, tels que le compilateur les a listés** (`deno check` sur
+l'arbre entier, `TS2345 · Property 'actor' is missing`) :
+
+| Appelant | `actor` | Pourquoi |
+|---|---|---|
+| `generate-week-plan-v1/index.ts:225` | `row_owner` | `.eq("user_id", userId)` — le compte authentifié, sa ligne |
+| `generate-meal-v1/index.ts:499` | `row_owner` | idem, lane individuelle |
+| `generate-household-meal-v1/index.ts:1724` | `row_owner` | la ligne du **maître**, celui qui a appuyé sur le bouton |
+| `_shared/keel/household_voices_io.ts:156` | `someone_else` | L6/D4 — la ligne de **chaque autre titulaire** à table |
+
+La constante vit dans `household_voices_io.ts` plutôt que dans un paramètre de
+plus : le composeur **n'atteint jamais** cette ligne (sa ligne arrive
+`preloaded`, déjà réconciliée et écrite bien plus haut), donc tout `userId` qui
+passe par ce `await` est, par construction, quelqu'un d'autre. Un futur appelant
+qui oublierait de précharger le composeur perdrait une **écriture**, jamais une
+**correction** — la direction sûre.
+
+### Ce que ce lot NE touche pas
+
+- **C3 ② reste entier.** `keel_write_food_preferences` demeure le seul chemin
+  d'écriture : `jsonb_set` sur deux clés, concurrence optimiste dans le
+  **prédicat** (`is not distinct from`), pas de nouvel essai sur
+  `stale_snapshot`. La garde ne protégeait pas seulement du maître — une même
+  ligne a plusieurs écrivains légitimes, dont la personne elle-même dans deux
+  onglets. La retirer parce que le maître est parti rouvrirait l'écrasement.
+- **L6 est entier.** Les voix par titulaire entrent toujours dans la
+  composition, avec le plafond de 150 tokens par membre et les deux gardes de
+  non-divulgation (entrée **et** sortie).
+- **La réconciliation reste une correction, jamais un ajout.** Seul un souvenir
+  invalidé fait bouger la ligne ; rien de ce que le maître fait n'écrit une
+  préférence sur le compte d'un autre.
+- **La lane individuelle est le cas qui passe.** Quand une personne compose
+  **son** plan, sa ligne se réconcilie **et s'écrit**, comme avant. Sans lui,
+  une garde qui n'écrit plus jamais serait indiscernable d'une garde qui marche.
+
+### La trace
+
+`reconciled_not_persisted` (`console.info`, tag `keel/food_preferences`), avec
+`user_id`, `source` et `dropped`. **En `info` et pas en `warn`, délibérément** :
+c'est le cas **nominal** de la lane foyer — autant de passages que de titulaires
+ayant rétracté quelque chose, à chaque composition du maître. En `warn`, le
+fonctionnement normal ressemblerait à une panne, exactement à l'inverse de
+`reconcile_not_written`, qui nomme une course perdue.
+
+### Les versions de prompt — aucune ne bouge, et voici pourquoi
+
+Rien ne change dans ce qui est servi au modèle. La composition voit les **mêmes
+préférences corrigées** qu'avant : la réconciliation tourne toujours pour tout
+le monde et son résultat alimente le prompt à l'identique. Ce qui change est en
+**aval du prompt** (une écriture qui n'a plus lieu), donc aucune version n'a de
+raison de bouger — et les bumper ferait mentir un identifiant qui sert à
+comparer des sorties de modèle.
+
+### Les 6 mutations — chacune cassée, vue rouge, restaurée
+
+Décor à **au moins deux titulaires** dans les deux premières, parce que c'est le
+piège exact du lot : avec un seul, « écrit » et « n'écrit pas pour les autres »
+rendent le même zéro.
+
+| # | Mutation | Ce qui est passé au rouge |
+|---|---|---|
+| 1 | La garde C4 désarmée (`if (false && args.actor !== "row_owner")`) : l'écriture revient pour un tiers | 3 rouges — `C4 — POUR LA LIGNE D'UN TIERS` · `C4 — DEUX SECONDAIRES…` · `LA RÉTRACTATION… NON PERSISTÉE` |
+| 2 | `household_voices_io.ts` : `actor: "someone_else"` → `"row_owner"` | 3 rouges — les deux tests d'I/O ci-dessus **et** le test de position |
+| 3 | Le `return result.constraints` du garde-fou → `return constraints` : **la correction ne s'applique plus** | 3 rouges — la préférence rétractée revient au prompt, la voix de Zoé reparaît dans le foyer |
+| 4 | `generate-week-plan-v1` : `row_owner` → `someone_else` | `C4 — CHAQUE APPELANT DIT S'IL ÉCRIT` — le cas qui passe a disparu |
+| 5 | `actor` rendu **optionnel** (`actor?:`, défaut `"row_owner"`) et retiré de `household_voices_io.ts` | `deno check` sur l'arbre entier : **0 occurrence** de `Property 'actor' is missing` (11 avant) — le compilateur cesse de lister les appelants, c'est-à-dire la garde elle-même. Seconde ceinture : le test de position, rouge |
+| 6 | Le faux client de `household_voices_io_test.ts` rendu **muet** (`trace.rpcs.push` retiré) | `C4 — DEUX SECONDAIRES…` — « le décor ne sait pas écrire : le zéro ci-dessus ne prouve rien ». C'est la mutation qui prouve que le **zéro écriture** n'est pas un artefact du décor |
+
+### Ce qui n'est pas prouvé, et ce qui reste ouvert
+
+1. **Aucun run réel.** `reconciled_not_persisted` n'a jamais été émis par une
+   vraie requête, et aucune génération n'a été lancée. Le comportement est
+   prouvé sur les modules et par le compilateur.
+2. **La date décalée n'a pas de mesure.** On ne sait pas combien de temps une
+   préférence rétractée survit en base avant que son titulaire ne génère
+   lui-même. Le log `reconciled_not_persisted` la rend comptable
+   (`select count(*) … group by user_id`), personne ne l'a encore comptée.
+3. **Le cas du secondaire qui ne génère jamais.** Sa ligne garde indéfiniment
+   une préférence démentie — que la **carte** (`FoodPreferencesCard`) corrige à
+   l'affichage, et que l'**export RGPD** rend telle quelle. C'est la
+   contrepartie assumée de la règle : un état faux qu'on laisse est moins grave
+   qu'un état effacé sans geste. Si ça devient gênant, la réponse est de faire
+   **agir** la personne (la carte le fait déjà), pas de réécrire sa ligne.
 
 ## Questions encore ouvertes
 

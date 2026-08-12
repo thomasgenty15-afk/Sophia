@@ -17,6 +17,16 @@
  * n'est pas rejoué ici.
  *
  * ---------------------------------------------------------------------------
+ * C4 — ON LIT LA LIGNE D'UN TIERS, ON NE L'ÉCRIT PAS
+ * ---------------------------------------------------------------------------
+ * Ce chargeur CORRIGE les préférences de chaque titulaire pour la composition
+ * en cours, et il n'en PERSISTE aucune: `actor: "someone_else"`. La règle est
+ * qu'on ne réécrit jamais ce que quelqu'un a renseigné pendant qu'il ne fait
+ * rien — il ne pourrait pas se l'attribuer. La correction sera écrite à SA
+ * prochaine génération, sur son geste. Détail et arbitrage:
+ * `food_preference_promotion_io.ts`, bloc « C4 ».
+ *
+ * ---------------------------------------------------------------------------
  * CHAQUE LECTURE EST SCOPÉE EXPLICITEMENT
  * ---------------------------------------------------------------------------
  * On lit ici la ligne `student_goals` DE QUELQU'UN D'AUTRE QUE L'APPELANT, sous
@@ -147,17 +157,33 @@ export async function loadHouseholdVoices(
     const loaded = preloaded ?? byUser.get(member.userId) ?? null;
     if (loaded === null) continue;
 
-    // LA RÉCONCILIATION, PAR TITULAIRE. Elle PERSISTE (voir
-    // `food_preference_promotion_io.ts`): une préférence que CE membre a
-    // rétractée dans SA conversation est retirée de SA ligne, et les deux
-    // autres générateurs en profitent. C'est une correction, jamais un ajout —
-    // rien de ce que le maître fait ici n'écrit une préférence sur le compte
+    // LA RÉCONCILIATION, PAR TITULAIRE. Une préférence que CE membre a
+    // rétractée dans SA conversation ne part pas au modèle: la correction est
+    // calculée ici, à chaque composition. C'est une correction, jamais un ajout
+    // — rien de ce que le maître fait ici n'écrit une préférence sur le compte
     // d'un autre.
+    //
+    // ⚠️ C4 · `actor: "someone_else"`, ET C'EST LE SUJET DE CE LOT. La personne
+    // dont on lit la ligne ICI n'a rien demandé: c'est le maître qui compose.
+    // Écrire sa colonne sous prétexte qu'on l'a lue, c'est effacer sans elle un
+    // état qu'elle a renseigné, et elle ne peut pas se l'attribuer — « ce truc
+    // fait n'importe quoi », sans une phrase pour l'expliquer. La correction
+    // vaut donc pour CE prompt, et sa persistance attend SA prochaine
+    // génération. Ce qui est perdu, c'est une date, pas une assiette.
+    //
+    // POURQUOI LA CONSTANTE ICI PLUTÔT QU'UN PARAMÈTRE DE PLUS: le composeur
+    // n'atteint JAMAIS cette ligne. Sa ligne à lui arrive `preloaded` (déjà
+    // réconciliée ET écrite bien plus haut, sur SON geste), donc le `??`
+    // court-circuite. Tout `userId` qui passe par ce `await` est, par
+    // construction, quelqu'un d'autre que l'appelant. Un futur appelant qui
+    // oublierait de précharger le composeur perdrait une écriture, jamais une
+    // correction — la direction sûre.
     const constraints = preloaded ?? await reconcileFoodPreferencesFor({
       admin,
       userId: member.userId,
       constraints: loaded,
       source: args.source,
+      actor: "someone_else",
     });
 
     const lines = foodPreferencesForPrompt(constraints);

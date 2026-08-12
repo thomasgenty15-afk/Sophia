@@ -151,6 +151,7 @@ Deno.test("LES IDS ENVOYÉS À POSTGRES SONT DES UUID, jamais [object Object]", 
     userId: "u1",
     constraints: kept("Likes broccoli", OLD, "2026-07-06"),
     source: "test",
+    actor: "row_owner",
   });
 
   assertEquals(trace.inCalls.length >= 1, true);
@@ -184,6 +185,7 @@ Deno.test("LES REMPLAÇANTS SONT CHARGÉS, sinon la garde de plausibilité est m
     userId: "u1",
     constraints: kept("Theo likes roasted broccoli", OLD, "2026-07-09"),
     source: "test",
+    actor: "row_owner",
   });
 
   const memoryReads = trace.inCalls.filter((c) => c.table === "memory_items");
@@ -218,6 +220,7 @@ Deno.test("LE PRÉNOM EST LU, sinon toutes les paires paraissent liées", async 
     userId: "u1",
     constraints: kept("Theo dislikes porridge for breakfast", OLD, "2026-07-13"),
     source: "test",
+    actor: "row_owner",
   });
 
   assert(trace.tablesRead.includes("profiles"), "le prénom doit être lu");
@@ -245,6 +248,7 @@ Deno.test("RIEN À RÉCONCILIER: aucune lecture de memory_items", async () => {
       userId: "u1",
       constraints,
       source: "test",
+      actor: "row_owner",
     });
     assertEquals(trace.tablesRead, [], JSON.stringify(constraints));
     assertEquals(out, constraints);
@@ -265,6 +269,7 @@ Deno.test("RIEN N'A CHANGÉ: aucune écriture", async () => {
     userId: "u1",
     constraints: before,
     source: "test",
+    actor: "row_owner",
   });
   assertEquals(trace.updates.length, 0);
   assertEquals(trace.rpcs.length, 0);
@@ -282,6 +287,7 @@ Deno.test("FAIL-SOFT: une lecture qui échoue ne casse pas la génération", asy
     userId: "u1",
     constraints: before,
     source: "test",
+    actor: "row_owner",
   });
   assertEquals(out, before);
   assertEquals(trace.updates.length, 0);
@@ -310,6 +316,7 @@ Deno.test("FAIL-SOFT: une écriture refusée rend les contraintes D'ORIGINE", as
     userId: "u1",
     constraints: before,
     source: "test",
+    actor: "row_owner",
   });
   assertEquals(out, before);
 });
@@ -336,6 +343,7 @@ Deno.test("un profil illisible ne bloque PAS la réconciliation", async () => {
     userId: "u1",
     constraints: kept("Theo likes roasted broccoli", OLD, "2026-07-09"),
     source: "test",
+    actor: "row_owner",
   });
   assertEquals(out[FOOD_PREFERENCES_KEY], []);
   assertEquals(trace.rpcs.length, 1);
@@ -371,6 +379,7 @@ Deno.test("C3 ② — LA COLONNE N'EST PLUS ÉCRASÉE: deux clés, et le témoin
     userId: "u1",
     constraints: before,
     source: "test",
+    actor: "row_owner",
   });
 
   assertEquals(trace.updates.length, 0, "plus aucun update direct de la colonne");
@@ -409,6 +418,7 @@ Deno.test("C3 ② — UNE COPIE PÉRIMÉE NE RÉESSAIE PAS, et la génération c
     userId: "u1",
     constraints: kept("Theo likes roasted broccoli", OLD, "2026-07-09"),
     source: "test",
+    actor: "row_owner",
   });
   assertEquals(trace.rpcs.length, 1, "un seul essai, jamais deux");
   // LE PROMPT DE CE RUN-CI reçoit quand même la version corrigée: une
@@ -437,7 +447,104 @@ Deno.test("C3 ② — UNE ÉCRITURE QUI ÉCHOUE NE CASSE PAS LA GÉNÉRATION", a
     userId: "u1",
     constraints: before,
     source: "test",
+    actor: "row_owner",
   });
   // Le filet rend les contraintes D'ORIGINE, pas une moitié de correction.
   assertEquals(out, before);
+});
+
+// ---------------------------------------------------------------------------
+// C4 — ON NE RÉÉCRIT JAMAIS CE QUE QUELQU'UN A RENSEIGNÉ
+//
+// ⚠️ LE PIÈGE DE CE LOT EST DANS LE DÉCOR, PAS DANS L'ASSERTION. « N'écrit pas
+// pour un tiers » et « n'écrit plus jamais » sont indiscernables tant qu'un
+// seul cas est monté. Les deux tests ci-dessous partagent DÉLIBÉRÉMENT le même
+// décor — même mémoire, mêmes contraintes, même faux client — et ne diffèrent
+// QUE par `actor`. Si le second passait à zéro RPC, le premier deviendrait un
+// test qui ne prouve rien, et il tomberait avec lui.
+// ---------------------------------------------------------------------------
+
+/** Le décor commun aux deux moitiés: un souvenir rétracté, une ligne à corriger. */
+function retractedDecor() {
+  return {
+    itemsById: {
+      [OLD]: {
+        id: OLD,
+        status: "invalidated",
+        normalized_summary: "Theo hates broccoli",
+      },
+    },
+  };
+}
+
+Deno.test("C4 — POUR LA LIGNE D'UN TIERS: la correction s'applique, RIEN ne s'écrit", async () => {
+  // Depuis L6, le maître du foyer déclenche cette réconciliation pour CHAQUE
+  // titulaire à sa table. La personne n'a rien fait: sa ligne ne doit pas
+  // bouger, et rien ne pourrait jamais lui expliquer pourquoi sa préférence a
+  // disparu. La correction, elle, vaut pour le prompt de CE run.
+  const { admin, trace } = fakeAdmin(retractedDecor());
+  const before = kept("Theo hates broccoli", OLD, "2026-08-01");
+  const out = await reconcileFoodPreferencesFor({
+    admin,
+    userId: "u-zoe",
+    constraints: before,
+    source: "test",
+    actor: "someone_else",
+  });
+
+  // ① LA COMPOSITION RESTE JUSTE: la préférence rétractée ne part pas au modèle.
+  assertEquals(out[FOOD_PREFERENCES_KEY], []);
+  assert(out !== before, "la correction n'a pas été appliquée du tout");
+  // ② AUCUNE LIGNE NE BOUGE — ni par la RPC, ni par un `.update()` de colonne.
+  assertEquals(trace.rpcs, [], "la ligne d'un tiers a été écrite");
+  assertEquals(trace.updates, [], "la colonne d'un tiers a été écrasée");
+  // ③ ET LA MÉMOIRE A BIEN ÉTÉ LUE: sans ça, le zéro écriture ci-dessus serait
+  //    celui d'une fonction qui n'a rien fait du tout.
+  assert(trace.tablesRead.includes("memory_items"));
+});
+
+Deno.test("C4 — LE CAS QUI PASSE: sur SA PROPRE ligne, la correction S'ÉCRIT", async () => {
+  // ⚠️ SANS CETTE MOITIÉ, LE TEST DU DESSUS EST VERT SUR UNE FONCTION QUI
+  // N'ÉCRIT PLUS JAMAIS RIEN — c'est-à-dire sur un produit où une préférence
+  // rétractée reste en base pour toujours, et où la carte, l'export RGPD et les
+  // deux autres générateurs continuent de la montrer. Même décor, même
+  // rétractation: seul `actor` change.
+  const { admin, trace } = fakeAdmin(retractedDecor());
+  const out = await reconcileFoodPreferencesFor({
+    admin,
+    userId: "u-zoe",
+    constraints: kept("Theo hates broccoli", OLD, "2026-08-01"),
+    source: "test",
+    actor: "row_owner",
+  });
+
+  assertEquals(out[FOOD_PREFERENCES_KEY], []);
+  assertEquals(trace.rpcs.length, 1, "la personne compose SON plan et rien n'est écrit");
+  assertEquals(trace.rpcs[0].name, "keel_write_food_preferences");
+  assertEquals(trace.rpcs[0].params.p_expected, ["Theo hates broccoli"]);
+  assertEquals(trace.rpcs[0].params.p_preferences, []);
+  assertEquals(trace.updates, []);
+});
+
+Deno.test("C4 — RIEN N'A CHANGÉ POUR UN TIERS: on ne rend pas un objet neuf", async () => {
+  // La réconciliation reste une CORRECTION, jamais un ajout: sans souvenir
+  // démenti, elle rend les contraintes reçues telles quelles, quel que soit
+  // l'acteur. Une branche `someone_else` qui recopierait l'objet ferait croire
+  // à un changement là où il n'y en a aucun.
+  const { admin, trace } = fakeAdmin({
+    itemsById: {
+      [OLD]: { id: OLD, status: "active", normalized_summary: "Theo hates broccoli" },
+    },
+  });
+  const before = kept("Theo hates broccoli", OLD, "2026-08-01");
+  const out = await reconcileFoodPreferencesFor({
+    admin,
+    userId: "u-zoe",
+    constraints: before,
+    source: "test",
+    actor: "someone_else",
+  });
+  assertEquals(out, before);
+  assertEquals(trace.rpcs, []);
+  assertEquals(trace.updates, []);
 });

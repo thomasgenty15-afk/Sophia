@@ -227,6 +227,11 @@ Deno.serve(async (req) => {
       userId,
       constraints: (goalRow.practical_constraints ?? {}) as Record<string, unknown>,
       source: FN_NAME,
+      // C4 — `userId` est le compte AUTHENTIFIÉ, et cette ligne est la sienne
+      // (`.eq("user_id", userId)` ci-dessus). C'est son geste qui produit la
+      // correction, donc elle s'écrit: c'est LE CAS QUI PASSE, et sans lui la
+      // correction ne serait jamais persistée nulle part.
+      actor: "row_owner",
     });
 
     // --- LA MÉTHODE DU COACH, qui est une DOCTRINE et pas un programme -----

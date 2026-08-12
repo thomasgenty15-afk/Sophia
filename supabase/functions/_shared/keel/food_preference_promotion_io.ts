@@ -14,13 +14,18 @@
  * C'est la forme habituelle du dépôt: la règle vit au point de passage, pas
  * dans l'écran qui la montre.
  *
- * ── ELLE PERSISTE, ELLE NE FILTRE PAS ─────────────────────────────────────
+ * ── ELLE PERSISTE **QUAND C'EST LA PERSONNE QUI AGIT** ────────────────────
  * Le plus court aurait été de retirer les lignes démenties À LA VOLÉE, juste
  * avant de construire le prompt. Ça aurait donné un prompt correct et laissé
  * en base un fait faux — que la carte affiche, que l'export RGPD rend, et que
  * le prochain lecteur (`generate-meal-v1`, une synthèse coach) relit
  * naïvement. On écrit donc la correction, une fois, et tout le monde en
  * profite.
+ *
+ * ⚠️ DEPUIS C4, CE « ON ÉCRIT » A UNE CONDITION, ET ELLE EST DANS LA SIGNATURE
+ * (`actor`). Voir le bloc ci-dessous: la correction s'applique TOUJOURS à la
+ * composition en cours, et elle ne se PERSISTE que sur la ligne de la personne
+ * qui a déclenché le run.
  *
  * ── CE QU'ELLE NE FAIT JAMAIS ─────────────────────────────────────────────
  * Échouer bruyamment. Une réconciliation impossible (mémoire illisible, écriture
@@ -48,30 +53,50 @@
  *      `stale_snapshot`, et on ne réessaie pas: réessayer serait décider que
  *      notre copie gagne.
  *
- *   2. ⚖️ TRANCHÉ, NON « CORRIGÉ », ET C'EST DÉLIBÉRÉ.
- *      `student_goals.updated_at` du titulaire bouge toujours quand quelqu'un
- *      d'autre compose. Le trigger `student_goals_set_updated_at` est
- *      inconditionnel et sa fonction (`tg_set_updated_at`) est PARTAGÉE par
- *      plusieurs tables: la contourner demanderait soit de la rendre
- *      conditionnelle pour tout le monde, soit un `session_replication_role`
- *      qui désarmerait en silence tout trigger futur sur cette table.
+ *   2. ✅ FERMÉ PAR C4 — ET PAS EN FAISANT MENTIR L'HORODATAGE.
+ *      C3 avait tranché de garder l'écriture sur la ligne d'un tiers, en
+ *      constatant que `student_goals.updated_at` bougeait sans que la personne
+ *      ait rien fait, et en jugeant le contournement du trigger plus cher que
+ *      le défaut. La règle qui décide a changé de niveau: ON NE RÉÉCRIT JAMAIS
+ *      CE QUE QUELQU'UN A RENSEIGNÉ. Une frustration sur un état qu'on a laissé
+ *      tel quel se lit « j'ai oublié de le retirer »; la même frustration sur
+ *      un état effacé tout seul se lit « ce truc fait n'importe quoi », et rien
+ *      dans le produit ne peut la lui expliquer — elle n'a rien fait.
  *
- *      Et ce n'est pas seulement le coût qui décide. La réconciliation n'écrit
- *      QUE si le contenu change vraiment (`result.changed`), donc `updated_at`
- *      dit une vérité sur LA LIGNE — « ce qui est déclaré ici a changé ». Ce
- *      qu'il ne dit pas, c'est « cette personne a agi »: ce sont deux questions
- *      différentes, et son nom pose la première.
+ *      Donc: ON N'ÉCRIT PLUS DU TOUT SUR LA LIGNE D'UN TIERS. Le trigger reste
+ *      inconditionnel et partagé, `tg_set_updated_at` n'est pas touchée, et il
+ *      n'y a plus rien à préserver: la ligne d'un secondaire n'est plus écrite
+ *      pendant que le maître compose, donc son `updated_at` ne bouge pas.
  *
- *      VÉRIFIÉ LE 2026-08-12, ET LA NUANCE COMPTE: aucun lecteur ne
- *      l'INTERPRÈTE — ni fonction edge, ni écran, ni SQL, ni `order by`. Le
- *      seul consommateur est l'export RGPD, qui la DUMPE telle quelle
- *      (allowlist `studentGoals` de `account-export-v1`), et un dump ne se
- *      trompe pas de personne: il rend l'octet de la ligne. Le jour où un
- *      lecteur l'INTERPRÈTE, la réponse est de lui faire lire le GESTE, pas de
- *      faire mentir l'horodatage d'une ligne.
+ * ═══════════════════════════════════════════════════════════════════════════
+ * C4 — CE QUE `actor` DÉCIDE, ET CE QU'IL NE DÉCIDE PAS
+ * ═══════════════════════════════════════════════════════════════════════════
+ * IL NE DÉCIDE PAS LA COMPOSITION. La réconciliation est calculée pour tout le
+ * monde, à chaque fois, et c'est elle qui alimente le prompt: une préférence
+ * qu'un secondaire a rétractée dans SA conversation n'est jamais servie au
+ * modèle, même quand c'est le maître qui compose. Le plan reste juste TOUT DE
+ * SUITE.
+ *
+ * IL DÉCIDE LA PERSISTANCE, et rien d'autre. La correction n'est écrite que sur
+ * la ligne de la personne qui a déclenché le run. Pour les autres, le
+ * rattrapage en base se fera à LEUR prochaine génération — c'est-à-dire de leur
+ * fait. Le coût est borné et connu: la composition est déjà correcte, seule la
+ * DATE de la persistance se décale.
+ *
+ * ⚠️ `actor` EST REQUIS, JAMAIS OPTIONNEL. Ce dépôt a payé plusieurs fois
+ * « paramètre de garde optionnel = garde désarmée » (`safetyBand` jamais
+ * passé): un défaut à `"row_owner"` aurait laissé passer, sans un mot, tout
+ * futur appelant qui compose pour quelqu'un d'autre — et ce chemin-là existe
+ * déjà (L6). Le compilateur liste les appelants; chacun DIT ce qu'il est.
+ *
+ * ⚠️ CE PARAMÈTRE NOMME UN FAIT, PAS UNE POLITIQUE. « Qui a déclenché ce run,
+ * par rapport à la ligne qu'on corrige » est une chose que l'appelant SAIT;
+ * « faut-il écrire » est une chose qu'il devrait deviner. Si la règle change un
+ * jour (par exemple: écrire aussi pour un tiers, avec une trace visible par la
+ * personne), elle change ICI, et aucun appelant ne bouge.
  *
  * Consigné aussi dans `docs/keel/CHANTIER-PLANS-INDIVIDUELS-ET-FUSION.md`,
- * §C3 ②.
+ * §C3 ② et §C4.
  */
 import {
   FOOD_PREFERENCES_KEY,
@@ -96,8 +121,23 @@ type MinimalClient = {
 };
 
 /**
+ * QUI A DÉCLENCHÉ CE RUN, par rapport à la ligne qu'on réconcilie.
+ *
+ * · `"row_owner"` — la personne compose SON plan, sur SA ligne. La correction
+ *   est appliquée ET écrite: c'est son geste qui la produit, et elle peut se
+ *   l'attribuer. C'est le cas des trois générateurs, sur la ligne du compte
+ *   authentifié.
+ * · `"someone_else"` — quelqu'un d'autre compose (depuis L6/D4: le maître du
+ *   foyer, pour chaque titulaire à table). La correction est appliquée à la
+ *   composition en cours et N'EST PAS ÉCRITE. On ne réécrit pas ce qu'une
+ *   personne a renseigné pendant qu'elle ne fait rien.
+ */
+export type FoodPreferenceActor = "row_owner" | "someone_else";
+
+/**
  * Réconcilie `practical_constraints` avec l'état courant de la mémoire, et
- * persiste si quelque chose a changé.
+ * persiste si quelque chose a changé **et** si c'est la personne elle-même qui
+ * a déclenché le run (`actor`).
  *
  * @returns les contraintes À UTILISER — réconciliées si possible, celles
  *          reçues sinon.
@@ -108,6 +148,12 @@ export async function reconcileFoodPreferencesFor(args: {
   constraints: Record<string, unknown> | null | undefined;
   /** Pour la trace: le nom de la fonction appelante. */
   source: string;
+  /**
+   * ⚠️ C4 — REQUIS, JAMAIS `actor?`. Voir le bloc de tête: optionnel, il aurait
+   * fait écrire par défaut sur la ligne d'un tiers, c'est-à-dire exactement le
+   * défaut qu'il existe pour fermer, et sans que rien ne tombe.
+   */
+  actor: FoodPreferenceActor;
 }): Promise<Record<string, unknown>> {
   const constraints = (args.constraints ?? {}) as Record<string, unknown>;
   const kept = Array.isArray(constraints[FOOD_PREFERENCES_KEY])
@@ -198,6 +244,33 @@ export async function reconcileFoodPreferencesFor(args: {
     }
     if (!result.changed) return constraints;
 
+    // ── C4 · LA CORRECTION S'APPLIQUE, ELLE NE SE PERSISTE PAS ─────────────
+    //
+    // On sort AVANT l'écriture, et on rend quand même `result.constraints`: la
+    // composition en cours est corrigée pour tout le monde — c'est tout
+    // l'intérêt de L6 — et la ligne de la personne n'est pas touchée.
+    //
+    // ⚠️ CE N'EST PAS UN ÉCHEC, ET LE LOG NE DOIT PAS LE FAIRE CROIRE. C'est le
+    // cas NOMINAL de la lane foyer: à chaque composition du maître, autant de
+    // passages ici que de titulaires ayant rétracté quelque chose. En `warn`,
+    // il ferait ressembler le fonctionnement normal à une panne — le contraire
+    // exact de `reconcile_not_written`, qui, lui, nomme une course perdue.
+    //
+    // CE QUE ÇA COÛTE, ET C'EST BORNÉ: la correction sera écrite à la PROCHAINE
+    // génération de cette personne, par son propre geste. Seule la DATE de la
+    // persistance se décale; aucun prompt n'est faux entre-temps, puisque
+    // chaque lecture rejoue la réconciliation.
+    if (args.actor !== "row_owner") {
+      console.info(JSON.stringify({
+        tag: "keel/food_preferences",
+        event: "reconciled_not_persisted",
+        source: args.source,
+        user_id: args.userId,
+        dropped: result.dropped,
+      }));
+      return result.constraints;
+    }
+
     // ── C3 ② · L'ÉCRITURE CIBLÉE, SOUS CONCURRENCE OPTIMISTE ───────────────
     //
     // CE QUE ÇA REMPLACE, MOT POUR MOT:
@@ -207,8 +280,16 @@ export async function reconcileFoodPreferencesFor(args: {
     //
     // c'est-à-dire la colonne ENTIÈRE, reconstruite à partir d'une copie lue
     // ~10 ms plus tôt dans la requête de QUELQU'UN D'AUTRE. Depuis L6, le
-    // maître déclenche ce chemin pour chaque titulaire à sa table: le rythme de
-    // repas qu'un secondaire venait d'enregistrer disparaissait sans un mot.
+    // maître déclenchait ce chemin pour chaque titulaire à sa table: le rythme
+    // de repas qu'un secondaire venait d'enregistrer disparaissait sans un mot.
+    //
+    // ⚠️ DEPUIS C4, PLUS PERSONNE N'ARRIVE ICI POUR LA LIGNE D'UN AUTRE (le
+    // `return` juste au-dessus). CE BLOC RESTE, ET IL DOIT RESTER: une même
+    // ligne `student_goals` a plusieurs écrivains légitimes — la carte des
+    // préférences, le rythme de repas, la capacité de cuisine — et deux d'entre
+    // eux peuvent être la MÊME personne dans deux onglets. La garde de C3 ne
+    // protégeait pas seulement du maître; la retirer parce que le maître est
+    // parti rouvrirait l'écrasement de colonne pour tous les autres.
     //
     // LES DEUX MOITIÉS VIVENT EN BASE (`20260812210000`), et pas ici:
     //   ① `jsonb_set` sur les DEUX seules clés que ce module possède — tout le

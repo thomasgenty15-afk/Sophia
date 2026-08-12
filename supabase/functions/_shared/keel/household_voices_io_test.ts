@@ -12,6 +12,10 @@ import {
   applyFoodPreferenceDecision,
   FOOD_PREFERENCES_KEY,
 } from "./food_preference_promotion.ts";
+// ⚠️ C4 — IMPORTÉ EXPRÈS DANS CE FICHIER-CI. Le test « deux secondaires » doit
+// prouver que son décor SAIT écrire, sans quoi son « zéro écriture » ne
+// distingue pas la garde d'un faux client muet.
+import { reconcileFoodPreferencesFor } from "./food_preference_promotion_io.ts";
 import { loadHouseholdVoices } from "./household_voices_io.ts";
 
 const OLD = "aaaaaaaa-0000-4000-8000-000000000001";
@@ -227,7 +231,7 @@ Deno.test("LE MAÎTRE PRÉCHARGÉ ET UN SECONDAIRE CHARGÉ COHABITENT, DANS L'OR
   assertEquals(goalsRead[0].ids, ["u-zoe"]);
 });
 
-Deno.test("LA RÉTRACTATION D'UN SECONDAIRE EST HONORÉE, ET PERSISTÉE", async () => {
+Deno.test("LA RÉTRACTATION D'UN SECONDAIRE EST HONORÉE, ET **NON** PERSISTÉE (C4)", async () => {
   // ⚠️ C'EST LA MOITIÉ « MÉMOIRE » DE D4, et elle ne marche que parce qu'on
   // passe par le pont existant. Le memorizer a enregistré que Zoé est revenue
   // sur ce qu'elle avait dit (`invalidated`); sans la réconciliation, la
@@ -246,17 +250,75 @@ Deno.test("LA RÉTRACTATION D'UN SECONDAIRE EST HONORÉE, ET PERSISTÉE", async 
     source: "test",
   });
   assertEquals(out.voices, [], "une préférence rétractée est encore servie");
-  // ELLE PERSISTE, ELLE NE FILTRE PAS: la correction est écrite une fois et les
-  // deux autres générateurs en profitent.
-  // ⚠️ C3 ② — L'ÉCRITURE EST CIBLÉE, ET C'EST TOUT LE SUJET DE CE CHEMIN-CI:
-  // c'est le MAÎTRE qui compose, et la ligne écrite est celle de ZOÉ. Écraser
-  // `practical_constraints` en entier à partir d'une copie lue 10 ms plus tôt
-  // perdait son rythme de repas sans un mot. Plus aucun `.update()` de colonne.
+  // ⚠️ C4 — CE TEST DISAIT L'INVERSE JUSQU'AU 2026-08-12, ET C'ÉTAIT LE DÉFAUT.
+  // C'est le MAÎTRE qui compose; la ligne qu'on écrirait est celle de ZOÉ, qui
+  // n'a rien fait. Une préférence qui disparaît sans geste ne se lit pas « j'ai
+  // oublié de la retirer » mais « ce truc fait n'importe quoi », et rien dans
+  // le produit ne peut le lui expliquer. La correction vaut pour CE prompt; sa
+  // ligne sera corrigée à SA prochaine génération, sur SON geste.
+  //
+  // C3 ② n'est pas défait pour autant: la RPC ciblée reste le SEUL chemin
+  // d'écriture, et `updates` reste le mouchard qui verrait revenir
+  // l'écrasement de colonne.
   assertEquals(trace.updates.length, 0);
-  assertEquals(trace.rpcs.length, 1);
-  assertEquals(trace.rpcs[0].name, "keel_write_food_preferences");
-  assertEquals(trace.rpcs[0].params.p_preferences, []);
-  // Le témoin est ce qu'on a LU sur la ligne de Zoé, pas ce qu'on écrit.
-  assertEquals(trace.rpcs[0].params.p_expected, ["no fish"]);
+  assertEquals(trace.rpcs, [], "la ligne d'un tiers a été écrite");
   assert(trace.tablesRead.includes("memory_items"));
+});
+
+Deno.test("C4 — DEUX SECONDAIRES À TABLE: DEUX corrections, ZÉRO écriture, ET LE DÉCOR SAIT ÉCRIRE", async () => {
+  // ⚠️ LE PIÈGE DE CE LOT EST LE DÉCOR. Avec un seul titulaire, « n'écrit pas
+  // pour les autres » et « n'écrit plus jamais » rendent le même zéro. Ce test
+  // monte donc TROIS bouches: le maître (préchargé, sa ligne est déjà
+  // réconciliée et écrite bien plus haut, sur son geste) et DEUX secondaires
+  // qui ont chacun rétracté quelque chose.
+  const ZOE = "aaaaaaaa-0000-4000-8000-000000000001"; // = OLD
+  const { admin, trace } = fakeAdmin({
+    goalsByUser: {
+      "u-zoe": goalRow("u-zoe", "no fish", "2026-08-01"),
+      "u-tom": goalRow("u-tom", "no fish", "2026-08-03"),
+    },
+    itemsById: {
+      [ZOE]: { id: ZOE, status: "invalidated", normalized_summary: "no fish" },
+    },
+  });
+  const out = await loadHouseholdVoices(admin, {
+    members: [
+      {
+        memberId: "m-dad",
+        userId: "u-dad",
+        displayName: "Marc",
+        constraints: kept("hates broccoli", "2026-08-02"),
+      },
+      { memberId: "m-zoe", userId: "u-zoe", displayName: "Zoé", constraints: null },
+      { memberId: "m-tom", userId: "u-tom", displayName: "Tom", constraints: null },
+    ],
+    source: "test",
+  });
+
+  // ① LA COMPOSITION RESTE JUSTE POUR TOUT LE MONDE: les deux rétractations
+  //    sont honorées, et la voix du maître entre toujours (L6 n'est pas défait).
+  assertEquals(out.voices.map((v) => v.displayName), ["Marc"]);
+  assertEquals(out.voices[0].lines, ["2026-08-02 — hates broccoli"]);
+  assertEquals(out.reads, 2, "les deux lignes de secondaires doivent être lues");
+  // ② AUCUNE LIGNE D'UN TIERS NE BOUGE — ni Zoé, ni Tom.
+  assertEquals(trace.rpcs, [], "une ligne de secondaire a été écrite");
+  assertEquals(trace.updates, [], "une colonne de secondaire a été écrasée");
+
+  // ③ ⚠️ ET LE DÉCOR SAIT ÉCRIRE. Sans cette moitié, le zéro ci-dessus serait
+  //    peut-être celui d'un faux client incapable de tracer une RPC — un vert
+  //    qui ne prouve rien. Même client, même mémoire, même ligne: on rejoue la
+  //    réconciliation de Zoé comme si c'était ELLE qui composait, et l'écriture
+  //    apparaît. C'est exactement ce que fera sa prochaine génération.
+  const own = await reconcileFoodPreferencesFor({
+    admin,
+    userId: "u-zoe",
+    constraints: kept("no fish", "2026-08-01"),
+    source: "test",
+    actor: "row_owner",
+  });
+  assertEquals(own[FOOD_PREFERENCES_KEY], []);
+  assertEquals(trace.rpcs.length, 1, "le décor ne sait pas écrire: le zéro ci-dessus ne prouve rien");
+  assertEquals(trace.rpcs[0].name, "keel_write_food_preferences");
+  assertEquals(trace.rpcs[0].params.p_expected, ["no fish"]);
+  assertEquals(trace.rpcs[0].params.p_preferences, []);
 });

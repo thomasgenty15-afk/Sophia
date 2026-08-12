@@ -501,6 +501,9 @@ Deno.serve(async (req) => {
       userId,
       constraints: (goalRow.practical_constraints ?? {}) as Record<string, unknown>,
       source: FN_NAME,
+      // C4 — la lane individuelle: `userId` est le compte authentifié et cette
+      // ligne est la sienne. Sa propre correction s'écrit, comme avant.
+      actor: "row_owner",
     });
 
     // --- LA MÉTHODE DU COACH ----------------------------------------------
