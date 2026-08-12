@@ -26,6 +26,8 @@ const USERS = [
   "a53ece5c-6a39-41ac-8d01-41498f18cf4c", // 3.2 sans petit-déjeuner: T6 prouvée
   "bcce2c3f-638b-4f2f-8bd0-9f83370d840c", // 3.3 accusé FR après correctif
   "2a2d81c4-cdec-42c4-8fdd-551330d4b26e", // 3.4 accusé EN, non-régression
+  // ── lot photo: exemption de budget ─────────────────────────────────────────
+  "df80880e-7c9a-45e1-8c6b-d75ea8c5ee30", // budget consommé + sonde d'exclusion
 ];
 const TABLES = [
   "student_weight_divergence_episodes",

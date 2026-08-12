@@ -27,6 +27,7 @@ function fakeDb(opts: {
   insertThrows?: boolean;
   recorded?: Recorded[];
   filters?: Array<[string, unknown]>;
+  notFilters?: Array<[string, unknown]>;
   // deno-lint-ignore no-explicit-any
 }): any {
   return {
@@ -37,6 +38,13 @@ function fakeDb(opts: {
         },
         eq(col: string, value: unknown) {
           opts.filters?.push([col, value]);
+          return chain;
+        },
+        // Le compteur EXCLUT les genres « réponse à un geste ». Le double les
+        // enregistre pour qu'un test puisse prouver l'exclusion au niveau de la
+        // requête, pas seulement au niveau de la décision.
+        neq(col: string, value: unknown) {
+          opts.notFilters?.push([col, value]);
           return chain;
         },
         insert(payload: Record<string, unknown>) {

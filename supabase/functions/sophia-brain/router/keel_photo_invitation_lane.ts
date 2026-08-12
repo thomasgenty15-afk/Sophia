@@ -32,8 +32,8 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
 
 import {
-  countDailyAsks,
-  DAILY_ASK_BUDGET,
+  countDailyAsksOfKind,
+  PHOTO_INVITATION_DAILY_CAP,
   hasEverAsked,
   recordDailyAsk,
 } from "../../_shared/keel/daily_ask_budget.ts";
@@ -122,13 +122,24 @@ export async function armPhotoInvitation(args: {
     asksMadeToday: 0,
     alreadyInvitedEver: true,
     flowAlreadyOpen: args.flowAlreadyOpen,
-    budget: DAILY_ASK_BUDGET,
+    budget: PHOTO_INVITATION_DAILY_CAP,
   });
   if (!cheapGate.invite) return idle(cheapGate.reason_code);
 
   const localDate = String(args.localDate ?? "").trim();
+  // ⚠️ LE PLAFOND EST CELUI DE LA PHOTO, PAS LA PLACE PARTAGÉE DU JOUR.
+  // Dire « j'ai commandé une pizza » est le même geste que taper le bouton de
+  // FF-057: l'invitation répond à un fait que la personne vient de déclarer, et
+  // `gatePhotoInvitation` refuse déjà sans lui (`no_committed_fact`,
+  // `not_off_plan`). Elle ne peut donc pas partir non sollicitée, et n'a rien à
+  // prendre au budget des sollicitations. Son plafond propre reste armé.
   const [count, ever] = await Promise.all([
-    countDailyAsks(args.supabase, { userId: args.userId, localDate }),
+    countDailyAsksOfKind(args.supabase, {
+      userId: args.userId,
+      localDate,
+      kind: "photo_invitation",
+      capOnFailure: PHOTO_INVITATION_DAILY_CAP,
+    }),
     hasEverAsked(args.supabase, {
       userId: args.userId,
       kind: "photo_invitation",
@@ -145,7 +156,7 @@ export async function armPhotoInvitation(args: {
     asksMadeToday: count.count,
     alreadyInvitedEver: ever.ever,
     flowAlreadyOpen: args.flowAlreadyOpen,
-    budget: DAILY_ASK_BUDGET,
+    budget: PHOTO_INVITATION_DAILY_CAP,
   });
   if (!gate.invite || gate.sentence === null) {
     return idle(`${gate.reason_code}:${count.reason}`);

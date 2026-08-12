@@ -92,6 +92,51 @@ export type DailyAskSource = "text" | "photo" | "chat";
  */
 export const DAILY_ASK_BUDGET = 1;
 
+/**
+ * LES GENRES QUI RÉPONDENT À UN GESTE, ET QUI NE CONSOMMENT DONC PAS LA PLACE.
+ *
+ * ── LE DÉFAUT MESURÉ ────────────────────────────────────────────────────────
+ * Un soir où la question de divergence était déjà partie, quelqu'un qui tapait
+ * « j'ai commandé » ne recevait AUCUNE invitation photo: le fait hors-plan
+ * s'enregistrait sans le moindre détail, et personne ne saurait jamais ce qu'il
+ * y avait dedans. C'est la principale source de « repas dont on ne sait rien ».
+ *
+ * ── POURQUOI C'EST LÉGITIME, ET PAS UN TROU DANS T4 ─────────────────────────
+ * `gatePhotoInvitation` refuse sur `no_committed_fact` et sur `not_off_plan`:
+ * une invitation photo ne peut STRUCTURELLEMENT pas partir sans un fait que la
+ * personne vient elle-même de déclarer. Elle n'est donc jamais une sollicitation
+ * du produit — c'est une réponse à un geste, exactement comme la proposition de
+ * décalage de FF-057, exemptée pour ce motif écrit dans `accident_tap.ts`:
+ * « la réponse à un geste que la personne vient de faire n'est pas une DEMANDE ».
+ *
+ * Le budget partagé compte donc ce qu'il a toujours voulu compter: **les
+ * sollicitations que le produit prend l'initiative d'envoyer**, une par jour.
+ *
+ * ⚠️ CONSÉQUENCE ASSUMÉE: une invitation photo ne BLOQUE plus rien non plus.
+ * Une personne peut donc lire une invitation à midi (parce qu'elle a déclaré un
+ * repas hors plan) et la question du soir à 19 h. C'est voulu: la première
+ * répond à sa phrase, la seconde est la seule initiative du produit ce jour-là.
+ */
+export const GESTURE_RESPONSE_ASK_KINDS: readonly DailyAskKind[] = Object.freeze(
+  ["photo_invitation"],
+);
+
+/**
+ * LE PLAFOND PROPRE DE L'INVITATION PHOTO — un par jour.
+ *
+ * ⚠️ IL EXISTE PARCE QUE LA DÉDUPLICATION NE SUFFIT PAS. L'unicité du ledger est
+ * `(user_id, asked_for_message_id)` — **par message**, pas par jour: elle
+ * empêche de réinviter sur le MÊME message, pas d'inviter trois fois dans la
+ * journée sur trois messages différents. Tant que l'invitation payait le budget
+ * partagé, c'est LUI qui plafonnait; en l'exemptant sans rien mettre à la place,
+ * on aurait ouvert une porte à trois invitations par jour.
+ *
+ * Un et pas deux, par le même raisonnement que `DAILY_ASK_BUDGET`: la seconde
+ * ne creuse plus rien. Une constante à changer si on veut être plus généreux —
+ * c'est le geste le plus réversible du lot.
+ */
+export const PHOTO_INVITATION_DAILY_CAP = 1;
+
 export interface DailyAskCountResult {
   /** Le nombre de demandes déjà parties ce jour local, tous genres confondus. */
   count: number;
@@ -117,11 +162,19 @@ export async function countDailyAsks(
     return { count: DAILY_ASK_BUDGET, reason: "missing_local_date" };
   }
   try {
-    const result = await db
+    // ⚠️ LES RÉPONSES À UN GESTE SORTENT DU COMPTE, et c'est le seul endroit où
+    // ça se décide. `ask_kind` est NOT NULL avec défaut en base (vérifié: 0 ligne
+    // nulle sur 66), donc `neq` ne peut pas manger de ligne par un NULL — le
+    // piège habituel de la négation en SQL ne s'applique pas ici.
+    let query = db
       .from(DAILY_ASK_LEDGER_TABLE)
       .select("id", { count: "exact", head: true })
       .eq("user_id", args.userId)
       .eq("local_date", localDate);
+    for (const kind of GESTURE_RESPONSE_ASK_KINDS) {
+      query = query.neq("ask_kind", kind);
+    }
+    const result = await query;
     if (result.error) {
       console.warn(JSON.stringify({
         tag: "daily_ask_budget_read_failed",
@@ -138,6 +191,61 @@ export async function countDailyAsks(
       error: error instanceof Error ? error.message : String(error),
     }));
     return { count: DAILY_ASK_BUDGET, reason: "read_failed" };
+  }
+}
+
+/**
+ * LE COMPTE D'UN SEUL GENRE, POUR SON PLAFOND PROPRE.
+ *
+ * Sert aux genres sortis du budget partagé (`GESTURE_RESPONSE_ASK_KINDS`): ils
+ * ne consomment plus la place du jour, mais ils gardent un plafond à eux — sans
+ * quoi l'exemption ouvrirait une porte à trois invitations par jour, l'unicité
+ * du ledger étant par MESSAGE et non par jour.
+ *
+ * ⚠️ FAIL-CLOSED, comme ses deux voisines: une lecture ratée rend le plafond
+ * lui-même, donc la garde refuse. Un compteur qui rend 0 sur une panne de
+ * Postgres serait une porte ouverte par la panne.
+ */
+export async function countDailyAsksOfKind(
+  db: SupabaseClient,
+  args: {
+    userId: string;
+    localDate: string | null | undefined;
+    kind: DailyAskKind;
+    /** REQUIS: le plafond à rendre en cas de panne. Un paramètre de repli
+     * optionnel est un repli oublié. */
+    capOnFailure: number;
+  },
+): Promise<DailyAskCountResult> {
+  const localDate = String(args.localDate ?? "").trim();
+  if (!localDate) {
+    return { count: args.capOnFailure, reason: "missing_local_date" };
+  }
+  try {
+    const result = await db
+      .from(DAILY_ASK_LEDGER_TABLE)
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", args.userId)
+      .eq("local_date", localDate)
+      .eq("ask_kind", args.kind);
+    if (result.error) {
+      console.warn(JSON.stringify({
+        tag: "daily_ask_budget_kind_read_failed",
+        user_id: args.userId,
+        kind: args.kind,
+        error: result.error.message,
+      }));
+      return { count: args.capOnFailure, reason: "read_failed" };
+    }
+    return { count: result.count ?? 0, reason: "counted" };
+  } catch (error) {
+    console.warn(JSON.stringify({
+      tag: "daily_ask_budget_kind_read_failed",
+      user_id: args.userId,
+      kind: args.kind,
+      error: error instanceof Error ? error.message : String(error),
+    }));
+    return { count: args.capOnFailure, reason: "read_failed" };
   }
 }
 

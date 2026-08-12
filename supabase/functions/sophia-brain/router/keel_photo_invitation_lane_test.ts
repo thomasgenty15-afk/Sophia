@@ -19,13 +19,21 @@ function fakeDb(opts: {
 }): any {
   return {
     from(_table: string) {
-      let kind: "day" | "ever" = "day";
+      // ⚠️ LE DISCRIMINANT EST `local_date`, PAS `ask_kind`.
+      // Depuis que le compte du jour porte sur UN genre
+      // (`countDailyAsksOfKind`), les deux lectures filtrent `ask_kind` — le
+      // double les confondait et rendait le compte « déjà invitée » pour celui
+      // du jour. Seul le compte du JOUR borne la journée locale.
+      let sawLocalDate = false;
       const chain = {
         select(_c: string, _o?: unknown) {
           return chain;
         },
         eq(col: string, _v: unknown) {
-          if (col === "ask_kind") kind = "ever";
+          if (col === "local_date") sawLocalDate = true;
+          return chain;
+        },
+        neq(_c: string, _v: unknown) {
           return chain;
         },
         insert(payload: Insert) {
@@ -44,6 +52,7 @@ function fakeDb(opts: {
           };
         },
         then(res: (v: unknown) => unknown, rej: (e: unknown) => unknown) {
+          const kind: "day" | "ever" = sawLocalDate ? "day" : "ever";
           opts.reads?.push(kind);
           return Promise.resolve({
             count: kind === "ever" ? (opts.everCount ?? 0) : (opts.todayCount ?? 0),

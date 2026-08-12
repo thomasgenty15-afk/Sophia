@@ -45,6 +45,13 @@ function fakeDb(replies: {
       seen.filters.push([column, value]);
       return this;
     },
+    // Le compteur partagé exclut les genres « réponse à un geste »
+    // (`GESTURE_RESPONSE_ASK_KINDS`). Enregistré comme les autres filtres: le
+    // test du bornage le rend visible plutôt que de le laisser passer muet.
+    neq(column: string, value: unknown) {
+      seen.filters.push([`not:${column}`, value]);
+      return this;
+    },
     then(resolve: (value: CountReply) => unknown) {
       if (replies.countThrows) throw new Error("connection reset");
       return Promise.resolve(
@@ -91,7 +98,13 @@ Deno.test("le compte est borné à l'élève ET à sa journée locale", async ()
   assertEquals(result.count, 1);
   assertEquals(result.reason, "counted");
   assertEquals(seen.table, "meal_precision_questions");
-  assertEquals(seen.filters, [["user_id", "u-1"], ["local_date", "2026-08-04"]]);
+  assertEquals(seen.filters, [
+    ["user_id", "u-1"],
+    ["local_date", "2026-08-04"],
+    // L'invitation photo ne pèse plus sur le plafond de précision: elle répond à
+    // un geste, elle ne le sollicite pas.
+    ["not:ask_kind", "photo_invitation"],
+  ]);
 });
 
 Deno.test("une lecture en échec FERME le plafond, elle ne l'ouvre pas", async () => {

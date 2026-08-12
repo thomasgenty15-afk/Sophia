@@ -59,9 +59,9 @@ import {
   writeSessionState,
 } from "../keel/accident_io.ts";
 import {
-  countDailyAsks,
-  DAILY_ASK_BUDGET,
+  countDailyAsksOfKind,
   hasEverAsked,
+  PHOTO_INVITATION_DAILY_CAP,
   recordDailyAsk,
 } from "../keel/daily_ask_budget.ts";
 import { applyStripTicks } from "../keel/evening_strip_io.ts";
@@ -346,8 +346,25 @@ async function armPhotoInvitation(
     sourceMessageId: string;
   },
 ): Promise<string | null> {
+  // ⚠️ LE PLAFOND EST CELUI DE LA PHOTO, PAS LA PLACE PARTAGÉE DU JOUR.
+  //
+  // Avant: un soir où la question de divergence (ou la pratique, ou la
+  // recommandation) était déjà partie, ce tap n'invitait à RIEN — le fait
+  // hors-plan s'enregistrait sans le moindre détail. Or l'invitation répond à un
+  // geste que la personne vient de faire, exactement comme
+  // `shiftProposalAfterShoppingLater` quinze lignes plus bas, exempté pour ce
+  // motif depuis le premier jour. Les deux frères se comportent enfin pareil.
+  //
+  // Le plafond propre reste armé (`PHOTO_INVITATION_DAILY_CAP`): l'unicité du
+  // ledger est par MESSAGE, elle n'aurait pas empêché trois invitations dans la
+  // journée sur trois messages différents.
   const [asks, ever] = await Promise.all([
-    countDailyAsks(admin, { userId: args.userId, localDate: args.localDate }),
+    countDailyAsksOfKind(admin, {
+      userId: args.userId,
+      localDate: args.localDate,
+      kind: "photo_invitation",
+      capOnFailure: PHOTO_INVITATION_DAILY_CAP,
+    }),
     hasEverAsked(admin, { userId: args.userId, kind: "photo_invitation" }),
   ]);
   const gate = gatePhotoInvitation({
@@ -366,7 +383,7 @@ async function armPhotoInvitation(
     asksMadeToday: asks.count,
     alreadyInvitedEver: ever.ever,
     flowAlreadyOpen: false,
-    budget: DAILY_ASK_BUDGET,
+    budget: PHOTO_INVITATION_DAILY_CAP,
   });
   console.info(JSON.stringify({
     tag: "keel.accident.photo_invitation",
