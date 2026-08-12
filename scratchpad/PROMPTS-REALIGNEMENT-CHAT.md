@@ -111,12 +111,18 @@ la consomme* — le plan, une ceinture de sécurité, ou le coach.
   `./scripts/local_extend_kong_functions_timeout.sh` avant un run long ; un
   502 se retente avec le MÊME `client_message_id`, deux 502 = infra, pas
   produit.
-- **Observabilité** : `turn_summary_logs` (colonnes `context_elements`,
-  `context_tokens` — gaté `TURN_SUMMARY_DB_ENABLED=1`, purge 7 j) dit quels
-  blocs de contexte un tour a VRAIMENT portés ; `conversation_turn_traces`
-  porte le frame et la route ; les logs edge portent `keel.doctrine.variant`.
-  Le texte du prompt n'est stocké nulle part — présence/absence d'un bloc se
-  prouve par `context_elements` + tailles.
+- **Observabilité.** ⚠️ **Corrigé le 2026-08-12, troisième puce fausse de ce
+  fichier** : `turn_summary_logs.context_elements` est **TOUJOURS NULL** —
+  l'écrivain qui la remplirait n'a aucun appelant. **Ne bâtis aucune preuve
+  dessus** ; toute consigne (y compris dans ce socle) qui te dit de prouver la
+  présence d'un bloc par `context_elements` te demande l'impossible. Ce qui
+  marche vraiment : le **comportement observé en base**, les compteurs
+  applicatifs (ex. `chat_inbound_history_loaded`), et `full_chars` pour les
+  tailles. `conversation_turn_traces` porte le frame et la route. Les
+  `console.log` du runtime edge **sont** lisibles dans
+  `docker logs supabase_edge_runtime_Sophia_2` (mesuré) — un lot a rapporté
+  l'inverse pour `console.info` : vérifie toi-même plutôt que de choisir entre
+  les deux.
 - **Un RED se consigne, il ne se re-run pas jusqu'au vert.** Des probes verts
   ont déjà caché un run réel rouge. Si un résultat te surprend, lis la ligne
   en base avant de conclure.
