@@ -48,6 +48,11 @@ import { addDays, firstBlockingPlan, planEndsOn } from "./meal_plan_window.ts";
 // dans ce fichier pur, et donc le cycle qui naîtrait le jour où le générateur
 // voudrait un type d'ici.
 import { normalizeForMatch } from "./forbidden_matcher.ts";
+// C8 ① — LE SINGULIER, ET IL EST DÉJÀ ÉCRIT ICI. `planned_dish_match.ts` est
+// une FEUILLE lui aussi (il n'importe que `tokens.ts`, qui n'importe rien), et
+// il porte le seul normaliseur de pluriel de ce dépôt qui ait été benché sur
+// des ingrédients réels. Voir `foodKey`.
+import { normalizeTerm } from "./planned_dish_match.ts";
 import {
   asksForASecondDish,
   type CookingShape,
@@ -1359,6 +1364,55 @@ export interface ObservedPreparation {
   ingredients: readonly { term: string }[];
 }
 
+/**
+ * C8 ① — LA FORME COMPARABLE D'UN ALIMENT, PLURIEL COMPRIS.
+ *
+ * ── LE CLONE QUI A MOTIVÉ LA RÈGLE PASSAIT À TRAVERS ELLE ────────────────
+ * Mesuré le 2026-08-12, plan `7ab2e069…`, `fri/breakfast` — la paire même que
+ * C7 ④ cite:
+ *
+ *   « Greek yogurt bowls with peaches, granola and seeds »
+ *     [Greek yogurt | peaches  | granola | mixed seeds]
+ *   « Greek yogurt bowl with peaches and seeds », why: « A fresh single
+ *     portion for Zoe »
+ *     [Greek yogurt | peach    | granola | mixed seeds]
+ *
+ * Titres différents, donc le premier signal se tait. Jeux d'aliments
+ * identiques SAUF `peaches` contre `peach`: `normalizeForMatch` ne fait que
+ * minusculer et retirer les diacritiques, donc les deux ensembles étaient
+ * inégaux et le clone comptait comme un plat dédié. Le run 1 est archivé
+ * `dedicated: 7` sur 9; six sont vrais.
+ *
+ * ── CE QUI EST RÉUTILISÉ, ET POURQUOI CE N'EST PAS UN MATCHER MAISON ─────
+ * ⚠️ JAMAIS DE MATCHER MAISON SUR DU TEXTE ALIMENTAIRE — « laitue » contient
+ * « lait ». Rien n'est écrit ici: `normalizeTerm` (`planned_dish_match.ts`) est
+ * le normaliseur que ce dépôt a DÉJÀ benché sur 1 417 ingrédients réellement
+ * générés, avec ses trois règles de pluriel et le récit de ce qu'une quatrième
+ * coûterait. Il est composé APRÈS `normalizeForMatch`: une réduction de forme
+ * sur un terme déjà normalisé, jamais un choix entre deux aliments.
+ *
+ * ── CE QUE LE BANC A MESURÉ (505 termes réels, base locale, 2026-08-12) ──
+ * 35 replis, et les 35 sont la même nourriture au singulier et au pluriel
+ * (`peach`/`peaches`, `potato`/`potatoes`, `wrap`/`wraps`…). AUCUN repli entre
+ * deux aliments différents. Sur les 25 cases réelles à deux plats ou plus, un
+ * seul verdict change: `7ab2e069…/fri/breakfast`, qui est le clone mesuré.
+ *
+ * ⚠️ LE SEUL REPLI DOUTEUX DU BANC EST `peppers` → `pepper`: le poivre et le
+ * poivron. Il est SANS EFFET tant qu'il ne rend pas deux jeux entiers égaux —
+ * et un jeu entier égal est déjà, à un aliment près, le clone qu'on cherche.
+ * Prix nommé, à surveiller à la prochaine campagne.
+ *
+ * ⚠️ LE TITRE N'EST PAS TOUCHÉ, et c'est délibéré: il décide SEUL, sans
+ * corroboration, tandis que le jeu d'aliments doit être égal en entier. Élargir
+ * le signal le moins étayé est le mauvais bout.
+ *
+ * **Retour arrière**: `normalizeForMatch(...)` à la place de `foodKey(...)`
+ * dans `foodOf`, deux lignes — le constat redevient celui de C7 ④.
+ */
+function foodKey(term: string): string {
+  return normalizeTerm(normalizeForMatch(String(term ?? ""))).trim();
+}
+
 export function observeMergeShape(args: {
   shape: CookingShape;
   dishes: readonly ObservedDish[];
@@ -1409,12 +1463,12 @@ export function observeMergeShape(args: {
   const foodOf = (dish: ObservedDish): Set<string> => {
     const out = new Set<string>();
     for (const ing of dish.ingredients ?? []) {
-      const term = normalizeForMatch(String(ing?.term ?? "")).trim();
+      const term = foodKey(String(ing?.term ?? ""));
       if (term) out.add(term);
     }
     for (const use of dish.uses ?? []) {
       for (const ing of prepFood.get(use?.preparationId ?? "") ?? []) {
-        const term = normalizeForMatch(String(ing?.term ?? "")).trim();
+        const term = foodKey(String(ing?.term ?? ""));
         if (term) out.add(term);
       }
     }
@@ -1429,9 +1483,12 @@ export function observeMergeShape(args: {
    * en clone, donc un plan honoré en plan trahi. Les deux signaux sont donc des
    * égalités exactes après normalisation.
    *
-   *   ① le MÊME titre — le plat récrit tel quel;
+   *   ① le MÊME titre — le plat récrit tel quel. Égalité stricte après
+   *      `normalizeForMatch`, et C8 ① NE L'A PAS ÉLARGI: ce signal décide seul.
    *   ② le MÊME jeu d'aliments — « le même aliment dans un plus petit bol »,
-   *      qui est le cas mesuré: la portion change, la nourriture non.
+   *      qui est le cas mesuré: la portion change, la nourriture non. Égalité
+   *      après `foodKey`, c'est-à-dire pluriel replié (C8 ①): sans ça, la paire
+   *      qui a MOTIVÉ cette règle passait au travers sur `peaches`/`peach`.
    *
    * ⚠️ LE DOUTE NE FABRIQUE PAS DE CLONE. Quand l'un des deux plats n'écrit
    * aucun aliment (ni le sien, ni celui d'un lot), le second signal se TAIT: on

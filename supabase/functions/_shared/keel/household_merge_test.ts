@@ -1330,9 +1330,13 @@ Deno.test("LA FENÊTRE DE FUSION SE DÉDUIT, ELLE NE SE DEMANDE PAS", async () =
 import {
   buildMealPrompt,
   dishBudgetFor,
+  MEAL_PROMPT_VERSION,
   type MergedEater,
   parseGeneratedMeal,
 } from "./meal_generation.ts";
+// C8 ③ — les DEUX axes de version, lus ensemble: la décision de ce lot est de
+// n'en bouger aucun, et une décision qu'aucun test ne tient n'est qu'un avis.
+import { HOUSEHOLD_PROMPT_VERSION } from "./household_meal_generation.ts";
 import {
   asksForASecondDish,
   dedicatedDishesFor,
@@ -2569,6 +2573,72 @@ Deno.test("C7 ② — UN PLAT QUI NE SURVIVRA PAS NE COÛTE PAS UN PLAT GARDÉ",
   );
 });
 
+Deno.test("C8 ③ — HORS FUSION AUSSI, UNE CASE VIDE PASSE AVANT UN SECOND PLAT", () => {
+  // ⚠️ CE QUE C7 ② A CHANGÉ SUR LA LANE INDIVIDUELLE, ET QU'IL N'ANNONÇAIT
+  // QUE DANS UN COMMENTAIRE. Sans fusion, `dedicatedCells` est vide — donc pas
+  // de rang 1 — mais le rang 0 (« premier plat d'une case ») existe toujours.
+  // Un second plat cède donc sa place au premier plat d'une case encore vide.
+  //
+  // ⚠️ LE DÉCOR EST CELUI DE LA MESURE, PAS UN DÉCOR COMMODE: le MÊME flot
+  // brut de 18 plats (une assiette de table et une seconde assiette par case,
+  // en alternance), passé au parseur avec `merge: null` — donc un plafond de 9.
+  //   · avant C7 ②, « les derniers tombent »: `dishes[10,12,14,16]` étaient
+  //     jetés, et le plan rendait `empty_slots: sat/dinner, sun/breakfast,
+  //     sun/lunch, sun/dinner` — les PREMIÈRES assiettes des quatre dernières
+  //     cases;
+  //   · depuis C7 ②, ce sont quatre SECONDES assiettes de cases déjà servies
+  //     qui partent, et la grille est pleine.
+  //
+  // Le changement est FAVORABLE — il remplit des cases au lieu de les laisser
+  // vides — et il ne bumpe AUCUNE version: la consigne servie est identique à
+  // l'octet près, c'est le contrat de SORTIE qui bouge, et il se relit sur
+  // `generated_from` (les `issues` nomment chaque plat sacrifié).
+  const days = ["fri", "sat", "sun"];
+  const cells = cellsOf(days, ["breakfast", "lunch", "dinner"]);
+  const CAP_WITHOUT_MERGE = 9; // 3 jours × 3 moments, écrit, jamais dérivé.
+  assertEquals(cells.length, CAP_WITHOUT_MERGE);
+  const dishes: Record<string, unknown>[] = [];
+  for (const c of cells) {
+    dishes.push(c7Table(c.day, c.slot));
+    dishes.push(c7Dedicated(c.day, c.slot));
+  }
+  assertEquals(dishes.length, 18);
+
+  const meal = parseGeneratedMeal(
+    { preparations: [], dishes, shopping_list: [] },
+    { ...PARSE_BASE, daysToFill: days, merge: null },
+  );
+  assertEquals(meal.dishes.length, CAP_WITHOUT_MERGE);
+  // LA GRILLE EST PLEINE: aucune case n'est vide, et c'est le fait qui change.
+  assertEquals(meal.empty_slots, []);
+  const titles = meal.dishes.map((d) => d.title);
+  for (const c of cells) {
+    assert(
+      titles.includes(`Household ${c.day} ${c.slot}`),
+      `${c.day}/${c.slot} manque: ${titles.join(" | ")}`,
+    );
+  }
+  // …et les quatre secondes assiettes évincées sont NOMMÉES, une par une. Un
+  // plat retiré en silence est un plat qu'on cherchera sans jamais savoir
+  // pourquoi il manque — c'est là que se relit l'ordre qui a écrêté ce plan.
+  assertEquals(
+    meal.issues.filter((i) => i.includes("surplus dish") && i.includes("Zoe")).length,
+    4,
+    meal.issues.join("\n"),
+  );
+});
+
+Deno.test("C8 ③ — LA LANE INDIVIDUELLE GARDE SA VERSION DE PROMPT", () => {
+  // ⚠️ LE PRÉCÉDENT INVOQUÉ EST CELUI DE `HOUSEHOLD_PROMPT_VERSION` v4: la
+  // règle est « quelle POPULATION voit une CONSIGNE différente », et v4 a bumpé
+  // parce que la ligne « at most N dishes » CHANGEAIT DE NOMBRE pour les
+  // fusions. Ici aucun octet de consigne ne bouge, pour personne: le prompt
+  // servi est byte-identique et seul le contrat de sortie change. Bumper
+  // invaliderait le cache d'une population entière pour un prompt identique.
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v9_cooking_shape");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v9_merge_dedicated_per_meal");
+});
+
 Deno.test("C7 ③ — LA LIGNE DE COURSES D'UN PLAT JETÉ NE PART PLUS AU MAGASIN", () => {
   // ⚠️ MESURÉ LE 2026-08-12: run 1, CINQ lignes orphelines (`kidney beans`,
   // `pork mince`, `bok choy`, `sesame oil`, `soy sauce`) — exactement les
@@ -2671,13 +2741,18 @@ Deno.test("C7 ③ — CE QUE JE N'AI PAS SU RATTACHER RESTE, ET SE COMPTE", () =
   );
 });
 
-Deno.test("C7 ③ — AUCUN PLAT JETÉ, AUCUNE RÉCONCILIATION: le cas qui PASSE", () => {
+Deno.test("C7 ③ — TOUT EST RATTACHÉ, RIEN NE BOUGE: le cas qui PASSE", () => {
   // Un plan sain ne change pas d'un octet, et ne porte AUCUNE `issue` de
   // courses. Sans ce cas, une réconciliation qui retirerait tout ressemblerait
   // à une réconciliation qui marche.
+  //
+  // ⚠️ C8 ② A RESSERRÉ CE CAS, ET C'EST LE BON SENS: il disait « aucun plat
+  // tombé », il dit maintenant « chaque ligne est réclamée ». La version d'avant
+  // portait `bay leaves` — une ligne que RIEN ne réclamait — et affirmait donc
+  // qu'un plan qui achète pour personne est un plan sain.
   const meal = parseGeneratedMeal({
     preparations: [],
-    dishes: [plainDish({ ingredients: [{ term: "beef" }] })],
+    dishes: [plainDish({ ingredients: [{ term: "beef" }, { term: "bay leaves" }] })],
     shopping_list: [
       { term: "beef", quantity: "600 g", aisle: "protein" },
       { term: "bay leaves", quantity: "2", aisle: "pantry" },
@@ -2685,6 +2760,32 @@ Deno.test("C7 ③ — AUCUN PLAT JETÉ, AUCUNE RÉCONCILIATION: le cas qui PASSE
   }, PARSE_BASE);
   assertEquals(meal.shopping_list.map((s) => s.term), ["beef", "bay leaves"]);
   assertEquals(meal.issues.filter((i) => i.startsWith("shopping_list")), []);
+});
+
+Deno.test("C8 ② — LA LIGNE QUE PERSONNE NE RÉCLAME SE COMPTE, PLAN SAIN OU PAS", () => {
+  // ⚠️ MESURÉ LE 2026-08-12: deux fusions sur quatre portaient une ligne
+  // réclamée par AUCUN plat gardé (`spring greens`, `protein pancakes`), sans
+  // qu'aucun plat ne soit tombé par ailleurs — donc sans compteur et sans
+  // `issue`. Le foyer achetait pour rien, en silence.
+  const meal = parseGeneratedMeal({
+    preparations: [],
+    dishes: [plainDish({ ingredients: [{ term: "beef" }] })],
+    shopping_list: [
+      { term: "beef", quantity: "600 g", aisle: "protein" },
+      { term: "spring greens", quantity: "1 bunch", aisle: "produce" },
+    ],
+  }, PARSE_BASE);
+  // ⚠️ LA LIGNE RESTE. C7 ③ a tranché que le doute ne retire rien, et C8 ne
+  // change que le COMPTE: une correspondance fausse retirerait une ligne dont
+  // un plat a besoin.
+  assertEquals(meal.shopping_list.map((s) => s.term), ["beef", "spring greens"]);
+  assert(
+    meal.issues.some((i) => i.startsWith("shopping_list_unattributed: 1/2")),
+    meal.issues.join("\n"),
+  );
+  // Aucun plat n'est tombé: il n'y a donc RIEN à retirer, et aucune `issue` de
+  // retrait ne doit apparaître.
+  assertEquals(meal.issues.filter((i) => i.includes("not in the plan")), []);
 });
 
 Deno.test("C7 ④ — LE MÊME ALIMENT DANS UN PLUS PETIT BOL N'EST PAS UN PLAT DÉDIÉ", () => {
@@ -2803,10 +2904,12 @@ Deno.test("C7 ④ — LE DOUTE NE FABRIQUE PAS DE CLONE", () => {
   assertEquals(seen.meals.cloned, 0);
 });
 
-Deno.test("C7 ④ — LE `7/9` MESURÉ VALAIT 6 VRAIS + 1 CLONE", () => {
-  // ⚠️ REJOUE LE RUN 1: sept cases doublées sur neuf, dont UNE portait le
-  // petit-déjeuner du foyer en portion simple. L'archive disait « 7 dédiés »;
-  // la vérité est six.
+Deno.test("C7 ④ — SEPT CASES DOUBLÉES DONT UNE CLONÉE PAR LE TITRE: 6 + 1", () => {
+  // ⚠️ CE DÉCOR N'EST PAS LE RUN 1, et le dire l'était à tort jusqu'à C8. Il
+  // clone par le TITRE; le run 1 clonait par la NOURRITURE, à un pluriel près
+  // (`peaches` / `peach`) — voir le test C8 ① qui rejoue sa matière exacte.
+  // Ce que ce cas-ci tient reste vrai et vaut d'être tenu: une case clonée sort
+  // du compte des dédiés, et le reste de la grille n'en souffre pas.
   const dishes: ObservedDish[] = [];
   const doubled = C7_CELLS.slice(0, 7);
   for (const c of C7_CELLS) {
@@ -2920,6 +3023,225 @@ Deno.test("C7 ④ — MÊME TITRE, AUTRE LISTE: toujours un clone", () => {
   });
   assertEquals(seen.meals.dedicated, 0);
   assertEquals(seen.meals.cloned, 1);
+});
+
+// ── C8 ① · LE DÉTECTEUR DE CLONE RATAIT LE CLONE QUI L'AVAIT MOTIVÉ ──────
+//
+// La matière de ces trois tests n'est pas inventée: elle est copiée du plan
+// `7ab2e069-1f60-44e7-9f78-3d7396421332` (run 1 de la campagne du 2026-08-12),
+// titres et ingrédients au mot près.
+const RUN1_TABLE_BREAKFAST = {
+  title: "Greek yogurt bowls with peaches, granola and seeds",
+  ingredients: [
+    { term: "Greek yogurt" },
+    { term: "peaches" },
+    { term: "granola" },
+    { term: "mixed seeds" },
+  ],
+};
+/** Le clone: `why: "A fresh single portion for Zoe"`, et UN pluriel d'écart. */
+const RUN1_ZOE_BREAKFAST = {
+  title: "Greek yogurt bowl with peaches and seeds",
+  ingredients: [
+    { term: "Greek yogurt" },
+    { term: "peach" },
+    { term: "granola" },
+    { term: "mixed seeds" },
+  ],
+};
+
+Deno.test("C8 ① — LA PAIRE QUI A MOTIVÉ LA RÈGLE EST ENFIN VUE", () => {
+  // ⚠️ AVANT C8, CE CAS RENDAIT `dedies=1 clones=0`. Les titres diffèrent (le
+  // premier signal se tait), et les jeux d'aliments étaient inégaux pour un
+  // seul `s`: `peaches` contre `peach`. Le clone que C7 ④ a été écrit pour
+  // attraper passait donc à travers C7 ④.
+  const seen = observeMergeShape({
+    shape: "one_session",
+    dishes: [
+      plate("fri", "breakfast", RUN1_TABLE_BREAKFAST),
+      plate("fri", "breakfast", RUN1_ZOE_BREAKFAST),
+    ],
+    preparations: [batch(4)],
+    eaterCells: [{ day: "fri", slot: "breakfast" }],
+  });
+  assertEquals(seen.meals, { atTable: 1, dedicated: 0, fromCommonPot: 1, cloned: 1 });
+  assertEquals(seen.observed, "common_pot");
+  assert(seen.marks.includes("cloned_dish:fri/breakfast"), seen.marks.join(" | "));
+});
+
+Deno.test("C8 ① — LE CAS QUI PASSE: un vrai plat dédié n'est PAS accusé", () => {
+  // ⚠️ SANS CE CAS, UN REPLI DE PLURIEL TROP LARGE RESSEMBLERAIT À UN
+  // DÉTECTEUR QUI MARCHE. Un faux positif ici accuse un vrai plat dédié d'être
+  // un clone, et c'est PIRE que de rater le clone: le constat sert à dire au
+  // maître ce qu'il a obtenu. La paire est celle de `fri/dinner` du même run —
+  // le foyer mange du poulet, Zoé du porc, et les deux listes portent des
+  // pluriels des deux côtés.
+  const seen = observeMergeShape({
+    shape: "one_session",
+    dishes: [
+      plate("fri", "dinner", {
+        title: "Chicken, courgette and pepper rice bowls",
+        ingredients: [
+          { term: "roast chicken thighs" },
+          { term: "courgettes" },
+          { term: "red peppers" },
+          { term: "cooked rice" },
+          { term: "olive oil" },
+          { term: "lemon" },
+        ],
+      }),
+      plate("fri", "dinner", {
+        title: "Pork chops with mashed potatoes and applesauce",
+        ingredients: [
+          { term: "pork chop" },
+          { term: "potatoes" },
+          { term: "milk" },
+          { term: "butter" },
+          { term: "applesauce" },
+        ],
+      }),
+    ],
+    preparations: [batch(4)],
+    eaterCells: [{ day: "fri", slot: "dinner" }],
+  });
+  assertEquals(seen.meals, { atTable: 1, dedicated: 1, fromCommonPot: 0, cloned: 0 });
+  assertEquals(seen.honoured, true);
+  assertEquals(seen.marks.some((m) => m.startsWith("cloned_dish")), false);
+});
+
+Deno.test("C8 ① — UN ALIMENT DE DIFFÉRENCE RESTE UN PLAT, MÊME À TAILLE ÉGALE", () => {
+  // Le repli de pluriel ne doit RIEN faire de plus que replier un pluriel. Les
+  // deux jeux ont la même taille et trois aliments sur quatre en commun: le
+  // quatrième les sépare, et il les sépare toujours après C8.
+  const seen = observeMergeShape({
+    shape: "one_session",
+    dishes: [
+      plate("fri", "breakfast", RUN1_TABLE_BREAKFAST),
+      plate("fri", "breakfast", {
+        title: "Greek yogurt bowl with peaches and walnuts",
+        ingredients: [
+          { term: "Greek yogurt" },
+          { term: "peach" },
+          { term: "granola" },
+          { term: "walnuts" },
+        ],
+      }),
+    ],
+    preparations: [batch(4)],
+    eaterCells: [{ day: "fri", slot: "breakfast" }],
+  });
+  assertEquals(seen.meals, { atTable: 1, dedicated: 1, fromCommonPot: 0, cloned: 0 });
+});
+
+Deno.test("C8 ① — LE TITRE RESTE STRICT, ET C'EST DÉLIBÉRÉ", () => {
+  // ⚠️ LE SIGNAL DU TITRE DÉCIDE SEUL, SANS CORROBORATION: élargir le moins
+  // étayé des deux est le mauvais bout. Ici deux titres à un pluriel près
+  // couvrent DEUX NOURRITURES DIFFÉRENTES — du bœuf pour la table, du poulet
+  // pour elle. Replier le pluriel du titre en ferait un clone, c'est-à-dire un
+  // vrai plat dédié accusé sur la seule foi d'un `s`.
+  const seen = observeMergeShape({
+    shape: "one_session",
+    dishes: [
+      plate("wed", "dinner", {
+        title: "Beef and rice bowls",
+        ingredients: [{ term: "beef mince" }, { term: "rice" }],
+      }),
+      plate("wed", "dinner", {
+        title: "Beef and rice bowl",
+        ingredients: [{ term: "chicken thighs" }, { term: "rice" }],
+      }),
+    ],
+    preparations: [batch(4)],
+    eaterCells: [{ day: "wed", slot: "dinner" }],
+  });
+  assertEquals(seen.meals, { atTable: 1, dedicated: 1, fromCommonPot: 0, cloned: 0 });
+});
+
+Deno.test("C8 ① — LE RUN 1 REJOUÉ SUR SA MATIÈRE: 7 dédiés valaient 6 + 1 clone", () => {
+  // ⚠️ CE QUE C7 A AFFIRMÉ SANS L'AVOIR MESURÉ. Le message de C7 disait « le
+  // 7/9 du run 1 rendrait désormais 6 dédiés et 1 clone »: c'était FAUX au
+  // moment où ça a été écrit — rejoué sur la matière brute, C7 rendait 7 dédiés
+  // et 0 clone, parce que le seul clone du run se cachait derrière un pluriel.
+  // La phrase devient vraie ICI, et pas avant.
+  //
+  // Les neuf cases de Zoé, les sept qui portaient deux plats, et le clone à
+  // `fri/breakfast` — titres et ingrédients du plan archivé.
+  const cells = cellsOf(["fri", "sat", "sun"], ["breakfast", "lunch", "dinner"]);
+  const seen = observeMergeShape({
+    shape: "one_session",
+    dishes: [
+      plate("fri", "breakfast", RUN1_TABLE_BREAKFAST),
+      plate("fri", "breakfast", RUN1_ZOE_BREAKFAST),
+      plate("fri", "lunch", {
+        title: "Tuna, white bean and tomato salad with bread",
+        ingredients: [{ term: "tuna" }, { term: "white beans" }, { term: "bread" }],
+      }),
+      plate("fri", "lunch", {
+        title: "Beef and rice burrito bowl",
+        ingredients: [{ term: "beef mince" }, { term: "cooked rice" }, { term: "avocado" }],
+      }),
+      plate("fri", "dinner", {
+        title: "Chicken, courgette and pepper rice bowls",
+        ingredients: [{ term: "roast chicken thighs" }, { term: "courgettes" }],
+      }),
+      plate("fri", "dinner", {
+        title: "Pork chops with mashed potatoes and applesauce",
+        ingredients: [{ term: "pork chop" }, { term: "potatoes" }],
+      }),
+      plate("sat", "breakfast", {
+        title: "Peach yogurt and almonds",
+        ingredients: [{ term: "Greek yogurt" }, { term: "peaches" }, { term: "almonds" }],
+      }),
+      plate("sat", "breakfast", {
+        title: "Oats with peanut butter and banana",
+        ingredients: [{ term: "rolled oats" }, { term: "peanut butter" }, { term: "bananas" }],
+      }),
+      plate("sat", "lunch", {
+        title: "Chicken and hummus wraps with salad",
+        ingredients: [{ term: "roast chicken thighs" }, { term: "hummus" }, { term: "wraps" }],
+      }),
+      plate("sat", "lunch", {
+        title: "Lamb kofta wrap with bulgur salad",
+        ingredients: [{ term: "lamb mince" }, { term: "wrap" }, { term: "bulgur" }],
+      }),
+      plate("sat", "dinner", {
+        title: "Salmon, new potato and green bean plates",
+        ingredients: [{ term: "salmon fillets" }, { term: "new potatoes" }],
+      }),
+      plate("sat", "dinner", {
+        title: "Steak with couscous and grilled peppers",
+        ingredients: [{ term: "steak" }, { term: "couscous" }],
+      }),
+      plate("sun", "breakfast", {
+        title: "Egg and tomato breakfast tacos",
+        ingredients: [{ term: "eggs" }, { term: "tomatoes" }, { term: "tortillas" }],
+      }),
+      plate("sun", "breakfast", {
+        title: "Eggs, ham and buttered toast",
+        ingredients: [{ term: "eggs" }, { term: "ham" }, { term: "bread" }],
+      }),
+      // Les deux plats que le plafond de C7 ② a fait tomber n'existent pas dans
+      // le plan archivé: `sun/lunch` et `sun/dinner` n'y portent que l'assiette
+      // de la table.
+      plate("sun", "lunch", {
+        title: "Chickpea and roasted vegetable couscous bowls",
+        ingredients: [{ term: "chickpeas" }, { term: "couscous" }],
+      }),
+      plate("sun", "dinner", {
+        title: "Herby turkey meatballs with tomato sauce and polenta",
+        ingredients: [{ term: "turkey mince" }, { term: "polenta" }],
+      }),
+    ],
+    preparations: [batch(4)],
+    eaterCells: cells,
+  });
+  assertEquals(seen.meals, { atTable: 9, dedicated: 6, fromCommonPot: 3, cloned: 1 });
+  assertEquals(seen.observed, "some_meals_dedicated");
+  assert(seen.marks.includes("cloned_dish:fri/breakfast"), seen.marks.join(" | "));
+  // ⚠️ ET LES SIX AUTRES CASES DOUBLÉES RESTENT DES PLATS DÉDIÉS. Un repli de
+  // pluriel trop large les emporterait toutes, et le constat dirait « clone »
+  // là où Zoé a bien mangé autre chose.
+  assertEquals(seen.marks.filter((m) => m.startsWith("cloned_dish")).length, 1);
 });
 
 Deno.test("C7 ⑤ — LE REPAS QUI TOMBE SUR UNE CIBLE CHIFFRÉE EST NOMMÉ", () => {

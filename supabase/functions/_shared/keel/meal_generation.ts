@@ -664,6 +664,39 @@ export interface GeneratedMeal {
 // population individuelle pour un changement qu'elle ne voit jamais — c'est
 // précisément ce que le second axe existe pour éviter, et le prix que v9 a payé
 // une fois est un prix qu'on ne repaie pas sans raison.
+//
+// ── C8 ③ · L'ORDRE DE SACRIFICE A CHANGÉ LA LANE INDIVIDUELLE, ET LA
+//           VERSION NE BOUGE TOUJOURS PAS — CE N'EST PAS LE MÊME CAS QUE v4
+//
+// ⚠️ LE FAIT, MESURÉ LE 2026-08-12 sur le MÊME flot brut, `merge: null`,
+// plafond 9:
+//   · avant C7 ②, le parseur jetait `dishes[10,12,14,16]` et rendait
+//     `empty_slots: sat/dinner, sun/breakfast, sun/lunch, sun/dinner`;
+//   · depuis C7 ②, il les GARDE et évince quatre seconds plats de cases déjà
+//     servies.
+// Hors fusion, `dedicatedCells` est vide — donc aucun rang 1 — mais le rang 0
+// (« premier plat d'une case ») existe toujours, et c'est lui qui fait qu'un
+// second plat cède la place à un premier. Le changement est FAVORABLE: il
+// remplit des cases au lieu de les laisser vides.
+//
+// ⚠️ ET POURTANT AUCUNE VERSION NE BOUGE, parce que ce cas n'est PAS celui de
+// v4. En v4, un NOMBRE ÉCRIT DANS LA CONSIGNE changeait (« at most N dishes »)
+// pour une population donnée: le modèle lisait autre chose, donc le cache
+// devait tomber. Ici la consigne est byte-identique POUR TOUT LE MONDE — la
+// lane individuelle, la composition de foyer ordinaire, la fusion — et c'est le
+// CONTRAT DE SORTIE du parseur qui change. Une version de prompt qui bougerait
+// sur un prompt identique invaliderait le cache d'une population entière sans
+// qu'un seul octet servi ait changé, et le numéro cesserait de vouloir dire ce
+// qu'il dit.
+//
+// ⚠️ LA CONTREPARTIE EST NOMMÉE, ET ELLE EST PAYÉE AILLEURS: deux plans
+// stampés `v9` peuvent avoir été écrêtés par deux ordres différents. Le
+// précédent invoqué est celui de L3, mot pour mot — « une seconde raison qu'une
+// ligne n'apparaisse pas, relisible sur `generated_from`, pas sur la version »:
+// chaque éviction est NOMMÉE dans les `issues` archivées (« surplus dish "…"
+// (jour/moment) was dropped instead »), donc un plan dit lui-même quel ordre
+// l'a écrêté. C'est la lecture par plan, pas par colonne — et c'est ce que ce
+// chantier choisit à chaque fois que le prompt n'a pas bougé.
 export const MEAL_PROMPT_VERSION = "meal.en.v9_cooking_shape";
 
 const DAY_TOKENS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
@@ -2628,9 +2661,28 @@ export function parseGeneratedMeal(
   //     « chicken breasts » dans la liste et « chicken breast » dans le plat,
   //     et deviner là-dessus coûterait un dîner.
   //
-  // Rien de tout ça ne tourne quand aucun plat n'est tombé: pas de plat jeté,
-  // pas de réconciliation, pas d'`issue` — un plan sain ne change pas d'un
-  // octet.
+  // ── C8 ② · LE DOUTE SE COMPTE MÊME QUAND AUCUN PLAT N'EST TOMBÉ ────────
+  //
+  // ⚠️ MESURÉ SUR LES FUSIONS RÉELLES, DEUX FOIS. Sur les réponses brutes du
+  // 2026-08-12, deux runs sur quatre portaient une ligne réclamée par AUCUN
+  // plat gardé (`spring greens`, `protein pancakes`). Sur les 18 fusions
+  // ARCHIVÉES en base: HUIT en portent au moins une, et TROIS d'entre elles
+  // n'ont fait tomber aucun plat (`be17ae53…`, `dc5c8dd3…`, `c4f36c5f…`).
+  //
+  // Ces trois-là étaient MUETTES: toute la réconciliation vivait sous « un plat
+  // est tombé », donc le doute n'était compté que par accident, quand un plat
+  // tombait par ailleurs. Le foyer achetait pour rien, EN SILENCE.
+  //
+  // ⚠️ CE QUI CHANGE EST LE COMPTE, JAMAIS L'ACTION. Une ligne qu'on ne sait
+  // pas rattacher RESTE — c'est l'arbitrage de C7 ③ et il ne bouge pas d'un
+  // octet: une correspondance fausse retire une ligne dont un plat a besoin.
+  // Le RETRAIT continue de n'exister que pour une ligne réclamée par un plat
+  // TOMBÉ, donc `droppedDishTerms` vide ⇒ aucune ligne ne part, jamais.
+  //
+  // LE CAS QUI PASSE DEVIENT PLUS ÉTROIT, ET C'EST LE BON: un plan dont chaque
+  // ligne est réclamée par un plat gardé ne porte AUCUNE `issue` de courses et
+  // ne perd rien. C'était « aucun plat tombé »; c'est désormais « tout est
+  // rattaché ».
   const keptDishIndexes = new Set(keptRawIndex);
   const droppedDishTerms = new Set<string>();
   for (const [i, entry] of rawDishes.entries()) {
@@ -2649,7 +2701,7 @@ export function parseGeneratedMeal(
     }
   }
   let reconciledShopping = shopping;
-  if (droppedDishTerms.size > 0 && shopping.length > 0) {
+  if (shopping.length > 0) {
     // ⚠️ LES PRÉPARATIONS GARDÉES COMPTENT COMME DES RÉCLAMANTES. Un plat de
     // lot ne répète pas la recette de sa préparation (le prompt système le
     // demande): ne regarder que `dish.ingredients` ferait retirer les courses

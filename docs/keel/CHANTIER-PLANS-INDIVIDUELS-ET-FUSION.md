@@ -3328,6 +3328,17 @@ toutes lettres — le modèle l'a fait **une fois sur 27 créneaux**. Et
 `observeMergeShape` le comptait comme **dédié** : deux plats dans une case, quel
 que soit leur contenu. **Le `7/9` du run 1 valait 6 vrais + 1 clone.**
 
+> ⚠️ **CORRECTION — C8 ①, 2026-08-13.** La phrase ci-dessus décrit la VÉRITÉ du
+> run, pas ce que ce lot en faisait. Le message de commit de C7 affirmait « le
+> 7/9 du run 1 rendrait désormais 6 dédiés et 1 clone » : **c'était faux**.
+> Rejoué sur la réponse brute, le constat de C7 rendait **7 dédiés et 0 clone** —
+> les deux titres diffèrent (`… bowls with peaches, granola and seeds` contre
+> `… bowl with peaches and seeds`) et les deux jeux d'aliments différaient d'un
+> seul `s` (`peaches` / `peach`), que `normalizeForMatch` ne replie pas. **Le
+> détecteur ratait le clone qui l'avait motivé**, et la phrase ne devient vraie
+> qu'avec C8 ① — mesurée, cette fois, sur la matière exacte du plan
+> `7ab2e069…`.
+
 **Deux ÉGALITÉS, et aucune ressemblance** (`sameDish`) :
 
 1. le **même titre** normalisé — le plat récrit tel quel ;
@@ -3446,6 +3457,232 @@ recomptée comme dédiée (**4 rouges**) · le compte de clones hors de l'archiv
 6. **Deux rouges préexistants NON touchés**, comme à L4→C6 :
    `_shared/chat/recent_history_test.ts` et une erreur de typage dans
    `_shared/action_occurrences_test.ts`. **La suite keel est verte : 2 821 / 0.**
+
+## C8, ce qui est corrigé — 2026-08-13
+
+> ⚠️ **Rien n'a été exercé en conditions réelles** — c'était la consigne du lot.
+> Ce qui suit est prouvé par des tests purs, **un banc sur la base locale**
+> (505 termes d'ingrédient, 25 cases réelles à deux plats, 18 fusions
+> archivées), des `SELECT` en lecture et **8 mutations**. Suite keel : **2 829
+> verts**. **Aucune migration.** **Aucune version de prompt ne bouge**, et le
+> §« Les versions » dit pourquoi — c'est la question ③ de ce lot.
+
+**Ce que C7 a laissé debout, et qui ne bouge pas** : les huit chiffres verts sur
+quatre fusions réelles (9/9 titres du foyer, 9/9 plats dédiés, `dedicated_dish`,
+11 à 14 aliments de la personne dans les courses, aucun plat dédié perdu, aucune
+ligne orpheline, une relance refusée pour `dedicated_meals_lost`). Ce lot ne
+touche **aucun octet de consigne**, ne change **aucun nombre annoncé**, et ne
+retire **aucune ligne de courses de plus**.
+
+### ① LE DÉTECTEUR DE CLONE RATAIT LE CLONE QUI L'AVAIT MOTIVÉ
+
+**Mesuré, plan `7ab2e069…`, `fri/breakfast`** — la paire même que C7 ④ cite :
+
+| | Titre | Aliments |
+|---|---|---|
+| la table | *Greek yogurt bowls with peaches, granola and seeds* | Greek yogurt, **peaches**, granola, mixed seeds |
+| « pour Zoé » | *Greek yogurt bowl with peaches and seeds* | Greek yogurt, **peach**, granola, mixed seeds |
+
+Titres différents ⇒ le premier signal se tait. Jeux d'aliments identiques **sauf
+un `s`** ⇒ `normalizeForMatch` (NFD + minuscules, rien d'autre) rendait deux
+ensembles inégaux, et le second signal se taisait aussi. **`dedies=1 clones=0`
+là où la règle avait été écrite pour cette paire précise.**
+
+**RIEN N'A ÉTÉ ÉCRIT DE NEUF.** ⚠️ *Jamais de matcher maison sur du texte
+alimentaire* — « laitue » contient « lait ». Le dépôt porte déjà quatre
+traitements du pluriel (`food_composition.ts`, `request_report.ts`,
+`safety_constraint_floor.ts`, `planned_dish_match.ts`) ; celui qui est réutilisé
+est **`normalizeTerm` (`planned_dish_match.ts`)**, le seul **benché sur 1 417
+ingrédients réellement générés**, avec ses trois règles (`-ies → -y`,
+`-oes/-ches/-shes/-xes/-sses` → couper `es`, `-s` sauf `-ss`) et le récit écrit
+de ce qu'une quatrième coûterait. Il est composé **après** `normalizeForMatch` :
+une réduction de forme sur un terme **déjà normalisé**, jamais un choix entre
+deux aliments. `planned_dish_match.ts` est une **feuille** (il n'importe que
+`tokens.ts`, qui n'importe rien) — la contrainte d'import que C7 ④ avait posée
+tient.
+
+**LE BANC, ET SES DEUX MESURES** (base locale, tous les plans de
+`student_generated_meals`) :
+
+| Mesure | Avant | Après |
+|---|---|---|
+| **cases réelles à ≥ 2 plats** | 25 | 25 |
+| dont **clones** | 1 | **2** — le seul verdict qui change est `7ab2e069…/fri/breakfast`, le clone mesuré |
+| dont **plats dédiés** | 24 | **23** |
+| **termes d'ingrédient distincts** | 505 | 505 |
+| **replis** (deux formes d'avant sur une seule) | — | **35, et les 35 sont la même nourriture au singulier et au pluriel** (`peach`/`peaches`, `potato`/`potatoes`, `wrap`/`wraps`, `egg`/`eggs`…) |
+
+**Zéro repli entre deux aliments différents sur le corpus réel.** ⚠️ **Le seul
+repli douteux des 35 est `peppers` → `pepper`** : le poivre et le poivron. Il est
+sans effet tant qu'il ne rend pas deux jeux **entiers** égaux — et un jeu entier
+égal est déjà, à un aliment près, le clone qu'on cherche. **Prix nommé**, à
+revoir à la prochaine campagne.
+
+⚠️ **LE DOUTE NE FABRIQUE TOUJOURS PAS DE CLONE, et le titre n'a pas été
+élargi.** Le signal du titre décide **seul**, sans corroboration ; le jeu
+d'aliments doit être égal **en entier**. Élargir le moins étayé des deux est le
+mauvais bout, et un test le tient (deux titres à un pluriel près qui couvrent
+deux nourritures différentes restent **deux plats**). Un faux positif ici
+accuserait un vrai plat dédié, et le constat existe pour dire au maître ce qu'il
+a obtenu.
+
+**Retour arrière** : `normalizeForMatch(...)` à la place de `foodKey(...)` dans
+`foodOf`, deux lignes.
+
+### ② `shopping_list_unattributed` N'ÉTAIT ÉMIS QUE SI UN PLAT ÉTAIT TOMBÉ
+
+Toute la réconciliation de C7 ③ vivait sous `if (droppedDishTerms.size > 0 &&
+shopping.length > 0)`. Le **retrait** a besoin de cette condition ; le **compte**
+n'en a jamais eu besoin, et il en héritait.
+
+**Mesuré deux fois.** Sur les **réponses brutes** du 2026-08-12, deux runs sur
+quatre portaient une ligne réclamée par aucun plat gardé (`spring greens`,
+`protein pancakes`). Sur les **18 fusions archivées en base** — que j'ai pu
+relire, et c'est la mesure que je signe : **8** portent au moins une telle
+ligne, et **3 d'entre elles n'ont fait tomber aucun plat** (`be17ae53…` 1/68,
+`dc5c8dd3…` 1/47, `c4f36c5f…` 1/34). Ces trois-là étaient **muettes** : aucun
+compteur, aucune `issue`. Le foyer achète une ligne pour rien, et rien ne le dit.
+
+⚠️ **CE QUI CHANGE EST LE COMPTE, JAMAIS L'ACTION.** Une ligne qu'on ne sait pas
+rattacher **reste** — l'arbitrage de C7 ③ ne bouge pas d'un octet, parce qu'une
+correspondance fausse retire une ligne dont un plat a besoin. Le retrait continue
+de n'exister que pour une ligne réclamée par un plat **tombé** : `droppedDishTerms`
+vide ⇒ **aucune ligne ne part, jamais**. Une mutation le tient (le doute qui
+retire ⇒ 2 rouges).
+
+**LE CAS QUI PASSE DEVIENT PLUS ÉTROIT, ET C'EST LE BON.** Il disait « aucun plat
+tombé » ; il dit maintenant « **chaque ligne est réclamée** ». L'ancien portait
+`bay leaves` — une ligne que rien ne réclamait — et affirmait donc qu'un plan qui
+achète pour personne est un plan sain. C'était le défaut, écrit en assertion.
+
+### ③ L'ORDRE DE SACRIFICE A CHANGÉ LA LANE INDIVIDUELLE — ET AUCUNE VERSION NE BOUGE
+
+**Le fait, mesuré sur le même flot brut** (18 plats, une assiette de table et une
+seconde par case, `merge: null`, plafond **9**) :
+
+| | Ce que le parseur fait |
+|---|---|
+| **avant C7 ②** | jette `dishes[10,12,14,16]` et rend `empty_slots: sat/dinner, sun/breakfast, sun/lunch, sun/dinner` — les **premières** assiettes des quatre dernières cases |
+| **depuis C7 ②** | les **garde**, et évince quatre **secondes** assiettes de cases déjà servies. La grille est pleine |
+
+Hors fusion, `dedicatedCells` est vide — donc aucun rang 1 — mais le **rang 0**
+(« premier plat d'une case ») existe toujours, et c'est lui qui fait qu'un second
+plat cède la place à un premier. **Le changement est favorable** : il remplit des
+cases au lieu de les laisser vides.
+
+**LA DÉCISION : `MEAL_PROMPT_VERSION` NE BOUGE PAS**, et le précédent invoqué est
+celui de **v4 de la lane foyer** (`HOUSEHOLD_PROMPT_VERSION` v3 → v4). Ce
+précédent-là dit : « aucun bloc n'a bougé, mais la ligne *at most N dishes*
+change de nombre, et le contrat de sortie change avec elle » — et il a bumpé
+**parce qu'un nombre écrit dans la consigne changeait pour une population
+donnée**. Le modèle lisait autre chose, donc le cache devait tomber.
+
+**Ici, ce n'est pas le même cas.** La consigne est **byte-identique pour tout le
+monde** — lane individuelle, composition de foyer ordinaire, fusion — et c'est le
+**contrat de sortie du parseur** qui change. Bumper invaliderait le cache d'une
+population entière pour un prompt dont **pas un octet** n'a bougé, et le numéro
+cesserait de vouloir dire ce qu'il dit. La règle est « quelle **population** voit
+une **consigne** différente » : **personne**.
+
+⚠️ **LA CONTREPARTIE EST NOMMÉE, ET ELLE EST PAYÉE AILLEURS.** Deux plans stampés
+`v9` peuvent avoir été écrêtés par deux ordres différents ; une comparaison
+avant/après lue **dans la colonne** mélangerait les deux. Le précédent qui
+tranche est celui de **L3, mot pour mot** — « une seconde raison qu'une ligne
+n'apparaisse pas, relisible sur `generated_from`, pas sur la version » : chaque
+éviction est **nommée** dans les `issues` archivées (`surplus dish "…"
+(jour/moment) was dropped instead`), donc **un plan dit lui-même quel ordre l'a
+écrêté**. Lecture par plan, pas par colonne.
+
+**Ce que ce lot ajoute, et qui manquait** : le fait n'était annoncé **que dans un
+commentaire** de `dishRank`. Il est désormais écrit ① au registre (ici), ② dans
+le bloc de `MEAL_PROMPT_VERSION`, là où le prochain lot ira chercher la règle, et
+③ tenu par **deux tests** — un qui rejoue le décor mesuré sur la lane
+individuelle, un qui épingle les **deux** numéros de version.
+
+**Retour arrière** (inchangé depuis C7) : `dishRank` qui rend `2` partout, une
+ligne — le plafond redevient « les derniers tombent ».
+
+### ④ LA FIXTURE DE TERRAIN `de4309ba…` EST UN PIÈGE
+
+⚠️ **Elle est utilisée par les campagnes comme « l'ancre de 9 plats du foyer ».
+C'est faux.** Vérifié en base :
+
+| | |
+|---|---|
+| **id** | `de4309ba-9882-477c-a93f-5019fe433adf` |
+| **ce que c'est** | une **sortie de fusion**, pas un plan de foyer : `generated_from.household.merge` est plein (`reason: serving_direction_conflict`, `shape: one_session`, une reprise de main `merge_reclaimed`) |
+| **version** | `meal.en.v9_cooking_shape+household.**v7_merge_anchor**` — **deux** versions de foyer de retard (v9 est la courante) |
+| **plats** | **10**, pas 9 |
+| **le dixième** | *« Greek yogurt bowls with peaches, granola and seeds **for Zoe** »* en `fri/breakfast`, **liste d'ingrédients identique** à celle du plat du foyer — le clone que C6 interdit en toutes lettres |
+| **ce qu'elle archive** | `honoured.observed: "dedicated_dish"`, `marks: ["parallel_dishes:fri/breakfast"]` — le verdict d'avant C7 ④ |
+| **fenêtre** | 2026-08-14, 3 jours |
+
+**Ce que ça coûte à qui la prend telle quelle** : une ancre de **10** plats au
+lieu de 9, **le clone en héritage**, et un `dedicated_dish` archivé que le
+constat d'aujourd'hui appelle **`common_pot`** (le banc de ① la classe « clone »
+avant comme après). Toute campagne qui compare « 9 titres du foyer » à cette
+ligne compte un plat de trop et croit avoir gagné un plat dédié.
+
+**À faire, pour la prochaine campagne** : prendre l'ancre sur une fusion **v9**
+(`e1acfc4c…` : 18 plats, `dedicated: 9/9`, `dedicated_dish`, zéro ligne de
+courses orpheline), ou reconstruire un plan de foyer nu. Cette ligne-ci ne se
+répare pas : elle est ce qu'elle est, et c'est sa **lecture** qu'il fallait
+corriger.
+
+### Les versions de prompt — AUCUNE ne bouge, et voici pourquoi
+
+- **`MEAL_PROMPT_VERSION` : inchangée** (`meal.en.v9_cooking_shape`). Voir ③ :
+  la consigne servie est byte-identique pour **toutes** les populations, seul le
+  contrat de sortie du parseur change, et il se relit sur `generated_from`.
+- **`HOUSEHOLD_PROMPT_VERSION` : inchangée** (`v9_merge_dedicated_per_meal`).
+  ① et ② sont **après** la génération : un constat de forme et un compteur
+  d'`issue`. Aucun des deux n'est lu par le modèle.
+- Un test épingle **les deux valeurs ensemble** : une décision qu'aucun test ne
+  tient n'est qu'un avis.
+
+### Les 7 mutations — chacune cassée, vue rouge, restaurée (et une huitième, ratée)
+
+**① (3)** : le repli de pluriel retiré de `foodKey` (**2 rouges** : la paire
+réelle et le rejeu du run 1 ; les trois cas qui passent restent verts) · le
+**titre** replié lui aussi (**1 rouge** : le cas qui passe du titre strict) ·
+l'**inclusion** au lieu de l'égalité des jeux (**1 rouge** : le cas qui passe de
+C7 ④).
+
+**② (2)** : le compteur remis sous « un plat est tombé » (**1 rouge**) · le doute
+qui **retire** au lieu de garder (**2 rouges**).
+
+**③ (2)** : `dishRank` rendu plat (**2 rouges**, dont le décor mesuré de la lane
+individuelle) · `MEAL_PROMPT_VERSION` **bumpée** en v10 (**1 rouge**).
+
+⚠️ **LA HUITIÈME, ET C'EST UN FAUX-VERT DANS MON PROPRE BANC DE MUTATIONS.** La
+première forme de la mutation de `dishRank` (`if (true) return 2;` au-dessus d'un
+corps qui lit encore `cell`) échouait au **typecheck**, pas aux assertions — et
+le filtre qui lisait la sortie ne montrait que les lignes `FAILED`, donc la
+mutation **paraissait verte** : j'ai failli conclure que mon test de ③ ne tenait
+rien. Refaite en gardant `cell` utilisé, elle rend bien **2 rouges**. C'est le
+faux-vert de plus de ce chantier, et il portait sur **l'outil qui sert à en
+trouver** : une mutation qui ne compile pas ne mesure rien.
+
+### Ce qui n'est pas prouvé, et ce qui reste ouvert
+
+1. **Aucun run réel, sur les trois points.** Aucun modèle n'a écrit de clone
+   sous le nouveau constat ; aucune liste de courses réelle n'a été comptée en
+   ligne ; aucun débordement n'a eu lieu sous l'ordre de sacrifice. **Le banc
+   remplace la campagne, il ne la remplace pas.**
+2. **Le repli `peppers` → `pepper` est un faux positif en puissance**, mesuré
+   sans effet sur le corpus d'aujourd'hui. Si une campagne le voit mordre, la
+   suite est un **référentiel** (`food_composition`), jamais une quatrième règle
+   de morphologie.
+3. **Le constat de clone ne lit toujours que l'INTÉRIEUR du plan** (C7, point 3
+   inchangé) : il ne compare pas le plat dédié au plan du **foyer** d'origine.
+4. **`shopping_list_unattributed` est maintenant émis partout, et personne ne
+   l'a encore lu.** La mesure de ② dit qu'il aurait crié sur **8 fusions sur
+   18** ; ce que ce nombre devient en production reste à compter, et c'est lui
+   qui dira si le rattachement mérite mieux qu'une égalité.
+5. **UN rouge préexistant NON touché**, et il en restait deux à C7 : l'erreur de
+   typage de `_shared/action_occurrences_test.ts` est toujours là ;
+   `_shared/chat/recent_history_test.ts` est **repassé au vert** entre-temps
+   (17/0), sans une ligne de ce lot. **La suite keel est verte : 2 829 / 0.**
 
 ## Questions encore ouvertes
 
