@@ -110,6 +110,43 @@ check_test_count() {
   info "test count ok (${current} >= ${baseline})"
 }
 
+# ── LES TESTS SE LANCENT, ILS NE SE COMPTENT PAS ────────────────────────────
+#
+# ⚠️ MESURÉ LE 2026-08-12. `check_test_count` compare un NOMBRE à une référence:
+# il voit disparaître des tests, jamais échouer. Un commit a donc passé ce gate
+# en vert avec SEPT tests rouges — un décor qui n'écrivait pas `plan_kind`,
+# devenu obligatoire pour le chargeur juste au-dessus. C'est très exactement la
+# cicatrice du dépôt: une garde qui ne mord jamais ressemble trait pour trait à
+# une garde qui marche.
+#
+# PORTÉE VOLONTAIREMENT ÉTROITE — `_shared/keel/`, et rien d'autre. Ce dépôt est
+# travaillé par plusieurs sessions en parallèle: lancer TOUTE la suite ferait
+# tomber le gate de tout le monde sur les rouges préexistants d'un voisin, et un
+# gate qu'on contourne ne garde plus rien. Élargir quand le reste est vert.
+#
+# `AGENT_GATE_SKIP_TESTS=1` existe pour un cas et un seul: une machine sans deno.
+# S'en servir pour passer outre un rouge, c'est se mentir.
+check_tests() {
+  if ! command -v deno >/dev/null 2>&1; then
+    info "deno not found, skipping keel test run"
+    return 0
+  fi
+  if [ "${AGENT_GATE_SKIP_TESTS:-0}" = "1" ]; then
+    info "keel test run skipped (AGENT_GATE_SKIP_TESTS=1)"
+    return 0
+  fi
+  [ -d supabase/functions/_shared/keel ] || return 0
+  info "running keel test suite"
+  # L'ENVIRONNEMENT EST PURGÉ. Une variable SUPABASE_* héritée du shell fait
+  # basculer des dizaines de tests vers une vraie pile et rend 114 faux rouges —
+  # après quoi on désarme le gate en croyant réparer un test.
+  (
+    for v in $(env | grep -o '^SUPABASE_[A-Z_]*' || true); do unset "$v"; done
+    deno test --allow-read --allow-env supabase/functions/_shared/keel/
+  ) || fail "des tests keel sont rouges. Le gate les LANCE depuis le 2026-08-12:
+       les compter laissait passer un commit avec sept tests cassés."
+}
+
 check_typecheck() {
   if [ -f frontend/tsconfig.json ]; then
     info "running frontend typecheck"
@@ -140,6 +177,7 @@ check_lint() {
 
 check_forbidden_patterns
 check_test_count
+check_tests
 check_typecheck
 check_lint
 
