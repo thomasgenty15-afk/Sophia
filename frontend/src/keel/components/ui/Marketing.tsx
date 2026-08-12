@@ -29,7 +29,10 @@ import { Card } from "./Card";
 // périmé: réécris-le plutôt que de retirer la couleur.
 // Autorité: `scratchpad/site/design/CHARTE.md` §2.
 //
-// They are here rather than imported from `LandingPage` on purpose: importing a
+// (`LandingPage.tsx` a été SUPPRIMÉE le 2026-08-12 — sa copie est devenue
+// `CoachesPage.tsx`. Les renvois ci-dessus sont historiques: cherche dans git.)
+//
+// They are here rather than imported from a page module on purpose: importing a
 // component from a page module drags that page's whole dependency graph — auth
 // context, `resolveHomePath`, the structured-data block — into every other page
 // that wants an uppercase eyebrow.
@@ -101,9 +104,16 @@ export function PriceCard({
   return (
     <Card className="h-full">
       {/* Le prix en display: c'est le seul chiffre d'une page de vente qui a le
-          droit d'être un titre. `tabular-nums` pour que deux cartes côte à côte
-          alignent leurs virgules. */}
-      <div className="whitespace-nowrap font-display text-4xl tabular-nums leading-none text-ink">
+          droit d'être un titre.
+
+          ⚠️ PAS DE `tabular-nums` ICI, ET C'EST MESURÉ. Young Serif rend alors
+          « 12,99 € » en « 1 2,99 € »: les chiffres tabulaires forcent la virgule
+          à la chasse d'un chiffre, et la largeur passe de 128,2 px à 139,9 px.
+          La justification qu'on lui donnait — « deux cartes côte à côte alignent
+          leurs virgules » — était morte de toute façon: cette primitive
+          interdit délibérément une seconde carte (voir ci-dessus), donc il n'y a
+          jamais deux prix à aligner. */}
+      <div className="whitespace-nowrap font-display text-4xl leading-none text-ink">
         {price}
       </div>
       <div className="mt-2 text-sm text-ink-soft">{period}</div>

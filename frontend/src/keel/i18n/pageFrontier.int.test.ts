@@ -196,11 +196,20 @@ describe("la frontière de langue passe au bord des pages, jamais au milieu", ()
     expectChromeIn("/start", "fr");
   });
 
-  it("/gyms est ENTIÈREMENT anglaise — la frontière déclarée, tenue", () => {
+  it("/join est ENTIÈREMENT anglaise — la frontière déclarée, tenue", () => {
     // LE CAS QUI PASSE DE L'AUTRE CÔTÉ. Sans lui, un compteur cassé rendrait
     // « aucun mot français » partout et le test verdirait en ne mesurant rien.
+    //
+    // ⚠️ C'ÉTAIT `/gyms` JUSQU'AU 2026-08-12. La refonte du site a réécrit
+    // `/gyms` et `/communities` et livré leur pack français dans le même geste,
+    // donc elles ont quitté `PUBLIC_NAMESPACES_PENDING_TRANSLATION` — et ce
+    // test, qui a besoin d'une page RÉELLEMENT en attente pour prouver qu'il
+    // mesure quelque chose, s'est déplacé sur `/join` (`join.*` + `invite.*`,
+    // tous deux encore en attente).
+    // Le jour où plus AUCUNE page publique n'est en attente, ce test n'a plus
+    // de sujet: il faudra le supprimer, pas lui inventer une page.
     setChosenUiLocaleForTest("fr");
-    expectChromeIn("/gyms", "en");
+    expectChromeIn("/join", "en");
   });
 
   it("ne touche à rien en dehors de la vitrine", () => {
@@ -212,12 +221,13 @@ describe("la frontière de langue passe au bord des pages, jamais au milieu", ()
     }
   });
 
-  it("ignore un slash final: /gyms/ est la même page que /gyms", () => {
+  it("ignore un slash final: /join/ est la même page que /join", () => {
     // Une route qui gagne un slash ne doit pas silencieusement retrouver la
     // couture — c'est le genre de trou qu'on ne découvre que par un lien
-    // partagé.
+    // partagé. (L'exemple était `/gyms` avant sa traduction — voir le test
+    // ci-dessus.)
     setChosenUiLocaleForTest("fr");
-    expect(uiLocaleForPath("/gyms/")).toBe("en");
+    expect(uiLocaleForPath("/join/")).toBe("en");
     expect(uiLocaleForPath("/start/")).toBe("fr");
   });
 });

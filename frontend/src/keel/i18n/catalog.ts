@@ -32,7 +32,18 @@ export const DEFAULT_UI_LOCALE: UiLocale = "en";
  * récupération et non de la traduction — mais pas ici.
  */
 export const PUBLIC_NAMESPACES = [
-  "landing",
+  // Les deux HALLS de la refonte du 2026-08-12: `/` accueille le foyer,
+  // `/pro` accueille les professionnels.
+  "home",
+  "pro",
+  // Les six PAGES DE VENTE, une par acheteur. Un namespace par page et JAMAIS
+  // de clé partagée — voir l'en-tête du bloc dans `en.ts`.
+  "mealprep",
+  "couples",
+  "families",
+  "coaches",
+  "gyms",
+  "communities",
   "public",
   "brand",
   "auth",
@@ -42,6 +53,13 @@ export const PUBLIC_NAMESPACES = [
   // vraiment dire pour la page qui le porte.
   "start",
 ] as const;
+
+// ⚠️ `landing` A DISPARU DE CETTE LISTE, ET CE N'EST PAS UN OUBLI.
+// Il portait la copie de `/` quand `/` vendait au coach. Depuis la refonte, `/`
+// vend au foyer et la page coach vit sous `/coaches`, avec un namespace
+// réécrit. Ses 117 clés ont été retirées de `en.ts` ET de `fr.public.ts` dans
+// le même geste: garder le namespace ici aurait gardé de la traduction payée
+// pour un écran qui n'existe plus, et `parity.int.test.ts` refuse l'orpheline.
 
 /**
  * Les namespaces publics PAS ENCORE traduits, et donc pas encore dans la liste.
@@ -71,8 +89,14 @@ export const PUBLIC_NAMESPACES = [
  * quoi la garde ne couvre rien — et un test le refuse.
  */
 export const PUBLIC_NAMESPACES_PENDING_TRANSLATION = [
-  "gyms",
-  "communities",
+  // ⚠️ `gyms` ET `communities` ONT QUITTÉ CETTE LISTE le 2026-08-12.
+  // Elles y étaient depuis leur création (135 et 143 clés) et le commentaire
+  // ci-dessus explique le mal que ça faisait. La refonte du site les a
+  // RÉÉCRITES — copie neuve, plus courte, sections renommées — et le pack
+  // français a été écrit dans le même geste, ce qui était le moment le moins
+  // cher de toute l'histoire du produit pour le faire: traduire une copie
+  // qu'on est en train de jeter n'a jamais de sens, la traduire pendant qu'on
+  // l'écrit n'en coûte presque rien.
   "join",
   "invite",
   // `/join-household` (chantier foyer, lot 6). PUBLIQUE comme `/join`: la
@@ -126,9 +150,17 @@ export function isPendingTranslationNamespace(namespace: string): boolean {
 export const PUBLIC_PAGE_NAMESPACES: Readonly<
   Record<string, readonly string[]>
 > = {
-  "/": ["landing"],
+  // ── LE MONDE DU FOYER ────────────────────────────────────────────────────
+  "/": ["home"],
+  "/meal-prep": ["mealprep"],
+  "/couples": ["couples"],
+  "/families": ["families"],
+  // ── LE MONDE DES PROFESSIONNELS ──────────────────────────────────────────
+  "/pro": ["pro"],
+  "/coaches": ["coaches"],
   "/gyms": ["gyms"],
   "/communities": ["communities"],
+  // ── LES PORTES FONCTIONNELLES ────────────────────────────────────────────
   "/start": ["start"],
   // Deux namespaces sur une seule page, et c'est le cas qui justifie le
   // tableau plutôt qu'un namespace unique: `/join` affiche le texte de

@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 240" width="480" height="240"
+     role="img" aria-labelledby="fig-a-t fig-a-d">
+  <title id="fig-a-t">Les bouches du foyer, et la casserole</title>
+  <desc id="fig-a-d">Quatre bouches sont listées avec leurs allergies. Une seule porte une
+    contrainte. Les quatre lignes se rassemblent en un seul trait qui entre dans la casserole :
+    la casserole entière est composée sans cet aliment.</desc>
+
+  <!-- FIGURE A — /families, section héros. Fait ancré : AUDIT C9.
+       Vue de dessus pour la matière (la casserole), champs à plat pour l'écrit.
+       Pièce chaude : l'équerre + la casserole. Deux occurrences, pas trois.
+       La casserole n'a AUCUN contenu dessiné : le produit ne fabrique pas
+       d'image de plat, et une figure qui en dessine un promet un appétit
+       (CHARTE §8). Ce qui est dessiné, c'est la règle : quatre lignes qui
+       n'en font qu'une avant d'entrer. -->
+
+  <path d="M 8 32 L 8 16 A 8 8 0 0 1 16 8 L 32 8"
+        fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round"/>
+  <text x="44" y="26" font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)"
+        font-size="11" font-weight="600" letter-spacing="1.2"
+        fill="var(--ill-ink-soft, #6A5A64)">LA TABLE GOUVERNE LA CASSEROLE</text>
+
+  <g font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)">
+    <!-- ── Les quatre bouches. Une ligne = une bouche, et la ligne porte ce
+            qu'on en sait : rien de plus. ─────────────────────────────────── -->
+    <g font-size="9" font-weight="600" letter-spacing="1" fill="var(--ill-ink-soft, #6A5A64)">
+      <text x="24" y="52">LES BOUCHES</text>
+      <text x="140" y="52">ALLERGIES</text>
+    </g>
+
+    <g fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1">
+      <rect x="24" y="60" width="200" height="28" rx="4"/>
+      <rect x="24" y="96" width="200" height="28" rx="4"/>
+      <rect x="24" y="132" width="200" height="28" rx="4"/>
+      <rect x="24" y="168" width="200" height="28" rx="4"/>
+    </g>
+
+    <g font-size="11" fill="var(--ill-ink, #23191F)">
+      <text x="36" y="79">Vous</text>
+      <text x="36" y="115">Sami, 9 ans</text>
+      <text x="36" y="151">Inès, 6 ans</text>
+      <text x="36" y="187">Jo</text>
+      <text x="140" y="115">arachide</text>
+    </g>
+    <g font-size="11" fill="var(--ill-ink-soft, #6A5A64)">
+      <text x="140" y="79">aucune</text>
+      <text x="140" y="151">aucune</text>
+      <text x="140" y="187">aucune</text>
+    </g>
+
+    <!-- ── L'UNION. Quatre lignes, un seul trait : c'est le mécanisme, et il
+            est dessiné plutôt qu'écrit. ──────────────────────────────────── -->
+    <g fill="none" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1" stroke-linecap="round">
+      <path d="M 240 74 L 240 182"/>
+      <path d="M 224 74 L 240 74"/>
+      <path d="M 224 110 L 240 110"/>
+      <path d="M 224 146 L 240 146"/>
+      <path d="M 224 182 L 240 182"/>
+      <path d="M 240 128 L 292 128"/>
+    </g>
+
+    <!-- ── LA CASSEROLE, vue de dessus, vide. ─────────────────────────────── -->
+    <g stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linejoin="round"
+       fill="var(--ill-paper, #FBF8FA)">
+      <rect x="296" y="119" width="30" height="18" rx="9"/>
+      <rect x="426" y="119" width="30" height="18" rx="9"/>
+      <circle cx="376" cy="128" r="52"/>
+    </g>
+    <circle cx="376" cy="128" r="40" fill="var(--ill-wash, #EFE0E9)"/>
+
+    <text x="376" y="204" text-anchor="middle" font-size="9" font-weight="600"
+          letter-spacing="1" fill="var(--ill-ink-soft, #6A5A64)">TOUTE LA CASSEROLE</text>
+    <text x="376" y="222" text-anchor="middle" font-size="13"
+          fill="var(--ill-ink, #23191F)">composée sans arachide</text>
+  </g>
+</svg>

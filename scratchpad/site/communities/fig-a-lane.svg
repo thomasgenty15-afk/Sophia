@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 240" width="480" height="240"
+     role="img" aria-labelledby="fig-lane-t fig-lane-d">
+  <title id="fig-lane-t">Une réponse pour tous, une réponse à chacun</title>
+  <desc id="fig-lane-d">Deux fois les mêmes quatre membres. À gauche, un seul trait les ouvre
+    tous les quatre : c’est une réponse publique, écrite pour convenir à tout le monde. À
+    droite, chaque membre a son propre trait. La différence n’est pas une quantité de
+    travail, c’est le nombre de destinataires.</desc>
+
+  <!-- FIGURE A de /communities — « une question, deux destinations ».
+       Le motif de la page, et il est repris de l’app : le TRAIT DE 2 À GAUCHE
+       D’UNE LIGNE (border-l-2, CoachWeeklyPage.tsx:243) = quelque chose qui
+       s’adresse à cette ligne-là. C’est l’équerre à l’échelle d’une rangée.
+       Les quatre rangées sont IDENTIQUES des deux côtés (même x-hauteur, même
+       largeur utile) : rien ici n’affirme une mesure, seule la RELATION change
+       — un trait pour quatre, ou quatre traits pour quatre. F9.
+       Pièce chaude : l’équerre + le groupe des quatre traits individuels. = 2. -->
+
+  <path d="M 8 32 L 8 16 A 8 8 0 0 1 16 8 L 32 8"
+        fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round"/>
+  <text x="44" y="26" font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)"
+        font-size="11" font-weight="600" letter-spacing="1.2"
+        fill="var(--ill-ink-soft, #6A5A64)">UNE QUESTION, DEUX DESTINATIONS</text>
+
+  <g font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)">
+
+    <!-- ── LE FIL ──────────────────────────────────────────────────────────── -->
+    <rect x="24" y="52" width="196" height="140" rx="12"
+          fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink, #23191F)" stroke-width="2"/>
+    <text x="40" y="74" font-size="9" font-weight="600" letter-spacing="1"
+          fill="var(--ill-ink-soft, #6A5A64)">IN THE THREAD</text>
+    <path d="M 44 84 L 44 184" fill="none"
+          stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="2" stroke-linecap="round"/>
+    <g fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1">
+      <rect x="58" y="84" width="146" height="16" rx="4"/>
+      <rect x="58" y="112" width="146" height="16" rx="4"/>
+      <rect x="58" y="140" width="146" height="16" rx="4"/>
+      <rect x="58" y="168" width="146" height="16" rx="4"/>
+    </g>
+
+    <!-- ── LE PALIER COACHÉ ────────────────────────────────────────────────── -->
+    <rect x="252" y="52" width="204" height="140" rx="12"
+          fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink, #23191F)" stroke-width="2"/>
+    <text x="268" y="74" font-size="9" font-weight="600" letter-spacing="1"
+          fill="var(--ill-ink-soft, #6A5A64)">ON THE COACHED TIER</text>
+    <g fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round">
+      <path d="M 272 84 L 272 100"/>
+      <path d="M 272 112 L 272 128"/>
+      <path d="M 272 140 L 272 156"/>
+      <path d="M 272 168 L 272 184"/>
+    </g>
+    <g fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1">
+      <rect x="286" y="84" width="154" height="16" rx="4"/>
+      <rect x="286" y="112" width="154" height="16" rx="4"/>
+      <rect x="286" y="140" width="154" height="16" rx="4"/>
+      <rect x="286" y="168" width="154" height="16" rx="4"/>
+    </g>
+
+    <!-- ── CE QUI DIFFÈRE, EN MOTS ─────────────────────────────────────────── -->
+    <text x="24" y="216" font-size="11" fill="var(--ill-ink, #23191F)">one answer, for everybody</text>
+    <text x="252" y="216" font-size="11" fill="var(--ill-ink, #23191F)">an answer of their own</text>
+  </g>
+</svg>

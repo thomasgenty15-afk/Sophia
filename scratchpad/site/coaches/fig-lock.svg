@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 288" width="480" height="288"
+     role="img" aria-labelledby="fig-lock-t fig-lock-d">
+  <title id="fig-lock-t">Un message retenu, et ce qui part à sa place</title>
+  <desc id="fig-lock-d">La question d'un élève, le brouillon qui franchissait une ligne rouge,
+    la relecture qui le retient, et la phrase que le coach a écrite pour ce cas exact, qui part
+    à sa place, signée de son nom.</desc>
+
+  <!-- FIGURE DE CONCEPT, POSÉE SUR LE BLOC SOMBRE (classe `.on-dark`).
+       C'est légal ici et interdit à une maquette : le produit est en clair, et
+       une SURFACE d'app sur fond sombre montrerait un produit qui n'existe pas
+       (F12). Ceci n'est pas une surface, c'est un mécanisme.
+
+       ⚠ SUR FOND SOMBRE, `--ill-ink` (#23191F) EST INVISIBLE : `.on-dark` ne
+       remappe que `--ill-fig` et `--ill-ink-soft` (tous deux vers `fig-300`,
+       8,06:1). Les contenus des messages sont donc en `--ill-paper` (17,05:1),
+       les étiquettes et les contours en `--ill-ink-soft`. Trois valeurs, pas
+       une de plus.
+
+       fait: B9 — chaque ligne rouge porte son `instead`, dans les mots du coach
+       (keel_output_locks.ts:191-200), signé en SUFFIXE (`signAsCoach`, :226-230).
+       fait: B8 — la relecture est déterministe, sans modèle dans la boucle, et
+       sa portée est LE CHAT : c'est pour ça que l'équerre dit « in the chat ». -->
+
+  <path d="M 8 32 L 8 16 A 8 8 0 0 1 16 8 L 32 8"
+        fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round"/>
+  <text x="44" y="26" font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)"
+        font-size="11" font-weight="600" letter-spacing="1.2"
+        fill="var(--ill-ink-soft, #6A5A64)">IN THE CHAT, BEFORE IT IS SENT</text>
+
+  <g font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)">
+    <g fill="none" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1">
+      <rect x="24" y="44" width="432" height="44" rx="12"/>
+      <rect x="24" y="100" width="432" height="44" rx="12"/>
+      <rect x="24" y="200" width="432" height="76" rx="12"/>
+      <rect x="372" y="110" width="68" height="18" rx="9"/>
+      <path d="M 48 88 L 48 100" stroke-linecap="round"/>
+      <path d="M 48 144 L 48 156" stroke-linecap="round"/>
+      <path d="M 48 188 L 48 200" stroke-linecap="round"/>
+    </g>
+
+    <g font-size="9" font-weight="600" letter-spacing="1" fill="var(--ill-ink-soft, #6A5A64)">
+      <text x="40" y="62">A STUDENT ASKS</text>
+      <text x="40" y="118">THE DRAFT SAID</text>
+      <text x="40" y="218">WHAT WENT OUT</text>
+      <text x="406" y="123" text-anchor="middle" font-weight="400" letter-spacing="0">held</text>
+    </g>
+
+    <text x="40" y="82" font-size="13" fill="var(--ill-paper, #FBF8FA)">“Should I add a snack between lunch and dinner?”</text>
+    <text x="40" y="138" font-size="13" fill="var(--ill-ink-soft, #6A5A64)">“A small snack mid-afternoon can help.”</text>
+
+    <!-- ── LA RELECTURE. La seule pièce chaude avec l'équerre. ───────────── -->
+    <rect x="24" y="156" width="432" height="32" rx="12"
+          fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2"/>
+    <text x="40" y="176" font-size="11" fill="var(--ill-paper, #FBF8FA)">YOUR RED LINE — no grazing between meals</text>
+    <text x="440" y="176" font-size="9" text-anchor="end"
+          fill="var(--ill-ink-soft, #6A5A64)">no model in this loop</text>
+
+    <text x="40" y="240" font-size="13" fill="var(--ill-paper, #FBF8FA)">“Three real meals. If you're hungry between them,</text>
+    <text x="40" y="256" font-size="13" fill="var(--ill-paper, #FBF8FA)">the meal before was too small.”</text>
+    <text x="40" y="270" font-size="11" fill="var(--ill-ink-soft, #6A5A64)">— Marc</text>
+  </g>
+</svg>

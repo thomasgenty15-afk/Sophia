@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 380" width="480" height="380"
+     role="img" aria-labelledby="fig-doctrine-t fig-doctrine-d">
+  <title id="fig-doctrine-t">Ce que Sophia retient de votre voix</title>
+  <desc id="fig-doctrine-d">Quatre champs de la doctrine, tels qu’ils sont écrits : la façon
+    d’adresser la parole, un terme du coach avec le sens qu’il lui donne, une ligne rouge,
+    et ce qu’on dit à la place de cette ligne rouge. La dernière fiche est ouverte par un
+    trait : c’est elle que le membre reçoit.</desc>
+
+  <!-- FIGURE E de /communities — MAQUETTE. Les quatre fiches sont les champs
+       réels de `_shared/keel/doctrine.ts` : `voice.address`, une entrée de
+       `vocabulary` (terme + sens), une ligne interdite, et son `instead`.
+
+       LA QUATRIÈME FICHE EST LA PREUVE, PAS LA TROISIÈME. Une ligne rouge sans
+       son « à la place » n’est qu’une censure : ce qui rend la garde vendable,
+       c’est que le membre reçoit une réponse — celle du coach, dans ses mots
+       (AUDIT B9, keel_output_locks.ts:99-113). D’où le trait de 2 qui ouvre la
+       dernière fiche et aucune autre : l’idiome border-l-2 de l’app.
+       Pièce chaude : l’équerre + le titre de l’écran. = 2. -->
+
+  <path d="M 8 40 L 8 16 A 8 8 0 0 1 16 8 L 40 8"
+        fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round"/>
+  <rect x="8" y="8" width="464" height="364" rx="16"
+        fill="var(--ill-wash, #EFE0E9)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+
+  <g font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)">
+    <text x="28" y="46" font-size="15" font-weight="600"
+          fill="var(--ill-fig, #632C4C)">Your voice</text>
+
+    <g fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1">
+      <rect x="24" y="60" width="432" height="56" rx="12"/>
+      <rect x="24" y="124" width="432" height="68" rx="12"/>
+      <rect x="24" y="200" width="432" height="56" rx="12"/>
+      <rect x="24" y="264" width="432" height="76" rx="12"/>
+    </g>
+
+    <g font-size="9" font-weight="600" letter-spacing="0.9"
+       fill="var(--ill-ink-soft, #6A5A64)">
+      <text x="40" y="80">HOW YOU SPEAK TO THEM</text>
+      <text x="40" y="144">ONE OF YOUR TERMS</text>
+      <text x="40" y="220">ONE OF YOUR RED LINES</text>
+      <text x="40" y="284">AND WHAT YOU SAY INSTEAD</text>
+    </g>
+
+    <g font-size="13" fill="var(--ill-ink, #23191F)">
+      <text x="40" y="102">First name, informal. Two or three sentences. No emojis.</text>
+      <text x="40" y="166">“Reset day” — a day you plan light on purpose.</text>
+      <text x="40" y="184">Not a day you failed.</text>
+      <text x="40" y="242">Never recommend grazing between meals.</text>
+      <text x="40" y="306">Three real meals. If you are hungry between them,</text>
+      <text x="40" y="324">the meal before was too small.</text>
+    </g>
+
+    <!-- Le trait qui ouvre la seule fiche que le membre reçoit. -->
+    <path d="M 24 280 L 24 324" fill="none"
+          stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="2" stroke-linecap="round"/>
+  </g>
+</svg>

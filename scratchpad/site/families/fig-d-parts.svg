@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 240" width="480" height="240"
+     role="img" aria-labelledby="fig-d-t fig-d-d">
+  <title id="fig-d-t">Deux parts du même plat, et un objectif qui ne s’applique pas</title>
+  <desc id="fig-d-d">Deux assiettes reçoivent le même plat. À côté de la première, un adulte
+    dont l’objectif s’applique. À côté de la seconde, un mineur : aucun objectif ne le vise,
+    et la figure ne dessine aucune différence de taille.</desc>
+
+  <!-- FIGURE D — /families, section « les parts ». Fait ancré : AUDIT C10
+       (weekPlanAgeGate, 409 minor_student, goalApplies).
+       ⚠ LES DEUX ASSIETTES SONT LE MÊME ÉLÉMENT, appelé deux fois par <use> —
+       exactement comme l'étalon. Dessiner une assiette plus petite pour
+       l'enfant affirmerait par la géométrie une mesure qui n'atteint jamais
+       l'écran, et sur cette page-là ce serait pire qu'une imprécision : ça
+       ressemblerait à un régime d'enfant. Ce qui diffère s'écrit.
+       Pièce chaude : l'équerre + le filet du mineur. -->
+
+  <defs>
+    <g id="fam-part" fill="var(--ill-wash, #EFE0E9)" stroke="var(--ill-ink-soft, #6A5A64)"
+       stroke-width="1" stroke-linejoin="round">
+      <g transform="rotate(-30)"><rect x="-18" y="-14" width="22" height="10" rx="4"/></g>
+      <circle cx="13" cy="-4" r="6"/>
+      <circle cx="14" cy="9" r="4"/>
+    </g>
+  </defs>
+
+  <path d="M 8 32 L 8 16 A 8 8 0 0 1 16 8 L 32 8"
+        fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round"/>
+  <text x="44" y="26" font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)"
+        font-size="11" font-weight="600" letter-spacing="1.2"
+        fill="var(--ill-ink-soft, #6A5A64)">LA PART SUIT L’ÂGE</text>
+
+  <g>
+    <circle cx="88" cy="100" r="34" fill="var(--ill-paper, #FBF8FA)"
+            stroke="var(--ill-ink, #23191F)" stroke-width="2"/>
+    <circle cx="88" cy="100" r="25" fill="none"
+            stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+    <use href="#fam-part" x="88" y="100"/>
+  </g>
+  <g>
+    <circle cx="88" cy="180" r="34" fill="var(--ill-paper, #FBF8FA)"
+            stroke="var(--ill-ink, #23191F)" stroke-width="2"/>
+    <circle cx="88" cy="180" r="25" fill="none"
+            stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+    <use href="#fam-part" x="88" y="180"/>
+  </g>
+
+  <path d="M 150 68 L 150 124" fill="none" stroke="var(--ill-ink-soft, #6A5A64)"
+        stroke-width="2" stroke-linecap="round"/>
+  <path d="M 150 148 L 150 204" fill="none" stroke="var(--ill-fig, #632C4C)"
+        stroke-width="2" stroke-linecap="round"/>
+
+  <g font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)">
+    <g font-size="9" font-weight="600" letter-spacing="1" fill="var(--ill-ink-soft, #6A5A64)">
+      <text x="166" y="80">UN ADULTE</text>
+      <text x="166" y="160">UN MINEUR</text>
+    </g>
+    <g font-size="13" fill="var(--ill-ink, #23191F)">
+      <text x="166" y="102">son objectif s’applique</text>
+      <text x="166" y="182">aucun objectif ne le vise</text>
+    </g>
+    <g font-size="11" fill="var(--ill-ink-soft, #6A5A64)">
+      <text x="166" y="122">la part suit ce qu’il vise</text>
+      <text x="166" y="202">la part suit son âge, et rien d’autre</text>
+    </g>
+  </g>
+</svg>

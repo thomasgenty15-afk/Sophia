@@ -1813,7 +1813,14 @@ export const en = {
   // Brand + public chrome (header/footer shared by the public pages)
   "brand.wordmark": "Sophia",
   "public.header.sign_in": "Sign in",
+  // ⚠️ DEUX GESTES, UN PAR MONDE — et c'est un défaut fermé, pas une option.
+  // `start_trial` est l'essai COACH (14 jours, 3 élèves, `/auth?role=coach`).
+  // Il était offert sur TOUTES les pages de vente, y compris celles qui vendent
+  // à un foyer: on proposait à un parent de créer un compte professionnel
+  // payant. `start_household` est le geste du foyer et mène à `/start`.
+  // Voir `PublicHeader.tsx`, constante `WORLDS`.
   "public.header.start_trial": "Start free trial",
+  "public.header.start_household": "Get started",
   // Short form for the header; the footer keeps the fuller "Legal & privacy".
   "public.header.legal": "Legal",
   "public.locale.label": "Language",
@@ -1825,23 +1832,33 @@ export const en = {
   // `/legal`, qui est dans la nav du shell. Lui proposer « Sign in » à cet
   // endroit était faux, et ne rien lui proposer en faisait un cul-de-sac.
   "public.header.back_to_app": "Back to my space",
-  // ── LES TROIS PORTES, NOMMÉES ────────────────────────────────────────────
-  // Il y a trois pages de vente (`/`, `/gyms`, `/communities`) et, jusqu'ici,
-  // aucun lien entre elles: un visiteur envoyé sur la mauvaise n'avait aucun
-  // moyen de trouver la sienne, et rien ne lui disait laquelle il lisait —
-  // les trois portent le même en-tête et la même palette.
+  // ── DEUX MONDES, SIX PORTES ──────────────────────────────────────────────
+  // Il y avait trois pages de vente, toutes professionnelles. Il y en a SIX,
+  // réparties en deux mondes qui n'ont pas le même acheteur: un foyer qui
+  // compose ses repas, un professionnel qui prête sa méthode. Le site a donc
+  // deux halls (`/` et `/pro`) et trois portes sous chacun.
   //
   // Les libellés nomment L'ACHETEUR, pas le produit: c'est la seule chose qui
-  // permet à quelqu'un de se reconnaître en un mot. « Courses » et pas « Home »
-  // pour `/`, parce que `/` n'est pas une page d'accueil générique — elle vend
-  // à qui vend une formation, exactement comme les deux autres vendent à une
-  // salle et à une communauté.
+  // permet à quelqu'un de se reconnaître en un mot. D'où « Coaches » et non
+  // « Home » pour la page qui vend à qui vend une formation.
   //
-  // Ces clés vivent dans `public.*` et non dans `landing.*` / `gyms.*` /
-  // `communities.*`: c'est le seul texte que les trois pages partagent VRAIMENT
-  // — trois libellés de nav qui divergeraient décriraient trois sites.
-  "public.nav.label": "Who Sophia is for",
-  "public.nav.courses": "Courses",
+  // ⚠️ `public.nav.courses` A ÉTÉ RETIRÉE. Elle nommait `/` — qui vendait au
+  // coach jusqu'au 2026-08-12 et vend désormais au foyer. Garder la clé aurait
+  // laissé un libellé juste sur une destination fausse, ce qui ne casse aucun
+  // test et trompe tous les visiteurs. Son remplaçant est `public.nav.coaches`,
+  // qui pointe `/coaches`.
+  //
+  // Ces clés vivent dans `public.*` et non dans le namespace de chaque page:
+  // c'est le seul texte que les six pages partagent VRAIMENT — six libellés de
+  // nav qui divergeraient décriraient six sites.
+  "public.nav.worlds_label": "Who Sophia is for",
+  "public.nav.doors_label": "Pick your situation",
+  "public.nav.world_household": "For your household",
+  "public.nav.world_pro": "For professionals",
+  "public.nav.mealprep": "Meal prep",
+  "public.nav.couples": "Couples",
+  "public.nav.families": "Families",
+  "public.nav.coaches": "Coaches",
   "public.nav.gyms": "Gyms",
   "public.nav.communities": "Communities",
   "public.footer.tagline": "Your method, answering in your absence.",
@@ -1924,894 +1941,1125 @@ export const en = {
   // La cible est double et le titre les couvre toutes les deux: celui qui vend
   // une formation one-shot (Sophia lui crée la ligne récurrente), et le coach
   // 1:1 avec une liste d'attente (Sophia lui crée le palier SOUS son 1:1).
-  "landing.seo_title": "Sophia — turn a course into a coaching program",
-  "landing.seo_description":
-    "Sophia is the AI that answers your students in your own method and words, every day. A method you could only sell once becomes a program worth paying for every month. You record your method once; every outgoing message is checked against your red lines before it is sent. On Monday you read one page — who is still talking, how the week felt, what they set themselves.",
-  "landing.hero.kicker": "For coaches who sell a method, not hours",
-  "landing.hero.title": "Your course ends. Your coaching doesn't.",
-  // « on Monday you read one page » a été RETIRÉ d'ici: le panneau du lundi est
-  // à trente centimètres à droite, titré « Monday / One page. Not a dashboard. »
-  // Le dire aussi dans le sous-titre coûtait une ligne et demie et repoussait le
-  // bouton sous la ligne de flottaison pour redire ce que la maquette montre.
-  "landing.hero.subtitle":
-    "Sophia learns how you coach — your convictions, your red lines, the calls you make on the hard cases — and answers your students in your place, every day. A method you could only sell once becomes a program worth paying for every month. Every message is checked against your red lines before it goes out.",
-  "landing.hero.cta_trial": "Start the 14-day trial",
-  "landing.hero.cta_signin": "Sign in",
-  "landing.hero.note":
-    "14 days, up to 3 students. They join by invitation and get a space of their own, chat included. There is no one-to-one inbox for you to keep up with.",
-  // Discret par construction: cette page vend au coach. Mais un coach qui évalue
-  // veut voir le produit avant d'y inviter un client, et « essayez d'abord »
-  // répond à ça sans lui vendre une seconde offre.
-  "landing.hero.try_prompt": "Want to see it from the student's side first?",
-  "landing.hero.try_cta": "Try the free program",
+  // ── HOME — le hall du foyer (`/`) ───────────────────────────────────────
+  // Un hall porte la promesse commune, la preuve la plus forte, et les trois
+  // portes. L'argument complet d'un acheteur appartient à SA page.
+  "home.seo_title": "Sophia — one pot, and everyone's share written down",
+  "home.seo_description":
+    "Sophia composes a household's week in cooking sessions: the same dish for everyone, and for each mouth the serving that matches what they are after. One person's allergy governs the whole pot.",
+  "home.hero.kicker": "For whoever cooks for a home",
+  "home.hero.title": "One pot. Everyone's share, written down.",
+  "home.hero.lede":
+    "Sophia composes your week in cooking sessions, not in isolated dishes. One dish goes on the table, and each person gets the serving instruction that goes with it.",
+  "home.hero.cta": "Get started",
+  // ⚠️ LE PRIX SE DIT, LA DURÉE NE SE DIT PAS. Le tunnel foyer rend 500 faute
+  // de prix Stripe, et `free_until` gèle un foyer neuf à J+31 sans chemin pour
+  // se dégeler: « 30 jours puis vous décidez » promettrait une décision
+  // impossible. Voir `scratchpad/site/AUDIT-SITE.md` §8 n°1.
+  "home.hero.price":
+    "12,99 € a month for the household, plus 2 € for each person who claims their own access. Your own place is never counted, and children count as mouths, not as accounts.",
+  "home.fig.alt":
+    "One pot and two plates: the same dish, described differently for two people.",
+  "home.fig.pot": "the same dish",
+  "home.fig.one": "FOR ONE",
+  "home.fig.one_2": "more starch",
+  "home.fig.two": "FOR THE OTHER",
+  "home.fig.two_2": "more vegetables",
+  // La légende dit POURQUOI c'est en mots: le produit calcule des grammes que
+  // rien ne rend à l'écran (FF-043 §11 n°1), donc en écrire serait montrer un
+  // écran qu'on n'a pas.
+  "home.fig.caption":
+    "The dish is the same. What changes is the serving that goes with it, described in words — which is how the product says it.",
+  "home.proof.kicker": "What it refuses to do",
+  "home.proof.title": "One person's allergy governs the whole pot.",
+  "home.proof.body":
+    "The constraints of every mouth in the household are gathered before the plan exists. If that set cannot be read, nothing is composed: Sophia stops and names the reason. A plan that is missing gets asked for again; a plan that guessed gets eaten.",
+  "home.doors.kicker": "Where you are",
+  "home.doors.title": "Three ways a home eats. Yours is one of them.",
+  "home.door.mealprep.label": "Cooking for one",
+  "home.door.mealprep.title": "You already batch cook",
+  "home.door.mealprep.body":
+    "You cook once for several days, and you have a direction — losing or gaining. The week arrives in cooking sessions, and the shopping comes in waves that follow what stays fresh.",
+  "home.door.mealprep.cta": "See how it works for one",
+  "home.door.couples.label": "Two of you",
+  "home.door.couples.title": "Two goals, one kitchen",
+  "home.door.couples.body":
+    "Two directions that pull apart usually mean two pans, and two pans mean neither of you keeps it up. One dish, two servings described for two goals.",
+  "home.door.couples.cta": "See how it works for two",
+  "home.door.families.label": "Three or more",
+  "home.door.families.title": "Different needs at one table",
+  "home.door.families.body":
+    "Children are in the plan without an account and without a screen. Allergies are gathered across everyone, and a minor is never given a nutritional target.",
+  "home.door.families.cta": "See how it works for a family",
+  "home.close.title": "Start with one person. Add the others when you want to.",
+  "home.close.body":
+    "The product gives its whole value to a single person on the first day — sessions, servings that match your direction, shopping in waves. The rest of the household is something you add, never a condition for it to be good.",
+  "home.close.cta": "Get started",
 
-  // Landing — schematic of the Monday page. Labels are the product's own; the
-  // cohort is an example and says so (landing.mock.caption).
-  "landing.mock.monday_title": "Monday",
-  "landing.mock.monday_subtitle": "One page. Not a dashboard.",
-  "landing.mock.contact_label": "Who's still talking",
-  "landing.mock.contact_line": "34 students this week: 25 in touch, 6 slipping, 3 silent.",
-  "landing.mock.contact_responsive": "In touch",
-  "landing.mock.contact_slipping": "Slipping",
-  "landing.mock.contact_silent": "Silent",
-  "landing.mock.contact_responsive_hint": "answered within 2 days",
-  "landing.mock.contact_slipping_hint": "quiet 2 to 5 days",
-  "landing.mock.contact_silent_hint": "quiet 5 days or more",
-  "landing.mock.felt_label": "How the week felt",
-  "landing.mock.felt_line": "How the week felt: 18 holding up, 8 strained, 3 having a hard time.",
-  "landing.mock.felt_sustainable": "Holding up",
-  "landing.mock.felt_strained": "Strained",
-  "landing.mock.felt_hard": "Having a hard time",
-  "landing.mock.felt_unknown": "Not enough check-ins to say",
-  "landing.mock.felt_caption":
-    "Five students tapped fewer than three times. They are missing from the sentence above on purpose — one tap is not a week, and nobody is filed as fine by default.",
-  "landing.mock.intent_label": "What they set themselves",
-  "landing.mock.intent_line": "21 of 34 wrote themselves a week from your method.",
-  "landing.mock.caption":
-    "A schematic of the Monday page. The wording is the product's own; the cohort is an example.",
+  // ── PRO — le hall des professionnels (`/pro`) ───────────────────────────
+  "pro.seo_title": "Sophia for professionals — your method, answering every day",
+  "pro.seo_description":
+    "You record how you feed people once; Sophia answers your students in your method and your words. What it writes in their chat is checked against your red lines before it is sent, with no model in that loop. 7 € per student per month, no platform fee.",
+  "pro.hero.kicker": "For people who sell a method, not hours",
+  "pro.hero.title": "Your method, written once. Read back before it is sent.",
+  // ⚠️ FORMULATION B8b, ET PAS CELLE DES ANCIENNES PAGES. « La doctrine entre
+  // à chaque message » est faux (un seul appelant, le composeur —
+  // routers.ts:540-547), et « chaque message sortant est vérifié » aussi
+  // (quatre surfaces scannées, quatre non scannées). Ceci est vrai.
+  "pro.hero.lede":
+    "Sophia learns how you feed people — your convictions, your red lines, the calls you make on the hard cases — and answers your students in your place. Your method goes into their chat, into every week and into every meal it drafts; and what it writes in that chat is read back against your red lines before it goes out, by code.",
+  "pro.hero.cta": "Start the 14-day trial",
+  "pro.hero.note":
+    "14 days, up to 3 students, then it stops on its own. After that, 7 € per student per month — the seat is the only line, there is no platform fee.",
+  "pro.fig.alt":
+    "Your method and your red lines go in; what is about to be sent is checked, and what crosses a line is held and replaced.",
+  "pro.fig.method": "YOUR METHOD",
+  "pro.fig.method_2": "written once",
+  "pro.fig.lines": "YOUR RED LINES",
+  "pro.fig.lines_2": "and what you do instead",
+  "pro.fig.check": "checked",
+  "pro.fig.sent": "SENT",
+  "pro.fig.held": "HELD",
+  "pro.fig.held_2": "in your words",
+  "pro.fig.caption":
+    "The top half is an instruction, and an instruction is followed almost always. The bottom half is not one: it is a check that runs on what is about to leave, with no model in that loop. Two mechanisms that fail differently.",
+  "pro.proof.kicker": "What your student receives",
+  "pro.proof.title": "Never a refusal. Never \u201cask your coach\u201d.",
+  "pro.proof.body":
+    "Every red line carries what you do instead, in your own words, and that is what goes out — signed with your name. Your student never meets a wall, which matters more here than it would anywhere else: there is no one-to-one channel back to you, and that absence is the product.",
+  "pro.doors.kicker": "What you run",
+  "pro.doors.title": "Three ways a practice sells a method.",
+  "pro.door.coaches.label": "A course",
+  "pro.door.coaches.title": "You sell a course",
+  "pro.door.coaches.body":
+    "Your course ends and your coaching does not. A method you could only sell once becomes something worth paying for every month.",
+  "pro.door.coaches.cta": "See it for a course",
+  "pro.door.gyms.label": "A gym",
+  "pro.door.gyms.title": "You run an independent gym",
+  "pro.door.gyms.body":
+    "You coach three hours a week; twenty-one meals happen without you. That is where the plateau arrives, and the member who sees nothing change does not come and tell you — they leave.",
+  "pro.door.gyms.cta": "See it for a gym",
+  "pro.door.communities.label": "A community",
+  "pro.door.communities.title": "You run a paid community",
+  "pro.door.communities.body":
+    "A thread has no recipient — that is architecture, not workload. Sophia is the individual layer that sits underneath what you have already built.",
+  "pro.door.communities.cta": "See it for a community",
+  // B31 — la meilleure ligne des trois anciennes pages, reprise ici.
+  "pro.close.title":
+    "We have no retention figure to sell you, and we are not going to invent one.",
+  "pro.close.body":
+    "Nothing in this product measures churn against a control, so any number printed here would be decoration. What a student who stays is worth is your figure, not ours.",
+  "pro.close.cta": "Start the 14-day trial",
 
-  // Landing — the chat exchange, shown inside the “every day” step
-  "landing.mock.wa_label": "In their chat, today",
-  "landing.mock.photo_alt": "Photo of a plate, sent by a student",
-  "landing.mock.chat_student": "Lunch — had to eat out today",
-  "landing.mock.chat_sophia":
-    "Greens and a protein, moderate portion. That's the line you set yourself on Monday — noted.",
-  "landing.mock.chat_evening": "How did today go?",
-  "landing.mock.chat_tap_good": "Good",
-  "landing.mock.chat_tap_mixed": "Mixed",
-  "landing.mock.chat_tap_hard": "Hard",
-  "landing.mock.chat_tap_caption":
-    "Three buttons. If it was hard, one follow-up — energy, hunger or sleep. That's the whole evening.",
-
-  // Landing — the coach's note on one student. The heading and the example are
-  // VERBATIM from `CoachNoteCard`: this mock shows a real field, and a landing
-  // that paraphrases its own product screen is a landing that will drift from
-  // it on the first edit.
-  "landing.mock.note_label": "On their page, in your workspace",
-  "landing.mock.note_heading": "What you have noticed about them",
-  "landing.mock.note_body": "Works nights, eats around 3am. Hates cooking on Sundays.",
-  "landing.mock.note_caption":
-    "One field, one student, 1,500 characters. Rewrite it whenever they change; the next message uses the new one.",
-
-  // Landing — the problem. Il nomme maintenant les DEUX pertes, dans cet ordre:
-  // l'élève qui décroche (le résultat), et le revenu qui s'arrête (la ligne).
-  // La seconde n'était nulle part sur l'ancienne page, alors que c'est celle
-  // qui fait signer — cf. l'en-tête du hero.
-  "landing.problem.kicker": "The problem",
-  "landing.problem.title": "A course is paid once. The work takes a year.",
-  "landing.problem.body":
-    "You recorded the modules, the cohort is full, and the method is good. Then Tuesday night arrives and a student has a question that isn't in any module — because it's about their evening, their kitchen, their week. Multiply it by everyone enrolled. There is no version of you that answers all of it, so the modules are where your relationship with them stops.",
-  "landing.problem.q1": "“Can I swap the rice for pasta tonight?”",
-  "landing.problem.q2": "“I'm starving at 4pm — is that normal?”",
-  "landing.problem.q3": "“I ate badly at a wedding. Have I wrecked the week?”",
-  "landing.problem.close":
-    "Every one of those has an answer, and the answer is yours — you've made that call a hundred times. Nobody leaves because your method was wrong. They drift because on Tuesday night, nobody who thinks like you was there. And a student who drifts doesn't get the result, doesn't come back, and doesn't send you anyone.",
-
-  // Landing — how it works. The eyebrows are the CADENCE, not 1/2/3: the whole
-  // argument is the asymmetry between recording once and answering daily.
-  "landing.how.kicker": "How it works",
-  "landing.how.title": "Recorded once. Answering all week.",
-  "landing.how.step1_when": "Once",
-  "landing.how.step1_title": "You record your method",
-  "landing.how.step1_body":
-    "A guided interview turns how you coach into something the agent can hold: your convictions, your red lines, your vocabulary, how you answer the hard cases, your tone. You read back exactly what it understood, then publish. Revise it whenever you like — an edit lands on the next message — and roll back to any earlier version without losing the history of what your students actually received.",
-  "landing.how.step2_when": "Every day",
-  "landing.how.step2_title": "Your students live it, day by day",
-  "landing.how.step2_body":
-    "They send a photo of a plate or a sentence about their day, and get an answer in your method — in their chat, in the thread that stays open all day. In the evening, one tap says how the day went.",
-  "landing.how.space_when": "On their own time",
-  "landing.how.space_title": "And a space of their own",
-  "landing.how.space_body":
-    "Not somewhere they get chased into — they open it when they want to. It's where they build their week out of your method: Sophia drafts it, they adopt it only if they recognise themselves in it, and the conviction each food line came from is printed underneath. It's also where they look back — their consistency, how the days went, their plates.",
-  "landing.how.step3_when": "Every Monday",
-  "landing.how.step3_title": "You read one page",
-  "landing.how.step3_body":
-    "Who's still talking, how the week felt, what your students set themselves. Computed from what actually happened, never narrated by a model — and when there isn't enough to say something, it says that instead.",
-
-  // Landing — the 1:1 case (`student_coach_notes`, migration 20260805180000).
+  // ── LES SIX PAGES DE VENTE ───────────────────────────────────────────
+  // Un namespace par page, JAMAIS de clé partagée: même texte sur deux
+  // pages ⇒ deux clés. Une clé commune imposerait en silence à une page
+  // l'ajustement fait pour une autre.
   //
-  // POURQUOI CETTE SECTION EXISTE ALORS QUE LE HERO DIT « no one-to-one inbox »:
-  // les deux tiennent ensemble, et c'est précisément ce que la section doit
-  // faire lire. La note n'est pas un canal — l'élève n'y répond pas, elle ne
-  // revient jamais dans la boîte du coach. Le `close` ci-dessous porte cette
-  // réconciliation explicitement, parce qu'un lecteur attentif VA sentir la
-  // tension et qu'une contradiction non traitée coûte plus cher qu'une phrase.
-  //
-  // CHAQUE PHRASE EST UNE PROPRIÉTÉ VÉRIFIABLE DU CODE, pas une promesse:
-  //   rule1 — les 3 points d'injection (`run.ts`, `generate-week-plan-v1`,
-  //           `generate-meal-v1` appellent tous `loadCoachNote`);
-  //   rule2 — l'ordre fixe sécurité > doctrine > note, et le CHECK
-  //           `student_week_plans_doctrine_traceable_check` + `allowedKeys`
-  //           dans `parseWeekPlan` (la note n'ouvre AUCUNE clé);
-  //   rule3 — les 2 dernières lignes de `coachNotePromptBlock` (never quote,
-  //           never narrate) + la réclamation des deux côtés dans
-  //           `account-export-v1`;
-  //   rule4 — `coachNotePromptBlock` rend `null` sur note vide: RIEN dans le
-  //           prompt, pas même « le coach n'a rien noté ».
-  // Si l'une de ces quatre propriétés change, cette section ment.
-  "landing.note.kicker": "If you coach one to one",
-  "landing.note.title": "Ten students you actually know. Tell Sophia what you know.",
-  "landing.note.body":
-    "Your method is what you would say to any of them. But you also know that this one works nights, that one is coming back from a knee injury, that one writes off Sunday every week. None of it belongs in your method — it isn't true of anybody else. So it goes somewhere else: one note, on one student, in your own words.",
-  "landing.note.rule1_title": "It reaches everything they get",
-  "landing.note.rule1_body":
-    "Their chat, the week they build for themselves, the meals Sophia drafts for them. Not a second method running beside yours — your method, read through what you know about them.",
-  "landing.note.rule2_title": "It never outranks anything",
-  "landing.note.rule2_body":
-    "Their allergies come first, your method second, the note third. Where the note meets either one, the other wins. It cannot unlock a food a constraint rules out, and it opens no conviction you don't hold: every line Sophia builds still traces back to your method, or the database refuses to store it.",
-  "landing.note.rule3_title": "Sophia uses it. She never quotes it.",
-  "landing.note.rule3_body":
-    "Your student never reads “your coach noted that you…”. They get an answer that happens to fit them, with no explanation of why. And because it is a note about a person, it belongs to them too: it is included if they ever ask for their data, and the screen tells you that before you write.",
-  "landing.note.rule4_title": "Empty means empty",
-  "landing.note.rule4_body":
-    "No reminder, no field waiting for you, and nothing reaching the model to say you left it blank. Two hundred students, write none. Ten, write ten. It is the only shape under which a per-student field doesn't quietly become a per-student chore.",
-  "landing.note.close":
-    "That is the whole of the one-to-one mode. It is a note, not an inbox — nobody replies to it, and there is still nothing for you to keep up with.",
+  // ⚠️ LE BLOC `landing.*` A ÉTÉ RETIRÉ D'ICI. Il portait la copie de `/`
+  // quand `/` vendait au coach. `/` vend désormais au foyer, et la page
+  // coach vit sous `/coaches` avec le namespace `coaches.*`, réécrit.
+  // Garder les deux aurait laissé 117 clés que plus aucun écran ne rend —
+  // du travail de traduction payé pour rien, qui survit aux suppressions
+  // sans bruit (c'est exactement ce que `parity.int.test.ts` interdit).
 
-  // Landing — the double lock (the dark block: the guarantee, not the argument)
-  "landing.diff.kicker": "The part you should be most afraid of",
-  "landing.diff.title": "An AI speaking in your name is a risk. We treat it as one.",
-  "landing.diff.body":
-    "A prompt is an instruction, not a guarantee. Tell any model “never recommend grazing between meals” and it will comply almost always — and almost always is the wrong number when one public contradiction of you is the thing your students remember. So your red lines are enforced twice, by two mechanisms that fail differently.",
-  "landing.diff.lock1_tag": "Lock 1 — injected",
-  "landing.diff.lock1": "Your method goes into the prompt, on every message.",
-  "landing.diff.lock2_tag": "Lock 2 — verified",
-  "landing.diff.lock2":
-    "Every outgoing message is scanned against your red lines before it is sent. Deterministic, no model in that loop. That one is the guarantee.",
-  "landing.diff.trace_label": "What that looks like, on one message",
-  "landing.diff.trace_example": "Example — a coach whose method rules out grazing",
-  "landing.diff.trace_ask": "A student asks",
-  "landing.diff.trace_ask_text": "“Should I add a snack between lunch and dinner?”",
-  "landing.diff.trace_draft": "The draft said",
-  "landing.diff.trace_draft_text":
-    "“A small snack mid-afternoon can help — try six smaller meals across the day.”",
-  "landing.diff.trace_held": "Held by lock 2",
-  "landing.diff.trace_sent": "What went out instead",
-  "landing.diff.trace_sent_text":
-    "“Three real meals. If you're hungry between them, the meal before was too small — fix the meal, not the gap.”",
-  "landing.diff.trace_note":
-    "That replacement is not ours. Each red line carries what you do instead, in your words, and that is what your student receives.",
-  "landing.diff.close":
-    "Your student never gets a refusal, and never gets “ask your coach” — in a masterclass that points at a door which doesn't exist. They get your answer.",
+  // ── MEALPREP ──────────────────────────────────────────────────────────
+  "mealprep.seo_title": "Meal prep for one — a week built in cooking sessions",
+  "mealprep.seo_description":
+    "You already cook once and eat for days. Sophia builds your week in that unit: cooking sessions, shopping that arrives in waves, and three moves for the night that falls through. €12.99 a month, whole for one person.",
 
-  // Landing — doctrine
-  "landing.doctrine.kicker": "Our doctrine",
-  "landing.doctrine.title": "Three rules we don't bend",
-  "landing.doctrine.rule1_title": "You teach. They decide. Nobody is graded.",
-  "landing.doctrine.rule1_body":
-    "No adherence score, no percentage, no streak, no ranking of your students. A student is not marked against a plan they never signed. The week records how it went; the judgement stays yours.",
-  "landing.doctrine.rule2_title": "Every line names the conviction it came from.",
-  "landing.doctrine.rule2_body":
-    "When a student builds their week out of your method, each food line says which of your convictions it applies — and the database refuses a line that names none. That's a constraint, not a convention. Your student reads the belief under the line, so you can both judge whether it was a fair reading of you.",
-  "landing.doctrine.rule3_title": "Silence is never rounded up.",
-  "landing.doctrine.rule3_body":
-    "A student who tapped twice hasn't given us a week. They come back as “not enough check-ins”, never as “doing fine”. It costs us a nicer-looking page, and it's the only reason the page is worth reading.",
-  // ── PLUS UN REFUS D'IDENTITÉ, UNE QUESTION DE FIABILITÉ (2026-08-06) ──────
-  // Ce bloc s'intitulait « And no, Sophia doesn't count calories » et se
-  // terminait par « The refusal is the feature ». Les deux sont RETIRÉS: le
-  // produit va fournir un calcul approximatif, et une page qui a fait du refus
-  // une identité ne peut plus rien livrer sans se dédire.
-  //
-  // Ce qui reste, et qui est ce qu'on a vraiment mesuré
-  // (`docs/keel/PHOTO_QUANTIFICATION.md`, 85 appels réels, vérité USDA):
-  // le modèle est JUSTE quand on lui donne les quantités (MAPE 2,3%), et il est
-  // BIAISÉ quand on lui demande de les deviner sur une photo (−26,6%, toujours
-  // dans le même sens). Ce n'est donc pas le calcul qui est refusé, c'est la
-  // photo nue comme source de quantité.
-  //
-  // ⚠️ LA LIGNE QU'AUCUNE RÉÉCRITURE NE DOIT FRANCHIR — `docs/keel/LEGAL.md`
-  // §6.4, règle marketing non négociable: NE JAMAIS ANNONCER un comptage
-  // calorique par photo ni un « suivi des macros par photo ». La couverture
-  // réelle de l'intervalle du modèle est de 58% pour un intervalle demandé à
-  // 90%: il ne sait pas qu'il ne sait pas. Le « where a number does appear »
-  // ci-dessous est CONDITIONNEL exprès — il reste vrai que le produit en
-  // affiche un ou non, et il ne promet aucune source.
-  "landing.doctrine.no_calories_title": "Calories — what a photo can actually tell you.",
-  "landing.doctrine.no_calories_body":
-    "We measured it on our own model before deciding. Given the quantities, it is accurate: 2.3% average error against USDA reference data. Asked to guess them off a photo, it is not — across 85 real analyses, estimates came in 26.6% under the truth on average, and that error leans the same way every time instead of cancelling out over a week. When the model offers its own margin of error, the truth falls inside it barely more than half the time.",
-  "landing.doctrine.no_calories_body2":
-    "So Sophia leads with the half a photo is good at: what was eaten, when, and how big — small, moderate or large. That part your student can check at a glance, and a miss gets corrected in one message. Where a number does appear, it is an estimate and it is labelled as one: never a target your student is measured against, never a score, and never a stand-in for your method. Prescribing numbers stays with whoever is qualified to do it.",
+  // ── Hero ────────────────────────────────────────────────────────────────
+  "mealprep.hero.kicker": "For one person, whole from day one",
+  "mealprep.hero.title": "Cooking is not the hard part. Deciding is.",
+  "mealprep.hero.lede":
+    "You already cook once and eat for days. Sophia builds your week in that same unit — the cooking session — around the goal you set, and lets the shopping follow.",
+  "mealprep.cta": "Get started",
+  "mealprep.hero.price_note":
+    "€12.99 a month. On your own, that is the whole product, not a smaller one.",
 
-  // Landing — pricing
-  // ── UN SEUL POSTE, ET PLUS DE FORFAIT ────────────────────────────────────
-  // La grille disait « 49 $ + 12 $ par élève ACTIF (3 interactions ou plus) ».
-  // Deux défauts, tous deux corrigés en base le même jour:
-  //
-  //   1. Le forfait imposait un point mort à ~13 élèves. En dessous, le coach
-  //      perdait de l'argent chaque mois — et l'essai le fait démarrer à 3.
-  //      Sans lui, « ton premier élève te rapporte de l'argent » devient
-  //      littéralement vrai, et c'est une bien meilleure phrase de vente qu'une
-  //      réduction de fatigue.
-  //   2. Facturer l'élève ACTIF faisait cadeau des abonnés silencieux — que le
-  //      coach encaisse pourtant, puisqu'il revend l'accès — et ne payait plus
-  //      la boucle de relance, qui sert précisément ces élèves-là.
-  //
-  // La condition d'activité est retirée de `keel_coach_seat_ledger`
-  // (migration 20260806170000): le siège facturable est l'élève RATTACHÉ.
-  "landing.pricing.kicker": "Pricing",
-  "landing.pricing.title": "One line. It grows with what you sell.",
-  "landing.pricing.seat": "7 €",
-  "landing.pricing.seat_period": "per student, per month",
-  "landing.pricing.seat_label": "No platform fee. No setup. Nothing else.",
-  // La dernière phrase POSE UNE QUESTION au lieu d'avancer un chiffre, et c'est
-  // délibéré: le ratio réel dépend de ce que le coach facture, que nous ne
-  // connaissons pas. Une arithmétique inventée ici serait le premier chiffre
-  // faux de la page, sur la section où le prospect est le plus attentif.
-  "landing.pricing.why":
-    "You pay for the students you have enrolled, and you stop paying the month you turn a seat off. Charge them what you like on top — one student, ten, five hundred: the arithmetic is the same, and it is positive from the first one. The number to weigh this against isn't the hours you save: it's what one student who stays instead of drifting is worth to you.",
-  "landing.pricing.cta": "Start the 14-day trial",
-  "landing.pricing.trial_note": "14 days, up to 3 students, then it stops on its own.",
+  "mealprep.fig.session.title": "One cooking session, several ready meals",
+  "mealprep.fig.session.desc":
+    "A pot seen from above. A comb of lines links it to identical containers — the same drawing reused, because it is the same cooking — covering the meals of the days that follow.",
+  "mealprep.fig.session.label": "ONE COOKING SESSION",
+  "mealprep.fig.session.pot": "one session",
+  "mealprep.fig.session.covers": "WHAT IT COVERS",
 
-  // Landing — closing call
-  "landing.closing.title":
-    "You've already written the method. This is what makes it worth paying for every month.",
-  "landing.closing.cta": "Start the 14-day trial",
-  "landing.closing.signin_prompt": "Already using Sophia?",
-  "landing.closing.signin_link": "Sign in",
+  // ── Ce que ce n'est pas (bloc sombre) ───────────────────────────────────
+  "mealprep.quiet.kicker": "What this is not",
+  "mealprep.quiet.title": "No score. No streak.",
+  "mealprep.quiet.numbers_label": "The numbers",
+  "mealprep.quiet.numbers_value":
+    "Off by default — which is not the same as absent. Turning them on is a deliberate choice, and a chain of guards decides whether it is possible at all.",
+  "mealprep.quiet.ranking_label": "The ranking",
+  "mealprep.quiet.ranking_value":
+    "There is none. Nothing grades your week, and no coloured band tells you how it went.",
+  "mealprep.quiet.left_label": "What is left",
+  "mealprep.quiet.left_value":
+    "What you cook, when you cook it, and the shopping that goes with it.",
 
-  // ==========================================================================
-  // /gyms — LA SECONDE PAGE DE VENTE, ET ELLE NE PARLE PAS AU MÊME ACHETEUR
-  // ==========================================================================
-  // `/` vend à quelqu'un qui VEND UNE FORMATION: sa douleur est qu'un cours se
-  // paie une fois, son gain est une ligne récurrente là où il n'y en avait
-  // aucune. Une salle de sport a déjà la ligne récurrente — c'est son métier —
-  // et sa douleur est le CHURN. Les deux pages disent donc le même produit avec
-  // un ordre d'arguments, un vocabulaire et des chiffres différents.
-  //
-  // ── LA CIBLE, ET ELLE EST ÉTROITE EXPRÈS ─────────────────────────────────
-  // Le PROPRIÉTAIRE-COACH: box, salle de force, studio hybride, 100 à 300
-  // membres, une position assumée sur l'alimentation. PAS la chaîne qui
-  // « désigne un nutritionniste »: celui qui remplit l'entretien de doctrine
-  // n'y touche aucun bénéfice, la doctrine sera bâclée, et un agent générique
-  // est le MODE D'ÉCHEC du produit, pas une version réduite. `gyms.fit.*`
-  // disqualifie ce lecteur à voix haute plutôt que de l'encaisser.
-  //
-  // ── LES QUATRE SILENCES, VÉRIFIÉS DANS LE CODE LE 2026-08-06 ─────────────
-  //   1. AUCUN ENCAISSEMENT. `stripe-create-checkout-session` n'a pas de SKU
-  //      élève: le propriétaire facture ses membres avec ses propres outils.
-  //      `gyms.pricing.billing_note` le dit au lieu de le laisser deviner.
-  //   2. AUCUNE APP NATIVE, donc aucune notification push. Le canal est le web
-  //      et la bulle in-app (`/app/chat`).
-  //   3. LE PROTOCOLE EST NUTRITIONNEL. Pas de supplément, pas de sommeil, pas
-  //      de charge d'entraînement — le schéma les porterait, la saisie ne les
-  //      expose pas.
-  //   4. AUCUNE INTÉGRATION avec un logiciel de gestion de salle.
-  //      `gyms.hero.note` le formule à l'endroit (« rien à connecter ») plutôt
-  //      que de laisser le prospect le découvrir à l'installation.
-  //
-  // ── ET LE CHIFFRE QU'ON N'INVENTE PAS ────────────────────────────────────
-  // AUCUN taux de rétention n'est avancé: nous n'en avons pas mesuré un seul.
-  // `gyms.churn.p3_body` pose la QUESTION (« combien vaut un membre qui reste
-  // trois mois de plus ? ») exactement comme `landing.pricing.why`, et dit
-  // explicitement que nous n'avons pas le chiffre. Sur la section rétention —
-  // celle qui fait signer une salle — un chiffre inventé serait le premier
-  // mensonge de la page, et il serait sur l'argument principal.
+  // ── Les courses ─────────────────────────────────────────────────────────
+  "mealprep.waves.kicker": "The shopping",
+  "mealprep.waves.title": "Shopping arrives in waves, not in one trolley.",
+  "mealprep.waves.body":
+    "A wave never asks fresh food to sit more than three days in the fridge. Bought too early is thrown away later: when that window closes, the next wave leaves, and the end of your week is bought at the end of your week.",
+  "mealprep.waves.reserve":
+    "And when a week fits in a single wave, you see one. The product does not invent a second to look busy.",
+
+  "mealprep.fig.waves.title": "Shopping split into waves along the week",
+  "mealprep.fig.waves.desc":
+    "Two baskets — the same drawing, twice — sit above the days they cover. The first spans three days, the length fresh food is allowed to wait. The second runs on, open-ended.",
+  "mealprep.fig.waves.label": "SHOPPING IN WAVES",
+  "mealprep.fig.waves.first": "FIRST WAVE",
+  "mealprep.fig.waves.next": "NEXT WAVE",
+  "mealprep.fig.waves.fresh": "THREE DAYS",
+  "mealprep.fig.waves.week": "THE WEEK",
+
+  // ── L'imprévu ───────────────────────────────────────────────────────────
+  "mealprep.moves.kicker": "When a night falls through",
+  "mealprep.moves.title": "A missed evening does not rebuild the week.",
+  "mealprep.moves.body":
+    "Three moves, offered as buttons in the chat: shift a dish, shift the whole session, or say you are not cooking tonight. The week takes the hit and realigns around it.",
+  "mealprep.moves.note":
+    "No dish is picked for you, and the week is not rewritten behind your back.",
+
+  "mealprep.fig.moves.title": "The three moves a week accepts",
+  "mealprep.fig.moves.desc":
+    "Three cards, one per move. In the first, a dish leaves its evening. In the second, the session around it leaves with it. In the third, the evening stays empty and nothing is cooked.",
+  "mealprep.fig.moves.label": "THREE MOVES",
+  "mealprep.fig.moves.dish": "SHIFT A DISH",
+  "mealprep.fig.moves.session": "SHIFT THE SESSION",
+  "mealprep.fig.moves.tonight": "NOT TONIGHT",
+
+  // ── Le prix et l'entrée ─────────────────────────────────────────────────
+  "mealprep.start.kicker": "To start",
+  "mealprep.start.title": "€12.99 a month. On your own, you get all of it.",
+  "mealprep.start.body":
+    "You are buying a household of one, and a household of one is a complete household. Other mouths can join it later; that is not what you are buying today.",
+  "mealprep.start.price": "€12.99",
+  "mealprep.start.period": "a month",
+  "mealprep.start.price_label": "One household. At one person, it is already whole.",
+  "mealprep.start.asks_label": "What you are asked for",
+  "mealprep.start.ask_name": "First name",
+  "mealprep.start.ask_birthdate": "Date of birth",
+  "mealprep.start.ask_goal": "Goal",
+  "mealprep.start.ask_allergies": "Allergies",
+  "mealprep.start.note": "Then Sophia composes the first week, in sessions.",
+
+  // ── COUPLES ───────────────────────────────────────────────────────────
+  // ── SEO ────────────────────────────────────────────────────────────────────
+  "couples.seo_title": "Two goals, one pot",
+  "couples.seo_description":
+    "One of you wants to gain, the other wants to lose. Sophia builds your household's week as cooking sessions: one dish, and for each of you the serving that goes with your goal, written in words. €12.99 a month for the household.",
+
+  // ── HERO ───────────────────────────────────────────────────────────────────
+  "couples.hero.kicker": "Couples",
+  "couples.hero.title": "Two goals. One pot.",
+  "couples.hero.lede":
+    "You are not aiming at the same thing, and you still eat at the same table. Sophia builds your household's week as cooking sessions: one dish, and for each of you the serving that goes with your goal — in words, never in grams, and never in a second pan.",
+  "couples.hero.cta": "Start",
+  "couples.hero.price":
+    "€12.99 a month for the household, €2 a month for a second profile. The account you open is never counted on top.",
+  "couples.hero.reserve":
+    "Sign-up opens once the house coach's programme is published.",
+  "couples.hero.caption":
+    "One example. Six goals each send the serving in their own direction.",
+
+  // ── LA BANDE DE FAITS, sous le hero ────────────────────────────────────────
+  "couples.facts.unit.label": "The unit",
+  "couples.facts.unit.title": "The cooking session",
+  "couples.facts.unit.body":
+    "You are not planning seven dinners. You are planning the times the kitchen is on, and what they cover.",
+
+  "couples.facts.direction.label": "The direction",
+  "couples.facts.direction.title": "Six goals, six directions",
+  "couples.facts.direction.body":
+    "Your goal decides which way your serving goes. What the two of you share is cooked once; the rest is a serving instruction.",
+
+  "couples.facts.words.label": "The words",
+  "couples.facts.words.title": "A sentence, not a number",
+  "couples.facts.words.body":
+    "Each mouth's serving line shows on the household screen. It is written in words; no screen hands you a gram.",
+
+  // ── SECTION 2 — l'autre personne ───────────────────────────────────────────
+  "couples.other.kicker": "The second profile",
+  "couples.other.title": "Only one of you has to set this up.",
+  "couples.other.lede":
+    "The other one is in the plan with or without an account: their serving is computed from their own goal, next to yours. For their own way in — their own goal, editable whenever, their own serving line — a claimed profile is €2 a month. The account you open is never counted on top.",
+  "couples.other.asked":
+    "What we ask in order to add them: a first name, a date of birth, a goal, and any allergies.",
+
+  // ── SECTION 3 — la semaine encaisse ────────────────────────────────────────
+  "couples.week.kicker": "When it goes sideways",
+  "couples.week.title": "The week takes the hit without being rewritten.",
+  "couples.week.lede":
+    "One of you gets home late and the plan does not collapse. In the chat you shift a dish, shift the whole session, say nobody is cooking tonight — or say nothing needs to change. Those are the four answers, and there is no fifth: nothing picks a new dish in your place.",
+
+  // ── SECTION 4 — le bloc sombre ─────────────────────────────────────────────
+  "couples.dark.kicker": "What we don't do",
+  "couples.dark.say":
+    "There is no weight curve here, and no scale to open in the morning.",
+  "couples.dark.note":
+    "Numbers are off by default, and four locks decide whether they can be switched on. Two people having dinner are not a dashboard.",
+
+  // ── SECTION 5 — le prix et le geste ────────────────────────────────────────
+  "couples.price.kicker": "The price",
+  "couples.price.title": "One household, one price.",
+  "couples.price.amount": "€12.99",
+  "couples.price.period": "per month, for the household",
+  "couples.price.label":
+    "A second claimed profile is €2 a month. Up to eight mouths. The account you open is never counted.",
+  "couples.price.note":
+    "At sign-up you say how many of you are at the table, and the path for two is the one you land on.",
+
+  // ── FIGURE A — une casserole, deux parts ───────────────────────────────────
+  "couples.fig.plates.title": "One pot, two servings",
+  "couples.fig.plates.desc":
+    "A pot seen from above. Two identical plates receive the same dish. What differs between them is not drawn: it is the serving instruction, written in words beside each plate.",
+  "couples.fig.plates.eyebrow": "ONE COOKING SESSION, TWO SERVINGS",
+  "couples.fig.plates.pot": "the same dish, cooked once",
+  "couples.fig.plates.goal_a": "GAINING MUSCLE",
+  "couples.fig.plates.note_a1": "more starches",
+  "couples.fig.plates.note_a2": "in this serving",
+  "couples.fig.plates.goal_b": "LOSING FAT",
+  "couples.fig.plates.note_b1": "more vegetables",
+  "couples.fig.plates.note_b2": "in this serving",
+
+  // ── FIGURE B — qui est dans le plan ────────────────────────────────────────
+  "couples.fig.who.title": "Who is in the plan",
+  "couples.fig.who.desc":
+    "The same household, two ways of being in it. Without an account, the other one is still a mouth of the household and still gets a serving. A claimed profile adds their own way in, for two euros a month.",
+  "couples.fig.who.eyebrow": "WHO IS IN THE PLAN",
+  "couples.fig.who.col_a": "WITHOUT AN ACCOUNT",
+  "couples.fig.who.a1": "a mouth of the household",
+  "couples.fig.who.a2": "their serving is written",
+  "couples.fig.who.a3": "included",
+  "couples.fig.who.col_b": "CLAIMED PROFILE",
+  "couples.fig.who.b1": "their own way in",
+  "couples.fig.who.b2": "their own goal, editable",
+  "couples.fig.who.b3": "€2 a month",
+  "couples.fig.who.foot": "the account that opens the household is never counted",
+
+  // ── FIGURE C — les quatre réponses ─────────────────────────────────────────
+  "couples.fig.chat.title": "The four answers when tonight falls through",
+  "couples.fig.chat.desc":
+    "In the chat, an evening that falls through has exactly four answers: shift this dish, shift the session, nobody cooks tonight, or nothing needs to change. None of them rebuilds the week.",
+  "couples.fig.chat.eyebrow": "TONIGHT DOESN'T GO AS PLANNED",
+  "couples.fig.chat.label": "IN THE CHAT",
+  "couples.fig.chat.said": "Tonight's dinner isn't happening.",
+  "couples.fig.chat.b1": "shift this dish",
+  "couples.fig.chat.b2": "shift the session",
+  "couples.fig.chat.b3": "nobody cooks tonight",
+  "couples.fig.chat.b4": "nothing to change",
+  "couples.fig.chat.foot": "the week is not rebuilt",
+
+  // ── FAMILIES ──────────────────────────────────────────────────────────
+  "families.seo_title": "One pot for a household with different needs",
+  "families.seo_description":
+    "Sophia composes a household's week around every mouth at the table: one allergy governs the whole pot, and when the household's constraints can't be read, nothing is composed. 12,99 € a month for the whole household, up to eight mouths.",
+
+  // ── Héros ────────────────────────────────────────────────────────────────
+  "families.hero.kicker": "Three mouths to feed, or more",
+  "families.hero.title":
+    "One allergy at the table governs the whole pot.",
+  "families.hero.lede":
+    "One pot for the whole table. The exception isn't patched at the last minute, plate in hand: every constraint at the table is gathered before the plan exists, and if that set can't be read, nothing is composed. Sophia refuses rather than guesses.",
+  "families.hero.cta": "Create your household",
+  "families.hero.price_note":
+    "12,99 € a month, the whole household. One more mouth doesn't change the price.",
+
+  "families.fig_pot.label": "THE TABLE GOVERNS THE POT",
+  "families.fig_pot.a11y_title": "The mouths of the household, and the pot",
+  "families.fig_pot.a11y_desc":
+    "Four mouths are listed with their allergies. Only one carries a constraint. The four lines gather into a single stroke that enters the pot: the whole pot is composed without that food.",
+  "families.fig_pot.col_mouths": "THE MOUTHS",
+  "families.fig_pot.col_allergies": "ALLERGIES",
+  "families.fig_pot.m1": "You",
+  "families.fig_pot.m2": "Sami, 9",
+  "families.fig_pot.m2_allergy": "peanut",
+  "families.fig_pot.m3": "Inès, 6",
+  "families.fig_pot.m4": "Jo",
+  "families.fig_pot.none": "none",
+  "families.fig_pot.pot_label": "THE WHOLE POT",
+  "families.fig_pot.pot_value": "composed without peanut",
+
+  // ── Le refus ─────────────────────────────────────────────────────────────
+  "families.refusal.kicker": "The refusal",
+  "families.refusal.title": "When the household can't be read, nothing gets composed.",
+  "families.refusal.body":
+    "Every mouth's allergies are gathered into one constraint, read at the moment the week is built. If it can't be read, the build stops and names the reason. It doesn't compose a careful version, it doesn't split the difference: it stops. That is what fail-closed means — here, the default is to refuse.",
+  "families.refusal.line":
+    "A plan that's missing can be asked for again. A plan that guessed gets eaten.",
+
+  "families.fig_gate.label": "BEFORE THE WEEK EXISTS",
+  "families.fig_gate.a11y_title": "The two ways generation can end",
+  "families.fig_gate.a11y_desc":
+    "The household's constraints are read before the week is composed. If they are readable, the week is composed. If they are not, nothing is composed and generation stops, naming the reason.",
+  "families.fig_gate.in_label": "THE CONSTRAINTS",
+  "families.fig_gate.in_value": "of every mouth",
+  "families.fig_gate.ok_label": "READABLE",
+  "families.fig_gate.ok_value": "the week is composed",
+  "families.fig_gate.no_label": "UNREADABLE",
+  "families.fig_gate.no_value": "nothing is composed",
+  "families.fig_gate.code": "safety_constraints_unreadable",
+
+  // ── Les bouches sans compte ──────────────────────────────────────────────
+  "families.mouths.kicker": "Mouths without accounts",
+  "families.mouths.title": "Your children are in the plan. They have no account and no screen.",
+  "families.mouths.body":
+    "A mouth exists through what you write about it: first name, date of birth, goal, allergies. That's all we ask, and you're the one who writes it — there's no password to create for a six-year-old, no profile to have them fill in, no extra screen in the house.",
+
+  "families.fig_sheet.label": "ONE MOUTH, FOUR FIELDS",
+  "families.fig_sheet.a11y_title": "What we ask for a mouth, and who has an account",
+  "families.fig_sheet.a11y_desc":
+    "On the left, the four fields asked to add a mouth: first name, date of birth, goal, allergies. On the right, three mouths of the household: only one has an account, the other two exist in the plan with no account and no screen.",
+  "families.fig_sheet.asked": "WHAT WE ASK",
+  "families.fig_sheet.f1": "first name",
+  "families.fig_sheet.f2": "date of birth",
+  "families.fig_sheet.f3": "goal",
+  "families.fig_sheet.f4": "allergies",
+  "families.fig_sheet.m1": "You",
+  "families.fig_sheet.m2": "Sami, 9",
+  "families.fig_sheet.m3": "Inès, 6",
+  "families.fig_sheet.has_account": "AN ACCOUNT",
+  "families.fig_sheet.no_account": "NO ACCOUNT",
+  "families.fig_sheet.caption": "no account, no screen, no password to remember",
+
+  // ── Les parts ────────────────────────────────────────────────────────────
+  "families.portions.kicker": "Portions",
+  "families.portions.title": "Portions follow age. A child is never put on a diet.",
+  "families.portions.body":
+    "A minor is never a target: the rule lives in the structure, not in a writing guideline. The goal field exists for everyone, and a generation aimed at a minor is refused — there is no screen, no setting, no path around it. A child's portion follows their age, and that is all it follows.",
+
+  "families.fig_age.label": "PORTIONS FOLLOW AGE",
+  "families.fig_age.a11y_title": "Two portions of the same dish, and a goal that does not apply",
+  "families.fig_age.a11y_desc":
+    "Two plates receive the same dish. Beside the first, an adult whose goal applies. Beside the second, a minor: no goal aims at them, and the figure draws no difference in size.",
+  "families.fig_age.adult_label": "AN ADULT",
+  "families.fig_age.adult_value": "their goal applies",
+  "families.fig_age.adult_note": "the portion follows what they aim for",
+  "families.fig_age.minor_label": "A MINOR",
+  "families.fig_age.minor_value": "no goal aims at them",
+  "families.fig_age.minor_note": "the portion follows their age, nothing else",
+
+  // ── L'envie de la semaine ────────────────────────────────────────────────
+  "families.envy.kicker": "This week's craving",
+  "families.envy.title":
+    "You write, in one line, what the house feels like eating. The plan composes with it.",
+  "families.envy.body":
+    "One line, written by whoever runs the household, read by the generator as the week is composed. It isn't a vote and it isn't a form: it's a sentence, and it stands for the whole house. That's where “my family won't eat that” gets settled — not in one more filter.",
+
+  "families.fig_envy.label": "ONE LINE, THEN THE WEEK",
+  "families.fig_envy.a11y_title": "One line, and the week composed with it",
+  "families.fig_envy.a11y_desc":
+    "A single-line field, written by whoever runs the household. The stroke fans out to the seven days of the week: the generator reads this line as it composes.",
+  "families.fig_envy.field_label": "WRITTEN BY YOU, IN ONE LINE",
+  "families.fig_envy.line": "“This week we feel like dishes we can share.”",
+  "families.fig_envy.caption": "the generator composes the week with this line",
+
+  // ── Le prix ──────────────────────────────────────────────────────────────
+  "families.price.kicker": "Price",
+  "families.price.title": "12,99 € per household. Not per mouth.",
+  "families.price.amount": "12,99 €",
+  "families.price.period": "a month, the whole household",
+  "families.price.label": "Up to eight mouths. Yours is never counted.",
+  "families.price.body":
+    "Adding a mouth doesn't change the price, and a household is capped at eight. An adult who wants their own login takes a claimed profile, at 2 € a month: that's the only add-on there is. The product doesn't charge you for being a family.",
+
+  "families.fig_price.label": "THE PRICE FOLLOWS THE HOUSEHOLD",
+  "families.fig_price.a11y_title": "Eight places, one price",
+  "families.fig_price.a11y_desc":
+    "Eight mouth slots in a row. The first one is yours and is never counted. The price written below does not change as the slots fill up.",
+  "families.fig_price.you": "YOU",
+  "families.fig_price.not_counted": "NEVER COUNTED",
+  "families.fig_price.cap": "CAP: 8 MOUTHS",
+  "families.fig_price.amount": "12,99 €",
+  "families.fig_price.note": "at one mouth or at eight",
+
+  // ── Ce qu'on ne promet pas ───────────────────────────────────────────────
+  "families.limits.kicker": "What we don't promise",
+  "families.limits.title": "What Sophia does not do for your household.",
+  "families.limits.i1":
+    "The allergy guard covers what gets built: the week, the meal. An answer written in the chat does not re-read the household's combined constraints — which is why the word “everywhere” appears nowhere on this page.",
+  "families.limits.i2":
+    "No weight curve for anyone in the household: what gets written is overwritten, with no date and no series. There is nothing to track.",
+  "families.limits.i3":
+    "Numbers stay off by default, and turning them on means passing several locks. Nothing shows up as a number until you ask for it.",
+  "families.limits.i4":
+    "There is no family council: nobody votes, and the plan does not report back what it did with your line.",
+  "families.limits.i5": "No mobile app: Sophia opens in a browser.",
+  "families.limits.i6":
+    "Sophia replaces neither reading a label nor a doctor's advice. It composes meals; it treats no one and diagnoses nothing.",
+
+  // ── La sortie ────────────────────────────────────────────────────────────
+  "families.closing.kicker": "Getting started",
+  "families.closing.title": "Create your household, one mouth at a time.",
+  "families.closing.body":
+    "For each mouth we ask four things: first name, date of birth, goal, allergies. You write them once; they govern the pot from then on.",
+
+  // ── COACHES ───────────────────────────────────────────────────────────
+  "coaches.seo_title": "Sophia — your method answers your students, every day",
+  "coaches.seo_description":
+    "Sophia learns how you coach — your convictions, your red lines, what you say instead — and answers your students in your method, every day. What she writes in the chat is read back against your red lines before it is sent, by code. On Monday you read one page. 7 € per student, per month, no platform fee.",
+
+  // ── HERO ────────────────────────────────────────────────────────────────
+  // Le titre survit à la refonte : il nomme la douleur (le cours finit) et la
+  // promesse (le coaching, non) en six mots, et il n'a jamais été le problème.
+  "coaches.hero.kicker": "For coaches who sell a method, not hours",
+  "coaches.hero.title": "Your course ends. Your coaching doesn't.",
+  "coaches.hero.lede":
+    "You wrote the method once. Sophia answers your students in it, every day — the question at nine at night, the week they build for themselves, the meals she drafts for them. What you could only sell once becomes something worth paying for every month.",
+  "coaches.hero.cta": "Start the 14-day trial",
+  // B5 (14 jours / 3 élèves) · B32 (invitation e-mail, pas de lien à copier) ·
+  // S1 (aucune boîte de réception, et l'absence est le produit).
+  "coaches.hero.note":
+    "14 days, up to 3 students, then it stops on its own. They join by email invitation and get a space of their own, chat included. Nothing comes back to an inbox on your side — there isn't one.",
+  // B10 + B28. La légende porte les 4 points d'injection et la révision.
+  "coaches.hero.fig_caption":
+    "You record it once, in a guided interview: your convictions, your red lines, what you say instead, your vocabulary. Revise it whenever you like — an edit lands on the next message — and roll back to an earlier version without losing what your students already received.",
+
+  "coaches.fig.method.title": "One method, four places it is written into",
+  "coaches.fig.method.desc":
+    "The published method on the left. On the right, the four things Sophia composes for a student: their chat, the week they build, the meals she drafts, their household's meals. Each one is composed with the method in it.",
+  "coaches.fig.method.eq": "RECORDED ONCE",
+  "coaches.fig.method.source": "YOUR METHOD",
+  "coaches.fig.method.l1": "your convictions",
+  "coaches.fig.method.l2": "your red lines",
+  "coaches.fig.method.l3": "what you say instead",
+  "coaches.fig.method.l4": "your vocabulary",
+  "coaches.fig.method.out1": "their chat",
+  "coaches.fig.method.out2": "the week they build",
+  "coaches.fig.method.out3": "the meals she drafts",
+  "coaches.fig.method.out4": "their household meals",
+
+  // ── LA JOURNÉE ──────────────────────────────────────────────────────────
+  "coaches.day.kicker": "Every day",
+  "coaches.day.title": "The questions that arrive after the course is over.",
+  "coaches.day.body":
+    "The modules are recorded, the cohort is full, the method is good. Then Tuesday night arrives and a student has a question that is in no module, because it is about their evening, their kitchen, their week. Multiply it by everyone enrolled.",
+  "coaches.day.q1": "“Can I swap the rice for pasta tonight?”",
+  "coaches.day.q2": "“I'm starving at 4pm — is that normal?”",
+  "coaches.day.q3": "“I ate badly at a wedding. Have I wrecked the week?”",
+  "coaches.day.close":
+    "Every one of them has an answer, and the answer is yours — you have made that call a hundred times. Nobody leaves because the method was wrong. They drift because on Tuesday night, nobody who thinks like you was there.",
+  // B22 (trois boutons, un par jour) · B23 (la relance part AUSSI sur
+  // « mitigé », pas seulement sur « dur » — l'ancienne page disait « if it was
+  // hard », et `needsAxisFollowUp` dit `level !== "good"`).
+  "coaches.day.fig_caption":
+    "The exchange is an example. The evening question and its three buttons are the product's own words: one tap a day, and if the day was rough — or just so-so — one follow-up asks about energy, hunger or sleep.",
+
+  "coaches.fig.chat.title": "One day in a student's chat",
+  "coaches.fig.chat.desc":
+    "The student writes what happened at lunch and gets an answer composed with their coach's method. In the evening, one question and three buttons: All good, So-so, Rough.",
+  "coaches.fig.chat.heading": "In their chat, today",
+  "coaches.fig.chat.them": "THEM",
+  "coaches.fig.chat.sophia": "SOPHIA",
+  "coaches.fig.chat.student": "Ate out at lunch — no idea what was in it.",
+  "coaches.fig.chat.reply1": "Then keep tonight simple: a protein, greens,",
+  "coaches.fig.chat.reply2": "a normal portion. One lunch out is not a week.",
+  "coaches.fig.chat.evening": "IN THE EVENING",
+  // MOT POUR MOT — `daily_pulse.ts:114` et `:84-88`. Ne pas « améliorer ».
+  "coaches.fig.chat.question": "How was today?",
+  "coaches.fig.chat.tap_good": "All good",
+  "coaches.fig.chat.tap_mixed": "So-so",
+  "coaches.fig.chat.tap_rough": "Rough",
+
+  // ── LE BLOC SOMBRE — la relecture avant envoi ───────────────────────────
+  "coaches.lock.kicker": "The part you should be most afraid of",
+  "coaches.lock.title": "An AI speaking in your name is a risk. We treat it as one.",
+  "coaches.lock.body":
+    "A prompt is an instruction, not a guarantee. Tell any model “never recommend grazing between meals” and it will comply almost always — and almost always is the wrong number when one public contradiction of you is the thing your students will remember.",
+  // B8b, en deux temps. L'asymétrie EST l'argument : nommer ce qui est une
+  // instruction protège la seule phrase de la page qui est une garantie.
+  "coaches.lock.scope":
+    "So your method is written into everything Sophia composes for your students: the chat, every week, every meal. That much is an instruction. The second part is not: what she writes in the chat is read back against your red lines before it is sent, by code, with no model in that loop.",
+  "coaches.lock.instead":
+    "What goes out instead is not ours either. Each red line carries what you say in its place, in your own words, and it is signed with your name — so your student reads your position, and knows it is yours.",
+  "coaches.lock.close":
+    "They never get a refusal, and never get “ask your coach” — in a masterclass, that points at a door which doesn't exist. They get your answer.",
+
+  "coaches.fig.lock.title": "A message held, and what went out instead",
+  "coaches.fig.lock.desc":
+    "A student's question, the draft that crossed a red line, the check that held it, and the sentence the coach wrote for that exact case going out in its place, signed with their name.",
+  "coaches.fig.lock.eq": "IN THE CHAT, BEFORE IT IS SENT",
+  "coaches.fig.lock.ask_label": "A STUDENT ASKS",
+  "coaches.fig.lock.ask": "“Should I add a snack between lunch and dinner?”",
+  "coaches.fig.lock.draft_label": "THE DRAFT SAID",
+  "coaches.fig.lock.draft": "“A small snack mid-afternoon can help.”",
+  "coaches.fig.lock.held": "held",
+  "coaches.fig.lock.gate": "YOUR RED LINE — no grazing between meals",
+  "coaches.fig.lock.gate_note": "no model in this loop",
+  "coaches.fig.lock.sent_label": "WHAT WENT OUT",
+  "coaches.fig.lock.sent1": "“Three real meals. If you're hungry between them,",
+  "coaches.fig.lock.sent2": "the meal before was too small.”",
+  "coaches.fig.lock.sign": "— Marc",
+
+  // ── LE LUNDI ────────────────────────────────────────────────────────────
+  "coaches.monday.kicker": "Every Monday",
+  "coaches.monday.title": "One page, and no model wrote it.",
+  // B11 : cron hebdo, texte rendu par gabarit (`renderSynthesisText` est pur).
+  "coaches.monday.body":
+    "Who is still talking, how the week felt, what your students set themselves. Rendered by a template out of what actually happened — and where there is not enough to say something, it says that instead of rounding it up.",
+  // B14 : 48 h / 120 h, mesurés sur le dernier message ENTRANT. La dernière
+  // phrase cite `CoachWeeklyPage.tsx:272` mot pour mot.
+  // ⚠️ Ne PAS écrire « pas de score d'adhérence, pas de pourcentage » (B15) :
+  // `coach_synthesis.ts:571-575` émet encore une moyenne dès qu'une ligne
+  // existe. La page dit ce que la page fait, pas ce que le produit promet.
+  "coaches.monday.thresholds":
+    "In touch means they wrote within two days. Slipping is two to five days. Silent is five or more. And where there is no number, the page says “no number to show” rather than filling the gap.",
+  "coaches.monday.fig_caption":
+    "A schematic of the Monday page. The sentences are the ones the renderer emits, word for word; the cohort is an example.",
+
+  // MOT POUR MOT — toutes ces chaînes viennent de l'écran réel. Elles restent
+  // en anglais dans les deux locales : ce sont les mots du produit, pas ceux
+  // de la page. Traduire une capture, c'est cesser d'en être une (S10).
+  "coaches.fig.monday.title": "Monday, in one page",
+  "coaches.fig.monday.desc":
+    "The coach's weekly page: the week in prose first, then the students worth writing to with the reason attached, then the numbers, last and small.",
+  "coaches.fig.monday.app_title": "This week",
+  "coaches.fig.monday.week_label": "WEEK OF 2026-08-03",
+  "coaches.fig.monday.week_to": "2026-08-09",
+  "coaches.fig.monday.line1": "34 students this week: 25 in touch, 6 slipping, 3 silent.",
+  "coaches.fig.monday.line2":
+    "How the week felt: 21 holding up, 9 strained, 4 having a hard time.",
+  // « built », pas « wrote » — AUDIT B13.
+  "coaches.fig.monday.line3": "21 of 34 built themselves a week from your method.",
+  "coaches.fig.monday.flagged_label": "WORTH A MESSAGE",
+  "coaches.fig.monday.s1_name": "Chen Wei",
+  "coaches.fig.monday.s1_reason": "Going quiet",
+  "coaches.fig.monday.s1_state": "slipping",
+  "coaches.fig.monday.s2_name": "Amina Diop",
+  "coaches.fig.monday.s2_reason": "Has not written in days",
+  "coaches.fig.monday.s2_state": "silent",
+  "coaches.fig.monday.s3_name": "Luca Ferrari",
+  "coaches.fig.monday.s3_reason": "Barely logged anything",
+  "coaches.fig.monday.s3_none": "no number to show",
+  "coaches.fig.monday.numbers_label": "THE NUMBERS",
+  "coaches.fig.monday.n1_label": "responsive",
+  "coaches.fig.monday.n2_label": "slipping",
+  "coaches.fig.monday.n3_label": "silent",
+
+  // ── LA NOTE 1:1 ─────────────────────────────────────────────────────────
+  // B26. La section existe parce qu'un coach qui connaît ses dix élèves lit le
+  // 1:N comme un refus de le servir. Elle reste APRÈS la relecture : elle
+  // ajoute une entrée dans le prompt, et on rencontre la garantie avant.
+  "coaches.note.kicker": "If you coach ten people you actually know",
+  "coaches.note.title": "Your method is what you'd say to any of them. This is the rest.",
+  "coaches.note.body":
+    "One field, one student, 1,500 characters, in your words: that this one works nights, that one writes off Sunday. It reaches their chat, the week they build and the meals Sophia drafts for them — your method, read through what you know about them. And it never outranks anything: their allergies come first, your method second, the note third.",
+  // ⚠️ « jamais citée » est une promesse de PROMPT sans vérificateur
+  // déterministe (`coach_note.ts:126-128`). Elle ne se met pas au même rang
+  // que les lignes rouges — et le dire est un argument, pas une concession.
+  "coaches.note.limit":
+    "Sophia is instructed never to quote it back to them. That one is an instruction, not a check, and we would rather tell you which is which. It is also a note about a person, so it belongs to them too: it is included if they ever ask for their data.",
+  "coaches.note.mock_label": "ON THEIR PAGE, IN YOUR WORKSPACE",
+  // VERBATIM — `CoachNoteCard.tsx:111`.
+  "coaches.note.mock_heading": "What you have noticed about them",
+  "coaches.note.mock_body": "Works nights, eats around 3am. Hates cooking on Sundays.",
+  "coaches.note.mock_caption":
+    "Leave it empty and nothing reaches the model to say you left it blank. Two hundred students, write none. Ten, write ten.",
+
+  // ── LE PRIX ─────────────────────────────────────────────────────────────
+  // B1 (7 €/élève, pas de forfait) · B4 (on arrête le mois où on éteint) ·
+  // B5 (essai) · B6 (il faut un élève rattaché pour s'abonner : sans lui le
+  // checkout refuse en `no_billable_seat`) · S12 (aucun SKU élève).
+  // « No tier to outgrow » est une propriété de NOTRE grille, pas une
+  // comparaison chiffrée avec un concurrent.
+  "coaches.pricing.kicker": "Pricing",
+  "coaches.pricing.title": "One line. It grows with what you sell.",
+  "coaches.pricing.seat": "7 €",
+  "coaches.pricing.seat_period": "per student, per month",
+  "coaches.pricing.seat_label": "No platform fee. No setup. No tier to outgrow.",
+  "coaches.pricing.body":
+    "You pay for the students you have enrolled, and you stop paying the month you turn a seat off. What you charge them is yours, billed with your own tools — we never bill your student. The trial runs 14 days with up to 3 students; to subscribe when it ends you need at least one student enrolled, because the seat is the thing you pay for.",
+  // B31 — la meilleure ligne des trois pages actuelles. Conservée.
+  "coaches.pricing.no_number":
+    "What one student who stays instead of drifting is worth is your number, not ours. We have no retention figure to sell you, and we are not going to invent one.",
+  "coaches.pricing.cta": "Start the 14-day trial",
+  "coaches.pricing.trial_note": "14 days, up to 3 students, then it stops on its own.",
+
+  // ── LA SORTIE ───────────────────────────────────────────────────────────
+  "coaches.closing.title":
+    "You have already written the method. This is what makes it worth paying for every month.",
+  "coaches.closing.cta": "Start the 14-day trial",
+
+  // ── GYMS ──────────────────────────────────────────────────────────────
   "gyms.seo_title": "Sophia for gyms — a nutrition tier your members pay for",
   "gyms.seo_description":
-    "Sophia gives an independent gym a second line of revenue: a nutrition tier above the membership, run by an agent that answers your members every day in your method and your words. You pay 7 € per enrolled member and charge what you like on top. Every outgoing message is checked against your red lines before it is sent. On Monday you read one page — who is still talking, who is slipping, how the week felt.",
+    "An independent gym's second line of revenue: a nutrition tier above the membership, answered every day by an agent that works from your method. You pay 7 € per enrolled member and charge what you like on top. What Sophia writes in the chat is re-read against your red lines before it is sent, with no model in that loop. On Monday, one computed page names the members worth a message while they can still be reached.",
 
-  // Gyms — hero. L'ARGUMENT DE TÊTE EST LE REVENU, comme sur `/`, et pour la
-  // même raison: un argument de charge de travail plafonne au temps du gérant
-  // et nous fait comparer à un logiciel de gestion. Un argument de revenu ne
-  // plafonne pas. La rétention arrive juste après, parce que c'est celui qui
-  // PARLE le plus à une salle — mais il se lit mieux quand la marge est déjà
-  // acquise.
-  "gyms.hero.kicker": "For independent gyms — boxes, strength halls, hybrid studios",
-  "gyms.hero.title": "A membership is one line of revenue. This is the second.",
-  "gyms.hero.subtitle":
-    "Sophia is an agent that coaches your members on food, every day, in your method and your words. You record how you feed athletes once; it answers all of them. You pay 7 € per enrolled member and charge them what you like on top, so the margin is yours from member one — and it costs you no extra hours, because nobody on your team writes a menu.",
-  "gyms.hero.cta_trial": "Start the 14-day trial",
-  "gyms.hero.cta_signin": "Sign in",
+  // ── HERO ────────────────────────────────────────────────────────────────
+  // La douleur d'abord, le revenu juste après. Un argument de charge de travail
+  // plafonne au temps du gérant et nous fait comparer à un logiciel de gestion
+  // de salle ; la douleur, elle, est ce qu'il a déjà en tête en arrivant.
+  // « vingt et un repas » est de l'arithmétique du monde (3 × 7), pas une
+  // mesure du produit : aucun chiffre du dépôt n'est engagé ici.
+  "gyms.hero.eyebrow": "For independent gyms — boxes, strength halls, hybrid studios",
+  "gyms.hero.title": "You coach three hours a week. They eat twenty-one meals without you.",
+  "gyms.hero.lede":
+    "That is where the plateau comes from, and a member who stops seeing their body change does not argue with you about it: they come less, then they come on Saturdays, then they stop coming. Sophia is a nutrition tier above your membership. You record how you feed athletes once, and an agent answers every member you enrol, every day, from your method.",
+  "gyms.hero.cta": "Start the 14-day trial",
+  "gyms.hero.trial_note": "14 days, up to 3 members, then it stops on its own.",
+  // B32 : l'invitation par e-mail est une propriété de sécurité (le jeton est
+  // minté serveur, seul son sha256 est stocké), pas un manque de partage.
   "gyms.hero.note":
-    "14 days, up to 3 members, then it stops on its own. They join by invitation and get a space of their own, chat included. It runs alongside whatever you already use to manage the gym — there is nothing to connect.",
-  "gyms.hero.try_prompt": "Want to see it from a member's side first?",
-  "gyms.hero.try_cta": "Try the free program",
+    "Members join one email address at a time, by invitation. There is no shareable link to copy around, and that is the point. It runs beside whatever you already use to run the gym — there is nothing to connect.",
 
-  // Gyms — the worked example. IL EST ÉTIQUETÉ « EXAMPLE » PARTOUT, et les deux
-  // inconnues sont nommées: le taux d'adoption et le prix que le gérant fixe.
-  // Le seul chiffre qui n'est pas une estimation est le nôtre — 7 € par membre.
-  //
-  // L'arithmétique, à vérifier si l'un de ces nombres bouge:
-  //   250 membres × 15% = 37,5 → 37 (on ARRONDIT VERS LE BAS: une personne
-  //   n'est pas divisible, et arrondir vers le haut flatterait notre côté)
-  //   37 × 25 € = 925 €   |   37 × 7 € = 259 €   |   925 − 259 = 666 €
-  //   666 × 12 ≈ 8 000 €
-  "gyms.money.title": "A worked example",
-  "gyms.money.subtitle": "A gym with 250 members",
-  "gyms.money.uptake_label": "On the nutrition tier",
-  "gyms.money.uptake_value": "37",
-  "gyms.money.uptake_unit": "members",
-  "gyms.money.uptake_hint": "15% take it up — rounded down to whole people",
-  "gyms.money.month_label": "Every month, from then on",
-  "gyms.money.in_label": "They pay you 25 € each",
-  "gyms.money.in_value": "925 €",
-  "gyms.money.out_label": "You pay Sophia 7 € each",
-  "gyms.money.out_value": "− 259 €",
-  "gyms.money.keep_label": "You keep",
-  "gyms.money.keep_value": "666 €",
-  "gyms.money.keep_hint": "about 8,000 € a year",
-  "gyms.money.hours_label": "Extra hours of work",
-  "gyms.money.hours_value": "None",
+  // Figure 1 — la semaine d'un membre. Concept, vue de face, 480×240.
+  "gyms.fig.week_t": "One member's week: three coached sessions, twenty-one meals elsewhere",
+  "gyms.fig.week_d":
+    "A week drawn as marks. On the first row, the three sessions coached in the room. On the second, the twenty-one meals that happen where the gym is not — the part this page is about.",
+  "gyms.fig.week_label": "ONE MEMBER'S WEEK",
+  "gyms.fig.week_row1": "THREE HOURS IN THE ROOM",
+  "gyms.fig.week_row2": "TWENTY-ONE MEALS, EVERYWHERE ELSE",
+
+  // ── L'ARITHMÉTIQUE ──────────────────────────────────────────────────────
+  // B30 : l'exemple est juste ET étiqueté « exemple ». Les deux, ensemble, sont
+  // ce qui le rend crédible — retirer l'étiquette en ferait une prévision.
+  //   250 × 15 % = 37,5 → 37 (ARRONDI VERS LE BAS : une personne n'est pas
+  //   divisible, et arrondir vers le haut flatterait notre côté)
+  //   37 × 25 € = 925 €  |  37 × 7 € = 259 €  |  925 − 259 = 666 €  |  ×12 ≈ 8 000 €
+  // Si l'un de ces nombres bouge, les cinq autres bougent avec.
+  "gyms.money.eyebrow": "The arithmetic",
+  "gyms.money.title": "A tier your members pay for, on top of the membership.",
+  "gyms.money.body":
+    "You pay 7 € for each member you enrol and you set what they pay you. No platform fee, no setup fee, and you stop paying the month you turn a seat off. Nobody at your gym writes a menu, so the tier costs you no hours — which is exactly why the number to weigh it against is not the time it saves.",
+  // B31 — à conserver telle quelle. C'est la meilleure ligne des trois pages,
+  // et elle tombe ici parce que c'est ici qu'un chiffre de rétention inventé
+  // aurait le plus de valeur commerciale.
+  "gyms.money.close":
+    "What you are buying is months of membership. What is one member who stays three months longer worth to you? That is the number to put against 7 €, and it is yours, not ours: we have no retention figure to sell you, and we are not going to invent one.",
   "gyms.money.caption":
-    "An example, and it says so: we don't know your take-up or the price you'd set, and those are the two numbers that decide the total. What isn't an estimate — 7 € per enrolled member, you charge what you like on top, and the margin is positive on the first one.",
+    "An example, and it says so. We do not know your take-up or the price you would set, and those are the two numbers that decide the total. The one that is not an estimate is ours: 7 € per enrolled member.",
 
-  // Gyms — retention. L'ARGUMENT QUI PARLE LE PLUS À UNE SALLE, et le seul
-  // endroit de la page où il serait facile de mentir. Aucun pourcentage de
-  // rétention n'est avancé; `p3_body` dit que nous n'en avons pas.
-  "gyms.churn.kicker": "Retention",
-  "gyms.churn.title": "Nobody cancels in a month where their body is changing.",
-  "gyms.churn.body":
-    "You already run the half that happens in the room: three sessions a week, coached, in front of you. The other twenty-one meals happen where you aren't, and that is where the plateau comes from. A member who stops seeing change doesn't argue with you about it — they come less, then they come on Saturdays, then they don't. Body composition is the lever everyone in this industry names and almost nobody staffs.",
-  "gyms.churn.p1_title": "The part you can't staff",
-  "gyms.churn.p1_body":
-    "Following a hundred members' food one by one is a full-time hire, and even then it isn't awake at 9pm on a Tuesday, which is when the question actually gets asked. Sophia does that part, for every member you enrol, on the day.",
-  "gyms.churn.p2_title": "It notices before the badge does",
-  "gyms.churn.p2_body":
-    "Three days of silence and that member gets one message. One — then it goes quiet, because a nudge on day two only teaches people that silence gets pinged, and burns the signal for day nine. It is the only part of the product that acts when nobody is asking for anything.",
-  "gyms.churn.p3_title": "What you're actually buying",
-  "gyms.churn.p3_body":
-    "Not software. Months of membership. What is one member who stays three months longer worth to you? That is the number to put against 7 €, and it is yours, not ours — we have no retention figure to sell you, and we are not going to invent one.",
-  "gyms.churn.close":
-    "You are not buying a tool. You are buying months of membership you would otherwise have lost.",
+  // Figure 2 — l'exemple chiffré. Document vu de face, 480×240.
+  "gyms.fig.money_t": "A worked example for a gym with 250 members",
+  "gyms.fig.money_d":
+    "Four lines of arithmetic. Thirty-seven members on the nutrition tier at 25 € each is 925 € in; seven euros each to Sophia is 259 € out; 666 € stays with the gym every month.",
+  "gyms.fig.money_label": "AN EXAMPLE — A GYM WITH 250 MEMBERS",
+  "gyms.fig.money_uptake_label": "On the nutrition tier",
+  "gyms.fig.money_uptake_value": "37 members",
+  "gyms.fig.money_uptake_hint": "15% take it up, rounded down to whole people",
+  "gyms.fig.money_in_label": "They pay you 25 € each",
+  "gyms.fig.money_in_value": "925 €",
+  "gyms.fig.money_out_label": "You pay Sophia 7 € each",
+  "gyms.fig.money_out_value": "− 259 €",
+  "gyms.fig.money_keep_label": "You keep, every month",
+  "gyms.fig.money_keep_value": "666 €",
+  "gyms.fig.money_keep_hint": "about 8,000 € a year",
 
-  // Gyms — how it works. Mêmes cadences que sur `/` (une fois / tous les jours
-  // / quand ils veulent), et le lundi est retiré d'ici: il a sa propre section
-  // plus bas, parce que pour une salle c'est un argument, pas une étape.
-  "gyms.how.kicker": "How it works",
-  "gyms.how.title": "Recorded once. Answering all week.",
-  "gyms.how.step1_when": "Once",
-  "gyms.how.step1_title": "You record how you feed athletes",
-  "gyms.how.step1_body":
-    "A guided interview turns your method into something the agent can hold: what you're convinced of, what you rule out, the words you use, the calls you make on the hard cases, your tone. You read back exactly what it understood, then publish. Revise it whenever you like — an edit lands on the next message — and roll back to any earlier version without losing the history of what your members actually received.",
-  "gyms.how.step2_when": "Every day",
-  "gyms.how.step2_title": "Your members live it, meal by meal",
-  "gyms.how.step2_body":
-    "They send a photo of a plate or a sentence about their day, and get an answer in your method — in a thread that stays open. In the evening, one tap says how the day went. That tap is what Monday's page is built out of.",
-  "gyms.how.space_when": "On their own time",
-  "gyms.how.space_title": "And a space of their own",
-  "gyms.how.space_body":
-    "Not somewhere they get chased into — they open it when they want to. It's where they build the week out of your method: Sophia drafts it, they adopt it only if they recognise themselves in it, and the conviction each food line came from is printed underneath. It's also where they look back — their consistency, how the days went, their plates.",
+  // ── TOUS LES JOURS ──────────────────────────────────────────────────────
+  // B22 : trois boutons, fenêtre 20 h-22 h, un message par jour au plus.
+  // B23 : la relance d'axe part dès que le niveau n'est pas « good » — donc
+  // aussi sur « So-so ». La phrase est écrite au mot près : « anything other
+  // than All good ». Ne pas la ramener à « si c'était dur ».
+  "gyms.daily.eyebrow": "Every day",
+  "gyms.daily.title": "It is awake at nine on a Tuesday evening. You are at home.",
+  "gyms.daily.body":
+    "A member sends a photo of a plate or a sentence about their day, and gets an answer built from your method, in a thread that stays open. In the evening, one tap says how the day went — three buttons, and on anything other than All good, one follow-up asks whether it was energy, hunger or sleep. That is the whole evening.",
+  // B21 : un message par épisode (`reengagement.ts:211-213`) et
+  // REENGAGE_MIN_GAP_HOURS = 24×7 avant qu'un autre soit seulement possible.
+  // B24 / S5 : les heures calmes ne couvrent QUE la relance. Le tap du soir a
+  // sa propre fenêtre et peut tomber à 21 h 50 — d'où « ten to ten », qui est
+  // là pour empêcher la phrase interdite de repousser.
+  "gyms.daily.quiet_title": "Three days of silence, one message.",
+  "gyms.daily.quiet_body":
+    "Then it goes quiet: one nudge per episode, and a week before another one is even possible. A nudge on day two would only teach people that silence gets pinged, and it would burn the signal for day nine. That nudge holds off between 9pm and 8am. The evening tap has its own window, and it can land at ten to ten.",
+  "gyms.daily.fig_caption":
+    "Every word in this thread is the product's own: the question, the three buttons, the follow-up, and what the composer says when it is empty.",
 
-  // Gyms — the chat, schematic. Les libellés sont propres à `gyms.*` plutôt
-  // qu'empruntés à `landing.mock.*`: deux pages qui partagent une clé changent
-  // de sens ensemble le jour où quelqu'un retouche l'autre. Trois boutons parce
-  // que le pulse a trois niveaux (`_shared/keel/daily_pulse.ts`), pas une
-  // échelle de 0 à 10.
-  "gyms.mock.chat_label": "In their chat, today",
-  "gyms.mock.photo_alt": "Photo of a plate, sent by a member",
-  "gyms.mock.chat_member": "Lunch — client meeting, had to eat out",
-  "gyms.mock.chat_sophia":
-    "Greens and a protein, moderate portion. That's the line you set yourself on Monday — noted.",
-  "gyms.mock.chat_evening": "How did today go?",
-  "gyms.mock.chat_tap_good": "Good",
-  "gyms.mock.chat_tap_mixed": "Mixed",
-  "gyms.mock.chat_tap_hard": "Hard",
-  "gyms.mock.chat_caption":
-    "Three buttons. If it was hard, one follow-up — energy, hunger or sleep. That's the whole evening.",
+  // Figure 3 — le fil du soir. MAQUETTE DE PRODUIT, 480×320, et chaque chaîne
+  // est citée mot pour mot (S10). Ces six clés NE SE TRADUISENT PAS : l'app
+  // authentifiée est en anglais, et une capture traduite montrerait un écran
+  // qui n'existe pas.
+  "gyms.fig.thread_t": "The evening thread, as the product renders it",
+  "gyms.fig.thread_d":
+    "A chat surface. Sophia asks how the day went and offers three buttons; a second question asks which axis was hard and offers three more. At the bottom, the composer the member writes into.",
+  "gyms.fig.thread_app": "Sophia", // chat.title
+  "gyms.fig.thread_sub": "Your day-to-day, with your coach's method behind it.", // chat.subtitle
+  "gyms.fig.thread_q1": "How was today?", // PULSE_QUESTION_EN, daily_pulse.ts:114
+  "gyms.fig.thread_b1": "All good", // LEVEL_LABELS_EN.good, daily_pulse.ts:85
+  "gyms.fig.thread_b2": "So-so", // LEVEL_LABELS_EN.mixed, daily_pulse.ts:86
+  "gyms.fig.thread_b3": "Rough", // LEVEL_LABELS_EN.hard, daily_pulse.ts:87
+  "gyms.fig.thread_q2": "What was hard?", // PULSE_AXIS_QUESTION_EN, daily_pulse.ts:115
+  "gyms.fig.thread_a1": "Energy", // AXIS_LABELS_EN.energy, daily_pulse.ts:90
+  "gyms.fig.thread_a2": "Hunger", // AXIS_LABELS_EN.hunger, daily_pulse.ts:91
+  "gyms.fig.thread_a3": "Sleep", // AXIS_LABELS_EN.sleep, daily_pulse.ts:92
+  "gyms.fig.thread_composer": "Write to Sophia", // chat.input.placeholder
+  "gyms.fig.thread_send": "Send", // chat.send
 
-  // Gyms — la section qui DISQUALIFIE un lecteur, et c'est délibéré. Elle est
-  // placée juste après « you record your method », pendant que le lecteur a
-  // encore en tête que quelqu'un doit s'asseoir et le faire.
-  "gyms.fit.kicker": "Who this is for",
+  // ── LE LUNDI ────────────────────────────────────────────────────────────
+  // B11 : cron hebdomadaire, texte rendu par GABARIT (`renderSynthesisText` est
+  // une fonction pure), jamais narré par un modèle.
+  // B14 : les seuils sont mesurés sur le dernier ENTRANT — répondu < 48 h,
+  // slipping 48-120 h, silencieux ≥ 120 h.
+  // B17 : la cohorte est scopée par coach — une salle ne voit que ses membres.
+  "gyms.monday.eyebrow": "Every Monday",
+  "gyms.monday.title": "The names worth a message, while they can still be reached.",
+  "gyms.monday.body":
+    "One page, computed from what happened and rendered from a template. No model narrates it, which is why it cannot flatter you. A member who wrote in the last two days is in touch; between two and five days they are slipping; past five days they are silent.",
+  "gyms.monday.close":
+    "Slipping is the useful one. Those members are still reachable, and a message from you still lands. Your access log will tell you the same thing in six weeks, and by then the word for it is former member.",
+  "gyms.monday.scope": "You see the members you enrolled, and nobody else's.",
+  "gyms.monday.fig_caption":
+    "A schematic of that page. The names are made up; the labels, the reasons and the states are the product's own words.",
+
+  // Figure 4 — le lundi. MAQUETTE DE PRODUIT, 480×280, chaînes citées mot pour mot.
+  // Ces clés ne se traduisent pas non plus. Le bloc « The numbers » de l'écran réel
+  // n'est PAS dessiné: c'était une seconde idée dans la même figure, et le sujet est
+  // la liste des noms. Les seuils, eux, sont dans la copie (B14).
+  "gyms.fig.monday_t": "The Monday page: the members worth a message",
+  "gyms.fig.monday_d":
+    "The weekly page of a gym owner. Three members worth a message, each with the observed reason and their contact state — and, on the third, a plain statement that there is no number to show.",
+  "gyms.fig.monday_app": "This week", // KeelAppShell title, CoachWeeklyPage.tsx:192
+  "gyms.fig.monday_worth": "WORTH A MESSAGE", // CoachWeeklyPage.tsx:231, rendu en capitales par `SectionLabel`
+  "gyms.fig.monday_n1": "Chen Wei",
+  "gyms.fig.monday_r1": "Going quiet", // FLAG_REASON_COPY.slipping_contact
+  "gyms.fig.monday_s1": "slipping", // contact_state, rendu brut
+  "gyms.fig.monday_n2": "Amina Diop",
+  "gyms.fig.monday_r2": "Has not written in days", // FLAG_REASON_COPY.silent_5d
+  "gyms.fig.monday_s2": "silent", // contact_state, rendu brut
+  "gyms.fig.monday_n3": "Luca Ferrari",
+  "gyms.fig.monday_r3": "Barely logged anything", // FLAG_REASON_COPY.coverage_below_gate
+  "gyms.fig.monday_s3": "no number to show", // CoachWeeklyPage.tsx:272
+
+  // ── UNE FOIS ────────────────────────────────────────────────────────────
+  // La section dont le travail est de PERDRE une vente : le gérant qui délègue
+  // l'entretien à un salarié récupère une doctrine remplie sous contrainte, et
+  // un agent générique est le mode d'échec du produit, pas une version moindre.
+  // B20 est dit ici à voix haute : un compte coach = une méthode. C'est une
+  // limite, et l'écrire empêche « votre équipe » de s'installer plus loin.
+  // B28 : révision et rollback sans perdre l'historique de ce que les membres
+  // ont réellement reçu.
+  "gyms.fit.eyebrow": "Once",
   "gyms.fit.title": "It only works if the method is yours.",
   "gyms.fit.body":
-    "The interview is an hour of your time, and nobody can sit it for you. The agent answers in the convictions it was given, so the person who holds them has to be the one talking — and it is your name on the messages your members read.",
-  "gyms.fit.yes_title": "The owner who coaches",
-  "gyms.fit.yes_body":
-    "A box, a strength hall, a hybrid studio. A hundred to three hundred members. One person with a stated position on how people should eat, who is already saying it out loud on the floor five times a day and has never been paid a euro for it.",
-  "gyms.fit.no_title": "Not the appointed nutritionist",
+    "A guided interview turns what you already say on the floor into something an agent can hold: what you are convinced of, what you rule out, the calls you make on the hard cases, your words. You read back exactly what it understood before you publish. Revise it whenever you like, and roll back to an earlier version without losing the history of what your members actually received.",
+  "gyms.fit.one_title": "One account, one method.",
+  "gyms.fit.one_body":
+    "A gym with three coaches records one method, not three. There is no gym entity above the account and no roster inside it: whoever sits the interview is who the agent works from, and that person has to be the one who benefits from it.",
+  "gyms.fit.no_title": "Not the appointed nutritionist.",
   "gyms.fit.no_body":
-    "A gym that hands the interview to someone on staff gets back what it put in: a doctrine filled out under duress, and an agent that sounds like every other food app. Whoever does the work has to be the one who benefits from it — a generic agent is this product's failure mode, not a smaller version of it.",
+    "Hand the interview to someone on staff and you get back what you put in: a doctrine filled in under duress, and an agent that sounds like every other food app. A generic agent is this product's failure mode, not a smaller version of it.",
 
-  // Gyms — le lundi. Sur `/` c'est la troisième étape; ici c'est une SECTION,
-  // parce que l'alerte précoce de churn est le volet que le gérant ne voit pas
-  // venir et qui referme la vente.
-  "gyms.data.kicker": "Every Monday",
-  "gyms.data.title": "The churn signal no gym has ever had.",
-  "gyms.data.body":
-    "One page, computed from what actually happened and never written by a model: who is still talking, how the week felt, what your members set themselves. When there isn't enough to say something, it says that instead.",
-  "gyms.data.p1_title": "An early warning, not a post-mortem",
-  "gyms.data.p1_body":
-    "A member listed as slipping went quiet two to five days ago. They are still reachable — a message from you still lands. Your access log will tell you the same thing in six weeks, and by then the word for it is “former member”.",
-  "gyms.data.p2_title": "Your method, at the scale of the room",
-  "gyms.data.p2_body":
-    "Which parts of your method your members hold, which ones they drop, and what time of year they drop them. No gym has had that, because no gym has ever asked a hundred members the same question on the same evening.",
-  "gyms.data.p3_title": "Computed, not narrated",
-  "gyms.data.p3_body":
-    "Every line is arithmetic over what happened — messages, evening taps, the weeks your members wrote for themselves. No model writes this page, which is why it cannot flatter you.",
+  // ── LE DOUBLE VERROU — le bloc sombre, un seul par page ──────────────────
+  // ⚠️ FORMULATION B8b, ET PAS CELLE DES PAGES ACTUELLES. Les deux pages en
+  // ligne sur-vendent : `withKeelDoctrineBlock` n'a qu'UN appelant (le
+  // composeur), et « chaque message sortant » est faux — quatre surfaces sont
+  // scannées (chat, repas, semaines, reco du jour), quatre ne le sont pas
+  // (relance, récap du soir, bilan du dimanche, broadcast coach).
+  // Ce qui est écrit ici, et rien de plus : la méthode ENTRE dans le chat,
+  // dans chaque semaine et dans chaque repas ; ce qui est écrit DANS LE CHAT
+  // est relu contre les lignes rouges avant d'être envoyé.
+  "gyms.lock.eyebrow": "The part to be most afraid of",
+  "gyms.lock.title": "An agent that answers for you is a risk. We treat it as one.",
+  "gyms.lock.body":
+    "A prompt is an instruction, not a guarantee. Tell any model never to recommend grazing between meals and it will comply almost always — and almost always is the wrong number when one public contradiction of you, in front of someone who trains under your name, is what the room remembers.",
+  "gyms.lock.l1_tag": "Your method goes in",
+  "gyms.lock.l1":
+    "It enters the chat, and every week and every meal Sophia writes.",
+  "gyms.lock.l2_tag": "What comes out of the chat is re-read",
+  "gyms.lock.l2":
+    "What Sophia writes in the chat is checked against your red lines before it is sent. Deterministic, with no model in that loop. That one is the guarantee.",
+  // B9 : chaque ligne rouge porte son `instead`, dans les mots du coach, signé
+  // de son nom (`keel_output_locks.ts:99-113`). C'est le seul endroit de la
+  // page où le nom du gérant apparaît, et c'est le seul endroit où il apparaît
+  // dans le produit avec le suffixe du broadcast. Ne pas en tirer B18.
+  "gyms.lock.instead":
+    "Your member never receives a refusal. Each red line carries what you do instead, in your words and signed with your name, and that is what arrives.",
+  "gyms.lock.trace_example": "Example — a gym whose method rules out grazing between meals.",
+  // B27 : CHECK `student_week_plans_doctrine_traceable_check`. Portée : la
+  // semaine seulement. Les plats ne citent pas, délibérément.
+  "gyms.lock.traceable":
+    "And when a member builds a week out of your method, the database refuses a line that names none of your convictions. A constraint, not a convention.",
+  "gyms.lock.close":
+    "Your member gets your answer at nine on a Tuesday evening, on a question you have answered a hundred times on the floor.",
 
-  // Gyms — schematic of the Monday page. La cohorte est CELLE DE L'EXEMPLE
-  // CHIFFRÉ du hero (37 membres sur le palier), pour qu'un lecteur qui remonte
-  // retrouve le même chiffre au lieu d'en découvrir un second.
-  // Contrôle: 26 + 7 + 4 = 37, et 20 + 8 + 3 + 6 = 37.
-  "gyms.mock.monday_title": "Monday",
-  "gyms.mock.monday_subtitle": "One page. Not a dashboard.",
-  "gyms.mock.contact_label": "Who's still talking",
-  "gyms.mock.contact_responsive": "In touch",
-  "gyms.mock.contact_responsive_hint": "answered within 2 days",
-  "gyms.mock.contact_slipping": "Slipping",
-  "gyms.mock.contact_slipping_hint": "quiet 2 to 5 days",
-  "gyms.mock.contact_silent": "Silent",
-  "gyms.mock.contact_silent_hint": "quiet 5 days or more",
-  "gyms.mock.slipping_note":
-    "The seven in the middle are the ones worth a message today. Left alone, they are the ones who don't renew.",
-  "gyms.mock.felt_label": "How the week felt",
-  "gyms.mock.felt_sustainable": "Holding up",
-  "gyms.mock.felt_strained": "Strained",
-  "gyms.mock.felt_hard": "Having a hard time",
-  "gyms.mock.felt_unknown": "Not enough check-ins to say",
-  "gyms.mock.felt_caption":
-    "Six members tapped fewer than three times. They are missing from the count above on purpose — one tap is not a week, and nobody is filed as fine by default.",
-  "gyms.mock.intent_label": "What they set themselves",
-  "gyms.mock.intent_line": "24 of 37 wrote themselves a week from your method.",
-  "gyms.mock.caption":
-    "A schematic of the Monday page. The wording is the product's own; the gym is the example above — the 37 members on the nutrition tier.",
+  // Figure 5 — la trace. CONCEPT sur fond sombre (F12 : une maquette de produit
+  // ne se pose jamais sur un fond sombre — le produit est en clair uniquement,
+  // et un écran sombre montrerait un produit qui n'existe pas).
+  // Le mot « held » est dessiné en contour sourd, pas en rouge : sur une page
+  // de vente il n'y a pas d'instant, et une pastille colorée y serait de la
+  // décoration portant le costume du sens (F10).
+  "gyms.fig.trace_t": "One message, from the question to what was sent",
+  "gyms.fig.trace_d":
+    "Three stages. A member's question, the draft that broke a red line and was held, and the line that went out instead — the one the gym owner wrote.",
+  "gyms.fig.trace_label": "ONE MESSAGE, END TO END",
+  "gyms.fig.trace_s1": "A MEMBER ASKS",
+  "gyms.fig.trace_t1": "“Should I add a snack between lunch and dinner?”",
+  "gyms.fig.trace_s2": "THE DRAFT SAID",
+  "gyms.fig.trace_t2": "“A small snack mid-afternoon can help.”",
+  "gyms.fig.trace_held": "held",
+  "gyms.fig.trace_s3": "WHAT WENT OUT INSTEAD",
+  "gyms.fig.trace_t3": "“Three real meals. If you are hungry between them, the meal before was too small.”",
 
-  // Gyms — le double verrou. C'est l'argument que la concurrence ne peut pas
-  // copier en un week-end, et il est repris tel quel de `/`: seule la clôture
-  // change, parce qu'ici la porte « demande à ton coach » EXISTE — le coach est
-  // dans la salle. L'argument devient donc « il est 21h un mardi et tu es chez
-  // toi », pas « la porte n'existe pas ».
-  "gyms.diff.kicker": "The part you should be most afraid of",
-  "gyms.diff.title": "An agent speaking in your name is a risk. We treat it as one.",
-  "gyms.diff.body":
-    "A prompt is an instruction, not a guarantee. Tell any model “never recommend grazing between meals” and it will comply almost always — and almost always is the wrong number when one public contradiction of you, in front of someone who trains under your name, is what the room remembers. So your red lines are enforced twice, by two mechanisms that fail differently.",
-  "gyms.diff.lock1_tag": "Lock 1 — injected",
-  "gyms.diff.lock1": "Your method goes into the prompt, on every message.",
-  "gyms.diff.lock2_tag": "Lock 2 — verified",
-  "gyms.diff.lock2":
-    "Every outgoing message is scanned against your red lines before it is sent. Deterministic, no model in that loop. That one is the guarantee.",
-  "gyms.diff.trace_label": "What that looks like, on one message",
-  "gyms.diff.trace_example": "Example — a gym whose method rules out grazing",
-  "gyms.diff.trace_ask": "A member asks",
-  "gyms.diff.trace_ask_text": "“Should I add a snack between lunch and dinner?”",
-  "gyms.diff.trace_draft": "The draft said",
-  "gyms.diff.trace_draft_text":
-    "“A small snack mid-afternoon can help — try six smaller meals across the day.”",
-  "gyms.diff.trace_held": "Held by lock 2",
-  "gyms.diff.trace_sent": "What went out instead",
-  "gyms.diff.trace_sent_text":
-    "“Three real meals. If you're hungry between them, the meal before was too small — fix the meal, not the gap.”",
-  "gyms.diff.trace_note":
-    "That replacement isn't ours. Each red line carries what you do instead, in your words, and that is what your member receives.",
-  "gyms.diff.close":
-    "Your member never gets a refusal, and never gets “ask your coach” for a question you have answered a hundred times on the floor. They get your answer, at 9pm on a Tuesday, while you're at home.",
-
-  // Gyms — doctrine. Les trois règles de `/`, au vocabulaire de la salle. La
-  // première mord plus fort ici: un classement public de qui a bien mangé est
-  // exactement ce qu'une salle serait tentée d'afficher, et exactement ce que
-  // ce produit refuse de calculer.
-  "gyms.doctrine.kicker": "Our doctrine",
-  "gyms.doctrine.title": "Three rules we don't bend",
-  "gyms.doctrine.rule1_title": "You teach. They decide. Nobody is graded.",
-  "gyms.doctrine.rule1_body":
-    "No adherence score, no percentage, no streak, no leaderboard of your members. A member is not marked against a plan they never signed, and a gym is the last place a public ranking of who ate well would help anyone. The week records how it went; the judgement stays yours.",
-  "gyms.doctrine.rule2_title": "Every line names the conviction it came from.",
-  "gyms.doctrine.rule2_body":
-    "When a member builds their week out of your method, each food line says which of your convictions it applies — and the database refuses a line that names none. That's a constraint, not a convention. Your member reads the belief under the line, so you can both judge whether it was a fair reading of you.",
-  "gyms.doctrine.rule3_title": "Silence is never rounded up.",
-  "gyms.doctrine.rule3_body":
-    "A member who tapped twice hasn't given us a week. They come back as “not enough check-ins”, never as “doing fine”. It costs us a nicer-looking Monday page, and it is the only reason that page is worth acting on.",
-  // Même virage que `landing.doctrine.no_calories_*`, même jour, même raison —
-  // et la même ligne LEGAL.md §6.4 à ne pas franchir. Les deux pages portent le
-  // MÊME argument: elles bougent ensemble, ou l'une des deux reste le refus
-  // d'identité qu'on vient d'abandonner sur l'autre.
-  //
-  // Le titre perd « or macros » avec le reste: une salle est l'acheteur le plus
-  // susceptible d'en vouloir, et l'ancien titre lui disait non avant de lui
-  // expliquer quoi que ce soit.
-  "gyms.doctrine.no_calories_title": "Calories — what a photo can actually tell you.",
-  "gyms.doctrine.no_calories_body":
-    "We measured it on our own model before deciding. Given the quantities, it is accurate: 2.3% average error against USDA reference data. Asked to guess them off a photo, it is not — across 85 real analyses, estimates came in 26.6% under the truth on average, and that error leans the same way every time instead of cancelling out over a week. When the model offers its own margin of error, the truth falls inside it barely more than half the time.",
-  "gyms.doctrine.no_calories_body2":
-    "So Sophia leads with the half a photo is good at: what was eaten, when, and how big — small, moderate or large. That part your member can check at a glance, and a miss gets corrected in one message. Where a number does appear, it is an estimate and it is labelled as one: never a target your member is measured against, never a score, and never a stand-in for your method. Prescribing numbers stays with whoever is qualified to do it.",
-
-  // Gyms — pricing. UNE SEULE CARTE, comme sur `/` depuis la migration
-  // 20260806170000: le siège facturable est le membre RATTACHÉ, plus le membre
-  // actif. Le tarif annuel est une remise commerciale, pas un plan distinct —
-  // une deuxième carte obligerait le gérant à faire une addition pour un écart
-  // d'un euro.
-  //
-  // `billing_note` N'EST PAS UNE PRÉCAUTION: c'est le silence n°1 de l'en-tête
-  // de ce bloc. Il n'existe aucun SKU membre dans Stripe, donc l'encaissement
-  // n'existe pas, et un gérant qui le découvre après avoir signé est un pilote
-  // perdu.
-  "gyms.pricing.kicker": "Pricing",
-  "gyms.pricing.title": "7 € a member. You set what they pay.",
-  "gyms.pricing.seat": "7 €",
-  "gyms.pricing.seat_period": "per enrolled member, per month",
-  "gyms.pricing.seat_label": "No platform fee. No setup. Nothing else.",
-  "gyms.pricing.annual": "6 € for a member who has paid for their year up front.",
-  "gyms.pricing.why":
-    "You pay for the members you have enrolled, and you stop paying the month you turn a seat off. Charge them what you like on top — at one member and at five hundred the arithmetic is the same, and it is positive from the first. The number to weigh this against isn't the hours you save, because it doesn't cost you any: it's what one member who stays three months longer is worth to you.",
-  "gyms.pricing.billing_note":
+  // ── LE PRIX ─────────────────────────────────────────────────────────────
+  // B1 : 7 €/membre/mois, pas de forfait plateforme. Le montant vit dans
+  // `STRIPE_PRICE_ID_COACH_SEAT_MONTHLY`, pas dans le code.
+  // B3 : « pour un siège payé à l'année ». L'intervalle est celui du COACH.
+  //      ⚠️ C'est la correction du claim FAUX B2. Ne pas revenir à « quand
+  //      votre membre a payé son année » : c'est le claim retiré.
+  // B4 : `stripe-reconcile-seats` RECALCULE depuis le ledger, il n'incrémente
+  //      jamais — on arrête de payer le mois où on éteint un siège.
+  // B5 : essai 14 jours / 3 élèves, puis ça s'arrête.
+  // B6 : ⚠️ un coach à ZÉRO élève est refusé au checkout (`no_billable_seat`).
+  //      D'où « subscribing needs at least one enrolled member » : la marge est
+  //      positive dès le premier, mais le premier doit exister.
+  "gyms.price.eyebrow": "Pricing",
+  "gyms.price.title": "7 € a member. You set what they pay.",
+  "gyms.price.seat": "7 €",
+  "gyms.price.seat_period": "per enrolled member, per month",
+  "gyms.price.seat_label": "No platform fee. No setup. Nothing else.",
+  "gyms.price.annual": "6 € for a seat paid for a year up front.",
+  "gyms.price.why":
+    "You pay for the seats you have opened, and you stop paying the month you turn one off. Subscribing needs at least one enrolled member, so the first seat comes before the first invoice — after that the arithmetic is the same at one member and at five hundred.",
+  "gyms.price.billing_note":
     "You bill your members yourself, on whatever you already use for the membership. Sophia never touches their payment and never sees it.",
-  "gyms.pricing.cta": "Start the 14-day trial",
-  "gyms.pricing.trial_note": "14 days, up to 3 members, then it stops on its own.",
+  "gyms.price.cta": "Start the 14-day trial",
+  "gyms.price.trial_note": "14 days, up to 3 members, then it stops on its own.",
 
-  // Gyms — closing call
-  "gyms.closing.title": "You already coach the training. This is the other twenty-one meals.",
-  "gyms.closing.cta": "Start the 14-day trial",
-  "gyms.closing.signin_prompt": "Already using Sophia?",
-  "gyms.closing.signin_link": "Sign in",
+  // ── LA CLÔTURE ──────────────────────────────────────────────────────────
+  "gyms.close.title": "You already coach the training. This is the other twenty-one meals.",
+  "gyms.close.cta": "Start the 14-day trial",
+  // Pas de « Sign in » ici: `PublicHeader` porte déjà cette porte, et un second lien
+  // à côté du seul CTA de la page serait une seconde offre.
+  "gyms.close.trial_note": "14 days, up to 3 members, then it stops on its own.",
 
-  // ==========================================================================
-  // /communities — LA TROISIÈME PAGE, ET SA DOULEUR N'EST NI LE REVENU NI LE CHURN
-  // ==========================================================================
-  // `/` vend à quelqu'un dont le revenu S'ARRÊTE (un cours se paie une fois).
-  // `/gyms` vend à quelqu'un dont les membres PARTENT. Le propriétaire d'une
-  // communauté payante n'a ni l'un ni l'autre problème en premier: il a déjà le
-  // récurrent, il a déjà prouvé qu'il sait le vendre, ses membres paient tous
-  // les mois. Lui vendre « transformez votre formation en programme » ne décrit
-  // rien de sa vie, et il repère l'erreur de cible en une phrase.
-  //
-  // ── SA DOULEUR EST STRUCTURELLE, ET C'EST TOUT L'ANGLE DE LA PAGE ─────────
-  // Une communauté est un FIL. Il répond en public, au groupe. L'attention
-  // individuelle n'y est pas rare, elle est IMPOSSIBLE — c'est l'architecture,
-  // pas l'organisation, et il ne comblera jamais ce trou en travaillant plus.
-  // Ses membres partent précisément pour ça: ils ne voient pas de résultat
-  // personnel. La page le dit dès le titre, sans détour, parce que c'est ce
-  // qu'il a déjà pensé sans l'avoir formulé.
-  //
-  // ── LES DEUX INTERDITS QUI TIENNENT CHAQUE LIGNE CI-DESSOUS ──────────────
-  // 1. NE JAMAIS DÉNIGRER LA COMMUNAUTÉ, ET NE JAMAIS SE POSER EN REMPLAÇANT.
-  //    C'est une RÉPARTITION DES RÔLES: ses pairs, sa culture, ses posts
-  //    restent chez lui; on ne prend que ce qu'un groupe ne saura jamais faire
-  //    — répondre à 21h sur SON dîner à LUI, et relancer celui qui a décroché
-  //    depuis trois jours. Une page qui attaque son actif principal a perdu au
-  //    premier paragraphe. `communities.roles.*` porte ce partage en deux
-  //    colonnes plutôt qu'en une phrase qu'on pourrait lire de travers.
-  // 2. NE JAMAIS LUI DEMANDER DE TOUT REFAIRE. Sa communauté ne bouge pas:
-  //    même prix, même plateforme, mêmes posts. Ce qu'on ajoute se pose
-  //    PAR-DESSUS. Le test de relecture de cette page est exactement celui-là —
-  //    quelqu'un qui a 500 membres payants doit la finir en se disant « je ne
-  //    touche à rien ». `communities.not.title` répond à la question avant
-  //    qu'il la pose.
-  //
-  // ── LES QUATRE SILENCES, VÉRIFIÉS DANS LE CODE LE 2026-08-06 ─────────────
-  //   1. AUCUNE INTÉGRATION Skool, Circle, Discord ou Kajabi. Zéro ligne. La
-  //      seule entrée est `coach-invite-student-v1`: une invitation E-MAIL par
-  //      membre, envoyée depuis l'espace du coach. Il n'existe même pas de
-  //      « copier le lien » — `InviteDialog` ne voit jamais le token, et c'est
-  //      délibéré. `communities.not.item1_body` dit donc « par e-mail », jamais
-  //      « par lien ».
-  //   2. AUCUN ENCAISSEMENT. `stripe-create-checkout-session` n'a pas de SKU
-  //      élève: le membre ne paie jamais Sophia.
-  //   3. AUCUNE COUCHE SOCIALE, et c'est un CHOIX à dire à voix haute plutôt
-  //      qu'un manque à cacher: sa communauté EST la couche sociale, en
-  //      fabriquer une seconde reviendrait à lui prendre son actif.
-  //   4. PROTOCOLE NUTRITIONNEL SEULEMENT, et pas d'application native.
-  //
-  // ── ET LE CHIFFRE QU'ON N'INVENTE PAS ────────────────────────────────────
-  // AUCUN taux de rétention n'est avancé — nous n'en avons pas mesuré un seul.
-  // `communities.pricing.why` pose la QUESTION (« combien vaut un membre qui
-  // reste trois mois de plus ? ») exactement comme `landing.pricing.why` et
-  // `gyms.churn.p3_body`. Le repère de marché qui a servi à calibrer l'exemple
-  // (moitié des communautés santé payantes sur Skool, prix médian 29 $) N'EST
-  // PAS IMPRIMÉ: aucune source de ce dépôt ne le porte, et la règle de `/` vaut
-  // ici — un chiffre vient d'une source qu'on peut montrer, ou il n'apparaît pas.
-  //
-  // ⚠️ L'EXEMPLE CHIFFRÉ EST EN EUROS DE BOUT EN BOUT. La tentation était de
-  // citer les prix de communauté en dollars (c'est la monnaie de Skool) et de
-  // soustraire un siège en euros — une soustraction entre deux monnaies, sur la
-  // seule section où le lecteur sort sa calculatrice. Un seul signe partout.
-  //
-  // ⚠️ ET L'ÉCART EST DE 12 €, PAS DE 30 €. La première version montait le
-  // palier de 29 € à 59 €: elle demandait au membre de DOUBLER sa dépense, et
-  // un propriétaire qui connaît sa base sait qu'on ne double pas un prix pour
-  // ajouter une couche. Un écart qu'on ne croit pas discrédite le reste de la
-  // page — y compris ce qui est vrai. 12 € sur 29 € (+41%) est un écart qu'un
-  // membre accepte sans y réfléchir, et c'est celui qu'on montre. La marge est
-  // plus mince et elle est dite: il en garde 5 sur 12.
-  //
-  // L'arithmétique, à revérifier si l'un de ces nombres bouge:
-  //   500 membres × 30% = 150   |   écart 41 − 29 = 12 €
-  //   150 × 12 € = 1 800 €   |   150 × 7 € = 1 050 €   |   1 800 − 1 050 = 750 €
-  //   750 × 12 = 9 000 €/an
-  // Et 150, c'est aussi la cohorte du panneau du lundi: deux nombres qui ne
-  // concordent pas sur une page de vente, et c'est toute la page qui devient
-  // approximative.
-  "communities.seo_title": "Sophia for communities — the coached tier a thread can't be",
+  // ── COMMUNITIES ───────────────────────────────────────────────────────
+  "communities.seo_title": "Sophia for paid communities — the answer a thread can't give",
   "communities.seo_description":
-    "You run a paid community. It is a thread: you answer in public, to the group, and no member gets an answer of their own. Sophia is the individual layer underneath — an agent that answers each member every day in your method and your words, and reaches the ones who have gone quiet. Your community doesn't change; a coached tier sits on top of it. 7 € per member, per month, and you charge what you like on top.",
+    "You run a paid community. It is a thread: you answer in public, to the group, and no member ever gets an answer of their own. Sophia is the layer underneath — each member on the coached tier gets their own space, their own week and their own answers, built from your method. Your community does not move. 7 € per member on that tier, per month.",
 
-  // Communities — hero. Le titre nomme l'ARCHITECTURE, pas la fatigue. « Tu es
-  // débordé » est faux et vaguement insultant pour quelqu'un qui tient une
-  // communauté de 500 personnes; « un fil ne peut pas répondre à une personne »
-  // est vrai, structurel, et impossible à contester.
+  // ── HERO ─────────────────────────────────────────────────────────────────
+  // Le titre nomme l'ARCHITECTURE, pas la fatigue. « Tu es débordé » est faux
+  // et vaguement insultant pour quelqu'un qui tient 500 personnes ; « un fil ne
+  // répond pas à une personne » est vrai, structurel, et impossible à
+  // contester. C'est ce qu'il a déjà pensé sans l'avoir formulé.
   "communities.hero.kicker": "For owners of a paid community",
   "communities.hero.title": "A community is a thread. A thread can't answer one person.",
-  "communities.hero.subtitle":
-    "You answer in public, to the group. That isn't a scheduling problem more hours would fix — it's the shape of the thing you built, and your members feel it as never getting an answer of their own. Sophia is the layer underneath: an agent that answers each member individually, every day, in your method and your words. Your community doesn't change. A coached tier sits on top of it.",
-  "communities.hero.cta_trial": "Start the 14-day trial",
-  "communities.hero.cta_signin": "Sign in",
-  // Les trois faits qu'il vérifiera en premier, dans l'ordre où ils le
-  // rassurent: la porte est petite (3), l'entrée est simple (un e-mail), et
-  // rien ne lui retombe dessus (aucune boîte de réception).
+  "communities.hero.lede":
+    "You answer in public, to the group — and no number of extra hours changes that, because it is the shape of the thing you built. Your members live it as never getting an answer of their own. Sophia is the layer underneath: each member on the coached tier gets their own space, their own week and their own answers, built from your method. Your community does not move.",
+  "communities.hero.cta": "Start the 14-day trial",
+  // Les trois faits qu'il vérifie en premier, dans l'ordre où ils le rassurent :
+  // la porte est petite, l'entrée est simple, et rien ne lui retombe dessus.
   "communities.hero.note":
-    "14 days, up to 3 members, then it stops on its own. You invite them by email from your workspace and each one gets a space of their own, chat included. Nothing to migrate, nothing to plug into your platform, and no inbox coming back to you.",
-  "communities.hero.try_prompt": "Want to see it from a member's side first?",
-  "communities.hero.try_cta": "Try the free program",
+    "14 days, up to 3 members, then it stops on its own. Members come in by email invitation from your workspace, and nothing comes back to you as an inbox.",
+  "communities.hero.signin_prompt": "Already using Sophia?",
+  "communities.hero.signin_link": "Sign in",
 
-  // Communities — le panneau du lundi. MÊME ÉCRAN que sur `/`, cohorte
-  // différente: 150 membres, soit les 3 sur 10 d'une communauté de 500 qui
-  // prennent le palier coaché — le même 150 que l'exemple de revenu.
-  //
-  // PAS DE GRILLE DE PASTILLES ICI, contrairement à `/`. À 34 élèves une
-  // pastille par personne se compte; à 150 elle devient une texture, c'est-à-
-  // dire une PROPORTION — et une proportion est à un pas du pourcentage que ce
-  // produit refuse d'imprimer. Des lignes chiffrées se lisent à toute taille.
-  //
-  // Les libellés et les seuils sont ceux du produit (`_shared/keel/
-  // coach_synthesis.ts`: 48h ouvre `slipping`, 120h ouvre `silent`).
-  "communities.mock.monday_title": "Monday",
-  "communities.mock.monday_subtitle": "One page. Not a thread.",
-  "communities.mock.contact_label": "Who's still talking",
-  "communities.mock.contact_in_touch": "In touch",
-  "communities.mock.contact_in_touch_hint": "answered within 2 days",
-  "communities.mock.contact_slipping": "Slipping",
-  "communities.mock.contact_slipping_hint": "quiet 2 to 5 days",
-  "communities.mock.contact_silent": "Silent",
-  "communities.mock.contact_silent_hint": "quiet 5 days or more",
-  // La légende qui porte l'argument de la page entière, et elle est SOUS le
-  // bloc contact plutôt qu'en pied de panneau: c'est ce chiffre-là, et aucun
-  // autre, qu'elle commente.
-  "communities.mock.contact_caption":
-    "In your thread, those 45 don't exist — they aren't posting, so there is nothing to see. Here they are a number, on the first line, while they are still reachable.",
-  "communities.mock.felt_label": "How the week felt",
-  "communities.mock.felt_sustainable": "Holding up",
-  "communities.mock.felt_strained": "Strained",
-  "communities.mock.felt_hard": "Having a hard time",
-  "communities.mock.felt_unknown": "Not enough check-ins to say",
-  "communities.mock.intent_label": "What they set themselves",
-  "communities.mock.intent_line": "88 of 150 wrote themselves a week from your method.",
-  "communities.mock.caption":
-    "A schematic of the Monday page. The wording is the product's own; the cohort is an example — the 150 members of a 500-person community who took the coached tier.",
+  // ── FIGURE A — une question, deux destinations ───────────────────────────
+  "communities.fig_lane.label": "ONE QUESTION, TWO DESTINATIONS",
+  "communities.fig_lane.alt_title": "One answer for everybody, or an answer each",
+  "communities.fig_lane.alt_desc":
+    "The same four members, drawn twice. On the left a single rule opens all four at once: that is a public answer, written to fit everyone. On the right each member has a rule of their own. What changes is not the amount of work, it is the number of people the answer is addressed to.",
+  "communities.fig_lane.thread_label": "IN THE THREAD",
+  "communities.fig_lane.tier_label": "ON THE COACHED TIER",
+  "communities.fig_lane.thread_caption": "one answer, for everybody",
+  "communities.fig_lane.tier_caption": "an answer of their own",
 
-  // Communities — LE FIL. La section pose l'architecture et refuse le confort
-  // du « tu es débordé »: il ne l'est pas, il est SANS CANAL. Les trois lignes
-  // sont des scènes de communauté, pas des questions de nutrition — il doit se
-  // reconnaître avant qu'on lui parle de produit.
-  "communities.thread.kicker": "The problem",
-  "communities.thread.title":
-    "You can't give individual attention to a group. That's architecture, not workload.",
-  "communities.thread.body":
-    "Your members pay every month, and what they get is a thread: your posts, your calls, other members answering each other. When one of them asks at 9pm whether they can swap tonight's dinner, your options are a public answer that has to fit everybody, or nothing. You are not short of hours. You are short of a channel — and there is no number of hours that produces one.",
-  "communities.thread.q1":
-    "The question three other members answer, contradicting each other, before you've even seen it.",
-  "communities.thread.q2":
-    "The same question for the fourth time this month, because nobody scrolls back.",
-  "communities.thread.q3":
-    "The member who stopped posting in March. You find out when their card is declined.",
-  "communities.thread.close":
-    "Nobody cancels because your method was wrong. They cancel because they never got a result of their own — and a thread is, by construction, the one place where nobody does.",
-
-  // Communities — LE PALIER. C'est la section qui fait signer, et sa première
-  // phrase est « tu ne changes rien »: quelqu'un qui a 500 membres payants
-  // n'achète pas une migration, il achète une ligne de plus sur sa page de
-  // vente. Le tableau est étiqueté EXEMPLE, et les deux inconnues sont nommées
-  // — son prix et son taux de passage. Le seul chiffre qui nous engage est 7 €.
+  // ── LE PALIER — ce qu'on ajoute, et ce qu'on ne touche pas ───────────────
+  // Sa première phrase est « vous ne changez rien ». Quelqu'un qui a 500
+  // membres payants n'achète pas une migration : il achète une ligne de plus
+  // sur sa page de vente, vendue à une base dont l'acquisition est déjà payée.
   "communities.tier.kicker": "What you add",
-  "communities.tier.title": "A tier above what you already sell. You change nothing that works.",
+  "communities.tier.title": "One tier above what you already sell. Nothing underneath moves.",
   "communities.tier.body":
-    "Your community stays exactly as it is: same platform, same price, same posts, same people, same you. Above it you open one more option — the same community, plus an agent that coaches them one to one in your method. The members who want that upgrade. The ones who don't never notice it exists.",
-  "communities.tier.example_label": "A worked example",
-  "communities.tier.row1_label": "Your community",
-  "communities.tier.row1_value": "29 €",
-  "communities.tier.row1_note": "Unchanged. Same platform, same price, same posts.",
-  "communities.tier.row2_label": "The coached tier",
-  "communities.tier.row2_value": "41 €",
-  "communities.tier.row2_note": "All of the above, plus their own agent, every day.",
-  "communities.tier.row3_label": "What it costs you",
-  "communities.tier.row3_value": "7 €",
-  "communities.tier.row3_note": "Per member on that tier, per month. Nothing for the others.",
-  "communities.tier.math":
-    "Twelve euros more than they already pay — the kind of step a member says yes to without doing sums. Five hundred members, three in ten take it: 150 × 12 €, minus 150 seats at 7 €. You keep 5 € per member, every month, on people you have already sold to — about 750 € a month, 9,000 € a year, for no extra hour in your week.",
-  "communities.tier.math_caption":
-    "An example, and it says so: your price and your take-up are the two numbers that decide the total, and both are yours. What isn't an estimate is the 7 €, and that it only applies to the members who upgrade. Ask for a bigger step and the arithmetic gets better — we'd rather show you the one you'll actually get.",
-  "communities.tier.billing":
-    "You keep charging them where you already charge them. No member ever pays Sophia — nothing about how you collect money has to move.",
+    "Same platform, same entry price, same posts, same people. Above them you open one more option: everything they already have, plus an agent that coaches them one to one in your method. The members who want that upgrade. The ones who don't never notice it exists.",
 
-  // Communities — LA RÉTENTION, dite comme une RÉPARTITION DES RÔLES.
-  //
-  // C'est la section la plus facile à rater. « Tes membres partent, on les
-  // retient » se lit comme « ta communauté ne marche pas » — or elle marche, il
-  // a prouvé qu'il sait vendre du récurrent. Ce qui ne marche pas, c'est ce
-  // qu'un groupe ne saura JAMAIS faire, et c'est la seule chose qu'on prend.
-  // Les deux colonnes rendent le partage visible sans une phrase de plus.
-  //
-  // La relance du 3e jour est réelle et vérifiée: `keel-reengage-v1` part à 72h
-  // de silence, écrit dans `chat_messages`, et `composeReengageBody` compose le
-  // texte à partir de la doctrine PUBLIÉE du coach (repli déterministe si elle
-  // manque). D'où « in your method », qui serait un mensonge sans ça.
+  "communities.fig_tier.label": "THE SAME OFFER, PLUS ONE BAND",
+  "communities.fig_tier.alt_title": "The tier sits on top; the offer underneath does not move",
+  "communities.fig_tier.alt_desc":
+    "The same offer drawn twice, from a single element used twice over. The upper one carries one extra band: each member's own agent. Nothing else changes — not the platform, not the entry price, not the posts.",
+  "communities.fig_tier.band": "their own agent, every day",
+  "communities.fig_tier.tier_label": "THE COACHED TIER",
+  "communities.fig_tier.tier_value": "41 €",
+  "communities.fig_tier.base_label": "YOUR COMMUNITY",
+  "communities.fig_tier.base_value": "29 €",
+  "communities.fig_tier.cost_label": "YOUR COST",
+  "communities.fig_tier.cost_value": "7 €",
+
+  // L'arithmétique, à revérifier si l'un de ces nombres bouge :
+  //   500 membres × 30 % = 150   |   écart 41 − 29 = 12 €
+  //   150 × 12 € = 1 800 €   |   150 × 7 € = 1 050 €   |   1 800 − 1 050 = 750 €
+  // Et 150 est aussi la cohorte de la figure du lundi : deux nombres qui ne
+  // concordent pas sur une page de vente, et toute la page devient approximative.
+  // L'écart est de 12 € et pas de 30 : on ne demande pas à un membre de doubler
+  // sa dépense pour ajouter une couche, et un écart qu'il ne croit pas
+  // discrédite le reste de la page — y compris ce qui est vrai.
+  "communities.tier.example":
+    "A worked example. Five hundred members, three in ten take the tier: 150 × 12 €, minus 150 seats at 7 €. About 750 € a month, on people whose acquisition you have already paid for.",
+  "communities.tier.example_caption":
+    "It says example because it is one: your price and your take-up decide the total, and both of those are yours. What is not an estimate is the 7 €, and that it only ever applies to the members who upgrade.",
+  "communities.tier.billing":
+    "You keep charging them where you already charge them. No member ever pays Sophia, or even sees us as something to pay for.",
+
+  // ── LES BORNES, DITES ICI ET PAS APRÈS LE PRIX ───────────────────────────
+  // Il arrive avec une question qu'il ne posera pas à voix haute : « qu'est-ce
+  // que je vais devoir brancher, migrer, refaire ». La réponse est RIEN, et
+  // elle vaut mieux que n'importe quel argument — mais seulement si on donne
+  // aussi ce qu'on n'a pas, dans la même respiration. Un « non » découvert
+  // après le chiffre annule le chiffre.
+  "communities.tier.not_label": "And before you ask what you would have to rebuild: nothing",
+  "communities.tier.not1_title": "No integration with your platform",
+  "communities.tier.not1_body":
+    "There is no Skool, Circle, Discord or Kajabi integration — none, and we would rather say it here than let you find out on day one. Members come in through an email invitation you send from your workspace. There is no link to copy, which is a security property rather than a missing button.",
+  "communities.tier.not2_title": "No second social layer",
+  "communities.tier.not2_body":
+    "Members never see each other in Sophia: no feed, no rooms, no comments. It cannot become the place your people gather, because there is no such place in it. Your community is the social layer, and it stays yours.",
+  "communities.tier.not3_title": "No checkout for your members",
+  "communities.tier.not3_body":
+    "You set the price of your tier, and you collect it where you already collect it. There is no member checkout anywhere in the product.",
+  "communities.tier.not4_title": "Not a counter",
+  "communities.tier.not4_body":
+    "Energy numbers are off by default on a member's account, and a chain of guards decides whether they can be switched on at all. What comes back to them is what they ate, when, and how big.",
+
+  // ── LES RÔLES — la section la plus facile à rater ────────────────────────
+  // « Tes membres partent, on les retient » se lit comme « ta communauté ne
+  // marche pas » — or elle marche : il a prouvé qu'il sait vendre du récurrent.
+  // Et son objection n°1, rarement dite frontalement, est « si un bot répond,
+  // plus personne ne se répond entre membres » : l'IA menace précisément le
+  // mécanisme qu'il facture. La réponse n'est pas une promesse, c'est une
+  // absence de surface — pas de fil, pas de salon, pas de commentaire.
   "communities.roles.kicker": "Why they stay",
-  "communities.roles.title": "Keep the peers. Add the thing a group was never going to do.",
+  "communities.roles.title": "Keep the peers. Add the one thing a group was never going to do.",
   "communities.roles.body":
-    "A community is good at exactly what a community is good at: people going through the same thing at the same time, who answer each other at midnight and notice when someone disappears for a week. Sophia doesn't touch that, and doesn't want it. What a group cannot do — answer one person, at 9pm, about the dinner actually in front of them, with their constraints and their week — is the whole of what Sophia does.",
+    "A community is good at what a community is good at: people going through the same thing at the same time, answering each other at midnight, noticing when someone drops off for a week. Sophia does not touch that, and could not take it if it tried — it has no feed and no rooms to take it into. What a group cannot do is answer one person, at 9pm, about the dinner actually in front of them.",
   "communities.roles.group_title": "Stays in your community",
   "communities.roles.group_body":
-    "The peers. The culture you built. Your posts, your calls, the wins people put up on a Friday, the feeling of being in it with other people. That is what they joined for, and no agent produces it.",
-  "communities.roles.agent_title": "Goes to their agent",
+    "The peers. The culture you built. Your posts, your calls, the wins people put up on a Friday. That is what they joined for, and no agent produces it.",
+  "communities.roles.agent_title": "Goes into their own lane",
   "communities.roles.agent_body":
-    "The 9pm question about their own plate. The week built out of your method for their kitchen and their schedule. And a message on the third quiet day — written in your method, not a generic “we miss you” — so a member who slipped hears from you before their subscription is the thing that speaks.",
+    "The 9pm question about their own plate. The week built out of your method, for their kitchen and their schedule. And on the third quiet day, one message written from the method you published — that one is held outside 9pm to 8am, so it lands in their morning rather than on top of their evening.",
+
+  // ── FIGURE C — le troisième jour ─────────────────────────────────────────
+  "communities.fig_third_day.label": "THE THIRD QUIET DAY",
+  "communities.fig_third_day.alt_title": "The third quiet day",
+  "communities.fig_third_day.alt_desc":
+    "A timeline. On the left, a member's last message. Three days with nothing on them. On the third day one message goes out, written from the coach's published method. Then the line runs bare again: only one is ever sent.",
+  "communities.fig_third_day.last_label": "THEIR LAST MESSAGE",
+  "communities.fig_third_day.last_value": "then nothing",
+  "communities.fig_third_day.message_label": "ONE MESSAGE",
+  "communities.fig_third_day.message_value": "in your method",
+  "communities.fig_third_day.silence": "three quiet days",
+  "communities.fig_third_day.after": "then it stops",
+  "communities.roles.figure_caption":
+    "Seventy-two hours of silence, one message, and then it stops: one per episode, and at most one a week. A member who slipped hears from you while they are still reachable, instead of the month their card is declined.",
   "communities.roles.close":
-    "A member who is getting a result of their own stays in a community they would otherwise have left quietly, in month four, without ever telling you why.",
+    "You are not choosing between us and another AI. You are choosing between one more room — still a room, still answered in public — and one more salary, who has to be taught your method and does not hold five hundred members.",
 
-  // Communities — LES DONNÉES. L'angle est le SILENCE: dans un fil il ne voit
-  // que les bavards, et les dix qui postent cachent les quatre-vingt-dix qui
-  // décrochent. Chaque item correspond à une ligne que `renderSynthesisText`
-  // émet vraiment — contact, vivabilité, semaines composées. Rien ici ne décrit
-  // un écran qu'on n'a pas.
+  // ── LE LUNDI — l'angle est le SILENCE ────────────────────────────────────
+  // Dans un fil il ne voit que les bavards, et les dix qui postent cachent les
+  // quatre-vingt-dix qui décrochent. Chaque ligne de la figure correspond à ce
+  // que `renderSynthesisText` émet vraiment.
+  "communities.monday.kicker": "What a thread never tells you",
+  "communities.monday.title": "In a thread you only ever see the ten who post.",
+  "communities.monday.body":
+    "Ten people posting can hide ninety who quietly stopped, and nothing in a feed separates a member doing fine in silence from one who left in their head six weeks ago. On Monday you get one page, rendered from a template out of what actually happened and never narrated by a model, and the first thing on it is the people who said nothing.",
+
+  "communities.fig_monday.alt_title": "The Monday page",
+  "communities.fig_monday.alt_desc":
+    "A schematic of the weekly page: first who is still talking — in touch, slipping, silent — then how the week was lived, and last how many members built themselves a week from the coach's method. The silent ones are on the first line, before anything else.",
+  "communities.fig_monday.screen_title": "This week",
+  "communities.fig_monday.contact_label": "WHO IS STILL TALKING",
+  "communities.fig_monday.in_touch": "In touch",
+  "communities.fig_monday.in_touch_hint": "answered within 2 days",
+  "communities.fig_monday.slipping": "Slipping",
+  "communities.fig_monday.slipping_hint": "quiet 2 to 5 days",
+  "communities.fig_monday.silent": "Silent",
+  "communities.fig_monday.silent_hint": "quiet 5 days or more",
+  "communities.fig_monday.felt_label": "HOW THE WEEK WAS LIVED",
+  "communities.fig_monday.holding": "Holding up",
+  "communities.fig_monday.strained": "Strained",
+  "communities.fig_monday.hard": "Having a hard time",
+  "communities.fig_monday.unknown": "Not enough check-ins to say",
+  // « built », le mot du moteur — jamais « wrote » (AUDIT B13 : la page
+  // actuelle prétend citer et paraphrase).
+  "communities.fig_monday.intent_line": "88 of 150 built themselves a week from your method.",
+  "communities.monday.figure_caption":
+    "A schematic of the Monday page. The thresholds are the product's own: quiet for two days opens slipping, five days opens silent, both measured on their last message in. The cohort is the example above — the 150 members of a 500-person community who took the tier.",
+  "communities.monday.close":
+    "And when there is not enough to say something, the page says so. A member who tapped twice has not given you a week, and comes back as “not enough check-ins” rather than as “doing fine”.",
+
+  // ── LA VOIX — l'actif, et la seule section qui n'existe que sur cette page ─
+  // Un propriétaire de communauté a une marque, un ton, des formules que ses
+  // membres reconnaissent au premier paragraphe. Sa peur a un nom dans son
+  // milieu : le « tone flattening », la voix lisse et vaguement
+  // professionnelle. Il ne loue pas un modèle, il prête sa voix.
   //
-  // ⚠️ « names in your member list » ET PAS « names on the Monday page »: la
-  // synthèse ne nomme que trois personnes (`TO_CATCH_UP_CAP`), les états par
-  // membre se lisent sur la liste de cohorte (`contactStateFor`, `/coach`).
-  "communities.data.kicker": "What a thread never tells you",
-  "communities.data.title": "In a thread, you only ever see the ten who post.",
-  "communities.data.body":
-    "Ten people posting can hide ninety who quietly stopped, and you have no way to tell a member doing fine in silence from one who left in their head six weeks ago. On Monday, Sophia gives you one page — computed from what actually happened, never written by a model — and the first thing on it is the people who said nothing.",
-  "communities.data.item1_title": "Who's still talking",
-  "communities.data.item1_body":
-    "In touch, slipping, silent: counts on the Monday page, names in your member list. A silent member is still a member you can reach, and that is the entire reason the number comes first.",
-  "communities.data.item2_title": "How the week was actually lived",
-  "communities.data.item2_body":
-    "Holding up, strained, having a hard time — from one tap each evening, not from whoever felt like posting. It is the closest you will get to knowing whether the method you teach survives an ordinary week in someone's kitchen.",
-  "communities.data.item3_title": "What they set themselves",
-  "communities.data.item3_body":
-    "How many of them built their own week out of your method, and which of your convictions each line applies. In a thread, the strongest signal you can get about your own material is a like.",
-  "communities.data.close":
-    "And when there isn't enough to say something, the page says so instead of rounding it up. A member who tapped twice hasn't given you a week, and comes back as “not enough check-ins” rather than as “doing fine”.",
-
-  // Communities — CE CONTRE QUOI IL VA NOUS COMPARER, et ce n'est pas une autre
-  // IA: c'est un canal Discord de plus, ou un coach humain à recruter. C'est la
-  // PREMIÈRE objection qu'il formulera. Section courte — l'esquiver coûte la
-  // crédibilité de tout ce qui précède, s'y attarder donne à l'objection plus de
-  // place qu'elle n'en mérite.
-  "communities.compare.kicker": "What you're actually choosing between",
-  "communities.compare.title": "Not another AI. One more channel, or one more salary.",
-  "communities.compare.channel_title": "One more channel",
-  "communities.compare.channel_body":
-    "A #nutrition room, a weekly Q&A thread, a form. Every one of them is still a room: you answer in public, to whoever happens to be reading, and the member at 9pm still gets an answer written for everybody. Adding rooms doesn't add individual attention — it adds places to be behind.",
-  "communities.compare.hire_title": "One more coach",
-  "communities.compare.hire_body":
-    "A person costs a salary, has to be taught your method, answers on their hours, and does not hold five hundred members. And their answers are theirs: the first time one of them contradicts you in front of your own community, the thing you built takes the damage.",
-  "communities.compare.close":
-    "Sophia is neither. It is one layer, running underneath the community you already have, that answers in your method and holds your lines while you're asleep.",
-
-  // Communities — SA VOIX. Cette section n'existe ni sur `/` ni sur `/gyms`, et
-  // elle est ici parce que la cible est la seule pour qui c'est L'ACTIF: un
-  // propriétaire de communauté a une marque, un ton, des formules que ses
-  // membres reconnaissent au premier paragraphe. Il ne loue pas un modèle, il
-  // prête sa voix — et c'est pour lui que le double verrou compte le plus.
-  //
-  // La maquette montre les VRAIS champs de la doctrine (`_shared/keel/
-  // doctrine.ts`): `voice.address`, `voice.length` / `voice.emojis`,
-  // `vocabulary` (terme + sens), et une ligne interdite avec son `instead`.
-  // Même règle que le panneau du lundi — on ne montre pas un écran qu'on n'a pas.
+  // ⚠️ On ne dit NI « votre marque » NI « votre nom sur les messages » (AUDIT
+  // B18) : zéro personnalisation de marque existe, l'agent s'appelle Sophia
+  // partout. Ce qui est vrai et suffit : ce sont VOS MOTS qui sortent.
   "communities.voice.kicker": "Your voice is the asset",
   "communities.voice.title": "It answers in your words. Not in ours, and not in a house style.",
   "communities.voice.body":
-    "Your members can tell your writing from a generic health post at a glance, and that recognition is most of what they are paying for. So Sophia doesn't get a personality of its own — it gets yours: how you address people, how long you go on, the words you use and what you mean by them, the positions you hold, and what you say instead when someone asks for something you don't recommend. You write it once, in a guided interview, and you read back exactly what it understood before any of it is published.",
-  "communities.voice.mock_label": "What Sophia holds of your voice",
-  "communities.voice.mock_address_label": "How you speak to them",
-  "communities.voice.mock_address_value": "First name, informal. Two or three sentences. No emojis.",
-  "communities.voice.mock_term_label": "One of your terms",
-  "communities.voice.mock_term_value":
-    "“Reset day” — a day you plan light on purpose. Not a day you failed.",
-  "communities.voice.mock_line_label": "One of your red lines",
-  "communities.voice.mock_line_value": "Never recommend grazing between meals.",
-  "communities.voice.mock_instead_label": "…and what you say instead",
-  "communities.voice.mock_instead_value":
-    "Three real meals. If you're hungry between them, the meal before was too small.",
-  "communities.voice.mock_caption":
-    "Your own words, stored as you wrote them. Revise any of it whenever you like — the change lands on the next message — and roll back to an earlier version without losing what your members actually received.",
-  "communities.voice.close":
-    "Which raises the only question that matters once you've handed your voice to software: what happens the day it says something you would never say, in front of the people who know how you write.",
+    "Your members can tell your writing from a generic health post at a glance, and that recognition is most of what they are paying for. So Sophia does not get a personality of its own — it gets your method: how you address people, how long you go on, the words you use and what you mean by them, the positions you hold, and what you say instead when someone asks for something you don't recommend. You write it once, in a guided interview, and you read back what it understood before any of it is published.",
 
-  // Communities — LE DOUBLE VERROU. Même garantie que sur `/`, et c'est le bloc
-  // sombre de cette page aussi. Il vient APRÈS la section voix, parce qu'il
-  // protège l'actif qu'elle vient de nommer: dans l'autre ordre, le verrou
-  // garderait quelque chose que le lecteur n'a pas encore vu.
+  "communities.fig_voice.alt_title": "What Sophia holds of your voice",
+  "communities.fig_voice.alt_desc":
+    "Four fields of the doctrine as they are written: how you address people, one of your own terms with the meaning you give it, one red line, and what you say instead of that red line. The last card is opened by a rule, because it is the one your member receives.",
+  "communities.fig_voice.screen_title": "Your voice",
+  "communities.fig_voice.address_label": "HOW YOU SPEAK TO THEM",
+  "communities.fig_voice.address_value": "First name, informal. Two or three sentences. No emojis.",
+  "communities.fig_voice.term_label": "ONE OF YOUR TERMS",
+  "communities.fig_voice.term_value1": "“Reset day” — a day you plan light on purpose.",
+  "communities.fig_voice.term_value2": "Not a day you failed.",
+  "communities.fig_voice.line_label": "ONE OF YOUR RED LINES",
+  "communities.fig_voice.line_value": "Never recommend grazing between meals.",
+  "communities.fig_voice.instead_label": "AND WHAT YOU SAY INSTEAD",
+  "communities.fig_voice.instead_value1": "Three real meals. If you are hungry between them,",
+  "communities.fig_voice.instead_value2": "the meal before was too small.",
+  "communities.voice.traceable":
+    "And when a member builds their own week out of your method, every line names the conviction it applies. The database refuses a line that names none — that is a constraint, not a convention.",
+  "communities.voice.revise":
+    "Revise any of it whenever you like, and roll back to an earlier version without losing what your members actually received.",
+  "communities.voice.close":
+    "Which raises the only question worth asking once you have handed your voice to software: what happens the day it writes something you would never write, in front of the people who know how you write.",
+
+  // ── LE DOUBLE VERROU — le seul bloc sombre de la page ────────────────────
+  // Il vient APRÈS la voix, parce qu'il protège l'actif qu'elle vient de
+  // nommer : dans l'autre ordre, la garantie garderait quelque chose que le
+  // lecteur n'a pas encore vu.
+  //
+  // ⚠️ FORMULATION B8b, ET PAS CELLE DES PAGES ACTUELLES. « La doctrine entre
+  // à chaque message » est faux (B7 : `withKeelDoctrineBlock` n'a qu'un
+  // appelant) et « chaque message sortant est scanné » est faux pour
+  // « chaque » (B8 : 4 surfaces scannées, 4 non scannées — relance, récap du
+  // soir, bilan du dimanche, broadcast). Ce qui reste, et qui est vrai, est
+  // déjà l'argument le plus fort du produit.
   "communities.lock.kicker": "The part you should be most afraid of",
   "communities.lock.title":
-    "An AI speaking in your name, to your own members, is a risk. We treat it as one.",
+    "An AI writing in your method, to your own members, is a risk. We treat it as one.",
   "communities.lock.body":
-    "A prompt is an instruction, not a guarantee. Tell any model “never recommend grazing between meals” and it will comply almost always — and almost always is the wrong number when one public contradiction of you is the screenshot that gets posted in your own community. So your red lines are enforced twice, by two mechanisms that fail differently.",
-  "communities.lock.lock1_tag": "Lock 1 — injected",
-  "communities.lock.lock1": "Your method goes into the prompt, on every message.",
-  "communities.lock.lock2_tag": "Lock 2 — verified",
+    "A prompt is an instruction, not a guarantee. Tell any model “never recommend grazing between meals” and it will comply almost always — and almost always is the wrong number when one public contradiction of you is the screenshot that gets posted in your own community. So your method is held twice, by two mechanisms that fail differently.",
+  "communities.lock.lock1_tag": "Injected",
+  "communities.lock.lock1":
+    "Your method goes into the chat, into every week and into every meal Sophia writes.",
+  "communities.lock.lock2_tag": "Read back",
   "communities.lock.lock2":
-    "Every outgoing message is scanned against your red lines before it is sent. Deterministic, no model in that loop. That one is the guarantee.",
-  "communities.lock.trace_label": "What that looks like, on one message",
-  "communities.lock.trace_example": "Example — an owner whose method rules out grazing",
-  "communities.lock.trace_ask": "A member asks",
-  "communities.lock.trace_ask_text": "“Should I add a snack between lunch and dinner?”",
-  "communities.lock.trace_draft": "The draft said",
-  "communities.lock.trace_draft_text":
-    "“A small snack mid-afternoon can help — try six smaller meals across the day.”",
-  "communities.lock.trace_held": "Held by lock 2",
-  "communities.lock.trace_sent": "What went out instead",
-  "communities.lock.trace_sent_text":
-    "“Three real meals. If you're hungry between them, the meal before was too small — fix the meal, not the gap.”",
+    "What it writes in the chat is read back against your red lines before it is sent. Deterministic, with no model in that loop. That one is the guarantee.",
+
+  "communities.fig_lock.label": "ONE MESSAGE, READ BACK",
+  "communities.fig_lock.alt_title": "What was held, and what went out",
+  "communities.fig_lock.alt_desc":
+    "Three moments, top to bottom: a member's question, the draft the read-back held because it contradicts a red line, and the message actually sent — the one the coach wrote instead. The third is opened by a rule, because it is the only one the member receives.",
+  "communities.fig_lock.ask_label": "A MEMBER ASKS",
+  "communities.fig_lock.ask_value": "Should I add a snack between lunch and dinner?",
+  "communities.fig_lock.draft_label": "THE DRAFT SAID",
+  "communities.fig_lock.draft_value": "A small snack mid-afternoon can help.",
+  "communities.fig_lock.held": "held",
+  "communities.fig_lock.sent_label": "WHAT WENT OUT",
+  "communities.fig_lock.sent_value1": "Three real meals. If you are hungry between them,",
+  "communities.fig_lock.sent_value2": "the meal before was too small.",
   "communities.lock.trace_note":
     "That replacement is not ours. Each red line carries what you do instead, in your words, and that is what your member receives.",
   "communities.lock.close":
-    "Your member never gets a refusal, and never gets “ask in the group” — which would hand them back to the thread you added this layer to get past. They get your answer.",
+    "Your member never gets a refusal, and never gets “ask in the group” — which would hand them straight back to the thread you added this layer to get past.",
 
-  // Communities — la doctrine. Les trois mêmes règles que `/`, en « member ».
-  // La première compte double ici: le classement et les séries de jours sont
-  // exactement ce qu'un propriétaire de communauté a envie de demander, et
-  // c'est la seule section de la page qui lui dit non. Elle le dit en nommant
-  // la demande, pas en la contournant.
-  "communities.doctrine.kicker": "Our doctrine",
-  "communities.doctrine.title": "Three rules we don't bend",
-  "communities.doctrine.rule1_title": "You teach. They decide. Nobody is graded.",
-  "communities.doctrine.rule1_body":
-    "No adherence score, no percentage, no streak, no leaderboard of your members — and yes, the leaderboard is the thing we get asked for. A member is not marked against a plan they never signed. The week records how it went; the judgement stays yours.",
-  "communities.doctrine.rule2_title": "Every line names the conviction it came from.",
-  "communities.doctrine.rule2_body":
-    "When a member builds their week out of your method, each food line says which of your convictions it applies — and the database refuses a line that names none. That's a constraint, not a convention. Your member reads the belief under the line, so you can both judge whether it was a fair reading of you.",
-  "communities.doctrine.rule3_title": "Silence is never rounded up.",
-  "communities.doctrine.rule3_body":
-    "A member who tapped twice hasn't given us a week. They come back as “not enough check-ins”, never as “doing fine”. It costs us a nicer-looking page, and it's the only reason the page is worth reading.",
-  "communities.doctrine.no_calories_title": "And no, Sophia doesn't count calories.",
-  "communities.doctrine.no_calories_body":
-    "We measured it on our own model before deciding: across 85 real analyses scored against USDA reference data, calorie estimates from a photo came in 26.6% under the truth on average, and the gap widens as the plate gets fuller. That error doesn't average out over a week — it leans the same way every time, hardest exactly where you'd want to look. Worse, when the model offers its own margin of error, the truth falls inside it barely more than half the time: it doesn't know when it's wrong.",
-  "communities.doctrine.no_calories_body2":
-    "Reading a plate and weighing it are different jobs. What's on the plate, your member can check at a glance — a miss gets corrected in one message. A calorie count is the one estimate nobody at the table can verify, and it's the number decisions get made on. So Sophia keeps the half that works — what was eaten, when, and how big: small, moderate or large — and leaves the numbers to whoever is qualified to prescribe them. That half is not the consolation prize, it is the part that carries the result: how often a member logs is the strongest predictor of outcomes we know of; how precisely, predicts nothing. A deterministic filter strips any calorie or macro target the model produces anyway, and logs that it did. The refusal is the feature.",
-
-  // Communities — LES BORNES, ET ELLES SONT DITES AVANT LE PRIX.
-  //
-  // Il arrive avec une question qu'il ne posera pas à voix haute: « qu'est-ce
-  // que je vais devoir brancher, migrer, refaire ». La réponse est RIEN, et
-  // elle vaut mieux que n'importe quel argument de la page — mais seulement si
-  // on donne aussi ce qu'on n'a pas, dans la même respiration. Les quatre
-  // bornes sont des faits du dépôt, pas des précautions juridiques.
-  "communities.not.kicker": "What this is not",
-  "communities.not.title": "Before you ask what you'd have to rebuild: nothing.",
-  "communities.not.item1_title": "It does not plug into your platform",
-  "communities.not.item1_body":
-    "There is no Skool, Circle, Discord or Kajabi integration — none, and we would rather say it here than let you find out on day one. Members come in through an email invitation you send from your workspace, and that is the whole of the setup on your side.",
-  "communities.not.item2_title": "It has no social layer, on purpose",
-  "communities.not.item2_body":
-    "Members never see each other in Sophia — no feed, no rooms, no comments. Building a second place for your people to gather would be taking the one thing you own. Your community is the social layer; this is the private half.",
-  "communities.not.item3_title": "It never bills your members",
-  "communities.not.item3_body":
-    "No member ever pays us, or even sees us as something to pay for. You set the price of your tier, you collect it where you already collect it, and you pay us per seat.",
-  "communities.not.item4_title": "It does one job",
-  "communities.not.item4_body":
-    "A nutrition protocol: plates, weeks, and how the days went. Not training, not mindset, not an app to install. If food isn't part of what your community is for, the honest answer is that this isn't for you yet.",
-  "communities.not.close":
-    "Your platform, your prices, your posts and your members all stay exactly where they are. What you are adding is one option on your sales page.",
-
-  // Communities — le prix. UNE SEULE CARTE, comme sur `/` et `/gyms`: deux
-  // cartes obligent à faire une addition, et une addition sur une page de vente
-  // est un endroit où se tromper.
-  //
-  // `why` POSE UNE QUESTION plutôt que d'avancer un chiffre de rétention: on ne
-  // sait pas de combien elle bouge, personne ne l'a mesuré, et un pourcentage
-  // inventé ici serait le premier chiffre faux de la page — sur la section où
-  // le lecteur est le plus attentif.
+  // ── LE PRIX ──────────────────────────────────────────────────────────────
+  // Une seule carte : deux cartes obligent à faire une addition, et une
+  // addition sur une page de vente est un endroit où se tromper. Le tarif
+  // annuel est une LIGNE sous la carte — une modalité de paiement, pas une
+  // seconde offre. ⚠️ Et il porte sur un SIÈGE payé à l'année, jamais sur
+  // l'année d'un membre (AUDIT B2/B3) : c'est l'intervalle du coach.
   "communities.pricing.kicker": "Pricing",
   "communities.pricing.title": "One line, and only for the members who upgrade.",
   "communities.pricing.seat": "7 €",
@@ -2819,36 +3067,25 @@ export const en = {
   "communities.pricing.seat_label": "No platform fee. No setup. Nothing else.",
   "communities.pricing.annual": "6 € for a seat paid a year up front.",
   "communities.pricing.why":
-    "You pay for the members you have put on the coached tier, and you stop paying the month you turn a seat off. The rest of your community costs you nothing, because they aren't here. The number to weigh this against isn't the hours you save, because it doesn't cost you any: it's what one member who stays three months longer is worth to you, at your own price.",
-  "communities.pricing.cta": "Start the 14-day trial",
+    "You pay for the members you have put on the coached tier, and you stop paying the month you turn a seat off. The rest of your community costs you nothing, because they are not here.",
+  // La meilleure ligne des trois pages de vente, et elle vaut double sur ce
+  // marché : les taux de rétention qui circulent dans son écosystème sont des
+  // chiffres de blogs d'éditeurs, sans échantillon ni méthode. Rien dans ce
+  // dépôt ne mesure le churn contre un témoin. À CONSERVER (AUDIT B31).
+  "communities.pricing.no_number":
+    "We don't have a retention number to sell you, and we are not going to invent one. The number that decides this is yours: what one member who stays three months longer is worth, at your own price.",
   "communities.pricing.trial_note": "14 days, up to 3 members, then it stops on its own.",
 
-  // Communities — la clôture. Elle répète le seul engagement qui compte pour
-  // cette cible, et c'est un engagement de NON-ACTION: il ne refait rien.
-  //
-  // ⚠️ NE PAS REVENIR À UNE MÉTAPHORE ICI. La version précédente disait « this
-  // is the half a thread was never going to deliver »: « the half » n'avait
-  // aucun antécédent dans sa propre phrase (la moitié de QUOI ?), et « the half
-  // a thread » se lit d'abord comme un seul groupe de mots. Une clôture est la
-  // dernière phrase qu'on lit avant de cliquer — c'est le pire endroit du site
-  // pour faire travailler le lecteur. Celle-ci referme sur le titre du hero (un
-  // fil ne peut pas répondre à une personne) et sur la formule que la page a
-  // déjà employée deux fois, « an answer of their own ».
+  // ── LA CLÔTURE ───────────────────────────────────────────────────────────
+  // Elle referme sur le titre du hero et sur la formule que la page a déjà
+  // employée deux fois, « an answer of their own ». ⚠️ Pas de métaphore ici :
+  // une clôture est la dernière phrase qu'on lit avant de cliquer, c'est le
+  // pire endroit du site pour faire travailler le lecteur.
   "communities.closing.title":
-    "You already have the members, the price and the method. What a thread can't give them is an answer of their own.",
+    "You already have the members, the price and the method. What a thread cannot give them is an answer of their own.",
   "communities.closing.cta": "Start the 14-day trial",
   "communities.closing.signin_prompt": "Already using Sophia?",
   "communities.closing.signin_link": "Sign in",
-
-  // ── LE FOYER ────────────────────────────────────────────────────────────
-  // Autorité produit: docs/keel/PIVOT-FOYER.md §8.
-  //
-  // DEUX REGISTRES QUI NE SE MÉLANGENT JAMAIS (§8.5 règle 4). Ce que dit
-  // Sophia est épistémique et discutable; ce que pose le compte maître est
-  // domestique et attribué à lui. Aucune phrase de ce bloc ne doit faire
-  // passer une décision de foyer pour un conseil de santé — c'est pour ça que
-  // `household.restriction.notice_owner` nomme la personne, et que rien ici
-  // ne parle jamais de ce qui est « bon » ou « mauvais » pour quelqu'un.
   "household.title": "Your household",
   "household.empty.title": "Cook once, for everyone",
   "household.empty.body":

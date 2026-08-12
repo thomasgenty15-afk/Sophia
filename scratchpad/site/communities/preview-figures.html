@@ -1,0 +1,511 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>/communities — les six figures</title>
+<!--
+  BANC DE JUGEMENT DES FIGURES, et rien d'autre. Il ne va pas au dépôt.
+  La page réelle ne peut pas être rendue tant que l'orchestrateur n'a pas fusionné le pack
+  de clés : en DEV, `t()` LÈVE sur une clé inconnue (i18n/t.ts) — elle ne rend pas la clé
+  brute, elle fait tomber le sous-arbre React. Ce banc contourne le problème en montrant
+  les six SVG tels quels, avec les vraies valeurs de `tokens.css` et les vraies polices,
+  aux largeurs réelles : colonne de 560 px (moitié de la grille 1200) et 320 px.
+-->
+<style>
+  @font-face {
+    font-family: "Young Serif"; font-weight: 400; font-display: swap;
+    src: url("/src/assets/fonts/youngserif-latin.woff2") format("woff2");
+  }
+  @font-face {
+    font-family: "Public Sans"; font-weight: 100 900; font-display: swap;
+    src: url("/src/assets/fonts/publicsans-latin.woff2") format("woff2");
+  }
+  :root {
+    --ill-ink: #23191F; --ill-ink-soft: #6A5A64; --ill-paper: #FBF8FA;
+    --ill-wash: #EFE0E9; --ill-fig: #632C4C;
+    --font-text: "Public Sans", system-ui, sans-serif;
+  }
+  .on-dark { --ill-fig: #C9A3B8; --ill-ink-soft: #C9A3B8; }
+  body { margin: 0; padding: 32px 20px; background: #FBF8FA; color: #23191F;
+         font-family: "Public Sans", system-ui, sans-serif; }
+  h1 { font-family: "Young Serif", serif; font-weight: 400; font-size: 32px; margin: 0 0 24px; }
+  h2 { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #6A5A64;
+       margin: 40px 0 8px; font-weight: 600; }
+  .col { width: 560px; max-width: 100%; }
+  .narrow { width: 320px; border: 1px dashed #8E7886; padding: 0 20px; }
+  .dark { background: #24101E; padding: 24px 20px; border-radius: 16px; }
+  .fig-scroll { overflow-x: auto; overscroll-behavior-x: contain; }
+  .fig-scroll > svg { min-width: 380px; }
+  svg { width: 100%; height: auto; display: block; }
+</style>
+
+<h1>/communities — les six figures</h1>
+
+<h2>A · une question, deux destinations (concept, 480×240)</h2>
+<div class="col"><div class="fig-scroll"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 240" width="480" height="240"
+     role="img" aria-labelledby="fig-lane-t fig-lane-d">
+  <title id="fig-lane-t">Une réponse pour tous, une réponse à chacun</title>
+  <desc id="fig-lane-d">Deux fois les mêmes quatre membres. À gauche, un seul trait les ouvre
+    tous les quatre : c’est une réponse publique, écrite pour convenir à tout le monde. À
+    droite, chaque membre a son propre trait. La différence n’est pas une quantité de
+    travail, c’est le nombre de destinataires.</desc>
+
+  
+
+  <path d="M 8 32 L 8 16 A 8 8 0 0 1 16 8 L 32 8"
+        fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round"/>
+  <text x="44" y="26" font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)"
+        font-size="11" font-weight="600" letter-spacing="1.2"
+        fill="var(--ill-ink-soft, #6A5A64)">UNE QUESTION, DEUX DESTINATIONS</text>
+
+  <g font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)">
+
+    
+    <rect x="24" y="52" width="196" height="140" rx="12"
+          fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink, #23191F)" stroke-width="2"/>
+    <text x="40" y="74" font-size="9" font-weight="600" letter-spacing="1"
+          fill="var(--ill-ink-soft, #6A5A64)">IN THE THREAD</text>
+    <path d="M 44 84 L 44 184" fill="none"
+          stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="2" stroke-linecap="round"/>
+    <g fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1">
+      <rect x="58" y="84" width="146" height="16" rx="4"/>
+      <rect x="58" y="112" width="146" height="16" rx="4"/>
+      <rect x="58" y="140" width="146" height="16" rx="4"/>
+      <rect x="58" y="168" width="146" height="16" rx="4"/>
+    </g>
+
+    
+    <rect x="252" y="52" width="204" height="140" rx="12"
+          fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink, #23191F)" stroke-width="2"/>
+    <text x="268" y="74" font-size="9" font-weight="600" letter-spacing="1"
+          fill="var(--ill-ink-soft, #6A5A64)">ON THE COACHED TIER</text>
+    <g fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round">
+      <path d="M 272 84 L 272 100"/>
+      <path d="M 272 112 L 272 128"/>
+      <path d="M 272 140 L 272 156"/>
+      <path d="M 272 168 L 272 184"/>
+    </g>
+    <g fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1">
+      <rect x="286" y="84" width="154" height="16" rx="4"/>
+      <rect x="286" y="112" width="154" height="16" rx="4"/>
+      <rect x="286" y="140" width="154" height="16" rx="4"/>
+      <rect x="286" y="168" width="154" height="16" rx="4"/>
+    </g>
+
+    
+    <text x="24" y="216" font-size="11" fill="var(--ill-ink, #23191F)">one answer, for everybody</text>
+    <text x="252" y="216" font-size="11" fill="var(--ill-ink, #23191F)">an answer of their own</text>
+  </g>
+</svg>
+</div></div>
+
+<h2>B · le palier (concept, 480×240)</h2>
+<div class="col"><div class="fig-scroll"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 240" width="480" height="240"
+     role="img" aria-labelledby="fig-tier-t fig-tier-d">
+  <title id="fig-tier-t">Le palier se pose au-dessus, l’offre du dessous ne bouge pas</title>
+  <desc id="fig-tier-d">Deux fois la même offre, dessinée par le même élément appelé deux
+    fois. Celle du dessus porte une bande de plus : l’agent de chaque membre. Rien d’autre
+    ne change — ni la plateforme, ni le prix d’entrée, ni les publications.</desc>
+
+  
+
+  <defs>
+    
+    <g id="offer">
+      <rect x="0" y="0" width="200" height="68" rx="12"
+            fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink, #23191F)" stroke-width="2"/>
+      <g fill="var(--ill-wash, #EFE0E9)">
+        <rect x="16" y="16" width="168" height="8" rx="4"/>
+        <rect x="16" y="32" width="140" height="8" rx="4"/>
+        <rect x="16" y="48" width="108" height="8" rx="4"/>
+      </g>
+    </g>
+  </defs>
+
+  <path d="M 8 32 L 8 16 A 8 8 0 0 1 16 8 L 32 8"
+        fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round"/>
+  <text x="44" y="26" font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)"
+        font-size="11" font-weight="600" letter-spacing="1.2"
+        fill="var(--ill-ink-soft, #6A5A64)">THE SAME OFFER, PLUS ONE BAND</text>
+
+  
+  <g stroke="var(--ill-fig, #632C4C)">
+    <rect x="140" y="38" width="200" height="22" rx="4"
+          fill="var(--ill-wash, #EFE0E9)" stroke-width="1"/>
+  </g>
+  <use href="#offer" x="140" y="60"/>
+  <use href="#offer" x="140" y="152"/>
+
+  <g font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)">
+    <text x="156" y="53" font-size="11" fill="var(--ill-ink, #23191F)">their own agent, every day</text>
+
+    <text x="24" y="52" font-size="9" font-weight="600" letter-spacing="1"
+          fill="var(--ill-ink-soft, #6A5A64)">THE COACHED TIER</text>
+    <text x="24" y="74" font-size="13" fill="var(--ill-ink, #23191F)">41 €</text>
+
+    <text x="24" y="166" font-size="9" font-weight="600" letter-spacing="1"
+          fill="var(--ill-ink-soft, #6A5A64)">YOUR COMMUNITY</text>
+    <text x="24" y="188" font-size="13" fill="var(--ill-ink, #23191F)">29 €</text>
+
+    <text x="352" y="52" font-size="9" font-weight="600" letter-spacing="1"
+          fill="var(--ill-ink-soft, #6A5A64)">YOUR COST</text>
+    <text x="352" y="74" font-size="13" fill="var(--ill-ink, #23191F)">7 €</text>
+  </g>
+</svg>
+</div></div>
+
+<h2>C · le troisième jour (concept, 480×240)</h2>
+<div class="col"><div class="fig-scroll"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 240" width="480" height="240"
+     role="img" aria-labelledby="fig-third-t fig-third-d">
+  <title id="fig-third-t">Le troisième jour de silence</title>
+  <desc id="fig-third-d">Une ligne de temps. À gauche, le dernier message d’un membre. Trois
+    jours sans rien. Au troisième jour, un message part, composé sur la méthode publiée du
+    coach. Puis la ligne repart nue : il n’en part qu’un.</desc>
+
+  
+
+  <path d="M 8 32 L 8 16 A 8 8 0 0 1 16 8 L 32 8"
+        fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round"/>
+  <text x="44" y="26" font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)"
+        font-size="11" font-weight="600" letter-spacing="1.2"
+        fill="var(--ill-ink-soft, #6A5A64)">THE THIRD QUIET DAY</text>
+
+  <g font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)">
+
+    
+    <rect x="24" y="104" width="168" height="48" rx="4"
+          fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+    <text x="40" y="124" font-size="9" font-weight="600" letter-spacing="1"
+          fill="var(--ill-ink-soft, #6A5A64)">THEIR LAST MESSAGE</text>
+    <text x="40" y="142" font-size="13" fill="var(--ill-ink, #23191F)">then nothing</text>
+
+    
+    <g stroke="var(--ill-fig, #632C4C)">
+      <rect x="268" y="104" width="172" height="48" rx="4"
+            fill="var(--ill-wash, #EFE0E9)" stroke-width="1"/>
+      <path d="M 268 116 L 268 140" fill="none" stroke-width="2" stroke-linecap="round"/>
+    </g>
+    <text x="284" y="124" font-size="9" font-weight="600" letter-spacing="1"
+          fill="var(--ill-ink-soft, #6A5A64)">ONE MESSAGE</text>
+    <text x="284" y="142" font-size="13" fill="var(--ill-ink, #23191F)">in your method</text>
+
+    
+    <path d="M 40 172 L 440 172" fill="none"
+          stroke="var(--ill-ink, #23191F)" stroke-width="2" stroke-linecap="round"/>
+    <g fill="none" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1" stroke-linecap="round">
+      <path d="M 108 152 L 108 172"/>
+      <path d="M 140 166 L 140 178"/>
+      <path d="M 240 166 L 240 178"/>
+      <path d="M 340 166 L 340 178"/>
+      <path d="M 354 152 L 354 172"/>
+    </g>
+
+    <text x="232" y="200" font-size="11" text-anchor="middle"
+          fill="var(--ill-ink-soft, #6A5A64)">three quiet days</text>
+    <text x="440" y="200" font-size="11" text-anchor="end"
+          fill="var(--ill-ink-soft, #6A5A64)">then it stops</text>
+  </g>
+</svg>
+</div></div>
+
+<h2>D · la page du lundi (maquette, 480×380)</h2>
+<div class="col"><div class="fig-scroll"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 380" width="480" height="380"
+     role="img" aria-labelledby="fig-monday-t fig-monday-d">
+  <title id="fig-monday-t">La page du lundi</title>
+  <desc id="fig-monday-d">Schéma de la page hebdomadaire : d’abord qui parle encore — en
+    contact, décrochage, silence — puis comment la semaine a été vécue, et en dernier
+    combien de membres se sont composé une semaine à partir de la méthode du coach. Les
+    silencieux sont sur la première ligne, avant tout le reste.</desc>
+
+  
+
+  <path d="M 8 40 L 8 16 A 8 8 0 0 1 16 8 L 40 8"
+        fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round"/>
+  <rect x="8" y="8" width="464" height="364" rx="16"
+        fill="var(--ill-wash, #EFE0E9)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+
+  <g font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)">
+    <text x="28" y="46" font-size="15" font-weight="600"
+          fill="var(--ill-fig, #632C4C)">Monday</text>
+
+    
+    <rect x="24" y="60" width="432" height="122" rx="12"
+          fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+    <text x="40" y="82" font-size="9" font-weight="600" letter-spacing="0.9"
+          fill="var(--ill-ink-soft, #6A5A64)">WHO IS STILL TALKING</text>
+
+    <g font-size="11" fill="var(--ill-ink, #23191F)">
+      <text x="40" y="108">In touch</text>
+      <text x="40" y="136">Slipping</text>
+      <text x="40" y="164">Silent</text>
+    </g>
+    <g font-size="9" fill="var(--ill-ink-soft, #6A5A64)">
+      <text x="140" y="108">answered within 2 days</text>
+      <text x="140" y="136">quiet 2 to 5 days</text>
+      <text x="140" y="164">quiet 5 days or more</text>
+    </g>
+    <g font-size="13" text-anchor="end" fill="var(--ill-ink, #23191F)"
+       font-variant-numeric="tabular-nums">
+      <text x="440" y="108">71</text>
+      <text x="440" y="136">34</text>
+      <text x="440" y="164">45</text>
+    </g>
+
+    
+    <rect x="24" y="194" width="432" height="122" rx="12"
+          fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+    <text x="40" y="216" font-size="9" font-weight="600" letter-spacing="0.9"
+          fill="var(--ill-ink-soft, #6A5A64)">HOW THE WEEK WAS LIVED</text>
+
+    <g font-size="11" fill="var(--ill-ink, #23191F)">
+      <text x="40" y="240">Holding up</text>
+      <text x="40" y="262">Strained</text>
+      <text x="40" y="284">Having a hard time</text>
+      <text x="40" y="306">Not enough check-ins to say</text>
+    </g>
+    <g font-size="13" text-anchor="end" fill="var(--ill-ink, #23191F)"
+       font-variant-numeric="tabular-nums">
+      <text x="440" y="240">58</text>
+      <text x="440" y="262">26</text>
+      <text x="440" y="284">11</text>
+      <text x="440" y="306">55</text>
+    </g>
+
+    
+    <rect x="24" y="328" width="432" height="36" rx="12"
+          fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+    <text x="40" y="352" font-size="11"
+          fill="var(--ill-ink, #23191F)">88 of 150 built themselves a week from your method.</text>
+  </g>
+</svg>
+</div></div>
+
+<h2>E · la fiche de doctrine (maquette, 480×380)</h2>
+<div class="col"><div class="fig-scroll"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 380" width="480" height="380"
+     role="img" aria-labelledby="fig-doctrine-t fig-doctrine-d">
+  <title id="fig-doctrine-t">Ce que Sophia retient de votre voix</title>
+  <desc id="fig-doctrine-d">Quatre champs de la doctrine, tels qu’ils sont écrits : la façon
+    d’adresser la parole, un terme du coach avec le sens qu’il lui donne, une ligne rouge,
+    et ce qu’on dit à la place de cette ligne rouge. La dernière fiche est ouverte par un
+    trait : c’est elle que le membre reçoit.</desc>
+
+  
+
+  <path d="M 8 40 L 8 16 A 8 8 0 0 1 16 8 L 40 8"
+        fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round"/>
+  <rect x="8" y="8" width="464" height="364" rx="16"
+        fill="var(--ill-wash, #EFE0E9)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+
+  <g font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)">
+    <text x="28" y="46" font-size="15" font-weight="600"
+          fill="var(--ill-fig, #632C4C)">Your voice</text>
+
+    <g fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1">
+      <rect x="24" y="60" width="432" height="56" rx="12"/>
+      <rect x="24" y="124" width="432" height="68" rx="12"/>
+      <rect x="24" y="200" width="432" height="56" rx="12"/>
+      <rect x="24" y="264" width="432" height="76" rx="12"/>
+    </g>
+
+    <g font-size="9" font-weight="600" letter-spacing="0.9"
+       fill="var(--ill-ink-soft, #6A5A64)">
+      <text x="40" y="80">HOW YOU SPEAK TO THEM</text>
+      <text x="40" y="144">ONE OF YOUR TERMS</text>
+      <text x="40" y="220">ONE OF YOUR RED LINES</text>
+      <text x="40" y="284">AND WHAT YOU SAY INSTEAD</text>
+    </g>
+
+    <g font-size="13" fill="var(--ill-ink, #23191F)">
+      <text x="40" y="102">First name, informal. Two or three sentences. No emojis.</text>
+      <text x="40" y="166">“Reset day” — a day you plan light on purpose.</text>
+      <text x="40" y="184">Not a day you failed.</text>
+      <text x="40" y="242">Never recommend grazing between meals.</text>
+      <text x="40" y="306">Three real meals. If you are hungry between them,</text>
+      <text x="40" y="324">the meal before was too small.</text>
+    </g>
+
+    
+    <path d="M 24 280 L 24 324" fill="none"
+          stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="2" stroke-linecap="round"/>
+  </g>
+</svg>
+</div></div>
+
+<h2>F · la relecture — sur le bloc sombre (concept, 480×240)</h2>
+<div class="col dark on-dark"><div class="fig-scroll"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 240" width="480" height="240"
+     role="img" aria-labelledby="fig-readback-t fig-readback-d" class="on-dark">
+  <title id="fig-readback-t">Ce qui a été retenu, et ce qui est parti</title>
+  <desc id="fig-readback-d">Trois temps, de haut en bas : la question d’un membre, le
+    brouillon que la relecture a retenu parce qu’il contredit une ligne rouge, et le
+    message effectivement envoyé — celui que le coach a écrit à la place. Le troisième est
+    ouvert par un trait : c’est le seul que le membre reçoit.</desc>
+
+  
+
+  <path d="M 8 32 L 8 16 A 8 8 0 0 1 16 8 L 32 8"
+        fill="none" stroke="var(--ill-fig, #C9A3B8)" stroke-width="2" stroke-linecap="round"/>
+  <text x="44" y="26" font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)"
+        font-size="11" font-weight="600" letter-spacing="1.2"
+        fill="var(--ill-ink-soft, #C9A3B8)">ONE MESSAGE, READ BACK</text>
+
+  <g font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)">
+    <g fill="none" stroke="var(--ill-ink-soft, #C9A3B8)" stroke-width="1">
+      <rect x="24" y="44" width="432" height="48" rx="12"/>
+      <rect x="24" y="100" width="432" height="48" rx="12"/>
+      <rect x="24" y="156" width="432" height="64" rx="12"/>
+      <rect x="380" y="110" width="60" height="18" rx="8"/>
+    </g>
+
+    <g font-size="9" font-weight="600" letter-spacing="0.9"
+       fill="var(--ill-ink-soft, #C9A3B8)">
+      <text x="40" y="64">A MEMBER ASKS</text>
+      <text x="40" y="120">THE DRAFT SAID</text>
+      <text x="40" y="176">WHAT WENT OUT</text>
+      <text x="410" y="123" font-size="9" font-weight="400" letter-spacing="0"
+            text-anchor="middle">held</text>
+    </g>
+
+    <text x="40" y="82" font-size="13"
+          fill="var(--ill-paper, #FBF8FA)">Should I add a snack between lunch and dinner?</text>
+    <text x="40" y="138" font-size="13"
+          fill="var(--ill-ink-soft, #C9A3B8)">A small snack mid-afternoon can help.</text>
+    <text x="40" y="194" font-size="13"
+          fill="var(--ill-paper, #FBF8FA)">Three real meals. If you are hungry between them,</text>
+    <text x="40" y="212" font-size="13"
+          fill="var(--ill-paper, #FBF8FA)">the meal before was too small.</text>
+
+    
+    <path d="M 24 168 L 24 208" fill="none"
+          stroke="var(--ill-fig, #C9A3B8)" stroke-width="2" stroke-linecap="round"/>
+  </g>
+</svg>
+</div></div>
+
+<h2>Le plancher de 380 px : les mêmes figures dans 320 px d'écran</h2>
+<div class="narrow">
+  <div class="fig-scroll"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 240" width="480" height="240"
+     role="img" aria-labelledby="fig-lane-t-2 fig-lane-d-2">
+  <title id="fig-lane-t-2">Une réponse pour tous, une réponse à chacun</title>
+  <desc id="fig-lane-d-2">Deux fois les mêmes quatre membres. À gauche, un seul trait les ouvre
+    tous les quatre : c’est une réponse publique, écrite pour convenir à tout le monde. À
+    droite, chaque membre a son propre trait. La différence n’est pas une quantité de
+    travail, c’est le nombre de destinataires.</desc>
+
+  
+
+  <path d="M 8 32 L 8 16 A 8 8 0 0 1 16 8 L 32 8"
+        fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round"/>
+  <text x="44" y="26" font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)"
+        font-size="11" font-weight="600" letter-spacing="1.2"
+        fill="var(--ill-ink-soft, #6A5A64)">UNE QUESTION, DEUX DESTINATIONS</text>
+
+  <g font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)">
+
+    
+    <rect x="24" y="52" width="196" height="140" rx="12"
+          fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink, #23191F)" stroke-width="2"/>
+    <text x="40" y="74" font-size="9" font-weight="600" letter-spacing="1"
+          fill="var(--ill-ink-soft, #6A5A64)">IN THE THREAD</text>
+    <path d="M 44 84 L 44 184" fill="none"
+          stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="2" stroke-linecap="round"/>
+    <g fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1">
+      <rect x="58" y="84" width="146" height="16" rx="4"/>
+      <rect x="58" y="112" width="146" height="16" rx="4"/>
+      <rect x="58" y="140" width="146" height="16" rx="4"/>
+      <rect x="58" y="168" width="146" height="16" rx="4"/>
+    </g>
+
+    
+    <rect x="252" y="52" width="204" height="140" rx="12"
+          fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink, #23191F)" stroke-width="2"/>
+    <text x="268" y="74" font-size="9" font-weight="600" letter-spacing="1"
+          fill="var(--ill-ink-soft, #6A5A64)">ON THE COACHED TIER</text>
+    <g fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round">
+      <path d="M 272 84 L 272 100"/>
+      <path d="M 272 112 L 272 128"/>
+      <path d="M 272 140 L 272 156"/>
+      <path d="M 272 168 L 272 184"/>
+    </g>
+    <g fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1">
+      <rect x="286" y="84" width="154" height="16" rx="4"/>
+      <rect x="286" y="112" width="154" height="16" rx="4"/>
+      <rect x="286" y="140" width="154" height="16" rx="4"/>
+      <rect x="286" y="168" width="154" height="16" rx="4"/>
+    </g>
+
+    
+    <text x="24" y="216" font-size="11" fill="var(--ill-ink, #23191F)">one answer, for everybody</text>
+    <text x="252" y="216" font-size="11" fill="var(--ill-ink, #23191F)">an answer of their own</text>
+  </g>
+</svg>
+</div>
+  <div class="fig-scroll"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 380" width="480" height="380"
+     role="img" aria-labelledby="fig-monday-t-2 fig-monday-d-2">
+  <title id="fig-monday-t-2">La page du lundi</title>
+  <desc id="fig-monday-d-2">Schéma de la page hebdomadaire : d’abord qui parle encore — en
+    contact, décrochage, silence — puis comment la semaine a été vécue, et en dernier
+    combien de membres se sont composé une semaine à partir de la méthode du coach. Les
+    silencieux sont sur la première ligne, avant tout le reste.</desc>
+
+  
+
+  <path d="M 8 40 L 8 16 A 8 8 0 0 1 16 8 L 40 8"
+        fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round"/>
+  <rect x="8" y="8" width="464" height="364" rx="16"
+        fill="var(--ill-wash, #EFE0E9)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+
+  <g font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)">
+    <text x="28" y="46" font-size="15" font-weight="600"
+          fill="var(--ill-fig, #632C4C)">Monday</text>
+
+    
+    <rect x="24" y="60" width="432" height="122" rx="12"
+          fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+    <text x="40" y="82" font-size="9" font-weight="600" letter-spacing="0.9"
+          fill="var(--ill-ink-soft, #6A5A64)">WHO IS STILL TALKING</text>
+
+    <g font-size="11" fill="var(--ill-ink, #23191F)">
+      <text x="40" y="108">In touch</text>
+      <text x="40" y="136">Slipping</text>
+      <text x="40" y="164">Silent</text>
+    </g>
+    <g font-size="9" fill="var(--ill-ink-soft, #6A5A64)">
+      <text x="140" y="108">answered within 2 days</text>
+      <text x="140" y="136">quiet 2 to 5 days</text>
+      <text x="140" y="164">quiet 5 days or more</text>
+    </g>
+    <g font-size="13" text-anchor="end" fill="var(--ill-ink, #23191F)"
+       font-variant-numeric="tabular-nums">
+      <text x="440" y="108">71</text>
+      <text x="440" y="136">34</text>
+      <text x="440" y="164">45</text>
+    </g>
+
+    
+    <rect x="24" y="194" width="432" height="122" rx="12"
+          fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+    <text x="40" y="216" font-size="9" font-weight="600" letter-spacing="0.9"
+          fill="var(--ill-ink-soft, #6A5A64)">HOW THE WEEK WAS LIVED</text>
+
+    <g font-size="11" fill="var(--ill-ink, #23191F)">
+      <text x="40" y="240">Holding up</text>
+      <text x="40" y="262">Strained</text>
+      <text x="40" y="284">Having a hard time</text>
+      <text x="40" y="306">Not enough check-ins to say</text>
+    </g>
+    <g font-size="13" text-anchor="end" fill="var(--ill-ink, #23191F)"
+       font-variant-numeric="tabular-nums">
+      <text x="440" y="240">58</text>
+      <text x="440" y="262">26</text>
+      <text x="440" y="284">11</text>
+      <text x="440" y="306">55</text>
+    </g>
+
+    
+    <rect x="24" y="328" width="432" height="36" rx="12"
+          fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+    <text x="40" y="352" font-size="11"
+          fill="var(--ill-ink, #23191F)">88 of 150 built themselves a week from your method.</text>
+  </g>
+</svg>
+</div>
+</div>
+

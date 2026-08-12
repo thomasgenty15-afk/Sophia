@@ -4,1003 +4,485 @@ import SEO from "../../components/SEO";
 import { LEGAL_ENTITY, organizationStructuredData } from "../../lib/legalEntity";
 import { PublicFooter, PublicHeader } from "../components/PublicHeader";
 import { ButtonLink } from "../components/ui/Button";
-import { Card } from "../components/ui/Card";
 import { Kicker, PriceCard, SectionTitle } from "../components/ui/Marketing";
 import { t } from "../i18n/t";
 
 /**
- * KEEL — la page de vente pour les PROPRIÉTAIRES DE COMMUNAUTÉ PAYANTE
- * (Skool, Circle, Discord, Kajabi). Troisième porte publique, après `/` (celui
- * qui vend une formation) et `/gyms` (la salle indépendante).
+ * KEEL — `/communities`. Le créateur d'une COMMUNAUTÉ PAYANTE, qui a déjà le récurrent.
+ * Refonte 2026-08-12 : 1007 lignes et zéro figure avant, une figure par section ici. Le
+ * raisonnement complet est dans `scratchpad/site/communities/RAPPORT.md`.
  *
- * ── POURQUOI UNE PAGE À PART, ET PAS UN PARAGRAPHE SUR `/` ────────────────
- * `/` vend à quelqu'un dont le revenu S'ARRÊTE: un cours se paie une fois. Le
- * propriétaire d'une communauté payante n'a pas ce problème — il a déjà le
- * récurrent, ses membres paient tous les mois, et il a déjà prouvé qu'il sait
- * le vendre. Lui servir « transformez votre formation en programme » ne décrit
- * rien de sa vie, et il repère l'erreur de cible en une phrase.
+ * SA DOULEUR EST UNE ARCHITECTURE, PAS UNE CHARGE DE TRAVAIL : un fil ne répond pas à une
+ * personne. « Tu es débordé » est faux, et vaguement insultant pour qui tient cinq cents
+ * membres. Deux règles en découlent. (1) On ne dénigre pas sa communauté et on n'en est pas
+ * le remplaçant : son objection n°1 est « si un bot répond, plus personne ne se répond entre
+ * membres », et la réponse est une ABSENCE DE SURFACE (B33), pas une promesse. ⚠️ Ne jamais
+ * élargir en « personne ne partage jamais d'espace » : `/app/household` en est un, mais
+ * c'est la famille. (2) On ne lui demande rien de refaire : les quatre bornes sont DANS la
+ * section du palier et AVANT le prix — un « non » après le chiffre annule le chiffre.
  *
- * SA DOULEUR EST STRUCTURELLE, ET C'EST TOUT L'ANGLE. Une communauté est un
- * FIL: il répond en public, au groupe. L'attention individuelle n'y est pas
- * rare, elle est IMPOSSIBLE — c'est l'architecture, pas l'organisation, et
- * travailler plus ne la produira jamais. Ses membres partent pour ça: pas de
- * résultat personnel. La page le dit dès le titre.
+ * ⛔ SUPPRIMÉ, ET NE DOIT PAS REVENIR. Le bloc « no calories »
+ * (`communities.doctrine.no_calories_*`) : seul claim FAUX du site DÉJÀ EN LIGNE — le
+ * produit affiche des kcal (`plan/EnergyReadout.tsx:42-45`) depuis FF-059, et les deux
+ * autres pages ont abandonné ce cadrage le 2026-08-06 (AUDIT §8 n°2, D4). Ce qui survit
+ * est C15, borne n°4 : chiffres éteints par défaut, chaîne de gardes pour les allumer —
+ * et S11 tient toujours, dans les deux sens. · « aucun score d'adhérence » : vrai en
+ * pratique, VIVANT EN CODE (B15). · « la doctrine entre à chaque message » et « chaque
+ * message sortant est scanné » : faux tous les deux (B7, B8) ; c'est B8b qui est écrit.
  *
- * ── LES DEUX RÈGLES QUI DÉCIDENT DE CHAQUE SECTION ────────────────────────
- * 1. ON NE DÉNIGRE PAS LA COMMUNAUTÉ, ET ON N'EST PAS SON REMPLAÇANT. C'est
- *    une répartition des rôles, et `RoleSplit` la rend visible en deux
- *    colonnes plutôt qu'en une phrase qu'on pourrait lire de travers: ses
- *    pairs, sa culture et ses posts restent chez lui; on ne prend que ce qu'un
- *    groupe ne saura jamais faire.
- * 2. ON NE LUI DEMANDE RIEN DE REFAIRE. Sa communauté ne bouge pas. Le test de
- *    relecture de cette page est celui-là: quelqu'un qui a 500 membres payants
- *    doit la finir en se disant « je ne touche à rien ». `Boundaries` répond à
- *    la question avant qu'il la pose, et elle est placée AVANT le prix.
- *
- * ── CE QUE LA PAGE NE PROMET PAS (vérifié dans le code le 2026-08-06) ──────
- *   - AUCUNE intégration Skool / Circle / Discord / Kajabi. L'entrée est
- *     `coach-invite-student-v1`: une invitation e-mail par membre. Il n'existe
- *     même pas de « copier le lien » (`InviteDialog` ne voit jamais le token),
- *     donc la page dit « by email » et jamais « by link »;
- *   - aucun encaissement du membre: pas de SKU élève dans
- *     `stripe-create-checkout-session`;
- *   - aucune couche sociale, et c'est dit comme un CHOIX — sa communauté EST
- *     la couche sociale;
- *   - aucun chiffre de rétention. `communities.pricing.why` pose une question,
- *     comme `landing.pricing.why`;
- *   - aucun score d'adhérence ni classement: `evaluate-adherence-v1` est
- *     déprogrammé dans le 1:N (migration 20260803200000), et le panneau du
- *     lundi ne montre que ce que la synthèse calcule vraiment.
- *
- * ── DESIGN ────────────────────────────────────────────────────────────────
- * Identique à `/` et `/gyms`, délibérément: clair uniquement, aucune teinte de
- * marque, chaque couleur saturée est un ÉTAT (emerald / amber / red, les tons
- * du kit Badge). Une troisième page de vente qui inventerait sa palette se
- * lirait comme le site d'une autre société à un clic des deux premières.
- *
- * Les fonds alternent blanc / gray-50 à partir de `Tier` — douze sections
- * d'affilée sur un seul fond deviennent un mur, et cette page en a quatre de
- * plus que `/`. Le hero et `Thread` partagent le blanc parce qu'ils sont une
- * seule idée en deux temps. La seule exception au rythme est le gray-950, et
- * il est dépensé sur le double verrou: un bloc sombre est le seul signal fort
- * dont dispose une page sans couleur d'accent, et l'argument le plus fort est
- * celui qui en a besoin. `Pricing` retombe sur blanc parce que `Boundaries`
- * vient de prendre le gris; sur `/` c'est l'inverse, et dans les deux cas le
- * prix est simplement ce qui ne suit pas un fond identique.
- *
- * `Kicker`, `SectionTitle` et `PriceCard` viennent de `ui/Marketing`, partagés
- * avec les deux autres pages. Les maquettes, elles, restent LOCALES: ce sont de
- * la copie, elles lisent les clés `communities.*`, et une maquette partagée est
- * une maquette qui change de sens sur trois pages quand on en édite une.
- *
- * ── PAS DE REDIRECTION DU VISITEUR CONNECTÉ, CONTRAIREMENT À `/` ──────────
- * Même arbitrage que `/gyms`, et pour la même raison. `/` renvoie un visiteur
- * connecté vers son espace parce que c'est la destination par défaut de tout.
- * `/communities` est un lien qu'on ENVOIE — et le premier à le faire suivre
- * sera un propriétaire connecté qui le transmet à son associé: le renvoyer dans
- * son espace ferait passer le lien pour cassé. `PublicHeader` remplace déjà ses
- * boutons par un retour vers l'app quand quelqu'un est connecté.
+ * SILENCES QUI MORDENT ICI : S1 aucune boîte de réception qui vous revient · S5 jamais « rien
+ * n'arrive la nuit » (le tap du soir peut tomber à 21 h 50 ; les heures calmes ne couvrent QUE
+ * la relance) · S8 aucun chiffre sans source · S9 aucune bande de risque · S10 une maquette
+ * reprend le vrai champ · S12 aucun SKU membre. Vocabulaire S2 : membres / votre méthode /
+ * votre voix. UN SEUL CTA : `/auth?role=coach`, 14 jours / 3 membres (B5) — le lien `/start`
+ * a sauté, c'est une seconde offre pour un autre acheteur.
  */
+// Hoisté hors du rendu : `SEO` garde `structuredData` dans un tableau de dépendances de
+// `useEffect`, donc un littéral inline reconstruirait les <script> à chaque rendu.
+const COMMUNITIES_STRUCTURED_DATA = [organizationStructuredData(), {
+  "@context": "https://schema.org", "@type": "SoftwareApplication", name: "Sophia",
+  applicationCategory: "BusinessApplication", operatingSystem: "Web", inLanguage: "en-GB",
+  url: `${LEGAL_ENTITY.siteUrl}/communities`, description: t("communities.seo_description"),
+  publisher: organizationStructuredData(),
+}];
 
-// Hoisté hors du rendu: `SEO` garde `structuredData` dans un tableau de
-// dépendances de `useEffect`, donc un littéral inline reconstruirait les
-// balises <script> à chaque rendu. `t()` est une lecture de table statique.
-//
-// Le nœud Organization est la déclaration partagée de `lib/legalEntity` — la
-// même que font `/`, `/gyms` et `/legal`. Le nœud SoftwareApplication porte
-// l'url et la description DE CETTE PAGE; le canonical ci-dessous empêche les
-// trois de se lire comme des doublons l'une de l'autre.
-const COMMUNITIES_STRUCTURED_DATA = [
-  organizationStructuredData(),
-  {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    name: "Sophia",
-    applicationCategory: "BusinessApplication",
-    operatingSystem: "Web",
-    url: `${LEGAL_ENTITY.siteUrl}/communities`,
-    description: t("communities.seo_description"),
-    inLanguage: "en-GB",
-    publisher: organizationStructuredData(),
-  },
-];
+// Les cinq jetons d'illustration, pas un de plus (F7), écrits avec leur repli : une figure copiée hors de la page reste lisible seule.
+const INK = "var(--ill-ink, #23191F)";
+const SOFT = "var(--ill-ink-soft, #6A5A64)";
+const PAPER = "var(--ill-paper, #FBF8FA)";
+const WASH = "var(--ill-wash, #EFE0E9)";
+const FIG = "var(--ill-fig, #632C4C)";
+const SPLIT = "mt-8 grid gap-11 lg:grid-cols-2 lg:items-start lg:gap-16";
+const BODY = "max-w-[62ch] leading-relaxed text-ink-soft";
+const CLOSE = "max-w-[62ch] font-medium leading-relaxed text-ink";
 
 export function CommunitiesPage() {
   return (
-    <div className="min-h-screen bg-white text-gray-900">
-      <SEO
-        title={t("communities.seo_title")}
-        description={t("communities.seo_description")}
-        canonical={`${LEGAL_ENTITY.siteUrl}/communities`}
-        structuredData={COMMUNITIES_STRUCTURED_DATA}
-      />
-
+    <div className="min-h-screen bg-paper text-ink">
+      <SEO title={t("communities.seo_title")} description={t("communities.seo_description")} canonical={`${LEGAL_ENTITY.siteUrl}/communities`} structuredData={COMMUNITIES_STRUCTURED_DATA} />
       <PublicHeader />
-
       <main>
-        <Hero />
-        <Thread />
-        <Tier />
-        {/*
-          L'ORDRE DES TROIS AXES EST UN ARGUMENT, PAS UN SOMMAIRE.
-          Le revenu d'abord (`Tier`), parce que c'est ce qu'on AJOUTE et que
-          personne n'écoute une promesse de rétention avant de savoir ce que ça
-          rapporte. La rétention ensuite (`RoleSplit`), qui est son problème
-          numéro un. Les données en troisième (`MondayData`): elles ne se
-          vendent qu'à quelqu'un qui a déjà accepté les deux premières.
-        */}
-        <RoleSplit />
-        <MondayData />
-        <Compared />
-        {/*
-          La voix JUSTE AVANT le bloc sombre, et pas ailleurs. `Voice` nomme
-          l'actif; `DoubleLock` est ce qui le protège. Dans l'autre ordre, la
-          garantie garderait quelque chose que le lecteur n'a pas encore vu.
-        */}
-        <Voice />
-        <DoubleLock />
-        <Doctrine />
-        <Boundaries />
-        <Pricing />
-        <ClosingCall />
+        {/* L'ORDRE EST UN ARGUMENT, PAS UN SOMMAIRE : le revenu d'abord (personne n'écoute une promesse
+            de rétention avant de savoir ce que ça rapporte), la rétention ensuite — son problème n°1 —,
+            les données en troisième, puis sa voix et ce qui la protège. */}
+        <HeroSection />
+        <TierSection />
+        <RolesSection />
+        <MondaySection />
+        <VoiceSection />
+        <LockSection />
+        <PricingSection />
       </main>
-
       <PublicFooter />
     </div>
   );
 }
 
-// ---------------------------------------------------------------------------
-// Hero
-// ---------------------------------------------------------------------------
-
-function Hero() {
+/** ⚠️ PIÈGE MESURÉ (CHARTE §4) : un élément qui porte le conteneur de page ET une classe de
+ * section ne redéclare JAMAIS `padding` en raccourci — `84px 0 76px` remet le padding
+ * horizontal à zéro, et à 320 px le titre sortait de l'écran des deux côtés. */
+function Section({ tone = "paper", children }: { tone?: "paper" | "paper-2" | "dark"; children: React.ReactNode }) {
+  const skin = tone === "dark" ? "bg-fig-950 text-paper on-dark" : tone === "paper-2" ? "bg-paper-2" : "bg-paper";
   return (
-    <section className="border-b border-gray-200">
-      <div className="mx-auto grid max-w-6xl gap-12 px-4 py-16 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:py-24">
+    <section className={`border-t border-line ${skin}`}>
+      <div className="mx-auto max-w-[1200px] px-5 pt-11 pb-10 sm:px-8 sm:pt-[84px] sm:pb-[76px]">{children}</div>
+    </section>
+  );
+}
+
+/** `fig-scroll` donne une largeur PLANCHER et laisse le conteneur défiler dessous : sans
+ * lui, étirée sur les 280 px utiles d'un 320, la figure rend son texte à 5-7 px. */
+function Figure({ caption, dark, className = "", children }: { caption?: string; dark?: boolean; className?: string; children: React.ReactNode }) {
+  const cls = `mt-4 max-w-[62ch] text-sm leading-6 ${dark ? "text-fig-300" : "text-ink-soft"}`;
+  return (
+    <figure className={className}>
+      <div className="fig-scroll">{children}</div>
+      {caption ? <figcaption className={cls}>{caption}</figcaption> : null}
+    </figure>
+  );
+}
+
+/** Le cadre commun aux six figures. ⚠️ L'ÉQUERRE COMPTE POUR UNE DES DEUX OCCURRENCES DE
+ * `--ill-fig` AUTORISÉES PAR FIGURE (F8) : chacune n'en a donc qu'UNE autre, son sujet. */
+function FigSvg({ id, h = 240, title, desc, label, children }: { id: string; h?: 240 | 380; title: string; desc: string; label?: string; children: React.ReactNode }) {
+  return (
+    <svg viewBox={`0 0 480 ${h}`} role="img" aria-labelledby={`${id}-t ${id}-d`} style={{ fontVariantNumeric: "tabular-nums" }}>
+      <title id={`${id}-t`}>{title}</title>
+      <desc id={`${id}-d`}>{desc}</desc>
+      <path d={h === 380 ? "M 8 40 L 8 16 A 8 8 0 0 1 16 8 L 40 8" : "M 8 32 L 8 16 A 8 8 0 0 1 16 8 L 32 8"} fill="none" stroke={FIG} strokeWidth="2" strokeLinecap="round" />
+      {label ? <Tx x={44} y={26} s={11} ls={1.2} fill={SOFT}>{label}</Tx> : null}
+      {children}
+    </svg>
+  );
+}
+
+/** Le texte d'une figure et ses trois seules tailles (F11) : 9 étiquette (`Key`, toujours capitales et `SOFT`), 11 ligne, 13 valeur. */
+function Tx({ x, y, s = 13, fill = INK, ls, anchor, children }: { x: number; y: number; s?: number; fill?: string; ls?: number; anchor?: "middle" | "end"; children: string }) {
+  return <text x={x} y={y} fontSize={s} fontWeight={ls ? 600 : undefined} letterSpacing={ls} textAnchor={anchor} fill={fill}>{children}</text>;
+}
+
+function Key({ x, y, ls = 0.9, children }: { x: number; y: number; ls?: number; children: string }) {
+  return <Tx x={x} y={y} s={9} ls={ls} fill={SOFT}>{children}</Tx>;
+}
+
+function Cta({ label }: { label: string }) {
+  return <ButtonLink to="/auth?role=coach" variant="brand" className="px-6 py-3 text-base">{label}</ButtonLink>;
+}
+
+function SignIn({ prompt, link }: { prompt: string; link: string }) {
+  const cls = "font-medium text-fig-700 underline underline-offset-2";
+  return <p className="mt-6 text-sm text-ink-soft">{prompt} <Link to="/auth" className={cls}>{link}</Link></p>;
+}
+
+/**
+ * 1. LE HERO, et la FIGURE A. Le motif dont tout le reste hérite : le TRAIT DE 2 À GAUCHE
+ * D'UNE RANGÉE = quelque chose qui s'adresse à cette rangée-là. C'est l'idiome de l'app
+ * promu au rang de signature (`CoachWeeklyPage.tsx:243`), l'équerre à l'échelle d'une
+ * ligne. Les quatre rangées sont IDENTIQUES des deux côtés : rien n'affirme une mesure
+ * (F9), seule la relation change.
+ */
+function HeroSection() {
+  const rows = [84, 112, 140, 168];
+  return (
+    <section className="bg-paper">
+      <div className="mx-auto grid max-w-[1200px] gap-11 px-5 pt-11 pb-10 sm:px-8 sm:pt-[84px] sm:pb-[76px] lg:grid-cols-2 lg:items-center lg:gap-16">
         <div>
           <Kicker>{t("communities.hero.kicker")}</Kicker>
-          <h1 className="mt-3 text-balance text-4xl font-semibold leading-[1.08] tracking-tight sm:text-5xl">
-            {t("communities.hero.title")}
-          </h1>
-          <p className="mt-6 max-w-xl text-lg leading-8 text-gray-600">
-            {t("communities.hero.subtitle")}
-          </p>
-          <div className="mt-8 flex flex-wrap items-center gap-3">
-            <ButtonLink to="/auth?role=coach" variant="primary" className="px-6 py-3 text-base">
-              {t("communities.hero.cta_trial")}
-            </ButtonLink>
-            <ButtonLink to="/auth" variant="secondary" className="px-6 py-3 text-base">
-              {t("communities.hero.cta_signin")}
-            </ButtonLink>
-          </div>
-          <p className="mt-4 max-w-md text-sm leading-6 text-gray-500">
-            {t("communities.hero.note")}
-          </p>
-          {/* La porte libre, discrète par construction — même arbitrage que sur
-              `/`: cette page vend à celui qui PAIE, et deux offres côte à côte
-              le feraient hésiter entre l'une et l'autre. Mais un propriétaire
-              de communauté ne mettra pas ses membres sur un produit qu'il n'a
-              pas vu de leur côté, donc la porte existe: une ligne de texte, pas
-              un troisième bouton. */}
-          <p className="mt-3 max-w-md text-sm leading-6 text-gray-500">
-            {t("communities.hero.try_prompt")}{" "}
-            <Link to="/start" className="font-medium text-gray-900 underline">
-              {t("communities.hero.try_cta")}
-            </Link>
-          </p>
+          <h1 className="mt-4 max-w-[18ch] text-balance font-display text-hero">{t("communities.hero.title")}</h1>
+          <p className="mt-5 max-w-[62ch] text-lede text-ink-soft">{t("communities.hero.lede")}</p>
+          <div className="mt-8"><Cta label={t("communities.hero.cta")} /></div>
+          {/* fact: B5 — 14 jours, 3 membres · B32 — invitation e-mail, aucun lien à copier · S1 — aucune boîte de réception en retour. */}
+          <p className="mt-4 max-w-[52ch] text-sm leading-6 text-ink-soft">{t("communities.hero.note")}</p>
+          <SignIn prompt={t("communities.hero.signin_prompt")} link={t("communities.hero.signin_link")} />
         </div>
-        <MondayPanel />
+        <Figure>
+          <FigSvg id="fig-lane" title={t("communities.fig_lane.alt_title")} desc={t("communities.fig_lane.alt_desc")} label={t("communities.fig_lane.label")}>
+            {/* fact: B33 — dans un fil, une seule réponse ouvre tout le monde à la fois. */}
+            <rect x="24" y="52" width="196" height="140" rx="12" fill={PAPER} stroke={INK} strokeWidth="2" />
+            <Key x={40} y={74} ls={1}>{t("communities.fig_lane.thread_label")}</Key>
+            <path d="M 44 84 L 44 184" fill="none" stroke={SOFT} strokeWidth="2" strokeLinecap="round" />
+            <rect x="252" y="52" width="204" height="140" rx="12" fill={PAPER} stroke={INK} strokeWidth="2" />
+            <Key x={268} y={74} ls={1}>{t("communities.fig_lane.tier_label")}</Key>
+            {/* La seule autre pièce chaude du dessin : les quatre lignes privées. */}
+            <g fill="none" stroke={FIG} strokeWidth="2" strokeLinecap="round">
+              {rows.map((y) => <path key={y} d={`M 272 ${y} L 272 ${y + 16}`} />)}
+            </g>
+            <g fill={PAPER} stroke={SOFT} strokeWidth="1">
+              {rows.map((y) => <rect key={y} x="58" y={y} width="146" height="16" rx="4" />)}
+              {rows.map((y) => <rect key={`r${y}`} x="286" y={y} width="154" height="16" rx="4" />)}
+            </g>
+            <Tx x={24} y={216} s={11}>{t("communities.fig_lane.thread_caption")}</Tx>
+            <Tx x={252} y={216} s={11}>{t("communities.fig_lane.tier_caption")}</Tx>
+          </FigSvg>
+        </Figure>
       </div>
     </section>
   );
 }
 
-// ---------------------------------------------------------------------------
-// Le panneau du lundi — l'objet-thèse du hero
-// ---------------------------------------------------------------------------
-
 /**
- * Schéma de la page du lundi, dans l'ordre où la synthèse elle-même la rend
- * (`_shared/keel/coach_synthesis.ts`): CONTACT, puis VIVABILITÉ, puis ce que
- * les membres se sont fixé.
- *
- * LA COHORTE EST DE 150, ET CE N'EST PAS UN NOMBRE AU HASARD: ce sont les 3
- * sur 10 d'une communauté de 500 qui prennent le palier coaché — exactement la
- * cohorte de l'exemple chiffré de `Tier`. Deux nombres qui ne concordent pas
- * sur une page de vente, et c'est toute la page qui devient approximative.
- *   contact:   71 + 34 + 45 = 150
- *   vivabilité: 58 + 26 + 11 notés, 55 sans assez de taps = 150
- *
- * PAS DE GRILLE DE PASTILLES, contrairement au panneau de `/`. À 34 élèves une
- * pastille par personne se COMPTE; à 150 elle devient une texture, c'est-à-dire
- * une PROPORTION — et une proportion est à un pas du pourcentage que ce produit
- * refuse d'imprimer. Des lignes chiffrées se lisent à n'importe quelle taille
- * de cohorte, ce qui est précisément le sujet de cette page.
+ * 2. LE PALIER, et la FIGURE B, dont la garde est dans la STRUCTURE DU FICHIER : les deux
+ * offres sont le même `<g id="offer">`, appelé deux fois. On ne PEUT donc pas dessiner
+ * « le palier est plus gros » (F9, le geste des deux assiettes de l'étalon). Les hauteurs
+ * n'encodent aucun prix : l'écart se lit dans les valeurs écrites.
  */
-function MondayPanel() {
-  return (
-    <div>
-      <Card padded={false} className="shadow-sm">
-        <header className="border-b border-gray-200 px-4 py-3">
-          <div className="text-sm font-semibold text-gray-900">
-            {t("communities.mock.monday_title")}
-          </div>
-          <div className="text-xs text-gray-500">
-            {t("communities.mock.monday_subtitle")}
-          </div>
-        </header>
-
-        <PanelBlock label={t("communities.mock.contact_label")}>
-          <ul className="divide-y divide-gray-100">
-            <CountRow
-              tone="positive"
-              label={t("communities.mock.contact_in_touch")}
-              hint={t("communities.mock.contact_in_touch_hint")}
-              count={71}
-            />
-            <CountRow
-              tone="caution"
-              label={t("communities.mock.contact_slipping")}
-              hint={t("communities.mock.contact_slipping_hint")}
-              count={34}
-            />
-            <CountRow
-              tone="critical"
-              label={t("communities.mock.contact_silent")}
-              hint={t("communities.mock.contact_silent_hint")}
-              count={45}
-            />
-          </ul>
-          {/* La légende de l'argument, attachée au bloc contact et pas au pied
-              du panneau: c'est ce 45-là qu'elle commente. */}
-          <p className="mt-3 text-xs leading-5 text-gray-500">
-            {t("communities.mock.contact_caption")}
-          </p>
-        </PanelBlock>
-
-        <PanelBlock label={t("communities.mock.felt_label")}>
-          <ul className="divide-y divide-gray-100">
-            <CountRow
-              tone="positive"
-              label={t("communities.mock.felt_sustainable")}
-              count={58}
-            />
-            <CountRow tone="caution" label={t("communities.mock.felt_strained")} count={26} />
-            <CountRow tone="critical" label={t("communities.mock.felt_hard")} count={11} />
-            {/* Pas une couleur avec un avis: on refuse de se prononcer, donc la
-                pastille est un anneau creux plutôt qu'un état rempli. */}
-            <CountRow tone="unknown" label={t("communities.mock.felt_unknown")} count={55} />
-          </ul>
-        </PanelBlock>
-
-        <div className="border-t border-gray-200 bg-gray-50 px-4 py-3">
-          <div className="text-[0.6875rem] font-semibold uppercase tracking-wider text-gray-500">
-            {t("communities.mock.intent_label")}
-          </div>
-          <p className="mt-1 text-sm leading-6 text-gray-700">
-            {t("communities.mock.intent_line")}
-          </p>
-        </div>
-      </Card>
-      <p className="mt-3 text-xs leading-5 text-gray-500">
-        {t("communities.mock.caption")}
-      </p>
-    </div>
-  );
-}
-
-function PanelBlock({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="border-t border-gray-200 px-4 py-3 first-of-type:border-t-0">
-      <div className="text-[0.6875rem] font-semibold uppercase tracking-wider text-gray-500">
-        {label}
-      </div>
-      <div className="mt-2">{children}</div>
-    </div>
-  );
-}
-
-/** Les tons du kit Badge, employés ici en bandeau: l'état se voit avant de se lire. */
-const STRIPE: Record<string, string> = {
-  positive: "bg-emerald-500",
-  caution: "bg-amber-500",
-  critical: "bg-red-500",
-  // `unknown` n'est pas un état, c'est un REFUS DE SE PRONONCER — donc le gris
-  // neutre du kit, jamais une couleur qui a un avis. (Le panneau de `/` rend
-  // cette bande en anneau creux; ici la bande fait 4px de large, et un anneau
-  // de 2px sur 4px de large rend un bloc plein de toute façon.)
-  unknown: "bg-gray-300",
-};
-
-function CountRow({
-  tone,
-  label,
-  hint,
-  count,
-}: {
-  tone: keyof typeof STRIPE;
-  label: string;
-  hint?: string;
-  count: number;
-}) {
-  return (
-    <li className="flex items-center gap-3 py-2">
-      <span className={`h-8 w-1 shrink-0 rounded-full ${STRIPE[tone]}`} aria-hidden="true" />
-      <span className="min-w-0 flex-1">
-        <span className="block text-sm font-medium text-gray-900">{label}</span>
-        {hint ? <span className="block text-xs text-gray-500">{hint}</span> : null}
-      </span>
-      <span className="text-base font-semibold tabular-nums text-gray-900">{count}</span>
-    </li>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Le fil — l'architecture, dite tôt et sans détour
-// ---------------------------------------------------------------------------
-
-/**
- * Les trois lignes sont des SCÈNES DE COMMUNAUTÉ, pas des questions de
- * nutrition (là où `/` cite trois questions d'élève). Le lecteur doit se
- * reconnaître dans sa propre journée avant qu'on lui parle de produit — et
- * aucune des trois n'est un reproche à sa communauté: ce sont des conséquences
- * mécaniques d'un fil, pas des défauts d'animation.
- */
-function Thread() {
-  const scenes = [
-    t("communities.thread.q1"),
-    t("communities.thread.q2"),
-    t("communities.thread.q3"),
+function TierSection() {
+  // Clés littérales, jamais construites par gabarit : un `as` sur une clé rend le renommage invisible au compilateur.
+  const bounds: [string, string][] = [
+    [t("communities.tier.not1_title"), t("communities.tier.not1_body")],
+    [t("communities.tier.not2_title"), t("communities.tier.not2_body")],
+    [t("communities.tier.not3_title"), t("communities.tier.not3_body")],
+    [t("communities.tier.not4_title"), t("communities.tier.not4_body")],
   ];
   return (
-    <section className="border-b border-gray-200">
-      <div className="mx-auto max-w-6xl px-4 py-16">
-        <Kicker>{t("communities.thread.kicker")}</Kicker>
-        <SectionTitle>{t("communities.thread.title")}</SectionTitle>
-        <div className="mt-6 grid gap-10 lg:grid-cols-[1fr_1fr] lg:gap-16">
-          <p className="max-w-xl text-base leading-7 text-gray-600">
-            {t("communities.thread.body")}
-          </p>
-          <ul className="max-w-xl border-t border-gray-200">
-            {scenes.map((scene) => (
-              <li
-                key={scene}
-                className="border-b border-gray-200 py-4 text-lg leading-8 text-gray-900"
-              >
-                {scene}
-              </li>
+    <Section tone="paper-2">
+      <Kicker>{t("communities.tier.kicker")}</Kicker>
+      <SectionTitle>{t("communities.tier.title")}</SectionTitle>
+      <div className={SPLIT}>
+        <div>
+          <p className={BODY}>{t("communities.tier.body")}</p>
+          {/* fact: B30 — 500 membres, 3 sur 10 : 150 × 12 € − 150 × 7 € = 750 €/mois. L'arithmétique est juste, et la légende l'étiquette « exemple ». */}
+          <p className={`mt-6 ${CLOSE}`}>{t("communities.tier.example")}</p>
+          <p className="mt-4 max-w-[62ch] text-sm leading-6 text-ink-soft">{t("communities.tier.example_caption")}</p>
+          {/* fact: S12 — aucun SKU membre dans `stripe-create-checkout-session`. */}
+          <p className="mt-6 max-w-[62ch] border-t border-line pt-6 leading-relaxed text-ink">{t("communities.tier.billing")}</p>
+        </div>
+        <Figure>
+          <FigSvg id="fig-tier" title={t("communities.fig_tier.alt_title")} desc={t("communities.fig_tier.alt_desc")} label={t("communities.fig_tier.label")}>
+            <defs>
+              <g id="offer">
+                <rect x="0" y="0" width="200" height="68" rx="12" fill={PAPER} stroke={INK} strokeWidth="2" />
+                <g fill={WASH}>
+                  {[[168, 16], [140, 32], [108, 48]].map(([w, y]) => <rect key={y} x="16" y={y} width={w} height="8" rx="4" />)}
+                </g>
+              </g>
+            </defs>
+            {/* La bande ajoutée : seule pièce chaude, et seule différence entre les deux appels. */}
+            <rect x="140" y="38" width="200" height="22" rx="4" fill={WASH} stroke={FIG} strokeWidth="1" />
+            <use href="#offer" x="140" y="60" />
+            <use href="#offer" x="140" y="152" />
+            <Tx x={156} y={53} s={11}>{t("communities.fig_tier.band")}</Tx>
+            <Key x={24} y={52} ls={1}>{t("communities.fig_tier.tier_label")}</Key>
+            <Tx x={24} y={74}>{t("communities.fig_tier.tier_value")}</Tx>
+            <Key x={24} y={166} ls={1}>{t("communities.fig_tier.base_label")}</Key>
+            <Tx x={24} y={188}>{t("communities.fig_tier.base_value")}</Tx>
+            <Key x={352} y={52} ls={1}>{t("communities.fig_tier.cost_label")}</Key>
+            <Tx x={352} y={74}>{t("communities.fig_tier.cost_value")}</Tx>
+          </FigSvg>
+        </Figure>
+      </div>
+      <h3 className="eq mt-12 text-label font-semibold uppercase text-ink-soft">{t("communities.tier.not_label")}</h3>
+      {/* fact: C17/B1bis — aucune intégration Skool/Circle/Discord/Kajabi · B33 — aucune surface sociale · S12 — aucun encaissement du membre · C15 — chiffres d'énergie éteints par défaut. */}
+      <dl className="mt-6 grid gap-8 border-t border-line pt-8 sm:grid-cols-2 sm:gap-x-16 lg:grid-cols-4">
+        {bounds.map(([title, body]) => (
+          <div key={title}>
+            <dt className="font-display text-sub">{title}</dt>
+            <dd className="mt-2 text-sm leading-6 text-ink-soft">{body}</dd>
+          </div>
+        ))}
+      </dl>
+    </Section>
+  );
+}
+
+/**
+ * 3. LES RÔLES, la section la plus facile à rater, et la FIGURE C. Chaque nombre dessiné
+ * est un seuil du code : `REENGAGE_AFTER_HOURS = 72`, un message par épisode, écart
+ * minimal d'une semaine (`reengagement.ts:45,53,211-213`) — la ligne qui repart nue après
+ * le message est donc vérifiable.
+ */
+function RolesSection() {
+  return (
+    <Section>
+      <Kicker>{t("communities.roles.kicker")}</Kicker>
+      <SectionTitle>{t("communities.roles.title")}</SectionTitle>
+      {/* fact: B33 — pas de fil, pas de salon, pas de commentaire : il n'y a nulle part où emmener sa couche sociale. */}
+      <p className={`mt-6 ${BODY}`}>{t("communities.roles.body")}</p>
+      <dl className="mt-10 grid gap-8 border-t border-line pt-8 sm:grid-cols-2 sm:gap-16">
+        <div>
+          <dt className="font-display text-sub">{t("communities.roles.group_title")}</dt>
+          <dd className="mt-2 text-sm leading-6 text-ink-soft">{t("communities.roles.group_body")}</dd>
+        </div>
+        {/* fact: B24 — les heures calmes 21 h-8 h ne couvrent QUE la relance, et c'est d'elle seule que parle cette colonne. ⚠️ S5 : jamais « rien n'arrive la nuit ». */}
+        <div className="border-l-2 border-fig-700 pl-6">
+          <dt className="font-display text-sub">{t("communities.roles.agent_title")}</dt>
+          <dd className="mt-2 text-sm leading-6 text-ink-soft">{t("communities.roles.agent_body")}</dd>
+        </div>
+      </dl>
+      <Figure className="mt-10" caption={t("communities.roles.figure_caption")}>
+        <FigSvg id="fig-third" title={t("communities.fig_third_day.alt_title")} desc={t("communities.fig_third_day.alt_desc")} label={t("communities.fig_third_day.label")}>
+          <rect x="24" y="104" width="168" height="48" rx="4" fill={PAPER} stroke={SOFT} strokeWidth="1" />
+          <Key x={40} y={124} ls={1}>{t("communities.fig_third_day.last_label")}</Key>
+          <Tx x={40} y={142}>{t("communities.fig_third_day.last_value")}</Tx>
+          {/* fact: B21 — 72 h de silence, un message, puis ça se tait. */}
+          <g stroke={FIG}>
+            <rect x="268" y="104" width="172" height="48" rx="4" fill={WASH} strokeWidth="1" />
+            <path d="M 268 116 L 268 140" fill="none" strokeWidth="2" strokeLinecap="round" />
+          </g>
+          <Key x={284} y={124} ls={1}>{t("communities.fig_third_day.message_label")}</Key>
+          <Tx x={284} y={142}>{t("communities.fig_third_day.message_value")}</Tx>
+          <path d="M 40 172 L 440 172" fill="none" stroke={INK} strokeWidth="2" strokeLinecap="round" />
+          <g fill="none" stroke={SOFT} strokeWidth="1" strokeLinecap="round">
+            <path d="M 108 152 L 108 172" />
+            <path d="M 354 152 L 354 172" />
+            {[140, 240, 340].map((x) => <path key={x} d={`M ${x} 166 L ${x} 178`} />)}
+          </g>
+          <Tx x={232} y={200} s={11} fill={SOFT} anchor="middle">{t("communities.fig_third_day.silence")}</Tx>
+          <Tx x={440} y={200} s={11} fill={SOFT} anchor="end">{t("communities.fig_third_day.after")}</Tx>
+        </FigSvg>
+      </Figure>
+      <p className={`mt-10 ${CLOSE}`}>{t("communities.roles.close")}</p>
+    </Section>
+  );
+}
+
+/**
+ * 4. LE LUNDI, et la FIGURE D — une MAQUETTE, sans chrome de navigateur ni cadre de
+ * téléphone : il n'existe AUCUNE application mobile (C17). LES NOMBRES TOMBENT JUSTE, et
+ * c'est la cohorte de l'exemple de revenu : 71+34+45 = 150, 58+26+11+55 = 150. ⚠️ La
+ * dernière ligne dit « built », le mot du moteur (`coach_synthesis.ts:566-568`) — la page
+ * précédente écrivait « wrote » en prétendant citer (B13). ⚠️ AUCUNE PASTILLE COLORÉE
+ * (F10) : sur une page de vente il n'y a pas d'instant, donc le mot porte l'état. S9.
+ */
+function MondaySection() {
+  const rows: [number, string, string, string][] = [
+    [108, t("communities.fig_monday.in_touch"), t("communities.fig_monday.in_touch_hint"), "71"],
+    [136, t("communities.fig_monday.slipping"), t("communities.fig_monday.slipping_hint"), "34"],
+    [164, t("communities.fig_monday.silent"), t("communities.fig_monday.silent_hint"), "45"],
+    [240, t("communities.fig_monday.holding"), "", "58"],
+    [262, t("communities.fig_monday.strained"), "", "26"],
+    [284, t("communities.fig_monday.hard"), "", "11"],
+    [306, t("communities.fig_monday.unknown"), "", "55"],
+  ];
+  return (
+    <Section tone="paper-2">
+      <Kicker>{t("communities.monday.kicker")}</Kicker>
+      <SectionTitle>{t("communities.monday.title")}</SectionTitle>
+      <div className={SPLIT}>
+        <div>
+          {/* fact: B11 — cron hebdo, texte rendu par GABARIT (`renderSynthesisText` est pure), jamais narré par un modèle. */}
+          <p className={BODY}>{t("communities.monday.body")}</p>
+          <p className={`mt-6 ${CLOSE}`}>{t("communities.monday.close")}</p>
+        </div>
+        <Figure caption={t("communities.monday.figure_caption")}>
+          <FigSvg id="fig-monday" h={380} title={t("communities.fig_monday.alt_title")} desc={t("communities.fig_monday.alt_desc")}>
+            <rect x="8" y="8" width="464" height="364" rx="16" fill={WASH} stroke={SOFT} strokeWidth="1" />
+            <text x="28" y="46" fontSize="15" fontWeight="600" fill={FIG}>{t("communities.fig_monday.screen_title")}</text>
+            <g fill={PAPER} stroke={SOFT} strokeWidth="1">
+              {[[60, 122], [194, 122], [328, 36]].map(([y, h]) => <rect key={y} x="24" y={y} width="432" height={h} rx="12" />)}
+            </g>
+            <Key x={40} y={82}>{t("communities.fig_monday.contact_label")}</Key>
+            <Key x={40} y={216}>{t("communities.fig_monday.felt_label")}</Key>
+            {rows.map(([y, label, hint, count]) => (
+              <g key={y}>
+                <Tx x={40} y={y} s={11}>{label}</Tx>
+                {hint ? <Tx x={140} y={y} s={9} fill={SOFT}>{hint}</Tx> : null}
+                <Tx x={440} y={y} anchor="end">{count}</Tx>
+              </g>
             ))}
-          </ul>
-        </div>
-        <p className="mt-10 max-w-2xl text-base font-medium leading-7 text-gray-900">
-          {t("communities.thread.close")}
-        </p>
+            <Tx x={40} y={352} s={11}>{t("communities.fig_monday.intent_line")}</Tx>
+          </FigSvg>
+        </Figure>
       </div>
-    </section>
+    </Section>
   );
 }
 
-// ---------------------------------------------------------------------------
-// Le palier — axe 1, le revenu
-// ---------------------------------------------------------------------------
-
 /**
- * TROIS LIGNES, PAS TROIS CARTES. Une carte par prix les mettrait au même
- * niveau, alors que ce sont trois choses de nature différente: un prix qui NE
- * BOUGE PAS, un prix qu'il fixe, et un coût qui est le nôtre. L'empilement les
- * lit dans cet ordre, et c'est l'ordre de l'argument.
- *
- * Le fond est gris (registre commercial) et le tableau est encadré: c'est le
- * seul endroit de la page où le lecteur sort sa calculatrice, il doit trouver
- * les nombres sans les chercher.
+ * 5. SA VOIX, et la FIGURE E — une MAQUETTE dont les quatre fiches sont les champs réels
+ * de `doctrine.ts`. LA QUATRIÈME EST LA PREUVE, PAS LA TROISIÈME : une ligne rouge sans
+ * son « à la place » n'est qu'une censure, et ce qui la rend vendable c'est que le membre
+ * reçoive une réponse, celle du coach, dans ses mots (B9). D'où le trait qui ouvre la
+ * dernière fiche et aucune autre. ⚠️ NI « votre marque » NI « votre nom sur les messages »
+ * (B18) : zéro personnalisation existe. Ce qui suffit : ce sont SES MOTS qui sortent.
  */
-function Tier() {
-  const rows: { label: string; value: string; note: string; ours: boolean }[] = [
-    {
-      label: t("communities.tier.row1_label"),
-      value: t("communities.tier.row1_value"),
-      note: t("communities.tier.row1_note"),
-      ours: false,
-    },
-    {
-      label: t("communities.tier.row2_label"),
-      value: t("communities.tier.row2_value"),
-      note: t("communities.tier.row2_note"),
-      ours: false,
-    },
-    {
-      label: t("communities.tier.row3_label"),
-      value: t("communities.tier.row3_value"),
-      note: t("communities.tier.row3_note"),
-      ours: true,
-    },
+function VoiceSection() {
+  const fields: [number, number, string, string[]][] = [
+    [60, 56, t("communities.fig_voice.address_label"), [t("communities.fig_voice.address_value")]],
+    [124, 68, t("communities.fig_voice.term_label"), [t("communities.fig_voice.term_value1"), t("communities.fig_voice.term_value2")]],
+    [200, 56, t("communities.fig_voice.line_label"), [t("communities.fig_voice.line_value")]],
+    [264, 76, t("communities.fig_voice.instead_label"), [t("communities.fig_voice.instead_value1"), t("communities.fig_voice.instead_value2")]],
   ];
   return (
-    <section className="border-b border-gray-200 bg-gray-50">
-      <div className="mx-auto max-w-6xl px-4 py-16">
-        <Kicker>{t("communities.tier.kicker")}</Kicker>
-        <SectionTitle>{t("communities.tier.title")}</SectionTitle>
-
-        <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_auto] lg:items-start lg:gap-16">
-          <div className="max-w-xl">
-            <p className="text-base leading-7 text-gray-600">{t("communities.tier.body")}</p>
-            <p className="mt-6 text-base font-medium leading-7 text-gray-900">
-              {t("communities.tier.math")}
-            </p>
-            <p className="mt-4 text-sm leading-6 text-gray-500">
-              {t("communities.tier.math_caption")}
-            </p>
-          </div>
-
-          <Card padded={false} className="w-full lg:w-96">
-            <div className="border-b border-gray-200 px-4 py-3 text-[0.6875rem] font-semibold uppercase tracking-wider text-gray-500">
-              {t("communities.tier.example_label")}
-            </div>
-            <dl className="divide-y divide-gray-100">
-              {rows.map((row) => (
-                <div key={row.label} className="px-4 py-3">
-                  <div className="flex items-baseline justify-between gap-3">
-                    <dt className="text-sm font-medium text-gray-900">{row.label}</dt>
-                    {/* Le seul chiffre qui nous engage est le nôtre, et il est
-                        le seul en noir plein: les deux autres sont des exemples
-                        et la légende le dit. */}
-                    <dd
-                      className={`shrink-0 text-lg font-semibold tabular-nums ${
-                        row.ours ? "text-gray-900" : "text-gray-500"
-                      }`}
-                    >
-                      {row.value}
-                    </dd>
-                  </div>
-                  <p className="mt-1 text-xs leading-5 text-gray-500">{row.note}</p>
-                </div>
-              ))}
-            </dl>
-          </Card>
+    <Section>
+      <Kicker>{t("communities.voice.kicker")}</Kicker>
+      <SectionTitle>{t("communities.voice.title")}</SectionTitle>
+      <div className={SPLIT}>
+        <div>
+          <p className={BODY}>{t("communities.voice.body")}</p>
+          {/* fact: B27 — le CHECK `student_week_plans_doctrine_traceable_check` REFUSE une ligne de semaine qui ne cite aucune conviction. Portée : la semaine seulement. */}
+          <p className="mt-6 max-w-[62ch] leading-relaxed text-ink">{t("communities.voice.traceable")}</p>
+          {/* fact: B28 — révision et rollback sans perdre l'historique. */}
+          <p className="mt-4 max-w-[62ch] text-sm leading-6 text-ink-soft">{t("communities.voice.revise")}</p>
         </div>
-
-        <p className="mt-10 max-w-3xl border-t border-gray-200 pt-6 text-base leading-7 text-gray-900">
-          {t("communities.tier.billing")}
-        </p>
+        <Figure>
+          <FigSvg id="fig-voice" h={380} title={t("communities.fig_voice.alt_title")} desc={t("communities.fig_voice.alt_desc")}>
+            <rect x="8" y="8" width="464" height="364" rx="16" fill={WASH} stroke={SOFT} strokeWidth="1" />
+            <text x="28" y="46" fontSize="15" fontWeight="600" fill={FIG}>{t("communities.fig_voice.screen_title")}</text>
+            {fields.map(([y, h, label, values]) => (
+              <g key={y}>
+                <rect x="24" y={y} width="432" height={h} rx="12" fill={PAPER} stroke={SOFT} strokeWidth="1" />
+                <Key x={40} y={y + 20}>{label}</Key>
+                {values.map((v, j) => <Tx key={v} x={40} y={y + 42 + j * 18}>{v}</Tx>)}
+              </g>
+            ))}
+            <path d="M 24 280 L 24 324" fill="none" stroke={SOFT} strokeWidth="2" strokeLinecap="round" />
+          </FigSvg>
+        </Figure>
       </div>
-    </section>
+      {/* La clôture ouvre sur le bloc sombre : la garantie arrive comme une réponse. */}
+      <p className={`mt-10 border-t border-line pt-6 ${CLOSE}`}>{t("communities.voice.close")}</p>
+    </Section>
   );
 }
 
-// ---------------------------------------------------------------------------
-// La répartition des rôles — axe 2, la rétention
-// ---------------------------------------------------------------------------
-
 /**
- * LA SECTION LA PLUS FACILE À RATER DE TOUTE LA PAGE.
- *
- * « Tes membres partent, on les retient » se lit comme « ta communauté ne
- * marche pas » — or elle marche: il a prouvé qu'il sait vendre du récurrent.
- * Ce qui ne marche pas, c'est ce qu'un groupe ne saura JAMAIS faire, et c'est
- * la seule chose qu'on prend.
- *
- * Les deux colonnes existent pour que ce partage se VOIE, sans dépendre d'une
- * phrase que le lecteur pourrait lire de travers: à gauche ce qui reste chez
- * lui — et cette colonne est délibérément la première, et aussi longue que
- * l'autre. La relance du 3e jour est réelle (`keel-reengage-v1` part à 72h de
- * silence et compose sur la doctrine publiée du coach), sinon « in your
- * method » serait un mensonge.
+ * 6. L'UNIQUE BLOC SOMBRE : le seul signal fort dont dispose une page de fiche, dépensé
+ * sur l'argument qui en a besoin, et placé APRÈS la voix qu'il protège. ⚠️ FORMULATION
+ * B8b : « la doctrine entre à chaque message » est faux (B7, un seul appelant) et « chaque
+ * message sortant est scanné » est faux pour « chaque » (B8 : 4 surfaces scannées, 4 non).
+ * FIGURE F — un CONCEPT, jamais une maquette : F12 interdit de poser une surface de
+ * produit sur du sombre. `.on-dark` remonte `--ill-fig` et `--ill-ink-soft` à `fig-300`
+ * mais NE touche pas `--ill-ink`, qui serait invisible — d'où l'absence totale de `INK`
+ * ici. Et la pastille est CREUSE (F10) : le mot porte l'état, la couleur ne le porte pas.
  */
-function RoleSplit() {
+function LockSection() {
   return (
-    <section className="border-b border-gray-200">
-      <div className="mx-auto max-w-6xl px-4 py-16">
-        <Kicker>{t("communities.roles.kicker")}</Kicker>
-        <SectionTitle>{t("communities.roles.title")}</SectionTitle>
-        <p className="mt-6 max-w-3xl text-base leading-7 text-gray-600">
-          {t("communities.roles.body")}
-        </p>
-
-        <dl className="mt-10 grid gap-8 border-t border-gray-200 pt-8 sm:grid-cols-2 sm:gap-12">
-          <div>
-            <dt className="text-base font-semibold leading-6 text-gray-900">
-              {t("communities.roles.group_title")}
-            </dt>
-            <dd className="mt-2 text-sm leading-6 text-gray-600">
-              {t("communities.roles.group_body")}
-            </dd>
+    <Section tone="dark">
+      <Kicker onDark>{t("communities.lock.kicker")}</Kicker>
+      <SectionTitle>{t("communities.lock.title")}</SectionTitle>
+      <p className="mt-6 max-w-[62ch] leading-relaxed text-fig-300">{t("communities.lock.body")}</p>
+      <div className="mt-10 grid gap-11 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
+        <dl className="grid content-start gap-8">
+          {/* fact: B10 — la doctrine atteint 4 points d'injection : chat, semaine, repas individuel, repas foyer. Sous-vendu partout ailleurs. */}
+          <div className="border-l-2 border-fig-300 pl-6">
+            <dt className="text-label font-semibold uppercase text-fig-300">{t("communities.lock.lock1_tag")}</dt>
+            <dd className="mt-2 leading-relaxed">{t("communities.lock.lock1")}</dd>
           </div>
-          <div className="sm:border-l sm:border-gray-200 sm:pl-12">
-            <dt className="text-base font-semibold leading-6 text-gray-900">
-              {t("communities.roles.agent_title")}
-            </dt>
-            <dd className="mt-2 text-sm leading-6 text-gray-600">
-              {t("communities.roles.agent_body")}
-            </dd>
+          {/* fact: B8b — ce que Sophia écrit dans le chat est relu contre les lignes rouges avant envoi, sans modèle dans cette boucle (`keel_output_locks.ts:307`). */}
+          <div className="border-l-2 border-fig-300 pl-6">
+            <dt className="text-label font-semibold uppercase text-fig-300">{t("communities.lock.lock2_tag")}</dt>
+            <dd className="mt-2 leading-relaxed">{t("communities.lock.lock2")}</dd>
           </div>
+          <p className="max-w-[42ch] text-balance text-lede font-medium">{t("communities.lock.close")}</p>
         </dl>
-
-        <p className="mt-10 max-w-3xl text-base font-medium leading-7 text-gray-900">
-          {t("communities.roles.close")}
-        </p>
+        <Figure dark caption={t("communities.lock.trace_note")}>
+          <FigSvg id="fig-lock" title={t("communities.fig_lock.alt_title")} desc={t("communities.fig_lock.alt_desc")} label={t("communities.fig_lock.label")}>
+            <g fill="none" stroke={SOFT} strokeWidth="1">
+              <rect x="24" y="44" width="432" height="48" rx="12" />
+              <rect x="24" y="100" width="432" height="48" rx="12" />
+              <rect x="24" y="156" width="432" height="64" rx="12" />
+              <rect x="380" y="110" width="60" height="18" rx="8" />
+            </g>
+            <Key x={40} y={64}>{t("communities.fig_lock.ask_label")}</Key>
+            <Tx x={40} y={82} fill={PAPER}>{t("communities.fig_lock.ask_value")}</Tx>
+            <Key x={40} y={120}>{t("communities.fig_lock.draft_label")}</Key>
+            <Tx x={40} y={138} fill={SOFT}>{t("communities.fig_lock.draft_value")}</Tx>
+            <Tx x={410} y={123} s={9} fill={SOFT} anchor="middle">{t("communities.fig_lock.held")}</Tx>
+            <Key x={40} y={176}>{t("communities.fig_lock.sent_label")}</Key>
+            <Tx x={40} y={194} fill={PAPER}>{t("communities.fig_lock.sent_value1")}</Tx>
+            <Tx x={40} y={212} fill={PAPER}>{t("communities.fig_lock.sent_value2")}</Tx>
+            {/* fact: B9 — chaque ligne rouge porte son `instead`, dans les mots du coach. Le trait ouvre la seule fiche que le membre reçoit. */}
+            <path d="M 24 168 L 24 208" fill="none" stroke={FIG} strokeWidth="2" strokeLinecap="round" />
+          </FigSvg>
+        </Figure>
       </div>
-    </section>
+    </Section>
   );
 }
 
-// ---------------------------------------------------------------------------
-// Le lundi — axe 3, ce qu'un fil ne donne jamais
-// ---------------------------------------------------------------------------
-
 /**
- * Chacun des trois items correspond à une ligne que `renderSynthesisText`
- * ÉMET vraiment: contact, vivabilité, semaines composées. Rien ici ne décrit un
- * écran qu'on n'a pas — et notamment, l'item 1 dit « names in your member
- * list » et non « names on the Monday page »: la synthèse ne nomme que trois
- * personnes (`TO_CATCH_UP_CAP`), les états par membre se lisent sur la liste de
- * cohorte (`contactStateFor`, écran `/coach`).
+ * 7. LE PRIX. UNE SEULE CARTE : deux cartes obligent à faire une addition, et une addition
+ * sur une page de vente est un endroit où se tromper. ⚠️ « 6 € pour un SIÈGE payé à
+ * l'année », jamais « quand votre membre a payé son année » : l'intervalle est celui du
+ * COACH — formulation correcte (B3), c'est `/gyms` qui porte l'erreur (B2).
  */
-function MondayData() {
-  const items: { title: string; body: string }[] = [
-    { title: t("communities.data.item1_title"), body: t("communities.data.item1_body") },
-    { title: t("communities.data.item2_title"), body: t("communities.data.item2_body") },
-    { title: t("communities.data.item3_title"), body: t("communities.data.item3_body") },
-  ];
+function PricingSection() {
   return (
-    <section className="border-b border-gray-200 bg-gray-50">
-      <div className="mx-auto max-w-6xl px-4 py-16">
-        <Kicker>{t("communities.data.kicker")}</Kicker>
-        <SectionTitle>{t("communities.data.title")}</SectionTitle>
-        <p className="mt-6 max-w-3xl text-base leading-7 text-gray-600">
-          {t("communities.data.body")}
-        </p>
-        <dl className="mt-10 grid gap-8 border-t border-gray-200 pt-8 sm:grid-cols-3 sm:gap-10">
-          {items.map((item) => (
-            <div key={item.title}>
-              <dt className="text-base font-semibold leading-6 text-gray-900">{item.title}</dt>
-              <dd className="mt-2 text-sm leading-6 text-gray-600">{item.body}</dd>
-            </div>
-          ))}
-        </dl>
-        <p className="mt-10 max-w-3xl text-base font-medium leading-7 text-gray-900">
-          {t("communities.data.close")}
-        </p>
-      </div>
-    </section>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Ce contre quoi il nous compare
-// ---------------------------------------------------------------------------
-
-/**
- * PAS UNE AUTRE IA: un canal Discord de plus, ou un coach humain à recruter.
- * C'est la première objection qu'il formulera, et une page qui l'esquive perd
- * sa crédibilité. Courte exprès — s'y attarder donnerait à l'objection plus de
- * place qu'elle n'en mérite.
- */
-function Compared() {
-  return (
-    <section className="border-b border-gray-200">
-      <div className="mx-auto max-w-6xl px-4 py-16">
-        <Kicker>{t("communities.compare.kicker")}</Kicker>
-        <SectionTitle>{t("communities.compare.title")}</SectionTitle>
-        <dl className="mt-8 grid gap-8 border-t border-gray-200 pt-8 sm:grid-cols-2 sm:gap-12">
-          <div>
-            <dt className="text-base font-semibold leading-6 text-gray-900">
-              {t("communities.compare.channel_title")}
-            </dt>
-            <dd className="mt-2 text-sm leading-6 text-gray-600">
-              {t("communities.compare.channel_body")}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-base font-semibold leading-6 text-gray-900">
-              {t("communities.compare.hire_title")}
-            </dt>
-            <dd className="mt-2 text-sm leading-6 text-gray-600">
-              {t("communities.compare.hire_body")}
-            </dd>
-          </div>
-        </dl>
-        <p className="mt-8 max-w-3xl text-base font-medium leading-7 text-gray-900">
-          {t("communities.compare.close")}
-        </p>
-      </div>
-    </section>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Sa voix — la section propre à cette cible
-// ---------------------------------------------------------------------------
-
-/**
- * Ni `/` ni `/gyms` n'ont cette section, et elle est ici parce que le
- * propriétaire de communauté est le seul pour qui la VOIX est l'actif: une
- * marque, un ton, des formules que ses membres reconnaissent au premier
- * paragraphe. Il ne loue pas un modèle, il prête sa voix.
- *
- * LA MAQUETTE MONTRE LES VRAIS CHAMPS de `_shared/keel/doctrine.ts` —
- * `voice.address`, `voice.length` / `voice.emojis`, une entrée de `vocabulary`
- * (terme + sens), et une ligne interdite avec son `instead`. Même règle que le
- * panneau du lundi: on ne montre pas un écran qu'on n'a pas.
- *
- * La dernière phrase ouvre volontairement sur le bloc sombre: elle pose la
- * question à laquelle `DoubleLock` répond, pour que la garantie arrive comme
- * une réponse et non comme une précaution.
- */
-function Voice() {
-  return (
-    <section className="border-b border-gray-200 bg-gray-50">
-      <div className="mx-auto max-w-6xl px-4 py-16">
-        <Kicker>{t("communities.voice.kicker")}</Kicker>
-        <SectionTitle>{t("communities.voice.title")}</SectionTitle>
-
-        <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_auto] lg:items-start lg:gap-16">
-          <p className="max-w-xl text-base leading-7 text-gray-600">
-            {t("communities.voice.body")}
-          </p>
-          <VoiceMock />
+    <Section tone="paper-2">
+      <Kicker>{t("communities.pricing.kicker")}</Kicker>
+      <SectionTitle>{t("communities.pricing.title")}</SectionTitle>
+      <div className="mt-8 grid gap-11 lg:grid-cols-[auto_1fr] lg:items-start lg:gap-16">
+        <div className="w-full sm:max-w-xs">
+          {/* fact: B1 — 7 €/membre/mois, aucun forfait plateforme · B3 — 6 € pour un siège payé à l'année · B4 — on arrête de payer le mois où on éteint un siège. */}
+          <PriceCard price={t("communities.pricing.seat")} period={t("communities.pricing.seat_period")} label={t("communities.pricing.seat_label")} />
+          <p className="mt-3 text-sm leading-6 text-ink-soft">{t("communities.pricing.annual")}</p>
         </div>
-
-        <p className="mt-10 max-w-3xl border-t border-gray-200 pt-6 text-base leading-7 text-gray-900">
-          {t("communities.voice.close")}
-        </p>
-      </div>
-    </section>
-  );
-}
-
-/**
- * Fond BLANC sur une section grise — la maquette doit se lire comme une surface
- * POSÉE sur la page, pas comme un bloc de la page.
- *
- * La ligne interdite et son remplacement sont appariés visuellement (barre
- * rouge puis barre verte) parce que c'est le couple qui compte: une ligne
- * rouge sans son « à la place » n'est qu'une censure, et c'est exactement ce
- * que le double verrou plus bas montre en action.
- */
-function VoiceMock() {
-  return (
-    <div className="w-full lg:w-96">
-      <div className="text-[0.6875rem] font-semibold uppercase tracking-wider text-gray-500">
-        {t("communities.voice.mock_label")}
-      </div>
-      <div className="mt-2 rounded-xl border border-gray-200 bg-white p-4">
-        <dl className="grid gap-4">
-          <div>
-            <dt className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-              {t("communities.voice.mock_address_label")}
-            </dt>
-            <dd className="mt-1 text-sm leading-6 text-gray-700">
-              {t("communities.voice.mock_address_value")}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-              {t("communities.voice.mock_term_label")}
-            </dt>
-            <dd className="mt-1 text-sm leading-6 text-gray-700">
-              {t("communities.voice.mock_term_value")}
-            </dd>
-          </div>
-          <div className="border-l-2 border-red-400 pl-3">
-            <dt className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-              {t("communities.voice.mock_line_label")}
-            </dt>
-            <dd className="mt-1 text-sm leading-6 text-gray-700">
-              {t("communities.voice.mock_line_value")}
-            </dd>
-          </div>
-          <div className="border-l-2 border-emerald-500 pl-3">
-            <dt className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-              {t("communities.voice.mock_instead_label")}
-            </dt>
-            <dd className="mt-1 text-sm leading-6 text-gray-900">
-              {t("communities.voice.mock_instead_value")}
-            </dd>
-          </div>
-        </dl>
-      </div>
-      <p className="mt-2 text-xs leading-5 text-gray-500">
-        {t("communities.voice.mock_caption")}
-      </p>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Le double verrou — l'unique bloc sombre de la page
-// ---------------------------------------------------------------------------
-
-/**
- * Même garantie que sur `/`, et le même arbitrage graphique: `Badge` n'est pas
- * employé ici (ses tons sont faits pour des surfaces claires, et une pastille
- * `bg-red-50` sur gray-950 serait un bloc lumineux). Mêmes sémantiques,
- * réénoncées pour ce fond.
- *
- * La trace montre le mécanisme au lieu de l'affirmer, ce qui est le seul
- * argument recevable après une section qui vient de demander au lecteur de
- * confier sa voix.
- */
-function DoubleLock() {
-  return (
-    <section className="border-b border-gray-200 bg-gray-950 text-white">
-      <div className="mx-auto max-w-6xl px-4 py-16 lg:py-20">
-        <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">
-          {t("communities.lock.kicker")}
-        </p>
-        <h2 className="mt-2 max-w-3xl text-balance text-2xl font-semibold leading-tight sm:text-3xl">
-          {t("communities.lock.title")}
-        </h2>
-        <p className="mt-4 max-w-2xl text-base leading-7 text-gray-300">
-          {t("communities.lock.body")}
-        </p>
-
-        <div className="mt-10 grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-14">
-          <div className="grid content-start gap-6">
-            <dl className="grid gap-6">
-              <div className="border-l-2 border-gray-700 pl-4">
-                <dt className="text-xs font-semibold uppercase tracking-widest text-gray-400">
-                  {t("communities.lock.lock1_tag")}
-                </dt>
-                <dd className="mt-2 text-base leading-7 text-gray-200">
-                  {t("communities.lock.lock1")}
-                </dd>
-              </div>
-              <div className="border-l-2 border-emerald-400 pl-4">
-                <dt className="text-xs font-semibold uppercase tracking-widest text-emerald-300">
-                  {t("communities.lock.lock2_tag")}
-                </dt>
-                <dd className="mt-2 text-base leading-7 text-white">
-                  {t("communities.lock.lock2")}
-                </dd>
-              </div>
-            </dl>
-            {/* La phrase de clôture vit dans cette colonne et pas en pleine
-                largeur: la trace est bien plus haute que les deux verrous, et
-                une clôture pleine largeur laissait un vide sous eux. */}
-            <p className="mt-2 max-w-md text-balance text-lg font-medium leading-8 text-white">
-              {t("communities.lock.close")}
-            </p>
-          </div>
-
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-widest text-gray-400">
-              {t("communities.lock.trace_label")}
-            </div>
-            <p className="mt-1 text-xs text-gray-500">
-              {t("communities.lock.trace_example")}
-            </p>
-
-            <ol className="mt-4 grid gap-3">
-              <TraceStep label={t("communities.lock.trace_ask")} tone="neutral">
-                {t("communities.lock.trace_ask_text")}
-              </TraceStep>
-              <TraceStep
-                label={t("communities.lock.trace_draft")}
-                tone="held"
-                chip={t("communities.lock.trace_held")}
-              >
-                {t("communities.lock.trace_draft_text")}
-              </TraceStep>
-              <TraceStep label={t("communities.lock.trace_sent")} tone="sent">
-                {t("communities.lock.trace_sent_text")}
-              </TraceStep>
-            </ol>
-
-            <p className="mt-4 text-sm leading-6 text-gray-400">
-              {t("communities.lock.trace_note")}
-            </p>
-          </div>
+        <div>
+          <p className={BODY}>{t("communities.pricing.why")}</p>
+          {/* fact: B31 — rien dans ce dépôt ne mesure le churn contre un témoin, et les taux qui circulent dans son écosystème sont des chiffres de blogs d'éditeurs. À conserver. */}
+          <p className={`mt-6 ${CLOSE}`}>{t("communities.pricing.no_number")}</p>
         </div>
       </div>
-    </section>
-  );
-}
-
-function TraceStep({
-  label,
-  tone,
-  chip,
-  children,
-}: {
-  label: string;
-  tone: "neutral" | "held" | "sent";
-  chip?: string;
-  children: React.ReactNode;
-}) {
-  const frame = tone === "held"
-    ? "border-red-500/60 bg-red-500/5"
-    : tone === "sent"
-      ? "border-emerald-400/60 bg-emerald-400/5"
-      : "border-gray-800 bg-gray-900";
-  // Le brouillon retenu est barré, mais il doit rester LISIBLE — tout l'intérêt
-  // est que le propriétaire voie ce qui a failli partir en son nom.
-  const body = tone === "held"
-    ? "text-gray-400 line-through decoration-red-400/70"
-    : "text-gray-100";
-  return (
-    <li className={`rounded-xl border-l-2 border-y border-r ${frame} px-4 py-3`}>
-      <div className="flex items-baseline justify-between gap-3">
-        <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
-          {label}
-        </span>
-        {chip
-          ? (
-            <span className="shrink-0 rounded-full bg-red-500/15 px-2 py-0.5 text-[0.6875rem] font-medium text-red-300">
-              {chip}
-            </span>
-          )
-          : null}
-      </div>
-      <p className={`mt-1.5 text-base leading-7 ${body}`}>{children}</p>
-    </li>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Doctrine
-// ---------------------------------------------------------------------------
-
-function Doctrine() {
-  const rules: { title: string; body: string }[] = [
-    {
-      title: t("communities.doctrine.rule1_title"),
-      body: t("communities.doctrine.rule1_body"),
-    },
-    {
-      title: t("communities.doctrine.rule2_title"),
-      body: t("communities.doctrine.rule2_body"),
-    },
-    {
-      title: t("communities.doctrine.rule3_title"),
-      body: t("communities.doctrine.rule3_body"),
-    },
-  ];
-  return (
-    <section className="border-b border-gray-200">
-      <div className="mx-auto max-w-6xl px-4 py-16">
-        <Kicker>{t("communities.doctrine.kicker")}</Kicker>
-        <SectionTitle>{t("communities.doctrine.title")}</SectionTitle>
-        <dl className="mt-8 grid gap-8 border-t border-gray-200 pt-8 sm:grid-cols-3 sm:gap-10">
-          {rules.map((rule) => (
-            <div key={rule.title}>
-              <dt className="text-base font-semibold leading-6 text-gray-900">{rule.title}</dt>
-              <dd className="mt-2 text-sm leading-6 text-gray-600">{rule.body}</dd>
-            </div>
-          ))}
-        </dl>
-        <Card tone="dashed" className="mt-10 sm:p-6">
-          <h3 className="text-lg font-semibold text-gray-900">
-            {t("communities.doctrine.no_calories_title")}
-          </h3>
-          <div className="mt-3 grid max-w-4xl gap-4 text-sm leading-6 text-gray-600 sm:grid-cols-2 sm:gap-8">
-            <p>{t("communities.doctrine.no_calories_body")}</p>
-            <p>{t("communities.doctrine.no_calories_body2")}</p>
-          </div>
-        </Card>
-      </div>
-    </section>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Les bornes — dites AVANT le prix
-// ---------------------------------------------------------------------------
-
-/**
- * LA SECTION QUI DÉCIDE DE LA PAGE POUR CETTE CIBLE.
- *
- * Il arrive avec une question qu'il ne posera pas à voix haute: « qu'est-ce que
- * je vais devoir brancher, migrer, refaire ». La réponse est RIEN, et elle vaut
- * mieux que n'importe quel argument — mais seulement si on donne aussi ce qu'on
- * n'a pas, dans la même respiration. Placée avant le prix parce qu'un « non »
- * découvert après le chiffre annule le chiffre.
- *
- * Les quatre bornes sont des faits du dépôt: aucune intégration (l'entrée est
- * `coach-invite-student-v1`, une invitation e-mail par membre), aucune couche
- * sociale, aucun SKU élève dans `stripe-create-checkout-session`, et un
- * protocole strictement nutritionnel.
- */
-function Boundaries() {
-  const items: { title: string; body: string }[] = [
-    { title: t("communities.not.item1_title"), body: t("communities.not.item1_body") },
-    { title: t("communities.not.item2_title"), body: t("communities.not.item2_body") },
-    { title: t("communities.not.item3_title"), body: t("communities.not.item3_body") },
-    { title: t("communities.not.item4_title"), body: t("communities.not.item4_body") },
-  ];
-  return (
-    <section className="border-b border-gray-200 bg-gray-50">
-      <div className="mx-auto max-w-6xl px-4 py-16">
-        <Kicker>{t("communities.not.kicker")}</Kicker>
-        <SectionTitle>{t("communities.not.title")}</SectionTitle>
-        <dl className="mt-8 grid gap-8 border-t border-gray-200 pt-8 sm:grid-cols-2 sm:gap-x-12 lg:grid-cols-4">
-          {items.map((item) => (
-            <div key={item.title}>
-              <dt className="text-base font-semibold leading-6 text-gray-900">{item.title}</dt>
-              <dd className="mt-2 text-sm leading-6 text-gray-600">{item.body}</dd>
-            </div>
-          ))}
-        </dl>
-        <p className="mt-10 max-w-3xl border-t border-gray-200 pt-6 text-base font-medium leading-7 text-gray-900">
-          {t("communities.not.close")}
-        </p>
-      </div>
-    </section>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Pricing
-// ---------------------------------------------------------------------------
-
-/**
- * UNE SEULE CARTE, comme sur `/` et `/gyms`. Deux cartes obligent le prospect à
- * faire une addition, et une addition sur une page de vente est un endroit où
- * se tromper. Le tarif annuel est une LIGNE sous la carte, pas une seconde
- * carte: c'est une modalité de paiement, pas une seconde offre.
- */
-function Pricing() {
-  return (
-    <section className="border-b border-gray-200">
-      <div className="mx-auto max-w-6xl px-4 py-16">
-        <Kicker>{t("communities.pricing.kicker")}</Kicker>
-        <SectionTitle>{t("communities.pricing.title")}</SectionTitle>
-        <div className="mt-8 sm:max-w-sm">
-          <PriceCard
-            price={t("communities.pricing.seat")}
-            period={t("communities.pricing.seat_period")}
-            label={t("communities.pricing.seat_label")}
-          />
-          <p className="mt-3 text-sm leading-6 text-gray-500">
-            {t("communities.pricing.annual")}
-          </p>
-        </div>
-        <p className="mt-6 max-w-2xl text-base leading-7 text-gray-600">
-          {t("communities.pricing.why")}
-        </p>
+      <div className="mt-12 border-t border-line pt-10">
+        <h2 className="max-w-[28ch] text-balance font-display text-title">{t("communities.closing.title")}</h2>
         <div className="mt-8 flex flex-wrap items-center gap-4">
-          <ButtonLink to="/auth?role=coach" variant="primary" className="px-6 py-3 text-base">
-            {t("communities.pricing.cta")}
-          </ButtonLink>
-          <span className="text-sm text-gray-500">
-            {t("communities.pricing.trial_note")}
-          </span>
+          <Cta label={t("communities.closing.cta")} />
+          <span className="text-sm text-ink-soft">{t("communities.pricing.trial_note")}</span>
         </div>
+        <SignIn prompt={t("communities.closing.signin_prompt")} link={t("communities.closing.signin_link")} />
       </div>
-    </section>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Closing call
-// ---------------------------------------------------------------------------
-
-function ClosingCall() {
-  return (
-    <section>
-      <div className="mx-auto max-w-6xl px-4 py-20 text-center">
-        <h2 className="mx-auto max-w-2xl text-balance text-2xl font-semibold leading-tight sm:text-3xl">
-          {t("communities.closing.title")}
-        </h2>
-        <div className="mt-8 flex justify-center">
-          <ButtonLink to="/auth?role=coach" variant="primary" className="px-6 py-3 text-base">
-            {t("communities.closing.cta")}
-          </ButtonLink>
-        </div>
-        <p className="mt-4 text-sm text-gray-500">
-          {t("communities.closing.signin_prompt")}{" "}
-          <a href="/auth" className="font-medium text-gray-900 underline">
-            {t("communities.closing.signin_link")}
-          </a>
-        </p>
-      </div>
-    </section>
+    </Section>
   );
 }
 

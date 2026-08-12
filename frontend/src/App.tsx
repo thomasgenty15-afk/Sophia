@@ -2,18 +2,28 @@ import React from "react";
 import { BrowserRouter as Router, Navigate, Route, Routes } from "react-router-dom";
 import { ToastProvider } from "./components/ui/Toast";
 import { AuthProvider } from "./context/AuthProvider";
-// KEEL pivot: "/" sells Sophia to coaches (English, B2B). The old French
-// consumer landing (pages/LandingPage) is unmounted, not deleted.
-import LandingPage from "./keel/pages/LandingPage";
-// La seconde page de vente. Même produit, autre acheteur: `/` parle à qui vend
-// une formation, `/gyms` au propriétaire-coach d'une salle indépendante, dont la
-// douleur est le churn et pas le one-shot. Publique, statique, aucune redirection
-// pour un visiteur connecté — voir l'en-tête du fichier.
+// ── LA VITRINE ────────────────────────────────────────────────────────────
+// Deux mondes, chacun avec son hall et ses trois portes. Le hall porte la
+// promesse commune et oriente; la porte fait l'argument complet d'UN acheteur.
+//
+// LE MONDE DU FOYER. `/` vend au foyer depuis le 2026-08-12 (il vendait au
+// coach avant, et cette copie vit maintenant sous `/coaches`). Les trois portes
+// correspondent aux trois branches RÉELLES du parcours d'entrée
+// (`FunnelBranch = solo | pair | family`, onboarding.ts:84): la promesse d'une
+// page est donc tenue par l'écran suivant.
+import HomePage from "./keel/pages/HomePage";
+import MealPrepPage from "./keel/pages/MealPrepPage";
+import CouplesPage from "./keel/pages/CouplesPage";
+import FamiliesPage from "./keel/pages/FamiliesPage";
+// LE MONDE DES PROFESSIONNELS. Trois acheteurs distincts: qui vend une
+// formation (douleur: le one-shot), une salle indépendante (le churn), une
+// communauté payante (un fil ne répond pas à une personne — c'est de
+// l'architecture, pas de la charge de travail).
+// Publiques et statiques, SANS redirection pour un visiteur connecté: ce sont
+// des liens qu'on envoie. Seuls les deux halls redirigent.
+import ProPage from "./keel/pages/ProPage";
+import CoachesPage from "./keel/pages/CoachesPage";
 import GymsLandingPage from "./keel/pages/GymsLandingPage";
-// La troisième. Le propriétaire d'une communauté payante a DÉJÀ le récurrent —
-// ni le one-shot de `/`, ni le churn de `/gyms`: sa douleur est qu'un fil ne
-// peut pas répondre à une personne. Publique, statique, sans redirection pour
-// un visiteur connecté, comme `/gyms`.
 import CommunitiesPage from "./keel/pages/CommunitiesPage";
 import ProductPlan from "./pages/ProductPlan";
 import UpgradePlan from "./pages/UpgradePlan"; // IMPORT UPGRADE PAGE
@@ -76,16 +86,28 @@ function App() {
           <div className="min-h-screen bg-white text-black font-sans">
             <ErrorBoundary>
             <Routes>
-              <Route path="/" element={<LandingPage />} />
-              {/* La page de vente aux SALLES DE SPORT indépendantes. `/gyms` et
-                  pas `/keel/gyms`: « keel » est un nom interne et ne doit jamais
-                  affleurer dans une URL. */}
+              {/* ── LA VITRINE: DEUX MONDES, DEUX HALLS, SIX PORTES ────────
+                  Refonte du 2026-08-12. `/` vendait au COACH; il vend désormais
+                  au FOYER, et la page coach a déménagé sous `/coaches`.
+                  ⚠️ Aucune redirection n'est posée pour ce déménagement, et
+                  c'est délibéré: `/` n'a pas disparu, il a changé de contenu.
+                  Les liens profonds en circulation (`/gyms`, `/communities`) ne
+                  bougent pas.
+                  ⚠️ « keel » n'affleure dans AUCUNE de ces URL — c'est un nom
+                  interne — et aucun nom de plateforme non plus (Skool, Circle,
+                  Discord, Kajabi): il n'existe aucune intégration avec elles, et
+                  une URL qui en nommerait une promettrait le contraire.
+                  ⚠️ Seuls les deux HALLS redirigent un visiteur connecté vers
+                  son espace. Les six pages segment sont des liens qu'on envoie:
+                  y renvoyer un lecteur connecté ferait passer le lien pour
+                  cassé. */}
+              <Route path="/" element={<HomePage />} />
+              <Route path="/meal-prep" element={<MealPrepPage />} />
+              <Route path="/couples" element={<CouplesPage />} />
+              <Route path="/families" element={<FamiliesPage />} />
+              <Route path="/pro" element={<ProPage />} />
+              <Route path="/coaches" element={<CoachesPage />} />
               <Route path="/gyms" element={<GymsLandingPage />} />
-              {/* La page de vente aux PROPRIÉTAIRES DE COMMUNAUTÉ PAYANTE
-                  (Skool, Circle, Discord, Kajabi). Même règle d'URL que
-                  ci-dessus, et le nom d'aucune de ces plateformes n'y figure:
-                  il n'existe aucune intégration avec elles, et une URL qui en
-                  nommerait une promettrait le contraire. */}
               <Route path="/communities" element={<CommunitiesPage />} />
               {/* DE-WHATSAPP — `/chat` était le simulateur WhatsApp web (le trio
                   ChatPage + ChatInterface + useChat). Il redirige vers la vraie

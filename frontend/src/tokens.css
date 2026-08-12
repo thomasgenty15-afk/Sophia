@@ -215,6 +215,39 @@
 .fig-scroll { overflow-x: auto; overscroll-behavior-x: contain; }
 .fig-scroll > svg { min-width: 380px; }
 
+/* ⚠️ `min-width: 0`, ET C'EST CE QUI REND LE PLANCHER SÛR.
+   Un enfant de grille ou de flex a `min-width: auto` par défaut: il refuse de
+   devenir plus étroit que son contenu. Le plancher de 380px ci-dessus est donc
+   REMONTÉ à la piste de grille, qui élargit la page — mesuré: 420px de contenu
+   pour 320px d'écran, c'est-à-dire un défilement horizontal de la page entière,
+   exactement ce que le plancher existait pour éviter.
+   Le débordement doit rester BORNÉ au conteneur de figure. C'est le même piège
+   que `flex-1` sur un champ de saisie, et il se répare de la même façon.
+   Mesuré à 320px sur `/gyms` et `/communities`: la piste montait à 420px (le
+   plancher de 380 plus la marge intérieure de la figure), et la page défilait
+   de 100px. */
+.fig-scroll { min-width: 0; }
+
+/* ET SON ENVELOPPE. `min-width: 0` sur la figure ne suffit pas quand elle est
+   emballée: c'est l'ENVELOPPE qui est l'enfant de grille, et c'est donc SON
+   `min-width: auto` qui remonte le plancher jusqu'à la piste. Mesuré: les deux
+   coupables étaient un `<div class="max-w-[62ch]">` et un `<figure>`, pas la
+   figure elle-même.
+   Écrit ici plutôt que répété dans huit pages: six agents ont produit six
+   emballages différents autour de la même classe, et la septième page à naître
+   en inventera un septième. La règle suit la classe, pas la mise en page. */
+:where(:has(> .fig-scroll)) { min-width: 0; }
+
+/* ⚠️ ET SON PLAFOND — le plancher seul était un demi-réglage.
+   Une figure est dessinée sur une grille de 480 avec du texte à 9-13 unités.
+   Le plancher l'empêche de rétrécir sous 380 px; RIEN ne l'empêchait de
+   s'étirer. Mesuré sur une planche de 1200 px: le SVG montait à 1070 px, ce qui
+   porte le libellé de figure à 25 px — plus gros que le chapô de la section,
+   c'est-à-dire une figure qui crie plus fort que la phrase qu'elle illustre.
+   Le plafond appartient à `tokens.css` et non aux pages: six agents qui le
+   bornent chacun dans leur coin, c'est six valeurs différentes dans six mois. */
+.fig-scroll > svg { max-width: 560px; }
+
 @media (max-width: 640px) {
   /* La figure prend toute la largeur de l'écran, bords compris : 40 px gagnés
      sur le plancher, donc moins de défilement à parcourir. Les valeurs suivent

@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 380" width="480" height="380"
+     role="img" aria-labelledby="fig-monday-t fig-monday-d">
+  <title id="fig-monday-t">La page du lundi</title>
+  <desc id="fig-monday-d">Schéma de la page hebdomadaire : d’abord qui parle encore — en
+    contact, décrochage, silence — puis comment la semaine a été vécue, et en dernier
+    combien de membres se sont composé une semaine à partir de la méthode du coach. Les
+    silencieux sont sur la première ligne, avant tout le reste.</desc>
+
+  <!-- FIGURE D de /communities — MAQUETTE DE PRODUIT. Vue de face, plate, sans
+       chrome de navigateur ni cadre de téléphone (AUDIT C17 : il n’existe aucune
+       application mobile, en dessiner une serait la promesse la plus facile à
+       croire du site).
+
+       LES NOMBRES TOMBENT JUSTE, et c’est la cohorte de l’exemple de revenu de
+       la page : 71 + 34 + 45 = 150, et 58 + 26 + 11 + 55 = 150. 150 = les trois
+       membres sur dix d’une communauté de 500 qui prennent le palier. Deux
+       nombres qui ne concordent pas sur une page de vente, et toute la page
+       devient approximative.
+
+       LES SEUILS SONT CEUX DU CODE : 48 h ouvre `slipping`, 120 h ouvre
+       `silent` (coach_synthesis.ts:64-65), mesurés sur le dernier ENTRANT.
+       La dernière ligne dit « built », le mot du moteur (coach_synthesis.ts:566-568) —
+       la page actuelle écrit « wrote » et prétend citer : AUDIT B13.
+
+       AUCUNE PASTILLE COLORÉE (F10) : sur l’écran réel une bande ambre dit
+       qu’un état est vrai à cet instant ; sur une page de vente il n’y a pas
+       d’instant, et la couleur y serait de la décoration portant le costume du
+       sens. Le mot porte l’état.
+       Pièce chaude : l’équerre + le titre de l’écran. = 2. -->
+
+  <path d="M 8 40 L 8 16 A 8 8 0 0 1 16 8 L 40 8"
+        fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round"/>
+  <rect x="8" y="8" width="464" height="364" rx="16"
+        fill="var(--ill-wash, #EFE0E9)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+
+  <g font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)">
+    <text x="28" y="46" font-size="15" font-weight="600"
+          fill="var(--ill-fig, #632C4C)">Monday</text>
+
+    <!-- ── 1. QUI PARLE ENCORE, et les silencieux sont sur la première ligne. -->
+    <rect x="24" y="60" width="432" height="122" rx="12"
+          fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+    <text x="40" y="82" font-size="9" font-weight="600" letter-spacing="0.9"
+          fill="var(--ill-ink-soft, #6A5A64)">WHO IS STILL TALKING</text>
+
+    <g font-size="11" fill="var(--ill-ink, #23191F)">
+      <text x="40" y="108">In touch</text>
+      <text x="40" y="136">Slipping</text>
+      <text x="40" y="164">Silent</text>
+    </g>
+    <g font-size="9" fill="var(--ill-ink-soft, #6A5A64)">
+      <text x="140" y="108">answered within 2 days</text>
+      <text x="140" y="136">quiet 2 to 5 days</text>
+      <text x="140" y="164">quiet 5 days or more</text>
+    </g>
+    <g font-size="13" text-anchor="end" fill="var(--ill-ink, #23191F)"
+       font-variant-numeric="tabular-nums">
+      <text x="440" y="108">71</text>
+      <text x="440" y="136">34</text>
+      <text x="440" y="164">45</text>
+    </g>
+
+    <!-- ── 2. COMMENT LA SEMAINE A ÉTÉ VÉCUE. La quatrième ligne est un REFUS
+            de se prononcer, et elle est comptée comme les trois autres. ────── -->
+    <rect x="24" y="194" width="432" height="122" rx="12"
+          fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+    <text x="40" y="216" font-size="9" font-weight="600" letter-spacing="0.9"
+          fill="var(--ill-ink-soft, #6A5A64)">HOW THE WEEK WAS LIVED</text>
+
+    <g font-size="11" fill="var(--ill-ink, #23191F)">
+      <text x="40" y="240">Holding up</text>
+      <text x="40" y="262">Strained</text>
+      <text x="40" y="284">Having a hard time</text>
+      <text x="40" y="306">Not enough check-ins to say</text>
+    </g>
+    <g font-size="13" text-anchor="end" fill="var(--ill-ink, #23191F)"
+       font-variant-numeric="tabular-nums">
+      <text x="440" y="240">58</text>
+      <text x="440" y="262">26</text>
+      <text x="440" y="284">11</text>
+      <text x="440" y="306">55</text>
+    </g>
+
+    <!-- ── 3. CE QU’ILS SE SONT FIXÉ. « built », le mot du moteur. ─────────── -->
+    <rect x="24" y="328" width="432" height="36" rx="12"
+          fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+    <text x="40" y="352" font-size="11"
+          fill="var(--ill-ink, #23191F)">88 of 150 built themselves a week from your method.</text>
+  </g>
+</svg>

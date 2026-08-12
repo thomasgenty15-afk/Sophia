@@ -1,1040 +1,489 @@
-import React from "react";
 import { Link } from "react-router-dom";
 import SEO from "../../components/SEO";
 import { LEGAL_ENTITY, organizationStructuredData } from "../../lib/legalEntity";
 import { PublicFooter, PublicHeader } from "../components/PublicHeader";
-import { ButtonLink } from "../components/ui/Button";
-import { Card } from "../components/ui/Card";
 import { Kicker, PriceCard, SectionTitle } from "../components/ui/Marketing";
 import { t, type MessageKey } from "../i18n/t";
 
 /**
- * /gyms — the second sales page. Same product as `/`, different buyer, so a
- * different argument order, a different vocabulary and different numbers.
+ * /gyms — the owner of an independent gym. Box, strength hall, hybrid studio. His pain
+ * is CHURN: the member joined to change their body, nothing changes on their plate, and
+ * they leave. Rebuilt 2026-08-12 from `scratchpad/site/AUDIT-SITE.md`; the full
+ * reasoning, claim by claim, is in `scratchpad/site/gyms/RAPPORT.md`.
  *
- * ── WHY IT IS A SECOND PAGE AND NOT A PARAGRAPH ON `/` ────────────────────
- * `/` sells to someone who SELLS A COURSE: their pain is that a course is paid
- * once, and Sophia's gain is a recurring line where there was none. A gym
- * already has the recurring line — that IS the business — and its pain is
- * churn. The two pages therefore lead with different sentences and close with
- * different fears, and folding them together would produce a page that opens on
- * whichever half the reader isn't.
+ * ── THREE CLAIMS WERE REMOVED FROM THIS PAGE. DO NOT WRITE THEM BACK ──────────────
+ * B2 "6 € when your MEMBER has paid for their year" — FALSE, the annual interval is the
+ * COACH's (`stripe-create-checkout-session:124-125` reads `body.interval`, set by the
+ * coach's own billing buttons), so an owner would build an annual offer on a discount he
+ * cannot trigger; replaced by B3 in `gyms.price.annual`. · B16 "which parts of your
+ * method your members hold, which they drop, at what time of year" — NOTHING computes it;
+ * `source_belief_key` has one front-end reader and it is the STUDENT's own week
+ * (`weekPlan.ts:36-37`). Deleted, no replacement. · B18 "it is your name on the messages
+ * your members read" — FALSE, the agent is called Sophia everywhere and there is NO brand
+ * personalisation: no column, no screen, no string. The owner's name reaches a member in
+ * one place, the lock-2 substitution (B9); and do not drift into white-label (B19) —
+ * never claimed, and keeping it unclaimed is the point.
  *
- * ── THE BUYER, AND HE IS NARROW ON PURPOSE ───────────────────────────────
- * The OWNER-COACH: a box, a strength hall, a hybrid studio, 100–300 members,
- * one person with a stated position on how people should eat. He is the one who
- * sits the doctrine interview, and it is his name signing the messages.
+ * ── THE SILENCES (audit §9). All twelve bind; three bite here ────────────────────
+ * S5 never "nothing happens at night" — quiet hours cover the re-engagement nudge ONLY,
+ * and the evening tap can land at ten to ten (B24). · S10 a mock quotes the real field
+ * word for word, or it is not a mock. · S12 no member SKU in Stripe, and
+ * `gyms.price.billing_note` says so out loud. The other nine are in the audit.
  *
- * NOT the chain that appoints a nutritionist. Whoever fills in the doctrine has
- * to be whoever benefits from it, or the doctrine is filled out under duress and
- * the agent comes out generic — which is this product's FAILURE MODE, not a
- * lesser version of it. `Fit` says that out loud and turns that reader away
- * rather than taking his money; it is the only section on the page whose job is
- * to lose a sale.
+ * B20 — a gym with three coaches is ONE coach account: no gym entity, no roster, the
+ * tenancy is coach → coach_clients → student. `Fit` states it in as many words, which is
+ * what stops "your team" appearing in a later edit.
  *
- * ── THE THREE AXES, IN THIS ORDER, AND THE ORDER IS THE ARGUMENT ─────────
- *   1. REVENUE leads (`Hero` + the worked example). A cost argument caps at the
- *      owner's own hours and lands us next to gym-management software; a revenue
- *      argument doesn't cap. Same reasoning as the header of `landing.hero.*`.
- *   2. RETENTION second (`Churn`) — the argument that speaks loudest to a gym,
- *      but it reads better once the margin is already banked.
- *   3. DATA last (`MondayRead`) — the part he doesn't see coming. Framed as an
- *      EARLY CHURN WARNING: a "slipping" member is still reachable, where the
- *      access log only names them six weeks later, when they are gone.
- *
- * ── WHAT THIS PAGE MAY NOT PROMISE (checked in the code, 2026-08-06) ──────
- *   * No member payment inside Sophia — `stripe-create-checkout-session` has no
- *     member SKU. The owner bills his members with his own tools, and
- *     `gyms.pricing.billing_note` says so on the pricing section rather than
- *     leaving it to be discovered after signature.
- *   * No native app, therefore NO PUSH NOTIFICATION anywhere in this copy. The
- *     channel is the web and the in-app thread (`/app/chat`).
- *   * The protocol is NUTRITIONAL. No supplements, no sleep, no training load —
- *     the schema would carry them, the capture surface does not expose them, and
- *     a gym is exactly the buyer who would assume otherwise.
- *   * No integration with gym-management software. `gyms.hero.note` states it
- *     the right way round ("nothing to connect") instead of hiding it.
- *   * NO RETENTION FIGURE. We have not measured one. The retention section asks
- *     the question — what is a member who stays three months longer worth? —
- *     exactly as `landing.pricing.why` does, and says in as many words that we
- *     will not invent the number.
- *
- * ── DESIGN ───────────────────────────────────────────────────────────────
- * Identical to `/`, deliberately: light only, no brand accent, every saturated
- * colour is a STATE from the Badge kit's tones, and the single dark block is
- * spent on the double lock. A second sales page that invented its own palette
- * would read as a different company's site one click from the first.
- *
- * ── NO SIGNED-IN REDIRECT, UNLIKE `/` ────────────────────────────────────
- * The landing bounces a signed-in visitor to their space because `/` is where
- * everything defaults to. `/gyms` is a link somebody was SENT; bouncing the
- * signed-in owner who forwards it to a partner would make the link look broken.
- * `PublicHeader` already swaps its CTAs for a way back into the app.
+ * DESIGN — `scratchpad/site/design/CHARTE.md`, direction « la fiche ». Light ground, ONE
+ * dark block (the double lock), the equerre opening anything SPECIFIED, one figure per
+ * section: five, where the 1041-line version this replaces had zero. No photograph — the
+ * product makes no images, so a plate here would be a plate nobody cooked. And `/gyms` is
+ * a link somebody was SENT: no signed-in redirect, or the forwarded link looks broken.
  */
 
-// Hoisted: `SEO` holds `structuredData` in a `useEffect` dependency array, so an
-// inline literal would rebuild the <script> tags on every render.
-//
-// The Organization node is the shared declaration from `lib/legalEntity` — the
-// same one `/` and `/legal` make. The SoftwareApplication node carries THIS
-// page's url and description; the canonical below keeps the two pages from
-// reading as duplicates of each other.
+// Hoisted: `SEO` holds `structuredData` in a `useEffect` dependency array, so an inline
+// literal would rebuild the <script> tags on every render.
 const GYMS_STRUCTURED_DATA = [
   organizationStructuredData(),
   {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    name: "Sophia",
-    applicationCategory: "BusinessApplication",
-    operatingSystem: "Web",
-    url: `${LEGAL_ENTITY.siteUrl}/gyms`,
-    description: t("gyms.seo_description"),
-    inLanguage: "en-GB",
+    "@context": "https://schema.org", "@type": "SoftwareApplication", name: "Sophia",
+    applicationCategory: "BusinessApplication", operatingSystem: "Web", inLanguage: "en-GB",
+    url: `${LEGAL_ENTITY.siteUrl}/gyms`, description: t("gyms.seo_description"),
     publisher: organizationStructuredData(),
   },
 ];
 
 export function GymsLandingPage() {
   return (
-    <div className="min-h-screen bg-white text-gray-900">
-      <SEO
-        title={t("gyms.seo_title")}
-        description={t("gyms.seo_description")}
-        canonical={`${LEGAL_ENTITY.siteUrl}/gyms`}
-        structuredData={GYMS_STRUCTURED_DATA}
-      />
-
+    <div className="min-h-screen bg-paper text-ink">
+      <SEO title={t("gyms.seo_title")} description={t("gyms.seo_description")}
+        canonical={`${LEGAL_ENTITY.siteUrl}/gyms`} structuredData={GYMS_STRUCTURED_DATA} />
       <PublicHeader />
-
       <main>
         <Hero />
-        <Churn />
-        <HowItWorks />
-        {/*
-          ICI, ET PAS AILLEURS. `HowItWorks` vient de dire « you record your
-          method » — le lecteur a donc en tête, à cette seconde précise, que
-          quelqu'un doit s'asseoir et le faire. C'est le seul moment où « et ce
-          quelqu'un, c'est TOI » se lit comme une condition du produit plutôt
-          que comme une clause de réserve.
-
-          Elle reste AVANT `MondayRead` et `DoubleLock`: les deux sections
-          suivantes décrivent ce qu'on fait de la méthode, et un lecteur qui
-          n'est pas le bon acheteur doit l'avoir appris avant de les lire.
-        */}
+        <Money />
+        <Daily />
+        <Monday />
+        {/* ICI, ET PAS AILLEURS: le lecteur vient de voir ce que l'agent écrit, c'est le seul
+            moment où « et celui qui l'a écrite, c'est TOI » est une condition, pas une clause. */}
         <Fit />
-        <MondayRead />
-        <DoubleLock />
-        <Doctrine />
+        <Lock />
         <Pricing />
-        <ClosingCall />
+        <Closing />
       </main>
-
       <PublicFooter />
     </div>
   );
 }
 
-// ---------------------------------------------------------------------------
-// Hero
-// ---------------------------------------------------------------------------
+/** ⚠️ Padding en propriétés SÉPARÉES, jamais en raccourci: mesuré à 320 px sur la maquette
+ *  de la charte, `padding: 84px 0 76px` remet le padding horizontal à zéro. */
+const SHELL = "mx-auto max-w-[1200px] px-5 pb-10 pt-11 sm:px-8 sm:pb-[76px] sm:pt-[84px]";
+const BODY = "text-base leading-[1.6]";
+const TWO_COL = "mt-8 grid gap-10 lg:grid-cols-[1fr_auto] lg:items-start lg:gap-16";
+
+function Section({ alt = false, children }: { alt?: boolean; children: React.ReactNode }) {
+  return (
+    <section className={alt ? "bg-paper-2" : "bg-paper"}>
+      <div className={SHELL}>{children}</div>
+    </section>
+  );
+}
+
+/** Sur les 280 px utiles d'un 320, le texte d'une figure tombe à 5-7 px: `fig-scroll` lui
+ *  donne une largeur plancher et fait défiler SON conteneur, jamais la page. */
+function Figure({ children, dark = false }: { children: React.ReactNode; dark?: boolean }) {
+  return <div className={dark ? "fig-scroll on-dark" : "fig-scroll"}>{children}</div>;
+}
+
+/** Un seul CTA sur la page, répété trois fois, sans offre concurrente à côté. */
+function Cta({ labelKey }: { labelKey: MessageKey }) {
+  const cls =
+    "inline-flex items-center justify-center rounded-full bg-fig-700 px-6 py-3 text-base font-medium text-paper transition-colors hover:bg-fig-800";
+  return <Link to="/auth?role=coach" className={cls}>{t(labelKey)}</Link>;
+}
 
 function Hero() {
   return (
-    <section className="border-b border-gray-200">
-      <div className="mx-auto grid max-w-6xl gap-12 px-4 py-16 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:py-24">
+    <Section>
+      <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16">
         <div>
-          <Kicker>{t("gyms.hero.kicker")}</Kicker>
-          <h1 className="mt-3 text-balance text-4xl font-semibold leading-[1.08] tracking-tight sm:text-5xl">
-            {t("gyms.hero.title")}
-          </h1>
-          <p className="mt-6 max-w-xl text-lg leading-8 text-gray-600">
-            {t("gyms.hero.subtitle")}
-          </p>
-          <div className="mt-8 flex flex-wrap items-center gap-3">
-            <ButtonLink to="/auth?role=coach" variant="primary" className="px-6 py-3 text-base">
-              {t("gyms.hero.cta_trial")}
-            </ButtonLink>
-            <ButtonLink to="/auth" variant="secondary" className="px-6 py-3 text-base">
-              {t("gyms.hero.cta_signin")}
-            </ButtonLink>
-          </div>
-          <p className="mt-4 max-w-md text-sm leading-6 text-gray-500">
-            {t("gyms.hero.note")}
-          </p>
-          {/* Même porte discrète que sur `/`, et pour la même raison: un gérant
-              qui évalue veut voir le produit du côté du membre avant d'y
-              inviter qui que ce soit. Une ligne de texte, pas un troisième
-              bouton — cette page vend à celui qui PAIE. */}
-          <p className="mt-3 max-w-md text-sm leading-6 text-gray-500">
-            {t("gyms.hero.try_prompt")}{" "}
-            <Link to="/start" className="font-medium text-gray-900 underline">
-              {t("gyms.hero.try_cta")}
-            </Link>
-          </p>
+          <Kicker>{t("gyms.hero.eyebrow")}</Kicker>
+          <h1 className="mt-4 max-w-[16ch] text-balance font-display text-hero">{t("gyms.hero.title")}</h1>
+          <p className="mt-6 max-w-[62ch] text-lede text-ink-soft">{t("gyms.hero.lede")}</p>
+          <div className="mt-8"><Cta labelKey="gyms.hero.cta" /></div>
+          {/* fact: B5 — 20260727235000_keel_billing_seats.sql:110-136 */}
+          <p className="mt-4 max-w-[52ch] text-sm text-ink-soft">{t("gyms.hero.trial_note")}</p>
+          {/* fact: B32 — coach-invite-student-v1:5-32 ; C17 — aucune intégration n'existe */}
+          <p className="mt-2 max-w-[52ch] text-sm text-ink-soft">{t("gyms.hero.note")}</p>
         </div>
-        <MoneyPanel />
+        <Figure><FigWeek /></Figure>
       </div>
-    </section>
+    </Section>
   );
 }
 
-// ---------------------------------------------------------------------------
-// The worked example — the hero's thesis object
-// ---------------------------------------------------------------------------
-
-/**
- * The hero panel on `/` is the Monday page, because a course seller buys the
- * artefact. A gym owner buys the ARITHMETIC, and he should be able to read it
- * in thirty seconds without scrolling: members, take-up, in, out, kept.
- *
- * IT IS LABELLED AN EXAMPLE IN THREE PLACES — the panel title, the subtitle,
- * and the caption underneath, which names the two numbers we do not know (his
- * take-up and his price) and the one that isn't an estimate (our 7 €). This
- * page's whole credibility rests on the reader believing the pricing section
- * later; a number here that quietly pretends to be a forecast spends that.
- *
- * The figures live in `gyms.money.*` rather than in this file: they are copy,
- * they are checked as a set (the arithmetic is spelled out in the i18n header),
- * and a page that hardcodes "925 €" in JSX is a page where the total and the
- * caption drift apart on the first edit.
- */
-function MoneyPanel() {
+function Money() {
   return (
-    <div>
-      <Card padded={false} className="shadow-sm">
-        <header className="border-b border-gray-200 px-4 py-3">
-          <div className="text-sm font-semibold text-gray-900">
-            {t("gyms.money.title")}
-          </div>
-          <div className="text-xs text-gray-500">{t("gyms.money.subtitle")}</div>
-        </header>
-
-        <PanelBlock label={t("gyms.money.uptake_label")}>
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-semibold tabular-nums leading-none text-gray-900">
-              {t("gyms.money.uptake_value")}
-            </span>
-            <span className="text-sm text-gray-600">{t("gyms.money.uptake_unit")}</span>
-          </div>
-          <p className="mt-1 text-xs leading-5 text-gray-500">
-            {t("gyms.money.uptake_hint")}
-          </p>
-        </PanelBlock>
-
-        <PanelBlock label={t("gyms.money.month_label")}>
-          <dl className="divide-y divide-gray-100">
-            <MoneyRow label={t("gyms.money.in_label")} value={t("gyms.money.in_value")} />
-            <MoneyRow label={t("gyms.money.out_label")} value={t("gyms.money.out_value")} />
-            {/*
-              La ligne qui porte l'argument, donc la seule en gras et en corps
-              supérieur. Pas de couleur: sur cette page toute couleur saturée est
-              un ÉTAT (les tons du Badge kit), et un total en vert se lirait
-              comme un statut « bon » calculé par le produit alors que c'est une
-              soustraction dans un exemple.
-            */}
-            <MoneyRow
-              label={t("gyms.money.keep_label")}
-              value={t("gyms.money.keep_value")}
-              hint={t("gyms.money.keep_hint")}
-              strong
-            />
-          </dl>
-        </PanelBlock>
-
-        <div className="flex items-baseline justify-between gap-3 border-t border-gray-200 bg-gray-50 px-4 py-3">
-          <div className="text-[0.6875rem] font-semibold uppercase tracking-wider text-gray-500">
-            {t("gyms.money.hours_label")}
-          </div>
-          <div className="text-sm font-semibold text-gray-900">
-            {t("gyms.money.hours_value")}
-          </div>
+    <Section alt>
+      <Kicker>{t("gyms.money.eyebrow")}</Kicker>
+      <SectionTitle>{t("gyms.money.title")}</SectionTitle>
+      <div className="mt-8 grid gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-start lg:gap-16">
+        <div className="max-w-[62ch]">
+          {/* fact: B1 — stripe-create-checkout-session:120-125 ; B4 — stripe-reconcile-seats:18-35 */}
+          <p className={`${BODY} text-ink-soft`}>{t("gyms.money.body")}</p>
+          {/* fact: B31 — rien dans le dépôt ne mesure le churn contre un témoin */}
+          <p className={`mt-6 ${BODY}`}>{t("gyms.money.close")}</p>
         </div>
-      </Card>
-      <p className="mt-3 text-xs leading-5 text-gray-500">{t("gyms.money.caption")}</p>
-    </div>
-  );
-}
-
-function PanelBlock({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="border-t border-gray-200 px-4 py-3 first-of-type:border-t-0">
-      <div className="text-[0.6875rem] font-semibold uppercase tracking-wider text-gray-500">
-        {label}
-      </div>
-      <div className="mt-2">{children}</div>
-    </div>
-  );
-}
-
-/**
- * One line of the month. The amount is `shrink-0` and the label `min-w-0`, so
- * at 320px the sentence wraps and the number never does: a euro figure broken
- * across two lines is a euro figure the reader re-reads instead of believing.
- */
-function MoneyRow({
-  label,
-  value,
-  hint,
-  strong = false,
-}: {
-  label: string;
-  value: string;
-  hint?: string;
-  strong?: boolean;
-}) {
-  return (
-    <div className="flex items-baseline justify-between gap-3 py-2">
-      <dt className="min-w-0 text-sm leading-6 text-gray-600">
-        <span className={strong ? "font-semibold text-gray-900" : undefined}>{label}</span>
-        {hint ? <span className="block text-xs text-gray-500">{hint}</span> : null}
-      </dt>
-      <dd
-        className={`shrink-0 tabular-nums text-gray-900 ${
-          strong ? "text-xl font-semibold" : "text-base font-medium"
-        }`}
-      >
-        {value}
-      </dd>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Retention
-// ---------------------------------------------------------------------------
-
-/**
- * The argument a gym feels hardest, and the one place on this page where it
- * would be easy to lie. Every claim here is either about the world (a member
- * who plateaus drifts) or about a mechanism we can point at:
- *
- *   p2 — `REENGAGE_AFTER_HOURS = 72` and `REENGAGE_MIN_GAP_HOURS`, in
- *        `_shared/keel/reengagement.ts`. The "one nudge, then quiet" is a bound
- *        in that module, not an intention, and the 72h threshold carries its own
- *        measured justification (at 48h you fire inside normal rhythm).
- *   p3 — asks what a retained member is WORTH instead of asserting a retention
- *        lift, and says we have no such figure. We don't: nothing in this repo
- *        measures churn against a control.
- */
-function Churn() {
-  const points: { title: string; body: string }[] = [
-    { title: t("gyms.churn.p1_title"), body: t("gyms.churn.p1_body") },
-    { title: t("gyms.churn.p2_title"), body: t("gyms.churn.p2_body") },
-    { title: t("gyms.churn.p3_title"), body: t("gyms.churn.p3_body") },
-  ];
-  return (
-    <section className="border-b border-gray-200">
-      <div className="mx-auto max-w-6xl px-4 py-16">
-        <Kicker>{t("gyms.churn.kicker")}</Kicker>
-        <SectionTitle>{t("gyms.churn.title")}</SectionTitle>
-        <p className="mt-6 max-w-2xl text-base leading-7 text-gray-600">
-          {t("gyms.churn.body")}
-        </p>
-        <dl className="mt-10 grid gap-8 border-t border-gray-200 pt-8 sm:grid-cols-3 sm:gap-10">
-          {points.map((point) => (
-            <div key={point.title}>
-              <dt className="text-base font-semibold leading-6 text-gray-900">
-                {point.title}
-              </dt>
-              <dd className="mt-2 text-sm leading-6 text-gray-600">{point.body}</dd>
-            </div>
-          ))}
-        </dl>
-        <p className="mt-10 max-w-2xl text-base font-medium leading-7 text-gray-900">
-          {t("gyms.churn.close")}
-        </p>
-      </div>
-    </section>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// How it works
-// ---------------------------------------------------------------------------
-
-/**
- * Three cadences, not 1-2-3: the asymmetry between recording a method ONCE and
- * having it answer EVERY DAY is the pitch, and a numbered pill would only have
- * said "there are three of them".
- *
- * The Monday step that closes this list on `/` is not here — it has its own
- * section below, because for a gym it is an argument (an early churn warning)
- * rather than the last step of a setup.
- */
-function HowItWorks() {
-  return (
-    <section className="border-b border-gray-200">
-      <div className="mx-auto max-w-6xl px-4 py-16">
-        <Kicker>{t("gyms.how.kicker")}</Kicker>
-        <SectionTitle>{t("gyms.how.title")}</SectionTitle>
-
-        <ol className="mt-10 border-t border-gray-200">
-          <Step
-            when={t("gyms.how.step1_when")}
-            title={t("gyms.how.step1_title")}
-            body={t("gyms.how.step1_body")}
-          />
-          <Step
-            when={t("gyms.how.step2_when")}
-            title={t("gyms.how.step2_title")}
-            body={t("gyms.how.step2_body")}
-          >
-            <ChatMock />
-          </Step>
-          <Step
-            when={t("gyms.how.space_when")}
-            title={t("gyms.how.space_title")}
-            body={t("gyms.how.space_body")}
-          />
-        </ol>
-      </div>
-    </section>
-  );
-}
-
-/**
- * A step is a row, not a card: the eyebrow carries a CADENCE, and a cadence is a
- * schedule. Three identical cards would have flattened "once" and "every day"
- * into two equal things, which is the one thing they are not.
- */
-function Step({
-  when,
-  title,
-  body,
-  children,
-}: {
-  when: string;
-  title: string;
-  body: string;
-  children?: React.ReactNode;
-}) {
-  return (
-    <li className="grid gap-3 border-b border-gray-200 py-8 sm:grid-cols-[8rem_1fr] sm:gap-8">
-      <div className="pt-0.5 text-xs font-semibold uppercase tracking-widest text-gray-900">
-        {when}
-      </div>
-      <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-start lg:gap-12">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-          <p className="mt-2 max-w-xl text-base leading-7 text-gray-600">{body}</p>
+          {/* fact: B30 — juste ET étiqueté « exemple »: c'est la paire qui rend crédible */}
+          <Figure><FigMoney /></Figure>
+          <p className="mt-3 max-w-[62ch] text-sm text-ink-soft">{t("gyms.money.caption")}</p>
         </div>
-        {children}
       </div>
-    </li>
+    </Section>
   );
 }
 
-/**
- * The daily surface, schematic. Two exchanges, because they are the two halves
- * of the day the product actually owns: a meal answered in the owner's method,
- * and the evening tap the Monday page is built out of.
- *
- * Three buttons and not a 0-10 scale: the pulse has three levels
- * (`_shared/keel/daily_pulse.ts`), and three is the right shape for a member who
- * has trained, worked and eaten before being asked.
- */
-function ChatMock() {
+function Daily() {
   return (
-    <div className="w-full lg:w-80">
-      <div className="text-[0.6875rem] font-semibold uppercase tracking-wider text-gray-500">
-        {t("gyms.mock.chat_label")}
-      </div>
-      <div className="mt-2 space-y-2 rounded-xl border border-gray-200 bg-gray-50 p-3">
-        <div className="ml-8 rounded-lg rounded-br-sm bg-gray-900 p-2 text-xs leading-5 text-white">
-          <MockPlatePhoto />
-          <p className="mt-1.5 px-1">{t("gyms.mock.chat_member")}</p>
-        </div>
-        <div className="mr-8 rounded-lg rounded-bl-sm border border-gray-200 bg-white px-3 py-2 text-xs leading-5 text-gray-700">
-          {t("gyms.mock.chat_sophia")}
-        </div>
-        <div className="mr-8 rounded-lg rounded-bl-sm border border-gray-200 bg-white px-3 py-2">
-          <p className="text-xs leading-5 text-gray-700">{t("gyms.mock.chat_evening")}</p>
-          <div className="mt-2 grid grid-cols-3 gap-1">
-            {[
-              t("gyms.mock.chat_tap_good"),
-              t("gyms.mock.chat_tap_mixed"),
-              t("gyms.mock.chat_tap_hard"),
-            ].map((label) => (
-              <span
-                key={label}
-                className="rounded border border-gray-300 px-1 py-1 text-center text-[0.6875rem] font-medium text-gray-700"
-              >
-                {label}
-              </span>
-            ))}
+    <Section>
+      <Kicker>{t("gyms.daily.eyebrow")}</Kicker>
+      <SectionTitle>{t("gyms.daily.title")}</SectionTitle>
+      <div className={TWO_COL}>
+        <div className="max-w-[62ch]">
+          {/* fact: B22 — daily_pulse.ts, 3 niveaux ; B23 — level !== "good": « So-so » relance */}
+          <p className={`${BODY} text-ink-soft`}>{t("gyms.daily.body")}</p>
+          <div className="mt-8 border-t border-line pt-6">
+            <h3 className="font-display text-sub">{t("gyms.daily.quiet_title")}</h3>
+            {/* fact: B21 — reengagement.ts:45,53,211-213 ; B24 — les heures calmes ne valent
+                que pour la relance, le tap du soir peut tomber à 21 h 50 (S5) */}
+            <p className={`mt-3 ${BODY} text-ink-soft`}>{t("gyms.daily.quiet_body")}</p>
           </div>
         </div>
+        <div className="lg:w-[420px]">
+          {/* fact: S10 — mot pour mot: daily_pulse.ts:85-92,114-115 · chat.title/subtitle/send */}
+          <Figure><FigThread /></Figure>
+          <p className="mt-3 text-sm text-ink-soft">{t("gyms.daily.fig_caption")}</p>
+        </div>
       </div>
-      <p className="mt-2 text-xs leading-5 text-gray-500">
-        {t("gyms.mock.chat_caption")}
-      </p>
-    </div>
+    </Section>
   );
 }
 
-/**
- * Schematic stand-in for the photo a member sends. Deliberately NOT a
- * photograph: a real plate picture would read as somebody's actual meal, and we
- * show no data we do not have. The two shapes are the two food groups named back
- * in the reply — greens and a protein — so the mock and the answer describe the
- * same plate.
- */
-function MockPlatePhoto() {
+function Monday() {
   return (
-    <div
-      role="img"
-      aria-label={t("gyms.mock.photo_alt")}
-      className="flex aspect-[4/3] w-40 max-w-full items-center justify-center rounded-md bg-gray-700"
-    >
-      <div className="relative h-20 w-20 rounded-full bg-gray-200">
-        <span className="absolute left-2 top-4 h-12 w-7 rounded-full bg-emerald-300" />
-        <span className="absolute right-2.5 top-6 h-8 w-8 rounded-md bg-amber-200" />
+    <Section alt>
+      <Kicker>{t("gyms.monday.eyebrow")}</Kicker>
+      <SectionTitle>{t("gyms.monday.title")}</SectionTitle>
+      <div className={TWO_COL}>
+        <div className="max-w-[62ch]">
+          {/* fact: B11 — cron '0 6 * * 1', renderSynthesisText pur ; B14 — coach_synthesis:64-65 */}
+          <p className={`${BODY} text-ink-soft`}>{t("gyms.monday.body")}</p>
+          <p className={`mt-6 ${BODY}`}>{t("gyms.monday.close")}</p>
+          {/* fact: B17 — coach_synthesis_io.ts:171-187 */}
+          <p className={`eq mt-8 border-t border-line pt-6 ${BODY}`}>{t("gyms.monday.scope")}</p>
+        </div>
+        <div className="lg:w-[420px]">
+          {/* fact: S10 — CoachWeeklyPage.tsx:192,231,272,282 · copy/flagReasons.ts */}
+          <Figure><FigMonday /></Figure>
+          <p className="mt-3 text-sm text-ink-soft">{t("gyms.monday.fig_caption")}</p>
+        </div>
       </div>
-    </div>
+    </Section>
   );
 }
 
-// ---------------------------------------------------------------------------
-// Who this is for
-// ---------------------------------------------------------------------------
-
-/**
- * THE SECTION WHOSE JOB IS TO LOSE A SALE.
- *
- * A chain that appoints a nutritionist to sit the doctrine interview is a
- * customer we do not want: the person doing the work gets none of the benefit,
- * so the doctrine comes out thin, so the agent comes out generic — and a generic
- * agent is the failure mode of this product. He churns in month two and tells
- * the room it didn't work.
- *
- * Two columns rather than a paragraph, because the reader has to be able to find
- * himself in one of them at a glance. The "not for you" column is the same size
- * and weight as the other one: a disqualification set in small grey text is a
- * disqualification written to be skipped.
- *
- * ⚠️ LA SECTION S'ARRÊTE SUR LES DEUX COLONNES. Elle se terminait par « si tu
- * n'as pas de position sur la façon dont tes membres devraient manger, ce n'est
- * pas encore pour toi ». RETIRÉE, et ne pas la réécrire: la question ici est
- * QUI s'assied à l'entretien, pas si le propriétaire pense correctement. Même
- * dérive que la ligne « macro-first » retirée de `Doctrine` — cette page vend un
- * produit, elle ne décide pas qui a le droit de l'acheter.
- */
+/** La section dont le travail est de PERDRE une vente: qui délègue l'entretien récupère
+ *  une doctrine remplie sous contrainte, donc un agent générique — le mode d'échec. */
 function Fit() {
   return (
-    <section className="border-b border-gray-200 bg-gray-50">
-      <div className="mx-auto max-w-6xl px-4 py-16">
-        <Kicker>{t("gyms.fit.kicker")}</Kicker>
-        <SectionTitle>{t("gyms.fit.title")}</SectionTitle>
-        <p className="mt-6 max-w-2xl text-base leading-7 text-gray-600">
-          {t("gyms.fit.body")}
-        </p>
-
-        <dl className="mt-10 grid gap-8 border-t border-gray-200 pt-8 sm:grid-cols-2 sm:gap-12">
-          <div>
-            <dt className="text-base font-semibold leading-6 text-gray-900">
-              {t("gyms.fit.yes_title")}
-            </dt>
-            <dd className="mt-2 text-sm leading-6 text-gray-600">{t("gyms.fit.yes_body")}</dd>
-          </div>
-          <div>
-            <dt className="text-base font-semibold leading-6 text-gray-900">
-              {t("gyms.fit.no_title")}
-            </dt>
-            <dd className="mt-2 text-sm leading-6 text-gray-600">{t("gyms.fit.no_body")}</dd>
-          </div>
-        </dl>
-      </div>
-    </section>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// The Monday read — the data axis
-// ---------------------------------------------------------------------------
-
-function MondayRead() {
-  const points: { title: string; body: string }[] = [
-    { title: t("gyms.data.p1_title"), body: t("gyms.data.p1_body") },
-    { title: t("gyms.data.p2_title"), body: t("gyms.data.p2_body") },
-    { title: t("gyms.data.p3_title"), body: t("gyms.data.p3_body") },
-  ];
-  return (
-    <section className="border-b border-gray-200">
-      <div className="mx-auto max-w-6xl px-4 py-16">
-        <Kicker>{t("gyms.data.kicker")}</Kicker>
-        <SectionTitle>{t("gyms.data.title")}</SectionTitle>
-
-        {/*
-          Le panneau est apparié à l'INTRO, pas à la section entière — même
-          arbitrage que `OneToOneNote` sur `/`, et pour la même raison mesurée:
-          apparié aux trois points, il laissait ~350px de colonne gauche vide,
-          parce que la maquette du lundi est plus haute que les trois
-          paragraphes. Les points passent donc en pleine largeur en dessous.
-        */}
-        <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_auto] lg:items-start lg:gap-16">
-          <p className="max-w-xl text-base leading-7 text-gray-600">
-            {t("gyms.data.body")}
-          </p>
-          <MondayPanel />
+    <Section>
+      <Kicker>{t("gyms.fit.eyebrow")}</Kicker>
+      <SectionTitle>{t("gyms.fit.title")}</SectionTitle>
+      {/* fact: B28 — doctrine.ts:38-43 (cache = hash) · coach-doctrine-v1:1263 (rollback) */}
+      <p className={`mt-6 max-w-[62ch] ${BODY} text-ink-soft`}>{t("gyms.fit.body")}</p>
+      <dl className="mt-10 grid gap-8 border-t border-line pt-8 sm:grid-cols-2 sm:gap-12">
+        {/* fact: B20 — tenancy coach → coach_clients → student, ni entité salle ni roster */}
+        <div>
+          <dt className="font-display text-sub">{t("gyms.fit.one_title")}</dt>
+          <dd className={`mt-3 max-w-[52ch] ${BODY} text-ink-soft`}>{t("gyms.fit.one_body")}</dd>
         </div>
-
-        <dl className="mt-10 grid gap-8 border-t border-gray-200 pt-8 sm:grid-cols-3 sm:gap-10">
-          {points.map((point) => (
-            <div key={point.title}>
-              <dt className="text-base font-semibold leading-6 text-gray-900">
-                {point.title}
-              </dt>
-              <dd className="mt-2 text-sm leading-6 text-gray-600">{point.body}</dd>
-            </div>
-          ))}
-        </dl>
-      </div>
-    </section>
-  );
-}
-
-/**
- * Schematic of the Monday page, in the order the synthesis itself renders
- * (`_shared/keel/coach_synthesis.ts`): CONTACT, then LIVABILITY, then what the
- * members set themselves.
- *
- * NO RISK BANDS AND NO "ON TRACK: 22" TILE. Those came from the adherence
- * evaluator, which migration 20260803200000 unplugged from the 1:N path —
- * showing them would advertise a grade nobody computes, on a compliance
- * dashboard we deliberately removed, to the one buyer most likely to want one.
- *
- * The labels are `gyms.*`-scoped rather than borrowed from `coach.dashboard.*`
- * or from `landing.mock.*`: the first still carries pre-pivot adherence
- * vocabulary, and the second belongs to a page that will be edited by somebody
- * who is not thinking about this one.
- */
-function MondayPanel() {
-  return (
-    <div className="w-full lg:w-80">
-      <Card padded={false} className="shadow-sm">
-        <header className="border-b border-gray-200 px-4 py-3">
-          <div className="text-sm font-semibold text-gray-900">
-            {t("gyms.mock.monday_title")}
-          </div>
-          <div className="text-xs text-gray-500">{t("gyms.mock.monday_subtitle")}</div>
-        </header>
-
-        <PanelBlock label={t("gyms.mock.contact_label")}>
-          <ul className="divide-y divide-gray-100">
-            <ContactRow
-              tone="positive"
-              label={t("gyms.mock.contact_responsive")}
-              hint={t("gyms.mock.contact_responsive_hint")}
-              count={26}
-            />
-            <ContactRow
-              tone="caution"
-              label={t("gyms.mock.contact_slipping")}
-              hint={t("gyms.mock.contact_slipping_hint")}
-              count={7}
-            />
-            <ContactRow
-              tone="critical"
-              label={t("gyms.mock.contact_silent")}
-              hint={t("gyms.mock.contact_silent_hint")}
-              count={4}
-            />
-          </ul>
-          {/* L'ALERTE PRÉCOCE, DITE SUR LA LIGNE ELLE-MÊME. C'est le seul
-              endroit de la page où le chiffre du milieu devient une action, et
-              il doit se lire sans quitter le panneau. */}
-          <p className="mt-3 text-xs leading-5 text-gray-500">
-            {t("gyms.mock.slipping_note")}
-          </p>
-        </PanelBlock>
-
-        <PanelBlock label={t("gyms.mock.felt_label")}>
-          <LivabilityUnits />
-          <p className="mt-3 text-xs leading-5 text-gray-500">
-            {t("gyms.mock.felt_caption")}
-          </p>
-        </PanelBlock>
-
-        <div className="border-t border-gray-200 bg-gray-50 px-4 py-3">
-          <div className="text-[0.6875rem] font-semibold uppercase tracking-wider text-gray-500">
-            {t("gyms.mock.intent_label")}
-          </div>
-          <p className="mt-1 text-sm leading-6 text-gray-700">
-            {t("gyms.mock.intent_line")}
-          </p>
+        <div>
+          <dt className="font-display text-sub">{t("gyms.fit.no_title")}</dt>
+          <dd className={`mt-3 max-w-[52ch] ${BODY} text-ink-soft`}>{t("gyms.fit.no_body")}</dd>
         </div>
-      </Card>
-      <p className="mt-3 text-xs leading-5 text-gray-500">{t("gyms.mock.caption")}</p>
-    </div>
-  );
-}
-
-/** Tones are the Badge kit's, used here as a stripe: state read before it is read. */
-const STRIPE: Record<string, string> = {
-  positive: "bg-emerald-500",
-  caution: "bg-amber-500",
-  critical: "bg-red-500",
-  neutral: "bg-gray-300",
-};
-
-function ContactRow({
-  tone,
-  label,
-  hint,
-  count,
-}: {
-  tone: keyof typeof STRIPE;
-  label: string;
-  hint: string;
-  count: number;
-}) {
-  return (
-    <li className="flex items-center gap-3 py-2">
-      <span className={`h-8 w-1 shrink-0 rounded-full ${STRIPE[tone]}`} aria-hidden="true" />
-      <span className="min-w-0 flex-1">
-        <span className="block text-sm font-medium text-gray-900">{label}</span>
-        <span className="block text-xs text-gray-500">{hint}</span>
-      </span>
-      <span className="text-base font-semibold tabular-nums text-gray-900">{count}</span>
-    </li>
-  );
-}
-
-/**
- * The week's livability, one cell per member.
- *
- * WHY CELLS AND NOT A PROPORTIONAL BAR: a stacked bar's grammar is share, and a
- * share is one short step from the percentage this product refuses to print.
- * Cells are countable, so `unknown` reads as six people we will not vouch for
- * rather than as a thin slice of nothing.
- *
- * Colour is state (Badge tones) and never travels alone — every group is
- * direct-labelled underneath with its word and its count. The counts sum to the
- * same 37 as the contact block above and as the hero's worked example: a
- * schematic that disagrees with itself is read as a mock-up, which is exactly
- * what we are trying not to look like.
- */
-const LIVABILITY: { key: string; label: MessageKey; count: number; cell: string }[] = [
-  {
-    key: "sustainable",
-    label: "gyms.mock.felt_sustainable",
-    count: 20,
-    cell: "bg-emerald-500",
-  },
-  { key: "strained", label: "gyms.mock.felt_strained", count: 8, cell: "bg-amber-500" },
-  { key: "hard", label: "gyms.mock.felt_hard", count: 3, cell: "bg-red-500" },
-  {
-    key: "unknown",
-    label: "gyms.mock.felt_unknown",
-    count: 6,
-    // Not a colour with an opinion: we are declining to say, so the cell is a
-    // hollow ring rather than a filled state. Solid, not dashed — a dashed
-    // border on a 10px circle renders as fuzz, which reads as a rendering bug
-    // rather than as a deliberate absence.
-    cell: "border-2 border-gray-400 bg-white",
-  },
-];
-
-function LivabilityUnits() {
-  return (
-    <div>
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        {LIVABILITY.map((band) => (
-          <div
-            key={band.key}
-            className="flex flex-wrap gap-1"
-            role="img"
-            aria-label={`${band.count} ${t(band.label)}`}
-          >
-            {Array.from({ length: band.count }).map((_, i) => (
-              <span key={i} className={`h-2.5 w-2.5 rounded-full ${band.cell}`} />
-            ))}
-          </div>
-        ))}
-      </div>
-      <dl className="mt-3 grid grid-cols-1 gap-x-4 gap-y-1">
-        {LIVABILITY.map((band) => (
-          <div key={band.key} className="flex items-center gap-2">
-            <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${band.cell}`} aria-hidden="true" />
-            <dt className="min-w-0 flex-1 truncate text-xs text-gray-600">{t(band.label)}</dt>
-            <dd className="text-xs font-semibold tabular-nums text-gray-900">{band.count}</dd>
-          </div>
-        ))}
       </dl>
-    </div>
+    </Section>
   );
 }
 
-// ---------------------------------------------------------------------------
-// The double lock — the page's one dark block
-// ---------------------------------------------------------------------------
-
-/**
- * The strongest argument the product has, and the only one a competitor cannot
- * copy in a weekend: the method is injected into the prompt AND verified
- * deterministically on every outgoing message (`_shared/keel/doctrine.ts`).
- *
- * ONE THING IS SAID DIFFERENTLY HERE THAN ON `/`, and it is the close. There,
- * the argument is that "ask your coach" points at a door which doesn't exist —
- * a masterclass has no one-to-one channel. In a gym that door EXISTS: the coach
- * is in the room, forty hours a week. So the close is about the hour instead of
- * the door — 9pm on a Tuesday, when the member is in their kitchen and the owner
- * is at home. Reusing the masterclass sentence here would have been an argument
- * this reader can refute from his own front desk.
- *
- * The trace shows the mechanism instead of asserting it. Badge is not used: its
- * tones are built for light surfaces, and a `bg-red-50` chip on gray-950 would
- * be a bright block. Same semantics, restated for this ground.
- */
-function DoubleLock() {
+/** ⚠️ FORMULATION B8b, ET PAS CELLE DES PAGES EN LIGNE, qui sur-vendent les deux.
+ *  `withKeelDoctrineBlock` n'a QU'UN appelant, le composeur (run.ts:2348,7261): les lanes de
+ *  skill rendent avant lui et ne le lisent pas (B7). Et « chaque message sortant » est faux —
+ *  quatre surfaces sont scannées (chat, repas, semaines, reco du jour), quatre ne le sont pas
+ *  (relance, récap du soir, bilan du dimanche, broadcast coach). */
+function Lock() {
   return (
-    <section className="border-b border-gray-200 bg-gray-950 text-white">
-      <div className="mx-auto max-w-6xl px-4 py-16 lg:py-20">
-        <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">
-          {t("gyms.diff.kicker")}
-        </p>
-        <h2 className="mt-2 max-w-3xl text-balance text-2xl font-semibold leading-tight sm:text-3xl">
-          {t("gyms.diff.title")}
-        </h2>
-        <p className="mt-4 max-w-2xl text-base leading-7 text-gray-300">
-          {t("gyms.diff.body")}
-        </p>
-
-        <div className="mt-10 grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-14">
-          {/*
-            The closing line lives in this column rather than full-width under
-            both: the trace is a good deal taller than the two locks, and a
-            full-width close left a void the size of a paragraph under them.
-          */}
-          <div className="grid content-start gap-6">
-            <dl className="grid gap-6">
-              <div className="border-l-2 border-gray-700 pl-4">
-                <dt className="text-xs font-semibold uppercase tracking-widest text-gray-400">
-                  {t("gyms.diff.lock1_tag")}
-                </dt>
-                <dd className="mt-2 text-base leading-7 text-gray-200">
-                  {t("gyms.diff.lock1")}
-                </dd>
-              </div>
-              <div className="border-l-2 border-emerald-400 pl-4">
-                <dt className="text-xs font-semibold uppercase tracking-widest text-emerald-300">
-                  {t("gyms.diff.lock2_tag")}
-                </dt>
-                <dd className="mt-2 text-base leading-7 text-white">
-                  {t("gyms.diff.lock2")}
-                </dd>
-              </div>
-            </dl>
-            <p className="mt-2 max-w-md text-balance text-lg font-medium leading-8 text-white">
-              {t("gyms.diff.close")}
-            </p>
-          </div>
-
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-widest text-gray-400">
-              {t("gyms.diff.trace_label")}
+    <section className="bg-fig-950 text-paper">
+      <div className={SHELL}>
+        <Kicker onDark>{t("gyms.lock.eyebrow")}</Kicker>
+        <h2 className="mt-3 max-w-2xl text-balance font-display text-title">{t("gyms.lock.title")}</h2>
+        <p className={`mt-6 max-w-[62ch] ${BODY} text-fig-300`}>{t("gyms.lock.body")}</p>
+        <div className="mt-10 grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
+          <dl className="grid content-start gap-8">
+            {/* fact: B10 — run.ts:1441,2503 · week-plan:338,541 · meal:576,1038 · household:1602 */}
+            <div className="border-l-2 border-fig-300 pl-4">
+              <dt className="text-label font-semibold uppercase text-fig-300">{t("gyms.lock.l1_tag")}</dt>
+              <dd className={`mt-2 ${BODY}`}>{t("gyms.lock.l1")}</dd>
             </div>
-            <p className="mt-1 text-xs text-gray-500">{t("gyms.diff.trace_example")}</p>
-
-            <ol className="mt-4 grid gap-3">
-              <TraceStep label={t("gyms.diff.trace_ask")} tone="neutral">
-                {t("gyms.diff.trace_ask_text")}
-              </TraceStep>
-              <TraceStep
-                label={t("gyms.diff.trace_draft")}
-                tone="held"
-                chip={t("gyms.diff.trace_held")}
-              >
-                {t("gyms.diff.trace_draft_text")}
-              </TraceStep>
-              <TraceStep label={t("gyms.diff.trace_sent")} tone="sent">
-                {t("gyms.diff.trace_sent_text")}
-              </TraceStep>
-            </ol>
-
-            <p className="mt-4 text-sm leading-6 text-gray-400">
-              {t("gyms.diff.trace_note")}
-            </p>
+            {/* fact: B8b — findDoctrineViolations sur le chat, keel_output_locks.ts:307 */}
+            <div className="border-l-2 border-paper pl-4">
+              <dt className="text-label font-semibold uppercase text-fig-300">{t("gyms.lock.l2_tag")}</dt>
+              <dd className={`mt-2 ${BODY}`}>{t("gyms.lock.l2")}</dd>
+            </div>
+            {/* fact: B9 — keel_output_locks.ts:99-113 · run.ts:2825-2834 */}
+            <p className={`${BODY} text-fig-300`}>{t("gyms.lock.instead")}</p>
+          </dl>
+          <div>
+            <Figure dark><FigTrace /></Figure>
+            <p className="mt-3 text-sm text-fig-300">{t("gyms.lock.trace_example")}</p>
+            {/* fact: B27 — CHECK …_doctrine_traceable_check ; portée: la SEMAINE seulement */}
+            <p className={`mt-6 border-t border-fig-700 pt-6 ${BODY}`}>{t("gyms.lock.traceable")}</p>
           </div>
         </div>
+        <p className="mt-10 max-w-[52ch] text-balance font-display text-sub">{t("gyms.lock.close")}</p>
       </div>
     </section>
   );
 }
 
-function TraceStep({
-  label,
-  tone,
-  chip,
-  children,
-}: {
-  label: string;
-  tone: "neutral" | "held" | "sent";
-  chip?: string;
-  children: React.ReactNode;
-}) {
-  const frame =
-    tone === "held"
-      ? "border-red-500/60 bg-red-500/5"
-      : tone === "sent"
-        ? "border-emerald-400/60 bg-emerald-400/5"
-        : "border-gray-800 bg-gray-900";
-  // The held draft is struck through, but it still has to be READABLE — the
-  // whole point is that the owner can see what was about to go out under his
-  // name.
-  const body =
-    tone === "held" ? "text-gray-400 line-through decoration-red-400/70" : "text-gray-100";
-  return (
-    <li className={`rounded-xl border-l-2 border-y border-r ${frame} px-4 py-3`}>
-      <div className="flex items-baseline justify-between gap-3">
-        <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
-          {label}
-        </span>
-        {chip ? (
-          <span className="shrink-0 rounded-full bg-red-500/15 px-2 py-0.5 text-[0.6875rem] font-medium text-red-300">
-            {chip}
-          </span>
-        ) : null}
-      </div>
-      <p className={`mt-1.5 text-base leading-7 ${body}`}>{children}</p>
-    </li>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Doctrine
-// ---------------------------------------------------------------------------
-
-/**
- * The three rules, and then the refusal.
- *
- * THE CALORIE CARD MATTERS MORE ON THIS PAGE THAN ON `/`: a gym is the buyer
- * most likely to arrive expecting macros on a scale, so he has to meet the
- * refusal before he pays rather than after.
- *
- * ⚠️ ET IL S'ARRÊTE LÀ. Une version de cette carte se terminait par « si ta
- * méthode est macro-first, on n'est pas faits l'un pour l'autre ». RETIRÉE, et
- * ne pas la réécrire: elle confondait une LIMITE DE L'OUTIL avec un jugement
- * sur la méthode du coach. Sophia ne sait pas compter les calories depuis une
- * photo — c'est mesuré, c'est notre problème, et ça ne dit rien de ce que le
- * propriétaire a le droit de croire. S'il pèse ses grammes, c'est SA méthode;
- * cette page n'a aucune autorité pour l'en disqualifier, et la carte dit déjà
- * exactement ce que le produit fait et ne fait pas.
- */
-function Doctrine() {
-  const rules: { title: string; body: string }[] = [
-    { title: t("gyms.doctrine.rule1_title"), body: t("gyms.doctrine.rule1_body") },
-    { title: t("gyms.doctrine.rule2_title"), body: t("gyms.doctrine.rule2_body") },
-    { title: t("gyms.doctrine.rule3_title"), body: t("gyms.doctrine.rule3_body") },
-  ];
-  return (
-    <section className="border-b border-gray-200">
-      <div className="mx-auto max-w-6xl px-4 py-16">
-        <Kicker>{t("gyms.doctrine.kicker")}</Kicker>
-        <SectionTitle>{t("gyms.doctrine.title")}</SectionTitle>
-        <dl className="mt-8 grid gap-8 border-t border-gray-200 pt-8 sm:grid-cols-3 sm:gap-10">
-          {rules.map((rule) => (
-            <div key={rule.title}>
-              <dt className="text-base font-semibold leading-6 text-gray-900">{rule.title}</dt>
-              <dd className="mt-2 text-sm leading-6 text-gray-600">{rule.body}</dd>
-            </div>
-          ))}
-        </dl>
-        <Card tone="dashed" className="mt-10 sm:p-6">
-          <h3 className="text-lg font-semibold text-gray-900">
-            {t("gyms.doctrine.no_calories_title")}
-          </h3>
-          <div className="mt-3 grid max-w-4xl gap-4 text-sm leading-6 text-gray-600 sm:grid-cols-2 sm:gap-8">
-            <p>{t("gyms.doctrine.no_calories_body")}</p>
-            <p>{t("gyms.doctrine.no_calories_body2")}</p>
-          </div>
-        </Card>
-      </div>
-    </section>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Pricing
-// ---------------------------------------------------------------------------
-
-/**
- * ONE CARD, AND THAT IS THE MESSAGE — same call as `/` since migration
- * 20260806170000 made the billable seat the ENROLLED member rather than the
- * active one. Two cards force the prospect to do arithmetic, and arithmetic on a
- * pricing section is where a deal goes to think about it.
- *
- * The annual rate is a line under the card, not a second card: it is a one-euro
- * discount on the same product, and a "Plans" grid built around it would suggest
- * there is a decision to make here.
- *
- * `billing_note` is not fine print. There is no member SKU in
- * `stripe-create-checkout-session`, so Sophia cannot take the member's money and
- * never will on this path — the owner charges them himself. A gym that assumed
- * otherwise from the worked example finds out at setup, and that is a pilot
- * lost.
- */
 function Pricing() {
   return (
-    <section className="border-b border-gray-200 bg-gray-50">
-      <div className="mx-auto max-w-6xl px-4 py-16">
-        <Kicker>{t("gyms.pricing.kicker")}</Kicker>
-        <SectionTitle>{t("gyms.pricing.title")}</SectionTitle>
-        <div className="mt-8 sm:max-w-sm">
-          <PriceCard
-            price={t("gyms.pricing.seat")}
-            period={t("gyms.pricing.seat_period")}
-            label={t("gyms.pricing.seat_label")}
-          />
-          <p className="mt-3 text-sm leading-6 text-gray-600">{t("gyms.pricing.annual")}</p>
+    <Section alt>
+      <Kicker>{t("gyms.price.eyebrow")}</Kicker>
+      <SectionTitle>{t("gyms.price.title")}</SectionTitle>
+      <div className="mt-8 grid gap-10 lg:grid-cols-[auto_1fr] lg:gap-16">
+        <div className="sm:max-w-sm">
+          {/* fact: B1 — 7 €/membre/mois, aucun forfait plateforme */}
+          <PriceCard price={t("gyms.price.seat")} period={t("gyms.price.seat_period")} label={t("gyms.price.seat_label")} />
+          {/* fact: B3 — un SIÈGE payé à l'année. ⚠️ Correction du claim FAUX B2, qui était ici */}
+          <p className="mt-3 text-sm text-ink-soft">{t("gyms.price.annual")}</p>
         </div>
-        <p className="mt-6 max-w-2xl text-base leading-7 text-gray-600">
-          {t("gyms.pricing.why")}
-        </p>
-        <p className="mt-4 max-w-2xl text-sm leading-6 text-gray-500">
-          {t("gyms.pricing.billing_note")}
-        </p>
-        <div className="mt-8 flex flex-wrap items-center gap-4">
-          <ButtonLink to="/auth?role=coach" variant="primary" className="px-6 py-3 text-base">
-            {t("gyms.pricing.cta")}
-          </ButtonLink>
-          <span className="text-sm text-gray-500">{t("gyms.pricing.trial_note")}</span>
+        <div className="max-w-[62ch]">
+          {/* fact: B4 — on cesse de payer au siège éteint ; B6 — zéro élève = `no_billable_seat` */}
+          <p className={`${BODY} text-ink-soft`}>{t("gyms.price.why")}</p>
+          {/* fact: S12 — aucun SKU membre dans stripe-create-checkout-session */}
+          <p className="mt-4 text-sm text-ink-soft">{t("gyms.price.billing_note")}</p>
+          <div className="mt-8 flex flex-wrap items-center gap-4">
+            <Cta labelKey="gyms.price.cta" />
+            {/* fact: B5 — 14 jours, 3 élèves, puis ça s'arrête */}
+            <span className="text-sm text-ink-soft">{t("gyms.price.trial_note")}</span>
+          </div>
         </div>
       </div>
-    </section>
+    </Section>
   );
 }
 
-// ---------------------------------------------------------------------------
-// Closing call
-// ---------------------------------------------------------------------------
-
-function ClosingCall() {
+function Closing() {
   return (
-    <section>
-      <div className="mx-auto max-w-6xl px-4 py-20 text-center">
-        <h2 className="mx-auto max-w-2xl text-balance text-2xl font-semibold leading-tight sm:text-3xl">
-          {t("gyms.closing.title")}
-        </h2>
-        <div className="mt-8 flex justify-center">
-          <ButtonLink to="/auth?role=coach" variant="primary" className="px-6 py-3 text-base">
-            {t("gyms.closing.cta")}
-          </ButtonLink>
-        </div>
-        <p className="mt-4 text-sm text-gray-500">
-          {t("gyms.closing.signin_prompt")}{" "}
-          <Link to="/auth" className="font-medium text-gray-900 underline">
-            {t("gyms.closing.signin_link")}
-          </Link>
-        </p>
+    <Section>
+      <div className="mx-auto max-w-3xl text-center">
+        <h2 className="text-balance font-display text-title">{t("gyms.close.title")}</h2>
+        <div className="mt-8 flex justify-center"><Cta labelKey="gyms.close.cta" /></div>
+        {/* fact: B5 — la porte « Sign in » est déjà dans PublicHeader: un second lien ici
+            serait une seconde offre à côté du seul CTA de la page. */}
+        <p className="mt-4 text-sm text-ink-soft">{t("gyms.close.trial_note")}</p>
       </div>
-    </section>
+    </Section>
+  );
+}
+
+// LES FIGURES — F1-F14. Deux épaisseurs (2 = le contour d'une chose réelle, 1 = une annotation),
+// angles fermés, coordonnées entières, cinq jetons, `FIG` exactement DEUX fois par figure
+// (l'équerre et un seul objet), ni dégradé ni ombre ni `opacity`, et jamais émeraude, ambre,
+// rouge ni bleu — ces quatre familles appartiennent aux ÉTATS du produit.
+
+const FONT = "var(--font-sans)";
+const INK = "var(--ill-ink, #23191F)";
+const SOFT = "var(--ill-ink-soft, #6A5A64)";
+const PAPER = "var(--ill-paper, #FBF8FA)";
+const WASH = "var(--ill-wash, #EFE0E9)";
+const FIG = "var(--ill-fig, #632C4C)";
+
+/** L'équerre n'encadre jamais, elle ouvre, et ne flotte JAMAIS seule: il y a toujours un mot à
+ *  sa droite. Sans `label` — les deux maquettes — c'est le titre de l'app à l'intérieur de la
+ *  surface dont elle ouvre le coin, et le bras passe de 32 à 40. */
+function Eq({ label }: { label?: MessageKey }) {
+  const arm = label ? 32 : 40;
+  return (
+    <>
+      <path d={`M 8 ${arm} L 8 16 A 8 8 0 0 1 16 8 L ${arm} 8`} fill="none" stroke={FIG} strokeWidth="2" strokeLinecap="round" />
+      {label ? <text x="44" y="26" fontSize="11" fontWeight="600" letterSpacing="1.2" fill={SOFT}>{t(label)}</text> : null}
+    </>
+  );
+}
+
+/** Figure 1 — la semaine d'un membre. Concept, 480×240. Les 21 repas sont LA pièce chaude;
+ *  COMPTABLES et non proportionnels — aucune forme n'affirme une mesure que le produit ne
+ *  calcule pas (F9), et 3 × 7 est l'arithmétique du monde, pas un chiffre du dépôt. */
+function FigWeek() {
+  return (
+    <svg viewBox="0 0 480 240" role="img" aria-labelledby="fw-t fw-d" fontFamily={FONT}>
+      <title id="fw-t">{t("gyms.fig.week_t")}</title>
+      <desc id="fw-d">{t("gyms.fig.week_d")}</desc>
+      <Eq label="gyms.fig.week_label" />
+      <g fontSize="9" fontWeight="600" letterSpacing="1" fill={SOFT}>
+        <text x="40" y="68">{t("gyms.fig.week_row1")}</text>
+        <text x="40" y="148">{t("gyms.fig.week_row2")}</text>
+      </g>
+      {/* Trois choses réelles, contour de 2, sur trois des sept colonnes: à droite, le week-end. */}
+      <g fill={PAPER} stroke={INK} strokeWidth="2" strokeLinejoin="round">
+        {[40, 160, 280].map((x) => <rect key={x} x={x} y={80} width={56} height={32} rx={4} />)}
+      </g>
+      <g fill={FIG}>
+        {[0, 1, 2, 3, 4, 5, 6].map((c) =>
+          [0, 1, 2].map((r) => (
+            <rect key={`${c}-${r}`} x={61 + c * 60} y={160 + r * 24} width={14} height={14} rx={4} />
+          )),
+        )}
+      </g>
+    </svg>
+  );
+}
+
+/** Figure 2 — l'exemple chiffré (B30). Document vu de face, 480×240. Ce n'est PAS une
+ *  maquette: aucun écran ne rend cette addition, et la parer de la surface de l'app en
+ *  ferait un écran qu'on n'a pas. */
+function FigMoney() {
+  const row = (y: number, label: MessageKey, value: MessageKey, total = false) => (<>
+    <text x="44" y={y} fontSize={total ? 13 : 11} fill={INK}>{t(label)}</text>
+    <text x="436" y={y} fontSize="13" textAnchor="end" fill={total ? FIG : INK}>{t(value)}</text>
+  </>);
+  return (
+    <svg viewBox="0 0 480 240" role="img" aria-labelledby="fm-t fm-d" fontFamily={FONT}>
+      <title id="fm-t">{t("gyms.fig.money_t")}</title>
+      <desc id="fm-d">{t("gyms.fig.money_d")}</desc>
+      <Eq label="gyms.fig.money_label" />
+      <rect x="24" y="48" width="432" height="176" rx="12" fill={PAPER} stroke={SOFT} strokeWidth="1" />
+      {row(80, "gyms.fig.money_uptake_label", "gyms.fig.money_uptake_value")}
+      {row(134, "gyms.fig.money_in_label", "gyms.fig.money_in_value")}
+      {row(162, "gyms.fig.money_out_label", "gyms.fig.money_out_value")}
+      {row(200, "gyms.fig.money_keep_label", "gyms.fig.money_keep_value", true)}
+      <g fontSize="9" fill={SOFT}>
+        <text x="44" y="96">{t("gyms.fig.money_uptake_hint")}</text>
+        <text x="44" y="216">{t("gyms.fig.money_keep_hint")}</text>
+      </g>
+      <g stroke={SOFT} strokeWidth="1">
+        <path d="M 44 110 L 436 110" />
+        <path d="M 44 176 L 436 176" />
+      </g>
+    </svg>
+  );
+}
+
+/** Figure 3 — le fil du soir. MAQUETTE DE PRODUIT, 480×320, chaque chaîne citée mot pour mot
+ *  (S10). Une maquette est une SURFACE, jamais un appareil: ni chrome de navigateur ni cadre
+ *  de téléphone (F12 — il n'existe aucune application mobile, C17). */
+function FigThread() {
+  const pills = (y: number, keys: MessageKey[]) =>
+    keys.map((key, i) => (
+      <g key={key}>
+        <rect x={24 + i * 112} y={y} width="104" height="26" rx="12" fill={PAPER} stroke={SOFT} strokeWidth="1" />
+        <text x={76 + i * 112} y={y + 17} fontSize="11" textAnchor="middle" fill={INK}>{t(key)}</text>
+      </g>
+    ));
+  return (
+    <svg viewBox="0 0 480 320" role="img" aria-labelledby="ft-t ft-d" fontFamily={FONT}>
+      <title id="ft-t">{t("gyms.fig.thread_t")}</title>
+      <desc id="ft-d">{t("gyms.fig.thread_d")}</desc>
+      <Eq />
+      <rect x="8" y="8" width="464" height="304" rx="16" fill={WASH} stroke={SOFT} strokeWidth="1" />
+      <text x="28" y="46" fontSize="15" fontWeight="600" fill={FIG}>{t("gyms.fig.thread_app")}</text>
+      <text x="28" y="64" fontSize="9" fill={SOFT}>{t("gyms.fig.thread_sub")}</text>
+      <path d="M 24 78 L 456 78" stroke={SOFT} strokeWidth="1" />
+      <g fill={PAPER} stroke={SOFT} strokeWidth="1">
+        <rect x="24" y="94" width="270" height="34" rx="12" />
+        <rect x="24" y="180" width="270" height="34" rx="12" />
+        <rect x="24" y="266" width="344" height="32" rx="16" />
+        <rect x="380" y="266" width="76" height="32" rx="16" />
+      </g>
+      <g fontSize="11" fill={INK}>
+        <text x="40" y="116">{t("gyms.fig.thread_q1")}</text>
+        <text x="40" y="202">{t("gyms.fig.thread_q2")}</text>
+        <text x="418" y="286" textAnchor="middle">{t("gyms.fig.thread_send")}</text>
+      </g>
+      <text x="40" y="286" fontSize="11" fill={SOFT}>{t("gyms.fig.thread_composer")}</text>
+      {pills(138, ["gyms.fig.thread_b1", "gyms.fig.thread_b2", "gyms.fig.thread_b3"])}
+      {pills(224, ["gyms.fig.thread_a1", "gyms.fig.thread_a2", "gyms.fig.thread_a3"])}
+    </svg>
+  );
+}
+
+/** Figure 4 — le lundi. MAQUETTE DE PRODUIT, 480×248; le filet de 2 est l'idiome de l'app
+ *  (`border-l-2`, CoachWeeklyPage.tsx:243). Les pastilles d'état sont en CONTOUR SOURD et
+ *  jamais dans leur couleur (F10): pas d'instant sur une page de vente, le MOT porte l'état. */
+function FigMonday() {
+  const rows: [MessageKey, MessageKey, MessageKey, boolean][] = [
+    ["gyms.fig.monday_n1", "gyms.fig.monday_r1", "gyms.fig.monday_s1", true],
+    ["gyms.fig.monday_n2", "gyms.fig.monday_r2", "gyms.fig.monday_s2", true],
+    ["gyms.fig.monday_n3", "gyms.fig.monday_r3", "gyms.fig.monday_s3", false],
+  ];
+  return (
+    <svg viewBox="0 0 480 248" role="img" aria-labelledby="fk-t fk-d" fontFamily={FONT}>
+      <title id="fk-t">{t("gyms.fig.monday_t")}</title>
+      <desc id="fk-d">{t("gyms.fig.monday_d")}</desc>
+      <Eq />
+      <rect x="8" y="8" width="464" height="232" rx="16" fill={WASH} stroke={SOFT} strokeWidth="1" />
+      <text x="28" y="46" fontSize="15" fontWeight="600" fill={FIG}>{t("gyms.fig.monday_app")}</text>
+      <rect x="24" y="64" width="432" height="158" rx="12" fill={PAPER} stroke={SOFT} strokeWidth="1" />
+      <text x="40" y="88" fontSize="9" fontWeight="600" letterSpacing="0.9" fill={SOFT}>
+        {t("gyms.fig.monday_worth")}
+      </text>
+      {rows.map(([name, reason, state, pill], i) => {
+        const y = 118 + i * 42;
+        return (
+          <g key={name}>
+            <path d={`M 40 ${y - 13} L 40 ${y + 5}`} stroke={SOFT} strokeWidth="2" strokeLinecap="round" />
+            <text x="56" y={y} fontSize="11" fontWeight="600" fill={INK}>{t(name)}</text>
+            <text x="140" y={y} fontSize="11" fill={SOFT}>{t(reason)}</text>
+            {pill ? <rect x="286" y={y - 11} width="52" height="16" rx="8" fill="none" stroke={SOFT} strokeWidth="1" /> : null}
+            <text x={pill ? 312 : 286} y={y} fontSize="9" textAnchor={pill ? "middle" : "start"} fill={SOFT}>{t(state)}</text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+/** Figure 5 — la trace. CONCEPT sur fond sombre, 480×240: une maquette de produit ne se pose
+ *  JAMAIS sur du sombre (F12), le produit est en clair et un écran sombre montrerait un
+ *  produit qui n'existe pas. `.on-dark` remonte l'équerre de 2,4:1 à 8,06:1. */
+function FigTrace() {
+  const step = (y: number, label: MessageKey, text: MessageKey, held = false, x = 40) => (<>
+    <text x={x} y={y + 20} fontSize="9" fontWeight="600" letterSpacing="1" fill={SOFT}>{t(label)}</text>
+    <text x={x} y={y + 38} fontSize="11" fill={held ? SOFT : PAPER} textDecoration={held ? "line-through" : undefined}>{t(text)}</text>
+  </>);
+  return (
+    <svg viewBox="0 0 480 240" role="img" aria-labelledby="fc-t fc-d" fontFamily={FONT}>
+      <title id="fc-t">{t("gyms.fig.trace_t")}</title>
+      <desc id="fc-d">{t("gyms.fig.trace_d")}</desc>
+      <Eq label="gyms.fig.trace_label" />
+      <g fill="none" stroke={SOFT} strokeWidth="1">
+        <rect x="24" y="44" width="432" height="48" rx="12" />
+        <rect x="24" y="104" width="432" height="48" rx="12" />
+        {/* La pastille « held »: contour sourd, et le mot réel dedans (F10). */}
+        <rect x="380" y="113" width="52" height="16" rx="8" />
+      </g>
+      <text x="406" y="124" fontSize="9" textAnchor="middle" fill={SOFT}>{t("gyms.fig.trace_held")}</text>
+      {step(44, "gyms.fig.trace_s1", "gyms.fig.trace_t1")}
+      {step(104, "gyms.fig.trace_s2", "gyms.fig.trace_t2", true)}
+      {/* Ce qui est parti: contour de 2, et le filet de l'app DEDANS — sous le contour, invisible. */}
+      <rect x="24" y="164" width="432" height="52" rx="12" fill="none" stroke={PAPER} strokeWidth="2" />
+      <path d="M 40 172 L 40 208" stroke={FIG} strokeWidth="2" strokeLinecap="round" />
+      {step(164, "gyms.fig.trace_s3", "gyms.fig.trace_t3", false, 56)}
+    </svg>
   );
 }
 

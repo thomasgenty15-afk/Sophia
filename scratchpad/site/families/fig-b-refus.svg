@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 240" width="480" height="240"
+     role="img" aria-labelledby="fig-b-t fig-b-d">
+  <title id="fig-b-t">Les deux sorties de la génération</title>
+  <desc id="fig-b-d">Les contraintes du foyer sont lues avant que la semaine se compose. Si
+    elles sont lisibles, la semaine est composée. Si elles ne le sont pas, rien n’est composé
+    et la génération s’arrête en nommant la raison.</desc>
+
+  <!-- FIGURE B — /families, section « le refus ». Fait ancré : AUDIT C9,
+       generate-household-meal-v1:1643-1648 → 503 safety_constraints_unreadable.
+       Pièce chaude : l'équerre + le filet du refus. Le refus est le sujet de
+       la figure, donc c'est LUI qui porte la couleur — pas la branche qui
+       réussit. Une page de vente qui colore la réussite décore ; celle-ci
+       montre l'endroit où le produit s'arrête.
+       Les deux branches partent à 45° (50/50), angles fermés (CHARTE F4). -->
+
+  <path d="M 8 32 L 8 16 A 8 8 0 0 1 16 8 L 32 8"
+        fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round"/>
+  <text x="44" y="26" font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)"
+        font-size="11" font-weight="600" letter-spacing="1.2"
+        fill="var(--ill-ink-soft, #6A5A64)">AVANT QUE LA SEMAINE EXISTE</text>
+
+  <g font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)">
+    <rect x="24" y="100" width="152" height="56" rx="12"
+          fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+    <text x="40" y="124" font-size="9" font-weight="600" letter-spacing="1"
+          fill="var(--ill-ink-soft, #6A5A64)">LES CONTRAINTES</text>
+    <text x="40" y="142" font-size="11" fill="var(--ill-ink, #23191F)">de toutes les bouches</text>
+
+    <!-- Les deux branches, à 45°. -->
+    <g fill="none" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1" stroke-linecap="round">
+      <path d="M 176 128 L 196 128 L 236 88 L 260 88"/>
+      <path d="M 176 128 L 196 128 L 236 168 L 260 168"/>
+    </g>
+
+    <!-- Branche haute : lisibles. -->
+    <rect x="260" y="64" width="196" height="48" rx="12"
+          fill="var(--ill-wash, #EFE0E9)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+    <text x="276" y="84" font-size="9" font-weight="600" letter-spacing="1"
+          fill="var(--ill-ink-soft, #6A5A64)">LISIBLES</text>
+    <text x="276" y="102" font-size="11" fill="var(--ill-ink, #23191F)">la semaine se compose</text>
+
+    <!-- Branche basse : illisibles. Le filet chaud tient le bord gauche, comme
+         le border-l-2 de l'app : c'est l'équerre à l'échelle d'une ligne. -->
+    <rect x="260" y="144" width="196" height="64" rx="12"
+          fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+    <path d="M 268 158 L 268 194" fill="none" stroke="var(--ill-fig, #632C4C)"
+          stroke-width="2" stroke-linecap="round"/>
+    <text x="284" y="164" font-size="9" font-weight="600" letter-spacing="1"
+          fill="var(--ill-ink-soft, #6A5A64)">ILLISIBLES</text>
+    <text x="284" y="182" font-size="11" fill="var(--ill-ink, #23191F)">rien n’est composé</text>
+    <text x="284" y="198" font-size="9"
+          fill="var(--ill-ink-soft, #6A5A64)">safety_constraints_unreadable</text>
+  </g>
+</svg>

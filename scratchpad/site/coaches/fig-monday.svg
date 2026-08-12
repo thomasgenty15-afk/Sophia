@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 380" width="480" height="380"
+     role="img" aria-labelledby="fig-monday-t fig-monday-d">
+  <title id="fig-monday-t">Le lundi en une page</title>
+  <desc id="fig-monday-d">La page hebdomadaire du coach : la semaine en prose d'abord, puis les
+    élèves à qui écrire avec la raison attachée, puis les chiffres, en dernier et en petit.</desc>
+
+  <!-- COPIE DE `design/etalon-maquette.svg` — la charte demande qu'on parte de
+       l'étalon plutôt que de zéro, et cette figure EST celle qu'il dessine.
+       Deux écarts, tous deux volontaires :
+         · les chaînes deviennent des clés i18n une fois en page (F11) ;
+         · rien d'autre. Les nombres tombent juste (25+6+3 = 34, 21+9+4 = 34) et
+           la troisième ligne dit « built themselves a week », pas « wrote »
+           (AUDIT B13 — l'ancienne page prétendait citer et paraphrasait).
+       Toutes les chaînes sont prises dans le code :
+         « This week »            CoachWeeklyPage.tsx:192
+         les 3 lignes de prose    renderSynthesisText, coach_synthesis.ts:538-568
+         « Worth a message »      CoachWeeklyPage.tsx:231
+         « no number to show »    CoachWeeklyPage.tsx:272
+         « The numbers »          CoachWeeklyPage.tsx:282
+       La flèche de « Week of … → … » est DESSINÉE : U+2192 n'a de glyphe dans
+       aucune des deux familles (CHARTE §0 ④). -->
+
+  <path d="M 8 40 L 8 16 A 8 8 0 0 1 16 8 L 40 8"
+        fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round"/>
+  <rect x="8" y="8" width="464" height="364" rx="16"
+        fill="var(--ill-wash, #EFE0E9)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+
+  <g font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)">
+    <text x="28" y="46" font-size="15" font-weight="600"
+          fill="var(--ill-fig, #632C4C)">This week</text>
+
+    <rect x="24" y="60" width="432" height="98" rx="12"
+          fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+    <text x="40" y="82" font-size="9" font-weight="600" letter-spacing="0.9"
+          fill="var(--ill-ink-soft, #6A5A64)">WEEK OF 2026-08-03</text>
+    <g fill="none" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"
+       stroke-linecap="round" stroke-linejoin="round">
+      <path d="M 158 79 L 172 79"/>
+      <path d="M 167 75 L 172 79 L 167 83"/>
+    </g>
+    <text x="178" y="82" font-size="9" font-weight="600" letter-spacing="0.9"
+          fill="var(--ill-ink-soft, #6A5A64)">2026-08-09</text>
+    <text x="40" y="104" font-size="11" fill="var(--ill-ink, #23191F)">34 students this week: 25 in touch, 6 slipping, 3 silent.</text>
+    <text x="40" y="122" font-size="11" fill="var(--ill-ink, #23191F)">How the week felt: 21 holding up, 9 strained, 4 having a hard time.</text>
+    <text x="40" y="140" font-size="11" fill="var(--ill-ink, #23191F)">21 of 34 built themselves a week from your method.</text>
+
+    <rect x="24" y="172" width="432" height="128" rx="12"
+          fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+    <text x="40" y="194" font-size="9" font-weight="600" letter-spacing="0.9"
+          fill="var(--ill-ink-soft, #6A5A64)">WORTH A MESSAGE</text>
+
+    <g stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="2" stroke-linecap="round">
+      <path d="M 40 206 L 40 222"/>
+      <path d="M 40 238 L 40 254"/>
+      <path d="M 40 270 L 40 286"/>
+    </g>
+
+    <text x="56" y="219" font-size="11" font-weight="600" fill="var(--ill-ink, #23191F)">Chen Wei</text>
+    <text x="140" y="219" font-size="11" fill="var(--ill-ink-soft, #6A5A64)">Going quiet</text>
+    <rect x="286" y="208" width="52" height="16" rx="8"
+          fill="none" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+    <text x="312" y="219" font-size="9" text-anchor="middle" fill="var(--ill-ink-soft, #6A5A64)">slipping</text>
+
+    <text x="56" y="251" font-size="11" font-weight="600" fill="var(--ill-ink, #23191F)">Amina Diop</text>
+    <text x="140" y="251" font-size="11" fill="var(--ill-ink-soft, #6A5A64)">Has not written in days</text>
+    <rect x="286" y="240" width="52" height="16" rx="8"
+          fill="none" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+    <text x="312" y="251" font-size="9" text-anchor="middle" fill="var(--ill-ink-soft, #6A5A64)">silent</text>
+
+    <text x="56" y="283" font-size="11" font-weight="600" fill="var(--ill-ink, #23191F)">Luca Ferrari</text>
+    <text x="140" y="283" font-size="11" fill="var(--ill-ink-soft, #6A5A64)">Barely logged anything</text>
+    <text x="286" y="283" font-size="9" fill="var(--ill-ink-soft, #6A5A64)">no number to show</text>
+
+    <rect x="24" y="310" width="432" height="54" rx="12"
+          fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+    <text x="40" y="330" font-size="9" font-weight="600" letter-spacing="0.9"
+          fill="var(--ill-ink-soft, #6A5A64)">THE NUMBERS</text>
+    <g font-size="9" fill="var(--ill-ink-soft, #6A5A64)">
+      <text x="40" y="346">responsive</text>
+      <text x="184" y="346">slipping</text>
+      <text x="328" y="346">silent</text>
+    </g>
+    <g font-size="12" fill="var(--ill-ink, #23191F)" font-variant-numeric="tabular-nums">
+      <text x="40" y="359">25</text>
+      <text x="184" y="359">6</text>
+      <text x="328" y="359">3</text>
+    </g>
+  </g>
+</svg>
