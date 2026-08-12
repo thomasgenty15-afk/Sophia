@@ -665,6 +665,9 @@ Deno.test("LA CONSIGNE DE D8 EST DANS LE BLOC, MOT POUR MOT", () => {
       { day: "thu", slot: "dinner", title: "Curry de pois chiches" },
       { day: "fri", slot: "lunch", title: "Salade de lentilles" },
     ],
+    // C2 ④ — AUCUN TROU: l'identité, et c'est ce qui garde vraie l'assertion
+    // d'octet de v7 juste à côté.
+    gaps: [],
   });
   assert(block.includes(`${UNMERGE_CLOSENESS_INSTRUCTION}, without Zoe.`), block);
   assert(block.includes("2026-08-14"), block);
@@ -684,6 +687,7 @@ Deno.test("sans matière, aucun en-tête de matière n'apparaît", () => {
     displayName: "Zoe",
     window: { startsOn: "2026-08-14", durationDays: 3 },
     dishes: [],
+    gaps: [],
   });
   assert(!block.includes("The base plan over these days"), block);
   assert(block.includes(UNMERGE_CLOSENESS_INSTRUCTION), block);

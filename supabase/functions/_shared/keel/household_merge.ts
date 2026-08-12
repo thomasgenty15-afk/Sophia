@@ -41,7 +41,7 @@
  * franchies une seule fois, par le même chemin.
  */
 
-import { addDays, planEndsOn } from "./meal_plan_window.ts";
+import { addDays, firstBlockingPlan, planEndsOn } from "./meal_plan_window.ts";
 import {
   asksForASecondDish,
   type CookingShape,
@@ -182,13 +182,12 @@ function spanUsable(span: PlanSpan | null | undefined): boolean {
 }
 
 /**
- * LA BORNE HAUTE, EXCLUE — `starts_on + duration_days`, exactement la borne de
- * `daterange` que la base compare. Nommée plutôt que réécrite deux fois: les
- * bornes de fin sont l'endroit où ce dépôt se trompe d'un jour.
+ * ⚠️ `endExclusive` A DISPARU D'ICI (C2). La borne haute exclue —
+ * `starts_on + duration_days`, celle que `daterange` compare — vit désormais
+ * une seule fois, dans `planOverlapVerdict` (`meal_plan_window.ts`). Deux
+ * exemplaires d'une borne de fin sont deux occasions de se tromper d'un jour, et
+ * c'est l'erreur que ce dépôt commet le plus.
  */
-function endExclusive(span: PlanSpan): string {
-  return addDays(span.startsOn, span.durationDays);
-}
 
 /**
  * CETTE FENÊTRE-LÀ S'ÉCRIT-ELLE ? PURE, ET C'EST LA RÈGLE DE LA BASE, LUE ICI.
@@ -216,21 +215,35 @@ function endExclusive(span: PlanSpan): string {
  *
  * ⚠️ RECOPIER UNE RÈGLE SQL EN TYPESCRIPT SE PAIE, ET LE FIL EST TENDU: un test
  * relit la boucle DANS LA MIGRATION et tombe le jour où l'original bouge.
+ *
+ * ⚠️ LA RÈGLE ELLE-MÊME A DÉMÉNAGÉ (C2, 2026-08-12), ET CETTE FONCTION EN EST
+ * DEVENUE UN APPELANT. Elle vit dans `meal_plan_window.ts` (`planOverlapVerdict`
+ * / `firstBlockingPlan`), parce que les trois portes qui écrivent un plan en ont
+ * besoin et pas seulement la fusion: la porte `compose` portait le MÊME défaut
+ * et se payait le même 409 après le modèle. Ce qui reste ici est ce qui est
+ * PROPRE à la fusion — le fait que la ligne du foyer soit celle que la fusion
+ * remplace quand les deux démarrent le même jour.
  */
 export function mergeWindowWritable(
   household: PlanSpan,
   window: PlanSpan,
 ): boolean {
-  // La fenêtre démarre LE MÊME JOUR: l'appelant passe `replace_current`, la RPC
-  // retire la ligne AVANT sa boucle de chevauchement, et il n'y a donc plus
-  // rien à chevaucher.
-  if (window.startsOn === household.startsOn) return true;
-  // ① « commence le même jour ou après » — inatteignable sur une intersection,
-  // écrit pour que la règle se relise entière.
-  if (household.startsOn >= window.startsOn) return false;
-  // ② « commence avant ET finit après »: le correctif du 2026-08-11.
-  return endExclusive(household) <= endExclusive(window);
+  // La fenêtre démarre LE MÊME JOUR: l'appelant passe `replace_current`
+  // (`generate-household-meal-v1`, branche `merge`), la RPC retire la ligne
+  // AVANT sa boucle de chevauchement, et il n'y a donc plus rien à chevaucher.
+  // C'est une hypothèse SUR L'APPELANT, et c'est pour ça qu'elle est ici et pas
+  // dans la règle partagée: pour toute autre ligne vivante, « le même jour de
+  // départ » est au contraire le refus ① de la RPC.
+  const replacesId = window.startsOn === household.startsOn ? HOUSEHOLD_ROW : null;
+  return firstBlockingPlan({
+    live: [{ id: HOUSEHOLD_ROW, ...household }],
+    window,
+    replacesId,
+  }) === null;
 }
+
+/** L'identité de la seule ligne que `mergeWindowWritable` fait concourir. */
+const HOUSEHOLD_ROW = "household";
 
 /** Nombre de jours de `start` à `end`, bornes incluses. `end < start` ⇒ 0. */
 export function dayCountInclusive(start: string, end: string): number {
@@ -650,6 +663,51 @@ export interface MergeMaterialDish {
   title: string;
 }
 
+/** Une case que le plan montré ne remplit pas. Calculée par `emptySlotsIn`. */
+export interface ShownPlanGap {
+  day: string;
+  slot: string;
+}
+
+/**
+ * C2 ④ — LE TROU DU PLAN MONTRÉ, DIT AU MODÈLE POUR QU'IL NE LE RECOPIE PAS.
+ *
+ * ── LE DÉFAUT, MESURÉ DEUX FOIS LE 2026-08-12 ──────────────────────────────
+ *
+ * Un plat dont un ingrédient porte une cible chiffrée est rejeté ENTIER. Sur
+ * une fusion, la matière du plan personnel citait « whey protein 90 g » et **les
+ * cinq petits-déjeuners du foyer sont tombés d'un coup**. Puis la DÉFUSION a
+ * recopié le trou: sa consigne montre le plan de base et demande d'en rester au
+ * plus près — et le modèle obéit, 14 titres sur 14. **Deux plans du foyer
+ * consécutifs sans petit-déjeuner mercredi.**
+ *
+ * ── CE QUE CE BLOC FAIT, ET CE QU'IL NE FAIT PAS ───────────────────────────
+ *
+ * Il NOMME la case, et il dit que c'est un accident. Il ne dit PAS quoi y
+ * mettre: le tronc demande déjà, sur toute fenêtre de plusieurs jours, que
+ * « every day of the stretch needs <les moments de cette personne> — a day
+ * missing one of those is a hole ». La liste ci-dessous ne fait que retirer la
+ * contradiction entre cette phrase-là et « reste au plus près du plan de base ».
+ * Personne n'invente un plat: le modèle compose cette case comme il compose
+ * toutes les autres.
+ *
+ * ⚠️ VIDE = AUCUNE LIGNE. Le cas nominal — un plan de base complet — rend un
+ * bloc byte-identique à celui d'avant C2, et un test le tient. Sans quoi on
+ * dirait « voici les trous » à un plan qui n'en a pas, ce qui est la meilleure
+ * façon d'en faire fabriquer un.
+ */
+function gapLines(gaps: readonly ShownPlanGap[]): string[] {
+  if (gaps.length === 0) return [];
+  return [
+    "",
+    "These moments have NO dish in the plan above:",
+    ...gaps.map((g) => `- ${g.day} ${g.slot}`),
+    "That is a GAP, not a choice — a dish was dropped there. Compose those",
+    "moments like any other: staying close to a plan never means copying a",
+    "missing meal.",
+  ];
+}
+
 /** Le plafond de lignes de matière. Une semaine de six repas tient dessous. */
 export const MERGE_MATERIAL_CAP = 42;
 
@@ -671,18 +729,87 @@ export function mergeMaterialShown(
   return dishes.slice(0, MERGE_MATERIAL_CAP);
 }
 
+/**
+ * O5 — L'ANCRE. La consigne de fusion, telle qu'elle part au modèle.
+ *
+ * ── LE DÉFAUT QU'ELLE RÉPARE, MESURÉ CRÉNEAU PAR CRÉNEAU ────────────────────
+ *
+ * Sur une fusion réelle du 2026-08-12, **15 créneaux sur 15** du plan fusionné
+ * venaient du plan PERSONNEL du secondaire, et **aucun** titre du plan du foyer
+ * n'a survécu. Un foyer dont le maître est en `fat_loss`, avec un mineur à
+ * table, s'est vu servir intégralement un plan de prise de masse. Reproduit à
+ * l'identique sur une seconde fusion. `observeMergeShape` le CONSTATE
+ * (`honoured: {ok:false, requested:"one_session", observed:"common_pot"}`) et
+ * ne fait que ça: le plan est écrit et servi.
+ *
+ * ── POURQUOI, ET LA PREUVE EST DANS CE MÊME FICHIER ─────────────────────────
+ *
+ * **La défusion obéit 14/14.** Sa consigne (`buildUnmergeBlock`, cinquante
+ * lignes plus bas) montre au modèle **le plan de base** et lui dit d'en rester
+ * au plus près — et le modèle a rendu 14 titres identiques sur 14.
+ *
+ * La fusion, elle, ne montrait **qu'une seule liste de plats**: ceux du plan
+ * personnel, présentés comme de la matière. Un modèle à qui l'on ne montre
+ * qu'un menu écrit ce menu. Ce n'était pas une désobéissance de barreau, c'était
+ * une consigne sans ancre: rien, dans le message, ne disait ce qu'il fallait
+ * GARDER.
+ *
+ * Les deux blocs disent désormais la même chose dans le même ordre — un plan
+ * qui fait autorité, montré, et l'instruction d'en rester au plus près. Ce qui
+ * les sépare est ce que la fusion AJOUTE, et c'est le barreau (D6) qui le dit.
+ *
+ * ── L'ORDRE DES DEUX LISTES EST LA MOITIÉ DU CORRECTIF ──────────────────────
+ *
+ * Le plan personnel vient d'ABORD, le plan du foyer et l'ancre viennent en
+ * DERNIER. C'est la posture déjà écrite dans `household_meal_generation.ts`
+ * pour le bloc des voix — « un modèle lit la contrainte la plus proche de la
+ * fin comme la plus contraignante ». Mettre la matière en dernier, comme
+ * avant, faisait de la liste à ne PAS recopier le mot de la fin.
+ *
+ * ⚠️ CE QUE ÇA NE FAIT PAS: interdire le plat dédié. Aux barreaux ② et ③ le
+ * modèle doit toujours produire un plat pour la personne reprise — c'est L4,
+ * mesuré, avec son plafond qui en tient compte (`dishBudgetFor`). Ancrer sur le
+ * plan du foyer veut dire « n'écrase pas ce que les autres mangent », jamais
+ * « n'ajoute rien ».
+ */
+export const MERGE_ANCHOR_INSTRUCTION =
+  "Stay as CLOSE AS POSSIBLE to the household's plan";
+
 export function buildMergeBlock(args: {
   displayName: string;
   window: PlanSpan;
   shape: CookingShape;
+  /** Les plats du PLAN PERSONNEL repris — de la matière pour UNE bouche. */
   dishes: readonly MergeMaterialDish[];
+  /**
+   * LES PLATS DU PLAN DU FOYER, ramenés à la fenêtre recomposée. C'est L'ANCRE.
+   *
+   * ⚠️ REQUIS, jamais optionnel. Ce dépôt a mesuré sept fois qu'« un paramètre
+   * de garde optionnel est une garde désarmée »: un champ facultatif n'aurait
+   * fait remonter aucun appelant au compilateur, et la fusion serait retombée
+   * en silence sur la consigne sans ancre — celle qui a servi un plan de prise
+   * de masse à un foyer en perte de gras, 15 créneaux sur 15.
+   */
+  baseDishes: readonly MergeMaterialDish[];
+  /**
+   * C2 ④ — LES CASES QUE `baseDishes` NE REMPLIT PAS, sur cette fenêtre.
+   *
+   * ⚠️ REQUIS, jamais optionnel. Un paramètre de garde optionnel est une garde
+   * désarmée — ce dépôt l'a mesuré sept fois — et ici l'oubli serait
+   * PARFAITEMENT silencieux: la fusion recopierait le trou du plan du foyer
+   * comme si c'était une intention, exactement comme la défusion l'a fait
+   * 14/14. `[]` dit « aucun trou », et rend le bloc byte-identique à v7.
+   */
+  gaps: readonly ShownPlanGap[];
 }): string {
   const end = planEndsOn(args.window.startsOn, args.window.durationDays);
-  const material = mergeMaterialShown(args.dishes)
-    .map((d) => {
+  const lines = (dishes: readonly MergeMaterialDish[]) =>
+    mergeMaterialShown(dishes).map((d) => {
       const when = [d.day, d.slot].filter(Boolean).join(" ");
       return when ? `- ${when}: ${d.title}` : `- ${d.title}`;
     });
+  const material = lines(args.dishes);
+  const base = lines(args.baseDishes);
 
   const howToUse = args.shape === "one_dish"
     ? [
@@ -694,14 +821,17 @@ export function buildMergeBlock(args: {
     : args.shape === "one_session"
     ? [
       `${args.displayName} cannot be served out of the common pot.`,
-      "Keep the dishes below as THEIR dishes wherever they still work, and cook",
-      "them in the SAME cooking session as the household's — one session at the",
-      "stove, two dishes out of it.",
+      "ADD ONE dish for them, and cook it in the SAME cooking session as the",
+      "household's — one session at the stove, two dishes out of it.",
+      "Everyone else keeps the household's dishes: what follows is material for",
+      "THEIR dish, never a menu for the table.",
     ]
     : [
       `${args.displayName} cannot be served out of the common pot, and the two`,
-      "plans never cook on the same day. Keep the dishes below as THEIR dishes,",
-      "in their OWN cooking session.",
+      "plans never cook on the same day.",
+      "ADD their dishes, in their OWN cooking session.",
+      "Everyone else keeps the household's dishes: what follows is material for",
+      "THEIR dishes, never a menu for the table.",
     ];
 
   return [
@@ -712,8 +842,32 @@ export function buildMergeBlock(args: {
     "",
     ...howToUse,
     ...(material.length > 0
-      ? ["", "What they were going to eat over these days:", ...material]
+      ? [
+        "",
+        `What ${args.displayName} was going to eat over these days, on their own:`,
+        ...material,
+      ]
       : []),
+    // ── L'ANCRE, EN DERNIER ─────────────────────────────────────────────────
+    // Inconditionnelle: elle ne dit pas « regarde la liste », elle dit ce qui
+    // fait autorité. Un plan du foyer dont aucun plat ne tombe dans la fenêtre
+    // recomposée est un état qu'on ne sait pas produire, mais s'il arrive, la
+    // consigne reste vraie — c'est la liste qui manque, pas la règle.
+    "",
+    "THE HOUSEHOLD'S PLAN IS THE PLAN, AND IT STAYS.",
+    `${MERGE_ANCHOR_INSTRUCTION}: keep the same dishes, the same`,
+    "cooking sessions and the same shopping wherever they still work for the",
+    "people who were already at this table — only the amounts change. Do NOT",
+    `invent a different week, and never serve ${args.displayName}'s dishes to`,
+    "the whole table.",
+    ...(base.length > 0
+      ? ["", "The household's plan over these days:", ...base]
+      : []),
+    // ── C2 ④ · CE QUE LE PLAN DU FOYER NE COUVRE PAS ────────────────────────
+    // En DERNIER, juste après la liste qu'il corrige: « reste au plus près de
+    // ce plan » vient d'être écrit, et sans cette précision le trou en fait
+    // partie. C'est la même posture d'ordre que l'ancre elle-même.
+    ...gapLines(args.gaps),
   ].join("\n");
 }
 
@@ -771,6 +925,16 @@ export function buildUnmergeBlock(args: {
   window: PlanSpan;
   /** Les plats du plan de base, ramenés à la fenêtre recomposée. */
   dishes: readonly MergeMaterialDish[];
+  /**
+   * C2 ④ — LES CASES QUE `dishes` NE REMPLIT PAS, sur cette fenêtre.
+   *
+   * ⚠️ REQUIS, et c'est ICI que le défaut a été mesuré. « Reste au plus près du
+   * plan de base » est la consigne que le modèle honore le mieux de tout ce
+   * chantier — 14 titres identiques sur 14 — donc c'est aussi celle qui recopie
+   * le mieux un trou. Deux plans du foyer consécutifs sans petit-déjeuner
+   * mercredi, le 2026-08-12. `[]` = aucun trou, bloc byte-identique à v7.
+   */
+  gaps: readonly ShownPlanGap[];
 }): string {
   const end = planEndsOn(args.window.startsOn, args.window.durationDays);
   const material = mergeMaterialShown(args.dishes)
@@ -793,6 +957,8 @@ export function buildUnmergeBlock(args: {
     ...(material.length > 0
       ? ["", "The base plan over these days:", ...material]
       : []),
+    // ── C2 ④ · LE TROU DU PLAN DE BASE, QUI N'EST PAS UNE INTENTION ────────
+    ...gapLines(args.gaps),
   ].join("\n");
 }
 

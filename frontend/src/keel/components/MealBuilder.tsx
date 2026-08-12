@@ -11,6 +11,7 @@ import {
   type MealMode,
 } from "../api/mealGeneration";
 import {
+  lastNameableStart,
   MAX_WINDOW_DAYS,
   type MealWindowRequest,
   planEndsOn,
@@ -665,6 +666,19 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                         // autoriserait sinon des coches rétroactives sur des
                         // jours qu'un plan précédent possédait.
                         min={browserLocalDate()}
+                        // ── C2 ② · NI AU-DELÀ DE DIMANCHE ────────────────
+                        // Un plan est écrit en NOMS DE JOURS, et sept jetons
+                        // ne nomment pas plus loin. Mesuré le 2026-08-12: ce
+                        // champ n'avait aucun `max`, un départ dans quinze
+                        // jours partait au modèle, et le message portait
+                        // « today is: wed » à côté de « days to fill: tue » —
+                        // refus du modèle après 6,2 s FACTURÉES.
+                        //
+                        // Le serveur reste l'autorité (`window_beyond_this_week`,
+                        // en millisecondes, avec le VRAI fuseau de l'élève).
+                        // Ce `max` évite seulement de proposer le geste, comme
+                        // le `max` du champ de fin évite de proposer huit jours.
+                        max={lastNameableStart(browserLocalDate())}
                         value={windowStart}
                         onChange={(e) => setWindowStart(e.target.value)}
                         className={`${inputClass} mt-1 w-auto`}

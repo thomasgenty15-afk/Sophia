@@ -18,6 +18,7 @@ import { addDays } from "./meal_plan_window.ts";
 
 import {
   buildMergeBlock,
+  MERGE_ANCHOR_INSTRUCTION,
   dayCountInclusive,
   LADDER_REASON_NO_COOKING_DAY,
   LADDER_REASON_ONE_DISH,
@@ -689,18 +690,144 @@ const MATERIAL = [
   { day: "thu", slot: "lunch", title: "Wrap au poulet" },
 ];
 
+/** L'ANCRE (O5): les plats du plan DU FOYER sur la fenêtre recomposée. */
+const BASE_MATERIAL = [
+  { day: "wed", slot: "dinner", title: "Gratin de courgettes" },
+  { day: "thu", slot: "lunch", title: "Salade de lentilles" },
+];
+
+/**
+ * LES LIGNES D'UNE SECTION, ET POURQUOI ON NE COMPTE PLUS LES « - » DU BLOC.
+ *
+ * Depuis O5 le bloc porte DEUX listes: la matière du plan personnel, puis
+ * l'ancre — les plats du foyer. Compter tous les tirets confondrait les deux, et
+ * le plafond de la matière (`MERGE_MATERIAL_CAP`, qui ouvre le budget de plats)
+ * cesserait d'être mesuré pour ce qu'il est.
+ */
+function bulletsAfter(block: string, header: string): string[] {
+  const at = block.indexOf(header);
+  if (at < 0) return [];
+  const out: string[] = [];
+  for (const line of block.slice(at).split("\n").slice(1)) {
+    if (!line.startsWith("- ")) break;
+    out.push(line);
+  }
+  return out;
+}
+
+const OWN_HEADER = "was going to eat over these days, on their own:";
+const BASE_HEADER = "The household's plan over these days:";
+
 Deno.test("le bloc nomme la personne, les dates, et ce qu'elle allait manger", () => {
   const block = buildMergeBlock({
     displayName: "Tom",
     window: { startsOn: WED, durationDays: 3 },
     shape: "one_session",
     dishes: MATERIAL,
+    baseDishes: BASE_MATERIAL,
+    gaps: [],
   });
   assert(block.startsWith("== BRINGING SOMEONE BACK TO THIS TABLE =="));
   assert(block.includes("Tom"));
   assert(block.includes(WED));
   assert(block.includes("2026-08-14"), "la fin de la fenêtre doit être écrite");
   assert(block.includes("- wed dinner: Curry de pois chiches"));
+});
+
+// ---------------------------------------------------------------------------
+// 5.1 — O5: L'ANCRE. LA FUSION MONTRE LE PLAN DU FOYER, ET DIT D'Y RESTER
+// ---------------------------------------------------------------------------
+
+Deno.test("O5 — LA FUSION ANCRE SUR LE PLAN DU FOYER, comme la défusion sur le plan de base", () => {
+  // ⚠️ LE DÉFAUT MESURÉ QUE CE TEST EXISTE POUR EMPÊCHER. Deux fusions réelles
+  // sur deux ont servi le plan PERSONNEL du secondaire à toute la tablée: 15
+  // créneaux sur 15, aucun titre du plan du foyer survivant. La consigne ne
+  // montrait qu'une seule liste — celle du plan personnel — et un modèle à qui
+  // l'on ne montre qu'un menu écrit ce menu.
+  const block = buildMergeBlock({
+    displayName: "Zoé",
+    window: { startsOn: WED, durationDays: 3 },
+    shape: "one_session",
+    dishes: MATERIAL,
+    baseDishes: BASE_MATERIAL,
+    gaps: [],
+  });
+  // 1. Le plan du foyer est SOUS LES YEUX du modèle, plat par plat.
+  assert(block.includes("- wed dinner: Gratin de courgettes"));
+  assert(block.includes("- thu lunch: Salade de lentilles"));
+  // 2. Avec l'instruction d'y rester, mot pour mot la jumelle de celle de la
+  //    défusion — celle qui a obtenu 14 titres identiques sur 14.
+  assert(block.includes(MERGE_ANCHOR_INSTRUCTION));
+  assert(block.includes("THE HOUSEHOLD'S PLAN IS THE PLAN"));
+  // 3. ET L'ANCRE EST EN DERNIER. Un modèle lit la contrainte la plus proche de
+  //    la fin comme la plus contraignante: la liste à ne PAS recopier ne peut
+  //    pas être le mot de la fin. C'est la moitié du correctif.
+  assert(
+    block.indexOf(OWN_HEADER) < block.indexOf(MERGE_ANCHOR_INSTRUCTION),
+    "la matière du plan personnel passe APRÈS l'ancre: c'est elle que le " +
+      "modèle lira comme la consigne finale.",
+  );
+  assert(
+    block.indexOf(MERGE_ANCHOR_INSTRUCTION) < block.indexOf(BASE_HEADER),
+    "l'ancre doit précéder la liste qu'elle désigne",
+  );
+  assert(
+    block.lastIndexOf("- wed dinner: Gratin de courgettes") >
+      block.lastIndexOf("- wed dinner: Curry de pois chiches"),
+    "le plan du foyer doit être la DERNIÈRE liste du bloc",
+  );
+});
+
+Deno.test("O5 — L'ANCRE N'INTERDIT PAS LE PLAT DÉDIÉ (le cas qui passe)", () => {
+  // ⚠️ SANS CETTE MOITIÉ, « ancrer » voudrait dire « ne rien ajouter », et L4
+  // tomberait avec: aux barreaux ② et ③ le modèle DOIT produire un plat pour la
+  // personne reprise, et le plafond de plats lui a ouvert la place pour ça
+  // (`dishBudgetFor`). Une ancre qui tuerait le plat dédié ressemblerait à une
+  // ancre qui marche.
+  const of = (shape: "one_dish" | "one_session" | "separate_sessions") =>
+    buildMergeBlock({
+      displayName: "Zoé",
+      window: { startsOn: WED, durationDays: 3 },
+      shape,
+      dishes: MATERIAL,
+      baseDishes: BASE_MATERIAL,
+      gaps: [],
+    });
+  for (const shape of ["one_session", "separate_sessions"] as const) {
+    assert(
+      of(shape).includes("ADD"),
+      `${shape}: la consigne ne demande plus d'AJOUTER un plat pour la personne.`,
+    );
+  }
+  // ① reste le seul barreau où rien ne s'ajoute.
+  assert(of("one_dish").includes("Never turn it into a second dish."));
+  // Et les trois portent l'ancre: elle ne dépend pas du barreau.
+  for (const shape of ["one_dish", "one_session", "separate_sessions"] as const) {
+    assert(of(shape).includes(MERGE_ANCHOR_INSTRUCTION), shape);
+  }
+});
+
+Deno.test("O5 — la MATIÈRE est nommée comme telle, jamais comme un menu", () => {
+  const of = (shape: "one_session" | "separate_sessions") =>
+    buildMergeBlock({
+      displayName: "Zoé",
+      window: { startsOn: WED, durationDays: 3 },
+      shape,
+      dishes: MATERIAL,
+      baseDishes: BASE_MATERIAL,
+      gaps: [],
+    });
+  for (const shape of ["one_session", "separate_sessions"] as const) {
+    assert(
+      of(shape).includes("never a menu for the table"),
+      `${shape}: rien ne dit que la liste du plan personnel n'est pas le menu ` +
+        `de tout le monde.`,
+    );
+    assert(
+      of(shape).includes("Everyone else keeps the household's dishes"),
+      `${shape}: rien ne dit que les autres gardent leurs plats.`,
+    );
+  }
 });
 
 Deno.test("LA CONSIGNE CHANGE AVEC LE BARREAU, et pas seulement le brief", () => {
@@ -710,6 +837,8 @@ Deno.test("LA CONSIGNE CHANGE AVEC LE BARREAU, et pas seulement le brief", () =>
       window: { startsOn: WED, durationDays: 3 },
       shape,
       dishes: MATERIAL,
+      baseDishes: BASE_MATERIAL,
+      gaps: [],
     });
   // ① la matière est une PRÉFÉRENCE, jamais un second plat.
   assert(of("one_dish").includes("SAME dishes"));
@@ -734,23 +863,53 @@ Deno.test("la matière est PLAFONNÉE — un plan ne fait pas grossir le prompt 
     window: { startsOn: WED, durationDays: 3 },
     shape: "one_session",
     dishes: many,
+    baseDishes: BASE_MATERIAL,
+    gaps: [],
   });
-  assertEquals(
-    block.split("\n").filter((l) => l.startsWith("- ")).length,
-    MERGE_MATERIAL_CAP,
-  );
+  assertEquals(bulletsAfter(block, OWN_HEADER).length, MERGE_MATERIAL_CAP);
+  // L'ANCRE EST PLAFONNÉE PAREIL, et par la même fonction: un plan du foyer
+  // démesuré ne doit pas faire grossir le prompt d'un côté quand on l'a fermé
+  // de l'autre.
+  const wide = buildMergeBlock({
+    displayName: "Tom",
+    window: { startsOn: WED, durationDays: 3 },
+    shape: "one_session",
+    dishes: MATERIAL,
+    baseDishes: many,
+    gaps: [],
+  });
+  assertEquals(bulletsAfter(wide, BASE_HEADER).length, MERGE_MATERIAL_CAP);
 });
 
 Deno.test("sans matière, aucun en-tête de matière n'apparaît", () => {
   // Un « voici ce qu'il allait manger » suivi de rien ferait composer le modèle
-  // contre une liste imaginaire. Même posture que le bloc d'envies.
+  // contre une liste imaginaire. Même posture que le bloc d'envies. Vrai des
+  // DEUX côtés depuis O5.
   const block = buildMergeBlock({
     displayName: "Tom",
     window: { startsOn: WED, durationDays: 3 },
     shape: "one_dish",
     dishes: [],
+    baseDishes: [],
+    gaps: [],
   });
-  assert(!block.includes("What they were going to eat"));
+  assert(!block.includes(OWN_HEADER));
+  assert(!block.includes(BASE_HEADER));
+  // ⚠️ MAIS L'ANCRE, ELLE, RESTE. Elle ne dit pas « regarde la liste », elle dit
+  // ce qui fait autorité: une fusion sans liste lisible garde la règle.
+  assert(block.includes(MERGE_ANCHOR_INSTRUCTION));
+  // ET LE CAS QUI PASSE, sans quoi les deux `!includes` ci-dessus seraient
+  // verts sur un bloc qui n'affiche plus jamais rien.
+  const full = buildMergeBlock({
+    displayName: "Tom",
+    window: { startsOn: WED, durationDays: 3 },
+    shape: "one_dish",
+    dishes: MATERIAL,
+    baseDishes: BASE_MATERIAL,
+    gaps: [],
+  });
+  assert(full.includes(OWN_HEADER));
+  assert(full.includes(BASE_HEADER));
 });
 
 // ---------------------------------------------------------------------------
@@ -832,6 +991,45 @@ Deno.test("LA FUSION N'ÉCRIT JAMAIS SUR LE COMPTE DU SECONDAIRE", async () => {
     /plan_kind:\s*"household"/.test(src),
     "le plan écrit n'est plus de nature `household`: il entrerait en collision " +
       "avec la fenêtre du plan personnel au lieu de vivre à côté.",
+  );
+});
+
+Deno.test("O5 — L'ANCRE EST BRANCHÉE SUR LE PLAN DU FOYER, PAS SUR LE PLAN PERSONNEL", async () => {
+  // ⚠️ LE MODULE PUR NE PROUVE QUE LA MOITIÉ. `buildMergeBlock` peut être
+  // parfait et recevoir deux fois la même liste: le prompt afficherait alors le
+  // plan personnel sous les deux en-têtes, et l'ancre dirait « reste au plus
+  // près » en pointant très exactement ce qu'il ne faut pas recopier. Rien
+  // n'échouerait — un prompt n'a pas de compilateur, et c'est la cicatrice
+  // d'origine de ce chantier.
+  const src = await generatorSource();
+  assert(
+    /const mergeBaseMaterial = merge === null \? \[\] : mergeMaterialShown\(\s*merge\.householdPlan\.dishes/
+      .test(src),
+    "l'ancre ne vient plus des plats du PLAN DU FOYER (`merge.householdPlan`).",
+  );
+  assert(
+    /baseDishes:\s*mergeBaseMaterial/.test(src),
+    "la consigne de fusion ne reçoit plus l'ancre.",
+  );
+  // ET LES DEUX LISTES SONT DISTINCTES: la matière vient du plan PERSONNEL.
+  assert(
+    /const mergeMaterial = merge === null \? \[\] : mergeMaterialShown\(\s*merge\.personalPlan\.dishes/
+      .test(src),
+    "la matière ne vient plus du plan personnel.",
+  );
+  // ⚠️ ET L'ANCRE N'ENTRE PAS DANS LE BUDGET DE PLATS. `ownDishesShown` ouvre de
+  // la place pour ce que la personne REPRISE apporte (L4, mesuré: le seizième
+  // plat rendu était le dîner du dimanche du foyer). Le plan du foyer est déjà
+  // dans le plafond de base: l'y rajouter doublerait sa propre fenêtre.
+  const budgetAt = src.indexOf("ownDishesShown:");
+  assert(budgetAt >= 0, "le budget de fusion est introuvable — test à réviser");
+  assert(
+    /ownDishesShown:\s*mergeMaterial\.length/.test(src),
+    "le budget de plats ne compte plus la seule matière du plan personnel.",
+  );
+  assert(
+    !/ownDishesShown:[^\n]*mergeBaseMaterial/.test(src),
+    "l'ancre est entrée dans le budget de plats: le plan du foyer y compte deux fois.",
   );
 });
 
@@ -1232,9 +1430,15 @@ Deno.test("LE BUDGET COMPTE CE QUE LE MODÈLE VOIT, pas ce qu'on avait sous la m
     window: { startsOn: "2026-08-12", durationDays: 5 },
     shape: "one_session",
     dishes: many,
+    // L'ANCRE NE COMPTE PAS DANS LE BUDGET, et le décor le prouve: le plan du
+    // foyer porte des plats, et le nombre attendu ne bouge pas. `ownDishesShown`
+    // ouvre de la place pour ce que la personne REPRISE apporte; le plan du
+    // foyer est déjà dans le plafond de base.
+    baseDishes: [{ day: "wed", slot: "dinner", title: "Gratin de courgettes" }],
+    gaps: [],
   });
   assertEquals(
-    block.split("\n").filter((l) => l.startsWith("- ")).length,
+    bulletsAfter(block, "was going to eat over these days, on their own:").length,
     shown.length,
   );
 });

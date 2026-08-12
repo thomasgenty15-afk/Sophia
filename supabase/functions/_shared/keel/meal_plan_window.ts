@@ -261,6 +261,165 @@ export function resolveRequestedWindow(
 }
 
 // ---------------------------------------------------------------------------
+// CE QUE `write_student_meal_plan` FAIT D'UN PLAN VIVANT QUI CHEVAUCHE
+//
+// ⚠️ UNE RÈGLE SQL RECOPIÉE EN TYPESCRIPT, ET LE FIL EST TENDU. Un test relit
+// la boucle DANS la migration 20260811140000 et tombe le jour où l'original
+// bouge (`household_merge_test.ts`, « LA RÈGLE COPIÉE EST BIEN CELLE DE LA
+// MIGRATION »).
+//
+// ELLE VIT ICI, ET PLUS DANS `household_merge.ts`, DEPUIS C2. Ce n'est pas une
+// notion de FUSION: c'est ce que la base fait de deux fenêtres du même compte
+// et de la même nature, donc ça appartient au module des fenêtres. Les trois
+// portes qui écrivent un plan la lisent maintenant — la fusion (qui l'avait), la
+// composition individuelle et la composition de foyer (qui ne l'avaient pas, et
+// payaient un appel modèle pour finir sur le même 409).
+// ---------------------------------------------------------------------------
+
+/** Ce que la boucle de chevauchement de la RPC décide, pour UNE ligne vivante. */
+export type PlanOverlapVerdict =
+  /** Les deux fenêtres ne se touchent pas: la RPC ne voit même pas la ligne. */
+  | "no_overlap"
+  /** ① il commence LE MÊME JOUR ou APRÈS ⇒ `plan_overlaps_existing`. */
+  | "starts_at_or_after"
+  /** ② il commence AVANT **et finit APRÈS** ⇒ `plan_overlaps_existing`. */
+  | "encloses"
+  /** ③ il commence avant et finit dedans ⇒ TRONQUÉ, légitimement (D15). */
+  | "truncated";
+
+/**
+ * LA RÈGLE, POUR UNE SEULE LIGNE. Pure, et c'est la boucle de la migration
+ * 20260811140000 lue dans son ordre.
+ *
+ * Le `&&` de `daterange` de la RPC est la première ligne: une ligne qui ne
+ * chevauche pas n'entre jamais dans la boucle, donc elle ne peut rien refuser.
+ */
+export function planOverlapVerdict(
+  existing: { startsOn: string; durationDays: number },
+  window: { startsOn: string; durationDays: number },
+): PlanOverlapVerdict {
+  const endOf = (s: { startsOn: string; durationDays: number }) =>
+    addDays(s.startsOn, Math.max(1, s.durationDays));
+  if (endOf(existing) <= window.startsOn) return "no_overlap";
+  if (endOf(window) <= existing.startsOn) return "no_overlap";
+  if (existing.startsOn >= window.startsOn) return "starts_at_or_after";
+  if (endOf(existing) > endOf(window)) return "encloses";
+  return "truncated";
+}
+
+/** Une ligne vivante, telle qu'on la relit pour décider AVANT le modèle. */
+export interface LivePlanSpan {
+  id: string;
+  startsOn: string;
+  durationDays: number;
+}
+
+/**
+ * LA PREMIÈRE LIGNE VIVANTE QUI FERA REFUSER LA BASE — ou `null`.
+ *
+ * ⚠️ C'EST LE JUMEAU DU P0 DE LA FUSION, SUR LA PORTE `compose` (C2, ③). La
+ * fusion produisait une fenêtre strictement INTÉRIEURE au plan du foyer et se
+ * payait `409 plan_overlaps_existing` **après** 16,1 s de modèle et 7 335
+ * jetons. `resolveMergeWindow` a été réparé; la porte `compose` porte la même
+ * famille de défaut et personne ne l'avait touchée — sa fenêtre est
+ * PARAMÉTRÉE PAR LE CLIENT (`{kind:"exact"}`, `{kind:"days"}`), donc elle est
+ * atteignable.
+ *
+ * ⚠️ CE N'EST PAS L'AUTORITÉ, C'EST UN REFUS PRÉCOCE. La base tranche, comme
+ * toujours; ceci évite de la payer au prix d'une génération. Un appelant qui
+ * lirait moins de lignes que la RPC (elle ne filtre QUE sur `user_id`,
+ * `plan_kind` et `retired_at`) laisserait juste un cas rare payer le modèle —
+ * jamais un plan faux.
+ *
+ * @param replacesId la ligne que la RPC RETIRE avant sa boucle (`p_replaces`,
+ *   sous `intent = 'replace_current'`), ou `null`. REQUIS, jamais optionnel:
+ *   l'omettre ferait refuser la composition la plus banale du produit —
+ *   « remplace le plan courant » commence toujours le même jour que lui.
+ */
+export function firstBlockingPlan(args: {
+  live: readonly LivePlanSpan[];
+  window: { startsOn: string; durationDays: number };
+  replacesId: string | null;
+}): { plan: LivePlanSpan; verdict: "starts_at_or_after" | "encloses" } | null {
+  for (const plan of args.live) {
+    if (args.replacesId !== null && plan.id === args.replacesId) continue;
+    const verdict = planOverlapVerdict(plan, args.window);
+    if (verdict === "starts_at_or_after" || verdict === "encloses") {
+      return { plan, verdict };
+    }
+  }
+  return null;
+}
+
+/**
+ * LE DERNIER JOUR QUE LES JETONS SAVENT NOMMER DEPUIS AUJOURD'HUI — le dimanche
+ * de la semaine en cours.
+ *
+ * ⚠️ CE N'EST PAS UNE PRÉFÉRENCE D'ÉCRAN, C'EST L'ARITHMÉTIQUE DES SEPT JETONS.
+ * Un plan ne porte pas de dates dans le message envoyé au modèle: il porte
+ * `mon`…`sun`, et le message dit à côté « today is: wed ». Au-delà du dimanche,
+ * le jeton d'une date est DÉJÀ pris par une date plus proche — `today + 7`
+ * porte le jeton d'aujourd'hui — et la consigne devient illisible.
+ */
+export function lastNameableStart(today: string): string {
+  const at = WEEK_TOKENS.indexOf(dayTokenOf(today));
+  return addDays(today, WEEK_TOKENS.length - 1 - at);
+}
+
+/**
+ * CETTE FENÊTRE COMMENCE-T-ELLE APRÈS CE QUE LES JETONS SAVENT NOMMER ?
+ *
+ * ── LE DÉFAUT, MESURÉ EN HTTP RÉEL LE 2026-08-12 ───────────────────────────
+ *
+ * `starts_on = 2026-08-26` (un mardi) demandé un mercredi. Le message envoyé au
+ * modèle portait, à trois lignes d'écart:
+ *
+ *     today is: wed
+ *     days to fill, in this order: tue, wed
+ *     … Do not start earlier than today
+ *
+ * Le modèle a REFUSÉ en toutes lettres — `422 empty_meal`, `lock:
+ * disarmed_empty_text`, **après 6,2 s facturées**. Ce n'est pas une
+ * désobéissance: les deux phrases se contredisent, et il n'y avait pas de
+ * réponse juste.
+ *
+ * ── POURQUOI LE DIMANCHE, ET PAS « SEPT JOURS » ────────────────────────────
+ *
+ * Les deux moitiés du défaut se referment sur la même borne, et c'est ce qui la
+ * rend simple:
+ *
+ *   · un départ APRÈS le dimanche fait forcément revenir un jeton en arrière
+ *     (`mon` après `wed`) ou le RÉUTILISE (`today + 7`);
+ *   · un départ AVANT ou LE dimanche donne des jetons strictement croissants
+ *     depuis celui d'aujourd'hui, donc une liste que « do not start earlier
+ *     than today » n'a aucune raison de contredire.
+ *
+ * `today + 6` aurait laissé passer le cas le plus banal du produit — « je
+ * prépare lundi prochain », demandé un mardi — qui est exactement la forme
+ * mesurée.
+ *
+ * ── CE QUE ÇA NE FERME PAS, ET C'EST ÉCRIT ─────────────────────────────────
+ *
+ * La QUEUE d'une fenêtre peut toujours dépasser le dimanche: un plan de sept
+ * jours démarré un vendredi va jusqu'à jeudi, et ses jetons restent distincts.
+ * On ne l'a jamais mesuré comme contradictoire — la liste commence bien
+ * aujourd'hui — et le refuser retirerait une fenêtre que l'écran propose depuis
+ * toujours (`{kind:"days", count:7}`).
+ *
+ * ⚠️ PURE, ET SANS HORLOGE: `today` est le jour LOCAL de l'élève, résolu par
+ * l'appelant. Même invariant que tout ce fichier.
+ */
+export function windowStartsBeyondDayTokens(
+  startsOn: string,
+  today: string,
+): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(startsOn) || !/^\d{4}-\d{2}-\d{2}$/.test(today)) {
+    return false;
+  }
+  return startsOn > lastNameableStart(today);
+}
+
+// ---------------------------------------------------------------------------
 // Arithmétique de dates — la même que partout ailleurs dans ce dépôt
 // ---------------------------------------------------------------------------
 

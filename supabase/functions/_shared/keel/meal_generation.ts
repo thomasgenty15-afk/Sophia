@@ -558,6 +558,18 @@ export interface GeneratedMeal {
    * répare la mauvaise chose.
    */
   protein_anchor_missing: string[];
+  /**
+   * C2 ④ — LES CASES DE LA FENÊTRE QUE PERSONNE NE REMPLIT.
+   *
+   * Un CONSTAT, comme `protein_anchor_missing`: le plan est écrit tel quel, et
+   * rien ici ne rebouche la case — choisir quoi y mettre est une décision de
+   * produit que personne n'a prise. Ce que ça change, c'est que « ce plat a été
+   * rejeté » et « il n'y a plus aucun petit-déjeuner cette semaine » cessent de
+   * laisser la même trace.
+   *
+   * Vide quand le verrou de sortie a mordu, pour la même raison que les plats.
+   */
+  empty_slots: MealSlotCase[];
   issues: string[];
   lock: OutputLockResult;
 }
@@ -1094,6 +1106,14 @@ fruit — say it anyway when you know it.
 Never guess. An ingredient whose weight you do not actually know keeps its
 phrase and leaves the three fields null. A made-up number is worse than a
 missing one.
+
+FATS, NUTS AND SWEETENERS ARE THE ONE EXCEPTION, and they are not a guess.
+Oil, butter, ghee, cream, nut butter, tahini, nuts, seeds, honey, syrup and
+chocolate ALWAYS carry "amount" and "unit". "A drizzle of olive oil" is a
+tablespoon; write 1 and "tbsp". These ingredients are small on the page and
+enormous in the pan -- a spoon of oil weighs what a whole plate of vegetables
+weighs, and a line left blank there makes the entire dish unreadable. Salt,
+pepper and herbs may stay a pinch; oil may not.
 
 == THE STUDENT'S SITUATION IS NOT DECORATION ==
 
@@ -1787,6 +1807,78 @@ function readStructuredQuantity(
   return { amount, unit, state, gramsRaw };
 }
 
+/** Une case de la grille des repas: un jour, un moment. */
+export interface MealSlotCase {
+  day: string;
+  slot: EatingOccasion;
+}
+
+/**
+ * LES CASES DE LA FENÊTRE QUE PERSONNE NE REMPLIT — le trou, nommé.
+ *
+ * ── LE DÉFAUT QU'ELLE REND LISIBLE, MESURÉ DEUX FOIS LE 2026-08-12 ─────────
+ *
+ * Un plat dont un ingrédient porte une cible chiffrée est rejeté ENTIER (le
+ * verrou numérique, `findNumericTarget`). Sur une fusion, la matière du plan
+ * personnel citait « whey protein 90 g » et **les cinq petits-déjeuners du
+ * foyer sont tombés d'un coup**: le foyer s'est retrouvé sans aucun
+ * petit-déjeuner, avec UNE ligne d'`issues` par plat rejeté pour tout signal —
+ * c'est-à-dire une trace qui dit ce qui a été JETÉ et jamais ce qui MANQUE.
+ *
+ * ⚠️ ON CONSTATE, ON NE REBOUCHE PAS. Recomposer la case demanderait de choisir
+ * quoi mettre à la place, et c'est un choix de PRODUIT que personne n'a pris.
+ * Même posture que `observeMergeShape` et que le constat d'ancre protéique: le
+ * plan est écrit, le trou est nommé. Le verrou numérique, lui, est JUSTE et
+ * antérieur — on ne l'affaiblit pas d'un caractère.
+ *
+ * ── CE QUI N'EST PAS UN TROU, ET C'EST LA MOITIÉ QUI COMPTE ────────────────
+ * Une garde qui déclarerait un trou partout serait indiscernable d'une garde
+ * qui marche. Ne comptent donc PAS:
+ *   · un moment où la personne (ou la tablée) est ABSENTE — la consigne
+ *     l'interdit et le parseur le jette déjà, c'est un vide VOULU;
+ *   · un moment déjà pris par un apport FIXE — même raison (FF-051);
+ *   · un plat sans jour: il vaut pour la fenêtre entière (`windowSplit`), donc
+ *     il couvre son moment tous les jours;
+ *   · un plat sans moment: il couvre la JOURNÉE. On ne sait pas lequel de ses
+ *     repas il est, et deviner fabriquerait un trou qui n'existe pas.
+ *
+ * PURE, et paramétrée par les MÊMES entrées que la consigne (`occasionList`,
+ * `isAway`, `slotIsTaken`): un second avis sur « ce que cette journée devait
+ * contenir » aurait divergé du prompt au premier ajustement.
+ */
+export function emptySlotsIn(args: {
+  /** Les jetons de la fenêtre, dans son ordre. Vide ⇒ aucune case connue. */
+  days: readonly string[];
+  /** Le rythme déclaré. Vide ⇒ le défaut, exactement comme `occasionList`. */
+  rhythm: readonly EatingOccasionSlot[];
+  dishes: readonly { day?: string | null; slot?: string | null }[];
+  awayDays: readonly AwayDay[];
+  fixedIntakes: readonly FixedIntake[];
+}): MealSlotCase[] {
+  const occasions = (args.rhythm.length > 0 ? args.rhythm : DEFAULT_EATING_RHYTHM)
+    .map((o) => o.slot);
+  const out: MealSlotCase[] = [];
+  for (const day of args.days) {
+    for (const slot of occasions) {
+      if (isAway(args.awayDays, day, slot)) continue;
+      if (slotIsTaken(args.fixedIntakes, day, slot)) continue;
+      const covered = args.dishes.some((d) => {
+        const dDay = d.day ?? null;
+        const dSlot = d.slot ?? null;
+        if (dDay !== null && dDay !== day) return false;
+        return dSlot === null || dSlot === slot;
+      });
+      if (!covered) out.push({ day, slot });
+    }
+  }
+  return out;
+}
+
+/** Les cases vides, en une ligne lisible: `wed/breakfast, thu/breakfast`. */
+export function emptySlotsLine(cases: readonly MealSlotCase[]): string {
+  return cases.map((c) => `${c.day}/${c.slot}`).join(", ");
+}
+
 export function parseGeneratedMeal(
   raw: unknown,
   args: {
@@ -1891,6 +1983,8 @@ export function parseGeneratedMeal(
   const rejectedNumeric: string[] = [];
   const rejectedAisles: string[] = [];
   let unstructuredIngredients = 0;
+  /** Les aliments DENSES laissés sans grammes — la part qui coûte le verdict. */
+  const unweighedDenseTerms: string[] = [];
   let ingredientCount = 0;
 
   let parsed: unknown = raw;
@@ -2031,7 +2125,43 @@ export function parseGeneratedMeal(
 
     const dayRaw = cleanText(d.day).toLowerCase();
     const day = DAY_TOKENS.includes(dayRaw) ? dayRaw : null;
-    if (dayRaw && !day) issues.push(`dishes[${i}]: unknown day token ${JSON.stringify(dayRaw)}, dropped`);
+    if (dayRaw && !day) {
+      issues.push(`dishes[${i}]: unknown day token ${JSON.stringify(dayRaw)}, dropped`);
+    }
+
+    // ── UN PLAT SANS JOUR N'A PAS DE CASE, ET ÇA SE DIT ──────────────────
+    //
+    // ⚠️ L'ASYMÉTRIE QUE CE BLOC FERME. Un jeton de jour INCONNU était nommé
+    // (juste au-dessus); un jour ABSENT ne l'était pas. Les deux produisent
+    // pourtant la même chose — un plat que la grille ne sait poser nulle part.
+    //
+    // MESURÉ LE 2026-08-12, sur une fusion: un plan portait **16 entrées
+    // `dishes` pour 3 jours**, dont **7 sans `day` ni `slot`** — « Roast
+    // chicken thighs », « Quinoa », « Cooked rice »… c'est-à-dire LES MÊMES
+    // SEPT TITRES que `preparations`. Le modèle avait rendu ses préparations
+    // une seconde fois sous forme de plats, le budget relevé par la fusion
+    // (`dishBudgetFor`) avait laissé la place, et `issues` ne disait RIEN.
+    // Compté sur les autres plans du même run: **0 entrée sans jour sur 14-15**.
+    // Le cas n'apparaît qu'avec le budget de fusion.
+    //
+    // ⚠️ POURQUOI JETER, ET PAS SEULEMENT COMPTER. Sur une fenêtre de plusieurs
+    // jours, ce plat n'est ni affichable dans la grille, ni cochable, ni
+    // rapprochable d'une photo: il occupe une place du plafond — donc il coûte
+    // un VRAI repas de la fin de fenêtre, exactement comme le dîner du dimanche
+    // que le débordement a fait tomber le 2026-08-12 — et il gonfle la liste de
+    // courses de ce que la préparation achète déjà.
+    //
+    // ⚠️ SUR UNE FENÊTRE D'UN SEUL JOUR, ON GARDE. Il n'y a alors qu'un jour:
+    // le plat est situé sans ambiguïté, et `windowSplit` le range déjà dans la
+    // fenêtre. Jeter là serait retirer un repas à quelqu'un pour une clé
+    // absente d'un plan qui n'en a pas besoin.
+    if (!day && args.scope === "several_days") {
+      issues.push(
+        `dishes[${i}]: no day token on a multi-day window -- dropped ` +
+          `(${JSON.stringify(title)})`,
+      );
+      continue;
+    }
 
     // ── LE MOMENT ÉCARTÉ MORD ICI, PAS SEULEMENT DANS LA CONSIGNE ────────
     // Une contrainte qui n'existe que dans le prompt n'est pas une garantie:
@@ -2140,6 +2270,17 @@ export function parseGeneratedMeal(
       // FF-038, et c'est elle qui dira s'il faut durcir la consigne.
       if (structured.amount === null || structured.unit === null) {
         unstructuredIngredients++;
+        // ── LES DENSES SONT COMPTÉS À PART, ET C'EST TOUT L'ÉCART ──────
+        // Une pincée de sel sans grammes ne déplace rien. Un filet d'huile
+        // sans grammes retire 120 kcal d'une assiette, en silence, et fait
+        // s'abstenir le verdict entier (`unweighedEnergyDense`). Les compter
+        // ensemble donnerait un chiffre où « 26 condiments » et « 1 huile »
+        // se ressemblent, alors que le second coûte le plan et le premier
+        // rien.
+        if (args.composition) {
+          const ref = resolveIngredient(args.composition, term);
+          if (ref?.energyDense) unweighedDenseTerms.push(term);
+        }
       }
       ingredients.push({
         term,
@@ -2343,6 +2484,17 @@ export function parseGeneratedMeal(
       `structured_quantity_missing: ${unstructuredIngredients}/${ingredientCount} ingredients`,
     );
   }
+  // ── LA PART DENSE, NOMMÉE ───────────────────────────────────────────────
+  // Ici on NOMME, contrairement au compteur ci-dessus: la liste est courte par
+  // construction (une huile, un beurre), et c'est le terme exact qu'il faut
+  // pour savoir si la consigne du prompt a porté. Mesuré le 2026-08-12 sur 80
+  // générations: 82 lignes d'huile d'olive sans quantité, chacune éteignant le
+  // verdict de son plan.
+  if (unweighedDenseTerms.length > 0) {
+    issues.push(
+      `energy_dense_unweighed: ${[...new Set(unweighedDenseTerms)].join(", ")}`,
+    );
+  }
   if (args.composition === null) {
     // NOMMÉ, sinon un référentiel indisponible en boucle ressemblerait à un
     // modèle qui n'écrit pas ses quantités — deux causes opposées, une seule
@@ -2508,6 +2660,39 @@ export function parseGeneratedMeal(
     }
   }
 
+  // ── C2 ④ · LES CASES QUE PERSONNE NE REMPLIT ────────────────────────────
+  //
+  // MESURÉ DEUX FOIS LE 2026-08-12: les cinq petits-déjeuners du foyer sont
+  // tombés d'un coup parce qu'un plat citait « whey protein 90 g », et la seule
+  // trace était la ligne du plat REJETÉ. « Ce plat est tombé » et « il n'y a
+  // plus de petit-déjeuner de la semaine » ne sont pas la même information, et
+  // c'est la seconde qu'on lit quand on ouvre son plan.
+  //
+  // ⚠️ CONSTAT, JAMAIS RÉPARATION. On ne recompose pas la case: choisir quoi y
+  // mettre est une décision de produit que personne n'a prise, et l'inventer ici
+  // écrirait une recette que personne n'a rédigée. Même posture, mot pour mot,
+  // que « un jour de batch sans session » vingt lignes plus haut.
+  //
+  // GARDÉ SUR `clean`, comme les plats: quand le verrou de sortie a vidé le
+  // plan entier, annoncer vingt et une cases vides serait un bruit qui
+  // masquerait le seul fait utile (l'allergène).
+  //
+  // UNE SEULE `issue` AGRÉGÉE, et la liste STRUCTURÉE à côté: vingt et une
+  // lignes noieraient les constats utiles, et un `issues.length` qui explose
+  // change ce qu'un lecteur voit en premier.
+  const emptySlots = clean
+    ? emptySlotsIn({
+      days: args.daysToFill,
+      rhythm: args.eatingRhythm,
+      dishes,
+      awayDays: args.awayDays,
+      fixedIntakes: args.fixedIntakes,
+    })
+    : [];
+  if (emptySlots.length > 0) {
+    issues.push(`empty_slots: ${emptySlotsLine(emptySlots)}`);
+  }
+
   return {
     dishes: clean ? dishes : [],
     preparations: clean ? preparations : [],
@@ -2515,6 +2700,7 @@ export function parseGeneratedMeal(
     shopping_list: clean ? finalShopping : [],
     rejected_numeric: rejectedNumeric,
     rejected_aisles: rejectedAisles,
+    empty_slots: emptySlots,
     // Gardé sur `clean` comme les plats eux-mêmes: relancer pour une ancre
     // quand la semaine entière vient d'être vidée par un allergène ferait
     // réparer la mauvaise chose, et à la deuxième sortie sale on aurait dépensé

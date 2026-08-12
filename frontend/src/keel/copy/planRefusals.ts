@@ -67,6 +67,14 @@ export const EDGE_REFUSAL_KEYS: Record<string, MessageKey> = {
   // ── LA REQUÊTE ELLE-MÊME ────────────────────────────────────────────────
   window_required: "plan.refusal.window_required",
   bad_window: "plan.refusal.bad_window",
+  // ── C2 · CE QUI SE DÉCIDE AVANT LE MODÈLE, ET QUI SE PAYAIT APRÈS ────────
+  // Les deux sont NEUFS côté serveur et tous deux mesurés en HTTP réel:
+  // `window_beyond_this_week` remplace un `422 empty_meal` à 6,2 s (les jetons
+  // de jour ne vont pas au-delà de dimanche), et `plan_overlaps_existing`
+  // reprend MOT POUR MOT le refus de `write_student_meal_plan` — celui que la
+  // fusion payait 16,1 s avant que L10 ne le ferme de son côté.
+  window_beyond_this_week: "plan.refusal.window_beyond_this_week",
+  plan_overlaps_existing: "plan.refusal.plan_overlaps_existing",
   unknown_intent: "plan.refusal.unknown_intent",
   replaces_required: "plan.refusal.replaces_required",
   mode_required: "plan.refusal.mode_required",

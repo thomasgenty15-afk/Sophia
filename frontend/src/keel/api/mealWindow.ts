@@ -244,3 +244,20 @@ export function resolveRequestedWindow(
   }
   return { startsOn: request.startsOn, durationDays: days };
 }
+
+/**
+ * LE DERNIER DÉPART QUE LES JETONS DE JOUR SAVENT NOMMER — le dimanche de la
+ * semaine en cours. Miroir de `lastNameableStart` (`meal_plan_window.ts`).
+ *
+ * ⚠️ CE N'EST PAS LE SERVEUR QUI TRANCHE ICI, ET C'EST VOULU. Le serveur refuse
+ * `window_beyond_this_week`, en millisecondes, avec le jour local de l'élève —
+ * il est l'autorité. Ce miroir sert au `max` du sélecteur de dates, pour que le
+ * geste ne soit pas PROPOSÉ: sans lui, l'écran offrait de partir dans quinze
+ * jours et le modèle refusait après 6,2 s facturées (mesuré le 2026-08-12). Un
+ * décalage d'un jour entre l'horloge du navigateur et le fuseau de l'élève
+ * laisse simplement le serveur trancher, ce qu'il fait de toute façon.
+ */
+export function lastNameableStart(today: string): string {
+  const at = WEEK_TOKENS.indexOf(dayTokenOf(today));
+  return addDays(today, WEEK_TOKENS.length - 1 - at);
+}

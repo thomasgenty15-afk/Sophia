@@ -3395,6 +3395,14 @@ export const en = {
     "We could not tell what day it is where you are, and a plan is counted in days.",
   "plan.refusal.window_required": "That request named no days to cover.",
   "plan.refusal.bad_window": "Those days could not be read.",
+  // C2 ② — refusé AVANT le modèle. Un départ au-delà de dimanche fabriquait une
+  // consigne contradictoire (« today is: wed » à côté de « days to fill: tue »),
+  // et le modèle refusait après 6,2 s facturées.
+  "plan.refusal.window_beyond_this_week":
+    "A plan is written in day names, and those only reach as far as this Sunday. Start this week, or come back once next week has started.",
+  // C2 ③ — le même mot que la base, refusé avant le modèle plutôt qu'après.
+  "plan.refusal.plan_overlaps_existing":
+    "Those days sit inside a plan you already have. Cover it to its last day, or replace it.",
   "plan.refusal.unknown_intent": "That request did not say what it replaces.",
   "plan.refusal.replaces_required": "That request did not say which plan it replaces.",
   "plan.refusal.mode_required": "Say where to start: from what you have, or shopping for it.",

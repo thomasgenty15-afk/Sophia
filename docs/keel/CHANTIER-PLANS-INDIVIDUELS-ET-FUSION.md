@@ -108,8 +108,9 @@ Campagne de test du 2026-08-11, 5 lanes en conditions réelles, ~80 vérificatio
 
 ## L1, ce qui est prouvé — 2026-08-12
 
-La garde est en `generate-meal-v1/index.ts:386-411` (résolution du foyer remontée
-à `:350`, premier appel modèle `:841`) et inchangée en
+La garde est en `generate-meal-v1/index.ts:390-415` (résolution du foyer remontée
+à `:354`, premier appel modèle `:926` — lignes décalées de quatre par C1, la
+position **relative** est inchangée) et inchangée en
 `generate-household-meal-v1/index.ts:269-292`. Une seule lecture de foyer par
 requête : le site d'écriture consomme la valeur au lieu de re-résoudre.
 
@@ -489,7 +490,10 @@ composition et au barreau ①, **`at most 20`** au barreau ② avec cinq plats m
 **byte-identique** à celle d'avant le lot, vérifiée en comparant les modules de
 `HEAD` à ceux de l'arbre de travail.
 
-### ⚠️ O5 — LE MODÈLE N'OBÉIT PAS AU BARREAU. Ouvert, et c'est un choix de produit
+### ⚠️ O5 — LE MODÈLE N'OBÉIT PAS AU BARREAU
+> **Repris par C1 le 2026-08-12 — par une QUATRIÈME sortie, absente du tableau
+> ci-dessous : ancrer la consigne sur le plan du foyer.** Voir §« C1 ». Ce qui
+> suit reste l'état mesuré qui l'a motivée.
 
 **Deux fusions réelles sur deux ont ignoré la consigne** : barreau ② demandé,
 `common_pot` obtenu. Sur l'une d'elles, le modèle a recopié **les quinze titres de
@@ -512,6 +516,11 @@ Trois sorties, **aucune prise** :
 Ce n'est pas une décision de code. **Elle attend l'utilisateur.**
 
 ### O6 — un plat rejeté ne rebouche jamais sa case
+> **Rendu LISIBLE et NON HÉRITABLE par C2 le 2026-08-12 — pas rebouché.** La
+> case vide est comptée (`empty_slots`, dans les `issues` et dans
+> `generated_from`) et nommée au modèle par les blocs de fusion et de défusion,
+> qui recopiaient le trou comme une intention. **Recomposer la case reste une
+> décision de produit que personne n'a prise.** Voir §« C2 ④ ».
 
 Sur une fusion, **les cinq petits-déjeuners du foyer sont tombés d'un coup** : le
 plan personnel citait « whey protein 90 g », que le verrou de cible numérique lit
@@ -1699,13 +1708,13 @@ Les mutations 1/4/5 sont celles qui comptent : elles prouvent que le décor
 
 1. **Aucun run réel.** Pas un appel HTTP, pas une génération. Une fusion sur une
    fenêtre englobée n'a jamais été **écrite** en base.
-2. **La porte `compose` porte la même famille de défaut, et n'est pas touchée.**
-   Un `window: {kind:"days", count:3}` ou une fenêtre `exact` intérieure au plan
-   du foyer se paie encore d'un 409 **après** le modèle. L'écran, lui, n'envoie
-   que `until_sunday` + `prepare_next`, dont la fin coïncide toujours avec celle
-   du plan courant : le chemin nominal ne l'atteint pas. Non corrigé exprès —
-   c'est une porte que le client paramètre, et refuser plus tôt y est une
-   décision de produit distincte.
+2. ~~**La porte `compose` porte la même famille de défaut, et n'est pas
+   touchée.**~~ **Refermée par C2 le 2026-08-12** — par la MÊME règle
+   (`planOverlapVerdict` / `firstBlockingPlan`, dont `mergeWindowWritable` est
+   devenu un appelant), sur les DEUX portes `compose`. ⚠️ La phrase « le chemin
+   nominal ne l'atteint pas » était **fausse pour la lane individuelle** :
+   `MealBuilder` envoie `{kind:"exact"}` avec deux dates que l'élève choisit.
+   Voir §« C2 ③ ».
 3. **`observeMergeShape` n'a pas été relu sur une fenêtre élargie.** Le constat
    travaille sur ce que le modèle rend, pas sur la fenêtre ; aucune raison de
    croire qu'il change, aucune mesure non plus.
@@ -1718,6 +1727,10 @@ Les mutations 1/4/5 sont celles qui comptent : elles prouvent que le décor
    en remisant les changements.
 
 ## ⚠️ O7 — LA DERNIÈRE PORTE FERMÉE, ET ELLE A DE L'ARGENT DERRIÈRE
+> **Tranché et livré par C1 le 2026-08-12 — par une QUATRIÈME sortie, absente du
+> tableau ci-dessous : la doctrine se résout PAR LE FOYER, et aucune ligne
+> `coach_clients` n'est créée.** Voir §« C1 ». Ce qui suit reste l'état mesuré
+> qui l'a motivée.
 
 **Un compte secondaire ne peut pas prendre la main.** Mesuré en HTTP réel le
 2026-08-12, sur le foyer de test :
@@ -1753,13 +1766,397 @@ Trois sorties, à trancher :
 | **Rattacher au premier geste** de prise de main | le siège n'existe que si la personne l'exerce vraiment ; plus étroit, plus tardif |
 | **Laisser** | le repli et la fusion restent du code juste que personne ne déclenche |
 
+## C1, ce qui est construit — 2026-08-12
+
+> ⚠️ **Rien n'a été exercé en conditions réelles.** Aucun appel HTTP, aucune
+> génération modèle. Ce qui suit est prouvé par des tests purs, des tests de
+> position sur la source et **16 mutations**. Suite keel : **2 528 verts** ;
+> frontend keel : 593 verts. **Aucune migration.**
+
+Deux défauts, tous deux mesurés en HTTP réel : **O7** (personne ne peut prendre
+la main) et **O5** (la fusion sert le plan de l'autre à tout le foyer).
+
+### O7 — LA DOCTRINE SE RÉSOUT PAR LE FOYER, ET AUCUNE LIGNE N'EST CRÉÉE
+
+| Où | Quoi |
+|---|---|
+| `_shared/keel/household_doctrine.ts` | `loadDoctrineForCaller` — la doctrine de l'appelant, **sinon** celle du maître de son foyer ; `resolveHouseholdOwnerUserId` |
+| `generate-meal-v1/index.ts:491-538` | Le repli, exactement là où tombait `no_coach` (`:526` la résolution, `:537` le refus qui survit) |
+| `generate-meal-v1/index.ts:568-585` | `loadPublishedProtocol` suit **le même compte** que la doctrine |
+| `generate-meal-v1/index.ts:1281` | `generated_from.doctrine_via_household` + `doctrine_owner_user_id`, écrits **seulement** sur un repli |
+
+**L'arbitrage (donné, non rejoué) : aucune ligne `coach_clients`.** Rattacher au
+coach maison donnerait deux doctrines dans une même cuisine ; rattacher au coach
+du maître créerait un siège facturable. La résolution par le foyer ne crée rien,
+garde **une seule doctrine par cuisine**, et se défait en retirant une branche de
+lecture.
+
+**C'est un REPLI, jamais un remplacement.** `loadDoctrineForCaller` charge
+d'abord la doctrine de l'appelant : un titulaire qui a son coach garde le sien
+**et le foyer n'est même pas lu** — un test le tient sur la liste des requêtes,
+pas sur le résultat. Le foyer n'est pas re-résolu : `householdId`, résolu une
+seule fois pour tout le fichier depuis L1, est **consommé**.
+
+**Les trois cas, chacun testé :**
+
+| Cas | Résultat |
+|---|---|
+| Coach à lui | le sien, `viaHousehold: false`, zéro lecture de foyer |
+| Pas de coach, membre d'un foyer dont le maître en a un | celui du **maître**, `subjectUserId` = maître |
+| Ni l'un ni l'autre (pas de foyer · maître sans coach · maître détaché · le maître c'est moi · lecture en panne) | **`no_coach`**, jamais une exception |
+
+**Quatre décisions prises seules.**
+
+| Décision | Écarté | Pourquoi | Retour arrière |
+|---|---|---|---|
+| **La variante suit l'APPELANT** (`goalOverride` sur le repli, et seulement là) | laisser le chargeur lire `student_goals` du maître | Sans elle, un secondaire en `muscle_gain` recevrait la variante `fat_loss` de son maître : le coach vient du foyer, l'objectif vient de la personne qu'on nourrit. Sur le chemin nominal, aucune option n'est passée — le comportement est byte-identique | retirer une option |
+| **Le MAPPING ALIMENTAIRE suit le même compte que la doctrine** | le lire sur l'appelant | Sinon: les convictions d'un coach et les aliments d'aucun — l'hybride que `doctrine_loader.ts` documente déjà sur la délégation. Le défaut serait muet: pas de mapping = pas de bloc | une ligne |
+| **La NOTE 1:1 ne suit PAS** (`loadCoachNote(admin, userId)` inchangé) | l'aligner sur la doctrine | Une note écrite **sur le maître** parle du maître. L'injecter dans le plan d'un tiers est une divulgation, pas un repli. Seul ce qui est écrit pour toute la cohorte se transmet | — |
+| **Fail-closed sur la lecture du maître** | fail-open | Une lecture en panne rend le refus qui existait déjà. L'inverse ferait composer sous la méthode de quelqu'un qu'on n'a pas su lire | une branche |
+
+**Ce que ça n'ouvre pas.** Aucun chemin de génération gratuit : un membre de
+foyer est **déjà** gardé par le gel 402 de L1, qui tombe ~140 lignes plus haut.
+Un test de source refuse toute écriture dans le module de repli
+(`.insert(` · `.update(` · `.upsert(` · `.delete(` · `.rpc(`) et toute mention
+de `coach_clients` ou `keel_role` — avec son cas passant (le module DOIT nommer
+`household_members` et `loadPublishedDoctrine`).
+
+### O5 — LA FUSION ANCRE SUR LE PLAN DU FOYER
+
+**Ce que la consigne dit maintenant**, et la seule chose à retenir : elle montre
+**deux** listes là où elle n'en montrait qu'une, et l'ancre est **en dernier**.
+
+```
+== BRINGING SOMEONE BACK TO THIS TABLE ==
+Zoe has been eating from their own plan. […] from 2026-08-12 to 2026-08-16.
+
+Zoe cannot be served out of the common pot.
+ADD ONE dish for them, and cook it in the SAME cooking session as the
+household's — one session at the stove, two dishes out of it.
+Everyone else keeps the household's dishes: what follows is material for
+THEIR dish, never a menu for the table.
+
+What Zoe was going to eat over these days, on their own:
+- wed dinner: Chicken, rice and broccoli bowl        ← LA MATIÈRE, en premier
+
+THE HOUSEHOLD'S PLAN IS THE PLAN, AND IT STAYS.
+Stay as CLOSE AS POSSIBLE to the household's plan: keep the same dishes, the same
+cooking sessions and the same shopping wherever they still work for the
+people who were already at this table — only the amounts change. Do NOT
+invent a different week, and never serve Zoe's dishes to the whole table.
+
+The household's plan over these days:
+- wed lunch: Chicken, tomato and cucumber pita       ← L'ANCRE, en dernier
+```
+
+**En quoi elle diffère de celle qui obéit 14/14 — et en quoi elle lui
+ressemble.** `buildUnmergeBlock` montre **le plan de base** et dit d'en rester au
+plus près ; le modèle a rendu 14 titres identiques sur 14. `buildMergeBlock` ne
+montrait **aucune** liste du foyer : le seul menu écrit sous les yeux du modèle
+était celui du plan personnel, et il l'a recopié — 15 créneaux sur 15, deux
+fusions sur deux. Les deux blocs disent désormais la même chose dans le même
+ordre : un plan qui fait autorité, montré, et l'instruction d'en rester au plus
+près (`MERGE_ANCHOR_INSTRUCTION`, jumelle de `UNMERGE_CLOSENESS_INSTRUCTION`).
+Ce qui les sépare est ce que la fusion **AJOUTE**, et c'est le barreau qui le
+dit.
+
+**L'ORDRE est la moitié du correctif.** La matière passe en premier, l'ancre en
+dernier — la posture déjà écrite pour le bloc des voix (« un modèle lit la
+contrainte la plus proche de la fin comme la plus contraignante »). Avant, la
+liste à ne PAS recopier était le mot de la fin.
+
+**Ce que L4 garde, et un test le tient.** Aux barreaux ② et ③ la consigne dit
+toujours **ADD** — un plat dédié à la personne reprise — et `dishBudgetFor` ne
+bouge pas d'un plat : `ownDishesShown` compte la seule matière du plan
+personnel. Y ajouter l'ancre ferait compter la fenêtre du foyer deux fois dans
+son propre plafond. Deux assertions de source le tiennent.
+
+**Ce que j'attends du modèle, pour que le testeur puisse me démentir :**
+
+| | Attendu |
+|---|---|
+| **Barreau ①** | les titres du plan du **foyer** survivent en majorité ; la matière du plan personnel n'apparaît que par inflexion (un accompagnement, une protéine), jamais comme un menu de remplacement |
+| **Barreaux ②/③** | les titres du foyer survivent **pour les autres bouches** ; **au moins un plat dédié** à la personne reprise apparaît, avec une préparation d'une portion (② même jour de cuisson, ③ session à part) |
+| **Le contraire, mesurable** | si `observeMergeShape` rend encore `common_pot` **et** qu'aucun titre du plan du foyer ne survit, l'ancre a échoué comme le barreau — c'est un **fait**, pas un échec du lot, et il faudra passer aux sorties du tableau d'O5 (refuser, ou relancer) |
+| **Ce qui n'est pas mesurable ici** | rien ne **constate** la ressemblance au plan de base : il n'y a pas d'`observeMergeShape` pour l'ancrage, exactement comme il n'y en a pas pour la défusion (L5 §1). La comparaison des titres se fait à la main, plan contre plan |
+
+### Les versions de prompt
+
+- **`HOUSEHOLD_PROMPT_VERSION` bump `v6_voices` → `v7_merge_anchor`.** Règle de
+  v4 appliquée telle quelle (« quelle **population** voit une consigne
+  différente ») : les **fusions**, et elles seules. Le texte servi change — un
+  bloc de plus dans le bloc, une instruction neuve, un ordre neuf. Un test
+  refuse les cinq versions passées.
+- **`MEAL_PROMPT_VERSION` : inchangée.** Rien de C1 n'entre dans le tronc. O7 ne
+  change **aucun mot** de prompt : il change **quel coach** répond, ce qui se
+  relit sur `generated_from.doctrine_via_household`, pas sur une version — même
+  posture que L3 (une seconde raison qu'une ligne n'apparaisse pas). La lane
+  individuelle, la composition ordinaire et la défusion rendent un prompt
+  byte-identique à v6, et les tests d'octet de L4/L5/L6 le tiennent.
+
+### Les 16 mutations — chacune cassée, vue rouge, restaurée
+
+**O7 (8) :** `goalOverride` retiré du repli (2 rouges) · le repli devenu un
+**remplacement** — le cas qui passe · la garde « le maître, c'est moi »
+désarmée · la panne de lecture qui **lève** · `viaHousehold` vrai quand le
+maître n'a pas de coach non plus · le mapping alimentaire relu sur l'appelant ·
+le générateur qui rouvre le chemin direct vers `loadPublishedDoctrine` · une
+**seconde** résolution du foyer ajoutée.
+
+**O5 (8) :** la liste du plan du foyer retirée du bloc (4 rouges) · l'ancre
+placée **avant** la matière · l'instruction d'ancrage retirée (4 rouges) · le
+générateur qui passe **deux fois** la liste du plan personnel · l'ancre entrée
+dans le budget de plats · la version **non bumpée** · « ADD » retiré des
+barreaux ②/③ — **le cas qui passe** · l'ancre **non plafonnée**.
+
+### Ce qui n'est pas prouvé, et ce qui reste ouvert
+
+1. **Aucun run réel, des deux côtés.** Aucun secondaire n'a reçu un 200 de
+   `generate-meal-v1` ; aucun modèle n'a lu la consigne ancrée. Les deux
+   attendent la campagne.
+2. ~~**`generate-week-plan-v1` n'a PAS le repli.**~~ **Refermé par C2 le
+   2026-08-12** — par le MÊME module (`loadDoctrineForCaller`), et avec le gel
+   402 de D13, qui manquait sur cette porte. Voir §« C2 ① ».
+3. **La doctrine du foyer ne suit pas le CHAT ni le message du soir.** Un
+   secondaire compose désormais sous la méthode du coach de son foyer, mais
+   `sophia-brain` lui parle toujours sans doctrine. Écart connu, non refermé.
+4. **`goalSource` vaut `override` sur un repli.** Le jeton est documenté comme
+   « le coach en mode test » ; un troisième cas aurait demandé de toucher un
+   type partagé par cinq lanes. La trace exacte existe ailleurs, nommément
+   (`keel.doctrine.household_fallback`, `doctrine_via_household`).
+5. **Le coût du repli n'est pas mesuré** : deux requêtes de plus (le maître, puis
+   son `coach_clients`) sur la seule population qui n'a pas de coach.
+6. **Deux rouges préexistants NON touchés**, comme à L4→L8 :
+   `_shared/chat/recent_history_test.ts` (2 cas) et une erreur de typage dans
+   `_shared/action_occurrences_test.ts`. Re-vérifiés rouges au moment de ce lot,
+   sans y toucher.
+
+## C2, ce qui est construit — 2026-08-12
+
+> ⚠️ **Rien n'a été exercé en conditions réelles.** Aucun appel HTTP, aucune
+> génération modèle. Ce qui suit est prouvé par des tests purs, des tests de
+> position sur la source et **26 mutations**. Suite keel : **2 586 verts** ;
+> frontend keel : 593 verts. **Aucune migration.**
+
+Cinq défauts, tous mesurés en HTTP réel le 2026-08-12.
+
+### ① O7 N'ÉTAIT FERMÉ QU'À MOITIÉ — `generate-week-plan-v1` N'AVAIT PAS LE REPLI
+
+C1 a posé le repli de doctrine par le foyer dans `generate-meal-v1`. Le MÊME
+compte secondaire, sur `generate-week-plan-v1`, recevait toujours `409 no_coach`
+en 0,34 s — et c'est **le** chemin du modèle produit, celui que `CLAUDE.md`
+nomme en toutes lettres (`student_goals` → `generate-week-plan-v1` →
+`student_week_plans`). Un secondaire pouvait composer son dîner et toujours pas
+sa semaine.
+
+| Où | Quoi |
+|---|---|
+| `generate-week-plan-v1/index.ts:115-132` | `resolveHouseholdIdFor`, **une seule fois**, consommée deux fois |
+| `generate-week-plan-v1/index.ts:134-181` | **Le gel 402 (L1/D13), neuf sur cette porte** |
+| `generate-week-plan-v1/index.ts:262-279` | `loadDoctrineForCaller` — **le même module que la lane repas**, à la place du couple `coach_clients` + `loadPublishedDoctrine` |
+| `generate-week-plan-v1/index.ts:~500` | `generated_from.doctrine_via_household` + `doctrine_owner_user_id`, écrits **seulement** sur un repli |
+
+**La lecture directe de `coach_clients` a disparu, et ce n'est pas un
+nettoyage.** Elle DOUBLAIT celle du chargeur (même prédicat, `status =
+'active'`), donc elle refusait `no_coach` **avant** que le repli n'ait la
+parole : le brancher sans la retirer aurait posé un repli inatteignable — le
+mode d'échec n°1 de ce chantier. Le `coach_id` archivé vient désormais de la
+doctrine servie, ce qui est la seule lecture juste sur un repli.
+
+**Le gel 402 arrive AVEC le repli, et c'est une décision prise seule.** Sans
+lui, ce lot ouvrait une porte de génération **gratuite** : un membre de foyer
+gelé se voit refuser `generate-meal-v1` (402) et aurait obtenu ici une semaine
+entière sous la doctrine empruntée à son maître — le contournement exact que L1
+a mesuré et fermé par une porte voisine (19 805 jetons). D13 est écrit sans
+nuance : « foyer impayé ⇒ plus personne ne génère, ni maître ni secondaire ».
+
+| Décision | Écarté | Pourquoi | Retour arrière |
+|---|---|---|---|
+| **Le gel 402 sur la porte de la semaine** | livrer le repli seul et nommer le trou | Un repli qui ouvre une génération gratuite est un repli qui coûte de l'argent le jour où il marche. Effet de bord ASSUMÉ et neuf : le **maître** d'un foyer gelé ne génère plus sa semaine non plus — c'est D13 mot pour mot, et c'est déjà vrai de sa lane repas depuis L1 | retirer un bloc |
+
+**Un changement de forme d'échec, nommé** : une panne de transport sur
+`coach_clients` rendait un `500`; elle rend désormais `409 no_coach`
+(`loadPublishedDoctrine` dégrade en `load_failed`, `coachId` reste nul). C'est
+exactement le comportement de `generate-meal-v1` depuis C1, et la direction est
+sûre — on ne compose pas sous une méthode qu'on n'a pas su lire.
+
+### ② UNE FENÊTRE QUI COMMENCE APRÈS DIMANCHE EST REFUSÉE, AVANT LE MODÈLE
+
+`starts_on = 2026-08-26` (un mardi) demandé un mercredi ⇒ le message portait
+`today is: wed`, `days to fill, in this order: tue, wed` et `Do not start
+earlier than today`. Le modèle a refusé **en toutes lettres**, `422 empty_meal /
+lock: disarmed_empty_text`, **après 6,2 s facturées**. Ce n'est pas une
+désobéissance : les jetons de jour n'ont pas de date, et il n'existait pas de
+réponse juste.
+
+**Le refus, pas la réécriture du prompt** — les deux options étaient ouvertes :
+
+| Décision | Écarté | Pourquoi | Retour arrière |
+|---|---|---|---|
+| **Refuser `window_beyond_this_week`**, 400, avant tout | dater les jetons dans la consigne | Dater marche aussi, et fait bouger `MEAL_PROMPT_VERSION` — donc **toute** la population (lane individuelle, foyer, fusion, défusion) — pour une forme de fenêtre que l'écran n'a jamais proposée. Le refus est plus étroit : une porte, deux dates | retirer un bloc de garde |
+| **La borne est DIMANCHE**, pas `today + 6` | `today + 6` | À six jours, « je prépare lundi prochain » demandé un mardi porte le jeton `mon`, qui **précède** `tue` : la contradiction mesurée, à six jours au lieu de quatorze. `startsOn <= dimanche` referme les DEUX moitiés — pas de retour en arrière d'un jeton, pas de jeton réutilisé (`today + 7` porte celui d'aujourd'hui) | une ligne |
+
+Ce que ça **ne** ferme pas, écrit : la **queue** d'une fenêtre peut toujours
+dépasser dimanche (sept jours démarrés vendredi vont jusqu'à jeudi). Les jetons
+y restent distincts, la liste commence bien aujourd'hui, et ça n'a jamais été
+mesuré comme contradictoire — le refuser retirerait `{kind:"days", count:7}`,
+que l'écran propose depuis toujours.
+
+Côté navigateur, le champ « from » gagne un `max` (le miroir
+`lastNameableStart`) : le serveur reste l'autorité, l'écran cesse seulement de
+**proposer** un geste qui ne marche pas.
+
+### ③ LA PORTE `compose` NE PAIE PLUS LE 409 DE LA BASE
+
+Le jumeau du P0 de L10 ①. Une fenêtre `exact` ou `days` strictement intérieure à
+un plan vivant se payait encore `plan_overlaps_existing` **après** le modèle —
+et elle est **atteignable par l'écran** : `MealBuilder` envoie
+`{kind:"exact", starts_on, duration_days}` avec deux dates que l'élève choisit.
+
+**La règle a déménagé plutôt que d'être réécrite.** `planOverlapVerdict` et
+`firstBlockingPlan` vivent dans `meal_plan_window.ts` : ce n'est pas une notion
+de fusion, c'est ce que la base fait de deux fenêtres du même compte et de la
+même nature. `mergeWindowWritable` en est devenu un **appelant** — son banc de
+propriété de 400 formes et son test de fil vers la migration 20260811140000 sont
+intacts, et ce qui reste dans `household_merge.ts` est ce qui est propre à la
+fusion (la ligne du foyer est celle qu'elle remplace quand les deux démarrent le
+même jour).
+
+Les deux portes `compose` lisent maintenant leurs plans vivants et refusent
+`plan_overlaps_existing` — **le mot de la base**, déjà mappé à l'écran — avec
+un `detail` qui distingue « ta fenêtre est à l'intérieur » de « tu as déjà un
+plan qui démarre ce jour-là ou après ».
+
+**Deux limites écrites.** *(a)* Ce n'est pas l'autorité : la base tranche
+toujours, ce refus évite seulement de la payer. Une lecture en panne ne bloque
+donc rien (`live_plan_windows_unreadable` dans les `issues`). *(b)* Sur la lane
+foyer, on relit `householdPlans`, dont le prédicat est plus **étroit** que celui
+de la RPC (il filtre en plus sur `household_id`, décision de L5) : un maître qui
+aurait changé de foyer garderait un cas rare qui paie le modèle avant le 409. Un
+second lecteur avec un troisième prédicat est la dette que ce chantier a payée
+deux fois le 2026-08-12.
+
+### ④ LE TROU EST LISIBLE, ET IL N'EST PLUS HÉRITABLE
+
+Un plat dont un ingrédient porte une cible chiffrée est rejeté **entier** — le
+verrou est **juste**, antérieur au lot, et il n'a pas bougé d'un caractère. Sur
+une fusion, la matière du plan personnel citait « whey protein 90 g » et **les
+cinq petits-déjeuners du foyer sont tombés d'un coup**. Puis la **défusion a
+recopié le trou** : sa consigne montre le plan de base et demande d'en rester au
+plus près, et le modèle obéit — 14 titres sur 14. Deux plans du foyer
+consécutifs sans petit-déjeuner mercredi.
+
+**Lisible** — `emptySlotsIn` (`meal_generation.ts`) compte les cases de la
+fenêtre que personne ne remplit, avec **les mêmes entrées que la consigne**
+(le rythme, les absences, les apports fixes). Le parseur pousse **une** `issue`
+agrégée (`empty_slots: wed/breakfast, thu/breakfast`) et rend `empty_slots`,
+écrit dans `generated_from` par les deux lanes. Sans lui, « ce plat a été
+rejeté » et « il n'y a plus aucun petit-déjeuner cette semaine » laissaient la
+même trace.
+
+**Non héritable** — `buildMergeBlock` et `buildUnmergeBlock` prennent un
+paramètre `gaps` **REQUIS** et nomment la case : *« These moments have NO dish
+in the plan above: … That is a GAP, not a choice »*. En **dernier**, juste après
+la liste qu'il corrige — « reste au plus près » vient d'être écrit, et sans
+cette précision le trou en fait partie.
+
+⚠️ **On ne rebouche rien.** Choisir quoi mettre dans la case est une décision de
+produit que personne n'a prise. Le bloc **nomme** l'accident ; le modèle compose
+cette case comme il compose toutes les autres — le tronc le lui demande déjà
+(« a day missing one of those is a hole »), et ce lot ne fait que retirer la
+contradiction entre cette phrase-là et « reste au plus près du plan de base ».
+
+**`HOUSEHOLD_PROMPT_VERSION` bump `v7_merge_anchor` → `v8_plan_gaps`.** Règle de
+v4 appliquée telle quelle : la population qui voit une consigne différente est
+« fusion ou défusion dont le plan montré porte un trou ». Toutes les autres
+rendent un prompt **byte-identique à v7** (`gaps: []` est l'identité), et deux
+tests le tiennent. ⚠️ **L'ancre de C1 n'est pas touchée** — ni son texte, ni son
+ordre, ni son exclusion du budget de plats ; les assertions de source de C1
+tiennent à l'identique, et l'équilibrage ancre/matière reste à un autre lot.
+`MEAL_PROMPT_VERSION` ne bouge pas : rien de C2 n'entre dans le tronc.
+
+### ⑤ UN PLAT SANS JOUR NE PASSE PLUS EN SILENCE
+
+`meal_generation.ts` nommait un jeton de jour **inconnu** et laissait passer un
+jour **absent**. Mesuré : un plan portait **16 entrées `dishes` pour 3 jours**,
+dont **7 sans `day` ni `slot`** — les **mêmes 7 titres que `preparations`**. Le
+modèle avait rendu ses préparations deux fois, le plafond relevé par
+`dishBudgetFor` avait laissé la place, et `issues` ne disait rien. Les autres
+plans du run : **0 entrée sans jour sur 14-15**. Le cas n'apparaît qu'avec le
+budget de fusion.
+
+Sur une fenêtre de **plusieurs jours**, un plat qui finit sans jour utilisable
+est désormais **nommé et jeté** : il n'est ni affichable dans la grille, ni
+cochable, ni rapprochable d'une photo, il occupe une place du plafond — donc il
+coûte un vrai repas de fin de fenêtre — et il gonfle la liste de courses de ce
+que la préparation achète déjà. **Sur une fenêtre d'UN jour, on garde** : il n'y
+a qu'un jour, le plat est situé, et `windowSplit` le range déjà dans la fenêtre.
+C'est le cas qui passe, et il est testé.
+
+### Les 26 mutations — chacune cassée, vue rouge, restaurée
+
+**① (5)** : le repli retiré (retour au chargeur direct) · la lecture directe de
+`coach_clients` remise devant le repli · le gel 402 retiré · une **seconde**
+résolution du foyer · le repli débranché par un renommage.
+
+**② (4)** : la borne ramenée à `today + 6` · la garde désarmée sur les deux
+portes · la garde retirée.
+
+**③ (9)** : la clause « englobe » désarmée · la clause « commence le même jour
+ou après » désarmée · le chevauchement ignoré · `replacesId` ignoré (**le cas
+qui passe**) · le raccourci `replace_current` de la fusion retiré · le refus
+désarmé sur les deux portes · le refus rendu sans son mot.
+
+**④ (8)** : l'absence comptée comme un trou · l'apport fixe compté comme un trou
+· le plat sans moment qui ne couvre plus sa journée · la case vide non nommée ·
+le constat débranché · le trou jamais dit au modèle · le trou dit **même quand
+il n'y en a pas** · le trou placé **avant** la liste qu'il corrige · les trous
+jamais passés aux deux blocs · la version non bumpée.
+
+**⑤ (3)** : le plat sans jour plus jeté · jeté **aussi** sur une journée (le cas
+qui passe) · la coupe non nommée.
+
+**Trois faux-verts trouvés par ces mutations, tous dans mes propres tests de
+position.** *(a)* `if (false && windowStartsBeyondDayTokens(…))` laissait le
+marqueur au bon rang : le test cherchait un NOM, il cherche désormais la FORME
+de la garde (le prédicat en tête de son `if`, et le refus dans son corps).
+*(b)* `keel_household_is_coveredX` **contient** `keel_household_is_covered` — un
+`includes` sur un nom reste vert sur un appel renommé. *(c)* `gaps: unmergeGaps`
+remplacé par `gaps: []` laissait tout vert : le module pur, ses cas qui passent,
+les blocs — pendant que la défusion recopiait le trou comme avant. C'est le mode
+d'échec n°1 de ce chantier, et il n'avait pas de test de câblage.
+
+### Ce qui n'est pas prouvé, et ce qui reste ouvert
+
+1. **Aucun run réel.** Pas un appel HTTP, pas une génération. Aucun secondaire
+   n'a reçu un 200 de `generate-week-plan-v1` ; aucun modèle n'a lu la ligne qui
+   nomme un trou.
+2. **`generate-week-plan-v1` n'a toujours été passé au crible par aucune
+   campagne** (question ouverte n°2). Ce lot y ajoute deux gardes et en retire
+   une lecture ; tout y est prouvé par la source et par des tests purs.
+3. **Le trou n'est pas dit à l'ÉCRAN.** `empty_slots` vit dans `generated_from`
+   et dans les `issues` ; `householdPlanTrace.ts` ne le lit pas. Un élève voit
+   toujours une case vide sans phrase.
+4. **La garde ② ne couvre pas la queue d'une fenêtre** (voir §②). Décidable,
+   non mesuré, non fermé.
+5. **Le refus ③ voit moins de lignes que la RPC sur la lane foyer** (voir §③).
+6. **`window_beyond_this_week` et `plan_overlaps_existing` n'ont jamais atteint
+   un client.** Les deux sont mappés dans `planRefusals.ts` et écrits dans
+   `en.ts`, et le test de dérive exige la bijection dans les deux sens.
+7. **Deux rouges préexistants NON touchés**, comme à L4→C1 :
+   `_shared/chat/recent_history_test.ts` et une erreur de typage dans
+   `_shared/action_occurrences_test.ts`.
+
 ## Questions encore ouvertes
 
 1. **Les comptes individuels sans foyer restent sans garde de paiement.** D13
    ferme la porte du foyer ; un compte solo continue de générer sans droit
    vérifié. Mesuré : 19 805 jetons. À trancher séparément.
 2. **`generate-week-plan-v1` n'a jamais été testé** — troisième générateur, passé
-   au crible par aucune campagne.
+   au crible par aucune campagne. ⚠️ **C2 y a posé deux gardes** (le repli de
+   doctrine par le foyer, et le gel 402 de D13) et en a retiré une lecture
+   (`coach_clients`, qui doublait celle du chargeur). Tout y est prouvé par la
+   source et par des tests purs ; **rien n'y a jamais reçu un 200**.
 3. ~~**Comment un secondaire sait-il qu'il PEUT prendre la main ?**~~
    **Répondu par L8** : `/app/plan` porte une carte qui dit la posture par
    défaut — être composé dans le plan du foyer est le cas NORMAL, aucune phrase

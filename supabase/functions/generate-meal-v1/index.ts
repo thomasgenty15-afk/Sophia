@@ -10,8 +10,12 @@ import { keelGenerationModel } from "../_shared/keel/generation_model.ts";
 import {
   doctrineBeliefsFor,
   doctrineBlockFor,
-  loadPublishedDoctrine,
 } from "../_shared/keel/doctrine_loader.ts";
+// O7 — LA DOCTRINE D'UN MEMBRE DE FOYER SE RÉSOUT PAR LE FOYER. Le chargeur
+// direct n'est plus importé ici: `loadDoctrineForCaller` l'appelle, et le passer
+// par une seule porte est ce qui empêche qu'un appelant rouvre un jour le chemin
+// sans repli. Voir l'en-tête de `household_doctrine.ts` pour l'arbitrage.
+import { loadDoctrineForCaller } from "../_shared/keel/household_doctrine.ts";
 import { coachNotePromptBlock, loadCoachNote } from "../_shared/keel/coach_note.ts";
 import {
   loadPublishedProtocol,
@@ -42,9 +46,12 @@ import {
 } from "../_shared/keel/hunger_signal.ts";
 import { loadHungerDays } from "../_shared/keel/hunger_signal_io.ts";
 import {
+  firstBlockingPlan,
+  type LivePlanSpan,
   type MealWindowRequest,
   resolveRequestedWindow,
   windowDayOrder,
+  windowStartsBeyondDayTokens,
 } from "../_shared/keel/meal_plan_window.ts";
 import {
   buildMealPrompt,
@@ -69,7 +76,11 @@ import type { CompositionIndex } from "../_shared/keel/food_composition.ts";
 import { loadCompositionIndex } from "../_shared/keel/food_composition_io.ts";
 import { isFriedMethod, resolveIngredients } from "../_shared/keel/food_composition.ts";
 import { envelopeFor } from "../_shared/keel/meal_envelope.ts";
-import { type CompositionVerdict, verdictFor } from "../_shared/keel/meal_verdict.ts";
+import {
+  type CompositionVerdict,
+  foldPreparationsIntoDishes,
+  verdictFor,
+} from "../_shared/keel/meal_verdict.ts";
 import {
   fixedIntakeInputsFor,
   parseFixedIntakes,
@@ -483,8 +494,53 @@ Deno.serve(async (req) => {
     });
 
     // --- LA MÉTHODE DU COACH ----------------------------------------------
-    const doctrine = await loadPublishedDoctrine(admin, userId);
+    //
+    // ── O7 · UN MEMBRE DE FOYER COMPOSE SOUS LA DOCTRINE DE SON FOYER ──────
+    //
+    // MESURÉ EN HTTP RÉEL LE 2026-08-12: un compte secondaire recevait
+    // `409 no_coach` en 373 ms, avec ZÉRO ligne `coach_clients` quand le maître
+    // en avait une. `keel_household_join` n'attache personne à un coach — donc
+    // personne ne pouvait prendre la main (D2), donc rien n'était jamais proposé
+    // au maître, donc ni fusion, ni défusion, ni avertissement. Sept lots
+    // serveur justes et prouvés, qu'aucun utilisateur ne pouvait déclencher.
+    //
+    // LE REPLI NE REMPLACE RIEN: `loadDoctrineForCaller` charge d'abord la
+    // doctrine de l'appelant, et un titulaire qui a SON coach garde le sien sans
+    // qu'une seule requête de plus ne parte. Le foyer n'est lu que sur la
+    // branche où cette fonction rendait déjà `no_coach`.
+    //
+    // ⚠️ LE FOYER N'EST PAS RE-RÉSOLU: on passe `householdId`, résolu une seule
+    // fois pour tout ce fichier (L1, ~140 lignes plus haut, pour la garde de
+    // gel). Deux définitions de « quel foyer est celui de cette personne » est
+    // une dette que ce dépôt a déjà payée.
+    //
+    // ⚠️ AUCUNE ÉCRITURE. Pas de ligne `coach_clients`, pas de `keel_role`: le
+    // repli ne crée aucun siège, donc il ne touche pas la facturation. Voir
+    // l'en-tête de `household_doctrine.ts` pour les deux sorties écartées.
+    //
+    // ⚠️ `doctrineGoal` EST NULLABLE, ET CE N'EST PAS LE `goalToken` DU VERDICT
+    // (plus bas, qui retombe sur `"health"`). Ici, `null` veut dire « pas
+    // d'objectif déclaré » et sert la variante `default` de la doctrine —
+    // exactement ce que `loadPublishedDoctrine` fait quand il lit lui-même. Le
+    // faire retomber sur `health` servirait à un élève sans objectif les
+    // convictions écrites pour la santé, ce que le coach n'a pas dit.
+    const doctrineGoal: GoalToken | null =
+      (GOAL_TOKENS as readonly string[]).includes(
+          String(goalRow.goal ?? "").trim(),
+        )
+        ? (String(goalRow.goal ?? "").trim() as GoalToken)
+        : null;
+    const resolvedDoctrine = await loadDoctrineForCaller(admin, {
+      userId,
+      householdId,
+      goal: doctrineGoal,
+    });
+    const doctrine = resolvedDoctrine.doctrine;
     if (!doctrine.coachId) {
+      // LE REFUS SURVIT, ET IL LE DOIT. Un compte sans foyer ET sans coach, un
+      // foyer dont le maître n'a pas de coach non plus, un maître lui-même sans
+      // coach: les trois retombent ici. Une garde sans cas qui refuse n'est pas
+      // une garde.
       return jsonResponse(req, { error: "no_coach", request_id: requestId }, { status: 409 });
     }
     // Contrairement au plan hebdo, une doctrine vide n'est PAS bloquante ici:
@@ -515,9 +571,25 @@ Deno.serve(async (req) => {
     // Ne bloque JAMAIS: un coach peut n'avoir jamais ouvert `/coach/protocol`
     // et avoir une méthode complète dans sa doctrine. Pas de mapping = pas de
     // bloc, et le reste du prompt est inchangé.
+    //
+    // ⚠️ O7 — LU SUR LE MÊME COMPTE QUE LA DOCTRINE, et c'est la moitié qui
+    // compte. Le mapping alimentaire appartient au coach dont on sert la
+    // méthode: lire celui de l'appelant sur un repli par le foyer rendrait un
+    // HYBRIDE que personne n'a écrit — les convictions d'un coach, les aliments
+    // d'aucun. C'est le mot du chargeur de doctrine sur la délégation, et il
+    // vaut ici pour la même raison. `subjectUserId` est non nul dès que
+    // `coachId` l'est (garde juste au-dessus).
     let protocolBlock = "";
     try {
-      const protocol = await loadPublishedProtocol(admin, userId);
+      const protocol = await loadPublishedProtocol(
+        admin,
+        resolvedDoctrine.subjectUserId ?? userId,
+        // LA VARIANTE SUIT LA PERSONNE QU'ON NOURRIT. Sur le chemin nominal,
+        // AUCUNE option n'est passée — le protocole lit alors `student_goals` de
+        // l'appelant exactement comme avant ce lot, et le comportement est
+        // byte-identique.
+        resolvedDoctrine.viaHousehold ? { goalOverride: doctrineGoal } : {},
+      );
       // Le nom du coach vient de la doctrine déjà chargée: le mapping ouvre
       // sur « MARLOW'S FOOD MAPPING », pas sur « THE COACH'S ». Le produit
       // qu'on vend est que l'élève parle à l'agent DE SON COACH — la même
@@ -597,6 +669,125 @@ Deno.serve(async (req) => {
         detail: error instanceof Error ? error.message : String(error),
         request_id: requestId,
       }, { status: 400 });
+    }
+
+    // ══ C2 ② — UNE FENÊTRE QUE LES JETONS DE JOUR NE SAVENT PAS NOMMER ══════
+    //
+    // MESURÉ EN HTTP RÉEL LE 2026-08-12: `starts_on = 2026-08-26` (un mardi),
+    // demandé un mercredi. Le message envoyé au modèle portait, à trois lignes
+    // d'écart, « today is: wed », « days to fill, in this order: tue, wed » et
+    // « Do not start earlier than today ». Le modèle a refusé EN TOUTES LETTRES
+    // — `422 empty_meal`, `lock: disarmed_empty_text` — **après 6,2 s
+    // facturées**.
+    //
+    // ⚠️ CE N'EST PAS UNE DÉSOBÉISSANCE, C'EST UNE CONSIGNE CONTRADICTOIRE. Les
+    // jetons de jour n'ont pas de date; au-delà du dimanche, celui d'une fenêtre
+    // est déjà pris par une date plus proche. Il n'existait aucune réponse
+    // juste, et le refus du modèle était la seule honnête.
+    //
+    // ⚠️ CE QUI EST DÉCIDABLE SANS LE MODÈLE SE REFUSE AVANT LE MODÈLE. C'est
+    // la règle que L1 a établie (28,6 s et 225 s brûlées sur des refus qui ne
+    // dépendaient que du corps de la requête), et ce refus-ci ne dépend que de
+    // deux dates.
+    //
+    // ── POURQUOI REFUSER PLUTÔT QUE RENDRE LA CONSIGNE NON CONTRADICTOIRE ──
+    // Dater les jetons dans le prompt aurait marché aussi, et c'est l'option
+    // qu'on écarte: elle change le TRONC (`buildMealPrompt`), donc elle fait
+    // bouger `MEAL_PROMPT_VERSION` pour TOUTE la population — la lane
+    // individuelle, la composition de foyer, la fusion et la défusion — pour
+    // servir une forme de fenêtre que l'écran n'a jamais proposée. Le refus est
+    // plus étroit (une porte, deux dates), et son retour arrière est ce bloc.
+    if (windowStartsBeyondDayTokens(startsOn, todayDate)) {
+      return jsonResponse(req, {
+        error: "window_beyond_this_week",
+        detail: "A plan is written in day names (mon, tue...), and those only " +
+          "reach as far as this Sunday. Start your window this week, or " +
+          "compose next week's plan once it has started.",
+        request_id: requestId,
+      }, { status: 400 });
+    }
+
+    // ══ C2 ③ — LE JUMEAU DU P0 DE LA FUSION, SUR LA PORTE `compose` ═════════
+    //
+    // Le 2026-08-12, une FUSION sur une fenêtre englobée se payait
+    // `409 plan_overlaps_existing` **après** 16,1 s de modèle, 7 335 jetons et
+    // une unité du plafond de L7. `resolveMergeWindow` produit désormais une
+    // fenêtre écrivable par construction — et cette porte-ci, qui porte la même
+    // famille de défaut, n'avait pas été touchée.
+    //
+    // ⚠️ ELLE EST ATTEIGNABLE, ET PAR L'ÉCRAN. `MealBuilder` envoie
+    // `{kind:"exact", starts_on, duration_days}` avec DEUX DATES QUE L'ÉLÈVE
+    // CHOISIT: une fenêtre strictement intérieure à son plan vivant (mercredi →
+    // vendredi dans un plan lundi → dimanche) est un geste de trois clics.
+    // `write_student_meal_plan` la refuse exprès — correctif du 2026-08-11,
+    // « une fenêtre englobée perdait des jours en silence » — et le refus
+    // tombait après la dépense.
+    //
+    // ⚠️ LA RÈGLE N'EST PAS RÉÉCRITE ICI. `firstBlockingPlan` rejoue la boucle
+    // de chevauchement de la RPC, celle-là même que la fusion utilise depuis
+    // L10 (`mergeWindowWritable` en est l'autre appelant), avec son banc de
+    // propriété de 400 formes et son test de fil vers la migration. Une seconde
+    // écriture de cette règle aurait divergé au premier ajustement.
+    //
+    // ⚠️ CE N'EST PAS L'AUTORITÉ: la base tranche toujours. Ce refus-ci évite de
+    // la payer au prix d'une génération. Une lecture en panne ne bloque donc
+    // RIEN — le pire cas est celui d'avant ce lot, un 409 après le modèle — et
+    // c'est le bon sens du fail-open ici, contrairement aux allergies.
+    //
+    // LE MÊME MOT QUE LA BASE (`plan_overlaps_existing`): deux vocabulaires
+    // pour un même refus est une dette que le front paie deux fois.
+    try {
+      const liveRes = await admin
+        .from("student_generated_meals")
+        // LE PRÉDICAT DE LA RPC, MOT POUR MOT (20260811140000): même compte,
+        // même NATURE, non retirée. `plan_kind = 'personal'` est ce que cette
+        // fonction écrit toujours — un plan de foyer vit sur le compte du
+        // maître avec l'autre nature, et les deux fenêtres ne se disputent
+        // rien.
+        .select("id, starts_on, duration_days")
+        .eq("user_id", userId)
+        .eq("plan_kind", "personal")
+        .is("retired_at", null);
+      if (liveRes.error) throw liveRes.error;
+      const liveRows = (liveRes.data ?? []) as Array<Record<string, unknown>>;
+      const live: LivePlanSpan[] = liveRows.map((r) => ({
+        id: String(r.id),
+        startsOn: String(r.starts_on ?? ""),
+        durationDays: Number(r.duration_days ?? 0),
+      }));
+      const blocking = firstBlockingPlan({
+        live,
+        window: { startsOn, durationDays },
+        // LA LIGNE QUE LA RPC RETIRE AVANT SA BOUCLE. Sans elle, la
+        // composition la plus banale du produit — « remplace le plan courant »,
+        // qui démarre le même jour que lui — serait refusée ici alors que la
+        // base l'accepte. `prepare_next` ne retire rien, donc `null`.
+        replacesId: intent === "replace_current" ? replaces : null,
+      });
+      if (blocking) {
+        console.log(JSON.stringify({
+          tag: "keel.meal.window_overlaps",
+          user_id: userId,
+          window: [startsOn, durationDays],
+          clash: [blocking.plan.id, blocking.plan.startsOn, blocking.plan.durationDays],
+          verdict: blocking.verdict,
+        }));
+        return jsonResponse(req, {
+          error: "plan_overlaps_existing",
+          detail: blocking.verdict === "encloses"
+            ? "That window sits inside a plan you already have, and writing it " +
+              "would leave the end of that plan with nothing. Cover it to its " +
+              "last day, or replace it."
+            : "You already have a plan that starts on that day or later. " +
+              "Replace it, or start your window before it.",
+          request_id: requestId,
+        }, { status: 409 });
+      }
+    } catch (error) {
+      // FAIL-OPEN NOMMÉ. On ne peut pas refuser une composition sur une lecture
+      // ratée: le pire cas est le comportement d'avant ce lot.
+      console.warn(`[${FN_NAME}] live plan windows unreadable`, error);
+      issues.push("live_plan_windows_unreadable");
     }
 
     // `scope` est DÉRIVÉ de la durée et n'est plus reçu: une ligne `scope='day'`
@@ -1030,17 +1221,59 @@ Deno.serve(async (req) => {
       studentBody?.restrictionFlag ?? true,
       steering,
     );
+    /**
+     * ── LE PLAT, PRÉPARATIONS COMPRISES ────────────────────────────────────
+     *
+     * ⚠️ NE PAS REVENIR À `m.dishes` SEUL. C'était le défaut, et il coûtait la
+     * moitié du plan.
+     *
+     * En batch cooking, les ingrédients ne sont PAS dans le plat: le plat dit
+     * « une portion du poulet rôti de mercredi », et le kilo de cuisses vit
+     * dans `m.preparations`. Mapper les seuls `d.ingredients` rendait donc au
+     * verdict une assiette amputée de tout ce qui avait été cuisiné d'avance —
+     * c'est-à-dire, très exactement, de la protéine.
+     *
+     * MESURÉ le 2026-08-12 sur 80 générations réelles:
+     *
+     *     énergie invisible au verdict : 41 %  (médiane par plan: 39 %, max 93 %)
+     *     protéine invisible au verdict: 51 %
+     *
+     * Le verdict rendait donc `below` / `under` sur des plans à 99 % de leur
+     * cible, et la boucle de correction dépensait son unique relance à ajouter
+     * de la protéine à un plan qui touchait déjà son plancher. C'est la cause
+     * qu'on a longtemps lue comme « les plans servent une fraction de leur
+     * enveloppe ».
+     *
+     * ── LE PRORATA EST OBLIGATOIRE ────────────────────────────────────────
+     * Une préparation fait `servingsMade` portions; un plat n'en consomme que
+     * `servings`. Compter le lot entier à chaque plat qui y touche ferait
+     * l'erreur inverse, et plus grosse: quatre dîners tirés d'un lot de quatre
+     * porteraient quatre kilos de poulet.
+     */
     const verdictDishesOf = (m: GeneratedMeal) =>
-      m.dishes.map((d) => ({
-        slot: d.slot,
-        method: d.method,
-        ingredients: d.ingredients.map((i) => ({
-          term: i.term,
-          amount: i.amount,
-          unit: i.unit,
-          state: i.state,
+      foldPreparationsIntoDishes({
+        dishes: m.dishes.map((d) => ({
+          slot: d.slot,
+          method: d.method,
+          ingredients: d.ingredients.map((i) => ({
+            term: i.term,
+            amount: i.amount,
+            unit: i.unit,
+            state: i.state,
+          })),
+          uses: d.uses,
         })),
-      }));
+        preparations: m.preparations.map((p) => ({
+          id: p.id,
+          servingsMade: p.servingsMade,
+          ingredients: p.ingredients.map((i) => ({
+            term: i.term,
+            amount: i.amount,
+            unit: i.unit,
+            state: i.state,
+          })),
+        })),
+      });
     const measure = (m: GeneratedMeal) => {
       if (!composition) return null;
       const verdict = verdictFor({
@@ -1068,16 +1301,15 @@ Deno.serve(async (req) => {
         // mesurer: `unverified`, jamais `ok` (FF-040 R10).
         verdictComputable: verdict.energy !== "not_computable",
       });
+      // ⚠️ LA MÊME ASSIETTE QUE LE VERDICT, préparations pliées comprises.
+      // Cette résolution alimente la WORKLIST d'alias: la calculer sur les
+      // seuls plats ferait manquer les termes qui n'existent que dans les
+      // préparations — c'est-à-dire les aliments du batch cooking, donc les
+      // pièces de viande et de poisson, donc précisément ceux qu'on veut
+      // curer en premier.
       const resolution = resolveIngredients(
         composition,
-        m.dishes.flatMap((d) =>
-          d.ingredients.map((i) => ({
-            term: i.term,
-            amount: i.amount,
-            unit: i.unit,
-            state: i.state,
-          }))
-        ),
+        verdictDishesOf(m).flatMap((d) => d.ingredients),
       );
       return { verdict, coverage, resolution };
     };
@@ -1204,6 +1436,19 @@ Deno.serve(async (req) => {
             coach_id: doctrine.coachId,
             doctrine_version: doctrine.doctrine?.version ?? null,
             doctrine_reason: doctrine.reason,
+            // ── O7 · D'OÙ VIENT CE COACH ─────────────────────────────────
+            // Écrit SEULEMENT sur un repli, pour que le plan d'un titulaire qui
+            // a son propre coach reste byte-identique à ce qu'il était. Sans
+            // cette clé, « ce plan suit la méthode d'un coach que cette personne
+            // n'a jamais rencontré » n'est lisible nulle part — et c'est
+            // exactement la question qu'on se pose en relisant le plan d'un
+            // secondaire.
+            ...(resolvedDoctrine.viaHousehold
+              ? {
+                doctrine_via_household: true,
+                doctrine_owner_user_id: resolvedDoctrine.ownerUserId,
+              }
+              : {}),
             belief_keys: beliefKeys,
             goal: String(goalRow.goal ?? "health"),
             prompt_version: MEAL_PROMPT_VERSION,
@@ -1253,6 +1498,14 @@ Deno.serve(async (req) => {
             // paiera sans jamais savoir si elle sert.
             protein_anchor_retry: proteinAnchorRetry,
             protein_anchor_missing: meal.protein_anchor_missing,
+            // ── C2 ④ · LES CASES QUE PERSONNE NE REMPLIT, SUR LA LIGNE ────
+            // À côté des `issues` et pas à leur place: une case vide se
+            // COMPTE (« combien de plans sortent troués, et sur quel
+            // moment »), et une chaîne de prose ne se compte pas. Mesuré le
+            // 2026-08-12: les cinq petits-déjeuners d'un plan de foyer tombés
+            // d'un coup, et rien en base pour le dire autrement qu'en relisant
+            // les plats un par un.
+            empty_slots: meal.empty_slots,
             // FF-027 — la provenance de l'adaptation, archivée avec la
             // composition. C'est ce qui rend « la faim persiste malgré deux
             // adaptations » (§10) lisible sans qu'aucun compteur ne vive sur

@@ -9,8 +9,14 @@ import { generateWithGemini } from "../_shared/gemini.ts";
 import {
   doctrineBeliefsFor,
   doctrineBlockFor,
-  loadPublishedDoctrine,
 } from "../_shared/keel/doctrine_loader.ts";
+// O7 — LA DOCTRINE D'UN MEMBRE DE FOYER SE RÉSOUT PAR LE FOYER. Le chargeur
+// direct n'est PAS importé ici: le repli serait alors contournable, et un
+// secondaire retomberait sur `no_coach` sans que rien n'échoue. Voir l'en-tête
+// de `household_doctrine.ts` pour l'arbitrage (aucune ligne `coach_clients`).
+import { loadDoctrineForCaller } from "../_shared/keel/household_doctrine.ts";
+import { resolveHouseholdIdFor } from "../_shared/keel/household_turn_context.ts";
+import { GOAL_TOKENS, type GoalToken } from "../_shared/keel/tokens.ts";
 import { coachNotePromptBlock, loadCoachNote } from "../_shared/keel/coach_note.ts";
 import { constraintsForPrompt } from "../_shared/keel/food_preference_promotion.ts";
 import { reconcileFoodPreferencesFor } from "../_shared/keel/food_preference_promotion_io.ts";
@@ -111,6 +117,74 @@ Deno.serve(async (req) => {
       String(body.local_date ?? "").trim() || new Date().toISOString().slice(0, 10),
     );
 
+    // ── LE FOYER, RÉSOLU ICI ET UNE SEULE FOIS (L1/D13, C2) ───────────────
+    //
+    // La MÊME lecture que `generate-meal-v1`, au même endroit relatif: avant
+    // tout ce qui coûte, et CONSOMMÉE deux fois plus bas — par la garde de gel
+    // et par le repli de doctrine. Deux définitions de « quel foyer est celui
+    // de cette personne » est la dette que ce dépôt a payée le plus souvent.
+    //
+    // Best-effort ASSUMÉ: une personne sans foyer rend `null`, et c'est le cas
+    // nominal du produit individuel.
+    let householdId: string | null = null;
+    let householdLookupFailed = false;
+    try {
+      householdId = await resolveHouseholdIdFor(admin, userId);
+    } catch (_error) {
+      householdLookupFailed = true;
+    }
+
+    // ── LE GEL À L'IMPAYÉ, PAR CETTE PORTE AUSSI (L1, D13) ───────────────
+    //
+    // ⚠️ IL ARRIVE AVEC LE REPLI DE DOCTRINE, ET IL DOIT. Sans lui, C2 ouvrait
+    // une porte de génération GRATUITE: un membre de foyer gelé se voyait
+    // refuser `generate-meal-v1` (402) et obtenait ici, sous la doctrine
+    // empruntée à son maître, une semaine entière — c'est-à-dire exactement le
+    // contournement que L1 a mesuré et fermé le 2026-08-11, par une porte
+    // voisine. D13 est écrit sans nuance: « foyer impayé ⇒ plus personne ne
+    // génère, ni maître ni secondaire ».
+    //
+    // ⚠️ AUCUNE RÈGLE N'EST ÉCRITE ICI. `keel_household_is_covered` est LA
+    // définition unique du dépôt (20260811050000). La réécrire en TypeScript
+    // ferait deux définitions qui divergeraient au premier ajustement.
+    //
+    // FAIL-OPEN, comme les deux autres portes: une lecture de FACTURATION en
+    // panne laisse passer — se tromper de sens coupe un client qui paie, ce
+    // qu'aucun nouvel essai ne répare. L'échec est journalisé bruyamment.
+    //
+    // ⚠️ EFFET DE BORD ASSUMÉ, ET IL EST NEUF: le MAÎTRE d'un foyer gelé ne
+    // génère plus sa semaine non plus. C'est D13 mot pour mot, et c'est déjà
+    // vrai de sa lane repas depuis L1. Retour arrière: retirer ce bloc.
+    if (householdId && !householdLookupFailed) {
+      const coverRes = await admin.rpc("keel_household_is_covered", {
+        p_household: householdId,
+      });
+      if (coverRes.error) {
+        await logEdgeFunctionError({
+          functionName: FN_NAME,
+          requestId,
+          error: coverRes.error,
+          metadata: { source: "household_coverage", household: householdId },
+        });
+      } else if (coverRes.data === false) {
+        console.log(JSON.stringify({
+          tag: "keel.week_plan.frozen",
+          user_id: userId,
+          household_id: householdId,
+        }));
+        // `skipErrorLog`: UN IMPAYÉ N'EST PAS UN INCIDENT. Même arbitrage,
+        // mesuré, que les deux autres portes — 15 lignes de `system_error_logs`
+        // au niveau `error` pour une seule session de test.
+        return jsonResponse(req, {
+          error: "household_frozen",
+          detail: "This household is paused. Nothing has been deleted - the " +
+            "current plan stays readable, and composing resumes as soon as the " +
+            "subscription does.",
+          request_id: requestId,
+        }, { status: 402, skipErrorLog: true });
+      }
+    }
+
     // --- l'objectif et la situation de l'élève ----------------------------
     const goalRes = await admin
       .from("student_goals")
@@ -147,20 +221,6 @@ Deno.serve(async (req) => {
       source: FN_NAME,
     });
 
-    // --- les RECOMMANDATIONS du coach (son programme, pas une prescription)
-    const linkRes = await admin
-      .from("coach_clients")
-      .select("coach_id")
-      .eq("student_user_id", userId)
-      .eq("status", "active")
-      .limit(1)
-      .maybeSingle();
-    if (linkRes.error) throw linkRes.error;
-    const coachId = String((linkRes.data as Record<string, unknown> | null)?.coach_id ?? "").trim();
-    if (!coachId) {
-      return jsonResponse(req, { error: "no_coach", request_id: requestId }, { status: 409 });
-    }
-
     // --- LA MÉTHODE DU COACH, qui est une DOCTRINE et pas un programme -----
     //
     // Cette fonction lisait `plan_templates.commitments`, c'est-à-dire un
@@ -171,7 +231,52 @@ Deno.serve(async (req) => {
     //
     // L'ancre est désormais `coach_doctrines.beliefs`, et la clé de traçabilité
     // est la clé de conviction.
-    const doctrine = await loadPublishedDoctrine(admin, userId);
+    //
+    // ── O7 · UN MEMBRE DE FOYER COMPOSE SOUS LA DOCTRINE DE SON FOYER ──────
+    //
+    // MESURÉ EN HTTP RÉEL LE 2026-08-12, sur le MÊME compte secondaire qui
+    // venait de composer un repas complet par le repli de C1: cette porte-ci
+    // rendait `409 no_coach` en 0,34 s. Et c'est LE chemin du modèle produit —
+    // `CLAUDE.md` le nomme en toutes lettres: `student_goals` →
+    // `generate-week-plan-v1` → `student_week_plans`. Un secondaire pouvait
+    // donc composer son dîner et toujours pas sa semaine.
+    //
+    // ⚠️ LE MÊME MODULE, PAS UNE SECONDE RÉSOLUTION. `loadDoctrineForCaller`
+    // est la fonction que `generate-meal-v1` appelle, avec la même entrée et le
+    // même ordre: la doctrine de l'appelant d'abord (le foyer n'est alors même
+    // pas lu), et le repli UNIQUEMENT sur la branche qui rendait `no_coach`.
+    // Une seconde résolution ici aurait divergé au premier ajustement — c'est
+    // la dette la plus chère de ce dépôt.
+    //
+    // ⚠️ LA LECTURE DIRECTE DE `coach_clients` A DISPARU, et ce n'est pas un
+    // nettoyage: elle DOUBLAIT celle du chargeur (même prédicat, `status =
+    // 'active'`), donc elle refusait `no_coach` AVANT que le repli n'ait la
+    // parole. Le `coachId` archivé plus bas vient maintenant de la doctrine
+    // servie — c'est-à-dire du coach dont les convictions ont produit la
+    // semaine, ce qui est la seule lecture juste sur un repli.
+    //
+    // ⚠️ `doctrineGoal` EST NULLABLE, et ce n'est pas le `goal` du prompt (plus
+    // bas, qui retombe sur `"health"`). Ici `null` veut dire « pas d'objectif
+    // déclaré » et sert la variante `default` — exactement ce que
+    // `loadPublishedDoctrine` fait quand il lit lui-même.
+    const doctrineGoal: GoalToken | null =
+      (GOAL_TOKENS as readonly string[]).includes(String(goalRow.goal ?? "").trim())
+        ? (String(goalRow.goal ?? "").trim() as GoalToken)
+        : null;
+    const resolvedDoctrine = await loadDoctrineForCaller(admin, {
+      userId,
+      householdId,
+      goal: doctrineGoal,
+    });
+    const doctrine = resolvedDoctrine.doctrine;
+    const coachId = doctrine.coachId ?? "";
+    if (!coachId) {
+      // LE REFUS SURVIT, ET IL LE DOIT. Un compte sans foyer et sans coach, un
+      // foyer dont le maître n'a pas de coach non plus, un maître lui-même sans
+      // coach: les trois retombent ici. Une garde sans cas qui refuse n'est pas
+      // une garde.
+      return jsonResponse(req, { error: "no_coach", request_id: requestId }, { status: 409 });
+    }
 
     // LA PORTÉE PAR OBJECTIF PASSE PAR ICI AUSSI, et pas seulement par le bloc.
     //
@@ -468,6 +573,20 @@ Deno.serve(async (req) => {
           coach_id: coachId,
           doctrine_version: doctrine.doctrine?.version ?? null,
           doctrine_reason: doctrine.reason,
+          // ── O7 · PAR QUEL CHEMIN CE COACH A RÉPONDU ────────────────────
+          // Écrites SEULEMENT sur un repli, exactement comme sur la lane
+          // repas: sur le chemin nominal, `generated_from` est byte-identique
+          // à celui d'avant ce lot, et un plan qui ne les porte pas est un
+          // plan composé sous le coach de son propre titulaire. Sans elles,
+          // « ce coach est le sien » et « ce coach est celui de son foyer »
+          // laisseraient la même trace, et les deux se relisent
+          // différemment.
+          ...(resolvedDoctrine.viaHousehold
+            ? {
+              doctrine_via_household: true,
+              doctrine_owner_user_id: resolvedDoctrine.ownerUserId,
+            }
+            : {}),
           // Les clés effectivement offertes au modèle. Sans elles, on ne peut
           // pas relire un vieux plan et dire de quelle conviction il partait
           // quand le coach a depuis réécrit sa doctrine.

@@ -58,6 +58,7 @@ import {
   buildUnmergeBlock,
   type MergeMaterialDish,
   type PlanSpan,
+  type ShownPlanGap,
 } from "./household_merge.ts";
 import {
   buildHouseholdVoices,
@@ -126,6 +127,15 @@ import {
  *         d'un octet: elle passe toujours `foodPreferences` au tronc, elle n'a
  *         qu'un titulaire à entendre, et deux tests le tiennent — d'où
  *         `MEAL_PROMPT_VERSION` INCHANGÉE.
+ *   v7  — 2026-08-12 (C1/O5): la consigne de FUSION ANCRE sur le plan du foyer.
+ *         Elle montre désormais DEUX listes — le plan personnel repris, puis le
+ *         plan du foyer avec l'instruction d'en rester au plus près, en dernier
+ *         — là où elle n'en montrait qu'une. Mesuré avant le correctif: 15
+ *         créneaux sur 15 d'une fusion réelle venaient du plan personnel, aucun
+ *         titre du foyer n'a survécu, deux fusions sur deux. La population
+ *         concernée est celle des FUSIONS, et elle seule: la lane individuelle,
+ *         la composition ordinaire et la défusion rendent un prompt
+ *         byte-identique à celui de v6, et des tests le tiennent.
  *
  * ── LE CORRECTIF DE LA GARDE DES VOIX N'A **PAS** BUMPÉ, ET C'EST UNE DÉCISION
  * 2026-08-12, quatre défauts de L6 corrigés (plafond qui ne s'arrêtait pas,
@@ -180,7 +190,36 @@ import {
  * version doit suivre est la CONSIGNE; qui a été retiré de la table se relit,
  * lui, sur `generated_from.household.hand`, nommément et avec son motif.
  */
-export const HOUSEHOLD_PROMPT_VERSION = "v6_voices";
+/**
+ * ── POURQUOI v8 (C2 ④, 2026-08-12) ────────────────────────────────────────
+ *
+ * ⚠️ L'ANCRE DE C1 N'EST PAS TOUCHÉE — ni son texte, ni son ordre, ni son
+ * exclusion du budget de plats. Un autre lot s'occupe d'équilibrer l'ancre et
+ * la matière, et rien ici ne le préempte: les assertions de source de C1
+ * tiennent à l'identique.
+ *
+ * CE QUI CHANGE EST UNE TROISIÈME LISTE, dans le bloc de fusion ET dans celui
+ * de défusion: **les cases que le plan montré ne remplit pas**. Mesuré deux
+ * fois le 2026-08-12 — un plat rejeté pour cible chiffrée fait tomber les cinq
+ * petits-déjeuners du foyer d'un coup, et la défusion RECOPIE ensuite la case
+ * vide, parce que « reste au plus près du plan de base » est la consigne la
+ * mieux honorée de tout ce chantier (14 titres sur 14).
+ *
+ * La règle de v4 s'applique telle quelle (« quelle POPULATION voit une consigne
+ * différente »): **les fusions et les défusions dont le plan montré porte un
+ * trou**. Toutes les autres — lane individuelle, composition de foyer
+ * ordinaire, et toute fusion/défusion sur un plan complet — rendent un prompt
+ * **byte-identique à v7** (`gaps: []` est l'identité), et deux tests le
+ * tiennent.
+ *
+ * Bumper quand même est la moitié qui compte: L2 a mesuré ce que coûte un
+ * prompt de foyer qui change sans que sa version bouge — deux plans stampés
+ * pareil, portant des consignes différentes, et rien qui échoue puisqu'un
+ * prompt n'a pas de compilateur.
+ *
+ * `MEAL_PROMPT_VERSION` ne bouge pas: rien de C2 n'entre dans le tronc.
+ */
+export const HOUSEHOLD_PROMPT_VERSION = "v8_plan_gaps";
 
 export interface HouseholdRestriction {
   memberId: string;
@@ -271,7 +310,25 @@ export interface HouseholdMergePrompt {
   window: PlanSpan;
   /** Le barreau de l'échelle, décidé par `mergeLadder`. Jamais deviné ici. */
   shape: CookingShape;
+  /** Les plats du PLAN PERSONNEL repris — de la matière pour UNE bouche. */
   dishes: readonly MergeMaterialDish[];
+  /**
+   * O5 — LES PLATS DU PLAN DU FOYER, l'ancre de la consigne.
+   *
+   * ⚠️ REQUIS, jamais optionnel: sans lui, la fusion retomberait sur la
+   * consigne sans ancre — celle qui a servi le plan personnel d'un secondaire
+   * à toute la tablée, 15 créneaux sur 15, deux fusions réelles sur deux. Voir
+   * `buildMergeBlock`.
+   */
+  baseDishes: readonly MergeMaterialDish[];
+  /**
+   * C2 ④ — LES CASES QUE LE PLAN DU FOYER NE REMPLIT PAS.
+   *
+   * ⚠️ REQUIS, `[]` pour « il n'y a pas de trou ». Sans lui, l'ancre demande de
+   * rester au plus près d'un plan dont une case est vide, et le trou se
+   * transmet — mesuré sur la défusion, qui obéit 14/14 à la même phrase.
+   */
+  gaps: readonly ShownPlanGap[];
 }
 
 /** Ce que la défusion apporte au prompt (D8). Voir `buildUnmergeBlock`. */
@@ -280,6 +337,14 @@ export interface HouseholdUnmergePrompt {
   window: PlanSpan;
   /** Les plats du PLAN DE BASE — celui qu'on recompose sans cette personne. */
   dishes: readonly MergeMaterialDish[];
+  /**
+   * C2 ④ — LES CASES QUE LE PLAN DE BASE NE REMPLIT PAS.
+   *
+   * ⚠️ REQUIS, et c'est le chemin sur lequel le défaut a été MESURÉ: deux plans
+   * du foyer consécutifs sans petit-déjeuner mercredi, la défusion recopiant le
+   * trou du plan qu'on lui demande de suivre.
+   */
+  gaps: readonly ShownPlanGap[];
 }
 
 /**

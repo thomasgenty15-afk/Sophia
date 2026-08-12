@@ -12,6 +12,7 @@ import {
   resolveWindowPresence,
   type WindowPresence,
 } from "./household_presence.ts";
+import { MERGE_ANCHOR_INSTRUCTION } from "./household_merge.ts";
 
 /**
  * TOUT LE MONDE EST LÀ — le cas nominal, et il est CALCULÉ, jamais écrit à la
@@ -352,6 +353,14 @@ const MERGE_PROMPT = {
   window: { startsOn: "2026-08-12", durationDays: 3 },
   shape: "one_session" as const,
   dishes: [{ day: "wed", slot: "dinner", title: "Curry de pois chiches" }],
+  // O5 — L'ANCRE. Les plats du plan DU FOYER, sans lesquels la consigne ne
+  // montre qu'un menu — celui du plan personnel — et le modèle l'écrit pour
+  // toute la tablée (mesuré: 15 créneaux sur 15, deux fusions réelles sur deux).
+  baseDishes: [{ day: "wed", slot: "dinner", title: "Gratin de courgettes" }],
+  // C2 ④ — AUCUN TROU. C'est l'IDENTITÉ de ce paramètre, et c'est ce qui rend
+  // les assertions d'octet de v7 encore vraies: un plan de base complet rend le
+  // bloc de v7 caractère pour caractère.
+  gaps: [],
 };
 
 Deno.test("SANS FUSION, LE PROMPT EST CELUI D'AVANT L4, À L'OCTET PRÈS", () => {
@@ -420,6 +429,56 @@ Deno.test("le bloc de fusion entre APRÈS la présence et AVANT l'envie", () => 
   }
 });
 
+Deno.test("O5 — L'ANCRE ARRIVE DANS LE VRAI PROMPT, ET LA VERSION A BOUGÉ", () => {
+  // ⚠️ CE QUI EST MESURÉ AVANT CE CORRECTIF: 15 créneaux sur 15 d'une fusion
+  // réelle venaient du plan PERSONNEL du secondaire, aucun titre du plan du
+  // foyer n'a survécu, deux fusions sur deux. La consigne montrait une seule
+  // liste. Un test sur le module pur ne suffit pas: le bloc doit ARRIVER dans
+  // le suffixe que le générateur envoie.
+  const { userSuffix } = buildHouseholdPromptBlocks({
+    members: [DAD, SON],
+    envyLine: null,
+    restrictions: [],
+    presence: NOBODY_AWAY,
+    merge: MERGE_PROMPT,
+    unmerge: null,
+    voices: [],
+  });
+  assert(
+    userSuffix.includes("- wed dinner: Gratin de courgettes"),
+    "le plan DU FOYER n'est pas sous les yeux du modèle: il ne voit qu'un menu, " +
+      "celui du plan personnel, et il l'écrit pour toute la tablée.",
+  );
+  assert(userSuffix.includes(MERGE_ANCHOR_INSTRUCTION));
+  assert(
+    userSuffix.lastIndexOf("Gratin de courgettes") >
+      userSuffix.lastIndexOf("Curry de pois chiches"),
+    "la matière du plan personnel est la dernière liste lue: c'est elle que le " +
+      "modèle prendra pour la consigne finale.",
+  );
+
+  // ⚠️ ET LA VERSION A DÛ BOUGER AVEC LA CONSIGNE. La population des FUSIONS
+  // voit un texte différent: deux plans stampés pareil porteraient des consignes
+  // différentes, très exactement le défaut que le second axe de version existe
+  // pour empêcher (mesuré à L2). La composition ordinaire, la lane individuelle
+  // et la défusion, elles, ne changent pas d'un octet — trois tests le tiennent.
+  for (
+    const past of [
+      "v2_presence",
+      "v3_merge",
+      "v4_merge_budget",
+      "v5_unmerge",
+      "v6_voices",
+    ]
+  ) {
+    assert(
+      HOUSEHOLD_PROMPT_VERSION !== past,
+      `la consigne de fusion ancrée existe sous la version ${past}: bumpe ` +
+        `HOUSEHOLD_PROMPT_VERSION.`,
+    );
+  }
+});
+
 Deno.test("LE BARREAU DE L'ÉCHELLE CHANGE LA LIGNE « COMBIEN DE PLATS »", () => {
   // ⚠️ LE DÉFAUT QUE CE TEST EXISTE POUR EMPÊCHER: le bloc de fusion demande un
   // second plat pendant que le brief de portions, deux blocs plus haut,
@@ -455,6 +514,8 @@ const UNMERGE_PROMPT = {
   displayName: "Zoe",
   window: { startsOn: "2026-08-14", durationDays: 3 },
   dishes: [{ day: "thu", slot: "dinner", title: "Curry de pois chiches" }],
+  // C2 ④ — AUCUN TROU: l'identité, comme pour la fusion.
+  gaps: [],
 };
 
 Deno.test("SANS DÉFUSION, LE PROMPT EST CELUI D'AVANT L5, À L'OCTET PRÈS", () => {
@@ -709,4 +770,32 @@ Deno.test("LA GARDE DE NON-DIVULGATION EST DANS LE CONSTRUCTEUR, PAS EN AMONT", 
   // LE CAS QUI PASSE, du même côté: une garde qui coupe tout est indiscernable
   // d'une garde qui marche.
   assert(userSuffix.includes("- n'aime pas le poisson"));
+});
+
+Deno.test("C2 ④ — LA CONSIGNE QUI DIT LE TROU N'EXISTE PAS SOUS UNE VERSION PASSÉE", () => {
+  // ⚠️ CE QUE CE TEST GARDE, ET UNE MUTATION L'A EXIGÉ. C2 ajoute une TROISIÈME
+  // liste aux blocs de fusion et de défusion — les cases que le plan montré ne
+  // remplit pas — donc la population « fusion/défusion sur un plan troué » voit
+  // un texte différent. Livrer ça sous `v7_merge_anchor` ferait deux plans
+  // stampés pareil portant des consignes différentes: le défaut exact que le
+  // second axe de version existe pour empêcher, mesuré à L2.
+  //
+  // LES AUTRES POPULATIONS NE CHANGENT PAS D'UN OCTET (`gaps: []` est
+  // l'identité), et les trois tests d'octet ci-dessus le tiennent.
+  for (
+    const past of [
+      "v2_presence",
+      "v3_merge",
+      "v4_merge_budget",
+      "v5_unmerge",
+      "v6_voices",
+      "v7_merge_anchor",
+    ]
+  ) {
+    assert(
+      HOUSEHOLD_PROMPT_VERSION !== past,
+      `la consigne qui NOMME le trou d'un plan montré existe sous la version ` +
+        `${past}: bumpe HOUSEHOLD_PROMPT_VERSION.`,
+    );
+  }
 });

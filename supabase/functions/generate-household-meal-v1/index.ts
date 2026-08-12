@@ -39,13 +39,17 @@ import {
 } from "../_shared/keel/hunger_signal.ts";
 import { loadHungerDays } from "../_shared/keel/hunger_signal_io.ts";
 import {
+  firstBlockingPlan,
   type MealWindowRequest,
   resolveRequestedWindow,
   windowDayOrder,
+  windowStartsBeyondDayTokens,
 } from "../_shared/keel/meal_plan_window.ts";
 import {
   buildMealPrompt,
   DEFAULT_EATING_RHYTHM,
+  emptySlotsIn,
+  emptySlotsLine,
   MEAL_PROMPT_VERSION,
   type MealScope,
   mealDishesPayload,
@@ -1044,6 +1048,77 @@ Deno.serve(async (req) => {
           request_id: requestId,
         }, { status: 400 });
       }
+
+      // ══ C2 ② — LES JETONS DE JOUR NE VONT PAS AU-DELÀ DE DIMANCHE ════════
+      //
+      // La même garde que `generate-meal-v1`, par la même fonction pure, et
+      // pour la même raison mesurée: le message porte « today is: wed » à côté
+      // de « days to fill: tue, wed », et le modèle refuse — 6,2 s facturées.
+      //
+      // ⚠️ ELLE EST DANS LA BRANCHE `compose` ET NULLE PART AILLEURS. La fusion
+      // et la défusion DÉDUISENT leur fenêtre d'un plan vivant (`recomposed`),
+      // dont le pivot est au plus tôt aujourd'hui: elles ne peuvent pas la
+      // fabriquer. Placer la garde au-dessus des trois l'aurait rendue
+      // impossible à faire mordre — une garde sans cas est une garde qu'on
+      // croit posée.
+      if (windowStartsBeyondDayTokens(startsOn, todayDate)) {
+        return jsonResponse(req, {
+          error: "window_beyond_this_week",
+          detail: "A plan is written in day names (mon, tue...), and those " +
+            "only reach as far as this Sunday. Start your window this week, " +
+            "or compose next week's plan once it has started.",
+          request_id: requestId,
+        }, { status: 400 });
+      }
+
+      // ══ C2 ③ — LE JUMEAU DU P0 DE LA FUSION, SUR LA PORTE `compose` ══════
+      //
+      // La fenêtre de `compose` est PARAMÉTRÉE PAR LE CLIENT
+      // (`{kind:"days", count:N}`, `{kind:"exact", …}`), donc une fenêtre
+      // strictement intérieure au plan du foyer vivant est atteignable — et
+      // `write_student_meal_plan` la refuse exprès (correctif du 2026-08-11),
+      // APRÈS le modèle. C'est le défaut que L10 ① a fermé côté fusion et
+      // laissé ouvert ici, en le nommant.
+      //
+      // ⚠️ MÊME RÈGLE, MÊME FONCTION. `firstBlockingPlan` rejoue la boucle de
+      // chevauchement de la RPC, celle que `mergeWindowWritable` appelle aussi.
+      //
+      // ⚠️ ON RELIT `householdPlans`, DÉJÀ CHARGÉ POUR LES TROIS OPÉRATIONS.
+      // Son prédicat est plus ÉTROIT que celui de la RPC (il filtre en plus sur
+      // `household_id`, décision de L5): un maître qui aurait changé de foyer
+      // garderait donc un cas rare qui paie le modèle avant de tomber sur le
+      // 409 de la base. C'est le bon sens du compromis — un second lecteur avec
+      // un troisième prédicat est la dette que ce chantier a payée deux fois le
+      // 2026-08-12.
+      const blocking = firstBlockingPlan({
+        live: householdPlans.map((p) => ({
+          id: p.id,
+          startsOn: p.startsOn,
+          durationDays: p.durationDays,
+        })),
+        window: { startsOn, durationDays },
+        replacesId: intent === "replace_current" ? replaces : null,
+      });
+      if (blocking) {
+        console.log(JSON.stringify({
+          tag: "keel.household_meal.window_overlaps",
+          user_id: userId,
+          household_id: householdId,
+          window: [startsOn, durationDays],
+          clash: [blocking.plan.id, blocking.plan.startsOn, blocking.plan.durationDays],
+          verdict: blocking.verdict,
+        }));
+        return jsonResponse(req, {
+          error: "plan_overlaps_existing",
+          detail: blocking.verdict === "encloses"
+            ? "That window sits inside a plan this household already has, and " +
+              "writing it would leave the end of that plan with nothing. Cover " +
+              "it to its last day, or replace it."
+            : "This household already has a plan that starts on that day or " +
+              "later. Replace it, or start your window before it.",
+          request_id: requestId,
+        }, { status: 409 });
+      }
     }
 
     // ── L'OBJECTIF DU MAÎTRE: LA DOCTRINE DU REPAS ──────────────────────
@@ -1817,6 +1892,28 @@ Deno.serve(async (req) => {
         d.day === null || windowDayTokens.has(d.day)
       ),
     );
+    // ── O5 · L'ANCRE DE LA FUSION — LE PLAN DU FOYER ──────────────────────
+    //
+    // MESURÉ LE 2026-08-12, créneau par créneau: 15 sur 15 du plan fusionné
+    // venaient du plan PERSONNEL, et aucun titre du plan du foyer n'a survécu.
+    // Un foyer en `fat_loss`, mineur à table, s'est vu servir un plan de prise
+    // de masse — deux fusions réelles sur deux. La consigne ne montrait qu'une
+    // liste, celle du plan personnel; le modèle a écrit ce menu-là.
+    //
+    // Les mêmes plats, la même fenêtre et le même plafond que la matière de la
+    // DÉFUSION juste en dessous — dont la consigne, elle, obéit 14/14. La seule
+    // différence entre les deux blocs est ce que la fusion AJOUTE (le barreau
+    // D6), plus ce qu'elle garde.
+    //
+    // ⚠️ N'ENTRE PAS DANS LE BUDGET DE PLATS. `ownDishesShown` compte ce que la
+    // personne reprise apporte, et le budget lui ouvre de la place pour ÇA. Le
+    // plan du foyer, lui, est déjà dans le plafond de base: l'y rajouter
+    // doublerait la fenêtre du foyer dans son propre plafond.
+    const mergeBaseMaterial = merge === null ? [] : mergeMaterialShown(
+      merge.householdPlan.dishes.filter((d) =>
+        d.day === null || windowDayTokens.has(d.day)
+      ),
+    );
     // CE QUE LE TRONC A BESOIN DE SAVOIR DE LA FUSION, et rien de plus: un
     // barreau et un nombre. Le tronc n'a pas à connaître un foyer.
     const mergeBudget: MergedEater | null = ladder === null ? null : {
@@ -1840,6 +1937,55 @@ Deno.serve(async (req) => {
         d.day === null || windowDayTokens.has(d.day)
       ),
     );
+
+    // ── C2 ④ · LE TROU D'UN PLAN MONTRÉ NE SE TRANSMET PAS ────────────────
+    //
+    // MESURÉ DEUX FOIS LE 2026-08-12. Un plat dont un ingrédient porte une cible
+    // chiffrée est rejeté ENTIER (le verrou numérique, juste et antérieur à ce
+    // chantier). Sur une fusion, la matière du plan personnel citait « whey
+    // protein 90 g » et LES CINQ PETITS-DÉJEUNERS DU FOYER sont tombés d'un
+    // coup. Puis la DÉFUSION a recopié le trou: « reste au plus près du plan de
+    // base » est la consigne la mieux honorée de tout ce chantier — 14 titres
+    // identiques sur 14 — donc c'est aussi celle qui recopie le mieux une case
+    // vide. Deux plans du foyer consécutifs sans petit-déjeuner mercredi.
+    //
+    // ⚠️ LA MÊME FONCTION QUE LE CONSTAT D'APRÈS-PARSE (`emptySlotsIn`), avec
+    // les MÊMES entrées que la consigne (le rythme du maître, les absences de
+    // la fenêtre). Un second avis sur « ce que cette journée devait contenir »
+    // aurait divergé du prompt au premier ajustement — et un trou annoncé là où
+    // il n'y en a pas est la meilleure façon d'en faire fabriquer un.
+    //
+    // ⚠️ ON NE REBOUCHE RIEN ICI. On nomme la case; le modèle la compose comme
+    // il compose toutes les autres. Choisir quoi y mettre est une décision de
+    // produit que personne n'a prise.
+    const windowDays = windowDayOrder(startsOn, durationDays);
+    const gapsOf = (dishes: readonly { day: string | null; slot: string | null }[]) =>
+      emptySlotsIn({
+        days: windowDays,
+        rhythm: eatingRhythm,
+        dishes,
+        awayDays,
+        // Le foyer ne porte pas d'apports fixes: le tronc lui passe déjà
+        // `fixedIntakes: []` (deux appels, plus bas). La même valeur ici, pour
+        // que le constat et la consigne comptent la même grille.
+        fixedIntakes: [],
+      });
+    const mergeBaseGaps = merge === null ? [] : gapsOf(mergeBaseMaterial);
+    const unmergeGaps = unmerge === null ? [] : gapsOf(unmergeMaterial);
+    if (mergeBaseGaps.length > 0 || unmergeGaps.length > 0) {
+      // NOMMÉ DANS LES `issues` DU PLAN NEUF, et pas seulement dans le prompt:
+      // sans ça, « le plan de base était déjà troué » et « le modèle a laissé
+      // tomber une case » laisseraient la même trace sur la ligne écrite.
+      const shown = mergeBaseGaps.length > 0 ? mergeBaseGaps : unmergeGaps;
+      issues.push(`shown_plan_gaps: ${emptySlotsLine(shown)}`);
+      console.log(JSON.stringify({
+        tag: "keel.household_meal.shown_plan_gaps",
+        user_id: userId,
+        household_id: householdId,
+        operation,
+        gaps: shown.map((g) => `${g.day}/${g.slot}`),
+      }));
+    }
 
     // ── FF-027 · LE SIGNAL DE FAIM DE LA FENÊTRE ──────────────────────────
     //
@@ -2081,6 +2227,12 @@ Deno.serve(async (req) => {
           // LA MÊME LISTE QUE CELLE QUI A OUVERT LE BUDGET, et c'est le point:
           // elle est calculée une seule fois, plus haut (`mergeMaterial`).
           dishes: mergeMaterial,
+          // O5 — CE QUI RESTE, ET QUI EST LE PLAN. Sans lui, le modèle ne voit
+          // qu'un menu et écrit ce menu-là pour tout le monde.
+          baseDishes: mergeBaseMaterial,
+          // C2 ④ — LES CASES QUE CETTE ANCRE NE COUVRE PAS. `[]` quand le plan
+          // du foyer est complet, et le bloc est alors byte-identique à v7.
+          gaps: mergeBaseGaps,
         },
       // L5/D8 — LA DÉFUSION. `unmergedName` est lu sur le ROSTER et non sur
       // `platedMembers`: la personne vient précisément d'être retirée de cette
@@ -2090,6 +2242,10 @@ Deno.serve(async (req) => {
         displayName: String(unmerge.member.first_name ?? "").trim() || "Member",
         window: { startsOn, durationDays },
         dishes: unmergeMaterial,
+        // C2 ④ — LE TROU DU PLAN DE BASE, DIT PLUTÔT QUE RECOPIÉ. C'est ce
+        // chemin-ci qui a été mesuré: 14 titres sur 14 recopiés, case vide
+        // comprise, deux plans du foyer d'affilée.
+        gaps: unmergeGaps,
       },
       // D4/L6 — LES LIGNES BRUTES. Le plafond par membre et la garde de
       // non-divulgation sont appliqués DANS `buildHouseholdPromptBlocks`, pas
@@ -2510,6 +2666,13 @@ Deno.serve(async (req) => {
             // sur la moitié de la population est un chiffre faux.
             protein_anchor_retry: proteinAnchorRetry,
             protein_anchor_missing: meal.protein_anchor_missing,
+            // ── C2 ④ · LES CASES QUE PERSONNE NE REMPLIT, SUR LA LIGNE ────
+            // C'est ICI que le défaut a été mesuré: les cinq petits-déjeuners
+            // d'un plan de FUSION tombés d'un coup, parce que la matière du
+            // plan personnel citait « whey protein 90 g ». Le verrou numérique
+            // est juste; ce qui manquait était de pouvoir le lire autrement
+            // qu'en relisant les plats un par un.
+            empty_slots: meal.empty_slots,
             household: {
               id: householdId,
               member_count: members.length,
