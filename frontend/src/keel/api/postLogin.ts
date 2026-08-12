@@ -62,7 +62,45 @@
 import { supabase } from "../../lib/supabase";
 import { loadKeelRole } from "./keelClient";
 
-export type HomePath = "/coach" | "/app/today" | "/app/household" | "/account";
+export type HomePath =
+  | "/coach"
+  | "/app/setup"
+  | "/app/today"
+  | "/app/household"
+  | "/account";
+
+/**
+ * A-T-IL DÉJÀ RÉPONDU À CE QUE L'ENTONNOIR DEMANDE ? (FF-060)
+ *
+ * ── POURQUOI CE FAIT-LÀ, ET PAS UN DRAPEAU ────────────────────────────────
+ * `profiles.onboarding_completed` existe et n'est lu que par un chemin legacy.
+ * Le réutiliser dirait « terminé » d'un parcours dont les faits ont changé
+ * depuis, et « à faire » à un compte réglé avant que cet écran n'existe. La
+ * ligne `student_goals` est le fait: sans elle, LES DEUX générateurs rendent
+ * `goal_required` (409), donc rien ne peut être composé — c'est exactement la
+ * définition de « il n'a encore rien ».
+ *
+ * @returns `null` quand on n'a PAS PU LIRE. Ne jamais router sur `null`: envoyer
+ *          quelqu'un dans un couloir de réglage parce que le réseau a hoqueté
+ *          lui ferait refaire ce qu'il a déjà fait.
+ */
+async function hasAnsweredTheFunnel(userId: string): Promise<boolean | null> {
+  try {
+    const res = await supabase
+      .from("student_goals")
+      .select("user_id")
+      // `.eq` EXPLICITE malgré RLS: quelqu'un qui est à la fois coach et
+      // mangeur lit aussi les lignes de ses élèves (`student_goals_select_coach`),
+      // et une lecture non scopée le déclarerait « déjà réglé » sur la ligne de
+      // l'un d'eux. Le dépôt a déjà payé ce défaut sur cette table.
+      .eq("user_id", userId)
+      .limit(1);
+    if (res.error) return null;
+    return (res.data ?? []).length > 0;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Resolve a signed-in user's home.
@@ -99,7 +137,20 @@ export async function resolveHomePath(userId: string): Promise<HomePath | null> 
     // coach nor student. That is a FACT, and it is what lets branch 2bis fall
     // back to /account below rather than to `null`.
     heldAFact = true;
-    if (role === "student") return "/app/today";
+    // BRANCHE 1bis — L'ENTONNOIR D'ENTRÉE (FF-060). Un élève qui n'a répondu à
+    // rien atterrissait sur `/app/today`, VIDE, et devait deviner un bouton
+    // « Set up » enfoui dans une fenêtre de `/app/plan`. Un écran élève vide
+    // porte la sortie vers là où il compose: c'est déjà la règle du dépôt,
+    // l'entonnoir en devient la destination.
+    //
+    // ⚠️ SEULEMENT SUR UN `false` EXPLICITE. `null` = on n'a pas pu lire, et
+    // renvoyer quelqu'un régler ce qu'il a déjà réglé est pire que de le
+    // laisser sur son écran habituel.
+    if (role === "student") {
+      return (await hasAnsweredTheFunnel(userId)) === false
+        ? "/app/setup"
+        : "/app/today";
+    }
   } catch {
     // `loadKeelRole` throws on any error, transport included.
   }
@@ -117,7 +168,16 @@ export async function resolveHomePath(userId: string): Promise<HomePath | null> 
       .limit(1);
     if (!household.error) {
       heldAFact = true;
-      if ((household.data ?? []).length > 0) return "/app/household";
+      if ((household.data ?? []).length > 0) {
+        // MÊME RÈGLE QU'EN 1bis, ET POUR LA MÊME POPULATION: quelqu'un qui
+        // vient de réclamer son profil n'a AUCUNE ligne `student_goals` — c'est
+        // la définition même du trou que FF-048 R8 laisse ouvert. L'envoyer sur
+        // son foyer lui montre la table de quelqu'un d'autre; l'entonnoir lui
+        // demande ce qui manque pour que SA part soit la sienne.
+        return (await hasAnsweredTheFunnel(userId)) === false
+          ? "/app/setup"
+          : "/app/household";
+      }
     }
   } catch {
     // Transport failure: `heldAFact` garde ce qu'il valait.

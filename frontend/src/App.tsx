@@ -56,6 +56,7 @@ import StudentWeekPlanPage from "./keel/pages/StudentWeekPlanPage";
 import StudentProgressPage from "./keel/pages/StudentProgressPage";
 import StudentHealthPage from "./keel/pages/StudentHealthPage";
 import HouseholdPage from "./keel/pages/HouseholdPage";
+import SetupPage from "./keel/pages/SetupPage";
 import NotFoundPage from "./keel/pages/NotFoundPage";
 import CoachBillingPage from "./keel/pages/CoachBillingPage";
 import TemplatesPage from "./keel/pages/TemplatesPage";
@@ -199,6 +200,27 @@ function App() {
                 element={
                   <KeelHouseholdRoute>
                     <HouseholdPage />
+                  </KeelHouseholdRoute>
+                }
+              />
+              {/* KEEL — FF-060, `/app/setup`: le parcours d'entrée.
+                  Trois étapes qui se terminent PAR LA GÉNÉRATION, et pas par un
+                  « merci ». Avant lui, un compte neuf atterrissait sur
+                  `/app/today` — vide — et tout son réglage vivait derrière un
+                  bouton « Set up » qu'il fallait deviner dans une fenêtre de
+                  `/app/plan`.
+
+                  ⚠️ `KeelHouseholdRoute` ET PAS `KeelStudentRoute`, la même
+                  garde que `/app/plan` et pour la même population: quelqu'un
+                  qui a RÉCLAMÉ son profil de foyer n'est l'élève de personne
+                  (`profiles.keel_role` reste NULL, exprès), et c'est justement
+                  quelqu'un qui a besoin de régler sa direction. La route est de
+                  la navigation; RLS reste la frontière. */}
+              <Route
+                path="/app/setup"
+                element={
+                  <KeelHouseholdRoute>
+                    <SetupPage />
                   </KeelHouseholdRoute>
                 }
               />

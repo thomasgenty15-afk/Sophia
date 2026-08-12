@@ -3541,4 +3541,170 @@ export const en = {
   // est de relire, pas de réessayer avec la même date.
   "household.merge.error.notice_moved_on":
     "Their plans have changed since this was shown. Reload to see where things stand.",
+
+  // ═════════════════════════════════════════════════════════════════════════
+  // FF-060 — LE PARCOURS D'ENTRÉE (`/app/setup`)
+  //
+  // Trois étapes, et la dernière action EST la génération. Pas de « merci »,
+  // pas de « ton plan arrive »: le bouton compose, et l'écran suivant est le
+  // plan. Toute copie qui fait ATTENDRE quelqu'un est fausse dans ce produit —
+  // le coach ne prépare rien pour personne (docs/keel/MODEL.md).
+  // ═════════════════════════════════════════════════════════════════════════
+  "setup.title": "Set up your kitchen",
+  "setup.subtitle": "Three steps, then your first plan.",
+  "setup.progress": "Step {n} of {total}",
+  "setup.loading": "Loading where you got to…",
+  "setup.error.title": "We could not read where you got to.",
+  "setup.back": "Back",
+  "setup.next": "Continue",
+  // PERSONNE N'EST RETENU DANS UN COULOIR. La sortie est visible à chaque
+  // étape, et ce qui a déjà été enregistré l'est vraiment.
+  "setup.skip": "Skip for now",
+  "setup.skip_hint": "Nothing you have answered is lost. You can come back from your plan.",
+  "setup.saved": "Saved.",
+
+  // ── ÉTAPE 1 — SITUER ────────────────────────────────────────────────────
+  // Ce n'est PAS une case « persona »: les trois réponses SONT les trois
+  // cibles du produit, et le nombre est ce qui dimensionne le plan.
+  "setup.situate.title": "How many people do you cook for?",
+  "setup.situate.hint":
+    "It sizes every plan we build, and it is the only thing this step needs. You can change it later.",
+  "setup.situate.solo": "Just me",
+  "setup.situate.solo_hint": "One plan, your servings, batch-cooked if that is your thing.",
+  "setup.situate.pair": "Two of us",
+  "setup.situate.pair_hint":
+    "One pot, two servings — even when you are not both after the same thing.",
+  "setup.situate.family": "Three or more",
+  "setup.situate.family_hint": "The house cooks once, and everyone gets their share.",
+  // UN SECONDAIRE NE RÉPOND PAS À CETTE QUESTION. Quelqu'un d'autre tient la
+  // table; ce qui suit ne règle que lui, et son plan est le sien.
+  "setup.situate.member":
+    "Someone else runs this household and composes for it. What follows is about you only — your servings, your direction, and a plan of your own if you want one.",
+
+  // ── ÉTAPE 2 — LES GENS ──────────────────────────────────────────────────
+  "setup.people.title": "You",
+  "setup.people.intro":
+    "You eat here too. You are the first place at the table, not the person who runs it.",
+  "setup.people.first_name": "First name",
+  "setup.people.first_name_hint": "How the plan names your serving.",
+  "setup.people.birth_date": "Date of birth",
+  // L'ÂGE EST GOUVERNANT, ET LA PHRASE LE DIT. Un champ dont l'absence change
+  // le repas sans le dire est un piège — c'est le défaut D1 de ce chantier.
+  "setup.people.birth_date_hint":
+    "A direction only applies at a known age. Without it you get a standard serving, and nothing says so.",
+  "setup.people.birth_date_error": "That date is in the future, or we cannot read it.",
+  "setup.people.height": "Height (cm)",
+  "setup.people.height_hint": "It sizes your servings. Nothing else reads it.",
+  "setup.people.gender": "Sex",
+  "setup.people.goal": "What you are after",
+  "setup.people.allergies": "Anything you are allergic to?",
+  // TROIS NATURES DISTINCTES, ET L'ENTONNOIR NE COLLECTE QUE LA PREMIÈRE
+  // (FF-046): une ALLERGIE est médicale et rejoint l'union de sécurité,
+  // fail-closed; une RÈGLE DE MAISON est un pouvoir domestique; une AVERSION
+  // est un goût. Les confondre à la saisie, c'est promettre une garde de
+  // sécurité sur une préférence.
+  "setup.people.allergies_hint":
+    "Medical only — it rules the whole pot, and nothing gets cooked without it. Dislikes and house rules come later.",
+  "setup.people.allergies_none": "Nothing to declare",
+  "setup.people.allergies_other": "Something else",
+  "setup.people.allergies_add": "Add",
+  "setup.people.allergies_remove": "Remove",
+
+  // ── ÉTAPE 2b — LES AUTRES BOUCHES ───────────────────────────────────────
+  // ⚠️ ON AJOUTE TOUJOURS UNE BOUCHE. L'accès est un AJOUT PAR-DESSUS, jamais
+  // une alternative — ce ne sont pas deux natures de personne, c'est le même
+  // objet à deux stades (FF-048 §1). L'écran ne présente donc jamais une
+  // fourche « bouche ou compte ? ».
+  "setup.mouths.title": "Who else eats here",
+  "setup.mouths.intro":
+    "Three things per person, and tonight's plan already counts them in.",
+  "setup.mouths.add": "Add someone who eats here",
+  // ⚠️ PAS `setup.people.first_name_hint`. Celui-là dit « ta » portion, et il
+  // était réutilisé ici: le formulaire d'une AUTRE bouche promettait de nommer
+  // la portion de qui remplit le champ. Vu à l'écran le 2026-08-12.
+  "setup.mouths.first_name_hint": "How the plan names their serving.",
+  "setup.mouths.kind": "Are they an adult or a child?",
+  "setup.mouths.kind_adult": "An adult",
+  "setup.mouths.kind_child": "A child",
+  // LA CEINTURE D'ÂGE EST STRUCTURELLE (`goalApplies`, `weekPlanAgeGate`), pas
+  // un réglage. Le dire évite qu'on cherche un champ qui n'existera jamais.
+  "setup.mouths.kind_hint":
+    "A child never gets a nutrition direction of their own. That is built in, not a setting.",
+  "setup.mouths.goal": "What they are after",
+  "setup.mouths.goal_none": "No particular direction",
+  "setup.mouths.goal_from_profile":
+    "Set in their own profile — it follows them everywhere, not just at this table.",
+  "setup.mouths.allergies": "Anything they are allergic to?",
+  "setup.mouths.remove": "Remove",
+  "setup.mouths.full":
+    "Eight is the most a household can hold. Every mouth is another serving to compose at each generation.",
+
+  // ── L'ACCÈS — UN AJOUT PAR-DESSUS ───────────────────────────────────────
+  "setup.access.title": "Give them their own access?",
+  "setup.access.optional": "Optional. It changes nothing about tonight.",
+  // LA PHRASE QUI RÉPOND À « faut-il attendre qu'elle s'inscrive ? ». Elle est
+  // la raison d'être de cette section: sans elle, ajouter quelqu'un a l'air
+  // d'ouvrir une attente, et l'attente est exactement ce que ce produit ne
+  // fait jamais.
+  "setup.access.waiting":
+    "Nothing waits for them. Their place at the table exists the moment you add them, and tonight's plan already counts them in. The access only lets them take that place over.",
+  "setup.access.grants":
+    "What they get: they read the household plan and set their own direction. Not: composing, adding or removing anyone, or deciding what the house does not serve.",
+  "setup.access.email": "Their email",
+  "setup.access.submit": "Create the invitation",
+  "setup.access.copy": "Copy the link",
+  "setup.access.copied": "Copied.",
+  // ⚠️ CE QUE LA RÉCLAMATION FAIT À L'OBJECTIF SAISI ICI. Depuis
+  // 20260812250000, la réclamation SÈME cet objectif dans la ligne « about
+  // you » du titulaire: il ne se perd plus. La phrase dit ce qui se passe,
+  // parce que « rien ne change » serait faux — l'objectif change de PROPRIÉTÉ.
+  "setup.access.goal_carries":
+    "The direction you set for them carries over when they claim it — after that it is theirs to change, in their own About you.",
+
+  // ── ÉTAPE 3 — LE PLAN ───────────────────────────────────────────────────
+  // POSÉ UNE SEULE FOIS, POUR LE FOYER: ça appartient à qui cuisine, pas à
+  // chaque bouche. C'est ce qui fait que la branche famille coûte une minute
+  // de plus que la branche solo, et pas quatre fois plus.
+  "setup.plan.title": "How your week runs",
+  "setup.plan.intro": "Asked once, for the whole house — it belongs to whoever cooks.",
+  "setup.plan.rhythm": "When you eat",
+  "setup.plan.rhythm_hint": "Only the moments you tick get composed.",
+  "setup.plan.cook_days": "Days you cook",
+  "setup.plan.cook_days_hint": "The rest is leftovers, batches, or something we do not touch.",
+  "setup.plan.time": "Minutes per cooking session",
+  "setup.plan.budget": "Budget",
+  "setup.plan.budget_tight": "Tight",
+  "setup.plan.budget_normal": "Normal",
+  "setup.plan.budget_comfortable": "Comfortable",
+  "setup.plan.compose": "Build my first plan",
+  "setup.plan.composing": "Building it now…",
+  "setup.plan.compose_hint": "This composes it. The next screen is the plan itself.",
+
+  // ── CE QUI MANQUE ENCORE ────────────────────────────────────────────────
+  // Un motif par phrase, et chacune dit LE GESTE, pas l'état. « Il manque une
+  // date » n'apprend rien; « sans sa date sa direction ne s'applique pas » dit
+  // ce qu'on perd.
+  "setup.missing.title": "Before we can build it",
+  "setup.missing.household_size": "Tell us how many people you cook for.",
+  "setup.missing.own_first_name": "Your first name — the plan names your serving with it.",
+  "setup.missing.own_birth_date": "Your date of birth.",
+  "setup.missing.own_height_cm": "Your height, so your servings are yours.",
+  "setup.missing.own_gender": "Your sex, so your servings are yours.",
+  "setup.missing.own_goal": "What you are after. Nothing can be composed without it.",
+  "setup.missing.own_allergies": "Whether you have allergies — “none” counts as an answer.",
+  "setup.missing.member_first_name":
+    "A first name for everyone at the table. Without one, their serving vanishes from the plan without a word.",
+  "setup.missing.member_birth_date": "A date of birth for everyone at the table.",
+  "setup.missing.member_goal": "A direction for each adult at the table.",
+  "setup.missing.member_allergies":
+    "Whether each person has allergies — “none” counts as an answer.",
+  "setup.missing.adult_without_birth_date":
+    "Someone has a direction but no date of birth. A direction only applies at a known age, so as it stands they would get a standard serving and nothing would say so.",
+  "setup.missing.missing_mouths": "Add the other people who eat here.",
+  "setup.missing.too_many_mouths":
+    "Eight is the most a household can hold, you included.",
+  "setup.missing.eating_rhythm": "When you eat.",
+  "setup.missing.cook_days": "Which days you cook.",
+  "setup.missing.cooking_time_min": "How long a cooking session lasts.",
+  "setup.missing.budget_band": "Which budget the plan should stay in.",
 } as const

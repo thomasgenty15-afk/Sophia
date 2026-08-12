@@ -41,9 +41,23 @@ type HouseholdOutcome =
   | { kind: "error" }
   | { kind: "throw" };
 
+/**
+ * Ce que la lecture `student_goals` a répondu (FF-060).
+ *
+ * `rows: 0` est un FAIT — « cette personne n'a répondu à rien » — et c'est lui
+ * qui envoie dans l'entonnoir. `error` et `throw` sont l'IGNORANCE, et
+ * l'ignorance ne doit renvoyer personne régler ce qu'il a peut-être déjà réglé.
+ */
+type GoalOutcome =
+  | { kind: "rows"; count: number }
+  | { kind: "error" }
+  | { kind: "throw" };
+
 let coachOutcome: CoachOutcome = { kind: "row", status: null };
 let roleOutcome: RoleOutcome = { kind: "role", value: null };
 let householdOutcome: HouseholdOutcome = { kind: "rows", count: 0 };
+/** Par défaut: la ligne existe, donc l'entonnoir est derrière soi. */
+let goalOutcome: GoalOutcome = { kind: "rows", count: 1 };
 
 vi.mock("../../lib/supabase", () => ({
   supabase: {
@@ -54,6 +68,26 @@ vi.mock("../../lib/supabase", () => ({
     from: (table: string) => ({
       select: () => ({
         eq: () => ({
+          // `student_goals` finit sur `eq().limit()` — une TROISIÈME forme, et
+          // le dispatch reste par nom de table: un appel qui viserait la
+          // mauvaise table doit lever, pas passer.
+          limit: async () => {
+            if (table !== "student_goals") {
+              throw new Error(`mock: eq().limit() inattendu sur ${table}`);
+            }
+            if (goalOutcome.kind === "throw") {
+              throw new TypeError("Failed to fetch");
+            }
+            if (goalOutcome.kind === "error") {
+              return { data: null, error: { message: "permission denied" } };
+            }
+            return {
+              data: Array.from({ length: goalOutcome.count }, () => ({
+                user_id: "u",
+              })),
+              error: null,
+            };
+          },
           maybeSingle: async () => {
             if (table !== "coaches") {
               throw new Error(`mock: eq().maybeSingle() inattendu sur ${table}`);
@@ -113,6 +147,71 @@ beforeEach(() => {
   coachOutcome = { kind: "row", status: null };
   roleOutcome = { kind: "role", value: null };
   householdOutcome = { kind: "rows", count: 0 };
+  goalOutcome = { kind: "rows", count: 1 };
+});
+
+// ── FF-060 — L'ENTONNOIR D'ENTRÉE ─────────────────────────────────────────
+//
+// Le défaut qu'il ferme: un compte neuf atterrissait sur `/app/today`, VIDE,
+// et devait deviner un bouton « Set up » enfoui dans une fenêtre de
+// `/app/plan`. Aucun chemin ne menait de « je viens de créer mon compte » à
+// « voici mon premier plan ».
+//
+// Le fait lu est la ligne `student_goals`, et pas un drapeau: sans elle, LES
+// DEUX générateurs rendent `goal_required`, donc rien ne peut être composé.
+describe("resolveHomePath — l'entonnoir d'entrée", () => {
+  it("un élève sans ligne d'objectif va régler, pas sur un écran vide", async () => {
+    roleOutcome = { kind: "role", value: "student" };
+    goalOutcome = { kind: "rows", count: 0 };
+    expect(await resolveHomePath(USER)).toBe("/app/setup");
+  });
+
+  it("et il n'y RETOURNE PAS une fois la ligne posée", async () => {
+    roleOutcome = { kind: "role", value: "student" };
+    goalOutcome = { kind: "rows", count: 1 };
+    expect(await resolveHomePath(USER)).toBe("/app/today");
+  });
+
+  it("un profil de foyer FRAÎCHEMENT réclamé y va aussi", async () => {
+    // La population la plus concernée: réclamer son profil n'écrit AUCUNE
+    // ligne `student_goals` (FF-048 R8). Sans cette branche, la personne
+    // atterrit sur la table de quelqu'un d'autre sans avoir dit un mot d'elle.
+    roleOutcome = { kind: "role", value: null };
+    householdOutcome = { kind: "rows", count: 1 };
+    goalOutcome = { kind: "rows", count: 0 };
+    expect(await resolveHomePath(USER)).toBe("/app/setup");
+  });
+
+  it("un membre de foyer déjà réglé retrouve son foyer", async () => {
+    roleOutcome = { kind: "role", value: null };
+    householdOutcome = { kind: "rows", count: 1 };
+    goalOutcome = { kind: "rows", count: 1 };
+    expect(await resolveHomePath(USER)).toBe("/app/household");
+  });
+
+  // ── L'IGNORANCE NE ROUTE PAS ────────────────────────────────────────────
+  // Les deux cas qui comptent, et ils vont dans le sens INVERSE du défaut
+  // d'origine: ne pas savoir ne doit pas renvoyer quelqu'un régler ce qu'il a
+  // déjà réglé. `null` n'est pas `false`.
+  it("une lecture d'objectif en ERREUR laisse l'élève sur son écran", async () => {
+    roleOutcome = { kind: "role", value: "student" };
+    goalOutcome = { kind: "error" };
+    expect(await resolveHomePath(USER)).toBe("/app/today");
+  });
+
+  it("une lecture d'objectif en PANNE laisse l'élève sur son écran", async () => {
+    roleOutcome = { kind: "role", value: "student" };
+    goalOutcome = { kind: "throw" };
+    expect(await resolveHomePath(USER)).toBe("/app/today");
+  });
+
+  it("un coach actif n'est JAMAIS envoyé dans l'entonnoir d'un élève", async () => {
+    // La lecture d'objectif vit APRÈS la garde coach, et l'ordre est la garde:
+    // un coach qui est aussi mangeur lirait `0` sur sa propre ligne.
+    coachOutcome = { kind: "row", status: "active" };
+    goalOutcome = { kind: "rows", count: 0 };
+    expect(await resolveHomePath(USER)).toBe("/coach");
+  });
 });
 
 describe("resolveHomePath — les branches qui savent", () => {

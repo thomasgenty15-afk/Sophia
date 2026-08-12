@@ -16,6 +16,8 @@ import {
   HOUSEHOLD_MAX_MOUTHS,
   nextIncomplete,
 } from "./onboarding";
+import { SETUP_MISS_KEYS } from "../copy/setupMisses";
+import { en } from "../i18n/en";
 
 /**
  * ── CE QUE CE FICHIER GARDE, ET POURQUOI CHAQUE BLOC EXISTE ────────────────
@@ -506,6 +508,43 @@ describe("nextIncomplete", () => {
 // ───────────────────────────────────────────────────────────────────────────
 // 6. La date de naissance, lue par LA garde du produit
 // ───────────────────────────────────────────────────────────────────────────
+
+// ───────────────────────────────────────────────────────────────────────────
+// 6bis. Chaque motif a une phrase, et chaque phrase existe
+// ───────────────────────────────────────────────────────────────────────────
+
+describe("les mots de ce qui manque", () => {
+  /**
+   * LE TEST DE DÉRIVE, dans les DEUX sens. Un motif sans phrase afficherait un
+   * slug à quelqu'un qui vient de créer son compte; une phrase pour un motif
+   * qui n'existe plus est du texte écrit, relu, et inatteignable.
+   */
+  it("nomme une clé qui existe pour chaque motif que canGenerate peut rendre", () => {
+    const motifs = new Set<string>([
+      "adult_without_birth_date",
+      "missing_mouths",
+      "too_many_mouths",
+      ...FUNNEL_QUESTIONS.map((q) => q.id),
+    ]);
+    const broken: string[] = [];
+    for (const motif of motifs) {
+      const key = SETUP_MISS_KEYS[motif as keyof typeof SETUP_MISS_KEYS];
+      if (!key) broken.push(`${motif}: aucune clé`);
+      else if (!(key in en)) broken.push(`${motif}: clé absente du seed — ${key}`);
+    }
+    expect(broken).toEqual([]);
+  });
+
+  it("n'invente aucun motif que le module ne produit pas", () => {
+    const known = new Set<string>([
+      "adult_without_birth_date",
+      "missing_mouths",
+      "too_many_mouths",
+      ...FUNNEL_QUESTIONS.map((q) => q.id),
+    ]);
+    expect(Object.keys(SETUP_MISS_KEYS).filter((k) => !known.has(k))).toEqual([]);
+  });
+});
 
 describe("birthDateAnswer", () => {
   const TODAY = "2026-08-12";

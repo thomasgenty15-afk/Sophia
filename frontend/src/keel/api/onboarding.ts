@@ -41,11 +41,29 @@
 // suite le jour de la suppression, pas six mois plus tard quand quelqu'un se
 // demande à quoi sert ce champ.
 
+import { supabase } from "../../lib/supabase";
 import {
   assessBirthDate,
   type BirthDateVerdict,
 } from "../../../../supabase/functions/_shared/keel/student_age.ts";
-import { type MemberGender, type MemberGoal, MEMBER_GOALS } from "./household";
+import { normalizeAllergenInput } from "../copy/allergens";
+import { browserLocalDate } from "../lib/useMealTicks";
+import {
+  addAllergy,
+  loadAllergies,
+  loadHousehold,
+  MEMBER_GENDERS,
+  type MemberGender,
+  type MemberGoal,
+  MEMBER_GOALS,
+} from "./household";
+import { DAY_TOKENS, parseEatingRhythm } from "./mealGeneration";
+import { mergePracticalConstraints } from "./practicalConstraints";
+import {
+  declareConstraint,
+  DuplicateConstraintError,
+  loadActiveConstraints,
+} from "./safetyConstraints";
 
 // ───────────────────────────────────────────────────────────────────────────
 // LE VOCABULAIRE
@@ -772,4 +790,498 @@ export function emptyFunnelPerson(): FunnelPerson {
     goal: null,
     allergiesReviewed: false,
   };
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+// LES APPELS
+// ───────────────────────────────────────────────────────────────────────────
+
+/**
+ * « IL Y A UNE DATE, ET JE NE PEUX PAS LA LIRE ».
+ *
+ * `keel_household_roster` NE REND JAMAIS la date de naissance d'une bouche —
+ * le foyer doit savoir qu'il y a un enfant à table, pas son âge exact. La
+ * reprise ne peut donc pas préremplir le champ; elle peut seulement savoir
+ * qu'une date EST en base, parce que `age_state` vaut alors `minor` ou `adult`
+ * plutôt que `unknown`.
+ *
+ * Ce jeton porte ce fait. `canGenerate` n'y voit qu'une chaîne non vide — donc
+ * « répondu » —, et l'écran, lui, le reconnaît et affiche « déjà enregistrée,
+ * laisse vide pour la garder » (`household.member.birth_date_kept`, déjà écrit
+ * et déjà juste).
+ *
+ * ⚠️ IL NE PART JAMAIS EN BASE. `saveMouth` ne l'écrit pas: écrire « on-file »
+ * dans une colonne `date` échouerait — bruyamment, heureusement — mais surtout
+ * il n'y a rien à écrire, la date est déjà là.
+ */
+export const BIRTH_DATE_ON_FILE = "on-file";
+
+/**
+ * LE NOM DU FOYER, QUE L'ENTONNOIR NE DEMANDE PAS.
+ *
+ * Décision du chantier: au moment où on le demanderait, il n'a AUCUN
+ * consommateur — le foyer n'a pas encore d'invitation à envoyer, et son nom
+ * n'apparaît nulle part avant. Une question sans consommateur ne se pose pas,
+ * même quand elle est facile. Il se renomme sur `/app/household`, où l'écran
+ * l'affiche déjà.
+ *
+ * `Home` plutôt qu'un dérivé du prénom: à l'étape 1, le prénom n'a pas encore
+ * été demandé (il vient à l'étape 2), et `profiles.full_name` peut être vide.
+ * Un défaut qui dépend d'un champ facultatif est un défaut qui casse.
+ */
+export const DEFAULT_HOUSEHOLD_NAME = "Home";
+
+/**
+ * La clé où l'entonnoir se souvient d'AVOIR POSÉ la question des allergies.
+ *
+ * ⚠️ CE N'EST PAS UN DRAPEAU DE PROGRESSION, et la différence n'est pas
+ * rhétorique. `profiles.onboarding_completed` prétend qu'un parcours est
+ * terminé et ment dans les deux sens dès qu'un fait change derrière lui — c'est
+ * pour ça que la reprise se DÉRIVE des faits ici, et pas de lui.
+ *
+ * Ceci est une RÉPONSE: « as-tu des allergies ? — aucune ». Elle n'a nulle part
+ * ailleurs où vivre (une table d'allergies vide ne distingue pas « rien à
+ * déclarer » de « on n'a jamais demandé »), et sur une question de sécurité ces
+ * deux-là ne sont pas la même chose. Son consommateur est la reprise
+ * elle-même — `readFunnelFacts` ci-dessous, et personne d'autre.
+ */
+const ALLERGY_CHECK_KEY = "allergy_check";
+
+interface AllergyCheck {
+  self: boolean;
+  members: string[];
+}
+
+function readAllergyCheck(pc: Record<string, unknown> | null): AllergyCheck {
+  const raw = (pc ?? {})[ALLERGY_CHECK_KEY];
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+    return { self: false, members: [] };
+  }
+  const row = raw as Record<string, unknown>;
+  return {
+    self: row.self === true,
+    members: Array.isArray(row.members) ? row.members.map(String) : [],
+  };
+}
+
+/** Une bouche de l'entonnoir, avec la ligne de base qu'elle porte (ou pas). */
+export interface FunnelMouth extends FunnelPerson {
+  /** `null` = pas encore écrite en base. */
+  memberId: string | null;
+  /** `true` quand cette bouche a déjà un compte: son objectif ne s'édite plus ici. */
+  claimed: boolean;
+}
+
+export interface FunnelFacts {
+  /** `null` quand l'étape 1 n'a pas de réponse dérivable. */
+  branch: FunnelBranch | null;
+  state: FunnelState;
+  mouths: FunnelMouth[];
+  householdId: string | null;
+  ownMemberId: string | null;
+  /**
+   * JE GOUVERNE CE FOYER — ou j'y suis une bouche parmi d'autres.
+   *
+   * ⚠️ CE N'EST PAS UN CONFORT D'AFFICHAGE, C'EST LA MOITIÉ DU ROUTAGE. Un
+   * SECONDAIRE (quelqu'un qui a réclamé son profil) ne peut ni ajouter ni
+   * décrire personne — la base rend `not_owner` aux quatre gestes — et
+   * `generate-household-meal-v1` lui rend 403 sur la composition. Son entonnoir
+   * est donc celui d'UNE personne: sa date, sa taille, son sexe, sa direction,
+   * ses allergies, et un plan PERSONNEL par `generate-meal-v1`. C'est
+   * exactement D2 du modèle foyer — cette fonction-là ne sert que les comptes
+   * secondaires qui prennent la main et les comptes sans foyer.
+   *
+   * `true` aussi quand il n'y a AUCUN foyer: on ne peut pas être secondaire de
+   * rien, et la branche solo n'a de toute façon rien à gouverner.
+   */
+  isOwner: boolean;
+  /**
+   * UN PLAN VIVANT EXISTE DÉJÀ. L'entonnoir est fini — et c'est un FAIT, pas un
+   * drapeau: il redevient faux si le plan expire, ce qui est exactement le
+   * comportement voulu.
+   */
+  hasPlan: boolean;
+  /** Ce qu'il faut repasser à `mergePracticalConstraints` pour ne rien écraser. */
+  practicalConstraints: Record<string, unknown> | null;
+}
+
+/**
+ * L'ÉTAT DE L'ENTONNOIR, DÉRIVÉ DES FAITS EN BASE.
+ *
+ * ── POURQUOI AUCUN DRAPEAU DE PROGRESSION ─────────────────────────────────
+ * `profiles.onboarding_completed` existe, et n'est lu que par un chemin legacy
+ * (`process-checkins/index.ts`). Le réutiliser ferait dire « terminé » à un
+ * parcours dont les faits ont changé depuis — quelqu'un qui a retiré sa date de
+ * naissance, ou dont le foyer a été vidé, resterait « fini » avec un entonnoir
+ * qui ne se rouvre jamais. Et inversement: un compte réglé AVANT l'existence de
+ * cet écran serait renvoyé dans un couloir qu'il n'a pas besoin de traverser.
+ *
+ * Tout ce qui est ci-dessous se relit à chaque montage. C'est plus de lectures,
+ * et c'est le prix d'un état qui ne peut pas mentir.
+ *
+ * ── L'ÉTAPE 1 SE DÉRIVE AUSSI, ET C'EST LA PARTIE SUBTILE ─────────────────
+ * Un foyer en base répond « au moins deux ». Pas de foyer, mais une ligne
+ * `student_goals`: la personne est passée par l'étape 2, donc elle a répondu
+ * « juste moi » — le solo NE CRÉE PAS de foyer, c'est sa signature. Ni l'un ni
+ * l'autre: la question n'a pas encore été posée.
+ */
+export async function readFunnelFacts(userId: string): Promise<FunnelFacts> {
+  const [profileRes, goalRes, household] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("full_name, birth_date, height_cm, gender")
+      .eq("id", userId)
+      .maybeSingle(),
+    supabase
+      .from("student_goals")
+      .select("goal, practical_constraints")
+      // `.eq` EXPLICITE malgré RLS: quelqu'un qui est à la fois coach et
+      // mangeur lit aussi les lignes de ses élèves (`student_goals_select_coach`),
+      // et une lecture non scopée lui rendrait la ligne de l'un d'eux. Le dépôt
+      // a déjà payé ce défaut sur cette table.
+      .eq("user_id", userId)
+      .maybeSingle(),
+    loadHousehold(userId),
+  ]);
+  if (profileRes.error) throw new Error(profileRes.error.message);
+  if (goalRes.error) throw new Error(goalRes.error.message);
+
+  const profile = (profileRes.data ?? {}) as Record<string, unknown>;
+  const goalRow = goalRes.data as Record<string, unknown> | null;
+  const pc = (goalRow?.practical_constraints ?? null) as
+    | Record<string, unknown>
+    | null;
+  const check = readAllergyCheck(pc);
+
+  const [ownAllergies, householdAllergies] = await Promise.all([
+    loadActiveConstraints(userId),
+    household ? loadAllergies() : Promise.resolve([]),
+  ]);
+
+  const allergyByMember = new Set(householdAllergies.map((a) => a.memberId));
+  const ownMemberId = household?.me?.memberId ?? null;
+  // Pas de foyer ⇒ `true`: on n'est pas le secondaire de rien. Voir `isOwner`.
+  const isOwner = household === null || household.me?.role === "owner";
+
+  const mouths: FunnelMouth[] = (isOwner ? household?.members ?? [] : [])
+    .filter((m) => m.memberId !== ownMemberId)
+    .map((m) => ({
+      memberId: m.memberId,
+      claimed: m.userId !== null,
+      // `loadHousehold` rend « — » pour un prénom vide (jamais l'e-mail: ça
+      // divulguerait une adresse à tout le foyer). Ce libellé d'écran ne doit
+      // pas repartir comme une RÉPONSE: l'entonnoir redemanderait alors un
+      // prénom déjà « rempli » par un tiret.
+      firstName: m.displayName === "—" ? "" : m.displayName,
+      // `unknown` → `adult`, DÉLIBÉRÉMENT. Ne pas savoir n'est pas savoir que
+      // c'est un enfant: traiter l'inconnu comme un mineur ferait disparaître
+      // les deux questions (date, objectif) sur exactement la ligne où elles
+      // manquent, et la génération partirait avec une bouche d'âge inconnu et
+      // sans direction. `adult` fait poser les deux.
+      kind: m.ageState === "minor" ? "child" : "adult",
+      birthDate: m.ageState === "unknown" ? null : BIRTH_DATE_ON_FILE,
+      goal: (MEMBER_GOALS as readonly string[]).includes(m.goal ?? "")
+        ? (m.goal as MemberGoal)
+        : null,
+      allergiesReviewed:
+        check.members.includes(m.memberId) || allergyByMember.has(m.memberId),
+    }));
+
+  // Un foyer d'une seule bouche est un foyer qu'on a commencé et pas rempli:
+  // la branche reste « au moins deux », sinon l'étape 2b disparaîtrait de
+  // l'écran de la seule personne qui en a besoin.
+  //
+  // ⚠️ ET POUR UN SECONDAIRE, LA RÉPONSE EST 1, quel que soit le nombre de
+  // bouches autour de la table. Ce n'est pas une erreur de comptage: la
+  // question de l'étape 1 est « combien de personnes est-ce que TU nourris »,
+  // et il n'en nourrit aucune — il ne compose ni n'ajoute personne (`not_owner`
+  // aux quatre gestes). Son entonnoir est celui d'une personne seule, et son
+  // plan est personnel.
+  const declared = household && isOwner ? Math.max(2, household.members.length) : null;
+  const derived = declared ?? (household !== null || goalRow ? 1 : null);
+
+  const state: FunnelState = {
+    mouths: derived,
+    self: {
+      firstName: household?.me
+        ? household.me.displayName === "—"
+          ? ""
+          : household.me.displayName
+        : String(profile.full_name ?? "").trim().split(" ")[0] ?? "",
+      kind: "adult",
+      birthDate: typeof profile.birth_date === "string" && profile.birth_date
+        ? profile.birth_date
+        : null,
+      goal: (MEMBER_GOALS as readonly string[]).includes(String(goalRow?.goal ?? ""))
+        ? (String(goalRow?.goal) as MemberGoal)
+        : null,
+      allergiesReviewed: check.self ||
+        ownAllergies.some((c) => c.kind === "allergy"),
+      // `numeric` arrive en CHAÎNE par PostgREST: un `typeof === "number"`
+      // rendrait `null` sur une taille pourtant enregistrée.
+      heightCm: Number.isFinite(Number(profile.height_cm))
+        ? Number(profile.height_cm)
+        : null,
+      gender: (MEMBER_GENDERS as readonly string[]).includes(String(profile.gender ?? ""))
+        ? (String(profile.gender) as MemberGender)
+        : null,
+    },
+    others: mouths,
+    plan: readPlanAnswers(pc),
+  };
+
+  return {
+    branch: branchForMouths(derived),
+    state,
+    mouths,
+    householdId: household?.id ?? null,
+    ownMemberId,
+    isOwner,
+    hasPlan: await hasLivePlan(userId),
+    practicalConstraints: pc,
+  };
+}
+
+/** Les quatre réponses de l'étape 3, relues avec LES parseurs du moteur. */
+function readPlanAnswers(pc: Record<string, unknown> | null): FunnelPlanAnswers {
+  const budget = String(pc?.budget_band ?? "");
+  const time = Number(pc?.cooking_time_min);
+  return {
+    // `parseEatingRhythm` et pas une seconde lecture: deux lectures de la même
+    // colonne qui divergent produisent un écran qui montre autre chose que ce
+    // avec quoi on compose.
+    eatingRhythm: parseEatingRhythm(pc?.eating_rhythm).map((s) => s.slot),
+    cookDays: Array.isArray(pc?.cook_days)
+      ? (pc!.cook_days as unknown[])
+        .map(String)
+        .filter((d) => (DAY_TOKENS as readonly string[]).includes(d))
+      : [],
+    cookingTimeMin: Number.isFinite(time) && time > 0 ? time : null,
+    budgetBand: budget === "tight" || budget === "normal" || budget === "comfortable"
+      ? budget
+      : null,
+  };
+}
+
+/**
+ * UN PLAN VIVANT, quelle que soit sa nature.
+ *
+ * `plan_kind` n'est PAS filtré ici, contrairement aux lecteurs de `household.ts`
+ * — et c'est voulu: la question est « cette personne a-t-elle déjà obtenu un
+ * plan », pas « lequel ». Un secondaire qui a son plan personnel et un maître
+ * qui a le plan du foyer sont tous les deux sortis de l'entonnoir.
+ */
+async function hasLivePlan(userId: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("student_generated_meals")
+    .select("id")
+    .eq("user_id", userId)
+    .is("retired_at", null)
+    .gte("ends_on", browserLocalDate())
+    .limit(1);
+  // NE PAS AVALER. Rendre `false` sur une lecture ratée renverrait dans
+  // l'entonnoir quelqu'un qui a déjà tout réglé.
+  if (error) throw new Error(error.message);
+  return (data ?? []).length > 0;
+}
+
+/**
+ * MON PROFIL — prénom, date, taille, sexe, en une écriture.
+ *
+ * ⚠️ LA DATE PASSE PAR `setOwnBirthDate`, PAS PAR CE `update`. Elle porte la
+ * garde du produit (`assessBirthDate` + `birthDateWritable`) et son refus nommé,
+ * parce qu'il n'y a AUCUN CHECK sur `profiles.birth_date`: l'écrire en direct
+ * échangerait un refus lisible contre une date future acceptée en silence, que
+ * `keel_age_state` traduirait ensuite en `unknown`. La personne verrait
+ * « enregistré » et perdrait sa direction d'objectif.
+ *
+ * ⚠️ `.select()` DERRIÈRE L'UPDATE. RLS refuse le profil d'autrui sans lever:
+ * l'update toucherait ZÉRO ligne et PostgREST rendrait 204 en silence.
+ */
+export async function saveOwnProfile(args: {
+  userId: string;
+  firstName: string;
+  heightCm: number;
+  gender: MemberGender;
+}): Promise<void> {
+  const patch: Record<string, unknown> = {
+    height_cm: args.heightCm,
+    gender: args.gender,
+  };
+  const name = args.firstName.trim();
+  if (name) patch.full_name = name;
+  const { data, error } = await supabase
+    .from("profiles")
+    .update(patch)
+    .eq("id", args.userId)
+    .select("id");
+  if (error) throw new Error(`[keel/onboarding] profile: ${error.message}`);
+  if (!data || data.length === 0) {
+    throw new Error("[keel/onboarding] profile: nothing was saved");
+  }
+}
+
+/**
+ * MON OBJECTIF — et ce n'est PAS `createOwnerGoalRow`.
+ *
+ * Celle-là passe `ignoreDuplicates` exprès: appelée depuis l'écran du foyer,
+ * elle DOIT laisser tranquille la ligne de quelqu'un qui a déjà rempli une
+ * cible. Ici, l'objectif est la RÉPONSE À UNE QUESTION DE L'ENTONNOIR, et une
+ * réponse qui n'écrit rien est un no-op silencieux — le mode d'échec n°1 de ce
+ * dépôt.
+ *
+ * ⚠️ TROIS COLONNES REMISES À NULL, ET C'EST OBLIGATOIRE, PAS PRUDENT.
+ * `student_goals` porte des CHECK CROISÉS: `target_weight_kg` n'est légal que
+ * sur trois objectifs, `target_waist_cm` que sur `recomposition`, `focus_axis`
+ * que sur deux. Changer `goal` sans les nettoyer fait échouer l'écriture chez
+ * exactement les gens qui ont déjà posé une cible — et le message serait une
+ * violation de contrainte PostgreSQL affichée dans un entonnoir d'accueil.
+ */
+export async function saveOwnGoal(userId: string, goal: MemberGoal): Promise<void> {
+  const { data: current, error: readErr } = await supabase
+    .from("student_goals")
+    .select("goal, target_weight_kg, target_waist_cm, focus_axis")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (readErr) throw new Error(`[keel/onboarding] goal: ${readErr.message}`);
+
+  if (!current) {
+    const { error } = await supabase.from("student_goals").insert({
+      user_id: userId,
+      goal,
+      // La langue DÉCLARÉE de l'app authentifiée (i18n/catalog.ts: la vitrine
+      // est bilingue, le produit connecté est en anglais). Même valeur que les
+      // deux autres écrivains de cette colonne.
+      content_locale: "en-GB",
+    });
+    if (error) throw new Error(`[keel/onboarding] goal: ${error.message}`);
+    return;
+  }
+
+  const row = current as Record<string, unknown>;
+  const keepsWeight = goal === "fat_loss" || goal === "muscle_gain" ||
+    goal === "maintenance";
+  const keepsWaist = goal === "recomposition";
+  const keepsFocus = goal === "health" || goal === "performance";
+  const { data, error } = await supabase
+    .from("student_goals")
+    .update({
+      goal,
+      target_weight_kg: keepsWeight ? row.target_weight_kg ?? null : null,
+      target_waist_cm: keepsWaist ? row.target_waist_cm ?? null : null,
+      focus_axis: keepsFocus ? row.focus_axis ?? null : null,
+    })
+    .eq("user_id", userId)
+    .select("user_id");
+  if (error) throw new Error(`[keel/onboarding] goal: ${error.message}`);
+  if (!data || data.length === 0) {
+    throw new Error("[keel/onboarding] goal: nothing was saved");
+  }
+}
+
+/**
+ * MES ALLERGIES, ET LE FAIT QU'ON A DEMANDÉ.
+ *
+ * ⚠️ « AUCUNE » EST UNE RÉPONSE, et elle s'enregistre. Sans elle, une table
+ * vide ne distingue pas « rien à déclarer » de « on n'a jamais demandé », et la
+ * reprise redemanderait éternellement — sur la seule question du parcours dont
+ * la mauvaise réponse est dangereuse.
+ *
+ * Un doublon n'est PAS un échec: c'est un double clic, ou une allergie déjà
+ * déclarée sur `/app/health`. On le laisse passer.
+ */
+export async function saveOwnAllergies(args: {
+  userId: string;
+  labels: readonly string[];
+  current: Record<string, unknown> | null;
+}): Promise<void> {
+  for (const label of args.labels) {
+    const ref = normalizeAllergenInput(label);
+    if (!ref) continue;
+    try {
+      await declareConstraint({
+        userId: args.userId,
+        kind: "allergy",
+        // `medical` n'est PAS une nuance de gravité, c'est l'INTERRUPTEUR qui
+        // arme le verrou de sortie. Une allergie déclarée dans l'entonnoir est
+        // une allergie: elle doit tenir le générateur ET le chat.
+        severity: "medical",
+        ref,
+        refField: "allergen_ref",
+        notes: null,
+        contentLocale: "en-GB",
+      });
+    } catch (error) {
+      if (!(error instanceof DuplicateConstraintError)) throw error;
+    }
+  }
+  const check = readAllergyCheck(args.current);
+  await mergePracticalConstraints({
+    userId: args.userId,
+    current: args.current,
+    patch: { [ALLERGY_CHECK_KEY]: { ...check, self: true } },
+    source: "onboarding/allergies",
+  });
+}
+
+/**
+ * LES ALLERGIES D'UNE BOUCHE, ET LE FAIT QU'ON A DEMANDÉ.
+ *
+ * ⚠️ LE SECOND MEMBRE N'EST PAS DÉCORATIF, ET SON ABSENCE BLOQUAIT L'ENTONNOIR.
+ * Mesuré au navigateur le 2026-08-12: une bouche ajoutée avec « rien à
+ * déclarer » n'écrivait RIEN — la table d'allergies reste vide, ce qui est
+ * juste, et rien d'autre ne gardait trace de la question. Au rechargement
+ * suivant, `readFunnelFacts` la relisait donc comme « jamais demandé »,
+ * `canGenerate` réclamait `member_allergies`, et la ligne n'offrait aucun
+ * champ pour y répondre. Le parcours était mort, sans message.
+ *
+ * L'accusé vit sur la ligne `student_goals` DU MAÎTRE et pas sur la bouche:
+ * `household_members` n'a pas de colonne libre, et en ajouter une pour un fait
+ * d'interface serait payer une migration pour une trace d'entonnoir.
+ */
+export async function saveMouthAllergies(args: {
+  userId: string;
+  memberId: string;
+  labels: readonly string[];
+  current: Record<string, unknown> | null;
+}): Promise<void> {
+  for (const label of args.labels) {
+    const clean = label.trim();
+    if (!clean) continue;
+    const added = await addAllergy(args.memberId, clean);
+    if (!added.ok) throw new Error(String(added.reason));
+  }
+  const check = readAllergyCheck(args.current);
+  if (check.members.includes(args.memberId)) return;
+  await mergePracticalConstraints({
+    userId: args.userId,
+    current: args.current,
+    patch: {
+      [ALLERGY_CHECK_KEY]: { ...check, members: [...check.members, args.memberId] },
+    },
+    source: "onboarding/mouth-allergies",
+  });
+}
+
+/** Les quatre réponses de l'étape 3, en une écriture fusionnée. */
+export async function savePlanAnswers(args: {
+  userId: string;
+  current: Record<string, unknown> | null;
+  answers: FunnelPlanAnswers;
+}): Promise<void> {
+  await mergePracticalConstraints({
+    userId: args.userId,
+    current: args.current,
+    patch: {
+      // La forme que `parseEatingRhythm` attend, avec la taille laissée
+      // ouverte: elle est facultative, et une taille exigée serait une taille
+      // inventée — que le moteur traiterait comme une contrainte.
+      eating_rhythm: args.answers.eatingRhythm.map((slot) => ({ slot, size: null })),
+      // L'ORDRE DE LA SEMAINE, pas celui des clics.
+      cook_days: DAY_TOKENS.filter((d) => args.answers.cookDays.includes(d)),
+      cooking_time_min: args.answers.cookingTimeMin,
+      budget_band: args.answers.budgetBand,
+    },
+    source: "onboarding/plan",
+  });
 }
