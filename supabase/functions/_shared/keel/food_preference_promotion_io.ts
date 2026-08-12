@@ -135,12 +135,61 @@ type MinimalClient = {
 export type FoodPreferenceActor = "row_owner" | "someone_else";
 
 /**
- * Réconcilie `practical_constraints` avec l'état courant de la mémoire, et
- * persiste si quelque chose a changé **et** si c'est la personne elle-même qui
- * a déclenché le run (`actor`).
+ * C6 ② — L'ÉCRITURE, PRÊTE MAIS PAS FAITE.
  *
- * @returns les contraintes À UTILISER — réconciliées si possible, celles
- *          reçues sinon.
+ * ⚠️ MESURÉ EN HTTP RÉEL LE 2026-08-12: une ligne `student_goals` a été
+ * corrigée à `17:30:59` par un appel de `generate-meal-v1` qui a rendu
+ * **`400 window_beyond_this_week`**. La personne a bien agi — ce n'est PAS une
+ * violation de C4, c'est sa propre ligne, `actor: "row_owner"` est juste — mais
+ * sa ligne bouge, et son `updated_at` avec, sur une requête qu'elle voit comme
+ * ÉCHOUÉE. Rien à l'écran ne le lui dit.
+ *
+ * ── POURQUOI UN OBJET, ET PAS UN DÉPLACEMENT DE L'APPEL ───────────────────
+ * L'ordre actuel garde DEUX propriétés qu'on ne veut pas perdre: la
+ * réconciliation alimente `constraintsForPrompt` (donc elle doit précéder la
+ * construction du prompt), et les gardes de fenêtre tombent volontairement
+ * JUSTE AVANT LE MODÈLE (C2: « ce qui est décidable sans le modèle se refuse
+ * avant le modèle », 28,6 s et 225 s brûlées pour l'avoir oublié). Déplacer
+ * l'appel casserait l'une ou l'autre.
+ *
+ * On sépare donc CALCULER de PERSISTER — la même opération que C4 a faite pour
+ * la ligne d'un tiers, prise par l'autre bout: là, l'écriture ne devait jamais
+ * avoir lieu; ici, elle doit avoir lieu PLUS TARD.
+ *
+ * ⚠️ `null` VEUT DIRE « RIEN À ÉCRIRE », ET C'EST TROIS CHOSES: rien n'a changé,
+ * la ligne n'est pas celle de l'appelant (C4), ou la lecture a échoué. Aucune
+ * n'est un incident, et aucune ne demande à l'appelant de savoir laquelle.
+ */
+export interface PendingFoodPreferenceWrite {
+  admin: MinimalClient;
+  userId: string;
+  source: string;
+  /** La valeur telle qu'on l'a LUE — le témoin de concurrence de C3 ②. */
+  expected: unknown;
+  preferences: unknown;
+  origins: unknown;
+  dropped: Array<{ text: string; memoryItemId: string; status: string }>;
+}
+
+/** Ce que la réconciliation rend: de quoi composer, et de quoi écrire plus tard. */
+export interface ReconciledFoodPreferences {
+  /** Les contraintes À UTILISER — réconciliées si possible, reçues sinon. */
+  constraints: Record<string, unknown>;
+  /**
+   * L'écriture en attente, ou `null`. À passer à
+   * `persistReconciledFoodPreferences` UNE FOIS QUE LA REQUÊTE A ABOUTI.
+   */
+  pending: PendingFoodPreferenceWrite | null;
+}
+
+/**
+ * Réconcilie `practical_constraints` avec l'état courant de la mémoire, et
+ * PRÉPARE l'écriture si quelque chose a changé **et** si c'est la personne
+ * elle-même qui a déclenché le run (`actor`).
+ *
+ * ⚠️ ELLE N'ÉCRIT PLUS RIEN (C6 ②). L'appelant doit passer `pending` à
+ * `persistReconciledFoodPreferences` après avoir écrit son plan — voir le bloc
+ * de `PendingFoodPreferenceWrite`.
  */
 export async function reconcileFoodPreferencesFor(args: {
   admin: MinimalClient;
@@ -154,7 +203,7 @@ export async function reconcileFoodPreferencesFor(args: {
    * défaut qu'il existe pour fermer, et sans que rien ne tombe.
    */
   actor: FoodPreferenceActor;
-}): Promise<Record<string, unknown>> {
+}): Promise<ReconciledFoodPreferences> {
   const constraints = (args.constraints ?? {}) as Record<string, unknown>;
   const kept = Array.isArray(constraints[FOOD_PREFERENCES_KEY])
     ? (constraints[FOOD_PREFERENCES_KEY] as unknown[])
@@ -162,7 +211,9 @@ export async function reconcileFoodPreferencesFor(args: {
   const origin = constraints[FOOD_PREFERENCES_ORIGIN_KEY];
   // Rien de gardé, ou rien qui porte une origine: il n'y a rien à réconcilier,
   // et on s'épargne une lecture de `memory_items` à chaque génération.
-  if (kept.length === 0 || !origin || typeof origin !== "object") return constraints;
+  if (kept.length === 0 || !origin || typeof origin !== "object") {
+    return { constraints, pending: null };
+  }
 
   // `originIdsOf` et PAS `Object.values(...).map(String)`: la valeur d'une
   // entrée est un objet `{item, at}` (et une chaîne nue dans les jsonb écrits
@@ -172,7 +223,7 @@ export async function reconcileFoodPreferencesFor(args: {
   // c'est le run réel qui a montré la faute: la lecture de cette table n'a
   // qu'un seul propriétaire, et c'est le module pur.
   const ids = originIdsOf(constraints);
-  if (ids.length === 0) return constraints;
+  if (ids.length === 0) return { constraints, pending: null };
 
   const COLUMNS =
     "id, kind, status, content_text, normalized_summary, superseded_by_item_id";
@@ -242,7 +293,7 @@ export async function reconcileFoodPreferencesFor(args: {
         kept: result.keptDespiteSupersession,
       }));
     }
-    if (!result.changed) return constraints;
+    if (!result.changed) return { constraints, pending: null };
 
     // ── C4 · LA CORRECTION S'APPLIQUE, ELLE NE SE PERSISTE PAS ─────────────
     //
@@ -268,7 +319,7 @@ export async function reconcileFoodPreferencesFor(args: {
         user_id: args.userId,
         dropped: result.dropped,
       }));
-      return result.constraints;
+      return { constraints: result.constraints, pending: null };
     }
 
     // ── C3 ② · L'ÉCRITURE CIBLÉE, SOUS CONCURRENCE OPTIMISTE ───────────────
@@ -303,13 +354,67 @@ export async function reconcileFoodPreferencesFor(args: {
     // ⚠️ `p_expected` EST LA VALEUR TELLE QU'ON L'A LUE, pas celle qu'on écrit.
     // Passer `result.constraints[...]` ferait un prédicat toujours faux, donc
     // une fonction qui n'écrit plus jamais — et rien ne tomberait.
-    const { data: writeData, error: writeError } = await args.admin.rpc(
+    //
+    // ⚠️ C6 ② — ON PRÉPARE, ON N'ÉCRIT PAS. Le témoin de concurrence est figé
+    // ICI, à la valeur LUE, et il voyage avec l'écriture: la reporter après le
+    // plan ne l'affaiblit pas, elle l'ALLONGE — et c'est exactement ce que la
+    // concurrence optimiste de C3 ② existe pour couvrir. Une course perdue rend
+    // `stale_snapshot`, se journalise, et ne réessaie pas.
+    return {
+      constraints: result.constraints,
+      pending: {
+        admin: args.admin,
+        userId: args.userId,
+        source: args.source,
+        expected: constraints[FOOD_PREFERENCES_KEY] ?? null,
+        preferences: result.constraints[FOOD_PREFERENCES_KEY] ?? [],
+        origins: result.constraints[FOOD_PREFERENCES_ORIGIN_KEY] ?? {},
+        dropped: result.dropped,
+      },
+    };
+  } catch (error) {
+    console.warn(JSON.stringify({
+      tag: "keel/food_preferences",
+      event: "reconcile_failed",
+      source: args.source,
+      user_id: args.userId,
+      error: error instanceof Error ? error.message : String(error),
+    }));
+    return { constraints, pending: null };
+  }
+}
+
+/**
+ * C6 ② — L'ÉCRITURE, UNE FOIS QUE LA REQUÊTE A ABOUTI.
+ *
+ * ⚠️ À APPELER APRÈS L'ÉCRITURE DU PLAN, ET NULLE PART AILLEURS. C'est tout
+ * l'objet du lot: une ligne `student_goals` corrigée à `17:30:59` par un appel
+ * qui a rendu `400 window_beyond_this_week` est une ligne qui bouge sur une
+ * requête que l'utilisateur voit comme échouée, sans qu'aucun écran ne le lui
+ * dise.
+ *
+ * ⚠️ `null` NE FAIT RIEN, ET NE JOURNALISE RIEN. Trois cas y arrivent — rien
+ * n'a changé, la ligne est celle d'un tiers (C4), la lecture a échoué — et
+ * chacun a déjà laissé la trace qui lui revient, ou aucune parce qu'il n'y a
+ * rien à dire. Une ligne de journal ici ferait parler le cas nominal.
+ *
+ * ⚠️ ELLE N'ÉCHOUE JAMAIS VERS L'APPELANT. Le plan est déjà écrit et servi;
+ * personne ne perd son dîner parce qu'une correction de goût n'a pas pu
+ * atterrir. Même posture que le reste de ce module — « on parle ici de goûts,
+ * pas d'allergies ».
+ */
+export async function persistReconciledFoodPreferences(
+  pending: PendingFoodPreferenceWrite | null,
+): Promise<void> {
+  if (pending === null) return;
+  try {
+    const { data: writeData, error: writeError } = await pending.admin.rpc(
       "keel_write_food_preferences",
       {
-        p_user: args.userId,
-        p_expected: constraints[FOOD_PREFERENCES_KEY] ?? null,
-        p_preferences: result.constraints[FOOD_PREFERENCES_KEY] ?? [],
-        p_origins: result.constraints[FOOD_PREFERENCES_ORIGIN_KEY] ?? {},
+        p_user: pending.userId,
+        p_expected: pending.expected,
+        p_preferences: pending.preferences,
+        p_origins: pending.origins,
       },
     );
     if (writeError) throw new Error(writeError.message);
@@ -323,33 +428,28 @@ export async function reconcileFoodPreferencesFor(args: {
       console.warn(JSON.stringify({
         tag: "keel/food_preferences",
         event: "reconcile_not_written",
-        source: args.source,
-        user_id: args.userId,
+        source: pending.source,
+        user_id: pending.userId,
         reason: written.reason ?? "unknown",
-        dropped: result.dropped,
+        dropped: pending.dropped,
       }));
-      // On rend quand même la version corrigée: elle sert LE PROMPT DE CE
-      // RUN-CI, et une préférence rétractée n'a pas à être servie au modèle
-      // sous prétexte qu'une course a empêché de l'effacer en base.
-      return result.constraints;
+      return;
     }
 
     console.info(JSON.stringify({
       tag: "keel/food_preferences",
       event: "reconciled",
-      source: args.source,
-      user_id: args.userId,
-      dropped: result.dropped,
+      source: pending.source,
+      user_id: pending.userId,
+      dropped: pending.dropped,
     }));
-    return result.constraints;
   } catch (error) {
     console.warn(JSON.stringify({
       tag: "keel/food_preferences",
       event: "reconcile_failed",
-      source: args.source,
-      user_id: args.userId,
+      source: pending.source,
+      user_id: pending.userId,
       error: error instanceof Error ? error.message : String(error),
     }));
-    return constraints;
   }
 }

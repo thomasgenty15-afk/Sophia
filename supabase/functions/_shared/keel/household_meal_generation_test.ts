@@ -12,7 +12,10 @@ import {
   resolveWindowPresence,
   type WindowPresence,
 } from "./household_presence.ts";
-import { MERGE_ANCHOR_INSTRUCTION } from "./household_merge.ts";
+import {
+  MERGE_ANCHOR_INSTRUCTION,
+  MERGE_MATERIAL_USE_INSTRUCTION,
+} from "./household_merge.ts";
 
 /**
  * TOUT LE MONDE EST LÀ — le cas nominal, et il est CALCULÉ, jamais écrit à la
@@ -361,6 +364,11 @@ const MERGE_PROMPT = {
   // les assertions d'octet de v7 encore vraies: un plan de base complet rend le
   // bloc de v7 caractère pour caractère.
   gaps: [],
+  // C6 — LE NOMBRE DE PLATS DÉDIÉS, et les axes du conflit qui le justifie.
+  // Mesuré le 2026-08-12: neuf repas, DEUX axes en conflit, et un seul plat
+  // dédié rendu — la casserole commune huit fois sur neuf.
+  dedicatedDishes: 9,
+  conflicts: ["protein:larger_above_table", "starch:larger_above_table"],
 };
 
 Deno.test("SANS FUSION, LE PROMPT EST CELUI D'AVANT L4, À L'OCTET PRÈS", () => {
@@ -796,6 +804,113 @@ Deno.test("C2 ④ — LA CONSIGNE QUI DIT LE TROU N'EXISTE PAS SOUS UNE VERSION 
       HOUSEHOLD_PROMPT_VERSION !== past,
       `la consigne qui NOMME le trou d'un plan montré existe sous la version ` +
         `${past}: bumpe HOUSEHOLD_PROMPT_VERSION.`,
+    );
+  }
+});
+
+// ───────────────────────────────────────────────────────────────────────────
+// C6 — LE COMPTE DE PLATS DÉDIÉS, ET LA MATIÈRE QUI S'OUVRE
+// ───────────────────────────────────────────────────────────────────────────
+
+Deno.test("C6 — LE COMPTE ET LA MATIÈRE ARRIVENT DANS LE VRAI PROMPT", () => {
+  // ⚠️ CE QUI EST MESURÉ AVANT CE CORRECTIF, sur la fusion réelle qui suivait
+  // C1: neuf titres du foyer sur neuf conservés (c'est bien), UN seul plat
+  // dédié pour NEUF créneaux, et ce plat était le petit-déjeuner DU FOYER en
+  // portion simple. Zéro aliment de son plan — ni dans les plats, ni dans les
+  // 37 lignes de courses. Un test sur le module pur ne suffit pas: les deux
+  // moitiés doivent ARRIVER dans le suffixe que le générateur envoie.
+  const { userSuffix } = buildHouseholdPromptBlocks({
+    members: [DAD, SON],
+    envyLine: null,
+    restrictions: [],
+    presence: NOBODY_AWAY,
+    merge: MERGE_PROMPT,
+    unmerge: null,
+    voices: [],
+  });
+  assert(
+    userSuffix.includes("9 dishes for"),
+    "le NOMBRE de plats dédiés n'arrive pas dans le prompt: « ADD ONE dish » " +
+      "se relit « un pour la fenêtre », et c'est ce qui a été mesuré.",
+  );
+  assert(userSuffix.includes("at EVERY meal they eat here"));
+  assert(
+    userSuffix.includes(MERGE_MATERIAL_USE_INSTRUCTION),
+    "rien n'oblige à ouvrir la liste de matière: le plat dédié peut rester un " +
+      "plat du foyer en portion simple.",
+  );
+  assert(
+    userSuffix.includes("the protein and the starch"),
+    "les axes du conflit n'arrivent pas: rien ne dit CE QUI doit être " +
+      "différent dans son plat.",
+  );
+  // ⚠️ ET L'ANCRE DE C1 EST ENTIÈRE. Un troisième coup de balancier serait pire
+  // que les deux précédents, parce qu'il aurait l'air d'une correction.
+  assert(userSuffix.includes(MERGE_ANCHOR_INSTRUCTION));
+  assert(
+    userSuffix.lastIndexOf("Gratin de courgettes") >
+      userSuffix.lastIndexOf("Curry de pois chiches"),
+    "le plan du foyer n'est plus la dernière LISTE lue: C1 est défait.",
+  );
+});
+
+Deno.test("C6 — LE BRIEF DE PORTIONS NE PROMET PLUS « never more than two »", () => {
+  // ⚠️ LES DEUX MOITIÉS DU DÉFAUT, ET ELLES SONT DANS LE MÊME PROMPT. Le bloc
+  // de fusion peut demander neuf plats dédiés: si le brief de portions, deux
+  // blocs plus haut, dit « give them a SECOND dish […] Never more than two »,
+  // le prompt se contredit — et c'est la ligne de forme, plus proche du début,
+  // que le modèle a suivie.
+  const of = (shape: "one_dish" | "one_session" | "separate_sessions") =>
+    buildHouseholdPromptBlocks({
+      members: [DAD, SON],
+      envyLine: null,
+      restrictions: [],
+      presence: NOBODY_AWAY,
+      merge: { ...MERGE_PROMPT, shape },
+      unmerge: null,
+      voices: [],
+    }).userSuffix;
+  for (const shape of ["one_session", "separate_sessions"] as const) {
+    assert(
+      !of(shape).includes("Never more than two."),
+      `${shape}: le brief promet encore DEUX plats pour toute la fenêtre.`,
+    );
+    assert(
+      of(shape).includes("at EVERY meal they eat here they get"),
+      `${shape}: le brief ne dit pas que le plat dédié est PAR REPAS.`,
+    );
+  }
+  // ⚠️ LE CAS QUI PASSE, ET IL EST LE CONTRAT DE TOUT LE PRODUIT: le barreau ①
+  // — c'est-à-dire toute composition ordinaire et toute défusion — rend la
+  // ligne historique, mot pour mot.
+  assert(
+    of("one_dish").includes(
+      "Cook ONE set of preparations for everyone. Do NOT propose separate dishes.",
+    ),
+  );
+});
+
+Deno.test("C6 — LA CONSIGNE COMPTÉE N'EXISTE PAS SOUS UNE VERSION PASSÉE", () => {
+  // ⚠️ TROIS CHOSES CHANGENT DANS LE TEXTE SERVI À LA POPULATION DES FUSIONS:
+  // la ligne de forme du brief (②/③), le NOMBRE de plats dédiés, et un
+  // paragraphe de plus en fin de bloc. Livrer ça sous `v8_plan_gaps` ferait
+  // deux plans stampés pareil portant des consignes différentes — le défaut
+  // exact que le second axe de version existe pour empêcher, mesuré à L2.
+  for (
+    const past of [
+      "v2_presence",
+      "v3_merge",
+      "v4_merge_budget",
+      "v5_unmerge",
+      "v6_voices",
+      "v7_merge_anchor",
+      "v8_plan_gaps",
+    ]
+  ) {
+    assert(
+      HOUSEHOLD_PROMPT_VERSION !== past,
+      `la consigne qui COMPTE les plats dédiés existe sous la version ${past}: ` +
+        `bumpe HOUSEHOLD_PROMPT_VERSION.`,
     );
   }
 });

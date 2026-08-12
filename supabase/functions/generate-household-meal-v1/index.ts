@@ -17,7 +17,12 @@ import {
   loadStudentSafetyConstraints,
   type StudentSafetyConstraint,
 } from "../_shared/keel/safety_constraints.ts";
-import { reconcileFoodPreferencesFor } from "../_shared/keel/food_preference_promotion_io.ts";
+import {
+  // C6 ② — CALCULER ET PERSISTER SONT DEUX GESTES, ET LE SECOND ATTEND QUE
+  //         LA REQUÊTE ABOUTISSE.
+  persistReconciledFoodPreferences,
+  reconcileFoodPreferencesFor,
+} from "../_shared/keel/food_preference_promotion_io.ts";
 // ── D4/L6 · LES MOTS DE CHAQUE TITULAIRE ────────────────────────────────────
 // `foodPreferencesForPrompt` N'EST PLUS IMPORTÉ ICI, et c'est le lot: sur la
 // lane du foyer, les préférences de TOUT LE MONDE — le maître compris — passent
@@ -128,6 +133,8 @@ import {
   type HouseholdRestriction,
 } from "../_shared/keel/household_meal_generation.ts";
 import {
+  // C6 — COMBIEN DE PLATS DÉDIÉS, DÉCIDÉ EN UN SEUL ENDROIT.
+  dedicatedDishesFor,
   memberPortionsPayload,
   type MemberGoal,
   MEMBER_GOALS,
@@ -1746,7 +1753,11 @@ Deno.serve(async (req) => {
     // continuait d'être servie au modèle, sans limite de temps, puisque rien
     // sur ce chemin ne relit la mémoire. La réconciliation PERSISTE en plus de
     // corriger, donc poser le raccord ici répare aussi les deux autres.
-    goalRow.practical_constraints = await reconcileFoodPreferencesFor({
+    // ⚠️ C6 ② — ON CALCULE ICI, ON ÉCRIT APRÈS LE PLAN. Même défaut, même
+    // correction que sur les deux autres portes: sous cet appel tombent la
+    // garde de fenêtre, le 409 de la base, la panne de modèle et le 503 des
+    // contraintes de sécurité. La correction alimente le prompt comme avant.
+    const foodPreferences = await reconcileFoodPreferencesFor({
       admin,
       userId,
       constraints: (goalRow.practical_constraints ?? {}) as Record<string, unknown>,
@@ -1758,6 +1769,7 @@ Deno.serve(async (req) => {
       // `actor: "someone_else"` et n'écrit rien.
       actor: "row_owner",
     });
+    goalRow.practical_constraints = foodPreferences.constraints;
 
     const pc = goalRow.practical_constraints as Record<string, unknown> | null;
     const eatingRhythm = parseEatingRhythm(pc?.eating_rhythm);
@@ -2033,11 +2045,33 @@ Deno.serve(async (req) => {
         d.day === null || windowDayTokens.has(d.day)
       ),
     );
+    // ── C6 · COMBIEN DE PLATS DÉDIÉS, CALCULÉ UNE FOIS ────────────────────
+    //
+    // MESURÉ LE 2026-08-12: barreau ② sur un conflit à DEUX axes
+    // (`protein:larger_above_table` + `starch:larger_above_table`), NEUF repas
+    // pour la personne reprise, UN seul plat dédié rendu. Elle a mangé la
+    // casserole commune 8 fois sur 9. « ADD ONE dish » se lit « un pour la
+    // fenêtre », et c'est une lecture raisonnable de ce qu'on avait écrit.
+    //
+    // LE NOMBRE VIENT DE SES REPAS À ELLE (`mergedEaterCells`, la même liste
+    // que le DÉNOMINATEUR du constat de forme, C3 ⑥), et il sert à DEUX
+    // choses qui doivent voir le même nombre: la CONSIGNE (`buildMergeBlock`)
+    // et le BUDGET DE PLATS (`dishBudgetFor`). Le calculer deux fois rouvrirait
+    // la porte que L4 a fermée — une consigne qui réclame neuf plats dans un
+    // plafond ouvert pour six, et le parseur qui jette les DERNIERS.
+    const mergeDedicatedDishes = ladder === null
+      ? 0
+      : dedicatedDishesFor(ladder.shape, mergedEaterCells.length);
+
     // CE QUE LE TRONC A BESOIN DE SAVOIR DE LA FUSION, et rien de plus: un
-    // barreau et un nombre. Le tronc n'a pas à connaître un foyer.
+    // barreau et deux nombres. Le tronc n'a pas à connaître un foyer.
     const mergeBudget: MergedEater | null = ladder === null ? null : {
       shape: ladder.shape,
       ownDishesShown: mergeMaterial.length,
+      // C6 — LE PLAFOND SUIT CE QUE LA CONSIGNE RÉCLAME, et pas seulement ce
+      // qu'elle montre: une fusion dont la fenêtre recomposée déborde le plan
+      // personnel (L10 ①) montre MOINS de plats qu'elle n'a de repas.
+      dedicatedDishesAsked: mergeDedicatedDishes,
     };
 
     // ── L5/D8 · LA MATIÈRE DE LA DÉFUSION — LE PLAN DE BASE ────────────────
@@ -2352,6 +2386,12 @@ Deno.serve(async (req) => {
           // C2 ④ — LES CASES QUE CETTE ANCRE NE COUVRE PAS. `[]` quand le plan
           // du foyer est complet, et le bloc est alors byte-identique à v7.
           gaps: mergeBaseGaps,
+          // C6 — LE MÊME NOMBRE QUE CELUI QUI A OUVERT LE BUDGET, et c'est le
+          // point: il est calculé une seule fois, plus haut.
+          dedicatedDishes: mergeDedicatedDishes,
+          // C6 — CE QUI DOIT ÊTRE DIFFÉRENT DANS SON PLAT. Les axes que
+          // `mergeLadder` a nommés, jamais une seconde lecture des directions.
+          conflicts: ladder.conflicts,
         },
       // L5/D8 — LA DÉFUSION. `unmergedName` est lu sur le ROSTER et non sur
       // `platedMembers`: la personne vient précisément d'être retirée de cette
@@ -3109,6 +3149,14 @@ Deno.serve(async (req) => {
     const writtenRow = (Array.isArray(writtenRows) ? writtenRows[0] : writtenRows) as
       | { meal_id: string; retired_plan_id: string | null }
       | null;
+
+    // ── C6 ② · LA CORRECTION DE GOÛT DU MAÎTRE S'ÉCRIT MAINTENANT ─────────
+    // Le plan du foyer est écrit: le geste a produit quelque chose. Un refus,
+    // une panne de modèle ou un 409 de la base laissent sa ligne intacte.
+    //
+    // ⚠️ CELLE DES AUTRES TITULAIRES N'A JAMAIS RIEN À ÉCRIRE (C4): leur
+    // `actor` est `someone_else`, donc `pending` y vaut toujours `null`.
+    await persistReconciledFoodPreferences(foodPreferences.pending);
 
     return jsonResponse(req, {
       ok: true,

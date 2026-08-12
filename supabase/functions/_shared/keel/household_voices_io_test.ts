@@ -15,7 +15,10 @@ import {
 // ⚠️ C4 — IMPORTÉ EXPRÈS DANS CE FICHIER-CI. Le test « deux secondaires » doit
 // prouver que son décor SAIT écrire, sans quoi son « zéro écriture » ne
 // distingue pas la garde d'un faux client muet.
-import { reconcileFoodPreferencesFor } from "./food_preference_promotion_io.ts";
+import {
+  persistReconciledFoodPreferences,
+  reconcileFoodPreferencesFor,
+} from "./food_preference_promotion_io.ts";
 import { loadHouseholdVoices } from "./household_voices_io.ts";
 
 const OLD = "aaaaaaaa-0000-4000-8000-000000000001";
@@ -309,14 +312,20 @@ Deno.test("C4 — DEUX SECONDAIRES À TABLE: DEUX corrections, ZÉRO écriture, 
   //    qui ne prouve rien. Même client, même mémoire, même ligne: on rejoue la
   //    réconciliation de Zoé comme si c'était ELLE qui composait, et l'écriture
   //    apparaît. C'est exactement ce que fera sa prochaine génération.
-  const own = await reconcileFoodPreferencesFor({
+  //
+  //    ⚠️ C6 ② — ET L'ÉCRITURE EST DEUX GESTES DEPUIS CE LOT: la réconciliation
+  //    PRÉPARE, `persistReconciledFoodPreferences` écrit. Le décor doit donc
+  //    jouer les deux, sans quoi le zéro d'écriture ci-dessus serait celui d'un
+  //    module qui n'écrit plus jamais.
+  const reconciled = await reconcileFoodPreferencesFor({
     admin,
     userId: "u-zoe",
     constraints: kept("no fish", "2026-08-01"),
     source: "test",
     actor: "row_owner",
   });
-  assertEquals(own[FOOD_PREFERENCES_KEY], []);
+  await persistReconciledFoodPreferences(reconciled.pending);
+  assertEquals(reconciled.constraints[FOOD_PREFERENCES_KEY], []);
   assertEquals(trace.rpcs.length, 1, "le décor ne sait pas écrire: le zéro ci-dessus ne prouve rien");
   assertEquals(trace.rpcs[0].name, "keel_write_food_preferences");
   assertEquals(trace.rpcs[0].params.p_expected, ["no fish"]);

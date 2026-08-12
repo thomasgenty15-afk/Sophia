@@ -178,13 +178,18 @@ export async function loadHouseholdVoices(
     // construction, quelqu'un d'autre que l'appelant. Un futur appelant qui
     // oublierait de précharger le composeur perdrait une écriture, jamais une
     // correction — la direction sûre.
-    const constraints = preloaded ?? await reconcileFoodPreferencesFor({
+    //
+    // ⚠️ C6 ② — `pending` EST TOUJOURS `null` ICI, PAR CONSTRUCTION, et c'est la
+    // garde de C4 qui le garantit: `actor: "someone_else"` sort avant de
+    // préparer la moindre écriture. Il n'y a donc rien à persister après coup,
+    // et ce fichier n'appelle jamais `persistReconciledFoodPreferences`.
+    const constraints = preloaded ?? (await reconcileFoodPreferencesFor({
       admin,
       userId: member.userId,
       constraints: loaded,
       source: args.source,
       actor: "someone_else",
-    });
+    })).constraints;
 
     const lines = foodPreferencesForPrompt(constraints);
     if (lines.length === 0) continue;

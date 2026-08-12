@@ -18,7 +18,9 @@ import { addDays } from "./meal_plan_window.ts";
 
 import {
   buildMergeBlock,
+  conflictAxes,
   MERGE_ANCHOR_INSTRUCTION,
+  MERGE_MATERIAL_USE_INSTRUCTION,
   dayCountInclusive,
   LADDER_REASON_NO_COOKING_DAY,
   LADDER_REASON_ONE_DISH,
@@ -720,6 +722,17 @@ function bulletsAfter(block: string, header: string): string[] {
 const OWN_HEADER = "was going to eat over these days, on their own:";
 const BASE_HEADER = "The household's plan over these days:";
 
+/**
+ * C6 — LE CONFLIT EXACT DU RUN RÉEL DU 2026-08-12, tel que `mergeLadder` l'a
+ * nommé. DEUX axes: c'est ce qui rendait « un seul plat dédié » absurde.
+ */
+const TWO_AXIS_CONFLICT = [
+  "protein:larger_above_table",
+  "starch:larger_above_table",
+];
+/** Ses NEUF repas de la fenêtre — le dénominateur du constat de forme (C3 ⑥). */
+const DEDICATED_9 = 9;
+
 Deno.test("le bloc nomme la personne, les dates, et ce qu'elle allait manger", () => {
   const block = buildMergeBlock({
     displayName: "Tom",
@@ -728,6 +741,9 @@ Deno.test("le bloc nomme la personne, les dates, et ce qu'elle allait manger", (
     dishes: MATERIAL,
     baseDishes: BASE_MATERIAL,
     gaps: [],
+    // C6 — le nombre de plats dédiés, et les axes du conflit qui le justifie.
+    dedicatedDishes: DEDICATED_9,
+    conflicts: TWO_AXIS_CONFLICT,
   });
   assert(block.startsWith("== BRINGING SOMEONE BACK TO THIS TABLE =="));
   assert(block.includes("Tom"));
@@ -753,6 +769,9 @@ Deno.test("O5 — LA FUSION ANCRE SUR LE PLAN DU FOYER, comme la défusion sur l
     dishes: MATERIAL,
     baseDishes: BASE_MATERIAL,
     gaps: [],
+    // C6 — le nombre de plats dédiés, et les axes du conflit qui le justifie.
+    dedicatedDishes: DEDICATED_9,
+    conflicts: TWO_AXIS_CONFLICT,
   });
   // 1. Le plan du foyer est SOUS LES YEUX du modèle, plat par plat.
   assert(block.includes("- wed dinner: Gratin de courgettes"));
@@ -794,6 +813,9 @@ Deno.test("O5 — L'ANCRE N'INTERDIT PAS LE PLAT DÉDIÉ (le cas qui passe)", ()
       dishes: MATERIAL,
       baseDishes: BASE_MATERIAL,
       gaps: [],
+      // C6 — le nombre de plats dédiés, et les axes du conflit qui le justifie.
+      dedicatedDishes: DEDICATED_9,
+      conflicts: TWO_AXIS_CONFLICT,
     });
   for (const shape of ["one_session", "separate_sessions"] as const) {
     assert(
@@ -818,6 +840,9 @@ Deno.test("O5 — la MATIÈRE est nommée comme telle, jamais comme un menu", ()
       dishes: MATERIAL,
       baseDishes: BASE_MATERIAL,
       gaps: [],
+      // C6 — le nombre de plats dédiés, et les axes du conflit qui le justifie.
+      dedicatedDishes: DEDICATED_9,
+      conflicts: TWO_AXIS_CONFLICT,
     });
   for (const shape of ["one_session", "separate_sessions"] as const) {
     assert(
@@ -841,6 +866,9 @@ Deno.test("LA CONSIGNE CHANGE AVEC LE BARREAU, et pas seulement le brief", () =>
       dishes: MATERIAL,
       baseDishes: BASE_MATERIAL,
       gaps: [],
+      // C6 — le nombre de plats dédiés, et les axes du conflit qui le justifie.
+      dedicatedDishes: DEDICATED_9,
+      conflicts: TWO_AXIS_CONFLICT,
     });
   // ① la matière est une PRÉFÉRENCE, jamais un second plat.
   assert(of("one_dish").includes("SAME dishes"));
@@ -867,6 +895,9 @@ Deno.test("la matière est PLAFONNÉE — un plan ne fait pas grossir le prompt 
     dishes: many,
     baseDishes: BASE_MATERIAL,
     gaps: [],
+    // C6 — le nombre de plats dédiés, et les axes du conflit qui le justifie.
+    dedicatedDishes: DEDICATED_9,
+    conflicts: TWO_AXIS_CONFLICT,
   });
   assertEquals(bulletsAfter(block, OWN_HEADER).length, MERGE_MATERIAL_CAP);
   // L'ANCRE EST PLAFONNÉE PAREIL, et par la même fonction: un plan du foyer
@@ -879,6 +910,9 @@ Deno.test("la matière est PLAFONNÉE — un plan ne fait pas grossir le prompt 
     dishes: MATERIAL,
     baseDishes: many,
     gaps: [],
+    // C6 — le nombre de plats dédiés, et les axes du conflit qui le justifie.
+    dedicatedDishes: DEDICATED_9,
+    conflicts: TWO_AXIS_CONFLICT,
   });
   assertEquals(bulletsAfter(wide, BASE_HEADER).length, MERGE_MATERIAL_CAP);
 });
@@ -894,6 +928,9 @@ Deno.test("sans matière, aucun en-tête de matière n'apparaît", () => {
     dishes: [],
     baseDishes: [],
     gaps: [],
+    // C6 — le nombre de plats dédiés, et les axes du conflit qui le justifie.
+    dedicatedDishes: DEDICATED_9,
+    conflicts: TWO_AXIS_CONFLICT,
   });
   assert(!block.includes(OWN_HEADER));
   assert(!block.includes(BASE_HEADER));
@@ -909,9 +946,168 @@ Deno.test("sans matière, aucun en-tête de matière n'apparaît", () => {
     dishes: MATERIAL,
     baseDishes: BASE_MATERIAL,
     gaps: [],
+    // C6 — le nombre de plats dédiés, et les axes du conflit qui le justifie.
+    dedicatedDishes: DEDICATED_9,
+    conflicts: TWO_AXIS_CONFLICT,
   });
   assert(full.includes(OWN_HEADER));
   assert(full.includes(BASE_HEADER));
+});
+
+// ---------------------------------------------------------------------------
+// 5.2 — C6: LE COMPTE SUIT LE CONFLIT, ET LA MATIÈRE S'OUVRE
+//
+// ⚠️ LES TROIS MESURES, DANS L'ORDRE:
+//   ① avant C1 — 15 créneaux sur 15 au plan personnel, 0 titre du foyer;
+//   ② après C1 — 9 titres du foyer sur 9, 0 du plan personnel, 1 « neuf »;
+//   ③ et ce plat « neuf » était le PETIT-DÉJEUNER DU FOYER en portion simple,
+//      avec ZÉRO aliment de son plan (bœuf, porc, agneau, steak) — ni dans les
+//      plats, ni dans les 37 lignes de courses.
+// ---------------------------------------------------------------------------
+
+const C6_BLOCK = (
+  shape: "one_dish" | "one_session" | "separate_sessions",
+  dedicatedDishes = DEDICATED_9,
+) =>
+  buildMergeBlock({
+    displayName: "Zoé",
+    window: { startsOn: WED, durationDays: 3 },
+    shape,
+    dishes: MATERIAL,
+    baseDishes: BASE_MATERIAL,
+    gaps: [],
+    dedicatedDishes,
+    conflicts: shape === "one_dish" ? [] : TWO_AXIS_CONFLICT,
+  });
+
+Deno.test("C6 — LE NOMBRE DE PLATS DÉDIÉS EST ÉCRIT, ET CE N'EST PLUS « UN »", () => {
+  // ⚠️ LE DÉFAUT MESURÉ. « ADD ONE dish for them » était lu « un pour la
+  // fenêtre » — une lecture parfaitement raisonnable — et la personne reprise a
+  // mangé le plat du foyer à 8 créneaux sur 9, malgré un conflit de direction
+  // de service sur DEUX axes.
+  for (const shape of ["one_session", "separate_sessions"] as const) {
+    const block = C6_BLOCK(shape);
+    assert(
+      block.includes("at EVERY meal they eat here"),
+      `${shape}: la consigne ne dit plus que le plat dédié est PAR REPAS.`,
+    );
+    assert(
+      block.includes(`${DEDICATED_9} dishes for`),
+      `${shape}: le NOMBRE n'est pas écrit. « at EVERY meal » sans chiffre se ` +
+        `relit « une fois, quelque part » — c'est le défaut mesuré.`,
+    );
+    assert(
+      block.includes("NOT one dish for the whole window"),
+      `${shape}: rien ne démentit la lecture qui a été faite du texte de C1.`,
+    );
+    assert(
+      block.includes("one at each of their meals"),
+      `${shape}: rien ne rattache le nombre aux repas dont il vient.`,
+    );
+    assert(
+      !block.includes("ADD ONE dish"),
+      `${shape}: la formule mesurée comme ambiguë est encore là.`,
+    );
+  }
+  // ET LE NOMBRE EST CELUI QU'ON PASSE, jamais une constante du bloc: un test
+  // paramétré par sa propre constante reste vert quand on change la constante.
+  assert(C6_BLOCK("one_session", 4).includes("4 dishes for"));
+  assert(!C6_BLOCK("one_session", 4).includes("9 dishes for"));
+});
+
+Deno.test("C6 — LA MATIÈRE DOIT ÊTRE OUVERTE, ET LES AXES DU CONFLIT SONT NOMMÉS", () => {
+  // ⚠️ CE QUE ÇA RÉPARE, MESURÉ: le seul plat « neuf » d'une fusion réelle
+  // était « Greek yogurt bowls … for Zoe » — le petit-déjeuner DU FOYER servi
+  // en portion simple. Aucun aliment de son plan n'apparaissait nulle part, ni
+  // dans les plats, ni dans les 37 lignes de courses. Le bloc montrait une
+  // liste que RIEN n'obligeait à ouvrir.
+  for (const shape of ["one_session", "separate_sessions"] as const) {
+    const block = C6_BLOCK(shape);
+    assert(
+      block.includes(MERGE_MATERIAL_USE_INSTRUCTION),
+      `${shape}: rien ne dit d'aller CHERCHER dans la liste de matière.`,
+    );
+    assert(
+      block.includes("put those foods in the shopping list"),
+      `${shape}: rien ne fait entrer ses aliments dans les courses — c'est là ` +
+        `que l'absence a été mesurée, 37 lignes sur 37.`,
+    );
+    // LES AXES DU CONFLIT, EN PROSE, ET DANS L'ORDRE DU PRODUIT.
+    assert(
+      block.includes("the protein and the starch"),
+      `${shape}: les axes qui ont fait descendre le barreau ne sont pas dits, ` +
+        `donc rien ne nomme CE QUI doit être différent dans son plat.`,
+    );
+    assert(
+      block.includes("the same food in a smaller bowl"),
+      `${shape}: le plat du foyer en portion simple reste une réponse ` +
+        `acceptable à « fais-lui un plat ».`,
+    );
+  }
+});
+
+Deno.test("C6 — L'ANCRE SURVIT AU TROISIÈME COUP DE BALANCIER (le cas qui passe)", () => {
+  // ⚠️ UN TROISIÈME COUP DE BALANCIER SERAIT PIRE QUE LES DEUX PRÉCÉDENTS,
+  // parce qu'il aurait l'air d'une correction. La précision de C6 vient EN
+  // DERNIER, donc à la place la plus contraignante: elle doit être strictement
+  // additive et nominative, jamais une permission de reprendre la table.
+  const block = C6_BLOCK("one_session");
+  assert(block.includes(MERGE_ANCHOR_INSTRUCTION));
+  assert(block.includes("THE HOUSEHOLD'S PLAN IS THE PLAN"));
+  assert(block.includes("never serve Zoé's dishes to"));
+  // Le plan du foyer reste la DERNIÈRE liste de plats du bloc.
+  assert(
+    block.lastIndexOf("- wed dinner: Gratin de courgettes") >
+      block.lastIndexOf("- wed dinner: Curry de pois chiches"),
+    "le plan du foyer n'est plus la dernière liste: C1 est défait",
+  );
+  // Et la précision de C6 arrive APRÈS l'ancre, jamais avant.
+  assert(
+    block.indexOf(MERGE_ANCHOR_INSTRUCTION) <
+      block.indexOf(MERGE_MATERIAL_USE_INSTRUCTION),
+    "la précision de C6 est passée AVANT l'ancre: c'est l'ancre qui devient " +
+      "le mot de la fin, et le plat dédié qui disparaît — le défaut mesuré.",
+  );
+  // LES TROIS PHRASES QUI EMPÊCHENT LE TROISIÈME COUP.
+  assert(block.includes("ADDED to"));
+  assert(block.includes("they never replace one"));
+  assert(block.includes("nobody else eats them"));
+  assert(block.includes("Everyone else keeps the household's dishes"));
+});
+
+Deno.test("C6 — BARREAU ①: le bloc est BYTE-IDENTIQUE, quoi qu'on lui passe", () => {
+  // ⚠️ LE CAS QUI PASSE, ET IL A DEUX MOITIÉS. ① ne demande AUCUN plat dédié
+  // (« Never turn it into a second dish »), donc il n'a rien à défendre contre
+  // l'ancre: le paragraphe de C6 doit être absent. Et il doit l'être MÊME si un
+  // appelant se trompe de nombre — la règle « ce barreau réclame-t-il un plat »
+  // est LUE (`asksForASecondDish`), pas recopiée.
+  assertEquals(C6_BLOCK("one_dish", 0), C6_BLOCK("one_dish", 9));
+  assert(!C6_BLOCK("one_dish", 9).includes(MERGE_MATERIAL_USE_INSTRUCTION));
+  assert(!C6_BLOCK("one_dish", 9).includes("at EVERY meal they eat here"));
+  // ET LE CAS QUI PASSE DE L'AUTRE CÔTÉ: sans lui, un bloc qui n'affiche plus
+  // jamais le paragraphe serait indiscernable d'un ① correct.
+  assert(C6_BLOCK("one_session", 9).includes(MERGE_MATERIAL_USE_INSTRUCTION));
+});
+
+Deno.test("C6 — `conflictAxes` déduplique, et suit l'ordre du produit", () => {
+  // Deux motifs sur le même axe ne font qu'un axe; l'ordre vient de
+  // `SERVING_AXES`, jamais de l'ordre d'arrivée — sinon le même prompt
+  // nommerait les axes dans deux ordres différents.
+  assertEquals(
+    conflictAxes(["starch:larger_above_table", "protein:unreadable"]),
+    ["protein", "starch"],
+  );
+  assertEquals(
+    conflictAxes(["starch:larger_above_table", "starch:unreadable"]),
+    ["starch"],
+  );
+  assertEquals(conflictAxes([]), []);
+  // UN JETON QUI NE NOMME AUCUN AXE N'EN INVENTE PAS UN.
+  assertEquals(conflictAxes(["nonsense", "bavardage:larger_above_table"]), []);
+  assertEquals(
+    conflictAxes(["vegetables:full_above_table"]),
+    ["vegetables"],
+  );
 });
 
 // ---------------------------------------------------------------------------
@@ -1037,6 +1233,38 @@ Deno.test("O5 — L'ANCRE EST BRANCHÉE SUR LE PLAN DU FOYER, PAS SUR LE PLAN PE
   );
 });
 
+Deno.test("C6 — LE NOMBRE DE PLATS DÉDIÉS EST CALCULÉ UNE FOIS, LU DEUX FOIS", async () => {
+  // ⚠️ LE MODULE PUR NE PROUVE QUE LA MOITIÉ, ENCORE. `buildMergeBlock` peut
+  // annoncer NEUF plats dédiés pendant que `dishBudgetFor` n'en ouvre que six:
+  // le prompt réclamerait alors ce que son propre plafond interdit, et le
+  // parseur jetterait les DERNIERS plats de la liste — c'est-à-dire ceux du
+  // foyer, pas ceux de la personne reprise. C'est le défaut de L4, remis en
+  // grand par C6. Un prompt n'a pas de compilateur; ce test est le compilateur.
+  const src = await generatorSource();
+  assert(
+    /const mergeDedicatedDishes = ladder === null\s*\?\s*0\s*:\s*dedicatedDishesFor\(\s*ladder\.shape,\s*mergedEaterCells\.length,?\s*\)/
+      .test(src),
+    "le nombre de plats dédiés ne se déduit plus des REPAS de la personne " +
+      "reprise (`mergedEaterCells`, le dénominateur du constat de forme).",
+  );
+  // ── LES DEUX LECTEURS, ET C'EST LA MÊME VARIABLE ────────────────────────
+  assert(
+    /dedicatedDishes:\s*mergeDedicatedDishes/.test(src),
+    "la CONSIGNE ne reçoit plus le nombre calculé.",
+  );
+  assert(
+    /dedicatedDishesAsked:\s*mergeDedicatedDishes/.test(src),
+    "le BUDGET ne reçoit plus le nombre calculé: la consigne réclamerait des " +
+      "plats que le plafond refuse.",
+  );
+  // ── ET LES AXES DU CONFLIT VIENNENT DE L'ÉCHELLE, JAMAIS D'UNE SECONDE
+  //    LECTURE DES DIRECTIONS DE SERVICE ───────────────────────────────────
+  assert(
+    /conflicts:\s*ladder\.conflicts/.test(src),
+    "la consigne ne reçoit plus les axes que `mergeLadder` a nommés.",
+  );
+});
+
 Deno.test("LA FENÊTRE DE FUSION SE DÉDUIT, ELLE NE SE DEMANDE PAS", async () => {
   // Un client qui pourrait choisir la fenêtre pourrait refusionner hier — D16
   // serait une garde que l'appelant contourne en une ligne de JSON.
@@ -1105,7 +1333,11 @@ import {
   type MergedEater,
   parseGeneratedMeal,
 } from "./meal_generation.ts";
-import { asksForASecondDish, mergeDishBonus } from "./household_portions.ts";
+import {
+  asksForASecondDish,
+  dedicatedDishesFor,
+  mergeDishBonus,
+} from "./household_portions.ts";
 import {
   bestMergePair,
   MERGE_SHAPE_NOT_HONOURED,
@@ -1250,7 +1482,10 @@ Deno.test("BARREAU ①, une préparation d'UNE portion reste jetée", () => {
     preparations: [prepPayload(1)],
     dishes: [dishUsingPrep()],
     shopping_list: [],
-  }, { ...PARSE_BASE, merge: { shape: "one_dish", ownDishesShown: 6 } });
+  }, {
+    ...PARSE_BASE,
+    merge: { shape: "one_dish", ownDishesShown: 6, dedicatedDishesAsked: 0 },
+  });
   assertEquals(meal.preparations.length, 0);
 });
 
@@ -1264,7 +1499,10 @@ for (const shape of ["one_session", "separate_sessions"] as const) {
       preparations: [prepPayload(1)],
       dishes: [dishUsingPrep()],
       shopping_list: [],
-    }, { ...PARSE_BASE, merge: { shape, ownDishesShown: 6 } });
+    }, {
+      ...PARSE_BASE,
+      merge: { shape, ownDishesShown: 6, dedicatedDishesAsked: 6 },
+    });
     assertEquals(meal.preparations.length, 1);
     assertEquals(meal.preparations[0].servingsMade, 1);
     assertEquals(meal.dishes.length, 1);
@@ -1282,7 +1520,10 @@ Deno.test("MÊME SOUS FUSION, une préparation de ZÉRO portion tombe", () => {
       preparations: [prepPayload(bad)],
       dishes: [dishUsingPrep()],
       shopping_list: [],
-    }, { ...PARSE_BASE, merge: { shape: "one_session", ownDishesShown: 6 } });
+    }, {
+      ...PARSE_BASE,
+      merge: { shape: "one_session", ownDishesShown: 6, dedicatedDishesAsked: 6 },
+    });
     assertEquals(meal.preparations.length, 0, `servings_made = ${bad}`);
   }
 });
@@ -1323,7 +1564,13 @@ Deno.test("BARREAU ①, le plafond NE BOUGE PAS — ni au prompt, ni au parse", 
   // ⚠️ ÉCRIT NOIR SUR BLANC DANS `dishCapFor`: un budget ouvert pour rien est un
   // budget que le modèle « déborde poliment pour remplir ». Le premier barreau
   // ne demande AUCUN plat de plus.
-  const merge = { shape: "one_dish" as const, ownDishesShown: 12 };
+  const merge = {
+    shape: "one_dish" as const,
+    ownDishesShown: 12,
+    // C6 — ① ne demande AUCUN plat dédié, et le budget doit rester celui de la
+    // table même si la personne apporte douze plats.
+    dedicatedDishesAsked: 0,
+  };
   const { userMessage } = buildMealPrompt({ ...PROMPT_BASE, merge });
   assert(userMessage.includes(`at most ${BASE_CAP_15} dishes`));
   const meal = parseGeneratedMeal(
@@ -1337,7 +1584,9 @@ Deno.test("BARREAUX ② ET ③, le plafond gagne EXACTEMENT ce qu'on montre", ()
   // 15 de base + 4 plats propres montrés au modèle = 19. Les deux nombres sont
   // écrits ici, aucun n'est calculé par la fonction testée.
   for (const shape of ["one_session", "separate_sessions"] as const) {
-    const merge = { shape, ownDishesShown: 4 };
+    // C6 — LA CONSIGNE EN RÉCLAME 3 ET LA MATIÈRE EN MONTRE 4: le budget garde
+    // le plus grand des deux, donc « exactement ce qu'on montre » tient encore.
+    const merge = { shape, ownDishesShown: 4, dedicatedDishesAsked: 3 };
     const { userMessage } = buildMealPrompt({ ...PROMPT_BASE, merge });
     assert(
       userMessage.includes("at most 19 dishes"),
@@ -1355,7 +1604,11 @@ Deno.test("BARREAU ② SANS MATIÈRE, il reste UN plat de plus — le « SECOND 
   // La consigne de forme réclame « a SECOND dish » même quand le plan personnel
   // ne montre aucun plat sur la fenêtre. Un bonus nul ferait retomber
   // exactement dans le défaut mesuré.
-  const merge = { shape: "one_session" as const, ownDishesShown: 0 };
+  const merge = {
+    shape: "one_session" as const,
+    ownDishesShown: 0,
+    dedicatedDishesAsked: 1,
+  };
   const { userMessage } = buildMealPrompt({ ...PROMPT_BASE, merge });
   assert(userMessage.includes("at most 16 dishes"), userMessage.slice(0, 200));
 });
@@ -1363,7 +1616,11 @@ Deno.test("BARREAU ② SANS MATIÈRE, il reste UN plat de plus — le « SECOND 
 Deno.test("LE BONUS EST BORNÉ PAR LE PLAFOND DE BASE — une bouche, pas trois", () => {
   // Une bouche de plus mange au plus ce qu'une bouche mange. 15 + 15 = 30, et
   // pas 15 + 400.
-  const merge = { shape: "one_session" as const, ownDishesShown: 400 };
+  const merge = {
+    shape: "one_session" as const,
+    ownDishesShown: 400,
+    dedicatedDishesAsked: 9,
+  };
   const { userMessage } = buildMealPrompt({ ...PROMPT_BASE, merge });
   assert(userMessage.includes("at most 30 dishes"), userMessage.slice(0, 200));
 });
@@ -1373,9 +1630,9 @@ Deno.test("LE PROMPT ET LE PARSE ANNONCENT LE MÊME NOMBRE, barreau par barreau"
   // budget et en appliquer un autre. Le nombre est LU dans la consigne, puis
   // COMPTÉ sur la sortie — jamais dérivé deux fois de la même fonction.
   const cases: MergedEater[] = [
-    { shape: "one_dish", ownDishesShown: 5 },
-    { shape: "one_session", ownDishesShown: 3 },
-    { shape: "separate_sessions", ownDishesShown: 7 },
+    { shape: "one_dish", ownDishesShown: 5, dedicatedDishesAsked: 0 },
+    { shape: "one_session", ownDishesShown: 3, dedicatedDishesAsked: 9 },
+    { shape: "separate_sessions", ownDishesShown: 7, dedicatedDishesAsked: 2 },
   ];
   for (const merge of cases) {
     const { userMessage } = buildMealPrompt({ ...PROMPT_BASE, merge });
@@ -1401,22 +1658,60 @@ Deno.test("LE BUDGET DE SESSIONS NE SUIT PAS LE BONUS DE FUSION", () => {
   const without = buildMealPrompt(PROMPT_BASE).userMessage;
   const with_ = buildMealPrompt({
     ...PROMPT_BASE,
-    merge: { shape: "one_session", ownDishesShown: 6 },
+    merge: { shape: "one_session", ownDishesShown: 6, dedicatedDishesAsked: 6 },
   }).userMessage;
   const sessionsOf = (m: string) => m.match(/cooking sessions: at most (\d+)/)?.[1];
   assert(sessionsOf(without), "le budget de sessions a disparu de la consigne");
   assertEquals(sessionsOf(with_), sessionsOf(without));
 });
 
-Deno.test("`mergeDishBonus` — ① rend zéro, ②/③ rendent ce qu'on montre", () => {
-  assertEquals(mergeDishBonus("one_dish", 6, 15), 0);
-  assertEquals(mergeDishBonus("one_session", 6, 15), 6);
-  assertEquals(mergeDishBonus("separate_sessions", 6, 15), 6);
-  assertEquals(mergeDishBonus("one_session", 0, 15), 1);
-  assertEquals(mergeDishBonus("one_session", 99, 15), 15);
+Deno.test("`mergeDishBonus` — ① rend zéro, ②/③ le plus grand des deux", () => {
+  const bonus = (
+    cooking: "one_dish" | "one_session" | "separate_sessions",
+    ownDishesShown: number,
+    dedicatedDishesAsked: number,
+    baseCap = 15,
+  ) => mergeDishBonus({ cooking, ownDishesShown, dedicatedDishesAsked, baseCap });
+  assertEquals(bonus("one_dish", 6, 0), 0);
+  // ① NE GAGNE RIEN, MÊME SI ON LUI DEMANDE DES PLATS DÉDIÉS. Un appelant qui
+  // se tromperait de barreau ne peut pas ouvrir un budget que la consigne
+  // interdit d'utiliser — « déborder poliment pour le remplir ».
+  assertEquals(bonus("one_dish", 6, 9), 0);
+  assertEquals(bonus("one_session", 6, 6), 6);
+  assertEquals(bonus("separate_sessions", 6, 6), 6);
+  assertEquals(bonus("one_session", 0, 1), 1);
+  assertEquals(bonus("one_session", 99, 9), 15);
+  // ── C6 · LE CAS QUI A FAIT NAÎTRE LE CHAMP ────────────────────────────
+  // La consigne réclame NEUF plats dédiés et la matière n'en montre que SIX:
+  // c'est la fusion dont la fenêtre recomposée déborde le plan personnel
+  // (L10 ①). Avant C6, le budget n'ouvrait que six places — et le parseur
+  // jette les DERNIERS plats de la liste, c'est-à-dire ceux du foyer.
+  assertEquals(bonus("one_session", 6, 9), 9);
+  // ET L'INVERSE NE RÉTRÉCIT RIEN: un plan personnel plus bavard que le rythme
+  // du foyer garde la place qu'il avait avant ce lot.
+  assertEquals(bonus("one_session", 12, 9), 12);
   assertEquals(asksForASecondDish("one_dish"), false);
   assertEquals(asksForASecondDish("one_session"), true);
   assertEquals(asksForASecondDish("separate_sessions"), true);
+});
+
+Deno.test("C6 — `dedicatedDishesFor` SUIT LES REPAS, ET ① N'EN DEMANDE AUCUN", () => {
+  // ⚠️ LE NOMBRE N'EST PAS UNE CONSTANTE: c'est le DÉNOMINATEUR du constat de
+  // forme (C3 ⑥), ses repas à elle sur la fenêtre écrite. Mesuré le
+  // 2026-08-12: neuf repas, un seul plat dédié rendu, la casserole commune 8
+  // fois sur 9 — et `observeMergeShape` exige que TOUS ses repas portent
+  // quelque chose à elle. Demander moins que ce qu'on mesure rendrait
+  // `honoured: false` par construction.
+  assertEquals(dedicatedDishesFor("one_dish", 9), 0);
+  assertEquals(dedicatedDishesFor("one_session", 9), 9);
+  assertEquals(dedicatedDishesFor("separate_sessions", 9), 9);
+  // LE PLANCHER EST UN, et il vaut la ligne de forme: `merge_member_away_all_
+  // window` a déjà refusé le cas « aucun repas » bien avant le modèle, mais un
+  // zéro ici ferait un prompt qui réclame un plat dans un budget qui n'en
+  // ouvre aucun.
+  assertEquals(dedicatedDishesFor("one_session", 0), 1);
+  assertEquals(dedicatedDishesFor("one_session", -4), 1);
+  assertEquals(dedicatedDishesFor("one_session", Number.NaN), 1);
 });
 
 Deno.test("LE BUDGET COMPTE CE QUE LE MODÈLE VOIT, pas ce qu'on avait sous la main", () => {
@@ -1441,6 +1736,9 @@ Deno.test("LE BUDGET COMPTE CE QUE LE MODÈLE VOIT, pas ce qu'on avait sous la m
     // foyer est déjà dans le plafond de base.
     baseDishes: [{ day: "wed", slot: "dinner", title: "Gratin de courgettes" }],
     gaps: [],
+    // C6 — le nombre de plats dédiés, et les axes du conflit qui le justifie.
+    dedicatedDishes: DEDICATED_9,
+    conflicts: TWO_AXIS_CONFLICT,
   });
   assertEquals(
     bulletsAfter(block, "was going to eat over these days, on their own:").length,

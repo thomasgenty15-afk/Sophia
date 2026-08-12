@@ -30,7 +30,12 @@ import {
 import type { MealBodyContext } from "../_shared/keel/meal_body.ts";
 import { type WeeklyAxis, WEEKLY_AXES } from "../_shared/keel/weekly_flow.ts";
 import { foodPreferencesForPrompt } from "../_shared/keel/food_preference_promotion.ts";
-import { reconcileFoodPreferencesFor } from "../_shared/keel/food_preference_promotion_io.ts";
+import {
+  // C6 ② — CALCULER ET PERSISTER SONT DEUX GESTES, ET LE SECOND ATTEND QUE
+  //         LA REQUÊTE ABOUTISSE.
+  persistReconciledFoodPreferences,
+  reconcileFoodPreferencesFor,
+} from "../_shared/keel/food_preference_promotion_io.ts";
 import { dayTokenInZone, localDateInZone } from "../_shared/keel/local_date.ts";
 // C3 ① — LE DROIT D'ACCÈS EST LU, JAMAIS APPLIQUÉ ICI. Voir l'en-tête du
 // module: aucune règle de facturation n'existe pour un compte sans foyer, et en
@@ -516,37 +521,40 @@ Deno.serve(async (req) => {
     // semaine avant de générer un repas. Une garde qui ne couvre qu'un des
     // deux chemins d'un même jsonb est une garde qu'on croit posée.
     //
-    // ⚠️ C5 ⑧ — CETTE ÉCRITURE PRÉCÈDE LES GARDES DE FENÊTRE, ET C'EST ASSUMÉ.
+    // ⚠️ C6 ② — CE CALCUL PRÉCÈDE LES GARDES DE FENÊTRE; SON ÉCRITURE NON.
     //
-    // MESURÉ LE 2026-08-12: une ligne `student_goals` a été corrigée par un
-    // appel qui a rendu `400 window_beyond_this_week` (garde posée ~250 lignes
-    // plus bas, avec `409 plan_overlaps_existing`). `student_goals` bouge donc —
-    // et son `updated_at` avec — sur une requête que l'utilisateur voit comme
-    // ÉCHOUÉE.
+    // MESURÉ LE 2026-08-12: une ligne `student_goals` a été corrigée à
+    // `17:30:59` par un appel qui a rendu `400 window_beyond_this_week` (garde
+    // posée ~250 lignes plus bas, avec `409 plan_overlaps_existing`).
+    // `student_goals` bougeait donc — et son `updated_at` avec — sur une requête
+    // que l'utilisateur voit comme ÉCHOUÉE, et rien à l'écran ne le lui disait.
     //
-    // Ce n'est PAS une violation de C4: la personne a bien agi, c'est sa propre
-    // ligne, `actor: "row_owner"` est juste. Ce qui est faux, c'est la DATE.
+    // Ce n'était PAS une violation de C4: la personne a bien agi, c'est sa
+    // propre ligne, `actor: "row_owner"` est juste. Ce qui était faux, c'est la
+    // DATE.
     //
-    // POURQUOI ON NE DÉPLACE PAS. Cet appel alimente `constraintsForPrompt`,
-    // donc il doit précéder la construction du prompt; et les deux gardes sont
-    // volontairement posées JUSTE AVANT LE MODÈLE (C2: « ce qui est décidable
-    // sans le modèle se refuse avant le modèle », 28,6 s et 225 s brûlées pour
-    // l'avoir oublié). L'ordre actuel est le seul qui garde les deux propriétés.
+    // POURQUOI L'APPEL NE BOUGE PAS D'UNE LIGNE. Il alimente
+    // `constraintsForPrompt`, donc il doit précéder la construction du prompt;
+    // et les deux gardes sont volontairement posées JUSTE AVANT LE MODÈLE (C2:
+    // « ce qui est décidable sans le modèle se refuse avant le modèle », 28,6 s
+    // et 225 s brûlées pour l'avoir oublié). Cet ordre-là est le seul qui garde
+    // les deux propriétés, et il est conservé.
     //
-    // L'OPTION RÉVERSIBLE, écrite plutôt que faite un soir: conditionner la
-    // PERSISTANCE à la réussite de la requête, c'est-à-dire la déplacer après
-    // l'écriture du plan. Elle change QUAND une correction juste atterrit, pour
-    // une requête sur mille. La correction est juste; sa date est discutable.
-    // Voir §C5 ⑧ du registre.
-    goalRow.practical_constraints = await reconcileFoodPreferencesFor({
+    // CE QUI A CHANGÉ: la fonction CALCULE et PRÉPARE, elle n'écrit plus. La
+    // persistance part plus bas, une fois le plan écrit
+    // (`persistReconciledFoodPreferences`). Un refus, une panne de modèle ou un
+    // 409 de la base laissent désormais la ligne intacte.
+    const foodPreferences = await reconcileFoodPreferencesFor({
       admin,
       userId,
       constraints: (goalRow.practical_constraints ?? {}) as Record<string, unknown>,
       source: FN_NAME,
       // C4 — la lane individuelle: `userId` est le compte authentifié et cette
-      // ligne est la sienne. Sa propre correction s'écrit, comme avant.
+      // ligne est la sienne. Sa propre correction s'écrit, comme avant — plus
+      // tard, mais elle s'écrit.
       actor: "row_owner",
     });
+    goalRow.practical_constraints = foodPreferences.constraints;
 
     // --- LA MÉTHODE DU COACH ----------------------------------------------
     //
@@ -1657,6 +1665,18 @@ Deno.serve(async (req) => {
     const written = writtenRow
       ? { id: writtenRow.meal_id, starts_on: startsOn, duration_days: durationDays }
       : null;
+
+    // ── C6 ② · LA CORRECTION DE GOÛT S'ÉCRIT MAINTENANT, ET PAS AVANT ─────
+    //
+    // LE PLAN EST ÉCRIT: la requête a abouti, donc le geste de la personne a
+    // produit quelque chose, donc sa ligne peut bouger. Tous les refus posés
+    // au-dessus — les deux gardes de fenêtre, le 409 de la base, une panne du
+    // modèle — sortent AVANT ce point et laissent `student_goals` intacte.
+    //
+    // ⚠️ ELLE NE PEUT PAS FAIRE ÉCHOUER LA RÉPONSE: la fonction avale ses
+    // erreurs et journalise. Le plan est déjà écrit; personne ne perd son dîner
+    // parce qu'une préférence rétractée n'a pas pu être effacée.
+    await persistReconciledFoodPreferences(foodPreferences.pending);
 
     // ── FF-039 + FF-040 · LE VERDICT, ÉCRIT ────────────────────────────────
     // APRÈS l'écriture du plan, et dans un try/catch qui n'échoue jamais vers

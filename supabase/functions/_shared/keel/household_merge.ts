@@ -46,6 +46,7 @@ import {
   asksForASecondDish,
   type CookingShape,
   SERVING_AXES,
+  type ServingAxis,
   type ServingAxisDemands,
   type ServingDemand,
 } from "./household_portions.ts";
@@ -833,9 +834,116 @@ export function mergeMaterialShown(
  * mesuré, avec son plafond qui en tient compte (`dishBudgetFor`). Ancrer sur le
  * plan du foyer veut dire « n'écrase pas ce que les autres mangent », jamais
  * « n'ajoute rien ».
+ *
+ * ═══════════════════════════════════════════════════════════════════════════
+ * C6 — LE BALANCIER EST PARTI TROP LOIN, ET VOICI LES TROIS MESURES
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * ① AVANT C1: 15 créneaux sur 15 au plan personnel, ZÉRO titre du foyer.
+ * ② APRÈS C1: 9 titres du foyer sur 9 conservés, 0 du plan personnel, 1 neuf.
+ *    Le renversement est total, et c'est bien.
+ * ③ MAIS le plat « neuf » était le PETIT-DÉJEUNER DU FOYER en portion simple
+ *    (« Greek yogurt bowls … for Zoe »), et ZÉRO aliment du plan personnel
+ *    (bœuf, porc, agneau, steak) n'apparaissait nulle part — ni dans les plats,
+ *    ni dans les 37 lignes de courses. L'ancre, en dernier et en capitales,
+ *    écrasait la matière exactement comme la matière écrasait le foyer.
+ *
+ * DEUX DÉFAUTS, ET ILS SE TIENNENT:
+ *
+ *   1. LA MATIÈRE N'ÉTAIT PAS UTILISABLE. Le bloc montrait une liste que RIEN
+ *      n'obligeait à ouvrir: « material for THEIR dish, never a menu for the
+ *      table » dit ce que la liste n'est pas, jamais ce qu'on en fait. Le bloc
+ *      dit désormais d'y PUISER, et il dit ce qui doit en venir — les axes du
+ *      conflit, ceux-là mêmes qui ont fait descendre le barreau.
+ *   2. UN SEUL PLAT POUR NEUF CRÉNEAUX. « ADD ONE dish » se lit « un pour la
+ *      fenêtre », et c'est une lecture raisonnable. Le compte suit désormais le
+ *      CONFLIT et les repas de la personne (`dedicatedDishesFor`).
+ *
+ * ── OÙ LA PRÉCISION EST POSÉE, ET POURQUOI PAS AILLEURS ──────────────────
+ * EN DERNIER, après l'ancre et après sa liste — la MÊME place et la MÊME
+ * raison que `gapLines` juste au-dessus: « reste au plus près de ce plan »
+ * vient d'être écrit, et sans une précision le plat dédié en fait partie (comme
+ * le trou en faisait partie). Le mot de la fin ne peut pas être une phrase que
+ * le lot précédent a mesurée comme écrasante.
+ *
+ * ⚠️ ET ELLE NE REND PAS LE PLAN PERSONNEL À TOUTE LA TABLE. Un troisième coup
+ * de balancier serait pire que les deux précédents, parce qu'il aurait l'air
+ * d'une correction. La précision est donc STRICTEMENT additive et nominative:
+ * « ADDED to the dishes above », « they never replace one », « no one else eats
+ * them ». Les deux moitiés sont dans le même paragraphe, celui qu'on lit en
+ * dernier.
  */
 export const MERGE_ANCHOR_INSTRUCTION =
   "Stay as CLOSE AS POSSIBLE to the household's plan";
+
+/**
+ * C6 — LA PHRASE QUI OUVRE LA MATIÈRE. Isolée comme `MERGE_ANCHOR_INSTRUCTION`
+ * et pour la même raison: un test la tient SUR LA SORTIE, jamais sur la source
+ * — ce dépôt a déjà vu un `src.includes("…")` rester vert parce qu'un
+ * commentaire citait la chaîne cherchée.
+ */
+export const MERGE_MATERIAL_USE_INSTRUCTION =
+  "Build them out of the food in";
+
+/**
+ * LES AXES D'UN CONFLIT, DÉDUPLIQUÉS ET DANS L'ORDRE DU PRODUIT.
+ *
+ * `servingConflicts` rend des jetons `axe:motif` (`starch:larger_above_table`,
+ * `protein:unreadable`). Le modèle lit de l'anglais, pas des jetons — et deux
+ * motifs sur le même axe ne font qu'un axe.
+ *
+ * ⚠️ L'ORDRE VIENT DE `SERVING_AXES`, jamais de l'ordre d'arrivée: c'est la
+ * même liste que `servingConflicts` parcourt, donc les deux ne peuvent pas
+ * nommer les axes dans deux ordres différents dans le même prompt.
+ */
+export function conflictAxes(conflicts: readonly string[]): ServingAxis[] {
+  const out: ServingAxis[] = [];
+  for (const axis of SERVING_AXES) {
+    if (conflicts.some((c) => String(c ?? "").split(":")[0] === axis)) {
+      out.push(axis);
+    }
+  }
+  return out;
+}
+
+/** `the protein and the starch` — les axes, en anglais lisible. */
+function conflictAxisProse(conflicts: readonly string[]): string {
+  const axes = conflictAxes(conflicts).map((a) => `the ${a}`);
+  if (axes.length === 0) return "";
+  if (axes.length === 1) return axes[0];
+  return `${axes.slice(0, -1).join(", ")} and ${axes[axes.length - 1]}`;
+}
+
+/**
+ * C6 — CE QUI SE LIT EN DERNIER, ET QUI N'EST PAS DÉCORATIF.
+ *
+ * VIDE AU BARREAU ①, et c'est l'identité: `dedicatedDishes = 0` rend un bloc
+ * byte-identique à celui de v8, parce qu'au premier barreau il n'y a aucun plat
+ * dédié à défendre contre l'ancre. Un test le tient.
+ */
+function dedicatedTailLines(args: {
+  displayName: string;
+  dedicatedDishes: number;
+  conflicts: readonly string[];
+}): string[] {
+  if (args.dedicatedDishes <= 0) return [];
+  const axes = conflictAxisProse(args.conflicts);
+  return [
+    "",
+    `AND THE ${args.dedicatedDishes} DISHES FOR ${args.displayName} STILL STAND.`,
+    "Staying close to the plan above is for the people who were already at this",
+    `table. ${args.displayName} is not one of them: those dishes are ADDED to`,
+    "the ones above — they never replace one, and nobody else eats them.",
+    `${MERGE_MATERIAL_USE_INSTRUCTION} ${args.displayName}'s own list at the top`,
+    "of this block, and put those foods in the shopping list.",
+    axes.length > 0
+      ? `The common pot cannot give them ${axes}: that is what must be different`
+      : "The common pot cannot serve them: that is what must be different",
+    "in their dishes, and it has to come from what they eat.",
+    "One of the household's dishes written out again as a single portion is NOT",
+    `a dish for ${args.displayName} — it is the same food in a smaller bowl.`,
+  ];
+}
 
 export function buildMergeBlock(args: {
   displayName: string;
@@ -863,6 +971,26 @@ export function buildMergeBlock(args: {
    * 14/14. `[]` dit « aucun trou », et rend le bloc byte-identique à v7.
    */
   gaps: readonly ShownPlanGap[];
+  /**
+   * C6 — COMBIEN DE PLATS DÉDIÉS ON RÉCLAME. `0` au barreau ①.
+   *
+   * ⚠️ REQUIS, jamais optionnel, et il vient de `dedicatedDishesFor` — jamais
+   * d'un calcul refait ici. Le MÊME nombre ouvre le budget de plats
+   * (`MergedEater.dedicatedDishesAsked`): deux copies dont une seule reçoit la
+   * modification est le défaut que ce dépôt documente le plus souvent, et ici
+   * il coûterait les DERNIERS plats du plan — le dîner du dimanche du foyer.
+   */
+  dedicatedDishes: number;
+  /**
+   * C6 — LES AXES SUR LESQUELS LA CASSEROLE NE PEUT PAS LA SERVIR, tels que
+   * `mergeLadder` les a nommés (`starch:larger_above_table`…).
+   *
+   * ⚠️ REQUIS, `[]` au barreau ① (il n'y a alors aucun conflit, par
+   * définition). C'est ce qui dit au modèle CE QUI doit être différent dans le
+   * plat dédié — sans quoi « fais-lui un plat » se satisfait d'un plat du foyer
+   * en portion simple, mesuré le 2026-08-12.
+   */
+  conflicts: readonly string[];
 }): string {
   const end = planEndsOn(args.window.startsOn, args.window.durationDays);
   const lines = (dishes: readonly MergeMaterialDish[]) =>
@@ -883,15 +1011,26 @@ export function buildMergeBlock(args: {
     : args.shape === "one_session"
     ? [
       `${args.displayName} cannot be served out of the common pot.`,
-      "ADD ONE dish for them, and cook it in the SAME cooking session as the",
-      "household's — one session at the stove, two dishes out of it.",
+      // ── C6 · « ADD ONE dish » SE LISAIT « UN POUR LA FENÊTRE » ──────────
+      // Mesuré: un seul plat dédié pour NEUF créneaux, la casserole commune 8
+      // fois sur 9. Le nombre est écrit, et il est écrit deux fois — « at
+      // EVERY meal » dit la règle, le chiffre l'empêche d'être relue comme
+      // « une fois, quelque part ».
+      "ADD one dish for them at EVERY meal they eat here.",
+      `NOT one dish for the whole window: ${args.dedicatedDishes} dishes for`,
+      "them over these days, one at each of their meals. Cook each of them in",
+      "the SAME cooking session as the household's — one session at the stove,",
+      "the table's dish and theirs out of it.",
       "Everyone else keeps the household's dishes: what follows is material for",
-      "THEIR dish, never a menu for the table.",
+      "THEIR dishes, never a menu for the table.",
     ]
     : [
       `${args.displayName} cannot be served out of the common pot, and the two`,
       "plans never cook on the same day.",
-      "ADD their dishes, in their OWN cooking session.",
+      "ADD one dish for them at EVERY meal they eat here.",
+      `NOT one dish for the whole window: ${args.dedicatedDishes} dishes for`,
+      "them over these days, one at each of their meals. Cook them in their",
+      "OWN cooking session.",
       "Everyone else keeps the household's dishes: what follows is material for",
       "THEIR dishes, never a menu for the table.",
     ];
@@ -930,6 +1069,23 @@ export function buildMergeBlock(args: {
     // ce plan » vient d'être écrit, et sans cette précision le trou en fait
     // partie. C'est la même posture d'ordre que l'ancre elle-même.
     ...gapLines(args.gaps),
+    // ── C6 · ET LE PLAT DÉDIÉ N'EST PAS DANS CE QU'ON GARDE ────────────────
+    // MÊME PLACE, MÊME RAISON que le bloc ci-dessus. « Reste au plus près du
+    // plan du foyer » a été mesuré comme la phrase la plus contraignante de ce
+    // bloc: 9 titres du foyer sur 9 conservés, et le seul plat « neuf » était
+    // le petit-déjeuner du foyer en portion simple. Sans cette précision, ne
+    // rien ajouter fait partie de « rester au plus près ».
+    ...dedicatedTailLines({
+      displayName: args.displayName,
+      // ⚠️ LE BARREAU ① N'A RIEN À DÉFENDRE, ET IL LE DIT LUI-MÊME. La règle
+      // « ce barreau réclame-t-il un plat de plus » est LUE
+      // (`asksForASecondDish`), jamais recopiée: c'est la même fonction que le
+      // budget et que la garde de préparation. Un appelant qui passerait un
+      // nombre au barreau ① ne peut donc pas faire apparaître ce paragraphe —
+      // et ① reste byte-identique à v8, ce qu'un test tient.
+      dedicatedDishes: asksForASecondDish(args.shape) ? args.dedicatedDishes : 0,
+      conflicts: args.conflicts,
+    }),
   ].join("\n");
 }
 

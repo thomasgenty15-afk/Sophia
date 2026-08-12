@@ -2833,6 +2833,9 @@ panne ne doit pas être devenue un refus.
 ### Ce qui est documenté et NON corrigé
 
 **⑧ `reconcileFoodPreferencesFor` s'exécute avant la garde de fenêtre.**
+> ✅ **REFERMÉ PAR C6 ② le 2026-08-12**, et par l'option réversible décrite
+> ci-dessous : la persistance est conditionnée à la réussite de la requête.
+> Le paragraphe qui suit décrit l'état d'avant. Voir §« C6 ② ».
 `generate-meal-v1:499` réconcilie les préférences alimentaires ; la garde
 `window_beyond_this_week` tombe à `:748` et `plan_overlaps_existing` à `:825`.
 **Mesuré** : une ligne `student_goals` a été corrigée par un appel qui a rendu
@@ -2851,7 +2854,9 @@ propriétés. L'option réversible serait de rendre la **persistance** condition
 à la réussite de la requête — c'est-à-dire de la déplacer après l'écriture du
 plan — ce qui change *quand* une correction juste atterrit, pour une requête sur
 mille. On l'écrit plutôt que de le faire un soir : **la correction est juste, sa
-date est discutable.**
+date est discutable.** ✅ **C'est exactement ce que C6 ② a fait**, en séparant
+`reconcileFoodPreferencesFor` (calculer) de `persistReconciledFoodPreferences`
+(écrire) plutôt qu'en déplaçant l'appel.
 
 **⑨ L'état `none` de C3 ① est inatteignable en local.**
 `app_config.disable_write_gate = 'true'` fait retourner `true` à
@@ -2917,6 +2922,253 @@ perdre la comparabilité des lignes déjà écrites.
    propriété, pas par une ligne réelle.
 4. **⑤ ne se mesure qu'en production** (voir ⑨), et personne n'y a encore lancé
    la requête.
+
+## C6, ce qui est corrigé — 2026-08-12
+
+> ⚠️ **Rien n'a été exercé en conditions réelles.** Aucun appel HTTP, aucune
+> génération modèle — c'était la consigne du lot. Ce qui suit est prouvé par des
+> tests purs, des tests de position sur la source, le **compilateur** (deux
+> champs requis, il a listé leurs sites) et **16 mutations**. Suite keel :
+> **2 796 verts**. **Aucune migration.** **`HOUSEHOLD_PROMPT_VERSION` bumpée**
+> (`v8_plan_gaps` → `v9_merge_dedicated_per_meal`) ; `MEAL_PROMPT_VERSION`
+> inchangée.
+
+Deux défauts, tous deux mesurés en HTTP réel : **l'ancre a tué la matière**, et
+**la réconciliation persiste sur une requête refusée avant le modèle**.
+
+### ① L'ANCRE A TUÉ LA MATIÈRE — LE BALANCIER, EN TROIS MESURES
+
+| | Mesuré |
+|---|---|
+| **Avant C1** | le plan fusionné prend **15 créneaux sur 15** au plan personnel, **0 titre du foyer** ne survit. Une maison en `fat_loss`, un mineur à table, servie d'un plan de prise de masse. Deux fusions sur deux |
+| **Après C1** | **9 titres du foyer sur 9** conservés, **0** du plan personnel, **1 neuf**. Le renversement est total, et c'est bien |
+| **Le défaut qui reste** | ce plat « neuf » est *« Greek yogurt bowls … for Zoe »* — le **petit-déjeuner du foyer en portion simple**. **Zéro** aliment de son plan (bœuf, porc, agneau, steak) n'apparaît nulle part : ni dans les plats, ni dans les **37 lignes de courses**. Et **un seul plat dédié pour neuf créneaux** : la personne reprise a mangé le plat du foyer **8 fois sur 9** |
+
+**Deux défauts, et ils se tiennent.**
+
+1. **La matière n'était pas utilisable.** Le bloc montrait une liste que **rien
+   n'obligeait à ouvrir** : « material for THEIR dish, never a menu for the
+   table » dit ce que la liste **n'est pas**, jamais ce qu'on en fait.
+2. **« ADD ONE dish » se lit « un pour la fenêtre »** — une lecture parfaitement
+   raisonnable de la consigne, et le brief de portions la confirmait deux blocs
+   plus haut : *« give them a SECOND dish […] Never more than two. »*
+
+#### La consigne, mot pour mot, et ce qui la sépare des deux versions passées
+
+```
+Zoe cannot be served out of the common pot.
+ADD one dish for them at EVERY meal they eat here.
+NOT one dish for the whole window: 9 dishes for
+them over these days, one at each of their meals. Cook each of them in
+the SAME cooking session as the household's — one session at the stove,
+the table's dish and theirs out of it.
+Everyone else keeps the household's dishes: what follows is material for
+THEIR dishes, never a menu for the table.
+
+What Zoe was going to eat over these days, on their own:
+- wed dinner: Beef and rice bowl                     ← LA MATIÈRE (C1)
+
+THE HOUSEHOLD'S PLAN IS THE PLAN, AND IT STAYS.
+Stay as CLOSE AS POSSIBLE to the household's plan: […]                ← L'ANCRE (C1)
+
+The household's plan over these days:
+- wed dinner: Gratin de courgettes
+
+AND THE 9 DISHES FOR Zoe STILL STAND.                ← C6, ET C'EST LE MOT DE LA FIN
+Staying close to the plan above is for the people who were already at this
+table. Zoe is not one of them: those dishes are ADDED to
+the ones above — they never replace one, and nobody else eats them.
+Build them out of the food in Zoe's own list at the top
+of this block, and put those foods in the shopping list.
+The common pot cannot give them the protein and the starch: that is what must be different
+in their dishes, and it has to come from what they eat.
+One of the household's dishes written out again as a single portion is NOT
+a dish for Zoe — it is the same food in a smaller bowl.
+```
+
+| Version | Ce que le modèle lit **en dernier** | Mesuré |
+|---|---|---|
+| **avant C1** | la **matière** (le menu du plan personnel) | 15/15 au plan personnel, 0 titre du foyer |
+| **C1** | l'**ancre** (« THE HOUSEHOLD'S PLAN IS THE PLAN ») | 9/9 titres du foyer, mais 1 plat dédié sur 9 et 0 aliment de la personne |
+| **C6** | la **précision** : ces plats-là s'**ajoutent**, et ils se construisent **avec ses aliments à elle** | à mesurer |
+
+**L'ORDRE EST ENCORE LA MOITIÉ DU CORRECTIF, et c'est la place de `gapLines`
+mot pour mot** — « *reste au plus près de ce plan* vient d'être écrit, et sans
+cette précision le trou en fait partie ». Ici, sans précision, **ne rien
+ajouter** fait partie de « rester au plus près ».
+
+⚠️ **Ce n'est pas un troisième coup de balancier, et trois phrases le tiennent** :
+« **ADDED** to the ones above », « they **never replace** one », « **nobody else
+eats them** » — plus « Everyone else keeps the household's dishes », qui n'a pas
+bougé. La précision est nominative et strictement additive.
+
+#### Le nombre de plats dédiés, et d'où il vient
+
+`dedicatedDishesFor(shape, eaterMeals)` (`household_portions.ts`) :
+**`0` au barreau ①**, sinon **`max(1, ses repas de la fenêtre)`** —
+`mergedEaterCells.length`, résolu par `memberMealCells`.
+
+**Ce n'est pas une constante, et ce n'est pas un seuil inventé : c'est le
+DÉNOMINATEUR du constat de forme (C3 ⑥).** `observeMergeShape` exige que **tous**
+ses repas portent quelque chose à elle (`honoured = observed === "dedicated_dish"`).
+Demander moins que ce qu'on mesure rendrait `honoured: false` **par
+construction**, et un constat qu'on ne peut pas satisfaire ne constate rien.
+
+**Pourquoi TOUS ses repas, et pas « ceux où le conflit mord ».** Le conflit ne
+mord pas par créneau : c'est une **direction de service** (D6), et L4 a tranché
+que le barreau se décide « pour la table entière, pas par créneau ». Les axes en
+conflit disent **ce qui doit changer** dans son plat ; ils ne disent pas combien
+de fois on la sert. Les deux moitiés sont donc servies : le **nombre** vient de
+ses repas, les **axes** (`the protein and the starch`) viennent de
+`ladder.conflicts` et sont écrits en toutes lettres.
+
+#### Le plafond, et ce qu'il autorise en plus
+
+`mergeDishBonus` prend désormais **quatre** entrées et rend
+`max(1, min(max(ownDishesShown, dedicatedDishesAsked), baseCap))`.
+
+- **Le plus grand des deux, jamais le plus petit.** `asked` seul rétrécirait le
+  budget de toute fusion dont le plan personnel est plus bavard que le rythme du
+  foyer — un budget qui rétrécit est le défaut mesuré, par l'autre bout (le
+  parseur jette **les derniers** plats, c'est-à-dire le dîner du dimanche du
+  foyer).
+- **Combien en plus, concrètement** : sur la fusion mesurée (5 jours × 3 repas =
+  `baseCap` 15, 9 repas pour la personne reprise), le budget passe de **15 + 6 =
+  21** à **15 + 9 = 24** quand la fenêtre recomposée déborde son plan personnel.
+  Quand la matière couvre déjà ses repas, **le budget ne bouge pas d'un plat**.
+- **Ça suffit, et le plafond du bonus le prouve** : il reste borné par `baseCap`
+  — *une bouche de plus mange au plus ce qu'une bouche mange*. 9 plats dédiés
+  pour 9 repas est exactement ce que la consigne réclame, et rien de plus.
+- **`batchSessionBudget` ne suit toujours pas le bonus** (il dérive de `baseCap`),
+  et un test de L4 le tient : le barreau ② promet « one session at the stove ».
+
+#### CE QUE J'ATTENDS DU MODÈLE — en chiffres, pour être démenti
+
+Décor : le foyer et la personne reprise de la fusion mesurée, barreau ②,
+conflit `protein:larger_above_table` + `starch:larger_above_table`, **9 repas**
+pour la personne reprise sur la fenêtre recomposée.
+
+| | Attendu | Comment le mesurer |
+|---|---|---|
+| **Titres du foyer** | **≥ 8 sur 9** conservés (C1 valait 9/9 ; la marge d'un plat couvre une case que le budget déplace). **En dessous de 8, le lot a échoué** | comparer les titres du plan fusionné à ceux du plan du foyer, plat par plat |
+| **Plats dédiés** | **≥ 5 sur 9** (`meals.dedicated ≥ 5`), là où la mesure d'avant valait **1**. `9/9` est ce que la consigne demande et ce que `honoured` exige ; **1 ou 2 = échec** | `generated_from.household.merge.honoured.meals` |
+| **`observed`** | **`some_meals_dedicated` au minimum**, `dedicated_dish` si le modèle obéit complètement. **`common_pot` = échec total** | le même champ |
+| **La matière est OUVERTE** | **au moins un** aliment du plan personnel (bœuf, porc, agneau, steak) présent **dans un plat dédié** *ou* **dans la liste de courses**. La mesure d'avant vaut **0 sur 37 lignes**. **Zéro = le correctif n'a rien changé** | `shopping_list` + les `ingredients` des plats dédiés |
+| **Le plat cloné** | **aucun** plat dédié ne porte le **titre** d'un plat du foyer | comparer les titres deux à deux |
+| **Le plafond** | **aucun** `issue` de troncature de plats, et le dernier plat du foyer (dîner du dimanche) **présent** | `issues` + la grille |
+
+**Ce qui n'est pas mesurable ici, et c'est inchangé depuis C1** : rien ne
+*constate* la ressemblance au plan du foyer. La comparaison des titres se fait à
+la main, plan contre plan.
+
+### ② LA RÉCONCILIATION NE PERSISTE PLUS SUR UNE REQUÊTE REFUSÉE
+
+**Mesuré** : une ligne `student_goals` corrigée à **`17:30:59`** par un appel de
+`generate-meal-v1` qui a rendu **`400 window_beyond_this_week`**. Ce n'est **pas**
+une violation de C4 — la personne a agi, c'est sa ligne, `actor: "row_owner"` est
+juste — mais sa ligne bouge sur une requête qu'elle voit comme **échouée**.
+
+**Ce qui a été séparé, et rien d'autre.** `reconcileFoodPreferencesFor` **calcule
+et prépare** ; elle rend `{ constraints, pending }`. `persistReconciledFoodPreferences(pending)`
+**écrit**, et elle est appelée **après l'écriture du plan**, dans les trois
+générateurs. L'appel de réconciliation **n'a pas bougé d'une ligne** : il
+alimente toujours `constraintsForPrompt`, et les gardes tombent toujours **juste
+avant le modèle** (C2). C'est l'opération de C4 prise par l'autre bout — là,
+l'écriture ne devait **jamais** avoir lieu ; ici, elle doit avoir lieu **plus
+tard**.
+
+| Porte | Persiste après | Refus qui laissent désormais la ligne intacte |
+|---|---|---|
+| `generate-meal-v1` | `write_student_meal_plan` | `window_beyond_this_week`, `plan_overlaps_existing`, `plan_not_written`, panne de modèle |
+| `generate-week-plan-v1` | `.from("student_week_plans")` | `no_coach`, la ceinture mineur, panne de modèle, le 422 de parse |
+| `generate-household-meal-v1` | `write_student_meal_plan` | la garde de fenêtre, le 409, `safety_constraints_unreadable` |
+| `household_voices_io.ts` | **jamais** — et c'est C4 | `pending` y vaut **toujours `null`** (`actor: "someone_else"`) |
+
+**La preuve que C4 tient.** `actor` reste **requis** — aucun paramètre nouveau ne
+l'a rendu optionnel — et un test neuf ferme le trou que ce lot **crée** :
+*« C6 ② — C4 TIENT : pour un TIERS, il n'y a rien à persister non plus »*
+(`pending === null` sur `someone_else`). Sans lui, on aurait pu **préparer** une
+écriture pour la ligne d'un tiers et la laisser partir plus tard : C4 serait
+défait **sans qu'une seule assertion de C4 ne tombe**, parce que C4 ne regarde
+que ce qui se passe *pendant* la réconciliation. Un second test de source refuse
+`persistReconciledFoodPreferences` dans `household_voices_io.ts`, avec son cas
+qui passe (le fichier DOIT toujours nommer `reconcileFoodPreferencesFor` et
+`actor: "someone_else"`).
+
+**Le mode d'échec propre à ce lot, et ce qui l'attrape.** Séparer crée une façon
+de **perdre** l'écriture : un appelant qui oublie la seconde moitié. Le module ne
+peut pas s'en apercevoir, et rien ne tomberait. Un test de position par porte
+exige `persistReconciledFoodPreferences` **après** l'écriture du plan **et**
+`reconcileFoodPreferencesFor` **avant** le modèle.
+
+**UNE DÉCISION RENVERSÉE, et un test réécrit parce qu'il affirmait l'inverse.**
+Sur une écriture qui **lève**, la fonction rendait les contraintes **d'origine** ;
+elle rend désormais les **corrigées**. Trois raisons : ① ce fichier disait déjà le
+contraire à deux pas de là (`stale_snapshot`, C3 ②, rend les corrigées) ; ② la
+divergence prompt/base est le **cas nominal** depuis C4 ; ③ ce n'est plus
+décidable ici — les contraintes partent au prompt **avant** que l'écriture soit
+tentée. **Prix nommé** : la base garde une préférence démentie une génération de
+plus, et `reconcile_failed` le dit. **Retour arrière** : rendre `constraints` au
+lieu de `result.constraints` dans le `catch`, une ligne.
+
+### Les versions de prompt
+
+- **`HOUSEHOLD_PROMPT_VERSION` bump `v8_plan_gaps` → `v9_merge_dedicated_per_meal`.**
+  Règle de v4 appliquée telle quelle (« quelle **population** voit une consigne
+  différente ») : les **fusions**, et elles seules. Trois choses changent — la
+  ligne de forme du brief aux barreaux ②/③, le **nombre** écrit dans le bloc, et
+  un paragraphe de plus en fin de bloc. Un test refuse les **sept** versions
+  passées.
+- **`MEAL_PROMPT_VERSION` : inchangée**, bien que `COOKING_SHAPE_LINES` vive dans
+  le **tronc**. C'est le précédent écrit mot pour mot à l'aval de L4 : « la règle
+  n'est pas *où vit le code*, c'est *quelle population voit une consigne
+  différente* ». Les deux lignes touchées ne sont servies que sur un barreau
+  ②/③, et un barreau ②/③ n'existe que sur une fusion. **Le barreau ① rend la
+  ligne historique mot pour mot**, donc la lane individuelle, la composition
+  ordinaire et la défusion ne bougent pas d'un octet — trois tests le tiennent.
+- **C6 ② ne touche aucun octet de prompt** : la réconciliation alimente le prompt
+  exactement comme avant. Seule la **date** de l'écriture change.
+
+### Les 16 mutations — chacune cassée, vue rouge, restaurée
+
+**① (11) :** le paragraphe de C6 rendu vide (**4 rouges**) · `dedicatedDishesFor`
+ramené à la constante `1` · le budget qui ignore `dedicatedDishesAsked` (retour à
+C1) · `dedicatedDishesAsked` recâblé sur la matière, dans le générateur · la
+consigne recâblée sur la matière, dans le générateur · la ligne de forme du brief
+revenue à « Never more than two. » · la version **non bumpée** · le garde-fou du
+barreau ① désarmé — **le cas qui passe** · la phrase qui **ouvre la matière**
+retirée (**4 rouges**) · les axes du conflit **non nommés** (**2 rouges**) · le
+paragraphe de C6 placé **avant** l'ancre.
+
+**② (5) :** la réconciliation qui **écrit de nouveau elle-même** ·
+`generate-meal-v1` qui persiste **avant** les gardes (retour au défaut mesuré) ·
+`generate-week-plan-v1` qui **oublie** de persister · la lane des **voix** qui
+persiste la ligne d'un tiers (C4 défait) · la garde `actor` désarmée
+(`if (false && …)`, **2 rouges**).
+
+### Ce qui n'est pas prouvé, et ce qui reste ouvert
+
+1. **Aucun run réel, des deux côtés.** Aucun modèle n'a lu la consigne comptée ;
+   aucune requête n'a été refusée après une réconciliation. Les chiffres du
+   tableau ci-dessus attendent la campagne — **et c'est là qu'on me démentira**.
+2. **Le nombre de plats dédiés n'est pas plafonné par autre chose que `baseCap`.**
+   Sur une fenêtre de sept jours à cinq repas, la consigne réclamerait 35 plats
+   dédiés. Le budget les autorise (35 ≤ `baseCap`), et le prompt les demande. On
+   ne sait pas ce qu'un modèle fait d'une telle demande — un plafond « raisonnable »
+   aurait été un nombre inventé, ce que ce chantier refuse par lot.
+3. **`observeMergeShape` n'a pas bougé.** Il exige toujours **tous** les repas, et
+   il dira « non » tant que le modèle en manquera un. C'est voulu (C3 ⑥) : le
+   constat suit la consigne, la consigne suit le conflit.
+4. **La date décalée de C6 ② n'a toujours pas de mesure.** On ne sait pas combien
+   de requêtes échouent **après** la réconciliation, donc combien de corrections
+   attendent une génération de plus. `reconciled` / `reconcile_failed` les rendent
+   comptables ; personne ne les a comptées.
+5. **Deux rouges NON touchés, tous deux d'une autre lane vivante sur ce dépôt.**
+   Le **typecheck frontend** échoue sur `LandingPage.tsx` (118) et `HomePage.tsx`
+   (29) — des clés `landing.*` en cours de déplacement dans `i18n/`, fichiers
+   qu'aucune ligne de ce lot ne touche. Et `request_report_gate_test.ts`
+   (untracked, FF-061) porte une erreur de typage. **La suite keel est verte :
+   2 796 / 0.**
 
 ## Questions encore ouvertes
 

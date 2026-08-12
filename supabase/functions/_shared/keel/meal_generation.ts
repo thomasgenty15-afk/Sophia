@@ -51,6 +51,9 @@ import {
 } from "./safety_constraints.ts";
 import { findNumericTarget } from "./week_plan_generation.ts";
 import { normalizeForMatch } from "./forbidden_matcher.ts";
+// FF-061 — la ceinture de ton, jusqu'ici appliquée au seul message du soir et à
+// la relance. Le `why` d'un plat vient du même modèle et s'affiche à l'élève.
+import { findGuiltTripping } from "./reengagement.ts";
 import { mealBodyBlocks, type MealBodyContext } from "./meal_body.ts";
 import { type WeeklyAxis, WEEKLY_AXIS_LABELS_EN } from "./weekly_flow.ts";
 import {
@@ -850,6 +853,21 @@ export interface MergedEater {
    * ne voit pas est un budget qu'il remplit avec autre chose.
    */
   ownDishesShown: number;
+  /**
+   * C6 — COMBIEN DE PLATS DÉDIÉS LA CONSIGNE DE FUSION RÉCLAME.
+   *
+   * ⚠️ REQUIS, `T`, jamais `T?`. C'est la HUITIÈME fois que ce fichier écrit
+   * cette phrase. Depuis C6, `buildMergeBlock` ne demande plus « ADD ONE dish »
+   * mais un plat À CHAQUE REPAS de la personne reprise (mesuré: un seul plat
+   * pour neuf créneaux, la casserole commune 8 fois sur 9). Le budget qui
+   * comptait la seule MATIÈRE laisserait la consigne réclamer neuf plats dans
+   * un plafond ouvert pour six — et le parseur jette les DERNIERS, c'est-à-dire
+   * le dîner du dimanche du foyer.
+   *
+   * `0` aux barreaux ① (aucun plat dédié n'est demandé), et le bonus est nul de
+   * toute façon.
+   */
+  dedicatedDishesAsked: number;
 }
 
 /**
@@ -883,7 +901,14 @@ export function dishBudgetFor(args: {
 }): number {
   const base = dishCapFor(args.scope, args.rhythm, args.daysToFill);
   if (args.merge === null) return base;
-  return base + mergeDishBonus(args.merge.shape, args.merge.ownDishesShown, base);
+  return base + mergeDishBonus({
+    cooking: args.merge.shape,
+    ownDishesShown: args.merge.ownDishesShown,
+    // C6 — LE BUDGET SUIT CE QUE LA CONSIGNE RÉCLAME, pas seulement ce qu'elle
+    // montre. Voir `mergeDishBonus`.
+    dedicatedDishesAsked: args.merge.dedicatedDishesAsked,
+    baseCap: base,
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -2239,6 +2264,36 @@ export function parseGeneratedMeal(
       continue;
     }
 
+    // ── FF-061 · LA CULPABILISATION, GARDÉE ICI AUSSI ────────────────────
+    //
+    // `findGuiltTripping` existait et n'était appliqué qu'au message du soir et
+    // à la relance. Le `why` d'un plat est produit par le MÊME modèle, il est
+    // affiché à l'élève (`DishCard.tsx`), et il n'était gardé de ce côté par
+    // personne — le seul champ de prose libre du plan sans ceinture de ton.
+    //
+    // ── ON EFFACE LA PHRASE, ON NE JETTE PAS LE PLAT ─────────────────────
+    // Le plat est bon; c'est sa justification qui dérape. Le rejeter ferait
+    // perdre un dîner pour une tournure, et un générateur qui retire des repas
+    // pour un mot est un générateur qu'on désarme. Même geste que
+    // `household_restriction_lock.ts`, qui efface le `why` d'un plat plutôt que
+    // le plat.
+    //
+    // MESURÉ AVANT DE BRANCHER (2026-08-12): 1116 `why` déjà en base,
+    // **0 déclenchement**. La garde ne coûte rien aujourd'hui — elle attend le
+    // jour où le modèle dérive.
+    let safeWhy = why;
+    if (why) {
+      const guilt = findGuiltTripping(why);
+      if (guilt.length > 0) {
+        safeWhy = "";
+        issues.push(
+          `dishes[${i}]: guilt_tripping in why (${
+            guilt.map((g) => g.matchedText).join(" | ")
+          }) -- sentence dropped, dish kept`,
+        );
+      }
+    }
+
     // ── LES INGRÉDIENTS, ET LA GARANTIE 2 ───────────────────────────────
     const ingredients: DishIngredient[] = [];
     let numericInIngredients: string | null = null;
@@ -2347,7 +2402,8 @@ export function parseGeneratedMeal(
       day,
       ingredients,
       method,
-      why,
+      // FF-061: la phrase EFFACÉE quand elle culpabilise, jamais la brute.
+      why: safeWhy,
       honours_belief_keys: honours,
       uses,
     });

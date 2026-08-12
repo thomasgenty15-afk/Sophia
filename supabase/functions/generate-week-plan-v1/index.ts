@@ -19,7 +19,12 @@ import { resolveHouseholdIdFor } from "../_shared/keel/household_turn_context.ts
 import { GOAL_TOKENS, type GoalToken } from "../_shared/keel/tokens.ts";
 import { coachNotePromptBlock, loadCoachNote } from "../_shared/keel/coach_note.ts";
 import { constraintsForPrompt } from "../_shared/keel/food_preference_promotion.ts";
-import { reconcileFoodPreferencesFor } from "../_shared/keel/food_preference_promotion_io.ts";
+import {
+  // C6 ② — CALCULER ET PERSISTER SONT DEUX GESTES, ET LE SECOND ATTEND QUE
+  //         LA REQUÊTE ABOUTISSE.
+  persistReconciledFoodPreferences,
+  reconcileFoodPreferencesFor,
+} from "../_shared/keel/food_preference_promotion_io.ts";
 import { loadStudentSafetyConstraints } from "../_shared/keel/safety_constraints.ts";
 import { keelGenerationModel } from "../_shared/keel/generation_model.ts";
 // C3 ① — LE DROIT D'ACCÈS EST LU, JAMAIS APPLIQUÉ ICI.
@@ -251,7 +256,12 @@ Deno.serve(async (req) => {
     // ICI, avant tout lecteur de `practical_constraints`: la correction est
     // persistée, donc elle vaut aussi pour la carte, l'export et le
     // générateur de repas.
-    goalRow.practical_constraints = await reconcileFoodPreferencesFor({
+    // ⚠️ C6 ② — ON CALCULE ICI, ON ÉCRIT APRÈS LE PLAN. Cette porte-ci porte le
+    // même défaut que celui mesuré sur `generate-meal-v1` (une ligne corrigée
+    // par un appel qui a rendu 400): quatre refus tombent SOUS cet appel —
+    // `no_coach`, la garde mineur, la panne de modèle, le 422 de parse. La
+    // correction alimente le prompt comme avant; seule sa persistance attend.
+    const foodPreferences = await reconcileFoodPreferencesFor({
       admin,
       userId,
       constraints: (goalRow.practical_constraints ?? {}) as Record<string, unknown>,
@@ -262,6 +272,7 @@ Deno.serve(async (req) => {
       // correction ne serait jamais persistée nulle part.
       actor: "row_owner",
     });
+    goalRow.practical_constraints = foodPreferences.constraints;
 
     // --- LA MÉTHODE DU COACH, qui est une DOCTRINE et pas un programme -----
     //
@@ -706,6 +717,12 @@ Deno.serve(async (req) => {
       .select("id, week_start, status")
       .single();
     if (writeErr) throw writeErr;
+
+    // ── C6 ② · LA CORRECTION DE GOÛT S'ÉCRIT UNE FOIS LA SEMAINE ÉCRITE ───
+    // Le geste a produit quelque chose, donc la ligne de la personne peut
+    // bouger. Un `no_coach`, une garde mineur, une panne de modèle ou un 422 de
+    // parse laissent désormais `student_goals` intacte.
+    await persistReconciledFoodPreferences(foodPreferences.pending);
 
     return jsonResponse(req, {
       ok: true,

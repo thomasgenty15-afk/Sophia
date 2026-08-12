@@ -25,7 +25,31 @@ import {
   FOOD_PREFERENCES_KEY,
   FOOD_PREFERENCES_ORIGIN_KEY,
 } from "./food_preference_promotion.ts";
-import { reconcileFoodPreferencesFor } from "./food_preference_promotion_io.ts";
+import {
+  persistReconciledFoodPreferences,
+  reconcileFoodPreferencesFor,
+} from "./food_preference_promotion_io.ts";
+
+/**
+ * C6 ② — CALCULER PUIS PERSISTER, EN UN GESTE.
+ *
+ * ⚠️ CE N'EST PAS UN RACCOURCI DE CONFORT: c'est ce que fait un générateur dont
+ * la requête ABOUTIT, et c'est le comportement que la quasi-totalité de ce
+ * fichier décrit. Le lot C6 ② ne change pas CE QUI est écrit, il change QUAND —
+ * donc les cas de bout en bout restent exactement les mêmes, et les seuls tests
+ * qui appellent les deux moitiés séparément sont ceux qui parlent de l'ORDRE.
+ */
+async function reconcileAndPersist(args: {
+  admin: Parameters<typeof reconcileFoodPreferencesFor>[0]["admin"];
+  userId: string;
+  constraints: Record<string, unknown> | null | undefined;
+  source: string;
+  actor: "row_owner" | "someone_else";
+}): Promise<Record<string, unknown>> {
+  const out = await reconcileFoodPreferencesFor(args);
+  await persistReconciledFoodPreferences(out.pending);
+  return out.constraints;
+}
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const OLD = "aaaaaaaa-0000-4000-8000-000000000001";
@@ -146,7 +170,7 @@ Deno.test("LES IDS ENVOYÉS À POSTGRES SONT DES UUID, jamais [object Object]", 
       [OLD]: { id: OLD, status: "active", normalized_summary: "Likes broccoli" },
     },
   });
-  await reconcileFoodPreferencesFor({
+  await reconcileAndPersist({
     admin,
     userId: "u1",
     constraints: kept("Likes broccoli", OLD, "2026-07-06"),
@@ -180,7 +204,7 @@ Deno.test("LES REMPLAÇANTS SONT CHARGÉS, sinon la garde de plausibilité est m
       [NEW]: { id: NEW, status: "active", normalized_summary: "Theo hates broccoli" },
     },
   });
-  const out = await reconcileFoodPreferencesFor({
+  const out = await reconcileAndPersist({
     admin,
     userId: "u1",
     constraints: kept("Theo likes roasted broccoli", OLD, "2026-07-09"),
@@ -215,7 +239,7 @@ Deno.test("LE PRÉNOM EST LU, sinon toutes les paires paraissent liées", async 
       [NEW]: { id: NEW, status: "active", normalized_summary: "Theo hates broccoli" },
     },
   });
-  const out = await reconcileFoodPreferencesFor({
+  const out = await reconcileAndPersist({
     admin,
     userId: "u1",
     constraints: kept("Theo dislikes porridge for breakfast", OLD, "2026-07-13"),
@@ -243,7 +267,7 @@ Deno.test("RIEN À RÉCONCILIER: aucune lecture de memory_items", async () => {
     ]
   ) {
     const { admin, trace } = fakeAdmin({});
-    const out = await reconcileFoodPreferencesFor({
+    const out = await reconcileAndPersist({
       admin,
       userId: "u1",
       constraints,
@@ -264,7 +288,7 @@ Deno.test("RIEN N'A CHANGÉ: aucune écriture", async () => {
     },
   });
   const before = kept("Likes fish", OLD, "2026-07-06");
-  const out = await reconcileFoodPreferencesFor({
+  const out = await reconcileAndPersist({
     admin,
     userId: "u1",
     constraints: before,
@@ -282,7 +306,7 @@ Deno.test("FAIL-SOFT: une lecture qui échoue ne casse pas la génération", asy
   // un élève ne doit pas se voir refuser sa semaine pour une préférence.
   const { admin, trace } = fakeAdmin({ failItemsRead: true });
   const before = kept("Likes fish", OLD, "2026-07-06");
-  const out = await reconcileFoodPreferencesFor({
+  const out = await reconcileAndPersist({
     admin,
     userId: "u1",
     constraints: before,
@@ -294,10 +318,23 @@ Deno.test("FAIL-SOFT: une lecture qui échoue ne casse pas la génération", asy
   assertEquals(trace.rpcs.length, 0);
 });
 
-Deno.test("FAIL-SOFT: une écriture refusée rend les contraintes D'ORIGINE", async () => {
-  // Et surtout PAS les contraintes réconciliées: rendre un état qu'on n'a pas
-  // su persister ferait diverger le prompt de la base, et l'écart ne serait
-  // visible nulle part.
+Deno.test("FAIL-SOFT: une écriture qui LÈVE ne casse rien, et le prompt reste corrigé", async () => {
+  // ⚠️ CE TEST AFFIRMAIT L'INVERSE AVANT C6 ②, ET C'EST LA SEULE CHOSE QUE CE
+  // LOT RENVERSE. Il exigeait les contraintes D'ORIGINE au motif que « rendre
+  // un état qu'on n'a pas su persister ferait diverger le prompt de la base ».
+  //
+  // TROIS RAISONS DE RENVERSER, ET LA TROISIÈME SUFFIT:
+  //   ① ce fichier disait DÉJÀ le contraire à deux pas d'ici — sur une copie
+  //      périmée (`stale_snapshot`, C3 ②), la version corrigée est rendue, au
+  //      motif exactement inverse: « une préférence rétractée n'a pas à être
+  //      servie au modèle parce qu'une course a empêché de l'effacer ». Deux
+  //      échecs d'écriture, deux réponses opposées;
+  //   ② la divergence est le CAS NOMINAL depuis C4: pour un tiers, on corrige
+  //      le prompt sans jamais écrire, et c'est la règle du lot;
+  //   ③ et depuis C6 ②, ce n'est plus décidable ici: les contraintes partent au
+  //      prompt AVANT que l'écriture soit tentée. Le prix est nommé — la base
+  //      garde une préférence démentie une génération de plus, et le journal le
+  //      dit (`reconcile_failed`).
   const { admin } = fakeAdmin({
     failWrite: true,
     itemsById: {
@@ -311,14 +348,17 @@ Deno.test("FAIL-SOFT: une écriture refusée rend les contraintes D'ORIGINE", as
     },
   });
   const before = kept("Theo likes roasted broccoli", OLD, "2026-07-09");
-  const out = await reconcileFoodPreferencesFor({
+  const out = await reconcileAndPersist({
     admin,
     userId: "u1",
     constraints: before,
     source: "test",
     actor: "row_owner",
   });
-  assertEquals(out, before);
+  // LE PROMPT DE CE RUN-CI EST CORRIGÉ: la ligne démentie ne part pas au
+  // modèle. C'est la même réponse que sur la copie périmée.
+  assertEquals(out[FOOD_PREFERENCES_KEY], []);
+  assert(out !== before, "la correction n'a pas été appliquée du tout");
 });
 
 Deno.test("un profil illisible ne bloque PAS la réconciliation", async () => {
@@ -338,7 +378,7 @@ Deno.test("un profil illisible ne bloque PAS la réconciliation", async () => {
       [NEW]: { id: NEW, status: "active", normalized_summary: "Theo hates broccoli" },
     },
   });
-  const out = await reconcileFoodPreferencesFor({
+  const out = await reconcileAndPersist({
     admin,
     userId: "u1",
     constraints: kept("Theo likes roasted broccoli", OLD, "2026-07-09"),
@@ -374,7 +414,7 @@ Deno.test("C3 ② — LA COLONNE N'EST PLUS ÉCRASÉE: deux clés, et le témoin
   // l'écriture: c'est très exactement celle qu'un titulaire perdait.
   before.eating_rhythm = [{ slot: "dinner" }];
 
-  await reconcileFoodPreferencesFor({
+  await reconcileAndPersist({
     admin,
     userId: "u1",
     constraints: before,
@@ -413,7 +453,7 @@ Deno.test("C3 ② — UNE COPIE PÉRIMÉE NE RÉESSAIE PAS, et la génération c
       [NEW]: { id: NEW, status: "active", normalized_summary: "Theo hates broccoli" },
     },
   });
-  const out = await reconcileFoodPreferencesFor({
+  const out = await reconcileAndPersist({
     admin,
     userId: "u1",
     constraints: kept("Theo likes roasted broccoli", OLD, "2026-07-09"),
@@ -429,6 +469,10 @@ Deno.test("C3 ② — UNE COPIE PÉRIMÉE NE RÉESSAIE PAS, et la génération c
 
 Deno.test("C3 ② — UNE ÉCRITURE QUI ÉCHOUE NE CASSE PAS LA GÉNÉRATION", async () => {
   // Même posture que la lecture: ce sont des goûts, pas des allergies.
+  //
+  // ⚠️ C6 ② — ET DEPUIS CE LOT, ELLE NE PEUT PLUS RIEN CASSER DU TOUT: le plan
+  // est déjà écrit quand elle est tentée. `persistReconciledFoodPreferences`
+  // avale et journalise, et l'appelant ne reçoit rien à traiter.
   const { admin } = fakeAdmin({
     failWrite: true,
     itemsById: {
@@ -442,15 +486,17 @@ Deno.test("C3 ② — UNE ÉCRITURE QUI ÉCHOUE NE CASSE PAS LA GÉNÉRATION", a
     },
   });
   const before = kept("Theo likes roasted broccoli", OLD, "2026-07-09");
-  const out = await reconcileFoodPreferencesFor({
+  const out = await reconcileAndPersist({
     admin,
     userId: "u1",
     constraints: before,
     source: "test",
     actor: "row_owner",
   });
-  // Le filet rend les contraintes D'ORIGINE, pas une moitié de correction.
-  assertEquals(out, before);
+  // Le prompt reçoit la correction — voir le test renversé plus haut. Ce qui
+  // compte ici est qu'AUCUNE exception ne remonte.
+  assertEquals(out[FOOD_PREFERENCES_KEY], []);
+  assert(out !== before);
 });
 
 // ---------------------------------------------------------------------------
@@ -484,7 +530,7 @@ Deno.test("C4 — POUR LA LIGNE D'UN TIERS: la correction s'applique, RIEN ne s'
   // disparu. La correction, elle, vaut pour le prompt de CE run.
   const { admin, trace } = fakeAdmin(retractedDecor());
   const before = kept("Theo hates broccoli", OLD, "2026-08-01");
-  const out = await reconcileFoodPreferencesFor({
+  const out = await reconcileAndPersist({
     admin,
     userId: "u-zoe",
     constraints: before,
@@ -510,7 +556,7 @@ Deno.test("C4 — LE CAS QUI PASSE: sur SA PROPRE ligne, la correction S'ÉCRIT"
   // deux autres générateurs continuent de la montrer. Même décor, même
   // rétractation: seul `actor` change.
   const { admin, trace } = fakeAdmin(retractedDecor());
-  const out = await reconcileFoodPreferencesFor({
+  const out = await reconcileAndPersist({
     admin,
     userId: "u-zoe",
     constraints: kept("Theo hates broccoli", OLD, "2026-08-01"),
@@ -537,7 +583,7 @@ Deno.test("C4 — RIEN N'A CHANGÉ POUR UN TIERS: on ne rend pas un objet neuf",
     },
   });
   const before = kept("Theo hates broccoli", OLD, "2026-08-01");
-  const out = await reconcileFoodPreferencesFor({
+  const out = await reconcileAndPersist({
     admin,
     userId: "u-zoe",
     constraints: before,
@@ -547,4 +593,111 @@ Deno.test("C4 — RIEN N'A CHANGÉ POUR UN TIERS: on ne rend pas un objet neuf",
   assertEquals(out, before);
   assertEquals(trace.rpcs, []);
   assertEquals(trace.updates, []);
+});
+
+// ---------------------------------------------------------------------------
+// C6 ② — LA LIGNE NE BOUGE PLUS SUR UNE REQUÊTE REFUSÉE
+//
+// ⚠️ MESURÉ EN HTTP RÉEL LE 2026-08-12: une ligne `student_goals` corrigée à
+// `17:30:59` par un appel de `generate-meal-v1` qui a rendu
+// `400 window_beyond_this_week`. La personne a bien agi — ce n'est PAS une
+// violation de C4 — mais sa ligne bouge sur une requête qu'elle voit comme
+// échouée, et rien à l'écran ne le lui dit.
+// ---------------------------------------------------------------------------
+
+Deno.test("C6 ② — LA RÉCONCILIATION N'ÉCRIT PLUS RIEN TOUTE SEULE", async () => {
+  // ⚠️ C'EST TOUT LE LOT, ET C'EST LA MOITIÉ QU'ON PEUT PROUVER ICI: appelée
+  // seule, la fonction corrige et NE TOUCHE PAS LA BASE. Un refus posé après
+  // elle — les deux gardes de fenêtre, le 409 de la RPC, une panne de modèle —
+  // laisse donc `student_goals` exactement comme elle était.
+  const { admin, trace } = fakeAdmin(retractedDecor());
+  const out = await reconcileFoodPreferencesFor({
+    admin,
+    userId: "u-zoe",
+    constraints: kept("Theo hates broccoli", OLD, "2026-08-01"),
+    source: "test",
+    actor: "row_owner",
+  });
+  // ① LE PROMPT EST CORRIGÉ TOUT DE SUITE — rien de ce que C4 a gagné ne bouge.
+  assertEquals(out.constraints[FOOD_PREFERENCES_KEY], []);
+  // ② ET LA BASE N'A PAS ÉTÉ TOUCHÉE.
+  assertEquals(trace.rpcs, [], "la réconciliation écrit encore toute seule");
+  assertEquals(trace.updates, []);
+  // ③ MAIS L'ÉCRITURE EST PRÊTE, avec le témoin de concurrence de C3 ② figé sur
+  //    la valeur LUE — pas sur celle qu'on écrit, sinon le prédicat serait
+  //    toujours faux et la fonction n'écrirait plus jamais.
+  assert(out.pending !== null, "rien n'a été préparé: la correction est perdue");
+  assertEquals(out.pending?.userId, "u-zoe");
+  assertEquals(out.pending?.expected, ["Theo hates broccoli"]);
+  assertEquals(out.pending?.preferences, []);
+
+  // ── ET LE CAS QUI PASSE, DANS LE MÊME TEST ────────────────────────────
+  // Sans lui, « n'écrit plus toute seule » et « n'écrit plus jamais » sont le
+  // même zéro. La requête aboutit: on persiste, et la ligne bouge.
+  await persistReconciledFoodPreferences(out.pending);
+  assertEquals(trace.rpcs.length, 1);
+  assertEquals(trace.rpcs[0].name, "keel_write_food_preferences");
+  assertEquals(trace.rpcs[0].params.p_expected, ["Theo hates broccoli"]);
+  assertEquals(trace.rpcs[0].params.p_preferences, []);
+});
+
+Deno.test("C6 ② — C4 TIENT: pour un TIERS, il n'y a rien à persister non plus", async () => {
+  // ⚠️ LE PIÈGE DE CE LOT. En rendant l'écriture différée, on pourrait très
+  // bien préparer une écriture pour la ligne d'un tiers et la laisser partir
+  // plus tard: C4 serait défait sans qu'une seule assertion de C4 tombe, parce
+  // que C4 ne regarde que ce qui se passe PENDANT la réconciliation.
+  const { admin, trace } = fakeAdmin(retractedDecor());
+  const out = await reconcileFoodPreferencesFor({
+    admin,
+    userId: "u-zoe",
+    constraints: kept("Theo hates broccoli", OLD, "2026-08-01"),
+    source: "test",
+    actor: "someone_else",
+  });
+  assertEquals(out.constraints[FOOD_PREFERENCES_KEY], [], "la correction doit s'appliquer");
+  assertEquals(
+    out.pending,
+    null,
+    "une écriture a été PRÉPARÉE pour la ligne de quelqu'un d'autre: C4 est " +
+      "défait par la porte de derrière.",
+  );
+  // Et la persister ne fait rien, même si un appelant l'appelle quand même.
+  await persistReconciledFoodPreferences(out.pending);
+  assertEquals(trace.rpcs, []);
+  assertEquals(trace.updates, []);
+});
+
+Deno.test("C6 ② — `pending` EST `null` QUAND IL N'Y A RIEN À ÉCRIRE", async () => {
+  // Trois chemins y mènent, et aucun n'est un incident. Les confondre ferait
+  // journaliser le cas nominal.
+  const unchanged = await reconcileFoodPreferencesFor({
+    admin: fakeAdmin({
+      itemsById: {
+        [OLD]: { id: OLD, status: "active", normalized_summary: "Likes fish" },
+      },
+    }).admin,
+    userId: "u1",
+    constraints: kept("Likes fish", OLD, "2026-07-06"),
+    source: "test",
+    actor: "row_owner",
+  });
+  assertEquals(unchanged.pending, null, "rien n'a changé");
+
+  const nothingKept = await reconcileFoodPreferencesFor({
+    admin: fakeAdmin({}).admin,
+    userId: "u1",
+    constraints: {},
+    source: "test",
+    actor: "row_owner",
+  });
+  assertEquals(nothingKept.pending, null, "aucune préférence gardée");
+
+  const unreadable = await reconcileFoodPreferencesFor({
+    admin: fakeAdmin({ failItemsRead: true }).admin,
+    userId: "u1",
+    constraints: kept("Likes fish", OLD, "2026-07-06"),
+    source: "test",
+    actor: "row_owner",
+  });
+  assertEquals(unreadable.pending, null, "la mémoire est illisible");
 });

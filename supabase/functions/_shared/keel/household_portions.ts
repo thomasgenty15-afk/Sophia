@@ -339,16 +339,36 @@ const COOKING_SHAPE_LINES: Record<CookingShape, readonly string[]> = {
   one_dish: [
     "Cook ONE set of preparations for everyone. Do NOT propose separate dishes.",
   ],
+  // ── C6 · « UN SECOND PLAT » SE LISAIT « UN POUR LA SEMAINE » ────────────
+  //
+  // MESURÉ LE 2026-08-12, créneau par créneau: barreau ② demandé sur un conflit
+  // à DEUX axes (`protein:larger_above_table` + `starch:larger_above_table`),
+  // NEUF repas pour la personne reprise, et le modèle a rendu UN seul plat
+  // dédié. Elle a mangé la casserole commune 8 fois sur 9 — c'est-à-dire
+  // très exactement ce que le barreau existe pour interdire, huit fois.
+  //
+  // « give them a SECOND dish […] Never more than two » est une lecture
+  // parfaitement raisonnable de ce qu'on avait écrit: UN plat, deux au total,
+  // pour toute la fenêtre. Le compte est désormais PAR REPAS, et « never more
+  // than two » devient ce qu'il voulait dire — deux plats à un même repas, pas
+  // deux plats dans la semaine.
+  //
+  // ⚠️ LE NOMBRE EXACT N'EST PAS ICI: il vit dans `buildMergeBlock`, qui est le
+  // seul endroit à connaître la personne et ses repas. Deux copies d'un même
+  // nombre dont une seule reçoit la modification est le défaut que ce dépôt
+  // documente le plus souvent.
   one_session: [
     "Cook ONE set of preparations for the table. ONE person below cannot be",
-    "served from it (their line says so): give them a SECOND dish, cooked in",
-    "the SAME cooking session as the rest — one session at the stove, two",
-    "dishes out of it. Never more than two.",
+    "served from it (their line says so): at EVERY meal they eat here they get",
+    "a dish of their OWN, cooked in the SAME cooking session as the rest — one",
+    "session at the stove, the table's dish and theirs out of it. Two dishes at",
+    "any one meal, never three.",
   ],
   separate_sessions: [
     "Cook ONE set of preparations for the table. ONE person below cannot be",
     "served from it (their line says so) and cannot share the session either:",
-    "their dishes are cooked in their OWN session, on their own day.",
+    "at EVERY meal they eat here they get a dish of their OWN, cooked in their",
+    "OWN session, on their own day.",
   ],
 };
 
@@ -406,15 +426,78 @@ export function asksForASecondDish(cooking: CookingShape): boolean {
  * celui-ci). Le plafond de base est la borne JUSTE de toute façon — 42 lignes
  * de matière sur une fenêtre de trois jours resteraient trois jours de repas.
  */
-export function mergeDishBonus(
+export function mergeDishBonus(args: {
+  cooking: CookingShape;
+  /** La matière du plan personnel, telle que le modèle la VOIT. */
+  ownDishesShown: number;
+  /**
+   * C6 — COMBIEN DE PLATS DÉDIÉS LA CONSIGNE RÉCLAME VRAIMENT.
+   *
+   * ⚠️ REQUIS, jamais optionnel, et c'est la moitié du lot. Le budget valait
+   * « ce qu'on montre »; depuis C6 la consigne réclame UN plat PAR REPAS de la
+   * personne reprise, et ce nombre-là n'a aucune raison d'être celui de sa
+   * matière — une fusion dont la fenêtre recomposée déborde son plan personnel
+   * (L10 ①) montre MOINS de plats qu'elle n'a de repas. Sans ce champ, le
+   * modèle recevrait « neuf plats pour elle » et un plafond ouvert pour six:
+   * le parseur jetterait les DERNIERS plats de la liste, et on a déjà mesuré ce
+   * que ça coûte — le dîner du dimanche du foyer, perdu en silence.
+   */
+  dedicatedDishesAsked: number;
+  baseCap: number;
+}): number {
+  if (!asksForASecondDish(args.cooking)) return 0;
+  const shown = Number.isFinite(args.ownDishesShown)
+    ? Math.floor(args.ownDishesShown)
+    : 0;
+  const asked = Number.isFinite(args.dedicatedDishesAsked)
+    ? Math.floor(args.dedicatedDishesAsked)
+    : 0;
+  const ceiling = Number.isFinite(args.baseCap)
+    ? Math.max(1, Math.floor(args.baseCap))
+    : 1;
+  // LE PLUS GRAND DES DEUX, ET JAMAIS LE PLUS PETIT. Le budget doit couvrir ce
+  // que la consigne DEMANDE (`asked`) sans jamais retirer la place qu'elle
+  // MONTRE (`shown`): prendre `asked` seul rétrécirait le budget de toute
+  // fusion dont le plan personnel est plus bavard que son rythme, et un budget
+  // qui rétrécit est exactement le défaut mesuré, par l'autre bout.
+  return Math.max(1, Math.min(Math.max(shown, asked), ceiling));
+}
+
+/**
+ * C6 — COMBIEN DE PLATS DÉDIÉS ON DEMANDE, ET D'OÙ LE NOMBRE VIENT.
+ *
+ * ⚠️ MESURÉ LE 2026-08-12: barreau ② demandé, conflit sur DEUX axes
+ * (`protein:larger_above_table` + `starch:larger_above_table`), NEUF repas pour
+ * la personne reprise — et UN seul plat dédié rendu. Elle a mangé la casserole
+ * commune 8 fois sur 9.
+ *
+ * ── LE NOMBRE N'EST PAS UNE CONSTANTE, ET CE N'EST PAS UN SEUIL INVENTÉ ────
+ * C'est le DÉNOMINATEUR du constat de forme (`observeMergeShape`, C3 ⑥): ses
+ * repas à elle sur la fenêtre écrite, résolus par `memberMealCells`. La mesure
+ * qui juge le plan est donc la mesure que la consigne réclame — toute autre
+ * valeur rendrait `honoured: false` par construction, et un constat qui ne peut
+ * pas être satisfait ne constate rien.
+ *
+ * ── POURQUOI *TOUS* SES REPAS, ET PAS « CEUX OÙ LE CONFLIT MORD » ─────────
+ * Parce que le conflit ne mord pas par créneau: c'est une DIRECTION DE SERVICE
+ * (D6), et L4 a tranché que le barreau se décide « pour la table entière, pas
+ * par créneau ». Une direction qui dépasse la casserole la dépasse à chaque
+ * fois qu'on sert. Les axes en conflit disent ce qui doit CHANGER dans son
+ * plat; ils ne disent pas combien de fois on la sert.
+ *
+ * ── LE PLANCHER EST UN, ET IL RESTE ──────────────────────────────────────
+ * `eaterMeals = 0` est déjà refusé bien avant le modèle
+ * (`merge_member_away_all_window`). S'il arrivait quand même, rendre 0 ferait
+ * un prompt qui réclame un plat dédié (la ligne de forme) avec un budget qui
+ * n'en ouvre aucun — la contradiction exacte que L4 a payée.
+ */
+export function dedicatedDishesFor(
   cooking: CookingShape,
-  ownDishesShown: number,
-  baseCap: number,
+  eaterMeals: number,
 ): number {
   if (!asksForASecondDish(cooking)) return 0;
-  const shown = Number.isFinite(ownDishesShown) ? Math.floor(ownDishesShown) : 0;
-  const ceiling = Number.isFinite(baseCap) ? Math.max(1, Math.floor(baseCap)) : 1;
-  return Math.max(1, Math.min(shown, ceiling));
+  const meals = Number.isFinite(eaterMeals) ? Math.floor(eaterMeals) : 0;
+  return Math.max(1, meals);
 }
 
 /**

@@ -218,8 +218,35 @@ import {
  * prompt n'a pas de compilateur.
  *
  * `MEAL_PROMPT_VERSION` ne bouge pas: rien de C2 n'entre dans le tronc.
+ *
+ * ── v9 (2026-08-12) — LE PLAT DÉDIÉ SE COMPTE, ET LA MATIÈRE S'OUVRE (C6) ──
+ *
+ * La règle de v4 s'applique telle quelle (« quelle POPULATION voit une consigne
+ * différente »): **les fusions**, et elles seules. Trois choses changent dans le
+ * texte servi, et chacune se mesure:
+ *
+ *   · la ligne de forme du brief de portions (`COOKING_SHAPE_LINES`, barreaux
+ *     ② et ③) ne dit plus « give them a SECOND dish […] Never more than two »
+ *     mais un plat À CHAQUE REPAS. Le barreau ① est byte-identique, donc toute
+ *     composition ordinaire et toute défusion aussi;
+ *   · `buildMergeBlock` écrit le NOMBRE de plats dédiés au lieu de « ADD ONE
+ *     dish » (mesuré: un seul plat pour neuf créneaux, la casserole commune 8
+ *     fois sur 9);
+ *   · un paragraphe de plus, EN DERNIER, qui dit que l'ancre n'annule pas ces
+ *     plats-là et qu'ils se construisent avec les aliments de la personne
+ *     (mesuré: le seul plat « neuf » d'une fusion réelle était le
+ *     petit-déjeuner du foyer en portion simple, zéro aliment de son plan dans
+ *     les 37 lignes de courses).
+ *
+ * ⚠️ POURQUOI PAS `MEAL_PROMPT_VERSION`, alors que `COOKING_SHAPE_LINES` vit
+ * dans le TRONC. Exactement le précédent écrit dans `meal_generation.ts` à
+ * l'aval de L4: « la règle n'est pas où vit le code, c'est quelle population
+ * voit une consigne différente ». Les deux lignes touchées ne sont servies que
+ * sur un barreau ②/③, et un barreau ②/③ n'existe que sur une fusion. Bumper le
+ * tronc re-stamperait toute la population individuelle pour un texte qu'elle ne
+ * voit jamais.
  */
-export const HOUSEHOLD_PROMPT_VERSION = "v8_plan_gaps";
+export const HOUSEHOLD_PROMPT_VERSION = "v9_merge_dedicated_per_meal";
 
 export interface HouseholdRestriction {
   memberId: string;
@@ -329,6 +356,24 @@ export interface HouseholdMergePrompt {
    * transmet — mesuré sur la défusion, qui obéit 14/14 à la même phrase.
    */
   gaps: readonly ShownPlanGap[];
+  /**
+   * C6 — COMBIEN DE PLATS DÉDIÉS LA CONSIGNE RÉCLAME. `0` au barreau ①.
+   *
+   * ⚠️ REQUIS: sans lui, la consigne retomberait sur « ADD ONE dish », qui a
+   * été lu « un pour la fenêtre » — un seul plat dédié pour NEUF créneaux, et
+   * la personne reprise servie de la casserole commune 8 fois sur 9, malgré un
+   * conflit de direction sur DEUX axes.
+   */
+  dedicatedDishes: number;
+  /**
+   * C6 — LES AXES DU CONFLIT (`mergeLadder().conflicts`). `[]` au barreau ①.
+   *
+   * ⚠️ REQUIS: c'est ce qui dit CE QUI doit être différent dans le plat dédié.
+   * Sans lui, « fais-lui un plat » se satisfait du plat du foyer servi en
+   * portion simple — mesuré le 2026-08-12, zéro aliment de son plan dans les
+   * plats comme dans les 37 lignes de courses.
+   */
+  conflicts: readonly string[];
 }
 
 /** Ce que la défusion apporte au prompt (D8). Voir `buildUnmergeBlock`. */
