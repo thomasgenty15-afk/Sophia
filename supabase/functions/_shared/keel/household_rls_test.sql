@@ -34,6 +34,11 @@
 --  16. allergie et règle de maison sont dans DEUX tables         -> 0 / 0 / 1 (lot 4)
 --  17. le prénom et la date se corrigent, par la bonne personne  -> ok / not_your_line
 --  18. poser la date fait passer `unknown` à `adult`             -> 1         (lot 4)
+--  18bis. LA DATE D'« ABOUT YOU » (`profiles.birth_date`) fait     -> 1 × 5    (D18/L9)
+--      autorité pour une bouche AVEC COMPTE, la fiche du maître
+--      reste le repli, un profil aberrant n'éteint pas un âge
+--      connu, le ROSTER le rend, et une bouche SANS compte ne
+--      bouge pas d'un pouce                                      (§57a→57e)
 --  19. l'invitation VISE une bouche, et le lien la nomme         -> ok / Lea  (lot 6)
 --  20. on n'invite ni une ligne déjà réclamée ni un voisin       -> already_claimed / not_a_member
 --  21. `anon` LIT l'invitation, et rien d'autre du foyer         -> valid     (lot 6)
@@ -796,6 +801,77 @@ select pg_temp.assert_eq('56 après: elle est adulte, et son objectif s''appliqu
   (select count(*) from public.household_members
     where user_id = 'f0ed0000-0000-0000-0000-000000000004'
       and public.keel_household_member_age(member_id) = 'adult'), 1);
+
+-- ---------------------------------------------------------------------------
+-- 57. D18 (L9) — LA DATE D'« ABOUT YOU » ARRIVE JUSQU'À L'ASSIETTE
+-- ---------------------------------------------------------------------------
+--
+-- `profiles.birth_date` est la colonne que l'écran « About you » (/app/plan)
+-- remplit depuis toujours. Jusqu'au 2026-08-12, `keel_household_member_age` ne
+-- la lisait PAS: un titulaire qui répondait là où le produit lui demande sa
+-- date restait `unknown` à sa propre table, donc `goalApplies` refusait, donc
+-- SON OBJECTIF DÉCLARÉ N'ATTEIGNAIT JAMAIS SON ASSIETTE — sans un mot.
+--
+-- Les quatre cas ci-dessous sont ceux qui SÉPARENT la règle livrée de ses
+-- voisines plausibles. Le décor est `Sansage` (0004): sa fiche porte
+-- '1992-03-15' depuis 55, et son profil est vide.
+select pg_temp.become_super();
+
+-- 57a. LE PROFIL GAGNE SUR LA FICHE. Sans cette assertion, « la fiche d'abord,
+--      le profil à défaut » passerait aussi — et personne ne pourrait corriger
+--      chez lui ce que le maître a mal saisi.
+update public.profiles set birth_date = current_date - interval '10 years'
+ where id = 'f0ed0000-0000-0000-0000-000000000004';
+select pg_temp.assert_eq('57a profil (10 ans) contre fiche (adulte): le profil gagne',
+  (select count(*) from public.household_members
+    where user_id = 'f0ed0000-0000-0000-0000-000000000004'
+      and public.keel_household_member_age(member_id) = 'minor'), 1);
+
+-- 57b. UN PROFIL ABERRANT N'ÉTEINT PAS UN ÂGE CONNU. `profiles.birth_date`
+--      n'a AUCUN CHECK en base: un doigt qui glisse sur le siècle ne doit pas
+--      débrancher une direction d'objectif qui marchait hier.
+update public.profiles set birth_date = current_date + 1
+ where id = 'f0ed0000-0000-0000-0000-000000000004';
+select pg_temp.assert_eq('57b profil FUTUR: on retombe sur la fiche, adulte',
+  (select count(*) from public.household_members
+    where user_id = 'f0ed0000-0000-0000-0000-000000000004'
+      and public.keel_household_member_age(member_id) = 'adult'), 1);
+
+-- 57c. LE TROU QUE L9 COMBLE: la date est dans « About you » et NULLE PART
+--      ailleurs. C'est le cas nominal du maître, et il rendait `unknown`.
+update public.household_members set birth_date = null
+ where user_id = 'f0ed0000-0000-0000-0000-000000000004';
+update public.profiles set birth_date = date '1985-04-02'
+ where id = 'f0ed0000-0000-0000-0000-000000000004';
+select pg_temp.assert_eq('57c « About you » seul suffit: adulte',
+  (select count(*) from public.household_members
+    where user_id = 'f0ed0000-0000-0000-0000-000000000004'
+      and public.keel_household_member_age(member_id) = 'adult'), 1);
+
+-- 57d. ET LE ROSTER LE DIT, parce que c'est LUI que `generate-household-meal-v1`
+--      lit. La fonction d'âge pourrait être juste et la colonne du roster figée.
+select pg_temp.assert_eq('57d le roster serveur rend « adult » pour cette bouche',
+  (select count(*) from public.keel_household_roster_for(
+                          'f0ed0000-0000-0000-0000-000000000001') r
+    where r.user_id = 'f0ed0000-0000-0000-0000-000000000004'
+      and r.age_state = 'adult'), 1);
+
+-- 57e. LA BOUCHE SANS COMPTE NE BOUGE PAS. Elle n'a pas de profil: sa fiche
+--      est et reste sa seule source. `Lea` est mineure depuis le lot 4.
+select pg_temp.assert_eq('57e une bouche SANS COMPTE reste jugée sur sa fiche',
+  (select count(*) from public.household_members
+    where household_id = public.keel_household_of(
+                           'f0ed0000-0000-0000-0000-000000000001')
+      and user_id is null
+      and first_name = 'Lea'
+      and public.keel_household_member_age(member_id) = 'minor'), 1);
+
+-- LE DÉCOR EST REPOSÉ. Les sections suivantes purgent ce compte et comptent des
+-- bouches: leur laisser une date de profil changerait leur sujet sans le dire.
+update public.profiles set birth_date = null
+ where id = 'f0ed0000-0000-0000-0000-000000000004';
+update public.household_members set birth_date = date '1992-03-15'
+ where user_id = 'f0ed0000-0000-0000-0000-000000000004';
 
 -- ---------------------------------------------------------------------------
 -- 12–13 + 60–72. L'INVITATION EST UNE RÉCLAMATION DE PROFIL (lot 6)

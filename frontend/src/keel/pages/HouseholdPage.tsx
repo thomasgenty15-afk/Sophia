@@ -6,6 +6,7 @@ import {
   addHouseholdMember,
   addRestriction,
   type AllergyView,
+  birthDateDoor,
   claimableMembers,
   createHousehold,
   createOwnerGoalRow,
@@ -37,6 +38,7 @@ import {
   setMemberBirthDate,
   setMemberGoal,
   setMemberName,
+  setOwnBirthDate,
   submitEnvy,
 } from "../api/household";
 import { addDays, weekStartFor } from "../api/dates";
@@ -428,7 +430,21 @@ export default function HouseholdPage(): React.ReactElement {
         if (!named.ok) return named;
       }
       if (patch.birthDate) {
-        const dated = await setMemberBirthDate(member.memberId, patch.birthDate);
+        // ── D18 (L9) · MA DATE VA DANS MON PROFIL, PAS SUR MA FICHE ────────
+        //
+        // Depuis 20260812180000, l'âge d'une bouche QUI A UN COMPTE se résout
+        // sur `profiles.birth_date` d'abord. Écrire la mienne sur ma fiche de
+        // foyer ferait un champ qui enregistre et ne change rien dès que mon
+        // « about you » porte une date — donc un champ décoratif, exactement
+        // ce que ce chantier répare partout ailleurs.
+        //
+        // ⚠️ SEULEMENT LA MIENNE. RLS ne laisse écrire que son propre profil:
+        // pour la date de quelqu'un d'autre — un enfant, un conjoint qui n'est
+        // jamais passé par son écran — la fiche reste la seule porte, et le
+        // repli SQL la fait compter.
+        const dated = birthDateDoor(member, opts.userId) === "own_profile"
+          ? await setOwnBirthDate(opts.userId, patch.birthDate)
+          : await setMemberBirthDate(member.memberId, patch.birthDate);
         if (!dated.ok) return dated;
       }
       // D1 (2026-08-11) — `keel_household_set_member_goal` REFUSE désormais
@@ -537,7 +553,13 @@ function MouthFields(
       </Field>
       <Field
         label={t("household.member.birth_date")}
-        hint={showKeptDateHint
+        // D18 — SUR MA PROPRE LIGNE, CE CHAMP EST CELUI DE MON « ABOUT YOU »:
+        // il écrit `profiles.birth_date` (voir `saveMember`). Le dire évite la
+        // question qui suit sinon — « faut-il la remettre là-bas ? » — et la
+        // réponse fausse qui va avec.
+        hint={mine
+          ? t("household.member.birth_date_mine")
+          : showKeptDateHint
           ? t("household.member.birth_date_kept")
           : t("household.member.birth_date_hint")}
       >

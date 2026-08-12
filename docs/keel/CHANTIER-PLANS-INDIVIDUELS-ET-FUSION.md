@@ -51,7 +51,7 @@ prennent la main, et les comptes individuels sans foyer.
 | **D15** | **La fusion opère sur l'INTERSECTION des fenêtres.** Un secondaire peut couvrir mercredi→dimanche quand le foyer couvre lundi→dimanche. Elle s'arrête d'elle-même là où les fenêtres divergent. | ✅ livré (L4) |
 | **D16** | **Le pivot est le premier jour non encore consommé**, pas la date de courses. Une fusion ne touche que les jours à venir, et la proposition le dit : *« son plan couvre 5 jours, dont 2 déjà passés — je peux fusionner les 3 restants. »* | ✅ livré (L4) |
 | **D17** | Un réglage **discret** permet au maître de ne plus se voir proposer la fusion pour une personne donnée. Assumé comme un peu brutal, donc caché. | ✅ livré (L5) |
-| **D18** | La date de naissance : **sur la fiche de la bouche** pour qui n'a pas de compte, et dans **« about you »** pour le maître. Pas à l'inscription. | ⬜ à faire |
+| **D18** | La date de naissance : **sur la fiche de la bouche** pour qui n'a pas de compte, et dans **« about you »** pour le maître. Pas à l'inscription. | ✅ livré (L9) |
 
 ## L'état réel — ce qui est fait et prouvé
 
@@ -103,7 +103,7 @@ Campagne de test du 2026-08-11, 5 lanes en conditions réelles, ~80 vérificatio
 | ~~**L6**~~ | ~~**Mémoire et préférences par titulaire (D4)**~~ | L4 | ✅ **livré le 2026-08-12** — voir §« L6, ce qui est construit » |
 | ~~**L7**~~ | ~~**Le plafond de fusions (D11)**~~ | L4 | ✅ **livré le 2026-08-12** — voir §« L7, ce qui est construit » |
 | **L8** | **Les écrans (D9)** — plan du foyer, plan perso, la proposition, ce qui n'a pas fusionné et pourquoi. | L4, L5 | |
-| **L9** | **La date de naissance (D18)** — sur la fiche de bouche (existe déjà) et dans « about you » pour le maître (à vérifier). | — | Sans elle l'objectif du maître est inactif par défaut |
+| ~~**L9**~~ | ~~**La date de naissance (D18)**~~ | — | ✅ **livré le 2026-08-12** — voir §« L9, ce qui est construit » |
 | **L10** | **QA réelle** sur un foyer à objectifs divergents : la prise de main, la fusion, la défusion, le repli séparé, les fenêtres décalées. | tout | |
 
 ## L1, ce qui est prouvé — 2026-08-12
@@ -1281,6 +1281,118 @@ placé **avant** le motif précis · le parseur qui invente `0` au lieu de refus
 la phrase qui ne dit plus que rien n'est effacé · la lane individuelle passée au
 frais du foyer · le `+ 3` recopié en TypeScript · le lecteur qui **réclame** au
 lieu de lire · le lecteur qui lit le plafond et ne le passe pas.
+
+## L9, ce qui est construit — 2026-08-12
+
+### Les deux moitiés du lot existaient déjà, et c'est la troisième qui manquait
+
+Ce lot commence par un constat, pas par du code.
+
+- **La bouche sans compte : rien à faire.** `household_members.birth_date`
+  existe depuis 20260810120000, la RPC `keel_household_set_member_birth_date`
+  est écrite, testée (§53→56 du test RLS) et branchée à l'écran
+  (`MouthFields`, `frontend/src/keel/pages/HouseholdPage.tsx:539`). La phrase
+  d'aide dit déjà les deux choses qui comptent — c'est facultatif, et sans elle
+  la personne reçoit une part standard.
+- **« About you » : rien à faire non plus.** L'écran `/app/plan` demande la date
+  de naissance depuis toujours (`StudentWeekPlanPage.tsx:715`, cellule « Age »),
+  la range dans `profiles.birth_date`, et affiche l'âge dérivé — jamais un âge
+  stocké.
+- **Ce qui manquait était le fil entre les deux.**
+  `keel_household_member_age` ne lisait QUE la fiche de foyer. Un maître qui
+  remplissait sa date là où le produit la lui demande restait `unknown` à sa
+  propre table : `goalApplies` refuse `unknown`, donc **son objectif déclaré
+  n'atteignait jamais son assiette**, sans un mot. C'est un champ qui a l'air de
+  marcher et qui ne fait rien — le défaut que ce chantier passe son temps à
+  réparer, cette fois entre deux écrans qui existaient tous les deux.
+
+### La règle livrée, et pourquoi ce n'est pas l'autorité sèche de D1
+
+`20260812180000_household_age_from_profile.sql` extrait la règle d'âge
+(`keel_age_state(date)`, un seul exemplaire) et fait résoudre à
+`keel_household_member_age` **deux** colonnes :
+
+1. la bouche a un compte et son profil porte une date **utilisable** → c'est
+   elle (**D18 : « about you » gouverne**) ;
+2. sinon → la date de sa fiche de foyer, celle que le maître a saisie ;
+3. ni l'une ni l'autre → `unknown`, part standard.
+
+D1 écrit `case when hm.user_id is null then hm.goal else sg.goal end` : pour un
+titulaire, la ligne membre ne compte plus du tout. **Le transposer tel quel ici
+aurait éteint, le jour du déploiement, tout objectif de titulaire daté par son
+maître et jamais repassé par « about you ».** Un lot dont la raison d'être est
+« ce qui est déclaré doit atteindre l'assiette » ne peut pas commencer par en
+débrancher. La résolution est donc **monotone : aucune bouche ne perd un âge
+connu**. Cas limite assumé et testé : un profil **aberrant** (date future,
+> 120 ans) ne gagne pas contre une fiche valide — `profiles.birth_date` n'a
+aucun CHECK en base, et un doigt qui glisse sur le siècle ne doit pas
+débrancher une direction qui marchait hier.
+
+### Ce que l'écran du foyer fait maintenant de MA date
+
+`birthDateDoor` (`frontend/src/keel/api/household.ts`) route la saisie : **ma**
+ligne → `profiles.birth_date` (`setOwnBirthDate`) ; toute autre bouche → sa
+fiche. Sans cette bascule, le champ de la carte « You eat here too » aurait
+écrit dans la colonne devenue **repli** — donc n'aurait rien changé à l'assiette
+dès que le profil porte une date. Bénéfice second, réel : la même saisie sert
+désormais la **lane individuelle** (`student_body_io.ts` lit
+`profiles.birth_date`), là où elle ne servait que le foyer.
+
+La garde d'écriture n'est pas réécrite au navigateur : `assessBirthDate` +
+`birthDateWritable` (`_shared/keel/student_age.ts`) sont importées telles
+quelles. Une seconde arithmétique de bornes aurait divergé au premier
+ajustement.
+
+**Pas touché à l'inscription** — l'utilisateur l'a tranché.
+
+### Le RGPD, vérifié plutôt que supposé
+
+Aucune colonne n'est créée par ce lot, donc rien de neuf à réclamer. Ce qui a
+été mesuré :
+
+- `profiles.birth_date` **est exportée** (`account-export-v1` →
+  `profil.json` → `date_de_naissance`) et **est supprimée**
+  (`profiles_id_fkey` est `ON DELETE CASCADE`). La colonne devenue autorité est
+  donc la mieux réclamée des deux.
+- `household_members` **n'apparaît nulle part dans l'export** — zéro occurrence
+  dans `account-export-v1`, et la liste `PIVOT_TABLES` de
+  `keel_gdpr_lifecycle_test.ts` ne la nomme pas. À la purge, sa ligne est
+  **détachée** (D3), donc `first_name` et `birth_date` **survivent** au compte.
+  C'est la cicatrice « le lifecycle RGPD ne réclame pas les tables neuves »,
+  antérieure à ce lot et non traitée ici. À trancher séparément : la survie de
+  la bouche est voulue, celle de sa date de naissance n'a jamais été décidée.
+- Les gardes de non-divulgation (`household_voices.ts`, `household_portions.ts`)
+  ne bougent pas : le roster ne rend toujours que `minor | adult | unknown`,
+  jamais une date.
+
+### Les mutations — chacune cassée, vue rouge, restaurée
+
+**En base** (contrôle de la migration, puis §57 du test RLS) : la fiche seule
+(l'ancienne rédaction) → *cas 2* rouge · la **fiche** prioritaire sur le profil
+→ *cas 3* rouge · `coalesce` sur les **dates** au lieu des états → *cas 4* rouge
+· l'autorité **sèche** de D1 → *cas 4* rouge · et la même première mutation
+rejouée sur le test RLS → *57a* rouge.
+
+**Au navigateur** (`ownBirthDate.int.test.ts`, 12 cas) : la garde d'écriture
+retirée → *2, 3, 4* rouges · l'écriture envoyée sur `household_members` → *1*
+rouge · zéro ligne touchée traitée comme un succès → *7* rouge · la garde
+étendue au **mineur** → *5* rouge.
+
+### Ce qui n'est pas prouvé
+
+- **Le branchement de `birthDateDoor` dans `HouseholdPage.tsx` n'a aucun test
+  automatique** — l'écran n'est pas monté par la suite. La fonction et son
+  effet sont testés, leur câblage ne l'est pas. À vérifier en L10.
+- **Aucun run réel** : pas de HTTP, pas d'appel modèle. Le trajet
+  `profil → roster → LoadedMember.ageState → goalApplies → part` est prouvé
+  jusqu'au **roster** (assertion 57d, qui interroge
+  `keel_household_roster_for`), et le reste du trajet est celui, déjà testé,
+  que L4→L7 empruntent.
+- **`keel_household_member_age` n'est toujours pas scopée au foyer de
+  l'appelant** : elle est `grant execute … to authenticated` et rend l'état
+  d'âge de n'importe quel `member_id`. C'était vrai avant ce lot, ça l'est
+  après ; ce qui sort reste trois jetons, jamais une date. Non élargi, non
+  refermé.
 
 ## Questions encore ouvertes
 

@@ -2861,6 +2861,12 @@ export const en = {
     "Optional. Until we have it, they get a standard serving — a direction only applies at a known age.",
   "household.member.birth_date_kept":
     "Already on file. Leave this empty to keep it, or pick a new date to replace it.",
+  // D18 (2026-08-12) — SUR SA PROPRE LIGNE, ce champ écrit `profiles.birth_date`,
+  // la même colonne que « About you ». Sans cette phrase, on croit qu'il faut la
+  // saisir deux fois — et le jour où les deux dates diffèrent, personne ne sait
+  // laquelle sert.
+  "household.member.birth_date_mine":
+    "The same date as in your About you — filling it here fills it there. Optional, and until we have it you get a standard serving: a direction only applies at a known age.",
   "household.member.goal": "Their direction",
   "household.member.goal_mine": "Your direction",
   "household.member.goal_none": "No particular direction",

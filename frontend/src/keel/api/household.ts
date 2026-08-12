@@ -22,6 +22,14 @@ import {
   parseAwayDays,
   parseEatingRhythm,
 } from "./mealGeneration";
+// ⚠️ LA GARDE D'ÉCRITURE D'UNE DATE DE NAISSANCE EST CELLE DU SERVEUR, IMPORTÉE
+// TELLE QUELLE (D18, L9). Même geste que `groceryWaves.ts` et `coachProtocol.ts`
+// avec leurs modules partagés: le front n'en écrit pas une seconde version, il
+// lit la même. Voir `setOwnBirthDate`.
+import {
+  assessBirthDate,
+  birthDateWritable,
+} from "../../../../supabase/functions/_shared/keel/student_age.ts";
 
 export type HouseholdRole = "owner" | "member";
 /** Jumeau de `keel_household_member_age` en base et de `household.ts` côté edge. */
@@ -159,6 +167,41 @@ export function claimableMembers(
   household: HouseholdView | null,
 ): HouseholdMemberView[] {
   return (household?.members ?? []).filter((m) => !m.userId);
+}
+
+/**
+ * OÙ VA UNE DATE DE NAISSANCE SAISIE SUR L'ÉCRAN DU FOYER (D18, L9) ?
+ *
+ * Deux colonnes existent, et depuis 20260812180000 elles n'ont plus le même
+ * poids: pour une bouche AVEC COMPTE, `keel_household_member_age` lit
+ * `profiles.birth_date` d'abord et ne retombe sur `household_members.birth_date`
+ * qu'à défaut. Écrire ma propre date sur ma FICHE ferait donc un champ qui
+ * enregistre et ne change rien dès que mon « about you » en porte une.
+ *
+ * La règle tient en une ligne, et elle est ICI plutôt que dans le JSX pour
+ * qu'elle soit vérifiable sans monter un écran:
+ *
+ *   · MA ligne (j'ai un compte, et c'est le mien) → mon PROFIL
+ *   · tout le reste → la fiche de foyer
+ *
+ * « Tout le reste » n'est pas un fourre-tout: c'est un enfant (aucun compte, la
+ * fiche est sa seule source) ou un titulaire qui n'est jamais passé par son
+ * écran (RLS m'interdit son profil, et le repli SQL fait compter ce que je
+ * saisis). Les deux sont des cas nominaux, pas des restes.
+ *
+ * ⚠️ `meUserId: string` ET PAS `string | null`, ET C'EST LE TYPE QUI TIENT LA
+ * GARDE. Une bouche sans compte porte `userId: null`; si l'appelant pouvait
+ * passer `null` pour « personne n'est connecté », `null === null` renverrait
+ * l'enfant du foyer écrire dans un profil. L'écran calcule `user?.id ?? ""` —
+ * la chaîne vide n'est l'identité de personne, et aucune ligne ne la porte.
+ * NE PAS élargir cette signature: aucun test ne pourrait attraper le retour de
+ * ce cas, seul le type le rend impossible.
+ */
+export function birthDateDoor(
+  member: { userId: string | null },
+  meUserId: string,
+): "own_profile" | "member_row" {
+  return member.userId === meUserId ? "own_profile" : "member_row";
 }
 
 /*
@@ -567,6 +610,61 @@ export async function setMemberBirthDate(memberId: string, birthDate: string | n
   });
   if (error) throw new Error(error.message);
   return asResult(data);
+}
+
+/**
+ * MA DATE À MOI — `profiles.birth_date`, la même colonne que « about you ».
+ *
+ * ── POURQUOI UNE SECONDE PORTE, ET PAS `setMemberBirthDate` (D18, L9) ──────
+ *
+ * Depuis 20260812180000, l'âge d'une bouche QUI A UN COMPTE se résout sur
+ * `profiles.birth_date` d'abord, et seulement à défaut sur la date de sa fiche
+ * de foyer. Écrire ma propre date sur ma FICHE la rendrait donc muette dès que
+ * mon profil en porte une — le champ aurait l'air de marcher et ne changerait
+ * rien à mon assiette. C'est le défaut exact que ce chantier passe son temps à
+ * réparer, et il se referme en écrivant au bon endroit.
+ *
+ * Bénéfice second, et il n'est pas accessoire: la même date sert la lane
+ * INDIVIDUELLE (`student_body_io.ts` lit `profiles.birth_date`). Une date
+ * saisie ici active l'objectif au foyer ET dimensionne le plan personnel.
+ *
+ * ⚠️ RÉSERVÉ À SA PROPRE LIGNE. RLS (`rls_profiles_update_self`) refuse le
+ * profil d'autrui — l'appeler pour quelqu'un d'autre ne lèverait pas, il
+ * mettrait à jour ZÉRO ligne et rendrait 204 en silence. D'où le `.select()`
+ * derrière et le refus nommé quand rien n'a bougé (cicatrice `RLS ne remplace
+ * pas un .eq(user_id)`).
+ *
+ * ⚠️ LA VALIDATION EST ICI PARCE QU'IL N'Y A PAS DE CHECK EN BASE. Vérifié le
+ * 2026-08-12: `profiles` porte neuf contraintes CHECK, AUCUNE sur cette
+ * colonne. La RPC de foyer, elle, refuse `bad_birth_date` — écrire en direct
+ * sans garde échangerait donc un refus lisible contre une date future acceptée
+ * en silence, que `keel_age_state` traduirait ensuite en `unknown`. La personne
+ * verrait « enregistré » et perdrait sa direction d'objectif.
+ *
+ * LA RÈGLE N'EST PAS RÉÉCRITE ICI. `assessBirthDate` + `birthDateWritable`
+ * (`_shared/keel/student_age.ts`) sont LA garde d'écriture du produit, déjà
+ * testées, et déjà celle de la lane individuelle. Une seconde arithmétique de
+ * bornes au navigateur divergerait au premier ajustement, et personne ne
+ * saurait laquelle ment.
+ */
+export async function setOwnBirthDate(userId: string, birthDate: string | null) {
+  if (birthDate !== null) {
+    const verdict = assessBirthDate(birthDate, new Date().toISOString().slice(0, 10));
+    // `absent` ne peut pas sortir d'ici (on a testé `!== null`), et un MINEUR
+    // s'enregistre — c'est justement ce qu'on veut savoir. Seuls
+    // `unreadable | future | implausible` sont refusés.
+    if (!birthDateWritable(verdict).ok) {
+      return { ok: false, reason: "bad_birth_date" };
+    }
+  }
+  const { data, error } = await supabase
+    .from("profiles")
+    .update({ birth_date: birthDate })
+    .eq("id", userId)
+    .select("id");
+  if (error) throw new Error(error.message);
+  if (!data || data.length === 0) return { ok: false, reason: "not_your_line" };
+  return { ok: true, reason: "" };
 }
 
 /**
