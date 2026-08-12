@@ -57,19 +57,32 @@ import {
   resolveHandOff,
 } from "../_shared/keel/household_hand.ts";
 import {
+  bestMergePair,
+  buildUnmergeBlock,
   MERGE_SHAPE_NOT_HONOURED,
   MERGE_WINDOW_ALL_PAST,
   MERGE_WINDOW_UNREADABLE,
-  MERGE_WINDOWS_DISJOINT,
   type MergeMaterialDish,
+  type MergedFromEntry,
   type MergeWindow,
   mergedFromEntry,
   mergeLadder,
   mergeMaterialShown,
   observeMergeShape,
   type PlanSpan,
-  resolveMergeWindow,
 } from "../_shared/keel/household_merge.ts";
+import {
+  carryMergedFrom,
+  heldMemberIds,
+  mergeCarriers,
+  mergeStandings,
+} from "../_shared/keel/household_merge_notice.ts";
+import {
+  type LiveHouseholdPlan,
+  loadLiveHouseholdPlans,
+  storedCookingDays,
+  storedDishes,
+} from "../_shared/keel/household_merge_notice_io.ts";
 import { proteinAnchorRetryInstruction } from "../_shared/keel/protein_anchor.ts";
 import type { CompositionIndex } from "../_shared/keel/food_composition.ts";
 import { loadCompositionIndex } from "../_shared/keel/food_composition_io.ts";
@@ -306,17 +319,16 @@ interface RosterRow {
 // ce fichier, y compris cité en exemple.
 // ===========================================================================
 
-/** Un plan déjà écrit, relu pour la fusion. Jamais le `why` d'un plat. */
-interface StoredPlan {
-  id: string;
-  startsOn: string;
-  durationDays: number;
-  validatedAt: string | null;
-  /** Jetons `mon`..`sun` des sessions de cuisine, sans doublon. */
-  cookingDays: string[];
-  /** Jour · créneau · titre. Rien d'autre — voir `household_merge.ts`. */
-  dishes: MergeMaterialDish[];
-}
+/**
+ * Un plan déjà écrit, relu pour la fusion. Jamais le `why` d'un plat.
+ *
+ * ⚠️ LA LECTURE VIT DÉSORMAIS DANS `household_merge_notice_io.ts` (L5), et pas
+ * ici. Le lecteur de propositions a besoin EXACTEMENT du même plan du foyer,
+ * avec le même prédicat: deux `select` écrits séparément auraient divergé, et
+ * ce dépôt a mesuré deux fois le 2026-08-12 ce que coûte un lecteur du plan du
+ * foyer qui ne filtre pas comme les autres.
+ */
+type StoredPlan = LiveHouseholdPlan;
 
 interface ResolvedMerge {
   member: RosterRow;
@@ -343,52 +355,22 @@ interface MergeRefusal {
   detail: string;
 }
 
-/** Les jours de cuisson d'un `cooking_sessions` stocké. */
-function storedCookingDays(raw: unknown): string[] {
-  if (!Array.isArray(raw)) return [];
-  const out: string[] = [];
-  for (const entry of raw) {
-    if (!entry || typeof entry !== "object" || Array.isArray(entry)) continue;
-    const day = String((entry as Record<string, unknown>).day ?? "").trim();
-    if (day && !out.includes(day)) out.push(day);
-  }
-  return out;
-}
-
-/**
- * LES PLATS D'UN PLAN STOCKÉ — TROIS CHAMPS, ET PAS UN DE PLUS.
- *
- * ⚠️ `why` N'EST PAS LU, ET C'EST UNE DÉCISION. C'est la seule prose d'un plan
- * qui parle de la PERSONNE (« pourquoi CE plat pour CET élève »), et ce qu'on
- * assemble ici part dans un prompt dont la sortie est lue à table par tout le
- * foyer. Les titres, eux, sont déjà lisibles par chaque membre
- * (`student_generated_meals_household_read`): les passer ne divulgue rien de
- * neuf. `ingredients` non plus: ils ne serviraient qu'à faire recopier une
- * recette que le modèle doit pouvoir refuser.
- */
-function storedDishes(raw: unknown): MergeMaterialDish[] {
-  if (!Array.isArray(raw)) return [];
-  const out: MergeMaterialDish[] = [];
-  for (const entry of raw) {
-    if (!entry || typeof entry !== "object" || Array.isArray(entry)) continue;
-    const row = entry as Record<string, unknown>;
-    const title = String(row.title ?? "").trim();
-    if (!title) continue;
-    out.push({
-      day: String(row.day ?? "").trim() || null,
-      slot: String(row.slot ?? "").trim() || null,
-      title,
-    });
-  }
-  return out;
-}
-
 async function resolveMergeRequest(args: {
   admin: SupabaseClient;
-  ownerUserId: string;
   roster: readonly RosterRow[];
   memberId: string;
   todayDate: string;
+  /**
+   * Les plans du foyer vivants, déjà lus une fois pour tout ce fichier.
+   *
+   * ⚠️ PASSÉS PLUTÔT QUE RELUS (L5). Cette fonction faisait son propre `select`;
+   * le lecteur de propositions en aurait fait un second, avec son propre
+   * prédicat, et ce dépôt a mesuré deux fois le 2026-08-12 ce que coûte un
+   * lecteur du plan du foyer qui ne filtre pas comme les autres. Le propriétaire
+   * et le foyer ne sont donc plus des arguments d'ici: ils appartiennent à la
+   * lecture, qui vit dans `household_merge_notice_io.ts`.
+   */
+  householdPlans: readonly StoredPlan[];
 }): Promise<ResolvedMerge | MergeRefusal> {
   const member = args.roster.find((r) => r.member_id === args.memberId);
   if (!member) {
@@ -417,27 +399,12 @@ async function resolveMergeRequest(args: {
     };
   }
 
-  // LE PLAN DU FOYER, VIVANT. `plan_kind = 'household'` est OBLIGATOIRE et ce
-  // n'est pas une précaution: un plan PERSONNEL porte aussi `household_id`, et
-  // deux lecteurs indépendants sont déjà tombés dedans le 2026-08-12. Filtrer
-  // sur le propriétaire seul rendrait ici le plan perso du maître.
-  const hhRes = await args.admin
-    .from("student_generated_meals")
-    .select("id, starts_on, duration_days, validated_at, cooking_sessions, dishes")
-    .eq("user_id", args.ownerUserId)
-    .eq("plan_kind", "household")
-    .is("retired_at", null)
-    .order("starts_on", { ascending: true });
-  if (hhRes.error) throw hhRes.error;
-  const householdPlans: StoredPlan[] =
-    ((hhRes.data ?? []) as Array<Record<string, unknown>>).map((row) => ({
-      id: String(row.id),
-      startsOn: String(row.starts_on ?? ""),
-      durationDays: Number(row.duration_days ?? 0),
-      validatedAt: row.validated_at == null ? null : String(row.validated_at),
-      cookingDays: storedCookingDays(row.cooking_sessions),
-      dishes: storedDishes(row.dishes),
-    }));
+  // LE PLAN DU FOYER, VIVANT. Lu UNE fois par requête, par le lecteur partagé
+  // (`household_merge_notice_io.ts`), et passé ici: `plan_kind = 'household'`
+  // y est obligatoire et ce n'est pas une précaution — un plan PERSONNEL porte
+  // aussi `household_id`, et deux lecteurs indépendants sont déjà tombés dedans
+  // le 2026-08-12.
+  const householdPlans = args.householdPlans;
   if (householdPlans.length === 0) {
     return {
       refusal: "merge_no_household_plan",
@@ -451,36 +418,23 @@ async function resolveMergeRequest(args: {
   // porter plusieurs plans personnels adjacents. On garde la paire dont la
   // fenêtre FUSIONNABLE — intersection coupée au pivot — est la plus longue:
   // c'est la seule mesure qui parle de jours réellement repris.
-  let best: { household: StoredPlan; personal: MemberOwnPlan; window: MergeWindow } | null =
-    null;
-  let refusal: string = MERGE_WINDOWS_DISJOINT;
-  for (const household of householdPlans) {
-    for (const personal of ownPlans) {
-      const resolved = resolveMergeWindow({
-        household,
-        personal,
-        today: args.todayDate,
-      });
-      if (!resolved.ok) {
-        // « TOUT EST DÉJÀ PASSÉ » EN DIT PLUS QUE « RIEN EN COMMUN », donc il
-        // gagne: les deux plans se touchent bien, et c'est le pivot qui a
-        // tranché. Un refus qui dit `disjoint` là où le vrai motif est D16
-        // enverrait le maître vérifier des dates qui sont justes.
-        if (resolved.refusal !== MERGE_WINDOWS_DISJOINT) refusal = resolved.refusal;
-        continue;
-      }
-      if (!best || resolved.window.durationDays > best.window.window.durationDays) {
-        best = { household, personal, window: resolved };
-      }
-    }
-  }
-  if (!best) {
+  //
+  // ⚠️ LE CHOIX EST FAIT PAR `bestMergePair`, ET PAS ICI (L5). La PROPOSITION
+  // de D10 doit annoncer exactement ce que cette fusion-ci fera; une seconde
+  // arithmétique dans le lecteur aurait promis des jours que la fusion ne prend
+  // pas, et les deux nombres auraient été plausibles.
+  const best = bestMergePair({
+    householdPlans,
+    personalPlans: ownPlans,
+    today: args.todayDate,
+  });
+  if (!best.ok) {
     return {
-      refusal,
-      detail: refusal === MERGE_WINDOW_ALL_PAST
+      refusal: best.refusal,
+      detail: best.refusal === MERGE_WINDOW_ALL_PAST
         ? "Everything those two plans share is already behind us. A merge only " +
           "touches days nobody has eaten yet."
-        : refusal === MERGE_WINDOW_UNREADABLE
+        : best.refusal === MERGE_WINDOW_UNREADABLE
         ? "One of those two plans does not carry a readable window."
         : "That person's plan and the household plan do not share a single day.",
     };
@@ -518,12 +472,103 @@ async function resolveMergeRequest(args: {
         : String(personalRow.validated_at),
       cookingDays: storedCookingDays(personalRow.cooking_sessions),
       dishes: storedDishes(personalRow.dishes),
+      generatedFrom: null,
     },
     window: best.window,
     otherOverlappingPlanIds: ownPlans
-      .filter((p) => p.id !== best!.personal.id && plansOverlap(p, mergedSpan))
+      .filter((p) => p.id !== best.personal.id && plansOverlap(p, mergedSpan))
       .map((p) => p.id),
   };
+}
+
+// ===========================================================================
+// L5 · D8 — LA DÉFUSION, RÉSOLUE AVANT TOUTE DÉPENSE ELLE AUSSI
+//
+// « Refaire le plan du foyer SANS user X » est la première des trois sorties de
+// D8, et c'est celle qui préserve les courses déjà faites. Elle recompose la
+// QUEUE du plan du foyer vivant — ce qu'il lui reste à partir d'aujourd'hui
+// (D16) — sans la personne, et avec la consigne écrite mot pour mot dans le
+// registre (`buildUnmergeBlock`).
+//
+// ⚠️ ON NE DÉFUSIONNE QUE CE QUI A ÉTÉ FUSIONNÉ. Le refus
+// `unmerge_member_not_merged` n'est pas une formalité: sans lui, cette
+// opération deviendrait « retire n'importe qui de la table », c'est-à-dire une
+// exclusion permanente que rien dans ce chantier n'autorise — D8 parle d'une
+// personne QUE LE MAÎTRE A REPRISE et qui vient de valider autre chose.
+//
+// ⚠️ ELLE N'ÉCRIT RIEN SUR LE COMPTE DU SECONDAIRE, exactement comme la fusion:
+// « dans tous les cas, X garde son plan » est l'invariant du modèle, et il est
+// STRUCTUREL — `write_student_meal_plan` ne touche que les lignes de
+// `p_user_id` (le maître) et de la même nature.
+// ===========================================================================
+
+interface ResolvedUnmerge {
+  member: RosterRow;
+  /** Le plan du foyer qu'on recompose. C'est LUI, « le plan de base » (D8). */
+  basePlan: StoredPlan;
+  /** Ce qu'il reste de ce plan à partir d'aujourd'hui. */
+  window: MergeWindow;
+}
+
+function resolveUnmergeRequest(args: {
+  roster: readonly RosterRow[];
+  memberId: string;
+  todayDate: string;
+  householdPlans: readonly StoredPlan[];
+}): ResolvedUnmerge | MergeRefusal {
+  const member = args.roster.find((r) => r.member_id === args.memberId);
+  if (!member) {
+    return {
+      refusal: "unmerge_member_not_in_household",
+      detail: "That person is not in this household.",
+    };
+  }
+  if (member.role === "owner") {
+    return {
+      refusal: "unmerge_member_is_owner",
+      detail: "The household plan is theirs: there is nobody to take out of it.",
+    };
+  }
+
+  // LE PLAN DE BASE EST LE PLAN VIVANT QUI PORTE LA REPRISE. Pas le plan
+  // d'avant la fusion: les courses se font sur le plan que l'écran montre, et
+  // c'est celui-là. Voir le long commentaire de `buildUnmergeBlock`.
+  //
+  // ⚠️ ET « LE PLAN VIVANT » N'EST PAS « LE PREMIER DE LA LISTE ». Jusqu'au
+  // 2026-08-12 cette ligne était un `.find(...)` sur une liste triée par
+  // `starts_on` CROISSANT: elle prenait donc le plan du foyer le PLUS ANCIEN,
+  // alors que deux sont vivants en même temps par contrat (le courant et le
+  // suivant, ce que `prepare_next` produit). Mesuré en HTTP: un plan 08-05/4 j
+  // périmé portant la reprise à côté du plan courant 08-12/5 j qui la portait
+  // aussi, et `operation: "unmerge"` rendait 409 `unmerge_window_all_past`
+  // pendant que le lecteur offrait le bouton — le maître n'avait alors AUCUN
+  // moyen de défaire la reprise sur le plan qu'il est en train de manger.
+  //
+  // `mergeCarriers` est la même fonction que celle du lecteur de propositions,
+  // exactement comme `bestMergePair` l'est pour la fusion: la proposition et le
+  // geste choisissent la même ligne, ou ils divergent.
+  const carrier = mergeCarriers({
+    householdPlans: args.householdPlans,
+    today: args.todayDate,
+  }).get(args.memberId) ?? null;
+  if (!carrier) {
+    return {
+      refusal: "unmerge_member_not_merged",
+      detail: "No live household plan has brought that person back to this " +
+        "table, so there is nothing to undo.",
+    };
+  }
+  if (carrier.tail === null) {
+    return {
+      refusal: carrier.tailRefusal === MERGE_WINDOW_UNREADABLE
+        ? "unmerge_window_unreadable"
+        : "unmerge_window_all_past",
+      detail: "That household plan has no day left ahead of it. There is " +
+        "nothing left to cook differently.",
+    };
+  }
+
+  return { member, basePlan: carrier.plan, window: carrier.tail };
 }
 
 Deno.serve(async (req) => {
@@ -658,10 +703,12 @@ Deno.serve(async (req) => {
     // jour non consommé (D15/D16): elle se DÉDUIT, elle ne se demande pas. Un
     // client qui pourrait la choisir pourrait refusionner hier.
     const operation = String(body.operation ?? "compose").trim();
-    if (operation !== "compose" && operation !== "merge") {
+    if (
+      operation !== "compose" && operation !== "merge" && operation !== "unmerge"
+    ) {
       return jsonResponse(req, {
         error: "unknown_operation",
-        detail: "operation must be compose or merge",
+        detail: "operation must be compose, merge or unmerge",
         request_id: requestId,
       }, { status: 400 });
     }
@@ -671,6 +718,20 @@ Deno.serve(async (req) => {
         error: "merge_member_required",
         detail: "operation=merge must name the person it brings back " +
           "(`merge_member_id`).",
+        request_id: requestId,
+      }, { status: 400 });
+    }
+    // ── L5/D8 — LA DÉFUSION ────────────────────────────────────────────────
+    // Son paramètre porte un autre nom que celui de la fusion, exprès: les deux
+    // opérations désignent une personne, et un `member_id` unique aurait rendu
+    // « je fusionne Zoé » et « je sors Zoé » indiscernables dans un journal, un
+    // rejeu ou un rapport de bug. Le nom dit le geste.
+    const unmergeMemberId = String(body.unmerge_member_id ?? "").trim() || null;
+    if (operation === "unmerge" && !unmergeMemberId) {
+      return jsonResponse(req, {
+        error: "unmerge_member_required",
+        detail: "operation=unmerge must name the person it takes back out " +
+          "(`unmerge_member_id`).",
         request_id: requestId,
       }, { status: 400 });
     }
@@ -772,14 +833,31 @@ Deno.serve(async (req) => {
      * une ligne (`merge === null ? … : …`) au lieu de porter une branche.
      */
     let merge: ResolvedMerge | null = null;
+    /**
+     * L5/D8 — CE QUE LA DÉFUSION A RÉSOLU AVANT LE MODÈLE. `null` partout
+     * ailleurs, même règle que `merge` juste au-dessus.
+     */
+    let unmerge: ResolvedUnmerge | null = null;
+
+    // ── LES PLANS DU FOYER VIVANTS, LUS UNE FOIS POUR LES TROIS OPÉRATIONS ──
+    //
+    // La fusion en a besoin pour choisir sa paire, la défusion pour retrouver
+    // le plan qui porte la reprise, et la COMPOSITION ORDINAIRE pour relire
+    // `merged_from` — c'est-à-dire pour ne pas ré-exclure en silence quelqu'un
+    // que le maître venait de reprendre (L4, trou n°2). Une lecture par
+    // opération aurait fait trois prédicats à tenir alignés.
+    const householdPlans = await loadLiveHouseholdPlans(admin, {
+      ownerUserId: userId,
+      householdId,
+    });
 
     if (operation === "merge") {
       const resolvedMerge = await resolveMergeRequest({
         admin,
-        ownerUserId: userId,
         roster,
         memberId: mergeMemberId!,
         todayDate,
+        householdPlans,
       });
       if ("refusal" in resolvedMerge) {
         // ⚠️ AUCUN DE CES REFUS NE COÛTE UN APPEL MODÈLE, et c'est la moitié
@@ -815,6 +893,42 @@ Deno.serve(async (req) => {
         ? "replace_current"
         : "prepare_next";
       replaces = intent === "replace_current" ? merge.householdPlan.id : null;
+    } else if (operation === "unmerge") {
+      const resolvedUnmerge = resolveUnmergeRequest({
+        roster,
+        memberId: unmergeMemberId!,
+        todayDate,
+        householdPlans,
+      });
+      if ("refusal" in resolvedUnmerge) {
+        // MÊME `tag` QUE LES REFUS DE FUSION, à un mot près. Un décompte de
+        // refus doit pouvoir se lire par opération; deux formes de log pour le
+        // même fait rendraient tout décompte faux, et personne ne le verrait
+        // (mesuré sur `merge_member_away_all_window`, 2026-08-12).
+        console.log(JSON.stringify({
+          tag: "keel.household_meal.unmerge_refused",
+          user_id: userId,
+          household_id: householdId,
+          member_id: unmergeMemberId,
+          reason: resolvedUnmerge.refusal,
+        }));
+        return jsonResponse(req, {
+          error: resolvedUnmerge.refusal,
+          detail: resolvedUnmerge.detail,
+          request_id: requestId,
+        }, { status: 409 });
+      }
+      unmerge = resolvedUnmerge;
+      // ⚠️ LA FENÊTRE SE DÉDUIT ICI AUSSI, ET POUR LA MÊME RAISON QUE LA FUSION.
+      // C'est la QUEUE du plan de base — ce qu'il lui reste à partir
+      // d'aujourd'hui (D16). Un client qui pourrait la choisir pourrait refaire
+      // hier, ou refaire une semaine que ce plan ne couvre pas.
+      startsOn = unmerge.window.window.startsOn;
+      durationDays = unmerge.window.window.durationDays;
+      intent = startsOn === unmerge.basePlan.startsOn
+        ? "replace_current"
+        : "prepare_next";
+      replaces = intent === "replace_current" ? unmerge.basePlan.id : null;
     } else {
       const windowRequest = readWindowRequest(body.window);
       if (!windowRequest) {
@@ -974,10 +1088,77 @@ Deno.serve(async (req) => {
     // `reclaimed` est un paramètre REQUIS de `resolveHandOff` pour cette raison
     // exacte — une fusion qui oublie de le passer composerait sans la personne
     // qu'elle fusionne, sans qu'une ligne échoue.
+    //
+    // ── L5 · D8 — CE QUE LE PLAN VIVANT DIT DÉJÀ DES REPRISES ────────────
+    //
+    // `merged_from` est relu sur les plans du foyer QUI MORDENT SUR LA FENÊTRE
+    // qu'on recompose, et sur eux seuls: la provenance d'un plan de la semaine
+    // prochaine ne dit rien de la table de cette semaine-ci. C'est aussi la
+    // PORTÉE que le lecteur annonce avec chaque `held` — il rend la fenêtre du
+    // plan porteur, précisément pour que « la prochaine composition la
+    // re-reprendra » ne soit vrai que là où cette ligne-ci le rend vrai.
+    //
+    // ⚠️ ET C'EST `mergeCarriers` QUI CHOISIT, pas un `find` sur la liste. Deux
+    // plans vivants peuvent porter la même reprise (le report la recopie d'un
+    // plan à l'autre); garder « la première entrée trouvée » revenait à garder
+    // celle du plan le PLUS ANCIEN, donc à comparer la date D8 d'un geste
+    // périmé. Même fonction que la défusion et que le lecteur: si les trois ne
+    // désignent pas la même ligne, ils se contredisent sans jamais échouer.
+    //
+    // ⚠️ AUCUN ÉTAT N'EST STOCKÉ, ET C'EST LA DÉCISION. « Untel est fusionné »
+    // aurait été une colonne de plus, donc un écrivain de plus à ne jamais
+    // oublier; ici la donnée est celle que L4 écrit déjà, datée, sur la ligne
+    // même du plan qu'elle décrit.
+    const carriedFromPlans = householdPlans.filter((plan) =>
+      plansOverlap(plan, { startsOn, durationDays })
+    );
+    const priorMergedFrom: MergedFromEntry[] = [
+      ...mergeCarriers({ householdPlans: carriedFromPlans, today: todayDate })
+        .values(),
+    ].map((c) => c.entry);
+    const standings = mergeStandings({
+      mergedFrom: priorMergedFrom,
+      plansByMember: new Map(members.map((m) => [m.memberId, m.ownPlans])),
+    });
+    // LA FUSION QU'ON VIENT DE DEMANDER N'EST PAS « COLLANTE », ELLE EST
+    // DEMANDÉE: on la retire d'ici pour qu'elle ne soit pas comptée deux fois,
+    // et la défusion retire la sienne pour que le mécanisme collant n'annule
+    // pas le geste qui l'annule.
+    const stickyReclaimed = heldMemberIds(standings).filter((id) =>
+      id !== merge?.member.member_id && id !== unmerge?.member.member_id
+    );
+    if (priorMergedFrom.length > 0) {
+      console.log(JSON.stringify({
+        tag: "keel.household_meal.merge_standing",
+        user_id: userId,
+        household_id: householdId,
+        operation,
+        carried: priorMergedFrom.length,
+        held: stickyReclaimed.length,
+        revalidated: standings.filter((s) => s.warn).map((s) => s.memberId),
+      }));
+    }
+    //
+    // ⚠️ L5 — LA FUSION EST COLLANTE, ET C'EST ICI QUE ÇA SE JOUE. Avant ce
+    // lot, recomposer la même fenêtre en `compose` RÉ-EXCLUAIT la personne
+    // qu'on venait de reprendre: son plan personnel couvre toujours la fenêtre,
+    // donc la règle de L3 la retirait, et le maître perdait sa fusion sans
+    // l'avoir demandé. `stickyReclaimed` relit `merged_from` sur le plan VIVANT
+    // et re-reprend qui n'a pas revalidé depuis (voir juste au-dessus).
+    //
+    // ⚠️ ET UNE RÉ-VALIDATION NE SE RATTRAPE PAS EN SILENCE: qui a validé un
+    // plan APRÈS la fusion n'est PAS re-repris (`hold: false`), parce que c'est
+    // très exactement le cas que D8 fait remonter au maître avec trois sorties.
+    // Le reprendre d'office déciderait à sa place — l'inverse de D10.
     const handOff = resolveHandOff({
       members,
       window: { startsOn, durationDays },
-      reclaimed: merge === null ? [] : [merge.member.member_id],
+      reclaimed: merge === null
+        ? stickyReclaimed
+        : [merge.member.member_id, ...stickyReclaimed],
+      // L5/D8 — LA DÉFUSION. Elle gagne sur la reprise collante juste au-dessus:
+      // c'est le geste qui annule le geste.
+      excluded: unmerge === null ? [] : [unmerge.member.member_id],
     });
     const composedMembers = handOff.composed;
     for (const t of handOff.taken) {
@@ -985,6 +1166,22 @@ Deno.serve(async (req) => {
     }
     for (const r of handOff.reclaimed) {
       issues.push(`member_reclaimed_by_merge:${r.member_id}`);
+    }
+    for (const u of handOff.unmerged) {
+      // ⚠️ `covers_window` EST DANS L'`issue`, PAS SEULEMENT DANS L'ARCHIVE.
+      // Une défusion peut retirer quelqu'un dont le plan ne couvre pas tous les
+      // jours: c'est le droit du maître (D8), mais « il n'a rien à manger
+      // jeudi » doit se lire sans ouvrir `generated_from`.
+      issues.push(
+        `member_unmerged:${u.member_id}${u.covers_window ? "" : ":uncovered"}`,
+      );
+    }
+    for (const s of standings) {
+      // D8 — LE PLAN QU'ON ÉCRIT PORTE-T-IL UNE REPRISE PÉRIMÉE ? Tracé sur la
+      // ligne elle-même: sans ça, « pourquoi ce plan cuisine-t-il encore les
+      // plats d'un plan que l'intéressé a remplacé » n'a pas de réponse trois
+      // jours plus tard.
+      if (s.warn) issues.push(`merge_revalidated_since:${s.memberId}`);
     }
     for (const id of merge?.otherOverlappingPlanIds ?? []) {
       // O1, rendu VISIBLE plutôt que tranché en silence: cette personne porte
@@ -994,7 +1191,7 @@ Deno.serve(async (req) => {
     }
     if (
       handOff.taken.length > 0 || handOff.partial.length > 0 ||
-      handOff.reclaimed.length > 0
+      handOff.reclaimed.length > 0 || handOff.unmerged.length > 0
     ) {
       console.log(JSON.stringify({
         tag: "keel.household_meal.hand",
@@ -1003,6 +1200,7 @@ Deno.serve(async (req) => {
         taken: handOff.taken.length,
         partial: handOff.partial.length,
         reclaimed: handOff.reclaimed.length,
+        unmerged: handOff.unmerged.length,
         composed: composedMembers.length,
         window: [startsOn, durationDays],
       }));
@@ -1462,7 +1660,10 @@ Deno.serve(async (req) => {
     const mergedMember = merge === null
       ? null
       : platedMembers.find((m) => m.memberId === merge!.member.member_id) ?? null;
-    const mergeWindowTokens = new Set<string>(windowDayOrder(startsOn, durationDays));
+    // LES JETONS DE JOUR DE LA FENÊTRE RECOMPOSÉE. Partagés par la fusion et
+    // par la défusion: les deux ramènent la matière d'un plan déjà écrit aux
+    // seuls jours qu'on refait.
+    const windowDayTokens = new Set<string>(windowDayOrder(startsOn, durationDays));
     const ladder = merge === null || mergedMember === null ? null : mergeLadder({
       table: platedMembers
         .filter((m) => m.memberId !== mergedMember.memberId)
@@ -1472,10 +1673,10 @@ Deno.serve(async (req) => {
       // le plan tenait en dehors de ces jours-là ne dit rien de ce qu'on
       // recompose: la garder ferait croire à un jour partagé qui n'existe pas.
       householdCookingDays: merge.householdPlan.cookingDays.filter((d) =>
-        mergeWindowTokens.has(d)
+        windowDayTokens.has(d)
       ),
       personalCookingDays: merge.personalPlan.cookingDays.filter((d) =>
-        mergeWindowTokens.has(d)
+        windowDayTokens.has(d)
       ),
     });
     if (merge !== null && ladder !== null && mergedMember !== null) {
@@ -1511,7 +1712,7 @@ Deno.serve(async (req) => {
     // compte ce que le modèle VOIT, pas ce qu'on avait sous la main.
     const mergeMaterial = merge === null ? [] : mergeMaterialShown(
       merge.personalPlan.dishes.filter((d) =>
-        d.day === null || mergeWindowTokens.has(d.day)
+        d.day === null || windowDayTokens.has(d.day)
       ),
     );
     // CE QUE LE TRONC A BESOIN DE SAVOIR DE LA FUSION, et rien de plus: un
@@ -1520,6 +1721,23 @@ Deno.serve(async (req) => {
       shape: ladder.shape,
       ownDishesShown: mergeMaterial.length,
     };
+
+    // ── L5/D8 · LA MATIÈRE DE LA DÉFUSION — LE PLAN DE BASE ────────────────
+    //
+    // Les plats du plan du foyer VIVANT, ramenés à la fenêtre recomposée. C'est
+    // ce que « rester au plus près du plan de base » désigne, et c'est ce qui
+    // préserve les courses déjà faites: sans cette liste, la consigne dirait au
+    // modèle de rester près d'un plan qu'il n'a jamais vu.
+    //
+    // ⚠️ LE BUDGET DE PLATS NE BOUGE PAS (`merge: null` plus bas). Une défusion
+    // RETIRE une bouche: elle n'a aucune raison de demander un plat de plus, et
+    // lui ouvrir le bonus de fusion ferait cuisiner un plat dédié à une
+    // personne qu'on vient de sortir de la table.
+    const unmergeMaterial = unmerge === null ? [] : mergeMaterialShown(
+      unmerge.basePlan.dishes.filter((d) =>
+        d.day === null || windowDayTokens.has(d.day)
+      ),
+    );
 
     // ── FF-027 · LE SIGNAL DE FAIM DE LA FENÊTRE ──────────────────────────
     //
@@ -1685,6 +1903,15 @@ Deno.serve(async (req) => {
           // elle est calculée une seule fois, plus haut (`mergeMaterial`).
           dishes: mergeMaterial,
         },
+      // L5/D8 — LA DÉFUSION. `unmergedName` est lu sur le ROSTER et non sur
+      // `platedMembers`: la personne vient précisément d'être retirée de cette
+      // liste, donc l'y chercher rendrait toujours `undefined` et la consigne
+      // dirait « sans undefined ».
+      unmerge: unmerge === null ? null : {
+        displayName: String(unmerge.member.first_name ?? "").trim() || "Member",
+        window: { startsOn, durationDays },
+        dishes: unmergeMaterial,
+      },
     });
 
     const result = await generateWithGemini(
@@ -1883,6 +2110,37 @@ Deno.serve(async (req) => {
       extractMemberPortions(result),
     );
 
+    // ── L5/D8 · TOUTES LES REPRISES QUE CE PLAN PORTE ─────────────────────
+    //
+    // La fusion du jour, s'il y en a une, PUIS celles qu'on reporte. L'ordre
+    // n'est pas décoratif: la première entrée est le geste qui a produit cette
+    // ligne, les suivantes sont l'héritage — et une trace où les deux se
+    // mélangeraient ne dirait plus lequel des deux a coûté un appel modèle.
+    //
+    // ⚠️ CETTE LISTE EST CE QUE LA PROCHAINE COMPOSITION RELIRA. Une entrée
+    // oubliée ici, c'est une personne ré-exclue au tour suivant sans que
+    // personne n'ait rien demandé — le trou n°2 de L4, décalé d'un tour.
+    const mergedFromAll: MergedFromEntry[] = [
+      ...(merge === null || ladder === null ? [] : [
+        mergedFromEntry({
+          memberId: merge.member.member_id,
+          userId: merge.member.user_id,
+          plan: {
+            id: merge.personalPlan.id,
+            startsOn: merge.personalPlan.startsOn,
+            durationDays: merge.personalPlan.durationDays,
+            validatedAt: merge.personalPlan.validatedAt,
+          },
+          window: { startsOn, durationDays },
+        }),
+      ]),
+      ...carryMergedFrom({
+        mergedFrom: priorMergedFrom,
+        heldMemberIds: stickyReclaimed,
+        window: { startsOn, durationDays },
+      }),
+    ];
+
     // ── L'ÉCRITURE: LA MÊME RPC QUE LE CHEMIN INDIVIDUEL ────────────────
     // `intent` et `replaces` sont validés TOUT EN HAUT, avant le modèle — ils
     // ne dépendent que du corps de la requête. Les relire ici en ferait deux
@@ -2012,6 +2270,12 @@ Deno.serve(async (req) => {
                 // n'a jamais rien validé: sans cette liste, les deux cas
                 // laissent la même trace.
                 reclaimed: handOff.reclaimed,
+                // L5/D8 — QUI A ÉTÉ SORTI DE LA TABLE PAR UNE DÉFUSION, et
+                // surtout: son plan à lui couvrait-il tous ces jours-là.
+                // « Le maître l'a retiré » et « il n'a rien à manger jeudi »
+                // sont deux faits différents, et le second ne se déduit pas du
+                // premier.
+                unmerged: handOff.unmerged,
               },
               // ── D6 · D15 · D16 — LA FUSION, RELISIBLE ────────────────────
               //
@@ -2022,27 +2286,54 @@ Deno.serve(async (req) => {
               // aujourd'hui. Un id de plan ne suffit pas: c'est une comparaison
               // de DATES.
               //
-              // ÉCRIT SEULEMENT QUAND IL Y A EU FUSION, contrairement à `hand`
-              // juste au-dessus. La raison de la différence: `hand` décrit une
-              // décision prise à CHAQUE composition (« qui a pris la main »),
-              // dont l'absence de résultat est un fait; `merge` décrit un GESTE
-              // du maître, et l'écrire vide sur toute composition ordinaire
-              // ferait croire à une fusion qui n'a jamais été demandée.
-              ...(merge === null || ladder === null ? {} : {
+              // ÉCRIT QUAND CE PLAN PORTE AU MOINS UNE REPRISE, contrairement
+              // à `hand` juste au-dessus. La raison de la différence: `hand`
+              // décrit une décision prise à CHAQUE composition (« qui a pris la
+              // main »), dont l'absence de résultat est un fait; `merge` décrit
+              // des GESTES du maître, et l'écrire vide sur une composition
+              // ordinaire ferait croire à une fusion jamais demandée.
+              //
+              // ⚠️ « AU MOINS UNE REPRISE » ET PAS « UNE FUSION AUJOURD'HUI »
+              // (L5). Une composition ordinaire qui RE-REPREND quelqu'un doit
+              // écrire ce qu'elle a repris, sinon la chaîne casse au tour
+              // suivant: le plan neuf remplace le vivant, donc sa provenance
+              // aussi, et la composition d'après ré-excluerait tout le monde
+              // sans que personne n'ait rien demandé. Le GESTE du jour, lui,
+              // reste dans les clés qui suivent `merged_from`, et elles sont
+              // absentes quand ce plan ne fait que reporter.
+              // ── L5/D8 — LA DÉFUSION, RELISIBLE ───────────────────────────
+              //
+              // ⚠️ SANS CE BLOC, « pourquoi ce plan ne contient-il plus rien
+              // pour Zoé ? » n'a pas de réponse trois jours plus tard. La
+              // trace de `hand.unmerged` dit QUI a été sorti; celle-ci dit
+              // DEPUIS QUEL PLAN, et sur quels jours — c'est-à-dire ce à quoi
+              // la consigne « rester au plus près du plan de base » se
+              // référait. Sans `base_plan_id`, l'arbitrage « le plan de base
+              // est le plan VIVANT, pas celui d'avant la fusion » n'est pas
+              // vérifiable après coup, et les lignes écrites avant et après un
+              // changement d'avis seraient indiscernables.
+              ...(unmerge === null ? {} : {
+                unmerge: {
+                  member_id: unmerge.member.member_id,
+                  user_id: unmerge.member.user_id,
+                  base_plan_id: unmerge.basePlan.id,
+                  base_plan_starts_on: unmerge.basePlan.startsOn,
+                  base_plan_duration_days: unmerge.basePlan.durationDays,
+                  base_dishes_shown: unmergeMaterial.length,
+                  pivot: unmerge.window.pivot,
+                  days_already_past: unmerge.window.daysAlreadyPast,
+                },
+              }),
+              ...(mergedFromAll.length === 0 ? {} : {
                 merge: {
-                  merged_from: [
-                    mergedFromEntry({
-                      memberId: merge.member.member_id,
-                      userId: merge.member.user_id,
-                      plan: {
-                        id: merge.personalPlan.id,
-                        startsOn: merge.personalPlan.startsOn,
-                        durationDays: merge.personalPlan.durationDays,
-                        validatedAt: merge.personalPlan.validatedAt,
-                      },
-                      window: { startsOn, durationDays },
-                    }),
-                  ],
+                  merged_from: mergedFromAll,
+                  // ── CE QUI SUIT DÉCRIT LE GESTE DU JOUR, ET RIEN D'AUTRE ──
+                  // Absent quand ce plan ne fait que REPORTER des reprises
+                  // antérieures: il n'a alors ni barreau, ni intersection, ni
+                  // pivot — les écrire recopierait la décision d'un autre plan
+                  // sur celui-ci, et personne ne saurait plus quel geste a
+                  // vraiment eu lieu quel jour.
+                  ...(merge === null || ladder === null ? {} : {
                   // LE PLAN DU FOYER DANS LEQUEL ON A REPRIS. C'est l'autre
                   // moitié de « fusionner A avec B »; sans lui, la trace ne dit
                   // que la moitié de ce qui a été mélangé.
@@ -2080,6 +2371,7 @@ Deno.serve(async (req) => {
                   pivot: merge.window.pivot,
                   days_already_past: merge.window.daysAlreadyPast,
                   other_overlapping_plan_ids: merge.otherOverlappingPlanIds,
+                  }),
                 },
               }),
             },
@@ -2148,6 +2440,29 @@ Deno.serve(async (req) => {
           days_already_past: merge.window.daysAlreadyPast,
         },
       }),
+      // ── L5/D8 — CE QUE LA DÉFUSION A FAIT, DANS LA RÉPONSE ───────────────
+      // Même raison que pour la fusion: l'appelant ne peut le déduire de rien
+      // d'autre. Il n'a pas demandé cette fenêtre — elle est la QUEUE du plan
+      // de base — et « le plan de Zoé ne couvrait pas tous ces jours » est
+      // exactement ce que l'écran doit pouvoir dire avant de laisser le maître
+      // fermer la fenêtre.
+      ...(unmerge === null ? {} : {
+        unmerge: {
+          member_id: unmerge.member.member_id,
+          base_plan_id: unmerge.basePlan.id,
+          window: { starts_on: startsOn, duration_days: durationDays },
+          pivot: unmerge.window.pivot,
+          days_already_past: unmerge.window.daysAlreadyPast,
+          covers_window:
+            handOff.unmerged.find((u) => u.member_id === unmerge!.member.member_id)
+              ?.covers_window ?? false,
+        },
+      }),
+      // ── L5 — LES REPRISES QUE CE PLAN PORTE, TOUTES ──────────────────────
+      // Rendu sur les TROIS opérations, y compris une composition ordinaire:
+      // c'est la seule façon pour l'écran de dire « ce plan cuisine aussi pour
+      // Tom, que vous aviez repris » sans relire `generated_from`.
+      merged_members: mergedFromAll.map((e) => e.member_id),
       issues: [...issues, ...meal.issues, ...portionIssues],
       request_id: requestId,
     });

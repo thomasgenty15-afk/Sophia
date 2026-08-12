@@ -337,6 +337,7 @@ get-memory-scorecard
 get-memory-trace
 get-momentum-scorecard
 get-momentum-trace
+household-merge-notices-v1
 intake-to-transformations-v2
 keel-cards-v1
 keel-week-rollover-v1

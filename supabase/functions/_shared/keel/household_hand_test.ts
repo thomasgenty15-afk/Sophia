@@ -18,6 +18,7 @@ import {
   HAND_REASON_COVERS,
   HAND_REASON_PARTIAL,
   HAND_REASON_RECLAIMED,
+  HAND_REASON_UNMERGED,
   type MemberOwnPlan,
   parseOwnPlans,
   planCoversWindow,
@@ -170,6 +171,7 @@ Deno.test("LE CAS QUI PASSE: sans plan validé, un secondaire reste composé", (
     ],
     window: WEEK,
     reclaimed: [],
+    excluded: [],
   });
   assertEquals(out.composed.map((m) => m.memberId), [
     "m-owner",
@@ -188,6 +190,7 @@ Deno.test("un secondaire dont le plan recouvre la fenêtre sort de la table", ()
     ],
     window: WEEK,
     reclaimed: [],
+    excluded: [],
   });
   assertEquals(out.composed.map((m) => m.memberId), ["m-owner"]);
   assertEquals(out.taken, [{
@@ -214,6 +217,7 @@ Deno.test("UN PLAN PARTIEL NE RETIRE PERSONNE, ET IL EST TRACÉ", () => {
     ],
     window: WEEK,
     reclaimed: [],
+    excluded: [],
   });
   assertEquals(out.composed.map((m) => m.memberId), ["m-owner", "m-teen"]);
   assertEquals(out.taken, []);
@@ -233,6 +237,7 @@ Deno.test("un plan qui ne touche pas la fenêtre ne laisse aucune trace", () => 
     ],
     window: WEEK,
     reclaimed: [],
+    excluded: [],
   });
   assertEquals(out.composed.length, 2);
   assertEquals(out.taken, []);
@@ -251,6 +256,7 @@ Deno.test("LE MAÎTRE N'EST JAMAIS EXCLU, MÊME AVEC UN PLAN QUI RECOUVRE (D2)",
     ],
     window: WEEK,
     reclaimed: [],
+    excluded: [],
   });
   assertEquals(out.composed.map((m) => m.memberId), ["m-owner", "m-teen"]);
   assertEquals(out.taken, [], "le maître ne figure dans aucune exclusion");
@@ -269,6 +275,7 @@ Deno.test("PLUS PERSONNE À COMPOSER: le module CONSTATE, il ne refuse pas", () 
     ],
     window: WEEK,
     reclaimed: [],
+    excluded: [],
   });
   assertEquals(out.composed, []);
   assertEquals(out.taken.map((t) => t.member_id), ["m-a", "m-b"]);
@@ -287,6 +294,7 @@ Deno.test("l'ordre du roster est conservé", () => {
     ],
     window: WEEK,
     reclaimed: [],
+    excluded: [],
   });
   assertEquals(out.composed.map((m) => m.memberId), ["m-owner", "m-c", "m-d"]);
 });
@@ -307,6 +315,7 @@ Deno.test("UNE FENÊTRE ILLISIBLE N'EXCLUT PERSONNE — l'échec est OUVERT", ()
       members: [member("m-teen", { ownPlans: [plan()] })],
       window,
       reclaimed: [],
+      excluded: [],
     });
     assertEquals(
       out.composed.map((m) => m.memberId),
@@ -333,6 +342,7 @@ Deno.test("LE CAS QUI PASSE: sans reprise, rien ne bouge d'un octet", () => {
     ],
     window: WEEK,
     reclaimed: [],
+    excluded: [],
   });
   assertEquals(out.composed.map((m) => m.memberId), ["m-owner"]);
   assertEquals(out.taken.map((t) => t.member_id), ["m-teen"]);
@@ -347,6 +357,7 @@ Deno.test("une bouche REPRISE revient à table, et sa trace le dit", () => {
     ],
     window: WEEK,
     reclaimed: ["m-teen"],
+    excluded: [],
   });
   assertEquals(out.composed.map((m) => m.memberId), ["m-owner", "m-teen"]);
   assertEquals(
@@ -374,6 +385,7 @@ Deno.test("REPRISE ET « JAMAIS RIEN VALIDÉ » NE LAISSENT PAS LA MÊME TRACE",
     members: [member("m-teen")],
     window: WEEK,
     reclaimed: ["m-teen"],
+    excluded: [],
   });
   assertEquals(never.composed.length, 1);
   assertEquals(
@@ -386,6 +398,7 @@ Deno.test("REPRISE ET « JAMAIS RIEN VALIDÉ » NE LAISSENT PAS LA MÊME TRACE",
     members: [member("m-teen", { ownPlans: [plan({ id: "p-teen" })] })],
     window: WEEK,
     reclaimed: ["m-teen"],
+    excluded: [],
   });
   assertEquals(merged.reclaimed.map((t) => t.plan_id), ["p-teen"]);
 });
@@ -403,6 +416,7 @@ Deno.test("un plan PARTIEL repris est tracé lui aussi (D15)", () => {
     ],
     window: WEEK,
     reclaimed: ["m-teen"],
+    excluded: [],
   });
   assertEquals(out.composed.map((m) => m.memberId), ["m-teen"]);
   assertEquals(out.reclaimed.map((t) => t.plan_id), ["p-teen"]);
@@ -425,6 +439,7 @@ Deno.test("reprendre quelqu'un qui n'est pas là ne change rien", () => {
     ],
     window: WEEK,
     reclaimed: ["m-ghost", "m-owner"],
+    excluded: [],
   });
   assertEquals(out.composed.map((m) => m.memberId), ["m-owner"]);
   assertEquals(out.taken.map((t) => t.member_id), ["m-teen"]);
@@ -584,5 +599,144 @@ Deno.test("PERSONNE D'AUTRE NE REDÉFINIT « a pris la main »", async () => {
     "ces fichiers rejouent le recouvrement de fenêtre à la main. « A pris la " +
       "main » a UNE définition (household_hand.ts); la réécrire ailleurs est " +
       "la divergence qu'on ne verra qu'une fois quelqu'un affamé.",
+  );
+});
+
+// ---------------------------------------------------------------------------
+// 5. L5/D8 — LA DÉFUSION: SORTIR QUELQU'UN DE LA TABLE SUR ORDRE
+// ---------------------------------------------------------------------------
+
+Deno.test("LE CAS QUI PASSE: sans exclusion, rien ne bouge d'un octet", () => {
+  // Sans lui, une exclusion qui retirerait TOUJOURS quelqu'un serait
+  // indiscernable d'une exclusion qui marche. C'est le jumeau exact du cas
+  // passant de `reclaimed`.
+  const base = resolveHandOff({
+    members: [member("m-owner", { isOwner: true }), member("m-teen")],
+    window: WEEK,
+    reclaimed: [],
+    excluded: [],
+  });
+  assertEquals(base.composed.map((m) => m.memberId), ["m-owner", "m-teen"]);
+  assertEquals(base.unmerged, []);
+});
+
+Deno.test("D8 — la personne défusionnée SORT, même sans plan qui recouvre", () => {
+  // ⚠️ C'EST LA MOITIÉ QUI COMPTE, et c'est l'écart assumé avec L3. Le
+  // recouvrement TOTAL refuse d'exclure un plan partiel parce que « l'exclusion
+  // partielle affame ». Une défusion, elle, est un ORDRE du maître (« refaire
+  // le plan du foyer SANS user X »): elle sort la personne quoi qu'il arrive.
+  // Ce que le produit doit alors garantir, ce n'est pas de la garder à table,
+  // c'est de DIRE qu'elle n'a rien pour ces jours-là.
+  const out = resolveHandOff({
+    members: [
+      member("m-owner", { isOwner: true }),
+      member("m-teen", {
+        ownPlans: [plan({ id: "p-teen", startsOn: "2026-08-12", durationDays: 3 })],
+      }),
+    ],
+    window: WEEK,
+    reclaimed: [],
+    excluded: ["m-teen"],
+  });
+  assertEquals(out.composed.map((m) => m.memberId), ["m-owner"]);
+  assertEquals(out.unmerged.length, 1);
+  assertEquals(out.unmerged[0].member_id, "m-teen");
+  assertEquals(out.unmerged[0].reason, HAND_REASON_UNMERGED);
+  assertEquals(out.unmerged[0].plan_id, "p-teen");
+  assertEquals(
+    out.unmerged[0].covers_window,
+    false,
+    "`covers_window` ment: le plan de cette personne ne couvre que 3 jours sur " +
+      "7, et « il n'a rien à manger jeudi » n'aurait plus aucune trace",
+  );
+  assertEquals(
+    out.taken,
+    [],
+    "une sortie DÉCIDÉE ne se range pas dans `taken`: un `covers` se défait " +
+      "tout seul quand la personne cesse de valider, un ordre non",
+  );
+});
+
+Deno.test("le plan qui recouvre vraiment est dit comme tel", () => {
+  const out = resolveHandOff({
+    members: [member("m-teen", { ownPlans: [plan({ id: "p-teen" })] })],
+    window: WEEK,
+    reclaimed: [],
+    excluded: ["m-teen"],
+  });
+  assertEquals(out.unmerged[0].covers_window, true);
+  assertEquals(out.unmerged[0].validated_at, "2026-08-09T10:00:00Z");
+});
+
+Deno.test("défusionner quelqu'un SANS AUCUN PLAN se trace quand même", () => {
+  // Le cas le plus mordant: la personne n'a rien à elle sur cette fenêtre, et
+  // le maître la sort quand même. Une trace qui exigerait un plan aurait alors
+  // le choix entre mentir et se taire.
+  const out = resolveHandOff({
+    members: [member("m-owner", { isOwner: true }), member("m-teen")],
+    window: WEEK,
+    reclaimed: [],
+    excluded: ["m-teen"],
+  });
+  assertEquals(out.composed.map((m) => m.memberId), ["m-owner"]);
+  assertEquals(out.unmerged[0].plan_id, null);
+  assertEquals(out.unmerged[0].covers_window, false);
+});
+
+Deno.test("L'EXCLUSION GAGNE SUR LA REPRISE, et l'ordre est le sujet", () => {
+  // ⚠️ SANS CETTE PRIORITÉ, LA DÉFUSION SERAIT ANNULÉE PAR LE MÉCANISME QU'ELLE
+  // CORRIGE. Une composition ordinaire re-reprend automatiquement qui a déjà
+  // été fusionné (la fusion est collante, L5): si la reprise l'emportait, le
+  // maître dépenserait un appel modèle pour obtenir exactement le plan qu'il
+  // voulait défaire.
+  const out = resolveHandOff({
+    members: [member("m-teen", { ownPlans: [plan({ id: "p-teen" })] })],
+    window: WEEK,
+    reclaimed: ["m-teen"],
+    excluded: ["m-teen"],
+  });
+  assertEquals(out.composed, []);
+  assertEquals(out.unmerged.map((u) => u.member_id), ["m-teen"]);
+  assertEquals(out.reclaimed, []);
+});
+
+Deno.test("LE MAÎTRE NE PEUT PAS ÊTRE DÉFUSIONNÉ (D2)", () => {
+  // Le plan du maître EST le plan du foyer: l'en sortir viderait le plan de la
+  // personne qui le cuisine. Le générateur le refuse déjà nommément
+  // (`unmerge_member_is_owner`); cette ligne-ci le rend impossible même si ce
+  // refus disparaissait.
+  const out = resolveHandOff({
+    members: [member("m-owner", { isOwner: true, ownPlans: [plan({ id: "p-o" })] })],
+    window: WEEK,
+    reclaimed: [],
+    excluded: ["m-owner"],
+  });
+  assertEquals(out.composed.map((m) => m.memberId), ["m-owner"]);
+  assertEquals(out.unmerged, []);
+});
+
+Deno.test("UNE FENÊTRE ILLISIBLE N'EXCLUT PERSONNE, MÊME SUR ORDRE", () => {
+  // L'échec reste OUVERT dans les deux directions. Une date mal formée qui
+  // viderait la table ferait cesser le foyer de cuisiner sans qu'aucune erreur
+  // ne remonte.
+  const out = resolveHandOff({
+    members: [member("m-teen", { ownPlans: [plan({ id: "p-teen" })] })],
+    window: { startsOn: "pas-une-date", durationDays: 7 },
+    reclaimed: [],
+    excluded: ["m-teen"],
+  });
+  assertEquals(out.composed.map((m) => m.memberId), ["m-teen"]);
+  assertEquals(out.unmerged, []);
+});
+
+Deno.test("la trace du plan nomme aussi qui a été SORTI (D8)", async () => {
+  const src = await householdGeneratorSource();
+  const hand = src.indexOf("hand: {");
+  assert(hand >= 0, "`generated_from.household.hand` n'est plus écrit du tout.");
+  assert(
+    src.slice(hand, hand + 1600).includes("unmerged: handOff.unmerged"),
+    "`generated_from.household.hand` n'écrit plus `unmerged`: « pourquoi ce " +
+      "plan ne contient-il plus rien pour Zoé ? » n'a plus de réponse, et " +
+      "surtout « son plan à elle ne couvrait pas ces jours-là » non plus.",
   );
 });

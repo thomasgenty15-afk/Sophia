@@ -31,6 +31,11 @@ const ROOT = new URL("../../../../", import.meta.url);
 const READERS = [
   "supabase/functions/_shared/keel/household_turn_context.ts",
   "frontend/src/keel/api/household.ts",
+  // L5 — le lecteur PARTAGÉ du plan du foyer: le générateur (fusion, défusion,
+  // reprise collante) et le lecteur de propositions passent tous les deux par
+  // lui. C'est aussi ce qui a retiré la requête du générateur de cette liste:
+  // elle n'y est plus, elle est ici.
+  "supabase/functions/_shared/keel/household_merge_notice_io.ts",
 ] as const;
 
 Deno.test("tout lecteur qui filtre par foyer filtre AUSSI par plan_kind", async () => {

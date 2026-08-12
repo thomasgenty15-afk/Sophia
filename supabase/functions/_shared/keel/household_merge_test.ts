@@ -658,10 +658,26 @@ Deno.test("LA FENÊTRE DE FUSION SE DÉDUIT, ELLE NE SE DEMANDE PAS", async () =
     "la fusion ne prend plus sa fenêtre de `resolveMergeWindow`: l'intersection " +
       "(D15) et le pivot (D16) ne gouvernent plus ce qui est recomposé.",
   );
+  // ⚠️ RÉVISÉ PAR L5, ET LA GARANTIE N'A PAS BOUGÉ D'UN POUCE. L'expression
+  // épinglée était `merge === null ? [] : [merge.member.member_id]`; depuis que
+  // la fusion est COLLANTE, une composition ordinaire re-reprend aussi les
+  // bouches déjà fusionnées, donc la branche `null` n'est plus vide. Ce qui est
+  // tenu ici reste le fait décisif: la personne que CETTE requête fusionne est
+  // passée à `resolveHandOff`, et elle a donc une assiette dans le plan qui
+  // dira « fusionné ».
+  const handAt = src.indexOf("resolveHandOff({");
+  assert(handAt >= 0, "`resolveHandOff` introuvable — test à réviser");
+  const handCall = src.slice(handAt, handAt + 600);
   assert(
-    /reclaimed:\s*merge === null \? \[\] : \[merge\.member\.member_id\]/.test(src),
+    /reclaimed:[\s\S]*?merge\.member\.member_id/.test(handCall),
     "la personne fusionnée n'est plus reprise par `resolveHandOff`: le plan " +
       "dit « fusionné » et ne lui donne pas d'assiette.",
+  );
+  assert(
+    /excluded:[\s\S]*?unmerge\.member\.member_id/.test(handCall),
+    "la personne DÉFUSIONNÉE n'est plus exclue par `resolveHandOff`: la " +
+      "défusion dépenserait un appel modèle pour rendre le plan qu'elle " +
+      "voulait défaire, avec la personne toujours à table.",
   );
 });
 
@@ -692,6 +708,7 @@ import {
 } from "./meal_generation.ts";
 import { asksForASecondDish, mergeDishBonus } from "./household_portions.ts";
 import {
+  bestMergePair,
   MERGE_SHAPE_NOT_HONOURED,
   mergeMaterialShown,
   observeMergeShape,
@@ -1232,4 +1249,67 @@ Deno.test("LA LANE INDIVIDUELLE NE PEUT PAS HÉRITER D'UN BUDGET DE FUSION", asy
       "table qui a dimensionné une casserole, et son plan EST celui de la " +
       "personne. Il n'y a rien à y fusionner.",
   );
+});
+
+// ===========================================================================
+// 8. L5 — LE CHOIX DE LA PAIRE, EXTRAIT ET PARTAGÉ
+//
+// ⚠️ CE TEST MANQUAIT, ET UNE MUTATION L'A PROUVÉ. La règle « on garde la paire
+// dont la fenêtre FUSIONNABLE est la plus longue » vivait dans une boucle du
+// générateur, sans décor à plus d'une paire: inverser la comparaison ne faisait
+// tomber aucun test. Depuis L5 elle est partagée avec la PROPOSITION (D10), ce
+// qui rend l'erreur cohérente des deux côtés — donc invisible, et pas moins
+// fausse: le maître se verrait proposer un jour au lieu de cinq.
+// ===========================================================================
+
+Deno.test("LA PAIRE RETENUE EST LA PLUS LONGUE À FUSIONNER, pas la première", () => {
+  const best = bestMergePair({
+    // Deux plans du foyer vivants: le COURANT et le SUIVANT — c'est ce que la
+    // contrainte d'exclusion autorise, et c'est le cas réel.
+    householdPlans: [
+      { id: "house-now", startsOn: "2026-08-10", durationDays: 7 },
+      { id: "house-next", startsOn: "2026-08-17", durationDays: 7 },
+    ],
+    // Deux plans personnels adjacents. Le premier ne partage plus qu'UN jour
+    // avec le plan courant (le pivot tombe le 16); le second en partage SEPT
+    // avec le plan suivant. Les deux nombres sont écrits ici, à la main.
+    personalPlans: [
+      { id: "own-a", startsOn: "2026-08-10", durationDays: 7 },
+      { id: "own-b", startsOn: "2026-08-17", durationDays: 7 },
+    ],
+    today: "2026-08-16",
+  });
+  assert(best.ok, "aucune paire trouvée — test à réviser");
+  if (!best.ok) return;
+  assertEquals(best.personal.id, "own-b");
+  assertEquals(best.household.id, "house-next");
+  assertEquals(best.window.window.durationDays, 7);
+});
+
+Deno.test("LE REFUS RENDU EST LE PLUS INFORMATIF DES DEUX", () => {
+  // « Tout est déjà passé » en dit plus que « rien en commun »: les deux plans
+  // se touchent bien, et c'est le pivot qui a tranché. Rendre `disjoint` ici
+  // enverrait le maître vérifier des dates qui sont justes.
+  const out = bestMergePair({
+    householdPlans: [
+      { id: "house-old", startsOn: "2026-08-01", durationDays: 5 },
+      { id: "house-far", startsOn: "2026-09-01", durationDays: 5 },
+    ],
+    personalPlans: [{ id: "own", startsOn: "2026-08-01", durationDays: 5 }],
+    today: "2026-08-16",
+  });
+  assertEquals(out.ok, false);
+  if (!out.ok) assertEquals(out.refusal, MERGE_WINDOW_ALL_PAST);
+});
+
+Deno.test("SANS AUCUNE PAIRE POSSIBLE, le refus reste `disjoint`", () => {
+  // Le cas dégénéré — aucun plan du foyer — ne doit pas rendre un motif qui
+  // parle du passé: il n'y a rien à comparer, pas un calendrier à vérifier.
+  const out = bestMergePair({
+    householdPlans: [],
+    personalPlans: [{ id: "own", startsOn: "2026-08-10", durationDays: 7 }],
+    today: "2026-08-10",
+  });
+  assertEquals(out.ok, false);
+  if (!out.ok) assertEquals(out.refusal, MERGE_WINDOWS_DISJOINT);
 });

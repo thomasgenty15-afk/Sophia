@@ -200,6 +200,78 @@ export function resolveMergeWindow(args: {
   };
 }
 
+/**
+ * LA MEILLEURE PAIRE (plan du foyer, plan personnel) — ET LE SEUL ENDROIT QUI
+ * LA CHOISIT.
+ *
+ * ⚠️ EXTRAITE DE `resolveMergeRequest` LE 2026-08-12 (L5), ET C'EST LA MOITIÉ
+ * QUI COMPTE DE CETTE EXTRACTION. La PROPOSITION de D10 doit annoncer « son
+ * plan couvre 5 jours, dont 2 déjà passés — je peux fusionner les 3 restants »,
+ * c'est-à-dire exactement ce que la fusion fera. Une seconde arithmétique dans
+ * le lecteur de propositions aurait divergé de celle qui fusionne vraiment, et
+ * la proposition aurait promis des jours que la fusion ne prend pas. Les deux
+ * appellent donc CETTE fonction, et il n'y en a pas d'autre.
+ *
+ * LE CRITÈRE EST LA FENÊTRE FUSIONNABLE, jamais l'intersection brute: c'est la
+ * seule mesure qui parle de jours réellement repris (D16 en retire les jours
+ * déjà consommés).
+ *
+ * LE REFUS RENDU EST LE PLUS INFORMATIF DES DEUX. « Tout est déjà passé » en
+ * dit plus que « rien en commun »: les deux plans se touchent bien, et c'est le
+ * pivot qui a tranché. Renvoyer `disjoint` là où le vrai motif est D16 enverrait
+ * le maître vérifier des dates qui sont justes.
+ */
+export function bestMergePair<H extends PlanSpan, P extends PlanSpan>(args: {
+  householdPlans: readonly H[];
+  personalPlans: readonly P[];
+  /** Jour local de l'élève, `YYYY-MM-DD`. Voir `resolveMergeWindow`. */
+  today: string;
+}):
+  | { ok: true; household: H; personal: P; window: MergeWindow }
+  | { ok: false; refusal: MergeWindowRefusal } {
+  let best: { household: H; personal: P; window: MergeWindow } | null = null;
+  let refusal: MergeWindowRefusal = MERGE_WINDOWS_DISJOINT;
+  for (const household of args.householdPlans) {
+    for (const personal of args.personalPlans) {
+      const resolved = resolveMergeWindow({ household, personal, today: args.today });
+      if (!resolved.ok) {
+        if (resolved.refusal !== MERGE_WINDOWS_DISJOINT) refusal = resolved.refusal;
+        continue;
+      }
+      if (!best || resolved.window.durationDays > best.window.window.durationDays) {
+        best = { household, personal, window: resolved };
+      }
+    }
+  }
+  return best ? { ok: true, ...best } : { ok: false, refusal };
+}
+
+/**
+ * LA QUEUE D'UN PLAN — ce qu'il lui reste à partir d'aujourd'hui (D16).
+ *
+ * C'est la fenêtre que la DÉFUSION recompose (D8, L5): le plan du foyer vivant,
+ * coupé au premier jour non consommé. Refaire le plan à partir de son premier
+ * jour recomposerait des dîners déjà mangés.
+ *
+ * ⚠️ ELLE DÉLÈGUE À `resolveMergeWindow`, ET CE N'EST PAS UNE COQUETTERIE. La
+ * queue d'un plan est son intersection AVEC LUI-MÊME coupée au pivot: c'est la
+ * même arithmétique, au mot près. L'écrire une seconde fois ici ferait deux
+ * définitions de « le premier jour non consommé » — et ce dépôt paie en boucle
+ * la seconde définition qui diverge au premier ajustement. Le prix est un refus
+ * `MERGE_WINDOWS_DISJOINT` structurellement impossible (un plan croise toujours
+ * lui-même), que l'appelant n'a donc jamais à traduire.
+ */
+export function resolveTailWindow(args: {
+  plan: PlanSpan;
+  today: string;
+}): MergeWindowResult {
+  return resolveMergeWindow({
+    household: args.plan,
+    personal: args.plan,
+    today: args.today,
+  });
+}
+
 // ---------------------------------------------------------------------------
 // D6 — L'ÉCHELLE DE FUSION
 //
@@ -502,6 +574,85 @@ export function buildMergeBlock(args: {
     ...howToUse,
     ...(material.length > 0
       ? ["", "What they were going to eat over these days:", ...material]
+      : []),
+  ].join("\n");
+}
+
+// ---------------------------------------------------------------------------
+// D8 — LA DÉFUSION: REFAIRE LE PLAN DU FOYER **SANS** QUELQU'UN
+//
+// La consigne est écrite MOT POUR MOT dans le registre
+// (docs/keel/CHANTIER-PLANS-INDIVIDUELS-ET-FUSION.md, D8):
+//
+//     « rester au plus près du plan de base, sans user X »
+//
+// C'est elle qui préserve les courses déjà faites. Sans elle, « refaire le plan
+// sans X » rendrait une semaine entièrement neuve: le maître qui retire UNE
+// bouche perdrait les six autres dîners qu'il avait déjà achetés, et la
+// défusion coûterait plus cher que la fusion qu'elle défait.
+//
+// ── QUEL EST « LE PLAN DE BASE » ? DÉCISION PRISE SEULE, ET ÉCRITE ICI ─────
+// Le registre ne le nomme pas, et deux lectures se défendaient:
+//
+//   ① le plan du foyer d'AVANT la fusion (`into_plan_id`, que L4 archive);
+//   ② le plan du foyer VIVANT — c'est-à-dire, après une fusion, le plan
+//      fusionné lui-même.
+//
+// ② EST RETENU, pour la raison même que D8 invoque: « ce qui préserve les
+// courses déjà faites ». Les courses se font sur le plan que l'écran montre,
+// et l'écran montre le plan VIVANT. Après une fusion, c'est le plan fusionné:
+// revenir au plan d'avant jetterait précisément les courses que la phrase
+// existe pour sauver. ② a aussi une propriété que ① n'a pas — il est TOUJOURS
+// lisible, alors que ① dépend d'une clé d'archive qu'un plan écrit avant L4 ne
+// porte pas, ce qui aurait fait une branche de repli sur le chemin nominal.
+//
+// LE RETOUR ARRIÈRE COÛTE UNE LECTURE: passer `dishes` du plan pointé par
+// `into_plan_id` au lieu de celles du plan vivant. Aucune structure ne change,
+// et `generated_from.household.unmerge.base_plan_id` dit, ligne par ligne,
+// lequel des deux a servi — donc les plans écrits avant et après un changement
+// d'avis restent distinguables.
+//
+// ⚠️ CE BLOC NE DIT PAS AU MODÈLE POURQUOI LA PERSONNE PART. « Elle a validé
+// son propre plan » est une information sur ELLE, et ce prompt produit un texte
+// lu à table par tout le foyer. On dit ce qu'il faut cuisiner, pas qui a
+// décidé quoi.
+// ---------------------------------------------------------------------------
+
+/**
+ * La consigne de D8, telle qu'elle part au modèle. Isolée pour qu'un test la
+ * tienne SUR LA SORTIE de la fonction et non sur la source du fichier: ce dépôt
+ * a déjà vu un `src.includes("…")` rester vert parce qu'un commentaire citait
+ * la chaîne cherchée.
+ */
+export const UNMERGE_CLOSENESS_INSTRUCTION =
+  "Stay as CLOSE AS POSSIBLE to the base plan below";
+
+export function buildUnmergeBlock(args: {
+  displayName: string;
+  window: PlanSpan;
+  /** Les plats du plan de base, ramenés à la fenêtre recomposée. */
+  dishes: readonly MergeMaterialDish[];
+}): string {
+  const end = planEndsOn(args.window.startsOn, args.window.durationDays);
+  const material = mergeMaterialShown(args.dishes)
+    .map((d) => {
+      const when = [d.day, d.slot].filter(Boolean).join(" ");
+      return when ? `- ${when}: ${d.title}` : `- ${d.title}`;
+    });
+
+  return [
+    "== TAKING SOMEONE BACK OUT OF THIS TABLE ==",
+    `${args.displayName} is no longer eating from this household's plan, from`,
+    `${args.window.startsOn} to ${end}. Cook for the people listed above, and`,
+    `for them only.`,
+    "",
+    `${UNMERGE_CLOSENESS_INSTRUCTION}, without ${args.displayName}.`,
+    "Keep the same dishes, the same cooking sessions and the same shopping",
+    "wherever they still work for the people who remain — only the amounts",
+    "change. Do NOT invent a different week: what has already been bought must",
+    "still be used.",
+    ...(material.length > 0
+      ? ["", "The base plan over these days:", ...material]
       : []),
   ].join("\n");
 }

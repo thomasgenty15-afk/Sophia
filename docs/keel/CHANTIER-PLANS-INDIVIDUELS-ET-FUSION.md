@@ -41,16 +41,16 @@ prennent la main, et les comptes individuels sans foyer.
 | **D5** | Plats séparables en composants : servir `muscle_gain` et `fat_loss` d'une seule casserole n'est possible que si le plat se re-proportionne. Le répertoire se rétrécit, c'est le prix assumé. | ⬜ à faire |
 | **D6** | Échelle de fusion : ① même plat, ratios différents ② plats différents, même session de cuisson ③ sessions séparées. Renonce dès qu'un plat commun forcerait quelqu'un **hors de sa direction de service** — critère vérifiable, pas jugement de goût. | ✅ livré (L4) |
 | **D7** | Qui n'a pas de plan **validé** au moment où le maître compose est automatiquement pris dans le plan du foyer. La composition n'attend jamais personne. | ✅ livré (L3) |
-| **D8** | Validation **après** la fusion : le maître est averti, et il a trois sorties — refaire sans ce user (*défusion*), refusionner à partir de son plan, ou refuser. Dans tous les cas le user garde son plan. Consigne de défusion, mot pour mot : *rester au plus près du plan de base, sans user X*. | ⬜ à faire |
+| **D8** | Validation **après** la fusion : le maître est averti, et il a trois sorties — refaire sans ce user (*défusion*), refusionner à partir de son plan, ou refuser. Dans tous les cas le user garde son plan. Consigne de défusion, mot pour mot : *rester au plus près du plan de base, sans user X*. | ✅ livré (L5) |
 | **D9** | Le maître **accède** à tous les plans, mais sa surface de cuisine n'affiche **que** le plan qu'il cuisine. Un plan validé non fusionné n'y apparaît pas : le but est de simplifier sa cuisine, pas de lui faire suivre N plans. Un secondaire voit le plan du foyer et le sien. | ⬜ à faire |
-| **D10** | La fusion est **manuelle**, déclenchée par le maître, sur proposition : *« le plan de X a été validé, voulez-vous le fusionner ? »* | ⬜ à faire |
+| **D10** | La fusion est **manuelle**, déclenchée par le maître, sur proposition : *« le plan de X a été validé, voulez-vous le fusionner ? »* | ✅ livré (L5) — le lecteur ; le bouton est L8 |
 | **D11** | Plafond : `N + 3` fusions par foyer et par semaine ISO, N = comptes actifs. Compté en base, refus nommé `merge_quota_exhausted`. | ⬜ à faire |
 | **D12** | Pas de reprise des plans produits par l'ancien chemin : ils seront régénérés. | ✅ acté |
 | **D13** | **Le verrou de paiement est au niveau du FOYER.** Foyer impayé ⇒ plus personne ne génère, ni maître ni secondaire. Un compte **sans foyer** n'est pas concerné : les comptes individuels existent et ne demandent pas de foyer. | ✅ livré (L1) |
 | **D14** | **La présence se déclare.** Le maître doit pouvoir marquer **qui est là, et quand**. Tout le monde présent est le cas simple ; une absence se marque, et elle change les parts sans supprimer la session de cuisson. | ✅ livré (L2) |
 | **D15** | **La fusion opère sur l'INTERSECTION des fenêtres.** Un secondaire peut couvrir mercredi→dimanche quand le foyer couvre lundi→dimanche. Elle s'arrête d'elle-même là où les fenêtres divergent. | ✅ livré (L4) |
 | **D16** | **Le pivot est le premier jour non encore consommé**, pas la date de courses. Une fusion ne touche que les jours à venir, et la proposition le dit : *« son plan couvre 5 jours, dont 2 déjà passés — je peux fusionner les 3 restants. »* | ✅ livré (L4) |
-| **D17** | Un réglage **discret** permet au maître de ne plus se voir proposer la fusion pour une personne donnée. Assumé comme un peu brutal, donc caché. | ⬜ à faire |
+| **D17** | Un réglage **discret** permet au maître de ne plus se voir proposer la fusion pour une personne donnée. Assumé comme un peu brutal, donc caché. | ✅ livré (L5) |
 | **D18** | La date de naissance : **sur la fiche de la bouche** pour qui n'a pas de compte, et dans **« about you »** pour le maître. Pas à l'inscription. | ⬜ à faire |
 
 ## L'état réel — ce qui est fait et prouvé
@@ -99,7 +99,7 @@ Campagne de test du 2026-08-11, 5 lanes en conditions réelles, ~80 vérificatio
 | ~~**L2**~~ | ~~**La présence (D14)**~~ | — | ✅ **livré le 2026-08-12** — voir §« L2, ce qui est prouvé » |
 | ~~**L3**~~ | ~~**La prise de main (D7, D2)**~~ | L1 | ✅ **livré le 2026-08-12** — voir §« L3, ce qui est prouvé » |
 | ~~**L4**~~ | ~~**Le moteur de fusion (D6, D15, D16)**~~ | L3 | ✅ **livré le 2026-08-12** — voir §« L4, ce qui est construit » |
-| **L5** | **La proposition et la défusion (D8, D10, D17)** — l'avertissement au maître, les trois sorties, le réglage discret. | L4 | |
+| ~~**L5**~~ | ~~**La proposition et la défusion (D8, D10, D17)**~~ | L4 | ✅ **livré le 2026-08-12** — voir §« L5, ce qui est construit » |
 | **L6** | **Mémoire et préférences par titulaire (D4)** — plafond de tokens par membre, garde de non-divulgation étendue à la composition. | L4 | |
 | **L7** | **Le plafond de fusions (D11)** — `N + 3` par semaine ISO, en base, `merge_quota_exhausted`. | L4 | |
 | **L8** | **Les écrans (D9)** — plan du foyer, plan perso, la proposition, ce qui n'a pas fusionné et pourquoi. | L4, L5 | |
@@ -400,12 +400,11 @@ invisible.
 1. **Aucun run réel.** Pas un appel HTTP, pas une génération. Le barreau ② et ③
    n'ont jamais été lus par un modèle : on ne sait pas s'il tient « deux plats,
    une session ».
-2. **La fusion n'est pas COLLANTE.** Recomposer la même fenêtre en `compose`
-   ré-exclut la personne : son plan personnel couvre toujours la fenêtre, et
-   `resolveHandOff` refait son travail. C'est cohérent avec D10 (chaque
-   composition est une décision), et c'est exactement la machinerie que **L5**
-   doit poser — relire `merged_from` sur le plan vivant et re-reprendre qui n'a
-   pas revalidé depuis. **À ne pas laisser tomber entre deux lots.**
+2. ~~**La fusion n'est pas COLLANTE.**~~ **Refermé par L5 le 2026-08-12** —
+   `merged_from` est relu sur le plan du foyer vivant, comparé à la
+   `validated_at` d'aujourd'hui, et qui n'a pas revalidé depuis est re-repris à
+   la composition. Prouvé par tests purs, tests de position et mutations —
+   **pas par un run réel**.
 3. **O2 tient toujours** : aucune surface produit n'appelle
    `keel_validate_meal_plan`, donc la prise de main — et donc la fusion — reste
    inatteignable par un vrai utilisateur.
@@ -523,6 +522,297 @@ avec une ligne d'`issues` pour seul signal.
 Le verrou est antérieur au lot et il est juste. Ce que la fusion change, c'est
 qu'il devient atteignable par la **matière d'un plan personnel** qu'un tiers a
 écrite. Rien ne recompose la case vide.
+
+## L5, ce qui est construit — 2026-08-12
+
+> ⚠️ **Rien n'a été exercé en conditions réelles.** Aucun appel HTTP, aucune
+> génération modèle, aucune RPC sous vrai jeton. Tout ce qui suit est prouvé par
+> des tests purs, des tests de position sur la source, un bloc de contrôle SQL
+> rejoué et annulé, deux épreuves de RLS en transaction, et **23 mutations**. La
+> campagne réelle est L10.
+
+**Une migration**, `20260812160000_household_merge_settings.sql`, inscrite au
+registre à la main (`supabase_migrations.schema_migrations`) parce que plusieurs
+migrations d'autres sessions sont en fichier et absentes du registre : un
+`migration up` les aurait appliquées à sa place.
+
+### L'architecture, et pourquoi
+
+| Où | Quoi |
+|---|---|
+| `_shared/keel/household_merge_notice.ts` | Le module PUR : relire `merged_from`, comparer les deux `validated_at` (D8), décider ce qu'on propose (D10) et ce qu'on masque (D17), reporter les reprises |
+| `_shared/keel/household_merge_notice_io.ts` | Les deux lectures partagées : le plan du foyer vivant, et les réglages |
+| `_shared/keel/household_merge.ts:224` | `bestMergePair` — **extrait** de `resolveMergeRequest`, désormais appelé par la proposition ET par la fusion |
+| `_shared/keel/household_merge.ts:264` | `resolveTailWindow` — la queue d'un plan, **déléguée** à `resolveMergeWindow` |
+| `_shared/keel/household_merge.ts:630` | `buildUnmergeBlock` — la consigne de D8, mot pour mot |
+| `_shared/keel/household_hand.ts:316` | `resolveHandOff({…, excluded})` — la défusion passe par le **seul** endroit qui décide qui est à table |
+| `household-merge-notices-v1/index.ts` | Le lecteur : un jeton, un foyer, le droit du maître. Aucune écriture, aucun modèle |
+| `generate-household-meal-v1/index.ts:514` | `resolveUnmergeRequest` — tous les refus, avant toute dépense |
+| `generate-household-meal-v1/index.ts:1093` | La fusion devient **collante** : `merged_from` relu, comparé, re-repris |
+
+**La proposition n'a pas sa propre arithmétique**, et c'est la moitié qui compte.
+`bestMergePair` est le seul endroit qui choisit la paire (plan du foyer, plan
+personnel) et la fenêtre fusionnable ; le lecteur et le générateur l'appellent
+tous les deux. Un second calcul aurait promis des jours que la fusion ne prend
+pas — et les deux nombres auraient été plausibles.
+
+### Les trois sorties de D8, nommément
+
+| Sortie | Point d'entrée | Ce que ça fait |
+|---|---|---|
+| **Défusion** | `generate-household-meal-v1`, `operation: "unmerge"` + `unmerge_member_id` | Recompose la **queue** du plan du foyer (D16) sans la personne, avec la consigne « rester au plus près du plan de base, sans user X » |
+| **Refusionner** | `operation: "merge"` + `merge_member_id` — **existait déjà** | `bestMergePair` prend le plan validé le plus récent : aucune ligne de code neuve |
+| **Refuser** | RPC `keel_household_dismiss_merge_notice(p_member, p_validated_at)` | Écarte **cette validation-là**. Une validation postérieure repose la question |
+
+Dans les trois cas le plan personnel du secondaire est **hors de portée par
+construction** : `write_student_meal_plan` ne touche que les lignes de
+`p_user_id` (le maître) et de la même nature. Un test refuse plus d'un site
+d'écriture dans le générateur.
+
+### Sept arbitrages pris seuls, et pourquoi
+
+| Décision | Écarté | Pourquoi | Retour arrière |
+|---|---|---|---|
+| **« Le plan de base » = le plan du foyer VIVANT** (donc, après une fusion, le plan fusionné) | le plan d'AVANT la fusion (`into_plan_id`, que L4 archive) | D8 dit que la défusion « préserve les courses déjà faites » ; les courses se font sur le plan que l'écran montre, et l'écran montre le plan vivant. Revenir au plan d'avant jetterait précisément ce que la phrase existe pour sauver. Le vivant est aussi **toujours lisible**, alors que `into_plan_id` manque sur tout plan écrit avant L4 | une lecture ; `generated_from.household.unmerge.base_plan_id` dit lequel a servi, ligne par ligne |
+| **Le lecteur est une fonction edge à lui** | une `operation` de plus sur le générateur | On regroupe ce qui partage des **gardes**, pas ce qui partage un sujet. La fusion vit dans le générateur parce qu'elle exige ses cinq préconditions ; un lecteur n'en exige aucune, et l'y greffer ferait d'un générateur une porte qui parfois n'écrit pas | supprimer un répertoire |
+| **`excluded` est REQUIS** sur `resolveHandOff` | un paramètre optionnel | Une défusion qui l'oublierait dépenserait un appel modèle pour rendre **exactement** le plan qu'elle voulait défaire. Le compilateur a listé les 15 appelants | une valeur par défaut |
+| **« Refuser » est PERSISTÉ**, borné à un instant de validation | le prendre au mot (« ne rien faire ») | Sans borne, l'avertissement revient à chaque rechargement : « refuser » ne serait pas une sortie, ce serait un soupir. Avec une borne **par personne**, ce serait D17 déguisé, décidé sans que le maître l'ait demandé | `drop column` |
+| **D17 ne coupe PAS l'avertissement de D8** | tout masquer | Une proposition parle du plan **d'un autre** — on peut ne plus vouloir l'entendre. Un avertissement parle du plan **du maître** : sa ligne vivante contient la reprise d'un plan que l'intéressé a remplacé. Le taire rendrait ce plan périmé invisible **et indéfaisable**, puisque la défusion se déclenche de là | une condition |
+| **`merged_from` est REPORTÉ** sur chaque opération, et la clé `merge` s'écrit dès qu'un plan porte une reprise | ne l'écrire que sur une fusion | Le plan neuf remplace le vivant, donc sa provenance aussi : sans report, fusionner Zoé effacerait la reprise de Tom, et la composition d'après ré-excluerait Tom. Le **geste du jour** reste dans les clés qui suivent `merged_from`, absentes quand ce plan ne fait que reporter | une condition |
+| **Le plan du foyer est filtré par `household_id`** en plus du propriétaire | le prédicat de L4 (propriétaire + `plan_kind`) | Un maître qui a changé de foyer aurait vu le plan vivant de l'**ancien** foyer proposé à la fusion du nouveau. Le resserrement va dans le sens sûr : au pire `merge_no_household_plan`, refus déjà nommé | une ligne |
+
+**Une reprise vaut pour une FENÊTRE, pas pour toujours.** `merged_from` n'est
+relu que sur les plans du foyer qui **mordent sur la fenêtre recomposée** :
+composer la semaine suivante ne re-reprend personne, et le secondaire qui a un
+plan à lui y est de nouveau exclu, comme le veut L3. C'est cohérent avec D10 —
+le maître a dit oui pour **cette** semaine-là — et ça évite qu'un oui d'un jour
+devienne un état permanent que personne ne se rappelle avoir posé.
+
+### Le réglage (D17) — ce qu'il coupe, et ce qu'il ne peut pas couper
+
+Table `household_merge_settings` (foyer, bouche) : `proposals_muted` et
+`dismissed_validated_at`. **RLS active, `authenticated` n'a que `SELECT`**, et la
+policy exige le rôle `owner` — un secondaire ne lit pas le réglage qui le vise.
+Vérifié en base, en transaction annulée : le maître lit 1 ligne, un étranger 0,
+**un secondaire du même foyer 0**. Les écritures passent par deux RPC gatées sur
+`auth.uid()`, révoquées à `service_role` (une RPC gatée sur `auth.uid()` sous
+`service_role` est un 200 qui n'écrit rien — mesuré sur `keel_validate_meal_plan`
+le 2026-08-11).
+
+**Le réglage ne peut pas bloquer la fusion**, et c'est tenu par un test de
+source : le générateur ne nomme ni la table ni son chargeur, et le lecteur, lui,
+DOIT les nommer — sans quoi la garde serait verte sur un produit où D17 n'existe
+pas.
+
+`keel_household_dismiss_merge_notice` **ne prend pas la date du client sur
+parole** : elle la compare à la milliseconde à celle du plan vivant (lue par
+`keel_household_roster_for`, la source unique) et refuse `notice_moved_on`
+sinon. Un client qui pourrait écrire n'importe quelle date écrirait l'an 3000 et
+obtiendrait D17 sans l'avoir choisi.
+
+### Les versions de prompt
+
+`HOUSEHOLD_PROMPT_VERSION` bump **v4_merge_budget → v5_unmerge** ;
+`MEAL_PROMPT_VERSION` **ne bouge pas**. Règle de v4 appliquée telle quelle
+(« quelle population voit une consigne différente ») : seule une **défusion** voit
+le bloc neuf. La lane individuelle, la composition ordinaire **et la fusion**
+rendent un prompt byte-identique à celui de v4, et trois tests le tiennent.
+
+### Ce qui n'est pas prouvé, et ce qui reste ouvert
+
+1. **Aucun run réel.** Le bloc de défusion n'a jamais été lu par un modèle. Et
+   **O5 est un précédent qui concerne directement ce lot** : deux fusions réelles
+   sur deux ont ignoré le barreau demandé. Rien ne dit que « reste au plus près du
+   plan de base » sera mieux respecté que « cuisine deux plats » — et rien, ici,
+   ne le **constate** : il n'y a pas d'équivalent d'`observeMergeShape` pour la
+   défusion. C'est un choix : mesurer « ressemble au plan de base » demanderait un
+   critère de ressemblance que personne n'a défini, et un mauvais critère salirait
+   toutes les défusions.
+2. **O2 TIENT TOUJOURS, et il ne peut PAS se refermer côté serveur.** Vérifié :
+   aucune surface produit n'appelle `keel_validate_meal_plan` — ni le front, ni
+   une fonction edge. Et la RPC est **révoquée à `service_role`** (migration
+   20260811140000, exprès : `auth.uid()` y est NULL) : **aucune fonction edge ne
+   peut la porter**. La gâchette est donc, structurellement, un appel PostgREST
+   sous le jeton de l'élève — c'est-à-dire une ligne de L8. Tant qu'elle manque,
+   rien n'est jamais proposé et ce lot entier est inatteignable par un vrai
+   utilisateur.
+3. **La proposition ne prédit pas la présence.** `merge_member_away_all_window`
+   se décide sur le rythme de repas et les absences résolus à la composition ; le
+   refaire dans le lecteur demanderait une seconde résolution de présence sur une
+   fenêtre qui n'est pas encore celle d'un plan. Une proposition peut donc être
+   refusée au moment du geste — nommément, sans appel modèle. C'est le seul écart
+   connu entre ce que la proposition annonce et ce que la fusion fait.
+4. **`covers_window: false` est tracé, et rien n'agit dessus.** Une défusion peut
+   sortir quelqu'un dont le plan personnel ne couvre pas tous les jours : il
+   n'aura rien à manger ces jours-là. C'est le droit du maître (D8 : « refaire le
+   plan du foyer SANS user X »), et le fait est écrit dans l'`issue`
+   (`member_unmerged:<id>:uncovered`) et dans `generated_from.household.hand.unmerged`.
+   Le dire à l'écran est L8.
+5. **Le plafond de L7 n'est pas posé, et le lecteur ne le connaît pas.** Quand il
+   le sera, la proposition devra le lire — sinon elle proposera une fusion que le
+   quota refuse. Le point d'accroche est `buildMergeNotices`, qui rend déjà un
+   `skipped` nommé par bouche.
+6. **Deux rouges préexistants NON touchés**, comme à L4 : `chat/recent_history_test.ts`
+   et une erreur de typage dans `action_occurrences_test.ts`. Aucun des deux
+   fichiers n'appartient à ce lot. `deploy-manifest-check.mjs` était déjà rouge
+   (53 violations, dont `generate-household-meal-v1` non déclaré) ; ce lot déclare
+   sa propre fonction et le laisse à 52.
+
+### Les 23 mutations — chacune cassée, vue rouge, restaurée
+
+`excluded` désarmé · exclusion placée après la reprise · dates comparées en
+chaînes · un revalidé qui tient quand même · le mute qui coupe l'avertissement ·
+« refuser » rendu définitif · les jours reportés recopiés de l'ancien plan · la
+consigne de défusion retirée · la queue réécrite à la main · `bestMergePair` qui
+prend la plus courte · `excluded` retiré du générateur · report supprimé · sticky
+vidé · le générateur qui lit les réglages · le lecteur qui écrit · `plan_kind`
+retiré du lecteur partagé · le bloc de défusion jamais greffé · la défusion qui
+demande un second plat · le refus de défusion déplacé après le modèle ·
+la proposition retombée sur « le dernier validé » · `dismiss_validated_at`
+confondu avec la date du plan montré · `INSERT` rendu à `authenticated`
+(contrôle SQL) · la policy contournée par un tiers (RLS, deux sens).
+
+**Un second défaut trouvé en RELECTURE, avant toute mutation.** La proposition
+ne regardait que le plan **le plus récemment validé**, alors que la fusion
+regarde **tous** les plans vivants de la personne. La contrainte d'exclusion
+n'interdit que le chevauchement, pas l'adjacence: Zoé valide le 12 un plan pour
+cette semaine, puis le 14 un plan pour la suivante, et la proposition
+n'annonçait alors **rien du tout** pendant que la fusion aurait parfaitement
+repris celui de cette semaine. Corrigé — même entrée des deux côtés — et deux
+champs distincts en sortie, parce qu'ils ne portent pas la même date:
+`plan.validated_at` (le plan qu'une fusion prendrait) et `dismiss_validated_at`
+(ce que `keel_household_dismiss_merge_notice` exige). Les confondre ferait
+refuser `notice_moved_on` en boucle sans que rien ne l'explique.
+
+**Une mutation a trouvé un faux-vert, et il était PRÉEXISTANT.** Inverser le
+critère de `bestMergePair` — prendre la fenêtre la plus **courte** — ne faisait
+tomber aucun test : la règle vivait dans une boucle du générateur qu'aucun décor
+n'exerçait à plus d'une paire. Depuis L5 elle est **partagée avec la
+proposition**, ce qui aurait rendu l'erreur cohérente des deux côtés, donc
+invisible, et pas moins fausse : le maître se serait vu proposer un jour au lieu
+de cinq. Trois tests ont été ajoutés (`household_merge_test.ts`), et la mutation
+est désormais rouge.
+
+## L5, la contre-épreuve — 2026-08-12, quatre défauts mesurés en HTTP
+
+> Quatre défauts, **une seule racine** : quand plusieurs lignes sont vivantes en
+> même temps, le code prenait « la première » ou « la plus récente » au lieu de
+> prendre **celle dont il parle**. C'est le piège que `bestMergePair` avait fermé
+> du côté de la proposition, et qui était resté ouvert partout ailleurs.
+>
+> ⚠️ **Aucun run réel dans ce lot-ci non plus.** Tout ce qui suit est prouvé par
+> des tests purs, des tests de position, et **11 mutations**. Suite keel :
+> 2 439 verts.
+
+### Le fait qui rend les quatre possibles
+
+**Deux plans du foyer sont vivants en même temps par contrat** — le courant et le
+suivant, ce que `prepare_next` produit, et rien ne retire un plan passé. Les deux
+portent **la même** reprise, parce que le report la recopie d'un plan à l'autre
+(`carryMergedFrom`). Et `loadLiveHouseholdPlans` trie `starts_on` **croissant** :
+« le premier » est donc **le plus ancien**.
+
+Symétriquement, **une bouche peut porter deux plans personnels vivants** : la
+contrainte d'exclusion (`student_generated_meals_live_windows_dont_overlap`,
+scopée `user_id + plan_kind`) n'interdit que le chevauchement, pas l'adjacence.
+« Le plus récemment validé » n'est donc pas « celui qu'on a fusionné ».
+
+### ① P0 — la fusion se défaisait seule, et l'alerte D8 criait au loup
+
+`mergeStandings` comparait la date archivée dans `merged_from[].validated_at` à
+la validation **la plus récente de tous les plans vivants** du membre. Mesuré :
+fusion du plan validé à 04:29:47,614 ; Zoé porte aussi un plan validé à
+04:29:48,755, **disjoint** du plan du foyer donc jamais fusionnable ; lecture
+immédiate ⇒ `merged_plan_revalidated`, `held: []`, puis un `compose` ré-excluait
+Zoé (`servings` 3 → 2). Deux dégâts, et il fallait les deux : la fusion cessait
+d'être collante **et** l'alerte était fausse, donc indiscernable d'une vraie.
+
+La comparaison porte désormais sur **le plan retrouvé par son id**
+(`merged_from[].plan_id`), dans `household_merge_notice.ts:mergeStandings`.
+
+**Le cas limite — le plan fusionné n'est plus vivant — a sa propre réponse, et
+elle est double.** `write_student_meal_plan` **retire** la ligne d'avant et en
+écrit une neuve : l'id change. « Le plan fusionné a disparu » est donc le cas
+**canonique** de D8, pas une bizarrerie. Mais il ne suffit pas : le plan peut
+avoir disparu sans que rien de neuf n'ait été validé.
+
+| État | Quand | `warn` | `hold` |
+|---|---|---|---|
+| `still_merged` | le plan fusionné est là, même validation | non | **oui** |
+| `revalidated_after_merge` | il est là, validation postérieure | **oui** | non |
+| `merged_plan_replaced` | il a disparu **et** quelque chose de plus récent est validé | **oui** | non |
+| `merged_plan_no_longer_live` | il a disparu, **rien** de plus récent | non | non |
+| `no_live_personal_plan` | plus aucun plan à elle | non | non |
+| `merge_date_unreadable` | archive sans date (inatteignable) | non | oui |
+
+`merged_plan_no_longer_live` n'avertit pas parce que « elle a validé un nouveau
+plan après votre fusion » serait **faux**, et c'est cette fausse alerte-là qui a
+été mesurée. Ne pas tenir y est **sans conséquence** : la contrainte d'exclusion
+interdit qu'un autre plan vivant couvre les jours du plan disparu, donc plus rien
+ne retire cette bouche de la table — L3 la compose d'office.
+
+`latestValidated` sert **encore, mais seulement quand le plan fusionné a
+disparu** : c'est là, et seulement là, que « a-t-elle validé quelque chose
+depuis ? » est la bonne question.
+
+### ②③④ — un seul choix, fait à un seul endroit
+
+`mergeCarriers` (`household_merge_notice.ts`) est désormais **le seul endroit qui
+choisit** quel plan du foyer vivant parle pour une bouche. Trois appelants :
+le lecteur (`buildMergeNotices`), la défusion (`resolveUnmergeRequest`), et la
+composition ordinaire (`priorMergedFrom`).
+
+| # | Où c'était | Ce que ça donnait |
+|---|---|---|
+| **②** | `generate-household-meal-v1/index.ts` — `.find()` sur la liste triée | `unmerge` rendait **409 `unmerge_window_all_past`** sur le plan périmé pendant que le lecteur offrait le bouton. Le maître n'avait **aucun** moyen de défaire la reprise sur son plan courant |
+| **③** | `household-merge-notices-v1/index.ts` — dédoublonnage « premier arrivé » | `merged.validated_at` rendait `2026-08-05T10:00:00`, la date d'un plan périmé, au lieu du geste réel |
+| **④** | `held` calculé sur **tous** les plans vivants | annoncé comme « ce que la prochaine composition re-reprendra », faux dès que la fenêtre visée ne recouvre pas le plan porteur |
+
+**Le critère de `mergeCarriers` n'est PAS celui de `bestMergePair`, et c'est
+délibéré.** Fusionner cherche le plus de jours à reprendre ; défusionner et
+re-reprendre portent sur la table **d'aujourd'hui**. Un plan dont il reste des
+jours (D16) gagne toujours sur un plan consommé ; entre deux vivants, celui dont
+la **queue commence le plus tôt**. Prendre « la queue la plus longue » ferait agir
+la défusion sur la semaine **prochaine** dès qu'elle est plus longue que ce qu'il
+reste de la semaine en cours — le cas le plus courant du produit.
+
+### Quatre décisions prises seules
+
+| Décision | Écarté | Pourquoi | Retour arrière |
+|---|---|---|---|
+| **Deux états distincts** pour « le plan fusionné a disparu » (`replaced` / `no_longer_live`) | un seul état | Un seul état devait choisir un `warn`, et les deux sens étaient faux : avertir toujours fabrique la fausse alerte mesurée, n'avertir jamais tue le cas **canonique** de D8 (le plan remplacé). La date tranche, et elle est déjà là | fusionner les deux constantes, une ligne |
+| **`buildMergeNotices` ne prend plus `mergedFrom`** : il prend les plans du foyer **avec leur `generated_from`** et choisit lui-même | garder l'argument | Tant que l'appelant aplatissait la liste, il refaisait le choix — et c'est exactement là que ③ vivait. Le rendre indérivable de l'extérieur est la seule façon de ne pas le voir revenir | remettre l'argument ; le type `MergeCarrierPlan` reste |
+| **`held` porte sa portée** (`{member_id, plan_id, window}`) au lieu d'une liste d'ids | aligner les deux ensembles en amont | Le lecteur **ne connaît pas** la fenêtre que le maître composera ensuite ; l'inventer serait un second avis sur une fenêtre, ce que ce lot refuse partout ailleurs. On rend donc explicite ce que le générateur fait déjà : `plansOverlap(plan, fenêtre)` puis `readMergedFrom` | reprojeter en `member_id[]`, une ligne — aucun consommateur aujourd'hui (L8 n'existe pas) |
+| **La sortie `unmerge` disparaît quand le porteur n'a plus de queue** | l'offrir quand même | C'est le bouton que le geste refusait. `dismiss` reste, et `merge` aussi quand il y a matière : la proposition ne promet plus rien qu'un 409 vienne démentir | une condition |
+
+### Les versions de prompt — aucune ne bouge, et voici pourquoi
+
+`MEAL_PROMPT_VERSION` et `HOUSEHOLD_PROMPT_VERSION` (`v5_unmerge`) sont
+**inchangées**. La règle de v4 est « quelle population voit une consigne
+différente » : **aucune**. Ces quatre défauts sont dans le **choix des lignes**
+lues en base, pas dans le texte envoyé au modèle — `buildMergeBlock`,
+`buildUnmergeBlock`, le brief de portions et l'échelle sont intouchés, au
+caractère près. Bumper aurait invalidé le cache d'une population entière pour un
+prompt byte-identique.
+
+### Les 11 mutations — chacune cassée, vue rouge, restaurée
+
+La comparaison D8 retombée sur « le plus récemment validé » (**4 rouges**) · le
+plan disparu sans rien de neuf qui avertit quand même (1) · le plan **remplacé**
+qui n'avertit plus (6) · plus rien qui **tient** — le cas qui passe (5) · le
+porteur redevenu « le premier de la liste » (2) · le porteur choisi sur la queue
+la plus **longue** (1) · la sortie `unmerge` offerte sans queue (1) · `held` privé
+de sa portée (2) · `held` nommant la mauvaise ligne (3) · la défusion revenue au
+`.find()` (1) · le report revenu à « la première entrée trouvée » (1).
+
+**Le motif à ne pas répéter, et il était déjà là.** Le fixture `TWO_PLANS`
+existait depuis L5 et n'avait **jamais** été passé dans `buildMergeNotices` avec
+une reprise : la garde de D8 n'avait donc jamais été éprouvée sur le cas que son
+propre fichier documente trente lignes plus haut. Le test manquant est écrit
+(`P0 — un SECOND plan adjacent, plus récent, ne défait pas la fusion`), avec son
+**cas qui passe** de l'autre côté (`revalider CE plan-là avertit bien`) — sans
+lui, on remplacerait un faux positif par un faux négatif, et « la fusion tient
+toujours » ressemblerait trait pour trait à une garde qui marche.
 
 ## Questions encore ouvertes
 

@@ -49,6 +49,7 @@ import { buildEnvyBlock } from "./household_envies.ts";
 import type { WindowPresence } from "./household_presence.ts";
 import {
   buildMergeBlock,
+  buildUnmergeBlock,
   type MergeMaterialDish,
   type PlanSpan,
 } from "./household_merge.ts";
@@ -91,6 +92,14 @@ import {
  *         bougé — ni leur nombre, ni leur ordre, ni leur texte — mais la ligne
  *         « at most N dishes » servie à une fusion CHANGE DE NOMBRE, et le
  *         contrat de sortie change avec elle.
+ *   v5  — 2026-08-12 (L5/D8): + le bloc de DÉFUSION, à la même place que celui
+ *         de fusion. La règle appliquée est celle de v4 — « quelle population
+ *         voit une consigne différente » — et la réponse est: une DÉFUSION, et
+ *         elle seule. La lane individuelle, la composition de foyer ordinaire
+ *         et la fusion rendent un prompt byte-identique à celui de v4, et trois
+ *         tests le tiennent. Le bump vaut quand même, pour la raison de v3: la
+ *         présence même d'un bloc distingue deux populations dans la colonne, et
+ *         une version qui ne bouge que « quand ça se voit » ne se relit pas.
  *
  * ── POURQUOI v4 EST SUR CET AXE-CI ET PAS SUR LE TRONC ────────────────────
  * La question à laquelle une version répond est: « deux plans stampés pareil
@@ -122,7 +131,7 @@ import {
  * version doit suivre est la CONSIGNE; qui a été retiré de la table se relit,
  * lui, sur `generated_from.household.hand`, nommément et avec son motif.
  */
-export const HOUSEHOLD_PROMPT_VERSION = "v4_merge_budget";
+export const HOUSEHOLD_PROMPT_VERSION = "v5_unmerge";
 
 export interface HouseholdRestriction {
   memberId: string;
@@ -165,6 +174,26 @@ export interface HouseholdPromptInput {
    * demande, dans le même prompt.
    */
   merge: HouseholdMergePrompt | null;
+  /**
+   * QUI ON SORT DE CETTE TABLE (D8, 2026-08-12). `null` = composition ordinaire
+   * ou fusion, et le prompt est alors identique à celui de v4, au caractère
+   * près.
+   *
+   * ⚠️ REQUIS ET NULLABLE, jamais optionnel — même raison que `merge` et
+   * `presence`. Une défusion qui oublierait de le passer dépenserait un appel
+   * modèle pour rendre EXACTEMENT le plan qu'elle voulait défaire: la personne
+   * est bien retirée de la tablée (`resolveHandOff`), mais rien ne dirait au
+   * modèle de rester au plus près du plan de base, et il rendrait une semaine
+   * neuve — c'est-à-dire jetterait les courses que D8 existe pour préserver.
+   *
+   * ⚠️ `merge` ET `unmerge` NE SONT JAMAIS TOUS DEUX NON NULS: ce sont deux
+   * opérations distinctes de `generate-household-meal-v1`, et une requête n'en
+   * porte qu'une. Ce module ne l'impose pas — il n'a pas à connaître les
+   * opérations de son appelant — mais il n'a pas non plus à arbitrer entre deux
+   * consignes contradictoires, et c'est pour ça que ce n'est pas écrit comme un
+   * champ à trois valeurs.
+   */
+  unmerge: HouseholdUnmergePrompt | null;
 }
 
 /** Ce que la fusion apporte au prompt. Décidé ailleurs — voir `household_merge.ts`. */
@@ -173,6 +202,14 @@ export interface HouseholdMergePrompt {
   window: PlanSpan;
   /** Le barreau de l'échelle, décidé par `mergeLadder`. Jamais deviné ici. */
   shape: CookingShape;
+  dishes: readonly MergeMaterialDish[];
+}
+
+/** Ce que la défusion apporte au prompt (D8). Voir `buildUnmergeBlock`. */
+export interface HouseholdUnmergePrompt {
+  displayName: string;
+  window: PlanSpan;
+  /** Les plats du PLAN DE BASE — celui qu'on recompose sans cette personne. */
   dishes: readonly MergeMaterialDish[];
 }
 
@@ -285,6 +322,12 @@ export function buildHouseholdPromptBlocks(
     // conséquence de ce que le foyer a demandé cette semaine, ce qu'il n'est
     // pas. Les règles de maison, elles, restent en DERNIER.
     input.merge === null ? "" : buildMergeBlock(input.merge),
+    // MÊME PLACE QUE LA FUSION, ET POUR LA MÊME RAISON (D8). « Untel ne mange
+    // plus ici » est encore « qui mange quoi »: il reste dans le groupe des
+    // blocs qui décrivent la tablée, avant l'envie de la semaine et loin devant
+    // les règles de maison, qui restent EN DERNIER. Les deux ne paraissent
+    // jamais ensemble — une requête porte une opération, pas deux.
+    input.unmerge === null ? "" : buildUnmergeBlock(input.unmerge),
     envyBlock,
     restrictionBlock(input.restrictions),
   ].filter((p) => p && p.trim().length > 0);

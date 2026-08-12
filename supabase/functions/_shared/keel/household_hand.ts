@@ -204,6 +204,17 @@ export const HAND_REASON_PARTIAL = "personal_plan_partial_window";
  * s'est produit trois jours plus tard.
  */
 export const HAND_REASON_RECLAIMED = "merge_reclaimed";
+/**
+ * L5/D8 — LE MAÎTRE A DÉFUSIONNÉ: il refait le plan du foyer SANS cette
+ * personne.
+ *
+ * C'est le seul motif qui retire quelqu'un sur une DÉCISION plutôt que sur la
+ * couverture de son plan, et c'est pour ça qu'il ne se confond pas avec
+ * `personal_plan_covers_window`. La différence est décisive à la relecture: un
+ * `covers` se défait tout seul quand la personne cesse de valider, alors qu'un
+ * `unmerged` est un geste, et un geste se relit avec son auteur et sa date.
+ */
+export const HAND_REASON_UNMERGED = "merge_unmerged";
 
 /** Ce qu'on archive dans `generated_from`, par bouche concernée. */
 export interface HandTraceEntry {
@@ -247,6 +258,36 @@ export interface HandOff<T> {
    * comparer (D8).
    */
   reclaimed: HandTraceEntry[];
+  /**
+   * L5/D8 — QUI LE MAÎTRE A SORTI DE LA TABLE PAR UNE DÉFUSION. Vide sur toute
+   * composition ordinaire et sur toute fusion.
+   *
+   * ⚠️ `covers_window` EST LA MOITIÉ QUI COMPTE. L3 refuse le recouvrement
+   * PARTIEL parce que « l'exclusion partielle affame »; une défusion, elle,
+   * retire quelqu'un sur ORDRE, et cet ordre peut très bien tomber sur une
+   * personne dont le plan ne couvre pas tous les jours. C'est le droit du
+   * maître (D8: « refaire le plan du foyer SANS user X »), mais ça ne doit pas
+   * être invisible: sans ce booléen, « il n'a rien à manger jeudi » n'a aucune
+   * trace, et le plan a l'air normal.
+   */
+  unmerged: HandExclusionEntry[];
+}
+
+/**
+ * Ce qu'on archive d'une exclusion DÉCIDÉE. Forme distincte de
+ * `HandTraceEntry`, et pas par goût: une défusion peut retirer quelqu'un qui
+ * n'a AUCUN plan à lui sur cette fenêtre, et une trace qui exigerait un plan
+ * aurait alors le choix entre mentir et se taire.
+ */
+export interface HandExclusionEntry {
+  member_id: string;
+  reason: string;
+  plan_id: string | null;
+  starts_on: string | null;
+  duration_days: number | null;
+  validated_at: string | null;
+  /** Son plan à elle couvre-t-il TOUTE la fenêtre dont on la retire ? */
+  covers_window: boolean;
 }
 
 function traceOf(
@@ -289,11 +330,28 @@ export function resolveHandOff<T extends HandMember>(args: {
    * celui d'avant L4.
    */
   reclaimed: readonly string[];
+  /**
+   * L5/D8 — LES BOUCHES QUE LE MAÎTRE SORT DE SA TABLE (la défusion).
+   *
+   * ⚠️ REQUIS, jamais optionnel, exactement comme `reclaimed` — et la garde
+   * mord dans l'autre sens. Une défusion qui oublierait de le passer
+   * recomposerait le plan AVEC la personne qu'elle prétend retirer, en
+   * dépensant un appel modèle pour rendre le plan qu'elle voulait défaire, et
+   * sans qu'une seule ligne échoue. Le seul signe visible aurait été une
+   * consigne de prompt disant « sans X » sur une tablée qui contient X.
+   *
+   * IL GAGNE SUR `reclaimed`, et l'ordre est le sujet: une composition
+   * ordinaire re-reprend automatiquement qui a déjà été fusionné (la fusion est
+   * collante), donc une défusion qui ne l'emporterait pas serait annulée par le
+   * mécanisme même qu'elle vient corriger.
+   */
+  excluded: readonly string[];
 }): HandOff<T> {
   const composed: T[] = [];
   const taken: HandTraceEntry[] = [];
   const partial: HandTraceEntry[] = [];
   const reclaimed: HandTraceEntry[] = [];
+  const unmerged: HandExclusionEntry[] = [];
 
   const windowUsable = DATE.test(args.window.startsOn) &&
     Number.isFinite(args.window.durationDays) && args.window.durationDays >= 1;
@@ -302,12 +360,37 @@ export function resolveHandOff<T extends HandMember>(args: {
     // D2 — LE MAÎTRE, JAMAIS. Avant toute lecture de plan: son plan personnel
     // ne le concerne pas ici, et le juger ferait apparaître son id dans une
     // trace d'exclusion qui n'aura jamais lieu.
+    //
+    // ⚠️ ÇA PASSE AUSSI AVANT `excluded` (L5), ET C'EST VOULU. Une défusion qui
+    // viserait le maître viderait le plan du foyer de la personne qui le
+    // cuisine — le générateur le refuse déjà (`unmerge_member_is_owner`), et
+    // cette ligne-ci le rend impossible même si ce refus disparaissait. Une
+    // fenêtre illisible ne retire personne non plus: l'échec reste OUVERT dans
+    // les deux directions, y compris pour un geste explicite.
     if (member.isOwner || !windowUsable) {
       composed.push(member);
       continue;
     }
 
     const covering = member.ownPlans.find((p) => planCoversWindow(p, args.window));
+
+    // L5/D8 — LA DÉFUSION PASSE AVANT TOUT LE RESTE. Le maître a dit « refais
+    // le plan SANS lui »: aucune règle de recouvrement, aucune reprise
+    // collante, ne doit pouvoir le ramener à table par la bande.
+    if (args.excluded.includes(member.memberId)) {
+      const fallback = covering ??
+        member.ownPlans.find((p) => plansOverlap(p, args.window)) ?? null;
+      unmerged.push({
+        member_id: member.memberId,
+        reason: HAND_REASON_UNMERGED,
+        plan_id: fallback?.id ?? null,
+        starts_on: fallback?.startsOn ?? null,
+        duration_days: fallback?.durationDays ?? null,
+        validated_at: fallback?.validatedAt ?? null,
+        covers_window: covering !== undefined,
+      });
+      continue;
+    }
 
     // L4/D6 — LA FUSION PASSE AVANT L'EXCLUSION, et l'ordre est le sujet.
     // Reprendre quelqu'un, c'est précisément annuler ce que son plan aurait
@@ -337,5 +420,5 @@ export function resolveHandOff<T extends HandMember>(args: {
     composed.push(member);
   }
 
-  return { composed, taken, partial, reclaimed };
+  return { composed, taken, partial, reclaimed, unmerged };
 }
