@@ -26,6 +26,7 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
 
 import {
+  PULSE_BUTTON_PREFIX,
   readPulseReply,
   renderPulseAck,
   renderPulseAxisQuestion,
@@ -34,6 +35,7 @@ import { writePulseAxis, writePulseLevel } from "../keel/daily_pulse_io.ts";
 import {
   recommendationAction,
   RECOMMENDATION_APPLY_FAILED_ACK,
+  RECOMMENDATION_BUTTON_PREFIX,
   RECOMMENDATION_STALE_ACK,
   RECOMMENDATION_UNKNOWN_ACK,
   readRecommendationReply,
@@ -49,17 +51,24 @@ import {
 import {
   readStripReply,
   renderStripAck,
+  STRIP_BUTTON_PREFIX,
   renderStripDishStep,
   type StripLanguage,
   type StripReply,
 } from "../keel/evening_strip.ts";
-import { readAccidentReply } from "../keel/accident.ts";
+import {
+  ACCIDENT_BUTTON_PREFIX,
+  readAccidentReply,
+} from "../keel/accident.ts";
 import {
   accidentFormAfterUntick,
   handleAccidentTap,
   shiftProposalAfterShoppingLater,
 } from "./accident_tap.ts";
-import { readDivergenceReply } from "../keel/weight_divergence_buttons.ts";
+import {
+  DIVERGENCE_BUTTON_PREFIX,
+  readDivergenceReply,
+} from "../keel/weight_divergence_buttons.ts";
 import {
   closeDivergenceEpisodeAfterRecommendation,
   handleWeightDivergenceTap,
@@ -87,6 +96,25 @@ import { resolveArtifactLocale } from "../keel/locale.ts";
 import { deliverChatMessage } from "./delivery.ts";
 import { handled, type InboundStepOutcome, PASS } from "./inbound_pipeline.ts";
 import type { InboundMessage } from "./inbound_message.ts";
+
+/**
+ * LES CINQ VOCABULAIRES DÉTERMINISTES, en un seul endroit.
+ *
+ * Ils sont DISJOINTS et chaque lecteur rend « rien » sur ce qui ne le concerne
+ * pas — c'est ce qui rend l'ordre de lecture ci-dessous sans conséquence. Cette
+ * liste sert à autre chose: reconnaître qu'une charge VOULAIT être un tap, même
+ * quand aucun lecteur n'a su la lire. Voir la garde en fin de fonction.
+ *
+ * Une famille ajoutée sans être listée ici retombe au dispatcher sur charge
+ * cassée — c'est-à-dire qu'elle redevient interprétable par un modèle.
+ */
+export const DETERMINISTIC_BUTTON_PREFIXES: readonly string[] = Object.freeze([
+  RECOMMENDATION_BUTTON_PREFIX,
+  STRIP_BUTTON_PREFIX,
+  ACCIDENT_BUTTON_PREFIX,
+  DIVERGENCE_BUTTON_PREFIX,
+  PULSE_BUTTON_PREFIX,
+]);
 
 async function timezoneFor(
   admin: SupabaseClient,
@@ -942,7 +970,56 @@ export async function handleDeterministicButton(
 
   // ── LE TAP DU SOIR ────────────────────────────────────────────────────────
   const pulse = readPulseReply(message.button_payload);
-  if (pulse.kind === "none") return PASS;
+  if (pulse.kind === "none") {
+    // ── UNE CHARGE DÉTERMINISTE ILLISIBLE NE DESCEND PAS AU DISPATCHER ─────
+    //
+    // MESURÉ le 2026-08-12 (revue adversariale FF-056, H3/H4). Une charge
+    // `KEEL_WDIV_CAT|<uuid>|` tronquée, et une autre portant un jeton hors
+    // liste, tombaient toutes deux ici en `PASS`. `parseInboundMessage` pose
+    // alors `text = button_payload` (le libellé sert de trace lisible), et le
+    // dispatcher analysait donc la CHAÎNE DU BOUTON comme une phrase d'élève.
+    // Les deux réponses obtenues en run réel:
+    //
+    //   « If it's not going down, the usual reasons are: the portion is too
+    //     large, the food is too dry/dense, you're eating too fast… »
+    //   « Your question is with them now. »
+    //
+    // La première SPÉCULE sur des causes (ce que FF-056 existe pour ne jamais
+    // faire), la seconde promet un canal 1:1 coach→élève QUI N'EXISTE PAS
+    // (`docs/keel/MODEL.md`). Une charge qu'on n'a pas su lire n'est pas une
+    // phrase: c'est un identifiant cassé, et lui répondre par un modèle est la
+    // façon la plus chère possible de se tromper.
+    //
+    // Le précédent est DANS CE FICHIER: `weekly_flow_unusable_token`, quinze
+    // lignes plus haut, prend exactement cette décision pour un jeton de
+    // formulaire illisible. On l'étend aux boutons.
+    //
+    // ⚠️ APRÈS LES CINQ LECTEURS, JAMAIS AVANT. Une charge VALIDE n'atteint
+    // jamais ce point — c'est ce qui empêche cette garde de bloquer tout en
+    // ressemblant à une garde qui marche.
+    const payload = String(message.button_payload ?? "").trim();
+    const known = DETERMINISTIC_BUTTON_PREFIXES.some((p) =>
+      payload.startsWith(p)
+    );
+    if (!known) return PASS;
+    console.warn(JSON.stringify({
+      tag: "keel.deterministic_button.unusable_payload",
+      user_id: message.user_id,
+      // Tronqué, et il ne désigne jamais rien: on le journalise pour pouvoir
+      // reconnaître une campagne de charges forgées, pas pour l'interpréter.
+      button_payload: payload.slice(0, 64),
+    }));
+    const voice = await studentVoiceContext(admin, message.user_id);
+    await ack(admin, {
+      userId: message.user_id,
+      requestId: args.requestId,
+      purpose: "keel_unusable_button_ack",
+      body: isFrenchLocale(voice.contentLocale)
+        ? "Celui-là n'est plus d'actualité — rien n'a été enregistré."
+        : "That one's no longer open — nothing has been saved.",
+    });
+    return handled("keel_unusable_button_payload");
+  }
 
   const localDate = localDateFor(
     new Date(message.received_at),

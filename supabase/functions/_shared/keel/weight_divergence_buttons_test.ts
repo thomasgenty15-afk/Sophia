@@ -53,6 +53,7 @@ import { RECOMMENDATION_BUTTON_PREFIX } from "./daily_recommendation.ts";
 import { STRIP_BUTTON_PREFIX } from "./evening_strip.ts";
 import { ACCIDENT_BUTTON_PREFIX } from "./accident.ts";
 import { PULSE_BUTTON_PREFIX } from "./daily_pulse.ts";
+import { DETERMINISTIC_BUTTON_PREFIXES } from "../chat/deterministic_buttons.ts";
 
 const EP = "11111111-2222-3333-4444-555555555555";
 const OTHER_EP = "99999999-8888-7777-6666-555555555555";
@@ -418,5 +419,48 @@ Deno.test("the two languages carry the same shape", () => {
       restrictionFlag: false,
     });
     assertEquals(opening?.buttons.length, 5);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// ⑦ LA GARDE DES CHARGES ILLISIBLES — la liste des préfixes se vérifie
+// ---------------------------------------------------------------------------
+
+Deno.test("every deterministic family is covered by the unusable-payload guard", () => {
+  // MESURÉ le 2026-08-12 (H3/H4): une charge `KEEL_WDIV_*` cassée tombait au
+  // dispatcher, et le modèle répondait à la CHAÎNE DU BOUTON comme à une
+  // phrase — une fois en spéculant sur des causes, une fois en promettant un
+  // canal 1:1 coach→élève qui n'existe pas. La garde reconnaît une charge qui
+  // VOULAIT être un tap; cette liste est ce qui la rend complète.
+  //
+  // Une famille ajoutée sans être listée redevient interprétable par un
+  // modèle sur charge cassée. Ce test fait tomber l'oubli.
+  const guarded = new Set(DETERMINISTIC_BUTTON_PREFIXES);
+  for (
+    const prefix of [
+      RECOMMENDATION_BUTTON_PREFIX,
+      STRIP_BUTTON_PREFIX,
+      ACCIDENT_BUTTON_PREFIX,
+      DIVERGENCE_BUTTON_PREFIX,
+      PULSE_BUTTON_PREFIX,
+    ]
+  ) {
+    assert(guarded.has(prefix), `famille non gardée: ${prefix}`);
+  }
+  // Et toute charge RÉELLE de ce flow est reconnue par la garde.
+  for (
+    const payload of [
+      divergenceStepId(EP, "other_cause"),
+      divergenceCategoryId(EP, "medical"),
+      divergenceSpotId(EP, "night"),
+      // Les charges CASSÉES le sont aussi — c'est tout l'objet.
+      `KEEL_WDIV_CAT|${EP}|`,
+      `KEEL_WDIV_CAT|${EP}|other`,
+    ]
+  ) {
+    assert(
+      DETERMINISTIC_BUTTON_PREFIXES.some((p) => payload.startsWith(p)),
+      `charge non reconnue: ${payload}`,
+    );
   }
 });
