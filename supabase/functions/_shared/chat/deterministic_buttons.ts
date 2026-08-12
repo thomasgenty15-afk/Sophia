@@ -59,6 +59,11 @@ import {
   handleAccidentTap,
   shiftProposalAfterShoppingLater,
 } from "./accident_tap.ts";
+import { readDivergenceReply } from "../keel/weight_divergence_buttons.ts";
+import {
+  closeDivergenceEpisodeAfterRecommendation,
+  handleWeightDivergenceTap,
+} from "./weight_divergence_tap.ts";
 import {
   applyStripTicks,
   loadStripDishes,
@@ -415,6 +420,13 @@ async function handleRecommendationTap(
         proposal_id: row.id,
         action: row.actionId,
       }));
+      // FF-056 — si cette proposition est née d'un épisode de divergence, elle
+      // le clôt. Ne jette jamais et ne rend rien: FF-028 n'a pas à connaître
+      // FF-056, et un échec ici laisse l'épisode expirer tout seul.
+      await closeDivergenceEpisodeAfterRecommendation(admin, {
+        userId: message.user_id,
+        applied: false,
+      });
       await say(action.declinedAck);
       return handled("keel_daily_recommendation_declined");
     }
@@ -449,6 +461,12 @@ async function handleRecommendationTap(
       action: row.actionId,
       rhythm: applied.rhythm.map((r) => r.slot).join(","),
     }));
+    // FF-056 — la directive durable existe et elle a été RELUE (`applied`).
+    // C'est le seul endroit d'où l'épisode peut légitimement passer à `acted`.
+    await closeDivergenceEpisodeAfterRecommendation(admin, {
+      userId: message.user_id,
+      applied: true,
+    });
     await say(action.appliedAck);
     return handled("keel_daily_recommendation_accepted");
   } catch (error) {
@@ -875,6 +893,47 @@ export async function handleDeterministicButton(
       userId: message.user_id,
       requestId: args.requestId,
       purpose: "keel_accident_ack",
+      body: result.body,
+      buttons: result.buttons,
+    });
+    return handled(result.handledAs);
+  }
+
+  // ── FF-056 · LES TAPS DE LA DIVERGENCE CONSTATÉE ──────────────────────────
+  //
+  // CINQ vocabulaires déterministes, tous DISJOINTS (`KEEL_RECO_` /
+  // `KEEL_STRIP_` / `KEEL_FIX_` / `KEEL_WDIV_` / `KEEL_PULSE_`), et chaque
+  // lecteur rend « rien » sur ce qui ne le concerne pas: l'ordre n'a donc
+  // aucune conséquence, et un test le pinne (`weight_divergence_buttons_test.ts`,
+  // « les cinq vocabulaires ne se croisent pas »).
+  //
+  // ⚠️ C'EST ICI QUE MEURT LE NON-DÉTERMINISME DE FF-056. Le chemin texte
+  // descend au dispatcher, qui demande à un modèle de projeter une phrase sur
+  // neuf catégories fermées — mesuré `[0,3,3,0]` sur une phrase IDENTIQUE. Un
+  // `button_payload` est une valeur que NOUS avons émise: la faire descendre
+  // reviendrait à payer un appel LLM pour interpréter une chaîne exacte, et à
+  // accepter qu'il se trompe sur elle.
+  //
+  // `admin` est le client SERVICE-ROLE de `chat-inbound-v1`. C'est structurel:
+  // `authenticated` n'a que `SELECT` sur `student_weight_divergence_episodes`,
+  // et passer le client de l'élève est EXACTEMENT la faute que ce flow a
+  // payée (`permission denied`, chaque tour repartant de zéro).
+  const divergence = readDivergenceReply(message.button_payload);
+  if (divergence.kind !== "none") {
+    const now = new Date(message.received_at);
+    const localDate = localDateFor(now, await timezoneFor(admin, message.user_id));
+    const voice = await studentVoiceContext(admin, message.user_id);
+    const result = await handleWeightDivergenceTap(admin, {
+      userId: message.user_id,
+      reply: divergence,
+      language: isFrenchLocale(voice.contentLocale) ? "fr" : "en",
+      responseLocale: voice.contentLocale,
+      localDate,
+    });
+    await ack(admin, {
+      userId: message.user_id,
+      requestId: args.requestId,
+      purpose: "keel_weight_divergence_ack",
       body: result.body,
       buttons: result.buttons,
     });

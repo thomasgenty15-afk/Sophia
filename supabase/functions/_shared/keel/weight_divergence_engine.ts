@@ -50,6 +50,7 @@ import {
   DIVERGENCE_LOOKBACK_DAYS,
   type WeightDivergenceResult,
 } from "./weight_divergence.ts";
+import { buildDivergenceOpening } from "./weight_divergence_buttons.ts";
 import {
   daysBetween,
   expireLapsedEpisodes,
@@ -446,11 +447,37 @@ export async function runWeightDivergenceStep(
     return { outcome: "not_delivered", reason: "ask_record_failed" };
   }
 
+  // ── LES BOUTONS DU BRANCHEMENT ──────────────────────────────────────────
+  //
+  // ⚠️ LA PHRASE NE CHANGE PAS, ET C'EST LA MOITIÉ DU DESSIN. R2 (le sujet est
+  // LE PLAN) et R3 (la question est VRAIMENT ouverte) vivent dans le littéral
+  // gelé au-dessus; les boutons ne le reformulent pas, ils ne le referment pas,
+  // et le TEXTE LIBRE reste accepté (`classifyDivergenceReply` devient le
+  // chemin de secours). Ce qui bascule, c'est le BRANCHEMENT: les neuf
+  // catégories étaient déjà fermées, et on demandait à un modèle de projeter
+  // du texte libre dessus — mesuré `[0,3,3,0]` sur une phrase identique.
+  //
+  // `null` (ceinture refusée) ⇒ la question part NUE, exactement comme avant ce
+  // lot. Fail-open sur les boutons, jamais sur la phrase: perdre l'affordance
+  // coûte un tour de conversation, perdre la question coûte l'épisode.
+  const openingButtons = buildDivergenceOpening({
+    episodeId: episode.id,
+    language: isFrenchLocale(input.locale) ? "fr" : "en",
+    // Le plancher a été évalué plus haut dans ce même pas et il est BAISSÉ:
+    // on serait sorti sur `restriction_flag` sinon. Passé explicitement plutôt
+    // qu'omis — un paramètre de garde optionnel est une garde désarmée.
+    restrictionFlag: false,
+  });
+
   const delivered = await deliverChatMessage(admin, {
     userId,
     content: question,
     purpose: "keel_weight_divergence",
     requestId: input.requestId,
+    buttons: (openingButtons?.buttons ?? []).map((b) => ({
+      payload: b.id,
+      label: b.title,
+    })),
     metadata: { keel_weight_divergence_episode_id: episode.id },
     now,
   });
@@ -474,6 +501,10 @@ export async function runWeightDivergenceStep(
     weeks: verdict.window.length,
     episode_id: episode.id,
     cooldown_required_days: cooldown.requiredDays,
+    // De quoi mesurer le branchement sans relire le texte: zéro bouton signifie
+    // que la ceinture a refusé les libellés, et c'est un incident silencieux
+    // qu'il faut pouvoir voir.
+    opening_buttons: openingButtons?.buttons.length ?? 0,
   }));
 
   return {
