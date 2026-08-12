@@ -131,7 +131,8 @@ Comment on entre. Pages de vente, inscription coach, inscription libre, `/join`,
 essai, rôles et paywall.
 
 `coach-signup-v1` · `send-welcome-email` · `trigger-retention-emails` ·
-`LandingPage` · `GymsLandingPage` · `CommunitiesPage` · `StartPage` · `JoinPage`
+`LandingPage` · `GymsLandingPage` · `CommunitiesPage` · `StartPage` · `JoinPage` ·
+`SetupPage` · `onboarding.ts`
 
 ### `abonnement-et-facturation/`
 Qui paie quoi. Sièges, périodes, réconciliation Stripe, portail client.
@@ -206,6 +207,7 @@ des crons, observabilité, files de reprise.
 | [FF-048](le-foyer/FF-048-reclamer-son-profil.md) | Réclamer son profil | `le-foyer` | 🟢 Livrée |
 | [FF-049](le-foyer/FF-049-le-prix-du-foyer.md) | Le prix du foyer | `le-foyer` | 🟠 En cours |
 | [FF-050](le-foyer/FF-050-l-envie-de-la-semaine.md) | L'envie de la semaine | `le-foyer` | 🟢 Livrée |
+| [FF-060](acquisition-et-acces/FF-060-le-parcours-d-entree.md) | Le parcours d'entrée — trois étapes qui finissent par un plan | `acquisition-et-acces` | 🟢 Livrée |
 
 > **Un identifiant ne se réutilise jamais** — y compris quand deux sessions
 > écrivent en parallèle, et y compris quand la fiche disparaît. `FF-002` a été

@@ -899,6 +899,33 @@ create temporary table pg_temp_lea on commit drop as
    where household_id = public.keel_household_of('f0ed0000-0000-0000-0000-000000000001')
      and user_id is null and first_name = 'Lea';
 
+-- FF-060 D2 — LÉA PORTE UN OBJECTIF AVANT D'ÊTRE RÉCLAMÉE.
+--
+-- C'est la mise en place du défaut que le lot 3B ferme: le maître saisit la
+-- direction de son conjoint dans l'entonnoir, et la réclamation la faisait
+-- cesser d'être lue (`roster_for` bascule sur `sg.goal`, vide pour un compte
+-- neuf). Sans cette ligne, les assertions 67b–67e ne prouveraient rien.
+select pg_temp.assert_ok('60- le maître pose la direction de Lea AVANT toute invitation',
+  public.keel_household_set_member_goal(
+    (select member_id from pg_temp_lea), 'muscle_gain'));
+
+-- LA VALEUR QUE LE ROSTER REND AUJOURD'HUI, gelée pour comparaison. C'est
+-- l'assertion qui compte: pas « la colonne existe » mais « le générateur lit la
+-- MÊME CHOSE avant et après », puisque c'est le roster qu'il lit.
+--
+-- ⚠️ LU EN SUPER, ET C'EST UN FAIT SUR LA FONCTION: `keel_household_roster_for`
+-- prend le compte EN ARGUMENT et n'est PAS accordée à `authenticated` — c'est
+-- la variante SERVEUR, celle que le générateur appelle sous la clé de service
+-- (`auth.uid()` y est NULL, donc la variante sans argument y serait morte).
+-- La lire sous un JWT rend « permission denied », ce qui est le comportement
+-- voulu et vérifié ailleurs dans ce fichier.
+select pg_temp.become_super();
+create temporary table pg_temp_lea_goal_before on commit drop as
+  select goal from public.keel_household_roster_for(
+    'f0ed0000-0000-0000-0000-000000000001')
+   where member_id = (select member_id from pg_temp_lea);
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000001');
+
 create temporary table pg_temp_invite on commit drop as
   select public.keel_household_invite(
     'nightfoyer_invitee@example.com', (select member_id from pg_temp_lea)) as r;
@@ -1019,6 +1046,52 @@ select pg_temp.assert_eq('67 la MÊME ligne porte le compte, prénom intact',
       and hm.user_id = 'f0ed0000-0000-0000-0000-000000000009'
       and hm.first_name = 'Lea'
       and hm.role = 'member'), 1);
+
+-- ══════════════════════════════════════════════════════════════════════════
+-- 67b–67e. FF-060 D2 — L'OBJECTIF SAISI PAR LE MAÎTRE EST SEMÉ, PAS PERDU
+--
+-- Le défaut, avant le lot 3B: `roster_for` bascule sur `sg.goal` dès que la
+-- bouche a un compte, et un compte qui vient de réclamer n'a AUCUNE ligne
+-- `student_goals`. L'objectif cessait donc d'être lu à la seconde même où la
+-- personne s'engageait, sa portion se dégradait en part standard, et rien ne
+-- le signalait. `keel_household_join` sème désormais la ligne.
+-- ══════════════════════════════════════════════════════════════════════════
+
+-- 67b. LA LIGNE « ABOUT YOU » EXISTE, ET ELLE PORTE LA DIRECTION SAISIE.
+select pg_temp.assert_eq('67b la réclamation a semé student_goals du titulaire',
+  (select count(*) from public.student_goals
+    where user_id = 'f0ed0000-0000-0000-0000-000000000009'
+      and goal = 'muscle_gain'), 1);
+
+-- 67c. ET LA LIGNE DE FOYER N'EST PAS EFFACÉE. Si l'accès est retiré plus tard
+--      (`detach_member` remet `user_id` à NULL), le roster y retombe: effacer
+--      ferait perdre en silence une seconde fois.
+select pg_temp.assert_eq('67c household_members.goal garde sa valeur',
+  (select count(*) from public.household_members
+    where member_id = (select member_id from pg_temp_lea)
+      and goal = 'muscle_gain'), 1);
+
+-- 67d. L'ASSERTION QUI COMPTE VRAIMENT: le GÉNÉRATEUR lit le roster, et le
+--      roster rend la MÊME valeur avant et après la réclamation. Comparée à
+--      la valeur gelée avant l'invitation, pas à une constante réécrite ici —
+--      un test paramétré par sa propre constante reste vert quand on change la
+--      constante.
+select pg_temp.assert_eq('67d le roster rend le MÊME objectif avant et après',
+  (select count(*) from public.keel_household_roster_for(
+      'f0ed0000-0000-0000-0000-000000000001') r
+    where r.member_id = (select member_id from pg_temp_lea)
+      and r.goal is not distinct from (select goal from pg_temp_lea_goal_before)
+      and r.goal = 'muscle_gain'), 1);
+
+-- 67e. ET LA GRAINE N'ÉCRASE JAMAIS UNE DÉCLARATION EXISTANTE. Le compte 2 a
+--      SON « about you » (`health`, posé en 25b'), et sa bouche de foyer ne
+--      peut de toute façon plus porter d'objectif — la garde `has_account`.
+--      L'assertion existe pour la population qui vient: un compte individuel
+--      qui rejoint le foyer de son conjoint. Sa direction est la sienne.
+select pg_temp.assert_eq('67e une déclaration personnelle n''est pas écrasée',
+  (select count(*) from public.student_goals
+    where user_id = 'f0ed0000-0000-0000-0000-000000000002'
+      and goal = 'health'), 1);
 
 -- 68. ET RIEN N'A ÉTÉ PERDU: sa règle de maison et son allergie pendent au
 -- `member_id`, pas à un compte, donc elles ne bougent pas d'un cheveu.
