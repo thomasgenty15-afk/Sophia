@@ -44,6 +44,13 @@ import {
   type PlanSpan,
   resolveTailWindow,
 } from "./household_merge.ts";
+// L7/D11 — LE MOT DU REFUS, IMPORTÉ ET PAS RECOPIÉ. Le `skipped` du lecteur et
+// le 429 du générateur décrivent le même fait; deux orthographes en feraient
+// deux faits pour qui lit des journaux.
+import {
+  MERGE_QUOTA_EXHAUSTED,
+  type MergeQuotaState,
+} from "./household_merge_quota.ts";
 
 // ---------------------------------------------------------------------------
 // 1. RELIRE `merged_from` SUR UN PLAN DÉJÀ ÉCRIT
@@ -640,6 +647,15 @@ export const SKIP_NO_VALIDATED_PLAN = "no_validated_plan";
 export const SKIP_MUTED = "proposals_muted";
 export const SKIP_DISMISSED = "dismissed_by_owner";
 export const SKIP_ALREADY_MERGED = "already_merged";
+/**
+ * L7/D11 — LA SEMAINE DU FOYER EST PLEINE.
+ *
+ * ⚠️ C'EST LE MÊME MOT QUE LE REFUS DU GÉNÉRATEUR, et il est IMPORTÉ. Proposer
+ * un bouton qui rendra `merge_quota_exhausted` est une promesse qu'on ne tient
+ * pas; le dire dans `skipped` est la seule façon d'expliquer un écran vide sans
+ * ouvrir une base de production.
+ */
+export const SKIP_QUOTA_EXHAUSTED = MERGE_QUOTA_EXHAUSTED;
 
 export interface MergeNoticeSkip {
   memberId: string;
@@ -718,7 +734,27 @@ export function buildMergeNotices(args: {
   settings: readonly MergeSettingRow[];
   /** Jour local du maître, `YYYY-MM-DD`. */
   today: string;
+  /**
+   * L7/D11 — CE QUE LE PLAFOND DIT DE CETTE SEMAINE, ou `null` s'il n'a pas pu
+   * être lu.
+   *
+   * ⚠️ REQUIS, PAS OPTIONNEL, et c'est une cicatrice de ce dépôt: « un
+   * paramètre de garde optionnel est une garde désarmée ». Un appelant qui
+   * l'oublierait proposerait des fusions que le quota refuse, et rien ne
+   * tomberait. Le compilateur a listé les appelants.
+   *
+   * `null` VAUT « ON NE SAIT PAS », ET ON PROPOSE QUAND MÊME. C'est le bon sens
+   * de l'échec pour un FILTRE D'AFFICHAGE — se tromper dans l'autre sens
+   * masquerait en silence des propositions parfaitement valides. Le vrai
+   * plafond, lui, ne dépend pas de cette valeur: il est dans le prédicat de
+   * `keel_household_claim_merge_quota`.
+   */
+  quota: MergeQuotaState | null;
 }): MergeNoticeResult {
+  // Une seule lecture du fait, en tête: le plafond est un fait de FOYER, pas
+  // une propriété d'une bouche. Le relire dans la boucle inviterait à le rendre
+  // conditionnel par personne, ce que D11 ne dit nulle part.
+  const quotaExhausted = args.quota?.exhausted === true;
   const plansByMember = new Map<string, readonly MemberLivePlan[]>();
   for (const m of args.members) plansByMember.set(m.memberId, m.ownPlans);
   const carriers = mergeCarriers({
@@ -807,6 +843,25 @@ export function buildMergeNotices(args: {
       continue;
     }
 
+    // ── L7/D11 — LA SEMAINE EST PLEINE ──────────────────────────────────
+    //
+    // ⚠️ APRÈS `pair.refusal`, ET C'EST L'ORDRE QUI COMPTE: quand il n'y a
+    // rien à fusionner, le plafond n'est pas la raison. Le motif le plus
+    // PRÉCIS gagne, sinon le maître répare la mauvaise chose.
+    //
+    // MÊME PARTAGE QUE D17, et pour la même raison. Une PROPOSITION parle du
+    // plan d'un autre: si le geste va être refusé, la proposer est une
+    // promesse qu'on ne tient pas, donc elle devient un `skipped` nommé. Un
+    // AVERTISSEMENT parle du plan du MAÎTRE — sa ligne vivante contient la
+    // reprise d'un plan que l'intéressé a remplacé. Le taire rendrait ce plan
+    // périmé invisible ET indéfaisable, alors que la défusion, elle, ne coûte
+    // aucun quota. On garde donc l'avertissement et on lui retire la SEULE
+    // sortie que le plafond refuse: `merge`.
+    if (quotaExhausted && !warns) {
+      skip(SKIP_QUOTA_EXHAUSTED);
+      continue;
+    }
+
     const mergeable: MergeNoticeWindow | null = pair.ok
       ? {
         window: pair.window.window,
@@ -851,10 +906,16 @@ export function buildMergeNotices(args: {
       // geste rendait 409 `unmerge_window_all_past`, et le maître n'avait alors
       // AUCUN moyen de défaire la reprise. La condition et le geste lisent
       // maintenant le même porteur.
+      //
+      // ⚠️ L7/D11 — `EXIT_MERGE` TOMBE QUAND LA SEMAINE EST PLEINE, et lui
+      // seul. `unmerge` et `dismiss` ne consomment aucun quota: la défusion
+      // répare une fusion (la taxer ferait payer deux fois la même erreur) et
+      // « refuser » n'est qu'une ligne de réglage. Retirer les trois aurait
+      // enfermé le maître avec un plan périmé jusqu'au lundi suivant.
       exits: warns
         ? [
           ...(carrier?.tail ? [EXIT_UNMERGE] : []),
-          ...(mergeable ? [EXIT_MERGE] : []),
+          ...(mergeable && !quotaExhausted ? [EXIT_MERGE] : []),
           EXIT_DISMISS,
         ]
         : [EXIT_MERGE, EXIT_DISMISS],

@@ -17,6 +17,10 @@ import {
   loadLiveHouseholdPlans,
   loadMergeSettings,
 } from "../_shared/keel/household_merge_notice_io.ts";
+import {
+  type MergeQuotaState,
+  parseMergeQuota,
+} from "../_shared/keel/household_merge_quota.ts";
 
 /**
  * `household-merge-notices-v1` — CE QUE LE MAÎTRE DOIT VOIR, ET RIEN D'AUTRE.
@@ -203,11 +207,44 @@ Deno.serve(async (req) => {
       })),
     }));
 
+    // ── L7/D11 — LE PLAFOND, LU POUR NE PAS PROMETTRE ───────────────────
+    //
+    // L5 avait laissé ce point d'accroche en toutes lettres: « quand le
+    // plafond sera posé, la proposition devra le lire — sinon elle proposera
+    // une fusion que le quota refuse ». C'est ici.
+    //
+    // ⚠️ LE MÊME PLAFOND QUE LA GARDE, PAR LA MÊME FONCTION. Recompter `N + 3`
+    // ici aurait fait deux nombres plausibles et un seul vrai — c'est
+    // exactement le défaut que `bestMergePair` a fermé sur les fenêtres.
+    //
+    // FAIL-OPEN, comme le réglage juste au-dessus: une lecture en panne
+    // propose. Se tromper dans l'autre sens masquerait des propositions
+    // valides sans rien dire, et le serveur refusera de toute façon si la
+    // semaine est vraiment pleine.
+    let quota: MergeQuotaState | null = null;
+    const quotaRes = await admin.rpc("keel_household_merge_quota_state", {
+      p_household: householdId,
+      p_local_date: todayDate,
+    });
+    if (quotaRes.error) {
+      await logEdgeFunctionError({
+        functionName: FN_NAME,
+        requestId,
+        error: quotaRes.error,
+        metadata: { source: "merge_quota_state", household: householdId },
+      });
+      issues.push("merge_quota_unreadable");
+    } else {
+      quota = parseMergeQuota(quotaRes.data);
+      if (quota === null) issues.push("merge_quota_unreadable");
+    }
+
     const result = buildMergeNotices({
       members,
       householdPlans,
       settings,
       today: todayDate,
+      quota,
     });
 
     // ── D13 — LE GEL SE DIT, IL NE REFUSE PAS ────────────────────────────
@@ -239,11 +276,27 @@ Deno.serve(async (req) => {
       skipped: result.skipped.length,
       held: result.held.length,
       frozen,
+      quota_used: quota?.used ?? null,
+      quota_limit: quota?.limit ?? null,
     }));
 
     return jsonResponse(req, {
       ok: true,
       household: { id: householdId, frozen },
+      // ── L7/D11 — CE QU'IL RESTE CETTE SEMAINE ───────────────────────────
+      // RENDU MÊME QUAND IL RESTE DE LA PLACE, et c'est délibéré: une clé qui
+      // n'apparaît qu'au moment du refus ne se distingue pas d'un lot
+      // débranché, et ce dépôt paie en boucle la garde construite puis
+      // silencieusement débranchée. `null` ⇒ lecture ratée (voir `issues`),
+      // pas « pas de plafond ».
+      merge_quota: quota === null ? null : {
+        used: quota.used,
+        limit: quota.limit,
+        remaining: quota.remaining,
+        exhausted: quota.exhausted,
+        week_start: quota.weekStart,
+        resets_on: quota.resetsOn,
+      },
       // LES PROPOSITIONS ET LES AVERTISSEMENTS, DANS LA MÊME LISTE, distingués
       // par `kind`. Deux listes auraient fait deux écrans, et D8 comme D10
       // demandent la même chose au maître: un geste sur une personne.

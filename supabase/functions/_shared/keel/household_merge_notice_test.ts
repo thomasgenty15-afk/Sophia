@@ -22,6 +22,7 @@ import {
   type MergedFromEntry,
   type MergeSettingRow,
   mergeStandings,
+  SKIP_QUOTA_EXHAUSTED,
   NOTICE_MERGE_AVAILABLE,
   NOTICE_MERGED_PLAN_REVALIDATED,
   type NoticeMember,
@@ -46,6 +47,7 @@ import {
   resolveTailWindow,
   UNMERGE_CLOSENESS_INSTRUCTION,
 } from "./household_merge.ts";
+import type { MergeQuotaState } from "./household_merge_quota.ts";
 
 const FUNCTIONS_DIR = new URL("../../", import.meta.url);
 
@@ -338,6 +340,33 @@ const OWNER: NoticeMember = {
   }],
 };
 
+/**
+ * L7/D11 — LE DÉCOR DE PLAFOND PAR DÉFAUT: DE LA PLACE, ET ÇA SE VOIT.
+ *
+ * ⚠️ PAS `null`. Un décor qui ne sait pas dire si la semaine est pleine
+ * laisserait passer une inversion du drapeau sans qu'aucun test ne tombe: les
+ * deux états rendraient « on propose ». Le défaut est donc un plafond RÉEL, non
+ * plein — 2 fusions sur 5 — et le cas plein est écrit à la main là où il est
+ * testé.
+ */
+const QUOTA_ROOM: MergeQuotaState = {
+  weekStart: "2026-08-10",
+  used: 2,
+  limit: 5,
+  remaining: 3,
+  resetsOn: "2026-08-17",
+  exhausted: false,
+};
+
+const QUOTA_FULL: MergeQuotaState = {
+  weekStart: "2026-08-10",
+  used: 5,
+  limit: 5,
+  remaining: 0,
+  resetsOn: "2026-08-17",
+  exhausted: true,
+};
+
 const notices = (args: {
   members: NoticeMember[];
   /** Raccourci: ces reprises sont archivées SUR le plan du foyer du décor. */
@@ -345,6 +374,7 @@ const notices = (args: {
   householdPlans?: MergeCarrierPlan[];
   settings?: MergeSettingRow[];
   today?: string;
+  quota?: MergeQuotaState | null;
 }) =>
   buildMergeNotices({
     members: args.members,
@@ -354,6 +384,7 @@ const notices = (args: {
     // Jeudi 14. Le plan de Zoé va du 12 au 16: 5 jours, dont 2 passés (12, 13),
     // 3 restants (14, 15, 16). Les trois nombres sont écrits ici, à la main.
     today: args.today ?? "2026-08-14",
+    quota: args.quota === undefined ? QUOTA_ROOM : args.quota,
   });
 
 /** Ce que `held` annonce pour une reprise portée par le plan du foyer du décor. */
@@ -515,6 +546,7 @@ Deno.test("un plan qui ne partage aucun jour ne se propose pas, et le dit", () =
     householdPlans: [carrying(HOUSE_PLAN)],
     settings: [],
     today: "2026-08-14",
+    quota: QUOTA_ROOM,
   });
   assertEquals(out.notices, []);
   assertEquals(out.skipped[0].reason, "merge_windows_disjoint");
@@ -526,6 +558,7 @@ Deno.test("SANS PLAN DU FOYER, on ne propose rien — on n'invente pas de fenêt
     householdPlans: [],
     settings: [],
     today: "2026-08-14",
+    quota: QUOTA_ROOM,
   });
   assertEquals(out.notices, []);
   assertEquals(out.skipped[0].reason, "merge_windows_disjoint");
@@ -548,6 +581,7 @@ Deno.test("D8 avertit MÊME quand plus rien n'est fusionnable", () => {
     householdPlans: [carrying(HOUSE_PLAN, MERGED)],
     settings: [],
     today: "2026-08-14",
+    quota: QUOTA_ROOM,
   });
   assertEquals(out.notices.length, 1);
   assertEquals(out.notices[0].mergeable, null);
@@ -1132,4 +1166,111 @@ Deno.test("④ — `held` ANNONCE LA FENÊTRE SUR LAQUELLE LA REPRISE COLLE", ()
   assertEquals(out.held[0].planId, "plan-house-1");
   // Écrite à la main: lundi 10, sept jours. Hors d'elle, rien n'est re-repris.
   assertEquals(out.held[0].window, { startsOn: "2026-08-10", durationDays: 7 });
+});
+
+// ===========================================================================
+// 7. L7/D11 — LE PLAFOND, VU DU LECTEUR DE PROPOSITIONS
+//
+// « Proposer un bouton qui rendra `merge_quota_exhausted` est une promesse
+// qu'on ne tient pas » — le point d'accroche que L5 avait laissé, en toutes
+// lettres, dans « ce qui reste ouvert » n° 5.
+//
+// ⚠️ AUCUN NOMBRE N'EST CALCULÉ ICI. `QUOTA_FULL` et `QUOTA_ROOM` sont écrits à
+// la main; le lecteur ne connaît ni `N` ni le `+ 3`, il ne relit qu'un verdict.
+// ===========================================================================
+
+Deno.test("D11 — la semaine PLEINE ne propose plus, et le DIT", () => {
+  const out = notices({
+    members: [OWNER, ZOE("2026-08-13T10:00:00Z")],
+    quota: QUOTA_FULL,
+  });
+  // Le décor est EXACTEMENT celui de « D10 — LE CAS QUI PASSE », qui rend une
+  // proposition chiffrée. Seul le plafond change.
+  assertEquals(out.notices, []);
+  assertEquals(
+    out.skipped.find((s) => s.memberId === "m-zoe")?.reason,
+    SKIP_QUOTA_EXHAUSTED,
+  );
+  // JAMAIS UN SILENCE: sans cette ligne, « pourquoi Zoé n'apparaît-elle
+  // plus ? » n'a de réponse que dans une base de production.
+  assertEquals(out.skipped.find((s) => s.memberId === "m-zoe")?.displayName, "Zoe");
+});
+
+Deno.test("D11 — L'AVERTISSEMENT DE D8 SURVIT AU PLAFOND, sans son bouton", () => {
+  // ⚠️ MÊME PARTAGE QUE D17, ET POUR LA MÊME RAISON. Un avertissement parle du
+  // plan du MAÎTRE: sa ligne vivante porte la reprise d'un plan que
+  // l'intéressée a remplacé. Le taire rendrait ce plan périmé invisible ET
+  // indéfaisable — alors que la défusion, elle, ne coûte aucun quota.
+  const out = notices({
+    members: [ZOE("2026-08-15T08:00:00Z", "plan-zoe-2")],
+    mergedFrom: [MERGED],
+    quota: QUOTA_FULL,
+  });
+  assertEquals(out.notices.length, 1);
+  assertEquals(out.notices[0].kind, NOTICE_MERGED_PLAN_REVALIDATED);
+  // Les trois sorties de D8 étaient [unmerge, merge, dismiss]. Le plafond ne
+  // retire QUE `merge`.
+  assertEquals(out.notices[0].exits, [EXIT_UNMERGE, EXIT_DISMISS]);
+  // Et la fenêtre fusionnable reste ANNONCÉE: elle décrit ce qu'une fusion
+  // ferait, lundi prochain. La retirer effacerait la phrase de D16 en même
+  // temps que le bouton.
+  assertEquals(out.notices[0].mergeable?.window.durationDays, 3);
+});
+
+Deno.test("D11 — de la place ⇒ le bouton revient, à l'identique", () => {
+  // LE CAS QUI PASSE, et il est décisif: sans lui, un plafond cassé qui
+  // refuserait TOUT ressemblerait trait pour trait à un plafond qui marche.
+  const out = notices({
+    members: [ZOE("2026-08-15T08:00:00Z", "plan-zoe-2")],
+    mergedFrom: [MERGED],
+    quota: QUOTA_ROOM,
+  });
+  assertEquals(out.notices[0].exits, [EXIT_UNMERGE, EXIT_MERGE, EXIT_DISMISS]);
+  const fresh = notices({ members: [ZOE("2026-08-13T10:00:00Z")], quota: QUOTA_ROOM });
+  assertEquals(fresh.notices.length, 1);
+  assertEquals(fresh.notices[0].exits, [EXIT_MERGE, EXIT_DISMISS]);
+});
+
+Deno.test("D11 — un plafond ILLISIBLE propose quand même", () => {
+  // FAIL-OPEN, comme le réglage de D17: se tromper dans l'autre sens masquerait
+  // en silence des propositions valides, et rien ne le dirait au maître. Le
+  // serveur, lui, refusera de toute façon si la semaine est vraiment pleine —
+  // la garde est dans le prédicat de la réclamation, pas ici.
+  const out = notices({ members: [ZOE("2026-08-13T10:00:00Z")], quota: null });
+  assertEquals(out.notices.length, 1);
+  assertEquals(out.notices[0].exits, [EXIT_MERGE, EXIT_DISMISS]);
+});
+
+Deno.test("D11 — le motif le PLUS PRÉCIS gagne sur le plafond", () => {
+  // Rien à fusionner ET semaine pleine: dire « plafond » ferait attendre lundi
+  // pour un plan qui ne fusionnera jamais, et le maître réparerait la mauvaise
+  // chose.
+  const out = buildMergeNotices({
+    members: [{
+      ...ZOE("2026-08-13T10:00:00Z"),
+      ownPlans: [{
+        id: "plan-far",
+        startsOn: "2026-09-01",
+        durationDays: 5,
+        validatedAt: "2026-08-13T10:00:00Z",
+      }],
+    }],
+    householdPlans: [carrying(HOUSE_PLAN)],
+    settings: [],
+    today: "2026-08-14",
+    quota: QUOTA_FULL,
+  });
+  assertEquals(out.skipped[0].reason, "merge_windows_disjoint");
+});
+
+Deno.test("D11 — la reprise qui TIENT reste `already_merged`, pas le plafond", () => {
+  // Elle est déjà à table: le plafond n'a rien à voir avec elle, et le lui
+  // attribuer ferait croire qu'une fusion manque.
+  const out = notices({
+    members: [ZOE("2026-08-12T09:00:00+00:00")],
+    mergedFrom: [MERGED],
+    quota: QUOTA_FULL,
+  });
+  assertEquals(out.skipped[0].reason, SKIP_ALREADY_MERGED);
+  assertEquals(out.held, [HELD_ON_HOUSE_PLAN]);
 });

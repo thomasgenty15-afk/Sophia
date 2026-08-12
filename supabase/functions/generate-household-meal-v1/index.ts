@@ -94,6 +94,14 @@ import {
   storedCookingDays,
   storedDishes,
 } from "../_shared/keel/household_merge_notice_io.ts";
+// L7/D11 — LE PLAFOND. Ce module ne compte RIEN: `N`, le `+ 3` et le lundi ISO
+// vivent en base (migration 20260812170000), et il n'en relit que le verdict.
+import {
+  MERGE_QUOTA_EXHAUSTED,
+  type MergeQuotaState,
+  mergeQuotaRefusalDetail,
+  parseMergeQuota,
+} from "../_shared/keel/household_merge_quota.ts";
 import { proteinAnchorRetryInstruction } from "../_shared/keel/protein_anchor.ts";
 import type { CompositionIndex } from "../_shared/keel/food_composition.ts";
 import { loadCompositionIndex } from "../_shared/keel/food_composition_io.ts";
@@ -887,6 +895,68 @@ Deno.serve(async (req) => {
           detail: resolvedMerge.detail,
           request_id: requestId,
         }, { status: 409 });
+      }
+      // ── L7/D11 — LE PLAFOND, REFUSÉ ICI EN MILLISECONDES ───────────────
+      //
+      // ⚠️ CE N'EST PAS LA GARDE. La garde est le prédicat de
+      // `keel_household_claim_merge_quota`, juste avant l'appel modèle: deux
+      // fusions lancées en même temps liraient TOUTES LES DEUX un compteur non
+      // plein ici, et c'est très exactement le défaut que ce dépôt a payé sur
+      // `keel_validate_meal_plan`. Ce refus-ci est un refus RAPIDE — il évite
+      // au foyer déjà plein de traverser une doctrine, un roster, des voix et
+      // huit lectures pour finir sur le même mot.
+      //
+      // IL EST ICI, ET PAS PLUS HAUT, parce que les onze refus de L4 sont plus
+      // précis que lui: « cette personne n'est pas dans ce foyer » vaut mieux
+      // que « le foyer a fini sa semaine », même quand les deux sont vrais.
+      //
+      // FAIL-OPEN, comme la lecture de facturation deux gardes plus haut et
+      // pour la même raison: se tromper de sens couperait un foyer qui paie
+      // sur une lecture ratée. Le vrai plafond, lui, ne peut pas rater — il est
+      // dans le prédicat de l'écriture.
+      const quotaPeek = await admin.rpc("keel_household_merge_quota_state", {
+        p_household: householdId,
+        p_local_date: todayDate,
+      });
+      if (quotaPeek.error) {
+        await logEdgeFunctionError({
+          functionName: FN_NAME,
+          requestId,
+          error: quotaPeek.error,
+          metadata: { source: "merge_quota_state", household: householdId },
+        });
+        issues.push("merge_quota_unreadable");
+      } else {
+        const state = parseMergeQuota(quotaPeek.data);
+        if (state?.exhausted) {
+          console.log(JSON.stringify({
+            tag: "keel.household_meal.merge_quota_exhausted",
+            user_id: userId,
+            household_id: householdId,
+            member_id: mergeMemberId,
+            used: state.used,
+            limit: state.limit,
+            week_start: state.weekStart,
+            stage: "peek",
+          }));
+          // 429 ET PAS 409: le statut dit déjà de quoi il s'agit, comme le 402
+          // du gel. `skipErrorLog` pour la même raison qu'au gel — UN PLAFOND
+          // ATTEINT N'EST PAS UN INCIDENT. L1 a mesuré 15 lignes de
+          // `system_error_logs`, au niveau `error`, pour des refus de paiement
+          // en une seule session de test.
+          return jsonResponse(req, {
+            error: MERGE_QUOTA_EXHAUSTED,
+            detail: mergeQuotaRefusalDetail(state),
+            merge_quota: {
+              used: state.used,
+              limit: state.limit,
+              remaining: state.remaining,
+              week_start: state.weekStart,
+              resets_on: state.resetsOn,
+            },
+            request_id: requestId,
+          }, { status: 429, skipErrorLog: true });
+        }
       }
       merge = resolvedMerge;
       startsOn = merge.window.window.startsOn;
@@ -2022,6 +2092,112 @@ Deno.serve(async (req) => {
       ...household.voiceCounts,
     }));
 
+    // ══ L7/D11 — LA RÉCLAMATION. LA DERNIÈRE CHOSE AVANT L'ARGENT ═══════════
+    //
+    // ⚠️ C'EST ICI QU'EST LA GARDE, ET NULLE PART AILLEURS. Le refus rapide
+    // posé plus haut est une politesse; celui-ci est le plafond. L'incrément et
+    // la condition sont le MÊME énoncé SQL (`insert … on conflict do update …
+    // where used < limit`), donc deux fusions lancées en même temps ne peuvent
+    // pas passer toutes les deux: la seconde attend le verrou de ligne, relit
+    // la version validée, et n'écrit rien. Mesuré à deux connexions le
+    // 2026-08-12 — la seconde a bloqué 2,9 s puis refusé.
+    //
+    // POURQUOI ICI ET PAS DANS LA BRANCHE `merge`, 1 200 LIGNES PLUS HAUT.
+    // Entre les deux il y a huit portes qui rendent encore (`no_coach`,
+    // `doctrine_unreadable`, `local_day_unresolved`…) et AUCUN appel modèle.
+    // Réclamer là-haut ferait payer une unité de quota à un foyer qui n'a même
+    // pas de doctrine publiée — un plafond qui se consomme sans rien produire.
+    // Ici, il ne reste plus rien entre la réclamation et la dépense.
+    //
+    // CE QUI EST COMPTÉ, ET CE QUI NE L'EST PAS — la question de D11, tranchée:
+    //   · UNE FUSION qui atteint le modèle: comptée. C'est le geste du maître,
+    //     et c'est ce qui coûte 20 à 67 secondes de génération.
+    //   · LA DÉFUSION (`operation: "unmerge"`): JAMAIS. Elle répare une fusion;
+    //     taxer la réparation ferait payer deux fois une erreur, et D8 offre la
+    //     défusion précisément comme une SORTIE. C'est structurel: ce bloc vit
+    //     sous `merge !== null`.
+    //   · LA REPRISE COLLANTE (une composition qui re-reprend d'office
+    //     quelqu'un déjà fusionné, L5): JAMAIS. Ce n'est pas un geste du
+    //     maître — la compter lui facturerait une décision qu'il n'a pas prise.
+    //     Structurel aussi: `compose` ne passe pas ici.
+    //   · UN REFUS AVANT LE MODÈLE (les onze de L4, le gel, le plafond
+    //     lui-même): rien. Il n'a rien coûté.
+    //   · UN ÉCHEC APRÈS LE MODÈLE (`meal_unparseable`, `empty_meal`,
+    //     `house_rule_violated`): COMPTÉ, et c'est la décision la moins
+    //     confortable du lot. Le plafond borne un COÛT, et le coût est déjà
+    //     payé quand ces refus tombent. Une remise demanderait un
+    //     décrément à ne jamais oublier sur six sites de retour — un oubli
+    //     facture, un doublon offre des fusions, et aucun test honnête ne
+    //     distingue les deux. Retour arrière: une RPC de relâche, et ces six
+    //     sites.
+    //
+    // FAIL-OPEN SI LA RÉCLAMATION ÉCHOUE (erreur de transport, pas refus). Même
+    // sens que la lecture de facturation: une panne de comptage ne doit pas
+    // couper un foyer qui paie. Le fait est journalisé et rendu dans `issues`,
+    // parce qu'une garde muette ressemble trait pour trait à une garde qui ne
+    // mord jamais.
+    let mergeQuota: MergeQuotaState | null = null;
+    if (merge !== null) {
+      const claim = await admin.rpc("keel_household_claim_merge_quota", {
+        p_household: householdId,
+        p_local_date: todayDate,
+        p_member: merge.member.member_id,
+      });
+      if (claim.error) {
+        await logEdgeFunctionError({
+          functionName: FN_NAME,
+          requestId,
+          error: claim.error,
+          metadata: { source: "merge_quota_claim", household: householdId },
+        });
+        issues.push("merge_quota_unreadable");
+      } else {
+        const claimed = claim.data as Record<string, unknown> | null;
+        if (claimed?.ok === true) {
+          // ⚠️ `exhausted` N'EST PAS FORCÉ. La réclamation ne rend pas cette
+          // clé, et le parseur la déduit de `used >= limit`: la fusion qui
+          // prend la DERNIÈRE place doit se lire comme telle. L'écrire
+          // `false` ici serait un mensonge tranquille dans une trace.
+          mergeQuota = parseMergeQuota(claimed);
+        } else if (claimed?.reason === MERGE_QUOTA_EXHAUSTED) {
+          // LA COURSE PERDUE. Le refus rapide plus haut avait vu de la place;
+          // une autre fusion l'a prise entre-temps. Le mot est le même, le
+          // statut aussi — et le modèle n'a toujours pas été appelé.
+          // `ok: true` FORCÉ, et lui seul: le refus porte les mêmes nombres
+          // que l'état, mais sous `ok: false`. `exhausted` reste DÉDUIT.
+          const state = parseMergeQuota({ ...claimed, ok: true });
+          console.log(JSON.stringify({
+            tag: "keel.household_meal.merge_quota_exhausted",
+            user_id: userId,
+            household_id: householdId,
+            member_id: merge.member.member_id,
+            used: state?.used ?? null,
+            limit: state?.limit ?? null,
+            week_start: state?.weekStart ?? null,
+            stage: "claim",
+          }));
+          return jsonResponse(req, {
+            error: MERGE_QUOTA_EXHAUSTED,
+            detail: mergeQuotaRefusalDetail(state),
+            merge_quota: state === null ? null : {
+              used: state.used,
+              limit: state.limit,
+              remaining: state.remaining,
+              week_start: state.weekStart,
+              resets_on: state.resetsOn,
+            },
+            request_id: requestId,
+          }, { status: 429, skipErrorLog: true });
+        } else {
+          // Un refus NOMMÉ mais inattendu (`local_date_required`,
+          // `household_required`) est un défaut de ce fichier, pas du foyer:
+          // on le journalise et on laisse passer. Le taire ferait un plafond
+          // qui ne compte plus rien sans que personne ne l'apprenne.
+          issues.push(`merge_quota_unclaimed:${String(claimed?.reason ?? "unknown")}`);
+        }
+      }
+    }
+
     const result = await generateWithGemini(
       systemPrompt + household.systemSuffix,
       // FF-027 AVANT les règles de maison, et l'ordre est le sujet: le bloc de
@@ -2519,6 +2695,19 @@ Deno.serve(async (req) => {
                   pivot: merge.window.pivot,
                   days_already_past: merge.window.daysAlreadyPast,
                   other_overlapping_plan_ids: merge.otherOverlappingPlanIds,
+                  // ── L7/D11 — L'UNITÉ DE QUOTA QUE CE PLAN A CONSOMMÉE ──
+                  //
+                  // Le compteur, lui, n'abrège pas: il dit « 4 sur 5 » et rien
+                  // de plus. Cette ligne-ci est la seule qui rattache une
+                  // fusion PRÉCISE à l'unité qu'elle a prise — sans elle,
+                  // « pourquoi ma semaine est-elle pleine ? » n'a de réponse
+                  // qu'en recoupant des horodatages. `null` si la réclamation
+                  // a échoué (fail-open, tracé dans `issues`).
+                  quota: mergeQuota === null ? null : {
+                    used: mergeQuota.used,
+                    limit: mergeQuota.limit,
+                    week_start: mergeQuota.weekStart,
+                  },
                   }),
                 },
               }),

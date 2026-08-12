@@ -610,6 +610,14 @@ Deno.test("AUCUN REFUS DE FUSION NE SE PAIE AU PRIX D'UNE GÉNÉRATION", () => {
         '"merge_member_required"',
         "resolveMergeRequest({",
         '"merge_member_away_all_window"',
+        // L7/D11 — LE PLAFOND EST DE CETTE FAMILLE. Il se tranche sur un
+        // compteur et une date; le payer d'une génération de 20 à 67 s serait
+        // le refus le plus cher du produit. Les deux points de contrôle sont
+        // ici: le refus RAPIDE (la lecture) et la GARDE (la réclamation).
+        // Leur position FINE — « aucune porte de sortie entre la réclamation
+        // et la dépense » — est tenue dans `household_merge_quota_test.ts`.
+        "keel_household_merge_quota_state",
+        "keel_household_claim_merge_quota",
       ]
     ) {
       const at = src.indexOf(marker);

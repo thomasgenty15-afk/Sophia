@@ -44,7 +44,7 @@ prennent la main, et les comptes individuels sans foyer.
 | **D8** | Validation **après** la fusion : le maître est averti, et il a trois sorties — refaire sans ce user (*défusion*), refusionner à partir de son plan, ou refuser. Dans tous les cas le user garde son plan. Consigne de défusion, mot pour mot : *rester au plus près du plan de base, sans user X*. | ✅ livré (L5) |
 | **D9** | Le maître **accède** à tous les plans, mais sa surface de cuisine n'affiche **que** le plan qu'il cuisine. Un plan validé non fusionné n'y apparaît pas : le but est de simplifier sa cuisine, pas de lui faire suivre N plans. Un secondaire voit le plan du foyer et le sien. | ⬜ à faire |
 | **D10** | La fusion est **manuelle**, déclenchée par le maître, sur proposition : *« le plan de X a été validé, voulez-vous le fusionner ? »* | ✅ livré (L5) — le lecteur ; le bouton est L8 |
-| **D11** | Plafond : `N + 3` fusions par foyer et par semaine ISO, N = comptes actifs. Compté en base, refus nommé `merge_quota_exhausted`. | ⬜ à faire |
+| **D11** | Plafond : `N + 3` fusions par foyer et par semaine ISO, N = comptes actifs. Compté en base, refus nommé `merge_quota_exhausted`. | ✅ livré (L7) |
 | **D12** | Pas de reprise des plans produits par l'ancien chemin : ils seront régénérés. | ✅ acté |
 | **D13** | **Le verrou de paiement est au niveau du FOYER.** Foyer impayé ⇒ plus personne ne génère, ni maître ni secondaire. Un compte **sans foyer** n'est pas concerné : les comptes individuels existent et ne demandent pas de foyer. | ✅ livré (L1) |
 | **D14** | **La présence se déclare.** Le maître doit pouvoir marquer **qui est là, et quand**. Tout le monde présent est le cas simple ; une absence se marque, et elle change les parts sans supprimer la session de cuisson. | ✅ livré (L2) |
@@ -101,7 +101,7 @@ Campagne de test du 2026-08-11, 5 lanes en conditions réelles, ~80 vérificatio
 | ~~**L4**~~ | ~~**Le moteur de fusion (D6, D15, D16)**~~ | L3 | ✅ **livré le 2026-08-12** — voir §« L4, ce qui est construit » |
 | ~~**L5**~~ | ~~**La proposition et la défusion (D8, D10, D17)**~~ | L4 | ✅ **livré le 2026-08-12** — voir §« L5, ce qui est construit » |
 | ~~**L6**~~ | ~~**Mémoire et préférences par titulaire (D4)**~~ | L4 | ✅ **livré le 2026-08-12** — voir §« L6, ce qui est construit » |
-| **L7** | **Le plafond de fusions (D11)** — `N + 3` par semaine ISO, en base, `merge_quota_exhausted`. | L4 | |
+| ~~**L7**~~ | ~~**Le plafond de fusions (D11)**~~ | L4 | ✅ **livré le 2026-08-12** — voir §« L7, ce qui est construit » |
 | **L8** | **Les écrans (D9)** — plan du foyer, plan perso, la proposition, ce qui n'a pas fusionné et pourquoi. | L4, L5 | |
 | **L9** | **La date de naissance (D18)** — sur la fiche de bouche (existe déjà) et dans « about you » pour le maître (à vérifier). | — | Sans elle l'objectif du maître est inactif par défaut |
 | **L10** | **QA réelle** sur un foyer à objectifs divergents : la prise de main, la fusion, la défusion, le repli séparé, les fenêtres décalées. | tout | |
@@ -648,10 +648,11 @@ rendent un prompt byte-identique à celui de v4, et trois tests le tiennent.
    plan du foyer SANS user X »), et le fait est écrit dans l'`issue`
    (`member_unmerged:<id>:uncovered`) et dans `generated_from.household.hand.unmerged`.
    Le dire à l'écran est L8.
-5. **Le plafond de L7 n'est pas posé, et le lecteur ne le connaît pas.** Quand il
-   le sera, la proposition devra le lire — sinon elle proposera une fusion que le
-   quota refuse. Le point d'accroche est `buildMergeNotices`, qui rend déjà un
-   `skipped` nommé par bouche.
+5. ~~**Le plafond de L7 n'est pas posé, et le lecteur ne le connaît pas.**~~
+   **Refermé par L7 le 2026-08-12** — `buildMergeNotices` prend un argument
+   `quota` **requis**, une semaine pleine rend `skipped: merge_quota_exhausted`
+   au lieu d'une proposition, et l'avertissement de D8 survit en perdant sa
+   seule sortie `merge`.
 6. **Deux rouges préexistants NON touchés**, comme à L4 : `chat/recent_history_test.ts`
    et une erreur de typage dans `action_occurrences_test.ts`. Aucun des deux
    fichiers n'appartient à ce lot. `deploy-manifest-check.mjs` était déjà rouge
@@ -1067,6 +1068,219 @@ zéro plan.
 `continue` · décor du plafond remis à longueurs égales (le faux-vert d'origine)
 · `age` remis dans la garde des voix · registre TCA retiré · trace remise sur
 l'aiguille au lieu de la catégorie · compteurs redérivés des `issues`.
+
+## L7, ce qui est construit — 2026-08-12
+
+> ⚠️ **Aucune fusion réelle n'a été exercée.** Aucun appel HTTP, aucune
+> génération modèle. Ce qui suit est prouvé par des tests purs, des tests de
+> position sur la source, un bloc de contrôle SQL rejoué et annulé, **une course
+> à deux connexions psql**, et **23 mutations**. La campagne réelle est L10.
+
+**Une migration**, `20260812170000_household_merge_quota.sql`, inscrite au
+registre à la main (`supabase_migrations.schema_migrations`) — plusieurs
+migrations d'autres sessions sont en fichier et absentes du registre, et un
+`migration up` les aurait appliquées à sa place.
+
+### L'architecture, et pourquoi
+
+| Où | Quoi |
+|---|---|
+| `20260812170000_household_merge_quota.sql` §5 | La table `household_merge_quota` (foyer, lundi ISO) et **la garde**, qui vit dans le prédicat d'un seul `insert … on conflict do update … where used < limit` |
+| §1 `keel_iso_week_start(date)` | Le lundi ISO, **une** arithmétique, prouvée identique à celle qu'inline `keel_household_submit_envy` sur 14 jours consécutifs |
+| §2 `keel_household_active_accounts(uuid)` | Le `N` de D11 |
+| §3/§4 `…_merge_quota_slack()` / `…_merge_quota_limit()` | Le `+ 3` adressable, et `N + 3` — la définition unique |
+| §6 `keel_household_merge_quota_state(uuid, date)` | La lecture seule, partagée par le refus rapide du générateur et par le lecteur |
+| `_shared/keel/household_merge_quota.ts` | Le module PUR : le mot du refus, la relecture du verdict, la phrase |
+| `generate-household-meal-v1/index.ts:917` | Le **refus rapide**, dans la branche `merge`, en millisecondes |
+| `generate-household-meal-v1/index.ts:2141` | **La réclamation** — la dernière chose avant l'appel modèle |
+| `_shared/keel/household_merge_notice.ts:752` | `buildMergeNotices({… , quota})`, **requis** |
+| `household-merge-notices-v1/index.ts:225` | Le lecteur lit le **même** plafond, par la même fonction |
+
+### « Compte actif », et d'où vient la définition
+
+**`N` = les lignes de `household_members` de ce foyer qui portent un compte
+(`user_id is not null`), maître compris.**
+
+Le prédicat vient de la facturation, mot pour mot : `keel_household_billable_profiles`
+(20260810260000 §3) écrit « RÉCLAMÉ = la ligne porte un compte. L'invitation ne
+compte pas ». On le reprend tel quel. Ce qu'on ne reprend pas, c'est son
+`role <> 'owner'`, dont le motif est écrit à côté — « son accès est dans les
+12,99 € du foyer ». C'est un motif de **prix**, et un plafond de fusions n'a pas
+de prix : le maître est un compte du foyer, et c'est même **le seul qui dépense
+ce quota** (D10, la fusion est déclenchée par lui).
+
+Écrire `billable_profiles(h) + 1` aurait été pire qu'une seconde définition : le
+jour où la facturation exclut une population pour une raison de prix, le plafond
+de fusions bougerait tout seul et personne ne ferait le lien. Le contrôle de la
+migration vérifie donc que les deux nombres **se répondent aujourd'hui**
+(`actifs = facturables + 1` sur un foyer dont le maître porte un compte) : si
+l'une des deux dérive, le fichier le dit.
+
+**« Actif » n'a pas besoin d'un drapeau**, et c'est structurel :
+`household_members_user_id_fkey` est `on delete set null` depuis le détachement
+(20260811040000). Un compte supprimé **détache** sa bouche — elle reste à table,
+son `user_id` tombe à NULL, et elle cesse de compter sans qu'on écrive quoi que
+ce soit. Une colonne `active` aurait été un second écrivain à ne jamais oublier.
+
+### Ce qui compte comme une fusion, et ce qui ne compte pas
+
+| Geste | Compté | Pourquoi |
+|---|---|---|
+| `operation: "merge"` qui atteint le modèle | **oui** | C'est le geste du maître, et c'est ce qui coûte 20 à 67 s |
+| `operation: "unmerge"` (défusion) | **non** | Elle **répare** une fusion. D8 l'offre comme une sortie ; taxer la réparation ferait payer deux fois la même erreur, et enfermerait le maître avec un plan qu'il veut défaire |
+| La **reprise collante** (une composition qui re-reprend d'office quelqu'un déjà fusionné, L5) | **non** | Ce n'est pas un geste du maître : la compter lui facturerait une décision qu'il n'a pas prise |
+| Un refus **avant** le modèle (les onze de L4, le gel, le plafond lui-même) | **non** | Il n'a rien coûté. Vérifié en base : un refus n'incrémente pas le compteur |
+| Un échec **après** le modèle (`meal_unparseable`, `empty_meal`, `house_rule_violated`) | **oui**, et c'est la décision inconfortable du lot | Voir ci-dessous |
+
+Les trois « non » sont **structurels, pas conditionnels** : la réclamation vit
+sous `if (merge !== null)`, et `compose` comme `unmerge` n'y entrent jamais. Un
+test de source refuse de les laisser y entrer.
+
+**L'échec après le modèle est compté, et il n'y a pas de remise.** Le plafond
+borne un **coût**, et le coût est déjà payé quand ces refus tombent. Options
+écartées : *(a)* réclamer au moment de l'**écriture** (ne compter que les
+réussites) — rejetée parce que deux fusions concurrentes paieraient alors toutes
+les deux un appel modèle avant qu'on en refuse une, et parce que le contrôle
+d'avant deviendrait une lecture-puis-écriture, le défaut exact que ce dépôt a
+payé sur `keel_validate_meal_plan` ; *(b)* réclamer puis **rembourser** sur
+échec — rejetée parce que le remboursement devrait être répété sur **six** sites
+de retour : un oubli facture, un doublon offre des fusions, et aucun test honnête
+ne distingue les deux. **Retour arrière** : une RPC de relâche (`used = used - 1`
+sous `used > 0`) et ces six sites ; une trentaine de lignes, aucune migration de
+données.
+
+### La concurrence — mesurée, pas raisonnée
+
+La garde est le prédicat d'un **seul énoncé**. Mesuré à deux connexions psql, sur
+un foyer à plafond 3 déjà à 2 : la session A réclame dans une transaction
+ouverte et dort 4 s ; la session B réclame 1 s plus tard, **bloque 2,95 s** sur
+le verrou de ligne, relit la version validée (`used = 3`) et rend
+`merge_quota_exhausted`. Exactement une des deux passe. Une lecture suivie d'une
+écriture les aurait laissées passer toutes les deux.
+
+Le **refus rapide** placé plus haut dans le générateur n'est donc *pas* la garde,
+et le code le dit en toutes lettres : c'est une politesse qui évite au foyer déjà
+plein de traverser une doctrine, un roster et huit lectures pour finir sur le
+même mot.
+
+### Où tombe le refus, et pourquoi pas ailleurs
+
+Le refus rapide est **après** les onze refus de L4 (« cette personne n'est pas
+dans ce foyer » est plus précis que « le foyer a fini sa semaine »), et la
+réclamation est la **dernière chose avant l'argent**. Entre la branche `merge` et
+l'appel modèle il y a huit portes qui rendent encore (`no_coach`,
+`local_day_unresolved`…) et **aucun** appel modèle : réclamer en haut ferait
+consommer une fusion à un foyer qui n'a même pas de doctrine publiée. Un test
+compte les sorties entre la réclamation et la dépense et **en exige exactement
+une** — le refus du plafond lui-même, qui n'a rien réclamé.
+
+Le refus est un **429** (`skipErrorLog: true`), sur le patron du **402
+`household_frozen`** de L1 : un motif nommé, un statut qui dit de quoi il s'agit,
+et une phrase qui dit **que rien n'est effacé** et **quand ça repart**. Un
+plafond atteint n'est pas plus un incident qu'un impayé — L1 a mesuré 15 lignes
+de `system_error_logs` au niveau `error` pour des refus de paiement en une seule
+session de test.
+
+### Le lecteur de propositions — le partage est celui de D17
+
+Une **proposition** parle du plan d'un autre : si le geste va être refusé, la
+proposer est une promesse qu'on ne tient pas, donc elle devient un `skipped`
+nommé `merge_quota_exhausted`. Un **avertissement** (D8) parle du plan du
+**maître** — sa ligne vivante porte la reprise d'un plan que l'intéressé a
+remplacé. Le taire rendrait ce plan périmé invisible **et indéfaisable**. Il
+survit donc, et perd la **seule** sortie que le plafond refuse : `merge`.
+`unmerge` et `dismiss` restent, puisqu'ils ne coûtent rien.
+
+Le motif **le plus précis gagne** : quand il n'y a rien à fusionner
+(`merge_windows_disjoint`), c'est ce mot-là qui sort, pas le plafond — sinon le
+maître attendrait lundi pour un plan qui ne fusionnera jamais.
+
+`merge_quota` est rendu dans la réponse **même quand il reste de la place** :
+une clé qui n'apparaît qu'au moment du refus ne se distingue pas d'un lot
+débranché.
+
+### Les générations individuelles ne sont pas au frais du foyer
+
+Registre D11, mot pour mot. Prouvé par un test de source : `generate-meal-v1` ne
+nomme **ni** `keel_household_claim_merge_quota`, **ni**
+`keel_household_merge_quota_state`, **ni** `household_merge_quota`, **ni**
+`merge_quota_exhausted` — et la lane du foyer, elle, DOIT les nommer, sans quoi
+la garde serait verte sur un produit où le plafond n'existe pas.
+
+### Les versions de prompt — aucune ne bouge, et voici pourquoi
+
+`MEAL_PROMPT_VERSION` et `HOUSEHOLD_PROMPT_VERSION` sont **inchangés**. La règle
+appliquée depuis v4 est « quelle population voit une consigne différente » : ici,
+**aucune**. Un plafond ne change pas un mot de ce que le modèle lit — il décide
+si le modèle est appelé. Bumper ferait croire à un changement de consigne et
+séparerait en deux des plans rigoureusement identiques.
+
+### Ce que le produit ne calcule pas, et un test le tient
+
+Aucun fichier TypeScript ne connaît le `+ 3`, ni `N`, ni le lundi de la semaine :
+la fonction edge passe **son jour local** et reçoit `limit`. Un test refuse
+`limit = <nombre>`, `+ 3`, `keel_household_active_accounts` et
+`keel_household_merge_quota_slack` dans les quatre fichiers concernés. C'est la
+différence entre un plafond compté en base et un plafond récité en base.
+
+`enforce_rate_limit` (20260707170000) existe, il est atomique, et il **ne peut
+pas** porter D11 : sa fenêtre est alignée sur l'époque UTC (7 jours y commencent
+un **jeudi**), son plafond est un paramètre de l'appelant, et il incrémente à
+chaque appel — refus compris, donc un refus consommerait du quota.
+
+### Ce qui n'est pas prouvé, et ce qui reste ouvert
+
+1. **Aucun run réel.** Pas un appel HTTP. Le 429 n'a jamais atteint un client,
+   et O2 tient toujours : sans surface qui appelle `keel_validate_meal_plan`,
+   aucune fusion n'est atteignable par un vrai utilisateur.
+2. **`frontend/src/keel/api/mealGeneration.ts` ne mappe pas
+   `merge_quota_exhausted`**, exactement comme il ne mappe pas
+   `household_frozen` (dette L1, déjà portée en L8). Un maître verrait le jeton
+   brut. **À porter en L8**, avec la phrase et la date de reprise, qui sont déjà
+   dans la réponse.
+3. **Le plafond ne se voit nulle part avant d'être atteint.** `merge_quota` est
+   rendu par `household-merge-notices-v1` ; aucun écran ne l'affiche. « 2 fusions
+   restantes cette semaine » est une ligne de L8.
+4. **Aucune purge.** `household_merge_quota` garde une ligne par (foyer, semaine)
+   pour toujours. À 8 foyers c'est du bruit ; à 100 000, c'est 5 M de lignes par
+   an. `rate_limit_counters` a son cron de purge ; celui-ci n'en a pas, faute
+   d'`expires_at` — l'ajouter est un `alter table` et un `cron.schedule`.
+5. **Le `+ 3` n'a aucun motif écrit.** D11 le pose sans le justifier, et ce lot
+   ne l'invente pas. Il est adressable (`keel_household_merge_quota_slack()`)
+   précisément pour que le premier foyer réel puisse le déplacer d'une ligne.
+6. **Deux rouges préexistants NON touchés**, comme à L4, L5 et L6 :
+   `chat/recent_history_test.ts` et une erreur de typage dans
+   `action_occurrences_test.ts`.
+
+### Un défaut trouvé par la mutation, dans le contrôle lui-même
+
+En désarmant le prédicat de la garde, la 6e réclamation passait — et
+l'assertion qui devait le dire **restait muette**. Elle comparait
+`v_res ->> 'reason' <> 'merge_quota_exhausted'` : quand la réclamation
+**réussit**, `reason` est NULL, et `NULL <> 'x'` vaut NULL, donc le `if` ne tire
+pas. Le rouge venait d'une assertion suivante, avec un message faux (« un refus a
+incrémenté le compteur »). Cinq comparaisons du bloc portaient le même trou ;
+toutes passent désormais par `coalesce`. **Une garde a besoin d'un cas qui
+échoue autant que d'un cas qui passe** — et celle-ci n'en avait jamais eu.
+
+### Les 23 mutations — chacune cassée, vue rouge, restaurée
+
+**En base (rejouées puis annulées) :** le `where used < v_limit` retiré (la 6e
+passe) · le même `where` à `v_limit - 1` (**le cas qui passe** : la `N+3` est
+refusée) · le `+ 3` mis à `+ 2` (le plafond n'est plus 5) · `keel_iso_week_start`
+rendu à `date_trunc('day')` (le dimanche ne remonte plus au lundi) · le jour
+local retombé sur `current_date` · `grant select` rendu à `authenticated` · la
+lecture seule qui crée sa ligne.
+
+**Dans le produit :** le refus rapide supprimé · une porte de sortie glissée
+entre la réclamation et le modèle · la garde `merge !== null` désarmée · la
+réclamation qui nomme quelqu'un d'autre · le 429 rendu en 409 · `skipErrorLog`
+retiré · le lecteur qui ignore le plafond · le plafond qui coupe **aussi**
+l'avertissement de D8 · le bouton `merge` qui survit au plafond · le plafond
+placé **avant** le motif précis · le parseur qui invente `0` au lieu de refuser ·
+la phrase qui ne dit plus que rien n'est effacé · la lane individuelle passée au
+frais du foyer · le `+ 3` recopié en TypeScript · le lecteur qui **réclame** au
+lieu de lire · le lecteur qui lit le plafond et ne le passe pas.
 
 ## Questions encore ouvertes
 
