@@ -896,6 +896,16 @@ export async function loadHouseholdMeal(today: string): Promise<HouseholdMealVie
     .from("student_generated_meals")
     .select("id, starts_on, duration_days, member_portions")
     .not("household_id", "is", null)
+    // ⚠️ `plan_kind` EST LA MOITIÉ DU FILTRE — mesuré le 2026-08-12 sous un vrai
+    // jeton. `household_id is not null` ne dit PAS « plan du foyer »: un plan
+    // personnel le porte aussi, `generate-meal-v1` l'estampant pour que la
+    // fusion le retrouve. Sans ce filtre, la carte se vidait dès qu'un
+    // secondaire générait un plan personnel commençant après celui du foyer —
+    // elle rendait sa ligne, qui n'a aucune `member_portions`.
+    //
+    // Le jumeau de ce défaut vivait dans `household_turn_context.ts`, où le
+    // chat décrivait les plats d'un membre comme le dîner de la maison.
+    .eq("plan_kind", "household")
     .is("retired_at", null)
     .gte("ends_on", today)
     .order("starts_on", { ascending: false })

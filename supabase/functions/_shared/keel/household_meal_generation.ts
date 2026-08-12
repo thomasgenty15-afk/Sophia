@@ -70,6 +70,14 @@ import type { WindowPresence } from "./household_presence.ts";
  *         et la liste d'ids ne porte plus les bouches absentes à CHAQUE moment
  *         de la fenêtre (elles n'ont pas d'assiette dans ce plan-là). Les deux
  *         changements n'ont jamais existé séparément.
+ *
+ * ⚠️ L3 (D2/D7, 2026-08-12) N'A PAS BUMPÉ, ET C'EST UNE DÉCISION. La prise de
+ * main ajoute une SECONDE raison pour qu'une bouche n'apparaisse pas dans la
+ * liste d'ids — elle mange son propre plan — mais elle ne change AUCUN bloc:
+ * ni leur nombre, ni leur ordre, ni leur texte. C'est le même cas que la
+ * moitié « liste d'ids » de v2, que cette version couvre déjà. Ce que la
+ * version doit suivre est la CONSIGNE; qui a été retiré de la table se relit,
+ * lui, sur `generated_from.household.hand`, nommément et avec son motif.
  */
 export const HOUSEHOLD_PROMPT_VERSION = "v2_presence";
 

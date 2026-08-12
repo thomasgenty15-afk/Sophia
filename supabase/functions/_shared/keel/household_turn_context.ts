@@ -398,6 +398,18 @@ export async function loadHouseholdTurnContext(
         "id, dishes, preparations, member_portions, shopping_list, starts_on, ends_on",
       )
       .eq("household_id", householdId)
+      // ⚠️ `plan_kind` N'EST PAS UN DÉTAIL ICI — mesuré le 2026-08-12. Un plan
+      // PERSONNEL porte lui aussi le `household_id` de son auteur
+      // (`generate-meal-v1` l'estampe pour que la fusion le retrouve). Sans ce
+      // filtre, la requête rendait le plan personnel du membre le plus récent,
+      // et le chat décrivait ses plats à TOUT LE FOYER comme le dîner de la
+      // maison. Rejoué sur une fixture réelle: le plan de Nina sortait à la
+      // place de celui du foyer.
+      //
+      // L3 (la prise de main) rend la collision NOMINALE: prendre la main,
+      // c'est précisément créer une ligne `personal` portant ce
+      // `household_id`. Ce n'est plus un cas de bord, c'est le cas produit.
+      .eq("plan_kind", "household")
       .is("retired_at", null)
       .lte("starts_on", localDate)
       .gte("ends_on", localDate)

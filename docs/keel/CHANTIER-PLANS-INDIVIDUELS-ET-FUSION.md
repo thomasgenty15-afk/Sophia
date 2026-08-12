@@ -35,12 +35,12 @@ prennent la main, et les comptes individuels sans foyer.
 | # | Décision | État |
 |---|---|---|
 | **D1** | Pour une bouche avec compte, son « about you » (`student_goals`) fait autorité sur `household_members.goal`. Résolu une seule fois, dans `keel_household_roster_for`. | ✅ livré |
-| **D2** | ~~Plans individuels pour tous les titulaires~~ → **le plan du maître est le plan du foyer**; seuls les secondaires qui prennent la main ont un plan personnel. | 🔴 **révisé le 12** |
+| **D2** | ~~Plans individuels pour tous les titulaires~~ → **le plan du maître est le plan du foyer**; seuls les secondaires qui prennent la main ont un plan personnel. | ✅ livré (L3) |
 | **D3** | Les bouches sans compte n'ont pas de plan individuel. Elles n'existent que comme parts dans le plan du foyer. | ✅ tenu |
 | **D4** | Préférences durables **et** mémoire de chaque titulaire entrent dans la composition, avec un plafond de tokens par membre et la garde de non-divulgation étendue. | ⬜ à faire |
 | **D5** | Plats séparables en composants : servir `muscle_gain` et `fat_loss` d'une seule casserole n'est possible que si le plat se re-proportionne. Le répertoire se rétrécit, c'est le prix assumé. | ⬜ à faire |
 | **D6** | Échelle de fusion : ① même plat, ratios différents ② plats différents, même session de cuisson ③ sessions séparées. Renonce dès qu'un plat commun forcerait quelqu'un **hors de sa direction de service** — critère vérifiable, pas jugement de goût. | ⬜ à faire |
-| **D7** | Qui n'a pas de plan **validé** au moment où le maître compose est automatiquement pris dans le plan du foyer. La composition n'attend jamais personne. | ⬜ à faire |
+| **D7** | Qui n'a pas de plan **validé** au moment où le maître compose est automatiquement pris dans le plan du foyer. La composition n'attend jamais personne. | ✅ livré (L3) |
 | **D8** | Validation **après** la fusion : le maître est averti, et il a trois sorties — refaire sans ce user (*défusion*), refusionner à partir de son plan, ou refuser. Dans tous les cas le user garde son plan. Consigne de défusion, mot pour mot : *rester au plus près du plan de base, sans user X*. | ⬜ à faire |
 | **D9** | Le maître **accède** à tous les plans, mais sa surface de cuisine n'affiche **que** le plan qu'il cuisine. Un plan validé non fusionné n'y apparaît pas : le but est de simplifier sa cuisine, pas de lui faire suivre N plans. Un secondaire voit le plan du foyer et le sien. | ⬜ à faire |
 | **D10** | La fusion est **manuelle**, déclenchée par le maître, sur proposition : *« le plan de X a été validé, voulez-vous le fusionner ? »* | ⬜ à faire |
@@ -97,7 +97,7 @@ Campagne de test du 2026-08-11, 5 lanes en conditions réelles, ~80 vérificatio
 |---|---|---|---|
 | ~~**L1**~~ | ~~**Le verrou de paiement (D13)**~~ | — | ✅ **livré le 2026-08-12** — voir §« L1, ce qui est prouvé » |
 | ~~**L2**~~ | ~~**La présence (D14)**~~ | — | ✅ **livré le 2026-08-12** — voir §« L2, ce qui est prouvé » |
-| **L3** | **La prise de main (D7, D2)** — un secondaire génère son plan ; sinon il est composé dans celui du maître. Le générateur de foyer doit **exclure** les membres qui ont un plan personnel validé sur la fenêtre. | L1 | C'est la bascule du modèle révisé |
+| ~~**L3**~~ | ~~**La prise de main (D7, D2)**~~ | L1 | ✅ **livré le 2026-08-12** — voir §« L3, ce qui est prouvé » |
 | **L4** | **Le moteur de fusion (D6, D15, D16)** — lit les plans personnels validés, applique l'échelle, opère sur l'**intersection** des fenêtres, s'arrête au premier jour non consommé, écrit `merged_from`. | L3 | Le cœur |
 | **L5** | **La proposition et la défusion (D8, D10, D17)** — l'avertissement au maître, les trois sorties, le réglage discret. | L4 | |
 | **L6** | **Mémoire et préférences par titulaire (D4)** — plafond de tokens par membre, garde de non-divulgation étendue à la composition. | L4 | |
@@ -216,6 +216,87 @@ relecture du texte.
 **Reste ouvert, hors L2** : `generate-meal-v1` n'a toujours pas `window_fully_away` ;
 le chat lit le roster mais **n'utilise pas** la présence — personne ne sait à table
 que quelqu'un manque.
+
+## L3, ce qui est prouvé — 2026-08-12
+
+Migration `20260812150000_household_hand_taken.sql` : `keel_household_roster_for`
+rend `own_plans`. Module pur `_shared/keel/household_hand.ts`. Split dans
+`generate-household-meal-v1/index.ts:587`, et les trois consommateurs suivent —
+`resolveHousehold`, `resolveWindowPresence`, `platedMembers`.
+
+**Le recouvrement est TOTAL** — arbitrage pris seul. Un plan personnel n'exclut
+son porteur que s'il couvre la fenêtre du foyer **en entier** ; mercredi→dimanche
+face à lundi→dimanche ne prend pas la main.
+
+- *Écarté* : le recouvrement partiel. Il **affame** — retirer quelqu'un du lundi
+  parce qu'il a un plan à partir de mercredi, c'est cuisiner sans lui deux jours
+  où il n'a rien. L'erreur inverse coûte un reste, le même arbitrage que L2 sur
+  `servings`.
+- *Ça ne préempte pas D15* : avec le total, un plan partiel reste un candidat de
+  fusion ordinaire. Avec le partiel, L4 devrait **rajouter** une bouche pour les
+  jours non couverts — une décision que D15 ne prend pas.
+- *Retour arrière* : `planCoversWindow` → `plansOverlap`, une ligne.
+- Le cas partiel n'est pas silencieux : `hand.partial`, motif
+  `personal_plan_partial_window`. Sans quoi « plan partiel » et « pas de plan »
+  laisseraient la même trace, et L4 ne saurait pas qu'il y a une intersection.
+
+**Le maître n'est jamais exclu** (D2), même porteur d'un plan validé qui recouvre
+— sinon il cuisinerait un repas qu'il ne mange pas. C'est aussi ce qui rend le
+refus `all_members_have_own_plan` **structurellement inatteignable aujourd'hui** :
+il tient l'invariant, pas le symptôme. Sans lui, le cas ne tomberait pas sur
+`window_fully_away` mais bien plus bas — `resolveWindowPresence` rend un échec
+**ouvert** sur une liste vide, donc la composition irait jusqu'à un appel modèle
+payé pour un plan que personne ne mange.
+
+**Mesuré en HTTP réel** — trois générations complètes sur un foyer de 4 :
+
+| Cas | Résultat |
+|---|---|
+| Secondaire **sans** plan validé | composé : dans les ids, dans `member_portions`, `servings = 4` |
+| Le **même**, plan personnel validé qui recouvre | `servings = 3`, absent de `member_portions`, **nommé** dans `hand.taken` avec son plan et sa date de validation |
+| Plan validé **partiel** | **reste composé** *et* apparaît dans `hand.partial` — les deux sur la même ligne |
+| Plan non validé · retiré · `plan_kind='household'` · foyer NULL | n'excluent personne, chacun mesuré séparément avec restauration entre deux |
+| Le **maître** porteur d'un plan validé qui recouvre | composé, aucune trace le concernant |
+
+**L1 et L2 tiennent** : `402 household_frozen` en **34 ms** contre 20 à 36 s pour
+une génération — et le gel précède même la lecture de la fenêtre. La présence
+marche toujours, et les deux filtres se composent : un même run porte une prise de
+main partielle **et** une absence totale.
+
+**Deux défauts trouvés, tous deux corrigés — et c'est le même.**
+
+`household_id is not null` **ne veut pas dire « plan du foyer »**. Un plan
+**personnel** le porte aussi : `generate-meal-v1` l'estampe exprès, pour que la
+fusion le retrouve. Deux lecteurs indépendants avaient fait la même lecture
+erronée du schéma :
+
+1. `household_turn_context.ts` rendait au chat le plan personnel du membre le
+   plus récent — chacun, le maître compris, s'entendait décrire les plats de
+   quelqu'un d'autre comme le dîner de la maison.
+2. `frontend/src/keel/api/household.ts` (`loadHouseholdMeal`) **vidait** la carte
+   du foyer dès qu'un secondaire générait un plan commençant après celui du
+   foyer : elle rendait sa ligne, qui n'a aucune `member_portions`.
+
+Vérifié en base : sur la fixture, la ligne la plus récente du foyer **était** le
+plan personnel du secondaire. L3 rend la collision **nominale** — prendre la main,
+c'est précisément créer une ligne `personal` portant ce `household_id`. Un test
+qui **scanne les lecteurs** garde les deux et attrapera le prochain
+(`household_plan_kind_readers_test.ts`), avec son cas passant du côté de
+l'écrivain.
+
+**Quatre défauts laissés ouverts, nommément.**
+
+| # | Défaut | Où | Décision |
+|---|---|---|---|
+| **O1** | Deux plans personnels **adjacents** qui couvrent ensemble toute la fenêtre ne prennent pas la main | `household_hand.ts:249` | **Laissé.** La direction d'erreur est sûre (une assiette de trop), mais le motif écrit du recouvrement total ne s'applique pas : la personne n'a aucun jour sans rien. **À trancher en L4**, qui travaille déjà par jour sur l'intersection — c'est là que l'union de couverture a sa place, pas ici |
+| **O2** | **Aucune surface produit n'appelle `keel_validate_meal_plan`** — la prise de main est aujourd'hui inatteignable par un vrai utilisateur | ni front, ni edge | **Bloquant pour L5/L8.** Le mécanisme est juste, la gâchette manque. À ne pas laisser tomber entre deux lots |
+| **O3** | La réponse HTTP ne porte pas `hand` — l'exclusion n'y est lisible que par un id opaque dans `issues` | `generate-household-meal-v1/index.ts:1466` | **L8** en aura besoin pour dire *pourquoi* on cuisine pour un de moins |
+| **O4** | Un `reference_member_id` déclaré qui prend la main est écarté **en silence** | `household_composition.ts:110-119` | Mineur, reconstructible par `hand.taken`. Non exercé aujourd'hui (`reference_member_id` est NULL partout) |
+
+**Ce qui n'est pas prouvé** : que les allergies ne suivent pas l'exclusion — c'est
+lu dans le code (`accountIds` est calculé **avant** le split) et confirmé par un
+log (`"members":4,"accounts":2` alors qu'une bouche a pris la main), mais aucun
+allergène réel n'a été posé sur la personne exclue.
 
 ## Ce que L4 défait
 

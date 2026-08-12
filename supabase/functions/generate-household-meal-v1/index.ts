@@ -49,6 +49,11 @@ import {
   parseMemberAway,
   resolveWindowPresence,
 } from "../_shared/keel/household_presence.ts";
+import {
+  type MemberOwnPlan,
+  parseOwnPlans,
+  resolveHandOff,
+} from "../_shared/keel/household_hand.ts";
 import { proteinAnchorRetryInstruction } from "../_shared/keel/protein_anchor.ts";
 import type { CompositionIndex } from "../_shared/keel/food_composition.ts";
 import { loadCompositionIndex } from "../_shared/keel/food_composition_io.ts";
@@ -112,6 +117,17 @@ import { weekStartOf } from "../_shared/keel/weekly_flow_io.ts";
  * pose aucun rappel, ne notifie personne: la livraison proactive au foyer est
  * un autre chantier, et un générateur qui notifie est un générateur qu'on ne
  * peut plus appeler pour essayer.
+ *
+ * ── POUR QUI ELLE COMPOSE, DEPUIS L3 (D2/D7, 2026-08-12) ────────────────
+ * CE PLAN EST LE PLAN DU MAÎTRE. Lui, toutes les bouches sans compte, et tout
+ * compte secondaire qui n'a PAS pris la main. Un secondaire qui a généré et
+ * VALIDÉ son propre plan couvrant cette fenêtre en est retiré: il mange le
+ * sien. C'est `resolveHandOff` (`_shared/keel/household_hand.ts`) qui le dit,
+ * et lui seul.
+ *
+ * Tant que L4 n'existe pas, les deux plans COEXISTENT: le foyer cuisine sans
+ * lui, il cuisine pour lui, et personne ne fusionne. C'est le REPLI du modèle
+ * (D8: « dans tous les cas le user garde son plan »), et il doit tenir seul.
  *
  * ── LE MINEUR N'EST PAS UNE CIBLE (§8.4), ET « JE NE SAIS PAS » NON PLUS ─
  * L'objectif d'une bouche SANS COMPTE vit sur sa ligne de foyer depuis le
@@ -207,6 +223,14 @@ interface LoadedMember extends PortionMember {
    * pas de réponse trois jours plus tard.
    */
   away: MemberAway;
+  /**
+   * D2/D7 — LES PLANS QUI POURRAIENT RETIRER CETTE BOUCHE DE LA TABLE.
+   *
+   * « Pourraient »: la base a filtré (personnel · vivant · validé · ce foyer),
+   * la fenêtre n'est pas encore comparée. `resolveHandOff` s'en charge, et lui
+   * seul.
+   */
+  ownPlans: MemberOwnPlan[];
 }
 
 Deno.serve(async (req) => {
@@ -362,6 +386,11 @@ Deno.serve(async (req) => {
       // sa `source` (`self` | `household`); `parseMemberAway` la relit sans
       // jamais refaire la fusion (voir `household_presence.ts`).
       away_days: unknown;
+      // D2/D7 — LES PLANS PERSONNELS VIVANTS ET VALIDÉS de cette bouche, DANS
+      // CE FOYER. Déjà filtrés par la base sur tout ce qu'elle peut voir seule;
+      // ce qui reste à décider est le RECOUVREMENT de la fenêtre, et il est
+      // décidé dans `household_hand.ts`, jamais ici.
+      own_plans: unknown;
     }>;
     if (roster.length === 0) {
       return jsonResponse(req, { error: "empty_household", request_id: requestId }, { status: 409 });
@@ -395,6 +424,48 @@ Deno.serve(async (req) => {
     const todayToken = dayTokenInZone(timezone, new Date());
     const todayDate = localDateInZone(timezone, new Date());
     const country = String(ownerProfile.country ?? "").trim() || null;
+
+    // ── LA FENÊTRE, REMONTÉE ICI (L3, 2026-08-12) ───────────────────────
+    //
+    // ELLE ÉTAIT RÉSOLUE 180 LIGNES PLUS BAS, et elle est remontée pour DEUX
+    // raisons qui vont dans le même sens.
+    //
+    //   1. C'EST LE MÊME GESTE QUE `intent`/`replaces` PLUS HAUT: ce qui ne
+    //      dépend que du corps de la requête se refuse avant toute dépense.
+    //      Un `window_required` se payait jusqu'ici d'une lecture d'objectif,
+    //      d'un roster et de N lectures de corps.
+    //   2. LA PRISE DE MAIN A BESOIN DE LA FENÊTRE (D2/D7). Savoir qui mange
+    //      son propre plan, c'est comparer sa fenêtre à CELLE-CI — et cette
+    //      réponse doit être connue AVANT qu'on dimensionne quoi que ce soit
+    //      pour la tablée.
+    //
+    // ⚠️ UN SEUL EFFET DE BORD, ET IL EST ASSUMÉ: un appel qui n'a NI fenêtre
+    // NI objectif reçoit désormais `window_required` (400) là où il recevait
+    // `goal_required` (409). C'est l'ordre qu'a déjà `generate-meal-v1`, où la
+    // fenêtre est validée bien avant l'objectif; les deux lanes disaient deux
+    // choses différentes du même appel mal formé.
+    const windowRequest = readWindowRequest(body.window);
+    if (!windowRequest) {
+      return jsonResponse(req, {
+        error: "window_required",
+        detail: "window must be {kind:'until_sunday'} | {kind:'days',count} | " +
+          "{kind:'exact',starts_on,duration_days}",
+        request_id: requestId,
+      }, { status: 400 });
+    }
+    let startsOn: string;
+    let durationDays: number;
+    try {
+      const resolved = resolveRequestedWindow(windowRequest, todayDate);
+      startsOn = resolved.startsOn;
+      durationDays = resolved.durationDays;
+    } catch (error) {
+      return jsonResponse(req, {
+        error: "bad_window",
+        detail: error instanceof Error ? error.message : String(error),
+        request_id: requestId,
+      }, { status: 400 });
+    }
 
     // ── L'OBJECTIF DU MAÎTRE: LA DOCTRINE DU REPAS ──────────────────────
     // `student_goals` du compte maître SEUL, et pour une raison qui n'est plus
@@ -482,8 +553,95 @@ Deno.serve(async (req) => {
         // et `parseAwayDays` est l'opérateur d'union. Refaire la résolution
         // dans ce fichier ferait un second avis sur qui est là.
         away: parseMemberAway(r.away_days),
+        // D2/D7. AUCUN JUGEMENT ICI NON PLUS: on lit la forme, on ne compare
+        // aucune fenêtre. `resolveHandOff`, juste en dessous, est le seul
+        // endroit du produit qui décide qu'une bouche a pris la main.
+        ownPlans: parseOwnPlans(r.own_plans),
       };
     });
+
+    // ── D2 · D7 — QUI A PRIS LA MAIN (L3, 2026-08-12) ────────────────────
+    //
+    // LA BASCULE DU MODÈLE, ET ELLE TIENT EN UNE PHRASE: le plan du maître EST
+    // le plan du foyer — lui, plus toutes les bouches sans compte, plus tout
+    // compte secondaire qui n'a PAS pris la main. Celui qui a pris la main
+    // mange SON plan, donc il ne mange pas celui-ci, donc on ne le compose pas.
+    //
+    // LA POSTURE PAR DÉFAUT EST « NE RIEN FAIRE » (D7). Un secondaire sans plan
+    // validé est composé ici comme une bouche ordinaire; ce n'est pas un cas
+    // dégradé, c'est le cas nominal — « la composition n'attend jamais
+    // personne ».
+    //
+    // ⚠️ CE FILTRE ET CELUI DE LA PRÉSENCE NE S'IGNORENT PAS, ILS SE COMPOSENT.
+    // `platedMembers` (plus bas, D14) retire les bouches absentes à CHAQUE
+    // moment de la fenêtre; il part désormais de `composedMembers`, pas de
+    // `members`. Une même personne peut très bien avoir pris la main ET être
+    // partie toute la semaine, et deux filtres qui se croiseraient sans se
+    // connaître finiraient par diverger. L'ordre est celui-ci parce que la
+    // prise de main ne dépend pas de la présence, alors que l'absence totale
+    // est CALCULÉE sur la tablée qu'on compose.
+    //
+    // CE QUI NE SUIT PAS L'EXCLUSION, ET POURQUOI:
+    //   · L'UNION DES ALLERGIES (`accountIds`, `loadHouseholdAllergies`) reste
+    //     sur le foyer ENTIER. Une allergie gouverne la casserole; la retirer
+    //     parce que son porteur mange ailleurs cette semaine ferait dépendre
+    //     une ceinture de sécurité d'une décision de calendrier. C'est le sens
+    //     fail-closed de tout ce fichier.
+    //   · LES RÈGLES DE MAISON (`restrictions`) restent entières, parce que le
+    //     VERROU (`applyHouseRuleLock`) applique leurs libellés au plat, sans
+    //     regarder pour qui. Filtrer la consigne sans filtrer le verrou ferait
+    //     diverger ce qu'on demande et ce qu'on impose.
+    //   · LES DÉCOMPTES DE `generated_from.household` décrivent LE FOYER
+    //     (combien de bouches, combien de mineurs). Le nombre de bouches
+    //     réellement servies se lit sur `servings`, et qui a été retiré sur
+    //     `hand` juste à côté.
+    const handOff = resolveHandOff({
+      members,
+      window: { startsOn, durationDays },
+    });
+    const composedMembers = handOff.composed;
+    for (const t of handOff.taken) {
+      issues.push(`member_took_the_hand:${t.member_id}`);
+    }
+    if (handOff.taken.length > 0 || handOff.partial.length > 0) {
+      console.log(JSON.stringify({
+        tag: "keel.household_meal.hand",
+        user_id: userId,
+        household_id: householdId,
+        taken: handOff.taken.length,
+        partial: handOff.partial.length,
+        composed: composedMembers.length,
+        window: [startsOn, durationDays],
+      }));
+    }
+
+    // ── LE FOYER N'A PLUS RIEN À COMPOSER — UN REFUS À LUI ───────────────
+    //
+    // ⚠️ SANS CE REFUS, LE CAS NE TOMBERAIT PAS SUR `window_fully_away`: il
+    // tomberait BIEN PLUS BAS et BIEN PLUS MAL. `resolveWindowPresence` rend un
+    // échec OUVERT quand la liste est vide (`fullyAway: false`, tout le monde à
+    // table), donc la composition continuerait — pour zéro bouche, avec une
+    // liste d'ids vide, jusqu'à un appel modèle payé pour un plan que personne
+    // ne mange. Le refus doit donc être ICI, et porter sa propre cause: dire
+    // « personne n'est là » quand tout le monde est là mais cuisine pour soi
+    // serait un diagnostic faux.
+    //
+    // ⚠️ AUJOURD'HUI IL NE PEUT PAS SE DÉCLENCHER, ET C'EST ÉCRIT EXPRÈS. Le
+    // maître n'est JAMAIS exclu (D2), et il est toujours dans son roster —
+    // `composedMembers` porte donc au moins une bouche. Cette garde tient
+    // l'invariant plutôt que le symptôme: le jour où un non-maître pourra
+    // composer, ou où le maître pourra prendre la main, elle est déjà juste.
+    // Son cas passant, lui, est réel et testé sur le module pur
+    // (`household_hand_test.ts`: un roster sans maître rend `composed: []`).
+    if (composedMembers.length === 0) {
+      return jsonResponse(req, {
+        error: "all_members_have_own_plan",
+        detail: "Everyone in this household is already cooking from their own " +
+          "plan over that stretch, so there is nothing left for the household " +
+          "to compose.",
+        request_id: requestId,
+      }, { status: 409 });
+    }
 
     // ── FF-043 · LA RÉSOLUTION FOYER ────────────────────────────────────
     // L'ordre est l'algorithme du design §4.1, et il n'est pas négociable: le
@@ -500,10 +658,15 @@ Deno.serve(async (req) => {
       .eq("id", householdId)
       .maybeSingle();
     if (refRes.error) throw refRes.error;
+    // ⚠️ `composedMembers`, PAS `members` (L3). Cette résolution décide la
+    // DIRECTION DE SERVICE du tronc commun et les add-ons par bouche: y laisser
+    // quelqu'un qui mange son propre plan tirerait la casserole vers un
+    // objectif que personne à cette table ne porte, et promettrait des grammes
+    // à un absent dans `member_deltas`.
     const composerMemberId =
-      members.find((m) => m.userId === userId)?.memberId ?? null;
+      composedMembers.find((m) => m.userId === userId)?.memberId ?? null;
     const resolution = resolveHousehold({
-      members: members.map((m) =>
+      members: composedMembers.map((m) =>
         toHouseholdMember(
           m,
           // L'enveloppe PAR MEMBRE. `goalApplies` a déjà mis `goal` à `null`
@@ -570,29 +733,6 @@ Deno.serve(async (req) => {
         }));
 
     // ── LES ENVIES DE LA SEMAINE ────────────────────────────────────────
-    const windowRequest = readWindowRequest(body.window);
-    if (!windowRequest) {
-      return jsonResponse(req, {
-        error: "window_required",
-        detail: "window must be {kind:'until_sunday'} | {kind:'days',count} | " +
-          "{kind:'exact',starts_on,duration_days}",
-        request_id: requestId,
-      }, { status: 400 });
-    }
-    let startsOn: string;
-    let durationDays: number;
-    try {
-      const resolved = resolveRequestedWindow(windowRequest, todayDate);
-      startsOn = resolved.startsOn;
-      durationDays = resolved.durationDays;
-    } catch (error) {
-      return jsonResponse(req, {
-        error: "bad_window",
-        detail: error instanceof Error ? error.message : String(error),
-        request_id: requestId,
-      }, { status: 400 });
-    }
-
     // ── L'ANCRE EST LE LUNDI, PAS LE JOUR DE DÉPART (lot 5) ─────────────
     // La lecture filtrait sur `week_start = startsOn`. Une ligne écrite lundi
     // n'était alors PAS trouvée par une composition lancée mercredi: le foyer
@@ -784,8 +924,16 @@ Deno.serve(async (req) => {
     // `DEFAULT_EATING_RHYTHM` quand la liste est vide; compter la présence sur
     // le brut ferait raisonner sur des moments que la consigne ne nomme pas —
     // et un rythme vide ferait de chaque jour un jour désert.
+    //
+    // ⚠️ `composedMembers`, PAS `members` (L3). La présence dimensionne la
+    // CASSEROLE: compter l'absence de quelqu'un qui mange son propre plan
+    // ferait descendre `servings` deux fois pour une seule bouche, et sa
+    // déclaration d'absence n'a rien à dire de ce dîner-ci. Le cas
+    // « personne ne reste » a déjà été refusé plus haut, nommément — cette
+    // liste n'est donc jamais vide, et `fullyAway` garde le sens que FF-002 lui
+    // donne: personne n'est LÀ, et non personne n'est CONCERNÉ.
     const presence = resolveWindowPresence({
-      members: members.map((m) => ({
+      members: composedMembers.map((m) => ({
         memberId: m.memberId,
         displayName: m.displayName,
         away: m.away,
@@ -981,9 +1129,19 @@ Deno.serve(async (req) => {
     //
     // Jamais vide: `fullyAway` a déjà refusé plus haut le cas où personne n'est
     // là à aucun moment, donc au moins une bouche survit à ce filtre.
+    //
+    // ⚠️ IL PART DE `composedMembers`, PAS DE `members` (L3). Il y a DEUX
+    // raisons de ne pas avoir d'assiette dans ce plan, et elles s'empilent sur
+    // la même personne: avoir pris la main (elle mange son plan) et être
+    // absente toute la fenêtre (elle ne mange nulle part ici). Les deux filtres
+    // se composent en cascade au lieu de se croiser — deux listes calculées
+    // chacune sur `members` finiraient par se contredire, et l'une des deux
+    // gagnerait en silence.
     const platedMembers = presence.absentAllWindow.length === 0
-      ? members
-      : members.filter((m) => !presence.absentAllWindow.includes(m.memberId));
+      ? composedMembers
+      : composedMembers.filter((m) =>
+        !presence.absentAllWindow.includes(m.memberId)
+      );
     for (const id of presence.absentAllWindow) {
       issues.push(`member_away_all_window:${id}`);
     }
@@ -1251,6 +1409,29 @@ Deno.serve(async (req) => {
                 members: presence.trace,
                 deserted: presence.householdAway,
                 servings: presence.servings,
+              },
+              // ── D2 · D7 · QUI A PRIS LA MAIN, ET AVEC QUEL PLAN ────────
+              // Sans ce bloc, le maître voit qu'il cuisine pour un de moins et
+              // n'a AUCUN moyen de savoir pourquoi: ni l'écran, ni le plan, ni
+              // nous ne pourraient dire si quelqu'un a été retiré, par quelle
+              // règle, ni sur la foi de quel plan. C'est le pendant exact de la
+              // trace de présence juste au-dessus — la même raison, une autre
+              // cause.
+              //
+              // `partial` N'EST PAS DU DÉCOR: il porte ceux dont le plan MORD
+              // sur la fenêtre sans la recouvrir, et qui restent donc composés.
+              // C'est la seule preuve relisible que l'arbitrage « recouvrement
+              // TOTAL » a été appliqué et pas oublié — sans elle, un plan
+              // partiel et l'absence de plan laissent la même trace. C'est
+              // aussi ce que L4 lira pour savoir qu'il y a une intersection à
+              // fusionner (D15).
+              //
+              // ÉCRIT MÊME VIDE, exprès: une clé absente ne se distingue pas
+              // d'un lot débranché, et ce dépôt paie en boucle la garde
+              // construite puis silencieusement débranchée.
+              hand: {
+                taken: handOff.taken,
+                partial: handOff.partial,
               },
             },
             issues: [...issues, ...meal.issues, ...portionIssues],
