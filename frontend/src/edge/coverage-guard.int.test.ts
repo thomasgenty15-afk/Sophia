@@ -158,6 +158,23 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       // Q6 — le PDF d'un repas. Depuis de-whatsapp il s'annonce dans la bulle
       // au lieu d'être envoyé par Graph.
       "meal-document-v1",
+      // FF-059 — LE CHIFFRE AFFICHÉ. Un LECTEUR: aucune écriture, aucun appel
+      // modèle, rien de stocké (R5 — le chiffre se recalcule à chaque requête).
+      //
+      // Elle existe comme fonction et pas comme calcul d'écran pour deux
+      // raisons qu'un client ne peut pas satisfaire: `food_composition_refs`
+      // est révoquée pour `authenticated`, et surtout la CHAÎNE DE GARDES doit
+      // vivre là où un `curl` ne va pas — quand une porte est fermée, la
+      // réponse ne contient aucun chiffre du tout.
+      //
+      // Couverte par _shared/keel/energy_gate_test.ts (table de vérité
+      // exhaustive des quatre portes, et trois gardes lues sur la source),
+      // _shared/keel/plan_energy_test.ts (l'arithmétique et l'abstention), et
+      // par la couche 4 de
+      // sophia-brain/test_harness/keel_properties/no_calorie_to_student_property_test.ts
+      // — dont le test « a closed gate sends no number at all », qui lit le
+      // corps de son helper de refus.
+      "meal-energy-v1",
       // KEEL W5.4 — LE chemin d'une photo de repas, désormais le seul (le
       // pendant WhatsApp est supprimé avec le webhook). Dépose dans
       // `meal-photos`, écrit le fait, délègue la lecture à

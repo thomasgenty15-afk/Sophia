@@ -88,10 +88,28 @@ import { buildMeasuresToken } from "../../../../supabase/functions/_shared/keel/
  * qu'on écrit ce qu'il va manger de la semaine. Le titre porte donc le mot
  * « plan », et le sous-titre dit ce que le bouton PRODUIT — pas ce qu'il est.
  *
- * Le sous-titre est aussi une limite: des lignes et des cadences, jamais des
- * quantités. `WEEK_PLAN_SYSTEM_PROMPT` refuse toute calorie et tout macro, et
- * un filtre en aval rejette les lignes qui en portent. Promettre un menu chiffré
- * ici serait promettre ce que le serveur a le devoir de ne pas livrer.
+ * ── LE SOUS-TITRE, CORRIGÉ LE 2026-08-12 (FF-059) ──────────────────────────
+ * Il disait « Lines and rhythms, NEVER CALORIE COUNTS », et depuis FF-059 cette
+ * phrase est fausse SUR LE MÊME ÉCRAN, à trois centimètres de trois chiffres:
+ * mesuré en run réel, « 537 kcal » s'affiche sous elle. Une promesse
+ * contredite par ce qu'on voit en même temps qu'elle ne coûte pas seulement sa
+ * crédibilité — elle apprend au lecteur à ne pas lire les autres.
+ *
+ * Ce qui la remplace garde la promesse qui, elle, TIENT et qui était la vraie:
+ * rien ici ne NOTE personne. Pas de cible, pas de budget, pas de pourcentage
+ * d'adhérence — FF-059 n'affiche que des faits sur la nourriture (A et B), et
+ * le niveau C (un chiffre contre une cible) est bloqué sur trois décisions
+ * humaines.
+ *
+ * ⚠️ Et elle ne promet pas le chiffre non plus: il dépend de quatre portes
+ * (plancher TCA, âge, doctrine du coach, interrupteur de l'élève), et il est
+ * ABSENT pour la plupart des gens. Un sous-titre qui l'annoncerait serait faux
+ * dans l'autre sens.
+ *
+ * `WEEK_PLAN_SYSTEM_PROMPT` refuse toujours toute calorie et tout macro DANS CE
+ * QU'IL ÉCRIT, et un filtre en aval rejette les lignes qui en portent. Le
+ * chiffre de FF-059 n'est pas écrit par un modèle: il est calculé après coup
+ * depuis les quantités du plan.
  */
 const PAGE_TITLE = "My week's plan";
 // « plus one or two light habits » est TOMBÉ. L'écran ne compose plus de lignes
@@ -99,7 +117,7 @@ const PAGE_TITLE = "My week's plan";
 // promesse survivait au moteur qui la tenait, ce qui est la pire forme de copie
 // morte: elle annonce une fonctionnalité qu'aucun code ne fournit.
 const PAGE_SUBTITLE =
-  "What you eat this week, written from your coach's method. Lines and rhythms, never calorie counts.";
+  "What you eat this week, written from your coach's method. Dishes and rhythms — nothing here scores you.";
 
 
 
