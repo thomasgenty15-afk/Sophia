@@ -88,6 +88,57 @@ export const PUBLIC_NAMESPACES_PENDING_TRANSLATION = [
 
 export type PublicNamespace = typeof PUBLIC_NAMESPACES[number];
 
+/** Un namespace public dont le pack français n'est pas encore écrit. */
+export function isPendingTranslationNamespace(namespace: string): boolean {
+  return (PUBLIC_NAMESPACES_PENDING_TRANSLATION as readonly string[])
+    .includes(namespace);
+}
+
+/**
+ * CHAQUE PAGE PUBLIQUE, ET LES NAMESPACES QUI ÉCRIVENT SON CORPS.
+ *
+ * ── CE QUE CETTE TABLE REND POSSIBLE ───────────────────────────────────────
+ * Sans elle, « en attente de traduction » est une propriété d'un namespace, et
+ * personne ne sait quelle PAGE la porte. C'est exactement comme ça que la
+ * couture est née: `start` était en attente, `public` ne l'était pas, et la
+ * page qui les affiche tous les deux n'avait aucun moyen de le savoir. Avec
+ * elle, `uiLocaleForPath` répond à la seule question qui compte — « cette page
+ * peut-elle se lire entièrement en français ? » — et rend l'anglais pour toute
+ * la page sinon, chrome compris.
+ *
+ * ── POURQUOI DES CHEMINS, ET PAS UNE PROP SUR CHAQUE PAGE ─────────────────
+ * Une prop `namespace` sur `PublicHeader` marcherait, et rouillerait: la page
+ * suivante l'oublierait, silencieusement, et personne ne verrait la couture
+ * revenir. Une table lue depuis `location.pathname` ne s'oublie pas — au pire
+ * elle est incomplète, et l'incomplétude est ce qu'un test sait vérifier.
+ *
+ * ── CE QUI N'EST PAS ICI, ET POURQUOI ──────────────────────────────────────
+ * `/legal` ne passe par AUCUN `t()` (zéro clé dans le seed): il n'a pas de
+ * namespace, donc rien à déclarer. `/auth` porte `auth.*`, traduit, mais tout
+ * le reste de son écran est en dur — l'inscrire ici promettrait une page
+ * entièrement française qu'elle n'est pas. Ces deux-là suivent donc la langue
+ * choisie par le visiteur, comme avant.
+ *
+ * ⚠️ Une clé est un `pathname` EXACT, tel que React Router le rend. Pas de
+ * préfixe: `/join` ne doit pas capturer `/join-household`, qui est une autre
+ * page avec un autre namespace.
+ */
+export const PUBLIC_PAGE_NAMESPACES: Readonly<
+  Record<string, readonly string[]>
+> = {
+  "/": ["landing"],
+  "/gyms": ["gyms"],
+  "/communities": ["communities"],
+  "/start": ["start"],
+  // Deux namespaces sur une seule page, et c'est le cas qui justifie le
+  // tableau plutôt qu'un namespace unique: `/join` affiche le texte de
+  // l'invitation (`invite.*`) au-dessus de celui de la page (`join.*`).
+  // Une page se lit dans la langue du visiteur seulement si TOUS ses
+  // namespaces sont traduits — un seul en attente, et la couture revient.
+  "/join": ["join", "invite"],
+  "/join-household": ["household_claim"],
+};
+
 /**
  * Les clés de la vitrine, DÉRIVÉES du seed anglais.
  *

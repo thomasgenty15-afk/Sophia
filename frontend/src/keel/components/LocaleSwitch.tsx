@@ -1,6 +1,6 @@
 import { t } from "../i18n/t";
 import { type UiLocale } from "../i18n/catalog";
-import { setUiLocaleAndReload, uiLocale } from "../i18n/runtime";
+import { chosenUiLocale, setUiLocaleAndReload } from "../i18n/runtime";
 
 /**
  * Le sélecteur de langue de la VITRINE.
@@ -22,7 +22,15 @@ import { setUiLocaleAndReload, uiLocale } from "../i18n/runtime";
  * bouton « FR » promettrait une traduction qui n'existe pas encore.
  */
 export function LocaleSwitch() {
-  const current = uiLocale();
+  // ── LE CHOIX DU VISITEUR, PAS LA LANGUE DE LA PAGE ────────────────────────
+  // Les deux diffèrent sur une page dont le namespace n'est pas encore traduit:
+  // elle se rend entièrement en anglais (voir `uiLocaleForPath`) alors que le
+  // choix enregistré peut être le français. Marquer « EN » actif là-dessus
+  // effacerait le choix aux yeux du visiteur, et son clic sur « FR » — qui
+  // marche, et vaut pour toutes les autres pages — ressemblerait à un bouton
+  // mort. Ce bouton dit ce qu'il a enregistré; la page dit ce qu'elle sait
+  // afficher.
+  const current = chosenUiLocale();
 
   const option = (locale: UiLocale, labelKey: "public.locale.en" | "public.locale.fr") => {
     const active = current === locale;

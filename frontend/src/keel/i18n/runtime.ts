@@ -13,7 +13,9 @@
 
 import {
   DEFAULT_UI_LOCALE,
+  isPendingTranslationNamespace,
   parseUiLocale,
+  PUBLIC_PAGE_NAMESPACES,
   type UiLocale,
 } from "./catalog";
 
@@ -67,16 +69,89 @@ export function initUiLocale(): UiLocale {
 
   current = resolved;
   initialised = true;
-  applyDocumentLang(resolved);
+  // La langue du DOCUMENT est celle de la PAGE, pas celle du visiteur: sur une
+  // page non traduite les deux diffèrent, et c'est la page qu'un lecteur
+  // d'écran va prononcer.
+  applyDocumentLang(uiLocale());
   // Un `?lang=` explicite vaut choix: sinon le visiteur qui suit un lien
   // français repasse en anglais dès qu'il clique sur une autre page.
   if (fromQuery) safeStorage()?.setItem(UI_LOCALE_STORAGE_KEY, resolved);
   return resolved;
 }
 
-/** La locale courante. Lecture seule — `t()` et `format` s'en servent. */
-export function uiLocale(): UiLocale {
+// ── LA FRONTIÈRE DE LANGUE, ET POURQUOI ELLE EST ICI ───────────────────────
+//
+// Elle était censée passer AU BORD des pages non traduites. Elle passait en
+// fait EN PLEIN MILIEU: mesuré le 2026-08-12 sur `/start`, un visiteur au
+// navigateur français lisait un en-tête et un pied de page traduits autour
+// d'un corps entièrement anglais, parce que `public.*` est traduit et que le
+// namespace du corps ne l'était pas. Le même défaut valait pour `/gyms`,
+// `/communities`, `/join` et `/join-household`.
+//
+// ── POURQUOI LA RÉSOUDRE ICI ET PAS DANS LE CHROME ────────────────────────
+// Donner une prop « ma page n'est pas traduite » à `PublicHeader` marcherait
+// une fois, puis la page suivante l'oublierait. `t()` est le SEUL point par
+// où passe chaque mot rendu; corriger la langue ici, c'est la corriger pour
+// tout ce qu'une page affiche, y compris ce qu'on écrira demain. Aucun écran
+// ne peut plus se tromper individuellement — il n'y a plus de choix par écran.
+//
+// Le prix, et il est assumé: `uiLocale()` dépend maintenant de l'URL courante.
+// C'est pour ça que `chosenUiLocale()` existe juste en dessous — un sélecteur
+// de langue doit montrer le CHOIX du visiteur, jamais ce que la page a pu en
+// faire, sinon son clic ressemble à un bouton mort.
+
+/** Sans slash final (sauf la racine): `/gyms/` et `/gyms` sont la même page. */
+function normalisePath(pathname: string): string {
+  const trimmed = String(pathname ?? "").trim();
+  if (trimmed.length > 1 && trimmed.endsWith("/")) return trimmed.slice(0, -1);
+  return trimmed;
+}
+
+/**
+ * La langue dans laquelle une page donnée peut se rendre ENTIÈREMENT.
+ *
+ * Un chemin inconnu rend le choix du visiteur, et c'est volontaire: l'app
+ * connectée, `/legal`, `/auth` et tout ce qui n'est pas une page de vitrine ne
+ * déclarent aucun namespace, donc rien ne change pour eux.
+ */
+export function uiLocaleForPath(pathname: string): UiLocale {
+  const namespaces = PUBLIC_PAGE_NAMESPACES[normalisePath(pathname)];
+  if (namespaces?.some(isPendingTranslationNamespace)) return DEFAULT_UI_LOCALE;
   return current;
+}
+
+/**
+ * La locale EFFECTIVE de ce qui est à l'écran. `t()` et `SEO` s'en servent.
+ *
+ * Lue à l'appel plutôt que mémorisée au montage: sous React Router, une
+ * navigation client met `history` à jour AVANT de prévenir ses abonnés, donc
+ * `location.pathname` est déjà le bon quand le rendu suivant appelle `t()`.
+ */
+export function uiLocale(): UiLocale {
+  return uiLocaleForPath(globalThis.location?.pathname ?? "");
+}
+
+/**
+ * Ce que le VISITEUR a choisi, indépendamment de la page qu'il lit.
+ *
+ * Le sélecteur de langue lit celle-ci. Avec `uiLocale()`, il afficherait
+ * « EN » actif sur une page non traduite alors que le choix enregistré est le
+ * français — et le clic sur « FR » n'aurait aucun effet visible sur cette
+ * page-là, ce qui se lit comme un bouton cassé plutôt que comme une frontière.
+ */
+export function chosenUiLocale(): UiLocale {
+  return current;
+}
+
+/**
+ * RÉSERVÉ AUX TESTS. La vitrine passe par `initUiLocale` (au démarrage) ou
+ * `setUiLocaleAndReload` (au clic); ni l'un ni l'autre n'est rejouable dans un
+ * même processus, ce qui rend les deux langues intestables sans ce point
+ * d'entrée. Nommé pour qu'un appel hors test se voie en relecture.
+ */
+export function setChosenUiLocaleForTest(locale: UiLocale): void {
+  current = locale;
+  initialised = true;
 }
 
 /**
