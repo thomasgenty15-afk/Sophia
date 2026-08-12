@@ -36,25 +36,43 @@ export const PUBLIC_NAMESPACES = [
   "public",
   "brand",
   "auth",
+  // Traduit le 2026-08-12. `/start` s'affichait jusque-là avec un chrome
+  // français autour d'un corps anglais — voir la note d'en-tête de
+  // `PUBLIC_NAMESPACES_PENDING_TRANSLATION` sur ce que « en attente » veut
+  // vraiment dire pour la page qui le porte.
+  "start",
 ] as const;
 
 /**
  * Les namespaces publics PAS ENCORE traduits, et donc pas encore dans la liste.
  *
- * `gyms` (135 clés), `communities` (143), `join` (65), `start` (50),
- * `invite` (21). Ils sont entièrement passés par `t()` — c'est de la traduction
- * pure, zéro refacto — mais tant qu'ils ne sont pas écrits, les inscrire
- * ci-dessus casserait la compilation, ce qui est exactement le comportement
- * voulu: la liste ne grandit qu'avec le pack.
+ * `gyms` (135 clés), `communities` (143), `join` (65), `invite` (21). Ils sont
+ * entièrement passés par `t()` — c'est de la traduction pure, zéro refacto —
+ * mais tant qu'ils ne sont pas écrits, les inscrire ci-dessus casserait la
+ * compilation, ce qui est exactement le comportement voulu: la liste ne grandit
+ * qu'avec le pack.
  *
- * Conséquence assumée: `/gyms` et `/communities` restent en anglais quand la
- * vitrine est en français. C'est une frontière VISIBLE et déclarée, pas un
- * repli silencieux au milieu d'une page.
+ * ⚠️ CE COMMENTAIRE A MENTI PENDANT DES MOIS, ET IL FAUT LE LIRE AVANT D'AJOUTER
+ * UN NAMESPACE ICI. Il affirmait que `/gyms` et `/communities` « restent en
+ * anglais quand la vitrine est en français », et que c'était « une frontière
+ * VISIBLE et déclarée, pas un repli silencieux au milieu d'une page ».
+ *
+ * C'était faux, et mesuré le 2026-08-12 sur `/start`: le CHROME de ces pages
+ * (`public.*`, `brand.*`) est traduit, lui, puisqu'il est dans la liste
+ * ci-dessus. Une page en attente rendait donc un en-tête et un pied de page
+ * français autour d'un corps anglais — la couture n'était pas au bord de la
+ * page, elle était au milieu. Aucun clic n'était nécessaire pour l'atteindre:
+ * `initUiLocale` résout depuis `navigator.languages`.
+ *
+ * Depuis, la frontière est VRAIE et elle est portée par du code, pas par cette
+ * phrase: `uiLocaleForPath` (runtime.ts) rend une page entièrement anglaise
+ * quand l'un de ses namespaces est ici, chrome compris. Une entrée ajoutée à
+ * cette liste doit donc AUSSI apparaître dans `PUBLIC_PAGE_NAMESPACES`, sans
+ * quoi la garde ne couvre rien — et un test le refuse.
  */
 export const PUBLIC_NAMESPACES_PENDING_TRANSLATION = [
   "gyms",
   "communities",
-  "start",
   "join",
   "invite",
   // `/join-household` (chantier foyer, lot 6). PUBLIQUE comme `/join`: la
