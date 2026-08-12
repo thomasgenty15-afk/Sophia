@@ -582,10 +582,22 @@ export interface GeneratedMeal {
 // chaîne de `maintenance`: la consigne servie change, donc la version bouge —
 // sans quoi le cache continuerait de rendre l'ancienne assiette.
 //
-// ⚠️ LE PROCHAIN BUMP EST DÉJÀ DÛ. Le lot 4 du chantier « plans individuels et
-// fusion » change le CONTRAT de composition (les objectifs des membres cessent
-// d'être une consigne de service). Il devra passer en v9 — ne pas le glisser
-// dans v8, sinon la comparaison avant/après de ce lot-ci devient illisible.
+// ⚠️ CETTE VERSION NE COUVRE QUE LE TRONC PARTAGÉ. Depuis le 2026-08-12, la
+// lane FOYER a son propre numéro — `HOUSEHOLD_PROMPT_VERSION`, dans
+// `household_meal_generation.ts` — et la clé écrite en base est
+// `meal.en.v8…+household.v2_presence`. Ce qui ne touche QUE le foyer (la liste
+// d'ids, l'envie, les règles de maison, la présence) se bumpe LÀ-BAS. Ce qui
+// touche les deux lanes (brief de portions, propriétés de jour, apports fixes)
+// se bumpe ICI. L2 a dû poser cet axe parce que greffer la présence avait
+// changé le prompt du foyer SANS que rien ne bouge: deux plans stampés pareil
+// portaient des consignes différentes, et rien n'échouait.
+//
+// ⚠️ LE PROCHAIN BUMP D'ICI EST DÉJÀ DÛ. Le lot 4 du chantier « plans
+// individuels et fusion » change le CONTRAT de composition (les objectifs des
+// membres cessent d'être une consigne de service) — ça passe par
+// `household_portions.ts`, qui est du TRONC. Il devra passer en v9 — ne pas le
+// glisser dans v8, sinon la comparaison avant/après de ce lot-ci devient
+// illisible.
 export const MEAL_PROMPT_VERSION = "meal.en.v8_distinct_health_direction";
 
 const DAY_TOKENS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
@@ -672,12 +684,19 @@ const DAY_PROSE: Record<string, string> = {
   sun: "Sunday",
 };
 
-function dayProse(day: string): string {
+/**
+ * EXPORTÉ depuis D14 (2026-08-12), et pour une raison de fond: le bloc de
+ * présence du foyer (`household_presence.ts`) nomme les mêmes jours et les
+ * mêmes moments dans le même prompt. Une seconde table de prose y dirait
+ * « Saturday » ici et « Sat » là, dans deux blocs que le modèle lit à la
+ * suite — c'est-à-dire deux jours pour lui.
+ */
+export function dayProse(day: string): string {
   return DAY_PROSE[day] ?? day;
 }
 
 /** Le jeton, en mots. Le modèle lit de l'anglais, pas des slugs. */
-const OCCASION_PROSE: Record<EatingOccasion, string> = {
+export const OCCASION_PROSE: Record<EatingOccasion, string> = {
   breakfast: "breakfast",
   snack_am: "a mid-morning bite",
   lunch: "lunch",

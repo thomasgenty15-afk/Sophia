@@ -508,10 +508,154 @@ select pg_temp.assert_refused('22 un membre ne pose pas l''objectif d''un autre'
     (select member_id from public.household_members
       where user_id = 'f0ed0000-0000-0000-0000-000000000003'), 'fat_loss'),
   'not_your_line');
-select pg_temp.assert_ok('23 mais il pose LE SIEN',
+-- 23. ET IL NE POSE PLUS LE SIEN NON PLUS (D1, 2026-08-11).
+--
+-- ⚠️ CETTE ASSERTION ATTENDAIT `ok` ET ÉTAIT ROUGE DEPUIS LE 2026-08-11. La
+-- migration `20260811070000_household_goal_authority` a fait de
+-- `student_goals.goal` l'autorité unique pour toute bouche qui a un compte, et
+-- la RPC refuse désormais `has_account` — y compris pour soi-même. Le script
+-- n'avait pas suivi, et comme il est MANUEL, personne ne l'a vu: il s'arrêtait
+-- ici, donc tout ce qui suit n'était plus joué du tout. Corrigé au lot L2
+-- (D14), parce que la section 25 ci-dessous ne peut pas s'exécuter sans.
+select pg_temp.assert_refused('23 et il ne pose plus le SIEN non plus (D1)',
 public.keel_household_set_member_goal(
     (select member_id from public.household_members
-      where user_id = 'f0ed0000-0000-0000-0000-000000000002'), 'fat_loss'));
+      where user_id = 'f0ed0000-0000-0000-0000-000000000002'), 'fat_loss'),
+  'has_account');
+
+-- ---------------------------------------------------------------------------
+-- 25. LA PRÉSENCE — QUI EST LÀ, ET QUAND (D14, 2026-08-12)
+--
+-- CE QUE CETTE SECTION EXISTE POUR EMPÊCHER, et c'est l'inverse de la section
+-- 11 juste au-dessus: que quelqu'un « aligne » `set_member_away` sur
+-- `set_member_goal` en ajoutant un refus `has_account`. Les deux RPC se
+-- ressemblent à s'y méprendre et n'ont PAS la même règle —
+--
+--   un OBJECTIF est une opinion: un seul porteur légitime  -> has_account
+--   une ABSENCE est un fait: deux personnes peuvent le savoir -> pas de refus
+--
+-- Le jour où quelqu'un « corrige l'incohérence », c'est ici que ça doit
+-- casser, et pas six mois plus tard sur un foyer qui cuisine pour un enfant
+-- parti en camp.
+-- ---------------------------------------------------------------------------
+
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000002');
+select pg_temp.assert_refused('25a un membre ne marque pas l''absence d''un autre',
+  public.keel_household_set_member_away(
+    (select member_id from public.household_members
+      where user_id = 'f0ed0000-0000-0000-0000-000000000003'),
+    '[{"day":"sat"}]'::jsonb),
+  'not_your_line');
+select pg_temp.assert_ok('25b mais il marque LA SIENNE',
+  public.keel_household_set_member_away(
+    (select member_id from public.household_members
+      where user_id = 'f0ed0000-0000-0000-0000-000000000002'),
+    '[{"day":"sat","slots":["lunch"]}]'::jsonb));
+
+-- 25b'. ET IL DÉCLARE DANS SON PROPRE « ABOUT YOU » — l'AUTRE source, celle
+--       qui ne passe pas par le foyer du tout. C'est le chemin réel de
+--       `MealBuilder`: la personne écrit sa ligne `student_goals`, sous sa
+--       propre RLS. Sans cette écriture, l'assertion d'union ci-dessous ne
+--       prouverait rien: les deux moitiés viendraient de la même colonne.
+insert into public.student_goals
+  (user_id, goal, content_locale, practical_constraints)
+values ('f0ed0000-0000-0000-0000-000000000002', 'health', 'en-GB',
+        '{"away_days": [{"day":"sun"}]}'::jsonb)
+on conflict (user_id) do update
+  set practical_constraints =
+        coalesce(public.student_goals.practical_constraints, '{}'::jsonb)
+        || '{"away_days": [{"day":"sun"}]}'::jsonb;
+
+-- 25c. L'ÉCART AVEC L'OBJECTIF, AFFIRMÉ DANS LA MÊME RESPIRATION. Le maître
+--      vise une bouche QUI A UN COMPTE: l'objectif est refusé, l'absence
+--      passe. Les deux assertions collées sont la seule façon de rendre la
+--      différence impossible à lire comme une incohérence.
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000001');
+select pg_temp.assert_refused('25c le maître ne pose PAS l''objectif d''un titulaire',
+  public.keel_household_set_member_goal(
+    (select member_id from public.household_members
+      where user_id = 'f0ed0000-0000-0000-0000-000000000002'), 'health'),
+  'has_account');
+select pg_temp.assert_ok('25c'' mais il MARQUE SON ABSENCE — un fait, pas une opinion',
+  public.keel_household_set_member_away(
+    (select member_id from public.household_members
+      where user_id = 'f0ed0000-0000-0000-0000-000000000002'),
+    '[{"day":"thu"}]'::jsonb));
+
+-- 25d. L'UNION, ET LES DEUX SOURCES DANS LA MÊME COLONNE. C'est l'assertion
+--      centrale de D14: la marque du maître (25c') a bien REMPLACÉ la marque
+--      de foyer précédente (25b, même colonne), et elle n'a PAS touché à ce
+--      que la personne a déclaré dans son « about you » (25b'). Les deux
+--      sortent, chacune étiquetée.
+do $$
+declare v_away jsonb; v_sources text[];
+begin
+  perform set_config('request.jwt.claims',
+    json_build_object('sub', 'f0ed0000-0000-0000-0000-000000000002',
+                      'role', 'authenticated')::text, true);
+  execute 'set local role authenticated';
+  select r.away_days into v_away from public.keel_household_roster() r
+   where r.user_id = 'f0ed0000-0000-0000-0000-000000000002';
+  select array_agg(e ->> 'source' order by e ->> 'source') into v_sources
+  from jsonb_array_elements(v_away) as e;
+  if v_sources is distinct from array['household','self'] then
+    raise exception
+      'FAIL 25d : le roster rend % (sources %) — une des deux déclarations a '
+      'été écrasée, et son auteur parle dans le vide',
+      v_away::text, coalesce(v_sources::text, 'NULL');
+  end if;
+  raise notice 'PASS 25d les DEUX sources sortent du roster, étiquetées';
+end;
+$$;
+
+-- 25e. LA FORME EST REFUSÉE. Un objet n'est pas une liste, et le parseur le
+--      lirait « aucune absence »: le maître aurait marqué quelqu'un et rien ne
+--      se serait passé.
+select pg_temp.become('f0ed0000-0000-0000-0000-000000000001');
+select pg_temp.assert_refused('25e un objet n''est pas une liste de jours',
+  public.keel_household_set_member_away(
+    (select member_id from public.household_members
+      where user_id = 'f0ed0000-0000-0000-0000-000000000003'),
+    '{"day":"sat"}'::jsonb),
+  'bad_away');
+
+-- 25f. MAIS LE CONTENU NE L'EST PAS (FF-002 §7). Un jour qu'on ne reconnaît
+--      pas est ACCEPTÉ à l'écriture et écarté à la LECTURE, avec les autres
+--      entrées gardées. Refuser ici ferait tomber une déclaration entière pour
+--      une faute de frappe — exactement la posture que la fiche interdit.
+select pg_temp.assert_ok('25f un jeton de jour inconnu ne fait pas échouer l''écriture',
+  public.keel_household_set_member_away(
+    (select member_id from public.household_members
+      where user_id = 'f0ed0000-0000-0000-0000-000000000003'),
+    '[{"day":"caturday"},{"day":"wed"}]'::jsonb));
+
+-- 25g. ET PAS UNE BOUCHE DU FOYER D'À CÔTÉ. Même motif que partout ailleurs,
+--      et lu sur le `member_id` RÉEL du voisin (voir la note de fixture).
+select pg_temp.assert_refused('25g une bouche du foyer voisin est refusée',
+  public.keel_household_set_member_away(
+    (select member_id from pg_temp_neighbour), '[{"day":"sat"}]'::jsonb),
+  'not_a_member');
+
+-- 25h. PERSONNE N'ÉCRIT LA COLONNE EN DIRECT. Le privilège d'UPDATE n'existe
+--      pas pour `authenticated`, donc la RPC est la SEULE porte — sans quoi
+--      n'importe quel membre marquerait n'importe qui absent.
+do $$
+begin
+  perform set_config('request.jwt.claims',
+    json_build_object('sub', 'f0ed0000-0000-0000-0000-000000000002',
+                      'role', 'authenticated')::text, true);
+  execute 'set local role authenticated';
+  begin
+    update public.household_members set away_days = '[]'::jsonb
+     where user_id = 'f0ed0000-0000-0000-0000-000000000003';
+    raise exception
+      'FAIL 25h : un membre a écrit away_days EN DIRECT — la RPC n''est plus '
+      'la seule porte, et le maître n''est plus le seul à marquer';
+  exception when insufficient_privilege then
+    raise notice 'PASS 25h l''écriture directe de away_days est refusée';
+  end;
+end;
+$$;
 
 -- Et le plafond de 8 tient EN BASE, pas à l'écran (lot 7).
 select pg_temp.become('f0ed0000-0000-0000-0000-000000000001');
@@ -888,15 +1032,40 @@ select pg_temp.assert_eq('72e keel_household_join(text) n''existe plus',
 -- refus ci-dessous comptent autant que le succès qui les précède.
 -- ---------------------------------------------------------------------------
 
--- 73. LA SEULE AUTORITÉ GAGNÉE: son propre objectif.
+-- 73. LA SEULE AUTORITÉ GAGNÉE — ET CE N'EST PLUS L'OBJECTIF (D1, 2026-08-11).
+--
+-- ⚠️ MÊME DÉCALAGE QUE L'ASSERTION 23, et même cause: réclamer son profil
+-- DÉPLACE son objectif au lieu de le donner. Il vit désormais dans son « about
+-- you » (`student_goals`), et `household_members.goal` cesse de compter pour
+-- lui — donc la RPC refuse. Rouge depuis le 2026-08-11, corrigé au lot L2.
+--
+-- Ce qui reste vrai et compte davantage: la ligne réclamée GARDE la valeur
+-- posée avant la réclamation (assertion 74), elle n'est pas effacée.
 select pg_temp.become('f0ed0000-0000-0000-0000-000000000009');
-select pg_temp.assert_ok('73 le profil réclamé pose SON objectif',
+select pg_temp.assert_refused('73 le profil réclamé ne pose plus son objectif ICI (D1)',
 public.keel_household_set_member_goal(
-    (select member_id from pg_temp_lea), 'health'));
+    (select member_id from pg_temp_lea), 'health'),
+  'has_account');
+-- 73b. MAIS IL MARQUE SON ABSENCE (D14). La distinction, une troisième fois et
+--      sur la population la plus concernée: la personne qui vient de réclamer
+--      son profil. Son objectif part dans son profil, sa présence reste une
+--      affaire de tablée.
+select pg_temp.assert_ok('73b mais il marque SON ABSENCE (D14)',
+public.keel_household_set_member_away(
+    (select member_id from pg_temp_lea), '[{"day":"fri","slots":["dinner"]}]'::jsonb));
 select pg_temp.become_super();
-select pg_temp.assert_eq('74 et l''objectif est VRAIMENT écrit',
+-- 74. LE REFUS EST TOTAL, PAS COSMÉTIQUE. Un `ok: false` qui aurait quand même
+--     écrit la colonne serait le pire des deux mondes: l'écran dirait « non »
+--     et l'assiette changerait.
+select pg_temp.assert_eq('74 et RIEN n''a été écrit dans la colonne refusée',
   (select count(*) from public.household_members
-    where member_id = (select member_id from pg_temp_lea) and goal = 'health'), 1);
+    where member_id = (select member_id from pg_temp_lea) and goal = 'health'), 0);
+-- 74b. L'ABSENCE, ELLE, EST BIEN EN BASE. Le pendant du refus ci-dessus: on
+--      prouve les DEUX sens, sinon « rien ne s'écrit jamais » passerait aussi.
+select pg_temp.assert_eq('74b et l''absence de 73b est VRAIMENT écrite',
+  (select count(*) from public.household_members
+    where member_id = (select member_id from pg_temp_lea)
+      and away_days @> '[{"day":"fri"}]'::jsonb), 1);
 
 -- 75–78. LES QUATRE REFUS.
 --

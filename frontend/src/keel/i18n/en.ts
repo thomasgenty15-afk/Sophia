@@ -2866,6 +2866,10 @@ export const en = {
   "household.member.goal_none": "No particular direction",
   "household.member.goal_inactive":
     "Saved, and not applied yet: a direction needs an age. Add their date of birth above.",
+  // D1 (2026-08-11) — dès qu'une bouche a un compte, son objectif vit dans SON
+  // « about you ». Le dire ici évite qu'on cherche un champ qui n'y est plus.
+  "household.member.goal_from_profile":
+    "Set in their own profile, under About you — it follows them everywhere, not just at this table.",
   "household.member.save": "Save",
   "household.member.saved": "Saved.",
   "household.member.edit": "Edit",
@@ -2881,6 +2885,21 @@ export const en = {
     "Removing their access signs them out of this household — they stay at the table, with their serving and their allergies. Removing them from the household deletes all of it.",
   "household.member.remove_hint":
     "This deletes their serving, their allergies and anything this house does not serve them.",
+  // ── D14 (2026-08-12) · QUI EST LÀ, ET QUAND ──────────────────────────────
+  // LE TITRE DIT « pas là », JAMAIS « absent ». Un enfant lit cet écran par
+  // dessus l'épaule d'un parent, et « absences » est le vocabulaire de l'école
+  // — c'est-à-dire d'un manquement. Manger ailleurs n'en est pas un.
+  "household.away.title": "When they eat somewhere else",
+  // CE QUE ÇA FAIT, ET SURTOUT CE QUE ÇA NE FAIT PAS. Sans la seconde phrase,
+  // on croit qu'on annule la cuisson du samedi pour tout le monde.
+  "household.away.hint":
+    "Untick the meals they will not be eating here. Nothing is cancelled for anyone else — we simply cook for one less that day.",
+  "household.away.open": "Mark when they are away",
+  "household.away.open_count": "Marked on {n} meals — change",
+  // CE QU'ILS ONT DIT EUX-MÊMES. Le maître doit voir le FAIT, pas seulement sa
+  // propre marque: sans cette ligne, il re-marquerait par-dessus, ou
+  // s'étonnerait d'une assiette manquante qu'il n'a pas demandée.
+  "household.away.self_declared": "They already told us themselves: {days}.",
   "household.goal.fat_loss": "Losing fat",
   "household.goal.muscle_gain": "Building muscle",
   "household.goal.recomposition": "Recomposition",
@@ -2899,6 +2918,11 @@ export const en = {
   "household.error.bad_birth_date": "That date is in the future.",
   "household.error.bad_goal": "That direction is not one we know.",
   "household.error.bad_label": "That is either empty or too long (120 characters).",
+  // LA FORME EST REFUSÉE, LE CONTENU NE L'EST PAS: un jour qu'on ne reconnaît
+  // pas est écarté à la lecture, sans faire tomber le reste (FF-002 §7). Ce
+  // motif-ci ne devrait donc jamais atteindre quelqu'un qui passe par la
+  // grille — il dit qu'un client a envoyé autre chose qu'une liste.
+  "household.error.bad_away": "We could not read those days.",
   "household.error.household_full":
     "Eight is the most a household can hold. Remove someone first.",
   "household.error.not_owner": "Only the person who runs the household can do this.",

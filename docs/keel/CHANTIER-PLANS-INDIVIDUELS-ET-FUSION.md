@@ -47,7 +47,7 @@ prennent la main, et les comptes individuels sans foyer.
 | **D11** | Plafond : `N + 3` fusions par foyer et par semaine ISO, N = comptes actifs. Compté en base, refus nommé `merge_quota_exhausted`. | ⬜ à faire |
 | **D12** | Pas de reprise des plans produits par l'ancien chemin : ils seront régénérés. | ✅ acté |
 | **D13** | **Le verrou de paiement est au niveau du FOYER.** Foyer impayé ⇒ plus personne ne génère, ni maître ni secondaire. Un compte **sans foyer** n'est pas concerné : les comptes individuels existent et ne demandent pas de foyer. | ✅ livré (L1) |
-| **D14** | **La présence se déclare.** Le maître doit pouvoir marquer **qui est là, et quand**. Tout le monde présent est le cas simple ; une absence se marque, et elle change les parts sans supprimer la session de cuisson. | ⬜ à faire |
+| **D14** | **La présence se déclare.** Le maître doit pouvoir marquer **qui est là, et quand**. Tout le monde présent est le cas simple ; une absence se marque, et elle change les parts sans supprimer la session de cuisson. | ✅ livré (L2) |
 | **D15** | **La fusion opère sur l'INTERSECTION des fenêtres.** Un secondaire peut couvrir mercredi→dimanche quand le foyer couvre lundi→dimanche. Elle s'arrête d'elle-même là où les fenêtres divergent. | ⬜ à faire |
 | **D16** | **Le pivot est le premier jour non encore consommé**, pas la date de courses. Une fusion ne touche que les jours à venir, et la proposition le dit : *« son plan couvre 5 jours, dont 2 déjà passés — je peux fusionner les 3 restants. »* | ⬜ à faire |
 | **D17** | Un réglage **discret** permet au maître de ne plus se voir proposer la fusion pour une personne donnée. Assumé comme un peu brutal, donc caché. | ⬜ à faire |
@@ -96,7 +96,7 @@ Campagne de test du 2026-08-11, 5 lanes en conditions réelles, ~80 vérificatio
 | # | Lot | Dépend de | Pourquoi maintenant |
 |---|---|---|---|
 | ~~**L1**~~ | ~~**Le verrou de paiement (D13)**~~ | — | ✅ **livré le 2026-08-12** — voir §« L1, ce qui est prouvé » |
-| **L2** | **La présence (D14)** — marquer qui est là et quand. Aujourd'hui `away_days` est lu sur la ligne du **propriétaire** seul ; l'absence individuelle d'un membre est un trou nommé dans FF-002 §9. | — | Le maître compose pour tout le monde : sans ça il cuisine pour des absents |
+| ~~**L2**~~ | ~~**La présence (D14)**~~ | — | ✅ **livré le 2026-08-12** — voir §« L2, ce qui est prouvé » |
 | **L3** | **La prise de main (D7, D2)** — un secondaire génère son plan ; sinon il est composé dans celui du maître. Le générateur de foyer doit **exclure** les membres qui ont un plan personnel validé sur la fenêtre. | L1 | C'est la bascule du modèle révisé |
 | **L4** | **Le moteur de fusion (D6, D15, D16)** — lit les plans personnels validés, applique l'échelle, opère sur l'**intersection** des fenêtres, s'arrête au premier jour non consommé, écrit `merged_from`. | L3 | Le cœur |
 | **L5** | **La proposition et la défusion (D8, D10, D17)** — l'avertissement au maître, les trois sorties, le réglage discret. | L4 | |
@@ -149,6 +149,73 @@ coach avec doctrine publiée. La position de la garde est prouvée par la source
 **Reste ouvert, hors L1** : `frontend/src/keel/api/mealGeneration.ts` ne mappe pas
 `household_frozen` — un secondaire de foyer gelé verra le jeton brut. À porter en
 **L8**.
+
+## L2, ce qui est prouvé — 2026-08-12
+
+Migration `20260812130000_household_presence.sql` : colonne
+`household_members.away_days`, RPC `keel_household_set_member_away`, résolution
+dans `keel_household_roster_for`. Module `_shared/keel/household_presence.ts`.
+Écran : `HouseholdPage.tsx` **réutilise** `MealPickerGrid`, pas de second
+composant.
+
+**Trois arbitrages pris seuls, et pourquoi.**
+
+| Décision | Écarté | Pourquoi | Retour arrière |
+|---|---|---|---|
+| Colonne jsonb, même forme que `practical_constraints.away_days` | une table dédiée | une colonne se retire, une table se migre ; si la présence devient des dates exactes, on la promeut à ce moment-là | `drop column` |
+| **Union** entre la déclaration du titulaire et la marque du maître | l'about-you gagne (comme D1) ; le maître gagne | un objectif est une **opinion**, dont il n'y a qu'un porteur légitime ; une absence est un **fait** que deux personnes peuvent connaître. Les deux sont des déclarations explicites : personne ne se déclare absent par accident | revert du roster |
+| `servings` = le moment le **plus peuplé** | la moyenne ; `members.length` | une moyenne fait manquer de quoi manger le jour où tout le monde est là ; le maximum fait au pire un reste | une ligne |
+
+**Mesuré en HTTP réel** — foyer de 4 (2 comptes, 2 bouches sans compte), vraies
+RPC, vrais jetons :
+
+- `not_your_line` quand un non-maître vise la ligne d'un autre ; `not_authenticated`
+  sous `service_role` ; `bad_away` sur une forme illégale et au-delà de 42 entrées.
+- `authenticated` **lit** `away_days` et ne peut pas l'écrire : `PATCH` direct
+  sous le jeton du maître ⇒ `403 42501`, colonne inchangée avant et après.
+- **L'union**, sur le roster : `[{"day":"mon","slots":["dinner"],"source":"self"},
+  {"day":"fri","source":"household"}]`. Une `source` rangée par le client est
+  **écrasée**. Sur le même jour, `self` + `household` fusionnent en journée entière.
+- **`window_fully_away`** en 488 ms, **sans appel modèle** — et le cas qui passe,
+  à un cheveu : une seule bouche présente au seul petit-déjeuner de mercredi
+  compose en 20 s, `servings = 1`.
+- **Le bloc entre dans le vrai prompt**, prouvé par mesure et non par lecture :
+  `prompt_chars` passe de 3504 à 4131, soit exactement les 625 caractères du bloc
+  reconstruit sur le roster réel plus son séparateur.
+- **Non-régression** : foyer sans absence ⇒ `servings` identique et bloc **vide**,
+  donc filtré du `join` — la consigne est byte-identique à celle d'avant le lot.
+
+**Un changement de comportement assumé.** Avant, l'absence du **propriétaire**
+valait pour tout le monde et vidait le créneau ; le parseur jetait alors les plats
+et le plan sortait `empty_meal`. Désormais un foyer de 4 dont seul le maître est
+absent **compose quand même**, pour 3. C'est FF-002 §9 mot pour mot.
+
+**Deux défauts trouvés en chemin, tous deux corrigés.**
+
+1. **Le prompt du foyer avait changé sans que sa version bouge.** Deux plans
+   stampés `meal.en.v8…+household` portaient des consignes différentes. Un prompt
+   n'a pas de compilateur : rien n'échouait. Un **second axe de version** est posé
+   (`HOUSEHOLD_PROMPT_VERSION`, aujourd'hui `v2_presence`) plutôt que de bumper le
+   tronc — bumper `MEAL_PROMPT_VERSION` aurait fait bouger la lane **individuelle**,
+   dont pas une ligne n'avait changé. Un test tient la structure du prompt (nombre
+   de blocs et ordre) et exige le bump ; mutation-testé sur un bloc retiré et sur
+   un bloc déplacé.
+2. **`member_portions` ignorait la présence** — la seconde moitié de FF-002 §9.
+   Un plan cuisiné pour **une** personne portait **quatre** portions, et
+   `reconcilePortions` **réattribuait** une portion standard à toute bouche que le
+   modèle avait omise. Une bouche absente à **tous** les moments de la fenêtre
+   n'entre plus ni dans la liste d'ids ni dans la réconciliation
+   (`member_away_all_window:<id>`). Qui manque **un seul** repas garde son assiette.
+
+**Ce qui n'est pas prouvé** : les écrans n'ont pas été pilotés dans un navigateur ;
+seul leur lecteur de données a été lu. Et le message utilisateur envoyé au modèle
+n'est **archivé nulle part** — `llm_raw_response_events` ne garde que le system
+prompt et la réponse. La preuve du bloc est un écart de `prompt_chars`, pas une
+relecture du texte.
+
+**Reste ouvert, hors L2** : `generate-meal-v1` n'a toujours pas `window_fully_away` ;
+le chat lit le roster mais **n'utilise pas** la présence — personne ne sait à table
+que quelqu'un manque.
 
 ## Ce que L4 défait
 

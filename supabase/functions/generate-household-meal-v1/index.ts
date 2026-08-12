@@ -34,16 +34,21 @@ import {
 } from "../_shared/keel/meal_plan_window.ts";
 import {
   buildMealPrompt,
+  DEFAULT_EATING_RHYTHM,
   MEAL_PROMPT_VERSION,
   type MealScope,
   mealDishesPayload,
   mealPreparationsPayload,
   mealSessionsPayload,
   mealShoppingPayload,
-  parseAwayDays,
   parseEatingRhythm,
   parseGeneratedMeal,
 } from "../_shared/keel/meal_generation.ts";
+import {
+  type MemberAway,
+  parseMemberAway,
+  resolveWindowPresence,
+} from "../_shared/keel/household_presence.ts";
 import { proteinAnchorRetryInstruction } from "../_shared/keel/protein_anchor.ts";
 import type { CompositionIndex } from "../_shared/keel/food_composition.ts";
 import { loadCompositionIndex } from "../_shared/keel/food_composition_io.ts";
@@ -60,6 +65,7 @@ import {
 import {
   buildHouseholdPromptBlocks,
   extractMemberPortions,
+  HOUSEHOLD_PROMPT_VERSION,
   type HouseholdRestriction,
 } from "../_shared/keel/household_meal_generation.ts";
 import {
@@ -193,6 +199,14 @@ interface LoadedMember extends PortionMember {
   userId: string | null;
   /** Pour l'union des contraintes de sécurité du foyer. */
   isOwner: boolean;
+  /**
+   * D14 — QUAND CETTE BOUCHE N'EST PAS LÀ, les deux sources résolues.
+   *
+   * `effective` est ce qui compte; `self` et `household` ne servent qu'à la
+   * trace du plan — sans elles, « pourquoi manque-t-il une assiette ? » n'a
+   * pas de réponse trois jours plus tard.
+   */
+  away: MemberAway;
 }
 
 Deno.serve(async (req) => {
@@ -344,6 +358,10 @@ Deno.serve(async (req) => {
       age_state: string;
       role: string;
       goal: string | null;
+      // D14 — L'UNION DES DEUX SOURCES, DÉJÀ FAITE EN BASE. Chaque entrée porte
+      // sa `source` (`self` | `household`); `parseMemberAway` la relit sans
+      // jamais refaire la fusion (voir `household_presence.ts`).
+      away_days: unknown;
     }>;
     if (roster.length === 0) {
       return jsonResponse(req, { error: "empty_household", request_id: requestId }, { status: 409 });
@@ -460,6 +478,10 @@ Deno.serve(async (req) => {
         // réclame son profil ne change pas d'identité ce jour-là.
         body: bodies.byMember.get(r.member_id) ?? null,
         isOwner: r.role === "owner",
+        // D14. AUCUNE FUSION ICI: le roster a déjà concaténé les deux sources,
+        // et `parseAwayDays` est l'opérateur d'union. Refaire la résolution
+        // dans ce fichier ferait un second avis sur qui est là.
+        away: parseMemberAway(r.away_days),
       };
     });
 
@@ -734,14 +756,73 @@ Deno.serve(async (req) => {
 
     const pc = goalRow.practical_constraints as Record<string, unknown> | null;
     const eatingRhythm = parseEatingRhythm(pc?.eating_rhythm);
-    // LES ABSENCES DU FOYER, lues sur la ligne du PROPRIÉTAIRE — comme le
-    // rythme et la capacité juste au-dessus. Une absence individuelle d'un
-    // membre est une autre question (voir FF-002 §9): elle ne supprime pas la
-    // session de cuisson, elle change les portions.
-    const awayDays = parseAwayDays(pc?.away_days);
     const capacity = readCookingCapacity(pc);
     const scope: MealScope = durationDays === 1 ? "day" : "several_days";
     const daysToFill = windowDayOrder(startsOn, durationDays);
+
+    // ── D14 · QUI EST LÀ, ET QUAND ────────────────────────────────────────
+    //
+    // CE QUE CE BLOC REMPLACE, ET POURQUOI L'ANCIEN COMMENTAIRE MENTAIT.
+    // Une seule ligne vivait ici: `parseAwayDays(pc?.away_days)`, lue sur la
+    // ligne `student_goals` du PROPRIÉTAIRE, et un commentaire disait que
+    // l'absence individuelle d'un membre « est une autre question ». Elle ne
+    // l'est plus, et elle ne l'a jamais été: cette lecture avait DEUX défauts
+    // opposés.
+    //
+    //   · Une bouche SANS COMPTE n'a aucune ligne `student_goals`. L'absence
+    //     d'un enfant parti en camp n'existait donc nulle part, et le foyer
+    //     cuisinait pour lui toute la semaine.
+    //   · L'absence du MAÎTRE supprimait le repas de TOUT LE MONDE — l'exact
+    //     contraire de FF-002 §9: « si le père n'est pas là samedi, la session
+    //     de cuisson du foyer ne disparaît pas, seules ses portions changent ».
+    //
+    // Sa déclaration à lui n'est pas perdue pour autant: elle arrive
+    // désormais par le roster, sur SA ligne de membre, avec la source `self`
+    // (D14). Elle compte comme celle de n'importe qui — pour lui seul.
+    //
+    // LE RYTHME PASSÉ EST LE RYTHME RÉSOLU. `buildMealPrompt` retombe sur
+    // `DEFAULT_EATING_RHYTHM` quand la liste est vide; compter la présence sur
+    // le brut ferait raisonner sur des moments que la consigne ne nomme pas —
+    // et un rythme vide ferait de chaque jour un jour désert.
+    const presence = resolveWindowPresence({
+      members: members.map((m) => ({
+        memberId: m.memberId,
+        displayName: m.displayName,
+        away: m.away,
+      })),
+      rhythm: eatingRhythm.length > 0 ? eatingRhythm : DEFAULT_EATING_RHYTHM,
+      windowDays: daysToFill,
+    });
+
+    // LE SEUL MOMENT QUI SORT DE LA COMPOSITION EST CELUI QUE PERSONNE NE
+    // PARTAGE. Il part par le même chemin que sur la lane individuelle — la
+    // consigne ET le parseur (FF-002 R3): une consigne seule n'est pas une
+    // garantie, le modèle recompose ce qu'on lui a dit d'éviter.
+    const awayDays = presence.householdAway;
+
+    // ── FF-002 §7 · LA FENÊTRE ENTIÈREMENT DÉSERTÉE ──────────────────────
+    // Refus NOMMÉ, et pas un plan de zéro plat: « un plan de zéro plat est un
+    // écran cassé » (R6). Le nom est celui que la fiche a posé — la lane
+    // individuelle ne l'implémente toujours pas, et c'est écrit dans le rapport
+    // de ce lot plutôt que corrigé ici en passant.
+    if (presence.fullyAway) {
+      return jsonResponse(req, {
+        error: "window_fully_away",
+        detail: "Nobody in this household is eating here over that stretch. " +
+          "Shorten the window, or take an absence back.",
+        request_id: requestId,
+      }, { status: 409 });
+    }
+    if (presence.trace.length > 0) {
+      console.log(JSON.stringify({
+        tag: "keel.household_meal.presence",
+        user_id: userId,
+        household_id: householdId,
+        members_away: presence.trace.length,
+        deserted_slots: presence.householdAway.length,
+        servings: presence.servings,
+      }));
+    }
 
     // ── FF-027 · LE SIGNAL DE FAIM DE LA FENÊTRE ──────────────────────────
     //
@@ -861,7 +942,15 @@ Deno.serve(async (req) => {
       // LE NOMBRE DE PARTS EST CELUI DU FOYER, pas une entrée du client. Un
       // client qui enverrait 2 pour un foyer de quatre ferait cuisiner la
       // moitié du dîner, sans erreur.
-      servings: Math.min(12, Math.max(1, members.length)),
+      //
+      // D14 — CE N'EST PLUS `members.length`, C'EST LE MOMENT LE PLUS PEUPLÉ.
+      // `servings` est un SCALAIRE dans la consigne (« people at the table »)
+      // et il dimensionne les COURSES; le détail par jour est écrit juste en
+      // dessous, dans le bloc de présence. Le maximum plutôt qu'une moyenne:
+      // une moyenne ferait manquer de quoi manger le jour où tout le monde est
+      // là, le maximum fait au pire un reste. Sans absence déclarée, il vaut
+      // exactement `members.length` — le comportement d'avant ce lot.
+      servings: Math.min(12, Math.max(1, presence.servings)),
       pantry: [],
       todayToken,
       today: todayDate,
@@ -873,10 +962,37 @@ Deno.serve(async (req) => {
       foodPreferences: foodPreferencesForPrompt(pc),
     });
 
+    // ── QUI A UNE ASSIETTE DANS CE PLAN ──────────────────────────────────
+    //
+    // MESURÉ EN RUN RÉEL LE 2026-08-12: un plan cuisiné pour UNE personne
+    // portait QUATRE `member_portions`, dont trois pour des bouches absentes à
+    // chaque moment de la fenêtre. `TableCard` les affichait telles quelles —
+    // « une portion adulte pleine » servie d'une casserole dimensionnée sans
+    // eux. `servings` était juste, l'assiette mentait.
+    //
+    // On filtre ICI, en amont, et pas seulement à la réconciliation: si le
+    // prompt continuait de nommer ces ids, le modèle continuerait de rendre
+    // leurs portions et `reconcilePortions` les compterait en
+    // `portion_for_unknown_member`. Une bouche absente toute la fenêtre ne doit
+    // simplement pas exister pour ce plan-là.
+    //
+    // QUI MANQUE UN SEUL DÎNER RESTE ICI: il mange les autres jours. Le détail
+    // par jour vit dans le bloc de présence, pas dans cette liste.
+    //
+    // Jamais vide: `fullyAway` a déjà refusé plus haut le cas où personne n'est
+    // là à aucun moment, donc au moins une bouche survit à ce filtre.
+    const platedMembers = presence.absentAllWindow.length === 0
+      ? members
+      : members.filter((m) => !presence.absentAllWindow.includes(m.memberId));
+    for (const id of presence.absentAllWindow) {
+      issues.push(`member_away_all_window:${id}`);
+    }
+
     const household = buildHouseholdPromptBlocks({
-      members,
+      members: platedMembers,
       envyLine,
       restrictions,
+      presence,
     });
 
     const result = await generateWithGemini(
@@ -1024,8 +1140,12 @@ Deno.serve(async (req) => {
     for (const s of lock.scrubbed) issues.push(`house_rule_commented:${s}`);
 
     // ── LES PORTIONS, RÉCONCILIÉES AVEC LE FOYER RÉEL ───────────────────
+    // `platedMembers`, PAS `members`: la boucle de réconciliation réattribue
+    // une portion standard à toute bouche que le modèle a omise
+    // (`portion_missing:<id>`). Lui passer la liste complète annulerait donc le
+    // bon comportement du modèle s'il avait, lui, compris l'absence.
     const { portions, issues: portionIssues } = reconcilePortions(
-      members,
+      platedMembers,
       extractMemberPortions(result),
     );
 
@@ -1044,7 +1164,10 @@ Deno.serve(async (req) => {
         p_payload: {
           mode: "to_shop",
           meal_slot: null,
-          servings: members.length,
+          // D14 — CE QUI A ÉTÉ CUISINÉ, donc le même nombre que celui donné au
+          // modèle. `members.length` décrivait le foyer; ce champ décrit une
+          // CASSEROLE, et une casserole ne sait pas qui est parti en camp.
+          servings: Math.min(12, Math.max(1, presence.servings)),
           context: String(body.context ?? "").trim().slice(0, 2000) || null,
           preferences: String(body.preferences ?? "").trim().slice(0, 2000) || null,
           pantry: [],
@@ -1079,7 +1202,11 @@ Deno.serve(async (req) => {
             doctrine_reason: doctrine.reason,
             belief_keys: beliefKeys,
             goal: String(goalRow.goal ?? "health"),
-            prompt_version: `${MEAL_PROMPT_VERSION}+household`,
+            // DEUX AXES: le tronc partagé, puis la lane foyer. Les lignes
+            // écrites avant le 2026-08-12 portent `+household` tout court —
+            // c'est la v1 implicite. Voir HOUSEHOLD_PROMPT_VERSION.
+            prompt_version:
+              `${MEAL_PROMPT_VERSION}+household.${HOUSEHOLD_PROMPT_VERSION}`,
             intent,
             // FF-037 — même trace que sur la lane individuelle. La mesure du
             // §10 se lit sur les deux lanes ou sur aucune: un chiffre calculé
@@ -1108,6 +1235,23 @@ Deno.serve(async (req) => {
               envy_line_used: household.envyLineUsed,
               envy_week: envyWeek,
               restriction_count: restrictions.length,
+              // ── D14 · QUI A ÉTÉ COMPTÉ ABSENT, ET PAR QUI ──────────────
+              // Sans ce bloc, une absence marquée par erreur est SILENCIEUSE:
+              // il manque une assiette, et personne — ni le maître, ni la
+              // personne concernée, ni nous — ne peut dire pourquoi. C'est la
+              // moitié relisible de l'arbitrage B: puisque DEUX sources
+              // peuvent retirer quelqu'un de la table, il faut pouvoir dire
+              // laquelle l'a fait.
+              //
+              // `members` ne porte QUE les bouches qui manquent au moins une
+              // fois: une trace où tout le monde figure avec des tableaux
+              // vides ne se lit plus, et le cas nominal (personne n'est
+              // absent) doit rester un objet vide.
+              presence: {
+                members: presence.trace,
+                deserted: presence.householdAway,
+                servings: presence.servings,
+              },
             },
             issues: [...issues, ...meal.issues, ...portionIssues],
             // FF-027 — la provenance de l'adaptation, archivée avec la

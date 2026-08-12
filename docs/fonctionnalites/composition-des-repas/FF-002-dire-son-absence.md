@@ -194,6 +194,28 @@ Alors le plan est identique, plat pour plat, à celui d'avant ce chantier
   père n'est pas là samedi, la session de cuisson du foyer ne disparaît pas —
   seules ses portions changent. Ne pas câbler l'absence sur la session.
 
+  ✅ **Construit le 2026-08-12 (arbitrage D14, lot L2).** `household_members
+  .away_days` porte la marque du maître, dans **cette même forme** et lue par
+  **ce même parseur** ; l'absence effective d'une bouche qui a un compte est
+  l'**union** de sa déclaration et de cette marque — un objectif est une
+  opinion, une absence est un fait. La cuisson ne disparaît que sur un moment
+  où **personne** n'est là, et une fenêtre entièrement désertée rend
+  `window_fully_away` (§7).
+
+  ⚠️ **« Seules ses portions changent » a deux moitiés, et la seconde a failli
+  partir sans être faite.** Mesuré en run réel le 2026-08-12 : la casserole
+  descendait bien (`servings` passait de 4 à 1), mais le plan portait toujours
+  **quatre** `member_portions` — l'écran promettait « une portion adulte
+  pleine » à trois personnes absentes à chaque moment de la fenêtre. Pire, la
+  réconciliation **réattribuait** une portion standard à toute bouche que le
+  modèle avait eu la bonne idée d'omettre. Une bouche absente sur **tous** les
+  moments de la fenêtre n'entre donc plus ni dans la liste d'ids du prompt ni
+  dans la réconciliation (`member_away_all_window:<id>` le trace). Qui manque
+  **un seul** repas garde son assiette : il mange les autres jours.
+
+  **Reste ouvert :** ce refus n'existe **pas** sur la lane individuelle
+  (`generate-meal-v1`), qui composerait encore une semaine vide.
+
 ## 10. Ce qu'on mesure
 
 - **La mesure :** part des plans générés qui portent au moins une absence, et

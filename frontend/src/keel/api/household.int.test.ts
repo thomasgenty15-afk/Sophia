@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  awayFrom,
   claimableMembers,
   type HouseholdMemberView,
   type HouseholdView,
@@ -163,5 +164,52 @@ describe("claimableMembers — on n'invite que ce qui reste à réclamer (lot 6)
 
   it("un foyer absent ne fait pas exploser l'écran", () => {
     expect(claimableMembers(null)).toEqual([]);
+  });
+});
+
+describe("awayFrom — les deux sources d'une absence, séparées (D14)", () => {
+  /**
+   * ⚠️ LE DÉFAUT QUE CES TESTS EXISTENT POUR ATTRAPER n'est pas visible à
+   * l'écran: si la vue « marqué par le maître » contenait aussi ce que la
+   * personne a déclaré, la grille — qui réécrit TOUJOURS ce qu'on lui donne —
+   * recopierait sa déclaration dans la colonne du foyer au premier
+   * enregistrement. L'absence survivrait alors à sa rétractation, et personne
+   * ne saurait d'où elle vient.
+   */
+  const TAGGED = [
+    { day: "sun", source: "self" },
+    { day: "thu", slots: ["lunch"], source: "household" },
+  ];
+
+  it("ne rend que la source demandée", () => {
+    expect(awayFrom(TAGGED, "household")).toEqual([
+      { day: "thu", slots: ["lunch"] },
+    ]);
+    expect(awayFrom(TAGGED, "self")).toEqual([{ day: "sun", slots: [] }]);
+  });
+
+  it("une entrée sans source n'appartient à personne", () => {
+    // Elle compte quand même côté MOTEUR (l'union se lit sur le tableau
+    // entier); ce qu'on ne sait pas attribuer ne doit pas devenir modifiable
+    // par le maître pour autant.
+    expect(awayFrom([{ day: "fri" }], "household")).toEqual([]);
+    expect(awayFrom([{ day: "fri" }], "self")).toEqual([]);
+  });
+
+  it("un jour inconnu tombe sans emporter les autres (FF-002 §7)", () => {
+    expect(
+      awayFrom(
+        [
+          { day: "caturday", source: "household" },
+          { day: "wed", source: "household" },
+        ],
+        "household",
+      ),
+    ).toEqual([{ day: "wed", slots: [] }]);
+  });
+
+  it("une colonne illisible ne fait pas exploser l'écran", () => {
+    expect(awayFrom(null, "household")).toEqual([]);
+    expect(awayFrom("samedi", "self")).toEqual([]);
   });
 });

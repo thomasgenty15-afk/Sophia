@@ -15,6 +15,13 @@
 // après quoi personne ne saurait laquelle ment.
 
 import { supabase } from "../../lib/supabase";
+import {
+  type AwayDay,
+  DEFAULT_EATING_RHYTHM,
+  type EatingOccasionSlot,
+  parseAwayDays,
+  parseEatingRhythm,
+} from "./mealGeneration";
 
 export type HouseholdRole = "owner" | "member";
 /** Jumeau de `keel_household_member_age` en base et de `household.ts` côté edge. */
@@ -35,6 +42,22 @@ export interface HouseholdMemberView {
   ageState: MemberAgeState;
   /** Six jetons, ou `null` = part standard. */
   goal: string | null;
+  /**
+   * CE QUE LE MAÎTRE A MARQUÉ (D14) — et c'est CELA que la grille modifie.
+   *
+   * ⚠️ NE PAS FUSIONNER LES DEUX CHAMPS AVANT DE LES RENDRE À LA GRILLE. Elle
+   * réécrit ce qu'on lui donne: nourrie de l'union, elle RECOPIERAIT la
+   * déclaration de la personne dans la colonne du maître, où elle survivrait
+   * ensuite à sa rétractation. L'absence resterait alors marquée alors que son
+   * auteur l'a retirée — et personne ne comprendrait d'où elle vient.
+   */
+  awayHousehold: AwayDay[];
+  /**
+   * CE QUE LA PERSONNE A DÉCLARÉ ELLE-MÊME, dans son « about you ». Toujours
+   * vide pour une bouche sans compte. LECTURE SEULE ici: le maître la voit
+   * (sinon il remarquerait la marque et pas le fait), il ne l'édite pas.
+   */
+  awaySelf: AwayDay[];
 }
 
 export interface HouseholdView {
@@ -181,6 +204,30 @@ function asResult(data: unknown): RpcResult {
  * téléphone, e-mail et identifiant Stripe pour afficher un prénom.
  * `keel_household_roster` rend quatre champs choisis un par un.
  */
+/**
+ * Les absences d'UNE source, lues dans la colonne que le roster étiquette.
+ *
+ * Jumeau de `parseMemberAway` côté moteur (`household_presence.ts`), et
+ * volontairement écrit de la même façon: un filtre par clé, puis LE parseur.
+ * Ce qui ne doit pas exister deux fois, c'est la fusion — et elle est faite en
+ * base, par concaténation.
+ *
+ * EXPORTÉ POUR ÊTRE TESTÉ, et c'est le seul endroit du navigateur où une
+ * absence change de main: si ce filtre laissait passer la déclaration de la
+ * personne dans la vue « marqué par le maître », la grille la RECOPIERAIT dans
+ * la colonne du foyer au premier enregistrement.
+ */
+export function awayFrom(raw: unknown, source: "self" | "household"): AwayDay[] {
+  if (!Array.isArray(raw)) return [];
+  return parseAwayDays(
+    raw.filter((e) => {
+      if (!e || typeof e !== "object" || Array.isArray(e)) return false;
+      const value = (e as Record<string, unknown>).source;
+      return String(value ?? "").trim().toLowerCase() === source;
+    }),
+  );
+}
+
 export async function loadHousehold(myUserId: string): Promise<HouseholdView | null> {
   const { data: hh, error: hhErr } = await supabase
     .from("households").select("id, name").maybeSingle();
@@ -206,6 +253,12 @@ export async function loadHousehold(myUserId: string): Promise<HouseholdView | n
       // `adult` — c'est la direction sûre, la même qu'en base.
       ageState: (age === "minor" || age === "adult" ? age : "unknown") as MemberAgeState,
       goal: typeof r.goal === "string" && r.goal ? r.goal : null,
+      // D14 — LA COLONNE PORTE LES DEUX SOURCES, ÉTIQUETÉES. On les sépare
+      // ici, avec le MÊME parseur que le moteur (`parseAwayDays`) sur le
+      // sous-tableau filtré: une seconde lecture de la forme divergerait, et
+      // c'est la grille qui montrerait autre chose que ce avec quoi on compose.
+      awayHousehold: awayFrom(r.away_days, "household"),
+      awaySelf: awayFrom(r.away_days, "self"),
     };
   }).filter((m: HouseholdMemberView) => m.memberId);
 
@@ -419,6 +472,63 @@ export async function setMemberGoal(memberId: string, goal: string | null) {
   });
   if (error) throw new Error(error.message);
   return asResult(data);
+}
+
+/**
+ * MARQUER QUAND QUELQU'UN N'EST PAS LÀ (D14, 2026-08-12).
+ *
+ * ⚠️ CE N'EST PAS LE JUMEAU DE `setMemberGoal`, ET LA DIFFÉRENCE EST LE
+ * PRODUIT. La base REFUSE de poser l'objectif d'une bouche qui a un compte
+ * (`has_account`), et elle ACCEPTE de marquer son absence: un objectif est une
+ * opinion, dont il n'y a qu'un porteur légitime; une absence est un fait, que
+ * deux personnes peuvent connaître. Le maître qui sait que sa fille part en
+ * camp doit pouvoir le dire même si elle a oublié.
+ *
+ * Ce que la personne a déclaré de son côté n'est PAS écrasé: le roster rend
+ * l'union des deux. D'où `member.awayHousehold` en entrée de la grille, jamais
+ * l'union — voir `HouseholdMemberView`.
+ *
+ * @param away la liste COMPLÈTE à écrire, jours hors fenêtre compris. La grille
+ *        s'en charge (`MealPickerGrid` refusionne), parce qu'écraser avec ce
+ *        qu'elle montre effacerait « jeudi midi » parce qu'on a composé un
+ *        week-end.
+ */
+export async function setMemberAway(memberId: string, away: AwayDay[]) {
+  const { data, error } = await supabase.rpc("keel_household_set_member_away", {
+    p_member: memberId,
+    p_away: away,
+  });
+  if (error) throw new Error(error.message);
+  return asResult(data);
+}
+
+/**
+ * LE RYTHME DU FOYER — celui du compte maître, comme tout ce qui gouverne la
+ * composition (`generate-household-meal-v1` lit SA ligne `student_goals`).
+ *
+ * Sert les LIGNES de la grille de présence. Sans lui, la grille afficherait
+ * trois repas par défaut à un foyer qui en déclare cinq, et le maître ne
+ * pourrait marquer une absence que sur les moments qu'on aurait devinés.
+ *
+ * ⚠️ LE REPLI EST CELUI DU MOTEUR, pas une liste de confort. `buildMealPrompt`
+ * retombe sur `DEFAULT_EATING_RHYTHM` quand rien n'est déclaré: une grille qui
+ * n'afficherait rien dans ce cas — le cas le plus fréquent, un maître qui n'a
+ * jamais rempli sa carte de rythme — rendrait la fonctionnalité inatteignable.
+ */
+export async function loadHouseholdRhythm(
+  ownerUserId: string,
+): Promise<EatingOccasionSlot[]> {
+  const { data, error } = await supabase
+    .from("student_goals")
+    .select("practical_constraints")
+    .eq("user_id", ownerUserId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  const pc = (data as Record<string, unknown> | null)?.practical_constraints;
+  const rhythm = parseEatingRhythm(
+    (pc as Record<string, unknown> | null)?.eating_rhythm,
+  );
+  return rhythm.length > 0 ? rhythm : [...DEFAULT_EATING_RHYTHM];
 }
 
 /**

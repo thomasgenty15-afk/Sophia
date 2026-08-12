@@ -22,6 +22,7 @@ import {
   loadEnvyLine,
   loadHousehold,
   loadHouseholdMeal,
+  loadHouseholdRhythm,
   loadMyHouseholdCoverage,
   loadRestrictions,
   MEMBER_GOALS,
@@ -32,12 +33,20 @@ import {
   removeRestriction,
   type RestrictionView,
   restrictionNotice,
+  setMemberAway,
   setMemberBirthDate,
   setMemberGoal,
   setMemberName,
   submitEnvy,
 } from "../api/household";
-import { weekStartFor } from "../api/dates";
+import { addDays, weekStartFor } from "../api/dates";
+import { type AwayDay, type EatingOccasionSlot } from "../api/mealGeneration";
+import {
+  MAX_WINDOW_DAYS,
+  resolveRequestedWindow,
+  windowDayOrder,
+} from "../api/mealWindow";
+import MealPickerGrid from "../components/MealPickerGrid";
 import { t } from "../i18n/t";
 import KeelAppShell from "../components/KeelAppShell";
 import { Badge } from "../components/ui/Badge";
@@ -113,6 +122,8 @@ function householdErrorText(reason: string): string | null {
       return t("household.error.bad_goal");
     case "bad_label":
       return t("household.error.bad_label");
+    case "bad_away":
+      return t("household.error.bad_away");
     case "household_full":
       return t("household.error.household_full");
     case "not_owner":
@@ -173,6 +184,15 @@ export default function HouseholdPage(): React.ReactElement {
   // le bouton de composition qui en dépend.
   const [ownerGoalRow, setOwnerGoalRow] = React.useState<boolean | null>(null);
   /**
+   * LES MOMENTS D'UNE JOURNÉE ORDINAIRE — les LIGNES de la grille de présence.
+   *
+   * Lus sur la ligne du compte maître, comme tout ce qui gouverne la
+   * composition. `[]` tant qu'on n'a pas lu; `loadHouseholdRhythm` retombe sur
+   * le défaut du moteur quand rien n'est déclaré, donc la grille a toujours des
+   * lignes à montrer dès que la lecture a eu lieu.
+   */
+  const [rhythm, setRhythm] = React.useState<EatingOccasionSlot[]>([]);
+  /**
    * LE GEL (chantier 3, D4). `null` = pas encore lu.
    *
    * ⚠️ L'ÉCRAN NE DÉCIDE PAS DU GEL, il l'affiche. La règle vit en base
@@ -197,6 +217,30 @@ export default function HouseholdPage(): React.ReactElement {
    */
   const envyWeek = React.useMemo(() => weekStartFor(weekStart, "mon"), [weekStart]);
 
+  /**
+   * LES COLONNES DE LA GRILLE DE PRÉSENCE — la fenêtre que le foyer va cuisiner.
+   *
+   * LA MÊME QUE `ComposeCard` (`until_sunday`), et ce n'est pas un détail: une
+   * grille qui montrerait sept jours quand la composition en couvre trois
+   * ferait marquer une absence sur des jours que le plan ne verra jamais. On
+   * passe donc par la MÊME résolution que le bouton, pas par un calcul voisin.
+   *
+   * ⚠️ LA GRILLE NE MONTRE QUE LA FENÊTRE, ET C'EST TOUT LE POINT DE SA FUSION:
+   * `MealPickerGrid.save` reprend tels quels les jours hors fenêtre, sinon
+   * marquer un week-end effacerait « jeudi midi ».
+   */
+  const awayWindow = React.useMemo(() => {
+    const { startsOn, durationDays } = resolveRequestedWindow(
+      { kind: "until_sunday" },
+      weekStart,
+    );
+    const n = Math.min(MAX_WINDOW_DAYS, Math.max(1, durationDays));
+    return {
+      tokens: windowDayOrder(startsOn, n),
+      dates: Array.from({ length: n }, (_, i) => addDays(startsOn, i)),
+    };
+  }, [weekStart]);
+
   const refresh = React.useCallback(async () => {
     if (!userId) return;
     try {
@@ -208,6 +252,11 @@ export default function HouseholdPage(): React.ReactElement {
         setEnvyLine(await loadEnvyLine(envyWeek));
         setMeal(await loadHouseholdMeal(weekStart));
         setOwnerGoalRow(await hasOwnerGoalRow(userId));
+        // SEUL LE MAÎTRE MARQUE UNE PRÉSENCE, donc seul lui a besoin des
+        // lignes de la grille — et lui seul peut les lire: RLS sur
+        // `student_goals` ne rend que SA ligne. Le demander pour un membre
+        // rendrait `null`, puis le défaut, c'est-à-dire une lecture inutile.
+        if (hh.me?.role === "owner") setRhythm(await loadHouseholdRhythm(userId));
         // APRÈS les lectures de contenu, et c'est le sujet: elles ne dépendent
         // PAS du gel. On gèle la production, pas la consultation — les bouches,
         // les allergies, les envies et le plan courant se lisent gelés ou non.
@@ -328,6 +377,9 @@ export default function HouseholdPage(): React.ReactElement {
                 restrictions={restrictions}
                 allergies={allergies}
                 busy={busy}
+                rhythm={rhythm}
+                awayWindow={awayWindow}
+                onSaveAway={(memberId, next) => run(() => setMemberAway(memberId, next))}
                 onSave={(member, patch) => saveMember(member, patch, { userId })}
                 onRemove={(memberId) => run(() => removeHouseholdMember(memberId))}
                 onDetach={(memberId) => run(() => detachHouseholdMember(memberId))}
@@ -681,11 +733,16 @@ function AddMouthCard(
  * quelle nature est cette contrainte.
  */
 function MembersCard(
-  { household, restrictions, allergies, busy, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction }: {
+  { household, restrictions, allergies, busy, rhythm, awayWindow, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction }: {
     household: HouseholdView;
     restrictions: RestrictionView[];
     allergies: AllergyView[];
     busy: boolean;
+    /** Les LIGNES de la grille de présence — les moments d'une journée. */
+    rhythm: EatingOccasionSlot[];
+    /** Les COLONNES: la fenêtre que la composition va couvrir. */
+    awayWindow: { tokens: string[]; dates: string[] };
+    onSaveAway: (memberId: string, away: AwayDay[]) => Promise<boolean>;
     onSave: (
       member: HouseholdMemberView,
       patch: { firstName: string; birthDate: string | null; goal: MemberGoal | null },
@@ -747,6 +804,9 @@ function MembersCard(
             allergies={allergies.filter((a) => a.memberId === m.memberId)}
             restrictions={restrictions.filter((r) => r.memberId === m.memberId)}
             busy={busy}
+            rhythm={rhythm}
+            awayWindow={awayWindow}
+            onSaveAway={(next) => onSaveAway(m.memberId, next)}
             onSave={(patch) => onSave(m, patch)}
             onRemove={() => onRemove(m.memberId)}
             onDetach={() => onDetach(m.memberId)}
@@ -776,12 +836,15 @@ function MemberBadges({ member }: { member: HouseholdMemberView }) {
 }
 
 function MemberRow(
-  { member, isMe, allergies, restrictions, busy, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction }: {
+  { member, isMe, allergies, restrictions, busy, rhythm, awayWindow, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction }: {
     member: HouseholdMemberView;
     isMe: boolean;
     allergies: AllergyView[];
     restrictions: RestrictionView[];
     busy: boolean;
+    rhythm: EatingOccasionSlot[];
+    awayWindow: { tokens: string[]; dates: string[] };
+    onSaveAway: (away: AwayDay[]) => Promise<boolean>;
     onSave: (
       patch: { firstName: string; birthDate: string | null; goal: MemberGoal | null },
     ) => Promise<boolean>;
@@ -803,6 +866,22 @@ function MemberRow(
   // tables différentes et n'ont pas le même effet sur le repas.
   const [kind, setKind] = React.useState<"allergy" | "house_rule">("allergy");
   const [label, setLabel] = React.useState("");
+  const [awayOpen, setAwayOpen] = React.useState(false);
+
+  /** Combien de moments sont marqués DANS la fenêtre — pour le bouton. */
+  const awayInWindow = React.useMemo(() => {
+    const inWindow = new Set(awayWindow.tokens);
+    const slots = rhythm.length;
+    return member.awayHousehold
+      .filter((a) => inWindow.has(a.day))
+      .reduce((n, a) => n + (a.slots.length === 0 ? slots : a.slots.length), 0);
+  }, [member.awayHousehold, awayWindow.tokens, rhythm.length]);
+
+  /** Ce que la personne a dit d'elle-même, dans la fenêtre. LECTURE SEULE. */
+  const selfInWindow = React.useMemo(() => {
+    const inWindow = new Set(awayWindow.tokens);
+    return member.awaySelf.filter((a) => inWindow.has(a.day));
+  }, [member.awaySelf, awayWindow.tokens]);
 
   return (
     <li className="py-3">
@@ -844,6 +923,60 @@ function MemberRow(
               {t("household.member.goal_inactive")}
             </p>
           ) : null}
+
+          {/* ── D14 · QUAND CETTE BOUCHE N'EST PAS LÀ ──────────────────────
+              LA GRILLE EST CELLE DU CONSTRUCTEUR, pas une seconde. Deux
+              grilles pour la même question divergeraient sur le seul détail
+              qui compte — ce que « tout décoché » veut dire — et c'est celle
+              qu'on regarde le moins qui garderait l'ancienne règle.
+
+              CE QU'ELLE MONTRE ET ÉCRIT EST LA MARQUE DU MAÎTRE, JAMAIS
+              L'UNION. La grille réécrit ce qu'on lui donne: nourrie de
+              l'union, elle recopierait la déclaration de la personne dans la
+              colonne du foyer, où elle survivrait à sa rétractation. */}
+          <div className="border-t border-gray-200 pt-3">
+            <SectionLabel>{t("household.away.title")}</SectionLabel>
+            <p className="mb-2 text-xs text-neutral-500">
+              {t("household.away.hint")}
+            </p>
+            <Button
+              variant="secondary"
+              disabled={busy}
+              onClick={() => setAwayOpen(true)}
+            >
+              {awayInWindow === 0
+                ? t("household.away.open")
+                : t("household.away.open_count", { n: String(awayInWindow) })}
+            </Button>
+            {/* CE QUE LA PERSONNE A DIT ELLE-MÊME, en lecture seule. Sans cette
+                ligne, le maître verrait sa propre marque et pas le FAIT: il
+                remarquerait une assiette manquante sans pouvoir dire d'où elle
+                vient — et re-marquerait par-dessus. */}
+            {selfInWindow.length > 0 ? (
+              <p className="mt-2 text-xs text-neutral-600">
+                {t("household.away.self_declared", {
+                  days: selfInWindow.map((a) => a.day).join(", "),
+                })}
+              </p>
+            ) : null}
+          </div>
+
+          {/* MONTÉE MÊME FERMÉE — `Modal` rend `null` sans démonter — donc une
+              grille modifiée survit à une fermeture accidentelle. */}
+          <MealPickerGrid
+            open={awayOpen}
+            onClose={() => setAwayOpen(false)}
+            days={awayWindow.tokens}
+            dates={awayWindow.dates}
+            rhythm={rhythm}
+            away={member.awayHousehold}
+            busy={busy}
+            onSave={async (next) => {
+              const ok = await onSaveAway(next);
+              if (ok) setAwayOpen(false);
+            }}
+          />
+
           <div className="flex flex-wrap items-center gap-2">
             <Button
               disabled={busy || !draft.firstName.trim()}

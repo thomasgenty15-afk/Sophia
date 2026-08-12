@@ -181,6 +181,21 @@ export function parseEatingRhythm(raw: unknown): EatingOccasionSlot[] {
   }));
 }
 
+/**
+ * LE RYTHME QUE LE MOTEUR IMPOSE QUAND RIEN N'EST DÉCLARÉ.
+ *
+ * MIROIR EXACT de `DEFAULT_EATING_RHYTHM` côté moteur, et pour la raison qui
+ * vaut pour les deux parseurs de ce fichier: un écran qui propose de marquer
+ * une absence doit proposer les moments avec lesquels on va COMPOSER. Une
+ * troisième liste par défaut ferait cocher des cases sur des repas qui
+ * n'existent pas, et laisserait invisibles ceux qui existent.
+ */
+export const DEFAULT_EATING_RHYTHM: readonly EatingOccasionSlot[] = [
+  { slot: "breakfast", size: null },
+  { slot: "lunch", size: null },
+  { slot: "dinner", size: null },
+];
+
 export const DAY_TOKENS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
 
 /**
