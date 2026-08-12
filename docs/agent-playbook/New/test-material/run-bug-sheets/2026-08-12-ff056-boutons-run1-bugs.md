@@ -39,8 +39,29 @@ Rapport de run : `../qa-run-reports/2026-08-12-ff056-boutons-run1.md`
      laisser la promesse vivante sur une lane.
   Une rustine de phrase sur la seule lane bouton serait le pire des trois : elle
   ferait diverger les deux voies sur la même règle, faute que ce dépôt paie déjà.
-- **Statut** : `open`
-- **Fix reference** : —
+- **Statut** : **`verified`** — corrigé et re-vérifié en run réel
+  (`ff056-boutons-run2`, 2026-08-12) sur **six chemins de boutons** et **trois
+  tours de modèle**, dans les deux langues et sur les deux lanes.
+- **Fix reference** : commits `224cb106` (première passe) et la seconde passe qui
+  remplace les permutations par le verbe nu. Rapport de vérification :
+  `../qa-run-reports/2026-08-12-ff056-boutons-run2.md`.
+  ⚠️ **Il a fallu DEUX passes.** La première garde portait « guidera **la
+  prochaine** » ; le modèle a écrit « guidera **la semaine prochaine** » — deux
+  mots permutés, garde muette (cicatrice
+  `forbidden-matcher-explanation-word-order`). La seconde passe bloque le **verbe
+  nu**. Les tests unitaires de la première passe étaient verts, mutation
+  comprise : ils ne testaient que les formulations imaginées. **Seul le run réel
+  a trouvé le trou.**
+  Périmètre réel : **six sites**, pas quatre — `acknowledge_activity_drop`
+  portait la même affirmation sous une autre forme (« contexte utile pour la
+  façon dont tes semaines sont construites »), invisible au grep d'ouverture.
+  Mesure notable : **le modèle a produit la promesse 3 fois sur 3** sur trois
+  formulations distinctes. La garde mord à chaque tour ; elle ne fait pas un
+  travail théorique.
+- **Ce qui RESTE à faire, et devient un lot à part** : brancher le lecteur côté
+  composition — c'est-à-dire **tenir** la promesse au lieu de la retirer. Décision
+  humaine du 2026-08-12 : on rend le produit honnête d'abord, la fonctionnalité
+  ensuite.
 - **Tests requis** :
   - positif : après un `named_spot`, la composition de la semaine suivante porte
     bien le créneau nommé dans son contexte (si voie 1) ;
@@ -82,7 +103,12 @@ posant sur une seconde lane.
   son cas qui passe, R2 exigeant par ailleurs « le plan » comme sujet dans
   certains gabarits — d'où la prudence du lot), soit on acte que la voie texte
   est un chemin dégradé et on le documente comme tel.
-- **Statut** : `open`
+- **Statut** : `open` — **non corrigé, et masqué par accident**. En run 2, les
+  trois tours de texte ont vu leur sortie modèle refusée par la garde
+  `composition_effect`, donc le repli déterministe est parti : il
+  n'anthropomorphise pas, et R1-B02 ne s'est pas manifesté. **Ce n'est pas une
+  correction** — un texte modèle anthropomorphe qui ne promet rien passerait la
+  garde et sortirait tel quel.
 - **Fix reference** : rapport du lot `scratchpad/RAPPORT-FF-056-BOUTONS.md`, RED-5
 - **Tests requis** : paraphrase FR/EN sur la lane texte, 3 runs sur 3 ; cas qui
   passe obligatoire (une garde cassée bloque tout en ayant l'air de marcher).

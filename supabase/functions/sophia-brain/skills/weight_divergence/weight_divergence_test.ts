@@ -757,6 +757,13 @@ Deno.test("FF-056 · aucune phrase n'annonce un effet sur la composition, FR et 
       // ── MESURÉES ────────────────────────────────────────────────────────
       "C'est noté, et la prochaine semaine que tu composeras en tiendra compte.",
       "Le plan a bien pris en compte ce point, et il guidera la prochaine semaine à construire.",
+      // ⚠️ MESURÉE LE 2026-08-12 APRÈS le premier correctif, sur la lane texte.
+      // La garde portait « guidera la prochaine »; le modèle a écrit « guidera
+      // LA SEMAINE PROCHAINE ». Deux mots permutés, garde muette — cicatrice
+      // `forbidden-matcher-explanation-word-order`. D'où le verbe nu.
+      "Le plan a noté ce point, et il guidera la semaine prochaine.",
+      "Ça guidera tes prochaines semaines.",
+      "That will guide the weeks to come.",
       // ── SANS PRONOM, la forme qui avait troué `plan_delivery` ───────────
       "Noté. Tiendra compte de ce créneau dès la prochaine composition.",
       // ── PASSIF ──────────────────────────────────────────────────────────

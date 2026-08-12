@@ -609,9 +609,22 @@ export const FORBIDDEN_COMPOSITION_EFFECT_PHRASES: readonly string[] = Object
     "seront pris en compte",
     "seront prises en compte",
     // --- FR : « ça guidera la suite » ---
-    "guidera la prochaine",
-    "guidera ta prochaine",
-    "guideront la prochaine",
+    //
+    // ⚠️ LE VERBE NU, ET PAS UNE LISTE D'ORDRES DE MOTS. La première version
+    // portait « guidera la prochaine » — et le modèle a écrit, en run réel le
+    // 2026-08-12, « il guidera LA SEMAINE PROCHAINE ». Même promesse, deux mots
+    // permutés, garde muette. C'est la cicatrice
+    // `forbidden-matcher-explanation-word-order`, et l'énumération des
+    // permutations est une course qu'on perd.
+    //
+    // Bloquer le verbe est sûr ici et vérifié: aucun repli de ce flow n'emploie
+    // « guider » légitimement — le test des replis le prouve à chaque exécution.
+    // Ce que le produit peut dire reste disponible: « il n'y a rien à changer »
+    // (constat) et « dis-moi ce qui rentre et je construirai autour »
+    // (invitation au moment où l'élève compose).
+    "guidera",
+    "guideront",
+    "guiderait",
     // --- FR : l'affirmation que les semaines se construisent là-dessus ---
     "semaines sont construites",
     "semaine sera construite",
@@ -629,9 +642,9 @@ export const FORBIDDEN_COMPOSITION_EFFECT_PHRASES: readonly string[] = Object
     "will factor it in",
     "will factor that in",
     "will factor this in",
-    // --- EN : « it will guide » ---
-    "will guide the next",
-    "will guide your next",
+    // --- EN : « it will guide » — le verbe nu, même raison qu'en FR ---
+    "will guide",
+    "would guide",
     // ⚠️ LES CONTRACTIONS, ET C'EST LE MÊME TROU QUE `plan_delivery` AVAIT.
     // « I'll factor that in » est passé au travers de la première version de
     // cette liste, qui ne portait que la forme pleine `will factor`. Le matcher
@@ -645,8 +658,7 @@ export const FORBIDDEN_COMPOSITION_EFFECT_PHRASES: readonly string[] = Object
     "ll factor it in",
     "ll factor that in",
     "ll factor this in",
-    "ll guide the next",
-    "ll guide your next",
+    "ll guide",
     // --- EN : les semaines construites là-dessus ---
     "weeks are built",
     "week will be built",
