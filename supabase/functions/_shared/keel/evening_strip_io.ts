@@ -41,6 +41,13 @@
 
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
 
+import { parseAccidentPlan } from "./accident.ts";
+// ⚠️ CYCLE ASSUMÉ ET VÉRIFIÉ: `accident_io.ts` importe `GROCERY_WAVE_STATE_TABLE`
+// d'ici. Les deux usages sont dans des CORPS DE FONCTION, jamais à
+// l'initialisation du module, donc aucune zone morte temporelle — vérifié à
+// l'exécution, pas supposé. L'alternative (recopier un nom de table) créerait
+// deux définitions d'une même chose, ce que ce dépôt paie plus cher.
+import { loadSkippedDishIndexes } from "./accident_io.ts";
 import { planGroceryWaves, wavePreparationsFromRows } from "./grocery_waves.ts";
 import { MEAL_UNTICK_REASON, mealTickKey } from "./meal_tick.ts";
 import { isReportable, stretchDates } from "./meal_stretch.ts";
@@ -181,6 +188,8 @@ export async function loadEveningStripContext(
   // vague »: on perd la ligne de courses, jamais la bande.
   let shopping: StripShoppingWave | null = null;
   let contentLocale: string | null = null;
+  /** FF-057 — les index que la cascade d'une session sautée a fait tomber. */
+  const hiddenBySkippedSession: number[] = [];
   try {
     const { data, error } = await admin
       .from("student_generated_meals")
@@ -215,6 +224,30 @@ export async function loadEveningStripContext(
       // celui du jour d'achat, donc les deux se répondent d'un seul tap.
       const today = waves.find((w) => w.buyOn === args.localDate);
       if (today) shopping = { buyOn: today.buyOn };
+
+      // ── FF-057 · LES PLATS QUI N'EXISTENT PAS NE SE NOMMENT PAS ─────────
+      //
+      // Une session de cuisine déclarée non faite fait disparaître du RÉEL les
+      // repas qui en dépendaient. Les nommer quand même est le défaut d'origine
+      // de FF-057: « la personne ouvre l'app mardi, on lui annonce un plat qui
+      // n'a jamais été cuisiné. » La cascade est DÉRIVÉE à la lecture
+      // (`loadSkippedDishIndexes`), jamais stockée — donc il n'y a aucun second
+      // état à invalider.
+      //
+      // ⚠️ UN PLAT DÉJÀ COCHÉ SURVIT: `cascadeSkippedSession` l'écarte, parce
+      // qu'on croit le FAIT plutôt que la déclaration de session. La garde est
+      // dans le calcul, pas ici.
+      //
+      // Une lecture en panne rend `[]`: on perd le filtre, jamais la bande.
+      const plan = parseAccidentPlan(planned.mealId, row);
+      if (plan) {
+        const skipped = new Set(
+          await loadSkippedDishIndexes(admin, { userId: args.userId, plan }),
+        );
+        if (skipped.size > 0) {
+          for (const i of skipped) hiddenBySkippedSession.push(i);
+        }
+      }
     }
   } catch (error) {
     console.warn(JSON.stringify({
@@ -225,9 +258,22 @@ export async function loadEveningStripContext(
     }));
   }
 
+  // Le filtre s'applique APRÈS la lecture des vagues, et il est calculé sur le
+  // plan entier: `dishes` ne porte que les plats du jour, mais une session
+  // sautée invalide des plats de plusieurs jours. On ne retire ici que ceux qui
+  // tombent AUJOURD'HUI — les autres jours se filtreront à leur tour.
+  const hidden = new Set(hiddenBySkippedSession);
+  const shown = hidden.size > 0
+    ? dishes.filter((d) => !hidden.has(d.dishIndex))
+    : dishes;
+  // Plus AUCUN plat à nommer ⇒ aucune bande (R7 de FF-058). On ne rend pas une
+  // bande vide portant la seule ligne de courses: `buildEveningStrip` la
+  // refuserait de toute façon, et le dire ici garde le motif lisible.
+  if (shown.length === 0) return NO_CONTEXT("no_dish_today");
+
   return {
     mealId: planned.mealId,
-    dishes,
+    dishes: shown,
     shopping,
     contentLocale,
     reason: "loaded",

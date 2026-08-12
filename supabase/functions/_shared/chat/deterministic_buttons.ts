@@ -53,6 +53,12 @@ import {
   type StripLanguage,
   type StripReply,
 } from "../keel/evening_strip.ts";
+import { readAccidentReply } from "../keel/accident.ts";
+import {
+  accidentFormAfterUntick,
+  handleAccidentTap,
+  shiftProposalAfterShoppingLater,
+} from "./accident_tap.ts";
 import {
   applyStripTicks,
   loadStripDishes,
@@ -557,9 +563,33 @@ async function handleStripTap(
         buy_on: reply.buyOn,
         done: reply.done,
       }));
-      // R17 — on CONSTATE. Un `Pas encore` n'ouvre rien ce soir: la proposition
-      // de décalage appartient à FF-057, et « la cuisson est dans quatre jours »
-      // n'est pas un danger.
+
+      // ── FF-057 · UN `Pas encore` OUVRE LA PROPOSITION DE DÉCALAGE ───────
+      //
+      // FF-058 R17 disait « on CONSTATE, et la suite appartient à FF-057 ».
+      // C'est ici que FF-057 se branche, et la frontière ne bouge pas: la bande
+      // ÉCRIT l'état de la vague (au-dessus), la procédure accident PROPOSE ce
+      // qui en découle. Rien n'est demandé — la date de la nouvelle cuisson est
+      // CALCULÉE (`planSessionShift`), et « tu peux y aller quand ? » n'est
+      // posée nulle part (FF-057 R11, ceinture armée sur le texte exact).
+      //
+      // ⚠️ SEULEMENT SUR UN `Pas encore`, et seulement si la vague sert une
+      // cuisson. Une vague d'épicerie seule ne menace rien, et une vague FAITE
+      // n'a rien à réparer: `shiftProposalAfterShoppingLater` rend `null` dans
+      // les deux cas, et on retombe sur l'accusé plat de FF-058.
+      if (!reply.done) {
+        const proposal = await shiftProposalAfterShoppingLater(admin, {
+          userId: message.user_id,
+          mealId: reply.mealId,
+          buyOn: reply.buyOn,
+          language,
+        });
+        if (proposal) {
+          await say(proposal.body, proposal.buttons);
+          return handled("keel_accident_shift_proposed");
+        }
+      }
+
       await say(
         renderStripAck(
           reply.done ? "shopping_done" : "shopping_later",
@@ -611,6 +641,31 @@ async function handleStripTap(
     if (result.written + result.rearmed === 0) {
       await say(renderStripAck("stale", language));
       return handled("keel_evening_strip_stale");
+    }
+
+    // ── FF-057 · UN `✗` OUVRE LE FORMULAIRE ACCIDENT ─────────────────────
+    //
+    // C'est l'entrée n°1 de FF-057. La DÉCOCHE EST DÉJÀ ÉCRITE (juste au-dessus)
+    // et elle PRÉCÈDE le formulaire: ignorer celui-ci reste entièrement gratuit,
+    // rien n'est en attente, rien n'est marqué, rien ne revient. C'est la
+    // contre-mesure de FF-057 §10 rendue structurelle — si signaler déclenchait
+    // une procédure obligatoire, les gens cesseraient de signaler, et c'est le
+    // pire résultat possible.
+    //
+    // Le formulaire REMPLACE l'accusé plat plutôt que de s'y ajouter: son entête
+    // constate le fait (« X n'a pas eu lieu comme prévu »), donc une bulle
+    // « C'est noté » de plus ne dirait rien et coûterait un message.
+    if (reply.kind === "untick") {
+      const form = await accidentFormAfterUntick(admin, {
+        userId: message.user_id,
+        mealId: reply.mealId,
+        dishIndex: reply.dishIndex,
+        language,
+      });
+      if (form) {
+        await say(form.body, form.buttons);
+        return handled("keel_accident_form_opened");
+      }
     }
 
     await say(
@@ -783,6 +838,47 @@ export async function handleDeterministicButton(
       requestId: args.requestId,
       reply: strip,
     });
+  }
+
+  // ── FF-057 · LES TAPS DE LA PROCÉDURE ACCIDENT ────────────────────────────
+  //
+  // QUATRE vocabulaires déterministes, tous DISJOINTS (`KEEL_RECO_` /
+  // `KEEL_STRIP_` / `KEEL_FIX_` / `KEEL_PULSE_`), et chaque lecteur rend « rien »
+  // sur ce qui ne le concerne pas: l'ordre n'a donc aucune conséquence, et un
+  // test le pinne (`accident_test.ts`, « les quatre vocabulaires ne se croisent
+  // pas »).
+  //
+  // La décision et les écritures vivent dans `accident_tap.ts`; ce routeur ne
+  // fait que lire, router, et rendre — c'est ce qui l'empêche de gonfler à
+  // chaque fiche.
+  const accident = readAccidentReply(message.button_payload);
+  if (accident.kind !== "none") {
+    const now = new Date(message.received_at);
+    const localDate = localDateFor(now, await timezoneFor(admin, message.user_id));
+    const voice = await studentVoiceContext(admin, message.user_id);
+    const result = await handleAccidentTap(admin, {
+      userId: message.user_id,
+      reply: accident,
+      language: isFrenchLocale(voice.contentLocale) ? "fr" : "en",
+      contentLocale: voice.contentLocale,
+      localDate,
+      now,
+      // La clé d'idempotence du budget T4, et c'est `client_message_id` —
+      // stable à travers les retries réseau, par contrat d'`InboundMessage`.
+      // Kong rend des 502 sans corps sur les tours longs et le client retente:
+      // un tour rejoué ne doit pas consommer deux places pour une invitation
+      // partie une fois. `requestId`, lui, change à chaque appel HTTP et aurait
+      // rendu l'unicité `(user_id, asked_for_message_id)` décorative.
+      sourceMessageId: message.client_message_id,
+    });
+    await ack(admin, {
+      userId: message.user_id,
+      requestId: args.requestId,
+      purpose: "keel_accident_ack",
+      body: result.body,
+      buttons: result.buttons,
+    });
+    return handled(result.handledAs);
   }
 
   // ── LE TAP DU SOIR ────────────────────────────────────────────────────────
