@@ -31,6 +31,7 @@ import { } from "../api/mealStretch";
 import { addDays, daysBetween } from "../api/dates";
 import { browserLocalDate, useMealTicks } from "../lib/useMealTicks";
 import { useMealEnergy } from "../lib/useMealEnergy";
+import { EnergyTargetNote } from "./plan/EnergyReadout";
 import { groupByDay, parsePantry } from "../lib/mealBuilderModel";
 import { Button } from "./ui/Button";
 import { Card, SectionLabel } from "./ui/Card";
@@ -1083,6 +1084,15 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
               (`switchOfferable`): proposer « voir les calories » à quelqu'un
               que le plancher TCA, son âge ou son coach protègent, ce serait
               encore lui parler de calories. */}
+          {/* FF-059 LOT 3 · LA FOURCHETTE. Sous les plats, avec la note de
+              base — jamais collée au total du jour: deux nombres alignés se
+              soustraient tout seuls dans la tête de qui les lit, et cette
+              soustraction est exactement ce qu'on ne construit pas. */}
+          {energy.showing && (
+            <div className="mt-3">
+              <EnergyTargetNote target={energy.target} />
+            </div>
+          )}
           {energy.ready && energy.switchOfferable && (
             <div className="mt-4 flex flex-wrap items-center gap-3">
               <Button
@@ -1093,6 +1103,20 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                   ? mealCopy("meals.energy.switch_off")
                   : mealCopy("meals.energy.switch_on")}
               </Button>
+              {/* LA SECONDE BASCULE, SÉPARÉE. Accepter de voir ce que pèse son
+                  dîner n'est pas accepter qu'on estime ce que son corps devrait
+                  manger. Elle ne s'affiche que si le SEUL refus de la cible est
+                  elle-même. */}
+              {energy.targetOfferable && (
+                <Button
+                  variant="secondary"
+                  onClick={() => energy.toggleTarget(energy.target === null)}
+                >
+                  {energy.target === null
+                    ? mealCopy("meals.energy.target_switch_on")
+                    : mealCopy("meals.energy.target_switch_off")}
+                </Button>
+              )}
               <span className="text-xs text-gray-400">
                 {mealCopy("meals.energy.switch_hint")}
               </span>

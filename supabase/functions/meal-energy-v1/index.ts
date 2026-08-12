@@ -9,9 +9,12 @@ import { localDateInZone } from "../_shared/keel/local_date.ts";
 import { assessBirthDate } from "../_shared/keel/student_age.ts";
 import {
   canShowEnergy,
+  canShowTarget,
   countingStanceFrom,
   type EnergyGateReason,
 } from "../_shared/keel/energy_gate.ts";
+import { maintenanceRange } from "../_shared/keel/energy_target.ts";
+import { latest, loadStudentBody } from "../_shared/keel/student_body_io.ts";
 import { evaluateRestrictionForStudent } from "../_shared/keel/restriction_runtime.ts";
 import { loadPublishedDoctrine } from "../_shared/keel/doctrine_loader.ts";
 import { loadCompositionIndex } from "../_shared/keel/food_composition_io.ts";
@@ -25,6 +28,7 @@ import {
 import {
   type EnergyDish,
   type EnergyPreparation,
+  type MemberAddon,
   PLAN_ENERGY_BASIS,
   planEnergy,
 } from "../_shared/keel/plan_energy.ts";
@@ -83,19 +87,29 @@ type ResponseReason = EnergyGateReason | "unavailable" | "no_plan";
  * ⚠️ `household_portions_not_numeric` EST UNE ABSTENTION, PAS UNE GARDE, et la
  * distinction compte: elle ne parle pas de l'élève, elle parle de la DONNÉE.
  *
- * La fiche demande, dans un foyer, « un chiffre par portion ». Cette donnée
- * n'existe pas: `member_portions[].portion_note` est une PHRASE (« generous
- * vegetables, full protein share, smaller starch share »), sanitisée par
- * `sanitizePortionNote`, dont `FORBIDDEN_PORTION_TERMS` bannit explicitement
- * « kcal ». Aucune part numérique n'est écrite nulle part.
+ * ── CE QU'ELLE COUVRAIT, ET CE QU'ELLE COUVRE DEPUIS ────────────────────────
+ * `member_portions[].portion_note` ne porte qu'une PHRASE, et
+ * `FORBIDDEN_PORTION_TERMS` y bannit « kcal ». Elle ne pourra JAMAIS porter la
+ * part. La divergence numérique du foyer vit ailleurs: dans les `member_deltas`
+ * de FF-043 — un aliment et des grammes, par bouche, qui comblent l'écart entre
+ * le tronc (dimensionné sur le MIN de toutes les bouches) et le besoin de
+ * chacun.
  *
- * Diviser par le nombre de bouches rendrait l'assiette MOYENNE. Sur un foyer
- * dont les portions divergent, ce chiffre est faux pour tout le monde — et il
- * rendrait la bifurcation par objectif INVISIBLE, c'est-à-dire l'inverse exact
- * de ce que la fiche attend de lui. On s'abstient donc, et on le NOMME.
+ * Ces deltas ne vivaient que dans la RÉPONSE HTTP de la composition. Ils sont
+ * désormais gelés dans `generated_from.household.member_deltas`, et cette
+ * fonction lit CEUX DU LECTEUR pour rendre son assiette à lui.
  *
- * Un foyer d'UNE bouche n'a rien qui diverge: l'assiette moyenne EST l'assiette.
- * C'est l'entrée du produit (« entrée à 1 »), et elle garde son chiffre.
+ * L'abstention ne couvre donc plus que ce qu'on ne SAIT pas:
+ *   · un plan composé AVANT que la trace existe;
+ *   · un lecteur dont on n'a pas su résoudre le `member_id`.
+ *
+ * Dans les deux cas, le tronc seul serait un PLANCHER — vrai, et faux vers le
+ * bas, sur exactement la question qui a motivé ce chantier (« est-ce que je
+ * mange assez »). C'est la seule direction d'erreur que ce produit refuse.
+ *
+ * Un foyer d'UNE bouche n'a jamais rien qui diverge: le tronc EST l'assiette.
+ * C'est l'entrée du produit (« entrée à 1 »), et elle garde son chiffre sans
+ * dépendre d'aucune trace.
  */
 const HOUSEHOLD_ABSTENTION = "household_portions_not_numeric";
 
@@ -212,6 +226,52 @@ interface PlanRow {
   servings: number | null;
   dishes: unknown;
   preparations: unknown;
+  household_id: string | null;
+  generated_from: unknown;
+}
+
+/**
+ * LES ADD-ONS DU LECTEUR, tels que le plan les a GELÉS à la composition.
+ *
+ * `null` = **on ne sait pas**, et c'est distinct de `[]` = **rien à ajouter**.
+ * La distinction porte tout le comportement du foyer :
+ *
+ *   `[]`   — le tronc EST l'assiette de cette bouche (elle a le plus petit
+ *            besoin de la table, ou le foyer n'a aucune enveloppe calculable).
+ *            Le chiffre est exact, on l'affiche.
+ *   `null` — la trace `member_deltas` n'est pas là (plan composé avant qu'elle
+ *            existe), ou le lecteur n'a pas de `member_id`. Le tronc seul
+ *            serait un plancher faux vers le bas. On s'abstient.
+ *
+ * ⚠️ UN PLAN PERSONNEL N'A PAS D'ADD-ON, et ce n'est pas une ignorance: il n'y
+ * a pas de tronc partagé, donc rien à combler. Il rend `[]`.
+ */
+function readViewerAddons(
+  row: PlanRow,
+  viewerMemberId: string | null,
+): MemberAddon[] | null {
+  if (row.plan_kind !== "household") return [];
+  if (!viewerMemberId) return null;
+  const gf = (row.generated_from ?? {}) as Record<string, unknown>;
+  const household = (gf.household ?? {}) as Record<string, unknown>;
+  // ⚠️ `in` ET PAS UN `?? []`. Un repli sur le tableau vide ferait passer un
+  // plan d'AVANT la trace pour un plan sans add-ons — c'est-à-dire qu'il
+  // afficherait le tronc seul comme s'il était l'assiette entière, sur la
+  // population où l'écart est le plus grand.
+  if (!("member_deltas" in household)) return null;
+  const raw = household.member_deltas;
+  if (!Array.isArray(raw)) return null;
+  const out: MemberAddon[] = [];
+  for (const entry of raw) {
+    if (!entry || typeof entry !== "object") continue;
+    const d = entry as Record<string, unknown>;
+    if (String(d.member_id ?? "").trim() !== viewerMemberId) continue;
+    const foodRef = String(d.food_ref ?? "").trim();
+    const grams = Number(d.grams);
+    if (!foodRef || !Number.isFinite(grams) || grams <= 0) continue;
+    out.push({ foodRef, grams });
+  }
+  return out;
 }
 
 Deno.serve(async (req) => {
@@ -254,11 +314,16 @@ Deno.serve(async (req) => {
     // produit. On lit les quatre entrées, on décide une fois. Le coût est une
     // requête de doctrine pour un élève qui n'aura pas de chiffre.
     let gate: ReturnType<typeof canShowEnergy>;
+    let targetGate: ReturnType<typeof canShowTarget> | null = null;
+    // Le jour LOCAL de l'élève, résolu une fois avec son fuseau et réutilisé
+    // par la cible plus bas. Jamais l'UTC du serveur: à Auckland, la garde
+    // mineur se tromperait de jour pendant douze heures.
+    let today = "";
     try {
       const [profileRes, loaded] = await Promise.all([
         admin
           .from("profiles")
-          .select("timezone, birth_date, energy_display_enabled")
+          .select("timezone, birth_date, energy_display_enabled, energy_target_enabled")
           .eq("id", userId)
           .maybeSingle(),
         loadPublishedDoctrine(admin, userId),
@@ -273,7 +338,7 @@ Deno.serve(async (req) => {
       // que le serveur ne l'admette. Sans fuseau, on ne sait pas quel jour on
       // est chez lui — donc on ne sait pas s'il est mineur, donc on se tait.
       if (!timezone) return closed(req, requestId, "unavailable");
-      const today = localDateInZone(timezone, new Date());
+      today = localDateInZone(timezone, new Date());
 
       const floor = await evaluateRestrictionForStudent(admin as never, {
         userId,
@@ -308,6 +373,13 @@ Deno.serve(async (req) => {
         // bon sens.
         studentSwitch: profile.energy_display_enabled === true,
       });
+      // ⑤ LA CIBLE. Elle prend le RÉSULTAT de la chaîne A/B, pas ses entrées:
+      // il n'existe donc aucun chemin vers une cible qui ne traverse pas
+      // d'abord les quatre portes.
+      targetGate = canShowTarget({
+        energy: gate,
+        targetSwitch: profile.energy_target_enabled === true,
+      });
     } catch (error) {
       // FAIL-CLOSED. Un plancher TCA ILLISIBLE vaut un plancher LEVÉ — même
       // arbitrage que `MealBodyContext.restrictionFlag` (FF-030 R6): se fermer
@@ -332,7 +404,7 @@ Deno.serve(async (req) => {
     // pour rattraper l'oubli.
     const plansRes = await admin
       .from("student_generated_meals")
-      .select("id, plan_kind, servings, dishes, preparations")
+      .select("id, plan_kind, servings, dishes, preparations, household_id, generated_from")
       .eq("user_id", userId)
       .is("retired_at", null)
       .in("id", planIds);
@@ -340,22 +412,53 @@ Deno.serve(async (req) => {
     const rows = (plansRes.data ?? []) as PlanRow[];
     if (rows.length === 0) return closed(req, requestId, "no_plan");
 
+    // ── QUELLE BOUCHE EST LE LECTEUR, DANS SON FOYER ──────────────────────
+    //
+    // Une seule lecture, et seulement s'il y a un plan de foyer à calculer. Un
+    // `member_id` est nécessaire pour retrouver SES add-ons: le lecteur d'un
+    // plan de foyer est le compte MAÎTRE, et ses deltas sont une ligne parmi
+    // N dans la trace.
+    let viewerMemberId: string | null = null;
+    if (rows.some((r) => r.plan_kind === "household")) {
+      const meRes = await admin
+        .from("household_members")
+        .select("member_id")
+        .eq("user_id", userId)
+        .maybeSingle();
+      // Une lecture EN PANNE laisse `null` — donc l'abstention nommée, jamais
+      // une part attribuée au hasard.
+      if (!meRes.error) {
+        viewerMemberId =
+          String((meRes.data as Record<string, unknown> | null)?.member_id ?? "").trim() ||
+          null;
+      }
+    }
+
     const index = await loadCompositionIndex(admin);
 
     const plans = rows.map((row) => {
       const servings = Math.min(12, Math.max(1, Math.round(Number(row.servings) || 1)));
-      if (row.plan_kind === "household" && servings > 1) {
+
+      // ── LES ADD-ONS DU LECTEUR, ET DE LUI SEUL ──────────────────────────
+      const addons = readViewerAddons(row, viewerMemberId);
+      if (row.plan_kind === "household" && servings > 1 && addons === null) {
+        // La trace des deltas manque: plan composé AVANT que FF-059 la fige, ou
+        // bouche introuvable. Le tronc seul serait un PLANCHER — vrai, et faux
+        // vers le bas, sur exactement la question (« est-ce que je mange
+        // assez ») qui a motivé ce chantier. On s'abstient, et on le nomme.
         return {
           plan_id: row.id,
           computable: false,
           abstention: HOUSEHOLD_ABSTENTION,
         };
       }
+
       const energy = planEnergy({
         index,
         dishes: readDishes(row.dishes),
         preparations: readPreparations(row.preparations),
         servings,
+        addons: addons ?? [],
       });
       return {
         plan_id: row.id,
@@ -375,9 +478,56 @@ Deno.serve(async (req) => {
           complete: d.complete,
           dishes_counted: d.dishesCounted,
           dishes_total: d.dishesTotal,
+          // ⚠️ CE SONT LES ADD-ONS DU LECTEUR. Ceux des autres bouches ont
+          // servi à composer la casserole et ne sortent d'ici sous aucune
+          // forme, pas même agrégée.
+          addon_kcal: d.addonKcal,
         })),
       };
     });
+
+    // ── ⑤ LA CIBLE (niveau C) ─────────────────────────────────────────────
+    //
+    // ⚠️ LE POIDS N'EST LU QUE SI LA PORTE ⑤ EST OUVERTE. Ce n'est pas une
+    // économie de requête: c'est la garde. Un élève qui n'a pas demandé de
+    // cible ne voit pas son poids voyager pour en produire une, et le corps de
+    // la réponse ne porte alors littéralement aucun champ dérivé de lui.
+    let target: Record<string, unknown> | null = null;
+    if (targetGate?.show === true) {
+      try {
+        const body = await loadStudentBody(admin as never, userId, today);
+        const last = latest(body.weights);
+        const range = maintenanceRange({
+          weightKg: last?.value ?? null,
+          weightWeekStart: last?.weekStart ?? null,
+        });
+        target = {
+          // ⚠️ UNE FOURCHETTE, JAMAIS UN POINT — c'est la forme qui décide si
+          // ce chiffre devient un objectif. Et AUCUN RESTE: la fonction ne
+          // soustrait rien du total du jour, et l'écran non plus. « Il te reste
+          // 680 kcal » est la phrase d'un tracker, et elle n'existe sur aucun
+          // chemin de ce produit.
+          low: range.range?.low ?? null,
+          high: range.range?.high ?? null,
+          basis: range.basis,
+          gap: range.gap,
+          // La date de la pesée, pour que l'élève sache sur QUAND la fourchette
+          // est posée. Aucune fraîcheur n'est calculée: ce serait un verdict de
+          // plus sur son corps.
+          weight_week_start: range.weightWeekStart,
+        };
+      } catch (error) {
+        // FAIL-CLOSED, comme partout ici: pas de cible plutôt qu'une cible sur
+        // un poids qu'on n'a pas su lire.
+        await logEdgeFunctionError({
+          functionName: FN_NAME,
+          requestId,
+          error,
+          metadata: { source: "target" },
+        });
+        target = null;
+      }
+    }
 
     return jsonResponse(req, {
       show: true,
@@ -385,6 +535,11 @@ Deno.serve(async (req) => {
       switch_offerable: true,
       basis: PLAN_ENERGY_BASIS,
       plans,
+      // `target_offerable`: la bascule de la cible ne se propose QUE si son
+      // seul refus est `target_off`. Proposer « montre-moi ma cible » à
+      // quelqu'un que le plancher protège serait encore lui parler de cible.
+      target_offerable: targetGate?.reason === "target_off" || targetGate?.show === true,
+      target,
       request_id: requestId,
     });
   } catch (error) {

@@ -1573,8 +1573,23 @@ export const en = {
   "join.seen.never_2":
     "Your photos. They reach Sophia and stop there. What your coach's view carries is that a photo existed, never the photo.",
   "join.seen.never_3": "Anything you add in your own words alongside a meal.",
+  // ⚠️ RÉÉCRITE LE 2026-08-12 (FF-059), ET LA CLAUSE RETIRÉE COMPTE.
+  //
+  // Elle disait « there is no such number anywhere in here, FOR ANYONE ». En
+  // contexte — cette liste dit ce que le COACH ne voit pas — la phrase restait
+  // vraie: FF-059 n'a rien ouvert côté coach. C'est « for anyone » qui est
+  // devenu faux, puisqu'un élève majeur, hors plancher TCA, dont le coach ne
+  // s'y oppose pas, et qui l'a lui-même allumé, voit l'énergie de ses plats.
+  //
+  // Une page de CONSENTEMENT est le dernier endroit où l'on garde une clause
+  // trop large parce qu'elle sonne mieux: elle est lue juste avant qu'on tape
+  // un mot de passe, et c'est très exactement la promesse sur laquelle
+  // quelqu'un décide. Ce qui reste ici est ce qui est encore vrai, et les deux
+  // moitiés le sont pour des raisons différentes — le coach ne voit rien
+  // (aucune surface ne le lui montre), et une photo ne produit rien
+  // (−26,6 % de biais, le chemin photo n'a pas bougé).
   "join.seen.never_4":
-    "A calorie count or a macro figure — there is no such number anywhere in here, for anyone.",
+    "A calorie count or a macro figure. Your coach never sees one, and a photo never produces one.",
   "join.seen.exception_label": "One exception, and it is deliberate",
   "join.seen.exception_body":
     "If something you write suggests your relationship with food is turning against you, that sentence goes to {coach} the same day, marked urgent. Software should not be the only thing holding that.",
@@ -2920,6 +2935,60 @@ export const en = {
   // vit en base (`household_full`), pas ici: cet écran ne fait que la dire.
   "household.add.full":
     "Eight is the most a household can hold. Every mouth is another serving to compose at each generation.",
+  // ── LE CORPS DE CHAQUE BOUCHE (2026-08-12) ───────────────────────────────
+  //
+  // ⚠️ CE QUE CES LIBELLÉS N'ONT PAS LE DROIT DE DIRE. Pas un objectif, pas une
+  // catégorie, pas un besoin, pas un chiffre calculé. Le titre parle de ce
+  // qu'on SERT, jamais de ce que quelqu'un EST — cet écran est ouvert devant la
+  // famille, et un enfant le lit par-dessus l'épaule d'un parent.
+  "household.body.title": "How much to serve them",
+  // LA PHRASE QUI JUSTIFIE LA DEMANDE, ET LA SEULE QUI SOIT VRAIE. Sans elle,
+  // on demande le poids d'un enfant sans dire pourquoi — et la seule raison
+  // qu'un lecteur imagine alors est la mauvaise.
+  "household.body.hint":
+    "A palm of chicken is not the same palm on a six-year-old and on a grown-up. We use this to work out how much of the same dish goes on each plate — nothing else. It is never shown at the table, never said out loud, and never turned into a target.",
+  "household.body.height": "Height (cm)",
+  "household.body.weight": "Weight (kg)",
+  "household.body.gender": "Sex",
+  "household.body.gender_female": "Female",
+  "household.body.gender_male": "Male",
+  "household.body.gender_other": "Other",
+  "household.body.save": "Save",
+  "household.body.saved": "Saved.",
+  // TOUT-OU-RIEN, DIT À L'ÉCRAN COMME EN BASE. Un demi-corps n'existe pas.
+  "household.body.missing":
+    "We do not have this yet — until we do, they get a standard serving of whatever the house cooks.",
+  "household.body.needs_birth_date":
+    "Add their date of birth above too: how much a growing child needs is not worked out the same way as for a grown-up.",
+  "household.error.body_incomplete":
+    "We need all three — height, weight and sex. Two out of three cannot size a plate.",
+  "household.error.bad_height": "That height is not one we can use.",
+  "household.error.bad_weight": "That weight is not one we can use.",
+  "household.error.bad_gender": "That is not one of the options.",
+  // ── LE MEMBRE DE RÉFÉRENCE (FF-043) ──────────────────────────────────────
+  //
+  // ⚠️ LE LIBELLÉ DIT QUI, JAMAIS POURQUOI, et il ne nomme AUCUN objectif.
+  // « Whose way of eating the shared dish follows » est une phrase de méthode;
+  // « qui est au régime » serait un verdict lu par toute la table.
+  //
+  // ⚠️ ET IL NE PROMET PAS DE PORTION. Le référent ne change pas la taille de
+  // la casserole — elle se dimensionne sur le plus petit besoin de la table.
+  // Une copie qui laisserait croire l'inverse vendrait exactement le défaut que
+  // FF-043 existe pour empêcher.
+  "household.reference.title": "Whose way of eating the shared dish follows",
+  "household.reference.hint":
+    "When two grown-ups here follow different methods, the shared dish can only follow one of them. Pick whose. It changes what we cook, never how much anyone gets — helpings are worked out per person either way.",
+  // LE DÉFAUT, NOMMÉ. « Personne » se lirait comme une panne.
+  "household.reference.default": "Whoever is composing that week",
+  "household.reference.saved": "Saved.",
+  // LES DEUX REFUS QUE LA CIBLE PEUT PRODUIRE. Ils sont rares (le sélecteur ne
+  // propose que des adultes) et ils arrivent: deux onglets, ou une date saisie
+  // entre le chargement et le clic.
+  "household.error.minor_cannot_be_reference":
+    "The shared dish follows a grown-up's method, not a child's.",
+  "household.error.age_unknown_cannot_be_reference":
+    "Add their date of birth first — without it we do not know whether they are a grown-up.",
+  "household.error.not_your_household": "That is not your household.",
   "household.error.bad_first_name": "A first name is between 1 and 40 characters.",
   "household.error.bad_birth_date": "That date is in the future.",
   "household.error.bad_goal": "That direction is not one we know.",

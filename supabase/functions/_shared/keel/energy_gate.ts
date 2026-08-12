@@ -250,3 +250,82 @@ export function canShowEnergy(input: EnergyGateInput): EnergyGateResult {
 
   return { show: true, reason: "open" };
 }
+
+// ---------------------------------------------------------------------------
+// FF-059 LOT 3 — LA CINQUIÈME PORTE, et elle ne garde QUE le niveau C
+// ---------------------------------------------------------------------------
+
+/**
+ * Les motifs propres à la cible. `target_off` est le seul qui lui appartienne:
+ * les quatre autres sont ceux de la chaîne A/B, repris tels quels.
+ */
+export const TARGET_GATE_REASONS = Object.freeze(
+  [...ENERGY_GATE_REASONS, "target_off"] as const,
+);
+export type TargetGateReason = (typeof TARGET_GATE_REASONS)[number];
+
+/**
+ * L'élève peut-il voir une CIBLE (niveau C) ?
+ *
+ * ── LA CHAÎNE A/B EST UN PRÉREQUIS, PAS UNE VOISINE ────────────────────────
+ * Cette fonction prend le RÉSULTAT de `canShowEnergy` et ne le recalcule pas.
+ * C'est ce qui garantit structurellement — pas par discipline — que le plancher
+ * TCA, l'âge et la doctrine du coach ferment LES TROIS NIVEAUX. Il n'existe
+ * aucun chemin vers une cible qui ne passe pas d'abord par les quatre portes,
+ * parce qu'il n'y a pas d'autre argument par lequel entrer.
+ *
+ * Et l'ordre a une conséquence qu'on veut: le motif rendu est celui de la
+ * PREMIÈRE porte fermée. Un élève sous plancher dont la cible est éteinte lit
+ * `restriction_floor`, jamais `target_off`.
+ *
+ * ── POURQUOI UN SECOND INTERRUPTEUR, ET PAS CELUI DE A/B ───────────────────
+ * Parce que ce ne sont pas les mêmes objets. Accepter de voir ce que pèse son
+ * dîner n'est pas accepter qu'on estime ce que son corps devrait manger — la
+ * première est une information sur la nourriture, la seconde est un tracker.
+ * Un interrupteur unique ferait de la seconde le prix de la première.
+ *
+ * ── `count_briefly` DU COACH: LA QUESTION §11 n°2, TRANCHÉE ────────────────
+ * Elle n'a PAS de branche ici, et c'est la décision. La position dit « compte
+ * deux semaines, c'est une leçon, pas un mode de vie » — un TEMPS, pas un
+ * booléen. Honorer ce temps demande un état neuf (quand le compteur a commencé)
+ * et une extinction que l'écran doit expliquer; l'inventer ici, sans que
+ * personne n'ait tranché le jour 15, produirait soit un tracker permanent sous
+ * un coach qui l'a explicitement borné, soit une extinction silencieuse qui se
+ * lit comme une panne.
+ *
+ * En attendant, `count_briefly` ouvre la porte ③ comme l'absence de position:
+ * un coach qui autorise à compter n'obtient pas MOINS qu'un coach qui n'a rien
+ * dit. Ce qui protège l'élève est l'opt-in ci-dessous, pas une asymétrie entre
+ * deux positions de coach qui serait incompréhensible à table.
+ */
+export function canShowTarget(args: {
+  /** Le résultat de `canShowEnergy`. REQUIS: c'est la seule porte d'entrée. */
+  energy: EnergyGateResult;
+  /** `profiles.energy_target_enabled`. `false` = l'élève n'a pas demandé. */
+  targetSwitch: boolean;
+}): { show: boolean; reason: TargetGateReason } {
+  if (args === null || typeof args !== "object") {
+    fail("canShowTarget requires an input object");
+  }
+  const bag = args as unknown as Record<string, unknown>;
+  for (const key of ["energy", "targetSwitch"]) {
+    if (!Object.hasOwn(bag, key) || bag[key] === undefined) {
+      fail(`missing required target gate input: ${key}`);
+    }
+  }
+  if (typeof args.targetSwitch !== "boolean") {
+    fail("targetSwitch must be a boolean");
+  }
+  if (
+    typeof args.energy !== "object" || args.energy === null ||
+    typeof args.energy.show !== "boolean" ||
+    !(ENERGY_GATE_REASONS as readonly string[]).includes(args.energy.reason)
+  ) {
+    fail("energy must be the result of canShowEnergy");
+  }
+
+  // LA CHAÎNE A/B D'ABORD, ET SON MOTIF SURVIT TEL QUEL.
+  if (!args.energy.show) return { show: false, reason: args.energy.reason };
+  if (!args.targetSwitch) return { show: false, reason: "target_off" };
+  return { show: true, reason: "open" };
+}

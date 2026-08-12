@@ -620,6 +620,43 @@ Deno.test("PROPERTY: a closed gate sends no number at all", () => {
   assertStringIncludes(body, "reason");
 });
 
+Deno.test("PROPERTY: the daily target never reaches a meal generator (R6)", () => {
+  // FF-059 LOT 3, ET C'EST L'INTERDIT LE PLUS FACILE À FRANCHIR PAR ACCIDENT.
+  // « Un plan qui vise un chiffre est un régime chiffré, et ce n'est pas ce
+  // produit. » La cible informe l'élève; elle ne pilote rien.
+  //
+  // Cherché sur les TROIS générateurs, parce qu'un seul oublié suffit.
+  for (
+    const fn of [
+      "generate-meal-v1",
+      "generate-household-meal-v1",
+      "generate-week-plan-v1",
+    ]
+  ) {
+    const source = stripComments(
+      Deno.readTextFileSync(
+        fromFileUrl(new URL(`../../../${fn}/index.ts`, import.meta.url)),
+      ),
+    );
+    for (const banned of ["energy_target", "maintenanceRange", "canShowTarget"]) {
+      assertEquals(
+        source.includes(banned),
+        false,
+        `${fn} touche à "${banned}" — la cible informe, elle ne pilote pas ` +
+          `(FF-059 R6). Un plan composé pour atteindre un nombre est un régime ` +
+          `chiffré prescrit par un logiciel.`,
+      );
+    }
+  }
+  // Et la cible elle-même ne connaît aucun objectif: c'est une MAINTENANCE, pas
+  // un déficit. Un déficit dérivé serait une prescription à quelqu'un que
+  // personne n'a examiné.
+  const target = stripComments(keelSource("energy_target.ts"));
+  for (const banned of ["fat_loss", "muscle_gain", "deficit", "remaining"]) {
+    assertEquals(target.includes(banned), false, `energy_target.ts: "${banned}"`);
+  }
+});
+
 Deno.test("PROPERTY: the gate chain is the only door, and gate ① has no key", () => {
   // The single most expensive failure of this chantier would be a number
   // reaching a student under `restriction_flag`. Two structural facts hold it:
@@ -661,7 +698,11 @@ Deno.test("PROPERTY: the gate chain is the only door, and gate ① has no key", 
         ? [path]
         : [];
       for (const file of files) {
-        if (file.endsWith("energy_gate.ts") || file.endsWith("energy_gate_test.ts")) continue;
+        // La garde elle-même, et les TESTS. Un test n'est pas un appelant au
+        // sens de cette propriété: il ne peut mettre aucun chiffre devant
+        // personne. Les compter ferait rougir ce test à chaque banc ajouté,
+        // c'est-à-dire qu'on finirait par le désarmer pour avoir la paix.
+        if (file.endsWith("energy_gate.ts") || file.endsWith("_test.ts")) continue;
         let text: string;
         try {
           text = stripComments(Deno.readTextFileSync(file));

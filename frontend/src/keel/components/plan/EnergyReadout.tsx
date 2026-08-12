@@ -1,6 +1,7 @@
 import type {
   DayEnergyView,
   DishEnergyView,
+  EnergyTargetView,
 } from "../../api/mealEnergy";
 import { mealCopy } from "../../api/mealLabels";
 
@@ -77,12 +78,20 @@ export function DayEnergyLine({ energy }: { energy: DayEnergyView | null }) {
       </span>
     );
   }
-  const text = energy.complete
-    ? mealCopy("meals.energy.day").replace("{n}", String(energy.kcal))
-    : mealCopy("meals.energy.day_partial")
+  const text = !energy.complete
+    ? mealCopy("meals.energy.day_partial")
       .replace("{n}", String(energy.kcal))
       .replace("{counted}", String(energy.dishesCounted))
-      .replace("{total}", String(energy.dishesTotal));
+      .replace("{total}", String(energy.dishesTotal))
+    // L'ADD-ON SE DIT, il ne se fond pas dans le total. Le taire ferait lire à
+    // deux personnes de la même table deux chiffres pour le même plat, sans
+    // rien pour expliquer l'écart — après quoi la plus servie croit que le plat
+    // est plus gros, et l'autre que le sien est rogné.
+    : energy.addonKcal > 0
+    ? mealCopy("meals.energy.day_with_addon")
+      .replace("{n}", String(energy.kcal))
+      .replace("{addon}", String(energy.addonKcal))
+    : mealCopy("meals.energy.day").replace("{n}", String(energy.kcal));
   return (
     <span
       className={`text-xs font-normal tabular-nums ${
@@ -108,5 +117,59 @@ export function EnergyBasisNote() {
     <p className="text-xs leading-5 text-gray-400">
       {mealCopy("meals.energy.basis")}
     </p>
+  );
+}
+
+/**
+ * FF-059 LOT 3 — LA FOURCHETTE DE MAINTENANCE. Le niveau C, et le seul endroit
+ * du produit où un chiffre parle de la PERSONNE et pas de la nourriture.
+ *
+ * ── CE QUE CE COMPOSANT NE FERA JAMAIS ─────────────────────────────────────
+ * Il ne soustrait rien. Il n'affiche ni « il te reste », ni barre de
+ * progression, ni couleur qui dit bien/mal, ni pourcentage. Le total de la
+ * journée est ailleurs sur l'écran, cette fourchette est ici, et c'est l'élève
+ * qui lit. Toute arithmétique entre les deux ferait de ce produit le tracker
+ * que `coachStartingNumbers` refuse depuis le premier jour.
+ *
+ * ── ET IL N'EST PAS À CÔTÉ DU TOTAL, MAIS EN BAS ───────────────────────────
+ * Deux nombres alignés se soustraient tout seuls dans la tête de qui les lit.
+ * La fourchette vit donc avec la note de base, sous les plats — au rang d'un
+ * repère, pas d'un score.
+ */
+export function EnergyTargetNote({ target }: { target: EnergyTargetView | null }) {
+  if (!target) return null;
+  if (target.low === null || target.high === null) {
+    // L'ABSENCE SE DIT, avec son motif: « ajoute une pesée » et « ta dernière
+    // pesée n'a pas l'air juste » ne se réparent pas au même endroit, et un
+    // silence commun ferait ressaisir un poids à qui vient de taper 500.
+    const label = target.gap === "no_weight"
+      ? mealCopy("meals.energy.target_no_weight")
+      : target.gap === "implausible_weight"
+      ? mealCopy("meals.energy.target_implausible_weight")
+      : null;
+    return label ? <p className="text-xs leading-5 text-gray-400">{label}</p> : null;
+  }
+  return (
+    <div className="text-xs leading-5 text-gray-400">
+      <p className="tabular-nums text-gray-500">
+        {mealCopy("meals.energy.target_range")
+          .replace("{low}", String(target.low))
+          .replace("{high}", String(target.high))}
+        {target.weightWeekStart && (
+          <span className="text-gray-400">
+            {" — "}
+            {mealCopy("meals.energy.target_measured").replace(
+              "{date}",
+              target.weightWeekStart,
+            )}
+          </span>
+        )}
+      </p>
+      {/* CE QUE LA FOURCHETTE N'EST PAS. Trois phrases, et elles ne sont pas
+          décoratives: sans elles, un intervalle affiché sous un total se lit
+          comme une cible à atteindre — ce qu'il n'est pas, et ce que le
+          générateur ne vise pas (R6). */}
+      <p className="mt-1">{mealCopy("meals.energy.target_note")}</p>
+    </div>
   );
 }

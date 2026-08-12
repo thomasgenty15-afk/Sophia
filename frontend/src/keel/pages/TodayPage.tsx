@@ -73,7 +73,11 @@ import { browserLocalDate, useMealTicks } from "../lib/useMealTicks";
 import CommitmentLine, { ActivityChip } from "../components/CommitmentLine";
 import DeviationDialog from "../components/DeviationDialog";
 import DishCard from "../components/DishCard";
-import { DayEnergyLine, EnergyBasisNote } from "../components/plan/EnergyReadout";
+import {
+  DayEnergyLine,
+  EnergyBasisNote,
+  EnergyTargetNote,
+} from "../components/plan/EnergyReadout";
 import { useMealEnergy } from "../lib/useMealEnergy";
 import KeelAppShell from "../components/KeelAppShell";
 import KitchenToday from "../components/KitchenToday";
@@ -319,7 +323,8 @@ function OwnDay({
               a un: sans elle, rien ne distingue ce CALCUL d'une estimation par
               photo — que le produit refuse précisément d'afficher. */}
           {energy.showing && (
-            <div className="mt-4">
+            <div className="mt-4 space-y-2">
+              <EnergyTargetNote target={energy.target} />
               <EnergyBasisNote />
             </div>
           )}

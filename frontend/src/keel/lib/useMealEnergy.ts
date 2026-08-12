@@ -4,8 +4,10 @@ import {
   type DayEnergyView,
   type DishEnergyView,
   type EnergyReading,
+  type EnergyTargetView,
   loadMealEnergy,
   setEnergyDisplay,
+  setEnergyTarget,
 } from "../api/mealEnergy";
 import { type GeneratedDish } from "../api/mealGeneration";
 
@@ -70,6 +72,17 @@ export interface MealEnergy {
   toggle: (next: boolean) => Promise<void>;
   /** Une bascule qui n'a pas pris se dit, elle ne se tait pas. */
   error: boolean;
+  /**
+   * FF-059 LOT 3 — LA FOURCHETTE DE MAINTENANCE. `null` = porte ⑤ fermée.
+   *
+   * ⚠️ Aucun reste n'est calculé, ni ici ni ailleurs. Le total du jour et la
+   * fourchette se posent côte à côte; les soustraire ferait un tracker.
+   */
+  target: EnergyTargetView | null;
+  /** VRAI quand le seul refus de la cible est l'interrupteur de l'élève. */
+  targetOfferable: boolean;
+  /** Bascule la porte ⑤. SÉPARÉE de la ④: ce ne sont pas les mêmes objets. */
+  toggleTarget: (next: boolean) => Promise<void>;
 }
 
 const NO_DISHES: readonly GeneratedDish[] = [];
@@ -128,19 +141,24 @@ export function useMealEnergy(args: {
     return map;
   }, [plan]);
 
-  const toggle = React.useCallback(async (next: boolean) => {
-    setError(false);
-    try {
-      await setEnergyDisplay(next);
-      // ON RECHARGE, ON NE DEVINE PAS. L'interrupteur n'est que la porte ④: les
-      // trois autres peuvent très bien refermer derrière lui, et un écran qui
-      // afficherait des chiffres parce que l'élève vient de cliquer aurait
-      // court-circuité la chaîne de gardes depuis le client.
-      setReloads((n) => n + 1);
-    } catch {
-      setError(true);
-    }
-  }, []);
+  // ON RECHARGE, ON NE DEVINE PAS. Un interrupteur n'est qu'UNE porte: les
+  // autres peuvent très bien refermer derrière lui, et un écran qui afficherait
+  // des chiffres parce que l'élève vient de cliquer aurait court-circuité la
+  // chaîne de gardes depuis le client.
+  const flip = React.useCallback(
+    (write: (v: boolean) => Promise<void>) => async (next: boolean) => {
+      setError(false);
+      try {
+        await write(next);
+        setReloads((n) => n + 1);
+      } catch {
+        setError(true);
+      }
+    },
+    [],
+  );
+  const toggle = React.useMemo(() => flip(setEnergyDisplay), [flip]);
+  const toggleTarget = React.useMemo(() => flip(setEnergyTarget), [flip]);
 
   return {
     ready: reading !== null,
@@ -152,5 +170,8 @@ export function useMealEnergy(args: {
     forDay: (day) => byDay.get(day) ?? null,
     toggle,
     error,
+    target: reading?.show === true ? reading.target : null,
+    targetOfferable: reading?.show === true && reading.targetOfferable,
+    toggleTarget,
   };
 }

@@ -141,6 +141,13 @@ const COPY = {
   // de la fiche, et il se commet ICI, dans la copie.
   "meals.energy.day_partial": "{n} kcal — {counted} of {total} dishes counted",
   "meals.energy.day_unreadable": "Not enough detail to add this day up",
+  // ── L'ADD-ON DU FOYER — la bifurcation, dite comme un ajout ─────────────
+  // « 1 250 kcal · incluant 420 qui vont dans ton assiette » et pas
+  // « 1 250 kcal ». Sans la seconde moitié, deux personnes autour de la même
+  // casserole lisent deux totaux différents et rien n'explique pourquoi — la
+  // plus servie croit que le plat est plus gros, l'autre que le sien est
+  // rogné. C'est un AJOUT, jamais une part retirée à quelqu'un.
+  "meals.energy.day_with_addon": "{n} kcal — including {addon} added to your plate",
   // Sur un plat sans chiffre: on dit POURQUOI. Un plat muet à côté de plats
   // chiffrés se lit « ce plat ne compte pas », ce qui est faux.
   "meals.energy.dish_unknown_ingredient": "One ingredient isn't in our food table",
@@ -160,6 +167,27 @@ const COPY = {
   "meals.energy.switch_off": "Hide calories",
   "meals.energy.switch_hint": "You can turn this off at any time, and it goes quiet everywhere.",
   "meals.energy.switch_failed": "That did not save. Nothing changed.",
+  // ── FF-059 LOT 3 · LA CIBLE (niveau C) ──────────────────────────────────
+  //
+  // ⚠️ UNE FOURCHETTE, ET AUCUN RESTE. « 2 100–2 500 a day for your weight »
+  // pose un ordre de grandeur à côté du total; « 680 kcal left » serait un
+  // tracker, et cette phrase n'existe nulle part dans ce produit.
+  //
+  // « for your weight » n'est PAS un ornement: c'est la seule chose sur
+  // laquelle la fourchette est posée. Sans ces trois mots, un élève croirait
+  // qu'on a tenu compte de son activité — et rien ne la collecte.
+  "meals.energy.target_range": "Around {low}–{high} a day for your weight",
+  "meals.energy.target_measured": "based on your weigh-in of {date}",
+  // La cible ne se raconte pas comme une consigne. « Roughly », « around »:
+  // c'est une estimation de maintenance, pas un objectif qu'on atteint.
+  "meals.energy.target_note":
+    "Roughly what a body your size uses in a day. It is not a goal, nothing is counted against it, and your plan is not built to hit it.",
+  "meals.energy.target_no_weight":
+    "Add a weigh-in and this becomes a range for your size.",
+  "meals.energy.target_implausible_weight":
+    "The last weigh-in does not look right, so this is left blank.",
+  "meals.energy.target_switch_on": "Show a daily range",
+  "meals.energy.target_switch_off": "Hide the daily range",
   "meals.day.mon": "Monday",
   "meals.day.tue": "Tuesday",
   "meals.day.wed": "Wednesday",

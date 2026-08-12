@@ -72,6 +72,21 @@ export interface DayEnergyView {
   complete: boolean;
   dishesCounted: number;
   dishesTotal: number;
+  /**
+   * CE QUI S'AJOUTE À L'ASSIETTE DU LECTEUR ce jour-là, dans un foyer.
+   *
+   * `0` sur un plan personnel, et sur la bouche dont le besoin EST le tronc.
+   * Non nul quand les portions divergent — c'est la bifurcation par objectif,
+   * en nombre. Il est DÉJÀ compris dans `kcal`, et il est rendu à part pour que
+   * l'écran puisse dire « le plat, plus ce qui va dans ton assiette » : deux
+   * personnes autour de la même casserole doivent lire le même chiffre pour le
+   * même plat.
+   *
+   * ⚠️ C'est l'add-on DU LECTEUR. Ceux des autres bouches ne franchissent
+   * jamais le fil, pas même agrégés — ils sont dimensionnés sur un corps et un
+   * objectif, et « ce qui touche le corps est à soi ».
+   */
+  addonKcal: number;
 }
 
 /** Ce qu'un plan rend, quand les quatre portes sont ouvertes. */
@@ -91,6 +106,30 @@ export interface PlanEnergyView {
   days: DayEnergyView[];
 }
 
+/**
+ * FF-059 LOT 3 — LA CIBLE, NIVEAU C.
+ *
+ * ⚠️ UNE FOURCHETTE, JAMAIS UN POINT, et c'est la forme qui décide si ce
+ * chiffre devient un objectif. Personne ne « rate » un intervalle de 400 kcal.
+ *
+ * ⚠️ AUCUN RESTE N'EXISTE, ni ici ni ailleurs. Le serveur ne soustrait rien du
+ * total du jour, et l'écran ne doit pas le faire non plus: « il te reste 680
+ * kcal » est LA phrase d'un tracker. Le total et la fourchette se posent côte à
+ * côte, et c'est l'élève qui lit.
+ *
+ * C'est une MAINTENANCE — ce que ce corps dépense — jamais un déficit. Aucun
+ * objectif n'entre dedans.
+ */
+export interface EnergyTargetView {
+  /** `null` avec un `gap` nommé: `no_weight` ou `implausible_weight`. */
+  low: number | null;
+  high: number | null;
+  basis: string;
+  gap: string | null;
+  /** La semaine de la pesée qui a servi. Aucune fraîcheur n'en est dérivée. */
+  weightWeekStart: string | null;
+}
+
 export type EnergyReading =
   | {
     show: true;
@@ -99,6 +138,14 @@ export type EnergyReading =
     switchOfferable: true;
     basis: string;
     plans: PlanEnergyView[];
+    /**
+     * `null` = la porte ⑤ est fermée, ou le poids n'a pas pu être lu. Dans le
+     * premier cas le serveur n'a même pas LU le poids: rien de dérivé du corps
+     * de l'élève n'a voyagé.
+     */
+    target: EnergyTargetView | null;
+    /** La bascule de la cible ne se propose que si son seul refus est elle. */
+    targetOfferable: boolean;
   }
   | {
     show: false;
@@ -143,6 +190,7 @@ function readDay(raw: unknown): DayEnergyView {
     complete: d.complete === true,
     dishesCounted: Number(d.dishes_counted) || 0,
     dishesTotal: Number(d.dishes_total) || 0,
+    addonKcal: Number(d.addon_kcal) || 0,
   };
 }
 
@@ -191,11 +239,31 @@ export async function loadMealEnergy(
     };
   }
 
+  const rawTarget = (row.target ?? null) as Record<string, unknown> | null;
   return {
     show: true,
     reason: "open",
     switchOfferable: true,
     basis: String(row.basis ?? PLAN_ENERGY_BASIS),
+    targetOfferable: row.target_offerable === true,
+    target: rawTarget === null ? null : {
+      // ⚠️ LA FOURCHETTE EST TOUT-OU-RIEN. Une borne seule se rendrait comme un
+      // POINT à l'écran — exactement la forme qu'on refuse.
+      low: Number.isFinite(Number(rawTarget.low)) && Number.isFinite(Number(rawTarget.high))
+        ? Number(rawTarget.low)
+        : null,
+      high: Number.isFinite(Number(rawTarget.low)) && Number.isFinite(Number(rawTarget.high))
+        ? Number(rawTarget.high)
+        : null,
+      basis: String(rawTarget.basis ?? ""),
+      gap: rawTarget.gap === null || rawTarget.gap === undefined
+        ? null
+        : String(rawTarget.gap),
+      weightWeekStart: rawTarget.weight_week_start === null ||
+          rawTarget.weight_week_start === undefined
+        ? null
+        : String(rawTarget.weight_week_start),
+    },
     plans: (Array.isArray(row.plans) ? row.plans : []).map((entry) => {
       const p = (entry ?? {}) as Record<string, unknown>;
       const computable = p.computable === true;
@@ -218,12 +286,28 @@ export async function loadMealEnergy(
  * part. Même arbitrage que `saveBasic` sur l'écran du plan.
  */
 export async function setEnergyDisplay(enabled: boolean): Promise<void> {
+  await writeSwitch({ energy_display_enabled: enabled });
+}
+
+/**
+ * FF-059 LOT 3 — LA PORTE ⑤, et elle est SÉPARÉE de la ④ exprès.
+ *
+ * Accepter de voir ce que pèse son dîner n'est pas accepter qu'on estime ce que
+ * son corps devrait manger. Un interrupteur unique ferait de la seconde le prix
+ * de la première — sur exactement la distinction (un fait sur la nourriture
+ * contre un jugement sur la personne) que tout ce chantier existe pour tenir.
+ */
+export async function setEnergyTarget(enabled: boolean): Promise<void> {
+  await writeSwitch({ energy_target_enabled: enabled });
+}
+
+async function writeSwitch(patch: Record<string, boolean>): Promise<void> {
   const { data: sess } = await supabase.auth.getUser();
   const uid = sess.user?.id;
   if (!uid) throw new Error("not_signed_in");
   const { data, error } = await supabase
     .from("profiles")
-    .update({ energy_display_enabled: enabled })
+    .update(patch)
     .eq("id", uid)
     .select("id");
   if (error) throw new Error(`[keel/mealEnergy] switch failed: ${error.message}`);
