@@ -505,6 +505,28 @@ export const FORBIDDEN_PLAN_DELIVERY_PHRASES: readonly string[] = Object
     "je construis ta semaine",
     "je construis ton plan",
     "je vais te construire",
+    // ── MESURÉ LE 2026-08-12, LOT « BOUTONS », SUR LE CHEMIN NOMINAL ───────
+    // Trois réponses réelles à « le matin je grignote en me levant », trois
+    // personas identiques. Les trois ont passé le validateur; deux disaient:
+    //
+    //   « ça guidera la prochaine semaine QU'ON CONSTRUIT »
+    //   « ce point comptera dans CE QUE JE PRÉPARE pour la semaine prochaine »
+    //
+    // Les locutions au-dessus ne mordaient sur AUCUNE des deux: elles exigent
+    // un pronom objet (« je TE prépare ») ou un possessif (« ta semaine »).
+    // Sans lui, la même promesse passe — et c'est la formulation naturelle du
+    // modèle, pas un cas tordu. La règle mère du produit reste la même: il
+    // n'existe aucun canal 1:1, personne ne prépare le plan de l'élève.
+    //
+    // ⚠️ « je construirai autour » (repli gelé de `point_to_plan_fit`) DOIT
+    // survivre: Sophia construit le PLAN à partir de ce que l'élève lui dit,
+    // au moment où l'élève compose. Ce qui est interdit, c'est la semaine
+    // livrée. D'où « ce que je prépare » et non « je prépare ».
+    "ce que je prepare",
+    "que je prepare",
+    "qu on construit",
+    "que l on construit",
+    "on construit pour toi",
     // --- FR : le plan ou le coach préparent ---
     "qu il construit",
     "qu il te prepare",
@@ -526,6 +548,11 @@ export const FORBIDDEN_PLAN_DELIVERY_PHRASES: readonly string[] = Object
     "i ll build your",
     "i will build your",
     "that i prepare",
+    "what i m preparing",
+    "what i am preparing",
+    "that i m preparing",
+    "that we build",
+    "that we re building",
     "your coach is preparing",
     "your coach will prepare",
     "we re preparing your",

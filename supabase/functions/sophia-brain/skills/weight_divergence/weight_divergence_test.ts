@@ -697,6 +697,15 @@ Deno.test("FF-056 · PERSONNE NE PRÉPARE LE PLAN DE L'ÉLÈVE, FR et EN", () =>
       "I'm preparing your next week around that.",
       "Your coach will prepare your plan.",
       "It will be prepared for you.",
+      // ── MESURÉES LE 2026-08-12, lot « boutons », sur trois personas
+      // IDENTIQUES et la même phrase d'élève. Les deux ont passé le validateur
+      // de l'époque: les locutions exigeaient un pronom objet (« je TE
+      // prépare ») ou un possessif (« ta semaine »). Sans lui, la même
+      // promesse sortait — et c'est la formulation NATURELLE du modèle.
+      "Le plan en tient compte, et ça guidera la prochaine semaine qu'on construit.",
+      "Le plan l'a noté, et ce point comptera dans ce que je prépare pour la semaine prochaine.",
+      "That's noted, and it'll shape what I'm preparing for next week.",
+      "It'll shape the week that we build.",
     ]
   ) {
     const verdict = validateWeightDivergenceMessage(message, task("close_out"));
@@ -715,6 +724,13 @@ Deno.test("FF-056 · la garde de livraison NE MORD PAS sur l'élève qui prépar
       "Prépare-toi quelque chose de rassasiant le soir.",
       "Tu peux préparer ta semaine depuis l'écran de plan.",
       "If you prepare your breakfast the night before, mornings get easier.",
+      // Le repli gelé de `point_to_plan_fit`, mot pour mot. Sophia construit le
+      // plan À PARTIR de ce que l'élève lui dit, au moment où l'élève compose:
+      // c'est le produit. Ce qui est interdit, c'est la semaine LIVRÉE.
+      "À ta prochaine composition, dis-moi ce qui rentre vraiment dans tes " +
+      "journées et je construirai autour.",
+      "When you next put a week together, tell me what actually fits your days " +
+      "and I'll build around that.",
     ]
   ) {
     const verdict = validateWeightDivergenceMessage(message, task("close_out"));
