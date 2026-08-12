@@ -7,6 +7,7 @@ import {
   joinRefusalMessageKey,
   PRODUCT_LOCALE,
 } from "./freeSignup";
+import { NO_COUNTRY_SELECTED } from "./countries";
 import { en } from "../i18n/en";
 
 // CE QUE CE FICHIER PROTÈGE, ET POURQUOI ÇA VAUT UN TEST
@@ -97,6 +98,21 @@ describe("isDeclaredCountryValid", () => {
     for (const bad of ["", "U", "usa", "Royaume-Uni", "us", "U S", "GBR", "🇬🇧"]) {
       expect(isDeclaredCountryValid(bad)).toBe(false);
     }
+  });
+
+  it("REFUSE l'état initial des sélecteurs — la garde du défaut mesuré", () => {
+    // MESURÉ LE 2026-08-12, en jouant `/start` dans un navigateur: le sélecteur
+    // naissait à « United States », et un compte créé sans y toucher partait
+    // avec `profiles.country='US'` — sous une aide qui promet « le bon numéro
+    // d'urgence ». C'est-à-dire la hotline américaine pour un Français.
+    //
+    // Ce test est la seule chose qui rougit si quelqu'un redonne un pays à
+    // `NO_COUNTRY_SELECTED` « pour éviter un champ vide »: `"US"` est une valeur
+    // parfaitement valide, donc aucune autre ceinture — ni le type, ni la base,
+    // ni un test de forme — ne verrait passer la régression. Les trois portes
+    // (`/start`, `/join-household`, la porte coach de `/auth`) partent de cette
+    // constante, donc une seule assertion les tient toutes les trois.
+    expect(isDeclaredCountryValid(NO_COUNTRY_SELECTED)).toBe(false);
   });
 });
 

@@ -1760,6 +1760,12 @@ export const en = {
   // d'urgence on donne si la conversation part là.
   "start.form.country_hint":
     "Used to give you the right emergency number if a conversation ever needs one.",
+  // L'option initiale du sélecteur. Elle n'est pas une valeur: elle dit qu'on
+  // n'a pas encore répondu, et le formulaire refuse de partir tant qu'elle est
+  // choisie. Le champ naissait sur « United States », donc tout le monde
+  // répondait « États-Unis » sans le savoir — sur le champ qui décide du numéro
+  // d'urgence. Même libellé que la porte foyer, à dessein.
+  "start.form.country_placeholder": "Choose a country",
   "start.form.legal_prefix": "I accept the",
   "start.form.legal_terms": "Terms",
   "start.form.legal_and": "and the",

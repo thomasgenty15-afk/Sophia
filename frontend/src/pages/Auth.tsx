@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { resolveHomePath } from '../keel/api/postLogin';
+// La LISTE des pays reste dupliquée plus bas (`COACH_COUNTRIES`), pour la
+// raison écrite là-bas. La VALEUR INITIALE, elle, ne peut pas diverger sans
+// redonner un pays à quelqu'un qui n'en a pas déclaré: elle est nommée une fois.
+import { NO_COUNTRY_SELECTED } from '../keel/api/countries';
 import { consumePendingCoachInvitation } from '../keel/api/coachInvite';
 import { t as keelT } from '../keel/i18n/t';
 import { newRequestId, requestHeaders } from '../lib/requestId';
@@ -129,7 +133,23 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState('');
   // KEEL W6.1 — asked only in coach mode; never derived from the locale.
-  const [coachCountry, setCoachCountry] = useState('US');
+  //
+  // ⚠️ VIDE, ET C'EST UN CHANGEMENT DÉLIBÉRÉ (2026-08-12). Il naissait à `'US'`,
+  // exactement comme `/start` — sauf qu'ici la valeur ne reste pas chez le
+  // coach: `keel_attach_student_to_coach` (migration 20260804180000) recopie le
+  // PAYS DÉCLARÉ DU COACH dans `profiles.country` de chaque élève qui n'a pas
+  // déclaré le sien. Un coach français qui ne touche pas ce champ fabrique donc
+  // une cohorte entière rangée aux États-Unis, sur la colonne que le résolveur
+  // de crise lit en premier.
+  //
+  // Ce que ça change pour la porte unique du produit: RIEN d'autre que d'armer
+  // une garde déjà écrite. La ceinture de forme existe depuis W6.1 quelques
+  // centaines de lignes plus bas (`!/^[A-Z]{2}$/.test(coachCountry)`) avec son
+  // message prêt — elle était simplement INATTEIGNABLE, puisque l'état ne
+  // pouvait pas être invalide. Les deux chemins qui rejouent l'après-inscription
+  // (le polling et le bouton « j'ai vérifié ») vivent dans la même session de
+  // page, donc en aval de cette garde: aucun d'eux ne peut voir la valeur vide.
+  const [coachCountry, setCoachCountry] = useState(NO_COUNTRY_SELECTED);
   // Parrainage : prérempli depuis ?ref= (capturé au chargement de l'app),
   // modifiable/saisissable manuellement à l'inscription.
   const [hasAcceptedLegal, setHasAcceptedLegal] = useState(false); // New state for legal acceptance
@@ -965,6 +985,10 @@ const Auth = () => {
                     onChange={(e) => setCoachCountry(e.target.value)}
                     className="appearance-none block w-full px-3 py-3 border border-slate-200 rounded-xl bg-white text-slate-900 sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                   >
+                    {/* L'option initiale. Elle n'est pas soumissible: la garde
+                        de forme au-dessus refuse une valeur vide avec une
+                        phrase lisible, avant tout appel réseau. */}
+                    <option value={NO_COUNTRY_SELECTED}>Choose a country</option>
                     {COACH_COUNTRIES.map((c) => (
                       <option key={c.code} value={c.code}>
                         {c.label}

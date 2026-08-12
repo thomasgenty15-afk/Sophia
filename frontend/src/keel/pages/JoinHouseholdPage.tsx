@@ -4,7 +4,11 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import SEO from "../../components/SEO";
 import { useAuth } from "../../context/AuthContext";
 import { supabase } from "../../lib/supabase";
-import { SIGNUP_COUNTRIES, isDeclaredCountryValid } from "../api/countries";
+import {
+  NO_COUNTRY_SELECTED,
+  SIGNUP_COUNTRIES,
+  isDeclaredCountryValid,
+} from "../api/countries";
 import { isAlreadyRegistered } from "../api/freeSignup";
 import {
   type HouseholdInvitationPreview,
@@ -131,7 +135,9 @@ export default function JoinHouseholdPage(): React.ReactElement {
   const [password, setPassword] = React.useState("");
   // ⚠️ VIDE, jamais "US". Voir l'en-tête: un défaut préchoisi enregistre le
   // pays de personne, et c'est la colonne dont dépend la ligne d'écoute servie.
-  const [country, setCountry] = React.useState("");
+  // La valeur est NOMMÉE (api/countries.ts) depuis que la même faute a été
+  // trouvée sur `/start`: trois portes, un seul état initial gardé par un test.
+  const [country, setCountry] = React.useState(NO_COUNTRY_SELECTED);
   const [acceptedLegal, setAcceptedLegal] = React.useState(false);
   const [submitting, setSubmitting] = React.useState(false);
   const [formError, setFormError] = React.useState<string | null>(null);
@@ -638,7 +644,9 @@ function CountryField(
         onChange={(e) => onChange(e.target.value)}
         className={inputClass}
       >
-        <option value="">{t("household_claim.signup.country_placeholder")}</option>
+        <option value={NO_COUNTRY_SELECTED}>
+          {t("household_claim.signup.country_placeholder")}
+        </option>
         {SIGNUP_COUNTRIES.map((c) => (
           <option key={c.code} value={c.code}>
             {c.label}

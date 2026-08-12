@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import SEO from "../../components/SEO";
 import { useAuth } from "../../context/AuthContext";
 import { supabase } from "../../lib/supabase";
+import { NO_COUNTRY_SELECTED, SIGNUP_COUNTRIES } from "../api/countries";
 import {
   freeSignupMetadata,
   isAlreadyRegistered,
@@ -63,31 +64,13 @@ import { t } from "../i18n/t";
 /**
  * Pays proposés. NOT une liste de validation — la base valide la FORME
  * (`profiles_country_iso3166_check`), volontairement: une liste fermée
- * refuserait un pays légitime le jour où quelqu'un s'y inscrit. Même liste et
- * même ordre que la porte coach de `Auth.tsx`, pour que les deux portes du
- * produit ne divergent pas sur ce qu'elles savent du monde.
+ * refuserait un pays légitime le jour où quelqu'un s'y inscrit.
+ *
+ * ⚠️ LA LISTE A DÉMÉNAGÉ dans `api/countries.ts` au chantier 4, quand une
+ * TROISIÈME porte s'est mise à demander le pays: trois copies d'une même liste
+ * divergent, et la divergence porte sur la seule colonne dont dépend la hotline
+ * de crise. `pages/Auth.tsx` garde la sienne, et c'est écrit là-bas.
  */
-const COUNTRIES: { code: string; label: string }[] = [
-  { code: "US", label: "United States" },
-  { code: "GB", label: "United Kingdom" },
-  { code: "FR", label: "France" },
-  { code: "CA", label: "Canada" },
-  { code: "AU", label: "Australia" },
-  { code: "IE", label: "Ireland" },
-  { code: "NZ", label: "New Zealand" },
-  { code: "BE", label: "Belgium" },
-  { code: "CH", label: "Switzerland" },
-  { code: "DE", label: "Germany" },
-  { code: "ES", label: "Spain" },
-  { code: "IT", label: "Italy" },
-  { code: "NL", label: "Netherlands" },
-  { code: "PT", label: "Portugal" },
-  { code: "SE", label: "Sweden" },
-  { code: "SG", label: "Singapore" },
-  { code: "AE", label: "United Arab Emirates" },
-  { code: "ZA", label: "South Africa" },
-];
-
 type Phase =
   | { kind: "loading" }
   | { kind: "unavailable" }
@@ -108,7 +91,11 @@ export default function StartPage() {
   const [fullName, setFullName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
-  const [country, setCountry] = React.useState("US");
+  // ⚠️ VIDE, ET C'EST LA GARDE. Ce champ naissait à `"US"`: un compte créé sans
+  // y toucher partait avec `profiles.country='US'` — c'est-à-dire la hotline
+  // américaine servie à un Français, sous une aide qui promet le contraire.
+  // Voir `NO_COUNTRY_SELECTED` (api/countries.ts) pour la mesure et le pourquoi.
+  const [country, setCountry] = React.useState(NO_COUNTRY_SELECTED);
   const [acceptedLegal, setAcceptedLegal] = React.useState(false);
   const [submitting, setSubmitting] = React.useState(false);
   const [formError, setFormError] = React.useState<string | null>(null);
@@ -444,7 +431,12 @@ export default function StartPage() {
 
               {/* LE PAYS. Demandé, jamais dérivé — voir l'en-tête du fichier.
                   Le `hint` dit à quoi il sert: quelqu'un qui comprend pourquoi
-                  on le demande répond juste. */}
+                  on le demande répond juste.
+
+                  L'OPTION VIDE EST LA VALEUR INITIALE, et elle n'est jamais
+                  soumissible: `isDeclaredCountryValid` la refuse avant l'appel
+                  réseau, et `keel_join_house_coach` rendrait `country_required`
+                  si on la laissait passer. Même patron que `/join-household`. */}
               <Field
                 label={t("start.form.country")}
                 htmlFor="start-country"
@@ -457,7 +449,10 @@ export default function StartPage() {
                   onChange={(e) => setCountry(e.target.value)}
                   className={inputClass}
                 >
-                  {COUNTRIES.map((c) => (
+                  <option value={NO_COUNTRY_SELECTED}>
+                    {t("start.form.country_placeholder")}
+                  </option>
+                  {SIGNUP_COUNTRIES.map((c) => (
                     <option key={c.code} value={c.code}>
                       {c.label}
                     </option>
