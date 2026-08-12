@@ -391,6 +391,7 @@ Deno.test("la sortie du parseur est IDENTIQUE avec et sans calcul de verdict", (
     composition: INDEX,
     fixedIntakes: [],
     dayProperties: [],
+    merge: null,
   };
   const before = parseGeneratedMeal(structuredClone(payload), args);
   // Le calcul du verdict tourne ICI, entre les deux parses.
@@ -632,4 +633,70 @@ Deno.test("chaque nom de colonne du canal structurel EXISTE dans la table", () =
       assert(column in SENTINEL_FLAG_BY_COLUMN, `${column} hors table de correspondance`);
     }
   }
+});
+
+// ---------------------------------------------------------------------------
+// LA CADENCE HEBDOMADAIRE — mesurée en run réel le 2026-08-11
+// ---------------------------------------------------------------------------
+
+Deno.test("une sentinelle ne se juge PAS sous la semaine", () => {
+  // LE DÉFAUT QUE CE TEST GARDE. Sur un plan d'UN SEUL JOUR, le verdict
+  // rendait six groupes « manquants » — dairy_cheese, dairy_yogurt, eggs,
+  // fatty_fish, shellfish, white_fish. Ce n'est pas un trou, c'est une
+  // journée: personne ne mange tout ça le même jour, et la cadence des
+  // sentinelles est HEBDOMADAIRE.
+  //
+  // Le coût n'était pas cosmétique: chaque faux trou consommait un
+  // `place_missing_sentinel` dans une relance UNIQUE, à la place d'un vrai
+  // écart d'énergie ou de protéine.
+  const dishes = [{
+    slot: "dinner",
+    method: "Cook it.",
+    ingredients: [{ term: "chicken breast", amount: 200, unit: "g" as const, state: "raw" as const }],
+  }];
+  const args = {
+    dishes,
+    envelope: PER_KG,
+    index: INDEX,
+    uncoverableSentinels: [],
+    fixedIntakeInputs: [],
+  };
+
+  for (const days of [1, 2, 3, 5, 6]) {
+    const v = verdictFor({ ...args, daysCovered: days } as never);
+    assertEquals(
+      v.sentinels.missing,
+      [],
+      `${days} jour(s): une cadence hebdomadaire ne se juge pas là-dessus`,
+    );
+  }
+
+  // À SEPT JOURS, la question a un sens et la grandeur reprend la parole —
+  // sinon on aurait remplacé un faux positif par une garde morte.
+  const week = verdictFor({ ...args, daysCovered: 7 } as never);
+  assert(week.sentinels.missing.length > 0, "à 7 jours, les trous doivent revenir");
+  assert(week.sentinels.missing.includes("fatty_fish"));
+});
+
+Deno.test("le trou STRUCTUREL survit à l'abstention de cadence", () => {
+  // « Cet élève est végan, la B12 n'existe pas dans le règne végétal » est
+  // vrai un lundi comme sur sept jours. Une carence structurelle n'est pas
+  // une affaire de cadence — elle ne doit donc pas disparaître avec elle.
+  const v = verdictFor({
+    dishes: [{
+      slot: "dinner",
+      method: "Cook it.",
+      ingredients: [{ term: "carrots", amount: 200, unit: "g" as const, state: "raw" as const }],
+    }],
+    envelope: PER_KG,
+    index: INDEX,
+    daysCovered: 1,
+    uncoverableSentinels: ["b12_source"],
+    fixedIntakeInputs: [],
+  } as never);
+  assertEquals(v.sentinels.missing, [], "les trous réparables s'abstiennent");
+  assert(
+    v.sentinels.uncoverable.includes("b12_source"),
+    "le canal structurel doit survivre",
+  );
 });

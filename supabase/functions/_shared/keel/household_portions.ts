@@ -122,7 +122,7 @@ export interface MemberPortion {
  * Aucune ne nomme une raison. « bigger share of the protein » se lit à table;
  * « because you are cutting » se lirait aussi, et par tout le monde.
  */
-const SERVING_DIRECTION: Record<MemberGoal, string> = {
+export const SERVING_DIRECTION: Record<MemberGoal, string> = {
   fat_loss:
     "generous vegetables, full protein share, smaller starch share",
   muscle_gain:
@@ -160,10 +160,262 @@ const SERVING_DIRECTION: Record<MemberGoal, string> = {
  * d'objectif. Deux intentions différentes méritent deux noms, même quand elles
  * disent la même chose.
  */
-const NEUTRAL_DIRECTION = "balanced share of every component";
+export const NEUTRAL_DIRECTION = "balanced share of every component";
 
 /** Ce qu'on dit d'un mineur au modèle. Une taille, jamais une direction. */
-const CHILD_DIRECTION = "child-size share of the same dish";
+export const CHILD_DIRECTION = "child-size share of the same dish";
+
+// ---------------------------------------------------------------------------
+// D6 — CE QU'UNE DIRECTION DE SERVICE DEMANDE, AXE PAR AXE
+//
+// ⚠️ LE TABLEAU N'EST PAS ÉCRIT À LA MAIN: IL EST *LU* DANS LES CHAÎNES
+// CI-DESSUS. C'est la seule forme qui ne peut pas dériver. Une table
+// `Record<MemberGoal, {protein: …}>` recopiée à côté aurait raconté ce que les
+// chaînes disaient LE JOUR OÙ ON L'A ÉCRITE — et le dépôt a déjà mesuré
+// « `health` rendait la chaîne de `maintenance` » sans que rien n'échoue.
+// Ici, changer une direction change mécaniquement ce que la fusion en déduit.
+//
+// ── POURQUOI CE MODULE, ET PAS `household_merge.ts` ─────────────────────────
+// Parce que les chaînes vivent ICI. Lire `SERVING_DIRECTION` depuis ailleurs
+// pour en refaire une table serait exactement la seconde définition qu'on
+// refuse. Ce qui DÉCIDE de la fusion est ailleurs; ce qui LIT une direction est
+// ici, avec la direction.
+//
+// ── CE QUE LA GRAMMAIRE COUVRE, ET RIEN DE PLUS ─────────────────────────────
+// Un qualificatif gouverne les noms d'axes qui le SUIVENT, jusqu'au prochain
+// qualificatif. Les six chaînes s'y rangent, et le test le prouve axe par axe:
+//
+//   « generous vegetables, full protein share, smaller starch share »
+//      generous → légumes · full → protéine · smaller → féculent
+//   « larger protein and starch share, same vegetables »
+//      larger → protéine ET féculent · same → légumes
+//   « balanced share of every component »   → les trois d'un coup
+//
+// ⚠️ CE N'EST PAS UN MATCHER SUR DU TEXTE ALIMENTAIRE. « laitue ≠ lait » est
+// une cicatrice de ce dépôt, et elle vise l'appariement d'INGRÉDIENTS écrits
+// par un modèle. Ici on lit SIX constantes anglaises que ce fichier écrit
+// lui-même, dans un vocabulaire fermé de dix mots. Le jour où une direction
+// sort de ce vocabulaire, la lecture rend `unreadable` — jamais une valeur
+// devinée — et `unreadable` fait RENONCER la fusion au niveau ①.
+// ---------------------------------------------------------------------------
+
+/** Les trois composants qu'une direction de service sait nommer. */
+export const SERVING_AXES = ["protein", "starch", "vegetables"] as const;
+export type ServingAxis = (typeof SERVING_AXES)[number];
+
+/**
+ * L'ÉCHELLE, DU MOINS AU PLUS. L'ordre EST le sens: `mergeLadder` compare des
+ * rangs, et « plus que ce que la table demande » est la seule chose qu'une
+ * casserole déjà composée ne peut pas rendre.
+ */
+export const SERVING_DEMANDS = [
+  "smaller",
+  "moderate",
+  "balanced",
+  "full",
+  "larger",
+] as const;
+export type ServingDemand = (typeof SERVING_DEMANDS)[number];
+
+/**
+ * `null` = l'axe n'est pas nommé par la direction, donc elle n'en demande
+ * RIEN — n'importe quelle part convient. `"unreadable"` = l'axe est nommé mais
+ * la grammaire ci-dessus n'a pas su dire combien; c'est un échec de LECTURE, et
+ * il se traite comme un conflit (direction sûre: on descend d'un barreau).
+ */
+export type AxisDemand = ServingDemand | "unreadable" | null;
+export type ServingAxisDemands = Record<ServingAxis, AxisDemand>;
+
+/** `share of every component` — le raccourci qui gouverne les trois axes. */
+const EVERY_COMPONENT = "component";
+
+const QUALIFIERS: Record<string, ServingDemand> = {
+  generous: "larger",
+  larger: "larger",
+  full: "full",
+  moderate: "moderate",
+  balanced: "balanced",
+  // « same vegetables » = la part de tout le monde, donc l'équilibre.
+  same: "balanced",
+  smaller: "smaller",
+};
+
+const AXIS_WORDS: Record<string, ServingAxis> = {
+  protein: "protein",
+  starch: "starch",
+  vegetable: "vegetables",
+  vegetables: "vegetables",
+};
+
+export const NO_DEMAND: ServingAxisDemands = Object.freeze({
+  protein: null,
+  starch: null,
+  vegetables: null,
+});
+
+/**
+ * CE QU'UNE DIRECTION DEMANDE, AXE PAR AXE. Lecture, jamais recopie.
+ *
+ * Un axe nommé sans qualificatif devant lui rend `"unreadable"`: on ne devine
+ * pas. La direction d'erreur est choisie — un axe illisible fait renoncer la
+ * fusion au niveau ①, ce qui coûte un plat de plus et jamais une assiette qui
+ * ment.
+ */
+export function readServingDemands(direction: string): ServingAxisDemands {
+  const out: ServingAxisDemands = { protein: null, starch: null, vegetables: null };
+  const words = String(direction ?? "").toLowerCase().split(/[^a-z]+/).filter(Boolean);
+  let current: ServingDemand | null = null;
+  for (const word of words) {
+    const qualifier = QUALIFIERS[word];
+    if (qualifier) {
+      current = qualifier;
+      continue;
+    }
+    if (word === EVERY_COMPONENT) {
+      for (const axis of SERVING_AXES) out[axis] = current ?? "unreadable";
+      continue;
+    }
+    const axis = AXIS_WORDS[word];
+    if (!axis) continue;
+    out[axis] = current ?? "unreadable";
+  }
+  return out;
+}
+
+/**
+ * CE QUE CETTE BOUCHE DEMANDE À LA CASSEROLE.
+ *
+ * ⚠️ L'ORDRE DES TROIS CAS EST LE MÊME QUE DANS `buildPortionBrief`, ET CE
+ * N'EST PAS UNE COÏNCIDENCE: c'est la MÊME décision, lue deux fois. Le mineur
+ * d'abord — sa direction est une TAILLE, jamais une orientation, donc il ne
+ * demande rien à personne et il est servable de n'importe quelle casserole.
+ * Ensuite `goalApplies`, qui refuse aussi l'âge inconnu.
+ *
+ * Le test `household_merge_test.ts` vérifie que les deux lectures ne peuvent
+ * pas diverger: la direction rendue par `buildPortionBrief` pour un membre est
+ * exactement celle dont on lit les axes ici.
+ */
+export function servingDemandsFor(member: PortionMember): ServingAxisDemands {
+  if (member.ageState === "minor") return { ...NO_DEMAND };
+  if (goalApplies(member) && member.goal) {
+    return readServingDemands(SERVING_DIRECTION[member.goal]);
+  }
+  return readServingDemands(NEUTRAL_DIRECTION);
+}
+
+/**
+ * LA DIRECTION ÉCRITE POUR CE MEMBRE — extraite de `buildPortionBrief` pour
+ * qu'il n'y ait qu'UN endroit qui choisisse entre les trois.
+ */
+export function servingDirectionFor(member: PortionMember): string {
+  if (member.ageState === "minor") return CHILD_DIRECTION;
+  return goalApplies(member) && member.goal
+    ? SERVING_DIRECTION[member.goal]
+    : NEUTRAL_DIRECTION;
+}
+
+/**
+ * D6 — CE QUE LA CUISINE A LE DROIT DE FAIRE.
+ *
+ * `one_dish` est le contrat historique du foyer, et il reste le défaut de
+ * TOUTE composition: une cuisson, des parts qui divergent. Les deux autres
+ * n'existent que pour une FUSION, et seulement quand le moteur a établi —
+ * par un critère vérifiable, pas par goût — qu'un plat commun forcerait
+ * quelqu'un hors de sa direction de service.
+ */
+export const COOKING_SHAPES = [
+  "one_dish",
+  "one_session",
+  "separate_sessions",
+] as const;
+export type CookingShape = (typeof COOKING_SHAPES)[number];
+
+/**
+ * LA LIGNE QUI DIT COMBIEN DE PLATS. C'est le CONTRAT de composition, et c'est
+ * la raison du bump de `MEAL_PROMPT_VERSION` en v9: jusqu'au 2026-08-12 le
+ * brief interdisait purement et simplement de proposer deux plats.
+ */
+const COOKING_SHAPE_LINES: Record<CookingShape, readonly string[]> = {
+  one_dish: [
+    "Cook ONE set of preparations for everyone. Do NOT propose separate dishes.",
+  ],
+  one_session: [
+    "Cook ONE set of preparations for the table. ONE person below cannot be",
+    "served from it (their line says so): give them a SECOND dish, cooked in",
+    "the SAME cooking session as the rest — one session at the stove, two",
+    "dishes out of it. Never more than two.",
+  ],
+  separate_sessions: [
+    "Cook ONE set of preparations for the table. ONE person below cannot be",
+    "served from it (their line says so) and cannot share the session either:",
+    "their dishes are cooked in their OWN session, on their own day.",
+  ],
+};
+
+/**
+ * LES DEUX BARREAUX QUI DEMANDENT UN PLAT DE PLUS — lu sur les lignes
+ * ci-dessus, jamais recopié.
+ *
+ * ⚠️ IL EXISTE PARCE QUE DEUX ENDROITS DOIVENT RÉPONDRE À LA MÊME QUESTION, ET
+ * QU'ILS L'ONT DÉJÀ MAL RÉPONDUE. Le plafond de plats et la garde de
+ * préparation (`meal_generation.ts`) doivent tous deux savoir si la consigne
+ * servie réclame un second plat. Le jour où un quatrième barreau apparaît, une
+ * comparaison écrite à la main quelque part continuerait de rendre `false` sans
+ * rien casser — c'est exactement le motif « garde désarmée en silence » que ce
+ * dépôt paie en boucle.
+ */
+export function asksForASecondDish(cooking: CookingShape): boolean {
+  return cooking !== "one_dish";
+}
+
+/**
+ * COMBIEN DE PLATS LA FUSION AJOUTE AU PLAFOND — et d'où le nombre vient.
+ *
+ * ⚠️ MESURÉ EN RUN RÉEL LE 2026-08-12, ET C'EST LE DÉFAUT QUE CETTE FONCTION
+ * RÉPARE. Le plafond valait `créneaux × jours` et ne savait rien de la fusion:
+ * le MÊME prompt annonçait « au plus 15 plats » ET « donne-lui un SECOND
+ * plat ». Le modèle a rendu 16 plats, le parseur a jeté le seizième — et le
+ * plat perdu n'était PAS celui de la personne reprise, c'était le DÎNER DU
+ * DIMANCHE DU FOYER. Reprendre quelqu'un à table coûtait un repas à tout le
+ * monde, en silence.
+ *
+ * LE NOMBRE N'EST PAS UNE CONSTANTE INVENTÉE: il se lit sur les deux seules
+ * consignes qui réclament ces plats.
+ *
+ *   ① `one_dish` — « Do NOT propose separate dishes. » ZÉRO, et c'est le point
+ *      le plus important de cette fonction. Ouvrir un budget que la consigne
+ *      interdit d'utiliser ferait « déborder poliment pour le remplir »: c'est
+ *      écrit noir sur blanc dans `dishCapFor`, et c'est déjà arrivé une fois
+ *      (un plan du jeudi qui proposait à manger jusqu'au mercredi d'après).
+ *
+ *   ②/③ — la ligne de forme réclame « a SECOND dish » (donc AU MOINS un), et
+ *      `buildMergeBlock` pose sous les yeux du modèle les plats propres de la
+ *      personne, en lui disant « Keep the dishes below as THEIR dishes ». Le
+ *      budget est donc EXACTEMENT ce qu'on lui montre — `ownDishesShown`,
+ *      c'est-à-dire la liste APRÈS le filtre de fenêtre et APRÈS
+ *      `MERGE_MATERIAL_CAP` (`mergeMaterialShown`, `household_merge.ts`).
+ *
+ * ── LE PLAFOND DU BONUS EST LE PLAFOND DE BASE, ET IL SE DÉDUIT ───────────
+ * Une bouche de plus mange au plus ce qu'une bouche mange: `créneaux × jours`,
+ * c'est-à-dire le plafond de base lui-même. Un `ownDishesShown` aberrant (un
+ * plan personnel bavard, un appelant qui compte autre chose que ce qui est
+ * montré) ne peut donc pas doubler deux fois le budget de la table.
+ *
+ * ⚠️ CE N'EST PAS `MERGE_MATERIAL_CAP` QUI BORNE ICI, ET C'EST VOULU: importer
+ * `household_merge.ts` depuis ce fichier ferait un cycle (il importe déjà
+ * celui-ci). Le plafond de base est la borne JUSTE de toute façon — 42 lignes
+ * de matière sur une fenêtre de trois jours resteraient trois jours de repas.
+ */
+export function mergeDishBonus(
+  cooking: CookingShape,
+  ownDishesShown: number,
+  baseCap: number,
+): number {
+  if (!asksForASecondDish(cooking)) return 0;
+  const shown = Number.isFinite(ownDishesShown) ? Math.floor(ownDishesShown) : 0;
+  const ceiling = Number.isFinite(baseCap) ? Math.max(1, Math.floor(baseCap)) : 1;
+  return Math.max(1, Math.min(shown, ceiling));
+}
 
 /**
  * LE GARDE-FOU QUI VOYAGE AVEC LES FAITS CORPORELS — lot 3B.
@@ -225,20 +477,26 @@ const BODY_FACTS_CAVEAT = [
  * OBSERVABLE dans le brief — un membre marqué « on ne vous dira rien de lui »
  * est un membre désigné.
  */
-export function buildPortionBrief(members: readonly PortionMember[]): string {
+export function buildPortionBrief(
+  members: readonly PortionMember[],
+  /**
+   * ⚠️ REQUIS, jamais optionnel, et jamais défaut-é à `one_dish`. « Paramètre
+   * de garde optionnel = garde désarmée » est une cicatrice de ce dépôt: un
+   * paramètre facultatif n'aurait fait remonter AUCUN appelant au compilateur,
+   * et la fusion aurait interdit au modèle, dans le même prompt, exactement ce
+   * qu'elle lui demande de faire.
+   */
+  cooking: CookingShape,
+): string {
   if (members.length === 0) return "";
   let anyBodyFacts = false;
   const lines = members.map((m) => {
-    // L'ORDRE DES TROIS CAS EST LA RÈGLE, pas un style. Le mineur d'abord: il a
-    // sa propre direction, qui est une TAILLE et jamais une orientation.
-    // Ensuite `goalApplies`, qui refuse aussi l'âge inconnu — sans lui, une
-    // bouche saisie sans date recevrait la direction de son objectif comme si
-    // on savait qu'elle est adulte.
-    const direction = m.ageState === "minor"
-      ? CHILD_DIRECTION
-      : goalApplies(m) && m.goal
-      ? SERVING_DIRECTION[m.goal]
-      : NEUTRAL_DIRECTION;
+    // L'ORDRE DES TROIS CAS EST LA RÈGLE, pas un style — et il est écrit UNE
+    // fois, dans `servingDirectionFor`, parce que la fusion doit lire
+    // EXACTEMENT la direction que ce brief écrit (D6). Deux lectures de la
+    // même règle finiraient par diverger, et la fusion renoncerait — ou
+    // n'aurait pas renoncé — sur une direction que personne n'a servie.
+    const direction = servingDirectionFor(m);
     // AUCUNE DES DEUX GARDES N'EST APPLIQUÉE ICI — ni le plancher TCA, ni la
     // règle du mineur. `householdBodyFacts` les porte toutes les deux, dans le
     // même fichier que `mealBodyBlocks`: une garde qu'un appelant applique est
@@ -251,7 +509,7 @@ export function buildPortionBrief(members: readonly PortionMember[]): string {
   });
   return [
     "HOUSEHOLD SERVING PLAN — one cooking session, portions that differ.",
-    "Cook ONE set of preparations for everyone. Do NOT propose separate dishes.",
+    ...COOKING_SHAPE_LINES[cooking],
     "For each person below, give a short serving instruction: how much of which",
     "component goes on their plate, and which side is added or dropped.",
     "",

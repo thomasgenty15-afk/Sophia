@@ -75,6 +75,15 @@ import {
   daysWithProperty,
 } from "./day_properties.ts";
 import type { DayPropertyEntry } from "./day_properties.ts";
+// L4/D6 — LA FORME DE CUISINE. Importée, jamais recopiée: la liste des barreaux
+// et les LIGNES DE CONSIGNE qui les servent vivent au même endroit
+// (`COOKING_SHAPE_LINES`), et c'est là que se lit « combien de plats ce barreau
+// réclame ». Aucun cycle: `household_portions.ts` n'importe pas ce fichier.
+import {
+  asksForASecondDish,
+  type CookingShape,
+  mergeDishBonus,
+} from "./household_portions.ts";
 
 // ---------------------------------------------------------------------------
 // Entrées / sorties
@@ -463,7 +472,14 @@ export interface MealPreparation {
   /** Référence locale au plan, citée par les plats et les sessions. */
   id: string;
   title: string;
-  /** Combien de portions sortent de cette cuisson. Toujours > 1. */
+  /**
+   * Combien de portions sortent de cette cuisson.
+   *
+   * `> 1` PARTOUT, SAUF SOUS FUSION AUX BARREAUX ② ET ③, où `1` est le cas
+   * NOMINAL: la consigne y demande un plat pour une seule bouche (voir la garde
+   * dans `parseGeneratedMeal`). Un écran qui déduit « c'est un lot » de
+   * l'existence d'une préparation doit donc lire ce nombre, pas le supposer.
+   */
   servingsMade: number;
   /** Les ingrédients de la PRÉPARATION, pour la totalité du lot. */
   ingredients: DishIngredient[];
@@ -592,13 +608,48 @@ export interface GeneratedMeal {
 // changé le prompt du foyer SANS que rien ne bouge: deux plans stampés pareil
 // portaient des consignes différentes, et rien n'échouait.
 //
-// ⚠️ LE PROCHAIN BUMP D'ICI EST DÉJÀ DÛ. Le lot 4 du chantier « plans
-// individuels et fusion » change le CONTRAT de composition (les objectifs des
-// membres cessent d'être une consigne de service) — ça passe par
-// `household_portions.ts`, qui est du TRONC. Il devra passer en v9 — ne pas le
-// glisser dans v8, sinon la comparaison avant/après de ce lot-ci devient
-// illisible.
-export const MEAL_PROMPT_VERSION = "meal.en.v8_distinct_health_direction";
+// ── v9 (2026-08-12) — LE CONTRAT DE COMPOSITION CESSE D'ÊTRE « UN SEUL PLAT »
+//
+// C'est le bump que v8 annonçait comme dû, et il est arrivé par L4 (le moteur
+// de fusion, D6). Jusqu'ici `buildPortionBrief` disait à TOUTE composition de
+// foyer, sans condition: « Cook ONE set of preparations for everyone. Do NOT
+// propose separate dishes. » L'échelle de fusion a besoin de deux barreaux de
+// plus — deux plats dans UNE session, puis deux sessions — donc cette ligne
+// devient une VARIABLE (`CookingShape`), et c'est un changement de contrat, pas
+// de formulation.
+//
+// ⚠️ POURQUOI ICI ET PAS SUR L'AXE FOYER. `buildPortionBrief` vit dans
+// `household_portions.ts`, que ce fichier-ci définit comme du TRONC (« brief de
+// portions, propriétés de jour, apports fixes »). La lane INDIVIDUELLE ne
+// l'appelle pas et son prompt ne bouge pas d'un octet — mais elle est stampée
+// par cette constante, et c'est le prix nommé d'avance: mieux vaut une
+// population individuelle qui change de numéro sans changer de consigne qu'un
+// foyer où deux consignes portent le même numéro. C'est exactement ce que L2 a
+// mesuré et ce que le second axe existe pour éviter.
+//
+// UNE COMPOSITION ORDINAIRE REND LA MÊME CONSIGNE, À L'OCTET PRÈS: `one_dish`
+// rend la ligne d'avant, mot pour mot, et un test le tient.
+//
+// ── CE QUI N'A PAS BUMPÉ ICI, ET POURQUOI (2026-08-12, aval de L4) ────────
+// Le budget de plats d'une FUSION compte désormais la bouche reprise
+// (`dishBudgetFor`), et le parseur accepte la préparation d'UNE portion que les
+// barreaux ② et ③ demandent. Le code changé vit dans ce fichier — donc dans le
+// tronc — et pourtant la version du tronc NE BOUGE PAS. La règle n'est pas « où
+// vit le code », c'est « quelle population voit une consigne différente »:
+//
+//   · `merge: null` (lane individuelle, ET composition de foyer ordinaire) rend
+//     EXACTEMENT le plafond d'avant, la même phrase, le même budget de
+//     sessions. Deux tests le tiennent, dont un qui compare le nombre annoncé
+//     au nombre appliqué.
+//   · seule une FUSION voit la ligne « at most N dishes » changer de nombre, et
+//     une fusion n'existe que sur la lane foyer.
+//
+// Le bump est donc allé sur `HOUSEHOLD_PROMPT_VERSION` (v3 → v4), qui a
+// exactement la portée du changement. Bumper ici aurait re-stampé toute la
+// population individuelle pour un changement qu'elle ne voit jamais — c'est
+// précisément ce que le second axe existe pour éviter, et le prix que v9 a payé
+// une fois est un prix qu'on ne repaie pas sans raison.
+export const MEAL_PROMPT_VERSION = "meal.en.v9_cooking_shape";
 
 const DAY_TOKENS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
 
@@ -767,6 +818,60 @@ export function dishCapFor(
     case "several_days":
       return occasions.length * days;
   }
+}
+
+/**
+ * L4/D6 — UNE BOUCHE REPRISE PAR LA FUSION, TELLE QUE LE BUDGET LA VOIT.
+ *
+ * `null` sur la lane INDIVIDUELLE et sur toute composition de foyer ordinaire;
+ * renseigné uniquement par `operation: "merge"`.
+ */
+export interface MergedEater {
+  /** Le barreau décidé par `mergeLadder` (D6). Jamais deviné ici. */
+  shape: CookingShape;
+  /**
+   * COMBIEN DE PLATS PROPRES LA CONSIGNE DE FUSION MET SOUS LES YEUX DU MODÈLE.
+   *
+   * C'est la liste de `buildMergeBlock`, APRÈS le filtre de fenêtre et APRÈS
+   * `MERGE_MATERIAL_CAP` — `mergeMaterialShown()` la rend, et c'est la seule
+   * façon correcte de la compter: un budget ouvert sur des plats que le modèle
+   * ne voit pas est un budget qu'il remplit avec autre chose.
+   */
+  ownDishesShown: number;
+}
+
+/**
+ * LE BUDGET DE PLATS SERVI AU MODÈLE — et le SEUL nombre que les deux bouts
+ * lisent.
+ *
+ * ⚠️ IL EXISTE PARCE QUE LE PROMPT ET LE PARSEUR DOIVENT BOUGER ENSEMBLE. C'est
+ * le défaut d'origine de ce fichier, écrit deux fois dans `dishCapFor`: annoncer
+ * un budget et en appliquer un autre est pire que n'en avoir aucun. Les deux
+ * appels passent donc par cette fonction, avec les mêmes entrées.
+ *
+ * ── POURQUOI `dishCapFor` N'A PAS CHANGÉ DE SIGNATURE ─────────────────────
+ * Parce que la lane INDIVIDUELLE ne doit pas bouger d'un plat, et que la
+ * meilleure preuve qu'elle n'a pas bougé est que la fonction qui la borne est
+ * restée identique, avec ses tests inchangés. Le supplément de fusion est une
+ * couche AU-DESSUS, nulle par défaut.
+ */
+export function dishBudgetFor(args: {
+  scope: MealScope;
+  rhythm: readonly EatingOccasionSlot[];
+  daysToFill: number;
+  /**
+   * ⚠️ REQUIS, `T | null`, jamais `T?`. C'est la SEPTIÈME fois que ce fichier
+   * écrit cette phrase, et il l'a payée les six précédentes. Ici l'oubli est le
+   * défaut mesuré du 2026-08-12: le budget resterait celui d'une table sans
+   * bouche de plus, le modèle déborderait d'un plat, et le parseur jetterait
+   * LE DERNIER de la liste — c'est-à-dire le dîner du dimanche du foyer, pas le
+   * plat en trop.
+   */
+  merge: MergedEater | null;
+}): number {
+  const base = dishCapFor(args.scope, args.rhythm, args.daysToFill);
+  if (args.merge === null) return base;
+  return base + mergeDishBonus(args.merge.shape, args.merge.ownDishesShown, base);
 }
 
 // ---------------------------------------------------------------------------
@@ -1222,6 +1327,17 @@ export function buildMealPrompt(args: {
    * restes, c'est-à-dire la moitié d'un batch jetée.
    */
   dayProperties: readonly DayPropertyEntry[];
+  /**
+   * L4/D6 — LA BOUCHE REPRISE PAR LA FUSION, ou `null`.
+   *
+   * ⚠️ REQUIS, `T | null`, jamais `T?`, et la raison est MESURÉE. La fusion
+   * ajoute des plats PAR CONSTRUCTION: sans ce champ, le même prompt annonce
+   * « au plus 15 plats » et « donne-lui un SECOND plat ». Un champ facultatif
+   * n'aurait fait remonter AUCUN appelant au compilateur — et le jour où une
+   * troisième lane apparaît, elle hériterait du budget d'une table qui n'a pas
+   * la bouche qu'on lui a ajoutée. Chaque appelant DIT ce qu'il veut.
+   */
+  merge: MergedEater | null;
 }): { systemPrompt: string; userMessage: string } {
   const rhythm = args.eatingRhythm && args.eatingRhythm.length > 0
     ? args.eatingRhythm
@@ -1230,7 +1346,26 @@ export function buildMealPrompt(args: {
   // des moments que le prompt NOMME trois lignes plus haut. Passer le brut a
   // déjà produit la divergence exacte que `dishCapFor` documente — la consigne
   // demandait trois plats, le plafond en autorisait quatre.
-  const cap = dishCapFor(args.scope, rhythm, args.daysToFill?.length || 7);
+  //
+  // DEUX NOMBRES, ET ILS NE MESURENT PAS LA MÊME CHOSE.
+  //   · `cap`     — les PLATS. Il compte la bouche reprise par la fusion, qui
+  //                 en demande de son côté (`dishBudgetFor`).
+  //   · `baseCap` — les SESSIONS, plus bas. Il ne la compte PAS, et c'est le
+  //                 sujet: le barreau ② promet mot pour mot « one session at
+  //                 the stove, two dishes out of it ». Dériver le budget de
+  //                 sessions du plafond GONFLÉ contredirait la consigne servie,
+  //                 dans le même message. Le barreau ③, lui, réclame bien une
+  //                 session à part — elle se prend dans un budget qui est un
+  //                 PLAFOND et non une cible (mesuré: 5 autorisées, 2 à 3
+  //                 utilisées). Si un run montre que ③ manque de place, c'est
+  //                 ici, en une ligne, que ça se répare.
+  const baseCap = dishCapFor(args.scope, rhythm, args.daysToFill?.length || 7);
+  const cap = dishBudgetFor({
+    scope: args.scope,
+    rhythm,
+    daysToFill: args.daysToFill?.length || 7,
+    merge: args.merge,
+  });
   // Les absences, en prose, une ligne par jour. Calculées ici pour être
   // insérées plus bas dans la même liste que le reste des contraintes.
   const awayLines = (args.awayDays ?? []).map((a) =>
@@ -1543,7 +1678,8 @@ export function buildMealPrompt(args: {
         // dîner. La règle est la même — pas de trou — mais sur SA journée.
         `every day of the stretch needs ${occasionList(rhythm)}. A day missing ` +
         "one of those is a hole, and the student did not ask for a partial week.",
-        `cooking sessions: at most ${batchSessionBudget(cap)} for the whole ` +
+        // `baseCap`, PAS `cap` — voir les deux nombres en tête de fonction.
+        `cooking sessions: at most ${batchSessionBudget(baseCap)} for the whole ` +
         "stretch. Most lunches and dinners must therefore come from BATCHES — " +
         "one cooking session, several servings, several days, declared in " +
         "`batch`. Seventeen separately-cooked dishes is not a plan anybody cooks.",
@@ -1738,6 +1874,17 @@ export function parseGeneratedMeal(
      * quand même.
      */
     dayProperties: readonly DayPropertyEntry[];
+    /**
+     * L4/D6 — LA MÊME BOUCHE REPRISE que celle passée à `buildMealPrompt`.
+     *
+     * REQUIS, `T | null`, jamais `T?`. Les DEUX BOUTS, et c'est ce champ qui
+     * les tient ensemble: il gouverne le budget de plats (annoncé par la
+     * consigne, appliqué ici) ET la garde de préparation juste en dessous. Le
+     * jour où les deux appels ne portent pas la même valeur, la consigne
+     * demande un second plat que le parseur jette — c'est exactement le défaut
+     * mesuré le 2026-08-12, dans les deux sens à la fois.
+     */
+    merge: MergedEater | null;
   },
 ): GeneratedMeal {
   const issues: string[] = [];
@@ -1758,11 +1905,21 @@ export function parseGeneratedMeal(
 
   const root = parsed as Record<string, unknown>;
   const allowedKeys = new Set(args.beliefKeys.map((k) => String(k).trim()).filter(Boolean));
-  // LE MÊME PLAFOND QUE LE PROMPT, dérivé du MÊME rythme. Deux copies d'un même
-  // nombre dont une seule reçoit la modification est le défaut que ce fichier
-  // documente deux fois; ici les deux copies lisent la même fonction avec la
-  // même entrée, donc elles ne peuvent plus diverger.
-  const cap = dishCapFor(args.scope, args.eatingRhythm, args.daysToFill.length || 7);
+  // LE MÊME PLAFOND QUE LE PROMPT, dérivé du MÊME rythme ET de la MÊME bouche
+  // reprise. Deux copies d'un même nombre dont une seule reçoit la modification
+  // est le défaut que ce fichier documente deux fois; ici les deux copies lisent
+  // la même fonction avec la même entrée, donc elles ne peuvent plus diverger.
+  const cap = dishBudgetFor({
+    scope: args.scope,
+    rhythm: args.eatingRhythm,
+    daysToFill: args.daysToFill.length || 7,
+    merge: args.merge,
+  });
+
+  // ── LA GARDE DE PRÉPARATION DÉPEND DE QUI MANGE ─────────────────────────
+  // Résolu UNE fois, hors de la boucle: la question ne se pose pas préparation
+  // par préparation, elle se pose une fois pour le plan.
+  const secondDishAsked = args.merge !== null && asksForASecondDish(args.merge.shape);
 
   // ── LES PLATS ───────────────────────────────────────────────────────────
   // ── LES PRÉPARATIONS ────────────────────────────────────────────────────
@@ -1779,10 +1936,33 @@ export function parseGeneratedMeal(
       continue;
     }
     const made = Number(prep.servings_made);
-    if (!Number.isFinite(made) || made <= 1) {
-      // Une préparation d'UNE portion n'en est pas une: c'est un plat. La
-      // garder ferait afficher une session de cuisine pour une assiette.
-      issues.push(`preparations[${i}]: servings_made must be > 1, dropped`);
+    if (!Number.isFinite(made) || (secondDishAsked ? made < 1 : made <= 1)) {
+      // ── UNE PORTION: ÇA DÉPEND DE COMBIEN DE BOUCHES ON SERT ────────────
+      //
+      // SANS FUSION, LA GARDE RESTE ENTIÈRE, et elle est juste: une préparation
+      // d'UNE portion n'en est pas une, c'est un plat. La garder ferait afficher
+      // une session de cuisine pour une assiette. Rien ne bouge sur la lane
+      // individuelle ni sur une composition de foyer ordinaire.
+      //
+      // ⚠️ AUX BARREAUX ② ET ③, C'EST LE CAS NOMINAL, ET LA GARDE LE JETAIT.
+      // Les deux consignes demandent au modèle une préparation POUR UNE SEULE
+      // BOUCHE (« give them a SECOND dish », « their dishes »). Mesuré en run
+      // réel le 2026-08-12: le modèle a rendu `prep_zoe_tuna_pasta` avec
+      // `servings_made: 1`, obéissant parfaitement — la préparation a été jetée,
+      // puis le plat qui la citait est devenu `unknown preparation, dropped`. EN
+      // BASE, le plat de la personne fusionnée existait comme un TITRE NU,
+      // rattaché à aucune préparation et à aucune session de cuisson: la
+      // promesse « cuisiné dans la MÊME session » n'était nulle part dans le
+      // plan écrit.
+      //
+      // LE PLANCHER RESTE UNE PORTION. `0`, une valeur négative ou un
+      // `servings_made` illisible tombent dans les deux cas: une préparation qui
+      // ne nourrit personne n'est pas un plat dédié, c'est une erreur de sortie.
+      issues.push(
+        secondDishAsked
+          ? `preparations[${i}]: servings_made must be >= 1, dropped`
+          : `preparations[${i}]: servings_made must be > 1, dropped`,
+      );
       continue;
     }
     const method = cleanText(prep.method);
@@ -1893,6 +2073,20 @@ export function parseGeneratedMeal(
       continue;
     }
 
+    // ── QUAND ÇA DÉBORDE, CE SONT LES DERNIERS QUI TOMBENT ──────────────
+    //
+    // ⚠️ NOTÉ, PAS CORRIGÉ — et c'est le fait qui explique le dégât mesuré le
+    // 2026-08-12. Le parseur garde les `cap` PREMIERS plats de la liste et jette
+    // la queue; or un modèle écrit sa semaine dans l'ordre. Le plat perdu n'est
+    // donc jamais « celui en trop », c'est LE DERNIER REPAS DE LA FENÊTRE — ce
+    // jour-là, le dîner du dimanche du foyer, pendant que le plat de la personne
+    // reprise (écrit plus haut dans la liste) survivait.
+    //
+    // Le budget compte désormais cette bouche (`dishBudgetFor`), donc le
+    // débordement ne devrait plus arriver par ce chemin. Quand il arrivera quand
+    // même, il coûtera encore un dimanche, et c'est ce que cette note existe
+    // pour rendre relisible: réparer VRAIMENT demanderait de choisir quel plat
+    // sacrifier — une décision de produit que personne n'a prise.
     if (dishes.length >= cap) {
       issues.push(`dishes[${i}]: over the ${cap}-dish cap for ${args.scope}, dropped`);
       continue;

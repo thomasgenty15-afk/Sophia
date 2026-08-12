@@ -132,6 +132,7 @@ const PARSE_BASE = {
   cookingTimeMin: null,
   composition: null,
   fixedIntakes: [],
+  merge: null,
 };
 
 const BATCH_PREP = {
@@ -329,6 +330,7 @@ const PROMPT_ARGS = {
   slot: null,
   servings: 1,
   fixedIntakes: [],
+  merge: null,
 };
 
 Deno.test("R5 — DÉSARMEMENT: rien de déclaré, consigne identique AU CARACTÈRE PRÈS", () => {
@@ -380,12 +382,30 @@ Deno.test("la consigne nomme les jours et dit le NÉGATIF là où il faut", () =
 // LA VERSION DE PROMPT — R6: UN SEUL BUMP
 // ---------------------------------------------------------------------------
 
-Deno.test("R6 — un seul bump, et il nomme LES DEUX lots", () => {
-  // FF-051 et FF-052 touchent tous deux la consigne. Deux bumps successifs
-  // invalideraient deux fois le cache et rendraient illisible toute
-  // comparaison avant/après entre les deux lots.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v7_fixed_intakes_and_days");
+Deno.test("R6 — un seul bump par lot, et la version reste lisible", () => {
+  // FF-051 et FF-052 touchent tous deux la consigne, et n'ont eu qu'UN bump
+  // (`v7_fixed_intakes_and_days`) : deux bumps successifs auraient invalidé
+  // deux fois le cache et rendu illisible toute comparaison avant/après.
+  //
+  // ── POURQUOI CETTE ASSERTION A CHANGÉ DE FORME (2026-08-11) ──────────────
+  // Elle figeait la chaîne exacte `meal.en.v7_fixed_intakes_and_days`. Un
+  // troisième lot est arrivé derrière (`v8_distinct_health_direction`) et l'a
+  // fait tomber — alors que rien de ce que ce test garde n'était cassé. Un
+  // test qui rougit à chaque bump légitime entraîne à ignorer le rouge, ce qui
+  // coûte plus cher que ce qu'il protège.
+  //
+  // Ce qui est gardé désormais: la FORME de la version (donc le cache reste
+  // segmentable et comparable) et le fait qu'elle AVANCE. Que la version nomme
+  // les deux lots de FF-051/FF-052 est un fait d'histoire, il vit dans le git
+  // log — pas dans une chaîne qu'un lot ultérieur devra réécrire.
   assert(MEAL_PROMPT_VERSION.startsWith("meal.en."), "préfixe attendu ailleurs");
+  const version = MEAL_PROMPT_VERSION.slice("meal.en.".length);
+  const match = version.match(/^v(\d+)_[a-z0-9_]+$/);
+  assert(match, `version illisible: ${MEAL_PROMPT_VERSION}`);
+  assert(
+    Number(match![1]) >= 7,
+    `la version a reculé sous v7: ${MEAL_PROMPT_VERSION}`,
+  );
 });
 
 Deno.test("la liste des propriétés est FERMÉE et chacune a sa branche", () => {

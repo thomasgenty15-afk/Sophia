@@ -844,6 +844,18 @@ Deno.serve(async (req) => {
       foodPreferences: readFoodPreferences(
         goalRow.practical_constraints as Record<string, unknown> | null,
       ),
+      // ── L4/D6 · IL N'Y A PERSONNE À REPRENDRE SUR CETTE LANE ────────────
+      // `null`, et ce n'est pas un remplissage de signature. La fusion est une
+      // opération du FOYER: elle exige une table qui a dimensionné une
+      // casserole, et un plan personnel à reprendre dedans. Ici il y a UNE
+      // bouche, et son plan EST celui qu'on compose.
+      //
+      // CE QUE `null` GARANTIT, ET C'EST LA MOITIÉ QUI COMPTE: le plafond de
+      // plats reste `créneaux × jours` au plat près, et une préparation d'UNE
+      // portion reste jetée. Cette lane ne bouge pas — c'est le paramètre
+      // REQUIS qui l'a fait dire, plutôt que de la laisser hériter en silence
+      // d'un budget pensé pour une table.
+      merge: null,
     });
 
     const result = await generateWithGemini(
@@ -903,6 +915,10 @@ Deno.serve(async (req) => {
       // parseur compte l'indisponibilité nommément plutôt que de la
       // laisser ressembler à un modèle qui n'écrit pas ses quantités.
       composition,
+      // L4/D6 — LA MÊME VALEUR QUE LA CONSIGNE, et pour la raison écrite
+      // là-haut: `null` des deux côtés, donc plafond inchangé et garde de
+      // préparation entière. Les deux bouts, comme tout le reste de cet objet.
+      merge: null,
     } as const;
 
     let meal: GeneratedMeal;

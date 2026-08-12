@@ -17,6 +17,7 @@ import { assert, assertEquals } from "jsr:@std/assert@1";
 import {
   HAND_REASON_COVERS,
   HAND_REASON_PARTIAL,
+  HAND_REASON_RECLAIMED,
   type MemberOwnPlan,
   parseOwnPlans,
   planCoversWindow,
@@ -168,6 +169,7 @@ Deno.test("LE CAS QUI PASSE: sans plan validé, un secondaire reste composé", (
       member("m-kid"),
     ],
     window: WEEK,
+    reclaimed: [],
   });
   assertEquals(out.composed.map((m) => m.memberId), [
     "m-owner",
@@ -185,6 +187,7 @@ Deno.test("un secondaire dont le plan recouvre la fenêtre sort de la table", ()
       member("m-teen", { ownPlans: [plan({ id: "p-teen" })] }),
     ],
     window: WEEK,
+    reclaimed: [],
   });
   assertEquals(out.composed.map((m) => m.memberId), ["m-owner"]);
   assertEquals(out.taken, [{
@@ -210,6 +213,7 @@ Deno.test("UN PLAN PARTIEL NE RETIRE PERSONNE, ET IL EST TRACÉ", () => {
       }),
     ],
     window: WEEK,
+    reclaimed: [],
   });
   assertEquals(out.composed.map((m) => m.memberId), ["m-owner", "m-teen"]);
   assertEquals(out.taken, []);
@@ -228,6 +232,7 @@ Deno.test("un plan qui ne touche pas la fenêtre ne laisse aucune trace", () => 
       member("m-teen", { ownPlans: [plan({ startsOn: "2026-09-07" })] }),
     ],
     window: WEEK,
+    reclaimed: [],
   });
   assertEquals(out.composed.length, 2);
   assertEquals(out.taken, []);
@@ -245,6 +250,7 @@ Deno.test("LE MAÎTRE N'EST JAMAIS EXCLU, MÊME AVEC UN PLAN QUI RECOUVRE (D2)",
       member("m-teen"),
     ],
     window: WEEK,
+    reclaimed: [],
   });
   assertEquals(out.composed.map((m) => m.memberId), ["m-owner", "m-teen"]);
   assertEquals(out.taken, [], "le maître ne figure dans aucune exclusion");
@@ -262,6 +268,7 @@ Deno.test("PLUS PERSONNE À COMPOSER: le module CONSTATE, il ne refuse pas", () 
       member("m-b", { ownPlans: [plan({ id: "p-b" })] }),
     ],
     window: WEEK,
+    reclaimed: [],
   });
   assertEquals(out.composed, []);
   assertEquals(out.taken.map((t) => t.member_id), ["m-a", "m-b"]);
@@ -279,6 +286,7 @@ Deno.test("l'ordre du roster est conservé", () => {
       member("m-d"),
     ],
     window: WEEK,
+    reclaimed: [],
   });
   assertEquals(out.composed.map((m) => m.memberId), ["m-owner", "m-c", "m-d"]);
 });
@@ -298,6 +306,7 @@ Deno.test("UNE FENÊTRE ILLISIBLE N'EXCLUT PERSONNE — l'échec est OUVERT", ()
     const out = resolveHandOff({
       members: [member("m-teen", { ownPlans: [plan()] })],
       window,
+      reclaimed: [],
     });
     assertEquals(
       out.composed.map((m) => m.memberId),
@@ -306,6 +315,120 @@ Deno.test("UNE FENÊTRE ILLISIBLE N'EXCLUT PERSONNE — l'échec est OUVERT", ()
     );
     assertEquals(out.taken, []);
   }
+});
+
+// ---------------------------------------------------------------------------
+// 3 bis. L4/D6 — LA FUSION REPREND, ELLE NE CONTOURNE PAS
+// ---------------------------------------------------------------------------
+
+Deno.test("LE CAS QUI PASSE: sans reprise, rien ne bouge d'un octet", () => {
+  // ⚠️ LA MOITIÉ QUI PROUVE QUE L4 N'A RIEN CASSÉ. Une liste de reprise vide
+  // doit rendre EXACTEMENT le résultat d'avant le lot — sinon toute composition
+  // ordinaire du produit a changé de comportement pour un geste que personne
+  // n'a fait.
+  const out = resolveHandOff({
+    members: [
+      member("m-owner", { isOwner: true }),
+      member("m-teen", { ownPlans: [plan({ id: "p-teen" })] }),
+    ],
+    window: WEEK,
+    reclaimed: [],
+  });
+  assertEquals(out.composed.map((m) => m.memberId), ["m-owner"]);
+  assertEquals(out.taken.map((t) => t.member_id), ["m-teen"]);
+  assertEquals(out.reclaimed, []);
+});
+
+Deno.test("une bouche REPRISE revient à table, et sa trace le dit", () => {
+  const out = resolveHandOff({
+    members: [
+      member("m-owner", { isOwner: true }),
+      member("m-teen", { ownPlans: [plan({ id: "p-teen" })] }),
+    ],
+    window: WEEK,
+    reclaimed: ["m-teen"],
+  });
+  assertEquals(out.composed.map((m) => m.memberId), ["m-owner", "m-teen"]);
+  assertEquals(
+    out.taken,
+    [],
+    "une personne reprise ne peut pas être AUSSI exclue: deux affirmations " +
+      "contradictoires sur la même ligne de plan",
+  );
+  assertEquals(out.reclaimed, [{
+    member_id: "m-teen",
+    plan_id: "p-teen",
+    starts_on: "2026-08-10",
+    duration_days: 7,
+    validated_at: "2026-08-09T10:00:00Z",
+    reason: HAND_REASON_RECLAIMED,
+  }]);
+});
+
+Deno.test("REPRISE ET « JAMAIS RIEN VALIDÉ » NE LAISSENT PAS LA MÊME TRACE", () => {
+  // ⚠️ LA RAISON D'ÊTRE DE `reclaimed`. Dans les deux cas la personne est
+  // composée et absente de `taken`. Sans cette liste, L5 ne pourrait pas dire
+  // de qui la fusion a repris le plan — ni à quelle date de validation le
+  // comparer (D8).
+  const never = resolveHandOff({
+    members: [member("m-teen")],
+    window: WEEK,
+    reclaimed: ["m-teen"],
+  });
+  assertEquals(never.composed.length, 1);
+  assertEquals(
+    never.reclaimed,
+    [],
+    "on ne fabrique pas une provenance pour quelqu'un qui n'avait pas de plan",
+  );
+
+  const merged = resolveHandOff({
+    members: [member("m-teen", { ownPlans: [plan({ id: "p-teen" })] })],
+    window: WEEK,
+    reclaimed: ["m-teen"],
+  });
+  assertEquals(merged.reclaimed.map((t) => t.plan_id), ["p-teen"]);
+});
+
+Deno.test("un plan PARTIEL repris est tracé lui aussi (D15)", () => {
+  // Une fusion sur une intersection est le cas nominal de D15: le plan mord sur
+  // la fenêtre sans la recouvrir. Il ne retirait personne, mais c'est bien LUI
+  // qu'on fusionne — et la trace doit le nommer, sans quoi `merged_from`
+  // porterait un plan que rien d'autre ne cite.
+  const out = resolveHandOff({
+    members: [
+      member("m-teen", {
+        ownPlans: [plan({ id: "p-teen", startsOn: "2026-08-12", durationDays: 5 })],
+      }),
+    ],
+    window: WEEK,
+    reclaimed: ["m-teen"],
+  });
+  assertEquals(out.composed.map((m) => m.memberId), ["m-teen"]);
+  assertEquals(out.reclaimed.map((t) => t.plan_id), ["p-teen"]);
+  assertEquals(
+    out.partial,
+    [],
+    "un plan repris ne repart pas AUSSI dans `partial`: il n'est plus une " +
+      "intersection à fusionner, il vient d'être fusionné",
+  );
+});
+
+Deno.test("reprendre quelqu'un qui n'est pas là ne change rien", () => {
+  // Un id inconnu du roster, ou celui du maître (qui n'est jamais exclu): les
+  // deux doivent être des non-événements. Une reprise qui ferait apparaître une
+  // bouche serait bien pire qu'une reprise qui ne fait rien.
+  const out = resolveHandOff({
+    members: [
+      member("m-owner", { isOwner: true, ownPlans: [plan({ id: "p-owner" })] }),
+      member("m-teen", { ownPlans: [plan({ id: "p-teen" })] }),
+    ],
+    window: WEEK,
+    reclaimed: ["m-ghost", "m-owner"],
+  });
+  assertEquals(out.composed.map((m) => m.memberId), ["m-owner"]);
+  assertEquals(out.taken.map((t) => t.member_id), ["m-teen"]);
+  assertEquals(out.reclaimed, []);
 });
 
 // ---------------------------------------------------------------------------
@@ -403,12 +526,31 @@ Deno.test("LA PRÉSENCE ET LES PARTS SUIVENT LA LISTE EXCLUE", async () => {
 
 Deno.test("la trace du plan nomme qui a été retiré, et par quelle règle", async () => {
   const src = await householdGeneratorSource();
-  assert(
-    /hand:\s*\{\s*taken:\s*handOff\.taken,\s*partial:\s*handOff\.partial,?\s*\}/
-      .test(src),
-    "`generated_from.household.hand` n'est plus écrit: le maître voit qu'il " +
-      "cuisine pour un de moins et n'a aucun moyen de savoir pourquoi.",
-  );
+  // ⚠️ LES TROIS CLÉS SONT EXIGÉES SÉPARÉMENT, et la troisième est arrivée avec
+  // L4. La forme d'origine était UNE expression régulière sur le bloc entier;
+  // elle est tombée au premier commentaire glissé entre deux clés — un test qui
+  // casse quand rien de vrai n'a changé finit neutralisé. Ce qui compte est que
+  // les trois faits soient ÉCRITS, pas leur mise en page.
+  const hand = src.indexOf("hand: {");
+  assert(hand >= 0, "`generated_from.household.hand` n'est plus écrit du tout.");
+  const block = src.slice(hand, hand + 1600);
+  for (
+    const [key, why] of [
+      ["taken: handOff.taken", "qui a été retiré de la table"],
+      ["partial: handOff.partial", "qui porte un plan qui mord sans recouvrir"],
+      [
+        "reclaimed: handOff.reclaimed",
+        "qui a été REPRIS par une fusion — sans cette clé, une personne " +
+        "fusionnée et une personne qui n'a jamais rien validé laissent la même " +
+        "trace (L4/D6)",
+      ],
+    ] as const
+  ) {
+    assert(
+      block.includes(key),
+      `\`generated_from.household.hand\` n'écrit plus \`${key}\`: ${why}.`,
+    );
+  }
 });
 
 Deno.test("PERSONNE D'AUTRE NE REDÉFINIT « a pris la main »", async () => {

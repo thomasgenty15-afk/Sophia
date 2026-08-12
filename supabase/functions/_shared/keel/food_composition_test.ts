@@ -373,6 +373,7 @@ function parseWith(
     composition: INDEX,
     fixedIntakes: [],
     dayProperties: [],
+    merge: null,
     ...over,
   });
 }
@@ -498,4 +499,56 @@ Deno.test("le filtre numérique reste armé sur la PROSE malgré les champs neuf
   ]);
   assertEquals(meal.dishes, []);
   assertEquals(meal.rejected_numeric, ["energy_unit_in_quantity"]);
+});
+
+// ---------------------------------------------------------------------------
+// LE MILIEU DE CONSERVATION — le défaut mesuré en run réel le 2026-08-11
+// ---------------------------------------------------------------------------
+
+Deno.test("« X in Y » se résout sur X — le thon au naturel reste du thon", () => {
+  // LE DÉFAUT QUE CE TEST GARDE, et il ne coûtait pas une ligne de calcul: il
+  // faussait LE DIAGNOSTIC. Le modèle écrit « canned tuna in spring water,
+  // drained »; `canned` et `drained` tombaient bien, mais « in spring water »
+  // restait et l'appariement échouait — alors que l'aliment EXISTE.
+  //
+  // Or ce que le modèle décrit le plus volontiers, ce sont les SOURCES DE
+  // PROTÉINE et les féculents: précisément ce qui porte l'énergie. Un plat de
+  // thon se calculait à 3 g de protéines, et le plan entier passait pour trois
+  // fois plus léger qu'il n'était. Un défaut de MESURE pris pour un défaut de
+  // PRODUIT.
+  assertEquals(resolveIngredient(INDEX, "chicken in a light marinade")?.slug, "chicken_breast");
+  assertEquals(resolveIngredient(INDEX, "chopped tomatoes in juice")?.slug, "tomato");
+  assertEquals(resolveIngredient(INDEX, "haricots dans une sauce")?.slug, undefined);
+  // La réduction s'applique AVANT le retrait des modificateurs, donc les deux
+  // se composent: « canned X in Y, drained » doit tomber sur X.
+  assertEquals(resolveIngredient(INDEX, "canned tomatoes in brine, drained")?.slug, "tomato");
+});
+
+Deno.test("`with` ne coupe JAMAIS — il nomme un second aliment", () => {
+  // « chicken with rice » nomme deux aliments. Couper y perdrait le second, et
+  // le calcul compterait un plat pour la moitié de ce qu'il est. Seul le
+  // MILIEU se coupe, jamais une énumération.
+  // Et il reste donc NON RÉSOLU — ce qui est le bon comportement: « chicken
+  // with rice » n'est pas un aliment, c'est une assiette. Le compter comme du
+  // poulet seul ferait disparaître le riz du calcul.
+  assertEquals(resolveIngredient(INDEX, "chicken with rice"), null);
+  // Et l'ALTERNATIVE disqualifie toujours, coupure ou pas.
+  assertEquals(resolveIngredient(INDEX, "butter or olive oil"), null);
+  assertEquals(resolveIngredient(INDEX, "olive oil or butter in a pan"), null);
+});
+
+Deno.test("désarmement: un terme sans milieu se résout comme avant", () => {
+  // La réduction ne doit RIEN changer aux termes qui marchaient déjà.
+  for (const [term, slug] of [
+    ["chicken", "chicken_breast"],
+    ["basmati rice", "white_rice"],
+    ["huile d'olive", "olive_oil"],
+    ["tomatoes", "tomato"],
+    ["oignon", "onion"],
+  ] as const) {
+    assertEquals(resolveIngredient(INDEX, term)?.slug, slug, term);
+  }
+  // Et un terme inconnu reste inconnu: la réduction n'invente pas.
+  assertEquals(resolveIngredient(INDEX, "wholemeal tortilla"), null);
+  assertEquals(resolveIngredient(INDEX, "kombu in dashi"), null);
 });

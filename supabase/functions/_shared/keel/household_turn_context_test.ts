@@ -133,6 +133,16 @@ function tables(over: Partial<Tables> = {}): Tables {
     student_generated_meals: [{
       id: "plan-1",
       household_id: HOUSE,
+      // ⚠️ EXIGÉ PAR LE CHARGEUR DEPUIS L3, ET ABSENT DU DÉCOR JUSQU'AU
+      // 2026-08-12: sept tests de ce fichier étaient ROUGES au HEAD. Le
+      // chargeur filtre `plan_kind = 'household'` (un plan PERSONNEL porte
+      // aussi `household_id`), et une ligne de décor sans la colonne était
+      // écartée — donc « aucun plan », donc `hasPlanToday: false`.
+      //
+      // C'est la cicatrice du dépôt en miroir: un décor qui ment sur la FORME
+      // de la donnée cache le défaut qu'il devrait montrer. Ici il le
+      // FABRIQUAIT.
+      plan_kind: "household",
       retired_at: null,
       starts_on: "2026-08-03",
       ends_on: "2026-08-09",
@@ -222,6 +232,7 @@ Deno.test("UNE PRÉPARATION D'UN JOUR PASSÉ ne remonte pas", async () => {
       student_generated_meals: [{
         id: "plan-1",
         household_id: HOUSE,
+        plan_kind: "household",
         retired_at: null,
         starts_on: "2026-08-03",
         ends_on: "2026-08-09",
@@ -254,6 +265,7 @@ Deno.test("LA LISTE DE COURSES est lue, et son absence est DITE", async () => {
       student_generated_meals: [{
         id: "plan-1",
         household_id: HOUSE,
+        plan_kind: "household",
         retired_at: null,
         starts_on: "2026-08-03",
         ends_on: "2026-08-09",
@@ -533,6 +545,7 @@ Deno.test("LE BLOC EST BORNÉ — le budget tronque par la queue", async () => {
       student_generated_meals: [{
         id: "plan-big",
         household_id: HOUSE,
+        plan_kind: "household",
         retired_at: null,
         starts_on: "2026-08-03",
         ends_on: "2026-08-09",

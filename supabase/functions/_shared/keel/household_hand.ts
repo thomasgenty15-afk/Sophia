@@ -66,6 +66,17 @@
  *   assiettes, alors que rétrécir après coup ne rend pas les dîners d'un
  *   secondaire qu'on avait cessé de compter.
  *
+ * ── L4/D6 — LA FUSION REPREND, ELLE NE CONTOURNE PAS ────────────────────
+ * Depuis le 2026-08-12, l'appelant peut nommer des bouches RECLAMÉES: le maître
+ * a décidé de les reprendre dans la cuisine commune. Elles restent composées, et
+ * elles sont tracées dans `reclaimed` avec le plan qui les aurait retirées.
+ *
+ * ⚠️ ÇA PASSE PAR ICI, ET PAS À CÔTÉ. La tentation était de laisser la fusion
+ * ré-ajouter la personne après coup, dans le générateur. Ç'aurait fait DEUX
+ * endroits qui décident qui est à table — et ce module existe précisément parce
+ * qu'il n'y en a qu'un. Une seconde décision aurait divergé au premier
+ * ajustement, en silence, dans le sens qui affame.
+ *
  * ── LE MAÎTRE N'EST JAMAIS EXCLU ────────────────────────────────────────
  * D2: « le plan du maître EST le plan du foyer ». S'il porte par ailleurs un
  * plan personnel validé — un reliquat de la lane individuelle, par exemple — ce
@@ -183,6 +194,16 @@ export interface HandMember {
  */
 export const HAND_REASON_COVERS = "personal_plan_covers_window";
 export const HAND_REASON_PARTIAL = "personal_plan_partial_window";
+/**
+ * L4/D6 — LE MAÎTRE A REPRIS CETTE PERSONNE À SA TABLE.
+ *
+ * C'est le seul motif qui RAMÈNE quelqu'un au lieu de le retirer, et c'est
+ * pour ça qu'il est nommé plutôt que déduit d'une absence de `taken`: sans lui,
+ * « fusionné » et « n'a jamais pris la main » laisseraient exactement la même
+ * trace sur la ligne du plan, et personne ne pourrait dire lequel des deux
+ * s'est produit trois jours plus tard.
+ */
+export const HAND_REASON_RECLAIMED = "merge_reclaimed";
 
 /** Ce qu'on archive dans `generated_from`, par bouche concernée. */
 export interface HandTraceEntry {
@@ -215,6 +236,17 @@ export interface HandOff<T> {
    * fusionner (D15).
    */
   partial: HandTraceEntry[];
+  /**
+   * L4/D6 — QUI A ÉTÉ REPRIS À LA TABLE PAR UNE FUSION, avec le plan qui
+   * l'aurait retiré. Vide sur toute composition ordinaire.
+   *
+   * ⚠️ ON NE PEUT PAS LE DÉDUIRE DE `taken`. Une personne fusionnée est ABSENTE
+   * de `taken` — exactement comme une personne qui n'a jamais rien validé. La
+   * seule différence est ici, et elle est décisive: c'est ce que L5 lira pour
+   * savoir de qui la fusion a repris le plan, et à quelle date de validation le
+   * comparer (D8).
+   */
+  reclaimed: HandTraceEntry[];
 }
 
 function traceOf(
@@ -243,10 +275,25 @@ function traceOf(
 export function resolveHandOff<T extends HandMember>(args: {
   members: readonly T[];
   window: PlanWindow;
+  /**
+   * L4/D6 — LES BOUCHES QUE LE MAÎTRE REPREND À SA TABLE, par `memberId`.
+   *
+   * ⚠️ REQUIS, jamais optionnel, et jamais défaut-é à `[]`. Un paramètre
+   * facultatif n'aurait fait remonter AUCUN appelant au compilateur, et une
+   * fusion qui oublie de le passer compose sans la personne qu'elle fusionne —
+   * c'est-à-dire écrit un plan « fusionné » où l'intéressé n'a pas d'assiette,
+   * sans qu'une seule ligne échoue. « Paramètre de garde optionnel = garde
+   * désarmée », et ici la garde marche dans les deux sens.
+   *
+   * Une composition ordinaire passe `[]`, et le résultat est byte-identique à
+   * celui d'avant L4.
+   */
+  reclaimed: readonly string[];
 }): HandOff<T> {
   const composed: T[] = [];
   const taken: HandTraceEntry[] = [];
   const partial: HandTraceEntry[] = [];
+  const reclaimed: HandTraceEntry[] = [];
 
   const windowUsable = DATE.test(args.window.startsOn) &&
     Number.isFinite(args.window.durationDays) && args.window.durationDays >= 1;
@@ -261,6 +308,22 @@ export function resolveHandOff<T extends HandMember>(args: {
     }
 
     const covering = member.ownPlans.find((p) => planCoversWindow(p, args.window));
+
+    // L4/D6 — LA FUSION PASSE AVANT L'EXCLUSION, et l'ordre est le sujet.
+    // Reprendre quelqu'un, c'est précisément annuler ce que son plan aurait
+    // fait: le juger d'abord puis le rattraper ensuite ferait apparaître son id
+    // dans `taken` ET à table, deux affirmations contradictoires sur la même
+    // ligne de plan.
+    if (args.reclaimed.includes(member.memberId)) {
+      const source = covering ??
+        member.ownPlans.find((p) => plansOverlap(p, args.window)) ?? null;
+      if (source) {
+        reclaimed.push(traceOf(member.memberId, source, HAND_REASON_RECLAIMED));
+      }
+      composed.push(member);
+      continue;
+    }
+
     if (covering) {
       taken.push(traceOf(member.memberId, covering, HAND_REASON_COVERS));
       continue;
@@ -274,5 +337,5 @@ export function resolveHandOff<T extends HandMember>(args: {
     composed.push(member);
   }
 
-  return { composed, taken, partial };
+  return { composed, taken, partial, reclaimed };
 }

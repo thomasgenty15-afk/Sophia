@@ -193,6 +193,7 @@ Deno.test("le plafond du PROMPT et celui du PARSEUR ne peuvent pas diverger", ()
     coachNoteBlock: null,
     fixedIntakes: [],
     dayProperties: [],
+    merge: null,
     protocolBlock: "",
     beliefKeys: [],
     goal: "health",
@@ -237,6 +238,7 @@ Deno.test("le plafond du PROMPT et celui du PARSEUR ne peuvent pas diverger", ()
       composition: null,
       fixedIntakes: [],
       dayProperties: [],
+      merge: null,
     },
   );
   assertEquals(meal.dishes.length, 5);
@@ -284,6 +286,7 @@ Deno.test("la TAILLE d'un moment arrive jusqu'à la consigne", () => {
     coachNoteBlock: null,
     fixedIntakes: [],
     dayProperties: [],
+    merge: null,
     protocolBlock: "",
     beliefKeys: [],
     goal: "health",

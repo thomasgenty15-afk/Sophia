@@ -1,0 +1,617 @@
+/**
+ * LA FUSION — reprendre dans la cuisine commune quelqu'un qui mangeait à part.
+ * PUR.
+ *
+ * Autorité produit: docs/keel/CHANTIER-PLANS-INDIVIDUELS-ET-FUSION.md,
+ * arbitrages D6 (l'échelle), D15 (l'intersection), D16 (le pivot). Lot L4.
+ *
+ * ── CE QUE LA FUSION EST, ET CE QU'ELLE N'EST PAS ────────────────────────
+ * L3 a livré le REPLI, et il marche seul: un secondaire qui a validé un plan
+ * personnel recouvrant la fenêtre est RETIRÉ du plan du foyer. Il mange le
+ * sien, le maître cuisine sans lui, et personne ne fusionne.
+ *
+ * L4 ajoute le geste qui rattrape ça. Le maître — LUI, jamais un automatisme
+ * (D10) — décide de reprendre cette personne à sa table. Le résultat est un
+ * NOUVEAU plan du foyer.
+ *
+ * ⚠️ CE QUI N'EST JAMAIS ÉCRASÉ: le plan PERSONNEL du secondaire. La fusion
+ * écrit une ligne neuve (`plan_kind = 'household'`, sur le compte du maître);
+ * la ligne personnelle du secondaire reste intacte, à l'octet près. C'est le
+ * repli si le maître défusionne ensuite (D8, L5) — et une défusion qui devrait
+ * REGÉNÉRER le plan qu'elle prétend restaurer ne serait pas une défusion.
+ *
+ * ── CE MODULE DÉCIDE TROIS CHOSES, ET SEULEMENT TROIS ────────────────────
+ *   1. SUR QUELS JOURS (D15 · D16) — `resolveMergeWindow`.
+ *   2. QUELLE FORME DE CUISINE (D6) — `mergeLadder`.
+ *   3. CE QU'ON EN ARCHIVE — `mergedFromEntry`, et le bloc `merge` de
+ *      `generated_from`.
+ *
+ * Il ne lit aucune base, n'appelle aucun modèle, et ne REFUSE rien: il rend un
+ * motif nommé, et l'appelant choisit son statut HTTP. Même coupure que
+ * `household_hand.ts` et `household_presence.ts` — la moitié qui décide est
+ * testable sans base, donc mutable.
+ *
+ * ── POURQUOI PAS UNE FONCTION EDGE À ELLE ────────────────────────────────
+ * Parce qu'elle exige EXACTEMENT les mêmes préconditions que la composition:
+ * le gel 402 (L1), la résolution du foyer, l'union des allergies, le plafond de
+ * bouches, la version de prompt. Une seconde fonction dupliquerait cinq gardes,
+ * et ce dépôt a déjà payé plusieurs fois « deux définitions qui divergent au
+ * premier ajustement ». La fusion vit donc dans `generate-household-meal-v1`,
+ * comme une OPÉRATION à part (`operation: "merge"`), et les cinq gardes sont
+ * franchies une seule fois, par le même chemin.
+ */
+
+import { addDays, planEndsOn } from "./meal_plan_window.ts";
+import {
+  asksForASecondDish,
+  type CookingShape,
+  SERVING_AXES,
+  type ServingAxisDemands,
+  type ServingDemand,
+} from "./household_portions.ts";
+
+const DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+/** Une fenêtre de plan, telle que la porte `student_generated_meals`. */
+export interface PlanSpan {
+  startsOn: string;
+  durationDays: number;
+}
+
+// ---------------------------------------------------------------------------
+// LES MOTIFS DE REFUS — nommés, et décidables SANS le modèle
+//
+// ⚠️ C'EST LA MOITIÉ QUI COÛTE. L1 a mesuré 28,6 s et 225 s de modèle brûlées
+// sur des refus qui ne dépendaient que du corps de la requête. Chacun des
+// motifs ci-dessous se tranche sur deux fenêtres et une date: aucun n'a de
+// raison d'attendre une génération, et un test de position le garde.
+// ---------------------------------------------------------------------------
+
+/**
+ * Une des deux fenêtres n'est pas une fenêtre.
+ *
+ * ⚠️ STRUCTURELLEMENT INATTEIGNABLE DEPUIS UNE BASE VALIDE, ET C'EST ÉCRIT ICI
+ * POUR QU'ON NE LE REDÉCOUVRE PAS. Les deux fenêtres viennent de
+ * `student_generated_meals`, où `starts_on` est `NOT NULL` et où
+ * `student_generated_meals_duration_days_check` impose `duration_days between 1
+ * and 7`: `spanUsable` ne peut donc pas rendre `false` sur une ligne que la
+ * base a acceptée. La troisième entrée, `today`, est le `todayDate` déjà résolu
+ * par l'appelant, qui refuse en `local_day_unresolved` bien avant d'arriver ici.
+ *
+ * C'EST UNE BRANCHE DÉFENSIVE, PAS UN REFUS QU'UN APPELANT PEUT RECEVOIR. Elle
+ * RESTE: le jour où ce module est appelé sur une fenêtre venue d'ailleurs (un
+ * écran, une proposition de L5, un import), c'est elle qui empêche une
+ * intersection calculée sur `NaN`. Un test la garde par la fonction pure, pas
+ * par un scénario HTTP qui n'existe pas.
+ */
+export const MERGE_WINDOW_UNREADABLE = "merge_window_unreadable";
+/** Les deux plans ne partagent aucun jour: il n'y a rien à fusionner (D15). */
+export const MERGE_WINDOWS_DISJOINT = "merge_windows_disjoint";
+/** Tout ce qu'ils partagent est déjà passé: on ne refusionne pas hier (D16). */
+export const MERGE_WINDOW_ALL_PAST = "merge_window_all_past";
+
+export type MergeWindowRefusal =
+  | typeof MERGE_WINDOW_UNREADABLE
+  | typeof MERGE_WINDOWS_DISJOINT
+  | typeof MERGE_WINDOW_ALL_PAST;
+
+export interface MergeWindow {
+  /** L'intersection BRUTE des deux fenêtres, avant le pivot (D15). */
+  intersection: PlanSpan;
+  /** Le premier jour non consommé, dans le fuseau de l'élève (D16). */
+  pivot: string;
+  /** Ce que la fusion recompose vraiment: l'intersection, coupée au pivot. */
+  window: PlanSpan;
+  /**
+   * Combien de jours de l'intersection sont tombés parce qu'ils sont passés.
+   *
+   * RENDU, JAMAIS SEULEMENT CALCULÉ: c'est ce que la proposition de D16 doit
+   * dire mot pour mot — « son plan couvre 5 jours, dont 2 déjà passés — je peux
+   * fusionner les 3 restants ». Sans ce nombre, l'écran devrait le recalculer,
+   * et un nombre recalculé ailleurs est un nombre qui diverge.
+   */
+  daysAlreadyPast: number;
+}
+
+export type MergeWindowResult =
+  | ({ ok: true } & MergeWindow)
+  | { ok: false; refusal: MergeWindowRefusal };
+
+function spanUsable(span: PlanSpan | null | undefined): boolean {
+  return !!span && DATE.test(span.startsOn) &&
+    Number.isFinite(span.durationDays) && span.durationDays >= 1;
+}
+
+/** Nombre de jours de `start` à `end`, bornes incluses. `end < start` ⇒ 0. */
+export function dayCountInclusive(start: string, end: string): number {
+  const a = new Date(`${start}T12:00:00Z`).getTime();
+  const b = new Date(`${end}T12:00:00Z`).getTime();
+  if (Number.isNaN(a) || Number.isNaN(b) || b < a) return 0;
+  return Math.round((b - a) / 86_400_000) + 1;
+}
+
+/**
+ * D15 — L'INTERSECTION DES DEUX FENÊTRES. D16 — LE PIVOT.
+ *
+ * ── D15, ET POURQUOI CE N'EST PAS « LA FENÊTRE DU FOYER » ────────────────
+ * Les deux fenêtres peuvent diverger: le foyer couvre lundi→dimanche, le
+ * secondaire mercredi→dimanche. La fusion opère sur ce qu'ils PARTAGENT et
+ * s'arrête d'elle-même là où ils se séparent. Hors intersection, chacun garde
+ * ce qu'il avait — et ce n'est pas une intention, c'est un effet mécanique:
+ * `write_student_meal_plan` TRONQUE le plan du foyer qui commence avant, donc
+ * lundi et mardi restent couverts par la ligne d'avant, telle quelle.
+ *
+ * ── D16, ET LE PIÈGE QUE CE DÉPÔT A DÉJÀ PAYÉ ────────────────────────────
+ * Le pivot est le PREMIER JOUR NON ENCORE CONSOMMÉ, pas la date de courses. Un
+ * jour déjà passé ne se refusionne pas: le foyer l'a mangé.
+ *
+ * ⚠️ `today` DOIT ÊTRE LE JOUR LOCAL DE L'ÉLÈVE, jamais l'horloge du serveur.
+ * Ce module ne peut pas le vérifier — c'est une chaîne — donc l'appelant en
+ * répond, et il n'a qu'une seule façon de bien faire: réutiliser le `todayDate`
+ * que `generate-household-meal-v1` résout déjà dans le fuseau du maître
+ * (`localDateInZone`, et son refus `local_day_unresolved` quand le fuseau
+ * manque). Une résolution de plus ferait un second avis sur « quel jour on est »
+ * — et ce dépôt a déjà payé des incidents de « demain » résolus de nuit.
+ */
+export function resolveMergeWindow(args: {
+  household: PlanSpan;
+  personal: PlanSpan;
+  /** Jour local de l'élève, `YYYY-MM-DD`. Voir l'avertissement ci-dessus. */
+  today: string;
+}): MergeWindowResult {
+  if (
+    !spanUsable(args.household) || !spanUsable(args.personal) ||
+    !DATE.test(String(args.today ?? ""))
+  ) {
+    return { ok: false, refusal: MERGE_WINDOW_UNREADABLE };
+  }
+
+  const start = args.household.startsOn > args.personal.startsOn
+    ? args.household.startsOn
+    : args.personal.startsOn;
+  const householdEnd = planEndsOn(
+    args.household.startsOn,
+    args.household.durationDays,
+  );
+  const personalEnd = planEndsOn(
+    args.personal.startsOn,
+    args.personal.durationDays,
+  );
+  const end = householdEnd < personalEnd ? householdEnd : personalEnd;
+  if (end < start) return { ok: false, refusal: MERGE_WINDOWS_DISJOINT };
+
+  const intersection: PlanSpan = {
+    startsOn: start,
+    durationDays: dayCountInclusive(start, end),
+  };
+
+  // LE PIVOT. `today` peut être AVANT l'intersection (une fenêtre à venir): on
+  // ne repousse alors rien, le premier jour non consommé est le premier jour
+  // tout court. Le `max` est donc la bonne opération, pas une affectation.
+  const pivot = args.today > start ? args.today : start;
+  if (pivot > end) return { ok: false, refusal: MERGE_WINDOW_ALL_PAST };
+
+  return {
+    ok: true,
+    intersection,
+    pivot,
+    window: { startsOn: pivot, durationDays: dayCountInclusive(pivot, end) },
+    daysAlreadyPast: dayCountInclusive(start, addDays(pivot, -1)),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// D6 — L'ÉCHELLE DE FUSION
+//
+// ① MÊME PLAT, RATIOS DIFFÉRENTS — une casserole, deux assiettes.
+// ② PLATS DIFFÉRENTS, MÊME SESSION DE CUISSON — on cuisine deux choses en
+//    même temps.
+// ③ SESSIONS SÉPARÉES — le dernier recours.
+//
+// On s'arrête au PREMIER barreau qui tient.
+//
+// ── LE CRITÈRE D'ABANDON EST VÉRIFIABLE, PAS UN JUGEMENT DE GOÛT ──────────
+// Le moteur renonce au niveau ① dès qu'un plat commun forcerait quelqu'un HORS
+// DE SA DIRECTION DE SERVICE. Ces directions existent déjà, distinctes pour les
+// six objectifs (`household_portions.ts`, `SERVING_DIRECTION`), et elles se
+// LISENT axe par axe (`readServingDemands`) plutôt que de se recopier ici.
+//
+// LA RÈGLE, EN UNE PHRASE: une casserole déjà composée peut toujours en donner
+// MOINS, jamais plus qu'elle n'en contient.
+//
+//   · Une demande à `balanced` ou en dessous (`smaller`, `moderate`) est
+//     TOUJOURS servable: on sert moins, et c'est tout.
+//   · Une demande AU-DESSUS (`full`, `larger`) exige que quelqu'un à cette
+//     table la porte DÉJÀ — sinon le plat n'a pas été dimensionné pour elle, et
+//     la servir voudrait dire prendre la part d'un autre.
+//
+// C'EST LA MOITIÉ QU'ON PEUT PROUVER, ET C'EST ASSUMÉ. Savoir si CE plat-ci
+// porte assez de féculent demanderait un modèle de séparabilité par composant
+// (D5, non livré). Le critère ci-dessus n'a besoin que des directions, qui sont
+// des CONSTANTES du produit — donc il se mute, se teste, et ne ment pas sur ce
+// qu'il sait.
+//
+// EXEMPLE, ET C'EST LE CAS PHARE DU PRODUIT: un père en `fat_loss` seul à
+// table, un fils en `muscle_gain` qui revient par la fusion. Le fils demande
+// `larger` en protéine ET en féculent; la table plafonne à `full` en protéine
+// et `smaller` en féculent. La casserole du père ne peut pas le nourrir: on
+// descend au barreau ②, et on cuisine son plat À CÔTÉ, dans la même session.
+// Ce n'est PAS le même arbitrage qu'une COMPOSITION où les deux sont là dès le
+// départ — là, le plat est dimensionné pour les deux. C'est toute la différence
+// entre composer et fusionner.
+// ---------------------------------------------------------------------------
+
+const DEMAND_RANK: Record<ServingDemand, number> = {
+  smaller: 1,
+  moderate: 2,
+  balanced: 3,
+  full: 4,
+  larger: 5,
+};
+
+/**
+ * CE QU'UNE CASSEROLE DONNE SANS AVOIR ÉTÉ PRÉVUE POUR: l'équilibre, et tout
+ * ce qui est en dessous. Nommé plutôt qu'écrit `3` en dur — le rang est un
+ * détail de la table, le plancher est la règle.
+ */
+const ALWAYS_SERVABLE = DEMAND_RANK.balanced;
+
+export interface MergeLadderInput {
+  /**
+   * Ce que demande la table telle qu'elle est AUJOURD'HUI, sans l'entrant.
+   * C'est elle qui a dimensionné la casserole.
+   */
+  table: readonly ServingAxisDemands[];
+  /** Ce que demande la personne qu'on reprend. */
+  incoming: ServingAxisDemands;
+  /** Les jours où le foyer cuisine, sur la fenêtre fusionnée. Jetons `mon`… */
+  householdCookingDays: readonly string[];
+  /** Les jours où le plan personnel cuisine, sur la même fenêtre. */
+  personalCookingDays: readonly string[];
+}
+
+export interface MergeLadderResult {
+  shape: CookingShape;
+  /** POURQUOI ce barreau. Un barreau sans motif ne se relit pas. */
+  reason: string;
+  /**
+   * Les axes qui ont fait renoncer au niveau ①, nommés
+   * (`starch:larger_above_table`, `protein:unreadable`). Vide = niveau ①.
+   */
+  conflicts: string[];
+  /** Les jours de cuisson que les deux plans partagent. */
+  sharedCookingDays: string[];
+}
+
+export const LADDER_REASON_ONE_DISH = "directions_within_table_span";
+export const LADDER_REASON_ONE_SESSION = "serving_direction_conflict";
+export const LADDER_REASON_NO_COOKING_DAY =
+  "serving_direction_conflict_no_shared_cooking_day";
+
+/** Les axes sur lesquels la casserole du foyer ne peut pas servir l'entrant. */
+export function servingConflicts(
+  table: readonly ServingAxisDemands[],
+  incoming: ServingAxisDemands,
+): string[] {
+  const conflicts: string[] = [];
+  for (const axis of SERVING_AXES) {
+    const want = incoming[axis];
+    // La direction ne NOMME PAS cet axe: elle n'en demande rien, donc
+    // n'importe quelle part convient. `performance` ne parle pas de légumes.
+    if (want === null || want === undefined) continue;
+    if (want === "unreadable") {
+      // ON NE DEVINE PAS. Une direction qu'on n'a pas su lire fait descendre
+      // d'un barreau: ça coûte un plat de plus, jamais une assiette qui ment.
+      conflicts.push(`${axis}:unreadable`);
+      continue;
+    }
+    if (DEMAND_RANK[want] <= ALWAYS_SERVABLE) continue;
+    let ceiling = ALWAYS_SERVABLE;
+    for (const member of table) {
+      const has = member[axis];
+      if (has === null || has === undefined || has === "unreadable") continue;
+      ceiling = Math.max(ceiling, DEMAND_RANK[has]);
+    }
+    if (DEMAND_RANK[want] > ceiling) {
+      conflicts.push(`${axis}:${want}_above_table`);
+    }
+  }
+  return conflicts;
+}
+
+/**
+ * L'ÉCHELLE, ET ON S'ARRÊTE AU PREMIER BARREAU QUI TIENT.
+ *
+ * ── LE PASSAGE DE ② À ③ N'EST PAS SPÉCIFIÉ PAR D6, ET C'EST ASSUMÉ ───────
+ * D6 nomme UN critère, celui de ① → ②, et il est appliqué au-dessus. Pour
+ * ② → ③ le chantier ne dit rien, et « ce plat tiendra-t-il dans la même
+ * session » n'est pas décidable sans le modèle. On prend donc le seul fait
+ * VÉRIFIABLE qui existe dans les deux plans: leurs JOURS DE CUISSON. Deux plans
+ * qui ne cuisinent jamais le même jour ne peuvent pas partager une session —
+ * c'est de la logistique, pas du goût.
+ *
+ * ⚠️ UN PLAN QUI NE CUISINE PAS N'EST PAS UN PLAN QUI CUISINE AILLEURS. Quand
+ * l'un des deux ne déclare AUCUNE session sur la fenêtre (un plan d'assemblage,
+ * une fenêtre d'un jour), il n'y a rien à séparer: on reste au barreau ②, où le
+ * second plat rejoint simplement la session du foyer. Descendre à ③ dirait au
+ * modèle d'ouvrir une session qui n'existe nulle part.
+ */
+export function mergeLadder(input: MergeLadderInput): MergeLadderResult {
+  const conflicts = servingConflicts(input.table, input.incoming);
+  const shared = input.householdCookingDays.filter((d) =>
+    input.personalCookingDays.includes(d)
+  );
+  if (conflicts.length === 0) {
+    return {
+      shape: "one_dish",
+      reason: LADDER_REASON_ONE_DISH,
+      conflicts,
+      sharedCookingDays: shared,
+    };
+  }
+  const eitherSideCooksNowhere = input.householdCookingDays.length === 0 ||
+    input.personalCookingDays.length === 0;
+  if (shared.length > 0 || eitherSideCooksNowhere) {
+    return {
+      shape: "one_session",
+      reason: LADDER_REASON_ONE_SESSION,
+      conflicts,
+      sharedCookingDays: shared,
+    };
+  }
+  return {
+    shape: "separate_sessions",
+    reason: LADDER_REASON_NO_COOKING_DAY,
+    conflicts,
+    sharedCookingDays: shared,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// LA PROVENANCE — `merged_from`
+//
+// ⚠️ SANS ELLE, L'AVERTISSEMENT DE D8 EST INCALCULABLE. L5 doit pouvoir dire
+// « le plan de X a été fusionné le … ; il vient d'en valider un NOUVEAU ». Cette
+// phrase demande quatre faits, et pas trois: QUI, QUELLE LIGNE de plan, VALIDÉE
+// QUAND, et SUR QUELS JOURS. Retirer `validated_at` rendrait « il vient d'en
+// valider un nouveau » indécidable — c'est la comparaison de deux dates de
+// validation, pas de deux ids.
+//
+// La forme suit celle de L2 (`generated_from.household.presence`) et de L3
+// (`…household.hand`): des clés `snake_case`, des ids de MEMBRE, et une entrée
+// par personne concernée — jamais une trace où tout le monde figure.
+// ---------------------------------------------------------------------------
+
+export interface MergedFromEntry {
+  member_id: string;
+  /** `null` impossible en pratique (fusionner exige un compte), rendu quand même. */
+  user_id: string | null;
+  plan_id: string;
+  plan_starts_on: string;
+  plan_duration_days: number;
+  /** D8: la date que L5 comparera à une validation POSTÉRIEURE. */
+  validated_at: string | null;
+  /** Les jours réellement repris, en dates. Pas des jetons: un jeton se répète. */
+  days: string[];
+}
+
+export function mergedFromEntry(args: {
+  memberId: string;
+  userId: string | null;
+  plan: { id: string; startsOn: string; durationDays: number; validatedAt: string | null };
+  window: PlanSpan;
+}): MergedFromEntry {
+  const days: string[] = [];
+  for (let i = 0; i < Math.max(1, args.window.durationDays); i++) {
+    days.push(addDays(args.window.startsOn, i));
+  }
+  return {
+    member_id: args.memberId,
+    user_id: args.userId,
+    plan_id: args.plan.id,
+    plan_starts_on: args.plan.startsOn,
+    plan_duration_days: args.plan.durationDays,
+    validated_at: args.plan.validatedAt,
+    days,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// LE BLOC DE CONSIGNE
+//
+// Il dit au modèle TROIS choses, et rien d'autre: qui revient, sur quels jours,
+// et ce que cette personne allait manger. La FORME de cuisine, elle, n'est pas
+// ici: elle est dans le brief de portions (`CookingShape`), parce que c'est là
+// que vit la phrase « combien de plats » — et deux endroits qui donnent le même
+// ordre finissent par en donner deux différents.
+//
+// ⚠️ CE QUI NE PART PAS: le `why` des plats. « Pourquoi CE plat pour CET
+// élève » est la seule prose du plan qui parle de la personne, et ce prompt-ci
+// produit un texte lu à table par tout le foyer. Les TITRES, eux, sont déjà
+// lisibles par tout le foyer (policy `student_generated_meals_household_read`):
+// les passer ne divulgue rien de neuf.
+// ---------------------------------------------------------------------------
+
+/** Ce qu'on montre d'un plat du plan personnel. Trois champs, pas quatre. */
+export interface MergeMaterialDish {
+  day: string | null;
+  slot: string | null;
+  title: string;
+}
+
+/** Le plafond de lignes de matière. Une semaine de six repas tient dessous. */
+export const MERGE_MATERIAL_CAP = 42;
+
+/**
+ * LES PLATS PROPRES QUE LE MODÈLE VOIT VRAIMENT — et le seul endroit qui le
+ * décide.
+ *
+ * ⚠️ EXISTE PARCE QUE LE PLAFOND DE PLATS DOIT COMPTER LA MÊME CHOSE QUE LA
+ * CONSIGNE. Le budget de la fusion vaut « ce qu'on lui montre »
+ * (`mergeDishBonus`); si l'appelant comptait la liste AVANT le `slice`, il
+ * ouvrirait un budget pour des plats que le modèle ne voit pas — et deux
+ * copies d'un même nombre dont une seule reçoit la modification est le défaut
+ * que ce dépôt documente le plus souvent. `buildMergeBlock` passe désormais
+ * par ici, donc les deux ne peuvent plus diverger.
+ */
+export function mergeMaterialShown(
+  dishes: readonly MergeMaterialDish[],
+): readonly MergeMaterialDish[] {
+  return dishes.slice(0, MERGE_MATERIAL_CAP);
+}
+
+export function buildMergeBlock(args: {
+  displayName: string;
+  window: PlanSpan;
+  shape: CookingShape;
+  dishes: readonly MergeMaterialDish[];
+}): string {
+  const end = planEndsOn(args.window.startsOn, args.window.durationDays);
+  const material = mergeMaterialShown(args.dishes)
+    .map((d) => {
+      const when = [d.day, d.slot].filter(Boolean).join(" ");
+      return when ? `- ${when}: ${d.title}` : `- ${d.title}`;
+    });
+
+  const howToUse = args.shape === "one_dish"
+    ? [
+      `${args.displayName} eats from the SAME dishes as the rest of the table.`,
+      "What follows is what they were going to eat on their own. Treat it as a",
+      "PREFERENCE — lean the household's dishes towards it where that costs",
+      "nothing. Never turn it into a second dish.",
+    ]
+    : args.shape === "one_session"
+    ? [
+      `${args.displayName} cannot be served out of the common pot.`,
+      "Keep the dishes below as THEIR dishes wherever they still work, and cook",
+      "them in the SAME cooking session as the household's — one session at the",
+      "stove, two dishes out of it.",
+    ]
+    : [
+      `${args.displayName} cannot be served out of the common pot, and the two`,
+      "plans never cook on the same day. Keep the dishes below as THEIR dishes,",
+      "in their OWN cooking session.",
+    ];
+
+  return [
+    "== BRINGING SOMEONE BACK TO THIS TABLE ==",
+    `${args.displayName} has been eating from their own plan. The person who`,
+    `runs this home has asked to cook for them again, from ${args.window.startsOn}`,
+    `to ${end}.`,
+    "",
+    ...howToUse,
+    ...(material.length > 0
+      ? ["", "What they were going to eat over these days:", ...material]
+      : []),
+  ].join("\n");
+}
+
+// ---------------------------------------------------------------------------
+// LE CONSTAT — LE PLAN RENDU PORTE-T-IL CE QU'ON A DEMANDÉ ?
+//
+// ⚠️ MESURÉ EN RUN RÉEL LE 2026-08-12, SUR UNE FUSION SUR DEUX. Barreau ③
+// demandé — conflits `protein:larger_above_table` et `starch:larger_above_table`,
+// aucun jour de cuisson partagé. Le modèle a rendu quinze plats, AUCUN second
+// plat, AUCUNE session dédiée, et a servi la personne depuis la casserole
+// commune: « Serve a larger portion of the protein and starch », part
+// « largest plate share ». C'est EXACTEMENT ce que le critère d'abandon de D6
+// existe pour interdire — la casserole n'a pas été dimensionnée pour elle, donc
+// la servir revient à prendre la part d'un autre.
+//
+// `ladder.shape` partait dans le prompt et s'archivait dans `generated_from`,
+// et RIEN ne comparait le plan rendu à la forme demandée. L'archive disait
+// `separate_sessions`, le plan disait le contraire, et les deux étaient dans la
+// même ligne.
+//
+// ── CE MODULE NE FAIT QUE CONSTATER, ET C'EST UNE DÉCISION ────────────────
+// Refuser le plan ou relancer le modèle serait un choix de PRODUIT que personne
+// n'a pris. Un plan servi depuis la casserole commune reste mangeable: il est
+// seulement moins juste que promis. On rend donc le mensonge VISIBLE — un
+// `issue` nommé, et la forme OBTENUE à côté de la forme DEMANDÉE dans
+// `generated_from` — et on ne le corrige pas en silence.
+//
+// ── CE QUE LE CONSTAT SAIT VOIR, ET CE QU'IL NE SAIT PAS ──────────────────
+// Deux marques STRUCTURELLES, lisibles sur le plan parsé, sans jamais lire un
+// titre ni une prose (« jamais de matcher maison » — « laitue » n'est pas
+// « lait », et douze faux positifs sur douze ont été mesurés):
+//
+//   1. UNE PRÉPARATION D'UNE PORTION. C'est littéralement un plat cuisiné pour
+//      une seule bouche, et c'est ce que le modèle a rendu quand il a OBÉI
+//      (`prep_zoe_tuna_pasta`, `servings_made: 1`) — avant que le parseur ne le
+//      jette, ce qui est l'autre moitié de ce lot.
+//   2. DEUX PLATS AU MÊME JOUR ET AU MÊME MOMENT. Une grille de repas en porte
+//      un par case; deux, c'est que quelqu'un ne mange pas comme la table.
+//
+// CE QU'IL NE DISTINGUE PAS: ② de ③. Savoir si la session dédiée existe
+// vraiment demanderait de rattacher chaque préparation à sa session et de
+// comparer les jours — faisable, non fait, et le dire ici vaut mieux que le
+// laisser croire. Le constat répond à UNE question: « cette personne a-t-elle
+// quelque chose à elle, oui ou non ». C'est la question que le run réel a
+// tranchée par la négative.
+// ---------------------------------------------------------------------------
+
+/** L'`issue` poussée quand la forme demandée n'est pas dans le plan rendu. */
+export const MERGE_SHAPE_NOT_HONOURED = "merge_shape_not_honoured";
+
+export interface MergeShapeObservation {
+  /** Le barreau DEMANDÉ, recopié pour que les deux se lisent côte à côte. */
+  requested: CookingShape;
+  /** Ce que le plan rendu porte: quelque chose à elle, ou la casserole commune. */
+  observed: "dedicated_dish" | "common_pot";
+  /** Les marques trouvées, nommées. Vide = rien de dédié dans ce plan. */
+  marks: string[];
+  /**
+   * `false` UNIQUEMENT quand ②/③ a été demandé et que rien de dédié n'existe.
+   *
+   * ① est TOUJOURS honoré ici, et ce n'est pas une complaisance: sa promesse
+   * est « pas de second plat », et le budget de plats ne lui en laisse aucune
+   * place (`mergeDishBonus` rend 0). Y pousser un constat ferait dépendre le
+   * barreau le plus fréquent d'une heuristique dont un faux positif salirait
+   * toutes les compositions ordinaires.
+   */
+  honoured: boolean;
+}
+
+/** Ce qu'un plat rendu porte d'utile au constat. Rien de sa prose. */
+export interface ObservedDish {
+  day: string | null;
+  slot: string | null;
+}
+
+/** Ce qu'une préparation rendue porte d'utile au constat. */
+export interface ObservedPreparation {
+  servingsMade: number;
+}
+
+export function observeMergeShape(args: {
+  shape: CookingShape;
+  dishes: readonly ObservedDish[];
+  preparations: readonly ObservedPreparation[];
+}): MergeShapeObservation {
+  const marks: string[] = [];
+
+  const singleServing =
+    args.preparations.filter((p) => Number(p.servingsMade) === 1).length;
+  if (singleServing > 0) marks.push(`single_serving_preparation:${singleServing}`);
+
+  // LA CASE DE LA GRILLE, ET SEULEMENT QUAND ELLE EST NOMMÉE. Deux plats sans
+  // moment déclaré ne disent rien: ils peuvent être le déjeuner et le dîner du
+  // même jour. Un moment inconnu ne fabrique donc pas de marque.
+  const perCell = new Map<string, number>();
+  for (const dish of args.dishes) {
+    if (!dish.slot) continue;
+    const cell = `${dish.day ?? "any"}/${dish.slot}`;
+    perCell.set(cell, (perCell.get(cell) ?? 0) + 1);
+  }
+  for (const [cell, count] of perCell) {
+    if (count > 1) marks.push(`parallel_dishes:${cell}`);
+  }
+
+  const observed = marks.length > 0 ? "dedicated_dish" : "common_pot";
+  return {
+    requested: args.shape,
+    observed,
+    marks,
+    honoured: !asksForASecondDish(args.shape) || observed === "dedicated_dish",
+  };
+}

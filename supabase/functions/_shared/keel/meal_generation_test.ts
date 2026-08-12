@@ -84,6 +84,7 @@ function parse(payload: Record<string, unknown>, over: Record<string, unknown> =
     composition: null,
     fixedIntakes: [],
     dayProperties: [],
+    merge: null,
     ...over,
   });
 }
@@ -331,6 +332,7 @@ Deno.test("the prompt separates the STABLE situation from the DATED context", ()
     coachNoteBlock: null,
     fixedIntakes: [],
     dayProperties: [],
+    merge: null,
     protocolBlock: "",
     beliefKeys: ["protein_anchors_the_plate"],
     goal: "fat_loss",
@@ -359,6 +361,7 @@ Deno.test("from_pantry puts the pantry in the prompt, to_shop does not pretend t
     coachNoteBlock: null,
     fixedIntakes: [],
     dayProperties: [],
+    merge: null,
     protocolBlock: "",
     beliefKeys: [],
     goal: "health",
@@ -392,6 +395,7 @@ Deno.test("a non-JSON model output throws instead of shipping an empty meal", ()
     composition: null,
     fixedIntakes: [],
     dayProperties: [],
+    merge: null,
   }));
 });
 
@@ -423,6 +427,7 @@ Deno.test("les préférences confirmées entrent dans le prompt, dans les mots d
     coachNoteBlock: null,
     fixedIntakes: [],
     dayProperties: [],
+    merge: null,
     protocolBlock: "",
     beliefKeys: [],
     goal: "health",
@@ -451,6 +456,7 @@ Deno.test("sans préférence, le prompt est EXACTEMENT celui d'avant", () => {
     coachNoteBlock: null,
     fixedIntakes: [],
     dayProperties: [],
+    merge: null,
     protocolBlock: "",
     beliefKeys: [],
     goal: "health" as const,

@@ -49,7 +49,7 @@ Deno.test("chaque membre apparaît avec son id EXACT, une fois", () => {
   // fait tomber la consigne dans `portion_for_unknown_member` et la personne se
   // retrouve en part standard sans qu'on sache pourquoi.
   const { userSuffix } = buildHouseholdPromptBlocks({
-    members: [DAD, SON, KID], envyLine: null, restrictions: [], presence: NOBODY_AWAY,
+    members: [DAD, SON, KID], envyLine: null, restrictions: [], presence: NOBODY_AWAY, merge: null,
   });
   for (const m of [DAD, SON, KID]) {
     const occurrences = userSuffix.split(m.memberId).length - 1;
@@ -70,7 +70,7 @@ Deno.test("LES RÈGLES DE MAISON NE SONT JAMAIS UNE RAISON NUTRITIONNELLE", () =
     { memberId: "m-kid", memberDisplayName: "Léa", label: "nutella" },
   ];
   const { userSuffix } = buildHouseholdPromptBlocks({
-    members: [DAD, KID], envyLine: null, restrictions, presence: NOBODY_AWAY,
+    members: [DAD, KID], envyLine: null, restrictions, presence: NOBODY_AWAY, merge: null,
   });
   // NORMALISÉ, parce que le bloc est enroulé pour rester lisible dans le
   // source: une assertion sur le texte brut casserait au premier reflow, et un
@@ -89,7 +89,7 @@ Deno.test("les restrictions d'une même personne sont regroupées", () => {
   const { userSuffix } = buildHouseholdPromptBlocks({
     members: [KID],
     envyLine: null,
-    presence: NOBODY_AWAY,
+    presence: NOBODY_AWAY, merge: null,
     restrictions: [
       { memberId: "m-kid", memberDisplayName: "Léa", label: "nutella" },
       { memberId: "m-kid", memberDisplayName: "Léa", label: "nuggets" },
@@ -105,7 +105,7 @@ Deno.test("LES RÈGLES DE MAISON PASSENT APRÈS LES ENVIES", () => {
   const { userSuffix } = buildHouseholdPromptBlocks({
     members: [KID],
     envyLine: "du nutella partout",
-    presence: NOBODY_AWAY,
+    presence: NOBODY_AWAY, merge: null,
     restrictions: [
       { memberId: "m-kid", memberDisplayName: "Léa", label: "nutella" },
     ],
@@ -117,14 +117,14 @@ Deno.test("sans restriction, aucun bloc de règles n'apparaît", () => {
   // Un en-tête « règles de maison » vide ferait croire au modèle qu'il y a des
   // interdits, et il composerait prudemment sans savoir contre quoi.
   const { userSuffix } = buildHouseholdPromptBlocks({
-    members: [DAD], envyLine: null, restrictions: [], presence: NOBODY_AWAY,
+    members: [DAD], envyLine: null, restrictions: [], presence: NOBODY_AWAY, merge: null,
   });
   assert(!userSuffix.includes("HOUSE RULES"));
 });
 
 Deno.test("le schéma supplémentaire n'est demandé que côté système", () => {
   const { systemSuffix, userSuffix } = buildHouseholdPromptBlocks({
-    members: [DAD], envyLine: null, restrictions: [], presence: NOBODY_AWAY,
+    members: [DAD], envyLine: null, restrictions: [], presence: NOBODY_AWAY, merge: null,
   });
   assert(systemSuffix.includes('"member_portions"'));
   assert(systemSuffix.includes("never a reason"));
@@ -138,7 +138,7 @@ Deno.test("le brief de portions et la ligne d'envies sont tous les deux là", ()
     members: [DAD, SON],
     envyLine: "un curry, et Tom en a marre du poulet",
     restrictions: [],
-    presence: NOBODY_AWAY,
+    presence: NOBODY_AWAY, merge: null,
   });
   assert(userSuffix.includes("HOUSEHOLD SERVING PLAN"));
   assert(userSuffix.includes("Do NOT propose separate dishes"));
@@ -152,7 +152,7 @@ Deno.test("SANS LIGNE D'ENVIES, aucun en-tête d'envies n'apparaît", () => {
   // n'y en a pas. Un en-tête « voici ce que le foyer a demandé » suivi de rien
   // ferait composer le modèle contre une demande imaginaire.
   const { userSuffix, envyLineUsed } = buildHouseholdPromptBlocks({
-    members: [DAD, SON], envyLine: null, restrictions: [], presence: NOBODY_AWAY,
+    members: [DAD, SON], envyLine: null, restrictions: [], presence: NOBODY_AWAY, merge: null,
   });
   assert(!userSuffix.includes("WHAT THIS HOUSEHOLD ASKED FOR"));
   assertEquals(envyLineUsed, false);
@@ -179,6 +179,7 @@ Deno.test("le bloc de présence entre dans le prompt, JUSTE APRÈS le brief de p
     envyLine: "un curry",
     restrictions: [],
     presence,
+    merge: null,
   });
   assert(userSuffix.includes("WHO IS NOT AT THE TABLE"), userSuffix);
   // L'ORDRE EST LE SUJET: « pour combien » doit se lire juste après « pour
@@ -196,7 +197,7 @@ Deno.test("SANS ABSENCE, aucun en-tête de présence n'apparaît", () => {
   // « certains ne sont pas là » suivi de rien ferait cuisiner le modèle pour un
   // nombre qu'il devine — c'est-à-dire moins que le foyer, un jour sur deux.
   const { userSuffix } = buildHouseholdPromptBlocks({
-    members: [DAD, SON], envyLine: null, restrictions: [], presence: NOBODY_AWAY,
+    members: [DAD, SON], envyLine: null, restrictions: [], presence: NOBODY_AWAY, merge: null,
   });
   assert(!userSuffix.includes("WHO IS NOT AT THE TABLE"), userSuffix);
 });
@@ -269,13 +270,14 @@ Deno.test("CHANGER LES BLOCS SANS BUMPER LA VERSION DOIT ÊTRE ROUGE", () => {
     envyLine: "des pâtes",
     restrictions: [{ memberId: "m-son", memberDisplayName: "Tom", label: "no nutella" }],
     presence,
+    merge: null,
   });
 
   // L'ORDRE EST UNE CONSIGNE, pas une mise en page: les règles de maison
   // passent en dernier pour survivre à une envie contradictoire, et la
   // présence colle au brief de portions parce que les deux disent « qui mange
   // quoi ». Déplacer l'un des deux change ce que le modèle rend.
-  const SECTIONS_V2 = [
+  const SECTIONS_NO_MERGE = [
     "== THE HOUSEHOLD ==",
     "HOUSEHOLD SERVING PLAN",
     "WHO IS NOT AT THE TABLE",
@@ -283,13 +285,13 @@ Deno.test("CHANGER LES BLOCS SANS BUMPER LA VERSION DOIT ÊTRE ROUGE", () => {
     "HOUSE RULES",
   ];
   let cursor = -1;
-  for (const marker of SECTIONS_V2) {
+  for (const marker of SECTIONS_NO_MERGE) {
     const at = userSuffix.indexOf(marker);
     assert(
       at >= 0,
       `bloc « ${marker} » absent du prompt du foyer. Si c'est voulu, bumpe ` +
         `HOUSEHOLD_PROMPT_VERSION (actuellement ${HOUSEHOLD_PROMPT_VERSION}) ` +
-        `et retire-le de SECTIONS_V2.`,
+        `et retire-le de SECTIONS_NO_MERGE.`,
     );
     assert(
       at > cursor,
@@ -302,13 +304,13 @@ Deno.test("CHANGER LES BLOCS SANS BUMPER LA VERSION DOIT ÊTRE ROUGE", () => {
   // LE COMPTE ATTRAPE CE QUE LA LISTE NE PEUT PAS: un bloc NEUF, dont on ne
   // connaît pas encore le marqueur. Une liste blanche ne voit jamais arriver
   // ce qu'elle n'énumère pas.
-  const PARTS_V2 = 15;
+  const PARTS_NO_MERGE = 15;
   assertEquals(
     userSuffix.split("\n\n").length,
-    PARTS_V2,
-    `le prompt du foyer ne compte plus ${PARTS_V2} blocs. Un bloc a été ` +
+    PARTS_NO_MERGE,
+    `le prompt du foyer ne compte plus ${PARTS_NO_MERGE} blocs. Un bloc a été ` +
       `ajouté ou retiré: bumpe HOUSEHOLD_PROMPT_VERSION (actuellement ` +
-      `${HOUSEHOLD_PROMPT_VERSION}) et mets PARTS_V2 à jour.`,
+      `${HOUSEHOLD_PROMPT_VERSION}) et mets PARTS_NO_MERGE à jour.`,
   );
 
   // Et la version elle-même doit rester lisible: le préfixe `v<n>_` est ce que
@@ -317,4 +319,102 @@ Deno.test("CHANGER LES BLOCS SANS BUMPER LA VERSION DOIT ÊTRE ROUGE", () => {
     /^v[1-9][0-9]*_/.test(HOUSEHOLD_PROMPT_VERSION),
     `version de lane illisible: ${HOUSEHOLD_PROMPT_VERSION}`,
   );
+});
+
+// ───────────────────────────────────────────────────────────────────────────
+// L4/D6 — LA FUSION
+// ───────────────────────────────────────────────────────────────────────────
+
+const MERGE_PROMPT = {
+  displayName: "Tom",
+  window: { startsOn: "2026-08-12", durationDays: 3 },
+  shape: "one_session" as const,
+  dishes: [{ day: "wed", slot: "dinner", title: "Curry de pois chiches" }],
+};
+
+Deno.test("SANS FUSION, LE PROMPT EST CELUI D'AVANT L4, À L'OCTET PRÈS", () => {
+  // ⚠️ LE TEST QUI PROTÈGE LE CHEMIN MAJORITAIRE. Le lot ajoute un bloc ET rend
+  // variable la ligne « combien de plats » du brief; les deux doivent être
+  // strictement invisibles pour une composition ordinaire. Sans cette
+  // assertion, chaque foyer du produit aurait changé de consigne pour un geste
+  // que personne n'a fait.
+  const { userSuffix } = buildHouseholdPromptBlocks({
+    members: [DAD, SON], envyLine: null, restrictions: [], presence: NOBODY_AWAY,
+    merge: null,
+  });
+  assert(!userSuffix.includes("BRINGING SOMEONE BACK"));
+  assert(
+    userSuffix.includes(
+      "Cook ONE set of preparations for everyone. Do NOT propose separate dishes.",
+    ),
+    "la ligne historique du brief de portions a changé pour une composition " +
+      "SANS fusion. C'est le contrat de composition de tout le produit.",
+  );
+});
+
+Deno.test("le bloc de fusion entre APRÈS la présence et AVANT l'envie", () => {
+  const presence = resolveWindowPresence({
+    members: [
+      { memberId: "m-dad", displayName: "Marc", away: parseMemberAway([{ day: "sat" }]) },
+      { memberId: "m-son", displayName: "Tom", away: parseMemberAway([]) },
+    ],
+    rhythm: [{ slot: "lunch", size: null }, { slot: "dinner", size: null }],
+    windowDays: ["fri", "sat"],
+  });
+  const { userSuffix } = buildHouseholdPromptBlocks({
+    members: [DAD, SON],
+    envyLine: "un curry",
+    restrictions: [{ memberId: "m-son", memberDisplayName: "Tom", label: "no nutella" }],
+    presence,
+    merge: MERGE_PROMPT,
+  });
+  // L'ORDRE EST UNE CONSIGNE. « Qui revient à table » appartient au groupe des
+  // trois blocs qui disent qui mange quoi; le mettre après l'envie le ferait
+  // lire comme une conséquence de ce que le foyer a demandé cette semaine. Les
+  // règles de maison, elles, restent EN DERNIER — c'est ce qui leur permet de
+  // survivre à une envie contradictoire.
+  const SECTIONS_WITH_MERGE = [
+    "== THE HOUSEHOLD ==",
+    "HOUSEHOLD SERVING PLAN",
+    "WHO IS NOT AT THE TABLE",
+    "BRINGING SOMEONE BACK TO THIS TABLE",
+    "WHAT THIS HOUSEHOLD ASKED FOR",
+    "HOUSE RULES",
+  ];
+  let cursor = -1;
+  for (const marker of SECTIONS_WITH_MERGE) {
+    const at = userSuffix.indexOf(marker);
+    assert(at >= 0, `bloc « ${marker} » absent du prompt de fusion`);
+    assert(
+      at > cursor,
+      `bloc « ${marker} » a changé de place. Bumpe HOUSEHOLD_PROMPT_VERSION ` +
+        `(actuellement ${HOUSEHOLD_PROMPT_VERSION}).`,
+    );
+    cursor = at;
+  }
+});
+
+Deno.test("LE BARREAU DE L'ÉCHELLE CHANGE LA LIGNE « COMBIEN DE PLATS »", () => {
+  // ⚠️ LE DÉFAUT QUE CE TEST EXISTE POUR EMPÊCHER: le bloc de fusion demande un
+  // second plat pendant que le brief de portions, deux blocs plus haut,
+  // l'interdit en toutes lettres. Deux consignes contradictoires dans le même
+  // prompt, et c'est celle de la fin que le modèle suit — donc au hasard.
+  const of = (shape: "one_dish" | "one_session" | "separate_sessions") =>
+    buildHouseholdPromptBlocks({
+      members: [DAD, SON],
+      envyLine: null,
+      restrictions: [],
+      presence: NOBODY_AWAY,
+      merge: { ...MERGE_PROMPT, shape },
+    }).userSuffix;
+
+  assert(of("one_dish").includes("Do NOT propose separate dishes."));
+  for (const shape of ["one_session", "separate_sessions"] as const) {
+    assert(
+      !of(shape).includes("Do NOT propose separate dishes."),
+      `${shape}: le brief interdit encore le second plat que la fusion demande.`,
+    );
+  }
+  assert(of("one_session").includes("SAME cooking session"));
+  assert(of("separate_sessions").includes("OWN session"));
 });

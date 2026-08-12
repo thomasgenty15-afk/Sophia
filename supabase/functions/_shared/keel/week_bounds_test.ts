@@ -67,6 +67,7 @@ Deno.test("le prompt annonce le plafond de la fenêtre, pas celui de sept jours"
     coachNoteBlock: null,
     fixedIntakes: [],
     dayProperties: [],
+    merge: null,
     protocolBlock: "",
     beliefKeys: [],
     goal: "health",
@@ -101,6 +102,7 @@ Deno.test("un jour de cuisine hors fenêtre ne survit pas à la consigne", () =>
     coachNoteBlock: null,
     fixedIntakes: [],
     dayProperties: [],
+    merge: null,
     protocolBlock: "",
     beliefKeys: [],
     goal: "health",
@@ -134,6 +136,7 @@ Deno.test("aucun jour de cuisine dans la fenêtre: on ne reste pas sans session"
     coachNoteBlock: null,
     fixedIntakes: [],
     dayProperties: [],
+    merge: null,
     protocolBlock: "",
     beliefKeys: [],
     goal: "health",
@@ -200,6 +203,7 @@ Deno.test("un lot mangé AVANT d'être cuisiné est signalé", () => {
       composition: null,
       fixedIntakes: [],
       dayProperties: [],
+      merge: null,
     },
   );
   assert(
@@ -247,6 +251,7 @@ Deno.test("cuisiner AVANT de manger ne déclenche rien", () => {
       composition: null,
       fixedIntakes: [],
       dayProperties: [],
+      merge: null,
     },
   );
   assertEquals(meal.issues.filter((i) => i.includes("after the meal")), []);
@@ -308,6 +313,7 @@ function planWith(args: {
       composition: null,
       fixedIntakes: [],
       dayProperties: [],
+      merge: null,
     },
   );
 }
@@ -385,6 +391,7 @@ Deno.test("un jour de cuisine qui arrive APRÈS les repas ouvre le premier jour"
     coachNoteBlock: null,
     fixedIntakes: [],
     dayProperties: [],
+    merge: null,
     protocolBlock: "",
     beliefKeys: [],
     goal: "health",
@@ -421,6 +428,7 @@ Deno.test("un jour de cuisine assez tôt n'ouvre rien du tout", () => {
     coachNoteBlock: null,
     fixedIntakes: [],
     dayProperties: [],
+    merge: null,
     protocolBlock: "",
     beliefKeys: [],
     goal: "health",

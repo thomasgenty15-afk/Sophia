@@ -39,7 +39,7 @@ prennent la main, et les comptes individuels sans foyer.
 | **D3** | Les bouches sans compte n'ont pas de plan individuel. Elles n'existent que comme parts dans le plan du foyer. | ✅ tenu |
 | **D4** | Préférences durables **et** mémoire de chaque titulaire entrent dans la composition, avec un plafond de tokens par membre et la garde de non-divulgation étendue. | ⬜ à faire |
 | **D5** | Plats séparables en composants : servir `muscle_gain` et `fat_loss` d'une seule casserole n'est possible que si le plat se re-proportionne. Le répertoire se rétrécit, c'est le prix assumé. | ⬜ à faire |
-| **D6** | Échelle de fusion : ① même plat, ratios différents ② plats différents, même session de cuisson ③ sessions séparées. Renonce dès qu'un plat commun forcerait quelqu'un **hors de sa direction de service** — critère vérifiable, pas jugement de goût. | ⬜ à faire |
+| **D6** | Échelle de fusion : ① même plat, ratios différents ② plats différents, même session de cuisson ③ sessions séparées. Renonce dès qu'un plat commun forcerait quelqu'un **hors de sa direction de service** — critère vérifiable, pas jugement de goût. | ✅ livré (L4) |
 | **D7** | Qui n'a pas de plan **validé** au moment où le maître compose est automatiquement pris dans le plan du foyer. La composition n'attend jamais personne. | ✅ livré (L3) |
 | **D8** | Validation **après** la fusion : le maître est averti, et il a trois sorties — refaire sans ce user (*défusion*), refusionner à partir de son plan, ou refuser. Dans tous les cas le user garde son plan. Consigne de défusion, mot pour mot : *rester au plus près du plan de base, sans user X*. | ⬜ à faire |
 | **D9** | Le maître **accède** à tous les plans, mais sa surface de cuisine n'affiche **que** le plan qu'il cuisine. Un plan validé non fusionné n'y apparaît pas : le but est de simplifier sa cuisine, pas de lui faire suivre N plans. Un secondaire voit le plan du foyer et le sien. | ⬜ à faire |
@@ -48,8 +48,8 @@ prennent la main, et les comptes individuels sans foyer.
 | **D12** | Pas de reprise des plans produits par l'ancien chemin : ils seront régénérés. | ✅ acté |
 | **D13** | **Le verrou de paiement est au niveau du FOYER.** Foyer impayé ⇒ plus personne ne génère, ni maître ni secondaire. Un compte **sans foyer** n'est pas concerné : les comptes individuels existent et ne demandent pas de foyer. | ✅ livré (L1) |
 | **D14** | **La présence se déclare.** Le maître doit pouvoir marquer **qui est là, et quand**. Tout le monde présent est le cas simple ; une absence se marque, et elle change les parts sans supprimer la session de cuisson. | ✅ livré (L2) |
-| **D15** | **La fusion opère sur l'INTERSECTION des fenêtres.** Un secondaire peut couvrir mercredi→dimanche quand le foyer couvre lundi→dimanche. Elle s'arrête d'elle-même là où les fenêtres divergent. | ⬜ à faire |
-| **D16** | **Le pivot est le premier jour non encore consommé**, pas la date de courses. Une fusion ne touche que les jours à venir, et la proposition le dit : *« son plan couvre 5 jours, dont 2 déjà passés — je peux fusionner les 3 restants. »* | ⬜ à faire |
+| **D15** | **La fusion opère sur l'INTERSECTION des fenêtres.** Un secondaire peut couvrir mercredi→dimanche quand le foyer couvre lundi→dimanche. Elle s'arrête d'elle-même là où les fenêtres divergent. | ✅ livré (L4) |
+| **D16** | **Le pivot est le premier jour non encore consommé**, pas la date de courses. Une fusion ne touche que les jours à venir, et la proposition le dit : *« son plan couvre 5 jours, dont 2 déjà passés — je peux fusionner les 3 restants. »* | ✅ livré (L4) |
 | **D17** | Un réglage **discret** permet au maître de ne plus se voir proposer la fusion pour une personne donnée. Assumé comme un peu brutal, donc caché. | ⬜ à faire |
 | **D18** | La date de naissance : **sur la fiche de la bouche** pour qui n'a pas de compte, et dans **« about you »** pour le maître. Pas à l'inscription. | ⬜ à faire |
 
@@ -98,7 +98,7 @@ Campagne de test du 2026-08-11, 5 lanes en conditions réelles, ~80 vérificatio
 | ~~**L1**~~ | ~~**Le verrou de paiement (D13)**~~ | — | ✅ **livré le 2026-08-12** — voir §« L1, ce qui est prouvé » |
 | ~~**L2**~~ | ~~**La présence (D14)**~~ | — | ✅ **livré le 2026-08-12** — voir §« L2, ce qui est prouvé » |
 | ~~**L3**~~ | ~~**La prise de main (D7, D2)**~~ | L1 | ✅ **livré le 2026-08-12** — voir §« L3, ce qui est prouvé » |
-| **L4** | **Le moteur de fusion (D6, D15, D16)** — lit les plans personnels validés, applique l'échelle, opère sur l'**intersection** des fenêtres, s'arrête au premier jour non consommé, écrit `merged_from`. | L3 | Le cœur |
+| ~~**L4**~~ | ~~**Le moteur de fusion (D6, D15, D16)**~~ | L3 | ✅ **livré le 2026-08-12** — voir §« L4, ce qui est construit » |
 | **L5** | **La proposition et la défusion (D8, D10, D17)** — l'avertissement au maître, les trois sorties, le réglage discret. | L4 | |
 | **L6** | **Mémoire et préférences par titulaire (D4)** — plafond de tokens par membre, garde de non-divulgation étendue à la composition. | L4 | |
 | **L7** | **Le plafond de fusions (D11)** — `N + 3` par semaine ISO, en base, `merge_quota_exhausted`. | L4 | |
@@ -290,7 +290,7 @@ l'écrivain.
 |---|---|---|---|
 | **O1** | Deux plans personnels **adjacents** qui couvrent ensemble toute la fenêtre ne prennent pas la main | `household_hand.ts:249` | **Laissé.** La direction d'erreur est sûre (une assiette de trop), mais le motif écrit du recouvrement total ne s'applique pas : la personne n'a aucun jour sans rien. **À trancher en L4**, qui travaille déjà par jour sur l'intersection — c'est là que l'union de couverture a sa place, pas ici |
 | **O2** | **Aucune surface produit n'appelle `keel_validate_meal_plan`** — la prise de main est aujourd'hui inatteignable par un vrai utilisateur | ni front, ni edge | **Bloquant pour L5/L8.** Le mécanisme est juste, la gâchette manque. À ne pas laisser tomber entre deux lots |
-| **O3** | La réponse HTTP ne porte pas `hand` — l'exclusion n'y est lisible que par un id opaque dans `issues` | `generate-household-meal-v1/index.ts:1466` | **L8** en aura besoin pour dire *pourquoi* on cuisine pour un de moins |
+| **O3** | La réponse HTTP ne porte pas `hand` — l'exclusion n'y est lisible que par un id opaque dans `issues` | `generate-household-meal-v1/index.ts:1982` | **L8** en aura besoin pour dire *pourquoi* on cuisine pour un de moins. *L4 a rendu `merge` dans la réponse, pas `hand`: la fenêtre fusionnée et le barreau ne se déduisent de rien d'autre.* |
 | **O4** | Un `reference_member_id` déclaré qui prend la main est écarté **en silence** | `household_composition.ts:110-119` | Mineur, reconstructible par `hand.taken`. Non exercé aujourd'hui (`reference_member_id` est NULL partout) |
 
 **Ce qui n'est pas prouvé** : que les allergies ne suivent pas l'exclusion — c'est
@@ -298,12 +298,231 @@ lu dans le code (`accountIds` est calculé **avant** le split) et confirmé par 
 log (`"members":4,"accounts":2` alors qu'une bouche a pris la main), mais aucun
 allergène réel n'a été posé sur la personne exclue.
 
-## Ce que L4 défait
+## L4, ce qui est construit — 2026-08-12
 
-`generate-household-meal-v1` **change de nature** : il compose aujourd'hui, il
-devra composer **puis** fusionner. Ce qu'il garde : la garde de gel, l'union des
-allergies du foyer, la résolution du foyer, le plafond de bouches, et le fait de
-composer pour toutes les bouches sans compte.
+> ⚠️ **Rien n'a été exercé en conditions réelles.** Aucun appel HTTP, aucune
+> génération modèle. Tout ce qui suit est prouvé par des tests purs, des tests de
+> position sur la source, et 13 mutations. La campagne réelle est L10.
+
+**Aucune migration.** Toute la provenance vit dans `generated_from`, qui est déjà
+`jsonb`. C'est l'option la plus réversible : une clé jsonb se retire, une colonne
+se migre. Vérifié en base : les six colonnes lues par la fusion existent toutes.
+
+### L'architecture, et pourquoi
+
+La fusion est une **opération de `generate-household-meal-v1`**
+(`operation: "merge"`), pas une seconde fonction edge. Elle exige exactement les
+mêmes préconditions que la composition — le gel 402 (L1), la résolution du foyer
+et le droit du maître, l'union des allergies, le plafond de bouches, les deux
+axes de version — et une seconde fonction aurait dupliqué cinq gardes. `compose`
+reste le **défaut** : le front, qui n'envoie pas `operation`, est inchangé.
+
+| Où | Quoi |
+|---|---|
+| `_shared/keel/household_merge.ts` | Le moteur PUR : intersection (D15), pivot (D16), échelle (D6), provenance, bloc de consigne |
+| `_shared/keel/household_portions.ts:125` | `SERVING_DIRECTION` exporté, **lu** axe par axe (`readServingDemands`) et jamais recopié |
+| `_shared/keel/household_portions.ts:415` | `buildPortionBrief(members, cooking)` — la ligne « combien de plats » devient une variable |
+| `_shared/keel/household_hand.ts:275` | `resolveHandOff({…, reclaimed})` — la reprise passe par le **seul** endroit qui décide qui est à table |
+| `generate-household-meal-v1/index.ts:267-514` | `RosterRow` + `resolveMergeRequest` — tous les refus, avant toute dépense |
+| `generate-household-meal-v1/index.ts:1919` | `generated_from.household.merge.merged_from` |
+
+### L'échelle (D6), et le critère qui la fait descendre
+
+Le critère d'abandon est **vérifiable** : les six directions de service se lisent
+en trois axes (protéine · féculent · légumes) et cinq niveaux
+(`smaller` < `moderate` < `balanced` < `full` < `larger`). La règle tient en une
+phrase — **une casserole déjà composée peut toujours en donner moins, jamais plus
+qu'elle n'en contient** :
+
+- une demande à `balanced` ou en dessous est **toujours** servable ;
+- une demande au-dessus exige que quelqu'un **à cette table** la porte déjà.
+
+Cas phare, et il tombe au barreau ② : père seul en `fat_loss`, fils en
+`muscle_gain` qui revient. Le fils demande `larger` en protéine **et** en
+féculent ; la table plafonne à `full` et `smaller`. Ce n'est **pas** le même
+arbitrage qu'une composition où les deux sont là dès le départ — là, le plat est
+dimensionné pour les deux. C'est toute la différence entre composer et fusionner.
+
+② → ③ **n'est spécifié nulle part** dans ce registre. Le seul fait vérifiable
+disponible dans les deux plans est leur **jour de cuisson** : deux plans qui ne
+cuisinent jamais le même jour ne peuvent pas partager une session. Quand l'un des
+deux ne cuisine pas du tout, on reste au barreau ② — descendre à ③ dirait au
+modèle d'ouvrir une session qui n'existe nulle part.
+
+### Ce que la fusion n'écrase jamais
+
+Le plan **personnel** du secondaire. La fusion écrit une ligne neuve sur le
+compte du **maître** (`plan_kind = 'household'`), et `write_student_meal_plan` ne
+touche que les lignes de `p_user_id` **et** de la même nature : la ligne du
+secondaire est hors de portée **par construction**, pas par condition. C'est ce
+qui rend la défusion de D8 possible.
+
+Le mécanisme de D16 est le même : quand la fusion commence **après** le plan du
+foyer, l'intention devient `prepare_next`, et c'est la boucle de chevauchement de
+la RPC qui **tronque** l'ancien plan. « Hors intersection, chacun garde ce qu'il
+avait » n'est donc pas une intention, c'est un effet mécanique.
+
+### Les versions de prompt — les deux axes bougent, chacun pour sa moitié
+
+- **`MEAL_PROMPT_VERSION` → `meal.en.v9_cooking_shape`.** C'est le bump que v8
+  annonçait comme dû. `buildPortionBrief` disait à toute composition de foyer,
+  sans condition : *« Cook ONE set of preparations for everyone. Do NOT propose
+  separate dishes. »* Les barreaux ② et ③ en ont besoin comme variable : c'est un
+  changement de **contrat**, et il vit dans le tronc. La lane individuelle change
+  de numéro sans changer de consigne — prix nommé d'avance.
+- **`HOUSEHOLD_PROMPT_VERSION` → `v3_merge`.** Un bloc de plus, entre la présence
+  et l'envie. Les règles de maison restent en **dernier**.
+- **Une composition ordinaire rend le prompt de v2 à l'octet près**, et un test
+  le tient.
+
+### Les refus, tous décidables sans le modèle
+
+`unknown_operation` · `merge_member_required` · `merge_member_not_in_household` ·
+`merge_member_is_owner` · `merge_member_has_no_plan` · `merge_no_household_plan` ·
+`merge_windows_disjoint` · `merge_window_all_past` · `merge_window_unreadable` ·
+`merge_plan_vanished` · `merge_member_away_all_window`.
+
+Un test de position les garde **par la source** : en HTTP, un refus tardif est
+indiscernable d'un refus précoce — il est juste, et c'est ce qui le rend
+invisible.
+
+### Ce qui est réduit, et assumé
+
+| Réduction | Pourquoi | Ce que ça coûte |
+|---|---|---|
+| **Une fusion reprend UN plan** par appel | Grouper déciderait à la place de D10 (« manuelle, sur proposition ») | Les autres plans qui mordent sont tracés (`merge_other_overlapping_plan:<id>`), jamais silencieux |
+| **Le barreau se décide pour la table entière**, pas par créneau | D6 dit « forcerait **quelqu'un** hors de sa direction », pas « ce jour-là » | Un seul créneau incompatible fait descendre toute la fenêtre d'un barreau |
+| **Le modèle exécute le barreau, il ne le choisit pas** | « Critère vérifiable, pas jugement de goût » | La séparabilité réelle du plat (D5) n'est pas vérifiée : le critère ne parle que des directions |
+| **O1 n'est pas tranché** | Il concerne la prise de main, pas la fusion | Deux plans adjacents ne prennent toujours pas la main |
+
+### Ce qui n'est pas prouvé, et ce qui est ouvert
+
+1. **Aucun run réel.** Pas un appel HTTP, pas une génération. Le barreau ② et ③
+   n'ont jamais été lus par un modèle : on ne sait pas s'il tient « deux plats,
+   une session ».
+2. **La fusion n'est pas COLLANTE.** Recomposer la même fenêtre en `compose`
+   ré-exclut la personne : son plan personnel couvre toujours la fenêtre, et
+   `resolveHandOff` refait son travail. C'est cohérent avec D10 (chaque
+   composition est une décision), et c'est exactement la machinerie que **L5**
+   doit poser — relire `merged_from` sur le plan vivant et re-reprendre qui n'a
+   pas revalidé depuis. **À ne pas laisser tomber entre deux lots.**
+3. **O2 tient toujours** : aucune surface produit n'appelle
+   `keel_validate_meal_plan`, donc la prise de main — et donc la fusion — reste
+   inatteignable par un vrai utilisateur.
+4. **Un rouge PRÉEXISTANT réparé en passant** : 7 tests de
+   `household_turn_context_test.ts` étaient rouges au HEAD. Le décor n'écrivait
+   pas `plan_kind`, que le chargeur filtre depuis L3 — un décor qui ment sur la
+   forme de la donnée **fabriquait** le défaut. Corrigé, 21/21 verts.
+5. **Deux rouges préexistants NON touchés** : `chat/recent_history_test.ts` (2
+   tests) et une erreur de typage dans `action_occurrences_test.ts`. Aucun des
+   deux fichiers n'appartient à ce lot.
+
+## L4, l'aval — ce que le premier run réel a trouvé (2026-08-12)
+
+> Le moteur **décidait** juste : l'échelle D6, l'intersection D15, le pivot D16
+> et `merged_from` sont tous prouvés en réel. C'est la **chaîne en aval** qui ne
+> savait pas exécuter sa décision. Trois défauts, mesurés, tous corrigés ; deux
+> défauts mécaniques ; une branche documentée.
+
+| # | Ce qui était mesuré | Ce qui a changé |
+|---|---|---|
+| **1** | Le modèle a rendu `prep_zoe_tuna_pasta` avec `servings_made: 1`, **obéissant** aux barreaux ②/③ — le parseur l'a jeté, puis a jeté le lien du plat qui la citait. **En base, le plat de la personne fusionnée existait comme un titre nu**, rattaché à aucune préparation et à aucune session | La garde devient **conditionnelle** : une préparation d'une portion est le cas **nominal** aux barreaux ②/③, et reste jetée partout ailleurs (`meal_generation.ts`, garde de `servings_made`). Le paramètre est **REQUIS** (`merge: MergedEater \| null`) : les deux lanes ont dû choisir, le compilateur les a listées |
+| **2** | Le prompt annonçait « au plus 15 plats » **et** « donne-lui un SECOND plat ». Le modèle en a rendu 16, le parseur a jeté le dernier — **le dîner du dimanche du foyer**, pas le plat en trop | Le plafond connaît la bouche reprise (`dishBudgetFor`). Le supplément se **lit** sur la consigne : ① → **0** (« Do NOT propose separate dishes »), ②/③ → le nombre de plats propres réellement **montrés** au modèle (`mergeMaterialShown`, plancher 1 pour le « SECOND dish », plafonné au budget de base). Prompt et parse passent par la **même** fonction |
+| **3** | Barreau ③ demandé ; le modèle a rendu 15 plats, aucun second plat, aucune session dédiée, et a servi la personne depuis la casserole commune. **L'archive disait `separate_sessions`, le plan disait le contraire, dans la même ligne** | `observeMergeShape` **constate** après le parse : deux marques structurelles (préparation d'une portion ; deux plats au même jour+moment). Une `issue` nommée `merge_shape_not_honoured:<barreau>`, et `generated_from.household.merge.honoured` porte **demandé** et **obtenu** côte à côte. **On ne corrige pas** : refuser ou relancer serait un choix de produit que personne n'a pris |
+| **4** | `merge_member_away_all_window` était le **seul** refus de fusion muet — trois `merge_refused` dans les logs du runtime, aucun pour lui | Aligné sur le même `tag` et la même forme que les dix autres |
+| **5** | Un commentaire nommait `household_merge_position_test.ts`, **fichier qui n'a jamais existé** | Corrigé, et un test refuse désormais **tout** nom de fichier de test introuvable cité dans le générateur |
+| **6** | — | `merge_window_unreadable` est **structurellement inatteignable** depuis une base valide (`starts_on NOT NULL`, `duration_days between 1 and 7`). Écrit à côté du refus : c'est une branche **défensive**, pas un refus qu'un appelant peut recevoir. Elle reste |
+
+**Le constat, calibré sur les deux vraies lignes.** Les deux plans de fusion du
+run réel sont en base (`+household.v3_merge`), et ils portent **15 plats
+chacun** — exactement le plafond de base, jamais dépassé — avec un
+`servings_made` **minimum de 3** : aucune préparation d'une portion n'a survécu.
+Passés dans `observeMergeShape`, ils se séparent comme le run l'a décrit : le
+plan ② porte **une** case jour+moment doublée (le plat dédié existait, en titre
+nu — c'est le défaut 1), donc `dedicated_dish` ; le plan ③ n'en porte **aucune**
+et aucune préparation solo, donc `common_pot` et
+`merge_shape_not_honoured:separate_sessions`. Le constat ne dit ni oui à tout ni
+non à tout.
+
+**Les versions.** `HOUSEHOLD_PROMPT_VERSION` bump **v3_merge → v4_merge_budget** ;
+`MEAL_PROMPT_VERSION` **ne bouge pas**. La règle appliquée est « quelle
+population voit une consigne différente », pas « où vit le code » : la lane
+individuelle et la composition de foyer ordinaire rendent un prompt
+**byte-identique** (`merge: null` est l'identité, et deux tests le tiennent) ;
+seule une **fusion** voit la ligne « at most N dishes » changer de nombre, et une
+fusion n'existe que sur la lane foyer.
+
+**Ce qui reste ouvert après ce lot :**
+
+1. **Le constat ne distingue pas ② de ③.** Il répond à « cette personne a-t-elle
+   quelque chose à elle, oui ou non ». Vérifier que la session dédiée de ③
+   existe vraiment demanderait de rattacher chaque préparation à sa session et
+   de comparer les jours — faisable, non fait.
+2. **Le budget de SESSIONS ne suit pas le bonus de fusion**, exprès : ② promet
+   « one session at the stove, two dishes out of it », et le gonfler
+   contredirait la consigne dans le même message. ③ prend sa session dans un
+   budget qui est un **plafond** et non une cible. Si un run montre que ③ manque
+   de place, la réparation est une ligne (`batchSessionBudget(baseCap)`).
+3. **Quand le modèle déborde quand même, le parseur jette les DERNIERS plats.**
+   Noté en commentaire là où c'est pertinent : c'est ce qui a fait disparaître le
+   dimanche plutôt que le plat en trop. Réparer vraiment demanderait de choisir
+   quel plat sacrifier — décision de produit non prise.
+4. **`CookingSessions.tsx` affiche « — {n} servings »** sans pluriel : une
+   préparation d'une portion s'y lira « — 1 servings ». Cosmétique, et l'écran de
+   fusion appartient à **L8**.
+
+## L4, la contre-épreuve — 2026-08-12, après correction
+
+Les deux défauts d'aval ont été re-mesurés par **rejeu des octets réels** du run
+défaillant : la réponse exacte du modèle qui contenait `prep_zoe_tuna_pasta`
+(`servings_made: 1`) a été repassée au parseur d'aujourd'hui.
+
+| Chemin | Résultat |
+|---|---|
+| `merge: null` (l'ancien) | préparation **jetée**, `unknown preparation … dropped`, `over the 15-dish cap … dropped` ⇒ plat en **titre nu** et **dîner du dimanche absent** |
+| `one_session` / `separate_sessions` | **16 plats sur 16**, **7 préparations sur 7**, **aucune** `issue` ; la préparation d'une portion est présente et **référencée**, le dimanche est de retour |
+
+Les deux défauts se reproduisent d'un côté et disparaissent de l'autre, sur les
+**mêmes octets**. Le plafond annoncé au modèle a bien bougé, reconstitué mot pour
+mot par les modules purs avec les entrées réelles : `at most 15 dishes` en
+composition et au barreau ①, **`at most 20`** au barreau ② avec cinq plats montrés
+— le reste du message étant identique. Et la composition ordinaire est
+**byte-identique** à celle d'avant le lot, vérifiée en comparant les modules de
+`HEAD` à ceux de l'arbre de travail.
+
+### ⚠️ O5 — LE MODÈLE N'OBÉIT PAS AU BARREAU. Ouvert, et c'est un choix de produit
+
+**Deux fusions réelles sur deux ont ignoré la consigne** : barreau ② demandé,
+`common_pot` obtenu. Sur l'une d'elles, le modèle a recopié **les quinze titres de
+plats du secondaire pour toute la tablée** — un foyer en `fat_loss` s'est vu servir
+un plan de prise de masse. C'est exactement ce que le critère d'abandon de D6
+existe pour interdire.
+
+`observeMergeShape` le **constate** (`merge.honoured`, une `issue` nommée, un log)
+et le constat a son cas passant : sur les octets du run où le modèle avait obéi, il
+rend `honoured: true`. **Mais ce n'est qu'un constat** — le plan est écrit et servi.
+
+Trois sorties, **aucune prise** :
+
+| Sortie | Ce que ça donne |
+|---|---|
+| *Laisser* (état actuel) | le mensonge est visible dans `generated_from`, et personne ne le lit |
+| **Refuser** la fusion, garder le plan précédent | le repli de L3 fonctionne déjà, et c'est le sens de « le repli est le refus » — mais le maître qui a demandé la fusion n'obtient rien |
+| *Relancer* le modèle une fois, consigne plus ferme | coût inconnu, efficacité non mesurée |
+
+Ce n'est pas une décision de code. **Elle attend l'utilisateur.**
+
+### O6 — un plat rejeté ne rebouche jamais sa case
+
+Sur une fusion, **les cinq petits-déjeuners du foyer sont tombés d'un coup** : le
+plan personnel citait « whey protein 90 g », que le verrou de cible numérique lit
+comme une cible de macro et qui fait rejeter le **plat entier**
+(`meal_generation.ts:2160`). Le foyer s'est retrouvé sans aucun petit-déjeuner,
+avec une ligne d'`issues` pour seul signal.
+
+Le verrou est antérieur au lot et il est juste. Ce que la fusion change, c'est
+qu'il devient atteignable par la **matière d'un plan personnel** qu'un tiers a
+écrite. Rien ne recompose la case vide.
 
 ## Questions encore ouvertes
 

@@ -28,6 +28,7 @@ function promptWith(args: { today?: string | null; country?: string | null }): s
     coachNoteBlock: null,
     fixedIntakes: [],
     dayProperties: [],
+    merge: null,
     protocolBlock: "",
     beliefKeys: [],
     goal: "health",

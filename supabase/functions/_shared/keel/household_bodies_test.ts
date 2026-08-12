@@ -227,7 +227,7 @@ Deno.test("corps illisible: best-effort, la bouche reste servie", async () => {
     ageState: "adult" as const,
     body: got.byMember.get(m.memberId) ?? null,
   }));
-  const brief = buildPortionBrief(members);
+  const brief = buildPortionBrief(members, "one_dish");
   assertEquals(brief.split("\n").filter((l) => l.startsWith("- ")).length, 3);
   assert(!brief.includes("["), brief);
 });

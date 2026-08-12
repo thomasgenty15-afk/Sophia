@@ -22,6 +22,7 @@ const PROMPT_BASE = {
   coachNoteBlock: null,
   fixedIntakes: [],
   dayProperties: [],
+  merge: null,
   protocolBlock: "",
   beliefKeys: [],
   goal: "health" as const,
@@ -125,6 +126,7 @@ Deno.test("le VERROU DE SORTIE mord toujours â€” la consigne ne l'a pas remplacÃ
     composition: null,
     fixedIntakes: [],
     dayProperties: [],
+    merge: null,
   });
   assertEquals(meal.dishes.length, 0);
   assert(meal.lock.reason !== "clean", meal.lock.reason);

@@ -41,6 +41,7 @@ import {
   mealPreparationsPayload,
   mealSessionsPayload,
   mealShoppingPayload,
+  type MergedEater,
   parseEatingRhythm,
   parseGeneratedMeal,
 } from "../_shared/keel/meal_generation.ts";
@@ -52,8 +53,23 @@ import {
 import {
   type MemberOwnPlan,
   parseOwnPlans,
+  plansOverlap,
   resolveHandOff,
 } from "../_shared/keel/household_hand.ts";
+import {
+  MERGE_SHAPE_NOT_HONOURED,
+  MERGE_WINDOW_ALL_PAST,
+  MERGE_WINDOW_UNREADABLE,
+  MERGE_WINDOWS_DISJOINT,
+  type MergeMaterialDish,
+  type MergeWindow,
+  mergedFromEntry,
+  mergeLadder,
+  mergeMaterialShown,
+  observeMergeShape,
+  type PlanSpan,
+  resolveMergeWindow,
+} from "../_shared/keel/household_merge.ts";
 import { proteinAnchorRetryInstruction } from "../_shared/keel/protein_anchor.ts";
 import type { CompositionIndex } from "../_shared/keel/food_composition.ts";
 import { loadCompositionIndex } from "../_shared/keel/food_composition_io.ts";
@@ -79,6 +95,7 @@ import {
   MEMBER_GOALS,
   type PortionMember,
   reconcilePortions,
+  servingDemandsFor,
 } from "../_shared/keel/household_portions.ts";
 import { loadHouseholdMemberBodies } from "../_shared/keel/household_bodies.ts";
 import {
@@ -125,9 +142,26 @@ import { weekStartOf } from "../_shared/keel/weekly_flow_io.ts";
  * sien. C'est `resolveHandOff` (`_shared/keel/household_hand.ts`) qui le dit,
  * et lui seul.
  *
- * Tant que L4 n'existe pas, les deux plans COEXISTENT: le foyer cuisine sans
- * lui, il cuisine pour lui, et personne ne fusionne. C'est le REPLI du modèle
- * (D8: « dans tous les cas le user garde son plan »), et il doit tenir seul.
+ * Sans geste du maître, les deux plans COEXISTENT: le foyer cuisine sans lui,
+ * il cuisine pour lui, et personne ne fusionne. C'est le REPLI du modèle
+ * (D8: « dans tous les cas le user garde son plan »), et il tient seul.
+ *
+ * ── DEUX OPÉRATIONS, UNE SEULE PORTE (L4, D6/D10, 2026-08-12) ───────────
+ * `operation: "compose"` (le DÉFAUT, et le comportement de toujours) écrit le
+ * plan du foyer. `operation: "merge"` REPREND à cette table quelqu'un qui
+ * mangeait son propre plan, et écrit un NOUVEAU plan du foyer.
+ *
+ * ELLES PARTAGENT CE FICHIER PARCE QU'ELLES PARTAGENT LEURS PRÉCONDITIONS: le
+ * gel 402 (L1), la résolution du foyer et le droit du maître, l'union des
+ * allergies, le plafond de bouches, les deux axes de version de prompt. Une
+ * seconde fonction edge aurait dupliqué cinq gardes — et ce dépôt a déjà payé
+ * plusieurs fois « deux définitions qui divergent au premier ajustement ».
+ *
+ * CE QUE LA FUSION N'ÉCRASE JAMAIS: le plan PERSONNEL du secondaire. Elle écrit
+ * une ligne neuve sur le compte du MAÎTRE (`plan_kind = 'household'`); la RPC
+ * d'écriture ne touche que les lignes de `p_user_id` ET de la même nature, donc
+ * la ligne du secondaire est hors de portée par construction. C'est ce qui rend
+ * la défusion de D8 possible: il y a toujours un plan à retrouver.
  *
  * ── LE MINEUR N'EST PAS UNE CIBLE (§8.4), ET « JE NE SAIS PAS » NON PLUS ─
  * L'objectif d'une bouche SANS COMPTE vit sur sa ligne de foyer depuis le
@@ -231,6 +265,265 @@ interface LoadedMember extends PortionMember {
    * seul.
    */
   ownPlans: MemberOwnPlan[];
+}
+
+/** Une ligne de `keel_household_roster_for`, telle que la base la rend. */
+interface RosterRow {
+  member_id: string;
+  user_id: string | null;
+  first_name: string;
+  age_state: string;
+  role: string;
+  goal: string | null;
+  // D14 — L'UNION DES DEUX SOURCES, DÉJÀ FAITE EN BASE. Chaque entrée porte
+  // sa `source` (`self` | `household`); `parseMemberAway` la relit sans
+  // jamais refaire la fusion (voir `household_presence.ts`).
+  away_days: unknown;
+  // D2/D7 — LES PLANS PERSONNELS VIVANTS ET VALIDÉS de cette bouche, DANS
+  // CE FOYER. Déjà filtrés par la base sur tout ce qu'elle peut voir seule;
+  // ce qui reste à décider est le RECOUVREMENT de la fenêtre, et il est
+  // décidé dans `household_hand.ts`, jamais ici.
+  own_plans: unknown;
+}
+
+// ===========================================================================
+// L4 · D6 · D15 · D16 — LA FUSION, RÉSOLUE AVANT TOUTE DÉPENSE
+//
+// Tout ce bloc s'exécute AVANT le premier appel modèle, et c'est sa raison
+// d'être autant que sa position: chacun de ses refus se tranche sur deux
+// fenêtres, un roster et une date. L1 a mesuré 28,6 s et 225 s de génération
+// brûlées sur des refus de cette nature; le test de POSITION est dans
+// `_shared/keel/household_merge_test.ts` (« AUCUN REFUS DE FUSION NE SE PAIE AU
+// PRIX D'UNE GÉNÉRATION »), et il garde la position PAR LA SOURCE parce qu'en
+// HTTP un refus tardif est indiscernable d'un refus précoce.
+//
+// ⚠️ JUSQU'AU 2026-08-12, CE COMMENTAIRE NOMMAIT UN FICHIER DE TEST QUI N'A
+// JAMAIS EXISTÉ. Un commentaire qui ment sur l'existence de sa propre garde est
+// pire qu'une absence de commentaire: il fait croire la garde posée à qui vient
+// vérifier, et c'est le seul lecteur qui compte. Le nom fautif n'est pas répété
+// ici — un test (« AUCUN COMMENTAIRE DU GÉNÉRATEUR NE NOMME UN TEST QUI
+// N'EXISTE PAS ») refuse désormais TOUT nom de fichier de test introuvable dans
+// ce fichier, y compris cité en exemple.
+// ===========================================================================
+
+/** Un plan déjà écrit, relu pour la fusion. Jamais le `why` d'un plat. */
+interface StoredPlan {
+  id: string;
+  startsOn: string;
+  durationDays: number;
+  validatedAt: string | null;
+  /** Jetons `mon`..`sun` des sessions de cuisine, sans doublon. */
+  cookingDays: string[];
+  /** Jour · créneau · titre. Rien d'autre — voir `household_merge.ts`. */
+  dishes: MergeMaterialDish[];
+}
+
+interface ResolvedMerge {
+  member: RosterRow;
+  /** Le plan personnel repris. UN seul par appel — voir plus bas. */
+  personalPlan: StoredPlan;
+  /** Le plan du foyer dans lequel on le reprend. */
+  householdPlan: StoredPlan;
+  window: MergeWindow;
+  /**
+   * O1 — LES AUTRES PLANS PERSONNELS QUI MORDENT SUR LA FENÊTRE FUSIONNÉE.
+   *
+   * Une fusion reprend UN plan. Deux plans personnels adjacents qui couvrent
+   * ensemble la fenêtre demanderaient deux gestes du maître, et c'est l'option
+   * la plus réversible: fusionner les deux d'un coup déciderait à la place de
+   * D10 (« la fusion est manuelle, sur proposition »), et rien ne dit que la
+   * proposition doit les grouper. Ce qui n'est PAS acceptable, c'est le
+   * silence: les autres plans sont tracés en `issues`, donc visibles.
+   */
+  otherOverlappingPlanIds: string[];
+}
+
+interface MergeRefusal {
+  refusal: string;
+  detail: string;
+}
+
+/** Les jours de cuisson d'un `cooking_sessions` stocké. */
+function storedCookingDays(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  const out: string[] = [];
+  for (const entry of raw) {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) continue;
+    const day = String((entry as Record<string, unknown>).day ?? "").trim();
+    if (day && !out.includes(day)) out.push(day);
+  }
+  return out;
+}
+
+/**
+ * LES PLATS D'UN PLAN STOCKÉ — TROIS CHAMPS, ET PAS UN DE PLUS.
+ *
+ * ⚠️ `why` N'EST PAS LU, ET C'EST UNE DÉCISION. C'est la seule prose d'un plan
+ * qui parle de la PERSONNE (« pourquoi CE plat pour CET élève »), et ce qu'on
+ * assemble ici part dans un prompt dont la sortie est lue à table par tout le
+ * foyer. Les titres, eux, sont déjà lisibles par chaque membre
+ * (`student_generated_meals_household_read`): les passer ne divulgue rien de
+ * neuf. `ingredients` non plus: ils ne serviraient qu'à faire recopier une
+ * recette que le modèle doit pouvoir refuser.
+ */
+function storedDishes(raw: unknown): MergeMaterialDish[] {
+  if (!Array.isArray(raw)) return [];
+  const out: MergeMaterialDish[] = [];
+  for (const entry of raw) {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) continue;
+    const row = entry as Record<string, unknown>;
+    const title = String(row.title ?? "").trim();
+    if (!title) continue;
+    out.push({
+      day: String(row.day ?? "").trim() || null,
+      slot: String(row.slot ?? "").trim() || null,
+      title,
+    });
+  }
+  return out;
+}
+
+async function resolveMergeRequest(args: {
+  admin: SupabaseClient;
+  ownerUserId: string;
+  roster: readonly RosterRow[];
+  memberId: string;
+  todayDate: string;
+}): Promise<ResolvedMerge | MergeRefusal> {
+  const member = args.roster.find((r) => r.member_id === args.memberId);
+  if (!member) {
+    return {
+      refusal: "merge_member_not_in_household",
+      detail: "That person is not in this household.",
+    };
+  }
+  // D2 — LE MAÎTRE N'EST JAMAIS EXCLU, donc il n'y a jamais rien à reprendre
+  // pour lui. Son plan du foyer EST son plan. Sans ce refus, une fusion sur
+  // lui-même irait jusqu'à `merge_member_has_no_plan`, qui serait un
+  // diagnostic faux.
+  if (member.role === "owner") {
+    return {
+      refusal: "merge_member_is_owner",
+      detail: "The household plan is already yours: there is nothing to bring back.",
+    };
+  }
+
+  const ownPlans = parseOwnPlans(member.own_plans);
+  if (ownPlans.length === 0) {
+    return {
+      refusal: "merge_member_has_no_plan",
+      detail: "That person has no validated plan of their own, so they are " +
+        "already being cooked for.",
+    };
+  }
+
+  // LE PLAN DU FOYER, VIVANT. `plan_kind = 'household'` est OBLIGATOIRE et ce
+  // n'est pas une précaution: un plan PERSONNEL porte aussi `household_id`, et
+  // deux lecteurs indépendants sont déjà tombés dedans le 2026-08-12. Filtrer
+  // sur le propriétaire seul rendrait ici le plan perso du maître.
+  const hhRes = await args.admin
+    .from("student_generated_meals")
+    .select("id, starts_on, duration_days, validated_at, cooking_sessions, dishes")
+    .eq("user_id", args.ownerUserId)
+    .eq("plan_kind", "household")
+    .is("retired_at", null)
+    .order("starts_on", { ascending: true });
+  if (hhRes.error) throw hhRes.error;
+  const householdPlans: StoredPlan[] =
+    ((hhRes.data ?? []) as Array<Record<string, unknown>>).map((row) => ({
+      id: String(row.id),
+      startsOn: String(row.starts_on ?? ""),
+      durationDays: Number(row.duration_days ?? 0),
+      validatedAt: row.validated_at == null ? null : String(row.validated_at),
+      cookingDays: storedCookingDays(row.cooking_sessions),
+      dishes: storedDishes(row.dishes),
+    }));
+  if (householdPlans.length === 0) {
+    return {
+      refusal: "merge_no_household_plan",
+      detail: "There is no live household plan to merge into. Compose one first.",
+    };
+  }
+
+  // ── LA MEILLEURE PAIRE (plan du foyer, plan personnel) ──────────────────
+  // Au plus deux plans du foyer sont vivants à la fois (la contrainte
+  // d'exclusion le garantit: le courant et le suivant), et un membre peut
+  // porter plusieurs plans personnels adjacents. On garde la paire dont la
+  // fenêtre FUSIONNABLE — intersection coupée au pivot — est la plus longue:
+  // c'est la seule mesure qui parle de jours réellement repris.
+  let best: { household: StoredPlan; personal: MemberOwnPlan; window: MergeWindow } | null =
+    null;
+  let refusal: string = MERGE_WINDOWS_DISJOINT;
+  for (const household of householdPlans) {
+    for (const personal of ownPlans) {
+      const resolved = resolveMergeWindow({
+        household,
+        personal,
+        today: args.todayDate,
+      });
+      if (!resolved.ok) {
+        // « TOUT EST DÉJÀ PASSÉ » EN DIT PLUS QUE « RIEN EN COMMUN », donc il
+        // gagne: les deux plans se touchent bien, et c'est le pivot qui a
+        // tranché. Un refus qui dit `disjoint` là où le vrai motif est D16
+        // enverrait le maître vérifier des dates qui sont justes.
+        if (resolved.refusal !== MERGE_WINDOWS_DISJOINT) refusal = resolved.refusal;
+        continue;
+      }
+      if (!best || resolved.window.durationDays > best.window.window.durationDays) {
+        best = { household, personal, window: resolved };
+      }
+    }
+  }
+  if (!best) {
+    return {
+      refusal,
+      detail: refusal === MERGE_WINDOW_ALL_PAST
+        ? "Everything those two plans share is already behind us. A merge only " +
+          "touches days nobody has eaten yet."
+        : refusal === MERGE_WINDOW_UNREADABLE
+        ? "One of those two plans does not carry a readable window."
+        : "That person's plan and the household plan do not share a single day.",
+    };
+  }
+
+  // LE PLAN PERSONNEL, EN ENTIER. Le roster n'en rend que la FENÊTRE (id,
+  // dates, validation): il n'a jamais eu à porter des plats, et l'élargir pour
+  // ce lot ferait grossir la lecture que le chat fait à chaque tour.
+  const personalRes = await args.admin
+    .from("student_generated_meals")
+    .select("id, starts_on, duration_days, validated_at, cooking_sessions, dishes")
+    .eq("id", best.personal.id)
+    .maybeSingle();
+  if (personalRes.error) throw personalRes.error;
+  const personalRow = (personalRes.data ?? null) as Record<string, unknown> | null;
+  if (!personalRow) {
+    // La ligne était là quand le roster l'a vue, et elle ne l'est plus. On
+    // refuse plutôt que de fusionner un plan qu'on n'a pas relu.
+    return {
+      refusal: "merge_plan_vanished",
+      detail: "That plan is no longer readable. Try again.",
+    };
+  }
+
+  const mergedSpan: PlanSpan = best.window.window;
+  return {
+    member,
+    householdPlan: best.household,
+    personalPlan: {
+      id: String(personalRow.id),
+      startsOn: String(personalRow.starts_on ?? best.personal.startsOn),
+      durationDays: Number(personalRow.duration_days ?? best.personal.durationDays),
+      validatedAt: personalRow.validated_at == null
+        ? null
+        : String(personalRow.validated_at),
+      cookingDays: storedCookingDays(personalRow.cooking_sessions),
+      dishes: storedDishes(personalRow.dishes),
+    },
+    window: best.window,
+    otherOverlappingPlanIds: ownPlans
+      .filter((p) => p.id !== best!.personal.id && plansOverlap(p, mergedSpan))
+      .map((p) => p.id),
+  };
 }
 
 Deno.serve(async (req) => {
@@ -344,22 +637,63 @@ Deno.serve(async (req) => {
     // `replace_current` reste le défaut — le changer modifierait le
     // comportement d'un appelant qui omet `intent` mais fournit `replaces` —
     // mais il échoue désormais immédiatement, et en le nommant.
-    const intent = String(body.intent ?? "replace_current").trim();
-    if (intent !== "replace_current" && intent !== "prepare_next") {
+    //
+    // ── L4/D6 — DEUX OPÉRATIONS, UNE SEULE PORTE ────────────────────────
+    //
+    // `compose` est ce que cette fonction fait depuis toujours, et c'est le
+    // DÉFAUT: un appelant qui n'envoie pas `operation` reçoit exactement le
+    // comportement d'avant ce lot, y compris le front, qui n'en envoie pas.
+    //
+    // `merge` reprend à la table quelqu'un qui mangeait son propre plan (D6,
+    // D10). Elle vit ICI plutôt que dans une fonction à elle parce qu'elle
+    // exige EXACTEMENT les mêmes préconditions: le gel 402 (L1), la résolution
+    // du foyer, l'union des allergies, le plafond de bouches, la version de
+    // prompt. Une seconde fonction dupliquerait cinq gardes, et ce dépôt a
+    // déjà payé plusieurs fois « deux définitions qui divergent au premier
+    // ajustement ». Les cinq gardes sont donc franchies une seule fois, plus
+    // haut, par le même chemin, pour les deux opérations.
+    //
+    // ⚠️ LA FUSION NE PREND NI `window` NI `intent` DU CLIENT, ET C'EST LE
+    // POINT. Sa fenêtre est l'INTERSECTION des deux plans coupée au premier
+    // jour non consommé (D15/D16): elle se DÉDUIT, elle ne se demande pas. Un
+    // client qui pourrait la choisir pourrait refusionner hier.
+    const operation = String(body.operation ?? "compose").trim();
+    if (operation !== "compose" && operation !== "merge") {
       return jsonResponse(req, {
-        error: "unknown_intent",
-        detail: "intent must be replace_current or prepare_next",
+        error: "unknown_operation",
+        detail: "operation must be compose or merge",
         request_id: requestId,
       }, { status: 400 });
     }
-    const replaces = String(body.replaces ?? "").trim() || null;
-    if (intent === "replace_current" && replaces === null) {
+    const mergeMemberId = String(body.merge_member_id ?? "").trim() || null;
+    if (operation === "merge" && !mergeMemberId) {
       return jsonResponse(req, {
-        error: "replaces_required",
-        detail:
-          "intent=replace_current must name the plan it replaces (`replaces`).",
+        error: "merge_member_required",
+        detail: "operation=merge must name the person it brings back " +
+          "(`merge_member_id`).",
         request_id: requestId,
       }, { status: 400 });
+    }
+    // `intent` et `replaces` restent des ENTRÉES pour la composition, et
+    // deviennent des SORTIES pour la fusion (voir plus bas): d'où le `let`.
+    let intent = String(body.intent ?? "replace_current").trim();
+    let replaces = String(body.replaces ?? "").trim() || null;
+    if (operation === "compose") {
+      if (intent !== "replace_current" && intent !== "prepare_next") {
+        return jsonResponse(req, {
+          error: "unknown_intent",
+          detail: "intent must be replace_current or prepare_next",
+          request_id: requestId,
+        }, { status: 400 });
+      }
+      if (intent === "replace_current" && replaces === null) {
+        return jsonResponse(req, {
+          error: "replaces_required",
+          detail:
+            "intent=replace_current must name the plan it replaces (`replaces`).",
+          request_id: requestId,
+        }, { status: 400 });
+      }
     }
 
     // ── LES MEMBRES, PAR LA MÊME PORTE QUE LE CHAT ──────────────────────
@@ -375,23 +709,7 @@ Deno.serve(async (req) => {
     // exige un compte.
     const rosterRes = await admin.rpc("keel_household_roster_for", { p_user: userId });
     if (rosterRes.error) throw rosterRes.error;
-    const roster = (rosterRes.data ?? []) as Array<{
-      member_id: string;
-      user_id: string | null;
-      first_name: string;
-      age_state: string;
-      role: string;
-      goal: string | null;
-      // D14 — L'UNION DES DEUX SOURCES, DÉJÀ FAITE EN BASE. Chaque entrée porte
-      // sa `source` (`self` | `household`); `parseMemberAway` la relit sans
-      // jamais refaire la fusion (voir `household_presence.ts`).
-      away_days: unknown;
-      // D2/D7 — LES PLANS PERSONNELS VIVANTS ET VALIDÉS de cette bouche, DANS
-      // CE FOYER. Déjà filtrés par la base sur tout ce qu'elle peut voir seule;
-      // ce qui reste à décider est le RECOUVREMENT de la fenêtre, et il est
-      // décidé dans `household_hand.ts`, jamais ici.
-      own_plans: unknown;
-    }>;
+    const roster = (rosterRes.data ?? []) as RosterRow[];
     if (roster.length === 0) {
       return jsonResponse(req, { error: "empty_household", request_id: requestId }, { status: 409 });
     }
@@ -444,27 +762,80 @@ Deno.serve(async (req) => {
     // `goal_required` (409). C'est l'ordre qu'a déjà `generate-meal-v1`, où la
     // fenêtre est validée bien avant l'objectif; les deux lanes disaient deux
     // choses différentes du même appel mal formé.
-    const windowRequest = readWindowRequest(body.window);
-    if (!windowRequest) {
-      return jsonResponse(req, {
-        error: "window_required",
-        detail: "window must be {kind:'until_sunday'} | {kind:'days',count} | " +
-          "{kind:'exact',starts_on,duration_days}",
-        request_id: requestId,
-      }, { status: 400 });
-    }
     let startsOn: string;
     let durationDays: number;
-    try {
-      const resolved = resolveRequestedWindow(windowRequest, todayDate);
-      startsOn = resolved.startsOn;
-      durationDays = resolved.durationDays;
-    } catch (error) {
-      return jsonResponse(req, {
-        error: "bad_window",
-        detail: error instanceof Error ? error.message : String(error),
-        request_id: requestId,
-      }, { status: 400 });
+    /**
+     * L4 — TOUT CE QUE LA FUSION A RÉSOLU AVANT LE MODÈLE.
+     *
+     * `null` sur une composition ordinaire, et c'est ce qui rend le reste de ce
+     * fichier lisible: chaque endroit qui doit se comporter autrement le dit en
+     * une ligne (`merge === null ? … : …`) au lieu de porter une branche.
+     */
+    let merge: ResolvedMerge | null = null;
+
+    if (operation === "merge") {
+      const resolvedMerge = await resolveMergeRequest({
+        admin,
+        ownerUserId: userId,
+        roster,
+        memberId: mergeMemberId!,
+        todayDate,
+      });
+      if ("refusal" in resolvedMerge) {
+        // ⚠️ AUCUN DE CES REFUS NE COÛTE UN APPEL MODÈLE, et c'est la moitié
+        // qui compte. Ils ne dépendent que de deux fenêtres, d'un roster et
+        // d'une date — L1 a mesuré 28,6 s et 225 s brûlées sur des refus de
+        // cette nature, et un test de position garde celui-ci.
+        console.log(JSON.stringify({
+          tag: "keel.household_meal.merge_refused",
+          user_id: userId,
+          household_id: householdId,
+          member_id: mergeMemberId,
+          reason: resolvedMerge.refusal,
+        }));
+        return jsonResponse(req, {
+          error: resolvedMerge.refusal,
+          detail: resolvedMerge.detail,
+          request_id: requestId,
+        }, { status: 409 });
+      }
+      merge = resolvedMerge;
+      startsOn = merge.window.window.startsOn;
+      durationDays = merge.window.window.durationDays;
+      // ── L'INTENTION SE DÉDUIT, ELLE NE SE DEMANDE PAS ─────────────────
+      // Deux cas, et un seul est un remplacement.
+      //   · La fusion commence LE MÊME JOUR que le plan du foyer ⇒ elle le
+      //     REMPLACE, et la RPC retire l'ancien.
+      //   · Elle commence PLUS TARD (des jours déjà consommés, D16) ⇒ le plan
+      //     du foyer doit SURVIVRE, tronqué à ces jours-là. C'est exactement ce
+      //     que fait la boucle de chevauchement de `write_student_meal_plan`,
+      //     et c'est ce qui réalise « hors intersection, chacun garde ce qu'il
+      //     avait » sans une ligne de code de plus.
+      intent = startsOn === merge.householdPlan.startsOn
+        ? "replace_current"
+        : "prepare_next";
+      replaces = intent === "replace_current" ? merge.householdPlan.id : null;
+    } else {
+      const windowRequest = readWindowRequest(body.window);
+      if (!windowRequest) {
+        return jsonResponse(req, {
+          error: "window_required",
+          detail: "window must be {kind:'until_sunday'} | {kind:'days',count} | " +
+            "{kind:'exact',starts_on,duration_days}",
+          request_id: requestId,
+        }, { status: 400 });
+      }
+      try {
+        const resolved = resolveRequestedWindow(windowRequest, todayDate);
+        startsOn = resolved.startsOn;
+        durationDays = resolved.durationDays;
+      } catch (error) {
+        return jsonResponse(req, {
+          error: "bad_window",
+          detail: error instanceof Error ? error.message : String(error),
+          request_id: requestId,
+        }, { status: 400 });
+      }
     }
 
     // ── L'OBJECTIF DU MAÎTRE: LA DOCTRINE DU REPAS ──────────────────────
@@ -595,21 +966,43 @@ Deno.serve(async (req) => {
     //     (combien de bouches, combien de mineurs). Le nombre de bouches
     //     réellement servies se lit sur `servings`, et qui a été retiré sur
     //     `hand` juste à côté.
+    //
+    // ⚠️ L4 — LA FUSION PASSE PAR ICI, ET SEULEMENT PAR ICI. Reprendre
+    // quelqu'un à la table, c'est annuler ce que son plan personnel aurait
+    // fait; le faire APRÈS coup, dans ce fichier, ferait DEUX endroits qui
+    // décident qui est à table, et celui qui a raison ne serait plus lisible.
+    // `reclaimed` est un paramètre REQUIS de `resolveHandOff` pour cette raison
+    // exacte — une fusion qui oublie de le passer composerait sans la personne
+    // qu'elle fusionne, sans qu'une ligne échoue.
     const handOff = resolveHandOff({
       members,
       window: { startsOn, durationDays },
+      reclaimed: merge === null ? [] : [merge.member.member_id],
     });
     const composedMembers = handOff.composed;
     for (const t of handOff.taken) {
       issues.push(`member_took_the_hand:${t.member_id}`);
     }
-    if (handOff.taken.length > 0 || handOff.partial.length > 0) {
+    for (const r of handOff.reclaimed) {
+      issues.push(`member_reclaimed_by_merge:${r.member_id}`);
+    }
+    for (const id of merge?.otherOverlappingPlanIds ?? []) {
+      // O1, rendu VISIBLE plutôt que tranché en silence: cette personne porte
+      // un AUTRE plan personnel qui mord sur la fenêtre fusionnée, et cette
+      // fusion-ci ne l'a pas repris.
+      issues.push(`merge_other_overlapping_plan:${id}`);
+    }
+    if (
+      handOff.taken.length > 0 || handOff.partial.length > 0 ||
+      handOff.reclaimed.length > 0
+    ) {
       console.log(JSON.stringify({
         tag: "keel.household_meal.hand",
         user_id: userId,
         household_id: householdId,
         taken: handOff.taken.length,
         partial: handOff.partial.length,
+        reclaimed: handOff.reclaimed.length,
         composed: composedMembers.length,
         window: [startsOn, durationDays],
       }));
@@ -961,6 +1354,39 @@ Deno.serve(async (req) => {
         request_id: requestId,
       }, { status: 409 });
     }
+    // ── L4 · FUSIONNER QUELQU'UN QUI N'EST LÀ AUCUN MOMENT N'A PAS DE SENS ──
+    // Il n'aurait pas d'assiette (`platedMembers` le filtre plus bas), et le
+    // plan porterait `merged_from` pour une personne absente de sa propre
+    // fusion. Le refus est ICI, avant le modèle: la présence est déjà résolue,
+    // et rien de ce qui suit ne changerait la réponse.
+    if (
+      merge !== null &&
+      presence.absentAllWindow.includes(merge.member.member_id)
+    ) {
+      // ⚠️ IL ÉTAIT LE SEUL REFUS DE FUSION MUET, ET ÇA S'EST VU EN PRODUCTION.
+      // Vérifié dans les logs du runtime le 2026-08-12: trois lignes
+      // `merge_refused` pour les autres motifs, aucune pour celui-ci. Un refus
+      // qu'on ne compte pas est un refus dont on ne saura jamais s'il tombe
+      // souvent — et celui-ci tombe sur une personne QUE LE MAÎTRE VENAIT DE
+      // DÉSIGNER, ce qui en fait le plus intéressant des onze.
+      //
+      // MÊME `tag` ET MÊME FORME que les dix autres (`resolveMergeRequest`
+      // plus haut): deux formes de log pour le même fait rendraient tout
+      // décompte faux, et personne ne le verrait.
+      console.log(JSON.stringify({
+        tag: "keel.household_meal.merge_refused",
+        user_id: userId,
+        household_id: householdId,
+        member_id: merge.member.member_id,
+        reason: "merge_member_away_all_window",
+      }));
+      return jsonResponse(req, {
+        error: "merge_member_away_all_window",
+        detail: "That person is marked away for every meal of those days, so " +
+          "there is nothing to bring them back to. Take the absence back first.",
+        request_id: requestId,
+      }, { status: 409 });
+    }
     if (presence.trace.length > 0) {
       console.log(JSON.stringify({
         tag: "keel.household_meal.presence",
@@ -971,6 +1397,129 @@ Deno.serve(async (req) => {
         servings: presence.servings,
       }));
     }
+
+    // ── QUI A UNE ASSIETTE DANS CE PLAN ──────────────────────────────────
+    //
+    // MESURÉ EN RUN RÉEL LE 2026-08-12: un plan cuisiné pour UNE personne
+    // portait QUATRE `member_portions`, dont trois pour des bouches absentes à
+    // chaque moment de la fenêtre. `TableCard` les affichait telles quelles —
+    // « une portion adulte pleine » servie d'une casserole dimensionnée sans
+    // eux. `servings` était juste, l'assiette mentait.
+    //
+    // On filtre ICI, en amont, et pas seulement à la réconciliation: si le
+    // prompt continuait de nommer ces ids, le modèle continuerait de rendre
+    // leurs portions et `reconcilePortions` les compterait en
+    // `portion_for_unknown_member`. Une bouche absente toute la fenêtre ne doit
+    // simplement pas exister pour ce plan-là.
+    //
+    // QUI MANQUE UN SEUL DÎNER RESTE ICI: il mange les autres jours. Le détail
+    // par jour vit dans le bloc de présence, pas dans cette liste.
+    //
+    // Jamais vide: `fullyAway` a déjà refusé plus haut le cas où personne n'est
+    // là à aucun moment, donc au moins une bouche survit à ce filtre.
+    //
+    // ⚠️ IL PART DE `composedMembers`, PAS DE `members` (L3). Il y a DEUX
+    // raisons de ne pas avoir d'assiette dans ce plan, et elles s'empilent sur
+    // la même personne: avoir pris la main (elle mange son plan) et être
+    // absente toute la fenêtre (elle ne mange nulle part ici). Les deux filtres
+    // se composent en cascade au lieu de se croiser — deux listes calculées
+    // chacune sur `members` finiraient par se contredire, et l'une des deux
+    // gagnerait en silence.
+    const platedMembers = presence.absentAllWindow.length === 0
+      ? composedMembers
+      : composedMembers.filter((m) =>
+        !presence.absentAllWindow.includes(m.memberId)
+      );
+    for (const id of presence.absentAllWindow) {
+      issues.push(`member_away_all_window:${id}`);
+    }
+
+    // ── D6 · L'ÉCHELLE DE FUSION, DÉCIDÉE ICI ET PAS PAR LE MODÈLE ────────
+    //
+    // Le critère est VÉRIFIABLE, et c'est tout l'objet de D6: on ne demande pas
+    // au modèle si un plat commun conviendrait, on le SAIT — une casserole déjà
+    // composée peut toujours en donner moins, jamais plus qu'elle n'en
+    // contient. La comparaison porte sur les directions de service, qui sont
+    // des constantes du produit (`SERVING_DIRECTION`), lues et non recopiées.
+    //
+    // LA TABLE, C'EST QUI ? Les bouches qui ont une assiette dans ce plan-là,
+    // SANS l'entrant: ce sont elles qui ont dimensionné la casserole. L'y
+    // inclure ferait comparer sa demande à elle-même, et le niveau ① tiendrait
+    // toujours — une garde qui ne mord jamais.
+    //
+    // ⚠️ CE N'EST PAS UN REFUS, DONC SA POSITION NE COÛTE RIEN. Le barreau
+    // choisi change la CONSIGNE (`CookingShape`), pas le droit de composer.
+    //
+    // ── POURQUOI CE BLOC EST REMONTÉ AVANT `buildMealPrompt` (2026-08-12) ──
+    // Il vivait APRÈS, entre la consigne et les blocs de foyer, et c'était
+    // tenable tant que le barreau ne changeait QUE le suffixe du foyer. Il
+    // change aussi le PLAFOND DE PLATS du tronc (`dishBudgetFor`): un plafond
+    // calculé avant que le barreau soit connu est le plafond d'une table sans
+    // la bouche qu'on lui ajoute — c'est le défaut mesuré, où le seizième plat
+    // rendu était le dîner du dimanche du foyer. Rien d'autre n'a bougé:
+    // `platedMembers` ne dépend que de `presence` et `composedMembers`, tous
+    // deux résolus au-dessus.
+    const mergedMember = merge === null
+      ? null
+      : platedMembers.find((m) => m.memberId === merge!.member.member_id) ?? null;
+    const mergeWindowTokens = new Set<string>(windowDayOrder(startsOn, durationDays));
+    const ladder = merge === null || mergedMember === null ? null : mergeLadder({
+      table: platedMembers
+        .filter((m) => m.memberId !== mergedMember.memberId)
+        .map(servingDemandsFor),
+      incoming: servingDemandsFor(mergedMember),
+      // LES JOURS DE CUISSON, RAMENÉS À LA FENÊTRE FUSIONNÉE. Une session que
+      // le plan tenait en dehors de ces jours-là ne dit rien de ce qu'on
+      // recompose: la garder ferait croire à un jour partagé qui n'existe pas.
+      householdCookingDays: merge.householdPlan.cookingDays.filter((d) =>
+        mergeWindowTokens.has(d)
+      ),
+      personalCookingDays: merge.personalPlan.cookingDays.filter((d) =>
+        mergeWindowTokens.has(d)
+      ),
+    });
+    if (merge !== null && ladder !== null && mergedMember !== null) {
+      console.log(JSON.stringify({
+        tag: "keel.household_meal.merge",
+        user_id: userId,
+        household_id: householdId,
+        member_id: merge.member.member_id,
+        shape: ladder.shape,
+        reason: ladder.reason,
+        conflicts: ladder.conflicts,
+        window: [startsOn, durationDays],
+        intersection: [
+          merge.window.intersection.startsOn,
+          merge.window.intersection.durationDays,
+        ],
+        pivot: merge.window.pivot,
+        days_already_past: merge.window.daysAlreadyPast,
+      }));
+    }
+
+    // ── LA MATIÈRE DE LA FUSION, CALCULÉE UNE FOIS ────────────────────────
+    //
+    // Elle sert à DEUX choses qui doivent voir exactement la même liste: le
+    // bloc de consigne (`buildMergeBlock`, plus bas) et le BUDGET DE PLATS
+    // (`dishBudgetFor`, dans le tronc). La calculer deux fois rouvrirait la
+    // porte que ce lot ferme — annoncer un budget pour des plats qu'on ne
+    // montre pas, ou montrer des plats hors budget.
+    //
+    // RAMENÉE À LA FENÊTRE FUSIONNÉE: un plat d'un jour que la fusion ne touche
+    // pas ferait recomposer un jour que le plan personnel garde. Puis passée
+    // par `mergeMaterialShown`, qui applique `MERGE_MATERIAL_CAP` — le budget
+    // compte ce que le modèle VOIT, pas ce qu'on avait sous la main.
+    const mergeMaterial = merge === null ? [] : mergeMaterialShown(
+      merge.personalPlan.dishes.filter((d) =>
+        d.day === null || mergeWindowTokens.has(d.day)
+      ),
+    );
+    // CE QUE LE TRONC A BESOIN DE SAVOIR DE LA FUSION, et rien de plus: un
+    // barreau et un nombre. Le tronc n'a pas à connaître un foyer.
+    const mergeBudget: MergedEater | null = ladder === null ? null : {
+      shape: ladder.shape,
+      ownDishesShown: mergeMaterial.length,
+    };
 
     // ── FF-027 · LE SIGNAL DE FAIM DE LA FENÊTRE ──────────────────────────
     //
@@ -1108,49 +1657,34 @@ Deno.serve(async (req) => {
       awayDays,
       ...capacity,
       foodPreferences: foodPreferencesForPrompt(pc),
+      // ── L4/D6 · LA BOUCHE REPRISE ENTRE DANS LE BUDGET DE PLATS ────────
+      //
+      // MESURÉ LE 2026-08-12: sans elle, ce prompt annonçait « at most 15
+      // dishes » et, quinze lignes plus bas, « give them a SECOND dish ». Deux
+      // consignes contradictoires dans le même message. Le modèle a rendu
+      // seize plats, le parseur a jeté le dernier — le DÎNER DU DIMANCHE DU
+      // FOYER, pas le plat de la personne reprise.
+      //
+      // `null` sur une composition ordinaire: le plafond est alors celui
+      // d'avant ce lot, au plat près, et un test le tient.
+      merge: mergeBudget,
     });
-
-    // ── QUI A UNE ASSIETTE DANS CE PLAN ──────────────────────────────────
-    //
-    // MESURÉ EN RUN RÉEL LE 2026-08-12: un plan cuisiné pour UNE personne
-    // portait QUATRE `member_portions`, dont trois pour des bouches absentes à
-    // chaque moment de la fenêtre. `TableCard` les affichait telles quelles —
-    // « une portion adulte pleine » servie d'une casserole dimensionnée sans
-    // eux. `servings` était juste, l'assiette mentait.
-    //
-    // On filtre ICI, en amont, et pas seulement à la réconciliation: si le
-    // prompt continuait de nommer ces ids, le modèle continuerait de rendre
-    // leurs portions et `reconcilePortions` les compterait en
-    // `portion_for_unknown_member`. Une bouche absente toute la fenêtre ne doit
-    // simplement pas exister pour ce plan-là.
-    //
-    // QUI MANQUE UN SEUL DÎNER RESTE ICI: il mange les autres jours. Le détail
-    // par jour vit dans le bloc de présence, pas dans cette liste.
-    //
-    // Jamais vide: `fullyAway` a déjà refusé plus haut le cas où personne n'est
-    // là à aucun moment, donc au moins une bouche survit à ce filtre.
-    //
-    // ⚠️ IL PART DE `composedMembers`, PAS DE `members` (L3). Il y a DEUX
-    // raisons de ne pas avoir d'assiette dans ce plan, et elles s'empilent sur
-    // la même personne: avoir pris la main (elle mange son plan) et être
-    // absente toute la fenêtre (elle ne mange nulle part ici). Les deux filtres
-    // se composent en cascade au lieu de se croiser — deux listes calculées
-    // chacune sur `members` finiraient par se contredire, et l'une des deux
-    // gagnerait en silence.
-    const platedMembers = presence.absentAllWindow.length === 0
-      ? composedMembers
-      : composedMembers.filter((m) =>
-        !presence.absentAllWindow.includes(m.memberId)
-      );
-    for (const id of presence.absentAllWindow) {
-      issues.push(`member_away_all_window:${id}`);
-    }
 
     const household = buildHouseholdPromptBlocks({
       members: platedMembers,
       envyLine,
       restrictions,
       presence,
+      merge: merge === null || ladder === null || mergedMember === null
+        ? null
+        : {
+          displayName: mergedMember.displayName,
+          window: { startsOn, durationDays },
+          shape: ladder.shape,
+          // LA MÊME LISTE QUE CELLE QUI A OUVERT LE BUDGET, et c'est le point:
+          // elle est calculée une seule fois, plus haut (`mergeMaterial`).
+          dishes: mergeMaterial,
+        },
     });
 
     const result = await generateWithGemini(
@@ -1198,6 +1732,12 @@ Deno.serve(async (req) => {
       // parseur compte l'indisponibilité nommément plutôt que de la
       // laisser ressembler à un modèle qui n'écrit pas ses quantités.
       composition,
+      // L4/D6 — LA MÊME VALEUR QUE LA CONSIGNE, et les DEUX BOUTS: elle ouvre
+      // le budget de plats annoncé plus haut, et elle autorise la préparation
+      // d'UNE portion que les barreaux ② et ③ demandent. Passer `null` ici
+      // pendant que la consigne dit ② ferait exactement ce que le run réel a
+      // mesuré: le plat dédié parsé, puis jeté, et son titre resté nu en base.
+      merge: mergeBudget,
     } as const;
 
     let meal;
@@ -1255,6 +1795,42 @@ Deno.serve(async (req) => {
         missing_before: anchorMissingBefore,
         missing_after: meal.protein_anchor_missing.length,
         retried: proteinAnchorRetry,
+      }));
+    }
+
+    // ── D6 · LE BARREAU DEMANDÉ EST-IL DANS LE PLAN RENDU ? ───────────────
+    //
+    // ⚠️ MESURÉ SUR UNE FUSION SUR DEUX LE 2026-08-12. Barreau ③ demandé, et
+    // le modèle a rendu quinze plats, aucun second plat, aucune session dédiée,
+    // en servant la personne depuis la casserole commune (« Serve a larger
+    // portion of the protein and starch »). L'archive disait
+    // `separate_sessions`, le plan disait le contraire, et les deux étaient
+    // dans la MÊME ligne — parce que rien ne comparait l'un à l'autre.
+    //
+    // ON CONSTATE, ON NE CORRIGE PAS. Refuser le plan ou relancer le modèle
+    // serait un choix de produit que personne n'a pris; un plan servi depuis la
+    // casserole commune reste mangeable, il est seulement moins juste que
+    // promis. L'`issue` est nommée, et `generated_from` porte désormais la
+    // forme DEMANDÉE à côté de la forme OBTENUE.
+    //
+    // APRÈS LA RELANCE D'ANCRE, exprès: c'est le plan qu'on va ÉCRIRE qu'on
+    // observe, pas un intermédiaire que la relance a peut-être remplacé.
+    const mergeShape = ladder === null ? null : observeMergeShape({
+      shape: ladder.shape,
+      dishes: meal.dishes,
+      preparations: meal.preparations,
+    });
+    if (mergeShape !== null && !mergeShape.honoured) {
+      issues.push(`${MERGE_SHAPE_NOT_HONOURED}:${mergeShape.requested}`);
+      console.log(JSON.stringify({
+        tag: "keel.household_meal.merge_shape_not_honoured",
+        user_id: userId,
+        household_id: householdId,
+        member_id: merge?.member.member_id ?? null,
+        requested: mergeShape.requested,
+        observed: mergeShape.observed,
+        dishes: meal.dishes.length,
+        preparations: meal.preparations.length,
       }));
     }
 
@@ -1432,7 +2008,80 @@ Deno.serve(async (req) => {
               hand: {
                 taken: handOff.taken,
                 partial: handOff.partial,
+                // L4 — QUI A ÉTÉ REPRIS. Absent de `taken` comme quelqu'un qui
+                // n'a jamais rien validé: sans cette liste, les deux cas
+                // laissent la même trace.
+                reclaimed: handOff.reclaimed,
               },
+              // ── D6 · D15 · D16 — LA FUSION, RELISIBLE ────────────────────
+              //
+              // ⚠️ SANS CE BLOC, L'AVERTISSEMENT DE D8 EST INCALCULABLE. L5
+              // doit pouvoir dire « le plan de X a été fusionné le … ; il vient
+              // d'en valider un NOUVEAU » — c'est-à-dire comparer la
+              // `validated_at` archivée ici à celle que porte la ligne
+              // aujourd'hui. Un id de plan ne suffit pas: c'est une comparaison
+              // de DATES.
+              //
+              // ÉCRIT SEULEMENT QUAND IL Y A EU FUSION, contrairement à `hand`
+              // juste au-dessus. La raison de la différence: `hand` décrit une
+              // décision prise à CHAQUE composition (« qui a pris la main »),
+              // dont l'absence de résultat est un fait; `merge` décrit un GESTE
+              // du maître, et l'écrire vide sur toute composition ordinaire
+              // ferait croire à une fusion qui n'a jamais été demandée.
+              ...(merge === null || ladder === null ? {} : {
+                merge: {
+                  merged_from: [
+                    mergedFromEntry({
+                      memberId: merge.member.member_id,
+                      userId: merge.member.user_id,
+                      plan: {
+                        id: merge.personalPlan.id,
+                        startsOn: merge.personalPlan.startsOn,
+                        durationDays: merge.personalPlan.durationDays,
+                        validatedAt: merge.personalPlan.validatedAt,
+                      },
+                      window: { startsOn, durationDays },
+                    }),
+                  ],
+                  // LE PLAN DU FOYER DANS LEQUEL ON A REPRIS. C'est l'autre
+                  // moitié de « fusionner A avec B »; sans lui, la trace ne dit
+                  // que la moitié de ce qui a été mélangé.
+                  into_plan_id: merge.householdPlan.id,
+                  // D6 — LE BARREAU, ET POURQUOI CELUI-LÀ.
+                  shape: ladder.shape,
+                  reason: ladder.reason,
+                  conflicts: ladder.conflicts,
+                  shared_cooking_days: ladder.sharedCookingDays,
+                  // ── LA FORME DEMANDÉE ET LA FORME OBTENUE, CÔTE À CÔTE ──
+                  //
+                  // ⚠️ SANS `observed`, `shape` SE LIT COMME UN FAIT ALORS QUE
+                  // C'EST UNE DEMANDE. Le run du 2026-08-12 a écrit
+                  // `separate_sessions` sur un plan servi depuis la casserole
+                  // commune: l'archive et le plan se contredisaient dans la
+                  // même ligne, et rien ne permettait de le voir après coup.
+                  //
+                  // ÉCRIT MÊME QUAND C'EST HONORÉ: une clé absente ne se
+                  // distingue pas d'un lot débranché, et ce dépôt paie en
+                  // boucle la garde construite puis silencieusement débranchée.
+                  ...(mergeShape === null ? {} : {
+                    honoured: {
+                      requested: mergeShape.requested,
+                      observed: mergeShape.observed,
+                      marks: mergeShape.marks,
+                      ok: mergeShape.honoured,
+                    },
+                  }),
+                  // D15 — CE QUE LES DEUX FENÊTRES PARTAGEAIENT.
+                  intersection: {
+                    starts_on: merge.window.intersection.startsOn,
+                    duration_days: merge.window.intersection.durationDays,
+                  },
+                  // D16 — OÙ ON A COUPÉ, ET COMBIEN DE JOURS SONT TOMBÉS.
+                  pivot: merge.window.pivot,
+                  days_already_past: merge.window.daysAlreadyPast,
+                  other_overlapping_plan_ids: merge.otherOverlappingPlanIds,
+                },
+              }),
             },
             issues: [...issues, ...meal.issues, ...portionIssues],
             // FF-027 — la provenance de l'adaptation, archivée avec la
@@ -1476,6 +2125,29 @@ Deno.serve(async (req) => {
       shopping_list: mealShoppingPayload(meal),
       member_portions: memberPortionsPayload(portions),
       member_deltas: memberDeltasPayload(resolution.deltas),
+      // ── L4 — CE QUE LA FUSION A FAIT, DANS LA RÉPONSE ────────────────────
+      // Rendu parce que l'appelant ne peut le déduire de RIEN d'autre: la
+      // fenêtre fusionnée n'est pas celle qu'il a demandée (il n'en demande
+      // pas), le barreau est une décision du moteur, et « 2 jours déjà passés »
+      // est exactement la phrase que D16 met dans la proposition. Le recalculer
+      // côté écran ferait un second avis sur des dates.
+      ...(merge === null || ladder === null ? {} : {
+        merge: {
+          member_id: merge.member.member_id,
+          plan_id: merge.personalPlan.id,
+          into_plan_id: merge.householdPlan.id,
+          shape: ladder.shape,
+          reason: ladder.reason,
+          conflicts: ladder.conflicts,
+          window: { starts_on: startsOn, duration_days: durationDays },
+          intersection: {
+            starts_on: merge.window.intersection.startsOn,
+            duration_days: merge.window.intersection.durationDays,
+          },
+          pivot: merge.window.pivot,
+          days_already_past: merge.window.daysAlreadyPast,
+        },
+      }),
       issues: [...issues, ...meal.issues, ...portionIssues],
       request_id: requestId,
     });

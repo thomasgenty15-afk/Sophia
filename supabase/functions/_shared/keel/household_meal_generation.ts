@@ -40,9 +40,18 @@
  * maison, tu ne les justifies pas, tu ne les commentes pas, tu composes avec.
  */
 
-import { buildPortionBrief, type PortionMember } from "./household_portions.ts";
+import {
+  buildPortionBrief,
+  type CookingShape,
+  type PortionMember,
+} from "./household_portions.ts";
 import { buildEnvyBlock } from "./household_envies.ts";
 import type { WindowPresence } from "./household_presence.ts";
+import {
+  buildMergeBlock,
+  type MergeMaterialDish,
+  type PlanSpan,
+} from "./household_merge.ts";
 
 /**
  * LA VERSION DE LA LANE FOYER — le second axe, et il manquait.
@@ -70,6 +79,40 @@ import type { WindowPresence } from "./household_presence.ts";
  *         et la liste d'ids ne porte plus les bouches absentes à CHAQUE moment
  *         de la fenêtre (elles n'ont pas d'assiette dans ce plan-là). Les deux
  *         changements n'ont jamais existé séparément.
+ *   v3  — 2026-08-12 (L4/D6): + le bloc de FUSION, entre la présence et
+ *         l'envie. Il ne paraît QUE sur une opération de fusion; une
+ *         composition ordinaire rend un prompt byte-identique à celui de v2, et
+ *         un test le tient. Le bump vaut quand même: c'est la présence même du
+ *         bloc qui distingue les deux populations dans la colonne, et une
+ *         version qui ne bouge que « quand ça se voit » ne se relit pas.
+ *   v4  — 2026-08-12 (L4, aval): le BUDGET DE PLATS d'une fusion compte
+ *         désormais la bouche reprise, et le parseur accepte la préparation
+ *         d'UNE portion que les barreaux ② et ③ demandent. AUCUN bloc n'a
+ *         bougé — ni leur nombre, ni leur ordre, ni leur texte — mais la ligne
+ *         « at most N dishes » servie à une fusion CHANGE DE NOMBRE, et le
+ *         contrat de sortie change avec elle.
+ *
+ * ── POURQUOI v4 EST SUR CET AXE-CI ET PAS SUR LE TRONC ────────────────────
+ * La question à laquelle une version répond est: « deux plans stampés pareil
+ * peuvent-ils porter des consignes différentes ? » Après ce lot:
+ *
+ *   · lane INDIVIDUELLE — consigne byte-identique (`merge: null` rend
+ *     exactement le plafond d'avant, et un test le tient). Bumper
+ *     `MEAL_PROMPT_VERSION` re-stamperait toute cette population pour un
+ *     changement qu'elle ne voit jamais, et invaliderait son cache pour rien.
+ *   · foyer, composition ORDINAIRE — consigne byte-identique, même raison.
+ *   · foyer, FUSION — consigne CHANGÉE. C'est la seule population concernée,
+ *     et elle n'existe que sur cette lane.
+ *
+ * Le coût assumé est celui que L2 a déjà nommé: une composition ordinaire
+ * change de numéro sans changer de consigne. C'est le moindre des deux — le
+ * bump du tronc aurait fait la même chose à la lane individuelle ENTIÈRE.
+ *
+ * ⚠️ LA FORME DE CUISINE (`CookingShape`) N'EST PAS SUR CET AXE-CI. Elle change
+ * la ligne « combien de plats » du BRIEF DE PORTIONS, qui vit dans
+ * `household_portions.ts` — c'est-à-dire dans le TRONC — et c'est
+ * `MEAL_PROMPT_VERSION` (v9) qui la suit. Les deux axes bougent donc ensemble
+ * pour ce lot, chacun pour la moitié qui le concerne.
  *
  * ⚠️ L3 (D2/D7, 2026-08-12) N'A PAS BUMPÉ, ET C'EST UNE DÉCISION. La prise de
  * main ajoute une SECONDE raison pour qu'une bouche n'apparaisse pas dans la
@@ -79,7 +122,7 @@ import type { WindowPresence } from "./household_presence.ts";
  * version doit suivre est la CONSIGNE; qui a été retiré de la table se relit,
  * lui, sur `generated_from.household.hand`, nommément et avec son motif.
  */
-export const HOUSEHOLD_PROMPT_VERSION = "v2_presence";
+export const HOUSEHOLD_PROMPT_VERSION = "v4_merge_budget";
 
 export interface HouseholdRestriction {
   memberId: string;
@@ -110,6 +153,27 @@ export interface HouseholdPromptInput {
    * identique à celui d'avant ce lot, au caractère près.
    */
   presence: WindowPresence;
+  /**
+   * QUI ON REPREND À CETTE TABLE (D6, 2026-08-12). `null` = composition
+   * ordinaire, et le prompt est alors identique à celui de v2, au caractère
+   * près.
+   *
+   * ⚠️ REQUIS ET NULLABLE, jamais optionnel — même raison que `presence` juste
+   * au-dessus. Un champ facultatif n'aurait fait remonter aucun appelant au
+   * compilateur, et la FORME DE CUISINE serait restée à `one_dish` en silence:
+   * le brief de portions aurait interdit le second plat que le bloc de fusion
+   * demande, dans le même prompt.
+   */
+  merge: HouseholdMergePrompt | null;
+}
+
+/** Ce que la fusion apporte au prompt. Décidé ailleurs — voir `household_merge.ts`. */
+export interface HouseholdMergePrompt {
+  displayName: string;
+  window: PlanSpan;
+  /** Le barreau de l'échelle, décidé par `mergeLadder`. Jamais deviné ici. */
+  shape: CookingShape;
+  dishes: readonly MergeMaterialDish[];
 }
 
 /**
@@ -207,12 +271,20 @@ export function buildHouseholdPromptBlocks(
     "Exact ids to use in member_portions:",
     ...idLines,
     "",
-    buildPortionBrief(input.members),
+    // LA FORME DE CUISINE VIENT DE LA FUSION, ET D'ELLE SEULE. Sans fusion,
+    // `one_dish` — le contrat historique du foyer, mot pour mot.
+    buildPortionBrief(input.members, input.merge?.shape ?? "one_dish"),
     // JUSTE APRÈS LE BRIEF DE PORTIONS, et avant tout le reste: les deux
     // parlent de la même chose — qui mange quoi. Les séparer par l'envie de la
     // semaine ferait lire « pour combien de personnes » très loin de « pour
     // qui », et le modèle recompte alors la tablée sur la liste d'ids.
     input.presence.block,
+    // APRÈS LA PRÉSENCE, AVANT L'ENVIE (D6). Le bloc dit qui revient à table:
+    // c'est encore « qui mange quoi », donc il reste dans le groupe des trois
+    // premiers. Le mettre après l'envie ferait lire « untel revient » comme une
+    // conséquence de ce que le foyer a demandé cette semaine, ce qu'il n'est
+    // pas. Les règles de maison, elles, restent en DERNIER.
+    input.merge === null ? "" : buildMergeBlock(input.merge),
     envyBlock,
     restrictionBlock(input.restrictions),
   ].filter((p) => p && p.trim().length > 0);
