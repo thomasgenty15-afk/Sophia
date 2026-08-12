@@ -17,7 +17,19 @@ import {
   isFrenchLocale,
   withPersistedConversationLocale,
 } from "../../_shared/keel/locale.ts";
+// FF-023 — écrivain UNIQUE des lignes d'historique récent (marque de temps
+// comprise). Le bloc visible ci-dessous et le bloc `recentTurns` du context
+// loader passent tous les deux par lui: deux rendus de la même règle, c'est
+// deux vérités selon celui qui survit au budget.
+import { formatRecentHistoryLine } from "../../_shared/chat/recent_history.ts";
 declare const Deno: any;
+
+/**
+ * Taille de la FENÊTRE VISIBLE du composeur. Voir
+ * `formatCompanionRecentHistory` pour pourquoi elle vaut 6 quand 20 messages
+ * sont chargés.
+ */
+const COMPANION_VISIBLE_HISTORY_LIMIT = 6;
 
 // Budget dimensionné sur le contexte réellement assemblé: prompt stable
 // ~13k chars + contexte runtime ~19k (mesure du 10/07, user avec plan +
@@ -965,6 +977,7 @@ function buildCompanionSemiStablePrompt(opts: {
   const recentHistoryBlock = formatCompanionRecentHistory(
     history ?? [],
     responseLocale,
+    readTemporalAnchors(context),
   );
   const french = isFrenchLocale(responseLocale);
   const truncated = String(lastAssistantMessage ?? "").slice(
@@ -995,9 +1008,58 @@ function buildCompanionSemiStablePrompt(opts: {
   return lines.join("\n");
 }
 
+/**
+ * Le fuseau et l'horloge de la personne, LUS DANS LE CONTEXTE DÉJÀ ASSEMBLÉ.
+ *
+ * Le bloc `=== REPÈRES TEMPORELS ===` que le context loader place en tête
+ * porte `now_utc=` et `user_timezone=` (`_shared/user_time_context.ts`), et le
+ * composeur reçoit ce contexte en entier. On les relit ici plutôt que de faire
+ * traverser deux paramètres de plus à `buildCompanionSystemPrompt` et à ses
+ * cinq appelants: la donnée est déjà sur la table, et un paramètre optionnel
+ * de plus serait une garde désarmée de plus (cicatrice
+ * `optional-gate-params-are-disarmed-gates`).
+ *
+ * Rien n'est inventé: les deux champs absents ⇒ pas de marque de temps.
+ */
+function readTemporalAnchors(
+  context: string,
+): { timezone: string | null; nowIso: string | null } {
+  let timezone: string | null = null;
+  let nowIso: string | null = null;
+  for (const line of String(context ?? "").split("\n")) {
+    const trimmed = line.trim();
+    if (!timezone && trimmed.startsWith("user_timezone=")) {
+      timezone = trimmed.slice("user_timezone=".length).trim() || null;
+    } else if (!nowIso && trimmed.startsWith("now_utc=")) {
+      nowIso = trimmed.slice("now_utc=".length).trim() || null;
+    }
+    if (timezone && nowIso) break;
+  }
+  return { timezone, nowIso };
+}
+
+/**
+ * LA FENÊTRE VISIBLE — 6 messages, DATÉS.
+ *
+ * ── POURQUOI 6 ALORS QUE 20 SONT CHARGÉS (question tranchée le 2026-08-12) ──
+ * `loadRecentChatHistory` charge 20 messages: c'est un PLAFOND partagé, pas
+ * une fenêtre. Chaque consommateur recoupe ensuite selon ce qu'il paie:
+ * le bloc `recentTurns` du context loader en prend 15 (`normalReplyContext`),
+ * le dispatcher 8, les visible agents de skills 8, et ce bloc-ci 6.
+ *
+ * Ce n'est PAS une perte silencieuse, et l'endroit où il vit est la raison:
+ * ce bloc est dans le prompt SEMI-STABLE, c'est-à-dire dans la partie que
+ * `applyCompanionPromptBudgetWithPinnedContext` ne tronque JAMAIS (elle
+ * tronque par la queue, et la queue c'est le contexte). Chaque ligne ajoutée
+ * ici est prise sur le budget des blocs qui, eux, peuvent mourir — dont
+ * l'historique à 15 du loader et tout ce qui le suit. Élargir à 20 dupliquerait
+ * 20 lignes déjà présentes plus bas, pour repousser la queue vers la
+ * troncature: on paierait deux fois pour perdre autre chose.
+ */
 function formatCompanionRecentHistory(
   history: any[],
   responseLocale: string,
+  anchors?: { timezone?: string | null; nowIso?: string | null },
 ): string {
   const french = isFrenchLocale(responseLocale);
   const assistantLabel = french ? "Sophia" : "Assistant";
@@ -1007,17 +1069,21 @@ function formatCompanionRecentHistory(
       const role = String(entry?.role ?? "");
       return role === "user" || role === "assistant";
     })
-    .slice(-6)
-    .map((entry) => {
-      const role = String(entry?.role ?? "") === "assistant"
-        ? assistantLabel
-        : userLabel;
-      const content = String(entry?.content ?? "")
-        .replace(/\s+/g, " ")
-        .trim()
-        .slice(0, 220);
-      return content ? `- ${role}: ${content}` : "";
-    })
+    .slice(-COMPANION_VISIBLE_HISTORY_LIMIT)
+    .map((entry) =>
+      formatRecentHistoryLine({
+        role: String(entry?.role ?? ""),
+        content: String(entry?.content ?? ""),
+        createdAt: (entry as { created_at?: string | null })?.created_at ?? null,
+        nowIso: anchors?.nowIso ?? null,
+        timezone: anchors?.timezone ?? null,
+        french,
+        roleLabel: String(entry?.role ?? "") === "assistant"
+          ? assistantLabel
+          : userLabel,
+        maxContentChars: 220,
+      })
+    )
     .filter(Boolean);
 
   if (recent.length === 0) return "";
@@ -1027,12 +1093,14 @@ function formatCompanionRecentHistory(
       "",
       "=== HISTORIQUE RECENT VISIBLE ===",
       "Continuité, corrections, détection de répétition conversationnelle. Ne les utilise pas pour inventer un effet produit.",
+      "Chaque ligne porte son ancienneté (délai écoulé · jour local et heure locale de la personne). Un message d'il y a trois jours ne se traite pas comme un message d'il y a une heure.",
       ...recent,
     ].join("\n")
     : [
       "",
       "=== RECENT VISIBLE HISTORY ===",
       "Continuity, corrections, detection of conversational repetition. Never use it to invent a product effect.",
+      "Each line carries its age (elapsed delay · the person's local day and local time). A message from three days ago is not treated like one from an hour ago.",
       ...recent,
     ].join("\n");
 }

@@ -49,6 +49,10 @@ export function serviceRoleLedgerReadClient(): SupabaseClient | undefined {
   return cachedServiceRoleLedgerClient ?? undefined;
 }
 import { logV2Event, V2_EVENT_TYPES } from "../../_shared/v2-events.ts";
+// FF-023 — écrivain UNIQUE des lignes d'historique récent, partagé avec le
+// bloc visible du composeur (`agents/companion.ts`).
+import { formatRecentHistoryLine } from "../../_shared/chat/recent_history.ts";
+import { isFrenchLocale } from "../../_shared/keel/locale.ts";
 import {
   buildRetrievalExecutedPayload,
   resolveV2RetrievalPlan,
@@ -184,7 +188,20 @@ export interface ContextLoaderOptions {
   state: any;
   scope: string;
   tempMemory?: any;
-  userTime?: { prompt_block?: string };
+  /**
+   * `UserTimeContext` (`_shared/user_time_context.ts`). Les trois champs
+   * au-delà de `prompt_block` sont ceux que FF-023 consomme pour dater
+   * l'historique récent: l'horloge du tour, le fuseau DE LA PERSONNE
+   * (`profiles.timezone`) et sa langue. Ils étaient déjà passés par
+   * `router/run.ts`; seul le type les ignorait — et un type qui ignore un
+   * champ le rend invisible au prochain qui en a besoin.
+   */
+  userTime?: {
+    prompt_block?: string;
+    now_utc?: string;
+    user_timezone?: string;
+    user_locale?: string;
+  };
   triggers?: OnDemandTriggers;
   injectedContext?: string;
   deferredUserPrefContext?: string;
@@ -534,6 +551,55 @@ async function tryLogV2MemoryRetrieval(args: {
 }
 
 /**
+ * FF-023 — LES LIGNES DU BLOC « HISTORIQUE RÉCENT », DATÉES.
+ *
+ * Ce bloc datait déjà chaque ligne, mais en ISO UTC brut
+ * (`[2026-08-09T14:02:11.123Z] user: …`). Deux défauts, qu'un écrivain unique
+ * (`formatRecentHistoryLine`) corrige tous les deux:
+ *   · un ISO oblige le modèle à faire une soustraction de dates pour savoir si
+ *     c'est vieux, et il la fait mal — cicatrice
+ *     `named-day-calendar-vs-model-prior`: on NOMME la conclusion au lieu de
+ *     livrer la donnée brute;
+ *   · il est en UTC, donc « hier soir » pour la personne pouvait s'y lire
+ *     « aujourd'hui ». Le fuseau vient de `profiles.timezone`, porté par
+ *     `opts.userTime.user_timezone`.
+ *
+ * EXPORTÉE POUR ÊTRE TESTABLE: câblée en ligne dans `loadContextForMode`, la
+ * seule façon de vérifier qu'elle reçoit bien l'horloge et le fuseau aurait
+ * été de monter un faux client Supabase complet — c'est-à-dire de ne pas la
+ * tester du tout.
+ */
+export function formatRecentTurnsLines(
+  history: unknown[],
+  depth: number,
+  userTime?: { now_utc?: string; user_timezone?: string; user_locale?: string },
+): string {
+  const french = isFrenchLocale(userTime?.user_locale ?? "fr-FR");
+  const window = Math.max(0, Math.floor(depth));
+  // `slice(-0)` rend le tableau ENTIER: une profondeur nulle doit rendre vide.
+  return (window === 0 ? [] : (Array.isArray(history) ? history : []).slice(-window))
+    .map((m) => {
+      const row = (m ?? {}) as {
+        role?: unknown;
+        content?: unknown;
+        created_at?: string | null;
+      };
+      return formatRecentHistoryLine({
+        role: String(row.role ?? ""),
+        content: String(row.content ?? ""),
+        createdAt: row.created_at ?? null,
+        nowIso: userTime?.now_utc ?? null,
+        timezone: userTime?.user_timezone ?? null,
+        french,
+        roleLabel: String(row.role ?? "").trim() || "unknown",
+        maxContentChars: 420,
+      });
+    })
+    .filter(Boolean)
+    .join("\n");
+}
+
+/**
  * Charge le contexte pour un mode d'agent donné
  *
  * @example
@@ -761,15 +827,11 @@ export async function loadContextForMode(
   if (
     !scopedMemoryEligible && profile.history_depth > 0 && opts.history?.length
   ) {
-    const recentTurns = (opts.history ?? [])
-      .slice(-profile.history_depth)
-      .map((m: any) => {
-        const role = String(m?.role ?? "").trim() || "unknown";
-        const content = String(m?.content ?? "").trim().slice(0, 420);
-        const ts = String((m as any)?.created_at ?? "").trim();
-        return ts ? `[${ts}] ${role}: ${content}` : `${role}: ${content}`;
-      })
-      .join("\n");
+    const recentTurns = formatRecentTurnsLines(
+      opts.history ?? [],
+      profile.history_depth,
+      opts.userTime,
+    );
 
     if (recentTurns) {
       context.recentTurns = `=== HISTORIQUE RÉCENT (${

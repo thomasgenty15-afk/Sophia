@@ -83,6 +83,14 @@ Deno.test("un pavé est tronqué PAR MESSAGE — le budget de prompt ne se subit
   assertEquals(messages[0].content.length, RECENT_HISTORY_CONTENT_MAX_CHARS);
 });
 
+Deno.test("la borne vaut 20 — la valeur, pas la constante qui la nomme", () => {
+  // Un test qui s'écrit `assertEquals(x, LA_CONSTANTE)` reste vert quand on
+  // change la constante: il mesure sa propre définition. Le littéral est ici
+  // pour que déplacer la borne CASSE quelque chose, et oblige à écrire
+  // pourquoi. 20 = la borne des deux autres appelants de `processMessage`.
+  assertEquals(RECENT_HISTORY_MESSAGE_LIMIT, 20);
+});
+
 Deno.test("la borne garde les N DERNIERS, pas les N premiers", () => {
   const rows = Array.from({ length: 40 }, (_, i) => ({
     role: "user" as const,
@@ -90,8 +98,42 @@ Deno.test("la borne garde les N DERNIERS, pas les N premiers", () => {
     created_at: iso(-(40 - i) * 60 * 1000),
   }));
   const { messages } = boundRecentHistory(rows);
-  assertEquals(messages.length, RECENT_HISTORY_MESSAGE_LIMIT);
+  assertEquals(messages.length, 20);
   assertEquals(messages[messages.length - 1].content, "m39");
+  assertEquals(messages[0].content, "m20");
+});
+
+Deno.test("une borne de 0 rend ZÉRO message — `slice(-0)` rendait tout", () => {
+  const rows = Array.from({ length: 5 }, (_, i) => ({
+    role: "user" as const,
+    content: `m${i}`,
+    created_at: iso(-(5 - i) * 60 * 1000),
+  }));
+  assertEquals(boundRecentHistory(rows, { limit: 0 }).messages.length, 0);
+});
+
+Deno.test("sans ancre, le résultat ne dépend PAS de l'horloge du serveur", () => {
+  // LE DÉFAUT QUE CE TEST EMPÊCHE DE REVENIR, et il est déjà arrivé:
+  // `boundRecentHistory` retombait sur `Date.now()` quand l'ancre manquait.
+  // Ses deux tests étaient verts le 2026-08-08 (jour du commit `1414face`) et
+  // rouges le 2026-08-12, SANS QU'UNE SEULE LIGNE N'AIT BOUGÉ des deux côtés.
+  // Deux lots les ont classés « rouges préexistants » et sont passés outre.
+  const rows = Array.from({ length: 40 }, (_, i) => ({
+    role: "user" as const,
+    content: `m${i}`,
+    created_at: iso(-(40 - i) * 60 * 1000),
+  }));
+  const realNow = Date.now;
+  try {
+    Date.now = () => Date.parse("2026-08-08T12:00:00.000Z");
+    const auJour = boundRecentHistory(rows).messages.length;
+    Date.now = () => Date.parse("2031-01-01T00:00:00.000Z");
+    const cinqAnsPlusTard = boundRecentHistory(rows).messages.length;
+    assertEquals(auJour, 20);
+    assertEquals(cinqAnsPlusTard, 20);
+  } finally {
+    Date.now = realNow;
+  }
 });
 
 Deno.test("hors fenêtre de 12 h: coupé, mais le DERNIER échange survit", () => {
@@ -115,8 +157,22 @@ Deno.test("une horloge illisible ne fait pas disparaître l'historique (fail-ope
     { role: "user" as const, content: "a", created_at: iso(-HOUR) },
     { role: "assistant" as const, content: "b", created_at: iso(-30 * 60 * 1000) },
   ];
-  const { messages } = boundRecentHistory(rows, { nowIso: "pas une date" });
+  const { messages, staleDropped } = boundRecentHistory(rows, {
+    nowIso: "pas une date",
+  });
   assertEquals(messages.length, 2);
+  assertEquals(staleDropped, 0);
+});
+
+Deno.test("horloge illisible + messages TRÈS vieux: on garde quand même", () => {
+  // La preuve que le fail-open est bien un fail-OPEN et pas un hasard de
+  // fenêtre: les deux messages ont trois jours, largement hors des 12 h.
+  const rows = [
+    { role: "user" as const, content: "a", created_at: iso(-72 * HOUR) },
+    { role: "user" as const, content: "b", created_at: iso(-71 * HOUR) },
+  ];
+  const { messages } = boundRecentHistory(rows, { nowIso: "" });
+  assertEquals(messages.map((m) => m.content), ["a", "b"]);
 });
 
 // ── LE CHARGEUR, CONTRE UN FAUX CLIENT POSTGREST ────────────────────────────

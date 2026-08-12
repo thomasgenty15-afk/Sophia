@@ -167,18 +167,213 @@ export function sanitizeRecentHistoryRows(
  * La borne d'abord (les 20 plus récents), la fraîcheur ensuite: l'inverse
  * ferait décider le plancher « dernier tour » sur une fenêtre qui n'est pas
  * celle qu'on sert.
+ *
+ * ── L'ANCRE EST FAIL-OPEN, ET CE N'EST PAS UN DÉTAIL ────────────────────────
+ * Sans ancre lisible, on NE FILTRE PAS. La version d'origine retombait sur
+ * `Date.now()`, ce qui a deux défauts, et le second a coûté deux lots:
+ *
+ *   1. PRODUIT. « Je ne sais pas quelle heure il est » et « il est telle
+ *      heure » sont deux affirmations différentes. Amputer un historique sur
+ *      une horloge qu'on vient d'échouer à lire, c'est décider de l'âge d'un
+ *      message avec une donnée qu'on n'a pas — alors que `filterFreshMessages`
+ *      garde déjà, exprès, tout message dont le `created_at` est illisible
+ *      (même fail-open, un cran plus bas).
+ *   2. TESTABLE. Une fonction PURE qui va chercher l'horloge murale n'est pas
+ *      testable: ses tests changent de verdict avec la date du jour. MESURÉ —
+ *      deux tests de ce module (`la borne garde les N DERNIERS`, `une horloge
+ *      illisible…`) étaient verts au commit `1414face` (2026-08-08) et rouges
+ *      le 2026-08-12 SANS QUE NI LE MODULE NI LE TEST N'AIENT ÉTÉ TOUCHÉS
+ *      (`git log` le prouve: un seul commit sur les deux fichiers). Rejoués
+ *      avec `Date.now()` figé au 2026-08-08, ils repassaient au vert. Deux
+ *      lots successifs les ont déclarés « rouges préexistants » et sont passés
+ *      à côté.
+ *
+ * En production le comportement ne change pas d'un caractère:
+ * `chat-inbound-v1` ancre sur `message.received_at`, qui vaut
+ * `new Date().toISOString()` (index.ts, `parseInboundMessage`) — toujours
+ * lisible. Cette branche n'existe que pour les appelants qui n'ancrent pas.
  */
 export function boundRecentHistory(
   messages: RecentHistoryMessage[],
   opts?: { nowIso?: string | null; limit?: number },
 ): { messages: RecentHistoryMessage[]; staleDropped: number } {
-  const limit = Math.max(0, Math.floor(opts?.limit ?? RECENT_HISTORY_MESSAGE_LIMIT));
-  const bounded = messages.slice(-limit);
+  const limit = Math.max(
+    0,
+    Math.floor(opts?.limit ?? RECENT_HISTORY_MESSAGE_LIMIT),
+  );
+  // `slice(-0)` rend le TABLEAU ENTIER (JS: -0 === 0). Une borne de 0 doit
+  // rendre zéro message, pas tous.
+  const bounded = limit === 0 ? [] : messages.slice(-limit);
   const nowMs = Date.parse(String(opts?.nowIso ?? ""));
-  const fresh = filterFreshMessages(bounded, {
-    nowMs: Number.isFinite(nowMs) ? nowMs : undefined,
-  });
+  if (!Number.isFinite(nowMs)) return { messages: bounded, staleDropped: 0 };
+  const fresh = filterFreshMessages(bounded, { nowMs });
   return { messages: fresh, staleDropped: bounded.length - fresh.length };
+}
+
+// ── LA MARQUE DE TEMPS D'UNE LIGNE D'HISTORIQUE ─────────────────────────────
+//
+// LE FORMAT RETENU, ET POURQUOI CELUI-LÀ.
+//
+//   `il y a 20 min · hier 23:50`      (fr)
+//   `20 min ago · yesterday 23:50`    (en)
+//
+// Deux moitiés, et chacune répond à une question que l'autre ne sait pas
+// traiter:
+//
+//   · LE DÉLAI ÉCOULÉ répond littéralement à la question posée — « ça fait une
+//     heure ou trois jours ? ». Il est CALCULÉ ICI, en déterministe. Un
+//     horodatage ISO brut (`2026-08-09T14:02:11Z`) ne répond pas: il oblige le
+//     modèle à faire une soustraction de dates, et la cicatrice
+//     `named-day-calendar-vs-model-prior` de ce dépôt dit exactement ça — il
+//     faut NOMMER la conclusion et contredire l'a priori du modèle, pas se
+//     contenter de lui donner la donnée brute.
+//   · L'ANCRE CALENDAIRE LOCALE (`aujourd'hui` / `hier` / `JJ/MM` + `HH:MM`)
+//     situe le message dans la journée DE LA PERSONNE. C'est le seul endroit
+//     où le fuseau (`profiles.timezone`) mord, et il mord vraiment: à 00h10 à
+//     Paris, un message de 23h50 est « il y a 20 min » ET « hier ». Le délai
+//     seul ferait croire à un fil continu; l'ancre seule ferait croire à du
+//     vieux. Pour une app de repas, « hier soir » et « ce matin » ne sont pas
+//     la même information.
+//
+// CE QU'ELLE NE FAIT JAMAIS: inventer. Sans `created_at` lisible, ou sans
+// horloge de référence lisible, la fonction rend `null` — la ligne s'affiche
+// alors SANS marque, elle ne disparaît pas (même famille de fail-open que
+// `boundRecentHistory` ci-dessus).
+
+const MINUTE_MS = 60 * 1000;
+const HOUR_MS = 60 * MINUTE_MS;
+const DAY_MS = 24 * HOUR_MS;
+
+function elapsedLabel(deltaMs: number, french: boolean): string {
+  const ms = Math.max(0, deltaMs);
+  if (ms < MINUTE_MS) return french ? "à l'instant" : "just now";
+  if (ms < HOUR_MS) {
+    const n = Math.floor(ms / MINUTE_MS);
+    return french ? `il y a ${n} min` : `${n} min ago`;
+  }
+  if (ms < DAY_MS) {
+    const n = Math.floor(ms / HOUR_MS);
+    return french ? `il y a ${n} h` : `${n} h ago`;
+  }
+  const days = Math.floor(ms / DAY_MS);
+  if (days < 7) return french ? `il y a ${days} j` : `${days} d ago`;
+  const weeks = Math.floor(days / 7);
+  return french ? `il y a ${weeks} sem` : `${weeks} w ago`;
+}
+
+/** `{ ymd: "2026-08-09", hm: "19:40" }` dans le fuseau demandé. */
+function localParts(
+  ms: number,
+  timezone: string,
+): { ymd: string; hm: string } {
+  const format = (tz: string) =>
+    new Intl.DateTimeFormat("en-CA", {
+      timeZone: tz,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).formatToParts(new Date(ms));
+  let parts: Intl.DateTimeFormatPart[];
+  try {
+    parts = format(timezone);
+  } catch {
+    // Un fuseau inconnu ne doit pas faire tomber un tour: on retombe sur UTC,
+    // et la marque reste juste sur le DÉLAI (la moitié qui répond à la
+    // question), seule l'ancre calendaire est décalée.
+    parts = format("UTC");
+  }
+  const get = (type: string) =>
+    parts.find((part) => part.type === type)?.value ?? "";
+  // `hour12:false` rend « 24 » pour minuit sur certaines plateformes.
+  const hour = get("hour") === "24" ? "00" : get("hour");
+  return {
+    ymd: `${get("year")}-${get("month")}-${get("day")}`,
+    hm: `${hour}:${get("minute")}`,
+  };
+}
+
+function ymdDiffInDays(fromYmd: string, toYmd: string): number {
+  const from = Date.parse(`${fromYmd}T00:00:00Z`);
+  const to = Date.parse(`${toYmd}T00:00:00Z`);
+  if (!Number.isFinite(from) || !Number.isFinite(to)) return 0;
+  return Math.round((to - from) / DAY_MS);
+}
+
+/**
+ * La marque de temps d'UN message d'historique, ou `null` s'il n'y a rien de
+ * vérifiable à écrire. Voir le bloc de commentaire ci-dessus pour le format.
+ *
+ * `timezone` est celui de la personne (`profiles.timezone`), pas celui du
+ * serveur. `nowIso` est l'horloge du tour, jamais `Date.now()`: cette fonction
+ * est pure, et une fonction pure qui lit l'horloge murale fabrique des tests
+ * qui rougissent tout seuls quatre jours plus tard.
+ */
+export function formatRecentHistoryTimeMark(args: {
+  createdAt?: string | null;
+  nowIso?: string | null;
+  timezone?: string | null;
+  french: boolean;
+}): string | null {
+  const createdMs = Date.parse(String(args.createdAt ?? ""));
+  const nowMs = Date.parse(String(args.nowIso ?? ""));
+  if (!Number.isFinite(createdMs) || !Number.isFinite(nowMs)) return null;
+
+  const timezone = String(args.timezone ?? "").trim() || "UTC";
+  const created = localParts(createdMs, timezone);
+  const now = localParts(nowMs, timezone);
+  const dayGap = ymdDiffInDays(created.ymd, now.ymd);
+
+  let anchor: string;
+  if (dayGap === 0) anchor = args.french ? "aujourd'hui" : "today";
+  else if (dayGap === 1) anchor = args.french ? "hier" : "yesterday";
+  else {
+    const [, month, day] = created.ymd.split("-");
+    anchor = `${day}/${month}`;
+  }
+
+  return `${elapsedLabel(nowMs - createdMs, args.french)} · ${anchor} ${created.hm}`;
+}
+
+/**
+ * Une ligne d'historique prête pour un prompt: `- [marque] Rôle: contenu`.
+ *
+ * ÉCRIVAIN UNIQUE, exprès. Deux blocs de prompt portent l'historique récent —
+ * `formatCompanionRecentHistory` (bloc VISIBLE du composeur) et le bloc
+ * `recentTurns` du context loader — et ils avaient DEUX rendus différents de
+ * la même règle: l'un sans aucune date, l'autre en ISO brut. Selon celui qui
+ * survivait au budget de prompt, le modèle voyait un fil daté ou non daté.
+ * Un seul écrivain, une seule règle.
+ */
+export function formatRecentHistoryLine(args: {
+  role: string;
+  content: string;
+  createdAt?: string | null;
+  nowIso?: string | null;
+  timezone?: string | null;
+  french: boolean;
+  roleLabel: string;
+  maxContentChars: number;
+}): string {
+  const content = String(args.content ?? "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, Math.max(0, Math.floor(args.maxContentChars)));
+  if (!content) return "";
+  const mark = formatRecentHistoryTimeMark({
+    createdAt: args.createdAt,
+    nowIso: args.nowIso,
+    timezone: args.timezone,
+    french: args.french,
+  });
+  // Pas de marque ⇒ la ligne sort quand même, nue. Une ligne d'historique
+  // supprimée est une confabulation en puissance; une ligne sans date est
+  // seulement une ligne sans date.
+  return mark
+    ? `- [${mark}] ${args.roleLabel}: ${content}`
+    : `- ${args.roleLabel}: ${content}`;
 }
 
 /**
