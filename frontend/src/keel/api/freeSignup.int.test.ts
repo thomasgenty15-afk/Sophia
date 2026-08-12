@@ -6,6 +6,7 @@ import {
   isDeclaredCountryValid,
   joinRefusalMessageKey,
   PRODUCT_LOCALE,
+  signUpOutcome,
 } from "./freeSignup";
 import { NO_COUNTRY_SELECTED } from "./countries";
 import { en } from "../i18n/en";
@@ -113,6 +114,40 @@ describe("isDeclaredCountryValid", () => {
     // (`/start`, `/join-household`, la porte coach de `/auth`) partent de cette
     // constante, donc une seule assertion les tient toutes les trois.
     expect(isDeclaredCountryValid(NO_COUNTRY_SELECTED)).toBe(false);
+  });
+});
+
+describe("signUpOutcome", () => {
+  // POURQUOI CE BLOC EXISTE: `supabase/config.toml` porte
+  // `enable_confirmations = false` en local, donc `signUp` y ouvre TOUJOURS une
+  // session et la branche « vérifie tes mails » ne se joue jamais sur un poste
+  // de dev. Elle n'a longtemps été vérifiée que par LECTURE — c'est-à-dire pas
+  // vérifiée: une condition inversée serait partie en production intacte, et le
+  // premier à s'en apercevoir aurait été quelqu'un qu'on ne voit pas.
+  //
+  // On ne touche pas à `config.toml` pour l'observer: c'est un fichier partagé
+  // qui part en prod, et changer le comportement de l'auth de toute l'équipe
+  // pour regarder un écran n'est pas un prix qu'on paie.
+
+  it("un utilisateur SANS session = la confirmation d'e-mail", () => {
+    expect(signUpOutcome({ user: { id: "u1" }, session: null })).toBe("check_email");
+  });
+
+  it("un utilisateur AVEC session = on rejoue le rattachement", () => {
+    // La RPC est idempotente: elle ne fait rien si le trigger a réussi, et
+    // répare s'il a échoué. C'est pour ça qu'on la rejoue sans condition.
+    expect(signUpOutcome({ user: { id: "u1" }, session: { access_token: "t" } }))
+      .toBe("attach");
+  });
+
+  it("aucun utilisateur = aucun écran de succès, quoi qu'il arrive", () => {
+    // La faute qu'on refuse de rejouer: sur /join, un message technique sous un
+    // bouton « Accepter » a fait repartir quelqu'un en croyant avoir rejoint.
+    // Ici, pas d'utilisateur veut dire pas d'écran « c'est bon, tu y es ».
+    expect(signUpOutcome({ user: null, session: null })).toBe("nothing");
+    expect(signUpOutcome({ user: null, session: { access_token: "t" } })).toBe("nothing");
+    expect(signUpOutcome(null)).toBe("nothing");
+    expect(signUpOutcome(undefined)).toBe("nothing");
   });
 });
 

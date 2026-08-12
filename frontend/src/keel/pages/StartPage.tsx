@@ -9,6 +9,7 @@ import {
   isAlreadyRegistered,
   isDeclaredCountryValid,
   joinRefusalMessageKey,
+  signUpOutcome,
 } from "../api/freeSignup";
 import { resolveHomePath } from "../api/postLogin";
 import { PublicFooter, PublicHeader } from "../components/PublicHeader";
@@ -218,14 +219,19 @@ export default function StartPage() {
       });
       if (error) throw error;
 
-      if (data.user && !data.session) {
+      // LA BRANCHE EST DEHORS, ET C'EST TOUT L'INTÉRÊT. `enable_confirmations`
+      // vaut `false` en local, donc `check_email` ne se joue JAMAIS sur un
+      // poste de dev: la seule façon de la vérifier est une table de vérité
+      // pure, testée à côté (`api/freeSignup.ts`).
+      const outcome = signUpOutcome(data);
+      if (outcome === "check_email") {
         // Confirmation d'email active. Le rattachement est DÉJÀ fait: le
         // trigger part à l'INSERT de l'utilisateur auth, pas à l'ouverture de
         // la boîte mail.
         setPhase({ kind: "check_email" });
         return;
       }
-      if (data.user) {
+      if (outcome === "attach") {
         // Session immédiate: on rejoue la RPC. Elle est idempotente, donc si le
         // trigger a déjà rattaché ceci ne fait rien — et si le trigger a
         // échoué, ceci le répare avant que l'élève ne voie un écran vide.
@@ -303,16 +309,7 @@ export default function StartPage() {
   }
 
   if (phase.kind === "check_email") {
-    return (
-      <Notice>
-        <h1 className="text-xl font-semibold text-gray-900">
-          {t("start.check_email.title")}
-        </h1>
-        <p className="mt-2 text-sm leading-6 text-gray-600">
-          {t("start.check_email.body")}
-        </p>
-      </Notice>
-    );
+    return <CheckEmailScreen />;
   }
 
   if (phase.kind === "existing_account") {
@@ -528,6 +525,35 @@ export default function StartPage() {
 // ---------------------------------------------------------------------------
 // Chrome
 // ---------------------------------------------------------------------------
+
+/**
+ * « VÉRIFIE TES MAILS » — L'ÉCRAN QU'AUCUN POSTE DE DEV NE MONTRE.
+ *
+ * Extrait du corps de la page, et exporté, pour une raison précise:
+ * `enable_confirmations = false` en local, donc `signUp` y ouvre toujours une
+ * session et cette phase ne se joue jamais ici. Elle n'existait que par la
+ * lecture. Sans hook, sans réseau et sans contexte, elle se rend maintenant
+ * dans un test — dans les DEUX langues, parce qu'une garde testée dans une
+ * seule ne dit rien de l'autre.
+ *
+ * ⚠️ Le texte dit que le compte est créé ET DÉJÀ RATTACHÉ. Ce n'est pas une
+ * formule rassurante: `handle_new_user()` rattache dans la transaction du
+ * signup, pas à l'ouverture de la boîte mail. Écrire « on terminera quand tu
+ * reviendras » serait faux, et laisserait croire qu'un mail non ouvert coûte
+ * le rattachement.
+ */
+export function CheckEmailScreen() {
+  return (
+    <Notice>
+      <h1 className="text-xl font-semibold text-gray-900">
+        {t("start.check_email.title")}
+      </h1>
+      <p className="mt-2 text-sm leading-6 text-gray-600">
+        {t("start.check_email.body")}
+      </p>
+    </Notice>
+  );
+}
 
 function Notice({ children }: { children: React.ReactNode }) {
   return (

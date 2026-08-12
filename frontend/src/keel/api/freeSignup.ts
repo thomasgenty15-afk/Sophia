@@ -68,6 +68,44 @@ export function freeSignupMetadata(
   };
 }
 
+/**
+ * CE QUE `signUp` VIENT DE FAIRE, LU DEPUIS SA RÉPONSE.
+ *
+ * ── POURQUOI CETTE BRANCHE MÉRITE UNE FONCTION À ELLE ─────────────────────
+ * `enable_confirmations = false` en local: `signUp` y ouvre TOUJOURS une
+ * session, donc la branche « vérifie tes mails » ne se joue jamais sur un poste
+ * de dev. Elle ne se joue qu'en production, chez quelqu'un qu'on ne verra pas.
+ * Jusqu'ici elle n'avait donc été vérifiée que par LECTURE — c'est-à-dire pas
+ * vérifiée du tout, et n'importe quelle inversion de la condition serait partie
+ * en prod sans que rien ne la rattrape.
+ *
+ * Sortie du composant, la décision devient une table de vérité de quatre
+ * lignes qu'un test épingle. Et `config.toml` n'a pas à bouger pour ça: c'est
+ * un fichier partagé qui part en prod, et changer le comportement de l'auth de
+ * toute l'équipe pour observer un écran serait un prix absurde.
+ *
+ * ── LES QUATRE CAS, ET CELUI QUI SURPREND ─────────────────────────────────
+ * `user` sans `session` est la confirmation d'e-mail. Le rattachement au coach
+ * maison est DÉJÀ fait à ce moment: `handle_new_user()` part à l'INSERT de
+ * l'utilisateur auth, pas à l'ouverture de la boîte mail. L'écran doit donc
+ * dire « c'est créé, va confirmer », jamais « on finira quand tu reviendras ».
+ *
+ * `user` ET `session`: on rejoue la RPC de rattachement, qui est idempotente —
+ * elle ne fait rien si le trigger a réussi, et répare s'il a échoué.
+ *
+ * Ni l'un ni l'autre: Supabase n'a rien créé et n'a pas levé. On ne montre
+ * alors AUCUN écran de succès — c'est la faute qui a coûté une invitation
+ * perdue sur /join, un message technique sous un bouton « Accepter ».
+ */
+export type SignUpOutcome = "check_email" | "attach" | "nothing";
+
+export function signUpOutcome(
+  result: { user: unknown | null; session: unknown | null } | null | undefined,
+): SignUpOutcome {
+  if (!result?.user) return "nothing";
+  return result.session ? "attach" : "check_email";
+}
+
 /** Ce que la RPC `keel_join_house_coach` peut répondre. */
 export type JoinRefusalReason =
   | "country_required"
