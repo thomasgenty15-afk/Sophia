@@ -6,11 +6,33 @@
     <link rel="shortcut icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
-    <meta name="theme-color" content="#6D28D9" />
+    <!-- Le papier de la marque, et non l'ancien violet #6D28D9 — un jeton mort
+         du produit grand public supprimé. C'est la couleur de la chrome du
+         navigateur sur mobile: elle doit être le fond de la page, pas un accent. -->
+    <meta name="theme-color" content="#FBF8FA" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="google-site-verification" content="Y79Lt1_LtDrl-DoAJxsLROwYTwpr9GJ1UpDL_44zCcY" />
-    <title>Sophia — your method, answering every student, every day</title>
-    <meta name="description" content="Sophia is the AI that answers a masterclass coach's students in their coach's own method and words, on WhatsApp, every day. You record your method once; every outgoing message is checked against your red lines before it is sent." />
+    <!-- PRÉCHARGEMENT DE LA SEULE POLICE DE TEXTE — la première visible.
+         `crossorigin` est OBLIGATOIRE même en même origine: une police est
+         récupérée en mode CORS, et sans lui le fichier est téléchargé DEUX fois.
+         Vite réécrit et hache l'URL, et déduplique avec le `url()` du CSS.
+         Young Serif n'est PAS préchargée: elle ne sert qu'aux titres display. -->
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      crossorigin
+      href="/src/assets/fonts/publicsans-latin.woff2"
+    />
+    <!-- ⚠️ TITRE ET DESCRIPTION PAR DÉFAUT — ce que voit un robot AVANT le JS.
+         Les composants `SEO` les remplacent page par page; ceci est le repli.
+         Deux faits corrigés ici: la description promettait « on WhatsApp », un
+         canal SUPPRIMÉ du produit (chantier de-whatsapp), et « every outgoing
+         message is checked », qui est faux — quatre surfaces sont scannées,
+         quatre ne le sont pas (relance, récap du soir, bilan du dimanche,
+         broadcast coach). Voir `scratchpad/site/AUDIT-SITE.md` B8. -->
+    <title>Sophia — la semaine de votre maison, composée et expliquée</title>
+    <meta name="description" content="Sophia compose la semaine d'un foyer en sessions de cuisine: un seul plat pour tout le monde, et pour chaque bouche la part qui va avec son objectif. Les allergies d'une seule personne gouvernent toute la casserole." />
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
     <link rel="canonical" href="https://sophia-coach.ai/" />
     

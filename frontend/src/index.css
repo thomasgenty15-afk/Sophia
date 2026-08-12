@@ -1,8 +1,16 @@
 @import "tailwindcss";
+/* La charte de la vitrine — direction « la fiche ». Les deux `@import` doivent
+   rester en tête: le CSS refuse un `@import` placé après une règle. Tailwind 4
+   lit les `@theme` du graphe d'import; il n'y a pas de `tailwind.config.*` dans
+   ce dépôt et il ne faut pas en créer un. Voir `scratchpad/site/design/CHARTE.md`. */
+@import "./tokens.css";
 
 @layer base {
   body {
-    @apply bg-gray-50 text-gray-900;
+    /* Papier et encre de la marque, et non `gray-50` / `gray-900`. Les deux
+       jetons portent la teinte à 27 % et 17 % de saturation: la page a une
+       température sans avoir un ton. */
+    @apply bg-paper text-ink;
   }
 
   /* ── LE CHAMP QUI FAIT ZOOMER LA PAGE ──────────────────────────────────────
@@ -29,16 +37,19 @@
   }
 }
 
-@theme {
-  --color-background: #f9fafb;
-  --color-primary: #7c3aed;
-  --color-secondary: #2563eb;
-  --color-accent: #db2777;
-  --color-success: #16a34a;
-  
-  /* Ensure emoji/symbol fallback fonts exist across OS/browsers (prevents tofu/diamond placeholders). */
-  --font-sans: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
-}
+/* ⚠️ LE BLOC `@theme` A DÉMÉNAGÉ DANS `tokens.css`, IMPORTÉ CI-DESSUS.
+   Ce qui vivait ici — `--color-primary` (#7c3aed violet), `--color-secondary`,
+   `--color-accent` (#db2777), `--color-success`, `--color-background` — était
+   du reliquat MORT du produit grand public supprimé: vérifié des deux côtés,
+   ZÉRO consommateur dans tout `frontend/src/` (aucune classe `bg-primary`,
+   `text-accent`, etc.). Les retirer ne casse aucune surface.
+   ⚠️ `variant="primary"` / `variant="secondary"` qu'on lit partout sont les
+   variantes de `ui/Button.tsx`, PAS ces jetons. Ne pas les confondre.
+
+   `--font-sans` nommait `Inter` alors qu'aucun fichier de police n'existait
+   dans le dépôt: c'était un repli système fantôme. Il est maintenant servi
+   localement depuis `assets/fonts/`, et la chaîne de repli emoji est conservée
+   telle quelle — elle évite les carrés vides sur certains OS. */
 
 /* ANIMATIONS WAHOU V3 (ANTI-FLASH) */
 

@@ -63,13 +63,24 @@ import { t, type MessageKey } from "../i18n/t";
  * A pilot coach who discovers that gap after paying is a pilot coach lost.
  *
  * ── DESIGN NOTES ─────────────────────────────────────────────────────────
- * Light only, like the rest of the product. No accent hue is introduced: every
- * saturated colour on this page is a STATE (emerald / amber / red, straight
- * from the Badge kit's tones), and a brand accent would make decoration
- * indistinguishable from meaning on a page whose whole argument is that it
- * reports rather than decorates. Emphasis comes from type scale and from the
- * one dark block, which is spent on the double lock — the strongest and least
- * visible argument we have.
+ * Light only, like the rest of the product.
+ *
+ * ⚠️ CE FICHIER A PORTÉ « AUCUNE TEINTE D'ACCENT » — CETTE RÈGLE EST PÉRIMÉE.
+ * Elle disait: toute couleur saturée de cette page est un ÉTAT (émeraude /
+ * ambre / rouge du kit Badge), et un accent de marque rendrait la décoration
+ * indistinguable du sens sur une page dont l'argument est qu'elle rapporte au
+ * lieu de décorer. La refonte du 2026-08-12 la RENVERSE en connaissance de
+ * cause: la vitrine a une teinte de marque, `fig-700` (#632C4C, 325°).
+ *
+ * CE QUE LA RÈGLE PROTÉGEAIT RESTE VRAI: dans l'app, la couleur saturée
+ * appartient au sens. La figue ne s'y confond pas parce qu'elle est loin des
+ * quatre familles d'état (35° du rouge, 73° de l'ambre, 101° du bleu, 165° de
+ * l'émeraude) ET parce qu'elle N'ENTRE JAMAIS DANS UNE PASTILLE. Ne retire pas
+ * la couleur en croyant réparer: réécris le commentaire qui l'interdit.
+ * Autorité: `scratchpad/site/design/CHARTE.md` §2.
+ *
+ * L'emphase vient de l'échelle typographique et du bloc sombre unique, dépensé
+ * sur le double verrou — l'argument le plus fort et le moins visible.
  *
  * The section grounds encode register rather than alternating for rhythm:
  * white = the argument, gray-950 = the guarantee, gray-50 = the commercial

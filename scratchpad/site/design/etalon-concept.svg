@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 240" width="480" height="240"
+     role="img" aria-labelledby="fig-casserole-t fig-casserole-d">
+  <title id="fig-casserole-t">Une casserole, deux parts</title>
+  <desc id="fig-casserole-d">Une casserole vue de dessus. Deux assiettes identiques en
+    reçoivent le même plat. Ce qui diffère entre les deux n’est pas dessiné : c’est
+    l’instruction de service, écrite en mots à côté de chaque assiette.</desc>
+
+  <!-- ══ ÉTALON « ILLUSTRATION DE CONCEPT » ══════════════════════════════════
+       Toute figure de concept du site se copie sur ce fichier. Le détail des
+       règles est dans CHARTE.md §6. Les six qui se voient ici :
+
+       1. VUE DE DESSUS pour la matière. Jamais d’isométrie, jamais de 3/4,
+          jamais d’ombre portée : rien sur ce site n’a de source de lumière.
+       2. DEUX ÉPAISSEURS, jamais trois. 2 = le contour d’une chose réelle,
+          1 = une annotation ou un détail interne.
+       3. ANGLES FERMÉS. Tout trait oblique et toute rotation valent 15, 30,
+          45, 60, 75 ou 90°. Ici : traits de service à 15° (75/20 — tan 15°
+          = 0,2679, et 20/75 = 0,2667, soit 0,07° d’écart), parts pivotées de
+          ±30°. Règle reprise d’IBM Design Language,
+          style « line » : « 15°, 30°, 45°, 60°, 75° and 90° are preferred ».
+          Une courbe à main levée est le premier endroit où six agents
+          divergent sans s’en apercevoir.
+       4. COORDONNÉES ENTIÈRES. Aucune décimale dans x, y, width, height, r.
+          Règle reprise de IBM Carbon : « Icons should be at whole pixels. No
+          decimals are allowed in x and y coordinates or width and height
+          fields. » Les rotations en produisent au rendu — pas à l’écriture,
+          et c’est l’écriture qui se relit.
+       5. UNE SEULE PIÈCE CHAUDE. `--ill-fig` porte l’équerre (la marque) et
+          la casserole (le sujet), rien d’autre.
+          Contrôle : `grep -coE '(stroke|fill)="var\(--ill-fig' <fichier>` = 2.
+       6. AUCUNE PROPORTION QUE LE PRODUIT NE CALCULE PAS.
+          Les deux assiettes ne sont pas « dessinées pareil » : elles sont le
+          MÊME ÉLÉMENT, appelé deux fois par <use href="#part">. La promesse
+          « c’est le même plat » est donc tenue par la structure du fichier,
+          pas par la vigilance de celui qui le relit.
+          Des secteurs de tailles différentes auraient affirmé par la géométrie
+          une mesure qui n’atteint jamais l’écran (AUDIT §5.3 : ce qui sort est
+          une PHRASE, les grammes n’ont aucun écran, et rien ne vérifie que le
+          modèle a différencié). Une figure ne dessine pas ce que S8 interdit
+          d’écrire.
+
+       Les textes sont en clair pour que le fichier soit lisible seul. En page,
+       ils deviennent des props alimentées par les clés i18n : le site est fr
+       ET en, une chaîne en dur dans un SVG casse la moitié du site. ════════ -->
+
+  <defs>
+    <!-- LA PART. Un seul élément, appelé deux fois. C’est la garde. -->
+    <g id="part" fill="var(--ill-wash, #EFE0E9)"
+       stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1" stroke-linejoin="round">
+      <g transform="rotate(-30)"><rect x="-21" y="-17" width="26" height="12" rx="4"/></g>
+      <g transform="rotate(30)"><rect x="-10" y="8" width="22" height="10" rx="5"/></g>
+      <circle cx="16" cy="-5" r="7"/>
+      <circle cx="18" cy="9" r="5"/>
+      <circle cx="7" cy="-18" r="4"/>
+    </g>
+  </defs>
+
+  <!-- ── LE TITRE DE LA FIGURE — l’équerre ne flotte jamais seule : elle est
+          toujours collée au libellé qu’elle ouvre, exactement comme la classe
+          `.label.eq` en HTML. Une équerre sans mot à sa droite est un défaut. -->
+  <path d="M 8 32 L 8 16 A 8 8 0 0 1 16 8 L 32 8"
+        fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round"/>
+  <text x="44" y="26" font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)"
+        font-size="11" font-weight="600" letter-spacing="1.2"
+        fill="var(--ill-ink-soft, #6A5A64)">UNE CASSEROLE, DEUX PARTS</text>
+
+  <!-- ── LA CASSEROLE, vue de dessus. La seule pièce chaude du dessin. ────── -->
+  <g stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linejoin="round">
+    <rect x="26" y="135" width="32" height="18" rx="9" fill="var(--ill-paper, #FBF8FA)"/>
+    <rect x="150" y="135" width="32" height="18" rx="9" fill="var(--ill-paper, #FBF8FA)"/>
+    <circle cx="104" cy="144" r="54" fill="var(--ill-paper, #FBF8FA)"/>
+  </g>
+  <circle cx="104" cy="144" r="42" fill="var(--ill-wash, #EFE0E9)"/>
+  <text x="104" y="226" text-anchor="middle"
+        font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)"
+        font-size="12" fill="var(--ill-ink-soft, #6A5A64)">le même plat</text>
+
+  <!-- ── LE SERVICE — deux traits d’annotation à 15° (75/20). ───────────── -->
+  <g fill="none" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1" stroke-linecap="round">
+    <path d="M 160 128 L 235 108"/>
+    <path d="M 160 160 L 235 180"/>
+  </g>
+
+  <!-- ── LES DEUX ASSIETTES — le même <use>, deux fois. ──────────────────── -->
+  <g>
+    <circle cx="270" cy="99" r="36" fill="var(--ill-paper, #FBF8FA)"
+            stroke="var(--ill-ink, #23191F)" stroke-width="2"/>
+    <circle cx="270" cy="99" r="27" fill="none"
+            stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+    <use href="#part" x="270" y="99"/>
+  </g>
+  <g>
+    <circle cx="270" cy="189" r="36" fill="var(--ill-paper, #FBF8FA)"
+            stroke="var(--ill-ink, #23191F)" stroke-width="2"/>
+    <circle cx="270" cy="189" r="27" fill="none"
+            stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+    <use href="#part" x="270" y="189"/>
+  </g>
+
+  <!-- ── CE QUI DIFFÈRE : des MOTS. Jamais un chiffre, jamais une taille. ── -->
+  <g font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)">
+    <text x="322" y="83" font-size="9" font-weight="600" letter-spacing="1"
+          fill="var(--ill-ink-soft, #6A5A64)">POUR L’UN</text>
+    <text x="322" y="102" font-size="13" fill="var(--ill-ink, #23191F)">part généreuse
+      <tspan x="322" dy="17">de légumes</tspan></text>
+
+    <text x="322" y="173" font-size="9" font-weight="600" letter-spacing="1"
+          fill="var(--ill-ink-soft, #6A5A64)">POUR L’AUTRE</text>
+    <text x="322" y="192" font-size="13" fill="var(--ill-ink, #23191F)">part de féculents
+      <tspan x="322" dy="17">plus large</tspan></text>
+  </g>
+</svg>
