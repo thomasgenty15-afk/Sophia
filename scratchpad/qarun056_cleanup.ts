@@ -28,6 +28,7 @@ const USERS = [
   "2a2d81c4-cdec-42c4-8fdd-551330d4b26e", // 3.4 accusé EN, non-régression
   // ── lot photo: exemption de budget ─────────────────────────────────────────
   "df80880e-7c9a-45e1-8c6b-d75ea8c5ee30", // budget consommé + sonde d'exclusion
+  "d637b6bf-a359-4399-8d7d-d098fde09109", // preuve de bout en bout du tap « commandé »
 ];
 const TABLES = [
   "student_weight_divergence_episodes",

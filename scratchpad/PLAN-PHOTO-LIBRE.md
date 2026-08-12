@@ -160,3 +160,47 @@ Après le lot A : la même phrase, le même soir ⇒ « si tu as une photo, envo
 et la photo qui arrive dans la demi-heure **enrichit ce fait-là** au lieu d'en
 créer un second. Le stock de photos orphelines baisse sans qu'on ait ajouté la
 moindre collecte — on a seulement cessé de fermer une porte au mauvais moment.
+
+
+---
+
+## 6. Vérification en conditions réelles — faite le 2026-08-12
+
+> Ce n'est pas un run conversationnel piloté (un seul tap déterministe), donc la
+> mesure vit ici plutôt que dans `qa-run-reports/`. Ce qu'elle prouve est
+> néanmoins mesuré sur la vraie pile et relu en base.
+
+**Le montage** — une élève `fr-FR`, un plan couvrant aujourd'hui avec un plat, et
+**la place du jour déjà prise** par une `weight_divergence_question` au ledger.
+C'est le cas exact que le lot corrige.
+
+**Le tap** « J'ai commandé » sur le plat du soir :
+
+| Mesure | Résultat |
+|---|---|
+| `handled_by` | `keel_accident_ordered_photo` — la branche photo a bien tiré |
+| La réponse | « Si tu as une photo, envoie-la : même approximative, elle m'en dit plus qu'une description, et sinon aucun souci. » |
+| Le fait | `protocol_events` : `off_plan`, `quick_tap`, `slot_key=dinner` |
+| Le ledger | 2 lignes : `weight_divergence_question` + `photo_invitation` |
+| Compteur **partagé** | **1** — la divergence seule. L'invitation n'a pas pris la place |
+| Compteur **photo** | **1** — son plafond propre |
+| **Second tap, même plat** | « C'est noté. » — **une seule** invitation au ledger |
+
+**Avant ce lot, ce scénario exact rendait `budget_consumed` et aucune invitation.**
+Le second tap est la mesure qui compte autant que la première : elle prouve que la
+déduplication a survécu au retrait du comptage, ce qui était le risque de
+conception du lot.
+
+### Deux pièges de fixture, consignés parce qu'ils coûteront à quelqu'un d'autre
+
+1. **Consommer le budget en ouvrant un épisode de divergence ne marche pas** :
+   l'épisode ARME une question, et le tour suivant s'y fait rabattre
+   (`armed_resolution`). La question armée vit sur le **message**, pas sur
+   l'épisode — la refermer ne la désarme pas. On écrit donc directement la ligne
+   de ledger.
+2. **La lane conversationnelle n'a pas produit de fait hors-plan** sur cette
+   fixture (« j'ai pris un hot-dog… » ⇒ `protocol_events` vide), donc l'invitation
+   était refusée à juste titre sur `no_committed_fact`. C'est pour ça que la
+   preuve passe par le tap de FF-057, qui écrit le fait lui-même. **La chaîne
+   conversationnelle complète reste non prouvée** — elle demande un fixture qui
+   fasse franchir le plancher de déclaration.
