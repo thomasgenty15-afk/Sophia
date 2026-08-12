@@ -84,7 +84,7 @@ export type HomePath =
  *          quelqu'un dans un couloir de réglage parce que le réseau a hoqueté
  *          lui ferait refaire ce qu'il a déjà fait.
  */
-async function hasAnsweredTheFunnel(userId: string): Promise<boolean | null> {
+export async function hasAnsweredTheFunnel(userId: string): Promise<boolean | null> {
   try {
     const res = await supabase
       .from("student_goals")

@@ -416,15 +416,18 @@ export default function StartPage() {
             country,
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
           }),
-          // La conversation, pas l'écran du jour: un inscrit libre n'a encore
-          // rien sur son Today, et la bulle est le seul écran qui lui dit quoi
-          // faire. Même arbitrage que /join.
+          // ── LE TROU N°2 EST REFERMÉ (2026-08-13) ────────────────────────
+          // Cette ligne pointait sur `/app/chat`, et le bouton de l'état
+          // `joined` aussi. Un inscrit atterrissait donc dans la bulle, qui
+          // affiche « Say hello, or send a photo » et ne pousse RIEN — et
+          // l'entonnoir n'était atteint qu'à une visite ultérieure de `/` ou à
+          // une reconnexion. Mesuré par un vrai inscrit: « il est où
+          // l'onboarding ? ».
           //
-          // ⚠️ C'EST L'UNE DES DEUX LIGNES DU TROU N°2 (en-tête du fichier):
-          // `/app/setup` n'est jamais atteint depuis cette page à cause d'elle
-          // et du bouton de l'état `joined`. Le changement appartient à un lot
-          // qui a le droit de toucher la logique.
-          emailRedirectTo: `${window.location.origin}/app/chat`,
+          // Les deux pointent maintenant sur `/app/setup`, et la copie
+          // ci-dessous a suivi. La bulle n'est pas perdue: elle est le premier
+          // onglet qui s'ouvre une fois le plan composé.
+          emailRedirectTo: `${window.location.origin}/app/setup`,
         },
       });
       if (error) throw error;
@@ -545,7 +548,7 @@ export default function StartPage() {
           <Button
             variant="brand"
             className="w-full py-3 text-base sm:w-auto sm:px-8"
-            onClick={() => navigate("/app/chat")}
+            onClick={() => navigate("/app/setup")}
           >
             {t("start.joined.cta")}
           </Button>

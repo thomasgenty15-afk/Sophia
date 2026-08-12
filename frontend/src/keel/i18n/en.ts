@@ -1812,15 +1812,21 @@ export const en = {
   "start.check_email.title": "Confirm your email address.",
   "start.check_email.body":
     "Your account is created and already attached — the email only opens your " +
-    "session. Open the confirmation we just sent to finish.",
+    "session. Open the confirmation we just sent, and it takes you straight to " +
+    "the three steps that build your first plan.",
 
-  // ⚠️ LE BOUTON OUVRE LA CONVERSATION, ET LE TEXTE DIT ÇA. `StartPage`
-  // navigue en dur vers `/app/chat`; décrire ici une autre destination ferait
-  // mentir l'écran d'après.
+  // ⚠️ LE BOUTON OUVRE L'ENTONNOIR, ET LE TEXTE DIT ÇA. `StartPage` navigue en
+  // dur vers `/app/setup` (et `emailRedirectTo` y pointe aussi); décrire ici
+  // une autre destination ferait mentir l'écran d'après.
+  //
+  // La copie promet TROIS ÉTAPES ET UN PLAN, ce que l'écran suivant tient
+  // vraiment. Elle disait « la conversation est là où ça commence » quand le
+  // bouton ouvrait la bulle — qui ne pousse rien et n'a rien à montrer avant
+  // qu'un plan existe.
   "start.joined.title": "Your account is ready.",
   "start.joined.body":
-    "The conversation is where it starts. Say hello, or send a photo of your next meal.",
-  "start.joined.cta": "Open the conversation",
+    "Three short steps and your first plan is composed. Nothing is prepared for you in the background — you answer, and it gets built.",
+  "start.joined.cta": "Set up your kitchen",
   "start.existing.title": "You already have an account.",
   "start.existing.body":
     "That address is already registered. Sign in and we will pick up right here.",
@@ -4066,6 +4072,12 @@ export const en = {
   "setup.people.height": "Height (cm)",
   "setup.people.height_hint": "It sizes your servings. Nothing else reads it.",
   "setup.people.gender": "Sex",
+  "setup.people.weight": "Weight (kg)",
+  // POURQUOI ON LE DEMANDE MAINTENANT, ET PAS « PLUS TARD ». Deux raisons, et
+  // la seconde est de la sécurité: sans un premier point, rien ne peut dire
+  // plus tard si la perte va trop vite (`restriction_guard`).
+  "setup.people.weight_hint":
+    "With your height, it sizes your servings. It is also the first point of a line — without it, nothing can tell later whether you are losing too fast.",
   "setup.people.goal": "What you are after",
   "setup.people.allergies": "Anything you are allergic to?",
   // TROIS NATURES DISTINCTES, ET L'ENTONNOIR NE COLLECTE QUE LA PREMIÈRE
@@ -4100,6 +4112,12 @@ export const en = {
   // un réglage. Le dire évite qu'on cherche un champ qui n'existera jamais.
   "setup.mouths.kind_hint":
     "A child never gets a nutrition direction of their own. That is built in, not a setting.",
+  "setup.mouths.body": "Height, weight and sex",
+  // ⚠️ LES TROIS OU AUCUN, et la phrase le dit parce que la base le fait: la
+  // RPC refuse un corps partiel, et le moteur SAUTE une bouche sans corps —
+  // elle reçoit alors la part de tout le monde, en silence.
+  "setup.mouths.body_hint":
+    "All three, or none of them. It is what lets the plan give them their own share instead of everyone's.",
   "setup.mouths.goal": "What they are after",
   "setup.mouths.goal_none": "No particular direction",
   "setup.mouths.goal_from_profile":
@@ -4160,11 +4178,19 @@ export const en = {
   "setup.missing.own_birth_date": "Your date of birth.",
   "setup.missing.own_height_cm": "Your height, so your servings are yours.",
   "setup.missing.own_gender": "Your sex, so your servings are yours.",
+  "setup.missing.own_weight_kg":
+    "Your weight. Without a first point, nothing can tell later whether you are losing too fast.",
   "setup.missing.own_goal": "What you are after. Nothing can be composed without it.",
   "setup.missing.own_allergies": "Whether you have allergies — “none” counts as an answer.",
   "setup.missing.member_first_name":
     "A first name for everyone at the table. Without one, their serving vanishes from the plan without a word.",
   "setup.missing.member_birth_date": "A date of birth for everyone at the table.",
+  // ⚠️ UN SEUL MOTIF POUR LES TROIS CHAMPS, parce que la base est tout-ou-rien:
+  // `keel_household_set_member_body` refuse `body_incomplete` dès qu'il en
+  // manque un, et le moteur saute la ligne entière. Trois phrases laisseraient
+  // croire qu'on peut en donner deux sur trois et gagner quelque chose.
+  "setup.missing.member_body":
+    "Height, weight and sex for everyone at the table. Without all three, that person is served the same as everyone else — the plan cannot size their share.",
   "setup.missing.member_goal": "A direction for each adult at the table.",
   "setup.missing.member_allergies":
     "Whether each person has allergies — “none” counts as an answer.",

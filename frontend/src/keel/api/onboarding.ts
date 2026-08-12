@@ -52,7 +52,10 @@ import {
   addAllergy,
   loadAllergies,
   loadHousehold,
+  loadMemberBodies,
   MEMBER_GENDERS,
+  type MemberBodyView,
+  setMemberBody,
   type MemberGender,
   type MemberGoal,
   MEMBER_GOALS,
@@ -95,11 +98,15 @@ export type FunnelQuestionId =
   | "own_birth_date"
   | "own_height_cm"
   | "own_gender"
+  | "own_weight_kg"
   | "own_goal"
   | "own_allergies"
   // Étape 2b — les autres bouches
   | "member_first_name"
   | "member_birth_date"
+  | "member_height_cm"
+  | "member_weight_kg"
+  | "member_gender"
   | "member_goal"
   | "member_allergies"
   // Étape 3 — le plan
@@ -113,8 +120,6 @@ export type FunnelQuestionId =
   // empêche qu'une question « moins bon » se glisse dans l'entonnoir au
   // prochain ajustement — il faudrait changer son `weight`, ce qui se lit dans
   // une revue.
-  | "own_weight_kg"
-  | "member_body"
   | "food_preferences"
   | "away_days"
   | "situation"
@@ -242,6 +247,28 @@ export const FUNNEL_QUESTIONS: readonly FunnelQuestion[] = Object.freeze([
     scope: "self",
   },
   {
+    // ── LE POIDS, ET IL EST REVENU DE `better` LE 2026-08-13 ─────────────
+    // Il était classé « moins bon » au motif qu'il ouvre la surface de mesure
+    // et son plancher TCA, et que la première pesée a son moment sur
+    // `/app/progress`. C'était FAUX, pour deux raisons mesurées:
+    //
+    //   · `keel_household_set_member_body` est TOUT-OU-RIEN (taille + poids +
+    //     sexe). Sans le poids, on ne peut pas écrire la taille non plus —
+    //     donc la taille collectée à côté ne servait à RIEN au foyer;
+    //   · `restriction_guard.ts` détecte la perte rapide en comparant deux
+    //     poids hebdomadaires. Sans un premier point, la ceinture n'a rien à
+    //     quoi comparer le second.
+    //
+    // Un premier plan servi à un corps inconnu n'est pas « moins bon »: les
+    // portions sont la promesse du produit, et elles sont fausses.
+    id: "own_weight_kg",
+    consumer: "supabase/functions/_shared/keel/student_body_io.ts#loadStudentBody",
+    weight: "wrong",
+    branches: ALL_BRANCHES,
+    step: "people",
+    scope: "self",
+  },
+  {
     // `goal_required`, 409, dans LES DEUX générateurs. C'est le seul refus que
     // l'entonnoir ne peut pas se permettre de laisser passer: il tombe après
     // que tout a été saisi.
@@ -274,6 +301,43 @@ export const FUNNEL_QUESTIONS: readonly FunnelQuestion[] = Object.freeze([
   {
     id: "member_birth_date",
     consumer: "supabase/functions/_shared/keel/household.ts#goalApplies",
+    weight: "wrong",
+    branches: WITH_OTHERS,
+    step: "people",
+    scope: "each_member",
+  },
+  {
+    // ── LE CORPS DE CHAQUE BOUCHE (décision humaine du 2026-08-13) ────────
+    //
+    // ⚠️ LE MOTEUR DU FOYER NE LIT QUE `household_member_bodies`.
+    // `keel_household_bodies_for` n'a AUCUN repli sur `profiles` — vérifié le
+    // 2026-08-13 — et `generate-household-meal-v1` SAUTE toute bouche dont le
+    // corps est incomplet (`if (height === null || weight === null ||
+    // rawGender === "") continue;`). Un foyer sans corps est donc un foyer
+    // dont le tronc n'est dimensionné sur rien et dont aucune bouche n'a
+    // d'add-on: le plan sort, nominalement correct, et numériquement
+    // indifférencié. « Un pot, deux directions » est muet.
+    //
+    // Les trois sont déclarées séparément et pas en un `member_body`: la
+    // RPC est tout-ou-rien, mais l'ÉCRAN doit pouvoir dire lequel manque.
+    id: "member_height_cm",
+    consumer: "supabase/functions/generate-household-meal-v1/index.ts#keel_household_bodies_for",
+    weight: "wrong",
+    branches: WITH_OTHERS,
+    step: "people",
+    scope: "each_member",
+  },
+  {
+    id: "member_weight_kg",
+    consumer: "supabase/functions/generate-household-meal-v1/index.ts#keel_household_bodies_for",
+    weight: "wrong",
+    branches: WITH_OTHERS,
+    step: "people",
+    scope: "each_member",
+  },
+  {
+    id: "member_gender",
+    consumer: "supabase/functions/generate-household-meal-v1/index.ts#keel_household_bodies_for",
     weight: "wrong",
     branches: WITH_OTHERS,
     step: "people",
@@ -334,28 +398,6 @@ export const FUNNEL_QUESTIONS: readonly FunnelQuestion[] = Object.freeze([
   },
 
   // ── CE QUI SE DEMANDE APRÈS LE PLAN ───────────────────────────────────────
-  {
-    // Le poids ouvre la surface de mesure et son plancher TCA. Il a, LUI, un
-    // moment: la première pesée, sur `/app/progress`.
-    id: "own_weight_kg",
-    consumer: "supabase/functions/_shared/keel/student_body_io.ts#loadStudentBody",
-    weight: "better",
-    branches: NEVER,
-    step: null,
-    scope: "self",
-  },
-  {
-    // Taille + poids + sexe de CHAQUE bouche. La décision humaine du
-    // 2026-08-12 les exige pour servir juste — mais quatre champs par bouche
-    // est exactement le mur que cet entonnoir existe pour éviter. Sans eux le
-    // moteur sert une part standard: moins bon, jamais faux.
-    id: "member_body",
-    consumer: "supabase/functions/generate-household-meal-v1/index.ts#keel_household_bodies_for",
-    weight: "better",
-    branches: NEVER,
-    step: null,
-    scope: "each_member",
-  },
   {
     id: "food_preferences",
     consumer:
@@ -447,6 +489,17 @@ export const FUNNEL_QUESTIONS: readonly FunnelQuestion[] = Object.freeze([
 export interface FunnelPerson {
   /** Vide = pas de prénom. */
   firstName: string;
+  /**
+   * LE CORPS, ET IL EST SUR **CHAQUE** BOUCHE (décision humaine 2026-08-13).
+   *
+   * ⚠️ TOUT-OU-RIEN, PARCE QUE LA BASE L'EST. `keel_household_set_member_body`
+   * refuse `body_incomplete` dès qu'un des trois manque, et le moteur SAUTE
+   * une ligne partielle. Un demi-corps n'existe nulle part: ni en base, ni
+   * ici.
+   */
+  heightCm: number | null;
+  weightKg: number | null;
+  gender: MemberGender | null;
   kind: "adult" | "child";
   /** ISO `YYYY-MM-DD`, ou `null`. */
   birthDate: string | null;
@@ -464,11 +517,15 @@ export interface FunnelPerson {
   allergiesReviewed: boolean;
 }
 
-/** Moi. Les mêmes champs, plus ce qui dimensionne mon assiette. */
-export interface FunnelSelf extends FunnelPerson {
-  heightCm: number | null;
-  gender: MemberGender | null;
-}
+/**
+ * Moi. Exactement les mêmes champs que n'importe quelle bouche.
+ *
+ * Le type ne se distingue plus depuis que le corps a rejoint `FunnelPerson`:
+ * le maître EST la première bouche (décision du lot 4 du chantier foyer), et
+ * un type à part faisait croire le contraire. Gardé comme alias nommé parce
+ * que les signatures se lisent mieux avec.
+ */
+export type FunnelSelf = FunnelPerson;
 
 /**
  * Ce qui appartient à QUI CUISINE, et se pose donc UNE SEULE FOIS.
@@ -640,6 +697,9 @@ function canGenerateMisses(
   if (asks("own_height_cm") && !isUsableHeight(state.self.heightCm)) {
     missing.push("own_height_cm");
   }
+  if (asks("own_weight_kg") && !isUsableWeight(state.self.weightKg)) {
+    missing.push("own_weight_kg");
+  }
   if (asks("own_gender") && state.self.gender === null) missing.push("own_gender");
 
   // ── ÉTAPE 2b, LES AUTRES ───────────────────────────────────────────────
@@ -659,6 +719,12 @@ function canGenerateMisses(
           { skipFirstName: false },
         ),
       );
+      // LE CORPS, BOUCHE PAR BOUCHE. Les bornes sont celles de la RPC de foyer
+      // (30–260 cm, 2–400 kg) et PAS celles de `profiles`: une bouche peut
+      // être un enfant de trois ans, que les bornes adultes refuseraient.
+      if (!isUsableMouthHeight(person.heightCm)) missing.push("member_height_cm");
+      if (!isUsableMouthWeight(person.weightKg)) missing.push("member_weight_kg");
+      if (person.gender === null) missing.push("member_gender");
     }
   }
 
@@ -736,6 +802,29 @@ function isUsableHeight(cm: number | null): boolean {
 }
 
 /**
+ * `student_body_measures_value_in_range` borne un poids à [25, 400]. C'est la
+ * table qui arme `restriction_guard`, donc la borne qui compte pour MOI.
+ */
+function isUsableWeight(kg: number | null): boolean {
+  return kg !== null && Number.isFinite(kg) && kg >= 25 && kg <= 400;
+}
+
+/**
+ * LES BORNES D'UNE AUTRE BOUCHE SONT PLUS LARGES, ET CE N'EST PAS UN OUBLI.
+ * `keel_household_set_member_body` accepte 30–260 cm et 2–400 kg parce qu'une
+ * bouche peut être un nourrisson. Appliquer les bornes adultes ici refuserait
+ * un enfant de trois ans — c'est-à-dire exactement la population que le foyer
+ * existe pour servir.
+ */
+function isUsableMouthHeight(cm: number | null): boolean {
+  return cm !== null && Number.isFinite(cm) && cm >= 30 && cm <= 260;
+}
+
+function isUsableMouthWeight(kg: number | null): boolean {
+  return kg !== null && Number.isFinite(kg) && kg >= 2 && kg <= 400;
+}
+
+/**
  * UNE DATE SAISIE, LUE PAR LA GARDE DU PRODUIT.
  *
  * Enveloppe `assessBirthDate` (`_shared/keel/student_age.ts`), déjà testée, et
@@ -769,6 +858,7 @@ export function emptyFunnelState(): FunnelState {
       goal: null,
       allergiesReviewed: false,
       heightCm: null,
+      weightKg: null,
       gender: null,
     },
     others: [],
@@ -789,6 +879,9 @@ export function emptyFunnelPerson(): FunnelPerson {
     birthDate: null,
     goal: null,
     allergiesReviewed: false,
+    heightCm: null,
+    weightKg: null,
+    gender: null,
   };
 }
 
@@ -953,9 +1046,15 @@ export async function readFunnelFacts(userId: string): Promise<FunnelFacts> {
     | null;
   const check = readAllergyCheck(pc);
 
-  const [ownAllergies, householdAllergies] = await Promise.all([
+  const [ownAllergies, householdAllergies, bodies, ownWeight] = await Promise.all([
     loadActiveConstraints(userId),
     household ? loadAllergies() : Promise.resolve([]),
+    // LES CORPS QUE LE MOTEUR LIRA. Réservé au compte maître par la RPC
+    // elle-même: un non-maître reçoit zéro ligne, pas une erreur.
+    household && household.me?.role === "owner"
+      ? loadMemberBodies()
+      : Promise.resolve(new Map<string, MemberBodyView>()),
+    latestOwnWeightKg(userId),
   ]);
 
   const allergyByMember = new Set(householdAllergies.map((a) => a.memberId));
@@ -985,6 +1084,13 @@ export async function readFunnelFacts(userId: string): Promise<FunnelFacts> {
         : null,
       allergiesReviewed:
         check.members.includes(m.memberId) || allergyByMember.has(m.memberId),
+      // ⚠️ LU DEPUIS `household_member_bodies`, PAS DEPUIS `profiles`. C'est la
+      // seule table que `keel_household_bodies_for` regarde — donc la seule
+      // dont le moteur tienne compte. Lire ailleurs afficherait « rempli » sur
+      // un corps que la composition ne verra jamais.
+      heightCm: bodies.get(m.memberId)?.heightCm ?? null,
+      weightKg: bodies.get(m.memberId)?.weightKg ?? null,
+      gender: bodies.get(m.memberId)?.gender ?? null,
     }));
 
   // Un foyer d'une seule bouche est un foyer qu'on a commencé et pas rempli:
@@ -1019,12 +1125,24 @@ export async function readFunnelFacts(userId: string): Promise<FunnelFacts> {
         ownAllergies.some((c) => c.kind === "allergy"),
       // `numeric` arrive en CHAÎNE par PostgREST: un `typeof === "number"`
       // rendrait `null` sur une taille pourtant enregistrée.
-      heightCm: Number.isFinite(Number(profile.height_cm))
-        ? Number(profile.height_cm)
-        : null,
+      //
+      // ⚠️ ET LE `== null` EST LA MOITIÉ QUI COMPTE. `Number(null)` vaut `0`,
+      // qui EST fini: sans ce test, une taille absente se lisait `0` et le
+      // champ s'affichait pré-rempli à zéro sur un compte neuf. Vu à l'écran
+      // le 2026-08-13. La garde refusait bien `0` (hors bornes), donc rien ne
+      // partait en base — mais on demandait à quelqu'un de corriger une valeur
+      // qu'il n'avait jamais saisie.
+      heightCm: profile.height_cm == null || !Number.isFinite(Number(profile.height_cm))
+        ? null
+        : Number(profile.height_cm),
       gender: (MEMBER_GENDERS as readonly string[]).includes(String(profile.gender ?? ""))
         ? (String(profile.gender) as MemberGender)
         : null,
+      // MON POIDS VIENT DE LA SÉRIE DE MESURES, pas d'une colonne de profil:
+      // il n'y en a pas, et c'est voulu — un poids est une suite de points
+      // datés, et c'est ce que `restriction_guard` compare. Dans un foyer, ma
+      // ligne de corps porte le même nombre, pour le moteur.
+      weightKg: ownWeight ?? (ownMemberId ? bodies.get(ownMemberId)?.weightKg ?? null : null),
     },
     others: mouths,
     plan: readPlanAnswers(pc),
@@ -1061,6 +1179,33 @@ function readPlanAnswers(pc: Record<string, unknown> | null): FunnelPlanAnswers 
       ? budget
       : null,
   };
+}
+
+/**
+ * MON DERNIER POIDS CONNU, ou `null` si je n'ai jamais été pesé.
+ *
+ * `student_body_measures` est la table de FF-008: une suite de points datés,
+ * celle que `restriction_guard.ts` compare à quatorze jours d'écart pour
+ * détecter une perte rapide. C'est pour ça que le poids saisi à l'entrée doit
+ * y atterrir et pas seulement dans le corps de foyer — sans premier point, la
+ * ceinture n'a rien à quoi comparer le second.
+ */
+async function latestOwnWeightKg(userId: string): Promise<number | null> {
+  const { data, error } = await supabase
+    .from("student_body_measures")
+    .select("value_si")
+    .eq("user_id", userId)
+    .eq("kind", "weight")
+    .order("local_date", { ascending: false })
+    .order("measured_at", { ascending: false })
+    .limit(1);
+  // NE PAS AVALER: rendre `null` sur une lecture ratée redemanderait un poids
+  // déjà donné, et en écrirait un second point le même jour.
+  if (error) throw new Error(error.message);
+  const raw = (data ?? [])[0] as Record<string, unknown> | undefined;
+  // `numeric` arrive en CHAÎNE par PostgREST.
+  const value = Number(raw?.value_si);
+  return Number.isFinite(value) ? value : null;
 }
 
 /**
@@ -1119,6 +1264,105 @@ export async function saveOwnProfile(args: {
   if (!data || data.length === 0) {
     throw new Error("[keel/onboarding] profile: nothing was saved");
   }
+}
+
+/**
+ * MON POIDS — DANS LA SÉRIE DE MESURES, et nulle part ailleurs.
+ *
+ * ⚠️ IL N'Y A PAS DE COLONNE `profiles.weight_kg`, et c'est une décision, pas
+ * un manque: un poids est une SUITE DE POINTS DATÉS. `restriction_guard.ts`
+ * détecte la perte rapide en comparant deux points hebdomadaires contre
+ * `max_weekly_loss_pct = 1.2`; une colonne écrasée à chaque saisie n'aurait
+ * jamais de second point à comparer, et la ceinture serait désarmée en
+ * silence.
+ *
+ * ⚠️ IDEMPOTENT SUR LA JOURNÉE. L'entonnoir se reprend, et une reprise ne doit
+ * pas empiler trois poids le même jour: la série s'en trouverait faussée, et
+ * c'est elle qui arme la garde. On écrit donc un point par jour local, relu.
+ *
+ * `source: 'setup'` — quatrième valeur du vocabulaire fermé, ajoutée par
+ * `20260813090000`. Réutiliser `plan_card` aurait fait dire à l'audit « la
+ * carte de /app/plan » d'un nombre saisi le jour de l'inscription.
+ */
+export async function saveOwnWeight(args: {
+  userId: string;
+  weightKg: number;
+  localDate: string;
+}): Promise<void> {
+  const existing = await supabase
+    .from("student_body_measures")
+    .select("id")
+    .eq("user_id", args.userId)
+    .eq("kind", "weight")
+    .eq("local_date", args.localDate)
+    .eq("source", "setup")
+    .limit(1);
+  if (existing.error) {
+    throw new Error(`[keel/onboarding] weight: ${existing.error.message}`);
+  }
+
+  const row = (existing.data ?? [])[0] as { id?: unknown } | undefined;
+  const written = row?.id
+    ? await supabase
+      .from("student_body_measures")
+      .update({ value_si: args.weightKg, measured_at: new Date().toISOString() })
+      .eq("id", String(row.id))
+      .select("id")
+    : await supabase
+      .from("student_body_measures")
+      .insert({
+        user_id: args.userId,
+        kind: "weight",
+        value_si: args.weightKg,
+        local_date: args.localDate,
+        measured_at: new Date().toISOString(),
+        source: "setup",
+        // La langue DÉCLARÉE de l'app authentifiée, comme les autres
+        // écrivains de contenu de ce dépôt.
+        content_locale: "en-GB",
+      })
+      .select("id");
+
+  if (written.error) {
+    throw new Error(`[keel/onboarding] weight: ${written.error.message}`);
+  }
+  // RLS refuse la ligne d'autrui SANS LEVER: zéro ligne touchée rendrait 204
+  // en silence, et l'écran dirait « enregistré » sur un poids parti nulle part.
+  if (!written.data || written.data.length === 0) {
+    throw new Error("[keel/onboarding] weight: nothing was saved");
+  }
+}
+
+/**
+ * LE CORPS D'UNE BOUCHE — LA SEULE ÉCRITURE QUE LE MOTEUR DU FOYER LIRA.
+ *
+ * ⚠️ `profiles.height_cm` ET `profiles.gender` NE SUFFISENT PAS, et c'est le
+ * défaut mesuré le 2026-08-13. `keel_household_bodies_for` lit UNIQUEMENT
+ * `household_member_bodies`, sans aucun repli sur `profiles`; et
+ * `generate-household-meal-v1` saute toute bouche dont le corps est incomplet.
+ * Un foyer dont personne n'a de ligne de corps compose donc un tronc
+ * dimensionné sur rien, et zéro add-on par bouche — le plan sort, et les
+ * portions sont indifférenciées.
+ *
+ * Vaut pour LE MAÎTRE AUSSI: sa ligne de foyer est une bouche comme les autres,
+ * et son profil ne la remplace pas.
+ *
+ * Refus nommés: `not_owner`, `not_a_member`, `body_incomplete`, `bad_height`,
+ * `bad_weight`, `bad_gender`.
+ */
+export async function saveMouthBody(args: {
+  memberId: string;
+  heightCm: number;
+  weightKg: number;
+  gender: MemberGender;
+}): Promise<void> {
+  const result = await setMemberBody(
+    args.memberId,
+    args.heightCm,
+    args.weightKg,
+    args.gender,
+  );
+  if (!result.ok) throw new Error(String(result.reason));
 }
 
 /**

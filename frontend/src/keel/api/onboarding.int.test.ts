@@ -52,6 +52,9 @@ function adult(overrides: Partial<FunnelPerson> = {}): FunnelPerson {
     birthDate: "1990-05-04",
     goal: "muscle_gain",
     allergiesReviewed: true,
+    heightCm: 171,
+    weightKg: 64,
+    gender: "female",
     ...overrides,
   };
 }
@@ -64,6 +67,12 @@ function child(overrides: Partial<FunnelPerson> = {}): FunnelPerson {
     birthDate: "2016-02-11",
     goal: null,
     allergiesReviewed: true,
+    // Un ENFANT, et ses mesures sont hors des bornes adultes: c'est
+    // exactement ce que les bornes plus larges de la RPC de foyer existent
+    // pour accepter.
+    heightCm: 128,
+    weightKg: 26,
+    gender: "male",
     ...overrides,
   };
 }
@@ -84,6 +93,7 @@ function complete(branch: FunnelBranch): FunnelState {
       goal: "health",
       allergiesReviewed: true,
       heightCm: 178,
+      weightKg: 71,
       gender: "female",
     },
     others,
@@ -191,6 +201,9 @@ describe("funnelSteps", () => {
     expect(perMember("pair")).toEqual([
       "member_first_name",
       "member_birth_date",
+      "member_height_cm",
+      "member_weight_kg",
+      "member_gender",
       "member_goal",
       "member_allergies",
     ]);
@@ -241,6 +254,7 @@ describe("canGenerate — l'état complet", () => {
         "own_goal",
         "own_allergies",
         "own_height_cm",
+        "own_weight_kg",
         "own_gender",
         "eating_rhythm",
         "cook_days",
@@ -271,6 +285,36 @@ describe("canGenerate — étape par étape", () => {
       "solo",
       (s) => ({ ...s, self: { ...s.self, heightCm: 12 } }),
       "own_height_cm",
+    ],
+    [
+      "mon poids absent",
+      "solo",
+      (s) => ({ ...s, self: { ...s.self, weightKg: null } }),
+      "own_weight_kg",
+    ],
+    [
+      "mon poids hors des bornes de la série de mesures",
+      "solo",
+      (s) => ({ ...s, self: { ...s.self, weightKg: 3 } }),
+      "own_weight_kg",
+    ],
+    [
+      "le corps d'une bouche incomplet — la taille manque",
+      "pair",
+      (s) => ({ ...s, others: [adult({ heightCm: null })] }),
+      "member_height_cm",
+    ],
+    [
+      "le corps d'une bouche incomplet — le poids manque",
+      "pair",
+      (s) => ({ ...s, others: [adult({ weightKg: null })] }),
+      "member_weight_kg",
+    ],
+    [
+      "le corps d'une bouche incomplet — le sexe manque",
+      "pair",
+      (s) => ({ ...s, others: [adult({ gender: null })] }),
+      "member_gender",
     ],
     [
       "mon sexe absent",

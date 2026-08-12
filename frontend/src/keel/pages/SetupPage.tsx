@@ -5,7 +5,7 @@ import { useAuth } from "../../context/AuthContext";
 import { ALLERGEN_OPTIONS } from "../copy/allergens";
 import { edgeRefusalKey } from "../copy/planRefusals";
 import { setupMissKey } from "../copy/setupMisses";
-import { KeelAppShell } from "../components/KeelAppShell";
+import { LocaleSwitch } from "../components/LocaleSwitch";
 import { Button } from "../components/ui/Button";
 import { Card, SectionLabel } from "../components/ui/Card";
 import { Field, inputClass } from "../components/ui/Field";
@@ -40,9 +40,11 @@ import {
   nextIncomplete,
   readFunnelFacts,
   saveMouthAllergies,
+  saveMouthBody,
   saveOwnAllergies,
   saveOwnGoal,
   saveOwnProfile,
+  saveOwnWeight,
   savePlanAnswers,
 } from "../api/onboarding";
 import { browserLocalDate } from "../lib/useMealTicks";
@@ -105,6 +107,7 @@ interface SelfDraft {
   /** Vide = pas encore saisie. Le champ est une `date`, donc `YYYY-MM-DD`. */
   birthDate: string;
   heightCm: string;
+  weightKg: string;
   gender: MemberGender | "";
   goal: MemberGoal | "";
   allergies: string[];
@@ -117,6 +120,10 @@ interface MouthDraft {
   firstName: string;
   kind: "adult" | "child";
   birthDate: string;
+  /** Tout-ou-rien, comme la base: les trois ou aucun. */
+  heightCm: string;
+  weightKg: string;
+  gender: MemberGender | "";
   goal: MemberGoal | "";
   allergies: string[];
   allergiesNone: boolean;
@@ -127,6 +134,9 @@ function emptyMouthDraft(): MouthDraft {
     firstName: "",
     kind: "adult",
     birthDate: "",
+    heightCm: "",
+    weightKg: "",
+    gender: "",
     goal: "",
     allergies: [],
     allergiesNone: false,
@@ -206,6 +216,9 @@ export default function SetupPage() {
             heightCm: read.state.self.heightCm === null
               ? ""
               : String(read.state.self.heightCm),
+            weightKg: read.state.self.weightKg === null
+              ? ""
+              : String(read.state.self.weightKg),
             gender: read.state.self.gender ?? "",
             goal: read.state.self.goal ?? "",
             allergies: [],
@@ -239,20 +252,20 @@ export default function SetupPage() {
   // un écran qui affiche du vide non lu finit toujours par le faire écrire.
   if (state.kind === "loading" || !facts || !self || !plan) {
     return (
-      <KeelAppShell variant="student" title={t("setup.title")}>
+      <FunnelShell>
         <p className="text-sm text-gray-500">{t("setup.loading")}</p>
-      </KeelAppShell>
+      </FunnelShell>
     );
   }
 
   if (state.kind === "error") {
     return (
-      <KeelAppShell variant="student" title={t("setup.title")}>
+      <FunnelShell>
         <Card tone="warning">
           <p className="text-sm text-gray-900">{t("setup.error.title")}</p>
           <p className="mt-1 text-xs text-gray-600">{state.message}</p>
         </Card>
-      </KeelAppShell>
+      </FunnelShell>
     );
   }
 
@@ -319,6 +332,7 @@ export default function SetupPage() {
     return (async () => {
       const draft = self!;
       const height = Number(draft.heightCm);
+      const weight = Number(draft.weightKg);
       // L'ORDRE COMPTE. Le profil et la date d'abord (ils ne dépendent de
       // rien), l'objectif ensuite — il CRÉE la ligne `student_goals` —, et les
       // allergies en dernier, parce que leur accusé (« rien à déclarer ») se
@@ -328,6 +342,26 @@ export default function SetupPage() {
           userId,
           firstName: draft.firstName,
           heightCm: height,
+          gender: draft.gender,
+        });
+      }
+      // MON POIDS VA DANS LA SÉRIE — c'est elle qui arme `restriction_guard`.
+      if (Number.isFinite(weight) && weight > 0) {
+        await saveOwnWeight({ userId, weightKg: weight, localDate: browserLocalDate() });
+      }
+      // ── ET MA LIGNE DE CORPS, S'IL Y A UN FOYER ────────────────────────
+      // `profiles` ne suffit pas: `keel_household_bodies_for` ne lit QUE
+      // `household_member_bodies`, et le moteur saute une bouche sans corps.
+      // Le maître est une bouche comme les autres — son profil ne la remplace
+      // pas.
+      if (
+        facts!.householdId && facts!.ownMemberId && facts!.isOwner &&
+        draft.gender && Number.isFinite(height) && Number.isFinite(weight)
+      ) {
+        await saveMouthBody({
+          memberId: facts!.ownMemberId,
+          heightCm: height,
+          weightKg: weight,
           gender: draft.gender,
         });
       }
@@ -381,6 +415,19 @@ export default function SetupPage() {
       );
       if (!result.ok) throw new Error(result.reason);
       const memberId = String(result.member_id ?? "");
+      // LE CORPS, DANS LA FOULÉE ET DANS LA MÊME TRANSACTION LOGIQUE. Sans
+      // lui, la bouche existe et le moteur l'ignore: elle mange la part de
+      // tout le monde. Tout-ou-rien, comme la RPC.
+      const mHeight = Number(draft.heightCm);
+      const mWeight = Number(draft.weightKg);
+      if (draft.gender && Number.isFinite(mHeight) && Number.isFinite(mWeight)) {
+        await saveMouthBody({
+          memberId,
+          heightCm: mHeight,
+          weightKg: mWeight,
+          gender: draft.gender,
+        });
+      }
       // ⚠️ L'ACCUSÉ EST ÉCRIT MÊME QUAND LA LISTE EST VIDE. « Aucune » est une
       // réponse: sans elle, la reprise relit « jamais demandé » et l'entonnoir
       // se bloque sur une question à laquelle la ligne n'offre pas de champ.
@@ -420,6 +467,35 @@ export default function SetupPage() {
         memberId: target.memberId!,
         labels,
         current: facts!.practicalConstraints,
+      });
+      await load(false);
+    })();
+  }
+
+  /**
+   * LE CORPS D'UNE BOUCHE DÉJÀ EN BASE.
+   *
+   * Cas nominal: la REPRISE, ou une bouche saisie sur `/app/household` avant
+   * que l'entonnoir n'existe. Sans ce geste, sa ligne serait un blocage sans
+   * champ — `canGenerate` réclame le corps et rien ne permettrait de le donner.
+   */
+  function saveRowBody(
+    target: FunnelMouth,
+    heightCm: string,
+    weightKg: string,
+    gender: MemberGender | "",
+  ): Promise<void> {
+    return (async () => {
+      const h = Number(heightCm);
+      const w = Number(weightKg);
+      if (!gender || !Number.isFinite(h) || !Number.isFinite(w)) {
+        throw new Error(t("setup.missing.member_body"));
+      }
+      await saveMouthBody({
+        memberId: target.memberId!,
+        heightCm: h,
+        weightKg: w,
+        gender,
       });
       await load(false);
     })();
@@ -540,11 +616,7 @@ export default function SetupPage() {
   // ── LE RENDU ─────────────────────────────────────────────────────────────
 
   return (
-    <KeelAppShell
-      variant="student"
-      title={t("setup.title")}
-      subtitle={t("setup.subtitle")}
-    >
+    <FunnelShell>
       <div className="space-y-6">
         {/* UN FIL DE PROGRESSION HONNÊTE: le compte réel des étapes de CETTE
             branche, pas une barre décorative. */}
@@ -614,6 +686,7 @@ export default function SetupPage() {
                 onBirthDate={(m, d) => guard(() => saveMouthBirthDate(m, d))}
                 onAllergyAnswer={(m, labels) =>
                   guard(() => saveMouthAllergyAnswer(m, labels))}
+                onBody={(m, h, w, g) => guard(() => saveRowBody(m, h, w, g))}
                 inviteFor={inviteFor}
                 onInviteFor={(id) => {
                   setInviteFor(id);
@@ -633,17 +706,20 @@ export default function SetupPage() {
           <PlanStep draft={plan} onChange={setPlan} missing={missing} />
         ) : null}
 
-        {/* LA BARRE D'ACTION. « Skip for now » est visible à CHAQUE étape:
-            personne n'est retenu dans un couloir, et ce qui a déjà été
-            enregistré l'est vraiment. */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <Button
-            variant="ghost"
-            onClick={() => navigate("/app/today")}
-            disabled={busy}
-          >
-            {t("setup.skip")}
-          </Button>
+        {/* LA BARRE D'ACTION, ET ELLE NE PORTE AUCUNE SORTIE.
+            ── CE QUI A ÉTÉ RETIRÉ LE 2026-08-13, ET POURQUOI ──────────────
+            Il y avait ici un « Skip for now » vers `/app/today`, sous la
+            bannière « personne n'est retenu dans un couloir ». Décision
+            humaine renversée: pendant l'entrée, il n'y a rien d'autre à
+            faire, et un lien qui mène ailleurs est un lien qu'on prend —
+            après quoi on atterrit sur des écrans vides, on juge le produit
+            là-dessus, et on ne revient pas.
+            Le « skip » était de toute façon en grande partie une illusion:
+            `resolveHomePath` renvoie ici tant qu'il n'y a pas de ligne
+            `student_goals`, et la garde de route le rejoue maintenant à
+            chaque écran de l'app. Ce qui reste comme échappatoire est la
+            seule qui soit honnête: se déconnecter. */}
+        <div className="flex flex-wrap items-center justify-end gap-3">
           <div className="flex flex-wrap gap-2">
             {stepIndex > 0 ? (
               <Button
@@ -679,9 +755,49 @@ export default function SetupPage() {
             ) : null}
           </div>
         </div>
-        <p className="text-xs text-gray-500">{t("setup.skip_hint")}</p>
       </div>
-    </KeelAppShell>
+    </FunnelShell>
+  );
+}
+
+/**
+ * LE CHROME DE L'ENTRÉE — ET IL N'A PAS DE NAVIGATION.
+ *
+ * ── POURQUOI PAS `KeelAppShell` ────────────────────────────────────────────
+ * Elle rend les huit onglets de l'app élève et la barre du bas sur téléphone.
+ * Sur cet écran-là, chacun est une porte vers un écran VIDE: quelqu'un qui n'a
+ * pas encore de plan n'a rien à voir sur `/app/today`, `/app/plan` ou
+ * `/app/progress`. Mesuré en vrai: on quitte l'entrée par curiosité, on tombe
+ * sur du vide, et on juge le produit là-dessus.
+ *
+ * ── LA MARQUE N'EST PAS UN LIEN ────────────────────────────────────────────
+ * Partout ailleurs le mot-symbole ramène à l'accueil. Ici il ne ramène nulle
+ * part: c'est le dernier lien qui restait, et un couloir avec une porte est un
+ * couloir qu'on quitte.
+ *
+ * ── CE QUI RESTE CLIQUABLE, ET C'EST DÉLIBÉRÉ ──────────────────────────────
+ * Le sélecteur de langue. Il ne fait pas sortir (il recharge la même page), et
+ * quelqu'un qui ne lit pas l'anglais doit pouvoir répondre à des questions dont
+ * dépend ce qu'il va manger. La vraie sortie — se déconnecter — reste
+ * disponible sur `/account`, et elle ne s'atteint pas par accident.
+ */
+function FunnelShell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen bg-white">
+      <header className="border-b border-gray-200">
+        <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-3 px-4 py-4">
+          <span className="text-lg font-semibold tracking-tight text-gray-900">
+            {t("brand.wordmark")}
+          </span>
+          <LocaleSwitch />
+        </div>
+      </header>
+      <main className="mx-auto w-full max-w-3xl px-4 py-8">
+        <h1 className="text-2xl font-semibold text-gray-900">{t("setup.title")}</h1>
+        <p className="mt-1 text-sm text-gray-500">{t("setup.subtitle")}</p>
+        <div className="mt-6">{children}</div>
+      </main>
+    </div>
   );
 }
 
@@ -844,6 +960,27 @@ function SelfStep({
           </Field>
         </div>
 
+        {/* LE POIDS. Bornes de `student_body_measures_value_in_range`, la table
+            qui arme `restriction_guard` — pas celles, plus larges, de la RPC de
+            foyer. */}
+        <Field
+          label={t("setup.people.weight")}
+          hint={t("setup.people.weight_hint")}
+          htmlFor="setup-weight"
+        >
+          <input
+            id="setup-weight"
+            type="number"
+            inputMode="decimal"
+            step="0.1"
+            min={25}
+            max={400}
+            value={draft.weightKg}
+            onChange={(e) => set({ weightKg: e.target.value })}
+            className={inputClass}
+          />
+        </Field>
+
         <Field label={t("setup.people.gender")} htmlFor="setup-gender">
           <select
             id="setup-gender"
@@ -907,6 +1044,12 @@ function MouthsStep(props: {
   onGoal: (mouth: FunnelMouth, goal: MemberGoal | "") => void;
   onBirthDate: (mouth: FunnelMouth, date: string) => void;
   onAllergyAnswer: (mouth: FunnelMouth, labels: string[]) => void;
+  onBody: (
+    mouth: FunnelMouth,
+    heightCm: string,
+    weightKg: string,
+    gender: MemberGender | "",
+  ) => void;
   inviteFor: string | null;
   onInviteFor: (memberId: string | null) => void;
   inviteEmail: string;
@@ -936,6 +1079,7 @@ function MouthsStep(props: {
                 onGoal={(goal) => props.onGoal(m, goal)}
                 onBirthDate={(date) => props.onBirthDate(m, date)}
                 onAllergyAnswer={(labels) => props.onAllergyAnswer(m, labels)}
+                onBody={(h, w, g) => props.onBody(m, h, w, g)}
                 inviteOpen={props.inviteFor === m.memberId}
                 onInviteOpen={() =>
                   props.onInviteFor(props.inviteFor === m.memberId ? null : m.memberId)}
@@ -1005,6 +1149,54 @@ function MouthsStep(props: {
             />
           </Field>
 
+          {/* LE CORPS D'UNE BOUCHE — TOUT-OU-RIEN, comme la base.
+              Les bornes sont celles de `keel_household_set_member_body`
+              (30–260 cm, 2–400 kg) et pas celles de `profiles`: une bouche peut
+              être un enfant de trois ans, que les bornes adultes refuseraient. */}
+          <Field label={t("setup.mouths.body")} hint={t("setup.mouths.body_hint")}>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <input
+                id="setup-mouth-height"
+                type="number"
+                inputMode="numeric"
+                min={30}
+                max={260}
+                placeholder={t("setup.people.height")}
+                aria-label={t("setup.people.height")}
+                value={draft.heightCm}
+                onChange={(e) => set({ heightCm: e.target.value })}
+                className={`${inputClass} min-w-0`}
+              />
+              <input
+                id="setup-mouth-weight"
+                type="number"
+                inputMode="decimal"
+                step="0.1"
+                min={2}
+                max={400}
+                placeholder={t("setup.people.weight")}
+                aria-label={t("setup.people.weight")}
+                value={draft.weightKg}
+                onChange={(e) => set({ weightKg: e.target.value })}
+                className={`${inputClass} min-w-0`}
+              />
+              <select
+                id="setup-mouth-gender"
+                aria-label={t("setup.people.gender")}
+                value={draft.gender}
+                onChange={(e) => set({ gender: e.target.value as MemberGender })}
+                className={`${inputClass} min-w-0`}
+              >
+                <option value="">{t("setup.people.gender")}</option>
+                {MEMBER_GENDERS.map((g) => (
+                  <option key={g} value={g}>
+                    {t(`household.body.gender_${g}` as "household.body.gender_female")}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </Field>
+
           {draft.kind === "adult" ? (
             <Field label={t("setup.mouths.goal")} htmlFor="setup-mouth-goal">
               <select
@@ -1046,6 +1238,7 @@ function MouthRow(props: {
   onGoal: (goal: MemberGoal | "") => void;
   onBirthDate: (date: string) => void;
   onAllergyAnswer: (labels: string[]) => void;
+  onBody: (heightCm: string, weightKg: string, gender: MemberGender | "") => void;
   inviteOpen: boolean;
   onInviteOpen: () => void;
   inviteEmail: string;
@@ -1058,6 +1251,9 @@ function MouthRow(props: {
   const [date, setDate] = React.useState("");
   const [allergies, setAllergies] = React.useState<string[]>([]);
   const [none, setNone] = React.useState(false);
+  const [bodyHeight, setBodyHeight] = React.useState("");
+  const [bodyWeight, setBodyWeight] = React.useState("");
+  const [bodyGender, setBodyGender] = React.useState<MemberGender | "">("");
   const onFile = m.birthDate === BIRTH_DATE_ON_FILE;
   return (
     <div className="space-y-3">
@@ -1130,6 +1326,64 @@ function MouthRow(props: {
             </select>
           </Field>
         )
+      ) : null}
+
+      {/* LE CORPS, QUAND IL MANQUE. Même raison que le bloc d'allergies
+          ci-dessous: sans champ sur la ligne, `canGenerate` réclamerait un
+          corps que rien ne permettrait de donner — un bouton gris et rien à
+          faire. C'est le cas nominal d'une bouche saisie sur
+          `/app/household`, ou d'une reprise. */}
+      {m.heightCm === null || m.weightKg === null || m.gender === null ? (
+        <Field label={t("setup.mouths.body")} hint={t("setup.mouths.body_hint")}>
+          <div className="space-y-2">
+            <div className="grid gap-2 sm:grid-cols-3">
+              <input
+                type="number"
+                inputMode="numeric"
+                min={30}
+                max={260}
+                placeholder={t("setup.people.height")}
+                aria-label={t("setup.people.height")}
+                value={bodyHeight}
+                onChange={(e) => setBodyHeight(e.target.value)}
+                className={`${inputClass} min-w-0`}
+              />
+              <input
+                type="number"
+                inputMode="decimal"
+                step="0.1"
+                min={2}
+                max={400}
+                placeholder={t("setup.people.weight")}
+                aria-label={t("setup.people.weight")}
+                value={bodyWeight}
+                onChange={(e) => setBodyWeight(e.target.value)}
+                className={`${inputClass} min-w-0`}
+              />
+              <select
+                aria-label={t("setup.people.gender")}
+                value={bodyGender}
+                onChange={(e) => setBodyGender(e.target.value as MemberGender)}
+                className={`${inputClass} min-w-0`}
+              >
+                <option value="">{t("setup.people.gender")}</option>
+                {MEMBER_GENDERS.map((g) => (
+                  <option key={g} value={g}>
+                    {t(`household.body.gender_${g}` as "household.body.gender_female")}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={props.busy || !bodyGender || !bodyHeight || !bodyWeight}
+              onClick={() => props.onBody(bodyHeight, bodyWeight, bodyGender)}
+            >
+              {t("household.member.save")}
+            </Button>
+          </div>
+        </Field>
       ) : null}
 
       {/* LA QUESTION DE SÉCURITÉ, QUAND ELLE N'A PAS DE RÉPONSE.

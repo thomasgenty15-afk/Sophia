@@ -1247,13 +1247,14 @@ export const fr: PublicMessages = {
   "start.check_email.title": "Confirmez votre adresse.",
   "start.check_email.body":
     "Votre compte est créé et déjà rattaché : l’e-mail ne sert qu’à ouvrir votre " +
-    "session. Ouvrez la confirmation qu’on vient de vous envoyer pour terminer.",
+    "session. Ouvrez la confirmation qu’on vient de vous envoyer, elle vous " +
+    "emmène directement aux trois étapes qui composent votre premier plan.",
 
   "start.joined.title": "Votre compte est prêt.",
   "start.joined.body":
-    "C’est dans la conversation que ça commence. Dites bonjour, ou envoyez la " +
-    "photo de votre prochain repas.",
-  "start.joined.cta": "Ouvrir la conversation",
+    "Trois étapes courtes, et votre premier plan est composé. Rien ne se prépare " +
+    "en coulisses : vous répondez, et il se construit.",
+  "start.joined.cta": "Régler ma cuisine",
   "start.existing.title": "Vous avez déjà un compte.",
   "start.existing.body":
     "Cette adresse est déjà inscrite. Connectez-vous, et on reprend exactement ici.",

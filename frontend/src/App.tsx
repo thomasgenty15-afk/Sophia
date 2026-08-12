@@ -57,6 +57,7 @@ import CoachStudentPage from "./keel/pages/CoachStudentPage";
 import StudentMealPlanPage from "./keel/pages/mealPlan/StudentMealPlanPage";
 import { KeelStudentRoute } from "./keel/components/KeelStudentRoute";
 import { KeelHouseholdRoute } from "./keel/components/KeelHouseholdRoute";
+import { KeelOnboardingGate } from "./keel/components/KeelOnboardingGate";
 import JoinHouseholdPage from "./keel/pages/JoinHouseholdPage";
 import CoachHomePage from "./keel/pages/CoachHomePage";
 import CoachDoctrinePage from "./keel/pages/CoachDoctrinePage";
@@ -135,7 +136,9 @@ function App() {
                 path="/app/today"
                 element={
                   <KeelStudentRoute>
-                    <TodayPage />
+                    <KeelOnboardingGate>
+                      <TodayPage />
+                    </KeelOnboardingGate>
                   </KeelStudentRoute>
                 }
               />
@@ -153,7 +156,9 @@ function App() {
                 path="/app/chat"
                 element={
                   <KeelStudentRoute>
-                    <KeelChatPage />
+                    <KeelOnboardingGate>
+                      <KeelChatPage />
+                    </KeelOnboardingGate>
                   </KeelStudentRoute>
                 }
               />
@@ -178,7 +183,9 @@ function App() {
                 path="/app/plan"
                 element={
                   <KeelHouseholdRoute>
-                    <StudentWeekPlanPage />
+                    <KeelOnboardingGate>
+                      <StudentWeekPlanPage />
+                    </KeelOnboardingGate>
                   </KeelHouseholdRoute>
                 }
               />
@@ -186,7 +193,9 @@ function App() {
                 path="/app/progress"
                 element={
                   <KeelStudentRoute>
-                    <StudentProgressPage />
+                    <KeelOnboardingGate>
+                      <StudentProgressPage />
+                    </KeelOnboardingGate>
                   </KeelStudentRoute>
                 }
               />
@@ -199,7 +208,9 @@ function App() {
                 path="/app/health"
                 element={
                   <KeelStudentRoute>
-                    <StudentHealthPage />
+                    <KeelOnboardingGate>
+                      <StudentHealthPage />
+                    </KeelOnboardingGate>
                   </KeelStudentRoute>
                 }
               />
@@ -221,7 +232,9 @@ function App() {
                 path="/app/household"
                 element={
                   <KeelHouseholdRoute>
-                    <HouseholdPage />
+                    <KeelOnboardingGate>
+                      <HouseholdPage />
+                    </KeelOnboardingGate>
                   </KeelHouseholdRoute>
                 }
               />
@@ -408,7 +421,9 @@ function App() {
                 path="/app/meals"
                 element={
                   <KeelStudentRoute>
-                    <StudentMealPlanPage />
+                    <KeelOnboardingGate>
+                      <StudentMealPlanPage />
+                    </KeelOnboardingGate>
                   </KeelStudentRoute>
                 }
               />

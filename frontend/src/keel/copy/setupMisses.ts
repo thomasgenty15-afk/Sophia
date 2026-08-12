@@ -27,11 +27,15 @@ export const SETUP_MISS_KEYS: Record<FunnelMissId, MessageKey> = {
   own_birth_date: "setup.missing.own_birth_date",
   own_height_cm: "setup.missing.own_height_cm",
   own_gender: "setup.missing.own_gender",
+  own_weight_kg: "setup.missing.own_weight_kg",
   own_goal: "setup.missing.own_goal",
   own_allergies: "setup.missing.own_allergies",
 
   member_first_name: "setup.missing.member_first_name",
   member_birth_date: "setup.missing.member_birth_date",
+  member_height_cm: "setup.missing.member_body",
+  member_weight_kg: "setup.missing.member_body",
+  member_gender: "setup.missing.member_body",
   member_goal: "setup.missing.member_goal",
   member_allergies: "setup.missing.member_allergies",
 
@@ -54,8 +58,6 @@ export const SETUP_MISS_KEYS: Record<FunnelMissId, MessageKey> = {
   // ne bloquent rien par construction —, mais le `Record` complet les réclame.
   // Elles pointent sur la phrase de leur étape la plus proche plutôt que sur
   // une phrase inventée: une copie inatteignable est une copie qui ment.
-  own_weight_kg: "setup.missing.own_height_cm",
-  member_body: "setup.missing.member_birth_date",
   food_preferences: "setup.missing.own_goal",
   away_days: "setup.missing.member_birth_date",
   situation: "setup.missing.own_goal",
