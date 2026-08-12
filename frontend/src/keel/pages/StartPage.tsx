@@ -15,50 +15,92 @@ import { resolveHomePath } from "../api/postLogin";
 import { PublicFooter, PublicHeader } from "../components/PublicHeader";
 import ServerUnreachable from "../components/ServerUnreachable";
 import { Button } from "../components/ui/Button";
-import { Card } from "../components/ui/Card";
-import { Field, inputClass } from "../components/ui/Field";
 import { t } from "../i18n/t";
 
-// KEEL — /start : s'inscrire SEUL, sans coach qui vous pousse.
+// KEEL — /start : ouvrir un compte de foyer.
 //
-// POURQUOI UNE PAGE, ET PAS UN MODE DE /auth
-// ------------------------------------------
-// `/auth` est la porte legacy du produit grand public: elle porte la
-// confirmation d'email, le reset de mot de passe, le mode coach (?role=coach) et
-// jusqu'à ce jour un validateur de numéro FRANÇAIS obligatoire. Tisser une
-// troisième variante dans ce fichier, c'est ce que W6.1 a déjà refusé de faire
-// pour le coach — et pour la même raison: ce fichier est la porte unique du
-// produit, une régression y est une panne totale.
+// ── CE QUE CETTE PAGE A CESSÉ D'ÊTRE (2026-08-12) ────────────────────────
+// Elle VENDAIT « le programme de découverte KEEL ». Quelqu'un qui cliquait
+// « Commencer » depuis le hall du foyer atterrissait donc sur la page qu'un
+// élève invité par un coach retrouve — et elle lui disait, dans cet ordre:
+// « Essaie d'abord SANS COACH », puis la boucle quotidienne d'un élève
+// (photographier un repas, trois appuis le soir), puis une section titrée
+// « Ce programme ne te connaît pas ». C'est le contraire exact de ce que le
+// hall promet trois clics plus tôt: un produit qui décrit chaque bouche, ses
+// objectifs et ses allergies, et compose la casserole autour d'elles.
+// Le nom « KEEL » est INTERNE et affleurait dans `start.seo_title`
+// (« Try KEEL ») — c'est-à-dire dans un onglet de navigateur et un résultat de
+// recherche.
 //
-// L'inscription libre a besoin de DEUX choses que `/auth` n'a pas: le pays
-// déclaré (§2 de la mission, voir plus bas), et de dire ce qu'on rejoint. Elle
-// vit donc à côté, et `/auth` perd son inscription générique au lieu de la
-// garder cassée.
+// La vente a eu lieu sur le hall et sur la page segment. Ici on demande un
+// compte, et c'est tout. Douze clés sont parties; aucune section d'argument ne
+// subsiste. La présentation reprend l'idiome de `/auth` (la fiche à fronton,
+// les champs de la charte), parce que ce sont les deux portes d'un même
+// produit et qu'elles doivent se lire comme la même société.
+//
+// ── LES DEUX LIMITES QUI RESTENT, ET QU'ON NE MASQUE PAS ─────────────────
+//
+// ⚠️ 1. LE MODÈLE EST ENCORE CELUI DE L'ÉLÈVE, SOUS LA COPIE DU FOYER.
+// Le compte créé ici part avec `keel_signup_intent = 'student_free'` et se
+// rattache au COACH MAISON (`freeSignupMetadata`, puis `keel_join_house_coach`).
+// Ça marche — le parcours crée bien le foyer — mais c'est le mauvais modèle
+// pour un acheteur B2C: il devient l'élève d'un coach qui n'existe pas.
+// Le corriger demande une intention propre côté base (`handle_new_user`), donc
+// une MIGRATION. C'est un lot backend, hors du périmètre de ce lot-ci.
+// Ce qu'il faut savoir en relisant: LA COPIE A ÉTÉ ALIGNÉE AVANT LE MODÈLE.
+// Si tu viens fermer ce trou, c'est ici que la copie t'attend, déjà juste.
+//
+// ⚠️ 2. LE PARCOURS D'ENTRÉE N'EST PAS ATTEINT DEPUIS CETTE PAGE. MESURÉ.
+// `start.lead` dit « ensuite, vous décrivez qui mange à votre table ». C'est
+// vrai du PRODUIT, et faux de la session qui suit ce formulaire:
+//   · le bouton de l'état `joined` navigue en dur vers `/app/chat` (plus bas);
+//   · `emailRedirectTo` pointe en dur sur `/app/chat`;
+//   · `resolveHomePath` SAIT router un compte sans `student_goals` vers
+//     `/app/setup` (`api/postLogin.ts:151` et `:178`) — mais aucune garde de
+//     route ne le rejoue, et `KeelAppShell` n'a aucun lien vers `/app/setup`;
+//   · `/app/chat` affiche `chat.empty` (« Say hello, or send a photo ») et ne
+//     pousse rien.
+// Donc un inscrit ne voit `/app/setup` qu'à une visite ULTÉRIEURE de `/` ou à
+// une reconnexion par `/auth`.
+// C'est pour ça que la copie ci-dessous décrit la FORME du produit et ne
+// promet aucun écran suivant: écrire « trois étapes vous attendent » serait
+// une promesse que le code ne tient pas (S10 — on ne montre pas un écran qu'on
+// n'a pas). Le correctif est d'une ligne (`/app/chat` → `/app/setup` aux deux
+// endroits), mais c'est un changement de LOGIQUE et il n'appartient pas à ce
+// lot.
+//
+// ── POURQUOI UNE PAGE, ET PAS UN MODE DE /auth ──────────────────────────
+// `/auth` porte la connexion de tout le monde, la confirmation d'email, le
+// reset de mot de passe et le mode coach. Tisser une troisième variante dans ce
+// fichier, c'est ce que W6.1 a déjà refusé de faire pour le coach — et pour la
+// même raison: c'est la porte unique du produit, une régression y est une panne
+// totale.
+//
+// L'inscription du foyer a besoin d'une chose que `/auth` n'a pas: le pays
+// déclaré (§ ci-dessous). Elle vit donc à côté.
 //
 // ── LE PAYS, ET C'EST LA RAISON D'ÊTRE DU SÉLECTEUR ──────────────────────
-// Le numéro de téléphone servait à déduire le pays de l'élève, et le pays décide
-// de la HOTLINE servie en cas de crise. Il n'y a plus de numéro. Sur le chemin
-// d'invitation, la migration 20260804180000 comble le trou avec le pays DÉCLARÉ
-// du coach. Ici, il n'y a pas de coach humain à qui l'emprunter: le coach maison
-// n'exerce dans aucun pays.
-//
-// Donc on DEMANDE. Le déduire de la langue, c'est reproduire exactement le
-// défaut que cette migration vient de fermer — un élève britannique servi par le
-// 3114 français, `fallbackUsed` à faux, et rien pour le signaler. Et le refus
-// est côté base: `keel_join_house_coach` rend `country_required` sans pays.
+// C'EST UN CHEMIN DE SÉCURITÉ, PAS UN CHAMP DE PROFIL. `profiles.country` est lu
+// EN PREMIER par le résolveur de ressources de crise, et son absence le fait
+// retomber sur la LANGUE — donc `en-US` pour tout le monde. Un élève français
+// en détresse recevait un numéro américain, `fallbackUsed` à faux, et rien ne le
+// signalait. C'est pour ça que l'inscription générique a été retirée de `/auth`
+// le 2026-08-05 (migration 20260804180000), et pour ça que cette porte-ci
+// demande le pays au lieu de le déduire — voir l'en-tête de
+// `20260811060000_household_signup_door.sql`, qui documente les deux gardes.
+// Le refus est côté base: `keel_join_house_coach` rend `country_required` sans
+// pays. NE PAS RETIRER CE CHAMP NI SON AIDE.
 //
 // ── CE QUE FAIT LA PAGE, DANS L'ORDRE, ET POURQUOI CET ORDRE ─────────────
-// 1. Elle demande à la base si le programme de découverte est publié
+// 1. Elle demande à la base si l'inscription libre est ouverte
 //    (`keel_free_signup_available`). Sans cette question, on crée un compte,
 //    puis le générateur de semaine rend 409 `coach_has_no_doctrine` — et le
 //    testeur juge un produit cassé alors que c'est NOTRE coach maison qui n'est
 //    pas prêt. On ne fabrique pas de comptes qui ne peuvent pas marcher.
-// 2. Elle explique ce qu'on rejoint AVANT le formulaire. Un inscrit libre n'a
-//    pas reçu le mail d'un coach: personne ne lui a dit ce que c'est.
-// 3. Elle crée le compte, avec l'intention et le pays dans les métadonnées:
+// 2. Elle crée le compte, avec l'intention et le pays dans les métadonnées:
 //    `handle_new_user()` rattache DANS la transaction du signup, donc le lien
-//    existe déjà quand l'élève ouvre son mail de confirmation.
-// 4. Elle REJOUE `keel_join_house_coach()` à la première session. Le
+//    existe déjà quand la personne ouvre son mail de confirmation.
+// 3. Elle REJOUE `keel_join_house_coach()` à la première session. Le
 //    rattachement du trigger est best-effort (un échec ne doit pas coûter le
 //    compte); ce rejeu est la réparation, et la RPC est idempotente.
 
@@ -83,6 +125,138 @@ type Phase =
   | { kind: "joined" }
   /** Connecté, sans coach: le chemin de réparation. */
   | { kind: "repair" };
+
+// ---------------------------------------------------------------------------
+// LA CHARTE — les mêmes primitives que `/auth`
+//
+// ⚠️ DUPLIQUÉES DEPUIS `pages/Auth.tsx`, ET C'EST UNE DETTE ASSUMÉE, PAS UN
+// OUBLI. Les deux portes du produit partagent maintenant une fiche à fronton,
+// une classe de contrôle et un champ étiqueté. Le bon domicile est
+// `components/ui/`, à côté de `Button` et `Card` — mais créer ce module touche
+// deux pages dans le même geste, et ce lot n'a le droit d'écrire que celle-ci.
+// Deux copies divergent: la première qui bouge sans l'autre est un bug de
+// charte. À extraire au prochain lot qui ouvre les deux fichiers.
+// ---------------------------------------------------------------------------
+
+/**
+ * La classe d'un contrôle de saisie.
+ *
+ * ⚠️ `text-base` sous `lg`: `index.css` pose `font-size: 16px` sur les champs
+ * sous `lg` pour empêcher Safari iOS de zoomer au focus sans jamais dézoomer —
+ * mais cette règle vit dans `@layer base`, donc un utilitaire `text-sm` la BAT.
+ * L'ancien `inputClass` de `components/ui/Field.tsx` portait justement
+ * `text-sm`: les champs de cette page étaient à 14 px sur téléphone, et la
+ * protection était contournée sans avoir été retirée.
+ *
+ * ⚠️ `border-line-strong` et jamais `border-line`: WCAG 1.4.11 exige 3:1 pour
+ * une bordure de composant, et `line` est à 1,30:1 sur le papier.
+ *
+ * L'anneau de focus est explicite: la règle `:focus-visible` de `tokens.css` ne
+ * couvre que `a`, `button` et `[tabindex]` — un champ n'en fait pas partie.
+ */
+const controlClass =
+  "block w-full min-w-0 rounded-card border border-line-strong bg-paper px-3 py-2.5 " +
+  "text-base text-ink transition-colors focus:border-fig-600 focus:outline-none " +
+  "focus:ring-2 focus:ring-fig-600 disabled:opacity-60 lg:text-sm";
+
+/**
+ * La chrome publique de cette page.
+ *
+ * ⚠️ `audience="student"` ET PAS LE DÉFAUT, et le nom trompe: il ne veut pas
+ * dire « élève ». Il veut dire « une page qu'on ouvre pour agir, pas une page
+ * de vente » — donc ni interrupteur de mondes, ni portes commerciales, ni geste
+ * d'essai coach. Il garde « Se connecter » À TOUTES LES TAILLES, ce qui est
+ * exactement ce dont quelqu'un qui a déjà un compte a besoin ici.
+ *
+ * (Différence assumée avec `/auth`, qui se fabrique une barre minimale: là-bas,
+ * un bouton « Se connecter » pointerait sur la page qu'on regarde.)
+ */
+function Shell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex min-h-screen flex-col bg-paper text-ink">
+      <StartSEO />
+      <PublicHeader audience="student" />
+      <main className="mx-auto w-full max-w-lg flex-1 px-5 pb-16 pt-10 sm:pt-14">
+        {children}
+      </main>
+      <PublicFooter />
+    </div>
+  );
+}
+
+/** Le titre de l'écran. UN SEUL `h1` par rendu, et c'est celui-ci. */
+function Head({ title, lede }: { title: string; lede?: string }) {
+  return (
+    <>
+      <h1 className="text-balance font-display text-title">{title}</h1>
+      {lede && <p className="mt-4 max-w-[46ch] text-lede text-ink-soft">{lede}</p>}
+    </>
+  );
+}
+
+/**
+ * LA FICHE, ET SON FRONTON — l'idiome de `/auth`.
+ *
+ * La fiche est L'ENDROIT OÙ L'ON ÉCRIT: seuls les deux états qui portent un
+ * formulaire (`form`, `repair`) en ont une. Les états d'annonce
+ * (`check_email`, `joined`, `existing_account`, `unavailable`) sont un titre et
+ * un geste — leur donner un cadre de saisie ferait chercher un champ.
+ *
+ * ⚠️ L'ÉQUERRE EST SUR UN ÉLÉMENT SANS PADDING HORIZONTAL. La classe `.eq` pose
+ * `padding-left: 1.125rem` hors de toute couche CSS, donc elle BAT un `px-5`
+ * utilitaire (les styles sans couche l'emportent sur les couches). Poser les
+ * deux sur le même nœud casse silencieusement la marge intérieure de gauche.
+ */
+function Sheet({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <section className="mt-8 overflow-hidden rounded-fiche border border-line bg-paper-2">
+      <div className="border-b border-line px-5 py-3 sm:px-6">
+        <p className="eq text-label font-semibold uppercase text-ink-soft">{label}</p>
+      </div>
+      <div className="px-5 py-6 sm:px-6">{children}</div>
+    </section>
+  );
+}
+
+function Field(
+  { label, htmlFor, hint, children }: {
+    label: string;
+    htmlFor: string;
+    hint?: string;
+    children: React.ReactNode;
+  },
+) {
+  return (
+    <div>
+      <label
+        htmlFor={htmlFor}
+        className="mb-2 block text-label font-semibold uppercase text-ink-soft"
+      >
+        {label}
+      </label>
+      {children}
+      {hint && <p className="mt-2 text-sm leading-6 text-ink-soft">{hint}</p>}
+    </div>
+  );
+}
+
+/**
+ * Un refus, dans la couleur de son SENS.
+ *
+ * Rouge, et pas figue: la teinte de marque n'entre jamais dans un objet d'état
+ * (CHARTE §2.1). `role="alert"` parce qu'un message qui apparaît après un clic
+ * doit être annoncé — sinon il n'existe que pour ceux qui regardent l'écran.
+ */
+function ErrorNote({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      role="alert"
+      className="rounded-card border border-red-200 bg-red-50 px-3 py-2.5"
+    >
+      <p className="min-w-0 break-words text-sm leading-6 text-red-800">{children}</p>
+    </div>
+  );
+}
 
 export default function StartPage() {
   const navigate = useNavigate();
@@ -245,6 +419,11 @@ export default function StartPage() {
           // La conversation, pas l'écran du jour: un inscrit libre n'a encore
           // rien sur son Today, et la bulle est le seul écran qui lui dit quoi
           // faire. Même arbitrage que /join.
+          //
+          // ⚠️ C'EST L'UNE DES DEUX LIGNES DU TROU N°2 (en-tête du fichier):
+          // `/app/setup` n'est jamais atteint depuis cette page à cause d'elle
+          // et du bouton de l'état `joined`. Le changement appartient à un lot
+          // qui a le droit de toucher la logique.
           emailRedirectTo: `${window.location.origin}/app/chat`,
         },
       });
@@ -306,14 +485,14 @@ export default function StartPage() {
   };
 
   // -------------------------------------------------------------------------
-  // Les états courts
+  // Les états courts — un titre et un geste, jamais un cadre de saisie
   // -------------------------------------------------------------------------
 
   if (phase.kind === "loading" || authLoading) {
     return (
-      <Notice>
-        <p className="text-sm text-gray-500">{t("start.loading")}</p>
-      </Notice>
+      <Shell>
+        <p className="text-sm text-ink-soft">{t("start.loading")}</p>
+      </Shell>
     );
   }
 
@@ -323,19 +502,17 @@ export default function StartPage() {
 
   if (phase.kind === "unavailable") {
     return (
-      <Notice>
-        <h1 className="text-xl font-semibold text-gray-900">
-          {t("start.unavailable.title")}
-        </h1>
-        <p className="mt-2 text-sm leading-6 text-gray-600">
-          {t("start.unavailable.body")}
-        </p>
-        <p className="mt-6 text-sm">
-          <Link to="/auth" className="font-medium text-gray-900 underline">
+      <Shell>
+        <Head title={t("start.unavailable.title")} lede={t("start.unavailable.body")} />
+        <p className="mt-8 text-sm leading-6 text-ink-soft">
+          <Link
+            to="/auth"
+            className="font-medium text-fig-700 underline underline-offset-2 hover:text-fig-800"
+          >
             {t("start.have_account_cta")}
           </Link>
         </p>
-      </Notice>
+      </Shell>
     );
   }
 
@@ -345,37 +522,35 @@ export default function StartPage() {
 
   if (phase.kind === "existing_account") {
     return (
-      <Notice>
-        <h1 className="text-xl font-semibold text-gray-900">
-          {t("start.existing.title")}
-        </h1>
-        <p className="mt-2 text-sm leading-6 text-gray-600">
-          {t("start.existing.body")}
-        </p>
-        <Button
-          variant="primary"
-          className="mt-6"
-          onClick={() => navigate("/auth?redirect=%2Fstart")}
-        >
-          {t("start.existing.cta")}
-        </Button>
-      </Notice>
+      <Shell>
+        <Head title={t("start.existing.title")} lede={t("start.existing.body")} />
+        <div className="mt-8">
+          <Button
+            variant="brand"
+            className="w-full py-3 text-base sm:w-auto sm:px-8"
+            onClick={() => navigate("/auth?redirect=%2Fstart")}
+          >
+            {t("start.existing.cta")}
+          </Button>
+        </div>
+      </Shell>
     );
   }
 
   if (phase.kind === "joined") {
     return (
-      <Notice>
-        <h1 className="text-xl font-semibold text-gray-900">
-          {t("start.joined.title")}
-        </h1>
-        <p className="mt-2 text-sm leading-6 text-gray-600">
-          {t("start.joined.body")}
-        </p>
-        <Button variant="primary" className="mt-6" onClick={() => navigate("/app/chat")}>
-          {t("start.joined.cta")}
-        </Button>
-      </Notice>
+      <Shell>
+        <Head title={t("start.joined.title")} lede={t("start.joined.body")} />
+        <div className="mt-8">
+          <Button
+            variant="brand"
+            className="w-full py-3 text-base sm:w-auto sm:px-8"
+            onClick={() => navigate("/app/chat")}
+          >
+            {t("start.joined.cta")}
+          </Button>
+        </div>
+      </Shell>
     );
   }
 
@@ -383,173 +558,170 @@ export default function StartPage() {
   // Les deux surfaces pleines: s'inscrire, ou réparer un compte sans coach
   // -------------------------------------------------------------------------
 
+  const isRepair = phase.kind === "repair";
+
   return (
-    <div className="flex min-h-screen flex-col bg-white">
-      <StartSEO />
-      <PublicHeader audience="student" />
-      <main className="flex-1">
-        <section>
-          <Column className="pb-12 pt-12 sm:pb-16 sm:pt-20">
-            <h1 className="text-3xl font-semibold leading-[1.1] tracking-tight text-gray-900 text-balance sm:text-4xl">
-              {t("start.title")}
-            </h1>
-            <p className="mt-6 text-lg leading-8 text-gray-600">{t("start.lead")}</p>
-          </Column>
-        </section>
+    <Shell>
+      <Head
+        title={isRepair ? t("start.repair.title") : t("start.title")}
+        lede={isRepair ? t("start.repair.body") : t("start.lead")}
+      />
 
-        <Explanation />
-
-        <Band>
-          <h2 className="text-2xl font-semibold leading-tight tracking-tight text-gray-900">
-            {phase.kind === "repair" ? t("start.repair.title") : t("start.form.title")}
-          </h2>
-          {phase.kind === "repair" && (
-            <p className="mt-3 text-base leading-7 text-gray-600">
-              {t("start.repair.body")}
-            </p>
+      <Sheet label={isRepair ? t("start.sheet.repair") : t("start.sheet.form")}>
+        <form onSubmit={isRepair ? repair : signUp} className="space-y-5">
+          {!isRepair && (
+            <>
+              <Field label={t("start.form.name")} htmlFor="start-name">
+                <input
+                  id="start-name"
+                  type="text"
+                  required
+                  autoComplete="name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className={controlClass}
+                />
+              </Field>
+              <Field label={t("start.form.email")} htmlFor="start-email">
+                <input
+                  id="start-email"
+                  type="email"
+                  required
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={controlClass}
+                />
+              </Field>
+              <Field
+                label={t("start.form.password")}
+                htmlFor="start-password"
+                hint={t("start.form.password_hint")}
+              >
+                <input
+                  id="start-password"
+                  type="password"
+                  required
+                  minLength={8}
+                  autoComplete="new-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={controlClass}
+                />
+              </Field>
+            </>
           )}
 
-          <Card className="mt-6 sm:p-6">
-            <form
-              onSubmit={phase.kind === "repair" ? repair : signUp}
-              className="space-y-4"
+          {/* LE PAYS. Demandé, jamais dérivé — voir l'en-tête du fichier.
+              Le `hint` dit à quoi il sert: quelqu'un qui comprend pourquoi
+              on le demande répond juste.
+
+              L'OPTION VIDE EST LA VALEUR INITIALE, et elle n'est jamais
+              soumissible: `isDeclaredCountryValid` la refuse avant l'appel
+              réseau, et `keel_join_house_coach` rendrait `country_required`
+              si on la laissait passer. Même patron que `/join-household`. */}
+          <Field
+            label={t("start.form.country")}
+            htmlFor="start-country"
+            hint={t("start.form.country_hint")}
+          >
+            <select
+              id="start-country"
+              required
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+              className={controlClass}
             >
-              {phase.kind === "form" && (
-                <>
-                  <Field label={t("start.form.name")} htmlFor="start-name">
-                    <input
-                      id="start-name"
-                      type="text"
-                      required
-                      autoComplete="name"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      className={inputClass}
-                    />
-                  </Field>
-                  <Field label={t("start.form.email")} htmlFor="start-email">
-                    <input
-                      id="start-email"
-                      type="email"
-                      required
-                      autoComplete="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className={inputClass}
-                    />
-                  </Field>
-                  <Field
-                    label={t("start.form.password")}
-                    htmlFor="start-password"
-                    hint={t("start.form.password_hint")}
-                  >
-                    <input
-                      id="start-password"
-                      type="password"
-                      required
-                      minLength={8}
-                      autoComplete="new-password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className={inputClass}
-                    />
-                  </Field>
-                </>
-              )}
+              <option value={NO_COUNTRY_SELECTED}>
+                {t("start.form.country_placeholder")}
+              </option>
+              {SIGNUP_COUNTRIES.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
+          </Field>
 
-              {/* LE PAYS. Demandé, jamais dérivé — voir l'en-tête du fichier.
-                  Le `hint` dit à quoi il sert: quelqu'un qui comprend pourquoi
-                  on le demande répond juste.
-
-                  L'OPTION VIDE EST LA VALEUR INITIALE, et elle n'est jamais
-                  soumissible: `isDeclaredCountryValid` la refuse avant l'appel
-                  réseau, et `keel_join_house_coach` rendrait `country_required`
-                  si on la laissait passer. Même patron que `/join-household`. */}
-              <Field
-                label={t("start.form.country")}
-                htmlFor="start-country"
-                hint={t("start.form.country_hint")}
-              >
-                <select
-                  id="start-country"
-                  required
-                  value={country}
-                  onChange={(e) => setCountry(e.target.value)}
-                  className={inputClass}
+          {!isRepair && (
+            <label className="flex items-start gap-3 text-sm leading-6 text-ink">
+              <input
+                type="checkbox"
+                checked={acceptedLegal}
+                onChange={(e) => setAcceptedLegal(e.target.checked)}
+                className="mt-1 h-4 w-4 shrink-0 cursor-pointer accent-fig-700 focus:outline-none focus:ring-2 focus:ring-fig-600 focus:ring-offset-2"
+              />
+              <span className="cursor-pointer select-none">
+                {t("start.form.legal_prefix")}{" "}
+                <a
+                  href="/legal"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-medium text-fig-700 underline underline-offset-2 hover:text-fig-800"
                 >
-                  <option value={NO_COUNTRY_SELECTED}>
-                    {t("start.form.country_placeholder")}
-                  </option>
-                  {SIGNUP_COUNTRIES.map((c) => (
-                    <option key={c.code} value={c.code}>
-                      {c.label}
-                    </option>
-                  ))}
-                </select>
-              </Field>
+                  {t("start.form.legal_terms")}
+                </a>{" "}
+                {t("start.form.legal_and")}{" "}
+                <a
+                  href="/legal#confidentialite"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-medium text-fig-700 underline underline-offset-2 hover:text-fig-800"
+                >
+                  {t("start.form.legal_privacy")}
+                </a>
+                .
+              </span>
+            </label>
+          )}
 
-              {phase.kind === "form" && (
-                <label className="flex items-start gap-2 text-sm leading-6 text-gray-600">
-                  <input
-                    type="checkbox"
-                    checked={acceptedLegal}
-                    onChange={(e) => setAcceptedLegal(e.target.checked)}
-                    className="mt-1 h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-900"
-                  />
-                  <span>
-                    {t("start.form.legal_prefix")}{" "}
-                    <a
-                      href="/legal"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="font-medium text-gray-900 underline"
-                    >
-                      {t("start.form.legal_terms")}
-                    </a>{" "}
-                    {t("start.form.legal_and")}{" "}
-                    <a
-                      href="/legal#confidentialite"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="font-medium text-gray-900 underline"
-                    >
-                      {t("start.form.legal_privacy")}
-                    </a>
-                    .
-                  </span>
-                </label>
-              )}
+          {formError && <ErrorNote>{formError}</ErrorNote>}
 
-              {formError && <p className="text-sm text-rose-700">{formError}</p>}
+          <Button
+            type="submit"
+            variant="brand"
+            disabled={submitting || (!isRepair && !acceptedLegal)}
+            className="w-full py-3 text-base"
+          >
+            {submitting
+              ? t("start.form.submitting")
+              : isRepair
+                ? t("start.repair.cta")
+                : t("start.form.cta")}
+          </Button>
 
-              <Button
-                type="submit"
-                variant="primary"
-                disabled={submitting || (phase.kind === "form" && !acceptedLegal)}
-                className="w-full"
+          {!isRepair && (
+            <p className="text-sm leading-6 text-ink-soft">
+              {t("start.form.have_account")}{" "}
+              <Link
+                to="/auth"
+                className="font-medium text-fig-700 underline underline-offset-2 hover:text-fig-800"
               >
-                {submitting
-                  ? t("start.form.submitting")
-                  : phase.kind === "repair"
-                    ? t("start.repair.cta")
-                    : t("start.form.cta")}
-              </Button>
+                {t("start.have_account_cta")}
+              </Link>
+            </p>
+          )}
+        </form>
+      </Sheet>
 
-              {phase.kind === "form" && (
-                <p className="text-sm leading-6 text-gray-500">
-                  {t("start.form.have_account")}{" "}
-                  <Link to="/auth" className="font-medium text-gray-900 underline">
-                    {t("start.have_account_cta")}
-                  </Link>
-                  .
-                </p>
-              )}
-            </form>
-          </Card>
-        </Band>
-      </main>
-      <PublicFooter />
-    </div>
+      {/* CE QUE ÇA COÛTE, ET QUI N'EST PAS CONCERNÉ. Deux lignes, sous la
+          fiche, sans cadre: ce n'est pas un argument de vente, c'est ce qu'on
+          doit à quelqu'un avant qu'il ouvre un compte.
+          ⚠️ LE PRIX SE DIT, LA DURÉE NON — le tunnel de paiement du foyer rend
+          500 faute de prix Stripe, et `free_until` gèle un foyer neuf à J+31
+          sans chemin pour se dégeler. Annoncer « 30 jours puis vous décidez »
+          serait promettre une décision impossible. */}
+      {!isRepair && (
+        <div className="mt-6 space-y-2 border-t border-line pt-6">
+          <p className="max-w-[62ch] text-sm leading-6 text-ink-soft">
+            {t("start.price")}
+          </p>
+          <p className="max-w-[62ch] text-sm leading-6 text-ink-soft">
+            {t("start.coach_line")}
+          </p>
+        </div>
+      )}
+    </Shell>
   );
 }
 
@@ -558,44 +730,30 @@ export default function StartPage() {
 // ---------------------------------------------------------------------------
 
 /**
- * « VÉRIFIE TES MAILS » — L'ÉCRAN QU'AUCUN POSTE DE DEV NE MONTRE.
+ * « VÉRIFIEZ VOS MAILS » — L'ÉCRAN QU'AUCUN POSTE DE DEV NE MONTRE.
  *
  * Extrait du corps de la page, et exporté, pour une raison précise:
  * `enable_confirmations = false` en local, donc `signUp` y ouvre toujours une
  * session et cette phase ne se joue jamais ici. Elle n'existait que par la
  * lecture. Sans hook, sans réseau et sans contexte, elle se rend maintenant
  * dans un test — dans les DEUX langues, parce qu'une garde testée dans une
- * seule ne dit rien de l'autre.
+ * seule ne dit rien de l'autre (`startCheckEmail.int.test.ts`).
  *
  * ⚠️ Le texte dit que le compte est créé ET DÉJÀ RATTACHÉ. Ce n'est pas une
  * formule rassurante: `handle_new_user()` rattache dans la transaction du
- * signup, pas à l'ouverture de la boîte mail. Écrire « on terminera quand tu
- * reviendras » serait faux, et laisserait croire qu'un mail non ouvert coûte
- * le rattachement.
+ * signup, pas à l'ouverture de la boîte mail. Écrire « on terminera quand vous
+ * reviendrez » serait faux, et laisserait croire qu'un mail non ouvert coûte
+ * le rattachement. Le test épingle les deux formulations.
+ *
+ * ⚠️ AUCUN BOUTON ICI, et le test le vérifie: la suite se passe dans la boîte
+ * mail, et un bouton ne pourrait que renvoyer vers un endroit où la session
+ * n'existe pas encore.
  */
 export function CheckEmailScreen() {
   return (
-    <Notice>
-      <h1 className="text-xl font-semibold text-gray-900">
-        {t("start.check_email.title")}
-      </h1>
-      <p className="mt-2 text-sm leading-6 text-gray-600">
-        {t("start.check_email.body")}
-      </p>
-    </Notice>
-  );
-}
-
-function Notice({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex min-h-screen flex-col bg-white">
-      <StartSEO />
-      <PublicHeader audience="student" />
-      <main className="mx-auto w-full max-w-lg flex-1 px-4 py-16">
-        <Card className="p-6">{children}</Card>
-      </main>
-      <PublicFooter />
-    </div>
+    <Shell>
+      <Head title={t("start.check_email.title")} lede={t("start.check_email.body")} />
+    </Shell>
   );
 }
 
@@ -609,65 +767,5 @@ function Notice({ children }: { children: React.ReactNode }) {
 function StartSEO() {
   return (
     <SEO title={t("start.seo_title")} description={t("start.seo_description")} />
-  );
-}
-
-function Column({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <div className={`mx-auto w-full max-w-xl px-5 ${className}`}>{children}</div>;
-}
-
-function Band({ children }: { children: React.ReactNode }) {
-  return (
-    <section className="border-t border-gray-200">
-      <Column className="py-12 sm:py-16">{children}</Column>
-    </section>
-  );
-}
-
-/**
- * CE QU'ON REJOINT — et la dernière section est la plus importante.
- *
- * Un inscrit libre n'a pas de coach qui l'attend. Lui vendre l'expérience « le
- * programme de votre coach » serait faux, et il le découvrirait au premier
- * échange. La troisième section dit donc explicitement que ce programme est
- * générique et qu'un vrai coach est autre chose — c'est ce qui empêche qu'un
- * testeur rende un avis sur un produit qui n'existe pas.
- */
-function Explanation() {
-  return (
-    <>
-      <Band>
-        <h2 className="text-2xl font-semibold leading-tight tracking-tight text-gray-900 text-balance">
-          {t("start.day.title")}
-        </h2>
-        <div className="mt-8 space-y-8">
-          <Moment title={t("start.day.photo_title")} body={t("start.day.photo_body")} />
-          <Moment title={t("start.day.evening_title")} body={t("start.day.evening_body")} />
-          <Moment title={t("start.day.week_title")} body={t("start.day.week_body")} />
-        </div>
-      </Band>
-
-      <section className="bg-gray-950 text-white">
-        <Column className="py-14 sm:py-20">
-          <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">
-            {t("start.limit.kicker")}
-          </p>
-          <h2 className="mt-2 text-2xl font-semibold leading-tight tracking-tight text-balance sm:text-3xl">
-            {t("start.limit.title")}
-          </h2>
-          <p className="mt-4 text-base leading-7 text-gray-300">{t("start.limit.body")}</p>
-          <p className="mt-4 text-base leading-7 text-gray-300">{t("start.limit.coach")}</p>
-        </Column>
-      </section>
-    </>
-  );
-}
-
-function Moment({ title, body }: { title: string; body: string }) {
-  return (
-    <div>
-      <h3 className="text-lg font-medium leading-7 text-gray-900 text-balance">{title}</h3>
-      <p className="mt-2 text-base leading-7 text-gray-600">{body}</p>
-    </div>
   );
 }

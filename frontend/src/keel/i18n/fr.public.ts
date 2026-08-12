@@ -152,7 +152,7 @@ export const fr: PublicMessages = {
   "auth.doors.divider": "Pas encore de compte ?",
   "auth.doors.household.label": "Foyer",
   "auth.doors.household.body":
-    "Ouvrez votre compte et composez votre semaine vous-même, sans coach.",
+    "Ouvrez votre compte et composez votre semaine autour de qui mange à votre table.",
   "auth.doors.household.cta": "Créer un compte gratuit",
   "auth.doors.household.prompt": "Vous cuisinez pour votre foyer ?",
   "auth.doors.pro.label": "Professionnel",
@@ -1190,99 +1190,89 @@ export const fr: PublicMessages = {
   "communities.closing.cta": "Commencer l’essai de 14 jours",
   "communities.closing.signin_prompt": "Déjà sur Sophia ?",
   "communities.closing.signin_link": "Se connecter",
-  "start.seo_title": "Essayer KEEL",
+  // ── /start — LA PORTE D'INSCRIPTION DU FOYER ─────────────────────────────
+  //
+  // ⚠️ VOUVOIEMENT (2026-08-12). Ce namespace tutoyait, et c'était la couture
+  // signalée au lot précédent: `/` vouvoie, `/auth` vouvoie, et le visiteur
+  // traverse les trois d'affilée — « Commencer » sur le hall, ou « Créer un
+  // compte gratuit » sur l'écran de connexion, atterrissent ICI. Trois surfaces
+  // d'un même parcours qui changent d'adresse en deux clics.
+  // Restent au tutoiement, et c'est un lot à part: `/meal-prep` et `/coaches`.
+  "start.seo_title": "Créer votre compte",
   "start.seo_description":
-    "Commence le programme de découverte KEEL : photographie tes repas, réponds " +
-    "en trois appuis le soir, et vois à quoi ressemble vraiment une semaine où tu " +
-    "manges régulièrement.",
-  "start.loading": "On prépare ça…",
-  "start.title": "Essaie d'abord sans coach",
+    "Ouvrez un compte Sophia pour votre foyer. Sophia compose la semaine autour " +
+    "des personnes qui mangent vraiment à votre table.",
+  "start.loading": "Un instant…",
+
+  "start.title": "Créez votre compte.",
   "start.lead":
-    "C'est le programme de découverte KEEL. Il est gratuit, il demande une minute " +
-    "pour démarrer, et tu le vivras dès ce soir, à table.",
+    "D’abord le compte. Ensuite, vous décrivez qui mange à votre table et ce " +
+    "qu’il faut à chacun : c’est autour de ça que Sophia compose la semaine.",
 
-  "start.day.title": "À quoi ressemblent tes journées",
-  "start.day.photo_title": "Tu photographies un repas",
-  "start.day.photo_body":
-    "Tu envoies une photo dans la conversation, et elle se range dans ta semaine. " +
-    "Rien à peser, aucune case de calories à remplir — ce qui compte, c'est de quoi " +
-    "le repas était fait.",
-  "start.day.evening_title": "Trois appuis, le soir",
-  "start.day.evening_body":
-    "Bien, mitigé, difficile. C'est tout le point du soir. Cinq secondes, et c'est " +
-    "ce qui rend une semaine lisible au lieu de floue.",
-  "start.day.week_title": "Une semaine que tu vois vraiment",
-  "start.day.week_body":
-    "Quelques habitudes, posées sur sept jours, avec ce que tu as fait à côté de ce " +
-    "que tu voulais faire. Rien ici ne te note.",
+  "start.price":
+    "12,99 € par mois pour le foyer, plus 2 € par personne qui réclame son " +
+    "propre accès. Votre place n’est jamais comptée.",
+  "start.coach_line":
+    "Un coach vous a invité ? Votre porte est le lien de son e-mail, pas celle-ci.",
 
-  "start.limit.kicker": "Là où ça s'arrête",
-  "start.limit.title": "Ce programme ne te connaît pas",
-  "start.limit.body":
-    "Il porte des principes généraux — de vrais aliments, une protéine à chaque " +
-    "repas, des horaires réguliers, un changement à la fois. Il ne sait rien de ton " +
-    "histoire, de ton entraînement ni de ta santé, et quand une réponse en dépend, " +
-    "il le dit au lieu de deviner.",
-  "start.limit.coach":
-    "Un coach sur KEEL, c'est autre chose : sa méthode à lui, et quelqu'un qui " +
-    "connaît ton histoire. Si tu es là pour essayer le produit, voici sa version " +
-    "honnête — pas une version réduite qui ferait semblant d'être la même.",
+  "start.sheet.form": "Inscription",
+  "start.sheet.repair": "Rattachement",
 
-  "start.form.title": "Crée ton compte",
-  "start.form.name": "Ton nom",
-  "start.form.email": "E-mail",
+  "start.form.name": "Votre nom",
+  "start.form.email": "Adresse e-mail",
   "start.form.password": "Mot de passe",
   "start.form.password_hint": "8 caractères au minimum.",
-  "start.form.country": "Où tu vis",
+  "start.form.country": "Où vous vivez",
   "start.form.country_hint":
-    "Sert à te donner le bon numéro d'urgence si une conversation en a besoin un jour.",
-  "start.form.country_placeholder": "Choisis un pays",
-  "start.form.legal_prefix": "J'accepte les",
-  "start.form.legal_terms": "conditions d'utilisation",
+    "Sert à vous donner le bon numéro d’urgence si une conversation en a besoin un jour.",
+  "start.form.country_placeholder": "Choisissez un pays",
+  "start.form.legal_prefix": "J’accepte les",
+  // « conditions générales » et pas « conditions d'utilisation »: c'est le nom
+  // que porte le même document sur `/auth`. Un document change de nom entre
+  // deux portes, et on ne sait plus si c'en est un seul.
+  "start.form.legal_terms": "conditions générales",
   "start.form.legal_and": "et la",
   "start.form.legal_privacy": "politique de confidentialité",
-  "start.form.cta": "Démarrer le programme",
-  "start.form.submitting": "Création de ton compte…",
-  "start.form.have_account": "Tu as déjà un compte ?",
+  "start.form.cta": "Créer mon compte",
+  "start.form.submitting": "Création du compte…",
+  "start.form.have_account": "Vous avez déjà un compte ?",
   "start.have_account_cta": "Se connecter",
 
-  "start.repair.title": "Il reste une chose",
+  "start.repair.title": "Il reste un champ.",
   "start.repair.body":
-    "Ton compte existe, mais il n'est pas encore rattaché au programme. Dis-nous où " +
-    "tu vis, et ce sera fait en un clic.",
+    "Votre compte existe, mais il n’est pas encore rattaché. Dites-nous où vous " +
+    "vivez, et ce sera fait en un clic.",
   "start.repair.cta": "Rattacher mon compte",
 
-  "start.check_email.title": "Confirme ton adresse",
+  "start.check_email.title": "Confirmez votre adresse.",
   "start.check_email.body":
-    "Ton compte est créé, et déjà rattaché au programme de découverte. Ouvre l'e-mail " +
-    "de confirmation qu'on vient de t'envoyer pour terminer la connexion.",
-  "start.joined.title": "C'est bon, tu y es",
+    "Votre compte est créé et déjà rattaché : l’e-mail ne sert qu’à ouvrir votre " +
+    "session. Ouvrez la confirmation qu’on vient de vous envoyer pour terminer.",
+
+  "start.joined.title": "Votre compte est prêt.",
   "start.joined.body":
-    "Dis bonjour, ou envoie la photo de ton prochain repas — c'est là que le " +
-    "programme commence.",
+    "C’est dans la conversation que ça commence. Dites bonjour, ou envoyez la " +
+    "photo de votre prochain repas.",
   "start.joined.cta": "Ouvrir la conversation",
-  "start.existing.title": "Tu as déjà un compte",
+  "start.existing.title": "Vous avez déjà un compte.",
   "start.existing.body":
-    "Cette adresse est déjà inscrite. Connecte-toi, et on reprend exactement ici.",
+    "Cette adresse est déjà inscrite. Connectez-vous, et on reprend exactement ici.",
   "start.existing.cta": "Se connecter",
 
-  "start.unavailable.title": "L'inscription libre est en pause",
+  "start.unavailable.title": "L’inscription est en pause.",
   "start.unavailable.body":
-    "Le programme de découverte n'est pas disponible en ce moment, donc on ne crée " +
-    "pas de comptes qui n'auraient rien à faire tourner. Réessaie un peu plus tard — " +
-    "et si tu as reçu l'invitation d'un coach, passe plutôt par le lien de son e-mail.",
+    "On ne crée pas de comptes en ce moment : un compte neuf n’aurait rien pour " +
+    "fonctionner. Réessayez un peu plus tard — et si un coach vous a invité, " +
+    "passez plutôt par le lien de son e-mail.",
 
-  // Les refus. Chacun dit ce qui s'est passé ET l'état du compte: « rien n'a
-  // changé » est la moitié qui manque presque toujours, et c'est celle qui
-  // évite qu'on réessaie en craignant d'avoir créé un compte à moitié.
   "start.error.legal":
-    "Accepte les conditions d'utilisation et la politique de confidentialité pour continuer.",
-  "start.error.country_required": "Dis-nous où tu vis.",
+    "Acceptez les conditions générales et la politique de confidentialité pour continuer.",
+  "start.error.country_required": "Dites-nous où vous vivez.",
   "start.error.already_coached":
-    "Ton compte suit déjà le programme d'un coach. Tu n'as pas besoin de celui-ci.",
+    "Votre compte suit déjà un coach. Vous n’avez pas besoin de vous inscrire ici.",
   "start.error.caller_is_coach":
-    "C'est un compte coach. Ton espace est celui du coach, pas celui d'un élève.",
+    "C’est un compte coach. Votre espace est celui du coach, pas celui d’un foyer.",
   "start.error.unavailable":
-    "Le programme de découverte n'est pas disponible en ce moment. Rien n'a été créé — réessaie plus tard.",
-  "start.error.generic": "Ça n'est pas passé. Rien n'a changé — réessaie.",
+    "L’inscription n’est pas disponible en ce moment. Rien n’a été créé — réessayez plus tard.",
+  "start.error.generic": "Ça n’est pas passé. Rien n’a changé — réessayez.",
 };

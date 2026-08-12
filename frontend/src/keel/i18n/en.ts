@@ -1713,45 +1713,60 @@ export const en = {
   // « votre coach ». Ici personne ne l'attend, et la page doit être honnête sur
   // ce qu'elle offre — un programme générique — sinon un testeur rend un avis
   // sur un produit qui n'existe pas.
-  "start.seo_title": "Try KEEL",
+  // ── /start — LA PORTE D'INSCRIPTION DU FOYER ──────────────────────────────
+  //
+  // ⚠️ CETTE PAGE NE VEND PLUS RIEN, ET C'EST LE POINT (2026-08-12).
+  // Elle vendait « le programme de découverte KEEL »: un nom INTERNE affleurant
+  // dans une surface utilisateur, la boucle quotidienne d'un ÉLÈVE (photographier
+  // un repas, trois appuis le soir), et une section dont le titre disait
+  // « Ce programme ne te connaît pas » — le contraire exact de ce que le hall
+  // promet trois clics plus tôt, un produit qui décrit chaque bouche, ses
+  // objectifs et ses allergies. Quelqu'un qui clique « Commencer » depuis `/`
+  // atterrissait donc sur la page qu'un élève invité par un coach retrouve.
+  //
+  // La vente a eu lieu sur le hall et sur la page segment. Ici on demande un
+  // compte, et c'est tout. Douze clés sont parties (`start.day.*`,
+  // `start.limit.*`, `start.form.title`); le mot « KEEL » n'apparaît nulle part.
+  //
+  // ⚠️ CE QUI RESTE EST UN CHEMIN DE SÉCURITÉ: le champ PAYS et son aide. Voir
+  // le commentaire du champ plus bas, et l'en-tête de la migration
+  // `20260811060000_household_signup_door.sql`.
+  "start.seo_title": "Create your account",
   "start.seo_description":
-    "Start the KEEL discovery program: photograph your meals, answer three taps in " +
-    "the evening, and see what a week of steady eating actually looks like.",
-  "start.loading": "Getting things ready…",
-  "start.title": "Try it without a coach first",
+    "Open a Sophia account for your household. Sophia composes the week around " +
+    "the people who actually eat at your table.",
+  "start.loading": "One moment…",
+
+  // ⚠️ AUCUNE PROMESSE DE CALENDRIER ICI, ET C'EST MESURÉ. « Then » décrit la
+  // FORME du produit (le compte, puis les bouches), pas l'écran suivant: un
+  // inscrit de cette page atterrit sur `/app/chat`, et rien ne le conduit à
+  // `/app/setup` dans cette session-là. Écrire « trois étapes vous attendent »
+  // serait une promesse que le code ne tient pas. Voir l'en-tête de
+  // `StartPage.tsx`, § « le trou mesuré ».
+  "start.title": "Create your account.",
   "start.lead":
-    "This is the KEEL discovery program. It is free, it takes about a minute to " +
-    "start, and you will be eating your way through it by tonight.",
+    "First the account. Then you describe who eats at your table and what each " +
+    "of them needs — that is what Sophia composes the week around.",
 
-  "start.day.title": "What your days look like",
-  "start.day.photo_title": "You photograph a meal",
-  "start.day.photo_body":
-    "Send a photo in the chat and it gets filed against your week. No weighing, " +
-    "no calorie box to fill in — what the meal was made of is the part that counts.",
-  "start.day.evening_title": "Three taps in the evening",
-  "start.day.evening_body":
-    "Good, mixed, or hard. That is the whole check-in. It takes five seconds and it " +
-    "is what makes a week readable instead of a blur.",
-  "start.day.week_title": "A week you can actually see",
-  "start.day.week_body":
-    "A handful of habits, laid out over seven days, with what you did next to what " +
-    "you meant to do. Nothing here scores you.",
+  // fact: le prix est celui du hall (`home.hero.price`), au mot près.
+  // ⚠️ AUCUNE DURÉE D'ESSAI, AUCUN BOUTON D'ACHAT: le tunnel de paiement du
+  // foyer rend 500 faute de prix Stripe, et `free_until` gèle un foyer neuf à
+  // J+31 sans chemin pour se dégeler. Le prix se dit; la date, non.
+  "start.price":
+    "12,99 € a month for the household, plus 2 € for each person who claims their " +
+    "own access. Your own place is never counted.",
+  // La porte de quelqu'un qui a DÉJÀ un coach est l'invitation qu'il a reçue,
+  // pas celle-ci. Une ligne, parce que c'est utile et que c'est vrai.
+  "start.coach_line":
+    "A coach invited you? Your door is the link in their email, not this one.",
 
-  "start.limit.kicker": "Where this stops",
-  "start.limit.title": "This program does not know you",
-  "start.limit.body":
-    "It carries general principles — real food, protein at every meal, regular " +
-    "times, one change at a time. It has no idea about your history, your training, " +
-    "or your health, and when something depends on those it will say so instead of " +
-    "guessing.",
-  "start.limit.coach":
-    "A coach on KEEL is a different thing: their own method, and someone who has " +
-    "your history. If you came here to try the product, this is the honest version " +
-    "of it — not a smaller one pretending to be the same.",
+  // Le fronton de la fiche — même idiome que `/auth`: l'écran est un document
+  // qui se nomme, et la fiche est l'endroit où l'on écrit.
+  "start.sheet.form": "Sign-up",
+  "start.sheet.repair": "Attachment",
 
-  "start.form.title": "Create your account",
   "start.form.name": "Your name",
-  "start.form.email": "Email",
+  "start.form.email": "Email address",
   "start.form.password": "Password",
   "start.form.password_hint": "At least 8 characters.",
   "start.form.country": "Where you live",
@@ -1770,44 +1785,68 @@ export const en = {
   "start.form.legal_terms": "Terms",
   "start.form.legal_and": "and the",
   "start.form.legal_privacy": "Privacy Policy",
-  "start.form.cta": "Start the program",
+  // « Create my account » et plus « Start the program »: le bouton dit ce qui
+  // se passe quand on le presse, et une action garde son nom sur tout le
+  // parcours — c'est le même geste que la fiche FOYER de `/auth`.
+  "start.form.cta": "Create my account",
   "start.form.submitting": "Creating your account…",
   "start.form.have_account": "Already have an account?",
   "start.have_account_cta": "Sign in",
 
-  "start.repair.title": "One thing left",
+  "start.repair.title": "One field left.",
   "start.repair.body":
-    "Your account exists but it is not attached to the program yet. Tell us where " +
-    "you live and it will be, in one click.",
+    "Your account exists but it is not attached yet. Tell us where you live and " +
+    "it will be, in one click.",
   "start.repair.cta": "Attach my account",
 
-  "start.check_email.title": "Confirm your email",
+  // ⚠️ LE TEXTE DIT QUE LE COMPTE EST CRÉÉ ET DÉJÀ RATTACHÉ, et ce n'est pas une
+  // formule rassurante: `handle_new_user()` rattache DANS la transaction du
+  // signup, pas à l'ouverture de la boîte mail. Écrire « on terminera quand vous
+  // reviendrez » serait faux, et laisserait croire qu'un mail non ouvert coûte
+  // le rattachement.
+  // ⚠️ « already attached » EST ÉPINGLÉ PAR UN TEST (`startCheckEmail.int.test.ts`,
+  // qui exige `/already attached/i` ici et `/déjà rattaché/i` en face). Ce n'est
+  // pas une formule: le rattachement a lieu dans la transaction du signup, et
+  // une phrase qui promettrait « on terminera quand vous reviendrez » ferait
+  // croire qu'un mail non ouvert le coûte.
+  "start.check_email.title": "Confirm your email address.",
   "start.check_email.body":
-    "Your account is created and already attached to the discovery program. Open the " +
-    "confirmation email we just sent to finish signing in.",
-  "start.joined.title": "You're in",
+    "Your account is created and already attached — the email only opens your " +
+    "session. Open the confirmation we just sent to finish.",
+
+  // ⚠️ LE BOUTON OUVRE LA CONVERSATION, ET LE TEXTE DIT ÇA. `StartPage`
+  // navigue en dur vers `/app/chat`; décrire ici une autre destination ferait
+  // mentir l'écran d'après.
+  "start.joined.title": "Your account is ready.",
   "start.joined.body":
-    "Say hello, or send a photo of your next meal — that is where the program starts.",
+    "The conversation is where it starts. Say hello, or send a photo of your next meal.",
   "start.joined.cta": "Open the conversation",
-  "start.existing.title": "You already have an account",
+  "start.existing.title": "You already have an account.",
   "start.existing.body":
     "That address is already registered. Sign in and we will pick up right here.",
   "start.existing.cta": "Sign in",
 
-  "start.unavailable.title": "Free signup is paused",
+  "start.unavailable.title": "Sign-up is paused.",
   "start.unavailable.body":
-    "The discovery program is not available right now, so we are not creating " +
-    "accounts that would have nothing to run. Try again a little later — and if a " +
-    "coach invited you, use the link in their email instead.",
+    "We are not creating accounts right now, because a new one would have nothing " +
+    "to run on. Try again a little later — and if a coach invited you, use the " +
+    "link in their email instead.",
 
-  "start.error.legal": "Please accept the Terms and the Privacy Policy to continue.",
-  "start.error.country_required": "Please tell us where you live.",
+  // Les refus. Chacun dit ce qui s'est passé ET l'état du compte: « rien n'a
+  // changé » est la moitié qui manque presque toujours, et c'est celle qui évite
+  // qu'on réessaie en craignant d'avoir créé un compte à moitié.
+  // ⚠️ LES CINQ NOMS DE CLÉ SONT UN CONTRAT. `joinRefusalMessageKey`
+  // (`api/freeSignup.ts:125`) les rend depuis le `reason` de la base: les
+  // renommer casse le mapping en silence, et le repli `generic` avalerait tout.
+  "start.error.legal":
+    "Accept the Terms and the Privacy Policy to continue.",
+  "start.error.country_required": "Tell us where you live.",
   "start.error.already_coached":
-    "Your account already follows a coach's program. You do not need this one.",
+    "Your account already follows a coach. You do not need to sign up here.",
   "start.error.caller_is_coach":
-    "This is a coach account. Your space is the coach workspace, not a student one.",
+    "This is a coach account. Your space is the coach workspace, not a household one.",
   "start.error.unavailable":
-    "The discovery program is not available right now. Nothing was created — try again later.",
+    "Sign-up is not available right now. Nothing was created — try again later.",
   "start.error.generic": "That did not go through. Nothing changed — try again.",
 
   // Brand + public chrome (header/footer shared by the public pages)
@@ -2028,8 +2067,13 @@ export const en = {
   // paramètre, les deux sont proposés à égalité.
   "auth.doors.divider": "No account yet?",
   "auth.doors.household.label": "Household",
+  // ⚠️ PAS « sans coach ». L'absence d'un coach ne définit pas le produit du
+  // foyer — elle le décrit comme une version amputée de l'autre monde, ce que
+  // `/start` disait aussi (« Try it without a coach first ») et qui vient d'en
+  // être retiré. Ce que le foyer achète est POSITIF: la semaine composée autour
+  // des gens qui mangent vraiment à cette table.
   "auth.doors.household.body":
-    "Open your account and compose your own week, without a coach.",
+    "Open your account and compose your week around who eats at your table.",
   "auth.doors.household.cta": "Create a free account",
   "auth.doors.household.prompt": "Cooking for your household?",
   "auth.doors.pro.label": "Professional",
