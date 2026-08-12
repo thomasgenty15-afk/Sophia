@@ -57,6 +57,7 @@ import {
   emptySlotsLine,
   MEAL_PROMPT_VERSION,
   type MealScope,
+  type GeneratedMeal,
   mealDishesPayload,
   mealPreparationsPayload,
   mealSessionsPayload,
@@ -2072,6 +2073,12 @@ Deno.serve(async (req) => {
       // qu'elle montre: une fusion dont la fenêtre recomposée déborde le plan
       // personnel (L10 ①) montre MOINS de plats qu'elle n'a de repas.
       dedicatedDishesAsked: mergeDedicatedDishes,
+      // C7 ② — ET OÙ CES PLATS SONT ATTENDUS. Le nombre dit COMBIEN de place
+      // ouvrir; cette liste dit QUELLES cases un plat de plus a le droit
+      // d'occuper — c'est ce qui permet au plafond de sacrifier le surplus
+      // plutôt que le dimanche. LA MÊME liste que le dénominateur du constat
+      // (`mergedEaterCells`), jamais une seconde résolution.
+      dedicatedCells: mergedEaterCells,
     };
 
     // ── L5/D8 · LA MATIÈRE DE LA DÉFUSION — LE PLAN DE BASE ────────────────
@@ -2609,8 +2616,45 @@ Deno.serve(async (req) => {
     // Les règles de maison et les envies (`household.userSuffix`) sont
     // rejouées telles quelles: une relance qui les perdrait rendrait un dîner
     // qui contredit ce que le foyer a écrit.
+    //
+    // ── C7 ① · CE QUE LA RELANCE N'A PAS LE DROIT DE PERDRE ───────────────
+    //
+    // ⚠️ MESURÉ LE 2026-08-12, run 1. Le critère d'acceptation était
+    // `retried.dishes.length >= meal.dishes.length`, et il est AVEUGLE au seul
+    // plat qui distingue une fusion d'une composition:
+    //
+    //   · réponse 1  — 18 plats, 9 plats dédiés sur 9;
+    //   · relance    — 20 plats, écrêtés à 18 par le plafond, 7 plats dédiés;
+    //   · le compte TOTAL est identique des deux côtés (le plafond écrête les
+    //     deux), donc la relance a été ACCEPTÉE — et la personne reprise a
+    //     perdu son déjeuner ET son dîner du dimanche.
+    //
+    // ⚠️ L'ANCIEN CRITÈRE RESTE, ET IL RESTE UNE DES DEUX MOITIÉS. Il protège
+    // du cas inverse — une relance qui rend une belle ancre protéique sur un
+    // plan plus court — et le remplacer par le compte de plats dédiés ferait
+    // exactement l'erreur qu'on répare, dans l'autre sens.
+    //
+    // LE COMPTE DE PLATS DÉDIÉS N'EST PAS RECALCULÉ À LA MAIN: c'est
+    // `observeMergeShape`, le MÊME constat que celui qui sera archivé quelques
+    // lignes plus bas, avec le MÊME dénominateur (`mergedEaterCells`). Deux
+    // façons de compter les plats d'une personne finiraient par se contredire,
+    // et c'est la relance qui trancherait.
+    //
+    // `null` hors fusion — et alors le critère se réduit à celui d'avant ce
+    // lot, mot pour mot: aucune composition ordinaire ne change de comportement.
+    const dedicatedMealsIn = (
+      candidate: Pick<GeneratedMeal, "dishes" | "preparations">,
+    ): number | null =>
+      ladder === null ? null : observeMergeShape({
+        shape: ladder.shape,
+        dishes: candidate.dishes,
+        preparations: candidate.preparations,
+        eaterCells: mergedEaterCells,
+      }).meals.dedicated;
+
     let proteinAnchorRetry = false;
     const anchorMissingBefore = meal.protein_anchor_missing.length;
+    const dedicatedBefore = dedicatedMealsIn(meal);
     if (anchorMissingBefore > 0) {
       const retryInstruction = proteinAnchorRetryInstruction(meal.protein_anchor_missing);
       try {
@@ -2625,12 +2669,34 @@ Deno.serve(async (req) => {
         );
         if (typeof retryResult === "string") {
           const retried = parseGeneratedMeal(retryResult, parseArgs);
+          const dedicatedAfter = dedicatedMealsIn(retried);
           if (
+            // ① la moitié d'avant ce lot: la relance ne raccourcit pas le plan;
             retried.dishes.length >= meal.dishes.length &&
+            // ② C7 ①: et elle ne retire aucun des repas servis à part.
+            (dedicatedBefore === null || dedicatedAfter === null ||
+              dedicatedAfter >= dedicatedBefore) &&
             retried.protein_anchor_missing.length < anchorMissingBefore
           ) {
             meal = retried;
             proteinAnchorRetry = true;
+          } else if (
+            dedicatedBefore !== null && dedicatedAfter !== null &&
+            dedicatedAfter < dedicatedBefore
+          ) {
+            // NOMMÉ, sinon une relance refusée POUR CE MOTIF est indiscernable
+            // d'une relance qui n'a rien amélioré — et c'est ce motif-là qu'on
+            // veut pouvoir compter en production.
+            console.log(JSON.stringify({
+              tag: "keel.household_meal.protein_anchor_retry_refused",
+              user_id: userId,
+              household_id: householdId,
+              reason: "dedicated_meals_lost",
+              dedicated_before: dedicatedBefore,
+              dedicated_after: dedicatedAfter,
+              dishes_before: meal.dishes.length,
+              dishes_after: retried.dishes.length,
+            }));
           }
         }
       } catch (error) {
@@ -2686,6 +2752,8 @@ Deno.serve(async (req) => {
         meals_at_table: mergeShape.meals.atTable,
         meals_dedicated: mergeShape.meals.dedicated,
         meals_from_common_pot: mergeShape.meals.fromCommonPot,
+        // C7 ④ — « le même aliment dans un plus petit bol », compté à part.
+        meals_cloned: mergeShape.meals.cloned,
         dishes: meal.dishes.length,
         preparations: meal.preparations.length,
       }));
@@ -3092,6 +3160,10 @@ Deno.serve(async (req) => {
                         at_table: mergeShape.meals.atTable,
                         dedicated: mergeShape.meals.dedicated,
                         from_common_pot: mergeShape.meals.fromCommonPot,
+                        // C7 ④ — LA PART DU COMMUN QUI SE DÉGUISAIT EN DÉDIÉ.
+                        // Sans ce nombre, « 7 sur 9 » et « 6 vrais + 1 clone »
+                        // sont la même ligne d'archive, et la seconde ment.
+                        cloned: mergeShape.meals.cloned,
                       },
                       ok: mergeShape.honoured,
                     },

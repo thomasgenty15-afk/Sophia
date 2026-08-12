@@ -42,6 +42,12 @@
  */
 
 import { addDays, firstBlockingPlan, planEndsOn } from "./meal_plan_window.ts";
+// C7 ④ — LE NORMALISEUR PARTAGÉ, ET PAS UN DE PLUS. `normalizeForMatch` est
+// une FEUILLE de l'arbre d'imports (`forbidden_matcher.ts` n'importe rien de ce
+// module-ci): le prendre chez lui évite d'attirer tout `meal_generation.ts`
+// dans ce fichier pur, et donc le cycle qui naîtrait le jour où le générateur
+// voudrait un type d'ici.
+import { normalizeForMatch } from "./forbidden_matcher.ts";
 import {
   asksForASecondDish,
   type CookingShape,
@@ -1264,6 +1270,21 @@ export interface MergeShapeObservation {
     dedicated: number;
     /** Ceux où elle mange ce que la table mange. */
     fromCommonPot: number;
+    /**
+     * C7 ④ — CEUX OÙ LE SECOND PLAT EST LE MÊME ALIMENT DANS UN PLUS PETIT BOL.
+     *
+     * ⚠️ MESURÉ LE 2026-08-12, run 1, `fri/breakfast`: le petit-déjeuner du
+     * foyer récrit en portion simple, `why: "A fresh single portion for Zoe"`.
+     * La consigne de C6 l'interdit en toutes lettres (« One of the household's
+     * dishes written out again as a single portion is NOT a dish for Zoe »), et
+     * le constat le comptait quand même comme un plat DÉDIÉ: deux plats dans
+     * une case suffisaient, quel que soit leur contenu. Le `7/9` mesuré valait
+     * en réalité 6 vrais + 1 clone.
+     *
+     * Ces cases sont comptées dans `fromCommonPot`, PAS dans `dedicated`: elle
+     * y a bien mangé ce que la table mangeait.
+     */
+    cloned: number;
   };
   /**
    * `false` quand ②/③ a été demandé et qu'un seul de ses repas sort de la
@@ -1306,11 +1327,36 @@ export interface MergeShapeObservation {
 export interface ObservedDish {
   day: string | null;
   slot: string | null;
+  /**
+   * C7 ④ — LE TITRE, et il est REQUIS.
+   *
+   * Deux plats d'une même case qui portent le MÊME titre sont le même plat
+   * écrit deux fois. C'est le premier des deux signaux de clone, et le moins
+   * cher: une égalité, jamais une ressemblance.
+   */
+  title: string;
+  /** C7 ④ — les aliments que le plat porte lui-même. */
+  ingredients: readonly { term: string }[];
+  /**
+   * C7 ④ — ce que le plat PRÉLÈVE.
+   *
+   * ⚠️ REQUIS, et sans lui le constat serait faux dans le sens dangereux: le
+   * prompt système demande qu'un plat qui puise dans un lot NE RÉPÈTE PAS sa
+   * recette, donc `ingredients` y est court ou vide. Comparer les seuls
+   * ingrédients propres ferait passer deux plats de lot pour des jumeaux —
+   * exactement l'erreur que le constat d'ancre protéique a déjà payée
+   * (`meal_generation.ts`, « LES INGRÉDIENTS DE LA PRÉPARATION COMPTENT »).
+   */
+  uses: readonly { preparationId: string }[];
 }
 
 /** Ce qu'une préparation rendue porte d'utile au constat. */
 export interface ObservedPreparation {
+  /** C7 ④ — la référence que les plats citent dans leur `uses`. */
+  id: string;
   servingsMade: number;
+  /** C7 ④ — la matière du lot, celle qui manque au plat qui y puise. */
+  ingredients: readonly { term: string }[];
 }
 
 export function observeMergeShape(args: {
@@ -1346,17 +1392,82 @@ export function observeMergeShape(args: {
   // LA CASE DE LA GRILLE, ET SEULEMENT QUAND ELLE EST NOMMÉE. Deux plats sans
   // moment déclaré ne disent rien: ils peuvent être le déjeuner et le dîner du
   // même jour. Un moment inconnu ne fabrique donc pas de marque.
-  const perCell = new Map<string, number>();
+  const perCell = new Map<string, ObservedDish[]>();
   for (const dish of args.dishes) {
     if (!dish.slot) continue;
     const cell = `${dish.day ?? "any"}/${dish.slot}`;
-    perCell.set(cell, (perCell.get(cell) ?? 0) + 1);
+    const here = perCell.get(cell);
+    if (here) here.push(dish);
+    else perCell.set(cell, [dish]);
   }
+
+  // ── C7 ④ · CE QUE CHAQUE PLAT MET DANS L'ASSIETTE, LOT COMPRIS ─────────
+  const prepFood = new Map<string, readonly { term: string }[]>();
+  for (const prep of args.preparations) {
+    if (prep.id) prepFood.set(prep.id, prep.ingredients ?? []);
+  }
+  const foodOf = (dish: ObservedDish): Set<string> => {
+    const out = new Set<string>();
+    for (const ing of dish.ingredients ?? []) {
+      const term = normalizeForMatch(String(ing?.term ?? "")).trim();
+      if (term) out.add(term);
+    }
+    for (const use of dish.uses ?? []) {
+      for (const ing of prepFood.get(use?.preparationId ?? "") ?? []) {
+        const term = normalizeForMatch(String(ing?.term ?? "")).trim();
+        if (term) out.add(term);
+      }
+    }
+    return out;
+  };
+
+  /**
+   * LES DEUX PLATS DE CETTE CASE SONT-ILS LE MÊME PLAT ?
+   *
+   * ⚠️ DEUX ÉGALITÉS, ET AUCUNE RESSEMBLANCE. « Jamais de matcher maison » sur
+   * du texte alimentaire: ici un faux positif transformerait un vrai plat dédié
+   * en clone, donc un plan honoré en plan trahi. Les deux signaux sont donc des
+   * égalités exactes après normalisation.
+   *
+   *   ① le MÊME titre — le plat récrit tel quel;
+   *   ② le MÊME jeu d'aliments — « le même aliment dans un plus petit bol »,
+   *      qui est le cas mesuré: la portion change, la nourriture non.
+   *
+   * ⚠️ LE DOUTE NE FABRIQUE PAS DE CLONE. Quand l'un des deux plats n'écrit
+   * aucun aliment (ni le sien, ni celui d'un lot), le second signal se TAIT: on
+   * ne sait pas, et le constat garde alors le comportement d'avant ce lot. Le
+   * biais est celui du constat, pas celui du refus — il n'y a pas de refus ici.
+   */
+  const sameDish = (a: ObservedDish, b: ObservedDish): boolean => {
+    const titleA = normalizeForMatch(String(a.title ?? "")).trim();
+    const titleB = normalizeForMatch(String(b.title ?? "")).trim();
+    if (titleA && titleA === titleB) return true;
+    const foodA = foodOf(a);
+    const foodB = foodOf(b);
+    if (foodA.size === 0 || foodB.size === 0) return false;
+    if (foodA.size !== foodB.size) return false;
+    for (const term of foodA) if (!foodB.has(term)) return false;
+    return true;
+  };
+
   const dedicatedCells = new Set<string>();
-  for (const [cell, count] of perCell) {
-    if (count > 1) {
-      marks.push(`parallel_dishes:${cell}`);
+  const clonedCells = new Set<string>();
+  for (const [cell, here] of perCell) {
+    if (here.length < 2) continue;
+    marks.push(`parallel_dishes:${cell}`);
+    // La case porte quelque chose à elle dès que DEUX de ses plats ne sont pas
+    // le même plat. Trois clones du petit-déjeuner restent un petit-déjeuner.
+    let distinct = false;
+    for (let i = 0; i < here.length && !distinct; i++) {
+      for (let j = i + 1; j < here.length && !distinct; j++) {
+        if (!sameDish(here[i], here[j])) distinct = true;
+      }
+    }
+    if (distinct) {
       dedicatedCells.add(cell);
+    } else {
+      clonedCells.add(cell);
+      marks.push(`cloned_dish:${cell}`);
     }
   }
 
@@ -1371,6 +1482,10 @@ export function observeMergeShape(args: {
     atTable: atTable.size,
     dedicated,
     fromCommonPot: atTable.size - dedicated,
+    // C7 ④ — LE SOUS-ENSEMBLE DE `fromCommonPot` QUI SE DÉGUISAIT EN RÉUSSITE.
+    // Compté à part et jamais soustrait deux fois: une case clonée est une case
+    // servie depuis la casserole commune, avec un bol de plus.
+    cloned: [...atTable].filter((cell) => clonedCells.has(cell)).length,
   };
 
   const observed: MergeShapeObservation["observed"] = meals.dedicated === 0

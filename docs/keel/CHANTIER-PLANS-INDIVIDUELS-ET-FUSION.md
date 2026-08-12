@@ -466,10 +466,12 @@ fusion n'existe que sur la lane foyer.
    contredirait la consigne dans le même message. ③ prend sa session dans un
    budget qui est un **plafond** et non une cible. Si un run montre que ③ manque
    de place, la réparation est une ligne (`batchSessionBudget(baseCap)`).
-3. **Quand le modèle déborde quand même, le parseur jette les DERNIERS plats.**
-   Noté en commentaire là où c'est pertinent : c'est ce qui a fait disparaître le
-   dimanche plutôt que le plat en trop. Réparer vraiment demanderait de choisir
-   quel plat sacrifier — décision de produit non prise.
+3. ~~**Quand le modèle déborde quand même, le parseur jette les DERNIERS
+   plats.**~~ **Tranché par C7 ② le 2026-08-12** — le critère existait, il
+   n'était pas lu : un plat **au-delà** de ce que la consigne réclame est le
+   surplus, un plat qui remplit une case attendue ne l'est pas. Le plafond, lui,
+   **n'a pas bougé d'un plat**, et le §« C7 ② » écrit pourquoi. La note d'origine
+   disait vrai : ça a coûté un dimanche deux fois.
 4. **`CookingSessions.tsx` affiche « — {n} servings »** sans pluriel : une
    préparation d'une portion s'y lira « — 1 servings ». Cosmétique, et l'écran de
    fusion appartient à **L8**.
@@ -3169,6 +3171,281 @@ persiste la ligne d'un tiers (C4 défait) · la garde `actor` désarmée
    qu'aucune ligne de ce lot ne touche. Et `request_report_gate_test.ts`
    (untracked, FF-061) porte une erreur de typage. **La suite keel est verte :
    2 796 / 0.**
+
+## C7, ce qui est corrigé — 2026-08-12
+
+> ⚠️ **Rien n'a été exercé en conditions réelles** — c'était la consigne du lot.
+> Ce qui suit est prouvé par des tests purs, des tests de position sur la
+> source, le **compilateur** (un champ requis de plus, il a listé ses seize
+> sites) et **19 mutations**. Suite keel : **2 821 verts**. **Aucune
+> migration.** **Aucune version de prompt ne bouge**, et le §« Les versions »
+> dit pourquoi.
+
+### LE FAIT CENTRAL, ET IL CHANGE LE DIAGNOSTIC
+
+**Le modèle obéit 9/9 sur les trois fusions réelles.** Les trois réponses brutes
+portent les neuf plats du foyer **et** neuf plats dédiés, un par créneau, tirés
+des aliments de la personne : la consigne de C6 marche, cinq chiffres sur six
+sont bons. **Ce qui perd les plats dédiés est en AVAL du prompt.** Ce lot ne
+touche donc **aucun octet de consigne** — il répare la chaîne qui exécute une
+bonne réponse.
+
+### ① LA RELANCE D'ANCRE ACCEPTAIT UNE RÉPONSE QUI AVAIT PERDU DES PLATS DÉDIÉS
+
+| Mesuré, run 1 | |
+|---|---|
+| réponse 1 | 18 plats, **9 plats dédiés sur 9** |
+| relance | 20 plats → **18 gardés** par le plafond, **7 dédiés** |
+| verdict d'alors | **acceptée** — et Zoé a perdu son déjeuner **et** son dîner du dimanche |
+
+Le critère était `retried.dishes.length >= meal.dishes.length`, et il est
+**aveugle par construction** : le plafond écrête **les deux côtés** à 18, donc le
+compte total est identique des deux côtés de la comparaison.
+
+**Le nouveau critère est une CONJONCTION, et l'ancien en reste une moitié :**
+
+```
+retried.dishes.length >= meal.dishes.length          ← la moitié d'avant, gardée
+&& dedicatedAfter >= dedicatedBefore                 ← C7 ①
+&& retried.protein_anchor_missing.length < before
+```
+
+**Pourquoi l'ancienne moitié RESTE.** La remplacer ferait l'erreur qu'on répare,
+dans l'autre sens : une relance **plus courte** redeviendrait acceptable pour peu
+qu'elle serve la personne reprise. Une mutation le tient (`retried.dishes.length
+>= meal.dishes.length` retiré ⇒ rouge) — c'est le **cas qui passe** de ce
+critère.
+
+**Le compte n'est pas recalculé à la main** : `dedicatedMealsIn()` appelle
+`observeMergeShape` avec le **même dénominateur** (`mergedEaterCells`) que le
+constat qui sera archivé quelques lignes plus bas. Deux façons de compter les
+repas d'une personne finiraient par se contredire, et c'est la relance qui
+trancherait. Hors fusion, la fonction rend `null` et le critère **se réduit à
+celui d'avant ce lot, mot pour mot**.
+
+**Un refus par ce motif est NOMMÉ** (`keel.household_meal.protein_anchor_retry_refused`,
+`reason: "dedicated_meals_lost"`) : sans ça, une relance refusée pour avoir perdu
+des repas est indiscernable d'une relance qui n'a rien amélioré.
+
+### ② LE PLAFOND OU L'ORDRE DE SACRIFICE — LE RAISONNEMENT, ET LA DÉCISION
+
+**C'est l'ORDRE, et le plafond ne bouge pas d'un plat.** Trois faits, dans cet
+ordre :
+
+1. **Le plafond vaut EXACTEMENT ce que la consigne réclame.**
+   `min(max(shown=9, asked=9), ceiling=baseCap=9)` → bonus 9 → cap **18**, et une
+   bonne réponse fait **exactement 18** (9 plats de foyer + 9 plats dédiés).
+   Ce n'est pas « trop juste » : c'est **juste**. Un test l'épingle, précisément
+   pour empêcher la mauvaise réparation — v8 → v9 avait déjà mesuré **18 → 18**,
+   et « relever le plafond » ne relève rien tant que `shown ≥ asked`.
+2. **Lui donner de la marge coûterait plus que ça ne rapporte.** « Un budget
+   ouvert pour rien est un budget que le modèle déborde poliment pour le
+   remplir » est écrit dans `dishCapFor`, et ce dépôt l'a déjà payé une fois (un
+   plan du jeudi qui proposait à manger jusqu'au mercredi d'après). Le nombre
+   annoncé est aussi ce que le modèle **lit** : l'ouvrir, c'est le demander.
+3. **L'ordre de sacrifice ne coûte RIEN quand rien ne déborde.** Il ne s'exerce
+   qu'au moment où un plat de plus arrive dans un plafond plein — et le test du
+   cas nominal (18 plats justes ⇒ aucune éviction, aucune `issue`) le prouve.
+
+**Le rang de sacrifice, et il n'invente rien :**
+
+| Rang | Ce que c'est | Sacrifié |
+|---|---|---|
+| **0** | le **premier** plat d'une case — l'assiette de la table | jamais tant qu'un surplus existe |
+| **1** | le **second** plat d'une case **où la personne reprise mange** — le plat dédié que la consigne demande | après le surplus |
+| **2** | le reste : troisième plat d'une case, second plat d'une case où elle ne mange pas, plat sans moment | **en premier** |
+
+« Un plat **au-delà** de ce que la consigne réclame est le surplus ; un plat qui
+remplit une case attendue ne l'est pas. » Le **pour qui** vient d'un champ
+requis de plus sur `MergedEater` — `dedicatedCells`, **la même liste** que le
+dénominateur du constat (`memberMealCells`), jamais une seconde résolution.
+
+**À rang égal, le départage d'avant ce lot survit** (« les derniers tombent ») :
+il ne s'applique simplement plus **entre** deux rangs.
+
+⚠️ **L'ÉVICTION EST DIFFÉRÉE JUSQU'AU `push`, ET IL LE FAUT.** Le plat qui arrive
+peut encore tomber plus bas — une cible chiffrée, un ingrédient en calories.
+Sacrifier au moment du plafond ferait perdre un plat gardé au profit d'un plat
+qui ne sera jamais écrit : **un repas de moins, pour rien**. Une mutation le
+tient.
+
+**La grille du foyer n'est pas relue** dans le rang, et c'est voulu : les moments
+écartés, les créneaux pris, les jours de restes et les plats sans jour sont
+tombés **plus haut**, chacun avec son motif. Ce qui arrive jusque-là a déjà une
+case légitime.
+
+**Ce que j'attends en chiffres, pour être démenti** — même décor que C6 (9 repas,
+barreau ②, conflit `protein` + `starch`) :
+
+| | Attendu |
+|---|---|
+| **Plats dédiés** | **9 sur 9** quand la réponse en porte 9, quel que soit le nombre de plats en trop. **En dessous de 8, ce lot a échoué** |
+| **Le dernier repas de la fenêtre** | **présent des deux côtés** (le foyer ET elle), sur une réponse qui déborde |
+| **Les `issues` de troncature** | elles **nomment le plat sacrifié** ; aucune ne doit nommer un plat de la dernière journée |
+| **La relance d'ancre** | quand elle est refusée, un log `protein_anchor_retry_refused` avec `dedicated_before > dedicated_after` |
+
+### ③ LA LISTE DE COURSES EST RÉCONCILIÉE AVEC LES PLATS JETÉS
+
+**Mesuré** : run 1, **5 lignes orphelines** (`kidney beans`, `pork mince`,
+`bok choy`, `sesame oil`, `soy sauce`) — exactement les ingrédients des deux
+plats tombés. Run 3, **3** (`protein pancake mix`, `berries`, `honey`). On
+achetait pour des repas absents du plan.
+
+**Le rattachement est une ÉGALITÉ, jamais une ressemblance.**
+`normalizePantryTerm` — c'est-à-dire **la jointure que ce fichier fait déjà deux
+fois** (le dédoublonnage de la liste, et la reprise du rayon en mode
+`from_pantry`). ⚠️ **Jamais de matcher maison sur du texte alimentaire** :
+« laitue » contient « lait », et `isInPantry` — qui accepte justement
+l'inclusion — dirait qu'une ligne « lait » couvre une « laitue ». Ici une
+correspondance fausse **RETIRE** une ligne : quelqu'un part au magasin sans ce
+qu'il lui faut.
+
+**Trois sorts, et le doute ne retire rien :**
+
+| La ligne… | Sort |
+|---|---|
+| est réclamée par un plat **gardé** ou une **préparation gardée** | **reste**, même si un plat tombé la citait aussi — un oignon sert cinq plats |
+| est réclamée par un plat **tombé** et par personne d'autre | **part**, et son terme est **nommé** dans les `issues` |
+| ne se rattache à **rien de connu** | **reste**, et le doute est **compté** (`shopping_list_unattributed: n/N`) |
+
+Le troisième cas est le « je n'ai pas su rattacher » du lot : le modèle écrit
+« chicken breasts » dans la liste et « chicken breast » dans le plat. C'est aussi
+la **mesure** qui dira un jour si ce rattachement mérite mieux qu'une égalité.
+
+**Les préparations gardées comptent comme réclamantes** : un plat de lot ne
+répète pas la recette de sa préparation (le prompt système le demande), donc ne
+regarder que `dish.ingredients` retirerait les courses de **toutes** les cuissons
+par lot. Une mutation le tient.
+
+**Rien ne tourne quand aucun plat n'est tombé** : pas de réconciliation, pas
+d'`issue`, un plan sain ne change pas d'un octet. C'est le cas qui passe.
+
+### ④ UN CLONE N'EST PLUS COMPTÉ COMME UN PLAT DÉDIÉ
+
+**Mesuré, run 1, `fri/breakfast`** : le petit-déjeuner du foyer récrit en portion
+simple, `why: "A fresh single portion for Zoe"`. La consigne de C6 l'interdit en
+toutes lettres — le modèle l'a fait **une fois sur 27 créneaux**. Et
+`observeMergeShape` le comptait comme **dédié** : deux plats dans une case, quel
+que soit leur contenu. **Le `7/9` du run 1 valait 6 vrais + 1 clone.**
+
+**Deux ÉGALITÉS, et aucune ressemblance** (`sameDish`) :
+
+1. le **même titre** normalisé — le plat récrit tel quel ;
+2. le **même jeu d'aliments** — « le même aliment dans un plus petit bol », qui
+   est le cas mesuré : la portion change, la nourriture non.
+
+⚠️ **La matière d'un LOT est pliée dans le plat** (`uses` → `preparations`) : le
+prompt système demande qu'un plat qui puise dans un lot **ne répète pas** sa
+recette, donc comparer les seuls ingrédients propres ferait passer deux plats de
+lot pour des jumeaux. C'est l'erreur que le constat d'ancre protéique a déjà
+payée une fois, et le champ est **requis**.
+
+⚠️ **LE DOUTE NE FABRIQUE PAS DE CLONE.** Quand l'un des deux plats n'écrit aucun
+aliment, le second signal **se tait** : un faux clone transformerait un plan
+honoré en plan trahi, et c'est le seul dégât que ce constat peut causer.
+
+⚠️ **CONSTAT, JAMAIS REFUS** — rien ici ne rejette un plan, ne relance un modèle
+ni ne consomme un quota. `meals` a un **quatrième compteur** (`cloned`), écrit
+dans le journal **et** dans `generated_from` : « 7 sur 9 » et « 6 vrais + 1
+clone » sont deux faits différents, et le second est le vrai. Une case clonée
+compte dans `fromCommonPot` — elle y a bien mangé ce que la table mangeait.
+
+**Retour arrière** : `sameDish` qui rend toujours `false`, une ligne ; les quatre
+compteurs restent.
+
+### ⑤ LE REPAS LE PLUS FRAGILE D'UNE FUSION EST LE PETIT-DÉJEUNER
+
+Écrit là où quelqu'un tombera dessus — au-dessus du verrou qui le fait tomber
+(`meal_generation.ts`, le refus de cible chiffrée dans un ingrédient) — parce que
+la cause est ailleurs que là où on la cherchera. **Deux causes distinctes,
+mesurées :**
+
+- **le verrou numérique** — `whey protein 90 g` (L4/O6), puis `protein pancake
+  mix` (runs 3 et 4). Un aliment dont le **nom** porte un macro se lit comme une
+  cible chiffrée, et le plat entier est rejeté. Le petit-déjeuner est le seul
+  repas dont le rayon vend des produits nommés d'après un macro : c'est ce qui le
+  rend fragile, **pas le verrou**, qui est juste et n'a pas bougé ;
+- **la relance d'ancre protéique** (run 1), qui ne regarde que les repas
+  principaux — refermé par C7 ①.
+
+**Ce qui change, et c'est tout** : l'`issue` de rejet **nomme le créneau**
+(`dish rejected (thu/breakfast)`). Sans ça, le fait le plus utile de ce lot n'est
+pas comptable. Recomposer une case vide reste une décision de produit que
+personne n'a prise (C2 ④ la rend lisible et non héritable).
+
+### Les versions de prompt — AUCUNE ne bouge, et voici pourquoi
+
+Règle de v4 appliquée telle quelle (« quelle **population** voit une **consigne**
+différente ») : **aucune**. Ce lot est **entièrement en aval du prompt**, et
+chacun de ses cinq points le vérifie séparément :
+
+- **①** est un critère d'**acceptation** de relance ; l'instruction de relance
+  (`proteinAnchorRetryInstruction`) n'a pas bougé d'un octet ;
+- **②** ne change **aucun nombre annoncé** : `mergeDishBonus` et `dishBudgetFor`
+  sont intacts, et un test compare toujours le nombre **annoncé** au nombre
+  **appliqué**, barreau par barreau. `dedicatedCells` est une **donnée** lue par
+  le seul parseur — le cas de L3 mot pour mot, « une seconde raison qu'une ligne
+  n'apparaisse pas, relisible sur `generated_from`, pas sur la version » ;
+- **③** et **④** sont **après** la génération ;
+- **⑤** ne change qu'un texte d'`issue`, qui n'est servi à personne.
+
+Bumper aurait invalidé le cache d'une population entière pour un prompt
+byte-identique.
+
+### Les 19 mutations — chacune cassée, vue rouge, restaurée
+
+**① (3)** : la comparaison des plats dédiés retirée · **l'ancienne moitié**
+retirée (le cas qui passe) · le constat de la relance privé de son dénominateur.
+
+**② (4)** : tout ramené au même rang (plus de surplus) · le plat dédié **plus
+protégé** · l'éviction **non différée** jusqu'au `push` (**2 rouges**) · le
+générateur qui ne passe plus les cases au plafond.
+
+**③ (4)** : la réconciliation débranchée (**3 rouges**) · un plat **gardé** qui
+ne protège plus sa ligne (**2 rouges**) · les **préparations** gardées qui ne
+réclament plus rien · le doute qui **retire** au lieu de garder.
+
+**④ (7)** : rien n'est jamais un clone (**4 rouges**) · le signal du **titre**
+retiré (**2 rouges**) · le signal de la **nourriture** retiré · la matière du
+**lot** non pliée · le doute qui **fabrique** un clone · une case clonée
+recomptée comme dédiée (**4 rouges**) · le compte de clones hors de l'archive.
+
+**⑤ (1)** : le créneau retiré du refus de cible chiffrée.
+
+**Un faux-vert trouvé par la mutation, dans mon propre test.** Le motif de source
+`cloned: mergeShape.meals.cloned` est un **sous-mot** de la ligne du journal
+(`meals_cloned: …`) : retirer la clé de `generated_from` laissait le test
+**vert**. Motif resserré (`(?<![a-z_])`), et la mutation devient rouge.
+
+### Ce qui n'est pas prouvé, et ce qui reste ouvert
+
+1. **Aucun run réel, sur les cinq points.** Aucun modèle n'a débordé sous le
+   nouvel ordre de sacrifice ; aucune liste de courses réelle n'a été
+   réconciliée ; aucun clone réel n'a été recompté. **Les chiffres du tableau de
+   ② attendent la campagne, et c'est là qu'on me démentira.**
+2. **Le rattachement ingrédient → ligne de courses reste une ÉGALITÉ**, et il
+   ratera « chicken breasts » contre « chicken breast ». Le nombre de lignes
+   non rattachées est désormais compté ; **personne ne l'a encore compté**. Si
+   la mesure montre que la majorité des lignes échappe à la jointure, la suite
+   est un référentiel (`food_composition`), **jamais** un matcher maison.
+3. **Le constat de clone ne lit que l'INTÉRIEUR du plan.** Il compare les deux
+   plats d'une même case ; il ne compare pas le plat dédié au plan du **foyer**
+   d'origine. Un modèle qui recopierait le petit-déjeuner du foyer **dans une
+   autre case** ne serait pas vu — et rien ne constate la ressemblance au plan du
+   foyer, ce qui est inchangé depuis C1.
+4. **L'ordre de sacrifice s'applique à TOUTES les lanes**, pas seulement à la
+   fusion : sans bouche reprise, `dedicatedCells` est vide, il ne reste que « le
+   premier plat d'une case » contre « le reste », et un vrai repas déplace donc
+   un doublon. C'est une amélioration, elle n'a **aucun run réel**, et elle ne
+   s'exerce qu'en débordement. **Retour arrière** : `dishRank` qui rend `2`
+   partout, une ligne — le plafond redevient « les derniers tombent ».
+5. **`observeMergeShape` n'a toujours pas de quota ni de relance.** Il dira
+   « non » plus souvent encore, maintenant qu'un clone ne compte plus. Si ça
+   devient permanent, c'est **O5** qui appelle une décision (refuser, relancer),
+   pas le constat qu'il faut rétrécir.
+6. **Deux rouges préexistants NON touchés**, comme à L4→C6 :
+   `_shared/chat/recent_history_test.ts` et une erreur de typage dans
+   `_shared/action_occurrences_test.ts`. **La suite keel est verte : 2 821 / 0.**
 
 ## Questions encore ouvertes
 

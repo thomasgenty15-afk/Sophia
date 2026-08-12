@@ -868,6 +868,27 @@ export interface MergedEater {
    * toute façon.
    */
   dedicatedDishesAsked: number;
+  /**
+   * C7 ② — LES CASES OÙ LA PERSONNE REPRISE MANGE ICI, jour et moment.
+   *
+   * ⚠️ REQUIS, `T`, jamais `T?`. C'est la NEUVIÈME fois que ce fichier écrit
+   * cette phrase, et ici l'oubli a un coût nommé: `[]` fait retomber TOUT
+   * second plat d'une case dans le surplus, donc le plat DÉDIÉ redevient la
+   * première chose que le plafond sacrifie — c'est-à-dire exactement le défaut
+   * mesuré le 2026-08-12 (la relance a rendu 20 plats, 18 ont été gardés, et
+   * les deux tombés étaient le déjeuner ET le dîner du dimanche de la personne
+   * reprise).
+   *
+   * ⚠️ CE SONT SES CASES À ELLE, PAS CELLES DU PLAN: la MÊME liste que le
+   * dénominateur du constat de forme (`memberMealCells`, C3 ⑥), et le même
+   * nombre que `dedicatedDishesAsked`. Deux listes calculées séparément
+   * finiraient par se contredire, et c'est le budget qui perdrait.
+   *
+   * `[]` aux barreaux ①: aucun plat dédié n'est demandé, donc aucun second
+   * plat n'est protégé — et c'est juste, la consigne y dit « Do NOT propose
+   * separate dishes ».
+   */
+  dedicatedCells: readonly { day: string; slot: string }[];
 }
 
 /**
@@ -2128,6 +2149,77 @@ export function parseGeneratedMeal(
   const preparationIds = new Set(preparations.map((p) => p.id));
 
   const dishes: GeneratedDish[] = [];
+  // ── C7 ② · CE QU'IL FAUT SAVOIR D'UN PLAT GARDÉ POUR LE SACRIFIER JUSTE ──
+  //
+  // Trois tableaux PARALLÈLES à `dishes`, et pas trois champs sur le plat: la
+  // sortie publique (`GeneratedDish`) est écrite en base et lue par les écrans,
+  // et y greffer la comptabilité interne du plafond ferait fuiter un rang de
+  // sacrifice dans le plan de quelqu'un. Ils bougent ENSEMBLE, toujours: un
+  // `splice` qui en oublie un décale les rangs sur tout le reste de la liste.
+  /** La case `jour/moment` du plat gardé, `null` quand il n'en a pas. */
+  const keptCells: (string | null)[] = [];
+  /** Son rang de sacrifice — voir `dishRank`. */
+  const keptRanks: number[] = [];
+  /** Son index dans la sortie BRUTE: la réconciliation des courses le lit. */
+  const keptRawIndex: number[] = [];
+
+  // ── LES CASES QUE LA CONSIGNE DE FUSION RÉCLAME POUR ELLE ───────────────
+  // Vide hors fusion et au barreau ①, et c'est ce qui rend cette couche
+  // silencieuse partout ailleurs: sans case réclamée, aucun second plat n'est
+  // protégé, et le plafond se comporte comme avant ce lot.
+  const dedicatedCells = new Set(
+    (args.merge === null ? [] : args.merge.dedicatedCells).map((c) =>
+      `${c.day}/${c.slot}`
+    ),
+  );
+
+  /**
+   * LE RANG DE SACRIFICE — plus il est grand, plus le plat est jetable.
+   *
+   * ⚠️ C'EST LA DÉCISION DE PRODUIT QUE L4 AVAIT LAISSÉE OUVERTE (« réparer
+   * vraiment demanderait de choisir quel plat sacrifier »). Le critère
+   * n'invente rien: un plat AU-DELÀ de ce que la consigne réclame est le
+   * surplus; un plat qui remplit une case attendue ne l'est pas.
+   *
+   *   `0` — le premier plat d'une case: l'assiette de la table. Jamais
+   *         sacrifié tant qu'un surplus existe.
+   *   `1` — le second plat d'une case OÙ LA PERSONNE REPRISE MANGE: le plat
+   *         dédié que la consigne demande, un par repas à elle.
+   *   `2` — tout le reste: un troisième plat dans une case, un second plat
+   *         dans une case où personne d'autre ne mange, un plat sans moment.
+   *
+   * La grille du foyer n'est PAS relue ici, et c'est voulu: les moments
+   * écartés, les créneaux déjà pris, les jours de restes et les plats sans jour
+   * sont tombés PLUS HAUT, chacun avec son motif. Ce qui arrive jusqu'ici a
+   * déjà une case légitime.
+   */
+  const dishRank = (cell: string | null): number => {
+    if (cell === null) return 2;
+    let taken = 0;
+    for (const kept of keptCells) if (kept === cell) taken++;
+    if (taken === 0) return 0;
+    if (taken === 1 && dedicatedCells.has(cell)) return 1;
+    return 2;
+  };
+
+  /**
+   * Le plat gardé le PLUS jetable, à condition qu'il le soit plus que celui qui
+   * arrive. `-1` quand aucun ne l'est — et alors c'est l'arrivant qui tombe,
+   * avec le motif d'avant ce lot, mot pour mot.
+   *
+   * À rang égal, le PLUS TARD écrit: le départage d'avant ce lot (« les
+   * derniers tombent ») est conservé À L'INTÉRIEUR d'un rang, il ne s'applique
+   * simplement plus ENTRE deux rangs.
+   */
+  const sacrificeFor = (rank: number): number => {
+    let victim = -1;
+    for (let p = 0; p < keptRanks.length; p++) {
+      if (keptRanks[p] <= rank) continue;
+      if (victim === -1 || keptRanks[p] >= keptRanks[victim]) victim = p;
+    }
+    return victim;
+  };
+
   const rawDishes = Array.isArray(root.dishes) ? root.dishes : [];
   for (const [i, entry] of rawDishes.entries()) {
     const d = (entry && typeof entry === "object" ? entry : {}) as Record<string, unknown>;
@@ -2228,23 +2320,36 @@ export function parseGeneratedMeal(
       continue;
     }
 
-    // ── QUAND ÇA DÉBORDE, CE SONT LES DERNIERS QUI TOMBENT ──────────────
+    // ── QUAND ÇA DÉBORDE, C'EST LE SURPLUS QUI TOMBE (C7 ②) ─────────────
     //
-    // ⚠️ NOTÉ, PAS CORRIGÉ — et c'est le fait qui explique le dégât mesuré le
-    // 2026-08-12. Le parseur garde les `cap` PREMIERS plats de la liste et jette
-    // la queue; or un modèle écrit sa semaine dans l'ordre. Le plat perdu n'est
-    // donc jamais « celui en trop », c'est LE DERNIER REPAS DE LA FENÊTRE — ce
-    // jour-là, le dîner du dimanche du foyer, pendant que le plat de la personne
-    // reprise (écrit plus haut dans la liste) survivait.
+    // ⚠️ LA DÉCISION QUE L4 AVAIT LAISSÉE OUVERTE EST PRISE ICI. Le parseur
+    // gardait les `cap` PREMIERS plats et jetait la queue; or un modèle écrit sa
+    // semaine dans l'ordre, donc le plat perdu n'était jamais « celui en trop »,
+    // c'était LE DERNIER REPAS DE LA FENÊTRE. Mesuré deux fois: le dîner du
+    // dimanche du foyer (L4), puis le déjeuner ET le dîner du dimanche de la
+    // personne reprise, tombés d'une réponse de relance à 20 plats écrêtée à 18
+    // (C7 ①).
     //
-    // Le budget compte désormais cette bouche (`dishBudgetFor`), donc le
-    // débordement ne devrait plus arriver par ce chemin. Quand il arrivera quand
-    // même, il coûtera encore un dimanche, et c'est ce que cette note existe
-    // pour rendre relisible: réparer VRAIMENT demanderait de choisir quel plat
-    // sacrifier — une décision de produit que personne n'a prise.
+    // ⚠️ LE PLAFOND N'A PAS BOUGÉ, ET C'EST DÉLIBÉRÉ. Sur le décor mesuré il
+    // vaut EXACTEMENT ce que la consigne réclame — 9 plats de foyer + 9 plats
+    // dédiés = 18 — et une bonne réponse en fait 18. Lui donner de la marge
+    // inviterait le modèle à « déborder poliment pour la remplir », ce que
+    // `dishCapFor` documente et que ce dépôt a déjà mesuré une fois. C'est
+    // l'ORDRE du sacrifice qui était faux, pas le nombre.
+    //
+    // ⚠️ L'ÉVICTION EST DIFFÉRÉE JUSQU'AU `push`, ET IL LE FAUT. Ce plat peut
+    // encore tomber plus bas (une cible chiffrée, un ingrédient en calories):
+    // sacrifier ici ferait perdre un plat gardé au profit d'un plat qui ne
+    // survivra pas, c'est-à-dire un repas de moins pour rien.
+    const cell = slot ? `${day ?? "any"}/${slot}` : null;
+    const rank = dishRank(cell);
+    let sacrifice = -1;
     if (dishes.length >= cap) {
-      issues.push(`dishes[${i}]: over the ${cap}-dish cap for ${args.scope}, dropped`);
-      continue;
+      sacrifice = sacrificeFor(rank);
+      if (sacrifice === -1) {
+        issues.push(`dishes[${i}]: over the ${cap}-dish cap for ${args.scope}, dropped`);
+        continue;
+      }
     }
 
     const method = cleanText(d.method);
@@ -2349,11 +2454,32 @@ export function parseGeneratedMeal(
       });
     }
     if (numericInIngredients) {
+      // ── C7 ⑤ · LE REPAS LE PLUS FRAGILE D'UNE FUSION EST LE PETIT-DÉJEUNER
+      //
+      // ⚠️ LE VERROU EST JUSTE ET IL NE BOUGE PAS. Ce qui est écrit ici est un
+      // CONSTAT, mesuré, pour que quelqu'un le lise avant de chercher ailleurs:
+      // sur quatre fusions réelles, le repas qui tombe est presque toujours le
+      // petit-déjeuner, et par DEUX causes distinctes.
+      //
+      //   · CETTE garde — `whey protein 90 g` (L4/O6), puis `protein pancake
+      //     mix` (runs 3 et 4): un aliment dont le NOM porte un macro se lit
+      //     comme une cible chiffrée, et le plat entier est rejeté. Le
+      //     petit-déjeuner est le seul repas dont le rayon vend des produits
+      //     nommés d'après un macro; c'est ce qui le rend fragile, pas la garde.
+      //   · la relance d'ancre protéique (run 1), qui ne regarde QUE les repas
+      //     principaux et pouvait rendre un plan amputé de ses petits-déjeuners
+      //     dédiés — refermé par C7 ①.
+      //
+      // Rien de tout ça n'est un défaut à réparer ici: la case vide est
+      // comptée (C2 ④, `empty_slots`) et nommée au modèle. Ce qui manque est
+      // une DÉCISION sur la recomposition d'une case vide, et personne ne l'a
+      // prise. Le fait, lui, est maintenant écrit là où on tombera dessus.
       if (!rejectedNumeric.includes(numericInIngredients)) {
         rejectedNumeric.push(numericInIngredients);
       }
       issues.push(
-        `dishes[${i}]: numeric target (${numericInIngredients}) in an ingredient -- dish rejected`,
+        `dishes[${i}]: numeric target (${numericInIngredients}) in an ingredient -- ` +
+          `dish rejected (${day ?? "any"}/${slot ?? "any"})`,
       );
       continue;
     }
@@ -2396,6 +2522,21 @@ export function parseGeneratedMeal(
       });
     }
 
+    // ── C7 ② · LE SURPLUS TOMBE MAINTENANT, ET PAS AVANT ────────────────
+    // Le plat a franchi TOUTES les gardes: il est écrit dans le plan. C'est le
+    // seul moment où retirer un plat déjà gardé est justifié.
+    if (sacrifice >= 0) {
+      issues.push(
+        `dishes[${i}]: over the ${cap}-dish cap for ${args.scope} -- kept, and the ` +
+          `surplus dish ${JSON.stringify(dishes[sacrifice].title)} ` +
+          `(${keptCells[sacrifice] ?? "no slot"}) was dropped instead`,
+      );
+      dishes.splice(sacrifice, 1);
+      keptCells.splice(sacrifice, 1);
+      keptRanks.splice(sacrifice, 1);
+      keptRawIndex.splice(sacrifice, 1);
+    }
+
     dishes.push({
       title,
       slot,
@@ -2407,6 +2548,9 @@ export function parseGeneratedMeal(
       honours_belief_keys: honours,
       uses,
     });
+    keptCells.push(cell);
+    keptRanks.push(rank);
+    keptRawIndex.push(i);
   }
 
   // ── LA LISTE DE COURSES ─────────────────────────────────────────────────
@@ -2455,10 +2599,98 @@ export function parseGeneratedMeal(
     shopping.push({ term, quantity, aisle });
   }
 
+  // ── C7 ③ · ON N'ACHÈTE PAS POUR UN PLAT QUI N'EST PAS AU PLAN ──────────
+  //
+  // ⚠️ MESURÉ LE 2026-08-12 SUR TROIS FUSIONS RÉELLES. Le plafond et le rejet
+  // de cible chiffrée jettent des plats; la liste de courses, parsée plus bas,
+  // n'en savait rien. Run 1: CINQ lignes orphelines (`kidney beans`, `pork
+  // mince`, `bok choy`, `sesame oil`, `soy sauce`) — exactement les ingrédients
+  // des deux plats tombés. Run 3: TROIS. Le foyer paie et jette.
+  //
+  // ── LE RATTACHEMENT, ET POURQUOI IL EST EXACT ET PAS TOLÉRANT ──────────
+  // ⚠️ JAMAIS DE MATCHER MAISON SUR DU TEXTE ALIMENTAIRE. « laitue » contient
+  // « lait », et `isInPantry` — qui accepte justement l'inclusion — dirait donc
+  // qu'une ligne « lait » couvre une « laitue ». Ici, une correspondance fausse
+  // RETIRE une ligne de courses: quelqu'un part au magasin sans ce qu'il lui
+  // faut. Le seul rattachement utilisé est donc l'ÉGALITÉ normalisée
+  // (`normalizePantryTerm`), c'est-à-dire exactement la jointure que ce fichier
+  // fait déjà deux fois — le dédoublonnage de la liste juste au-dessus, et la
+  // reprise du rayon en mode `from_pantry` juste en dessous.
+  //
+  // ── TROIS SORTS, ET LE DOUTE NE RETIRE RIEN ───────────────────────────
+  //   · la ligne est réclamée par un plat GARDÉ (ou une préparation gardée)
+  //     ⇒ elle reste, même si un plat tombé la citait aussi. « Ne retire que si
+  //     plus AUCUN plat gardé ne la réclame »: un oignon sert cinq plats.
+  //   · la ligne est réclamée par un plat TOMBÉ et par personne d'autre
+  //     ⇒ elle part, et son terme est NOMMÉ dans les `issues`.
+  //   · la ligne ne se rattache à RIEN de connu ⇒ ELLE RESTE, et elle est
+  //     COMPTÉE. C'est le « je n'ai pas su rattacher » du lot: le modèle écrit
+  //     « chicken breasts » dans la liste et « chicken breast » dans le plat,
+  //     et deviner là-dessus coûterait un dîner.
+  //
+  // Rien de tout ça ne tourne quand aucun plat n'est tombé: pas de plat jeté,
+  // pas de réconciliation, pas d'`issue` — un plan sain ne change pas d'un
+  // octet.
+  const keptDishIndexes = new Set(keptRawIndex);
+  const droppedDishTerms = new Set<string>();
+  for (const [i, entry] of rawDishes.entries()) {
+    if (keptDishIndexes.has(i)) continue;
+    const dropped = (entry && typeof entry === "object" ? entry : {}) as Record<
+      string,
+      unknown
+    >;
+    for (const rawIng of (Array.isArray(dropped.ingredients) ? dropped.ingredients : [])) {
+      const ing = (rawIng && typeof rawIng === "object" ? rawIng : {}) as Record<
+        string,
+        unknown
+      >;
+      const normalized = normalizePantryTerm(cleanText(ing.term));
+      if (normalized) droppedDishTerms.add(normalized);
+    }
+  }
+  let reconciledShopping = shopping;
+  if (droppedDishTerms.size > 0 && shopping.length > 0) {
+    // ⚠️ LES PRÉPARATIONS GARDÉES COMPTENT COMME DES RÉCLAMANTES. Un plat de
+    // lot ne répète pas la recette de sa préparation (le prompt système le
+    // demande): ne regarder que `dish.ingredients` ferait retirer les courses
+    // de toutes les cuissons par lot.
+    const claimed = new Set<string>();
+    for (const dish of dishes) {
+      for (const ing of dish.ingredients) claimed.add(normalizePantryTerm(ing.term));
+    }
+    for (const prep of preparations) {
+      for (const ing of prep.ingredients) claimed.add(normalizePantryTerm(ing.term));
+    }
+    const orphans: string[] = [];
+    let unattached = 0;
+    reconciledShopping = shopping.filter((line) => {
+      const normalized = normalizePantryTerm(line.term);
+      if (claimed.has(normalized)) return true;
+      if (droppedDishTerms.has(normalized)) {
+        orphans.push(line.term);
+        return false;
+      }
+      unattached++;
+      return true;
+    });
+    if (orphans.length > 0) {
+      issues.push(
+        `shopping_list: ${orphans.length} line(s) bought for a dish that is not in ` +
+          `the plan -- removed (${orphans.join(", ")})`,
+      );
+    }
+    if (unattached > 0) {
+      issues.push(
+        `shopping_list_unattributed: ${unattached}/${shopping.length} lines match ` +
+          `no kept and no dropped ingredient -- kept, not guessed`,
+      );
+    }
+  }
+
   // ── EN MODE `from_pantry`, LA LISTE EST CE QUI MANQUE ───────────────────
   // Recalculée à partir des ingrédients réellement retenus, pas reprise du
   // modèle: c'est la seule façon que « il ne te manque rien » soit vrai.
-  let finalShopping = shopping;
+  let finalShopping = reconciledShopping;
   if (args.mode === "from_pantry") {
     const missing: ShoppingItem[] = [];
     const seenMissing = new Set<string>();
@@ -2469,8 +2701,12 @@ export function parseGeneratedMeal(
         if (seenMissing.has(dedup)) continue;
         seenMissing.add(dedup);
         // On garde le rayon que le modèle avait donné pour ce terme s'il en a
-        // donné un; sinon `other`.
-        const known = shopping.find((s) => normalizePantryTerm(s.term) === dedup);
+        // donné un; sinon `other`. LA LISTE RÉCONCILIÉE (C7 ③), pas la brute:
+        // une ligne retirée parce qu'elle n'appartenait qu'à un plat tombé n'a
+        // pas à revenir par la porte du rayon.
+        const known = reconciledShopping.find((s) =>
+          normalizePantryTerm(s.term) === dedup
+        );
         missing.push({
           term: ing.term,
           quantity: ing.quantity ?? known?.quantity ?? null,

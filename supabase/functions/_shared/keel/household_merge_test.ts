@@ -1343,8 +1343,52 @@ import {
   MERGE_SHAPE_NOT_HONOURED,
   mergeMaterialShown,
   MERGE_MEMBER_AWAY_ALL_WINDOW,
+  type ObservedDish,
+  type ObservedPreparation,
   observeMergeShape,
 } from "./household_merge.ts";
+
+// ── C7 ④ · UN DÉCOR DE CONSTAT PORTE MAINTENANT DE LA NOURRITURE ─────────
+//
+// `observeMergeShape` ne comptait que des cases. Depuis C7 ④ il lit AUSSI ce
+// qu'il y a dans l'assiette, parce que « le même aliment dans un plus petit
+// bol » était compté comme un plat dédié. Les décors qui veulent dire « deux
+// plats » doivent donc porter deux plats DISTINCTS: ces deux fabriques donnent
+// à chaque assiette un titre et un aliment qui n'appartiennent qu'à elle, et un
+// décor de CLONE se demande explicitement (`{ title, ingredients }`).
+let plateSeq = 0;
+const plate = (
+  day: string | null,
+  slot: string | null,
+  over: Partial<ObservedDish> = {},
+): ObservedDish => {
+  plateSeq++;
+  return {
+    day,
+    slot,
+    title: `Plate ${plateSeq}`,
+    ingredients: [{ term: `food ${plateSeq}` }],
+    uses: [],
+    ...over,
+  };
+};
+const batch = (
+  servingsMade: number,
+  over: Partial<ObservedPreparation> = {},
+): ObservedPreparation => {
+  plateSeq++;
+  return {
+    id: `prep_${plateSeq}`,
+    servingsMade,
+    ingredients: [{ term: `batch food ${plateSeq}` }],
+    ...over,
+  };
+};
+/** Les cases d'une grille jour × moment, dans l'ordre. */
+const cellsOf = (days: readonly string[], slots: readonly string[]) =>
+  days.flatMap((day) => slots.map((slot) => ({ day, slot })));
+/** LES CASES DE LA FUSION MESURÉE, et rien d'autre à déclarer avec elles. */
+const NO_DEDICATED_CELLS: readonly { day: string; slot: string }[] = [];
 
 /** 3 moments. Le plafond de base est donc 3 × jours, à la main. */
 const THREE_MEALS = [
@@ -1484,7 +1528,13 @@ Deno.test("BARREAU ①, une préparation d'UNE portion reste jetée", () => {
     shopping_list: [],
   }, {
     ...PARSE_BASE,
-    merge: { shape: "one_dish", ownDishesShown: 6, dedicatedDishesAsked: 0 },
+    merge: {
+      shape: "one_dish",
+      ownDishesShown: 6,
+      dedicatedDishesAsked: 0,
+      // ① ne réclame aucun plat dédié: aucune case n'est protégée.
+      dedicatedCells: NO_DEDICATED_CELLS,
+    },
   });
   assertEquals(meal.preparations.length, 0);
 });
@@ -1501,7 +1551,12 @@ for (const shape of ["one_session", "separate_sessions"] as const) {
       shopping_list: [],
     }, {
       ...PARSE_BASE,
-      merge: { shape, ownDishesShown: 6, dedicatedDishesAsked: 6 },
+      merge: {
+        shape,
+        ownDishesShown: 6,
+        dedicatedDishesAsked: 6,
+        dedicatedCells: cellsOf(["wed", "thu"], ["breakfast", "lunch", "dinner"]),
+      },
     });
     assertEquals(meal.preparations.length, 1);
     assertEquals(meal.preparations[0].servingsMade, 1);
@@ -1522,7 +1577,12 @@ Deno.test("MÊME SOUS FUSION, une préparation de ZÉRO portion tombe", () => {
       shopping_list: [],
     }, {
       ...PARSE_BASE,
-      merge: { shape: "one_session", ownDishesShown: 6, dedicatedDishesAsked: 6 },
+      merge: {
+        shape: "one_session",
+        ownDishesShown: 6,
+        dedicatedDishesAsked: 6,
+        dedicatedCells: cellsOf(["wed", "thu"], ["breakfast", "lunch", "dinner"]),
+      },
     });
     assertEquals(meal.preparations.length, 0, `servings_made = ${bad}`);
   }
@@ -1570,6 +1630,8 @@ Deno.test("BARREAU ①, le plafond NE BOUGE PAS — ni au prompt, ni au parse", 
     // C6 — ① ne demande AUCUN plat dédié, et le budget doit rester celui de la
     // table même si la personne apporte douze plats.
     dedicatedDishesAsked: 0,
+    // C7 ② — ① ne protège AUCUNE case: le plafond garde son ordre d'avant.
+    dedicatedCells: NO_DEDICATED_CELLS,
   };
   const { userMessage } = buildMealPrompt({ ...PROMPT_BASE, merge });
   assert(userMessage.includes(`at most ${BASE_CAP_15} dishes`));
@@ -1586,7 +1648,14 @@ Deno.test("BARREAUX ② ET ③, le plafond gagne EXACTEMENT ce qu'on montre", ()
   for (const shape of ["one_session", "separate_sessions"] as const) {
     // C6 — LA CONSIGNE EN RÉCLAME 3 ET LA MATIÈRE EN MONTRE 4: le budget garde
     // le plus grand des deux, donc « exactement ce qu'on montre » tient encore.
-    const merge = { shape, ownDishesShown: 4, dedicatedDishesAsked: 3 };
+    const merge = {
+      shape,
+      ownDishesShown: 4,
+      dedicatedDishesAsked: 3,
+      // C7 ② — le BUDGET ne lit pas les cases, il lit les deux nombres. Le
+      // décor le dit en ne lui en donnant aucune.
+      dedicatedCells: NO_DEDICATED_CELLS,
+    };
     const { userMessage } = buildMealPrompt({ ...PROMPT_BASE, merge });
     assert(
       userMessage.includes("at most 19 dishes"),
@@ -1608,6 +1677,7 @@ Deno.test("BARREAU ② SANS MATIÈRE, il reste UN plat de plus — le « SECOND 
     shape: "one_session" as const,
     ownDishesShown: 0,
     dedicatedDishesAsked: 1,
+    dedicatedCells: NO_DEDICATED_CELLS,
   };
   const { userMessage } = buildMealPrompt({ ...PROMPT_BASE, merge });
   assert(userMessage.includes("at most 16 dishes"), userMessage.slice(0, 200));
@@ -1620,6 +1690,7 @@ Deno.test("LE BONUS EST BORNÉ PAR LE PLAFOND DE BASE — une bouche, pas trois"
     shape: "one_session" as const,
     ownDishesShown: 400,
     dedicatedDishesAsked: 9,
+    dedicatedCells: NO_DEDICATED_CELLS,
   };
   const { userMessage } = buildMealPrompt({ ...PROMPT_BASE, merge });
   assert(userMessage.includes("at most 30 dishes"), userMessage.slice(0, 200));
@@ -1630,9 +1701,24 @@ Deno.test("LE PROMPT ET LE PARSE ANNONCENT LE MÊME NOMBRE, barreau par barreau"
   // budget et en appliquer un autre. Le nombre est LU dans la consigne, puis
   // COMPTÉ sur la sortie — jamais dérivé deux fois de la même fonction.
   const cases: MergedEater[] = [
-    { shape: "one_dish", ownDishesShown: 5, dedicatedDishesAsked: 0 },
-    { shape: "one_session", ownDishesShown: 3, dedicatedDishesAsked: 9 },
-    { shape: "separate_sessions", ownDishesShown: 7, dedicatedDishesAsked: 2 },
+    {
+      shape: "one_dish",
+      ownDishesShown: 5,
+      dedicatedDishesAsked: 0,
+      dedicatedCells: NO_DEDICATED_CELLS,
+    },
+    {
+      shape: "one_session",
+      ownDishesShown: 3,
+      dedicatedDishesAsked: 9,
+      dedicatedCells: NO_DEDICATED_CELLS,
+    },
+    {
+      shape: "separate_sessions",
+      ownDishesShown: 7,
+      dedicatedDishesAsked: 2,
+      dedicatedCells: NO_DEDICATED_CELLS,
+    },
   ];
   for (const merge of cases) {
     const { userMessage } = buildMealPrompt({ ...PROMPT_BASE, merge });
@@ -1658,7 +1744,12 @@ Deno.test("LE BUDGET DE SESSIONS NE SUIT PAS LE BONUS DE FUSION", () => {
   const without = buildMealPrompt(PROMPT_BASE).userMessage;
   const with_ = buildMealPrompt({
     ...PROMPT_BASE,
-    merge: { shape: "one_session", ownDishesShown: 6, dedicatedDishesAsked: 6 },
+    merge: {
+      shape: "one_session",
+      ownDishesShown: 6,
+      dedicatedDishesAsked: 6,
+      dedicatedCells: cellsOf(["wed", "thu"], ["breakfast", "lunch", "dinner"]),
+    },
   }).userMessage;
   const sessionsOf = (m: string) => m.match(/cooking sessions: at most (\d+)/)?.[1];
   assert(sessionsOf(without), "le budget de sessions a disparu de la consigne");
@@ -1772,15 +1863,15 @@ Deno.test("② HONORÉ — une préparation d'UNE portion est la marque du plat 
   // ⚠️ LE CAS QUI PASSE, EN PREMIER.
   const seen = observeMergeShape({
     shape: "one_session",
-    dishes: [{ day: "wed", slot: "dinner" }, { day: "wed", slot: "dinner" }],
-    preparations: [{ servingsMade: 4 }, { servingsMade: 1 }],
+    dishes: [plate("wed", "dinner"), plate("wed", "dinner")],
+    preparations: [batch(4), batch(1)],
     // C3 ⑥ — SON SEUL REPAS de la fenêtre, et il porte un plat à part.
     eaterCells: [{ day: "wed", slot: "dinner" }],
   });
   assertEquals(seen.honoured, true);
   assertEquals(seen.observed, "dedicated_dish");
   assertEquals(seen.requested, "one_session");
-  assertEquals(seen.meals, { atTable: 1, dedicated: 1, fromCommonPot: 0 });
+  assertEquals(seen.meals, { atTable: 1, dedicated: 1, fromCommonPot: 0, cloned: 0 });
   assert(seen.marks.includes("single_serving_preparation:1"));
 });
 
@@ -1788,11 +1879,11 @@ Deno.test("③ HONORÉ — deux plats au MÊME jour et au MÊME moment", () => {
   const seen = observeMergeShape({
     shape: "separate_sessions",
     dishes: [
-      { day: "wed", slot: "dinner" },
-      { day: "wed", slot: "dinner" },
-      { day: "thu", slot: "dinner" },
+      plate("wed", "dinner"),
+      plate("wed", "dinner"),
+      plate("thu", "dinner"),
     ],
-    preparations: [{ servingsMade: 4 }],
+    preparations: [batch(4)],
     // Elle ne mange ici que mercredi soir: jeudi n'est pas un de ses repas, et
     // le compter la ferait déclarer servie à la casserole commune un soir où
     // elle n'est pas là.
@@ -1809,17 +1900,18 @@ Deno.test("LE MENSONGE MESURÉ — ③ demandé, casserole commune servie", () =
   // `separate_sessions`, le plan disait le contraire.
   const seen = observeMergeShape({
     shape: "separate_sessions",
-    dishes: FIVE_DAYS.flatMap((day) =>
-      ["breakfast", "lunch", "dinner"].map((slot) => ({ day, slot }))
+    dishes: cellsOf(FIVE_DAYS, ["breakfast", "lunch", "dinner"]).map((c) =>
+      plate(c.day, c.slot)
     ),
-    preparations: [{ servingsMade: 5 }, { servingsMade: 4 }],
-    eaterCells: FIVE_DAYS.flatMap((day) =>
-      ["breakfast", "lunch", "dinner"].map((slot) => ({ day, slot }))
-    ),
+    preparations: [batch(5), batch(4)],
+    eaterCells: cellsOf(FIVE_DAYS, ["breakfast", "lunch", "dinner"]),
   });
   assertEquals(seen.honoured, false);
   assertEquals(seen.observed, "common_pot");
-  assertEquals(seen.meals, { atTable: 15, dedicated: 0, fromCommonPot: 15 });
+  assertEquals(
+    seen.meals,
+    { atTable: 15, dedicated: 0, fromCommonPot: 15, cloned: 0 },
+  );
   assertEquals(seen.marks, []);
 });
 
@@ -1830,8 +1922,8 @@ Deno.test("① N'EST JAMAIS DÉCLARÉ NON HONORÉ", () => {
   // compositions ordinaires.
   const seen = observeMergeShape({
     shape: "one_dish",
-    dishes: [{ day: "wed", slot: "dinner" }],
-    preparations: [{ servingsMade: 4 }],
+    dishes: [plate("wed", "dinner")],
+    preparations: [batch(4)],
     eaterCells: [{ day: "wed", slot: "dinner" }],
   });
   assertEquals(seen.honoured, true);
@@ -1844,8 +1936,8 @@ Deno.test("UN MOMENT NON DÉCLARÉ NE FABRIQUE PAS DE MARQUE", () => {
   // faux négatif est le seul dégât que ce constat peut causer.
   const seen = observeMergeShape({
     shape: "one_session",
-    dishes: [{ day: "wed", slot: null }, { day: "wed", slot: null }],
-    preparations: [{ servingsMade: 4 }],
+    dishes: [plate("wed", null), plate("wed", null)],
+    preparations: [batch(4)],
     eaterCells: [{ day: "wed", slot: "dinner" }],
   });
   assertEquals(seen.honoured, false);
@@ -1869,14 +1961,14 @@ Deno.test("C3 ⑥ — UN PLAT À ELLE SUR NEUF REPAS N'EST PLUS UN SUCCÈS", () 
   const seen = observeMergeShape({
     shape: "one_session",
     dishes: [
-      ...cells,
+      ...cells.map((c) => plate(c.day, c.slot)),
       // LE seul plat dédié: mercredi soir, et rien d'autre.
-      { day: "wed", slot: "dinner" },
+      plate("wed", "dinner"),
     ],
-    preparations: [{ servingsMade: 4 }, { servingsMade: 1 }],
+    preparations: [batch(4), batch(1)],
     eaterCells: cells,
   });
-  assertEquals(seen.meals, { atTable: 9, dedicated: 1, fromCommonPot: 8 });
+  assertEquals(seen.meals, { atTable: 9, dedicated: 1, fromCommonPot: 8, cloned: 0 });
   assertEquals(seen.observed, "some_meals_dedicated");
   assertEquals(
     seen.honoured,
@@ -1897,11 +1989,14 @@ Deno.test("C3 ⑥ — TOUS SES REPAS SERVIS À PART: le cas qui PASSE", () => {
   ];
   const seen = observeMergeShape({
     shape: "separate_sessions",
-    dishes: [...cells, ...cells],
-    preparations: [{ servingsMade: 4 }, { servingsMade: 1 }, { servingsMade: 1 }],
+    dishes: [
+      ...cells.map((c) => plate(c.day, c.slot)),
+      ...cells.map((c) => plate(c.day, c.slot)),
+    ],
+    preparations: [batch(4), batch(1), batch(1)],
     eaterCells: cells,
   });
-  assertEquals(seen.meals, { atTable: 2, dedicated: 2, fromCommonPot: 0 });
+  assertEquals(seen.meals, { atTable: 2, dedicated: 2, fromCommonPot: 0, cloned: 0 });
   assertEquals(seen.observed, "dedicated_dish");
   assertEquals(seen.honoured, true);
 });
@@ -1913,16 +2008,16 @@ Deno.test("C3 ⑥ — SES ABSENCES NE COMPTENT PAS COMME DES REPAS DE CASSEROLE"
   const seen = observeMergeShape({
     shape: "one_session",
     dishes: [
-      { day: "wed", slot: "dinner" },
-      { day: "wed", slot: "dinner" },
-      { day: "thu", slot: "lunch" },
-      { day: "thu", slot: "dinner" },
+      plate("wed", "dinner"),
+      plate("wed", "dinner"),
+      plate("thu", "lunch"),
+      plate("thu", "dinner"),
     ],
-    preparations: [{ servingsMade: 3 }, { servingsMade: 1 }],
+    preparations: [batch(3), batch(1)],
     // Elle n'est là QUE mercredi soir.
     eaterCells: [{ day: "wed", slot: "dinner" }],
   });
-  assertEquals(seen.meals, { atTable: 1, dedicated: 1, fromCommonPot: 0 });
+  assertEquals(seen.meals, { atTable: 1, dedicated: 1, fromCommonPot: 0, cloned: 0 });
   assertEquals(seen.honoured, true);
 });
 
@@ -1932,11 +2027,11 @@ Deno.test("C3 ⑥ — AUCUN REPAS À ELLE: le constat se tait au lieu de mentir"
   // ici aucun repas serait un fait faux.
   const seen = observeMergeShape({
     shape: "separate_sessions",
-    dishes: [{ day: "wed", slot: "dinner" }],
-    preparations: [{ servingsMade: 4 }],
+    dishes: [plate("wed", "dinner")],
+    preparations: [batch(4)],
     eaterCells: [],
   });
-  assertEquals(seen.meals, { atTable: 0, dedicated: 0, fromCommonPot: 0 });
+  assertEquals(seen.meals, { atTable: 0, dedicated: 0, fromCommonPot: 0, cloned: 0 });
   assertEquals(seen.honoured, true);
   assertEquals(seen.observed, "common_pot");
 });
@@ -2284,5 +2379,569 @@ Deno.test("C5 ③ — LE GÉNÉRATEUR NOMME LA FENÊTRE DE SON PLAN", async () =
     around.includes("window: merge.window.window"),
     "l'entrée `merged_from` repart de la fenêtre recomposée: elle nommerait " +
       "des jours que le plan repris ne couvre pas.",
+  );
+});
+
+// ---------------------------------------------------------------------------
+// C7 — CE QUI SE PERD EN AVAL DU PROMPT
+//
+// ⚠️ LE FAIT CENTRAL, ET IL CHANGE LE DIAGNOSTIC: sur trois fusions réelles du
+// 2026-08-12, LE MODÈLE OBÉIT 9/9 — les trois réponses brutes portent les neuf
+// plats du foyer ET neuf plats dédiés, un par créneau, tirés des aliments de la
+// personne. Ce qui perd les plats dédiés est en AVAL de la consigne. Rien de
+// cette section ne touche donc un octet de prompt.
+// ---------------------------------------------------------------------------
+
+/** Le décor mesuré: 3 jours × 3 moments = 9 cases pour le foyer, 9 pour elle. */
+const C7_DAYS = ["wed", "thu", "fri"];
+const C7_SLOTS = ["breakfast", "lunch", "dinner"];
+const C7_CELLS = cellsOf(C7_DAYS, C7_SLOTS);
+/** `baseCap` 9 + bonus 9 = 18, et une bonne réponse en fait EXACTEMENT 18. */
+const C7_CAP = 18;
+
+const c7Merge: MergedEater = {
+  shape: "one_session",
+  ownDishesShown: 9,
+  dedicatedDishesAsked: 9,
+  dedicatedCells: C7_CELLS,
+};
+
+const c7ParseBase = {
+  ...PARSE_BASE,
+  daysToFill: C7_DAYS,
+  merge: c7Merge,
+};
+
+/** Un plat de la table, situé, avec un aliment à lui. */
+function c7Table(day: string, slot: string, over: Record<string, unknown> = {}) {
+  return {
+    title: `Household ${day} ${slot}`,
+    day,
+    slot,
+    ingredients: [{ term: `table ${day} ${slot}`, quantity: "300 g" }],
+    method: "Cook it.",
+    why: "Because it works.",
+    ...over,
+  };
+}
+
+/** Le plat dédié de la MÊME case: un autre titre, un autre aliment. */
+function c7Dedicated(day: string, slot: string, over: Record<string, unknown> = {}) {
+  return {
+    title: `Zoe ${day} ${slot}`,
+    day,
+    slot,
+    ingredients: [{ term: `beef ${day} ${slot}`, quantity: "180 g" }],
+    method: "Cook it alongside.",
+    why: "Because it works.",
+    ...over,
+  };
+}
+
+Deno.test("C7 ② — LE PLAFOND N'A AUCUNE MARGE SUR CE DÉCOR, et c'est le fait", () => {
+  // ⚠️ CE TEST EXISTE POUR EMPÊCHER LA MAUVAISE RÉPARATION. « Relever le
+  // plafond » ne relève rien tant que `shown >= asked`: min(max(9, 9), 9) = 9.
+  // Le budget vaut EXACTEMENT ce que la consigne réclame — 9 plats de foyer + 9
+  // plats dédiés — et une bonne réponse en fait 18. Ce n'est donc PAS le nombre
+  // qui était faux, c'est l'ORDRE du sacrifice.
+  assertEquals(
+    dishBudgetFor({
+      scope: "several_days",
+      rhythm: THREE_MEALS,
+      daysToFill: C7_DAYS.length,
+      merge: c7Merge,
+    }),
+    C7_CAP,
+  );
+});
+
+Deno.test("C7 ② — LE CAS QUI PASSE: 18 plats dans un plafond de 18, rien ne bouge", () => {
+  // ⚠️ UNE GARDE A BESOIN D'UN CAS QUI PASSE. Une réponse juste ne doit
+  // produire NI éviction, NI `issue` de plafond — sinon l'ordre de sacrifice
+  // serait une garde qui coupe tout, et une garde qui coupe tout ressemble
+  // trait pour trait à une garde qui marche.
+  const dishes = C7_CELLS.flatMap((c) => [c7Table(c.day, c.slot), c7Dedicated(c.day, c.slot)]);
+  assertEquals(dishes.length, C7_CAP);
+  const meal = parseGeneratedMeal(
+    { preparations: [], dishes, shopping_list: [] },
+    c7ParseBase,
+  );
+  assertEquals(meal.dishes.length, C7_CAP);
+  assertEquals(meal.issues.filter((i) => i.includes("cap")), []);
+});
+
+Deno.test("C7 ② — QUAND ÇA DÉBORDE, C'EST LE SURPLUS QUI TOMBE, PAS LE DIMANCHE", () => {
+  // ⚠️ REJOUE LE RUN 1 DU 2026-08-12: la réponse de relance portait 20 plats,
+  // le plafond en a gardé 18 — LES DIX-HUIT PREMIERS — et la personne reprise a
+  // perdu son déjeuner ET son dîner du dernier jour. Le compte total ne pouvait
+  // pas le voir: 18 des deux côtés.
+  //
+  // Ici, les deux plats en trop sont écrits TÔT (un troisième et un quatrième
+  // plat sur la case du mercredi matin), et les plats du dernier jour sont
+  // écrits en DERNIER, comme un modèle écrit sa semaine.
+  const dishes: Record<string, unknown>[] = [];
+  for (const c of C7_CELLS) {
+    dishes.push(c7Table(c.day, c.slot));
+    dishes.push(c7Dedicated(c.day, c.slot));
+    if (c.day === "wed" && c.slot === "breakfast") {
+      dishes.push(c7Table(c.day, c.slot, { title: "Extra wed breakfast A" }));
+      dishes.push(c7Table(c.day, c.slot, { title: "Extra wed breakfast B" }));
+    }
+  }
+  assertEquals(dishes.length, 20);
+
+  const meal = parseGeneratedMeal(
+    { preparations: [], dishes, shopping_list: [] },
+    c7ParseBase,
+  );
+  assertEquals(meal.dishes.length, C7_CAP);
+  const titles = meal.dishes.map((d) => d.title);
+  // LE SURPLUS EST PARTI…
+  assertEquals(titles.includes("Extra wed breakfast A"), false);
+  assertEquals(titles.includes("Extra wed breakfast B"), false);
+  // …ET LES DEUX REPAS DU DERNIER JOUR SONT LÀ, les deux bouches servies.
+  assert(titles.includes("Zoe fri lunch"), titles.join(" | "));
+  assert(titles.includes("Zoe fri dinner"), titles.join(" | "));
+  assert(titles.includes("Household fri dinner"), titles.join(" | "));
+  // Le sacrifice est NOMMÉ: un plat retiré en silence est un plat qu'on
+  // cherchera dans la grille sans jamais savoir pourquoi il manque.
+  assert(
+    meal.issues.some((i) => i.includes("Extra wed breakfast A")),
+    meal.issues.join("\n"),
+  );
+});
+
+Deno.test("C7 ② — SANS LES CASES D'ELLE, LE PLAT DÉDIÉ REDEVIENT DU SURPLUS", () => {
+  // ⚠️ LA GARDE PORTE SUR `dedicatedCells`, ET CE TEST LE PROUVE PAR L'ABSENCE.
+  // Le MÊME décor, avec la seule liste de cases vidée: le second plat d'une
+  // case n'est plus protégé, donc rien n'a un rang pire que lui, donc le
+  // plafond retombe sur « les derniers tombent » — et ce sont les plats du
+  // dernier jour qui partent. C'est le défaut mesuré, reproduit à la demande.
+  const dishes: Record<string, unknown>[] = [];
+  for (const c of C7_CELLS) {
+    dishes.push(c7Table(c.day, c.slot));
+    dishes.push(c7Dedicated(c.day, c.slot));
+    if (c.day === "wed" && c.slot === "breakfast") {
+      dishes.push(c7Table(c.day, c.slot, { title: "Extra wed breakfast A" }));
+      dishes.push(c7Table(c.day, c.slot, { title: "Extra wed breakfast B" }));
+    }
+  }
+  const meal = parseGeneratedMeal({ preparations: [], dishes, shopping_list: [] }, {
+    ...c7ParseBase,
+    merge: { ...c7Merge, dedicatedCells: NO_DEDICATED_CELLS },
+  });
+  assertEquals(meal.dishes.length, C7_CAP);
+  const titles = meal.dishes.map((d) => d.title);
+  assert(titles.includes("Extra wed breakfast A"), "le surplus aurait dû survivre");
+  assertEquals(titles.includes("Zoe fri dinner"), false);
+});
+
+Deno.test("C7 ② — UN PLAT QUI NE SURVIVRA PAS NE COÛTE PAS UN PLAT GARDÉ", () => {
+  // ⚠️ L'ÉVICTION EST DIFFÉRÉE JUSQU'AU `push`, ET IL LE FAUT. Le plat qui
+  // arrive peut encore tomber plus bas — ici sur une cible chiffrée. Sacrifier
+  // au moment du plafond ferait perdre un plat gardé au profit d'un plat qui ne
+  // sera jamais écrit: un repas de moins, pour rien.
+  const dishes: Record<string, unknown>[] = [];
+  for (const c of C7_CELLS) {
+    dishes.push(c7Table(c.day, c.slot));
+    // Le dernier dîner N'A PAS son plat dédié: c'est la case que le plat
+    // suivant vient remplir, et le plafond est déjà atteint.
+    if (!(c.day === "fri" && c.slot === "dinner")) {
+      dishes.push(c7Dedicated(c.day, c.slot));
+    }
+    if (c.day === "wed" && c.slot === "breakfast") {
+      dishes.push(c7Table(c.day, c.slot, { title: "Extra wed breakfast A" }));
+    }
+  }
+  assertEquals(dishes.length, C7_CAP);
+  // Le dix-neuvième plat: LA CASE QUI ATTEND ENCORE SON PLAT DÉDIÉ (donc un
+  // rang meilleur que le surplus), et une cible chiffrée qui le fera rejeter.
+  dishes.push(c7Dedicated("fri", "dinner", { title: "Her plate with 40 g protein" }));
+  const meal = parseGeneratedMeal(
+    { preparations: [], dishes, shopping_list: [] },
+    c7ParseBase,
+  );
+  const titles = meal.dishes.map((d) => d.title);
+  assertEquals(titles.includes("Bulk plate with 40 g protein"), false);
+  assert(
+    titles.includes("Extra wed breakfast A"),
+    "le surplus a été sacrifié pour un plat que le parseur a rejeté ensuite",
+  );
+});
+
+Deno.test("C7 ③ — LA LIGNE DE COURSES D'UN PLAT JETÉ NE PART PLUS AU MAGASIN", () => {
+  // ⚠️ MESURÉ LE 2026-08-12: run 1, CINQ lignes orphelines (`kidney beans`,
+  // `pork mince`, `bok choy`, `sesame oil`, `soy sauce`) — exactement les
+  // ingrédients des deux plats tombés. Run 3, TROIS. Le foyer paie et jette.
+  const meal = parseGeneratedMeal({
+    preparations: [],
+    dishes: [
+      plainDish({ title: "Kept stew", ingredients: [{ term: "beef", quantity: "600 g" }] }),
+      // Rejeté sur une cible chiffrée: le verrou est juste, et il reste.
+      plainDish({
+        title: "Protein pancakes with 30 g protein",
+        day: "thu",
+        slot: "breakfast",
+        ingredients: [{ term: "kidney beans", quantity: "200 g" }],
+      }),
+    ],
+    shopping_list: [
+      { term: "beef", quantity: "600 g", aisle: "protein" },
+      { term: "kidney beans", quantity: "200 g", aisle: "pantry" },
+    ],
+  }, PARSE_BASE);
+  assertEquals(meal.dishes.length, 1);
+  assertEquals(meal.shopping_list.map((s) => s.term), ["beef"]);
+  assert(
+    meal.issues.some((i) => i.includes("kidney beans")),
+    meal.issues.join("\n"),
+  );
+});
+
+Deno.test("C7 ③ — UN INGRÉDIENT PARTAGÉ NE PART PAS AVEC LE PLAT QUI TOMBE", () => {
+  // ⚠️ « Ne retire une ligne que si PLUS AUCUN plat gardé ne la réclame. » Un
+  // oignon sert cinq plats; le retirer parce qu'un sixième est tombé enverrait
+  // quelqu'un au magasin sans ce qu'il lui faut — et c'est le seul dégât que
+  // cette réconciliation peut causer.
+  const meal = parseGeneratedMeal({
+    preparations: [],
+    dishes: [
+      plainDish({ title: "Kept stew", ingredients: [{ term: "Onions", quantity: "2" }] }),
+      plainDish({
+        title: "Dropped bowl with 30 g protein",
+        day: "thu",
+        slot: "lunch",
+        ingredients: [{ term: "onions", quantity: "1" }, { term: "bok choy", quantity: "1" }],
+      }),
+    ],
+    shopping_list: [
+      { term: "onions", quantity: "3", aisle: "produce" },
+      { term: "bok choy", quantity: "1", aisle: "produce" },
+    ],
+  }, PARSE_BASE);
+  assertEquals(meal.shopping_list.map((s) => s.term), ["onions"]);
+});
+
+Deno.test("C7 ③ — UNE PRÉPARATION GARDÉE RÉCLAME AUSSI SES COURSES", () => {
+  // Un plat qui puise dans un lot NE RÉPÈTE PAS sa recette — le prompt système
+  // le demande. Ne regarder que `dish.ingredients` retirerait les courses de
+  // toutes les cuissons par lot.
+  const meal = parseGeneratedMeal({
+    preparations: [prepPayload(4)],
+    dishes: [
+      dishUsingPrep(),
+      plainDish({
+        title: "Dropped bowl with 30 g protein",
+        day: "thu",
+        slot: "lunch",
+        ingredients: [{ term: "pasta", quantity: "100 g" }],
+      }),
+    ],
+    shopping_list: [{ term: "pasta", quantity: "500 g", aisle: "pantry" }],
+  }, PARSE_BASE);
+  assertEquals(meal.preparations.length, 1);
+  assertEquals(meal.shopping_list.map((s) => s.term), ["pasta"]);
+});
+
+Deno.test("C7 ③ — CE QUE JE N'AI PAS SU RATTACHER RESTE, ET SE COMPTE", () => {
+  // ⚠️ JAMAIS DE MATCHER MAISON SUR DU TEXTE ALIMENTAIRE. « chicken breasts »
+  // et « chicken breast » ne sont pas la même chaîne, et deviner là-dessus
+  // coûterait un dîner. La ligne reste, et le doute est COMPTÉ — c'est la
+  // mesure qui dira un jour si le rattachement mérite mieux qu'une égalité.
+  const meal = parseGeneratedMeal({
+    preparations: [],
+    dishes: [
+      plainDish({ title: "Kept stew", ingredients: [{ term: "chicken breast" }] }),
+      plainDish({
+        title: "Dropped bowl with 30 g protein",
+        day: "thu",
+        slot: "lunch",
+        ingredients: [{ term: "kidney beans" }],
+      }),
+    ],
+    shopping_list: [
+      { term: "chicken breasts", quantity: "1 kg", aisle: "protein" },
+      { term: "kidney beans", quantity: "200 g", aisle: "pantry" },
+    ],
+  }, PARSE_BASE);
+  assertEquals(meal.shopping_list.map((s) => s.term), ["chicken breasts"]);
+  assert(
+    meal.issues.some((i) => i.startsWith("shopping_list_unattributed: 1/2")),
+    meal.issues.join("\n"),
+  );
+});
+
+Deno.test("C7 ③ — AUCUN PLAT JETÉ, AUCUNE RÉCONCILIATION: le cas qui PASSE", () => {
+  // Un plan sain ne change pas d'un octet, et ne porte AUCUNE `issue` de
+  // courses. Sans ce cas, une réconciliation qui retirerait tout ressemblerait
+  // à une réconciliation qui marche.
+  const meal = parseGeneratedMeal({
+    preparations: [],
+    dishes: [plainDish({ ingredients: [{ term: "beef" }] })],
+    shopping_list: [
+      { term: "beef", quantity: "600 g", aisle: "protein" },
+      { term: "bay leaves", quantity: "2", aisle: "pantry" },
+    ],
+  }, PARSE_BASE);
+  assertEquals(meal.shopping_list.map((s) => s.term), ["beef", "bay leaves"]);
+  assertEquals(meal.issues.filter((i) => i.startsWith("shopping_list")), []);
+});
+
+Deno.test("C7 ④ — LE MÊME ALIMENT DANS UN PLUS PETIT BOL N'EST PAS UN PLAT DÉDIÉ", () => {
+  // ⚠️ MESURÉ LE 2026-08-12, run 1, `fri/breakfast`: le petit-déjeuner du foyer
+  // récrit en portion simple, `why: "A fresh single portion for Zoe"`. La
+  // consigne de C6 l'interdit EN TOUTES LETTRES, et le constat le comptait
+  // comme une réussite — un constat qui compte un clone comme une réussite est
+  // un constat qui ment.
+  const twin = { title: "Greek yogurt bowls", ingredients: [{ term: "greek yogurt" }] };
+  const seen = observeMergeShape({
+    shape: "one_session",
+    dishes: [plate("fri", "breakfast", twin), plate("fri", "breakfast", twin)],
+    preparations: [batch(4)],
+    eaterCells: [{ day: "fri", slot: "breakfast" }],
+  });
+  assertEquals(seen.meals, { atTable: 1, dedicated: 0, fromCommonPot: 1, cloned: 1 });
+  assertEquals(seen.observed, "common_pot");
+  assertEquals(seen.honoured, false);
+  assert(seen.marks.includes("cloned_dish:fri/breakfast"), seen.marks.join(" | "));
+  // La marque structurelle RESTE: la case porte bien deux plats, et le constat
+  // dit les deux choses.
+  assert(seen.marks.includes("parallel_dishes:fri/breakfast"), seen.marks.join(" | "));
+});
+
+Deno.test("C7 ④ — MÊME NOURRITURE, AUTRE TITRE: toujours un clone", () => {
+  // « Le même aliment dans un plus petit bol »: la portion change, la
+  // nourriture non. Un titre retouché ne fabrique pas un plat.
+  const seen = observeMergeShape({
+    shape: "one_session",
+    dishes: [
+      plate("fri", "breakfast", {
+        title: "Greek yogurt bowls",
+        ingredients: [{ term: "Greek yogurt" }, { term: "berries" }],
+      }),
+      plate("fri", "breakfast", {
+        title: "A fresh single portion for Zoe",
+        ingredients: [{ term: "berries" }, { term: "greek yogurt" }],
+      }),
+    ],
+    preparations: [batch(4)],
+    eaterCells: [{ day: "fri", slot: "breakfast" }],
+  });
+  assertEquals(seen.meals.dedicated, 0);
+  assertEquals(seen.meals.cloned, 1);
+});
+
+Deno.test("C7 ④ — LE CAS QUI PASSE: un aliment à elle, et c'est un vrai plat", () => {
+  // ⚠️ SANS CE CAS, LE CONSTAT SERAIT UNE GARDE QUI COUPE TOUT. La consigne dit
+  // « the protein and the starch [...] has to come from what they eat »: dès
+  // qu'un aliment n'est pas dans l'assiette de la table, ce n'est plus le même
+  // plat.
+  const seen = observeMergeShape({
+    shape: "one_session",
+    dishes: [
+      plate("fri", "breakfast", {
+        title: "Greek yogurt bowls",
+        ingredients: [{ term: "greek yogurt" }],
+      }),
+      plate("fri", "breakfast", {
+        title: "Greek yogurt bowl with beef",
+        ingredients: [{ term: "greek yogurt" }, { term: "beef" }],
+      }),
+    ],
+    preparations: [batch(4)],
+    eaterCells: [{ day: "fri", slot: "breakfast" }],
+  });
+  assertEquals(seen.meals, { atTable: 1, dedicated: 1, fromCommonPot: 0, cloned: 0 });
+  assertEquals(seen.honoured, true);
+  assertEquals(seen.marks.some((m) => m.startsWith("cloned_dish")), false);
+});
+
+Deno.test("C7 ④ — LA MATIÈRE D'UN LOT COMPTE: deux plats de batch ne sont pas jumeaux", () => {
+  // ⚠️ LE PIÈGE QUE `uses` FERME. Le prompt système demande qu'un plat qui
+  // puise dans un lot NE RÉPÈTE PAS sa recette: `ingredients` y est court, ou
+  // vide. Comparer les seuls ingrédients propres ferait passer deux plats de
+  // lot pour le même plat — c'est l'erreur que le constat d'ancre protéique a
+  // déjà payée une fois.
+  const seen = observeMergeShape({
+    shape: "one_session",
+    dishes: [
+      plate("wed", "dinner", {
+        title: "Bowl A",
+        ingredients: [{ term: "parsley" }],
+        uses: [{ preparationId: "prep_table" }],
+      }),
+      plate("wed", "dinner", {
+        title: "Bowl B",
+        ingredients: [{ term: "parsley" }],
+        uses: [{ preparationId: "prep_zoe" }],
+      }),
+    ],
+    preparations: [
+      batch(4, { id: "prep_table", ingredients: [{ term: "chickpeas" }] }),
+      batch(1, { id: "prep_zoe", ingredients: [{ term: "beef" }] }),
+    ],
+    eaterCells: [{ day: "wed", slot: "dinner" }],
+  });
+  assertEquals(seen.meals.dedicated, 1);
+  assertEquals(seen.meals.cloned, 0);
+});
+
+Deno.test("C7 ④ — LE DOUTE NE FABRIQUE PAS DE CLONE", () => {
+  // Quand un plat n'écrit AUCUN aliment — ni le sien, ni celui d'un lot — le
+  // second signal se tait. Un faux clone transformerait un plan honoré en plan
+  // trahi, et c'est le seul dégât que ce constat peut causer.
+  const seen = observeMergeShape({
+    shape: "one_session",
+    dishes: [
+      plate("wed", "dinner", { title: "Table plate", ingredients: [{ term: "beef" }] }),
+      plate("wed", "dinner", { title: "Her plate", ingredients: [] }),
+    ],
+    preparations: [batch(4)],
+    eaterCells: [{ day: "wed", slot: "dinner" }],
+  });
+  assertEquals(seen.meals.dedicated, 1);
+  assertEquals(seen.meals.cloned, 0);
+});
+
+Deno.test("C7 ④ — LE `7/9` MESURÉ VALAIT 6 VRAIS + 1 CLONE", () => {
+  // ⚠️ REJOUE LE RUN 1: sept cases doublées sur neuf, dont UNE portait le
+  // petit-déjeuner du foyer en portion simple. L'archive disait « 7 dédiés »;
+  // la vérité est six.
+  const dishes: ObservedDish[] = [];
+  const doubled = C7_CELLS.slice(0, 7);
+  for (const c of C7_CELLS) {
+    dishes.push(plate(c.day, c.slot, { title: `Household ${c.day} ${c.slot}` }));
+    if (!doubled.some((d) => d.day === c.day && d.slot === c.slot)) continue;
+    const clone = c.day === "fri" && c.slot === "breakfast";
+    dishes.push(
+      clone
+        ? plate(c.day, c.slot, { title: `Household ${c.day} ${c.slot}` })
+        : plate(c.day, c.slot, { title: `Zoe ${c.day} ${c.slot}` }),
+    );
+  }
+  const seen = observeMergeShape({
+    shape: "one_session",
+    dishes,
+    preparations: [batch(4)],
+    eaterCells: C7_CELLS,
+  });
+  assertEquals(seen.meals, { atTable: 9, dedicated: 6, fromCommonPot: 3, cloned: 1 });
+  assertEquals(seen.observed, "some_meals_dedicated");
+});
+
+Deno.test("C7 ① — LA RELANCE D'ANCRE NE PEUT PLUS PERDRE UN PLAT DÉDIÉ", async () => {
+  // ⚠️ MESURÉ LE 2026-08-12, run 1: réponse 1 à 18 plats et 9 dédiés sur 9;
+  // relance à 20 plats écrêtés à 18, 7 dédiés. `retried.dishes.length >=
+  // meal.dishes.length` est VRAI des deux côtés — le plafond écrête les deux —
+  // donc la relance a été acceptée, et Zoé a perdu son déjeuner et son dîner du
+  // dimanche.
+  const src = await generatorSource();
+  assert(
+    /const dedicatedBefore = dedicatedMealsIn\(meal\);/.test(src),
+    "le plan d'avant la relance n'est plus mesuré: le critère redevient aveugle.",
+  );
+  assert(
+    /const dedicatedAfter = dedicatedMealsIn\(retried\);/.test(src),
+    "le plan de la relance n'est plus mesuré.",
+  );
+  assert(
+    /dedicatedAfter >= dedicatedBefore/.test(src),
+    "la relance n'est plus comparée sur les plats DÉDIÉS: un plan qui perd " +
+      "deux repas de la personne reprise repasse, parce que le total est le même.",
+  );
+  // ⚠️ L'ANCIENNE MOITIÉ RESTE UNE MOITIÉ. La remplacer ferait l'erreur qu'on
+  // répare, dans l'autre sens: une relance plus courte serait acceptée pour peu
+  // qu'elle serve la personne reprise.
+  assert(
+    /retried\.dishes\.length >= meal\.dishes\.length/.test(src),
+    "le critère de LONGUEUR a disparu: une relance plus courte redevient " +
+      "acceptable dès qu'elle sert la personne reprise.",
+  );
+  // Le compte n'est pas recalculé à la main: c'est le MÊME constat, avec le
+  // MÊME dénominateur, que celui qui sera archivé.
+  assert(
+    /dedicatedMealsIn = \([\s\S]{0,400}?observeMergeShape\(\{[\s\S]{0,300}?eaterCells: mergedEaterCells/
+      .test(src),
+    "le compte de plats dédiés de la relance ne passe plus par " +
+      "`observeMergeShape` avec les cases de la personne reprise.",
+  );
+});
+
+Deno.test("C7 ② — LE GÉNÉRATEUR DONNE AU PLAFOND LES CASES D'ELLE", async () => {
+  // Le nombre dit COMBIEN de place ouvrir; les cases disent OÙ un plat de plus
+  // a le droit de vivre. Sans elles, le plat dédié redevient la première chose
+  // que le plafond sacrifie.
+  const src = await generatorSource();
+  assert(
+    /dedicatedCells: mergedEaterCells/.test(src),
+    "le plafond ne reçoit plus les cases de la personne reprise: l'ordre de " +
+      "sacrifice retombe sur « les derniers tombent ».",
+  );
+});
+
+Deno.test("C7 ④ — LE COMPTE DE CLONES PART DANS L'ARCHIVE ET DANS LE JOURNAL", async () => {
+  // « 7 sur 9 » et « 6 vrais + 1 clone » sont deux faits différents, et le
+  // second est le vrai. Un constat qu'on ne peut pas compter ne se corrige pas.
+  const src = await generatorSource();
+  // ⚠️ LA LIMITE DU MOTIF, TROUVÉE PAR LA MUTATION: `cloned: mergeShape.meals
+  // .cloned` est un SOUS-MOT de la ligne du journal (`meals_cloned: …`), donc
+  // retirer la ligne de l'archive laissait ce test VERT. Le motif exige
+  // désormais que rien ne précède `cloned` — c'est la clé de l'archive, pas
+  // celle du log.
+  assert(
+    /(?<![a-z_])cloned: mergeShape\.meals\.cloned/.test(src),
+    "le compte de clones n'entre plus dans `generated_from`.",
+  );
+  assert(
+    /meals_cloned: mergeShape\.meals\.cloned/.test(src),
+    "le compte de clones n'entre plus dans le journal.",
+  );
+});
+
+Deno.test("C7 ④ — MÊME TITRE, AUTRE LISTE: toujours un clone", () => {
+  // Le second signal (la nourriture) ne couvre pas ce cas: le modèle récrit le
+  // plat du foyer sous le MÊME titre en abrégeant sa liste. Deux plats qui
+  // portent le même nom sont le même plat, et le titre est ce que la personne
+  // lit dans sa grille.
+  const seen = observeMergeShape({
+    shape: "one_session",
+    dishes: [
+      plate("fri", "breakfast", {
+        title: "Greek yogurt bowls",
+        ingredients: [{ term: "greek yogurt" }, { term: "berries" }, { term: "honey" }],
+      }),
+      plate("fri", "breakfast", {
+        title: "Greek yogurt bowls",
+        ingredients: [{ term: "greek yogurt" }],
+      }),
+    ],
+    preparations: [batch(4)],
+    eaterCells: [{ day: "fri", slot: "breakfast" }],
+  });
+  assertEquals(seen.meals.dedicated, 0);
+  assertEquals(seen.meals.cloned, 1);
+});
+
+Deno.test("C7 ⑤ — LE REPAS QUI TOMBE SUR UNE CIBLE CHIFFRÉE EST NOMMÉ", () => {
+  // ⚠️ LE VERROU EST JUSTE ET IL NE BOUGE PAS. Ce qui change est qu'on peut
+  // enfin COMPTER quel repas il coûte: mesuré sur quatre fusions, c'est presque
+  // toujours le petit-déjeuner — `whey protein 90 g`, puis `protein pancake
+  // mix`. Une `issue` qui ne dit pas le créneau rend ce fait incomptable.
+  const meal = parseGeneratedMeal({
+    preparations: [],
+    dishes: [
+      plainDish({
+        title: "Morning stack",
+        day: "thu",
+        slot: "breakfast",
+        ingredients: [{ term: "protein pancake mix", quantity: "60 g protein" }],
+      }),
+    ],
+    shopping_list: [],
+  }, PARSE_BASE);
+  assertEquals(meal.dishes.length, 0);
+  assert(
+    meal.issues.some((i) => i.includes("dish rejected (thu/breakfast)")),
+    meal.issues.join("\n"),
   );
 });
