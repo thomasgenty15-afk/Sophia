@@ -6,6 +6,8 @@ import {
   branchForMouths,
   birthDateAnswer,
   canGenerate,
+  COOKING_SESSION_MINUTES,
+  cookingTimeParts,
   emptyFunnelPerson,
   emptyFunnelState,
   type FunnelBranch,
@@ -587,6 +589,56 @@ describe("les mots de ce qui manque", () => {
       ...FUNNEL_QUESTIONS.map((q) => q.id),
     ]);
     expect(Object.keys(SETUP_MISS_KEYS).filter((k) => !known.has(k))).toEqual([]);
+  });
+});
+
+describe("la durée d'une session de cuisine", () => {
+  /**
+   * LE PLAFOND EST CELUI DU MOTEUR, et il rogne en silence:
+   * `readCookingCapacity` fait `Math.min(240, …)`. Proposer un choix au-delà
+   * afficherait un chiffre et en composerait un autre — le genre d'écart que
+   * personne ne remarque parce que les deux nombres ne sont jamais côte à côte.
+   */
+  it("ne propose aucune durée que le moteur rognerait", () => {
+    expect(COOKING_SESSION_MINUTES.filter((m) => m > 240)).toEqual([]);
+    expect(COOKING_SESSION_MINUTES.filter((m) => m <= 0)).toEqual([]);
+  });
+
+  it("propose des durées croissantes et sans doublon", () => {
+    const sorted = [...COOKING_SESSION_MINUTES].sort((a, b) => a - b);
+    expect([...COOKING_SESSION_MINUTES]).toEqual(sorted);
+    expect(COOKING_SESSION_MINUTES.length).toBe(new Set(COOKING_SESSION_MINUTES).size);
+  });
+
+  it("dit les minutes en minutes et les heures en heures", () => {
+    expect(cookingTimeParts(30)).toEqual({ unit: "minutes", value: "30" });
+    expect(cookingTimeParts(45)).toEqual({ unit: "minutes", value: "45" });
+    expect(cookingTimeParts(60)).toEqual({ unit: "hours", value: "1" });
+    expect(cookingTimeParts(120)).toEqual({ unit: "hours", value: "2" });
+    expect(cookingTimeParts(180)).toEqual({ unit: "hours", value: "3" });
+  });
+
+  /** La demi-heure se DIT, elle ne se calcule pas: « 1½ », jamais « 1.5 ». */
+  it("dit la demi-heure comme un humain la lit", () => {
+    expect(cookingTimeParts(90)).toEqual({ unit: "hours", value: "1½" });
+    expect(cookingTimeParts(150)).toEqual({ unit: "hours", value: "2½" });
+  });
+
+  /**
+   * UNE VALEUR HORS LISTE GARDE SES MINUTES. La carte de `/app/plan` conserve
+   * son champ libre: « 37 » existe en base, et l'écran doit pouvoir le dire
+   * plutôt que faire semblant que la réponse est vide.
+   */
+  it("rend telle quelle une durée qui n'est dans aucun choix", () => {
+    expect(cookingTimeParts(37)).toEqual({ unit: "minutes", value: "37" });
+    expect(cookingTimeParts(200)).toEqual({ unit: "minutes", value: "200" });
+  });
+
+  /** Le mot n'est PAS ici: il vit dans le catalogue de langue. */
+  it("ne rend aucun mot — seulement un nombre et une unité", () => {
+    for (const minutes of COOKING_SESSION_MINUTES) {
+      expect(cookingTimeParts(minutes).value).toMatch(/^[0-9]+½?$/);
+    }
   });
 });
 

@@ -551,6 +551,50 @@ export interface FunnelState {
   plan: FunnelPlanAnswers;
 }
 
+/**
+ * COMBIEN DE TEMPS ON PASSE À CUISINER, EN CHOIX FERMÉS.
+ *
+ * ── POURQUOI PAS UN NOMBRE LIBRE ──────────────────────────────────────────
+ * Le champ était un `<input type="number">` de 5 à 240, et personne ne sait
+ * quoi y écrire: « 37 » n'est pas une réponse qu'un humain a. Le moteur, lui,
+ * n'en fait rien de précis — `meal_generation.ts` écrit littéralement
+ * « time per cooking session: about ${n} minutes ». Un nombre exact y est donc
+ * une FAUSSE PRÉCISION: on demande un chiffre au décimal près pour le rendre
+ * flou une ligne plus loin.
+ *
+ * Six durées qu'on reconnaît, de la demi-heure de semaine aux trois heures du
+ * dimanche. Le plafond du moteur est 240 (`Math.min(240, …)`), et le plus
+ * grand choix reste dessous exprès: proposer une valeur que le lecteur rogne
+ * ferait afficher un chiffre et en composer un autre.
+ */
+export const COOKING_SESSION_MINUTES: readonly number[] = [30, 45, 60, 90, 120, 180];
+
+/**
+ * UNE DURÉE, DÉCOUPÉE POUR ÊTRE DITE — pas formatée ici.
+ *
+ * Rend le NOMBRE et son UNITÉ séparément, parce que les mots appartiennent au
+ * catalogue de langue et pas à ce module. Écrire « 1 hr » ici ferait une
+ * étiquette anglaise qu'aucune traduction ne pourrait reprendre — la cicatrice
+ * `optout-confirmation-hardcoded-french`, dans l'autre sens.
+ *
+ * Une valeur hors des choix (quelqu'un a saisi 37 sur `/app/plan`, dont la
+ * carte garde son champ libre) rend ses minutes telles quelles: on préfère
+ * afficher « 37 min » que faire semblant qu'elle n'existe pas.
+ */
+export function cookingTimeParts(
+  minutes: number,
+): { unit: "minutes" | "hours"; value: string } {
+  if (minutes >= 60 && minutes % 60 === 0) {
+    return { unit: "hours", value: String(minutes / 60) };
+  }
+  // La demi-heure se dit « 1½ », jamais « 1.5 »: c'est une durée lue par un
+  // humain, pas une mesure.
+  if (minutes > 60 && minutes % 30 === 0) {
+    return { unit: "hours", value: `${Math.floor(minutes / 60)}½` };
+  }
+  return { unit: "minutes", value: String(minutes) };
+}
+
 /** Le plafond de bouches, EN BASE (`keel_household_max_mouths()` rend 8). */
 export const HOUSEHOLD_MAX_MOUTHS = 8;
 

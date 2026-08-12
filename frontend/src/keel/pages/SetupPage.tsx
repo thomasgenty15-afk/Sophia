@@ -29,6 +29,8 @@ import {
   birthDateAnswer,
   branchForMouths,
   canGenerate,
+  COOKING_SESSION_MINUTES,
+  cookingTimeParts,
   DEFAULT_HOUSEHOLD_NAME,
   type FunnelBranch,
   type FunnelFacts,
@@ -1533,45 +1535,69 @@ function PlanStep({
             </div>
           </Field>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={t("setup.plan.time")} htmlFor="setup-time">
-              <input
-                id="setup-time"
-                type="number"
-                inputMode="numeric"
-                min={5}
-                max={240}
-                value={draft.cookingTimeMin === null ? "" : String(draft.cookingTimeMin)}
-                onChange={(e) => {
-                  const value = Number(e.target.value);
-                  onChange((prev) =>
-                    prev === null ? prev : {
-                      ...prev,
-                      cookingTimeMin: Number.isFinite(value) && value > 0 ? value : null,
-                    });
-                }}
-                className={inputClass}
-              />
-            </Field>
-            <Field label={t("setup.plan.budget")} htmlFor="setup-budget">
-              <select
-                id="setup-budget"
-                value={draft.budgetBand ?? ""}
-                onChange={(e) =>
-                  onChange((prev) =>
-                    prev === null ? prev : {
-                      ...prev,
-                      budgetBand: (e.target.value || null) as FunnelPlanAnswers["budgetBand"],
-                    })}
-                className={inputClass}
-              >
-                <option value="">—</option>
-                <option value="tight">{t("setup.plan.budget_tight")}</option>
-                <option value="normal">{t("setup.plan.budget_normal")}</option>
-                <option value="comfortable">{t("setup.plan.budget_comfortable")}</option>
-              </select>
-            </Field>
-          </div>
+          {/* ── DES DURÉES, PAS UN NOMBRE À INVENTER ──────────────────────
+              Le champ était libre (5 à 240) et ne voulait rien dire: « 37 »
+              n'est pas une réponse qu'un humain a. Le moteur écrit de toute
+              façon « about ${n} minutes » — un nombre exact y est une fausse
+              précision.
+
+              ⚠️ UNE VALEUR HORS LISTE GARDE SA PLACE. La carte de `/app/plan`
+              conserve son champ libre: quelqu'un qui y a saisi 37 doit
+              retrouver « 37 min » sélectionné ici, et pas une rangée où rien
+              n'est coché au-dessus d'une valeur pourtant enregistrée. */}
+          <Field label={t("setup.plan.time")} hint={t("setup.plan.time_hint")}>
+            <div className="flex flex-wrap gap-2">
+              {(draft.cookingTimeMin !== null &&
+                  !COOKING_SESSION_MINUTES.includes(draft.cookingTimeMin)
+                ? [...COOKING_SESSION_MINUTES, draft.cookingTimeMin].sort((a, b) => a - b)
+                : COOKING_SESSION_MINUTES).map((minutes) => {
+                const parts = cookingTimeParts(minutes);
+                return (
+                  <Button
+                    key={minutes}
+                    size="sm"
+                    variant={draft.cookingTimeMin === minutes ? "primary" : "secondary"}
+                    onClick={() =>
+                      onChange((prev) =>
+                        prev === null ? prev : { ...prev, cookingTimeMin: minutes })}
+                  >
+                    {t(
+                      parts.unit === "hours"
+                        ? "setup.plan.time_hours"
+                        : "setup.plan.time_minutes",
+                      { n: parts.value },
+                    )}
+                  </Button>
+                );
+              })}
+            </div>
+          </Field>
+
+          {/* TROIS VALEURS, TROIS PASTILLES — comme les trois rangées
+              au-dessus. Un `<select>` seul au milieu de pastilles demande un
+              clic pour révéler ce que trois boutons montrent déjà, et il
+              laissait « — » sélectionnable: une option qui ne veut rien dire
+              et que la garde refuse ensuite. */}
+          <Field label={t("setup.plan.budget")}>
+            <div className="flex flex-wrap gap-2">
+              {([
+                ["tight", "setup.plan.budget_tight"],
+                ["normal", "setup.plan.budget_normal"],
+                ["comfortable", "setup.plan.budget_comfortable"],
+              ] as const).map(([band, key]) => (
+                <Button
+                  key={band}
+                  size="sm"
+                  variant={draft.budgetBand === band ? "primary" : "secondary"}
+                  onClick={() =>
+                    onChange((prev) =>
+                      prev === null ? prev : { ...prev, budgetBand: band })}
+                >
+                  {t(key)}
+                </Button>
+              ))}
+            </div>
+          </Field>
         </div>
       </Card>
 

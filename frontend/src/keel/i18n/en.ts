@@ -4178,7 +4178,13 @@ export const en = {
   "setup.plan.rhythm_hint": "Only the moments you tick get composed.",
   "setup.plan.cook_days": "Days you cook",
   "setup.plan.cook_days_hint": "The rest is leftovers, batches, or something we do not touch.",
-  "setup.plan.time": "Minutes per cooking session",
+  "setup.plan.time": "How long a cooking session lasts",
+  // ⚠️ LE NOMBRE ARRIVE DÉJÀ FORMATÉ (« 1½ »), et c'est voulu: la demi-heure
+  // se dit, elle ne se calcule pas à l'affichage. Voir `cookingTimeParts`.
+  "setup.plan.time_minutes": "{n} min",
+  "setup.plan.time_hours": "{n} hr",
+  "setup.plan.time_hint":
+    "Roughly. It is used as an order of magnitude, not as a stopwatch.",
   "setup.plan.budget": "Budget",
   "setup.plan.budget_tight": "Tight",
   "setup.plan.budget_normal": "Normal",
