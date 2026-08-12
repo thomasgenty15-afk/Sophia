@@ -123,6 +123,43 @@ const COPY = {
   // carte n'affiche ni les ingrédients ni la recette. Les répéter ferait
   // racheter et recuire ce qui est déjà au frigo.
   "meals.result.from_batch": "From the batch you cooked on {day} — reheat a portion.",
+  // ── FF-059 · LE CHIFFRE, ET CE QU'IL DIT DE LUI-MÊME ────────────────────
+  //
+  // ⚠️ AUCUNE DE CES PHRASES N'EST UNE CIBLE, UN BUDGET NI UN SCORE. Elles
+  // décrivent de la NOURRITURE — « ce plat pèse ça » — jamais la personne qui
+  // la mange. « 1 420 / 2 100 » est le lot 3, il est bloqué sur trois décisions
+  // humaines, et rien ici ne l'anticipe.
+  //
+  // `kcal` en minuscules et collé au nombre: c'est une unité, pas un titre de
+  // colonne. Une majuscule ou un libellé (« Energy: 612 kcal ») donnerait à
+  // l'assiette l'air d'une fiche de suivi.
+  "meals.energy.dish": "{n} kcal",
+  "meals.energy.day": "{n} kcal across the day",
+  // LE TOTAL PARTIEL SE DIT AVEC SES DEUX NOMBRES, jamais avec le seul mot
+  // « incomplet ». « 1 200 kcal, 2 des 3 plats comptés » se lit correctement;
+  // « 1 200 kcal (incomplet) » se lit « 1 200 kcal ». C'est le rabbit hole n°3
+  // de la fiche, et il se commet ICI, dans la copie.
+  "meals.energy.day_partial": "{n} kcal — {counted} of {total} dishes counted",
+  "meals.energy.day_unreadable": "Not enough detail to add this day up",
+  // Sur un plat sans chiffre: on dit POURQUOI. Un plat muet à côté de plats
+  // chiffrés se lit « ce plat ne compte pas », ce qui est faux.
+  "meals.energy.dish_unknown_ingredient": "One ingredient isn't in our food table",
+  "meals.energy.dish_missing_quantity": "One quantity isn't precise enough to add up",
+  // D'OÙ VIENT LE CHIFFRE. Une ligne, une fois par écran, jamais par plat.
+  // C'est la règle de `CALORIE_REVERSAL`: un chiffre vit dans un champ qui
+  // porte sa base, ou il n'existe pas — et l'élève doit pouvoir lire cette
+  // base, sinon la garantie n'est vraie que dans le code.
+  "meals.energy.basis":
+    "Worked out from the quantities in your plan and a food composition table — not guessed from a photo.",
+  "meals.energy.household_abstention":
+    "Everyone's share is different on a household plan, so a single number per dish would be wrong for everyone.",
+  // L'INTERRUPTEUR. Il ne s'affiche QUE si les trois autres portes sont
+  // ouvertes: proposer « voir les calories » à quelqu'un que le plancher
+  // protège, ce serait encore lui parler de calories.
+  "meals.energy.switch_on": "Show calories",
+  "meals.energy.switch_off": "Hide calories",
+  "meals.energy.switch_hint": "You can turn this off at any time, and it goes quiet everywhere.",
+  "meals.energy.switch_failed": "That did not save. Nothing changed.",
   "meals.day.mon": "Monday",
   "meals.day.tue": "Tuesday",
   "meals.day.wed": "Wednesday",

@@ -33,6 +33,7 @@ import {
 } from "../keel/daily_pulse.ts";
 import { writePulseAxis, writePulseLevel } from "../keel/daily_pulse_io.ts";
 import {
+  recommendationAck,
   recommendationAction,
   RECOMMENDATION_APPLY_FAILED_ACK,
   RECOMMENDATION_BUTTON_PREFIX,
@@ -354,6 +355,23 @@ async function handleRecommendationTap(
       body,
     });
 
+  // ⚠️ LA LANGUE DE L'ÉLÈVE, ET ELLE MANQUAIT ICI.
+  //
+  // Mesuré en run réel le 2026-08-12 (`ff056-t6-run3`): une élève `fr-FR` a nommé
+  // son créneau en français, lu une proposition en français, tapé « Oui, on
+  // l'ajoute » — et reçu « Done — breakfast is part of your rhythm now ». Ce
+  // handler avait `isFrenchLocale` importé et s'en servait déjà deux fonctions
+  // plus bas; il ne s'en servait pas ICI.
+  //
+  // `studentVoiceContext` ne jette jamais et retombe sur le défaut de
+  // `resolveArtifactLocale` si `profiles` est illisible: sur panne de lecture on
+  // servira donc la langue par défaut, pas une erreur. C'est le bon arbitrage
+  // pour un accusé — mais c'est un repli, pas une garantie.
+  const voice = await studentVoiceContext(admin, message.user_id);
+  const ackLanguage: "fr" | "en" = isFrenchLocale(voice.contentLocale)
+    ? "fr"
+    : "en";
+
   try {
     // La version de doctrine entre dans l'empreinte: un coach qui republie sa
     // méthode entre la proposition et le tap a pu, entre-temps, interdire
@@ -426,10 +444,12 @@ async function handleRecommendationTap(
       const action = recommendationAction(row.actionId);
       if (row.state === "accepted") {
         await say(
-          row.appliedAt ? action.appliedAck : RECOMMENDATION_APPLY_FAILED_ACK,
+          row.appliedAt
+            ? recommendationAck(action, ackLanguage, "applied")
+            : RECOMMENDATION_APPLY_FAILED_ACK,
         );
       } else if (row.state === "declined") {
-        await say(action.declinedAck);
+        await say(recommendationAck(action, ackLanguage, "declined"));
       } else {
         await say(RECOMMENDATION_UNKNOWN_ACK);
       }
@@ -455,7 +475,7 @@ async function handleRecommendationTap(
         userId: message.user_id,
         applied: false,
       });
-      await say(action.declinedAck);
+      await say(recommendationAck(action, ackLanguage, "declined"));
       return handled("keel_daily_recommendation_declined");
     }
 
@@ -495,7 +515,7 @@ async function handleRecommendationTap(
       userId: message.user_id,
       applied: true,
     });
-    await say(action.appliedAck);
+    await say(recommendationAck(action, ackLanguage, "applied"));
     return handled("keel_daily_recommendation_accepted");
   } catch (error) {
     // NE JETTE JAMAIS: l'élève a tapé un bouton, et un 500 le laisserait sans

@@ -9,7 +9,9 @@ import type {
   PlanDayProperty,
   PlanFixedIntake,
 } from "../../api/mealGeneration";
+import type { DayEnergyView, DishEnergyView } from "../../api/mealEnergy";
 import { dishDayLabel, mealCopy } from "../../api/mealLabels";
+import { DayEnergyLine, EnergyBasisNote } from "./EnergyReadout";
 import { groupByDay } from "../../lib/mealBuilderModel";
 import { dishDate } from "../../api/mealStretch";
 import { windowDates, windowDayOrder } from "../../api/mealWindow";
@@ -87,6 +89,18 @@ export interface PlanResultProps {
    * (aujourd'hui et le passé, jamais l'avenir) vit dans `useMealTicks`, pas ici.
    */
   tick?: (dish: GeneratedDish, date: string | null) => DishTick | null;
+  /**
+   * FF-059 — L'ÉNERGIE D'UN PLAT, quand les quatre portes sont ouvertes.
+   *
+   * MÊME FORME QUE `tick`, et pour la même raison: ce composant ne sait pas
+   * QUI regarde. La chaîne de gardes est décidée par `meal-energy-v1`, côté
+   * serveur; quand elle ferme, l'appelant n'a rien à passer et ces deux
+   * fonctions restent `undefined`. Il n'y a donc aucun droit à tester ici — et
+   * donc aucun droit à oublier de tester.
+   */
+  energy?: (dish: GeneratedDish) => DishEnergyView | null;
+  /** Le total d'un jour. `null` = pas de chiffre pour ce jour. */
+  dayEnergy?: (day: string | null) => DayEnergyView | null;
 }
 
 export default function PlanResult(props: PlanResultProps) {
@@ -154,6 +168,12 @@ export default function PlanResult(props: PlanResultProps) {
                     {mealCopy("meals.result.past")}
                   </span>
                 )}
+                {/* FF-059 · SURFACE B — LA SOMME DU JOUR, sur le titre du jour.
+                    `ml-auto` la pousse à droite: elle accompagne le jour, elle
+                    ne le remplace pas. */}
+                <span className="ml-auto">
+                  <DayEnergyLine energy={props.dayEnergy?.(group.day) ?? null} />
+                </span>
               </h3>
             )}
             <div className="space-y-3">
@@ -172,12 +192,18 @@ export default function PlanResult(props: PlanResultProps) {
                     .filter((p): p is NonNullable<typeof p> => Boolean(p))
                     .map((p) => ({ title: p.title, cookOn: p.cook_on }))}
                   tick={props.tick?.(dish, date)}
+                  energy={props.energy?.(dish) ?? null}
                 />
               ))}
             </div>
           </div>
         );
       })}
+      {/* D'OÙ VIENT LE CHIFFRE — une fois, en bas, et seulement s'il y en a un.
+          Sans cette ligne, rien ne distingue à l'écran ce CALCUL d'une
+          estimation par photo, que le produit refuse précisément d'afficher
+          (−26,6 % de biais, systématique). */}
+      {props.energy && <EnergyBasisNote />}
     </div>
   );
 }

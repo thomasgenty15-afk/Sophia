@@ -1,8 +1,10 @@
 import React from "react";
 
 import { type GeneratedDish } from "../api/mealGeneration";
+import { type DishEnergyView } from "../api/mealEnergy";
 import { dishDayLabel, dishSlotLabel, mealCopy } from "../api/mealLabels";
 import { type DishTick } from "../lib/useMealTicks";
+import { DishEnergyLine } from "./plan/EnergyReadout";
 import { Badge } from "./ui/Badge";
 import { Card } from "./ui/Card";
 
@@ -72,12 +74,25 @@ export interface DishSource {
 }
 
 export default function DishCard(
-  { dish, tick, servedFrom = null, sources = [] }: {
+  { dish, tick, servedFrom = null, sources = [], energy = null }: {
     dish: GeneratedDish;
     tick?: DishTick | null;
     servedFrom?: ServedFrom;
     /** Les préparations que ce plat consomme. Vide = il se fait de zéro. */
     sources?: readonly DishSource[];
+    /**
+     * FF-059 — L'ÉNERGIE DE CE PLAT, quand les quatre portes sont ouvertes.
+     *
+     * `null` est le défaut ET le cas le plus fréquent: un élève sous plancher
+     * TCA, un mineur, un élève dont le coach ne compte pas, un élève qui a
+     * éteint — pour tous ceux-là, la réponse du serveur ne contient AUCUN
+     * chiffre, donc l'appelant n'a rien à passer. La carte ne teste aucun droit:
+     * elle ne peut pas afficher ce qui n'existe pas dans son arbre de props.
+     *
+     * C'est ce qui répond à l'angle adversarial « une prop React qui fuit »:
+     * la prop existe, la donnée non.
+     */
+    energy?: DishEnergyView | null;
   },
 ) {
   // Un plat qui PUISE dans une préparation n'affiche ni sa recette ni ses
@@ -94,6 +109,10 @@ export default function DishCard(
       <div className="flex flex-wrap items-center gap-2">
         <span className="font-medium text-gray-900">{dish.title}</span>
         {dish.slot && <Badge tone="neutral">{dishSlotLabel(dish.slot)}</Badge>}
+        {/* FF-059 — LE CHIFFRE, à côté du plat et pas au-dessus. C'est un fait
+            SUR CE PLAT, du même rang que son créneau: le mettre en tête de
+            carte en ferait le sujet, et le sujet reste le dîner. */}
+        <DishEnergyLine energy={energy} />
         {tick && (
           <span className="ml-auto flex items-center gap-2">
             <input

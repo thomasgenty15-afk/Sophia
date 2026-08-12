@@ -1,5 +1,11 @@
 /**
- * PROPERTY — no calorie figure ever reaches a student.
+ * PROPERTY — no energy figure WITHOUT A BASIS ever reaches a student.
+ *
+ * ⚠️ THE INVARIANT WAS TURNED OVER ON 2026-08-12 (FF-059). It used to read "no
+ * energy figure ever reaches a student", full stop. It was not deleted, and it
+ * was not weakened by accident — the human decision of 2026-08-12 says calories
+ * ARE displayed, and `CALORIE_REVERSAL.md` §5 says this test flips rather than
+ * disappears. What replaces the ban is a strictly narrower one:
  *
  * THE INVARIANT:
  *
@@ -7,6 +13,18 @@
  *   path, no student-facing string produced by KEEL contains an energy or macro
  *   quantity. Not as a field, not in prose, not "roughly", not "internally for
  *   the trend".
+ *
+ *   The one figure that may reach a student lives in a TYPED FIELD THAT CARRIES
+ *   ITS BASIS, and today there is exactly one such basis: `plan_quantities` —
+ *   the quantities the product itself WROTE into the plan, recomputed into raw
+ *   grams by the parser (MAPE 2,3 %). It is a CALCULATION, and it travels as an
+ *   integer in a field, never as a sentence. Layer 4 below is what makes that
+ *   claim testable rather than a promise.
+ *
+ * WHAT DID NOT CHANGE, AND MUST NOT: the PHOTO path. `energy_estimate` with its
+ * `photo_estimate` basis (−26,6 % bias, systematic, worst on the biggest meals)
+ * is a different chantier, and FF-059 does not open it. Layers 1 to 3 below are
+ * untouched, and they are the reason a photo still cannot produce a number.
  *
  * WHY IT IS A HARD LINE AND NOT A PREFERENCE. `docs/keel/PHOTO_QUANTIFICATION.md`
  * measured our own model on our own payload: photo-only calorie estimation is
@@ -23,7 +41,7 @@
  * WHAT KEEL SAYS INSTEAD: an ordinal portion band (small / moderate / large /
  * unclear). The token IS the error bar, which is why it needs no number.
  *
- * THREE LAYERS ARE CHECKED HERE, because one of them alone proves nothing:
+ * FOUR LAYERS ARE CHECKED HERE, because one of them alone proves nothing:
  *   1. INGESTION — `stripMeasurementFacts` deletes measurement fields and
  *      redacts quantified prose, whatever shape the model invents.
  *   2. RENDER — the acknowledgement, the slot reminder and the Sunday digest
@@ -31,6 +49,11 @@
  *      A dose the COACH wrote travels verbatim (R2), and since 2026-07-28
  *      nothing degrades it — see the flipped property near the end of this file.
  *   3. TYPE — `MealAnalysis` has no field that could carry one.
+ *   4. BASIS (FF-059) — every shape that CAN carry a kcal also carries its
+ *      basis, the composer's prompt still forbids the model from writing one,
+ *      and the gate chain closes before any number is computed. This is the
+ *      layer the product decision buys, and `CALORIE_REVERSAL.md` §5 asks for
+ *      it in those words.
  */
 
 import { numericNutritionTargetPatterns } from "../../../_shared/keel/nutrition_lexicon.ts";
@@ -147,6 +170,23 @@ Deno.test("PROPERTY: quantified energy prose is redacted wherever it hides", () 
     "protein: 42 g, fat 30g",
     "~750 kcal",
     "Approximately 1,200 calories for the day.",
+    // ── FR, AJOUTÉ LE 2026-08-12 (FF-059) ─────────────────────────────────
+    // Le détecteur délègue déjà à l'union EN+FR de `nutrition_lexicon`, et le
+    // commentaire de tête le dit — mais le CORPUS de ce test était 100 %
+    // anglais, donc rien ne prouvait que la moitié française mordait. La
+    // cicatrice `guard-tested-in-one-language-only` dit exactement ça: une
+    // garde passait par accident de grammaire, et personne ne l'a vu parce
+    // qu'aucun cas ne l'exerçait dans l'autre langue.
+    //
+    // « environ 600 kcal » est LA phrase du §8 de FF-059, mot pour mot: la
+    // décision du 2026-08-12 ouvre le chiffre dans un CHAMP TYPÉ, et ferme
+    // définitivement la porte de la prose. Elle se teste donc dans la langue
+    // dans laquelle elle a été écrite.
+    "Ça fait environ 600 kcal.",
+    "À peu près 850 calories dans l'assiette.",
+    "Autour de 620 calories, un peu plus avec l'huile.",
+    "protéines : 42 g, lipides 30g",
+    "Environ 1 200 calories sur la journée.",
   ];
   for (const claim of claims) {
     for (
@@ -486,4 +526,156 @@ Deno.test("PROPERTY: the MealAnalysis interface carries no energy or macro field
   }
   // The ordinal replacement is there, and stays there.
   assertStringIncludes(body, "portion_band: PortionBand;");
+});
+
+// ---------------------------------------------------------------------------
+// LAYER 4 — the basis (FF-059)
+//
+// This is the layer the 2026-08-12 decision buys. Layers 1-3 prove a photo
+// produces no number; they say nothing about the one number that IS allowed.
+// What follows is the shape of that permission, and it is deliberately narrow:
+// a typed field that carries its basis, computed AFTER the model wrote the
+// plan, behind four gates, never in a sentence.
+// ---------------------------------------------------------------------------
+
+/** Read a source file next to `_shared/keel/`, comments stripped. */
+function keelSource(file: string): string {
+  return Deno.readTextFileSync(
+    fromFileUrl(new URL(`../../../_shared/keel/${file}`, import.meta.url)),
+  );
+}
+
+function stripComments(text: string): string {
+  return text.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
+}
+
+Deno.test("PROPERTY: every shape that can carry a kcal also carries its basis", () => {
+  // Structural, like layer 3, and for the same reason: this asserts the
+  // PRESENCE of a field on every output shape, which no behavioural test can do
+  // for shapes that do not exist yet. If someone adds a fourth energy shape
+  // without a `basis`, this is what stops it.
+  const source = stripComments(keelSource("plan_energy.ts"));
+  for (const shape of ["DishEnergy", "DayEnergy", "PlanEnergy"]) {
+    const start = source.indexOf(`export interface ${shape} {`);
+    assertEquals(start >= 0, true, `${shape} not found — did it move?`);
+    const body = source.slice(start, source.indexOf("\n}", start));
+    assertStringIncludes(
+      body,
+      "basis:",
+      `${shape} can hold a kcal and does not carry its basis — that is exactly ` +
+        `the naked number CALORIE_REVERSAL forbids`,
+    );
+  }
+  // And there is exactly ONE basis on this path. A second value would be a
+  // choice, and the whole point is that the plan's quantities are not a choice:
+  // the product wrote them.
+  assertStringIncludes(source, 'export const PLAN_ENERGY_BASIS = "plan_quantities"');
+});
+
+Deno.test("PROPERTY: the composer's prompt still forbids the model from writing a number", () => {
+  // THE RABBIT HOLE OF FF-059, IN ONE TEST. The figure is COMPUTED from the
+  // quantities, after generation, by a table. It is never something the model
+  // says. Opening the prompt would re-open the hallucinated number — with a
+  // basis stamped on it, which is worse than the ban it replaced.
+  const prompt = keelSource("meal_generation.ts");
+  for (
+    const line of [
+      "No calories.",
+      "No macro grams.",
+      "No percentages of anything nutritional.",
+    ]
+  ) {
+    assertStringIncludes(
+      prompt,
+      line,
+      `the composer's prompt lost "${line}" — FF-059 computes the figure from ` +
+        `the plan's quantities and never asks the model for one`,
+    );
+  }
+});
+
+Deno.test("PROPERTY: a closed gate sends no number at all", () => {
+  // Not "the client hides it": the response has nothing in it. This reads the
+  // edge function's refusal helper, because the property is an ABSENCE and the
+  // only way to assert an absence is to look at the shape that produces it.
+  const fn = stripComments(
+    Deno.readTextFileSync(
+      fromFileUrl(new URL("../../../meal-energy-v1/index.ts", import.meta.url)),
+    ),
+  );
+  const start = fn.indexOf("function closed(");
+  assertEquals(start >= 0, true, "the refusal helper moved — re-read this guard");
+  const body = fn.slice(start, fn.indexOf("\n}", start));
+  for (const banned of ["kcal", "plans", "basis", "dishes", "days"]) {
+    assertEquals(
+      body.includes(banned),
+      false,
+      `a closed gate leaks "${banned}" — a refusal must carry a reason and ` +
+        `nothing else, or the number is one devtools tab away`,
+    );
+  }
+  // Every refusal names itself. A bare `false` cannot be told apart from a
+  // guard that never ran.
+  assertStringIncludes(body, "show: false");
+  assertStringIncludes(body, "reason");
+});
+
+Deno.test("PROPERTY: the gate chain is the only door, and gate ① has no key", () => {
+  // The single most expensive failure of this chantier would be a number
+  // reaching a student under `restriction_flag`. Two structural facts hold it:
+  // the floor is read FIRST, and its branch takes no other argument.
+  const gate = stripComments(keelSource("energy_gate.ts"));
+  const floor = gate.indexOf("input.restrictionFlag)");
+  const minor = gate.indexOf("weekPlanAgeGate(");
+  const doctrine = gate.indexOf('input.coachCounting === "no_counting"');
+  const student = gate.indexOf("!input.studentSwitch");
+  assertEquals(floor >= 0 && minor > floor && doctrine > minor && student > doctrine, true, [
+    "the four gates are no longer in order — the order IS the contract:",
+    "a student under the TCA floor whose coach also counts must be told",
+    "nothing, and must be recorded as `restriction_floor`, not as their",
+    "coach's decision.",
+  ].join(" "));
+
+  // And nothing else in the product may decide this. One caller, one door.
+  const callers: string[] = [];
+  for (
+    const dir of [
+      new URL("../../../_shared/keel/", import.meta.url),
+      new URL("../../../", import.meta.url),
+    ]
+  ) {
+    for (const entry of Deno.readDirSync(fromFileUrl(dir))) {
+      if (!entry.isFile && !entry.isDirectory) continue;
+      const path = fromFileUrl(new URL(entry.name, dir));
+      const files = entry.isDirectory
+        ? (() => {
+          try {
+            return [...Deno.readDirSync(path)]
+              .filter((f) => f.isFile && f.name.endsWith(".ts"))
+              .map((f) => `${path}/${f.name}`);
+          } catch {
+            return [];
+          }
+        })()
+        : entry.name.endsWith(".ts")
+        ? [path]
+        : [];
+      for (const file of files) {
+        if (file.endsWith("energy_gate.ts") || file.endsWith("energy_gate_test.ts")) continue;
+        let text: string;
+        try {
+          text = stripComments(Deno.readTextFileSync(file));
+        } catch {
+          continue;
+        }
+        if (text.includes("canShowEnergy(")) callers.push(file.split("/").slice(-2).join("/"));
+      }
+    }
+  }
+  assertEquals(
+    callers.sort(),
+    ["meal-energy-v1/index.ts"],
+    "someone else calls canShowEnergy — every extra caller is another place " +
+      "the four gates can be assembled wrongly",
+  );
 });

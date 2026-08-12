@@ -73,7 +73,10 @@ import { browserLocalDate, useMealTicks } from "../lib/useMealTicks";
 import CommitmentLine, { ActivityChip } from "../components/CommitmentLine";
 import DeviationDialog from "../components/DeviationDialog";
 import DishCard from "../components/DishCard";
+import { DayEnergyLine, EnergyBasisNote } from "../components/plan/EnergyReadout";
+import { useMealEnergy } from "../lib/useMealEnergy";
 import KeelAppShell from "../components/KeelAppShell";
+import KitchenToday from "../components/KitchenToday";
 import { Badge } from "../components/ui/Badge";
 import { ButtonLink } from "../components/ui/Button";
 import { Card, SectionLabel } from "../components/ui/Card";
@@ -223,6 +226,17 @@ function OwnDay({
     mealId: meals?.mealId ?? null,
     dishes: meals?.dishes ?? [],
   });
+  // FF-059 — LE MÊME CHIFFRE QUE SUR `/app/plan`, par la même liaison. Deux
+  // lectures du même plat produiraient deux nombres, et rien à l'écran ne
+  // dirait lequel ment.
+  const energy = useMealEnergy({
+    planId: meals?.mealId ?? null,
+    dishes: meals?.dishes ?? [],
+  });
+  // SURFACE B SUR TODAY — la somme de CE jour, prise dans la table du plan.
+  // Elle n'est pas recalculée ici: elle est LA MÊME entrée que celle du titre
+  // de jour sur l'écran du plan.
+  const dayEnergy = energy.showing ? energy.forDay(day) : null;
 
   return (
     <div className="space-y-6">
@@ -240,11 +254,24 @@ function OwnDay({
         </div>
       </Card>
 
+      {/* CE QUE LA JOURNÉE DEMANDE — avant les plats, et c'est l'ordre qui
+          compte: une session de cuisine ou une course se décident AVANT de
+          lire ce qu'on mange, et un jour de cuisson découvert après le dîner
+          ne sert plus à rien. Rendu `null` quand il n'y a ni session ni
+          liste. */}
+      <KitchenToday meals={meals} todayDate={todayDate} />
+
       {/* CE QUE JE MANGE. Le plat entier, ingrédients et méthode compris: on
           cuisine sur cet écran-là, pas sur l'autre. */}
       {dishes && (
         <section>
-          <SectionLabel>{t("today.own_meals_label")}</SectionLabel>
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <SectionLabel>{t("today.own_meals_label")}</SectionLabel>
+            {/* FF-059 · SURFACE B — la somme du jour, à côté du titre de la
+                section qui la produit. Absente quand une porte est fermée: il
+                n'y a alors aucun chiffre dans cet écran. */}
+            <DayEnergyLine energy={dayEnergy} />
+          </div>
           {ticks.error && (
             <p className="mb-3 text-sm text-red-600">
               {mealCopy("meals.tick.failed")}
@@ -258,6 +285,7 @@ function OwnDay({
                     key={`d${i}-${dish.title}`}
                     dish={dish}
                     tick={ticks.bind(dish, todayDate)}
+                    energy={energy.showing ? energy.forDish(dish) : null}
                   />
                 ))}
               </div>
@@ -281,9 +309,18 @@ function OwnDay({
                     key={`a${i}-${dish.title}`}
                     dish={dish}
                     tick={ticks.bind(dish, todayDate)}
+                    energy={energy.showing ? energy.forDish(dish) : null}
                   />
                 ))}
               </div>
+            </div>
+          )}
+          {/* D'OÙ VIENT LE CHIFFRE. Une fois par écran, et seulement s'il y en
+              a un: sans elle, rien ne distingue ce CALCUL d'une estimation par
+              photo — que le produit refuse précisément d'afficher. */}
+          {energy.showing && (
+            <div className="mt-4">
+              <EnergyBasisNote />
             </div>
           )}
         </section>

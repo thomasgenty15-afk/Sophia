@@ -275,12 +275,29 @@ export interface CoachStartingNumbers {
 /**
  * Des FOURCHETTES de départ, pas une prescription — et côté coach uniquement.
  *
- * Sans taille, âge, sexe ni niveau d'activité (on ne les collecte pas), toute
- * valeur unique serait une fausse précision. La fourchette par kg est
- * exactement le raccourci qu'un coach utilise de tête ; on lui épargne le
- * calcul, on ne lui vole pas le jugement. L'élève, lui, ne voit JAMAIS ces
- * nombres : un chiffre affiché à l'élève devient un objectif, et « personne ne
- * note » couvre aussi ça.
+ * ⚠️ CORRIGÉ LE 2026-08-12 (FF-059) — CE COMMENTAIRE A MENTI. Il disait « sans
+ * taille, âge, sexe ni niveau d'activité (ON NE LES COLLECTE PAS) », et c'est
+ * faux depuis le 2026-08-08 : `profiles.height_cm` existe avec son écran et ses
+ * bornes (migration `20260808020000`), `profiles.gender` est une liste fermée,
+ * l'âge se dérive de `profiles.birth_date`, et `loadStudentBody` rend les trois
+ * DANS LA MÊME REQUÊTE. Seul le **niveau d'activité** manque réellement, et
+ * c'est lui qui bloque le lot 3 de FF-059 : sans lui, Mifflin-St Jeor donne un
+ * métabolisme de base, pas un besoin.
+ *
+ * Ce qui reste vrai, et qui est la raison de la fourchette : cette fonction-ci
+ * ne reçoit QUE le poids. Une valeur unique tirée d'un seul paramètre serait une
+ * fausse précision. La fourchette par kg est exactement le raccourci qu'un coach
+ * utilise de tête ; on lui épargne le calcul, on ne lui vole pas le jugement.
+ *
+ * ── « L'ÉLÈVE NE VOIT JAMAIS CES NOMBRES » TIENT TOUJOURS, ET CE N'EST PAS UNE
+ *    CONTRADICTION AVEC FF-059 ────────────────────────────────────────────────
+ * FF-059 affiche à l'élève l'énergie de SES PLATS — un fait sur la nourriture,
+ * calculé depuis des quantités que le produit a écrites (MAPE 2,3 %). Ces
+ * nombres-ci sont une CIBLE estimée sur son corps : un jugement sur la personne,
+ * c'est-à-dire un tracker. C'est la distinction A/B contre C de la fiche, et
+ * c'est elle qui garde la phrase ci-dessous vraie : un chiffre affiché à l'élève
+ * devient un objectif. Le niveau C est le lot 3, il est BLOQUÉ sur trois
+ * décisions humaines, et rien de FF-059 ne le franchit.
  */
 export function coachStartingNumbers(weightKg: unknown): CoachStartingNumbers | null {
   const w = Number(weightKg);

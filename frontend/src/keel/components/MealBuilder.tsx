@@ -30,6 +30,7 @@ import MealPickerGrid from "./MealPickerGrid";
 import { } from "../api/mealStretch";
 import { addDays, daysBetween } from "../api/dates";
 import { browserLocalDate, useMealTicks } from "../lib/useMealTicks";
+import { useMealEnergy } from "../lib/useMealEnergy";
 import { groupByDay, parsePantry } from "../lib/mealBuilderModel";
 import { Button } from "./ui/Button";
 import { Card, SectionLabel } from "./ui/Card";
@@ -477,6 +478,15 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
   const ticks = useMealTicks({
     userId,
     mealId: result?.mealId ?? null,
+    dishes: result?.dishes ?? [],
+  });
+  // FF-059 — LE CHIFFRE. Même partage que les coches: la liaison vit dans
+  // `lib/useMealEnergy.ts`, parce que `/app/today` rend les mêmes plats et doit
+  // en rendre le même chiffre. La CHAÎNE DE GARDES, elle, n'est pas ici du tout
+  // — elle est dans `meal-energy-v1`, et quand elle ferme, ce hook ne reçoit
+  // aucun nombre.
+  const energy = useMealEnergy({
+    planId: result?.mealId ?? null,
     dishes: result?.dishes ?? [],
   });
 
@@ -1059,8 +1069,48 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                 // l'avenir) vit dans `useMealTicks`, et le brouillon n'en
                 // passera aucune.
                 tick={(dish, date) => ticks.bind(dish, date)}
+                // ── FF-059 · A ET B ────────────────────────────────────────
+                // Passés SEULEMENT quand le serveur a rendu des chiffres.
+                // `undefined` sinon — et `PlanResult` n'a alors ni ligne de
+                // base à afficher, ni rien à chercher. La garde n'est pas un
+                // `if` d'affichage: c'est une prop qui n'existe pas.
+                energy={energy.showing ? ((dish) => energy.forDish(dish)) : undefined}
+                dayEnergy={energy.showing ? ((day) => energy.forDay(day)) : undefined}
               />
             )}
+          {/* L'INTERRUPTEUR — porte ④, et la seule que l'élève tient.
+              Il ne s'affiche QUE si les trois autres portes sont ouvertes
+              (`switchOfferable`): proposer « voir les calories » à quelqu'un
+              que le plancher TCA, son âge ou son coach protègent, ce serait
+              encore lui parler de calories. */}
+          {energy.ready && energy.switchOfferable && (
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <Button
+                variant="secondary"
+                onClick={() => energy.toggle(!energy.showing)}
+              >
+                {energy.showing
+                  ? mealCopy("meals.energy.switch_off")
+                  : mealCopy("meals.energy.switch_on")}
+              </Button>
+              <span className="text-xs text-gray-400">
+                {mealCopy("meals.energy.switch_hint")}
+              </span>
+              {energy.error && (
+                <span className="text-xs text-red-600">
+                  {mealCopy("meals.energy.switch_failed")}
+                </span>
+              )}
+            </div>
+          )}
+          {/* Un plan de foyer à plusieurs bouches n'a pas de chiffre, et on dit
+              pourquoi: la part de chacun est une PHRASE, pas un nombre. Le
+              silence se lirait comme une panne. */}
+          {energy.ready && energy.abstention === "household_portions_not_numeric" && (
+            <p className="mt-3 text-xs text-gray-400">
+              {mealCopy("meals.energy.household_abstention")}
+            </p>
+          )}
         </section>
 
     </div>

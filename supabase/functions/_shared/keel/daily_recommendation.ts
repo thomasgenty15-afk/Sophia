@@ -181,9 +181,38 @@ export interface RecommendationAction {
   proposal: string;
   acceptLabel: string;
   declineLabel: string;
-  /** L'accusé APRÈS relecture de la ligne. Jamais avant. */
+  /**
+   * L'accusé APRÈS relecture de la ligne. Jamais avant.
+   *
+   * ⚠️ `appliedAck` / `declinedAck` SONT L'ANGLAIS, et lire l'un des deux
+   * directement sort de l'anglais quelle que soit la langue de l'élève. Passe par
+   * `recommendationAck()`.
+   *
+   * MESURÉ EN RUN RÉEL LE 2026-08-12 (`ff056-t6-run3`) : une élève `fr-FR` a
+   * nommé son créneau en français, lu une proposition en français, tapé un
+   * bouton « Oui, on l'ajoute » — et reçu « Done — breakfast is part of your
+   * rhythm now ». La couture cassait ici, au moment où FF-056 rend la main au
+   * handler de FF-028, qui ignorait la langue alors qu'il a `isFrenchLocale`
+   * sous la main deux fonctions plus haut.
+   *
+   * ⚠️ CE QUI RESTE ANGLAIS ET N'A PAS ÉTÉ TOUCHÉ : `proposal`, `acceptLabel`,
+   * `declineLabel`. Même couture, même défaut — un élève francophone qui reçoit
+   * la proposition par la porte du SOIR de FF-028 (et non par FF-056, qui écrit
+   * ses propres textes) la lit en anglais. Non mesuré, donc non corrigé ici.
+   *
+   * ⚠️ LE CORRECTIF IDÉAL EST BLOQUÉ : il faudrait RENOMMER ces deux champs
+   * (`appliedAckEn`…) pour que le typecheck casse chez tout lecteur qui prend
+   * l'anglais sans le vouloir. `daily_recommendation_test.ts` les lit et il est
+   * ouvert par une autre session — renommer casserait un test que je ne peux pas
+   * réparer. À faire quand le fichier sera libre.
+   */
   appliedAck: string;
   declinedAck: string;
+  /** Les mêmes, en français. REQUIS: un champ de langue optionnel est une
+   * langue oubliée, et ce dépôt a la cicatrice
+   * (`guard-tested-in-one-language-only`). */
+  appliedAckFr: string;
+  declinedAckFr: string;
   /**
    * LES FORMULATIONS DE DOCTRINE QUI CONTREDISENT CETTE ACTION.
    *
@@ -234,6 +263,16 @@ export const RECOMMENDATION_ACTIONS: readonly RecommendationAction[] = Object
         "Done — breakfast is part of your rhythm now, and the next week you " +
         "put together will have one.",
       declinedAck: "Understood — I'll leave your rhythm as it is.",
+      // « la prochaine semaine en aura un » est VRAI ici, et c'est pour ça que
+      // la phrase peut le dire: le tap a écrit le créneau dans
+      // `student_goals.practical_constraints`, relu par `applyRecommendation`,
+      // et c'est cette donnée que la composition lit. Rien à voir avec la
+      // promesse retirée sur les branches `nothing_to_change` de FF-056, qui
+      // n'avait, elle, aucun lecteur derrière.
+      appliedAckFr:
+        "C'est fait — le petit-déjeuner fait partie de ton rythme, et la " +
+        "prochaine semaine que tu composeras en aura un.",
+      declinedAckFr: "Compris — je laisse ton rythme tel qu'il est.",
       doctrineContraMarkers: Object.freeze([
         // --- français ---
         "jeune intermittent",
@@ -273,6 +312,10 @@ export const RECOMMENDATION_ACTIONS: readonly RecommendationAction[] = Object
         "Done — an afternoon snack is part of your rhythm now, and the next " +
         "week you put together will have one.",
       declinedAck: "Understood — I'll leave your rhythm as it is.",
+      appliedAckFr:
+        "C'est fait — la collation de l'après-midi fait partie de ton rythme, " +
+        "et la prochaine semaine que tu composeras en aura une.",
+      declinedAckFr: "Compris — je laisse ton rythme tel qu'il est.",
       doctrineContraMarkers: Object.freeze([
         // --- français ---
         "pas de grignotage",
@@ -345,6 +388,26 @@ export function effectiveRhythm(
  * définition du bruit, et c'est aussi une proposition qu'on ne pourrait pas
  * tenir — l'application serait un no-op accusé comme un succès.
  */
+/**
+ * L'ACCUSÉ, DANS LA LANGUE DE L'ÉLÈVE — le seul chemin autorisé.
+ *
+ * Les deux paramètres sont REQUIS. Une langue par défaut serait l'anglais par
+ * défaut, c'est-à-dire le défaut qu'on vient de corriger: l'élève francophone
+ * lisait sa réponse en anglais après avoir tapé un bouton français.
+ */
+export type RecommendationAckKind = "applied" | "declined";
+
+export function recommendationAck(
+  action: RecommendationAction,
+  language: "fr" | "en",
+  kind: RecommendationAckKind,
+): string {
+  if (kind === "applied") {
+    return language === "fr" ? action.appliedAckFr : action.appliedAck;
+  }
+  return language === "fr" ? action.declinedAckFr : action.declinedAck;
+}
+
 export function buildActionSpace(
   rhythm: readonly EatingOccasionSlot[],
 ): RecommendationAction[] {

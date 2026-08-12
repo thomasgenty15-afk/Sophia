@@ -21,6 +21,11 @@ const USERS = [
   "6561d95b-0751-405e-ac19-89bcbeb2e8ca", // 2.5 texte, échantillon 1
   "367fc5b0-6786-4e0c-9c08-649fd83426cc", // 2.5 texte, échantillon 2
   "335185ca-d292-4695-b539-8040bae88d12", // 2.5 texte, échantillon 3
+  // ── run 3, le critère d'acceptation T6 ─────────────────────────────────────
+  "33f61a1e-cb42-4a03-a7a4-87ba3c945791", // 3.1 rythme par DÉFAUT: pas d'action
+  "a53ece5c-6a39-41ac-8d01-41498f18cf4c", // 3.2 sans petit-déjeuner: T6 prouvée
+  "bcce2c3f-638b-4f2f-8bd0-9f83370d840c", // 3.3 accusé FR après correctif
+  "2a2d81c4-cdec-42c4-8fdd-551330d4b26e", // 3.4 accusé EN, non-régression
 ];
 const TABLES = [
   "student_weight_divergence_episodes",
