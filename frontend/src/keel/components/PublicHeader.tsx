@@ -42,6 +42,16 @@ import { LocaleSwitch } from "./LocaleSwitch";
 // se fait par le PIED DE PAGE (qui les porte toutes, les deux mondes compris)
 // et par le corps des deux halls, dont c'est précisément le travail.
 //
+// ── LE MONDE EST TOUJOURS AU-DESSUS DE SES PORTES ─────────────────────────
+// Le premier jet posait les portes en haut et les mondes en dessous, et ça se
+// lisait à l'envers: le monde est le PARENT, la porte est l'enfant. On ne met
+// pas le rayon au-dessus de l'étage.
+// L'ordre est donc tenu aux deux tailles, par des moyens différents parce que
+// la largeur l'impose: au-dessus de `md` les mondes montent à côté de la marque
+// et les portes prennent la seconde rangée; en dessous, les portes disparaissent
+// et ce sont les mondes qui occupent la seconde rangée. Les deux onglets
+// réclament 183px — ils ne tiennent pas à côté du nom sur un téléphone.
+//
 // Casse normale et pas de `tracking-wider`: en capitales espacées
 // « Communities » réclame 88px là où le bloc de gauche en reçoit 71 sur un
 // téléphone de 390. Le même mot en casse normale en demande 62.
@@ -160,33 +170,12 @@ export function PublicHeader({
           >
             {t("brand.wordmark")}
           </Link>
-          {showWorlds && (
-            <nav
-              aria-label={t("public.nav.doors_label")}
-              className="ml-3 hidden items-center gap-1 border-l border-line pl-3 md:flex"
-            >
-              {world.doors.map((door) => {
-                const active = door.to === pathname;
-                return (
-                  <Link
-                    key={door.to}
-                    to={door.to}
-                    // `aria-current` et pas seulement une couleur: la porte
-                    // courante doit être annoncée, et un gris plus foncé ne
-                    // s'entend pas.
-                    aria-current={active ? "page" : undefined}
-                    className={`rounded-full px-3 py-1.5 text-sm transition-colors ${
-                      active
-                        ? "bg-fig-50 font-medium text-fig-700"
-                        : "text-ink-soft hover:bg-fig-50 hover:text-ink"
-                    }`}
-                  >
-                    {t(door.label)}
-                  </Link>
-                );
-              })}
-            </nav>
-          )}
+          {/* LE MONDE EST AU-DESSUS DE SES PORTES — voir la note de hiérarchie
+              en tête du fichier. Ici seulement à partir de `md`: à 320px les
+              deux onglets réclament 183px et ne tiennent pas à côté de la
+              marque. Sous `md` ils occupent la seconde rangée, où il n'y a de
+              toute façon aucune porte à leur disputer la place. */}
+          {showWorlds && <WorldTabs world={world} className="ml-4 hidden md:flex" />}
         </div>
         <nav className="flex shrink-0 items-center gap-2">
           {/* La langue AVANT les gestes commerciaux: un visiteur qui ne lit pas
@@ -271,36 +260,84 @@ export function PublicHeader({
             )}
         </nav>
       </div>
-      {/* ── LA SECONDE RANGÉE: QUI ON EST ──────────────────────────────────
-          Deux onglets, pleine largeur, sur toutes les tailles. C'est le choix
-          le plus structurant que le visiteur ait à faire, et il ne doit jamais
-          coûter un scroll. À partir de `md` il partage la rangée avec rien
-          d'autre: les portes sont montées dans la rangée du haut. */}
+      {/* ── LA SECONDE RANGÉE ──────────────────────────────────────────────
+          Elle porte le niveau IMMÉDIATEMENT SOUS celui de la rangée du haut,
+          et c'est toute la règle:
+          · à partir de `md`, le haut porte les mondes ⇒ le bas porte les portes
+            du monde courant;
+          · sous `md`, les portes ne tiennent pas (trois libellés dans 320px), le
+            haut ne porte donc aucun niveau ⇒ le bas porte les mondes.
+          Dans les deux cas le monde est AU-DESSUS de ses portes, jamais
+          l'inverse. Le premier jet faisait exactement le contraire — portes en
+          haut, mondes en bas — c'est-à-dire l'enfant au-dessus du parent. */}
       {showWorlds && (
-        <nav
-          aria-label={t("public.nav.worlds_label")}
-          className="mx-auto flex max-w-6xl items-center gap-1 px-4 pb-1.5"
-        >
-          {WORLDS.map((entry) => {
-            const active = entry.hub === world.hub;
-            return (
-              <Link
-                key={entry.hub}
-                to={entry.hub}
-                aria-current={active ? "true" : undefined}
-                className={`-mb-px border-b-2 px-2 py-1 text-sm transition-colors ${
-                  active
-                    ? "border-fig-700 font-medium text-ink"
-                    : "border-transparent text-ink-soft hover:text-ink"
-                }`}
-              >
-                {t(entry.label)}
-              </Link>
-            );
-          })}
-        </nav>
+        <>
+          <WorldTabs world={world} className="mx-auto max-w-6xl px-4 pb-1.5 md:hidden" />
+          <nav
+            aria-label={t("public.nav.doors_label")}
+            className="mx-auto hidden max-w-6xl items-center gap-1 px-4 pb-1.5 md:flex"
+          >
+            {world.doors.map((door) => {
+              const active = door.to === pathname;
+              return (
+                <Link
+                  key={door.to}
+                  to={door.to}
+                  // `aria-current` et pas seulement une couleur: la porte
+                  // courante doit être annoncée, et un gris plus foncé ne
+                  // s'entend pas.
+                  aria-current={active ? "page" : undefined}
+                  className={`rounded-full px-3 py-1.5 text-sm transition-colors ${
+                    active
+                      ? "bg-fig-50 font-medium text-fig-700"
+                      : "text-ink-soft hover:bg-fig-50 hover:text-ink"
+                  }`}
+                >
+                  {t(door.label)}
+                </Link>
+              );
+            })}
+          </nav>
+        </>
       )}
     </header>
+  );
+}
+
+/**
+ * Les deux mondes, en onglets. Rendu à DEUX endroits — à côté de la marque au
+ * -dessus de `md`, en seconde rangée en dessous — d'où le composant plutôt que
+ * deux copies: deux copies divergent le jour où l'une des deux est ajustée.
+ */
+function WorldTabs(
+  { world, className = "" }: {
+    world: (typeof WORLDS)[number];
+    className?: string;
+  },
+) {
+  return (
+    <nav
+      aria-label={t("public.nav.worlds_label")}
+      className={`flex items-center gap-1 ${className}`}
+    >
+      {WORLDS.map((entry) => {
+        const active = entry.hub === world.hub;
+        return (
+          <Link
+            key={entry.hub}
+            to={entry.hub}
+            aria-current={active ? "true" : undefined}
+            className={`-mb-px border-b-2 px-2 py-1 text-sm transition-colors ${
+              active
+                ? "border-fig-700 font-medium text-ink"
+                : "border-transparent text-ink-soft hover:text-ink"
+            }`}
+          >
+            {t(entry.label)}
+          </Link>
+        );
+      })}
+    </nav>
   );
 }
 
