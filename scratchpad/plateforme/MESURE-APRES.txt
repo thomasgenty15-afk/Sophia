@@ -53,11 +53,11 @@ keel/components/plan/PlanGrid.tsx                   0      1      0      0
 keel/components/plan/PlanResult.tsx                 0      0      0      0
 keel/components/plan/EnergyReadout.tsx              0      1      0      0
 keel/components/plan/KitchenBlock.tsx               0      0      0      0
-components/account/DataPrivacySection.tsx          24     23     13      0
+components/account/DataPrivacySection.tsx           0      9      0      0
 components/account/DeletionPendingScreen.tsx        0      3      0      0
 keel/components/KeelBadges.tsx                      0      1      0      0
 keel/components/ShoppingListPanel.tsx               0      1      0      0
 keel/components/CookingSessions.tsx                 0      0      0      0
 keel/components/TakeTheHandCard.tsx                 0      1      0      0
 ----------------------------------------------------------------------------
-TOTAL (disque)                                     24    230     13      0
+TOTAL (disque)                                      0    216      0      0
