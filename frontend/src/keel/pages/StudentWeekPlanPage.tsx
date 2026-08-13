@@ -13,6 +13,7 @@ import MealBuilder from "../components/MealBuilder";
 import ReferenceMemberCard from "../components/plan/ReferenceMemberCard";
 import TableCard from "../components/plan/TableCard";
 import MyShareCard from "../components/plan/MyShareCard";
+import { selectMyShare } from "../api/myShare";
 import {
   type HouseholdMealView,
   type HouseholdView,
@@ -2138,10 +2139,26 @@ export default function StudentWeekPlanPage() {
         {/* ── 7 · MA PART (Lot E) ─────────────────────────────────────────
             Montée AVANT d'avoir un corps: le mode d'échec n°1 de ce dépôt est
             de livrer un composant complet, testé, vert — et branché nulle
-            part. Elle rend `null` tant que Lot E ne l'a pas écrite, ce qui est
-            aussi son comportement définitif quand il n'y a pas de part. */}
+            part. Elle rend `null` quand il n'y a pas de part à montrer.
+
+            ⚠️ `mine` A ÉTÉ CÂBLÉ APRÈS COUP, ET L'OUBLI EST INSTRUCTIF. Le
+            placeholder passait `mine={null}` EN DUR; Lot E a livré la carte,
+            ses neuf tests et sa garde d'identité, tout était vert — et la
+            carte se taisait sur chaque écran, parce que le site de montage
+            n'avait jamais cessé de lui répondre « rien ». C'est exactement le
+            défaut que le commentaire ci-dessus dit vouloir éviter, déplacé
+            d'un cran: le composant ÉTAIT monté, c'est sa DONNÉE qui ne l'était
+            pas. Un placeholder qui rend une constante est un lecteur mort.
+
+            `selectMyShare` porte les deux moitiés de la règle et les porte
+            SEUL: `isOwner` (le maître n'a pas une part, il a le plan) et
+            l'identité (jamais la part d'un autre). Ne pas les récrire ici. */}
         <MyShareCard
-          mine={null}
+          mine={selectMyShare({
+            portions: householdMeal?.portions ?? [],
+            meMemberId: household?.me?.memberId ?? null,
+            isOwner,
+          })}
           householdDishes={householdMeal?.dishes ?? []}
           meMemberId={household?.me?.memberId ?? null}
           busy={false}
