@@ -875,7 +875,7 @@ export default function SetupPage() {
                 essayé de partir. La liste est celle des faits, donc elle
                 rétrécit à chaque réponse et disparaît d'elle-même. */}
             {heldBack && stepMissing.length > 0 ? (
-              <MissingCard missing={stepMissing} />
+              <MissingCard missing={stepMissing} title="setup.missing.before_next" />
             ) : null}
           </>
         ) : null}
@@ -887,7 +887,14 @@ export default function SetupPage() {
             mouths={facts.mouths}
             onMouthRhythm={(m, slots) => guard(() => saveMouthRhythm(m, slots))}
             busy={busy}
-            missing={missesForStep(previewState, branch, "table")}
+            // MÊME DISCIPLINE QU'À L'ÉTAPE 2: la liste ne s'affiche
+            // qu'APRÈS avoir essayé de partir. Sans ce drapeau, on arrivait
+            // sur l'étape avec « avant de pouvoir le construire — quand tu
+            // manges » sous un formulaire qui pose exactement cette
+            // question, et qui ne construit rien.
+            missing={heldBack
+              ? missesForStep(previewState, branch, "table")
+              : []}
           />
         ) : null}
 
@@ -936,6 +943,45 @@ export default function SetupPage() {
                       { ...fresh.state, plan },
                       fresh.branch ?? branch,
                       "people",
+                    );
+                    if (held.length > 0) {
+                      setHeldBack(true);
+                      return;
+                    }
+                    setHeldBack(false);
+                    setStepIndex((i) => Math.min(steps.length - 1, i + 1));
+                  })}
+              >
+                {t("setup.next")}
+              </Button>
+            ) : null}
+            {/* ── L'ÉTAPE DE LA TABLE A SON « SUIVANT », ET C'ÉTAIT UN
+                DÉFAUT BLOQUANT ────────────────────────────────────────────
+                Le bouton d'avance n'existait que pour l'étape 2, parce qu'il
+                n'y avait alors que trois étapes et que la dernière composait.
+                La coupure du 2026-08-13 en a créé une quatrième: l'étape 3 se
+                retrouvait avec « Retour » pour seul geste — un cul-de-sac, vu
+                à l'écran avant d'être vu dans le code.
+
+                Elle retient comme l'étape 2, par le même verdict: on
+                n'avance pas tant que les moments de la maison ne sont pas
+                posés, et on le DIT plutôt que de griser. */}
+            {step.id === "table" ? (
+              <Button
+                variant="primary"
+                disabled={busy}
+                onClick={() =>
+                  guard(async () => {
+                    await savePlanAnswers({
+                      userId,
+                      current: facts!.practicalConstraints,
+                      answers: plan!,
+                    });
+                    const fresh = await readFunnelFacts(userId);
+                    const held = missesForStep(
+                      { ...fresh.state, plan },
+                      fresh.branch ?? branch,
+                      "table",
                     );
                     if (held.length > 0) {
                       setHeldBack(true);
@@ -2005,7 +2051,9 @@ function TableStep({
         </Card>
       ) : null}
 
-      {missing.length > 0 ? <MissingCard missing={missing} /> : null}
+      {missing.length > 0
+        ? <MissingCard missing={missing} title="setup.missing.before_next" />
+        : null}
     </>
   );
 }
@@ -2148,7 +2196,7 @@ function RequestStep({
         </div>
       </Card>
 
-      {missing.length > 0 ? <MissingCard missing={missing} /> : (
+      {missing.length > 0 ? <MissingCard missing={missing} title="setup.missing.title" /> : (
         <p className="text-xs text-ink-soft">{t("setup.plan.compose_hint")}</p>
       )}
     </>
@@ -2164,10 +2212,23 @@ function RequestStep({
  * Le même bloc sert aux deux étapes qui peuvent retenir. Deux rendus, ce serait
  * deux vocabulaires pour un seul verdict: `canGenerateMisses`.
  */
-function MissingCard({ missing }: { missing: readonly FunnelMissId[] }) {
+function MissingCard(
+  { missing, title }: {
+    missing: readonly FunnelMissId[];
+    /**
+     * ⚠️ REQUIS, ET C'EST UN DÉFAUT VU À L'ÉCRAN. Le titre était en dur:
+     * « avant de pouvoir le construire ». Juste, sur la dernière étape — elle
+     * construit. Absurde sur les autres: on lisait « avant de pouvoir le
+     * construire — quand tu manges » sous un formulaire qui pose cette
+     * question et qui ne construit rien. Une phrase par étape, et le
+     * compilateur réclame laquelle.
+     */
+    title: MessageKey;
+  },
+) {
   return (
     <Card tone="dashed">
-      <SectionLabel>{t("setup.missing.title")}</SectionLabel>
+      <SectionLabel>{t(title)}</SectionLabel>
       <ul className="mt-2 space-y-1">
         {missing.map((miss) => (
           <li key={miss} className="text-sm leading-6 text-ink">
