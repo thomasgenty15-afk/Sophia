@@ -8,6 +8,9 @@ import { requestMealDocument } from "../api/mealDocument";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
 import Modal from "./ui/Modal";
+import { formatDateLong, formatWeekday } from "../i18n/format";
+import { plural } from "../i18n/plural";
+import { t } from "../i18n/t";
 
 // LA LISTE DE COURSES — celle qu'on emporte au magasin.
 //
@@ -41,50 +44,36 @@ import Modal from "./ui/Modal";
 // redemande ce qu'on a déjà, serait exactement la trahison qu'un export doit
 // éviter.
 
-const COPY = {
-  empty: "Nothing to buy — this week runs on what you already have.",
-  have: "I have it",
-  left: "{count} left to buy",
-  all_done: "Everything ticked. Nothing left to buy.",
-  ephemeral:
-    "Ticking is just for the shop — it is not saved, and nothing here is remembered as your cupboard.",
-  pdf: "Save as PDF",
-  pdf_building: "Preparing…",
-  pdf_note: "The PDF carries the whole list, including what you have ticked off.",
-  pdf_failed: "That did not work. Try again.",
-  // LE LIEN RESTE À L'ÉCRAN une fois le fichier prêt. `window.open` est tenté,
-  // mais un navigateur a le droit de le bloquer — et un export silencieusement
-  // avalé est pire qu'un export absent: on croit avoir sa liste et on arrive au
-  // magasin les mains vides.
-  pdf_ready: "Your list is ready.",
-  pdf_download: "Open the PDF",
-  title: "Shopping list",
-  close: "Close",
-  // ── LES VAGUES ─────────────────────────────────────────────────────────
-  // La raison est la FRAÎCHEUR, et elle est DITE. Une seconde liste sans
-  // explication se lit comme une corvée arbitraire — c'est-à-dire comme
-  // exactement ce que ce produit promet de retirer.
-  wave_now: "Buy now",
-  wave_later: "Buy on {date}",
-  wave_serves: "so it is fresh for the {day} cooking",
-  wave_intro:
-    "Split by when it has to be fresh: the mid-week meat does not keep from Monday.",
-} as const;
+// ── LA CHARTE, LE 2026-08-13 ──────────────────────────────────────────────
+// Seize neutres `gray-*` sont passés aux jetons de « la fiche » (`ink` ·
+// `ink-soft` · `line`), et deux d'entre eux étaient sous le seuil de contraste:
+// le titre de rayon en `gray-400` (2,8:1) et la quantité rayée en `gray-300`
+// (1,7:1) — sur l'écran qu'on lit debout, dans un magasin, d'une main.
+// Le panneau ne rend AUCUN état: une liste de courses n'a ni verdict ni
+// adhérence. Ses deux seules teintes sont donc un LIEN (figue) et un ÉCHEC
+// d'export (rouge). ⚠️ La case à cocher, elle, a un piège à elle: voir
+// `accent-ink` plus bas. Autorité: `docs/keel/CHARTE-VITRINE.md` §2.
+//
+// ── I18N (lot 4) ──────────────────────────────────────────────────────────
+// Le `COPY` local a rejoint le seed sous `meals.shopping.*`. C'était le
+// dernier catalogue parallèle de `/app/today`: dix-sept phrases invisibles à
+// `t()` comme au scanner de coutures, sur le panneau qu'on ouvre au magasin.
 
-/** « Friday 7 August ». Locale du navigateur: c'est une date qu'on lit, pas
- *  une donnée qu'on compare. */
+/**
+ * « vendredi 7 août » · « Friday 7 August ».
+ *
+ * ⚠️ ELLE PASSAIT `undefined`, ce qui n'est PAS « la locale de la page »: c'est
+ * `navigator.language`. Un visiteur au navigateur français lisait donc
+ * « vendredi 7 août » au milieu d'un `/app/today` anglais, et l'inverse ne se
+ * voyait jamais chez nous. Le contournement `T00:00:00Z` + `timeZone: "UTC"`
+ * était correct et vit maintenant dans `i18n/format.ts`, pour tout le monde.
+ */
 function longDate(iso: string): string {
-  const d = new Date(`${iso}T00:00:00Z`);
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString(undefined, {
-    weekday: "long", day: "numeric", month: "long", timeZone: "UTC",
-  });
+  return formatDateLong(iso, { year: false, weekday: "long" });
 }
 
 function weekdayOf(iso: string): string {
-  const d = new Date(`${iso}T00:00:00Z`);
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString(undefined, { weekday: "long", timeZone: "UTC" });
+  return formatWeekday(iso, { long: true });
 }
 
 export interface ShoppingListPanelProps {
@@ -175,7 +164,7 @@ export default function ShoppingListPanel(props: ShoppingListPanelProps) {
         window.open(doc.downloadUrl, "_blank", "noopener,noreferrer");
       }
     } catch (e) {
-      setPdfError(e instanceof Error ? e.message : COPY.pdf_failed);
+      setPdfError(e instanceof Error ? e.message : t("meals.shopping.pdf_failed"));
     } finally {
       setPdfBusy(false);
     }
@@ -189,11 +178,19 @@ export default function ShoppingListPanel(props: ShoppingListPanelProps) {
   function renderGroup(group: { aisle: string; items: Array<{ item: ShoppingItem; index: number }> }) {
     return (
       <div key={group.aisle}>
-        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
+        {/* LE RAYON. `text-label` est le cran d'étiquette de la charte (§3):
+            0,6875rem, +0,1em d'approche, capitales — le même que `SectionLabel`
+            et que l'étiquette d'un champ. Et `ink-soft` (6,11:1) remplace un
+            `gray-400` qui était à 2,8:1 sur le papier: un titre de rayon qu'on
+            lit d'un coup d'œil au magasin ne peut pas être sous le seuil.
+            ⚠️ PAS d'équerre ici: `SectionLabel` ouvre une SECTION, et il y en
+            aurait une par rayon — la signature marque l'origine de ce qui est
+            spécifié, elle ne ponctue pas une liste. */}
+        <h3 className="mb-2 text-label font-semibold uppercase text-ink-soft">
           {aisleLabel(group.aisle)}
         </h3>
         <Card padded={false}>
-          <ul className="divide-y divide-gray-100">
+          <ul className="divide-y divide-line">
             {group.items.map(({ item, index }) => {
               const done = ticked.has(index);
               return (
@@ -206,19 +203,35 @@ export default function ShoppingListPanel(props: ShoppingListPanelProps) {
                       type="checkbox"
                       checked={done}
                       onChange={() => toggle(index)}
-                      aria-label={`${COPY.have}: ${item.term}`}
-                      className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 text-gray-900 focus:ring-gray-900"
+                      aria-label={`${t("meals.shopping.have")}: ${item.term}`}
+                      // ⚠️ `accent-ink` EST LA SEULE CLASSE QUI ATTEINT CETTE
+                      // CASE, ET C'EST MESURÉ. `@tailwindcss/forms` n'est pas
+                      // installé dans ce dépôt: l'`appearance` de la case reste
+                      // native, donc `border-*` et `rounded-*` sont INERTES
+                      // dessus — ils étaient là et ne peignaient rien. Sans
+                      // `accent-*`, la coche est rendue dans le BLEU SYSTÈME, la
+                      // teinte que `Badge tone="info"` occupe: une rature de
+                      // liste de courses se serait lue comme un état « info ».
+                      // `accent-ink` et pas `accent-fig-700`: cocher ici ne
+                      // navigue pas et n'agit pas sur le produit, ça raye une
+                      // ligne sur un bout de papier.
+                      // L'anneau de focus est explicite parce que la règle
+                      // `:focus-visible` de `tokens.css` ne couvre que `a`,
+                      // `button` et `[tabindex]` — une case n'en fait pas partie.
+                      className="mt-0.5 h-4 w-4 shrink-0 accent-ink focus:outline-none focus:ring-2 focus:ring-fig-600"
                     />
                     <span
                       className={`flex flex-wrap items-baseline gap-2 text-sm ${
-                        done ? "text-gray-400 line-through" : "text-gray-800"
+                        done ? "text-ink-soft line-through" : "text-ink"
                       }`}
                     >
                       <span>{item.term}</span>
+                      {/* LA QUANTITÉ EST TOUJOURS `ink-soft`: la rature est
+                          portée par le `line-through` du parent, dont elle
+                          hérite. Deux gris de plus pour redire ce qu'une barre
+                          dit déjà, dont un `gray-300` à 1,7:1. */}
                       {item.quantity && (
-                        <span className={done ? "text-gray-300" : "text-gray-500"}>
-                          {item.quantity}
-                        </span>
+                        <span className="text-ink-soft">{item.quantity}</span>
                       )}
                     </span>
                   </label>
@@ -234,19 +247,25 @@ export default function ShoppingListPanel(props: ShoppingListPanelProps) {
   if (props.items.length === 0) return null;
 
   return (
-    <Modal open={props.open} onClose={props.onClose} title={COPY.title}>
+    <Modal open={props.open} onClose={props.onClose} title={t("meals.shopping.title")}>
       <div className="space-y-4">
           <Card>
             {/* LE RESTE À ACHETER, EN TÊTE: c'est ce qu'on regarde entre deux
                 rayons, et ça n'a de sens qu'à côté de la liste. */}
-            <p className="text-sm tabular-nums text-gray-800">
-              {left > 0 ? COPY.left.replace("{count}", String(left)) : COPY.all_done}
+            <p className="text-sm tabular-nums text-ink">
+              {left > 0
+                ? plural(
+                  left,
+                  t("meals.shopping.left_one", { count: left }),
+                  t("meals.shopping.left_many", { count: left }),
+                )
+                : t("meals.shopping.all_done")}
             </p>
-            <p className="mt-1 text-xs leading-5 text-gray-500">{COPY.ephemeral}</p>
+            <p className="mt-1 text-sm leading-6 text-ink-soft">{t("meals.shopping.ephemeral")}</p>
           </Card>
 
           {showWaves && (
-            <p className="text-xs leading-5 text-gray-500">{COPY.wave_intro}</p>
+            <p className="text-sm leading-6 text-ink-soft">{t("meals.shopping.wave_intro")}</p>
           )}
 
           {showWaves
@@ -261,17 +280,17 @@ export default function ShoppingListPanel(props: ShoppingListPanelProps) {
               return (
                 <section key={wave.buyOn} className="space-y-2">
                   <div>
-                    <h3 className="text-sm font-semibold text-gray-900">
+                    <h3 className="text-sm font-semibold text-ink">
                       {w === 0
-                        ? COPY.wave_now
-                        : COPY.wave_later.replace("{date}", longDate(wave.buyOn))}
+                        ? t("meals.shopping.wave_now")
+                        : t("meals.shopping.wave_later", { date: longDate(wave.buyOn) })}
                     </h3>
                     {/* LA RAISON, à côté de la date. Sans elle, la seconde
                         vague est un déplacement de plus qu'on ne s'explique
                         pas — et on cesse de la suivre. */}
                     {wave.servesCookOn && (
-                      <p className="text-xs leading-5 text-gray-500">
-                        {COPY.wave_serves.replace("{day}", weekdayOf(wave.servesCookOn))}
+                      <p className="text-sm leading-6 text-ink-soft">
+                        {t("meals.shopping.wave_serves", { day: weekdayOf(wave.servesCookOn) })}
                       </p>
                     )}
                   </div>
@@ -287,23 +306,29 @@ export default function ShoppingListPanel(props: ShoppingListPanelProps) {
           {props.mealId && (
             <div>
               <Button variant="secondary" disabled={pdfBusy} onClick={() => void exportPdf()}>
-                {pdfBusy ? COPY.pdf_building : COPY.pdf}
+                {pdfBusy ? t("meals.shopping.pdf_building") : t("meals.shopping.pdf")}
               </Button>
-              <p className="mt-1 text-xs leading-5 text-gray-500">{COPY.pdf_note}</p>
+              <p className="mt-1 text-sm leading-6 text-ink-soft">{t("meals.shopping.pdf_note")}</p>
               {pdfUrl && (
-                <p className="mt-2 text-sm text-gray-800">
-                  {COPY.pdf_ready}{" "}
+                <p className="mt-2 text-sm leading-6 text-ink">
+                  {t("meals.shopping.pdf_ready")}{" "}
+                  {/* UN LIEN, DONC LA FIGUE — c'est la seule chose de la charte
+                      qui passe à la teinte de marque sans être un bouton
+                      (`fig-700` sur `paper` = 9,98:1). Il héritait d'`ink`
+                      jusqu'ici: souligné, mais de la couleur du texte autour. */}
                   <a
                     href={pdfUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-medium underline underline-offset-2"
+                    className="font-medium text-fig-700 underline underline-offset-2 hover:text-fig-800"
                   >
-                    {COPY.pdf_download}
+                    {t("meals.shopping.pdf_download")}
                   </a>
                 </p>
               )}
-              {pdfError && <p className="mt-1 text-sm text-red-600">{pdfError}</p>}
+              {/* ⛔ ROUGE = ÉCHEC, et un export refusé est un fait. `red-700`
+                  (6,13:1) est la valeur du kit; `red-600` était à 4,4:1. */}
+              {pdfError && <p className="mt-1 text-sm leading-6 text-red-700">{pdfError}</p>}
             </div>
           )}
       </div>

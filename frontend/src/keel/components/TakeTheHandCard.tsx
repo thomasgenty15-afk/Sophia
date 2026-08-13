@@ -2,6 +2,7 @@ import React from "react";
 
 import { type GeneratedMealResult, validateMealPlan } from "../api/mealGeneration";
 import { validationRefusalKey } from "../copy/planRefusals";
+import { formatDate as formatDateIn } from "../i18n/format";
 import { t } from "../i18n/t";
 import { Button, ButtonLink } from "./ui/Button";
 import { Card, SectionLabel } from "./ui/Card";
@@ -45,10 +46,12 @@ export interface HouseholdPlace {
   householdName: string | null;
 }
 
+/**
+ * « 7 août » · « 7 Aug ». `new Date(value)` sur une date nue valait MINUIT UTC,
+ * donc la veille pour tout élève à l'ouest de Greenwich — voir `i18n/format.ts`.
+ */
 function formatDate(value: string): string {
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return value;
-  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  return formatDateIn(value, { year: false });
 }
 
 export default function TakeTheHandCard(
@@ -78,7 +81,7 @@ export default function TakeTheHandCard(
   if (place.isOwner) {
     return (
       <Card tone="dashed" className="mb-3">
-        <p className="text-sm text-gray-600">{t("plan.hand.owner_note")}</p>
+        <p className="text-sm leading-6 text-ink-soft">{t("plan.hand.owner_note")}</p>
         <ButtonLink to="/app/household" variant="secondary" size="sm" className="mt-2">
           {t("household.title")}
         </ButtonLink>
@@ -93,12 +96,12 @@ export default function TakeTheHandCard(
       <SectionLabel>
         {validated ? t("plan.hand.taken_title") : t("plan.hand.title")}
       </SectionLabel>
-      <p className="text-sm text-gray-600">
+      <p className="text-sm leading-6 text-ink-soft">
         {validated ? t("plan.hand.taken_body") : t("plan.hand.body")}
       </p>
       {validated
         ? (
-          <p className="mt-2 text-sm text-gray-500">
+          <p className="mt-2 text-sm text-ink-soft">
             {t("plan.hand.taken_on", { date: formatDate(validated) })}
           </p>
         )
@@ -106,7 +109,17 @@ export default function TakeTheHandCard(
         ? (
           <Button
             className="mt-3"
-            variant="primary"
+            // ⚠️ `secondary` ET NON `primary`, ET C'EST UNE CONTRAINTE DU KIT,
+            // PAS UN AFFAIBLISSEMENT. Une seule action figue par vue rendue —
+            // deux aplats de marque côte à côte, c'est zéro hiérarchie
+            // (`KIT-CONTRAT` §2). Sur `/app/plan`, la figue est déjà prise par
+            // « composer la semaine » (`MealBuilder`, `type="submit"`), et les
+            // deux sont rendus ENSEMBLE dès qu'on rouvre le formulaire au-dessus
+            // d'un plan existant — vérifié: `showForm` ne dépend pas de cette
+            // carte. Prendre la main est un geste de LIGNE, une fois par
+            // semaine, sur le plan d'un onglet précis; il garde sa forme de
+            // bouton et le pointillé de la carte le désigne déjà.
+            variant="secondary"
             disabled={working}
             onClick={async () => {
               if (!plan.mealId) return;
@@ -146,8 +159,10 @@ export default function TakeTheHandCard(
         // garde sa première moitié — « tu peux prendre la main » — qui est
         // justement ce qu'il faut lire AVANT d'avoir composé.
         : null}
-      {note ? <p className="mt-2 text-sm text-gray-500">{note}</p> : null}
-      {failure ? <p className="mt-2 text-sm text-red-700">{failure}</p> : null}
+      {note ? <p className="mt-2 text-sm text-ink-soft">{note}</p> : null}
+      {/* ⛔ LE ROUGE RESTE: c'est la famille « échec » du produit, et un refus
+          nommé est un FAIT. `red-700` sur `paper` = 6,13:1, la valeur du kit. */}
+      {failure ? <p className="mt-2 text-sm leading-6 text-red-700">{failure}</p> : null}
     </Card>
   );
 }

@@ -68,18 +68,18 @@ export default function HouseholdPlanCard(
           <>
             {excluded
               ? (
-                <p className="mb-2 text-sm text-gray-600">
+                <p className="mb-2 text-sm text-ink">
                   {t("household.plan.member_excluded")}
                 </p>
               )
               : null}
             {meal.dishes.length === 0
-              ? <p className="text-sm text-gray-500">{t("household.plan.no_dishes")}</p>
+              ? <p className="text-sm text-ink-soft">{t("household.plan.no_dishes")}</p>
               : (
                 <ul className="flex flex-col gap-1 text-sm">
                   {meal.dishes.map((dish, i) => (
                     <li key={`${dish.title}:${i}`}>
-                      <span className="text-gray-500">
+                      <span className="text-ink-soft">
                         {[dishDayLabel(dish.day), dishSlotLabel(dish.slot)]
                           .filter(Boolean)
                           .join(" · ")}
@@ -96,10 +96,14 @@ export default function HouseholdPlanCard(
 
       {hasDivergence(meal.trace)
         ? (
-          <div className={showDishes ? "mt-3 border-t border-gray-100 pt-3" : ""}>
-            {/* LA DIVERGENCE EST DITE AVANT D'ÊTRE ILLUSTRÉE. */}
-            <p className="text-sm text-gray-600">{t("household.plan.divergence")}</p>
-            <ul className="mt-2 flex flex-col gap-1 text-sm text-gray-500">
+          <div className={showDishes ? "mt-3 border-t border-line pt-3" : ""}>
+            {/* LA DIVERGENCE EST DITE AVANT D'ÊTRE ILLUSTRÉE — et depuis le
+                passage à la charte, elle est aussi ÉCRITE plus fort que sa
+                liste. Les deux étaient `gray-600` et `gray-500`, deux valeurs
+                qui se ressemblent trop pour porter cet ordre; le couple
+                `ink` / `ink-soft` (16,18:1 contre 6,11:1) le porte. */}
+            <p className="text-sm text-ink">{t("household.plan.divergence")}</p>
+            <ul className="mt-2 flex flex-col gap-1 text-sm text-ink-soft">
               {lines.map((line, i) => (
                 <li key={`${line.memberId}:${line.key}:${i}`}>
                   {t(line.key, { name: nameOf(line.memberId) })}

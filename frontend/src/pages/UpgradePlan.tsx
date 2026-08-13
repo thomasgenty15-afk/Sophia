@@ -16,6 +16,27 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { newRequestId, requestHeaders } from '../lib/requestId';
+// ── LE KIT, ET C'EST NOUVEAU ICI ──────────────────────────────────────────────
+// Cette page n'importait AUCUNE primitive: elle avait sa carte, son bouton et sa
+// pastille écrits à la main, en violet — la marque du produit grand public
+// supprimé. Les trois primitives ci-dessous portent la charte « la fiche »
+// (`docs/keel/CHARTE-VITRINE.md`), donc le rayon, la bordure de contrôle et les
+// quatre familles d'état arrivent d'un seul endroit.
+//
+// ── ⚠️ LES INSÉCABLES DE CETTE PAGE SONT DES ENTITÉS, ET C'EST OBLIGATOIRE ───
+// La charte §3 exige une espace insécable U+00A0 avant `:` et `%` et à
+// l'intérieur des guillemets français. Mais cette page écrit son français
+// DIRECTEMENT dans le JSX (elle n'est pas traduite — signalé au rapport), et la
+// règle eslint `no-irregular-whitespace` du dépôt REFUSE un U+00A0 brut dans du
+// texte JSX (`skipJSXText` est à `false`; elle l'autorise en revanche dans un
+// littéral de chaîne, d'où les prix `'9,90 €'` écrits en U+00A0 réel).
+// Donc: `&nbsp;` `&laquo;` `&raquo;` dans le texte JSX. Elles rendent de vrais
+// U+00A0 et « » (vérifié au navigateur). ⛔ Ne les remplace ni par une espace
+// ordinaire (la charte l'interdit) ni par un U+00A0 brut (le gate le refuse).
+// ⛔ Et JAMAIS U+202F: mesuré sans glyphe dans les deux familles.
+import { Badge } from '../keel/components/ui/Badge';
+import { Button } from '../keel/components/ui/Button';
+import { Card } from '../keel/components/ui/Card';
 
 type BillingInterval = 'monthly' | 'yearly';
 type PaidTier = 'system' | 'alliance' | 'architecte';
@@ -223,69 +244,106 @@ const UpgradePlan = () => {
   const alliancePortalPending = isPortalPending('alliance');
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-violet-100 selection:text-violet-900">
-      
-      {/* NAVBAR SIMPLE */}
-      <nav className="fixed top-0 w-full bg-white/90 backdrop-blur-md z-50 border-b border-slate-100">
-        <div className="max-w-6xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
-          <button 
+    // `bg-paper` + `text-ink`, et la sélection au lavis de la marque: le
+    // `selection:bg-violet-100` d'origine était la dernière trace du produit
+    // grand public jusque dans le presse-papier de la page.
+    <div className="min-h-screen bg-paper text-ink selection:bg-fig-100 selection:text-ink">
+
+      {/* ── LA BARRE ────────────────────────────────────────────────────────
+          ⚠️ LE LOGO EN IMAGE A ÉTÉ RETIRÉ ICI, ET C'ÉTAIT UN RELIQUAT RENDU.
+          `/apple-touch-icon.png` est l'ANCIEN yin-yang violet du produit grand
+          public: aucun `grep violet-` ne le trouve, parce que la marque morte y
+          est un PIXEL et pas une classe. Le mot-symbole de la charte le
+          remplace — l'équerre collée au nom, comme la barre de `/auth`.
+          ⚠️ SIGNALÉ, PAS RÉPARÉ: le fichier reste l'icône d'application et
+          l'image `og:` du site (`index.html`, `components/SEO.tsx`,
+          `lib/legalEntity.ts` et 4 autres écrans). Hors de ce lot. */}
+      <nav className="fixed top-0 z-50 w-full border-b border-line bg-paper/90 backdrop-blur-md">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 md:h-20 md:px-6">
+          <button
+            type="button"
             onClick={handleBack}
-            className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
+            className="inline-flex min-w-0 items-center gap-2 text-sm text-ink-soft transition-colors hover:text-ink"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="h-4 w-4 shrink-0" />
             Retour
           </button>
-          
-          <div className="flex items-center gap-2">
-            <img 
-              src="/apple-touch-icon.png" 
-              alt="Sophia" 
-              className="w-8 h-8"
-            />
-            <span className="font-bold text-lg md:text-xl tracking-tight text-slate-900">Sophia</span>
-          </div>
 
-          <div className="w-20" /> {/* Spacer pour centrer le logo */}
+          {/* ⛔ PAS DE `px-*` SUR CE NŒUD: `.eq` pose son `padding-left` hors
+              de toute couche CSS, donc il bat un utilitaire de même
+              spécificité et la marge intérieure casse en silence. */}
+          <span className="eq shrink-0 font-display text-xl leading-none text-ink">
+            Sophia
+          </span>
+
+          <div className="w-20 shrink-0" aria-hidden="true" />
         </div>
       </nav>
 
       {/* HEADER */}
-      <div className="pt-28 pb-8 md:pt-40 md:pb-12 px-4 text-center">
-        <h1 className="text-3xl md:text-5xl font-bold text-slate-900 mb-4 md:mb-6 tracking-tight">
-          Passe à la vitesse <span className="text-violet-600">supérieure</span>
+      <div className="px-4 pb-8 pt-28 text-center md:pb-12 md:pt-40">
+        {/* ⛔ PAS DE `font-bold` SUR LA DISPLAY: Young Serif n'a qu'une graisse
+            et le navigateur l'épaissirait par simulation (charte §3). Et le mot
+            « supérieure » perd son `text-violet-600`: il ne marquait ni un
+            lien, ni une action, ni un état — la marque morte sur un adjectif. */}
+        <h1 className="mx-auto mb-4 max-w-[28ch] text-balance font-display text-title text-ink md:mb-6">
+          Passe à la vitesse supérieure
         </h1>
-        <p className="text-base md:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed mb-8">
+        <p className="mx-auto mb-8 max-w-[62ch] text-lede text-ink-soft">
           Choisis le plan qui correspond à tes ambitions. Change ou annule à tout moment.
         </p>
 
-        {/* TOGGLE MONTHLY/YEARLY */}
-        <div className="flex items-center justify-center gap-3 md:gap-4 mb-8 flex-wrap">
-          <span className={`text-sm font-bold transition-colors ${billingInterval === 'monthly' ? 'text-slate-900' : 'text-slate-400'}`}>
+        {/* ── LE PAS DE FACTURATION ───────────────────────────────────────
+            `role="switch"` + `aria-checked` + un nom: l'interrupteur d'origine
+            était un `<button>` MUET — aucun texte, aucun `aria-label` — donc
+            sans nom accessible.
+            Sa piste quitte le violet pour la MARQUE, et sa forme est copiée du
+            même contrôle déjà converti dans `pages/Auth.tsx` (l'interrupteur
+            d'itinérance): actif `fig-700`, inactif `line-strong` (3,84:1, la
+            bordure de contrôle), bouton `paper`. Un interrupteur est un GESTE,
+            pas un fait — et le bleu, qui aurait pu sembler neutre, est déjà pris
+            par `Badge tone="info"`. */}
+        <div className="mb-8 flex flex-wrap items-center justify-center gap-3 md:gap-4">
+          <span className={`text-sm ${billingInterval === 'monthly' ? 'font-semibold text-ink' : 'text-ink-soft'}`}>
             Mensuel
           </span>
-          <button 
+          <button
+            type="button"
+            role="switch"
+            aria-checked={billingInterval === 'yearly'}
+            aria-label="Facturation annuelle"
             onClick={() => setBillingInterval(prev => prev === 'monthly' ? 'yearly' : 'monthly')}
-            className={`w-14 h-8 rounded-full p-1 transition-colors duration-300 relative flex-shrink-0 ${
-              billingInterval === 'yearly' ? 'bg-violet-600' : 'bg-slate-200'
+            className={`relative flex h-8 w-14 shrink-0 items-center rounded-full p-1 transition-colors duration-300 ${
+              billingInterval === 'yearly' ? 'bg-fig-700' : 'bg-line-strong'
             }`}
           >
-            <div className={`w-6 h-6 rounded-full bg-white shadow-sm transition-transform duration-300 ${
+            <span className={`h-6 w-6 rounded-full bg-paper transition-transform duration-300 ${
               billingInterval === 'yearly' ? 'translate-x-6' : 'translate-x-0'
             }`} />
           </button>
-          <span className={`text-sm font-bold transition-colors ${billingInterval === 'yearly' ? 'text-slate-900' : 'text-slate-400'}`}>
-            Annuel <span className="text-emerald-500 text-xs font-normal ml-1">(-20%)</span>
+          <span className={`text-sm ${billingInterval === 'yearly' ? 'font-semibold text-ink' : 'text-ink-soft'}`}>
+            {/* La remise est un FAIT DE PRIX, pas un état du système: l'émeraude
+                dit « ok » dans tout le produit et n'a rien à dire d'un tarif.
+                La distinction passe donc à une FORME — la pastille neutre. */}
+            Annuel <Badge tone="neutral" className="ml-1 align-middle">-20&nbsp;%</Badge>
           </span>
         </div>
 
+        {/* ⛔ CES DEUX BANDEAUX SONT DES ÉTATS ET ILS GARDENT LEUR FAMILLE.
+            Rouge = échec, il ne bouge pas. Et le succès QUITTE LE VIOLET pour
+            l'émeraude: il portait un fait (« c'est passé ») sous la couleur de
+            la marque morte — la seule saturée de la page qui disait vraiment
+            quelque chose le disait dans la mauvaise langue.
+            ⚠️ SIGNALÉ, PAS RÉPARÉ: `setSuccess` n'est jamais appelé avec autre
+            chose que `null`, donc ce bandeau ne peut pas s'afficher. */}
         {error && (
-            <div className="max-w-md mx-auto mb-8 p-4 bg-red-50 text-red-600 rounded-xl text-sm border border-red-100">
-                {error}
-            </div>
+          <div className="mx-auto mb-8 max-w-md rounded-card border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            {error}
+          </div>
         )}
 
         {success && (
-          <div className="max-w-md mx-auto mb-8 p-4 bg-violet-50 text-violet-800 rounded-xl text-sm border border-violet-100">
+          <div className="mx-auto mb-8 max-w-md rounded-card border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
             {success}
           </div>
         )}
@@ -295,45 +353,67 @@ const UpgradePlan = () => {
       <div className="max-w-7xl mx-auto px-4 md:px-6 pb-24">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
           
-          {/* OPTION 1: LE SYSTÈME */}
-          <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 relative group order-1">
+          {/* ── OPTION 1: LE SYSTÈME ───────────────────────────────────────
+              `Card padded={false}` + un rembourrage interne: la primitive porte
+              le rayon (`rounded-card`, 12px, contre `rounded-3xl`) et la bordure
+              de CONTRÔLE (`line-strong`, 3,84:1 — `line` est à 1,30:1 et ne
+              borde jamais une surface qu'on doit distinguer). L'ombre part avec:
+              une fiche technique a des cases TRACÉES, pas des reliefs. */}
+          <Card padded={false} className="order-1">
+            <div className="p-6 md:p-8">
             <div className="mb-6">
-              <h3 className="text-xl font-bold text-slate-900 mb-2">Le Système</h3>
-              <p className="text-sm text-slate-500 md:min-h-[40px]">Pour ceux qui veulent juste la structure et l'outil de pilotage.</p>
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Public Sans et pas la display: `text-sub` fait 19,2 px et
+                    Young Serif ne descend jamais sous 20 (charte §3). */}
+                <h2 className="text-sub font-semibold text-ink">Le Système</h2>
+                {/* ⛔ VOICI LA SEULE SATURÉE LÉGITIME DE CETTE PAGE, et c'est
+                    une PASTILLE: « votre offre actuelle » est un état du compte,
+                    pas de la décoration. Émeraude = ok, et elle ne peut pas être
+                    figue — la marque n'entre jamais dans une pastille. */}
+                {currentPaidTier === "system" && <Badge tone="positive">Plan actuel</Badge>}
+              </div>
+              <p className="mt-2 text-sm text-ink-soft md:min-h-[40px]">Pour ceux qui veulent juste la structure et l'outil de pilotage.</p>
             </div>
             <div className="mb-8">
-              <span className="text-4xl font-bold text-slate-900">
-                {billingInterval === 'monthly' ? '9,90€' : '7,90€'}
+              {/* Le prix en display: c'est le seul chiffre d'une page de vente
+                  qui a le droit d'être un titre (`ui/Marketing.tsx`, PriceCard).
+                  ⛔ Pas de `tabular-nums`: Young Serif rendrait « 9,90 € » en
+                  « 9 ,90 € », la virgule prenant la chasse d'un chiffre. */}
+              <span className="whitespace-nowrap font-display text-4xl leading-none text-ink">
+                {billingInterval === 'monthly' ? '9,90 €' : '7,90 €'}
               </span>
-              <span className="text-slate-400">/mois</span>
+              <span className="ml-1 text-sm text-ink-soft">/mois</span>
+              {/* Le montant annuel est un FAIT DE PRIX. L'émeraude disait « ok »
+                  sur un chiffre, ce que la règle de couleur interdit deux fois:
+                  un état n'est pas un nombre, et un nombre n'est pas un état. */}
               {billingInterval === 'yearly' && (
-                <div className="text-xs text-emerald-500 font-bold mt-1">Facturé 94,90€ par an</div>
+                <div className="mt-2 text-sm text-ink-soft">Facturé 94,90&nbsp;€ par an</div>
               )}
             </div>
-            
-            <button 
+
+            {/* `secondary`, ET C'EST LA HIÉRARCHIE DE LA PAGE: une seule action
+                marquée par écran. Ici c'est l'offre mise en avant qui la porte
+                (le bloc sombre), donc les deux offres latérales sont des
+                contours. Le violet partait de toute façon: il marquait bien une
+                ACTION, mais avec la marque du produit supprimé. */}
+            <Button
+                variant="secondary"
                 onClick={() => startCheckout('system', billingInterval)}
                 disabled={isBusy || (rank(currentPaidTier) > rank("system")) || (currentPaidTier === "system" && currentInterval === billingInterval)}
-                className={`w-full py-3 rounded-xl font-bold transition-all mb-8 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
-                  (rank(currentPaidTier) > rank("system")) || (currentPaidTier === "system" && currentInterval === billingInterval)
-                    ? "bg-violet-50 text-violet-700 border-2 border-violet-200"
-                    : "border-2 border-slate-100 text-slate-700 hover:border-violet-600 hover:text-violet-600"
-                } ${systemCheckoutPending ? "opacity-50" : ""}`}
+                className={`mb-8 w-full ${systemCheckoutPending ? "opacity-50" : ""}`}
             >
               {systemCheckoutPending ? (
                 "Chargement..."
               ) : (rank(currentPaidTier) > rank("system")) ? (
                 <>
-                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-md bg-violet-600 text-white">
-                    <Check className="w-3 h-3" />
-                  </span>
+                  {/* La coche perd sa vignette violette: elle ne portait aucun
+                      état, elle habillait un mot. Le mot suffit. */}
+                  <Check className="h-4 w-4 shrink-0" />
                   <span>Inclus</span>
                 </>
               ) : (currentPaidTier === "system" && currentInterval === billingInterval) ? (
                 <>
-                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-md bg-violet-600 text-white">
-                    <Check className="w-3 h-3" />
-                  </span>
+                  <Check className="h-4 w-4 shrink-0" />
                   <span>Plan actuel</span>
                 </>
               ) : (
@@ -341,87 +421,122 @@ const UpgradePlan = () => {
                   ? "Choisir Le Système"
                   : (billingInterval === "yearly" ? "Passer en annuel" : "Passer en mensuel")
               )}
-            </button>
+            </Button>
 
-            {/* Downgrade link (only when current plan is above System) */}
+            {/* Downgrade link (only when current plan is above System)
+                ⚠️ LE ROUGE AU SURVOL EST PARTI, ET C'EST UN CHOIX: ce lien
+                n'annule rien, il OUVRE LE PORTAIL Stripe. Un rouge promettrait
+                une destruction que le geste ne fait pas — et le seul vrai geste
+                destructeur du produit (« Delete my account ») en a besoin pour
+                se distinguer. */}
             {rank(currentPaidTier) > rank("system") && (
               <button
                 type="button"
                 onClick={() => scheduleDowngrade("system")}
                 disabled={isBusy}
-                className="w-full -mt-4 mb-6 text-xs text-slate-500 hover:text-red-600 underline decoration-slate-300 hover:decoration-red-500 transition-colors disabled:opacity-60 disabled:hover:text-slate-500"
+                className="-mt-4 mb-6 w-full text-xs text-ink-soft underline decoration-line-strong transition-colors hover:text-ink disabled:opacity-60"
               >
                 {systemPortalPending ? "Ouverture..." : "Repasser sur cet abonnement"}
               </button>
             )}
 
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <LayoutDashboard className="w-5 h-5 text-violet-600 flex-shrink-0" />
-                <span className="text-sm text-slate-600">Dashboard d'Actions dynamique</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <Target className="w-5 h-5 text-violet-600 flex-shrink-0" />
-                <span className="text-sm text-slate-600">Génération de Plan IA illimitée</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <Check className="w-5 h-5 text-violet-600 flex-shrink-0" />
-                <span className="text-sm text-slate-600">Suivi des habitudes & tâches</span>
-              </div>
-              <div className="flex items-start gap-3 opacity-50">
-                <X className="w-5 h-5 text-slate-400 flex-shrink-0" />
-                <span className="text-sm text-slate-400 line-through">Sophia au quotidien</span>
-              </div>
-              <div className="flex items-start gap-3 opacity-50">
-                <X className="w-5 h-5 text-slate-400 flex-shrink-0" />
-                <span className="text-sm text-slate-400 line-through">L'Architecte (Identité)</span>
-              </div>
+            {/* ── LA LISTE DES FONCTIONNALITÉS ─────────────────────────────
+                Une liste EST une liste: `<ul>`/`<li>` au lieu de cinq `div`.
+                Et les coches perdent leur violet: une fonctionnalité incluse
+                n'est pas un état du système, c'est le contenu de l'offre. Ce qui
+                porte l'inclusion, c'est la FORME — l'icône et, pour ce qui est
+                exclu, la rature.
+                ⚠️ `opacity-50` est retiré des lignes barrées: posé sur
+                `slate-400`, il descendait le texte sous le seuil de lecture. La
+                rature dit déjà « pas dans cette offre ». */}
+            <ul className="space-y-4">
+              <li className="flex items-start gap-3">
+                <LayoutDashboard className="h-5 w-5 shrink-0 text-ink-soft" />
+                <span className="text-sm text-ink">Dashboard d'Actions dynamique</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <Target className="h-5 w-5 shrink-0 text-ink-soft" />
+                <span className="text-sm text-ink">Génération de Plan IA illimitée</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <Check className="h-5 w-5 shrink-0 text-ink-soft" />
+                <span className="text-sm text-ink">Suivi des habitudes &amp; tâches</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <X className="h-5 w-5 shrink-0 text-ink-soft" />
+                <span className="text-sm text-ink-soft line-through">Sophia au quotidien</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <X className="h-5 w-5 shrink-0 text-ink-soft" />
+                <span className="text-sm text-ink-soft line-through">L'Architecte (Identité)</span>
+              </li>
+            </ul>
             </div>
-          </div>
+          </Card>
 
-          {/* OPTION 2: L'ALLIANCE - HIGHLIGHTED */}
-          <div className="bg-slate-900 rounded-3xl p-8 border border-slate-800 shadow-2xl relative transform md:-translate-y-4 z-10 order-2">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-violet-600 text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wide shadow-lg whitespace-nowrap">
-              Le plus populaire
+          {/* ── OPTION 2: L'ALLIANCE — LE BLOC SOMBRE ──────────────────────
+              LA CHARTE N'A QU'UN SEUL NOIR, ET IL EST À LA MARQUE: `fig-950`
+              (#24101E), « le bloc sombre — UN SEUL PAR PAGE » (charte §2). Il
+              remplace `bg-slate-900`, qui était un gris froid à côté d'une page
+              tempérée. Son secondaire est `fig-300` (8,06:1 sur ce fond), pas un
+              `slate-400` à 2,4:1 — sur le fond d'origine, les lignes barrées en
+              `slate-600` étaient à 1,5:1, c'est-à-dire illisibles.
+              C'est cette carte qui porte la mise en avant, donc la page n'a pas
+              besoin d'une seconde surface pleine. */}
+          <section className="relative z-10 order-2 rounded-card border border-fig-800 bg-fig-950 p-6 text-paper md:-translate-y-4 md:p-8">
+            {/* ⛔ « Le plus populaire » N'EST PAS UN ÉTAT DU SYSTÈME, c'est un
+                libellé commercial. Il devient donc une pastille NEUTRE: la
+                figue n'entre jamais dans une pastille, et l'émeraude y dirait
+                « ok » à propos de rien. */}
+            <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap">
+              <Badge tone="neutral">Le plus populaire</Badge>
             </div>
-            
+
             <div className="mb-6">
-              <h3 className="text-xl font-bold text-white mb-2">L'Alliance</h3>
-              <p className="text-sm text-slate-400 md:min-h-[40px]">Le combo parfait : Le système + Ton coach IA proactif.</p>
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="text-sub font-semibold text-paper">L'Alliance</h2>
+                {currentPaidTier === "alliance" && <Badge tone="positive">Plan actuel</Badge>}
+              </div>
+              <p className="mt-2 text-sm text-fig-300 md:min-h-[40px]">Le combo parfait&nbsp;: Le système + Ton coach IA proactif.</p>
             </div>
             <div className="mb-8">
-              <span className="text-5xl font-bold text-white">
-                {billingInterval === 'monthly' ? '19,90€' : '15,90€'}
+              <span className="whitespace-nowrap font-display text-5xl leading-none text-paper">
+                {billingInterval === 'monthly' ? '19,90 €' : '15,90 €'}
               </span>
-              <span className="text-slate-500">/mois</span>
+              <span className="ml-1 text-sm text-fig-300">/mois</span>
               {billingInterval === 'yearly' && (
-                <div className="text-xs text-emerald-400 font-bold mt-1">Facturé 189,90€ par an</div>
+                <div className="mt-2 text-sm text-fig-300">Facturé 189,90&nbsp;€ par an</div>
               )}
             </div>
-            
-            <button 
+
+            {/* ── L'ACTION MARQUÉE DE LA PAGE, ET ELLE EST INVERSÉE ────────
+                Un `fig-700` posé sur `fig-950` disparaît: sur le bloc sombre, la
+                marque se rend en NÉGATIF — `paper` sur la carte (17,05:1) et un
+                libellé `ink` (16,18:1). C'est pour ça que ce bouton n'est pas un
+                `<Button variant="primary">`: le kit n'a pas de variante inversée.
+                BESOIN DE KIT SIGNALÉ AU RAPPORT.
+                L'ombre violette (`shadow-violet-900/50`) part sans remplacement:
+                elle ne portait rien. */}
+            <button
+                type="button"
                 onClick={() => startCheckout('alliance', billingInterval)}
                 disabled={isBusy || (rank(currentPaidTier) > rank("alliance")) || (currentPaidTier === "alliance" && currentInterval === billingInterval)}
-                className={`w-full py-4 rounded-xl font-bold transition-all shadow-lg shadow-violet-900/50 mb-8 flex items-center justify-center gap-2 disabled:cursor-not-allowed ${
+                className={`mb-8 inline-flex w-full items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
                   (rank(currentPaidTier) > rank("alliance")) || (currentPaidTier === "alliance" && currentInterval === billingInterval)
-                    ? "bg-violet-500/20 text-violet-200 border border-violet-500/30"
-                    : "bg-violet-600 text-white hover:bg-violet-500"
+                    ? "border border-fig-300 text-paper"
+                    : "bg-paper text-ink hover:bg-fig-100"
                 } ${allianceCheckoutPending ? "opacity-50" : ""}`}
             >
               {allianceCheckoutPending ? (
                 "Chargement..."
               ) : (rank(currentPaidTier) > rank("alliance")) ? (
                 <>
-                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-md bg-violet-500 text-violet-950">
-                    <Check className="w-3 h-3" />
-                  </span>
+                  <Check className="h-4 w-4 shrink-0" />
                   <span>Inclus</span>
                 </>
               ) : (currentPaidTier === "alliance" && currentInterval === billingInterval) ? (
                 <>
-                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-md bg-violet-500 text-violet-950">
-                    <Check className="w-3 h-3" />
-                  </span>
+                  <Check className="h-4 w-4 shrink-0" />
                   <span>Plan actuel</span>
                 </>
               ) : (
@@ -429,7 +544,7 @@ const UpgradePlan = () => {
                   {rank(currentPaidTier) < rank("alliance")
                     ? "Choisir L'Alliance"
                     : (billingInterval === "yearly" ? "Passer en annuel" : "Passer en mensuel")}
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight className="h-4 w-4 shrink-0" />
                 </>
               )}
             </button>
@@ -440,70 +555,77 @@ const UpgradePlan = () => {
                 type="button"
                 onClick={() => scheduleDowngrade("alliance")}
                 disabled={isBusy}
-                className="w-full -mt-4 mb-6 text-xs text-slate-300 hover:text-red-400 underline decoration-slate-600 hover:decoration-red-400 transition-colors disabled:opacity-60 disabled:hover:text-slate-300"
+                className="-mt-4 mb-6 w-full text-xs text-fig-300 underline decoration-fig-300 transition-colors hover:text-paper disabled:opacity-60"
               >
                 {alliancePortalPending ? "Ouverture..." : "Repasser sur cet abonnement"}
               </button>
             )}
 
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 flex-shrink-0">
-                  <Check className="w-3 h-3" />
-                </div>
-                <span className="text-sm text-slate-300">Tout ce qu'il y a dans "Le Système"</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <MessageCircle className="w-5 h-5 text-emerald-400 flex-shrink-0 animate-pulse" />
-                <span className="text-sm text-emerald-400 font-bold">Sophia au quotidien (24/7)</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <Zap className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-                <span className="text-sm text-slate-300">Suivi proactif & Relances</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <Shield className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-                <span className="text-sm text-slate-300">Soutien psychologique & Motivation</span>
-              </div>
-               <div className="flex items-start gap-3 opacity-50">
-                <X className="w-5 h-5 text-slate-600 flex-shrink-0" />
-                <span className="text-sm text-slate-600 line-through">L'Architecte (Identité)</span>
-              </div>
-            </div>
-          </div>
+            {/* ⚠️ `animate-pulse` A ÉTÉ RETIRÉ de la ligne « Sophia au
+                quotidien »: une icône qui clignote en permanence est du bruit,
+                pas une information, et rien ne change à l'écran quand elle
+                bat. L'emphase passe à la graisse du texte. */}
+            <ul className="space-y-4">
+              <li className="flex items-start gap-3">
+                <Check className="h-5 w-5 shrink-0 text-fig-300" />
+                <span className="text-sm text-paper">Tout ce qu'il y a dans &laquo;&nbsp;Le Système&nbsp;&raquo;</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <MessageCircle className="h-5 w-5 shrink-0 text-fig-300" />
+                <span className="text-sm font-semibold text-paper">Sophia au quotidien (24/7)</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <Zap className="h-5 w-5 shrink-0 text-fig-300" />
+                <span className="text-sm text-paper">Suivi proactif &amp; Relances</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <Shield className="h-5 w-5 shrink-0 text-fig-300" />
+                <span className="text-sm text-paper">Soutien psychologique &amp; Motivation</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <X className="h-5 w-5 shrink-0 text-fig-300" />
+                <span className="text-sm text-fig-300 line-through">L'Architecte (Identité)</span>
+              </li>
+            </ul>
+          </section>
 
-          {/* OPTION 3: L'ARCHITECTE */}
-          <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 relative group order-3">
+          {/* ── OPTION 3: L'ARCHITECTE ─────────────────────────────────────
+              ⛔ LES CINQ AMBRES DE CETTE CARTE PARTENT, ET AUCUNE NE PORTAIT UN
+              FAIT. Ambre = ATTENTION dans tout le produit (`Card tone="warning"`,
+              `Badge tone="caution"`): quatre icônes de fonctionnalité et un
+              libellé en ambre disaient « attention » à propos de ce qu'on ACHÈTE.
+              Et le survol de son bouton était en ÉMERAUDE — la couleur de « ok »
+              employée comme teinte de marque d'une carte. */}
+          <Card padded={false} className="order-3">
+            <div className="p-6 md:p-8">
             <div className="mb-6">
-              <h3 className="text-xl font-bold text-slate-900 mb-2">L'Architecte</h3>
-              <p className="text-sm text-slate-500 md:min-h-[40px]">Pour ceux qui veulent redéfinir leur identité en profondeur.</p>
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="text-sub font-semibold text-ink">L'Architecte</h2>
+                {currentPaidTier === "architecte" && <Badge tone="positive">Plan actuel</Badge>}
+              </div>
+              <p className="mt-2 text-sm text-ink-soft md:min-h-[40px]">Pour ceux qui veulent redéfinir leur identité en profondeur.</p>
             </div>
             <div className="mb-8">
-              <span className="text-4xl font-bold text-slate-900">
-                {billingInterval === 'monthly' ? '29,90€' : '23,90€'}
+              <span className="whitespace-nowrap font-display text-4xl leading-none text-ink">
+                {billingInterval === 'monthly' ? '29,90 €' : '23,90 €'}
               </span>
-              <span className="text-slate-400">/mois</span>
+              <span className="ml-1 text-sm text-ink-soft">/mois</span>
               {billingInterval === 'yearly' && (
-                <div className="text-xs text-emerald-500 font-bold mt-1">Facturé 286,90€ par an</div>
+                <div className="mt-2 text-sm text-ink-soft">Facturé 286,90&nbsp;€ par an</div>
               )}
             </div>
-            
-            <button 
+
+            <Button
+                variant="secondary"
                 onClick={() => startCheckout('architecte', billingInterval)}
                 disabled={isBusy || (currentPaidTier === "architecte" && currentInterval === billingInterval)}
-                className={`w-full py-3 rounded-xl font-bold transition-all mb-8 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
-                  currentPaidTier === "architecte" && currentInterval === billingInterval
-                    ? "bg-violet-50 text-violet-700 border-2 border-violet-200"
-                    : "border-2 border-slate-100 text-slate-700 hover:border-emerald-600 hover:text-emerald-600"
-                } ${architecteCheckoutPending ? "opacity-50" : ""}`}
+                className={`mb-8 w-full ${architecteCheckoutPending ? "opacity-50" : ""}`}
             >
               {architecteCheckoutPending ? (
                 "Chargement..."
               ) : (currentPaidTier === "architecte" && currentInterval === billingInterval) ? (
                 <>
-                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-md bg-violet-600 text-white">
-                    <Check className="w-3 h-3" />
-                  </span>
+                  <Check className="h-4 w-4 shrink-0" />
                   <span>Plan actuel</span>
                 </>
               ) : (
@@ -511,33 +633,32 @@ const UpgradePlan = () => {
                   ? (billingInterval === "yearly" ? "Passer en annuel" : "Passer en mensuel")
                   : "Choisir L'Architecte"
               )}
-            </button>
+            </Button>
 
-            <div className="space-y-4">
-               <div className="flex items-start gap-3">
-                <div className="w-5 h-5 rounded-full bg-violet-100 flex items-center justify-center text-violet-600 flex-shrink-0">
-                  <Check className="w-3 h-3" />
-                </div>
-                <span className="text-sm text-slate-600">Tout ce qu'il y a dans "L'Alliance"</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <MessageCircle className="w-5 h-5 text-amber-500 flex-shrink-0" />
-                <span className="text-sm text-amber-600 font-bold">Messages illimités avec Sophia</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <Brain className="w-5 h-5 text-amber-500 flex-shrink-0" />
-                <span className="text-sm text-slate-900 font-bold">Module "Architecte" Complet</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <Sparkles className="w-5 h-5 text-amber-500 flex-shrink-0" />
-                <span className="text-sm text-slate-600">Travail sur l'Identité & Vision</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <Target className="w-5 h-5 text-amber-500 flex-shrink-0" />
-                <span className="text-sm text-slate-600">Déconstruction des blocages</span>
-              </div>
+            <ul className="space-y-4">
+              <li className="flex items-start gap-3">
+                <Check className="h-5 w-5 shrink-0 text-ink-soft" />
+                <span className="text-sm text-ink">Tout ce qu'il y a dans &laquo;&nbsp;L'Alliance&nbsp;&raquo;</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <MessageCircle className="h-5 w-5 shrink-0 text-ink-soft" />
+                <span className="text-sm font-semibold text-ink">Messages illimités avec Sophia</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <Brain className="h-5 w-5 shrink-0 text-ink-soft" />
+                <span className="text-sm font-semibold text-ink">Module &laquo;&nbsp;Architecte&nbsp;&raquo; Complet</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <Sparkles className="h-5 w-5 shrink-0 text-ink-soft" />
+                <span className="text-sm text-ink">Travail sur l'Identité &amp; Vision</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <Target className="h-5 w-5 shrink-0 text-ink-soft" />
+                <span className="text-sm text-ink">Déconstruction des blocages</span>
+              </li>
+            </ul>
             </div>
-          </div>
+          </Card>
 
         </div>
       </div>

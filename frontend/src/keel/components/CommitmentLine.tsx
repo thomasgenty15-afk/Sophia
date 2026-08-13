@@ -1,8 +1,10 @@
 import React from "react";
-import { activityLabel, commitmentAmount } from "../api/labels";
+import { activityLabel, commitmentAmount, priorityLabel } from "../api/labels";
 import type { TodayLine } from "../api/todayModel";
 import { t } from "../i18n/t";
-import { PriorityBadge, StatusBadge, TimingNote } from "./KeelBadges";
+import { StatusBadge, TimingNote } from "./KeelBadges";
+import { Badge } from "./ui/Badge";
+import { Button } from "./ui/Button";
 
 // KEEL — one prescribed engagement, as the student sees it.
 //
@@ -16,32 +18,48 @@ import { PriorityBadge, StatusBadge, TimingNote } from "./KeelBadges";
 // FAMILY IDENTITY (E1) also lives here. `activity_class` used to render as a
 // grey word among four other grey words, which made it invisible: a student
 // could not scan a screen and see "the nutrition lines held, the movement one
-// did not". It is now a tinted chip with a glyph, and the SAME chip heads the
-// family sections and the day tally on TodayPage — one family, one colour,
-// one icon, everywhere.
+// did not". The answer was, and still is, to give each family ITS OWN MARK.
+//
+// ═══════════════════════════════════════════════════════════════════════════
+// ⚠️ CE COMMENTAIRE A ÉTÉ RÉÉCRIT LE 2026-08-13. LIS-LE AVANT DE « RÉPARER ».
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Le mark était un GLYPHE + UNE TEINTE, et il annonçait « une famille, une
+// couleur, une icône, partout ». Les neuf teintes sont parties; le glyphe
+// reste, et c'est lui qui portait déjà l'identité.
+//
+// POURQUOI. Une famille (`nutrition`, `movement`) est un DOMAINE, pas un état
+// du système. Or dans ce produit la couleur saturée appartient au sens:
+// émeraude = ok, bleu = info, ambre = attention, rouge = échec. Les neuf
+// teintes mordaient précisément là:
+//     `amber` sur `supplement`  était l'ambre d'« attention »
+//     `cyan`  sur `exposure`    était voisin du bleu d'« info »
+//     `lime`  sur `nutrition`   était voisin de l'émeraude d'« ok » — et sur
+//                               `/app/today` une pastille « Alimentation »
+//                               vert-jaune touchait une pastille de statut
+//                               émeraude, à 11 px, dans la même rangée
+//     `indigo` et `fuchsia`     étaient la marque du produit grand public
+//                               SUPPRIMÉ
+// Le fichier se défendait en disant qu'il évitait émeraude et rose, les deux
+// teintes de `StatusBadge`. Il en évitait deux sur neuf, et les sept autres
+// empruntaient un sens qu'aucune famille ne porte.
+//
+// CE QUI REMPLACE LA COULEUR EST DÉJÀ LÀ: le glyphe, un tracé de 2 px sur une
+// grille de 24 — le langage de figure de la charte (§5). Neuf glyphes se
+// distinguent mieux que neuf teintes à 11 px, ils survivent au daltonisme et à
+// l'impression, et ils ne consomment aucune teinte, donc aucun état ne devient
+// muet. Le chip perd aussi son cadre et son fond: un REMPLISSAGE est ce qui
+// fait une pastille, et la pastille appartient aux états (`StatusBadge` est la
+// seule chose remplie de la rangée, ce qui est exactement le propos).
+//
+// ⚠️ Si tu lis encore quelque part que « chaque famille porte une teinte »
+// (par exemple en tête de `TodayPage.tsx`), la phrase est périmée: réécris-la,
+// ne remets pas la couleur.
 //
 // Why the chip is defined in this file rather than in `KeelBadges`: the badges
-// module owns the DERIVED vocabulary (status, priority, timing). A family is
-// not a grade, and giving it a home next to grades is how the two start looking
-// alike. `ACTIVITY_TINT` deliberately avoids emerald and rose, the two colours
-// StatusBadge uses to mean kept and missed.
-
-/**
- * One tint per family. The classes are written out in full because Tailwind
- * scans source text: a template-built class name (`bg-${c}-50`) is a class that
- * does not exist in the stylesheet, and the chip would render colourless.
- */
-const ACTIVITY_TINT: Record<string, string> = {
-  nutrition: "bg-lime-50 text-lime-800 border-lime-200",
-  supplement: "bg-amber-50 text-amber-800 border-amber-200",
-  movement: "bg-orange-50 text-orange-800 border-orange-200",
-  recovery: "bg-teal-50 text-teal-800 border-teal-200",
-  exposure: "bg-cyan-50 text-cyan-800 border-cyan-200",
-  sleep: "bg-indigo-50 text-indigo-800 border-indigo-200",
-  mind: "bg-fuchsia-50 text-fuchsia-800 border-fuchsia-200",
-  measurement: "bg-slate-50 text-slate-700 border-slate-200",
-  other: "bg-gray-50 text-gray-600 border-gray-200",
-};
+// module owns the DERIVED vocabulary (status, timing). A family is not a grade,
+// and giving it a home next to grades is how the two start looking alike.
+// Autorité: `docs/keel/CHARTE-VITRINE.md` §2 et §5.
 
 /** The glyph of each family, as a stroked path on a 24x24 grid. */
 const ACTIVITY_GLYPH: Record<string, string> = {
@@ -59,25 +77,29 @@ const ACTIVITY_GLYPH: Record<string, string> = {
 /**
  * The family of a line, as a chip. R7: an unknown `activity_class` throws here
  * exactly as it does in `todayModel` and in `activityLabel` — a family with no
- * colour is a family this build never heard of, and rendering it grey would
- * quietly file it under nothing.
+ * glyph is a family this build never heard of, and rendering it as a bare word
+ * would quietly file it under nothing.
+ *
+ * `size="md"` is the HEADING role — the chip stands in for the `<h5>` that
+ * heads a food sub-group on the three screens that read a plan, so it takes the
+ * same cran as that heading (`text-label`: 11 px, +0,1em, capitales — charte
+ * §3). `size="sm"` is the inline role, on one line of the student's day.
  */
 export function ActivityChip(
   { activityClass, size = "sm" }: { activityClass: string; size?: "sm" | "md" },
 ) {
-  const tint = ACTIVITY_TINT[activityClass];
   const glyph = ACTIVITY_GLYPH[activityClass];
-  if (!tint || !glyph) {
+  if (!glyph) {
     throw new Error(
       `[keel/line] no visual identity for activity_class "${activityClass}" (R7)`,
     );
   }
-  const box = size === "md" ? "gap-1.5 px-2 py-0.5 text-xs" : "gap-1 px-1.5 py-0.5 text-[11px]";
-  const icon = size === "md" ? 14 : 12;
+  const box = size === "md"
+    ? "gap-1.5 text-label font-semibold uppercase"
+    : "gap-1 text-[11px]";
+  const icon = size === "md" ? 13 : 12;
   return (
-    <span
-      className={`inline-flex items-center rounded border font-medium ${tint} ${box}`}
-    >
+    <span className={`inline-flex items-center text-ink-soft ${box}`}>
       <svg
         width={icon}
         height={icon}
@@ -93,6 +115,69 @@ export function ActivityChip(
         <path d={glyph} />
       </svg>
       {activityLabel(activityClass)}
+    </span>
+  );
+}
+
+/**
+ * LE RANG D'UNE LIGNE — et il est une FORME, pas trois couleurs.
+ *
+ * ⛔ CE COMPOSANT EXISTE POUR ANNULER LA FAUTE LA PLUS NETTE DU PRODUIT.
+ * `core / secondary / optional` était peint trois fois, différemment, sur trois
+ * écrans qui rendent les mêmes lignes:
+ *     `TemplatesPage.PriorityChip`  gris / **sky** / gris
+ *     `PlanImportPage.PriorityChip` gris / **sky** / gris  (copie à l'identique)
+ *     `KeelBadges.PriorityBadge`    **émeraude** / **sky** / gris
+ * Trois problèmes empilés: le `sky` prend le bleu de `Badge tone="info"` et rend
+ * la pastille bleue muette; l'émeraude de « Core » est un FAUX « ok » — un
+ * engagement principal n'est pas un engagement tenu, et sur `/app/today` cette
+ * fausse coche touchait la vraie, la pastille de statut, dans la même rangée; et
+ * un RANG n'est pas un état du système, donc aucune des trois teintes ne dit
+ * quoi que ce soit.
+ *
+ * LA FORME QUI LES REMPLACE EST ORDINALE, ce que les couleurs n'étaient même
+ * pas: trois pièces, remplies de gauche à droite. Elle se lit sans légende,
+ * survit au daltonisme et à l'impression, et le mot reste écrit à côté (R1: le
+ * jeton est une donnée, jamais une copie). Le `core` prend en plus le seul poids
+ * typographique de la rangée: c'est la ligne qui porte le bloc.
+ *
+ * ⚠️ AUCUN REMPLISSAGE DE FOND ICI, ET C'EST LA GARDE. Un remplissage est ce qui
+ * fait une pastille, et la pastille appartient aux états (charte §2). Un rang
+ * qui ne se remplit pas ne peut pas être confondu avec un verdict.
+ * ⚠️ Les pièces sont en `currentColor`: elles héritent de `ink` ou d'`ink-soft`
+ * selon le rang, et la figue n'entre pas ici — un rang n'est pas une action.
+ */
+const PRIORITY_RANK: Record<string, number> = { core: 3, secondary: 2, optional: 1 };
+
+export function PriorityMark({ priority }: { priority: string }) {
+  const rank = PRIORITY_RANK[priority] ?? 1;
+  return (
+    <span
+      className={`inline-flex shrink-0 items-center gap-1 text-[11px] ${
+        rank === 3 ? "font-semibold text-ink" : "text-ink-soft"
+      }`}
+    >
+      <svg
+        width={13}
+        height={8}
+        viewBox="0 0 13 8"
+        aria-hidden="true"
+        className="shrink-0"
+      >
+        {[0, 1, 2].map((i) => (
+          <rect
+            key={i}
+            x={i * 4.5 + 0.5}
+            y={0.5}
+            width={3}
+            height={7}
+            fill={i < rank ? "currentColor" : "none"}
+            stroke="currentColor"
+            strokeWidth={1}
+          />
+        ))}
+      </svg>
+      {priorityLabel(priority)}
     </span>
   );
 }
@@ -123,35 +208,40 @@ export function CommitmentLine({ line, pending, onLog }: CommitmentLineProps) {
   const canLog = !line.isAutoSourced && c.polarity !== "avoid";
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-3 text-sm">
+    // Une LIGNE de liste, pas une `Card`: `rounded-card` et le trait de contrôle
+    // du kit, mais `p-3` gardé — `/app/today` en empile jusqu'à quinze, et le
+    // `p-4` de la primitive y changerait le rythme d'un écran qui n'est pas le
+    // mien. Pas d'`overflow-hidden` non plus: il rognerait l'anneau de focus du
+    // bouton (`outline-offset: 3px`).
+    <div className="rounded-card border border-line-strong bg-paper p-3 text-sm">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="font-medium text-gray-900">{c.title}</div>
-          <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
+          <div className="font-medium text-ink">{c.title}</div>
+          <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ink-soft">
             <ActivityChip activityClass={c.activity_class} />
-            {target && <span className="tabular-nums text-gray-700">{target}</span>}
-            <PriorityBadge priority={c.priority} />
+            {target && <span className="tabular-nums text-ink">{target}</span>}
+            <PriorityMark priority={c.priority} />
             <TimingNote timing={line.timingStatus} />
           </div>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1.5">
           <StatusBadge status={line.status} />
           {canLog && (
-            <button
-              type="button"
+            <Button
+              size="sm"
               disabled={pending}
               onClick={() => onLog(line)}
-              className="rounded-lg border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40"
+              className="disabled:opacity-40"
             >
               {pending ? t("today.log_pending") : t("today.log_button")}
-            </button>
+            </Button>
           )}
         </div>
       </div>
 
       {c.student_instruction && (
-        <p className="mt-2 border-l-2 border-gray-200 pl-2 text-xs italic text-gray-600">
-          <span className="not-italic text-gray-400">
+        <p className="mt-2 border-l-2 border-line pl-2 text-xs italic text-ink-soft">
+          <span className="not-italic text-ink-soft">
             {t("today.instruction_label")}
           </span>
           {" "}
@@ -159,11 +249,12 @@ export function CommitmentLine({ line, pending, onLog }: CommitmentLineProps) {
         </p>
       )}
 
-      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-gray-500">
+      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-ink-soft">
         {loggedCount > 0 && (
-          <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-emerald-700">
+          // Un FAIT enregistré, donc une pastille d'état, donc celle du kit.
+          <Badge tone="positive">
             {t("today.logged_count", { count: loggedCount })}
-          </span>
+          </Badge>
         )}
         {line.isAutoSourced && c.auto_source && (
           <span>{t("today.auto_source", { source: c.auto_source })}</span>
@@ -173,7 +264,15 @@ export function CommitmentLine({ line, pending, onLog }: CommitmentLineProps) {
           <span className="text-amber-700">{t("today.evidence_photo")}</span>
         )}
         {line.coveredByDeviation && (
-          <span className="text-violet-700">{t("today.covered_by_deviation")}</span>
+          // `violet` ÉTAIT LA MARQUE DU PRODUIT GRAND PUBLIC SUPPRIMÉ, et ici
+          // elle disait quand même quelque chose de vrai: la ligne est excusée
+          // par un écart déclaré, elle n'est ni tenue ni manquée. C'est de
+          // l'INFO, et l'info est bleue dans les quatre familles d'état
+          // (`ui/Badge.tsx`). La teinte change, le sens est celui qui était
+          // déjà là. Texte et non pastille: les trois notes voisines de cette
+          // rangée sont des notes, et une seule d'entre elles ne peut pas
+          // devenir un objet d'un autre genre.
+          <span className="text-blue-700">{t("today.covered_by_deviation")}</span>
         )}
       </div>
     </div>

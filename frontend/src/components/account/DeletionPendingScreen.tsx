@@ -4,23 +4,39 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { supabase } from "../../lib/supabase";
 import { newRequestId, requestHeaders } from "../../lib/requestId";
+import { formatDateLong } from "../../keel/i18n/format";
+// LE KIT. Cet écran n'importait aucune primitive: ses deux boutons étaient
+// recopiés à la main (`bg-stone-950`, `rounded-2xl`), donc hors du registre de
+// ce à quoi ressemble un bouton dans ce produit.
+import { Button } from "../../keel/components/ui/Button";
 
-function formatFrenchDate(iso: string | null): string {
+/**
+ * ⚠️ LEGACY. Le NOM disait déjà le défaut — « frenchDate » sur un écran dont
+ * toutes les phrases sont anglaises. Seul le formatage est repris ici; le
+ * texte de ce reliquat n'est pas dans ce lot.
+ */
+function formatDeletionDate(iso: string | null): string {
   if (!iso) return "in 7 days";
-  try {
-    return new Intl.DateTimeFormat("fr-FR", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    }).format(new Date(iso));
-  } catch {
-    return "in 7 days";
-  }
+  return formatDateLong(iso) || "in 7 days";
 }
 
 /**
  * Full-screen gate shown when the signed-in account is deletion_pending:
  * the only actions offered are restoring the account or signing out.
+ *
+ * ── LA CHARTE, LE 2026-08-13 ─────────────────────────────────────────────
+ * Cet écran était le SEUL du produit connecté à ne pas être en `gray-*`: il
+ * portait un fond `#f7f6f2` écrit en dur, une famille `stone-*`, un rayon
+ * `rounded-[28px]` et une ombre de 90 px. C'est pour ça que l'audit du chantier
+ * l'a compté à zéro — il ne cherchait que `gray-*`. Onze neutres et quatre
+ * rayons sont passés aux jetons de « la fiche » (`paper` · `paper-2` · `ink` ·
+ * `ink-soft` · `line` · `rounded-fiche` · `rounded-card`), et les deux boutons
+ * recopiés à la main sont ceux du kit.
+ *
+ * ⚠️ IL EST HORS DU SHELL, et c'est ce qui explique qu'il se soit habillé seul:
+ * `RouteGuards` le rend à la place de l'application. Il porte donc son propre
+ * `min-h-screen bg-paper` et son propre `h1` — le seul de la vue.
+ * Autorité: `docs/keel/CHARTE-VITRINE.md`.
  */
 export default function DeletionPendingScreen() {
   const { purgeAt, refreshAccountStatus, signOut } = useAuth();
@@ -62,50 +78,80 @@ export default function DeletionPendingScreen() {
   };
 
   return (
-    <main className="min-h-screen bg-[#f7f6f2] px-4 py-8 text-stone-950 sm:px-6">
+    <main className="min-h-screen bg-paper px-4 py-8 text-ink sm:px-6">
       <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-xl items-center">
-        <section className="w-full rounded-[28px] border border-stone-200 bg-white p-8 shadow-[0_28px_90px_-48px_rgba(31,41,55,0.55)] sm:p-10">
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-stone-100">
-            <CalendarClock className="h-6 w-6 text-stone-700" />
+        {/* LA FICHE. `rounded-fiche` (16px) est le rayon d'une SURFACE ENTIÈRE,
+            et `paper-2` sur `paper` fermé par un trait `line` est l'idiome que
+            `/auth` et `/start` emploient déjà — une carte se lit par son trait,
+            pas par un aplat plus clair que la page (la charte ne nomme aucun
+            neutre au-dessus de `paper`). L'ombre de 90 px part avec: une fiche
+            technique est tracée, elle ne flotte pas.
+            `p-6` à 320 px et non `p-8`: 32 px de marge de chaque côté ne
+            laissaient que 256 px de mesure sur un téléphone. */}
+        <section className="w-full rounded-fiche border border-line bg-paper-2 p-6 sm:p-8">
+          {/* LA BOÎTE TRACÉE, et pas un aplat: `line-strong` (3,84:1) est la
+              bordure de contrôle de la charte, la seule qui se lise à la fois
+              sur `paper` et sur `paper-2`. */}
+          <div className="inline-flex h-12 w-12 items-center justify-center rounded-card border border-line-strong bg-paper">
+            <CalendarClock className="h-6 w-6 text-ink-soft" />
           </div>
 
-          <h1 className="mt-6 text-2xl font-semibold leading-tight sm:text-3xl">
+          {/* ⛔ PAS DE GRAISSE SUR LE DISPLAY. Young Serif n'a qu'un poids: le
+              navigateur simulerait le gras en épaississant les contours.
+              `text-title` va de 1,7rem (27,2 px à 320) à 2,7rem — toujours
+              au-dessus du plancher de 20 px sous lequel la display ne descend
+              jamais. C'est le même cran que le `h1` de `/auth` et de
+              `ui/Page.PageHeader`. */}
+          <h1 className="mt-6 text-balance font-display text-title text-ink">
             Your account is being deleted
           </h1>
-          <p className="mt-4 text-sm leading-6 text-stone-600">
-            All your data will be <strong>permanently deleted on {formatFrenchDate(purgeAt)}</strong>.
+          <p className="mt-4 max-w-[62ch] text-base leading-relaxed text-ink-soft">
+            All your data will be <strong>permanently deleted on {formatDeletionDate(purgeAt)}</strong>.
             Until then, you can restore your account in one click: everything is put back
             (plans, conversations, souvenirs, rappels).
           </p>
-          <p className="mt-3 text-sm leading-6 text-stone-600">
+          <p className="mt-3 max-w-[62ch] text-base leading-relaxed text-ink-soft">
             If you had a subscription, it has been cancelled and will not be reactivated
             automatically: you can take out a new one from the Subscription page.
           </p>
 
+          {/* ⛔ ROUGE = ÉCHEC, ET C'EST UN FAIT: il reste. Seules les valeurs
+              montent à celles du kit — `red-200` en bordure, `red-700` sur
+              `paper` = 6,13:1 (`red-600` était à 4,4:1), et `text-sm` parce que
+              12 px n'est dans aucun cran de l'échelle. */}
           {error && (
-            <div className="mt-4 rounded-xl border border-red-100 bg-red-50 p-3 text-xs text-red-600">
+            <div className="mt-4 rounded-card border border-red-200 bg-red-50 p-3 text-sm leading-6 text-red-700">
               {error}
             </div>
           )}
 
           <div className="mt-8 grid gap-3">
-            <button
-              type="button"
+            {/* L'ACTION MARQUÉE DE CETTE VUE, ET LA SEULE. Restaurer est
+                exactement ce que cet écran existe pour offrir; se déconnecter est
+                la sortie. `min-h-11` (44 px) garde la cible tactile confortable
+                de l'original — le `md` du kit est à ~36 px — sans toucher au
+                `py-*` de la primitive, qui perdrait contre lui. */}
+            <Button
+              variant="primary"
               onClick={handleRestore}
               disabled={restoring}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-stone-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-stone-800 disabled:opacity-60"
+              className="min-h-11 w-full"
             >
-              <RotateCcw className="h-4 w-4" />
+              <RotateCcw className="h-4 w-4 shrink-0" />
               {restoring ? "Restoring…" : "Restore my account"}
-            </button>
-            <button
-              type="button"
+            </Button>
+            {/* ⚠️ « Sign out » N'EST PAS ROUGE, et `UserProfile` a tranché la
+                même chose au même moment: se déconnecter ne détruit rien et se
+                défait en se reconnectant. Ici le rouge est déjà pris par la
+                seule chose irréversible de l'écran — la date de purge. */}
+            <Button
+              variant="secondary"
               onClick={handleSignOut}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-stone-200 bg-white px-5 py-3 text-sm font-semibold text-stone-700 transition hover:bg-stone-50"
+              className="min-h-11 w-full"
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className="h-4 w-4 shrink-0" />
               Sign out
-            </button>
+            </Button>
           </div>
         </section>
       </div>

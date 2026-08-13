@@ -9,7 +9,10 @@ import WeekView from "../components/WeekView";
 import StudentConstraintsCard from "../components/StudentConstraintsCard";
 import CoachNoteCard from "../components/CoachNoteCard";
 import CoachSeatCard from "../components/CoachSeatCard";
-import { Card } from "../components/ui/Card";
+import { Badge } from "../components/ui/Badge";
+import { Card, SectionLabel } from "../components/ui/Card";
+import { plural } from "../i18n/plural";
+import { formatNumber } from "../i18n/format";
 import { t } from "../i18n/t";
 import {
   aggregateWeekInFood,
@@ -261,7 +264,7 @@ export default function CoachStudentPage() {
   if (state.kind === "loading") {
     return (
       <Frame>
-        <p className="text-sm text-gray-500">{t("coach.student.opening")}</p>
+        <p className="text-sm text-ink-soft">{t("coach.student.opening")}</p>
       </Frame>
     );
   }
@@ -269,10 +272,10 @@ export default function CoachStudentPage() {
   if (state.kind === "denied") {
     return (
       <Frame>
-        <h1 className="text-xl font-semibold text-gray-900">
+        <h1 className="font-display text-title text-ink">
           {t("coach.student.denied_title")}
         </h1>
-        <p className="mt-2 text-sm leading-6 text-gray-600">
+        <p className="mt-3 max-w-[62ch] text-base leading-relaxed text-ink-soft">
           {t("coach.student.denied_body")}
         </p>
         <BackLink />
@@ -283,10 +286,10 @@ export default function CoachStudentPage() {
   if (state.kind === "error") {
     return (
       <Frame>
-        <h1 className="text-xl font-semibold text-gray-900">
+        <h1 className="font-display text-title text-ink">
           {t("coach.student.error_title")}
         </h1>
-        <p className="mt-2 text-sm leading-6 text-gray-600">{state.message}</p>
+        <p className="mt-3 max-w-[62ch] text-base leading-relaxed text-ink-soft">{state.message}</p>
         <BackLink />
       </Frame>
     );
@@ -299,15 +302,34 @@ export default function CoachStudentPage() {
       <header className="mb-6">
         <BackLink />
         <div className="mt-2 flex flex-wrap items-center gap-2">
-          <h1 className="text-2xl font-semibold text-gray-900">
+          {/* LE MÊME `h1` QUE `PageHeader`, parce que c'est le même objet: le
+              titre d'un écran de travail. `font-display text-title` sans graisse
+              — Young Serif n'a QU'UNE graisse et le navigateur simulerait un
+              `font-semibold` en épaississant les contours. Cette page ne monte
+              pas `KeelAppShell` (elle a son propre châssis, voir `Frame`), donc
+              elle est le seul écran coach à devoir poser ce cran elle-même. */}
+          <h1 className="min-w-0 font-display text-title text-ink">
             {d.student.full_name?.trim() || t("coach.student.unnamed")}
           </h1>
-          <span className="rounded border border-gray-300 px-2 py-0.5 text-[11px] uppercase tracking-wide text-gray-500">
-            {t("coach.student.read_only")}
-          </span>
+          {/* PASTILLE MAISON → `Badge tone="neutral"`. C'était un
+              `<span className="rounded border border-gray-300 …">`, c'est-à-dire
+              une pastille fabriquée à la main — et sa géométrie la trahissait:
+              rectangle à petit rayon, quand le kit réserve `rounded-full` aux
+              pastilles. « Lecture seule » est un LIBELLÉ sur l'écran, pas un
+              état du système: ni ok, ni attention, ni échec, ni info. `neutral`
+              est le ton qui dit exactement ça (`bg-line text-ink-soft`, 4,72:1),
+              et la garde du chantier tient: aucune figue dans une pastille. */}
+          <Badge tone="neutral">{t("coach.student.read_only")}</Badge>
         </div>
-        <p className="mt-1 text-sm text-gray-500">
-          {d.plan?.title ?? t("app.plan_untitled")}
+        {/*
+          ⚠️ `app.plan_untitled` DISAIT « Your plan » / « Ton plan » SUR L'ÉCRAN
+          DU COACH, c'est-à-dire à propos du plan de QUELQU'UN D'AUTRE. La clé
+          est juste là où elle est née — `/app/today`, où l'élève lit le sien —
+          et fausse ici, dans les deux langues. Elle reste partagée et
+          inchangée; cet écran a la sienne, qui ne nomme personne.
+        */}
+        <p className="mt-1 text-sm text-ink-soft">
+          {d.plan?.title ?? t("coach.student.plan_untitled")}
         </p>
         {/* LE COMPOSEUR PAR ÉLÈVE A DISPARU (20260804210000), et son lien avec
             lui. KEEL est 1:N: le coach écrit une doctrine, un protocole et une
@@ -318,7 +340,7 @@ export default function CoachStudentPage() {
 
       {!d.plan && (
         <Card tone="dashed" className="mb-6">
-          <p className="text-sm text-gray-500">{t("coach.student.no_plan")}</p>
+          <p className="text-sm text-ink-soft">{t("coach.student.no_plan")}</p>
         </Card>
       )}
 
@@ -374,7 +396,7 @@ export default function CoachStudentPage() {
           page compte donc maintenant deux exceptions, toutes deux nommées. */}
       <CoachSeatCard studentId={d.student.id} />
 
-      <footer className="mt-8 border-t border-gray-100 pt-4 text-xs leading-5 text-gray-500">
+      <footer className="mt-8 max-w-[62ch] border-t border-line pt-4 text-xs leading-5 text-ink-soft">
         {t("coach.student.footer")}
       </footer>
     </Frame>
@@ -454,9 +476,7 @@ function FoodAndNumbers({ studentId }: { studentId: string }) {
   if (failed) {
     return (
       <Card tone="dashed" className="mt-6">
-        <p className="text-sm text-gray-500">
-          The food journal could not be loaded just now.
-        </p>
+        <p className="text-sm text-ink-soft">{t("coach.student.food.load_error")}</p>
       </Card>
     );
   }
@@ -476,21 +496,51 @@ function FoodAndNumbers({ studentId }: { studentId: string }) {
 
   return (
     <div className="mt-6 space-y-6">
+      {/* ⚠️ L'ÉTIQUETTE MAISON EST DEVENUE `SectionLabel`, ET ELLE RESTE DANS LA
+          CARTE — les deux moitiés de la décision comptent.
+          C'était un `<p className="text-xs font-semibold uppercase … gray-400">`:
+          le composant du kit recopié à la main, et en moins bon (gray-400 sur
+          blanc = 2,84:1, sous le seuil 4,5 du texte). Le kit rend `text-label` +
+          `ink-soft` (6,11:1), en `h2`, avec l'équerre.
+          ⚠️ ELLE EST DEDANS PARCE QUE LA CHARTE §4 DIT « une section, une FICHE,
+          une figure »: une carte autonome est une fiche, et l'équerre en ouvre le
+          contenu. Un premier passage l'avait sortie au-dessus de la carte —
+          MESURÉ AU RENDU, ça créait un TROISIÈME motif sur le même écran, à côté
+          des sections nues de `WeekView` (étiquette dehors, pas de carte) et des
+          trois cartes voisines de cette page (`StudentConstraintsCard`,
+          `CoachNoteCard`, `CoachSeatCard`, étiquette dedans). Deux motifs disent
+          deux objets différents; trois disent qu'on n'a pas tranché.
+          ⚠️ NE POSE PAS DE `px-*` sur ce nœud: `.eq` écrit son `padding-left`
+          hors de toute couche CSS. */}
       <Card>
-        <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-          On the plate — last 7 days
-        </p>
+        <SectionLabel>{t("coach.student.food.title")}</SectionLabel>
         {food.meals === 0 ? (
-          <p className="mt-2 text-sm text-gray-600">
-            No meals read this week. The Monday page tells you if they have
-            gone quiet everywhere, not just here.
-          </p>
+          <p className="text-sm text-ink-soft">{t("coach.student.food.empty")}</p>
         ) : (
-          <div className="mt-3 space-y-2 text-sm text-gray-800">
+          <div className="max-w-[62ch] space-y-2 text-sm text-ink">
+            {/* ⚠️ LE PLURIEL NE S'ÉCRIT PLUS `> 1 ? "s" : ""`. C'était la règle
+                anglaise en dur, et elle est fausse en français (« 1,5 jour »,
+                « 0 jour »); `plural()` porte la seule divergence des deux
+                langues. Les deux nombres s'accordent séparément, donc chacun
+                traverse le seed avec ses deux formes avant d'entrer dans la
+                phrase — un gabarit à quatre combinaisons serait quatre clés à
+                garder d'accord. */}
             <p>
-              <span className="font-medium">{food.meals}</span> meal{food.meals > 1 ? "s" : ""} across{" "}
-              <span className="font-medium">{food.daysLogged}</span> day{food.daysLogged > 1 ? "s" : ""} ·
-              vegetables at {food.vegMeals} · protein at {food.proteinMeals} · fruit at {food.fruitMeals}.
+              {t("coach.student.food.summary", {
+                meals: plural(
+                  food.meals,
+                  t("coach.student.food.meal_value", { count: food.meals }),
+                  t("coach.student.food.meals_value", { count: food.meals }),
+                ),
+                days: plural(
+                  food.daysLogged,
+                  t("week.day_value", { count: food.daysLogged }),
+                  t("week.days_value", { count: food.daysLogged }),
+                ),
+                vegetables: food.vegMeals,
+                protein: food.proteinMeals,
+                fruit: food.fruitMeals,
+              })}
             </p>
             {/*
               FF-009 — LES TROIS COMPTES, CÔTE À CÔTE ET JAMAIS ADDITIONNÉS.
@@ -502,46 +552,59 @@ function FoodAndNumbers({ studentId }: { studentId: string }) {
               Les trois valent 0 tant que rien ne les alimente, et un 0 lu est
               un 0 compté: la colonne existe sur toutes les lignes neuves.
             */}
-            <p className="text-gray-700">
-              Ticked as planned: {food.asPlannedMeals} · eaten off plan:{" "}
-              {food.offPlanMeals} · photographed: {food.photoMeals}.
+            <p className="text-ink-soft">
+              {t("coach.student.food.counts", {
+                ticked: food.asPlannedMeals,
+                offPlan: food.offPlanMeals,
+                photographed: food.photoMeals,
+              })}
             </p>
             {food.topFoods.length > 0 ? (
-              <p className="text-gray-700">
-                Seen most: {food.topFoods.map((f) => `${f.label} ×${f.count}`).join(" · ")}
+              <p className="text-ink-soft">
+                {t("coach.student.food.seen_most", {
+                  list: food.topFoods.map((f) => `${f.label} ×${f.count}`).join(" · "),
+                })}
               </p>
             ) : null}
             {food.watchCounts.length > 0 ? (
-              <p className="text-gray-700">
-                Also: {food.watchCounts.map((w) => `${w.label} ×${w.count}`).join(" · ")}
+              <p className="text-ink-soft">
+                {t("coach.student.food.also_seen", {
+                  list: food.watchCounts.map((w) => `${w.label} ×${w.count}`).join(" · "),
+                })}
               </p>
             ) : null}
             {food.dinnerLarge && food.dinnerLarge.total >= 2 ? (
-              <p className="text-gray-700">
-                Dinners ran large {food.dinnerLarge.large} of {food.dinnerLarge.total} nights.
+              <p className="text-ink-soft">
+                {t("coach.student.food.dinners_large", {
+                  large: food.dinnerLarge.large,
+                  total: food.dinnerLarge.total,
+                })}
               </p>
             ) : null}
+            {/* TROIS CLÉS, PAS UNE PHRASE À TROU. « More/Fewer/About the same »
+                se traduit par trois tournures qui ne partagent ni leur verbe ni
+                leur ordre en français; un trou obligerait à y glisser un mot
+                comparatif, c'est-à-dire à recomposer la phrase dans le code. */}
             {food.vegTrend ? (
-              <p className="text-gray-700">
+              <p className="text-ink-soft">
                 {food.vegTrend === "up"
-                  ? "More vegetables than the week before."
+                  ? t("coach.student.food.veg_trend_up")
                   : food.vegTrend === "down"
-                  ? "Fewer vegetables than the week before."
-                  : "About the same vegetables as the week before."}
+                  ? t("coach.student.food.veg_trend_down")
+                  : t("coach.student.food.veg_trend_flat")}
               </p>
             ) : null}
-            <p className="pt-1 text-xs leading-5 text-gray-500">
-              Frequency read of their photo log — the same numbers they see.
-              The photos themselves stay with the student.
+            <p className="pt-1 text-xs leading-5 text-ink-soft">
+              {t("coach.student.food.footnote")}
             </p>
           </div>
         )}
       </Card>
 
+      {/* Même geste, même placement que ci-dessus: l'étiquette du kit, dans la
+          carte, parce qu'une carte autonome est une fiche. */}
       <Card>
-        <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-          Starting numbers
-        </p>
+        <SectionLabel>{t("coach.student.numbers.title")}</SectionLabel>
         {/*
           ── LA GARDE « SIGNAUX RESTRICTIFS » EST PARTIE (L3, 2026-08-08) ─────
           Elle remplaçait ces fourchettes par « numbers are the wrong tool right
@@ -560,29 +623,34 @@ function FoodAndNumbers({ studentId }: { studentId: string }) {
           `reason_code='restriction_signal'` et `status='open'`.
         */}
         {numbers === null ? (
-          <p className="mt-2 text-sm text-gray-600">
-            No weigh-in yet. Ranges appear after their first Sunday check-in
-            with a weight.
-          </p>
+          <p className="text-sm text-ink-soft">{t("coach.student.numbers.empty")}</p>
         ) : (
-          <div className="mt-3 space-y-2 text-sm text-gray-800">
+          <div className="max-w-[62ch] space-y-2 text-sm text-ink">
+            {/* L'ÉTIQUETTE ET LA FOURCHETTE SONT DEUX CLÉS, et c'est une
+                pastille de statistique, pas une phrase coupée en deux: la
+                valeur porte le gras parce que c'est elle qu'on vient lire.
+                L'unité vit DANS la valeur — « kcal/day » est un mot, pas un
+                symbole SI, et il se traduit. */}
             <p>
-              Maintenance ≈{" "}
+              {t("coach.student.numbers.maintenance_label")}{" "}
               <span className="font-medium">
-                {numbers.maintenanceLow.toLocaleString("en-GB")}–{numbers.maintenanceHigh.toLocaleString("en-GB")} kcal/day
+                {t("coach.student.numbers.maintenance_value", {
+                  low: formatNumber(numbers.maintenanceLow),
+                  high: formatNumber(numbers.maintenanceHigh),
+                })}
               </span>
             </p>
             <p>
-              Protein ≈{" "}
+              {t("coach.student.numbers.protein_label")}{" "}
               <span className="font-medium">
-                {numbers.proteinLow}–{numbers.proteinHigh} g/day
+                {t("coach.student.numbers.protein_value", {
+                  low: numbers.proteinLow,
+                  high: numbers.proteinHigh,
+                })}
               </span>
             </p>
-            <p className="pt-1 text-xs leading-5 text-gray-500">
-              Computed from their {numbers.weightKg} kg weigh-in alone — no
-              height, age or activity in the math, so treat it as the bracket
-              you would open, not the number you would prescribe. Never derived
-              from photos, and the student never sees these figures.
+            <p className="pt-1 text-xs leading-5 text-ink-soft">
+              {t("coach.student.numbers.footnote", { weight: numbers.weightKg })}
             </p>
           </div>
         )}
@@ -591,21 +659,51 @@ function FoodAndNumbers({ studentId }: { studentId: string }) {
   );
 }
 
+/**
+ * LE RETOUR À LA COHORTE.
+ *
+ * ⚠️ UN LIEN PASSE À LA TEINTE DE MARQUE, ET C'EST LA MOITIÉ « ACTION » DE LA
+ * RÈGLE DE COULEUR: la figue marque la navigation et les gestes, les quatre
+ * familles d'état marquent les faits. Il était en `gray-500` souligné —
+ * c'est-à-dire un lien déguisé en légende. `fig-700` sur `paper` = 9,98:1.
+ * Le soulignement reste: la couleur seule ne doit jamais porter l'information.
+ */
 function BackLink() {
   return (
     <p className="text-sm">
-      <Link to="/coach" className="text-gray-500 underline">
+      <Link to="/coach" className="text-fig-700 underline underline-offset-2">
         {t("common.back")}
       </Link>
     </p>
   );
 }
 
+/**
+ * LE CHÂSSIS DE CETTE PAGE — et il n'est pas `KeelAppShell`, exprès.
+ *
+ * `/coach/clients/:id` est la seule page coach à ne pas monter le shell complet:
+ * elle n'a pas de titre d'écran à lui donner (son titre est le NOM d'un élève,
+ * lu après un appel), et son en-tête porte un retour, un `h1` et une pastille de
+ * lecture seule que `PageHeader` ne sait pas composer. C'est `KeelShellBar` seule
+ * plus une colonne.
+ *
+ * ⚠️ `bg-white` EST DEVENU `bg-paper`, ET CE N'ÉTAIT PAS UNE NUANCE. La charte
+ * refuse le blanc pur — c'est précisément le neutre SANS température qu'elle
+ * écarte (`paper` #FBF8FA porte la teinte de marque à 27 % de saturation). Cette
+ * page était donc la seule surface coach à rendre le ground d'avant, et les
+ * cartes posées dessus perdaient le contraste qu'elles ont partout ailleurs.
+ *
+ * La colonne reste `max-w-3xl`, ce que `Page width="narrow"` du kit rend aussi —
+ * on ne l'appelle pas ici parce que `Page` rend un `<div>` et que ce nœud est le
+ * `<main>` de la page: un lot visuel n'échange pas un repère d'accessibilité
+ * contre une ligne de moins. `min-h-screen` reste sur l'enveloppe pour que le
+ * ground couvre la fenêtre même sur un écran d'erreur de trois lignes.
+ */
 function Frame({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-paper">
       <KeelShellBar variant="coach" />
-      <main className="mx-auto max-w-3xl px-4 py-8">{children}</main>
+      <main className="mx-auto w-full max-w-3xl px-4 py-8">{children}</main>
     </div>
   );
 }

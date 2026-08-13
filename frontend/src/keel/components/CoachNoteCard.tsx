@@ -6,7 +6,7 @@ import {
   saveCoachNote,
 } from "../api/coachNote";
 import { Button } from "./ui/Button";
-import { Card } from "./ui/Card";
+import { Card, SectionLabel } from "./ui/Card";
 import { inputClass } from "./ui/Field";
 
 // CE QUE LE COACH A OBSERVÉ SUR CET ÉLÈVE — la seule surface d'ÉCRITURE de
@@ -107,10 +107,15 @@ export default function CoachNoteCard({ studentId }: { studentId: string }) {
 
   return (
     <Card className="mt-6">
-      <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-        What you have noticed about them
-      </p>
-      <p className="mt-2 text-sm leading-6 text-gray-600">
+      {/* ⚠️ L'ÉTIQUETTE MAISON EST DEVENUE `SectionLabel`: c'était le composant
+          du kit recopié à la main, en `gray-400` (2,84:1 sur blanc, sous le seuil
+          4,5 du texte). Le kit rend `text-label` + `ink-soft` = 6,11:1, en `h2`,
+          avec l'équerre.
+          ⚠️ NE POSE PAS DE `px-*` sur ce nœud: `.eq` écrit son `padding-left`
+          hors de toute couche CSS et battrait un utilitaire de même
+          spécificité. */}
+      <SectionLabel>What you have noticed about them</SectionLabel>
+      <p className="max-w-[62ch] text-sm leading-6 text-ink-soft">
         Optional. Anything here reaches their plans and their conversations with
         Sophia — the shift work, the bad knee, the week they always skip. Leave
         it empty and nothing changes.
@@ -130,14 +135,24 @@ export default function CoachNoteCard({ studentId }: { studentId: string }) {
 
       <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
         <p
-          className={`text-xs ${remaining < 100 ? "text-amber-700" : "text-gray-500"}`}
+          // ⛔ L'AMBRE RESTE, ET ELLE PORTE UN FAIT: « il te reste moins de cent
+          // caractères » est un avertissement, pas une décoration. C'est
+          // exactement le rôle d'`attention` dans le vocabulaire du produit.
+          className={`text-xs ${remaining < 100 ? "text-amber-700" : "text-ink-soft"}`}
         >
           {remaining} characters left
         </p>
         <div className="flex items-center gap-3">
           {justSaved && !dirty ? (
-            <span className="text-xs text-gray-500">Saved.</span>
+            <span className="text-xs text-ink-soft">Saved.</span>
           ) : null}
+          {/* ⛔ LE SEUL `variant="primary"` DE `/coach/clients/:id`, ET C'EST
+              DÉLIBÉRÉ. La page est une LECTURE (son en-tête dit « READ-ONLY, and
+              structurally so »); cette note est sa seule écriture routinière,
+              donc c'est elle qui porte l'unique aplat de marque de l'écran.
+              `CoachSeatCard`, montée juste en dessous, a été démotée en
+              `secondary`/`danger` pour cette raison — deux boutons figue côte à
+              côte, c'est zéro hiérarchie. */}
           <Button
             variant="primary"
             size="sm"
@@ -155,7 +170,9 @@ export default function CoachNoteCard({ studentId }: { studentId: string }) {
         </p>
       ) : null}
 
-      <p className="mt-3 border-t border-gray-100 pt-3 text-xs leading-5 text-gray-500">
+      {/* `border-line` (1,30:1): une règle horizontale À L'INTÉRIEUR d'une carte
+          est le seul emploi légitime du séparateur décoratif. */}
+      <p className="mt-3 max-w-[62ch] border-t border-line pt-3 text-xs leading-5 text-ink-soft">
         This is a note about a person, so it belongs to them too: it is included
         if they ever request their data. It also does not prescribe — your
         method and their allergies both outrank it wherever they meet.

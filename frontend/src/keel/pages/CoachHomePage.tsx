@@ -13,6 +13,13 @@ import {
   inviteStateIsReassuring,
   sendStudentInvitation,
 } from "../api/inviteStudent";
+// ⚠️ CE FICHIER SE CONTREDISAIT LUI-MÊME SUR LA MÊME PAGE. Une fonction locale
+// `formatDay` rendait la date d'expiration d'une invitation en `en-GB`, une
+// autre nommée `formatDate` rendait la date d'entrée d'un élève en `en-US`, et
+// les deux s'affichent l'une sous l'autre dans la même liste. Deux conventions
+// pour un écran est la preuve que personne ne l'avait tranché; c'est
+// `i18n/format.ts` qui le tranche maintenant, pour les vingt-six sites.
+import { formatDate } from "../i18n/format";
 import { t } from "../i18n/t";
 import {
   CONTACT_LABEL,
@@ -286,14 +293,31 @@ export function CoachHomePage() {
       subtitle={t("coach.home.subtitle")}
     >
       {state.kind === "loading" && (
-        <p className="text-sm text-gray-500">{t("coach.guard.checking")}</p>
+        <p className="text-sm text-ink-soft">{t("coach.guard.checking")}</p>
       )}
 
       {state.kind === "error" && (
         <Card tone="warning">
           <p className="text-sm text-amber-900">{t("coach.home.load_error")}</p>
+          {/* ⚠️ TROIS CLASSES AMBRE ONT ÉTÉ RETIRÉES DE CE BOUTON PARCE QU'ELLES
+              NE RENDAIENT RIEN — MESURÉ AU NAVIGATEUR, PAS DÉDUIT.
+              Il portait `border-amber-300 text-amber-900 hover:bg-amber-100`.
+              Calculé sur l'écran rendu: bordure `rgb(142,120,134)` = `line-strong`,
+              texte `rgb(35,25,31)` = `ink`. Les deux classes du kit GAGNENT —
+              même couche, même spécificité, c'est l'ordre de génération de
+              Tailwind qui tranche. C'est le piège que la charte documente déjà
+              pour `hidden` contre `inline-flex` (§9 nº4): sur un utilitaire, on
+              enveloppe ou on change de variante, on n'empile pas.
+              Les laisser serait pire que de ne rien avoir écrit: le prochain
+              lecteur croit le bouton ambre et « répare » le kit pour le rendre.
+              ⛔ ET L'AMBRE DU BANDEAU, ELLE, RESTE: c'est la carte
+              (`tone="warning"`, `amber-50` + `amber-200`) et sa PHRASE
+              (`text-amber-900`, juste au-dessus) qui portent le fait. Le bouton
+              est une ACTION — la moitié de la règle de couleur qui n'appartient
+              pas aux états. `ink` sur `amber-50` = 15,1:1, `line-strong` sur
+              `amber-50` = 3,8:1: le `secondary` du kit se lit sur cet aplat. */}
           <Button
-            className="mt-3 border-amber-300 text-amber-900 hover:bg-amber-100"
+            className="mt-3"
             onClick={() => setReloadKey((k) => k + 1)}
           >
             {t("coach.home.retry")}
@@ -369,31 +393,35 @@ function CoachHomeBody({
           {data.escalationsFailed
             ? (
               <Card>
-                <p className="text-sm text-gray-800">{t("coach.home.held_unreadable")}</p>
+                <p className="text-sm text-ink">{t("coach.home.held_unreadable")}</p>
               </Card>
             )
             : (
               <>
                 <Card padded={false}>
-                  <ul className="divide-y divide-gray-200">
+                  <ul className="divide-y divide-line">
                     {held.map((student) => (
                       <li key={student.userId} className="px-4 py-3">
-                        <div className="flex items-center justify-between gap-4">
-                          <div className="min-w-0">
+                        {/* Même enroulement que la liste des élèves plus bas, et
+                            pour la même raison mesurée à 320 px: le nom de
+                            l'élève retenu ne cède pas devant une pastille et un
+                            bouton. */}
+                        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+                          <div className="min-w-0 basis-full sm:basis-auto">
                             {/* `heldStudents` n'a gardé que des liens ACTIFS,
                                 donc l'annuaire a forcément rendu la ligne: un
                                 nom absent ici veut dire « pas encore écrit »,
                                 jamais « masqué ». */}
-                            <div className="truncate text-sm font-medium text-gray-900">
+                            <div className="truncate text-sm font-medium text-ink">
                               {student.name ?? t("coach.home.student_no_name")}
                             </div>
-                            <div className="text-xs text-gray-500">
+                            <div className="text-xs text-ink-soft">
                               {t("coach.home.held_since", {
                                 date: formatDate(student.since),
                               })}
                             </div>
                           </div>
-                          <div className="flex flex-shrink-0 items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
                             <Badge tone="critical">{t("coach.home.held_badge")}</Badge>
                             <ButtonLink
                               to={`/coach/clients/${student.userId}`}
@@ -408,7 +436,7 @@ function CoachHomeBody({
                             bloqué (`minorEscalationRow`); la réécrire ici
                             créerait une seconde source pour un même fait. */}
                         {student.words && (
-                          <p className="mt-2 text-sm leading-5 text-gray-700">
+                          <p className="mt-2 text-sm leading-5 text-ink">
                             {student.words}
                           </p>
                         )}
@@ -416,7 +444,7 @@ function CoachHomeBody({
                     ))}
                   </ul>
                 </Card>
-                <p className="mt-2 text-xs leading-5 text-gray-500">
+                <p className="mt-2 text-xs leading-5 text-ink-soft">
                   {t("coach.home.held_hint")}
                 </p>
               </>
@@ -449,7 +477,7 @@ function CoachHomeBody({
         <section className="mb-8">
           <SectionLabel>{t("coach.home.invites_title")}</SectionLabel>
           <Card padded={false}>
-            <ul className="divide-y divide-gray-200">
+            <ul className="divide-y divide-line">
               {invitations.map((invitation) => (
                 <InvitationRow
                   key={invitation.id}
@@ -460,7 +488,7 @@ function CoachHomeBody({
               ))}
             </ul>
           </Card>
-          <p className="mt-2 text-xs leading-5 text-gray-500">
+          <p className="mt-2 text-xs leading-5 text-ink-soft">
             {t("coach.home.invites_hint")}
           </p>
         </section>
@@ -470,7 +498,7 @@ function CoachHomeBody({
       <section>
         <SectionLabel>{t("coach.home.list_title")}</SectionLabel>
         <Card padded={false}>
-          <ul className="divide-y divide-gray-200">
+          <ul className="divide-y divide-line">
             {data.clients.map((client) => (
               <StudentRow
                 key={client.id}
@@ -491,7 +519,16 @@ function CoachHomeBody({
       {/* L'invitation est la SEULE action de cet écran. Les raccourcis « Import
           a plan » et « Plan templates » ont été retirés d'ici: l'import et la
           bibliothèque restent atteignables par l'onglet « Templates » de la
-          nav, et cette page ne parle que de la cohorte. */}
+          nav, et cette page ne parle que de la cohorte.
+          ⛔ ET C'EST DONC LE SEUL `variant="primary"` DE `/coach`. Le fichier en
+          porte deux, mais jamais ensemble: l'autre est dans `EmptyState`, et
+          `CoachHomeBody` rend l'un OU l'autre (retour anticipé quand la cohorte
+          et les invitations sont vides). Vérifié au navigateur: un seul bouton
+          `fig-700` par rendu.
+          Le troisième candidat était `CoachBroadcastCard`, monté au milieu de
+          cet écran: son « Envoyer » a été démoté en `secondary` pour cette
+          raison précise — deux aplats de marque côte à côte, c'est zéro
+          hiérarchie. */}
       <div className="mt-6 flex flex-wrap gap-3">
         <Button variant="primary" onClick={() => setInviteOpen(true)}>
           {t("coach.home.empty_cta")}
@@ -509,10 +546,16 @@ function EmptyState({
 }) {
   return (
     <Card tone="dashed" className="p-8 text-center">
-      <h2 className="text-lg font-semibold text-gray-900">
+      {/* PUBLIC SANS ET PAS YOUNG SERIF, ET C'EST UN PLANCHER: la display ne
+          descend jamais sous 20 px (charte §3) et `text-lg` en fait 18. Le titre
+          en display de cet écran est le `h1` du shell, quatre-vingts pixels plus
+          haut — un second cran display juste en dessous se disputerait avec lui.
+          ⚠️ `h2` et pas `h1`: un seul `h1` par écran, et c'est `KeelAppShell`
+          qui le pose. */}
+      <h2 className="text-lg font-semibold text-ink">
         {t("coach.home.empty_title")}
       </h2>
-      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-gray-600">
+      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-ink-soft">
         {t("coach.home.empty_body")}
       </p>
       <div className="mt-6 flex flex-wrap justify-center gap-3">
@@ -571,7 +614,12 @@ function InvitationRow({
     try {
       const { data: sess } = await supabase.auth.getSession();
       const token = sess.session?.access_token;
-      if (!token) throw new Error("Your session expired. Sign in again.");
+      // CE MESSAGE ATTEINT L'ÉCRAN: le `catch` juste en dessous le range dans
+      // `failure`, et `failure` est rendu en bas de cette ligne d'invitation.
+      // C'est donc de la copie, pas un diagnostic — et c'est exactement la
+      // phrase que `InviteDialog` affiche déjà pour la même panne, dans le même
+      // geste. Une seconde formulation aurait dit deux choses du même état.
+      if (!token) throw new Error(t("invite.dialog.session_expired"));
       const out = await sendStudentInvitation(invitation.email, token);
       onResent({ email: out.email, state: out.state });
     } catch (err) {
@@ -585,11 +633,11 @@ function InvitationRow({
     <li className="px-4 py-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="min-w-0">
-          <p className="truncate text-sm font-medium text-gray-900">{invitation.email}</p>
-          <p className="mt-0.5 text-xs text-gray-500">
+          <p className="truncate text-sm font-medium text-ink">{invitation.email}</p>
+          <p className="mt-0.5 text-xs text-ink-soft">
             {expired
-              ? t("coach.home.invite_expired_at", { date: formatDay(invitation.expires_at) })
-              : t("coach.home.invite_expires_at", { date: formatDay(invitation.expires_at) })}
+              ? t("coach.home.invite_expired_at", { date: formatDate(invitation.expires_at) })
+              : t("coach.home.invite_expires_at", { date: formatDate(invitation.expires_at) })}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -609,7 +657,11 @@ function InvitationRow({
       </div>
 
       {/* Le résultat, et il ne se félicite QUE quand un email est réellement
-          parti: `inviteStateIsReassuring` n'est vrai que pour `sent`. */}
+          parti: `inviteStateIsReassuring` n'est vrai que pour `sent`.
+          ⛔ LES DEUX TEINTES PORTENT DEUX FAITS OPPOSÉS ET ELLES RESTENT:
+          émeraude = l'email est parti, ambre = l'invitation existe mais rien n'a
+          été envoyé. Ce n'est pas une variation décorative — c'est la seule
+          chose qui distingue « c'est fait » de « relance-le à la main ». */}
       {outcome && !failure && (
         <p
           className={`mt-2 text-xs leading-5 ${
@@ -619,18 +671,45 @@ function InvitationRow({
           {t(inviteResendMessageKey(outcome))}
         </p>
       )}
-      {failure && <p className="mt-2 text-xs leading-5 text-rose-700">{failure}</p>}
+      {/* ⚠️ `text-rose-700` EST DEVENU `text-red-700`, ET LE FAIT NE CHANGE PAS.
+          C'est un échec, donc ça reste une couleur d'état — mais la famille
+          « échec » du produit est le ROUGE (`Badge tone="critical"`,
+          `Field`, `Button variant="danger"` : tous en `red-700`), et `rose`
+          n'était dans aucune des quatre. Il tombait à 22° de la teinte de marque
+          `fig-700`, c'est-à-dire là où un échec commence à ressembler à un lien.
+          `red-700` sur `paper` = 6,13:1. */}
+      {failure && <p className="mt-2 text-xs leading-5 text-red-700">{failure}</p>}
     </li>
   );
 }
 
-/** Date courte, lisible, sans dépendance: l'écran est en anglais (R3). */
-function formatDay(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
-}
-
+/**
+ * UN COMPTEUR DE L'ÉCRAN — et il est le JUMEAU EXACT de celui de
+ * `CoachBillingPage.tsx`.
+ *
+ * ⚠️ LES DEUX COPIES SONT MAINTENANT IDENTIQUES AU CARACTÈRE, ET ELLES DOIVENT
+ * LE RESTER. C'est le même objet: une étiquette, un chiffre, une note. Le siège
+ * compté ici EST la ligne facturée là-bas — les deux tuiles qui le rendent ne
+ * peuvent pas se ressembler « à peu près ». Si tu modifies celle-ci, modifie
+ * l'autre dans le même geste.
+ * SIGNALÉ, PAS FAIT: la vraie réponse est UNE tuile dans `keel/components/ui/`,
+ * et ce dossier appartient à l'orchestrateur (un lot visuel n'ouvre pas le kit
+ * pendant que sept familles écrivent à côté).
+ *
+ * ⛔ AUCUNE FIGUE ICI. Un chiffre est un FAIT; la teinte de marque marque la
+ * navigation et l'action. Un compteur en `fig-700` se lirait comme un bouton, et
+ * c'est exactement la confusion que la règle de couleur de l'app interdit.
+ *
+ * PUBLIC SANS SUR LE CHIFFRE, et c'est la charte §3 qui l'attribue: « texte,
+ * chiffres, libellés ». Young Serif est display uniquement — et le dépôt a déjà
+ * mesuré qu'elle rend mal un nombre (`PriceCard` a perdu `tabular-nums` parce
+ * que « 12,99 € » sortait en « 1 2,99 € »).
+ *
+ * `text-label` remplace `text-xs … tracking-wide`: c'est le cran d'étiquette de
+ * la charte (0,6875rem, +0,1em, capitales), le même que `SectionLabel` et que
+ * l'étiquette de champ. `tracking-wide` est retiré — `text-label` porte déjà son
+ * approche, et les deux sur le même nœud se battraient.
+ */
 function StatTile({
   label,
   value,
@@ -642,11 +721,11 @@ function StatTile({
 }) {
   return (
     <Card>
-      <div className="text-xs font-medium uppercase tracking-wide text-gray-500">
+      <div className="text-label font-semibold uppercase text-ink-soft">
         {label}
       </div>
-      <div className="mt-1 text-3xl font-semibold text-gray-900">{value}</div>
-      {hint && <p className="mt-2 text-xs leading-5 text-gray-500">{hint}</p>}
+      <div className="mt-1 text-3xl font-semibold tabular-nums text-ink">{value}</div>
+      {hint && <p className="mt-2 text-xs leading-5 text-ink-soft">{hint}</p>}
     </Card>
   );
 }
@@ -710,14 +789,23 @@ function StudentRow({
     : (directory?.timezone ?? "");
 
   return (
-    <li className="flex items-center justify-between gap-4 px-4 py-3">
-      <div className="min-w-0">
-        <div className="truncate text-sm font-medium text-gray-900">{name}</div>
+    // ⚠️ LA LIGNE S'ENROULE SOUS `sm`, ET C'EST UN DÉFAUT MESURÉ À 320 px.
+    // Elle était `flex items-center justify-between gap-4` avec une colonne de
+    // pastilles en `flex-shrink-0`: à 320 px les trois pastilles plus
+    // le bouton « Ouvrir » réclament ~250 px sur les 288 disponibles, et la
+    // colonne du nom — qui porte `min-w-0` — se laissait comprimer à ~10 px.
+    // MESURÉ AU RENDU: « Sam » s'affichait « S », et « Client depuis… » « C ».
+    // L'identité est le SUJET de la ligne; c'est la dernière chose qui doit
+    // céder. Le nom prend donc toute la première ligne sous `sm` (`basis-full`)
+    // et les pastilles passent dessous; à partir de `sm` la ligne unique revient.
+    <li className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
+      <div className="min-w-0 basis-full sm:basis-auto">
+        <div className="truncate text-sm font-medium text-ink">{name}</div>
         {secondary && (
-          <div className="truncate text-xs text-gray-500">{secondary}</div>
+          <div className="truncate text-xs text-ink-soft">{secondary}</div>
         )}
       </div>
-      <div className="flex flex-shrink-0 items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         {/* PIVOT §1.4 — shown only on a LIVE link: "silent" about a paused or
             ended student is noise, and about an invitation nobody accepted it
             would be a lie (there is nothing to be silent from yet). */}
@@ -755,24 +843,13 @@ const STATUS_TONE: Record<CoachClientRow["status"], BadgeTone> = {
 };
 
 /**
- * R3, `ui_locale`: the locale is STATED, not inherited from the browser.
- * `toLocaleDateString(undefined, ...)` reads navigator.language, which renders
- * "27 juil. 2026" inside an otherwise 100 %-English screen for anyone whose
- * browser is French — observed in the W6.1 browser run. The KEEL pilot ships
- * one UI locale (see `i18n/t.ts`: "Pilot: English only"), so that is the tag
- * passed here. When ui_locale becomes a real per-user axis, this is the single
- * place that reads it.
+ * ⚠️ `const UI_LOCALE = "en-US"` VIVAIT ICI, avec un commentaire qui disait
+ * exactement le bon défaut — « `toLocaleDateString(undefined, …)` lit
+ * navigator.language, qui rend "27 juil. 2026" au milieu d'un écran 100 %
+ * anglais » — et qui le réparait pour UN fichier sur vingt-six. Il annonçait
+ * lui-même sa suite: « le jour où ui_locale devient un vrai axe par
+ * utilisateur, c'est le seul endroit qui le lit ». C'est fait, et cet endroit
+ * est `i18n/format.ts`.
  */
-const UI_LOCALE = "en-US";
-
-function formatDate(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString(UI_LOCALE, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
 
 export default CoachHomePage;

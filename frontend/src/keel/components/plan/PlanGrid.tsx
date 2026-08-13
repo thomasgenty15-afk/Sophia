@@ -42,7 +42,7 @@ export default function PlanGrid(props: PlanGridProps) {
 
   return (
     <section aria-label={mealCopy("meals.grid.title")}>
-      <h3 className="mb-2 text-sm font-semibold text-gray-900">
+      <h3 className="mb-2 text-sm font-semibold text-ink">
         {mealCopy("meals.grid.title")}
       </h3>
       {/* La grille défile DANS son conteneur. */}
@@ -52,7 +52,7 @@ export default function PlanGrid(props: PlanGridProps) {
             <tr>
               <th
                 scope="col"
-                className="sticky left-0 z-10 bg-white py-2 pr-3 text-left text-xs font-medium text-gray-500"
+                className="sticky left-0 z-10 bg-paper py-2 pr-3 text-left text-xs font-medium text-ink-soft"
               >
                 {mealCopy("meals.picker.meal")}
               </th>
@@ -62,14 +62,25 @@ export default function PlanGrid(props: PlanGridProps) {
                   <th
                     key={`${day}-${i}`}
                     scope="col"
-                    className={`px-2 py-2 text-left text-xs font-medium ${
-                      isToday ? "text-emerald-700" : "text-gray-500"
+                    // ⛔ AUJOURD'HUI EST UNE POSITION, PAS UN ÉTAT — et c'est
+                    // pour ça que l'émeraude est partie d'ici. Dans tout le
+                    // produit, émeraude = « ok » : un jour peint en vert
+                    // affirmait qu'être aujourd'hui est une réussite, ce qui ne
+                    // veut rien dire, et volait la teinte dont un
+                    // enregistrement confirmé a besoin juste à côté.
+                    // La position se dit donc par la FORME: encre pleine et
+                    // graisse contre encre secondaire. `ink` sur `paper` =
+                    // 16,18:1, `ink-soft` = 6,11:1.
+                    className={`px-2 py-2 text-left text-xs ${
+                      isToday
+                        ? "font-semibold text-ink"
+                        : "font-medium text-ink-soft"
                     }`}
                   >
                     <span className="block">
                       {(dishDayLabel(day) ?? day).slice(0, 3)}
                     </span>
-                    <span className="block font-normal text-gray-400">
+                    <span className="block font-normal text-ink-soft">
                       {props.dates[i]?.slice(8) ?? ""}
                     </span>
                   </th>
@@ -79,17 +90,17 @@ export default function PlanGrid(props: PlanGridProps) {
           </thead>
           <tbody>
             {props.grid.rows.map((row) => (
-              <tr key={row.slot} className="border-t border-gray-100 align-top">
+              <tr key={row.slot} className="border-t border-line align-top">
                 <th
                   scope="row"
-                  className="sticky left-0 z-10 whitespace-nowrap bg-white py-2 pr-3 text-left font-normal text-gray-900"
+                  className="sticky left-0 z-10 whitespace-nowrap bg-paper py-2 pr-3 text-left font-normal text-ink"
                 >
                   {occasionLabel(row.slot)}
                 </th>
                 {row.cells.map((cell, i) => (
                   <td key={`${row.slot}-${i}`} className="px-2 py-2">
                     {cell.kind === "dish" && (
-                      <span className="block leading-snug text-gray-900">
+                      <span className="block leading-snug text-ink">
                         {/* TRONQUÉ À DEUX LIGNES, et le titre entier reste au
                             survol. Sans ça, « Peanut butter toast and fruit »
                             prend trois lignes, la grille devient aussi haute
@@ -99,7 +110,7 @@ export default function PlanGrid(props: PlanGridProps) {
                           {cell.title}
                         </span>
                         {cell.fromBatch && (
-                          <span className="mt-0.5 block text-[10px] uppercase tracking-wide text-gray-400">
+                          <span className="mt-0.5 block text-[10px] uppercase tracking-wide text-ink-soft">
                             {mealCopy("meals.grid.from_batch")}
                           </span>
                         )}
@@ -109,17 +120,17 @@ export default function PlanGrid(props: PlanGridProps) {
                         ce sont tous des « rien à composer ici, et c'est normal »
                         — et ils ne ressemblent PAS au quatrième. */}
                     {cell.kind === "away" && (
-                      <span className="text-xs italic text-gray-400">
+                      <span className="text-xs italic text-ink-soft">
                         {mealCopy("meals.grid.away")}
                       </span>
                     )}
                     {cell.kind === "fixed_intake" && (
-                      <span className="text-xs italic text-gray-400">
+                      <span className="text-xs italic text-ink-soft">
                         {cell.label}
                       </span>
                     )}
                     {cell.kind === "leftovers" && (
-                      <span className="text-xs italic text-gray-400">
+                      <span className="text-xs italic text-ink-soft">
                         {mealCopy("meals.grid.leftovers")}
                       </span>
                     )}

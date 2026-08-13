@@ -222,7 +222,7 @@ export default function CoachMealsPage() {
   if (state.kind === "loading") {
     return (
       <KeelAppShell variant="coach" title={t("coach.meals.title")}>
-        <p className="text-sm text-gray-500">{t("coach.meals.loading")}</p>
+        <p className="text-sm text-ink-soft">{t("coach.meals.loading")}</p>
       </KeelAppShell>
     );
   }
@@ -230,7 +230,7 @@ export default function CoachMealsPage() {
     return (
       <KeelAppShell variant="coach" title={t("coach.meals.title")}>
         <Card tone="dashed" className="p-8 text-center">
-          <p className="text-sm text-gray-600">{t("coach.meals.no_coach_profile")}</p>
+          <p className="max-w-[62ch] text-sm text-ink-soft">{t("coach.meals.no_coach_profile")}</p>
         </Card>
       </KeelAppShell>
     );
@@ -239,8 +239,8 @@ export default function CoachMealsPage() {
     return (
       <KeelAppShell variant="coach" title={t("coach.meals.title")}>
         <Card tone="warning">
-          <p className="text-sm text-gray-900">{t("coach.meals.load_error")}</p>
-          <p className="mt-1 text-xs text-gray-600">{state.message}</p>
+          <p className="text-sm text-ink">{t("coach.meals.load_error")}</p>
+          <p className="mt-1 break-words text-xs text-ink-soft">{state.message}</p>
         </Card>
       </KeelAppShell>
     );
@@ -258,7 +258,7 @@ export default function CoachMealsPage() {
       <div className="space-y-6">
         {failure ? (
           <Card tone="warning">
-            <p className="text-sm text-gray-900">{failure}</p>
+            <p className="break-words text-sm text-ink">{failure}</p>
           </Card>
         ) : null}
 
@@ -339,10 +339,13 @@ export default function CoachMealsPage() {
                             : [...p.groups, g.slug],
                         }))}
                       className={[
-                        "rounded-full border px-3 py-1 text-xs",
+                        // Un groupe coché est un CHOIX, donc une action: la
+                        // marque a le droit d'y entrer (charte §2), ce que
+                        // `bg-gray-900` disait déjà sans jeton.
+                        "rounded-full border px-3 py-1 text-xs transition-colors",
                         on
-                          ? "border-gray-900 bg-gray-900 text-white"
-                          : "border-gray-300 bg-white text-gray-700 hover:border-gray-400",
+                          ? "border-fig-700 bg-fig-700 text-paper"
+                          : "border-line-strong bg-paper text-ink-soft hover:bg-fig-50",
                       ].join(" ")}
                     >
                       {foodGroupLabel(g.slug)}
@@ -364,7 +367,7 @@ export default function CoachMealsPage() {
 
         <section>
           <SectionLabel>{t("coach.meals.list_title")}</SectionLabel>
-          <p className="mt-1 text-xs text-gray-500">
+          <p className="mt-1 text-xs text-ink-soft">
             {t("coach.meals.count_active", { count: active.length })}
             {archived.length > 0
               ? ` · ${t("coach.meals.count_archived", { count: archived.length })}`
@@ -373,10 +376,10 @@ export default function CoachMealsPage() {
 
           {recipes.length === 0 ? (
             <Card tone="dashed" className="mt-3 p-8 text-center">
-              <h2 className="text-base font-semibold text-gray-900">
+              <h2 className="text-base font-semibold text-ink">
                 {t("coach.meals.empty_title")}
               </h2>
-              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-gray-600">
+              <p className="mx-auto mt-2 max-w-[62ch] text-sm leading-6 text-ink-soft">
                 {t("coach.meals.empty_body")}
               </p>
             </Card>
@@ -395,7 +398,7 @@ export default function CoachMealsPage() {
             </ul>
           )}
 
-          <p className="mt-3 text-xs leading-5 text-gray-500">
+          <p className="mt-3 max-w-[62ch] text-xs leading-5 text-ink-soft">
             {t("coach.meals.archive_hint")}
           </p>
         </section>
@@ -437,16 +440,16 @@ function RecipeRow({
               <img
                 src={imageUrl}
                 alt={t("coach.meals.photo_alt", { title: recipe.title })}
-                className="h-32 w-full rounded-lg object-cover sm:h-28"
+                className="h-32 w-full rounded-card object-cover sm:h-28"
               />
             ) : (
-              <div className="flex h-32 w-full items-center justify-center rounded-lg border border-dashed border-gray-300 sm:h-28">
-                <span className="text-xs text-gray-400">—</span>
+              <div className="flex h-32 w-full items-center justify-center rounded-card border border-dashed border-line-strong sm:h-28">
+                <span className="text-xs text-ink-soft" aria-hidden="true">—</span>
               </div>
             )}
             {/* Un <input type="file"> caché dans un <label>: le contrôle natif
                 ne se style pas, et le coach ne doit voir qu'un bouton. */}
-            <label className="mt-2 block cursor-pointer text-xs font-medium text-gray-700 underline">
+            <label className="mt-2 block cursor-pointer text-xs font-medium text-fig-700 underline">
               {uploading
                 ? t("coach.meals.photo_uploading")
                 : recipe.image_path
@@ -469,7 +472,7 @@ function RecipeRow({
 
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-medium text-gray-900">{recipe.title}</span>
+              <span className="text-sm font-medium text-ink">{recipe.title}</span>
               <Badge tone={archivedRow ? "neutral" : "positive"}>
                 {archivedRow
                   ? t("coach.meals.status_archived")
@@ -477,18 +480,18 @@ function RecipeRow({
               </Badge>
             </div>
 
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-ink-soft">
               {recipe.slot_key ? slotLabel(recipe.slot_key) : t("coach.meals.any_slot")}
             </p>
 
             {recipe.description ? (
-              <p className="mt-2 whitespace-pre-line text-sm leading-6 text-gray-700">
+              <p className="mt-2 max-w-[62ch] whitespace-pre-line text-sm leading-6 text-ink">
                 {recipe.description}
               </p>
             ) : null}
 
             {recipe.food_group_refs.length > 0 ? (
-              <p className="mt-2 text-xs text-gray-500">
+              <p className="mt-2 text-xs text-ink-soft">
                 {recipe.food_group_refs.map(foodGroupLabel).join(" · ")}
               </p>
             ) : null}

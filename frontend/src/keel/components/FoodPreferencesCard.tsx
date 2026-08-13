@@ -1,8 +1,10 @@
 import React from "react";
 
 import { supabase } from "../../lib/supabase";
+import { t } from "../i18n/t";
 import { Button } from "./ui/Button";
 import { Card, SectionLabel } from "./ui/Card";
+import { inputClass } from "./ui/Field";
 import {
   confirmMemoryItem,
   dismissedFrom,
@@ -58,48 +60,9 @@ import {
 // ligne ancienne — qui n'affirme PAS qu'elle est fausse (on n'en sait rien),
 // seulement que l'élève est revenu sur le sujet depuis. C'est lui qui tranche.
 
-const COPY = {
-  // ── LE TITRE COUVRE LES DEUX CHOSES QUE LA CARTE PORTE ────────────────────
-  // Depuis l'élargissement du 2026-08-06, elle ne tient plus seulement des
-  // goûts: « travaille de nuit trois fois par semaine » et « cuisine partagée,
-  // batch cooking le dimanche » y arrivent aussi, parce que ce sont elles qui
-  // décident de ce qu'on peut raisonnablement proposer à manger. Un titre qui
-  // ne parlerait que de goûts ferait passer une contrainte de travail pour un
-  // caprice alimentaire — et l'élève la retirerait.
-  title: "What you have told me about your eating and your week",
-  subtitle:
-    "Picked up from your conversations — what you like, and what your week actually " +
-    "allows. Keep what is right, edit it, or drop it: what you keep is used when your " +
-    "week is put together.",
-  suggested: "Worth keeping?",
-  keep: "Keep",
-  update: "Update",
-  replaces: "replaces",
-  recheck_prefix: "You came back to this on",
-  recheck_suffix: "— still right?",
-  drop: "Not right",
-  yours: "In your plan",
-  edit: "Edit",
-  remove: "Remove",
-  save: "Save",
-  cancel: "Cancel",
-  empty:
-    "Nothing yet. Tell me in Chat what you like, what you cannot stand, and when your " +
-    "week leaves you no time to cook — it turns up here.",
-  no_goal: "Set your goal above first — this is saved alongside it.",
-  saving: "Saving…",
-  // MÊME LIEN QUE LES TROIS CARTES VOISINES. Il n'apparaît QUE s'il y a quelque
-  // chose à replier: sur une carte vide, « Change » ouvrirait du néant et
-  // l'élève y perdrait la seule phrase utile — celle qui dit d'où viennent ces
-  // lignes et comment en produire.
-  open: "Change",
-  close: "Close",
-  // Replié, on dit COMBIEN il y en a: « rien » et « quatre lignes que je ne vois
-  // plus » sont deux états différents, et le second doit rester lisible.
-  summary_one: "1 thing you have told me",
-  summary_many: "{count} things you have told me",
-  summary_pending: " · {count} waiting for you",
-} as const;
+// ⚠️ LE `COPY` LOCAL DE CETTE CARTE EST PARTI DANS LE SEED (lot 6), sous
+// `plan.told.*`. Vingt-deux phrases hors de `t()` — troisième et dernier
+// catalogue parallèle de `/app/plan`.
 
 export interface FoodPreferencesCardProps {
   /** `false` tant qu'aucune ligne `student_goals` n'existe: rien à mettre à jour. */
@@ -296,8 +259,8 @@ export default function FoodPreferencesCard(props: FoodPreferencesCardProps) {
   const foldable = !props.embedded && props.hasGoal &&
     (kept.length > 0 || proposals.length > 0);
   const summary = kept.length === 1
-    ? COPY.summary_one
-    : COPY.summary_many.replace("{count}", String(kept.length));
+    ? t("plan.told.summary_one")
+    : t("plan.told.summary_many", { count: kept.length });
 
   const body = (
       <>
@@ -305,11 +268,11 @@ export default function FoodPreferencesCard(props: FoodPreferencesCardProps) {
             suggestions à trancher, qui sinon attendraient sans que personne le
             sache. */}
         {foldable && !open && (
-          <p className="mt-2 text-sm text-gray-800">
-            {kept.length > 0 ? summary : COPY.subtitle}
+          <p className="mt-2 text-sm text-ink">
+            {kept.length > 0 ? summary : t("plan.told.subtitle")}
             {proposals.length > 0 && (
-              <span className="text-gray-500">
-                {COPY.summary_pending.replace("{count}", String(proposals.length))}
+              <span className="text-ink-soft">
+                {t("plan.told.summary_pending", { count: proposals.length })}
               </span>
             )}
           </p>
@@ -320,31 +283,31 @@ export default function FoodPreferencesCard(props: FoodPreferencesCardProps) {
             chose en tête d'une section — le mur de texte que la fenêtre existe
             pour supprimer. */}
         {!props.embedded && (!foldable || open) && (
-          <p className="mt-2 text-sm text-gray-600">{COPY.subtitle}</p>
+          <p className="mt-2 text-sm text-ink-soft">{t("plan.told.subtitle")}</p>
         )}
 
         {!props.hasGoal && (
-          <p className="mt-3 text-sm text-gray-500">{COPY.no_goal}</p>
+          <p className="mt-3 text-sm text-ink-soft">{t("plan.told.no_goal")}</p>
         )}
 
         {props.hasGoal && (!foldable || open) && (
           <>
             {proposals.length > 0 && (
               <div className="mt-4">
-                <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
-                  {COPY.suggested}
+                <p className="text-label font-semibold uppercase text-ink-soft">
+                  {t("plan.told.suggested")}
                 </p>
                 <ul className="mt-2 space-y-2">
                   {proposals.map((p) => (
                     <li
                       key={p.memoryItemId}
-                      className="flex flex-wrap items-center gap-2 rounded-lg bg-gray-50 px-3 py-2"
+                      className="flex flex-wrap items-center gap-2 rounded-card border border-line bg-paper-2 px-3 py-2"
                     >
-                      <span className="min-w-0 flex-1 text-sm text-gray-800">
+                      <span className="min-w-0 flex-1 text-sm text-ink">
                         {p.text}
                         {p.replaces && (
-                          <span className="mt-0.5 block text-xs text-gray-500">
-                            {COPY.replaces}{" "}
+                          <span className="mt-0.5 block text-xs text-ink-soft">
+                            {t("plan.told.replaces")}{" "}
                             <span className="line-through">{p.replaces}</span>
                           </span>
                         )}
@@ -354,15 +317,15 @@ export default function FoodPreferencesCard(props: FoodPreferencesCardProps) {
                         disabled={busy}
                         onClick={() => void keepProposal(p)}
                       >
-                        {p.replaces ? COPY.update : COPY.keep}
+                        {p.replaces ? t("plan.told.update") : t("plan.told.keep")}
                       </Button>
                       <button
                         type="button"
                         disabled={busy}
                         onClick={() => void dropProposal(p)}
-                        className="text-xs text-gray-500 underline"
+                        className="text-xs text-fig-700 underline hover:text-fig-800"
                       >
-                        {COPY.drop}
+                        {t("plan.told.drop")}
                       </button>
                     </li>
                   ))}
@@ -371,11 +334,11 @@ export default function FoodPreferencesCard(props: FoodPreferencesCardProps) {
             )}
 
             <div className="mt-4">
-              <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
-                {COPY.yours}
+              <p className="text-label font-semibold uppercase text-ink-soft">
+                {t("plan.told.yours")}
               </p>
               {kept.length === 0 && proposals.length === 0 && (
-                <p className="mt-2 text-sm text-gray-600">{COPY.empty}</p>
+                <p className="mt-2 text-sm text-ink-soft">{t("plan.told.empty")}</p>
               )}
               <ul className="mt-2 space-y-2">
                 {kept.map((text) => (
@@ -383,17 +346,27 @@ export default function FoodPreferencesCard(props: FoodPreferencesCardProps) {
                     {editing === text
                       ? (
                         <>
+                          {/* LA CLASSE DU KIT, PLUS UNE RECOPIE LOCALE. Celle
+                              d'ici portait `border-gray-300` et `text-sm` nu:
+                              14 px sur téléphone, donc le zoom Safari iOS qui
+                              ne se dézoome pas (`Field.tsx`). `inputClass` est
+                              `text-base lg:text-sm`, `border-line-strong`
+                              (3,84:1) et porte l'anneau de focus `fig-600`.
+                              ⚠️ `flex-1` et pas `w-full`: dans une ligne flex
+                              c'est `flex-basis: 0%` qui l'emporte sur la
+                              largeur, et `min-w-0` est déjà dans `inputClass` —
+                              sans lui le champ refuse de rétrécir à 320 px. */}
                           <input
                             value={draft}
                             onChange={(e) => setDraft(e.target.value)}
-                            className="min-w-0 flex-1 rounded-lg border border-gray-300 px-2 py-1 text-sm"
+                            className={`${inputClass} flex-1`}
                           />
                           <Button
                             size="sm"
                             disabled={busy}
                             onClick={() => void commitEdit(text)}
                           >
-                            {COPY.save}
+                            {t("plan.told.save")}
                           </Button>
                           <button
                             type="button"
@@ -401,20 +374,20 @@ export default function FoodPreferencesCard(props: FoodPreferencesCardProps) {
                               setEditing(null);
                               setDraft("");
                             }}
-                            className="text-xs text-gray-500 underline"
+                            className="text-xs text-fig-700 underline hover:text-fig-800"
                           >
-                            {COPY.cancel}
+                            {t("plan.told.cancel")}
                           </button>
                         </>
                       )
                       : (
                         <>
-                          <span className="min-w-0 flex-1 text-sm text-gray-800">
+                          <span className="min-w-0 flex-1 text-sm text-ink">
                             {text}
                             {recheckOf(text) && (
                               <span className="mt-0.5 block text-xs text-amber-700">
-                                {COPY.recheck_prefix} {recheckOf(text)!.newerAt}{" "}
-                                {COPY.recheck_suffix}
+                                {t("plan.told.recheck_prefix")} {recheckOf(text)!.newerAt}{" "}
+                                {t("plan.told.recheck_suffix")}
                               </span>
                             )}
                           </span>
@@ -425,17 +398,17 @@ export default function FoodPreferencesCard(props: FoodPreferencesCardProps) {
                               setEditing(text);
                               setDraft(text);
                             }}
-                            className="text-xs text-gray-500 underline"
+                            className="text-xs text-fig-700 underline hover:text-fig-800"
                           >
-                            {COPY.edit}
+                            {t("plan.told.edit")}
                           </button>
                           <button
                             type="button"
                             disabled={busy}
                             onClick={() => void removeKept(text)}
-                            className="text-xs text-gray-500 underline"
+                            className="text-xs text-fig-700 underline hover:text-fig-800"
                           >
-                            {COPY.remove}
+                            {t("plan.told.remove")}
                           </button>
                         </>
                       )}
@@ -444,8 +417,8 @@ export default function FoodPreferencesCard(props: FoodPreferencesCardProps) {
               </ul>
             </div>
 
-            {busy && <p className="mt-2 text-xs text-gray-500">{COPY.saving}</p>}
-            {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+            {busy && <p className="mt-2 text-xs text-ink-soft">{t("plan.told.saving")}</p>}
+            {error && <p className="mt-2 text-sm text-red-700">{error}</p>}
           </>
         )}
       </>
@@ -457,15 +430,15 @@ export default function FoodPreferencesCard(props: FoodPreferencesCardProps) {
   return (
     <Card>
       <div className="flex items-start justify-between gap-3">
-        <SectionLabel className="mb-0">{COPY.title}</SectionLabel>
+        <SectionLabel className="mb-0">{t("plan.told.title")}</SectionLabel>
         {foldable && (
           <button
             type="button"
             onClick={() => setOpen((o) => !o)}
             aria-expanded={open}
-            className="shrink-0 text-xs font-medium text-gray-700 underline underline-offset-2 hover:text-gray-900"
+            className="shrink-0 text-xs font-medium text-fig-700 underline underline-offset-2 hover:text-fig-800"
           >
-            {open ? COPY.close : COPY.open}
+            {open ? t("plan.told.close") : t("plan.told.open")}
           </button>
         )}
       </div>

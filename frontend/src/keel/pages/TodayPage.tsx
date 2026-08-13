@@ -82,7 +82,7 @@ import { useMealEnergy } from "../lib/useMealEnergy";
 import KeelAppShell from "../components/KeelAppShell";
 import KitchenToday from "../components/KitchenToday";
 import { Badge } from "../components/ui/Badge";
-import { ButtonLink } from "../components/ui/Button";
+import { Button, ButtonLink } from "../components/ui/Button";
 import { Card, SectionLabel } from "../components/ui/Card";
 import { t } from "../i18n/t";
 
@@ -114,10 +114,10 @@ function NoPlanYet() {
   return (
     <div className="space-y-4">
       <Card>
-        <h2 className="text-base font-semibold text-gray-900">
+        <h2 className="text-base font-semibold text-ink">
           {t("today.no_plan_title")}
         </h2>
-        <p className="mt-1 text-sm leading-6 text-gray-600">
+        <p className="mt-1 max-w-[62ch] text-sm leading-6 text-ink-soft">
           {t("today.no_plan_body")}
         </p>
         <div className="mt-4">
@@ -130,26 +130,36 @@ function NoPlanYet() {
       <section aria-hidden="true">
         <SectionLabel>{t("today.no_plan_preview_label")}</SectionLabel>
         <Card padded={false}>
-          <ul className="divide-y divide-gray-100">
+          <ul className="divide-y divide-line">
             {slots.map((slot) => (
               <li key={slot} className="px-4 py-3">
-                <div className="text-xs font-medium uppercase tracking-wide text-gray-400">
+                <div className="text-label font-semibold uppercase text-ink-soft">
                   {slotLabel(slot)}
                 </div>
+                {/* Des BARRES, jamais un engagement inventé — même règle que la
+                    maquette de la vitrine. `line` est le neutre décoratif de la
+                    charte, et c'est exactement son emploi: une pièce posée sur le
+                    papier qui n'emprunte aucun sens.
+                    `rounded-part` et non `rounded-full`: le cercle complet est
+                    réservé aux boutons et aux pastilles d'état, et ce bloc est une
+                    figure (`aria-hidden`), donc ses pièces prennent le rayon des
+                    pièces. À 10 px de haut, c'est le même dessin. */}
                 <div className="mt-2 space-y-2">
-                  <span className="block h-2.5 w-2/3 rounded-full bg-gray-100" />
-                  <span className="block h-2.5 w-1/2 rounded-full bg-gray-100" />
+                  <span className="block h-2.5 w-2/3 rounded-part bg-line" />
+                  <span className="block h-2.5 w-1/2 rounded-part bg-line" />
                 </div>
               </li>
             ))}
           </ul>
         </Card>
-        <p className="mt-2 text-xs leading-5 text-gray-500">
+        <p className="mt-2 max-w-[62ch] text-xs leading-5 text-ink-soft">
           {t("today.no_plan_preview_hint")}
         </p>
       </section>
 
-      <p className="text-xs leading-5 text-gray-400">
+      {/* `text-gray-400` était SOUS le seuil de lisibilité (2,85:1 sur blanc).
+          `ink-soft` est à 6,11:1 — la note ne crie pas plus fort, elle se lit. */}
+      <p className="max-w-[62ch] text-xs leading-5 text-ink-soft">
         {t("today.no_plan_footer")}
       </p>
     </div>
@@ -248,7 +258,7 @@ function OwnDay({
         <div className="flex flex-wrap items-center gap-2">
           <Badge tone="info">{t("today.own_week_badge")}</Badge>
         </div>
-        <p className="mt-2 text-sm leading-6 text-gray-600">
+        <p className="mt-2 max-w-[62ch] text-sm leading-6 text-ink-soft">
           {t("today.own_week_hint")}
         </p>
         <div className="mt-4">
@@ -276,8 +286,10 @@ function OwnDay({
                 n'y a alors aucun chiffre dans cet écran. */}
             <DayEnergyLine energy={dayEnergy} />
           </div>
+          {/* ⛔ UN FAIT. Rouge = échec; `red-700` est la valeur du produit
+              (6,13:1), `red-600` était à 4,83:1. */}
           {ticks.error && (
-            <p className="mb-3 text-sm text-red-600">
+            <p className="mb-3 text-sm text-red-700">
               {mealCopy("meals.tick.failed")}
             </p>
           )}
@@ -296,7 +308,7 @@ function OwnDay({
             )
             : (
               <Card tone="dashed">
-                <p className="text-sm leading-6 text-gray-600">
+                <p className="max-w-[62ch] text-sm leading-6 text-ink-soft">
                   {dishes.anyDay.length > 0
                     ? t("today.own_meals_empty")
                     : t("today.own_meals_other_days")}
@@ -340,14 +352,14 @@ function OwnDay({
           {lines.today.length > 0
             ? (
               <Card padded={false}>
-                <ul className="divide-y divide-gray-100">
+                <ul className="divide-y divide-line">
                   {lines.today.map((item, i) => <OwnWeekLine key={`l${i}`} item={item} />)}
                 </ul>
               </Card>
             )
             : (
               <Card tone="dashed">
-                <p className="text-sm leading-6 text-gray-600">
+                <p className="max-w-[62ch] text-sm leading-6 text-ink-soft">
                   {lines.anyDay.length > 0
                     ? t("today.own_week_empty")
                     : t("today.own_week_nothing")}
@@ -359,7 +371,7 @@ function OwnDay({
             <div className="mt-5">
               <SectionLabel>{t("today.own_week_anyday")}</SectionLabel>
               <Card padded={false}>
-                <ul className="divide-y divide-gray-100">
+                <ul className="divide-y divide-line">
                   {lines.anyDay.map((item, i) => <OwnWeekLine key={`n${i}`} item={item} />)}
                 </ul>
               </Card>
@@ -376,7 +388,7 @@ function OwnWeekLine({ item }: { item: WeekPlanItem }) {
   return (
     <li className="px-4 py-3">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-sm font-medium text-gray-900">{item.label}</span>
+        <span className="text-sm font-medium text-ink">{item.label}</span>
         <Badge tone={item.kind === "nutrition" ? "info" : "neutral"}>
           {item.kind === "nutrition"
             ? t("today.own_week_from_coach")
@@ -384,7 +396,9 @@ function OwnWeekLine({ item }: { item: WeekPlanItem }) {
         </Badge>
       </div>
       {item.rationale ? (
-        <p className="mt-1 text-xs leading-5 text-gray-600">{item.rationale}</p>
+        <p className="mt-1 max-w-[62ch] text-xs leading-5 text-ink-soft">
+          {item.rationale}
+        </p>
       ) : null}
       {/* La conviction du coach, CITÉE. Le code garantit que la ligne en nomme
           une réelle (CHECK en base); il ne peut pas garantir que
@@ -392,7 +406,7 @@ function OwnWeekLine({ item }: { item: WeekPlanItem }) {
           présenter une lecture générée de la méthode de quelqu'un d'autre —
           l'élève peut juger, et le coach par-dessus son épaule aussi. */}
       {item.source_belief_claim ? (
-        <blockquote className="mt-2 border-l-2 border-gray-300 pl-3 text-xs italic leading-5 text-gray-500">
+        <blockquote className="mt-2 max-w-[62ch] border-l-2 border-line-strong pl-3 text-xs italic leading-5 text-ink-soft">
           {item.source_belief_claim}
         </blockquote>
       ) : null}
@@ -460,6 +474,18 @@ function OwnWeekLine({ item }: { item: WeekPlanItem }) {
 /**
  * Pick a photo for one slot, look at it, send it. Three steps, no auto-send:
  * the student sees exactly what leaves the device.
+ *
+ * ── LE BLEU CIEL EST PARTI, ET C'ÉTAIT LE CAS LE PLUS INSIDIEUX ─────────────
+ * Ce composeur était une surface `sky-50` bordée `sky-200`, avec cinq libellés
+ * `sky-800/900` et un bouton `sky-600`. Aucun état n'était en cause: c'était du
+ * bleu « informatif », c'est-à-dire une décoration. Or **le bleu est pris**:
+ * `info` occupe le bleu dans `ui/Badge.tsx` — quatre familles d'état, pas trois.
+ * Une surface bleue décorative à côté d'une pastille `info` bleue rend la
+ * pastille MUETTE, et c'est la pastille qui portait un fait.
+ *
+ * Ce qui porte l'ouverture du composeur maintenant: un remplissage `paper-2`
+ * fermé par un trait de contrôle `line-strong`. La même forme que le fronton
+ * d'une fenêtre — un panneau qui s'ouvre, pas une couleur qui parle.
  */
 function PhotoComposer(props: {
   pending: PendingPhoto;
@@ -471,15 +497,17 @@ function PhotoComposer(props: {
 }) {
   const { pending, busy, error } = props;
   return (
-    <div className="mt-2 rounded-lg border border-sky-200 bg-sky-50 p-3">
-      <label className="block cursor-pointer text-xs font-medium text-sky-900">
+    <div className="mt-2 rounded-card border border-line-strong bg-paper-2 p-3">
+      <label className="block cursor-pointer text-xs font-medium text-ink">
         {pending.file ? t("photo.change") : t("photo.choose")}
+        {/* Le bouton du sélecteur de fichier est un BOUTON: `rounded-full` et un
+            contour de contrôle `line-strong`, comme tous les autres du produit. */}
         <input
           type="file"
           accept={ACCEPTED_PHOTO_MIME_TYPES.join(",")}
           capture="environment"
           disabled={busy}
-          className="mt-1 block w-full text-xs text-sky-900 file:mr-2 file:rounded file:border-0 file:bg-sky-200 file:px-2 file:py-1 file:text-xs file:text-sky-900"
+          className="mt-1 block w-full min-w-0 text-xs text-ink-soft file:mr-2 file:rounded-full file:border file:border-line-strong file:bg-paper file:px-2 file:py-1 file:text-xs file:font-medium file:text-ink"
           onChange={(e) => props.onPick(e.target.files?.[0] ?? null)}
         />
       </label>
@@ -488,33 +516,38 @@ function PhotoComposer(props: {
         <img
           src={pending.previewUrl}
           alt={t("photo.preview_alt")}
-          className="mt-2 max-h-48 w-auto rounded-lg border border-sky-200 object-cover"
+          className="mt-2 max-h-48 w-auto rounded-card border border-line object-cover"
         />
       )}
 
+      {/* ⛔ UN FAIT, ET IL RESTE — seule la famille change: le produit dit
+          l'échec en `red` (`ui/Badge.tsx`, `ui/Field.tsx`), et `rose-*` était un
+          SECOND rouge pour le même sens. */}
       {error && (
-        <p className="mt-2 rounded bg-rose-50 p-2 text-xs text-rose-700">{error}</p>
+        <p className="mt-2 rounded-card bg-red-50 p-2 text-xs leading-5 text-red-700">
+          {error}
+        </p>
       )}
 
-      <div className="mt-2 flex items-center gap-2">
-        <button
-          type="button"
+      {/* ⚠️ « Envoyer » est en `secondary`, PAS en `primary`, et c'est mesuré au
+          rendu: rien n'empêche ce composeur d'être ouvert en même temps que le
+          panneau de déviation, qui porte l'unique action figue de l'écran. Deux
+          aplats de marque côte à côte, c'est zéro hiérarchie. Le contour de
+          contrôle contre le `ghost` d'« Annuler » dit déjà lequel des deux gestes
+          est le geste. */}
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <Button
+          size="sm"
           disabled={busy || !pending.file}
           onClick={props.onSend}
-          className="rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-sky-700 disabled:opacity-40"
         >
           {busy ? t("photo.sending") : t("photo.send")}
-        </button>
-        <button
-          type="button"
-          disabled={busy}
-          onClick={props.onCancel}
-          className="text-xs text-sky-800 underline disabled:opacity-40"
-        >
+        </Button>
+        <Button size="sm" variant="ghost" disabled={busy} onClick={props.onCancel}>
           {t("photo.cancel")}
-        </button>
+        </Button>
       </div>
-      <p className="mt-2 text-[11px] leading-4 text-sky-800">
+      <p className="mt-2 max-w-[62ch] text-[11px] leading-4 text-ink-soft">
         {t("photo.no_quantity_note")}
       </p>
     </div>
@@ -542,8 +575,14 @@ function PhotoOutcomePanel(props: {
   const recognized = result.analysis?.recognized ?? null;
   const analyzed = analysisSucceeded(result) && recognized !== null;
 
+  // ⛔ L'ÉMERAUDE RESTE, ET C'EST LA RÈGLE. « La photo est enregistrée » est un
+  // ENREGISTREMENT CONFIRMÉ, c'est-à-dire un fait — et un état a le droit d'être
+  // une surface, pas seulement une pastille (`Card tone="warning"` le prouve dans
+  // le kit). Émeraude = ok dans tout le produit; l'appauvrir en gris retirerait
+  // la seule couleur de cet écran qui dit quelque chose de vrai. Seul le RAYON
+  // change: `rounded-lg` n'existe plus dans le vocabulaire, `card` (12px) oui.
   return (
-    <div className="mt-2 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-900">
+    <div className="mt-2 rounded-card border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-900">
       <p className="font-medium">{t("photo.saved")}</p>
       {result.idempotent && (
         <p className="mt-1 text-emerald-800">{t("photo.already_on_file")}</p>
@@ -627,17 +666,22 @@ function FamilyTallyStrip(
   if (tallies.length === 0) return null;
   return (
     <div className="mb-4">
-      <span className="mb-1.5 block text-xs uppercase tracking-wide text-gray-400">
+      <span className="mb-1.5 block text-label font-semibold uppercase text-ink-soft">
         {t("today.family_tally_label")}
       </span>
+      {/* Le cadre de la pastille reste le plus discret possible: `ActivityChip`
+          porte déjà sa propre teinte de famille, et l'entourer d'un second trait
+          fort ferait deux cadres pour une seule chose. `paper-2` (1,08:1) donne
+          la pièce, le trait `line` donne l'arête. */}
       <div className="flex flex-wrap items-center gap-2">
         {tallies.map((tally) => (
           <span
             key={tally.activityClass}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-2 py-1"
+            className="inline-flex items-center gap-1.5 rounded-card border border-line bg-paper-2 px-2 py-1"
           >
             <ActivityChip activityClass={tally.activityClass} />
-            <span className="text-xs tabular-nums text-gray-700">
+            {/* ⛔ UN CHIFFRE NE PORTE JAMAIS LA MARQUE (charte §2): `ink`. */}
+            <span className="text-xs tabular-nums text-ink">
               {gateOpen && tally.evaluable > 0
                 ? t("today.family_tally_kept", {
                   kept: tally.kept,
@@ -656,13 +700,32 @@ function FamilyTallyStrip(
  * ONE PART OF THE DAY — "What I eat", "What I do".
  *
  * The label, the sentence under it and the count all arrive resolved on
- * `section`: this component chooses a colour and nothing else. That is the
+ * `section`: this component chooses a FRAME and nothing else. That is the
  * point — the day used to decide its own headings, which is how the student's
  * page and the coach's two screens ended up describing the same plan three
  * different ways.
  *
  * The observations render `quiet`: they are tracked, not scored, and they must
  * not read as a third list of things to hold.
+ *
+ * ── TROIS TEINTES SONT DEVENUES UNE, ET LA SURVIVANTE PORTE UN FAIT ─────────
+ * Ce composant peignait `food` en lime, `actions` en orange et `unsorted` en
+ * ambre — `orange` et `amber` sont d'ailleurs à 30° l'un de l'autre, donc
+ * l'échelle ne se lisait même pas. « Ce que je mange » et « ce que je fais » sont
+ * des CATÉGORIES, et une catégorie n'est aucun état du système: elles perdent
+ * leur teinte.
+ *
+ * ⛔ `unsorted` GARDE SON AMBRE, et il faut lire `api/planStructure.ts` pour voir
+ * pourquoi ce n'est pas une exception de complaisance: « a line whose family we
+ * could not place is a thing the coach must FIX ». C'est un AVERTISSEMENT sur la
+ * prescription, pas un rang — donc un fait, donc ambre, et aux valeurs exactes de
+ * `Card tone="warning"` (`amber-200` / `amber-50`) plutôt qu'à un demi-fond
+ * inventé ici. Devenue la SEULE partie teintée, elle se voit enfin.
+ *
+ * Ce qui distingue les parties maintenant est une forme: l'équerre `.eq` collée
+ * au titre (elle « marque l'origine de ce qui est spécifié », charte §4), la
+ * taille du titre, et le pointillé des observations — qui dit « en attente, pas
+ * noté » comme `Card tone="dashed"` le dit partout ailleurs.
  */
 function DayPart({
   section,
@@ -679,30 +742,36 @@ function DayPart({
 
   if (part === "observations") {
     return (
-      <section className="rounded-lg border border-dashed border-gray-200 bg-gray-50/70 p-3">
-        <h2 className="flex items-baseline gap-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+      <section className="rounded-card border border-dashed border-line-strong bg-paper-2 p-3">
+        {/* ⚠️ PAS de `px-*` sur le nœud qui porte `.eq`: la classe pose
+            `padding-left: 1.125rem` hors de toute couche CSS et bat un utilitaire
+            de même spécificité. Le `p-3` est sur la section. */}
+        <h2 className="eq flex items-baseline gap-2 text-label font-semibold uppercase text-ink-soft">
           {label}
-          <span className="text-[11px] font-normal tabular-nums text-gray-400">{count}</span>
+          <span className="text-[11px] font-normal normal-case tracking-normal tabular-nums text-ink-soft">
+            {count}
+          </span>
         </h2>
-        <p className="mb-2 mt-0.5 text-[11px] text-gray-500">{hint}</p>
+        <p className="mb-2 mt-1 max-w-[62ch] text-[11px] leading-4 text-ink-soft">{hint}</p>
         <div className="space-y-2">{children}</div>
       </section>
     );
   }
 
-  const tone = part === "food"
-    ? "border-lime-200 bg-lime-50/50"
-    : part === "unsorted"
-    ? "border-amber-200 bg-amber-50/50"
-    : "border-orange-200 bg-orange-50/50";
+  // La seule teinte qui survit, et elle porte un fait: une ligne dont la famille
+  // n'a pas pu être typée est un défaut de prescription que le coach doit
+  // réparer. Valeurs de `Card tone="warning"`.
+  const frame = part === "unsorted"
+    ? "border-amber-200 bg-amber-50"
+    : "border-line-strong bg-paper";
 
   return (
-    <section className={`rounded-xl border ${tone} p-3`}>
-      <h2 className="flex items-baseline gap-2 text-base font-semibold text-gray-900">
+    <section className={`rounded-card border ${frame} p-3`}>
+      <h2 className="eq flex items-baseline gap-2 text-base font-semibold text-ink">
         {label}
-        <span className="text-xs font-normal tabular-nums text-gray-500">{count}</span>
+        <span className="text-xs font-normal tabular-nums text-ink-soft">{count}</span>
       </h2>
-      <p className="mb-3 mt-0.5 text-xs text-gray-500">{hint}</p>
+      <p className="mb-3 mt-0.5 max-w-[62ch] text-xs leading-5 text-ink-soft">{hint}</p>
       <div className="space-y-4">{children}</div>
     </section>
   );
@@ -730,11 +799,11 @@ function DaySubsection({
         {subsection.kind === "activity_class"
           ? <ActivityChip activityClass={subsection.key} size="md" />
           : (
-            <h3 className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+            <h3 className="text-label font-semibold uppercase text-ink-soft">
               {subsection.label}
             </h3>
           )}
-        <span className="text-[11px] tabular-nums text-gray-400">
+        <span className="text-[11px] tabular-nums text-ink-soft">
           {subsection.lines.length}
         </span>
       </div>
@@ -1051,7 +1120,7 @@ export default function TodayPage() {
   if (state.kind === "loading") {
     return (
       <KeelAppShell title={t("today.title")}>
-        <p className="text-sm text-gray-500">{t("today.loading")}</p>
+        <p className="text-sm text-ink-soft">{t("today.loading")}</p>
       </KeelAppShell>
     );
   }
@@ -1059,10 +1128,14 @@ export default function TodayPage() {
   if (state.kind === "error") {
     return (
       <KeelAppShell title={t("today.title")}>
-        <p className="rounded-lg bg-rose-50 p-3 text-sm text-rose-700">
+        {/* ⛔ UN FAIT: rouge = échec. `rose-*` était une seconde famille rouge
+            pour le même sens; le produit dit l'échec en `red-50`/`red-700`. */}
+        <p className="rounded-card bg-red-50 p-3 text-sm text-red-700">
           {t("today.error")}
         </p>
-        <p className="mt-2 font-mono text-xs text-gray-400">{state.message}</p>
+        <p className="mt-2 break-words font-mono text-xs text-ink-soft">
+          {state.message}
+        </p>
       </KeelAppShell>
     );
   }
@@ -1129,10 +1202,12 @@ export default function TodayPage() {
       <div>
         {caption && (
           <>
-            <h4 className="mb-1 text-[11px] font-medium uppercase tracking-wide text-gray-400">
+            <h4 className="mb-1 text-label font-semibold uppercase text-ink-soft">
               {t("today.week_section")}
             </h4>
-            <p className="mb-2 text-[11px] text-gray-400">{t("today.week_section_hint")}</p>
+            <p className="mb-2 max-w-[62ch] text-[11px] leading-4 text-ink-soft">
+              {t("today.week_section_hint")}
+            </p>
           </>
         )}
         <div className="space-y-2">{lines.map((line) => lineOf(line))}</div>
@@ -1193,13 +1268,17 @@ export default function TodayPage() {
           />
         )
         : (
+          // Le POINTILLÉ dit « il y a une place ici, elle est libre » — c'est
+          // exactement ce que `Card tone="dashed"` dit partout ailleurs dans le
+          // produit, et c'est une forme, pas une teinte. Le bleu ciel qu'il
+          // portait ne disait rien et rendait muette la pastille `info`.
           <button
             type="button"
             onClick={() => onOpenPhoto(bucketKey)}
-            className="mt-2 w-full rounded-lg border border-dashed border-sky-300 px-3 py-2 text-left text-xs font-medium text-sky-800 hover:bg-sky-50"
+            className="mt-2 w-full rounded-card border border-dashed border-line-strong px-3 py-2 text-left text-xs font-medium text-ink hover:bg-fig-50"
           >
             {t("photo.button")}
-            <span className="mt-0.5 block font-normal text-sky-700">
+            <span className="mt-0.5 block font-normal text-ink-soft">
               {t("photo.button_hint")}
             </span>
           </button>
@@ -1226,10 +1305,16 @@ export default function TodayPage() {
       <>
         {reading.slots.map((group) => (
           <section key={group.slotKey}>
-            <h4 className="mb-2 flex items-baseline gap-2 text-sm font-medium uppercase tracking-wide text-gray-400">
+            {/* L'en-tête de créneau est l'étiquette la plus utile de la journée:
+                elle garde le cran `text-label` de la charte comme les autres, mais
+                en encre PLEINE (`ink`, 16,18:1) là où les sous-groupes sont en
+                `ink-soft`. La hiérarchie se fait au contraste, pas à une taille
+                hors échelle. Et l'heure passe de `gray-300` — 1,57:1 sur le
+                papier, c'est-à-dire illisible — à `ink-soft` (6,11:1). */}
+            <h4 className="mb-2 flex items-baseline gap-2 text-label font-semibold uppercase text-ink">
               {t("today.slot_header", { slot: slotLabel(group.slotKey) })}
               {group.defaultLocalTime && (
-                <span className="text-xs font-normal normal-case tracking-normal text-gray-300 tabular-nums">
+                <span className="text-xs font-normal normal-case tracking-normal tabular-nums text-ink-soft">
                   {group.defaultLocalTime.slice(0, 5)}
                 </span>
               )}
@@ -1246,7 +1331,7 @@ export default function TodayPage() {
 
         {reading.free.length > 0 && (
           <section>
-            <h4 className="mb-2 text-[11px] font-medium uppercase tracking-wide text-gray-400">
+            <h4 className="mb-2 text-label font-semibold uppercase text-ink-soft">
               {t("today.free_section")}
             </h4>
             <div className="space-y-2">{reading.free.map((line) => lineOf(line))}</div>
@@ -1281,32 +1366,44 @@ export default function TodayPage() {
     >
       {/* Coverage strip. THE GATE: below 4/7 there is no percentage anywhere on
           this page — `insufficient_data` is the whole message. */}
-      <section className="mb-4 rounded-lg bg-gray-50 p-3">
+      {/* ⚠️ `bg-gray-50` NE POUVAIT PAS devenir `bg-paper`: `paper` EST le sol de
+          la page, la bande aurait disparu. C'est une carte, elle prend donc le
+          cadre de `ui/Card.tsx` — même remplissage que le sol, et un trait de
+          contrôle. C'est la direction de la charte: une fiche technique a des
+          cases tracées, pas des aplats. */}
+      <section className="mb-4 rounded-card border border-line-strong bg-paper p-3">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <div>
-            <span className="text-xs uppercase tracking-wide text-gray-400">
+          <div className="min-w-0">
+            <span className="text-label font-semibold uppercase text-ink-soft">
               {t("today.coverage_label")}
             </span>
-            <div className="text-lg font-semibold tabular-nums text-gray-900">
+            {/* ⛔ UNE MESURE NE PORTE JAMAIS LA MARQUE (charte §2). */}
+            <div className="text-lg font-semibold tabular-nums text-ink">
               {t("today.coverage_value", {
                 logged: data.loggedDays,
                 total: WEEK_DAYS,
               })}
             </div>
           </div>
-          <div className="text-right">
-            {!gateOpen && (
-              <span className="rounded bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-700">
-                {t("today.insufficient_data")}
-              </span>
-            )}
-            <div className="mt-1 text-xs text-gray-500">
+          {/* ⚠️ `text-right` SEUL était faux sous `sm`, et ça se voit au rendu:
+              la rangée passe en `flex-wrap`, la colonne de droite descend et se
+              dimensionne alors sur son contenu — la pastille se retrouvait
+              alignée à droite d'une boîte étroite, c'est-à-dire indentée au
+              hasard au milieu de l'écran. Elle s'aligne à gauche quand elle est
+              empilée, à droite quand elle est en vis-à-vis. */}
+          <div className="min-w-0 text-left sm:text-right">
+            {/* PASTILLE MAISON → `Badge`. Ton `neutral`, et c'est la copie qui le
+                tranche: « adherence stays hidden … that is the rule, not a
+                punishment ». Ce n'est donc ni une attention, ni un échec — c'est un
+                LIBELLÉ sur la couverture. `bg-line text-ink-soft` = 4,72:1. */}
+            {!gateOpen && <Badge>{t("today.insufficient_data")}</Badge>}
+            <div className="mt-1 text-xs text-ink-soft">
               {t("today.flex_remaining", { count: data.flexLeft })}
             </div>
           </div>
         </div>
         {!gateOpen && (
-          <p className="mt-2 text-xs leading-5 text-gray-500">
+          <p className="mt-2 max-w-[62ch] text-xs leading-5 text-ink-soft">
             {t("today.insufficient_data_hint", { min: LOGGING_COVERAGE_MIN_DAYS })}
           </p>
         )}
@@ -1331,33 +1428,55 @@ export default function TodayPage() {
             />
           )
           : (
+            // ⛔ LE DÉCLENCHEUR ÉTAIT VIOLET, ET C'EST LA MARQUE D'UN PRODUIT
+            // SUPPRIMÉ. Ce qui tient son rang de « first class » n'était pas la
+            // teinte de toute façon: c'est d'occuper la LARGEUR ENTIÈRE, d'être
+            // au-dessus du plan, et de porter deux lignes là où le reste de
+            // l'écran n'en porte qu'une. Les valeurs sont celles de
+            // `Button variant="secondary"` — contour de contrôle `line-strong`,
+            // survol `fig-50` — parce que ce bouton EST un geste secondaire tant
+            // que le panneau n'est pas ouvert; l'action figue de l'écran est le
+            // « Déclarer » qui se trouve dedans.
             <button
               type="button"
               onClick={() => {
                 setFlash(null);
                 setDialogOpen(true);
               }}
-              className="w-full rounded-lg border border-violet-300 bg-violet-50 px-4 py-3 text-left text-sm font-medium text-violet-900 hover:bg-violet-100"
+              className="w-full rounded-card border border-line-strong bg-paper px-4 py-3 text-left text-sm font-medium text-ink transition-colors hover:bg-fig-50"
             >
               {t("today.flex_button")}
-              <span className="mt-0.5 block text-xs font-normal text-violet-700">
+              <span className="mt-0.5 block max-w-[62ch] text-xs font-normal leading-5 text-ink-soft">
                 {t("deviation.subtitle")}
               </span>
             </button>
           )}
+        {/* ⛔ ÉMERAUDE, ET C'EST UN ARBITRAGE À RELIRE. Cet accusé est
+            « grounded »: il est construit à partir de la LIGNE QU'ON VIENT DE
+            RELIRE en base. C'est donc un enregistrement confirmé — le cas que le
+            socle nomme explicitement comme un fait qui reste (`text-emerald-700`
+            d'un enregistrement confirmé). Et il ne s'agit pas d'importer une
+            couleur d'ailleurs: `PhotoOutcomePanel`, dans ce même fichier, dit
+            déjà « la photo est enregistrée » en `emerald-50`. Le violet, lui, ne
+            disait rien. */}
         {flash && (
-          <p className="mt-2 rounded bg-violet-100 p-2 text-xs text-violet-900">
+          <p className="mt-2 rounded-card bg-emerald-50 p-2 text-xs leading-5 text-emerald-900">
             {flash}
           </p>
         )}
       </section>
 
+      {/* LES DÉVIATIONS DÉJÀ DÉCLARÉES. Neutres, et volontairement: ce n'est ni
+          ok, ni attention, ni échec — c'est une note au dossier de la journée. Le
+          bleu de `info` serait le seul candidat, et le dépenser sur une liste de
+          bandeaux rendrait muette la pastille qui en a besoin ailleurs. La pièce
+          se lit par la forme: remplissage `paper-2` fermé par un trait `line`. */}
       {data.view.deviations.length > 0 && (
         <section className="mb-4 space-y-1">
           {data.view.deviations.map((d) => (
             <p
               key={d.id}
-              className="rounded-lg border border-violet-200 bg-violet-50 px-3 py-2 text-xs text-violet-900"
+              className="rounded-card border border-line bg-paper-2 px-3 py-2 text-xs leading-5 text-ink"
             >
               {d.slot_key
                 ? t("today.deviation_banner_slot", {
@@ -1372,15 +1491,16 @@ export default function TodayPage() {
         </section>
       )}
 
+      {/* ⛔ UN FAIT: rouge = échec, dans la famille `red` du produit. */}
       {logError && (
-        <p className="mb-3 rounded bg-rose-50 p-2 text-xs text-rose-700">
+        <p className="mb-3 rounded-card bg-red-50 p-2 text-xs leading-5 text-red-700">
           {t("today.log_error")}
         </p>
       )}
 
       {data.view.totalLines === 0
         ? (
-          <p className="rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-400">
+          <p className="rounded-card border border-dashed border-line-strong p-6 text-center text-sm text-ink-soft">
             {t("today.empty")}
           </p>
         )
@@ -1413,7 +1533,7 @@ export default function TodayPage() {
           </div>
         )}
 
-      <p className="mt-6 border-t border-gray-100 pt-3 text-xs leading-5 text-gray-400">
+      <p className="mt-6 max-w-[62ch] border-t border-line pt-3 text-xs leading-5 text-ink-soft">
         {t("today.derived_note")}
       </p>
     </KeelAppShell>

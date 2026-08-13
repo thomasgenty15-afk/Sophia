@@ -18,7 +18,7 @@ import {
   type DoctrineDraft,
   type DoctrineSource,
   entriesForScope,
-  GOAL_LABELS,
+  goalLabel,
   GOAL_TOKENS,
   type GoalToken,
   isDraftEmpty,
@@ -40,6 +40,7 @@ import {
   type PracticeRow,
   rotationLengthDays,
 } from "../api/dailyPractices";
+import { formatDate } from "../i18n/format";
 import { t } from "../i18n/t";
 
 /**
@@ -328,12 +329,12 @@ export default function CoachDoctrinePage() {
     setStartOpen(false);
     setNotice(
       source === "house"
-        ? `Done. Your students are now followed by Sophia's method, and your agent signs “${
-          signsAs ?? "Sophia"
-        }” from their next message on. Nothing you wrote was deleted.`
-        : `Done. Your agent signs “${
-          signsAs ?? "your name"
-        }” again and serves your own published method.`,
+        // « Sophia » est un nom propre: il ne traverse pas le seed. « your
+        // name », lui, est une PHRASE de repli, donc il y entre.
+        ? t("coach.doctrine.delegated_notice", { name: signsAs ?? "Sophia" })
+        : t("coach.doctrine.reclaimed_notice", {
+          name: signsAs ?? t("coach.doctrine.your_name"),
+        }),
     );
   };
 
@@ -348,14 +349,14 @@ export default function CoachDoctrinePage() {
       setDraft(clean);
       setSavedSnapshot(JSON.stringify(clean));
       await refresh();
-      setNotice("Saved as a draft. It is not live until you publish it.");
+      setNotice(t("coach.doctrine.saved_notice"));
     });
 
   const onPublish = (version: number) =>
     run(`publish-${version}`, async () => {
       await callDoctrine({ action: "publish", version });
       await refresh();
-      setNotice(`v${version} is live. Your students' next message uses it.`);
+      setNotice(t("coach.doctrine.published_notice", { version }));
     });
 
   const onRollback = (version: number) =>
@@ -368,70 +369,64 @@ export default function CoachDoctrinePage() {
       // Named precisely: a rollback COPIES into a new version. Saying "reverted
       // to v1" would describe a history the product deliberately does not keep.
       setNotice(
-        `Copied v${version} into v${out.created.version}. Publish it to make it live.`,
+        t("coach.doctrine.rollback_notice", { from: version, to: out.created.version }),
       );
     });
 
   if (state.kind === "loading") {
     return (
-      <KeelAppShell variant="coach" title="Doctrine">
-        <p className="text-sm text-gray-500">Loading…</p>
+      <KeelAppShell variant="coach" title={t("coach.doctrine.title")}>
+        <p className="text-sm text-ink-soft">{t("coach.doctrine.loading")}</p>
       </KeelAppShell>
     );
   }
 
   if (state.kind === "error") {
     return (
-      <KeelAppShell variant="coach" title="Doctrine">
+      <KeelAppShell variant="coach" title={t("coach.doctrine.title")}>
         <Card tone="warning">
-          <p className="text-sm text-gray-900">We could not read your doctrine.</p>
-          <p className="mt-1 text-xs text-gray-600">{state.message}</p>
+          <p className="text-sm text-ink">{t("coach.doctrine.load_failed")}</p>
+          <p className="mt-1 text-xs text-ink-soft">{state.message}</p>
         </Card>
       </KeelAppShell>
     );
   }
 
   return (
-    <KeelAppShell variant="coach" title="Doctrine">
+    <KeelAppShell variant="coach" title={t("coach.doctrine.title")}>
       <div className="space-y-6">
         <Card>
-          <SectionLabel>What this is</SectionLabel>
-          <p className="mt-2 text-sm leading-6 text-gray-700">
-            Your agent answers your students in your method and your voice. It
-            learns that here — from where you stand on your field's real
-            arguments, from something you have already written, or from an
-            interview. Never by asking you to write a prompt. Nothing reaches a
-            student until you publish it.
+          <SectionLabel>{t("coach.doctrine.what.title")}</SectionLabel>
+          <p className="mt-2 text-sm leading-6 text-ink">
+            {t("coach.doctrine.what.body")}
           </p>
           {published ? (
-            <p className="mt-3 text-sm text-gray-900">
-              <Badge tone="positive">Live</Badge>{" "}
+            <p className="mt-3 text-sm text-ink">
+              <Badge tone="positive">{t("coach.doctrine.live_badge")}</Badge>{" "}
               <span className="ml-1">
-                v{published.version} — published{" "}
-                {new Date(published.published_at as string).toLocaleDateString()}
+                {t("coach.doctrine.live_version", {
+                  version: published.version,
+                  date: formatDate(published.published_at as string),
+                })}
               </span>
             </p>
           ) : (
-            <p className="mt-3 text-sm text-gray-700">
-              <Badge tone="caution">Nothing published</Badge>{" "}
-              <span className="ml-1">
-                Until you publish, your agent stays deliberately cautious: it
-                sticks to what your protocol already says and defers the rest to
-                you.
-              </span>
+            <p className="mt-3 text-sm text-ink">
+              <Badge tone="caution">{t("coach.doctrine.none_badge")}</Badge>{" "}
+              <span className="ml-1">{t("coach.doctrine.none_body")}</span>
             </p>
           )}
         </Card>
 
         {failure ? (
           <Card tone="warning">
-            <p className="text-sm text-gray-900">That did not go through.</p>
-            <p className="mt-1 text-xs text-gray-600">{failure}</p>
+            <p className="text-sm text-ink">{t("coach.doctrine.action_failed")}</p>
+            <p className="mt-1 text-xs text-ink-soft">{failure}</p>
           </Card>
         ) : null}
         {notice ? (
           <Card>
-            <p className="text-sm text-gray-900">{notice}</p>
+            <p className="text-sm text-ink">{notice}</p>
           </Card>
         ) : null}
 
@@ -443,15 +438,17 @@ export default function CoachDoctrinePage() {
         */}
         {nothingWritten ? (
           <Card>
-            <SectionLabel>Your method</SectionLabel>
-            <p className="mt-2 text-sm leading-6 text-gray-700">
+            <SectionLabel>{t("coach.doctrine.your_method")}</SectionLabel>
+            <p className="mt-2 text-sm leading-6 text-ink">
               {doctrineSource === "house"
-                ? "You have not written one — your students are followed by Sophia's method, and your agent signs “Sophia”. Write your own whenever you want it to speak in your name."
-                : "There is nothing here yet, so your agent has no method of yours to carry. There are four ways to get one, and the quickest takes about two minutes."}
+                ? t("coach.doctrine.empty.house")
+                : t("coach.doctrine.empty.own")}
             </p>
             <div className="mt-4">
               <Button onClick={() => setStartOpen(true)} disabled={busy !== null}>
-                {doctrineSource === "house" ? "Write my own method" : "Create my method"}
+                {doctrineSource === "house"
+                  ? t("coach.doctrine.empty.cta_house")
+                  : t("coach.doctrine.empty.cta_own")}
               </Button>
             </div>
           </Card>
@@ -467,7 +464,9 @@ export default function CoachDoctrinePage() {
             <Card>
               <div className="flex items-start justify-between gap-3">
                 <SectionLabel>
-                  {draftOrigin === "loaded" ? "Your method" : "What I understood"}
+                  {draftOrigin === "loaded"
+                    ? t("coach.doctrine.your_method")
+                    : t("coach.doctrine.what_i_understood")}
                 </SectionLabel>
                 {/*
                   LE BOUTON DISCRET, ET SON LIBELLÉ EST UNE QUESTION DE PRÉCISION,
@@ -488,21 +487,17 @@ export default function CoachDoctrinePage() {
                   rien n'est détruit tant qu'il n'a pas relu et enregistré.
                 */}
                 {nothingWritten ? null : (
-                  <button
-                    type="button"
-                    onClick={() => setStartOpen(true)}
-                    className="shrink-0 rounded-md border border-gray-200 px-2 py-1 text-xs text-gray-600 hover:border-gray-400 hover:text-gray-900"
-                  >
-                    Create a new one
-                  </button>
+                  <Button size="sm" className="shrink-0" onClick={() => setStartOpen(true)}>
+                    {t("coach.doctrine.create_new")}
+                  </Button>
                 )}
               </div>
-              <p className="mt-2 text-xs leading-5 text-gray-500">
+              <p className="mt-2 text-xs leading-5 text-ink-soft">
                 {draftOrigin === "loaded"
                   ? (published
-                    ? "This is what your agent is using right now, and you can edit it here. Saving creates a new version; your students keep reading this one until you publish the new one."
-                    : "This is your latest saved version. It is not published, so your agent is not using it yet.")
-                  : "Nothing here is saved yet. If a line is not yours, it should not be here — change it, or delete it."}
+                    ? t("coach.doctrine.loaded_published")
+                    : t("coach.doctrine.loaded_draft"))
+                  : t("coach.doctrine.compiled_note")}
               </p>
               {/*
                 LA DÉLÉGATION SE DIT AU-DESSUS DE LA MÉTHODE QU'ELLE MET EN
@@ -511,17 +506,22 @@ export default function CoachDoctrinePage() {
                 taire ferait croire au coach que ses élèves reçoivent ceci.
               */}
               {doctrineSource === "house" ? (
-                <p className="mt-2 rounded-md bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">
-                  <strong>Nobody is reading this right now.</strong>{" "}
-                  Your students are followed by Sophia's method and your agent
-                  signs “Sophia”. Everything below is kept exactly as you left it
-                  — take it back from the button above whenever you want.
+                <p className="mt-2 rounded-card bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">
+                  <strong>{t("coach.doctrine.dormant_title")}</strong>{" "}
+                  {t("coach.doctrine.dormant_body")}
                 </p>
               ) : null}
-              <p className="mt-2 text-xs leading-5 text-gray-500">
-                Everything in this card goes to <strong>every</strong>{" "}
-                student. Your voice, your words and your red lines are you — they
-                are never narrowed to one kind of student.
+              {/*
+                L'EMPHASE PORTE SUR UNE PHRASE ENTIÈRE, PLUS SUR UN MOT AU
+                MILIEU. « goes to <strong>every</strong> student » découpait la
+                phrase en trois morceaux dont l'ordre est celui de l'anglais:
+                une langue qui place son quantifieur ailleurs ne peut pas les
+                recoller. La phrase mise en gras dit la même chose et se traduit
+                d'un bloc.
+              */}
+              <p className="mt-2 text-xs leading-5 text-ink-soft">
+                <strong>{t("coach.doctrine.global_scope_lead")}</strong>{" "}
+                {t("coach.doctrine.global_scope_body")}
               </p>
 
               {issues.length > 0 ? (
@@ -550,26 +550,32 @@ export default function CoachDoctrinePage() {
               */}
               {footprint.total > 0 ? (
                 <p className="mt-5 text-xs leading-5 text-amber-800">
+                  {/* Les deux nombres ne se séparent pas de leur phrase: « N of
+                      M » d'un côté et « lines above are still… » de l'autre
+                      imposeraient l'ordre anglais au reste du monde. */}
                   <strong>
-                    {footprint.total} of {footprint.entries}
+                    {t("coach.doctrine.starter.count", {
+                      total: footprint.total,
+                      entries: footprint.entries,
+                    })}
                   </strong>{" "}
-                  lines above are still word-for-word ours. They work — but
-                  another coach who picked the same answers has the same
-                  sentences.{" "}
+                  {t("coach.doctrine.starter.body")}{" "}
                   {footprint.forbidden > 0
-                    ? "Start with the “instead” lines: that is the exact text your students read."
-                    : "Rewriting even three of them in your own words is what makes the agent sound like you."}
+                    ? t("coach.doctrine.starter.forbidden_first")
+                    : t("coach.doctrine.starter.rewrite_three")}
                 </p>
               ) : null}
 
               <div className="mt-5 flex items-center gap-3">
                 <Button onClick={onSave} disabled={busy !== null || !dirty}>
-                  {busy === "save" ? "Saving…" : "Save as draft"}
+                  {busy === "save"
+                    ? t("coach.doctrine.saving")
+                    : t("coach.doctrine.save_draft")}
                 </Button>
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-ink-soft">
                   {dirty
-                    ? "You have changes that are not saved yet."
-                    : "Everything here is saved."}
+                    ? t("coach.doctrine.unsaved")
+                    : t("coach.doctrine.all_saved")}
                 </span>
               </div>
             </Card>
@@ -600,29 +606,31 @@ export default function CoachDoctrinePage() {
         ) : null}
 
         <Card>
-          <SectionLabel>Versions</SectionLabel>
+          <SectionLabel>{t("coach.doctrine.versions.title")}</SectionLabel>
           {versions.length === 0 ? (
-            <p className="mt-2 text-sm text-gray-600">
-              No version yet. Anything you save above creates the first one.
+            <p className="mt-2 text-sm text-ink-soft">
+              {t("coach.doctrine.versions.empty")}
             </p>
           ) : (
-            <ul className="mt-3 divide-y divide-gray-100">
+            <ul className="mt-3 divide-y divide-line">
               {versions.slice().reverse().map((v) => (
                 <li key={v.version} className="flex items-center gap-3 py-3">
-                  <span className="w-14 text-sm font-medium text-gray-900">
+                  <span className="w-14 text-sm font-medium text-ink">
                     v{v.version}
                   </span>
-                  <span className="flex-1 text-xs text-gray-600">
-                    {v.published_at ? <Badge tone="positive">Live</Badge> : (
-                      <Badge tone="neutral">Draft</Badge>
-                    )}
+                  <span className="flex-1 text-xs text-ink-soft">
+                    {v.published_at
+                      ? <Badge tone="positive">{t("coach.doctrine.live_badge")}</Badge>
+                      : <Badge tone="neutral">{t("coach.doctrine.draft_badge")}</Badge>}
                     {v.created_from_version ? (
                       <span className="ml-2">
-                        copied from v{v.created_from_version}
+                        {t("coach.doctrine.versions.copied_from", {
+                          version: v.created_from_version,
+                        })}
                       </span>
                     ) : null}
                     {v.change_note ? (
-                      <span className="ml-2 text-gray-500">{v.change_note}</span>
+                      <span className="ml-2 text-ink-soft">{v.change_note}</span>
                     ) : null}
                   </span>
                   {!v.published_at ? (
@@ -631,7 +639,7 @@ export default function CoachDoctrinePage() {
                       onClick={() => onPublish(v.version)}
                       disabled={busy !== null}
                     >
-                      Publish
+                      {t("coach.doctrine.versions.publish")}
                     </Button>
                   ) : null}
                   {published && v.version !== published.version ? (
@@ -641,7 +649,7 @@ export default function CoachDoctrinePage() {
                       onClick={() => onRollback(v.version)}
                       disabled={busy !== null}
                     >
-                      Go back to this
+                      {t("coach.doctrine.versions.rollback")}
                     </Button>
                   ) : null}
                 </li>
@@ -698,14 +706,14 @@ export default function CoachDoctrinePage() {
 /** Une ligne de formulaire: son contenu, et le bouton qui la retire. */
 function Row({ children, onRemove }: { children: React.ReactNode; onRemove: () => void }) {
   return (
-    <li className="rounded-md border border-gray-100 bg-gray-50/60 p-3">
+    <li className="rounded-card border border-line bg-paper-2 p-3">
       <div className="space-y-2">{children}</div>
       <button
         type="button"
         onClick={onRemove}
-        className="mt-2 text-xs text-gray-400 underline decoration-dotted underline-offset-2 hover:text-gray-700"
+        className="mt-2 text-xs text-ink-soft underline decoration-dotted underline-offset-2 hover:text-ink"
       >
-        Remove
+        {t("coach.doctrine.row_remove")}
       </button>
     </li>
   );
@@ -726,7 +734,7 @@ function TextRow({
 }) {
   return (
     <label className="block">
-      <span className="text-xs font-medium text-gray-500">{label}</span>
+      <span className="mb-2 block text-label font-semibold uppercase text-ink-soft">{label}</span>
       {rows && rows > 1 ? (
         <textarea
           className={inputClass}
@@ -747,15 +755,20 @@ function TextRow({
   );
 }
 
+/**
+ * ⛔ CE BOUTON ÉTAIT UN BOUTON MAISON, ET IL EST DEVENU CELUI DU KIT.
+ * Il portait son propre rayon (`rounded-card`, une sixième valeur), sa propre
+ * bordure (`gray-300`, sous les 3:1 que WCAG 1.4.11 demande à un contrôle) et son
+ * propre survol. Le pointillé qui le distinguait est perdu à dessein: dans le
+ * vocabulaire du kit, le pointillé dit « un emplacement vide en attente »
+ * (`Card tone="dashed"`) et non « une action » — un bouton n'est pas un vide.
+ * Le « + » reste, et c'est lui qui dit qu'on ajoute.
+ */
 function AddButton({ label, onClick }: { label: string; onClick: () => void }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="mt-2 rounded-md border border-dashed border-gray-300 px-3 py-1.5 text-xs text-gray-600 hover:border-gray-400 hover:text-gray-900"
-    >
+    <Button size="sm" className="mt-2" onClick={onClick}>
       + {label}
-    </button>
+    </Button>
   );
 }
 
@@ -801,29 +814,29 @@ function EditorSection({
   children: React.ReactNode;
 }) {
   return (
-    <div className={editing ? "rounded-lg border border-gray-900/15 bg-white p-3 -mx-3" : ""}>
-      <div className="flex items-start justify-between gap-3">
-        <p className="text-xs font-medium uppercase tracking-wide text-gray-500">{title}</p>
+    <div className={editing ? "-mx-3 rounded-card border border-line-strong bg-paper p-3" : ""}>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <p className="min-w-0 text-label font-semibold uppercase text-ink-soft">{title}</p>
         {editing ? null : (
-          <button
-            type="button"
-            onClick={onEdit}
-            className="flex shrink-0 items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-xs text-gray-700 hover:border-gray-400 hover:text-gray-900"
-          >
+          <Button size="sm" className="shrink-0" onClick={onEdit}>
             {/* Le crayon accompagne le mot, il ne le remplace pas. */}
             <svg viewBox="0 0 16 16" aria-hidden="true" className="h-3 w-3 fill-current">
               <path d="M11.5 1.5a2.1 2.1 0 0 1 3 3l-.8.8-3-3 .8-.8ZM9.9 3.1l3 3L6 13H3v-3l6.9-6.9Z" />
             </svg>
-            Edit
-          </button>
+            {t("coach.doctrine.section_edit")}
+          </Button>
         )}
       </div>
-      {editing && hint ? <p className="mt-1 text-xs leading-5 text-gray-400">{hint}</p> : null}
+      {editing && hint
+        ? <p className="mt-1 max-w-[62ch] text-xs leading-5 text-ink-soft">{hint}</p>
+        : null}
       <div className="mt-2">{editing ? children : summary}</div>
       {editing ? (
         <div className="mt-3 flex gap-2">
-          <Button size="sm" onClick={onDone}>Done</Button>
-          <Button size="sm" variant="secondary" onClick={onCancel}>Cancel</Button>
+          <Button size="sm" onClick={onDone}>{t("coach.doctrine.section_done")}</Button>
+          <Button size="sm" variant="secondary" onClick={onCancel}>
+            {t("coach.doctrine.section_cancel")}
+          </Button>
         </div>
       ) : null}
     </div>
@@ -832,11 +845,11 @@ function EditorSection({
 
 /** Le rendu de lecture d'une section: des lignes, ou la phrase du vide. */
 function SummaryList({ items, empty }: { items: React.ReactNode[]; empty: string }) {
-  if (items.length === 0) return <p className="text-sm text-gray-400">{empty}</p>;
+  if (items.length === 0) return <p className="text-sm text-ink-soft">{empty}</p>;
   return (
-    <ul className="space-y-1.5 text-sm leading-6 text-gray-800">
+    <ul className="space-y-1.5 text-sm leading-6 text-ink">
       {items.map((item, i) => (
-        <li key={i} className="border-l-2 border-gray-100 pl-3">{item}</li>
+        <li key={i} className="max-w-[62ch] border-l-2 border-line pl-3">{item}</li>
       ))}
     </ul>
   );
@@ -866,34 +879,44 @@ function BeliefsAndAnswers({
   const scope = goal === null ? undefined : [goal];
   const beliefs = entriesForScope(draft.beliefs, goal);
   const arbitrations = entriesForScope(draft.arbitrations, goal);
-  const forWhom = goal === null ? "every student" : GOAL_LABELS[goal].toLowerCase();
 
   return (
     <div className="space-y-5">
       <EditorSection
-        title="What you believe"
+        title={t("coach.doctrine.beliefs.title")}
         hint={goal === null
-          ? "One conviction per line. The 'why' is what lets your agent explain instead of assert."
-          : `Only students on ${GOAL_LABELS[goal]} will ever read these.`}
+          ? t("coach.doctrine.beliefs.hint_global")
+          : t("coach.doctrine.beliefs.hint_goal", { goal: goalLabel(goal) })}
         editing={section.isEditing(`${keyPrefix}:beliefs`)}
         onEdit={() => section.edit(`${keyPrefix}:beliefs`)}
         onDone={section.done}
         onCancel={section.cancel}
         summary={
+          /*
+            ⚠️ LA PHRASE DU VIDE ÉTAIT CASSÉE, ET PAS SEULEMENT INTRADUISIBLE.
+            Elle valait `…that you'd tell ${GOAL_LABELS[goal].toLowerCase()}?`
+            — soit « what do you believe that you'd tell losing fat? »: on
+            parlait à un OBJECTIF, pas à un élève. Deux phrases nommées, dont
+            celle de l'objectif porte son trou.
+          */
           <SummaryList
-            empty={`Nothing yet — what do you believe that you'd tell ${forWhom}?`}
+            empty={goal === null
+              ? t("coach.doctrine.beliefs.empty_global")
+              : t("coach.doctrine.beliefs.empty_goal", { goal: goalLabel(goal) })}
             items={beliefs.map(({ entry }) => (
               <>
                 {String(entry.claim ?? "")}
                 {String(entry.rationale ?? "").trim()
-                  ? <span className="text-gray-500">{` — ${entry.rationale}`}</span>
+                  ? <span className="text-ink-soft">{` — ${entry.rationale}`}</span>
                   : null}
               </>
             ))}
           />
         }
       >
-        {beliefs.length === 0 ? <p className="text-sm text-gray-400">Nothing here yet.</p> : (
+        {beliefs.length === 0
+          ? <p className="text-sm text-ink-soft">{t("coach.doctrine.nothing_here_yet")}</p>
+          : (
           <ul className="space-y-2">
             {beliefs.map(({ index, entry }) => (
               <Row
@@ -901,14 +924,14 @@ function BeliefsAndAnswers({
                 onRemove={() => onChange({ ...draft, beliefs: removeEntry(draft.beliefs, index) })}
               >
                 <TextRow
-                  label="What you believe"
+                  label={t("coach.doctrine.beliefs.title")}
                   value={String(entry.claim ?? "")}
                   rows={2}
                   onChange={(claim) =>
                     onChange({ ...draft, beliefs: patchEntry(draft.beliefs, index, { claim }) })}
                 />
                 <TextRow
-                  label="Why (optional)"
+                  label={t("coach.doctrine.beliefs.rationale_label")}
                   value={String(entry.rationale ?? "")}
                   onChange={(rationale) =>
                     onChange({ ...draft, beliefs: patchEntry(draft.beliefs, index, { rationale }) })}
@@ -918,7 +941,7 @@ function BeliefsAndAnswers({
           </ul>
         )}
         <AddButton
-          label="Add a conviction"
+          label={t("coach.doctrine.beliefs.add")}
           onClick={() =>
             onChange({
               ...draft,
@@ -928,20 +951,20 @@ function BeliefsAndAnswers({
       </EditorSection>
 
       <EditorSection
-        title="How you answer"
+        title={t("coach.doctrine.answers.title")}
         hint={goal === null
-          ? "The situation, and your sentence — word for word. It is what makes the agent sound like you."
-          : `The hard cases that only come up with ${GOAL_LABELS[goal]} students.`}
+          ? t("coach.doctrine.answers.hint_global")
+          : t("coach.doctrine.answers.hint_goal", { goal: goalLabel(goal) })}
         editing={section.isEditing(`${keyPrefix}:arbitrations`)}
         onEdit={() => section.edit(`${keyPrefix}:arbitrations`)}
         onDone={section.done}
         onCancel={section.cancel}
         summary={
           <SummaryList
-            empty="Nothing yet — add a hard case and the answer you give, word for word."
+            empty={t("coach.doctrine.answers.empty")}
             items={arbitrations.map(({ entry }) => (
               <>
-                <span className="text-gray-500">{String(entry.situation ?? "")}</span>
+                <span className="text-ink-soft">{String(entry.situation ?? "")}</span>
                 <br />
                 {`“${String(entry.coach_answer ?? "")}”`}
               </>
@@ -949,7 +972,9 @@ function BeliefsAndAnswers({
           />
         }
       >
-        {arbitrations.length === 0 ? <p className="text-sm text-gray-400">Nothing here yet.</p> : (
+        {arbitrations.length === 0
+          ? <p className="text-sm text-ink-soft">{t("coach.doctrine.nothing_here_yet")}</p>
+          : (
           <ul className="space-y-2">
             {arbitrations.map(({ index, entry }) => (
               <Row
@@ -958,7 +983,7 @@ function BeliefsAndAnswers({
                   onChange({ ...draft, arbitrations: removeEntry(draft.arbitrations, index) })}
               >
                 <TextRow
-                  label="When a student…"
+                  label={t("coach.doctrine.answers.situation_label")}
                   value={String(entry.situation ?? "")}
                   onChange={(situation) =>
                     onChange({
@@ -967,7 +992,7 @@ function BeliefsAndAnswers({
                     })}
                 />
                 <TextRow
-                  label="You answer, word for word"
+                  label={t("coach.doctrine.answers.answer_label")}
                   value={String(entry.coach_answer ?? "")}
                   rows={2}
                   onChange={(coach_answer) =>
@@ -981,7 +1006,7 @@ function BeliefsAndAnswers({
           </ul>
         )}
         <AddButton
-          label="Add a hard case"
+          label={t("coach.doctrine.answers.add")}
           onClick={() =>
             onChange({
               ...draft,
@@ -1028,10 +1053,20 @@ function GlobalEditor({
   });
 
   const voiceLine = [
-    voice.address ? `you say “${voice.address}”` : null,
-    voice.length === "short" ? "short replies" : voice.length === "medium" ? "a short paragraph" : null,
-    voice.emojis === "none" ? "no emojis" : voice.emojis === "light" ? "at most one emoji" : null,
-    voice.language ? `written in ${voice.language}` : null,
+    voice.address ? t("coach.doctrine.voice.summary_address", { address: String(voice.address) }) : null,
+    voice.length === "short"
+      ? t("coach.doctrine.voice.summary_short")
+      : voice.length === "medium"
+      ? t("coach.doctrine.voice.summary_medium")
+      : null,
+    voice.emojis === "none"
+      ? t("coach.doctrine.voice.summary_no_emojis")
+      : voice.emojis === "light"
+      ? t("coach.doctrine.voice.summary_one_emoji")
+      : null,
+    voice.language
+      ? t("coach.doctrine.voice.summary_language", { language: String(voice.language) })
+      : null,
   ].filter(Boolean).join(" · ");
 
   return (
@@ -1045,25 +1080,39 @@ function GlobalEditor({
       />
 
       <EditorSection
-        title="What your agent must never say"
-        hint="A token your code can branch on, the phrasings a model would actually write, and — the important one — what you say INSTEAD. Without an 'instead', a student gets a flat refusal rather than your answer."
+        title={t("coach.doctrine.forbidden.title")}
+        hint={t("coach.doctrine.forbidden.hint")}
         {...open("forbidden")}
         summary={
           <SummaryList
-            empty="Nothing yet — what would you be embarrassed to see your agent say?"
+            empty={t("coach.doctrine.forbidden.empty")}
             items={(draft.forbidden ?? []).map((f) => (
               <>
                 {String(f.token ?? "")}
+                {/* L'espace de séparation reste DANS le JSX: une valeur du seed
+                    ne porte pas d'espace de bord (parity.int.test.ts). */}
                 {String(f.instead ?? "").trim()
-                  ? <span className="text-gray-500">{` — instead: “${f.instead}”`}</span>
-                  : <span className="text-amber-800">{" — no replacement set"}</span>}
+                  ? (
+                    <span className="text-ink-soft">
+                      {" "}
+                      {t("coach.doctrine.forbidden.summary_instead", {
+                        instead: String(f.instead),
+                      })}
+                    </span>
+                  )
+                  : (
+                    <span className="text-amber-800">
+                      {" "}
+                      {t("coach.doctrine.forbidden.summary_no_instead")}
+                    </span>
+                  )}
               </>
             ))}
           />
         }
       >
         {(draft.forbidden ?? []).length === 0
-          ? <p className="text-sm text-gray-400">Nothing here yet.</p>
+          ? <p className="text-sm text-ink-soft">{t("coach.doctrine.nothing_here_yet")}</p>
           : (
             <ul className="space-y-2">
               {(draft.forbidden ?? []).map((f, index) => (
@@ -1073,9 +1122,9 @@ function GlobalEditor({
                     onChange({ ...draft, forbidden: removeEntry(draft.forbidden, index) })}
                 >
                   <TextRow
-                    label="The thing itself"
+                    label={t("coach.doctrine.forbidden.token_label")}
                     value={String(f.token ?? "")}
-                    placeholder="six_small_meals"
+                    placeholder={t("coach.doctrine.forbidden.token_placeholder")}
                     onChange={(token) =>
                       onChange({
                         ...draft,
@@ -1083,9 +1132,9 @@ function GlobalEditor({
                       })}
                   />
                   <TextRow
-                    label="How people actually write it (comma-separated)"
+                    label={t("coach.doctrine.forbidden.forms_label")}
                     value={joinForms(f.surface_forms)}
-                    placeholder="6 petits repas, six small meals, grazing all day"
+                    placeholder={t("coach.doctrine.forbidden.forms_placeholder")}
                     onChange={(raw) =>
                       onChange({
                         ...draft,
@@ -1095,7 +1144,7 @@ function GlobalEditor({
                       })}
                   />
                   <TextRow
-                    label="Why you refuse it (optional)"
+                    label={t("coach.doctrine.forbidden.reason_label")}
                     value={String(f.reason ?? "")}
                     onChange={(reason) =>
                       onChange({
@@ -1104,7 +1153,7 @@ function GlobalEditor({
                       })}
                   />
                   <TextRow
-                    label="What you say INSTEAD — this exact text reaches your students"
+                    label={t("coach.doctrine.forbidden.instead_label")}
                     value={String(f.instead ?? "")}
                     rows={2}
                     onChange={(instead) =>
@@ -1116,7 +1165,7 @@ function GlobalEditor({
                   {!String(f.instead ?? "").trim()
                     ? (
                       <p className="text-xs text-amber-800">
-                        No replacement set — students get a flat refusal here.
+                        {t("coach.doctrine.forbidden.no_instead_warning")}
                       </p>
                     )
                     : null}
@@ -1125,7 +1174,7 @@ function GlobalEditor({
             </ul>
           )}
         <AddButton
-          label="Add a red line"
+          label={t("coach.doctrine.forbidden.add")}
           onClick={() =>
             onChange({
               ...draft,
@@ -1140,17 +1189,17 @@ function GlobalEditor({
       </EditorSection>
 
       <EditorSection
-        title="Your words"
-        hint="The terms that are yours, and what they mean exactly."
+        title={t("coach.doctrine.vocabulary.title")}
+        hint={t("coach.doctrine.vocabulary.hint")}
         {...open("vocabulary")}
         summary={
           <SummaryList
-            empty="Nothing yet — which words are yours?"
+            empty={t("coach.doctrine.vocabulary.empty")}
             items={(draft.vocabulary ?? []).map((v) => (
               <>
                 “{String(v.term ?? "")}”
                 {String(v.meaning ?? "").trim()
-                  ? <span className="text-gray-500">{` — ${v.meaning}`}</span>
+                  ? <span className="text-ink-soft">{` — ${v.meaning}`}</span>
                   : null}
               </>
             ))}
@@ -1158,7 +1207,7 @@ function GlobalEditor({
         }
       >
         {(draft.vocabulary ?? []).length === 0
-          ? <p className="text-sm text-gray-400">Nothing here yet.</p>
+          ? <p className="text-sm text-ink-soft">{t("coach.doctrine.nothing_here_yet")}</p>
           : (
             <ul className="space-y-2">
               {(draft.vocabulary ?? []).map((v, index) => (
@@ -1168,7 +1217,7 @@ function GlobalEditor({
                     onChange({ ...draft, vocabulary: removeEntry(draft.vocabulary, index) })}
                 >
                   <TextRow
-                    label="The word"
+                    label={t("coach.doctrine.vocabulary.term_label")}
                     value={String(v.term ?? "")}
                     onChange={(term) =>
                       onChange({
@@ -1177,7 +1226,7 @@ function GlobalEditor({
                       })}
                   />
                   <TextRow
-                    label="What it means"
+                    label={t("coach.doctrine.vocabulary.meaning_label")}
                     value={String(v.meaning ?? "")}
                     onChange={(meaning) =>
                       onChange({
@@ -1190,7 +1239,7 @@ function GlobalEditor({
             </ul>
           )}
         <AddButton
-          label="Add a word"
+          label={t("coach.doctrine.vocabulary.add")}
           onClick={() =>
             onChange({
               ...draft,
@@ -1200,25 +1249,37 @@ function GlobalEditor({
       </EditorSection>
 
       <EditorSection
-        title="Foods you keep off the plate"
-        hint="Give the phrasings too — 'seed oil' almost never appears as those two words in a real sentence, and a bare term is a filter that catches nothing. What you BUILD with is set on your Recommended food screen, not here."
+        title={t("coach.doctrine.foods.title")}
+        hint={t("coach.doctrine.foods.hint")}
         {...open("foods")}
         summary={
           <SummaryList
-            empty="Nothing yet — anything you never want on a plate?"
+            empty={t("coach.doctrine.foods.empty")}
             items={(foods.discouraged ?? []).map((f) => (
               <>
                 {String(f.term ?? "")}
                 {(f.surface_forms ?? []).length > 0
-                  ? <span className="text-gray-500">{` — also: ${joinForms(f.surface_forms)}`}</span>
-                  : <span className="text-amber-800">{" — no phrasings, hard to catch"}</span>}
+                  ? (
+                    <span className="text-ink-soft">
+                      {" "}
+                      {t("coach.doctrine.foods.summary_also", {
+                        forms: joinForms(f.surface_forms),
+                      })}
+                    </span>
+                  )
+                  : (
+                    <span className="text-amber-800">
+                      {" "}
+                      {t("coach.doctrine.foods.summary_no_forms")}
+                    </span>
+                  )}
               </>
             ))}
           />
         }
       >
         {(foods.discouraged ?? []).length === 0
-          ? <p className="text-sm text-gray-400">Nothing here yet.</p>
+          ? <p className="text-sm text-ink-soft">{t("coach.doctrine.nothing_here_yet")}</p>
           : (
             <ul className="space-y-2">
               {(foods.discouraged ?? []).map((f, index) => (
@@ -1227,13 +1288,13 @@ function GlobalEditor({
                   onRemove={() => setFoods({ discouraged: removeEntry(foods.discouraged, index) })}
                 >
                   <TextRow
-                    label="Food"
+                    label={t("coach.doctrine.foods.term_label")}
                     value={String(f.term ?? "")}
                     onChange={(term) =>
                       setFoods({ discouraged: patchEntry(foods.discouraged, index, { term }) })}
                   />
                   <TextRow
-                    label="How people write it (comma-separated)"
+                    label={t("coach.doctrine.foods.forms_label")}
                     value={joinForms(f.surface_forms)}
                     onChange={(raw) =>
                       setFoods({
@@ -1247,21 +1308,21 @@ function GlobalEditor({
             </ul>
           )}
         <AddButton
-          label="Add a food"
+          label={t("coach.doctrine.foods.add")}
           onClick={() =>
             setFoods({ discouraged: addEntry(foods.discouraged, { term: "", surface_forms: [] }) })}
         />
       </EditorSection>
 
       <EditorSection
-        title="What you have already answered"
+        title={t("coach.doctrine.qa.title")}
         {...open("qa")}
         summary={
           <SummaryList
-            empty="Nothing yet — what do your students ask over and over?"
+            empty={t("coach.doctrine.qa.empty")}
             items={(draft.qa ?? []).map((q) => (
               <>
-                <span className="text-gray-500">{String(q.question ?? "")}</span>
+                <span className="text-ink-soft">{String(q.question ?? "")}</span>
                 <br />
                 {String(q.answer ?? "")}
               </>
@@ -1269,7 +1330,9 @@ function GlobalEditor({
           />
         }
       >
-        {(draft.qa ?? []).length === 0 ? <p className="text-sm text-gray-400">Nothing here yet.</p> : (
+        {(draft.qa ?? []).length === 0
+          ? <p className="text-sm text-ink-soft">{t("coach.doctrine.nothing_here_yet")}</p>
+          : (
           <ul className="space-y-2">
             {(draft.qa ?? []).map((q, index) => (
               <Row
@@ -1277,13 +1340,13 @@ function GlobalEditor({
                 onRemove={() => onChange({ ...draft, qa: removeEntry(draft.qa, index) })}
               >
                 <TextRow
-                  label="They ask"
+                  label={t("coach.doctrine.qa.question_label")}
                   value={String(q.question ?? "")}
                   onChange={(question) =>
                     onChange({ ...draft, qa: patchEntry(draft.qa, index, { question }) })}
                 />
                 <TextRow
-                  label="You answer"
+                  label={t("coach.doctrine.qa.answer_label")}
                   value={String(q.answer ?? "")}
                   rows={2}
                   onChange={(answer) =>
@@ -1294,51 +1357,58 @@ function GlobalEditor({
           </ul>
         )}
         <AddButton
-          label="Add a question"
+          label={t("coach.doctrine.qa.add")}
           onClick={() => onChange({ ...draft, qa: addEntry(draft.qa, { question: "", answer: "" }) })}
         />
       </EditorSection>
 
       <EditorSection
-        title="Your voice"
+        title={t("coach.doctrine.voice.title")}
         {...open("voice")}
         summary={voiceLine
-          ? <p className="text-sm leading-6 text-gray-800">{voiceLine}</p>
-          : <p className="text-sm text-gray-400">Nothing set — your agent picks its own register.</p>}
+          ? <p className="text-sm leading-6 text-ink">{voiceLine}</p>
+          : <p className="text-sm text-ink-soft">{t("coach.doctrine.voice.empty")}</p>}
       >
         <div className="grid gap-2 sm:grid-cols-2">
           <TextRow
-            label="How you address them (tu / vous)"
+            label={t("coach.doctrine.voice.address_label")}
             value={String(voice.address ?? "")}
             onChange={(address) => setVoice({ address })}
           />
+          {/* ⚠️ L'EXEMPLE `fr-FR` ENTRE DANS LE SEED AVEC SA PHRASE. Écrit ici,
+              c'était un tag de locale en dur hors de `keel/i18n/` — la règle
+              LOCALE_LITERAL de `scripts/ci/i18n-lint.mjs`. */}
           <TextRow
-            label="Language you write in (e.g. fr-FR)"
+            label={t("coach.doctrine.voice.language_label")}
             value={String(voice.language ?? "")}
             onChange={(language) => setVoice({ language })}
           />
           <label className="block">
-            <span className="text-xs font-medium text-gray-500">Length</span>
+            <span className="text-xs font-medium text-ink-soft">
+              {t("coach.doctrine.voice.length_label")}
+            </span>
             <select
               className={inputClass}
               value={String(voice.length ?? "")}
               onChange={(e) => setVoice({ length: e.target.value || null })}
             >
               <option value="">—</option>
-              <option value="short">Short — two or three sentences</option>
-              <option value="medium">A short paragraph</option>
+              <option value="short">{t("coach.doctrine.voice.length_short")}</option>
+              <option value="medium">{t("coach.doctrine.voice.length_medium")}</option>
             </select>
           </label>
           <label className="block">
-            <span className="text-xs font-medium text-gray-500">Emojis</span>
+            <span className="text-xs font-medium text-ink-soft">
+              {t("coach.doctrine.voice.emojis_label")}
+            </span>
             <select
               className={inputClass}
               value={String(voice.emojis ?? "")}
               onChange={(e) => setVoice({ emojis: e.target.value || null })}
             >
               <option value="">—</option>
-              <option value="none">None</option>
-              <option value="light">At most one</option>
+              <option value="none">{t("coach.doctrine.voice.emojis_none")}</option>
+              <option value="light">{t("coach.doctrine.voice.emojis_light")}</option>
             </select>
           </label>
         </div>
@@ -1370,11 +1440,12 @@ function SpecificEditor({
 
   return (
     <Card>
-      <SectionLabel>Specific to one kind of student</SectionLabel>
-      <p className="mt-2 text-xs leading-5 text-gray-500">
-        What you write here reaches <strong>only</strong>{" "}
-        students on that goal. Everything else you wrote above still reaches
-        them too — this adds, it never replaces.
+      <SectionLabel>{t("coach.doctrine.specific.title")}</SectionLabel>
+      {/* Même arbitrage que la carte globale: l'emphase porte la phrase, pas le
+          mot « only » au milieu d'elle. */}
+      <p className="mt-2 text-xs leading-5 text-ink-soft">
+        <strong>{t("coach.doctrine.specific.lead")}</strong>{" "}
+        {t("coach.doctrine.specific.body")}
       </p>
 
       <div className="mt-3 flex flex-wrap gap-1.5">
@@ -1387,11 +1458,11 @@ function SpecificEditor({
               onClick={() => setGoal(g)}
               className={`rounded-full border px-3 py-1 text-xs ${
                 g === goal
-                  ? "border-gray-900 bg-gray-900 text-white"
-                  : "border-gray-200 bg-white text-gray-600"
+                  ? "border-fig-700 bg-fig-700 text-paper"
+                  : "border-line-strong bg-paper text-ink-soft hover:bg-fig-50"
               }`}
             >
-              {GOAL_LABELS[g]}
+              {goalLabel(g)}
               {n > 0 ? ` · ${n}` : ""}
             </button>
           );
@@ -1470,16 +1541,16 @@ function CompositionForksCard({
   return (
     <Card>
       <EditorSection
-        title="How you compose a plate"
-        hint="Four questions about your method. Your students never see any of this — they see the food."
+        title={t("coach.doctrine.composition.title")}
+        hint={t("coach.doctrine.composition.hint")}
         editing={section.isEditing("composition")}
         onEdit={() => section.edit("composition")}
         onDone={section.done}
         onCancel={section.done}
         summary={answered.length === 0
           ? (
-            <p className="text-sm text-gray-400">
-              Nothing set — Sophia composes in her default order.
+            <p className="text-sm text-ink-soft">
+              {t("coach.doctrine.composition.empty")}
             </p>
           )
           : (
@@ -1489,7 +1560,7 @@ function CompositionForksCard({
                 const chosen = fork.positions.find((p) => p.key === positions[fork.key]);
                 return (
                   <>
-                    <span className="text-gray-500">{fork.subject}</span>
+                    <span className="text-ink-soft">{fork.subject}</span>
                     <br />
                     {chosen?.label ?? ""}
                   </>
@@ -1501,16 +1572,21 @@ function CompositionForksCard({
         <div className="space-y-5">
           {COMPOSITION_FORKS.map((fork) => (
             <fieldset key={fork.key} className="space-y-2">
-              <legend className="text-sm font-medium text-gray-900">{fork.subject}</legend>
+              <legend className="text-sm font-medium text-ink">{fork.subject}</legend>
               {fork.positions.map((position) => {
                 const checked = (positions[fork.key] ?? NO_STEERING) === position.key;
                 return (
                   <label
                     key={position.key}
-                    className={`block cursor-pointer rounded-md border p-2.5 ${
+                    // LE CHOIX RETENU SE VOIT À SON TRAIT ET À SON LAVIS, et le
+                    // lavis est celui du kit (`fig-50`): c'est une SÉLECTION,
+                    // donc de la navigation dans un formulaire, le seul endroit
+                    // où la marque a le droit d'entrer (charte §2).
+                    // `ink` sur `fig-50` = 15,39:1.
+                    className={`block cursor-pointer rounded-card border p-2.5 transition-colors ${
                       checked
-                        ? "border-gray-900/40 bg-gray-50"
-                        : "border-gray-200 hover:border-gray-400"
+                        ? "border-fig-700 bg-fig-50"
+                        : "border-line-strong hover:bg-paper-2"
                     }`}
                   >
                     <span className="flex items-start gap-2">
@@ -1522,11 +1598,11 @@ function CompositionForksCard({
                         onChange={() => choose(fork.key, position.key)}
                       />
                       <span className="min-w-0">
-                        <span className="block text-sm leading-6 text-gray-900">
+                        <span className="block text-sm leading-6 text-ink">
                           {position.label}
                         </span>
                         {/* CE QUE ÇA PRODUIT — en plan et en aliment. */}
-                        <span className="mt-0.5 block text-xs leading-5 text-gray-500">
+                        <span className="mt-0.5 block text-xs leading-5 text-ink-soft">
                           {position.effect}
                         </span>
                       </span>
@@ -1602,18 +1678,18 @@ function DailyPracticesCard({
   return (
     <Card>
       <SectionLabel>{t("coach.practices.title")}</SectionLabel>
-      <p className="mt-2 text-sm leading-6 text-gray-700">{t("coach.practices.intro")}</p>
+      <p className="mt-2 text-sm leading-6 text-ink">{t("coach.practices.intro")}</p>
       {hasMethod ? null : (
-        <p className="mt-2 rounded-md bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">
+        <p className="mt-2 rounded-card bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">
           {t("coach.practices.no_method")}
         </p>
       )}
 
       {practices.length === 0
-        ? <p className="mt-4 text-sm text-gray-400">{t("coach.practices.empty")}</p>
+        ? <p className="mt-4 text-sm text-ink-soft">{t("coach.practices.empty")}</p>
         : (
           <>
-            <p className="mt-4 text-xs text-gray-500">
+            <p className="mt-4 text-xs text-ink-soft">
               {cycle <= 1
                 ? t("coach.practices.rotation_one")
                 : t("coach.practices.rotation_many", { count: cycle })}
@@ -1684,14 +1760,14 @@ function PracticeRowEditor({
   const scope = (practice.goal_scope ?? []).filter(Boolean);
 
   return (
-    <li className="rounded-md border border-gray-100 bg-gray-50/60 p-3">
+    <li className="rounded-card border border-line bg-paper-2 p-3">
       {/* Les mots du coach, VERBATIM. Jamais réécrits, donc jamais rendus
           autrement qu'à l'identique. */}
-      <p className="text-sm font-medium leading-6 text-gray-900">{String(practice.label ?? "")}</p>
+      <p className="text-sm font-medium leading-6 text-ink">{String(practice.label ?? "")}</p>
 
       {blocked
         ? (
-          <div className="mt-2 rounded-md bg-amber-50 px-3 py-2">
+          <div className="mt-2 rounded-card bg-amber-50 px-3 py-2">
             <p className="text-xs font-medium text-amber-900">
               {t("coach.practices.blocked_title")}
             </p>
@@ -1711,14 +1787,23 @@ function PracticeRowEditor({
         )
         : null}
 
-      <p className="mt-2 text-xs text-gray-500">
-        <span className="font-medium">{t("coach.practices.reach_label")}:</span>{" "}
+      {/*
+        ⚠️ LE DEUX-POINTS EST DANS LA VALEUR DE LA CLÉ, PLUS DANS LE JSX.
+        `{t(…)}:` colle le signe au mot, ce qui est la règle anglaise et une
+        faute en français (« Qui la reçoit : » prend une espace avant). On ne
+        peut pas non plus la porter comme espace de bord dans le seed
+        (`parity.int.test.ts` l'interdit): la ponctuation appartient donc à la
+        phrase traduite. Deux clés EXISTANTES changent de valeur anglaise —
+        `coach.practices.reach_label` et `coach.practices.brief_label`.
+      */}
+      <p className="mt-2 text-xs text-ink-soft">
+        <span className="font-medium">{t("coach.practices.reach_label")}</span>{" "}
         {practiceReach(practice)}
       </p>
       {practice.brief
         ? (
-          <p className="mt-1 text-xs leading-5 text-gray-500">
-            <span className="font-medium">{t("coach.practices.brief_label")}:</span>{" "}
+          <p className="mt-1 text-xs leading-5 text-ink-soft">
+            <span className="font-medium">{t("coach.practices.brief_label")}</span>{" "}
             {practice.brief}
           </p>
         )
@@ -1738,7 +1823,7 @@ function PracticeRowEditor({
           réécrire la phrase ou de la retirer. */}
       {blocked ? null : (
       <div className="mt-3 space-y-1.5">
-        <label className="flex items-start gap-2 text-xs text-gray-700">
+        <label className="flex items-start gap-2 text-xs text-ink">
           <input
             type="checkbox"
             className="mt-0.5"
@@ -1747,10 +1832,10 @@ function PracticeRowEditor({
           />
           <span>
             {t("coach.practices.askable_label")}
-            <span className="block text-gray-400">{t("coach.practices.askable_hint")}</span>
+            <span className="block text-ink-soft">{t("coach.practices.askable_hint")}</span>
           </span>
         </label>
-        <label className="flex items-start gap-2 text-xs text-gray-700">
+        <label className="flex items-start gap-2 text-xs text-ink">
           <input
             type="checkbox"
             className="mt-0.5"
@@ -1759,10 +1844,10 @@ function PracticeRowEditor({
           />
           <span>
             {t("coach.practices.minor_safe_label")}
-            <span className="block text-gray-400">{t("coach.practices.minor_safe_hint")}</span>
+            <span className="block text-ink-soft">{t("coach.practices.minor_safe_hint")}</span>
           </span>
         </label>
-        <label className="flex items-start gap-2 text-xs text-gray-700">
+        <label className="flex items-start gap-2 text-xs text-ink">
           <input
             type="checkbox"
             className="mt-0.5"
@@ -1771,7 +1856,7 @@ function PracticeRowEditor({
           />
           <span>
             {t("coach.practices.constant_label")}
-            <span className="block text-gray-400">{t("coach.practices.constant_hint")}</span>
+            <span className="block text-ink-soft">{t("coach.practices.constant_hint")}</span>
           </span>
         </label>
       </div>
@@ -1779,7 +1864,7 @@ function PracticeRowEditor({
 
       {blocked ? null : (
       <div className="mt-2">
-        <p className="text-xs font-medium text-gray-500">{t("coach.practices.scope_label")}</p>
+        <p className="text-xs font-medium text-ink-soft">{t("coach.practices.scope_label")}</p>
         <div className="mt-1 flex flex-wrap gap-1.5">
           {/* « Everyone » est une VALEUR, pas l'absence de choix: la portée vide
               est le cas de l'écrasante majorité des pratiques. */}
@@ -1788,11 +1873,11 @@ function PracticeRowEditor({
             onClick={() => onPatch({ goal_scope: [] })}
             className={`rounded-full border px-2.5 py-0.5 text-xs ${
               scope.length === 0
-                ? "border-gray-900 bg-gray-900 text-white"
-                : "border-gray-200 bg-white text-gray-600"
+                ? "border-fig-700 bg-fig-700 text-paper"
+                : "border-line-strong bg-paper text-ink-soft hover:bg-fig-50"
             }`}
           >
-            {t("coach.practices.scope_everyone")}
+            {t("coach.goal.everyone")}
           </button>
           {GOAL_TOKENS.map((g) => (
             <button
@@ -1804,11 +1889,11 @@ function PracticeRowEditor({
                 })}
               className={`rounded-full border px-2.5 py-0.5 text-xs ${
                 scope.includes(g)
-                  ? "border-gray-900 bg-gray-900 text-white"
-                  : "border-gray-200 bg-white text-gray-600"
+                  ? "border-fig-700 bg-fig-700 text-paper"
+                  : "border-line-strong bg-paper text-ink-soft hover:bg-fig-50"
               }`}
             >
-              {GOAL_LABELS[g]}
+              {goalLabel(g)}
             </button>
           ))}
         </div>
@@ -1820,14 +1905,14 @@ function PracticeRowEditor({
           type="button"
           onClick={onReclassify}
           disabled={busy}
-          className="text-xs text-gray-500 underline decoration-dotted underline-offset-2 hover:text-gray-900 disabled:opacity-50"
+          className="text-xs text-ink-soft underline decoration-dotted underline-offset-2 hover:text-ink disabled:opacity-50"
         >
           {t("coach.practices.reclassify")}
         </button>
         <button
           type="button"
           onClick={onRemove}
-          className="text-xs text-gray-400 underline decoration-dotted underline-offset-2 hover:text-gray-700"
+          className="text-xs text-ink-soft underline decoration-dotted underline-offset-2 hover:text-ink"
         >
           {t("coach.practices.remove")}
         </button>

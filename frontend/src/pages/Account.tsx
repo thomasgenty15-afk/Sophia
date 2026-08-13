@@ -22,7 +22,11 @@ export default function Account() {
     params.get("mode") === "architecte" ? "architecte" : "action";
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    // `bg-paper` (#FBF8FA) et non `bg-gray-50`: le fond de page de la charte.
+    // Ce qu'on voit ici, c'est la bande à GAUCHE du panneau sous le voile —
+    // donc le seul rôle de ce fond est de ne pas être un gris froid à côté
+    // d'une surface qui porte la température de la marque.
+    <div className="min-h-screen bg-paper">
       <UserProfile
         isOpen
         // `/` et non `/dashboard`, supprimée avec le produit grand public: la

@@ -5,8 +5,11 @@ import {
   EATING_OCCASIONS,
   type EatingOccasion,
   type EatingOccasionSlot,
+  MEAL_SIZES,
+  type MealSize,
 } from "../api/mealGeneration";
 import { mealCopy } from "../api/mealLabels";
+import { t } from "../i18n/t";
 import { mergePracticalConstraints } from "../api/practicalConstraints";
 import { Button } from "./ui/Button";
 import { Card, SectionLabel } from "./ui/Card";
@@ -50,25 +53,10 @@ import { Card, SectionLabel } from "./ui/Card";
 // le moteur connaît ce créneau de 17h alors qu'aucune ligne ne le porte. Le
 // brouillon divergent est signalé comme tel, et il survit au repli.
 
-const COPY = {
-  title: "How your day runs",
-  intro:
-    "Tick the moments you actually eat on an ordinary day. Your week gets built " +
-    "around those — no meal you did not name, and none of yours dropped.",
-  time_hint: "Time is optional. Leave it blank if it moves around.",
-  time_label: "around",
-  save: "Save",
-  saving: "…",
-  saved: "Saved. Your next plan is built around this.",
-  none:
-    "Nothing ticked. Your week falls back to breakfast, lunch and dinner — the " +
-    "ordinary assumption, not something you chose.",
-  needs_goal: "Set your goal above first — this is saved alongside it.",
-  open: "Change",
-  close: "Close",
-  summary_none: "Not set — your week falls back to breakfast, lunch and dinner.",
-  unsaved: "Changed but not saved. Your week still runs on what is shown above.",
-} as const;
+// ── I18N (lot 4) ──────────────────────────────────────────────────────────
+// Le `COPY` local a rejoint le seed sous `meals.rhythm.*`. ⚠️ `meals.rhythm.title`
+// est CITÉ MOT POUR MOT par `meals.picker.no_rhythm` (la grille des repas
+// renvoie ici); les deux clés changent ensemble, dans les deux langues.
 
 /** `mealLabels` nomme déjà chaque créneau: pas de seconde table de libellés. */
 function occasionLabel(slot: EatingOccasion): string {
@@ -78,22 +66,22 @@ function occasionLabel(slot: EatingOccasion): string {
 /**
  * L'EMPREINTE D'UN RYTHME — ce qui décide que deux rythmes sont LE MÊME.
  *
- * Sur les six moments, dans l'ordre du jour: absent, ou pris avec son heure.
+ * Sur les six moments, dans l'ordre du jour: absent, ou pris avec sa taille.
  * Une chaîne et pas un tableau, parce que le parent recalcule `props.rhythm` à
  * chaque rendu (`parseEatingRhythm(...)` appelé dans le JSX): comparer les
  * identités de tableaux dirait « changé » à chaque frappe de clavier voisine.
  */
 function fingerprint(pick: (slot: EatingOccasion) => string | null | undefined): string {
   return EATING_OCCASIONS.map((slot) => {
-    const at = pick(slot);
-    return at === undefined ? "" : `${slot}@${at ?? ""}`;
+    const size = pick(slot);
+    return size === undefined ? "" : `${slot}@${size ?? ""}`;
   }).join("|");
 }
 
 function savedFingerprint(rhythm: readonly EatingOccasionSlot[]): string {
   return fingerprint((slot) => {
     const row = rhythm.find((o) => o.slot === slot);
-    return row ? row.at : undefined;
+    return row ? row.size : undefined;
   });
 }
 
@@ -121,14 +109,14 @@ export interface EatingRhythmCardProps {
 }
 
 export default function EatingRhythmCard(props: EatingRhythmCardProps) {
-  // L'état de saisie porte les SIX moments, cochés ou non, plus leur heure. On
+  // L'état de saisie porte les SIX moments, cochés ou non, plus leur taille. On
   // ne dérive pas « décoché » de l'absence dans un tableau: décocher puis
-  // recocher doit retrouver l'heure qu'on avait tapée.
+  // recocher doit retrouver la taille qu'on avait choisie.
   const [picked, setPicked] = React.useState<Set<EatingOccasion>>(
     () => new Set(props.rhythm.map((o) => o.slot)),
   );
-  const [times, setTimes] = React.useState<Record<string, string>>(
-    () => Object.fromEntries(props.rhythm.filter((o) => o.at).map((o) => [o.slot, o.at!])),
+  const [sizes, setSizes] = React.useState<Record<string, MealSize>>(
+    () => Object.fromEntries(props.rhythm.filter((o) => o.size).map((o) => [o.slot, o.size!])),
   );
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -157,7 +145,9 @@ export default function EatingRhythmCard(props: EatingRhythmCardProps) {
   if (syncedFrom !== saved) {
     setSyncedFrom(saved);
     setPicked(new Set(props.rhythm.map((o) => o.slot)));
-    setTimes(Object.fromEntries(props.rhythm.filter((o) => o.at).map((o) => [o.slot, o.at!])));
+    setSizes(
+      Object.fromEntries(props.rhythm.filter((o) => o.size).map((o) => [o.slot, o.size!])),
+    );
   }
 
   /** Ce que la carte repliée dit: le rythme ENREGISTRÉ, dans l'ordre du jour. */
@@ -166,7 +156,7 @@ export default function EatingRhythmCard(props: EatingRhythmCardProps) {
       const saved = props.rhythm.find((o) => o.slot === slot);
       if (!saved) return [];
       const label = occasionLabel(slot);
-      return [saved.at ? `${label} ${COPY.time_label} ${saved.at}` : label];
+      return [saved.size ? `${label} (${saved.size})` : label];
     });
     return parts.length > 0 ? parts.join(" · ") : null;
   }, [props.rhythm]);
@@ -174,7 +164,7 @@ export default function EatingRhythmCard(props: EatingRhythmCardProps) {
   /** Le brouillon s'écarte-t-il de ce qui est en base ? (repli ≠ perte) */
   const dirty =
     saved !==
-    fingerprint((slot) => (picked.has(slot) ? times[slot]?.trim() || null : undefined));
+    fingerprint((slot) => (picked.has(slot) ? sizes[slot] ?? null : undefined));
 
   const toggle = (slot: EatingOccasion) => {
     setFlash(null);
@@ -199,7 +189,7 @@ export default function EatingRhythmCard(props: EatingRhythmCardProps) {
       // au coucher, et le moteur la relit dans l'ordre reçu.
       const eating_rhythm = EATING_OCCASIONS
         .filter((slot) => picked.has(slot))
-        .map((slot) => ({ slot, at: times[slot]?.trim() || null }));
+        .map((slot) => ({ slot, size: sizes[slot] ?? null }));
 
       // La fusion, et la garantie qu'une ligne a bougé, appartiennent au
       // module: un update qui ne matche rien répond 204 sans erreur, et cette
@@ -210,7 +200,7 @@ export default function EatingRhythmCard(props: EatingRhythmCardProps) {
         patch: { eating_rhythm },
         source: "EatingRhythmCard",
       });
-      setFlash(COPY.saved);
+      setFlash(t("meals.rhythm.saved"));
       await props.onSaved();
       // Enregistré => la carte se replie, comme celle de l'objectif. Le geste
       // suivant est de composer ses repas, pas de relire les cases qu'on vient
@@ -234,68 +224,117 @@ export default function EatingRhythmCard(props: EatingRhythmCardProps) {
           porte déjà, en une ligne. La répéter ferait le mur de texte que la
           fenêtre existe pour supprimer. */}
       {!props.embedded && (
-        <p className="mt-2 text-xs leading-5 text-gray-500">{COPY.intro}</p>
+        <p className="mt-2 text-xs leading-5 text-ink-soft">{t("meals.rhythm.intro")}</p>
       )}
 
       <ul className="mt-4 space-y-2">
         {EATING_OCCASIONS.map((slot) => {
           const on = picked.has(slot);
           return (
+            // UN MOMENT RETENU SE VOIT À DEUX CHOSES, ET AUCUNE N'EST UNE
+            // COULEUR D'ÉTAT: le trait passe à l'encre pleine, et le fond prend
+            // le lavis de survol de la marque (`fig-50`, `ink` dessus =
+            // 15,39:1). `bg-gray-50` ne pouvait plus rien dire ici — la page est
+            // `paper` et la charte ne nomme aucun neutre plus clair.
             <li
               key={slot}
-              className={`flex flex-wrap items-center gap-3 rounded-lg border px-3 py-2 ${
-                on ? "border-gray-900 bg-gray-50" : "border-gray-200"
+              className={`flex flex-wrap items-center gap-3 rounded-card border px-3 py-2 ${
+                on ? "border-ink bg-fig-50" : "border-line"
               }`}
             >
               <label className="flex flex-1 cursor-pointer items-center gap-2.5">
+                {/* `accent-ink`, ET CE N'EST PAS DÉCORATIF. Sans lui, une case
+                    cochée est rendue dans la couleur d'accent du SYSTÈME —
+                    bleue sur les réglages par défaut de macOS et de Windows.
+                    C'est-à-dire une saturée que personne n'a choisie, dans la
+                    teinte que `Badge tone="info"` occupe. */}
                 <input
                   type="checkbox"
-                  className="h-4 w-4"
+                  className="h-4 w-4 accent-ink"
                   checked={on}
                   onChange={() => toggle(slot)}
                 />
-                <span className="text-sm font-medium text-gray-900">
+                <span className="text-sm font-medium text-ink">
                   {occasionLabel(slot)}
                 </span>
               </label>
-              {/* L'heure n'apparaît QUE sur un moment coché: un champ d'heure à
+              {/* LA TAILLE N'APPARAÎT QUE SUR UN MOMENT COCHÉ: une taille à
                   côté d'un moment qu'on ne prend pas est une question sans
-                  objet, et six d'entre elles font une carte illisible. */}
+                  objet, et six d'entre elles font une carte illisible.
+
+                  TROIS BOUTONS ET PAS UN `<select>`: les trois valeurs tiennent
+                  dans la largeur, et un menu déroulant demanderait deux gestes
+                  pour une réponse à trois issues. Le choix se REPREND — cliquer
+                  la valeur active la retire, parce que « je n'ai rien dit » est
+                  un état valide qu'un groupe de radios ne sait pas rendre une
+                  fois qu'on a cliqué. */}
               {on && (
-                <label className="flex items-center gap-2 text-xs text-gray-500">
-                  {COPY.time_label}
-                  <input
-                    type="time"
-                    className="rounded-lg border border-gray-300 px-2 py-1 text-sm text-gray-900"
-                    value={times[slot] ?? ""}
-                    onChange={(e) => {
-                      setFlash(null);
-                      setTimes((prev) => ({ ...prev, [slot]: e.target.value }));
-                    }}
-                  />
-                </label>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-ink-soft">{t("meals.rhythm.size_label")}</span>
+                  <div className="flex gap-1">
+                    {MEAL_SIZES.map((size) => {
+                      const active = sizes[slot] === size;
+                      return (
+                        <button
+                          key={size}
+                          type="button"
+                          aria-pressed={active}
+                          onClick={() => {
+                            setFlash(null);
+                            setSizes((prev) => {
+                              const next = { ...prev };
+                              if (next[slot] === size) delete next[slot];
+                              else next[slot] = size;
+                              return next;
+                            });
+                          }}
+                          // MÊME VOCABULAIRE QUE LES JOURS DE CUISINE
+                          // (`CookingCapacityCard`): une valeur retenue est un
+                          // fait saisi, donc l'encre pleine et jamais la marque.
+                          // `line-strong` (3,84:1) sur l'inactive, parce que
+                          // c'est la bordure d'un CONTRÔLE — `line` est à
+                          // 1,30:1, décoratif (WCAG 1.4.11).
+                          className={`rounded-full border px-2.5 py-1 text-xs capitalize transition-colors ${
+                            active
+                              ? "border-ink bg-ink text-paper"
+                              : "border-line-strong text-ink hover:bg-fig-50"
+                          }`}
+                        >
+                          {size}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               )}
             </li>
           );
         })}
       </ul>
 
-      <p className="mt-2 text-xs leading-5 text-gray-500">{COPY.time_hint}</p>
+      <p className="mt-2 text-xs leading-5 text-ink-soft">{t("meals.rhythm.size_hint")}</p>
 
       {/* NE RIEN COCHER EST UN ÉTAT VALIDE, et l'écran dit ce qu'il produit
           plutôt que de refuser d'enregistrer. Le repli est le comportement du
           moteur avant qu'on pose la question — donc une hypothèse ordinaire, et
           la copie le nomme comme telle au lieu de la faire passer pour un
           choix. */}
+      {/* ⚠️ `paper-2` ET UN TRAIT, PAS UN SECOND APLAT CLAIR. Le fond de la
+          carte EST `paper`: un `bg-gray-50` n'avait plus rien de plus clair à
+          être. `paper-2` (#F4EFF2) est le fond alterné de la charte et l'idiome
+          du fronton de `SetupSection`. Ce n'est PAS un état — l'ambre juste
+          en dessous, lui, en est un. */}
       {picked.size === 0 && (
-        <p className="mt-3 rounded-lg bg-gray-50 p-3 text-xs leading-5 text-gray-600">
-          {COPY.none}
+        <p className="mt-3 rounded-card border border-line bg-paper-2 p-3 text-xs leading-5 text-ink-soft">
+          {t("meals.rhythm.none")}
         </p>
       )}
 
+      {/* ⛔ AMBRE = ATTENTION, ET ÇA NE BOUGE PAS. Un avertissement porte un
+          FAIT: il a droit à une surface saturée (arbitrage §5.2 de l'audit). */}
       {!props.hasGoal && (
-        <p className="mt-3 rounded-lg bg-amber-50 p-3 text-xs leading-5 text-amber-900">
-          {COPY.needs_goal}
+        <p className="mt-3 rounded-card border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900">
+          {t("meals.rhythm.needs_goal")}
         </p>
       )}
 
@@ -305,7 +344,7 @@ export default function EatingRhythmCard(props: EatingRhythmCardProps) {
           disabled={busy || !props.hasGoal}
           onClick={() => void save()}
         >
-          {busy ? COPY.saving : COPY.save}
+          {busy ? t("meals.rhythm.saving") : t("meals.rhythm.save")}
         </Button>
       </div>
       </div>
@@ -318,7 +357,7 @@ export default function EatingRhythmCard(props: EatingRhythmCardProps) {
     return (
       <>
         {editor}
-        {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+        {error && <p className="mt-3 text-sm text-red-700">{error}</p>}
         {flash && <p className="mt-3 text-xs text-emerald-700">{flash}</p>}
       </>
     );
@@ -327,7 +366,7 @@ export default function EatingRhythmCard(props: EatingRhythmCardProps) {
   return (
     <Card>
       <div className="flex items-start justify-between gap-3">
-        <SectionLabel>{COPY.title}</SectionLabel>
+        <SectionLabel>{t("meals.rhythm.title")}</SectionLabel>
         <button
           type="button"
           onClick={() => {
@@ -336,9 +375,10 @@ export default function EatingRhythmCard(props: EatingRhythmCardProps) {
           }}
           aria-expanded={open}
           aria-controls="eating-rhythm-editor"
-          className="shrink-0 text-xs font-medium text-gray-700 underline underline-offset-2 hover:text-gray-900"
+          // UN LIEN, DONC LA MARQUE (charte §2). `fig-700`/`paper` = 9,98:1.
+          className="shrink-0 text-xs font-medium text-fig-700 underline underline-offset-2 hover:text-fig-800"
         >
-          {open ? COPY.close : COPY.open}
+          {open ? t("meals.rhythm.close") : t("meals.rhythm.open")}
         </button>
       </div>
 
@@ -349,8 +389,8 @@ export default function EatingRhythmCard(props: EatingRhythmCardProps) {
           déplier. */}
       {!open && (
         <div className="mt-2">
-          <p className="text-sm text-gray-900">{savedSummary ?? COPY.summary_none}</p>
-          {dirty && <p className="mt-1 text-xs text-amber-700">{COPY.unsaved}</p>}
+          <p className="text-sm text-ink">{savedSummary ?? t("meals.rhythm.summary_none")}</p>
+          {dirty && <p className="mt-1 text-xs text-amber-700">{t("meals.rhythm.unsaved")}</p>}
         </div>
       )}
 
@@ -359,7 +399,7 @@ export default function EatingRhythmCard(props: EatingRhythmCardProps) {
       {/* Hors du bloc dépliable: un échec d'écriture, comme la confirmation
           qui suit le repli automatique, doit rester lisible dans les deux
           états. */}
-      {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-3 text-sm text-red-700">{error}</p>}
       {flash && <p className="mt-3 text-xs text-emerald-700">{flash}</p>}
     </Card>
   );

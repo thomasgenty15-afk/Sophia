@@ -107,7 +107,7 @@ export default function DishCard(
   return (
     <Card>
       <div className="flex flex-wrap items-center gap-2">
-        <span className="font-medium text-gray-900">{dish.title}</span>
+        <span className="font-medium text-ink">{dish.title}</span>
         {dish.slot && <Badge tone="neutral">{dishSlotLabel(dish.slot)}</Badge>}
         {/* FF-059 — LE CHIFFRE, à côté du plat et pas au-dessus. C'est un fait
             SUR CE PLAT, du même rang que son créneau: le mettre en tête de
@@ -115,31 +115,41 @@ export default function DishCard(
         <DishEnergyLine energy={energy} />
         {tick && (
           <span className="ml-auto flex items-center gap-2">
+            {/* Une case est un CONTRÔLE: sa bordure doit tenir le seuil 3:1 de
+                WCAG 1.4.11, donc `line-strong` (3,84:1) et jamais `line`
+                (1,30:1). L'anneau de focus est celui de la charte, `fig-600`
+                (7,36:1) — la marque marque bien l'action, et le focus en est une.
+                `rounded-part` = 4px, la petite pièce du vocabulaire de rayon. */}
             <input
               id={tickId}
               type="checkbox"
-              className="h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-900 disabled:opacity-50"
+              className="h-4 w-4 rounded-part border-line-strong text-ink focus:ring-fig-600 disabled:opacity-50"
               checked={tick.checked}
               disabled={tick.busy}
               onChange={tick.onToggle}
             />
             <label
               htmlFor={tickId}
-              className={`text-sm ${tick.checked ? "text-gray-900" : "text-gray-500"}`}
+              className={`text-sm ${tick.checked ? "text-ink" : "text-ink-soft"}`}
             >
               {mealCopy("meals.tick.label")}
             </label>
           </span>
         )}
       </div>
-      {dish.why && <p className="mt-1 text-sm text-gray-600">{dish.why}</p>}
+      {dish.why && <p className="mt-1 text-sm text-ink-soft">{dish.why}</p>}
 
       {/* LE JOUR DE CUISSON, QUAND CE N'EST PAS AUJOURD'HUI. C'est la seule
-          chose à faire ce jour-là, donc c'est la seule chose affichée. */}
+          chose à faire ce jour-là, donc c'est la seule chose affichée.
+          ⚠️ `bg-gray-50` NE DEVIENT PAS `bg-paper`: `paper` est le remplissage de
+          la carte elle-même, donc le bloc disparaîtrait. `paper-2` (1,08:1 sur
+          `paper`) est le second fond nommé par la charte — c'est l'idiome du
+          fronton de `ui/Modal.tsx` — et le trait `line` garantit l'arête même là
+          où le remplissage ne se voit pas. */}
       {sources.length > 0 && (
-        <div className="mt-3 space-y-1 rounded-lg bg-gray-50 px-3 py-2">
+        <div className="mt-3 space-y-1 rounded-card border border-line bg-paper-2 px-3 py-2">
           {sources.map((source, i) => (
-            <p key={`${source.title}-${i}`} className="text-sm text-gray-700">
+            <p key={`${source.title}-${i}`} className="text-sm text-ink">
               {mealCopy("meals.result.from_prep")
                 .replace("{title}", source.title)
                 .replace(
@@ -152,7 +162,7 @@ export default function DishCard(
         </div>
       )}
       {sources.length === 0 && servedFrom !== null && (
-        <p className="mt-3 rounded-lg bg-gray-50 px-3 py-2 text-sm text-gray-700">
+        <p className="mt-3 rounded-card border border-line bg-paper-2 px-3 py-2 text-sm text-ink">
           {mealCopy("meals.result.from_batch").replace(
             "{day}",
             dishDayLabel(servedFrom) ?? servedFrom,
@@ -165,10 +175,10 @@ export default function DishCard(
           {dish.ingredients.map((ing, i) => (
             <li
               key={`${ing.term}-${i}`}
-              className="flex flex-wrap items-baseline gap-2 text-sm text-gray-800"
+              className="flex flex-wrap items-baseline gap-2 text-sm text-ink"
             >
               <span>{ing.term}</span>
-              {ing.quantity && <span className="text-gray-500">{ing.quantity}</span>}
+              {ing.quantity && <span className="text-ink-soft">{ing.quantity}</span>}
               {ing.in_pantry && (
                 <Badge tone="positive">{mealCopy("meals.result.in_pantry")}</Badge>
               )}
@@ -177,8 +187,8 @@ export default function DishCard(
         </ul>
       )}
       {!leftover && dish.method && (
-        <p className="mt-3 text-sm text-gray-700">
-          <span className="font-medium text-gray-900">
+        <p className="mt-3 text-sm text-ink">
+          <span className="font-medium text-ink">
             {mealCopy("meals.result.method")}:
           </span>{" "}
           {dish.method}

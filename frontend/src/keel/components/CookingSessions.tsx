@@ -44,6 +44,15 @@ import Modal from "./ui/Modal";
 // quatre portions. Les plats qui y puisent n'affichent plus que ce qu'on ajoute
 // à l'assiette. C'est le correctif du défaut mesuré — « chicken thighs 1,200 g »
 // répété sur quatre jours, qui se lisait comme 4,8 kg à acheter.
+//
+// ── LA CHARTE, LE 2026-08-13 ──────────────────────────────────────────────
+// Treize neutres `gray-*` sont passés aux jetons de la charte « la fiche »
+// (`ink` · `ink-soft` · `line`), et cette fenêtre n'a AUCUNE couleur saturée:
+// elle ne rend aucun état — pas un verdict, pas une adhérence, pas une alerte.
+// Un jour de cuisine et une durée sont des données, pas des faits jugés.
+// ⚠️ N'y introduis pas de teinte pour distinguer les sessions entre elles: la
+// frontière est portée par la carte, le jour en tête et l'espace. Autorité:
+// `docs/keel/CHARTE-VITRINE.md` §2.
 
 export default function CookingSessions(
   { sessions, preparations, open, onClose }: {
@@ -82,7 +91,7 @@ export default function CookingSessions(
 
   return (
     <Modal open={open} onClose={onClose} title={mealCopy("meals.sessions.title")}>
-      <p className="mb-3 text-sm text-gray-600">
+      <p className="mb-3 text-sm text-ink-soft">
         {mealCopy("meals.sessions.subtitle")}
       </p>
       <div className="space-y-3">
@@ -92,7 +101,7 @@ export default function CookingSessions(
             .filter((p): p is MealPreparation => p !== undefined);
           return (
             <Card key={`${session.day}-${index}`}>
-              <h3 className="flex flex-wrap items-baseline gap-2 text-sm font-semibold text-gray-900">
+              <h3 className="flex flex-wrap items-baseline gap-2 text-sm font-semibold text-ink">
                 {dishDayLabel(session.day) ?? session.day}
                 {/* LA DURÉE DE LA SESSION, au mur — c'est ce qu'on regarde pour
                     savoir si on cale ça ce soir. Elle vient du modèle et n'est
@@ -100,7 +109,7 @@ export default function CookingSessions(
                     et additionner transformerait un dimanche confortable en une
                     corvée de quatre heures que personne ne commence. */}
                 {session.total_minutes !== null && (
-                  <span className="text-xs font-normal tabular-nums text-gray-500">
+                  <span className="text-xs font-normal tabular-nums text-ink-soft">
                     {mealCopy("meals.sessions.session_time").replace(
                       "{n}",
                       String(session.total_minutes),
@@ -110,7 +119,7 @@ export default function CookingSessions(
               </h3>
 
               {session.run_through && (
-                <p className="mt-2 text-sm leading-6 text-gray-700">
+                <p className="mt-2 text-sm leading-6 text-ink">
                   {session.run_through}
                 </p>
               )}
@@ -118,12 +127,12 @@ export default function CookingSessions(
               {preps.map((prep) => (
                 <div
                   key={prep.id}
-                  className="mt-4 border-t border-gray-100 pt-3 first:border-0"
+                  className="mt-4 border-t border-line pt-3 first:border-0"
                 >
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <p className="text-sm font-medium text-gray-900">
+                    <p className="text-sm font-medium text-ink">
                       {prep.title}
-                      <span className="ml-2 font-normal text-gray-500">
+                      <span className="ml-2 font-normal text-ink-soft">
                         {mealCopy("meals.sessions.makes").replace(
                           "{n}",
                           String(prep.servings_made),
@@ -134,7 +143,15 @@ export default function CookingSessions(
                       type="button"
                       onClick={() => togglePrep(prep.id)}
                       aria-expanded={openPreps.has(prep.id)}
-                      className="shrink-0 text-xs font-medium text-gray-700 underline underline-offset-2 hover:text-gray-900"
+                      // ⚠️ PAS DE FIGUE ICI, ET C'EST LA FORME DU KIT. Déplier
+                      // une recette n'est ni une navigation ni l'action
+                      // principale de la fenêtre: c'est le contrôle de texte
+                      // souligné que `ui/Modal` emploie déjà pour sa propre
+                      // fermeture (`text-ink-soft … hover:text-ink`). Le
+                      // soulignement porte l'affordance, la teinte ne la porte
+                      // pas — et la fenêtre n'a ainsi aucune action marquée à se
+                      // disputer avec l'écran qui l'a ouverte.
+                      className="shrink-0 text-xs font-medium text-ink-soft underline underline-offset-2 hover:text-ink"
                     >
                       {openPreps.has(prep.id)
                         ? mealCopy("meals.sessions.recipe_hide")
@@ -147,7 +164,7 @@ export default function CookingSessions(
                       La replier avec la recette obligerait à ouvrir chaque
                       préparation pour savoir si le jeudi tient. */}
                   {(prep.active_minutes !== null || prep.total_minutes !== null) && (
-                    <p className="mt-1 flex flex-wrap gap-x-3 text-xs tabular-nums text-gray-500">
+                    <p className="mt-1 flex flex-wrap gap-x-3 text-xs tabular-nums text-ink-soft">
                       {prep.active_minutes !== null && (
                         <span>
                           {mealCopy("meals.sessions.active").replace(
@@ -174,18 +191,18 @@ export default function CookingSessions(
                           {prep.ingredients.map((ing, i) => (
                             <li
                               key={`${ing.term}-${i}`}
-                              className="flex flex-wrap items-baseline gap-2 text-sm text-gray-800"
+                              className="flex flex-wrap items-baseline gap-2 text-sm text-ink"
                             >
                               <span>{ing.term}</span>
                               {ing.quantity && (
-                                <span className="text-gray-500">{ing.quantity}</span>
+                                <span className="text-ink-soft">{ing.quantity}</span>
                               )}
                             </li>
                           ))}
                         </ul>
                       )}
                       {prep.method && (
-                        <p className="mt-2 text-sm text-gray-700">{prep.method}</p>
+                        <p className="mt-2 text-sm leading-6 text-ink">{prep.method}</p>
                       )}
                     </>
                   )}

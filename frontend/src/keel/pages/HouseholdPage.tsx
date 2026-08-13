@@ -24,9 +24,13 @@ import {
   loadHousehold,
   loadHouseholdMeal,
   loadHouseholdRhythm,
+  loadMemberBodies,
   loadMyHouseholdCoverage,
   loadRestrictions,
+  MEMBER_GENDERS,
   MEMBER_GOALS,
+  type MemberBodyView,
+  type MemberGender,
   type MemberGoal,
   openHouseholdCheckout,
   removeAllergy,
@@ -36,9 +40,11 @@ import {
   restrictionNotice,
   setMemberAway,
   setMemberBirthDate,
+  setMemberBody,
   setMemberGoal,
   setMemberName,
   setOwnBirthDate,
+  setReferenceMember,
   submitEnvy,
 } from "../api/household";
 import { addDays, weekStartFor } from "../api/dates";
@@ -192,6 +198,20 @@ export default function HouseholdPage(): React.ReactElement {
    */
   const [mutedMembers, setMutedMembers] = React.useState<Set<string> | null>(null);
   /**
+   * LE CORPS DE CHAQUE BOUCHE (2026-08-12), par `member_id`.
+   *
+   * ⚠️ VIDE POUR UN NON-MAÎTRE, et ce n'est pas l'écran qui l'impose:
+   * `household_member_bodies` n'a AUCUN grant à `authenticated` et sa RPC de
+   * lecture rend zéro ligne à qui n'est pas maître. Sondé avant d'écrire la
+   * migration: la policy de `household_members` est household-wide, donc une
+   * colonne `poids` posée là-bas aurait été lisible par tout co-membre.
+   *
+   * Une carte VIDE ne veut donc pas dire « personne n'a de corps »: pour un
+   * membre, elle veut dire « ce n'est pas ton affaire ». C'est pour ça que le
+   * bloc de saisie ne s'affiche que dans la vue du maître.
+   */
+  const [bodies, setBodies] = React.useState<Map<string, MemberBodyView>>(new Map());
+  /**
    * LE GEL (chantier 3, D4). `null` = pas encore lu.
    *
    * ⚠️ L'ÉCRAN NE DÉCIDE PAS DU GEL, il l'affiche. La règle vit en base
@@ -257,6 +277,12 @@ export default function HouseholdPage(): React.ReactElement {
         // rendrait `null`, puis le défaut, c'est-à-dire une lecture inutile.
         if (hh.me?.role === "owner") {
           setRhythm(await loadHouseholdRhythm(userId));
+          // LES CORPS — MAÎTRE SEUL, et pas parce que l'écran le décide:
+          // `keel_household_member_bodies` rend zéro ligne à un non-maître, et
+          // la table n'a aucun grant à `authenticated`. La demander pour un
+          // membre rendrait une carte vide, c'est-à-dire « personne n'a de
+          // corps » — un fait qu'on n'a pas.
+          setBodies(await loadMemberBodies());
           // D17 — même raison que la ligne au-dessus: la table n'est lisible
           // que du maître, et la demander pour un membre rendrait zéro ligne,
           // c'est-à-dire « personne n'est masqué » — un fait qu'on n'a pas.
@@ -310,7 +336,7 @@ export default function HouseholdPage(): React.ReactElement {
   if (phase === "loading") {
     return (
       <KeelAppShell title={t("household.title")}>
-        <div className="p-4 text-sm text-neutral-500">…</div>
+        <div className="p-4 text-sm text-ink-soft">…</div>
       </KeelAppShell>
     );
   }
@@ -332,7 +358,11 @@ export default function HouseholdPage(): React.ReactElement {
     <KeelAppShell title={t("household.title")}>
       <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 p-4">
         {error ? (
-          <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">{error}</div>
+          // LE ROUGE RESTE, ET LE RAYON CHANGE. Un refus est un ÉTAT du système
+          // (charte §2), donc `red-50` / `red-700` — 6,13:1 — ne bouge pas. Le
+          // `rounded-md` d'avant était la sixième valeur de rayon de l'écran;
+          // le vocabulaire n'en a que deux, et un bandeau est un panneau.
+          <div className="rounded-card bg-red-50 p-3 text-sm text-red-700">{error}</div>
         ) : null}
 
         {!household
@@ -385,6 +415,9 @@ export default function HouseholdPage(): React.ReactElement {
                 mutedMembers={mutedMembers}
                 rhythm={rhythm}
                 awayWindow={awayWindow}
+                bodies={bodies}
+                onSaveBody={(memberId, h, w, g) =>
+                  run(() => setMemberBody(memberId, h, w, g))}
                 onMute={(memberId, next) => run(() => muteMergeProposals(memberId, next))}
                 onSaveAway={(memberId, next) => run(() => setMemberAway(memberId, next))}
                 onSave={(member, patch) => saveMember(member, patch, { userId })}
@@ -395,6 +428,22 @@ export default function HouseholdPage(): React.ReactElement {
                 onAddRestriction={(m, l) => run(() => addRestriction(m, l))}
                 onRemoveRestriction={(id) => run(() => removeRestriction(id))}
               />
+
+              {/* ── FF-043 · QUI GOUVERNE LA DOCTRINE DU TRONC ──────────────
+                  APRÈS la liste des bouches, parce que la question ne se pose
+                  qu'une fois qu'on sait qui est à table — et la carte se tait
+                  d'elle-même en dessous de deux adultes, ce qui est le cas
+                  nominal du produit (un parent, ses enfants). */}
+              {isOwner
+                ? (
+                  <ReferenceMemberCard
+                    household={household}
+                    busy={busy}
+                    onPick={(memberId) =>
+                      run(() => setReferenceMember(household.id, memberId))}
+                  />
+                )
+                : null}
 
               <EnvyCard
                 household={household}
@@ -509,7 +558,7 @@ function CreateCard(
   return (
     <Card>
       <SectionLabel>{t("household.empty.title")}</SectionLabel>
-      <p className="mb-3 text-sm text-neutral-600">{t("household.empty.body")}</p>
+      <p className="mb-3 text-sm text-ink-soft">{t("household.empty.body")}</p>
       <Field label={t("household.create.name")}>
         <input
           className={inputClass}
@@ -618,7 +667,7 @@ function MouthFields(
             </select>
           )
           : (
-            <p className="text-sm text-neutral-700">
+            <p className="text-sm text-ink">
               {draft.goal
                 ? goalLabel(draft.goal as MemberGoal)
                 : t("household.member.goal_none")}
@@ -666,7 +715,7 @@ function MeCard(
   return (
     <Card tone={needsGoalRow ? "warning" : "default"}>
       <SectionLabel>{t("household.me.title")}</SectionLabel>
-      <p className="mb-3 text-sm text-neutral-600">
+      <p className="mb-3 text-sm text-ink-soft">
         {needsGoalRow ? t("household.me.unlock") : t("household.me.body")}
       </p>
       <MouthFields
@@ -688,8 +737,19 @@ function MeCard(
         </p>
       ) : null}
       <div className="mt-3 flex items-center gap-3">
+        {/* ── LA SEULE ACTION FIGUE DE L'ÉCRAN, ET ELLE EST CONDITIONNELLE ────
+            Mesuré au navigateur avant ce lot: `/app/household` rendait DEUX
+            boutons `bg-fig-700` en même temps — celui-ci et « ajouter une
+            bouche » — plus le lien de navigation actif du shell. Trois aplats de
+            marque sur un écran, c'est-à-dire aucune hiérarchie.
+            La promotion suit maintenant le MÊME fait que le ton de la carte:
+            tant que la ligne d'objectif du compte maître n'existe pas, ce
+            bouton est le seul geste qui débloque la composition, et la carte est
+            déjà en `tone="warning"` pour le dire. Une fois la ligne écrite, ce
+            même bouton n'est plus qu'une correction de prénom — et l'action
+            principale de l'écran devient « composer », plus bas. */}
         <Button
-          variant="primary"
+          variant={needsGoalRow ? "primary" : "secondary"}
           disabled={busy || !draft.firstName.trim()}
           onClick={async () => {
             const ok = await onSave({
@@ -704,7 +764,7 @@ function MeCard(
           {t("household.member.save")}
         </Button>
         {saved ? (
-          <span className="text-sm text-neutral-500">{t("household.member.saved")}</span>
+          <span className="text-sm text-ink-soft">{t("household.member.saved")}</span>
         ) : null}
       </div>
     </Card>
@@ -741,17 +801,28 @@ function AddMouthCard(
   return (
     <Card>
       <SectionLabel>{t("household.add.title")}</SectionLabel>
-      <p className="mb-3 text-sm text-neutral-600">{t("household.add.body")}</p>
+      <p className="mb-3 text-sm text-ink-soft">{t("household.add.body")}</p>
       {full ? (
-        <p className="rounded-md bg-amber-50 p-3 text-sm text-amber-900">
+        // LE PLAFOND ATTEINT EST UN FAIT, donc l'ambre reste (charte §2:
+        // ambre = attention). Ce qui change: le rayon passe au vocabulaire, et
+        // l'encre à `amber-800`, la valeur que `Badge tone="caution"` emploie —
+        // un état se reconnaît d'un écran à l'autre à sa VALEUR, pas seulement
+        // à sa famille.
+        <p className="rounded-card bg-amber-50 p-3 text-sm text-amber-800">
           {t("household.add.full")}
         </p>
       ) : (
         <div ref={nameRef}>
           <MouthFields draft={draft} onChange={setDraft} />
+          {/* ⛔ PLUS DE FIGUE ICI. Ce bouton et le « enregistrer » de la fiche du
+              maître se rendaient TOUJOURS ensemble (vérifié au navigateur), donc
+              l'écran montrait deux actions principales. Celle-ci perd la teinte:
+              la carte est déjà annoncée par son sur-titre, et le geste se répète
+              — on ajoute trois personnes d'affilée sans quitter le flux, ce que
+              la carte est faite pour permettre. Un aplat de marque qu'on
+              actionne cinq fois de suite n'est plus une action principale. */}
           <Button
             className="mt-3"
-            variant="primary"
             disabled={busy || !draft.firstName.trim()}
             onClick={async () => {
               const ok = await onAdd(
@@ -781,11 +852,23 @@ function AddMouthCard(
  * quelle nature est cette contrainte.
  */
 function MembersCard(
-  { household, restrictions, allergies, busy, mutedMembers, rhythm, awayWindow, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction }: {
+  { household, restrictions, allergies, busy, mutedMembers, rhythm, awayWindow, bodies, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction }: {
     household: HouseholdView;
     restrictions: RestrictionView[];
     allergies: AllergyView[];
     busy: boolean;
+    /**
+     * Les corps saisis, par `member_id`. VIDE pour un non-maître, et pas parce
+     * que l'écran le décide: `keel_household_member_bodies` lui rend zéro
+     * ligne. La table n'a aucun grant à `authenticated`.
+     */
+    bodies: Map<string, MemberBodyView>;
+    onSaveBody: (
+      memberId: string,
+      heightCm: number,
+      weightKg: number,
+      gender: MemberGender,
+    ) => Promise<boolean>;
     /** D17 — les bouches dont on ne veut plus voir les propositions. */
     mutedMembers: Set<string> | null;
     /** Les LIGNES de la grille de présence — les moments d'une journée. */
@@ -828,7 +911,7 @@ function MembersCard(
               return (
                 <li key={r.id}>
                   <span className="font-medium">{r.label}</span>{" — "}
-                  <span className="text-neutral-600">
+                  <span className="text-ink-soft">
                     {notice.kind === "set_by_me"
                       ? t("household.restriction.notice_me")
                       : t("household.restriction.notice_owner", { owner: notice.ownerName })}
@@ -846,7 +929,7 @@ function MembersCard(
   return (
     <Card>
       <SectionLabel>{t("household.members.title")}</SectionLabel>
-      <ul className="flex flex-col divide-y divide-gray-100">
+      <ul className="flex flex-col divide-y divide-line">
         {household.members.map((m) => (
           <MemberRow
             key={m.memberId}
@@ -861,6 +944,11 @@ function MembersCard(
             muted={mutedMembers === null ? null : mutedMembers.has(m.memberId)}
             rhythm={rhythm}
             awayWindow={awayWindow}
+            // `null` = rien de saisi POUR CETTE BOUCHE. La carte des corps est
+            // vide pour un non-maître (la RPC lui rend zéro ligne), donc ce
+            // bloc ne s'affiche que là où il est légitime.
+            body={bodies.get(m.memberId) ?? null}
+            onSaveBody={(h, w, g) => onSaveBody(m.memberId, h, w, g)}
             onMute={(next) => onMute(m.memberId, next)}
             onSaveAway={(next) => onSaveAway(m.memberId, next)}
             onSave={(patch) => onSave(m, patch)}
@@ -874,6 +962,195 @@ function MembersCard(
         ))}
       </ul>
     </Card>
+  );
+}
+
+/**
+ * FF-043 — QUI GOUVERNE LA DOCTRINE DU TRONC COMMUN.
+ *
+ * ── POURQUOI CETTE CARTE NE S'AFFICHE PAS TOUJOURS ────────────────────────
+ * Le référent n'est un CHOIX qu'à partir de DEUX adultes à table. Dans le foyer
+ * « une mère + ses enfants » — le cas nominal du produit — elle est référente
+ * par défaut par la cascade `déclaré → composeur → null`, et lui poser la
+ * question ne lui apprendrait rien: ce serait un réglage à une seule valeur,
+ * c'est-à-dire une inquiétude offerte sans contrepartie.
+ *
+ * ⚠️ LE SÉLECTEUR NE PROPOSE QUE DES ADULTES. La base refuse aussi (`minor_
+ * cannot_be_reference`, `age_unknown_cannot_be_reference`) — les deux, parce
+ * qu'un écran n'est pas une garde, et parce qu'une garde sans écran fait échouer
+ * un geste que rien n'avait découragé.
+ */
+function ReferenceMemberCard(
+  { household, busy, onPick }: {
+    household: HouseholdView;
+    busy: boolean;
+    onPick: (memberId: string | null) => Promise<boolean>;
+  },
+) {
+  const [saved, setSaved] = React.useState(false);
+  const eligible = household.members.filter((m) => m.ageState === "adult");
+  // UN SEUL ADULTE (ou aucun) ⇒ RIEN À TRANCHER. Voir l'en-tête.
+  if (eligible.length < 2) return null;
+
+  return (
+    <Card>
+      <SectionLabel>{t("household.reference.title")}</SectionLabel>
+      <p className="mb-2 text-xs text-ink-soft">{t("household.reference.hint")}</p>
+      <select
+        // `inputClass` DU KIT, ET PAS UNE CLASSE RECOPIÉE. Celle d'avant portait
+        // `text-sm` — 14 px — donc Safari iOS ZOOMAIT à l'ouverture du menu et ne
+        // dézoomait pas en sortant. La règle des 16 px d'`index.css` vit dans
+        // `@layer base` et un utilitaire la bat: la protection était contournée
+        // ici sans avoir été retirée. `inputClass` fait `text-base lg:text-sm`.
+        className={inputClass}
+        disabled={busy}
+        value={household.referenceMemberId ?? ""}
+        onChange={async (e) => {
+          setSaved(false);
+          const ok = await onPick(e.target.value || null);
+          if (ok) setSaved(true);
+        }}
+      >
+        <option value="">{t("household.reference.default")}</option>
+        {eligible.map((m) => (
+          // LE LIBELLÉ EST UN PRÉNOM, ET RIEN D'AUTRE. Pas d'objectif à côté,
+          // pas de badge « au régime »: la liste est lue par qui ouvre l'écran.
+          <option key={m.memberId} value={m.memberId}>{m.displayName}</option>
+        ))}
+      </select>
+      {saved ? (
+        <p className="mt-2 text-xs text-emerald-700">{t("household.reference.saved")}</p>
+      ) : null}
+    </Card>
+  );
+}
+
+/**
+ * LE CORPS D'UNE BOUCHE — taille, poids, sexe. TOUT-OU-RIEN.
+ *
+ * Décision humaine du 2026-08-12, qui renverse FF-047 §3 et le « cran 2 » du
+ * README du foyer: on collecte pour CHAQUE bouche, y compris sans compte, y
+ * compris pour un mineur.
+ *
+ * ⚠️ CE QUE CE FORMULAIRE NE FAIT PAS, ET NE FERA PAS. Il ne rend aucun
+ * chiffre calculé — ni besoin, ni IMC, ni catégorie, ni cible. Ce qu'on saisit
+ * entre dans le MOTEUR et en ressort en grammes d'aliment sur une assiette.
+ * C'est la ligne de partage du lot: collecter et calculer, jamais énoncer.
+ */
+function BodyFields(
+  { body, busy, needsBirthDate, onSave }: {
+    body: MemberBodyView | null;
+    busy: boolean;
+    /** L'équation dépend de l'âge, et elle n'est pas la même avant 18 ans. */
+    needsBirthDate: boolean;
+    onSave: (h: number, w: number, g: MemberGender) => Promise<boolean>;
+  },
+) {
+  const [height, setHeight] = React.useState(body ? String(body.heightCm) : "");
+  const [weight, setWeight] = React.useState(body ? String(body.weightKg) : "");
+  const [gender, setGender] = React.useState<MemberGender | "">(body?.gender ?? "");
+  const [saved, setSaved] = React.useState(false);
+
+  const h = Number(height);
+  const w = Number(weight);
+  // LE MÊME TOUT-OU-RIEN QU'EN BASE. Le bouton reste inerte tant que les trois
+  // ne sont pas là: `body_incomplete` existe quand même côté serveur, parce
+  // qu'un bouton grisé n'est pas une garde.
+  const complete = Number.isFinite(h) && h > 0 && Number.isFinite(w) && w > 0 &&
+    gender !== "";
+
+  return (
+    <div className="border-t border-line pt-3">
+      <SectionLabel>{t("household.body.title")}</SectionLabel>
+      <p className="mb-2 text-xs text-ink-soft">{t("household.body.hint")}</p>
+      {body === null ? (
+        <p className="mb-2 text-xs text-amber-800">{t("household.body.missing")}</p>
+      ) : null}
+      {needsBirthDate ? (
+        <p className="mb-2 text-xs text-amber-800">
+          {t("household.body.needs_birth_date")}
+        </p>
+      ) : null}
+      {/* ── LES TROIS CHAMPS PASSENT PAR `Field`, ET CE N'EST PAS COSMÉTIQUE ──
+          Ils se tenaient à la main: un `<label class="flex flex-col text-xs">`
+          enveloppant un `<input class="rounded border-gray-300 text-sm">`. Trois
+          conséquences mesurables, pas une:
+            · `text-sm` = 14 px, donc Safari iOS zoomait au focus et ne
+              dézoomait plus — la règle des 16 px d'`index.css` est dans
+              `@layer base` et un utilitaire la bat;
+            · `border-gray-300` est à 1,73:1 sur ce papier, sous le seuil de
+              3:1 que WCAG 1.4.11 exige d'une bordure de CONTRÔLE;
+            · l'étiquette n'était liée au champ que par l'enveloppe, et son
+              cran (`text-xs`) n'était celui d'aucune autre étiquette du produit.
+          La largeur vit maintenant sur l'ENVELOPPE (`w-24`), parce que
+          `inputClass` porte `w-full`: la poser sur le champ ferait deux
+          utilitaires `w-*` dont l'ordre de génération, et non la source,
+          désignerait le gagnant. */}
+      {/* `items-start` ET PAS `items-end`: un `<select>` fait 41 px là où un
+          `<input>` en fait 42 (mesuré), donc aligner par le BAS décalait le haut
+          des trois boîtes de 2 px et l'étiquette « sexe » d'autant. Aligné par
+          le haut, ce sont les étiquettes et les bords supérieurs qui tombent
+          juste — la ligne que l'œil suit. */}
+      <div className="flex flex-wrap items-start gap-2">
+        {/* ⚠️ `w-20` ET PAS `w-24`, ET C'EST UNE MESURE. À 320 px la fiche
+            ouverte ne laisse que 198 px sur cette ligne (carte `p-4` + panneau
+            `p-3`): deux champs de 96 px et leur gouttière de 8 en font 200, donc
+            « taille » et « poids » se retrouvaient empilés pour 2 px. 80 + 80 + 8
+            = 168, et 80 px tiennent « 180 » à 16 px. */}
+        <Field label={t("household.body.height")} className="w-20">
+          <input
+            type="number"
+            inputMode="decimal"
+            className={inputClass}
+            value={height}
+            onChange={(e) => { setHeight(e.target.value); setSaved(false); }}
+          />
+        </Field>
+        <Field label={t("household.body.weight")} className="w-20">
+          <input
+            type="number"
+            inputMode="decimal"
+            className={inputClass}
+            value={weight}
+            onChange={(e) => { setWeight(e.target.value); setSaved(false); }}
+          />
+        </Field>
+        <Field label={t("household.body.gender")} className="w-40">
+          <select
+            className={inputClass}
+            value={gender}
+            onChange={(e) => {
+              setGender(e.target.value as MemberGender | "");
+              setSaved(false);
+            }}
+          >
+            <option value="">—</option>
+            {MEMBER_GENDERS.map((g) => (
+              <option key={g} value={g}>{t(`household.body.gender_${g}` as never)}</option>
+            ))}
+          </select>
+        </Field>
+      </div>
+      <div className="mt-2 flex items-center gap-2">
+        <Button
+          variant="secondary"
+          disabled={busy || !complete}
+          onClick={async () => {
+            // `complete` porte déjà `gender !== ""`, et TypeScript le sait: le
+            // rétrécissement voyage par la constante. Rajouter le test ici
+            // ferait une comparaison que le compilateur signale comme morte.
+            if (!complete) return;
+            const ok = await onSave(h, w, gender);
+            if (ok) setSaved(true);
+          }}
+        >
+          {t("household.body.save")}
+        </Button>
+        {saved ? (
+          <span className="text-xs text-emerald-700">{t("household.body.saved")}</span>
+        ) : null}
+      </div>
+    </div>
   );
 }
 
@@ -892,12 +1169,15 @@ function MemberBadges({ member }: { member: HouseholdMemberView }) {
 }
 
 function MemberRow(
-  { member, isMe, allergies, restrictions, busy, muted, rhythm, awayWindow, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction }: {
+  { member, isMe, allergies, restrictions, busy, muted, rhythm, awayWindow, body, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction }: {
     member: HouseholdMemberView;
     isMe: boolean;
     allergies: AllergyView[];
     restrictions: RestrictionView[];
     busy: boolean;
+    /** `null` = rien de saisi. Voir `BodyFields`: la bouche a une part standard. */
+    body: MemberBodyView | null;
+    onSaveBody: (h: number, w: number, g: MemberGender) => Promise<boolean>;
     /** D17 — `null` = le réglage n'a pas pu être lu. Voir l'interrupteur. */
     muted: boolean | null;
     rhythm: EatingOccasionSlot[];
@@ -949,18 +1229,31 @@ function MemberRow(
         {member.role === "owner" ? <Badge>{t("household.members.owner")}</Badge> : null}
         {member.ageState === "minor" ? <Badge>{t("household.members.child")}</Badge> : null}
         {member.goal ? <Badge>{goalLabel(member.goal as MemberGoal)}</Badge> : null}
+        {/* ── DEUX PASTILLES MAISON PASSENT AU KIT, ET LEURS TONS SONT DES FAITS
+            ─────────────────────────────────────────────────────────────────────
+            Elles se dessinaient à la main (`rounded bg-…-50 px-2 py-0.5`), avec
+            un rayon qui n'était ni celui d'une carte ni celui d'une pastille.
+            Le TON n'est pas un choix de couleur, il nomme ce que la ligne fait
+            au repas:
+              · une ALLERGIE rejoint l'union de sécurité du générateur et
+                gouverne toute la casserole — rien ne se compose si on ne peut
+                pas la lire. C'est un refus: `critical`.
+              · une RÈGLE DE MAISON est une décision domestique. Elle n'est
+                l'état de rien dans le système, et la faire ressembler à un
+                verdict de santé est précisément le mensonge que §8.5 interdit.
+                Donc `neutral` — une étiquette, et c'est tout. */}
         {allergies.map((a) => (
-          <span key={a.id} className="rounded bg-red-50 px-2 py-0.5 text-red-800">
-            {a.label}
-          </span>
+          <Badge key={a.id} tone="critical">{a.label}</Badge>
         ))}
         {restrictions.map((r) => (
-          <span key={r.id} className="rounded bg-neutral-100 px-2 py-0.5 text-neutral-600">
-            {r.label}
-          </span>
+          <Badge key={r.id} tone="neutral">{r.label}</Badge>
         ))}
+        {/* OUVRIR LA FICHE EST L'ACTION DE LA LIGNE, donc elle porte la teinte
+            de marque (charte §2: la figue marque la navigation et l'action).
+            Elle reste un texte souligné et non un bouton plein: huit lignes,
+            huit boutons pleins, ce serait huit actions principales. */}
         <button
-          className="ml-auto text-neutral-500 underline"
+          className="ml-auto text-fig-700 underline"
           onClick={() => setOpen((v) => !v)}
         >
           {open ? t("household.member.close") : t("household.member.edit")}
@@ -968,7 +1261,11 @@ function MemberRow(
       </div>
 
       {open ? (
-        <div className="mt-3 flex flex-col gap-3 rounded-lg bg-gray-50 p-3">
+        // `bg-paper-2` ET PAS `bg-paper`: c'est un panneau EN CREUX dans une
+        // carte, et `paper` est le fond de cette carte — la fiche ouverte
+        // aurait disparu. `paper-2` est le jeton du « fond de section
+        // alterné », et son couple avec `ink` reste à 15,02:1.
+        <div className="mt-3 flex flex-col gap-3 rounded-card bg-paper-2 p-3">
           <MouthFields
             draft={draft}
             onChange={setDraft}
@@ -983,6 +1280,25 @@ function MemberRow(
             </p>
           ) : null}
 
+          {/* ── LE CORPS DE CETTE BOUCHE (2026-08-12) ──────────────────────
+              Y COMPRIS POUR UN MINEUR, ET C'EST LE RENVERSEMENT. Avant ce lot,
+              un enfant n'avait ni corps ni enveloppe ni add-on: il mangeait le
+              tronc commun, c'est-à-dire — dans un foyer où un adulte est en
+              déficit — LE DÉFICIT DE CET ADULTE, sans rien en plus.
+
+              Ce que le formulaire collecte ne ressort JAMAIS: pas au prompt
+              pour un mineur, pas dans une consigne de service, pas dans un log
+              nominatif. Il entre dans le moteur et en ressort en grammes. */}
+          <BodyFields
+            body={body}
+            busy={busy}
+            // L'ÉQUATION DÉPEND DE L'ÂGE, et celle d'un enfant n'est pas celle
+            // d'un adulte. Sans date, aucune des deux ne s'applique: la bouche
+            // garde une part standard, jamais réduite.
+            needsBirthDate={member.ageState === "unknown"}
+            onSave={onSaveBody}
+          />
+
           {/* ── D14 · QUAND CETTE BOUCHE N'EST PAS LÀ ──────────────────────
               LA GRILLE EST CELLE DU CONSTRUCTEUR, pas une seconde. Deux
               grilles pour la même question divergeraient sur le seul détail
@@ -993,9 +1309,9 @@ function MemberRow(
               L'UNION. La grille réécrit ce qu'on lui donne: nourrie de
               l'union, elle recopierait la déclaration de la personne dans la
               colonne du foyer, où elle survivrait à sa rétractation. */}
-          <div className="border-t border-gray-200 pt-3">
+          <div className="border-t border-line pt-3">
             <SectionLabel>{t("household.away.title")}</SectionLabel>
-            <p className="mb-2 text-xs text-neutral-500">
+            <p className="mb-2 text-xs text-ink-soft">
               {t("household.away.hint")}
             </p>
             <Button
@@ -1012,7 +1328,7 @@ function MemberRow(
                 remarquerait une assiette manquante sans pouvoir dire d'où elle
                 vient — et re-marquerait par-dessus. */}
             {selfInWindow.length > 0 ? (
-              <p className="mt-2 text-xs text-neutral-600">
+              <p className="mt-2 text-xs text-ink-soft">
                 {t("household.away.self_declared", {
                   days: selfInWindow.map((a) => a.day).join(", "),
                 })}
@@ -1076,7 +1392,7 @@ function MemberRow(
           {/* Les deux gestes ne se distinguent pas par leur couleur: on ÉCRIT
               ce que chacun fait, à côté d'eux, au moment de choisir. */}
           {member.role !== "owner" ? (
-            <p className="text-xs text-neutral-500">
+            <p className="text-xs text-ink-soft">
               {member.userId
                 ? t("household.member.detach_hint")
                 : t("household.member.remove_hint")}
@@ -1103,7 +1419,7 @@ function MemberRow(
           {member.role !== "owner" && member.userId && muted !== null ? (
             <button
               type="button"
-              className="self-start text-xs text-neutral-500 underline disabled:opacity-50"
+              className="self-start text-xs text-ink-soft underline disabled:opacity-50"
               disabled={busy}
               onClick={() => onMute(!muted)}
             >
@@ -1111,12 +1427,12 @@ function MemberRow(
             </button>
           ) : null}
           {member.role !== "owner" && member.userId && muted !== null ? (
-            <p className="text-xs text-neutral-500">
+            <p className="text-xs text-ink-soft">
               {muted ? t("household.merge.muted") : t("household.merge.mute_hint")}
             </p>
           ) : null}
 
-          <div className="border-t border-gray-200 pt-3">
+          <div className="border-t border-line pt-3">
             <Field
               label={t("household.constraint.kind")}
               hint={kind === "allergy"
@@ -1161,12 +1477,12 @@ function MemberRow(
             <ul className="mt-2 flex flex-col gap-1 text-sm">
               {allergies.map((a) => (
                 <li key={a.id} className="flex flex-wrap items-center gap-2">
-                  <span className="font-medium text-red-800">{a.label}</span>
-                  <span className="text-neutral-500">
+                  <span className="font-medium text-red-700">{a.label}</span>
+                  <span className="text-ink-soft">
                     {t("household.constraint.kind.allergy")}
                   </span>
                   <button
-                    className="text-neutral-500 underline"
+                    className="text-ink-soft underline"
                     disabled={busy}
                     onClick={() => onRemoveAllergy(a.id)}
                   >
@@ -1177,11 +1493,11 @@ function MemberRow(
               {restrictions.map((r) => (
                 <li key={r.id} className="flex flex-wrap items-center gap-2">
                   <span className="font-medium">{r.label}</span>
-                  <span className="text-neutral-500">
+                  <span className="text-ink-soft">
                     {t("household.constraint.kind.house_rule")}
                   </span>
                   <button
-                    className="text-neutral-500 underline"
+                    className="text-ink-soft underline"
                     disabled={busy}
                     onClick={() => onRemoveRestriction(r.id)}
                   >
@@ -1239,7 +1555,7 @@ function EnvyCard(
   return (
     <Card>
       <SectionLabel>{t("household.envy.title")}</SectionLabel>
-      <p className="mb-3 text-sm text-neutral-600">{t("household.envy.body")}</p>
+      <p className="mb-3 text-sm text-ink-soft">{t("household.envy.body")}</p>
       <textarea
         className={`${inputClass} min-h-[80px]`}
         value={body}
@@ -1324,13 +1640,13 @@ function InviteCard(
   return (
     <Card>
       <SectionLabel>{t("household.invite.title")}</SectionLabel>
-      <p className="mb-3 text-sm text-neutral-600">{t("household.invite.body")}</p>
+      <p className="mb-3 text-sm text-ink-soft">{t("household.invite.body")}</p>
       {/* CE QUE LA RÉCLAMATION DONNE, DIT AU MAÎTRE AVANT QU'IL PROMETTE. Il
           est celui qui écrit le message d'accompagnement: s'il annonce « tu
           pourras composer », la base le démentira et c'est lui qui aura menti. */}
-      <p className="mb-3 text-sm text-neutral-500">{t("household.invite.grants")}</p>
+      <p className="mb-3 text-sm text-ink-soft">{t("household.invite.grants")}</p>
       {claimable.length === 0 ? (
-        <p className="rounded-md bg-neutral-50 p-3 text-sm text-neutral-600">
+        <p className="rounded-card bg-paper-2 p-3 text-sm text-ink-soft">
           {t("household.invite.nobody_left")}
         </p>
       ) : (
@@ -1351,7 +1667,15 @@ function InviteCard(
               </select>
             </Field>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
-              <Field label={t("household.invite.email")}>
+              {/* ⚠️ `sm:flex-1` ET PAS `flex-1`. Mesuré à 1280: le champ
+                  d'adresse tenait 192 px pendant que la carte en offrait 606 —
+                  une adresse de courrier n'y tient pas, et il restait 400 px de
+                  vide à côté. Mais la grandeur ne vaut QU'EN LIGNE: dans le
+                  `flex-col` de moins de 640 px, `flex-1` s'appliquerait à la
+                  HAUTEUR. Et `min-w-0` va avec, sans quoi l'enfant refuse de
+                  descendre sous son contenu (`min-width:auto`) et fait défiler
+                  la page à 320. */}
+              <Field label={t("household.invite.email")} className="min-w-0 sm:flex-1">
                 <input
                   className={`${inputClass} min-w-0`}
                   value={email}
@@ -1391,10 +1715,10 @@ function InviteCard(
           dans la même minute, et un lien anonyme part à la mauvaise personne. */}
       {invite ? (
         <div className="mt-3 text-sm">
-          <p className="mb-1 text-neutral-600">
+          <p className="mb-1 text-ink-soft">
             {t("household.invite.link_ready", { name: invite.firstName })}
           </p>
-          <code className="block overflow-x-auto rounded bg-neutral-100 p-2 text-xs">
+          <code className="block overflow-x-auto rounded-card bg-paper-2 p-2 text-xs">
             {`${globalThis.location?.origin ?? ""}/join-household?token=${invite.token}`}
           </code>
         </div>
@@ -1404,7 +1728,12 @@ function InviteCard(
           RPC ajouterait sans étiquette d'affichage casserait la compilation
           plutôt que d'afficher une clé brute à l'utilisateur. */}
       {reason ? (
-        <p className="mt-2 text-sm text-neutral-600">{inviteErrorText(reason)}</p>
+        // UN REFUS EST UN ÉTAT, ET IL LE DIT MAINTENANT. Cette ligne sortait en
+        // gris, donc elle se lisait comme une précision alors qu'elle annonce
+        // que l'invitation n'est PAS partie. C'est la même nature de message que
+        // l'échec de composition, qui était déjà en `red-700`: deux couleurs
+        // pour un seul état, dans un seul fichier.
+        <p className="mt-2 text-sm text-red-700">{inviteErrorText(reason)}</p>
       ) : null}
     </Card>
   );
@@ -1471,15 +1800,31 @@ function PausedCard({ isOwner }: { isOwner: boolean }) {
   const [failure, setFailure] = React.useState<string | null>(null);
 
   return (
+    // ── L'AMBRE EST L'ÉTAT, PAS LA DÉCORATION DE LA CARTE ────────────────────
+    // « En pause » EST un état, et il reste: il est porté par la SURFACE de la
+    // carte (`tone="warning"` = `border-amber-200 bg-amber-50`, le bandeau
+    // d'état de l'arbitrage §5.2). Ce qui part, c'est l'ambre répandu sur
+    // chacune des quatre phrases et sur le bouton — sept classes saturées qui ne
+    // portaient aucun fait de plus que la surface sous elles, et qui rendaient
+    // le seul vrai message d'échec de la carte indiscernable du reste.
+    // Le texte passe à `ink` (16,46:1 sur `amber-50`, mesuré au calcul WCAG),
+    // et l'échec de paiement au rouge — c'est un état, et c'est le même rouge
+    // que l'échec de composition dix lignes plus bas.
     <Card tone="warning">
       <SectionLabel>{t("household.paused.title")}</SectionLabel>
-      <p className="text-sm text-amber-900">{t("household.paused.body")}</p>
-      <p className="mt-2 text-sm text-amber-900">{t("household.paused.kept")}</p>
+      <p className="text-sm text-ink">{t("household.paused.body")}</p>
+      <p className="mt-2 text-sm text-ink">{t("household.paused.kept")}</p>
       {isOwner
         ? (
           <>
+            {/* ⚠️ PAS DE VARIANTE MAISON ICI. Ce bouton se reteignait à la main
+                (`border-amber-300 text-amber-900 hover:bg-amber-100`) — une
+                sixième variante de bouton, née de l'idée qu'un bouton posé sur
+                de l'ambre doit être ambre. Le `secondary` du kit
+                (`border-line-strong bg-paper text-ink`) se détache MIEUX sur
+                cette surface, et c'est le même bouton que partout ailleurs. */}
             <Button
-              className="mt-3 border-amber-300 text-amber-900 hover:bg-amber-100"
+              className="mt-3"
               disabled={working}
               onClick={async () => {
                 setWorking(true);
@@ -1501,12 +1846,12 @@ function PausedCard({ isOwner }: { isOwner: boolean }) {
                 : t("household.paused.resume_cta")}
             </Button>
             {failure
-              ? <p className="mt-2 text-sm text-amber-900">{failure}</p>
+              ? <p className="mt-2 text-sm text-red-700">{failure}</p>
               : null}
           </>
         )
         : (
-          <p className="mt-2 text-sm text-amber-900">
+          <p className="mt-2 text-sm text-ink">
             {t("household.paused.owner_only")}
           </p>
         )}
@@ -1530,8 +1875,18 @@ function ComposeCard(
   return (
     <Card>
       <SectionLabel>{t("household.compose.title")}</SectionLabel>
-      <p className="mb-3 text-sm text-neutral-600">{t("household.compose.body")}</p>
+      <p className="mb-3 text-sm text-ink-soft">{t("household.compose.body")}</p>
+      {/* ── L'ACTION PRINCIPALE DE L'ÉCRAN, UNE FOIS L'ENTRÉE FAITE ──────────
+          COMPOSER EST LA PRODUCTION: tout le reste de la page décrit qui mange
+          ici, ce bouton est le seul qui FABRIQUE quelque chose. Il prend donc la
+          figue que « enregistrer ma fiche » vient de rendre.
+          ⚠️ ET IL NE PEUT PAS EN CROISER UNE AUTRE, par construction: cette
+          carte n'est montée que si `canCompose` — c'est-à-dire quand la ligne
+          d'objectif du maître existe — et c'est exactement la condition sous
+          laquelle la fiche du maître repasse en `secondary`. Un seul aplat de
+          marque dans chacun des quatre états de l'écran. */}
       <Button
+        variant="primary"
         disabled={working}
         onClick={async () => {
           setWorking(true);
@@ -1599,12 +1954,17 @@ function TableCard({ meal }: { meal: HouseholdMealView }) {
             <p className="text-sm">
               <span className="font-medium">{p.displayName}</span>
               {" — "}
-              <span className="text-neutral-600">
+              {/* L'INSTRUCTION DE SERVICE EST LE CONTENU DE CETTE CARTE, donc
+                  elle passe à `ink` et la liste des préparations reste en
+                  `ink-soft`. Les deux étaient `neutral-600` et `neutral-500`:
+                  deux gris à un cran d'écart, une hiérarchie qu'on ne voyait
+                  pas. C'est la phrase qu'on lit à voix haute à table. */}
+              <span className="text-ink">
                 {p.portionNote ?? t("household.portions.standard")}
               </span>
             </p>
             {p.shares.length > 0 ? (
-              <ul className="mt-1 flex flex-col gap-0.5 pl-4 text-sm text-neutral-500">
+              <ul className="mt-1 flex flex-col gap-0.5 pl-4 text-sm text-ink-soft">
                 {p.shares.map((s) => <li key={s.preparationId}>{s.note}</li>)}
               </ul>
             ) : null}

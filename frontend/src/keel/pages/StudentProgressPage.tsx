@@ -10,11 +10,15 @@ import {
 } from "../lib/weekInFood";
 import {
   aggregateRhythm,
-  MOMENT_LABELS,
+  momentInSentence,
+  momentLabel,
   MOMENTS,
   type RhythmEventRow,
 } from "../lib/mealRhythm";
 import { signMealPhotoUrls } from "../api/mealPhoto";
+import { formatWeekday } from "../i18n/format";
+import { plural } from "../i18n/plural";
+import { type MessageKey, t } from "../i18n/t";
 
 /**
  * PIVOT N3 — `/app/progress` : l'avancée, semaine et mois.
@@ -65,11 +69,31 @@ type LoadState =
   | { kind: "restricted" }
   | { kind: "ready" };
 
-const AXIS_LABELS: Record<string, string> = {
-  energy: "energy",
-  hunger: "hunger",
-  sleep: "sleep",
-};
+/**
+ * LES TROIS AXES DU TAP DU SOIR — et ce ne sont PAS les six du dimanche.
+ *
+ * `student_daily_checkins.axis` porte un CHECK sur ('energy','hunger','sleep')
+ * (migration 20260803160000). Les six axes du point hebdomadaire vivent sous
+ * `chat.weekly.axis.*`, dans leur forme de TITRE (« Day-to-day energy »):
+ * les brancher ici donnerait « c'est le plus souvent L'énergie au quotidien ».
+ *
+ * Une FONCTION et pas un `Record` de module: un `Record` d'appels à `t()` se
+ * fige à la langue du premier chargement.
+ */
+const PULSE_AXES = ["energy", "hunger", "sleep"] as const;
+
+function axisLabel(axis: string): string {
+  return (PULSE_AXES as readonly string[]).includes(axis)
+    ? t(`student_progress.axis.${axis}` as MessageKey)
+    : axis;
+}
+
+/** Le mot d'une bande de portion. `unclear` n'en a pas — voir le seed. */
+function bandWord(band: string | null | undefined): string | null {
+  return band === "small" || band === "moderate" || band === "large"
+    ? t(`student_progress.band.${band}` as MessageKey)
+    : null;
+}
 
 function daysBack(range: Range): number {
   return range === "week" ? 7 : 30;
@@ -305,8 +329,13 @@ export default function StudentProgressPage() {
     dates: windowDates,
     prevRows: range === "week" ? prevEvents : undefined,
   });
-  const dayName = (iso: string) =>
-    new Date(`${iso}T00:00:00`).toLocaleDateString("en-GB", { weekday: "short" });
+  // ⚠️ TOUS LES EN-TÊTES DE COLONNE DE LA GRILLE DE RYTHME PASSENT PAR ICI, et
+  // c'est ce qui reliait cette page au lot du FORMATAGE: `toLocaleDateString(
+  // "en-GB", …)` en dur rendait « Mon Tue Wed » au-dessus d'une page française.
+  // Le contournement `${iso}T00:00:00` (sans `Z`) qui vivait ici corrigeait le
+  // décalage d'un jour à la main — il est dans `i18n/format.ts` maintenant, où
+  // il vaut pour les vingt-six sites et pas pour celui-ci seul.
+  const dayName = (iso: string) => formatWeekday(iso);
 
   // 3ter. LE RYTHME — la même semaine, mais sur l'axe du TEMPS.
   //
@@ -340,14 +369,6 @@ export default function StudentProgressPage() {
     moderate: "h-3 w-3",
     large: "h-4 w-4",
     unclear: "h-2.5 w-2.5",
-  };
-  // `unclear` n'a PAS de mot: dire « unclear portion » à quelqu'un qui a
-  // photographié son assiette n'ajoute rien et sonne comme un reproche. On se
-  // tait sur la taille et on garde les aliments, qui eux sont lus.
-  const BAND_WORD: Record<string, string> = {
-    small: "small",
-    moderate: "regular",
-    large: "large",
   };
   // Les jours qui portent réellement quelque chose, du plus récent au plus
   // ancien: un journal se lit par le haut, et la semaine dernière n'est pas ce
@@ -396,17 +417,17 @@ export default function StudentProgressPage() {
 
   if (state.kind === "loading") {
     return (
-      <KeelAppShell variant="student" title="My progress">
-        <p className="text-sm text-gray-500">Loading…</p>
+      <KeelAppShell variant="student" title={t("student_progress.title")}>
+        <p className="text-sm text-ink-soft">{t("student_progress.loading")}</p>
       </KeelAppShell>
     );
   }
   if (state.kind === "error") {
     return (
-      <KeelAppShell variant="student" title="My progress">
+      <KeelAppShell variant="student" title={t("student_progress.title")}>
         <Card tone="warning">
-          <p className="text-sm text-gray-900">We could not load your data.</p>
-          <p className="mt-1 text-xs text-gray-600">{state.message}</p>
+          <p className="text-sm text-ink">{t("student_progress.error")}</p>
+          <p className="mt-1 text-xs text-ink-soft">{state.message}</p>
         </Card>
       </KeelAppShell>
     );
@@ -416,11 +437,10 @@ export default function StudentProgressPage() {
     // est levé. On ne dit pas pourquoi: nommer le drapeau ici serait un
     // diagnostic posé par une machine.
     return (
-      <KeelAppShell variant="student" title="My progress">
+      <KeelAppShell variant="student" title={t("student_progress.title")}>
         <Card>
-          <p className="text-sm leading-6 text-gray-800">
-            We are setting the numbers aside for now. What matters this week
-            is how you feel — and your coach knows.
+          <p className="max-w-[62ch] text-sm leading-6 text-ink">
+            {t("student_progress.restricted")}
           </p>
         </Card>
       </KeelAppShell>
@@ -428,55 +448,74 @@ export default function StudentProgressPage() {
   }
 
   return (
-    <KeelAppShell variant="student" title="My progress">
+    <KeelAppShell variant="student" title={t("student_progress.title")}>
       <div className="space-y-6">
-        <div className="flex gap-2">
+        {/* ── LA SEULE FIGUE DE CET ÉCRAN, ET C'EST DE LA NAVIGATION ─────────
+            Ces deux boutons ne mesurent rien: ils choisissent QUELLE VUE on
+            regarde, exactement comme les onglets du shell trois centimètres
+            plus haut. Ils en reprennent donc la forme au mot: `rounded-full`,
+            `bg-fig-700 text-paper` sur l'actif (9,98:1), lavis `fig-50` au
+            survol de l'inactif (`KeelAppShell`, charte §2). C'est ce qui les
+            fait lire comme la suite de la barre de navigation et pas comme un
+            verdict posé sur la semaine.
+            ⛔ Rien d'autre sur cette page ne portera la marque: tout le reste
+            est un CHIFFRE, une MESURE ou un VERDICT. */}
+        <div className="flex gap-2" role="group">
           {(["week", "month"] as Range[]).map((r) => (
             <button
               key={r}
               type="button"
               onClick={() => setRange(r)}
-              className={`rounded-lg px-3 py-1.5 text-sm font-medium ${
+              aria-pressed={range === r}
+              className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
                 range === r
-                  ? "bg-gray-900 text-white"
-                  : "bg-white text-gray-700 ring-1 ring-gray-200"
+                  ? "bg-fig-700 text-paper"
+                  : "text-ink-soft hover:bg-fig-50 hover:text-ink"
               }`}
             >
-              {r === "week" ? "7 days" : "30 days"}
+              {t(r === "week" ? "student_progress.range_week" : "student_progress.range_month")}
             </button>
           ))}
         </div>
 
         {/* 1. LA RÉGULARITÉ — la seule métrique dont on a la preuve qu'elle prédit. */}
         <Card>
-          <SectionLabel>Your consistency</SectionLabel>
-          <p className="mt-2 text-3xl font-semibold text-gray-900">
-            {loggedDays}<span className="text-lg text-gray-400"> / {total} days</span>
+          <SectionLabel>{t("student_progress.consistency.label")}</SectionLabel>
+          <p className="mt-2 text-3xl font-semibold text-ink">
+            {loggedDays}
+            <span className="text-lg text-ink-soft">
+              {" "}{t("student_progress.consistency.out_of", { total })}
+            </span>
           </p>
-          <p className="mt-2 text-xs leading-5 text-gray-500">
-            This is the thing that matters most, by a distance. Not how perfect
-            the days were — the fact that they got logged at all.
+          <p className="mt-2 text-xs leading-5 text-ink-soft">
+            {t("student_progress.consistency.hint")}
           </p>
         </Card>
 
         {/* 2. LA VIVABILITÉ */}
         <Card>
-          <SectionLabel>How it went</SectionLabel>
+          <SectionLabel>{t("student_progress.pulse.label")}</SectionLabel>
           {taps === 0 ? (
-            <p className="mt-2 text-sm text-gray-600">
-              No evening check-ins in this period yet.
+            <p className="mt-2 text-sm text-ink-soft">
+              {t("student_progress.pulse.empty")}
             </p>
           ) : (
             <>
               <div className="mt-3 flex flex-wrap gap-2">
-                <Badge tone={"positive" as BadgeTone}>{good} all good</Badge>
-                <Badge tone={"caution" as BadgeTone}>{mixed} so-so</Badge>
-                <Badge tone={"critical" as BadgeTone}>{hard} rough</Badge>
+                <Badge tone={"positive" as BadgeTone}>
+                  {t("student_progress.pulse.good", { count: good })}
+                </Badge>
+                <Badge tone={"caution" as BadgeTone}>
+                  {t("student_progress.pulse.mixed", { count: mixed })}
+                </Badge>
+                <Badge tone={"critical" as BadgeTone}>
+                  {t("student_progress.pulse.hard", { count: hard })}
+                </Badge>
               </div>
               {dominantAxis && (mixed + hard) > 0 ? (
-                <p className="mt-3 text-sm text-gray-700">
-                  When it is hard, it is most often{" "}
-                  <span className="font-medium">{AXIS_LABELS[dominantAxis] ?? dominantAxis}</span>.
+                <p className="mt-3 text-sm text-ink">
+                  {t("student_progress.pulse.dominant_label")}{" "}
+                  <span className="font-medium">{axisLabel(dominantAxis)}</span>.
                 </p>
               ) : null}
             </>
@@ -487,21 +526,46 @@ export default function StudentProgressPage() {
             Le payoff visible du geste quotidien: des fréquences et des
             aliments, pas un score. Aucun kcal ici, par contrat produit. */}
         <Card>
-          <SectionLabel>{range === "week" ? "Your week in food" : "Your month in food"}</SectionLabel>
+          <SectionLabel>
+            {t(range === "week"
+              ? "student_progress.food.label_week"
+              : "student_progress.food.label_month")}
+          </SectionLabel>
           {food.meals === 0 ? (
-            <p className="mt-2 text-sm text-gray-600">
-              No photos read in this period yet. Send a plate in Chat and
-              it starts adding up here.
+            <p className="mt-2 text-sm text-ink-soft">
+              {t("student_progress.food.empty")}
             </p>
           ) : (
-            <div className="mt-3 space-y-2 text-sm text-gray-800">
+            <div className="mt-3 space-y-2 text-sm text-ink">
+              {/* LES DEUX NOMBRES PORTENT LE GRAS, donc la phrase est composée
+                  de deux morceaux qui s'accordent CHACUN avec son compte. Un
+                  gabarit unique à quatre trous saurait interpoler mais pas
+                  accorder — et en français « 1 repas noté » et « 5 repas
+                  notés » ne s'écrivent pas pareil. */}
               <p>
-                <span className="font-medium">{food.meals}</span> meal{food.meals > 1 ? "s" : ""} logged
-                across <span className="font-medium">{food.daysLogged}</span> day{food.daysLogged > 1 ? "s" : ""}.
+                <span className="font-medium">
+                  {plural(
+                    food.meals,
+                    t("student_progress.food.meals_one", { count: food.meals }),
+                    t("student_progress.food.meals_many", { count: food.meals }),
+                  )}
+                </span>{" "}
+                {t("student_progress.food.across")}{" "}
+                <span className="font-medium">
+                  {plural(
+                    food.daysLogged,
+                    t("student_progress.food.days_one", { count: food.daysLogged }),
+                    t("student_progress.food.days_many", { count: food.daysLogged }),
+                  )}
+                </span>.
               </p>
               <p>
-                Vegetables at {food.vegMeals} of {food.meals} meals · protein
-                at {food.proteinMeals} · fruit at {food.fruitMeals}.
+                {t("student_progress.food.groups", {
+                  veg: food.vegMeals,
+                  meals: food.meals,
+                  protein: food.proteinMeals,
+                  fruit: food.fruitMeals,
+                })}
               </p>
               {/*
                 FF-009 — LES TROIS COMPTES, CÔTE À CÔTE ET JAMAIS ADDITIONNÉS.
@@ -513,46 +577,55 @@ export default function StudentProgressPage() {
                 Les trois valent 0 tant que rien ne les alimente, et un 0 lu est
                 un 0 compté: la colonne existe sur toutes les lignes neuves.
               */}
-              <p className="text-gray-700">
-                Ticked as planned: {food.asPlannedMeals} · eaten off plan:{" "}
-                {food.offPlanMeals} · photographed: {food.photoMeals}.
+              <p className="text-ink">
+                {t("student_progress.food.three_counts", {
+                  ticked: food.asPlannedMeals,
+                  offPlan: food.offPlanMeals,
+                  photographed: food.photoMeals,
+                })}
               </p>
               {food.topFoods.length > 0 ? (
-                <p className="text-gray-700">
-                  Seen most:{" "}
-                  {food.topFoods.map((f) => `${f.label} ×${f.count}`).join(" · ")}
+                <p className="text-ink">
+                  {t("student_progress.food.seen_most", {
+                    list: food.topFoods.map((f) => `${f.label} ×${f.count}`).join(" · "),
+                  })}
                 </p>
               ) : null}
               {food.watchCounts.length > 0 ? (
                 // Un COMPTE, pas un commentaire. « Fried food ×3 » est un fait;
                 // la morale reste chez le coach.
-                <p className="text-gray-700">
-                  Also this period:{" "}
-                  {food.watchCounts.map((w) => `${w.label} ×${w.count}`).join(" · ")}
+                <p className="text-ink">
+                  {t("student_progress.food.also", {
+                    list: food.watchCounts.map((w) => `${w.label} ×${w.count}`).join(" · "),
+                  })}
                 </p>
               ) : null}
               {food.dinnerLarge && food.dinnerLarge.total >= 2 ? (
-                <p className="text-gray-700">
-                  Dinners ran large {food.dinnerLarge.large} of {food.dinnerLarge.total} nights.
+                <p className="text-ink">
+                  {t("student_progress.food.dinners_large", {
+                    large: food.dinnerLarge.large,
+                    total: food.dinnerLarge.total,
+                  })}
                 </p>
               ) : null}
               {range === "week" && food.missingDays.length > 0 && food.missingDays.length <= 4 ? (
-                <p className="text-gray-700">
-                  Nothing logged on {food.missingDays.map(dayName).join(", ")}.
+                <p className="text-ink">
+                  {t("student_progress.food.missing_days", {
+                    days: food.missingDays.map(dayName).join(", "),
+                  })}
                 </p>
               ) : null}
               {food.vegTrend ? (
-                <p className="text-gray-700">
-                  {food.vegTrend === "up"
-                    ? "More vegetables than the week before."
+                <p className="text-ink">
+                  {t(food.vegTrend === "up"
+                    ? "student_progress.food.veg_up"
                     : food.vegTrend === "down"
-                    ? "Fewer vegetables than the week before."
-                    : "About the same vegetables as the week before."}
+                    ? "student_progress.food.veg_down"
+                    : "student_progress.food.veg_same")}
                 </p>
               ) : null}
-              <p className="pt-1 text-xs leading-5 text-gray-500">
-                Counts from your photos — what showed up, and how often. No
-                calories here: the logging itself is what moves the needle.
+              <p className="pt-1 text-xs leading-5 text-ink-soft">
+                {t("student_progress.food.footnote")}
               </p>
             </div>
           )}
@@ -567,18 +640,17 @@ export default function StudentProgressPage() {
             DEUX fois — donc jamais sur une photo. L'élève faisait le geste et
             ne recevait rien qui prouve qu'on avait regardé. */}
         <Card>
-          <SectionLabel>What you ate</SectionLabel>
+          <SectionLabel>{t("student_progress.ate.label")}</SectionLabel>
           {loggedDaysDetail.length === 0 ? (
-            <p className="mt-2 text-sm text-gray-600">
-              Nothing logged in this period yet. Send a plate in Chat, or just
-              tell me what you had — both end up here.
+            <p className="mt-2 text-sm text-ink-soft">
+              {t("student_progress.ate.empty")}
             </p>
           ) : (
             <>
               <div className="mt-3 space-y-3">
                 {loggedDaysDetail.map((d) => (
                   <div key={d.date}>
-                    <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
+                    <p className="text-label font-semibold uppercase text-ink-soft">
                       {dayName(d.date)}
                     </p>
                     <ul className="mt-1 space-y-2">
@@ -598,23 +670,23 @@ export default function StudentProgressPage() {
                                   src={thumb}
                                   alt=""
                                   data-testid="log-thumb"
-                                  className="h-12 w-12 shrink-0 rounded-lg object-cover"
+                                  className="h-12 w-12 shrink-0 rounded-card object-cover"
                                 />
                               )
                               : null}
-                            <div className="min-w-0 text-sm text-gray-800">
+                            <div className="min-w-0 text-sm text-ink">
                               <p>
-                                <span className="text-gray-500">
-                                  {MOMENT_LABELS[e.moment]}
+                                <span className="text-ink-soft">
+                                  {momentLabel(e.moment)}
                                 </span>{" "}
                                 —{" "}
                                 {e.cell!.foods.length > 0
                                   ? e.cell!.foods.join(", ")
-                                  : "logged, nothing readable in the photo"}
-                                {e.cell!.band && BAND_WORD[e.cell!.band]
+                                  : t("student_progress.ate.unreadable")}
+                                {bandWord(e.cell!.band)
                                   ? (
-                                    <span className="text-gray-500">
-                                      {" "}· {BAND_WORD[e.cell!.band]} portion
+                                    <span className="text-ink-soft">
+                                      {" "}· {bandWord(e.cell!.band)}
                                     </span>
                                   )
                                   : null}
@@ -626,7 +698,7 @@ export default function StudentProgressPage() {
                                   verdict tombé de nulle part. */}
                               {e.cell!.rationale
                                 ? (
-                                  <p className="mt-0.5 text-xs leading-5 text-gray-500">
+                                  <p className="mt-0.5 text-xs leading-5 text-ink-soft">
                                     {e.cell!.rationale}
                                   </p>
                                 )
@@ -639,10 +711,8 @@ export default function StudentProgressPage() {
                   </div>
                 ))}
               </div>
-              <p className="mt-3 text-xs leading-5 text-gray-500">
-                This is what was read from your photos and from what you told
-                me. If something is wrong, say so in Chat and it gets corrected
-                on the spot.
+              <p className="mt-3 text-xs leading-5 text-ink-soft">
+                {t("student_progress.ate.footnote")}
               </p>
             </>
           )}
@@ -654,11 +724,10 @@ export default function StudentProgressPage() {
             lit pas dans un chiffre. Aucun kcal ici non plus — la taille du
             bloc est la BANDE de portion, dont le jeton est la barre d'erreur. */}
         <Card>
-          <SectionLabel>Your rhythm</SectionLabel>
+          <SectionLabel>{t("student_progress.rhythm.label")}</SectionLabel>
           {rhythm.meals === 0 ? (
-            <p className="mt-2 text-sm text-gray-600">
-              Nothing logged in this period yet. Tell me what you ate in Chat,
-              or send a plate — both land here.
+            <p className="mt-2 text-sm text-ink-soft">
+              {t("student_progress.rhythm.empty")}
             </p>
           ) : (
             <>
@@ -671,7 +740,7 @@ export default function StudentProgressPage() {
                         {rhythm.days.map((d) => (
                           <th
                             key={d.date}
-                            className="pb-1 text-center font-medium text-gray-500"
+                            className="pb-1 text-center font-medium text-ink-soft"
                           >
                             {dayName(d.date)}
                           </th>
@@ -681,8 +750,8 @@ export default function StudentProgressPage() {
                     <tbody>
                       {MOMENTS.map((moment) => (
                         <tr key={moment}>
-                          <th className="pr-2 text-right font-normal text-gray-500">
-                            {MOMENT_LABELS[moment]}
+                          <th className="pr-2 text-right font-normal text-ink-soft">
+                            {momentLabel(moment)}
                           </th>
                           {rhythm.days.map((d) => {
                             const cell = d.cells[moment];
@@ -694,23 +763,34 @@ export default function StudentProgressPage() {
                                   title={cell
                                     ? [
                                       cell.foods.join(", ") ||
-                                      `${cell.count} logged`,
-                                      cell.band && BAND_WORD[cell.band]
-                                        ? `${BAND_WORD[cell.band]} portion`
-                                        : null,
+                                      t("student_progress.rhythm.cell_count", {
+                                        count: cell.count,
+                                      }),
+                                      bandWord(cell.band),
                                     ].filter(Boolean).join(" · ")
-                                    : "nothing logged"}
-                                  className="flex h-7 w-full items-center justify-center rounded-md bg-gray-100"
+                                    : t("student_progress.rhythm.cell_empty")}
+                                  // ⛔ CETTE GRILLE EST UN GRAPHIQUE, ET UN
+                                  // GRAPHIQUE NE PASSE PAS À LA FIGUE (charte
+                                  // §2). Elle ne porte aucun état du système
+                                  // non plus: la BANDE est dite par la TAILLE
+                                  // du point (`BAND_FILL`), exprès, pour que
+                                  // « grande portion » ne devienne pas un
+                                  // verdict rouge. Donc deux neutres et rien
+                                  // d'autre — la case en `line`, le point en
+                                  // `ink`. `rounded-part` (4 px) est le rayon
+                                  // que le kit réserve à une petite pièce dans
+                                  // une figure, et c'est exactement ça.
+                                  className="flex h-7 w-full items-center justify-center rounded-part bg-line"
                                 >
                                   {cell ? (
                                     <span
-                                      className={`rounded-full bg-gray-900 ${
+                                      className={`rounded-full bg-ink ${
                                         BAND_FILL[cell.band ?? "unclear"]
                                       }`}
                                     />
                                   ) : null}
                                   {cell && cell.count > 1 ? (
-                                    <span className="ml-1 text-[10px] text-gray-500">
+                                    <span className="ml-1 text-[10px] text-ink-soft">
                                       ×{cell.count}
                                     </span>
                                   ) : null}
@@ -724,11 +804,11 @@ export default function StudentProgressPage() {
                   </table>
                 </div>
               ) : (
-                <div className="mt-3 space-y-1 text-sm text-gray-800">
+                <div className="mt-3 space-y-1 text-sm text-ink">
                   {MOMENTS.map((moment) => (
                     <p key={moment}>
-                      <span className="inline-block w-24 text-gray-500">
-                        {MOMENT_LABELS[moment]}
+                      <span className="inline-block w-24 text-ink-soft">
+                        {momentLabel(moment)}
                       </span>
                       {rhythm.byMoment[moment]}
                     </p>
@@ -736,10 +816,10 @@ export default function StudentProgressPage() {
                 </div>
               )}
               {rhythm.busiest ? (
-                <p className="mt-3 text-sm text-gray-700">
-                  Most of what you log lands in the{" "}
+                <p className="mt-3 text-sm text-ink">
+                  {t("student_progress.rhythm.busiest_label")}{" "}
                   <span className="font-medium">
-                    {MOMENT_LABELS[rhythm.busiest].toLowerCase()}
+                    {momentInSentence(rhythm.busiest)}
                   </span>.
                 </p>
               ) : null}
@@ -747,16 +827,16 @@ export default function StudentProgressPage() {
                 // On le DIT plutôt que de ranger ces faits dans une case au
                 // hasard: une grille qui invente un horaire est pire qu'une
                 // grille incomplète.
-                <p className="mt-1 text-sm text-gray-700">
-                  {rhythm.unplaced} log{rhythm.unplaced > 1 ? "s" : ""} without a
-                  time of day — not placed above.
+                <p className="mt-1 text-sm text-ink">
+                  {plural(
+                    rhythm.unplaced,
+                    t("student_progress.rhythm.unplaced_one", { count: rhythm.unplaced }),
+                    t("student_progress.rhythm.unplaced_many", { count: rhythm.unplaced }),
+                  )}
                 </p>
               ) : null}
-              <p className="mt-2 text-xs leading-5 text-gray-500">
-                The block size is how big the plate looked — small, regular or
-                large. That is the whole scale, and it is deliberately the whole
-                scale: a number here would be wrong in a direction we can
-                predict.
+              <p className="mt-2 text-xs leading-5 text-ink-soft">
+                {t("student_progress.rhythm.footnote")}
               </p>
             </>
           )}
@@ -764,16 +844,33 @@ export default function StudentProgressPage() {
 
         {/* 3. LES PORTIONS — la réponse à "beaucoup ou peu", sans un kcal. */}
         <Card>
-          <SectionLabel>Your plates</SectionLabel>
+          <SectionLabel>{t("student_progress.plates.label")}</SectionLabel>
           {bands.length === 0 ? (
-            <p className="mt-2 text-sm text-gray-600">No photos read in this period.</p>
+            <p className="mt-2 text-sm text-ink-soft">
+              {t("student_progress.plates.empty")}
+            </p>
           ) : (
-            <p className="mt-3 text-sm text-gray-800">
-              {bands.length} plate{bands.length > 1 ? "s" : ""}:{" "}
-              {bandCount("small")} small,{" "}
-              {bandCount("moderate")} regular,{" "}
-              {bandCount("large")} large
-              {bandCount("unclear") > 0 ? `, ${bandCount("unclear")} unclear` : ""}.
+            <p className="mt-3 text-sm text-ink">
+              {plural(
+                bands.length,
+                t("student_progress.plates.line_one", {
+                  count: bands.length,
+                  small: bandCount("small"),
+                  moderate: bandCount("moderate"),
+                  large: bandCount("large"),
+                }),
+                t("student_progress.plates.line_many", {
+                  count: bands.length,
+                  small: bandCount("small"),
+                  moderate: bandCount("moderate"),
+                  large: bandCount("large"),
+                }),
+              )}
+              {bandCount("unclear") > 0
+                ? t("student_progress.plates.unclear_suffix", {
+                  count: bandCount("unclear"),
+                })
+                : ""}.
             </p>
           )}
         </Card>
@@ -781,27 +878,28 @@ export default function StudentProgressPage() {
         {/* 4. LE POIDS, EN DERNIER. Une pesée par semaine, lue comme une
             tendance: le chiffre du jour n'est pas l'information. */}
         <Card>
-          <SectionLabel>Your weight</SectionLabel>
+          <SectionLabel>{t("student_progress.weight.label")}</SectionLabel>
           {lastWeight === null ? (
-            <p className="mt-2 text-sm text-gray-600">
-              No weight in this period yet. You enter it in the Sunday
-              check-in.
+            <p className="mt-2 text-sm text-ink-soft">
+              {t("student_progress.weight.empty")}
             </p>
           ) : (
             <>
-              <p className="mt-2 text-3xl font-semibold text-gray-900">
-                {lastWeight.toFixed(1)}<span className="text-lg text-gray-400"> kg</span>
+              <p className="mt-2 text-3xl font-semibold text-ink">
+                {lastWeight.toFixed(1)}
+                <span className="text-lg text-ink-soft"> {t("unit.kg")}</span>
               </p>
               {firstWeight !== null && weights.length > 1 ? (
-                <p className="mt-1 text-sm text-gray-700">
-                  {(lastWeight - firstWeight >= 0 ? "+" : "")}
-                  {(lastWeight - firstWeight).toFixed(1)} kg over the period
+                <p className="mt-1 text-sm text-ink">
+                  {t("student_progress.weight.delta", {
+                    delta: `${lastWeight - firstWeight >= 0 ? "+" : ""}${
+                      (lastWeight - firstWeight).toFixed(1)
+                    }`,
+                  })}
                 </p>
               ) : null}
-              <p className="mt-2 text-xs leading-5 text-gray-500">
-                One weigh-in a week, read as a line and not as a number: day to
-                day, water moves the scale more than a whole week of eating
-                does.
+              <p className="mt-2 text-xs leading-5 text-ink-soft">
+                {t("student_progress.weight.footnote")}
               </p>
             </>
           )}

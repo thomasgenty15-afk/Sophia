@@ -72,102 +72,13 @@ import { Field, inputClass } from "./ui/Field";
 // Les plats des autres jours n'en portent pas: une coche est datée du jour où
 // on tape, et le raisonnement complet est dans `lib/useMealTicks.ts`.
 
-const COPY = {
-  "meals.form.title": "Build me something",
-  "meals.form.mode_label": "Where do we start",
-  "meals.form.mode_from_pantry": "From what I already have",
-  "meals.form.mode_to_shop": "I will shop for it",
-  // LA FENÊTRE, ET CE QU'ELLE COUVRE VRAIMENT. « Until Sunday » un dimanche
-  // fait UN jour — l'aperçu le dit, sinon le bouton a l'air cassé.
-  "meals.form.window_label": "Which days",
-  // ── DEUX DATES, ET PLUS TROIS BOUTONS ──────────────────────────────────
-  // « Until Sunday » un dimanche faisait UN jour, « For 7 days » ne disait pas
-  // lesquels, et le nombre de jours obligeait à compter dans sa tête pour
-  // savoir où on atterrit. Les trois libellés restent ici tant que rien ne les
-  // affiche plus: les retirer dans le même geste que la refonte de l'écran
-  // ferait deux changements dans un seul diff, et c'est celui qu'on ne relit
-  // pas qui casse.
-  "meals.form.window_from": "From",
-  "meals.form.window_to": "To",
-  "meals.form.window_until_sunday": "Until Sunday",
-  "meals.form.window_seven_days": "For 7 days",
-  "meals.form.window_exact": "Choose exactly",
-  "meals.form.window_days_label": "How many days",
-  "meals.form.window_one_day": "Just today.",
-  "meals.form.slot_label": "A particular meal (optional)",
-  "meals.form.slot_any": "The whole day",
-  "meals.form.servings_label": "How many people",
-  "meals.form.pantry_label": "What you have in",
-  "meals.form.pantry_hint":
-    "One per line. Add an amount if it matters — «rice, 500g».",
-  "meals.form.pantry_placeholder": "chicken thighs\nrice\nspinach",
-  // L'ENVIE, ET PAS LES GOÛTS. Ce champ est DATÉ — il vaut pour cette
-  // composition. Les goûts durables (« je déteste le brocoli ») vivent dans
-  // « What you have told me about your eating », viennent de la conversation, et
-  // valent pour toutes les semaines. Deux champs parce que deux durées de vie:
-  // écrire « mezze d'été » dans la liste durable le ferait revenir en février.
-  "meals.form.preferences_label": "What you fancy this time (optional)",
-  "meals.form.preferences_placeholder":
-    "summer mezze — lots of carrots, raw veg, nothing heavy",
-  "meals.form.preferences_hint":
-    "A mood for these meals. What you always like or never eat belongs in «What you have told me about your eating» — it is remembered on its own.",
-  "meals.form.preferences_carried":
-    "Kept from your last plan. Change it if you fancy something else.",
-  // ── CE CHAMP N'EST PLUS CELUI QU'IL ÉTAIT ─────────────────────────────
-  // Il servait à tout dire, y compris « je mange dehors vendredi » — ce que la
-  // grille « Which meals, which days » exprime maintenant au jour et au repas
-  // près. Ce qui reste ici est ce que la grille NE PEUT PAS dire: l'ÉVÉNEMENT.
-  // Des invités, un four en panne, un retour de vacances. Le placeholder le
-  // montre plutôt que de le décrire — trois exemples se lisent, une consigne
-  // de remplissage se saute.
-  "meals.form.context_label": "Anything going on this week (optional)",
-  "meals.form.context_placeholder":
-    "guests on Saturday · the oven is broken · back from holiday, empty fridge",
-  // Le champ est repris de la dernière génération. La légende dit d'où il
-  // vient: sans elle, « mariage mardi » — une contrainte qui ne se répète pas —
-  // repartirait chaque semaine sans que personne le remarque.
-  "meals.form.context_carried":
-    "Kept from your last plan. Change it if this week is different.",
-  "meals.form.submit": "Build it",
-  "meals.form.building": "Building…",
-  "meals.form.cancel": "Cancel",
-  "meals.form.pantry_required": "Add what you have in, or switch to «I will shop for it».",
-  "meals.result.title": "Your meals",
-  "meals.result.empty":
-    "Nothing built yet. Tell me where to start above and I will put a few meals together.",
-  "meals.result.shopping_title": "Shopping list",
-  "meals.result.shopping_close": "Hide shopping list",
-  // Deux repères, et rien de plus. « Demain », « dans 3 jours » seraient des
-  // calculs à refaire à chaque rendu pour une information que l'ordre donne
-  // déjà: ce qui suit « today » est à venir.
-  "meals.result.today": "Today",
-  "meals.result.past": "Gone by",
-  "meals.loading": "Loading…",
-  // ── QUAND LA SEMAINE EXISTE DÉJÀ ──────────────────────────────────────────
-  "meals.rebuild.button": "Build another plan",
-  "meals.rebuild.title": "Build another plan",
-  "meals.rebuild.prepare_next": "Prepare next plan",
-  "meals.result.tab_current": "This week",
-  "meals.result.tab_next": "Next",
-  // L'AVERTISSEMENT DE TRONCATURE. Il NOMME les jours qui partent, parce que
-  // les courses de ces jours-là ont peut-être déjà été faites — et cette
-  // dépense-là ne se rembourse pas.
-  "meals.rebuild.truncates":
-    "This takes {days} day(s) off your current plan ({from} → {to}). You may already have shopped for them.",
-  // Le formulaire REMPLACE la semaine en place, et le dit AVANT qu'on clique.
-  // C'est le seul geste destructif de l'écran: `generate-meal-v1` écrit une
-  // ligne neuve, et cet écran ne lit que la dernière.
-  "meals.rebuild.warning":
-    "This replaces the week below. What is there now stops being what you open tomorrow.",
-  "meals.rebuild.building":
-    "Building your new week — it takes a few seconds. The one you had stays in place until this lands.",
-} as const;
-
-type CopyKey = keyof typeof COPY;
-
-function c(key: CopyKey): string {
-  return COPY[key];
-}
+// ⚠️ LE `COPY` LOCAL DE CE FICHIER EST PARTI DANS LE SEED (lot 6). Ses 44
+// entrées portaient DÉJÀ des noms de clés du seed (`meals.form.*`,
+// `meals.result.*`), ce qui les rendait invisibles à `t()` comme au scanner de
+// coutures — et TROIS d'entre elles (`meals.result.today`, `meals.result.past`,
+// `meals.loading`) existaient en double dans `en.ts`, avec les mêmes valeurs et
+// aucune ceinture pour signaler qu'elles avaient divergé. Voir le bloc « LOT 6 ·
+// LE CONSTRUCTEUR DE REPAS » d'`en.ts`.
 
 type LoadState = "loading" | "ready";
 
@@ -418,7 +329,7 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
       const today = browserLocalDate();
       const w = resolveRequestedWindow(windowRequest, today);
       const ends = planEndsOn(w.startsOn, w.durationDays);
-      if (w.durationDays === 1) return c("meals.form.window_one_day");
+      if (w.durationDays === 1) return t("meals.form.window_one_day");
       return `${w.startsOn} → ${ends} · ${w.durationDays} days`;
     } catch (e) {
       return e instanceof Error ? e.message : String(e);
@@ -471,7 +382,7 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
     );
     const lost = current.durationDays - kept;
     if (lost <= 0) return null;
-    return c("meals.rebuild.truncates")
+    return t("meals.rebuild.truncates")
       .replace("{days}", String(lost))
       .replace("{from}", String(current.durationDays))
       .replace("{to}", String(kept));
@@ -497,7 +408,7 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
     event.preventDefault();
     setError(null);
     if (mode === "from_pantry" && pantry.length === 0) {
-      setError(c("meals.form.pantry_required"));
+      setError(t("meals.form.pantry_required"));
       return;
     }
     // LA FENÊTRE SE REFERME DÈS QUE LA GÉNÉRATION PART. Ce qu'on veut regarder
@@ -563,7 +474,7 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
   }
 
   if (state === "loading") {
-    return <p className="text-sm text-gray-500">{c("meals.loading")}</p>;
+    return <p className="text-sm text-ink-soft">{t("meals.loading")}</p>;
   }
 
   // LA FENÊTRE VIENT DE LA LIGNE, plus de `created_at`. Elle était DÉDUITE, et
@@ -611,18 +522,18 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
         <section>
           <SectionLabel>
             {!hasWeek
-              ? c("meals.form.title")
+              ? t("meals.form.title")
               : formIntent === "prepare_next"
-              ? c("meals.rebuild.prepare_next")
-              : c("meals.rebuild.title")}
+              ? t("meals.rebuild.prepare_next")
+              : t("meals.rebuild.title")}
           </SectionLabel>
           <Card>
             {/* CE QUE ÇA COÛTE, DIT AVANT LE CLIC. Une génération remplace la
                 semaine affichée: cet écran ne lit que la dernière ligne. Le
                 découvrir après coup serait perdre un plan qu'on avait accepté. */}
             {hasWeek && formIntent === "replace_current" && !truncationWarning && (
-              <p className="mb-4 rounded-lg bg-amber-50 p-3 text-xs leading-5 text-amber-900">
-                {c("meals.rebuild.warning")}
+              <p className="mb-4 rounded-card border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900">
+                {t("meals.rebuild.warning")}
               </p>
             )}
             {/* CE QUE ÇA RETIRE AU PLAN COURANT, dit avant le clic et chiffré.
@@ -630,21 +541,21 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                 empilés se lisent comme du bruit, et c'est celui-ci qui porte
                 l'information coûteuse. */}
             {truncationWarning && (
-              <p className="mb-4 rounded-lg bg-amber-50 p-3 text-xs leading-5 text-amber-900">
+              <p className="mb-4 rounded-card border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900">
                 {truncationWarning}
               </p>
             )}
             <form className="space-y-4" onSubmit={(e) => void build(e)}>
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label={c("meals.form.mode_label")} htmlFor="meals-mode">
+                <Field label={t("meals.form.mode_label")} htmlFor="meals-mode">
                   <select
                     id="meals-mode"
                     className={inputClass}
                     value={mode}
                     onChange={(e) => setMode(e.target.value as MealMode)}
                   >
-                    <option value="to_shop">{c("meals.form.mode_to_shop")}</option>
-                    <option value="from_pantry">{c("meals.form.mode_from_pantry")}</option>
+                    <option value="to_shop">{t("meals.form.mode_to_shop")}</option>
+                    <option value="from_pantry">{t("meals.form.mode_from_pantry")}</option>
                   </select>
                 </Field>
                 {/* ── LA FENÊTRE: UNE DATE DE DÉBUT, UNE DATE DE FIN ──────
@@ -661,14 +572,14 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                     `MAX_WINDOW_DAYS` côté code. Le champ l'applique avec `max`
                     plutôt que de laisser choisir trois semaines et récolter un
                     refus au moment de générer. */}
-                <Field label={c("meals.form.window_label")} htmlFor="meals-window">
+                <Field label={t("meals.form.window_label")} htmlFor="meals-window">
                   <div className="flex flex-wrap items-end gap-3">
                     <div>
                       <label
                         htmlFor="meals-window"
-                        className="block text-xs text-gray-500"
+                        className="block text-label font-semibold uppercase text-ink-soft"
                       >
-                        {c("meals.form.window_from")}
+                        {t("meals.form.window_from")}
                       </label>
                       <input
                         id="meals-window"
@@ -698,9 +609,9 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                     <div>
                       <label
                         htmlFor="meals-window-end"
-                        className="block text-xs text-gray-500"
+                        className="block text-label font-semibold uppercase text-ink-soft"
                       >
-                        {c("meals.form.window_to")}
+                        {t("meals.form.window_to")}
                       </label>
                       <input
                         id="meals-window-end"
@@ -715,7 +626,7 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                   </div>
                   {/* L'APERÇU DIT CE QUE LES DEUX DATES FONT — le nombre de
                       jours, qu'on ne compte plus soi-même. */}
-                  <p className="mt-1 text-xs text-gray-500">{windowPreview}</p>
+                  <p className="mt-1 text-xs text-ink-soft">{windowPreview}</p>
                   {/* CHOISIR LES REPAS, PLUS LES JOURS. « Choose exactly »
                       servait à préciser une fenêtre; les deux dates le font
                       seules. Le geste qui manquait est plus fin: dans cette
@@ -724,18 +635,19 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                     <button
                       type="button"
                       onClick={() => setPickerOpen(true)}
-                      className="mt-2 text-xs font-medium text-gray-700 underline underline-offset-2 hover:text-gray-900"
+                      // UN LIEN, DONC LA MARQUE (charte §2). `fig-700`/`paper` = 9,98:1.
+                      className="mt-2 text-xs font-medium text-fig-700 underline underline-offset-2 hover:text-fig-800"
                     >
                       {mealCopy("meals.picker.open")}
                       {awayInWindow > 0 && (
-                        <span className="ml-1 font-normal text-gray-500">
+                        <span className="ml-1 font-normal text-ink-soft">
                           · {awayInWindow}
                         </span>
                       )}
                     </button>
                   )}
                 </Field>
-                <Field label={c("meals.form.servings_label")} htmlFor="meals-servings">
+                <Field label={t("meals.form.servings_label")} htmlFor="meals-servings">
                   <input
                     id="meals-servings"
                     type="number"
@@ -756,15 +668,15 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                   Le texte saisi n'est pas jeté: on rebascule et il est là. */}
               {mode === "from_pantry" && (
                 <Field
-                  label={c("meals.form.pantry_label")}
-                  hint={c("meals.form.pantry_hint")}
+                  label={t("meals.form.pantry_label")}
+                  hint={t("meals.form.pantry_hint")}
                   htmlFor="meals-pantry"
                 >
                   <textarea
                     id="meals-pantry"
                     className={`${inputClass} min-h-24`}
                     value={pantryText}
-                    placeholder={c("meals.form.pantry_placeholder")}
+                    placeholder={t("meals.form.pantry_placeholder")}
                     onChange={(e) => setPantryText(e.target.value)}
                   />
                 </Field>
@@ -776,17 +688,17 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                   vie différentes. Une envie se réécrit à chaque génération, une
                   contrainte de semaine aussi, un goût reste. */}
               <Field
-                label={c("meals.form.preferences_label")}
+                label={t("meals.form.preferences_label")}
                 hint={preferencesCarried
-                  ? c("meals.form.preferences_carried")
-                  : c("meals.form.preferences_hint")}
+                  ? t("meals.form.preferences_carried")
+                  : t("meals.form.preferences_hint")}
                 htmlFor="meals-preferences"
               >
                 <textarea
                   id="meals-preferences"
                   className={`${inputClass} min-h-16`}
                   value={preferences}
-                  placeholder={c("meals.form.preferences_placeholder")}
+                  placeholder={t("meals.form.preferences_placeholder")}
                   onChange={(e) => {
                     setPreferences(e.target.value);
                     setPreferencesCarried(false);
@@ -804,15 +716,15 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                   puis « ce qui contraint », et c'est l'ordre dans lequel le
                   prompt les présente aussi. */}
               <Field
-                label={c("meals.form.context_label")}
-                hint={contextCarried ? c("meals.form.context_carried") : undefined}
+                label={t("meals.form.context_label")}
+                hint={contextCarried ? t("meals.form.context_carried") : undefined}
                 htmlFor="meals-context"
               >
                 <textarea
                   id="meals-context"
                   className={`${inputClass} min-h-16`}
                   value={context}
-                  placeholder={c("meals.form.context_placeholder")}
+                  placeholder={t("meals.form.context_placeholder")}
                   onChange={(e) => {
                     setContext(e.target.value);
                     // Dès qu'on y touche, ce n'est plus « repris de la dernière
@@ -822,11 +734,11 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                 />
               </Field>
 
-              {error && <p className="text-sm text-red-600">{error}</p>}
+              {error && <p className="text-sm text-red-700">{error}</p>}
 
               <div className="flex flex-wrap items-center gap-2">
                 <Button type="submit" variant="primary" disabled={building}>
-                  {building ? c("meals.form.building") : c("meals.form.submit")}
+                  {building ? t("meals.form.building") : t("meals.form.submit")}
                 </Button>
                 {/* On ne peut renoncer que s'il y a quelque chose à retrouver
                     derrière. Sans semaine, « Cancel » ne mènerait qu'à un écran
@@ -841,7 +753,7 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                       setFormOpen(false);
                     }}
                   >
-                    {c("meals.form.cancel")}
+                    {t("meals.form.cancel")}
                   </Button>
                 )}
               </div>
@@ -865,7 +777,7 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                     aria-pressed={tab === "current"}
                     onClick={() => setTab("current")}
                   >
-                    {c("meals.result.tab_current")}
+                    {t("meals.result.tab_current")}
                   </Button>
                   <Button
                     size="sm"
@@ -873,11 +785,11 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                     aria-pressed={tab === "next"}
                     onClick={() => setTab("next")}
                   >
-                    {c("meals.result.tab_next")}
+                    {t("meals.result.tab_next")}
                   </Button>
                 </div>
               )
-              : <SectionLabel className="mb-0">{c("meals.result.title")}</SectionLabel>}
+              : <SectionLabel className="mb-0">{t("meals.result.title")}</SectionLabel>}
             {/* LES DEUX GESTES DE CET ÉCRAN, CÔTE À CÔTE ET DE MÊME FORME.
                 La liste de courses avait son propre bouton, plus gros, posé
                 au-dessus du titre: deux traitements différents pour deux
@@ -898,7 +810,7 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                   size="sm"
                   onClick={() => setShoppingOpen(true)}
                 >
-                  {c("meals.result.shopping_title")}
+                  {t("meals.result.shopping_title")}
                 </Button>
               )}
               {/* PRÉPARER LA SUITE. N'apparaît que s'il n'y a pas déjà un plan
@@ -920,7 +832,7 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                     setFormOpen(true);
                   }}
                 >
-                  {c("meals.rebuild.prepare_next")}
+                  {t("meals.rebuild.prepare_next")}
                 </Button>
               )}
               {/* Il ne s'affiche pas quand le formulaire est déjà ouvert (il
@@ -939,7 +851,7 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                     setFormOpen(true);
                   }}
                 >
-                  {building ? c("meals.form.building") : c("meals.rebuild.button")}
+                  {building ? t("meals.form.building") : t("meals.rebuild.button")}
                 </Button>
               )}
             </div>
@@ -1007,7 +919,7 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
               place sans un mot et l'élève croit avoir mal visé — puis retape,
               indéfiniment, sur une écriture que la base refuse. */}
           {ticks.error && (
-            <p className="mb-3 text-sm text-red-600">
+            <p className="mb-3 text-sm text-red-700">
               {mealCopy("meals.tick.failed")}
             </p>
           )}
@@ -1032,7 +944,7 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
           {building
             ? (
               <Card tone="dashed">
-                <p className="text-sm text-gray-500">{c("meals.rebuild.building")}</p>
+                <p className="text-sm text-ink-soft">{t("meals.rebuild.building")}</p>
               </Card>
             )
             : groups.length === 0
@@ -1044,7 +956,7 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
             // ferait chercher un bouton qui n'existe pas.
             ? householdOwner ? null : (
               <Card tone="dashed">
-                <p className="text-sm text-gray-500">{c("meals.result.empty")}</p>
+                <p className="text-sm text-ink-soft">{t("meals.result.empty")}</p>
               </Card>
             )
             : (
@@ -1055,7 +967,7 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                 startsOn={startDate}
                 durationDays={durationDays}
                 today={today}
-                emptyLabel={c("meals.result.empty")}
+                emptyLabel={t("meals.result.empty")}
                 // ── FF-053 · CE QUI EXPLIQUE UNE CASE VIDE ─────────────────
                 // Le rythme donne les LIGNES; les trois autres donnent les
                 // quatre silences. `awayDays` vient de l'écran (il pilote déjà
@@ -1117,11 +1029,11 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                     : mealCopy("meals.energy.target_switch_off")}
                 </Button>
               )}
-              <span className="text-xs text-gray-400">
+              <span className="text-xs text-ink-soft">
                 {mealCopy("meals.energy.switch_hint")}
               </span>
               {energy.error && (
-                <span className="text-xs text-red-600">
+                <span className="text-xs text-red-700">
                   {mealCopy("meals.energy.switch_failed")}
                 </span>
               )}
@@ -1131,7 +1043,7 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
               pourquoi: la part de chacun est une PHRASE, pas un nombre. Le
               silence se lirait comme une panne. */}
           {energy.ready && energy.abstention === "household_portions_not_numeric" && (
-            <p className="mt-3 text-xs text-gray-400">
+            <p className="mt-3 text-xs text-ink-soft">
               {mealCopy("meals.energy.household_abstention")}
             </p>
           )}

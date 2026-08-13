@@ -10,7 +10,7 @@ import {
   sendBroadcast,
 } from "../api/coachBroadcast";
 import { Button } from "./ui/Button";
-import { Card } from "./ui/Card";
+import { Card, SectionLabel } from "./ui/Card";
 import { inputClass } from "./ui/Field";
 
 /**
@@ -98,18 +98,28 @@ export default function CoachBroadcastCard() {
   const last = state.last;
 
   return (
-    <Card className="mt-6">
-      <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-        {t("coach.broadcast.title")}
-      </p>
-      <p className="mt-2 text-sm leading-6 text-gray-600">{t("coach.broadcast.body")}</p>
+    // ⚠️ `mb-8` AJOUTÉ, ET C'EST UN DÉFAUT MESURÉ AU RENDU, PAS UNE PRÉFÉRENCE.
+    // Cette carte n'avait qu'un `mt-6`. Les sections de `/coach` se séparent
+    // toutes par `mb-8` (32 px) — sauf après celle-ci, qui n'en posait aucune:
+    // l'étiquette « STUDENTS » de la section suivante se retrouvait à 6 px du
+    // bord inférieur de cette carte, son équerre collée au trait. Invisible tant
+    // que l'étiquette était un `<p>` gris clair; la signature l'a rendu criant.
+    <Card className="mt-6 mb-8">
+      {/* ⚠️ L'ÉTIQUETTE MAISON EST DEVENUE `SectionLabel`: c'était le composant
+          du kit recopié à la main, en `gray-400` (2,84:1 sur blanc, sous le seuil
+          4,5 du texte). Le kit rend `text-label` + `ink-soft` = 6,11:1, en `h2`,
+          avec l'équerre.
+          ⚠️ NE POSE PAS DE `px-*` sur ce nœud: `.eq` écrit son `padding-left`
+          hors de toute couche CSS. */}
+      <SectionLabel>{t("coach.broadcast.title")}</SectionLabel>
+      <p className="max-w-[62ch] text-sm leading-6 text-ink-soft">{t("coach.broadcast.body")}</p>
 
       {block === "no_recipients" ? (
-        <p className="mt-3 text-sm leading-6 text-gray-500">
+        <p className="mt-3 max-w-[62ch] text-sm leading-6 text-ink-soft">
           {t("coach.broadcast.blocked.no_recipients")}
         </p>
       ) : block === "already_sent_this_week" ? (
-        <p className="mt-3 text-sm leading-6 text-gray-500">
+        <p className="mt-3 max-w-[62ch] text-sm leading-6 text-ink-soft">
           {nextWindow
             ? t("coach.broadcast.blocked.already_sent", { date: nextWindow })
             : t("coach.broadcast.blocked.already_sent", { date: "—" })}
@@ -128,17 +138,27 @@ export default function CoachBroadcastCard() {
             }}
           />
           <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-ink-soft">
               {t("coach.broadcast.recipients", { count: String(state.recipients) })}
               {" · "}
               {t("coach.broadcast.chars_left", { count: String(Math.max(0, remaining)) })}
             </p>
             <div className="flex items-center gap-3">
               {justSent ? (
-                <span className="text-xs text-gray-500">{t("coach.broadcast.sent")}</span>
+                <span className="text-xs text-ink-soft">{t("coach.broadcast.sent")}</span>
               ) : null}
+              {/* ⚠️ `primary` → `secondary`, ET C'EST UNE CONTRAINTE D'ÉCRAN.
+                  Cette carte est montée au milieu de `/coach`, dont l'en-tête dit
+                  « l'invitation est la SEULE action de cet écran » — et
+                  `CoachHomePage` rend ce bouton d'invitation en `primary`. Deux
+                  aplats `fig-700` sur la même vue, c'est zéro hiérarchie; le kit
+                  n'en autorise qu'un par vue rendue.
+                  Le geste ne perd rien: il est de toute façon désactivé la
+                  plupart du temps (la cadence d'un mot par semaine est tenue en
+                  base), et un contour de contrôle sous une zone de saisie se lit
+                  comme le bouton d'envoi de cette zone. */}
               <Button
-                variant="primary"
+                variant="secondary"
                 size="sm"
                 disabled={block !== null || busy}
                 onClick={onSend}
@@ -151,8 +171,10 @@ export default function CoachBroadcastCard() {
       )}
 
       {last ? (
-        <div className="mt-3 border-t border-gray-100 pt-3">
-          <p className="text-xs leading-5 text-gray-500">
+        // `border-line` (1,30:1): règle horizontale À L'INTÉRIEUR d'une carte,
+        // le seul emploi du séparateur décoratif de la charte.
+        <div className="mt-3 border-t border-line pt-3">
+          <p className="max-w-[62ch] text-xs leading-5 text-ink-soft">
             {last.finished_at
               ? t("coach.broadcast.last_result", {
                 delivered: String(last.delivered_count),
@@ -161,7 +183,7 @@ export default function CoachBroadcastCard() {
               : t("coach.broadcast.last_pending")}
           </p>
           {last.finished_at && last.skipped_count > 0 ? (
-            <p className="mt-1 text-xs leading-5 text-gray-400">
+            <p className="mt-1 max-w-[62ch] text-xs leading-5 text-ink-soft">
               {t("coach.broadcast.skipped_hint")}
             </p>
           ) : null}

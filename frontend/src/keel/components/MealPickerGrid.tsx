@@ -6,6 +6,7 @@ import {
   type EatingOccasionSlot,
 } from "../api/mealGeneration";
 import { dishDayLabel, mealCopy } from "../api/mealLabels";
+import { plural } from "../i18n/plural";
 import { Button } from "./ui/Button";
 import Modal from "./ui/Modal";
 
@@ -140,13 +141,13 @@ export default function MealPickerGrid(props: MealPickerGridProps) {
       title={mealCopy("meals.picker.title")}
       size="lg"
     >
-      <p className="mb-3 text-sm text-gray-600">
+      <p className="mb-3 text-sm text-ink-soft">
         {mealCopy("meals.picker.subtitle")}
       </p>
 
       {rows.length === 0
         ? (
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-ink-soft">
             {mealCopy("meals.picker.no_rhythm")}
           </p>
         )
@@ -161,7 +162,12 @@ export default function MealPickerGrid(props: MealPickerGridProps) {
                   <tr>
                     <th
                       scope="col"
-                      className="sticky left-0 z-10 bg-gray-50 py-2 pr-3 text-left text-xs font-medium text-gray-500"
+                      // ⚠️ `bg-paper` ET PAS `bg-paper-2`: cette colonne est
+                      // COLLÉE, donc son fond doit être celui de la fenêtre
+                      // pour que les cases passent DESSOUS sans se voir. Le
+                      // `gray-50` d'avant était déjà un aplat visible sur du
+                      // blanc — le défaut se lisait au premier défilement.
+                      className="sticky left-0 z-10 bg-paper py-2 pr-3 text-left text-xs font-medium text-ink-soft"
                     >
                       {mealCopy("meals.picker.meal")}
                     </th>
@@ -169,14 +175,18 @@ export default function MealPickerGrid(props: MealPickerGridProps) {
                       <th
                         key={`${day}-${i}`}
                         scope="col"
-                        className="px-1 py-2 text-center text-xs font-medium text-gray-500"
+                        className="px-1 py-2 text-center text-xs font-medium text-ink-soft"
                       >
                         {/* Le jour, puis la date. Sur une fenêtre qui traverse
                             deux mois, « Sat » seul ne dit pas lequel. */}
                         <span className="block">
                           {(dishDayLabel(day) ?? day).slice(0, 3)}
                         </span>
-                        <span className="block font-normal text-gray-400">
+                        {/* La date était en `gray-400` — 2,84:1, sous le seuil
+                            du texte. Elle passe à `ink-soft` (6,11:1) et se
+                            distingue du jour par la GRAISSE, pas par un gris de
+                            plus. */}
+                        <span className="block font-normal text-ink-soft">
                           {props.dates[i]?.slice(8) ?? ""}
                         </span>
                       </th>
@@ -185,10 +195,10 @@ export default function MealPickerGrid(props: MealPickerGridProps) {
                 </thead>
                 <tbody>
                   {rows.map((row) => (
-                    <tr key={row.slot} className="border-t border-gray-100">
+                    <tr key={row.slot} className="border-t border-line">
                       <th
                         scope="row"
-                        className="sticky left-0 z-10 whitespace-nowrap bg-gray-50 py-2 pr-3 text-left font-normal text-gray-900"
+                        className="sticky left-0 z-10 whitespace-nowrap bg-paper py-2 pr-3 text-left font-normal text-ink"
                       >
                         {occasionLabel(row.slot)}
                       </th>
@@ -198,7 +208,12 @@ export default function MealPickerGrid(props: MealPickerGridProps) {
                           <td key={`${day}-${i}`} className="px-1 py-2 text-center">
                             <input
                               type="checkbox"
-                              className="h-4 w-4 accent-gray-900"
+                              // `accent-*` COMPTE COMME UNE COULEUR, et celle-ci
+                              // était `gray-900`. Une case à cocher est un
+                              // CONTRÔLE: la teinte de marque y est chez elle
+                              // (charte §2 — la figue marque l'action), et elle
+                              // n'entre pas dans une pastille pour autant.
+                              className="h-4 w-4 accent-fig-700"
                               checked={on}
                               onChange={() => toggle(day, row.slot)}
                               aria-label={`${occasionLabel(row.slot)} — ${
@@ -217,12 +232,13 @@ export default function MealPickerGrid(props: MealPickerGridProps) {
             {/* CE QUE ÇA VEUT DIRE, dit une fois et sous la grille — pas au
                 survol de chaque case. Décocher n'est pas « je gère moi-même »:
                 le moment sort complètement de la composition. */}
-            <p className="mt-3 text-xs leading-5 text-gray-500">
+            <p className="mt-3 text-xs leading-5 text-ink-soft">
               {offCount === 0
                 ? mealCopy("meals.picker.all_on")
-                : mealCopy("meals.picker.some_off").replace(
-                  "{n}",
-                  String(offCount),
+                : plural(
+                  offCount,
+                  mealCopy("meals.picker.some_off_one", { n: offCount }),
+                  mealCopy("meals.picker.some_off_many", { n: offCount }),
                 )}
             </p>
 
@@ -232,13 +248,13 @@ export default function MealPickerGrid(props: MealPickerGridProps) {
                   ? mealCopy("meals.picker.saving")
                   : mealCopy("meals.picker.save")}
               </Button>
-              <button
-                type="button"
-                onClick={props.onClose}
-                className="text-xs text-gray-500 underline underline-offset-2 hover:text-gray-900"
-              >
+              {/* ANNULER EST LE GESTE QU'ON PEUT IGNORER, et le kit a une
+                  variante pour ça (`ghost`). Ce bouton se maintenait à la main
+                  en `gray-500` souligné — une sixième façon de dessiner un
+                  bouton dans un produit qui en a déjà cinq nommées. */}
+              <Button variant="ghost" size="sm" onClick={props.onClose}>
                 {mealCopy("meals.picker.cancel")}
-              </button>
+              </Button>
             </div>
           </>
         )}

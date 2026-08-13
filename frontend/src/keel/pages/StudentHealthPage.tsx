@@ -23,6 +23,8 @@ import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { Card, SectionLabel } from "../components/ui/Card";
 import { Field, inputClass } from "../components/ui/Field";
+import { en } from "../i18n/en";
+import { type MessageKey, t } from "../i18n/t";
 
 // KEEL — /app/health.
 //
@@ -55,63 +57,40 @@ import { Field, inputClass } from "../components/ui/Field";
 //     une allergie, c'est en déclarer une autre et retirer l'ancienne, et la
 //     trace des deux reste.
 //
-// I18N HAND-OFF (W9 possède `frontend/src/keel/i18n/en.ts`; ce fichier ne
-// l'écrit pas). `COPY` ci-dessous est le hand-off littéral: ses clés sont les
-// clés de message à ajouter, ses valeurs les chaînes anglaises exactes.
+// ── I18N (lot 4) ──────────────────────────────────────────────────────────
+// Le `COPY` local a rejoint le seed (`i18n/en.ts`, namespace `health`). Il
+// avait déjà la forme de `t()` — mêmes clés plates, même interpolation
+// `{param}` —, donc la conversion n'a rien changé au rendu.
+//
+// Une seule chose a bougé au passage, et c'était un piège: la pastille
+// « Medical » se fabriquait en découpant l'option du menu sur son tiret
+// cadratin (`.split(" — ")[0]`). Une traduction qui ponctue autrement — et le
+// français le fait volontiers — aurait rendu la phrase entière dans une
+// pastille, sans qu'aucun test ne le voie. Le mot a maintenant sa clé.
 
-const COPY = {
-  "health.title": "What you cannot eat",
-  "health.subtitle":
-    "Allergies, intolerances, medication. Your coach builds around these, and the chat will never suggest them to you.",
-  "health.list.title": "Active",
-  "health.list.empty":
-    "Nothing declared yet. Add anything that has to stay off your plate.",
-  "health.list.declared_by_coach": "Added by your coach",
-  "health.list.coverage_full": "Recognised under its other names",
-  "health.list.coverage_word_only": "Recognised only as written",
-  "health.list.coverage_hint":
-    "Written in your own words, so it is matched on that word alone. Your coach can see it and add the standard form.",
-  "health.list.retract": "Remove",
-  "health.list.retracting": "Removing…",
-  "health.add.title": "Add one",
-  "health.add.kind_label": "What kind",
-  "health.add.what_label": "What exactly",
-  "health.add.what_hint": "Pick from the list when it is there — it is matched more widely.",
-  "health.add.other_option": "Something else…",
-  "health.add.other_label": "Name it",
-  "health.add.other_placeholder": "e.g. kiwi",
-  "health.add.severity_label": "How strict",
-  "health.add.severity_medical": "Medical — never, under any circumstance",
-  "health.add.severity_strict": "Strict — I avoid it",
-  "health.add.severity_preference": "Preference — I would rather not",
-  "health.add.severity_hint":
-    "Medical is not just stronger: it is the only one that makes the chat refuse to mention it at all.",
-  "health.add.notes_label": "Anything to add (optional)",
-  "health.add.notes_placeholder": "e.g. traces are fine, cooked is fine…",
-  "health.add.submit": "Add",
-  "health.add.saving": "Adding…",
-  "health.add.error_no_ref": "Name what has to stay off your plate.",
-  "health.add.error_duplicate": "That one is already on your list.",
-  "health.kind.allergy": "Allergy",
-  "health.kind.intolerance": "Intolerance",
-  "health.kind.medical": "Medication",
-  "health.kind.religious": "Religious or ethical",
-  "health.kind.dislike": "Dislike",
-  "health.loading": "Loading…",
-  "health.error": "Could not load this. {message}",
-} as const;
+/**
+ * Les clés `health.*` du seed, à l'exécution — pour `kindLabel`, qui compose sa
+ * clé à partir d'un jeton venu de la BASE et ne peut donc que demander « cette
+ * clé existe-t-elle ? ».
+ */
+const HEALTH_KEYS: ReadonlySet<string> = new Set(
+  Object.keys(en).filter((key) => key.startsWith("health.")),
+);
 
-type CopyKey = keyof typeof COPY;
-
-function c(key: CopyKey, params?: Record<string, string>): string {
-  const template: string = COPY[key];
-  if (!params) return template;
-  return template.replace(/\{(\w+)\}/g, (whole, name: string) => params[name] ?? whole);
+function isHealthKey(key: string): key is MessageKey {
+  return HEALTH_KEYS.has(key);
 }
 
+/**
+ * Le genre de contrainte, en mots. Un jeton inconnu se rend TEL QUEL au lieu de
+ * jeter: `CONSTRAINT_KINDS` est fermé côté code, mais une ligne écrite par le
+ * coach ou par la conversation peut porter un genre plus récent que cet écran —
+ * et une allergie qu'on refuse d'afficher est une allergie que l'élève croit
+ * absente.
+ */
 function kindLabel(kind: string): string {
-  const key = `health.kind.${kind}` as CopyKey;
-  return key in COPY ? c(key) : kind;
+  const key = `health.kind.${kind}`;
+  return isHealthKey(key) ? t(key) : kind;
 }
 
 /**
@@ -184,7 +163,7 @@ export default function StudentHealthPage() {
     setFormError(null);
     const ref = usesFreeText ? freeTextRef : effectiveChoice;
     if (!ref) {
-      setFormError(c("health.add.error_no_ref"));
+      setFormError(t("health.add.error_no_ref"));
       return;
     }
     setSaving(true);
@@ -205,7 +184,7 @@ export default function StudentHealthPage() {
     } catch (error) {
       setFormError(
         error instanceof DuplicateConstraintError
-          ? c("health.add.error_duplicate")
+          ? t("health.add.error_duplicate")
           : error instanceof Error
           ? error.message
           : String(error),
@@ -230,18 +209,18 @@ export default function StudentHealthPage() {
 
   if (state.kind === "loading") {
     return (
-      <KeelAppShell title={c("health.title")} subtitle={c("health.subtitle")}>
-        <p className="text-sm text-gray-500">{c("health.loading")}</p>
+      <KeelAppShell title={t("health.title")} subtitle={t("health.subtitle")}>
+        <p className="text-sm text-ink-soft">{t("health.loading")}</p>
       </KeelAppShell>
     );
   }
 
   if (state.kind === "error") {
     return (
-      <KeelAppShell title={c("health.title")} subtitle={c("health.subtitle")}>
+      <KeelAppShell title={t("health.title")} subtitle={t("health.subtitle")}>
         <Card tone="warning">
           <p className="text-sm text-amber-900">
-            {c("health.error", { message: state.message })}
+            {t("health.error", { message: state.message })}
           </p>
         </Card>
       </KeelAppShell>
@@ -249,14 +228,14 @@ export default function StudentHealthPage() {
   }
 
   return (
-    <KeelAppShell title={c("health.title")} subtitle={c("health.subtitle")}>
+    <KeelAppShell title={t("health.title")} subtitle={t("health.subtitle")}>
       <div className="space-y-8">
         <section>
-          <SectionLabel>{c("health.list.title")}</SectionLabel>
+          <SectionLabel>{t("health.list.title")}</SectionLabel>
           {rows.length === 0
             ? (
               <Card tone="dashed">
-                <p className="text-sm text-gray-500">{c("health.list.empty")}</p>
+                <p className="text-sm text-ink-soft">{t("health.list.empty")}</p>
               </Card>
             )
             : (
@@ -280,30 +259,30 @@ export default function StudentHealthPage() {
                         <div className="flex items-start justify-between gap-4">
                           <div className="min-w-0">
                             <div className="flex flex-wrap items-center gap-2">
-                              <span className="font-medium text-gray-900">
+                              <span className="font-medium text-ink">
                                 {allergenLabel(ref ?? "")}
                               </span>
                               <Badge tone="neutral">{kindLabel(row.kind)}</Badge>
                               {row.severity === "medical" && (
                                 <Badge tone="critical">
-                                  {c("health.add.severity_medical").split(" — ")[0]}
+                                  {t("health.severity_short.medical")}
                                 </Badge>
                               )}
                               {row.declared_by === "coach" && (
                                 <Badge tone="info">
-                                  {c("health.list.declared_by_coach")}
+                                  {t("health.list.declared_by_coach")}
                                 </Badge>
                               )}
                             </div>
                             {row.notes && (
-                              <p className="mt-1 text-sm text-gray-600">{row.notes}</p>
+                              <p className="mt-1 text-sm text-ink-soft">{row.notes}</p>
                             )}
                             {showsCoverage && (
-                              <p className="mt-2 text-xs text-gray-500">
+                              <p className="mt-2 text-xs text-ink-soft">
                                 {wide
-                                  ? c("health.list.coverage_full")
-                                  : `${c("health.list.coverage_word_only")} — ${
-                                    c("health.list.coverage_hint")
+                                  ? t("health.list.coverage_full")
+                                  : `${t("health.list.coverage_word_only")} — ${
+                                    t("health.list.coverage_hint")
                                   }`}
                               </p>
                             )}
@@ -313,8 +292,8 @@ export default function StudentHealthPage() {
                             disabled={retracting === row.id}
                           >
                             {retracting === row.id
-                              ? c("health.list.retracting")
-                              : c("health.list.retract")}
+                              ? t("health.list.retracting")
+                              : t("health.list.retract")}
                           </Button>
                         </div>
                       </Card>
@@ -326,10 +305,10 @@ export default function StudentHealthPage() {
         </section>
 
         <section>
-          <SectionLabel>{c("health.add.title")}</SectionLabel>
+          <SectionLabel>{t("health.add.title")}</SectionLabel>
           <Card>
             <form className="space-y-4" onSubmit={(e) => void submit(e)}>
-              <Field label={c("health.add.kind_label")} htmlFor="health-kind">
+              <Field label={t("health.add.kind_label")} htmlFor="health-kind">
                 <select
                   id="health-kind"
                   className={inputClass}
@@ -344,8 +323,8 @@ export default function StudentHealthPage() {
 
               {catalogApplies && (
                 <Field
-                  label={c("health.add.what_label")}
-                  hint={c("health.add.what_hint")}
+                  label={t("health.add.what_label")}
+                  hint={t("health.add.what_hint")}
                   htmlFor="health-what"
                 >
                   <select
@@ -355,38 +334,38 @@ export default function StudentHealthPage() {
                     onChange={(e) => setChoice(e.target.value)}
                   >
                     {ALLERGEN_OPTIONS.map((option) => (
-                      <option key={option.slug} value={option.slug}>{option.label}</option>
+                      <option key={option.slug} value={option.slug}>{allergenLabel(option.slug)}</option>
                     ))}
-                    <option value={OTHER}>{c("health.add.other_option")}</option>
+                    <option value={OTHER}>{t("health.add.other_option")}</option>
                   </select>
                 </Field>
               )}
 
               {usesFreeText && (
                 <Field
-                  label={c("health.add.other_label")}
+                  label={t("health.add.other_label")}
                   // La saisie libre n'est pas synonyme d'étroit: `milk`,
                   // `eggs`, `soya` sont couverts sans être dans la liste. Le
                   // dire PENDANT la frappe évite de promettre étroit ici et
                   // large sur la fiche trois secondes plus tard.
                   hint={freeTextRef !== null && hasWideCoverage(freeTextRef)
-                    ? c("health.list.coverage_full")
-                    : c("health.list.coverage_hint")}
+                    ? t("health.list.coverage_full")
+                    : t("health.list.coverage_hint")}
                   htmlFor="health-other"
                 >
                   <input
                     id="health-other"
                     className={inputClass}
                     value={freeText}
-                    placeholder={c("health.add.other_placeholder")}
+                    placeholder={t("health.add.other_placeholder")}
                     onChange={(e) => setFreeText(e.target.value)}
                   />
                 </Field>
               )}
 
               <Field
-                label={c("health.add.severity_label")}
-                hint={c("health.add.severity_hint")}
+                label={t("health.add.severity_label")}
+                hint={t("health.add.severity_hint")}
                 htmlFor="health-severity"
               >
                 <select
@@ -395,26 +374,26 @@ export default function StudentHealthPage() {
                   value={severity}
                   onChange={(e) => setSeverity(e.target.value as ConstraintSeverity)}
                 >
-                  <option value="medical">{c("health.add.severity_medical")}</option>
-                  <option value="strict">{c("health.add.severity_strict")}</option>
-                  <option value="preference">{c("health.add.severity_preference")}</option>
+                  <option value="medical">{t("health.add.severity_medical")}</option>
+                  <option value="strict">{t("health.add.severity_strict")}</option>
+                  <option value="preference">{t("health.add.severity_preference")}</option>
                 </select>
               </Field>
 
-              <Field label={c("health.add.notes_label")} htmlFor="health-notes">
+              <Field label={t("health.add.notes_label")} htmlFor="health-notes">
                 <input
                   id="health-notes"
                   className={inputClass}
                   value={notes}
-                  placeholder={c("health.add.notes_placeholder")}
+                  placeholder={t("health.add.notes_placeholder")}
                   onChange={(e) => setNotes(e.target.value)}
                 />
               </Field>
 
-              {formError && <p className="text-sm text-red-600">{formError}</p>}
+              {formError && <p className="text-sm text-red-700">{formError}</p>}
 
               <Button type="submit" variant="primary" disabled={saving}>
-                {saving ? c("health.add.saving") : c("health.add.submit")}
+                {saving ? t("health.add.saving") : t("health.add.submit")}
               </Button>
             </form>
           </Card>

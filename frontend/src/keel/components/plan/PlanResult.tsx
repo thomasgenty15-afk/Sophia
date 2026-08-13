@@ -126,7 +126,7 @@ export default function PlanResult(props: PlanResultProps) {
   if (groups.length === 0) {
     return (
       <Card tone="dashed">
-        <p className="text-sm text-gray-500">{props.emptyLabel}</p>
+        <p className="text-sm text-ink-soft">{props.emptyLabel}</p>
       </Card>
     );
   }
@@ -152,19 +152,26 @@ export default function PlanResult(props: PlanResultProps) {
         return (
           <div key={group.day ?? "undated"}>
             {group.day && (
-              <h3 className="mb-2 flex items-baseline gap-2 text-sm font-semibold text-gray-900">
+              <h3 className="mb-2 flex items-baseline gap-2 text-sm font-semibold text-ink">
                 {dishDayLabel(group.day)}
                 {/* OÙ ON EN EST DANS LE PLAN. Sans repère, une semaine qui
                     commence mercredi se lit comme une semaine en retard: on ne
                     sait pas si le premier jour affiché est passé, courant ou à
                     venir. */}
+                {/* ⛔ « AUJOURD'HUI » EST UNE POSITION, PAS UN ÉTAT. L'émeraude
+                    était ici un faux état: dans tout le produit elle dit « ok »,
+                    et un jour n'est ni réussi ni raté. Elle volait en plus la
+                    teinte de l'accusé d'enregistrement, qui vit à quelques
+                    lignes. Le repère passe donc à la forme — le cran
+                    `text-label` de la charte, en encre pleine, contre l'encre
+                    secondaire du jour passé juste en dessous. */}
                 {date === props.today && (
-                  <span className="text-[11px] font-normal uppercase tracking-wide text-emerald-700">
+                  <span className="text-label font-semibold text-ink">
                     {mealCopy("meals.result.today")}
                   </span>
                 )}
                 {date !== null && date < props.today && (
-                  <span className="text-[11px] font-normal uppercase tracking-wide text-gray-400">
+                  <span className="text-label font-normal text-ink-soft">
                     {mealCopy("meals.result.past")}
                   </span>
                 )}

@@ -1,6 +1,7 @@
 import React from "react";
 import { Button } from "./ui/Button";
 import { Field, inputClass } from "./ui/Field";
+import Modal from "./ui/Modal";
 import {
   callDoctrine,
   type DoctrineDraft,
@@ -16,6 +17,8 @@ import {
   MAX_DOCUMENT_PAGES,
   rejectDocument,
 } from "../api/coachDocument";
+import { t } from "../i18n/t";
+import { plural } from "../i18n/plural";
 
 /**
  * LES QUATRE FAÇONS DE COMMENCER — sorties du corps de la page.
@@ -55,7 +58,7 @@ interface InterviewQuestion {
 
 /** Ce que chaque chemin fait au travail déjà écrit. Dit AVANT le clic. */
 function EffectOnExisting({ children }: { children: React.ReactNode }) {
-  return <p className="mt-1 text-xs leading-5 text-gray-500">{children}</p>;
+  return <p className="mt-1 text-xs leading-5 text-ink-soft">{children}</p>;
 }
 
 export function DoctrineStartDialog({
@@ -131,10 +134,7 @@ export function DoctrineStartDialog({
         onResult({
           draft: out.draft,
           issues: out.issues ?? [],
-          notice:
-            "Read it back. These are your positions — but the words are ours until " +
-            "you rewrite them, and that is what the counter above the save button is " +
-            "telling you.",
+          notice: t("coach.doctrine.start.forks.notice"),
         });
       } catch (err) {
         // Ces deux codes ne veulent rien dire pour un coach. Ils ne disent PAS
@@ -142,14 +142,10 @@ export function DoctrineStartDialog({
         // relancer. Les autres traversent tels quels.
         const code = err instanceof Error ? err.message : String(err);
         if (code === "generated_text_trips_own_lock") {
-          throw new Error(
-            "What came back contradicted one of your own red lines, so we threw it " +
-              "away rather than write it down. Press the button again — it will come " +
-              "out differently.",
-          );
+          throw new Error(t("coach.doctrine.start.forks.tripped_lock"));
         }
         if (code === "compile_unparseable") {
-          throw new Error("That one came back garbled and we dropped it. Press the button again.");
+          throw new Error(t("coach.doctrine.start.forks.garbled"));
         }
         throw err;
       }
@@ -157,22 +153,34 @@ export function DoctrineStartDialog({
 
   const onCompileDocument = (mode: "add" | "replace") =>
     run("document", async () => {
-      if (!docFile) throw new Error("Choose a PDF first.");
+      if (!docFile) throw new Error(t("coach.doctrine.start.document.need_file"));
       const out = await compileDocument(docFile, {
         mergeInto: mode === "add" ? draft : null,
         contentLocale,
       });
+      // ⚠️ LE PLURIEL PASSE PAR `plural`, PAS PAR UN `> 1 ? "s" : ""`. La règle
+      // du « s » est ANGLAISE: le français met le singulier jusqu'à 2 (« 0
+      // page », « 1 page »), et fabriquer la forme au lieu de la lire est
+      // exactement ce que `i18n/plural.ts` existe pour interdire.
       const foods = out.proposals_saved > 0
-        ? ` ${out.proposals_saved} food${out.proposals_saved > 1 ? "s" : ""} from it ${
-          out.proposals_saved > 1 ? "are" : "is"
-        } waiting on your Recommended food screen.`
+        ? plural(
+          out.proposals_saved,
+          t("coach.doctrine.start.document.foods_one", { count: out.proposals_saved }),
+          t("coach.doctrine.start.document.foods_many", { count: out.proposals_saved }),
+        )
         : "";
       setDocFile(null);
       onResult({
         draft: out.draft,
         issues: out.issues ?? [],
-        notice: `Read ${out.page_count} page${out.page_count > 1 ? "s" : ""}. Check it back ` +
-          `before saving — the AI transcribes, it does not decide.${foods}`,
+        notice: [
+          plural(
+            out.page_count,
+            t("coach.doctrine.start.document.notice_one", { count: out.page_count }),
+            t("coach.doctrine.start.document.notice_many", { count: out.page_count }),
+          ),
+          foods,
+        ].filter(Boolean).join(" "),
       });
     });
 
@@ -185,7 +193,16 @@ export function DoctrineStartDialog({
           answer: (answers[i] ?? "").trim(),
         }))
         .filter((a) => a.answer !== "");
-      if (payload.length === 0) throw new Error("answer_at_least_one_question");
+      // ⚠️ C'ÉTAIT UN CODE, ET LE COACH LE LISAIT TEL QUEL.
+      // `run()` met `err.message` dans la carte d'échec, mot pour mot: un
+      // coach qui cliquait sans avoir répondu lisait
+      // « answer_at_least_one_question ». Les codes qui traversent ainsi
+      // viennent du SERVEUR (`coach_suspended`, `voice_sample_required`) et
+      // sont traduits ailleurs; celui-ci est fabriqué ici, deux lignes avant
+      // son affichage, et n'avait aucune raison d'être un jeton.
+      if (payload.length === 0) {
+        throw new Error(t("coach.doctrine.start.interview.need_one"));
+      }
       const out = await callDoctrine<{ draft: DoctrineDraft; issues: string[] }>({
         action: "compile",
         answers: payload,
@@ -194,7 +211,7 @@ export function DoctrineStartDialog({
       onResult({
         draft: out.draft,
         issues: out.issues ?? [],
-        notice: "Read it back before saving - the AI transcribes, it does not decide.",
+        notice: t("coach.doctrine.start.interview.notice"),
       });
     });
 
@@ -220,49 +237,60 @@ export function DoctrineStartDialog({
   }) => {
     const isOpen = openPath === id;
     return (
-      <li className="rounded-lg border border-gray-200">
+      <li className="rounded-card border border-line-strong">
         <button
           type="button"
           onClick={() => setOpenPath(isOpen ? null : id)}
-          className="flex w-full items-start justify-between gap-3 px-4 py-3 text-left hover:bg-gray-50"
+          className="flex w-full items-start justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-fig-50"
           aria-expanded={isOpen}
         >
           <span className="min-w-0">
-            <span className="block text-sm font-medium text-gray-900">{title}</span>
-            <span className="mt-0.5 block text-xs leading-5 text-gray-500">{who}</span>
+            <span className="block text-sm font-medium text-ink">{title}</span>
+            <span className="mt-0.5 block max-w-[62ch] text-xs leading-5 text-ink-soft">{who}</span>
           </span>
-          <span className="mt-1 shrink-0 text-xs text-gray-400">{isOpen ? "−" : "+"}</span>
+          <span className="mt-1 shrink-0 text-xs text-ink-soft" aria-hidden="true">
+            {isOpen ? "−" : "+"}
+          </span>
         </button>
-        {isOpen ? <div className="border-t border-gray-100 px-4 py-4">{children}</div> : null}
+        {isOpen ? <div className="border-t border-line px-4 py-4">{children}</div> : null}
       </li>
     );
   };
 
+  // ⛔ LA COQUE DE CETTE FENÊTRE ÉTAIT ÉCRITE À LA MAIN, ET C'EST `ui/Modal`
+  // MAINTENANT. Ce n'est pas un geste de couleur: la version locale posait un
+  // voile, une carte et un bouton « Fermer », et rien d'autre. Il lui manquait
+  // les quatre obligations que le kit tient en un seul endroit —
+  //   · `role="dialog"` + `aria-modal`: sans eux un lecteur d'écran continue
+  //     d'annoncer l'écran RECOUVERT;
+  //   · Échap: la seule sortie était un bouton qu'il fallait viser;
+  //   · le verrou de défilement: le premier geste au-dessus du fond emportait la
+  //     page derrière, et on ressortait en ayant perdu sa place;
+  //   · le focus entrant: la tabulation continuait dans la page cachée.
+  // Le voile passe de `black/40` à l'encre de la marque, la coque à
+  // `rounded-fiche` sur `paper`, et le fronton porte le titre.
+  //
+  // ⚠️ `Modal` ne prend pas de sous-titre, et la chaîne existe dans les deux
+  // packs: elle est rendue en tête du corps, au même endroit qu'avant à deux
+  // pixels près. Aucune chaîne ajoutée, aucune retirée.
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 px-4 py-6 sm:py-10">
-      <div className="flex max-h-full w-full max-w-2xl flex-col overflow-hidden rounded-lg bg-white shadow-lg">
-        <div className="flex items-start justify-between gap-3 border-b border-gray-100 px-5 py-4">
-          <div className="min-w-0">
-            <h2 className="text-lg font-semibold text-gray-900">Where your method comes from</h2>
-            <p className="mt-1 text-xs leading-5 text-gray-500">
-              Four ways in. Nothing here is saved, and nothing reaches a student
-              until you publish.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="shrink-0 rounded border border-gray-300 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50"
-          >
-            Close
-          </button>
-        </div>
+    <Modal
+      open={open}
+      onClose={onClose}
+      size="lg"
+      title={t("coach.doctrine.start.title")}
+      closeLabel={t("coach.doctrine.start.close")}
+    >
+      <div>
+        <p className="max-w-[62ch] text-xs leading-5 text-ink-soft">
+          {t("coach.doctrine.start.subtitle")}
+        </p>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+        <div className="mt-4">
           {failure ? (
-            <div className="mb-4 rounded-md bg-amber-50 px-3 py-2">
-              <p className="text-sm text-gray-900">That did not go through.</p>
-              <p className="mt-1 break-words text-xs text-gray-600">{failure}</p>
+            <div className="mb-4 rounded-card border border-amber-200 bg-amber-50 px-3 py-2">
+              <p className="text-sm text-amber-900">{t("coach.doctrine.action_failed")}</p>
+              <p className="mt-1 break-words text-xs text-amber-900">{failure}</p>
             </div>
           ) : null}
 
@@ -273,14 +301,12 @@ export function DoctrineStartDialog({
             lisent Sophia en ce moment.
           */}
           {doctrineSource === "house" ? (
-            <div className="mb-4 rounded-md border border-gray-900/10 bg-gray-50 px-3 py-2">
-              <p className="text-sm text-gray-900">
-                Your students are being followed by Sophia's method right now, and
-                your agent signs “Sophia”.
+            <div className="mb-4 rounded-card border border-line bg-paper-2 px-3 py-2">
+              <p className="text-sm text-ink">
+                {t("coach.doctrine.start.house_now")}
               </p>
-              <p className="mt-1 text-xs leading-5 text-gray-600">
-                Writing your own below takes it back: publish it and your agent
-                signs your name again.
+              <p className="mt-1 text-xs leading-5 text-ink-soft">
+                {t("coach.doctrine.start.house_takeback")}
               </p>
             </div>
           ) : null}
@@ -288,18 +314,11 @@ export function DoctrineStartDialog({
           <ul className="space-y-3">
             <Path
               id="forks"
-              title="Answer a short questionnaire"
-              who={
-                <>
-                  Ten things coaches disagree about, plus a few lines in your own
-                  words. Fastest way in.
-                </>
-              }
+              title={t("coach.doctrine.start.forks.title")}
+              who={t("coach.doctrine.start.forks.who")}
             >
-              <p className="text-xs leading-5 text-gray-500">
-                Tap the side that is yours, and skip the ones you have no rule
-                about. Skipping is an answer: your agent then says nothing on
-                that subject rather than guessing.
+              <p className="text-xs leading-5 text-ink-soft">
+                {t("coach.doctrine.start.forks.body")}
               </p>
               {/*
                 CE CHEMIN ÉCRIT UNE MÉTHODE ENTIÈRE, IL N'AJOUTE PAS.
@@ -311,15 +330,14 @@ export function DoctrineStartDialog({
               */}
               {draft ? (
                 <EffectOnExisting>
-                  <strong>This writes a new method and replaces what you have.</strong>{" "}
-                  To add to what is already there, close this and use the pencils
-                  on your method instead.
+                  <strong>{t("coach.doctrine.start.forks.replaces_lead")}</strong>{" "}
+                  {t("coach.doctrine.start.forks.replaces_body")}
                 </EffectOnExisting>
               ) : null}
               <div className="mt-4 space-y-4">
                 {STARTER_FORKS.map((fork) => (
                   <div key={fork.key}>
-                    <p className="text-sm font-medium text-gray-900">{fork.subject}</p>
+                    <p className="text-sm font-medium text-ink">{fork.subject}</p>
                     <div className="mt-2 flex flex-wrap gap-2">
                       {fork.positions.map((position) => {
                         // `no_rule` n'est pas une position: c'est l'absence de
@@ -338,8 +356,8 @@ export function DoctrineStartDialog({
                               }))}
                             className={`rounded-full border px-3 py-1.5 text-left text-xs ${
                               picked
-                                ? "border-gray-900 bg-gray-900 text-white"
-                                : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                                ? "border-fig-700 bg-fig-700 text-paper"
+                                : "border-line-strong bg-paper text-ink hover:bg-fig-50"
                             }`}
                           >
                             {position.label}
@@ -356,8 +374,8 @@ export function DoctrineStartDialog({
                 Les camps disent QUOI. Sans ces lignes-ci, la machine écrit du
                 manuel de nutrition, et le manuel est le même pour tout le monde.
               */}
-              <p className="mt-8 text-xs font-medium uppercase tracking-wide text-gray-500">
-                How you talk
+              <p className="mt-8 text-xs font-medium uppercase tracking-wide text-ink-soft">
+                {t("coach.doctrine.start.forks.voice_title")}
               </p>
               <div className="mt-3 space-y-4">
                 {VOICE_QUESTIONS.map((q, i) => (
@@ -379,38 +397,47 @@ export function DoctrineStartDialog({
                   onClick={onCompileFromForks}
                   disabled={busy !== null || forksPicked === 0 || !hasVoice}
                 >
-                  {busy === "forks" ? "Writing your method…" : "Write my method"}
+                  {busy === "forks"
+                    ? t("coach.doctrine.start.forks.writing")
+                    : t("coach.doctrine.start.forks.cta")}
                 </Button>
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-ink-soft">
                   {forksPicked === 0
-                    ? "Tap where you stand on at least one question."
+                    ? t("coach.doctrine.start.forks.need_one")
                     : !hasVoice
-                    ? "We need a couple of lines in your own words — that is the whole point."
-                    : `${forksPicked} question${forksPicked > 1 ? "s" : ""} answered. ` +
-                      "The rest stay blank, and that is fine."}
+                    ? t("coach.doctrine.start.forks.need_voice")
+                    : plural(
+                      forksPicked,
+                      t("coach.doctrine.start.forks.answered_one", { count: forksPicked }),
+                      t("coach.doctrine.start.forks.answered_many", { count: forksPicked }),
+                    )}
                 </span>
               </div>
             </Path>
 
             <Path
               id="document"
-              title="Start from something you already wrote"
-              who="Your ebook, your method handbook, the FAQ you send new clients."
+              title={t("coach.doctrine.start.document.title")}
+              who={t("coach.doctrine.start.document.who")}
             >
-              <p className="text-xs leading-5 text-gray-500">
-                It is read once, and what comes out lands in your method for you
-                to check — nothing is saved and nothing reaches a student until
-                you publish.
+              <p className="text-xs leading-5 text-ink-soft">
+                {t("coach.doctrine.start.document.body")}
               </p>
-              <p className="mt-2 text-xs leading-5 text-gray-500">
-                Upload <strong>your own</strong>{" "}
-                material. A textbook someone else wrote would put another
-                author's positions in your agent's mouth, under your name.
+              {/* L'emphase porte la phrase entière — « Upload <strong>your
+                  own</strong> material » découpait un groupe nominal dont
+                  l'ordre est celui de l'anglais. */}
+              <p className="mt-2 text-xs leading-5 text-ink-soft">
+                <strong>{t("coach.doctrine.start.document.own_lead")}</strong>{" "}
+                {t("coach.doctrine.start.document.own_body")}
               </p>
 
               <div className="mt-4 flex flex-wrap items-center gap-3">
-                <label className="cursor-pointer rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50">
-                  {docFile ? docFile.name : "Choose a PDF"}
+                {/* Un `<label>` déguisé en bouton: le champ de fichier caché vit
+                    dedans, donc il ne peut pas devenir un `<Button>` sans casser
+                    cette liaison. Il en prend le vocabulaire — contour de
+                    contrôle, rayon plein, survol du kit. */}
+                <label className="inline-flex min-w-0 cursor-pointer items-center rounded-full border border-line-strong bg-paper px-4 py-2 text-sm font-medium text-ink transition-colors hover:bg-fig-50">
+                  {docFile ? docFile.name : t("coach.doctrine.start.document.choose")}
                   <input
                     type="file"
                     accept="application/pdf,.pdf"
@@ -431,14 +458,17 @@ export function DoctrineStartDialog({
                 {docFile ? (
                   <button
                     type="button"
-                    className="text-xs text-gray-500 underline decoration-dotted underline-offset-2"
+                    className="text-xs text-ink-soft underline decoration-dotted underline-offset-2"
                     onClick={() => setDocFile(null)}
                   >
-                    Clear
+                    {t("coach.doctrine.start.document.clear")}
                   </button>
                 ) : null}
-                <span className="text-xs text-gray-500">
-                  PDF, up to {MAX_DOCUMENT_MB} MB and {MAX_DOCUMENT_PAGES} pages.
+                <span className="text-xs text-ink-soft">
+                  {t("coach.doctrine.start.document.limits", {
+                    mb: MAX_DOCUMENT_MB,
+                    pages: MAX_DOCUMENT_PAGES,
+                  })}
                 </span>
               </div>
 
@@ -454,29 +484,31 @@ export function DoctrineStartDialog({
                     <>
                       <div className="flex flex-wrap gap-2">
                         <Button onClick={() => onCompileDocument("add")} disabled={busy !== null}>
-                          {busy === "document" ? "Reading it…" : "Add to what I have"}
+                          {busy === "document"
+                            ? t("coach.doctrine.start.document.reading")
+                            : t("coach.doctrine.start.document.add_cta")}
                         </Button>
                         <Button
                           variant="secondary"
                           onClick={() => onCompileDocument("replace")}
                           disabled={busy !== null}
                         >
-                          Start over from this document
+                          {t("coach.doctrine.start.document.replace_cta")}
                         </Button>
                       </div>
                       <EffectOnExisting>
-                        Adding keeps every sentence you already have and only
-                        fills the gaps — upload your documents one after another.
-                        Starting over replaces all of it.
+                        {t("coach.doctrine.start.document.effect")}
                       </EffectOnExisting>
                     </>
                   ) : (
                     <Button onClick={() => onCompileDocument("replace")} disabled={busy !== null}>
-                      {busy === "document" ? "Reading it…" : "Read my document"}
+                      {busy === "document"
+                        ? t("coach.doctrine.start.document.reading")
+                        : t("coach.doctrine.start.document.read_cta")}
                     </Button>
                   )}
-                  <p className="mt-2 text-xs leading-5 text-gray-500">
-                    A long document takes up to two minutes. Leave this tab open.
+                  <p className="mt-2 text-xs leading-5 text-ink-soft">
+                    {t("coach.doctrine.start.document.slow")}
                   </p>
                 </div>
               ) : null}
@@ -484,19 +516,16 @@ export function DoctrineStartDialog({
 
             <Path
               id="interview"
-              title="Answer the full interview"
-              who="Eleven questions in your own words. The longest way, and the one that sounds most like you."
+              title={t("coach.doctrine.start.interview.title")}
+              who={t("coach.doctrine.start.interview.who")}
             >
-              <p className="text-xs leading-5 text-gray-500">
-                Three of them ask for your sentence, word for word — that is what
-                makes the agent sound like you rather than like a nutrition
-                textbook.
+              <p className="text-xs leading-5 text-ink-soft">
+                {t("coach.doctrine.start.interview.body")}
               </p>
               {draft ? (
                 <EffectOnExisting>
-                  <strong>This one replaces everything you have.</strong>{" "}
-                  Use it to rethink your method, not to fix a sentence — to fix a
-                  sentence, close this and edit it directly.
+                  <strong>{t("coach.doctrine.start.interview.replaces_lead")}</strong>{" "}
+                  {t("coach.doctrine.start.interview.replaces_body")}
                 </EffectOnExisting>
               ) : null}
               <div className="mt-4 space-y-4">
@@ -505,7 +534,9 @@ export function DoctrineStartDialog({
                     key={`${q.section}-${i}`}
                     label={q.question}
                     htmlFor={`q-${i}`}
-                    hint={q.section === "hard_cases" ? "Word for word." : undefined}
+                    hint={q.section === "hard_cases"
+                      ? t("coach.doctrine.start.interview.word_for_word")
+                      : undefined}
                   >
                     <textarea
                       id={`q-${i}`}
@@ -519,7 +550,9 @@ export function DoctrineStartDialog({
               </div>
               <div className="mt-4">
                 <Button onClick={onCompileInterview} disabled={busy !== null}>
-                  {busy === "interview" ? "Reading you…" : "Turn this into my method"}
+                  {busy === "interview"
+                    ? t("coach.doctrine.start.interview.reading")
+                    : t("coach.doctrine.start.interview.cta")}
                 </Button>
               </div>
             </Path>
@@ -541,22 +574,20 @@ export function DoctrineStartDialog({
             */}
             <Path
               id="delegate"
-              title="Let Sophia handle it"
-              who="For a gym owner, or anyone who wants the service without a position to defend. No questions, one click."
+              title={t("coach.doctrine.start.delegate.title")}
+              who={t("coach.doctrine.start.delegate.who")}
             >
-              <p className="text-sm leading-6 text-gray-900">
-                Your students are followed by Sophia's method, and it says so:
-                your agent signs <strong>“Sophia”</strong>, not your name.
+              {/* Le gras portait « “Sophia” » AU MILIEU de la phrase. Les
+                  guillemets courbes portent déjà la mise en avant du nom, et la
+                  phrase se traduit d'un bloc. */}
+              <p className="text-sm leading-6 text-ink">
+                {t("coach.doctrine.start.delegate.body")}
               </p>
-              <p className="mt-2 text-xs leading-5 text-gray-500">
-                This is not your method with the work done for you — it is a
-                stand-in, and your students see it as one. In exchange you have
-                nothing to write and nothing to keep up to date.
+              <p className="mt-2 text-xs leading-5 text-ink-soft">
+                {t("coach.doctrine.start.delegate.tradeoff")}
               </p>
               <EffectOnExisting>
-                It replaces the whole source while it is on. Anything you have
-                written stays exactly where it is — it just stops being read —
-                and comes back the moment you switch off.
+                {t("coach.doctrine.start.delegate.effect")}
               </EffectOnExisting>
 
               <div className="mt-4">
@@ -567,22 +598,23 @@ export function DoctrineStartDialog({
                       onClick={() => onSetSource("own")}
                       disabled={busy !== null}
                     >
-                      {busy === "delegate" ? "Switching…" : "Take it back — sign my own name"}
+                      {busy === "delegate"
+                        ? t("coach.doctrine.start.delegate.switching")
+                        : t("coach.doctrine.start.delegate.take_back")}
                     </Button>
-                    <p className="mt-2 text-xs leading-5 text-gray-500">
-                      Your students go back to your own published method. If you
-                      have not published one, your agent answers from general
-                      knowledge and never in your name.
+                    <p className="mt-2 text-xs leading-5 text-ink-soft">
+                      {t("coach.doctrine.start.delegate.take_back_note")}
                     </p>
                   </>
                 ) : (
                   <>
                     <Button onClick={() => onSetSource("house")} disabled={busy !== null}>
-                      {busy === "delegate" ? "Switching…" : "Hand it to Sophia"}
+                      {busy === "delegate"
+                        ? t("coach.doctrine.start.delegate.switching")
+                        : t("coach.doctrine.start.delegate.hand_over")}
                     </Button>
-                    <p className="mt-2 text-xs leading-5 text-gray-500">
-                      Takes effect on your students' next message. You can take
-                      it back at any time.
+                    <p className="mt-2 text-xs leading-5 text-ink-soft">
+                      {t("coach.doctrine.start.delegate.hand_over_note")}
                     </p>
                   </>
                 )}
@@ -591,7 +623,7 @@ export function DoctrineStartDialog({
           </ul>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }
 

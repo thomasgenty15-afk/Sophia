@@ -3,7 +3,7 @@ import React from "react";
 import { supabase } from "../../lib/supabase";
 import { allergenLabel, hasWideCoverage } from "../copy/allergens";
 import { Badge } from "./ui/Badge";
-import { Card } from "./ui/Card";
+import { Card, SectionLabel } from "./ui/Card";
 
 // CE QUE L'ÉLÈVE NE PEUT PAS MANGER — la carte que le COACH lit.
 //
@@ -99,12 +99,17 @@ export default function StudentConstraintsCard({ studentId }: { studentId: strin
 
   return (
     <Card className="mt-6">
-      <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-        What they cannot eat
-      </p>
+      {/* ⚠️ L'ÉTIQUETTE MAISON EST DEVENUE `SectionLabel`: c'était le composant
+          du kit recopié à la main, en `gray-400` (2,84:1 sur blanc, sous le seuil
+          4,5 du texte). Le kit rend `text-label` + `ink-soft` = 6,11:1, en `h2`,
+          avec l'équerre — la signature qui ouvre ce qui est spécifié, et une
+          liste d'allergènes en est l'exemple le plus littéral du produit.
+          ⚠️ NE POSE PAS DE `px-*` sur ce nœud: `.eq` écrit son `padding-left`
+          hors de toute couche CSS. */}
+      <SectionLabel>What they cannot eat</SectionLabel>
       {rows.length === 0
         ? (
-          <p className="mt-3 text-sm text-gray-500">
+          <p className="max-w-[62ch] text-sm leading-6 text-ink-soft">
             Nothing declared. They can add allergies, intolerances and
             medication themselves from their Health screen.
           </p>
@@ -120,9 +125,12 @@ export default function StudentConstraintsCard({ studentId }: { studentId: strin
               // mots » enverrait le coach renégocier un terme déjà standard.
               const narrow = row.allergen_ref !== null && !hasWideCoverage(ref);
               return (
-                <li key={row.id} className="border-t border-gray-100 pt-3 first:border-0 first:pt-0">
+                // `border-line` (1,30:1): la règle entre deux entrées vit À
+                // L'INTÉRIEUR d'une carte, c'est le seul emploi du séparateur
+                // décoratif de la charte.
+                <li key={row.id} className="border-t border-line pt-3 first:border-0 first:pt-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-medium text-gray-900">
+                    <span className="font-medium text-ink">
                       {allergenLabel(ref)}
                     </span>
                     <Badge tone="neutral">{KIND_LABEL[row.kind] ?? row.kind}</Badge>
@@ -130,7 +138,7 @@ export default function StudentConstraintsCard({ studentId }: { studentId: strin
                     {row.declared_by === "coach" && <Badge tone="info">You added this</Badge>}
                   </div>
                   {row.notes && (
-                    <p className="mt-1 text-sm text-gray-600">{row.notes}</p>
+                    <p className="mt-1 max-w-[62ch] text-sm leading-6 text-ink-soft">{row.notes}</p>
                   )}
                   {narrow && (
                     <p className="mt-1 text-xs text-amber-800">

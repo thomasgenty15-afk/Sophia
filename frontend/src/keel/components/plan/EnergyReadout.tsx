@@ -41,7 +41,7 @@ export function DishEnergyLine({ energy }: { energy: DishEnergyView | null }) {
   if (!energy) return null;
   if (energy.kcal !== null && energy.complete) {
     return (
-      <span className="text-sm tabular-nums text-gray-500">
+      <span className="text-sm tabular-nums text-ink-soft">
         {mealCopy("meals.energy.dish").replace("{n}", String(energy.kcal))}
       </span>
     );
@@ -56,7 +56,7 @@ export function DishEnergyLine({ energy }: { energy: DishEnergyView | null }) {
     // sur sa carte.
     : null;
   if (!label) return null;
-  return <span className="text-xs text-gray-400">{label}</span>;
+  return <span className="text-xs text-ink-soft">{label}</span>;
 }
 
 /**
@@ -73,7 +73,7 @@ export function DayEnergyLine({ energy }: { energy: DayEnergyView | null }) {
     // Aucun plat lisible. On ne rend PAS « 0 kcal », qui se lirait « cette
     // journée ne nourrit pas » — le sens exactement inverse.
     return (
-      <span className="text-xs font-normal text-gray-400">
+      <span className="text-xs font-normal text-ink-soft">
         {mealCopy("meals.energy.day_unreadable")}
       </span>
     );
@@ -95,7 +95,7 @@ export function DayEnergyLine({ energy }: { energy: DayEnergyView | null }) {
   return (
     <span
       className={`text-xs font-normal tabular-nums ${
-        energy.complete ? "text-gray-500" : "text-amber-700"
+        energy.complete ? "text-ink-soft" : "text-amber-700"
       }`}
     >
       {text}
@@ -114,7 +114,7 @@ export function DayEnergyLine({ energy }: { energy: DayEnergyView | null }) {
  */
 export function EnergyBasisNote() {
   return (
-    <p className="text-xs leading-5 text-gray-400">
+    <p className="text-xs leading-5 text-ink-soft">
       {mealCopy("meals.energy.basis")}
     </p>
   );
@@ -147,16 +147,16 @@ export function EnergyTargetNote({ target }: { target: EnergyTargetView | null }
       : target.gap === "implausible_weight"
       ? mealCopy("meals.energy.target_implausible_weight")
       : null;
-    return label ? <p className="text-xs leading-5 text-gray-400">{label}</p> : null;
+    return label ? <p className="text-xs leading-5 text-ink-soft">{label}</p> : null;
   }
   return (
-    <div className="text-xs leading-5 text-gray-400">
-      <p className="tabular-nums text-gray-500">
+    <div className="text-xs leading-5 text-ink-soft">
+      <p className="tabular-nums text-ink-soft">
         {mealCopy("meals.energy.target_range")
           .replace("{low}", String(target.low))
           .replace("{high}", String(target.high))}
         {target.weightWeekStart && (
-          <span className="text-gray-400">
+          <span className="text-ink-soft">
             {" — "}
             {mealCopy("meals.energy.target_measured").replace(
               "{date}",

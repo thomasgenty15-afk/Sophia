@@ -24,7 +24,7 @@ import {
   type BodyMeasureRow,
   type DatedMeasure,
   FOCUS_AXES,
-  FOCUS_AXIS_LABELS,
+  focusAxisLabel,
   type FocusAxis,
   HEIGHT_CM_MAX,
   HEIGHT_CM_MIN,
@@ -42,7 +42,18 @@ import {
   weeklyMeasures,
   weeksInsideBand,
 } from "../api/bodyMeasures";
-import type { GoalToken } from "../api/coachDoctrine";
+// ⚠️ `GoalToken` VIENT DU MODULE PARTAGÉ, ET PLUS D'`api/coachDoctrine`.
+// C'était un import de TYPE seul, donc effacé à la compilation — et pourtant
+// il tirait tout le namespace `coach.*` sur cet écran d'ÉLÈVE aux yeux du
+// scanner de coutures, qui suit les imports et pas les appels. Il a raison de
+// le faire: `coachDoctrine.ts` rend de la copie de coach (`goalLabel`,
+// `variantLabel`), et rien n'empêchait quelqu'un d'en appeler une ici.
+// `_shared/keel/tokens.ts` est l'AUTORITÉ du jeton — `api/bodyMeasures.ts`
+// l'importait déjà de là.
+import type { GoalToken } from "../../../../supabase/functions/_shared/keel/tokens.ts";
+import { formatDate } from "../i18n/format";
+import { plural } from "../i18n/plural";
+import { type MessageKey, t } from "../i18n/t";
 import { buildMeasuresToken } from "../../../../supabase/functions/_shared/keel/weekly_flow.ts";
 
 /**
@@ -111,13 +122,16 @@ import { buildMeasuresToken } from "../../../../supabase/functions/_shared/keel/
  * chiffre de FF-059 n'est pas écrit par un modèle: il est calculé après coup
  * depuis les quantités du plan.
  */
-const PAGE_TITLE = "My week's plan";
+// ⚠️ DES FONCTIONS ET PAS DES CONSTANTES. `const PAGE_TITLE = t(…)` au niveau
+// module se figerait à la langue du PREMIER chargement — or changer de langue
+// recharge la page précisément pour ces constantes-là (`i18n-lint.mjs`, règle
+// `MODULE_SCOPE_T`).
+const pageTitle = () => t("plan.page.title");
 // « plus one or two light habits » est TOMBÉ. L'écran ne compose plus de lignes
 // de comportement — `MealBuilder` produit des plats, et rien d'autre. La
 // promesse survivait au moteur qui la tenait, ce qui est la pire forme de copie
 // morte: elle annonce une fonctionnalité qu'aucun code ne fournit.
-const PAGE_SUBTITLE =
-  "What you eat this week, written from your coach's method. Dishes and rhythms — nothing here scores you.";
+const pageSubtitle = () => t("plan.page.subtitle");
 
 
 
@@ -164,43 +178,26 @@ type LoadState =
  * mieux, tenir). Un élève trouve sa ligne dans les trois premières ou n'y est
  * pas du tout.
  */
-const GOALS: Array<{ value: string; label: string; blurb: string }> = [
-  {
-    // LE JETON RESTE `fat_loss` — il est écrit dans le CHECK de
-    // `student_goals.goal`, dans la doctrine du coach (`goalScope`) et dans les
-    // lignes déjà en base. Seul le LIBELLÉ change: « Lose fat » demande à
-    // l'élève de savoir ce qu'il perd, ce que personne ne sait avant de
-    // commencer; « Lose weight » est ce qu'il vient chercher, dans ses mots.
-    value: "fat_loss",
-    label: "Lose weight",
-    blurb: "You want the scale to come down — without the week becoming unlivable.",
-  },
-  {
-    value: "muscle_gain",
-    label: "Build muscle",
-    blurb: "You want to gain, on purpose, and mostly as muscle.",
-  },
-  {
-    value: "recomposition",
-    label: "Same weight, different shape",
-    blurb: "The scale barely moves. Your waist does.",
-  },
-  {
-    value: "performance",
-    label: "Train better",
-    blurb: "Fuel your sessions and recover from them. Weight is a constraint, not the target.",
-  },
-  {
-    value: "health",
-    label: "Eat better",
-    blurb: "Feel better day to day. Body weight is not the point here.",
-  },
-  {
-    value: "maintenance",
-    label: "Hold what I have",
-    blurb: "You are where you want to be. Keep it, with the lightest possible load.",
-  },
-];
+// ⚠️ LES JETONS RESTENT ANGLAIS ET SNAKE_CASE (R1): ils sont écrits dans le
+// CHECK de `student_goals.goal`, dans la doctrine du coach (`goalScope`) et dans
+// les lignes déjà en base. Seuls les MOTS vivent dans le seed.
+const GOAL_VALUES = [
+  "fat_loss",
+  "muscle_gain",
+  "recomposition",
+  "performance",
+  "health",
+  "maintenance",
+] as const;
+
+/** Une FONCTION: une table de module se figerait à la langue du démarrage. */
+function goalOptions(): Array<{ value: string; label: string; blurb: string }> {
+  return GOAL_VALUES.map((value) => ({
+    value,
+    label: t(`plan.goal.${value}.label` as MessageKey),
+    blurb: t(`plan.goal.${value}.blurb` as MessageKey),
+  }));
+}
 
 /**
  * Server error codes, in the student's words.
@@ -240,9 +237,8 @@ function currentMonday(): string {
  * coup d'œil, la date se lit quand on se demande si elle est encore vraie.
  */
 function weekLabel(weekStart: string): string {
-  const d = new Date(`${weekStart}T00:00:00`);
-  if (Number.isNaN(d.getTime())) return weekStart;
-  return `week of ${d.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}`;
+  const day = formatDate(weekStart, { year: false });
+  return day === weekStart ? weekStart : t("plan.measures.week_of", { date: day });
 }
 
 /**
@@ -255,9 +251,8 @@ function weekLabel(weekStart: string): string {
  */
 function dayLabel(localDate: string | null): string | null {
   if (!localDate) return null;
-  const d = new Date(`${localDate}T00:00:00`);
-  if (Number.isNaN(d.getTime())) return null;
-  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  const day = formatDate(localDate, { year: false });
+  return day === localDate ? null : day;
 }
 
 /**
@@ -301,12 +296,14 @@ function GoalTargetField(props: {
   restricted: boolean;
 }) {
   const indicator = indicatorFor(props.goal);
-  const targetUnit = indicator.target === "waist" ? "cm" : "kg";
-  const targetLabel = indicator.target === "band"
-    ? "Weight I want to stay around"
-    : indicator.target === "waist"
-    ? "Waist I am aiming for"
-    : "Weight I am aiming for";
+  const targetUnit: MessageKey = indicator.target === "waist" ? "unit.cm" : "unit.kg";
+  const targetLabel = t(
+    indicator.target === "band"
+      ? "plan.goal.target_band"
+      : indicator.target === "waist"
+      ? "plan.goal.target_waist"
+      : "plan.goal.target_weight",
+  );
   const axis = props.axis && (FOCUS_AXES as readonly string[]).includes(props.axis)
     ? axisReading(props.reviews, props.axis as FocusAxis)
     : null;
@@ -321,7 +318,7 @@ function GoalTargetField(props: {
   if (indicator.target !== null) {
     return (
       <div className="mt-3">
-        <label htmlFor="goal-target" className="block text-xs font-medium text-gray-700">
+        <label htmlFor="goal-target" className="block text-label font-semibold uppercase text-ink-soft">
           {targetLabel}
         </label>
         {/* Un champ étroit avec son unité collée: trois chiffres dans une
@@ -343,11 +340,11 @@ function GoalTargetField(props: {
               onChange={(e) => props.onTargetChange(e.target.value)}
             />
           </div>
-          <span className="text-sm text-gray-600">{targetUnit}</span>
-          <span className="text-xs text-gray-400">optional</span>
+          <span className="text-sm text-ink-soft">{t(targetUnit)}</span>
+          <span className="text-xs text-ink-soft">{t("plan.goal.optional")}</span>
         </div>
-        <p className="mt-1.5 text-xs leading-5 text-gray-500">
-          Nothing counts down, and nobody is scored against it.
+        <p className="mt-1.5 text-xs leading-5 text-ink-soft">
+          {t("plan.goal.target_hint")}
         </p>
       </div>
     );
@@ -358,8 +355,8 @@ function GoalTargetField(props: {
   // saisie de plus.
   return (
     <div className="mt-3">
-      <label htmlFor="goal-axis" className="block text-xs font-medium text-gray-700">
-        The one thing I want to see improve
+      <label htmlFor="goal-axis" className="block text-label font-semibold uppercase text-ink-soft">
+        {t("plan.goal.axis_label")}
       </label>
       <select
         id="goal-axis"
@@ -367,25 +364,28 @@ function GoalTargetField(props: {
         value={props.axis}
         onChange={(e) => props.onAxisChange(e.target.value)}
       >
-        <option value="">Nothing in particular</option>
+        <option value="">{t("plan.goal.axis_none")}</option>
         {FOCUS_AXES.map((a) => (
-          <option key={a} value={a}>{FOCUS_AXIS_LABELS[a]}</option>
+          <option key={a} value={a}>{focusAxisLabel(a)}</option>
         ))}
       </select>
-      <p className="mt-1.5 text-xs leading-5 text-gray-500">
-        One of the six you rate on Sunday — nothing extra to fill in.
+      <p className="mt-1.5 text-xs leading-5 text-ink-soft">
+        {t("plan.goal.axis_hint")}
       </p>
       {axis ? (
-        <p className="mt-2 text-sm text-gray-700">
+        <p className="mt-2 text-sm text-ink">
           {axis.latest === null
-            ? `Nothing rated yet — you set this at Sunday's check-in.`
+            ? t("plan.goal.axis_unrated")
             : axis.trend === "unknown"
-            ? `Last Sunday: ${axis.latest.value} out of 5.`
-            : axis.improving
-            ? `${axis.label} is going up — that is the one you picked.`
-            : axis.trend === "falling"
-            ? `${axis.label} is going down.`
-            : `${axis.label} is holding steady.`}
+            ? t("plan.goal.axis_last_sunday", { value: axis.latest.value })
+            : t(
+              axis.improving
+                ? "plan.goal.axis_rising"
+                : axis.trend === "falling"
+                ? "plan.goal.axis_falling"
+                : "plan.goal.axis_steady",
+              { axis: axis.label },
+            )}
         </p>
       ) : null}
     </div>
@@ -436,25 +436,29 @@ function CellActions(
   return (
     <div className="mt-2 flex flex-wrap items-center gap-2">
       <Button onClick={onSave} disabled={disabled} variant="secondary">
-        {busy ? "…" : "Save"}
+        {busy ? t("plan.busy") : t("plan.save")}
       </Button>
       <button
         type="button"
         onClick={onCancel}
-        className="text-xs text-gray-500 underline underline-offset-2 hover:text-gray-900"
+        className="text-xs text-fig-700 underline underline-offset-2 hover:text-fig-800"
       >
-        Cancel
+        {t("plan.cancel")}
       </button>
     </div>
   );
 }
 
 /** Les trois valeurs que la base accepte (`profiles_gender_check`). */
-const GENDERS = [
-  { value: "female", label: "Female" },
-  { value: "male", label: "Male" },
-  { value: "other", label: "Other" },
-] as const;
+const GENDER_VALUES = ["female", "male", "other"] as const;
+
+/** Une FONCTION: une table de module se figerait à la langue du démarrage. */
+function genderOptions(): Array<{ value: string; label: string }> {
+  return GENDER_VALUES.map((value) => ({
+    value,
+    label: t(`plan.gender.${value}` as MessageKey),
+  }));
+}
 
 /**
  * TES INFOS DE BASE — la section qui n'existait pas, et la taille qui
@@ -554,15 +558,15 @@ function PersonalNumbers(props: {
   const measureCells: MeasureCell[] = [];
   const weightCell: MeasureCell = {
     which: "weight",
-    label: "Weight",
+    label: t("plan.measures.weight"),
     m: reading.weight,
-    unit: "kg",
+    unit: t("unit.kg"),
   };
   const waistCell: MeasureCell = {
     which: "waist",
-    label: "Waist",
+    label: t("plan.measures.waist"),
     m: reading.waist,
-    unit: "cm",
+    unit: t("unit.cm"),
   };
   if (indicator.primary === "waist") {
     measureCells.push(waistCell, weightCell);
@@ -659,9 +663,9 @@ function PersonalNumbers(props: {
           props.onBasicsChange({ ...props.savedBasics });
         }
       }}
-      className="mt-1 block text-xs font-medium text-gray-700 underline underline-offset-2 hover:text-gray-900"
+      className="mt-1 block text-xs font-medium text-fig-700 underline underline-offset-2 hover:text-fig-800"
     >
-      {hasValue ? "Change" : "Add"}
+      {t(hasValue ? "plan.change" : "plan.add")}
     </button>
   );
 
@@ -685,7 +689,7 @@ function PersonalNumbers(props: {
       <div className="flex flex-wrap gap-x-8 gap-y-4">
         {/* LA TAILLE */}
         <div className="min-w-[7rem]">
-          <p className="text-xs text-gray-500">Height</p>
+          <p className="text-label font-semibold uppercase text-ink-soft">{t("plan.measures.height")}</p>
           {editing === "height" ? (
             <div className="mt-1">
               <div className="flex flex-wrap items-center gap-2">
@@ -702,7 +706,7 @@ function PersonalNumbers(props: {
                       props.onBasicsChange({ ...props.basics, height: e.target.value })}
                   />
                 </div>
-                <span className="text-sm text-gray-600">cm</span>
+                <span className="text-sm text-ink-soft">{t("unit.cm")}</span>
               </div>
               <CellActions
                 busy={props.busy === "basics"}
@@ -716,15 +720,17 @@ function PersonalNumbers(props: {
             </div>
           ) : (
             <>
-              <p className="text-lg font-semibold leading-tight text-gray-900">
+              <p className="text-lg font-semibold leading-tight text-ink">
                 {props.savedBasics.height.trim()
                   ? (
                     <>
                       {props.savedBasics.height.trim()}
-                      <span className="ml-1 text-sm font-normal text-gray-500">cm</span>
+                      <span className="ml-1 text-sm font-normal text-ink-soft">
+                        {t("unit.cm")}
+                      </span>
                     </>
                   )
-                  : <span className="text-gray-400">—</span>}
+                  : <span className="text-ink-soft">—</span>}
               </p>
               {editLink("height", props.savedBasics.height.trim() !== "")}
             </>
@@ -735,7 +741,7 @@ function PersonalNumbers(props: {
             ce dont la composition a besoin — et on SAISIT la date, qui ne se
             périme pas. Stocker l'âge obligerait à le corriger chaque année. */}
         <div className="min-w-[7rem]">
-          <p className="text-xs text-gray-500">Age</p>
+          <p className="text-label font-semibold uppercase text-ink-soft">{t("plan.measures.age")}</p>
           {editing === "birthDate" ? (
             <div className="mt-1">
               <input
@@ -760,13 +766,13 @@ function PersonalNumbers(props: {
             </div>
           ) : (
             <>
-              <p className="text-lg font-semibold leading-tight text-gray-900">
+              <p className="text-lg font-semibold leading-tight text-ink">
                 {ageFrom(props.savedBasics.birthDate) !== null
                   ? ageFrom(props.savedBasics.birthDate)
-                  : <span className="text-gray-400">—</span>}
+                  : <span className="text-ink-soft">—</span>}
               </p>
               {props.savedBasics.birthDate.trim() && (
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-ink-soft">
                   {props.savedBasics.birthDate.trim()}
                 </p>
               )}
@@ -779,7 +785,7 @@ function PersonalNumbers(props: {
             (`profiles_gender_check`). Un champ libre ici produirait des valeurs
             que le CHECK refuse, donc une erreur SQL que personne ne sait lire. */}
         <div className="min-w-[7rem]">
-          <p className="text-xs text-gray-500">Sex</p>
+          <p className="text-label font-semibold uppercase text-ink-soft">{t("plan.measures.sex")}</p>
           {editing === "gender" ? (
             <div className="mt-1">
               <select
@@ -791,7 +797,7 @@ function PersonalNumbers(props: {
                   props.onBasicsChange({ ...props.basics, gender: e.target.value })}
               >
                 <option value="">—</option>
-                {GENDERS.map((g) => (
+                {genderOptions().map((g) => (
                   <option key={g.value} value={g.value}>{g.label}</option>
                 ))}
               </select>
@@ -807,9 +813,9 @@ function PersonalNumbers(props: {
             </div>
           ) : (
             <>
-              <p className="text-lg font-semibold leading-tight text-gray-900">
-                {GENDERS.find((g) => g.value === props.savedBasics.gender)?.label ??
-                  <span className="text-gray-400">—</span>}
+              <p className="text-lg font-semibold leading-tight text-ink">
+                {genderOptions().find((g) => g.value === props.savedBasics.gender)?.label ??
+                  <span className="text-ink-soft">—</span>}
               </p>
               {editLink("gender", props.savedBasics.gender.trim() !== "")}
             </>
@@ -820,7 +826,7 @@ function PersonalNumbers(props: {
             descendent, et cet écran est le seul qui propose d'en viser un. */}
         {props.restricted ? null : measureCells.map((cell) => (
           <div key={cell.which} className="min-w-[7rem]">
-            <p className="text-xs text-gray-500">{cell.label}</p>
+            <p className="text-label font-semibold uppercase text-ink-soft">{cell.label}</p>
             {editing === cell.which ? (
               <div className="mt-1">
                 <div className="flex flex-wrap items-center gap-2">
@@ -836,7 +842,7 @@ function PersonalNumbers(props: {
                         props.onDraftChange({ ...props.draft, [cell.which]: e.target.value })}
                     />
                   </div>
-                  <span className="text-sm text-gray-600">{cell.unit}</span>
+                  <span className="text-sm text-ink-soft">{cell.unit}</span>
                 </div>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   <Button
@@ -844,7 +850,7 @@ function PersonalNumbers(props: {
                     disabled={props.busy !== null}
                     variant="secondary"
                   >
-                    {props.busy === "measures" ? "…" : "Save"}
+                    {props.busy === "measures" ? t("plan.busy") : t("plan.save")}
                   </Button>
                   <button
                     type="button"
@@ -852,21 +858,21 @@ function PersonalNumbers(props: {
                       props.onDraftChange({ ...props.draft, [cell.which]: "" });
                       setEditing(null);
                     }}
-                    className="text-xs text-gray-500 underline underline-offset-2 hover:text-gray-900"
+                    className="text-xs text-fig-700 underline underline-offset-2 hover:text-fig-800"
                   >
-                    Cancel
+                    {t("plan.cancel")}
                   </button>
                 </div>
               </div>
             ) : (
               <>
-                <p className="text-lg font-semibold leading-tight text-gray-900">
+                <p className="text-lg font-semibold leading-tight text-ink">
                   {cell.m === null
-                    ? <span className="text-gray-400">—</span>
+                    ? <span className="text-ink-soft">—</span>
                     : (
                       <>
                         {cell.m.value}
-                        <span className="ml-1 text-sm font-normal text-gray-500">
+                        <span className="ml-1 text-sm font-normal text-ink-soft">
                           {cell.unit}
                         </span>
                       </>
@@ -875,7 +881,7 @@ function PersonalNumbers(props: {
                 {/* La date sous la valeur, toujours: « 78 kg » ne dit rien,
                     « 78 kg il y a trois semaines » dit quelque chose. */}
                 {cell.m ? (
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-ink-soft">
                     {/* Le JOUR quand la table datée le connaît, le libellé de
                         semaine sinon — pour une mesure d'avant la reprise, la
                         semaine est la seule chose vraie qu'on puisse dire. */}
@@ -892,9 +898,8 @@ function PersonalNumbers(props: {
       {/* La phrase n'apparaît QUE pendant la saisie: elle explique où va le
           chiffre, ce qui n'intéresse personne le reste du temps. */}
       {!props.restricted && (editing === "weight" || editing === "waist") ? (
-        <p className="text-xs leading-5 text-gray-500">
-          Weighed yourself since Sunday? It goes to the same place as your Sunday
-          check-in.
+        <p className="text-xs leading-5 text-ink-soft">
+          {t("plan.measures.since_sunday")}
         </p>
       ) : null}
 
@@ -902,17 +907,16 @@ function PersonalNumbers(props: {
       <>
       {recorded.length === 0 ? (
         // ÉTAT VIDE NON HONTEUX, ET QUI DIT D'OÙ VIENNENT LES CHIFFRES.
-        <p className="text-sm text-gray-600">
-          No weight recorded yet. Add one above, or at Sunday's check-in.
+        <p className="text-sm text-ink-soft">
+          {t("plan.measures.none_yet")}
         </p>
       ) : (
         <div>
           {reading.sentence ? (
-            <p className="text-sm text-gray-700">{reading.sentence}</p>
+            <p className="text-sm text-ink">{reading.sentence}</p>
           ) : (
-            <p className="text-xs leading-5 text-gray-500">
-              One more entry and this can start showing a direction — a single
-              measurement on its own is just a number.
+            <p className="text-xs leading-5 text-ink-soft">
+              {t("plan.measures.one_more")}
             </p>
           )}
 
@@ -926,17 +930,20 @@ function PersonalNumbers(props: {
             et n'a pas encore posé son poids de référence.
           */}
           {indicator.target === "band" && targetNumber === null ? (
-            <p className="mt-1 text-xs leading-5 text-gray-500">
-              Set the weight you want to stay around and this will tell you when
-              you drift.
+            <p className="mt-1 text-xs leading-5 text-ink-soft">
+              {t("plan.measures.band_unset")}
             </p>
           ) : weeksHeld > 0 ? (
-            <p className="mt-1 text-sm text-gray-700">
-              {weeksHeld} week{weeksHeld > 1 ? "s" : ""} inside your range.
+            <p className="mt-1 text-sm text-ink">
+              {plural(
+                weeksHeld,
+                t("plan.measures.weeks_in_range_one", { count: weeksHeld }),
+                t("plan.measures.weeks_in_range_many", { count: weeksHeld }),
+              )}
             </p>
           ) : reading.insideBand === false ? (
-            <p className="mt-1 text-sm text-gray-700">
-              You have drifted outside your range.
+            <p className="mt-1 text-sm text-ink">
+              {t("plan.measures.drifted")}
             </p>
           ) : null}
         </div>
@@ -958,48 +965,58 @@ function PersonalNumbers(props: {
       */}
       {history.length >= 2 ? (
         <div>
-          <p className="text-xs font-medium text-gray-700">Week by week</p>
+          <p className="text-label font-semibold uppercase text-ink-soft">
+            {t("plan.measures.week_by_week")}
+          </p>
           {/* Le tableau défile DANS son conteneur: à 320 px, trois colonnes
               chiffrées débordent, et c'est la page entière qui partirait de
               travers. */}
           <div className="mt-2 overflow-x-auto">
             <table className="w-full min-w-[18rem] text-sm">
               <thead>
-                <tr className="border-b border-gray-200 text-left text-xs text-gray-500">
-                  <th scope="col" className="py-1.5 pr-3 font-medium">Week</th>
-                  <th scope="col" className="py-1.5 pr-3 font-medium">Weight</th>
-                  <th scope="col" className="py-1.5 pr-3 font-medium">Change</th>
+                <tr className="border-b border-line-strong text-left text-xs text-ink-soft">
+                  <th scope="col" className="py-1.5 pr-3 font-medium">
+                    {t("plan.measures.col_week")}
+                  </th>
+                  <th scope="col" className="py-1.5 pr-3 font-medium">
+                    {t("plan.measures.weight")}
+                  </th>
+                  <th scope="col" className="py-1.5 pr-3 font-medium">
+                    {t("plan.measures.col_change")}
+                  </th>
                   {showsWaist ? (
-                    <th scope="col" className="py-1.5 font-medium">Waist</th>
+                    <th scope="col" className="py-1.5 font-medium">
+                      {t("plan.measures.waist")}
+                    </th>
                   ) : null}
                 </tr>
               </thead>
               <tbody>
                 {history.map((h) => (
-                  <tr key={h.week} className="border-b border-gray-100 last:border-0">
+                  <tr key={h.week} className="border-b border-line last:border-0">
                     <th
                       scope="row"
-                      className="whitespace-nowrap py-1.5 pr-3 text-left font-normal text-gray-500"
+                      className="whitespace-nowrap py-1.5 pr-3 text-left font-normal text-ink-soft"
                     >
-                      {weekLabel(h.week).replace("week of ", "")}
+                      {formatDate(h.week, { year: false })}
                     </th>
-                    <td className="whitespace-nowrap py-1.5 pr-3 text-gray-900">
+                    <td className="whitespace-nowrap py-1.5 pr-3 text-ink">
                       {h.weight === null
-                        ? <span className="text-gray-300">—</span>
-                        : `${h.weight} kg`}
+                        ? <span className="text-ink-soft">—</span>
+                        : `${h.weight} ${t("unit.kg")}`}
                     </td>
-                    <td className="whitespace-nowrap py-1.5 pr-3 text-gray-500">
+                    <td className="whitespace-nowrap py-1.5 pr-3 text-ink-soft">
                       {h.delta === null
-                        ? <span className="text-gray-300">—</span>
+                        ? <span className="text-ink-soft">—</span>
                         : h.delta === 0
                         ? "="
                         : `${h.delta > 0 ? "+" : ""}${h.delta.toFixed(1)}`}
                     </td>
                     {showsWaist ? (
-                      <td className="whitespace-nowrap py-1.5 text-gray-900">
+                      <td className="whitespace-nowrap py-1.5 text-ink">
                         {h.waist === null
-                          ? <span className="text-gray-300">—</span>
-                          : `${h.waist} cm`}
+                          ? <span className="text-ink-soft">—</span>
+                          : `${h.waist} ${t("unit.cm")}`}
                       </td>
                     ) : null}
                   </tr>
@@ -1264,17 +1281,33 @@ export default function StudentWeekPlanPage() {
     // L'axe et l'aspiration restent: ni l'un ni l'autre n'est un poids.
     if (!restricted) {
       if (kind === "waist" && goal.target_waist_cm !== null) {
-        parts.push(`aiming for ${goal.target_waist_cm} cm`);
+        parts.push(
+          t("plan.summary.aiming_waist", { value: goal.target_waist_cm }),
+        );
       } else if (kind === "band" && goal.target_weight_kg !== null) {
-        parts.push(`staying around ${goal.target_weight_kg} kg`);
+        parts.push(
+          t("plan.summary.staying_around", { value: goal.target_weight_kg }),
+        );
       } else if (kind !== null && goal.target_weight_kg !== null) {
-        parts.push(`aiming for ${goal.target_weight_kg} kg`);
+        parts.push(
+          t("plan.summary.aiming_weight", { value: goal.target_weight_kg }),
+        );
       }
     }
     if (goal.focus_axis && (FOCUS_AXES as readonly string[]).includes(goal.focus_axis)) {
-      parts.push(`working on ${FOCUS_AXIS_LABELS[goal.focus_axis as FocusAxis].toLowerCase()}`);
+      // ⚠️ PLUS DE `.toLowerCase()` ICI, ET C'EST LA COUTURE QUE LE LOT RETIRE.
+      // La phrase était « working on ${label.toLowerCase()} » — un gabarit
+      // anglais autour d'une étiquette d'une TROISIÈME table locale. Baisser la
+      // casse d'un mot ne le traduit pas, et « travailler sur la qualité du
+      // sommeil » ne se compose pas comme son équivalent anglais. La phrase a sa
+      // clé, l'étiquette vient du seed.
+      parts.push(
+        t("plan.goal.working_on", {
+          axis: focusAxisLabel(goal.focus_axis as FocusAxis),
+        }),
+      );
     }
-    if (goal.aspiration) parts.push(`“${goal.aspiration}”`);
+    if (goal.aspiration) parts.push(t("plan.summary.quoted", { text: goal.aspiration }));
     return parts.length > 0 ? parts.join(" · ") : null;
   }, [goal, restricted]);
 
@@ -1315,14 +1348,18 @@ export default function StudentWeekPlanPage() {
     const named = days.map((d) => dishDayLabel(d) ?? d).join(" · ");
     const minutes = Number(pc.cooking_time_min);
     return Number.isFinite(minutes) && minutes > 0
-      ? `${named} · ${minutes} min`
+      ? `${named} · ${minutes} ${t("unit.min")}`
       : named;
   }, [pc.cook_days, pc.cooking_time_min]);
 
   const preferencesSummary = React.useMemo(() => {
     const kept = keptFrom(pc);
     if (kept.length === 0) return null;
-    return kept.length === 1 ? "1 thing kept" : `${kept.length} things kept`;
+    return plural(
+      kept.length,
+      t("plan.summary.kept_one", { count: kept.length }),
+      t("plan.summary.kept_many", { count: kept.length }),
+    );
   }, [pc]);
 
   /**
@@ -1335,7 +1372,9 @@ export default function StudentWeekPlanPage() {
    */
   const personalSummary = React.useMemo(() => {
     const parts: string[] = [];
-    if (savedBasics.height.trim()) parts.push(`${savedBasics.height.trim()} cm`);
+    if (savedBasics.height.trim()) {
+      parts.push(`${savedBasics.height.trim()} ${t("unit.cm")}`);
+    }
     if (!restricted) {
       // `latest()` et PAS `[0]`: `weeklyMeasures` rend du plus ANCIEN au plus
       // récent. Le `[0]` d'ici affichait donc le premier poids jamais saisi,
@@ -1344,7 +1383,7 @@ export default function StudentWeekPlanPage() {
       const last = latest(
         weeklyMeasures({ reviews, measures, kind: "weight" }),
       );
-      if (last) parts.push(`${last.value} kg`);
+      if (last) parts.push(`${last.value} ${t("unit.kg")}`);
     }
     return parts.length > 0 ? parts.join(" · ") : null;
   }, [savedBasics, reviews, measures, restricted]);
@@ -1397,7 +1436,12 @@ export default function StudentWeekPlanPage() {
         const raw = basics.height.trim();
         if (raw === "") patch.height_cm = null;
         else {
-          const parsed = readMeasureInput(raw, HEIGHT_CM_MIN, HEIGHT_CM_MAX, "Height");
+          const parsed = readMeasureInput(
+            raw,
+            HEIGHT_CM_MIN,
+            HEIGHT_CM_MAX,
+            t("plan.measures.height"),
+          );
           if (!parsed.ok) throw new Error(parsed.message);
           patch.height_cm = parsed.value;
         }
@@ -1411,7 +1455,7 @@ export default function StudentWeekPlanPage() {
         else {
           const age = ageFrom(raw);
           if (age === null || age < 10 || age > 110) {
-            throw new Error("That date of birth does not look right.");
+            throw new Error(t("plan.error.birth_date"));
           }
           patch.birth_date = raw;
         }
@@ -1422,7 +1466,7 @@ export default function StudentWeekPlanPage() {
         // lire — et l'écran ne propose que ces trois valeurs, donc y arriver
         // signifierait que quelqu'un a contourné le `<select>`.
         if (raw !== "" && !["male", "female", "other"].includes(raw)) {
-          throw new Error("Unknown value.");
+          throw new Error(t("plan.error.unknown_value"));
         }
         patch.gender = raw === "" ? null : raw;
       }
@@ -1434,7 +1478,7 @@ export default function StudentWeekPlanPage() {
         .select("id");
       if (error) throw new Error(error.message);
       if (!data || data.length === 0) {
-        throw new Error("Nothing was saved — we could not find your profile.");
+        throw new Error(t("plan.error.no_profile"));
       }
       await refresh();
     });
@@ -1477,7 +1521,7 @@ export default function StudentWeekPlanPage() {
         goalDraft.target,
         kind === "waist" ? WAIST_CM_MIN : WEIGHT_KG_MIN,
         kind === "waist" ? WAIST_CM_MAX : WEIGHT_KG_MAX,
-        "Target",
+        t("plan.measures.target"),
       );
       if (!parsed.ok) throw new Error(parsed.message);
       const value = kind === null ? null : parsed.value;
@@ -1508,6 +1552,17 @@ export default function StudentWeekPlanPage() {
         focus_axis: axis,
         target_weight_kg: kind === "weight" || kind === "band" ? value : null,
         target_waist_cm: kind === "waist" ? value : null,
+        // ⚠️ CE `en-GB` EST LA LOCALE DE CONTENU (R2), PAS CELLE DE L'INTERFACE
+        // (R3), ET IL EST LAISSÉ EN DUR EXPRÈS. Il décrit la langue de
+        // `aspiration` — ce que l'élève vient de TAPER —, et il part au
+        // générateur: le passer à la langue de l'écran changerait ce que le
+        // modèle écrit et ce qui atterrit en base, donc ce que l'élève lit dans
+        // son plan. Ce n'est pas un geste de pack de langue.
+        //
+        // ⚠️ ET IL N'EST PAS SEUL: `api/household.ts:984` et `api/onboarding.ts`
+        // (×2) écrivent le même littéral, et `CommitmentEditor.tsx:232` écrit
+        // `en-US`. C'est un axe entier à câbler, pas une ligne à corriger ici —
+        // SIGNALÉ, avec les quatre sites, plutôt que réparé à moitié.
         content_locale: "en-GB",
       }, { onConflict: "user_id" });
       if (error) throw new Error(error.message);
@@ -1530,12 +1585,22 @@ export default function StudentWeekPlanPage() {
    */
   const saveMeasures = () =>
     run("measures", async () => {
-      const w = readMeasureInput(measureDraft.weight, WEIGHT_KG_MIN, WEIGHT_KG_MAX, "Weight");
+      const w = readMeasureInput(
+        measureDraft.weight,
+        WEIGHT_KG_MIN,
+        WEIGHT_KG_MAX,
+        t("plan.measures.weight"),
+      );
       if (!w.ok) throw new Error(w.message);
-      const c = readMeasureInput(measureDraft.waist, WAIST_CM_MIN, WAIST_CM_MAX, "Waist");
+      const c = readMeasureInput(
+        measureDraft.waist,
+        WAIST_CM_MIN,
+        WAIST_CM_MAX,
+        t("plan.measures.waist"),
+      );
       if (!c.ok) throw new Error(c.message);
       if (w.value === null && c.value === null) {
-        throw new Error("Nothing to save — fill in a weight or a waist.");
+        throw new Error(t("plan.error.nothing_to_save"));
       }
 
       const response: Record<string, unknown> = {};
@@ -1547,7 +1612,7 @@ export default function StudentWeekPlanPage() {
         response,
         token: buildMeasuresToken(weekStart),
       });
-      if (!result.ok) throw new Error(result.error ?? "could not save");
+      if (!result.ok) throw new Error(result.error ?? t("plan.error.could_not_save"));
 
       setMeasureDraft({ weight: "", waist: "" });
       // L'écriture est faite par le serveur APRÈS la réponse: on relit, sinon
@@ -1583,30 +1648,30 @@ export default function StudentWeekPlanPage() {
   // toujours par le faire écrire.
   if (state.kind === "loading") {
     return (
-      <KeelAppShell variant="student" title={PAGE_TITLE} subtitle={PAGE_SUBTITLE}>
-        <p className="text-sm text-gray-500">Loading…</p>
+      <KeelAppShell variant="student" title={pageTitle()} subtitle={pageSubtitle()}>
+        <p className="text-sm text-ink-soft">{t("meals.loading")}</p>
       </KeelAppShell>
     );
   }
 
   if (state.kind === "error") {
     return (
-      <KeelAppShell variant="student" title={PAGE_TITLE}>
+      <KeelAppShell variant="student" title={pageTitle()}>
         <Card tone="warning">
-          <p className="text-sm text-gray-900">We could not load your week.</p>
-          <p className="mt-1 text-xs text-gray-600">{state.message}</p>
+          <p className="text-sm text-ink">{t("plan.error.load")}</p>
+          <p className="mt-1 text-xs text-ink-soft">{state.message}</p>
         </Card>
       </KeelAppShell>
     );
   }
 
   return (
-    <KeelAppShell variant="student" title={PAGE_TITLE} subtitle={PAGE_SUBTITLE}>
+    <KeelAppShell variant="student" title={pageTitle()} subtitle={pageSubtitle()}>
       <div className="space-y-6">
         {failure ? (
           <Card tone="warning">
-            <p className="text-sm text-gray-900">That did not go through.</p>
-            <p className="mt-1 text-xs text-gray-600">{failure}</p>
+            <p className="text-sm text-ink">{t("plan.error.failed")}</p>
+            <p className="mt-1 text-xs text-ink-soft">{failure}</p>
           </Card>
         ) : null}
 
@@ -1620,9 +1685,9 @@ export default function StudentWeekPlanPage() {
         */}
         <Card>
           <div className="flex flex-wrap items-start justify-between gap-3">
-            <SectionLabel className="mb-0">About you</SectionLabel>
+            <SectionLabel className="mb-0">{t("plan.about.title")}</SectionLabel>
             <Button variant="secondary" onClick={() => setSetupOpen(true)}>
-              {goal ? "Change" : "Set up"}
+              {t(goal ? "plan.change" : "plan.about.setup")}
             </Button>
           </div>
 
@@ -1630,9 +1695,8 @@ export default function StudentWeekPlanPage() {
               phrase de la carte, parce que c'est le seul geste qui compte
               tant qu'il n'est pas fait. */}
           {!goal ? (
-            <p className="mt-3 text-sm text-gray-600">
-              Four short questions, one window. Your week gets built from your
-              answers — nothing here is shared with your coach.
+            <p className="mt-3 max-w-[62ch] text-sm text-ink-soft">
+              {t("plan.about.empty")}
             </p>
           ) : (
             <dl className="mt-3 space-y-2">
@@ -1641,19 +1705,23 @@ export default function StudentWeekPlanPage() {
                   sa ligne est une section qu'on ne sait pas avoir oublié de
                   remplir. */}
               {([
-                ["Numbers", personalSummary],
-                ["Goal", GOALS.find((g) => g.value === goal.goal)?.label ?? goal.goal],
-                ["Your day", rhythmSummary],
-                ["Cooking", cookingSummary],
-                ["Told me", preferencesSummary],
+                [t("plan.about.numbers"), personalSummary],
+                [
+                  t("plan.about.goal"),
+                  goalOptions().find((g) => g.value === goal.goal)?.label ?? goal.goal,
+                ],
+                [t("plan.about.day"), rhythmSummary],
+                [t("plan.about.cooking"), cookingSummary],
+                [t("plan.about.told"), preferencesSummary],
               ] as const).map(([label, value]) => (
                 <div key={label} className="flex flex-wrap gap-x-2 text-sm">
-                  <dt className="w-20 shrink-0 text-gray-500">{label}</dt>
+                  <dt className="w-20 shrink-0 text-ink-soft">{label}</dt>
                   {/* `min-w-0` sur l'enfant flex: sans lui, `min-width:auto`
                       empêche le texte long de se replier et la carte déborde
                       à 320 px. */}
-                  <dd className="min-w-0 flex-1 text-gray-900">
-                    {value ?? <span className="text-gray-400">Not set yet</span>}
+                  <dd className="min-w-0 flex-1 text-ink">
+                    {value ??
+                      <span className="text-ink-soft">{t("plan.about.not_set")}</span>}
                   </dd>
                 </div>
               ))}
@@ -1667,8 +1735,8 @@ export default function StudentWeekPlanPage() {
         <Modal
           open={setupOpen}
           onClose={() => setSetupOpen(false)}
-          title="About you"
-          closeLabel="Done"
+          title={t("plan.about.title")}
+          closeLabel={t("plan.about.done")}
           size="lg"
         >
         <div className="space-y-4">
@@ -1676,9 +1744,8 @@ export default function StudentWeekPlanPage() {
             CORPS, pas de l'objectif. Elles ne changent pas quand l'objectif
             change, et elles servent aux portions dans les six cas. */}
         <SetupSection
-          accent="rose"
-          title="Basic info"
-          intro="Who you are and where you are now. Used to size your portions."
+          title={t("plan.section.basics.title")}
+          intro={t("plan.section.basics.intro")}
           summary={personalSummary}
         >
           <PersonalNumbers
@@ -1699,9 +1766,8 @@ export default function StudentWeekPlanPage() {
         </SetupSection>
 
         <SetupSection
-          accent="violet"
-          title="Your goal"
-          intro="What you are after. It decides which parts of your coach's method get brought forward for you."
+          title={t("plan.section.goal.title")}
+          intro={t("plan.section.goal.intro")}
           summary={goal ? goalSummary : null}
         >
           <div id="goal-editor" className="space-y-4">
@@ -1733,19 +1799,29 @@ export default function StudentWeekPlanPage() {
               porter seuls la distinction.
             */}
             <fieldset>
-              <legend className="mb-1 block text-sm font-medium text-gray-700">
-                What you are after
+              <legend className="mb-1 block text-label font-semibold uppercase text-ink-soft">
+                {t("plan.goal.legend")}
               </legend>
               <div className="mt-2 space-y-2">
-                {GOALS.map((g) => {
+                {goalOptions().map((g) => {
                   const selected = goalDraft.goal === g.value;
                   return (
                     <label
                       key={g.value}
-                      className={`flex cursor-pointer gap-3 rounded-lg border p-3 ${
+                      // SIX FICHES, UNE COCHÉE — et la distinction est une
+                      // FORME, pas une teinte: trait à l'encre pleine doublé
+                      // d'un anneau, contre un trait de contrôle. Le fond passe
+                      // au lavis de la marque (`fig-50`, `ink` dessus =
+                      // 15,39:1) parce que `bg-gray-50` n'avait plus rien de
+                      // plus clair à être — la fenêtre est en `paper`, et
+                      // `bg-white` n'est pas dans la palette (le blanc pur est
+                      // le neutre sans température que la charte refuse).
+                      // `line-strong` (3,84:1) sur l'inactive: c'est la bordure
+                      // d'un CONTRÔLE, et `line` est à 1,30:1 (WCAG 1.4.11).
+                      className={`flex cursor-pointer gap-3 rounded-card border p-3 transition-colors ${
                         selected
-                          ? "border-gray-900 bg-gray-50 ring-1 ring-gray-900"
-                          : "border-gray-300 bg-white hover:border-gray-400"
+                          ? "border-ink bg-fig-50 ring-1 ring-ink"
+                          : "border-line-strong bg-paper hover:bg-fig-50"
                       }`}
                     >
                       <input
@@ -1774,10 +1850,15 @@ export default function StudentWeekPlanPage() {
                               ? p.axis
                               : "",
                           }))}
-                        className="mt-0.5 h-4 w-4 shrink-0 accent-gray-900"
+                        // `accent-*` COMPTE COMME DU GRIS, et sans lui la
+                        // pastille cochée sort dans la couleur d'accent du
+                        // SYSTÈME — bleue par défaut sur macOS et Windows,
+                        // c'est-à-dire la teinte que `Badge tone="info"`
+                        // occupe. `ink` la range dans la palette.
+                        className="mt-0.5 h-4 w-4 shrink-0 accent-ink"
                       />
                       <span className="min-w-0">
-                        <span className="block text-sm font-medium text-gray-900">
+                        <span className="block text-sm font-medium text-ink">
                           {g.label}
                         </span>
                         {/* La légende de la dynamique CHOISIE — voir l'arbitrage
@@ -1794,7 +1875,7 @@ export default function StudentWeekPlanPage() {
                             aurait six champs `goal-target` de même `id`. */}
                         {selected ? (
                           <>
-                            <span className="mt-0.5 block text-xs leading-5 text-gray-600">
+                            <span className="mt-0.5 block max-w-[62ch] text-xs leading-5 text-ink-soft">
                               {g.blurb}
                             </span>
                             {/* Un `div` serait invalide ici: le parent est un
@@ -1828,15 +1909,15 @@ export default function StudentWeekPlanPage() {
                             <span className="mt-3 block">
                               <label
                                 htmlFor="aspiration"
-                                className="block text-xs font-medium text-gray-700"
+                                className="block text-label font-semibold uppercase text-ink-soft"
                               >
-                                In your own words
+                                {t("plan.goal.own_words")}
                               </label>
                               <textarea
                                 id="aspiration"
                                 rows={2}
                                 className={`${inputClass} mt-1`}
-                                placeholder="Play football with my kids without being wrecked"
+                                placeholder={t("plan.goal.own_words_placeholder")}
                                 value={goalDraft.aspiration}
                                 onChange={(e) =>
                                   setGoalDraft((p) => ({ ...p, aspiration: e.target.value }))}
@@ -1845,9 +1926,8 @@ export default function StudentWeekPlanPage() {
                                 // rebasculerait la sélection.
                                 onClick={(e) => e.preventDefault()}
                               />
-                              <span className="mt-1 block text-xs leading-5 text-gray-500">
-                                Optional. Why this matters to you — better than a
-                                number.
+                              <span className="mt-1 block text-xs leading-5 text-ink-soft">
+                                {t("plan.goal.own_words_hint")}
                               </span>
                             </span>
                           </>
@@ -1859,7 +1939,7 @@ export default function StudentWeekPlanPage() {
               </div>
             </fieldset>
             <Button onClick={saveGoal} disabled={busy !== null} variant="secondary">
-              {busy === "goal" ? "…" : "Save"}
+              {busy === "goal" ? t("plan.busy") : t("plan.save")}
             </Button>
           </div>
         </SetupSection>
@@ -1868,9 +1948,8 @@ export default function StudentWeekPlanPage() {
             QUAND. Le moteur imposait trois repas à tout le monde, en dur; une
             faim de 17h n'avait aucun endroit où exister. */}
         <SetupSection
-          accent="sky"
-          title="How your day runs"
-          intro="Tick the moments you actually eat. Nothing you did not name, none of yours dropped."
+          title={t("plan.section.day.title")}
+          intro={t("plan.section.day.intro")}
           summary={rhythmSummary}
         >
           <EatingRhythmCard
@@ -1887,9 +1966,8 @@ export default function StudentWeekPlanPage() {
             `budget_band` existaient dans la colonne depuis le premier jour du
             pivot — lues par le générateur, remplies par personne. */}
         <SetupSection
-          accent="teal"
-          title="How you cook"
-          intro="Which days you can cook, and for how long. Your sessions get built around this."
+          title={t("plan.section.cooking.title")}
+          intro={t("plan.section.cooking.intro")}
           summary={cookingSummary}
         >
           <CookingCapacityCard
@@ -1905,9 +1983,8 @@ export default function StudentWeekPlanPage() {
             n'a pas eu à remplir: elle se remplit à partir de ce qu'il a déjà
             raconté, et il n'a qu'à confirmer. */}
         <SetupSection
-          accent="orange"
-          title="What you have told me"
-          intro="Picked up from your conversations. Keep what is right, edit it, or drop it."
+          title={t("plan.section.told.title")}
+          intro={t("plan.section.told.intro")}
           summary={preferencesSummary}
         >
           <FoodPreferencesCard

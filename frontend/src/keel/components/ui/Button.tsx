@@ -72,9 +72,22 @@ const VARIANT: Record<ButtonVariant, string> = {
     "bg-fig-700 text-paper hover:bg-fig-800 disabled:hover:bg-fig-700",
 };
 
+// ── LES DEUX TAILLES ONT UN PLANCHER, ET IL EST MESURÉ ────────────────────
+// `sm` faisait **22 px** de haut (`py-0.5` = 2 px de part et d'autre d'un
+// `text-xs`), donc SOUS le minimum de 24 px de WCAG 2.5.8 — et c'est la taille
+// que les seize écrans emploient pour leurs gestes de ligne. `min-h-6` (24 px)
+// pose le plancher sans toucher au rythme vertical: le padding reste le même,
+// seule la hauteur minimale est garantie.
+//
+// ⚠️ `md` est à ~36 px, sous les 44 px de la cible tactile CONFORTABLE (2.5.5,
+// niveau AAA). Non corrigé ici EXPRÈS: passer `md` à 44 px déplace la mise en
+// page des seize écrans d'un coup, ce qui est un lot à soi et pas un effet de
+// bord de la charte. Consigné dans `scratchpad/plateforme/SIGNALE.md` §3.
+// Le plancher de 24 px, lui, est le minimum de niveau AA: il n'est pas
+// négociable, et il ne coûte aucun déplacement.
 const SIZE: Record<ButtonSize, string> = {
   md: "px-4 py-2 text-sm",
-  sm: "px-2.5 py-0.5 text-xs",
+  sm: "min-h-6 px-2.5 py-0.5 text-xs",
 };
 
 // `buttonClass` reste exportée, et son commentaire d'origine est PÉRIMÉ: il

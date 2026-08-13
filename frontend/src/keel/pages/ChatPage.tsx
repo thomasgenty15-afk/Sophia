@@ -28,7 +28,8 @@ import {
   supportsDesktopNotifications,
 } from "../lib/chatUnread";
 import KeelAppShell from "../components/KeelAppShell";
-import { Button } from "../components/ui/Button";
+import { Button, buttonClass } from "../components/ui/Button";
+import { inputClass } from "../components/ui/Field";
 import WeeklyCheckInDialog, {
   type WeeklyCheckInValues,
 } from "../components/WeeklyCheckInDialog";
@@ -87,9 +88,17 @@ function SettingSwitch({
   return (
     <div className="flex items-start justify-between gap-3">
       <div className="min-w-0">
-        <p className="text-sm font-medium text-gray-900">{label}</p>
-        <p id={helpId} className="mt-0.5 text-xs text-gray-500">{help}</p>
+        <p className="text-sm font-medium text-ink">{label}</p>
+        <p id={helpId} className="mt-0.5 text-xs leading-5 text-ink-soft">{help}</p>
       </div>
+      {/* ── L'INTERRUPTEUR RESTE NEUTRE, ET CE N'EST PAS UN OUBLI ─────────────
+          La règle de couleur de l'app est que la marque marque la NAVIGATION et
+          l'ACTION. Un interrupteur n'est ni l'une ni l'autre: c'est la VALEUR
+          d'un réglage. Ce qui porte son état est d'ailleurs déjà une forme — la
+          position du bouton — doublée d'un `aria-checked` annonçable. La teinte
+          ne fait que le contraste: `ink` (16,18:1) allumé, `line-strong`
+          (3,84:1, le seuil des composants d'interface) éteint. `line` à 1,30:1
+          rendrait la piste éteinte invisible. */}
       <button
         type="button"
         role="switch"
@@ -101,13 +110,13 @@ function SettingSwitch({
         onClick={onToggle}
         className={[
           "mt-0.5 inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors",
-          checked ? "bg-gray-900" : "bg-gray-300",
+          checked ? "bg-ink" : "bg-line-strong",
           disabled ? "cursor-not-allowed opacity-50" : "",
         ].filter(Boolean).join(" ")}
       >
         <span
           className={[
-            "inline-block h-5 w-5 transform rounded-full bg-white transition-transform",
+            "inline-block h-5 w-5 transform rounded-full bg-paper transition-transform",
             checked ? "translate-x-5" : "translate-x-0.5",
           ].join(" ")}
         />
@@ -585,10 +594,15 @@ export default function ChatPage() {
       fill
     >
       <div className="flex min-h-0 flex-1 flex-col gap-3">
+        {/* ⛔ L'AMBRE RESTE. Ambre = attention dans tout le produit, et « le temps
+            réel est tombé » est un fait sur l'état du canal. Un état a le droit
+            d'être une surface et pas seulement une pastille — c'est exactement ce
+            que fait `Card tone="warning"` dans le kit. Seul le rayon suit le
+            vocabulaire: `card` (12px). */}
         {status === "offline" && (
           <p
             role="status"
-            className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800"
+            className="rounded-card bg-amber-50 px-3 py-2 text-sm text-amber-800"
           >
             {t("chat.status.offline")}
           </p>
@@ -611,7 +625,7 @@ export default function ChatPage() {
         </div>
 
         {settingsOpen && (
-          <div className="flex flex-col gap-3 rounded-2xl border border-gray-200 bg-gray-50 p-3">
+          <div className="flex flex-col gap-3 rounded-card border border-line-strong bg-paper-2 p-3">
             <SettingSwitch
               testId="setting-checkins"
               label={t("chat.settings.checkins.label")}
@@ -649,9 +663,16 @@ export default function ChatPage() {
             au flex de la calculer. `min-h-0` est OBLIGATOIRE: sans lui la
             hauteur minimale d'un enfant flex est celle de son contenu, donc le
             fil pousse au lieu de défiler et on retombe sur la panne. */}
+        {/* ⚠️ `min-h-0 flex-1` NE BOUGE PAS — c'est ce qui fait défiler le FIL au
+            lieu d'allonger la page, donc ce qui garde le composeur à l'écran. Le
+            cadre, lui, prend celui de `ui/Card.tsx`: remplissage `paper` comme le
+            sol (la charte ne nomme aucun neutre plus clair, et `bg-white` est
+            justement le neutre sans température qu'elle refuse) et un trait de
+            CONTRÔLE `line-strong` — `line` à 1,30:1 ne laisserait au fil ni
+            remplissage ni contour, c'est-à-dire aucune arête. */}
         <div
           ref={logRef}
-          className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto rounded-2xl border border-gray-200 bg-white p-4"
+          className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto rounded-card border border-line-strong bg-paper p-4"
           data-testid="chat-log"
         >
           {hasMore && (
@@ -663,7 +684,7 @@ export default function ChatPage() {
           )}
 
           {messages.length === 0 && (
-            <p className="py-8 text-center text-sm text-gray-500">
+            <p className="py-8 text-center text-sm text-ink-soft">
               {t("chat.empty")}
             </p>
           )}
@@ -675,7 +696,15 @@ export default function ChatPage() {
                 ? "flex justify-end"
                 : "flex justify-start"}
             >
-              <div className="max-w-[85%]">
+              {/* LA MESURE DE LECTURE S'APPLIQUE AUSSI À UNE BULLE (charte §3:
+                  62 caractères au plus). Mesuré à 1280: la bulle montait à 744 px,
+                  soit ~105 caractères par ligne — au-delà, l'œil perd la ligne
+                  suivante, et c'est ici que ça coûte le plus cher puisque la
+                  conversation est la surface la plus lue du produit.
+                  `min()` garde les 85 % là où ils sont la contrainte serrée: à
+                  320 px, 85 % valent 218 px et 62ch beaucoup plus, donc rien ne
+                  change sur téléphone. */}
+              <div className="max-w-[min(85%,62ch)]">
                 {/* CE MESSAGE N'EST PAS UNE RÉPONSE, ET ÇA SE VOIT.
                     Sans cette ligne, une relance arrivée seule à 21h était
                     rendue exactement comme une réponse — donc elle se lisait
@@ -685,7 +714,10 @@ export default function ChatPage() {
                 {message.proactive && (
                   <p
                     data-testid="chat-proactive-label"
-                    className="mb-1 text-[0.6875rem] font-medium uppercase tracking-wide text-gray-400"
+                    // `text-label` EST déjà cette taille — 0,6875rem, +0,1em
+                    // d'approche, capitales: le cran d'étiquette de la charte.
+                    // La valeur était bonne, elle n'était pas nommée.
+                    className="mb-1 text-label font-semibold uppercase text-ink-soft"
                   >
                     {t("chat.proactive.label")}
                   </p>
@@ -707,7 +739,7 @@ export default function ChatPage() {
                         alt=""
                         data-testid="chat-photo"
                         className={[
-                          "mb-1 max-h-72 w-auto rounded-2xl object-cover",
+                          "mb-1 max-h-72 w-auto rounded-card object-cover",
                           message.pending ? "opacity-60" : "",
                         ].filter(Boolean).join(" ")}
                       />
@@ -724,11 +756,24 @@ export default function ChatPage() {
                   : (
                     <div
                       data-role={message.role}
+                      // ── LES DEUX BULLES SONT NEUTRES, ET C'EST LA RÈGLE ────
+                      // Une bulle n'est ni une navigation ni une action: peindre
+                      // celle de l'élève à la figue mettrait la marque sur chaque
+                      // phrase de la conversation, c'est-à-dire sur la surface la
+                      // plus vue du produit — et la marque ne voudrait plus rien
+                      // dire là où elle compte (le bouton « Envoyer », juste en
+                      // dessous). Ce qui distingue les deux voix est déjà une
+                      // forme: le côté de l'écran.
+                      // `ink`/`paper` = 16,18:1 pour l'élève; `line` (le neutre
+                      // décoratif, la pièce posée sur le papier) avec `ink` pour
+                      // Sophia ≈ 12,4:1.
+                      // ⛔ `ring-red-300` EST UN ÉTAT et il ne bouge pas: rouge =
+                      // échec, et cet anneau dit que l'envoi a raté.
                       className={[
-                        "whitespace-pre-wrap rounded-2xl px-3 py-2 text-sm",
+                        "whitespace-pre-wrap rounded-card px-3 py-2 text-sm",
                         message.role === "user"
-                          ? "bg-gray-900 text-white"
-                          : "bg-gray-100 text-gray-900",
+                          ? "bg-ink text-paper"
+                          : "bg-line text-ink",
                         message.pending ? "opacity-60" : "",
                         message.failed ? "ring-1 ring-red-300" : "",
                       ].filter(Boolean).join(" ")}
@@ -736,8 +781,11 @@ export default function ChatPage() {
                       {message.content}
                     </div>
                   )}
+                {/* ⛔ UN FAIT: rouge = échec. `red-700` est la valeur du produit
+                    (6,13:1); `red-600` était à 4,83:1 — même famille, meilleur
+                    contraste, et une seule valeur dans tout le kit. */}
                 {message.failed && (
-                  <p className="mt-1 text-xs text-red-600">
+                  <p className="mt-1 text-xs text-red-700">
                     {t("chat.error.send")}
                   </p>
                 )}
@@ -760,7 +808,7 @@ export default function ChatPage() {
           ))}
 
           {thinking && (
-            <p className="text-sm text-gray-400" data-testid="chat-thinking">
+            <p className="text-sm text-ink-soft" data-testid="chat-thinking">
               {t("chat.thinking")}
             </p>
           )}
@@ -775,7 +823,8 @@ export default function ChatPage() {
           />
         )}
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {/* ⛔ UN FAIT: rouge = échec, `red-700` (6,13:1) comme partout ailleurs. */}
+        {error && <p className="text-sm text-red-700">{error}</p>}
 
         {/* LE COMPOSEUR NE QUITTE PAS L'ÉCRAN, et il n'a pour ça besoin d'aucun
             `sticky`: la page ne défile plus (voir `fill`), c'est le fil au-dessus
@@ -790,14 +839,17 @@ export default function ChatPage() {
           {pendingPhoto && (
             <div
               data-testid="chat-photo-pending"
-              className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-gray-50 p-2"
+              className="flex items-center gap-3 rounded-card border border-line-strong bg-paper-2 p-2"
             >
               <img
                 src={pendingPhoto.previewUrl}
                 alt=""
-                className="h-14 w-14 rounded-xl object-cover"
+                className="h-14 w-14 shrink-0 rounded-card object-cover"
               />
-              <p className="flex-1 truncate text-sm text-gray-600">
+              {/* `min-w-0` sur l'enfant qui tronque: `flex-1` seul ne rétrécit
+                  pas (`min-width: auto`), et à 320 px c'est la rangée entière qui
+                  pousse — le même piège que le champ de saisie ci-dessous. */}
+              <p className="min-w-0 flex-1 truncate text-sm text-ink-soft">
                 {t("chat.photo.attached")}
               </p>
               <Button
@@ -812,8 +864,17 @@ export default function ChatPage() {
             </div>
           )}
           <div className="flex gap-2">
+            {/* UN BOUTON RECOPIÉ → `buttonClass`. C'est l'emploi pour lequel
+                cette fonction existe: l'APPARENCE d'un bouton sur un élément qui
+                n'en est pas un — ici un `<label>` qui enveloppe un champ de
+                fichier masqué. Elle apporte le contour de contrôle
+                `line-strong`, le survol `fig-50` et le rayon des boutons. */}
             <label
-              className="inline-flex shrink-0 cursor-pointer items-center rounded-full border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+              className={buttonClass(
+                "secondary",
+                "md",
+                "shrink-0 cursor-pointer",
+              )}
               aria-label={t("chat.photo.label")}
             >
               {t("chat.photo.label")}
@@ -851,7 +912,24 @@ export default function ChatPage() {
               // caractères. `flex-1` ne suffit donc pas à le faire rétrécir: à
               // 320 px (iPhone SE) la rangée poussait « Send » hors de l'écran.
               // Mesuré au navigateur, et invisible à 375 où ça passait de peu.
-              className="min-w-0 flex-1 rounded-full border border-gray-300 px-4 py-2 text-sm focus:border-gray-900 focus:outline-none"
+              // `inputClass` LE PORTE DÉJÀ — c'est la même correction, faite à la
+              // source pour les cent champs du produit.
+              //
+              // ⛔ ET IL CORRIGE DEUX DÉFAUTS QUE CE CHAMP AVAIT, sur la surface
+              // la plus tapée du produit:
+              //  1. `text-sm` = 14 px. Safari iOS ZOOME sur un champ sous 16 px
+              //     au focus et NE DÉZOOME PAS en sortant. La règle des 16 px
+              //     d'`index.css` vit dans `@layer base` et un utilitaire la bat:
+              //     la protection était contournée sans avoir été retirée.
+              //     `inputClass` est `text-base` sous `lg`, `lg:text-sm` au-dessus.
+              //  2. `focus:outline-none` SANS anneau de remplacement — le focus
+              //     clavier était donc invisible sur le champ principal de
+              //     l'écran. `inputClass` pose `focus:ring-2 ring-fig-600`
+              //     (7,36:1), parce que la règle `:focus-visible` de `tokens.css`
+              //     ne couvre que `a`, `button` et `[tabindex]`.
+              // Le rayon passe de `full` à `card`: le cercle complet est réservé
+              // aux boutons et aux pastilles d'état (`KIT-CONTRAT` §1).
+              className={`${inputClass} flex-1`}
             />
             {/* Une photo seule reste un envoi valable: le bouton s'active sur la
                 photo OU sur du texte, jamais sur le seul brouillon. */}

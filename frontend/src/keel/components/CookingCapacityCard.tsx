@@ -2,6 +2,7 @@ import React from "react";
 
 import { supabase } from "../../lib/supabase";
 import { dishDayLabel } from "../api/mealLabels";
+import { t } from "../i18n/t";
 import { mergePracticalConstraints } from "../api/practicalConstraints";
 import { Button } from "./ui/Button";
 import { Card, SectionLabel } from "./ui/Card";
@@ -40,40 +41,10 @@ import { Field, inputClass } from "./ui/Field";
 // carte est ce qui les réveille; `cook_days`, `recipe_difficulty` et `variety`
 // sont neuves.
 
-const COPY = {
-  title: "How you cook",
-  subtitle:
-    "What you can actually do in a week. Without this, the plan is built for somebody else.",
-  // « Change » et pas « Change this »: le lien est dans l'en-tête de la carte,
-  // donc son objet est déjà nommé juste à côté. Aligné sur les deux cartes
-  // voisines, mot pour mot.
-  summary_open: "Change",
-  summary_edit: "Tell me",
-  summary_close: "Close",
-  days_label: "Days you can cook",
-  days_hint: "Pick the days you can spend real time in the kitchen.",
-  time_label: "Time per cooking session",
-  time_15: "15 minutes — get in and out",
-  time_30: "30 minutes",
-  time_60: "An hour, I do not mind",
-  difficulty_label: "Recipes",
-  difficulty_simple: "Simple — few steps, few pans",
-  difficulty_normal: "Normal",
-  difficulty_keen: "I like cooking, bring it on",
-  variety_label: "Variety",
-  variety_repeat: "Happy to repeat the same meals",
-  variety_some: "Some repetition is fine",
-  variety_varied: "Keep it varied",
-  budget_label: "Budget",
-  budget_tight: "Tight",
-  budget_normal: "Normal",
-  budget_comfortable: "Comfortable",
-  save: "Save",
-  saving: "Saving…",
-  saved: "Saved.",
-  no_goal: "Set your goal above first — this is saved alongside it.",
-  none_picked: "Not set yet",
-} as const;
+// ⚠️ LE `COPY` LOCAL DE CETTE CARTE EST PARTI DANS LE SEED (lot 6), sous
+// `plan.cooking.*`. Vingt-huit phrases hors de `t()`, donc invisibles à la garde
+// de langue comme au scanner de coutures — et l'un des trois catalogues
+// parallèles qui empêchaient `/app/plan` de basculer.
 
 const DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
 type Day = (typeof DAYS)[number];
@@ -158,7 +129,7 @@ export default function CookingCapacityCard(props: CookingCapacityCardProps) {
         },
         source: "CookingCapacityCard",
       });
-      setFlash(COPY.saved);
+      setFlash(t("plan.cooking.saved"));
       await props.onSaved();
       setOpen(false);
     } catch (e) {
@@ -171,17 +142,26 @@ export default function CookingCapacityCard(props: CookingCapacityCardProps) {
   // LE FORMULAIRE, une seule fois — voir la même hissée dans `EatingRhythmCard`.
   const editor = (
           <div className="space-y-4">
-            <Field label={COPY.days_label} hint={COPY.days_hint}>
+            <Field label={t("plan.cooking.days_label")} hint={t("plan.cooking.days_hint")}>
               <div className="flex flex-wrap gap-2">
                 {DAYS.map((day) => (
                   <button
                     key={day}
                     type="button"
                     onClick={() => toggleDay(day)}
-                    className={`rounded-full border px-3 py-1.5 text-sm ${
+                    // SEPT JOURS COCHABLES, ET AUCUN N'EST FIGUE. Un jour retenu
+                    // est un FAIT saisi, pas l'action principale de l'écran: la
+                    // marque marquerait sept fois la même chose et ne marquerait
+                    // plus rien (charte §2). La distinction est donc l'encre
+                    // pleine — `paper` sur `ink` = 16,18:1 — contre un contour de
+                    // contrôle. `line-strong` et jamais `line` (1,30:1): WCAG
+                    // 1.4.11 exige 3:1 pour la bordure d'un contrôle.
+                    // `aria-pressed` porte l'état sans la couleur.
+                    aria-pressed={days.has(day)}
+                    className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
                       days.has(day)
-                        ? "border-gray-900 bg-gray-900 text-white"
-                        : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                        ? "border-ink bg-ink text-paper"
+                        : "border-line-strong text-ink hover:bg-fig-50"
                     }`}
                   >
                     {dishDayLabel(day) ?? day}
@@ -191,66 +171,74 @@ export default function CookingCapacityCard(props: CookingCapacityCardProps) {
             </Field>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label={COPY.time_label} htmlFor="cap-time">
+              <Field label={t("plan.cooking.time_label")} htmlFor="cap-time">
                 <select
                   id="cap-time"
                   className={inputClass}
                   value={time}
                   onChange={(e) => setTime(e.target.value)}
                 >
-                  <option value="15">{COPY.time_15}</option>
-                  <option value="30">{COPY.time_30}</option>
-                  <option value="60">{COPY.time_60}</option>
+                  <option value="15">{t("plan.cooking.time_15")}</option>
+                  <option value="30">{t("plan.cooking.time_30")}</option>
+                  <option value="60">{t("plan.cooking.time_60")}</option>
                 </select>
               </Field>
 
-              <Field label={COPY.difficulty_label} htmlFor="cap-difficulty">
+              <Field label={t("plan.cooking.difficulty_label")} htmlFor="cap-difficulty">
                 <select
                   id="cap-difficulty"
                   className={inputClass}
                   value={difficulty}
                   onChange={(e) => setDifficulty(e.target.value)}
                 >
-                  <option value="simple">{COPY.difficulty_simple}</option>
-                  <option value="normal">{COPY.difficulty_normal}</option>
-                  <option value="keen">{COPY.difficulty_keen}</option>
+                  <option value="simple">{t("plan.cooking.difficulty_simple")}</option>
+                  <option value="normal">{t("plan.cooking.difficulty_normal")}</option>
+                  <option value="keen">{t("plan.cooking.difficulty_keen")}</option>
                 </select>
               </Field>
 
-              <Field label={COPY.variety_label} htmlFor="cap-variety">
+              <Field label={t("plan.cooking.variety_label")} htmlFor="cap-variety">
                 <select
                   id="cap-variety"
                   className={inputClass}
                   value={variety}
                   onChange={(e) => setVariety(e.target.value)}
                 >
-                  <option value="repeat">{COPY.variety_repeat}</option>
-                  <option value="some">{COPY.variety_some}</option>
-                  <option value="varied">{COPY.variety_varied}</option>
+                  <option value="repeat">{t("plan.cooking.variety_repeat")}</option>
+                  <option value="some">{t("plan.cooking.variety_some")}</option>
+                  <option value="varied">{t("plan.cooking.variety_varied")}</option>
                 </select>
               </Field>
 
-              <Field label={COPY.budget_label} htmlFor="cap-budget">
+              <Field label={t("plan.cooking.budget_label")} htmlFor="cap-budget">
                 <select
                   id="cap-budget"
                   className={inputClass}
                   value={budget}
                   onChange={(e) => setBudget(e.target.value)}
                 >
-                  <option value="tight">{COPY.budget_tight}</option>
-                  <option value="normal">{COPY.budget_normal}</option>
-                  <option value="comfortable">{COPY.budget_comfortable}</option>
+                  <option value="tight">{t("plan.cooking.budget_tight")}</option>
+                  <option value="normal">{t("plan.cooking.budget_normal")}</option>
+                  <option value="comfortable">{t("plan.cooking.budget_comfortable")}</option>
                 </select>
               </Field>
             </div>
 
             {!props.hasGoal && (
-              <p className="text-sm text-gray-600">{COPY.no_goal}</p>
+              <p className="text-sm text-ink-soft">{t("plan.cooking.no_goal")}</p>
             )}
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            {/* ROUGE = ÉCHEC, et la teinte ne bouge pas — seul le cran suit le
+                kit: `red-700` est la valeur de `Field` (6,13:1 sur `paper`),
+                `red-600` était en dessous. */}
+            {error && <p className="text-sm text-red-700">{error}</p>}
 
-            <Button variant="primary" onClick={() => void save()} disabled={busy || !props.hasGoal}>
-              {busy ? COPY.saving : COPY.save}
+            {/* ⛔ `secondary`, ET C'EST UNE DÉMOTION VOULUE. Cette carte est une
+                des QUATRE sections de la même fenêtre, et les trois autres
+                enregistrent en `secondary`: une seule action figue par vue
+                rendue (kit §2). La figue de `/app/plan` appartient à « composer
+                ma semaine » — le geste pour lequel on vient. */}
+            <Button variant="secondary" onClick={() => void save()} disabled={busy || !props.hasGoal}>
+              {busy ? t("plan.cooking.saving") : t("plan.cooking.save")}
             </Button>
           </div>
   );
@@ -276,24 +264,26 @@ export default function CookingCapacityCard(props: CookingCapacityCardProps) {
     // ligne de plus à un empilement déjà long avant les repas.
     <Card>
       <div className="flex items-start justify-between gap-3">
-        <SectionLabel className="mb-0">{COPY.title}</SectionLabel>
+        <SectionLabel className="mb-0">{t("plan.cooking.title")}</SectionLabel>
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
           aria-expanded={open}
-          className="shrink-0 text-xs font-medium text-gray-700 underline underline-offset-2 hover:text-gray-900"
+          // UN LIEN, DONC LA MARQUE (charte §2: « la teinte de marque marque la
+          // navigation et l'action »). `fig-700` sur `paper` = 9,98:1.
+          className="shrink-0 text-xs font-medium text-fig-700 underline underline-offset-2 hover:text-fig-800"
         >
-          {open ? COPY.summary_close : (declared.length > 0 ? COPY.summary_open : COPY.summary_edit)}
+          {open ? t("plan.cooking.summary_close") : (declared.length > 0 ? t("plan.cooking.summary_open") : t("plan.cooking.summary_edit"))}
         </button>
       </div>
 
       <>
         {!open && (
           <div className="mt-2">
-            <p className="text-sm text-gray-800">
+            <p className="text-sm text-ink">
               {declared.length > 0
                 ? declared.map((d) => dishDayLabel(d) ?? d).join(" · ")
-                : COPY.none_picked}
+                : t("plan.cooking.none_picked")}
             </p>
             {flash && <p className="mt-1 text-sm text-emerald-700">{flash}</p>}
           </div>

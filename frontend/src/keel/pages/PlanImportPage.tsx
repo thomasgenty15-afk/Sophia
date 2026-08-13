@@ -1,19 +1,24 @@
 import React from "react";
+import { formatTime } from "../i18n/format";
 import { t } from "../i18n/t";
+import { chosenUiLocale } from "../i18n/runtime";
 import { supabase } from "../../lib/supabase";
 import {
   type CoachQuestion,
   commitmentQuestions,
   commitmentSentence,
-  gapQuestion,
-  priorityLabel,
   slotLabel,
 } from "../api/labels";
+import { gapQuestion } from "../api/gapQuestion";
 import { buildPlanStructure, type PlanSection } from "../api/planStructure";
 import { addDays, localDateIn } from "../api/dates";
 import { planWindowUntilNextSession } from "../api/todayModel";
-import { ActivityChip } from "../components/CommitmentLine";
+import { ActivityChip, PriorityMark } from "../components/CommitmentLine";
 import { KeelAppShell } from "../components/KeelAppShell";
+import { Badge } from "../components/ui/Badge";
+import { Button } from "../components/ui/Button";
+import { Card, SectionLabel } from "../components/ui/Card";
+import { Field, inputClass } from "../components/ui/Field";
 import {
   blankCommitment,
   callPlanTemplate,
@@ -202,23 +207,15 @@ function fromGap(
 // act on and invited them to distrust the other 98 % of the screen. What they
 // need to know about a line they cannot trust is WHICH QUESTION it raises, and
 // that is what the card now says.
-const PRIORITY_STYLE: Record<string, string> = {
-  core: "bg-gray-100 text-gray-700",
-  secondary: "bg-sky-50 text-sky-800",
-  optional: "bg-gray-50 text-gray-500",
-};
-
-function PriorityChip({ priority }: { priority: string }) {
-  return (
-    <span
-      className={`shrink-0 rounded px-1.5 py-0.5 text-[11px] font-medium ${
-        PRIORITY_STYLE[priority] ?? PRIORITY_STYLE.optional
-      }`}
-    >
-      {priorityLabel(priority)}
-    </span>
-  );
-}
+//
+// ⛔ `PriorityChip` A ÉTÉ SUPPRIMÉ D'ICI, ET IL NE DOIT PAS REVENIR. Il était
+// recopié à l'identique dans `TemplatesPage.tsx` — deux définitions, un seul
+// rang, sur deux écrans qui rendent les mêmes lignes — et un troisième
+// rendu, différent, vivait dans `KeelBadges.PriorityBadge`. Le rang est
+// maintenant `PriorityMark`, UNE fois, dans `components/CommitmentLine.tsx`,
+// avec les trois écrans qui le montrent comme appelants. Il n'a plus de teinte:
+// le `sky` prenait le bleu de `Badge tone="info"`. Lis son commentaire avant de
+// toucher à la forme.
 
 function sourceQuote(draft: DraftCommitment): string | null {
   const quote = (draft.source_span as { quote?: string } | null)?.quote;
@@ -248,10 +245,15 @@ function QuestionRow({
 }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="text-sm font-medium text-amber-900">{question.question}</span>
+      <span className="min-w-0 text-sm font-medium text-amber-900">{question.question}</span>
       {question.fix === "slot" && vocabulary && (
         <select
-          className="rounded border border-amber-300 bg-white px-2 py-1 text-xs text-gray-900"
+          // `inputClass` du kit, et pas une bordure ambre: WCAG 1.4.11 demande
+          // 3:1 sur la bordure d'un CONTRÔLE, et c'est `line-strong` (3,84:1)
+          // qui la porte. L'ambre du bloc autour dit déjà que la question
+          // attend. `w-auto` parce que le contrôle partage une ligne avec elle.
+          className={`${inputClass} w-auto`}
+          aria-label={question.question}
           value={draft.anchor_kind === "slot" ? draft.slot_key ?? "" : ""}
           onChange={(e) => {
             const slot = e.target.value;
@@ -338,11 +340,20 @@ function CommitmentCard({
   const sentence = proposal ? null : commitmentSentence(draft);
   const quote = sourceQuote(draft);
 
+  // LES TROIS POIDS DE LA CARTE, ET AUCUN N'EST UNE TEINTE DÉCORATIVE.
+  //   • une question ouverte  → ambre, et c'est un ÉTAT: « attention » dans tout
+  //     le produit. Le bandeau reste, il porte un fait (audit §5.2).
+  //   • une proposition        → LE POINTILLÉ. C'est la forme que le kit réserve
+  //     au vide en attente (`Card tone="dashed"`), et une proposition non
+  //     acceptée est exactement ça: un emplacement, pas encore une
+  //     prescription. Le fond bleu ciel qui le disait avant prenait le bleu de
+  //     `Badge tone="info"` et rendait la pastille bleue muette.
+  //   • une ligne propre       → rien, jusqu'au survol.
   const frame = questions.length > 0
-    ? "border-l-4 border-l-amber-400 border-y border-r border-gray-200 bg-white p-3"
+    ? "border-l-4 border-l-amber-400 border-y border-r border-line-strong bg-paper p-3"
     : proposal
-    ? "border border-dashed border-sky-300 bg-sky-50/50 p-3"
-    : "border border-transparent px-2 py-1.5 hover:border-gray-200 hover:bg-gray-50/80 focus-within:border-gray-200";
+    ? "border border-dashed border-line-strong bg-paper p-3"
+    : "border border-transparent px-2 py-1.5 hover:border-line-strong hover:bg-paper-2 focus-within:border-line-strong";
 
   const actionsHidden = !needsDecision && !editing;
 
@@ -368,44 +379,45 @@ function CommitmentCard({
           onDelete();
         }
       }}
-      className={`group rounded-lg text-sm outline-none ${frame} ${
-        focused ? "ring-2 ring-gray-900/15" : ""
+      className={`group rounded-card text-sm outline-none ${frame} ${
+        // La ligne au clavier: c'est de la NAVIGATION, et la navigation est le
+        // seul endroit du produit où la marque a le droit d'entrer (charte §2).
+        // Le même anneau que `:focus-visible` pose partout ailleurs.
+        focused ? "ring-2 ring-fig-600" : ""
       }`}
     >
       <div className="flex items-start justify-between gap-3">
         <button type="button" className="min-w-0 flex-1 text-left" onClick={onToggleEdit}>
-          <div className={needsDecision ? "font-medium text-gray-900" : "text-gray-900"}>
+          <div className={needsDecision ? "font-medium text-ink" : "text-ink"}>
             {heading}
           </div>
           {/* The coach's own line, in the coach's own words. */}
           {sentence !== null && (
-            <div className="mt-0.5 text-xs text-gray-500">{sentence}</div>
+            <div className="mt-0.5 text-xs text-ink-soft">{sentence}</div>
           )}
         </button>
         <div className="flex shrink-0 items-center gap-1.5">
-          {proposal && (
-            <span className="rounded bg-sky-100 px-1.5 py-0.5 text-[11px] font-medium text-sky-800">
-              {t("review.auto_generated")}
-            </span>
-          )}
-          <PriorityChip priority={draft.priority} />
+          {/* « Proposé » est une ÉTIQUETTE de provenance, pas un état du
+              système: la pastille neutre du kit, et plus un bleu emprunté. */}
+          {proposal && <Badge>{t("review.auto_generated")}</Badge>}
+          <PriorityMark priority={draft.priority} />
         </div>
       </div>
 
       {/* WHAT THE DOCUMENT SAID — the evidence behind a proposal. */}
       {proposal && (
-        <div className="mt-2 rounded border border-sky-200 bg-white/70 p-2">
-          <div className="text-[11px] font-semibold uppercase tracking-wide text-sky-700">
+        <div className="mt-2 rounded-card border border-line bg-paper-2 p-2">
+          <div className="text-label font-semibold uppercase text-ink-soft">
             {t("review.gap_source")}
           </div>
-          <p className="mt-0.5 text-xs text-gray-700">{draft.title}</p>
+          <p className="mt-0.5 text-xs text-ink">{draft.title}</p>
         </div>
       )}
 
       {/* THE QUESTIONS. Never a constraint name — see api/labels.ts. */}
       {questions.length > 0 && (
-        <div className="mt-2 space-y-1.5 rounded border border-amber-200 bg-amber-50 p-2">
-          <div className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">
+        <div className="mt-2 space-y-1.5 rounded-card border border-amber-200 bg-amber-50 p-2">
+          <div className="text-label font-semibold uppercase text-amber-700">
             {t("question.section")}
           </div>
           {questions.map((q) => (
@@ -434,67 +446,65 @@ function CommitmentCard({
           so the only way to answer was to go back and re-read the plan, which
           is the exact work this screen exists to remove. */}
       {quote !== null && (needsDecision || editing || draft.needs_review) && !proposal && (
-        <blockquote className="mt-2 border-l-2 border-gray-200 pl-2 text-xs italic text-gray-500">
-          “{quote}”
+        <blockquote className="mt-2 border-l-2 border-line pl-2 text-xs italic text-ink-soft">
+          {/* Les guillemets entrent dans la VALEUR de la clé: l'anglais cite
+              avec “…” et le français avec «  », espaces intérieures comprises.
+              Écrits ici, ils resteraient anglais dans les deux langues. */}
+          {t("review.quote_verbatim", { quote })}
         </blockquote>
       )}
 
       <div
         className={`flex flex-wrap items-center gap-2 text-xs ${
-          needsDecision || editing ? "mt-2 border-t border-gray-200/70 pt-2" : ""
+          needsDecision || editing ? "mt-2 border-t border-line pt-2" : ""
         } ${
           actionsHidden
             ? "pointer-events-none h-0 overflow-hidden opacity-0 group-hover:pointer-events-auto group-hover:mt-2 group-hover:h-auto group-hover:overflow-visible group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:mt-2 group-focus-within:h-auto group-focus-within:overflow-visible group-focus-within:opacity-100"
             : ""
         }`}
       >
+        {/* ⛔ AUCUNE DE CES QUATRE ACTIONS N'EST FIGUE, ET C'EST LA CONTRAINTE:
+            une seule action principale par VUE RENDUE, et cette rangée est
+            répétée sur chacune des dix-huit lignes. Dix-huit aplats de marque,
+            c'est zéro hiérarchie. La figue de cet écran est plus bas, sur
+            l'action de la phase en cours (importer, puis publier).
+            « Marquer vérifié » perd son vert au passage: c'était un faux « ok »
+            sur un BOUTON — l'émeraude dit qu'un fait est acquis, pas qu'un geste
+            est disponible. */}
         {onAccept && (
-          <button
-            type="button"
-            onClick={onAccept}
-            className="rounded bg-gray-900 px-2 py-1 font-medium text-white hover:bg-gray-700"
-          >
+          <Button size="sm" onClick={onAccept}>
             {proposal ? t("review.gap_add") : t("review.accept")}{" "}
             <kbd className="opacity-60">a</kbd>
-          </button>
+          </Button>
         )}
-        <button
-          type="button"
-          onClick={onToggleEdit}
-          className="rounded border border-gray-300 px-2 py-1 text-gray-700 hover:bg-gray-50"
-        >
+        <Button size="sm" onClick={onToggleEdit}>
           {editing ? t("review.done_editing") : t("review.edit")}{" "}
           <kbd className="opacity-60">e</kbd>
-        </button>
+        </Button>
         {draft.needs_review && !editing && (
-          <button
-            type="button"
-            onClick={() => onChange({ ...draft, needs_review: false })}
-            className="rounded border border-emerald-300 px-2 py-1 text-emerald-700 hover:bg-emerald-50"
-          >
+          <Button size="sm" onClick={() => onChange({ ...draft, needs_review: false })}>
             {t("review.mark_verified")}
-          </button>
+          </Button>
         )}
-        <button
-          type="button"
-          onClick={onDelete}
-          className="ml-auto rounded border border-gray-300 px-2 py-1 text-gray-600 hover:bg-gray-50"
-        >
+        <Button size="sm" className="ml-auto" onClick={onDelete}>
           {proposal ? t("review.gap_ignore") : t("review.delete")}{" "}
-          <kbd className="opacity-60">del</kbd>
-        </button>
+          {/* La touche, pas le mot: « del » est ce qui est gravé sur un clavier
+              anglais, « suppr » sur un clavier français. Les deux autres
+              raccourcis (a, e) sont des lettres et restent des lettres. */}
+          <kbd className="opacity-60">{t("review.key_delete")}</kbd>
+        </Button>
       </div>
 
       {editing && vocabulary && (
-        <div className="mt-3 border-t border-gray-200 pt-3">
+        <div className="mt-3 border-t border-line pt-3">
           {/* OUR diagnostics, not the coach's decision: they live inside the
               editor, where someone has already decided to look under the hood. */}
           {draft.extraction_issues.length > 0 && (
             <div className="mb-3">
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+              <div className="text-label font-semibold uppercase text-ink-soft">
                 {t("review.extraction_notes")}
               </div>
-              <ul className="mt-0.5 list-disc pl-4 text-xs text-gray-500">
+              <ul className="mt-0.5 list-disc pl-4 text-xs text-ink-soft">
                 {draft.extraction_issues.map((issue, i) => <li key={i}>{issue}</li>)}
               </ul>
             </div>
@@ -515,12 +525,23 @@ function CommitmentCard({
  * moment of THIS click — never a `new Date()` minted at publish time, which
  * would attest an approval that never happened.
  */
+// ⛔ LA PROP `tone` A ÉTÉ RETIRÉE, PAS LAISSÉE MORTE. Elle valait
+// `"amber" | "sky" | "gray"` et ne peignait qu'une chose: une puce de 8 px
+// devant le titre — ambre pour « à vérifier », bleu ciel pour « à compléter »,
+// gris pour « prêt ». Un code de trois couleurs pour trois files, c'est-à-dire
+// pour un RANG de triage, pas pour un état du système; et le bleu ciel prenait
+// le bleu de `Badge tone="info"`.
+//
+// Ce que la puce achetait — « où commence cette file » — est acheté par ce qui
+// était déjà là et que la puce dupliquait: le TITRE, le COMPTEUR à côté de lui,
+// et l'ORDRE (à vérifier, à compléter, prêt — jamais autre chose). Une prop
+// laissée en place « au cas où » se remplit à nouveau au premier lecteur pressé,
+// donc elle est retirée du type avec ses trois sites d'appel.
 function Queue({
   title,
   hint,
   children,
   count,
-  tone,
   approvedAt,
   onApprove,
   approvable = true,
@@ -529,46 +550,41 @@ function Queue({
   hint: string;
   children: React.ReactNode;
   count: number;
-  tone: "amber" | "sky" | "gray";
   approvedAt: string | null;
   onApprove: () => void;
   approvable?: boolean;
 }) {
-  const dot = tone === "amber" ? "bg-amber-500" : tone === "sky" ? "bg-sky-500" : "bg-gray-400";
   return (
     <section>
-      <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-800">
-        <span className={`h-2 w-2 rounded-full ${dot}`} />
+      <h3 className="flex flex-wrap items-center gap-2 text-sm font-semibold text-ink">
         {title}
-        <span className="rounded bg-gray-100 px-1.5 text-xs font-normal tabular-nums text-gray-600">
-          {count}
-        </span>
+        {/* UN CHIFFRE EST UN CHIFFRE, et il n'a pas besoin d'une boîte. Les
+            quatre compteurs de cet écran portaient chacun leur propre pastille
+            grise; à côté d'une pastille d'état, une pastille qui ne dit qu'un
+            nombre est un objet de plus à trier. `tabular-nums` suffit. */}
+        <span className="text-xs font-normal tabular-nums text-ink-soft">{count}</span>
         {approvable && count > 0 && (
           approvedAt
             ? (
-              <span className="ml-auto rounded bg-emerald-100 px-1.5 py-0.5 text-[11px] font-medium text-emerald-800">
-                {t("review.approved_section", {
-                  time: new Date(approvedAt).toLocaleTimeString(),
-                })}
-              </span>
+              // L'approbation EST un fait acquis, horodaté, écrit au journal
+              // réglementaire: une pastille d'état, celle du kit.
+              <Badge tone="positive" className="ml-auto">
+                {t("review.approved_section", { time: formatTime(approvedAt) })}
+              </Badge>
             )
             : (
-              <button
-                type="button"
-                onClick={onApprove}
-                className="ml-auto rounded border border-gray-900 px-2 py-0.5 text-[11px] font-medium text-gray-900 hover:bg-gray-100"
-              >
+              <Button size="sm" className="ml-auto" onClick={onApprove}>
                 {t("review.approve_section")}
-              </button>
+              </Button>
             )
         )}
       </h3>
-      <p className="mb-2 mt-0.5 text-xs text-gray-500">{hint}</p>
+      <p className="mb-2 mt-0.5 max-w-[62ch] text-xs text-ink-soft">{hint}</p>
       {count === 0
         ? (
-          <p className="rounded border border-dashed border-gray-200 p-3 text-center text-xs text-gray-400">
+          <Card tone="dashed" padded={false} className="p-3 text-center text-xs text-ink-soft">
             {t("review.queue_empty")}
-          </p>
+          </Card>
         )
         : <div className="space-y-2">{children}</div>}
     </section>
@@ -618,40 +634,69 @@ function PartSection({
   // two screens cannot end up disagreeing about which block is loud.
   if (part === "observations") {
     return (
-      <section className="rounded-lg border border-dashed border-gray-200 bg-gray-50/70 p-3">
-        <h4 className="flex items-baseline gap-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+      <section className="rounded-card border border-dashed border-line-strong bg-paper-2 p-3">
+        <h4 className="flex items-baseline gap-2 text-label font-semibold uppercase text-ink-soft">
           {section.label}
-          <span className="rounded bg-gray-200/70 px-1.5 text-[11px] font-normal tabular-nums text-gray-600">
-            {count}
-          </span>
+          <span className="font-normal tabular-nums">{count}</span>
         </h4>
-        <p className="mb-2 mt-0.5 text-[11px] text-gray-500">{section.hint}</p>
+        <p className="mb-2 mt-0.5 max-w-[62ch] text-[11px] text-ink-soft">{section.hint}</p>
         <div className="space-y-1">{children}</div>
       </section>
     );
   }
 
-  const tone = part === "food"
-    ? "border-lime-300"
-    : part === "unsorted"
-    ? "border-amber-300"
-    : "border-orange-300";
-  const head = part === "food"
-    ? "border-lime-200 bg-lime-50 text-lime-900"
-    : part === "unsorted"
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ⛔ LE CODE-COULEUR DE PARTIE EST PARTI. LIS ÇA AVANT DE LE REMETTRE.
+  // ═══════════════════════════════════════════════════════════════════════════
+  //
+  // Ce bloc peignait `food` en LIME, `actions` en ORANGE et `unsorted` en AMBRE
+  // — cadre, fronton, texte, quatre valeurs chacun. Trois familles saturées pour
+  // dire trois CATÉGORIES, et le même code était recopié dans
+  // `TemplatesPage.TemplateSection`.
+  //
+  // Trois raisons pour lesquelles ça ne pouvait pas rester:
+  //   1. Une partie du plan n'est pas un état du système. Dans ce produit une
+  //      teinte saturée dit un FAIT — émeraude = ok, bleu = info, ambre =
+  //      attention, rouge = échec. « Ce que le client mange » n'est aucun des
+  //      quatre.
+  //   2. `orange` et `amber` sont à 30° l'un de l'autre: le code ne se lisait
+  //      même pas comme trois choses. Et `lime` est le voisin de l'émeraude.
+  //   3. L'ambre était déjà « attention » ailleurs sur CET écran (le bandeau des
+  //      questions, deux blocs plus haut). Une catégorie ambre à côté d'un
+  //      avertissement ambre rend l'avertissement muet.
+  //
+  // CE QUI LA REMPLACE EST LA FORME QUE LE KIT A CHOISIE LE MÊME JOUR POUR LE
+  // MÊME PROBLÈME (`ui/SetupSection.tsx`, charte §4): un FRONTON — une barre de
+  // titre `paper-2` fermée par un trait `line`, portant l'ÉQUERRE collée au nom
+  // de la partie. L'équerre « marque l'origine de ce qui est spécifié », et une
+  // partie du plan en est une. Elle survit au daltonisme et à l'impression, elle
+  // ne consomme aucune teinte, et c'est la même frontière que sur les huit pages
+  // publiques.
+  // ⚠️ Pas de `px-*` sur le nœud qui porte `.eq`: la classe pose
+  // `padding-left: 1.125rem` hors de toute couche CSS et bat un utilitaire de
+  // même spécificité. Le padding est sur le fronton, au-dessus.
+  //
+  // ── LA SEULE TEINTE QUI RESTE, ET POURQUOI ────────────────────────────────
+  // `unsorted` garde l'ambre. Ce n'est pas une catégorie: `planStructure.ts` le
+  // dit en clair — « a line whose family we could not place is a thing the coach
+  // must FIX ». C'est donc un fait qui attend une décision, exactement ce que
+  // `Card tone="warning"` porte, et ce sont ses valeurs qui sont reprises ici
+  // pour qu'il n'y ait qu'UN ambre dans le produit. En restant seul, il redevient
+  // lisible: sur cet écran, ambre veut dire « il y a quelque chose à faire ici ».
+  const unsorted = part === "unsorted";
+  const frame = unsorted ? "border-amber-200" : "border-line-strong";
+  const head = unsorted
     ? "border-amber-200 bg-amber-50 text-amber-900"
-    : "border-orange-200 bg-orange-50 text-orange-900";
+    : "border-line bg-paper-2 text-ink";
 
   return (
-    <section className={`overflow-hidden rounded-lg border ${tone} bg-white`}>
+    <section className={`overflow-hidden rounded-card border bg-paper ${frame}`}>
       <header className={`border-b px-3 py-2 ${head}`}>
-        <h4 className="flex items-baseline gap-2 text-sm font-semibold uppercase tracking-wide">
+        <h4 className="eq flex flex-wrap items-baseline gap-2 text-label font-semibold uppercase">
           {section.label}
-          <span className="rounded bg-white/70 px-1.5 text-xs font-normal tabular-nums">
-            {count}
-          </span>
+          <span className="font-normal tabular-nums">{count}</span>
         </h4>
-        <p className="mt-0.5 text-[11px] font-normal normal-case opacity-80">
+        <p className="mt-0.5 max-w-[62ch] text-[11px] font-normal normal-case opacity-80">
           {section.hint}
         </p>
       </header>
@@ -678,15 +723,18 @@ function PartSubgroup({
 }) {
   return (
     <div>
-      <div className="mb-1.5 flex items-baseline gap-2">
+      <div className="mb-1.5 flex flex-wrap items-baseline gap-2">
         {typeof label === "string"
           ? (
-            <h5 className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+            // Le MÊME cran que l'`ActivityChip` en rôle d'en-tête rend de son
+            // côté (`text-label`): les deux branches de ce ternaire sont deux
+            // en-têtes de sous-groupe, elles doivent se ressembler.
+            <h5 className="text-label font-semibold uppercase text-ink-soft">
               {label}
             </h5>
           )
           : label}
-        <span className="text-[11px] tabular-nums text-gray-400">{count}</span>
+        <span className="text-[11px] tabular-nums text-ink-soft">{count}</span>
       </div>
       <div className="space-y-1">{children}</div>
     </div>
@@ -834,7 +882,19 @@ export default function PlanImportPage() {
           apikey: ANON_KEY,
           Authorization: `Bearer ${ANON_KEY}`,
         },
-        body: JSON.stringify(body),
+        // `content_locale` — LE CHAMP QUE LE SERVEUR ACCEPTAIT ET QUE PERSONNE
+        // NE POSAIT. Sans lui, `plan-import-v1` retombait sur son défaut
+        // `"en-US"`, qui sert de repli au `content_locale` de chaque ligne
+        // extraite: un coach français important un document français obtenait
+        // des engagements ÉTIQUETÉS anglais, et tout ce qui lit cette colonne
+        // ensuite (rendu, PDF, relecture) croyait lire de l'anglais.
+        //
+        // `chosenUiLocale()` et pas `uiLocale()`: c'est le choix du visiteur, y
+        // compris sur une page dont le pack français n'est pas encore écrit —
+        // et cet écran-ci en fait partie. Le modèle, lui, garde le dernier mot:
+        // il renvoie la langue du DOCUMENT qu'il a cité, et cette valeur-ci
+        // n'est que le repli quand il ne la donne pas.
+        body: JSON.stringify({ ...body, content_locale: chosenUiLocale() }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(String(json?.error ?? `HTTP ${res.status}`));
@@ -849,7 +909,10 @@ export default function PlanImportPage() {
       setAcceptedIds(new Set());
       // A new document is a new prescription: every previous approval is void.
       setApprovals({});
-      setTemplateTitle((prev) => prev || (file?.name ?? "Imported plan"));
+      // Le titre par défaut est LU par le coach puis ÉCRIT en base, donc il
+      // vient du seed comme le reste: un plan publié depuis une interface en
+      // français ne doit pas s'appeler « Imported plan » chez l'élève.
+      setTemplateTitle((prev) => prev || (file?.name ?? t("review.default_template_title")));
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -987,7 +1050,7 @@ export default function PlanImportPage() {
       const res = await callPlanTemplate<{ template: { id: string; title: string } }>(
         {
           action: "create",
-          title: templateTitle.trim() || "Imported plan",
+          title: templateTitle.trim() || t("review.default_template_title"),
           content_locale: locale,
           default_swap_policy: { class_equivalent: false, allowed_groups: null },
           default_autonomy: "strict",
@@ -1033,7 +1096,7 @@ export default function PlanImportPage() {
           // Sending template_id here would publish a plan the coach is not
           // looking at.
           plan: {
-            title: templateTitle.trim() || "Imported plan",
+            title: templateTitle.trim() || t("review.default_template_title"),
             content_locale: savable[0]?.content_locale ?? "en-US",
             timezone,
             week_starts_on: "mon",
@@ -1101,27 +1164,36 @@ export default function PlanImportPage() {
       subtitle={t("import.subtitle")}
     >
       {vocabError && (
-        <p className="mb-4 rounded bg-red-50 p-2 text-sm text-red-700">
+        <p className="mb-4 rounded-card bg-red-50 p-2 text-sm text-red-700">
           {t("editor.vocabulary_error", { message: vocabError })}
         </p>
       )}
 
+      {/* `min-w-0` SUR LES DEUX PISTES, ET CE N'EST PAS DÉCORATIF: un enfant de
+          grille a `min-width: auto`, donc la colonne refuse d'être plus étroite
+          que son contenu le plus large (ici un `<textarea>` en `font-mono` et
+          une citation d'une seule ligne) et c'est la PAGE qui défile à 320 px.
+          Les pistes sont déclarées en `minmax(0,…)` au-dessus de `lg`; sous `lg`
+          la grille est à une colonne et il n'y a plus de `minmax` pour le faire. */}
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
         {/* LEFT — the document, then save & publish */}
-        <section>
-          <h2 className="mb-2 text-sm font-medium uppercase tracking-wide text-gray-400">
-            {t("import.document")}
-          </h2>
+        <section className="min-w-0">
+          <SectionLabel>{t("import.document")}</SectionLabel>
           <textarea
-            className="h-72 w-full rounded-lg border border-gray-300 p-3 font-mono text-sm focus:border-gray-500 focus:outline-none disabled:bg-gray-50"
+            className={`${inputClass} h-72 font-mono`}
+            aria-label={t("import.document")}
             placeholder={t("import.paste_placeholder")}
             value={rawText}
             disabled={file !== null}
             onChange={(e) => setRawText(e.target.value)}
           />
-          <div className="mt-2 flex items-center gap-3">
-            <label className="cursor-pointer rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50">
-              {file ? file.name : t("import.upload_label")}
+          <div className="mt-2 flex flex-wrap items-center gap-3">
+            {/* Un `<label>` déguisé en bouton — l'`<input type="file">` caché est
+                à l'intérieur, donc c'est bien lui qui reçoit le clic. Il ne peut
+                pas devenir un `<Button>` sans casser cette liaison; il en prend
+                le vocabulaire (contour de contrôle, rayon plein). */}
+            <label className="inline-flex min-w-0 cursor-pointer items-center rounded-full border border-line-strong bg-paper px-4 py-2 text-sm font-medium text-ink transition-colors hover:bg-fig-50">
+              <span className="truncate">{file ? file.name : t("import.upload_label")}</span>
               <input
                 type="file"
                 accept=".pdf,image/jpeg,image/png,image/webp"
@@ -1130,95 +1202,99 @@ export default function PlanImportPage() {
               />
             </label>
             {file && (
-              <button
-                type="button"
-                className="text-xs text-gray-400 underline"
-                onClick={() => setFile(null)}
-              >
+              <Button variant="ghost" size="sm" onClick={() => setFile(null)}>
                 {t("common.clear")}
-              </button>
+              </Button>
             )}
-            <button
-              type="button"
+            {/* ⛔ L'ACTION FIGUE DE CET ÉCRAN, ET ELLE SUIT LA PHASE.
+                Une seule action principale par VUE RENDUE. Cet écran a deux
+                phases qui ne sont jamais à l'écran en même temps dans le même
+                rôle: tant qu'il n'y a rien d'extrait, la seule chose à faire est
+                d'importer; dès qu'il y a des lignes, tout mène à publier, et
+                c'est le bouton du bas qui prend la marque. Le compte de figue
+                rendue reste donc de UN dans les deux cas. */}
+            <Button
+              variant={drafts.length === 0 ? "primary" : "secondary"}
+              className="ml-auto"
               disabled={!canRun}
               onClick={runImport}
-              className="ml-auto rounded-lg bg-gray-900 px-4 py-1.5 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-40"
             >
               {loading ? t("import.running") : t("import.run")}
-            </button>
+            </Button>
           </div>
-          {error && <p className="mt-2 rounded bg-red-50 p-2 text-sm text-red-700">{error}</p>}
+          {error && (
+            <p className="mt-2 rounded-card bg-red-50 p-2 text-sm text-red-700">{error}</p>
+          )}
 
           {drafts.length > 0 && (
-            <div className="mt-6 space-y-2 rounded-lg border border-gray-200 bg-gray-50 p-3">
-              <label className="block">
-                <span className="mb-0.5 block text-[11px] font-medium uppercase tracking-wide text-gray-400">
-                  {t("review.template_title_label")}
-                </span>
+            // Les quatre champs de cette colonne étaient recopiés à la main en
+            // `text-sm` et `text-xs` — 14 et 12 px. `index.css` pose pourtant
+            // 16 px sur les champs sous `lg` parce que Safari iOS ZOOME sur un
+            // champ plus petit au focus et NE DÉZOOME PAS. La règle vit dans
+            // `@layer base` et un utilitaire la bat: la protection était
+            // contournée ici quatre fois. `inputClass` la rétablit à la source.
+            <Card className="mt-6 space-y-3">
+              <Field label={t("review.template_title_label")} htmlFor="import-template-title">
                 <input
-                  className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                  id="import-template-title"
+                  className={inputClass}
                   value={templateTitle}
                   onChange={(e) => setTemplateTitle(e.target.value)}
                 />
-              </label>
+              </Field>
               {blocking.length > 0 && (
-                <p className="rounded bg-amber-100 p-2 text-xs text-amber-900">
+                <p className="rounded-card bg-amber-50 p-2 text-xs text-amber-900">
                   {t("review.blocked_by_issues", { count: blocking.length })}
                 </p>
               )}
-              <button
-                type="button"
+              <Button
+                className="w-full"
                 disabled={saving || blocking.length > 0 || savable.length === 0}
                 onClick={saveTemplate}
-                className="w-full rounded bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-40"
               >
                 {saving ? t("review.saving") : t("review.save_template")}
-              </button>
+              </Button>
               {saveError && (
-                <p className="rounded bg-red-50 p-2 text-xs text-red-700">
+                <p className="rounded-card bg-red-50 p-2 text-xs text-red-700">
                   {t("review.save_error", { message: saveError })}
                 </p>
               )}
               {savedTemplate && (
-                <p className="rounded bg-emerald-50 p-2 text-xs text-emerald-800">
+                <p className="rounded-card bg-emerald-50 p-2 text-xs text-emerald-800">
                   {t("review.saved", { title: savedTemplate.title })}
                 </p>
               )}
 
-              <label className="block pt-2">
-                <span className="mb-0.5 block text-[11px] font-medium uppercase tracking-wide text-gray-400">
-                  {t("templates.student_id_label")}
-                </span>
+              <Field label={t("templates.student_id_label")} htmlFor="import-student-id">
                 <input
-                  className="w-full rounded border border-gray-300 px-2 py-1 font-mono text-xs"
+                  id="import-student-id"
+                  className={`${inputClass} font-mono`}
                   value={studentId}
                   onChange={(e) => setStudentId(e.target.value)}
                 />
-              </label>
-              <label className="block">
-                <span className="mb-0.5 block text-[11px] font-medium uppercase tracking-wide text-gray-400">
-                  {t("templates.timezone_label")}
-                </span>
+              </Field>
+              <Field
+                label={t("templates.timezone_label")}
+                hint={t("templates.timezone_hint")}
+                htmlFor="import-timezone"
+              >
                 <input
-                  className="w-full rounded border border-gray-300 px-2 py-1 font-mono text-xs"
+                  id="import-timezone"
+                  className={`${inputClass} font-mono`}
                   value={timezone}
                   onChange={(e) => setTimezone(e.target.value)}
                 />
-                <span className="mt-0.5 block text-[11px] text-gray-400">
-                  {t("templates.timezone_hint")}
-                </span>
-              </label>
+              </Field>
 
               {/* HOW LONG IT RUNS — a date, not two database columns. */}
-              <div className="rounded border border-gray-200 bg-white p-2">
-                <span className="mb-0.5 block text-[11px] font-medium uppercase tracking-wide text-gray-400">
+              <div className="rounded-card border border-line bg-paper-2 p-3">
+                <span className="mb-2 block text-label font-semibold uppercase text-ink-soft">
                   {t("templates.next_session_label")}
                 </span>
                 {nextSession === null
                   ? (
-                    <button
-                      type="button"
-                      className="text-xs text-gray-700 underline"
+                    <Button
+                      size="sm"
                       onClick={() =>
                         setNextSession(
                           addDays(
@@ -1228,32 +1304,33 @@ export default function PlanImportPage() {
                         )}
                     >
                       {t("templates.next_session_open")}
-                    </button>
+                    </Button>
                   )
                   : (
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <input
                         type="date"
-                        className="rounded border border-gray-300 px-2 py-1 text-xs"
+                        aria-label={t("templates.next_session_label")}
+                        className={`${inputClass} w-auto`}
                         value={nextSession}
                         onChange={(e) => setNextSession(e.target.value || null)}
                       />
-                      <button
-                        type="button"
-                        className="text-[11px] text-gray-400 underline"
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => setNextSession(null)}
                       >
                         {t("templates.next_session_clear")}
-                      </button>
+                      </Button>
                     </div>
                   )}
-                <span className="mt-1 block text-[11px] text-gray-400">
+                <span className="mt-2 block max-w-[62ch] text-[11px] text-ink-soft">
                   {t("templates.next_session_hint")}
                 </span>
                 {/* The conversion, read back. A coach who disagrees with the
                     window can see it here instead of discovering it when the
                     student's app goes empty. */}
-                <span className="mt-1 block text-[11px] text-gray-600">
+                <span className="mt-1 block max-w-[62ch] text-[11px] text-ink">
                   {planWindow.durationWeeks === null
                     ? t("templates.plan_window_open_ended", {
                       anchor: planWindow.anchorWeekStart,
@@ -1268,81 +1345,91 @@ export default function PlanImportPage() {
                 </span>
               </div>
 
-              <p className="text-xs text-gray-500">{t("review.approval_hint")}</p>
+              <p className="max-w-[62ch] text-xs text-ink-soft">{t("review.approval_hint")}</p>
               {pendingSections.length > 0 && (
-                <p className="rounded bg-amber-100 p-2 text-xs text-amber-900">
+                <p className="rounded-card bg-amber-50 p-2 text-xs text-amber-900">
                   {t("review.approvals_missing", { count: pendingSections.length })}
                 </p>
               )}
-              <button
-                type="button"
+              {/* L'action figue de la seconde phase — voir « Importer » plus
+                  haut, qui la rend en `secondary` dès qu'il y a des lignes. */}
+              <Button
+                variant="primary"
+                className="w-full"
                 disabled={publishing || studentId.trim() === "" || blocking.length > 0 ||
                   pendingSections.length > 0 || planWindowInvalid}
                 onClick={publishToStudent}
-                className="w-full rounded border border-gray-900 px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100 disabled:opacity-40"
               >
                 {t("review.publish")}
-              </button>
+              </Button>
               {publishNote && (
-                <p className="break-words rounded bg-gray-100 p-2 text-xs text-gray-600">
+                <p className="break-words rounded-card bg-paper-2 p-2 text-xs text-ink">
                   {publishNote}
                 </p>
               )}
-            </div>
+            </Card>
           )}
         </section>
 
         {/* RIGHT — the two queues */}
-        <section>
-          <h2 className="mb-2 text-sm font-medium uppercase tracking-wide text-gray-400">
-            {t("import.extraction")}
-          </h2>
+        <section className="min-w-0">
+          <SectionLabel>{t("import.extraction")}</SectionLabel>
           {!result && !loading && drafts.length === 0 && (
-            <p className="rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-400">
+            <Card tone="dashed" padded={false} className="p-6 text-center text-sm text-ink-soft">
               {t("import.empty_state")}
-            </p>
+            </Card>
           )}
           {loading && (
-            <p className="rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500">
+            <Card tone="dashed" padded={false} className="p-6 text-center text-sm text-ink-soft">
               {t("import.loading_hint")}
-            </p>
+            </Card>
           )}
 
           {drafts.length > 0 && (
             <div className="space-y-5">
-              <div className="flex gap-4 rounded-lg bg-gray-50 p-3 text-center text-sm">
-                <div className="flex-1">
-                  <div className="text-xl font-semibold text-gray-900">{toHoldCount}</div>
-                  <div className="text-xs text-gray-500">{t("import.stat_commitments")}</div>
+              {/* LES QUATRE CHIFFRES DE TÊTE, ET AUCUN N'EST TEINTÉ.
+                  « À vérifier » passait de l'ambre à l'émeraude selon qu'il
+                  valait 0 ou plus, et « à compléter » était en bleu ciel. Un
+                  chiffre est une MESURE: la charte l'écrit noir sur blanc dans la
+                  colonne de ce qui ne prend jamais une teinte. Et l'émeraude d'un
+                  zéro était le pire des trois — elle félicitait le coach pour un
+                  compteur, pas pour un fait. Ce que les couleurs disaient est
+                  déjà dit par le chiffre lui-même et par la file en dessous, qui
+                  porte le même nombre et la question qui va avec.
+                  ⚠️ `min-w-0` sur chaque `flex-1`: sans lui un enfant de flex
+                  refuse d'être plus étroit que son contenu et la bande de quatre
+                  déborde à 320 px. */}
+              <div className="flex flex-wrap gap-4 rounded-card bg-paper-2 p-3 text-center text-sm">
+                <div className="min-w-0 flex-1">
+                  <div className="text-xl font-semibold tabular-nums text-ink">{toHoldCount}</div>
+                  <div className="text-xs text-ink-soft">{t("import.stat_commitments")}</div>
                   {observedCount > 0 && (
-                    <div className="text-[11px] text-gray-400">
+                    <div className="text-[11px] text-ink-soft">
                       {t("import.stat_observed", { count: observedCount })}
                     </div>
                   )}
                 </div>
-                <div className="flex-1">
-                  <div
-                    className={`text-xl font-semibold ${
-                      toVerify.length > 0 ? "text-amber-600" : "text-emerald-600"
-                    }`}
-                  >
+                <div className="min-w-0 flex-1">
+                  <div className="text-xl font-semibold tabular-nums text-ink">
                     {toVerify.length}
                   </div>
-                  <div className="text-xs text-gray-500">{t("import.stat_review")}</div>
+                  <div className="text-xs text-ink-soft">{t("import.stat_review")}</div>
                 </div>
-                <div className="flex-1">
-                  <div className="text-xl font-semibold text-sky-700">{toComplete.length}</div>
-                  <div className="text-xs text-gray-500">{t("import.stat_gaps")}</div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-xl font-semibold tabular-nums text-ink">
+                    {toComplete.length}
+                  </div>
+                  <div className="text-xs text-ink-soft">{t("import.stat_gaps")}</div>
                 </div>
                 {/* Neutral on purpose: this used to be a red count under
                     "Shown to the student without the dose", which read as a
                     tally of the coach's mistakes. It counts lines that carry a
                     reference note, and a note is not a problem. */}
-                <div className="flex-1">
-                  <div className="text-xl font-semibold text-gray-900">
+                <div className="min-w-0 flex-1">
+                  <div className="text-xl font-semibold tabular-nums text-ink">
                     {safetyBusy ? "…" : notedCount}
                   </div>
-                  <div className="text-xs text-gray-500">{t("safety.stat_notes")}</div>
+                  <div className="text-xs text-ink-soft">{t("safety.stat_notes")}</div>
                 </div>
               </div>
 
@@ -1350,7 +1437,6 @@ export default function PlanImportPage() {
                 title={t("review.queue_verify")}
                 hint={t("review.queue_verify_hint")}
                 count={toVerify.length}
-                tone="amber"
                 approvedAt={approvals.to_verify ?? null}
                 onApprove={() => approveSection("to_verify")}
               >
@@ -1361,7 +1447,6 @@ export default function PlanImportPage() {
                 title={t("review.queue_complete")}
                 hint={t("review.queue_complete_hint")}
                 count={toComplete.length}
-                tone="sky"
                 // No approval control here on purpose: an unaccepted proposal
                 // never travels, and an accepted one is approved in "ready".
                 approvable={false}
@@ -1380,7 +1465,6 @@ export default function PlanImportPage() {
                 title={t("review.queue_ready")}
                 hint={t("review.queue_ready_hint")}
                 count={ready.length}
-                tone="gray"
                 approvedAt={approvals.ready ?? null}
                 onApprove={() => approveSection("ready")}
               >
@@ -1391,8 +1475,8 @@ export default function PlanImportPage() {
                         ? section.subsections.map((group) => (
                           <PartSubgroup
                             key={group.key}
-                            // The family reads as its CHIP — same glyph, same
-                            // colour the student sees on the line itself
+                            // The family reads as its CHIP — the same glyph the
+                            // student sees on the line itself
                             // (CommitmentLine/ActivityChip). No second
                             // vocabulary. A food heading is a heading.
                             label={group.kind === "activity_class"
@@ -1409,16 +1493,12 @@ export default function PlanImportPage() {
                 </div>
               </Queue>
 
-              <button
-                type="button"
-                onClick={addLine}
-                className="w-full rounded border border-dashed border-gray-300 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50"
-              >
+              <Button className="w-full" onClick={addLine}>
                 + {t("review.add_line")}
-              </button>
+              </Button>
 
               {result && result.unparsed_spans.length > 0 && (
-                <details className="text-xs text-gray-500">
+                <details className="text-xs text-ink-soft">
                   <summary className="cursor-pointer">
                     {t("import.unparsed_title")} ({result.unparsed_spans.length})
                   </summary>

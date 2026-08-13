@@ -40,7 +40,7 @@ export default function KitchenBlock(props: KitchenBlockProps) {
 
   return (
     <section aria-label={mealCopy("meals.kitchen.title")}>
-      <h3 className="mb-2 text-sm font-semibold text-gray-900">
+      <h3 className="mb-2 text-sm font-semibold text-ink">
         {mealCopy("meals.kitchen.title")}
       </h3>
       <Card>
@@ -49,9 +49,9 @@ export default function KitchenBlock(props: KitchenBlockProps) {
             const days = daysFedBy(prep.id, props.dishes);
             return (
               <li key={prep.id} className="text-sm leading-6">
-                <span className="font-medium text-gray-900">{prep.title}</span>
+                <span className="font-medium text-ink">{prep.title}</span>
                 {prep.cook_on && (
-                  <span className="text-gray-500">
+                  <span className="text-ink-soft">
                     {" — "}
                     {mealCopy("meals.kitchen.cook_on").replace(
                       "{day}",
@@ -63,7 +63,7 @@ export default function KitchenBlock(props: KitchenBlockProps) {
                     cette ligne, « rôti du dimanche » ne dit pas qu'on en mange
                     lundi, mardi et mercredi. */}
                 {days.length > 0 && (
-                  <span className="block text-xs text-gray-500">
+                  <span className="block text-xs text-ink-soft">
                     {mealCopy("meals.kitchen.feeds").replace(
                       "{days}",
                       days

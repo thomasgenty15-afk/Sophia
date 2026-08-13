@@ -48,11 +48,13 @@
 
 import React from "react";
 import { Button } from "./ui/Button";
+import { inputClass } from "./ui/Field";
 import {
   buildWeeklySubmission,
   WEEKLY_AXES,
-  WEEKLY_AXIS_LABELS,
-  WEEKLY_SCALE_LABELS,
+  weeklyAxisLabel,
+  weeklyScaleLabel,
+  WEEKLY_SCALE_VALUES,
   type WeeklyAxis,
   type WeeklySubmissionError,
 } from "../api/weeklyCheckIn";
@@ -138,17 +140,22 @@ export function WeeklyCheckInDialog({
   return (
     <form
       onSubmit={submit}
-      className="rounded-2xl border border-gray-200 bg-white p-4"
+      // LE MÊME CADRE QUE `ui/Card.tsx`, à la classe près: remplissage `paper`
+      // comme le sol, et un trait de CONTRÔLE `line-strong` (3,84:1) pour que le
+      // formulaire se lise. `border-line` (1,30:1) le ferait disparaître — le
+      // fond de la conversation EST `paper`, il n'y a pas de neutre plus clair
+      // dans la charte. Ce n'est pas `<Card>` parce qu'il faut un `<form>`.
+      className="rounded-card border border-line-strong bg-paper p-4"
       aria-label={t("chat.weekly.title")}
       data-testid="weekly-checkin"
       // LISIBLE DEPUIS UN TEST, et pas seulement à l'œil: c'est ce qui permet
       // d'épingler « zéro axe rendu » sans compter des boutons.
       data-axes={showAxes ? "on" : "off"}
     >
-      <h2 className="text-base font-semibold text-gray-900">
+      <h2 className="text-base font-semibold text-ink">
         {t("chat.weekly.title")}
       </h2>
-      <p className="mt-1 text-sm text-gray-600">
+      <p className="mt-1 text-sm text-ink-soft">
         {showAxes ? t("chat.weekly.subtitle") : t("chat.weekly.subtitle.measures")}
       </p>
 
@@ -156,24 +163,36 @@ export function WeeklyCheckInDialog({
         <div className="mt-4 flex flex-col gap-3">
           {WEEKLY_AXES.map((axis) => (
             <div key={axis}>
-              <p className="text-sm font-medium text-gray-800">
-                {WEEKLY_AXIS_LABELS[axis]}
+              <p className="text-sm font-medium text-ink">
+                {weeklyAxisLabel(axis)}
               </p>
+              {/* ── LE CRAN CHOISI RESTE NEUTRE, ET C'EST UN ARBITRAGE ────────
+                  Six axes se notent en même temps: six pastilles pleines sont
+                  rendues côte à côte dès que l'élève a répondu. Les peindre à la
+                  figue mettrait SIX aplats de marque dans un panneau qui porte
+                  déjà l'action figue (« Envoyer ») — c'est-à-dire zéro
+                  hiérarchie, exactement ce que le plafond d'une action de marque
+                  par vue existe pour éviter. Un cran choisi n'est d'ailleurs pas
+                  une action, c'est la VALEUR d'un contrôle.
+                  `ink` sur `paper` = 16,18:1, le couple le plus contrasté de la
+                  charte, et `aria-pressed` porte déjà l'état sans la couleur.
+                  ⚠️ Le panneau de déviation, lui, EST à la figue: il n'a qu'UN
+                  choix sélectionné par groupe. La différence est le nombre. */}
               <div className="mt-1 flex flex-wrap gap-1.5">
-                {[1, 2, 3, 4, 5].map((score) => (
+                {WEEKLY_SCALE_VALUES.map((score) => (
                   <button
                     key={score}
                     type="button"
                     aria-pressed={scores[axis] === score}
-                    aria-label={`${WEEKLY_AXIS_LABELS[axis]}: ${WEEKLY_SCALE_LABELS[score]}`}
+                    aria-label={`${weeklyAxisLabel(axis)}: ${weeklyScaleLabel(score)}`}
                     onClick={() => setScores((prev) => ({ ...prev, [axis]: score }))}
                     className={`rounded-full border px-2.5 py-0.5 text-xs ${
                       scores[axis] === score
-                        ? "border-gray-900 bg-gray-900 text-white"
-                        : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                        ? "border-ink bg-ink text-paper"
+                        : "border-line-strong bg-paper text-ink hover:bg-fig-50"
                     }`}
                   >
-                    {WEEKLY_SCALE_LABELS[score]}
+                    {weeklyScaleLabel(score)}
                   </button>
                 ))}
               </div>
@@ -187,18 +206,34 @@ export function WeeklyCheckInDialog({
           répéter « optionnel » sur l'unique chose demandée dit à l'élève qu'il
           peut envoyer un formulaire vide — ce que la garde refuse. */}
       {showAxes && (
-        <p className="mt-4 text-xs text-gray-500">{t("chat.weekly.optional")}</p>
+        <p className="mt-4 text-xs text-ink-soft">{t("chat.weekly.optional")}</p>
       )}
       {/* La marge se reprend quand la légende disparaît: sans ça la rangée des
-          mesures viendrait coller au sous-titre. */}
-      <div className={`${showAxes ? "mt-1" : "mt-4"} flex gap-2`}>
+          mesures viendrait coller au sous-titre.
+
+          ⛔ LES DEUX CHAMPS PASSENT PAR `inputClass`, ET C'EST UN DÉFAUT MESURÉ
+          QUI TOMBE. Ils portaient `text-sm` — 14 px — donc Safari iOS ZOOMAIT au
+          focus et NE DÉZOOMAIT PAS en sortant: le point hebdo est un écran de
+          téléphone du dimanche, c'est-à-dire le pire endroit possible pour ce
+          défaut. `inputClass` est `text-base` sous `lg`. Il apporte aussi la
+          bordure de contrôle `line-strong` (3,84:1 contre 1,30:1) et l'anneau de
+          focus `fig-600` que ces deux champs n'avaient pas du tout.
+          ⚠️ Et le rayon passe de `full` à `card`: le cercle complet est réservé
+          aux boutons et aux pastilles d'état (`KIT-CONTRAT` §1), un champ est une
+          case. Une grille bornée remplace les deux `w-32`: elle tient à 320 px
+          sans qu'aucune largeur ne soit écrite en dur. */}
+      <div
+        className={`${
+          showAxes ? "mt-1" : "mt-4"
+        } grid max-w-xs grid-cols-2 gap-2`}
+      >
         <input
           value={weight}
           onChange={(e) => setWeight(e.target.value)}
           inputMode="decimal"
           placeholder={t("chat.weekly.weight")}
           aria-label={t("chat.weekly.weight")}
-          className="w-32 rounded-full border border-gray-300 px-3 py-1.5 text-sm"
+          className={inputClass}
         />
         <input
           value={waist}
@@ -206,11 +241,13 @@ export function WeeklyCheckInDialog({
           inputMode="decimal"
           placeholder={t("chat.weekly.waist")}
           aria-label={t("chat.weekly.waist")}
-          className="w-32 rounded-full border border-gray-300 px-3 py-1.5 text-sm"
+          className={inputClass}
         />
       </div>
 
-      {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+      {/* ⛔ UN FAIT. Rouge = échec, et `red-700` est la valeur du produit
+          (`ui/Field.tsx`, `ui/Badge.tsx`): 6,13:1 contre 4,83:1 pour `red-600`. */}
+      {error && <p className="mt-3 text-sm text-red-700">{error}</p>}
 
       <div className="mt-4 flex gap-2">
         <Button type="submit" variant="primary" disabled={busy}>

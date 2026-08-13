@@ -2,11 +2,12 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../context/AuthContext";
-import { ALLERGEN_OPTIONS } from "../copy/allergens";
+import { allergenLabel, ALLERGEN_OPTIONS } from "../copy/allergens";
 import { edgeRefusalKey } from "../copy/planRefusals";
 import { setupMissKey } from "../copy/setupMisses";
 import { LocaleSwitch } from "../components/LocaleSwitch";
 import { Button } from "../components/ui/Button";
+import { Badge } from "../components/ui/Badge";
 import { Card, SectionLabel } from "../components/ui/Card";
 import { Field, inputClass } from "../components/ui/Field";
 import {
@@ -50,7 +51,7 @@ import {
   savePlanAnswers,
 } from "../api/onboarding";
 import { browserLocalDate } from "../lib/useMealTicks";
-import { t } from "../i18n/t";
+import { t, type MessageKey } from "../i18n/t";
 
 // KEEL — FF-060, L'ENTONNOIR D'ENTRÉE.
 //
@@ -145,33 +146,68 @@ function emptyMouthDraft(): MouthDraft {
   };
 }
 
-const GOAL_LABELS: Record<MemberGoal, string> = {
-  fat_loss: "Lose weight",
-  muscle_gain: "Build muscle",
-  recomposition: "Same weight, different shape",
-  performance: "Train better",
-  health: "Eat better",
-  maintenance: "Hold what I have",
+// ── LES TROIS TABLES DE LIBELLÉS, ET CE QUI A CHANGÉ ───────────────────────
+//
+// Elles portaient les DIX-NEUF PHRASES elles-mêmes, en dur. Le compilateur les
+// gardait complètes (`Record<MemberGoal, string>` réclame un mot par objectif),
+// et c'est justement ce qui les rendait invisibles: elles avaient l'air d'être
+// tenues. Mais un `const` de module est figé à la langue du bundle — `t()` ne
+// peut pas y être appelé, la règle MODULE_SCOPE_T du lint le refuse et elle a
+// raison —, donc dix-neuf mots anglais survivaient au milieu d'un formulaire
+// français.
+//
+// Les tables gardent leur complétude et changent de contenu: elles portent des
+// CLÉS, et la résolution se fait à l'appel, dans les trois accesseurs
+// ci-dessous. Un objectif ajouté sans son mot ne compile toujours pas.
+const GOAL_KEYS: Record<MemberGoal, MessageKey> = {
+  fat_loss: "setup.goal.fat_loss",
+  muscle_gain: "setup.goal.muscle_gain",
+  recomposition: "setup.goal.recomposition",
+  performance: "setup.goal.performance",
+  health: "setup.goal.health",
+  maintenance: "setup.goal.maintenance",
 };
 
-const OCCASION_LABELS: Record<string, string> = {
-  breakfast: "Breakfast",
-  snack_am: "Mid-morning",
-  lunch: "Lunch",
-  snack_pm: "Afternoon",
-  dinner: "Dinner",
-  before_bed: "Before bed",
+const OCCASION_KEYS: Record<string, MessageKey> = {
+  breakfast: "setup.occasion.breakfast",
+  snack_am: "setup.occasion.snack_am",
+  lunch: "setup.occasion.lunch",
+  snack_pm: "setup.occasion.snack_pm",
+  dinner: "setup.occasion.dinner",
+  before_bed: "setup.occasion.before_bed",
 };
 
-const DAY_LABELS: Record<string, string> = {
-  mon: "Mon",
-  tue: "Tue",
-  wed: "Wed",
-  thu: "Thu",
-  fri: "Fri",
-  sat: "Sat",
-  sun: "Sun",
+const DAY_KEYS: Record<string, MessageKey> = {
+  mon: "setup.day.mon",
+  tue: "setup.day.tue",
+  wed: "setup.day.wed",
+  thu: "setup.day.thu",
+  fri: "setup.day.fri",
+  sat: "setup.day.sat",
+  sun: "setup.day.sun",
 };
+
+function goalLabel(goal: MemberGoal): string {
+  return t(GOAL_KEYS[goal]);
+}
+
+/**
+ * Les deux suivants gardent le repli sur le JETON BRUT qu'avait le `??` des
+ * tables d'origine, et c'est délibéré: les créneaux et les jours viennent de
+ * `api/mealGeneration.ts`, et un jeton neuf ajouté là-bas doit se voir à
+ * l'écran plutôt que faire tomber le formulaire d'inscription de quelqu'un.
+ * C'est la même posture que `allergenLabel` — jamais un écran vide pour un mot
+ * manquant.
+ */
+function occasionLabel(slot: string): string {
+  const key = OCCASION_KEYS[slot];
+  return key ? t(key) : slot;
+}
+
+function dayLabel(day: string): string {
+  const key = DAY_KEYS[day];
+  return key ? t(key) : day;
+}
 
 export default function SetupPage() {
   const navigate = useNavigate();
@@ -255,7 +291,7 @@ export default function SetupPage() {
   if (state.kind === "loading" || !facts || !self || !plan) {
     return (
       <FunnelShell>
-        <p className="text-sm text-gray-500">{t("setup.loading")}</p>
+        <p className="text-sm text-ink-soft">{t("setup.loading")}</p>
       </FunnelShell>
     );
   }
@@ -264,8 +300,8 @@ export default function SetupPage() {
     return (
       <FunnelShell>
         <Card tone="warning">
-          <p className="text-sm text-gray-900">{t("setup.error.title")}</p>
-          <p className="mt-1 text-xs text-gray-600">{state.message}</p>
+          <p className="text-sm text-ink">{t("setup.error.title")}</p>
+          <p className="mt-1 text-xs text-ink-soft">{state.message}</p>
         </Card>
       </FunnelShell>
     );
@@ -622,16 +658,16 @@ export default function SetupPage() {
       <div className="space-y-6">
         {/* UN FIL DE PROGRESSION HONNÊTE: le compte réel des étapes de CETTE
             branche, pas une barre décorative. */}
-        <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+        <p className="text-label font-semibold uppercase text-ink-soft">
           {t("setup.progress", { n: stepIndex + 1, total: steps.length })}
         </p>
 
         {failure ? (
           <Card tone="warning">
-            <p className="text-sm text-gray-900">{failure}</p>
+            <p className="text-sm text-ink">{failure}</p>
           </Card>
         ) : null}
-        {flash ? <p className="text-xs text-gray-500">{flash}</p> : null}
+        {flash ? <p className="text-xs text-ink-soft">{flash}</p> : null}
 
         {step.id === "situate" ? (
           <SituateStep
@@ -673,7 +709,7 @@ export default function SetupPage() {
             {branch !== "solo" && facts.state.self.goal === null ? (
               <Card tone="dashed">
                 <SectionLabel>{t("setup.mouths.title")}</SectionLabel>
-                <p className="mt-2 text-sm text-gray-600">
+                <p className="mt-2 text-sm text-ink-soft">
                   {t("household.me.unlock")}
                 </p>
               </Card>
@@ -785,19 +821,50 @@ export default function SetupPage() {
  */
 function FunnelShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-white">
-      <header className="border-b border-gray-200">
+    // ── LE FOND EST `paper`, ET C'ÉTAIT `bg-white`: UN DÉFAUT MESURÉ ───────
+    // Le blanc pur est le seul neutre que la charte refuse (aucune
+    // température). Sous les cartes du kit, qui sont en `paper` (#FBF8FA), il
+    // inversait le rapport: mesuré au navigateur le 2026-08-13, l'INTÉRIEUR
+    // des cartes était plus chaud que la page qui les portait, donc chaque
+    // carte se lisait comme un creux et non comme une pièce posée.
+    <div className="min-h-screen bg-paper">
+      <header className="border-b border-line">
         <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-3 px-4 py-4">
-          <span className="text-lg font-semibold tracking-tight text-gray-900">
+          {/* L'ÉQUERRE SUR LE MOT-SYMBOLE, comme dans `PublicHeader`: elle
+              « marque l'origine de ce qui est spécifié » (charte §4), et le nom
+              de la marque en est une. Il y a un mot à sa droite — c'est la
+              condition, et elle est tenue.
+              ⚠️ PAS de `px-*` sur ce nœud: `.eq` pose `padding-left: 1.125rem`
+              hors de toute couche CSS et bat un utilitaire de même
+              spécificité. Le `px-4` vit sur le parent.
+              `text-xl` = 20px, le PLANCHER de Young Serif — en dessous, c'est
+              Public Sans (charte §3). `PublicHeader` la pose à 18px et
+              `PublicFooter` à 14px: les deux sont sous le plancher, signalé. */}
+          <span className="eq shrink-0 font-display text-xl leading-none text-ink">
             {t("brand.wordmark")}
           </span>
           <LocaleSwitch />
         </div>
       </header>
       <main className="mx-auto w-full max-w-3xl px-4 py-8">
-        <h1 className="text-2xl font-semibold text-gray-900">{t("setup.title")}</h1>
-        <p className="mt-1 text-sm text-gray-500">{t("setup.subtitle")}</p>
-        <div className="mt-6">{children}</div>
+        {/* LE MÊME `h1` QUE LE KIT, ET C'EST LE POINT: `font-display text-title`
+            est ce que rend `ui/Page.tsx#PageHeader` sur les seize écrans, et ce
+            que rendent `/start` et `/auth`. Cet écran-ci ne peut pas employer
+            `PageHeader` — il n'a ni la coque ni la nav de l'app — mais le
+            premier écran du produit ne doit pas être le seul dont le titre
+            n'est pas de la maison.
+            ⛔ AUCUNE GRAISSE ICI (c'était `text-2xl font-semibold`): Young Serif
+            n'a qu'une graisse, le navigateur la simulerait en épaississant les
+            contours. La hiérarchie se fait à la taille et à l'espace. */}
+        <h1 className="text-balance font-display text-title text-ink">{t("setup.title")}</h1>
+        <p className="mt-3 max-w-[62ch] text-base leading-relaxed text-ink-soft">
+          {t("setup.subtitle")}
+        </p>
+        {/* LE TRAIT QUI FERME LE BLOC D'IDENTITÉ. La direction est « la fiche
+            technique » (charte §1): une fiche a une tête — qui elle concerne —
+            puis un trait, puis ses champs. Le compte d'étapes se lit juste en
+            dessous, au cran `text-label`, comme la référence d'un document. */}
+        <div className="mt-8 border-t border-line pt-8">{children}</div>
       </main>
     </div>
   );
@@ -827,7 +894,7 @@ function SituateStep({
     return (
       <Card>
         <SectionLabel>{t("setup.situate.title")}</SectionLabel>
-        <p className="mt-2 text-sm text-gray-600">{t("setup.situate.member")}</p>
+        <p className="mt-2 text-sm text-ink-soft">{t("setup.situate.member")}</p>
       </Card>
     );
   }
@@ -840,7 +907,7 @@ function SituateStep({
   return (
     <Card>
       <SectionLabel>{t("setup.situate.title")}</SectionLabel>
-      <p className="mt-2 text-sm text-gray-600">{t("setup.situate.hint")}</p>
+      <p className="mt-2 text-sm text-ink-soft">{t("setup.situate.hint")}</p>
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
         {options.map((option) => {
           // ⚠️ « JUSTE MOI » SE DÉSARME QUAND UN FOYER EXISTE. Cet écran ne
@@ -854,19 +921,46 @@ function SituateStep({
               key={option.key}
               type="button"
               disabled={busy || locked}
+              // LE CHOIX COURANT EST DIT AUTREMENT QUE PAR LA COULEUR. Sans
+              // ceci, « laquelle des trois est la mienne » ne passait que par
+              // une bordure teintée: invisible à un lecteur d'écran, et seule
+              // porteuse de l'information au sens de WCAG 1.4.1.
+              aria-pressed={chosen}
               onClick={() => onChoose(option.mouths)}
               className={[
-                "rounded-xl border p-4 text-left transition-colors",
-                chosen ? "border-gray-900 bg-gray-50" : "border-gray-200 bg-white",
-                locked ? "cursor-not-allowed opacity-50" : "hover:bg-gray-50",
+                // `rounded-card` (12px) et pas `rounded-xl`: le rayon RENDU est
+                // le même, il porte enfin son nom — le vocabulaire du kit est
+                // `part` (4px) · `card` (12px) · `fiche` (16px) · `full`
+                // (boutons et pastilles), et rien d'autre.
+                "rounded-card border p-4 text-left transition-colors",
+                // ── POURQUOI LE LAVIS ET PAS L'APLAT DE MARQUE ──────────────
+                // Une pastille choisie prend l'aplat plein (`bg-fig-700`), et
+                // c'est l'idiome de la maison — voir `MealPrepPage.tsx:325`.
+                // Ici la surface est une TUILE de 200px: un aplat de marque à
+                // cette taille devient le bloc dominant de l'écran, et il
+                // faudrait remonter le sous-titre à `fig-300` pour qu'il se
+                // lise. `fig-100` est le lavis, « un remplissage qui doit se
+                // lire PLEIN » (charte §5), fermé par un trait `fig-700`:
+                // `ink` dessus = 13,42:1, `ink-soft` = 5,07:1.
+                chosen
+                  ? "border-fig-700 bg-fig-100"
+                  // Le non-choisi est le geste secondaire du kit, et c'est mot
+                  // pour mot la grande commande de `/auth` (`Auth.tsx:1340`) —
+                  // la porte que le visiteur vient de franchir: un contour de
+                  // CONTRÔLE (`line-strong`, 3,84:1 — WCAG 1.4.11 exige 3:1)
+                  // sur le même papier que tout le reste. Le survol emprunte le
+                  // lavis clair `fig-50`, donc il ne peut pas se confondre avec
+                  // le lavis plein `fig-100` du choix retenu.
+                  : "border-line-strong bg-paper",
+                locked ? "cursor-not-allowed opacity-50" : "hover:bg-fig-50",
               ].join(" ")}
             >
-              <span className="block text-sm font-medium text-gray-900">
+              <span className="block text-sm font-medium text-ink">
                 {option.title}
               </span>
               {/* `min-w-0` n'est pas nécessaire ici (pas de flex), mais le texte
                   doit se replier à 320 px: pas de `whitespace-nowrap`. */}
-              <span className="mt-1 block text-xs leading-5 text-gray-600">
+              <span className="mt-1 block text-xs leading-5 text-ink-soft">
                 {option.hint}
               </span>
             </button>
@@ -907,7 +1001,7 @@ function SelfStep({
   return (
     <Card>
       <SectionLabel>{t("setup.people.title")}</SectionLabel>
-      <p className="mt-2 text-sm text-gray-600">{t("setup.people.intro")}</p>
+      <p className="mt-2 text-sm text-ink-soft">{t("setup.people.intro")}</p>
 
       <div className="mt-4 space-y-4">
         {/* LE PRÉNOM N'EST DEMANDÉ QUE S'IL Y A UN FOYER — rien, dans le chemin
@@ -1009,7 +1103,7 @@ function SelfStep({
             <option value="">—</option>
             {MEMBER_GOALS.map((g) => (
               <option key={g} value={g}>
-                {GOAL_LABELS[g]}
+                {goalLabel(g)}
               </option>
             ))}
           </select>
@@ -1070,10 +1164,13 @@ function MouthsStep(props: {
   return (
     <Card>
       <SectionLabel>{t("setup.mouths.title")}</SectionLabel>
-      <p className="mt-2 text-sm text-gray-600">{t("setup.mouths.intro")}</p>
+      <p className="mt-2 text-sm text-ink-soft">{t("setup.mouths.intro")}</p>
 
       {props.mouths.length > 0 ? (
-        <ul className="mt-4 divide-y divide-gray-100">
+        // `divide-line` — un séparateur DÉCORATIF, et c'est exactement son
+        // emploi légitime: une règle horizontale À L'INTÉRIEUR d'une carte
+        // (`ui/Card.tsx`). Il ne borderait jamais un contrôle: 1,30:1.
+        <ul className="mt-4 divide-y divide-line">
           {props.mouths.map((m) => (
             <li key={m.memberId ?? m.firstName} className="py-3">
               <MouthRow
@@ -1099,9 +1196,9 @@ function MouthsStep(props: {
       {full ? (
         // LE PLAFOND EST EN BASE (`household_full`). Cet écran ne fait que le
         // DIRE — « une limite d'UI n'est pas une limite ».
-        <p className="mt-4 text-xs text-gray-500">{t("setup.mouths.full")}</p>
+        <p className="mt-4 text-xs text-ink-soft">{t("setup.mouths.full")}</p>
       ) : (
-        <div className="mt-4 space-y-4 border-t border-gray-100 pt-4">
+        <div className="mt-4 space-y-4 border-t border-line pt-4">
           <Field
             label={t("setup.people.first_name")}
             hint={t("setup.mouths.first_name_hint")}
@@ -1210,7 +1307,7 @@ function MouthsStep(props: {
                 <option value="">{t("setup.mouths.goal_none")}</option>
                 {MEMBER_GOALS.map((g) => (
                   <option key={g} value={g}>
-                    {GOAL_LABELS[g]}
+                    {goalLabel(g)}
                   </option>
                 ))}
               </select>
@@ -1260,12 +1357,21 @@ function MouthRow(props: {
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <span className="text-sm font-medium text-gray-900">
+        <span className="min-w-0 text-sm font-medium text-ink">
           {m.firstName || "—"}
         </span>
-        <span className="text-xs text-gray-500">
+        {/* LA NATURE DE LA BOUCHE PASSE DANS UNE PASTILLE `neutral`, ET C'EST
+            LE KIT QUI LE DEMANDE: `Badge` a un ton pour « tout ce qui n'est
+            qu'une étiquette », et « adulte / enfant » en est une — pas un état
+            du système, donc ni émeraude, ni ambre, ni rouge, ni bleu, et
+            surtout pas la figue (elle n'entre jamais dans une pastille).
+            Elle paie aussi une lisibilité mesurée: en `text-xs text-gray-500`
+            au bout d'une ligne, la nature se confondait avec les phrases
+            d'aide en dessous, et trois lignes de bouches se lisaient comme un
+            seul formulaire. La pastille rend le début de chaque ligne. */}
+        <Badge>
           {m.kind === "child" ? t("setup.mouths.kind_child") : t("setup.mouths.kind_adult")}
-        </span>
+        </Badge>
       </div>
 
       {/* LA DATE NE SE PRÉREMPLIT PAS, ET C'EST LA BASE QUI LE DÉCIDE: le
@@ -1273,7 +1379,7 @@ function MouthRow(props: {
           y a un enfant à table, pas son âge). On sait seulement qu'elle EXISTE,
           parce que l'âge n'est plus `unknown`. */}
       {onFile ? (
-        <p className="text-xs text-gray-500">{t("household.member.birth_date_kept")}</p>
+        <p className="text-xs text-ink-soft">{t("household.member.birth_date_kept")}</p>
       ) : (
         <Field
           label={t("setup.people.birth_date")}
@@ -1309,7 +1415,7 @@ function MouthRow(props: {
           // ⚠️ D1 DU CHANTIER FOYER: dès qu'une bouche a un compte, son objectif
           // vit dans SON « about you ». Le champ n'est donc pas ici — et le dire
           // évite qu'on cherche un réglage qui n'existe plus à cet endroit.
-          <p className="text-xs text-gray-500">{t("setup.mouths.goal_from_profile")}</p>
+          <p className="text-xs text-ink-soft">{t("setup.mouths.goal_from_profile")}</p>
         ) : (
           <Field label={t("setup.mouths.goal")} htmlFor={`setup-mouth-g-${m.memberId}`}>
             <select
@@ -1322,7 +1428,7 @@ function MouthRow(props: {
               <option value="">{t("setup.mouths.goal_none")}</option>
               {MEMBER_GOALS.map((g) => (
                 <option key={g} value={g}>
-                  {GOAL_LABELS[g]}
+                  {goalLabel(g)}
                 </option>
               ))}
             </select>
@@ -1422,27 +1528,49 @@ function MouthRow(props: {
           reprendre. D'où l'absence totale de fourche à la saisie. */}
       {!m.claimed ? (
         <div>
-          <Button variant="ghost" size="sm" onClick={props.onInviteOpen}>
+          {/* ── `secondary` ET PLUS `ghost`, ET C'EST UN DÉFAUT MESURÉ ────────
+              `ghost` ne rend que du texte `ink-soft` sans contour. Ce bouton
+              vit au milieu de trois phrases d'aide qui sont, elles aussi, en
+              `ink-soft`: vu au navigateur le 2026-08-13, il ne se distinguait
+              pas d'une ligne de prose, sur la seule ligne de cette liste qui
+              OUVRE quelque chose. Le geste reste facultatif — c'est le rôle de
+              `ghost` — mais un geste facultatif doit rester reconnaissable
+              comme geste. */}
+          <Button variant="secondary" size="sm" onClick={props.onInviteOpen}>
             {t("setup.access.title")}
           </Button>
           {props.inviteOpen ? (
-            <div className="mt-2 space-y-2 rounded-lg bg-gray-50 p-3">
-              <p className="text-xs leading-5 text-gray-600">
+            // LE PANNEAU IMBRIQUÉ SE DIT PAR `paper-2` + UN TRAIT, pas par un
+            // gris froid: c'est l'idiome du fronton de `ui/SetupSection.tsx`,
+            // et c'est le seul remplissage disponible sous une carte `paper`
+            // (`ink-soft` sur `paper-2` = 5,67:1).
+            <div className="mt-2 space-y-2 rounded-card border border-line bg-paper-2 p-3">
+              <p className="text-xs leading-5 text-ink-soft">
                 {t("setup.access.waiting")}
               </p>
-              <p className="text-xs leading-5 text-gray-600">
+              <p className="text-xs leading-5 text-ink-soft">
                 {t("setup.access.grants")}
               </p>
-              <p className="text-xs leading-5 text-gray-600">
+              <p className="text-xs leading-5 text-ink-soft">
                 {t("setup.access.goal_carries")}
               </p>
-              <div className="flex flex-wrap items-center gap-2">
+              {/* ── UNE COLONNE SOUS `sm`, ET C'EST UN DÉFAUT MESURÉ ─────────
+                  C'était `flex flex-wrap items-center gap-2` avec le champ en
+                  `flex-1`. `flex-wrap` ne sauve rien ici: le champ, étant
+                  élastique, se laisse comprimer plutôt que de pousser le bouton
+                  à la ligne. Mesuré à 320 px le 2026-08-13: le champ tombait à
+                  **84 px** à côté d'un bouton dont le libellé fait toute la
+                  largeur — on ne saisit pas une adresse e-mail dans 84 px.
+                  `items-start` empêche le bouton de s'étirer sur toute la
+                  largeur en colonne (`align-items` vaut `stretch` par défaut,
+                  et `Button` est un `inline-flex`). */}
+              <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center">
                 <input
                   type="email"
                   placeholder={t("setup.access.email")}
                   value={props.inviteEmail}
                   onChange={(e) => props.onInviteEmail(e.target.value)}
-                  className={`${inputClass} min-w-0 flex-1`}
+                  className={`${inputClass} min-w-0 sm:flex-1`}
                 />
                 <Button
                   variant="secondary"
@@ -1455,13 +1583,18 @@ function MouthRow(props: {
               </div>
               {props.invite ? (
                 <div className="space-y-1">
-                  <p className="text-xs text-gray-600">
+                  <p className="text-xs text-ink-soft">
                     {t("household.invite.link_ready", { name: props.invite.firstName })}
                   </p>
                   {/* LE LIEN EST RENDU, PAS ENVOYÉ. En local, aucun e-mail ne
                       part — et l'écran doit donc donner de quoi le
                       transmettre à la main. */}
-                  <code className="block break-all rounded bg-white p-2 text-[0.6875rem] text-gray-700">
+                  {/* `text-xs` remplace un `text-[0.6875rem]` hors échelle. Le
+                      cran de la charte à cette taille est `text-label`, mais il
+                      met en CAPITALES et ouvre l'approche à +0,1em: un jeton
+                      d'invitation à recopier ne survit ni à l'un ni à l'autre.
+                      12 px sur l'échelle valent mieux que 11 px hors d'elle. */}
+                  <code className="block break-all rounded-card border border-line bg-paper p-2 text-xs text-ink">
                     {`${window.location.origin}/join-household?token=${props.invite.token}`}
                   </code>
                 </div>
@@ -1494,7 +1627,7 @@ function PlanStep({
     <>
       <Card>
         <SectionLabel>{t("setup.plan.title")}</SectionLabel>
-        <p className="mt-2 text-sm text-gray-600">{t("setup.plan.intro")}</p>
+        <p className="mt-2 text-sm text-ink-soft">{t("setup.plan.intro")}</p>
 
         <div className="mt-4 space-y-4">
           <Field label={t("setup.plan.rhythm")} hint={t("setup.plan.rhythm_hint")}>
@@ -1510,7 +1643,7 @@ function PlanStep({
                         ? prev
                         : { ...prev, eatingRhythm: toggle(prev.eatingRhythm, slot) })}
                 >
-                  {OCCASION_LABELS[slot] ?? slot}
+                  {occasionLabel(slot)}
                 </Button>
               ))}
             </div>
@@ -1529,7 +1662,7 @@ function PlanStep({
                         ? prev
                         : { ...prev, cookDays: toggle(prev.cookDays, day) })}
                 >
-                  {DAY_LABELS[day] ?? day}
+                  {dayLabel(day)}
                 </Button>
               ))}
             </div>
@@ -1609,14 +1742,14 @@ function PlanStep({
           <SectionLabel>{t("setup.missing.title")}</SectionLabel>
           <ul className="mt-2 space-y-1">
             {missing.map((miss) => (
-              <li key={miss} className="text-sm leading-6 text-gray-700">
+              <li key={miss} className="text-sm leading-6 text-ink">
                 {t(setupMissKey(miss as Parameters<typeof setupMissKey>[0]))}
               </li>
             ))}
           </ul>
         </Card>
       ) : (
-        <p className="text-xs text-gray-500">{t("setup.plan.compose_hint")}</p>
+        <p className="text-xs text-ink-soft">{t("setup.plan.compose_hint")}</p>
       )}
     </>
   );
@@ -1664,7 +1797,7 @@ function AllergyPicker({
                     on ? none : false,
                   )}
               >
-                {option.label}
+                {allergenLabel(option.slug)}
               </Button>
             );
           })}
@@ -1694,12 +1827,25 @@ function AllergyPicker({
             table vide ne distingue pas « rien à déclarer » de « on n'a jamais
             demandé » — et sur une question de sécurité, ces deux-là ne sont pas
             la même chose. */}
-        <label className="flex items-start gap-2 text-sm leading-6 text-gray-600">
+        <label className="flex items-start gap-2 text-sm leading-6 text-ink">
+          {/* ── `accent-fig-700`, ET LES DEUX CLASSES QU'IL REMPLACE ÉTAIENT
+              MORTES ────────────────────────────────────────────────────────
+              La case portait `border-gray-300 text-gray-900 focus:ring-gray-900`.
+              Ce dépôt n'a PAS `@tailwindcss/forms` (vérifié dans
+              `frontend/package.json`): sur une case native, `border-*` et
+              `text-*` ne rendent rien du tout — la coche restait au bleu du
+              système, et le gris n'était même pas appliqué. `accent-color` est
+              le seul levier qui la teigne, et c'est l'idiome déjà en place sur
+              `/start` (`StartPage.tsx:669`) et `/auth` (`Auth.tsx:1312`), les
+              deux portes qui précèdent cet écran.
+              L'anneau de focus est explicite parce que la règle
+              `:focus-visible` de `tokens.css` ne couvre que `a`, `button` et
+              `[tabindex]` — une case n'en fait pas partie. */}
           <input
             type="checkbox"
             checked={none}
             onChange={(e) => onChange(e.target.checked ? [] : allergies, e.target.checked)}
-            className="mt-1 h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-900"
+            className="mt-1 h-4 w-4 shrink-0 cursor-pointer accent-fig-700 focus:outline-none focus:ring-2 focus:ring-fig-600 focus:ring-offset-2"
           />
           <span>{t("setup.people.allergies_none")}</span>
         </label>

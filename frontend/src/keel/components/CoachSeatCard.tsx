@@ -13,7 +13,7 @@ import {
   setSeatInterval,
 } from "../api/coachSeat";
 import { Button } from "./ui/Button";
-import { Card } from "./ui/Card";
+import { Card, SectionLabel } from "./ui/Card";
 
 /**
  * LE SIÈGE, ET SON SEUL BOUTON — `/coach/clients/:id`.
@@ -43,6 +43,16 @@ import { Card } from "./ui/Card";
  * Le bouton retire un accès à une personne. Il est donc `variant="secondary"`
  * et il demande confirmation, là où « Réactiver » ne demande rien: rendre
  * l'accès ne casse rien.
+ *
+ * ⚠️ CE QUI A CHANGÉ AU PASSAGE À LA CHARTE, ET POURQUOI (2026-08-13):
+ * le DÉCLENCHEUR reste `secondary` — le raisonnement ci-dessus est intact — mais
+ * le bouton de CONFIRMATION est passé de `primary` à `danger`. Le kit a une
+ * variante pour un geste destructeur, et un aplat de la teinte de marque sur
+ * « oui, ferme ce siège » recommandait l'action au lieu de la nommer.
+ * Et « Réactiver » est passé de `primary` à `secondary`: cette carte est montée
+ * sur `/coach/clients/:id` sous `CoachNoteCard`, qui porte l'unique action
+ * principale de la page. La règle est « une seule action figue par vue rendue ».
+ * Cette carte n'en pose donc plus aucune.
  */
 export default function CoachSeatCard({ studentId }: { studentId: string }) {
   const [seat, setSeat] = React.useState<SeatRow | null>(null);
@@ -112,13 +122,18 @@ export default function CoachSeatCard({ studentId }: { studentId: string }) {
 
   return (
     <Card className="mt-6">
-      <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-        {t("coach.seat.title")}
-      </p>
+      {/* ⚠️ L'ÉTIQUETTE MAISON EST DEVENUE `SectionLabel`. C'était un
+          `<p className="text-xs font-semibold uppercase tracking-wide gray-400">`
+          — le composant du kit refabriqué à la main, et mal: `gray-400` sur blanc
+          fait 2,84:1, sous le seuil 4,5 du texte. `SectionLabel` est un `h2`,
+          porte l'équerre et rend `text-label` + `ink-soft` (6,11:1).
+          ⚠️ NE POSE PAS DE `px-*` sur ce nœud: `.eq` écrit `padding-left` hors de
+          toute couche CSS et gagnerait contre lui. */}
+      <SectionLabel>{t("coach.seat.title")}</SectionLabel>
 
       {state === "active" && (
         <>
-          <p className="mt-2 text-sm leading-6 text-gray-600">
+          <p className="max-w-[62ch] text-sm leading-6 text-ink-soft">
             {t("coach.seat.active_body")}
           </p>
 
@@ -126,10 +141,37 @@ export default function CoachSeatCard({ studentId }: { studentId: string }) {
               facturation parce qu'il se décide PAR ÉLÈVE: le coach sait que
               CELUI-CI lui a payé l'année, pas que « sa cohorte est annuelle ».
               Une cohorte réelle est mixte. */}
-          <div className="mt-4 border-t border-gray-100 pt-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+          {/* `border-line` (1,30:1) et pas `line-strong`: une règle horizontale
+              À L'INTÉRIEUR d'une carte est le seul emploi légitime du séparateur
+              décoratif. Ce n'est pas la bordure d'un contrôle. */}
+          <div className="mt-4 border-t border-line pt-3">
+            <p className="text-label font-semibold uppercase text-ink-soft">
               {t("coach.seat.interval_label")}
             </p>
+            {/* ── L'INTERVALLE COURANT EST UN FAIT, PAS UNE ACTION ──────────
+                Ce sélecteur portait `bg-gray-900 text-white` sur le segment
+                actif: un aplat sombre, c'est-à-dire un accent de marque qui
+                n'osait pas se nommer. Le premier passage l'a mis en `fig-700` —
+                et MESURÉ AU NAVIGATEUR, ça donnait DEUX pastilles figue sur
+                `/coach/clients/:id`: celle-ci et le « Save » de `CoachNoteCard`.
+                Le kit n'en autorise qu'une par vue rendue.
+                La sortie n'est pas d'arbitrer laquelle gagne, c'est de voir que
+                ce segment n'est pas une action: « ce siège est au mois » est un
+                RÉGLAGE ENREGISTRÉ, un fait sur le siège. Il porte donc le
+                remplissage neutre du produit (`bg-line`, celui de
+                `Badge tone="neutral"`), et c'est le segment qu'on PEUT presser
+                qui garde un contour de contrôle.
+                ⚠️ NE LE REPEINS PAS EN FIGUE « pour qu'on voie mieux la
+                sélection »: la sélection se voit à la FORME — un fond sans
+                contour d'un côté, un contour sans fond de l'autre — et le segment
+                courant est de toute façon `disabled`, donc sans survol.
+                Le seul endroit du coach où une pastille pleine et figue dit « où
+                je suis » est le sélecteur de semaine de `/coach/weekly`: là c'est
+                de la NAVIGATION entre rapports, le même vocabulaire que la
+                pastille active du shell.
+                `ring` plutôt qu'une bordure: la sélection ne décale pas la ligne
+                d'un pixel quand elle change de segment. `ring-line-strong` =
+                3,84:1 (WCAG 1.4.11); `gray-300`, remplacé, était à 1,86:1. */}
             <div className="mt-2 flex flex-wrap gap-2">
               {(["month", "year"] as const).map((iv) => {
                 const current = seatInterval(seat) === iv;
@@ -137,12 +179,13 @@ export default function CoachSeatCard({ studentId }: { studentId: string }) {
                   <button
                     key={iv}
                     type="button"
+                    aria-current={current ? "true" : undefined}
                     disabled={busy || current}
                     onClick={() => run(() => setSeatInterval(studentId, iv))}
-                    className={`rounded-lg border px-3 py-1.5 text-xs font-medium ${
+                    className={`rounded-full px-3 py-1.5 text-xs font-medium ${
                       current
-                        ? "border-gray-900 bg-gray-900 text-white"
-                        : "border-gray-300 text-gray-700 hover:border-gray-400"
+                        ? "bg-line text-ink"
+                        : "bg-paper text-ink ring-1 ring-line-strong hover:bg-fig-50"
                     }`}
                   >
                     {iv === "year"
@@ -152,18 +195,32 @@ export default function CoachSeatCard({ studentId }: { studentId: string }) {
                 );
               })}
             </div>
-            <p className="mt-2 text-xs leading-5 text-gray-500">
+            <p className="mt-2 max-w-[62ch] text-xs leading-5 text-ink-soft">
               {t("coach.seat.interval_hint")}
             </p>
           </div>
           {confirming ? (
-            <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
-              <p className="text-sm leading-6 text-gray-700">
+            // ⛔ L'AMBRE RESTE: la boîte de confirmation PORTE UN FAIT — « tu es
+            // sur le point de retirer un accès ». Un état a le droit d'être une
+            // surface, pas seulement une pastille. Seul le rayon a suivi le kit.
+            <div className="mt-3 rounded-card border border-amber-200 bg-amber-50 p-3">
+              <p className="max-w-[62ch] text-sm leading-6 text-amber-900">
                 {t("coach.seat.confirm_body")}
               </p>
               <div className="mt-3 flex flex-wrap items-center gap-2">
+                {/* ⚠️ `primary` → `danger`, ET C'EST PLUS JUSTE, PAS PLUS PRUDENT.
+                    Ce bouton PROGRAMME LA FIN D'UN SIÈGE: il retire un accès à
+                    une personne. Le kit a une variante pour ça, et c'est un état
+                    (`red-700` sur `paper` = 6,13:1) — un aplat de marque disait
+                    « voici l'action recommandée » sur le seul geste destructeur
+                    de l'écran. Ça libère aussi la figue: `CoachNoteCard`, montée
+                    juste au-dessus sur la même page, garde la seule action
+                    principale de `/coach/clients/:id`.
+                    L'en-tête de ce fichier dit que « le bouton est `secondary` et
+                    demande confirmation » — c'est du DÉCLENCHEUR qu'il parle
+                    (plus bas, inchangé), pas de cette confirmation-ci. */}
                 <Button
-                  variant="primary"
+                  variant="danger"
                   size="sm"
                   disabled={busy}
                   onClick={() => run(() => scheduleSeatEnd(studentId))}
@@ -192,7 +249,7 @@ export default function CoachSeatCard({ studentId }: { studentId: string }) {
 
       {state === "ending" && (
         <>
-          <p className="mt-2 text-sm leading-6 text-gray-600">
+          <p className="max-w-[62ch] text-sm leading-6 text-ink-soft">
             {/* `endDate` ne peut être null ici — `ending` implique une date —
                 mais on ne fabrique pas de texte à partir d'un `!`: si la date
                 était illisible, la phrase resterait vraie sans elle. */}
@@ -215,12 +272,21 @@ export default function CoachSeatCard({ studentId }: { studentId: string }) {
 
       {state === "paused" && (
         <>
-          <p className="mt-2 text-sm leading-6 text-gray-600">
+          <p className="max-w-[62ch] text-sm leading-6 text-ink-soft">
             {t("coach.seat.paused_body")}
           </p>
+          {/* ⚠️ `primary` → `secondary`, ET C'EST UNE CONTRAINTE D'ÉCRAN, PAS UN
+              AVIS SUR CE GESTE. `/coach/clients/:id` monte quatre composants, et
+              deux posaient un aplat `fig-700`: le « Save » de `CoachNoteCard` et
+              ce « Réactiver ». Deux boutons de marque côte à côte, c'est zéro
+              hiérarchie — le kit n'en autorise qu'UN par vue rendue.
+              C'est la note qui garde la marque: elle est la seule écriture
+              ROUTINIÈRE de la page, l'état `paused` est rare, et un `secondary`
+              activé à côté d'un `primary` désactivé (Save l'est tant que rien
+              n'est tapé) reste le geste évident de la page. */}
           <div className="mt-3">
             <Button
-              variant="primary"
+              variant="secondary"
               size="sm"
               disabled={busy}
               onClick={() => run(() => reactivateSeat(studentId))}

@@ -11,6 +11,7 @@ import {
 } from "../api/householdMerge";
 import { edgeRefusalKey, mergeCardRefusalKey, mergeCardSkipKey } from "../copy/planRefusals";
 import { dishDayLabel, dishSlotLabel } from "../api/mealLabels";
+import { formatDate as formatDateIn } from "../i18n/format";
 import { t } from "../i18n/t";
 import { Button } from "./ui/Button";
 import { Card, SectionLabel } from "./ui/Card";
@@ -39,10 +40,13 @@ import { Card, SectionLabel } from "./ui/Card";
 // dépliant « voir son plan » ne montre que des titres, des jours et des
 // moments — voir `HouseholdDishView`.
 
+/**
+ * « 7 août » · « 7 Aug ». LA COUTURE QUE CE FICHIER PORTAIT, nommée depuis le
+ * lot 4 dans `i18n/catalog.ts`: `/app/household` est une page DÉCLARÉE
+ * française, et ces quatre dates y sortaient en `en-GB`.
+ */
 function formatDate(value: string): string {
-  const d = new Date(value.length > 10 ? value : `${value}T00:00:00`);
-  if (Number.isNaN(d.getTime())) return value;
-  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  return formatDateIn(value, { year: false });
 }
 
 /** Le dernier jour d'une fenêtre, pour dire jusqu'où une reprise tient. */
@@ -134,12 +138,12 @@ export default function HouseholdMergeCard(
         ? <p className="mb-2 text-sm text-amber-800">{t("household.merge.frozen")}</p>
         : null}
       {view && view.notices.length === 0 && !loadError
-        ? <p className="text-sm text-gray-600">{t("household.merge.none")}</p>
+        ? <p className="text-sm text-ink-soft">{t("household.merge.none")}</p>
         : null}
       {view && view.notices.length > 0
         ? (
           <>
-            <p className="mb-3 text-sm text-gray-600">{t("household.merge.body")}</p>
+            <p className="mb-3 text-sm text-ink-soft">{t("household.merge.body")}</p>
             <ul className="flex flex-col gap-4">
               {view.notices.map((notice) => (
                 <NoticeRow
@@ -174,7 +178,7 @@ export default function HouseholdMergeCard(
           dépôt ne connaît le `N + 3`, et un test de source le tient. */}
       {quota
         ? (
-          <p className="mt-3 text-sm text-gray-500">
+          <p className="mt-3 text-sm text-ink-soft">
             {quota.exhausted
               ? t("household.merge.quota_none", {
                 limit: quota.limit,
@@ -195,7 +199,7 @@ export default function HouseholdMergeCard(
           pas. */}
       {view && view.held.length > 0
         ? (
-          <ul className="mt-3 flex flex-col gap-1 text-sm text-gray-500">
+          <ul className="mt-3 flex flex-col gap-1 text-sm text-ink-soft">
             {view.held.map((held) => (
               <li key={held.planId + held.memberId}>
                 {t("household.merge.held", {
@@ -216,11 +220,19 @@ export default function HouseholdMergeCard(
           const skipped = view.skipped.filter((s) => s.reason !== "member_is_owner");
           if (skipped.length === 0) return null;
           return (
-            <div className="mt-3 border-t border-gray-100 pt-3">
-              <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
+            <div className="mt-3 border-t border-line pt-3">
+              {/* L'ÉTIQUETTE DE LA CHARTE (§3), PAS UNE RECOPIE. Ce sur-titre
+                  se tenait à la main en `text-xs uppercase tracking-wide
+                  gray-400` — 2,84:1, sous le seuil du texte. `text-label` porte
+                  déjà la taille, l'approche de +0,1em et l'interligne; il ne
+                  reste que les capitales et l'encre.
+                  ⚠️ PAS de `SectionLabel` ici: il pose une équerre, et l'écran
+                  en rend déjà dix. La signature ouvre une SECTION, pas le
+                  sous-titre d'une carte. */}
+              <p className="text-label font-semibold uppercase text-ink-soft">
                 {t("household.merge.skipped_title")}
               </p>
-              <ul className="mt-1 flex flex-col gap-1 text-sm text-gray-500">
+              <ul className="mt-1 flex flex-col gap-1 text-sm text-ink-soft">
                 {skipped.map((s) => {
                   // ⚠️ PAS `mergeSkipKey` SEUL. Le lecteur range aussi des
                   // refus de FENÊTRE dans `skipped[]` (`skip(pair.refusal)`),
@@ -265,12 +277,12 @@ function NoticeRow(
 ) {
   const warning = notice.kind === "merged_plan_revalidated";
   return (
-    <li className="border-t border-gray-100 pt-3 first:border-0 first:pt-0">
+    <li className="border-t border-line pt-3 first:border-0 first:pt-0">
       {warning
         ? (
           <>
             <p className="text-sm font-medium">{t("household.merge.revalidated_title")}</p>
-            <p className="mt-1 text-sm text-gray-600">
+            <p className="mt-1 text-sm text-ink-soft">
               {t("household.merge.revalidated_body")}
             </p>
           </>
@@ -278,12 +290,12 @@ function NoticeRow(
         : null}
       {/* LA PHRASE DU SERVEUR, TELLE QUELLE. Elle nomme la personne et ses
           jours; l'écran ne la recompose pas. */}
-      <p className={warning ? "mt-1 text-sm text-gray-600" : "text-sm"}>
+      <p className={warning ? "mt-1 text-sm text-ink-soft" : "text-sm"}>
         {notice.sentence}
       </p>
       {notice.mergeable
         ? (
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-ink-soft">
             {t("household.merge.window", {
               days: notice.mergeable.window.durationDays,
               from: formatDate(notice.mergeable.window.startsOn),
@@ -313,7 +325,7 @@ function NoticeRow(
         : null}
       {notice.merged?.unmergeWindow
         ? (
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-ink-soft">
             {t("household.merge.unmerge_window", {
               days: notice.merged.unmergeWindow.durationDays,
               from: formatDate(notice.merged.unmergeWindow.startsOn),
@@ -323,9 +335,23 @@ function NoticeRow(
         : null}
       <div className="mt-2 flex flex-wrap items-center gap-2">
         {/* ⚠️ UN BOUTON PAR SORTIE OFFERTE, ET RIEN D'AUTRE. */}
+        {/* ⛔ CE BOUTON N'EST PLUS FIGUE, ET C'EST UN COMPTAGE, PAS UN GOÛT.
+            Il portait `variant="primary"` — donc la teinte de marque — et cette
+            carte en rend UN PAR PROPOSITION: trois bouches à fusionner faisaient
+            trois actions principales dans la même carte, sur un écran qui en
+            porte déjà une (la fiche du compte maître). « Une seule action figue
+            par vue rendue » n'est pas une préférence: trois boutons pleins l'un
+            sous l'autre, c'est zéro hiérarchie.
+            ⚠️ FUSIONNER ET DÉFUSIONNER SE RESSEMBLENT MAINTENANT, ET C'EST
+            VOULU. Les deux sorties arrivent parfois ENSEMBLE — le lecteur rend
+            `["unmerge","merge","dismiss"]` (test `household_merge_notice_test`,
+            l. 489) — et ce sont les deux sens d'un même geste: leur donner deux
+            poids visuels dirait que l'un est le bon. Ce qui les distingue est
+            leur LIBELLÉ, et « refuser » reste en `ghost` parce que c'est le seul
+            des trois qu'on peut ignorer. */}
         {notice.exits.includes("merge")
           ? (
-            <Button size="sm" variant="primary" disabled={busy} onClick={onMerge}>
+            <Button size="sm" disabled={busy} onClick={onMerge}>
               {busy ? t("household.merge.working") : t("household.merge.merge_cta")}
             </Button>
           )
@@ -394,7 +420,7 @@ function MemberPlanDisclosure({ userId }: { userId: string | null }) {
       </Button>
       {open
         ? (
-          <ul className="mt-1 w-full flex-col gap-0.5 pl-1 text-sm text-gray-500">
+          <ul className="mt-1 w-full flex-col gap-0.5 pl-1 text-sm text-ink-soft">
             {failed
               ? <li>{t("household.merge.plan_unreadable")}</li>
               : dishes === null

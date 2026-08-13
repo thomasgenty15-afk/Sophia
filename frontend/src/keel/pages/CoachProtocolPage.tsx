@@ -1,11 +1,13 @@
 import React from "react";
 
 import { supabase } from "../../lib/supabase";
+import { slotLabel } from "../api/labels";
 import { KeelAppShell } from "../components/KeelAppShell";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { Card, SectionLabel } from "../components/ui/Card";
 import { inputClass } from "../components/ui/Field";
+import { formatDate } from "../i18n/format";
 import { t } from "../i18n/t";
 import type { MessageKey } from "../i18n/t";
 
@@ -117,12 +119,53 @@ const STANCES: readonly { readonly value: Stance; readonly labelKey: MessageKey 
   { value: "excluded", labelKey: "coach.food.stance.excluded" },
 ];
 
+/**
+ * LES TROIS CRÉNEAUX QU'UNE RÈGLE « À TEL REPAS » PEUT VISER.
+ *
+ * Les VALEURS sont les jetons de `slot_vocabulary` — c'est ce que la base
+ * stocke, et ça ne se traduit jamais (R1). Les MOTS viennent de `slot.*` par
+ * `slotLabel`, la même table que l'écran de l'élève lit: le sélecteur écrivait
+ * `breakfast` en dur des deux côtés, si bien qu'un coach en français choisissait
+ * « breakfast » et relisait « Au breakfast » dans l'aperçu juste en dessous.
+ */
+const AT_SLOT_KEYS = ["breakfast", "lunch", "dinner"] as const;
+
+/**
+ * Le JETON de créneau qu'une phrase composée porte, remplacé par son MOT.
+ *
+ * `previewSentence` et `frequencySentence` sont partagés et purs: ils rendent
+ * une clé et ses trous, dont `{slot}`, et ce trou vaut le jeton brut. Les deux
+ * phrases sortaient donc « à breakfast » au milieu d'un écran traduit. On
+ * corrige au point de RENDU plutôt que dans les deux modules — le mot n'est
+ * une affaire de langue qu'ici.
+ *
+ * `slotLabel` LÈVE sur un jeton que le seed ne connaît pas (R7): un créneau
+ * ajouté au vocabulaire sans son mot se voit au premier rendu, il ne fuit pas.
+ */
+function withSlotLabel(
+  params?: Record<string, string | number>,
+): Record<string, string | number> | undefined {
+  if (!params || params.slot === undefined) return params;
+  return { ...params, slot: slotLabel(String(params.slot)) };
+}
+
+// ── LES TROIS POSTURES RESTENT COLORÉES, ET C'EST JUSTE ───────────────────
+// Une posture est un VERDICT que le coach a rendu sur un aliment, pas une
+// catégorie: « encouragé » se lit ok, « découragé » se lit attention, « exclu »
+// se lit refus. Ce sont exactement trois des quatre familles d'état du produit,
+// et la charte réserve la couleur saturée à ça (§2). Elles ne bougent donc pas.
+//
+// ⚠️ UNE SEULE CHOSE A CHANGÉ: `rose` est devenu `red`. Le rouge du produit est
+// `red-*` — c'est ce que `Badge tone="critical"` rend (`bg-red-50 text-red-700`)
+// — et `rose` en était une CINQUIÈME famille, à quelques degrés de lui. Deux
+// familles pour un seul sens, c'est la façon dont un vocabulaire d'état se perd:
+// le lecteur apprend deux fois « refus » et n'en reconnaît plus aucun.
 const STANCE_PILL: Readonly<Record<Stance, string>> = {
   encouraged: "border-emerald-500 bg-emerald-50 text-emerald-800 font-medium",
   discouraged: "border-amber-500 bg-amber-50 text-amber-800 font-medium",
-  excluded: "border-rose-500 bg-rose-50 text-rose-800 font-medium",
+  excluded: "border-red-500 bg-red-50 text-red-700 font-medium",
 };
-const NEUTRAL_PILL = "border-gray-300 bg-white text-gray-600";
+const NEUTRAL_PILL = "border-line-strong bg-paper text-ink-soft";
 
 const FN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/coach-protocol-v1`;
 
@@ -732,7 +775,7 @@ export function CoachProtocolPage() {
   if (phase === "loading") {
     return (
       <KeelAppShell {...shell}>
-        <p className="p-4 text-gray-500">…</p>
+        <p className="p-4 text-ink-soft">…</p>
       </KeelAppShell>
     );
   }
@@ -742,7 +785,7 @@ export function CoachProtocolPage() {
       <KeelAppShell {...shell}>
         <Card tone="warning">
           <p className="font-medium">{t("coach.protocol.load_error")}</p>
-          {errorText && <p className="mt-1 text-sm text-gray-600">{errorText}</p>}
+          {errorText && <p className="mt-1 text-sm text-ink-soft">{errorText}</p>}
         </Card>
       </KeelAppShell>
     );
@@ -753,7 +796,7 @@ export function CoachProtocolPage() {
       {writeError && (
         <Card tone="warning" className="mb-4">
           <p className="font-medium">{t("coach.food.write_failed")}</p>
-          <p className="mt-1 text-sm text-gray-600">{writeError}</p>
+          <p className="mt-1 text-sm text-ink-soft">{writeError}</p>
         </Card>
       )}
 
@@ -771,27 +814,27 @@ export function CoachProtocolPage() {
           {proposals.length > 0 && (
             <Card className="mb-4">
               <SectionLabel>{t("coach.food.proposals.title")}</SectionLabel>
-              <p className="mt-2 text-sm text-gray-600">
+              <p className="mt-2 text-sm text-ink-soft">
                 {t("coach.food.proposals.hint", { count: String(proposals.length) })}
               </p>
-              <ul className="mt-3 divide-y divide-gray-100">
+              <ul className="mt-3 divide-y divide-line">
                 {proposals.map((p) => (
                   <li key={p.id} className="py-3">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-medium text-gray-900">{p.term}</span>
+                      <span className="font-medium text-ink">{p.term}</span>
                       <span className={`rounded-full px-2 py-0.5 text-xs ${STANCE_PILL[p.stance]}`}>
                         {t(
                           STANCES.find((s) => s.value === p.stance)?.labelKey ??
                             ("coach.protocol.stance.encouraged" as MessageKey),
                         )}
                       </span>
-                      <span className="text-xs text-gray-500">{groupLabel(p.food_group_ref)}</span>
+                      <span className="text-xs text-ink-soft">{groupLabel(p.food_group_ref)}</span>
                     </div>
-                    <blockquote className="mt-1 border-l-2 border-gray-200 pl-3 text-sm italic text-gray-600">
+                    <blockquote className="mt-1 border-l-2 border-line pl-3 text-sm italic text-ink-soft">
                       {p.quote}
                     </blockquote>
                     {p.source_label && (
-                      <p className="mt-1 text-xs text-gray-400">{p.source_label}</p>
+                      <p className="mt-1 text-xs text-ink-soft">{p.source_label}</p>
                     )}
                     <div className="mt-2 flex gap-2">
                       <Button
@@ -833,7 +876,7 @@ export function CoachProtocolPage() {
                   </li>
                 ))}
               </ul>
-              <p className="mt-3 text-xs text-gray-500">
+              <p className="mt-3 text-xs text-ink-soft">
                 {t("coach.food.proposals.footer")}
               </p>
             </Card>
@@ -862,11 +905,19 @@ export function CoachProtocolPage() {
                 n'a rien écrit — et le serveur refuse d'ailleurs proprement
                 (`no_doctrine`) quand il n'y a rien à lire.
               */}
-              <div className="mb-4 rounded-lg border border-gray-900 p-3">
-                <p className="text-sm font-medium text-gray-900">
+              {/* L'EMPHASE PASSE DE LA COULEUR À LA PLACE ET AU POIDS. Le cadre
+                  était un gris 900 — un trait presque noir, plus fort que
+                  celui de n'importe quelle carte de l'écran, pour dire « celui-ci
+                  d'abord ». La charte n'a pas de neutre aussi sombre, et emprunter
+                  la marque pour un CADRE la ferait sortir de son rôle (elle marque
+                  la navigation et l'action). Ce panneau est déjà premier et son
+                  titre est déjà le seul en gras de la carte: c'est ça qui dit
+                  « d'abord ». */}
+              <div className="mb-4 rounded-card border border-line-strong bg-paper-2 p-3">
+                <p className="text-sm font-medium text-ink">
                   {t("coach.food.fill.title")}
                 </p>
-                <p className="mt-1 text-xs leading-5 text-gray-600">
+                <p className="mt-1 text-xs leading-5 text-ink-soft">
                   {t("coach.food.fill.hint")}
                 </p>
                 <div className="mt-2">
@@ -897,14 +948,26 @@ export function CoachProtocolPage() {
               </div>
 
               <SectionLabel>{t("coach.food.packs.title")}</SectionLabel>
-              <p className="mt-2 text-sm text-gray-600">{t("coach.food.packs.hint")}</p>
+              <p className="mt-2 text-sm text-ink-soft">{t("coach.food.packs.hint")}</p>
               <div className="mt-3 space-y-3">
                 {FOOD_PACKS.map((pack) => {
                   const additions = packAdditions(pack, picked.map((p) => p.food_item_ref));
                   return (
-                    <div key={pack.key} className="rounded-lg border border-gray-200 p-3">
-                      <p className="text-sm font-medium text-gray-900">{pack.label}</p>
-                      <p className="mt-1 text-xs leading-5 text-gray-600">{pack.blurb}</p>
+                    <div key={pack.key} className="rounded-card border border-line p-3">
+                      {/* LE NOM ET LA PHRASE VIENNENT DU SEED, PAS DU MODULE.
+                          `FOOD_PACKS` est du code Deno partagé avec le serveur:
+                          ses `label`/`blurb` servent aussi là-bas et restent en
+                          anglais. Ce que le coach LIT est indexé par la clé du
+                          pack — et `coachFoodPacks.int.test.ts` refuse un pack
+                          dont les deux clés ne sont pas dans les deux packs de
+                          langue, parce que `t()` lève sur une clé inconnue et
+                          ferait tomber cette carte. */}
+                      <p className="text-sm font-medium text-ink">
+                        {t(`coach.food.pack.${pack.key}.label` as MessageKey)}
+                      </p>
+                      <p className="mt-1 text-xs leading-5 text-ink-soft">
+                        {t(`coach.food.pack.${pack.key}.blurb` as MessageKey)}
+                      </p>
                       <div className="mt-2 flex items-center gap-3">
                         <Button
                           size="sm"
@@ -931,12 +994,12 @@ export function CoachProtocolPage() {
                   );
                 })}
               </div>
-              <p className="mt-3 text-xs text-gray-500">{t("coach.food.packs.footer")}</p>
+              <p className="mt-3 text-xs text-ink-soft">{t("coach.food.packs.footer")}</p>
               {packsOpen && (
                 <button
                   type="button"
                   onClick={() => setPacksOpen(false)}
-                  className="mt-3 text-xs text-gray-700 underline decoration-dotted underline-offset-2"
+                  className="mt-3 text-xs text-ink underline decoration-dotted underline-offset-2"
                 >
                   {t("common.close")}
                 </button>
@@ -948,7 +1011,7 @@ export function CoachProtocolPage() {
             <button
               type="button"
               onClick={() => setPacksOpen(true)}
-              className="mb-4 text-xs text-gray-700 underline decoration-dotted underline-offset-2 hover:text-gray-900"
+              className="mb-4 text-xs text-ink underline decoration-dotted underline-offset-2 hover:text-ink"
             >
               {t("coach.food.packs.reopen")}
             </button>
@@ -970,7 +1033,7 @@ export function CoachProtocolPage() {
                   </Button>
                 ))}
               </div>
-              <p className="text-sm text-gray-600">{t("coach.protocol.axes.footer")}</p>
+              <p className="text-sm text-ink-soft">{t("coach.protocol.axes.footer")}</p>
               <div className="mt-3 flex flex-wrap gap-1">
                 {(Object.keys(AXES_BY_GOAL) as GoalToken[]).map((g) => (
                   <button
@@ -979,11 +1042,17 @@ export function CoachProtocolPage() {
                     onClick={() => setGoal(g)}
                     className={`rounded-full border px-2 py-1 text-xs ${
                       g === goal
-                        ? "border-gray-900 bg-gray-900 text-white"
-                        : "border-gray-300 bg-white text-gray-600"
+                        ? "border-fig-700 bg-fig-700 text-paper"
+                        : "border-line-strong bg-paper text-ink-soft hover:bg-fig-50"
                     }`}
                   >
-                    {t(`coach.protocol.goal.${g}` as MessageKey)}
+                    {/* `coach.goal.*` et plus `coach.protocol.goal.*`: les six
+                        objectifs existaient en double, ici et dans
+                        `GOAL_LABELS` (api/coachDoctrine.ts), avec des mots
+                        différents pour le même jeton. Un seul préfixe désormais.
+                        `coach.protocol.goal.all` / `.limit` ne bougent pas: ce
+                        sont deux options de sélecteur, pas des objectifs. */}
+                    {t(`coach.goal.${g}` as MessageKey)}
                   </button>
                 ))}
               </div>
@@ -1000,12 +1069,12 @@ export function CoachProtocolPage() {
           />
 
           {searching && !anyMatch && (
-            <p className="mb-4 text-sm text-gray-600">
+            <p className="mb-4 text-sm text-ink-soft">
               {t("coach.protocol.search_empty", { query })}
             </p>
           )}
 
-          <p className="mb-3 text-xs text-gray-500">{t("coach.food.pick_hint")}</p>
+          <p className="mb-3 text-xs text-ink-soft">{t("coach.food.pick_hint")}</p>
 
           {/* ── LES CATÉGORIES ────────────────────────────────────────────── */}
           <div className="space-y-3">
@@ -1035,7 +1104,7 @@ export function CoachProtocolPage() {
                     </span>
                     <span className="flex items-center gap-2">
                       {pickedCount > 0 && <Badge tone="info">{pickedCount}</Badge>}
-                      <span aria-hidden className="text-gray-400">{open ? "−" : "+"}</span>
+                      <span aria-hidden className="text-ink-soft">{open ? "−" : "+"}</span>
                     </span>
                   </button>
 
@@ -1055,7 +1124,7 @@ export function CoachProtocolPage() {
                               // pastille sur deux.
                               className={`min-h-[44px] rounded-full border px-3 py-2 text-sm ${
                                 stance ? STANCE_PILL[stance] : NEUTRAL_PILL
-                              } ${openFood === food.key ? "ring-2 ring-gray-900" : ""}`}
+                              } ${openFood === food.key ? "ring-2 ring-fig-600" : ""}`}
                               aria-pressed={Boolean(food.picked)}
                               aria-expanded={openFood === food.key}
                             >
@@ -1102,7 +1171,7 @@ export function CoachProtocolPage() {
           {derived.conflicts.length > 0 && (
             <Card className="mt-4" tone="warning">
               <SectionLabel>{t("coach.food.conflict.title")}</SectionLabel>
-              <ul className="mt-2 space-y-2 text-sm text-gray-800">
+              <ul className="mt-2 space-y-2 text-sm text-ink">
                 {derived.conflicts.map((c) => (
                   <li key={c.food_group_ref}>
                     {t("coach.food.conflict.line", {
@@ -1123,14 +1192,14 @@ export function CoachProtocolPage() {
           <Card>
             <SectionLabel>{t("coach.protocol.preview.title")}</SectionLabel>
             {compiled.length === 0
-              ? <p className="text-sm text-gray-500">{t("coach.protocol.preview.empty")}</p>
+              ? <p className="text-sm text-ink-soft">{t("coach.protocol.preview.empty")}</p>
               : (
                 <ul className="space-y-2 text-sm">
                   {compiled.map((line) => {
                     const s = previewSentence(line.preview, groupLabel);
                     return (
-                      <li key={line.template_commitment_key} className="text-gray-800">
-                        {t(s.key, s.params)}
+                      <li key={line.template_commitment_key} className="text-ink">
+                        {t(s.key, withSlotLabel(s.params))}
                       </li>
                     );
                   })}
@@ -1140,24 +1209,24 @@ export function CoachProtocolPage() {
             <div className="mt-4 border-t pt-4">
               {publishedAt
                 ? (
-                  <p className="mb-2 text-xs text-gray-500">
+                  <p className="mb-2 text-xs text-ink-soft">
                     {t("coach.protocol.published_at", {
-                      date: new Date(publishedAt).toLocaleDateString(),
+                      date: formatDate(publishedAt),
                     })}
                   </p>
                 )
                 : (
-                  <p className="mb-2 text-xs text-gray-500">
+                  <p className="mb-2 text-xs text-ink-soft">
                     {t("coach.protocol.never_published")}
                   </p>
                 )}
 
               {impact.noop
-                ? <p className="text-sm text-gray-500">{t("coach.protocol.publish.noop")}</p>
+                ? <p className="text-sm text-ink-soft">{t("coach.protocol.publish.noop")}</p>
                 : confirming
                 ? (
                   <div className="space-y-2">
-                    <p className="text-sm text-gray-800">
+                    <p className="text-sm text-ink">
                       {t("coach.protocol.publish.impact", {
                         added: impact.added,
                         removed: impact.removed,
@@ -1236,12 +1305,12 @@ function FoodPanel({
   const freq = item.frequency;
 
   return (
-    <div className="mt-4 rounded-lg border border-gray-300 bg-gray-50 p-4">
+    <div className="mt-4 rounded-card border border-line-strong bg-paper-2 p-4">
       <div className="mb-3 flex items-center justify-between gap-2">
         <span className="font-medium">{food.label}</span>
         <button
           type="button"
-          className="text-xs text-gray-500 underline"
+          className="text-xs text-ink-soft underline"
           onClick={() => void onRemove(item)}
         >
           {t("coach.food.remove")}
@@ -1269,7 +1338,7 @@ function FoodPanel({
 
       {/* La fréquence */}
       <div className="mb-4">
-        <p className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-500">
+        <p className="mb-1 text-xs font-medium uppercase tracking-wide text-ink-soft">
           {t("coach.food.freq.title")}
         </p>
         {freq
@@ -1282,7 +1351,7 @@ function FoodPanel({
           )
           : (
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm text-gray-500">{t("coach.food.freq.none")}</span>
+              <span className="text-sm text-ink-soft">{t("coach.food.freq.none")}</span>
               <Button
                 size="sm"
                 onClick={() =>
@@ -1300,14 +1369,14 @@ function FoodPanel({
               </Button>
             </div>
           )}
-        <p className="mt-2 text-xs leading-5 text-gray-500">
+        <p className="mt-2 text-xs leading-5 text-ink-soft">
           {t("coach.food.freq.scope_note")}
         </p>
       </div>
 
       {/* Le pourquoi */}
       <div>
-        <p className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-500">
+        <p className="mb-1 text-xs font-medium uppercase tracking-wide text-ink-soft">
           {t("coach.food.why.title")}
         </p>
         <textarea
@@ -1321,10 +1390,10 @@ function FoodPanel({
         />
         <div className="mt-1 flex flex-wrap items-center gap-2">
           {item.why_source === "seeded" && (
-            <span className="text-xs text-gray-500">{t("coach.food.why.seeded")}</span>
+            <span className="text-xs text-ink-soft">{t("coach.food.why.seeded")}</span>
           )}
           {item.why_source === "ai" && (
-            <span className="text-xs text-gray-500">{t("coach.food.why.ai")}</span>
+            <span className="text-xs text-ink-soft">{t("coach.food.why.ai")}</span>
           )}
           {canRewriteWhy(item) && (
             <Button
@@ -1416,8 +1485,8 @@ function FrequencyEditor({
             aria-pressed={rule.template === tpl.key}
             className={`rounded-full border px-2 py-1 text-xs ${
               rule.template === tpl.key
-                ? "border-gray-900 bg-gray-900 text-white"
-                : "border-gray-300 bg-white text-gray-600"
+                ? "border-fig-700 bg-fig-700 text-paper"
+                : "border-line-strong bg-paper text-ink-soft hover:bg-fig-50"
             }`}
           >
             {t(tpl.labelKey)}
@@ -1501,17 +1570,19 @@ function FrequencyEditor({
           onChange={(e) => onChange({ ...rule, slot_key: e.target.value })}
           aria-label={t("coach.food.freq.tpl.at_slot")}
         >
-          <option value="breakfast">breakfast</option>
-          <option value="lunch">lunch</option>
-          <option value="dinner">dinner</option>
+          {AT_SLOT_KEYS.map((key) => (
+            <option key={key} value={key}>{slotLabel(key)}</option>
+          ))}
         </select>
       )}
 
       <div className="flex items-center gap-3">
-        <span className="text-sm text-gray-700">{frequencySentence(rule, t)}</span>
+        <span className="text-sm text-ink">
+          {frequencySentence(rule, (key, params) => t(key, withSlotLabel(params)))}
+        </span>
         <button
           type="button"
-          className="text-xs text-gray-500 underline"
+          className="text-xs text-ink-soft underline"
           onClick={() => onChange(null)}
         >
           {t("coach.food.freq.clear")}
@@ -1556,7 +1627,7 @@ function AddFoodRow({
     return (
       <button
         type="button"
-        className="mt-3 text-sm text-gray-600 underline"
+        className="mt-3 text-sm text-ink-soft underline"
         onClick={() => setOpen(true)}
       >
         {t("coach.food.add")}
@@ -1565,7 +1636,7 @@ function AddFoodRow({
   }
 
   return (
-    <div className="mt-3 space-y-2 rounded-lg border border-dashed border-gray-300 p-3">
+    <div className="mt-3 space-y-2 rounded-card border border-dashed border-line-strong p-3">
       <div className="flex flex-wrap items-center gap-2">
         <input
           value={term}
@@ -1584,9 +1655,17 @@ function AddFoodRow({
             <option key={g.slug} value={g.slug}>{groupLabel(g.slug)}</option>
           ))}
         </select>
+        {/* ⛔ CE BOUTON A PERDU SA FIGUE, ET C'EST LA CONTRAINTE DU KIT: une
+            seule action principale par vue rendue. Cet écran en portait TROIS
+            (le maximum du produit), et deux d'entre elles sont rendues en même
+            temps — « Publier » en pied de page et ce « Ajouter » dès que le sas
+            est ouvert. Celle qui garde la marque est « Publier »: c'est le geste
+            qui atteint les élèves. Ajouter un aliment hors catalogue est une
+            manœuvre locale dans un sas replié par défaut.
+            (Le `primary` de « Confirmer la publication » n'en est pas un
+            troisième: il REMPLACE « Publier » à l'écran, jamais à côté.) */}
         <Button
           size="sm"
-          variant="primary"
           disabled={working || term.trim().length === 0}
           onClick={async () => {
             setWorking(true);
@@ -1606,7 +1685,7 @@ function AddFoodRow({
         </Button>
         <button
           type="button"
-          className="text-xs text-gray-500 underline"
+          className="text-xs text-ink-soft underline"
           onClick={() => {
             setOpen(false);
             setTerm("");
@@ -1616,7 +1695,7 @@ function AddFoodRow({
           {t("coach.food.add.cancel")}
         </button>
       </div>
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-ink-soft">
         {t("coach.food.add.treated_as", { group: groupLabel(group) })}
       </p>
       {failed && (
