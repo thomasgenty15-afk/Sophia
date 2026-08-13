@@ -35,7 +35,27 @@ import {
   loadHouseholdVoices,
   type VoiceMember,
 } from "../_shared/keel/household_voices_io.ts";
-import { dayTokenInZone, localDateInZone } from "../_shared/keel/local_date.ts";
+import {
+  dayTokenInZone,
+  localDateInZone,
+  localMinuteInZone,
+} from "../_shared/keel/local_date.ts";
+// L'HEURE QU'IL EST, ET CE QU'ELLE INTERDIT. Les trois coupures y sont des
+// CONSTANTES NOMMÉES; aucune n'est recopiée ici.
+import {
+  firstWindowDayIsCookable,
+  proposedWindowStart,
+  rhythmClockFrom,
+  slotsPassedToday,
+} from "../_shared/keel/plan_hours.ts";
+// POURQUOI CES JOURS-LÀ — déterministe, assemblé par le serveur, jamais
+// demandé au modèle.
+import { explainPlanChoices } from "../_shared/keel/plan_rationale.ts";
+// FF-061 — CE QUI A ÉTÉ FAIT DE CE QUI AVAIT ÉTÉ DEMANDÉ. Les quatre portes
+// vivent DANS le module.
+import { reportOnRequest } from "../_shared/keel/request_report.ts";
+import { gateRequestReport } from "../_shared/keel/request_report_gate.ts";
+import { type ForbiddenTerm } from "../_shared/keel/forbidden_matcher.ts";
 import {
   countHungerDays,
   type HungerWindowSignal,
@@ -51,8 +71,10 @@ import {
   windowStartsBeyondDayTokens,
 } from "../_shared/keel/meal_plan_window.ts";
 import {
+  addedCookDays,
   buildMealPrompt,
   DEFAULT_EATING_RHYTHM,
+  EATING_OCCASIONS,
   emptySlotsIn,
   emptySlotsLine,
   MEAL_PROMPT_VERSION,
@@ -825,10 +847,29 @@ Deno.serve(async (req) => {
     let intent = String(body.intent ?? "replace_current").trim();
     let replaces = String(body.replaces ?? "").trim() || null;
     if (operation === "compose") {
-      if (intent !== "replace_current" && intent !== "prepare_next") {
+      // ── `draft` — LE TROISIÈME MOT, ET IL N'ÉCRIT RIEN ──────────────────
+      // Même contrat que sur la lane individuelle: il compose à l'identique et
+      // saute la SEULE écriture (`write_student_meal_plan`). Toutes les gardes
+      // amont mordent pareil — gel, `not_owner`, `empty_household`, fenêtre,
+      // chevauchement, plancher TCA, doctrine, verrou de règles de maison.
+      //
+      // ⚠️ RÉSERVÉ À `compose`. `merge` et `unmerge` sont des GESTES du maître
+      // sur des plans qui existent: en prévisualiser un n'aurait pas de sens, et
+      // le quota de fusion se consomme dans le même chemin.
+      if (
+        intent !== "replace_current" && intent !== "prepare_next" &&
+        intent !== "draft"
+      ) {
         return jsonResponse(req, {
           error: "unknown_intent",
-          detail: "intent must be replace_current or prepare_next",
+          detail: "intent must be replace_current, prepare_next or draft",
+          request_id: requestId,
+        }, { status: 400 });
+      }
+      if (intent === "draft" && replaces !== null) {
+        return jsonResponse(req, {
+          error: "unknown_intent",
+          detail: "intent=draft writes nothing, so it cannot name a `replaces`.",
           request_id: requestId,
         }, { status: 400 });
       }
@@ -840,7 +881,25 @@ Deno.serve(async (req) => {
           request_id: requestId,
         }, { status: 400 });
       }
+    } else if (intent === "draft") {
+      // Un aperçu de fusion n'existe pas: `merge`/`unmerge` déplacent des plans
+      // déjà écrits, et le quota se prend dans le même chemin.
+      return jsonResponse(req, {
+        error: "unknown_intent",
+        detail: "intent=draft is only available on operation=compose",
+        request_id: requestId,
+      }, { status: 400 });
     }
+    /** Un aperçu: tout se calcule, rien ne s'écrit. */
+    const isDraft = operation === "compose" && intent === "draft";
+    //
+    // ── LA REPRISE D'UN APERÇU N'EST PAS ENCORE CÂBLÉE, ET C'EST DIT ──────
+    // Même seam que sur la lane individuelle: `body.draft_note` part au modèle
+    // dans le MÊME message que la doctrine et les règles de maison, donc il lui
+    // faut la garde d'entrée `plan_draft_note.ts::readDraftNote` (Lot C, module
+    // absent). ⛔ Tant qu'elle n'existe pas, le champ n'est PAS lu — accepter
+    // le texte sans la garde ferait l'injection que la garde existe pour
+    // empêcher. Le jeton `note_unusable` reste donc sans émetteur.
 
     // ── LES MEMBRES, PAR LA MÊME PORTE QUE LE CHAT ──────────────────────
     // `keel_household_roster_for` et pas une lecture de table: c'est le SEUL
@@ -887,6 +946,21 @@ Deno.serve(async (req) => {
     }
     const todayToken = dayTokenInZone(timezone, new Date());
     const todayDate = localDateInZone(timezone, new Date());
+    // ── L'HEURE QU'IL EST À CETTE TABLE ─────────────────────────────────
+    // Même calendrier que la date juste au-dessus, donc même fuseau: celui du
+    // compte qui compose. `null` = « je n'ai pas su lire l'horloge », et chaque
+    // règle de `plan_hours.ts` rend alors le produit d'hier. Il ne fait échouer
+    // aucune composition: le fuseau est déjà exigé six lignes plus haut.
+    let localMinuteOfDay: number | null = null;
+    try {
+      localMinuteOfDay = localMinuteInZone(timezone, new Date());
+    } catch (error) {
+      console.warn(`[${FN_NAME}] local clock unreadable`, error);
+    }
+    /** L'heure pleine, telle que `plan_hours.ts` la demande. */
+    const hourNow = localMinuteOfDay === null
+      ? null
+      : Math.floor(localMinuteOfDay / 60);
     const country = String(ownerProfile.country ?? "").trim() || null;
     // ── LA LANGUE DU FOYER, RÉSOLUE ICI ET UNE SEULE FOIS ────────────────
     //
@@ -924,6 +998,11 @@ Deno.serve(async (req) => {
     // choses différentes du même appel mal formé.
     let startsOn: string;
     let durationDays: number;
+    // CE QUI A ÉTÉ DEMANDÉ AVANT RÉSOLUTION — sert à dire ce qui a été coupé.
+    // `null` sur `merge`/`unmerge`: leur fenêtre est DÉDUITE d'un plan vivant,
+    // personne ne l'a demandée, donc rien n'y a été coupé. `null` sur
+    // `until_sunday` aussi: cette forme demande « ce qu'il reste ».
+    let requestedWindowFacts: { startsOn: string; durationDays: number } | null = null;
     /**
      * L4 — TOUT CE QUE LA FUSION A RÉSOLU AVANT LE MODÈLE.
      *
@@ -1113,6 +1192,14 @@ Deno.serve(async (req) => {
           request_id: requestId,
         }, { status: 400 });
       }
+      requestedWindowFacts = windowRequest.kind === "days"
+        ? { startsOn: todayDate, durationDays: Math.round(windowRequest.count) }
+        : windowRequest.kind === "exact"
+        ? {
+          startsOn: windowRequest.startsOn,
+          durationDays: Math.round(windowRequest.durationDays),
+        }
+        : null;
       try {
         const resolved = resolveRequestedWindow(windowRequest, todayDate);
         startsOn = resolved.startsOn;
@@ -1890,7 +1977,60 @@ Deno.serve(async (req) => {
     // PARTAGE. Il part par le même chemin que sur la lane individuelle — la
     // consigne ET le parseur (FF-002 R3): une consigne seule n'est pas une
     // garantie, le modèle recompose ce qu'on lui a dit d'éviter.
-    const awayDays = presence.householdAway;
+    const declaredAway = presence.householdAway;
+
+    // ── LA JOURNÉE DÉJÀ ENTAMÉE ─────────────────────────────────────────
+    //
+    // Quand la fenêtre démarre AUJOURD'HUI, les moments déjà passés sortent de
+    // la composition. On réutilise le SEUL mécanisme qui retire un moment d'une
+    // journée (`AwayDay`), armé des deux côtés — la consigne ET le parseur.
+    //
+    // ⚠️ POUR LE PREMIER JOUR SEULEMENT, et ⚠️ CE N'EST PAS UNE ABSENCE
+    // DÉCLARÉE. La trace de présence (`presence.trace`, écrite plus bas) ne doit
+    // porter que ce que des PERSONNES ont déclaré: attribuer à quelqu'un une
+    // absence qui n'est qu'une heure ferait chercher un coupable là où il n'y a
+    // qu'une horloge. Les deux listes ne fusionnent qu'ICI, pour le prompt.
+    //
+    // ⚠️ LE RYTHME PASSÉ EST LE RYTHME RÉSOLU, comme pour `resolveWindowPresence`
+    // juste au-dessus: raisonner sur le brut ferait tomber des moments que la
+    // consigne ne nomme pas.
+    const slotsDroppedToday = startsOn === todayDate
+      ? slotsPassedToday({
+        hourNow,
+        rhythm: eatingRhythm.length > 0 ? eatingRhythm : DEFAULT_EATING_RHYTHM,
+        declaredHours: rhythmClockFrom(
+          Array.isArray(pc?.eating_rhythm) ? pc!.eating_rhythm : [],
+        ),
+      })
+      : [];
+    const awayDays = slotsDroppedToday.length === 0 ? declaredAway : (() => {
+      const row = declaredAway.find((a) => a.day === todayToken);
+      if (row && row.slots.length === 0) return declaredAway;
+      const merged = new Set<string>([...(row?.slots ?? []), ...slotsDroppedToday]);
+      return [
+        ...declaredAway.filter((a) => a.day !== todayToken),
+        { day: todayToken, slots: EATING_OCCASIONS.filter((s) => merged.has(s)) },
+      ];
+    })();
+
+    // ── LE PREMIER JOUR EST-IL ENCORE CUISINABLE ? ──────────────────────
+    // Passé la coupure courses, la session que `buildMealPrompt` ajoute
+    // d'office (branche `tooLate`) vise le jour SUIVANT. La coupure vit dans
+    // `plan_hours.ts`, jamais recopiée ici.
+    const firstDayCookable = firstWindowDayIsCookable({
+      windowStartsOn: startsOn,
+      todayLocalDate: todayDate,
+      hourNow,
+    });
+
+    // ── LA FENÊTRE QU'ON PROPOSERAIT ────────────────────────────────────
+    // ⚠️ UNE PROPOSITION D'ÉCRAN, JAMAIS UN REFUS SERVEUR. La requête qui vient
+    // d'arriver est déjà acceptée.
+    const proposed = proposedWindowStart({ todayLocalDate: todayDate, hourNow });
+    const suggestedWindow = {
+      starts_on: proposed.startsOn,
+      shifted: proposed.shifted,
+    };
 
     // ── FF-002 §7 · LA FENÊTRE ENTIÈREMENT DÉSERTÉE ──────────────────────
     // Refus NOMMÉ, et pas un plan de zéro plat: « un plan de zéro plat est un
@@ -2437,6 +2577,10 @@ Deno.serve(async (req) => {
       // `null` sur une composition ordinaire: le plafond est alors celui
       // d'avant ce lot, au plat près, et un test le tient.
       merge: mergeBudget,
+      // ── PEUT-ON ENCORE ACHETER PUIS CUISINER AUJOURD'HUI ? ─────────────
+      // `true` hors de la fenêtre du jour, et `true` aussi quand l'horloge n'a
+      // pas été lue — le comportement d'hier, DIT plutôt qu'hérité.
+      firstDayCookable,
       // La langue du foyer, résolue une seule fois près du fuseau: le foyer
       // cuisine ensemble, il n'a qu'une table et qu'une langue.
       contentLocale: householdContentLocale,
@@ -2848,11 +2992,27 @@ Deno.serve(async (req) => {
     }
 
     if (meal.dishes.length === 0) {
-      return jsonResponse(req, {
-        error: "empty_meal",
+      // Sur un APERÇU, le mot change: la question de la personne n'est pas
+      // « pourquoi zéro plat », c'est « est-ce que ça a cassé mon plan ? ».
+      // `draft_not_composed` répond aux deux. Le diagnostic reste identique.
+      //
+      // ⚠️ DEUX APPELS, ET PAS UN TERNAIRE DANS LA CLÉ: `planRefusals.int.test.ts`
+      // SCANNE ce fichier à la recherche d'un LITTÉRAL. Un jeton calculé y
+      // devient invisible, et son mot disparaît de l'écran sans rougir.
+      const emptyBody = {
         lock: meal.lock.reason,
         issues: [...issues, ...meal.issues],
         request_id: requestId,
+      };
+      if (isDraft) {
+        return jsonResponse(req, {
+          error: "draft_not_composed",
+          ...emptyBody,
+        }, { status: 422 });
+      }
+      return jsonResponse(req, {
+        error: "empty_meal",
+        ...emptyBody,
       }, { status: 422 });
     }
 
@@ -2936,6 +3096,164 @@ Deno.serve(async (req) => {
         window: { startsOn, durationDays },
       }),
     ];
+
+    // ══ CE QU'ON A LE DROIT DE DIRE DE CE PLAN ═══════════════════════════
+    //
+    // Deux blocs, deux questions, et ils ne se remplacent pas:
+    //   · `rationale` .. POURQUOI CES JOURS-LÀ. Déterministe, calendrier.
+    //   · `report` .... CE QUI A ÉTÉ FAIT DE CE QUI A ÉTÉ DEMANDÉ (FF-061).
+    //
+    // Calculés AVANT l'écriture pour être rendus aussi sur un aperçu, qui
+    // n'écrit rien. Aucun des deux ne peut coûter un dîner: ils JETTENT sur un
+    // champ manquant, et l'échec est attrapé, NOMMÉ dans `issues` et journalisé.
+    const reportLocale: "fr" | "en" =
+      householdContentLocale.slice(0, 2).toLowerCase() === "fr" ? "fr" : "en";
+
+    // Les interdits du coach, dans la forme du matcher. Miroir de
+    // `findDoctrineViolations` (`doctrine.ts:1088-1099`), qui n'exporte pas
+    // cette projection.
+    const doctrineForbidden: ForbiddenTerm[] = (doctrine.doctrine?.forbidden ?? [])
+      .map((f) => ({
+        ruleId: String(f.token ?? "").trim(),
+        token: String(f.token ?? "").trim(),
+        surfaceForms: f.surfaceForms,
+      }))
+      .filter((t) => t.token.length > 0);
+
+    let rationaleLines: string[] = [];
+    let rationaleRefusal: string | null = null;
+    try {
+      const explained = explainPlanChoices({
+        locale: reportLocale,
+        facts: {
+          declaredCookDays: (capacity.cookDays ?? []) as never,
+          // LE MÊME CALCUL QUE LA CONSIGNE, pas un second: `addedCookDays` est
+          // exporté par `meal_generation.ts` exactement pour ça.
+          addedCookDays: addedCookDays({
+            declared: capacity.cookDays ?? [],
+            window: daysToFill,
+            firstDayCookable,
+          }) as never,
+          window: { startsOn, durationDays },
+          requestedWindow: requestedWindowFacts,
+          today: { localDate: todayDate, dayToken: todayToken as never },
+          localMinuteOfDay,
+          slotsDroppedToday,
+          // LES ABSENCES DÉCLARÉES SEULEMENT — pas l'union avec l'horloge.
+          // « la journée est déjà entamée » et « quelqu'un a dit qu'il n'était
+          // pas là » sont deux phrases différentes, et les compter ensemble
+          // attribuerait une heure à une personne.
+          awayInWindow: declaredAway
+            .filter((a) => (daysToFill as readonly string[]).includes(a.day))
+            .flatMap((a) =>
+              a.slots.length === 0
+                ? [{ day: a.day as never, slot: "all" }]
+                : a.slots.map((s) => ({ day: a.day as never, slot: s as string }))
+            ),
+          budgetAmount: capacity.budgetAmount,
+          // D14 — LA CASSEROLE, et pas le foyer. C'est le nombre qui a
+          // réellement dimensionné les quantités.
+          mouthsServed: Math.min(12, Math.max(1, presence.servings)),
+          // DES PRÉNOMS, jamais des identifiants: la phrase se lit à voix haute
+          // à table. Une bouche dont le nom n'a pas pu être résolu est ÉCARTÉE
+          // plutôt que rendue en uuid.
+          handTakenBy: [...new Set(handOff.taken.map((t) => t.member_id))]
+            .map((id) => nameOf.get(id) ?? "")
+            .filter(Boolean),
+          mergedIn: [...new Set(mergedFromAll.map((e) => e.member_id))]
+            .map((id) => nameOf.get(id) ?? "")
+            .filter(Boolean),
+        },
+      });
+      rationaleLines = explained.lines;
+      rationaleRefusal = explained.refusal;
+    } catch (error) {
+      console.error(`[${FN_NAME}] plan rationale unavailable`, error);
+      issues.push("rationale_unavailable");
+    }
+
+    let reportLines: string[] = [];
+    let reportRefusal: string | null = null;
+    try {
+      const gated = gateRequestReport({
+        report: reportOnRequest({
+          // L'ENVIE TAPÉE AU MOMENT DE COMPOSER. Le champ du formulaire, et
+          // rien d'autre: la ligne d'envie du foyer et les voix des membres
+          // passent par d'autres portes, avec leurs propres plafonds.
+          preferences: String(body.preferences ?? "").trim().slice(0, 2000),
+          dishes: dishes.map((d, at) => ({
+            id: `dish_${at}`,
+            title: String((d as Record<string, unknown>).title ?? ""),
+            method: String((d as Record<string, unknown>).method ?? ""),
+            day: ((d as Record<string, unknown>).day as string | null) ?? null,
+            ingredients: (Array.isArray((d as Record<string, unknown>).ingredients)
+              ? (d as Record<string, unknown>).ingredients as unknown[]
+              : []).map((i) => ({
+                term: String((i as Record<string, unknown>)?.term ?? ""),
+              })),
+          })),
+          // ⚠️ PORTE 2 — LES RÈGLES DE MAISON. Un terme couvert par une règle
+          // du foyer ne doit JAMAIS être cité: dire « je n'ai pas mis de
+          // Nutella » ferait porter à Sophia une décision parentale. Les
+          // libellés viennent du SPLIT, comme le verrou de sortie, pour qu'une
+          // allergie ne puisse pas y entrer par distraction.
+          //
+          // La projection en `ForbiddenTerm` est la même que celle de
+          // `household_restriction_lock.ts::termsFrom` (`:68`), qui ne
+          // l'exporte pas.
+          houseRuleTerms: householdSplit.houseRuleLabels
+            .map((l) => String(l ?? "").trim())
+            .filter(Boolean)
+            .map((label) => ({
+              ruleId: `house.${label.toLowerCase().replace(/\s+/g, "_")}`,
+              token: label,
+            })),
+          previouslyReportedAbsent: [],
+        }),
+        locale: reportLocale,
+        // ⚠️ PORTE 1 — LE PLANCHER TCA DU COMPTE QUI COMPOSE, et FAIL-CLOSED.
+        // C'est à lui que ce bloc sera rendu. `true` par défaut: un plancher
+        // qu'on n'a pas su lire ne doit pas ouvrir une phrase sur la nourriture
+        // de quelqu'un qu'on soupçonne de se restreindre. Même arbitrage que la
+        // lane individuelle, et que l'enveloppe plus haut dans ce fichier.
+        restrictionFlag:
+          composedMembers.find((m) => m.userId === userId)?.body?.restrictionFlag ??
+            true,
+        doctrineForbidden,
+      });
+      reportLines = gated.lines;
+      reportRefusal = gated.refusal;
+    } catch (error) {
+      console.error(`[${FN_NAME}] request report unavailable`, error);
+      issues.push("request_report_unavailable");
+    }
+
+    // ── L'APERÇU S'ARRÊTE ICI ────────────────────────────────────────────
+    // Le SEUL saut est l'écriture. Aucune `member_portions` n'est écrite, aucun
+    // quota de fusion n'est consommé (le chemin `merge` refuse `draft` tout en
+    // haut), et aucun état de brouillon ne va en base: la contrainte
+    // d'exclusion sur les fenêtres vivantes reste intacte.
+    if (isDraft) {
+      return jsonResponse(req, {
+        ok: true,
+        draft: true,
+        meal: null,
+        window: { starts_on: startsOn, duration_days: durationDays },
+        suggested_window: suggestedWindow,
+        rationale: { lines: rationaleLines, refusal: rationaleRefusal },
+        request_report: { lines: reportLines, refusal: reportRefusal },
+        household: { id: householdId, member_count: members.length },
+        dishes,
+        preparations: mealPreparationsPayload(meal),
+        cooking_sessions: mealSessionsPayload(meal),
+        shopping_list: mealShoppingPayload(meal),
+        member_portions: memberPortionsPayload(portions),
+        member_deltas: memberDeltasPayload(resolution.deltas),
+        merged_members: mergedFromAll.map((e) => e.member_id),
+        issues: [...issues, ...meal.issues, ...portionIssues],
+        request_id: requestId,
+      });
+    }
 
     // ── L'ÉCRITURE: LA MÊME RPC QUE LE CHEMIN INDIVIDUEL ────────────────
     // `intent` et `replaces` sont validés TOUT EN HAUT, avant le modèle — ils
@@ -3292,6 +3610,15 @@ Deno.serve(async (req) => {
               }),
             },
             issues: [...issues, ...meal.issues, ...portionIssues],
+            // ── POURQUOI CES JOURS-LÀ, SUR LA LIGNE ─────────────────────
+            // Renvoyer ces phrases dans la seule RÉPONSE ne suffit pas: au
+            // premier rafraîchissement, le plan est relu depuis cette ligne et
+            // l'explication disparaîtrait. Même raisonnement que `presence` et
+            // `member_deltas` ci-dessus. ⚠️ AUCUNE MIGRATION: `generated_from`
+            // est déjà `jsonb`. Écrit MÊME VIDE, avec son motif.
+            rationale: { lines: rationaleLines, refusal: rationaleRefusal },
+            // FF-061 — ce qui a été fait de ce qui avait été demandé.
+            request_report: { lines: reportLines, refusal: reportRefusal },
             // FF-027 — la provenance de l'adaptation, archivée avec la
             // composition (voir `hungerSignalProvenance`). Le décompte est
             // archivé ici; il n'est pas entré dans le prompt.
@@ -3323,6 +3650,14 @@ Deno.serve(async (req) => {
       ok: true,
       meal: writtenRow ? { id: writtenRow.meal_id } : null,
       window: { starts_on: startsOn, duration_days: durationDays },
+      // Une PROPOSITION d'écran, jamais un refus: valeur par défaut du prochain
+      // formulaire. `shifted: null` = « rien à déplacer », pas « on n'a pas
+      // regardé ».
+      suggested_window: suggestedWindow,
+      // Des phrases FINIES, dans la langue du foyer, assemblées par le serveur.
+      // ⛔ Aucun miroir de ces gabarits côté écran.
+      rationale: { lines: rationaleLines, refusal: rationaleRefusal },
+      request_report: { lines: reportLines, refusal: reportRefusal },
       household: {
         id: householdId,
         // `kind` a disparu avec la colocation (lot 2). L'ecran ne le lisait que
