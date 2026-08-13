@@ -340,6 +340,11 @@ describe("pack français de la vitrine", () => {
       // bien traduites (« 15 minutes — j'entre et je sors », « Une heure, ça ne
       // me dérange pas »), ce qui montre que la table n'est pas recopiée.
       "plan.cooking.time_30",
+      // « {n} min » est le même gabarit dans les deux langues — l'abréviation
+      // NORMALISÉE, pas un anglicisme. Son jumeau `plan.cooking.time_hours`
+      // diffère bien (« {n} h » contre « {n} hr »), ce qui prouve que la table
+      // est traduite et non recopiée. Même paire que `setup.plan.time_*`.
+      "plan.cooking.time_minutes",
       // Trois points de suspension sur un bouton pendant une écriture. Ce n'est
       // pas un mot, c'est un état — même raison que `meals.picker.saving` et
       // `meals.rhythm.saving` ci-dessus.

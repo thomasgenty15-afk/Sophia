@@ -1340,6 +1340,16 @@ export default function StudentWeekPlanPage() {
       .join(" · ");
   }, [pc.eating_rhythm]);
 
+  /**
+   * CE QUE LE DERNIER PLAN A DEMANDÉ — et plus « ce que tu peux cuisiner ».
+   *
+   * ⚠️ LA NUANCE EST TOUT, ET ELLE A CHANGÉ LE 2026-08-13. Les jours de cuisine
+   * et la durée d'une session ne sont plus un réglage de profil: ce sont des
+   * entrées de PLAN, posées sur l'écran qui compose. Ce qui s'affiche ici est
+   * donc un RAPPEL de la dernière demande, pas un champ modifiable — et le
+   * libellé le dit, sinon on cherche à l'éditer dans une carte qui ne le porte
+   * plus.
+   */
   const cookingSummary = React.useMemo(() => {
     const days = Array.isArray(pc.cook_days)
       ? (pc.cook_days as unknown[]).map(String)
@@ -1711,7 +1721,7 @@ export default function StudentWeekPlanPage() {
                   goalOptions().find((g) => g.value === goal.goal)?.label ?? goal.goal,
                 ],
                 [t("plan.about.day"), rhythmSummary],
-                [t("plan.about.cooking"), cookingSummary],
+                [t("plan.about.last_request"), cookingSummary],
                 [t("plan.about.told"), preferencesSummary],
               ] as const).map(([label, value]) => (
                 <div key={label} className="flex flex-wrap gap-x-2 text-sm">

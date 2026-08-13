@@ -190,7 +190,13 @@ describe("funnelSteps", () => {
       expect(funnelSteps(branch).map((s) => s.id)).toEqual([
         "situate",
         "people",
-        "plan",
+        // ── LA COUPURE DU 2026-08-13 ────────────────────────────────────
+        // `table` porte les faits de la maison (qui mange, à quels moments),
+        // `request` la demande de CE plan-là (jours de cuisine, durée, budget).
+        // Les deux vivaient dans la même carte, et on lisait un bouton gris
+        // sans faire le lien avec des rangées vides plus haut.
+        "table",
+        "request",
       ]);
     }
   });
@@ -565,12 +571,29 @@ describe("nextIncomplete", () => {
     expect(nextIncomplete(state, "pair")?.id).toBe("people");
   });
 
-  it("renvoie à l'étape 3 quand seules les contraintes pratiques manquent", () => {
+  it("renvoie à la TABLE quand seuls les moments de la maison manquent", () => {
     const state: FunnelState = {
       ...complete("family"),
-      plan: { eatingRhythm: [], cookDays: [], cookingTimeMin: null, budgetAmount: null },
+      plan: { ...complete("family").plan, eatingRhythm: [] },
     };
-    expect(nextIncomplete(state, "family")?.id).toBe("plan");
+    expect(nextIncomplete(state, "family")?.id).toBe("table");
+  });
+
+  it("renvoie à la DEMANDE quand seules les entrées de plan manquent", () => {
+    // ⚠️ LE RYTHME RESTE RENSEIGNÉ ICI, ET C'EST TOUT L'OBJET DU TEST. Avant la
+    // coupure du 2026-08-13, les quatre questions vivaient sur la même étape,
+    // donc ce cas et le précédent étaient indiscernables — et une régression
+    // qui renverrait à la table pour un budget manquant serait passée.
+    const state: FunnelState = {
+      ...complete("family"),
+      plan: {
+        ...complete("family").plan,
+        cookDays: [],
+        cookingTimeMin: null,
+        budgetAmount: null,
+      },
+    };
+    expect(nextIncomplete(state, "family")?.id).toBe("request");
   });
 });
 
@@ -595,7 +618,7 @@ describe("missesForStep", () => {
     expect(missesForStep(state, "pair", "people")).toContain("missing_mouths");
     // ET NULLE PART AILLEURS: un motif rendu par l'étape 3 y serait affiché
     // sans le champ qui y répond — c'est le défaut lui-même.
-    expect(missesForStep(state, "pair", "plan")).toEqual([]);
+    expect(missesForStep(state, "pair", "request")).toEqual([]);
     expect(missesForStep(state, "pair", "situate")).toEqual([]);
   });
 
@@ -605,7 +628,7 @@ describe("missesForStep", () => {
       plan: { eatingRhythm: [], cookDays: [], cookingTimeMin: null, budgetAmount: null },
     };
     expect(missesForStep(state, "family", "people")).toEqual([]);
-    expect(missesForStep(state, "family", "plan").length).toBeGreaterThan(0);
+    expect(missesForStep(state, "family", "request").length).toBeGreaterThan(0);
   });
 
   /**

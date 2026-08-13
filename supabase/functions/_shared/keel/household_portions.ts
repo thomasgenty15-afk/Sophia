@@ -89,6 +89,27 @@ export interface PortionMember {
    * construit sans être branché — le mode d'échec n°1 d'ici.
    */
   body: MealBodyContext | null;
+  /**
+   * LES MOMENTS OÙ CETTE BOUCHE MANGE — `null` quand personne ne l'a dit.
+   *
+   * ── LE DÉFAUT QUE CE CHAMP FERME ──────────────────────────────────────
+   * Le rythme était UNE valeur, posée sur la ligne du maître, et l'écran
+   * l'assumait: « demandé une fois, pour toute la maison ». Un ado qui saute
+   * le petit-déjeuner et un petit qui goûte à 16 h recevaient donc la même
+   * journée — et le foyer composait un repas pour quelqu'un qui n'en prend
+   * pas.
+   *
+   * ⚠️ `null` ET TABLEAU VIDE NE VEULENT PAS DIRE LA MÊME CHOSE, et la base
+   * refuse le second (`empty_rhythm`). `null` = « personne ne l'a dit » ⇒
+   * cette bouche mange aux moments de la maison, ce qui est le repli du
+   * produit et pas une supposition sur elle. Un tableau vide dirait « elle ne
+   * mange jamais », et aucun écran ne doit pouvoir l'écrire par inadvertance.
+   *
+   * ⚠️ REQUIS, jamais optionnel — même raison que `body` ci-dessus: un champ
+   * facultatif ne fait remonter aucun appelant au compilateur, et le lot se
+   * construit sans être branché.
+   */
+  eatingSlots: readonly string[] | null;
 }
 
 export interface PreparationShare {
@@ -573,6 +594,11 @@ export function buildPortionBrief(
 ): string {
   if (members.length === 0) return "";
   let anyBodyFacts = false;
+  // ⚠️ MÊME DISCIPLINE QUE `anyBodyFacts`, ET POUR LA MÊME RAISON: on n'énonce
+  // pas une contrainte que personne n'a posée. Une consigne « quand quelqu'un
+  // est marqué… » servie à un foyer où personne ne l'est apprend au modèle
+  // qu'il existe un marquage, et l'invite à en inventer un.
+  let anyRhythm = false;
   const lines = members.map((m) => {
     // L'ORDRE DES TROIS CAS EST LA RÈGLE, pas un style — et il est écrit UNE
     // fois, dans `servingDirectionFor`, parce que la fusion doit lire
@@ -586,15 +612,40 @@ export function buildPortionBrief(
     // une garde que le prochain appelant oublie (FF-030 R5). Les deux
     // paramètres sont requis, donc il n'y a pas d'appel « partiel » possible.
     const facts = householdBodyFacts(m.body, m.ageState);
-    if (facts.length === 0) return `- ${m.displayName}: ${direction}`;
+    // ── QUAND CETTE BOUCHE MANGE, SUR SA PROPRE LIGNE ────────────────────
+    // On donne le FAIT, pas la déduction: « eats at breakfast, dinner » plutôt
+    // qu'une grille par personne. C'est le patron du dépôt (`country` et
+    // `today` partent bruts, la saison ne part pas), et c'est ce qui permet au
+    // modèle de sauter un créneau pour une personne sans que la grille du
+    // foyer change.
+    //
+    // Rien n'est écrit quand `null`: cette bouche mange aux moments de la
+    // maison, que le prompt annonce déjà plus haut. Une ligne « eats at
+    // breakfast, lunch, dinner » recopiée pour tout le monde noierait
+    // précisément celle qui dit une différence.
+    const when = m.eatingSlots === null || m.eatingSlots.length === 0
+      ? ""
+      : ` — eats at ${m.eatingSlots.join(", ")} only`;
+    if (when !== "") anyRhythm = true;
+    if (facts.length === 0) return `- ${m.displayName}: ${direction}${when}`;
     anyBodyFacts = true;
-    return `- ${m.displayName}: ${direction} [${facts.join("; ")}]`;
+    return `- ${m.displayName}: ${direction}${when} [${facts.join("; ")}]`;
   });
   return [
     "HOUSEHOLD SERVING PLAN — one cooking session, portions that differ.",
     ...COOKING_SHAPE_LINES[cooking],
     "For each person below, give a short serving instruction: how much of which",
     "component goes on their plate, and which side is added or dropped.",
+    // LA CONSÉQUENCE DU « eats at ... only », DITE UNE FOIS, ET SEULEMENT SI
+    // QUELQU'UN EST MARQUÉ. Sans elle, le modèle lit le fait et sert quand
+    // même: une contrainte qu'on énonce sans dire ce qu'elle interdit est une
+    // contrainte décorative.
+    ...(anyRhythm
+      ? [
+        'When a person is marked "eats at ... only", give them NO serving at any',
+        "other moment — do not shift their meal, do not compensate elsewhere.",
+      ]
+      : []),
     "",
     ...lines,
     "",

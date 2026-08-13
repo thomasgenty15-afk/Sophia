@@ -360,6 +360,10 @@ interface RosterRow {
   // ce qui reste à décider est le RECOUVREMENT de la fenêtre, et il est
   // décidé dans `household_hand.ts`, jamais ici.
   own_plans: unknown;
+  // LES MOMENTS OÙ CETTE BOUCHE MANGE, déjà tranchés en base entre son
+  // « about you » (si elle a un compte) et sa ligne (sinon) — exactement comme
+  // `goal` au-dessus. `null` = personne ne l'a dit.
+  eating_rhythm: unknown;
 }
 
 // ===========================================================================
@@ -1290,6 +1294,14 @@ Deno.serve(async (req) => {
         // aucune fenêtre. `resolveHandOff`, juste en dessous, est le seul
         // endroit du produit qui décide qu'une bouche a pris la main.
         ownPlans: parseOwnPlans(r.own_plans),
+        // ── QUAND ELLE MANGE, À ELLE ────────────────────────────────────
+        // `null` traverse tel quel: il veut dire « personne ne l'a dit », et
+        // c'est le prompt du foyer qui décide que ça signifie « aux moments de
+        // la maison ». Le convertir ici en rythme de la maison ferait écrire,
+        // sur la ligne de quelqu'un, un fait que personne n'a énoncé.
+        eatingSlots: r.eating_rhythm === null || r.eating_rhythm === undefined
+          ? null
+          : parseEatingRhythm(r.eating_rhythm).map((s) => s.slot),
       };
     });
 
@@ -1807,7 +1819,27 @@ Deno.serve(async (req) => {
     goalRow.practical_constraints = foodPreferences.constraints;
 
     const pc = goalRow.practical_constraints as Record<string, unknown> | null;
-    const eatingRhythm = parseEatingRhythm(pc?.eating_rhythm);
+    // ── LES MOMENTS DE LA MAISON = L'UNION DES MOMENTS DES BOUCHES ────────
+    //
+    // ⚠️ CE N'EST PAS UNE COMMODITÉ, C'EST CE QUI REND LE RYTHME PAR BOUCHE
+    // ATTEIGNABLE. La grille du plan est bâtie sur CE rythme-là: un créneau
+    // absent d'ici n'existe nulle part dans le plan. Sans l'union, déclarer
+    // « Tom prend un goûter » n'aurait produit aucun goûter — le fait serait
+    // écrit en base, affiché à l'écran, et sans le moindre effet. Le dépôt a
+    // déjà payé cette forme-là plusieurs fois (le régime, le shaker, le
+    // budget): une donnée collectée dont aucun aval ne se sert.
+    //
+    // L'UNION, ET PAS UN REMPLACEMENT: le maître garde ses moments, chaque
+    // bouche ajoute les siens, et `buildPortionBrief` dit ensuite qui mange à
+    // quoi. La grille couvre tout le monde; les assiettes, elles, sont
+    // individuelles.
+    //
+    // Une bouche à `null` n'ajoute rien: elle mange aux moments de la maison,
+    // ce qui est exactement ce que l'union contient déjà.
+    const eatingRhythm = parseEatingRhythm([
+      ...(Array.isArray(pc?.eating_rhythm) ? pc!.eating_rhythm as unknown[] : []),
+      ...members.flatMap((m) => m.eatingSlots ?? []),
+    ]);
     const capacity = readCookingCapacity(pc);
     const scope: MealScope = durationDays === 1 ? "day" : "several_days";
     const daysToFill = windowDayOrder(startsOn, durationDays);

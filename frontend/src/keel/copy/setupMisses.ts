@@ -44,6 +44,13 @@ export const SETUP_MISS_KEYS: Record<FunnelMissId, MessageKey> = {
   cook_days: "setup.missing.cook_days",
   cooking_time_min: "setup.missing.cooking_time_min",
   budget_amount: "setup.missing.budget_amount",
+  // ⚠️ UNE PHRASE POUR UN MOTIF QUI NE SORT JAMAIS, et c'est voulu.
+  // `member_eating_rhythm` est `better`: son absence ne rend aucun plan FAUX,
+  // donc `canGenerateMisses` ne l'émet pas. Le `Record` est complet PAR TYPE —
+  // c'est ce qui garantit qu'aucune question ne peut entrer dans le catalogue
+  // sans ses mots — et le compilateur réclame donc celle-ci. Le jour où ce
+  // raffinement deviendrait exigible, la phrase est déjà écrite et traduite.
+  member_eating_rhythm: "setup.missing.member_eating_rhythm",
 
   // ── LE DÉFAUT D1, ET SA PHRASE EST LA PLUS IMPORTANTE DE LA TABLE ───────
   // Elle ne dit pas « il manque une date ». Elle dit ce que l'absence COÛTE:

@@ -7,6 +7,7 @@ import {
   type GeneratedMealResult,
   generateMeal,
   loadMealPlans,
+  DAY_TOKENS,
   MEAL_SLOTS,
   type MealMode,
 } from "../api/mealGeneration";
@@ -18,8 +19,19 @@ import {
   resolveRequestedWindow,
   windowDayOrder,
 } from "../api/mealWindow";
-import { BUDGET_MAX, readBudgetAmount, saveBudgetAmount } from "../api/planBudget";
-import { mealCopy } from "../api/mealLabels";
+// ⚠️ TOUT VIENT DE `planBudget`, ET RIEN DE `onboarding`. Le second porte la
+// copie de l'entonnoir (allergènes, objectifs, motifs de refus); l'importer
+// ici, même pour une constante, traîne tout son graphe dans le paquet de
+// /app/plan — et la garde de coutures compte les namespaces ATTEINTS, pas les
+// namespaces utilisés.
+import {
+  BUDGET_MAX,
+  COOKING_SESSION_MINUTES,
+  cookingTimeParts,
+  readPlanInputs,
+  savePlanInputs,
+} from "../api/planBudget";
+import { dishDayLabel, mealCopy } from "../api/mealLabels";
 import { loadMyHouseholdPlace } from "../api/household";
 import { edgeRefusalKey } from "../copy/planRefusals";
 import { t } from "../i18n/t";
@@ -219,6 +231,16 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
    * le réglage de profil qu'on vient de retirer d'« À propos de toi ».
    */
   const [budget, setBudget] = React.useState("");
+  /**
+   * LES JOURS OÙ JE PEUX CUISINER CETTE SEMAINE-CI, et combien de temps j'ai.
+   *
+   * Ils vivaient dans « À propos de toi », donc décidés une fois pour toutes
+   * les semaines à venir — y compris celle où on travaille le dimanche. Ce sont
+   * des entrées de PLAN: elles se redemandent ici, pré-remplies avec la
+   * dernière réponse. Voir `api/planBudget.ts`.
+   */
+  const [cookDays, setCookDays] = React.useState<string[]>([]);
+  const [cookingTime, setCookingTime] = React.useState("");
   const [pantryText, setPantryText] = React.useState("");
   /** L'envie du moment, reproposée d'une génération à l'autre. */
   const [preferences, setPreferences] = React.useState("");
@@ -277,9 +299,18 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
       // la garde de `build()` le réclamera, et ça vaut mieux qu'un budget que
       // personne n'a donné.
       try {
-        const last = await readBudgetAmount(userId);
-        if (!cancelled && last !== null) setBudget(String(last));
+        const last = await readPlanInputs(userId);
+        if (!cancelled) {
+          if (last.budgetAmount !== null) setBudget(String(last.budgetAmount));
+          setCookDays([...last.cookDays]);
+          if (last.cookingTimeMin !== null) {
+            setCookingTime(String(last.cookingTimeMin));
+          }
+        }
       } catch {
+        // Une lecture qui échoue laisse les champs VIDES, jamais des valeurs
+        // inventées: les gardes de `build()` les réclameront, et ça vaut mieux
+        // qu'une semaine composée sur des jours que personne n'a donnés.
         if (!cancelled) setBudget("");
       }
       try {
@@ -442,6 +473,17 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
       setError(t("plan.cooking.budget_required"));
       return;
     }
+    // LES DEUX AUTRES ENTRÉES DE PLAN, RÉCLAMÉES AU MÊME ENDROIT. Sans jour de
+    // cuisine, le moteur en invente un; sans durée, il écrit une session de 50
+    // minutes à quelqu'un qui en a vingt. Les deux sont mesurés dans ce dépôt.
+    if (cookDays.length === 0) {
+      setError(t("plan.cooking.days_required"));
+      return;
+    }
+    if (!Number.isFinite(Number(cookingTime)) || Number(cookingTime) <= 0) {
+      setError(t("plan.cooking.time_required"));
+      return;
+    }
     // LA FENÊTRE SE REFERME DÈS QUE LA GÉNÉRATION PART. Ce qu'on veut regarder
     // pendant l'attente, c'est la place de la semaine, pas les champs qu'on
     // vient de remplir.
@@ -463,7 +505,11 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
       // cuisine. Un second chemin (le passer dans le corps de la requête)
       // ferait deux sources pour un seul chiffre, et c'est toujours celle que
       // l'écran ne montre pas qui gagne.
-      await saveBudgetAmount(userId, budgetAmount);
+      await savePlanInputs(userId, {
+        budgetAmount,
+        cookDays,
+        cookingTimeMin: Number(cookingTime),
+      });
       const written = await generateMeal({
         mode,
         window: windowRequest,
@@ -697,9 +743,73 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                 </Field>
               </div>
 
-              {/* LE BUDGET EST DANS LE FORMULAIRE, PAS DANS LE PROFIL.
-                  Il tient à côté des parts parce que c'est la même famille de
-                  question: combien de bouches, et pour combien. */}
+              {/* ── LES TROIS ENTRÉES DE PLAN, DANS LE FORMULAIRE DE PLAN ──
+                  Jours de cuisine, durée d'une session, budget. Elles vivaient
+                  dans « À propos de toi » — donc décidées une fois et
+                  appliquées à toutes les semaines suivantes, y compris celle
+                  où on travaille le dimanche. Ce sont des propriétés de la
+                  SEMAINE qu'on commande, pas de la personne. */}
+              <Field
+                label={t("plan.cooking.days_label")}
+                hint={t("plan.cooking.days_hint")}
+              >
+                <div className="flex flex-wrap gap-2">
+                  {DAY_TOKENS.map((day) => (
+                    <Button
+                      key={day}
+                      size="sm"
+                      variant={cookDays.includes(day) ? "primary" : "secondary"}
+                      onClick={() =>
+                        setCookDays((prev) =>
+                          prev.includes(day)
+                            ? prev.filter((d) => d !== day)
+                            : [...prev, day]
+                        )}
+                    >
+                      {dishDayLabel(day) ?? day}
+                    </Button>
+                  ))}
+                </div>
+              </Field>
+
+              <Field
+                label={t("plan.cooking.time_label")}
+                htmlFor="meals-cooking-time"
+              >
+                <div className="flex flex-wrap gap-2">
+                  {COOKING_SESSION_MINUTES.map((minutes) => {
+                    const parts = cookingTimeParts(minutes);
+                    return (
+                      <Button
+                        key={minutes}
+                        size="sm"
+                        variant={Number(cookingTime) === minutes
+                          ? "primary"
+                          : "secondary"}
+                        onClick={() => setCookingTime(String(minutes))}
+                      >
+                        {t(
+                          // ⚠️ `plan.cooking.*` ET PAS `setup.plan.*`: cet
+                          // écran est /app/plan, et emprunter une clé de
+                          // l'entonnoir y fait entrer tout son namespace. La
+                          // garde de coutures le refuse, et elle a raison — une
+                          // page qui atteint un vocabulaire qu'elle ne déclare
+                          // pas finit par en servir la moitié dans l'autre
+                          // langue.
+                          parts.unit === "hours"
+                            ? "plan.cooking.time_hours"
+                            : "plan.cooking.time_minutes",
+                          { n: parts.value },
+                        )}
+                      </Button>
+                    );
+                  })}
+                </div>
+              </Field>
+
+              {/* LE BUDGET TIENT À CÔTÉ DES DEUX AUTRES, et à côté des parts:
+                  c'est la même famille de question — combien de bouches, quels
+                  jours, et pour combien. */}
               <Field
                 label={t("plan.cooking.budget_label")}
                 hint={t("plan.cooking.budget_hint")}

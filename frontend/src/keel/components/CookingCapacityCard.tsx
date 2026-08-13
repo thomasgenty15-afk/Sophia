@@ -1,7 +1,6 @@
 import React from "react";
 
 import { supabase } from "../../lib/supabase";
-import { dishDayLabel } from "../api/mealLabels";
 import { t } from "../i18n/t";
 import { mergePracticalConstraints } from "../api/practicalConstraints";
 import { Button } from "./ui/Button";
@@ -59,8 +58,6 @@ import { Field, inputClass } from "./ui/Field";
 // de langue comme au scanner de coutures — et l'un des trois catalogues
 // parallèles qui empêchaient `/app/plan` de basculer.
 
-const DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
-type Day = (typeof DAYS)[number];
 
 export interface CookingCapacityCardProps {
   /** `false` tant qu'aucune ligne `student_goals` n'existe: rien à mettre à jour. */
@@ -72,13 +69,6 @@ export interface CookingCapacityCardProps {
   onSaved: () => void | Promise<void>;
 }
 
-function readDays(raw: unknown): Day[] {
-  if (!Array.isArray(raw)) return [];
-  return raw
-    .map((d) => String(d))
-    .filter((d): d is Day => (DAYS as readonly string[]).includes(d));
-}
-
 function readString(raw: unknown, allowed: readonly string[], fallback: string): string {
   const value = String(raw ?? "").trim();
   return allowed.includes(value) ? value : fallback;
@@ -87,12 +77,6 @@ function readString(raw: unknown, allowed: readonly string[], fallback: string):
 export default function CookingCapacityCard(props: CookingCapacityCardProps) {
   const pc = props.practicalConstraints ?? {};
   const [open, setOpen] = React.useState(false);
-  const [days, setDays] = React.useState<Set<Day>>(
-    () => new Set(readDays(pc.cook_days)),
-  );
-  const [time, setTime] = React.useState(
-    () => String(Number(pc.cooking_time_min) || 30),
-  );
   const [difficulty, setDifficulty] = React.useState(
     () => readString(pc.recipe_difficulty, ["simple", "normal", "keen"], "normal"),
   );
@@ -103,16 +87,6 @@ export default function CookingCapacityCard(props: CookingCapacityCardProps) {
   const [error, setError] = React.useState<string | null>(null);
   const [flash, setFlash] = React.useState<string | null>(null);
 
-  const declared = readDays(pc.cook_days);
-
-  function toggleDay(day: Day) {
-    setDays((prev) => {
-      const next = new Set(prev);
-      if (next.has(day)) next.delete(day);
-      else next.add(day);
-      return next;
-    });
-  }
 
   async function save() {
     setBusy(true);
@@ -130,9 +104,6 @@ export default function CookingCapacityCard(props: CookingCapacityCardProps) {
         userId: uid,
         current: props.practicalConstraints,
         patch: {
-          // L'ORDRE DE LA SEMAINE, pas celui des clics.
-          cook_days: DAYS.filter((d) => days.has(d)),
-          cooking_time_min: Number(time) || 30,
           recipe_difficulty: difficulty,
           variety,
         },
@@ -151,48 +122,7 @@ export default function CookingCapacityCard(props: CookingCapacityCardProps) {
   // LE FORMULAIRE, une seule fois — voir la même hissée dans `EatingRhythmCard`.
   const editor = (
           <div className="space-y-4">
-            <Field label={t("plan.cooking.days_label")} hint={t("plan.cooking.days_hint")}>
-              <div className="flex flex-wrap gap-2">
-                {DAYS.map((day) => (
-                  <button
-                    key={day}
-                    type="button"
-                    onClick={() => toggleDay(day)}
-                    // SEPT JOURS COCHABLES, ET AUCUN N'EST FIGUE. Un jour retenu
-                    // est un FAIT saisi, pas l'action principale de l'écran: la
-                    // marque marquerait sept fois la même chose et ne marquerait
-                    // plus rien (charte §2). La distinction est donc l'encre
-                    // pleine — `paper` sur `ink` = 16,18:1 — contre un contour de
-                    // contrôle. `line-strong` et jamais `line` (1,30:1): WCAG
-                    // 1.4.11 exige 3:1 pour la bordure d'un contrôle.
-                    // `aria-pressed` porte l'état sans la couleur.
-                    aria-pressed={days.has(day)}
-                    className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
-                      days.has(day)
-                        ? "border-ink bg-ink text-paper"
-                        : "border-line-strong text-ink hover:bg-fig-50"
-                    }`}
-                  >
-                    {dishDayLabel(day) ?? day}
-                  </button>
-                ))}
-              </div>
-            </Field>
-
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label={t("plan.cooking.time_label")} htmlFor="cap-time">
-                <select
-                  id="cap-time"
-                  className={inputClass}
-                  value={time}
-                  onChange={(e) => setTime(e.target.value)}
-                >
-                  <option value="15">{t("plan.cooking.time_15")}</option>
-                  <option value="30">{t("plan.cooking.time_30")}</option>
-                  <option value="60">{t("plan.cooking.time_60")}</option>
-                </select>
-              </Field>
-
               <Field label={t("plan.cooking.difficulty_label")} htmlFor="cap-difficulty">
                 <select
                   id="cap-difficulty"
@@ -270,19 +200,18 @@ export default function CookingCapacityCard(props: CookingCapacityCardProps) {
           // navigation et l'action »). `fig-700` sur `paper` = 9,98:1.
           className="shrink-0 text-xs font-medium text-fig-700 underline underline-offset-2 hover:text-fig-800"
         >
-          {open ? t("plan.cooking.summary_close") : (declared.length > 0 ? t("plan.cooking.summary_open") : t("plan.cooking.summary_edit"))}
+          {open ? t("plan.cooking.summary_close") : t("plan.cooking.summary_edit")}
         </button>
       </div>
 
       <>
-        {!open && (
+        {/* LE RÉSUMÉ NE LISTE PLUS LES JOURS DE CUISINE: ils ne vivent plus
+            ici. Ce qui reste dans cette carte est ce qui décrit la CUISINE de
+            quelqu'un (le niveau de recette, la répétition acceptée), pas la
+            semaine qu'il est en train de commander. */}
+        {!open && flash && (
           <div className="mt-2">
-            <p className="text-sm text-ink">
-              {declared.length > 0
-                ? declared.map((d) => dishDayLabel(d) ?? d).join(" · ")
-                : t("plan.cooking.none_picked")}
-            </p>
-            {flash && <p className="mt-1 text-sm text-emerald-700">{flash}</p>}
+            <p className="text-sm text-emerald-700">{flash}</p>
           </div>
         )}
 

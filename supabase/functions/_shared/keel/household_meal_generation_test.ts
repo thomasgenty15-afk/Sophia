@@ -38,14 +38,17 @@ const NOBODY_AWAY: WindowPresence = resolveWindowPresence({
 const DAD: PortionMember = {
   memberId: "m-dad", displayName: "Marc", goal: "fat_loss", ageState: "adult",
   body: null,
+  eatingSlots: null,
 };
 const SON: PortionMember = {
   memberId: "m-son", displayName: "Tom", goal: "muscle_gain", ageState: "adult",
   body: null,
+  eatingSlots: null,
 };
 const KID: PortionMember = {
   memberId: "m-kid", displayName: "Léa", goal: null, ageState: "minor",
   body: null,
+  eatingSlots: null,
 };
 
 Deno.test("chaque membre apparaît avec son id EXACT, une fois", () => {

@@ -58,6 +58,51 @@ import { mergePracticalConstraints } from "./practicalConstraints";
 export const BUDGET_MAX = 5000;
 
 /**
+ * COMBIEN DE TEMPS ON PASSE À CUISINER, EN CHOIX FERMÉS.
+ *
+ * ── POURQUOI PAS UN NOMBRE LIBRE ──────────────────────────────────────────
+ * Le champ était un `<input type="number">` de 5 à 240, et personne ne sait
+ * quoi y écrire: « 37 » n'est pas une réponse qu'un humain a. Le moteur, lui,
+ * n'en fait rien de précis — `meal_generation.ts` écrit littéralement
+ * « time per cooking session: about ${n} minutes ». Un nombre exact y est donc
+ * une FAUSSE PRÉCISION: on demande un chiffre au décimal près pour le rendre
+ * flou une ligne plus loin.
+ *
+ * Six durées qu'on reconnaît, de la demi-heure de semaine aux trois heures du
+ * dimanche. Le plafond du moteur est 240 (`Math.min(240, …)`), et le plus
+ * grand choix reste dessous exprès: proposer une valeur que le lecteur rogne
+ * ferait afficher un chiffre et en composer un autre.
+ */
+export const COOKING_SESSION_MINUTES: readonly number[] = [30, 45, 60, 90, 120, 180];
+
+/**
+ * UNE DURÉE, DÉCOUPÉE POUR ÊTRE DITE — pas formatée ici.
+ *
+ * Rend le NOMBRE et son UNITÉ séparément, parce que les mots appartiennent au
+ * catalogue de langue et pas à ce module. Écrire « 1 hr » ici ferait une
+ * étiquette anglaise qu'aucune traduction ne pourrait reprendre — la cicatrice
+ * `optout-confirmation-hardcoded-french`, dans l'autre sens.
+ *
+ * Une valeur hors des choix (quelqu'un a saisi 37 sur `/app/plan`, dont la
+ * carte garde son champ libre) rend ses minutes telles quelles: on préfère
+ * afficher « 37 min » que faire semblant qu'elle n'existe pas.
+ */
+export function cookingTimeParts(
+  minutes: number,
+): { unit: "minutes" | "hours"; value: string } {
+  if (minutes >= 60 && minutes % 60 === 0) {
+    return { unit: "hours", value: String(minutes / 60) };
+  }
+  // La demi-heure se dit « 1½ », jamais « 1.5 »: c'est une durée lue par un
+  // humain, pas une mesure.
+  if (minutes > 60 && minutes % 30 === 0) {
+    return { unit: "hours", value: `${Math.floor(minutes / 60)}½` };
+  }
+  return { unit: "minutes", value: String(minutes) };
+}
+
+
+/**
  * LE MONTANT DE LA DERNIÈRE FOIS, ou `null` s'il n'y en a pas encore.
  *
  * Les mêmes bornes que `canGenerate` — et c'est volontairement le MÊME
@@ -68,6 +113,73 @@ export const BUDGET_MAX = 5000;
 export function isUsableBudgetAmount(amount: unknown): amount is number {
   const n = Number(amount);
   return Number.isFinite(n) && n > 0 && n <= BUDGET_MAX;
+}
+
+/**
+ * LES TROIS ENTRÉES D'UNE DEMANDE DE PLAN, lues ensemble.
+ *
+ * ── POURQUOI ELLES VOYAGENT ENSEMBLE DEPUIS LE 2026-08-13 ────────────────
+ * Les jours de cuisine et la durée d'une session vivaient dans « À propos de
+ * toi », à côté du niveau de recette — donc décidés UNE FOIS et appliqués à
+ * toutes les semaines suivantes, y compris celle où on travaille le dimanche.
+ * Ce sont des propriétés du PLAN qu'on fabrique, pas de la personne, et elles
+ * rejoignent le budget: posées sur l'écran qui compose, pré-remplies avec la
+ * dernière réponse.
+ *
+ * Ce qui RESTE dans « À propos de toi » est ce qui décrit vraiment quelqu'un:
+ * le niveau de recette qu'il veut, la répétition qu'il accepte.
+ */
+export interface PlanRequestInputs {
+  budgetAmount: number | null;
+  cookDays: string[];
+  cookingTimeMin: number | null;
+}
+
+export async function readPlanInputs(userId: string): Promise<PlanRequestInputs> {
+  const { data, error } = await supabase
+    .from("student_goals")
+    .select("practical_constraints")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) throw new Error(`[keel/planBudget] ${error.message}`);
+  const pc = (data?.practical_constraints ?? {}) as Record<string, unknown>;
+  const time = Number(pc.cooking_time_min);
+  return {
+    budgetAmount: isUsableBudgetAmount(pc.budget_amount)
+      ? Number(pc.budget_amount)
+      : null,
+    cookDays: Array.isArray(pc.cook_days) ? pc.cook_days.map(String) : [],
+    cookingTimeMin: Number.isFinite(time) && time > 0 ? time : null,
+  };
+}
+
+/**
+ * ÉCRIT LES TROIS, EN FUSIONNANT — même discipline que `saveBudgetAmount`: la
+ * photo la plus fraîche possible est celle qu'on prend soi-même, juste avant.
+ */
+export async function savePlanInputs(
+  userId: string,
+  inputs: PlanRequestInputs,
+): Promise<void> {
+  if (!isUsableBudgetAmount(inputs.budgetAmount)) {
+    throw new Error(`[keel/planBudget] budget hors bornes: ${inputs.budgetAmount}`);
+  }
+  const { data, error } = await supabase
+    .from("student_goals")
+    .select("practical_constraints")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) throw new Error(`[keel/planBudget] ${error.message}`);
+  await mergePracticalConstraints({
+    userId,
+    current: (data?.practical_constraints ?? {}) as Record<string, unknown>,
+    patch: {
+      budget_amount: inputs.budgetAmount,
+      cook_days: inputs.cookDays,
+      cooking_time_min: inputs.cookingTimeMin,
+    },
+    source: "planInputs",
+  });
 }
 
 export async function readBudgetAmount(userId: string): Promise<number | null> {

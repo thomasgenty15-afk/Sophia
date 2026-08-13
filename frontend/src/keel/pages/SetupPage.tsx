@@ -22,6 +22,7 @@ import {
   type MemberGoal,
   removeHouseholdMember,
   setMemberBirthDate,
+  setMemberRhythm,
   setMemberGoal,
   setOwnBirthDate,
 } from "../api/household";
@@ -593,6 +594,28 @@ export default function SetupPage() {
     })();
   }
 
+  /**
+   * LES MOMENTS D'UNE BOUCHE — et `null` quand on décoche tout.
+   *
+   * ⚠️ ON N'ENVOIE JAMAIS UN TABLEAU VIDE. La base le refuse
+   * (`empty_rhythm`), et elle a raison: « elle ne mange jamais » n'est pas une
+   * réponse. Décocher le dernier moment veut dire « finalement, comme la
+   * maison » — c'est `null`, et c'est ce que l'écran envoie.
+   */
+  function saveMouthRhythm(
+    target: FunnelMouth,
+    slots: readonly string[],
+  ): Promise<void> {
+    return (async () => {
+      const result = await setMemberRhythm(
+        target.memberId!,
+        slots.length === 0 ? null : slots,
+      );
+      if (!result.ok) throw new Error(result.reason);
+      await load(false);
+    })();
+  }
+
   function saveMouthGoal(target: FunnelMouth, goal: MemberGoal | ""): Promise<void> {
     return (async () => {
       const result = await setMemberGoal(target.memberId!, goal || null);
@@ -857,8 +880,19 @@ export default function SetupPage() {
           </>
         ) : null}
 
-        {step.id === "plan" ? (
-          <PlanStep draft={plan} onChange={setPlan} missing={missing} />
+        {step.id === "table" ? (
+          <TableStep
+            draft={plan}
+            onChange={setPlan}
+            mouths={facts.mouths}
+            onMouthRhythm={(m, slots) => guard(() => saveMouthRhythm(m, slots))}
+            busy={busy}
+            missing={missesForStep(previewState, branch, "table")}
+          />
+        ) : null}
+
+        {step.id === "request" ? (
+          <RequestStep draft={plan} onChange={setPlan} missing={missing} />
         ) : null}
 
         {/* LA BARRE D'ACTION, ET ELLE NE PORTE AUCUNE SORTIE.
@@ -1836,13 +1870,41 @@ function MouthRow(props: {
 // ÉTAPE 3
 // ───────────────────────────────────────────────────────────────────────────
 
-function PlanStep({
+/**
+ * ÉTAPE 3 — LA TABLE: QUI MANGE, ET À QUELS MOMENTS.
+ *
+ * ── CE QUE CETTE ÉTAPE EXISTE POUR RENDRE POSSIBLE ────────────────────────
+ * Le rythme était UNE valeur pour toute la maison, et l'écran l'assumait:
+ * « demandé une fois, pour toute la maison — ça appartient à qui cuisine ».
+ * C'était vrai du code et faux de la vie: un ado qui saute le petit-déjeuner et
+ * un petit qui goûte à 16 h ne mangent pas aux mêmes moments.
+ *
+ * ── LA MAISON D'ABORD, LES ÉCARTS ENSUITE ────────────────────────────────
+ * Les moments de la MAISON restent exigés (`eating_rhythm`, `wrong`): sans eux,
+ * le moteur retombe sur trois repas pour tout le monde, et quelqu'un qui en
+ * fait cinq reçoit un plan qui en oublie deux. Les moments d'une BOUCHE sont un
+ * écart facultatif (`member_eating_rhythm`, `better`): sans réponse, elle mange
+ * aux moments de la maison — c'est moins bon, ce n'est pas faux.
+ *
+ * ⚠️ RIEN N'EST PRÉ-COCHÉ SUR UNE BOUCHE. On pourrait y recopier les moments de
+ * la maison pour que chaque ligne ait l'air remplie; ce serait écrire, à côté du
+ * prénom de quelqu'un, un fait que personne n'a énoncé. « Coche automatique =
+ * faits faux indémentables » est une cicatrice de ce dépôt, et la ligne vide dit
+ * exactement ce qu'on sait: rien.
+ */
+function TableStep({
   draft,
   onChange,
+  mouths,
+  onMouthRhythm,
+  busy,
   missing,
 }: {
   draft: FunnelPlanAnswers;
   onChange: React.Dispatch<React.SetStateAction<FunnelPlanAnswers | null>>;
+  mouths: readonly FunnelMouth[];
+  onMouthRhythm: (mouth: FunnelMouth, slots: readonly string[]) => void;
+  busy: boolean;
   missing: readonly FunnelMissId[];
 }) {
   const toggle = (list: readonly string[], value: string) =>
@@ -1851,8 +1913,8 @@ function PlanStep({
   return (
     <>
       <Card>
-        <SectionLabel>{t("setup.plan.title")}</SectionLabel>
-        <p className="mt-2 text-sm text-ink-soft">{t("setup.plan.intro")}</p>
+        <SectionLabel>{t("setup.table.title")}</SectionLabel>
+        <p className="mt-2 text-sm text-ink-soft">{t("setup.table.intro")}</p>
 
         <div className="mt-4 space-y-4">
           <Field label={t("setup.plan.rhythm")} hint={t("setup.plan.rhythm_hint")}>
@@ -1873,7 +1935,119 @@ function PlanStep({
               ))}
             </div>
           </Field>
+        </div>
+      </Card>
 
+      {/* ── LES ÉCARTS, UNE CARTE PAR BOUCHE ────────────────────────────────
+          Même cadre que l'étape 2: une personne, une section, son prénom en
+          tête. On voit les blocs avant de lire un champ.
+
+          Une bouche AVEC COMPTE n'est pas éditable ici — ses moments vivent
+          dans SON « about you », et la base refuse (`has_account`). L'écran le
+          DIT plutôt que de masquer la ligne: « il n'y a rien ici » et « ça se
+          règle ailleurs » ne sont pas la même phrase. */}
+      {mouths.length > 0 ? (
+        <Card>
+          <SectionLabel>{t("setup.table.each_title")}</SectionLabel>
+          <p className="mt-2 text-sm text-ink-soft">{t("setup.table.each_intro")}</p>
+          <ul className="mt-4 space-y-4">
+            {mouths.map((m) => (
+              <li
+                key={m.memberId ?? m.firstName}
+                className="rounded-card border border-line-strong bg-fig-50/40 p-4"
+              >
+                <span className="text-base font-semibold text-ink">
+                  {m.firstName || "—"}
+                </span>
+                {m.claimed
+                  ? (
+                    <p className="mt-2 text-xs text-ink-soft">
+                      {t("setup.table.from_profile")}
+                    </p>
+                  )
+                  : (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {EATING_OCCASIONS.map((slot) => {
+                        // `null` = « comme la maison ». On rend donc la rangée
+                        // ENTIÈREMENT décochée, jamais les moments du foyer
+                        // pré-cochés: la différence entre « pas répondu » et
+                        // « répondu pareil » est exactement ce que la base
+                        // garde, et l'écran ne doit pas l'effacer.
+                        const on = (m.eatingSlots ?? []).includes(slot);
+                        return (
+                          <Button
+                            key={slot}
+                            size="sm"
+                            variant={on ? "primary" : "secondary"}
+                            disabled={busy}
+                            onClick={() =>
+                              onMouthRhythm(
+                                m,
+                                toggle(m.eatingSlots ?? [], slot),
+                              )}
+                          >
+                            {occasionLabel(slot)}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  )}
+                {!m.claimed && m.eatingSlots === null
+                  ? (
+                    <p className="mt-2 text-xs text-ink-soft">
+                      {t("setup.table.same_as_house")}
+                    </p>
+                  )
+                  : null}
+              </li>
+            ))}
+          </ul>
+        </Card>
+      ) : null}
+
+      {missing.length > 0 ? <MissingCard missing={missing} /> : null}
+    </>
+  );
+}
+
+/**
+ * ÉTAPE 4 — LA DEMANDE DE CE PLAN-LÀ.
+ *
+ * ── LA COUPURE DU 2026-08-13, ET CE QU'ELLE SÉPARE ────────────────────────
+ * Cette carte portait AUSSI les moments où on mange. Deux natures de question
+ * dans le même cadre: « à quels moments cette maison mange » ne change pas
+ * d'une semaine sur l'autre, « quels jours je peux cuisiner CETTE semaine,
+ * combien de temps j'ai, combien je veux dépenser » change à chaque fois.
+ *
+ * Les mélanger avait un coût mesuré: on lisait un bouton gris et une liste de
+ * ce qui manque, sans faire le lien avec des rangées vides plus haut dans la
+ * même carte. Et surtout, ça rangeait des entrées de PLAN dans les réglages
+ * d'une PERSONNE — d'où « À propos de toi » qui décidait des jours de cuisine
+ * de toutes les semaines à venir.
+ *
+ * Ce qui est ici est donc, et seulement, ce qu'on redemande à chaque
+ * composition. La plateforme pose les mêmes trois questions au même moment
+ * (`MealBuilder`, la carte de composition du foyer).
+ */
+function RequestStep({
+  draft,
+  onChange,
+  missing,
+}: {
+  draft: FunnelPlanAnswers;
+  onChange: React.Dispatch<React.SetStateAction<FunnelPlanAnswers | null>>;
+  missing: readonly FunnelMissId[];
+}) {
+  const toggle = (list: readonly string[], value: string) =>
+    list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
+
+  return (
+    <>
+      <Card>
+        <SectionLabel>{t("setup.request.title")}</SectionLabel>
+        <p className="mt-2 text-sm text-ink-soft">{t("setup.request.intro")}</p>
+
+        <div className="mt-4 space-y-4">
           <Field label={t("setup.plan.cook_days")} hint={t("setup.plan.cook_days_hint")}>
             <div className="flex flex-wrap gap-2">
               {DAY_TOKENS.map((day) => (

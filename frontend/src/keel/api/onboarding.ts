@@ -62,6 +62,11 @@ import {
   MEMBER_GOALS,
 } from "./household";
 import { DAY_TOKENS, parseEatingRhythm } from "./mealGeneration";
+// ⚠️ LE TEMPS DE SESSION A DÉMÉNAGÉ DANS `planInputs`. Il est une entrée de
+// PLAN, pas une question d'entonnoir: `MealBuilder` le pose aussi, et
+// l'importer d'ici traînait tout le vocabulaire de l'entonnoir (allergènes,
+// objectifs, motifs) dans /app/plan — la garde de coutures l'a attrapé.
+export { COOKING_SESSION_MINUTES, cookingTimeParts } from "./planBudget";
 import { mergePracticalConstraints } from "./practicalConstraints";
 import {
   declareConstraint,
@@ -89,7 +94,24 @@ import {
 export type FunnelBranch = "solo" | "pair" | "family";
 
 /** Les trois étapes du §3.2 de la fiche, dans l'ordre où elles se posent. */
-export type FunnelStepId = "situate" | "people" | "plan";
+/**
+ * LES QUATRE ÉTAPES, ET LA QUATRIÈME EST NÉE LE 2026-08-13.
+ *
+ * ── CE QUI SE MÉLANGEAIT DANS L'ANCIENNE ÉTAPE 3 ──────────────────────────
+ * Elle portait, dans la même carte: les moments où on mange, les jours où on
+ * cuisine, la durée d'une session, le budget. Deux natures de question, et la
+ * confusion était mesurée à l'usage — on lisait un bouton gris sans faire le
+ * lien avec des rangées vides plus haut.
+ *
+ * `table` = LES FAITS DE LA MAISON. Qui mange, et à quels moments. Ça ne bouge
+ * pas d'une semaine sur l'autre, et ça se demande une fois.
+ *
+ * `request` = LA DEMANDE DE CE PLAN-LÀ. Quand je peux cuisiner cette
+ * semaine-ci, combien de temps j'ai, combien je veux dépenser, ce dont j'ai
+ * envie. Ça change à chaque composition — et c'est pour ça que ces
+ * questions-là vivent sur l'écran qui compose, ici comme dans la plateforme.
+ */
+export type FunnelStepId = "situate" | "people" | "table" | "request";
 
 export type FunnelQuestionId =
   // Étape 1
@@ -111,8 +133,10 @@ export type FunnelQuestionId =
   | "member_gender"
   | "member_goal"
   | "member_allergies"
-  // Étape 3 — le plan
+  // Étape 3 — la table
   | "eating_rhythm"
+  | "member_eating_rhythm"
+  // Étape 4 — la demande de plan
   | "cook_days"
   | "cooking_time_min"
   | "budget_amount"
@@ -389,8 +413,32 @@ export const FUNNEL_QUESTIONS: readonly FunnelQuestion[] = Object.freeze([
     consumer: "supabase/functions/_shared/keel/meal_generation.ts#parseEatingRhythm",
     weight: "wrong",
     branches: ALL_BRANCHES,
-    step: "plan",
+    step: "table",
     scope: "household",
+  },
+  {
+    // ── LES MOMENTS D'UNE AUTRE BOUCHE — `better`, ET C'EST MESURÉ ────────
+    // Sans réponse, cette bouche mange aux moments de la maison: le plan est
+    // MOINS BON (on compose un déjeuner pour un ado qui n'en prend pas), il
+    // n'est pas FAUX. C'est la définition de `better`, donc elle n'est jamais
+    // rendue par `funnelSteps` et n'entre dans aucun refus.
+    //
+    // ⚠️ ELLE EST QUAND MÊME OFFERTE À L'ÉCRAN, sur l'étape `table`. Le
+    // catalogue liste ce qui est EXIGÉ; un écran a le droit de proposer un
+    // raffinement en plus — comme il propose déjà d'inviter une bouche ou de la
+    // retirer. Ce qui est interdit est l'inverse: exiger sans consommateur.
+    //
+    // ⚠️ ET SURTOUT: AUCUN PRÉ-REMPLISSAGE. On serait tenté de cocher les
+    // moments de la maison sur chaque bouche pour que l'écran ait l'air
+    // complet. Ce serait écrire un fait que personne n'a énoncé — « coche
+    // automatique = faits faux indémentables ».
+    id: "member_eating_rhythm",
+    consumer:
+      "supabase/functions/_shared/keel/household_portions.ts#eatingSlots",
+    weight: "better",
+    branches: NEVER,
+    step: null,
+    scope: "each_member",
   },
   {
     // ⚠️ LA CLÉ EST `cook_days`, PAS `cooking_days`. Mesuré dans
@@ -399,7 +447,7 @@ export const FUNNEL_QUESTIONS: readonly FunnelQuestion[] = Object.freeze([
     consumer: "supabase/functions/generate-meal-v1/index.ts#cook_days",
     weight: "wrong",
     branches: ALL_BRANCHES,
-    step: "plan",
+    step: "request",
     scope: "household",
   },
   {
@@ -407,7 +455,7 @@ export const FUNNEL_QUESTIONS: readonly FunnelQuestion[] = Object.freeze([
     consumer: "supabase/functions/generate-meal-v1/index.ts#cooking_time_min",
     weight: "wrong",
     branches: ALL_BRANCHES,
-    step: "plan",
+    step: "request",
     scope: "household",
   },
   {
@@ -415,7 +463,7 @@ export const FUNNEL_QUESTIONS: readonly FunnelQuestion[] = Object.freeze([
     consumer: "supabase/functions/generate-meal-v1/index.ts#budget_amount",
     weight: "wrong",
     branches: ALL_BRANCHES,
-    step: "plan",
+    step: "request",
     scope: "household",
   },
 
@@ -618,49 +666,6 @@ export interface FunnelState {
   plan: FunnelPlanAnswers;
 }
 
-/**
- * COMBIEN DE TEMPS ON PASSE À CUISINER, EN CHOIX FERMÉS.
- *
- * ── POURQUOI PAS UN NOMBRE LIBRE ──────────────────────────────────────────
- * Le champ était un `<input type="number">` de 5 à 240, et personne ne sait
- * quoi y écrire: « 37 » n'est pas une réponse qu'un humain a. Le moteur, lui,
- * n'en fait rien de précis — `meal_generation.ts` écrit littéralement
- * « time per cooking session: about ${n} minutes ». Un nombre exact y est donc
- * une FAUSSE PRÉCISION: on demande un chiffre au décimal près pour le rendre
- * flou une ligne plus loin.
- *
- * Six durées qu'on reconnaît, de la demi-heure de semaine aux trois heures du
- * dimanche. Le plafond du moteur est 240 (`Math.min(240, …)`), et le plus
- * grand choix reste dessous exprès: proposer une valeur que le lecteur rogne
- * ferait afficher un chiffre et en composer un autre.
- */
-export const COOKING_SESSION_MINUTES: readonly number[] = [30, 45, 60, 90, 120, 180];
-
-/**
- * UNE DURÉE, DÉCOUPÉE POUR ÊTRE DITE — pas formatée ici.
- *
- * Rend le NOMBRE et son UNITÉ séparément, parce que les mots appartiennent au
- * catalogue de langue et pas à ce module. Écrire « 1 hr » ici ferait une
- * étiquette anglaise qu'aucune traduction ne pourrait reprendre — la cicatrice
- * `optout-confirmation-hardcoded-french`, dans l'autre sens.
- *
- * Une valeur hors des choix (quelqu'un a saisi 37 sur `/app/plan`, dont la
- * carte garde son champ libre) rend ses minutes telles quelles: on préfère
- * afficher « 37 min » que faire semblant qu'elle n'existe pas.
- */
-export function cookingTimeParts(
-  minutes: number,
-): { unit: "minutes" | "hours"; value: string } {
-  if (minutes >= 60 && minutes % 60 === 0) {
-    return { unit: "hours", value: String(minutes / 60) };
-  }
-  // La demi-heure se dit « 1½ », jamais « 1.5 »: c'est une durée lue par un
-  // humain, pas une mesure.
-  if (minutes > 60 && minutes % 30 === 0) {
-    return { unit: "hours", value: `${Math.floor(minutes / 60)}½` };
-  }
-  return { unit: "minutes", value: String(minutes) };
-}
 
 /**
  * DEUX BOUCHES NE PORTENT PAS LE MÊME PRÉNOM — et ce n'est pas de la coquetterie
@@ -748,7 +753,7 @@ export interface FunnelStep {
   questions: readonly FunnelQuestion[];
 }
 
-const STEP_ORDER: readonly FunnelStepId[] = ["situate", "people", "plan"];
+const STEP_ORDER: readonly FunnelStepId[] = ["situate", "people", "table", "request"];
 
 /**
  * LES ÉTAPES DE CETTE BRANCHE, DANS L'ORDRE.
@@ -1169,6 +1174,16 @@ export interface FunnelMouth extends FunnelPerson {
   memberId: string | null;
   /** `true` quand cette bouche a déjà un compte: son objectif ne s'édite plus ici. */
   claimed: boolean;
+  /**
+   * LES MOMENTS OÙ CETTE BOUCHE MANGE — `null` = personne ne l'a dit, donc elle
+   * mange aux moments de la maison.
+   *
+   * Déjà tranché par le roster entre son « about you » (si elle a un compte) et
+   * sa ligne (sinon), exactement comme `goal`. L'écran ne refait pas la
+   * résolution: deux avis sur qui mange quand, et le foyer sert un
+   * petit-déjeuner à quelqu'un qui n'en prend pas.
+   */
+  eatingSlots: string[] | null;
 }
 
 export interface FunnelFacts {
@@ -1273,6 +1288,11 @@ export async function readFunnelFacts(userId: string): Promise<FunnelFacts> {
     .map((m) => ({
       memberId: m.memberId,
       claimed: m.userId !== null,
+      // TRANCHÉ EN BASE, recopié tel quel. `null` traverse: il veut dire
+      // « personne ne l'a dit », et c'est l'écran qui le rend comme « aux
+      // moments de la maison » — jamais en pré-cochant ces moments-là sur la
+      // ligne de quelqu'un.
+      eatingSlots: m.eatingSlots,
       // `loadHousehold` rend « — » pour un prénom vide (jamais l'e-mail: ça
       // divulguerait une adresse à tout le foyer). Ce libellé d'écran ne doit
       // pas repartir comme une RÉPONSE: l'entonnoir redemanderait alors un

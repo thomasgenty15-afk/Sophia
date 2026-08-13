@@ -55,7 +55,7 @@ import {
   windowDayOrder,
 } from "../api/mealWindow";
 import { loadMutedMembers, muteMergeProposals } from "../api/householdMerge";
-import { BUDGET_MAX, readBudgetAmount, saveBudgetAmount } from "../api/planBudget";
+import { BUDGET_MAX, readPlanInputs, savePlanInputs } from "../api/planBudget";
 import { edgeRefusalKey, householdErrorKey } from "../copy/planRefusals";
 import MealPickerGrid from "../components/MealPickerGrid";
 import HouseholdMergeCard from "../components/HouseholdMergeCard";
@@ -1875,6 +1875,17 @@ function ComposeCard(
    * `api/planBudget.ts`.
    */
   const [budget, setBudget] = React.useState("");
+  /**
+   * LES DEUX AUTRES ENTRÉES DE PLAN, relues pour être RÉÉCRITES telles quelles.
+   *
+   * Ce bouton-ci ne les DEMANDE pas: il compose la semaine du foyer d'un geste,
+   * et `MealBuilder` est l'écran qui les pose. Les relire et les repasser évite
+   * que l'écriture du budget efface, par fusion partielle, ce que l'autre écran
+   * vient d'enregistrer.
+   */
+  const [inputs, setInputs] = React.useState<
+    { cookDays: string[]; cookingTimeMin: number | null }
+  >({ cookDays: [], cookingTimeMin: null });
   const userId = household.me?.userId ?? "";
 
   React.useEffect(() => {
@@ -1883,8 +1894,14 @@ function ComposeCard(
       if (!userId) return;
       // Une lecture qui échoue laisse le champ VIDE. Jamais un chiffre inventé.
       try {
-        const last = await readBudgetAmount(userId);
-        if (!cancelled && last !== null) setBudget(String(last));
+        const last = await readPlanInputs(userId);
+        if (!cancelled) {
+          if (last.budgetAmount !== null) setBudget(String(last.budgetAmount));
+          setInputs({
+            cookDays: last.cookDays,
+            cookingTimeMin: last.cookingTimeMin,
+          });
+        }
       } catch {
         if (!cancelled) setBudget("");
       }
@@ -1959,7 +1976,7 @@ function ComposeCard(
             }
             // ÉCRIT AVANT DE PARTIR: le générateur relit le montant dans
             // `practical_constraints`, comme le rythme et les jours de cuisine.
-            await saveBudgetAmount(userId, amount);
+            await savePlanInputs(userId, { budgetAmount: amount, ...inputs });
             await generateHouseholdMeal({
               window: { kind: "until_sunday" },
               intent: "prepare_next",

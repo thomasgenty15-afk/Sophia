@@ -71,6 +71,19 @@ export interface HouseholdMemberView {
    * (sinon il remarquerait la marque et pas le fait), il ne l'édite pas.
    */
   awaySelf: AwayDay[];
+  /**
+   * LES MOMENTS OÙ CETTE BOUCHE MANGE — `null` quand personne ne l'a dit.
+   *
+   * Déjà TRANCHÉ par le roster entre son « about you » (si elle a un compte)
+   * et sa ligne (sinon), exactement comme `goal`. Cet écran ne refait pas la
+   * résolution: deux avis sur qui mange quand, et le foyer sert un
+   * petit-déjeuner à quelqu'un qui n'en prend pas.
+   *
+   * ⚠️ `null` ≠ `[]`. `null` veut dire « aux moments de la maison » (le repli
+   * du produit); le tableau vide dirait « ne mange jamais », et la base le
+   * refuse à l'écriture (`empty_rhythm`).
+   */
+  eatingSlots: string[] | null;
 }
 
 export interface HouseholdView {
@@ -350,6 +363,7 @@ export async function loadHousehold(myUserId: string): Promise<HouseholdView | n
       // c'est la grille qui montrerait autre chose que ce avec quoi on compose.
       awayHousehold: awayFrom(r.away_days, "household"),
       awaySelf: awayFrom(r.away_days, "self"),
+      eatingSlots: readEatingSlots(r.eating_rhythm),
     };
   }).filter((m: HouseholdMemberView) => m.memberId);
 
@@ -481,6 +495,42 @@ export async function openHouseholdCheckout(): Promise<string> {
   // d'un bouton qui a marché, et celui-ci déplace de l'argent.
   if (!url) throw new Error("no checkout url returned");
   return url;
+}
+
+/**
+ * LES MOMENTS D'UNE BOUCHE, RELUS AVEC LE VOCABULAIRE FERMÉ DU MOTEUR.
+ *
+ * `null` traverse — il est une RÉPONSE (« personne ne l'a dit »), pas une
+ * absence de donnée. Un tableau qui ne contient aucun moment lisible rend `null`
+ * lui aussi: une liste vide affichée comme un choix explicite ferait croire que
+ * quelqu'un a décoché les six moments.
+ */
+function readEatingSlots(raw: unknown): string[] | null {
+  if (raw === null || raw === undefined) return null;
+  const slots = parseEatingRhythm(raw).map((s) => s.slot);
+  return slots.length > 0 ? slots : null;
+}
+
+/**
+ * POSER LES MOMENTS D'UNE BOUCHE SANS COMPTE.
+ *
+ * `null` efface — la bouche revient aux moments de la maison. Le tableau vide
+ * n'est pas exprimable ici parce que la base le refuse (`empty_rhythm`): « elle
+ * ne mange jamais » n'est pas une réponse qu'un écran doit pouvoir produire par
+ * inadvertance.
+ */
+export async function setMemberRhythm(
+  memberId: string,
+  slots: readonly string[] | null,
+) {
+  const { data, error } = await supabase.rpc("keel_household_set_member_rhythm", {
+    p_member: memberId,
+    p_rhythm: slots === null
+      ? null
+      : slots.map((slot) => ({ slot, at: null })),
+  });
+  if (error) throw new Error(error.message);
+  return asResult(data);
 }
 
 export async function removeHouseholdMember(memberId: string) {

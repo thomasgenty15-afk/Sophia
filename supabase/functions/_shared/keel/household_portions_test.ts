@@ -1,4 +1,4 @@
-import { assert, assertEquals } from "jsr:@std/assert@1";
+import { assert, assertEquals, assertStringIncludes } from "jsr:@std/assert@1";
 
 import {
   buildPortionBrief,
@@ -17,6 +17,7 @@ const DAD: PortionMember = {
   goal: "fat_loss",
   ageState: "adult",
   body: null,
+  eatingSlots: null,
 };
 const SON: PortionMember = {
   memberId: "m-son",
@@ -24,6 +25,7 @@ const SON: PortionMember = {
   goal: "muscle_gain",
   ageState: "adult",
   body: null,
+  eatingSlots: null,
 };
 const KID: PortionMember = {
   memberId: "m-kid",
@@ -31,6 +33,7 @@ const KID: PortionMember = {
   goal: null,
   ageState: "minor",
   body: null,
+  eatingSlots: null,
 };
 
 /** Un corps entièrement connu, plancher TCA baissé par une lecture réussie. */
@@ -100,6 +103,7 @@ Deno.test("un majeur sans objectif déclaré n'est pas traité comme un enfant",
   const adultNoGoal: PortionMember = {
     memberId: "m-x", displayName: "Alex", goal: null, ageState: "adult",
     body: null,
+    eatingSlots: null,
   };
   const line = buildPortionBrief([adultNoGoal], "one_dish").split("\n")
     .find((l) => l.startsWith("- Alex:"))!;
@@ -244,6 +248,7 @@ Deno.test("une bouche d'ÂGE INCONNU suit le mineur, pas le majeur", () => {
     goal: "fat_loss",
     ageState: "unknown",
     body: KNOWN_BODY,
+    eatingSlots: null,
   };
   assertEquals(
     buildPortionBrief([unknown], "one_dish"),
@@ -611,6 +616,7 @@ function directionFor(goal: PortionMember["goal"]): string {
     goal,
     ageState: "adult",
     body: null,
+    eatingSlots: null,
   }], "one_dish").split("\n").find((l) => l.startsWith("- Solo:"))!;
   return line.slice("- Solo: ".length);
 }
@@ -637,4 +643,66 @@ Deno.test("« santé » ne rend pas l'assiette de qui n'a rien déclaré", () =>
     directionFor("health") !== directionFor(null),
     "« santé » rend le repli « aucun objectif »",
   );
+});
+
+// ---------------------------------------------------------------------------
+// QUAND CHAQUE BOUCHE MANGE — le fait, sur sa propre ligne
+// ---------------------------------------------------------------------------
+
+/**
+ * ── LE DÉFAUT QUE CE BLOC FERME ───────────────────────────────────────────
+ * Le rythme était UNE valeur pour toute la maison, et l'écran le disait: « ça
+ * appartient à qui cuisine ». Un ado qui saute le petit-déjeuner et un petit
+ * qui goûte à 16 h recevaient donc la même journée — le foyer composait un
+ * repas pour quelqu'un qui n'en prend pas.
+ *
+ * Ce qui est éprouvé ici est la MOITIÉ VISIBLE PAR LE MODÈLE: le fait arrive
+ * sur la ligne de la personne, il dit ce qu'il interdit, et il ne dit rien
+ * quand personne n'a répondu.
+ */
+Deno.test("les moments d'une bouche arrivent sur SA ligne", () => {
+  const tom: PortionMember = { ...SON, eatingSlots: ["lunch", "dinner"] };
+  const brief = buildPortionBrief([DAD, tom], "one_dish");
+  const line = brief.split("\n").find((l) => l.startsWith("- Tom:"))!;
+  assertStringIncludes(line, "eats at lunch, dinner only");
+  // ET PAS SUR CELLE DES AUTRES. Un fait par personne, sinon il ne distingue
+  // plus personne.
+  const dad = brief.split("\n").find((l) => l.startsWith("- Marc:"))!;
+  assert(!dad.includes("eats at"), dad);
+});
+
+Deno.test("la consigne dit ce que le fait INTERDIT", () => {
+  // Un fait énoncé sans sa conséquence est un fait décoratif: le modèle lit
+  // « eats at lunch, dinner » et sert quand même un petit-déjeuner, ou pire,
+  // le déplace ailleurs pour « compenser ».
+  const brief = buildPortionBrief(
+    [{ ...SON, eatingSlots: ["dinner"] }],
+    "one_dish",
+  );
+  assertStringIncludes(brief, "NO serving at any");
+  assertStringIncludes(brief, "do not compensate elsewhere");
+});
+
+Deno.test("`null` ne dit RIEN — et surtout pas les moments de la maison", () => {
+  // ⚠️ LA LIGNE QUI GARDE LA CICATRICE « coche automatique = faits faux
+  // indémentables ». On pourrait recopier ici les moments du foyer pour que
+  // chaque ligne soit « complète ». Ce serait écrire, à côté du prénom de
+  // quelqu'un, un fait que personne n'a énoncé — et le modèle le lirait comme
+  // une déclaration.
+  const brief = buildPortionBrief([DAD, SON, KID], "one_dish");
+  assert(!brief.includes("eats at"), brief);
+  // Et la consigne d'interdiction ne s'invite pas non plus: elle n'a pas de
+  // sens sans un « eats at ... only » à qui l'appliquer... sauf qu'elle est
+  // écrite une fois pour tout le brief. On vérifie donc l'inverse utile: aucune
+  // personne n'est marquée.
+  assertEquals(brief.split("eats at").length - 1, 0);
+});
+
+Deno.test("un tableau VIDE se comporte comme `null`, jamais comme « jamais »", () => {
+  // La base refuse le tableau vide (`empty_rhythm`), mais une ligne écrite
+  // avant cette garde, ou un jsonb bricolé à la main, peut en porter un. Il ne
+  // doit surtout pas produire « eats at  only » — une consigne vide qui se lit
+  // comme « ne le sers jamais ».
+  const brief = buildPortionBrief([{ ...SON, eatingSlots: [] }], "one_dish");
+  assert(!brief.includes("eats at"), brief);
 });
