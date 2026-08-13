@@ -20,6 +20,7 @@ import {
   goalsForAge,
   MEMBER_GOALS,
   type MemberGoal,
+  removeHouseholdMember,
   setMemberBirthDate,
   setMemberGoal,
   setOwnBirthDate,
@@ -47,6 +48,7 @@ import {
   missesForStep,
   nextIncomplete,
   readFunnelFacts,
+  nameAlreadyEating,
   saveMouthAllergies,
   saveMouthBody,
   saveOwnAllergies,
@@ -239,6 +241,8 @@ export default function SetupPage() {
    * pas encore rempli, juste sous le formulaire qui le demande.
    */
   const [heldBack, setHeldBack] = React.useState(false);
+  /** La bouche dont le retrait attend un second clic. Voir `MouthRow`. */
+  const [confirmRemove, setConfirmRemove] = React.useState<string | null>(null);
 
   const [self, setSelf] = React.useState<SelfDraft | null>(null);
   const [plan, setPlan] = React.useState<FunnelPlanAnswers | null>(null);
@@ -472,6 +476,13 @@ export default function SetupPage() {
       const draft = mouth;
       const name = draft.firstName.trim();
       if (!name) throw new Error(t("setup.missing.member_first_name"));
+      // ── LE DOUBLON EST REFUSÉ AVANT D'ÊTRE ÉCRIT ───────────────────────
+      // Mesuré sur un compte réel le 2026-08-13: la même personne saisie trois
+      // fois. Le plan nomme les parts par prénom — deux lignes identiques le
+      // rendent illisible pour la seule personne qui doit le lire à table.
+      if (nameAlreadyEating(name, facts!.mouths)) {
+        throw new Error(t("setup.mouths.duplicate", { name }));
+      }
       // ── LE MAÎTRE D'ABORD, ET C'EST UNE CONTRAINTE D'ÉCRITURE ──────────
       // L'accusé « on a demandé les allergies de cette bouche » se fusionne
       // dans `student_goals.practical_constraints` DU MAÎTRE, et cette ligne
@@ -507,19 +518,33 @@ export default function SetupPage() {
       );
       if (!result.ok) throw new Error(result.reason);
       const memberId = String(result.member_id ?? "");
-      // LE CORPS, DANS LA FOULÉE ET DANS LA MÊME TRANSACTION LOGIQUE. Sans
-      // lui, la bouche existe et le moteur l'ignore: elle mange la part de
-      // tout le monde. Tout-ou-rien, comme la RPC.
-      const mHeight = Number(draft.heightCm);
-      const mWeight = Number(draft.weightKg);
-      if (draft.gender && Number.isFinite(mHeight) && Number.isFinite(mWeight)) {
-        await saveMouthBody({
-          memberId,
-          heightCm: mHeight,
-          weightKg: mWeight,
-          gender: draft.gender,
-        });
-      }
+      // ── CE QUI SUIT EST RATTRAPÉ, ET LA LIGNE EST RETIRÉE SI ÇA CASSE ───
+      // ⚠️ LE GESTE N'EST PAS ATOMIQUE, ET IL DOIT LE PARAÎTRE. La bouche est
+      // créée par une RPC, son corps par une deuxième, son accusé d'allergie
+      // par une troisième. Si l'une des deux dernières échoue, la ligne existe
+      // DÉJÀ — incomplète, et le brouillon est encore rempli. L'utilisateur
+      // voit une erreur, corrige, recommence: une deuxième ligne. C'est
+      // exactement ce qu'on a mesuré sur un compte réel le 2026-08-13, à une
+      // seconde d'intervalle.
+      //
+      // On rembobine donc jusqu'à l'état d'AVANT le geste. La suppression ne
+      // peut rien détruire d'autre: cette bouche vient d'être créée à la ligne
+      // du dessus, elle n'a ni compte, ni historique, ni rien que l'écran n'ait
+      // envoyé lui-même.
+      try {
+        // LE CORPS, DANS LA FOULÉE ET DANS LA MÊME TRANSACTION LOGIQUE. Sans
+        // lui, la bouche existe et le moteur l'ignore: elle mange la part de
+        // tout le monde. Tout-ou-rien, comme la RPC.
+        const mHeight = Number(draft.heightCm);
+        const mWeight = Number(draft.weightKg);
+        if (draft.gender && Number.isFinite(mHeight) && Number.isFinite(mWeight)) {
+          await saveMouthBody({
+            memberId,
+            heightCm: mHeight,
+            weightKg: mWeight,
+            gender: draft.gender,
+          });
+        }
       // ⚠️ L'ACCUSÉ EST ÉCRIT MÊME QUAND LA LISTE EST VIDE. « Aucune » est une
       // réponse: sans elle, la reprise relit « jamais demandé » et l'entonnoir
       // se bloque sur une question à laquelle la ligne n'offre pas de champ.
@@ -528,14 +553,42 @@ export default function SetupPage() {
       // au-dessus vient peut-être de CRÉER la ligne `student_goals`, et l'état
       // d'écran est encore celui d'avant. Fusionner sur une photo périmée
       // effacerait ce qui a été écrit entre les deux.
-      const fresh = await readFunnelFacts(userId);
-      await saveMouthAllergies({
-        userId,
-        memberId,
-        labels: draft.allergies,
-        current: fresh.practicalConstraints,
-      });
+        const fresh = await readFunnelFacts(userId);
+        await saveMouthAllergies({
+          userId,
+          memberId,
+          labels: draft.allergies,
+          current: fresh.practicalConstraints,
+        });
+      } catch (error) {
+        // On retire la ligne à moitié écrite, PUIS on relaie le motif d'origine.
+        // Si le retrait échoue lui aussi, on ne le cache pas: la relecture
+        // montrera la ligne incomplète, et le bouton « Retirer » de sa carte est
+        // là pour ça.
+        await removeHouseholdMember(memberId).catch(() => undefined);
+        await load(false);
+        throw error;
+      }
       setMouth(emptyMouthDraft());
+      await load(false);
+    })();
+  }
+
+  /**
+   * RETIRER UNE BOUCHE — le contrôle que `setup.mouths.remove` attendait.
+   *
+   * La phrase existait dans le catalogue depuis la livraison de l'étape 2b, et
+   * aucun bouton ne l'affichait: une fonctionnalité qu'on croit livrée parce
+   * qu'on en a écrit les mots. Ce qui l'a rendue urgente est un compte réel où
+   * la même personne s'était inscrite trois fois, sans aucun moyen d'en retirer
+   * deux — l'entonnoir est un couloir, donc `/app/household` n'était pas
+   * atteignable pour réparer.
+   */
+  function removeMouth(target: FunnelMouth): Promise<void> {
+    return (async () => {
+      const result = await removeHouseholdMember(target.memberId!);
+      if (!result.ok) throw new Error(result.reason);
+      setConfirmRemove(null);
       await load(false);
     })();
   }
@@ -780,6 +833,9 @@ export default function SetupPage() {
                 onAllergyAnswer={(m, labels) =>
                   guard(() => saveMouthAllergyAnswer(m, labels))}
                 onBody={(m, h, w, g) => guard(() => saveRowBody(m, h, w, g))}
+                onRemove={(m) => guard(() => removeMouth(m))}
+                confirmRemove={confirmRemove}
+                onConfirmRemove={setConfirmRemove}
                 inviteFor={inviteFor}
                 onInviteFor={(id) => {
                   setInviteFor(id);
@@ -1241,6 +1297,9 @@ function MouthsStep(props: {
     weightKg: string,
     gender: MemberGender | "",
   ) => void;
+  onRemove: (mouth: FunnelMouth) => void;
+  confirmRemove: string | null;
+  onConfirmRemove: (memberId: string | null) => void;
   inviteFor: string | null;
   onInviteFor: (memberId: string | null) => void;
   inviteEmail: string;
@@ -1262,18 +1321,35 @@ function MouthsStep(props: {
       <p className="mt-2 text-sm text-ink-soft">{t("setup.mouths.intro")}</p>
 
       {props.mouths.length > 0 ? (
-        // `divide-line` — un séparateur DÉCORATIF, et c'est exactement son
-        // emploi légitime: une règle horizontale À L'INTÉRIEUR d'une carte
-        // (`ui/Card.tsx`). Il ne borderait jamais un contrôle: 1,30:1.
-        <ul className="mt-4 divide-y divide-line">
+        // ── UNE PERSONNE, UNE SECTION ENCADRÉE ──────────────────────────────
+        // C'était `divide-y divide-line`: un filet à 1,30:1 entre des blocs de
+        // dix champs chacun. Mesuré sur un compte réel le 2026-08-13 — trois
+        // personnes empilées, et l'écran se lisait comme UN formulaire de
+        // trente champs dont on ne voyait pas où l'un finissait. Le prénom
+        // n'était qu'un mot de plus dans le flux.
+        //
+        // Chaque bouche prend donc un cadre (`line-strong`, 3,84:1 — le
+        // contour qui borde un CONTRÔLE), un fond légèrement décollé du papier,
+        // et son prénom en tête de section. On voit trois blocs avant de lire
+        // un seul champ.
+        <ul className="mt-4 space-y-4">
           {props.mouths.map((m) => (
-            <li key={m.memberId ?? m.firstName} className="py-3">
+            <li
+              key={m.memberId ?? m.firstName}
+              className="rounded-card border border-line-strong bg-fig-50/40 p-4"
+            >
               <MouthRow
                 mouth={m}
                 onGoal={(goal) => props.onGoal(m, goal)}
                 onBirthDate={(date) => props.onBirthDate(m, date)}
                 onAllergyAnswer={(labels) => props.onAllergyAnswer(m, labels)}
                 onBody={(h, w, g) => props.onBody(m, h, w, g)}
+                onRemove={() => props.onRemove(m)}
+                confirmRemove={props.confirmRemove === m.memberId}
+                onConfirmRemove={() =>
+                  props.onConfirmRemove(
+                    props.confirmRemove === m.memberId ? null : m.memberId ?? null,
+                  )}
                 inviteOpen={props.inviteFor === m.memberId}
                 onInviteOpen={() =>
                   props.onInviteFor(props.inviteFor === m.memberId ? null : m.memberId)}
@@ -1293,7 +1369,11 @@ function MouthsStep(props: {
         // DIRE — « une limite d'UI n'est pas une limite ».
         <p className="mt-4 text-xs text-ink-soft">{t("setup.mouths.full")}</p>
       ) : (
-        <div className="mt-4 space-y-4 border-t border-line pt-4">
+        // LE FORMULAIRE D'AJOUT EST ENCADRÉ EN POINTILLÉ, et les personnes déjà
+        // là en trait plein: le pointillé dit « pas encore quelqu'un ». Sans
+        // cadre, il se lisait comme la suite de la dernière carte — donc comme
+        // des champs vides SUR une personne existante.
+        <div className="mt-4 space-y-4 rounded-card border border-dashed border-line-strong p-4">
           <Field
             label={t("setup.people.first_name")}
             hint={t("setup.mouths.first_name_hint")}
@@ -1443,6 +1523,9 @@ function MouthRow(props: {
   onBirthDate: (date: string) => void;
   onAllergyAnswer: (labels: string[]) => void;
   onBody: (heightCm: string, weightKg: string, gender: MemberGender | "") => void;
+  onRemove: () => void;
+  confirmRemove: boolean;
+  onConfirmRemove: () => void;
   inviteOpen: boolean;
   onInviteOpen: () => void;
   inviteEmail: string;
@@ -1462,7 +1545,9 @@ function MouthRow(props: {
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <span className="min-w-0 text-sm font-medium text-ink">
+        {/* LE PRÉNOM EN TÊTE DE SECTION, et pas une ligne de texte parmi
+            d'autres: c'est ce qui dit « ici commence quelqu'un d'autre ». */}
+        <span className="min-w-0 text-base font-semibold text-ink">
           {m.firstName || "—"}
         </span>
         {/* LA NATURE DE LA BOUCHE PASSE DANS UNE PASTILLE `neutral`, ET C'EST
@@ -1474,9 +1559,44 @@ function MouthRow(props: {
             au bout d'une ligne, la nature se confondait avec les phrases
             d'aide en dessous, et trois lignes de bouches se lisaient comme un
             seul formulaire. La pastille rend le début de chaque ligne. */}
-        <Badge>
-          {m.kind === "child" ? t("setup.mouths.kind_child") : t("setup.mouths.kind_adult")}
-        </Badge>
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge>
+            {m.kind === "child" ? t("setup.mouths.kind_child") : t("setup.mouths.kind_adult")}
+          </Badge>
+          {/* ── RETIRER, EN DEUX CLICS ────────────────────────────────────
+              Un clic arme, le second exécute — et le libellé CHANGE entre les
+              deux, donc on ne confirme pas en cliquant deux fois au même
+              endroit sans lire. Pas de modale: on est dans un couloir, et une
+              boîte de dialogue qui se ferme mal y devient une impasse.
+
+              ⚠️ `danger` ET PAS `primary`: dans tout le produit le rouge dit
+              l'échec ou le refus, et un geste destructeur emprunte ce sens. La
+              figue est réservée à l'action principale de l'écran — ici,
+              « Continue ».
+
+              Le maître n'a pas ce bouton (`m.claimed` est vrai pour lui et sa
+              ligne ne descend pas ici), et la base refuserait de toute façon:
+              `cannot_remove_owner`. */}
+          {props.confirmRemove ? (
+            <Button
+              variant="danger"
+              size="sm"
+              disabled={props.busy}
+              onClick={props.onRemove}
+            >
+              {t("setup.mouths.remove_confirm")}
+            </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={props.busy}
+              onClick={props.onConfirmRemove}
+            >
+              {t("setup.mouths.remove")}
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* LA DATE NE SE PRÉREMPLIT PAS, ET C'EST LA BASE QUI LE DÉCIDE: le

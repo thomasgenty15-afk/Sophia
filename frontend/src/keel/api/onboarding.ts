@@ -662,6 +662,51 @@ export function cookingTimeParts(
   return { unit: "minutes", value: String(minutes) };
 }
 
+/**
+ * DEUX BOUCHES NE PORTENT PAS LE MÊME PRÉNOM — et ce n'est pas de la coquetterie
+ * de données.
+ *
+ * ── LE DÉFAUT MESURÉ SUR UN COMPTE RÉEL, LE 2026-08-13 ────────────────────
+ * La même personne saisie TROIS FOIS, à une seconde d'intervalle pour les deux
+ * premières, dont deux sans corps ni allergie. L'écran les empilait dans une
+ * liste sans séparation visible, il n'offrait aucun moyen d'en retirer une, et
+ * le plan aurait composé pour cinq bouches là où trois mangent.
+ *
+ * ── POURQUOI LE PRÉNOM, ET PAS UN AUTRE CRITÈRE ───────────────────────────
+ * Parce que c'est ce que le PLAN affiche. `first_name` nomme la part —
+ * « Christèle: 140 g » — et deux lignes identiques rendent le plan illisible
+ * pour la seule personne qui doit le lire à table. Refuser sur le prénom n'est
+ * donc pas une contrainte technique déguisée: c'est la contrainte du produit.
+ *
+ * La comparaison ignore la casse, les espaces de bord et les ACCENTS
+ * (`Chirstèle` / `chirstele`): une saisie au clavier d'un téléphone n'est pas
+ * une clé primaire, et deux orthographes du même prénom sont le cas COURANT du
+ * doublon, pas le cas tordu.
+ *
+ * ⚠️ CE N'EST PAS UNE GARDE DE SÉCURITÉ. La base accepte deux homonymes, et
+ * c'est bien: un foyer a le droit d'avoir deux Camille. L'entonnoir, lui,
+ * demande de les distinguer AVANT d'écrire, parce que c'est le seul moment où
+ * quelqu'un peut encore répondre à la question.
+ */
+export function normalizedMouthName(name: string): string {
+  return name
+    .trim()
+    .toLocaleLowerCase()
+    // NFD + suppression des diacritiques: `é` devient `e`. Sans ça, `Chirstèle`
+    // et `Chirstele` sont deux personnes pour l'écran et une seule à table.
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "");
+}
+
+export function nameAlreadyEating(
+  name: string,
+  taken: readonly { firstName: string }[],
+): boolean {
+  const wanted = normalizedMouthName(name);
+  if (wanted === "") return false;
+  return taken.some((m) => normalizedMouthName(m.firstName) === wanted);
+}
+
 /** Le plafond de bouches, EN BASE (`keel_household_max_mouths()` rend 8). */
 export const HOUSEHOLD_MAX_MOUTHS = 8;
 

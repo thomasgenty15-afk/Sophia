@@ -18,7 +18,9 @@ import {
   funnelSteps,
   HOUSEHOLD_MAX_MOUTHS,
   missesForStep,
+  nameAlreadyEating,
   nextIncomplete,
+  normalizedMouthName,
 } from "./onboarding";
 import { SETUP_MISS_KEYS } from "../copy/setupMisses";
 import { en } from "../i18n/en";
@@ -728,5 +730,61 @@ describe("birthDateAnswer", () => {
     expect(birthDateAnswer("pas une date", TODAY)).toBe(null);
     expect(birthDateAnswer("2030-01-01", TODAY)).toBe(null);
     expect(birthDateAnswer("1820-01-01", TODAY)).toBe(null);
+  });
+});
+
+// ───────────────────────────────────────────────────────────────────────────
+// 5ter. Deux bouches ne portent pas le même prénom
+// ───────────────────────────────────────────────────────────────────────────
+
+/**
+ * ── LE DÉFAUT MESURÉ SUR UN COMPTE RÉEL, LE 2026-08-13 ────────────────────
+ * La même personne saisie TROIS FOIS — deux à une seconde d'intervalle, sans
+ * corps ni allergie. Le plan aurait composé pour cinq bouches là où trois
+ * mangent, et l'écran n'offrait aucun moyen d'en retirer une.
+ *
+ * Le prénom est le bon critère parce que c'est ce que le PLAN affiche: il nomme
+ * la part (« Christèle: 140 g »), et deux lignes identiques rendent le plan
+ * illisible pour la seule personne qui doit le lire à table.
+ */
+describe("nameAlreadyEating", () => {
+  const table = [{ firstName: "Chirstèle" }, { firstName: "Tom" }];
+
+  it("attrape le doublon exact", () => {
+    expect(nameAlreadyEating("Chirstèle", table)).toBe(true);
+  });
+
+  it("attrape la casse et les espaces de bord", () => {
+    expect(nameAlreadyEating("  chirstÈle ", table)).toBe(true);
+    expect(nameAlreadyEating("TOM", table)).toBe(true);
+  });
+
+  /**
+   * LE CAS RÉEL, ET LE PLUS COURANT. Une saisie au clavier d'un téléphone n'est
+   * pas une clé primaire: « Chirstele » et « Chirstèle » sont deux orthographes
+   * de la même personne, et c'est précisément comme ça qu'un doublon se crée.
+   */
+  it("attrape l'accent manquant", () => {
+    expect(nameAlreadyEating("Chirstele", table)).toBe(true);
+    expect(normalizedMouthName("Chirstèle")).toBe(normalizedMouthName("chirstele"));
+  });
+
+  it("laisse passer un prénom vraiment différent", () => {
+    expect(nameAlreadyEating("Camille", table)).toBe(false);
+    // ⚠️ ET IL DOIT EN LAISSER PASSER. Une garde qui refuse tout ressemble à
+    // une garde qui marche: sans cette ligne, `nameAlreadyEating` rendant
+    // toujours `true` passerait les quatre tests du dessus.
+    expect(nameAlreadyEating("Christelle", table)).toBe(false);
+  });
+
+  it("ne refuse pas un prénom vide — ce n'est pas sa question", () => {
+    // Le vide a son propre motif (`member_first_name`), et l'émettre ici
+    // afficherait « X mange déjà ici » avec un trou à la place du prénom.
+    expect(nameAlreadyEating("", table)).toBe(false);
+    expect(nameAlreadyEating("   ", table)).toBe(false);
+  });
+
+  it("ne trouve rien dans une maison vide", () => {
+    expect(nameAlreadyEating("Chirstèle", [])).toBe(false);
   });
 });
