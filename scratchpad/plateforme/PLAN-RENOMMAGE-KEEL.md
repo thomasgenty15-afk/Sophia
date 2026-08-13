@@ -129,6 +129,51 @@ L'étape 5 est donc, par construction, un geste humain.
 
 ---
 
+## 3bis. ⛔ CE QUE LE PLAN AVAIT OUBLIÉ : la concurrence
+
+**Ce plan supposait un dépôt au repos. Il ne l'est pas.** À la première tentative
+d'exécution (2026-08-13), le dépôt portait **361 fichiers modifiés** par d'autres
+sessions, dont **62 sous `frontend/src/keel/`** et **60 sous
+`_shared/keel/`** — et **dix fichiers de ces deux répertoires avaient été écrits
+dans les dix minutes précédentes.**
+
+`git mv` a d'ailleurs refusé net : une autre session avait supprimé
+`i18n/fr.public.ts` sans indexer la suppression, et menait dans ce même
+répertoire un refactor i18n avec **douze fichiers NEUFS non suivis**
+(`fr.ts`, `format.ts`, `plural.ts`, `reconcile.ts`, …).
+
+**Le danger n'est pas la perte de contenu** — `mv` emporte aussi les fichiers non
+suivis, donc le travail en vol suit le déplacement. **Le danger est le
+split-brain** : l'agent d'en face tient l'ANCIEN chemin en mémoire, écrit à sa
+prochaine action, et **recrée `keel/`**. On se retrouve avec la moitié du module
+i18n de chaque côté, deux fois le même nom de module, et
+`scripts/.i18n-baseline.json` — qui est indexé PAR CHEMIN — qui ne trouve plus
+ses fichiers. C'est le seul dégât de ce plan qui soit vraiment pénible à défaire.
+
+**La réponse : `scratchpad/plateforme/renommage-etape1-2.sh`.** Les étapes 1 et 2
+y sont une opération unique, ce qui ramène la fenêtre d'incohérence de plusieurs
+heures d'édition à **quelques secondes**. Le script :
+
+- **refuse de tourner** si un fichier des deux répertoires a été écrit dans les
+  10 dernières minutes (`--force` pour passer outre, en connaissance de cause) ;
+- utilise `mv` et non `git mv`, précisément parce que `git mv` capitule dès
+  qu'un fichier suivi est supprimé sans être indexé ;
+- ne réécrit **que des segments de chemin** et six noms de composants.
+
+**La preuve que la frontière tient**, mesurée sur un fichier témoin portant les
+huit formes dangereuses : `profiles.keel_role`, `keel_signup_intent`,
+`rpc("keel_join_house_coach")`, `cron 'keel-daily-pulse'`,
+`keel-daily-pulse-v1`, `supabase/functions/keel-reengage-v1/`,
+`data-testid="…"` et la clé `"app.nav.today"` sont **tous intacts** après
+substitution — seuls les imports et les composants changent. À l'échelle du
+dépôt : **277 identifiants de base** et **39 noms déployés** hors d'atteinte,
+pour **419 fichiers** réécrits.
+
+```bash
+bash scratchpad/plateforme/renommage-etape1-2.sh --dry   # compte, ne touche rien
+bash scratchpad/plateforme/renommage-etape1-2.sh --go    # refuse si l'arbre bouge
+```
+
 ## 4. Ma recommandation sur le découpage
 
 **Faire l'étape 1 seule, et s'arrêter là un moment.** Elle couvre 233 des

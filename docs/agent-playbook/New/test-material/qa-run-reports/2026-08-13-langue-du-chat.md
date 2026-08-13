@@ -147,7 +147,33 @@ renseignée, et il y résiste même quand la personne écrit dans l'autre langue
 quatre tours sur quatre.
 
 **Mais la bascule explicite est cassée**, et son échec est visible : un message
-peut sortir bilingue. La correction est en amont et se lit en une phrase —
+peut sortir bilingue. La correction serait en amont et se lit en une phrase —
 écrire `CONVERSATION_LOCALE_EXPLICIT_KEY` quand une demande explicite de langue
 est reconnue, plutôt que de laisser le système de style porter seul une décision
 qui appartient à l'axe langue.
+
+---
+
+## 6. ⚖️ ARBITRAGE HUMAIN DU 2026-08-13 — `wont_fix` pour l'instant
+
+> « On va pas se prendre la tête avec le changement de langue pour l'instant, la
+> langue renseignée lors de l'inscription est amplement suffisante, on verra le
+> reste plus tard. »
+
+**Décision : la bascule explicite N'EST PAS corrigée.** Le produit s'appuie sur
+la langue renseignée à l'inscription, et ce run prouve que cette langue-là tient
+(L1 à L4, quatre tours sur quatre, y compris quand la personne écrit dans l'autre
+langue).
+
+**⚠️ À l'attention de qui trouvera ceci plus tard.**
+`CONVERSATION_LOCALE_EXPLICIT_KEY` est un **lecteur sans écrivain**, et ce dépôt
+traite habituellement ce motif comme un défaut à réparer. **Ici c'en est un, et
+il est laissé ouvert EN CONNAISSANCE DE CAUSE.** Ne le « répare » pas en passant
+au détour d'un autre lot : ce serait rouvrir une décision produit déjà prise.
+
+Ce qui **reste vrai** et devra être repris le jour où le sujet remonte :
+- la bascule visible passe par `__session_style_commitments`, pas par l'axe langue ;
+- tant qu'elle passe par là, un message peut sortir **bilingue** (prose modèle
+  dans une langue, fragments déterministes dans l'autre) ;
+- et les artefacts (`resolveArtifactLocale`) suivent `profiles.locale`, donc
+  restent dans la langue d'inscription quoi qu'il arrive.
