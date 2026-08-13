@@ -69,7 +69,13 @@ import {
   windowStartsBeyondDayTokens,
 } from "../_shared/keel/meal_plan_window.ts";
 import {
+  appendContentLanguageBlock,
+  resolveArtifactLocale,
+} from "../_shared/keel/locale.ts";
+import {
   buildMealPrompt,
+  MEAL_TOKEN_FIELDS,
+  MEAL_TRANSLATABLE_FIELDS,
   type GeneratedMeal,
   MEAL_MODES,
   MEAL_PROMPT_VERSION,
@@ -85,6 +91,7 @@ import {
   parseAwayDays,
   parseEatingRhythm,
   parseGeneratedMeal,
+  usableBudget,
 } from "../_shared/keel/meal_generation.ts";
 import { proteinAnchorRetryInstruction } from "../_shared/keel/protein_anchor.ts";
 import type { CompositionIndex } from "../_shared/keel/food_composition.ts";
@@ -248,7 +255,7 @@ function readCookingCapacity(pc: Record<string, unknown> | null): {
   cookingTimeMin: number | null;
   recipeDifficulty: string | null;
   variety: string | null;
-  budgetBand: string | null;
+  budgetAmount: number | null;
 } {
   const DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
   const pick = (value: unknown, allowed: readonly string[]): string | null => {
@@ -267,7 +274,16 @@ function readCookingCapacity(pc: Record<string, unknown> | null): {
       : null,
     recipeDifficulty: pick(pc?.recipe_difficulty, ["simple", "normal", "keen"]),
     variety: pick(pc?.variety, ["repeat", "some", "varied"]),
-    budgetBand: pick(pc?.budget_band, ["tight", "normal", "comfortable"]),
+    // LE BUDGET EST UN MONTANT, ET IL EST RELU ICI PLUTÔT QUE REÇU DANS LA
+    // REQUÊTE. L'écran qui compose l'écrit dans `practical_constraints`
+    // juste avant d'appeler — la même route que le rythme et les jours de
+    // cuisine. Deux chemins pour un seul chiffre, et c'est toujours celui
+    // que l'écran ne montre pas qui gagne.
+    //
+    // `null` quand il est absent, à zéro, illisible ou absurde: aucune de
+    // ces formes ne devient une consigne. `Number(null)` vaut 0 ET est
+    // fini — un `!= null` laisserait passer « budget: 0 ».
+    budgetAmount: usableBudget(pc?.budget_amount),
   };
 }
 
@@ -716,6 +732,11 @@ Deno.serve(async (req) => {
     let todayToken: string;
     let todayDate: string;
     let country: string | null = null;
+    // LA LANGUE DE L'ARTEFACT, déclarée ici parce qu'elle se lit dans le MÊME
+    // `select` que le pays — zéro aller-retour de plus. Elle est initialisée au
+    // repli de `resolveArtifactLocale` pour que le `catch` de fuseau ci-dessous
+    // ne laisse jamais une locale vide traverser.
+    let profileLocale: string | null = null;
     try {
       const tzRes = await admin
         .from("plan_versions")
@@ -727,7 +748,7 @@ Deno.serve(async (req) => {
       // pays décide de ce qui pousse en ce moment là où l'élève fait ses courses.
       const profileRes = await admin
         .from("profiles")
-        .select("timezone, country")
+        .select("timezone, country, locale")
         .eq("id", userId)
         .maybeSingle();
       const timezone = String(
@@ -736,6 +757,9 @@ Deno.serve(async (req) => {
       ).trim();
       country = String(
         (profileRes?.data as { country?: unknown } | null)?.country ?? "",
+      ).trim() || null;
+      profileLocale = String(
+        (profileRes?.data as { locale?: unknown } | null)?.locale ?? "",
       ).trim() || null;
       if (!timezone) throw new Error("no timezone on the plan or the profile");
       todayToken = dayTokenInZone(timezone, new Date());
@@ -1084,7 +1108,7 @@ Deno.serve(async (req) => {
       console.warn(`[${FN_NAME}] composition index unavailable`, error);
     }
 
-    const { systemPrompt, userMessage } = buildMealPrompt({
+    const built = buildMealPrompt({
       // ── FF-030 · LES CONTRAINTES DURES ENTRENT DANS LA CONSIGNE ────────
       // Elles étaient chargées vingt lignes plus haut et ne partaient QU'au
       // parseur — c'est-à-dire au verrou de sortie. Le modèle composait à
@@ -1166,7 +1190,42 @@ Deno.serve(async (req) => {
       // REQUIS qui l'a fait dire, plutôt que de la laisser hériter en silence
       // d'un budget pensé pour une table.
       merge: null,
+      // ── LA LANGUE DE CES PLATS ────────────────────────────────────────
+      //
+      // ⚠️ PAS `goalRow.content_locale`. Cette colonne-là dit dans quelle
+      // langue l'élève a écrit SA SITUATION (R3, troisième axe), et tous ses
+      // écrivains la sèment `'en-GB'`. `profiles.locale` est la langue qu'il a
+      // CHOISIE, et celle que l'agent lui parle — un plan de repas dans une
+      // autre langue que la conversation est le défaut le plus visible que ce
+      // chantier pouvait produire.
+      contentLocale: resolveArtifactLocale({
+        studentProfile: profileLocale,
+        // Attend sa source (`coaches.default_student_locale`, inexistante).
+        tenantDefault: null,
+      }),
     });
+
+    // ── LE MESSAGE ENVOYÉ AU MODÈLE, COMPOSÉ À UN SEUL ENDROIT ───────────
+    //
+    // ⚠️ LE BLOC DE LANGUE DOIT ÊTRE LA DERNIÈRE CHOSE DU MESSAGE, et cette
+    // fonction existe parce que DEUX choses se collent après lui: le bloc
+    // satiété (`hungerSuffix`) et, sur les deux chemins de RÉPARATION,
+    // l'instruction de reprise. Composé à la main sur chaque site, le bloc se
+    // retrouvait en avant-dernière position sur les réparations — c'est-à-dire
+    // que la relance qui répare une ancre protéique ou une composition
+    // repartait sans consigne de langue en queue, et pouvait rendre un plat
+    // anglais au milieu d'une semaine française. Trois appels, trois occasions
+    // de l'oublier; ici il y en a une.
+    //
+    // `appendContentLanguageBlock` est idempotent, donc le remettre déplace le
+    // bloc en queue sans jamais l'empiler.
+    const mealUserMessage = (extra: string): string =>
+      appendContentLanguageBlock(
+        `${built.userMessage}${hungerSuffix}${extra}`,
+        built.contentLocale,
+        MEAL_TRANSLATABLE_FIELDS,
+        MEAL_TOKEN_FIELDS,
+      );
 
     const result = await generateWithGemini(
       // FF-027 — le bloc satiété EN QUEUE du message, donc au plus près de la
@@ -1174,7 +1233,9 @@ Deno.serve(async (req) => {
       // plus contraignante (la raison est écrite dans
       // `household_meal_generation.ts`, qui applique la même règle à ses
       // règles de maison).
-      systemPrompt, userMessage + hungerSuffix, 0.6, true, [], "auto",
+      built.systemPrompt,
+      mealUserMessage(""),
+      0.6, true, [], "auto",
       // LE MODÈLE DE COMPOSITION, pas celui du chat. Voir `generation_model.ts`:
       // cette fonction tient des dizaines de contraintes simultanées, dont des
       // négatives, et c'est le seul endroit où la capacité du modèle se paie en
@@ -1266,8 +1327,8 @@ Deno.serve(async (req) => {
       const retryInstruction = proteinAnchorRetryInstruction(meal.protein_anchor_missing);
       try {
         const retryResult = await generateWithGemini(
-          systemPrompt,
-          `${userMessage}${hungerSuffix}\n\n${retryInstruction}`,
+          built.systemPrompt,
+          mealUserMessage(`\n\n${retryInstruction}`),
           0.6,
           true,
           [],
@@ -1460,8 +1521,8 @@ Deno.serve(async (req) => {
       if (instruction) {
         try {
           const retryResult = await generateWithGemini(
-            systemPrompt,
-            `${userMessage}${hungerSuffix}\n\n${instruction}`,
+            built.systemPrompt,
+            mealUserMessage(`\n\n${instruction}`),
             0.6,
             true,
             [],
@@ -1550,7 +1611,11 @@ Deno.serve(async (req) => {
           preparations: mealPreparationsPayload(meal),
           cooking_sessions: mealSessionsPayload(meal),
           shopping_list: mealShoppingPayload(meal),
-          content_locale: String(goalRow.content_locale ?? "en"),
+          // LA MÊME EXPRESSION QUE CELLE QUI A ÉCRIT LE PROMPT. Elle valait
+          // `String(goalRow.content_locale ?? "en")`: une SECONDE expression,
+          // sur une AUTRE colonne, qui écrivait « en » d'un texte français —
+          // et un tag de 2 lettres là où R2 demande du BCP-47.
+          content_locale: built.contentLocale,
           generated_from: {
             coach_id: doctrine.coachId,
             doctrine_version: doctrine.doctrine?.version ?? null,

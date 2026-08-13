@@ -55,6 +55,7 @@ import {
   saveOwnWeight,
   savePlanAnswers,
 } from "../api/onboarding";
+import { BUDGET_MAX } from "../api/planBudget";
 import { browserLocalDate } from "../lib/useMealTicks";
 import { t, type MessageKey } from "../i18n/t";
 
@@ -1798,30 +1799,45 @@ function PlanStep({
             </div>
           </Field>
 
-          {/* TROIS VALEURS, TROIS PASTILLES — comme les trois rangées
-              au-dessus. Un `<select>` seul au milieu de pastilles demande un
-              clic pour révéler ce que trois boutons montrent déjà, et il
-              laissait « — » sélectionnable: une option qui ne veut rien dire
-              et que la garde refuse ensuite. */}
-          <Field label={t("setup.plan.budget")}>
-            <div className="flex flex-wrap gap-2">
-              {([
-                ["tight", "setup.plan.budget_tight"],
-                ["normal", "setup.plan.budget_normal"],
-                ["comfortable", "setup.plan.budget_comfortable"],
-              ] as const).map(([band, key]) => (
-                <Button
-                  key={band}
-                  size="sm"
-                  variant={draft.budgetBand === band ? "primary" : "secondary"}
-                  onClick={() =>
-                    onChange((prev) =>
-                      prev === null ? prev : { ...prev, budgetBand: band })}
-                >
-                  {t(key)}
-                </Button>
-              ))}
-            </div>
+          {/* ── UN CHIFFRE, ET PLUS TROIS PASTILLES ────────────────────────
+              « Serré / normal / confortable » partait au modèle tel quel, et
+              ces trois mots ne désignent pas la même semaine selon la table.
+              Un montant se compare au panier: c'est ce qui permet de RENONCER
+              À LA VIANDE plutôt que de « faire attention ».
+
+              Pas de symbole monétaire: il faudrait une table pays → devise,
+              c'est-à-dire une liste fermée qui refuserait un pays légitime le
+              jour où quelqu'un s'y inscrit. Le prompt, lui, porte déjà le
+              pays. */}
+          <Field
+            label={t("setup.plan.budget")}
+            hint={t("setup.plan.budget_hint")}
+            htmlFor="setup-budget"
+          >
+            <input
+              id="setup-budget"
+              type="number"
+              inputMode="decimal"
+              min={1}
+              max={BUDGET_MAX}
+              step="1"
+              value={draft.budgetAmount === null ? "" : String(draft.budgetAmount)}
+              onChange={(e) => {
+                const raw = e.target.value.trim();
+                const amount = raw === "" ? null : Number(raw);
+                onChange((prev) =>
+                  prev === null ? prev : {
+                    ...prev,
+                    // `Number("")` vaut 0 et EST fini — le piège qui avait déjà
+                    // affiché une taille pré-remplie à 0 sur un compte neuf.
+                    budgetAmount: amount === null || !Number.isFinite(amount)
+                      ? null
+                      : amount,
+                  }
+                );
+              }}
+              className={inputClass}
+            />
           </Field>
         </div>
       </Card>

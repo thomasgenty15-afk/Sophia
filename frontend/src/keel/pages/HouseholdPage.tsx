@@ -55,6 +55,7 @@ import {
   windowDayOrder,
 } from "../api/mealWindow";
 import { loadMutedMembers, muteMergeProposals } from "../api/householdMerge";
+import { BUDGET_MAX, readBudgetAmount, saveBudgetAmount } from "../api/planBudget";
 import { edgeRefusalKey, householdErrorKey } from "../copy/planRefusals";
 import MealPickerGrid from "../components/MealPickerGrid";
 import HouseholdMergeCard from "../components/HouseholdMergeCard";
@@ -1864,6 +1865,34 @@ function ComposeCard(
 ) {
   const [working, setWorking] = React.useState(false);
   const [failure, setFailure] = React.useState<string | null>(null);
+  /**
+   * L'ARGENT DE CETTE COMPOSITION-LÀ, reposé ici aussi.
+   *
+   * Ce bouton est une composition complète — pas un raccourci vers celle d'un
+   * autre écran. S'il partait sans montrer le champ, le montant de la dernière
+   * fois s'appliquerait en silence, et le budget redeviendrait le réglage de
+   * profil que ce lot vient de retirer d'« À propos de toi ». Voir
+   * `api/planBudget.ts`.
+   */
+  const [budget, setBudget] = React.useState("");
+  const userId = household.me?.userId ?? "";
+
+  React.useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!userId) return;
+      // Une lecture qui échoue laisse le champ VIDE. Jamais un chiffre inventé.
+      try {
+        const last = await readBudgetAmount(userId);
+        if (!cancelled && last !== null) setBudget(String(last));
+      } catch {
+        if (!cancelled) setBudget("");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
 
   // SEUL LE COMPTE MAÎTRE COMPOSE. Ce n'est pas une hiérarchie de confort: la
   // composition RETIRE le plan courant de la personne pour qui elle est écrite,
@@ -1885,6 +1914,28 @@ function ComposeCard(
           d'objectif du maître existe — et c'est exactement la condition sous
           laquelle la fiche du maître repasse en `secondary`. Un seul aplat de
           marque dans chacun des quatre états de l'écran. */}
+      {/* LE BUDGET EST DEMANDÉ ICI AUSSI, parce que ce bouton compose. Le
+          chiffre de la dernière fois est proposé, jamais appliqué sans être
+          montré. */}
+      <div className="mb-3">
+        <Field
+          label={t("plan.cooking.budget_label")}
+          hint={t("plan.cooking.budget_hint")}
+          htmlFor="household-budget"
+        >
+          <input
+            id="household-budget"
+            type="number"
+            inputMode="decimal"
+            min={1}
+            max={BUDGET_MAX}
+            step="1"
+            className={inputClass}
+            value={budget}
+            onChange={(e) => setBudget(e.target.value)}
+          />
+        </Field>
+      </div>
       <Button
         variant="primary"
         disabled={working}
@@ -1896,6 +1947,19 @@ function ComposeCard(
             // Rien ne le remplace ici: une phrase « personne n'a rien demandé
             // cette semaine » remettrait le reproche de silence que ce lot
             // retire, sous une autre forme.
+            // ⚠️ `Number("")` VAUT 0 ET EST FINI: une garde `!== null`
+            // laisserait partir « budget: 0 » comme une consigne.
+            const amount = Number(budget.trim());
+            if (
+              budget.trim() === "" || !Number.isFinite(amount) || amount <= 0 ||
+              amount > BUDGET_MAX
+            ) {
+              setFailure(t("plan.cooking.budget_required"));
+              return;
+            }
+            // ÉCRIT AVANT DE PARTIR: le générateur relit le montant dans
+            // `practical_constraints`, comme le rythme et les jours de cuisine.
+            await saveBudgetAmount(userId, amount);
             await generateHouseholdMeal({
               window: { kind: "until_sunday" },
               intent: "prepare_next",

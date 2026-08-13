@@ -21,13 +21,27 @@ import { Field, inputClass } from "./ui/Field";
 //   combien de temps par session  — il écrit une session de 50 minutes à
 //                                    quelqu'un qui en a vingt;
 //   quel niveau de recette        — il propose un curry en huit étapes à
-//                                    quelqu'un qui sait faire cuire des pâtes;
-//   quel budget                   — il met du saumon et des pignons dans une
-//                                    semaine qu'il faut boucler à petit prix.
+//                                    quelqu'un qui sait faire cuire des pâtes.
 //
 // Un plan parfait et inapplicable est la première cause d'abandon; c'est écrit
 // noir sur blanc dans le commentaire de `student_goals.situation`, et ces
-// quatre-là sont exactement ce qui le rend inapplicable.
+// trois-là sont exactement ce qui le rend inapplicable.
+//
+// ── LE BUDGET EST PARTI D'ICI LE 2026-08-13, ET C'EST UNE DÉCISION ────────
+// Il y avait une quatrième entrée: « serré / normal / confortable ». Elle a
+// été retirée pour DEUX raisons qui tiennent ensemble.
+//
+// Le mot d'abord: il partait au modèle tel quel, et « serré » ne désigne pas
+// la même semaine pour une personne seule et pour une table de cinq. C'est
+// maintenant un MONTANT, qui se compare à un panier.
+//
+// Le lieu ensuite: un réglage de profil s'écrit une fois et s'applique en
+// silence à toutes les semaines suivantes, y compris celle où on reçoit du
+// monde et celle d'après les vacances. La question se pose donc À CHAQUE
+// COMPOSITION, sur l'écran qui compose (`MealBuilder`, l'entrée, le foyer),
+// avec le dernier chiffre pré-rempli — un défaut proposé, pas un réglage
+// caché. `practical_constraints.budget_amount` reste sa maison: c'est de là
+// que le générateur le lit, et de là que le champ se pré-remplit.
 //
 // ── LE PATRON, ET IL EST EMPRUNTÉ ──────────────────────────────────────────
 // `EatingRhythmCard` possède UNE clé de `practical_constraints` et fait
@@ -36,10 +50,9 @@ import { Field, inputClass } from "./ui/Field";
 // écrivent la même colonne jsonb, et celle qui étale mal efface le travail de
 // l'autre sans un bruit.
 //
-// `cooking_time_min` et `budget_band` existaient dans la colonne depuis le
-// premier jour du pivot — lues par le générateur, remplies par personne. Cette
-// carte est ce qui les réveille; `cook_days`, `recipe_difficulty` et `variety`
-// sont neuves.
+// `cooking_time_min` existait dans la colonne depuis le premier jour du pivot
+// — lue par le générateur, remplie par personne. Cette carte est ce qui la
+// réveille; `cook_days`, `recipe_difficulty` et `variety` sont neuves.
 
 // ⚠️ LE `COPY` LOCAL DE CETTE CARTE EST PARTI DANS LE SEED (lot 6), sous
 // `plan.cooking.*`. Vingt-huit phrases hors de `t()`, donc invisibles à la garde
@@ -86,9 +99,6 @@ export default function CookingCapacityCard(props: CookingCapacityCardProps) {
   const [variety, setVariety] = React.useState(
     () => readString(pc.variety, ["repeat", "some", "varied"], "some"),
   );
-  const [budget, setBudget] = React.useState(
-    () => readString(pc.budget_band, ["tight", "normal", "comfortable"], "normal"),
-  );
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [flash, setFlash] = React.useState<string | null>(null);
@@ -125,7 +135,6 @@ export default function CookingCapacityCard(props: CookingCapacityCardProps) {
           cooking_time_min: Number(time) || 30,
           recipe_difficulty: difficulty,
           variety,
-          budget_band: budget,
         },
         source: "CookingCapacityCard",
       });
@@ -210,18 +219,6 @@ export default function CookingCapacityCard(props: CookingCapacityCardProps) {
                 </select>
               </Field>
 
-              <Field label={t("plan.cooking.budget_label")} htmlFor="cap-budget">
-                <select
-                  id="cap-budget"
-                  className={inputClass}
-                  value={budget}
-                  onChange={(e) => setBudget(e.target.value)}
-                >
-                  <option value="tight">{t("plan.cooking.budget_tight")}</option>
-                  <option value="normal">{t("plan.cooking.budget_normal")}</option>
-                  <option value="comfortable">{t("plan.cooking.budget_comfortable")}</option>
-                </select>
-              </Field>
             </div>
 
             {!props.hasGoal && (

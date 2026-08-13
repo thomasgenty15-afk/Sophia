@@ -41,6 +41,7 @@
 // suite le jour de la suppression, pas six mois plus tard quand quelqu'un se
 // demande à quoi sert ce champ.
 
+import { isUsableBudgetAmount } from "./planBudget";
 import { supabase } from "../../lib/supabase";
 import {
   assessBirthDate,
@@ -114,7 +115,7 @@ export type FunnelQuestionId =
   | "eating_rhythm"
   | "cook_days"
   | "cooking_time_min"
-  | "budget_band"
+  | "budget_amount"
   // ── LES `better`: DÉCLARÉES ICI, JAMAIS RENDUES PAR `funnelSteps` ────────
   // Elles ne sont pas du décor. Ce tableau est la LISTE DE CE QUI SE DEMANDERA
   // APRÈS le plan, et l'avoir écrite au même endroit que le reste est ce qui
@@ -410,8 +411,8 @@ export const FUNNEL_QUESTIONS: readonly FunnelQuestion[] = Object.freeze([
     scope: "household",
   },
   {
-    id: "budget_band",
-    consumer: "supabase/functions/generate-meal-v1/index.ts#budget_band",
+    id: "budget_amount",
+    consumer: "supabase/functions/generate-meal-v1/index.ts#budget_amount",
     weight: "wrong",
     branches: ALL_BRANCHES,
     step: "plan",
@@ -584,7 +585,28 @@ export interface FunnelPlanAnswers {
   /** `mon`…`sun`. Vide = rien de déclaré. */
   cookDays: readonly string[];
   cookingTimeMin: number | null;
-  budgetBand: "tight" | "normal" | "comfortable" | null;
+  /**
+   * L'ARGENT DE CE PLAN-LÀ, EN CHIFFRE — pas une bande.
+   *
+   * ── CE QUE C'ÉTAIT, ET POURQUOI ÇA NE POUVAIT PAS MARCHER ────────────────
+   * Trois cases: « serré / normal / confortable ». Le mot part au modèle tel
+   * quel, et il ne veut rien dire: « serré » à Paris pour une personne et
+   * « serré » pour une famille de cinq ne désignent pas la même semaine, ni le
+   * même arbitrage. Un chiffre, lui, se compare à ce qu'il y a dans le panier —
+   * c'est ce qui permet de RENONCER À LA VIANDE plutôt que de « faire un peu
+   * attention ».
+   *
+   * ── ET C'EST UNE QUESTION DE GÉNÉRATION, PAS UNE PRÉFÉRENCE ──────────────
+   * Décision humaine du 2026-08-13: elle se pose à chaque composition, jamais
+   * dans « À propos de toi ». La valeur est conservée pour PRÉ-REMPLIR la
+   * suivante — un défaut proposé, pas un réglage caché: le champ est sur
+   * l'écran qui compose, et il est toujours modifiable avant de lancer.
+   *
+   * L'unité est la monnaie du pays de l'élève (`profiles.country`, déjà dans le
+   * prompt). Aucune table de devises n'est tenue ici: elle serait une liste
+   * fermée de plus, et `countries.ts` explique pourquoi ce dépôt n'en garde pas.
+   */
+  budgetAmount: number | null;
 }
 
 export interface FunnelState {
@@ -851,7 +873,9 @@ function canGenerateMisses(
   ) {
     missing.push("cooking_time_min");
   }
-  if (state.plan.budgetBand === null) missing.push("budget_band");
+  // ⚠️ LE CHIFFRE, PAS LA PRÉSENCE DE LA CLÉ. `0` est un budget que personne
+  // n'a, et un `NaN` venu d'un champ à moitié tapé passerait un `!== null`.
+  if (!isUsableBudget(state.plan.budgetAmount)) missing.push("budget_amount");
 
   // Dédoublonné en gardant l'ORDRE: N bouches sans prénom rendent un seul
   // `member_first_name`. L'écran renvoie vers une étape, pas vers une ligne, et
@@ -923,6 +947,18 @@ function isUsableWeight(kg: number | null): boolean {
 }
 
 /**
+ * ⚠️ LES BORNES VIENNENT DE `planBudget.ts`, ET LEUR AUTORITÉ EST LE SERVEUR.
+ *
+ * Elles ne sont pas redéclarées ici — deux arithmétiques de la même borne
+ * divergent au premier ajustement, et celle qui garde refuserait alors une
+ * valeur que celle qui pré-remplit propose. Voir `planBudget.ts` pour ce que le
+ * plafond attrape (le zéro de trop) et pourquoi il ne juge personne.
+ */
+function isUsableBudget(amount: number | null): boolean {
+  return amount !== null && isUsableBudgetAmount(amount);
+}
+
+/**
  * LES BORNES D'UNE AUTRE BOUCHE SONT PLUS LARGES, ET CE N'EST PAS UN OUBLI.
  * `keel_household_set_member_body` accepte 30–260 cm et 2–400 kg parce qu'une
  * bouche peut être un nourrisson. Appliquer les bornes adultes ici refuserait
@@ -980,7 +1016,7 @@ export function emptyFunnelState(): FunnelState {
       eatingRhythm: [],
       cookDays: [],
       cookingTimeMin: null,
-      budgetBand: null,
+      budgetAmount: null,
     },
   };
 }
@@ -1317,7 +1353,7 @@ function readDietAnswer(
 
 /** Les quatre réponses de l'étape 3, relues avec LES parseurs du moteur. */
 function readPlanAnswers(pc: Record<string, unknown> | null): FunnelPlanAnswers {
-  const budget = String(pc?.budget_band ?? "");
+  const budget = Number(pc?.budget_amount);
   const time = Number(pc?.cooking_time_min);
   return {
     // `parseEatingRhythm` et pas une seconde lecture: deux lectures de la même
@@ -1330,9 +1366,9 @@ function readPlanAnswers(pc: Record<string, unknown> | null): FunnelPlanAnswers 
         .filter((d) => (DAY_TOKENS as readonly string[]).includes(d))
       : [],
     cookingTimeMin: Number.isFinite(time) && time > 0 ? time : null,
-    budgetBand: budget === "tight" || budget === "normal" || budget === "comfortable"
-      ? budget
-      : null,
+    // RELU POUR PRÉ-REMPLIR, pas pour appliquer en silence: l'écran qui
+    // compose repose la question avec cette valeur dedans.
+    budgetAmount: isUsableBudget(budget) ? budget : null,
   };
 }
 
@@ -1728,7 +1764,7 @@ export async function savePlanAnswers(args: {
       // L'ORDRE DE LA SEMAINE, pas celui des clics.
       cook_days: DAY_TOKENS.filter((d) => args.answers.cookDays.includes(d)),
       cooking_time_min: args.answers.cookingTimeMin,
-      budget_band: args.answers.budgetBand,
+      budget_amount: args.answers.budgetAmount,
     },
     source: "onboarding/plan",
   });

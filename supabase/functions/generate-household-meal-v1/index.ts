@@ -62,10 +62,17 @@ import {
   mealPreparationsPayload,
   mealSessionsPayload,
   mealShoppingPayload,
+  MEAL_TOKEN_FIELDS,
+  MEAL_TRANSLATABLE_FIELDS,
   type MergedEater,
   parseEatingRhythm,
   parseGeneratedMeal,
+  usableBudget,
 } from "../_shared/keel/meal_generation.ts";
+import {
+  appendContentLanguageBlock,
+  resolveArtifactLocale,
+} from "../_shared/keel/locale.ts";
 import {
   type MemberAway,
   memberMealCells,
@@ -283,7 +290,16 @@ function readCookingCapacity(pc: Record<string, unknown> | null) {
     cookingTimeMin: Number.isFinite(time) && time > 0 ? Math.min(240, Math.round(time)) : null,
     recipeDifficulty: pick(pc?.recipe_difficulty, ["simple", "normal", "keen"]),
     variety: pick(pc?.variety, ["repeat", "some", "varied"]),
-    budgetBand: pick(pc?.budget_band, ["tight", "normal", "comfortable"]),
+    // LE BUDGET EST UN MONTANT, ET IL EST RELU ICI PLUTÔT QUE REÇU DANS LA
+    // REQUÊTE. L'écran qui compose l'écrit dans `practical_constraints`
+    // juste avant d'appeler — la même route que le rythme et les jours de
+    // cuisine. Deux chemins pour un seul chiffre, et c'est toujours celui
+    // que l'écran ne montre pas qui gagne.
+    //
+    // `null` quand il est absent, à zéro, illisible ou absurde: aucune de
+    // ces formes ne devient une consigne. `Number(null)` vaut 0 ET est
+    // fini — un `!= null` laisserait passer « budget: 0 ».
+    budgetAmount: usableBudget(pc?.budget_amount),
   };
 }
 
@@ -868,6 +884,20 @@ Deno.serve(async (req) => {
     const todayToken = dayTokenInZone(timezone, new Date());
     const todayDate = localDateInZone(timezone, new Date());
     const country = String(ownerProfile.country ?? "").trim() || null;
+    // ── LA LANGUE DU FOYER, RÉSOLUE ICI ET UNE SEULE FOIS ────────────────
+    //
+    // Même raisonnement que le fuseau juste au-dessus: le foyer cuisine
+    // ensemble, il n'a qu'une seule table, donc une seule langue — celle du
+    // compte maître, qui compose. Mélanger les langues des membres produirait
+    // un plan que personne ne lit entièrement.
+    //
+    // ⚠️ `profiles.locale` et pas `student_goals.content_locale`: la seconde
+    // dit dans quelle langue la personne a écrit sa situation (R3, troisième
+    // axe), et tous ses écrivains la sèment `'en-GB'`.
+    const householdContentLocale = resolveArtifactLocale({
+      studentProfile: String(ownerProfile.locale ?? "").trim() || null,
+      tenantDefault: null,
+    });
 
     // ── LA FENÊTRE, REMONTÉE ICI (L3, 2026-08-12) ───────────────────────
     //
@@ -1724,9 +1754,13 @@ Deno.serve(async (req) => {
     const householdSplit = householdHardConstraints({
       allergies: householdAllergies,
       houseRules: restrictions,
-      // La langue du foyer est celle de la ligne du compte maître, comme le
-      // reste de ce qui gouverne la composition.
-      contentLocale: String(goalRow.content_locale ?? "").trim() || "en-GB",
+      // La langue du foyer est celle du compte maître, comme le reste de ce
+      // qui gouverne la composition — et c'est MAINTENANT la même expression
+      // que celle qui écrit le prompt et la ligne en base. Elle valait
+      // `goalRow.content_locale`, une autre colonne, semée `'en-GB'` par tous
+      // ses écrivains: les libellés du verrou pouvaient donc être anglais dans
+      // un plan français.
+      contentLocale: householdContentLocale,
     });
     constraints.push(...householdSplit.safetyConstraints);
     if (householdSplit.safetyConstraints.length > 0) {
@@ -2260,7 +2294,7 @@ Deno.serve(async (req) => {
       console.warn(`[${FN_NAME}] composition index unavailable`, error);
     }
 
-    const { systemPrompt, userMessage } = buildMealPrompt({
+    const built = buildMealPrompt({
       // ── FF-030 · LES CONTRAINTES DURES, ICI AUSSI ──────────────────────
       // Cette lane portait exactement le même trou que `generate-meal-v1`:
       // l'UNION des contraintes de tous les membres était chargée (et son
@@ -2371,6 +2405,9 @@ Deno.serve(async (req) => {
       // `null` sur une composition ordinaire: le plafond est alors celui
       // d'avant ce lot, au plat près, et un test le tient.
       merge: mergeBudget,
+      // La langue du foyer, résolue une seule fois près du fuseau: le foyer
+      // cuisine ensemble, il n'a qu'une table et qu'une langue.
+      contentLocale: householdContentLocale,
     });
 
     const household = buildHouseholdPromptBlocks({
@@ -2541,13 +2578,32 @@ Deno.serve(async (req) => {
       }
     }
 
+    // ── LE MESSAGE ENVOYÉ AU MODÈLE, COMPOSÉ À UN SEUL ENDROIT ───────────
+    //
+    // ⚠️ LE BLOC DE LANGUE DOIT ÊTRE LA DERNIÈRE CHOSE DU MESSAGE, et cette
+    // fonction existe parce que TROIS choses se collent après lui ici: le bloc
+    // satiété, le suffixe de maison, et — sur le chemin de réparation —
+    // l'instruction de reprise. Composé à la main sur chaque site, le bloc se
+    // retrouve en avant-dernière position, ce qui revient à ne pas l'avoir:
+    // le modèle obéit à la consigne la plus récente.
+    //
+    // `appendContentLanguageBlock` est idempotent: le remettre le DÉPLACE en
+    // queue, il ne l'empile pas.
+    const householdUserMessage = (extra: string): string =>
+      appendContentLanguageBlock(
+        `${built.userMessage}${hungerSuffix}${household.userSuffix}${extra}`,
+        built.contentLocale,
+        MEAL_TRANSLATABLE_FIELDS,
+        MEAL_TOKEN_FIELDS,
+      );
+
     const result = await generateWithGemini(
-      systemPrompt + household.systemSuffix,
+      built.systemPrompt + household.systemSuffix,
       // FF-027 AVANT les règles de maison, et l'ordre est le sujet: le bloc de
       // `household_meal_generation.ts` doit rester le DERNIER, parce que c'est
       // lui qui doit survivre à une envie contradictoire. La satiété est une
       // priorité de composition, pas une règle de maison.
-      userMessage + hungerSuffix + household.userSuffix,
+      householdUserMessage(""),
       0.6,
       true,
       [],
@@ -2659,8 +2715,8 @@ Deno.serve(async (req) => {
       const retryInstruction = proteinAnchorRetryInstruction(meal.protein_anchor_missing);
       try {
         const retryResult = await generateWithGemini(
-          systemPrompt + household.systemSuffix,
-          `${userMessage}${hungerSuffix}${household.userSuffix}\n\n${retryInstruction}`,
+          built.systemPrompt + household.systemSuffix,
+          householdUserMessage(`\n\n${retryInstruction}`),
           0.6,
           true,
           [],
@@ -2875,7 +2931,8 @@ Deno.serve(async (req) => {
           preparations: mealPreparationsPayload(meal),
           cooking_sessions: mealSessionsPayload(meal),
           shopping_list: mealShoppingPayload(meal),
-          content_locale: String(goalRow.content_locale ?? "en"),
+          // La MÊME expression que celle qui a écrit le prompt.
+          content_locale: built.contentLocale,
           household_id: householdId,
           // LA NATURE EST EXIGÉE DÈS QU'IL Y A UN FOYER (lot 3, 2026-08-11).
           // `write_student_meal_plan` refuse `plan_kind_required` sans elle: un

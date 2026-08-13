@@ -43,7 +43,7 @@ export const SETUP_MISS_KEYS: Record<FunnelMissId, MessageKey> = {
   eating_rhythm: "setup.missing.eating_rhythm",
   cook_days: "setup.missing.cook_days",
   cooking_time_min: "setup.missing.cooking_time_min",
-  budget_band: "setup.missing.budget_band",
+  budget_amount: "setup.missing.budget_amount",
 
   // ── LE DÉFAUT D1, ET SA PHRASE EST LA PLUS IMPORTANTE DE LA TABLE ───────
   // Elle ne dit pas « il manque une date ». Elle dit ce que l'absence COÛTE:

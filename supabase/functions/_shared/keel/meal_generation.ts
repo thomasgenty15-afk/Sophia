@@ -50,6 +50,7 @@ import {
   type StudentSafetyConstraint,
 } from "./safety_constraints.ts";
 import { findNumericTarget } from "./week_plan_generation.ts";
+import { appendContentLanguageBlock } from "./locale.ts";
 import { normalizeForMatch } from "./forbidden_matcher.ts";
 // FF-061 — la ceinture de ton, jusqu'ici appliquée au seul message du soir et à
 // la relance. Le `why` d'un plat vient du même modèle et s'affiche à l'élève.
@@ -181,6 +182,38 @@ export type MealSize = (typeof MEAL_SIZES)[number];
  * inventer une précision que l'élève n'a pas — et une précision inventée, le
  * moteur la traite comme une contrainte.
  */
+/**
+ * LES BORNES D'UN BUDGET, ET LEUR AUTORITÉ EST ICI.
+ *
+ * ── POURQUOI UN PLAFOND ───────────────────────────────────────────────────
+ * Il ne juge le train de vie de personne. Il attrape le zéro de trop — « 5000 »
+ * tapé pour « 500 » — avant qu'il ne parte au modèle comme une consigne, où il
+ * ne produit pas une erreur mais un plan au homard. Une borne haute qu'on peut
+ * atteindre légitimement serait un refus injuste; celle-ci ne l'est pas.
+ *
+ * ── ET POURQUOI ELLE EST RECOPIÉE CÔTÉ NAVIGATEUR ────────────────────────
+ * Le navigateur et Deno ne partagent aucun module dans ce dépôt.
+ * `frontend/src/keel/api/onboarding.ts` porte donc la même borne, avec un
+ * commentaire qui désigne CE fichier comme autorité. La copie qui compte est
+ * celle-ci: c'est elle qui décide de ce qui entre dans le prompt, et un client
+ * plus permissif ne peut rien faire passer.
+ */
+export const BUDGET_MAX = 5000;
+
+/**
+ * LE MONTANT UTILISABLE, ou `null` — jamais une valeur de repli.
+ *
+ * ⚠️ `Number(null)` VAUT 0 ET EST FINI. Un test `!= null` sur la valeur brute
+ * laisserait donc « budget: 0 » descendre dans le prompt comme une consigne, et
+ * le dépôt a déjà payé exactement ce piège sur une taille pré-remplie à 0.
+ */
+export function usableBudget(raw: unknown): number | null {
+  if (raw === null || raw === undefined || raw === "") return null;
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n <= 0 || n > BUDGET_MAX) return null;
+  return n;
+}
+
 export interface EatingOccasionSlot {
   slot: EatingOccasion;
   /** « large », ou `null` quand l'élève n'a rien dit. */
@@ -1253,6 +1286,56 @@ mode = to_shop
 
 Day tokens are exactly: mon tue wed thu fri sat sun. Never translated.`;
 
+// ---------------------------------------------------------------------------
+// LES CHAMPS DU JSON DE REPAS, RANGÉS EN DEUX TAS
+//
+// EXPORTÉS, et c'est le point: `generate-meal-v1` colle son bloc satiété APRÈS
+// le message, donc il doit remettre le bloc de langue en queue — avec les MÊMES
+// deux listes. Recopiées là-bas, elles divergeraient au premier champ ajouté,
+// et la divergence serait muette: le modèle traduirait un jeton, ou laisserait
+// une phrase en anglais, sans qu'aucun test ne regarde les deux listes à la fois.
+// ---------------------------------------------------------------------------
+
+/** La prose que l'élève lit — dans son plan, et sur son PDF de courses. */
+export const MEAL_TRANSLATABLE_FIELDS: readonly string[] = [
+  "dishes[].title",
+  "dishes[].method",
+  "dishes[].why",
+  "dishes[].ingredients[].term",
+  "dishes[].ingredients[].quantity",
+  "preparations[].title",
+  "preparations[].method",
+  "preparations[].ingredients[].term",
+  "preparations[].ingredients[].quantity",
+  "cooking_sessions[].run_through",
+  "shopping_list[].term",
+  "shopping_list[].quantity",
+];
+
+/**
+ * Les JETONS (R1): comparés en code, ou écrits en base sous une contrainte.
+ *
+ * ⚠️ `preparation_id` EST LE PIÈGE DE CETTE LISTE. Il est INVENTÉ par le modèle
+ * et référencé par `dishes[].uses[]`. En français il écrirait `prep_poulet` —
+ * cohérent avec lui-même, donc rien ne casserait à la lecture — mais
+ * `token-lint` a une règle exactement là-dessus, et un identifiant traduit ne
+ * se rapproche plus de rien.
+ */
+export const MEAL_TOKEN_FIELDS: readonly string[] = [
+  "slot",
+  "day",
+  "cook_on",
+  "aisle",
+  "servings",
+  "servings_made",
+  "state",
+  "amount",
+  "unit",
+  "honours_belief_keys[]",
+  "preparations[].id (ASCII snake_case, English words only)",
+  "dishes[].uses[].preparation_id (must match preparations[].id exactly)",
+];
+
 export function buildMealPrompt(args: {
   /**
    * FF-030 — LES CONTRAINTES DURES DE L'ÉLÈVE. `null` quand la lecture a
@@ -1368,7 +1451,26 @@ export function buildMealPrompt(args: {
   cookingTimeMin?: number | null;
   recipeDifficulty?: string | null;
   variety?: string | null;
-  budgetBand?: string | null;
+  /**
+   * L'ARGENT DE CE PLAN-LÀ, EN CHIFFRE — dans la monnaie du pays de l'élève,
+   * que `country` ci-dessus porte déjà.
+   *
+   * ── CE QUE C'ÉTAIT: `budgetBand`, « tight / normal / comfortable » ────────
+   * Le mot partait au modèle tel quel, et il ne dit rien: « serré » pour une
+   * personne seule et « serré » pour une table de cinq ne désignent ni la même
+   * somme ni le même arbitrage. Or c'est l'arbitrage qui est demandé — quand
+   * il n'y a pas d'argent, on ne « fait pas attention », on renonce à la
+   * viande. Un montant se compare à un panier; un adjectif ne se compare à
+   * rien.
+   *
+   * ⚠️ PROPRIÉTÉ REQUISE, VALEUR NULLABLE, ET LA DISTINCTION EST LA GARDE.
+   * `budgetBand` était `?:` — un appelant pouvait l'oublier, et la ligne de
+   * prompt disparaissait sans que rien n'échoue. C'est la cicatrice
+   * `safetyBand` du dépôt, à l'identique. Ici l'absence doit être ÉCRITE:
+   * `null` est une réponse (« cette composition n'a pas de budget »), une
+   * propriété manquante ne compile pas.
+   */
+  budgetAmount: number | null;
   /**
    * CE QUE L'ÉLÈVE A DIT SUR SA BOUFFE, promu depuis la conversation.
    *
@@ -1437,7 +1539,17 @@ export function buildMealPrompt(args: {
    * la bouche qu'on lui a ajoutée. Chaque appelant DIT ce qu'il veut.
    */
   merge: MergedEater | null;
-}): { systemPrompt: string; userMessage: string } {
+  /**
+   * LA LANGUE DANS LAQUELLE CES PLATS SONT ÉCRITS. REQUIS, jamais `T?`.
+   *
+   * Vient de `resolveArtifactLocale({studentProfile, tenantDefault})`, donc de
+   * `profiles.locale` — la langue CHOISIE, celle que l'agent parle. Pas de
+   * `student_goals.content_locale`, qui est la langue dans laquelle l'élève a
+   * écrit sa situation (R3, troisième axe) et que tous ses écrivains sèment
+   * `'en-GB'`.
+   */
+  contentLocale: string;
+}): { systemPrompt: string; userMessage: string; contentLocale: string } {
   const rhythm = args.eatingRhythm && args.eatingRhythm.length > 0
     ? args.eatingRhythm
     : DEFAULT_EATING_RHYTHM;
@@ -1557,10 +1669,28 @@ export function buildMealPrompt(args: {
       ? [`recipe level they want: ${args.recipeDifficulty}`]
       : []),
     ...(args.variety ? [`repetition they accept: ${args.variety}`] : []),
-    ...(args.budgetBand
+    // LE BUDGET EST UN PLAFOND CHIFFRÉ, PAS UNE AMBIANCE.
+    //
+    // La monnaie n'est pas nommée: `country` est deux lignes plus haut dans ce
+    // même prompt, et une table pays → devise tenue de notre côté serait une
+    // liste fermée qui refuserait un pays légitime le jour où quelqu'un s'y
+    // inscrit (voir `frontend/src/keel/api/countries.ts`).
+    //
+    // La consigne dit QUOI SACRIFIER, dans l'ordre. « Reste dans le budget »
+    // seul laisse le modèle rogner sur les portions — c'est-à-dire sur la
+    // seule chose que le reste de ce prompt calcule.
+    ...(args.budgetAmount !== null
       ? [
-        `budget: ${args.budgetBand}. On a tight budget, favour cheap staples ` +
-        "and skip expensive proteins and out-of-season produce.",
+        `budget for this plan: ${args.budgetAmount}, in the local currency of ` +
+        "their country. It covers the WHOLE shopping list for this stretch, " +
+        "for every serving asked for above — it is a ceiling, not a target.",
+        "when that budget is tight for the number of servings and days, cut " +
+        "in THIS order: expensive proteins first (swap to eggs, legumes, " +
+        "tinned fish, cheaper cuts), then out-of-season and imported produce, " +
+        "then variety (repeat a batch). NEVER cut the portions themselves: " +
+        "the servings are computed from bodies and directions, and a plan " +
+        "that shrinks them silently is a plan that starves someone to fit a " +
+        "number.",
       ]
       : []),
   ];
@@ -1796,7 +1926,26 @@ export function buildMealPrompt(args: {
       : []),
   ].join("\n");
 
-  return { systemPrompt: MEAL_SYSTEM_PROMPT, userMessage };
+  return {
+    systemPrompt: MEAL_SYSTEM_PROMPT,
+    // Le bloc de langue en DERNIER, sur le `userMessage` (récence), jamais sur
+    // le `systemPrompt` (cacheable, partagé par tous les élèves).
+    //
+    // ⚠️ `generate-meal-v1` colle un `hungerSuffix` APRÈS ce message avant
+    // d'appeler le modèle. `appendContentLanguageBlock` étant idempotent, la
+    // remise du bloc après ce suffixe est faite là-bas — ici on garantit qu'il
+    // existe, là-bas qu'il est bien le dernier.
+    userMessage: appendContentLanguageBlock(
+      userMessage,
+      args.contentLocale,
+      MEAL_TRANSLATABLE_FIELDS,
+      MEAL_TOKEN_FIELDS,
+    ),
+    // Le motif `maxNutrition` appliqué à la langue: la valeur qui a servi
+    // RESSORT, et c'est elle que l'appelant écrit en base. Une seule
+    // expression, donc aucune divergence possible.
+    contentLocale: args.contentLocale,
+  };
 }
 
 // ---------------------------------------------------------------------------

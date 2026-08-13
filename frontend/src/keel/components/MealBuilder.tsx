@@ -18,6 +18,7 @@ import {
   resolveRequestedWindow,
   windowDayOrder,
 } from "../api/mealWindow";
+import { BUDGET_MAX, readBudgetAmount, saveBudgetAmount } from "../api/planBudget";
 import { mealCopy } from "../api/mealLabels";
 import { loadMyHouseholdPlace } from "../api/household";
 import { edgeRefusalKey } from "../copy/planRefusals";
@@ -211,6 +212,13 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
   /** Vrai tant que le contexte affiché est celui de la dernière génération. */
   const [contextCarried, setContextCarried] = React.useState(false);
   const [servings, setServings] = React.useState(1);
+  /**
+   * L'ARGENT DE CE PLAN-LÀ — reposé À CHAQUE composition, pré-rempli avec le
+   * chiffre de la dernière fois. Voir `api/planBudget.ts` pour ce que cette
+   * distinction garde ouvert: un montant appliqué sans être montré redeviendrait
+   * le réglage de profil qu'on vient de retirer d'« À propos de toi ».
+   */
+  const [budget, setBudget] = React.useState("");
   const [pantryText, setPantryText] = React.useState("");
   /** L'envie du moment, reproposée d'une génération à l'autre. */
   const [preferences, setPreferences] = React.useState("");
@@ -261,6 +269,18 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
         if (!cancelled) setPlace(mine);
       } catch {
         if (!cancelled) setPlace(null);
+      }
+      // LE MONTANT DE LA DERNIÈRE FOIS, PROPOSÉ — comme le contexte et l'envie
+      // plus bas, et pour la même raison: retaper le même chiffre chaque semaine
+      // est la friction qui fait qu'on finit par ne plus répondre du tout.
+      // Une lecture qui échoue laisse le champ VIDE, jamais un chiffre inventé:
+      // la garde de `build()` le réclamera, et ça vaut mieux qu'un budget que
+      // personne n'a donné.
+      try {
+        const last = await readBudgetAmount(userId);
+        if (!cancelled && last !== null) setBudget(String(last));
+      } catch {
+        if (!cancelled) setBudget("");
       }
       try {
         const loaded = await loadMealPlans(userId, browserLocalDate());
@@ -411,6 +431,17 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
       setError(t("meals.form.pantry_required"));
       return;
     }
+    // ⚠️ `Number("")` VAUT 0 ET EST FINI. Un test `!== null` laisserait donc
+    // partir « budget: 0 » comme une consigne — le dépôt a déjà payé ce piège
+    // sur une taille pré-remplie à 0 pour un compte neuf.
+    const budgetAmount = Number(budget.trim());
+    if (
+      budget.trim() === "" || !Number.isFinite(budgetAmount) ||
+      budgetAmount <= 0 || budgetAmount > BUDGET_MAX
+    ) {
+      setError(t("plan.cooking.budget_required"));
+      return;
+    }
     // LA FENÊTRE SE REFERME DÈS QUE LA GÉNÉRATION PART. Ce qu'on veut regarder
     // pendant l'attente, c'est la place de la semaine, pas les champs qu'on
     // vient de remplir.
@@ -427,6 +458,12 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
       const intent = formIntent === "replace_current" && target
         ? "replace_current"
         : "prepare_next";
+      // LE MONTANT EST ÉCRIT AVANT DE PARTIR, et le générateur le relit dans
+      // `practical_constraints` — la même route que le rythme et les jours de
+      // cuisine. Un second chemin (le passer dans le corps de la requête)
+      // ferait deux sources pour un seul chiffre, et c'est toujours celle que
+      // l'écran ne montre pas qui gagne.
+      await saveBudgetAmount(userId, budgetAmount);
       const written = await generateMeal({
         mode,
         window: windowRequest,
@@ -659,6 +696,27 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                   />
                 </Field>
               </div>
+
+              {/* LE BUDGET EST DANS LE FORMULAIRE, PAS DANS LE PROFIL.
+                  Il tient à côté des parts parce que c'est la même famille de
+                  question: combien de bouches, et pour combien. */}
+              <Field
+                label={t("plan.cooking.budget_label")}
+                hint={t("plan.cooking.budget_hint")}
+                htmlFor="meals-budget"
+              >
+                <input
+                  id="meals-budget"
+                  type="number"
+                  inputMode="decimal"
+                  min={1}
+                  max={BUDGET_MAX}
+                  step="1"
+                  className={inputClass}
+                  value={budget}
+                  onChange={(e) => setBudget(e.target.value)}
+                />
+              </Field>
 
               {/* LE GARDE-MANGER N'EXISTE QUE DANS LE MODE QUI LE LIT.
                   « I will shop for it » dit au moteur, mot pour mot, « they have

@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 import {
   branchForMouths,
   birthDateAnswer,
+  BUDGET_MAX,
   canGenerate,
   COOKING_SESSION_MINUTES,
   cookingTimeParts,
@@ -107,7 +108,7 @@ function complete(branch: FunnelBranch): FunnelState {
       eatingRhythm: ["breakfast", "lunch", "dinner"],
       cookDays: ["sun", "wed"],
       cookingTimeMin: 45,
-      budgetBand: "normal",
+      budgetAmount: 90,
     },
   };
 }
@@ -266,7 +267,7 @@ describe("canGenerate — l'état complet", () => {
         "eating_rhythm",
         "cook_days",
         "cooking_time_min",
-        "budget_band",
+        "budget_amount",
       ].sort(),
     );
   });
@@ -405,8 +406,23 @@ describe("canGenerate — étape par étape", () => {
     [
       "aucun budget",
       "solo",
-      (s) => ({ ...s, plan: { ...s.plan, budgetBand: null } }),
-      "budget_band",
+      (s) => ({ ...s, plan: { ...s.plan, budgetAmount: null } }),
+      "budget_amount",
+    ],
+    // ⚠️ LES DEUX FORMES QUI RESSEMBLENT À UNE RÉPONSE. `Number("")` vaut 0 et
+    // EST fini: une garde `!== null` les laisserait partir au modèle comme des
+    // consignes — « budget: 0 », puis un plan au homard pour un zéro de trop.
+    [
+      "un budget à zéro",
+      "solo",
+      (s) => ({ ...s, plan: { ...s.plan, budgetAmount: 0 } }),
+      "budget_amount",
+    ],
+    [
+      "un budget au-delà du plafond de saisie",
+      "solo",
+      (s) => ({ ...s, plan: { ...s.plan, budgetAmount: BUDGET_MAX + 1 } }),
+      "budget_amount",
     ],
   ];
 
@@ -550,7 +566,7 @@ describe("nextIncomplete", () => {
   it("renvoie à l'étape 3 quand seules les contraintes pratiques manquent", () => {
     const state: FunnelState = {
       ...complete("family"),
-      plan: { eatingRhythm: [], cookDays: [], cookingTimeMin: null, budgetBand: null },
+      plan: { eatingRhythm: [], cookDays: [], cookingTimeMin: null, budgetAmount: null },
     };
     expect(nextIncomplete(state, "family")?.id).toBe("plan");
   });
@@ -584,7 +600,7 @@ describe("missesForStep", () => {
   it("ne retient personne sur une étape dont toutes les questions sont répondues", () => {
     const state: FunnelState = {
       ...complete("family"),
-      plan: { eatingRhythm: [], cookDays: [], cookingTimeMin: null, budgetBand: null },
+      plan: { eatingRhythm: [], cookDays: [], cookingTimeMin: null, budgetAmount: null },
     };
     expect(missesForStep(state, "family", "people")).toEqual([]);
     expect(missesForStep(state, "family", "plan").length).toBeGreaterThan(0);
