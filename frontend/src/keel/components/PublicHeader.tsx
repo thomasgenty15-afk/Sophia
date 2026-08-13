@@ -347,7 +347,13 @@ function WorldTabs(
           <Link
             key={entry.hub}
             to={entry.hub}
-            aria-current={active ? "true" : undefined}
+            // ⚠️ `page` ET PAS `true`, comme la sous-navigation deux blocs plus
+            // haut. Les deux formes cohabitaient sur le MÊME en-tête: un lecteur
+            // d'écran annonçait « courant » pour l'onglet de monde et « page
+            // courante » pour la porte, alors que les deux sont des liens vers
+            // une page. La valeur générique `true` est le repli de ce qui n'a
+            // pas de type — ce n'est pas le cas ici.
+            aria-current={active ? "page" : undefined}
             className={`-mb-px border-b-2 px-2 py-1 text-sm transition-colors ${
               active
                 ? "border-fig-700 font-medium text-ink"

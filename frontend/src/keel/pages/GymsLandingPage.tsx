@@ -3,42 +3,93 @@ import SEO from "../../components/SEO";
 import { LEGAL_ENTITY, organizationStructuredData } from "../../lib/legalEntity";
 import { PublicFooter, PublicHeader } from "../components/PublicHeader";
 import { Kicker, PriceCard, SectionTitle } from "../components/ui/Marketing";
+import { formatPrice } from "../i18n/format";
+import { PRICES } from "../i18n/prices";
 import { t, type MessageKey } from "../i18n/t";
 
 /**
- * /gyms — the owner of an independent gym. Box, strength hall, hybrid studio. His pain
- * is CHURN: the member joined to change their body, nothing changes on their plate, and
- * they leave. Rebuilt 2026-08-12 from `scratchpad/site/AUDIT-SITE.md`; the full
- * reasoning, claim by claim, is in `scratchpad/site/gyms/RAPPORT.md`.
+ * /gyms — le gérant d'une salle indépendante. Box, salle de force, studio hybride.
  *
- * ── THREE CLAIMS WERE REMOVED FROM THIS PAGE. DO NOT WRITE THEM BACK ──────────────
- * B2 "6 € when your MEMBER has paid for their year" — FALSE, the annual interval is the
- * COACH's (`stripe-create-checkout-session:124-125` reads `body.interval`, set by the
- * coach's own billing buttons), so an owner would build an annual offer on a discount he
- * cannot trigger; replaced by B3 in `gyms.price.annual`. · B16 "which parts of your
- * method your members hold, which they drop, at what time of year" — NOTHING computes it;
- * `source_belief_key` has one front-end reader and it is the STUDENT's own week
- * (`weekPlan.ts:36-37`). Deleted, no replacement. · B18 "it is your name on the messages
- * your members read" — FALSE, the agent is called Sophia everywhere and there is NO brand
- * personalisation: no column, no screen, no string. The owner's name reaches a member in
- * one place, the lock-2 substitution (B9); and do not drift into white-label (B19) —
- * never claimed, and keeping it unclaimed is the point.
+ * ══════════════════════════════════════════════════════════════════════════════
+ * ⚠️ CE SEGMENT A ÉTÉ RECADRÉ LE 2026-08-13. NE LE « RÉPARE » PAS EN Y REMETTANT
+ *    UN COACH.
  *
- * ── THE SILENCES (audit §9). All twelve bind; three bite here ────────────────────
- * S5 never "nothing happens at night" — quiet hours cover the re-engagement nudge ONLY,
- * and the evening tap can land at ten to ten (B24). · S10 a mock quotes the real field
- * word for word, or it is not a mock. · S12 no member SKU in Stripe, and
- * `gyms.price.billing_note` says so out loud. The other nine are in the audit.
+ * La version précédente vendait à une salle QUI COACHE: son héros disait « you
+ * coach three hours a week, they eat twenty-one meals without you », et sa
+ * section `Fit` disait « it only works if the method is YOURS ». Les deux
+ * supposaient que la salle a une méthode et l'enseigne.
  *
- * B20 — a gym with three coaches is ONE coach account: no gym entity, no roster, the
- * tenancy is coach → coach_clients → student. `Fit` states it in as many words, which is
- * what stops "your team" appearing in a later edit.
+ * La grille des douleurs (`scratchpad/site/GRILLE-DOULEURS.md`, section
+ * « Salles ») a tranché l'inverse, et c'est le titre de la section: **une salle
+ * n'est PAS un coach.** Elle vend une salle, pas une méthode, et ses clients
+ * n'ont pour la plupart AUCUN coach. Le mécanisme « accompagner un client de
+ * salle après ses trois heures » a été retiré du plan pour cette raison exacte.
  *
- * DESIGN — `scratchpad/site/design/CHARTE.md`, direction « la fiche ». Light ground, ONE
- * dark block (the double lock), the equerre opening anything SPECIFIED, one figure per
- * section: five, where the 1041-line version this replaces had zero. No photograph — the
- * product makes no images, so a plate here would be a plate nobody cooked. And `/gyms` is
- * a link somebody was SENT: no signed-in redirect, or the forwarded link looks broken.
+ * Conséquences, et elles sont structurelles:
+ *   · Le héros parle de ce que le CLIENT fait (il s'entraîne, il mange), jamais
+ *     de ce que la salle coache.
+ *   · `Fit` n'a pas été réécrite, elle a été RETOURNÉE: la salle n'a pas de
+ *     méthode à prêter, elle DÉLÈGUE (`House`, bande 3). C'est le seul argument
+ *     neuf de la page, et c'est le bloc sombre.
+ *   · Le vocabulaire est CLIENTS. « Élève » appartient à `/coaches`, où
+ *     quelqu'un a choisi un professeur. ⛔ Jamais « votre équipe » (B20).
+ *     ⛔ « Suivi personnalisé » est interdit partout.
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * ── LA FORME: QUATRE BANDES, UNE PAR DOULEUR, PUIS L'OFFRE ───────────────────
+ *   1 `Pain`   — « mes clients s'entraînent sérieusement et mangent au hasard ».
+ *                Les anciennes sections `Money` et `Daily` se replient DEDANS:
+ *                le revenu n'est pas une douleur (c'est ce qui rend la réponse
+ *                achetable) et « réveillé à neuf heures un mardi » n'est pas un
+ *                argument séparé (c'est ce que « tenu chaque jour » veut dire).
+ *   2 `Monday` — « je les perds sans les voir partir ».
+ *   3 `House`  — « je n'ai pas de méthode à prêter, ni la légitimité d'en
+ *                écrire une ». Bloc sombre, un seul par page.
+ *   4 `Offer`  — le prix ET la clôture, fusionnés. Un seul CTA, deux fois.
+ *
+ * ── CE QUI A ÉTÉ SUPPRIMÉ, ET POURQUOI ÇA NE REVIENT PAS ─────────────────────
+ * `Lock` (le double verrou) appartient à `/coaches` (douleur 03) et au hall
+ * `/pro` (ligne 03). La grille ne l'a PAS donnée à `/gyms`, et une salle qui
+ * délègue à la doctrine de la maison n'a aucune ligne rouge à elle: la section
+ * contredirait la bande 3. Sa figure (`FigTrace`) est partie avec elle.
+ * `FigThread` (le fil du soir) est partie aussi: le tap du soir posé sur une
+ * page de vente ressemble à du suivi, ce que la grille reproche déjà à `/pro`.
+ *
+ * ── TROIS CLAIMS SONT RETIRÉS DE CETTE PAGE. NE PAS LES RÉÉCRIRE ─────────────
+ * B2 « 6 € quand votre MEMBRE a payé son année » — FAUX, l'intervalle annuel est
+ * celui du COACH (`stripe-create-checkout-session:124-125` lit `body.interval`,
+ * posé par les boutons de facturation du coach); remplacé par B3 dans
+ * `gyms.price.annual`. · B16 « quelles convictions vos clients tiennent ou
+ * lâchent » — RIEN ne le calcule; `source_belief_key` a un seul lecteur front et
+ * c'est la semaine de l'élève (`weekPlan.ts:36-37`). Supprimé, sans remplacement.
+ * · B18 « c'est votre nom sur les messages » — FAUX, l'agent s'appelle Sophia
+ * partout et il n'existe AUCUNE personnalisation de marque: ni colonne, ni
+ * écran, ni chaîne. ⛔ Et surtout pas de white-label (B19). La bande 3 dit
+ * l'exact contraire, et c'est vérifiable: l'agent signe « Sophia ».
+ *
+ * ── LES SILENCES (audit §9). Les douze lient; quatre mordent ici ─────────────
+ * S4 aucun « rien à installer / rien à connecter » sous quelque forme que ce
+ * soit — la phrase de l'ancien `gyms.hero.note` est partie avec. · S8 aucun
+ * chiffre sans source, ET SURTOUT AUCUN CHIFFRE DE RÉTENTION: B31 est la
+ * meilleure ligne des trois anciennes pages et elle est portée VERBATIM dans
+ * `gyms.money.close`. · S9 aucune bande de risque, aucune tuile « on track »,
+ * aucun score d'adhérence. · S10 une maquette cite le vrai champ mot pour mot,
+ * ou ce n'est pas une maquette (`FigMonday`). · S12 aucun SKU client dans
+ * Stripe, et `gyms.price.billing_note` le dit à voix haute.
+ *
+ * ⚠️ B12/B13 — LA PAGE NE PRÉTEND NULLE PART CITER LA SYNTHÈSE. B13 est la
+ * violation nommée de l'interdit §8 n°12 (paraphraser en annonçant du verbatim:
+ * le moteur dit « built », pas « wrote »). Ce qui est cité ici l'est dans la
+ * figure, et seulement des libellés d'écran vérifiés un par un.
+ *
+ * DESIGN — `docs/keel/CHARTE-VITRINE.md`, direction « la fiche ». Fond clair, UN
+ * bloc sombre (la délégation), l'équerre qui ouvre ce qui est SPÉCIFIÉ, quatre
+ * figures. ⛔ Aucune photographie: le produit ne fabrique aucune image, donc une
+ * assiette ici serait une assiette que personne n'a cuisinée — et une fausse
+ * photo d'assiette peinte en `emerald-300`/`amber-200` a DÉJÀ été trouvée et
+ * retirée sur cette page (CHARTE §5). Aucune couleur d'état en décor, jamais.
+ * Et `/gyms` est un lien qu'on a REÇU: pas de redirection si l'on est connecté,
+ * sinon le lien transféré a l'air cassé.
  */
 
 // Hoisted: `SEO` holds `structuredData` in a `useEffect` dependency array, so an inline
@@ -60,16 +111,10 @@ export function GymsLandingPage() {
         canonical={`${LEGAL_ENTITY.siteUrl}/gyms`} structuredData={GYMS_STRUCTURED_DATA} />
       <PublicHeader />
       <main>
-        <Hero />
-        <Money />
-        <Daily />
+        <Pain />
         <Monday />
-        {/* ICI, ET PAS AILLEURS: le lecteur vient de voir ce que l'agent écrit, c'est le seul
-            moment où « et celui qui l'a écrite, c'est TOI » est une condition, pas une clause. */}
-        <Fit />
-        <Lock />
-        <Pricing />
-        <Closing />
+        <House />
+        <Offer />
       </main>
       <PublicFooter />
     </div>
@@ -91,86 +136,89 @@ function Section({ alt = false, children }: { alt?: boolean; children: React.Rea
 }
 
 /** Sur les 280 px utiles d'un 320, le texte d'une figure tombe à 5-7 px: `fig-scroll` lui
- *  donne une largeur plancher et fait défiler SON conteneur, jamais la page. */
+ *  donne une largeur plancher et fait défiler SON conteneur, jamais la page. `min-w-0` sur
+ *  l'enveloppe est la seconde moitié de la garde — sans lui, `min-width: auto` remonte le
+ *  plancher de 380 px jusqu'à la piste de grille et c'est la PAGE qui défile. */
 function Figure({ children, dark = false }: { children: React.ReactNode; dark?: boolean }) {
   return <div className={dark ? "fig-scroll on-dark" : "fig-scroll"}>{children}</div>;
 }
 
-/** Un seul CTA sur la page, répété trois fois, sans offre concurrente à côté. */
+/** Un seul CTA sur la page, répété deux fois, sans offre concurrente à côté. */
 function Cta({ labelKey }: { labelKey: MessageKey }) {
   const cls =
-    "inline-flex items-center justify-center rounded-full bg-fig-700 px-6 py-3 text-base font-medium text-paper transition-colors hover:bg-fig-800";
+    "inline-flex items-center justify-center rounded-full bg-fig-700 px-6 py-3 text-[1rem] font-medium text-paper transition-colors hover:bg-fig-800";
   return <Link to="/auth?role=coach" className={cls}>{t(labelKey)}</Link>;
 }
 
-function Hero() {
+/**
+ * BANDE 1 — douleur 01: « mes clients s'entraînent sérieusement et mangent au hasard ».
+ *
+ * Besoin: que la moitié qui décide du résultat soit couverte SANS embaucher un
+ * nutritionniste. Réponse: un palier nutrition tenu chaque jour, que la salle vend et
+ * facture ce qu'elle veut. Les trois mouvements de la bande sont donc: la douleur (le
+ * héros), « tenu chaque jour » (ce que le client reçoit), et « vous le vendez » (ce que
+ * la salle encaisse). Aucun n'est une bande à part: ce sont les trois moitiés d'une même
+ * réponse.
+ */
+function Pain() {
   return (
     <Section>
       <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16">
         <div>
           <Kicker>{t("gyms.hero.eyebrow")}</Kicker>
-          <h1 className="mt-4 max-w-[16ch] text-balance font-display text-hero">{t("gyms.hero.title")}</h1>
+          <h1 className="mt-4 max-w-[18ch] text-balance font-display text-hero">{t("gyms.hero.title")}</h1>
+          {/* fact: 3 × 7 est l'arithmétique du monde, pas un chiffre du dépôt. Et c'est le
+              CLIENT qui s'entraîne — la salle ne coache pas (grille, section « Salles »). */}
           <p className="mt-6 max-w-[62ch] text-lede text-ink-soft">{t("gyms.hero.lede")}</p>
           <div className="mt-8"><Cta labelKey="gyms.hero.cta" /></div>
           {/* fact: B5 — 20260727235000_keel_billing_seats.sql:110-136 */}
           <p className="mt-4 max-w-[52ch] text-sm text-ink-soft">{t("gyms.hero.trial_note")}</p>
-          {/* fact: B32 — coach-invite-student-v1:5-32 ; C17 — aucune intégration n'existe */}
-          <p className="mt-2 max-w-[52ch] text-sm text-ink-soft">{t("gyms.hero.note")}</p>
         </div>
-        <Figure><FigWeek /></Figure>
+        <div className="min-w-0"><Figure><FigWeek /></Figure></div>
       </div>
-    </Section>
-  );
-}
 
-function Money() {
-  return (
-    <Section alt>
-      <Kicker>{t("gyms.money.eyebrow")}</Kicker>
-      <SectionTitle>{t("gyms.money.title")}</SectionTitle>
-      <div className="mt-8 grid gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-start lg:gap-16">
+      {/* Les deux moitiés de la réponse — « tenu chaque jour » et « vous le vendez » —
+          s'empilent dans la colonne de texte, la figure tient l'autre. Mesuré: en deux
+          colonnes de texte à égalité, la colonne courte laissait 500 px de blanc mort
+          sous elle à 1280. */}
+      <div className={TWO_COL.replace("mt-8", "mt-14 border-t border-line pt-10")}>
         <div className="max-w-[62ch]">
-          {/* fact: B1 — stripe-create-checkout-session:120-125 ; B4 — stripe-reconcile-seats:18-35 */}
-          <p className={`${BODY} text-ink-soft`}>{t("gyms.money.body")}</p>
-          {/* fact: B31 — rien dans le dépôt ne mesure le churn contre un témoin */}
-          <p className={`mt-6 ${BODY}`}>{t("gyms.money.close")}</p>
+          <h2 className="font-display text-sub">{t("gyms.day.title")}</h2>
+          {/* fact: B10 — quatre points d'injection: run.ts:2414 (chat) ·
+              generate-week-plan-v1:618 · generate-meal-v1:1122 ·
+              generate-household-meal-v1:2338 — les quatre sont `doctrineBlockFor(doctrine)`.
+              ⚠️ Les huit numéros recopiés de l'audit pointaient des fragments de commentaire:
+              revérifiés un par un le 2026-08-13. ⛔ Jamais « chaque message » (B7/B8). */}
+          <p className={`mt-4 ${BODY} text-ink-soft`}>{t("gyms.day.body")}</p>
+          <h2 className="mt-10 border-t border-line pt-8 font-display text-sub">{t("gyms.money.title")}</h2>
+          {/* fact: B1 — stripe-create-checkout-session:120-125 (le siège est le seul poste) ;
+              B4 — stripe-reconcile-seats:18-35 recalcule depuis le registre, jamais un incrément */}
+          <p className={`mt-4 ${BODY} text-ink-soft`}>{t("gyms.money.body")}</p>
         </div>
-        <div>
+        <div className="min-w-0 lg:w-[460px]">
           {/* fact: B30 — juste ET étiqueté « exemple »: c'est la paire qui rend crédible */}
           <Figure><FigMoney /></Figure>
-          <p className="mt-3 max-w-[62ch] text-sm text-ink-soft">{t("gyms.money.caption")}</p>
+          <p className="mt-3 text-sm text-ink-soft">{t("gyms.money.caption")}</p>
         </div>
       </div>
+
+      {/* fact: B31 — VERBATIM, et c'est délibéré: rien dans le dépôt ne mesure le churn
+          contre un témoin, et c'est ici qu'un chiffre inventé se vendrait le mieux (S8). */}
+      <p className="mt-12 max-w-[62ch] border-t border-line pt-8 text-lede text-ink">
+        {t("gyms.money.close")}
+      </p>
     </Section>
   );
 }
 
-function Daily() {
-  return (
-    <Section>
-      <Kicker>{t("gyms.daily.eyebrow")}</Kicker>
-      <SectionTitle>{t("gyms.daily.title")}</SectionTitle>
-      <div className={TWO_COL}>
-        <div className="max-w-[62ch]">
-          {/* fact: B22 — daily_pulse.ts, 3 niveaux ; B23 — level !== "good": « So-so » relance */}
-          <p className={`${BODY} text-ink-soft`}>{t("gyms.daily.body")}</p>
-          <div className="mt-8 border-t border-line pt-6">
-            <h3 className="font-display text-sub">{t("gyms.daily.quiet_title")}</h3>
-            {/* fact: B21 — reengagement.ts:45,53,211-213 ; B24 — les heures calmes ne valent
-                que pour la relance, le tap du soir peut tomber à 21 h 50 (S5) */}
-            <p className={`mt-3 ${BODY} text-ink-soft`}>{t("gyms.daily.quiet_body")}</p>
-          </div>
-        </div>
-        <div className="lg:w-[420px]">
-          {/* fact: S10 — mot pour mot: daily_pulse.ts:85-92,114-115 · chat.title/subtitle/send */}
-          <Figure><FigThread /></Figure>
-          <p className="mt-3 text-sm text-ink-soft">{t("gyms.daily.fig_caption")}</p>
-        </div>
-      </div>
-    </Section>
-  );
-}
-
+/**
+ * BANDE 2 — douleur 02: « je les perds sans les voir partir ».
+ *
+ * ⛔ Aucune bande de risque, aucune tuile « on track », aucun score d'adhérence (S9, B15):
+ * l'évaluateur d'adhérence est déprogrammé en 1:N, donc la valeur est nulle et l'afficher
+ * serait vendre un chiffre mort. Le seul « chiffre » de la figure est son ABSENCE, citée
+ * mot pour mot.
+ */
 function Monday() {
   return (
     <Section alt>
@@ -178,14 +226,24 @@ function Monday() {
       <SectionTitle>{t("gyms.monday.title")}</SectionTitle>
       <div className={TWO_COL}>
         <div className="max-w-[62ch]">
-          {/* fact: B11 — cron '0 6 * * 1', renderSynthesisText pur ; B14 — coach_synthesis:64-65 */}
+          {/* fact: B11 — cron '0 6 * * 1' (20260803090000_pivot_nutrition_crons.sql:90-116),
+              `renderSynthesisText` est PURE (coach_synthesis.ts:12-19,516-641) ;
+              B14 — CONTACT_SLIPPING_AFTER_HOURS = 48 / CONTACT_SILENT_AFTER_HOURS = 120
+              (coach_synthesis.ts:64-65), mesurés sur le dernier ENTRANT */}
           <p className={`${BODY} text-ink-soft`}>{t("gyms.monday.body")}</p>
           <p className={`mt-6 ${BODY}`}>{t("gyms.monday.close")}</p>
-          {/* fact: B17 — coach_synthesis_io.ts:171-187 */}
-          <p className={`eq mt-8 border-t border-line pt-6 ${BODY}`}>{t("gyms.monday.scope")}</p>
+          {/* fact: B17 — coach_synthesis_io.ts:171-187 (coach_clients.coach_id = :coachId) */}
+          {/* ⚠️ Le filet est sur l'ENVELOPPE, pas sur le paragraphe: `.eq::before` se pose à
+              `top: 0.18em` de la boîte, donc un `pt-6` sur le même élément fait flotter
+              l'équerre 24 px au-dessus de son mot — et une équerre sans mot à sa droite est
+              un défaut, pas une décoration (CHARTE §4). Mesuré ici. */}
+          <div className="mt-8 border-t border-line pt-6">
+            <p className={`eq ${BODY}`}>{t("gyms.monday.scope")}</p>
+          </div>
         </div>
-        <div className="lg:w-[420px]">
-          {/* fact: S10 — CoachWeeklyPage.tsx:192,231,272,282 · copy/flagReasons.ts */}
+        <div className="min-w-0 lg:w-[420px]">
+          {/* fact: S10 — mot pour mot: coach.weekly.title / .flagged_title / .no_number ·
+              coach.flag.slipping_contact / .silent_5d / .coverage_below_gate */}
           <Figure><FigMonday /></Figure>
           <p className="mt-3 text-sm text-ink-soft">{t("gyms.monday.fig_caption")}</p>
         </div>
@@ -194,116 +252,119 @@ function Monday() {
   );
 }
 
-/** La section dont le travail est de PERDRE une vente: qui délègue l'entretien récupère
- *  une doctrine remplie sous contrainte, donc un agent générique — le mode d'échec. */
-function Fit() {
-  return (
-    <Section>
-      <Kicker>{t("gyms.fit.eyebrow")}</Kicker>
-      <SectionTitle>{t("gyms.fit.title")}</SectionTitle>
-      {/* fact: B28 — doctrine.ts:38-43 (cache = hash) · coach-doctrine-v1:1263 (rollback) */}
-      <p className={`mt-6 max-w-[62ch] ${BODY} text-ink-soft`}>{t("gyms.fit.body")}</p>
-      <dl className="mt-10 grid gap-8 border-t border-line pt-8 sm:grid-cols-2 sm:gap-12">
-        {/* fact: B20 — tenancy coach → coach_clients → student, ni entité salle ni roster */}
-        <div>
-          <dt className="font-display text-sub">{t("gyms.fit.one_title")}</dt>
-          <dd className={`mt-3 max-w-[52ch] ${BODY} text-ink-soft`}>{t("gyms.fit.one_body")}</dd>
-        </div>
-        <div>
-          <dt className="font-display text-sub">{t("gyms.fit.no_title")}</dt>
-          <dd className={`mt-3 max-w-[52ch] ${BODY} text-ink-soft`}>{t("gyms.fit.no_body")}</dd>
-        </div>
-      </dl>
-    </Section>
-  );
-}
-
-/** ⚠️ FORMULATION B8b, ET PAS CELLE DES PAGES EN LIGNE, qui sur-vendent les deux.
- *  `withKeelDoctrineBlock` n'a QU'UN appelant, le composeur (run.ts:2348,7261): les lanes de
- *  skill rendent avant lui et ne le lisent pas (B7). Et « chaque message sortant » est faux —
- *  quatre surfaces sont scannées (chat, repas, semaines, reco du jour), quatre ne le sont pas
- *  (relance, récap du soir, bilan du dimanche, broadcast coach). */
-function Lock() {
+/**
+ * BANDE 3 — douleur 03: « je n'ai pas de méthode à prêter, et pas la légitimité d'en
+ * écrire une ». LE SEUL ARGUMENT NEUF DE LA PAGE, d'où le bloc sombre.
+ *
+ * C'est l'ancienne section `Fit` RETOURNÉE. Elle affirmait « ça ne marche que si la
+ * méthode est la vôtre » — vrai pour un coach, faux pour une salle, qui n'en a pas.
+ *
+ * ── L'ANCRE, ET POURQUOI ELLE TIENT ─────────────────────────────────────────────
+ * `coaches.doctrine_source = 'house'` (migration `20260806230000_doctrine_delegation.sql`).
+ * La résolution vit dans `_shared/keel/doctrine_delegation.ts` — une seule définition de
+ * « qui signe », et elle est câblée aux DEUX endroits qui signent:
+ *   · `doctrine_loader.ts:362` — le bloc de prompt ET la substitution du verrou de sortie ;
+ *   · `keel-coach-broadcast-v1:111` — le message hebdomadaire à la cohorte.
+ * Le module dit pourquoi les deux, et c'est le claim de `gyms.house.sign_body`: câblée
+ * dans un seul, la délégation donnerait au MÊME client un agent qui signe « Sophia » en
+ * conversation et « Marc » sur sa diffusion, la même semaine.
+ *
+ * La bascule est réversible dans les deux sens (`coach-doctrine-v1`, action
+ * `set_doctrine_source`; écran `DoctrineStartDialog.tsx`) et la doctrine éventuellement
+ * publiée avant n'est PAS touchée — elle dort.
+ *
+ * ⏳ LA RÉSERVE N'EST PAS NÉGOCIABLE. Le chemin existe; le CONTENU de cette doctrine de
+ * maison est en cours d'établissement. Une page qui promet une méthode maison déjà écrite
+ * ment aujourd'hui, et `gyms.house.reserve` est ce qui l'empêche.
+ *
+ * ⛔ Pas de section « double verrou » ici: une salle qui délègue n'a aucune ligne rouge à
+ * elle, donc rien à garantir en son nom. La réserve le dit en une ligne, pas en section.
+ */
+function House() {
   return (
     <section className="bg-fig-950 text-paper">
       <div className={SHELL}>
-        <Kicker onDark>{t("gyms.lock.eyebrow")}</Kicker>
-        <h2 className="mt-3 max-w-2xl text-balance font-display text-title">{t("gyms.lock.title")}</h2>
-        <p className={`mt-6 max-w-[62ch] ${BODY} text-fig-300`}>{t("gyms.lock.body")}</p>
-        <div className="mt-10 grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
-          <dl className="grid content-start gap-8">
-            {/* fact: B10 — run.ts:1441,2503 · week-plan:338,541 · meal:576,1038 · household:1602 */}
-            <div className="border-l-2 border-fig-300 pl-4">
-              <dt className="text-label font-semibold uppercase text-fig-300">{t("gyms.lock.l1_tag")}</dt>
-              <dd className={`mt-2 ${BODY}`}>{t("gyms.lock.l1")}</dd>
-            </div>
-            {/* fact: B8b — findDoctrineViolations sur le chat, keel_output_locks.ts:307 */}
-            <div className="border-l-2 border-paper pl-4">
-              <dt className="text-label font-semibold uppercase text-fig-300">{t("gyms.lock.l2_tag")}</dt>
-              <dd className={`mt-2 ${BODY}`}>{t("gyms.lock.l2")}</dd>
-            </div>
-            {/* fact: B9 — keel_output_locks.ts:99-113 · run.ts:2825-2834 */}
-            <p className={`${BODY} text-fig-300`}>{t("gyms.lock.instead")}</p>
-          </dl>
-          <div>
-            <Figure dark><FigTrace /></Figure>
-            <p className="mt-3 text-sm text-fig-300">{t("gyms.lock.trace_example")}</p>
-            {/* fact: B27 — CHECK …_doctrine_traceable_check ; portée: la SEMAINE seulement */}
-            <p className={`mt-6 border-t border-fig-700 pt-6 ${BODY}`}>{t("gyms.lock.traceable")}</p>
+        <Kicker onDark>{t("gyms.house.eyebrow")}</Kicker>
+        <h2 className="mt-3 max-w-2xl text-balance font-display text-title">{t("gyms.house.title")}</h2>
+        <div className="mt-10 grid gap-10 lg:grid-cols-2 lg:items-start lg:gap-16">
+          <div className="max-w-[62ch]">
+            {/* fact: coaches.doctrine_source = 'house' — 20260806230000_doctrine_delegation.sql.
+                L'agent signe du nom de la maison, jamais de celui de la salle: c'est une
+                DÉLÉGATION assumée, pas « une doctrine générique qui devient la vôtre ». */}
+            <p className={`${BODY} text-fig-300`}>{t("gyms.house.body")}</p>
+            <dl className="mt-8 grid gap-6 border-t border-fig-700 pt-8">
+              {/* fact: doctrine_delegation.ts — resolveDoctrineOwner appelée par
+                  doctrine_loader.ts:362 ET keel-coach-broadcast-v1:111 */}
+              <div className="border-l-2 border-fig-300 pl-4">
+                <dt className="font-display text-sub">{t("gyms.house.sign_title")}</dt>
+                <dd className={`mt-2 max-w-[52ch] ${BODY} text-fig-300`}>{t("gyms.house.sign_body")}</dd>
+              </div>
+              {/* fact: B20 — la tenancy est coach → coach_clients → student: ni entité salle,
+                  ni roster multi-coach. C'est écrit ici pour que « votre équipe » ne
+                  s'installe jamais dans une édition ultérieure. */}
+              <div className="border-l-2 border-fig-300 pl-4">
+                <dt className="font-display text-sub">{t("gyms.house.one_title")}</dt>
+                <dd className={`mt-2 max-w-[52ch] ${BODY} text-fig-300`}>{t("gyms.house.one_body")}</dd>
+              </div>
+            </dl>
           </div>
+          <div className="min-w-0"><Figure dark><FigHouse /></Figure></div>
         </div>
-        <p className="mt-10 max-w-[52ch] text-balance font-display text-sub">{t("gyms.lock.close")}</p>
+        {/* fact: réversible dans les deux sens (coach-doctrine-v1 `set_doctrine_source`), la
+            doctrine publiée avant n'est pas touchée (decideDoctrineOwner) ; et ⏳ le contenu
+            de la doctrine de maison est EN COURS D'ÉTABLISSEMENT — ne pas retirer cette
+            seconde phrase tant que ce n'est pas faux. */}
+        <p className={`mt-12 max-w-[62ch] border-t border-fig-700 pt-8 ${BODY}`}>
+          {t("gyms.house.reserve")}
+        </p>
       </div>
     </section>
   );
 }
 
-function Pricing() {
+/**
+ * BANDE 4 — le prix ET la clôture, fusionnés. Le siège est le seul poste, et la page se
+ * ferme sur la phrase qui la résume, pas sur une seconde offre.
+ */
+function Offer() {
   return (
-    <Section alt>
+    <Section>
       <Kicker>{t("gyms.price.eyebrow")}</Kicker>
       <SectionTitle>{t("gyms.price.title")}</SectionTitle>
-      <div className="mt-8 grid gap-10 lg:grid-cols-[auto_1fr] lg:gap-16">
+      {/* `lg:items-start`: `PriceCard` porte `h-full`, donc sans ça la carte s'étire à la
+          hauteur de la colonne voisine et laisse 150 px de vide sous son dernier mot. */}
+      <div className="mt-8 grid gap-10 lg:grid-cols-[auto_1fr] lg:items-start lg:gap-16">
         <div className="sm:max-w-sm">
-          {/* fact: B1 — 7 €/membre/mois, aucun forfait plateforme */}
-          <PriceCard price={t("gyms.price.seat")} period={t("gyms.price.seat_period")} label={t("gyms.price.seat_label")} />
+          {/* fact: B1 — 7 €/client/mois, aucun forfait plateforme */}
+          <PriceCard price={formatPrice(PRICES.seat)} period={t("gyms.price.seat_period")} label={t("gyms.price.seat_label")} />
           {/* fact: B3 — un SIÈGE payé à l'année. ⚠️ Correction du claim FAUX B2, qui était ici */}
           <p className="mt-3 text-sm text-ink-soft">{t("gyms.price.annual")}</p>
         </div>
         <div className="max-w-[62ch]">
-          {/* fact: B4 — on cesse de payer au siège éteint ; B6 — zéro élève = `no_billable_seat` */}
+          {/* fact: B4 — on cesse de payer au siège éteint ; B6 — zéro client = `no_billable_seat` */}
           <p className={`${BODY} text-ink-soft`}>{t("gyms.price.why")}</p>
-          {/* fact: S12 — aucun SKU membre dans stripe-create-checkout-session */}
+          {/* fact: S12 — aucun SKU client dans stripe-create-checkout-session */}
           <p className="mt-4 text-sm text-ink-soft">{t("gyms.price.billing_note")}</p>
           <div className="mt-8 flex flex-wrap items-center gap-4">
             <Cta labelKey="gyms.price.cta" />
-            {/* fact: B5 — 14 jours, 3 élèves, puis ça s'arrête */}
+            {/* fact: B5 — 14 jours, 3 clients, puis ça s'arrête */}
             <span className="text-sm text-ink-soft">{t("gyms.price.trial_note")}</span>
           </div>
         </div>
       </div>
+      {/* Pas de « Sign in » ici: `PublicHeader` porte déjà cette porte, et un second lien à
+          côté du seul CTA de la page serait une seconde offre. */}
+      <p className="mt-12 max-w-[36ch] border-t border-line pt-8 text-balance font-display text-sub">
+        {t("gyms.close.line")}
+      </p>
     </Section>
   );
 }
 
-function Closing() {
-  return (
-    <Section>
-      <div className="mx-auto max-w-3xl text-center">
-        <h2 className="text-balance font-display text-title">{t("gyms.close.title")}</h2>
-        <div className="mt-8 flex justify-center"><Cta labelKey="gyms.close.cta" /></div>
-        {/* fact: B5 — la porte « Sign in » est déjà dans PublicHeader: un second lien ici
-            serait une seconde offre à côté du seul CTA de la page. */}
-        <p className="mt-4 text-sm text-ink-soft">{t("gyms.close.trial_note")}</p>
-      </div>
-    </Section>
-  );
-}
-
-// LES FIGURES — F1-F14. Deux épaisseurs (2 = le contour d'une chose réelle, 1 = une annotation),
+// LES FIGURES. Deux épaisseurs (2 = le contour d'une chose réelle, 1 = une annotation),
 // angles fermés, coordonnées entières, cinq jetons, `FIG` exactement DEUX fois par figure
-// (l'équerre et un seul objet), ni dégradé ni ombre ni `opacity`, et jamais émeraude, ambre,
-// rouge ni bleu — ces quatre familles appartiennent aux ÉTATS du produit.
+// (l'équerre et un seul objet), ni dégradé ni ombre ni `opacity`, et jamais émeraude,
+// ambre, rouge ni bleu — ces quatre familles appartiennent aux ÉTATS du produit.
 
 const FONT = "var(--font-sans)";
 const INK = "var(--ill-ink, #23191F)";
@@ -313,7 +374,7 @@ const WASH = "var(--ill-wash, #EFE0E9)";
 const FIG = "var(--ill-fig, #632C4C)";
 
 /** L'équerre n'encadre jamais, elle ouvre, et ne flotte JAMAIS seule: il y a toujours un mot à
- *  sa droite. Sans `label` — les deux maquettes — c'est le titre de l'app à l'intérieur de la
+ *  sa droite. Sans `label` — la maquette — c'est le titre de l'app à l'intérieur de la
  *  surface dont elle ouvre le coin, et le bras passe de 32 à 40. */
 function Eq({ label }: { label?: MessageKey }) {
   const arm = label ? 32 : 40;
@@ -325,9 +386,12 @@ function Eq({ label }: { label?: MessageKey }) {
   );
 }
 
-/** Figure 1 — la semaine d'un membre. Concept, 480×240. Les 21 repas sont LA pièce chaude;
+/** Figure 1 — la semaine d'un CLIENT. Concept, 480×240. Les 21 repas sont la pièce chaude;
  *  COMPTABLES et non proportionnels — aucune forme n'affirme une mesure que le produit ne
- *  calcule pas (F9), et 3 × 7 est l'arithmétique du monde, pas un chiffre du dépôt. */
+ *  calcule pas, et 3 × 7 est l'arithmétique du monde, pas un chiffre du dépôt.
+ *
+ *  ⚠️ Les libellés ont changé avec l'acheteur: la rangée du haut est ce que le client fait
+ *  DANS la salle, pas ce que la salle coache. */
 function FigWeek() {
   return (
     <svg viewBox="0 0 480 240" role="img" aria-labelledby="fw-t fw-d" fontFamily={FONT}>
@@ -383,47 +447,10 @@ function FigMoney() {
   );
 }
 
-/** Figure 3 — le fil du soir. MAQUETTE DE PRODUIT, 480×320, chaque chaîne citée mot pour mot
- *  (S10). Une maquette est une SURFACE, jamais un appareil: ni chrome de navigateur ni cadre
- *  de téléphone (F12 — il n'existe aucune application mobile, C17). */
-function FigThread() {
-  const pills = (y: number, keys: MessageKey[]) =>
-    keys.map((key, i) => (
-      <g key={key}>
-        <rect x={24 + i * 112} y={y} width="104" height="26" rx="12" fill={PAPER} stroke={SOFT} strokeWidth="1" />
-        <text x={76 + i * 112} y={y + 17} fontSize="11" textAnchor="middle" fill={INK}>{t(key)}</text>
-      </g>
-    ));
-  return (
-    <svg viewBox="0 0 480 320" role="img" aria-labelledby="ft-t ft-d" fontFamily={FONT}>
-      <title id="ft-t">{t("gyms.fig.thread_t")}</title>
-      <desc id="ft-d">{t("gyms.fig.thread_d")}</desc>
-      <Eq />
-      <rect x="8" y="8" width="464" height="304" rx="16" fill={WASH} stroke={SOFT} strokeWidth="1" />
-      <text x="28" y="46" fontSize="15" fontWeight="600" fill={FIG}>{t("gyms.fig.thread_app")}</text>
-      <text x="28" y="64" fontSize="9" fill={SOFT}>{t("gyms.fig.thread_sub")}</text>
-      <path d="M 24 78 L 456 78" stroke={SOFT} strokeWidth="1" />
-      <g fill={PAPER} stroke={SOFT} strokeWidth="1">
-        <rect x="24" y="94" width="270" height="34" rx="12" />
-        <rect x="24" y="180" width="270" height="34" rx="12" />
-        <rect x="24" y="266" width="344" height="32" rx="16" />
-        <rect x="380" y="266" width="76" height="32" rx="16" />
-      </g>
-      <g fontSize="11" fill={INK}>
-        <text x="40" y="116">{t("gyms.fig.thread_q1")}</text>
-        <text x="40" y="202">{t("gyms.fig.thread_q2")}</text>
-        <text x="418" y="286" textAnchor="middle">{t("gyms.fig.thread_send")}</text>
-      </g>
-      <text x="40" y="286" fontSize="11" fill={SOFT}>{t("gyms.fig.thread_composer")}</text>
-      {pills(138, ["gyms.fig.thread_b1", "gyms.fig.thread_b2", "gyms.fig.thread_b3"])}
-      {pills(224, ["gyms.fig.thread_a1", "gyms.fig.thread_a2", "gyms.fig.thread_a3"])}
-    </svg>
-  );
-}
-
-/** Figure 4 — le lundi. MAQUETTE DE PRODUIT, 480×248; le filet de 2 est l'idiome de l'app
- *  (`border-l-2`, CoachWeeklyPage.tsx:243). Les pastilles d'état sont en CONTOUR SOURD et
- *  jamais dans leur couleur (F10): pas d'instant sur une page de vente, le MOT porte l'état. */
+/** Figure 3 — le lundi. MAQUETTE DE PRODUIT, 480×248; le filet de 2 est l'idiome de l'app
+ *  (`border-l-2`, CoachWeeklyPage.tsx:306). Les pastilles d'état sont en CONTOUR SOURD et
+ *  jamais dans leur couleur: pas d'instant sur une page de vente, le MOT porte l'état. Et
+ *  la troisième ligne montre l'ABSENCE d'un chiffre — c'est S9 rendu visible. */
 function FigMonday() {
   const rows: [MessageKey, MessageKey, MessageKey, boolean][] = [
     ["gyms.fig.monday_n1", "gyms.fig.monday_r1", "gyms.fig.monday_s1", true],
@@ -457,32 +484,44 @@ function FigMonday() {
   );
 }
 
-/** Figure 5 — la trace. CONCEPT sur fond sombre, 480×240: une maquette de produit ne se pose
- *  JAMAIS sur du sombre (F12), le produit est en clair et un écran sombre montrerait un
- *  produit qui n'existe pas. `.on-dark` remonte l'équerre de 2,4:1 à 8,06:1. */
-function FigTrace() {
-  const step = (y: number, label: MessageKey, text: MessageKey, held = false, x = 40) => (<>
-    <text x={x} y={y + 20} fontSize="9" fontWeight="600" letterSpacing="1" fill={SOFT}>{t(label)}</text>
-    <text x={x} y={y + 38} fontSize="11" fill={held ? SOFT : PAPER} textDecoration={held ? "line-through" : undefined}>{t(text)}</text>
+/**
+ * Figure 4 — LA DÉLÉGATION ET LA SIGNATURE. CONCEPT sur fond sombre, 480×220.
+ *
+ * C'est la figure de l'argument neuf, et elle a UN seul travail: montrer que la salle
+ * n'écrit rien, et qu'un seul nom sort aux deux endroits où un client rencontre un nom.
+ * D'où la carte de gauche VIDE (contour de 2, remplissage nul: une chose réelle qui ne
+ * contient rien) et la fourche qui alimente les deux surfaces, chacune signée.
+ *
+ * ⚠️ CONCEPT, donc elle a le droit d'être sur du sombre — une MAQUETTE DE PRODUIT n'y a
+ * jamais droit (le produit est en clair uniquement, un écran sombre montrerait un produit
+ * qui n'existe pas). `.on-dark` remonte la pièce chaude de 2,4:1 à 8,06:1, et `--ill-ink`
+ * n'y est PAS utilisable: sur fond sombre, le contour d'une chose réelle est `PAPER`.
+ *
+ * ⛔ La flèche est DESSINÉE et non écrite: U+2192 n'existe dans aucune des deux polices.
+ * La fourche entière est UN seul `<path>` — la pièce chaude est un objet, pas six.
+ */
+function FigHouse() {
+  const surface = (y: number, label: MessageKey) => (<>
+    <rect x="254" y={y} width="202" height="52" rx="12" fill="none" stroke={PAPER} strokeWidth="2" />
+    <text x="270" y={y + 24} fontSize="9" fontWeight="600" letterSpacing="1" fill={SOFT}>{t(label)}</text>
+    <text x="270" y={y + 42} fontSize="12" fill={PAPER}>{t("gyms.fig.house_sign")}</text>
   </>);
   return (
-    <svg viewBox="0 0 480 240" role="img" aria-labelledby="fc-t fc-d" fontFamily={FONT}>
-      <title id="fc-t">{t("gyms.fig.trace_t")}</title>
-      <desc id="fc-d">{t("gyms.fig.trace_d")}</desc>
-      <Eq label="gyms.fig.trace_label" />
-      <g fill="none" stroke={SOFT} strokeWidth="1">
-        <rect x="24" y="44" width="432" height="48" rx="12" />
-        <rect x="24" y="104" width="432" height="48" rx="12" />
-        {/* La pastille « held »: contour sourd, et le mot réel dedans (F10). */}
-        <rect x="380" y="113" width="52" height="16" rx="8" />
-      </g>
-      <text x="406" y="124" fontSize="9" textAnchor="middle" fill={SOFT}>{t("gyms.fig.trace_held")}</text>
-      {step(44, "gyms.fig.trace_s1", "gyms.fig.trace_t1")}
-      {step(104, "gyms.fig.trace_s2", "gyms.fig.trace_t2", true)}
-      {/* Ce qui est parti: contour de 2, et le filet de l'app DEDANS — sous le contour, invisible. */}
-      <rect x="24" y="164" width="432" height="52" rx="12" fill="none" stroke={PAPER} strokeWidth="2" />
-      <path d="M 40 172 L 40 208" stroke={FIG} strokeWidth="2" strokeLinecap="round" />
-      {step(164, "gyms.fig.trace_s3", "gyms.fig.trace_t3", false, 56)}
+    <svg viewBox="0 0 480 220" role="img" aria-labelledby="fh-t fh-d" fontFamily={FONT}>
+      <title id="fh-t">{t("gyms.fig.house_t")}</title>
+      <desc id="fh-d">{t("gyms.fig.house_d")}</desc>
+      <Eq label="gyms.fig.house_label" />
+      {/* Ce que la salle a écrit: une chose réelle, et elle est vide. */}
+      <rect x="24" y="76" width="148" height="68" rx="12" fill="none" stroke={PAPER} strokeWidth="2" />
+      <text x="42" y="104" fontSize="9" fontWeight="600" letterSpacing="1" fill={SOFT}>{t("gyms.fig.house_gym")}</text>
+      <text x="42" y="126" fontSize="12" fill={PAPER}>{t("gyms.fig.house_gym_v")}</text>
+      {/* La fourche — un seul objet chaud, pointes comprises. */}
+      <path
+        d="M 180 110 L 206 110 M 206 74 L 206 158 M 206 74 L 246 74 M 206 158 L 246 158 M 238 68 L 246 74 L 238 80 M 238 152 L 246 158 L 238 164"
+        fill="none" stroke={FIG} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+      />
+      {surface(48, "gyms.fig.house_s1")}
+      {surface(132, "gyms.fig.house_s2")}
     </svg>
   );
 }

@@ -109,8 +109,24 @@ export function PriceCard({
   period: string;
   label: string;
 }) {
+  // ⚠️ `h-full` A ÉTÉ RETIRÉ LE 2026-08-13, ET C'EST LA MÊME JUSTIFICATION
+  // MORTE QUE `tabular-nums` CI-DESSOUS. Il servait à ce que deux cartes
+  // côte à côte fassent la même hauteur — or cette primitive INTERDIT
+  // délibérément une seconde carte (voir ci-dessus). Il n'y a jamais eu de
+  // sœur à égaliser.
+  //
+  // Ce qu'il faisait à la place, mesuré: posé en enfant direct d'une piste
+  // de grille qui a un frère plus haut, `height: 100%` étirait la carte à
+  // la hauteur de la colonne voisine — 500 px au lieu de 143 sur
+  // `/meal-prep`, et sur `/coaches` un chevauchement de 44 px avec la
+  // section suivante à 320 px, invisible à 1280.
+  //
+  // TROIS constructeurs de la refonte l'ont contourné chacun de son côté
+  // (`self-start`, une enveloppe, `lg:items-start`) sans savoir que les deux
+  // autres faisaient pareil. Un défaut de primitive était devenu une
+  // contrainte de composition sur trois pages.
   return (
-    <Card className="h-full">
+    <Card>
       {/* Le prix en display: c'est le seul chiffre d'une page de vente qui a le
           droit d'être un titre.
 

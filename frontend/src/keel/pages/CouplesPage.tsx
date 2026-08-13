@@ -1,13 +1,17 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import SEO from "../../components/SEO";
 import { LEGAL_ENTITY, organizationStructuredData } from "../../lib/legalEntity";
 import { PublicFooter, PublicHeader } from "../components/PublicHeader";
 import { Kicker, PriceCard, SectionTitle } from "../components/ui/Marketing";
+import { formatPrice } from "../i18n/format";
+import { PRICES } from "../i18n/prices";
+import { en } from "../i18n/en";
 import { t } from "../i18n/t";
 
 /**
  * `/couples` — LE COUPLE À OBJECTIFS DIVERGENTS. Namespace `couples`.
+ * Registre: VOUS (`fr.ts`, en-tête « le registre, et là où il bascule »).
  *
  * ── POURQUOI C'EST LA PAGE QUI DOIT ÊTRE LA MEILLEURE ──────────────────────
  * Tout le voisinage met à l'échelle une QUANTITÉ pour N personnes. Aucun ne
@@ -16,13 +20,33 @@ import { t } from "../i18n/t";
  * different nutrition targets »). C'est le seul endroit du marché où ce
  * produit est seul.
  *
- * ── L'ORDRE DES SECTIONS EST LE TRAJET D'UN DOUTE, PAS UN SOMMAIRE ─────────
- * 1. « On va devoir cuisiner deux fois. » → le hero et sa figure, avant tout
- *    texte: une casserole, deux parts décrites.
- * 2. « Mon partenaire ne s'en servira pas. » → `OtherProfile`. Les concurrents
- *    supposent deux comptes actifs alors qu'un seul des deux est motivé; ici
- *    l'autre est une bouche du foyer, avec ou sans compte (C8).
- * 3. « On tiendra quinze jours. » → `WeekHolds`: la semaine encaisse (C7).
+ * ── QUATRE BANDES, UNE PAR DOULEUR, DANS L'ORDRE QUI VEND ──────────────────
+ * Refonte « par la douleur » du 2026-08-13 (`scratchpad/site/GRILLE-DOULEURS.md`,
+ * section « À deux »). Une section = une ligne de la grille, et il n'y a pas de
+ * cinquième bande.
+ *
+ *   1. `Hero` — « Deux objectifs = deux casseroles = abandon. » Le plat est le
+ *      même; ce qui change est l'instruction de service. La DÉMONSTRATION porte
+ *      l'argument à la place du paragraphe.
+ *   2. `Bodies` — « Il mange deux fois plus que moi. » Même objectif, pas le
+ *      même corps. C'est ici que se dépense LE BLOC SOMBRE (un seul par page),
+ *      parce que c'est la seule bande où le produit dit ce qu'il sait d'un
+ *      corps — et où il doit dire dans la foulée ce qu'il n'en fera jamais.
+ *   3. `OtherProfile` — « Un seul des deux planifie. » Le profil réclamé donne
+ *      à l'autre son accès et son objectif: la charge se partage.
+ *   4. `Price` — le prix et la clôture, un seul CTA, le même qu'en haut.
+ *
+ * ── DEUX SECTIONS SONT MORTES À CETTE REFONTE, ET C'EST VOLONTAIRE ─────────
+ *  · `WeekHolds` (« la semaine encaisse sans être refaite », C7). C'est la
+ *    douleur 03 de `/meal-prep`, pas celle d'un couple. La garder faisait de
+ *    `/couples` une seconde page solo. Sa figure (`FigChat`, les quatre
+ *    `REALIGNMENT_ACTIONS`) part avec elle.
+ *  · `NotThis` comme BANDE. Son honnêteté ne meurt pas: elle se replie en
+ *    RÉSERVES dans les sections concernées — le « rien ne vérifie » sous la
+ *    démonstration, l'absence de courbe sous la bande du corps.
+ *  · La bande de trois faits sous le hero. « Six objectifs, six directions » et
+ *    « une phrase, pas un chiffre » étaient RACONTÉS; la démonstration les
+ *    MONTRE. Un fait montré et redit est un fait qu'on n'a pas cru montrer.
  *
  * ── CE QUE CETTE PAGE N'A PAS LE DROIT D'ÉCRIRE ────────────────────────────
  *  · UN GRAMME. La bifurcation est réelle en code (`SERVING_DIRECTION` sur 6
@@ -32,28 +56,27 @@ import { t } from "../i18n/t";
  *    qu'on n'a pas.
  *  · « GARANTI ». `reconcilePortions` accepte quatre consignes identiques sans
  *    lever d'`issue`: rien ne vérifie que le modèle a différencié.
+ *  · UNE COURBE, UNE TENDANCE, UN SUIVI DE POIDS (C16). `household_member_bodies`
+ *    est UNE ligne écrasée, ni date ni série.
  *  · UNE DURÉE D'ESSAI OU UN BOUTON D'ACHAT (AUDIT §8 n°1). Le prix se dit, la
  *    date et le geste d'achat non.
  *  · « ÉCHANGER UN PLAT »: `REALIGNMENT_ACTIONS` n'a pas de « remplacer ».
- *  · « RIEN À OUVRIR / RIEN À INSTALLER » sous quelque forme que ce soit (S4).
+ *  · « RIEN À OUVRIR / RIEN À INSTALLER » sous quelque forme que ce soit (S4),
+ *    ni aucune application mobile (C17).
  *  · « JAMAIS DE CALORIES »: faux depuis FF-059 (AUDIT §8 n°2).
  *  · UN RÔLE DE GENRE FIGÉ. La copie n'emploie aucun pronom personnel pour
- *    désigner le partenaire, et la figure étiquette les deux assiettes par
- *    l'OBJECTIF, jamais par la personne.
+ *    désigner le partenaire, et la démonstration étiquette ses deux colonnes
+ *    « l'un de vous » / « l'autre », jamais par une personne.
  *
  * ── DESIGN ────────────────────────────────────────────────────────────────
- * Charte « la fiche », déjà posée dans `tokens.css`. Aucune photographie: on
- * ne montre pas une assiette qu'on n'a pas cuisinée. Les trois figures sont
- * des concepts vus de dessus ou des fiches vues de face — jamais une maquette
- * d'écran, parce que `/app/household` rend ses libellés en ANGLAIS même à un
- * visiteur français (`household` n'est pas dans `PUBLIC_NAMESPACES`): une
- * maquette honnête y poserait une chaîne anglaise au milieu d'une page de
- * vente française, et une maquette traduite serait un écran qui n'existe pas.
- *
- * ⚠️ Le contrôle F8 de la charte (`grep -coE '(stroke|fill)="var\(--ill-fig'`)
- * rend **4** sur ce fichier, et c'est conforme: `FigCorner` est l'équerre
- * PARTAGÉE par les trois figures. Chaque figure RENDUE en porte donc deux —
- * son équerre et son unique objet chaud.
+ * Charte « la fiche » (`docs/keel/CHARTE-VITRINE.md`). Aucune photographie: on
+ * ne montre pas une assiette qu'on n'a pas cuisinée. Et aucune maquette
+ * d'écran, ni ici ni dans la démonstration — `/app/household` rend ses libellés
+ * en ANGLAIS même à un visiteur français (`household` n'est pas dans
+ * `TRANSLATED_NAMESPACES`): une maquette honnête y poserait une chaîne anglaise
+ * au milieu d'une page de vente française, et une maquette traduite serait un
+ * écran qui n'existe pas. La démonstration est donc une FICHE, jamais une
+ * capture (S10, AUDIT §8 n°12).
  */
 
 const WRAP = "mx-auto w-full max-w-[1200px] px-5 sm:px-8";
@@ -96,6 +119,360 @@ function StartLink({ label }: { label: string }) {
   );
 }
 
+// ---------------------------------------------------------------------------
+// LA DÉMONSTRATION — LA GRAMMAIRE DE SERVICE, LUE ET JAMAIS RECOPIÉE
+// ---------------------------------------------------------------------------
+//
+// ⚠️ CE BLOC EST UN PORTAGE DE LECTEUR, PAS UNE SECONDE TABLE DE RÉSULTATS, ET
+// LA DISTINCTION EST TOUT. `_shared/keel/household_portions.ts` écrit en toutes
+// lettres pourquoi son propre tableau d'axes est LU dans les six chaînes plutôt
+// qu'écrit à côté d'elles: `health` a rendu EXACTEMENT la chaîne de
+// `maintenance` pendant des semaines sans que rien n'échoue. Une table
+// `{ fat_loss: { protein: "full", … } }` recopiée ici raconterait ce que les
+// chaînes disaient LE JOUR OÙ ON L'A ÉCRITE.
+//
+// Ce qui est porté est la GRAMMAIRE (sept qualificatifs, quatre noms d'axes, le
+// raccourci `component`) — dix mots fermés que le module écrit lui-même. Ce qui
+// n'est PAS porté, et ne le sera jamais, c'est le résultat de son application.
+//
+// ⚠️ ET C'EST L'ANGLAIS QU'ON LIT, TOUJOURS. La grammaire est anglaise; donner
+// à ce lecteur la traduction française rendrait `unreadable` sur les trois axes
+// — et un écran de vente vide en français que personne ne verrait en anglais.
+// D'où l'import du seed `en` plutôt qu'un appel à `t()` (voir `EN_DIRECTION`).
+
+const SERVING_AXES = ["protein", "starch", "vegetables"] as const;
+type ServingAxis = (typeof SERVING_AXES)[number];
+
+/** L'échelle, du moins au plus. L'ordre EST le sens dans le module. */
+type ServingDemand = "smaller" | "moderate" | "balanced" | "full" | "larger";
+
+/**
+ * `null` = l'axe n'est pas nommé par la direction, donc elle n'en demande RIEN.
+ * `"unreadable"` = l'axe est nommé mais aucun qualificatif ne le gouverne.
+ */
+type AxisDemand = ServingDemand | "unreadable" | null;
+
+const QUALIFIERS: Record<string, ServingDemand> = {
+  generous: "larger",
+  larger: "larger",
+  full: "full",
+  moderate: "moderate",
+  balanced: "balanced",
+  // « same vegetables » = la part de tout le monde, donc l'équilibre.
+  same: "balanced",
+  smaller: "smaller",
+};
+
+const AXIS_WORDS: Record<string, ServingAxis> = {
+  protein: "protein",
+  starch: "starch",
+  vegetable: "vegetables",
+  vegetables: "vegetables",
+};
+
+/** `share of every component` — le raccourci qui gouverne les trois axes. */
+const EVERY_COMPONENT = "component";
+
+/**
+ * Un qualificatif gouverne les noms d'axes qui le SUIVENT, jusqu'au prochain
+ * qualificatif. Un axe nommé sans qualificatif devant lui rend `"unreadable"`:
+ * on ne devine pas. C'est mot pour mot `readServingDemands` du module.
+ */
+function readServingDemands(direction: string): Record<ServingAxis, AxisDemand> {
+  const out: Record<ServingAxis, AxisDemand> = {
+    protein: null,
+    starch: null,
+    vegetables: null,
+  };
+  let current: ServingDemand | null = null;
+  for (const word of direction.toLowerCase().split(/[^a-z]+/).filter(Boolean)) {
+    const qualifier = QUALIFIERS[word];
+    if (qualifier) {
+      current = qualifier;
+      continue;
+    }
+    if (word === EVERY_COMPONENT) {
+      for (const axis of SERVING_AXES) out[axis] = current ?? "unreadable";
+      continue;
+    }
+    const axis = AXIS_WORDS[word];
+    if (axis) out[axis] = current ?? "unreadable";
+  }
+  return out;
+}
+
+/** Les six valeurs de `MEMBER_GOALS`, dans l'ordre du CHECK de la base. */
+const GOAL_IDS = [
+  "fat_loss",
+  "muscle_gain",
+  "recomposition",
+  "performance",
+  "health",
+  "maintenance",
+] as const;
+type GoalId = (typeof GOAL_IDS)[number];
+
+/**
+ * LES SIX CHAÎNES ANGLAISES, PRISES DANS LE SEED — jamais retapées ici.
+ *
+ * `couples.dir.*` porte les valeurs de `SERVING_DIRECTION` mot pour mot, et
+ * `i18n/servingDirections.int.test.ts` les épingle contre le module Deno. Lire
+ * `en[...]` plutôt que `t(...)` est ce qui garantit que le lecteur ci-dessus
+ * voit toujours l'anglais, y compris sur une page rendue en français.
+ *
+ * Les six clés sont écrites en toutes lettres: une clé construite par gabarit
+ * compile et ne prouve plus rien.
+ */
+const EN_DIRECTION: Record<GoalId, string> = {
+  fat_loss: en["couples.dir.fat_loss"],
+  muscle_gain: en["couples.dir.muscle_gain"],
+  recomposition: en["couples.dir.recomposition"],
+  performance: en["couples.dir.performance"],
+  health: en["couples.dir.health"],
+  maintenance: en["couples.dir.maintenance"],
+};
+
+// Les trois tables de libellés sont des `switch` et non des `Record` construits
+// au module: `t()` doit être appelé PENDANT le rendu pour qu'un changement de
+// langue se voie, et chaque clé doit rester écrite en toutes lettres.
+function goalLabel(id: GoalId): string {
+  switch (id) {
+    case "fat_loss": return t("couples.goal.fat_loss");
+    case "muscle_gain": return t("couples.goal.muscle_gain");
+    case "recomposition": return t("couples.goal.recomposition");
+    case "performance": return t("couples.goal.performance");
+    case "health": return t("couples.goal.health");
+    case "maintenance": return t("couples.goal.maintenance");
+  }
+}
+
+function directionLabel(id: GoalId): string {
+  switch (id) {
+    case "fat_loss": return t("couples.dir.fat_loss");
+    case "muscle_gain": return t("couples.dir.muscle_gain");
+    case "recomposition": return t("couples.dir.recomposition");
+    case "performance": return t("couples.dir.performance");
+    case "health": return t("couples.dir.health");
+    case "maintenance": return t("couples.dir.maintenance");
+  }
+}
+
+function axisLabel(axis: ServingAxis): string {
+  switch (axis) {
+    case "protein": return t("couples.axis.protein");
+    case "starch": return t("couples.axis.starch");
+    case "vegetables": return t("couples.axis.vegetables");
+  }
+}
+
+/**
+ * ⚠️ `unreadable` est INATTEIGNABLE avec les six chaînes d'aujourd'hui, et il
+ * a quand même son mot. C'est le contrat du module: le jour où une direction
+ * sort du vocabulaire fermé, la lecture rend `unreadable` plutôt qu'une valeur
+ * devinée — et une branche muette afficherait alors « rien de demandé », qui
+ * est un fait FAUX plutôt qu'un aveu.
+ */
+function demandLabel(demand: AxisDemand): string {
+  if (demand === null) return t("couples.demand.none");
+  switch (demand) {
+    case "smaller": return t("couples.demand.smaller");
+    case "moderate": return t("couples.demand.moderate");
+    case "balanced": return t("couples.demand.balanced");
+    case "full": return t("couples.demand.full");
+    case "larger": return t("couples.demand.larger");
+    case "unreadable": return t("couples.demand.unreadable");
+  }
+}
+
+/**
+ * LA CASSEROLE, vue de dessus. La seule pièce chaude de la démonstration.
+ *
+ * Elle n'est PAS dans un `.fig-scroll`: elle ne porte aucun texte, donc le
+ * plancher de 380px n'a rien à protéger, et l'imposer ferait défiler une fiche
+ * qui tient à 320px. Son nom accessible est la légende qui la suit — l'équerre
+ * de la fiche est portée par le `Kicker`, en HTML.
+ */
+function PotMark() {
+  return (
+    <svg
+      viewBox="0 0 200 94"
+      role="img"
+      aria-labelledby="cpl-pot-caption"
+      className="h-auto w-full max-w-[172px]"
+    >
+      <g
+        fill="var(--ill-paper, #FBF8FA)"
+        stroke="var(--ill-fig, #632C4C)"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      >
+        <rect x="18" y="39" width="26" height="16" rx="8" />
+        <rect x="156" y="39" width="26" height="16" rx="8" />
+        <circle cx="100" cy="47" r="40" />
+      </g>
+      <circle cx="100" cy="47" r="30" fill="var(--ill-wash, #EFE0E9)" />
+    </svg>
+  );
+}
+
+/**
+ * UNE COLONNE = UNE PERSONNE. Objectif choisi, direction de service rendue,
+ * et ce que cette direction demande axe par axe.
+ *
+ * ── LES SIX CHOIX SONT DE VRAIS `<input type="radio">` ────────────────────
+ * Pas un `role="radiogroup"` à la main: les flèches du clavier, l'annonce de
+ * l'état coché et l'unicité du choix sont alors du navigateur, pas de nous. Le
+ * champ est `sr-only` et la puce visible est son `<label>`, ce qui laisse
+ * l'anneau de focus au `peer-focus-visible` — `tokens.css` ne cible que
+ * `a, button, [tabindex]`, donc un `<input>` n'en hérite pas.
+ *
+ * ⚠️ LA PUCE COCHÉE EST FIGUE, ET CE N'EST PAS UNE PASTILLE D'ÉTAT. La charte
+ * interdit la figue dans une pastille parce que la pastille appartient aux
+ * états de l'app. Ceci est un CONTRÔLE: `rx 4` (la petite pièce, celle des
+ * gestes) et non le rond des pastilles, et exactement la teinte du bouton
+ * plein juste à côté.
+ */
+function PersonColumn({
+  name,
+  legend,
+  goal,
+  onPick,
+}: {
+  name: string;
+  legend: string;
+  goal: GoalId;
+  onPick: (goal: GoalId) => void;
+}) {
+  const demands = readServingDemands(EN_DIRECTION[goal]);
+  return (
+    <div className="flex min-w-0 flex-col rounded border border-line bg-paper p-4">
+      <fieldset className="m-0 min-w-0 border-0 p-0">
+        <legend className="eq p-0 text-label font-semibold uppercase text-ink-soft">
+          {legend}
+        </legend>
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {GOAL_IDS.map((id) => (
+            <label key={id} className="cursor-pointer">
+              <input
+                type="radio"
+                name={name}
+                value={id}
+                checked={goal === id}
+                onChange={() => onPick(id)}
+                className="peer sr-only"
+              />
+              {/* `py-2` et pas moins: la puce fait alors ~31px de haut, au-dessus
+                  du minimum de 24×24 de WCAG 2.2 pour une cible de pointage. */}
+              <span className="inline-block rounded border border-line-strong px-2.5 py-2 text-[13px] leading-none text-ink transition-colors hover:border-fig-600 peer-checked:border-fig-700 peer-checked:bg-fig-700 peer-checked:text-paper peer-focus-visible:outline-2 peer-focus-visible:outline-offset-[3px] peer-focus-visible:outline-fig-600">
+                {goalLabel(id)}
+              </span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      {/* L'état courant est ANNONCÉ, pas seulement coloré: la radio dit ce
+          qu'elle coche, et cette région dit ce que ça change.
+
+          ⚠️ `grow` + `mt-auto` SUR LA LISTE D'AXES, ET C'EST UNE CORRECTION
+          MESURÉE. Les deux consignes ne font pas le même nombre de lignes (une
+          en français, quatre pour `performance`), donc les deux tableaux
+          d'axes démarraient à 30px l'un de l'autre — or c'est LIGNE PAR LIGNE
+          qu'on les compare, et c'est tout l'objet de la fiche. Les deux
+          cartes étant déjà de même hauteur (`stretch` de la grille), coller
+          les tableaux EN BAS les aligne quel que soit le couple d'objectifs
+          choisi. Un `min-height` calculé sur le pire cas laissait, lui, un
+          trou de trois lignes sous « part équilibrée de chaque composant ». */}
+      {/* `role="status"` EN PLUS de `aria-live`: la région n'est pas seulement
+          « vivante », elle EST le résultat du geste. Les trois démonstrations du
+          site s'annoncent de la même façon — voir `CoachesPage.tsx:384`. */}
+      <div className="mt-4 flex grow flex-col border-t border-line pt-4" role="status" aria-live="polite">
+        <p className="text-label font-semibold uppercase text-ink-soft">
+          {t("couples.demo.direction_label")}
+        </p>
+        {/* fact: C4 — `SERVING_DIRECTION`, household_portions.ts:125-151. Six
+            chaînes DISTINCTES; `health` a cessé de rendre celle de
+            `maintenance` le 2026-08-11. */}
+        <p className="mt-2 text-[15px] leading-relaxed text-ink">{directionLabel(goal)}</p>
+        {/* fact: C4 — `readServingDemands`, household_portions.ts:264-283. Les
+            axes sont LUS dans la chaîne ci-dessus, jamais recopiés. */}
+        <dl className="mt-auto pt-3">
+          {SERVING_AXES.map((axis) => (
+            <div
+              key={axis}
+              className="flex items-baseline justify-between gap-3 border-t border-line py-1.5"
+            >
+              <dt className="text-[13px] text-ink-soft">{axisLabel(axis)}</dt>
+              <dd className="m-0 text-[13px] font-medium text-ink">
+                {demandLabel(demands[axis])}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * LA FICHE DES DEUX PARTS — la démonstration de la page.
+ *
+ * ── ELLE EST DÉJÀ JUSTE SANS UN GESTE ─────────────────────────────────────
+ * Deux objectifs par défaut, deux directions rendues, six axes lisibles: un
+ * lecteur qui ne touche à rien voit déjà l'argument entier. L'interaction ne
+ * révèle rien, elle laisse vérifier.
+ *
+ * Les deux défauts sont `muscle_gain` et `fat_loss` parce que ce sont les deux
+ * directions qui divergent le plus (protéine et féculent en sens contraire): le
+ * premier coup d'œil doit tomber sur la démonstration, pas sur deux colonnes
+ * qui se ressemblent.
+ *
+ * ⚠️ CE N'EST PAS UNE CAPTURE D'ÉCRAN. Ni barre d'app, ni cadre d'appareil, ni
+ * bouton du produit: la consigne de service que le foyer lit sur
+ * `/app/household` est RÉDIGÉE par le modèle à partir de la direction montrée
+ * ici, dans la langue de l'élève. Montrer la direction pour la consigne serait
+ * montrer un écran qu'on n'a pas — d'où le libellé, qui dit « envoyée en
+ * cuisine », et la légende, qui dit ce que l'écran rend à la place.
+ */
+function ServingDemo() {
+  const [left, setLeft] = useState<GoalId>("muscle_gain");
+  const [right, setRight] = useState<GoalId>("fat_loss");
+  return (
+    <section
+      aria-label={t("couples.demo.eyebrow")}
+      className="min-w-0 rounded-lg border border-line bg-paper-2 p-4 sm:p-5"
+    >
+      <Kicker>{t("couples.demo.eyebrow")}</Kicker>
+
+      <div className="mt-5 flex flex-col items-center">
+        <PotMark />
+        {/* fact: C4 — `COOKING_SHAPE_LINES.one_dish`, household_portions.ts:339
+            « Cook ONE set of preparations for everyone. » */}
+        <p id="cpl-pot-caption" className="mt-2 text-[13px] text-ink-soft">
+          {t("couples.demo.pot")}
+        </p>
+      </div>
+
+      <p className="mt-5 text-[13px] text-ink-soft">{t("couples.demo.hint")}</p>
+
+      <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <PersonColumn
+          name="cpl-goal-left"
+          legend={t("couples.demo.person_a")}
+          goal={left}
+          onPick={setLeft}
+        />
+        <PersonColumn
+          name="cpl-goal-right"
+          legend={t("couples.demo.person_b")}
+          goal={right}
+          onPick={setRight}
+        />
+      </div>
+    </section>
+  );
+}
+
 /** L'équerre en SVG — même géométrie que la classe `.eq`, et jamais sans mot. */
 function FigCorner() {
   return (
@@ -111,79 +488,10 @@ function FigEyebrow({ children }: { children: React.ReactNode }) {
 }
 
 /**
- * FIGURE A — une casserole, deux parts. La figure centrale du site.
- *
- * LES DEUX ASSIETTES SONT LE MÊME ÉLÉMENT, appelé deux fois par `<use>`. La
- * promesse « c'est le même plat » est tenue par la structure du fichier, pas
- * par la vigilance du relecteur — et des secteurs de tailles différentes
- * auraient affirmé par la géométrie une mesure qui n'atteint jamais l'écran.
- * Ce qui diffère est écrit en MOTS à côté, exactement comme le produit le rend.
- */
-function FigPlates() {
-  return (
-    <svg viewBox="0 0 480 240" className="font-sans" role="img" aria-labelledby="cpl-plates-t cpl-plates-d">
-      <title id="cpl-plates-t">{t("couples.fig.plates.title")}</title>
-      <desc id="cpl-plates-d">{t("couples.fig.plates.desc")}</desc>
-      <defs>
-        {/* LA PART. Un seul élément, appelé deux fois. C'est la garde. */}
-        <g id="cpl-part" fill="var(--ill-wash, #EFE0E9)" stroke="var(--ill-ink-soft, #6A5A64)" strokeWidth="1" strokeLinejoin="round">
-          <g transform="rotate(-30)"><rect x="-21" y="-17" width="26" height="12" rx="4" /></g>
-          <g transform="rotate(30)"><rect x="-10" y="8" width="22" height="10" rx="5" /></g>
-          <circle cx="16" cy="-5" r="7" />
-          <circle cx="18" cy="9" r="5" />
-          <circle cx="7" cy="-18" r="4" />
-        </g>
-      </defs>
-
-      <FigCorner />
-      <FigEyebrow>{t("couples.fig.plates.eyebrow")}</FigEyebrow>
-
-      {/* LA CASSEROLE, vue de dessus. La seule pièce chaude du dessin. */}
-      <g stroke="var(--ill-fig, #632C4C)" strokeWidth="2" strokeLinejoin="round">
-        <rect x="26" y="135" width="32" height="18" rx="9" fill="var(--ill-paper, #FBF8FA)" />
-        <rect x="150" y="135" width="32" height="18" rx="9" fill="var(--ill-paper, #FBF8FA)" />
-        <circle cx="104" cy="144" r="54" fill="var(--ill-paper, #FBF8FA)" />
-      </g>
-      <circle cx="104" cy="144" r="42" fill="var(--ill-wash, #EFE0E9)" />
-      <text x="104" y="226" textAnchor="middle" fontSize="13" fill="var(--ill-ink-soft, #6A5A64)">{t("couples.fig.plates.pot")}</text>
-
-      {/* LE SERVICE — deux traits d'annotation à 15° (75/20). */}
-      <g fill="none" stroke="var(--ill-ink-soft, #6A5A64)" strokeWidth="1" strokeLinecap="round">
-        <path d="M 160 128 L 235 108" />
-        <path d="M 160 160 L 235 180" />
-      </g>
-
-      {/* LES DEUX ASSIETTES — le même `<use>`, deux fois. */}
-      <g>
-        <circle cx="270" cy="99" r="36" fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink, #23191F)" strokeWidth="2" />
-        <circle cx="270" cy="99" r="27" fill="none" stroke="var(--ill-ink-soft, #6A5A64)" strokeWidth="1" />
-        <use href="#cpl-part" x="270" y="99" />
-      </g>
-      <g>
-        <circle cx="270" cy="189" r="36" fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink, #23191F)" strokeWidth="2" />
-        <circle cx="270" cy="189" r="27" fill="none" stroke="var(--ill-ink-soft, #6A5A64)" strokeWidth="1" />
-        <use href="#cpl-part" x="270" y="189" />
-      </g>
-
-      {/* CE QUI DIFFÈRE: des MOTS. L'étiquette est l'OBJECTIF — jamais une
-          personne, jamais un genre. Jamais un chiffre, jamais une taille. */}
-      <g fontSize="9" fontWeight="600" letterSpacing="1" fill="var(--ill-ink-soft, #6A5A64)">
-        <text x="322" y="83">{t("couples.fig.plates.goal_a")}</text>
-        <text x="322" y="173">{t("couples.fig.plates.goal_b")}</text>
-      </g>
-      <g fontSize="13" fill="var(--ill-ink, #23191F)">
-        <text x="322" y="102">{t("couples.fig.plates.note_a1")}<tspan x="322" dy="17">{t("couples.fig.plates.note_a2")}</tspan></text>
-        <text x="322" y="192">{t("couples.fig.plates.note_b1")}<tspan x="322" dy="17">{t("couples.fig.plates.note_b2")}</tspan></text>
-      </g>
-    </svg>
-  );
-}
-
-/**
- * FIGURE B — qui est dans le plan. Une FICHE vue de face, pas un écran.
+ * FIGURE — qui est dans le plan. Une FICHE vue de face, pas un écran.
  * Le filet vertical de 2 marque la colonne du profil réclamé: c'est l'idiome
- * `border-l-2` de l'app à l'échelle d'une figure, et c'est la seconde et
- * dernière pièce chaude.
+ * `border-l-2` de l'app à l'échelle d'une figure, et c'est sa seule pièce
+ * chaude avec l'équerre qui la nomme.
  */
 function FigWho() {
   return (
@@ -223,68 +531,19 @@ function FigWho() {
   );
 }
 
-/**
- * FIGURE C — les quatre réponses quand la soirée tombe.
- *
- * Les quatre libellés sont les quatre `REALIGNMENT_ACTIONS`, et il n'y en a
- * pas de cinquième. Les rectangles sont à `rx 4` — la PETITE PIÈCE — et non à
- * `rx 8`, réservé aux pastilles d'état: ce sont des gestes, pas des états, et
- * la charte veut que la forme le dise.
- */
-function FigChat() {
-  const buttons = [
-    { x: 24, y: 134, label: t("couples.fig.chat.b1") },
-    { x: 246, y: 134, label: t("couples.fig.chat.b2") },
-    { x: 24, y: 172, label: t("couples.fig.chat.b3") },
-    { x: 246, y: 172, label: t("couples.fig.chat.b4") },
-  ];
-  return (
-    <svg viewBox="0 0 480 240" className="font-sans" role="img" aria-labelledby="cpl-chat-t cpl-chat-d">
-      <title id="cpl-chat-t">{t("couples.fig.chat.title")}</title>
-      <desc id="cpl-chat-d">{t("couples.fig.chat.desc")}</desc>
-
-      <FigCorner />
-      <FigEyebrow>{t("couples.fig.chat.eyebrow")}</FigEyebrow>
-
-      <rect x="24" y="52" width="432" height="64" rx="12" fill="var(--ill-wash, #EFE0E9)" stroke="var(--ill-ink-soft, #6A5A64)" strokeWidth="1" />
-      <path d="M 24 66 L 24 102" fill="none" stroke="var(--ill-fig, #632C4C)" strokeWidth="2" strokeLinecap="round" />
-      <text x="44" y="76" fontSize="9" fontWeight="600" letterSpacing="1" fill="var(--ill-ink-soft, #6A5A64)">{t("couples.fig.chat.label")}</text>
-      <text x="44" y="100" fontSize="13" fill="var(--ill-ink, #23191F)">{t("couples.fig.chat.said")}</text>
-
-      {buttons.map((b) => (
-        <g key={b.label}>
-          <rect x={b.x} y={b.y} width="210" height="30" rx="4" fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" strokeWidth="1" />
-          <text x={b.x + 14} y={b.y + 20} fontSize="11" fill="var(--ill-ink, #23191F)">{b.label}</text>
-        </g>
-      ))}
-
-      <text x="24" y="226" fontSize="13" fill="var(--ill-ink-soft, #6A5A64)">{t("couples.fig.chat.foot")}</text>
-    </svg>
-  );
-}
-
-/** Un champ de la bande de faits: étiquette, valeur, de l'air. */
-function Fact({ label, title, body }: { label: string; title: string; body: string }) {
-  return (
-    <li>
-      <Kicker>{label}</Kicker>
-      <h3 className="mt-2 font-display text-sub text-ink">{title}</h3>
-      <p className="mt-2 max-w-[34ch] text-[15px] leading-relaxed text-ink-soft">{body}</p>
-    </li>
-  );
-}
-
+/** BANDE 1 — « Deux objectifs = deux casseroles = abandon. » */
 function Hero() {
   return (
     <section className={`${WRAP} ${SECTION}`}>
-      <div className="grid grid-cols-1 items-center gap-11 lg:grid-cols-[1.02fr_1fr] lg:gap-16">
-        <div>
+      <div className="grid grid-cols-1 items-start gap-11 lg:grid-cols-[0.92fr_1fr] lg:gap-14">
+        <div className="min-w-0">
           <Kicker>{t("couples.hero.kicker")}</Kicker>
           <h1 className="mt-4 max-w-[15ch] text-balance font-display text-hero text-ink">
             {t("couples.hero.title")}
           </h1>
-          {/* fact: C3 — meal_generation.ts:518 `interface CookingSession`
-              fact: C4 — household_portions.ts:125,480 (une PHRASE, pas un gramme) */}
+          {/* fact: C4 — household_portions.ts:125-151 `SERVING_DIRECTION` +
+              :339 `one_dish` (« Do NOT propose separate dishes »). Le plat est
+              le même; ce qui change est l'instruction de service. */}
           <p className="mt-5 max-w-[46ch] text-lede text-ink-soft">{t("couples.hero.lede")}</p>
           <div className="mt-8 flex flex-wrap gap-3">
             <StartLink label={t("couples.hero.cta")} />
@@ -298,81 +557,23 @@ function Hero() {
           <p className="mt-3 max-w-[40ch] text-[13px] leading-normal text-ink-soft">{t("couples.hero.reserve")}</p>
         </div>
 
-        {/* La légende est DANS la colonne de la figure, jamais sous l'autre:
-            posée après la grille, elle tombait à 600 px de ce qu'elle annote
-            et se lisait comme une ligne de corps de plus. Mesuré à 1280 px.
-            Elle est hors du `fig-scroll` — sinon elle hériterait du plancher
-            de 380 px et défilerait avec la figure. */}
-        <div>
-          <div className="fig-scroll">
-            <FigPlates />
-          </div>
-          {/* fact: C4 — `SERVING_DIRECTION` sur 6 objectifs, household_portions.ts:125 */}
-          <p className="mt-4 max-w-[46ch] text-[13px] text-ink-soft">{t("couples.hero.caption")}</p>
-        </div>
-      </div>
-
-      <div className="mt-12 border-t border-line pt-8 sm:mt-19 sm:pt-11">
-        <ul className="grid list-none grid-cols-1 gap-7 p-0 sm:grid-cols-3 sm:gap-10">
-          {/* fact: C3 — CookingSessions.tsx:48, KitchenToday.tsx:281 */}
-          <Fact label={t("couples.facts.unit.label")} title={t("couples.facts.unit.title")} body={t("couples.facts.unit.body")} />
-          {/* fact: C4 — household_composition.ts:418 (tronc commun = MIN) et
-              household_portions.ts:125-151, où `SERVING_DIRECTION` porte SIX
-              chaînes DISTINCTES (fat_loss · muscle_gain · recomposition ·
-              performance · health · maintenance). « Six directions » est donc
-              exact, et non une bijection supposée: `health` a justement cessé
-              de rendre la chaîne de `maintenance` le 2026-08-11. */}
-          <Fact label={t("couples.facts.direction.label")} title={t("couples.facts.direction.title")} body={t("couples.facts.direction.body")} />
-          {/* fact: C4 — HouseholdPage.tsx:1838-1855 ; trou nommé FF-043 §11 n°1:
-              `member_deltas` (les grammes) n'a AUCUN écran */}
-          <Fact label={t("couples.facts.words.label")} title={t("couples.facts.words.title")} body={t("couples.facts.words.body")} />
-        </ul>
-      </div>
-    </section>
-  );
-}
-
-function OtherProfile() {
-  return (
-    <section className="bg-paper-2">
-      <div className={`${WRAP} ${SECTION}`}>
-        <div className="grid grid-cols-1 items-center gap-11 lg:grid-cols-[1fr_1.05fr] lg:gap-16">
-          <div>
-            <Kicker>{t("couples.other.kicker")}</Kicker>
-            <SectionTitle>{t("couples.other.title")}</SectionTitle>
-            {/* fact: C8 — FF-044 🟢, 20260810260000:179-190 (`user_id = null`),
-                household_portions.ts:63-72 (la part est clée sur `memberId`)
-                fact: C1 — 2 €/profil réclamé, maître jamais compté */}
-            <p className="mt-5 max-w-[46ch] text-lede text-ink-soft">{t("couples.other.lede")}</p>
-            {/* fact: C14 — onboarding.ts:650-662. Ce qu'on DEMANDE, jamais
-                combien de temps ça prend: aucune mesure n'existe (règle S8). */}
-            <p className="mt-5 max-w-[46ch] text-sm text-ink-soft">{t("couples.other.asked")}</p>
-          </div>
-          <div className="fig-scroll">
-            <FigWho />
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function WeekHolds() {
-  return (
-    <section className={`${WRAP} ${SECTION}`}>
-      <div className="grid grid-cols-1 items-center gap-11 lg:grid-cols-[1.05fr_1fr] lg:gap-16">
-        <div className="fig-scroll lg:order-2">
-          <FigChat />
-        </div>
-        <div className="lg:order-1">
-          <Kicker>{t("couples.week.kicker")}</Kicker>
-          <SectionTitle>{t("couples.week.title")}</SectionTitle>
-          {/* fact: C7 — accident.ts:995-1004 `REALIGNMENT_ACTIONS` = shift_dish
-              · no_cook · shift_session · nothing_to_change, rendus par
-              `_shared/chat/deterministic_buttons.ts`. Il n'y a PAS de
-              « remplacer »: accident.ts:52-55 — « aucune fonction d'ici ne
-              choisit un plat » (AUDIT §5.1, C6 = FAUX). */}
-          <p className="mt-5 max-w-[46ch] text-lede text-ink-soft">{t("couples.week.lede")}</p>
+        {/* La légende et la réserve sont DANS la colonne de la démonstration,
+            jamais sous l'autre: posées après la grille, elles tombaient à 600px
+            de ce qu'elles annotent et se lisaient comme du corps de texte.
+            Mesuré à 1280px sur la version précédente de cette page. */}
+        <div className="min-w-0">
+          <ServingDemo />
+          <p className="mt-4 max-w-[54ch] text-[13px] leading-normal text-ink-soft">
+            {t("couples.demo.caption")}
+          </p>
+          {/* RÉSERVE — l'honnêteté de l'ancien bloc « ce qu'on ne fait pas »,
+              repliée dans la section qu'elle concerne.
+              fact: `reconcilePortions` (household_portions.ts:877-930) accepte
+              N consignes identiques sans lever une seule `issue`: rien ne
+              vérifie que le modèle a différencié. Donc jamais « garanti ». */}
+          <p className="mt-2 max-w-[54ch] text-[13px] leading-normal text-ink-soft">
+            {t("couples.demo.reserve")}
+          </p>
         </div>
       </div>
     </section>
@@ -380,41 +581,127 @@ function WeekHolds() {
 }
 
 /**
- * LE BLOC SOMBRE — un seul par page, et il ne porte pas de figure: il n'y a
- * rien à dessiner de ce qu'on ne fait pas. C'est le seul endroit où la marque
- * parle d'elle-même, et elle en profite pour se retirer quelque chose.
+ * BANDE 2 — « Il mange deux fois plus que moi. »
+ *
+ * LE BLOC SOMBRE, ET IL SE DÉPENSE ICI. Un seul par page, et c'est la seule
+ * bande où le produit annonce qu'il connaît un corps. Le même bloc doit donc
+ * porter, sans changer de fond ni de ton, ce qu'il n'en fera jamais — la
+ * réserve n'est pas une note de bas de page, c'est la moitié de l'argument.
+ *
+ * Pas de figure: `.on-dark` ne remonte que `--ill-fig` et `--ill-ink-soft`
+ * (tokens.css:199-202). `--ill-ink`, qui porte le contour de 2 d'une chose
+ * réelle, y resterait à `#23191F` — invisible. Une figure sur ce fond est donc
+ * une figure amputée de son trait principal, et la fiche ci-dessous est en
+ * HTML pour cette raison-là, pas par commodité.
  */
-function NotThis() {
+function Bodies() {
   return (
     <section className="on-dark bg-fig-950 py-13 sm:py-19">
       <div className={WRAP}>
-        <Kicker onDark>{t("couples.dark.kicker")}</Kicker>
-        {/* fact: C16 — 20260812220000:118. `household_member_bodies` est UNE
+        <div className="grid grid-cols-1 items-start gap-9 lg:grid-cols-[1.15fr_1fr] lg:gap-16">
+          <div className="min-w-0">
+            <Kicker onDark>{t("couples.bodies.kicker")}</Kicker>
+            {/* `text-title` et non un `clamp()` maison: l'échelle a cinq crans
+                et un agent en CHOISIT un. L'interligne est le seul écart —
+                1,06 est fait pour un titre de deux lignes, pas pour trois. */}
+            <h2 className="mt-4 max-w-[22ch] font-display text-title leading-[1.16] text-paper">
+              {t("couples.bodies.title")}
+            </h2>
+            {/* fact: C4 — `household_member_bodies` (20260812220000:118, taille
+                + poids + sexe) et l'âge dérivé de la date de naissance
+                (`keel_household_bodies_for`, :420-455) entrent par
+                `generate-household-meal-v1/index.ts:1234-1273` dans
+                `PortionMember.body`, où ils DIMENSIONNENT la part:
+                `maintenanceEnvelopeFromBody` (meal_envelope.ts:448-461) lit
+                poids, taille, bande d'âge et sexe.
+                fact: le brief le borne lui-même — BODY_FACTS_CAVEAT
+                (household_portions.ts:529-538): « there for ONE thing: the
+                SIZE of a portion […] no daily energy need, no calorie figure,
+                no BMI, no category, no target. » */}
+            <p className="mt-5 max-w-[46ch] text-lede text-fig-300">{t("couples.bodies.lede")}</p>
+          </div>
+
+          {/* LA FICHE — ce qui entre, ce qui sort. Elle dit d'un coup d'œil que
+              quatre champs produisent UNE PHRASE, et c'est exactement la
+              frontière que le produit tient.
+              ⚠️ Les filets sont en `fig-600` et non en `fig-300`: sur ce fond,
+              `fig-300` est à 8:1 — un séparateur qui crie plus fort que le
+              texte qu'il sépare. C'est le jumeau sombre de `line`, décoratif,
+              et il ne borde jamais un contrôle. */}
+          <div className="min-w-0 rounded border border-fig-600 p-4 sm:p-5">
+            <p className="text-label font-semibold uppercase text-fig-300">
+              {t("couples.bodies.in_label")}
+            </p>
+            <ul className="mt-3 list-none space-y-0 p-0">
+              <li className="border-t border-fig-600 py-2 text-[15px] text-paper">{t("couples.bodies.in_1")}</li>
+              <li className="border-t border-fig-600 py-2 text-[15px] text-paper">{t("couples.bodies.in_2")}</li>
+              <li className="border-t border-fig-600 py-2 text-[15px] text-paper">{t("couples.bodies.in_3")}</li>
+              <li className="border-t border-fig-600 py-2 text-[15px] text-paper">{t("couples.bodies.in_4")}</li>
+            </ul>
+            <p className="mt-5 text-label font-semibold uppercase text-fig-300">
+              {t("couples.bodies.out_label")}
+            </p>
+            {/* fact: C4 — `MemberPortion.portionNote`, une phrase et rien
+                d'autre (household_portions.ts:99-109). Les grammes calculés
+                (`member_deltas`) n'ont AUCUN écran: FF-043 §11 n°1. */}
+            <p className="mt-3 border-t border-fig-600 pt-2 text-[15px] text-paper">
+              {t("couples.bodies.out")}
+            </p>
+          </div>
+        </div>
+
+        {/* RÉSERVE — le reste de l'ancien bloc « ce qu'on ne fait pas ».
+            fact: C16 — `household_member_bodies` (20260812220000:118) est UNE
             ligne écrasée, ni date ni série: aucune courbe nulle part.
-            `text-title` et non un `clamp()` maison: l'échelle a cinq crans et
-            un agent en CHOISIT un. L'interligne est le seul écart — 1,06 est
-            fait pour un titre de deux lignes, pas pour trois. */}
-        <p className="mt-4 max-w-[26ch] font-display text-title leading-[1.16] text-paper">{t("couples.dark.say")}</p>
-        {/* fact: C15 — `profiles.energy_display_enabled` default false
-            (20260812230000:60) + chaîne de gardes energy_gate.ts:228-249.
+            fact: C15/C15b — `profiles.energy_display_enabled` default false
+            (20260812230000:60) et QUATRE portes d'affichage dans
+            `energy_gate.ts:232-250` (plancher TCA, mineur, méthode du coach,
+            interrupteur élève). La cinquième ne garde que la cible.
             ⚠️ NE JAMAIS écrire « jamais de calories »: faux depuis FF-059,
-            `plan/EnergyReadout.tsx:42-45` rend bien des kcal une fois les
+            `components/plan/EnergyReadout.tsx:42-45` rend bien des kcal une fois les
             verrous levés. La formulation tenable est celle-ci, et elle seule. */}
-        <p className="mt-5 max-w-[44ch] text-[15px] leading-relaxed text-fig-300">{t("couples.dark.note")}</p>
+        <p className="mt-9 max-w-[62ch] text-[15px] leading-relaxed text-fig-300">
+          {t("couples.bodies.reserve")}
+        </p>
       </div>
     </section>
   );
 }
 
+/** BANDE 3 — « Un seul des deux planifie. » */
+function OtherProfile() {
+  return (
+    <section className={`${WRAP} ${SECTION}`}>
+      <div className="grid grid-cols-1 items-center gap-11 lg:grid-cols-[1fr_1.05fr] lg:gap-16">
+        <div className="min-w-0">
+          <Kicker>{t("couples.other.kicker")}</Kicker>
+          <SectionTitle>{t("couples.other.title")}</SectionTitle>
+          {/* fact: C8 — FF-044 🟢, 20260810260000:179-190 (`user_id = null`),
+              household_portions.ts:63-72 (la part est clée sur `memberId`)
+              fact: C1 — 2 €/profil réclamé, maître jamais compté */}
+          <p className="mt-5 max-w-[46ch] text-lede text-ink-soft">{t("couples.other.lede")}</p>
+          {/* fact: C14 — onboarding.ts:97-103 et :211-290. Ce qu'on DEMANDE, jamais
+              combien de temps ça prend: aucune mesure n'existe (règle S8). */}
+          <p className="mt-5 max-w-[46ch] text-sm text-ink-soft">{t("couples.other.asked")}</p>
+        </div>
+        <div className="fig-scroll">
+          <FigWho />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** BANDE 4 — le prix et la clôture. */
 function Price() {
   return (
     <section className="bg-paper-2">
       <div className={`${WRAP} ${SECTION}`}>
         <div className="grid grid-cols-1 items-start gap-9 lg:grid-cols-[1fr_1fr] lg:gap-16">
-          <div>
+          <div className="min-w-0">
             <Kicker>{t("couples.price.kicker")}</Kicker>
             <SectionTitle>{t("couples.price.title")}</SectionTitle>
-            {/* fact: C13 — onboarding.ts:84 `FunnelBranch` = solo | pair |
+            {/* fact: C13 — onboarding.ts:88 `FunnelBranch` = solo | pair |
                 family, route `/app/setup` (App.tsx:220). La branche `pair`
                 existe: la promesse de cette page est honorée par l'étape
                 suivante. */}
@@ -426,8 +713,9 @@ function Price() {
           </div>
           {/* fact: C1 — 20260810260000:101-105 (plafond 8 bouches), :235-250.
               Une seule carte, aucune liste de features: une carte faite pour
-              être comparée invite à chercher le plan qui manque. */}
-          <PriceCard price={t("couples.price.amount")} period={t("couples.price.period")} label={t("couples.price.label")} />
+              être comparée invite à chercher le plan qui manque.
+              ⛔ Ni durée d'essai ni bouton d'achat (AUDIT §8 n°1). */}
+          <PriceCard price={formatPrice(PRICES.household)} period={t("couples.price.period")} label={t("couples.price.label")} />
         </div>
       </div>
     </section>
@@ -444,17 +732,18 @@ export function CouplesPage() {
         structuredData={COUPLES_STRUCTURED_DATA}
       />
 
-      {/* `audience="student"` retire les portes de vente B2B de l'en-tête: un
-          couple qui cherche à dîner n'a rien à faire dans `/gyms`. */}
+      {/* `audience` reste au défaut `"coach"`, qui NE VEUT PAS DIRE « page de
+          coach »: il veut dire « page de vente », donc les mondes, les six
+          portes et le geste du monde courant. Les trois pages foyer se sont
+          déjà posées en `audience="student"` pour éviter un bouton d'essai
+          coach, et y ont perdu toute la navigation du site
+          (`PublicHeader.tsx:128-147`). */}
       <PublicHeader />
 
       <main>
         <Hero />
+        <Bodies />
         <OtherProfile />
-        <WeekHolds />
-        {/* L'honnêteté AVANT le prix, jamais après: qui a lu ce qu'on ne fait
-            pas et lit le prix ensuite achète en sachant. */}
-        <NotThis />
         <Price />
       </main>
 

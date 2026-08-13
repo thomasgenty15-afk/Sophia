@@ -289,6 +289,46 @@
   border-radius: 4px;
 }
 
+/* ⚠️ L'ANNEAU DE FOCUS DISPARAISSAIT DANS LE BLOC SOMBRE, ET ÇA A DÉFORMÉ TROIS
+   PAGES AVANT D'ÊTRE NOMMÉ.
+
+   `fig-600` (#7E3C61) sur `fig-950` (#24101E) calcule à **2,33:1** — sous le
+   3:1 que WCAG 1.4.11 exige d'un indicateur non textuel. La charte §7 déclarait
+   le plancher de qualité sur le PAPIER et ne l'avait jamais mesuré sur le seul
+   fond qui n'en est pas.
+
+   La conséquence n'était pas théorique: trois constructeurs de la refonte du
+   2026-08-13 ont, chacun de son côté, gardé tout lien HORS de leur bande sombre
+   pour cette raison, et l'ont écrit dans leur en-tête. Un défaut de jeton était
+   devenu une contrainte de composition sur trois pages.
+
+   `fig-300` y est à 8,06:1 — la même remontée que celle que `.on-dark` fait
+   déjà pour l'équerre et pour la pièce chaude des figures, juste au-dessus. */
+.on-dark :where(a, button, [tabindex]):focus-visible {
+  outline-color: var(--color-fig-300);       /* 8,06:1 sur fig-950 */
+}
+
+/* ⚠️ CETTE RÈGLE N'A AUCUN CONSOMMATEUR AUJOURD'HUI, ET C'EST ÉCRIT ICI POUR
+   QUE PERSONNE NE LA CROIE ARMÉE. Mesuré sur les huit pages: zéro `<a>` et zéro
+   `<button>` dans un bloc sombre — parce que trois constructeurs ont justement
+   gardé leurs liens dehors à cause du défaut que cette règle répare. Elle est un
+   PLANCHER pour le premier qui en posera un, pas une garde en service.
+
+   ⚠️ ET ELLE NE COUVRE PAS LES CONTRÔLES DE FORMULAIRE, APRÈS ESSAI. Les seuls
+   focusables sur fond sombre sont les deux boutons radio de `/coaches`, et les
+   étendre à `input` ne gagne rien: ils sont VISUELLEMENT CACHÉS (1×1,
+   `clip-path: inset(50%)`), donc un anneau posé dessus ne se voit pas. Le bon
+   motif est celui que la page emploie déjà — styler le proxy VISIBLE, via
+   `has-[:focus-visible]:outline-fig-300` sur la `<label>` (`CoachesPage.tsx:359`),
+   mesuré à 8,06:1. Deux détails qui ont coûté un aller-retour: Chrome ignore
+   `outline-color` quand `outline-style` vaut `auto`, et `:focus-visible` ne
+   s'arme pas sur un `.focus()` programmatique — il faut une vraie touche.
+
+   La règle de BASE n'est pas élargie non plus: elle est globale, et donner un
+   anneau de marque à chaque champ de `/app` et `/coach` ferait entrer la charte
+   dans l'app par effet de bord — ce que §8 interdit, et la raison d'être de
+   `variant="brand"` plutôt que d'un `primary` reteint. */
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

@@ -8,106 +8,94 @@ import { PublicFooter, PublicHeader } from "../components/PublicHeader";
 import ServerUnreachable from "../components/ServerUnreachable";
 import { ButtonLink } from "../components/ui/Button";
 import { Kicker, SectionTitle } from "../components/ui/Marketing";
-import { t } from "../i18n/t";
+import { t, type MessageKey } from "../i18n/t";
 
 /**
- * `/pro` — LE HALL DES PROFESSIONNELS. Refonte du 2026-08-12.
+ * `/pro` — LE HALL DES PROFESSIONNELS. Refonte « par la douleur » 2026-08-13.
  *
- * Même forme que `/` (voir son en-tête pour ce qu'un hall s'interdit): la
- * promesse commune, la preuve la plus forte, les trois portes. ≤ 245 lignes.
+ * UN HALL NE REPREND PAS les douleurs d'un segment: il montre les
+ * fonctionnalités principales, chacune accrochée à la douleur COMMUNE qu'elle
+ * retire, puis il s'arrête — l'argument complet d'un acheteur appartient à SA
+ * page, et les trois portes descendent pour ça dans la clôture. Un hall qui
+ * grossit vend aux trois acheteurs à la fois, c'est-à-dire à personne: ≤ 245
+ * lignes, pas plus de mots qu'avant, et une GRILLE DE SIX LIGNES au lieu des
+ * quatre bandes d'une page segment.
  *
- * ── LES SILENCES DE CE MONDE, QUI S'APPLIQUENT ICI AUSSI ──────────────────
- * S1 — il n'existe AUCUN canal 1:1 coach → élève, et cette absence est le
- *   produit, pas un manque. Rien ici ne doit évoquer une boîte de réception,
- *   une file de réponses ou un « votre coach vous répondra ».
- * S2 — le vocabulaire est élèves / cohorte / votre méthode / votre voix.
- *   Jamais « vos clients », jamais « suivi personnalisé ».
- * S8 — un chiffre vient d'une source qu'on peut montrer, ou il n'apparaît pas.
- * S10 — on ne montre pas un écran qu'on n'a pas.
- * B18/B19 — il n'existe AUCUNE personnalisation de marque: ni colonne, ni
- *   écran, ni chaîne. Ne jamais dériver vers « sous votre marque ».
- * B20 — une salle à trois coachs est UN compte coach. Jamais « votre équipe ».
- *
- * ⚠️ LA FORMULATION DU DOUBLE VERROU EST CELLE DE L'AUDIT (B8b), et pas celle
- * que les trois anciennes pages employaient. « La doctrine entre à chaque
- * message » est faux (un seul appelant, le composeur — routers.ts:540-547 le
- * dit), et « chaque message sortant est vérifié » est faux aussi (quatre
- * surfaces scannées, quatre non scannées). Ce qui est écrit ici est vrai.
+ * ⚠️ LE VOCABULAIRE EST LE PIÈGE DE CETTE PAGE: les gens qu'un pro accompagne
+ * sont des CLIENTS ici, « élèves » étant le mot de `/coaches` SEULEMENT —
+ * l'ancien `pro.proof.title` disait « student », sa clé est supprimée.
+ * ⛔ « suivi personnalisé » (S2), ⛔ « votre équipe » (B20: une salle à trois
+ * coachs est UN compte), ⛔ marque personnalisée ou white-label (B18/B19),
+ * ⛔ canal 1:1 (S1), ⛔ bande de risque ou score d'adhérence (S9, B15),
+ * ⛔ chiffre sans source (S8) et surtout de rétention (B31): aucun, nulle part.
+ * ⚠️ ÉCARTÉES DE CE HALL EXPRÈS: la note privée sur un client (« utilisée jamais
+ * citée » est une promesse de PROMPT, sans vérificateur — B26) et le tap du soir
+ * (posé sur un hall, il ressemble à du suivi).
+ * ⚠️ LE DOUBLE VERROU EST FORMULÉ COMME L'AUDIT L'IMPOSE (B8b), ligne 03.
  */
 
 const STRUCTURED_DATA = [
   {
-    "@context": "https://schema.org",
-    "@type": "WebPage",
-    name: t("pro.seo_title"),
-    url: `${LEGAL_ENTITY.siteUrl}/pro`,
-    description: t("pro.seo_description"),
+    "@context": "https://schema.org", "@type": "WebPage", name: t("pro.seo_title"),
+    url: `${LEGAL_ENTITY.siteUrl}/pro`, description: t("pro.seo_description"),
     publisher: organizationStructuredData(),
   },
 ];
 
 /**
- * Les trois portes du monde pro.
- *
- * ⚠️ Clés écrites en toutes lettres, jamais construites par gabarit — voir la
- * même note dans `HomePage.tsx`.
+ * Les trois portes — en COMPACT, dans la clôture: elles restent le seul chemin
+ * en page vers les trois pages segment. ⚠️ Clés écrites en toutes lettres,
+ * jamais par gabarit — même note que dans `HomePage.tsx`.
  */
 const DOORS = [
-  {
-    to: "/coaches",
-    label: "pro.door.coaches.label",
-    title: "pro.door.coaches.title",
-    body: "pro.door.coaches.body",
-    cta: "pro.door.coaches.cta",
-  },
-  {
-    to: "/gyms",
-    label: "pro.door.gyms.label",
-    title: "pro.door.gyms.title",
-    body: "pro.door.gyms.body",
-    cta: "pro.door.gyms.cta",
-  },
-  {
-    to: "/communities",
-    label: "pro.door.communities.label",
-    title: "pro.door.communities.title",
-    body: "pro.door.communities.body",
-    cta: "pro.door.communities.cta",
-  },
+  { to: "/coaches", title: "pro.door.coaches.title", body: "pro.door.coaches.body", cta: "pro.door.coaches.cta" },
+  { to: "/gyms", title: "pro.door.gyms.title", body: "pro.door.gyms.body", cta: "pro.door.gyms.cta" },
+  { to: "/communities", title: "pro.door.communities.title", body: "pro.door.communities.body", cta: "pro.door.communities.cta" },
 ] as const;
 
-const Section = ({
-  children,
-  tone = "paper",
-}: {
-  children: React.ReactNode;
-  tone?: "paper" | "alt" | "dark";
-}) => (
-  <section
-    className={
-      tone === "alt" ? "bg-paper-2" : tone === "dark" ? "on-dark bg-fig-950 text-paper" : ""
-    }
-  >
+const Section = ({ children, tone = "paper" }: { children: React.ReactNode; tone?: "paper" | "alt" }) => (
+  <section className={tone === "alt" ? "bg-paper-2" : ""}>
     <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-24">{children}</div>
   </section>
 );
 
 /**
- * La figure du hall: la méthode écrite une fois, relue avant l'envoi.
- *
- * Elle montre un message RETENU, pas une réussite: c'est l'aveu qui rend la
- * garantie croyable, et c'est la seule des deux moitiés qu'un lecteur ne peut
- * pas obtenir d'un prompt.
+ * UNE LIGNE DU HALL — deux cellules: la douleur commune, puis ce qui la retire.
+ * Le numéro n'est pas un ornement: les six lignes sont ordonnées par force de
+ * vente (grille des douleurs), donc l'ordre porte une information. La douleur est
+ * en `text-lede`, la réponse en display — un lecteur qui ne lit que la colonne
+ * de gauche traverse la page par ce qui lui arrive à LUI.
+ * ⚠️ `min-w-0` sur LES DEUX cellules, pas seulement celle de la figure: un
+ * enfant de grille a `min-width: auto`, et le plancher de 380 px de
+ * `.fig-scroll` remonterait à la piste et ferait défiler LA PAGE (charte §5).
+ */
+type LineProps = { n: string; pain: MessageKey; title: MessageKey; body: MessageKey; children?: React.ReactNode };
+const Line = ({ n, pain, title, body, children }: LineProps) => (
+  <li className="grid gap-4 border-t border-line py-9 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] md:gap-12">
+    <div className="min-w-0">
+      <span className="block text-label font-semibold uppercase text-fig-700">{n}</span>
+      <p className="mt-3 max-w-[34ch] text-lede leading-7 text-ink">{t(pain)}</p>
+    </div>
+    <div className="min-w-0">
+      <h3 className="font-display text-sub">{t(title)}</h3>
+      <p className="mt-3 max-w-[62ch] leading-7 text-ink-soft">{t(body)}</p>
+      {children}
+    </div>
+  </li>
+);
+
+/**
+ * La figure de la ligne 03: la méthode écrite une fois, relue avant l'envoi.
+ * Elle montre un message RETENU, pas une réussite — c'est l'aveu qui rend la
+ * garantie croyable, et la seule moitié qu'un lecteur ne peut pas obtenir d'un
+ * prompt. ⚠️ GÉOMÉTRIE MESURÉE DANS LA LANGUE LONGUE (le français): boîtes de
+ * gauche 176 unités, texte à x=20 ⇒ 164 utilisables; boîtes de droite 142, texte
+ * à x=342 ⇒ 118. Le premier jet donnait 132 et 106, et « replaced by your words »
+ * (130) sortait. Toute étiquette ajoutée se vérifie DANS LES DEUX LANGUES.
  */
 const LockFigure = () => (
   <svg viewBox="0 0 480 210" role="img" aria-labelledby="lock-t" className="w-full">
     <title id="lock-t">{t("pro.fig.alt")}</title>
-    {/* ⚠️ GÉOMÉTRIE MESURÉE DANS LA LANGUE LONGUE (le français).
-        Boîtes de gauche: 176 unités de large, texte à x=20 ⇒ 164 utilisables.
-        Boîtes de droite: 142, texte à x=342 ⇒ 118 utilisables. Le premier jet
-        donnait 132 et 106, et « replaced by your words » (130) sortait de la
-        figure — vu au rendu, pas au calcul. Toute étiquette ajoutée se vérifie
-        dans les DEUX langues avant d'être livrée. */}
     <g fill="none" stroke="var(--ill-ink)" strokeWidth="2">
       <rect x="8" y="26" width="176" height="66" rx="8" fill="var(--ill-wash)" />
       <rect x="8" y="122" width="176" height="66" rx="8" fill="var(--ill-paper)" />
@@ -116,8 +104,7 @@ const LockFigure = () => (
       <rect x="330" y="122" width="142" height="66" rx="8" fill="var(--ill-wash)" />
       <path d="M184 60h36M184 156h36M300 92h30M300 122h30" stroke="var(--ill-ink-soft)" strokeWidth="1" />
     </g>
-    {/* La barre figue: le point où la relecture a lieu. Une seule pièce chaude
-        par figure — règle de la charte. */}
+    {/* La barre figue: le point où la relecture a lieu. UNE pièce chaude. */}
     <rect x="220" y="72" width="5" height="70" fill="var(--ill-fig)" />
     <g fontSize="12" fill="var(--ill-ink-soft)">
       <text x="20" y="58" fill="var(--ill-ink)">{t("pro.fig.method")}</text>
@@ -164,113 +151,99 @@ export function ProPage() {
 
   return (
     <div className="min-h-screen bg-paper text-ink">
-      <SEO
-        title={t("pro.seo_title")}
-        description={t("pro.seo_description")}
-        canonical={`${LEGAL_ENTITY.siteUrl}/pro`}
-        structuredData={STRUCTURED_DATA}
-      />
+      <SEO title={t("pro.seo_title")} description={t("pro.seo_description")}
+        canonical={`${LEGAL_ENTITY.siteUrl}/pro`} structuredData={STRUCTURED_DATA} />
       <PublicHeader />
 
+      {/* ⚠️ LE REPÈRE `main`, AJOUTÉ LE 2026-08-13. Les six pages segment en
+          avaient un, les deux halls non — mesuré au rendu. Sans lui, un
+          lecteur d'écran n'a aucun « aller au contenu » sur les deux pages
+          qui sont justement les portes d'entrée du site. */}
+      <main>
       <Section>
-        <div className="grid gap-11 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16">
-          <div>
-            <Kicker>{t("pro.hero.kicker")}</Kicker>
-            <h1 className="mt-3 text-balance font-display text-hero">
-              {t("pro.hero.title")}
-            </h1>
-            <p className="mt-6 max-w-[62ch] text-lede text-ink-soft">
-              {t("pro.hero.lede")}
-            </p>
-            <div className="mt-8">
-              <ButtonLink
-                to="/auth?role=coach"
-                variant="brand"
-                className="px-6 py-3 text-base"
-              >
-                {t("pro.hero.cta")}
-              </ButtonLink>
-            </div>
-            {/* fact: B5 — 20260727235000_keel_billing_seats.sql:110-136 :
-                14 jours, 3 élèves, puis ça s'arrête tout seul.
-                fact: B1 — stripe-create-checkout-session:120-125 : le siège est
-                le seul poste, il n'y a pas de forfait plateforme. */}
-            <p className="mt-5 max-w-[52ch] text-sm leading-6 text-ink-soft">
-              {t("pro.hero.note")}
-            </p>
-          </div>
-          {/* fact: B8b — la formulation tenable du double verrou.
-              Injection: run.ts:1441,2503 · generate-week-plan-v1:338,541 ·
-              generate-meal-v1:576,1038 · generate-household-meal-v1:1602,2249.
-              Relecture du chat: keel_output_locks.ts:307 via `finalVisibleText`
-              (run.ts:2820), déterministe, sans modèle dans la boucle. */}
-          <figure className="m-0 min-w-0">
-            <div className="fig-scroll">
-              <LockFigure />
-            </div>
-            <figcaption className="mt-4 max-w-[62ch] text-sm leading-6 text-ink-soft">
-              {t("pro.fig.caption")}
-            </figcaption>
-          </figure>
+        <Kicker>{t("pro.hero.kicker")}</Kicker>
+        <h1 className="mt-3 max-w-[22ch] text-balance font-display text-hero">{t("pro.hero.title")}</h1>
+        <p className="mt-6 max-w-[58ch] text-lede text-ink-soft">{t("pro.hero.lede")}</p>
+        <div className="mt-8">
+          <ButtonLink to="/auth?role=coach" variant="brand" className="px-6 py-3 text-[1rem]">{t("pro.hero.cta")}</ButtonLink>
         </div>
-      </Section>
-
-      <Section tone="dark">
-        <Kicker onDark>{t("pro.proof.kicker")}</Kicker>
-        <SectionTitle>{t("pro.proof.title")}</SectionTitle>
-        {/* fact: B9 — keel_output_locks.ts:99-113 et run.ts:2825-2834 : chaque
-            ligne rouge porte son `instead`, dans les mots du coach, signé de son
-            nom. L'élève ne reçoit jamais un refus, jamais un « demande à ton
-            coach » — ce qui compte double puisque ce canal n'existe pas (S1). */}
-        <p className="mt-6 max-w-[68ch] text-lede leading-8 text-paper/80">
-          {t("pro.proof.body")}
-        </p>
+        {/* fact: B5 — 20260727235000_keel_billing_seats.sql:110-136 (14 jours, 3
+            sièges, puis ça s'arrête seul) · fact: B1 —
+            stripe-create-checkout-session:120-125, `legacyTierPriceId = null`. */}
+        <p className="mt-5 max-w-[52ch] text-sm leading-6 text-ink-soft">{t("pro.hero.note")}</p>
       </Section>
 
       <Section>
-        <Kicker>{t("pro.doors.kicker")}</Kicker>
-        <SectionTitle>{t("pro.doors.title")}</SectionTitle>
-        <ul className="mt-10 grid gap-5 md:grid-cols-3">
+        <Kicker>{t("pro.lines.kicker")}</Kicker>
+        <SectionTitle>{t("pro.lines.title")}</SectionTitle>
+        <ul className="mt-12">
+          {/* fact: `coaches.doctrine_source = 'house'` (migration 20260806230000)
+              · `_shared/keel/doctrine_delegation.ts`, résolu UNE fois et câblé
+              aux DEUX endroits qui signent (`doctrine_loader.ts`,
+              `keel-coach-broadcast-v1`): un client ne voit jamais deux identités.
+              ⏳ Le chemin existe, le CONTENU de la doctrine maison s'écrit
+              encore — la ligne le DIT au lieu de le taire. */}
+          <Line n="01" pain="pro.line.method.pain" title="pro.line.method.title" body="pro.line.method.body" />
+          {/* fact: B10 — quatre points d'injection: run.ts:2414 ·
+              generate-week-plan-v1:618 · generate-meal-v1:1122 ·
+              generate-household-meal-v1:2338 — les quatre sont `doctrineBlockFor(doctrine)`.
+              ⚠️ Les huit numéros recopiés de l'audit pointaient des fragments de commentaire:
+              revérifiés un par un le 2026-08-13. */}
+          <Line n="02" pain="pro.line.daily.pain" title="pro.line.daily.title" body="pro.line.daily.body" />
+          {/* fact: B8b, le SENS EST IMPOSÉ. Injection: doctrine.ts:194 et :788-789
+              · relecture du chat: `findDoctrineViolations` (doctrine.ts:1077) sur
+              le texte visible avant l'envoi, sans modèle dans la boucle. Les
+              quatre surfaces NON scannées (relance, récap du soir, bilan du
+              dimanche, broadcast — B8) sont la raison pour laquelle la ligne dit
+              « dans le chat » et jamais « chaque message ». fact: B9 — chaque
+              ligne rouge porte son `instead` dans les mots du coach: la figure. */}
+          <Line n="03" pain="pro.line.lock.pain" title="pro.line.lock.title" body="pro.line.lock.body">
+            <figure className="m-0 mt-7">
+              <div className="fig-scroll"><LockFigure /></div>
+              <figcaption className="mt-4 max-w-[62ch] text-sm leading-6 text-ink-soft">{t("pro.fig.caption")}</figcaption>
+            </figure>
+          </Line>
+          {/* fact: B11 — cron `'0 6 * * 1'` (20260803090000:90-116) et
+              `renderSynthesisText` PUR (coach_synthesis.ts:516-641): calculée,
+              jamais narrée par un modèle · fact: B14 — coach_synthesis.ts:64-65,
+              48 h et 120 h sur le dernier message ENTRANT · fact: B17 —
+              coach_synthesis_io.ts:171-187, cohorte scopée. ⛔ Rien de S9/B15. */}
+          <Line n="04" pain="pro.line.monday.pain" title="pro.line.monday.title" body="pro.line.monday.body" />
+          {/* fact: B27 — CHECK `student_week_plans_doctrine_traceable_check`
+              (20260803210000:87-113). ⚠️ Portée: la SEMAINE seulement, les
+              plats ne citent pas, délibérément (DishCard.tsx:27-34). */}
+          <Line n="05" pain="pro.line.cite.pain" title="pro.line.cite.title" body="pro.line.cite.body" />
+          {/* fact: B1 (le siège est le seul poste) · fact: B4 —
+              stripe-reconcile-seats:18-35 RECALCULE depuis le ledger, jamais un
+              incrément. ⛔ Pas de « 6 € quand votre client a payé son année » (B2,
+              FAUX: l'intervalle est celui du COACH), ⛔ pas de « positif dès le
+              premier client » (B6: zéro client refusé au checkout). */}
+          <Line n="06" pain="pro.line.seat.pain" title="pro.line.seat.title" body="pro.line.seat.body" />
+        </ul>
+      </Section>
+
+      <Section tone="alt">
+        {/* fact: B31 — rien dans le dépôt ne mesure le churn contre un témoin.
+            Meilleure ligne des trois anciennes pages, gardée telle quelle. */}
+        <SectionTitle>{t("pro.close.title")}</SectionTitle>
+        <p className="mt-5 max-w-[62ch] leading-7 text-ink-soft">{t("pro.close.body")}</p>
+        <div className="mt-8">
+          <ButtonLink to="/auth?role=coach" variant="brand" className="px-6 py-3 text-[1rem]">{t("pro.close.cta")}</ButtonLink>
+        </div>
+        <h3 className="mt-16 font-display text-sub">{t("pro.doors.title")}</h3>
+        <ul className="mt-6 grid gap-6 border-t border-line pt-6 sm:grid-cols-3 sm:gap-8">
           {DOORS.map((door) => (
             <li key={door.to} className="min-w-0">
-              <Link
-                to={door.to}
-                className="group flex h-full flex-col rounded-fiche border border-line bg-paper p-6 transition-colors hover:border-line-strong"
-              >
-                <span className="eq text-label font-semibold uppercase text-ink-soft">
-                  {t(door.label)}
-                </span>
-                <span className="mt-3 font-display text-sub">{t(door.title)}</span>
-                <span className="mt-3 text-sm leading-6 text-ink-soft">
-                  {t(door.body)}
-                </span>
-                <span className="mt-5 text-sm font-medium text-fig-700 group-hover:underline">
-                  {t(door.cta)}
-                </span>
+              <Link to={door.to} className="group flex h-full flex-col">
+                <span className="font-medium text-ink">{t(door.title)}</span>
+                <span className="mt-2 text-sm leading-6 text-ink-soft">{t(door.body)}</span>
+                <span className="mt-auto pt-3 text-sm font-medium text-fig-700 group-hover:underline">{t(door.cta)}</span>
               </Link>
             </li>
           ))}
         </ul>
       </Section>
-
-      <Section tone="alt">
-        <SectionTitle>{t("pro.close.title")}</SectionTitle>
-        {/* fact: B31 — rien dans le dépôt ne mesure le churn contre un témoin.
-            C'est la meilleure ligne des trois anciennes pages, et elle est
-            reprise telle quelle sur les quatre surfaces du monde pro. */}
-        <p className="mt-5 max-w-[62ch] leading-7 text-ink-soft">
-          {t("pro.close.body")}
-        </p>
-        <div className="mt-8">
-          <ButtonLink
-            to="/auth?role=coach"
-            variant="brand"
-            className="px-6 py-3 text-base"
-          >
-            {t("pro.close.cta")}
-          </ButtonLink>
-        </div>
-      </Section>
+      </main>
 
       <PublicFooter />
     </div>
