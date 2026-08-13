@@ -3,6 +3,7 @@ import { assertEquals } from "jsr:@std/assert@1";
 import {
   ageStateFromVerdict,
   goalApplies,
+  MINOR_FORBIDDEN_GOALS,
   MEMBER_AGE_STATES,
 } from "./household.ts";
 import { assessBirthDate } from "./student_age.ts";
@@ -76,11 +77,39 @@ Deno.test("un adulte sans objectif n'en reçoit aucune", () => {
   assertEquals(goalApplies({ ageState: "adult", goal: "" }), false);
 });
 
-Deno.test("un mineur n'a pas d'objectif, même si la colonne en porte un", () => {
-  // La colonne PEUT porter une valeur — un enfant grandit, et l'objectif saisi
-  // à ses dix-sept ans reste écrit. C'est `goalApplies` qui décide, pas la
+Deno.test("⛔ un mineur ne porte JAMAIS une direction correctrice sur le corps", () => {
+  // ── LA MOITIÉ DE §8.4 QUI NE BOUGE PAS ───────────────────────────────────
+  // « Avec un mineur, le registre est éducatif — jamais correctif sur le corps.
+  // Aucune mention de poids, de silhouette, de restriction. » Ces deux
+  // directions-là sont l'autre registre: celui qui RETIRE.
+  //
+  // La colonne PEUT porter la valeur — un enfant grandit, et l'objectif saisi à
+  // ses dix-sept ans reste écrit. C'est `goalApplies` qui décide, pas la
   // présence de la donnée, sinon la garde dépendrait d'un nettoyage.
   assertEquals(goalApplies({ ageState: "minor", goal: "fat_loss" }), false);
+  assertEquals(goalApplies({ ageState: "minor", goal: "recomposition" }), false);
+  // ET LA LISTE EST LA MÊME DES DEUX CÔTÉS. Si quelqu'un en retire une entrée,
+  // ce test tombe AVEC celui de la base — pas six mois plus tard.
+  assertEquals([...MINOR_FORBIDDEN_GOALS], ["fat_loss", "recomposition"]);
+});
+
+Deno.test("✅ un mineur PEUT porter une direction qui ajoute (2026-08-13)", () => {
+  // ── CE QUE LA DÉCISION HUMAINE DU 2026-08-13 A OUVERT ───────────────────
+  // §8.4 interdisait TOUTE direction à un mineur. La règle était plus large que
+  // sa raison: « on parle de ce que l'aliment APPORTE, pas de ce qu'il fait
+  // grossir ». Manger mieux, mieux s'entraîner, tenir son poids et construire
+  // du muscle sont du premier registre.
+  //
+  // Sans ce test, rouvrir la règle serait invisible: l'ancien bloc n'éprouvait
+  // QUE `fat_loss`, donc il serait resté vert avec un `goalApplies` qui rend
+  // `false` pour toutes les directions d'un enfant.
+  assertEquals(goalApplies({ ageState: "minor", goal: "health" }), true);
+  assertEquals(goalApplies({ ageState: "minor", goal: "performance" }), true);
+  assertEquals(goalApplies({ ageState: "minor", goal: "maintenance" }), true);
+  assertEquals(goalApplies({ ageState: "minor", goal: "muscle_gain" }), true);
+  // Et l'absence reste l'absence, à tout âge.
+  assertEquals(goalApplies({ ageState: "minor", goal: null }), false);
+  assertEquals(goalApplies({ ageState: "minor", goal: "" }), false);
 });
 
 Deno.test("⚠️ âge INCONNU: aucun objectif, même déclaré", () => {
@@ -89,6 +118,11 @@ Deno.test("⚠️ âge INCONNU: aucun objectif, même déclaré", () => {
   // exactement ce que l'ancien `coalesce(false)` produisait.
   assertEquals(goalApplies({ ageState: "unknown", goal: "fat_loss" }), false);
   assertEquals(goalApplies({ ageState: "unknown", goal: "muscle_gain" }), false);
+  // ⚠️ ET IL NE SUIT PAS LE MINEUR SUR L'OUVERTURE DE 2026-08-13. « Je ne sais
+  // pas » n'est pas « c'est un enfant »: un âge absent peut être celui d'un
+  // adulte, et lui appliquer la direction d'un enfant serait décider à sa place.
+  assertEquals(goalApplies({ ageState: "unknown", goal: "health" }), false);
+  assertEquals(goalApplies({ ageState: "unknown", goal: "performance" }), false);
 });
 
 /**

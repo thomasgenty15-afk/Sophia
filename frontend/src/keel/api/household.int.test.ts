@@ -1,10 +1,15 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 import {
   awayFrom,
   claimableMembers,
+  goalsForAge,
   type HouseholdMemberView,
   type HouseholdView,
+  MEMBER_GOALS,
+  MINOR_FORBIDDEN_GOALS,
   restrictionNotice,
 } from "./household";
 
@@ -211,5 +216,83 @@ describe("awayFrom — les deux sources d'une absence, séparées (D14)", () => 
   it("une colonne illisible ne fait pas exploser l'écran", () => {
     expect(awayFrom(null, "household")).toEqual([]);
     expect(awayFrom("samedi", "self")).toEqual([]);
+  });
+});
+
+// ───────────────────────────────────────────────────────────────────────────
+// LA DIRECTION D'UN ENFANT — trois copies d'une liste, confrontées sur le disque
+// ───────────────────────────────────────────────────────────────────────────
+
+/**
+ * ── CE QUE CE BLOC GARDE, ET POURQUOI IL LIT DES FICHIERS ─────────────────
+ * Décision humaine du 2026-08-13: un enfant PEUT porter une direction
+ * nutritionnelle — mais jamais `fat_loss` ni `recomposition`, les deux du
+ * registre qui RETIRE (PIVOT-FOYER §8.4: « jamais correctif sur le corps »).
+ *
+ * Cette règle vit à TROIS endroits, parce que le navigateur, Deno et SQL ne
+ * partagent aucun module:
+ *
+ *   1. ici, pour ce que l'écran PROPOSE;
+ *   2. `_shared/keel/household.ts#MINOR_FORBIDDEN_GOALS`, pour ce que le
+ *      moteur APPLIQUE;
+ *   3. la migration `20260813180000`, pour ce que la base ACCEPTE D'ÉCRIRE.
+ *
+ * Une liste recopiée trois fois dérive, et la dérive est MUETTE: rouvrir
+ * `fat_loss` aux enfants d'un seul côté ne casse rien, ne se voit nulle part, et
+ * se découvre le jour où un parent lit « perdre du poids » sous le prénom de son
+ * fils. Ce test lit les deux autres copies SUR LE DISQUE — la même technique que
+ * le catalogue de l'entonnoir, qui résout ses consommateurs de la même façon.
+ */
+describe("les directions qu'un mineur ne porte jamais", () => {
+  const ROOT = resolve(__dirname, "../../../..");
+
+  it("propose tout à un adulte, et retire les deux correctrices à un enfant", () => {
+    expect([...goalsForAge("adult")]).toEqual([...MEMBER_GOALS]);
+    expect([...goalsForAge("child")]).toEqual([
+      "muscle_gain",
+      "performance",
+      "health",
+      "maintenance",
+    ]);
+    // Ce que l'ouverture a rendu possible, dit explicitement: sans cette ligne,
+    // un `goalsForAge` qui rendrait `[]` pour un enfant passerait le test
+    // ci-dessus le jour où quelqu'un « restaure » l'ancienne règle.
+    expect(goalsForAge("child").length).toBeGreaterThan(0);
+  });
+
+  it("dit la MÊME chose que le moteur (`_shared/keel/household.ts`)", () => {
+    const deno = readFileSync(
+      resolve(ROOT, "supabase/functions/_shared/keel/household.ts"),
+      "utf8",
+    );
+    const block = deno.slice(deno.indexOf("MINOR_FORBIDDEN_GOALS"));
+    for (const goal of MINOR_FORBIDDEN_GOALS) {
+      expect(block.slice(0, block.indexOf("];"))).toContain(`"${goal}"`);
+    }
+    // Et l'inverse: aucune direction interdite côté moteur qui serait proposée
+    // ici. C'est le sens qui compte — celui où l'écran est plus permissif.
+    for (const goal of MEMBER_GOALS) {
+      if (block.slice(0, block.indexOf("];")).includes(`"${goal}"`)) {
+        expect(goalsForAge("child")).not.toContain(goal);
+      }
+    }
+  });
+
+  it("dit la MÊME chose que la base (migration 20260813180000)", () => {
+    const sql = readFileSync(
+      resolve(ROOT, "supabase/migrations/20260813180000_minor_may_carry_a_direction.sql"),
+      "utf8",
+    );
+    // Le refus est nommé, et il porte sur exactement ces deux jetons — DEUX
+    // fois, parce qu'il y a deux portes d'écriture et qu'une garde sur une
+    // seule laisse l'autre ouverte.
+    const guards = sql.split("goal_not_for_minor").length - 1;
+    expect(guards).toBeGreaterThanOrEqual(2);
+    for (const goal of MINOR_FORBIDDEN_GOALS) {
+      expect(sql).toContain(`'${goal}'`);
+    }
+    for (const goal of goalsForAge("child")) {
+      expect(sql).not.toContain(`in ('${goal}'`);
+    }
   });
 });

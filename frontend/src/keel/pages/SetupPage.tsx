@@ -17,6 +17,7 @@ import {
   inviteToHousehold,
   MEMBER_GENDERS,
   type MemberGender,
+  goalsForAge,
   MEMBER_GOALS,
   type MemberGoal,
   setMemberBirthDate,
@@ -497,11 +498,12 @@ export default function SetupPage() {
       const result = await addHouseholdMember(
         name,
         birth,
-        // UN MINEUR N'A JAMAIS D'OBJECTIF INDIVIDUEL. La ceinture est en base
-        // et dans `goalApplies`; ne pas l'envoyer d'ici évite d'écrire une
-        // valeur que le moteur refusera d'appliquer et que l'écran afficherait
-        // pourtant comme active.
-        draft.kind === "adult" && draft.goal ? draft.goal : null,
+        // UN ENFANT PORTE SA DIRECTION DEPUIS LE 2026-08-13 — mais jamais
+        // `fat_loss` ni `recomposition`, que `goalsFor` ne propose pas et que
+        // la base refuse (`goal_not_for_minor`). Écran et base disent la même
+        // chose: ne pas envoyer ce qui serait refusé, ne pas afficher comme
+        // active une valeur que le moteur n'appliquerait pas.
+        draft.goal || null,
       );
       if (!result.ok) throw new Error(result.reason);
       const memberId = String(result.member_id ?? "");
@@ -1389,8 +1391,19 @@ function MouthsStep(props: {
             </div>
           </Field>
 
-          {draft.kind === "adult" ? (
-            <Field label={t("setup.mouths.goal")} htmlFor="setup-mouth-goal">
+          {/* ── UN ENFANT PEUT PORTER UNE DIRECTION (2026-08-13) ────────────
+              Le champ était réservé aux adultes: `PIVOT-FOYER.md` §8.4 disait
+              qu'un mineur n'a « jamais d'objectif nutritionnel individuel ».
+              Décision humaine renversée — la règle était plus large que sa
+              raison, qui est « jamais CORRECTIF SUR LE CORPS: aucune mention de
+              poids, de silhouette, de restriction ».
+
+              Ce qui reste fermé est donc la LISTE, pas le champ: les deux
+              directions qui retirent (`fat_loss`, `recomposition`) ne sont pas
+              proposées à un enfant, et la base les refuse à l'écriture
+              (`goal_not_for_minor`) — l'écran ne cache pas une option que le
+              serveur accepterait. */}
+          <Field label={t("setup.mouths.goal")} htmlFor="setup-mouth-goal">
               <select
                 id="setup-mouth-goal"
                 value={draft.goal}
@@ -1398,14 +1411,13 @@ function MouthsStep(props: {
                 className={inputClass}
               >
                 <option value="">{t("setup.mouths.goal_none")}</option>
-                {MEMBER_GOALS.map((g) => (
+                {goalsForAge(draft.kind).map((g) => (
                   <option key={g} value={g}>
                     {goalLabel(g)}
                   </option>
                 ))}
               </select>
-            </Field>
-          ) : null}
+          </Field>
 
           <AllergyPicker
             label={t("setup.mouths.allergies")}
@@ -1503,7 +1515,7 @@ function MouthRow(props: {
         </Field>
       )}
 
-      {m.kind === "adult" ? (
+      {m.claimed && m.kind === "child" ? null : (
         m.claimed ? (
           // ⚠️ D1 DU CHANTIER FOYER: dès qu'une bouche a un compte, son objectif
           // vit dans SON « about you ». Le champ n'est donc pas ici — et le dire
@@ -1519,7 +1531,7 @@ function MouthRow(props: {
               className={inputClass}
             >
               <option value="">{t("setup.mouths.goal_none")}</option>
-              {MEMBER_GOALS.map((g) => (
+              {goalsForAge(m.kind).map((g) => (
                 <option key={g} value={g}>
                   {goalLabel(g)}
                 </option>
@@ -1527,7 +1539,7 @@ function MouthRow(props: {
             </select>
           </Field>
         )
-      ) : null}
+      )}
 
       {/* LE CORPS, QUAND IL MANQUE. Même raison que le bloc d'allergies
           ci-dessous: sans champ sur la ligne, `canGenerate` réclamerait un

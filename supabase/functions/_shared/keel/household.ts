@@ -100,6 +100,38 @@ export function ageStateFromVerdict(verdict: BirthDateVerdict): MemberAgeState {
 }
 
 /**
+ * LES DEUX DIRECTIONS QU'UN MINEUR NE PORTE JAMAIS.
+ *
+ * ── CE QUI A CHANGÉ LE 2026-08-13, ET CE QUI N'A PAS CHANGÉ ───────────────
+ * `PIVOT-FOYER.md` §8.4 disait: « un membre mineur du foyer n'a JAMAIS
+ * d'objectif nutritionnel individuel ». Décision humaine du 2026-08-13: un
+ * enfant PEUT porter une direction. La règle était plus large que sa propre
+ * raison.
+ *
+ * Relire §8.4 mot pour mot: « avec un mineur, le registre est éducatif — jamais
+ * CORRECTIF SUR LE CORPS. Aucune mention de poids, de silhouette, de
+ * restriction. On parle de ce que l'aliment APPORTE, pas de ce qu'il fait
+ * grossir. » La raison n'a jamais été « pas de direction »; elle a toujours été
+ * « pas de direction qui fasse d'un enfant une cible de poids ».
+ *
+ * « Manger mieux » et « mieux s'entraîner » sont exactement ce que l'aliment
+ * APPORTE. `fat_loss` et `recomposition` sont l'autre registre — celui qui
+ * retire, et qui parle de silhouette. Ces deux-là restent inconstructibles: la
+ * base les refuse à l'écriture (`keel_household_set_member_goal`), et cette
+ * fonction les refuserait de toute façon à la lecture.
+ *
+ * ⚠️ DEUX CEINTURES POUR UNE RÈGLE, ET C'EST VOULU. Une ligne peut porter une
+ * valeur écrite AVANT ce lot, ou saisie à dix-sept ans par quelqu'un qui en a
+ * seize aujourd'hui. La base empêche d'en écrire de nouvelles; la lecture
+ * garantit que les anciennes ne s'appliquent pas. Une garde qui dépendrait d'un
+ * nettoyage de données n'est pas une garde.
+ */
+export const MINOR_FORBIDDEN_GOALS: readonly string[] = [
+  "fat_loss",
+  "recomposition",
+];
+
+/**
  * L'OBJECTIF S'APPLIQUE-T-IL À CETTE BOUCHE ?
  *
  * La règle du lot 3, en un endroit, parce qu'elle est lue par le générateur ET
@@ -111,11 +143,22 @@ export function ageStateFromVerdict(verdict: BirthDateVerdict): MemberAgeState {
  * personne reçoit une part standard. La garde échoue du bon côté, et
  * l'incitation à compléter est intégrée: renseigner l'âge est ce qui active
  * l'objectif.
+ *
+ * ⚠️ ET `unknown` NE SUIT PAS LE MINEUR SUR L'OUVERTURE DE 2026-08-13. Un âge
+ * inconnu ne reçoit AUCUNE direction, pas même celles qu'un enfant peut porter:
+ * « je ne sais pas » et « c'est un enfant » ne sont pas la même phrase, et
+ * traiter la première comme la seconde ferait exactement ce que la ceinture de
+ * l'âge inconnu existe pour empêcher — décider à la place de quelqu'un dont on
+ * ignore s'il a huit ou quarante ans.
  */
 export function goalApplies(member: {
   ageState: MemberAgeState;
   goal: string | null;
 }): boolean {
-  return member.ageState === "adult" && member.goal !== null &&
-    member.goal !== "";
+  if (member.goal === null || member.goal === "") return false;
+  if (member.ageState === "adult") return true;
+  if (member.ageState === "minor") {
+    return !MINOR_FORBIDDEN_GOALS.includes(member.goal);
+  }
+  return false;
 }

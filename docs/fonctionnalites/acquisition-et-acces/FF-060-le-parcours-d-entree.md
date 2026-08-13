@@ -63,9 +63,15 @@ propose jamais.
   médicales des autres.** Après le plan, devant le plat que ça change.
 - ❌ **Le nom du foyer.** Aucun consommateur au moment où on le demanderait. Il
   vaut `Home` et se renomme sur `/app/household`.
-- ❌ **Un compte pour les enfants.** Un mineur n'a jamais d'objectif
-  nutritionnel individuel: la ceinture d'âge est structurelle (`goalApplies`,
-  `weekPlanAgeGate`), pas un réglage.
+- ❌ **Un compte pour les enfants.** Une bouche mineure vit sur la ligne du
+  foyer, pas sur un compte à elle.
+  ⚠️ **Amendé le 2026-08-13** : la ligne disait aussi « un mineur n'a jamais
+  d'objectif nutritionnel individuel ». Ce n'est plus vrai — un enfant PEUT
+  porter une direction, et l'entonnoir la demande. Ce qui reste
+  inconstructible est le registre **correctif sur le corps** : `fat_loss` et
+  `recomposition` sont refusés à l'écriture (`goal_not_for_minor`, migration
+  `20260813180000`) et à la lecture (`goalApplies`). Voir
+  [PIVOT-FOYER §8.4](../../keel/PIVOT-FOYER.md).
 - ❌ **Toute calorie.** Le contrat en vigueur et la chaîne de portes de
   [FF-059](../composition-des-repas/FF-059-le-chiffre-affiche.md) ne sont pas
   touchés.

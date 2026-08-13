@@ -79,6 +79,17 @@ export interface HouseholdView {
   members: HouseholdMemberView[];
   /** Moi, retrouvé dans `members` PAR MON COMPTE. Jamais recalculé par l'écran. */
   me: HouseholdMemberView | null;
+  /**
+   * FF-043 — LA BOUCHE DONT LA DOCTRINE GOUVERNE LE TRONC. `null` = le défaut,
+   * c'est-à-dire le membre qui compose la session.
+   *
+   * ⚠️ C'est un fait de GOUVERNANCE, pas un fait de corps ni d'objectif — et
+   * c'est pour ça qu'il peut être lu par le foyer. Ce que FF-043 R3 interdit
+   * est un référent DÉRIVÉ d'une métrique ou d'un ordre d'objectifs: là,
+   * connaître le référent reviendrait à connaître l'objectif le plus bas de la
+   * maison. Déclaré, il ne dit rien de personne.
+   */
+  referenceMemberId: string | null;
 }
 
 export interface RestrictionView {
@@ -121,6 +132,38 @@ export const MEMBER_GOALS = [
   "maintenance",
 ] as const;
 export type MemberGoal = (typeof MEMBER_GOALS)[number];
+
+/**
+ * LES DEUX DIRECTIONS QU'UN MINEUR NE PORTE JAMAIS.
+ *
+ * ── CE QUI A CHANGÉ LE 2026-08-13 ────────────────────────────────────────
+ * `PIVOT-FOYER.md` §8.4 posait qu'un mineur n'a « jamais d'objectif
+ * nutritionnel individuel ». Décision humaine renversée: un enfant PEUT porter
+ * une direction. La règle était plus large que sa raison, qui est « avec un
+ * mineur, le registre est éducatif — jamais CORRECTIF SUR LE CORPS: aucune
+ * mention de poids, de silhouette, de restriction. On parle de ce que l'aliment
+ * APPORTE. »
+ *
+ * Ces deux-là sont l'autre registre — celui qui RETIRE — et restent fermés.
+ *
+ * ⚠️ CETTE LISTE N'EST PAS LA GARDE, elle décide de ce que l'ÉCRAN PROPOSE.
+ * La garde est en base (`goal_not_for_minor`, sur les deux portes d'écriture) et
+ * à la lecture (`goalApplies`, côté Deno). Trois copies d'une même liste, parce
+ * que le navigateur, Deno et SQL ne partagent aucun module — et
+ * `household.int.test.ts` les confronte SUR LE DISQUE pour qu'aucune ne dérive
+ * en silence. C'est le seul moyen qu'un « on a rouvert `fat_loss` aux enfants »
+ * ne passe pas par la porte qu'on n'a pas regardée.
+ */
+export const MINOR_FORBIDDEN_GOALS: readonly MemberGoal[] = [
+  "fat_loss",
+  "recomposition",
+];
+
+/** Les directions qu'on PROPOSE à cette bouche-là. Voir ci-dessus. */
+export function goalsForAge(kind: "adult" | "child"): readonly MemberGoal[] {
+  if (kind === "adult") return MEMBER_GOALS;
+  return MEMBER_GOALS.filter((g) => !MINOR_FORBIDDEN_GOALS.includes(g));
+}
 
 // ───────────────────────────────────────────────────────────────────────────
 // LES DÉCISIONS PURES
@@ -278,7 +321,7 @@ export function awayFrom(raw: unknown, source: "self" | "household"): AwayDay[] 
 
 export async function loadHousehold(myUserId: string): Promise<HouseholdView | null> {
   const { data: hh, error: hhErr } = await supabase
-    .from("households").select("id, name").maybeSingle();
+    .from("households").select("id, name, reference_member_id").maybeSingle();
   if (hhErr) throw new Error(hhErr.message);
   if (!hh) return null;
 
@@ -318,6 +361,9 @@ export async function loadHousehold(myUserId: string): Promise<HouseholdView | n
     // PAR LE COMPTE, et c'est le seul endroit où `userId` sert à identifier:
     // celui qui regarde l'écran en a forcément un.
     me: members.find((m) => m.userId && m.userId === myUserId) ?? null,
+    referenceMemberId: typeof row.reference_member_id === "string" && row.reference_member_id
+      ? row.reference_member_id
+      : null,
   };
 }
 
@@ -517,6 +563,109 @@ export async function setMemberGoal(memberId: string, goal: string | null) {
   const { data, error } = await supabase.rpc("keel_household_set_member_goal", {
     p_member: memberId,
     p_goal: goal,
+  });
+  if (error) throw new Error(error.message);
+  return asResult(data);
+}
+
+/**
+ * LE MEMBRE DE RÉFÉRENCE — LE COMPTE MAÎTRE LE DÉCLARE, ET PERSONNE D'AUTRE.
+ *
+ * `households.reference_member_id` existait depuis le 2026-08-11 et le moteur
+ * la lisait, mais RIEN dans l'app ne l'écrivait: elle valait NULL partout.
+ *
+ * ── CE QUE CE GESTE FAIT, ET SURTOUT CE QU'IL NE FAIT PAS ─────────────────
+ * Il décide quelle DOCTRINE gouverne le tronc commun. Il ne change PAS la
+ * taille de la casserole: le dimensionnement reste le MIN des enveloppes de
+ * toutes les bouches. Un référent qui dimensionnerait imposerait son déficit à
+ * tout le monde — le défaut exact que FF-043 existe pour empêcher.
+ *
+ * ⚠️ CE N'EST UN CHOIX QU'À PARTIR DE DEUX ADULTES À TABLE. Dans le foyer
+ * « une mère + ses enfants », elle est référente par défaut (cascade
+ * déclaré → composeur → null) et cet écran ne lui apprend rien.
+ *
+ * `null` = retour au défaut, le membre qui compose la session.
+ * Refus nommés de la base: `not_owner`, `not_your_household`, `not_a_member`,
+ * `minor_cannot_be_reference`, `age_unknown_cannot_be_reference`.
+ */
+export async function setReferenceMember(householdId: string, memberId: string | null) {
+  const { data, error } = await supabase.rpc("keel_household_set_reference_member", {
+    p_household: householdId,
+    p_member: memberId,
+  });
+  if (error) throw new Error(error.message);
+  return asResult(data);
+}
+
+/** Ce que le maître a saisi du corps d'une bouche. `null` = rien de saisi. */
+export interface MemberBodyView {
+  memberId: string;
+  heightCm: number;
+  weightKg: number;
+  gender: "male" | "female" | "other";
+}
+
+export const MEMBER_GENDERS = ["female", "male", "other"] as const;
+export type MemberGender = (typeof MEMBER_GENDERS)[number];
+
+/**
+ * LES CORPS DU FOYER — POUR SON COMPTE MAÎTRE SEUL.
+ *
+ * ⚠️ CE N'EST PAS UNE LECTURE DE TABLE, ET C'EST TOUT LE POINT.
+ * `household_member_bodies` n'a AUCUN grant à `authenticated`: elle est
+ * invisible à PostgREST. Sondé avant d'écrire la migration: la policy de
+ * lecture de `household_members` est household-wide, donc une colonne `poids`
+ * posée là-bas aurait été lisible en clair par tout co-membre ayant un compte —
+ * l'adolescent qui a réclamé son profil lisant le poids de sa mère.
+ *
+ * Un NON-MAÎTRE reçoit zéro ligne, pas une erreur: une erreur dirait déjà
+ * qu'il y a quelque chose là.
+ */
+export async function loadMemberBodies(): Promise<Map<string, MemberBodyView>> {
+  const { data, error } = await supabase.rpc("keel_household_member_bodies");
+  if (error) throw new Error(error.message);
+  const out = new Map<string, MemberBodyView>();
+  for (const raw of (data ?? []) as unknown[]) {
+    const r = (raw ?? {}) as Record<string, unknown>;
+    const memberId = String(r.member_id ?? "").trim();
+    // `numeric` arrive en CHAÎNE par PostgREST. Un `typeof === "number"` aurait
+    // rendu la carte vide sans que rien n'échoue.
+    const heightCm = Number(r.height_cm);
+    const weightKg = Number(r.weight_kg);
+    const gender = String(r.gender ?? "");
+    if (!memberId || !Number.isFinite(heightCm) || !Number.isFinite(weightKg)) continue;
+    if (gender !== "male" && gender !== "female" && gender !== "other") continue;
+    out.set(memberId, { memberId, heightCm, weightKg, gender });
+  }
+  return out;
+}
+
+/**
+ * ENREGISTRER LE CORPS D'UNE BOUCHE — TOUT-OU-RIEN, compte maître seul.
+ *
+ * Décision humaine du 2026-08-12: taille, poids, âge et sexe sont exigés pour
+ * CHAQUE bouche, y compris celles qui n'ont pas de compte. Elle renverse
+ * FF-047 §3 et le « cran 2 » du README du foyer, en connaissance de cause.
+ *
+ * ⚠️ CE QUE CE CORPS FAIT, ET CE QU'IL NE FAIT PAS. Il DIMENSIONNE dans le
+ * moteur — le MIN du tronc commun et les add-ons par bouche. Il ne s'affiche
+ * nulle part ailleurs qu'ici, n'entre dans aucun prompt pour un mineur, et ne
+ * sort dans aucune consigne de service. Collecter et calculer, jamais énoncer.
+ *
+ * Refus nommés: `not_owner`, `not_a_member`, `body_incomplete`, `bad_height`,
+ * `bad_weight`, `bad_gender`.
+ */
+export async function setMemberBody(
+  memberId: string,
+  heightCm: number,
+  weightKg: number,
+  gender: MemberGender,
+) {
+  const { data, error } = await supabase.rpc("keel_household_set_member_body", {
+    p_member: memberId,
+    p_height_cm: heightCm,
+    p_weight_kg: weightKg,
+    p_gender: gender,
   });
   if (error) throw new Error(error.message);
   return asResult(data);

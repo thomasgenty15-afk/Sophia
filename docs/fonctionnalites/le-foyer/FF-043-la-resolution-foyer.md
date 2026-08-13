@@ -80,8 +80,80 @@ faire vite, et de livrer une divergence lisible à table.
   n'est ni affichée ni interrogeable.
 - ❌ **Aucun canal nominatif vers un coach.** Une fréquence insatisfaisable
   d'une doctrine non-référente devient un **compteur de cohorte**, jamais un nom.
-- ❌ **Aucune enveloppe pour un mineur**, aucun delta dérivé d'un objectif.
-  `goal: null` par construction, `student_goals` jamais lu.
+- ~~❌ **Aucune enveloppe pour un mineur**, aucun delta dérivé d'un objectif.~~
+  **RENVERSÉ le 2026-08-12** — voir juste en dessous. `student_goals` n'est
+  toujours **jamais** lu pour un mineur, et aucun delta ne dérive d'un objectif.
+
+### ⚠️ Le renversement du 2026-08-12 — chaque bouche a un corps
+
+> **Par qui** : l'utilisateur, en connaissance de cause, après que la contrainte
+> et sa raison lui ont été exposées.
+> **Contre quoi** : le point ci-dessus (« aucune enveloppe pour un mineur »),
+> **R5**, et — côté FF-047 — « aucun fait corporel pour un mineur » ainsi que le
+> **cran 2** du [README](README.md) (« le corps : compte requis »).
+
+Mot pour mot :
+
+> « les deltas n'ont pas d'objectif donc ils ont juste un objectif normal de
+> manger selon leur poids, âge, taille c'est tout »
+>
+> « il faut la taille le poids et l'âge et le gender **obligatoirement** (même
+> quand ils ont pas de compte secondaire !) »
+
+**Le défaut que ça répare, mesuré.** `trunkSizing` prenait le MIN sur les
+enveloppes des seuls **adultes**, et la boucle des deltas s'ouvrait sur
+`if (m.ageState !== "adult") continue;`. Dans le foyer « une mère en `fat_loss`
++ deux enfants », elle est la seule adulte : **la casserole ÉTAIT une casserole
+de déficit, et les enfants la mangeaient sans aucun add-on.** C'est le préjudice
+que le §1 nomme — « la troisième mange la restriction d'un autre sans l'avoir
+demandée » — et il n'était fermé que pour les adultes.
+
+**Ce qui reste interdit, et qui n'a pas bougé d'un pouce :**
+
+- ⛔ **un mineur n'a JAMAIS d'objectif.** Son enveloppe est la **maintenance**,
+  toujours, quoi qu'il y ait dans `household_members.goal`. Ce n'est pas un `if`
+  qu'on pourrait retirer : `childEnvelopeFromBody` **n'accepte aucun paramètre
+  d'objectif**. Un `fat_loss` posé par le maître sur la fiche d'un enfant est
+  **inerte**, et le test le prouve par égalité d'empreinte d'enveloppe ;
+- ⛔ **ni plafond de densité, ni déficit, ni direction dérivée** pour un mineur.
+  Ce qu'on calcule est un **besoin**, pas une cible à réduire ;
+- ⛔ **aucun fait corporel de mineur n'entre dans le prompt**, ne sort à l'écran
+  ni dans un log nominatif. `householdBodyFacts` rend `[]` hors adulte, et la
+  suppression de `meal_body.ts:247-248` **reste en place**. Vérifié sur la chaîne
+  du run réel : aucun des six chiffres corporels des deux enfants n'apparaît dans
+  le brief de portions.
+
+**La ligne de partage : collecter et calculer, jamais énoncer.**
+
+### Ce que le corps de la FICHE achète, et ce qu'il n'achète pas
+
+Une bouche a **deux** sources possibles d'enveloppe, et l'ordre entre elles est
+la garde la plus chère du lot (`mouthEnvelope`, `household_composition.ts`) :
+
+| Source | Ce qu'elle porte | Ce qu'elle achète |
+|---|---|---|
+| **le COMPTE** (`envelopeFor`) | série de pesées datées, plancher TCA, objectif | tout — **et elle gagne TOUJOURS**, y compris dégradée |
+| **la FICHE** (`household_member_bodies`) | taille, poids, sexe saisis une fois par le maître | une **MAINTENANCE**, jamais un objectif |
+
+Une enveloppe `per_portion` rendue par le compte est **la décision du plancher
+TCA**, pas une absence : retomber sur la fiche derrière elle contournerait le
+plancher par la porte de service. D'où « elle gagne toujours ».
+
+Et la fiche n'achète qu'une maintenance parce que, **sans série de pesées, il
+n'y a pas de plancher TCA derrière** : rien n'arrêterait une restriction si on
+en exécutait une. Une maintenance, elle, ne peut ni creuser un déficit ni poser
+un plafond de densité — elle ne peut que faire **descendre** le tronc
+(protecteur) ou **ouvrir** un add-on (additif).
+
+**Corollaire, et c'est la réponse à « le delta d'un adulte sans objectif » :**
+un adulte sans objectif applicable — comme un mineur, comme une bouche d'âge
+inconnu — mange **normal**, c'est-à-dire sa maintenance calculée sur son corps.
+Un adulte **sans compte** et **avec** un objectif reçoit lui aussi la
+maintenance : son objectif ne peut pas être exécuté sans plancher.
+
+Une bouche d'âge **inconnu** n'a **aucune** enveloppe, même avec un corps
+complet : ni l'équation d'adulte ni l'équation d'enfant, parce qu'elles donnent
+des résultats très différents sur le même poids et que deviner serait choisir.
 
 ## 4. Le circuit
 
@@ -96,10 +168,23 @@ faire vite, et de livrer une divergence lisible à table.
         non ↓
   2. MEMBRE DE RÉFÉRENCE
      colonne déclarée à la config du foyer
+        écrite par LE COMPTE MAÎTRE SEUL, dans l'écran du foyer
+        (keel_household_set_reference_member, 20260812220000)
         absente ──→ le membre qui COMPOSE la session
                     (composer est un geste visible de tous:
                      aucune information cachée ne fuit)
      jamais un mineur · jamais dérivé d'une métrique
+        ↓
+  2 bis. L'ENVELOPPE DE CHAQUE BOUCHE — mouthEnvelope()
+     le COMPTE d'abord (série de pesées + plancher TCA + objectif),
+       et il gagne TOUJOURS, y compris dégradé;
+     à défaut la FICHE (household_member_bodies), qui n'achète
+       qu'une MAINTENANCE:
+         mineur      ──→ Schofield / FAO-WHO-UNU, par tranche et par sexe
+         adulte      ──→ Mifflin-St Jeor, bande de maintenance
+         âge inconnu ──→ AUCUNE enveloppe (part standard)
+     ⛔ Mifflin n'est JAMAIS appliquée à un enfant: mesuré 20 % sous
+        son besoin réel à 8 ans comme à 12 ans.
         ↓
   3. SÉCURITÉ DU TRONC
      union des contraintes médicales de TOUS
@@ -112,8 +197,9 @@ faire vite, et de livrer une divergence lisible à table.
                             jamais des membres, coachs ni objectifs
         ↓
   4. LE TRONC, dimensionné DANS LE MOTEUR (body reste null au prompt)
-     sur le MIN des enveloppes adultes CALCULABLES
-     un adulte sans enveloppe = « portion standard », jamais réduite
+     sur le MIN des enveloppes de TOUTES LES BOUCHES calculables
+       (« adultes » jusqu'au 2026-08-12 — c'était le trou)
+     une bouche sans enveloppe = « portion standard », jamais réduite
      zéro enveloppe calculable = cas NOMINAL (structure seulement)
      sentinelles vérifiées AU NIVEAU DU TRONC (couvertes là = couvertes pour tous)
         ↓
@@ -145,7 +231,9 @@ faire vite, et de livrer une divergence lisible à table.
 | R2 | Un foyer sous verrou est **indiscernable** d'un foyer sans aucune enveloppe calculable | Testé par égalité de chaînes. Sinon le verrou devient un signal : « pourquoi notre foyer n'a-t-il plus de portions ? ». |
 | R3 | Le référent est **déclaré**, jamais dérivé d'une métrique ni d'un ordre d'objectifs | Un ordre déterministe + la doctrine du référent citée = l'objectif le plus bas du foyer devient lisible par tous à table. Le plan lui-même serait le canal de divulgation. |
 | R4 | Défaut : **le membre qui compose la session** | Composer est un geste visible de tous. Aucune information cachée ne fuit. |
-| R5 | Un mineur n'est **jamais** référent, n'a **jamais** d'enveloppe, et `student_goals` n'est **jamais** lu pour lui | Satter, structurel : l'adulte décide quoi/quand/où, l'enfant décide combien. |
+| R5 | Un mineur n'est **jamais** référent, ~~n'a jamais d'enveloppe~~, ~~n'a **jamais d'objectif**~~, et `student_goals` n'est **jamais** lu pour lui | Satter, structurel : l'adulte décide quoi/quand/où, l'enfant décide combien. ⚠️ **Amendée le 2026-08-12** : il a désormais une enveloppe, et elle est **toujours** la maintenance pédiatrique — parce qu'un corps ne donne pas un objectif. Sans elle, il mangeait le tronc d'un adulte en déficit. ⚠️ **Amendée une seconde fois le 2026-08-13** : il a désormais une DIRECTION s'il en veut une — mais jamais `fat_loss` ni `recomposition` (`goal_not_for_minor`). §8.4 interdit le registre correctif sur le corps d'un enfant, pas la direction elle-même. |
+| R14 | Le **corps de la fiche** n'achète qu'une **maintenance**, jamais un objectif ; **l'enveloppe du compte gagne toujours**, y compris dégradée | Sans série de pesées il n'y a pas de plancher TCA derrière : rien n'arrêterait une restriction. Et retomber sur la fiche derrière une enveloppe dégradée contournerait le plancher par la porte de service. |
+| R15 | Le référent est écrit par le **compte maître seul**, dans l'écran du foyer — jamais par le coach | MODEL.md : il n'existe aucun canal 1:1 coach → élève. |
 | R6 | Union des **`forbidden`**, jamais des `discouraged` non-référents | Un interdit est global par construction ; une opinion n'a pas prise sur l'assiette commune d'élèves d'autres coachs. Elle gouverne leurs add-ons. |
 | R7 | Le tronc se dimensionne sur le **MIN** des enveloppes adultes calculables | La seule arithmétique compatible avec « on ajoute, on ne retire jamais ». Un adulte sans enveloppe compte « standard », **jamais réduit**. |
 | R8 | Zéro enveloppe calculable est le cas **NOMINAL**, pas une dégradation | Gorin 2018 : composer le foyer autour d'une structure saine bénéficie à tous sans cible. C'est aussi l'état de la majorité des foyers. |
@@ -262,12 +350,46 @@ Alors l'écart entre enveloppe cible et enveloppe atteinte est enregistré par m
    deux cas, exactement comme `envelope_mode` (FF-039 R14) mélange ses deux
    populations. Il ne coûte rien à l'appelant, puisque sans enveloppe
    calculable il n'y avait ni tronc dimensionné ni delta.
-1. **Le référent et les deltas n'ont pas d'écran.** La colonne est déclarée
-   « à la configuration du foyer » et le moteur la lit ; où le coach ou le
-   compte maître la renseigne n'est pas tranché, et c'est une question de
-   produit. Les add-ons sont écrits dans le payload (`member_deltas`) et aucune
-   surface ne les rend encore — ce qui est le bon ordre : le rendu d'une
+1. ~~**Le référent et les deltas n'ont pas d'écran.**~~ **Le référent en a un
+   depuis le 2026-08-12** (`ReferenceMemberCard`, `HouseholdPage.tsx` ;
+   `keel_household_set_reference_member`, migration `20260812220000`). Tranché :
+   **le compte maître seul**, dans l'écran du foyer. Les deux alternatives sont
+   écartées et le restent — le coach (aucun canal 1:1, MODEL.md) et un référent
+   **dérivé** (déjà hors périmètre §3).
+
+   ⚠️ **La carte ne s'affiche qu'à partir de DEUX adultes à table.** En dessous,
+   la cascade `déclaré → composeur → null` donne déjà la bonne réponse et
+   l'écran n'apprendrait rien : ce serait un réglage à une seule valeur,
+   c'est-à-dire une inquiétude offerte sans contrepartie. Le foyer nominal —
+   un parent et ses enfants — ne voit donc jamais cette carte.
+
+   **Les deltas, eux, n'ont toujours aucune surface.** Ils sont écrits dans
+   `member_deltas` et le run réel les produit (60 g et 180 g de riz pour deux
+   enfants) ; aucun écran ne les rend. C'est le bon ordre : le rendu d'une
    divergence à table est la partie qui demande le plus de soin.
+4. **Un tout-petit tire le tronc vers le bas, et personne n'a mesuré ce que ça
+   coûte.** Le MIN sur toutes les bouches est l'arithmétique voulue — elle
+   garantit que le tronc ne dépasse le besoin de personne — mais plus la plus
+   petite bouche est petite, plus la casserole commune rétrécit et plus les
+   adultes mangent en add-on. À la limite, « une cuisson » devient « une petite
+   cuisson et beaucoup de riz à côté ». `residualGaps` l'instrumente ; aucun
+   plancher n'a été posé, parce qu'un plancher inventé serait pire qu'un chiffre
+   mesuré.
+5. **Un titulaire avec un objectif et SANS pesée dégrade TOUTE la lane** —
+   trouvé par le run réel du 2026-08-12, et **pas** introduit par ce lot.
+   `envelopeFor` rend `per_portion` pour trois causes indiscernables (plancher
+   TCA, corps absent, poids inconnu), et `householdLaneMode` traite n'importe
+   quel `per_portion` comme le verrou. Un adulte qui a un compte, a choisi un
+   objectif et n'a jamais renseigné son poids fait donc perdre tout
+   dimensionnement au foyer entier, en silence. L'indiscernabilité est voulue
+   (R2) ; sa **conséquence sur le foyer** n'a jamais été décidée.
+6. **La résolution de date D18 s'arrête au roster** — même run.
+   `keel_household_member_age` résout `profiles.birth_date` puis la fiche du
+   maître ; `student_body_io.ts:162` ne lit que `profiles.birth_date`. Un adulte
+   daté par son maître est donc `adult` au roster (son objectif s'applique, sa
+   direction de service est écrite) et porte `ageBand: null` dans son corps —
+   donc **aucune bande d'énergie**, donc il ne pèse jamais dans le MIN et ne
+   reçoit jamais d'add-on. Mesuré sur la bouche « Nina » du run.
 2. **Les sentinelles au niveau du tronc bénéficient à tous « gratuitement »** —
    vrai tant que tout le monde mange le tronc. Un membre qui saute le repas n'est
    pas couvert, et rien ne le sait. À instruire avec le bilan hebdo.

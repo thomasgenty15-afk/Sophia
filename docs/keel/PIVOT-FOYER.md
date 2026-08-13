@@ -375,11 +375,31 @@ mention de poids, de silhouette, de restriction. On parle de ce que l'aliment *a
 de ce qu'il fait grossir. C'est ici que la machinerie de sécurité du dépôt gagne son salaire,
 et c'est une contrainte de produit, pas une politesse.
 
-> **Conséquence structurelle** : un membre mineur du foyer n'a **jamais d'objectif
+> ~~**Conséquence structurelle** : un membre mineur du foyer n'a **jamais d'objectif
 > nutritionnel individuel**. Il est un mangeur — allergies, goûts, restrictions parentales,
-> portions adaptées à l'âge — jamais une cible. La ceinture qui l'impose existe déjà
-> (`_shared/keel/student_age.ts`, `weekPlanAgeGate`), et la base doit rendre l'erreur
-> **inconstructible** plutôt que la corriger après coup.
+> portions adaptées à l'âge — jamais une cible.~~
+>
+> **Tranché le 2026-08-13, décision humaine : un enfant PEUT porter une direction.** La
+> règle ci-dessus était **plus large que sa propre raison**. Le paragraphe qui la justifie
+> ne dit pas « pas de direction », il dit « jamais **correctif sur le corps** : aucune
+> mention de poids, de silhouette, de restriction ; on parle de ce que l'aliment
+> **apporte** ». « Manger mieux » et « mieux s'entraîner » sont exactement ce que l'aliment
+> apporte — les interdire ne protégeait personne, et privait un adolescent qui s'entraîne
+> d'une composition qui tient compte de ce qu'il fait.
+>
+> **Ce qui reste inconstructible, et c'est la moitié qui compte** : `fat_loss` et
+> `recomposition`, les deux directions du registre qui **retire**. Elles sont refusées
+> **à l'écriture** sur les deux portes (`keel_household_set_member_goal`,
+> `keel_household_add_member` → `goal_not_for_minor`, migration `20260813180000`) et
+> **à la lecture** (`goalApplies` / `MINOR_FORBIDDEN_GOALS`, `_shared/keel/household.ts`).
+> Deux ceintures, parce qu'une ligne écrite avant ce jour-là existe encore : une garde qui
+> dépendrait d'un nettoyage de données n'est pas une garde.
+>
+> **Ce qui n'a pas bougé du tout** : un mineur ne reçoit toujours **aucun fait corporel**
+> dans le prompt (FF-047). Une direction dit ce qu'on **ajoute** ; une taille et une pesée
+> posées à côté du prénom d'un enfant rendent `fat_loss` **dérivable** sans qu'on l'ait
+> demandé. Et un **âge inconnu** ne reçoit aucune direction, pas même celles qu'un enfant
+> peut porter : « je ne sais pas » n'est pas « c'est un enfant ».
 
 **Le conseil ne rend jamais « impossible ».** Quatre personnes, des envies contradictoires,
 des objectifs divergents : il sort toujours un plan, et il **dit ce qu'il a arbitré**. Un
