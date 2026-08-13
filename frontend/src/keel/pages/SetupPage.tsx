@@ -1963,7 +1963,33 @@ function TableStep({
         <p className="mt-2 text-sm text-ink-soft">{t("setup.table.intro")}</p>
 
         <div className="mt-4 space-y-4">
-          <Field label={t("setup.plan.rhythm")} hint={t("setup.plan.rhythm_hint")}>
+          {/* ── L'ÉTIQUETTE DIT DE QUI, ET C'ÉTAIT UN DÉFAUT VU À L'ÉCRAN ──
+              Elle disait « quand TU manges » — l'étiquette de l'ancienne étape
+              3, où la question portait sur une seule personne. Sous un titre
+              « qui mange, et quand » et une intro « les moments où cette maison
+              mange », ça répétait la même phrase une troisième fois sans dire
+              de qui il s'agit. Résultat mesuré: on remplit la rangée d'une
+              PERSONNE, on croit avoir répondu, et le refus qui parle de « quand
+              tu manges » ne désigne plus rien.
+
+              « La maison » se lit maintenant en parallèle des prénoms de la
+              carte du dessous, ce qui est exactement le rapport entre les deux.
+
+              ── ET LE REFUS EST SUR LE CHAMP, PAS DANS UNE CARTE À PART ──────
+              Le motif s'affichait plus bas, dans le bloc « avant de continuer ».
+              Sur une étape qui ne pose QU'UNE question exigée, c'était la même
+              phrase à deux endroits, dont aucun n'était le contrôle qui y
+              répond. `Field` a une ligne d'erreur: le refus vit dessus.
+
+              C'est aussi ce qui rend le clic VISIBLE. Le bouton retenait sans
+              rien changer à l'écran — on cliquait, rien ne bougeait, et
+              « ça ne marche pas » est la seule lecture possible. */}
+          <Field
+            label={t("setup.table.house_label")}
+            error={missing.includes("eating_rhythm")
+              ? t("setup.missing.eating_rhythm")
+              : undefined}
+          >
             <div className="flex flex-wrap gap-2">
               {EATING_OCCASIONS.map((slot) => (
                 <Button
@@ -2051,9 +2077,6 @@ function TableStep({
         </Card>
       ) : null}
 
-      {missing.length > 0
-        ? <MissingCard missing={missing} title="setup.missing.before_next" />
-        : null}
     </>
   );
 }
