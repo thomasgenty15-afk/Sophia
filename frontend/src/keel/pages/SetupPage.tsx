@@ -60,6 +60,11 @@ import {
   savePlanAnswers,
 } from "../api/onboarding";
 import { BUDGET_MAX } from "../api/planBudget";
+import { addDays, daysBetween } from "../api/dates";
+import { MAX_WINDOW_DAYS, windowDayOrder } from "../api/mealWindow";
+import { type AwayDay, type EatingOccasionSlot } from "../api/mealGeneration";
+import { setMemberAway } from "../api/household";
+import MealPickerGrid from "../components/MealPickerGrid";
 import { browserLocalDate } from "../lib/useMealTicks";
 import { t, type MessageKey } from "../i18n/t";
 
@@ -244,6 +249,50 @@ export default function SetupPage() {
   const [heldBack, setHeldBack] = React.useState(false);
   /** La bouche dont le retrait attend un second clic. Voir `MouthRow`. */
   const [confirmRemove, setConfirmRemove] = React.useState<string | null>(null);
+  /**
+   * LA FENÊTRE DU PLAN — deux dates, et c'est la question qui manquait.
+   *
+   * ── CE QUI ÉTAIT CODÉ EN DUR ──────────────────────────────────────────
+   * `compose()` envoyait `{kind:"until_sunday"}` sans jamais le demander. Un
+   * premier plan tombait donc sur « d'ici dimanche », que le compte soit créé
+   * un lundi (six jours) ou un samedi (un jour et demi) — et personne ne
+   * pouvait dire « je pars jeudi, fais-moi trois jours ».
+   *
+   * ⚠️ ET SANS ELLE, LA GRILLE DE PRÉSENCE N'A PAS DE COLONNES. Le tableau par
+   * personne est dimensionné par la fenêtre: pas de dates, pas de jours à
+   * décocher. Les deux questions n'en font qu'une.
+   */
+  const [windowStart, setWindowStart] = React.useState(() => browserLocalDate());
+  const [windowEnd, setWindowEnd] = React.useState(() =>
+    addDays(browserLocalDate(), 6)
+  );
+  /** La bouche dont la grille de présence est ouverte. */
+  const [awayFor, setAwayFor] = React.useState<string | null>(null);
+  const [awayBusy, setAwayBusy] = React.useState(false);
+
+  // Le début pousse la fin devant lui, et la borne de sept jours la retient.
+  // Même garde que `MealBuilder`: une fin AVANT le début est refusée par
+  // `resolveRequestedWindow`, et un refus qu'on peut rendre impossible à
+  // composer ne doit pas exister.
+  React.useEffect(() => {
+    const maxEnd = addDays(windowStart, MAX_WINDOW_DAYS - 1);
+    if (windowEnd < windowStart) setWindowEnd(windowStart);
+    else if (windowEnd > maxEnd) setWindowEnd(maxEnd);
+  }, [windowStart, windowEnd]);
+
+  /** Les jours de la fenêtre demandée — les colonnes de la grille. */
+  const planWindow = React.useMemo(() => {
+    const days = Math.max(
+      1,
+      Math.min(MAX_WINDOW_DAYS, daysBetween(windowStart, windowEnd) + 1),
+    );
+    return {
+      startsOn: windowStart,
+      durationDays: days,
+      tokens: windowDayOrder(windowStart, days),
+      dates: Array.from({ length: days }, (_, i) => addDays(windowStart, i)),
+    };
+  }, [windowStart, windowEnd]);
 
   const [self, setSelf] = React.useState<SelfDraft | null>(null);
   const [plan, setPlan] = React.useState<FunnelPlanAnswers | null>(null);
@@ -751,7 +800,14 @@ export default function SetupPage() {
       try {
         if (fresh.isOwner && mouthCount >= 2) {
           const result = await generateHouseholdMeal({
-            window: { kind: "until_sunday" },
+            // LA FENÊTRE DEMANDÉE, et plus « d'ici dimanche » codé en dur. Un
+            // compte créé un samedi recevait un plan d'un jour et demi sans
+            // avoir rien choisi.
+            window: {
+              kind: "exact",
+              startsOn: planWindow.startsOn,
+              durationDays: planWindow.durationDays,
+            },
             // `prepare_next` et pas `replace_current`: il n'y a rien à
             // remplacer, et `replace_current` sans cible rend
             // `replaces_required`.
@@ -769,7 +825,11 @@ export default function SetupPage() {
             // garde-manger déclaré, et `from_pantry` sans articles rend
             // `pantry_required`.
             mode: "to_shop",
-            window: { kind: "until_sunday" },
+            window: {
+              kind: "exact",
+              startsOn: planWindow.startsOn,
+              durationDays: planWindow.durationDays,
+            },
             intent: "prepare_next",
             replaces: null,
             slot: null,
@@ -899,7 +959,34 @@ export default function SetupPage() {
         ) : null}
 
         {step.id === "request" ? (
-          <RequestStep draft={plan} onChange={setPlan} missing={missing} />
+          <RequestStep
+            draft={plan}
+            onChange={setPlan}
+            missing={missing}
+            windowStart={windowStart}
+            windowEnd={windowEnd}
+            onWindowStart={setWindowStart}
+            onWindowEnd={setWindowEnd}
+            maxEnd={addDays(windowStart, MAX_WINDOW_DAYS - 1)}
+            mouths={facts.mouths}
+            planWindow={planWindow}
+            awayFor={awayFor}
+            onAwayFor={setAwayFor}
+            awayBusy={awayBusy}
+            rhythm={plan.eatingRhythm}
+            onAwaySaved={(m, next) =>
+              guard(async () => {
+                setAwayBusy(true);
+                try {
+                  const result = await setMemberAway(m.memberId!, next);
+                  if (!result.ok) throw new Error(result.reason);
+                  setAwayFor(null);
+                  await load(false);
+                } finally {
+                  setAwayBusy(false);
+                }
+              })}
+          />
         ) : null}
 
         {/* LA BARRE D'ACTION, ET ELLE NE PORTE AUCUNE SORTIE.
@@ -2104,10 +2191,39 @@ function RequestStep({
   draft,
   onChange,
   missing,
+  windowStart,
+  windowEnd,
+  onWindowStart,
+  onWindowEnd,
+  maxEnd,
+  mouths,
+  planWindow,
+  awayFor,
+  onAwayFor,
+  awayBusy,
+  rhythm,
+  onAwaySaved,
 }: {
   draft: FunnelPlanAnswers;
   onChange: React.Dispatch<React.SetStateAction<FunnelPlanAnswers | null>>;
   missing: readonly FunnelMissId[];
+  windowStart: string;
+  windowEnd: string;
+  onWindowStart: (value: string) => void;
+  onWindowEnd: (value: string) => void;
+  maxEnd: string;
+  mouths: readonly FunnelMouth[];
+  planWindow: {
+    startsOn: string;
+    durationDays: number;
+    tokens: readonly string[];
+    dates: readonly string[];
+  };
+  awayFor: string | null;
+  onAwayFor: (memberId: string | null) => void;
+  awayBusy: boolean;
+  rhythm: readonly string[];
+  onAwaySaved: (mouth: FunnelMouth, next: AwayDay[]) => void;
 }) {
   const toggle = (list: readonly string[], value: string) =>
     list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
@@ -2119,6 +2235,43 @@ function RequestStep({
         <p className="mt-2 text-sm text-ink-soft">{t("setup.request.intro")}</p>
 
         <div className="mt-4 space-y-4">
+          {/* ── LES DATES, ET C'EST LA QUESTION QUI MANQUAIT ────────────────
+              `compose()` envoyait « d'ici dimanche » sans jamais le demander:
+              un compte créé un samedi recevait un plan d'un jour et demi, et
+              personne ne pouvait dire « je pars jeudi, fais-moi trois jours ».
+
+              Deux dates plutôt qu'une durée: on choisit une semaine dans un
+              calendrier, pas un nombre. Le plafond de sept jours est celui de
+              la base (`duration_days between 1 and 7`), et il est porté par le
+              `max` du second champ — un refus qu'on peut rendre inexprimable
+              ne doit pas exister. */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label={t("setup.request.from")} htmlFor="setup-window-start">
+              <input
+                id="setup-window-start"
+                type="date"
+                value={windowStart}
+                onChange={(e) => onWindowStart(e.target.value)}
+                className={inputClass}
+              />
+            </Field>
+            <Field
+              label={t("setup.request.to")}
+              hint={t("setup.request.window_hint")}
+              htmlFor="setup-window-end"
+            >
+              <input
+                id="setup-window-end"
+                type="date"
+                value={windowEnd}
+                min={windowStart}
+                max={maxEnd}
+                onChange={(e) => onWindowEnd(e.target.value)}
+                className={inputClass}
+              />
+            </Field>
+          </div>
+
           <Field label={t("setup.plan.cook_days")} hint={t("setup.plan.cook_days_hint")}>
             <div className="flex flex-wrap gap-2">
               {DAY_TOKENS.map((day) => (
@@ -2218,6 +2371,61 @@ function RequestStep({
           </Field>
         </div>
       </Card>
+
+      {/* ── QUI EST LÀ, JOUR PAR JOUR, SUR CETTE FENÊTRE-CI ────────────────
+          L'étape 3 dit l'HABITUDE; celle-ci dit LA SEMAINE. C'est le tableau
+          de présence dimensionné par les dates du dessus: une colonne par
+          jour demandé, une ligne par moment de la maison.
+
+          ⚠️ IL NE PEUT PAS EXISTER SANS LES DATES, et c'est pour ça qu'il vit
+          sur cette étape et pas sur la précédente: sans fenêtre, il n'a pas de
+          colonnes. Les deux questions n'en font qu'une.
+
+          La grille est celle de `/app/plan` et `/app/household`
+          (`MealPickerGrid`), pas une seconde: elle écrit `away_days` par
+          bouche, elle reprend les jours HORS fenêtre tels quels, et une
+          deuxième implémentation aurait fini par en effacer la moitié. */}
+      {mouths.length > 0 && rhythm.length > 0 ? (
+        <Card>
+          <SectionLabel>{t("setup.request.presence_title")}</SectionLabel>
+          <p className="mt-2 text-sm text-ink-soft">
+            {t("setup.request.presence_intro")}
+          </p>
+          <ul className="mt-4 space-y-3">
+            {mouths.map((m) => (
+              <li
+                key={m.memberId ?? m.firstName}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-card border border-line-strong bg-fig-50/40 p-4"
+              >
+                <span className="text-base font-semibold text-ink">
+                  {m.firstName || "—"}
+                </span>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={awayBusy}
+                  onClick={() => onAwayFor(awayFor === m.memberId ? null : m.memberId)}
+                >
+                  {t("setup.request.presence_open")}
+                </Button>
+                {/* MONTÉE MÊME FERMÉE — `Modal` rend `null` sans démonter —
+                    donc une grille modifiée survit à une fermeture
+                    accidentelle. Même posture que sur la page du foyer. */}
+                <MealPickerGrid
+                  open={awayFor === m.memberId}
+                  onClose={() => onAwayFor(null)}
+                  days={planWindow.tokens}
+                  dates={planWindow.dates}
+                  rhythm={rhythm.map((slot) => ({ slot, size: null })) as EatingOccasionSlot[]}
+                  away={[]}
+                  busy={awayBusy}
+                  onSave={(next) => onAwaySaved(m, next)}
+                />
+              </li>
+            ))}
+          </ul>
+        </Card>
+      ) : null}
 
       {missing.length > 0 ? <MissingCard missing={missing} title="setup.missing.title" /> : (
         <p className="text-xs text-ink-soft">{t("setup.plan.compose_hint")}</p>

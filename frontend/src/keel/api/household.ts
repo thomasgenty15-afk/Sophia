@@ -1146,14 +1146,34 @@ export async function namedEdgeRefusal(error: unknown): Promise<string | null> {
 }
 
 export async function generateHouseholdMeal(args: {
-  window: { kind: "until_sunday" } | { kind: "days"; count: number };
+  /**
+   * ⚠️ LA TROISIÈME FORME EXISTAIT EN BASE ET PAS ICI. La fonction edge accepte
+   * `{kind:'exact', starts_on, duration_days}` depuis toujours (son refus le
+   * dit mot pour mot), et ce type-ci la refusait: aucun écran du foyer ne
+   * pouvait donc CHOISIR ses dates — ni l'entrée, ni la page du foyer. Un
+   * contrat client plus étroit que le serveur est une fonctionnalité qu'on
+   * croit absente alors qu'elle est livrée.
+   */
+  window:
+    | { kind: "until_sunday" }
+    | { kind: "days"; count: number }
+    | { kind: "exact"; startsOn: string; durationDays: number };
   intent?: "replace_current" | "prepare_next";
   replaces?: string | null;
   context?: string | null;
 }): Promise<HouseholdMealResult> {
   const { data, error } = await supabase.functions.invoke("generate-household-meal-v1", {
     body: {
-      window: args.window,
+      // LA FORME `exact` SE SÉRIALISE EN `snake_case`, comme sur la lane
+      // individuelle: c'est le contrat de la fonction edge, et le client ne le
+      // réécrit pas.
+      window: args.window.kind === "exact"
+        ? {
+          kind: "exact",
+          starts_on: args.window.startsOn,
+          duration_days: args.window.durationDays,
+        }
+        : args.window,
       intent: args.intent ?? "replace_current",
       replaces: args.replaces ?? null,
       context: args.context ?? null,
