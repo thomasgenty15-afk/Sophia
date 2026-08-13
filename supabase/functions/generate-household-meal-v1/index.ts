@@ -56,6 +56,13 @@ import { explainPlanChoices } from "../_shared/keel/plan_rationale.ts";
 import { reportOnRequest } from "../_shared/keel/request_report.ts";
 import { gateRequestReport } from "../_shared/keel/request_report_gate.ts";
 import { type ForbiddenTerm } from "../_shared/keel/forbidden_matcher.ts";
+// LA PHRASE ÉCRITE SUR UN BROUILLON — gardée À L'ENTRÉE, parce qu'elle part au
+// modèle dans le même message que la doctrine et les règles de maison.
+import {
+  draftNoteInstruction,
+  hasDraftNote,
+  readDraftNote,
+} from "../_shared/keel/plan_draft_note.ts";
 import {
   countHungerDays,
   type HungerWindowSignal,
@@ -893,13 +900,13 @@ Deno.serve(async (req) => {
     /** Un aperçu: tout se calcule, rien ne s'écrit. */
     const isDraft = operation === "compose" && intent === "draft";
     //
-    // ── LA REPRISE D'UN APERÇU N'EST PAS ENCORE CÂBLÉE, ET C'EST DIT ──────
+    // ── LA REPRISE D'UN APERÇU EST CÂBLÉE, ET PAS ICI ────────────────────
     // Même seam que sur la lane individuelle: `body.draft_note` part au modèle
-    // dans le MÊME message que la doctrine et les règles de maison, donc il lui
-    // faut la garde d'entrée `plan_draft_note.ts::readDraftNote` (Lot C, module
-    // absent). ⛔ Tant qu'elle n'existe pas, le champ n'est PAS lu — accepter
-    // le texte sans la garde ferait l'injection que la garde existe pour
-    // empêcher. Le jeton `note_unusable` reste donc sans émetteur.
+    // dans le MÊME message que la doctrine et les règles de maison, donc il
+    // passe par la garde d'entrée `plan_draft_note.ts::readDraftNote`. Elle a
+    // besoin des interdits du coach et du plancher TCA du compte qui compose:
+    // le câblage vit donc plus bas, juste après le chargement de la doctrine, et
+    // il refuse `note_unusable` avant tout appel modèle.
 
     // ── LES MEMBRES, PAR LA MÊME PORTE QUE LE CHAT ──────────────────────
     // `keel_household_roster_for` et pas une lecture de table: c'est le SEUL
@@ -1762,6 +1769,62 @@ Deno.serve(async (req) => {
       .map((b) => String(b.key ?? "").trim())
       .filter(Boolean);
     const coachNote = await loadCoachNote(admin, userId);
+
+    // ── LES INTERDITS DU COACH, DANS LA FORME DU MATCHER ─────────────────
+    // Miroir de `findDoctrineViolations` (`doctrine.ts:1088-1099`), qui n'exporte
+    // pas cette projection.
+    //
+    // ⚠️ HISSÉ ICI PAR LE SEAM DU BROUILLON, comme sur la lane individuelle: il
+    // vivait avec FF-061, donc APRÈS l'appel modèle, et la garde d'entrée de la
+    // phrase de reprise en a besoin AVANT. Un seul `const`, deux lecteurs — une
+    // seconde projection en ferait une troisième copie de la même liste.
+    const doctrineForbidden: ForbiddenTerm[] = (doctrine.doctrine?.forbidden ?? [])
+      .map((f) => ({
+        ruleId: String(f.token ?? "").trim(),
+        token: String(f.token ?? "").trim(),
+        surfaceForms: f.surfaceForms,
+      }))
+      .filter((t) => t.token.length > 0);
+
+    // ── LA PHRASE ÉCRITE SUR UN BROUILLON (§4.3.2) ───────────────────────
+    //
+    // Même garde et même tuyau que la lane individuelle: elle s'AJOUTE en queue
+    // du message par le point de composition unique, elle ne remplace aucun
+    // bloc, et elle est jugée AVANT tout appel modèle.
+    //
+    // ⚠️ `restrictionFlag` — CELUI DU COMPTE QUI COMPOSE, en fail-closed. Le
+    // foyer n'a pas de plancher TCA de foyer (`restriction_flag` est par
+    // membre); c'est à la personne qui écrit la phrase qu'on doit le plancher,
+    // et c'est elle qui l'écrit. Même arbitrage que la porte 1 de FF-061, dix
+    // lignes plus bas dans ce fichier.
+    let draftNoteSuffix = "";
+    if (operation === "compose" && hasDraftNote(body.draft_note)) {
+      const note = readDraftNote({
+        raw: body.draft_note,
+        doctrineForbidden,
+        restrictionFlag:
+          composedMembers.find((m) => m.userId === userId)?.body?.restrictionFlag ??
+            true,
+      });
+      console.log(JSON.stringify({
+        tag: "keel.household_meal.draft_note",
+        user_id: userId,
+        intent,
+        refusal: note.refusal,
+        dropped: note.dropped,
+      }));
+      // `usable === null` testé AVEC le refus, jamais rattrapé par un `?? ""`:
+      // une puce vide serait une demande que personne n'a écrite.
+      if (note.refusal !== null || note.usable === null) {
+        // ⚠️ LITTÉRAL, JAMAIS UN TERNAIRE — `planRefusals.int.test.ts` ne voit
+        // que les chaînes littérales dans `jsonResponse(req, { error: "…" })`.
+        return jsonResponse(req, {
+          error: "note_unusable",
+          request_id: requestId,
+        }, { status: 400 });
+      }
+      draftNoteSuffix = `\n\n${draftNoteInstruction(note.usable)}`;
+    }
 
     let protocolBlock = "";
     try {
@@ -2765,9 +2828,16 @@ Deno.serve(async (req) => {
     //
     // `appendContentLanguageBlock` est idempotent: le remettre le DÉPLACE en
     // queue, il ne l'empile pas.
+    //
+    // ── OÙ SE PLACE LA PHRASE DE REPRISE ─────────────────────────────────
+    // AVANT le bloc satiété ET avant les règles de maison. C'est une DEMANDE,
+    // pas une règle: le bloc de `household_meal_generation.ts` doit rester le
+    // dernier, parce que c'est lui qui doit survivre à une envie contradictoire
+    // — et une phrase de reprise EST une envie. Dans le tronc et pas dans
+    // `extra`, pour qu'une relance ne la perde pas.
     const householdUserMessage = (extra: string): string =>
       appendContentLanguageBlock(
-        `${built.userMessage}${hungerSuffix}${household.userSuffix}${extra}`,
+        `${built.userMessage}${draftNoteSuffix}${hungerSuffix}${household.userSuffix}${extra}`,
         built.contentLocale,
         MEAL_TRANSLATABLE_FIELDS,
         MEAL_TOKEN_FIELDS,
@@ -3109,16 +3179,9 @@ Deno.serve(async (req) => {
     const reportLocale: "fr" | "en" =
       householdContentLocale.slice(0, 2).toLowerCase() === "fr" ? "fr" : "en";
 
-    // Les interdits du coach, dans la forme du matcher. Miroir de
-    // `findDoctrineViolations` (`doctrine.ts:1088-1099`), qui n'exporte pas
-    // cette projection.
-    const doctrineForbidden: ForbiddenTerm[] = (doctrine.doctrine?.forbidden ?? [])
-      .map((f) => ({
-        ruleId: String(f.token ?? "").trim(),
-        token: String(f.token ?? "").trim(),
-        surfaceForms: f.surfaceForms,
-      }))
-      .filter((t) => t.token.length > 0);
+    // ⚠️ `doctrineForbidden` est LU ICI ET DÉFINI PLUS HAUT, juste après le
+    // chargement de la doctrine. Il y a été hissé parce que la garde d'entrée de
+    // la phrase de reprise en a besoin avant l'appel modèle.
 
     let rationaleLines: string[] = [];
     let rationaleRefusal: string | null = null;
