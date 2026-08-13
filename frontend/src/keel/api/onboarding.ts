@@ -718,6 +718,29 @@ export function nextIncomplete(
   return funnelSteps(branch).find((s) => missing.has(s.id)) ?? null;
 }
 
+/**
+ * CE QUI MANQUE ENCORE **À CETTE ÉTAPE-CI**.
+ *
+ * ── LE DÉFAUT QUE CETTE FONCTION EXISTE POUR FERMER ────────────────────────
+ * Mesuré au navigateur le 2026-08-13, sur un compte neuf en branche « à
+ * deux »: l'étape 2 se quittait par son bouton principal SANS que la question
+ * des bouches ait été posée, et l'étape 3 refusait ensuite de composer avec
+ * « ajoute les autres personnes qui mangent ici » — un motif dont le seul
+ * champ est resté en arrière. On ne peut pas répondre à une question depuis
+ * l'écran suivant.
+ *
+ * `nextIncomplete` dit où REPRENDRE une session; celle-ci dit si l'étape
+ * courante a le droit de se laisser quitter. Les deux lisent le même verdict,
+ * donc aucune des deux ne peut dériver de l'autre.
+ */
+export function missesForStep(
+  state: FunnelState,
+  branch: FunnelBranch,
+  step: FunnelStepId,
+): FunnelMissId[] {
+  return canGenerateMisses(state, branch).filter((m) => stepOfMiss(m) === step);
+}
+
 /** À quelle étape un motif renvoie l'utilisateur. */
 function stepOfMiss(miss: FunnelMissId): FunnelStepId {
   if (miss === "missing_mouths" || miss === "too_many_mouths") return "people";

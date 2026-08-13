@@ -16,6 +16,7 @@ import {
   type FunnelState,
   funnelSteps,
   HOUSEHOLD_MAX_MOUTHS,
+  missesForStep,
   nextIncomplete,
 } from "./onboarding";
 import { SETUP_MISS_KEYS } from "../copy/setupMisses";
@@ -552,6 +553,57 @@ describe("nextIncomplete", () => {
       plan: { eatingRhythm: [], cookDays: [], cookingTimeMin: null, budgetBand: null },
     };
     expect(nextIncomplete(state, "family")?.id).toBe("plan");
+  });
+});
+
+// ───────────────────────────────────────────────────────────────────────────
+// 5bis. Une étape ne se laisse pas quitter incomplète
+// ───────────────────────────────────────────────────────────────────────────
+
+/**
+ * ── LE DÉFAUT QUE CE BLOC TIENT FERMÉ ──────────────────────────────────────
+ * Mesuré au navigateur le 2026-08-13, compte neuf, branche « à deux »: on
+ * remplissait l'étape 2, son bouton principal enregistrait ET avançait, et
+ * l'étape 3 refusait ensuite de composer avec « ajoute les autres personnes qui
+ * mangent ici » — dont le seul champ était resté à l'étape 2. Le parcours
+ * nominal se terminait sur un bouton gris.
+ *
+ * Ce que la fonction garantit: chaque motif est imputé à l'étape qui porte son
+ * champ, et une étape connaît les siens.
+ */
+describe("missesForStep", () => {
+  it("impute les bouches manquantes à l'étape qui porte le formulaire d'ajout", () => {
+    const state: FunnelState = { ...complete("pair"), others: [] };
+    expect(missesForStep(state, "pair", "people")).toContain("missing_mouths");
+    // ET NULLE PART AILLEURS: un motif rendu par l'étape 3 y serait affiché
+    // sans le champ qui y répond — c'est le défaut lui-même.
+    expect(missesForStep(state, "pair", "plan")).toEqual([]);
+    expect(missesForStep(state, "pair", "situate")).toEqual([]);
+  });
+
+  it("ne retient personne sur une étape dont toutes les questions sont répondues", () => {
+    const state: FunnelState = {
+      ...complete("family"),
+      plan: { eatingRhythm: [], cookDays: [], cookingTimeMin: null, budgetBand: null },
+    };
+    expect(missesForStep(state, "family", "people")).toEqual([]);
+    expect(missesForStep(state, "family", "plan").length).toBeGreaterThan(0);
+  });
+
+  /**
+   * LA SOMME DES ÉTAPES EST LE VERDICT ENTIER — donc aucun motif ne peut se
+   * perdre en route. Sans cette épreuve, `stepOfMiss` pourrait ranger un motif
+   * dans une étape qui n'est pas rendue par cette branche: le bouton de fin
+   * resterait gris et AUCUN écran ne dirait pourquoi.
+   */
+  it("répartit TOUS les motifs sur des étapes que la branche rend vraiment", () => {
+    const branches: FunnelBranch[] = ["solo", "pair", "family"];
+    for (const branch of branches) {
+      const state = emptyFunnelState();
+      const rendered = funnelSteps(branch).map((s) => s.id);
+      const spread = rendered.flatMap((id) => missesForStep(state, branch, id));
+      expect(spread.sort()).toEqual(misses(state, branch).sort());
+    }
   });
 });
 

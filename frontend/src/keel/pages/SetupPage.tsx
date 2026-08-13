@@ -37,11 +37,13 @@ import {
   DEFAULT_HOUSEHOLD_NAME,
   type FunnelBranch,
   type FunnelFacts,
+  type FunnelMissId,
   type FunnelMouth,
   type FunnelPlanAnswers,
   type FunnelState,
   funnelSteps,
   HOUSEHOLD_MAX_MOUTHS,
+  missesForStep,
   nextIncomplete,
   readFunnelFacts,
   saveMouthAllergies,
@@ -225,6 +227,16 @@ export default function SetupPage() {
   const [busy, setBusy] = React.useState(false);
   const [failure, setFailure] = React.useState<string | null>(null);
   const [flash, setFlash] = React.useState<string | null>(null);
+  /**
+   * « ON A ESSAYÉ DE QUITTER CETTE ÉTAPE, ET ELLE A RETENU. »
+   *
+   * Un drapeau d'ÉCRAN, et volontairement pas un fait: la liste affichée est
+   * toujours recalculée depuis les faits (elle rétrécit à mesure qu'on répond),
+   * ce drapeau ne décide QUE du moment où on commence à la montrer. Sans lui,
+   * un compte neuf arriverait à l'étape 2 avec la liste de tout ce qu'il n'a
+   * pas encore rempli, juste sous le formulaire qui le demande.
+   */
+  const [heldBack, setHeldBack] = React.useState(false);
 
   const [self, setSelf] = React.useState<SelfDraft | null>(null);
   const [plan, setPlan] = React.useState<FunnelPlanAnswers | null>(null);
@@ -333,6 +345,15 @@ export default function SetupPage() {
   const previewState: FunnelState = { ...facts.state, plan };
   const verdict = canGenerate(previewState, branch);
   const missing = verdict.ok ? [] : verdict.missing;
+
+  /**
+   * CE QUI MANQUE ENCORE À L'ÉTAPE OÙ ON EST — la même arithmétique, filtrée.
+   *
+   * Une étape ne se laisse pas quitter tant qu'elle en a: on ne peut pas
+   * répondre à une question depuis l'écran d'après, et c'est exactement ce que
+   * l'entonnoir demandait pour les bouches jusqu'au 2026-08-13.
+   */
+  const stepMissing = missesForStep(previewState, branch, step.id);
 
   const isLast = stepIndex >= steps.length - 1;
 
@@ -449,6 +470,23 @@ export default function SetupPage() {
       const draft = mouth;
       const name = draft.firstName.trim();
       if (!name) throw new Error(t("setup.missing.member_first_name"));
+      // ── LE MAÎTRE D'ABORD, ET C'EST UNE CONTRAINTE D'ÉCRITURE ──────────
+      // L'accusé « on a demandé les allergies de cette bouche » se fusionne
+      // dans `student_goals.practical_constraints` DU MAÎTRE, et cette ligne
+      // n'existe qu'une fois sa direction posée.
+      //
+      // ⚠️ CETTE CONTRAINTE A LONGTEMPS ÉTÉ UNE RÈGLE DE MISE EN PAGE: le
+      // formulaire d'ajout n'apparaissait qu'une fois l'objectif ENREGISTRÉ.
+      // Or le bouton principal de l'étape 2 enregistre ET avance — donc sur le
+      // chemin nominal (je remplis, je continue) la question des bouches
+      // n'était JAMAIS montrée, et l'étape 3 la réclamait ensuite sans offrir
+      // le champ. Mesuré au navigateur le 2026-08-13 sur un compte neuf.
+      // L'ordre d'écriture se tient ici, où il est vrai; le formulaire, lui,
+      // est visible dès qu'il y a un foyer.
+      if (facts!.state.self.goal === null) {
+        if (!self!.goal) throw new Error(t("setup.missing.own_goal"));
+        await saveSelf();
+      }
       let birth: string | null = null;
       if (draft.birthDate) {
         const answer = birthDateAnswer(draft.birthDate, browserLocalDate());
@@ -482,11 +520,17 @@ export default function SetupPage() {
       // ⚠️ L'ACCUSÉ EST ÉCRIT MÊME QUAND LA LISTE EST VIDE. « Aucune » est une
       // réponse: sans elle, la reprise relit « jamais demandé » et l'entonnoir
       // se bloque sur une question à laquelle la ligne n'offre pas de champ.
+      //
+      // ET IL PART D'UNE LECTURE FRAÎCHE, pas de `facts`: le `saveSelf` juste
+      // au-dessus vient peut-être de CRÉER la ligne `student_goals`, et l'état
+      // d'écran est encore celui d'avant. Fusionner sur une photo périmée
+      // effacerait ce qui a été écrit entre les deux.
+      const fresh = await readFunnelFacts(userId);
       await saveMouthAllergies({
         userId,
         memberId,
         labels: draft.allergies,
-        current: facts!.practicalConstraints,
+        current: fresh.practicalConstraints,
       });
       setMouth(emptyMouthDraft());
       await load(false);
@@ -706,28 +750,23 @@ export default function SetupPage() {
               busy={busy}
             />
             {/*
-              ── L'ORDRE EST UNE CONTRAINTE, PAS UNE PRÉFÉRENCE ──────────────
-              L'accusé « on a demandé les allergies » se fusionne dans
-              `student_goals.practical_constraints` DU MAÎTRE, et cette ligne
-              n'existe qu'une fois sa direction posée. Mesuré au navigateur le
-              2026-08-12: ajouter des bouches avant ça créait bien les lignes,
-              puis échouait sur l'accusé — donc trois bouches en base dont la
-              question de sécurité restait « jamais posée », sans moyen d'y
-              répondre au rechargement.
+              ── LA QUESTION EST POSÉE SUR L'ÉCRAN QUI LA PORTE ──────────────
+              Il y avait ici une porte: tant que la direction du maître n'était
+              pas ENREGISTRÉE, cette carte n'était qu'un encart gris renvoyant
+              vers le formulaire du dessus. L'intention était bonne — l'accusé
+              d'allergie d'une bouche se fusionne dans la ligne `student_goals`
+              du maître, qui n'existe qu'une fois sa direction posée — mais le
+              geste était faux: le bouton principal de cette étape enregistre
+              ET avance, donc sur le chemin nominal on ne voyait jamais la
+              porte s'ouvrir. On arrivait à l'étape 3, elle réclamait des
+              bouches, et le seul champ pour en ajouter était resté derrière.
 
-              La copie est celle qui existe déjà, et elle est juste: la
-              direction du maître est aussi ce qui permet de composer pour le
-              foyer.
+              L'ordre d'écriture n'a pas bougé d'un pouce: il est tenu dans
+              `addMouth`, qui enregistre le maître avant la première bouche et
+              refuse par un motif nommé s'il n'y a pas encore de direction à
+              enregistrer.
             */}
-            {branch !== "solo" && facts.state.self.goal === null ? (
-              <Card tone="dashed">
-                <SectionLabel>{t("setup.mouths.title")}</SectionLabel>
-                <p className="mt-2 text-sm text-ink-soft">
-                  {t("household.me.unlock")}
-                </p>
-              </Card>
-            ) : null}
-            {branch !== "solo" && facts.state.self.goal !== null ? (
+            {branch !== "solo" ? (
               <MouthsStep
                 mouths={facts.mouths}
                 draft={mouth}
@@ -749,6 +788,12 @@ export default function SetupPage() {
                 invite={invite}
                 busy={busy}
               />
+            ) : null}
+            {/* CE QUI RETIENT, DIT PAR SON MOTIF — et seulement après avoir
+                essayé de partir. La liste est celle des faits, donc elle
+                rétrécit à chaque réponse et disparaît d'elle-même. */}
+            {heldBack && stepMissing.length > 0 ? (
+              <MissingCard missing={stepMissing} />
             ) : null}
           </>
         ) : null}
@@ -788,6 +833,22 @@ export default function SetupPage() {
                 onClick={() =>
                   guard(async () => {
                     await saveSelf();
+                    // ── UNE ÉTAPE NE SE LAISSE PAS QUITTER INCOMPLÈTE ───────
+                    // Et la relecture est FRAÎCHE, pas `facts`: `saveSelf`
+                    // vient d'écrire, l'état d'écran ne le sait pas encore, et
+                    // trancher sur la photo d'avant retiendrait quelqu'un qui
+                    // vient exactement de répondre.
+                    const fresh = await readFunnelFacts(userId);
+                    const held = missesForStep(
+                      { ...fresh.state, plan },
+                      fresh.branch ?? branch,
+                      "people",
+                    );
+                    if (held.length > 0) {
+                      setHeldBack(true);
+                      return;
+                    }
+                    setHeldBack(false);
                     setStepIndex((i) => Math.min(steps.length - 1, i + 1));
                   })}
               >
@@ -1649,7 +1710,7 @@ function PlanStep({
 }: {
   draft: FunnelPlanAnswers;
   onChange: React.Dispatch<React.SetStateAction<FunnelPlanAnswers | null>>;
-  missing: readonly string[];
+  missing: readonly FunnelMissId[];
 }) {
   const toggle = (list: readonly string[], value: string) =>
     list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
@@ -1765,24 +1826,34 @@ function PlanStep({
         </div>
       </Card>
 
-      {/* CE QUI MANQUE, DIT PAR SON MOTIF. Un bouton gris sans explication est
-          la moitié d'un refus — et le motif de D1 dit ce que l'absence COÛTE,
-          pas seulement qu'un champ est vide. */}
-      {missing.length > 0 ? (
-        <Card tone="dashed">
-          <SectionLabel>{t("setup.missing.title")}</SectionLabel>
-          <ul className="mt-2 space-y-1">
-            {missing.map((miss) => (
-              <li key={miss} className="text-sm leading-6 text-ink">
-                {t(setupMissKey(miss as Parameters<typeof setupMissKey>[0]))}
-              </li>
-            ))}
-          </ul>
-        </Card>
-      ) : (
+      {missing.length > 0 ? <MissingCard missing={missing} /> : (
         <p className="text-xs text-ink-soft">{t("setup.plan.compose_hint")}</p>
       )}
     </>
+  );
+}
+
+/**
+ * CE QUI MANQUE, DIT PAR SON MOTIF.
+ *
+ * Un bouton gris sans explication est la moitié d'un refus — et le motif de D1
+ * dit ce que l'absence COÛTE, pas seulement qu'un champ est vide.
+ *
+ * Le même bloc sert aux deux étapes qui peuvent retenir. Deux rendus, ce serait
+ * deux vocabulaires pour un seul verdict: `canGenerateMisses`.
+ */
+function MissingCard({ missing }: { missing: readonly FunnelMissId[] }) {
+  return (
+    <Card tone="dashed">
+      <SectionLabel>{t("setup.missing.title")}</SectionLabel>
+      <ul className="mt-2 space-y-1">
+        {missing.map((miss) => (
+          <li key={miss} className="text-sm leading-6 text-ink">
+            {t(setupMissKey(miss))}
+          </li>
+        ))}
+      </ul>
+    </Card>
   );
 }
 
