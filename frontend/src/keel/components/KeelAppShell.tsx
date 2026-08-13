@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { t } from "../i18n/t";
 import {
@@ -24,16 +24,52 @@ import { Page, PageHeader, type PageWidth } from "./ui/Page";
 // l'onglet ACTIF lui-même était hors champ: l'élève ne pouvait pas voir où il
 // était.
 //
-// Deux états, coupés à `lg` (1024 px):
-//   < lg  : marque + bouton Menu en haut, et la barre d'onglets EN BAS pour
+// Deux états, coupés à `xl` (1280 px):
+//   < xl  : marque + bouton Menu en haut, et la barre d'onglets EN BAS pour
 //           l'élève — le pouce est en bas de l'écran, pas en haut.
-//   >= lg : la barre d'origine, intacte. Le desktop n'avait pas de problème.
+//   >= xl : la barre d'origine, intacte. Le desktop n'avait pas de problème.
 //
-// La coupure est à `lg` et pas à `md` parce qu'elle a été MESURÉE: à 768 px la
+// ── ⚠️ LA COUPURE A ÉTÉ MESURÉE DEUX FOIS, ET LA PREMIÈRE MESURE ÉTAIT EN
+//    ANGLAIS SEULEMENT ─────────────────────────────────────────────────────
+// Elle était à `lg` (1024 px), sur cette mesure-ci, qui reste vraie: à 768 px la
 // rangée complète demande ~754 px de contenu pour 736 px utiles, donc elle tient
 // en repliant « My week's plan » et « Meal ideas » sur deux lignes — une barre
-// qui « tient » de justesse et qui est laide. Une tablette hérite donc du menu
-// et de la barre du bas, ce qui est le bon défaut: ça se tape aussi au doigt.
+// qui « tient » de justesse et qui est laide.
+//
+// Mais l'app est devenue BILINGUE le 2026-08-13, et le pack français est plus
+// long de 10 à 25 % sur chaque libellé de navigation. MESURÉ à 1024 px en
+// français: la rangée demande ~1 008 px pour 992 px utiles, et comme les deux
+// `<nav>` sont des enfants flex à `min-width: auto` que rien ne fait rétrécir,
+// elles ne débordent pas — elles S'IMPRIMENT L'UNE SUR L'AUTRE.
+// « Progression » recouvrait « Compte » de 17 px et « Compte » recouvrait
+// « Santé » de 49 px, avec `scrollWidth - clientWidth = 0`: donc SILENCIEUX,
+// rien ne défilait pour le révéler. En anglais, aucun chevauchement.
+//
+// La coupure des DESTINATIONS passe donc à `xl`. Une tablette et un petit
+// portable héritent du menu et de la barre du bas, ce qui reste le bon défaut:
+// ça se tape aussi au doigt, et c'est déjà l'argument qui avait écarté `md`.
+//
+// ⚠️ ET MONTER LE SEUIL NE RÉPARAIT RIEN, PARCE QUE LE SEUIL N'ÉTAIT PAS LA
+// CAUSE. Le conteneur de la rangée est `max-w-6xl`: **1 152 px quelle que soit
+// la largeur de l'écran**. Il ne grandit jamais. Essayé et mesuré: à `xl`
+// (1 280 px) « Compte » recouvrait encore « Foyer » de 71 px, et à `2xl`
+// (1 536 px) exactement pareil. En français la rangée complète réclame
+// ~1 184 px — 770 px de destinations, 318 px de groupe secondaire, plus le
+// mot-symbole et les gouttières — pour 1 152 px disponibles, à toutes les
+// tailles d'écran.
+//
+// LE GROUPE SECONDAIRE EST DONC SORTI DE LA RANGÉE POUR DE BON (voir le
+// commentaire à son emplacement). Il vit dans le menu, et le bouton Menu est
+// visible à toutes les largeurs.
+//
+// ── ⛔ CE QUI RESTE À `xl`, ET CES TROIS-LÀ BOUGENT ENSEMBLE ────────────────
+//   les DESTINATIONS entrent dans la rangée (`xl:flex`), la barre du bas s'en
+//   va (`xl:hidden`), et la réserve de padding s'en va avec elle (`xl:pb-0`).
+//   Les désunir donne soit une barre du bas sans réserve — le dernier bouton de
+//   chaque écran passe dessous —, soit une réserve de 4 rem sous une barre
+//   absente.
+//   Le bouton Menu, lui, n'a PLUS de seuil: il est là partout, parce qu'il est
+//   le seul chemin vers le compte, les mentions légales et la déconnexion.
 
 export type ShellVariant = "student" | "coach";
 
@@ -248,7 +284,7 @@ export function KeelShellBar({ variant = "student" }: { variant?: ShellVariant }
             <span className="eq shrink-0 font-display text-lg leading-none text-ink">
               {t("brand.wordmark")}
             </span>
-            <nav className="hidden gap-2 text-sm lg:flex">
+            <nav className="hidden gap-2 text-sm xl:flex">
               {items.map((item) => (
                 <ShellLink
                   key={item.to}
@@ -260,29 +296,33 @@ export function KeelShellBar({ variant = "student" }: { variant?: ShellVariant }
               ))}
             </nav>
           </div>
-          <nav className="hidden items-center gap-2 text-sm lg:flex">
-            <ShellLink to="/account" label={t("shell.nav.account")} />
-            {/* A ROUTE WITH NO LINK IS A FEATURE NOBODY HAS — the note at the top
-                of this file, applied to /legal. The connected shell had no path
-                to it at all, in either space: a student wanting to know who
-                holds their data, or a coach checking who they are paying, had to
-                sign out to find the answer. Deliberately NOT a ShellLink: it is
-                not a destination in the product, so it never lights up as the
-                active tab next to Today / Students. */}
-            <Link
-              to="/legal"
-              className="rounded-full px-3 py-1 text-ink-soft transition-colors hover:bg-fig-50 hover:text-ink"
-            >
-              {t("shell.nav.legal")}
-            </Link>
-            <button
-              type="button"
-              onClick={handleSignOut}
-              className="rounded-full px-3 py-1 text-ink-soft transition-colors hover:bg-fig-50 hover:text-ink"
-            >
-              {t("shell.nav.sign_out")}
-            </button>
-          </nav>
+          {/* ── ⛔ LE GROUPE SECONDAIRE N'EST PLUS DANS LA RANGÉE, ET AUCUN
+                 SEUIL NE PEUT L'Y REMETTRE ────────────────────────────────────
+              Compte, mentions légales et déconnexion vivaient ici, en ligne, à
+              droite. Ils vivent maintenant UNIQUEMENT dans le menu — qui les
+              portait déjà, avec Échap, `aria-expanded` et la fermeture au
+              changement de chemin. Le bouton Menu est donc visible à TOUTES les
+              largeurs, et c'est ce qui garde ces trois-là à un clic partout:
+              c'est leur PLACE qui a bougé, pas leur existence.
+
+              ⚠️ LA RAISON EST GÉOMÉTRIQUE, PAS UNE QUESTION DE SEUIL, et j'ai
+              d'abord essayé les seuils avant de comprendre. En français, les
+              sept destinations demandent 770 px et ce groupe 318 px; avec le
+              mot-symbole et les gouttières, la rangée réclame ~1 184 px. Or le
+              conteneur est `max-w-6xl`, donc **1 152 px QUELLE QUE SOIT la
+              largeur de l'écran**: il ne grandit jamais. Monter la coupure à
+              `xl` puis à `2xl` n'a donc rien réparé — MESURÉ à 1 536 px,
+              « Compte » recouvrait encore « Foyer », exactement comme à 1 024.
+              Et comme les deux `<nav>` sont des enfants flex à
+              `min-width: auto` que rien ne fait rétrécir, elles ne débordent
+              pas: elles s'impriment l'une sur l'autre, en silence
+              (`scrollWidth - clientWidth = 0`, donc rien ne défile pour le
+              révéler). En anglais les libellés sont 10 à 25 % plus courts et le
+              défaut ne se voyait pas — le piège de la garde vérifiée dans une
+              seule langue, que ce dépôt a déjà payé.
+
+              Si un jour on veut ce groupe en ligne, ce n'est pas un seuil qu'il
+              faut changer, c'est `max-w-6xl`. */}
           <button
             type="button"
             data-testid="shell-menu-toggle"
@@ -292,7 +332,7 @@ export function KeelShellBar({ variant = "student" }: { variant?: ShellVariant }
             // `border-line-strong` et pas `border-line`: c'est un CONTRÔLE, et
             // WCAG 1.4.11 exige 3:1 pour sa bordure. `line` est à 1,30:1 (un
             // séparateur décoratif), `line-strong` à 3,84:1.
-            className="inline-flex shrink-0 items-center gap-2 rounded-full border border-line-strong px-3 py-1.5 text-sm text-ink transition-colors hover:bg-fig-50 lg:hidden"
+            className="inline-flex shrink-0 items-center gap-2 rounded-full border border-line-strong px-3 py-1.5 text-sm text-ink transition-colors hover:bg-fig-50"
           >
             {menuOpen ? t("shell.nav.menu_close") : t("shell.nav.menu")}
             {/* LE BADGE SUIT LE CHEMIN VERS LA CONVERSATION. Sous `md` l'entrée
@@ -310,7 +350,7 @@ export function KeelShellBar({ variant = "student" }: { variant?: ShellVariant }
           <div
             id="shell-menu"
             data-testid="shell-menu"
-            className="max-h-[70vh] overflow-y-auto border-t border-line bg-paper lg:hidden"
+            className="max-h-[70vh] overflow-y-auto border-t border-line bg-paper"
           >
             <nav className="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-3 text-sm">
               {items.map((item) => (
@@ -363,7 +403,7 @@ function ShellBottomBar({
       // `pb-[env(safe-area-inset-bottom)]`: sur un iPhone la barre gestuelle
       // mange les derniers 34 px. Sans ça, le dernier onglet est sous le trait
       // du système — visible, et intappable.
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-paper pb-[env(safe-area-inset-bottom)] lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-paper pb-[env(safe-area-inset-bottom)] xl:hidden"
     >
       <div className="flex items-stretch">
         {bottom.map((item) => (
@@ -373,7 +413,17 @@ function ShellBottomBar({
             end={item.end}
             // `py-3`: 49 px de haut. Une cible tactile sous ~44 px se rate au
             // pouce, et c'est la barre qu'on vise le plus souvent.
-            className="relative flex flex-1 items-center justify-center px-0.5 py-3"
+            //
+            // ⚠️ `min-w-0` ARME LE `truncate` DE L'ENFANT, et sans lui il ne
+            // sert à rien. Un enfant de flex a `min-width: auto`: il refuse
+            // d'être plus étroit que son contenu, donc la colonne s'élargissait
+            // au lieu de couper, et le dernier onglet sortait de l'écran.
+            // MESURÉ en français à 320 px: « Progression » débordait de 32 px,
+            // sans ellipse et sans défilement — 1.4.10 Reflow. En anglais le
+            // libellé est plus court et le défaut ne se voyait pas: c'est le
+            // piège de la garde vérifiée dans une seule langue, que ce dépôt a
+            // déjà payé.
+            className="relative flex min-w-0 flex-1 items-center justify-center px-0.5 py-3"
           >
             {({ isActive }) => (
               <>
@@ -530,7 +580,7 @@ export function KeelAppShell({
         // la fin de la page si on ne lui réserve pas sa place. Sans ce padding,
         // le dernier bouton de chaque écran élève — « Log it » du dernier
         // engagement, « Add » du formulaire santé — passe dessous.
-        variant === "student" ? "pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0" : ""
+        variant === "student" ? "pb-[calc(4rem+env(safe-area-inset-bottom))] xl:pb-0" : ""
       }`}
     >
       <KeelShellBar variant={variant} />
