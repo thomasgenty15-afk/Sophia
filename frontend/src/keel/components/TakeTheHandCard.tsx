@@ -4,7 +4,7 @@ import { type GeneratedMealResult, validateMealPlan } from "../api/mealGeneratio
 import { validationRefusalKey } from "../copy/planRefusals";
 import { formatDate as formatDateIn } from "../i18n/format";
 import { t } from "../i18n/t";
-import { Button, ButtonLink } from "./ui/Button";
+import { Button } from "./ui/Button";
 import { Card, SectionLabel } from "./ui/Card";
 
 // KEEL — L8/O2 · PRENDRE LA MAIN SUR SA SEMAINE (D2, D7, D9).
@@ -75,19 +75,17 @@ export default function TakeTheHandCard(
   if (!place.inHousehold) return null;
 
   // ── LE MAÎTRE (D2, D9) ───────────────────────────────────────────────────
-  // Son plan EST le plan du foyer, et sa surface de cuisine n'affiche que
-  // celui-là (voir `cookedPlans`). Il n'a donc pas de main à prendre — une
-  // ligne, et la porte vers l'écran où il compose vraiment.
-  if (place.isOwner) {
-    return (
-      <Card tone="dashed" className="mb-3">
-        <p className="text-sm leading-6 text-ink-soft">{t("plan.hand.owner_note")}</p>
-        <ButtonLink to="/app/household" variant="secondary" size="sm" className="mt-2">
-          {t("household.title")}
-        </ButtonLink>
-      </Card>
-    );
-  }
+  // ⚠️ SA BRANCHE EST PARTIE, ET C'EST LE SENS DU LOT. Elle rendait une ligne
+  // (« ton plan est celui du foyer ») et une porte vers `/app/household`, parce
+  // que c'est là qu'il composait. Il compose maintenant SUR CET ÉCRAN-CI, et la
+  // page du foyer ne compose plus rien: la phrase envoyait vers un écran sans
+  // bouton, et la porte vers un aller-retour pour rien.
+  //
+  // Il n'a toujours pas de main à prendre — son plan EST le plan du foyer — et
+  // c'est exactement pour ça que la carte se tait plutôt que de le lui dire:
+  // une carte qui explique qu'il n'y a rien à faire est une carte à lire pour
+  // rien. Le formulaire juste en dessous est la seule chose qui le concerne.
+  if (place.isOwner) return null;
 
   const validated = plan?.validatedAt ?? null;
 

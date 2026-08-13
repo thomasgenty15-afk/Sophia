@@ -32,7 +32,17 @@ import {
   savePlanInputs,
 } from "../api/planBudget";
 import { dishDayLabel, mealCopy } from "../api/mealLabels";
-import { loadMyHouseholdPlace } from "../api/household";
+import {
+  ENVY_MAX_CHARS,
+  generateHouseholdMeal,
+  type HouseholdView,
+  loadEnvyLine,
+  loadHousehold,
+  loadMyHouseholdPlace,
+  setMemberAway,
+  submitEnvy,
+} from "../api/household";
+import { chooseGenerator } from "../api/planRouting";
 import { edgeRefusalKey } from "../copy/planRefusals";
 import { t } from "../i18n/t";
 import TakeTheHandCard, { type HouseholdPlace } from "./TakeTheHandCard";
@@ -41,7 +51,7 @@ import ShoppingListPanel from "./ShoppingListPanel";
 import CookingSessions from "./CookingSessions";
 import MealPickerGrid from "./MealPickerGrid";
 import { } from "../api/mealStretch";
-import { addDays, daysBetween } from "../api/dates";
+import { addDays, daysBetween, weekStartFor } from "../api/dates";
 import { browserLocalDate, useMealTicks } from "../lib/useMealTicks";
 import { useMealEnergy } from "../lib/useMealEnergy";
 import { EnergyTargetNote } from "./plan/EnergyReadout";
@@ -106,6 +116,15 @@ export interface MealBuilderProps {
   awayDays?: readonly AwayDay[];
   /** Reçoit la liste complète à écrire dans `practical_constraints`. */
   onAwaySaved?: (next: AwayDay[]) => Promise<void>;
+  /**
+   * LE FOYER VIENT DE COMPOSER — la page relit ce qui en dépend.
+   *
+   * « À table » (les parts par bouche) est écrit par la MÊME génération que le
+   * plan, mais il se lit par une autre requête. Sans ce signal, le maître voit
+   * son plan neuf au-dessus de parts périmées, et rien ne dit lesquelles sont
+   * fausses.
+   */
+  onHouseholdComposed?: () => Promise<void>;
 }
 
 export default function MealBuilder(props: MealBuilderProps = {}) {
@@ -137,6 +156,36 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
    * formulaire monté sur du vide est une cicatrice mesurée de ce dépôt.
    */
   const [place, setPlace] = React.useState<HouseholdPlace | null>(null);
+  /**
+   * LE FOYER, quand il y en a un. `null` = pas lu, ou pas de foyer.
+   *
+   * Il sert TROIS choses sur cet écran: le compte de bouches qui décide du
+   * générateur, la grille de présence par bouche, et la liste des prénoms.
+   * Une lecture qui échoue laisse `null`, donc `otherMouths: 0`, donc la lane
+   * INDIVIDUELLE — la direction sûre: `generate-household-meal-v1` refuserait
+   * de toute façon un foyer qu'on n'a pas su lire, et il le refuserait APRÈS
+   * l'attente.
+   */
+  const [household, setHousehold] = React.useState<HouseholdView | null>(null);
+  /**
+   * L'ENVIE DE LA SEMAINE — une ligne, pour tout le monde, écrite par le maître.
+   *
+   * ⚠️ ELLE EST ANCRÉE SUR LA SEMAINE DU PLAN, JAMAIS SUR AUJOURD'HUI.
+   * Voir `envyWeek` plus bas: c'est le défaut que deux dates libres rendent
+   * atteignable.
+   */
+  const [envy, setEnvy] = React.useState("");
+  /**
+   * L'EMPREINTE DE CE QUI A ÉTÉ LU, pour resynchroniser le champ d'envie quand
+   * la semaine visée change.
+   *
+   * ⚠️ SANS ELLE, LE CHAMP EST UN INSTANTANÉ DE MONTAGE. Cicatrice payée deux
+   * fois dans ce dépôt: un formulaire figé au montage affiche du VIDE qu'il n'a
+   * pas encore lu, puis l'écrase au Save. Ici c'est pire qu'ailleurs, parce que
+   * la semaine visée change au clavier — il suffit de corriger la date de
+   * départ pour viser une autre ligne d'envie.
+   */
+  const [envyPrint, setEnvyPrint] = React.useState<string | null>(null);
 
   const [mode, setMode] = React.useState<MealMode>("to_shop");
   /**
@@ -201,6 +250,107 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
       Math.max(1, daysBetween(windowStart, windowEnd) + 1),
     ),
   }), [windowStart, windowEnd]);
+
+  /**
+   * ── L'ANCRE DE L'ENVIE — LE DÉFAUT QUE DEUX DATES LIBRES RENDENT ATTEIGNABLE ──
+   *
+   * L'envie est écrite dans `household_envy_submissions` sous une `week_start`,
+   * et le générateur la RELIT sur le lundi ISO de la DATE DE DÉPART du plan
+   * (`weekStartOf(startsOn)`). L'écran du foyer, lui, l'écrivait sur
+   * `weekStartFor(AUJOURD'HUI)`.
+   *
+   * Tant que la fenêtre était codée en dur (« d'ici dimanche », donc démarrant
+   * toujours aujourd'hui), les deux ancres COÏNCIDAIENT et le défaut était
+   * invisible. Dès qu'on donne deux champs de date libres, un plan composé
+   * samedi pour une fenêtre qui démarre lundi lit une ancre que PERSONNE n'a
+   * écrite: l'envie disparaît, sans erreur et sans trace.
+   *
+   * On écrit donc sur la semaine du DÉPART CHOISI, la même que celle que le
+   * générateur relira — et on la recalcule à chaque changement du champ, plutôt
+   * que de la figer au montage.
+   *
+   * ⚠️ LE CÔTÉ LECTURE EST BACKEND ET N'EST PAS RÉPARÉ ICI. Ce qui suit ferme
+   * la moitié écriture; l'autre moitié appartient au lot du moteur.
+   */
+  const envyWeek = React.useMemo(
+    () => weekStartFor(windowStart, "mon"),
+    [windowStart],
+  );
+
+  /**
+   * ── D2/D9 · LE MAÎTRE COMPOSE ICI, DEPUIS LE 2026-08-13 ─────────────────
+   *
+   * Il ne le pouvait pas: une constante `householdOwner` FERMAIT ce
+   * formulaire, et sa raison était juste. Ce constructeur appelait
+   * `generate-meal-v1`, qui écrit un plan PERSONNEL — que la surface de cuisine
+   * du maître masque ensuite (`cookedPlans`, D9). Le laisser cliquer produisait
+   * le pire enchaînement: trente secondes d'attente, un appel modèle PAYÉ, un
+   * `replaces` qui ne retire rien, et RIEN à l'écran.
+   *
+   * ⚠️ LA RAISON EST TOMBÉE AVEC LE ROUTAGE, PAS AVANT. `chooseGenerator`
+   * envoie désormais le maître sur `generate-household-meal-v1`, qui écrit une
+   * ligne `household` — celle que `cookedPlans` rend. Le geste aboutit, donc la
+   * fermeture n'a plus d'objet. Reposer la garde sans retirer le routage
+   * rendrait au maître un écran totalement vide.
+   *
+   * ⚠️ `place === null` NE FERME TOUJOURS RIEN. La lecture peut être en cours
+   * (ou avoir échoué, auquel cas elle rend « pas de foyer »): le compte
+   * individuel, qui est le chemin MAJORITAIRE, garde son constructeur dans tous
+   * les cas — et `chooseGenerator` le route sur la lane individuelle, qui est
+   * la direction sûre.
+   *
+   * ⚠️ IL EST CALCULÉ ICI, AVANT TOUTE SORTIE ANTICIPÉE, parce qu'un `useEffect`
+   * le lit: un hook posé après le `return` de chargement changerait l'ordre des
+   * hooks entre deux rendus.
+   */
+  const composingForHousehold = chooseGenerator({
+    inHousehold: place?.inHousehold === true,
+    isOwner: place?.isOwner === true,
+    otherMouths: household ? household.members.length - 1 : 0,
+  }) === "household";
+
+  /**
+   * L'ENVIE DÉJÀ ÉCRITE POUR LA SEMAINE VISÉE, reproposée.
+   *
+   * ⚠️ LA PORTE DE CHARGEMENT EST `envyPrint`, ET ELLE EST OBLIGATOIRE.
+   * Un champ figé au montage afficherait du vide qu'il n'a pas encore lu, puis
+   * l'écraserait au premier envoi — cicatrice payée deux fois ici. L'empreinte
+   * est la SEMAINE lue: tant qu'elle ne correspond pas à `envyWeek`, ce qui est
+   * affiché ne décrit pas la semaine visée et doit être remplacé.
+   *
+   * ⚠️ ET ON N'ÉCRASE PAS UNE SAISIE EN COURS SUR LA MÊME SEMAINE. La condition
+   * porte sur le changement d'ANCRE, pas sur chaque rendu: sans ça, corriger
+   * une lettre déclencherait une relecture qui reposerait l'ancienne ligne.
+   */
+  React.useEffect(() => {
+    if (!composingForHousehold) return;
+    if (envyPrint === envyWeek) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const line = await loadEnvyLine(envyWeek);
+        if (cancelled) return;
+        setEnvy(line ?? "");
+        setEnvyPrint(envyWeek);
+      } catch {
+        // Une lecture qui échoue ne pose PAS une ligne inventée, et ne marque
+        // pas l'empreinte: la semaine reste « non lue », donc une réouverture
+        // réessaiera au lieu de croire qu'il n'y avait rien.
+        if (!cancelled) setEnvy("");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [composingForHousehold, envyWeek, envyPrint]);
+
+  /**
+   * QUELLE BOUCHE A SA GRILLE OUVERTE. `null` = aucune.
+   *
+   * Une seule à la fois: N grilles ouvertes se recouvriraient, et la fenêtre du
+   * kit est une feuille collée en bas sous 640 px.
+   */
+  const [awayFor, setAwayFor] = React.useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = React.useState(false);
   const [pickerBusy, setPickerBusy] = React.useState(false);
   // ── DEUX CHAMPS RETIRÉS DE L'ÉCRAN, DEUX COLONNES GARDÉES ──────────────
@@ -286,11 +436,27 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
       // L8/O2 — LA PLACE, LUE À PART ET SANS BLOQUER LES PLATS. Un foyer
       // illisible ne doit pas faire disparaître la semaine: la carte de prise
       // de main se tait (`place` reste `null`), le plan s'affiche quand même.
+      let inHousehold = false;
       try {
         const mine = await loadMyHouseholdPlace(userId);
+        inHousehold = mine.inHousehold;
         if (!cancelled) setPlace(mine);
       } catch {
         if (!cancelled) setPlace(null);
+      }
+      // ⚠️ DEUX `try` SÉPARÉS, ET C'EST LA CORRECTION QUI COMPTE. Groupés, une
+      // lecture de FOYER en panne effacerait la PLACE déjà lue — donc la carte
+      // de prise de main — pour une requête qui ne la concerne pas.
+      //
+      // LE FOYER N'EST LU QUE S'IL Y EN A UN: pour un compte individuel, qui
+      // est le chemin majoritaire, c'est une requête de moins.
+      if (inHousehold) {
+        try {
+          const view = await loadHousehold(userId);
+          if (!cancelled) setHousehold(view);
+        } catch {
+          if (!cancelled) setHousehold(null);
+        }
       }
       // LE MONTANT DE LA DERNIÈRE FOIS, PROPOSÉ — comme le contexte et l'envie
       // plus bas, et pour la même raison: retaper le même chiffre chaque semaine
@@ -458,7 +624,11 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
   async function build(event: React.FormEvent) {
     event.preventDefault();
     setError(null);
-    if (mode === "from_pantry" && pantry.length === 0) {
+    // ⚠️ LA GARDE DU GARDE-MANGER NE VAUT QUE SUR LA LANE INDIVIDUELLE. Le
+    // générateur du foyer FORCE `mode: "to_shop"`, donc le champ n'est pas
+    // affiché — et réclamer un garde-manger qu'on n'a pas demandé bloquerait
+    // le maître sur une question invisible.
+    if (!composingForHousehold && mode === "from_pantry" && pantry.length === 0) {
       setError(t("meals.form.pantry_required"));
       return;
     }
@@ -510,6 +680,42 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
         cookDays,
         cookingTimeMin: Number(cookingTime),
       });
+
+      // ── LE MAÎTRE COMPOSE POUR LE FOYER ───────────────────────────────────
+      if (composingForHousehold) {
+        // ⚠️ L'ENVIE PART AVANT LE PLAN, ET SUR L'ANCRE DU DÉPART CHOISI.
+        // Après, elle serait écrite pour une semaine que le générateur a déjà
+        // lue — donc absente du plan qu'on vient de composer, sans que rien
+        // ne le dise. Voir `envyWeek`.
+        const line = envy.trim();
+        if (line) await submitEnvy(envyWeek, line);
+        const result = await generateHouseholdMeal({
+          window: windowRequest.kind === "exact"
+            ? {
+              kind: "exact",
+              startsOn: windowRequest.startsOn,
+              durationDays: windowRequest.durationDays,
+            }
+            : { kind: "until_sunday" },
+          intent,
+          replaces: intent === "replace_current" ? target?.mealId ?? null : null,
+          context: context.trim() || null,
+        });
+        // Un 200 qui dit `ok: false` n'est pas une panne de transport, et il ne
+        // doit pas non plus atterrir comme un succès: il rejoint la même table
+        // de refus que tout le reste.
+        if (!result.ok) throw new Error("plan_not_written");
+        const loaded = await loadMealPlans(userId, browserLocalDate());
+        setPlans({ current: loaded.current, next: loaded.next });
+        setTab(
+          result.mealId && loaded.next?.mealId === result.mealId
+            ? "next"
+            : "current",
+        );
+        await props.onHouseholdComposed?.();
+        return;
+      }
+
       const written = await generateMeal({
         mode,
         window: windowRequest,
@@ -576,25 +782,9 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
   );
   // Rien à lire encore: le formulaire n'est pas « une option », c'est l'écran.
   const hasWeek = groups.length > 0;
-  /**
-   * ── D2/D9 · LE MAÎTRE D'UN FOYER NE COMPOSE PAS ICI ─────────────────────
-   *
-   * « Le plan du maître EST le plan du foyer », et il se compose depuis
-   * `/app/household`. Ce constructeur-ci appelle `generate-meal-v1`, qui écrit
-   * un plan PERSONNEL — que sa propre surface de cuisine masque ensuite (voir
-   * `cookedPlans`, D9). Le laisser cliquer ici produirait le pire des
-   * enchaînements: trente secondes d'attente, un appel modèle payé, un
-   * `replaces` qui ne retire rien (l'écriture est scopée par nature), et RIEN
-   * à l'écran. Un geste qui ne fait rien est indiscernable d'un geste qui a
-   * marché — le mode d'échec n°1 de ce dépôt.
-   *
-   * ⚠️ `place === null` NE FERME RIEN. La lecture peut être en cours (ou avoir
-   * échoué, auquel cas elle rend « pas de foyer »): le compte individuel, qui
-   * est le chemin majoritaire, garde son constructeur dans tous les cas.
-   * Retour arrière: retirer cette constante et ses deux usages.
-   */
-  const householdOwner = place?.inHousehold === true && place.isOwner;
-  const showForm = !householdOwner && (formOpen || !hasWeek);
+  // ⚠️ PLUS DE GARDE `householdOwner` ICI — voir `composingForHousehold`, plus
+  // haut: le maître a un formulaire, et il compose pour son foyer.
+  const showForm = formOpen || !hasWeek;
   // AUJOURD'HUI, dans l'horloge du navigateur — la seule que cet écran ait, et
   // la même que celle qui calcule `week_start`.
   const today = browserLocalDate();
@@ -630,17 +820,26 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
             )}
             <form className="space-y-4" onSubmit={(e) => void build(e)}>
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label={t("meals.form.mode_label")} htmlFor="meals-mode">
-                  <select
-                    id="meals-mode"
-                    className={inputClass}
-                    value={mode}
-                    onChange={(e) => setMode(e.target.value as MealMode)}
-                  >
-                    <option value="to_shop">{t("meals.form.mode_to_shop")}</option>
-                    <option value="from_pantry">{t("meals.form.mode_from_pantry")}</option>
-                  </select>
-                </Field>
+                {/* ⚠️ LE MODE EST MASQUÉ QUAND ON COMPOSE POUR LE FOYER.
+                    `generate-household-meal-v1` FORCE `mode: "to_shop"`: le
+                    choix serait proposé, puis ignoré par le serveur. Une
+                    question dont la réponse ne change rien est une promesse
+                    fausse — et celle-ci se découvre à la liste de courses. */}
+                {!composingForHousehold && (
+                  <Field label={t("meals.form.mode_label")} htmlFor="meals-mode">
+                    <select
+                      id="meals-mode"
+                      className={inputClass}
+                      value={mode}
+                      onChange={(e) => setMode(e.target.value as MealMode)}
+                    >
+                      <option value="to_shop">{t("meals.form.mode_to_shop")}</option>
+                      <option value="from_pantry">
+                        {t("meals.form.mode_from_pantry")}
+                      </option>
+                    </select>
+                  </Field>
+                )}
                 {/* ── LA FENÊTRE: UNE DATE DE DÉBUT, UNE DATE DE FIN ──────
                     Trois boutons (« Until Sunday », « For 7 days », « Choose
                     exactly ») plus un champ date plus un champ nombre, pour
@@ -730,18 +929,112 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                     </button>
                   )}
                 </Field>
-                <Field label={t("meals.form.servings_label")} htmlFor="meals-servings">
-                  <input
-                    id="meals-servings"
-                    type="number"
-                    min={1}
-                    max={12}
-                    className={inputClass}
-                    value={servings}
-                    onChange={(e) => setServings(Number(e.target.value) || 1)}
-                  />
-                </Field>
+                {/* ⚠️ « COMBIEN DE PARTS » N'EST PAS UNE QUESTION DE FOYER.
+                    Le générateur du foyer DÉDUIT les couverts de la présence,
+                    repas par repas: un nombre saisi à côté ferait deux vérités
+                    pour un seul fait, et c'est celle que l'écran ne montre pas
+                    qui gagnerait. La grille de présence, plus bas, est la
+                    question qui remplace celle-ci. */}
+                {!composingForHousehold && (
+                  <Field
+                    label={t("meals.form.servings_label")}
+                    htmlFor="meals-servings"
+                  >
+                    <input
+                      id="meals-servings"
+                      type="number"
+                      min={1}
+                      max={12}
+                      className={inputClass}
+                      value={servings}
+                      onChange={(e) => setServings(Number(e.target.value) || 1)}
+                    />
+                  </Field>
+                )}
               </div>
+
+              {/* ── QUI EST LÀ, JOUR PAR JOUR — UNE LIGNE PAR BOUCHE ────────
+                  ⚠️ C'EST LA MÊME GRILLE QUE PARTOUT AILLEURS, MONTÉE N FOIS.
+                  Elle reprend les jours HORS fenêtre tels quels au `save`,
+                  sinon marquer un week-end effacerait « jeudi midi ». Une
+                  seconde implémentation « aurait fini par en effacer la
+                  moitié ».
+
+                  ⚠️ ET ON NE FUSIONNE JAMAIS `awayHousehold` AVEC `awaySelf`.
+                  La grille RÉÉCRIT ce qu'on lui donne: nourrie de l'union, elle
+                  recopierait la déclaration de la personne dans la colonne du
+                  maître, où elle survivrait à sa rétractation. */}
+              {composingForHousehold && household && (
+                <Field
+                  label={t("plan.request.presence_title")}
+                  hint={t("plan.request.presence_intro")}
+                >
+                  <ul className="space-y-3">
+                    {household.members.map((member) => (
+                      <li
+                        key={member.memberId}
+                        className="flex flex-wrap items-center justify-between gap-3 rounded-card border border-line-strong bg-fig-50/40 p-4"
+                      >
+                        <span className="text-base font-semibold text-ink">
+                          {member.displayName}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          disabled={pickerBusy}
+                          onClick={() =>
+                            setAwayFor(
+                              awayFor === member.memberId ? null : member.memberId,
+                            )}
+                        >
+                          {t("plan.request.presence_open")}
+                        </Button>
+                        {/* MONTÉE MÊME FERMÉE — `Modal` rend `null` sans
+                            démonter — donc une grille modifiée survit à une
+                            fermeture accidentelle. Même posture que sur les
+                            deux autres écrans qui la montent.
+
+                            ⚠️ `away={member.awayHousehold}` ET RIEN D'AUTRE:
+                            l'union avec `awaySelf` ferait recopier la
+                            déclaration de la personne dans la colonne du
+                            maître, où elle survivrait à sa rétractation.
+
+                            ⚠️ `eatingSlots === null` NE VEUT PAS DIRE « NE
+                            MANGE JAMAIS »: il veut dire « aux moments de la
+                            maison », le repli du produit. Passer `[]` rendrait
+                            une grille SANS LIGNE — une bouche qu'on ne peut pas
+                            marquer absente — et ça se lirait comme une panne.
+                            On retombe donc sur le rythme de la personne qui
+                            compose, qui est celui de la maison. */}
+                        <MealPickerGrid
+                          open={awayFor === member.memberId}
+                          onClose={() => setAwayFor(null)}
+                          days={askedDays.tokens}
+                          dates={askedDays.dates}
+                          rhythm={member.eatingSlots
+                            ? (member.eatingSlots.map((slot) => ({
+                              slot,
+                              size: null,
+                            })) as EatingOccasionSlot[])
+                            : (props.rhythm ?? [])}
+                          away={member.awayHousehold}
+                          busy={pickerBusy}
+                          onSave={async (next) => {
+                            setPickerBusy(true);
+                            try {
+                              await setMemberAway(member.memberId, next);
+                              setHousehold(await loadHousehold(userId));
+                            } finally {
+                              setPickerBusy(false);
+                            }
+                          }}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                </Field>
+              )}
 
               {/* ── LES TROIS ENTRÉES DE PLAN, DANS LE FORMULAIRE DE PLAN ──
                   Jours de cuisine, durée d'une session, budget. Elles vivaient
@@ -874,6 +1167,32 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                 />
               </Field>
 
+              {/* ── L'ENVIE DE LA SEMAINE ──────────────────────────────────
+                  Elle vivait sur la page du foyer, avec son propre bouton
+                  « Enregistrer », à un écran de distance du geste qu'elle
+                  sert. Elle est ici un CHAMP DE LA DEMANDE: elle part avec le
+                  formulaire, donc elle n'a plus de bouton à elle.
+
+                  ⚠️ ELLE S'ÉCRIT SUR LA SEMAINE DU DÉPART CHOISI, pas sur
+                  celle d'aujourd'hui — voir `envyWeek`. C'est la moitié
+                  écriture du défaut que deux dates libres rendent atteignable. */}
+              {composingForHousehold && (
+                <Field
+                  label={t("plan.envy.title")}
+                  hint={t("plan.envy.body")}
+                  htmlFor="meals-envy"
+                >
+                  <textarea
+                    id="meals-envy"
+                    className={`${inputClass} min-h-16`}
+                    value={envy}
+                    maxLength={ENVY_MAX_CHARS}
+                    placeholder={t("plan.envy.placeholder")}
+                    onChange={(e) => setEnvy(e.target.value)}
+                  />
+                </Field>
+              )}
+
               {/* CE QUI ARRIVE CETTE SEMAINE-LÀ, et que la grille ne peut pas
                   dire. Elle exprime l'ABSENCE — « je ne mange pas ici » — au
                   jour et au repas près. Elle ne dit ni les invités, ni le four
@@ -984,7 +1303,7 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
               {/* PRÉPARER LA SUITE. N'apparaît que s'il n'y a pas déjà un plan
                   suivant: au plus deux plans vivants, et la contrainte
                   d'exclusion le refuserait de toute façon. */}
-              {hasWeek && !showForm && !householdOwner && !plans.next && (
+              {hasWeek && !showForm && !plans.next && (
                 <Button
                   variant="secondary"
                   size="sm"
@@ -1006,10 +1325,11 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
               {/* Il ne s'affiche pas quand le formulaire est déjà ouvert (il
                   ouvrirait ce qui est ouvert) ni quand il n'y a pas de semaine
                   (il n'y a pas d'« autre »). */}
-              {/* ⚠️ `!householdOwner` — voir la constante: le maître d'un
-                  foyer compose depuis `/app/household`, et ce bouton-ci lui
-                  écrirait un plan personnel que son propre écran masque. */}
-              {hasWeek && !showForm && !householdOwner && (
+              {/* ⚠️ IL S'AFFICHE MAINTENANT POUR LE MAÎTRE AUSSI. Il ne le
+                  faisait pas tant que ce bouton lui écrivait un plan PERSONNEL
+                  que son propre écran masque; `chooseGenerator` l'envoie sur la
+                  lane du foyer, donc le geste aboutit. */}
+              {hasWeek && !showForm && (
                 <Button
                   variant="secondary"
                   size="sm"
@@ -1116,13 +1436,13 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
               </Card>
             )
             : groups.length === 0
-            // ⚠️ PAS CETTE PHRASE-LÀ AU MAÎTRE D'UN FOYER. Elle dit « dis-moi
-            // par où commencer CI-DESSUS », et il n'y a plus de formulaire
-            // au-dessus pour lui (D2: il compose depuis `/app/household`). La
-            // carte de prise de main juste au-dessus porte déjà l'explication
-            // ET la porte: ajouter une consigne qui vise un formulaire absent
-            // ferait chercher un bouton qui n'existe pas.
-            ? householdOwner ? null : (
+            // ⚠️ CETTE PHRASE REDEVIENT VRAIE POUR LE MAÎTRE, ET ELLE DOIT
+            // DONC LUI ÊTRE RENDUE. Elle dit « dis-moi par où commencer
+            // CI-DESSUS ». Elle lui était masquée parce qu'il n'avait pas de
+            // formulaire au-dessus — il en a un maintenant. La garde devait
+            // tomber DANS LE MÊME COMMIT que la constante: la laisser aurait
+            // rendu au maître un écran totalement vide.
+            ? (
               <Card tone="dashed">
                 <p className="text-sm text-ink-soft">{t("meals.result.empty")}</p>
               </Card>

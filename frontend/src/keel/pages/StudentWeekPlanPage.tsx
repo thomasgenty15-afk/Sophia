@@ -10,6 +10,18 @@ import { inputClass } from "../components/ui/Field";
 import Modal from "../components/ui/Modal";
 import SetupSection from "../components/ui/SetupSection";
 import MealBuilder from "../components/MealBuilder";
+import ReferenceMemberCard from "../components/plan/ReferenceMemberCard";
+import TableCard from "../components/plan/TableCard";
+import MyShareCard from "../components/plan/MyShareCard";
+import {
+  type HouseholdMealView,
+  type HouseholdView,
+  loadHousehold,
+  loadHouseholdMeal,
+  loadMyHouseholdPlace,
+  setReferenceMember,
+} from "../api/household";
+import { browserLocalDate } from "../lib/useMealTicks";
 import EatingRhythmCard from "../components/EatingRhythmCard";
 import CookingCapacityCard from "../components/CookingCapacityCard";
 import FoodPreferencesCard from "../components/FoodPreferencesCard";
@@ -1035,6 +1047,22 @@ function PersonalNumbers(props: {
 export default function StudentWeekPlanPage() {
   const [state, setState] = React.useState<LoadState>({ kind: "loading" });
   const [goal, setGoal] = React.useState<GoalRow | null>(null);
+  /**
+   * LE FOYER, ET CE QUE LA MAISON SERT — les trois blocs venus de `/app/household`.
+   *
+   * ⚠️ ILS SONT LUS À PART, ET UNE PANNE ICI NE DOIT PAS EMPORTER LE PLAN.
+   * Un foyer illisible laisse ces trois états à `null`, donc trois cartes qui
+   * se taisent; la semaine, elle, s'affiche. L'inverse — jeter la page entière
+   * parce qu'une carte annexe n'a pas pu se lire — ferait payer au chemin
+   * MAJORITAIRE (le compte individuel, qui n'a pas de foyer du tout) le prix
+   * d'une lecture qui ne le concerne pas.
+   */
+  const [household, setHousehold] = React.useState<HouseholdView | null>(null);
+  const [householdMeal, setHouseholdMeal] = React.useState<
+    HouseholdMealView | null
+  >(null);
+  const [isOwner, setIsOwner] = React.useState(false);
+  const [referenceBusy, setReferenceBusy] = React.useState(false);
   // `situation` a disparu du formulaire — voir le commentaire de `saveGoal`.
   const [goalDraft, setGoalDraft] = React.useState({
     goal: "health",
@@ -1113,10 +1141,43 @@ export default function StudentWeekPlanPage() {
 
   const weekStart = currentMonday();
 
+  /**
+   * CE QUE LA MAISON SERT — relu à part du plan, et à part de `refresh()`.
+   *
+   * ⚠️ IL EST APPELÉ APRÈS UNE COMPOSITION DU FOYER, pas seulement au montage.
+   * « À table » est écrit par la MÊME génération que le plan mais se lit par
+   * une autre requête: sans ce rappel, le maître verrait son plan neuf au-dessus
+   * de parts périmées, et rien ne dirait lesquelles sont fausses.
+   *
+   * ⚠️ `loadHouseholdMeal` FILTRE `plan_kind='household'`. Sans ce filtre, le
+   * plan PERSONNEL d'un secondaire — qui porte pourtant un `household_id`, et
+   * exprès, pour que la fusion le retrouve — viderait cette carte dès qu'il
+   * commence plus tard. C'est mesuré, et c'est le piège n°1 de ce domaine:
+   * `household_id is not null` ne veut PAS dire « plan du foyer ».
+   */
+  const refreshHousehold = React.useCallback(async (uid: string) => {
+    try {
+      const place = await loadMyHouseholdPlace(uid);
+      setIsOwner(place.isOwner);
+      if (!place.inHousehold) {
+        setHousehold(null);
+        setHouseholdMeal(null);
+        return;
+      }
+      setHousehold(await loadHousehold(uid));
+      setHouseholdMeal(await loadHouseholdMeal(browserLocalDate()));
+    } catch {
+      // Trois cartes qui se taisent, et une semaine qui s'affiche quand même.
+      setHousehold(null);
+      setHouseholdMeal(null);
+    }
+  }, []);
+
   const refresh = React.useCallback(async () => {
     const { data: sess } = await supabase.auth.getUser();
     const uid = sess.user?.id;
     if (!uid) throw new Error("not_signed_in");
+    void refreshHousehold(uid);
 
     // ── `user_id` SUR CHAQUE LECTURE, ET RLS N'EN DISPENSE PAS ──────────────
     // Deux de ces trois tables portent une policy COACH en plus de celle du
@@ -1241,7 +1302,7 @@ export default function StudentWeekPlanPage() {
     setRestricted(rows[0]?.risk_band === "restriction_flag");
     setReviews(rows);
     setMeasures((measureRes.data ?? []) as BodyMeasureRow[]);
-  }, [weekStart]);
+  }, [weekStart, refreshHousehold]);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -2039,11 +2100,60 @@ export default function StudentWeekPlanPage() {
             `student_goals`; les relire dans le constructeur ferait un second
             lecteur de la même colonne, et la grille montrerait alors autre
             chose que ce que le générateur reçoit. */}
+        {/* ── 3 · QUELLE FAÇON DE MANGER LE PLAT COMMUN SUIT ──────────────
+            AU-DESSUS du formulaire, et sous « À propos de toi ». C'est une
+            ENTRÉE de la composition, pas un résultat: la lire après le bouton,
+            c'est la lire trop tard. Et c'est un fait de FOYER, pas un fait de
+            personne — d'où sa place entre les deux. */}
+        <ReferenceMemberCard
+          household={household}
+          isOwner={isOwner}
+          busy={referenceBusy}
+          onPick={async (memberId) => {
+            if (!household) return false;
+            setReferenceBusy(true);
+            try {
+              await setReferenceMember(household.id, memberId);
+              const uid = (await supabase.auth.getUser()).data.user?.id;
+              if (uid) await refreshHousehold(uid);
+              return true;
+            } catch {
+              return false;
+            } finally {
+              setReferenceBusy(false);
+            }
+          }}
+        />
+
         <MealBuilder
           rhythm={parseEatingRhythm(pc.eating_rhythm)}
           awayDays={parseAwayDays(pc.away_days)}
           onAwaySaved={saveAwayDays}
+          onHouseholdComposed={async () => {
+            const uid = (await supabase.auth.getUser()).data.user?.id;
+            if (uid) await refreshHousehold(uid);
+          }}
         />
+
+        {/* ── 7 · MA PART (Lot E) ─────────────────────────────────────────
+            Montée AVANT d'avoir un corps: le mode d'échec n°1 de ce dépôt est
+            de livrer un composant complet, testé, vert — et branché nulle
+            part. Elle rend `null` tant que Lot E ne l'a pas écrite, ce qui est
+            aussi son comportement définitif quand il n'y a pas de part. */}
+        <MyShareCard
+          mine={null}
+          householdDishes={householdMeal?.dishes ?? []}
+          meMemberId={household?.me?.memberId ?? null}
+          busy={false}
+          onApprove={async () => {}}
+          onRequestChange={async () => {}}
+        />
+
+        {/* ── 9 · « À TABLE » ─────────────────────────────────────────────
+            SOUS le plan, jamais au-dessus: il dit comment on SERT ce que le
+            plan dit qu'on CUISINE. L'inverse ferait lire des parts avant de
+            savoir de quel plat. */}
+        <TableCard meal={householdMeal} />
       </div>
     </KeelAppShell>
   );

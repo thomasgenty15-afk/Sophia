@@ -11,8 +11,6 @@ import {
   createHousehold,
   createOwnerGoalRow,
   detachHouseholdMember,
-  ENVY_MAX_CHARS,
-  generateHouseholdMeal,
   hasOwnerGoalRow,
   type HouseholdCoverage,
   type HouseholdMealView,
@@ -20,7 +18,6 @@ import {
   type HouseholdView,
   inviteToHousehold,
   loadAllergies,
-  loadEnvyLine,
   loadHousehold,
   loadHouseholdMeal,
   loadHouseholdRhythm,
@@ -44,10 +41,8 @@ import {
   setMemberGoal,
   setMemberName,
   setOwnBirthDate,
-  setReferenceMember,
-  submitEnvy,
 } from "../api/household";
-import { addDays, weekStartFor } from "../api/dates";
+import { addDays } from "../api/dates";
 import { type AwayDay, type EatingOccasionSlot } from "../api/mealGeneration";
 import {
   MAX_WINDOW_DAYS,
@@ -55,8 +50,7 @@ import {
   windowDayOrder,
 } from "../api/mealWindow";
 import { loadMutedMembers, muteMergeProposals } from "../api/householdMerge";
-import { BUDGET_MAX, readPlanInputs, savePlanInputs } from "../api/planBudget";
-import { edgeRefusalKey, householdErrorKey } from "../copy/planRefusals";
+import { householdErrorKey } from "../copy/planRefusals";
 import MealPickerGrid from "../components/MealPickerGrid";
 import HouseholdMergeCard from "../components/HouseholdMergeCard";
 import HouseholdPlanCard from "../components/HouseholdPlanCard";
@@ -169,9 +163,6 @@ export default function HouseholdPage(): React.ReactElement {
   const [household, setHousehold] = React.useState<HouseholdView | null>(null);
   const [restrictions, setRestrictions] = React.useState<RestrictionView[]>([]);
   const [allergies, setAllergies] = React.useState<AllergyView[]>([]);
-  // `null` = le maître n'a rien écrit cette semaine. C'est un état NORMAL, pas
-  // une attente: rien à l'écran ne le présente comme un manque.
-  const [envyLine, setEnvyLine] = React.useState<string | null>(null);
   const [meal, setMeal] = React.useState<HouseholdMealView | null>(null);
   // `null` = pas encore lu. C'est la garde de montage: tant qu'on ne SAIT pas
   // si la ligne `student_goals` existe, on ne rend ni la carte qui la crée ni
@@ -225,17 +216,11 @@ export default function HouseholdPage(): React.ReactElement {
   const [busy, setBusy] = React.useState(false);
 
   const weekStart = React.useMemo(() => new Date().toISOString().slice(0, 10), []);
-  /**
-   * L'ANCRE DES ENVIES, ET CE N'EST PAS `weekStart` CI-DESSUS.
-   *
-   * `weekStart` porte AUJOURD'HUI (c'est ce que `loadHouseholdMeal` attend: la
-   * composition courante est celle dont la fenêtre couvre ce jour). La ligne
-   * d'envies, elle, est ancrée au LUNDI ISO — sinon une phrase écrite lundi
-   * serait relue « rien écrit » mardi, et la composition ne la trouverait pas
-   * non plus. La base recale à l'écriture; on recale ici aussi parce que la
-   * RELECTURE filtre en SQL sur la valeur rangée.
-   */
-  const envyWeek = React.useMemo(() => weekStartFor(weekStart, "mon"), [weekStart]);
+  // ⚠️ L'ANCRE DES ENVIES A QUITTÉ CET ÉCRAN AVEC LA CARTE. Elle vit dans le
+  // formulaire de demande de `/app/plan`, et elle y est calculée sur la DATE DE
+  // DÉPART DU PLAN — pas sur aujourd'hui. C'est ce que le générateur relit
+  // (`weekStartOf(starts_on)`), et les deux ancres ne coïncidaient que tant que
+  // la fenêtre démarrait forcément aujourd'hui.
 
   /**
    * LES COLONNES DE LA GRILLE DE PRÉSENCE — la fenêtre que le foyer va cuisiner.
@@ -269,7 +254,6 @@ export default function HouseholdPage(): React.ReactElement {
       if (hh) {
         setRestrictions(await loadRestrictions());
         setAllergies(await loadAllergies());
-        setEnvyLine(await loadEnvyLine(envyWeek));
         setMeal(await loadHouseholdMeal(weekStart));
         setOwnerGoalRow(await hasOwnerGoalRow(userId));
         // SEUL LE MAÎTRE MARQUE UNE PRÉSENCE, donc seul lui a besoin des
@@ -299,14 +283,7 @@ export default function HouseholdPage(): React.ReactElement {
       setError(e instanceof Error ? e.message : String(e));
       setPhase("error");
     }
-    // ⚠️ `envyWeek` DOIT être dans les dépendances, et ce n'est pas de
-    // l'hygiène de linter. Le lot 5 vient de corriger en base exactement cette
-    // classe de défaut — une envie rangée au lundi mais relue avec la date du
-    // jour, donc introuvable dès le mardi. Une fermeture périmée ici referait
-    // le même trou côté écran : le lundi capturé au montage survivrait au
-    // passage à la semaine suivante, et la carte lirait la mauvaise ligne sans
-    // qu'aucune erreur ne se produise.
-  }, [userId, weekStart, envyWeek]);
+  }, [userId, weekStart]);
 
   React.useEffect(() => {
     void refresh();
@@ -350,10 +327,10 @@ export default function HouseholdPage(): React.ReactElement {
   // (`null`), on ne gèle rien à l'écran: annoncer une pause à quelqu'un qui
   // paie sur la foi d'une lecture en cours est le pire des deux sens.
   const frozen = coverage?.frozen === true;
-  // LA COMPOSITION EST LA PRODUCTION, donc elle tombe avec le gel. Le reste de
-  // l'écran ne bouge pas d'un pixel: c'est ce que D4 dit, et c'est ce que le
-  // foyer doit retrouver intact s'il revient dans trois mois.
-  const canCompose = ownerGoalRow === true && !frozen;
+  // ⚠️ `canCompose` A QUITTÉ CET ÉCRAN AVEC `ComposeCard`. Le gel reste lu ici
+  // (`frozen`, ci-dessus, pour la carte de pause); ce qu'il coupait — la
+  // production — se demande maintenant depuis `/app/plan`, et le serveur y
+  // refuse par `household_frozen`, qui a des mots dans `copy/planRefusals.ts`.
 
   return (
     <KeelAppShell title={t("household.title")}>
@@ -435,24 +412,21 @@ export default function HouseholdPage(): React.ReactElement {
                   qu'une fois qu'on sait qui est à table — et la carte se tait
                   d'elle-même en dessous de deux adultes, ce qui est le cas
                   nominal du produit (un parent, ses enfants). */}
-              {isOwner
-                ? (
-                  <ReferenceMemberCard
-                    household={household}
-                    busy={busy}
-                    onPick={(memberId) =>
-                      run(() => setReferenceMember(household.id, memberId))}
-                  />
-                )
-                : null}
+              {/* ── TROIS CARTES SONT PARTIES SUR `/app/plan` (2026-08-13) ──
+                  `ReferenceMemberCard`, `EnvyCard` et `ComposeCard`.
 
-              <EnvyCard
-                household={household}
-                line={envyLine}
-                busy={busy}
-                onSubmit={(body) => run(() => submitEnvy(envyWeek, body))}
-              />
-              {canCompose ? <ComposeCard household={household} onDone={refresh} /> : null}
+                  La règle de partage: cette page décrit LES GENS — qui mange
+                  ici, leurs corps, leurs interdits, les invitations, les
+                  propositions de fusion. `/app/plan` fabrique LA SEMAINE. Les
+                  trois cartes fabriquaient la semaine depuis la page des gens.
+
+                  `ComposeCard` ne déménage pas, elle DISPARAÎT: elle demandait
+                  le BUDGET SEUL et codait la fenêtre en dur (« d'ici
+                  dimanche »), alors que le formulaire de `/app/plan` pose les
+                  deux dates, les jours de cuisine, la durée de session, le
+                  budget ET la présence par bouche. Garder les deux aurait fait
+                  deux formulaires pour un geste, dont le plus pauvre était
+                  celui réservé au maître. */}
               {/* ── L8/D10 — CE QU'ON PROPOSE AU MAÎTRE ────────────────────
                   APRÈS la composition et AVANT la table: une proposition de
                   fusion se lit une fois qu'on sait qu'un plan existe, et elle
@@ -460,7 +434,9 @@ export default function HouseholdPage(): React.ReactElement {
                   tait d'elle-même pour un secondaire (le serveur refuse 403,
                   et D10 met le geste dans les mains du maître). */}
               <HouseholdMergeCard isOwner={isOwner} onComposed={refresh} />
-              {meal ? <TableCard meal={meal} /> : null}
+              {/* « À table » est parti sur `/app/plan`, sous le plan: il dit
+                  comment on SERT ce que le plan dit qu'on CUISINE, et cet
+                  écran-ci ne montre pas le plan. */}
               {/* ── L8/D9 — CE QUE LA MAISON CUISINE, ET CE QUI N'A PAS
                   FUSIONNÉ. Pour un secondaire c'est le seul endroit où le plan
                   du foyer se voit; pour tout le monde, c'est là que la
@@ -966,65 +942,6 @@ function MembersCard(
   );
 }
 
-/**
- * FF-043 — QUI GOUVERNE LA DOCTRINE DU TRONC COMMUN.
- *
- * ── POURQUOI CETTE CARTE NE S'AFFICHE PAS TOUJOURS ────────────────────────
- * Le référent n'est un CHOIX qu'à partir de DEUX adultes à table. Dans le foyer
- * « une mère + ses enfants » — le cas nominal du produit — elle est référente
- * par défaut par la cascade `déclaré → composeur → null`, et lui poser la
- * question ne lui apprendrait rien: ce serait un réglage à une seule valeur,
- * c'est-à-dire une inquiétude offerte sans contrepartie.
- *
- * ⚠️ LE SÉLECTEUR NE PROPOSE QUE DES ADULTES. La base refuse aussi (`minor_
- * cannot_be_reference`, `age_unknown_cannot_be_reference`) — les deux, parce
- * qu'un écran n'est pas une garde, et parce qu'une garde sans écran fait échouer
- * un geste que rien n'avait découragé.
- */
-function ReferenceMemberCard(
-  { household, busy, onPick }: {
-    household: HouseholdView;
-    busy: boolean;
-    onPick: (memberId: string | null) => Promise<boolean>;
-  },
-) {
-  const [saved, setSaved] = React.useState(false);
-  const eligible = household.members.filter((m) => m.ageState === "adult");
-  // UN SEUL ADULTE (ou aucun) ⇒ RIEN À TRANCHER. Voir l'en-tête.
-  if (eligible.length < 2) return null;
-
-  return (
-    <Card>
-      <SectionLabel>{t("household.reference.title")}</SectionLabel>
-      <p className="mb-2 text-xs text-ink-soft">{t("household.reference.hint")}</p>
-      <select
-        // `inputClass` DU KIT, ET PAS UNE CLASSE RECOPIÉE. Celle d'avant portait
-        // `text-sm` — 14 px — donc Safari iOS ZOOMAIT à l'ouverture du menu et ne
-        // dézoomait pas en sortant. La règle des 16 px d'`index.css` vit dans
-        // `@layer base` et un utilitaire la bat: la protection était contournée
-        // ici sans avoir été retirée. `inputClass` fait `text-base lg:text-sm`.
-        className={inputClass}
-        disabled={busy}
-        value={household.referenceMemberId ?? ""}
-        onChange={async (e) => {
-          setSaved(false);
-          const ok = await onPick(e.target.value || null);
-          if (ok) setSaved(true);
-        }}
-      >
-        <option value="">{t("household.reference.default")}</option>
-        {eligible.map((m) => (
-          // LE LIBELLÉ EST UN PRÉNOM, ET RIEN D'AUTRE. Pas d'objectif à côté,
-          // pas de badge « au régime »: la liste est lue par qui ouvre l'écran.
-          <option key={m.memberId} value={m.memberId}>{m.displayName}</option>
-        ))}
-      </select>
-      {saved ? (
-        <p className="mt-2 text-xs text-emerald-700">{t("household.reference.saved")}</p>
-      ) : null}
-    </Card>
-  );
-}
 
 /**
  * LE CORPS D'UNE BOUCHE — taille, poids, sexe. TOUT-OU-RIEN.
@@ -1514,64 +1431,6 @@ function MemberRow(
   );
 }
 
-/**
- * LES ENVIES DE LA SEMAINE — UNE LIGNE, ÉCRITE PAR LE COMPTE MAÎTRE (lot 5).
- *
- * ── CE QUE CETTE CARTE NE FAIT PLUS, ET POURQUOI ON NE LE REMET PAS ───────
- * Elle demandait à CHACUN de déposer son envie, et affichait « 2 ont parlé ·
- * 3 n'ont rien dit ». Les deux sont partis avec le conseil de famille:
- *
- *   — le décompte se lisait « il en reste 3 à relancer », quoi qu'en dise la
- *     copie à côté — c'est-à-dire exactement la charge mentale que le produit
- *     promet de supprimer;
- *   — et Sophia arbitrant publiquement entre un parent et son enfant est un
- *     marécage.
- *
- * Ce qui reste: une phrase, écrite pour tout le monde. « Léa veut des pâtes,
- * Marc en a marre du poulet. »
- *
- * ── UN SEUL AUTEUR, ET LE REFUS VIT EN BASE ──────────────────────────────
- * La carte n'apparaît que pour le compte maître. Ce n'est PAS la garde: la
- * RPC refuse tout autre membre par `not_owner` (une limite d'UI n'est pas une
- * limite). L'écran ne montre simplement pas un champ dont l'envoi serait
- * refusé.
- */
-function EnvyCard(
-  { household, line, busy, onSubmit }: {
-    household: HouseholdView;
-    /** `null` = rien d'écrit cette semaine. Un état, pas un manque. */
-    line: string | null;
-    busy: boolean;
-    onSubmit: (body: string) => void;
-  },
-) {
-  // ⚠️ INSTANTANÉ DE MONTAGE. Il est sûr parce que l'écran entier ne rend rien
-  // tant que `phase === "loading"`, et que la ligne est lue dans le même
-  // `refresh()` que le foyer: la carte ne peut pas se monter sur du vide puis
-  // l'écraser au Save.
-  const [body, setBody] = React.useState(line ?? "");
-
-  if (household.me?.role !== "owner") return null;
-
-  return (
-    <Card>
-      <SectionLabel>{t("household.envy.title")}</SectionLabel>
-      <p className="mb-3 text-sm text-ink-soft">{t("household.envy.body")}</p>
-      <textarea
-        className={`${inputClass} min-h-[80px]`}
-        value={body}
-        maxLength={ENVY_MAX_CHARS}
-        placeholder={t("household.envy.placeholder")}
-        onChange={(e) => setBody(e.target.value)}
-      />
-      <div className="mt-2 flex flex-wrap items-center gap-3">
-        <Button disabled={busy || !body.trim()} onClick={() => onSubmit(body.trim())}>
-          {t("household.envy.save")}
-        </Button>
-      </div>
-    </Card>
-  );
-}
 
 /*
  * ── LA CARTE DE CONSENTEMENT A ÉTÉ RETIRÉE (lot 2, 2026-08-10) ──────────────
@@ -1860,198 +1719,4 @@ function PausedCard({ isOwner }: { isOwner: boolean }) {
   );
 }
 
-function ComposeCard(
-  { household, onDone }: { household: HouseholdView; onDone: () => Promise<void> },
-) {
-  const [working, setWorking] = React.useState(false);
-  const [failure, setFailure] = React.useState<string | null>(null);
-  /**
-   * L'ARGENT DE CETTE COMPOSITION-LÀ, reposé ici aussi.
-   *
-   * Ce bouton est une composition complète — pas un raccourci vers celle d'un
-   * autre écran. S'il partait sans montrer le champ, le montant de la dernière
-   * fois s'appliquerait en silence, et le budget redeviendrait le réglage de
-   * profil que ce lot vient de retirer d'« À propos de toi ». Voir
-   * `api/planBudget.ts`.
-   */
-  const [budget, setBudget] = React.useState("");
-  /**
-   * LES DEUX AUTRES ENTRÉES DE PLAN, relues pour être RÉÉCRITES telles quelles.
-   *
-   * Ce bouton-ci ne les DEMANDE pas: il compose la semaine du foyer d'un geste,
-   * et `MealBuilder` est l'écran qui les pose. Les relire et les repasser évite
-   * que l'écriture du budget efface, par fusion partielle, ce que l'autre écran
-   * vient d'enregistrer.
-   */
-  const [inputs, setInputs] = React.useState<
-    { cookDays: string[]; cookingTimeMin: number | null }
-  >({ cookDays: [], cookingTimeMin: null });
-  const userId = household.me?.userId ?? "";
 
-  React.useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      if (!userId) return;
-      // Une lecture qui échoue laisse le champ VIDE. Jamais un chiffre inventé.
-      try {
-        const last = await readPlanInputs(userId);
-        if (!cancelled) {
-          if (last.budgetAmount !== null) setBudget(String(last.budgetAmount));
-          setInputs({
-            cookDays: last.cookDays,
-            cookingTimeMin: last.cookingTimeMin,
-          });
-        }
-      } catch {
-        if (!cancelled) setBudget("");
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [userId]);
-
-  // SEUL LE COMPTE MAÎTRE COMPOSE. Ce n'est pas une hiérarchie de confort: la
-  // composition RETIRE le plan courant de la personne pour qui elle est écrite,
-  // donc laisser n'importe quel membre la déclencher laisserait un colocataire
-  // effacer la semaine d'un autre. La fonction edge refuse déjà (403); l'écran
-  // ne montre pas un bouton qui sera refusé.
-  if (household.me?.role !== "owner") return null;
-
-  return (
-    <Card>
-      <SectionLabel>{t("household.compose.title")}</SectionLabel>
-      <p className="mb-3 text-sm text-ink-soft">{t("household.compose.body")}</p>
-      {/* ── L'ACTION PRINCIPALE DE L'ÉCRAN, UNE FOIS L'ENTRÉE FAITE ──────────
-          COMPOSER EST LA PRODUCTION: tout le reste de la page décrit qui mange
-          ici, ce bouton est le seul qui FABRIQUE quelque chose. Il prend donc la
-          figue que « enregistrer ma fiche » vient de rendre.
-          ⚠️ ET IL NE PEUT PAS EN CROISER UNE AUTRE, par construction: cette
-          carte n'est montée que si `canCompose` — c'est-à-dire quand la ligne
-          d'objectif du maître existe — et c'est exactement la condition sous
-          laquelle la fiche du maître repasse en `secondary`. Un seul aplat de
-          marque dans chacun des quatre états de l'écran. */}
-      {/* LE BUDGET EST DEMANDÉ ICI AUSSI, parce que ce bouton compose. Le
-          chiffre de la dernière fois est proposé, jamais appliqué sans être
-          montré. */}
-      <div className="mb-3">
-        <Field
-          label={t("plan.cooking.budget_label")}
-          hint={t("plan.cooking.budget_hint")}
-          htmlFor="household-budget"
-        >
-          <input
-            id="household-budget"
-            type="number"
-            inputMode="decimal"
-            min={1}
-            max={BUDGET_MAX}
-            step="1"
-            className={inputClass}
-            value={budget}
-            onChange={(e) => setBudget(e.target.value)}
-          />
-        </Field>
-      </div>
-      <Button
-        variant="primary"
-        disabled={working}
-        onClick={async () => {
-          setWorking(true);
-          setFailure(null);
-          try {
-            // LA COMPOSITION NE REND PLUS DE DÉCOMPTE DE SILENCIEUX (lot 5).
-            // Rien ne le remplace ici: une phrase « personne n'a rien demandé
-            // cette semaine » remettrait le reproche de silence que ce lot
-            // retire, sous une autre forme.
-            // ⚠️ `Number("")` VAUT 0 ET EST FINI: une garde `!== null`
-            // laisserait partir « budget: 0 » comme une consigne.
-            const amount = Number(budget.trim());
-            if (
-              budget.trim() === "" || !Number.isFinite(amount) || amount <= 0 ||
-              amount > BUDGET_MAX
-            ) {
-              setFailure(t("plan.cooking.budget_required"));
-              return;
-            }
-            // ÉCRIT AVANT DE PARTIR: le générateur relit le montant dans
-            // `practical_constraints`, comme le rythme et les jours de cuisine.
-            await savePlanInputs(userId, { budgetAmount: amount, ...inputs });
-            await generateHouseholdMeal({
-              window: { kind: "until_sunday" },
-              intent: "prepare_next",
-            });
-            await onDone();
-          } catch (e) {
-            // LE MOTIF NOMMÉ, TRADUIT. `generateHouseholdMeal` remonte le
-            // jeton du serveur plutôt que « non-2xx status code ». La course
-            // existe: l'écran a lu sa couverture, l'essai a expiré entre-temps,
-            // on clique. Sans cette ligne, ce cas-là — le seul où le refus
-            // arrive par surprise — se lirait comme une panne.
-            //
-            // ⚠️ LA TABLE EST FERMÉE ET PARTAGÉE (L8). Elle ne portait qu'UN
-            // jeton (`household_frozen`) alors que ce bouton peut recevoir
-            // `window_fully_away` (L2), `all_members_have_own_plan` (L3),
-            // `goal_required`, `no_coach`, `empty_household`, `empty_meal`…
-            // Chacun de ces lots a laissé sa dette en la nommant; elle se solde
-            // dans `copy/planRefusals.ts`, avec un test de dérive.
-            const raw = e instanceof Error ? e.message : String(e);
-            const key = edgeRefusalKey(raw);
-            setFailure(key ? t(key) : raw);
-          } finally {
-            setWorking(false);
-          }
-        }}
-      >
-        {working ? t("household.compose.working") : t("household.compose.submit")}
-      </Button>
-      {failure ? <p className="mt-2 text-sm text-red-700">{failure}</p> : null}
-    </Card>
-  );
-}
-
-/**
- * À TABLE — qui met quoi dans son assiette.
- *
- * ── POURQUOI ICI ET PAS SUR `/app/plan` ───────────────────────────────────
- * Le plan montre ce qu'on CUISINE; ceci montre comment on SERT. Et c'est la
- * seule vue du produit qui n'a de sens qu'à plusieurs — la mettre sur le plan
- * ferait porter un bloc vide au chemin individuel, qui est le majoritaire.
- *
- * ── AUCUNE RAISON N'EST AFFICHÉE, PARCE QU'IL N'Y EN A PAS ────────────────
- * `portion_note` est une INSTRUCTION DE SERVICE, garantie sans raison ni
- * vocabulaire de corps par `sanitizePortionNote` côté serveur. C'est ce qui
- * permet d'afficher toute la table à tout le monde: l'instruction est
- * publique, le pourquoi ne l'est pas.
- */
-function TableCard({ meal }: { meal: HouseholdMealView }) {
-  if (meal.portions.length === 0) return null;
-  return (
-    <Card>
-      <SectionLabel>{t("household.portions.title")}</SectionLabel>
-      <ul className="flex flex-col gap-3">
-        {meal.portions.map((p) => (
-          <li key={p.memberId}>
-            <p className="text-sm">
-              <span className="font-medium">{p.displayName}</span>
-              {" — "}
-              {/* L'INSTRUCTION DE SERVICE EST LE CONTENU DE CETTE CARTE, donc
-                  elle passe à `ink` et la liste des préparations reste en
-                  `ink-soft`. Les deux étaient `neutral-600` et `neutral-500`:
-                  deux gris à un cran d'écart, une hiérarchie qu'on ne voyait
-                  pas. C'est la phrase qu'on lit à voix haute à table. */}
-              <span className="text-ink">
-                {p.portionNote ?? t("household.portions.standard")}
-              </span>
-            </p>
-            {p.shares.length > 0 ? (
-              <ul className="mt-1 flex flex-col gap-0.5 pl-4 text-sm text-ink-soft">
-                {p.shares.map((s) => <li key={s.preparationId}>{s.note}</li>)}
-              </ul>
-            ) : null}
-          </li>
-        ))}
-      </ul>
-    </Card>
-  );
-}
