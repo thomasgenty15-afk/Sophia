@@ -336,6 +336,64 @@ export function servingDirectionFor(member: PortionMember): string {
 }
 
 /**
+ * COMBIEN DE DIRECTIONS DE SERVICE DISTINCTES CE FOYER PORTE-T-IL ?
+ *
+ * ── CE QU'ELLE SERT ────────────────────────────────────────────────────────
+ * « Quelle façon de manger le plat commun suit » est un ARBITRAGE. Un
+ * arbitrage sans deux positions n'a pas de sujet, et la carte qui le pose
+ * s'affichait quand même — devant deux adultes qui n'ont rien déclaré, ou qui
+ * ont déclaré la même chose, elle demandait de trancher entre une chose et
+ * elle-même.
+ *
+ * ⚠️ ON COMPARE LES CHAÎNES, PAS LES JETONS. `NEUTRAL_DIRECTION` est
+ * EXACTEMENT `SERVING_DIRECTION.maintenance`: deux objectifs différents
+ * peuvent demander la MÊME assiette, et compter les jetons ferait afficher un
+ * arbitrage qui n'a pas de sujet. Le module a déjà payé ce défaut dans l'autre
+ * sens avec `health`, qui a rendu la chaîne de `maintenance` pendant des
+ * semaines sans que rien n'échoue.
+ *
+ * ⚠️ LES MINEURS SONT HORS DU COMPTE, ET C'EST À L'APPELANT DE LES FILTRER.
+ * `CHILD_DIRECTION` est une TAILLE, pas une orientation: elle ne gouverne rien
+ * et ne peut pas gagner un arbitrage — un mineur n'est jamais référent. Un âge
+ * INCONNU en est hors aussi: `goalApplies` rend déjà `false` pour lui, donc il
+ * porte `NEUTRAL_DIRECTION`, et le compter reviendrait à faire d'une ignorance
+ * une position.
+ *
+ * ⚠️ L'OBJECTIF LU DOIT ÊTRE L'OBJECTIF RÉSOLU. Pour une bouche qui a réclamé
+ * son compte, l'objectif qui fait foi est celui de `student_goals`, pas la
+ * colonne du roster. Cette fonction est PURE: elle croit ce qu'on lui donne.
+ * Un appelant qui lui passe une colonne périmée obtient une réponse juste sur
+ * une donnée fausse.
+ *
+ * ⚠️ UN JETON INCONNU NE VAUT PAS UNE POSITION. `goal` est typé `string | null`
+ * parce qu'il vient de la base: un jeton hors de `MEMBER_GOALS` (colonne
+ * élargie, ligne écrite par une version plus récente) retombe sur
+ * `NEUTRAL_DIRECTION` plutôt que de rendre `undefined` et de compter comme une
+ * septième direction fantôme.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function distinctServingDirections(
+  members: readonly { ageState: MemberAgeState; goal: string | null }[],
+): string[] {
+  const seen = new Set<string>();
+  for (const member of members) {
+    const applies = goalApplies(member) && member.goal !== null &&
+      (MEMBER_GOALS as readonly string[]).includes(member.goal);
+    seen.add(
+      applies
+        ? SERVING_DIRECTION[member.goal as MemberGoal]
+        : NEUTRAL_DIRECTION,
+    );
+  }
+  // L'ORDRE EST CELUI DE LA RENCONTRE, et il est stable: l'appelant affiche
+  // « X mange ceci, Y mange cela » dans l'ordre du roster, pas dans un ordre
+  // alphabétique qui remettrait les deux personnes dans le désordre à chaque
+  // changement d'objectif.
+  return [...seen];
+}
+
+/**
  * D6 — CE QUE LA CUISINE A LE DROIT DE FAIRE.
  *
  * `one_dish` est le contrat historique du foyer, et il reste le défaut de

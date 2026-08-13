@@ -60,6 +60,7 @@ import {
   savePlanAnswers,
 } from "../api/onboarding";
 import { BUDGET_MAX } from "../api/planBudget";
+import { chooseGenerator } from "../api/planRouting";
 import { addDays, daysBetween } from "../api/dates";
 import { MAX_WINDOW_DAYS, windowDayOrder } from "../api/mealWindow";
 import { type AwayDay, type EatingOccasionSlot } from "../api/mealGeneration";
@@ -796,9 +797,24 @@ export default function SetupPage() {
       // c'est voulu: son plan à lui est PERSONNEL (D2 du modèle foyer). Router
       // sur le seul nombre de bouches enverrait toute personne ayant réclamé
       // son profil droit dans un refus que rien ne peut fermer.
-      const mouthCount = fresh.mouths.length + (fresh.householdId ? 1 : 0);
+      //
+      // ⚠️ LA RÈGLE A DEUX APPELANTS DEPUIS QUE `/app/plan` ACCUEILLE LA
+      // DEMANDE. Elle était en ligne ici tant que le couloir d'entrée était le
+      // seul endroit où l'on composait; deux copies auraient divergé, et celle
+      // qui se trompe envoie un maître sur le générateur individuel — trente
+      // secondes d'attente, un appel modèle payé, et rien à l'écran.
+      //
+      // ⚠️ `otherMouths` EST LA LISTE SANS LE MAÎTRE. `fresh.mouths` ne contient
+      // pas sa ligne, d'où le `+ 1` d'avant; le module prend le compte des
+      // AUTRES et fait l'addition lui-même, pour qu'aucun appelant n'ait à s'en
+      // souvenir.
+      const generator = chooseGenerator({
+        inHousehold: fresh.householdId !== null,
+        isOwner: fresh.isOwner,
+        otherMouths: fresh.mouths.length,
+      });
       try {
-        if (fresh.isOwner && mouthCount >= 2) {
+        if (generator === "household") {
           const result = await generateHouseholdMeal({
             // LA FENÊTRE DEMANDÉE, et plus « d'ici dimanche » codé en dur. Un
             // compte créé un samedi recevait un plan d'un jour et demi sans

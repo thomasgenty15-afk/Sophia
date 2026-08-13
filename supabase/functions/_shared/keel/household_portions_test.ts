@@ -2,6 +2,7 @@ import { assert, assertEquals, assertStringIncludes } from "jsr:@std/assert@1";
 
 import {
   buildPortionBrief,
+  distinctServingDirections,
   MEMBER_GOALS,
   type MemberGoal,
   memberPortionsPayload,
@@ -705,4 +706,102 @@ Deno.test("un tableau VIDE se comporte comme `null`, jamais comme « jamais »",
   // comme « ne le sers jamais ».
   const brief = buildPortionBrief([{ ...SON, eatingSlots: [] }], "one_dish");
   assert(!brief.includes("eats at"), brief);
+});
+
+// ---------------------------------------------------------------------------
+// LA GARDE DE VACUITÉ DE « QUELLE FAÇON DE MANGER LE PLAT COMMUN SUIT »
+//
+// L'arbitrage n'a de sujet que si DEUX directions de service s'opposent. Ces
+// cas épinglent la seule chose qu'une re-implémentation puisse rater: on
+// compare des CHAÎNES, pas des jetons d'objectif.
+// ---------------------------------------------------------------------------
+
+Deno.test("deux objectifs OPPOSÉS comptent pour deux directions", () => {
+  // LE CAS QUI PASSE — celui du foyer qui a vraiment un arbitrage à trancher.
+  // Sans lui, la garde bloquerait tout en ressemblant à une garde qui marche.
+  const directions = distinctServingDirections([
+    { ageState: "adult", goal: "muscle_gain" },
+    { ageState: "adult", goal: "maintenance" },
+  ]);
+  assertEquals(directions.length, 2);
+});
+
+Deno.test("`maintenance` et AUCUN objectif ne font qu'UNE direction", () => {
+  // ⚠️ LE PIÈGE, ÉPINGLÉ. `NEUTRAL_DIRECTION` est mot pour mot
+  // `SERVING_DIRECTION.maintenance`. Compter les JETONS rendrait 2 ici — et la
+  // carte s'afficherait devant un foyer qui n'a rien à trancher, ce qui est
+  // exactement le défaut qu'on referme.
+  const directions = distinctServingDirections([
+    { ageState: "adult", goal: "maintenance" },
+    { ageState: "adult", goal: null },
+  ]);
+  assertEquals(directions.length, 1);
+});
+
+Deno.test("deux adultes qui n'ont RIEN déclaré ne font qu'une direction", () => {
+  const directions = distinctServingDirections([
+    { ageState: "adult", goal: null },
+    { ageState: "adult", goal: null },
+  ]);
+  assertEquals(directions.length, 1);
+});
+
+Deno.test("le même objectif deux fois ne fait qu'une direction", () => {
+  const directions = distinctServingDirections([
+    { ageState: "adult", goal: "fat_loss" },
+    { ageState: "adult", goal: "fat_loss" },
+  ]);
+  assertEquals(directions.length, 1);
+});
+
+Deno.test("un âge INCONNU ne porte pas de position", () => {
+  // `goalApplies` rend `false` pour `unknown`: la bouche retombe sur la
+  // direction neutre. Faire d'une ignorance une position afficherait un
+  // arbitrage entre quelqu'un et un point d'interrogation.
+  const directions = distinctServingDirections([
+    { ageState: "adult", goal: "maintenance" },
+    { ageState: "unknown", goal: "muscle_gain" },
+  ]);
+  assertEquals(directions.length, 1);
+});
+
+Deno.test("un jeton d'objectif INCONNU retombe sur la direction neutre", () => {
+  // Une colonne élargie, ou une ligne écrite par une version plus récente, ne
+  // doit pas produire une septième direction fantôme — ni `undefined`.
+  const directions = distinctServingDirections([
+    { ageState: "adult", goal: "maintenance" },
+    { ageState: "adult", goal: "bulking_but_not_really" },
+  ]);
+  assertEquals(directions, ["balanced share of every component"]);
+});
+
+Deno.test("un foyer VIDE ne porte aucune direction", () => {
+  assertEquals(distinctServingDirections([]), []);
+});
+
+Deno.test("les six objectifs produisent SIX directions distinctes", () => {
+  // ⚠️ SIX AUJOURD'HUI, ET C'EST LA CEINTURE DU PIÈGE. Les six chaînes sont
+  // deux à deux différentes; ce que `maintenance` partage, c'est la direction
+  // NEUTRE, pas un autre objectif (cas épinglé plus haut). Le jour où deux
+  // objectifs se remettent à rendre la même chaîne — ce que `health` a fait
+  // pendant des semaines sans que rien n'échoue — ce compte tombe à cinq et le
+  // dit. C'est le seul test du dépôt qui ferait rougir cette régression-là.
+  const directions = distinctServingDirections(
+    MEMBER_GOALS.map((goal: MemberGoal) => ({
+      ageState: "adult" as const,
+      goal,
+    })),
+  );
+  assertEquals(directions.length, 6);
+});
+
+Deno.test("la lecture est idempotente", () => {
+  const members = [
+    { ageState: "adult" as const, goal: "fat_loss" },
+    { ageState: "adult" as const, goal: "performance" },
+  ];
+  assertEquals(
+    distinctServingDirections(members),
+    distinctServingDirections(members),
+  );
 });
