@@ -43,6 +43,67 @@ export function localDateInZone(timezone: string, now: Date): string {
 }
 
 /**
+ * L'HEURE LOCALE DE L'ÉLÈVE, en minutes depuis minuit.
+ *
+ * MÊME POSTURE QUE `localDateInZone`: jette sur un fuseau vide ou inconnu
+ * plutôt que de replier sur UTC. « 21 h » et « 23 h » ne demandent pas le même
+ * plan, et se tromper d'un fuseau fait composer un dîner déjà mangé.
+ *
+ * ── UNE SEULE HORLOGE, ET LA SECONDE EST CONNUE ───────────────────────────
+ * `reengagement_io.ts::localHourFor` (`:98`) lit la même heure, par le même
+ * `Intl`, avec une posture OPPOSÉE ET VOULUE: il rend `null` sur un fuseau
+ * illisible, parce qu'une relance proactive sur une heure inconnue enverrait un
+ * message à quelqu'un qui dort. Ici, l'heure décide de la COMPOSITION d'un
+ * plan, et une composition muette vaut mieux qu'une composition fausse.
+ * Les deux ne peuvent pas être la même fonction; elles peuvent être le même
+ * calcul. `localHourFor` reste à replier sur celle-ci — ce n'est pas le lot qui
+ * écrit ces lignes qui possède `reengagement_io.ts`.
+ *
+ * `hourCycle: "h23"` et pas `hour12: false`: sur certaines ICU, `hour12: false`
+ * rend « 24 » à minuit — et « 24 » traverse `Number.isFinite` sans broncher.
+ */
+export function localMinuteInZone(timezone: string, now: Date): number {
+  const zone = String(timezone ?? "").trim();
+  if (!zone) throw new Error("[keel/local_date] empty timezone (R7)");
+  let parts: Intl.DateTimeFormatPart[];
+  try {
+    parts = new Intl.DateTimeFormat("en-GB", {
+      timeZone: zone,
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    }).formatToParts(now);
+  } catch (error) {
+    throw new Error(
+      `[keel/local_date] unknown timezone ${JSON.stringify(zone)}`,
+      { cause: error },
+    );
+  }
+  const hour = Number(parts.find((p) => p.type === "hour")?.value);
+  const minute = Number(parts.find((p) => p.type === "minute")?.value);
+  if (
+    !Number.isInteger(hour) || !Number.isInteger(minute) ||
+    hour < 0 || hour > 23 || minute < 0 || minute > 59
+  ) {
+    throw new Error(
+      `[keel/local_date] unresolvable local time for ${JSON.stringify(zone)}`,
+    );
+  }
+  return hour * 60 + minute;
+}
+
+/**
+ * L'HEURE LOCALE, en heures pleines (`0`..`23`).
+ *
+ * DÉRIVÉE de `localMinuteInZone`, jamais recalculée: deux lectures de la même
+ * horloge divergent sur les bords (changement d'heure, fuseaux à demi-heure),
+ * et c'est exactement le genre d'écart qu'aucun test ne rattrape.
+ */
+export function localHourInZone(timezone: string, now: Date): number {
+  return Math.floor(localMinuteInZone(timezone, now) / 60);
+}
+
+/**
  * Le jeton de jour (`mon`..`sun`) d'une date locale.
  *
  * Passe par `parseDayToken`, donc un jour hors vocabulaire jette au lieu de

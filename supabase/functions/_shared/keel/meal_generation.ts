@@ -1336,6 +1336,62 @@ export const MEAL_TOKEN_FIELDS: readonly string[] = [
   "dishes[].uses[].preparation_id (must match preparations[].id exactly)",
 ];
 
+/**
+ * LES JOURS DE CUISINE QUE LE MOTEUR AJOUTE, ET QUE L'ÉLÈVE N'A PAS COCHÉS.
+ *
+ * ── LA CONTRAINTE DOIT RESTER SATISFAISABLE ───────────────────────────────
+ * MESURÉ le 2026-08-12: jours déclarés `sun, wed`, fenêtre jeudi→dimanche.
+ * L'intersection ne laisse que DIMANCHE — le dernier jour. Le modèle a donc
+ * fait manger jeudi, vendredi et samedi sur un lot cuisiné le dimanche: quatre
+ * repas antérieurs à leur propre cuisson, et un plan inexécutable.
+ *
+ * Un jour de cuisine qui arrive APRÈS les repas qu'il doit nourrir n'est pas
+ * une contrainte, c'est une impasse. On ajoute donc le premier jour CUISINABLE
+ * de la fenêtre. Le pire cas est une session posée un jour non déclaré, qu'on
+ * déplacera; l'autre pire cas est une semaine qu'on ne peut pas cuisiner.
+ *
+ * ── EXPORTÉE PARCE QUE DEUX LECTEURS DOIVENT DIRE LE MÊME JOUR ────────────
+ * La consigne demande au modèle de DIRE que ce jour est un ajout. Le run réel
+ * montre qu'il ne l'a pas dit — d'où `plan_rationale`, qui le dit de façon
+ * déterministe. Si l'explication recalculait l'ajout de son côté, elle finirait
+ * par nommer un autre jour que celui de la consigne, et ce serait l'explication
+ * qui aurait tort. Une seule définition, deux lecteurs.
+ *
+ * ⚠️ `firstDayCookable` est REQUIS et sans défaut: passé la coupure courses, le
+ * jour ajouté est le SUIVANT (voir `plan_hours.ts`). `true` est une
+ * affirmation, pas un repli.
+ *
+ * Rend `[]` — jamais `null` — quand il n'y a rien à ajouter, ce qui est le cas
+ * nominal.
+ */
+export function addedCookDays(input: {
+  /** Les jours COCHÉS par l'élève. `[]` = il n'en a coché aucun. */
+  declared: readonly string[];
+  /** Les jours de la fenêtre, dans l'ordre. `[]` = fenêtre inconnue. */
+  window: readonly string[];
+  /** Le premier jour de la fenêtre est-il encore cuisinable ? REQUIS. */
+  firstDayCookable: boolean;
+}): string[] {
+  if (typeof input?.firstDayCookable !== "boolean") {
+    throw new Error(
+      "[keel/meal_generation] addedCookDays: firstDayCookable est REQUIS et booléen — " +
+        "un appelant qui n'a pas lu l'horloge passe `true`, il ne l'hérite pas",
+    );
+  }
+  const window = input.window ?? [];
+  const declared = input.declared ?? [];
+  if (declared.length === 0 || window.length === 0) return [];
+  const usable = declared.filter((d) => window.includes(d));
+  if (usable.length === 0) return [];
+  // Le premier jour de la fenêtre, ou le suivant s'il est déjà trop tard pour
+  // lui. Quand il n'y a pas de jour suivant, il n'y a rien à ajouter — et la
+  // consigne ordinaire est alors vraie.
+  const first = input.firstDayCookable ? window[0] : window[1];
+  if (first === undefined || usable.includes(first)) return [];
+  const earliest = Math.min(...usable.map((d) => window.indexOf(d)));
+  return earliest > window.indexOf(first) ? [first] : [];
+}
+
 export function buildMealPrompt(args: {
   /**
    * FF-030 — LES CONTRAINTES DURES DE L'ÉLÈVE. `null` quand la lecture a
@@ -1540,6 +1596,27 @@ export function buildMealPrompt(args: {
    */
   merge: MergedEater | null;
   /**
+   * LE PREMIER JOUR DE LA FENÊTRE EST-IL ENCORE CUISINABLE ?
+   *
+   * ── LE TROU QU'IL FERME ──────────────────────────────────────────────────
+   * La branche `tooLate`, plus bas, ajoute d'office une session de cuisine sur
+   * le PREMIER jour de la fenêtre quand tous les jours déclarés tombent après
+   * lui. C'est juste — sauf à 21 h: on demande alors à quelqu'un de faire ses
+   * courses dans un magasin fermé puis de cuisiner un lot, ce soir. La branche
+   * vise alors le jour SUIVANT.
+   *
+   * ⚠️ REQUIS ET SANS DÉFAUT, `boolean`. `true` est une AFFIRMATION (« ce
+   * premier jour est encore cuisinable »), pas un repli: un appelant qui
+   * n'aurait pas su lire l'horloge doit le dire en passant `true` — le
+   * comportement d'hier — et pas l'hériter d'un `?`. Septième fois que ce
+   * fichier écrit cette phrase.
+   *
+   * Le calcul appartient à `plan_hours.ts::firstWindowDayIsCookable`, avec la
+   * coupure nommée; il n'est PAS recopié ici. Une seconde définition de « 18 h »
+   * dériverait de la première le jour où quelqu'un la change.
+   */
+  firstDayCookable: boolean;
+  /**
    * LA LANGUE DANS LAQUELLE CES PLATS SONT ÉCRITS. REQUIS, jamais `T?`.
    *
    * Vient de `resolveArtifactLocale({studentProfile, tenantDefault})`, donc de
@@ -1610,6 +1687,9 @@ export function buildMealPrompt(args: {
   // qui ne cuisine que le lundi, un vendredi, doit quand même manger. Mieux
   // vaut une session posée un jour non déclaré — qu'il déplacera — qu'un plan
   // sans aucun jour de cuisine.
+  //
+  // ⚠️ LE COMMENTAIRE HISTORIQUE DE CE BLOC A DÉMÉNAGÉ dans `addedCookDays`,
+  // avec le calcul qu'il décrit.
   const cookDayLines = ((): string[] => {
     const window = args.daysToFill ?? [];
     const declared = args.cookDays ?? [];
@@ -1631,10 +1711,20 @@ export function buildMealPrompt(args: {
     // n'aille pas croire que l'élève l'a déclaré. Le pire cas est une session
     // posée un jour non déclaré, qu'il déplacera; l'autre pire cas est une
     // semaine qu'il ne peut pas cuisiner.
-    const first = window[0];
-    const tooLate = usable.length > 0 && first !== undefined &&
-      !usable.includes(first) &&
-      Math.min(...usable.map((d) => window.indexOf(d))) > 0;
+    //
+    // ⚠️ LE CALCUL VIT DANS `addedCookDays`, ET C'EST LA MOITIÉ QUI COMPTE.
+    // La phrase ci-dessous demande au modèle de DIRE que le jour est un ajout;
+    // le run réel du 2026-08-12 montre qu'il ne l'a pas dit. `plan_rationale`
+    // le dit désormais de façon déterministe — et il doit nommer EXACTEMENT le
+    // jour que cette consigne a demandé. Deux calculs du même ajout
+    // divergeraient, et c'est l'explication qui aurait tort.
+    const added = addedCookDays({
+      declared,
+      window,
+      firstDayCookable: args.firstDayCookable,
+    });
+    const first = added[0];
+    const tooLate = added.length > 0;
 
     if (usable.length === 0) {
       return [
