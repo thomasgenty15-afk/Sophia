@@ -394,8 +394,20 @@ export interface GenerateMealInput {
   /**
    * `replace_current` refait le plan de l'onglet qu'on REGARDE — d'où
    * `replaces`. `prepare_next` en crée un second qui démarre plus tard.
+   *
+   * ── `draft` — LE TROISIÈME, ET IL N'ÉCRIT RIEN ──────────────────────────
+   * Toutes les gardes AMONT s'appliquent à l'identique (gel, objectif requis,
+   * méthode publiée, fenêtre, chevauchement, TCA, doctrine, règles de maison):
+   * le SEUL saut est l'écriture. Ni plan, ni parts, ni quota de fusion
+   * consommé. La réponse porte le même contenu, plus `draft: true` et un
+   * `meal.id` nul.
+   *
+   * ⚠️ `replaces` EST REFUSÉ AVEC `draft` (`unknown_intent`), et c'est
+   * cohérent: un aperçu ne remplace rien, puisqu'il n'écrit rien. Passer les
+   * deux serait demander au serveur de retirer un plan au profit d'un plan qui
+   * n'existera pas.
    */
-  intent: "replace_current" | "prepare_next";
+  intent: "replace_current" | "prepare_next" | "draft";
   replaces: string | null;
   slot: MealSlot | null;
   servings: number;

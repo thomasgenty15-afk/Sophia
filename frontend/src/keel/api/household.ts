@@ -1158,7 +1158,15 @@ export async function generateHouseholdMeal(args: {
     | { kind: "until_sunday" }
     | { kind: "days"; count: number }
     | { kind: "exact"; startsOn: string; durationDays: number };
-  intent?: "replace_current" | "prepare_next";
+  /**
+   * ── `draft` — LE TROISIÈME, ET IL N'ÉCRIT RIEN ──────────────────────────
+   * Toutes les gardes AMONT s'appliquent à l'identique; le SEUL saut est
+   * l'écriture. Ni plan, ni `member_portions`, ni quota de fusion consommé.
+   *
+   * ⚠️ `replaces` EST REFUSÉ AVEC `draft` (`unknown_intent`): un aperçu ne
+   * remplace rien, puisqu'il n'écrit rien.
+   */
+  intent?: "replace_current" | "prepare_next" | "draft";
   replaces?: string | null;
   context?: string | null;
 }): Promise<HouseholdMealResult> {
