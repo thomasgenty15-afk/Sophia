@@ -34,6 +34,9 @@ const USERS = [
   "30d116e9-3112-447c-97c0-52602463cacc", // E1 REPRODUIT: le kebab perdu
   "9a0e6ac0-a751-41be-aa40-cc9089510065", // E2/E4 persona A
   "ad594af0-0e54-4475-a7aa-ceda41e061d2", // E2/E3 persona B (charge tronquée)
+  // ── run de langue ──────────────────────────────────────────────────────────
+  "9075f99b-1894-4849-9c34-9d6479db027e", // persona fr-FR
+  "93b05ef1-4f3c-48ee-8bc3-71a6fe211cee", // persona en-GB
 ];
 const TABLES = [
   "student_weight_divergence_episodes",
