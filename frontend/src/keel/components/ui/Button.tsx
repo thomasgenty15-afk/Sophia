@@ -15,27 +15,61 @@ export type ButtonVariant =
 export type ButtonSize = "md" | "sm";
 
 const VARIANT: Record<ButtonVariant, string> = {
+  // ── `primary` EST PASSÉE À LA FIGUE, ET C'EST L'ARBITRAGE DU CHANTIER ─────
+  // La règle de couleur de l'app: LA TEINTE DE MARQUE MARQUE LA NAVIGATION ET
+  // L'ACTION, LES COULEURS D'ÉTAT MARQUENT LES FAITS, ELLES NE SE CROISENT
+  // JAMAIS. Une action principale a donc le droit à la marque — c'est même le
+  // seul endroit du produit connecté où un aplati de couleur est légitime.
+  // Contrastes calculés: libellé `paper` sur `fig-700` = 9,98:1; au survol,
+  // sur `fig-800` = 12,79:1 (charte §2, seuil 4,5).
+  //
+  // ⚠️ CE QUE ÇA N'AUTORISE PAS: la figue n'entre jamais dans une pastille
+  // `Badge`, ni dans un chiffre, ni dans un verdict. Un bouton est une ACTION,
+  // pas un fait. Et une seule action principale par écran — deux boutons figue
+  // côte à côte, c'est zéro hiérarchie.
   primary:
-    "bg-gray-900 text-white hover:bg-gray-700 disabled:hover:bg-gray-900",
+    "bg-fig-700 text-paper hover:bg-fig-800 disabled:hover:bg-fig-700",
+  // Le geste secondaire: un contour de CONTRÔLE, donc `line-strong` (3,84:1) et
+  // jamais `line` (1,30:1 — décoratif, WCAG 1.4.11 exige 3:1). Texte `ink` sur
+  // `paper` = 16,18:1; sur le survol `fig-50` = 15,38:1.
   secondary:
-    "border border-gray-300 bg-white text-gray-800 hover:bg-gray-50 disabled:hover:bg-white",
-  ghost: "text-gray-600 hover:bg-gray-100 disabled:hover:bg-transparent",
+    "border border-line-strong bg-paper text-ink hover:bg-fig-50 disabled:hover:bg-paper",
+  // Le geste qu'on peut ignorer — « Annuler », « Ne plus afficher ». Il reste
+  // NEUTRE exprès: si les trois premiers gestes d'un écran portent la marque,
+  // aucun ne la porte plus. `ink-soft` sur `paper` = 6,11:1, sur `fig-50` =
+  // 5,81:1.
+  ghost: "text-ink-soft hover:bg-fig-50 disabled:hover:bg-transparent",
+  // ⛔ `danger` EST UN ÉTAT, ET SES TROIS VALEURS ROUGES N'ONT PAS BOUGÉ.
+  // Rouge = échec/refus dans tout le produit; un bouton destructeur emprunte ce
+  // sens et doit rester distinguable de `primary` (35° séparent le rouge de la
+  // figue, et surtout l'un est un contour rouge sur fond clair, l'autre un
+  // aplati de marque). Seul le fond neutre a suivi la charte: `bg-white` →
+  // `bg-paper`. `red-700` sur `paper` = 6,13:1.
   danger:
-    "border border-red-200 bg-white text-red-700 hover:bg-red-50 disabled:hover:bg-white",
-  // ── `brand` — LE GESTE COMMERCIAL D'UNE PAGE DE VENTE, ET RIEN D'AUTRE ────
-  // Ajoutée plutôt que `primary` re-teintée, et c'est le point de ce commentaire.
+    "border border-red-200 bg-paper text-red-700 hover:bg-red-50 disabled:hover:bg-paper",
+  // ── `brand` — LE GESTE COMMERCIAL D'UNE PAGE DE VENTE ─────────────────────
+  // ⚠️ CE COMMENTAIRE A ÉTÉ RÉÉCRIT LE 2026-08-13, ET IL FAUT LIRE POURQUOI.
   //
-  // `primary` est rendue par TOUTE l'app authentifiée — des centaines d'appels.
-  // La reteindre en figue aurait fait entrer la charte de la vitrine dans
-  // `/app` et `/coach` par effet de bord, alors que l'app y entrera par un
-  // chantier à elle, avec ses propres arbitrages (au premier rang desquels: la
-  // couleur saturée y appartient au SENS, et un bouton de marque partout
-  // rendrait un état indistinguable d'une action).
+  // Cette variante a été ajoutée plutôt que `primary` re-teintée, à un moment
+  // où l'app authentifiée était HORS du périmètre de la charte: la reteindre
+  // aurait fait entrer la vitrine dans `/app` et `/coach` par effet de bord,
+  // avant que l'arbitrage de couleur de l'app soit rendu. La consigne qui
+  // allait avec — « si tu la vois ailleurs que sur les huit pages publiques,
+  // c'est une fuite » — était un CONFINEMENT, pas une règle de style.
   //
-  // Cette variante est donc réservée aux HUIT pages publiques. Si tu la vois
-  // dans `/app` ou `/coach`, c'est une fuite, pas une décision.
+  // Le chantier « la plateforme passe à la charte » a rendu cet arbitrage: la
+  // marque marque l'action, ici comme là-bas. `brand` et `primary` rendent donc
+  // désormais LA MÊME CHOSE, et c'est voulu, pas un oubli à nettoyer.
+  //
+  // Ce qui reste de la distinction est une INTENTION LISIBLE AU SITE D'APPEL:
+  // `brand` = le geste commercial d'une page de vente (« Essayer », « Voir les
+  // tarifs »), `primary` = l'action principale d'un écran de travail. Les deux
+  // noms survivent parce que 21 appels portent `brand` et qu'un lot visuel n'a
+  // pas le droit de renommer une API à travers huit pages livrées.
+  // ⚠️ N'écris pas `brand` dans `/app` ni `/coach` pour autant: `primary` y dit
+  // la même chose et le dit juste. Fusionner les deux est un lot à part.
   brand:
-    "bg-fig-700 text-white hover:bg-fig-800 disabled:hover:bg-fig-700",
+    "bg-fig-700 text-paper hover:bg-fig-800 disabled:hover:bg-fig-700",
 };
 
 const SIZE: Record<ButtonSize, string> = {
@@ -43,13 +77,18 @@ const SIZE: Record<ButtonSize, string> = {
   sm: "px-2.5 py-0.5 text-xs",
 };
 
-// `buttonClass` est exportée depuis toujours et a quatre appelants: des
-// surfaces qui ont besoin de l'APPARENCE d'un bouton sur un élément qui n'en
-// est pas un. La règle `only-export-components` a commencé à mordre ici parce
-// que le gate ne lint QUE les fichiers modifiés, et que ce fichier n'avait pas
-// bougé depuis `26af8ef7` — ce n'est pas une régression de la refonte du site.
-// La déplacer dans son propre module est la vraie réponse, et c'est un lot à
-// part: elle touche quatre importateurs pour une raison sans rapport.
+// `buttonClass` reste exportée, et son commentaire d'origine est PÉRIMÉ: il
+// annonçait « quatre appelants — des surfaces qui ont besoin de l'APPARENCE
+// d'un bouton sur un élément qui n'en est pas un ». Vérifié le 2026-08-13, hors
+// commentaires, sur tout `frontend/src`: ZÉRO appelant. Les trois occurrences
+// qui restent dans le dépôt sont des commentaires qui parlent d'elle (dont un
+// piège utile: `hidden` perd contre le `inline-flex` posé ici, il faut
+// ENVELOPPER pour masquer un bouton — voir `PublicHeader.tsx`).
+// Elle n'est donc pas supprimée pour autant: c'est une API publique, et la
+// retirer est un geste de purge qui n'a rien à voir avec la charte.
+// La règle `only-export-components` mord ici parce que le gate ne linte que les
+// fichiers modifiés; la déplacer dans son propre module est la vraie réponse et
+// c'est un lot à part.
 // eslint-disable-next-line react-refresh/only-export-components
 export function buttonClass(
   variant: ButtonVariant = "secondary",
@@ -57,6 +96,9 @@ export function buttonClass(
   extra = "",
 ): string {
   return [
+    // `rounded-full` sur un bouton, et c'est la charte: `tokens.css` §2 réserve
+    // le cercle complet aux boutons et aux pastilles d'état. Le reste du
+    // vocabulaire de rayon est `part` (4px), `card` (12px), `fiche` (16px).
     "inline-flex items-center justify-center gap-2 rounded-full font-medium",
     "transition-colors disabled:cursor-not-allowed disabled:opacity-50",
     VARIANT[variant],

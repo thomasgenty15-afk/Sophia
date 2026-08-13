@@ -27,7 +27,15 @@ import { Card } from "./Card";
 //
 // Si tu lis un commentaire ailleurs qui interdit encore l'accent, il est
 // périmé: réécris-le plutôt que de retirer la couleur.
-// Autorité: `scratchpad/site/design/CHARTE.md` §2.
+//
+// ⚠️ AUTORITÉ: `docs/keel/CHARTE-VITRINE.md` §2 — et pas
+// `scratchpad/site/design/CHARTE.md`, que cette ligne nommait jusqu'au
+// 2026-08-13. Le second est le RAISONNEMENT (les directions explorées, les
+// règles de figure, la recherche concurrentielle); le premier est la charte
+// TELLE QUE CONSTRUITE, valeur par valeur. Quand les deux divergent, c'est le
+// premier qui a raison — son §9 liste les cinq écarts nés de la mesure, dont
+// deux touchent ce fichier (`tabular-nums` retiré de `PriceCard`, variante
+// `brand` de `Button`). Un lecteur envoyé au brouillon les manque tous les cinq.
 //
 // (`LandingPage.tsx` a été SUPPRIMÉE le 2026-08-12 — sa copie est devenue
 // `CoachesPage.tsx`. Les renvois ci-dessus sont historiques: cherche dans git.)

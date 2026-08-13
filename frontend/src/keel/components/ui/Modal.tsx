@@ -86,7 +86,10 @@ export default function Modal(
   // enfermer la fenêtre dans la carte qui l'a ouverte.
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-gray-900/40 p-0 sm:items-center sm:p-6"
+      // Le voile est l'ENCRE de la marque, pas un gris: `ink` (#23191F) à 40 %,
+      // la même valeur d'opacité qu'avant. Il n'a pas à être plus dense — ce qui
+      // sépare la fenêtre de la page, c'est le trait de la fenêtre.
+      className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 p-0 sm:items-center sm:p-6"
       // LE FOND FERME, mais uniquement quand c'est LUI qu'on vise: sans le test
       // de cible, un clic relâché sur le fond après avoir coché un article
       // fermerait la fenêtre en pleine course.
@@ -100,14 +103,25 @@ export default function Modal(
         aria-modal="true"
         aria-label={title}
         tabIndex={-1}
-        className={`flex max-h-[90vh] w-full ${SIZE[size]} flex-col overflow-hidden rounded-t-2xl bg-gray-50 shadow-xl outline-none sm:rounded-2xl`}
+        // UNE FENÊTRE EST UNE SURFACE ENTIÈRE, donc `rounded-fiche` (16px) — la
+        // même valeur que `rounded-2xl` rendait: le rayon n'a pas changé, il
+        // porte son nom. Elle est le GROUND de ce qu'elle contient, donc `paper`
+        // comme la page: les cartes posées dedans gardent exactement le contraste
+        // qu'elles ont sur un écran.
+        className={`flex max-h-[90vh] w-full ${SIZE[size]} flex-col overflow-hidden rounded-t-fiche bg-paper shadow-xl outline-none sm:rounded-fiche`}
       >
-        <div className="flex items-center justify-between gap-3 border-b border-gray-200 bg-white px-4 py-3">
-          <h2 className="text-base font-semibold text-gray-900">{title}</h2>
+        {/* LE FRONTON. `paper-2` sur `paper` (1,08:1) plus le trait `line`: la
+            barre de titre se détache du corps sans qu'on ait besoin d'un aplat.
+            C'est l'idiome de la fiche, celui de `/auth` et `/start`. */}
+        <div className="flex items-center justify-between gap-3 border-b border-line bg-paper-2 px-4 py-3">
+          {/* PUBLIC SANS, PAS YOUNG SERIF: un titre de fenêtre fait 16 px et la
+              display ne descend jamais sous 20. Et pas d'équerre — la signature
+              ouvre une SECTION, elle ne redouble pas un titre de dialogue. */}
+          <h2 className="text-base font-semibold text-ink">{title}</h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg px-2 py-1 text-sm text-gray-600 underline underline-offset-2 hover:text-gray-900"
+            className="rounded-part px-2 py-1 text-sm text-ink-soft underline underline-offset-2 hover:text-ink"
           >
             {closeLabel}
           </button>

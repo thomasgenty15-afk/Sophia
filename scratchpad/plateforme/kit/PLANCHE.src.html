@@ -1,0 +1,752 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Le kit KEEL passe à la charte — planche de comparaison</title>
+<style>
+/* ══════════════════════════════════════════════════════════════════════════
+   PLANCHE AUTONOME. Aucune ressource externe: les deux polices sont embarquées
+   en data: URI, tous les jetons sont recopiés depuis `frontend/src/tokens.css`,
+   et les valeurs « AVANT » sont les échelles Tailwind par défaut relevées.
+   Rien ici n'est importé de l'app: la planche ne peut pas mentir sur ce que le
+   kit rend, mais elle ne le lit pas non plus — c'est une RECOPIE.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+@font-face{font-family:"Young Serif";src:url(__FONT_SERIF__) format("woff2");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:"Public Sans";src:url(__FONT_SANS__) format("woff2");font-weight:100 900;font-style:normal;font-display:swap}
+
+:root{
+  /* ── LES JETONS DE LA CHARTE (tokens.css) ── */
+  --paper:#FBF8FA; --paper-2:#F4EFF2; --ink:#23191F; --ink-soft:#6A5A64;
+  --line:#E3DAE0; --line-strong:#8E7886;
+  --fig-50:#F9F1F5; --fig-100:#EFE0E9; --fig-300:#C9A3B8; --fig-600:#7E3C61;
+  --fig-700:#632C4C; --fig-800:#4A2039; --fig-950:#24101E;
+  --radius-part:.25rem; --radius-card:.75rem; --radius-fiche:1rem;
+  --font-display:"Young Serif",Georgia,serif;
+  --font-sans:"Public Sans",system-ui,-apple-system,sans-serif;
+  /* ── LES ÉCHELLES TAILWIND PAR DÉFAUT — la colonne AVANT ── */
+  --g50:#F9FAFB; --g100:#F3F4F6; --g200:#E5E7EB; --g300:#D1D5DB; --g400:#9CA3AF;
+  --g500:#6B7280; --g600:#4B5563; --g700:#374151; --g800:#1F2937; --g900:#111827;
+  --em50:#ECFDF5; --em700:#047857; --bl50:#EFF6FF; --bl700:#1D4ED8;
+  --am50:#FFFBEB; --am200:#FDE68A; --am800:#92400E;
+  --rd50:#FEF2F2; --rd200:#FECACA; --rd700:#B91C1C;
+  --ro500:#F43F5E; --ro50:#FFF1F2; --ro900:#881337;
+  --vi500:#8B5CF6; --vi50:#F5F3FF; --vi900:#4C1D95;
+  --sk500:#0EA5E9; --sk50:#F0F9FF; --sk900:#0C4A6E;
+  --te500:#14B8A6; --te50:#F0FDFA; --te900:#134E4A;
+  --or500:#F97316; --or50:#FFF7ED; --or900:#7C2D12;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-sans);
+  font-size:16px;line-height:1.6;-webkit-text-size-adjust:100%}
+h1,h2,h3,h4,p,ul,ol{margin:0}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.86em;
+  background:var(--fig-50);border-radius:var(--radius-part);padding:.05em .3em;
+  /* Un chemin de 308 px ne se coupe nulle part et poussait la PAGE de 12 px à
+     320 — mesuré. Le jeton doit céder avant la page. */
+  overflow-wrap:anywhere}
+
+/* ── L'ÉQUERRE, recopiée telle quelle ── */
+.eq{position:relative;padding-left:1.125rem}
+.eq::before{content:"";position:absolute;left:0;top:.18em;width:10px;height:14px;
+  border-left:2px solid var(--fig-700);border-top:2px solid var(--fig-700);
+  border-top-left-radius:5px}
+.eq-on-dark::before{border-color:var(--fig-300)}
+
+/* ── LA CHROME DE LA PLANCHE ── */
+.wrap{max-width:1180px;margin:0 auto;padding:2.5rem 1.25rem 6rem}
+.lede{max-width:62ch;margin-top:1.25rem;font-size:1.125rem;line-height:1.62;color:var(--ink-soft)}
+.kicker{font-size:.6875rem;line-height:1.2;letter-spacing:.1em;text-transform:uppercase;
+  font-weight:600;color:var(--ink-soft)}
+.h-hero{font-family:var(--font-display);font-weight:400;
+  font-size:clamp(2.05rem,1.35rem + 3.9vw,4.15rem);line-height:.99;letter-spacing:-.021em}
+.h-title{font-family:var(--font-display);font-weight:400;
+  font-size:clamp(1.7rem,1.2rem + 2.1vw,2.7rem);line-height:1.06;letter-spacing:-.016em}
+
+section.slab{margin-top:3.5rem;border-top:1px solid var(--line);padding-top:1.5rem}
+.slab > .h-title{margin-top:.5rem;max-width:34ch;text-wrap:balance}
+.slab > .note{max-width:68ch;margin-top:.9rem;font-size:.9375rem;line-height:1.6;color:var(--ink-soft)}
+.slab > .note strong{color:var(--ink);font-weight:600}
+
+.duo{display:grid;gap:1.25rem;margin-top:1.75rem;
+  grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.pane{min-width:0;border:1px solid var(--line-strong);border-radius:var(--radius-fiche);
+  overflow:hidden;background:var(--paper)}
+.pane > header{display:flex;align-items:baseline;justify-content:space-between;gap:.75rem;
+  border-bottom:1px solid var(--line);background:var(--paper-2);padding:.6rem .9rem}
+.pane > header b{font-size:.6875rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600}
+.pane > header span{font-size:.6875rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft)}
+.pane.before > header b{color:var(--ink-soft)}
+.pane.after > header b{color:var(--fig-700)}
+.body{padding:1.1rem .9rem;display:flex;flex-direction:column;gap:.85rem;min-width:0}
+.body.on-g50{background:var(--g50)}      /* le fond de page d'AVANT */
+.body.on-paper{background:var(--paper)}
+.body.on-paper2{background:var(--paper-2)}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;min-width:0}
+.stack{display:flex;flex-direction:column;gap:.75rem;min-width:0}
+.cap{font-size:.6875rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+.gnd{font-size:.6875rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);
+  border-top:1px dashed var(--line-strong);padding-top:.5rem;margin-top:.25rem}
+
+table{border-collapse:collapse;width:100%;margin-top:1.25rem;font-size:.875rem}
+.scrollx{overflow-x:auto;min-width:0}
+:where(:has(> .scrollx)){min-width:0}
+th,td{text-align:left;padding:.45rem .6rem;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:.6875rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);font-weight:600}
+td.num{font-variant-numeric:tabular-nums}
+.ok{color:var(--em700);font-weight:600}
+.sw{display:inline-block;width:.85rem;height:.85rem;border-radius:3px;
+  border:1px solid rgba(35,25,31,.18);vertical-align:-2px;margin-right:.35rem}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   AVANT — les classes du kit telles qu'elles étaient
+   ══════════════════════════════════════════════════════════════════════════ */
+.o-badge{display:inline-flex;align-items:center;border-radius:9999px;padding:.125rem .625rem;
+  font-size:.75rem;line-height:1rem;font-weight:500}
+.o-badge.neutral{background:var(--g100);color:var(--g600)}
+.o-badge.positive{background:var(--em50);color:var(--em700)}
+.o-badge.info{background:var(--bl50);color:var(--bl700)}
+.o-badge.caution{background:var(--am50);color:var(--am800)}
+.o-badge.critical{background:var(--rd50);color:var(--rd700)}
+
+.o-btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;
+  border-radius:9999px;font-weight:500;border:0 solid transparent;cursor:pointer;
+  font-family:inherit;padding:.5rem 1rem;font-size:.875rem;line-height:1.25rem}
+.o-btn.sm{padding:.125rem .625rem;font-size:.75rem;line-height:1rem}
+.o-btn.primary{background:var(--g900);color:#fff}
+.o-btn.primary.hov{background:var(--g700)}
+.o-btn.secondary{border:1px solid var(--g300);background:#fff;color:var(--g800)}
+.o-btn.secondary.hov{background:var(--g50)}
+.o-btn.ghost{background:transparent;color:var(--g600)}
+.o-btn.ghost.hov{background:var(--g100)}
+.o-btn.danger{border:1px solid var(--rd200);background:#fff;color:var(--rd700)}
+.o-btn.danger.hov{background:var(--rd50)}
+.o-btn.dis{opacity:.5;cursor:not-allowed}
+
+.o-card{border-radius:.75rem;border:1px solid var(--g200);background:#fff;padding:1rem}
+.o-card.warning{border-color:var(--am200);background:var(--am50)}
+.o-card.dashed{border-style:dashed;border-color:var(--g300);background:#fff}
+.o-seclabel{margin:0 0 .75rem;font-size:.875rem;line-height:1.25rem;font-weight:600;
+  text-transform:uppercase;letter-spacing:.025em;color:var(--g500)}
+
+.o-label{display:block;margin-bottom:.25rem;font-size:.875rem;line-height:1.25rem;
+  font-weight:500;color:var(--g700)}
+.o-input{display:block;width:100%;border-radius:.5rem;border:1px solid var(--g300);
+  background:#fff;padding:.5rem .75rem;font-size:.875rem;line-height:1.25rem;color:var(--g900);
+  font-family:inherit}
+.o-input::placeholder{color:var(--g400)}
+.o-input.focused{border-color:var(--g900);outline:0;box-shadow:0 0 0 1px var(--g900)}
+.o-input:disabled{background:var(--g50);color:var(--g500)}
+.o-hint{margin-top:.25rem;font-size:.75rem;line-height:1.25rem;color:var(--g500)}
+.o-err{margin-top:.25rem;font-size:.75rem;line-height:1rem;color:var(--rd700)}
+
+.o-modal{border-radius:1rem;background:var(--g50);overflow:hidden;
+  box-shadow:0 20px 25px -5px rgba(0,0,0,.1),0 8px 10px -6px rgba(0,0,0,.1)}
+.o-modal > .bar{display:flex;align-items:center;justify-content:space-between;gap:.75rem;
+  border-bottom:1px solid var(--g200);background:#fff;padding:.75rem 1rem}
+.o-modal > .bar h4{margin:0;font-size:1rem;line-height:1.5rem;font-weight:600;color:var(--g900)}
+.o-modal > .bar button{border:0;background:0;border-radius:.5rem;padding:.25rem .5rem;
+  font:inherit;font-size:.875rem;color:var(--g600);text-decoration:underline;
+  text-underline-offset:2px;cursor:pointer}
+.o-modal > .cnt{padding:1rem}
+.veil-o{background:rgba(17,24,39,.4);padding:1rem}
+.veil-n{background:rgba(35,25,31,.4);padding:1rem}
+
+.o-h1{font-size:1.5rem;line-height:2rem;font-weight:600;color:var(--g900)}
+.o-sub{margin-top:.25rem;font-size:.875rem;line-height:1.25rem;color:var(--g500)}
+
+.o-setup{border-radius:.75rem;border:1px solid var(--g200);background:#fff;overflow:hidden}
+.o-setup > .bar{height:.25rem;width:100%}
+.o-setup > .in{padding:1rem}
+.o-setup h4{display:inline-block;margin:0;border-radius:.375rem;padding:.25rem .5rem;
+  font-size:.875rem;line-height:1.25rem;font-weight:600}
+.o-setup .sum{font-size:.75rem;line-height:1rem;color:var(--g500);min-width:0}
+.o-setup .intro{margin-top:.5rem;font-size:.75rem;line-height:1.25rem;color:var(--g500)}
+.o-setup .kids{margin-top:1rem}
+.a-rose .bar{background:var(--ro500)}   .a-rose h4{background:var(--ro50);color:var(--ro900)}
+.a-violet .bar{background:var(--vi500)} .a-violet h4{background:var(--vi50);color:var(--vi900)}
+.a-sky .bar{background:var(--sk500)}    .a-sky h4{background:var(--sk50);color:var(--sk900)}
+.a-teal .bar{background:var(--te500)}   .a-teal h4{background:var(--te50);color:var(--te900)}
+.a-orange .bar{background:var(--or500)} .a-orange h4{background:var(--or50);color:var(--or900)}
+.setup-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;
+  gap:.25rem .75rem}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   APRÈS — les classes du kit à la charte
+   ══════════════════════════════════════════════════════════════════════════ */
+.n-badge{display:inline-flex;align-items:center;border-radius:9999px;padding:.125rem .625rem;
+  font-size:.75rem;line-height:1rem;font-weight:500}
+.n-badge.neutral{background:var(--line);color:var(--ink-soft)}
+.n-badge.positive{background:var(--em50);color:var(--em700)}
+.n-badge.info{background:var(--bl50);color:var(--bl700)}
+.n-badge.caution{background:var(--am50);color:var(--am800)}
+.n-badge.critical{background:var(--rd50);color:var(--rd700)}
+
+.n-btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;
+  border-radius:9999px;font-weight:500;border:0 solid transparent;cursor:pointer;
+  font-family:inherit;padding:.5rem 1rem;font-size:.875rem;line-height:1.25rem}
+.n-btn.sm{padding:.125rem .625rem;font-size:.75rem;line-height:1rem}
+.n-btn.primary{background:var(--fig-700);color:var(--paper)}
+.n-btn.primary.hov{background:var(--fig-800)}
+.n-btn.secondary{border:1px solid var(--line-strong);background:var(--paper);color:var(--ink)}
+.n-btn.secondary.hov{background:var(--fig-50)}
+.n-btn.ghost{background:transparent;color:var(--ink-soft)}
+.n-btn.ghost.hov{background:var(--fig-50)}
+.n-btn.danger{border:1px solid var(--rd200);background:var(--paper);color:var(--rd700)}
+.n-btn.danger.hov{background:var(--rd50)}
+.n-btn.dis{opacity:.5;cursor:not-allowed}
+.n-btn.foc{outline:2px solid var(--fig-600);outline-offset:3px}
+
+.n-card{border-radius:var(--radius-card);border:1px solid var(--line-strong);
+  background:var(--paper);padding:1rem}
+.n-card.warning{border-color:var(--am200);background:var(--am50)}
+.n-card.dashed{border-style:dashed;border-color:var(--line-strong);background:var(--paper)}
+.n-seclabel{margin:0 0 .75rem;font-size:.6875rem;line-height:1.2;letter-spacing:.1em;
+  text-transform:uppercase;font-weight:600;color:var(--ink-soft)}
+
+.n-label{display:block;margin-bottom:.5rem;font-size:.6875rem;line-height:1.2;
+  letter-spacing:.1em;text-transform:uppercase;font-weight:600;color:var(--ink-soft)}
+.n-input{display:block;width:100%;min-width:0;border-radius:var(--radius-card);
+  border:1px solid var(--line-strong);background:var(--paper);padding:.625rem .75rem;
+  font-size:16px;line-height:1.5;color:var(--ink);font-family:inherit;
+  transition:border-color .15s,box-shadow .15s}
+.n-input::placeholder{color:var(--ink-soft)}
+.n-input.focused{border-color:var(--fig-600);outline:0;box-shadow:0 0 0 2px var(--fig-600)}
+.n-input:disabled{background:var(--paper-2);color:var(--ink-soft);opacity:.6}
+@media(min-width:1024px){.n-input{font-size:.875rem}}
+.n-hint{margin-top:.5rem;font-size:.875rem;line-height:1.5rem;color:var(--ink-soft)}
+.n-err{margin-top:.5rem;font-size:.875rem;line-height:1.5rem;color:var(--rd700)}
+
+.n-modal{border-radius:var(--radius-fiche);background:var(--paper);overflow:hidden;
+  box-shadow:0 20px 25px -5px rgba(35,25,31,.18),0 8px 10px -6px rgba(35,25,31,.14)}
+.n-modal > .bar{display:flex;align-items:center;justify-content:space-between;gap:.75rem;
+  border-bottom:1px solid var(--line);background:var(--paper-2);padding:.75rem 1rem}
+.n-modal > .bar h4{margin:0;font-size:1rem;line-height:1.5rem;font-weight:600;color:var(--ink)}
+.n-modal > .bar button{border:0;background:0;border-radius:var(--radius-part);padding:.25rem .5rem;
+  font:inherit;font-size:.875rem;color:var(--ink-soft);text-decoration:underline;
+  text-underline-offset:2px;cursor:pointer}
+.n-modal > .cnt{padding:1rem}
+
+.n-h1{font-family:var(--font-display);font-weight:400;
+  font-size:clamp(1.7rem,1.2rem + 2.1vw,2.7rem);line-height:1.06;letter-spacing:-.016em;
+  color:var(--ink);text-wrap:balance}
+.n-sub{margin-top:.75rem;max-width:62ch;font-size:1rem;line-height:1.625;color:var(--ink-soft)}
+
+.n-setup{border-radius:var(--radius-fiche);border:1px solid var(--line-strong);
+  background:var(--paper);overflow:hidden}
+.n-setup > .fronton{border-bottom:1px solid var(--line);background:var(--paper-2);padding:.75rem 1rem}
+.n-setup h4{margin:0;font-size:.6875rem;line-height:1.2;letter-spacing:.1em;
+  text-transform:uppercase;font-weight:600;color:var(--ink);min-width:0}
+.n-setup .sum{font-size:.875rem;line-height:1.4;color:var(--ink-soft);min-width:0}
+.n-setup > .in{padding:1rem}
+.n-setup .intro{max-width:62ch;font-size:.875rem;line-height:1.5rem;color:var(--ink-soft)}
+.n-setup .kids{margin-top:1rem}
+
+/* Le bloc sombre — un seul dans la planche, pour le Kicker onDark */
+.dark{background:var(--fig-950);color:var(--paper);border-radius:var(--radius-fiche);padding:1.1rem}
+.dark .kicker{color:var(--fig-300)}
+
+.pricecard{border-radius:var(--radius-card);border:1px solid var(--line-strong);
+  background:var(--paper);padding:1rem}
+.pricecard .p{font-family:var(--font-display);font-weight:400;font-size:2.25rem;line-height:1;
+  white-space:nowrap;color:var(--ink)}
+.pricecard .per{margin-top:.5rem;font-size:.875rem;color:var(--ink-soft)}
+.pricecard .lab{margin-top:.75rem;border-top:1px solid var(--line);padding-top:.75rem;
+  font-size:.875rem;font-weight:500;color:var(--ink)}
+.pricecard.old{border-radius:.75rem;border-color:var(--g200);background:#fff}
+.pricecard.old .lab{border-top-color:var(--g200)}
+
+.radbox{display:flex;flex-wrap:wrap;gap:.75rem;margin-top:1.25rem}
+.rad{flex:1 1 8rem;min-width:0;border:1px solid var(--line-strong);background:var(--paper-2);
+  padding:.9rem .75rem;text-align:center;font-size:.75rem;color:var(--ink-soft)}
+.rad b{display:block;font-size:.8125rem;color:var(--ink);letter-spacing:.04em;text-transform:uppercase}
+.rad.r-part{border-radius:var(--radius-part)}
+.rad.r-card{border-radius:var(--radius-card)}
+.rad.r-fiche{border-radius:var(--radius-fiche)}
+.rad.r-full{border-radius:9999px}
+.rad.dead{border-style:dashed;border-color:var(--line);background:var(--paper);color:var(--ink-soft)}
+
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition-duration:.01ms!important}}
+:where(a,button,[tabindex]):focus-visible{outline:2px solid var(--fig-600);outline-offset:3px;
+  border-radius:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="eq kicker">Chantier « la plateforme passe à la charte » — phase 1</p>
+  <h1 class="h-hero" style="margin-top:.75rem;max-width:24ch;text-wrap:balance">Le kit, avant et après</h1>
+  <p class="lede">
+    Huit primitives de <code>frontend/src/keel/components/ui/</code>, rendues par seize écrans et
+    vingt-deux composants partagés. Chaque état de chaque primitive est ici, côte à côte. La
+    colonne&nbsp;<b>avant</b> recopie les échelles Tailwind par défaut telles que le kit les
+    portait&nbsp;; la colonne&nbsp;<b>après</b> recopie <code>tokens.css</code>. Les deux polices
+    sont embarquées&nbsp;: la planche ne dépend d’aucune ressource externe.
+  </p>
+  <p class="lede">
+    ⚠️ Une planche n’est pas l’app. Elle prouve ce que le kit <em>rend</em>, pas ce que les pages en
+    font&nbsp;: c’est le travail de la phase&nbsp;3.
+  </p>
+
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <section class="slab">
+    <p class="eq kicker">Le vocabulaire tranché</p>
+    <h2 class="h-title">Quatre rayons, et pas sept</h2>
+    <p class="note">
+      La surface rendue portait <strong>sept valeurs concurrentes</strong>&nbsp;: <code>rounded</code>
+      nu&nbsp;×108, <code>lg</code>&nbsp;×88, <code>full</code>&nbsp;×64, <code>xl</code>&nbsp;×27,
+      <code>md</code>&nbsp;×22, <code>2xl</code>&nbsp;×8, <code>3xl</code>&nbsp;×3. Le kit n’en garde
+      que les <strong>quatre jetons de la charte</strong>, et ce ne sont pas des valeurs neuves&nbsp;:
+      <code>--radius-part</code>, <code>--radius-card</code> et <code>--radius-fiche</code> sont dans
+      <code>tokens.css</code> depuis la vitrine, et les huit pages publiques livrées n’en emploient
+      déjà que trois. Le kit ne choisit donc rien&nbsp;: il <strong>nomme ce qui est déjà là</strong>.
+    </p>
+    <div class="radbox">
+      <div class="rad r-part"><b>part</b>4&nbsp;px<br>une petite pièce&nbsp;: pastille de fermeture, coin d’annotation</div>
+      <div class="rad r-card"><b>card</b>12&nbsp;px<br>une carte, un contrôle de saisie, un bloc dans une carte</div>
+      <div class="rad r-fiche"><b>fiche</b>16&nbsp;px<br>une surface entière&nbsp;: une fenêtre, une section de réglage</div>
+      <div class="rad r-full"><b>full</b>9999&nbsp;px<br>boutons et pastilles d’état, et rien d’autre</div>
+    </div>
+    <div class="radbox">
+      <div class="rad dead">retirés du kit&nbsp;: <code>rounded</code> nu · <code>sm</code> · <code>md</code> · <code>lg</code> · <code>xl</code> · <code>2xl</code> · <code>3xl</code></div>
+    </div>
+    <p class="note">
+      <strong>Aucune valeur rendue ne change</strong>&nbsp;: <code>rounded-xl</code> valait 12&nbsp;px
+      et <code>rounded-card</code> vaut 12&nbsp;px&nbsp;; <code>rounded-2xl</code> valait 16&nbsp;px et
+      <code>rounded-fiche</code> vaut 16&nbsp;px. Seul <code>Field</code> bouge pour de vrai
+      (8&nbsp;→&nbsp;12&nbsp;px), pour s’aligner sur le contrôle de <code>/start</code> et
+      <code>/auth</code>, déjà livrés.
+    </p>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <section class="slab">
+    <p class="eq kicker">Badge.tsx</p>
+    <h2 class="h-title">Un seul ton a changé, et c’est le seul qui devait</h2>
+    <p class="note">
+      Les <strong>quatre familles d’état sont le vocabulaire du produit</strong> et n’ont pas bougé
+      d’un cran&nbsp;: émeraude&nbsp;=&nbsp;ok, bleu&nbsp;=&nbsp;info, ambre&nbsp;=&nbsp;attention,
+      rouge&nbsp;=&nbsp;échec. <code>neutral</code> était le seul gris du fichier&nbsp;:
+      <code>bg-gray-100 text-gray-600</code> → <code>bg-line text-ink-soft</code>. La géométrie est
+      inchangée <em>exprès</em>&nbsp;: la pastille est la <strong>forme</strong> qui porte la garde
+      « la figue n’entre jamais dans une pastille », et la déformer affaiblirait la seule règle
+      vérifiable de la palette.
+    </p>
+    <div class="duo">
+      <div class="pane before"><header><b>avant</b><span>fond de page gray-50</span></header>
+        <div class="body on-g50">
+          <div class="row">
+            <span class="o-badge neutral">Brouillon</span>
+            <span class="o-badge positive">Actif</span>
+            <span class="o-badge info">En attente</span>
+            <span class="o-badge caution">En pause</span>
+            <span class="o-badge critical">Refusé</span>
+          </div>
+          <div class="cap">le neutre est un gris froid sur une page froide</div>
+        </div>
+      </div>
+      <div class="pane after"><header><b>après</b><span>fond de page paper</span></header>
+        <div class="body on-paper">
+          <div class="row">
+            <span class="n-badge neutral">Brouillon</span>
+            <span class="n-badge positive">Actif</span>
+            <span class="n-badge info">En attente</span>
+            <span class="n-badge caution">En pause</span>
+            <span class="n-badge critical">Refusé</span>
+          </div>
+          <div class="cap">le neutre prend la température de la page&nbsp;; les quatre états sont intacts</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <section class="slab">
+    <p class="eq kicker">Button.tsx</p>
+    <h2 class="h-title">L’action principale prend la marque</h2>
+    <p class="note">
+      <code>primary</code> passe à la figue&nbsp;: <strong>la teinte de marque marque la navigation et
+      l’action, les couleurs d’état marquent les faits, elles ne se croisent jamais.</strong>
+      <code>secondary</code> gagne un contour de <em>contrôle</em> (<code>line-strong</code>,
+      3,84:1) et perd son <code>gray-300</code> à 1,47:1. <code>ghost</code> reste
+      <strong>neutre exprès</strong>&nbsp;: c’est le geste qu’on peut ignorer — « Annuler »,
+      « Ne plus afficher » — et si les trois premiers gestes d’un écran portent la marque, aucun ne la
+      porte plus. <code>danger</code> ne bouge pas&nbsp;: c’est un état.
+    </p>
+    <div class="duo">
+      <div class="pane before"><header><b>avant</b><span>md · repos</span></header>
+        <div class="body on-g50">
+          <div class="row">
+            <button class="o-btn primary">Enregistrer</button>
+            <button class="o-btn secondary">Annuler</button>
+            <button class="o-btn ghost">Passer</button>
+            <button class="o-btn danger">Supprimer</button>
+            <button class="o-btn primary" style="background:var(--fig-700);color:#fff">Essayer<span style="font-size:.6875rem;opacity:.75"> (brand)</span></button>
+          </div>
+          <div class="gnd">survol</div>
+          <div class="row">
+            <button class="o-btn primary hov">Enregistrer</button>
+            <button class="o-btn secondary hov">Annuler</button>
+            <button class="o-btn ghost hov">Passer</button>
+            <button class="o-btn danger hov">Supprimer</button>
+          </div>
+          <div class="gnd">désactivé</div>
+          <div class="row">
+            <button class="o-btn primary dis" disabled>Enregistrer</button>
+            <button class="o-btn secondary dis" disabled>Annuler</button>
+          </div>
+          <div class="gnd">taille sm</div>
+          <div class="row">
+            <button class="o-btn sm primary">Ajouter</button>
+            <button class="o-btn sm secondary">Modifier</button>
+            <button class="o-btn sm ghost">Fermer</button>
+          </div>
+        </div>
+      </div>
+      <div class="pane after"><header><b>après</b><span>md · repos</span></header>
+        <div class="body on-paper">
+          <div class="row">
+            <button class="n-btn primary">Enregistrer</button>
+            <button class="n-btn secondary">Annuler</button>
+            <button class="n-btn ghost">Passer</button>
+            <button class="n-btn danger">Supprimer</button>
+            <button class="n-btn primary">Essayer<span style="font-size:.6875rem;opacity:.75"> (brand)</span></button>
+          </div>
+          <div class="gnd">survol</div>
+          <div class="row">
+            <button class="n-btn primary hov">Enregistrer</button>
+            <button class="n-btn secondary hov">Annuler</button>
+            <button class="n-btn ghost hov">Passer</button>
+            <button class="n-btn danger hov">Supprimer</button>
+          </div>
+          <div class="gnd">désactivé</div>
+          <div class="row">
+            <button class="n-btn primary dis" disabled>Enregistrer</button>
+            <button class="n-btn secondary dis" disabled>Annuler</button>
+          </div>
+          <div class="gnd">taille sm</div>
+          <div class="row">
+            <button class="n-btn sm primary">Ajouter</button>
+            <button class="n-btn sm secondary">Modifier</button>
+            <button class="n-btn sm ghost">Fermer</button>
+          </div>
+          <div class="gnd">focus visible (fig-600, 7,36:1)</div>
+          <div class="row">
+            <button class="n-btn primary foc">Enregistrer</button>
+            <button class="n-btn secondary foc">Annuler</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="note">
+      ⚠️ <code>brand</code> et <code>primary</code> rendent désormais <strong>la même chose</strong>,
+      et c’est une décision, pas un oubli&nbsp;: <code>brand</code> existait pour <em>confiner</em> la
+      charte hors de l’app tant que son arbitrage de couleur n’était pas rendu. Il l’est. Ce qui reste
+      de la distinction est une intention lisible au site d’appel — 21 appels portent
+      <code>brand</code> sur huit pages livrées, et un lot visuel ne renomme pas une API à travers
+      elles. La fusion est un lot à part.
+    </p>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <section class="slab">
+    <p class="eq kicker">Card.tsx</p>
+    <h2 class="h-title">Le cadre devient un trait, parce que le levier du blanc a disparu</h2>
+    <p class="note">
+      Avant, une carte se lisait parce qu’elle était <strong>plus claire que la page</strong>&nbsp;:
+      <code>bg-white</code> sur <code>bg-gray-50</code>. La page est désormais <code>paper</code>
+      (L&nbsp;98&nbsp;%) et la charte ne nomme aucun neutre plus clair — le blanc pur est justement le
+      neutre sans température qu’elle refuse. Et une carte doit tenir sur <strong>deux grounds</strong>&nbsp;:
+      <code>paper</code> (les seize écrans, l’intérieur d’une fenêtre) et <code>paper-2</code> (les
+      sections alternées de la vitrine, où <code>CouplesPage</code> et <code>GymsLandingPage</code>
+      posent un <code>PriceCard</code>). Un remplissage <code>paper-2</code> y serait à
+      <strong>1,00:1</strong>&nbsp;: la carte disparaîtrait. Donc&nbsp;: même remplissage que le
+      ground, et un <strong>trait de contrôle</strong>.
+    </p>
+    <div class="duo">
+      <div class="pane before"><header><b>avant</b><span>sur gray-50</span></header>
+        <div class="body on-g50">
+          <div class="o-card"><h3 class="o-seclabel">Cette semaine</h3><p style="font-size:.875rem;margin:0">Trois sessions de cuisine, six repas.</p></div>
+          <div class="o-card warning"><p style="font-size:.875rem;margin:0">Deux jours sans mesure&nbsp;: le bilan sera partiel.</p></div>
+          <div class="o-card dashed" style="text-align:center;color:var(--g500);font-size:.875rem">Rien encore. <b style="color:var(--g900)">Composer une semaine</b></div>
+          <div class="gnd">sur paper-2 (vitrine, section alternée)</div>
+          <div style="background:var(--paper-2);padding:.9rem;border-radius:.5rem">
+            <div class="pricecard old"><div class="p">12,99&nbsp;€</div><div class="per">par foyer et par mois</div><p class="lab">Une maison, autant de personnes qu’elle en compte.</p></div>
+          </div>
+        </div>
+      </div>
+      <div class="pane after"><header><b>après</b><span>sur paper</span></header>
+        <div class="body on-paper">
+          <div class="n-card"><h3 class="eq n-seclabel">Cette semaine</h3><p style="font-size:.875rem;margin:0">Trois sessions de cuisine, six repas.</p></div>
+          <div class="n-card warning"><p style="font-size:.875rem;margin:0">Deux jours sans mesure&nbsp;: le bilan sera partiel.</p></div>
+          <div class="n-card dashed" style="text-align:center;color:var(--ink-soft);font-size:.875rem">Rien encore. <b style="color:var(--ink)">Composer une semaine</b></div>
+          <div class="gnd">sur paper-2 (vitrine, section alternée)</div>
+          <div style="background:var(--paper-2);padding:.9rem;border-radius:.5rem">
+            <div class="pricecard"><div class="p">12,99&nbsp;€</div><div class="per">par foyer et par mois</div><p class="lab">Une maison, autant de personnes qu’elle en compte.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="note">
+      <code>SectionLabel</code> <strong>prend l’équerre</strong>&nbsp;: c’est le <code>Kicker</code> de
+      la vitrine sous un autre nom — même rôle, un sur-titre en capitales qui ouvre un groupe — donc
+      même forme. 74 appels dans le produit connecté. C’est la décision la plus visible du kit, et
+      celle qui fait qu’un visiteur qui s’inscrit reconnaît l’endroit. <code>text-sm</code> →
+      <code>text-label</code> (11&nbsp;px, +0,1&nbsp;em, capitales), l’étiquette de la charte.
+    </p>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <section class="slab">
+    <p class="eq kicker">Field.tsx</p>
+    <h2 class="h-title">Le champ à 16 px, et un contour qu’on voit</h2>
+    <p class="note">
+      <code>inputClass</code> portait <code>text-sm</code> — 14&nbsp;px — sur toutes les tailles.
+      <code>index.css</code> pose pourtant <code>font-size:16px</code> sous <code>lg</code>, parce que
+      <strong>Safari iOS zoome sur un champ sous 16&nbsp;px au focus et ne dézoome jamais</strong>&nbsp;;
+      mais cette règle vit dans <code>@layer base</code> et un utilitaire la bat. La protection était
+      contournée sans avoir été retirée, sur <strong>chacun des cent champs du produit</strong>.
+      Corrigé à la source&nbsp;: <code>text-base … lg:text-sm</code>.
+    </p>
+    <div class="duo">
+      <div class="pane before"><header><b>avant</b><span>14 px partout</span></header>
+        <div class="body on-g50">
+          <div><label class="o-label">Prénom</label><input class="o-input" value="Camille"><p class="o-hint">Ce que le coach voit dans sa cohorte.</p></div>
+          <div><label class="o-label">Objectif</label><input class="o-input" placeholder="Choisir une direction"></div>
+          <div><label class="o-label">Poids</label><input class="o-input focused" value="72,4"><p class="o-hint">focus&nbsp;: ring gray-900, 1 px</p></div>
+          <div><label class="o-label">Pays</label><input class="o-input" value="France" disabled><p class="o-hint">désactivé</p></div>
+          <div><label class="o-label">Courriel</label><input class="o-input" value="camille@"><p class="o-err">Cette adresse n’est pas complète.</p></div>
+          <div class="gnd">deux champs en flex-1, à l’étroit</div>
+          <div style="display:flex;gap:.5rem"><input class="o-input" value="1,72 m"><input class="o-input" value="72,4 kg"></div>
+        </div>
+      </div>
+      <div class="pane after"><header><b>après</b><span>16 px sous lg · 14 px au-delà</span></header>
+        <div class="body on-paper">
+          <div><label class="n-label">Prénom</label><input class="n-input" value="Camille"><p class="n-hint">Ce que le coach voit dans sa cohorte.</p></div>
+          <div><label class="n-label">Objectif</label><input class="n-input" placeholder="Choisir une direction"></div>
+          <div><label class="n-label">Poids</label><input class="n-input focused" value="72,4"><p class="n-hint">focus&nbsp;: anneau fig-600, 2 px — 7,36:1</p></div>
+          <div><label class="n-label">Pays</label><input class="n-input" value="France" disabled><p class="n-hint">désactivé</p></div>
+          <div><label class="n-label">Courriel</label><input class="n-input" value="camille@"><p class="n-err">Cette adresse n’est pas complète.</p></div>
+          <div class="gnd">deux champs en flex-1 · <code>min-w-0</code> les laisse rétrécir</div>
+          <div style="display:flex;gap:.5rem"><input class="n-input" value="1,72 m"><input class="n-input" value="72,4 kg"></div>
+        </div>
+      </div>
+    </div>
+    <p class="note">
+      ⚠️ <code>min-w-0</code> n’est pas décoratif&nbsp;: un enfant de flex a
+      <code>min-width:auto</code> et <strong>refuse d’être plus étroit que son contenu</strong>, donc
+      un champ en <code>flex-1</code> ne rétrécit pas et pousse la ligne — à 320&nbsp;px, c’est un
+      débordement horizontal de la page entière. Même piège que <code>.fig-scroll</code>. Réduis cette
+      fenêtre à 320&nbsp;px&nbsp;: la paire de droite tient, celle de gauche déborde de son cadre.
+    </p>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <section class="slab">
+    <p class="eq kicker">SetupSection.tsx — l’arbitrage</p>
+    <h2 class="h-title">La frontière passe de la couleur à la forme</h2>
+    <p class="note">
+      Cinq accents saturés — <code>rose</code> <code>violet</code> <code>sky</code> <code>teal</code>
+      <code>orange</code> — exposés en <strong>API typée</strong>, ce qui les rendait légitimes aux
+      yeux du prochain lecteur. Le fichier avait <strong>raison sur le problème</strong>&nbsp;: cinq
+      formulaires identiques empilés dans une fenêtre se lisent comme un seul formulaire très long.
+      Il avait faux sur le moyen&nbsp;: <code>sky</code> entrait en collision avec
+      <code>Badge tone="info"</code>, <code>rose</code> avec <code>critical</code>, et
+      <code>violet</code> était la marque du produit grand public supprimé.
+    </p>
+    <div class="duo">
+      <div class="pane before"><header><b>avant</b><span>cinq accents décoratifs</span></header>
+        <div class="body on-g50">
+          <div class="o-setup a-rose"><div class="bar"></div><div class="in"><div class="setup-head"><h4>Tes chiffres</h4><p class="sum">1,72 m · 72,4 kg</p></div><p class="intro">Des propriétés du corps, pas de l’objectif.</p><div class="kids"><input class="o-input" value="72,4"></div></div></div>
+          <div class="o-setup a-violet"><div class="bar"></div><div class="in"><div class="setup-head"><h4>Ton objectif</h4><p class="sum">Reprendre du souffle</p></div><p class="intro">Six directions, visibles ensemble.</p><div class="kids"><input class="o-input" value="Souffle"></div></div></div>
+          <div class="o-setup a-sky"><div class="bar"></div><div class="in"><div class="setup-head"><h4>Ton rythme</h4><p class="sum">Trois repas</p></div><div class="kids"><input class="o-input" value="3"></div></div></div>
+          <div class="o-setup a-teal"><div class="bar"></div><div class="in"><div class="setup-head"><h4>Ta cuisine</h4><p class="sum">40 min en semaine</p></div><div class="kids"><input class="o-input" value="40"></div></div></div>
+          <div class="o-setup a-orange"><div class="bar"></div><div class="in"><div class="setup-head"><h4>Tes goûts</h4><p class="sum">Pas de coriandre</p></div><div class="kids"><input class="o-input" value="coriandre"></div></div></div>
+          <div class="cap">⚠️ <span class="sw" style="background:var(--sk500)"></span>sky collide avec « info » · <span class="sw" style="background:var(--ro500)"></span>rose avec « échec » · <span class="sw" style="background:var(--vi500)"></span>violet est la marque morte</div>
+        </div>
+      </div>
+      <div class="pane after"><header><b>après</b><span>fronton + équerre + rayon de fiche</span></header>
+        <div class="body on-paper">
+          <div class="n-setup"><div class="fronton"><div class="setup-head"><h4 class="eq">Tes chiffres</h4><p class="sum">1,72 m · 72,4 kg</p></div></div><div class="in"><p class="intro">Des propriétés du corps, pas de l’objectif.</p><div class="kids"><input class="n-input" value="72,4"></div></div></div>
+          <div class="n-setup"><div class="fronton"><div class="setup-head"><h4 class="eq">Ton objectif</h4><p class="sum">Reprendre du souffle</p></div></div><div class="in"><p class="intro">Six directions, visibles ensemble.</p><div class="kids"><input class="n-input" value="Souffle"></div></div></div>
+          <div class="n-setup"><div class="fronton"><div class="setup-head"><h4 class="eq">Ton rythme</h4><p class="sum">Trois repas</p></div></div><div class="in"><div class="kids" style="margin-top:0"><input class="n-input" value="3"></div></div></div>
+          <div class="n-setup"><div class="fronton"><div class="setup-head"><h4 class="eq">Ta cuisine</h4><p class="sum">40 min en semaine</p></div></div><div class="in"><div class="kids" style="margin-top:0"><input class="n-input" value="40"></div></div></div>
+          <div class="n-setup"><div class="fronton"><div class="setup-head"><h4 class="eq">Tes goûts</h4><p class="sum">Pas de coriandre</p></div></div><div class="in"><div class="kids" style="margin-top:0"><input class="n-input" value="coriandre"></div></div></div>
+          <div class="cap">la frontière survit au daltonisme et à l’impression, et ne consomme aucune teinte d’état</div>
+        </div>
+      </div>
+    </div>
+    <p class="note">
+      <strong>Options rejetées</strong>&nbsp;: garder les accents sans le violet (ne règle rien —
+      <code>sky</code> collide toujours)&nbsp;; cinq nuances de figue (interdit deux fois —
+      <code>fig-300</code> est à 2,11:1 sur le papier, et une seule pièce chaude par
+      figure)&nbsp;; garder <code>accent</code> en prop morte (une API qui ne fait rien se remplit à
+      nouveau au premier lecteur pressé). La prop est donc <strong>retirée du type</strong>, et le
+      commentaire de tête est <strong>réécrit</strong> — il affirmait que « le reste de KEEL est
+      volontairement gris », ce qui ferait remettre la couleur au prochain passage.
+    </p>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <section class="slab">
+    <p class="eq kicker">Modal.tsx · Page.tsx</p>
+    <h2 class="h-title">La fenêtre est une fiche, le titre d’écran est en display</h2>
+    <div class="duo">
+      <div class="pane before"><header><b>avant</b><span>voile gray-900/40</span></header>
+        <div class="body on-g50" style="padding:0">
+          <div class="veil-o">
+            <div class="o-modal">
+              <div class="bar"><h4>Réglages du plan</h4><button type="button">Fermer</button></div>
+              <div class="cnt"><div class="o-card"><h3 class="o-seclabel">Ton rythme</h3><input class="o-input" value="Trois repas"></div></div>
+            </div>
+          </div>
+          <div class="body on-g50">
+            <div><h1 class="o-h1">Aujourd’hui</h1><p class="o-sub">Ce qui est prévu, et ce qui reste à noter.</p></div>
+            <div class="row"><button class="o-btn sm secondary">Modifier</button><button class="o-btn sm primary">Noter</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="pane after"><header><b>après</b><span>voile ink/40</span></header>
+        <div class="body on-paper" style="padding:0">
+          <div class="veil-n">
+            <div class="n-modal">
+              <div class="bar"><h4>Réglages du plan</h4><button type="button">Fermer</button></div>
+              <div class="cnt"><div class="n-card"><h3 class="eq n-seclabel">Ton rythme</h3><input class="n-input" value="Trois repas"></div></div>
+            </div>
+          </div>
+          <div class="body on-paper">
+            <div><h1 class="n-h1">Aujourd’hui</h1><p class="n-sub">Ce qui est prévu, et ce qui reste à noter.</p></div>
+            <div class="row"><button class="n-btn sm secondary">Modifier</button><button class="n-btn sm primary">Noter</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="note">
+      La fenêtre est le <strong>ground</strong> de ce qu’elle contient&nbsp;: <code>paper</code> comme
+      la page, pour que les cartes posées dedans gardent exactement le contraste qu’elles ont sur un
+      écran. Son fronton est <code>paper-2</code> fermé par un trait <code>line</code> — l’idiome de
+      <code>/auth</code> et <code>/start</code>. <strong>Pas d’équerre sur un titre de dialogue</strong>&nbsp;:
+      la signature ouvre une section, elle ne redouble pas un titre. Et le <code>h1</code> de
+      <code>PageHeader</code> passe en <code>font-display text-title</code>
+      <strong>sans graisse</strong>&nbsp;: Young Serif n’en a qu’une, le navigateur simulerait la
+      seconde en épaississant les contours.
+    </p>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <section class="slab">
+    <p class="eq kicker">Marketing.tsx</p>
+    <h2 class="h-title">Déjà à la charte — lu, pas retouché</h2>
+    <p class="note">
+      Zéro <code>gray-*</code>, zéro saturée. Ce fichier sert les huit pages publiques
+      <strong>déjà livrées</strong>&nbsp;: il est l’étalon dont le reste du kit s’inspire, et il n’a
+      reçu qu’une <strong>correction de pointeur</strong> — son commentaire renvoyait le lecteur au
+      brouillon de la charte plutôt qu’à la charte telle que construite, dont le §9 liste justement
+      deux écarts qui touchent ce fichier.
+    </p>
+    <div class="duo">
+      <div class="pane after"><header><b>sur clair</b><span>Kicker · SectionTitle · PriceCard</span></header>
+        <div class="body on-paper">
+          <p class="eq kicker">Ce que ça coûte</p>
+          <h3 class="h-title" style="font-size:1.7rem">Un prix par siège, pas de frais de plateforme</h3>
+          <div class="pricecard" style="max-width:22rem"><div class="p">12,99&nbsp;€</div><div class="per">par foyer et par mois</div><p class="lab">Une maison, autant de personnes qu’elle en compte.</p></div>
+        </div>
+      </div>
+      <div class="pane after"><header><b>sur le bloc sombre</b><span>eq-on-dark → fig-300, 8,06:1</span></header>
+        <div class="body on-paper">
+          <div class="dark">
+            <p class="eq eq-on-dark kicker">Ce que ça coûte</p>
+            <h3 class="h-title" style="font-size:1.7rem;margin-top:.5rem;color:var(--paper)">Un prix par siège</h3>
+            <p style="margin-top:.6rem;font-size:.9375rem;color:var(--fig-300)">Sur fond sombre, <code style="background:rgba(251,248,250,.12);color:var(--paper)">fig-700</code> tombe à 2,4:1 et le trait de l’équerre disparaît.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <section class="slab">
+    <p class="eq kicker">La preuve</p>
+    <h2 class="h-title">Les contrastes, couple par couple</h2>
+    <p class="note">
+      Chaque couple que le kit rend, calculé sur les hex, pas estimé à l’œil. Seuils WCAG&nbsp;2.2&nbsp;:
+      4,5:1 pour du texte courant, 3:1 pour la bordure ou l’anneau d’un composant d’interface (1.4.11).
+    </p>
+    <div class="scrollx"><table>
+      <thead><tr><th>où</th><th>couple</th><th>ratio</th><th>seuil</th><th></th></tr></thead>
+      <tbody>
+        <tr><td>Button primary · libellé</td><td><span class="sw" style="background:#FBF8FA"></span>paper / <span class="sw" style="background:#632C4C"></span>fig-700</td><td class="num">9,98:1</td><td class="num">4,5</td><td class="ok">✓</td></tr>
+        <tr><td>Button primary · survol</td><td><span class="sw" style="background:#FBF8FA"></span>paper / <span class="sw" style="background:#4A2039"></span>fig-800</td><td class="num">12,79:1</td><td class="num">4,5</td><td class="ok">✓</td></tr>
+        <tr><td>Button secondary · libellé</td><td><span class="sw" style="background:#23191F"></span>ink / <span class="sw" style="background:#FBF8FA"></span>paper</td><td class="num">16,18:1</td><td class="num">4,5</td><td class="ok">✓</td></tr>
+        <tr><td>Button secondary · survol</td><td><span class="sw" style="background:#23191F"></span>ink / <span class="sw" style="background:#F9F1F5"></span>fig-50</td><td class="num">15,38:1</td><td class="num">4,5</td><td class="ok">✓</td></tr>
+        <tr><td>Button secondary · bordure</td><td><span class="sw" style="background:#8E7886"></span>line-strong / <span class="sw" style="background:#FBF8FA"></span>paper</td><td class="num">3,84:1</td><td class="num">3</td><td class="ok">✓</td></tr>
+        <tr><td>Button ghost · libellé</td><td><span class="sw" style="background:#6A5A64"></span>ink-soft / <span class="sw" style="background:#FBF8FA"></span>paper</td><td class="num">6,11:1</td><td class="num">4,5</td><td class="ok">✓</td></tr>
+        <tr><td>Button ghost · survol</td><td><span class="sw" style="background:#6A5A64"></span>ink-soft / <span class="sw" style="background:#F9F1F5"></span>fig-50</td><td class="num">5,81:1</td><td class="num">4,5</td><td class="ok">✓</td></tr>
+        <tr><td>Button danger · libellé</td><td><span class="sw" style="background:#B91C1C"></span>red-700 / <span class="sw" style="background:#FBF8FA"></span>paper</td><td class="num">6,13:1</td><td class="num">4,5</td><td class="ok">✓</td></tr>
+        <tr><td><b>Badge neutral</b> — le plus serré</td><td><span class="sw" style="background:#6A5A64"></span>ink-soft / <span class="sw" style="background:#E3DAE0"></span>line</td><td class="num">4,72:1</td><td class="num">4,5</td><td class="ok">✓</td></tr>
+        <tr><td>Card · bordure sur paper</td><td><span class="sw" style="background:#8E7886"></span>line-strong / <span class="sw" style="background:#FBF8FA"></span>paper</td><td class="num">3,84:1</td><td class="num">3</td><td class="ok">✓</td></tr>
+        <tr><td>Card · bordure sur paper-2</td><td><span class="sw" style="background:#8E7886"></span>line-strong / <span class="sw" style="background:#F4EFF2"></span>paper-2</td><td class="num">3,57:1</td><td class="num">3</td><td class="ok">✓</td></tr>
+        <tr><td>SectionLabel</td><td><span class="sw" style="background:#6A5A64"></span>ink-soft / <span class="sw" style="background:#FBF8FA"></span>paper</td><td class="num">6,11:1</td><td class="num">4,5</td><td class="ok">✓</td></tr>
+        <tr><td>Field · bordure de contrôle</td><td><span class="sw" style="background:#8E7886"></span>line-strong / <span class="sw" style="background:#FBF8FA"></span>paper</td><td class="num">3,84:1</td><td class="num">3</td><td class="ok">✓</td></tr>
+        <tr><td>Field · texte saisi</td><td><span class="sw" style="background:#23191F"></span>ink / <span class="sw" style="background:#FBF8FA"></span>paper</td><td class="num">16,18:1</td><td class="num">4,5</td><td class="ok">✓</td></tr>
+        <tr><td>Field · anneau de focus</td><td><span class="sw" style="background:#7E3C61"></span>fig-600 / <span class="sw" style="background:#FBF8FA"></span>paper</td><td class="num">7,36:1</td><td class="num">3</td><td class="ok">✓</td></tr>
+        <tr><td>Field · étiquette et aide</td><td><span class="sw" style="background:#6A5A64"></span>ink-soft / <span class="sw" style="background:#FBF8FA"></span>paper</td><td class="num">6,11:1</td><td class="num">4,5</td><td class="ok">✓</td></tr>
+        <tr><td>Field · erreur</td><td><span class="sw" style="background:#B91C1C"></span>red-700 / <span class="sw" style="background:#FBF8FA"></span>paper</td><td class="num">6,13:1</td><td class="num">4,5</td><td class="ok">✓</td></tr>
+        <tr><td>Field · désactivé</td><td><span class="sw" style="background:#6A5A64"></span>ink-soft / <span class="sw" style="background:#F4EFF2"></span>paper-2</td><td class="num">5,67:1</td><td class="num">4,5</td><td class="ok">✓</td></tr>
+        <tr><td>SetupSection · titre du fronton</td><td><span class="sw" style="background:#23191F"></span>ink / <span class="sw" style="background:#F4EFF2"></span>paper-2</td><td class="num">15,02:1</td><td class="num">4,5</td><td class="ok">✓</td></tr>
+        <tr><td>SetupSection · résumé</td><td><span class="sw" style="background:#6A5A64"></span>ink-soft / <span class="sw" style="background:#F4EFF2"></span>paper-2</td><td class="num">5,67:1</td><td class="num">4,5</td><td class="ok">✓</td></tr>
+        <tr><td>Modal · titre</td><td><span class="sw" style="background:#23191F"></span>ink / <span class="sw" style="background:#F4EFF2"></span>paper-2</td><td class="num">15,02:1</td><td class="num">4,5</td><td class="ok">✓</td></tr>
+        <tr><td>Modal · bouton Fermer</td><td><span class="sw" style="background:#6A5A64"></span>ink-soft / <span class="sw" style="background:#F4EFF2"></span>paper-2</td><td class="num">5,67:1</td><td class="num">4,5</td><td class="ok">✓</td></tr>
+        <tr><td>PageHeader · titre</td><td><span class="sw" style="background:#23191F"></span>ink / <span class="sw" style="background:#FBF8FA"></span>paper</td><td class="num">16,18:1</td><td class="num">4,5</td><td class="ok">✓</td></tr>
+        <tr><td>PageHeader · chapô</td><td><span class="sw" style="background:#6A5A64"></span>ink-soft / <span class="sw" style="background:#FBF8FA"></span>paper</td><td class="num">6,11:1</td><td class="num">4,5</td><td class="ok">✓</td></tr>
+        <tr><td>équerre sur clair</td><td><span class="sw" style="background:#632C4C"></span>fig-700 / <span class="sw" style="background:#FBF8FA"></span>paper</td><td class="num">9,98:1</td><td class="num">3</td><td class="ok">✓</td></tr>
+        <tr><td>équerre sur sombre</td><td><span class="sw" style="background:#C9A3B8"></span>fig-300 / <span class="sw" style="background:#24101E"></span>fig-950</td><td class="num">8,06:1</td><td class="num">3</td><td class="ok">✓</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note">
+      Les <strong>quatre familles d’état</strong> ne figurent pas dans ce tableau parce qu’aucune de
+      leurs valeurs n’a été touchée&nbsp;: <code>emerald-50/700</code> 5,21:1,
+      <code>blue-50/700</code> 6,16:1, <code>amber-50/800</code> 6,84:1,
+      <code>red-50/700</code> 5,92:1 — toutes au-dessus de 4,5, mesurées pour vérifier qu’aucune
+      n’avait besoin d’être touchée. Elles sont le vocabulaire du produit, et le vocabulaire ne se
+      traduit pas.
+    </p>
+
+    <h3 class="h-title" style="font-size:1.7rem;margin-top:2rem">Trois couples qui échouaient, et le seul qui reste sous le seuil</h3>
+    <div class="scrollx"><table>
+      <thead><tr><th>couple</th><th>avant</th><th>après</th><th>seuil</th><th></th></tr></thead>
+      <tbody>
+        <tr><td>bordure de champ</td><td class="num">1,47:1 <span style="color:var(--rd700)">✕</span></td><td class="num">3,84:1</td><td class="num">3 · 1.4.11</td><td class="ok">réparé</td></tr>
+        <tr><td>texte indicatif d’un champ</td><td class="num">2,54:1 <span style="color:var(--rd700)">✕</span></td><td class="num">6,11:1</td><td class="num">4,5</td><td class="ok">réparé</td></tr>
+        <tr><td>ligne d’aide sous un champ</td><td class="num">4,63:1</td><td class="num">6,11:1</td><td class="num">4,5</td><td class="ok">élargi</td></tr>
+        <tr><td><b>bordure de Button danger</b></td><td class="num">1,42:1</td><td class="num">1,37:1</td><td class="num">3 · 1.4.11</td><td style="color:var(--am800);font-weight:600">tel quel</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note">
+      <strong>La bordure de <code>danger</code> reste sous 3:1, et c’est délibéré.</strong>
+      <code>red-200</code> est à 1,37:1 sur le papier — mais le bouton est identifié par
+      <em>son libellé</em>, <code>red-700</code> à 6,13:1, ce qui satisfait 1.4.11&nbsp;: le critère
+      demande que le composant soit identifiable, pas qu’il ait un contour. Et surtout&nbsp;:
+      <strong>le rouge est un état</strong>. Le remonter à <code>red-500</code> pour gagner un ratio
+      dont on n’a pas besoin changerait la valeur que le produit emploie pour dire « échec » sur seize
+      écrans, et pour un seul appel — <code>variant="danger"</code> est rendu <strong>une fois</strong>
+      dans tout le produit. Les deux réparations du haut, elles, portaient sur cent champs.
+    </p>
+  </section>
+
+  <section class="slab">
+    <p class="eq kicker">Ce que la planche ne dit pas</p>
+    <h2 class="h-title">Les cinq lignes rouges attendues</h2>
+    <p class="note">
+      <code>npx tsc -b</code> rend exactement <strong>cinq</strong> erreurs, toutes de la même forme&nbsp;:
+      <code>Property 'accent' does not exist</code>, aux lignes 1747, 1770, 1938, 1957 et 1975 de
+      <code>keel/pages/StudentWeekPlanPage.tsx</code>. C’est <strong>attendu</strong>&nbsp;: retirer la
+      prop du type est le geste du kit, corriger les sites d’appel est celui de l’orchestrateur, dans
+      sa fenêtre série. Aucune autre erreur, aucun fichier hors de <code>ui/</code> touché.
+    </p>
+  </section>
+
+</div>
+</body>
+</html>
