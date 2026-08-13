@@ -50,24 +50,36 @@ import { t } from "../i18n/t";
 // Ce qu'il faut savoir en relisant: LA COPIE A ÉTÉ ALIGNÉE AVANT LE MODÈLE.
 // Si tu viens fermer ce trou, c'est ici que la copie t'attend, déjà juste.
 //
-// ⚠️ 2. LE PARCOURS D'ENTRÉE N'EST PAS ATTEINT DEPUIS CETTE PAGE. MESURÉ.
-// `start.lead` dit « ensuite, vous décrivez qui mange à votre table ». C'est
-// vrai du PRODUIT, et faux de la session qui suit ce formulaire:
-//   · le bouton de l'état `joined` navigue en dur vers `/app/chat` (plus bas);
-//   · `emailRedirectTo` pointe en dur sur `/app/chat`;
-//   · `resolveHomePath` SAIT router un compte sans `student_goals` vers
-//     `/app/setup` (`api/postLogin.ts:151` et `:178`) — mais aucune garde de
-//     route ne le rejoue, et `KeelAppShell` n'a aucun lien vers `/app/setup`;
-//   · `/app/chat` affiche `chat.empty` (« Say hello, or send a photo ») et ne
-//     pousse rien.
-// Donc un inscrit ne voit `/app/setup` qu'à une visite ULTÉRIEURE de `/` ou à
-// une reconnexion par `/auth`.
-// C'est pour ça que la copie ci-dessous décrit la FORME du produit et ne
-// promet aucun écran suivant: écrire « trois étapes vous attendent » serait
-// une promesse que le code ne tient pas (S10 — on ne montre pas un écran qu'on
-// n'a pas). Le correctif est d'une ligne (`/app/chat` → `/app/setup` aux deux
-// endroits), mais c'est un changement de LOGIQUE et il n'appartient pas à ce
-// lot.
+// ✅ 2. LE PARCOURS D'ENTRÉE EST ATTEINT DEPUIS CETTE PAGE — RÉPARÉ (FF-060).
+// ⚠️ CE PARAGRAPHE DÉCRIVAIT UN DÉFAUT VIVANT, ET IL NE L'EST PLUS. Il est
+// réécrit plutôt que supprimé, parce qu'un lecteur qui trouve `/app/setup` aux
+// deux endroits ci-dessous et un vieux commentaire qui dit « pointe en dur sur
+// `/app/chat` » conclut que quelqu'un a cassé quelque chose, et le « répare ».
+// Une contrainte documentée survit à sa cause; ce dépôt l'a déjà payé deux fois.
+//
+// Ce qui était mesuré, et qui est faux aujourd'hui: le bouton de l'état
+// `joined` et `emailRedirectTo` pointaient tous deux sur `/app/chat`, et
+// `resolveHomePath` savait router un compte sans `student_goals` vers
+// `/app/setup` sans qu'aucune garde ne rejoue ce fait à l'arrivée. Un inscrit
+// ne voyait donc le couloir qu'à une visite ULTÉRIEURE de `/`.
+//
+// Les trois pièces qui le ferment, et il faut les trois:
+//   · le bouton de l'état `joined` navigue sur `/app/setup` (plus bas);
+//   · `emailRedirectTo` pointe sur `/app/setup` (plus bas) — c'est le chemin
+//     du lien de confirmation, donc celui de la majorité des inscrits;
+//   · `KeelOnboardingGate` REJOUE le fait sur les SEPT routes d'arrivée
+//     (`/app/today` `/chat` `/plan` `/progress` `/health` `/household`
+//     `/meals`, `App.tsx`). Les deux premières pièces ne suffisaient pas:
+//     l'URL reste tapable et un ancien onglet reste ouvert.
+//
+// ⚠️ RESTE VRAI, ET C'EST VOULU: `KeelAppShell` n'a aucun lien vers
+// `/app/setup`. Le couloir est un couloir — `FunnelShell` retire la navigation
+// pendant qu'on le traverse, précisément pour qu'un clic sur « Today » ne sorte
+// pas vers un écran vide. Ce n'est pas un lien manquant, c'est la garde.
+//
+// La copie ci-dessous décrit quand même la FORME du produit et ne compte aucune
+// étape: « trois étapes vous attendent » redeviendrait faux au premier écran
+// ajouté au couloir (S10 — on ne montre pas un écran qu'on n'a pas).
 //
 // ── POURQUOI UNE PAGE, ET PAS UN MODE DE /auth ──────────────────────────
 // `/auth` porte la connexion de tout le monde, la confirmation d'email, le

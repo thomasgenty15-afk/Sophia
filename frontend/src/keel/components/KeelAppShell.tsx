@@ -222,11 +222,30 @@ export function KeelShellBar({ variant = "student" }: { variant?: ShellVariant }
   return (
     <>
       {/* `sticky`: sur un téléphone, l'écran fait dix hauteurs de viewport et le
-          seul chemin vers le menu était de remonter tout en haut. */}
-      <div className="sticky top-0 z-40 border-b border-gray-200 bg-white">
+          seul chemin vers le menu était de remonter tout en haut.
+
+          ── LA BARRE EST CELLE DE LA VITRINE, AU PIXEL ─────────────────────────
+          `border-line bg-paper/95 backdrop-blur`, `h-14 max-w-6xl px-4`: ce sont
+          les valeurs de `PublicHeader.tsx`, recopiées et non réinventées. Le
+          point du chantier est qu'un visiteur qui s'inscrit reconnaisse
+          l'endroit; deux barres « presque » pareilles se lisent comme deux
+          sociétés, et l'écart se voit précisément au moment de la bascule. */}
+      <div className="sticky top-0 z-40 border-b border-line bg-paper/95 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4">
           <div className="flex min-w-0 items-center gap-4">
-            <span className="text-lg font-semibold tracking-tight text-gray-900">
+            {/* LE NOM PORTE L'ÉQUERRE, comme sur la vitrine: elle marque
+                l'origine de ce qui est spécifié, et elle a toujours un mot à sa
+                droite (charte §4).
+                ⚠️ `text-lg` = 18 px, donc SOUS le plancher de 20 px que la
+                charte §3 pose pour Young Serif — et c'est un écart ASSUMÉ, pas
+                un oubli. La valeur est celle de `PublicHeader`: un logotype
+                n'est pas du texte courant, le plancher existe pour les traits
+                fins de Young Serif en lecture, et `ink` sur `paper` tient
+                16,18:1. Aligner l'app sur la vitrine vaut mieux ici que gagner
+                2 px de pureté sur la seule couture que ce chantier existe pour
+                effacer. Si un jour la vitrine remonte son nom à 20 px, cette
+                ligne la suit — elle ne décide pas. */}
+            <span className="eq shrink-0 font-display text-lg leading-none text-ink">
               {t("brand.wordmark")}
             </span>
             <nav className="hidden gap-2 text-sm lg:flex">
@@ -252,14 +271,14 @@ export function KeelShellBar({ variant = "student" }: { variant?: ShellVariant }
                 active tab next to Today / Students. */}
             <Link
               to="/legal"
-              className="rounded-full px-3 py-1 text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+              className="rounded-full px-3 py-1 text-ink-soft transition-colors hover:bg-fig-50 hover:text-ink"
             >
               {t("shell.nav.legal")}
             </Link>
             <button
               type="button"
               onClick={handleSignOut}
-              className="rounded-full px-3 py-1 text-gray-600 hover:bg-gray-100"
+              className="rounded-full px-3 py-1 text-ink-soft transition-colors hover:bg-fig-50 hover:text-ink"
             >
               {t("shell.nav.sign_out")}
             </button>
@@ -270,7 +289,10 @@ export function KeelShellBar({ variant = "student" }: { variant?: ShellVariant }
             aria-expanded={menuOpen}
             aria-controls="shell-menu"
             onClick={() => setMenuOpen((open) => !open)}
-            className="inline-flex shrink-0 items-center gap-2 rounded-full border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 lg:hidden"
+            // `border-line-strong` et pas `border-line`: c'est un CONTRÔLE, et
+            // WCAG 1.4.11 exige 3:1 pour sa bordure. `line` est à 1,30:1 (un
+            // séparateur décoratif), `line-strong` à 3,84:1.
+            className="inline-flex shrink-0 items-center gap-2 rounded-full border border-line-strong px-3 py-1.5 text-sm text-ink transition-colors hover:bg-fig-50 lg:hidden"
           >
             {menuOpen ? t("shell.nav.menu_close") : t("shell.nav.menu")}
             {/* LE BADGE SUIT LE CHEMIN VERS LA CONVERSATION. Sous `md` l'entrée
@@ -279,7 +301,7 @@ export function KeelShellBar({ variant = "student" }: { variant?: ShellVariant }
                 plus. Il est masqué quand le menu est ouvert — l'entrée réelle,
                 avec son propre badge, est alors visible juste en dessous. */}
             {!menuOpen && unread > 0 && (
-              <UnreadBadge count={unread} className="bg-gray-900 text-white" />
+              <UnreadBadge count={unread} className="bg-ink text-paper" />
             )}
           </button>
         </div>
@@ -288,7 +310,7 @@ export function KeelShellBar({ variant = "student" }: { variant?: ShellVariant }
           <div
             id="shell-menu"
             data-testid="shell-menu"
-            className="max-h-[70vh] overflow-y-auto border-t border-gray-200 bg-white lg:hidden"
+            className="max-h-[70vh] overflow-y-auto border-t border-line bg-paper lg:hidden"
           >
             <nav className="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-3 text-sm">
               {items.map((item) => (
@@ -300,13 +322,13 @@ export function KeelShellBar({ variant = "student" }: { variant?: ShellVariant }
                   badge={item.to === "/app/chat" ? unread : 0}
                 />
               ))}
-              <div className="my-1 h-px bg-gray-200" />
+              <div className="my-1 h-px bg-line" />
               <MenuLink to="/account" label={t("shell.nav.account")} />
               <MenuLink to="/legal" label={t("shell.nav.legal")} muted />
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="rounded-xl px-3 py-2.5 text-left text-gray-600 hover:bg-gray-100"
+                className="rounded-card px-3 py-2.5 text-left text-ink-soft transition-colors hover:bg-fig-50 hover:text-ink"
               >
                 {t("shell.nav.sign_out")}
               </button>
@@ -341,7 +363,7 @@ function ShellBottomBar({
       // `pb-[env(safe-area-inset-bottom)]`: sur un iPhone la barre gestuelle
       // mange les derniers 34 px. Sans ça, le dernier onglet est sous le trait
       // du système — visible, et intappable.
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-gray-200 bg-white pb-[env(safe-area-inset-bottom)] lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-paper pb-[env(safe-area-inset-bottom)] lg:hidden"
     >
       <div className="flex items-stretch">
         {bottom.map((item) => (
@@ -356,10 +378,13 @@ function ShellBottomBar({
             {({ isActive }) => (
               <>
                 <span
+                  // L'ONGLET ACTIF PORTE LA MARQUE: la teinte de marque marque
+                  // la NAVIGATION et l'ACTION (charte §2). `paper` sur
+                  // `fig-700` = 9,98:1; `ink-soft` sur `paper` = 6,11:1.
                   className={`inline-flex max-w-full items-center truncate rounded-full px-2 py-1 text-[0.6875rem] font-medium ${
                     isActive
-                      ? "bg-gray-900 text-white"
-                      : "text-gray-600"
+                      ? "bg-fig-700 text-paper"
+                      : "text-ink-soft"
                   }`}
                 >
                   {(item.short ?? item.label)()}
@@ -370,7 +395,7 @@ function ShellBottomBar({
                   // déborder sur ses voisines.
                   <UnreadBadge
                     count={unread}
-                    className="absolute right-1.5 top-0.5 bg-gray-900 text-white ring-2 ring-white"
+                    className="absolute right-1.5 top-0.5 bg-ink text-paper ring-2 ring-paper"
                   />
                 )}
               </>
@@ -401,12 +426,12 @@ function MenuLink({
       to={to}
       end={end}
       className={({ isActive }) =>
-        `flex items-center justify-between gap-2 rounded-xl px-3 py-2.5 ${
+        `flex items-center justify-between gap-2 rounded-card px-3 py-2.5 transition-colors ${
           isActive
-            ? "bg-gray-900 text-white"
+            ? "bg-fig-700 text-paper"
             : muted
-            ? "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
-            : "text-gray-700 hover:bg-gray-100"
+            ? "text-ink-soft hover:bg-fig-50 hover:text-ink"
+            : "text-ink hover:bg-fig-50"
         }`}
     >
       {({ isActive }) => (
@@ -415,9 +440,13 @@ function MenuLink({
           {badge > 0 && (
             <UnreadBadge
               count={badge}
+              // ⛔ LE COMPTEUR RESTE NEUTRE, ET C'EST LA RÈGLE DE COULEUR DE
+              // L'APP: la marque marque la navigation et l'action, JAMAIS un
+              // chiffre, une mesure ou un verdict (charte §2). Un badge figue
+              // sur un onglet figue serait en plus invisible.
               className={isActive
-                ? "bg-white text-gray-900"
-                : "bg-gray-900 text-white"}
+                ? "bg-paper text-ink"
+                : "bg-ink text-paper"}
             />
           )}
         </>
@@ -479,7 +508,13 @@ export function KeelAppShell({
 }) {
   return (
     <div
-      className={`bg-white ${
+      // `bg-paper` et PAS `bg-white`: le blanc pur n'est pas dans la palette.
+      // Les neutres de la charte portent la teinte de marque à 8-27 % de
+      // saturation — c'est ce qui donne à la page une température sans lui
+      // donner un ton, et c'est ce qui la sépare d'un `gray-50` de plus. Le
+      // corps porte déjà `bg-paper` (`index.css`); cette classe existe pour que
+      // l'écran reste opaque au-dessus de lui.
+      className={`bg-paper ${
         // `h-` et PAS `min-h-`: une hauteur MINIMALE ne borne rien, elle pose un
         // plancher. Le conteneur reste dimensionné par son contenu, `flex-1`
         // n'a aucun espace libre à distribuer, et le fil repousse le composeur
@@ -531,10 +566,14 @@ function ShellLink({
         // `whitespace-nowrap`: sans lui, « My week's plan » se replie sur deux
         // lignes dès que la rangée serre, et une barre de nav sur deux lignes
         // se lit comme un défaut d'affichage.
-        `inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1 ${
+        // LE LIEN ACTIF PORTE LA MARQUE (charte §2): `paper` sur `fig-700` =
+        // 9,98:1. L'inactif est en encre secondaire, `ink-soft` sur `paper` =
+        // 6,11:1, et son survol emprunte le lavis `fig-50` (`ink` dessus =
+        // 15,38:1) — le même geste que la barre de la vitrine.
+        `inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1 transition-colors ${
           isActive
-            ? "bg-gray-900 text-white"
-            : "text-gray-600 hover:bg-gray-100"
+            ? "bg-fig-700 text-paper"
+            : "text-ink-soft hover:bg-fig-50 hover:text-ink"
         }`}
     >
       {({ isActive }) => (
@@ -543,12 +582,14 @@ function ShellLink({
           {badge > 0 && (
             <UnreadBadge
               count={badge}
-              // L'onglet ACTIF a un fond gris-900. Un badge gris-900 dessus est
+              // L'onglet ACTIF a un fond `fig-700`. Un badge sombre dessus est
               // invisible — et un badge invisible est pire qu'absent, parce
               // qu'on croit qu'il n'y a rien. Il s'inverse donc avec son fond.
+              // ⛔ Et il reste NEUTRE dans les deux cas: un chiffre ne porte
+              // jamais la teinte de marque.
               className={isActive
-                ? "bg-white text-gray-900"
-                : "bg-gray-900 text-white"}
+                ? "bg-paper text-ink"
+                : "bg-ink text-paper"}
             />
           )}
         </>

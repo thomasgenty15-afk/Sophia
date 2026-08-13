@@ -215,137 +215,27 @@
   display: none;
 }
 
-.sophia-action-skin {
-  --action-green: #002d21;
-  --action-green-dark: #002d21;
-  --action-mint: #ecfdf5;
-  --action-mint-soft: rgb(236 253 245 / 0.62);
-  --action-border: #a7f3d0;
-}
+/* ⚠️ TROIS « PEAUX » DU PRODUIT GRAND PUBLIC SUPPRIMÉ ONT VÉCU ICI, ET ELLES
+   SONT PARTIES — 131 lignes, vérifiées MORTES des deux côtés: aucun `.tsx`,
+   aucun test, aucun `index.html` ne portait ces classes.
 
-.sophia-action-skin .bg-blue-50,
-.sophia-action-skin .bg-violet-50 {
-  background-color: var(--action-mint);
-}
+   · `.sophia-action-skin` reteignait `violet-*` et `blue-*` en vert d'action,
+     par ~30 règles de descendance. C'était le mécanisme par lequel l'ancienne
+     marque violette se rhabillait sans que les pages changent de classes.
+   · `.sophia-violet-surface`, imbriquée dans la précédente, ANNULAIT cette
+     reteinte pour rendre le violet d'origine. Un correctif du correctif.
+   · `.sophia-mobile-type` rapetissait six crans de texte sous 768 px — donc
+     `text-base` à 13 px sur téléphone, sous le plancher des 16 px que le haut
+     de ce fichier défend pour Safari iOS.
 
-.sophia-action-skin .bg-blue-50\/50,
-.sophia-action-skin .bg-violet-50\/30 {
-  background-color: var(--action-mint-soft);
-}
+   ⚠️ CE QU'IL FAUT SAVOIR SI ON CROISE ENCORE DU `violet-*` DANS L'APP: il en
+   RESTE, et il est rendu — `UserProfile.tsx`, `UpgradePlan.tsx`,
+   `DeviationDialog.tsx`, `WeekView.tsx`. Ces classes-là sont écrites dans le
+   TSX, elles ne dépendaient pas de ce bloc, et leur retrait appartient aux
+   écrans. Supprimer ces règles-ci ne change donc RIEN au rendu: elles
+   n'avaient plus d'hôte depuis la suppression du produit grand public.
 
-.sophia-action-skin .text-blue-700,
-.sophia-action-skin .text-violet-700,
-.sophia-action-skin .text-violet-800,
-.sophia-action-skin .text-blue-800,
-.sophia-action-skin .text-violet-600,
-.sophia-action-skin .text-blue-600 {
-  color: var(--action-green);
-}
-
-.sophia-action-skin .text-blue-950,
-.sophia-action-skin .text-violet-950,
-.sophia-action-skin .text-blue-900 {
-  color: var(--action-green-dark);
-}
-
-.sophia-action-skin .border-blue-100,
-.sophia-action-skin .border-violet-100,
-.sophia-action-skin .border-blue-200,
-.sophia-action-skin .border-violet-200 {
-  border-color: var(--action-border);
-}
-
-.sophia-action-skin .bg-blue-600,
-.sophia-action-skin .bg-violet-600 {
-  background-color: var(--action-green);
-}
-
-.sophia-action-skin .hover\:bg-blue-700:hover,
-.sophia-action-skin .hover\:bg-violet-700:hover {
-  background-color: var(--action-green-dark);
-}
-
-.sophia-action-skin .shadow-blue-200,
-.sophia-action-skin .shadow-violet-200 {
-  --tw-shadow-color: rgb(0 45 33 / 0.2);
-}
-
-@media (max-width: 767px) {
-  .sophia-mobile-type .text-xs {
-    font-size: 0.6875rem;
-    line-height: 1rem;
-  }
-
-  .sophia-mobile-type .text-sm {
-    font-size: 0.75rem;
-    line-height: 1.125rem;
-  }
-
-  .sophia-mobile-type .text-base {
-    font-size: 0.8125rem;
-    line-height: 1.25rem;
-  }
-
-  .sophia-mobile-type .text-lg {
-    font-size: 0.9375rem;
-    line-height: 1.25rem;
-  }
-
-  .sophia-mobile-type .text-xl {
-    font-size: 1rem;
-    line-height: 1.375rem;
-  }
-
-  .sophia-mobile-type .text-2xl {
-    font-size: 1.125rem;
-    line-height: 1.5rem;
-  }
-
-  .sophia-mobile-type .leading-6,
-  .sophia-mobile-type .leading-relaxed {
-    line-height: 1.35;
-  }
-}
-
-.sophia-action-skin .sophia-violet-surface .bg-violet-50 {
-  background-color: rgb(245 243 255);
-}
-
-.sophia-action-skin .sophia-violet-surface .text-violet-600 {
-  color: rgb(124 58 237);
-}
-
-.sophia-action-skin .sophia-violet-surface .text-violet-700 {
-  color: rgb(109 40 217);
-}
-
-.sophia-action-skin .sophia-violet-surface .text-violet-800 {
-  color: rgb(91 33 182);
-}
-
-.sophia-action-skin .sophia-violet-surface .text-violet-950 {
-  color: rgb(46 16 101);
-}
-
-.sophia-action-skin .sophia-violet-surface .border-violet-100 {
-  border-color: rgb(237 233 254);
-}
-
-.sophia-action-skin .sophia-violet-surface .border-violet-200 {
-  border-color: rgb(221 214 254);
-}
-
-.sophia-action-skin .sophia-violet-surface .bg-violet-600 {
-  background-color: rgb(124 58 237);
-}
-
-.sophia-action-skin .sophia-violet-surface .hover\:bg-violet-700:hover {
-  background-color: rgb(109 40 217);
-}
-
-.sophia-action-skin .sophia-violet-surface .shadow-violet-200 {
-  --tw-shadow-color: rgb(221 214 254);
-}
+   Le reliquat de `@theme` (`--color-primary` #7c3aed) est documenté plus haut. */
 
 /* SNAKE BORDER ANIMATION */
 @keyframes spin-gradient {
