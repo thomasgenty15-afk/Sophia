@@ -256,7 +256,8 @@ function OwnDay({
     <div className="space-y-6">
       <Card>
         <div className="flex flex-wrap items-center gap-2">
-          <Badge tone="info">{t("today.own_week_badge")}</Badge>
+          {/* `neutral`: c'est le TITRE de la carte, pas un état. */}
+          <Badge tone="neutral">{t("today.own_week_badge")}</Badge>
         </div>
         <p className="mt-2 max-w-[62ch] text-sm leading-6 text-ink-soft">
           {t("today.own_week_hint")}
@@ -389,7 +390,13 @@ function OwnWeekLine({ item }: { item: WeekPlanItem }) {
     <li className="px-4 py-3">
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-sm font-medium text-ink">{item.label}</span>
-        <Badge tone={item.kind === "nutrition" ? "info" : "neutral"}>
+        {/* ⛔ `neutral` ET PAS `info`: cette pastille dit une PROVENANCE
+            (« de la méthode de ton coach » contre « proposé par Sophia »), pas
+            un état du système. `info` occupe le bleu, qui est l'une des quatre
+            familles d'état — le poser sur une provenance rend muettes les
+            vraies pastilles `info` de l'écran. Le mot suffit à dire d'où ça
+            vient. */}
+        <Badge tone="neutral">
           {item.kind === "nutrition"
             ? t("today.own_week_from_coach")
             : t("today.own_week_from_sophia")}
@@ -445,9 +452,17 @@ function OwnWeekLine({ item }: { item: WeekPlanItem }) {
 //    Nothing is dropped and nothing is shown twice: `buildPlanStructure`
 //    partitions the lines exactly, and `keelModels.int.test.ts` pins the count.
 //
-//    Each family carries an icon and a tint (`ActivityChip`), the same one on
-//    the line, on the section header and in the day tally, so "nutrition held,
-//    movement did not" is readable without reading a single word.
+//    Each family carries an ICON (`ActivityChip`), the same one on the line, on
+//    the section header and in the day tally.
+//    ⚠️ IT NO LONGER CARRIES A TINT, AND THIS LINE IS REWRITTEN RATHER THAN
+//    DELETED. The nine domain tints — which included `indigo` and `fuchsia`,
+//    the deleted consumer brand — were a colour-code for a CATEGORY, and a
+//    category is not a state: they made the four state families unreadable
+//    beside them. The glyph already carried the identity, so removing the tint
+//    cost nothing. A reader who finds a tintless chip under a comment promising
+//    a tint will put the tint back — that is why this paragraph still exists.
+//    "nutrition held, movement did not" is therefore read from the STATUS
+//    pastille on each line, which is the only filled mark left on it.
 //
 // 2. THE DISPLAY GATE IS ABSOLUTE. Below 4 logged days out of 7 this page shows
 //    `insufficient_data` and NO percentage. Not a greyed-out number, not a

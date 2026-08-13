@@ -84,7 +84,18 @@ function App() {
     <AuthProvider>
       <Router>
         <OnboardingAmbientAudioProvider>
-          <div className="min-h-screen bg-white text-black font-sans">
+          {/* ⛔ `bg-paper text-ink` ET PAS `bg-white text-black`. C'est le
+              REPLI DE TOUT LE PRODUIT: chaque texte qui ne se donne pas de
+              couleur hérite d'ici. En `text-black`, ce repli était du noir pur
+              — une couleur qui n'est PAS dans la palette — et il sortait
+              visiblement sur 17 textes (huit noms de bouches, neuf noms de
+              groupes alimentaires) plus un filet en `border-t` sans couleur,
+              qui prend `currentColor` et devenait donc un trait noir franc.
+              Les neutres de la charte portent la teinte de marque à 8-27 % de
+              saturation: c'est ce qui donne à la page une température, et c'est
+              exactement ce que le noir pur cassait. `ink` sur `paper` =
+              16,18:1. */}
+          <div className="min-h-screen bg-paper text-ink font-sans">
             <ErrorBoundary>
             <Routes>
               {/* ── LA VITRINE: DEUX MONDES, DEUX HALLS, SIX PORTES ────────

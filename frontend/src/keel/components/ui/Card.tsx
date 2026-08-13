@@ -77,27 +77,41 @@ export function Card({
 }
 
 /**
- * L'étiquette d'une section — l'équerre de l'app.
+ * L'étiquette d'une section: le cran `text-label` de la charte, **sans équerre**.
  *
- * ⚠️ ELLE PORTE LA SIGNATURE, ET C'EST LA DÉCISION LA PLUS VISIBLE DU KIT.
- * C'est le `Kicker` de la vitrine (`ui/Marketing.tsx`) sous un autre nom: même
- * rôle — un sur-titre en capitales qui ouvre un groupe de cartes ou une liste —
- * donc même forme. L'équerre « marque l'origine de ce qui est spécifié »
- * (charte §4), et une section en est une. C'est ce qui fait qu'un visiteur qui
- * s'inscrit reconnaît l'endroit où il arrive.
+ * ── ⛔ L'ÉQUERRE A ÉTÉ POSÉE ICI PUIS RETIRÉE. NE LA REMETS PAS ─────────────
+ * Elle y a vécu quelques heures, au motif — juste — que ce composant est le
+ * `Kicker` de la vitrine sous un autre nom, et que l'équerre « marque l'origine
+ * de ce qui est spécifié » (charte §4). Deux MESURES l'ont fait retirer, et
+ * c'est la mesure qui tranche, pas le raisonnement:
  *
- * ⚠️ L'ÉQUERRE NE FLOTTE JAMAIS SEULE: il y a toujours un mot à sa droite. Elle
- * vit donc ici, collée au texte, et pas comme un composant qu'on pourrait poser
- * dans le vide. Une équerre sans libellé est un défaut, pas une décoration.
+ * 1. **LA DENSITÉ.** `SectionLabel` est importé par 31 fichiers, donc le nombre
+ *    d'équerres d'un écran est proportionnel à son nombre de cartes. Relevé par
+ *    fenêtre glissante sur les coordonnées du document (et NON dans le viewport
+ *    à scroll 0, qui sous-compte et m'avait donné « 3 au pire »):
+ *    **8 équerres simultanées** sur `/coach/clients/<id>` (13 dans la page),
+ *    **7 à 1280 px sur `/app/progress`**, 5 sur `/app/household`.
+ *    La charte dit « une seule marque répétée » (§1). Huit fois dans un écran,
+ *    ce n'est plus une signature, c'est une trame.
  *
- * ⚠️ NE POSE PAS DE `px-*` SUR CE NŒUD via `className`. La classe `.eq` pose
- * `padding-left: 1.125rem` HORS de toute couche CSS, donc elle bat un utilitaire
- * de même spécificité: les deux sur le même élément cassent silencieusement la
- * marge intérieure de gauche. (Vérifié: les 11 appels qui passent un `className`
- * ne passent qu'un `mb-*`.)
+ * 2. **L'INCOHÉRENCE, qui est l'argument décisif.** Le cran `text-label` est
+ *    rendu **76 fois** dans le produit connecté **sans** équerre, et zéro fois
+ *    avec en dehors de ce composant. La marque ne distinguait donc pas une
+ *    catégorie d'étiquettes: elle marquait « cette étiquette-ci passe par
+ *    `SectionLabel` », ce qui est un fait d'implémentation, pas une règle de
+ *    dessin. Sur `/app/today`, trois étiquettes du même cran se suivaient et
+ *    une seule portait la marque.
  *
- * `text-label` remplace `text-sm`: 0,6875rem, +0,1em d'approche, capitales —
- * l'étiquette de la charte (§3). `ink-soft` sur `paper` = 6,11:1.
+ * **Où la signature vit dans l'app, et ça suffit:** le mot-symbole du shell
+ * (une par écran, alignée sur `PublicHeader`) et le fronton de
+ * `ui/SetupSection.tsx`. C'est la dose de la vitrine.
+ *
+ * ⚠️ SI TU LA REMETS UN JOUR: `.eq` pose `padding-left: 1.125rem` **hors de
+ * toute couche CSS**, donc elle bat un utilitaire `px-*` de même spécificité —
+ * les deux sur le même nœud cassent silencieusement la marge de gauche.
+ *
+ * `text-label`: 0,6875rem, +0,1em d'approche, capitales (charte §3).
+ * `ink-soft` sur `paper` = 6,11:1.
  */
 export function SectionLabel({
   children,
@@ -108,7 +122,7 @@ export function SectionLabel({
 }) {
   return (
     <h2
-      className={`eq mb-3 text-label font-semibold uppercase text-ink-soft ${className}`}
+      className={`mb-3 text-label font-semibold uppercase text-ink-soft ${className}`}
     >
       {children}
     </h2>

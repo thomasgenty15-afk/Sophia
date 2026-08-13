@@ -268,8 +268,9 @@ export default function StudentHealthPage() {
                                   {t("health.severity_short.medical")}
                                 </Badge>
                               )}
+                              {/* `neutral`: une PROVENANCE, pas un état. */}
                               {row.declared_by === "coach" && (
-                                <Badge tone="info">
+                                <Badge tone="neutral">
                                   {t("health.list.declared_by_coach")}
                                 </Badge>
                               )}

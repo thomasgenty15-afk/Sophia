@@ -22,7 +22,28 @@ case "${1:-house}" in
   house) EMAIL="ff060_house@example.com" ;;  # élève AVEC objectif + foyer → /app/today, /app/plan, /app/household rendent
   solo)  EMAIL="ff060_solo@example.com" ;;   # élève avec objectif, sans foyer
   coach)
-    EMAIL="$(docker exec supabase_db_Sophia_2 psql -U postgres -d postgres -At \
+    # ⚠️ LE COACH LE PLUS RÉCENT N'A PAS D'ÉLÈVE, ET ÇA REND LA MOITIÉ DE
+    # L'ESPACE PRO INVISIBLE. Mesuré par la revue de cohérence: avec un coach à
+    # zéro élève, `/coach` ne montre que son état vide et
+    # `/coach/clients/<id>` répond « This space is not yours to read ». On
+    # trie donc par NOMBRE D'ÉLÈVES d'abord, et la date ne sert qu'à départager.
+    # La table de rattachement est `coach_clients` (et non `coach_students`,
+    # qui n'existe pas). `discovery@keel.invalid` est le coach maison: il porte
+    # 6 clients mais ce n'est pas un compte de personne — on l'exclut pour
+    # atterrir sur un vrai coach équipé.
+    EMAIL="$(docker exec supabase_db_Sophia_2 psql -U postgres -d postgres -At -c "
+      select u.email
+        from auth.users u
+        join coaches c on c.user_id = u.id
+        left join coach_clients cc on cc.coach_id = c.id
+       where c.status = 'active'
+         and u.email <> 'discovery@keel.invalid'
+       group by u.email, u.created_at
+      having count(cc.id) > 0
+       order by count(cc.id) desc, u.created_at desc
+       limit 1;" 2>/dev/null)"
+    # Repli si le schéma des élèves diffère: n'importe quel coach actif.
+    [ -n "$EMAIL" ] || EMAIL="$(docker exec supabase_db_Sophia_2 psql -U postgres -d postgres -At \
       -c "select email from auth.users u join coaches c on c.user_id=u.id where c.status='active' order by u.created_at desc limit 1;")"
     ;;
   *) echo "persona inconnu: $1 (gate|house|solo|coach)" >&2; exit 2 ;;

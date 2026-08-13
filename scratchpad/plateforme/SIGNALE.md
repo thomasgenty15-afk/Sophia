@@ -8,6 +8,63 @@
 
 ---
 
+## 0. ⛔ LE SEUL TRAVAIL DU CHANTIER QUI N'EST PAS COMMITTÉ — et la preuve
+
+**Trois fichiers restent sur le disque, hors de tout commit :**
+`keel/components/WeekView.tsx` (+216/−79) · `keel/pages/TemplatesPage.tsx`
+(+243/−212) · `keel/components/CommitmentEditor.tsx` (+50/−18).
+
+Ils portent deux résultats importants du chantier : l'arbitrage des statuts
+violets de `WeekView` et l'échelle de priorité de `TemplatesPage`.
+
+**Pourquoi ils ne sont pas committés.** Le gate de commit
+(`.husky/pre-commit` → `scripts/agent-gate.sh`) lint **les fichiers modifiés**.
+Ces trois-là portent une dette eslint que le chantier n'a pas créée :
+
+| erreur | où | nombre |
+|---|---|---:|
+| `react-refresh/only-export-components` | `CommitmentEditor` | **7** |
+| `no-unused-vars` sur une liaison `_`-préfixée d'un destructuring-rest | `CommitmentEditor` ×4, `TemplatesPage` ×1 | **5** |
+| `Cannot access refs during render` (`loadRef.current = props.loadWeek`) | `WeekView` | **1** |
+
+**La preuve que la dette est antérieure**, et elle est reproductible :
+
+```bash
+mkdir -p frontend/src/__lintcheck__
+git show ba55de31:frontend/src/keel/components/WeekView.tsx       > frontend/src/__lintcheck__/WeekView.tsx
+git show ba55de31:frontend/src/keel/pages/TemplatesPage.tsx       > frontend/src/__lintcheck__/TemplatesPage.tsx
+git show ba55de31:frontend/src/keel/components/CommitmentEditor.tsx > frontend/src/__lintcheck__/CommitmentEditor.tsx
+cd frontend && npx eslint src/__lintcheck__
+```
+
+Les versions **d'avant le chantier** rendent les **13 mêmes erreurs**, plus une
+quatorzième (`'Card' is defined but never used`) que le chantier a **corrigée**
+en passant. Autrement dit : ce lot a **réduit** la dette de ces fichiers d'une
+erreur et n'en a ajouté **aucune**. Le gate ne les regardait pas avant
+simplement parce qu'aucun commit ne les avait modifiés.
+
+**Pourquoi je ne les répare pas.** Les cinq `no-unused-vars` sont l'idiome
+« destructurer pour omettre une clé » — les corriger proprement change le type
+de `rest`, et les masquer par un `eslint-disable` est une décision qui
+n'appartient pas à un lot visuel. Les sept `react-refresh` demandent de
+**déplacer des exports dans un autre fichier**. Le `ref` assigné pendant le
+rendu demande de le passer dans un `useEffect`, ce qui **change le moment où la
+valeur est à jour**. Les trois sont du refactor et de la logique, et le master
+l'interdit deux fois (§0.4 et le socle : « aucun changement de logique »).
+
+**Ce qu'il faut pour les faire atterrir — au choix, et c'est une décision
+humaine :**
+1. Traiter la dette eslint de ces trois fichiers comme **un lot à part** (c'est
+   le geste propre), puis committer.
+2. Autoriser `git commit --no-verify` pour ces trois chemins, en connaissance de
+   cause — le typecheck et les tests sont verts, seul le lint hérité bloque.
+
+⚠️ **Tant que ce n'est pas tranché, ces trois fichiers sont du travail vivant
+sur le disque et rien ne les protège** : un `git checkout` ou un `git stash`
+d'une autre session les emporterait.
+
+---
+
 ## 1. ⛔ PRODUIT — la copie de `/coach` contredit le modèle du dépôt
 
 **`CoachHomePage`, état vide, vu rendu :**

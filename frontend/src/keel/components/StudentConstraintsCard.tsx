@@ -135,7 +135,9 @@ export default function StudentConstraintsCard({ studentId }: { studentId: strin
                     </span>
                     <Badge tone="neutral">{KIND_LABEL[row.kind] ?? row.kind}</Badge>
                     {row.severity === "medical" && <Badge tone="critical">Medical</Badge>}
-                    {row.declared_by === "coach" && <Badge tone="info">You added this</Badge>}
+                    {/* `neutral`: qui a déclaré la ligne est une PROVENANCE, pas
+                        un état. `info` occupe le bleu d'une famille d'état. */}
+                    {row.declared_by === "coach" && <Badge tone="neutral">You added this</Badge>}
                   </div>
                   {row.notes && (
                     <p className="mt-1 max-w-[62ch] text-sm leading-6 text-ink-soft">{row.notes}</p>

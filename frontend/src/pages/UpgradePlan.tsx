@@ -272,7 +272,7 @@ const UpgradePlan = () => {
           {/* ⛔ PAS DE `px-*` SUR CE NŒUD: `.eq` pose son `padding-left` hors
               de toute couche CSS, donc il bat un utilitaire de même
               spécificité et la marge intérieure casse en silence. */}
-          <span className="eq shrink-0 font-display text-xl leading-none text-ink">
+          <span className="eq shrink-0 font-display text-lg leading-none text-ink">
             Sophia
           </span>
 

@@ -1103,7 +1103,10 @@ export function CoachProtocolPage() {
                       {CLASS_LABEL[className] ? t(CLASS_LABEL[className]) : className}
                     </span>
                     <span className="flex items-center gap-2">
-                      {pickedCount > 0 && <Badge tone="info">{pickedCount}</Badge>}
+                      {/* `neutral`: c'est un CHIFFRE. La règle de couleur de
+                          l'app exclut nommément un chiffre, une mesure et un
+                          verdict de toute teinte qui n'est pas la sienne. */}
+                      {pickedCount > 0 && <Badge tone="neutral">{pickedCount}</Badge>}
                       <span aria-hidden className="text-ink-soft">{open ? "−" : "+"}</span>
                     </span>
                   </button>
@@ -1206,7 +1209,10 @@ export function CoachProtocolPage() {
                 </ul>
               )}
 
-            <div className="mt-4 border-t pt-4">
+            {/* `border-line` explicite: un `border-t` NU prend `currentColor`,
+                donc la couleur du texte courant — ce qui donnait ici un filet
+                noir franc hérité du repli de `App.tsx`. */}
+            <div className="mt-4 border-t border-line pt-4">
               {publishedAt
                 ? (
                   <p className="mb-2 text-xs text-ink-soft">

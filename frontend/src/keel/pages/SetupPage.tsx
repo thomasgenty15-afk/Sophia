@@ -840,7 +840,7 @@ function FunnelShell({ children }: { children: React.ReactNode }) {
               `text-xl` = 20px, le PLANCHER de Young Serif — en dessous, c'est
               Public Sans (charte §3). `PublicHeader` la pose à 18px et
               `PublicFooter` à 14px: les deux sont sous le plancher, signalé. */}
-          <span className="eq shrink-0 font-display text-xl leading-none text-ink">
+          <span className="eq shrink-0 font-display text-lg leading-none text-ink">
             {t("brand.wordmark")}
           </span>
           <LocaleSwitch />
