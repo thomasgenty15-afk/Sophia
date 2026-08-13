@@ -19,17 +19,26 @@ Tu es l'agent **orchestrateur**. Tu ne réécris pas les huit pages toi-même.
 4. **Vérification** : `npx tsc -b` (c'est `tsconfig.app.json` qui vérifie) et
    `npx vitest --config vitest.config.ts run`. Si le rouge vient d'une autre
    session, **ne le répare pas** — consigne, commite tes chemins.
-5. **Collisions.** Les constructeurs tournent en parallèle et n'écrivent
+5. **⭐ LANCE LES AGENTS EN PARALLÈLE — ET ÇA VEUT DIRE QUELQUE CHOSE DE PRÉCIS.**
+   Une phase marquée « parallèle » n'est pas une intention : **tu envoies tous
+   les appels `Agent` de cette phase dans UN SEUL message**, plusieurs appels
+   d'outil côte à côte. Un appel par message les met en **série**, et huit pages
+   en série, c'est huit fois le temps pour le même résultat.
+   Tu ne lances en série que ce qui a une vraie dépendance — et dans ce chantier
+   il n'y en a qu'une : **l'intégration attend toutes les livraisons**.
+   Pendant qu'ils tournent : tu ne restes pas inactif et tu ne refais pas leur
+   travail. Tu prépares la fusion, tu mesures la baseline, tu relis la grille.
+6. **Collisions.** Les constructeurs tournent en parallèle et n'écrivent
    **jamais** dans un fichier partagé (`en.ts`, `fr.ts`, `App.tsx`,
    `catalog.ts`, `Marketing.tsx`, `PublicHeader.tsx`, `tokens.css`).
    Chacun écrit **sa** page + ses fragments sous `scratchpad/site/<segment>/`.
    **Toi seul** intègres, en série.
    ⚠️ **`fr.ts` est activement réécrit par un autre chantier** (l'app entière
    devient bilingue). Vérifie l'état avant chaque fusion de clés.
-6. **Navigateur** : `preview_start`. Le panneau **ne repeint qu'à scroll 0**.
+7. **Navigateur** : `preview_start`. Le panneau **ne repeint qu'à scroll 0**.
    Teste à **320 px et 1280 px**, **EN et FR**. Ne vide pas `localStorage` :
    le profil est partagé avec d'autres sessions.
-7. **Une décision bloquante se prend, elle ne s'attend pas.**
+8. **Une décision bloquante se prend, elle ne s'attend pas.**
 
 ---
 
@@ -144,7 +153,11 @@ CADRAGE   →    8 CONSTRUCTEURS   →    INTÉGRATION →    REVIEWS
    pages ont toutes leur démonstration, la marque devient un jouet. Choisis les
    trois ou quatre arguments les plus durs à écrire.
 
-### Phase 1 — Les huit constructeurs (parallèle)
+### Phase 1 — Les huit constructeurs
+
+> ⭐ **LES HUIT PARTENT DANS UN SEUL MESSAGE.** Huit appels `Agent` côte à côte.
+> Aucun des huit ne dépend d'un autre : ils écrivent huit fichiers distincts et
+> huit dossiers distincts. Les lancer un par un serait un choix, et un mauvais.
 
 Un agent par page. **Le socle commun**, à copier dans chaque prompt :
 

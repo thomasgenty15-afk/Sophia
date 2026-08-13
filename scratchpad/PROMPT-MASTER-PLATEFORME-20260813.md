@@ -26,16 +26,29 @@ rapport. Ce document est ta seule autorité.
    `npx vitest --config vitest.config.ts run`. Le hook de commit typecheck tout
    le frontend : si le rouge vient d'un fichier d'une autre session, **ne le
    répare pas** — consigne-le, commite tes chemins.
-5. **Collisions.** Les constructeurs tournent en parallèle mais n'écrivent
-   **jamais** dans un fichier partagé (`ui/*`, `KeelAppShell.tsx`, `en.ts`,
-   `App.tsx`, `tokens.css`). **Toi seul** touches aux fichiers partagés, en série,
-   entre les phases.
-6. **Navigateur** : `preview_start` (`.claude/launch.json` existe, plusieurs ports).
+5. **⭐ LANCE LES AGENTS EN PARALLÈLE — ET ÇA VEUT DIRE QUELQUE CHOSE DE PRÉCIS.**
+   Une phase marquée « parallèle » n'est pas une intention : **tu envoies tous
+   les appels `Agent` de cette phase dans UN SEUL message**, plusieurs appels
+   d'outil côte à côte. Un appel par message les met en **série**, et sept
+   familles d'écrans en série, c'est sept fois le temps pour le même résultat.
+   **Ce qui reste en SÉRIE, et il faut le respecter :** le kit (phase 1) avant le
+   shell (phase 2) avant les écrans (phase 3). Ces trois-là ont une vraie
+   dépendance — une page retouchée avant le kit sera retouchée deux fois.
+   **À l'intérieur de la phase 3, les sept familles sont indépendantes** : elles
+   écrivent seize fichiers distincts et aucun fichier partagé. Elles partent
+   ensemble.
+   Pendant qu'ils tournent : tu ne restes pas inactif et tu ne refais pas leur
+   travail. Tu parcours les écrans déjà livrés, tu prépares la review.
+6. **Collisions.** Les constructeurs n'écrivent **jamais** dans un fichier
+   partagé (`ui/*`, `KeelAppShell.tsx`, `en.ts`, `fr.ts`, `App.tsx`,
+   `tokens.css`). **Toi seul** touches aux fichiers partagés, en série, entre
+   les phases.
+7. **Navigateur** : `preview_start` (`.claude/launch.json` existe, plusieurs ports).
    Le panneau **ne repeint qu'à scroll 0** — pour juger un bas d'écran, décale le
    contenu ou mesure en JavaScript, ne scrolle pas. Teste à **320 px et 1280 px**.
    ⚠️ Le profil navigateur est **partagé avec d'autres sessions** : ne vide pas
    `localStorage`, ne déconnecte personne, ne ferme pas les onglets des autres.
-7. **Une décision bloquante se prend, elle ne s'attend pas.** Tranche, applique,
+8. **Une décision bloquante se prend, elle ne s'attend pas.** Tranche, applique,
    documente (décision, options rejetées, pourquoi).
 
 ---
@@ -134,7 +147,19 @@ Pour ça, `line-strong`.
 
 Young Serif **uniquement** en display, jamais sous 20 px, une seule graisse (pas
 de `font-bold` : le navigateur simulerait). Public Sans partout ailleurs.
-⚠️ **L'app est en ANGLAIS PAR CHOIX** — voir §5 n°1.
+
+⚠️ **L'APP EST BILINGUE, ET LE CHANTIER DE TRADUCTION EST EN COURS PENDANT LE
+TIEN.** Relevé dans `catalog.ts` au 2026-08-13 : le couloir d'entrée est traduit,
+ainsi que **cinq des sept** écrans élève et **sept des neuf** écrans coach.
+Restent en anglais `/app/plan` et `/app/progress` (1 963 et 812 lignes sans un
+seul `t()`), plus `/coach/weekly` et `/coach/import` — ces deux-là pour une
+raison différente : leurs namespaces **sont** traduits, mais leur corps est écrit
+en anglais par une fonction edge, donc les déclarer rendrait une coquille
+française autour du seul texte qui compte.
+
+**Ce que ça t'impose :** ton lot est visuel. Tu ne traduis rien, tu ne déclares
+aucun namespace, tu **signales**. Et une chaîne en dur que tu croises dans un
+écran déjà traduit est un **défaut** — signale-la aussi. Voir §5 des pièges.
 
 ---
 
@@ -219,7 +244,12 @@ donc le parcours qu'à une visite ultérieure de `/` ou à une reconnexion.
 Le correctif est court, mais **c'est de la logique** : vérifie-le au navigateur,
 sur un compte neuf, de bout en bout.
 
-### Phase 3 — Les écrans (parallèle) + ton intégration
+### Phase 3 — Les écrans + ton intégration
+
+> ⭐ **LES SEPT FAMILLES PARTENT DANS UN SEUL MESSAGE.** Sept appels `Agent`
+> côte à côte. Elles sont indépendantes par construction: seize fichiers
+> distincts, aucun fichier partagé — c'est précisément pourquoi le kit et le
+> shell passent AVANT.
 
 Lance les agents par **famille**, jamais un par fichier — les écrans d'une même
 famille partagent des composants locaux.
