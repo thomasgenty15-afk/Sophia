@@ -363,7 +363,7 @@ const MAPPERS: Mapper[] = [
       blocking: true,
       question:
         `${subject(ctx)} prescribes an amount, but the exact substance was not ` +
-        `recognised. Which preparation is it? KEEL needs the form (for example ` +
+        `recognised. Which preparation is it? Sophia needs the form (for example ` +
         `magnesium glycinate rather than “magnesium”) to check it against safety limits.`,
     };
   },
@@ -374,7 +374,7 @@ const MAPPERS: Mapper[] = [
       field: "substance_ref",
       blocking: true,
       question:
-        `${subject(ctx)} names a substance KEEL does not know yet. Which of the known ` +
+        `${subject(ctx)} names a substance Sophia does not know yet. Which of the known ` +
         `preparations is it closest to?`,
     };
   },
@@ -385,7 +385,7 @@ const MAPPERS: Mapper[] = [
       field: "food_group_ref",
       blocking: true,
       question:
-        `The food category on ${subject(ctx)} is not one KEEL tracks. Which category ` +
+        `The food category on ${subject(ctx)} is not one Sophia tracks. Which category ` +
         `should it count under?`,
     };
   },
@@ -845,7 +845,7 @@ export function validateImportRelation(
       field: "kind",
       blocking: false,
       question:
-        `${label}: KEEL could not tell what kind of rule this is — take together, ` +
+        `${label}: Sophia could not tell what kind of rule this is — take together, ` +
         `keep apart, or take with a food?`,
     });
   }

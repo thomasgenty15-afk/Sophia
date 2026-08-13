@@ -38,7 +38,11 @@ const BodySchema = z
   })
   .strict()
   .refine((b) => Boolean(b.plan) || Boolean(b.tier), {
-    message: "tier is required unless plan is a KEEL plan",
+    // Ce message peut remonter dans une réponse d'API, donc il ne nomme aucun
+    // produit: « KEEL » est le nom de code INTERNE, et il n'apprend rien à qui
+    // lit l'erreur. Ce qui manque est un `plan` ou un `tier`, et c'est ce que
+    // la phrase dit maintenant.
+    message: "tier is required unless a plan is given",
     path: ["tier"],
   })
   // LE FOYER N'A PAS D'ANNUEL. Les deux prix sont mensuels et il n'en existe

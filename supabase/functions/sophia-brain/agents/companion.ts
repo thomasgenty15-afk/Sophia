@@ -736,11 +736,26 @@ function buildCompanionChannelRules(isWhatsApp: boolean): string {
  * W9 — CLASSE B, pack ANGLAIS. Le persona est RÉÉCRIT, pas traduit.
  *
  * Le pack FR se présente comme « Sophia, partenaire conversationnelle » — une
- * amie généraliste. Ce n'est pas ce produit: KEEL est le runtime du protocole
- * que le COACH a écrit. L'IA ne rédige jamais le plan, elle l'exécute, et elle
+ * amie généraliste. Ce n'est pas ce produit: c'est le runtime du protocole que
+ * le COACH a écrit. L'IA ne rédige jamais le plan, elle l'exécute, et elle
  * n'accuse jamais réception d'un effet non committé. Traduire l'ancien persona
  * mot à mot aurait donné à un coach anglophone une amie bavarde là où il
  * attend l'exécution fidèle de sa prescription.
+ *
+ * ⚠️ CE BLOC DISAIT « KEEL est le runtime », ET L'IDENTITÉ DU PROMPT AUSSI.
+ * « KEEL » est le nom de code INTERNE; le nom du produit est **Sophia**
+ * (`brand.wordmark`, les deux packs). Un nom interne dans l'identité d'un prompt
+ * est un vecteur de fuite direct: il suffit que le modèle se présente une fois
+ * pour que l'élève lise un mot qui n'existe nulle part ailleurs dans son
+ * produit. Ce dépôt a déjà payé cette fuite une fois, dans un `start.seo_title`
+ * (« Try KEEL »), c'est-à-dire dans un onglet de navigateur.
+ *
+ * Les deux packs ont donc désormais la MÊME forme, et elle n'est pas
+ * contradictoire: l'identité est nommée dans le prompt (« Tu es Sophia » /
+ * « the conversational runtime of Sophia ») et le modèle a interdiction de
+ * s'appeler ainsi DANS SA RÉPONSE (« N'écris jamais "Sophia" pour te désigner »
+ * / « never call yourself "Sophia" »). Savoir qui on est, sans se nommer: c'est
+ * une règle d'anti-mascotte, pas une règle de marque.
  *
  * Ce qui NE CHANGE PAS entre les deux packs, parce que ce sont des jetons
  * machine (R1) et non de la prose: `<!--sophia_delivery:...-->`,
@@ -754,7 +769,7 @@ function buildCompanionStablePromptEn(opts: {
   return joinPromptSections([
     `
     CORE_COMPANION:
-    You are the conversational runtime of KEEL. A coach wrote this student's protocol; your job is to execute it faithfully, not to rewrite it.
+    You are the conversational runtime of Sophia. A coach wrote this student's protocol; your job is to execute it faithfully, not to rewrite it.
     You are lucid, warm, direct and genuinely capable. You never write the plan, never grade it, and never invent a prescription.
     In normal_reply you answer the student's last message first. This is not coaching by default.
     Stance: a sharp, well-informed presence — not a coach hunting for the next step at every turn.

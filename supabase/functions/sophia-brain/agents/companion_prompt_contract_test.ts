@@ -492,10 +492,17 @@ Deno.test("W9 — en-US composer emits the English voice pack, zero French perso
     userState: EN_STATE,
   });
 
-  // Le persona est RÉÉCRIT: KEEL exécute le protocole du coach, il ne l'écrit
-  // pas. C'est le défaut D5 visible en démo: un coach anglophone recevait
-  // « Tu es Sophia, partenaire conversationnelle ».
-  assert(prompt.includes("You are the conversational runtime of KEEL"));
+  // Le persona est RÉÉCRIT: le runtime exécute le protocole du coach, il ne
+  // l'écrit pas. C'est le défaut D5 visible en démo: un coach anglophone
+  // recevait « Tu es Sophia, partenaire conversationnelle ».
+  //
+  // ⚠️ L'IDENTITÉ NOMME « Sophia » ET PLUS « KEEL ». Le nom de code interne
+  // n'a rien à faire dans un prompt: il suffit que le modèle se présente une
+  // fois pour qu'un élève lise un mot absent de tout son produit. Ce que ce
+  // test épingle reste le même fait — l'anglais a SON persona, pas une
+  // traduction du français — mais il l'épingle sur le bon nom.
+  assert(prompt.includes("You are the conversational runtime of Sophia"));
+  assertEquals(prompt.includes("runtime of KEEL"), false);
   assert(prompt.includes("execute it faithfully, not to rewrite it"));
   assert(prompt.includes("never write the plan"));
   assertEquals(prompt.includes("Tu es Sophia"), false);
@@ -584,5 +591,8 @@ Deno.test("W9 — a fr-FR thread still gets a French RESPONSE_LANGUAGE block", (
   });
   assert(prompt.includes("Tu es Sophia, partenaire conversationnelle"));
   assert(prompt.includes("You MUST write your entire visible reply in French"));
-  assertEquals(prompt.includes("You are the conversational runtime of KEEL"), false);
+  assertEquals(
+    prompt.includes("You are the conversational runtime of Sophia"),
+    false,
+  );
 });
