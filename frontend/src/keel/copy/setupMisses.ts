@@ -29,6 +29,7 @@ export const SETUP_MISS_KEYS: Record<FunnelMissId, MessageKey> = {
   own_gender: "setup.missing.own_gender",
   own_weight_kg: "setup.missing.own_weight_kg",
   own_goal: "setup.missing.own_goal",
+  own_diet: "setup.missing.own_diet",
   own_allergies: "setup.missing.own_allergies",
 
   member_first_name: "setup.missing.member_first_name",

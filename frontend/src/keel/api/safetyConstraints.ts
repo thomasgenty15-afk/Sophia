@@ -53,17 +53,33 @@ function unwrap(
   return result.data;
 }
 
+// ⚠️ `diet_ref` EST DANS LA LISTE DEPUIS FF-060. Il ne l'était pas, et la
+// conséquence n'était pas seulement un champ absent de l'écran: aucun lecteur
+// du navigateur ne pouvait savoir qu'un régime était déclaré, donc l'entonnoir
+// reposait la question à chaque reprise à quelqu'un qui y avait répondu.
 const COLUMNS =
-  "id, user_id, kind, allergen_ref, substance_ref, medication_class, severity, " +
-  "declared_by, notes, status, content_locale, created_at, retracted_at";
+  "id, user_id, kind, allergen_ref, substance_ref, medication_class, diet_ref, " +
+  "severity, declared_by, notes, status, content_locale, created_at, retracted_at";
 
-/** `student_safety_constraints_kind_check` — liste fermée du schéma. */
+/**
+ * `student_safety_constraints_kind_check` — liste fermée du schéma.
+ *
+ * ⚠️ `diet` MANQUAIT, ET C'EST CE QUI RENDAIT LE RÉGIME INDÉCLARABLE.
+ * La base l'accepte depuis FF-042 (`diet_ref` ∈ végétarien/vegan/pescatarien,
+ * avec son propre CHECK de sévérité), `dietary_regime.ts` sait l'étendre en
+ * exclusions et en écrire la ligne de prompt, et `generate-meal-v1` le LIT à
+ * chaque composition. Mais aucune surface du navigateur ne pouvait écrire la
+ * ligne: ni ce vocabulaire, ni `refField` ci-dessous ne connaissaient le
+ * champ. Une fonctionnalité livrée, testée, et inatteignable — le mode d'échec
+ * n°1 de ce dépôt.
+ */
 export const CONSTRAINT_KINDS = [
   "allergy",
   "intolerance",
   "medical",
   "religious",
   "dislike",
+  "diet",
 ] as const;
 export type ConstraintKind = (typeof CONSTRAINT_KINDS)[number];
 
@@ -83,6 +99,8 @@ export interface SafetyConstraintRow {
   allergen_ref: string | null;
   substance_ref: string | null;
   medication_class: string | null;
+  /** `vegetarian | vegan | pescatarian`, ou `null`. CHECK fermé en base. */
+  diet_ref: string | null;
   severity: string;
   declared_by: string;
   notes: string | null;
@@ -100,7 +118,8 @@ export interface SafetyConstraintRow {
  * que sur une ligne impossible — et le dire vaut mieux que rendre "".
  */
 export function constraintRef(row: SafetyConstraintRow): string | null {
-  return row.allergen_ref ?? row.substance_ref ?? row.medication_class ?? null;
+  return row.allergen_ref ?? row.substance_ref ?? row.medication_class ??
+    row.diet_ref ?? null;
 }
 
 /** Les contraintes ACTIVES de l'élève connecté, la plus récente d'abord. */
@@ -137,8 +156,14 @@ export interface DeclareConstraintInput {
   severity: ConstraintSeverity;
   /** Slug déjà normalisé par l'appelant (`normalizeAllergenRef`). */
   ref: string;
-  /** Le champ qui portera le slug. */
-  refField: "allergen_ref" | "substance_ref" | "medication_class";
+  /**
+   * Le champ qui portera le slug.
+   *
+   * `diet_ref` a son propre CHECK fermé (`vegetarian | vegan | pescatarian`):
+   * y écrire autre chose lève, ce qui est le bon comportement — un régime
+   * inventé ne serait étendu en exclusions par personne.
+   */
+  refField: "allergen_ref" | "substance_ref" | "medication_class" | "diet_ref";
   notes: string | null;
   contentLocale: string;
 }
@@ -168,6 +193,11 @@ export async function declareConstraint(
     allergen_ref: null,
     substance_ref: null,
     medication_class: null,
+    // ⚠️ REMIS À NULL COMME LES TROIS AUTRES. L'index d'unicité partiel porte
+    // sur les CINQ colonnes de référence coalescées: en laisser une absente de
+    // cet objet la laisserait à sa valeur par défaut, et deux déclarations
+    // distinctes pourraient se prendre pour la même.
+    diet_ref: null,
   };
   row[input.refField] = input.ref;
 

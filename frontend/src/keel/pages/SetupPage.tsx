@@ -31,6 +31,8 @@ import {
   branchForMouths,
   canGenerate,
   COOKING_SESSION_MINUTES,
+  DIET_ANSWERS,
+  type DietAnswer,
   cookingTimeParts,
   DEFAULT_HOUSEHOLD_NAME,
   type FunnelBranch,
@@ -45,6 +47,7 @@ import {
   saveMouthAllergies,
   saveMouthBody,
   saveOwnAllergies,
+  saveOwnDiet,
   saveOwnGoal,
   saveOwnProfile,
   saveOwnWeight,
@@ -113,6 +116,8 @@ interface SelfDraft {
   weightKg: string;
   gender: MemberGender | "";
   goal: MemberGoal | "";
+  /** Vide = pas encore répondu. `omnivore` EST une réponse. */
+  diet: DietAnswer | "";
   allergies: string[];
   /** « Rien à déclarer » — une RÉPONSE, pas une absence de réponse. */
   allergiesNone: boolean;
@@ -258,6 +263,7 @@ export default function SetupPage() {
               ? ""
               : String(read.state.self.weightKg),
             gender: read.state.self.gender ?? "",
+            diet: read.state.self.diet ?? "",
             goal: read.state.self.goal ?? "",
             allergies: [],
             allergiesNone: read.state.self.allergiesReviewed,
@@ -410,6 +416,13 @@ export default function SetupPage() {
         if (!written.ok) throw new Error(t("setup.people.birth_date_error"));
       }
       if (draft.goal) await saveOwnGoal(userId, draft.goal);
+      // LE RÉGIME AVANT LES ALLERGIES, et APRÈS l'objectif: son accusé se
+      // fusionne dans `practical_constraints`, donc il a besoin de la ligne
+      // `student_goals` que `saveOwnGoal` vient de créer.
+      if (draft.goal && draft.diet) {
+        const fresh = await readFunnelFacts(userId);
+        await saveOwnDiet({ userId, diet: draft.diet, current: fresh.practicalConstraints });
+      }
       if (draft.goal && (draft.allergiesNone || draft.allergies.length > 0)) {
         const fresh = await readFunnelFacts(userId);
         await saveOwnAllergies({
@@ -1107,6 +1120,24 @@ function SelfStep({
               </option>
             ))}
           </select>
+        </Field>
+
+        {/* LE RÉGIME AVANT LES ALLERGIES. C'est la question qui écarte le
+            plus de choses, et l'ordre évite de cocher « poisson » sous
+            allergie quand la vraie réponse est « je suis végétarien ». */}
+        <Field label={t("setup.people.diet")} hint={t("setup.people.diet_hint")}>
+          <div className="flex flex-wrap gap-2">
+            {DIET_ANSWERS.map((diet) => (
+              <Button
+                key={diet}
+                size="sm"
+                variant={draft.diet === diet ? "primary" : "secondary"}
+                onClick={() => set({ diet })}
+              >
+                {t(`setup.people.diet_${diet}` as "setup.people.diet_omnivore")}
+              </Button>
+            ))}
+          </div>
         </Field>
 
         <AllergyPicker

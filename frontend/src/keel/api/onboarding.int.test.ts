@@ -54,6 +54,7 @@ function adult(overrides: Partial<FunnelPerson> = {}): FunnelPerson {
     birthDate: "1990-05-04",
     goal: "muscle_gain",
     allergiesReviewed: true,
+    diet: "omnivore",
     heightCm: 171,
     weightKg: 64,
     gender: "female",
@@ -69,6 +70,7 @@ function child(overrides: Partial<FunnelPerson> = {}): FunnelPerson {
     birthDate: "2016-02-11",
     goal: null,
     allergiesReviewed: true,
+    diet: "omnivore",
     // Un ENFANT, et ses mesures sont hors des bornes adultes: c'est
     // exactement ce que les bornes plus larges de la RPC de foyer existent
     // pour accepter.
@@ -94,6 +96,7 @@ function complete(branch: FunnelBranch): FunnelState {
       birthDate: "1988-09-12",
       goal: "health",
       allergiesReviewed: true,
+      diet: "vegetarian",
       heightCm: 178,
       weightKg: 71,
       gender: "female",
@@ -254,6 +257,7 @@ describe("canGenerate — l'état complet", () => {
         "household_size",
         "own_birth_date",
         "own_goal",
+        "own_diet",
         "own_allergies",
         "own_height_cm",
         "own_weight_kg",

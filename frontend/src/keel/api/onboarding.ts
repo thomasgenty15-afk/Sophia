@@ -100,6 +100,7 @@ export type FunnelQuestionId =
   | "own_gender"
   | "own_weight_kg"
   | "own_goal"
+  | "own_diet"
   | "own_allergies"
   // Étape 2b — les autres bouches
   | "member_first_name"
@@ -274,6 +275,26 @@ export const FUNNEL_QUESTIONS: readonly FunnelQuestion[] = Object.freeze([
     // que tout a été saisi.
     id: "own_goal",
     consumer: "supabase/functions/generate-meal-v1/index.ts#goal_required",
+    weight: "wrong",
+    branches: ALL_BRANCHES,
+    step: "people",
+    scope: "self",
+  },
+  {
+    // ── LE RÉGIME, ET C'EST LE PLUS FORT `wrong` DU CATALOGUE ────────────
+    //
+    // Servir de la viande à un végétarien n'est pas « moins bon »: le plan
+    // entier est inexécutable, et il l'est dès le premier soir. Aucune autre
+    // question du parcours ne rend un plan aussi complètement inutilisable
+    // par son absence.
+    //
+    // ⚠️ LE MOTEUR SAIT DÉJÀ LE FAIRE, ET PERSONNE NE POUVAIT LE DÉCLARER.
+    // `dietary_regime.ts` étend le régime en groupes exclus, écrit sa ligne
+    // de prompt et nomme ce qu'il rend incouvrable; `generate-meal-v1` le lit
+    // à chaque composition. Il manquait la porte d'écriture — ni
+    // `CONSTRAINT_KINDS` ni `refField` ne connaissaient `diet`.
+    id: "own_diet",
+    consumer: "supabase/functions/_shared/keel/dietary_regime.ts#dietaryRegimePromptLine",
     weight: "wrong",
     branches: ALL_BRANCHES,
     step: "people",
@@ -515,7 +536,31 @@ export interface FunnelPerson {
    * deux-là ne sont pas la même chose.
    */
   allergiesReviewed: boolean;
+  /**
+   * LE RÉGIME DÉCLARÉ, ou `"omnivore"` — qui est une RÉPONSE, pas une absence.
+   *
+   * ⚠️ `null` VEUT DIRE « ON N'A PAS DEMANDÉ », et c'est pour ça qu'il existe
+   * un jeton pour « je mange de tout ». Sans lui, la table ne distinguerait
+   * pas quelqu'un qui n'a rien à déclarer de quelqu'un à qui on n'a jamais
+   * posé la question — exactement le piège des allergies, et il coûte ici la
+   * même chose: un plan de viande servi à un végétarien.
+   *
+   * `omnivore` n'est PAS écrit en base: il n'y a pas de ligne à poser pour
+   * « aucune restriction ». Il vit dans `practical_constraints.diet_asked`,
+   * comme l'accusé d'allergie, et pour la même raison.
+   */
+  diet: DietAnswer | null;
 }
+
+/** Les trois régimes de `student_safety_constraints_diet_ref_check`, plus la
+ * réponse « je mange de tout ». Miroir de `DIETARY_REGIMES` côté moteur. */
+export const DIET_ANSWERS = [
+  "omnivore",
+  "vegetarian",
+  "vegan",
+  "pescatarian",
+] as const;
+export type DietAnswer = (typeof DIET_ANSWERS)[number];
 
 /**
  * Moi. Exactement les mêmes champs que n'importe quelle bouche.
@@ -745,6 +790,7 @@ function canGenerateMisses(
     missing.push("own_weight_kg");
   }
   if (asks("own_gender") && state.self.gender === null) missing.push("own_gender");
+  if (asks("own_diet") && state.self.diet === null) missing.push("own_diet");
 
   // ── ÉTAPE 2b, LES AUTRES ───────────────────────────────────────────────
   if (branch !== "solo") {
@@ -901,6 +947,7 @@ export function emptyFunnelState(): FunnelState {
       birthDate: null,
       goal: null,
       allergiesReviewed: false,
+      diet: null,
       heightCm: null,
       weightKg: null,
       gender: null,
@@ -923,6 +970,7 @@ export function emptyFunnelPerson(): FunnelPerson {
     birthDate: null,
     goal: null,
     allergiesReviewed: false,
+    diet: null,
     heightCm: null,
     weightKg: null,
     gender: null,
@@ -983,6 +1031,16 @@ export const DEFAULT_HOUSEHOLD_NAME = "Home";
  * elle-même — `readFunnelFacts` ci-dessous, et personne d'autre.
  */
 const ALLERGY_CHECK_KEY = "allergy_check";
+
+/**
+ * « ON A DEMANDÉ LE RÉGIME, ET LA RÉPONSE ÉTAIT: JE MANGE DE TOUT. »
+ *
+ * Même nature que `allergy_check`, et pour la même raison: il n'y a AUCUNE
+ * ligne à poser en base pour « aucune restriction », donc sans cet accusé la
+ * reprise redemanderait éternellement — et `canGenerate` bloquerait sur une
+ * question à laquelle on a déjà répondu.
+ */
+const DIET_ASKED_KEY = "diet_asked";
 
 interface AllergyCheck {
   self: boolean;
@@ -1132,6 +1190,13 @@ export async function readFunnelFacts(userId: string): Promise<FunnelFacts> {
       // seule table que `keel_household_bodies_for` regarde — donc la seule
       // dont le moteur tienne compte. Lire ailleurs afficherait « rempli » sur
       // un corps que la composition ne verra jamais.
+      // ⚠️ LE RÉGIME D'UNE AUTRE BOUCHE N'A PAS ENCORE DE MAISON. Les trois
+      // jetons vivent sur `student_safety_constraints`, clée sur `user_id` —
+      // une bouche sans compte n'a donc nulle part où le porter, exactement
+      // comme les allergies avant `household_member_allergies`. Le lot suivant
+      // ouvre la colonne; d'ici là, la question n'est pas posée par bouche et
+      // ce champ reste `null` sans bloquer quoi que ce soit.
+      diet: null,
       heightCm: bodies.get(m.memberId)?.heightCm ?? null,
       weightKg: bodies.get(m.memberId)?.weightKg ?? null,
       gender: bodies.get(m.memberId)?.gender ?? null,
@@ -1167,6 +1232,9 @@ export async function readFunnelFacts(userId: string): Promise<FunnelFacts> {
         : null,
       allergiesReviewed: check.self ||
         ownAllergies.some((c) => c.kind === "allergy"),
+      // UNE LIGNE `kind='diet'` RÉPOND; sinon l'accusé « je mange de tout »,
+      // qui est une réponse et pas une absence. Voir `FunnelPerson.diet`.
+      diet: readDietAnswer(ownAllergies, pc),
       // `numeric` arrive en CHAÎNE par PostgREST: un `typeof === "number"`
       // rendrait `null` sur une taille pourtant enregistrée.
       //
@@ -1202,6 +1270,26 @@ export async function readFunnelFacts(userId: string): Promise<FunnelFacts> {
     hasPlan: await hasLivePlan(userId),
     practicalConstraints: pc,
   };
+}
+
+/**
+ * LE RÉGIME DÉCLARÉ, RELU DEPUIS LES DEUX ENDROITS QUI PEUVENT LE PORTER.
+ *
+ * Une ligne `kind='diet'` active fait foi. À défaut, l'accusé « on a demandé,
+ * la réponse était: je mange de tout » — parce qu'« aucune ligne » ne
+ * distingue pas l'omnivore de celui à qui on n'a rien demandé, et que la
+ * différence coûte un plan de viande servi à un végétarien.
+ */
+function readDietAnswer(
+  constraints: readonly { kind: string; diet_ref: string | null }[],
+  pc: Record<string, unknown> | null,
+): DietAnswer | null {
+  const declared = constraints
+    .filter((c) => c.kind === "diet")
+    .map((c) => String(c.diet_ref ?? ""))
+    .find((ref) => (DIET_ANSWERS as readonly string[]).includes(ref));
+  if (declared) return declared as DietAnswer;
+  return (pc ?? {})[DIET_ASKED_KEY] === true ? "omnivore" : null;
 }
 
 /** Les quatre réponses de l'étape 3, relues avec LES parseurs du moteur. */
@@ -1375,6 +1463,55 @@ export async function saveOwnWeight(args: {
   if (!written.data || written.data.length === 0) {
     throw new Error("[keel/onboarding] weight: nothing was saved");
   }
+}
+
+/**
+ * MON RÉGIME — une ligne `kind='diet'`, ou l'accusé qu'on a demandé.
+ *
+ * ⚠️ `severity: 'strict'` ET PAS `'medical'`, ET LA NUANCE EST TENUE PAR LA
+ * BASE (`student_safety_constraints_diet_severity_check` n'accepte que ces
+ * deux-là pour un régime). `medical` est l'INTERRUPTEUR qui arme le verrou de
+ * sortie et remplace un message entier; un régime est une conviction, pas un
+ * danger vital. Ce qui l'applique est l'expansion en groupes exclus
+ * (`excludedGroupsFor`), au moment de composer — pas un verrou de parole.
+ *
+ * ⚠️ ON NE RETIRE PAS L'ANCIENNE LIGNE. La table est en rétractation seule
+ * (trigger `student_safety_constraints_retraction_only`): une contrainte ne
+ * s'édite pas, elle se remplace. Changer de régime depuis cet écran écrirait
+ * donc une seconde ligne, et le moteur prendrait la PREMIÈRE qu'il trouve —
+ * d'où le refus explicite plutôt qu'un silence. L'entonnoir n'est pas le
+ * bon endroit pour changer d'avis; `/app/health` l'est.
+ */
+export async function saveOwnDiet(args: {
+  userId: string;
+  diet: DietAnswer;
+  current: Record<string, unknown> | null;
+}): Promise<void> {
+  if (args.diet !== "omnivore") {
+    try {
+      await declareConstraint({
+        userId: args.userId,
+        kind: "diet",
+        severity: "strict",
+        ref: args.diet,
+        refField: "diet_ref",
+        notes: null,
+        contentLocale: "en-GB",
+      });
+    } catch (error) {
+      // Déjà déclaré: un double clic, ou une reprise. Ce n'est pas un échec.
+      if (!(error instanceof DuplicateConstraintError)) throw error;
+    }
+  }
+  // L'ACCUSÉ VAUT POUR LES QUATRE RÉPONSES, y compris les trois qui ont écrit
+  // une ligne: la reprise lit l'un OU l'autre, et deux chemins de lecture qui
+  // ne s'accordent pas sont une question qui revient sans raison.
+  await mergePracticalConstraints({
+    userId: args.userId,
+    current: args.current,
+    patch: { [DIET_ASKED_KEY]: true },
+    source: "onboarding/diet",
+  });
 }
 
 /**
