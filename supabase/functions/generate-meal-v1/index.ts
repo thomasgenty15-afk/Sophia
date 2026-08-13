@@ -1819,7 +1819,12 @@ Deno.serve(async (req) => {
           today: { localDate: todayDate, dayToken: todayToken as never },
           localMinuteOfDay,
           slotsDroppedToday,
-          awayInWindow: awayDays
+          // ⚠️ `declaredAway` ET PAS `awayDays`: le second porte l'UNION avec
+          // les créneaux tombés par l'horloge, et les compter ici les dirait
+          // DEUX FOIS — une fois « la journée est déjà entamée », une fois
+          // « tu les avais marqués hors de la maison ». La seconde phrase
+          // attribuerait à l'élève une déclaration qu'il n'a pas faite.
+          awayInWindow: declaredAway
             .filter((a) => daysToFill.includes(a.day))
             .flatMap((a) =>
               a.slots.length === 0
