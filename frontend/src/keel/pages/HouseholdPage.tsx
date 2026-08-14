@@ -1,6 +1,10 @@
 import React from "react";
 
 import { useAuth } from "../../context/AuthContext";
+// LA LISTE FERMÉE DES QUATRE RÉPONSES, LUE ET PAS RECOPIÉE — la même que
+// l'entonnoir. Une seconde liste ici offrirait une case que le moteur n'honore
+// pas, ce qui est la version cochable du mensonge que ce lot corrige.
+import { DIET_ANSWERS } from "../api/onboarding";
 import {
   addAllergy,
   addHouseholdMember,
@@ -39,6 +43,7 @@ import {
   setMemberAway,
   setMemberBirthDate,
   setMemberBody,
+  setMemberDiet,
   setMemberGoal,
   setMemberName,
   setOwnBirthDate,
@@ -450,6 +455,11 @@ export default function HouseholdPage(): React.ReactElement {
                   run(() => setMemberHabits(memberId, s, n))}
                 onSaveBody={(memberId, h, w, g) =>
                   run(() => setMemberBody(memberId, h, w, g))}
+                // LE RÉGIME D'UNE BOUCHE. Même `run` que les autres: le refus
+                // (`bad_diet`, `has_account`) arrive en phrase, et la page se
+                // remonte sur ce que la base a VRAIMENT gardé.
+                onSaveDiet={(memberId, diet) =>
+                  run(() => setMemberDiet(memberId, diet))}
                 onMute={(memberId, next) => run(() => muteMergeProposals(memberId, next))}
                 onSaveAway={(memberId, next) => run(() => setMemberAway(memberId, next))}
                 onSave={(member, patch) => saveMember(member, patch, { userId })}
@@ -892,7 +902,7 @@ function AddMouthCard(
  * quelle nature est cette contrainte.
  */
 function MembersCard(
-  { household, restrictions, allergies, busy, mutedMembers, rhythm, awayWindow, bodies, habits, onSaveHabits, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction }: {
+  { household, restrictions, allergies, busy, mutedMembers, rhythm, awayWindow, bodies, habits, onSaveHabits, onSaveDiet, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction }: {
     household: HouseholdView;
     restrictions: RestrictionView[];
     allergies: AllergyView[];
@@ -907,6 +917,8 @@ function MembersCard(
       slots: HabitSlot[],
       note: string | null,
     ) => Promise<boolean>;
+    /** Le régime d'une bouche. `null` efface — « on n'a pas demandé ». */
+    onSaveDiet: (memberId: string, diet: string | null) => Promise<boolean>;
     /**
      * Les corps saisis, par `member_id`. VIDE pour un non-maître, et pas parce
      * que l'écran le décide: `keel_household_member_bodies` lui rend zéro
@@ -1007,6 +1019,7 @@ function MembersCard(
             habitsLoaded={habits !== null}
             habits={habits?.get(m.memberId) ?? null}
             onSaveHabits={(s, n) => onSaveHabits(m.memberId, s, n)}
+            onSaveDiet={(diet) => onSaveDiet(m.memberId, diet)}
             onSaveBody={(h, w, g) => onSaveBody(m.memberId, h, w, g)}
             onMute={(next) => onMute(m.memberId, next)}
             onSaveAway={(next) => onSaveAway(m.memberId, next)}
@@ -1169,7 +1182,7 @@ function MemberBadges({ member }: { member: HouseholdMemberView }) {
 }
 
 function MemberRow(
-  { member, isMe, allergies, restrictions, busy, muted, rhythm, awayWindow, body, habits, habitsLoaded, onSaveHabits, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction }: {
+  { member, isMe, allergies, restrictions, busy, muted, rhythm, awayWindow, body, habits, habitsLoaded, onSaveHabits, onSaveDiet, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction }: {
     member: HouseholdMemberView;
     isMe: boolean;
     allergies: AllergyView[];
@@ -1182,6 +1195,8 @@ function MemberRow(
     /** Faux = la lecture n'a PAS eu lieu. Les deux `null` sont distincts. */
     habitsLoaded: boolean;
     onSaveHabits: (slots: HabitSlot[], note: string | null) => Promise<boolean>;
+    /** Le régime de CETTE bouche. `null` efface. */
+    onSaveDiet: (diet: string | null) => Promise<boolean>;
     onSaveBody: (h: number, w: number, g: MemberGender) => Promise<boolean>;
     /** D17 — `null` = le réglage n'a pas pu être lu. Voir l'interrupteur. */
     muted: boolean | null;
@@ -1324,6 +1339,69 @@ function MemberRow(
             needsBirthDate={member.ageState === "unknown"}
             onSave={onSaveBody}
           />
+
+          {/* ── COMMENT CETTE BOUCHE MANGE (2026-08-14) ────────────────────
+              LA QUESTION EXISTAIT POUR LE TITULAIRE ET POUR PERSONNE D'AUTRE,
+              et l'utilisateur l'a redemandée deux fois. Les trois jetons
+              vivaient sur `student_safety_constraints`, clée sur `user_id`:
+              une bouche sans compte n'avait nulle part où porter un régime, et
+              un enfant végétarien était INDÉCLARABLE.
+
+              ⚠️ AVANT LES HABITUDES, ET L'ORDRE PORTE DU SENS: ceci dit ce
+              qu'elle ne mange JAMAIS, la carte du dessous dit ce qu'elle mange
+              À LA PLACE du plat commun. Dans l'autre sens, l'habitude se lirait
+              comme une exception à une règle pas encore énoncée.
+
+              ⚠️ RIEN N'EST PRÉ-ALLUMÉ, et re-cliquer efface. `null` veut dire
+              « on n'a pas demandé »; `omnivore` veut dire « on a demandé, elle
+              mange de tout ». Allumer `omnivore` par défaut écrirait à l'écran
+              une réponse que personne n'a donnée.
+
+              ⚠️ UNE BOUCHE AVEC COMPTE N'EST PAS ÉDITABLE ICI — la base refuse
+              (`has_account`) et le roster ne lirait pas la colonne. L'écran le
+              DIT plutôt que de masquer la ligne, exactement comme l'objectif
+              depuis D1: « il n'y a rien ici » et « ça se règle ailleurs » ne
+              sont pas la même phrase. */}
+          <div className="border-t border-line pt-3">
+            <Field
+              label={t("household.member.diet")}
+              hint={t("household.member.diet_hint")}
+            >
+              {member.userId === null
+                ? (
+                  <div className="flex flex-wrap gap-2">
+                    {DIET_ANSWERS.map((d) => (
+                      <Button
+                        key={d}
+                        size="sm"
+                        variant={member.diet === d ? "primary" : "secondary"}
+                        disabled={busy}
+                        onClick={() => {
+                          void onSaveDiet(member.diet === d ? null : d);
+                        }}
+                      >
+                        {/* ⚠️ LES LIBELLÉS SONT DANS LE NAMESPACE DE CETTE
+                            PAGE, pas dans `setup.*`. La LISTE est partagée
+                            (`DIET_ANSWERS`, importée) — c'est elle qui est
+                            load-bearing; les mots, eux, ne traversent pas la
+                            couture: `pageSeams.int.test.ts` refuse qu'une page
+                            atteigne le namespace d'une autre, et il a raison —
+                            la couverture de locale se mesure par namespace. */}
+                        {t(
+                          `household.member.diet_${d}` as
+                            "household.member.diet_omnivore",
+                        )}
+                      </Button>
+                    ))}
+                  </div>
+                )
+                : (
+                  <p className="text-xs text-ink-soft">
+                    {t("household.member.diet_from_profile")}
+                  </p>
+                )}
+            </Field>
+          </div>
 
           {/* ── CE QUE CETTE BOUCHE MANGE D'HABITUDE (2026-08-14) ──────────
               L'ENDROIT QUI MANQUAIT. Une bouche sans compte n'avait nulle part

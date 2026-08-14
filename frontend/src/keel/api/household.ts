@@ -15,6 +15,10 @@
 // après quoi personne ne saurait laquelle ment.
 
 import { supabase } from "../../lib/supabase";
+// LA LISTE FERMÉE DES QUATRE RÉPONSES, LUE ET PAS RECOPIÉE. Une seconde liste
+// ici divergerait de celle de l'entonnoir le jour où un régime entre, et
+// l'écran du foyer offrirait une case que le moteur n'honore pas.
+import { DIET_ANSWERS } from "./onboarding";
 import { readEdgeRefusal } from "./edgeErrors";
 import { selectMealPlans } from "./mealWindow";
 import {
@@ -85,6 +89,20 @@ export interface HouseholdMemberView {
    * refuse à l'écriture (`empty_rhythm`).
    */
   eatingSlots: string[] | null;
+  /**
+   * LE RÉGIME DE CETTE BOUCHE — `null` quand personne n'a demandé.
+   *
+   * Déjà TRANCHÉ par le roster entre son « about you » (si elle a un compte) et
+   * sa ligne (sinon), exactement comme `goal` et `eatingSlots`. Cet écran ne
+   * refait pas la résolution: deux avis sur ce que quelqu'un mange, et le foyer
+   * sert de la viande à un végétarien.
+   *
+   * ⚠️ `omnivore` EST UNE VALEUR, PAS UN VIDE. « Je mange de tout » est une
+   * réponse; `null` veut dire « on n'a jamais posé la question ». Sur une
+   * question de sécurité alimentaire ces deux-là ne sont pas la même chose, et
+   * l'écran doit pouvoir montrer laquelle des deux il a.
+   */
+  diet: string | null;
 }
 
 export interface HouseholdView {
@@ -397,6 +415,12 @@ export async function loadHousehold(myUserId: string): Promise<HouseholdView | n
       awayHousehold: awayFrom(r.away_days, "household"),
       awaySelf: awayFrom(r.away_days, "self"),
       eatingSlots: readEatingSlots(r.eating_rhythm),
+      // TRANCHÉ EN BASE, recopié tel quel — et VALIDÉ contre la liste fermée,
+      // parce qu'un jeton hors des quatre n'a pas de bouton à allumer et ne
+      // doit pas en allumer un au hasard.
+      diet: (DIET_ANSWERS as readonly string[]).includes(String(r.diet ?? ""))
+        ? String(r.diet)
+        : null,
     };
   }).filter((m: HouseholdMemberView) => m.memberId);
 
@@ -561,6 +585,35 @@ export async function setMemberRhythm(
     p_rhythm: slots === null
       ? null
       : slots.map((slot) => ({ slot, at: null })),
+  });
+  if (error) throw new Error(error.message);
+  return asResult(data);
+}
+
+/**
+ * POSER LE RÉGIME D'UNE BOUCHE SANS COMPTE.
+ *
+ * ── LE DÉFAUT QUE CE GESTE FERME ──────────────────────────────────────────
+ * La question « comment vous mangez » existait pour le titulaire et pour
+ * personne d'autre: les trois jetons vivaient sur `student_safety_constraints`,
+ * clée sur `user_id`. Un enfant végétarien était INDÉCLARABLE, et c'est ce que
+ * l'utilisateur a vu et redemandé deux fois.
+ *
+ * `null` efface — la bouche revient à « personne n'a demandé ». `omnivore`,
+ * lui, est une RÉPONSE et s'écrit: sans lui, la base ne distinguerait pas
+ * quelqu'un qui n'a rien à déclarer de quelqu'un à qui on n'a jamais posé la
+ * question, et la différence vaut un plan de viande servi à un végétarien.
+ *
+ * ⚠️ REFUSE `has_account`, ET L'ÉCRAN DOIT LE SAVOIR AVANT D'APPELER. Le régime
+ * d'une bouche qui a un compte vit dans SON « about you », et le roster ne lit
+ * pas la colonne pour elle. Afficher les boutons quand même montrerait un
+ * contrôle qui échoue à tous les coups — pire qu'un contrôle absent, parce
+ * qu'il promet (même règle que l'objectif depuis D1).
+ */
+export async function setMemberDiet(memberId: string, diet: string | null) {
+  const { data, error } = await supabase.rpc("keel_household_set_member_diet", {
+    p_member: memberId,
+    p_diet: diet,
   });
   if (error) throw new Error(error.message);
   return asResult(data);

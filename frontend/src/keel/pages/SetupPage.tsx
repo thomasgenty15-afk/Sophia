@@ -22,6 +22,7 @@ import {
   type MemberGoal,
   removeHouseholdMember,
   setMemberBirthDate,
+  setMemberDiet,
   setMemberRhythm,
   setMemberGoal,
   setOwnBirthDate,
@@ -787,6 +788,26 @@ export default function SetupPage() {
     })();
   }
 
+  /**
+   * LE RÉGIME D'UNE BOUCHE — la question que l'utilisateur a redemandée deux
+   * fois parce qu'elle existait pour lui et pour personne d'autre.
+   *
+   * ⚠️ RE-CLIQUER LE MÊME BOUTON EFFACE, et c'est le seul moyen de revenir à
+   * « on n'a pas demandé ». Les quatre réponses ne comportent pas de « je ne
+   * sais pas »: `omnivore` est une réponse, pas un vide. Sans ce geste, une
+   * réponse posée par erreur sur la ligne d'un enfant serait indéfaisable.
+   */
+  function saveMouthDiet(target: FunnelMouth, diet: DietAnswer): Promise<void> {
+    return (async () => {
+      const result = await setMemberDiet(
+        target.memberId!,
+        target.diet === diet ? null : diet,
+      );
+      if (!result.ok) throw new Error(result.reason);
+      await load(false);
+    })();
+  }
+
   function saveMouthGoal(target: FunnelMouth, goal: MemberGoal | ""): Promise<void> {
     return (async () => {
       const result = await setMemberGoal(target.memberId!, goal || null);
@@ -1089,6 +1110,7 @@ export default function SetupPage() {
             onChange={setPlan}
             mouths={facts.mouths}
             onMouthRhythm={(m, slots) => guard(() => saveMouthRhythm(m, slots))}
+            onMouthDiet={(m, diet) => guard(() => saveMouthDiet(m, diet))}
             busy={busy}
             selfDiet={self?.diet ?? ""}
             onSelfDiet={(diet) =>
@@ -2241,6 +2263,7 @@ function TableStep({
   onChange,
   mouths,
   onMouthRhythm,
+  onMouthDiet,
   busy,
   missing,
   selfDiet,
@@ -2252,6 +2275,8 @@ function TableStep({
   onChange: React.Dispatch<React.SetStateAction<FunnelPlanAnswers | null>>;
   mouths: readonly FunnelMouth[];
   onMouthRhythm: (mouth: FunnelMouth, slots: readonly string[]) => void;
+  /** Le régime d'une bouche. Re-cliquer la réponse posée l'efface. */
+  onMouthDiet: (mouth: FunnelMouth, diet: DietAnswer) => void;
   busy: boolean;
   missing: readonly FunnelMissId[];
   /** Le régime du maître — REQUIS, `""` = pas encore répondu. */
@@ -2403,6 +2428,56 @@ function TableStep({
                     <p className="mt-2 text-xs text-ink-soft">
                       {t("setup.table.same_as_house")}
                     </p>
+                  )
+                  : null}
+
+                {/* ── COMMENT CETTE BOUCHE-LÀ MANGE ────────────────────────
+                    LE DÉFAUT QU'ON FERME, ET IL A ÉTÉ DEMANDÉ DEUX FOIS: la
+                    question existait pour le titulaire (en tête de cette
+                    carte) et pour PERSONNE d'autre — les trois jetons vivaient
+                    sur une table clée sur le compte, donc un enfant
+                    végétarien était indéclarable.
+
+                    MÊMES BOUTONS, MÊME LISTE (`DIET_ANSWERS`): une seconde
+                    liste divergerait de celle du maître, et l'écran offrirait
+                    une case que le moteur n'honore pas.
+
+                    RIEN N'EST PRÉ-ALLUMÉ. `null` veut dire « on n'a pas
+                    demandé », et c'est distinct d'« elle mange de tout »:
+                    allumer `omnivore` par défaut écrirait à l'écran une
+                    réponse que personne n'a donnée — et sur une question de
+                    sécurité alimentaire, ces deux-là ne sont pas la même
+                    chose. */}
+                {!m.claimed && m.memberId !== null
+                  ? (
+                    <div className="mt-3">
+                      <Field
+                        // ⚠️ PAS `setup.people.diet` (« How YOU eat »), ET LE
+                        // DÉFAUT A ÉTÉ VU À L'ÉCRAN: sous le prénom de
+                        // quelqu'un d'autre, la deuxième personne désigne le
+                        // lecteur et pas la ligne qu'il remplit. La même
+                        // étiquette en tête de carte porte bien sur lui — ici
+                        // elle porte sur elle.
+                        label={t("setup.table.diet_label")}
+                        hint={t("setup.table.diet_hint")}
+                      >
+                        <div className="flex flex-wrap gap-2">
+                          {DIET_ANSWERS.map((diet) => (
+                            <Button
+                              key={diet}
+                              size="sm"
+                              variant={m.diet === diet ? "primary" : "secondary"}
+                              disabled={busy}
+                              onClick={() => onMouthDiet(m, diet)}
+                            >
+                              {t(
+                                `setup.people.diet_${diet}` as "setup.people.diet_omnivore",
+                              )}
+                            </Button>
+                          ))}
+                        </div>
+                      </Field>
+                    </div>
                   )
                   : null}
 

@@ -1211,6 +1211,15 @@ export interface FunnelMouth extends FunnelPerson {
    * petit-déjeuner à quelqu'un qui n'en prend pas.
    */
   eatingSlots: string[] | null;
+  /**
+   * SON RÉGIME — `null` = personne n'a demandé, et c'est distinct d'« elle
+   * mange de tout » (`omnivore`), qui est une RÉPONSE.
+   *
+   * Déjà tranché par le roster entre son « about you » (si elle a un compte) et
+   * sa ligne (sinon), exactement comme `goal` et `eatingSlots`. L'écran ne
+   * refait pas la résolution.
+   */
+  diet: DietAnswer | null;
 }
 
 export interface FunnelFacts {
@@ -1341,13 +1350,20 @@ export async function readFunnelFacts(userId: string): Promise<FunnelFacts> {
       // seule table que `keel_household_bodies_for` regarde — donc la seule
       // dont le moteur tienne compte. Lire ailleurs afficherait « rempli » sur
       // un corps que la composition ne verra jamais.
-      // ⚠️ LE RÉGIME D'UNE AUTRE BOUCHE N'A PAS ENCORE DE MAISON. Les trois
-      // jetons vivent sur `student_safety_constraints`, clée sur `user_id` —
-      // une bouche sans compte n'a donc nulle part où le porter, exactement
-      // comme les allergies avant `household_member_allergies`. Le lot suivant
-      // ouvre la colonne; d'ici là, la question n'est pas posée par bouche et
-      // ce champ reste `null` sans bloquer quoi que ce soit.
-      diet: null,
+      // ── LE RÉGIME A UNE MAISON DEPUIS LE 2026-08-14 ──────────────────────
+      // Il n'en avait pas: les trois jetons vivaient sur
+      // `student_safety_constraints`, clée sur `user_id`, donc une bouche sans
+      // compte n'avait nulle part où le porter — un enfant végétarien était
+      // INDÉCLARABLE, et c'est ce que l'utilisateur a vu et redemandé deux
+      // fois. La colonne est `household_members.diet`.
+      //
+      // TRANCHÉ EN BASE, recopié tel quel. `null` traverse: il veut dire « on
+      // n'a jamais posé la question », et l'écran ne doit surtout pas le rendre
+      // comme « elle mange de tout » — ce serait écrire sur la ligne de
+      // quelqu'un un fait que personne n'a énoncé.
+      diet: (DIET_ANSWERS as readonly string[]).includes(m.diet ?? "")
+        ? (m.diet as DietAnswer)
+        : null,
       heightCm: bodies.get(m.memberId)?.heightCm ?? null,
       weightKg: bodies.get(m.memberId)?.weightKg ?? null,
       gender: bodies.get(m.memberId)?.gender ?? null,
