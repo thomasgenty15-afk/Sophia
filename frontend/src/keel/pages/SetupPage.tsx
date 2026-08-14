@@ -151,6 +151,30 @@ interface MouthDraft {
   allergiesNone: boolean;
 }
 
+/**
+ * CE BROUILLON PORTE-T-IL QUELQUE CHOSE ?
+ *
+ * ⚠️ NÉ D'UN DÉFAUT VU À L'ÉCRAN LE 2026-08-14. Le formulaire d'ajout a la même
+ * forme qu'une fiche de personne — prénom, adulte/enfant, naissance, corps,
+ * direction — et il n'avait AUCUN moyen d'être vidé. Quelqu'un tape deux
+ * lettres par mégarde et se retrouve devant ce qu'il lit comme une personne de
+ * plus, sans bouton pour la retirer. Ses mots: « j'ai fait ajouter une personne
+ * sans faire exprès mais on peut pas la retirer ». En base il n'y avait
+ * personne — mais ça, l'écran ne le disait pas non plus.
+ *
+ * `allergiesNone` compte: c'est une RÉPONSE (« aucune »), pas un défaut.
+ */
+function mouthDraftHasContent(d: MouthDraft): boolean {
+  return d.firstName.trim() !== "" ||
+    d.birthDate !== "" ||
+    d.heightCm !== "" ||
+    d.weightKg !== "" ||
+    d.gender !== "" ||
+    d.goal !== "" ||
+    d.allergies.length > 0 ||
+    d.allergiesNone;
+}
+
 function emptyMouthDraft(): MouthDraft {
   return {
     firstName: "",
@@ -993,6 +1017,10 @@ export default function SetupPage() {
                 onAdd={() => guardMouth(addMouth)}
                 held={mouthsHeld}
                 failure={mouthFailure}
+                onDiscard={() => {
+                  setMouth(emptyMouthDraft());
+                  setMouthFailure(null);
+                }}
                 onGoal={(m, g) => guardMouth(() => saveMouthGoal(m, g))}
                 onBirthDate={(m, d) => guardMouth(() => saveMouthBirthDate(m, d))}
                 onAllergyAnswer={(m, labels) =>
@@ -1554,6 +1582,8 @@ function MouthsStep(props: {
   held: string | null;
   /** Le refus d'un geste de cette carte, ou `null`. REQUIS, même raison. */
   failure: string | null;
+  /** Vide le brouillon. REQUIS: sans lui, un brouillon rempli est un cul-de-sac. */
+  onDiscard: () => void;
   onGoal: (mouth: FunnelMouth, goal: MemberGoal | "") => void;
   onBirthDate: (mouth: FunnelMouth, date: string) => void;
   onAllergyAnswer: (mouth: FunnelMouth, labels: string[]) => void;
@@ -1806,9 +1836,19 @@ function MouthsStep(props: {
             </p>
           ) : null}
 
-          <Button variant="secondary" disabled={props.busy} onClick={props.onAdd}>
-            {t("setup.mouths.add")}
-          </Button>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button variant="secondary" disabled={props.busy} onClick={props.onAdd}>
+              {t("setup.mouths.add")}
+            </Button>
+            {/* IL N'APPARAÎT QUE QUAND IL Y A QUELQUE CHOSE À VIDER: un
+                « Effacer » posé sous un formulaire vide invite à se demander ce
+                qu'il effacerait. */}
+            {mouthDraftHasContent(draft) ? (
+              <Button variant="ghost" disabled={props.busy} onClick={props.onDiscard}>
+                {t("setup.mouths.discard")}
+              </Button>
+            ) : null}
+          </div>
         </div>
       )}
     </Card>
