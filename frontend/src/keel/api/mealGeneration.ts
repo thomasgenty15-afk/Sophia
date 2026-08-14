@@ -548,8 +548,16 @@ export async function validateMealPlan(
 /**
  * Les apports fixes de la réponse. Défensif dans une seule direction, comme
  * tous les lecteurs de ce fichier: ce qu'on ne sait pas lire tombe SEUL.
+ *
+ * ⚠️ `export` AJOUTÉ POUR `api/planDraft.ts`, ET C'EST LE SEUL GESTE POSSIBLE.
+ * Le brouillon (`intent: "draft"`) reçoit EXACTEMENT le même payload qu'un plan
+ * écrit, et il doit le monter dans le MÊME `PlanResult`. Sans cet export, le
+ * module du brouillon devrait recopier ce lecteur — c'est-à-dire un second
+ * normaliseur du même JSON, qui divergerait au premier champ ajouté, et c'est
+ * toujours celui qu'on regarde le moins qui garde l'ancien comportement.
+ * Aucune ligne de LOGIQUE n'a changé ici: seulement la visibilité.
  */
-function readFixedIntakes(raw: unknown): PlanFixedIntake[] {
+export function readFixedIntakes(raw: unknown): PlanFixedIntake[] {
   if (!Array.isArray(raw)) return [];
   const out: PlanFixedIntake[] = [];
   for (const entry of raw) {
@@ -573,7 +581,8 @@ function readFixedIntakes(raw: unknown): PlanFixedIntake[] {
   return out;
 }
 
-function readDayProperties(raw: unknown): PlanDayProperty[] {
+/** `export` pour `api/planDraft.ts` — même raison que `readFixedIntakes`. */
+export function readDayProperties(raw: unknown): PlanDayProperty[] {
   if (!Array.isArray(raw)) return [];
   const out: PlanDayProperty[] = [];
   for (const entry of raw) {
@@ -655,7 +664,8 @@ function readShopping(raw: unknown): ShoppingItem[] {
   });
 }
 
-function readPreparations(raw: unknown): MealPreparation[] {
+/** `export` pour `api/planDraft.ts` — même raison que `readFixedIntakes`. */
+export function readPreparations(raw: unknown): MealPreparation[] {
   if (!Array.isArray(raw)) return [];
   return raw.map((entry) => {
     const p = (entry ?? {}) as Record<string, unknown>;
@@ -672,7 +682,8 @@ function readPreparations(raw: unknown): MealPreparation[] {
   }).filter((p) => p.id !== "" && p.title !== "");
 }
 
-function readSessions(raw: unknown): CookingSession[] {
+/** `export` pour `api/planDraft.ts` — même raison que `readFixedIntakes`. */
+export function readSessions(raw: unknown): CookingSession[] {
   if (!Array.isArray(raw)) return [];
   return raw.map((entry) => {
     const sess = (entry ?? {}) as Record<string, unknown>;
