@@ -335,6 +335,76 @@ export interface ComposeDraftInput {
  * une seconde convention pour un seul appelant.
  */
 export async function composeDraft(input: ComposeDraftInput): Promise<PlanDraft> {
+  const payload = await callGenerator(input, "draft");
+  return {
+    plan: {
+      ...readDraftPlan(payload),
+      planKind: input.lane === "household" ? "household" : "personal",
+    },
+    envelope: readDraftEnvelope(payload),
+  };
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * 🔴 ADOPTER — ET CE QUE CE MOT NE PEUT PAS VOULOIR DIRE AUJOURD'HUI.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * L'intention du chantier est « l'adoption écrit EXACTEMENT ce qui a été
+ * montré, pas de regénération ». **Ce n'est pas atteignable depuis le
+ * navigateur**, et le vérifier tient en deux faits:
+ *
+ *   1. Le seul écrivain d'un plan est la RPC `write_student_meal_plan`, dont
+ *      l'`EXECUTE` est RÉVOQUÉ à `anon` ET `authenticated` — trois fois, dans
+ *      trois migrations (`20260807090000`, `20260811080000`, `20260811140000`).
+ *      Aucun client ne peut donc poser un plan déjà composé.
+ *   2. Aucune fonction edge n'accepte un plan tout fait: les deux générateurs
+ *      COMPOSENT, et le chemin `draft` se distingue uniquement par le fait
+ *      qu'il saute l'écriture à la toute fin.
+ *
+ * Ce qu'on peut faire — et ce que fait cette fonction — est de **recomposer à
+ * partir de la MÊME demande et de la MÊME phrase**. Le serveur relit la note
+ * sur TOUS les `intent`, exprès: « une adoption qui perdrait la phrase écrirait
+ * un plan qui n'est pas celui qu'on a montré ». Le résultat reste néanmoins un
+ * SECOND appel modèle, donc un plan qui peut différer de l'aperçu.
+ *
+ * ⚠️ C'EST DIT À L'ÉCRAN AVANT LE CLIC (`plan.draft.adopt_recomposes`). Une
+ * adoption silencieuse qui recompose montrerait un plan et en écrirait un
+ * autre — exactement ce que la fenêtre d'aperçu existe pour empêcher.
+ *
+ * Fermer le trou pour de bon demande un chemin serveur qui écrive un payload
+ * déjà composé (« adopt this draft »), avec ses propres gardes de sortie. C'est
+ * du backend, et c'est hors de la colonne de ce lot.
+ */
+export async function writeFromDraft(
+  input: ComposeDraftInput,
+  intent: "replace_current" | "prepare_next",
+  replaces: string | null,
+): Promise<{ ok: boolean; mealId: string | null }> {
+  const payload = await callGenerator(input, intent, replaces);
+  const meal = (payload.meal ?? null) as Record<string, unknown> | null;
+  return {
+    // Un 200 qui dit `ok: false` n'est pas une panne de transport, et il ne
+    // doit pas non plus atterrir comme un succès.
+    ok: payload.ok === true,
+    mealId: typeof meal?.id === "string" ? meal.id : null,
+  };
+}
+
+/**
+ * L'APPEL, ET UN SEUL CORPS DE REQUÊTE POUR LES DEUX GESTES.
+ *
+ * ⛔ NE JAMAIS N'ENVOYER QUE LA NOTE AU SECOND TOUR. C'est la raison pour
+ * laquelle l'aperçu et l'adoption partagent ce constructeur: deux corps écrits
+ * séparément divergeraient, et la divergence se paierait dans le sens le plus
+ * cher — un plan composé pour une vie que la personne n'a pas, parce que
+ * l'adoption aurait « oublié » le mode, le garde-manger ou le créneau.
+ */
+async function callGenerator(
+  input: ComposeDraftInput,
+  intent: "draft" | "replace_current" | "prepare_next",
+  replaces: string | null = null,
+): Promise<Record<string, unknown>> {
   const fn = input.lane === "household"
     ? "generate-household-meal-v1"
     : "generate-meal-v1";
@@ -346,6 +416,10 @@ export async function composeDraft(input: ComposeDraftInput): Promise<PlanDraft>
     }
     : input.window;
 
+  // ⚠️ `replaces` EST REFUSÉ AVEC `draft` (`unknown_intent`), et c'est cohérent:
+  // un aperçu ne remplace rien, puisqu'il n'écrit rien.
+  const replacing = intent === "draft" ? null : replaces;
+
   // LE CORPS DE LA LANE FOYER EST PLUS ÉTROIT, et c'est le contrat de la
   // fonction: elle relit le mode, les bouches et les règles de maison en base.
   // Lui envoyer les champs de la lane individuelle ne les ferait pas lire, mais
@@ -354,17 +428,15 @@ export async function composeDraft(input: ComposeDraftInput): Promise<PlanDraft>
     ? {
       operation: "compose",
       window,
-      intent: "draft",
-      // ⚠️ `replaces` EST REFUSÉ AVEC `draft` (`unknown_intent`): un aperçu ne
-      // remplace rien, puisqu'il n'écrit rien.
-      replaces: null,
+      intent,
+      replaces: replacing,
       context: input.context,
     }
     : {
       mode: input.mode,
       window,
-      intent: "draft",
-      replaces: null,
+      intent,
+      replaces: replacing,
       meal_slot: input.slot,
       servings: input.servings,
       context: input.context,
@@ -384,13 +456,5 @@ export async function composeDraft(input: ComposeDraftInput): Promise<PlanDraft>
       : "";
     throw new Error(named || `[keel/planDraft] ${error.message}`);
   }
-  const payload = (data ?? {}) as Record<string, unknown>;
-  const envelope = readDraftEnvelope(payload);
-  return {
-    plan: {
-      ...readDraftPlan(payload),
-      planKind: input.lane === "household" ? "household" : "personal",
-    },
-    envelope,
-  };
+  return (data ?? {}) as Record<string, unknown>;
 }
