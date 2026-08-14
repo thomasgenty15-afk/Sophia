@@ -245,8 +245,40 @@ import {
  * sur un barreau ②/③, et un barreau ②/③ n'existe que sur une fusion. Bumper le
  * tronc re-stamperait toute la population individuelle pour un texte qu'elle ne
  * voit jamais.
+ *
+ * ── v10 (2026-08-14) — L'HABITUDE D'UNE BOUCHE, ET LE TEMPS QUI PLAFONNE (G) ──
+ *
+ * Ouvert après un plan réel qui a servi des ŒUFS BROUILLÉS SEPT MATINS
+ * D'AFFILÉE à une femme qui mange une pomme. Le plan n'avait pas ignoré son
+ * habitude: personne ne la lui avait demandée, et il n'existait aucun champ où
+ * la ranger.
+ *
+ * La règle de v4 s'applique telle quelle (« quelle POPULATION voit une consigne
+ * différente »), et elle décrit ici DEUX populations, toutes deux neuves:
+ *
+ *   · LES FOYERS OÙ AU MOINS UNE BOUCHE PORTE UNE HABITUDE. Leur brief gagne un
+ *     fragment sur la ligne de la personne (`— has their own at breakfast: une
+ *     pomme`) et une phrase de conséquence, dite UNE fois. La table qui les
+ *     porte n'existait pas avant le 2026-08-14: aucun foyer d'hier n'en a.
+ *   · LES FOYERS QUI ATTEIGNENT LE BARREAU ② SANS FUSION. Avant ce lot, une
+ *     composition ordinaire était clouée à `one_dish` — `ladder` valait `null`
+ *     hors fusion, et le brief interdisait purement et simplement un second
+ *     plat. Elle peut désormais s'y lever, et seulement au-dessus de
+ *     `SEPARATE_DISH_MIN_WEEKLY_MINUTES`.
+ *
+ * ⚠️ TOUT LE RESTE EST BYTE-IDENTIQUE À v9, ET DEUX TESTS LE TIENNENT: un foyer
+ * sans habitude qui reste à `one_dish` rend le prompt de v9 au caractère près,
+ * et une FUSION aussi — elle reprend UNE personne, passe donc `1` à
+ * `cookingShapeLines`, et retombe sur le tableau du singulier. Le pluriel
+ * n'existe que pour une population qui n'atteignait jamais ce barreau.
+ *
+ * Bumper quand même est la moitié qui compte: L2 a mesuré ce que coûte un
+ * prompt de foyer qui change sans que sa version bouge — deux plans stampés
+ * pareil, portant des consignes différentes, et rien qui échoue.
+ *
+ * `MEAL_PROMPT_VERSION` ne bouge pas: rien de G n'entre dans le tronc.
  */
-export const HOUSEHOLD_PROMPT_VERSION = "v9_merge_dedicated_per_meal";
+export const HOUSEHOLD_PROMPT_VERSION = "v10_habits_and_cooking_shape";
 
 export interface HouseholdRestriction {
   memberId: string;
@@ -256,6 +288,36 @@ export interface HouseholdRestriction {
 
 export interface HouseholdPromptInput {
   members: readonly PortionMember[];
+  /**
+   * G5 — LA FORME DE CUISINE, DÉCIDÉE PAR L'APPELANT ET PAR LUI SEUL.
+   *
+   * ── CE QUE CE CHAMP REMPLACE, ET POURQUOI L'ANCIENNE LIGNE MENTAIT ────────
+   * Une seule expression vivait ici: `input.merge?.shape ?? "one_dish"`, et
+   * elle disait « la forme de cuisine vient de la fusion, et d'elle seule ».
+   * C'était vrai jusqu'au 2026-08-14 et ça ne l'est plus: le plat unique était
+   * une CONSTANTE de toute composition ordinaire, pas un réglage — l'échelle à
+   * trois barreaux existait, son paramètre était requis, et `ladder` valait
+   * `null` hors fusion. Une composition était donc clouée au barreau ①, quoi
+   * que les directions de service demandent et quel que soit le temps déclaré.
+   *
+   * ⚠️ REQUIS, jamais optionnel et jamais défaut-é à `one_dish` — même raison
+   * que `merge` et `presence` plus bas, et cette fois la cicatrice est double:
+   * un défaut silencieux ferait interdire au modèle, dans le même prompt,
+   * exactement ce que le reste lui demande de faire.
+   *
+   * ⚠️ UNE FUSION PASSE TOUJOURS `merge.shape`, ET C'EST À L'APPELANT DE LE
+   * TENIR. Ce module n'arbitre pas entre deux sources de barreau: il n'en
+   * connaît qu'une, celle-ci.
+   */
+  cooking: CookingShape;
+  /**
+   * G5 — COMBIEN DE BOUCHES NE PEUVENT PAS SORTIR DE LA CASSEROLE COMMUNE.
+   *
+   * `0` hors barreau ②/③. `1` pour toute FUSION — elle reprend une personne,
+   * jamais deux — ce qui rend la ligne de forme byte-identique à celle de v9.
+   * Voir `cookingShapeLines` (`household_portions.ts`), qui porte la règle.
+   */
+  divergingCount: number;
   /**
    * LA ligne d'envies de la semaine, ou `null`. UNE phrase pour tout le foyer,
    * pas une liste par personne (lot 5). L'appelant est responsable de son
@@ -517,9 +579,10 @@ export function buildHouseholdPromptBlocks(
     "Exact ids to use in member_portions:",
     ...idLines,
     "",
-    // LA FORME DE CUISINE VIENT DE LA FUSION, ET D'ELLE SEULE. Sans fusion,
-    // `one_dish` — le contrat historique du foyer, mot pour mot.
-    buildPortionBrief(input.members, input.merge?.shape ?? "one_dish"),
+    // LA FORME DE CUISINE VIENT DE L'APPELANT, ET DE LUI SEUL (G5). Elle
+    // valait `input.merge?.shape ?? "one_dish"`, et cette ligne-là clouait
+    // toute composition ordinaire au barreau ① sans que rien ne le dise.
+    buildPortionBrief(input.members, input.cooking, input.divergingCount),
     // JUSTE APRÈS LE BRIEF DE PORTIONS, et avant tout le reste: les deux
     // parlent de la même chose — qui mange quoi. Les séparer par l'envie de la
     // semaine ferait lire « pour combien de personnes » très loin de « pour

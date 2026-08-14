@@ -39,16 +39,22 @@ const DAD: PortionMember = {
   memberId: "m-dad", displayName: "Marc", goal: "fat_loss", ageState: "adult",
   body: null,
   eatingSlots: null,
+  habits: [],
+  habitNote: null,
 };
 const SON: PortionMember = {
   memberId: "m-son", displayName: "Tom", goal: "muscle_gain", ageState: "adult",
   body: null,
   eatingSlots: null,
+  habits: [],
+  habitNote: null,
 };
 const KID: PortionMember = {
   memberId: "m-kid", displayName: "Léa", goal: null, ageState: "minor",
   body: null,
   eatingSlots: null,
+  habits: [],
+  habitNote: null,
 };
 
 Deno.test("chaque membre apparaît avec son id EXACT, une fois", () => {
@@ -57,6 +63,9 @@ Deno.test("chaque membre apparaît avec son id EXACT, une fois", () => {
   // retrouve en part standard sans qu'on sache pourquoi.
   const { userSuffix } = buildHouseholdPromptBlocks({
     members: [DAD, SON, KID], envyLine: null, restrictions: [], presence: NOBODY_AWAY, merge: null,
+    // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
+    // contrat historique du foyer, donc le prompt d'avant le lot G.
+    cooking: "one_dish", divergingCount: 0,
     unmerge: null,
     voices: [],
   });
@@ -80,6 +89,9 @@ Deno.test("LES RÈGLES DE MAISON NE SONT JAMAIS UNE RAISON NUTRITIONNELLE", () =
   ];
   const { userSuffix } = buildHouseholdPromptBlocks({
     members: [DAD, KID], envyLine: null, restrictions, presence: NOBODY_AWAY, merge: null,
+    // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
+    // contrat historique du foyer, donc le prompt d'avant le lot G.
+    cooking: "one_dish", divergingCount: 0,
     unmerge: null,
     voices: [],
   });
@@ -101,6 +113,9 @@ Deno.test("les restrictions d'une même personne sont regroupées", () => {
     members: [KID],
     envyLine: null,
     presence: NOBODY_AWAY, merge: null,
+    // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
+    // contrat historique du foyer, donc le prompt d'avant le lot G.
+    cooking: "one_dish", divergingCount: 0,
     unmerge: null,
     voices: [],
     restrictions: [
@@ -119,6 +134,9 @@ Deno.test("LES RÈGLES DE MAISON PASSENT APRÈS LES ENVIES", () => {
     members: [KID],
     envyLine: "du nutella partout",
     presence: NOBODY_AWAY, merge: null,
+    // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
+    // contrat historique du foyer, donc le prompt d'avant le lot G.
+    cooking: "one_dish", divergingCount: 0,
     unmerge: null,
     voices: [],
     restrictions: [
@@ -133,6 +151,9 @@ Deno.test("sans restriction, aucun bloc de règles n'apparaît", () => {
   // interdits, et il composerait prudemment sans savoir contre quoi.
   const { userSuffix } = buildHouseholdPromptBlocks({
     members: [DAD], envyLine: null, restrictions: [], presence: NOBODY_AWAY, merge: null,
+    // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
+    // contrat historique du foyer, donc le prompt d'avant le lot G.
+    cooking: "one_dish", divergingCount: 0,
     unmerge: null,
     voices: [],
   });
@@ -142,6 +163,9 @@ Deno.test("sans restriction, aucun bloc de règles n'apparaît", () => {
 Deno.test("le schéma supplémentaire n'est demandé que côté système", () => {
   const { systemSuffix, userSuffix } = buildHouseholdPromptBlocks({
     members: [DAD], envyLine: null, restrictions: [], presence: NOBODY_AWAY, merge: null,
+    // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
+    // contrat historique du foyer, donc le prompt d'avant le lot G.
+    cooking: "one_dish", divergingCount: 0,
     unmerge: null,
     voices: [],
   });
@@ -158,6 +182,9 @@ Deno.test("le brief de portions et la ligne d'envies sont tous les deux là", ()
     envyLine: "un curry, et Tom en a marre du poulet",
     restrictions: [],
     presence: NOBODY_AWAY, merge: null,
+    // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
+    // contrat historique du foyer, donc le prompt d'avant le lot G.
+    cooking: "one_dish", divergingCount: 0,
     unmerge: null,
     voices: [],
   });
@@ -174,6 +201,9 @@ Deno.test("SANS LIGNE D'ENVIES, aucun en-tête d'envies n'apparaît", () => {
   // ferait composer le modèle contre une demande imaginaire.
   const { userSuffix, envyLineUsed } = buildHouseholdPromptBlocks({
     members: [DAD, SON], envyLine: null, restrictions: [], presence: NOBODY_AWAY, merge: null,
+    // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
+    // contrat historique du foyer, donc le prompt d'avant le lot G.
+    cooking: "one_dish", divergingCount: 0,
     unmerge: null,
     voices: [],
   });
@@ -203,6 +233,9 @@ Deno.test("le bloc de présence entre dans le prompt, JUSTE APRÈS le brief de p
     restrictions: [],
     presence,
     merge: null,
+    // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
+    // contrat historique du foyer, donc le prompt d'avant le lot G.
+    cooking: "one_dish", divergingCount: 0,
     unmerge: null,
     voices: [],
   });
@@ -223,6 +256,9 @@ Deno.test("SANS ABSENCE, aucun en-tête de présence n'apparaît", () => {
   // nombre qu'il devine — c'est-à-dire moins que le foyer, un jour sur deux.
   const { userSuffix } = buildHouseholdPromptBlocks({
     members: [DAD, SON], envyLine: null, restrictions: [], presence: NOBODY_AWAY, merge: null,
+    // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
+    // contrat historique du foyer, donc le prompt d'avant le lot G.
+    cooking: "one_dish", divergingCount: 0,
     unmerge: null,
     voices: [],
   });
@@ -298,6 +334,9 @@ Deno.test("CHANGER LES BLOCS SANS BUMPER LA VERSION DOIT ÊTRE ROUGE", () => {
     restrictions: [{ memberId: "m-son", memberDisplayName: "Tom", label: "no nutella" }],
     presence,
     merge: null,
+    // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
+    // contrat historique du foyer, donc le prompt d'avant le lot G.
+    cooking: "one_dish", divergingCount: 0,
     unmerge: null,
     voices: [],
   });
@@ -383,6 +422,9 @@ Deno.test("SANS FUSION, LE PROMPT EST CELUI D'AVANT L4, À L'OCTET PRÈS", () =>
   const { userSuffix } = buildHouseholdPromptBlocks({
     members: [DAD, SON], envyLine: null, restrictions: [], presence: NOBODY_AWAY,
     merge: null,
+    // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
+    // contrat historique du foyer, donc le prompt d'avant le lot G.
+    cooking: "one_dish", divergingCount: 0,
     unmerge: null,
     voices: [],
   });
@@ -411,6 +453,9 @@ Deno.test("le bloc de fusion entre APRÈS la présence et AVANT l'envie", () => 
     restrictions: [{ memberId: "m-son", memberDisplayName: "Tom", label: "no nutella" }],
     presence,
     merge: MERGE_PROMPT,
+    // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
+    // contrat historique du foyer, donc le prompt d'avant le lot G.
+    cooking: "one_dish", divergingCount: 0,
     unmerge: null,
     voices: [],
   });
@@ -452,6 +497,9 @@ Deno.test("O5 — L'ANCRE ARRIVE DANS LE VRAI PROMPT, ET LA VERSION A BOUGÉ", (
     restrictions: [],
     presence: NOBODY_AWAY,
     merge: MERGE_PROMPT,
+    // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
+    // contrat historique du foyer, donc le prompt d'avant le lot G.
+    cooking: "one_dish", divergingCount: 0,
     unmerge: null,
     voices: [],
   });
@@ -502,6 +550,11 @@ Deno.test("LE BARREAU DE L'ÉCHELLE CHANGE LA LIGNE « COMBIEN DE PLATS »", () 
       restrictions: [],
       presence: NOBODY_AWAY,
       merge: { ...MERGE_PROMPT, shape },
+      // G5 — SUR UNE FUSION, LA FORME EST CELLE DU BARREAU, et le nombre de
+      // divergents vaut TOUJOURS 1: une fusion reprend UNE personne, jamais
+      // deux. C'est très exactement ce qui rend la ligne de forme d'une fusion
+      // byte-identique à celle d'avant le lot G.
+      cooking: shape, divergingCount: shape === "one_dish" ? 0 : 1,
       unmerge: null,
       voices: [],
     }).userSuffix;
@@ -537,12 +590,18 @@ Deno.test("SANS DÉFUSION, LE PROMPT EST CELUI D'AVANT L5, À L'OCTET PRÈS", ()
   const plain = buildHouseholdPromptBlocks({
     members: [DAD, SON], envyLine: null, restrictions: [], presence: NOBODY_AWAY,
     merge: null,
+    // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
+    // contrat historique du foyer, donc le prompt d'avant le lot G.
+    cooking: "one_dish", divergingCount: 0,
     unmerge: null,
     voices: [],
   }).userSuffix;
   const merged = buildHouseholdPromptBlocks({
     members: [DAD, SON], envyLine: null, restrictions: [], presence: NOBODY_AWAY,
     merge: MERGE_PROMPT,
+    // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
+    // contrat historique du foyer, donc le prompt d'avant le lot G.
+    cooking: "one_dish", divergingCount: 0,
     unmerge: null,
     voices: [],
   }).userSuffix;
@@ -572,6 +631,9 @@ Deno.test("le bloc de défusion entre APRÈS la présence et AVANT l'envie", () 
     restrictions: [{ memberId: "m-son", memberDisplayName: "Tom", label: "no nutella" }],
     presence,
     merge: null,
+    // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
+    // contrat historique du foyer, donc le prompt d'avant le lot G.
+    cooking: "one_dish", divergingCount: 0,
     unmerge: UNMERGE_PROMPT,
     voices: [],
   });
@@ -607,6 +669,9 @@ Deno.test("UNE DÉFUSION NE DEMANDE JAMAIS UN SECOND PLAT", () => {
   const { userSuffix } = buildHouseholdPromptBlocks({
     members: [DAD, SON], envyLine: null, restrictions: [], presence: NOBODY_AWAY,
     merge: null,
+    // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
+    // contrat historique du foyer, donc le prompt d'avant le lot G.
+    cooking: "one_dish", divergingCount: 0,
     unmerge: UNMERGE_PROMPT,
     voices: [],
   });
@@ -635,6 +700,12 @@ Deno.test("SANS VOIX, LE PROMPT EST CELUI D'AVANT L6, À L'OCTET PRÈS", () => {
   const base = {
     members: [DAD, SON], envyLine: null, restrictions: [], presence: NOBODY_AWAY,
     merge: null,
+    // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
+    // contrat historique du foyer, donc le prompt d'avant le lot G.
+    // ⚠️ `as const` SUR LA FORME: sans lui l'objet porte `cooking: string`, et
+    // `CookingShape` refuse une chaîne large. C'est le typecheck qui fait son
+    // travail — la forme est une liste FERMÉE, et le rester est le sujet.
+    cooking: "one_dish" as const, divergingCount: 0,
     unmerge: null,
   };
   const { userSuffix, voiceIssues, voicesHeard, voiceCounts } =
@@ -695,6 +766,9 @@ Deno.test("le bloc des voix entre APRÈS la tablée et AVANT l'envie", () => {
     restrictions: [{ memberId: "m-son", memberDisplayName: "Tom", label: "no nutella" }],
     presence: NOBODY_AWAY,
     merge: null,
+    // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
+    // contrat historique du foyer, donc le prompt d'avant le lot G.
+    cooking: "one_dish", divergingCount: 0,
     unmerge: null,
     voices: VOICES,
   });
@@ -744,6 +818,9 @@ Deno.test("le bloc des voix entre APRÈS la tablée et AVANT l'envie", () => {
   const withMerge = buildHouseholdPromptBlocks({
     members: [DAD, SON], envyLine: null, restrictions: [], presence: NOBODY_AWAY,
     merge: MERGE_PROMPT,
+    // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
+    // contrat historique du foyer, donc le prompt d'avant le lot G.
+    cooking: "one_dish", divergingCount: 0,
     unmerge: null,
     voices: VOICES,
   }).userSuffix;
@@ -764,6 +841,9 @@ Deno.test("LA GARDE DE NON-DIVULGATION EST DANS LE CONSTRUCTEUR, PAS EN AMONT", 
   const { userSuffix, voiceIssues } = buildHouseholdPromptBlocks({
     members: [DAD, SON], envyLine: null, restrictions: [], presence: NOBODY_AWAY,
     merge: null,
+    // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
+    // contrat historique du foyer, donc le prompt d'avant le lot G.
+    cooking: "one_dish", divergingCount: 0,
     unmerge: null,
     voices: [
       {
@@ -828,6 +908,9 @@ Deno.test("C6 — LE COMPTE ET LA MATIÈRE ARRIVENT DANS LE VRAI PROMPT", () => 
     restrictions: [],
     presence: NOBODY_AWAY,
     merge: MERGE_PROMPT,
+    // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
+    // contrat historique du foyer, donc le prompt d'avant le lot G.
+    cooking: "one_dish", divergingCount: 0,
     unmerge: null,
     voices: [],
   });
@@ -870,6 +953,11 @@ Deno.test("C6 — LE BRIEF DE PORTIONS NE PROMET PLUS « never more than two »"
       restrictions: [],
       presence: NOBODY_AWAY,
       merge: { ...MERGE_PROMPT, shape },
+      // G5 — SUR UNE FUSION, LA FORME EST CELLE DU BARREAU, et le nombre de
+      // divergents vaut TOUJOURS 1: une fusion reprend UNE personne, jamais
+      // deux. C'est très exactement ce qui rend la ligne de forme d'une fusion
+      // byte-identique à celle d'avant le lot G.
+      cooking: shape, divergingCount: shape === "one_dish" ? 0 : 1,
       unmerge: null,
       voices: [],
     }).userSuffix;

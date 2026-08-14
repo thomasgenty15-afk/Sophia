@@ -52,6 +52,8 @@
  * PURE MODULE: no I/O, no clock, no randomness.
  */
 
+// G5 — LE SEUIL EST LU LÀ OÙ IL DÉCIDE, jamais recopié ici. Voir la porte ⑤.
+import { timeAllowsASecondDish } from "./household_portions.ts";
 import { dayTokenOfDate } from "./local_date.ts";
 import { findGuiltTripping } from "./reengagement.ts";
 import { type DayToken } from "./tokens.ts";
@@ -126,6 +128,29 @@ export interface PlanRationaleFacts {
   handTakenBy: readonly string[];
   /** QUI A ÉTÉ FUSIONNÉ dans ce plan. `[]` = aucune fusion. */
   mergedIn: readonly string[];
+  /**
+   * G5 — LE TEMPS DE CUISINE D'UNE SEMAINE, EN MINUTES. `null` = pas lu.
+   *
+   * ⚠️ REQUIS ET NULLABLE, jamais optionnel — la posture de tout ce module.
+   * `null` dit « le foyer n'a coché aucun jour, ou n'a déclaré aucune durée »,
+   * et il fait TAIRE la phrase: on n'explique pas une décision qu'on n'a pas
+   * prise. `0` serait une affirmation (« ils ne cuisinent pas »), et personne
+   * ne l'a écrite.
+   *
+   * ⚠️ C'EST UN TOTAL HEBDOMADAIRE, PAS LA DURÉE D'UNE SESSION. La colonne
+   * `cooking_time_min` est PAR SESSION (vérifié le 2026-08-14); le produit qui
+   * arrive ici est `cookDays.length × cooking_time_min`, calculé une seule fois
+   * par `weeklyCookingMinutes` (`household_portions.ts`). Passer la durée d'une
+   * session ferait dire « avec 1 h 30 par semaine » à un foyer qui cuisine
+   * trois heures, et la phrase serait fausse sans que rien n'échoue.
+   *
+   * ⚠️ LA LANE INDIVIDUELLE PASSE `null`, ET C'EST DÉFINITIF. Le seuil décide
+   * si un foyer peut cuire DEUX plats; une personne seule n'a jamais eu cette
+   * question, et lui dire « tout le monde mange le même plat » serait une
+   * évidence servie comme une contrainte. La prémisse ci-dessous l'exige de
+   * toute façon: la phrase ne sort qu'au-dessus d'une bouche.
+   */
+  weeklyCookingMinutes: number | null;
 }
 
 export interface PlanRationale {
@@ -200,6 +225,19 @@ const COPY = {
       "Pour y tenir, ce sont d'abord les protéines chères, puis les produits " +
       "hors saison, puis la variété qui cèdent — jamais les portions.",
     mouths: (n: number) => `Les quantités sont faites pour ${n} bouches.`,
+    // ── G5 · LE TEMPS A PLAFONNÉ LA FORME ────────────────────────────────
+    // ⚠️ UN FAIT, JAMAIS UN REPROCHE. « Tu n'as pas assez de temps pour deux
+    // plats » se lit comme une correction; celle-ci dit le même fait sans le
+    // retourner contre personne, et le tiret ferme la phrase du côté du temps,
+    // pas du côté de la personne. Aucun impératif, aucune suggestion d'en
+    // dégager plus: la porte 3, plus bas, coupe TOUT si un gabarit se met à
+    // culpabiliser, et celui-ci ne doit jamais la faire mordre.
+    oneDishByTime: (time: string) =>
+      `Avec ${time} par semaine en cuisine, tout le monde mange le même plat — ` +
+      `c'est ce que le temps permet.`,
+    hours: (n: string) => `${n} h`,
+    hoursMinutes: (h: string, m: string) => `${h} h ${m}`,
+    minutes: (n: string) => `${n} min`,
     handTaken: (names: string) => `${names} compose de son côté : ce plan ne le nourrit pas.`,
     handTakenMany: (names: string) =>
       `${names} composent de leur côté : ce plan ne les nourrit pas.`,
@@ -252,6 +290,16 @@ const COPY = {
       "To stay inside it, expensive proteins give first, then out-of-season " +
       "produce, then variety — never the portions.",
     mouths: (n: number) => `Quantities are made for ${n} people.`,
+    // Même posture qu'en français: un fait, jamais un reproche. « only 1 hour »
+    // serait déjà un jugement — l'adverbe est ce qui transforme une mesure en
+    // manque.
+    oneDishByTime: (time: string) =>
+      `With ${time} of cooking a week, everyone eats the same dish — that is ` +
+      `what the time allows.`,
+    hours: (n: string) => (n === "1" ? "1 hour" : `${n} hours`),
+    hoursMinutes: (h: string, m: string) =>
+      h === "1" ? `1 hour ${m}` : `${h} hours ${m}`,
+    minutes: (n: string) => `${n} min`,
     handTaken: (names: string) => `${names} is composing separately: this plan does not feed them.`,
     handTakenMany: (names: string) =>
       `${names} are composing separately: this plan does not feed them.`,
@@ -281,6 +329,30 @@ function renderSlots(slots: readonly string[], locale: RationaleLocale): string 
   return joinList(slots.map((s) => COPY[locale].slots[s] ?? s), locale);
 }
 
+/**
+ * UNE DURÉE, DITE COMME UN HUMAIN LA DIT.
+ *
+ * ⚠️ CE N'EST PAS `cookingTimeParts`, ET ON NE PEUT PAS L'IMPORTER: cette
+ * fonction-là vit dans `frontend/src/keel/api/planBudget.ts`, c'est-à-dire de
+ * l'autre côté de la frontière Deno/navigateur. Elle rend d'ailleurs le NOMBRE
+ * et son UNITÉ séparément, exprès, parce que les mots y appartiennent au
+ * catalogue de langue — ici les mots sont dans `COPY`, qui est le catalogue de
+ * ce module.
+ *
+ * Les minutes restantes se disent, elles ne s'arrondissent pas: « 1 h 30 » est
+ * ce que la personne a coché (2 × 45), et l'écrire « 1 h » ferait afficher un
+ * chiffre et en appliquer un autre.
+ */
+function renderDuration(minutes: number, locale: RationaleLocale): string {
+  const copy = COPY[locale];
+  const total = Math.max(0, Math.round(minutes));
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+  if (h === 0) return copy.minutes(String(m));
+  if (m === 0) return copy.hours(String(h));
+  return copy.hoursMinutes(String(h), copy.minutes(String(m)));
+}
+
 // ---------------------------------------------------------------------------
 // LA CHAÎNE
 // ---------------------------------------------------------------------------
@@ -299,6 +371,7 @@ const REQUIRED_FACTS: readonly (keyof PlanRationaleFacts)[] = [
   "mouthsServed",
   "handTakenBy",
   "mergedIn",
+  "weeklyCookingMinutes",
 ];
 
 /**
@@ -416,6 +489,39 @@ export function explainPlanChoices(input: {
   // quelqu'un qui n'a jamais parlé de bouches.
   if (facts.mouthsServed !== null && facts.mouthsServed > 1) {
     lines.push(copy.mouths(facts.mouthsServed));
+
+    // ── G5 · LE TEMPS A DÉCIDÉ LA FORME, ET LE PLAN LE DIT ──────────────
+    //
+    // ⚠️ TROIS PRÉMISSES, ET ELLES SONT TOUTES ARMÉES. Le dépôt a mesuré ce que
+    // coûte une règle énoncée sans prémisse (« ceinture armée sur coffre
+    // vide »), donc chacune est vérifiée ici et pas ailleurs:
+    //
+    //   1. PLUS D'UNE BOUCHE — la condition qui englobe ce bloc. Dire « tout le
+    //      monde mange le même plat » à quelqu'un qui mange seul est une
+    //      évidence servie comme une contrainte.
+    //   2. LE TEMPS EST CONNU — `null` fait taire la phrase. Un foyer qui n'a
+    //      coché aucun jour de cuisine n'a pas de budget à qui imputer la
+    //      forme, et lui en inventer un serait affirmer ce que personne n'a
+    //      écrit.
+    //   3. LE TEMPS EST SOUS LE SEUIL — au-dessus, la forme n'est PAS décidée
+    //      par le temps: elle est décidée par les directions de service. La
+    //      phrase serait alors une explication fausse d'une décision juste, ce
+    //      qui est le pire des deux mondes.
+    //
+    // ⚠️ LE SEUIL EST IMPORTÉ, PAS RECOPIÉ. `timeAllowsASecondDish` est la MÊME
+    // fonction que celle qui décide réellement du barreau dans le moteur. Une
+    // seconde comparaison écrite ici (`< 90`) survivrait au déplacement du
+    // seuil et ferait dire au plan l'inverse de ce qu'il a fait — c'est
+    // exactement la forme de défaut que ce dépôt paie en boucle.
+    if (
+      facts.weeklyCookingMinutes !== null &&
+      Number.isFinite(facts.weeklyCookingMinutes) &&
+      !timeAllowsASecondDish(facts.weeklyCookingMinutes)
+    ) {
+      lines.push(
+        copy.oneDishByTime(renderDuration(facts.weeklyCookingMinutes, input.locale)),
+      );
+    }
   }
 
   // ── ⑥ LE BUDGET, ET CE QUI A CÉDÉ POUR Y TENIR, DANS L'ORDRE ────────────

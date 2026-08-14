@@ -19,6 +19,8 @@ const DAD: PortionMember = {
   ageState: "adult",
   body: null,
   eatingSlots: null,
+  habits: [],
+  habitNote: null,
 };
 const SON: PortionMember = {
   memberId: "m-son",
@@ -27,6 +29,8 @@ const SON: PortionMember = {
   ageState: "adult",
   body: null,
   eatingSlots: null,
+  habits: [],
+  habitNote: null,
 };
 const KID: PortionMember = {
   memberId: "m-kid",
@@ -35,6 +39,8 @@ const KID: PortionMember = {
   ageState: "minor",
   body: null,
   eatingSlots: null,
+  habits: [],
+  habitNote: null,
 };
 
 /** Un corps entièrement connu, plancher TCA baissé par une lecture réussie. */
@@ -58,7 +64,7 @@ Deno.test("deux objectifs opposés donnent deux directions DIFFÉRENTES sur la m
   // C'EST LE CAS QUI JUSTIFIE TOUT LE MODULE. Le père en sèche et le fils en
   // prise de masse: si les deux lignes disaient la même chose, le produit
   // n'aurait rien de plus qu'une app de batch cooking.
-  const brief = buildPortionBrief([DAD, SON], "one_dish");
+  const brief = buildPortionBrief([DAD, SON], "one_dish", 0);
   const dadLine = brief.split("\n").find((l) => l.startsWith("- Marc:"))!;
   const sonLine = brief.split("\n").find((l) => l.startsWith("- Tom:"))!;
   assert(dadLine !== sonLine, "les deux directions doivent différer");
@@ -70,13 +76,13 @@ Deno.test("le brief interdit explicitement les plats séparés", () => {
   // Un modèle confronté à des directions contradictoires propose volontiers
   // deux plats. Or le produit vend UNE cuisson: sans cette consigne, la
   // promesse tombe au premier foyer aux objectifs divergents.
-  const brief = buildPortionBrief([DAD, SON], "one_dish");
+  const brief = buildPortionBrief([DAD, SON], "one_dish", 0);
   assert(brief.includes("Do NOT propose separate dishes"));
   assert(brief.includes("one cooking session"));
 });
 
 Deno.test("un mineur reçoit une TAILLE, jamais une direction d'objectif", () => {
-  const brief = buildPortionBrief([KID], "one_dish");
+  const brief = buildPortionBrief([KID], "one_dish", 0);
   const line = brief.split("\n").find((l) => l.startsWith("- Léa:"))!;
   assertEquals(line, "- Léa: child-size share of the same dish");
   // Par NÉGATION: aucun vocabulaire d'objectif ne doit atteindre un enfant.
@@ -89,7 +95,7 @@ Deno.test("le brief ordonne de ne JAMAIS écrire la raison", () => {
   // La consigne est lue à table par tout le foyer. Sans cette phrase, le
   // modèle écrit spontanément « parce que tu es en sèche » — c'est-à-dire
   // divulgue l'objectif d'un membre à ses colocataires.
-  const brief = buildPortionBrief([DAD, SON, KID], "one_dish");
+  const brief = buildPortionBrief([DAD, SON, KID], "one_dish", 0);
   assert(brief.includes("NEVER state a reason"));
   assert(brief.includes("Write what to serve, never why"));
 });
@@ -97,7 +103,7 @@ Deno.test("le brief ordonne de ne JAMAIS écrire la raison", () => {
 Deno.test("un foyer d'une personne ne produit pas de brief", () => {
   // L'entrée du produit est à 1 (PIVOT-FOYER §5): un brief de foyer pour une
   // personne seule serait du bruit dans le prompt.
-  assertEquals(buildPortionBrief([], "one_dish"), "");
+  assertEquals(buildPortionBrief([], "one_dish", 0), "");
 });
 
 Deno.test("un majeur sans objectif déclaré n'est pas traité comme un enfant", () => {
@@ -105,8 +111,10 @@ Deno.test("un majeur sans objectif déclaré n'est pas traité comme un enfant",
     memberId: "m-x", displayName: "Alex", goal: null, ageState: "adult",
     body: null,
     eatingSlots: null,
+    habits: [],
+    habitNote: null,
   };
-  const line = buildPortionBrief([adultNoGoal], "one_dish").split("\n")
+  const line = buildPortionBrief([adultNoGoal], "one_dish", 0).split("\n")
     .find((l) => l.startsWith("- Alex:"))!;
   assertEquals(line, "- Alex: balanced share of every component");
 });
@@ -131,8 +139,8 @@ Deno.test("PREUVE 1 — la consigne d'un membre AVEC corps diffère de celle SAN
   // C'EST LA RAISON D'ÊTRE DU LOT. Avant lui, réclamer son profil ne changeait
   // RIEN à la portion servie par le foyer: la ligne de Marc était la même avec
   // et sans corps, et le cran 2 du chantier n'existait pas.
-  const withBody = lineOf(buildPortionBrief([{ ...DAD, body: KNOWN_BODY }], "one_dish"), "Marc");
-  const without = lineOf(buildPortionBrief([DAD], "one_dish"), "Marc");
+  const withBody = lineOf(buildPortionBrief([{ ...DAD, body: KNOWN_BODY }], "one_dish", 0), "Marc");
+  const without = lineOf(buildPortionBrief([DAD], "one_dish", 0), "Marc");
 
   assert(withBody !== without, `les deux lignes sont identiques: ${withBody}`);
   // Et la DIFFÉRENCE est bien le corps, pas un espace de plus.
@@ -153,7 +161,7 @@ Deno.test("PREUVE 3 — plancher TCA levé ou illisible: AUCUN fait corporel", (
   // forme exacte, et elle ne doit rien laisser passer — ni la taille, ni les
   // mesures, ni la bande d'âge, ni le sexe.
   const closed = lineOf(
-    buildPortionBrief([{ ...DAD, body: { ...KNOWN_BODY, restrictionFlag: true } }], "one_dish"),
+    buildPortionBrief([{ ...DAD, body: { ...KNOWN_BODY, restrictionFlag: true } }], "one_dish", 0),
     "Marc",
   );
   for (const leak of ["186", "84", "96", "30 to 44", "male", "height", "weight"]) {
@@ -163,14 +171,14 @@ Deno.test("PREUVE 3 — plancher TCA levé ou illisible: AUCUN fait corporel", (
   // taille » laisserait passer un crochet vide, un « not stated », ou une
   // marque quelconque — et le plancher deviendrait OBSERVABLE dans le brief,
   // c'est-à-dire qu'il désignerait la personne qu'il protège.
-  assertEquals(closed, lineOf(buildPortionBrief([DAD], "one_dish"), "Marc"));
+  assertEquals(closed, lineOf(buildPortionBrief([DAD], "one_dish", 0), "Marc"));
 });
 
 Deno.test("PREUVE 4 — une bouche sans compte ne casse rien et reste servie", () => {
   // `body: null` est le cas d'une bouche sans compte (ses mesures resteraient
   // clées sur `auth.users`, qu'elle n'a pas). Elle doit garder SA LIGNE et SA
   // direction — pas disparaître du brief, pas se retrouver muette.
-  const brief = buildPortionBrief(MIXED, "one_dish");
+  const brief = buildPortionBrief(MIXED, "one_dish", 0);
   assertEquals(lineOf(brief, "Léa"), "- Léa: child-size share of the same dish");
   // Et les trois bouches sont bien là, dans l'ordre du foyer.
   assertEquals(
@@ -183,7 +191,7 @@ Deno.test("le foyer mixte reste HOMOGÈNE: la consigne d'égalité voyage avec l
   // LE PIÈGE NOMMÉ DU LOT. Deux membres avec corps, trois sans: un modèle à qui
   // on donne plus de matière sur une personne écrit spontanément une consigne
   // plus longue et plus personnelle pour elle, et l'asymétrie se lit à table.
-  const brief = buildPortionBrief(MIXED, "one_dish");
+  const brief = buildPortionBrief(MIXED, "one_dish", 0);
   assert(brief.includes("every line must read the same way"), brief);
   assert(brief.includes("only an accident of"), brief);
   // Et le garde-fou anti-dérivation voyage avec, pour la même raison que sur le
@@ -198,7 +206,7 @@ Deno.test("sans AUCUN corps, le brief est mot pour mot celui d'avant le lot", ()
   // n'a réclamé son profil, et c'est ce qui rend le lot additif. Par égalité de
   // chaînes: un garde-fou qui parlerait du corps dans un prompt qui n'en
   // contient aucun serait précisément l'invitation qu'on veut éviter.
-  const brief = buildPortionBrief([DAD, SON, KID], "one_dish");
+  const brief = buildPortionBrief([DAD, SON, KID], "one_dish", 0);
   assert(!brief.includes("bracketed facts"), brief);
   assert(!brief.includes("["), brief);
   assert(!brief.includes("no BMI"), brief);
@@ -217,8 +225,8 @@ Deno.test("un corps VIDE rend la même ligne qu'un corps absent", () => {
     restrictionFlag: false,
   };
   assertEquals(
-    buildPortionBrief([{ ...DAD, body: empty }], "one_dish"),
-    buildPortionBrief([DAD], "one_dish"),
+    buildPortionBrief([{ ...DAD, body: empty }], "one_dish", 0),
+    buildPortionBrief([DAD], "one_dish", 0),
   );
 });
 
@@ -231,11 +239,11 @@ Deno.test("UN MINEUR NE REÇOIT AUCUN FAIT CORPOREL, même avec un compte", () =
   const teen = buildPortionBrief([{
     ...KID,
     body: { ...KNOWN_BODY, heightCm: 152, latestWeight: { weekStart: "2026-08-03", value: 41 } },
-  }], "one_dish");
+  }], "one_dish", 0);
   assertEquals(lineOf(teen, "Léa"), "- Léa: child-size share of the same dish");
   // Le brief entier, pas seulement la ligne: aucun garde-fou de corps ne doit
   // apparaître non plus, sinon il annonce qu'il y avait quelque chose à cacher.
-  assertEquals(teen, buildPortionBrief([KID], "one_dish"));
+  assertEquals(teen, buildPortionBrief([KID], "one_dish", 0));
 });
 
 Deno.test("une bouche d'ÂGE INCONNU suit le mineur, pas le majeur", () => {
@@ -250,10 +258,12 @@ Deno.test("une bouche d'ÂGE INCONNU suit le mineur, pas le majeur", () => {
     ageState: "unknown",
     body: KNOWN_BODY,
     eatingSlots: null,
+    habits: [],
+    habitNote: null,
   };
   assertEquals(
-    buildPortionBrief([unknown], "one_dish"),
-    buildPortionBrief([{ ...unknown, body: null }], "one_dish"),
+    buildPortionBrief([unknown], "one_dish", 0),
+    buildPortionBrief([{ ...unknown, body: null }], "one_dish", 0),
   );
 });
 
@@ -262,12 +272,12 @@ Deno.test("LA MUTATION — retirer le corps du rendu doit faire ROUGIR", () => {
   // change la règle ne mesure rien. On ne peut pas muter le module depuis ici,
   // alors on mute l'ENTRÉE de la seule façon qui compte et on exige que la
   // sortie bouge — dans les DEUX sens.
-  const base = buildPortionBrief(MIXED, "one_dish");
+  const base = buildPortionBrief(MIXED, "one_dish", 0);
   const taller = buildPortionBrief([
     { ...DAD, body: { ...KNOWN_BODY, heightCm: 158 } },
     MIXED[1],
     MIXED[2],
-  ], "one_dish");
+  ], "one_dish", 0);
   assert(base !== taller, "changer la taille ne change pas le brief");
   assert(taller.includes("height 158 cm"), taller);
   assert(!taller.includes("height 186 cm"), taller);
@@ -618,7 +628,9 @@ function directionFor(goal: PortionMember["goal"]): string {
     ageState: "adult",
     body: null,
     eatingSlots: null,
-  }], "one_dish").split("\n").find((l) => l.startsWith("- Solo:"))!;
+    habits: [],
+    habitNote: null,
+  }], "one_dish", 0).split("\n").find((l) => l.startsWith("- Solo:"))!;
   return line.slice("- Solo: ".length);
 }
 
@@ -663,7 +675,7 @@ Deno.test("« santé » ne rend pas l'assiette de qui n'a rien déclaré", () =>
  */
 Deno.test("les moments d'une bouche arrivent sur SA ligne", () => {
   const tom: PortionMember = { ...SON, eatingSlots: ["lunch", "dinner"] };
-  const brief = buildPortionBrief([DAD, tom], "one_dish");
+  const brief = buildPortionBrief([DAD, tom], "one_dish", 0);
   const line = brief.split("\n").find((l) => l.startsWith("- Tom:"))!;
   assertStringIncludes(line, "eats at lunch, dinner only");
   // ET PAS SUR CELLE DES AUTRES. Un fait par personne, sinon il ne distingue
@@ -679,6 +691,7 @@ Deno.test("la consigne dit ce que le fait INTERDIT", () => {
   const brief = buildPortionBrief(
     [{ ...SON, eatingSlots: ["dinner"] }],
     "one_dish",
+    0,
   );
   assertStringIncludes(brief, "NO serving at any");
   assertStringIncludes(brief, "do not compensate elsewhere");
@@ -690,7 +703,7 @@ Deno.test("`null` ne dit RIEN — et surtout pas les moments de la maison", () =
   // chaque ligne soit « complète ». Ce serait écrire, à côté du prénom de
   // quelqu'un, un fait que personne n'a énoncé — et le modèle le lirait comme
   // une déclaration.
-  const brief = buildPortionBrief([DAD, SON, KID], "one_dish");
+  const brief = buildPortionBrief([DAD, SON, KID], "one_dish", 0);
   assert(!brief.includes("eats at"), brief);
   // Et la consigne d'interdiction ne s'invite pas non plus: elle n'a pas de
   // sens sans un « eats at ... only » à qui l'appliquer... sauf qu'elle est
@@ -704,7 +717,7 @@ Deno.test("un tableau VIDE se comporte comme `null`, jamais comme « jamais »",
   // avant cette garde, ou un jsonb bricolé à la main, peut en porter un. Il ne
   // doit surtout pas produire « eats at  only » — une consigne vide qui se lit
   // comme « ne le sers jamais ».
-  const brief = buildPortionBrief([{ ...SON, eatingSlots: [] }], "one_dish");
+  const brief = buildPortionBrief([{ ...SON, eatingSlots: [] }], "one_dish", 0);
   assert(!brief.includes("eats at"), brief);
 });
 

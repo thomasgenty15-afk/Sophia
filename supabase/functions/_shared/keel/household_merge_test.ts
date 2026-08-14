@@ -60,6 +60,9 @@ function memberOf(over: Partial<PortionMember> = {}): PortionMember {
     goal: null,
     ageState: "adult",
     body: null,
+    eatingSlots: null,
+    habits: [],
+    habitNote: null,
     ...over,
   };
 }
@@ -172,7 +175,7 @@ Deno.test("LA FUSION LIT EXACTEMENT LA DIRECTION QUE LE BRIEF ÉCRIT", () => {
       memberOf({ ageState: "unknown", goal: "performance" }),
     ]
   ) {
-    const brief = buildPortionBrief([member], "one_dish");
+    const brief = buildPortionBrief([member], "one_dish", 0);
     assert(
       brief.includes(`- ${member.displayName}: ${servingDirectionFor(member)}`),
       `le brief n'écrit pas la direction que la fusion lit: ${brief}`,
@@ -1422,8 +1425,14 @@ const PARSE_BASE = {
 };
 
 const PROMPT_BASE = {
+  firstDayCookable: true,
+  contentLocale: "en-US",
+  budgetAmount: null,
   safetyConstraints: null,
   body: null,
+  eatingSlots: null,
+  habits: [],
+  habitNote: null,
   focusAxis: null,
   doctrineBlock: "",
   coachNoteBlock: null,
@@ -2636,7 +2645,14 @@ Deno.test("C8 ③ — LA LANE INDIVIDUELLE GARDE SA VERSION DE PROMPT", () => {
   // servi est byte-identique et seul le contrat de sortie change. Bumper
   // invaliderait le cache d'une population entière pour un prompt identique.
   assertEquals(MEAL_PROMPT_VERSION, "meal.en.v9_cooking_shape");
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v9_merge_dedicated_per_meal");
+  // ⚠️ v10 DEPUIS LE LOT G (2026-08-14), ET C'EST LA MOITIÉ DU LOT QUI COMPTE
+  // ICI: le TRONC ne bouge toujours pas (la ligne au-dessus le tient), la lane
+  // du FOYER si. Deux populations neuves y voient une consigne différente —
+  // les foyers où une bouche porte une habitude, et ceux qui atteignent le
+  // barreau ② SANS fusion. Toutes les autres, fusions comprises, rendent un
+  // prompt byte-identique à v9, et `household_meal_generation_test.ts` le
+  // tient par égalité de chaîne.
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v10_habits_and_cooking_shape");
 });
 
 Deno.test("C7 ③ — LA LIGNE DE COURSES D'UN PLAT JETÉ NE PART PLUS AU MAGASIN", () => {

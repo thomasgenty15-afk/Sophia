@@ -48,6 +48,16 @@
 import { goalApplies, type MemberAgeState } from "./household.ts";
 import { findForbiddenMatches, type ForbiddenTerm } from "./forbidden_matcher.ts";
 import { householdBodyFacts, type MealBodyContext } from "./meal_body.ts";
+// G4 — LE MODULE DES HABITUDES EST IMPORTÉ, JAMAIS RECOPIÉ. Le fragment de
+// ligne et sa phrase de conséquence vivent avec la lecture du jsonb: deux
+// endroits qui écriraient le marqueur `has their own` finiraient par en écrire
+// deux formes différentes, et la conséquence ne s'attacherait plus à rien.
+import {
+  habitFragment,
+  habitNoteFragment,
+  HABIT_CONSEQUENCE,
+  type MemberHabit,
+} from "./household_habits.ts";
 
 /** Reflet du CHECK `student_goals_goal_check`. */
 export const MEMBER_GOALS = [
@@ -110,6 +120,41 @@ export interface PortionMember {
    * construit sans être branché.
    */
   eatingSlots: readonly string[] | null;
+  /**
+   * G4 — CE QU'ELLE MANGE QUAND ELLE NE MANGE PAS LE PLAT DE LA MAISON.
+   *
+   * ── LE DÉFAUT QUE CE CHAMP FERME, ET IL A UNE DATE ────────────────────
+   * Un plan réel a servi des ŒUFS BROUILLÉS SEPT MATINS D'AFFILÉE à une femme
+   * qui mange une pomme. Le plan n'a pas ignoré son habitude: personne ne la
+   * lui a demandée, et il n'existait aucun champ pour la ranger. `body` savait
+   * sa taille, `eatingSlots` savait qu'elle prend un petit-déjeuner — rien ne
+   * savait ce qu'elle y mange.
+   *
+   * ⚠️ `[]` EST LE CAS MAJORITAIRE, ET IL N'Y A PAS DE `null`. Contrairement à
+   * `eatingSlots`, les deux valeurs diraient ici la MÊME chose: « personne n'a
+   * rien dit » et « elle mange le plat de la maison partout » produisent le
+   * même prompt, la même assiette et la même liste de courses. Deux
+   * représentations d'un seul fait finissent toujours par être testées à
+   * moitié; celle-ci n'en a qu'une.
+   *
+   * ⚠️ REQUIS, jamais optionnel — même raison que `body` et `eatingSlots`
+   * au-dessus. Un `?` n'aurait fait remonter aucun appelant au compilateur, et
+   * le lot se serait construit sans être branché: la table remplie, l'écran
+   * livré, et le brief inchangé.
+   */
+  habits: readonly MemberHabit[];
+  /**
+   * G4 — SA LIGNE LIBRE, ou `null`. UNE ligne, durable, par bouche (B3).
+   *
+   * ⚠️ REQUIS ET NULLABLE, jamais optionnel — la troisième fois dans cette
+   * interface. `null` dit « elle n'a rien ajouté »; `""` ne doit jamais arriver
+   * ici, la garde d'entrée le rend `null`.
+   *
+   * ⚠️ ELLE A DÉJÀ PASSÉ `readHabitText` QUAND ELLE ARRIVE. Ce module n'ouvre
+   * aucune seconde garde de texte: `gateMemberHabits` est la porte, et une
+   * seconde ici divergerait de la première dans la semaine.
+   */
+  habitNote: string | null;
 }
 
 export interface PreparationShare {
@@ -452,6 +497,133 @@ const COOKING_SHAPE_LINES: Record<CookingShape, readonly string[]> = {
 };
 
 /**
+ * G5 — « ONE person below » ÉTAIT VRAI D'UNE FUSION, ET FAUX D'UNE COMPOSITION.
+ *
+ * Une fusion reprend UNE personne: le singulier y est exact, et c'est pour ça
+ * qu'il a été écrit. Depuis le 2026-08-14 le barreau ② est atteignable en
+ * COMPOSITION ORDINAIRE — là, plusieurs bouches peuvent diverger à la fois, et
+ * « ONE person » ferait servir un seul plat de plus à trois personnes dont les
+ * directions s'opposent.
+ *
+ * ⚠️ LE CHEMIN DE FUSION NE BOUGE PAS D'UN OCTET, ET C'EST TESTÉ. Une fusion
+ * passe TOUJOURS `1` (elle reprend une personne, jamais deux), donc elle rend
+ * exactement le tableau ci-dessus. Le pluriel n'existe que pour une population
+ * qui, avant le 2026-08-14, n'atteignait jamais ce barreau: il ne peut donc
+ * re-stamper aucun plan existant.
+ *
+ * ⚠️ IL N'Y A PAS DE PLURIEL POUR ③. Le barreau ③ (session propre, jour propre)
+ * reste RÉSERVÉ À LA FUSION, où il a été mesuré: un budget de temps permet un
+ * second plat DANS LA MÊME SESSION, il ne permet pas une seconde session.
+ */
+const ONE_SESSION_LINES_MANY: readonly string[] = [
+  "Cook ONE set of preparations for the table. SOME of the people below cannot",
+  "be served from it (their lines say so): at EVERY meal they eat here, each of",
+  "them gets a dish of their OWN, cooked in the SAME cooking session as the",
+  "rest — one session at the stove, the table's dish and theirs out of it.",
+  "Never more dishes at one meal than the table's dish plus one per person",
+  "marked that way.",
+];
+
+/**
+ * LA LIGNE DE FORME, POUR CE BARREAU ET CE NOMBRE DE BOUCHES QUI DIVERGENT.
+ *
+ * ⚠️ `divergingCount` EST REQUIS, jamais optionnel et jamais défaut-é. « Un
+ * paramètre de garde optionnel = une garde désarmée » est la cicatrice
+ * fondatrice de ce fichier (`buildPortionBrief` porte déjà la même note sur
+ * `cooking`): un `?` ici n'aurait fait remonter AUCUN appelant au compilateur,
+ * et une composition à trois divergents aurait servi la phrase du singulier.
+ *
+ * `0` et `1` rendent la MÊME chose, et ce n'est pas un oubli: à `one_dish` le
+ * nombre ne gouverne rien, et un barreau ② à zéro divergent est une
+ * contradiction d'appelant que ce module ne peut pas réparer — il rend la
+ * consigne la moins bavarde des deux plutôt que d'inventer un pluriel vide.
+ */
+export function cookingShapeLines(
+  cooking: CookingShape,
+  divergingCount: number,
+): readonly string[] {
+  const many = Number.isFinite(divergingCount) && divergingCount >= 2;
+  if (cooking === "one_session" && many) return ONE_SESSION_LINES_MANY;
+  return COOKING_SHAPE_LINES[cooking];
+}
+
+// ---------------------------------------------------------------------------
+// G5 — LE TEMPS PLAFONNE, LA DIVERGENCE DÉCLENCHE (arbitrage B1, 2026-08-14)
+//
+// LES DEUX MOITIÉS NE SE REMPLACENT PAS:
+//
+//   · LE TEMPS PLAFONNE. Sous le seuil, `one_dish` est FORCÉ, quoi que les
+//     directions demandent. Un second plat qu'on n'a pas le temps de cuire est
+//     une promesse que la semaine ne tient pas, et le plan préfère le dire
+//     (`plan_rationale.ts`) que le promettre.
+//   · LA DIVERGENCE DÉCLENCHE. Au-dessus du seuil, le barreau ② devient
+//     ATTEIGNABLE et rien de plus: il ne se lève que là où une direction de
+//     service ne peut pas sortir de la casserole commune. Le temps ne fabrique
+//     pas de plats inutiles.
+//
+// ⚠️ `cookingTimeMin` EST PAR SESSION, VÉRIFIÉ LE 2026-08-14 AVANT DE MULTIPLIER,
+// trois fois plutôt qu'une:
+//   · le prompt l'écrit littéralement — « time per cooking session: about N
+//     minutes » (`meal_generation.ts`);
+//   · la garde d'intégrité compare N au total d'UNE session, jour par jour
+//     (`meal_generation.ts`: « cooking session on ${day} runs ${n} min »);
+//   · l'écran ne propose que six durées de SESSION, de 30 min à 3 h
+//     (`frontend/src/keel/api/planBudget.ts#COOKING_SESSION_MINUTES`).
+// Si ce champ devenait un total HEBDOMADAIRE, la multiplication ci-dessous
+// serait fausse d'un facteur `cookDays.length` et le seuil ne voudrait plus
+// rien — c'est la première chose à re-vérifier avant de toucher à ce bloc.
+// ---------------------------------------------------------------------------
+
+/**
+ * 1 h 30 PAR SEMAINE, DÉCIDÉ PAR L'UTILISATEUR LE 2026-08-14.
+ *
+ * Ce n'est pas une mesure, c'est un ARBITRAGE, et il est écrit ici en un seul
+ * endroit pour que le déplacer soit un geste et pas une chasse. Le foyer du
+ * constat en déclare 180 (2 jours × 90 min) et passe donc largement — le seuil
+ * n'existe pas pour lui, il existe pour le foyer qui déclare une heure et à qui
+ * on promettrait deux plats.
+ */
+export const SEPARATE_DISH_MIN_WEEKLY_MINUTES = 90;
+
+/**
+ * LE TEMPS DE CUISINE D'UNE SEMAINE, ou `null` si on ne le sait pas.
+ *
+ * ⚠️ `null` N'EST PAS ZÉRO, et les traiter pareil serait le défaut. « Aucun jour
+ * coché » et « pas de durée déclarée » veulent dire QU'ON NE SAIT PAS, et un
+ * foyer qui n'a rien dit ne doit pas se voir refuser un second plat au nom d'un
+ * budget qu'il n'a jamais posé — ni s'en voir promettre un. `null` remonte tel
+ * quel jusqu'à `plan_rationale`, qui se tait alors: on n'explique pas une
+ * décision qu'on n'a pas prise.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function weeklyCookingMinutes(args: {
+  cookDays: readonly string[];
+  cookingTimeMin: number | null;
+}): number | null {
+  const days = Array.isArray(args.cookDays) ? args.cookDays.length : 0;
+  const per = Number(args.cookingTimeMin);
+  if (days === 0) return null;
+  if (!Number.isFinite(per) || per <= 0) return null;
+  return days * Math.floor(per);
+}
+
+/**
+ * LE TEMPS PERMET-IL UN SECOND PLAT ?
+ *
+ * ⚠️ `null` (on ne sait pas) rend `true`, et c'est un arbitrage explicite. Le
+ * seuil existe pour REFUSER une promesse qu'un budget déclaré ne tient pas; il
+ * n'existe pas pour punir un foyer qui n'a pas rempli la carte de cuisine.
+ * Traiter l'ignorance comme un refus ferait retomber sur `one_dish` toute la
+ * population qui n'a jamais vu la question — c'est-à-dire changer le
+ * comportement de gens à qui on n'a rien demandé, ce que ce lot ne fait pas.
+ */
+export function timeAllowsASecondDish(minutes: number | null): boolean {
+  if (minutes === null || !Number.isFinite(minutes)) return true;
+  return minutes >= SEPARATE_DISH_MIN_WEEKLY_MINUTES;
+}
+
+/**
  * LES DEUX BARREAUX QUI DEMANDENT UN PLAT DE PLUS — lu sur les lignes
  * ci-dessus, jamais recopié.
  *
@@ -649,9 +821,34 @@ export function buildPortionBrief(
    * qu'elle lui demande de faire.
    */
   cooking: CookingShape,
+  /**
+   * G5 — COMBIEN DE BOUCHES NE PEUVENT PAS SORTIR DE LA CASSEROLE COMMUNE.
+   *
+   * ⚠️ REQUIS, jamais optionnel, exactement comme `cooking` juste au-dessus, et
+   * pour la même raison mesurée: un `?` n'aurait fait remonter aucun appelant, et
+   * une composition à trois divergents aurait servi « ONE person below » — la
+   * phrase du singulier, écrite pour une fusion, qui promet UN plat de plus à
+   * trois personnes dont les directions s'opposent.
+   *
+   * ⚠️ CE N'EST PAS CE MODULE QUI LE CALCULE, et c'est délibéré. Le critère est
+   * `servingConflicts` (`household_merge.ts`), et l'importer d'ici ferait un
+   * CYCLE — ce fichier est déjà importé par celui-là. L'appelant qui décide du
+   * barreau est le seul à pouvoir répondre, et c'est lui qui a la réponse sous
+   * la main de toute façon: il vient de la calculer pour choisir `cooking`.
+   *
+   * Une FUSION passe toujours `1` — elle reprend une personne, jamais deux — et
+   * rend donc le texte byte-identique à celui d'avant le lot G.
+   */
+  divergingCount: number,
 ): string {
   if (members.length === 0) return "";
   let anyBodyFacts = false;
+  // ⚠️ MÊME DISCIPLINE QUE `anyBodyFacts` ET `anyRhythm`, POUR LA TROISIÈME
+  // FOIS DANS CETTE FONCTION: la conséquence des habitudes n'est énoncée que si
+  // au moins une bouche en porte une. Servie à un foyer où personne n'a rien
+  // dit, elle apprend au modèle qu'il existe un marquage « elle mange autre
+  // chose » — et l'invite à en inventer un.
+  let anyHabit = false;
   // ⚠️ MÊME DISCIPLINE QUE `anyBodyFacts`, ET POUR LA MÊME RAISON: on n'énonce
   // pas une contrainte que personne n'a posée. Une consigne « quand quelqu'un
   // est marqué… » servie à un foyer où personne ne l'est apprend au modèle
@@ -685,13 +882,32 @@ export function buildPortionBrief(
       ? ""
       : ` — eats at ${m.eatingSlots.join(", ")} only`;
     if (when !== "") anyRhythm = true;
-    if (facts.length === 0) return `- ${m.displayName}: ${direction}${when}`;
+    // ── G4 · CE QU'ELLE MANGE À LA PLACE, SUR SA PROPRE LIGNE ────────────
+    // APRÈS le rythme, et l'ordre porte du sens: `— eats at breakfast only`
+    // dit QUAND elle mange, `— has their own at breakfast: une pomme` dit CE
+    // QU'ELLE Y MANGE. Le second se lit comme une précision du premier; dans
+    // l'autre sens il se lirait comme une exception à une règle pas encore
+    // énoncée.
+    //
+    // Rien n'est écrit quand la liste est vide — le cas majoritaire. Une
+    // mention « eats the household dish » recopiée pour tout le monde noierait
+    // précisément celle qui dit une différence, et c'est le raisonnement exact
+    // qui gouverne déjà `when` deux lignes plus haut.
+    const own = habitFragment(m.habits ?? []);
+    if (own !== "") anyHabit = true;
+    // LA LIGNE LIBRE VIENT APRÈS LES MOMENTS MARQUÉS, et avant les faits
+    // corporels. Elle ne compte PAS dans `anyHabit`: la conséquence parle du
+    // marqueur `has their own`, et une note seule n'en pose aucun. Énoncer la
+    // conséquence pour une note ferait dire au modèle qu'une bouche est
+    // dispensée du plat commun alors que personne ne l'a écrit.
+    const said = habitNoteFragment(m.habitNote ?? null);
+    if (facts.length === 0) return `- ${m.displayName}: ${direction}${when}${own}${said}`;
     anyBodyFacts = true;
-    return `- ${m.displayName}: ${direction}${when} [${facts.join("; ")}]`;
+    return `- ${m.displayName}: ${direction}${when}${own}${said} [${facts.join("; ")}]`;
   });
   return [
     "HOUSEHOLD SERVING PLAN — one cooking session, portions that differ.",
-    ...COOKING_SHAPE_LINES[cooking],
+    ...cookingShapeLines(cooking, divergingCount),
     "For each person below, give a short serving instruction: how much of which",
     "component goes on their plate, and which side is added or dropped.",
     // LA CONSÉQUENCE DU « eats at ... only », DITE UNE FOIS, ET SEULEMENT SI
@@ -704,6 +920,13 @@ export function buildPortionBrief(
         "other moment — do not shift their meal, do not compensate elsewhere.",
       ]
       : []),
+    // ── G4 · LA CONSÉQUENCE DES HABITUDES, DITE UNE FOIS ────────────────────
+    // Juste après celle du rythme, et pour la même raison qu'elle existe: une
+    // contrainte qu'on énonce sans dire ce qu'elle INTERDIT est une contrainte
+    // décorative. Le fait « elle a son habitude au petit-déjeuner » sans cette
+    // phrase produit exactement le plan mesuré — sept petits-déjeuners servis à
+    // quelqu'un qui n'en mange pas.
+    ...(anyHabit ? [...HABIT_CONSEQUENCE] : []),
     "",
     ...lines,
     "",

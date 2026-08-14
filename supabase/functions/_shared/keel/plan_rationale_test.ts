@@ -36,6 +36,11 @@ function nominalFacts(): PlanRationaleFacts {
     mouthsServed: null,
     handTakenBy: [],
     mergedIn: [],
+    // G5 — `null` = « on n'a pas lu le temps de cuisine ». Le cas nominal est
+    // celui d'un plan ORDINAIRE, et un plan ordinaire ne parle pas de forme de
+    // cuisson: la phrase du seuil a trois prémisses, et celle-ci n'en arme
+    // aucune.
+    weeklyCookingMinutes: null,
   };
 }
 
@@ -293,6 +298,9 @@ Deno.test("AUCUN gabarit ne culpabilise — la porte 4 ne doit jamais mordre", (
     mouthsServed: 4,
     handTakenBy: ["Zoé"],
     mergedIn: ["Tom"],
+    // 60 min < 90: le seuil mord, et la phrase de forme entre dans le lot que
+    // la porte anti-culpabilisation doit relire.
+    weeklyCookingMinutes: 60,
   };
   for (const locale of ["fr", "en"] as const) {
     const out = explainPlanChoices({ facts: tout, locale });

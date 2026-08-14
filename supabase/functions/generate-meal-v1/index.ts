@@ -1981,6 +1981,12 @@ Deno.serve(async (req) => {
           mouthsServed: null,
           handTakenBy: [],
           mergedIn: [],
+          // G5 — `null`, ET C'EST DÉFINITIF SUR CETTE LANE. Le seuil hebdomadaire
+          // décide si un FOYER peut cuire deux plats; une personne seule n'a
+          // jamais eu cette question, et la phrase ne sort de toute façon
+          // qu'au-dessus d'une bouche. Passer le vrai budget d'ici ferait porter
+          // au module une prémisse qu'il ne peut pas honorer.
+          weeklyCookingMinutes: null,
         },
       });
       rationaleLines = explained.lines;

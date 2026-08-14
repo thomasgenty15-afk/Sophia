@@ -129,6 +129,11 @@ import {
   mergeMaterialShown,
   observeMergeShape,
   type PlanSpan,
+  // G5 — LE CRITÈRE DE DIVERGENCE EST CELUI DE LA FUSION, LU ET PAS RÉÉCRIT.
+  // « Une casserole déjà composée peut toujours en donner moins, jamais plus
+  // qu'elle n'en contient »: `servingConflicts` porte cette phrase depuis D6,
+  // et une seconde lecture ailleurs finirait par en dire autre chose.
+  servingConflicts,
 } from "../_shared/keel/household_merge.ts";
 import {
   carryMergedFrom,
@@ -178,7 +183,19 @@ import {
   type PortionMember,
   reconcilePortions,
   servingDemandsFor,
+  // G5 — LE TEMPS PLAFONNE, LA DIVERGENCE DÉCLENCHE (arbitrage B1).
+  type CookingShape,
+  timeAllowsASecondDish,
+  weeklyCookingMinutes,
 } from "../_shared/keel/household_portions.ts";
+// G4 — CE QUE CHAQUE BOUCHE MANGE QUAND ELLE NE MANGE PAS LE PLAT DE LA MAISON.
+// La garde de texte n'est PAS ici: `gateMemberHabits` délègue à
+// `plan_draft_note.ts::readDraftNote`, la même porte que la note de reprise.
+import {
+  gateMemberHabits,
+  type MemberHabit,
+  parseMemberHabits,
+} from "../_shared/keel/household_habits.ts";
 import { loadHouseholdMemberBodies } from "../_shared/keel/household_bodies.ts";
 import {
   memberDeltasPayload,
@@ -393,6 +410,13 @@ interface RosterRow {
   // « about you » (si elle a un compte) et sa ligne (sinon) — exactement comme
   // `goal` au-dessus. `null` = personne ne l'a dit.
   eating_rhythm: unknown;
+}
+
+/** Une ligne de `keel_household_habits_for`, telle que la base la rend (G1). */
+interface HabitRow {
+  member_id: string;
+  slots: unknown;
+  note: string | null;
 }
 
 // ===========================================================================
@@ -931,6 +955,41 @@ Deno.serve(async (req) => {
       .map((r) => r.user_id)
       .filter((id): id is string => typeof id === "string" && id.length > 0);
 
+    // ── G4 · CE QUE CHAQUE BOUCHE MANGE QUAND CE N'EST PAS LE PLAT DE LA
+    //         MAISON (2026-08-14) ────────────────────────────────────────
+    //
+    // ⚠️ LE DÉFAUT QUE CETTE LECTURE FERME A UNE DATE ET UN CHIFFRE: un plan
+    // réel a servi des ŒUFS BROUILLÉS SEPT MATINS D'AFFILÉE à une femme qui
+    // mange une pomme. Le plan n'avait pas ignoré son habitude — personne ne la
+    // lui avait demandée, et il n'existait aucun champ où la ranger.
+    //
+    // `keel_household_habits_for` et PAS un select sur la table: elle est
+    // fermée à `anon` comme à `authenticated`, et la fonction à argument est la
+    // porte du SERVEUR — `auth.uid()` est NULL sous `service_role`, cicatrice
+    // que ce dépôt a déjà payée par des RPC entièrement mortes.
+    //
+    // UNE BOUCHE ABSENTE DU RÉSULTAT MANGE LE PLAT DE LA MAISON. C'est le cas
+    // majoritaire, et il est GRATUIT: pas de ligne, pas de fragment de prompt,
+    // pas de jeton dépensé.
+    //
+    // ⚠️ LE TEXTE N'EST PAS ENCORE GARDÉ ICI. `readDraftNote` a besoin des
+    // interdits du coach et du plancher TCA, tous deux chargés bien plus bas;
+    // le gardiennage se fait donc en UN endroit, juste avant la construction du
+    // prompt (`gateMemberHabits`). Ce qui sort d'ici est BRUT, et rien ne doit
+    // le mettre dans un prompt sans passer par là.
+    const habitsRes = await admin.rpc("keel_household_habits_for", { p_user: userId });
+    if (habitsRes.error) throw habitsRes.error;
+    const rawHabits = new Map<string, { slots: MemberHabit[]; note: string | null }>();
+    for (const row of (habitsRes.data ?? []) as HabitRow[]) {
+      const memberId = String(row.member_id ?? "").trim();
+      if (memberId.length === 0) continue;
+      const note = String(row.note ?? "").trim();
+      rawHabits.set(memberId, {
+        slots: parseMemberHabits(row.slots),
+        note: note.length > 0 ? note : null,
+      });
+    }
+
     // --- LE JOUR DU COMPTE MAÎTRE, dans SON fuseau ------------------------
     // Le foyer cuisine ensemble: il n'a qu'un seul calendrier, et c'est celui
     // de la personne qui compose. Faire la moyenne de quatre fuseaux
@@ -1396,6 +1455,14 @@ Deno.serve(async (req) => {
         eatingSlots: r.eating_rhythm === null || r.eating_rhythm === undefined
           ? null
           : parseEatingRhythm(r.eating_rhythm).map((s) => s.slot),
+        // ── G4 · CE QU'ELLE MANGE À LA PLACE ────────────────────────────
+        // BRUT à ce stade, et le champ le dit: la garde de texte s'applique en
+        // un seul endroit, juste avant le prompt. Le poser ici DÉJÀ gardé
+        // demanderait la doctrine du coach, chargée 400 lignes plus bas — et
+        // deux gardes séparées par 400 lignes finissent par en être une seule,
+        // celle qu'on oublie d'appliquer.
+        habits: rawHabits.get(r.member_id)?.slots ?? [],
+        habitNote: rawHabits.get(r.member_id)?.note ?? null,
       };
     });
 
@@ -2350,6 +2417,110 @@ Deno.serve(async (req) => {
       dedicatedCells: mergedEaterCells,
     };
 
+    // ═══════════════════════════════════════════════════════════════════════
+    // G5 — LE TEMPS PLAFONNE, LA DIVERGENCE DÉCLENCHE (arbitrage B1, 2026-08-14)
+    // ═══════════════════════════════════════════════════════════════════════
+    //
+    // CE QUE CE BLOC REMPLACE. Le plat unique était une CONSTANTE, pas un
+    // réglage: `buildHouseholdPromptBlocks` écrivait `merge?.shape ??
+    // "one_dish"`, donc toute composition ordinaire était clouée au barreau ①
+    // — « Cook ONE set of preparations for everyone. Do NOT propose separate
+    // dishes. » — quelles que soient les directions à table.
+    //
+    // LES DEUX MOITIÉS NE SE REMPLACENT PAS:
+    //
+    //   · LE TEMPS PLAFONNE. Sous `SEPARATE_DISH_MIN_WEEKLY_MINUTES`,
+    //     `one_dish` est forcé. Un second plat qu'on n'a pas le temps de cuire
+    //     est une promesse que la semaine ne tient pas; le plan le DIT
+    //     (`plan_rationale`, phrase ⑤) plutôt que de le promettre.
+    //   · LA DIVERGENCE DÉCLENCHE. Au-dessus, le barreau ② devient ATTEIGNABLE
+    //     et rien de plus. Le temps ne fabrique pas de plats inutiles.
+    //
+    // ⚠️ LE CRITÈRE EST CELUI DE D6, LU ET PAS RÉÉCRIT. `servingConflicts`
+    // porte la phrase depuis la fusion: « une casserole déjà composée peut
+    // toujours en donner moins, jamais plus qu'elle n'en contient », et une
+    // demande à `balanced` ou en dessous est TOUJOURS servable. La seule chose
+    // qui change est le paramètre `table`: la fusion y met la tablée SANS
+    // l'entrant, une composition y met tout le monde SAUF la personne qu'on
+    // examine. C'est la même question posée N fois au lieu d'une.
+    //
+    // ⚠️ CE N'EST PAS UN REFUS, DONC SA POSITION NE COÛTE RIEN — même note que
+    // le barreau de fusion 200 lignes plus haut. Il change la CONSIGNE, pas le
+    // droit de composer.
+    //
+    // ⚠️ ③ RESTE RÉSERVÉ À LA FUSION. Un budget de temps permet un second plat
+    // DANS LA MÊME SESSION; il ne permet pas une seconde session, sur un jour
+    // propre. C'est le seul barreau que ce lot n'ouvre pas, et c'est écrit
+    // dans la spec: ③ n'a été mesuré que sur une fusion.
+    const weeklyMinutes = weeklyCookingMinutes({
+      cookDays: capacity.cookDays ?? [],
+      cookingTimeMin: capacity.cookingTimeMin,
+    });
+    // LES BOUCHES QUI NE SORTENT PAS DE LA CASSEROLE COMMUNE. Sur `platedMembers`
+    // — celles qui ont une assiette dans CE plan-là — parce que ce sont elles
+    // qui dimensionnent la casserole. Y compter une absente ferait lever un
+    // second plat pour quelqu'un qui ne mange pas ici.
+    const divergingMembers = merge !== null || !timeAllowsASecondDish(weeklyMinutes)
+      ? []
+      : platedMembers.filter((m) =>
+        servingConflicts(
+          platedMembers.filter((other) => other.memberId !== m.memberId).map(servingDemandsFor),
+          servingDemandsFor(m),
+        ).length > 0
+      );
+    // LE BARREAU DE LA COMPOSITION. `one_session` ou rien: voir la note sur ③.
+    const compositionShape: CookingShape = divergingMembers.length > 0
+      ? "one_session"
+      : "one_dish";
+    // LA FORME SERVIE AU BRIEF — la fusion garde la main quand elle est là.
+    // Une requête porte UNE opération: `merge` et une composition ordinaire ne
+    // sont jamais toutes deux vraies, et ce `??` le dit sans arbitrer.
+    const cookingShape: CookingShape = ladder?.shape ?? compositionShape;
+    // Une FUSION reprend UNE personne, jamais deux: `1` rend la ligne de forme
+    // byte-identique à celle d'avant ce lot. Voir `cookingShapeLines`.
+    const divergingCount = ladder === null
+      ? divergingMembers.length
+      : (ladder.shape === "one_dish" ? 0 : 1);
+    // LES CASES OÙ LES DIVERGENTS MANGENT ICI, et le nombre de plats dédiés qui
+    // en découle.
+    //
+    // ⚠️ SANS CE BUDGET, LA CONSIGNE RÉCLAMERAIT DES PLATS QUE LE PLAFOND
+    // N'OUVRE PAS — et ce dépôt sait exactement ce que ça coûte: mesuré le
+    // 2026-08-12, le modèle a rendu 16 plats pour un plafond de 15, et le plat
+    // jeté par le parseur n'était pas celui en trop, c'était LE DÎNER DU
+    // DIMANCHE DU FOYER. Le type est `MergedEater` parce que c'est le canal que
+    // le tronc lit; ici il ne porte AUCUNE fusion — `ownDishesShown: 0`, il n'y
+    // a aucun plan personnel sous les yeux du modèle.
+    const compositionEaterCells = divergingMembers.flatMap((m) =>
+      memberMealCells({
+        away: m.away.effective,
+        rhythm: eatingRhythm.length > 0 ? eatingRhythm : DEFAULT_EATING_RHYTHM,
+        windowDays: daysToFill,
+      })
+    );
+    const compositionBudget: MergedEater | null = divergingMembers.length === 0 ? null : {
+      shape: compositionShape,
+      ownDishesShown: 0,
+      dedicatedDishesAsked: dedicatedDishesFor(
+        compositionShape,
+        compositionEaterCells.length,
+      ),
+      dedicatedCells: compositionEaterCells,
+    };
+    // LE SEUL NOMBRE QUE LES DEUX BOUTS LISENT — la consigne et le parseur. Un
+    // `??` et pas une fusion des deux: une requête porte une opération.
+    const eaterBudget: MergedEater | null = mergeBudget ?? compositionBudget;
+    console.log(JSON.stringify({
+      tag: "keel.household_meal.cooking_shape",
+      user_id: userId,
+      household_id: householdId,
+      weekly_cooking_minutes: weeklyMinutes,
+      time_allows_second_dish: timeAllowsASecondDish(weeklyMinutes),
+      shape: cookingShape,
+      diverging: divergingMembers.map((m) => m.memberId),
+      from_merge: ladder !== null,
+    }));
+
     // ── L5/D8 · LA MATIÈRE DE LA DÉFUSION — LE PLAN DE BASE ────────────────
     //
     // Les plats du plan du foyer VIVANT, ramenés à la fenêtre recomposée. C'est
@@ -2643,9 +2814,16 @@ Deno.serve(async (req) => {
       // seize plats, le parseur a jeté le dernier — le DÎNER DU DIMANCHE DU
       // FOYER, pas le plat de la personne reprise.
       //
-      // `null` sur une composition ordinaire: le plafond est alors celui
-      // d'avant ce lot, au plat près, et un test le tient.
-      merge: mergeBudget,
+      // `null` sur une composition ordinaire SANS divergence: le plafond est
+      // alors celui d'avant ce lot, au plat près, et un test le tient.
+      //
+      // ⚠️ G5 — CE N'EST PLUS `mergeBudget` MAIS `eaterBudget`, et l'écart est
+      // le lot: depuis le 2026-08-14 une COMPOSITION peut elle aussi réclamer
+      // un plat dédié (barreau ② hors fusion). Laisser `mergeBudget` ici
+      // rejouerait, mot pour mot, le défaut du 2026-08-12 — une consigne qui
+      // demande un second plat dans un plafond qui n'en ouvre aucun, et le
+      // parseur qui jette le dîner du dimanche du foyer.
+      merge: eaterBudget,
       // ── PEUT-ON ENCORE ACHETER PUIS CUISINER AUJOURD'HUI ? ─────────────
       // `true` hors de la fenêtre du jour, et `true` aussi quand l'horloge n'a
       // pas été lue — le comportement d'hier, DIT plutôt qu'hérité.
@@ -2656,7 +2834,42 @@ Deno.serve(async (req) => {
     });
 
     const household = buildHouseholdPromptBlocks({
-      members: platedMembers,
+      // ── G4 · LA GARDE DE TEXTE DES HABITUDES, EN UN SEUL ENDROIT ───────
+      //
+      // ⚠️ C'EST ICI ET NULLE PART AILLEURS. Les habitudes sont lues BRUTES
+      // avec le roster (la doctrine du coach n'était pas encore chargée), et
+      // c'est ce point de composition unique — le seul qui construise le
+      // prompt — qui les passe à `readDraftNote` via `gateMemberHabits`. Une
+      // seconde porte serait une porte SANS garde, et rien n'échouerait: un
+      // prompt n'a pas de compilateur.
+      //
+      // `restrictionFlag`: celui de LA BOUCHE, pas du compte qui compose —
+      // l'écart avec la note de brouillon est délibéré. Une note de reprise est
+      // écrite par la personne qui compose, donc c'est SON plancher; une
+      // habitude est une déclaration SUR une bouche, donc c'est le sien qui
+      // gouverne ce qu'on accepte d'en dire. `?? true` en fail-closed: une
+      // lecture de corps qui a échoué protège plutôt que d'exposer.
+      members: platedMembers.map((m) => {
+        const gated = gateMemberHabits({
+          habits: m.habits,
+          note: m.habitNote,
+          doctrineForbidden,
+          restrictionFlag: m.body?.restrictionFlag ?? true,
+        });
+        if (gated.issues.length > 0) {
+          console.log(JSON.stringify({
+            tag: "keel.household_meal.habits",
+            user_id: userId,
+            household_id: householdId,
+            member_id: m.memberId,
+            issues: gated.issues,
+          }));
+        }
+        return { ...m, habits: gated.kept, habitNote: gated.note };
+      }),
+      // G5 — LA FORME DE CUISINE, DÉCIDÉE PLUS HAUT ET PAR UN SEUL ENDROIT.
+      cooking: cookingShape,
+      divergingCount,
       envyLine,
       restrictions,
       presence,
@@ -2899,7 +3112,10 @@ Deno.serve(async (req) => {
       // d'UNE portion que les barreaux ② et ③ demandent. Passer `null` ici
       // pendant que la consigne dit ② ferait exactement ce que le run réel a
       // mesuré: le plat dédié parsé, puis jeté, et son titre resté nu en base.
-      merge: mergeBudget,
+      //
+      // ⚠️ G5 — `eaterBudget`, PAS `mergeBudget`: les deux bouts doivent lire
+      // le MÊME nombre, et une composition divergente en a un désormais.
+      merge: eaterBudget,
     } as const;
 
     let meal;
@@ -3232,6 +3448,12 @@ Deno.serve(async (req) => {
           mergedIn: [...new Set(mergedFromAll.map((e) => e.member_id))]
             .map((id) => nameOf.get(id) ?? "")
             .filter(Boolean),
+          // G5 — LE TEMPS QUI A PLAFONNÉ LA FORME. LA MÊME VALEUR que celle qui
+          // a DÉCIDÉ le barreau 900 lignes plus haut, jamais un second calcul:
+          // deux lectures du même budget finiraient par faire dire au plan
+          // l'inverse de ce qu'il a fait. `null` quand le foyer n'a coché aucun
+          // jour ou n'a déclaré aucune durée — la phrase se tait alors.
+          weeklyCookingMinutes: weeklyMinutes,
         },
       });
       rationaleLines = explained.lines;
