@@ -179,3 +179,164 @@ export function findNumericNutritionTarget(text: string): string | null {
   }
   return null;
 }
+
+// ---------------------------------------------------------------------------
+// FF-040 — LE REGISTRE DU RÉGIME, ET POURQUOI LE FILTRE NUMÉRIQUE NE SUFFIT PAS
+// ---------------------------------------------------------------------------
+
+/**
+ * LES MOTS QU'AUCUNE PROSE DU CHANTIER DE COMPOSITION NE DOIT PORTER.
+ *
+ * ── LE DÉFAUT QUE CETTE LISTE CORRIGE, ET IL EST NOMMÉ ────────────────────
+ * `findNumericNutritionTarget` mord sur les CHIFFRES. Il ne mord pas sur
+ * « déficit ». La formule qu'un des designs candidats proposait pour piloter
+ * l'énergie était « a modest, livable deficit » — aucun chiffre, donc aucun
+ * filtre ne la voyait, et c'est exactement le genre de phrase qu'un modèle
+ * ÉCHOE dans le `why` que l'élève lit. La revue TCA l'a classée défaut fatal.
+ *
+ * ── CE N'EST PAS UN FILTRE DE SORTIE, C'EST UN TEST DE CONSTANTES ─────────
+ * `FORBIDDEN_METRIC_TERMS` ci-dessus s'applique à du texte GÉNÉRÉ, au moment de
+ * le livrer. Cette liste-ci s'applique à ce que NOUS écrivons: les jetons de
+ * correction, les accents, les blocs de consigne. Elle tourne dans un test, pas
+ * au runtime — parce qu'une constante fautive doit être impossible à commiter,
+ * pas rattrapée en production.
+ *
+ * ── POURQUOI ELLE EST PLUS ÉTROITE QUE `FORBIDDEN_METRIC_TERMS` ──────────
+ * Elle vise le REGISTRE, pas la métrique. « poids » et « peser » n'y sont pas:
+ * une consigne de composition peut légitimement parler du poids d'un
+ * INGRÉDIENT (« 400 g de cuisses de poulet » est la sortie du produit). Ce
+ * qu'on interdit, c'est le vocabulaire qui fait d'un repas un régime.
+ */
+/**
+ * ⚠️ « SURPLUS » TOUT SEUL N'EST PAS UN MOT DU RÉGIME, ET LE TEST L'A PROUVÉ.
+ *
+ * La première version de cette liste le portait nu. Le test est tombé sur une
+ * phrase du prompt système qui existe depuis des mois et qui est parfaitement
+ * légitime:
+ *
+ *     « say plainly in the method that the surplus goes in the FREEZER »
+ *
+ * C'est le SURPLUS DE CUISSON — des restes. Interdire le mot aurait forcé à
+ * réécrire une consigne juste pour satisfaire une garde mal calibrée, ce qui
+ * est la façon dont une garde finit par être désactivée. Seules les formes
+ * COMPOSÉES entrent donc: « calorie surplus », « surplus calorique ».
+ *
+ * « deficit » reste nu: il n'a pas d'usage innocent dans une recette.
+ */
+export const DIET_REGISTER_LEXICON: readonly string[] = Object.freeze([
+  // EN
+  "deficit",
+  "deficits",
+  "calorie surplus",
+  "caloric surplus",
+  "energy surplus",
+  "calorie",
+  "calories",
+  "kcal",
+  "macro",
+  "macros",
+  "cutting",
+  "bulking",
+  "restrict",
+  "restricting",
+  "restriction",
+  "slimming",
+  "dieting",
+  "burn",
+  "burning",
+  "shred",
+  "shredding",
+  "lean out",
+  "leaning out",
+  "portion control",
+  "calorie deficit",
+  // FR
+  "deficit",
+  "déficit",
+  "deficits",
+  "déficits",
+  "surplus calorique",
+  "surplus energetique",
+  "surplus énergétique",
+  "calorie",
+  "calories",
+  "kilocalorie",
+  "kilocalories",
+  "macro",
+  "macros",
+  "seche",
+  "sèche",
+  "prise de masse",
+  "restriction",
+  "restreindre",
+  "regime",
+  "régime",
+  "amaigrissant",
+  "minceur",
+  "bruler",
+  "brûler",
+  // ── LES VERBES — AJOUTÉS LE 2026-08-14, ET LE TROU ÉTAIT SYSTÉMATIQUE ────
+  //
+  // Cette liste avait été écrite à partir de NOMS et d'ADJECTIFS: `régime`,
+  // `amaigrissant`, `minceur`, `sèche`, `cutting`, `slimming`. Mesuré ce
+  // jour-là, chaque tournure VERBALE traversait la garde, dans les deux
+  // langues:
+  //
+  //   « je veux maigrir » · « elle veut mincir » · « peur de grossir »
+  //   « perdre du poids » · « lose weight » · « slim down » · « get lean »
+  //
+  // C'est-à-dire précisément la façon dont quelqu'un formule ça en parlant.
+  // Un lexique qui attrape l'étiquette commerciale et laisse passer la phrase
+  // ordinaire protège le vocabulaire d'un magazine, pas la personne.
+  //
+  // ⚠️ CE QUI N'EST DÉLIBÉRÉMENT PAS AJOUTÉ, ET POURQUOI. « maigre » et
+  // « lean » nus sont des mots d'ALIMENT — « viande maigre », « fromage
+  // maigre », « lean protein », « lean beef ». Les ajouter refuserait une
+  // description de courses parfaitement légitime: c'est le piège
+  // « laitue » / « lait » que ce dépôt a déjà payé, et le test ci-après tient
+  // ces quatre phrases comme cas QUI PASSENT. Seules les formes qui ne
+  // désignent que l'intention entrent ici.
+  "maigrir",
+  "mincir",
+  "grossir",
+  "perdre du poids",
+  "prendre du poids",
+  "perte de poids",
+  "prise de poids",
+  // EN — même trou, mêmes formes
+  "lose weight",
+  "losing weight",
+  "gain weight",
+  "gaining weight",
+  "weight loss",
+  "slim down",
+  "get lean",
+  "getting lean",
+]);
+
+/**
+ * Le motif qui repère un mot du registre dans une constante de prose.
+ *
+ * ── UNE FONCTION, PAS UNE CONSTANTE ───────────────────────────────────────
+ * Même raison que `numericNutritionTargetPatterns` juste au-dessus: une
+ * `RegExp` globale partagée porte un `lastIndex` et finit par se comporter
+ * différemment selon l'ordre des appels.
+ *
+ * ── L'ACCENT EST OPTIONNEL, PAS SUPPOSÉ ───────────────────────────────────
+ * `déficit` et `deficit` sont tous deux dans la liste, et le motif ne
+ * normalise rien: normaliser ici ferait diverger ce détecteur de ceux qui
+ * travaillent sur du texte brut, ce que l'en-tête de ce fichier documente déjà
+ * comme la façon dont quatre copies ont divergé.
+ */
+export function dietRegisterPattern(): RegExp {
+  const body = DIET_REGISTER_LEXICON
+    .map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+"))
+    .join("|");
+  return new RegExp(`(?<![\\p{L}])(?:${body})(?![\\p{L}])`, "iu");
+}
+
+/** Le mot du registre qui mord dans ce texte, ou `null`. */
+export function findDietRegisterWord(text: string): string | null {
+  const m = dietRegisterPattern().exec(String(text ?? ""));
+  return m ? m[0].toLowerCase() : null;
+}

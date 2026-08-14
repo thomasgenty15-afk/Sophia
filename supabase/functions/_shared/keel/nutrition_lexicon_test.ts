@@ -7,6 +7,7 @@
 
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import {
+  dietRegisterPattern,
   findNumericNutritionTarget,
   FORBIDDEN_METRIC_TERMS,
 } from "./nutrition_lexicon.ts";
@@ -103,6 +104,66 @@ Deno.test("le vocabulaire métrique interdit couvre les DEUX langues", () => {
     assert(
       FORBIDDEN_METRIC_TERMS.includes(term),
       `terme métrique manquant dans l'union: ${term}`,
+    );
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────
+// LE REGISTRE DE RÉGIME — LES VERBES, ET LES ALIMENTS QUI LEUR RESSEMBLENT
+//
+// MESURÉ LE 2026-08-14, avant correctif: la liste avait été écrite à partir de
+// NOMS et d'ADJECTIFS (`régime`, `amaigrissant`, `minceur`, `cutting`,
+// `slimming`), et CHAQUE tournure verbale la traversait, dans les deux langues
+// — c'est-à-dire exactement la façon dont quelqu'un formule ça en parlant.
+//
+// La seconde moitié de ce test est celle qui compte le plus. Une garde n'a pas
+// besoin que d'un cas qui refuse: sans cas QUI PASSE, on ne saurait pas qu'on
+// vient d'interdire « viande maigre » à une liste de courses. C'est le piège
+// « laitue » / « lait », et il est ici à un caractère près de `maigrir`.
+// ─────────────────────────────────────────────────────────────────────────
+
+Deno.test("registre de régime — les tournures VERBALES sont refusées, EN et FR", () => {
+  for (
+    const phrase of [
+      "je veux maigrir",
+      "elle veut mincir",
+      "il a peur de grossir",
+      "perdre du poids",
+      "prendre du poids",
+      "une perte de poids",
+      "I want to lose weight",
+      "losing weight fast",
+      "gain weight",
+      "slim down for summer",
+      "get lean",
+      // les formes d'avant le correctif, qui doivent tenir
+      "un régime",
+      "produit amaigrissant",
+      "en sèche",
+    ]
+  ) {
+    assert(
+      dietRegisterPattern().test(phrase),
+      `le registre de régime laisse passer: ${phrase}`,
+    );
+  }
+});
+
+Deno.test("registre de régime — un ALIMENT maigre n'est pas une intention", () => {
+  for (
+    const phrase of [
+      "viande maigre",
+      "fromage blanc maigre",
+      "lean protein",
+      "lean beef mince",
+      "jambon maigre",
+      "a lean cut of pork",
+    ]
+  ) {
+    assertEquals(
+      dietRegisterPattern().test(phrase),
+      false,
+      `faux positif: « ${phrase} » décrit un aliment, pas une intention`,
     );
   }
 });
