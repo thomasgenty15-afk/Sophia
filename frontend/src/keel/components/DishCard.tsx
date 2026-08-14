@@ -95,10 +95,17 @@ export default function DishCard(
     energy?: DishEnergyView | null;
   },
 ) {
-  // Un plat qui PUISE dans une préparation n'affiche ni sa recette ni ses
-  // quantités: elles vivent dans la session de cuisine, et les répéter ici
-  // ferait racheter et recuire ce qui est déjà au frigo. C'est le correctif du
-  // défaut mesuré (« 1,200 g de cuisses » sur quatre jours).
+  // CE PLAT PUISE-T-IL DANS UNE PRÉPARATION ?
+  //
+  // La recette et les quantités du LOT vivent dans la session de cuisine, et
+  // les répéter ici ferait racheter et recuire ce qui est déjà au frigo (défaut
+  // mesuré: « 1,200 g de cuisses » sur quatre jours). Le modèle s'en charge —
+  // un plat en lot ne porte plus que ce qu'on AJOUTE à l'assiette.
+  //
+  // ⚠️ CE DRAPEAU NE MASQUE PLUS RIEN DEPUIS LE 2026-08-14. Il choisit un
+  // LIBELLÉ: « comment » pour une recette, « au moment de servir » pour le
+  // geste du repas. Masquer `method` sur ces plats-là supprimait la seule
+  // phrase qui leur restait à dire.
   const leftover = servedFrom !== null || sources.length > 0;
   // Une case a besoin d'un libellé qui lui appartient: le même plat est rendu
   // sur `/app/plan` et `/app/today`, et un `id` en dur ferait pointer deux
@@ -186,10 +193,36 @@ export default function DishCard(
           ))}
         </ul>
       )}
-      {!leftover && dish.method && (
+      {/* ── LE GESTE À FAIRE DEVANT CE PLAT-LÀ (2026-08-14) ─────────────────
+          `method` était masqué sur EXACTEMENT les plats qui en ont le plus
+          besoin. Un plat cuisiné de zéro montrait sa recette; celui qui a
+          besoin qu'on dise « réchauffe 10 min, tranche le poulet, ajoute la
+          salade » ne montrait rien — ni ici, ni dans les sessions de cuisine
+          (qui portent les GROSSES cuissons, pas le geste du repas). Le geste du
+          soir n'apparaissait donc nulle part dans le produit.
+
+          Le masquage avait sa raison, et elle tient toujours: ce qu'on ne veut
+          pas revoir, c'est la RECETTE DU LOT recopiée sous chaque jour, avec
+          ses quantités entières (« 1 200 g de cuisses » sur quatre jours). Le
+          prompt de composition demande déjà autre chose au modèle — « a dish
+          that draws on a preparation does NOT repeat its recipe. Its method is
+          what you do at that meal » — et c'est ce qu'il écrit vraiment: 476
+          plats en lot mesurés en base le 2026-08-14, 0 méthode vide, 111
+          caractères de moyenne, 247 au pire. Un geste, pas un pavé.
+
+          ⚠️ DEUX MOTS, PAS UN. Le libellé change avec le cas
+          (`meals.result.assemble` vs `meals.result.method`): sous « Comment »,
+          un assemblage se lirait comme la recette qu'on vient justement de ne
+          pas répéter.
+          ⚠️ AUCUNE DURÉE N'EST AJOUTÉE. Si le modèle ne dit pas combien de
+          temps, l'écran ne l'estime pas: `active_minutes` vit sur les
+          PRÉPARATIONS, et le reprendre ici donnerait à un assemblage le temps
+          d'une cuisson.
+          ⚠️ RIEN NE S'AFFICHE SANS TEXTE. Pas de libellé au-dessus du vide. */}
+      {dish.method && (
         <p className="mt-3 text-sm text-ink">
           <span className="font-medium text-ink">
-            {mealCopy("meals.result.method")}:
+            {mealCopy(leftover ? "meals.result.assemble" : "meals.result.method")}:
           </span>{" "}
           {dish.method}
         </p>
