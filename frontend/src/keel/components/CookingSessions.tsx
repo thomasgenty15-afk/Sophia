@@ -2,9 +2,11 @@ import React from "react";
 
 import {
   type CookingSession,
+  type GeneratedDish,
   type MealPreparation,
 } from "../api/mealGeneration";
 import { dishDayLabel, mealCopy } from "../api/mealLabels";
+import { daysFedBy } from "../lib/planGridModel";
 import { Card } from "./ui/Card";
 import Modal from "./ui/Modal";
 
@@ -39,6 +41,15 @@ import Modal from "./ui/Modal";
 // est ce qu'on lit pour PLANIFIER: le jour, le déroulé, ce que ça produit,
 // combien de temps. La recette est ce qu'on ouvre une fois devant la casserole.
 //
+// ── CE QU'UNE CASSEROLE NOURRIT (2026-08-14) ───────────────────────────────
+// Le bloc « ce que tu cuisines » (`plan/KitchenBlock.tsx`) disait la même chose
+// que cette fenêtre, en moins bien: mêmes préparations, mêmes jours de cuisson,
+// sans le temps de session, sans les portions faites, sans le travail actif.
+// Il est parti — SAUF une ligne, qu'il portait SEUL: les jours qu'une
+// préparation nourrit. Vérifié avant le retrait: cette fenêtre ne recevait
+// aucun plat, donc ce lien n'y était pas seulement absent, il y était
+// impossible. Il est ici maintenant, sous chaque préparation.
+//
 // ── LES QUANTITÉS VIVENT ICI, PAS DANS LES PLATS ───────────────────────────
 // Une préparation porte les ingrédients de TOUT le lot: 600 g de poulet pour
 // quatre portions. Les plats qui y puisent n'affichent plus que ce qu'on ajoute
@@ -55,9 +66,28 @@ import Modal from "./ui/Modal";
 // `docs/keel/CHARTE-VITRINE.md` §2.
 
 export default function CookingSessions(
-  { sessions, preparations, open, onClose }: {
+  { sessions, preparations, dishes, open, onClose }: {
     sessions: readonly CookingSession[];
     preparations: readonly MealPreparation[];
+    /**
+     * ── CE QUE `KitchenBlock` PORTAIT, ET QU'IL EMPORTAIT EN PARTANT ───────
+     *
+     * Les plats, pour savoir QUELS JOURS chaque préparation nourrit. Un plat en
+     * lot est déjà placé sur chacun des jours qu'il couvre; sans cette lecture,
+     * « rôti du dimanche » ne dit pas qu'on en mange lundi, mardi ET mercredi,
+     * et le lien « une casserole → trois jours » n'existe plus nulle part une
+     * fois les jours repliés.
+     *
+     * ⚠️ MESURÉ LE 2026-08-14, ET C'EST CE QUI A DÉCIDÉ L'ORDRE DU CHANTIER:
+     * cette fenêtre ne recevait AUCUN plat, donc le lien n'y était pas
+     * seulement invisible — il était impossible. Retirer le bloc cuisine sans
+     * ce prop aurait emporté le seul endroit qui montre qu'une cuisson nourrit
+     * plusieurs jours.
+     *
+     * ⚠️ AUCUN CHAMP NEUF. `daysFedBy` dérive des `dish.uses` déjà rendus; un
+     * second champ à tenir d'accord divergerait du premier.
+     */
+    dishes: readonly GeneratedDish[];
     /**
      * DANS UNE FENÊTRE, comme la liste de courses, et ouverte depuis le même
      * rang de boutons.
@@ -124,7 +154,9 @@ export default function CookingSessions(
                 </p>
               )}
 
-              {preps.map((prep) => (
+              {preps.map((prep) => {
+                const feeds = daysFedBy(prep.id, dishes);
+                return (
                 <div
                   key={prep.id}
                   className="mt-4 border-t border-line pt-3 first:border-0"
@@ -184,6 +216,24 @@ export default function CookingSessions(
                     </p>
                   )}
 
+                  {/* CE QUE CETTE CASSEROLE NOURRIT — la phrase que le bloc
+                      « ce que tu cuisines » portait seul jusqu'au 2026-08-14.
+                      Elle vit DEHORS de la recette dépliée, avec les deux
+                      durées: c'est ce qu'on lit pour PLANIFIER (« si je fais ce
+                      lot dimanche, mes lundi, mardi et mercredi sont faits »),
+                      pas ce qu'on lit devant la casserole.
+                      ⚠️ MUETTE QUAND AUCUN PLAT NE LA CITE. Une préparation
+                      orpheline rend `[]`, et « couvre  » sans jour serait pire
+                      que rien. */}
+                  {feeds.length > 0 && (
+                    <p className="mt-1 text-xs text-ink-soft">
+                      {mealCopy("meals.kitchen.feeds").replace(
+                        "{days}",
+                        feeds.map((d) => dishDayLabel(d) ?? d).join(", "),
+                      )}
+                    </p>
+                  )}
+
                   {openPreps.has(prep.id) && (
                     <>
                       {prep.ingredients.length > 0 && (
@@ -207,7 +257,8 @@ export default function CookingSessions(
                     </>
                   )}
                 </div>
-              ))}
+                );
+              })}
             </Card>
           );
         })}

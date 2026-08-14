@@ -1391,6 +1391,7 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
               <CookingSessions
                 sessions={result?.cookingSessions ?? []}
                 preparations={result?.preparations ?? []}
+                dishes={result?.dishes ?? []}
                 open={sessionsOpen}
                 onClose={() => setSessionsOpen(false)}
               />

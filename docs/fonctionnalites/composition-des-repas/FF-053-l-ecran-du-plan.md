@@ -69,7 +69,13 @@ sans le dire achèverait de le cacher.
    deux endroits.
 2. **`PlanGrid`** — la vue globale : un nom de plat par cellule, jours ×
    créneaux.
-3. **`KitchenBlock`** — ce qui se cuisine, quel jour, pour combien de jours.
+3. ~~**`KitchenBlock`** — ce qui se cuisine, quel jour, pour combien de jours.~~
+   **Retiré le 2026-08-14.** Il disait la même chose que « tes sessions de
+   cuisine », en moins bien : même liste de préparations, mêmes jours de
+   cuisson, sans le temps de session, les portions faites ni le travail actif.
+   La seule ligne qu'il portait **seul** — les jours qu'une casserole nourrit —
+   a été portée dans `CookingSessions` **avant** le retrait ; elle y était
+   jusque-là impossible, la fenêtre ne recevant aucun plat.
 4. **Les sections repliables** + la barre de jours collante.
 5. **Le marquage des lots**, dans la grille et sur la carte.
 6. **Deux champs de plus dans la réponse** de `generate-meal-v1` :

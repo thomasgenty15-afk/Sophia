@@ -16,7 +16,6 @@ import { groupByDay } from "../../lib/mealBuilderModel";
 import { dishDate } from "../../api/mealStretch";
 import { windowDates, windowDayOrder } from "../../api/mealWindow";
 import DishCard from "../DishCard";
-import KitchenBlock from "./KitchenBlock";
 import PlanGrid from "./PlanGrid";
 import { buildPlanGrid } from "../../lib/planGridModel";
 import { type DishTick } from "../../lib/useMealTicks";
@@ -141,9 +140,16 @@ export default function PlanResult(props: PlanResultProps) {
         dates={grid.days.map((d) => dayDates[d] ?? "")}
         today={props.today}
       />
-      {/* NIVEAU 2 — ce qui se cuisine, et pour quels jours. */}
-      <KitchenBlock preparations={props.preparations} dishes={props.dishes} />
-      {/* NIVEAU 3 — le détail, jour par jour. */}
+      {/* ── LE NIVEAU 2 EST PARTI LE 2026-08-14 ─────────────────────────────
+          `KitchenBlock` (« ce que tu cuisines ») listait les préparations et
+          les jours qu'elles nourrissent. « Tes sessions de cuisine » porte la
+          même information PLUS le temps de session, les portions faites et le
+          travail actif — deux blocs pour une chose, dont le plus pauvre était
+          celui qu'on lisait en premier.
+          La seule ligne qu'il portait seul — les jours qu'une casserole
+          nourrit — a été portée dans la fenêtre des sessions AVANT ce retrait,
+          et pas après: elle y était impossible (aucun plat n'y arrivait). */}
+      {/* NIVEAU 2 — le détail, jour par jour. */}
       {groups.map((group) => {
         // LA DATE DE CE GROUPE. C'est le groupe qui porte le jour où le plat se
         // MANGE — un plat en lot est déjà placé sur chacun des siens — donc
