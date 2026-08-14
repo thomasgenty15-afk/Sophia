@@ -11,7 +11,6 @@ import Modal from "../components/ui/Modal";
 import SetupSection from "../components/ui/SetupSection";
 import MealBuilder from "../components/MealBuilder";
 import ReferenceMemberCard from "../components/plan/ReferenceMemberCard";
-import TableCard from "../components/plan/TableCard";
 import MyShareCard from "../components/plan/MyShareCard";
 import PlanDraftDialog from "../components/plan/PlanDraftDialog";
 import { selectMyShare } from "../api/myShare";
@@ -2368,11 +2367,26 @@ export default function StudentWeekPlanPage() {
           }}
         />
 
-        {/* ── 9 · « À TABLE » ─────────────────────────────────────────────
-            SOUS le plan, jamais au-dessus: il dit comment on SERT ce que le
-            plan dit qu'on CUISINE. L'inverse ferait lire des parts avant de
-            savoir de quel plat. */}
-        <TableCard meal={householdMeal} />
+        {/* ── 9 · « À TABLE » EST PARTI LE 2026-08-14 ─────────────────────
+            La carte listait, sous le plan, une instruction de service par
+            bouche (`portion_note`) et le détail de ses parts de préparation.
+            Verdict du propriétaire, écran en main: illisible, et sans usage.
+            Une part mal calibrée s'ajuste à table en trois secondes; personne
+            n'a besoin de la lire d'avance sur un écran.
+
+            ⚠️ CE QUI RESTE, ET QUI N'EST PAS LA MÊME CHOSE: `MyShareCard`
+            juste au-dessus. Elle dit à UNE personne ce qu'elle mange, elle;
+            « à table » récitait la table entière à quelqu'un qui n'a rien à
+            en faire.
+
+            ⛔ LE MOTEUR N'EST PAS TOUCHÉ. `_shared/keel/household_portions.ts`
+            produit toujours ces notes, et `member_portions` est toujours
+            écrit: c'est la bifurcation des portions (le même plat servi
+            différemment selon l'objectif de chacun), nommée dans
+            `docs/keel/PIVOT-FOYER.md` §7.1 comme l'intersection vide du
+            produit. Ce retrait est celui d'un AFFICHAGE. La question « on la
+            montre autrement, ou on l'abandonne » est ouverte et appartient à
+            l'humain. */}
 
         {/* ── 10 · L'APERÇU (Lot C) ───────────────────────────────────────
             SOUS le plan et sous « à table »: on prévisualise la semaine
