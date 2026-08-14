@@ -18,6 +18,8 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
 import {
+  augmentedIndexFor,
+  declaredSlugFor,
   FIXED_INTAKE_DAY_TOKENS,
   FIXED_INTAKE_OCCASIONS,
   fixedIntakeInputsFor,
@@ -35,7 +37,12 @@ import {
   parseGeneratedMeal,
 } from "./meal_generation.ts";
 import { findNumericTarget } from "./week_plan_generation.ts";
-import { buildCompositionIndex, type CompositionRef } from "./food_composition.ts";
+import {
+  buildCompositionIndex,
+  type CompositionRef,
+  gramsRawOf,
+  resolveIngredient,
+} from "./food_composition.ts";
 import { verdictFor } from "./meal_verdict.ts";
 import { envelopeFor } from "./meal_envelope.ts";
 
@@ -505,6 +512,9 @@ Deno.test("R3 — sous restriction, la branche 1 SURVIT et l'enveloppe n'existe 
 // ---------------------------------------------------------------------------
 
 const PROMPT_ARGS = {
+  firstDayCookable: true,
+  contentLocale: "en-US",
+  budgetAmount: null,
   safetyConstraints: null,
   body: null,
   focusAxis: null,
@@ -619,4 +629,144 @@ Deno.test("la consigne interdit de METTRE L'APPORT DANS LES COURSES", () => {
   // déplacée d'un cran, et celle-là coûte de l'argent.
   const lines = fixedIntakePromptLines([intake()]).join("\n");
   assert(lines.includes("do not put them in the shopping list"));
+});
+
+// ---------------------------------------------------------------------------
+// L'APPORT DÉCLARÉ — quand le référentiel ne PEUT pas savoir
+// ---------------------------------------------------------------------------
+//
+// Mesuré le 2026-08-13 sur la base locale: 911 références, 2508 alias, ZÉRO
+// protéine en poudre. Le seul « shake » du référentiel est un milkshake de
+// fast-food. Un shaker déclaré en branche `referential` ne se résout donc
+// contre rien, et sa protéine — la raison même pour laquelle on le déclare —
+// disparaît en silence.
+
+const DECLARED_SHAKER = {
+  food_ref: "ignored",
+  label: "Mon shaker",
+  nutrition: "declared",
+  serving_grams: 30,
+  protein_g_per_serving: 24,
+  energy_kcal_per_serving: 120,
+  amount: 1,
+  unit: "unit",
+  slot: "breakfast",
+};
+
+Deno.test("un apport déclaré porte ses trois nombres et son slug dérivé", () => {
+  const { intakes, discarded } = parseFixedIntakes([DECLARED_SHAKER]);
+  assertEquals(discarded, 0);
+  assertEquals(intakes.length, 1);
+  const i = intakes[0];
+  assertEquals(i.nutrition, "declared");
+  assertEquals(i.foodRef, "declared_mon_shaker");
+  if (i.nutrition !== "declared") throw new Error("branche perdue");
+  assertEquals(i.servingGrams, 30);
+  assertEquals(i.proteinGPerServing, 24);
+  assertEquals(i.energyKcalPerServing, 120);
+});
+
+Deno.test("LA PREUVE DU LOT: la dosette pèse ses 24 g de protéines, pas zéro", () => {
+  // 30 g de poudre à 24 g de protéines = 80 g pour 100 g. Une occurrence
+  // (`amount: 1, unit: "unit"`) doit peser EXACTEMENT une dosette en vrais
+  // grammes, et rendre la protéine déclarée — sans masse inventée.
+  const { intakes } = parseFixedIntakes([DECLARED_SHAKER]);
+  const index = augmentedIndexFor(buildCompositionIndex([], []), intakes);
+
+  const ref = resolveIngredient(index, intakes[0].foodRef);
+  assert(ref !== null, "l'apport déclaré ne se résout pas dans l'index augmenté");
+  assertEquals(ref!.proteinG, 80);
+  assertEquals(ref!.energyKcal, 400);
+  assertEquals(ref!.unitGrams, 30);
+
+  const grams = gramsRawOf({
+    amount: 1,
+    unit: "unit",
+    state: "raw",
+    yieldClass: ref!.yieldClass,
+    unitGrams: ref!.unitGrams,
+  });
+  assertEquals(grams, 30);
+  // Le calcul du dépôt: valeur pour 100 g × grammes / 100.
+  assertEquals((ref!.proteinG! * grams!) / 100, 24);
+  assertEquals((ref!.energyKcal * grams!) / 100, 120);
+});
+
+Deno.test("LE DÉFAUT D'AUJOURD'HUI, épinglé: la même ligne en `referential` ne pèse RIEN", () => {
+  // C'est ce test qui dit pourquoi la branche existe. Sans elle, « mon
+  // shaker » ne rencontre aucune entrée du référentiel et sort du calcul.
+  const { intakes } = parseFixedIntakes([{ ...DECLARED_SHAKER, nutrition: "referential" }]);
+  const index = buildCompositionIndex([], []);
+  assertEquals(resolveIngredient(index, intakes[0].foodRef), null);
+});
+
+Deno.test("un apport déclaré ne MASQUE aucune entrée du référentiel", () => {
+  const milk = {
+    slug: "milk",
+    foodGroupRef: "dairy_yogurt" as const,
+    label: "Milk",
+    energyKcal: 64,
+    proteinG: 3.2,
+    carbsG: 4.8,
+    fatG: 3.6,
+    fiberG: 0,
+    omega3Marine: false,
+    ironSource: false,
+    calciumSource: true,
+    iodineSource: false,
+    zincSource: false,
+    b12Source: false,
+    folateSource: false,
+    yieldClass: "neutral" as const,
+    atwaterDiscount: 1.0,
+    energyDense: false,
+    unitGrams: null,
+  };
+  const { intakes } = parseFixedIntakes([{ ...DECLARED_SHAKER, label: "milk" }]);
+  const index = augmentedIndexFor(buildCompositionIndex([milk], []), intakes);
+  // Le lait du référentiel reste le lait du référentiel.
+  assertEquals(resolveIngredient(index, "milk")?.proteinG, 3.2);
+  // Et l'apport déclaré vit à côté, sous son slug préfixé.
+  assertEquals(resolveIngredient(index, "declared_milk")?.proteinG, 80);
+});
+
+Deno.test("une déclaration INCOMPLÈTE est jetée, jamais rabattue en `referential`", () => {
+  // La rabattre ferait chercher « mon shaker » dans le référentiel, ne rien
+  // trouver, et perdre la protéine en silence — le défaut que cette branche
+  // ferme, atteint par la porte de la tolérance.
+  for (
+    const bad of [
+      { ...DECLARED_SHAKER, serving_grams: 0 },
+      { ...DECLARED_SHAKER, serving_grams: "trente" },
+      { ...DECLARED_SHAKER, protein_g_per_serving: -1 },
+      { ...DECLARED_SHAKER, energy_kcal_per_serving: null },
+    ]
+  ) {
+    const { intakes, discarded } = parseFixedIntakes([bad]);
+    assertEquals(intakes.length, 0, JSON.stringify(bad));
+    assertEquals(discarded, 1, JSON.stringify(bad));
+  }
+});
+
+Deno.test("sans apport déclaré, l'index n'est pas recopié", () => {
+  // L'identité est la garantie: aucune allocation, aucun risque de divergence
+  // pour les 100 % de générations qui n'ont aucune déclaration.
+  const base = buildCompositionIndex([], []);
+  const { intakes } = parseFixedIntakes([{
+    food_ref: "milk",
+    amount: 200,
+    unit: "ml",
+  }]);
+  assert(augmentedIndexFor(base, intakes) === base);
+});
+
+Deno.test("le slug dérivé traverse la normalisation sans bouger", () => {
+  // `normalizeTerm` remplace `:` par une espace et `resolveIngredient` recolle
+  // en `_`. Un préfixe à deux points se transformerait en cours de route.
+  assertEquals(declaredSlugFor("Mon shaker"), "declared_mon_shaker");
+  assertEquals(declaredSlugFor("Créatine + café"), "declared_creatine_cafe");
+  assertEquals(declaredSlugFor("   "), "declared_intake");
+  // Un marqueur d'ambiguïté ne survit pas: « beurre ou huile » disqualifierait
+  // la résolution entière.
+  assert(!declaredSlugFor("beurre ou huile").includes(" or "));
 });

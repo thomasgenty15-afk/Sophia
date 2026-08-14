@@ -144,6 +144,7 @@ import {
   verdictFor,
 } from "../_shared/keel/meal_verdict.ts";
 import {
+  augmentedIndexFor,
   fixedIntakeInputsFor,
   parseFixedIntakes,
 } from "../_shared/keel/fixed_intakes.ts";
@@ -1355,6 +1356,18 @@ Deno.serve(async (req) => {
     let composition: CompositionIndex | null = null;
     try {
       composition = await loadCompositionIndex(admin);
+      // ── LES APPORTS DÉCLARÉS ENTRENT DANS L'INDEX, PAS DANS LE CALCUL ──
+      //
+      // Mesuré le 2026-08-13: le référentiel n'a AUCUNE protéine en poudre
+      // (911 références, 2508 alias). Un shaker déclaré en `foodRef` seul ne
+      // se résout donc contre rien, et sa protéine — la raison pour laquelle
+      // on le déclare — sort du verdict sans un mot.
+      //
+      // On synthétise une entrée par apport déclaré, ancrée sur le poids de
+      // portion lu sur le pot. Tout le reste de la chaîne
+      // (`resolveIngredients`, `verdictFor`) ne connaît pas ce cas et n'a pas
+      // à le connaître: elle voit une référence ordinaire.
+      composition = augmentedIndexFor(composition, fixedIntakes);
     } catch (error) {
       console.warn(`[${FN_NAME}] composition index unavailable`, error);
     }

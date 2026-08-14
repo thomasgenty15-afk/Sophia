@@ -18,7 +18,11 @@
 // C'est ce qui rend les six branches testables sans fixture.
 
 import { COMPOSITION_UNITS } from "./food_composition.ts";
-import type { CompositionInput, CompositionUnit } from "./food_composition.ts";
+import type {
+  CompositionIndex,
+  CompositionInput,
+  CompositionUnit,
+} from "./food_composition.ts";
 import type { EatingOccasion, MealSlot } from "./meal_generation.ts";
 
 /**
@@ -100,6 +104,63 @@ export type FixedIntake =
     days: readonly string[];
   }
   & (
+    /**
+     * ── D'OÙ VIENT LA COMPOSITION ─────────────────────────────────────────
+     *
+     * `referential` est le cas d'origine: `foodRef` se résout contre
+     * `food_composition_refs`, et c'est le référentiel qui sait ce que
+     * l'aliment contient.
+     *
+     * `declared` existe parce que le référentiel ne PEUT pas savoir. Mesuré le
+     * 2026-08-13 sur la base locale: 911 références et 2508 alias, **zéro
+     * whey, zéro protéine en poudre** — le seul « shake » du référentiel est
+     * un milkshake de fast-food. Et même en en ajoutant un, ce serait une
+     * moyenne: une poudre du commerce va de 70 à 90 g de protéines pour 100 g,
+     * et une dosette de 25 à 35 g. Le nombre imprimé sur LE pot de la personne
+     * est strictement meilleur que tout ce qu'on irait chercher.
+     *
+     * Ce n'est donc pas une seconde source de vérité pour un même objet: c'est
+     * une branche pour les objets qui portent une ÉTIQUETTE.
+     */
+    /**
+     * ⚠️ LE MARQUEUR `referential` EST OPTIONNEL, `declared` NE L'EST PAS.
+     *
+     * L'asymétrie est voulue et elle ne ment pas: `referential` est l'état
+     * d'ORIGINE, celui de toutes les lignes écrites avant cette branche. Son
+     * absence veut dire exactement ce qu'il dit, et le parseur en fait déjà son
+     * défaut. Le rendre obligatoire ferait mentir un jsonb existant sans rien
+     * garantir de plus.
+     *
+     * `declared`, lui, doit être ÉCRIT: ses trois nombres n'ont aucun défaut
+     * honnête, et une déclaration à moitié lisible se jette.
+     */
+    | { nutrition?: "referential" }
+    | {
+      nutrition: "declared";
+      /** Ce que pèse UNE portion, en grammes. Lu sur le pot. L'ancrage. */
+      servingGrams: number;
+      /** Protéines par portion, en grammes. */
+      proteinGPerServing: number;
+      /**
+       * Énergie par portion, en kcal. **REQUISE, et le plan la disait
+       * optionnelle.**
+       *
+       * `CompositionRef.energyKcal` n'est pas nullable, donc une portion sans
+       * énergie devrait entrer à 0 — un zéro traverse toutes les additions
+       * sans rien signaler, et la journée paraîtrait plus légère qu'elle
+       * n'est. Le générateur ajouterait alors de quoi combler un creux qui
+       * n'existe pas, ce qui est la mauvaise direction pour quelqu'un en perte
+       * de poids.
+       *
+       * Déduire l'énergie de la protéine (×4) ne répare rien: ça ignore les
+       * glucides et les lipides, donc ça sous-estime — dans le même sens.
+       *
+       * C'est UN chiffre de plus, sur la même ligne de la même étiquette.
+       */
+      energyKcalPerServing: number;
+    }
+  )
+  & (
     | {
       /** Hors moment nommé: un yaourt à 16 h qui n'est pas « le goûter ». */
       placement: "loose";
@@ -131,6 +192,53 @@ export interface FixedIntakeParse {
 
 const UNIT_SET = new Set<string>(COMPOSITION_UNITS);
 const OCCASION_SET = new Set<string>(FIXED_INTAKE_OCCASIONS);
+
+/**
+ * LE PRÉFIXE DES SLUGS SYNTHÉTIQUES.
+ *
+ * `food_composition_refs.slug` vient de CIQUAL: aucune entrée ne commence par
+ * ça. C'est ce qui garantit qu'un apport déclaré ne MASQUE jamais un aliment
+ * du référentiel — un alias qui masquerait une entrée est le défaut que
+ * `buildCompositionIndex` refuse déjà de son côté.
+ */
+const DECLARED_SLUG_PREFIX = "declared_";
+
+/**
+ * Le slug d'un apport déclaré, dérivé de son libellé.
+ *
+ * ⚠️ `normalizeTerm` (côté `food_composition.ts`) remplace `:` par une espace,
+ * et `resolveIngredient` recolle ensuite les espaces en `_`. Un préfixe à deux
+ * points se transformerait donc en cours de route. On reste en `[a-z0-9_]`,
+ * qui traverse la normalisation sans bouger.
+ *
+ * Deux apports déclarés au MÊME libellé partagent un slug, donc une ligne de
+ * composition. C'est ce que quelqu'un veut dire en écrivant deux fois « mon
+ * shaker »: la même chose, à deux moments.
+ */
+/**
+ * Un nombre, ou `NaN` — SANS le zéro de complaisance de `Number()`.
+ *
+ * `Number(null)`, `Number("")`, `Number([])` et `Number(undefined ?? "")`
+ * rendent tous `0` ou `NaN` selon des règles que personne ne relit. Ici
+ * l'absence doit être un ÉCHEC, pas un zéro: c'est la différence entre « cette
+ * portion n'apporte pas d'énergie » et « on ne sait pas ce qu'elle apporte ».
+ */
+function numberOrNaN(raw: unknown): number {
+  if (raw === null || raw === undefined) return NaN;
+  if (typeof raw === "string" && raw.trim() === "") return NaN;
+  if (typeof raw === "boolean") return NaN;
+  return Number(raw);
+}
+
+export function declaredSlugFor(label: string): string {
+  const body = String(label ?? "")
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+  return `${DECLARED_SLUG_PREFIX}${body || "intake"}`;
+}
 
 /**
  * Les apports lus depuis `practical_constraints.fixed_intakes`.
@@ -210,8 +318,60 @@ export function parseFixedIntakes(raw: unknown): FixedIntakeParse {
       continue;
     }
 
+    // ── LA COMPOSITION DÉCLARÉE, ET SES TROIS NOMBRES ────────────────────
+    // Tout-ou-rien: une déclaration à moitié lisible n'est pas une
+    // déclaration. La rabattre en `referential` ferait chercher « mon
+    // shaker » dans le référentiel, ne rien trouver, et perdre la protéine
+    // en silence — c'est-à-dire le défaut que cette branche existe pour
+    // fermer, atteint par la porte de la tolérance.
+    const declaresNutrition =
+      String(e.nutrition ?? "").trim().toLowerCase() === "declared";
+    let nutritionBranch:
+      | { nutrition: "referential" }
+      | {
+        nutrition: "declared";
+        servingGrams: number;
+        proteinGPerServing: number;
+        energyKcalPerServing: number;
+      } = { nutrition: "referential" };
+    if (declaresNutrition) {
+      // ⚠️ `Number(null)` VAUT 0, ET `Number("")` AUSSI. Lire ces trois champs
+      // au `Number()` nu ferait entrer une énergie ABSENTE comme 0 kcal —
+      // c'est-à-dire le zéro muet contre lequel le commentaire du type
+      // s'écrit, atteint par la conversion plutôt que par la déclaration. Le
+      // test « une déclaration INCOMPLÈTE est jetée » l'a trouvé.
+      const servingGrams = numberOrNaN(e.serving_grams);
+      const proteinG = numberOrNaN(e.protein_g_per_serving);
+      const energyKcal = numberOrNaN(e.energy_kcal_per_serving);
+      // `servingGrams > 0` est l'ANCRAGE: sans lui, aucun des deux autres
+      // nombres ne se ramène à 100 g, et la ligne ne peut rien peser.
+      // Protéine et énergie acceptent `0` — une portion peut légitimement
+      // n'apporter ni l'une ni l'autre — mais jamais `NaN` ni le négatif.
+      if (
+        !Number.isFinite(servingGrams) || servingGrams <= 0 ||
+        !Number.isFinite(proteinG) || proteinG < 0 ||
+        !Number.isFinite(energyKcal) || energyKcal < 0
+      ) {
+        discarded++;
+        continue;
+      }
+      nutritionBranch = {
+        nutrition: "declared",
+        servingGrams,
+        proteinGPerServing: proteinG,
+        energyKcalPerServing: energyKcal,
+      };
+    }
+
     const base = {
-      foodRef,
+      ...nutritionBranch,
+      foodRef: nutritionBranch.nutrition === "declared"
+        // LE SLUG EST DÉRIVÉ, PAS SAISI. Il ne doit rencontrer aucune entrée
+        // du référentiel: le préfixe le garantit, et l'assainissement à
+        // `[a-z0-9_]` empêche qu'un libellé porte un marqueur d'ambiguïté
+        // (« beurre OU huile ») qui disqualifierait la résolution.
+        ? declaredSlugFor(String(e.label ?? "").trim() || foodRef)
+        : foodRef,
       // Le label retombe sur le `food_ref` quand il manque: la consigne doit
       // pouvoir nommer l'apport, et un identifiant est un plus mauvais nom
       // qu'un nom mais un bien meilleur nom que rien.
@@ -309,6 +469,86 @@ export function fixedIntakeInputsFor(
     }
   }
   return out;
+}
+
+/**
+ * L'INDEX DE COMPOSITION, AUGMENTÉ DES APPORTS DÉCLARÉS.
+ *
+ * ── POURQUOI ICI, ET PAS DANS `food_composition.ts` ──────────────────────
+ * `CompositionIndex` est deux maps en lecture seule. Un appelant peut donc en
+ * construire un troisième depuis l'extérieur, et TOUTE la chaîne existante
+ * (`resolveIngredient` → `gramsRawOf` → `nutrientsOf` → `verdictFor`) marche
+ * ensuite sans qu'un octet n'y change. C'est ce qui rend cette branche additive
+ * au sens strict: elle n'ouvre aucun cas particulier dans le calcul.
+ *
+ * ── L'ANCRAGE EST RÉEL, ET C'EST LA MOITIÉ QUI COMPTE ────────────────────
+ * `unitGrams` reçoit le poids de la portion, lu sur le pot. Les valeurs sont
+ * ramenées à 100 g par une règle de trois. Une occurrence
+ * (`amount: 1, unit: "unit"`) pèse donc EXACTEMENT une dosette, en vrais
+ * grammes de poudre — aucune masse fictive n'entre dans une somme.
+ *
+ * `yieldClass: "neutral"` (facteur 1,0) et `state: "raw"` chez l'appelant: une
+ * poudre ne cuit pas, et aucune transformation ne lui est imputée.
+ * `atwaterDiscount: 1.0`, `energyDense: false` — une étiquette donne l'énergie
+ * réellement disponible, il n'y a rien à escompter ni à soupçonner.
+ *
+ * Les micronutriments sentinelles restent FAUX: une étiquette de shaker ne dit
+ * rien du fer ni de la B12, et les cocher ferait croire une carence couverte.
+ */
+export function augmentedIndexFor(
+  base: CompositionIndex,
+  intakes: readonly FixedIntake[],
+): CompositionIndex {
+  const declared = intakes.filter(
+    (i): i is Extract<FixedIntake, { nutrition: "declared" }> =>
+      i.nutrition === "declared",
+  );
+  if (declared.length === 0) return base;
+
+  const bySlug = new Map(base.bySlug);
+  for (const intake of declared) {
+    const per100 = 100 / intake.servingGrams;
+    bySlug.set(intake.foodRef, {
+      slug: intake.foodRef,
+      // ── LE GROUPE EST LE MOINS FAUX D'UNE LISTE FERMÉE SANS NEUTRE ─────
+      // `FOOD_GROUP_REFS` n'a pas de case « inconnu »: chaque valeur AFFIRME
+      // quelque chose. `lean_protein` est celle qu'un apport déclaré a le plus
+      // de chances de rendre vraie — c'est la raison même pour laquelle on
+      // déclare un apport (la protéine que le référentiel ne sait pas peser).
+      //
+      // ⚠️ CE QUE ÇA COÛTE, ET C'EST ASSUMÉ: une barre sucrée ou une boisson
+      // déclarée serait comptée comme protéine maigre par un engagement de
+      // groupe (`evaluator.ts`). Le jour où des apports déclarés NON
+      // protéiques apparaissent, ce champ doit venir de la déclaration, pas
+      // d'ici. Il n'y a pas de meilleur défaut tant que la liste n'a pas de
+      // neutre.
+      foodGroupRef: "lean_protein",
+      label: intake.label,
+      energyKcal: intake.energyKcalPerServing * per100,
+      proteinG: intake.proteinGPerServing * per100,
+      // `null`, PAS `0`: l'étiquette n'a pas été lue là-dessus, et `null` est
+      // ce que ce module utilise pour dire « la source ne donne pas la
+      // valeur ». Un zéro dirait qu'il n'y en a pas.
+      carbsG: null,
+      fatG: null,
+      fiberG: null,
+      omega3Marine: false,
+      ironSource: false,
+      calciumSource: false,
+      iodineSource: false,
+      zincSource: false,
+      b12Source: false,
+      folateSource: false,
+      yieldClass: "neutral",
+      atwaterDiscount: 1.0,
+      energyDense: false,
+      unitGrams: intake.servingGrams,
+    });
+  }
+  // `byAlias` NE BOUGE PAS. Un alias vers un slug déclaré donnerait au libellé
+  // de quelqu'un le pouvoir de capturer un terme de recette — « mon shaker »
+  // passe encore, « lait » capturerait tous les laits du plan.
+  return { bySlug, byAlias: base.byAlias };
 }
 
 // ---------------------------------------------------------------------------
