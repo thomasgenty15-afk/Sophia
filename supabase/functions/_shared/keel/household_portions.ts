@@ -58,6 +58,11 @@ import {
   HABIT_CONSEQUENCE,
   type MemberHabit,
 } from "./household_habits.ts";
+// LA TAILLE D'UN MOMENT VIENT DU MOTEUR, ELLE N'EST PAS REDÉCLARÉE ICI. Une
+// seconde union `"small" | "medium" | "large"` écrite dans ce fichier
+// divergerait de `MEAL_SIZES` au premier ajustement, et c'est ce fichier-là qui
+// écrit la ligne du prompt — donc c'est lui qui aurait tort en silence.
+import type { EatingOccasionSlot } from "./meal_generation.ts";
 
 /** Reflet du CHECK `student_goals_goal_check`. */
 export const MEMBER_GOALS = [
@@ -118,8 +123,18 @@ export interface PortionMember {
    * ⚠️ REQUIS, jamais optionnel — même raison que `body` ci-dessus: un champ
    * facultatif ne fait remonter aucun appelant au compilateur, et le lot se
    * construit sans être branché.
+   *
+   * ── LA TAILLE VOYAGE AVEC LE MOMENT (2026-08-14) ──────────────────────
+   * C'était `readonly string[]`, et la taille tombait ici. Un compte pouvait
+   * dire « gros dîner » (`rhythmLines`, lane individuelle); une bouche du
+   * foyer disait seulement QUAND. Le champ porte donc le même
+   * `EatingOccasionSlot` que le reste du moteur — le type auquel
+   * `parseEatingRhythm` rend déjà — et `buildPortionBrief` dit la taille sur
+   * la ligne où il dit le moment. Sans ça, cet écran aurait demandé une
+   * donnée que personne ne lit, la faute exacte que ce chantier a corrigée
+   * deux fois.
    */
-  eatingSlots: readonly string[] | null;
+  eatingSlots: readonly EatingOccasionSlot[] | null;
   /**
    * G4 — CE QU'ELLE MANGE QUAND ELLE NE MANGE PAS LE PLAT DE LA MAISON.
    *
@@ -878,9 +893,26 @@ export function buildPortionBrief(
     // maison, que le prompt annonce déjà plus haut. Une ligne « eats at
     // breakfast, lunch, dinner » recopiée pour tout le monde noierait
     // précisément celle qui dit une différence.
+    //
+    // ── LA TAILLE SE DIT SUR CETTE LIGNE-LÀ, ET PAS AILLEURS ─────────────
+    // « (large for them) » est repris MOT POUR MOT de `rhythmLines`
+    // (`meal_generation.ts`), qui écrit la même chose pour la lane
+    // individuelle. Le possessif est load-bearing: sans lui, le modèle lit une
+    // portion ABSOLUE, alors qu'on parle de la journée de CETTE personne — gros
+    // pour elle n'est pas gros dans l'absolu. Deux formulations pour un seul
+    // fait finiraient par se contredire dans le même prompt, puisque le foyer
+    // et l'individuel partagent le modèle.
+    //
+    // Rien n'est écrit quand la taille est `null`: « il n'a pas dit » laisse le
+    // moment libre, et écrire « medium » par défaut poserait une contrainte que
+    // personne n'a exprimée — que le modèle respecterait.
     const when = m.eatingSlots === null || m.eatingSlots.length === 0
       ? ""
-      : ` — eats at ${m.eatingSlots.join(", ")} only`;
+      : ` — eats at ${
+        m.eatingSlots
+          .map((o) => (o.size ? `${o.slot} (${o.size} for them)` : o.slot))
+          .join(", ")
+      } only`;
     if (when !== "") anyRhythm = true;
     // ── G4 · CE QU'ELLE MANGE À LA PLACE, SUR SA PROPRE LIGNE ────────────
     // APRÈS le rythme, et l'ordre porte du sens: `— eats at breakfast only`

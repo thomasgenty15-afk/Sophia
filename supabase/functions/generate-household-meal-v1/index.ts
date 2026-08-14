@@ -1484,9 +1484,15 @@ Deno.serve(async (req) => {
         // c'est le prompt du foyer qui décide que ça signifie « aux moments de
         // la maison ». Le convertir ici en rythme de la maison ferait écrire,
         // sur la ligne de quelqu'un, un fait que personne n'a énoncé.
+        //
+        // ⚠️ LE `.map((s) => s.slot)` A ÉTÉ RETIRÉ LE 2026-08-14, ET C'ÉTAIT
+        // LUI QUI PERDAIT LA TAILLE. Le roster la rend (colonne pour une
+        // bouche sans compte, « about you » pour un compte), le parseur la
+        // lit, et cette projection la jetait juste avant `buildPortionBrief`.
+        // On garde donc `EatingOccasionSlot` entier — c'est le type du moteur.
         eatingSlots: r.eating_rhythm === null || r.eating_rhythm === undefined
           ? null
-          : parseEatingRhythm(r.eating_rhythm).map((s) => s.slot),
+          : parseEatingRhythm(r.eating_rhythm),
         // ── G4 · CE QU'ELLE MANGE À LA PLACE ────────────────────────────
         // BRUT à ce stade, et le champ le dit: la garde de texte s'applique en
         // un seul endroit, juste avant le prompt. Le poser ici DÉJÀ gardé
@@ -2091,9 +2097,19 @@ Deno.serve(async (req) => {
     //
     // Une bouche à `null` n'ajoute rien: elle mange aux moments de la maison,
     // ce qui est exactement ce que l'union contient déjà.
+    //
+    // ⚠️ LES BOUCHES ENTRENT PAR LEUR SEUL `slot`, ET C'EST DÉLIBÉRÉ DEPUIS QUE
+    // `eatingSlots` PORTE LA TAILLE. Cette union dimensionne LA GRILLE DU
+    // PLAN — quels moments existent dans la semaine —, pas les assiettes. Y
+    // laisser entrer les objets ferait gagner la taille du DERNIER membre lu
+    // sur celle du maître pour un même moment (`parseEatingRhythm` écrase, une
+    // chaîne nue n'écrase pas): la taille d'une personne deviendrait la taille
+    // de la maison, sans que personne l'ait dit. Ce que la taille d'une bouche
+    // gouverne est SA part, et c'est `buildPortionBrief` qui l'écrit, ligne par
+    // ligne.
     const eatingRhythm = parseEatingRhythm([
       ...(Array.isArray(pc?.eating_rhythm) ? pc!.eating_rhythm as unknown[] : []),
-      ...members.flatMap((m) => m.eatingSlots ?? []),
+      ...members.flatMap((m) => (m.eatingSlots ?? []).map((o) => o.slot)),
     ]);
     const capacity = readCookingCapacity(pc);
     const scope: MealScope = durationDays === 1 ? "day" : "several_days";

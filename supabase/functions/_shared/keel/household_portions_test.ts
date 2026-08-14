@@ -674,7 +674,10 @@ Deno.test("« santé » ne rend pas l'assiette de qui n'a rien déclaré", () =>
  * quand personne n'a répondu.
  */
 Deno.test("les moments d'une bouche arrivent sur SA ligne", () => {
-  const tom: PortionMember = { ...SON, eatingSlots: ["lunch", "dinner"] };
+  const tom: PortionMember = {
+    ...SON,
+    eatingSlots: [{ slot: "lunch", size: null }, { slot: "dinner", size: null }],
+  };
   const brief = buildPortionBrief([DAD, tom], "one_dish", 0);
   const line = brief.split("\n").find((l) => l.startsWith("- Tom:"))!;
   assertStringIncludes(line, "eats at lunch, dinner only");
@@ -689,12 +692,53 @@ Deno.test("la consigne dit ce que le fait INTERDIT", () => {
   // « eats at lunch, dinner » et sert quand même un petit-déjeuner, ou pire,
   // le déplace ailleurs pour « compenser ».
   const brief = buildPortionBrief(
-    [{ ...SON, eatingSlots: ["dinner"] }],
+    [{ ...SON, eatingSlots: [{ slot: "dinner", size: null }] }],
     "one_dish",
     0,
   );
   assertStringIncludes(brief, "NO serving at any");
   assertStringIncludes(brief, "do not compensate elsewhere");
+});
+
+/**
+ * LA TAILLE ARRIVE SUR LA LIGNE DU MOMENT — et c'est la moitié qui manquait.
+ *
+ * ── LE DÉFAUT QUE CE CAS ÉPINGLE ─────────────────────────────────────────
+ * `PortionMember.eatingSlots` était `string[]`: le roster rendait la taille, le
+ * parseur la lisait, et une projection `.map((s) => s.slot)` la jetait juste
+ * avant ce brief. L'écran d'entrée demande maintenant « gros ou petit » pour
+ * chaque moment de chaque bouche; sans cette ligne, on collecterait une réponse
+ * dont AUCUN aval ne se sert — la faute exacte que ce chantier a déjà corrigée
+ * deux fois (le régime, puis les habitudes).
+ *
+ * « for them » est load-bearing et vient de `rhythmLines` (lane individuelle):
+ * sans le possessif, le modèle lit une portion absolue.
+ */
+Deno.test("la taille d'un moment se dit sur la ligne de la personne", () => {
+  const tom: PortionMember = {
+    ...SON,
+    eatingSlots: [
+      { slot: "breakfast", size: "small" },
+      { slot: "dinner", size: "large" },
+    ],
+  };
+  const line = buildPortionBrief([tom], "one_dish", 0)
+    .split("\n").find((l) => l.startsWith("- Tom:"))!;
+  assertStringIncludes(line, "eats at breakfast (small for them), dinner (large for them) only");
+});
+
+Deno.test("une taille absente n'invente RIEN sur la ligne", () => {
+  // ⚠️ LA CICATRICE « coche automatique = faits faux indémentables », vue par
+  // le bout du prompt: écrire « (medium for them) » sur un moment muet poserait
+  // une contrainte que personne n'a exprimée — et le modèle la respecterait.
+  const tom: PortionMember = {
+    ...SON,
+    eatingSlots: [{ slot: "breakfast", size: "small" }, { slot: "dinner", size: null }],
+  };
+  const line = buildPortionBrief([tom], "one_dish", 0)
+    .split("\n").find((l) => l.startsWith("- Tom:"))!;
+  assertStringIncludes(line, "eats at breakfast (small for them), dinner only");
+  assert(!line.includes("medium"), line);
 });
 
 Deno.test("`null` ne dit RIEN — et surtout pas les moments de la maison", () => {
