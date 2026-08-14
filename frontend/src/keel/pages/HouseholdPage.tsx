@@ -43,7 +43,18 @@ import {
   setOwnBirthDate,
 } from "../api/household";
 import { addDays } from "../api/dates";
-import { type AwayDay, type EatingOccasionSlot } from "../api/mealGeneration";
+import {
+  type AwayDay,
+  EATING_OCCASIONS,
+  type EatingOccasion,
+  type EatingOccasionSlot,
+} from "../api/mealGeneration";
+import {
+  type HabitSlot,
+  loadMemberHabits,
+  type MemberHabitsView,
+  setMemberHabits,
+} from "../api/householdHabits";
 import {
   MAX_WINDOW_DAYS,
   resolveRequestedWindow,
@@ -52,6 +63,7 @@ import {
 import { loadMutedMembers, muteMergeProposals } from "../api/householdMerge";
 import { householdErrorKey } from "../copy/planRefusals";
 import MealPickerGrid from "../components/MealPickerGrid";
+import HouseholdHabitsCard from "../components/HouseholdHabitsCard";
 import HouseholdMergeCard from "../components/HouseholdMergeCard";
 import HouseholdPlanCard from "../components/HouseholdPlanCard";
 import { t } from "../i18n/t";
@@ -204,6 +216,22 @@ export default function HouseholdPage(): React.ReactElement {
    */
   const [bodies, setBodies] = React.useState<Map<string, MemberBodyView>>(new Map());
   /**
+   * CE QUE CHAQUE BOUCHE MANGE D'HABITUDE (2026-08-14).
+   *
+   * ⚠️ `null` VEUT DIRE « PAS ENCORE LU », ET C'EST TOUT LE POINT — pas une
+   * carte vide. Une carte vide se lirait « personne n'a d'habitude », et le
+   * formulaire monté là-dessus afficherait du vide non lu qu'il ÉCRASERAIT au
+   * Save (cicatrice `mount-snapshot-forms-need-a-loading-gate`). La carte
+   * reçoit donc `loaded` et n'affiche aucun champ avant.
+   *
+   * Même discipline de lecture que les corps: la table n'a aucun grant à
+   * `authenticated` (spec §G1), donc c'est une RPC, et la demander pour un
+   * non-maître rendrait zéro ligne — c'est-à-dire un fait qu'on n'a pas.
+   */
+  const [habits, setHabits] = React.useState<Map<string, MemberHabitsView> | null>(
+    null,
+  );
+  /**
    * LE GEL (chantier 3, D4). `null` = pas encore lu.
    *
    * ⚠️ L'ÉCRAN NE DÉCIDE PAS DU GEL, il l'affiche. La règle vit en base
@@ -268,6 +296,24 @@ export default function HouseholdPage(): React.ReactElement {
           // membre rendrait une carte vide, c'est-à-dire « personne n'a de
           // corps » — un fait qu'on n'a pas.
           setBodies(await loadMemberBodies());
+          // ── LES HABITUDES, ET POURQUOI LEUR ÉCHEC NE TUE PAS L'ÉCRAN ─────
+          // Elles ne portent RIEN d'autre sur cette page: les bouches, les
+          // allergies, les règles de maison, les corps et le plan se lisent et
+          // s'écrivent sans elles. Une lecture qui échoue doit donc dégrader
+          // LA SEULE CARTE qui en dépend, pas les six autres — sinon un foyer
+          // entier perd `/app/household` pour une carte repliée.
+          //
+          // ⚠️ CE N'EST PAS UN `catch` MUET, et la différence est le `null`.
+          // On ne pose PAS une carte vide (« personne n'a d'habitude », un
+          // fait qu'on n'a pas): on laisse `null`, c'est-à-dire « pas lu », et
+          // la carte n'affiche alors AUCUN champ. Le défaut reste visible en
+          // console au lieu de se déguiser en réponse.
+          try {
+            setHabits(await loadMemberHabits());
+          } catch (e) {
+            setHabits(null);
+            console.error("[household] habits unreadable", e);
+          }
           // D17 — même raison que la ligne au-dessus: la table n'est lisible
           // que du maître, et la demander pour un membre rendrait zéro ligne,
           // c'est-à-dire « personne n'est masqué » — un fait qu'on n'a pas.
@@ -394,6 +440,13 @@ export default function HouseholdPage(): React.ReactElement {
                 rhythm={rhythm}
                 awayWindow={awayWindow}
                 bodies={bodies}
+                habits={habits}
+                // `run` traduit le refus par la liste fermée de
+                // `copy/planRefusals.ts` et rafraîchit — donc le formulaire se
+                // remonte sur ce que le serveur a VRAIMENT gardé, et un
+                // `bad_slots` arrive en phrase, jamais en jeton nu.
+                onSaveHabits={(memberId, s, n) =>
+                  run(() => setMemberHabits(memberId, s, n))}
                 onSaveBody={(memberId, h, w, g) =>
                   run(() => setMemberBody(memberId, h, w, g))}
                 onMute={(memberId, next) => run(() => muteMergeProposals(memberId, next))}
@@ -829,11 +882,21 @@ function AddMouthCard(
  * quelle nature est cette contrainte.
  */
 function MembersCard(
-  { household, restrictions, allergies, busy, mutedMembers, rhythm, awayWindow, bodies, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction }: {
+  { household, restrictions, allergies, busy, mutedMembers, rhythm, awayWindow, bodies, habits, onSaveHabits, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction }: {
     household: HouseholdView;
     restrictions: RestrictionView[];
     allergies: AllergyView[];
     busy: boolean;
+    /**
+     * CE QUE CHAQUE BOUCHE MANGE D'HABITUDE. `null` = PAS ENCORE LU — et la
+     * carte n'affiche alors aucun champ. Voir l'état de la page.
+     */
+    habits: Map<string, MemberHabitsView> | null;
+    onSaveHabits: (
+      memberId: string,
+      slots: HabitSlot[],
+      note: string | null,
+    ) => Promise<boolean>;
     /**
      * Les corps saisis, par `member_id`. VIDE pour un non-maître, et pas parce
      * que l'écran le décide: `keel_household_member_bodies` lui rend zéro
@@ -925,6 +988,15 @@ function MembersCard(
             // vide pour un non-maître (la RPC lui rend zéro ligne), donc ce
             // bloc ne s'affiche que là où il est légitime.
             body={bodies.get(m.memberId) ?? null}
+            // DEUX `null` QUI NE VEULENT PAS DIRE LA MÊME CHOSE, et c'est le
+            // piège du lot. `habitsLoaded` faux = LA LECTURE N'A PAS EU LIEU.
+            // `habits` nul avec `habitsLoaded` vrai = LA LECTURE A EU LIEU et
+            // personne n'a rien dit de cette bouche. Le second est une
+            // réponse; le premier n'en est pas une, et rien ne doit s'afficher
+            // dessus.
+            habitsLoaded={habits !== null}
+            habits={habits?.get(m.memberId) ?? null}
+            onSaveHabits={(s, n) => onSaveHabits(m.memberId, s, n)}
             onSaveBody={(h, w, g) => onSaveBody(m.memberId, h, w, g)}
             onMute={(next) => onMute(m.memberId, next)}
             onSaveAway={(next) => onSaveAway(m.memberId, next)}
@@ -1087,7 +1159,7 @@ function MemberBadges({ member }: { member: HouseholdMemberView }) {
 }
 
 function MemberRow(
-  { member, isMe, allergies, restrictions, busy, muted, rhythm, awayWindow, body, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction }: {
+  { member, isMe, allergies, restrictions, busy, muted, rhythm, awayWindow, body, habits, habitsLoaded, onSaveHabits, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction }: {
     member: HouseholdMemberView;
     isMe: boolean;
     allergies: AllergyView[];
@@ -1095,6 +1167,11 @@ function MemberRow(
     busy: boolean;
     /** `null` = rien de saisi. Voir `BodyFields`: la bouche a une part standard. */
     body: MemberBodyView | null;
+    /** `null` = LA LECTURE A EU LIEU et personne n'a rien dit de cette bouche. */
+    habits: MemberHabitsView | null;
+    /** Faux = la lecture n'a PAS eu lieu. Les deux `null` sont distincts. */
+    habitsLoaded: boolean;
+    onSaveHabits: (slots: HabitSlot[], note: string | null) => Promise<boolean>;
     onSaveBody: (h: number, w: number, g: MemberGender) => Promise<boolean>;
     /** D17 — `null` = le réglage n'a pas pu être lu. Voir l'interrupteur. */
     muted: boolean | null;
@@ -1133,6 +1210,27 @@ function MemberRow(
       .filter((a) => inWindow.has(a.day))
       .reduce((n, a) => n + (a.slots.length === 0 ? slots : a.slots.length), 0);
   }, [member.awayHousehold, awayWindow.tokens, rhythm.length]);
+
+  /**
+   * LES MOMENTS DE CETTE PERSONNE — les LIGNES de la carte des habitudes.
+   *
+   * ⚠️ LES SIENS, PAS UNE LISTE DE SIX (spec §H1). Quelqu'un qui ne prend pas
+   * de collation ne doit pas lire une ligne vide toutes les semaines.
+   *
+   * `member.eatingSlots` est DÉJÀ tranché par le roster entre son « about you »
+   * (si elle a un compte) et sa ligne (sinon) — cet écran ne refait pas la
+   * résolution. `null` n'est pas une absence de donnée: il veut dire « aux
+   * moments de la maison », et le repli est donc le rythme du foyer, celui-là
+   * même avec lequel la composition tourne.
+   */
+  const habitSlots = React.useMemo<EatingOccasion[]>(() => {
+    const raw = member.eatingSlots ?? rhythm.map((r) => r.slot);
+    // Le vocabulaire fermé du moteur, et l'ordre de LA JOURNÉE. Un jeton
+    // inconnu s'écarte plutôt que de fabriquer une ligne qu'on ne saurait pas
+    // nommer à l'écran.
+    const asked = new Set(raw);
+    return EATING_OCCASIONS.filter((s) => asked.has(s));
+  }, [member.eatingSlots, rhythm]);
 
   /** Ce que la personne a dit d'elle-même, dans la fenêtre. LECTURE SEULE. */
   const selfInWindow = React.useMemo(() => {
@@ -1215,6 +1313,25 @@ function MemberRow(
             // garde une part standard, jamais réduite.
             needsBirthDate={member.ageState === "unknown"}
             onSave={onSaveBody}
+          />
+
+          {/* ── CE QUE CETTE BOUCHE MANGE D'HABITUDE (2026-08-14) ──────────
+              L'ENDROIT QUI MANQUAIT. Une bouche sans compte n'avait nulle part
+              où dire ce qu'elle mange: `food_preferences` est clé sur
+              `user_id`. On savait d'elle prénom, naissance, objectif, absences,
+              moments, allergies et corps — et rien sur ce qu'elle mange. Un
+              plan réel a donc servi des œufs brouillés sept matins d'affilée à
+              une femme qui mange une pomme.
+
+              ⚠️ RIEN N'EST PRÉ-COCHÉ, ET AUCUNE ABSENCE N'EST COMPTÉE. Les deux
+              règles vivent dans la carte et dans `habitDraft`; elles sont la
+              raison d'être du lot, pas une finition. */}
+          <HouseholdHabitsCard
+            slots={habitSlots}
+            habits={habits}
+            loaded={habitsLoaded}
+            busy={busy}
+            onSave={onSaveHabits}
           />
 
           {/* ── D14 · QUAND CETTE BOUCHE N'EST PAS LÀ ──────────────────────
