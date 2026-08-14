@@ -69,6 +69,13 @@ import { setMemberAway } from "../api/household";
 import MealPickerGrid from "../components/MealPickerGrid";
 import { browserLocalDate } from "../lib/useMealTicks";
 import { t, type MessageKey } from "../i18n/t";
+import HouseholdHabitsCard from "../components/HouseholdHabitsCard";
+import {
+  type HabitSlot,
+  loadMemberHabits,
+  type MemberHabitsView,
+  setMemberHabits,
+} from "../api/householdHabits";
 
 // KEEL — FF-060, L'ENTONNOIR D'ENTRÉE.
 //
@@ -264,6 +271,24 @@ export default function SetupPage() {
   const [failure, setFailure] = React.useState<string | null>(null);
   /** Le refus des gestes de la carte des bouches — rendu SUR la carte. */
   const [mouthFailure, setMouthFailure] = React.useState<string | null>(null);
+  /**
+   * LES HABITUDES, PAR BOUCHE. `null` = LA LECTURE N'A PAS EU LIEU — c'est la
+   * garde de chargement que `HouseholdHabitsCard` exige, et sans elle un
+   * formulaire figé au montage sur du vide l'écraserait au premier Save.
+   *
+   * ⚠️ POURQUOI ELLES SONT ICI ET PLUS SEULEMENT SUR `/app/household`. Le
+   * questionnaire a été livré sur la page du foyer, et c'est le bon endroit
+   * pour le RELIRE. Mais l'entonnoir se termine par une composition: sans
+   * cette carte ici, le TOUT PREMIER plan — celui qui fait la première
+   * impression — est composé sans savoir que quelqu'un mange une pomme le
+   * matin. C'est exactement le défaut que ce questionnaire existe pour fermer,
+   * et je l'avais laissé ouvert sur le seul plan où il coûte le plus cher.
+   * Même composant, même table, même garde: on le MONTRE plus tôt, on ne le
+   * duplique pas.
+   */
+  const [habits, setHabits] = React.useState<Map<string, MemberHabitsView> | null>(
+    null,
+  );
   const [flash, setFlash] = React.useState<string | null>(null);
   /**
    * « ON A ESSAYÉ DE QUITTER CETTE ÉTAPE, ET ELLE A RETENU. »
@@ -345,6 +370,14 @@ export default function SetupPage() {
       try {
         const read = await readFunnelFacts(userId);
         setFacts(read);
+        // LES HABITUDES SUIVENT LA MÊME LECTURE. Un foyer absent rend une
+        // carte vide plutôt qu'une erreur: le compte solo est le chemin
+        // majoritaire et il n'a personne à décrire.
+        if (read.householdId) {
+          setHabits(await loadMemberHabits().catch(() => new Map()));
+        } else {
+          setHabits(new Map());
+        }
         if (seed) {
           setSelf({
             firstName: read.state.self.firstName,
@@ -1060,6 +1093,13 @@ export default function SetupPage() {
             selfDiet={self?.diet ?? ""}
             onSelfDiet={(diet) =>
               setSelf((prev) => (prev === null ? prev : { ...prev, diet }))}
+            habits={habits}
+            onSaveHabits={async (memberId, slots, note) => {
+              const result = await setMemberHabits(memberId, slots, note);
+              if (!result.ok) return false;
+              setHabits(await loadMemberHabits().catch(() => new Map()));
+              return true;
+            }}
             // MÊME DISCIPLINE QU'À L'ÉTAPE 2: la liste ne s'affiche
             // qu'APRÈS avoir essayé de partir. Sans ce drapeau, on arrivait
             // sur l'étape avec « avant de pouvoir le construire — quand tu
@@ -2205,6 +2245,8 @@ function TableStep({
   missing,
   selfDiet,
   onSelfDiet,
+  habits,
+  onSaveHabits,
 }: {
   draft: FunnelPlanAnswers;
   onChange: React.Dispatch<React.SetStateAction<FunnelPlanAnswers | null>>;
@@ -2215,6 +2257,13 @@ function TableStep({
   /** Le régime du maître — REQUIS, `""` = pas encore répondu. */
   selfDiet: DietAnswer | "";
   onSelfDiet: (diet: DietAnswer) => void;
+  /** `null` = la lecture n'a pas eu lieu. La carte s'en sert comme garde. */
+  habits: Map<string, MemberHabitsView> | null;
+  onSaveHabits: (
+    memberId: string,
+    slots: HabitSlot[],
+    note: string | null,
+  ) => Promise<boolean>;
 }) {
   const toggle = (list: readonly string[], value: string) =>
     list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
@@ -2356,6 +2405,36 @@ function TableStep({
                     </p>
                   )
                   : null}
+
+                {/* ── CE QUE CETTE PERSONNE MANGE VRAIMENT ─────────────────
+                    Les moments ci-dessus disent QUAND; ceci dit QUOI, quand ce
+                    n'est pas le plat de la maison — « une pomme le matin » —
+                    plus une ligne libre et durable.
+
+                    Le questionnaire vivait UNIQUEMENT sur `/app/household`.
+                    C'était le bon endroit pour le relire, et le mauvais moment
+                    pour le poser: l'entonnoir finit par une composition, donc
+                    le TOUT PREMIER plan sortait sans savoir tout ça. Même
+                    composant, même table, même garde — montré plus tôt.
+
+                    Les moments proposés sont CEUX DE LA PERSONNE, avec repli
+                    sur ceux de la maison: une ligne vide pour un moment qu'elle
+                    ne prend pas est une ligne qu'on relit chaque semaine pour
+                    rien. */}
+                {m.memberId !== null ? (
+                  <div className="mt-3">
+                    <HouseholdHabitsCard
+                      slots={EATING_OCCASIONS.filter((slot) =>
+                        (m.eatingSlots ?? draft.eatingRhythm).includes(slot)
+                      )}
+                      habits={habits?.get(m.memberId) ?? null}
+                      loaded={habits !== null}
+                      busy={busy}
+                      onSave={(slots, note) =>
+                        onSaveHabits(m.memberId!, slots, note)}
+                    />
+                  </div>
+                ) : null}
               </li>
             ))}
           </ul>
