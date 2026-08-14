@@ -1598,6 +1598,32 @@ export default function StudentWeekPlanPage() {
   }, [household, isOwner, livePlans]);
 
   /**
+   * ══════════════════════════════════════════════════════════════════════
+   * LE MOTIF NOMMÉ, EN PHRASE — ET IL PASSE PAR ICI OU IL NE PASSE PAS.
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * 🔴 MESURÉ DANS LE NAVIGATEUR LE 2026-08-14: sans cette fonction, la
+   * fenêtre de brouillon affichait le JETON BRUT — « note_unusable », en
+   * rouge, sous le champ. La traduction ne vivait que dans le chemin
+   * d'ouverture (`askForDraft`); la REPRISE et l'ADOPTION, elles, laissaient
+   * remonter `Error.message` tel quel jusqu'au `catch` du composant.
+   *
+   * C'est le défaut classique de ce dépôt sous une autre forme: une table de
+   * refus fermée, traduite à UN endroit du chemin et pas aux deux autres. Un
+   * jeton nu à l'écran n'apprend rien à la personne, et `note_unusable` est
+   * précisément le seul refus qu'elle peut réparer elle-même — en reformulant.
+   *
+   * ⚠️ UN JETON INCONNU RESSORT TEL QUEL, jamais sous une phrase
+   * passe-partout: « une erreur est survenue » ferait perdre la seule
+   * information utile, et masquerait un jeton qu'on aurait dû voir arriver.
+   */
+  const draftRefusal = React.useCallback((e: unknown): string => {
+    const raw = e instanceof Error ? e.message : String(e);
+    const key = edgeRefusalKey(raw.split(":")[0]);
+    return key ? t(key) : raw;
+  }, []);
+
+  /**
    * COMPOSER UN APERÇU, ET OUVRIR LA FENÊTRE SUR CE QU'IL A RENDU.
    *
    * ⚠️ LA FENÊTRE NE S'OUVRE QU'APRÈS: `PlanDraftDialog` ne montre rien tant
@@ -1610,22 +1636,18 @@ export default function StudentWeekPlanPage() {
     try {
       const composed = await composeDraft(draftInput(note));
       setDraft(composed);
+      // (voir `draftRefusal` pour la traduction du motif)
       // LA PHRASE EST RETENUE APRÈS L'APPEL, jamais avant: une phrase refusée
       // (`note_unusable`) ne doit pas rester collée à l'aperçu précédent, ni
       // partir à l'adoption alors que le serveur l'a écartée.
       setDraftNote(note);
       setDraftOpen(true);
     } catch (e) {
-      // LE MOTIF NOMMÉ, TRADUIT. `note_unusable` est le seul refus que la
-      // personne peut réparer elle-même; l'aplatir en « une erreur est
-      // survenue » lui retirerait la seule information utile.
-      const raw = e instanceof Error ? e.message : String(e);
-      const key = edgeRefusalKey(raw.split(":")[0]);
-      setDraftFailure(key ? t(key) : raw);
+      setDraftFailure(draftRefusal(e));
     } finally {
       setDraftBusy(false);
     }
-  }, [draftInput]);
+  }, [draftInput, draftRefusal]);
 
   async function run(label: string, fn: () => Promise<void>) {
     setBusy(label);
@@ -2412,9 +2434,18 @@ export default function StudentWeekPlanPage() {
             // ⚠️ LA MÊME DEMANDE, PLUS LA PHRASE. `draftInput` est la source
             // unique des entrées: le tour N porte les mêmes blocs que le tour
             // 1, et la note s'AJOUTE. Elle ne remplace rien.
-            const composed = await composeDraft(draftInput(note));
-            setDraft(composed);
-            setDraftNote(note);
+            // ⚠️ LE MOTIF EST TRADUIT ICI, PAS DANS LE COMPOSANT. Sans ce
+            // `catch`, `note_unusable` remontait en JETON BRUT jusqu'au rouge
+            // de la fenêtre — mesuré dans le navigateur. Le `throw` est
+            // conservé: c'est lui qui fait que la reprise ne compte PAS un
+            // tour, puisque rien n'a été composé.
+            try {
+              const composed = await composeDraft(draftInput(note));
+              setDraft(composed);
+              setDraftNote(note);
+            } catch (e) {
+              throw new Error(draftRefusal(e));
+            }
           }}
           onAdopt={async () => {
             // ⚠️ CECI RECOMPOSE, ET C'EST DIT DANS LA FENÊTRE AVANT LE CLIC.
@@ -2429,12 +2460,21 @@ export default function StudentWeekPlanPage() {
             // ⛔ `draftNote` ET PAS `null`. La phrase part AVEC l'adoption:
             // sans elle, le plan écrit ne serait pas celui qu'on vient de
             // montrer, et personne ne saurait pourquoi les pizzas ont disparu.
-            const written = await writeFromDraft(
-              draftInput(draftNote),
-              "prepare_next",
-              null,
-            );
-            if (!written.ok) throw new Error("plan_not_written");
+            let written: { ok: boolean; mealId: string | null };
+            try {
+              written = await writeFromDraft(
+                draftInput(draftNote),
+                "prepare_next",
+                null,
+              );
+            } catch (e) {
+              // Même règle que la reprise: un jeton nu n'apprend rien.
+              throw new Error(draftRefusal(e));
+            }
+            // Un 200 qui dit `ok: false` n'est pas une panne de transport, et
+            // il ne doit pas non plus atterrir comme un succès: il rejoint la
+            // même table de refus que tout le reste.
+            if (!written.ok) throw new Error(draftRefusal(new Error("plan_not_written")));
             setDraftOpen(false);
             setDraft(null);
             setDraftNote(null);
