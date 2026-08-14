@@ -11,7 +11,9 @@ import Modal from "../components/ui/Modal";
 import SetupSection from "../components/ui/SetupSection";
 import MealBuilder from "../components/MealBuilder";
 import MyShareCard from "../components/plan/MyShareCard";
+import PlanByPerson from "../components/plan/PlanByPerson";
 import PlanDraftDialog from "../components/plan/PlanDraftDialog";
+import { windowDates, windowDayOrder } from "../api/mealWindow";
 import { selectMyShare } from "../api/myShare";
 import { chooseGenerator } from "../api/planRouting";
 import {
@@ -2380,6 +2382,51 @@ export default function StudentWeekPlanPage() {
             produit. Ce retrait est celui d'un AFFICHAGE. La question « on la
             montre autrement, ou on l'abandonne » est ouverte et appartient à
             l'humain. */}
+
+        {/* ── 9bis · QUI MANGE QUOI (2026-08-14) ─────────────────────────
+            ⚠️ C'EST LA RÉPONSE À LA QUESTION QUE « À TABLE » POSAIT MAL, et
+            c'est pour ça qu'elle se monte exactement là où l'autre était. Les
+            MÊMES parts (`member_portions`), mais dans une grille, à côté du
+            plat qu'elles servent — pas récitées en liste loin du plan. Ce
+            n'est pas une perte, c'est un déplacement.
+
+            « Normalement il devrait y avoir autant de vues que de personnes
+            dans le foyer. Là on sait pas qui mange quoi. » — 2026-08-14.
+
+            ⛔ `isOwner` EST LA GARDE, ET ELLE EST PASSÉE, PAS DEVINÉE. Cette
+            vue rend la part de TOUT LE MONDE; `MyShareCard` juste au-dessus
+            interdit explicitement « la part d'un autre » à un secondaire, et
+            celle-ci en serait le contournement si elle lui était rendue. Elle
+            est sûre pour le maître seul: c'est lui qui a saisi les bouches.
+
+            ⚠️ ZÉRO APPEL MODÈLE. `householdMeal` est déjà lu par cet écran
+            (`loadHouseholdMeal`); cette vue n'ajoute aucune requête, aucune
+            colonne, aucune génération. */}
+        {householdMeal
+          ? (() => {
+            const days = windowDayOrder(
+              householdMeal.startsOn,
+              householdMeal.durationDays,
+            );
+            // `windowDates` est une TABLE jeton→date, pas une liste: on la lit
+            // DANS L'ORDRE DES COLONNES pour que les deux ne puissent pas se
+            // décaler. Même geste que `PlanResult`, et pour la même raison.
+            const dates = windowDates(
+              householdMeal.startsOn,
+              householdMeal.durationDays,
+            );
+            return (
+              <PlanByPerson
+                days={days}
+                dates={days.map((d) => dates[d] ?? "")}
+                today={browserLocalDate()}
+                dishes={householdMeal.dishes}
+                portions={householdMeal.portions}
+                isOwner={isOwner}
+              />
+            );
+          })()
+          : null}
 
         {/* ── 10 · L'APERÇU (Lot C) ───────────────────────────────────────
             SOUS le plan et sous « à table »: on prévisualise la semaine

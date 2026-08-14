@@ -1320,6 +1320,26 @@ export interface HouseholdDishView {
   title: string;
   day: string | null;
   slot: string | null;
+  /**
+   * LES PRÉPARATIONS DANS LESQUELLES CE PLAT PUISE — DES `id`, ET RIEN D'AUTRE.
+   *
+   * ⚠️ CE CHAMP EST L'EXCEPTION À LA RÈGLE DU DESSUS, ET IL FAUT DIRE POURQUOI.
+   * `why` et `ingredients` sont écartés parce qu'ils PORTENT DU TEXTE écrit
+   * pour une personne, lu à voix haute par tout le foyer. Un `preparation_id`
+   * ne porte aucun texte: c'est un slug de lot (`prep_chicken_bowls`), le même
+   * pour tout le monde, et il ne dit rien de personne.
+   *
+   * ── CE QU'IL REND POSSIBLE, ET QUI N'EXISTAIT NULLE PART ─────────────────
+   * La JOINTURE PLAT → PART. `member_portions[].preparation_shares[]` est
+   * indexé par `preparation_id`, donc sans ce champ la part de chacun ne peut
+   * pas être posée à côté du plat qu'elle sert — c'est exactement ce que « à
+   * table » ratait en récitant les parts loin du plat, et c'est ce que
+   * `PlanByPerson` corrige.
+   *
+   * Vide = le plat se fait de zéro, donc aucune part de lot ne le concerne et
+   * la ligne de chaque bouche est la même.
+   */
+  uses: string[];
 }
 
 export interface HouseholdMealView {
@@ -1434,6 +1454,16 @@ function readHouseholdDishes(raw: unknown): HouseholdDishView[] {
       title: String(d.title ?? "").trim(),
       day: typeof d.day === "string" && d.day.trim() ? d.day.trim() : null,
       slot: typeof d.slot === "string" && d.slot.trim() ? d.slot.trim() : null,
+      // ⚠️ LECTURE DÉFENSIVE, ET C'EST UNE CICATRICE. `uses` est arrivé APRÈS
+      // des compositions déjà en base: un `as` sur ce JSONB compilerait et
+      // jurerait que le tableau existe, puis l'écran ferait `.includes()` sur
+      // `undefined` à l'ouverture d'un vieux plan. Même garde que
+      // `readDishes` dans `api/mealGeneration.ts`, pour la même raison.
+      uses: Array.isArray(d.uses)
+        ? d.uses
+          .map((u) => String(((u ?? {}) as Record<string, unknown>).preparation_id ?? ""))
+          .filter((id) => id !== "")
+        : [],
     };
   }).filter((d) => d.title !== "");
 }
