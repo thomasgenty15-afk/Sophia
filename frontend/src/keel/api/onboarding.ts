@@ -322,7 +322,14 @@ export const FUNNEL_QUESTIONS: readonly FunnelQuestion[] = Object.freeze([
     consumer: "supabase/functions/_shared/keel/dietary_regime.ts#dietaryRegimePromptLine",
     weight: "wrong",
     branches: ALL_BRANCHES,
-    step: "people",
+    // ── ÉTAPE 3, AVEC LE RESTE DE « COMMENT ON MANGE » ────────────────────
+    // Elle a vécu à l'étape 2, parmi les faits d'IDENTITÉ (prénom, naissance,
+    // corps, objectif). Signalé à l'écran le 2026-08-14: l'étape 2 dit qui
+    // sont les gens, l'étape 3 dit comment ils mangent — et « Je mange de
+    // tout / Végétarien / Végane / Pescatarien » est la seconde question, pas
+    // la première. La laisser là posait la même question à deux endroits de
+    // l'entonnoir selon qu'elle concerne le maître ou une autre bouche.
+    step: "table",
     scope: "self",
   },
   {

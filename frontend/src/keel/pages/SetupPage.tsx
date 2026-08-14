@@ -1029,6 +1029,9 @@ export default function SetupPage() {
             mouths={facts.mouths}
             onMouthRhythm={(m, slots) => guard(() => saveMouthRhythm(m, slots))}
             busy={busy}
+            selfDiet={self?.diet ?? ""}
+            onSelfDiet={(diet) =>
+              setSelf((prev) => (prev === null ? prev : { ...prev, diet }))}
             // MÊME DISCIPLINE QU'À L'ÉTAPE 2: la liste ne s'affiche
             // qu'APRÈS avoir essayé de partir. Sans ce drapeau, on arrivait
             // sur l'étape avec « avant de pouvoir le construire — quand tu
@@ -1141,6 +1144,19 @@ export default function SetupPage() {
                 disabled={busy}
                 onClick={() =>
                   guard(async () => {
+                    // LE RÉGIME EST ÉCRIT ICI DEPUIS QU'IL VIT SUR CETTE
+                    // ÉTAPE. Sans cette ligne il resterait dans le brouillon,
+                    // `readFunnelFacts` le relirait `null`, et l'étape
+                    // retiendrait sur une question à laquelle on vient de
+                    // répondre — le défaut exact que l'étape 2 a déjà payé.
+                    if (self?.diet) {
+                      const before = await readFunnelFacts(userId);
+                      await saveOwnDiet({
+                        userId,
+                        diet: self.diet,
+                        current: before.practicalConstraints,
+                      });
+                    }
                     await savePlanAnswers({
                       userId,
                       current: facts!.practicalConstraints,
@@ -1491,23 +1507,16 @@ function SelfStep({
           </select>
         </Field>
 
-        {/* LE RÉGIME AVANT LES ALLERGIES. C'est la question qui écarte le
-            plus de choses, et l'ordre évite de cocher « poisson » sous
-            allergie quand la vraie réponse est « je suis végétarien ». */}
-        <Field label={t("setup.people.diet")} hint={t("setup.people.diet_hint")}>
-          <div className="flex flex-wrap gap-2">
-            {DIET_ANSWERS.map((diet) => (
-              <Button
-                key={diet}
-                size="sm"
-                variant={draft.diet === diet ? "primary" : "secondary"}
-                onClick={() => set({ diet })}
-              >
-                {t(`setup.people.diet_${diet}` as "setup.people.diet_omnivore")}
-              </Button>
-            ))}
-          </div>
-        </Field>
+        {/* ⚠️ LE RÉGIME A DÉMÉNAGÉ À L'ÉTAPE 3 (« comment on mange »), et
+            l'ordre d'origine EST CASSÉ PAR CE DÉPLACEMENT. Le commentaire
+            d'ici disait: « le régime avant les allergies — l'ordre évite de
+            cocher poisson sous allergie quand la vraie réponse est je suis
+            végétarien ». Les allergies restent sur CETTE étape, le régime est
+            désormais sur la suivante: quelqu'un peut donc déclarer une
+            allergie au poisson avant d'avoir pu dire qu'il est végétarien.
+            Arbitrage assumé, demandé à l'écran le 2026-08-14 — l'étape 2 dit
+            QUI sont les gens, l'étape 3 dit COMMENT ils mangent, et poser la
+            même question à deux endroits selon la personne était pire. */}
 
         <AllergyPicker
           label={t("setup.people.allergies")}
@@ -2154,6 +2163,8 @@ function TableStep({
   onMouthRhythm,
   busy,
   missing,
+  selfDiet,
+  onSelfDiet,
 }: {
   draft: FunnelPlanAnswers;
   onChange: React.Dispatch<React.SetStateAction<FunnelPlanAnswers | null>>;
@@ -2161,6 +2172,9 @@ function TableStep({
   onMouthRhythm: (mouth: FunnelMouth, slots: readonly string[]) => void;
   busy: boolean;
   missing: readonly FunnelMissId[];
+  /** Le régime du maître — REQUIS, `""` = pas encore répondu. */
+  selfDiet: DietAnswer | "";
+  onSelfDiet: (diet: DietAnswer) => void;
 }) {
   const toggle = (list: readonly string[], value: string) =>
     list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
@@ -2170,6 +2184,28 @@ function TableStep({
       <Card>
         <SectionLabel>{t("setup.table.title")}</SectionLabel>
         <p className="mt-2 text-sm text-ink-soft">{t("setup.table.intro")}</p>
+
+        {/* ── LE RÉGIME EN TÊTE DE CETTE ÉTAPE ────────────────────────────
+            C'est la question qui écarte le PLUS de choses: elle passe donc
+            devant les moments, pour la même raison qu'elle passait devant les
+            allergies à l'étape 2. Elle vient de là — voir la note laissée sur
+            place dans `SelfStep`. */}
+        <div className="mt-4">
+          <Field label={t("setup.people.diet")} hint={t("setup.people.diet_hint")}>
+            <div className="flex flex-wrap gap-2">
+              {DIET_ANSWERS.map((diet) => (
+                <Button
+                  key={diet}
+                  size="sm"
+                  variant={selfDiet === diet ? "primary" : "secondary"}
+                  onClick={() => onSelfDiet(diet)}
+                >
+                  {t(`setup.people.diet_${diet}` as "setup.people.diet_omnivore")}
+                </Button>
+              ))}
+            </div>
+          </Field>
+        </div>
 
         <div className="mt-4 space-y-4">
           {/* ── L'ÉTIQUETTE DIT DE QUI, ET C'ÉTAIT UN DÉFAUT VU À L'ÉCRAN ──
