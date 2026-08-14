@@ -744,6 +744,26 @@ function minimumOthers(branch: FunnelBranch): number {
   return 2;
 }
 
+/**
+ * COMBIEN DE BOUCHES IL MANQUE ENCORE — le nombre, pas le fait.
+ *
+ * ⚠️ CE N'EST PAS DU CONFORT D'ÉCRAN, C'EST LA MOITIÉ MANQUANTE DU REFUS.
+ * Mesuré sur un compte neuf le 2026-08-14: quelqu'un répond « Trois ou plus »,
+ * inscrit UNE personne, et lit « Ajoute les autres personnes qui mangent ici ».
+ * Il en a ajouté une. La phrase lui dit donc qu'il n'a rien fait, et rien à
+ * l'écran ne dit ni **combien** il en manque, ni que le nombre vient de SA
+ * réponse à l'étape 1. Le mot de l'utilisateur, cité: « je ne peux pas passer
+ * à l'étape 3 ».
+ *
+ * Un refus qui ne dit pas ce qui le lèverait n'est pas un refus, c'est un mur.
+ */
+export function mouthsStillNeeded(
+  branch: FunnelBranch,
+  othersCount: number,
+): number {
+  return Math.max(0, minimumOthers(branch) - othersCount);
+}
+
 // ───────────────────────────────────────────────────────────────────────────
 // LES DÉCISIONS
 // ───────────────────────────────────────────────────────────────────────────

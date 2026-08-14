@@ -47,6 +47,7 @@ import {
   funnelSteps,
   HOUSEHOLD_MAX_MOUTHS,
   missesForStep,
+  mouthsStillNeeded,
   nextIncomplete,
   readFunnelFacts,
   nameAlreadyEating,
@@ -411,6 +412,33 @@ export default function SetupPage() {
    * l'entonnoir demandait pour les bouches jusqu'au 2026-08-13.
    */
   const stepMissing = missesForStep(previewState, branch, step.id);
+
+  /**
+   * CE QUI RETIENT SUR LES BOUCHES, DIT SUR LE FORMULAIRE QUI LE LÈVE.
+   *
+   * Trois phrases, dans l'ordre où elles servent, et la première est celle qui
+   * manquait vraiment: quelqu'un qui a TAPÉ un prénom sans appuyer sur
+   * « Ajouter » lit sinon qu'il n'a ajouté personne, pendant que ce prénom est
+   * à l'écran. Mesuré sur un compte neuf le 2026-08-14.
+   *
+   * On ne fabrique la phrase QUE si l'étape retient réellement là-dessus:
+   * sinon on apprendrait à quelqu'un qu'il existe un mur qu'il n'a pas touché.
+   */
+  const mouthsHeld = ((): string | null => {
+    if (!heldBack || !stepMissing.includes("missing_mouths")) return null;
+    const typed = mouth.firstName.trim();
+    const short = mouthsStillNeeded(branch, facts.mouths.length);
+    const answer = branch === "pair"
+      ? t("setup.situate.pair")
+      : t("setup.situate.family");
+    return [
+      typed ? t("setup.mouths.held_typed", { name: typed }) : null,
+      short === 1
+        ? t("setup.mouths.held_one", { answer })
+        : t("setup.mouths.held_many", { n: String(short), answer }),
+      t("setup.mouths.held_exit"),
+    ].filter(Boolean).join(" ");
+  })();
 
   const isLast = stepIndex >= steps.length - 1;
 
@@ -927,6 +955,7 @@ export default function SetupPage() {
                 draft={mouth}
                 onDraftChange={setMouth}
                 onAdd={() => guard(addMouth)}
+                held={mouthsHeld}
                 onGoal={(m, g) => guard(() => saveMouthGoal(m, g))}
                 onBirthDate={(m, d) => guard(() => saveMouthBirthDate(m, d))}
                 onAllergyAnswer={(m, labels) =>
@@ -1471,6 +1500,12 @@ function MouthsStep(props: {
   draft: MouthDraft;
   onDraftChange: React.Dispatch<React.SetStateAction<MouthDraft>>;
   onAdd: () => void;
+  /**
+   * La phrase qui retient, ou `null`. REQUISE — jamais optionnelle: un
+   * paramètre de garde facultatif est une garde désarmée, et celle-ci est la
+   * seule chose qui relie le refus au bouton qui le lève.
+   */
+  held: string | null;
   onGoal: (mouth: FunnelMouth, goal: MemberGoal | "") => void;
   onBirthDate: (mouth: FunnelMouth, date: string) => void;
   onAllergyAnswer: (mouth: FunnelMouth, labels: string[]) => void;
@@ -1690,6 +1725,30 @@ function MouthsStep(props: {
             none={draft.allergiesNone}
             onChange={(allergies, none) => set({ allergies, allergiesNone: none })}
           />
+
+          {/* ── LE REFUS VIT SUR LE GESTE QUI LE LÈVE ────────────────────────
+              Mesuré sur un compte neuf le 2026-08-14, et les trois symptômes
+              rapportés n'en font qu'un: on répond « Trois ou plus », on SAISIT
+              une personne, on appuie sur « Continuer » — et le brouillon est
+              JETÉ en silence par le bouton d'à côté, pendant qu'une carte tout
+              en bas réclame « Ajoute les autres personnes qui mangent ici ».
+              Le prénom est à l'écran, tapé, sous les yeux de qui lit qu'il n'a
+              rien ajouté. Ses mots: « je ne peux pas passer à l'étape 3 ».
+
+              Trois choses manquaient, et aucune n'est cosmétique:
+                · COMBIEN il en manque — le nombre vient de la réponse à
+                  l'étape 1, et personne ne faisait le lien;
+                · que le BROUILLON EN COURS n'est pas inscrit tant qu'on n'a
+                  pas appuyé ici — un geste qui ne fait rien est indiscernable
+                  d'un geste qui a marché, le mode d'échec n°1 de ce dépôt;
+                · LA SORTIE, pour qui n'est finalement que deux: rien ne disait
+                  qu'elle passe par la première question. Un refus qui ne dit
+                  pas ce qui le lèverait n'est pas un refus, c'est un mur. */}
+          {props.held !== null ? (
+            <p className="mt-4 rounded-card border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900">
+              {props.held}
+            </p>
+          ) : null}
 
           <Button variant="secondary" disabled={props.busy} onClick={props.onAdd}>
             {t("setup.mouths.add")}

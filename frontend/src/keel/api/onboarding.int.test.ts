@@ -21,6 +21,7 @@ import {
   nameAlreadyEating,
   nextIncomplete,
   normalizedMouthName,
+  mouthsStillNeeded,
 } from "./onboarding";
 import { SETUP_MISS_KEYS } from "../copy/setupMisses";
 import { en } from "../i18n/en";
@@ -809,5 +810,31 @@ describe("nameAlreadyEating", () => {
 
   it("ne trouve rien dans une maison vide", () => {
     expect(nameAlreadyEating("Chirstèle", [])).toBe(false);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────
+// COMBIEN IL EN MANQUE — la moitié du refus qui manquait
+//
+// Mesuré sur un compte neuf le 2026-08-14: « Trois ou plus » à l'étape 1, une
+// personne inscrite, et l'écran répond « Ajoute les autres personnes qui
+// mangent ici ». Il en a ajouté une. Le refus est JUSTE — la branche en attend
+// deux — mais il ne dit ni combien il en manque, ni d'où vient le nombre.
+// ─────────────────────────────────────────────────────────────────────────
+
+describe("mouthsStillNeeded", () => {
+  it("dit le nombre, et il vient de la réponse de l'étape 1", () => {
+    expect(mouthsStillNeeded("family", 0)).toBe(2);
+    expect(mouthsStillNeeded("family", 1)).toBe(1);
+    expect(mouthsStillNeeded("pair", 0)).toBe(1);
+  });
+
+  it("ne descend jamais sous zéro — un foyer plus grand que prévu est valide", () => {
+    // « family » attend 2 et n'exige pas 3: le nombre de l'étape 1 est une
+    // INTENTION donnée avant de savoir. Un compte négatif ferait dire
+    // « il manque -1 personne » à quelqu'un qui en a inscrit quatre.
+    expect(mouthsStillNeeded("family", 4)).toBe(0);
+    expect(mouthsStillNeeded("pair", 3)).toBe(0);
+    expect(mouthsStillNeeded("solo", 0)).toBe(0);
   });
 });
