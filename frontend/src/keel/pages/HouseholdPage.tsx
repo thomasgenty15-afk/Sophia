@@ -29,6 +29,7 @@ import {
   type MemberBodyView,
   type MemberGender,
   type MemberGoal,
+  mergeCounterparts,
   openHouseholdCheckout,
   removeAllergy,
   removeHouseholdMember,
@@ -485,8 +486,17 @@ export default function HouseholdPage(): React.ReactElement {
                   fusion se lit une fois qu'on sait qu'un plan existe, et elle
                   explique la table qui vient juste en dessous. La carte se
                   tait d'elle-même pour un secondaire (le serveur refuse 403,
-                  et D10 met le geste dans les mains du maître). */}
-              <HouseholdMergeCard isOwner={isOwner} onComposed={refresh} />
+                  et D10 met le geste dans les mains du maître).
+
+                  ⚠️ ET ELLE SE TAIT AUSSI QUAND PERSONNE N'A RÉCLAMÉ SON
+                  PROFIL. `mergeCounterparts` est lu ICI et pas dans la carte:
+                  le roster est déjà chargé par cette page, et une carte qui
+                  irait le relire ferait une seconde lecture du même fait. */}
+              <HouseholdMergeCard
+                isOwner={isOwner}
+                hasCounterpart={mergeCounterparts(household).length > 0}
+                onComposed={refresh}
+              />
               {/* « À table » est parti sur `/app/plan`, sous le plan: il dit
                   comment on SERT ce que le plan dit qu'on CUISINE, et cet
                   écran-ci ne montre pas le plan. */}

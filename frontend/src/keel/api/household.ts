@@ -232,6 +232,38 @@ export function claimableMembers(
 }
 
 /**
+ * LES BOUCHES AVEC QUI UNE FUSION EST SEULEMENT CONCEVABLE (2026-08-14).
+ *
+ * ── LA RÈGLE PRODUIT, ET ELLE PRÉCÈDE TOUTE LECTURE ────────────────────────
+ * La fusion n'existe qu'entre profils RÉCLAMÉS. Une bouche sans compte ne
+ * compose rien — pas de `student_week_plans`, pas de plan validé — donc elle
+ * n'a rien à fusionner, jamais, et aucun geste du maître ne changera ça.
+ *
+ * ⚠️ C'EST UNE CONDITION DE MONTAGE, PAS UN FILTRE D'AFFICHAGE. Sur un foyer
+ * où personne n'a réclamé son profil, la carte de proposition rendait trois
+ * phrases pour dire qu'il ne se passe rien, un plafond que personne n'a entamé,
+ * et le nom d'une bouche suivi d'un reproche pour une chose qu'elle ne PEUT pas
+ * faire. Mesuré sur `/app/household` le 2026-08-14, foyer de deux bouches.
+ * L'état vide d'un bloc qui ne peut pas exister n'est pas un état vide: c'est
+ * un bloc de trop.
+ *
+ * ⚠️ LE MAÎTRE EST EXCLU, ET CE N'EST PAS UN DÉTAIL. Il a toujours un compte:
+ * le compter ferait rendre `true` pour TOUT foyer, c'est-à-dire une garde qui
+ * ne garde rien. Le lecteur de propositions écarte déjà sa propre ligne
+ * (`member_is_owner`) — c'est la même règle, un cran plus tôt.
+ *
+ * ⚠️ CE N'EST PAS « qui a un plan à fusionner ». Cette question-là est
+ * arithmétique et vit AU SERVEUR (`bestMergePair`); y répondre ici ferait un
+ * second avis. On répond à la seule question qu'un roster peut trancher: cette
+ * bouche a-t-elle un endroit où composer ?
+ */
+export function mergeCounterparts(
+  household: HouseholdView | null,
+): HouseholdMemberView[] {
+  return (household?.members ?? []).filter((m) => m.userId && m.role !== "owner");
+}
+
+/**
  * OÙ VA UNE DATE DE NAISSANCE SAISIE SUR L'ÉCRAN DU FOYER (D18, L9) ?
  *
  * Deux colonnes existent, et depuis 20260812180000 elles n'ont plus le même

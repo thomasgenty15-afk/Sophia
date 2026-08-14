@@ -58,9 +58,22 @@ function windowEnd(startsOn: string, durationDays: number): string {
 }
 
 export default function HouseholdMergeCard(
-  { isOwner, onComposed }: {
+  { isOwner, hasCounterpart, onComposed }: {
     /** D10 — seul le maître voit ces propositions, et le serveur le tient (403). */
     isOwner: boolean;
+    /**
+     * AU MOINS UNE BOUCHE RÉCLAMÉE EN PLUS DU MAÎTRE (`mergeCounterparts`).
+     *
+     * ⚠️ FAUX ⇒ LA CARTE N'EXISTE PAS, et elle ne LIT même pas. Une bouche sans
+     * compte ne compose rien, donc n'a rien à fusionner: la lecture rendrait
+     * `notices: []`, et la carte trois phrases pour dire qu'il ne se passe rien
+     * (mesuré le 2026-08-14). Le pourquoi de la règle est écrit une seule fois,
+     * au-dessus de `mergeCounterparts` dans `api/household.ts`.
+     *
+     * La garde est AVANT `loadMergeNotices`: un appel edge par montage, pour
+     * une réponse qu'on ne rendrait pas, est un coût sans lecteur.
+     */
+    hasCounterpart: boolean;
     /** Un geste vient d'écrire un plan: la page entière doit se relire. */
     onComposed: () => Promise<void> | void;
   },
@@ -71,7 +84,7 @@ export default function HouseholdMergeCard(
   const [failure, setFailure] = React.useState<string | null>(null);
 
   const refresh = React.useCallback(async () => {
-    if (!isOwner) return;
+    if (!isOwner || !hasCounterpart) return;
     const res = await loadMergeNotices();
     if (res.ok) {
       setView(res.view);
@@ -84,13 +97,16 @@ export default function HouseholdMergeCard(
     setView(null);
     const key = edgeRefusalKey(res.reason);
     setLoadError(key ? t(key) : t("household.merge.load_failed"));
-  }, [isOwner]);
+  }, [isOwner, hasCounterpart]);
 
   React.useEffect(() => {
     void refresh();
   }, [refresh]);
 
   if (!isOwner) return null;
+  // ZÉRO PROFIL RÉCLAMÉ ⇒ AUCUN BLOC. Pas d'état vide, pas de plafond, pas de
+  // liste « non proposés »: il n'y a personne avec qui fusionner.
+  if (!hasCounterpart) return null;
   // Garde de montage: tant que la première lecture n'a rien rendu ET n'a pas
   // échoué, on ne raconte rien — ni « personne », ni une carte vide.
   if (view === null && loadError === null) return null;
@@ -171,12 +187,20 @@ export default function HouseholdMergeCard(
         : null}
       {failure ? <p className="mt-3 text-sm text-red-700">{failure}</p> : null}
 
-      {/* ── L7/D11 — LE PLAFOND, VISIBLE AVANT D'ÊTRE ATTEINT ──────────────
-          « Le plafond ne se voit nulle part avant d'être atteint » est écrit
-          au registre comme une ligne de L8. Les nombres viennent du serveur
-          (`keel_household_merge_quota_state`); aucun fichier TypeScript de ce
-          dépôt ne connaît le `N + 3`, et un test de source le tient. */}
-      {quota
+      {/* ── L7/D11 — LE PLAFOND, À PARTIR DE LA PREMIÈRE FUSION ───────────
+          « Le plafond ne se voit nulle part avant d'être atteint » était une
+          ligne de L8, et elle est allée un cran trop loin: la carte annonçait
+          « il reste 4 fusions sur 4 cette semaine » à un foyer qui n'en avait
+          fait aucune. « 4 sur 4 » n'est pas un fait, c'est la définition du
+          plafond; « il reste 1 sur 4 » en est un.
+          ⚠️ `used > 0` ET PAS `remaining < limit`: les deux seraient vrais
+          ensemble aujourd'hui, mais `remaining` est compté EN BASE et rendu tel
+          quel (on ne recalcule jamais `limit - used` ici) — le comparer
+          reviendrait à rouvrir l'arithmétique que ce fichier refuse.
+          Les nombres viennent du serveur (`keel_household_merge_quota_state`);
+          aucun fichier TypeScript de ce dépôt ne connaît le `N + 3`, et un test
+          de source le tient. */}
+      {quota && quota.used > 0
         ? (
           <p className="mt-3 text-sm text-ink-soft">
             {quota.exhausted
@@ -214,10 +238,24 @@ export default function HouseholdMergeCard(
       {/* POURQUOI LES AUTRES BOUCHES N'APPARAISSENT PAS. Sans cette liste,
           « pourquoi Zoé n'est-elle pas là ? » n'a de réponse que dans une base
           de production. `member_is_owner` est filtré: dire au maître qu'on ne
-          lui propose pas de fusionner son propre plan est du bruit. */}
+          lui propose pas de fusionner son propre plan est du bruit.
+
+          ⛔ `no_validated_plan` EST FILTRÉ AUSSI, DEPUIS LE 2026-08-14, ET CE
+          N'EST PAS LA MÊME RAISON. « Christèle — cette personne n'a validé
+          aucun plan à elle » explique une absence à quelqu'un qui ne peut rien
+          en faire: seul le TITULAIRE peut valider un plan à lui, et il ne lit
+          pas cet écran-là (D10 — la carte est réservée au maître). Le maître,
+          lui, n'a aucun geste: il ne peut ni composer ni valider à la place
+          d'un autre, et il n'existe aucun canal 1:1 pour le lui demander.
+          Une bouche sans compte porte ce motif en permanence, par nature.
+          Les cinq autres motifs restent: `proposals_muted` est un réglage que
+          le maître a posé et peut retirer, `merge_quota_exhausted` passe la
+          semaine prochaine, les refus de fenêtre bougent avec les plans. */}
       {view
         ? (() => {
-          const skipped = view.skipped.filter((s) => s.reason !== "member_is_owner");
+          const skipped = view.skipped.filter((s) =>
+            s.reason !== "member_is_owner" && s.reason !== "no_validated_plan"
+          );
           if (skipped.length === 0) return null;
           return (
             <div className="mt-3 border-t border-line pt-3">

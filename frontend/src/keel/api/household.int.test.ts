@@ -9,6 +9,7 @@ import {
   type HouseholdMemberView,
   type HouseholdView,
   MEMBER_GOALS,
+  mergeCounterparts,
   MINOR_FORBIDDEN_GOALS,
   restrictionNotice,
 } from "./household";
@@ -169,6 +170,116 @@ describe("claimableMembers — on n'invite que ce qui reste à réclamer (lot 6)
 
   it("un foyer absent ne fait pas exploser l'écran", () => {
     expect(claimableMembers(null)).toEqual([]);
+  });
+});
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * `mergeCounterparts` — AVEC QUI UNE FUSION EST SEULEMENT CONCEVABLE.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * Le MIROIR de `claimableMembers`, et les deux ne se recouvrent jamais: l'une
+ * rend les bouches qui n'ont pas de compte, l'autre celles qui en ont un — sauf
+ * le maître. C'est la condition de MONTAGE de la carte de proposition, pas un
+ * filtre d'affichage: sur un foyer où personne n'a réclamé son profil, la carte
+ * rendait un état vide, un plafond intact et le nom d'une bouche suivi d'un
+ * reproche pour une chose qu'elle ne peut pas faire (mesuré le 2026-08-14).
+ */
+describe("mergeCounterparts — la fusion n'existe qu'entre profils réclamés", () => {
+  it("le maître SEUL ne compte pas — sinon la garde ne garde rien", () => {
+    // ⚠️ LE CAS QUI FAIT TOUT LE TEST. Le maître a TOUJOURS un compte: un
+    // filtre qui oublierait `role !== "owner"` rendrait `[owner]` ici, donc
+    // `true` pour n'importe quel foyer du produit, et la carte se remonterait
+    // partout sans que rien ne le signale.
+    expect(mergeCounterparts(household([OWNER, KID]))).toEqual([]);
+  });
+
+  it("une bouche sans compte ne compte pas", () => {
+    // Elle ne compose rien: pas de plan à elle, donc rien à fusionner. Et
+    // aucun geste du maître n'y changera quoi que ce soit.
+    const hh = household([OWNER, KID, member("bebe", { userId: null })]);
+    expect(mergeCounterparts(hh)).toEqual([]);
+  });
+
+  it("un second adulte AVEC COMPTE fait exister le bloc", () => {
+    const hh = household([OWNER, ADULT, KID]);
+    expect(mergeCounterparts(hh).map((m) => m.memberId)).toEqual(["adult"]);
+  });
+
+  it("un foyer absent ne fait pas exploser l'écran", () => {
+    expect(mergeCounterparts(null)).toEqual([]);
+  });
+});
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * LE CÂBLAGE — sans lui, les quatre tests d'au-dessus sont verts pour rien.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * Ils prouvent qu'une fonction rend la bonne liste; ils ne prouvent pas qu'un
+ * écran l'APPELLE. C'est la cicatrice de `planRefusals.int.test.ts` (« deux
+ * compositions parfaites de tables parfaites »), et elle vaut ici: le jour où
+ * quelqu'un remonte `<HouseholdMergeCard isOwner={…} />` sans la garde, la
+ * carte revient sur tous les foyers sans profil réclamé et rien ne le dit.
+ *
+ * ⚠️ COMMENTAIRES RETIRÉS. Ce dépôt a mesuré qu'un grep naïf compte les morts:
+ * les trois fichiers touchés PARLENT de la règle en commentaire, et un
+ * `includes` sur la source brute serait vert même le code retiré.
+ */
+describe("la carte de fusion est gatée sur un profil réclamé (câblage)", () => {
+  const ROOT = resolve(__dirname, "../../../..");
+
+  function code(rel: string): string {
+    return readFileSync(resolve(ROOT, rel), "utf8")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
+      .split("\n")
+      .map((line) => {
+        const at = line.indexOf("//");
+        if (at < 0) return line;
+        if (at > 0 && line[at - 1] === ":") return line;
+        return line.slice(0, at);
+      })
+      .join("\n");
+  }
+
+  it("l'écran du foyer lit `mergeCounterparts` et le passe à la carte", () => {
+    const src = code("frontend/src/keel/pages/HouseholdPage.tsx");
+    expect(src, "la garde n'est plus lue").toContain("mergeCounterparts(household)");
+    expect(src, "la carte se monte sans sa garde").toMatch(
+      /hasCounterpart=\{mergeCounterparts\(household\)\.length > 0\}/,
+    );
+  });
+
+  it("la carte se tait AVANT de lire, pas après", () => {
+    const src = code("frontend/src/keel/components/HouseholdMergeCard.tsx");
+    // La garde de rendu.
+    expect(src, "le rendu n'est plus gaté").toMatch(
+      /if \(!hasCounterpart\) return null;/,
+    );
+    // ET la garde de LECTURE: un appel edge par montage, pour une réponse
+    // qu'on ne rendrait pas, est un coût sans lecteur.
+    expect(src, "la lecture edge part quand même").toMatch(
+      /if \(!isOwner \|\| !hasCounterpart\) return;/,
+    );
+  });
+
+  it("aucune bouche n'est nommée pour une absence qu'elle ne peut pas combler", () => {
+    const src = code("frontend/src/keel/components/HouseholdMergeCard.tsx");
+    // « Christèle — cette personne n'a validé aucun plan à elle » explique une
+    // absence à quelqu'un qui ne peut rien en faire: seul le titulaire peut
+    // valider un plan à lui, et il ne lit pas cet écran-là.
+    expect(src, "le reproche est revenu dans la liste « non proposés »")
+      .toContain('s.reason !== "no_validated_plan"');
+  });
+
+  it("le plafond ne s'affiche qu'une fois entamé", () => {
+    const src = code("frontend/src/keel/components/HouseholdMergeCard.tsx");
+    // « il reste 4 fusions sur 4 » n'est pas un fait, c'est la définition du
+    // plafond. `used > 0` est la condition, et pas `remaining < limit`: ce
+    // fichier ne refait jamais l'arithmétique comptée en base.
+    expect(src, "le plafond intact se raconte de nouveau")
+      .toContain("quota && quota.used > 0");
   });
 });
 
