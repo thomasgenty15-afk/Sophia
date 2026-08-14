@@ -75,19 +75,23 @@
  *    C'est `selectMyShare` qui porte ce refus, pas la carte: elle ne connaît
  *    pas la place, le site de montage si.
  *
- * 2. POUR LOT C — « DEMANDER UNE MODIF » N'EST PAS RENDU, ET C'EST LE LIVRABLE.
- *    Le geste n'a AUCUNE destination aujourd'hui: `onRequestChange` est câblé
- *    sur une fonction vide au site de montage, et aucune table ne reçoit une
- *    demande de modification d'un secondaire (`meal_plan_feedback` est le
- *    retour de FIN de fenêtre, questions fermées, une ligne par `meal_id` — pas
- *    ça). Rendre le bouton afficherait `plan.mine.change_sent` — « C'est parti
- *    au foyer. » — alors que rien n'a quitté le navigateur. Un bouton qui ne
- *    fait rien est indiscernable d'un bouton qui a marché: c'est le mode
- *    d'échec n°1 de ce dépôt, et un geste ABSENT vaut mieux qu'un geste MUET.
- *    `onRequestChange` reste dans les props (contrat §4.5) et n'est appelé
- *    nulle part. Ce qui l'arme: une destination réelle, et un appelant qui la
- *    branche. Les clés `plan.mine.request_change` / `change_label` /
- *    `change_sent` sont posées et attendent.
+ * 2. ✅ FERMÉ PAR LOT C — « DEMANDER UNE MODIF » A UNE DESTINATION.
+ *    Lot E avait raison de ne PAS rendre ce bouton: il n'avait aucune
+ *    destination, et un geste ABSENT vaut mieux qu'un geste MUET.
+ *
+ *    ⚠️ SA DESTINATION N'EST PAS UN CANAL VERS LE MAÎTRE, ET IL NE FAUT PAS EN
+ *    FABRIQUER UN. Il n'existe AUCUN canal 1:1 dans ce produit, et aucune table
+ *    ne reçoit la demande de modification d'un secondaire — `meal_plan_feedback`
+ *    est le retour de FIN de fenêtre, questions fermées, une ligne par
+ *    `meal_id`, pas ça. La phrase devient une NOTE DE BROUILLON: elle compose un
+ *    APERÇU de sa propre semaine, qu'il voit, qu'il reprend et qu'il adopte s'il
+ *    veut. C'est ce que le modèle autorise — il compose lui-même.
+ *
+ *    ⛔ `plan.mine.change_sent` (« C'est parti au foyer. ») N'EST DONC JAMAIS
+ *    AFFICHÉE, ET LA CLÉ RESTE ORPHELINE EXPRÈS. Rien ne part au foyer. Cette
+ *    phrase était écrite pour un canal qui n'existe pas; l'afficher parce
+ *    qu'elle est là ferait exactement le bouton muet que Lot E a refusé de
+ *    rendre. La retirer du seed est un geste i18n, hors de la colonne de ce lot.
  * ══════════════════════════════════════════════════════════════════════════
  */
 
@@ -99,6 +103,7 @@ import { sharePresentedTo } from "../../api/myShare";
 import { t } from "../../i18n/t";
 import { Button } from "../ui/Button";
 import { Card, SectionLabel } from "../ui/Card";
+import { inputClass } from "../ui/Field";
 
 export interface MyShareCardProps {
   /** MA ligne de `member_portions`. `null` = rien à montrer, la carte se tait. */
@@ -113,13 +118,21 @@ export interface MyShareCardProps {
 }
 
 export default function MyShareCard(props: MyShareCardProps): React.ReactElement | null {
-  // ⚠️ `onRequestChange` N'EST VOLONTAIREMENT PAS DÉSTRUCTURÉ: il n'a pas de
-  // destination, il n'est donc appelé nulle part. Voir le point de jonction n°2.
-  const { mine, householdDishes, meMemberId, onApprove, busy } = props;
+  const { mine, householdDishes, meMemberId, onApprove, onRequestChange, busy } = props;
 
   const [approved, setApproved] = React.useState(false);
   const [working, setWorking] = React.useState(false);
   const [failure, setFailure] = React.useState<string | null>(null);
+  /**
+   * LE CHAMP EST FERMÉ TANT QU'ON NE L'A PAS DEMANDÉ.
+   *
+   * Une zone de texte ouverte en permanence sous « Ta part » se lit comme une
+   * chose à remplir, et être servi par le foyer est la posture NORMALE — pas un
+   * manque. C'est la même règle que l'en-tête de cette carte: aucune phrase qui
+   * reproche de ne rien faire.
+   */
+  const [changeOpen, setChangeOpen] = React.useState(false);
+  const [changeText, setChangeText] = React.useState("");
 
   // LA GARDE D'IDENTITÉ, ET ELLE EST AVANT TOUT LE RESTE. Elle vit dans
   // `api/myShare.ts` avec la sélection qui la partage: la règle « jamais la
@@ -228,9 +241,97 @@ export default function MyShareCard(props: MyShareCardProps): React.ReactElement
               {t("plan.mine.approve")}
             </Button>
           )}
+
+        {/* ── « DEMANDER UNE MODIF » — LE GESTE QUE LOT C ARME ─────────────
+            APRÈS « je valide », et en second: dire oui est le cas courant, et
+            le geste le plus offert doit être celui qu'on fait le plus souvent.
+
+            ⚠️ IL N'ENVOIE RIEN À PERSONNE. Il ouvre un champ dont la phrase
+            devient une NOTE DE BROUILLON — un aperçu de sa propre semaine.
+            Aucune copie ne dit « envoyé »: il n'existe aucun canal 1:1, et une
+            phrase qui le laisserait croire ferait attendre une réponse qui ne
+            viendra jamais. */}
+        {!changeOpen
+          ? (
+            <Button
+              variant="ghost"
+              className="ml-2"
+              disabled={busy || working}
+              onClick={() => setChangeOpen(true)}
+            >
+              {t("plan.mine.request_change")}
+            </Button>
+          )
+          : (
+            <div className="mt-3">
+              <label
+                htmlFor="my-share-change"
+                className="block text-sm font-semibold text-ink"
+              >
+                {t("plan.mine.change_label")}
+              </label>
+              {/* LA MÊME PHRASE D'ATTENTE QUE LE BROUILLON, parce que c'est
+                  littéralement le même champ: ce qu'on écrit ici part comme
+                  `draft_note`, et sert à REFAIRE un aperçu. Un second texte
+                  d'aide décrirait autrement une seule et même chose. */}
+              <p className="mt-1 text-sm leading-6 text-ink-soft">
+                {t("plan.draft.note_hint")}
+              </p>
+              <textarea
+                id="my-share-change"
+                className={`${inputClass} mt-2 min-h-20`}
+                value={changeText}
+                placeholder={t("plan.draft.note_placeholder")}
+                // ⛔ PAS DE `maxLength`: le navigateur couperait la phrase EN
+                // SILENCE, et la demande partirait tronquée sans que personne
+                // ne le sache. Le serveur est le seul juge (280 signes).
+                disabled={busy || working}
+                onChange={(e) => setChangeText(e.target.value)}
+              />
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <Button
+                  variant="secondary"
+                  disabled={busy || working || changeText.trim() === ""}
+                  onClick={async () => {
+                    setWorking(true);
+                    setFailure(null);
+                    try {
+                      await onRequestChange(changeText);
+                      // LE CHAMP SE REFERME UNE FOIS LA PHRASE PARTIE — et
+                      // AUCUN accusé n'est posé: la preuve que la demande a
+                      // été entendue, c'est l'aperçu qui s'ouvre par-dessus.
+                      // Un « c'est envoyé » ici serait un fait faux, et un
+                      // fait faux affiché est indémentable.
+                      setChangeOpen(false);
+                      setChangeText("");
+                    } catch (e) {
+                      setFailure(e instanceof Error ? e.message : String(e));
+                    } finally {
+                      setWorking(false);
+                    }
+                  }}
+                >
+                  {t("plan.draft.cta")}
+                </Button>
+                <Button
+                  variant="ghost"
+                  disabled={busy || working}
+                  onClick={() => {
+                    setChangeOpen(false);
+                    setChangeText("");
+                  }}
+                >
+                  {t("plan.draft.discard")}
+                </Button>
+              </div>
+            </div>
+          )}
+
         {/* ⛔ LE ROUGE RESTE: famille « échec » du produit, et un motif nommé
             est un FAIT. `red-700` sur `paper` = 6,13:1, la valeur du kit. */}
-        {failure ? <p className="mt-2 text-sm leading-6 text-red-700">{failure}</p> : null}
+        {failure
+          ? <p className="mt-2 text-sm leading-6 text-red-700 break-words">{failure}</p>
+          : null}
       </div>
     </Card>
   );
