@@ -1542,6 +1542,37 @@ export function buildMealPrompt(args: {
    */
   foodPreferences?: readonly string[];
   /**
+   * CE QUE L'ÉLÈVE A TAPÉ LUI-MÊME — des consignes, pas des préférences.
+   *
+   * Même source que `foodPreferences` (`food_preferences`), mais l'autre
+   * seau de `foodPreferencesByOrigin`: ces lignes-là portent
+   * `origin.source === "written"`.
+   *
+   * ── OPTIONNEL, ET LA GARDE EST AILLEURS — C'EST UNE DÉCISION ──────────
+   * Le commentaire de `foodPreferences` raconte pourquoi une clé NOMMÉE de
+   * plus est invisible tant que personne ne la passe, et cite
+   * `coach_food_rules` comme le mort de cette famille: un écran, des gardes,
+   * trente tests, aucun lecteur au runtime. `coachNoteBlock` en tire un champ
+   * REQUIS, pour que la casse de compilation recense les appelants.
+   *
+   * Ici la même leçon donne l'inverse, et il faut voir pourquoi. Un champ
+   * requis prouve qu'un appelant a ÉCRIT `writtenInstructions: <quelque
+   * chose>` — y compris `[]`, qui est très exactement l'état débranché qu'on
+   * craint. Il recense les signatures, pas les branchements.
+   *
+   * Ce qui tient vraiment cette lane est dans `household_voices_test.ts`: un
+   * test qui LIT la source de `generate-meal-v1` et exige d'y trouver
+   * `writtenInstructions: readFoodPreferences(`. Celui-là rougit sur un `[]`
+   * de complaisance, ce que le typage ne saurait pas faire. Il est donc
+   * strictement plus fort, et le champ n'a pas besoin d'être requis pour être
+   * gardé.
+   *
+   * Le `?? []` du corps suit: les fixtures tournent en `--no-check`, et un
+   * champ absent y donnerait un `TypeError` sur `.length` — un rouge qui ne
+   * dit pas ce qu'il veut.
+   */
+  writtenInstructions?: readonly string[];
+  /**
    * LA NOTE DU COACH SUR CET ÉLÈVE — mode 1:1 assumé, `null` quand il n'y en a
    * pas (le cas ordinaire). Produit par `coachNotePromptBlock`.
    *
@@ -1898,12 +1929,42 @@ export function buildMealPrompt(args: {
     // verrou) ni des contraintes médicales (celles-là sont maintenant en tête
     // du message): ce sont des goûts et des contextes de vie, et ils décident
     // si une semaine est vivable.
-    ...(args.foodPreferences && args.foodPreferences.length > 0
+    // ── DEUX PROVENANCES, ET LE RANG EST LA MOITIÉ DU MESSAGE ─────────────
+    // Ce que quelqu'un PREND LA PEINE D'ÉCRIRE sur son alimentation ne pèse
+    // pas comme une remarque glanée en conversation qu'on lui a fait
+    // confirmer d'un bouton. Servies en un seul sac, les deux sont
+    // indépartageables — le modèle n'a aucun moyen, même en principe, de
+    // savoir laquelle il a le droit d'arbitrer.
+    //
+    // Et le dire ne suffit pas: la consigne du prompt REGRESSE en réel (le
+    // verrou des règles de maison existe pour ça). D'où la demande explicite
+    // de NOMMER ce qu'il n'a pas pu honorer — que `written_instruction_check.ts`
+    // vérifie ensuite sur la sortie, déterministiquement. C'est le double
+    // verrou de la doctrine, pointé sur une autre liste.
+    ...((args.writtenInstructions ?? []).length > 0 ||
+        (args.foodPreferences?.length ?? 0) > 0
       ? [
         "",
         "-- WHAT THEY HAVE TOLD ME --",
-        "what they have told you about their eating, in their own words:",
-        ...args.foodPreferences.map((p) => `- ${p}`),
+        ...((args.writtenInstructions ?? []).length > 0
+          ? [
+            "what they WROTE THEMSELVES about their eating. treat these as " +
+            "instructions, not as suggestions:",
+            ...(args.writtenInstructions ?? []).map((p) => `- ${p}`),
+            "if you cannot honour one of those, say so in the \"why\" of the " +
+            "dish it affects, name the thing you could not do, and say what " +
+            "you did instead. do not drop it in silence.",
+          ]
+          : []),
+        ...((args.foodPreferences?.length ?? 0) > 0
+          ? [
+            ...((args.writtenInstructions ?? []).length > 0
+              ? ["", "what came up in conversation and they confirmed. treat " +
+                "these as preferences:"]
+              : ["what they have told you about their eating, in their own words:"]),
+            ...(args.foodPreferences ?? []).map((p) => `- ${p}`),
+          ]
+          : []),
       ]
       : []),
     // ── CE QUI N'EST VRAI QUE CETTE FOIS ──────────────────────────────────

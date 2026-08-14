@@ -2629,6 +2629,12 @@ Deno.serve(async (req) => {
       // titulaire et n'est lu par personne d'autre, donc ni le plafond par
       // membre ni la garde de table n'ont d'objet là-bas.
       foodPreferences: [],
+      // MÊME RAISON, MÊME LANE: les voix du foyer passent par leur propre
+      // canal (`household_voices`), avec son plafond par membre. Le tronc n'a
+      // donc rien à dire ici — ni les goûts confirmés, ni les consignes
+      // écrites. Le jour où le foyer voudra distinguer les deux, ça se fera
+      // dans `household_voices`, pas en rouvrant cette porte.
+      writtenInstructions: [],
       // ── L4/D6 · LA BOUCHE REPRISE ENTRE DANS LE BUDGET DE PLATS ────────
       //
       // MESURÉ LE 2026-08-12: sans elle, ce prompt annonçait « at most 15

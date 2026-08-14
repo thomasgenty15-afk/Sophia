@@ -574,13 +574,23 @@ Deno.test("LA LANE INDIVIDUELLE N'A PAS BOUGÉ — le cas qui passe", async () =
   // débranchée. On tient donc les deux bouts — l'appel réel, et le passage au
   // tronc avec autre chose qu'une liste vide.
   assert(
-    /return foodPreferencesForPrompt\(/.test(individual),
+    /return foodPreferencesByOrigin\(/.test(individual),
     "la lane individuelle ne lit plus les préférences de son titulaire.",
   );
   assert(
     /foodPreferences: readFoodPreferences\(/.test(individual),
     "la lane individuelle ne passe plus ses préférences au tronc: le test du " +
       "dessus garderait alors un chemin sans destination.",
+  );
+  // ⚠️ LES DEUX SEAUX, ET PAS SEULEMENT LE PREMIER. Depuis le 2026-08-13 la
+  // lecture est séparée par provenance; ne pinner que `foodPreferences`
+  // laisserait passer une lane qui lit ce que le memorizer a récolté et JETTE
+  // ce que l'élève a tapé — c'est-à-dire précisément la moitié qui compte le
+  // plus, débranchée sans qu'un seul test rougisse.
+  assert(
+    /writtenInstructions: readFoodPreferences\(/.test(individual),
+    "la lane individuelle ne passe plus les consignes ÉCRITES de son " +
+      "titulaire: elles seraient collectées et jamais servies.",
   );
   assert(
     !individual.includes("household_voices"),

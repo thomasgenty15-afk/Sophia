@@ -29,7 +29,14 @@ import {
 } from "../_shared/keel/student_body_io.ts";
 import type { MealBodyContext } from "../_shared/keel/meal_body.ts";
 import { type WeeklyAxis, WEEKLY_AXES } from "../_shared/keel/weekly_flow.ts";
-import { foodPreferencesForPrompt } from "../_shared/keel/food_preference_promotion.ts";
+import {
+  foodPreferencesByOrigin,
+  foodPreferencesForPrompt,
+} from "../_shared/keel/food_preference_promotion.ts";
+import {
+  checkWrittenInstructions,
+  silentInstructions,
+} from "../_shared/keel/written_instruction_check.ts";
 import {
   // C6 ② — CALCULER ET PERSISTER SONT DEUX GESTES, ET LE SECOND ATTEND QUE
   //         LA REQUÊTE ABOUTISSE.
@@ -244,16 +251,19 @@ function readPantry(raw: unknown, issues: string[]): PantryItem[] {
  * de cette phrase. Absent vaut mieux que faux.
  */
 /**
- * Les préférences alimentaires CONFIRMÉES par l'élève, DATÉES et la plus
- * récente d'abord.
+ * Ce que l'élève a dit de sa bouffe, SÉPARÉ PAR PROVENANCE: ce qu'il a tapé
+ * lui-même d'un côté, ce que le memorizer a récolté et qu'il a confirmé de
+ * l'autre (daté, le plus récent d'abord).
  *
- * La lecture, le tri et le plafond vivent dans `foodPreferencesForPrompt`, avec
+ * La lecture, le tri et le plafond vivent dans `foodPreferencesByOrigin`, avec
  * le générateur de semaine: deux lectures différentes du même jsonb finiraient
  * par diverger, et c'est le genre de divergence qu'on ne voit qu'en relisant
  * deux prompts côte à côte.
  */
-function readFoodPreferences(pc: Record<string, unknown> | null): string[] {
-  return foodPreferencesForPrompt(pc);
+function readFoodPreferences(
+  pc: Record<string, unknown> | null,
+): { written: string[]; remembered: string[] } {
+  return foodPreferencesByOrigin(pc);
 }
 
 /**
@@ -1418,7 +1428,13 @@ Deno.serve(async (req) => {
       // qui sérialise tout).
       foodPreferences: readFoodPreferences(
         goalRow.practical_constraints as Record<string, unknown> | null,
-      ),
+      ).remembered,
+      // CE QU'IL A TAPÉ LUI-MÊME. Séparé, parce que le rang est la moitié du
+      // message: une consigne écrite ne s'arbitre pas comme un goût confirmé
+      // d'un bouton. Voir le bloc `-- WHAT THEY HAVE TOLD ME --`.
+      writtenInstructions: readFoodPreferences(
+        goalRow.practical_constraints as Record<string, unknown> | null,
+      ).written,
       // ── L4/D6 · IL N'Y A PERSONNE À REPRENDRE SUR CETTE LANE ────────────
       // `null`, et ce n'est pas un remplissage de signature. La fusion est une
       // opération du FOYER: elle exige une table qui a dimensionné une
@@ -1758,7 +1774,10 @@ Deno.serve(async (req) => {
         verdict: measured.verdict,
         envelope,
         declarations: {
-          foodPreferences: readFoodPreferences(
+          // LA CORRECTION VOIT LES DEUX SEAUX, à plat. Elle cherche ce que
+          // l'élève a déclaré, pas qui l'a saisi: une correction qui ignorerait
+          // les consignes écrites corrigerait CONTRE elles.
+          foodPreferences: foodPreferencesForPrompt(
             goalRow.practical_constraints as Record<string, unknown> | null,
           ),
         },
@@ -1814,6 +1833,41 @@ Deno.serve(async (req) => {
         retried: correctionRetried,
         coverage_flag: measured.coverage.flag,
       }));
+    }
+
+    // ══ LE SECOND TOUR DU DOUBLE VERROU, SUR LES CONSIGNES ÉCRITES ═══════
+    //
+    // Le prompt DEMANDE au modèle de nommer ce qu'il n'a pas pu honorer d'une
+    // consigne que l'élève a tapée. Une demande de prompt régresse en réel —
+    // `household_restriction_lock.ts` existe pour cette raison exacte. Ici on
+    // le VÉRIFIE, sur le plan qui part vraiment (donc APRÈS la relance de
+    // correction, qui a pu changer les plats).
+    //
+    // ⚠️ ON NE JETTE RIEN, et c'est délibéré. Un plan par ailleurs correct ne
+    // se refuse pas parce qu'une phrase manque à un « why »: l'élève perdrait
+    // sa semaine pour un défaut de rédaction. Le silence se COMPTE et se DIT
+    // (`issues`), ce qui est la condition pour savoir un jour s'il est rare ou
+    // s'il est la règle. Décider d'en faire un motif de relance demande cette
+    // mesure d'abord.
+    const writtenForCheck = readFoodPreferences(
+      goalRow.practical_constraints as Record<string, unknown> | null,
+    ).written;
+    if (writtenForCheck.length > 0) {
+      const swallowed = silentInstructions(
+        checkWrittenInstructions({
+          instructions: writtenForCheck,
+          dishes: meal.dishes,
+        }),
+      );
+      console.log(JSON.stringify({
+        tag: "keel.meal.written_instructions",
+        user_id: userId,
+        declared: writtenForCheck.length,
+        silent: swallowed.length,
+      }));
+      for (const instruction of swallowed) {
+        issues.push(`written_instruction_unanswered: ${instruction}`);
+      }
     }
 
     if (meal.dishes.length === 0) {
