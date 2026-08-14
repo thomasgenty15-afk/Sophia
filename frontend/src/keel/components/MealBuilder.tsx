@@ -1023,18 +1023,20 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                             une grille SANS LIGNE — une bouche qu'on ne peut pas
                             marquer absente — et ça se lirait comme une panne.
                             On retombe donc sur le rythme de la personne qui
-                            compose, qui est celui de la maison. */}
+                            compose, qui est celui de la maison.
+
+                            ⚠️ PLUS DE `size: null` FABRIQUÉ ICI: le roster rend
+                            la taille depuis le 2026-08-14, et la grille la
+                            reçoit telle quelle. Le `as EatingOccasionSlot[]`
+                            qui l'accompagnait a disparu avec — un `as` sur un
+                            type étranger désarme le typecheck, cicatrice
+                            mesurée de ce dépôt. */}
                         <MealPickerGrid
                           open={awayFor === member.memberId}
                           onClose={() => setAwayFor(null)}
                           days={askedDays.tokens}
                           dates={askedDays.dates}
-                          rhythm={member.eatingSlots
-                            ? (member.eatingSlots.map((slot) => ({
-                              slot,
-                              size: null,
-                            })) as EatingOccasionSlot[])
-                            : (props.rhythm ?? [])}
+                          rhythm={member.eatingSlots ?? (props.rhythm ?? [])}
                           away={member.awayHousehold}
                           busy={pickerBusy}
                           onSave={async (next) => {

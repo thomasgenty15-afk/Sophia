@@ -1249,7 +1249,10 @@ function MemberRow(
    * même avec lequel la composition tourne.
    */
   const habitSlots = React.useMemo<EatingOccasion[]>(() => {
-    const raw = member.eatingSlots ?? rhythm.map((r) => r.slot);
+    // La TAILLE ne sert pas ici — cette carte liste des lignes d'habitude, pas
+    // des portions —, mais elle voyage maintenant avec le moment (2026-08-14),
+    // donc on prend le `slot` des deux côtés du repli plutôt que d'un seul.
+    const raw = (member.eatingSlots ?? rhythm).map((r) => r.slot);
     // Le vocabulaire fermé du moteur, et l'ordre de LA JOURNÉE. Un jeton
     // inconnu s'écarte plutôt que de fabriquer une ligne qu'on ne saurait pas
     // nommer à l'écran.

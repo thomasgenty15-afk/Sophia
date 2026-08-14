@@ -108,7 +108,14 @@ function complete(branch: FunnelBranch): FunnelState {
     },
     others,
     plan: {
-      eatingRhythm: ["breakfast", "lunch", "dinner"],
+      // LA FORME DE PRODUCTION, TAILLE COMPRISE (2026-08-14). Une fixture qui
+      // parle une forme que la base ne porte pas est une fixture qui valide le
+      // repli en croyant tester le cas nominal — cicatrice mesurée de ce dépôt.
+      eatingRhythm: [
+        { slot: "breakfast", size: "small" },
+        { slot: "lunch", size: null },
+        { slot: "dinner", size: "large" },
+      ],
       cookDays: ["sun", "wed"],
       cookingTimeMin: 45,
       budgetAmount: 90,

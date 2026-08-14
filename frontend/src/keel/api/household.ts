@@ -87,8 +87,14 @@ export interface HouseholdMemberView {
    * ⚠️ `null` ≠ `[]`. `null` veut dire « aux moments de la maison » (le repli
    * du produit); le tableau vide dirait « ne mange jamais », et la base le
    * refuse à l'écriture (`empty_rhythm`).
+   *
+   * ⚠️ AVEC LA TAILLE DEPUIS LE 2026-08-14. C'était `string[]`, et la taille
+   * tombait dans la lecture: `household_members.eating_rhythm` la porte
+   * maintenant comme `practical_constraints.eating_rhythm` la portait déjà, et
+   * `buildPortionBrief` la dit au modèle. La projeter sur le seul `slot` ici
+   * ferait demander à l'écran une réponse qu'aucun aval ne verrait.
    */
-  eatingSlots: string[] | null;
+  eatingSlots: EatingOccasionSlot[] | null;
   /**
    * LE RÉGIME DE CETTE BOUCHE — `null` quand personne n'a demandé.
    *
@@ -562,29 +568,41 @@ export async function openHouseholdCheckout(): Promise<string> {
  * lui aussi: une liste vide affichée comme un choix explicite ferait croire que
  * quelqu'un a décoché les six moments.
  */
-function readEatingSlots(raw: unknown): string[] | null {
+function readEatingSlots(raw: unknown): EatingOccasionSlot[] | null {
   if (raw === null || raw === undefined) return null;
-  const slots = parseEatingRhythm(raw).map((s) => s.slot);
+  const slots = parseEatingRhythm(raw);
   return slots.length > 0 ? slots : null;
 }
 
 /**
- * POSER LES MOMENTS D'UNE BOUCHE SANS COMPTE.
+ * POSER LES MOMENTS D'UNE BOUCHE SANS COMPTE, AVEC LEUR TAILLE.
  *
  * `null` efface — la bouche revient aux moments de la maison. Le tableau vide
  * n'est pas exprimable ici parce que la base le refuse (`empty_rhythm`): « elle
  * ne mange jamais » n'est pas une réponse qu'un écran doit pouvoir produire par
  * inadvertance.
+ *
+ * ⚠️ LA TAILLE EST FACULTATIVE, ET `null` EST UNE VALEUR. « Il n'a pas dit »
+ * laisse le moment libre; écrire `medium` par défaut poserait une contrainte
+ * que personne n'a exprimée, et le modèle la respecterait. La base refuse un
+ * jeton hors des trois (`bad_rhythm`), donc l'écran n'en propose que trois.
+ *
+ * ⚠️ `at: null` EST GARDÉ DANS LE PAYLOAD, ET CE N'EST PAS UN OUBLI. C'est
+ * l'ancienne clé de cette colonne (une heure), ignorée par les deux
+ * `parseEatingRhythm` depuis le 2026-08-07. Les lignes déjà en base la portent;
+ * la retirer de ce que NOUS écrivons ferait deux formes en base pour un seul
+ * fait, sans rien gagner — et c'est ce qu'un lecteur écrit après nous lirait
+ * comme une différence.
  */
 export async function setMemberRhythm(
   memberId: string,
-  slots: readonly string[] | null,
+  slots: readonly EatingOccasionSlot[] | null,
 ) {
   const { data, error } = await supabase.rpc("keel_household_set_member_rhythm", {
     p_member: memberId,
     p_rhythm: slots === null
       ? null
-      : slots.map((slot) => ({ slot, at: null })),
+      : slots.map(({ slot, size }) => ({ slot, at: null, size })),
   });
   if (error) throw new Error(error.message);
   return asResult(data);

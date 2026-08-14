@@ -61,7 +61,12 @@ import {
   type MemberGoal,
   MEMBER_GOALS,
 } from "./household";
-import { DAY_TOKENS, parseEatingRhythm } from "./mealGeneration";
+import {
+  DAY_TOKENS,
+  EATING_OCCASIONS,
+  type EatingOccasionSlot,
+  parseEatingRhythm,
+} from "./mealGeneration";
 // ⚠️ LE TEMPS DE SESSION A DÉMÉNAGÉ DANS `planInputs`. Il est une entrée de
 // PLAN, pas une question d'entonnoir: `MealBuilder` le pose aussi, et
 // l'importer d'ici traînait tout le vocabulaire de l'entonnoir (allergènes,
@@ -635,8 +640,17 @@ export type FunnelSelf = FunnelPerson;
  * la branche solo, et pas quatre fois plus.
  */
 export interface FunnelPlanAnswers {
-  /** Les moments où on mange. Vide = rien de déclaré. */
-  eatingRhythm: readonly string[];
+  /**
+   * Les moments où LE TITULAIRE mange, avec leur taille. Vide = rien déclaré.
+   *
+   * ⚠️ AVEC LA TAILLE DEPUIS LE 2026-08-14, et c'était `readonly string[]`. La
+   * colonne (`practical_constraints.eating_rhythm`) porte `{slot, size}` depuis
+   * le 2026-08-07 et `rhythmLines` la met dans la consigne: la projeter sur le
+   * seul `slot` ici faisait que `savePlanAnswers` RÉÉCRIVAIT `size: null` à
+   * chaque passage de l'entonnoir — une taille posée dans « À propos de toi »
+   * était effacée par un écran qui ne la montrait même pas.
+   */
+  eatingRhythm: readonly EatingOccasionSlot[];
   /** `mon`…`sun`. Vide = rien de déclaré. */
   cookDays: readonly string[];
   cookingTimeMin: number | null;
@@ -1209,8 +1223,10 @@ export interface FunnelMouth extends FunnelPerson {
    * sa ligne (sinon), exactement comme `goal`. L'écran ne refait pas la
    * résolution: deux avis sur qui mange quand, et le foyer sert un
    * petit-déjeuner à quelqu'un qui n'en prend pas.
+   *
+   * ⚠️ AVEC LA TAILLE DEPUIS LE 2026-08-14 — voir `HouseholdMemberView`.
    */
-  eatingSlots: string[] | null;
+  eatingSlots: EatingOccasionSlot[] | null;
   /**
    * SON RÉGIME — `null` = personne n'a demandé, et c'est distinct d'« elle
    * mange de tout » (`omnivore`), qui est une RÉPONSE.
@@ -1467,7 +1483,10 @@ function readPlanAnswers(pc: Record<string, unknown> | null): FunnelPlanAnswers 
     // `parseEatingRhythm` et pas une seconde lecture: deux lectures de la même
     // colonne qui divergent produisent un écran qui montre autre chose que ce
     // avec quoi on compose.
-    eatingRhythm: parseEatingRhythm(pc?.eating_rhythm).map((s) => s.slot),
+    // ⚠️ SANS `.map((s) => s.slot)`: la taille traverse. Elle vit dans la même
+    // colonne depuis le 2026-08-07, et la jeter ici la faisait réécrire `null`
+    // au premier `savePlanAnswers`.
+    eatingRhythm: parseEatingRhythm(pc?.eating_rhythm),
     cookDays: Array.isArray(pc?.cook_days)
       ? (pc!.cook_days as unknown[])
         .map(String)
@@ -1865,10 +1884,22 @@ export async function savePlanAnswers(args: {
     userId: args.userId,
     current: args.current,
     patch: {
-      // La forme que `parseEatingRhythm` attend, avec la taille laissée
-      // ouverte: elle est facultative, et une taille exigée serait une taille
-      // inventée — que le moteur traiterait comme une contrainte.
-      eating_rhythm: args.answers.eatingRhythm.map((slot) => ({ slot, size: null })),
+      // La forme que `parseEatingRhythm` attend, TAILLE COMPRISE. Elle reste
+      // facultative — `null` veut dire « il n'a pas dit », et une taille exigée
+      // serait une taille inventée, que le moteur traiterait comme une
+      // contrainte.
+      //
+      // ⚠️ ET C'ÉTAIT ÉCRIT `size: null` EN DUR, POUR TOUT LE MONDE. La colonne
+      // porte la taille depuis le 2026-08-07 et `EatingRhythmCard` (« À propos
+      // de toi ») l'écrit; ce `null` l'effaçait à chaque passage de l'entonnoir,
+      // sans qu'aucun écran ne le montre.
+      //
+      // L'ORDRE DE LA JOURNÉE, pas celui des clics — même règle que `cook_days`
+      // juste en dessous, et que le parseur du moteur qui relit derrière.
+      eating_rhythm: EATING_OCCASIONS
+        .map((slot) => args.answers.eatingRhythm.find((o) => o.slot === slot))
+        .filter((o): o is EatingOccasionSlot => o !== undefined)
+        .map(({ slot, size }) => ({ slot, size })),
       // L'ORDRE DE LA SEMAINE, pas celui des clics.
       cook_days: DAY_TOKENS.filter((d) => args.answers.cookDays.includes(d)),
       cooking_time_min: args.answers.cookingTimeMin,
