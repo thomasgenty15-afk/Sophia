@@ -723,33 +723,27 @@ export async function setMemberGoal(memberId: string, goal: string | null) {
 }
 
 /**
- * LE MEMBRE DE RÉFÉRENCE — LE COMPTE MAÎTRE LE DÉCLARE, ET PERSONNE D'AUTRE.
+ * ── L'ÉCRIVAIN DU MEMBRE DE RÉFÉRENCE EST PARTI LE 2026-08-14 ─────────────
  *
- * `households.reference_member_id` existait depuis le 2026-08-11 et le moteur
- * la lisait, mais RIEN dans l'app ne l'écrivait: elle valait NULL partout.
+ * `setReferenceMember` appelait `keel_household_set_reference_member` pour le
+ * compte de la carte « quelle façon de manger le plat commun suit ». La carte
+ * a été retirée — elle demandait d'arbitrer entre deux méthodes en annonçant
+ * que ça changeait « ce qu'on cuisine », sans jamais montrer l'autre version —
+ * et la fonction s'est retrouvée sans un seul appelant vivant.
  *
- * ── CE QUE CE GESTE FAIT, ET SURTOUT CE QU'IL NE FAIT PAS ─────────────────
- * Il décide quelle DOCTRINE gouverne le tronc commun. Il ne change PAS la
- * taille de la casserole: le dimensionnement reste le MIN des enveloppes de
- * toutes les bouches. Un référent qui dimensionnerait imposerait son déficit à
- * tout le monde — le défaut exact que FF-043 existe pour empêcher.
+ * ⛔ CE QUI RESTE, ET QUI N'EST PAS TOUCHÉ: la colonne
+ * `households.reference_member_id`, la RPC (que la base expose toujours), et
+ * la CASCADE de résolution côté moteur — `referenceMemberId()` dans
+ * `_shared/keel/household_composition.ts`. Elle est documentée ainsi:
  *
- * ⚠️ CE N'EST UN CHOIX QU'À PARTIR DE DEUX ADULTES À TABLE. Dans le foyer
- * « une mère + ses enfants », elle est référente par défaut (cascade
- * déclaré → composeur → null) et cet écran ne lui apprend rien.
+ *     `null` = retour au défaut, LE MEMBRE QUI COMPOSE LA SESSION.
  *
- * `null` = retour au défaut, le membre qui compose la session.
- * Refus nommés de la base: `not_owner`, `not_your_household`, `not_a_member`,
- * `minor_cannot_be_reference`, `age_unknown_cannot_be_reference`.
+ * Sans écrivain, la colonne reste à NULL et le moteur retombe sur le composeur
+ * — le maître, qui est le cas courant et le bon défaut. C'est exactement ce
+ * qui rend ce retrait sûr, et `householdReference.int.test.ts` le prouve au
+ * lieu de l'affirmer. Le jour où un écran redonne ce choix, il réécrit ce
+ * wrapper; il ne réécrit ni la RPC, ni la cascade, qui l'ont attendu.
  */
-export async function setReferenceMember(householdId: string, memberId: string | null) {
-  const { data, error } = await supabase.rpc("keel_household_set_reference_member", {
-    p_household: householdId,
-    p_member: memberId,
-  });
-  if (error) throw new Error(error.message);
-  return asResult(data);
-}
 
 /** Ce que le maître a saisi du corps d'une bouche. `null` = rien de saisi. */
 export interface MemberBodyView {

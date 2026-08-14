@@ -10,7 +10,6 @@ import { inputClass } from "../components/ui/Field";
 import Modal from "../components/ui/Modal";
 import SetupSection from "../components/ui/SetupSection";
 import MealBuilder from "../components/MealBuilder";
-import ReferenceMemberCard from "../components/plan/ReferenceMemberCard";
 import MyShareCard from "../components/plan/MyShareCard";
 import PlanDraftDialog from "../components/plan/PlanDraftDialog";
 import { selectMyShare } from "../api/myShare";
@@ -32,7 +31,6 @@ import {
   loadHousehold,
   loadHouseholdMeal,
   loadMyHouseholdPlace,
-  setReferenceMember,
 } from "../api/household";
 import { browserLocalDate } from "../lib/useMealTicks";
 import EatingRhythmCard from "../components/EatingRhythmCard";
@@ -1075,7 +1073,6 @@ export default function StudentWeekPlanPage() {
     HouseholdMealView | null
   >(null);
   const [isOwner, setIsOwner] = React.useState(false);
-  const [referenceBusy, setReferenceBusy] = React.useState(false);
 
   /**
    * ══════════════════════════════════════════════════════════════════════
@@ -2289,30 +2286,26 @@ export default function StudentWeekPlanPage() {
             `student_goals`; les relire dans le constructeur ferait un second
             lecteur de la même colonne, et la grille montrerait alors autre
             chose que ce que le générateur reçoit. */}
-        {/* ── 3 · QUELLE FAÇON DE MANGER LE PLAT COMMUN SUIT ──────────────
-            AU-DESSUS du formulaire, et sous « À propos de toi ». C'est une
-            ENTRÉE de la composition, pas un résultat: la lire après le bouton,
-            c'est la lire trop tard. Et c'est un fait de FOYER, pas un fait de
-            personne — d'où sa place entre les deux. */}
-        <ReferenceMemberCard
-          household={household}
-          isOwner={isOwner}
-          busy={referenceBusy}
-          onPick={async (memberId) => {
-            if (!household) return false;
-            setReferenceBusy(true);
-            try {
-              await setReferenceMember(household.id, memberId);
-              const uid = (await supabase.auth.getUser()).data.user?.id;
-              if (uid) await refreshHousehold(uid);
-              return true;
-            } catch {
-              return false;
-            } finally {
-              setReferenceBusy(false);
-            }
-          }}
-        />
+        {/* ── 3 · « QUELLE FAÇON DE MANGER LE PLAT COMMUN SUIT » EST PARTIE
+            LE 2026-08-14 ───────────────────────────────────────────────────
+            La carte demandait au maître d'arbitrer entre deux méthodes en
+            annonçant que ça changeait « ce qu'on cuisine » — SANS JAMAIS
+            MONTRER L'AUTRE VERSION. Personne ne peut choisir entre deux plans
+            dont un seul existe. Verdict du propriétaire, écran en main: « je
+            comprends vraiment pas ce que ça fait, pour moi c'est inutile ».
+
+            ⛔ LA CARTE PART, LE MOTEUR RESTE, ET IL A DÉJÀ SON REPLI.
+            `households.reference_member_id` décide toujours quelle doctrine
+            gouverne le tronc commun, et `generate-household-meal-v1` la lit
+            toujours (`household_composition.ts::referenceMemberId`). La
+            résolution est une CASCADE déjà écrite: `null` = le membre qui
+            COMPOSE la session. Sans écran pour l'écrire, la colonne reste à
+            NULL et le moteur retombe sur le composeur — le maître, qui est le
+            cas courant et le bon défaut. C'est ce qui rend ce retrait sûr, et
+            c'est prouvé par test (`householdReference.int.test.ts`), pas par
+            intention. Ni la colonne, ni la RPC
+            `keel_household_set_reference_member`, ni la cascade ne sont
+            touchées. */}
 
         <MealBuilder
           rhythm={parseEatingRhythm(pc.eating_rhythm)}
