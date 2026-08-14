@@ -277,8 +277,28 @@ import {
  * pareil, portant des consignes différentes, et rien qui échoue.
  *
  * `MEAL_PROMPT_VERSION` ne bouge pas: rien de G n'entre dans le tronc.
+ *
+ * ── v11 · LE RÉGIME ENTRE, ET LA POPULATION EST NEUVE ─────────────────────
+ * La règle de v4 s'applique encore (« quelle POPULATION voit une consigne
+ * différente »), et elle décrit ici DEUX populations, toutes deux neuves:
+ *
+ *   · LES FOYERS OÙ AU MOINS UNE BOUCHE PORTE UN RÉGIME. Leur prompt gagne le
+ *     bloc `WHAT THE SHARED DISH MUST RESPECT`. Aucun foyer ne l'avait avant le
+ *     2026-08-14, pour une raison simple et mesurée: ce fichier ne portait
+ *     AUCUNE occurrence du mot « diet », et le régime d'un maître végane
+ *     n'atteignait jamais la lane du foyer.
+ *   · LES FOYERS QUI ATTEIGNENT LE BARREAU ② PAR LE RÉGIME. `dietDiverges` est
+ *     une seconde source de divergence, à côté de `servingConflicts`; elle ne
+ *     se lève que là où descendre la table au plus strict retire à quelqu'un sa
+ *     direction de service, et seulement au-dessus du seuil de temps.
+ *
+ * ⚠️ TOUT LE RESTE EST BYTE-IDENTIQUE À v10, ET UN TEST LE TIENT: un foyer où
+ * personne n'a déclaré de régime rend `dietBlock: ""`, le bloc tombe du
+ * `filter`, et le prompt est celui de v10 au caractère près.
+ *
+ * `MEAL_PROMPT_VERSION` ne bouge pas: rien de ce lot n'entre dans le tronc.
  */
-export const HOUSEHOLD_PROMPT_VERSION = "v10_habits_and_cooking_shape";
+export const HOUSEHOLD_PROMPT_VERSION = "v11_dietary_regime_at_the_table";
 
 export interface HouseholdRestriction {
   memberId: string;
@@ -318,6 +338,23 @@ export interface HouseholdPromptInput {
    * Voir `cookingShapeLines` (`household_portions.ts`), qui porte la règle.
    */
   divergingCount: number;
+  /**
+   * R4/R5 — CE QUE LE PLAT PARTAGÉ DOIT RESPECTER. `""` = personne n'a déclaré
+   * de régime, et le prompt est alors byte-identique à celui d'avant ce lot.
+   *
+   * ⚠️ REQUIS, jamais optionnel — même cicatrice que `cooking`, `presence` et
+   * `merge` au-dessus, et cette fois elle a un nom mesuré: avant le 2026-08-14,
+   * `generate-household-meal-v1` ne portait AUCUNE occurrence du mot « diet ».
+   * Un maître végane recevait de la viande. Un `?` ici n'aurait fait remonter
+   * AUCUN appelant au compilateur, et le lot se serait construit sans être
+   * branché — colonne écrite, écran livré, prompt inchangé.
+   *
+   * ⚠️ CE MODULE NE LE COMPOSE PAS, ET C'EST DÉLIBÉRÉ. Le bloc est rendu par
+   * `householdDietBlock` (`household_diet.ts`), qui lit `dietary_regime.ts`.
+   * L'importer d'ici mettrait la connaissance des régimes dans le module qui
+   * assemble le prompt, alors qu'elle appartient au moteur qui la porte déjà.
+   */
+  dietBlock: string;
   /**
    * LA ligne d'envies de la semaine, ou `null`. UNE phrase pour tout le foyer,
    * pas une liste par personne (lot 5). L'appelant est responsable de son
@@ -612,6 +649,20 @@ export function buildHouseholdPromptBlocks(
     // (« Léa adore le Nutella » face à « on ne sert pas de Nutella à Léa »).
     voices.block,
     envyBlock,
+    // ── R4/R5 · LE RÉGIME, JUSTE AVANT LES RÈGLES DE MAISON ─────────────────
+    // Il est dans le GROUPE DES VERROUS, avec les règles de maison, et loin des
+    // blocs qui décrivent la tablée: comme elles, il dit ce que la casserole
+    // n'a pas le droit de contenir, et il doit survivre à une envie de la
+    // semaine qui le contredirait (« on a envie de bœuf bourguignon »).
+    //
+    // ⚠️ IL NE PASSE PAS DERNIER, ET LES RÈGLES DE MAISON GARDENT LEUR PLACE.
+    // « Le modèle lit la contrainte la plus proche de la fin comme la plus
+    // contraignante » est un invariant écrit par le lot qui a posé
+    // `restrictionBlock`; le déplacer depuis ici démoterait en silence la seule
+    // consigne qui doit survivre à tout, pour gagner une position dont ce bloc
+    // n'a pas besoin — il nomme ses familles une par une, il ne compte pas sur
+    // sa position pour être lu.
+    input.dietBlock,
     restrictionBlock(input.restrictions),
   ].filter((p) => p && p.trim().length > 0);
 

@@ -151,6 +151,23 @@ export interface PlanRationaleFacts {
    * toute façon: la phrase ne sort qu'au-dessus d'une bouche.
    */
   weeklyCookingMinutes: number | null;
+  /**
+   * R4 — CE QUE LE PLAT COMMUN SUIT, ET DE QUI C'EST LA LIGNE. `null` = personne
+   * n'a déclaré de régime à cette table, et la phrase ne sort pas.
+   *
+   * ⚠️ REQUIS ET NULLABLE, jamais optionnel — la posture de tout ce module. Un
+   * `?` ferait passer la lane du foyer sans rien changer, et le lot serait
+   * construit sans être branché.
+   *
+   * ⚠️ `heldBy` PORTE DES PRÉNOMS, JAMAIS D'IDENTIFIANTS: la phrase se lit à
+   * voix haute à table, comme `handTakenBy` et `mergedIn` au-dessus.
+   *
+   * ⚠️ LA LANE INDIVIDUELLE PASSE `null`, ET C'EST DÉFINITIF. « Le plat commun
+   * est végétarien, c'est ce que tu manges » n'apprend rien à quelqu'un qui
+   * mange seul: il n'y a pas de commun. La prémisse ci-dessous l'exige de toute
+   * façon — la phrase ne sort qu'au-dessus d'une bouche.
+   */
+  sharedDishRegime: { regime: string; heldBy: readonly string[] } | null;
 }
 
 export interface PlanRationale {
@@ -242,6 +259,22 @@ const COPY = {
     handTakenMany: (names: string) =>
       `${names} composent de leur côté : ce plan ne les nourrit pas.`,
     mergedIn: (names: string) => `Ce plan cuisine aussi pour ${names}.`,
+    // ── R4 · LE PLAT COMMUN SUIT LE PLUS RESTRICTIF ──────────────────────
+    // ⚠️ UN FAIT, JAMAIS UN REPROCHE, et c'est la moitié qui compte ici. « Le
+    // plat commun est végétarien PARCE QUE Christèle ne mange pas de viande »
+    // désigne quelqu'un comme la cause d'une contrainte subie par les autres;
+    // « c'est ce que Christèle mange » dit exactement le même fait sans le
+    // retourner contre elle. Aucun regret, aucune compensation proposée: la
+    // porte 3 coupe TOUT si un gabarit se met à culpabiliser.
+    sharedRegime: (regime: string, names: string) =>
+      `Le plat commun est ${regime} : c'est ce que ${names} mange.`,
+    sharedRegimeMany: (regime: string, names: string) =>
+      `Le plat commun est ${regime} : c'est ce que ${names} mangent.`,
+    regimes: {
+      vegetarian: "végétarien",
+      vegan: "végane",
+      pescatarian: "pescétarien",
+    } as Record<string, string>,
   },
   en: {
     days: {
@@ -304,6 +337,18 @@ const COPY = {
     handTakenMany: (names: string) =>
       `${names} are composing separately: this plan does not feed them.`,
     mergedIn: (names: string) => `This plan also cooks for ${names}.`,
+    // Même posture qu'en français: un fait, jamais un reproche. « has to be »
+    // serait déjà une plainte — c'est le verbe qui transforme une ligne en
+    // contrainte subie.
+    sharedRegime: (regime: string, names: string) =>
+      `The shared dish is ${regime}: that is what ${names} eats.`,
+    sharedRegimeMany: (regime: string, names: string) =>
+      `The shared dish is ${regime}: that is what ${names} eat.`,
+    regimes: {
+      vegetarian: "vegetarian",
+      vegan: "vegan",
+      pescatarian: "pescatarian",
+    } as Record<string, string>,
   },
 } as const;
 
@@ -372,6 +417,7 @@ const REQUIRED_FACTS: readonly (keyof PlanRationaleFacts)[] = [
   "handTakenBy",
   "mergedIn",
   "weeklyCookingMinutes",
+  "sharedDishRegime",
 ];
 
 /**
@@ -521,6 +567,33 @@ export function explainPlanChoices(input: {
       lines.push(
         copy.oneDishByTime(renderDuration(facts.weeklyCookingMinutes, input.locale)),
       );
+    }
+
+    // ── ⑤bis · R4 — CE QUE LE PLAT COMMUN SUIT, ET DE QUI C'EST LA LIGNE ───
+    //
+    // TROIS PRÉMISSES, ET LES TROIS SONT ARMÉES:
+    //   1. PLUS D'UNE BOUCHE — c'est la condition du bloc englobant. « Le plat
+    //      commun est végétarien » n'a aucun sens quand on mange seul: il n'y a
+    //      pas de commun, et la lane individuelle passe `null` de toute façon.
+    //   2. UN RÉGIME A ÉTÉ DÉCLARÉ — `null` fait taire la phrase. Un foyer où
+    //      personne n'a répondu ne doit pas lire une explication d'une décision
+    //      qui n'a pas été prise.
+    //   3. LE JETON EST CONNU DE LA COPIE — un régime que la copie ne sait pas
+    //      nommer fait TAIRE la phrase plutôt que d'écrire le slug anglais au
+    //      milieu d'un texte français. C'est la même direction d'erreur que
+    //      partout ici: moins précis, jamais faux.
+    const regime = facts.sharedDishRegime;
+    if (regime !== null) {
+      const label = copy.regimes[String(regime.regime ?? "")];
+      const names = regime.heldBy.map((n) => String(n ?? "").trim()).filter(Boolean);
+      if (label && names.length > 0) {
+        const rendered = joinList(names, input.locale);
+        lines.push(
+          names.length === 1
+            ? copy.sharedRegime(label, rendered)
+            : copy.sharedRegimeMany(label, rendered),
+        );
+      }
     }
   }
 

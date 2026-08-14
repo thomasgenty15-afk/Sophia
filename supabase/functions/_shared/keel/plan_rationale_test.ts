@@ -41,6 +41,10 @@ function nominalFacts(): PlanRationaleFacts {
     // cuisson: la phrase du seuil a trois prémisses, et celle-ci n'en arme
     // aucune.
     weeklyCookingMinutes: null,
+    // R4 — `null` = personne n'a déclaré de régime. Le cas nominal est celui
+    // d'un plan ORDINAIRE, et un plan ordinaire n'explique pas une décision qui
+    // n'a pas été prise.
+    sharedDishRegime: null,
   };
 }
 
@@ -301,6 +305,11 @@ Deno.test("AUCUN gabarit ne culpabilise — la porte 4 ne doit jamais mordre", (
     // 60 min < 90: le seuil mord, et la phrase de forme entre dans le lot que
     // la porte anti-culpabilisation doit relire.
     weeklyCookingMinutes: 60,
+    // R4 — DEUX PORTEURS, pour que le PLURIEL de la phrase entre lui aussi dans
+    // le lot que la porte anti-culpabilisation relit. « c'est ce que X et Y
+    // mangent » est un gabarit distinct de son singulier, et une porte qui
+    // n'aurait vu que l'un des deux ne l'aurait vérifié qu'à moitié.
+    sharedDishRegime: { regime: "vegan", heldBy: ["Christèle", "Léa"] },
   };
   for (const locale of ["fr", "en"] as const) {
     const out = explainPlanChoices({ facts: tout, locale });

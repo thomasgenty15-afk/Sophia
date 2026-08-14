@@ -163,6 +163,19 @@ import {
   type MemberAgeState,
 } from "../_shared/keel/household.ts";
 import { applyHouseRuleLock } from "../_shared/keel/household_restriction_lock.ts";
+// ── LE RÉGIME À TABLE (R4/R5) — LE DÉFAUT ① DE LA SPEC ─────────────────────
+// Avant le 2026-08-14, ce fichier ne portait AUCUNE occurrence du mot « diet »:
+// un maître végane recevait de la viande. Le moteur qui sait ce qu'un régime
+// exclut est `dietary_regime.ts`, importé jusque-là par la seule lane
+// individuelle; `household_diet.ts` est ce qu'il ne pouvait pas savoir — qu'il
+// y a plusieurs bouches autour d'une seule casserole.
+import {
+  dietDiverges,
+  householdDietBlock,
+  memberRegime,
+  strictestRegimeAt,
+} from "../_shared/keel/household_diet.ts";
+import type { DietaryRegime } from "../_shared/keel/dietary_regime.ts";
 import {
   type HouseholdAllergyRow,
   householdHardConstraints,
@@ -374,6 +387,20 @@ interface LoadedMember extends PortionMember {
    * seul.
    */
   ownPlans: MemberOwnPlan[];
+  /**
+   * R1/R2 — LE RÉGIME DE CETTE BOUCHE, déjà tranché en base entre son « about
+   * you » (si elle a un compte) et sa ligne (sinon), exactement comme `goal` et
+   * `eating_rhythm`. `null` = personne n'a rien déclaré, OU « je mange de
+   * tout »: ce module ne raisonne que sur des RESTRICTIONS, et les deux n'en
+   * posent aucune (voir `memberRegime`).
+   *
+   * ⚠️ IL N'EST PAS SUR `PortionMember`, ET C'EST VOULU. Un régime gouverne ce
+   * qu'il y a DANS la casserole, jamais la taille d'une part: le mettre sur le
+   * brief de portions inviterait le modèle à écrire « ta part végétarienne »
+   * dans une consigne lue à voix haute à table, ce que `FORBIDDEN_PORTION_TERMS`
+   * n'attrape pas.
+   */
+  diet: DietaryRegime | null;
 }
 
 /**
@@ -410,6 +437,11 @@ interface RosterRow {
   // « about you » (si elle a un compte) et sa ligne (sinon) — exactement comme
   // `goal` au-dessus. `null` = personne ne l'a dit.
   eating_rhythm: unknown;
+  // R2 — SON RÉGIME, tranché en base par la MÊME règle: une bouche avec compte
+  // le porte dans son « about you » (`student_safety_constraints.diet_ref`, ou
+  // `practical_constraints.diet_asked` pour l'omnivore), une bouche sans compte
+  // sur sa ligne. `null` = personne n'a demandé.
+  diet: unknown;
 }
 
 /** Une ligne de `keel_household_habits_for`, telle que la base la rend (G1). */
@@ -1463,6 +1495,12 @@ Deno.serve(async (req) => {
         // celle qu'on oublie d'appliquer.
         habits: rawHabits.get(r.member_id)?.slots ?? [],
         habitNote: rawHabits.get(r.member_id)?.note ?? null,
+        // ── R2 · CE QU'ELLE NE MANGE PAS ────────────────────────────────
+        // Le roster a DÉJÀ tranché entre le compte et la ligne; ici on ne fait
+        // que valider le jeton contre la liste fermée du moteur. `omnivore`
+        // devient `null` en traversant `memberRegime`, et c'est exact: « je
+        // mange de tout » ne pose aucune restriction sur la casserole.
+        diet: memberRegime(r.diet),
       };
     });
 
@@ -2460,13 +2498,45 @@ Deno.serve(async (req) => {
     // — celles qui ont une assiette dans CE plan-là — parce que ce sont elles
     // qui dimensionnent la casserole. Y compter une absente ferait lever un
     // second plat pour quelqu'un qui ne mange pas ici.
+    //
+    // ── R4 · LE PLAT COMMUN SUIT LE PLUS RESTRICTIF DE LA TABLE ────────────
+    // Sur `platedMembers` pour la même raison que la divergence juste en
+    // dessous: ce sont les bouches qui ont une assiette dans CE plan-là. Une
+    // bouche absente toute la fenêtre ne dimensionne pas la casserole, et
+    // descendre le foyer au végane pour quelqu'un qui ne mange pas ici serait
+    // décider à la place de la table sur une donnée de calendrier.
+    //
+    // ⚠️ C'EST L'EXACTE SYMÉTRIE DE L'UNION DES ALLERGIES, ET C'EST VOULU: un
+    // omnivore peut manger un plat végétarien, l'inverse est faux — « une
+    // casserole peut toujours en donner moins, jamais plus qu'elle n'en
+    // contient » (D6).
+    const strictestRegime = strictestRegimeAt(platedMembers.map((m) => m.diet));
+    const strictestHeldBy = strictestRegime === null ? [] : platedMembers
+      .filter((m) => m.diet === strictestRegime)
+      .map((m) => m.displayName);
     const divergingMembers = merge !== null || !timeAllowsASecondDish(weeklyMinutes)
       ? []
       : platedMembers.filter((m) =>
         servingConflicts(
           platedMembers.filter((other) => other.memberId !== m.memberId).map(servingDemandsFor),
           servingDemandsFor(m),
-        ).length > 0
+        ).length > 0 ||
+        // ── R5 · LE RÉGIME EST LA SECONDE SOURCE DE DIVERGENCE ────────────
+        // Sans elle, un seul végane impose le végane à six personnes, en
+        // silence. Avec, la bouche dont la direction ne sort plus de la
+        // casserole descendue au plus strict reçoit son plat à elle — et le
+        // temps garde la main, puisque cette expression entière est déjà sous
+        // `timeAllowsASecondDish` deux lignes plus haut.
+        //
+        // ⚠️ UN `||` ET PAS UNE SECONDE LISTE. Les deux critères répondent à la
+        // MÊME question — « cette bouche sort-elle de la casserole commune ? » —
+        // et deux listes distinctes auraient donné deux plats dédiés à qui
+        // diverge des deux façons, pour un seul repas.
+        dietDiverges({
+          strictest: strictestRegime,
+          own: m.diet,
+          demands: servingDemandsFor(m),
+        })
       );
     // LE BARREAU DE LA COMPOSITION. `one_session` ou rien: voir la note sur ③.
     const compositionShape: CookingShape = divergingMembers.length > 0
@@ -2519,6 +2589,12 @@ Deno.serve(async (req) => {
       shape: cookingShape,
       diverging: divergingMembers.map((m) => m.memberId),
       from_merge: ladder !== null,
+      // R4 — CE QUE LA CASSEROLE COMMUNE SUIT. `null` = personne n'a rien
+      // déclaré, et le prompt est alors byte-identique à celui d'avant ce lot.
+      // Journalisé parce qu'un plan végétarien servi à un foyer qui ne l'a pas
+      // demandé n'a aucune explication trois jours plus tard sans ce champ.
+      strictest_regime: strictestRegime,
+      regimes: platedMembers.filter((m) => m.diet !== null).length,
     }));
 
     // ── L5/D8 · LA MATIÈRE DE LA DÉFUSION — LE PLAN DE BASE ────────────────
@@ -2870,6 +2946,20 @@ Deno.serve(async (req) => {
       // G5 — LA FORME DE CUISINE, DÉCIDÉE PLUS HAUT ET PAR UN SEUL ENDROIT.
       cooking: cookingShape,
       divergingCount,
+      // ── R4/R5 · CE QUE LA CASSEROLE COMMUNE SUIT, ET QUI N'EN MANGE PAS ──
+      // `""` quand personne n'a rien déclaré: le bloc tombe du `filter` de
+      // `buildHouseholdPromptBlocks` et le prompt est byte-identique à celui
+      // d'avant ce lot. La consigne elle-même vient de
+      // `dietaryRegimePromptLine`, jamais d'une phrase écrite ici.
+      dietBlock: householdDietBlock({
+        strictest: strictestRegime,
+        heldBy: strictestHeldBy,
+        // LES MÊMES BOUCHES QUE `divergingCount`, et pas un second calcul: la
+        // ligne de forme promet un plat de plus à N personnes, ce bloc dit
+        // lesquelles. Deux listes divergentes feraient promettre un plat à
+        // quelqu'un que le bloc ne nomme pas.
+        divergingNames: divergingMembers.map((m) => m.displayName),
+      }),
       envyLine,
       restrictions,
       presence,
@@ -3454,6 +3544,13 @@ Deno.serve(async (req) => {
           // l'inverse de ce qu'il a fait. `null` quand le foyer n'a coché aucun
           // jour ou n'a déclaré aucune durée — la phrase se tait alors.
           weeklyCookingMinutes: weeklyMinutes,
+          // R4 — LE MÊME COUPLE QUE CELUI SERVI AU PROMPT, et pas un second
+          // calcul: le plan explique EXACTEMENT ce qu'il a demandé au modèle.
+          // Deux lectures divergentes feraient dire au plan qu'il est
+          // végétarien pendant que la casserole ne l'est pas.
+          sharedDishRegime: strictestRegime === null
+            ? null
+            : { regime: strictestRegime, heldBy: strictestHeldBy },
         },
       });
       rationaleLines = explained.lines;

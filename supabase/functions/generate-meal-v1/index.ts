@@ -1987,6 +1987,12 @@ Deno.serve(async (req) => {
           // qu'au-dessus d'une bouche. Passer le vrai budget d'ici ferait porter
           // au module une prémisse qu'il ne peut pas honorer.
           weeklyCookingMinutes: null,
+          // R4 — `null` DÉFINITIF SUR CETTE LANE. « Le plat commun est
+          // végétarien » n'apprend rien à quelqu'un qui mange seul: il n'y a
+          // pas de commun. Le régime de l'élève gouverne DÉJÀ tout son plan
+          // ici (`declaredRegime`, plus haut), et l'expliquer reviendrait à lui
+          // relire sa propre réponse.
+          sharedDishRegime: null,
         },
       });
       rationaleLines = explained.lines;

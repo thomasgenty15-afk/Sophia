@@ -2652,7 +2652,15 @@ Deno.test("C8 ③ — LA LANE INDIVIDUELLE GARDE SA VERSION DE PROMPT", () => {
   // barreau ② SANS fusion. Toutes les autres, fusions comprises, rendent un
   // prompt byte-identique à v9, et `household_meal_generation_test.ts` le
   // tient par égalité de chaîne.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v10_habits_and_cooking_shape");
+  // ⚠️ v11 DEPUIS LE RÉGIME À TABLE (2026-08-14), ET LE TRONC NE BOUGE
+  // TOUJOURS PAS. Deux populations neuves, encore: les foyers où au moins une
+  // bouche porte un régime — ils gagnent le bloc `WHAT THE SHARED DISH MUST
+  // RESPECT`, qu'AUCUN foyer n'avait avant, puisque ce fichier ne portait pas
+  // une seule occurrence du mot « diet » — et ceux qui atteignent le barreau ②
+  // par le régime plutôt que par la direction de service. Tous les autres
+  // rendent `dietBlock: ""`, et `household_meal_generation_test.ts` tient
+  // l'égalité de chaîne.
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v11_dietary_regime_at_the_table");
 });
 
 Deno.test("C7 ③ — LA LIGNE DE COURSES D'UN PLAT JETÉ NE PART PLUS AU MAGASIN", () => {

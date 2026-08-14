@@ -1,6 +1,7 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
 import type { PortionMember } from "./household_portions.ts";
+import { householdDietBlock } from "./household_diet.ts";
 import {
   buildHouseholdPromptBlocks,
   extractMemberPortions,
@@ -67,6 +68,8 @@ Deno.test("chaque membre apparaît avec son id EXACT, une fois", () => {
     // contrat historique du foyer, donc le prompt d'avant le lot G.
     cooking: "one_dish", divergingCount: 0,
     unmerge: null,
+    // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
+    dietBlock: "",
     voices: [],
   });
   for (const m of [DAD, SON, KID]) {
@@ -93,6 +96,8 @@ Deno.test("LES RÈGLES DE MAISON NE SONT JAMAIS UNE RAISON NUTRITIONNELLE", () =
     // contrat historique du foyer, donc le prompt d'avant le lot G.
     cooking: "one_dish", divergingCount: 0,
     unmerge: null,
+    // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
+    dietBlock: "",
     voices: [],
   });
   // NORMALISÉ, parce que le bloc est enroulé pour rester lisible dans le
@@ -117,6 +122,8 @@ Deno.test("les restrictions d'une même personne sont regroupées", () => {
     // contrat historique du foyer, donc le prompt d'avant le lot G.
     cooking: "one_dish", divergingCount: 0,
     unmerge: null,
+    // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
+    dietBlock: "",
     voices: [],
     restrictions: [
       { memberId: "m-kid", memberDisplayName: "Léa", label: "nutella" },
@@ -138,6 +145,8 @@ Deno.test("LES RÈGLES DE MAISON PASSENT APRÈS LES ENVIES", () => {
     // contrat historique du foyer, donc le prompt d'avant le lot G.
     cooking: "one_dish", divergingCount: 0,
     unmerge: null,
+    // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
+    dietBlock: "",
     voices: [],
     restrictions: [
       { memberId: "m-kid", memberDisplayName: "Léa", label: "nutella" },
@@ -155,6 +164,8 @@ Deno.test("sans restriction, aucun bloc de règles n'apparaît", () => {
     // contrat historique du foyer, donc le prompt d'avant le lot G.
     cooking: "one_dish", divergingCount: 0,
     unmerge: null,
+    // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
+    dietBlock: "",
     voices: [],
   });
   assert(!userSuffix.includes("HOUSE RULES"));
@@ -167,6 +178,8 @@ Deno.test("le schéma supplémentaire n'est demandé que côté système", () =>
     // contrat historique du foyer, donc le prompt d'avant le lot G.
     cooking: "one_dish", divergingCount: 0,
     unmerge: null,
+    // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
+    dietBlock: "",
     voices: [],
   });
   assert(systemSuffix.includes('"member_portions"'));
@@ -186,6 +199,8 @@ Deno.test("le brief de portions et la ligne d'envies sont tous les deux là", ()
     // contrat historique du foyer, donc le prompt d'avant le lot G.
     cooking: "one_dish", divergingCount: 0,
     unmerge: null,
+    // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
+    dietBlock: "",
     voices: [],
   });
   assert(userSuffix.includes("HOUSEHOLD SERVING PLAN"));
@@ -205,6 +220,8 @@ Deno.test("SANS LIGNE D'ENVIES, aucun en-tête d'envies n'apparaît", () => {
     // contrat historique du foyer, donc le prompt d'avant le lot G.
     cooking: "one_dish", divergingCount: 0,
     unmerge: null,
+    // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
+    dietBlock: "",
     voices: [],
   });
   assert(!userSuffix.includes("WHAT THIS HOUSEHOLD ASKED FOR"));
@@ -237,6 +254,8 @@ Deno.test("le bloc de présence entre dans le prompt, JUSTE APRÈS le brief de p
     // contrat historique du foyer, donc le prompt d'avant le lot G.
     cooking: "one_dish", divergingCount: 0,
     unmerge: null,
+    // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
+    dietBlock: "",
     voices: [],
   });
   assert(userSuffix.includes("WHO IS NOT AT THE TABLE"), userSuffix);
@@ -260,6 +279,8 @@ Deno.test("SANS ABSENCE, aucun en-tête de présence n'apparaît", () => {
     // contrat historique du foyer, donc le prompt d'avant le lot G.
     cooking: "one_dish", divergingCount: 0,
     unmerge: null,
+    // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
+    dietBlock: "",
     voices: [],
   });
   assert(!userSuffix.includes("WHO IS NOT AT THE TABLE"), userSuffix);
@@ -338,6 +359,8 @@ Deno.test("CHANGER LES BLOCS SANS BUMPER LA VERSION DOIT ÊTRE ROUGE", () => {
     // contrat historique du foyer, donc le prompt d'avant le lot G.
     cooking: "one_dish", divergingCount: 0,
     unmerge: null,
+    // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
+    dietBlock: "",
     voices: [],
   });
 
@@ -426,6 +449,8 @@ Deno.test("SANS FUSION, LE PROMPT EST CELUI D'AVANT L4, À L'OCTET PRÈS", () =>
     // contrat historique du foyer, donc le prompt d'avant le lot G.
     cooking: "one_dish", divergingCount: 0,
     unmerge: null,
+    // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
+    dietBlock: "",
     voices: [],
   });
   assert(!userSuffix.includes("BRINGING SOMEONE BACK"));
@@ -457,6 +482,8 @@ Deno.test("le bloc de fusion entre APRÈS la présence et AVANT l'envie", () => 
     // contrat historique du foyer, donc le prompt d'avant le lot G.
     cooking: "one_dish", divergingCount: 0,
     unmerge: null,
+    // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
+    dietBlock: "",
     voices: [],
   });
   // L'ORDRE EST UNE CONSIGNE. « Qui revient à table » appartient au groupe des
@@ -501,6 +528,8 @@ Deno.test("O5 — L'ANCRE ARRIVE DANS LE VRAI PROMPT, ET LA VERSION A BOUGÉ", (
     // contrat historique du foyer, donc le prompt d'avant le lot G.
     cooking: "one_dish", divergingCount: 0,
     unmerge: null,
+    // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
+    dietBlock: "",
     voices: [],
   });
   assert(
@@ -556,6 +585,8 @@ Deno.test("LE BARREAU DE L'ÉCHELLE CHANGE LA LIGNE « COMBIEN DE PLATS »", () 
       // byte-identique à celle d'avant le lot G.
       cooking: shape, divergingCount: shape === "one_dish" ? 0 : 1,
       unmerge: null,
+      // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
+      dietBlock: "",
       voices: [],
     }).userSuffix;
 
@@ -594,6 +625,8 @@ Deno.test("SANS DÉFUSION, LE PROMPT EST CELUI D'AVANT L5, À L'OCTET PRÈS", ()
     // contrat historique du foyer, donc le prompt d'avant le lot G.
     cooking: "one_dish", divergingCount: 0,
     unmerge: null,
+    // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
+    dietBlock: "",
     voices: [],
   }).userSuffix;
   const merged = buildHouseholdPromptBlocks({
@@ -603,6 +636,8 @@ Deno.test("SANS DÉFUSION, LE PROMPT EST CELUI D'AVANT L5, À L'OCTET PRÈS", ()
     // contrat historique du foyer, donc le prompt d'avant le lot G.
     cooking: "one_dish", divergingCount: 0,
     unmerge: null,
+    // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
+    dietBlock: "",
     voices: [],
   }).userSuffix;
   assert(!plain.includes("TAKING SOMEONE BACK OUT"));
@@ -635,6 +670,8 @@ Deno.test("le bloc de défusion entre APRÈS la présence et AVANT l'envie", () 
     // contrat historique du foyer, donc le prompt d'avant le lot G.
     cooking: "one_dish", divergingCount: 0,
     unmerge: UNMERGE_PROMPT,
+    // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
+    dietBlock: "",
     voices: [],
   });
   // MÊME PLACE QUE LA FUSION, ET POUR LA MÊME RAISON: « untel ne mange plus
@@ -673,6 +710,8 @@ Deno.test("UNE DÉFUSION NE DEMANDE JAMAIS UN SECOND PLAT", () => {
     // contrat historique du foyer, donc le prompt d'avant le lot G.
     cooking: "one_dish", divergingCount: 0,
     unmerge: UNMERGE_PROMPT,
+    // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
+    dietBlock: "",
     voices: [],
   });
   assert(
@@ -707,6 +746,8 @@ Deno.test("SANS VOIX, LE PROMPT EST CELUI D'AVANT L6, À L'OCTET PRÈS", () => {
     // travail — la forme est une liste FERMÉE, et le rester est le sujet.
     cooking: "one_dish" as const, divergingCount: 0,
     unmerge: null,
+    // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
+    dietBlock: "",
   };
   const { userSuffix, voiceIssues, voicesHeard, voiceCounts } =
     buildHouseholdPromptBlocks({ ...base, voices: [] });
@@ -770,6 +811,8 @@ Deno.test("le bloc des voix entre APRÈS la tablée et AVANT l'envie", () => {
     // contrat historique du foyer, donc le prompt d'avant le lot G.
     cooking: "one_dish", divergingCount: 0,
     unmerge: null,
+    // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
+    dietBlock: "",
     voices: VOICES,
   });
   assertEquals(voicesHeard, 2);
@@ -822,6 +865,8 @@ Deno.test("le bloc des voix entre APRÈS la tablée et AVANT l'envie", () => {
     // contrat historique du foyer, donc le prompt d'avant le lot G.
     cooking: "one_dish", divergingCount: 0,
     unmerge: null,
+    // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
+    dietBlock: "",
     voices: VOICES,
   }).userSuffix;
   assert(
@@ -845,6 +890,8 @@ Deno.test("LA GARDE DE NON-DIVULGATION EST DANS LE CONSTRUCTEUR, PAS EN AMONT", 
     // contrat historique du foyer, donc le prompt d'avant le lot G.
     cooking: "one_dish", divergingCount: 0,
     unmerge: null,
+    // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
+    dietBlock: "",
     voices: [
       {
         memberId: "m-son",
@@ -912,6 +959,8 @@ Deno.test("C6 — LE COMPTE ET LA MATIÈRE ARRIVENT DANS LE VRAI PROMPT", () => 
     // contrat historique du foyer, donc le prompt d'avant le lot G.
     cooking: "one_dish", divergingCount: 0,
     unmerge: null,
+    // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
+    dietBlock: "",
     voices: [],
   });
   assert(
@@ -959,6 +1008,8 @@ Deno.test("C6 — LE BRIEF DE PORTIONS NE PROMET PLUS « never more than two »"
       // byte-identique à celle d'avant le lot G.
       cooking: shape, divergingCount: shape === "one_dish" ? 0 : 1,
       unmerge: null,
+      // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
+      dietBlock: "",
       voices: [],
     }).userSuffix;
   for (const shape of ["one_session", "separate_sessions"] as const) {
@@ -1004,4 +1055,72 @@ Deno.test("C6 — LA CONSIGNE COMPTÉE N'EXISTE PAS SOUS UNE VERSION PASSÉE", (
         `bumpe HOUSEHOLD_PROMPT_VERSION.`,
     );
   }
+});
+
+Deno.test("SANS RÉGIME, LE PROMPT EST CELUI D'AVANT v11, À L'OCTET PRÈS", () => {
+  // ⚠️ LE TEST QUI PROTÈGE LE CHEMIN MAJORITAIRE — et il ne peut PAS être fait
+  // par un run réel: le code est déjà changé, il n'y a plus de « avant » à
+  // interroger. C'est une preuve UNITAIRE, et elle s'écrit comme telle.
+  //
+  // Un foyer où personne n'a répondu à « comment vous mangez » ne doit pas
+  // changer d'un octet pour un lot qui ne le concerne pas.
+  const base = {
+    members: [DAD, SON], envyLine: null, restrictions: [], presence: NOBODY_AWAY,
+    merge: null,
+    cooking: "one_dish" as const, divergingCount: 0,
+    unmerge: null,
+    voices: [],
+  };
+  const silent = buildHouseholdPromptBlocks({ ...base, dietBlock: "" });
+  assert(!silent.userSuffix.includes("WHAT THE SHARED DISH MUST RESPECT"));
+  assert(!silent.userSuffix.includes("VEGETARIAN"));
+  assert(!silent.userSuffix.includes("VEGAN"));
+
+  // ⚠️ « À L'OCTET PRÈS » SE MESURE, IL NE SE DÉCLARE PAS. Le bloc vide doit
+  // coûter EXACTEMENT 0 caractère, pas « presque rien »: un `""` qui
+  // traverserait le `filter` laisserait deux sauts de ligne derrière lui, et le
+  // prompt de tout le monde changerait pour un lot que personne n'a demandé.
+  const blank = buildHouseholdPromptBlocks({ ...base, dietBlock: "   " });
+  assertEquals(blank.userSuffix.length, silent.userSuffix.length);
+  assertEquals(blank.userSuffix, silent.userSuffix);
+
+  // ET LA GARDE A UN CAS QUI PASSE: dès qu'un régime est déclaré, le bloc entre.
+  const declared = buildHouseholdPromptBlocks({
+    ...base,
+    dietBlock: householdDietBlock({
+      strictest: "vegetarian",
+      heldBy: ["Christèle"],
+      divergingNames: [],
+    }),
+  });
+  assert(declared.userSuffix.includes("WHAT THE SHARED DISH MUST RESPECT"));
+  assert(declared.userSuffix.length > silent.userSuffix.length);
+});
+
+Deno.test("le régime passe AVANT les règles de maison, qui restent DERNIÈRES", () => {
+  // ⚠️ L'INVARIANT APPARTIENT AU LOT QUI A POSÉ `restrictionBlock`: « le modèle
+  // lit la contrainte la plus proche de la fin comme la plus contraignante ».
+  // Le bloc de régime est dans le groupe des VERROUS — il doit survivre à une
+  // envie de la semaine qui le contredirait — mais il ne prend PAS la dernière
+  // place: la lui donner démoterait en silence la seule consigne qui doit
+  // survivre à tout, depuis un lot qui n'en a pas besoin.
+  const { userSuffix } = buildHouseholdPromptBlocks({
+    members: [DAD, SON], envyLine: "on a envie de bœuf bourguignon",
+    restrictions: [{ memberId: "m-son", memberDisplayName: "Tom", label: "pas de Nutella" }],
+    presence: NOBODY_AWAY, merge: null,
+    cooking: "one_dish" as const, divergingCount: 0,
+    unmerge: null,
+    voices: [],
+    dietBlock: householdDietBlock({
+      strictest: "vegan",
+      heldBy: ["Christèle"],
+      divergingNames: [],
+    }),
+  });
+  const diet = userSuffix.indexOf("WHAT THE SHARED DISH MUST RESPECT");
+  const envy = userSuffix.indexOf("bœuf bourguignon");
+  const house = userSuffix.indexOf("pas de Nutella");
+  assert(diet > 0 && envy > 0 && house > 0, userSuffix);
+  assert(envy < diet, "le régime doit survivre à l'envie de la semaine");
+  assert(diet < house, "les règles de maison restent les dernières");
 });
