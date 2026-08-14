@@ -12,6 +12,7 @@ import type {
 import type { DayEnergyView, DishEnergyView } from "../../api/mealEnergy";
 import { dishDayLabel, mealCopy } from "../../api/mealLabels";
 import { DayEnergyLine, EnergyBasisNote } from "./EnergyReadout";
+import { sessionForDish } from "../../lib/dishSession";
 import { groupByDay } from "../../lib/mealBuilderModel";
 import { dishDate } from "../../api/mealStretch";
 import { windowDates, windowDayOrder } from "../../api/mealWindow";
@@ -206,6 +207,19 @@ export default function PlanResult(props: PlanResultProps) {
                     .map((p) => ({ title: p.title, cookOn: p.cook_on }))}
                   tick={props.tick?.(dish, date)}
                   energy={props.energy?.(dish) ?? null}
+                  // ── LA SESSION QUI A FAIT SON LOT (2026-08-14) ───────────
+                  // ⚠️ `cookingSessions` ÉTAIT UNE PROP MORTE. Elle était
+                  // déclarée, passée par les deux appelants, et plus lue par
+                  // personne depuis le retrait de `KitchenBlock` — une prop
+                  // qu'on transporte sans la rendre est un lecteur mort qui
+                  // se lit comme une fonctionnalité livrée. Elle sert de
+                  // nouveau, et à ce pour quoi elle était la mieux placée.
+                  //
+                  // RÉSOLUE ICI, comme `sources` juste au-dessus, et pour la
+                  // même raison: le plat ne porte que des `id`, et une carte
+                  // qui irait chercher les sessions elle-même dupliquerait la
+                  // résolution sur les deux écrans qui la montent.
+                  session={sessionForDish(dish, props.cookingSessions, props.preparations)}
                 />
               ))}
             </div>

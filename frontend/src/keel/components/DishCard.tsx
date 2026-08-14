@@ -3,6 +3,7 @@ import React from "react";
 import { type GeneratedDish } from "../api/mealGeneration";
 import { type DishEnergyView } from "../api/mealEnergy";
 import { dishDayLabel, dishSlotLabel, mealCopy } from "../api/mealLabels";
+import { type DishSessionView } from "../lib/dishSession";
 import { type DishTick } from "../lib/useMealTicks";
 import { DishEnergyLine } from "./plan/EnergyReadout";
 import { Badge } from "./ui/Badge";
@@ -74,12 +75,23 @@ export interface DishSource {
 }
 
 export default function DishCard(
-  { dish, tick, servedFrom = null, sources = [], energy = null }: {
+  { dish, tick, servedFrom = null, sources = [], energy = null, session = null }: {
     dish: GeneratedDish;
     tick?: DishTick | null;
     servedFrom?: ServedFrom;
     /** Les préparations que ce plat consomme. Vide = il se fait de zéro. */
     sources?: readonly DishSource[];
+    /**
+     * LA SESSION DE CUISINE DONT CE PLAT TIRE SON LOT — résolue par l'appelant.
+     *
+     * `null` est le défaut ET le cas le plus fréquent: un plat cuisiné de zéro
+     * n'a pas de lot, donc pas de session, donc pas de bouton. C'est aussi ce
+     * que reçoit tout appelant qui ne tient pas les sessions (`/app/today`,
+     * qui rend la journée et non le planning) — la carte ne va PAS les
+     * chercher elle-même: elle serait alors un second lecteur du même plan,
+     * et deux lecteurs finissent par se contredire.
+     */
+    session?: DishSessionView | null;
     /**
      * FF-059 — L'ÉNERGIE DE CE PLAT, quand les quatre portes sont ouvertes.
      *
@@ -227,6 +239,104 @@ export default function DishCard(
           {dish.method}
         </p>
       )}
+
+      {/* ── LE PLAT ET LA SESSION QUI A FAIT SON LOT (2026-08-14) ───────────
+          Le chemin `dish.uses[].preparation_id → cooking_sessions[]
+          .preparation_ids` existait ENTIÈREMENT dans la donnée, et n'était
+          nulle part à l'écran: « tes sessions de cuisine » porte les grosses
+          cuissons sans dire quel plat en sort, et cette carte disait d'où
+          venait son lot (`sources`, plus haut) sans dire dans quelle session
+          il avait été fait. Le bouton ne fait que rendre ce lien visible.
+
+          ⚠️ IL EST POSÉ JUSTE SOUS LE GESTE DU SOIR, ET C'EST DÉLIBÉRÉ: les
+          deux se lisent ENSEMBLE. « Réchauffe une portion et presse un citron »
+          ne dit pas d'où vient la portion; « la session du mercredi, où on a
+          fait le poulet, le riz et les légumes » le dit. Le geste n'est pas
+          recopié dans le dépliant — il est déjà là, une ligne au-dessus, et
+          l'écrire deux fois sur la même carte ferait relire la même phrase.
+
+          ⚠️ DISCRET PAR DÉFAUT. Fermé, c'est un contrôle de texte souligné —
+          l'idiome de `CookingSessions` pour déplier une recette. Le planning
+          se lit d'un coup d'œil; il ne doit pas devenir une liste de recettes
+          dépliées.
+
+          ⛔ AUCUNE DURÉE. `active_minutes` et `total_minutes` vivent sur les
+          préparations et sur la session; les recopier ici donnerait à un
+          assemblage le temps d'une cuisson. Elles ont déjà leur surface. */}
+      {session && <SessionLink session={session} />}
     </Card>
+  );
+}
+
+/**
+ * LE DÉPLIANT DE LA SESSION.
+ *
+ * ⚠️ COMPOSANT À PART, ET PAS UN `useState` DE PLUS DANS `DishCard`. La carte
+ * est rendue jusqu'à vingt-six fois sur `/app/plan`: un état ouvert/fermé de
+ * plus dans son corps se recrée à chaque rendu de la liste, et surtout il
+ * existerait pour les plats qui n'ont AUCUNE session. Ici, l'état n'existe que
+ * là où il y a quelque chose à ouvrir.
+ */
+function SessionLink({ session }: { session: DishSessionView }) {
+  const [open, setOpen] = React.useState(false);
+  const panelId = React.useId();
+  return (
+    <div className="mt-2">
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={panelId}
+        onClick={() => setOpen((v) => !v)}
+        // L'IDIOME DU KIT POUR DÉPLIER, repris de `CookingSessions`: le
+        // soulignement porte l'affordance, la teinte ne la porte pas — la
+        // figue reste à l'action principale de l'écran. `min-h-6` est le
+        // plancher de 24 px de WCAG 2.5.8, que `text-xs` seul n'atteint pas.
+        className="min-h-6 text-xs font-medium text-ink-soft underline underline-offset-2 hover:text-ink"
+      >
+        {mealCopy(open ? "meals.result.session_hide" : "meals.result.session_open")}
+      </button>
+      {open && (
+        <div
+          id={panelId}
+          // ⚠️ `data-preparation-id` N'EST PAS UN ORNEMENT DE TEST. C'est
+          // l'identifiant QUI A FAIT LE LIEN entre ce plat et cette session.
+          // Il ne s'affiche pas — un slug de lot ne veut rien dire à table —
+          // mais il rend la jointure auditable dans le DOM, sans relire le
+          // code. Une jointure invisible est une jointure qu'on ne sait pas
+          // prouver juste.
+          data-preparation-id={session.viaPreparationId}
+          // `paper-2` (1,08:1 sur `paper`) est le second fond nommé par la
+          // charte, et le trait `line` garantit l'arête même là où le
+          // remplissage ne se voit pas. Même bloc que `sources`, plus haut:
+          // c'est la même famille d'information — d'où vient ce plat.
+          className="mt-2 rounded-card border border-line bg-paper-2 px-3 py-2"
+        >
+          <p className="text-sm font-medium text-ink">
+            {dishDayLabel(session.day) ?? session.day}
+          </p>
+          {/* CE QUI EST SORTI DE LA MÊME CASSEROLÉE. C'est la moitié que le
+              plat n'avait nulle part: « le poulet, le riz et les légumes ont
+              été faits ensemble ». Muet quand la session ne nomme aucune
+              préparation connue — pas de libellé au-dessus du vide. */}
+          {session.preparations.length > 0 && (
+            <p className="mt-1 text-sm leading-6 text-ink-soft break-words">
+              {mealCopy("meals.result.session_also").replace(
+                "{titles}",
+                session.preparations.join(", "),
+              )}
+            </p>
+          )}
+          {/* LE DÉROULÉ, tel que le modèle l'a écrit. `break-words` n'est pas
+              décoratif: c'est du texte VENU DU MODÈLE, donc des mots dont
+              personne ne contrôle la longueur, et à 320 px un mot insécable
+              fait défiler LE CORPS DE LA PAGE. */}
+          {session.runThrough && (
+            <p className="mt-1 text-sm leading-6 text-ink break-words">
+              {session.runThrough}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
