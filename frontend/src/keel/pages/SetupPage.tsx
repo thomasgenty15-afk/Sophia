@@ -238,6 +238,8 @@ export default function SetupPage() {
   const [stepIndex, setStepIndex] = React.useState(0);
   const [busy, setBusy] = React.useState(false);
   const [failure, setFailure] = React.useState<string | null>(null);
+  /** Le refus des gestes de la carte des bouches — rendu SUR la carte. */
+  const [mouthFailure, setMouthFailure] = React.useState<string | null>(null);
   const [flash, setFlash] = React.useState<string | null>(null);
   /**
    * « ON A ESSAYÉ DE QUITTER CETTE ÉTAPE, ET ELLE A RETENU. »
@@ -450,6 +452,40 @@ export default function SetupPage() {
       await work();
     } catch (error) {
       setFailure(error instanceof Error ? error.message : String(error));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  /**
+   * LE MÊME GARDE, MAIS LE REFUS ATTERRIT SUR LE GESTE.
+   *
+   * ⚠️ CECI EST LE DÉFAUT QUI A BLOQUÉ UN VRAI COMPTE, ET IL ÉTAIT INVISIBLE.
+   * `guard` écrit dans `failure`, rendu tout en haut de la page (juste sous le
+   * fil de progression). Le bouton « Ajouter » est, lui, au bas du SECOND
+   * formulaire de l'étape 2 — plusieurs centaines de pixels plus bas, et hors
+   * écran sur un téléphone. Quand l'ajout d'une bouche échoue, l'utilisateur
+   * appuie et **rien ne bouge devant lui**: il conclut que c'est fait, appuie
+   * sur « Continuer », et l'étape le retient en réclamant la personne qu'il
+   * croit avoir inscrite.
+   *
+   * Mesuré le 2026-08-14 sur un compte neuf: branche « On est deux », zéro
+   * bouche en base, l'utilisateur certain d'en avoir ajouté une. Ses mots:
+   * « je ne peux pas passer à l'étape 3 ».
+   *
+   * Un message d'erreur qui n'est pas dans le champ de vision du geste qui l'a
+   * provoqué n'est pas un message: c'est une trace. On le pose donc À CÔTÉ DU
+   * BOUTON, et le bandeau du haut reste pour tout ce qui n'a pas de place à
+   * lui.
+   */
+  async function guardMouth(work: () => Promise<void>) {
+    setBusy(true);
+    setMouthFailure(null);
+    setFlash(null);
+    try {
+      await work();
+    } catch (error) {
+      setMouthFailure(error instanceof Error ? error.message : String(error));
     } finally {
       setBusy(false);
     }
@@ -954,14 +990,15 @@ export default function SetupPage() {
                 mouths={facts.mouths}
                 draft={mouth}
                 onDraftChange={setMouth}
-                onAdd={() => guard(addMouth)}
+                onAdd={() => guardMouth(addMouth)}
                 held={mouthsHeld}
-                onGoal={(m, g) => guard(() => saveMouthGoal(m, g))}
-                onBirthDate={(m, d) => guard(() => saveMouthBirthDate(m, d))}
+                failure={mouthFailure}
+                onGoal={(m, g) => guardMouth(() => saveMouthGoal(m, g))}
+                onBirthDate={(m, d) => guardMouth(() => saveMouthBirthDate(m, d))}
                 onAllergyAnswer={(m, labels) =>
-                  guard(() => saveMouthAllergyAnswer(m, labels))}
-                onBody={(m, h, w, g) => guard(() => saveRowBody(m, h, w, g))}
-                onRemove={(m) => guard(() => removeMouth(m))}
+                  guardMouth(() => saveMouthAllergyAnswer(m, labels))}
+                onBody={(m, h, w, g) => guardMouth(() => saveRowBody(m, h, w, g))}
+                onRemove={(m) => guardMouth(() => removeMouth(m))}
                 confirmRemove={confirmRemove}
                 onConfirmRemove={setConfirmRemove}
                 inviteFor={inviteFor}
@@ -1506,6 +1543,8 @@ function MouthsStep(props: {
    * seule chose qui relie le refus au bouton qui le lève.
    */
   held: string | null;
+  /** Le refus d'un geste de cette carte, ou `null`. REQUIS, même raison. */
+  failure: string | null;
   onGoal: (mouth: FunnelMouth, goal: MemberGoal | "") => void;
   onBirthDate: (mouth: FunnelMouth, date: string) => void;
   onAllergyAnswer: (mouth: FunnelMouth, labels: string[]) => void;
@@ -1744,6 +1783,14 @@ function MouthsStep(props: {
                 · LA SORTIE, pour qui n'est finalement que deux: rien ne disait
                   qu'elle passe par la première question. Un refus qui ne dit
                   pas ce qui le lèverait n'est pas un refus, c'est un mur. */}
+          {/* LE REFUS D'UN GESTE DE CETTE CARTE, À CÔTÉ DU GESTE. Il passe
+              AVANT `held`: « ton ajout a échoué pour telle raison » explique ce
+              que « il manque encore une personne » ne fait que constater. */}
+          {props.failure !== null ? (
+            <p className="mt-4 rounded-card border border-rose-200 bg-rose-50 p-3 text-xs leading-5 text-rose-900">
+              {props.failure}
+            </p>
+          ) : null}
           {props.held !== null ? (
             <p className="mt-4 rounded-card border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900">
               {props.held}
