@@ -16,6 +16,7 @@
 
 import { supabase } from "../../lib/supabase";
 import { readEdgeRefusal } from "./edgeErrors";
+import { selectMealPlans } from "./mealWindow";
 import {
   type AwayDay,
   DEFAULT_EATING_RHYTHM,
@@ -1268,10 +1269,32 @@ export async function loadHouseholdMeal(today: string): Promise<HouseholdMealVie
     .eq("plan_kind", "household")
     .is("retired_at", null)
     .gte("ends_on", today)
-    .order("starts_on", { ascending: false })
-    .limit(1);
+    // ⚠️ ON RAMÈNE TOUTES LES LIGNES VIVANTES, ET C'EST `selectMealPlans` QUI
+    // TRANCHE. `starts_on desc limit 1` prenait le plan qui DÉMARRE LE PLUS
+    // TARD — c'est-à-dire, dès qu'un foyer a préparé la suite (ce que
+    // `prepare_next` produit, et deux plans vivants sont le cas NOMINAL), le
+    // plan de la semaine PROCHAINE. Mesuré au navigateur le 2026-08-14: sur le
+    // foyer Bramble, « Ta part » était vide pour Zoe alors que sa part existe
+    // sur le plan courant, et « À table » ne montrait que Nina — la seule
+    // bouche servie par le plan du 19.
+    //
+    // « Ce que la maison cuisine » est le plan qui couvre AUJOURD'HUI, et le
+    // suivant seulement s'il n'y en a pas. C'est exactement ce que
+    // `selectMealPlans` calcule, et il est déjà testé: re-dériver la règle ici
+    // en ferait un jumeau, qui divergerait.
+    .order("starts_on", { ascending: true });
   if (error) throw new Error(error.message);
-  const row = (data ?? [])[0] as Record<string, unknown> | undefined;
+  const rows = (data ?? []) as Record<string, unknown>[];
+  const chosen = selectMealPlans(
+    rows.map((r) => ({
+      startsOn: String(r.starts_on ?? ""),
+      durationDays: Number(r.duration_days) || 1,
+      retiredAt: null,
+      raw: r,
+    })),
+    today,
+  );
+  const row = (chosen.current ?? chosen.next)?.raw;
   if (!row) return null;
 
   const raw = Array.isArray(row.member_portions) ? row.member_portions : [];
