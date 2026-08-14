@@ -45,6 +45,8 @@ import {
 import { chooseGenerator } from "../api/planRouting";
 import { edgeRefusalKey } from "../copy/planRefusals";
 import { t } from "../i18n/t";
+import { formatDate } from "../i18n/format";
+import { plural } from "../i18n/plural";
 import TakeTheHandCard, { type HouseholdPlace } from "./TakeTheHandCard";
 import PlanResult from "./plan/PlanResult";
 import ShoppingListPanel from "./ShoppingListPanel";
@@ -547,7 +549,22 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
       const w = resolveRequestedWindow(windowRequest, today);
       const ends = planEndsOn(w.startsOn, w.durationDays);
       if (w.durationDays === 1) return t("meals.form.window_one_day");
-      return `${w.startsOn} → ${ends} · ${w.durationDays} days`;
+      // ⚠️ CETTE LIGNE A ÉTÉ ANGLAISE ET NUE JUSQU'AU 2026-08-14, et aucun test
+      // ne pouvait le voir: c'était un littéral, pas une clé. Elle rendait
+      // « 2026-08-14 → 2026-08-20 · 7 days » à un foyer français — une date ISO
+      // que personne ne lit à voix haute, et un mot anglais au milieu de la
+      // page. Trouvé en REGARDANT l'écran, pas en lisant le code.
+      return t("meals.form.window_span")
+        .replace("{from}", formatDate(w.startsOn, { year: false }))
+        .replace("{to}", formatDate(ends, { year: false }))
+        .replace(
+          "{days}",
+          plural(
+            w.durationDays,
+            t("meals.form.window_days_one"),
+            t("meals.form.window_days_other"),
+          ).replace("{n}", String(w.durationDays)),
+        );
     } catch (e) {
       return e instanceof Error ? e.message : String(e);
     }
