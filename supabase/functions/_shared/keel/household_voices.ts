@@ -579,8 +579,11 @@ export function buildHouseholdVoices(
     }
 
     // ── PASSE 2 · LE PLAFOND, QUI S'ARRÊTE ────────────────────────────────
-    // IL COUPE PAR LA QUEUE, donc par le plus ANCIEN: la liste arrive triée du
-    // plus récent au plus ancien (`foodPreferencesForPrompt`).
+    // IL COUPE PAR LA QUEUE. La liste arrive triée par `foodPreferencesForPrompt`:
+    // depuis le 2026-08-13, ce que le titulaire a ÉCRIT d'abord, puis ce que le
+    // memorizer a récolté, du plus récent au plus ancien. Ce qui tombe est donc
+    // la plus vieille RÉCOLTE — jamais une consigne écrite. La règle se raconte
+    // toujours en une phrase, ce qui est la seule chose que cette passe exige.
     //
     // ⚠️ `break`, PAS `continue`, ET C'EST UN DÉFAUT QUI A ÉTÉ MESURÉ. Avec
     // `continue`, un plan réel a gardé pour son maître:

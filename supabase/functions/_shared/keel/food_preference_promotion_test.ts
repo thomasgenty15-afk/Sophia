@@ -22,6 +22,7 @@ import {
   FOOD_PREFERENCES_DISMISSED_KEY,
   FOOD_PREFERENCES_KEY,
   FOOD_PREFERENCES_ORIGIN_KEY,
+  foodPreferencesByOrigin,
   foodPreferencesForPrompt,
   ignorableTokens,
   MAX_DISMISSED,
@@ -301,7 +302,7 @@ Deno.test("LA GARDE DE PROMPT couvre aussi la table d'origines", () => {
     memoryItemId: "9f2c-source",
   });
   assertEquals(c[FOOD_PREFERENCES_ORIGIN_KEY], {
-    "no broccoli": { item: "9f2c-source", at: null },
+    "no broccoli": { item: "9f2c-source", at: null, source: "memory" },
   });
   assert(!JSON.stringify(constraintsForPrompt(c)).includes("9f2c-source"));
 });
@@ -475,7 +476,7 @@ Deno.test("l'origine SURVIT à une édition de l'élève", () => {
     to: "Likes broccoli only when roasted",
   });
   assertEquals(c[FOOD_PREFERENCES_ORIGIN_KEY], {
-    "likes broccoli only when roasted": { item: "m-old", at: null },
+    "likes broccoli only when roasted": { item: "m-old", at: null, source: "memory" },
   });
   const result = reconcileFoodPreferences({
     constraints: c,
@@ -569,7 +570,7 @@ Deno.test("garder un remplaçant RETIRE la ligne qu'il remplace", () => {
   });
   assertEquals(c[FOOD_PREFERENCES_KEY], ["Does not like broccoli"]);
   assertEquals(c[FOOD_PREFERENCES_ORIGIN_KEY], {
-    "does not like broccoli": { item: "m-new", at: null },
+    "does not like broccoli": { item: "m-new", at: null, source: "memory" },
   });
 });
 
@@ -808,4 +809,122 @@ Deno.test("sans ligne gardée correspondante, rien n'est annoncé comme remplace
     origin: {},
   });
   assertEquals(out, [{ memoryItemId: "m-new", text: "Does not like broccoli" }]);
+});
+
+// ---------------------------------------------------------------------------
+// CE QUE L'ÉLÈVE ÉCRIT — la porte d'entrée, et son rang
+// ---------------------------------------------------------------------------
+//
+// Avant le 2026-08-13, une phrase ne pouvait entrer dans `food_preferences` que
+// par le memorizer. À l'inscription il n'a rien vu, donc la section « ce qu'ils
+// m'ont dit » était VIDE pour exactement la personne qui compose son premier
+// plan — celle qu'on veut convaincre.
+
+Deno.test("une ligne écrite se DÉCLARE écrite, et ne prétend à aucun souvenir", () => {
+  const c = applyFoodPreferenceDecision({}, {
+    kind: "write",
+    text: "Je ne mange jamais le matin",
+  });
+  assertEquals(c[FOOD_PREFERENCES_KEY], ["Je ne mange jamais le matin"]);
+  assertEquals(c[FOOD_PREFERENCES_ORIGIN_KEY], {
+    "je ne mange jamais le matin": { item: "", at: null, source: "written" },
+  });
+});
+
+Deno.test("l'id vide d'une ligne écrite n'atteint JAMAIS la requête de réconciliation", () => {
+  // Il part dans un `in('id', ids)` sur des UUID. Une chaîne vide y fait
+  // refuser la requête entière par Postgres — et la réconciliation cesse de
+  // tourner pour TOUT LE MONDE, en silence. C'est la panne déjà mesurée avec
+  // `"[object Object]"`, par une autre porte.
+  let c = applyFoodPreferenceDecision({}, { kind: "write", text: "Pas de poisson" });
+  c = applyFoodPreferenceDecision(c, {
+    kind: "keep",
+    text: "Dislikes broccoli",
+    memoryItemId: "m-1",
+  });
+  assertEquals(originIdsOf(c), ["m-1"]);
+});
+
+Deno.test("le memorizer ne peut pas retirer ce que l'élève a TAPÉ", () => {
+  // La ceinture est le `!sourceId` de `reconcileFoodPreferences`: une ligne
+  // écrite n'a pas de souvenir, donc aucun souvenir ne peut la démentir.
+  const c = applyFoodPreferenceDecision({}, {
+    kind: "write",
+    text: "Je ne mange jamais le matin",
+  });
+  const result = reconcileFoodPreferences({
+    constraints: c,
+    items: [item({ id: "m-1", status: "invalidated" })],
+  });
+  assertEquals(result.changed, false);
+  assertEquals(result.constraints[FOOD_PREFERENCES_KEY], [
+    "Je ne mange jamais le matin",
+  ]);
+});
+
+Deno.test("ce que l'élève a ÉCRIT passe devant ce que l'IA a récolté", () => {
+  let c: Record<string, unknown> = {};
+  c = applyFoodPreferenceDecision(c, {
+    kind: "keep",
+    text: "Dislikes broccoli",
+    memoryItemId: "m-1",
+    seenAt: "2026-08-12",
+  });
+  c = applyFoodPreferenceDecision(c, {
+    kind: "write",
+    text: "Je ne mange jamais le matin",
+  });
+  const split = foodPreferencesByOrigin(c);
+  assertEquals(split.written, ["Je ne mange jamais le matin"]);
+  assertEquals(split.remembered, ["2026-08-12 — Dislikes broccoli"]);
+  // La liste à plat suit le même rang: l'écrit d'abord, et SANS préfixe de
+  // date — son rang ne vient plus de sa fraîcheur.
+  assertEquals(foodPreferencesForPrompt(c), [
+    "Je ne mange jamais le matin",
+    "2026-08-12 — Dislikes broccoli",
+  ]);
+});
+
+Deno.test("LE PLAFOND sacrifie la plus ancienne RÉCOLTE, jamais une consigne écrite", () => {
+  // C'EST LE TEST QUI PORTE LE LOT. Avant le renversement, les lignes sans
+  // date passaient en dernier et le plafond coupe par la QUEUE: une consigne
+  // tapée par l'élève était la PREMIÈRE sacrifiée, au profit de phrases
+  // glanées dans une conversation.
+  let c: Record<string, unknown> = {};
+  for (let i = 0; i < 25; i++) {
+    c = applyFoodPreferenceDecision(c, {
+      kind: "keep",
+      text: `Remembered ${i}`,
+      memoryItemId: `m-${i}`,
+      // La plus ancienne est `i = 0`; elle doit être la première à tomber.
+      seenAt: `2026-07-${String(i + 1).padStart(2, "0")}`,
+    });
+  }
+  c = applyFoodPreferenceDecision(c, {
+    kind: "write",
+    text: "Je ne mange jamais le matin",
+  });
+
+  const lines = foodPreferencesForPrompt(c);
+  assertEquals(lines.length, 20);
+  assertEquals(lines[0], "Je ne mange jamais le matin");
+  assert(!lines.some((l) => l.includes("Remembered 0")));
+
+  // La contre-épreuve: la consigne survit même quand les récoltes sont plus
+  // nombreuses que le plafond à elles seules.
+  const split = foodPreferencesByOrigin(c);
+  assertEquals(split.written, ["Je ne mange jamais le matin"]);
+  assertEquals(split.remembered.length, 19);
+});
+
+Deno.test("une ligne SANS entrée d'origine n'est PAS promue au rang de consigne", () => {
+  // L'absence d'origine est ambiguë: elle dit « tapée à la main » autant que
+  // « lien au souvenir perdu ». La direction sûre est de laisser la ligne où
+  // elle était — sinon un lien cassé promeut silencieusement une phrase au
+  // rang d'instruction.
+  const split = foodPreferencesByOrigin({
+    [FOOD_PREFERENCES_KEY]: ["Une ligne orpheline"],
+  });
+  assertEquals(split.written, []);
+  assertEquals(split.remembered, ["Une ligne orpheline"]);
 });

@@ -356,12 +356,34 @@ export const FOOD_PREFERENCES_DISMISSED_KEY = "food_preferences_dismissed";
  */
 export const FOOD_PREFERENCES_ORIGIN_KEY = "food_preferences_origin";
 
-/** Ce qu'une entrée d'origine porte: d'où vient la ligne, et de QUAND. */
+/**
+ * Ce qu'une entrée d'origine porte: d'où vient la ligne, et de QUAND.
+ *
+ * ── POURQUOI `source` EST EXPLICITE ET NE SE DÉDUIT PAS D'UN VIDE ─────────
+ * L'absence d'entrée d'origine est DÉJÀ ambiguë: elle dit « tapée à la main »
+ * AUTANT que « lien au souvenir perdu » (le cas que la ligne 3 du bloc
+ * ci-dessus décrit). S'en servir comme signature du texte écrit rendrait les
+ * deux indiscernables pour toujours, et on ne saurait plus dire à l'élève
+ * « ça, c'est toi qui l'as écrit » plutôt que « ça, je l'ai déduit de ce que
+ * tu m'as dit mardi ».
+ *
+ * Une ligne écrite porte donc une entrée COMPLÈTE, avec `item: ""` — et c'est
+ * ce vide-là qui la protège: `reconcileFoodPreferences` garde toute ligne sans
+ * `sourceId`, donc le memorizer ne peut pas retirer ce que l'élève a tapé.
+ */
 export interface FoodPreferenceOrigin {
-  /** L'id du `memory_items` source. */
+  /** L'id du `memory_items` source. **Vide pour une ligne écrite à la main.** */
   item: string;
   /** `YYYY-MM-DD` du jour où l'élève l'a dit, ou `null`. */
   at: string | null;
+  /**
+   * QUI a produit cette ligne. `memory` = le memorizer l'a proposée et l'élève
+   * l'a gardée; `written` = l'élève l'a tapée.
+   *
+   * Une entrée ancienne (avant cette clé) se lit `memory`: elle ne pouvait
+   * venir que de là, puisque rien d'autre n'écrivait d'origine.
+   */
+  source: "written" | "memory";
 }
 
 /**
@@ -383,12 +405,28 @@ function originMapOf(
     if (!k) continue;
     if (typeof value === "string") {
       const item = value.trim();
-      if (item) out[k] = { item, at: null };
+      // La forme ancienne ne portait QUE l'id d'un souvenir: rien d'autre
+      // n'écrivait cette clé. Elle est donc `memory` par construction.
+      if (item) out[k] = { item, at: null, source: "memory" };
       continue;
     }
     if (value && typeof value === "object") {
-      const item = String((value as Record<string, unknown>).item ?? "").trim();
-      if (item) out[k] = { item, at: dayOf((value as Record<string, unknown>).at) };
+      const row = value as Record<string, unknown>;
+      const item = String(row.item ?? "").trim();
+      const written = String(row.source ?? "").trim().toLowerCase() === "written";
+      // ⚠️ `item` VIDE N'EST PLUS UN REJET, à la seule condition que la ligne
+      // se déclare écrite. Sans ce `||`, une ligne tapée à la main perdrait son
+      // entrée à la lecture et redeviendrait indiscernable d'une ligne dont le
+      // lien s'est perdu — c'est-à-dire le défaut que `source` existe pour
+      // fermer. Une entrée sans item ET sans `source: written` reste jetée:
+      // elle ne désigne rien.
+      if (item || written) {
+        out[k] = {
+          item,
+          at: dayOf(row.at),
+          source: written ? "written" : "memory",
+        };
+      }
     }
   }
   return out;
@@ -442,7 +480,19 @@ export function originOf(
 export function originIdsOf(
   constraints: Record<string, unknown> | null | undefined,
 ): string[] {
-  return [...new Set(Object.values(originMapOf(constraints)).map((o) => o.item))];
+  // ⚠️ LE `filter` N'EST PAS DE LA COQUETTERIE. Depuis que les lignes écrites
+  // portent une entrée d'origine à `item: ""`, cette liste contiendrait une
+  // chaîne vide — et elle part dans un `in('id', ids)` sur des UUID. C'est
+  // exactement la panne que le paragraphe ci-dessus raconte, avec
+  // `"[object Object]"`: Postgres refuse la requête, et la réconciliation
+  // cesse silencieusement de tourner pour TOUT LE MONDE.
+  return [
+    ...new Set(
+      Object.values(originMapOf(constraints))
+        .map((o) => o.item)
+        .filter((id) => id !== ""),
+    ),
+  ];
 }
 
 /**
@@ -467,7 +517,21 @@ export function applyFoodPreferenceDecision(
     }
     | { kind: "dismiss"; memoryItemId: string }
     | { kind: "remove"; text: string }
-    | { kind: "edit"; from: string; to: string },
+    | { kind: "edit"; from: string; to: string }
+    /**
+     * CE QUE L'ÉLÈVE TAPE LUI-MÊME — la porte d'entrée qui manquait.
+     *
+     * Avant ce lot, une phrase ne pouvait entrer dans `food_preferences` que
+     * par le memorizer: la dire au chat, attendre le passage quotidien, la
+     * voir revenir en proposition, la garder. À l'inscription, le memorizer
+     * n'a rien vu — la section « ce qu'ils m'ont dit » était donc VIDE pour
+     * exactement la personne qui compose son premier plan.
+     *
+     * Aucun `memoryItemId`: il n'y a pas de souvenir derrière. L'entrée
+     * d'origine est écrite quand même, à `item: ""`, pour que la ligne se
+     * DÉCLARE écrite (voir `FoodPreferenceOrigin`).
+     */
+    | { kind: "write"; text: string },
 ): Record<string, unknown> {
   const base = { ...(constraints ?? {}) } as Record<string, unknown>;
   const kept = Array.isArray(base[FOOD_PREFERENCES_KEY])
@@ -497,11 +561,30 @@ export function applyFoodPreferenceDecision(
       kept.push(text);
     }
     if (text && id) {
-      origin[text.toLowerCase()] = { item: id, at: dayOf(decision.seenAt) };
+      origin[text.toLowerCase()] = {
+        item: id,
+        at: dayOf(decision.seenAt),
+        source: "memory",
+      };
     }
     // Gardé ET marqué comme traité: sans ça la proposition reviendrait à
     // chaque ouverture de l'écran, puisqu'elle n'est pas persistée.
     if (id && !dismissed.includes(id)) dismissed.push(id);
+  }
+
+  if (decision.kind === "write") {
+    const text = String(decision.text ?? "").trim();
+    // Le doublon est SILENCIEUX, pas une erreur: quelqu'un qui retape une
+    // phrase qu'il a déjà ne fait rien de mal, et un refus l'obligerait à
+    // relire sa propre liste pour comprendre. On garde la première.
+    if (text && !kept.some((k) => k.toLowerCase() === text.toLowerCase())) {
+      kept.push(text);
+      // `at: null` — AUCUNE HORLOGE ICI. Ce module est pur, et la date d'une
+      // ligne écrite ne sert à rien: son rang vient de `source`, plus de sa
+      // fraîcheur. Inventer un `new Date()` casserait la pureté pour une
+      // donnée que personne ne lit.
+      origin[text.toLowerCase()] = { item: "", at: null, source: "written" };
+    }
   }
 
   if (decision.kind === "dismiss") {
@@ -845,8 +928,19 @@ export function constraintsForPrompt(
  * donnée que l'élève a explicitement gardée. On lui donne le contexte de le
  * faire au lieu de le faire à sa place.
  *
- * Les lignes SANS date (tapées à la main, écrites avant cette clé) passent en
- * dernier et sans préfixe: on n'invente pas une date pour les ranger.
+ * ── CE QUE L'ÉLÈVE A ÉCRIT PASSE DEVANT, ET C'EST UN RENVERSEMENT ─────────
+ * Jusqu'au 2026-08-13, les lignes sans date passaient EN DERNIER — et le
+ * commentaire les nommait « tapées à la main ». Or le plafond coupe par la
+ * QUEUE. Une consigne écrite par l'élève était donc la PREMIÈRE sacrifiée, au
+ * profit de phrases que le memorizer avait glanées dans une conversation.
+ *
+ * L'ordre s'inverse: ce que quelqu'un prend la peine d'écrire sur son
+ * alimentation vaut plus qu'une remarque au passage qu'on lui a fait
+ * confirmer. Le plafond sacrifie désormais la plus ancienne RÉCOLTE, jamais
+ * une consigne.
+ *
+ * Les lignes écrites passent sans préfixe de date: on n'invente pas une date
+ * pour les ranger, et leur rang ne vient plus de là.
  *
  * ── LE PLAFOND, ET POURQUOI IL EST ICI ────────────────────────────────────
  * `generate-meal-v1` en portait un (20) que `generate-week-plan-v1` n'avait
@@ -858,31 +952,69 @@ export function constraintsForPrompt(
  */
 const MAX_PROMPT_PREFERENCES = 20;
 
-export function foodPreferencesForPrompt(
+export interface FoodPreferencesByOrigin {
+  /** Ce que l'élève a TAPÉ. Des consignes. Sans préfixe de date. */
+  written: string[];
+  /** Ce que le memorizer a proposé et que l'élève a gardé. Daté, récent d'abord. */
+  remembered: string[];
+}
+
+/**
+ * LA PRIMITIVE, et la SEULE lecture de cette structure.
+ *
+ * `foodPreferencesForPrompt` en est un enrobage. Deux lectures d'une même
+ * structure finissent toujours par diverger — c'est écrit dans ce fichier, au
+ * -dessus d'`originIdsOf`, et ça y a déjà coûté une réconciliation morte.
+ *
+ * ⚠️ LE PLAFOND S'APPLIQUE À LA LISTE COMBINÉE, PAS À CHAQUE SEAU. Un plafond
+ * par seau ferait passer le total de 20 à 40 lignes le jour où quelqu'un écrit
+ * beaucoup, et `MAX_PROMPT_PREFERENCES` existe précisément pour que cette
+ * liste ne pousse pas la doctrine du coach hors du contexte.
+ */
+export function foodPreferencesByOrigin(
   constraints: Record<string, unknown> | null | undefined,
-): string[] {
+): FoodPreferencesByOrigin {
   const base = (constraints ?? {}) as Record<string, unknown>;
   const kept = Array.isArray(base[FOOD_PREFERENCES_KEY])
     ? (base[FOOD_PREFERENCES_KEY] as unknown[]).map((v) => String(v ?? "").trim())
       .filter(Boolean)
     : [];
-  if (kept.length === 0) return [];
+  if (kept.length === 0) return { written: [], remembered: [] };
   const origin = originMapOf(base);
 
-  const rows = kept.map((text, index) => ({
-    text,
-    index,
-    at: origin[text.toLowerCase()]?.at ?? null,
-  }));
+  const rows = kept.map((text, index) => {
+    const o = origin[text.toLowerCase()] ?? null;
+    return {
+      text,
+      index,
+      at: o?.at ?? null,
+      // Sans entrée d'origine, on ne SAIT pas: on ne promeut pas au rang de
+      // consigne une ligne dont on ignore la provenance. `memory` est la
+      // direction sûre — elle laisse la ligne où elle était avant ce lot.
+      written: o?.source === "written",
+    };
+  });
   rows.sort((a, b) => {
+    if (a.written !== b.written) return a.written ? -1 : 1;
     if (a.at && b.at) return a.at === b.at ? a.index - b.index : (a.at < b.at ? 1 : -1);
     if (a.at) return -1;
     if (b.at) return 1;
     return a.index - b.index;
   });
-  return rows
-    .slice(0, MAX_PROMPT_PREFERENCES)
-    .map((r) => (r.at ? `${r.at} — ${r.text}` : r.text));
+  const capped = rows.slice(0, MAX_PROMPT_PREFERENCES);
+  return {
+    written: capped.filter((r) => r.written).map((r) => r.text),
+    remembered: capped
+      .filter((r) => !r.written)
+      .map((r) => (r.at ? `${r.at} — ${r.text}` : r.text)),
+  };
+}
+
+export function foodPreferencesForPrompt(
+  constraints: Record<string, unknown> | null | undefined,
+): string[] {
+  const { written, remembered } = foodPreferencesByOrigin(constraints);
+  return [...written, ...remembered];
 }
 
 // ---------------------------------------------------------------------------
