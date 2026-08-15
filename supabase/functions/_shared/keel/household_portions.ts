@@ -469,6 +469,110 @@ export const COOKING_SHAPES = [
 ] as const;
 export type CookingShape = (typeof COOKING_SHAPES)[number];
 
+// ---------------------------------------------------------------------------
+// LE MODE DE CUISSON DÉCLARÉ À LA COMPOSITION — UN PLAFOND, JAMAIS UN ORDRE
+//
+// ── LE DÉFAUT QUE CE BLOC FERME ────────────────────────────────────────────
+// L'échelle ci-dessus est CALCULÉE (`mergeLadder`, et depuis le 2026-08-14 la
+// divergence en composition ordinaire), elle change la CONSIGNE du modèle, et
+// personne ne la choisit ni ne la voit. Le même foyer bascule d'un barreau à
+// l'autre d'une semaine à l'autre sans un mot.
+//
+// ── ET POURQUOI C'EST UN PLAFOND ───────────────────────────────────────────
+// Le calcul reste le calcul: il sait, LUI, qu'une casserole déjà dimensionnée
+// ne peut pas donner plus qu'elle ne contient. Un choix qui REMPLACERAIT le
+// calcul ferait promettre un plat dédié là où rien ne diverge (une cuisson de
+// plus pour rien) ou, dans l'autre sens, servirait une assiette qui ment.
+//
+// Le choix BORNE donc, dans un seul sens: il peut refuser un second plat, il ne
+// peut pas en fabriquer un. « Chacun le sien » n'ouvre qu'une possibilité —
+// c'est la divergence qui la lève, comme avant ce lot.
+//
+// ⛔ ET QUAND LE PLAFOND MORD, LE PLAN LE DIT. La phrase va dans
+// `plan_rationale.ts`, qui existe exactement pour ça. Un choix silencieusement
+// ignoré est pire que pas de choix: il apprend que les réglages ne servent à
+// rien.
+//
+// ⚠️ AUCUNE MÉMOIRE. Ce module ne lit ni n'écrit: le choix voyage avec LA
+// DEMANDE, comme le budget depuis le 2026-08-13, et pour le motif écrit dans
+// `CookingCapacityCard` — « un réglage de profil s'écrit une fois et s'applique
+// en silence à toutes les semaines suivantes, y compris celle où on reçoit du
+// monde ».
+// ---------------------------------------------------------------------------
+
+/**
+ * L'ORDRE DE L'ÉCHELLE, EN RANGS. C'est `COOKING_SHAPES` lu, jamais une seconde
+ * liste: un quatrième barreau ajouté là-haut et oublié ici rendrait `undefined`,
+ * et une comparaison contre `undefined` est `false` — c'est-à-dire un plafond
+ * désarmé en silence, le motif que ce dépôt paie en boucle. D'où le calcul par
+ * `indexOf` plutôt qu'une table écrite à la main.
+ */
+export function cookingShapeRank(shape: CookingShape): number {
+  return COOKING_SHAPES.indexOf(shape);
+}
+
+/**
+ * LE JETON DEMANDÉ, LU D'UNE ENTRÉE BRUTE. `null` = rien n'a été demandé.
+ *
+ * ⚠️ UNE VALEUR HORS LISTE REND `null`, JAMAIS UN DÉFAUT. « Je n'ai pas su lire
+ * ce que tu as demandé » et « tu n'as rien demandé » produisent le même
+ * comportement — le calcul gouverne seul — et c'est la direction sûre: retomber
+ * sur `one_dish` clouerait au barreau ① un foyer qui a demandé l'inverse, et
+ * retomber sur `separate_sessions` ouvrirait un plafond que personne n'a levé.
+ */
+export function readCookingShape(raw: unknown): CookingShape | null {
+  const token = typeof raw === "string" ? raw.trim() : "";
+  return (COOKING_SHAPES as readonly string[]).includes(token)
+    ? token as CookingShape
+    : null;
+}
+
+export interface CookingShapeCap {
+  /** LA FORME SERVIE — celle qui part dans la consigne, et la seule. */
+  shape: CookingShape;
+  /**
+   * LE PLAFOND A-T-IL MORDU ? `true` = le calcul voulait aller plus loin sur
+   * l'échelle et le choix l'a retenu. C'est la prémisse de la phrase du plan.
+   */
+  capped: boolean;
+  /**
+   * LE CHOIX A-T-IL OUVERT PLUS QUE LE CALCUL N'EN DEMANDE ? `true` = quelqu'un
+   * a demandé « chacun le sien » et personne ne sort de la casserole commune.
+   *
+   * ⚠️ C'EST UN FAIT DISTINCT DE `capped`, PAS SON INVERSE: les deux sont faux
+   * quand la demande et le calcul tombent d'accord, et ils ne peuvent pas être
+   * vrais ensemble. Les confondre en un booléen ferait dire « on n'a pas pu
+   * tenir ton choix » à quelqu'un dont le choix a été tenu à la lettre.
+   */
+  unused: boolean;
+}
+
+/**
+ * CE QU'ON SERT, DU CALCUL ET DU CHOIX.
+ *
+ * `asked === null` ⇒ le calcul gouverne seul, et la sortie est byte-identique à
+ * celle d'avant ce lot. C'est le chemin de TOUTE requête qui ne porte pas le
+ * champ — y compris toutes celles écrites avant lui.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function capCookingShape(
+  computed: CookingShape,
+  asked: CookingShape | null,
+): CookingShapeCap {
+  if (asked === null) return { shape: computed, capped: false, unused: false };
+  const wanted = cookingShapeRank(asked);
+  const found = cookingShapeRank(computed);
+  if (wanted < found) {
+    // LE PLAFOND MORD: on sert le choix, et le plan dit ce qu'il coûte.
+    return { shape: asked, capped: true, unused: false };
+  }
+  // LE CALCUL RESTE LE CALCUL. Demander « chacun le sien » ne fabrique pas une
+  // divergence: on sert ce qui a été trouvé, et on note que le choix n'a rien
+  // eu à retenir — sinon il aurait été ignoré en silence.
+  return { shape: computed, capped: false, unused: wanted > found };
+}
+
 /**
  * LA LIGNE QUI DIT COMBIEN DE PLATS. C'est le CONTRAT de composition, et c'est
  * la raison du bump de `MEAL_PROMPT_VERSION` en v9: jusqu'au 2026-08-12 le

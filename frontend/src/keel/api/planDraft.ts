@@ -32,6 +32,9 @@
  */
 
 import { supabase } from "../../lib/supabase";
+// LOT B — le TYPE seul. La règle du plafond vit côté serveur, et aucune garde
+// n'est recopiée ici: c'est la règle de ce fichier.
+import { type CookingShape } from "./cookingShape";
 import { readEdgeRefusal } from "./edgeErrors";
 import {
   type GeneratedMealResult,
@@ -308,6 +311,18 @@ export interface ComposeDraftInput {
    * entrées ferait composer un plan pour une vie que la personne n'a pas.
    */
   note: string | null;
+  /**
+   * ── LOT B · LE MODE DE CUISSON DEMANDÉ ──────────────────────────────────
+   * `null` = rien n'est demandé, et le calcul du moteur gouverne seul.
+   *
+   * ⚠️ REQUIS ET NULLABLE, jamais optionnel. Ce dépôt a déjà payé sept fois
+   * « paramètre de garde optionnel = garde désarmée »: un `?` ici aurait fait
+   * passer les trois sites de montage sans un mot du compilateur, et le champ
+   * de l'écran serait parti nulle part.
+   *
+   * ⚠️ IGNORÉ SUR LA LANE INDIVIDUELLE, qui n'a jamais eu la question.
+   */
+  cookingShape: CookingShape | null;
   /** Les entrées de la lane individuelle. Ignorées sur la lane foyer. */
   mode: MealMode;
   slot: MealSlot | null;
@@ -431,6 +446,17 @@ async function callGenerator(
       intent,
       replaces: replacing,
       context: input.context,
+      // ── LOT B · LE MODE DE CUISSON DEMANDÉ ───────────────────────────
+      // ⛔ IL PART SUR LES TROIS GESTES, ET C'EST LA MOITIÉ QUI COMPTE.
+      // L'aperçu, la reprise et l'adoption passent tous par ici: sans lui
+      // sur l'adoption, le plan ÉCRIT ne serait pas celui qu'on vient de
+      // montrer — le défaut exact que la fenêtre d'aperçu existe pour
+      // empêcher, et qui est déjà écrit noir sur blanc pour `draft_note`.
+      //
+      // ⚠️ LA LANE INDIVIDUELLE NE LE REÇOIT PAS, et c'est le contrat: une
+      // bouche n'a jamais eu la question « un plat ou deux ». L'envoyer
+      // quand même laisserait croire ici qu'il compte.
+      cooking_shape: input.cookingShape,
     }
     : {
       mode: input.mode,

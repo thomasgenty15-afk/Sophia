@@ -43,6 +43,9 @@ import {
   submitEnvy,
 } from "../api/household";
 import { chooseGenerator } from "../api/planRouting";
+// LOT B — le mode de cuisson demandé à la composition.
+import { type CookingShape } from "../api/cookingShape";
+import CookingShapeField from "./CookingShapeField";
 import { edgeRefusalKey } from "../copy/planRefusals";
 import { t } from "../i18n/t";
 import { formatDate } from "../i18n/format";
@@ -393,6 +396,25 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
    */
   const [cookDays, setCookDays] = React.useState<string[]>([]);
   const [cookingTime, setCookingTime] = React.useState("");
+  /**
+   * LOT B — COMMENT ON CUISINE CETTE SEMAINE. `null` = « laisse décider », et
+   * c'est le DÉFAUT.
+   *
+   * ⚠️ IL NE SE PRÉ-REMPLIT PAS, contrairement au budget et aux jours de
+   * cuisine juste au-dessus. Ce n'est pas un oubli: les trois autres sont des
+   * FAITS de la vie de quelqu'un (« je cuisine le dimanche », « j'ai 90 min »),
+   * dont la dernière réponse est un défaut raisonnable. Celui-ci est un
+   * ARBITRAGE de la semaine — « cette fois, un seul plat » — et le rejouer en
+   * silence est très exactement le réglage de profil que ce lot a refusé
+   * d'écrire.
+   *
+   * ⚠️ ET IL NE S'ENREGISTRE NULLE PART. Il part avec la demande
+   * (`cooking_shape`), le serveur l'archive dans `generated_from` sans lecteur,
+   * et la semaine d'après repose la question.
+   */
+  const [cookingShape, setCookingShape] = React.useState<CookingShape | null>(
+    null,
+  );
   const [pantryText, setPantryText] = React.useState("");
   /** L'envie du moment, reproposée d'une génération à l'autre. */
   const [preferences, setPreferences] = React.useState("");
@@ -717,6 +739,11 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
           intent,
           replaces: intent === "replace_current" ? target?.mealId ?? null : null,
           context: context.trim() || null,
+          // LOT B — LE MODE DEMANDÉ, TEL QUEL. `null` traverse: le serveur le
+          // lit comme « rien n'a été demandé », et son calcul gouverne seul.
+          // Aucune garde n'est jouée ici — le plafond vit côté serveur, à un
+          // seul endroit (`capCookingShape`).
+          cookingShape,
         });
         // Un 200 qui dit `ok: false` n'est pas une panne de transport, et il ne
         // doit pas non plus atterrir comme un succès: il rejoint la même table
@@ -1139,6 +1166,26 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                   onChange={(e) => setBudget(e.target.value)}
                 />
               </Field>
+
+              {/* ── LOT B · COMMENT ON CUISINE CETTE SEMAINE ──────────────
+                  À CÔTÉ DES TROIS AUTRES, et pour la même raison qu'elles y
+                  sont: c'est une propriété de la SEMAINE qu'on commande, pas
+                  de la personne. Un réglage de profil s'écrit une fois et
+                  s'applique en silence à toutes les semaines suivantes, y
+                  compris celle où on reçoit du monde.
+
+                  ⛔ SEULEMENT QUAND LE MAÎTRE COMPOSE POUR LE FOYER. « Un seul
+                  plat pour tout le monde » n'a pas de sujet à une bouche, et
+                  la lane individuelle n'accepte pas le champ: le poser quand
+                  même ferait une question dont la réponse ne va nulle part. */}
+              {composingForHousehold && (
+                <CookingShapeField
+                  id="meals-cooking-shape"
+                  value={cookingShape}
+                  onChange={setCookingShape}
+                  disabled={building}
+                />
+              )}
 
               {/* LE GARDE-MANGER N'EXISTE QUE DANS LE MODE QUI LE LIT.
                   « I will shop for it » dit au moteur, mot pour mot, « they have

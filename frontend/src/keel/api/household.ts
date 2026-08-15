@@ -19,6 +19,9 @@ import { supabase } from "../../lib/supabase";
 // ici divergerait de celle de l'entonnoir le jour où un régime entre, et
 // l'écran du foyer offrirait une case que le moteur n'honore pas.
 import { DIET_ANSWERS } from "./onboarding";
+// LOT B — le mode de cuisson demandé à la composition. Le TYPE seul: la règle
+// du plafond vit côté serveur, et ce module ne la connaît pas.
+import { type CookingShape } from "./cookingShape";
 import { readEdgeRefusal } from "./edgeErrors";
 import { selectMealPlans } from "./mealWindow";
 import {
@@ -1267,6 +1270,21 @@ export async function generateHouseholdMeal(args: {
   intent?: "replace_current" | "prepare_next" | "draft";
   replaces?: string | null;
   context?: string | null;
+  /**
+   * ── LOT B · LE MODE DE CUISSON DEMANDÉ ─────────────────────────────────
+   * `null` = rien n'est demandé, et le calcul du moteur gouverne seul —
+   * exactement comme avant ce lot, pour tout appelant qui ne passe pas ce
+   * champ.
+   *
+   * ⚠️ C'EST UN PLAFOND, PAS UN ORDRE. Le serveur (`capCookingShape`) peut
+   * refuser un second plat sur ce jeton; il n'en fabrique jamais un. Et quand
+   * le plafond mord, le plan le DIT (`rationale`).
+   *
+   * ⚠️ IL NE S'ÉCRIT NULLE PART. Il voyage avec LA DEMANDE, comme le budget
+   * depuis le 2026-08-13: une colonne s'appliquerait en silence à toutes les
+   * semaines suivantes, y compris celle où on reçoit du monde.
+   */
+  cookingShape?: CookingShape | null;
 }): Promise<HouseholdMealResult> {
   const { data, error } = await supabase.functions.invoke("generate-household-meal-v1", {
     body: {
@@ -1283,6 +1301,10 @@ export async function generateHouseholdMeal(args: {
       intent: args.intent ?? "replace_current",
       replaces: args.replaces ?? null,
       context: args.context ?? null,
+      // `snake_case`, comme tout le reste de ce corps: c'est le contrat de la
+      // fonction edge, et le client ne le réécrit pas. `null` traverse tel
+      // quel — le serveur lit `null` comme « rien n'a été demandé ».
+      cooking_shape: args.cookingShape ?? null,
     },
   });
   if (error) throw new Error(await namedEdgeRefusal(error) ?? error.message);

@@ -168,6 +168,35 @@ export interface PlanRationaleFacts {
    * façon — la phrase ne sort qu'au-dessus d'une bouche.
    */
   sharedDishRegime: { regime: string; heldBy: readonly string[] } | null;
+  /**
+   * LE MODE DE CUISSON DEMANDÉ À LA COMPOSITION, ET CE QU'IL A DONNÉ.
+   * `null` = rien n'a été demandé, et la phrase ne sort pas.
+   *
+   * ⚠️ REQUIS ET NULLABLE, jamais optionnel — la posture de tout ce module. Un
+   * `?` ferait passer les deux lanes sans rien changer, et le lot serait
+   * construit sans être branché: exactement ce que ce dépôt appelle « une
+   * ceinture armée sur un coffre vide ».
+   *
+   * ⚠️ `capped` ET `unused` VIENNENT DE `capCookingShape`, jamais d'une seconde
+   * comparaison écrite ici. Le plafond est décidé à UN endroit; le relire ici
+   * ferait deux lectures d'une même règle, et le jour où l'échelle gagne un
+   * barreau, celle-ci ferait dire au plan l'inverse de ce qu'il a fait.
+   *
+   * ⚠️ `outsideSharedPot` PORTE DES PRÉNOMS, JAMAIS D'IDENTIFIANTS — comme
+   * `handTakenBy`, `mergedIn` et `sharedDishRegime.heldBy`: la phrase se lit à
+   * voix haute à table. `[]` = personne, et c'est ce qui fait taire la phrase du
+   * plafond même quand `capped` est vrai — on ne dit pas « la part de » sans
+   * pouvoir dire de qui.
+   *
+   * ⚠️ LA LANE INDIVIDUELLE PASSE `null`, ET C'EST DÉFINITIF. Une personne
+   * seule n'a jamais eu la question « un plat ou deux ». La prémisse ci-dessous
+   * l'exige de toute façon: la phrase ne sort qu'au-dessus d'une bouche.
+   */
+  cookingShapeChoice: {
+    capped: boolean;
+    unused: boolean;
+    outsideSharedPot: readonly string[];
+  } | null;
 }
 
 export interface PlanRationale {
@@ -270,6 +299,29 @@ const COPY = {
       `Le plat commun est ${regime} : c'est ce que ${names} mange.`,
     sharedRegimeMany: (regime: string, names: string) =>
       `Le plat commun est ${regime} : c'est ce que ${names} mangent.`,
+    // ── LE MODE DE CUISSON DEMANDÉ, ET CE QU'IL A COÛTÉ ──────────────────
+    //
+    // ⚠️ UN FAIT, JAMAIS UN REPROCHE, ET JAMAIS UNE SUGGESTION. « Tu aurais dû
+    // choisir autre chose » se lit comme une correction; ces deux-ci disent ce
+    // qui a été demandé et ce que ça a donné, et s'arrêtent là. La porte 3, plus
+    // bas, coupe TOUT si un gabarit se met à culpabiliser, et ceux-ci ne
+    // doivent jamais la faire mordre.
+    //
+    // ⚠️ ET AUCUN NE DIT POURQUOI QUELQU'UN NE SORT PAS DE LA CASSEROLE. « La
+    // part de X ne sort pas du plat commun » est un fait de cuisine; nommer sa
+    // raison dirait son objectif à toute la table, et ce module n'a jamais le
+    // droit de nommer un objectif.
+    shapeCappedOne: (names: string) =>
+      `Tu as demandé un seul plat pour tout le monde, et c'est ce qui a été ` +
+      `composé. La part de ${names} ne sort pas du plat commun : elle est ` +
+      `servie au plus près, sans plat à part.`,
+    shapeCappedMany: (names: string) =>
+      `Tu as demandé un seul plat pour tout le monde, et c'est ce qui a été ` +
+      `composé. Les parts de ${names} ne sortent pas du plat commun : elles ` +
+      `sont servies au plus près, sans plat à part.`,
+    shapeUnused:
+      "Tu as ouvert la possibilité de plats séparés. Personne à cette table " +
+      "n'en a besoin cette semaine : il n'y a qu'une cuisson.",
     regimes: {
       vegetarian: "végétarien",
       vegan: "végane",
@@ -344,6 +396,20 @@ const COPY = {
       `The shared dish is ${regime}: that is what ${names} eats.`,
     sharedRegimeMany: (regime: string, names: string) =>
       `The shared dish is ${regime}: that is what ${names} eat.`,
+    // Même posture qu'en français: un fait, jamais un reproche, jamais une
+    // suggestion — et jamais la raison pour laquelle quelqu'un ne sort pas de
+    // la casserole commune.
+    shapeCappedOne: (names: string) =>
+      `You asked for one dish for everyone, and that is what was cooked. ` +
+      `${names}'s share does not come out of the shared dish: it is served as ` +
+      `close as it can be, with no dish apart.`,
+    shapeCappedMany: (names: string) =>
+      `You asked for one dish for everyone, and that is what was cooked. The ` +
+      `shares of ${names} do not come out of the shared dish: they are served ` +
+      `as close as they can be, with no dish apart.`,
+    shapeUnused:
+      "You left room for separate dishes. Nobody at this table needs one this " +
+      "week: there is a single cook.",
     regimes: {
       vegetarian: "vegetarian",
       vegan: "vegan",
@@ -418,6 +484,7 @@ const REQUIRED_FACTS: readonly (keyof PlanRationaleFacts)[] = [
   "mergedIn",
   "weeklyCookingMinutes",
   "sharedDishRegime",
+  "cookingShapeChoice",
 ];
 
 /**
@@ -593,6 +660,43 @@ export function explainPlanChoices(input: {
             ? copy.sharedRegime(label, rendered)
             : copy.sharedRegimeMany(label, rendered),
         );
+      }
+    }
+
+    // ── ⑤ter · LE MODE DE CUISSON DEMANDÉ, ET CE QU'IL A DONNÉ ────────────
+    //
+    // ⛔ LA RAISON D'ÊTRE DE CE BLOC: un choix silencieusement ignoré est PIRE
+    // que pas de choix. Il apprend que les réglages du produit ne servent à
+    // rien, et c'est un apprentissage qu'on ne défait pas.
+    //
+    // TROIS PRÉMISSES, ET LES TROIS SONT ARMÉES:
+    //   1. PLUS D'UNE BOUCHE — la condition du bloc englobant. « Un seul plat
+    //      pour tout le monde » n'a pas de sujet quand on mange seul.
+    //   2. UN MODE A ÉTÉ DEMANDÉ — `null` fait taire les deux phrases. Une
+    //      requête qui ne porte pas le champ (toutes celles écrites avant ce
+    //      lot) rend un `rationale` byte-identique à celui d'avant.
+    //   3. LE CHOIX ET LE CALCUL SE SONT SÉPARÉS — quand ils tombent d'accord,
+    //      il n'y a RIEN à expliquer, et une phrase qui dit « ton choix a été
+    //      respecté » à chaque plan apprend à ne plus lire les autres.
+    //
+    // ⚠️ ET LES DEUX CAS NE SONT PAS SYMÉTRIQUES. Le plafond qui MORD retire
+    // quelque chose à quelqu'un: il se nomme, et il nomme qui. Le choix qui n'a
+    // rien eu à retenir ne retire rien: il dit seulement que la possibilité
+    // ouverte n'a pas servi, sans nommer personne — il n'y a personne à nommer.
+    const shape = facts.cookingShapeChoice;
+    if (shape !== null) {
+      const outside = shape.outsideSharedPot
+        .map((n) => String(n ?? "").trim())
+        .filter(Boolean);
+      if (shape.capped && outside.length > 0) {
+        const rendered = joinList(outside, input.locale);
+        lines.push(
+          outside.length === 1
+            ? copy.shapeCappedOne(rendered)
+            : copy.shapeCappedMany(rendered),
+        );
+      } else if (shape.unused) {
+        lines.push(copy.shapeUnused);
       }
     }
   }

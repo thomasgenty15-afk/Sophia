@@ -1,12 +1,19 @@
 import { assert, assertEquals, assertStringIncludes } from "jsr:@std/assert@1";
 
 import {
+  // LOT B — le mode de cuisson demandé: un plafond, jamais un ordre.
+  asksForASecondDish,
   buildPortionBrief,
+  capCookingShape,
+  COOKING_SHAPES,
+  cookingShapeRank,
+  dedicatedDishesFor,
   distinctServingDirections,
   MEMBER_GOALS,
   type MemberGoal,
   memberPortionsPayload,
   type PortionMember,
+  readCookingShape,
   reconcilePortions,
   sanitizePortionNote,
 } from "./household_portions.ts";
@@ -861,4 +868,123 @@ Deno.test("la lecture est idempotente", () => {
     distinctServingDirections(members),
     distinctServingDirections(members),
   );
+});
+
+// ---------------------------------------------------------------------------
+// LOT B — LE MODE DE CUISSON DEMANDÉ: UN PLAFOND, JAMAIS UN ORDRE
+//
+// ⛔ CE QUE CES TESTS PROTÈGENT, ET POURQUOI C'EST LE CŒUR DU LOT. L'échelle
+// (`mergeLadder`, la divergence en composition) reste le CALCUL: elle sait, elle,
+// qu'une casserole déjà dimensionnée ne peut pas donner plus qu'elle ne contient.
+// Un choix qui la REMPLACERAIT ferait promettre un plat dédié là où rien ne
+// diverge, ou servirait une assiette qui ment.
+//
+// Le choix borne donc dans UN SEUL SENS. Le jour où quelqu'un « simplifie » ce
+// module en rendant `asked` quand il est non nul, ces tests tombent — et c'est
+// leur seule raison d'exister.
+// ---------------------------------------------------------------------------
+
+Deno.test("LOT B — rien de demandé ⇒ le calcul gouverne seul, à l'identique", () => {
+  // LE CHEMIN DE TOUTE REQUÊTE ÉCRITE AVANT CE LOT. Sa sortie doit être
+  // byte-identique, et aucun des deux drapeaux ne doit s'allumer.
+  for (const computed of COOKING_SHAPES) {
+    assertEquals(capCookingShape(computed, null), {
+      shape: computed,
+      capped: false,
+      unused: false,
+    });
+  }
+});
+
+Deno.test("LOT B — le choix RETIENT le calcul, il ne le remplace pas", () => {
+  // « Un seul plat » sur une table qui diverge: on sert le choix, et on note
+  // qu'il a mordu — c'est la prémisse de la phrase du plan.
+  assertEquals(capCookingShape("one_session", "one_dish"), {
+    shape: "one_dish",
+    capped: true,
+    unused: false,
+  });
+  assertEquals(capCookingShape("separate_sessions", "one_dish"), {
+    shape: "one_dish",
+    capped: true,
+    unused: false,
+  });
+  // Et il retient d'un barreau aussi, pas seulement jusqu'en bas.
+  assertEquals(capCookingShape("separate_sessions", "one_session"), {
+    shape: "one_session",
+    capped: true,
+    unused: false,
+  });
+});
+
+Deno.test("LOT B — ⛔ le choix ne FABRIQUE jamais un second plat", () => {
+  // LE CAS QUI FAIT TOUT LE TEST. « Chacun le sien » sur une table où personne
+  // ne diverge: le calcul dit `one_dish`, et c'est `one_dish` qui est servi. Un
+  // module qui rendrait `asked` ici ferait cuire une seconde casserole pour
+  // rien — et le plan promettrait un plat que personne n'a demandé.
+  assertEquals(capCookingShape("one_dish", "separate_sessions"), {
+    shape: "one_dish",
+    capped: false,
+    unused: true,
+  });
+  assertEquals(capCookingShape("one_dish", "one_session"), {
+    shape: "one_dish",
+    capped: false,
+    unused: true,
+  });
+  assertEquals(capCookingShape("one_session", "separate_sessions"), {
+    shape: "one_session",
+    capped: false,
+    unused: true,
+  });
+});
+
+Deno.test("LOT B — choix et calcul d'accord ⇒ les DEUX drapeaux sont faux", () => {
+  // ⚠️ `capped` ET `unused` NE SONT PAS L'INVERSE L'UN DE L'AUTRE, et c'est ce
+  // que ce test épingle. Les confondre en un seul booléen ferait dire « on n'a
+  // pas pu tenir ton choix » à quelqu'un dont le choix a été tenu à la lettre.
+  for (const shape of COOKING_SHAPES) {
+    assertEquals(capCookingShape(shape, shape), {
+      shape,
+      capped: false,
+      unused: false,
+    });
+  }
+});
+
+Deno.test("LOT B — un jeton hors liste ne devient JAMAIS un défaut", () => {
+  // « Je n'ai pas su lire » et « rien n'a été demandé » produisent le même
+  // comportement — le calcul gouverne seul — et c'est la direction sûre.
+  // Retomber sur `one_dish` clouerait au barreau ① un foyer qui a demandé
+  // l'inverse; retomber sur `separate_sessions` lèverait un plafond que
+  // personne n'a levé.
+  for (const brut of ["", "  ", "ONE_DISH", "one dish", "chacun le sien", null, 3, {}]) {
+    assertEquals(readCookingShape(brut), null, JSON.stringify(brut));
+  }
+  for (const shape of COOKING_SHAPES) {
+    assertEquals(readCookingShape(shape), shape);
+    // Les blancs autour sont tolérés: c'est une saisie de transport, pas une
+    // saisie humaine, mais un `trim()` coûte moins qu'un refus incompréhensible.
+    assertEquals(readCookingShape(` ${shape} `), shape);
+  }
+});
+
+Deno.test("LOT B — les rangs viennent de l'échelle, jamais d'une seconde liste", () => {
+  // ⛔ UN QUATRIÈME BARREAU AJOUTÉ À `COOKING_SHAPES` ET OUBLIÉ DANS UNE TABLE
+  // ÉCRITE À LA MAIN RENDRAIT `undefined`, et toute comparaison contre
+  // `undefined` est `false`: un plafond désarmé en silence.
+  assertEquals(
+    COOKING_SHAPES.map(cookingShapeRank),
+    COOKING_SHAPES.map((_, i) => i),
+  );
+});
+
+Deno.test("LOT B — un plafond à `one_dish` referme le budget du même geste", () => {
+  // LA MOITIÉ QUI SE PERD LE PLUS VITE. Le plafond doit fermer le BUDGET en même
+  // temps que la consigne: `dishCapFor` dit ce qu'un modèle fait d'un budget
+  // ouvert — il « déborde poliment » pour le remplir, et le parseur jette les
+  // DERNIERS plats (mesuré: le dîner du dimanche du foyer).
+  const capped = capCookingShape("one_session", "one_dish");
+  assertEquals(asksForASecondDish(capped.shape), false);
+  assertEquals(dedicatedDishesFor(capped.shape, 9), 0);
 });

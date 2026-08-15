@@ -1244,11 +1244,21 @@ Deno.test("C6 — LE NOMBRE DE PLATS DÉDIÉS EST CALCULÉ UNE FOIS, LU DEUX FOI
   // foyer, pas ceux de la personne reprise. C'est le défaut de L4, remis en
   // grand par C6. Un prompt n'a pas de compilateur; ce test est le compilateur.
   const src = await generatorSource();
+  // ⚠️ RÉVISÉ PAR LE LOT B (2026-08-15), ET LA GARANTIE N'A PAS BOUGÉ D'UN
+  // POUCE. L'expression épinglée lisait `ladder.shape` — le barreau BRUT.
+  // Depuis que le mode de cuisson se DEMANDE, la forme réellement servie est
+  // `cookingShape` (le barreau, plafonné par le choix), et c'est elle que la
+  // consigne porte. Calculer le budget sur le barreau brut ouvrirait de la
+  // place pour des plats qu'un plafond vient d'interdire: `dishCapFor` dit ce
+  // qu'un modèle fait d'un budget ouvert — il « déborde poliment » pour le
+  // remplir. Ce qui est tenu ici reste le fait décisif: le nombre se déduit des
+  // REPAS de la personne reprise, et il est calculé UNE fois.
   assert(
-    /const mergeDedicatedDishes = ladder === null\s*\?\s*0\s*:\s*dedicatedDishesFor\(\s*ladder\.shape,\s*mergedEaterCells\.length,?\s*\)/
+    /const mergeDedicatedDishes = ladder === null\s*\?\s*0\s*:\s*dedicatedDishesFor\(\s*cookingShape,\s*mergedEaterCells\.length,?\s*\)/
       .test(src),
     "le nombre de plats dédiés ne se déduit plus des REPAS de la personne " +
-      "reprise (`mergedEaterCells`, le dénominateur du constat de forme).",
+      "reprise (`mergedEaterCells`, le dénominateur du constat de forme), " +
+      "ou il est calculé sur le barreau BRUT au lieu de la forme SERVIE.",
   );
   // ── LES DEUX LECTEURS, ET C'EST LA MÊME VARIABLE ────────────────────────
   assert(
@@ -3289,5 +3299,92 @@ Deno.test("C7 ⑤ — LE REPAS QUI TOMBE SUR UNE CIBLE CHIFFRÉE EST NOMMÉ", ()
   assert(
     meal.issues.some((i) => i.includes("dish rejected (thu/breakfast)")),
     meal.issues.join("\n"),
+  );
+});
+
+// ---------------------------------------------------------------------------
+// LOT B — LE CHOIX PLAFONNE LE CALCUL, ET IL ATTEINT LES TROIS BOUTS
+//
+// ⛔ LE MODULE PUR NE PROUVE QUE LA MOITIÉ, ENCORE. `capCookingShape` peut être
+// parfait et n'être appelé nulle part; ou être appelé et ne pas atteindre le
+// BUDGET, le BLOC DE RÉGIME et le BLOC DE FUSION. Chacun de ces trois bouts
+// promet un plat: un seul qui lit encore le barreau BRUT, et le prompt porte
+// deux ordres contradictoires — « ne propose pas de plats séparés » ET « X
+// reçoit son propre plat ». Un prompt n'a pas de compilateur; ce test est le
+// compilateur.
+// ---------------------------------------------------------------------------
+
+Deno.test("LOT B — le mode demandé est LU, et le plafond est appliqué à UN endroit", async () => {
+  const src = await generatorSource();
+  assert(
+    /const askedCookingShape = readCookingShape\(body\.cooking_shape\)/.test(src),
+    "le mode de cuisson n'est plus lu de la demande.",
+  );
+  assert(
+    /const shapeCap = capCookingShape\(computedShape, askedCookingShape\)/.test(src),
+    "le plafond n'est plus appliqué, ou il l'est ailleurs qu'à un seul endroit.",
+  );
+  assert(
+    /const cookingShape: CookingShape = shapeCap\.shape/.test(src),
+    "la forme servie ne vient plus du plafond.",
+  );
+  // ⛔ ET LE CALCUL N'A PAS ÉTÉ REMPLACÉ. `mergeLadder` et la divergence en
+  // composition font leur travail à l'identique: le plafond s'applique APRÈS,
+  // sur leur résultat. Un `askedCookingShape` lu à l'intérieur du calcul serait
+  // le lot construit à l'envers.
+  assert(
+    /const computedShape: CookingShape = ladder\?\.shape \?\? compositionShape/.test(src),
+    "le calcul ne rend plus la forme trouvée: le choix a remplacé le calcul.",
+  );
+});
+
+Deno.test("LOT B — les TROIS bouts qui promettent un plat lisent la forme SERVIE", async () => {
+  const src = await generatorSource();
+  // ① LE BUDGET DE PLATS — celui dont L4 a mesuré le prix (le dîner du dimanche
+  //    du foyer, jeté par le parseur).
+  assert(
+    /shape: cookingShape,\s*ownDishesShown: mergeMaterial\.length/.test(src),
+    "le budget de FUSION lit encore le barreau brut.",
+  );
+  // ② LE BLOC DE RÉGIME — celui qui écrit « their OWN dish is not bound by the
+  //    sentence above ». Le servir sous un plafond `one_dish` promettrait un
+  //    plat que la ligne de forme interdit, dans le même prompt.
+  assert(
+    /divergingNames: dishBearingMembers\.map/.test(src),
+    "le bloc de régime nomme encore les divergents du CALCUL, pas ceux à qui la " +
+      "consigne promet vraiment un plat.",
+  );
+  // ③ LE BLOC DE FUSION — `buildMergeBlock` écrit la consigne de reprise à
+  //    partir de la forme qu'on lui donne.
+  const mergeBlockAt = src.indexOf("displayName: mergedMember.displayName");
+  assert(mergeBlockAt >= 0, "le bloc de fusion est introuvable — test à réviser");
+  assert(
+    /displayName: mergedMember\.displayName,[\s\S]{0,400}?shape: cookingShape,/.test(src),
+    "le bloc de fusion lit encore le barreau brut.",
+  );
+});
+
+Deno.test("LOT B — ⛔ le choix est ARCHIVÉ et n'a AUCUN lecteur", async () => {
+  const src = await generatorSource();
+  // L'ARCHIVE: les trois formes côte à côte. `served` seul se lirait comme la
+  // décision du moteur alors que c'est parfois celle de la personne.
+  assert(
+    /cooking:\s*\{\s*asked: askedCookingShape,\s*computed: computedShape,\s*served: cookingShape,/
+      .test(src),
+    "`generated_from.household.cooking` ne porte plus les trois formes: " +
+      "« pourquoi n'ai-je eu qu'un seul plat ? » redevient sans réponse.",
+  );
+  // ⛔ ET PERSONNE NE LA RELIT. Le choix se refait à CHAQUE composition; le
+  // relire d'un plan précédent le transformerait en réglage de profil —
+  // exactement ce que ce lot a refusé d'écrire, et pour le motif du budget
+  // déplacé le 2026-08-13.
+  assert(
+    !/generated_from[\s\S]{0,200}?\.cooking\b|\bcooking\?\.(asked|served|computed)\b/.test(src),
+    "un lecteur du choix archivé est apparu: la semaine prochaine appliquerait " +
+      "le choix de celle-ci, en silence.",
+  );
+  assert(
+    !/generated_from["']?\s*\)?\s*[\.\[]\s*["']?household["']?[\s\S]{0,80}cooking/.test(src),
+    "le choix archivé est relu depuis un plan précédent.",
   );
 });

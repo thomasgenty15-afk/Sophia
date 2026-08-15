@@ -200,6 +200,11 @@ import {
   type CookingShape,
   timeAllowsASecondDish,
   weeklyCookingMinutes,
+  // LOT B — LE MODE DE CUISSON DEMANDÉ. Un plafond, jamais un ordre: le calcul
+  // reste le calcul, et le choix ne peut que le retenir.
+  asksForASecondDish,
+  capCookingShape,
+  readCookingShape,
 } from "../_shared/keel/household_portions.ts";
 // G4 — CE QUE CHAQUE BOUCHE MANGE QUAND ELLE NE MANGE PAS LE PLAT DE LA MAISON.
 // La garde de texte n'est PAS ici: `gateMemberHabits` délègue à
@@ -955,6 +960,29 @@ Deno.serve(async (req) => {
     }
     /** Un aperçu: tout se calcule, rien ne s'écrit. */
     const isDraft = operation === "compose" && intent === "draft";
+
+    // ══════════════════════════════════════════════════════════════════════
+    // LE MODE DE CUISSON DEMANDÉ — UNE ENTRÉE DE LA DEMANDE, JAMAIS UN RÉGLAGE
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⚠️ IL VOYAGE AVEC LA DEMANDE, ET C'EST UN ARBITRAGE — le même que le
+    // budget, déplacé du profil vers la composition le 2026-08-13. Le motif est
+    // écrit dans `CookingCapacityCard`: « un réglage de profil s'écrit une fois
+    // et s'applique en silence à toutes les semaines suivantes, y compris celle
+    // où on reçoit du monde ». Une colonne ici aurait fait cuisiner trois plats
+    // le mardi ordinaire d'un foyer qui avait répondu pour un dimanche.
+    //
+    // ⚠️ ABSENT ⇒ `null`, ET LE CALCUL GOUVERNE SEUL. Toutes les requêtes
+    // écrites avant ce lot passent par là, et leur sortie est byte-identique.
+    // Un jeton inconnu rend `null` lui aussi (`readCookingShape`): « je n'ai
+    // pas su lire » et « rien n'a été demandé » produisent le même
+    // comportement, et c'est la direction sûre.
+    //
+    // ⛔ ET IL N'EST JAMAIS RELU D'UN PLAN PRÉCÉDENT. `generated_from` l'ARCHIVE
+    // (plus bas) pour qu'on puisse relire une composition; il n'a aucun lecteur,
+    // et c'est ce qui garantit qu'une semaine ne réapplique pas le choix de la
+    // précédente.
+    const askedCookingShape = readCookingShape(body.cooking_shape);
     //
     // ── LA REPRISE D'UN APERÇU EST CÂBLÉE, ET PAS ICI ────────────────────
     // Même seam que sur la lane individuelle: `body.draft_note` part au modèle
@@ -2436,40 +2464,13 @@ Deno.serve(async (req) => {
         d.day === null || windowDayTokens.has(d.day)
       ),
     );
-    // ── C6 · COMBIEN DE PLATS DÉDIÉS, CALCULÉ UNE FOIS ────────────────────
-    //
-    // MESURÉ LE 2026-08-12: barreau ② sur un conflit à DEUX axes
-    // (`protein:larger_above_table` + `starch:larger_above_table`), NEUF repas
-    // pour la personne reprise, UN seul plat dédié rendu. Elle a mangé la
-    // casserole commune 8 fois sur 9. « ADD ONE dish » se lit « un pour la
-    // fenêtre », et c'est une lecture raisonnable de ce qu'on avait écrit.
-    //
-    // LE NOMBRE VIENT DE SES REPAS À ELLE (`mergedEaterCells`, la même liste
-    // que le DÉNOMINATEUR du constat de forme, C3 ⑥), et il sert à DEUX
-    // choses qui doivent voir le même nombre: la CONSIGNE (`buildMergeBlock`)
-    // et le BUDGET DE PLATS (`dishBudgetFor`). Le calculer deux fois rouvrirait
-    // la porte que L4 a fermée — une consigne qui réclame neuf plats dans un
-    // plafond ouvert pour six, et le parseur qui jette les DERNIERS.
-    const mergeDedicatedDishes = ladder === null
-      ? 0
-      : dedicatedDishesFor(ladder.shape, mergedEaterCells.length);
-
-    // CE QUE LE TRONC A BESOIN DE SAVOIR DE LA FUSION, et rien de plus: un
-    // barreau et deux nombres. Le tronc n'a pas à connaître un foyer.
-    const mergeBudget: MergedEater | null = ladder === null ? null : {
-      shape: ladder.shape,
-      ownDishesShown: mergeMaterial.length,
-      // C6 — LE PLAFOND SUIT CE QUE LA CONSIGNE RÉCLAME, et pas seulement ce
-      // qu'elle montre: une fusion dont la fenêtre recomposée déborde le plan
-      // personnel (L10 ①) montre MOINS de plats qu'elle n'a de repas.
-      dedicatedDishesAsked: mergeDedicatedDishes,
-      // C7 ② — ET OÙ CES PLATS SONT ATTENDUS. Le nombre dit COMBIEN de place
-      // ouvrir; cette liste dit QUELLES cases un plat de plus a le droit
-      // d'occuper — c'est ce qui permet au plafond de sacrifier le surplus
-      // plutôt que le dimanche. LA MÊME liste que le dénominateur du constat
-      // (`mergedEaterCells`), jamais une seconde résolution.
-      dedicatedCells: mergedEaterCells,
-    };
+    // ⚠️ LE BUDGET DE LA FUSION EST CALCULÉ PLUS BAS, APRÈS LE PLAFOND (LOT B).
+    // Il vivait ici tant que le barreau de fusion était la forme finale; depuis
+    // que le mode de cuisson se DEMANDE, la forme servie n'est connue qu'après
+    // `capCookingShape`. Un budget calculé sur le barreau BRUT ouvrirait de la
+    // place pour des plats que la consigne, plafonnée, interdit — et
+    // `dishCapFor` le dit noir sur blanc: un modèle « déborde poliment » pour
+    // remplir un budget qu'on lui ouvre.
 
     // ═══════════════════════════════════════════════════════════════════════
     // G5 — LE TEMPS PLAFONNE, LA DIVERGENCE DÉCLENCHE (arbitrage B1, 2026-08-14)
@@ -2558,15 +2559,84 @@ Deno.serve(async (req) => {
     const compositionShape: CookingShape = divergingMembers.length > 0
       ? "one_session"
       : "one_dish";
-    // LA FORME SERVIE AU BRIEF — la fusion garde la main quand elle est là.
-    // Une requête porte UNE opération: `merge` et une composition ordinaire ne
-    // sont jamais toutes deux vraies, et ce `??` le dit sans arbitrer.
-    const cookingShape: CookingShape = ladder?.shape ?? compositionShape;
+    // LA FORME QUE LE CALCUL A TROUVÉE — la fusion garde la main quand elle est
+    // là. Une requête porte UNE opération: `merge` et une composition ordinaire
+    // ne sont jamais toutes deux vraies, et ce `??` le dit sans arbitrer.
+    const computedShape: CookingShape = ladder?.shape ?? compositionShape;
+    // ══════════════════════════════════════════════════════════════════════
+    // LOT B — LE CHOIX PLAFONNE, IL NE COMMANDE PAS.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // `capCookingShape` est le SEUL endroit qui compare le choix au calcul, et
+    // il rend TROIS faits: la forme servie, si le plafond a mordu, et si le
+    // choix n'a rien eu à retenir. Les deux derniers ne sont pas l'inverse l'un
+    // de l'autre, et ils vont dans `plan_rationale` — un choix silencieusement
+    // ignoré est pire que pas de choix.
+    //
+    // ⚠️ RIEN N'EST RECALCULÉ ICI. `mergeLadder` et la divergence en composition
+    // ont fait leur travail juste au-dessus, à l'identique: le plafond
+    // s'applique APRÈS, sur leur résultat. Le jour où le calcul change, il n'y a
+    // qu'un endroit à relire.
+    const shapeCap = capCookingShape(computedShape, askedCookingShape);
+    const cookingShape: CookingShape = shapeCap.shape;
+    // ⛔ LES BOUCHES QUI REÇOIVENT VRAIMENT UN PLAT — et c'est ce que le plafond
+    // change. `divergingMembers` reste le CALCUL (il nomme au constat qui ne
+    // sort pas de la casserole commune); cette liste-ci est ce que la CONSIGNE
+    // promet. Les confondre après un plafond ferait dire au modèle « X reçoit
+    // son propre plat » sur la même page que « ne propose pas de plats
+    // séparés » — deux ordres contradictoires dans un seul prompt, et c'est
+    // toujours celui qu'on ne relit pas qui gagne.
+    const dishBearingMembers = asksForASecondDish(cookingShape)
+      ? divergingMembers
+      : [];
     // Une FUSION reprend UNE personne, jamais deux: `1` rend la ligne de forme
     // byte-identique à celle d'avant ce lot. Voir `cookingShapeLines`.
     const divergingCount = ladder === null
-      ? divergingMembers.length
-      : (ladder.shape === "one_dish" ? 0 : 1);
+      ? dishBearingMembers.length
+      : (cookingShape === "one_dish" ? 0 : 1);
+
+    // ── C6 · COMBIEN DE PLATS DÉDIÉS, CALCULÉ UNE FOIS ────────────────────
+    //
+    // MESURÉ LE 2026-08-12: barreau ② sur un conflit à DEUX axes
+    // (`protein:larger_above_table` + `starch:larger_above_table`), NEUF repas
+    // pour la personne reprise, UN seul plat dédié rendu. Elle a mangé la
+    // casserole commune 8 fois sur 9. « ADD ONE dish » se lit « un pour la
+    // fenêtre », et c'est une lecture raisonnable de ce qu'on avait écrit.
+    //
+    // LE NOMBRE VIENT DE SES REPAS À ELLE (`mergedEaterCells`, la même liste
+    // que le DÉNOMINATEUR du constat de forme, C3 ⑥), et il sert à DEUX
+    // choses qui doivent voir le même nombre: la CONSIGNE (`buildMergeBlock`)
+    // et le BUDGET DE PLATS (`dishBudgetFor`). Le calculer deux fois rouvrirait
+    // la porte que L4 a fermée — une consigne qui réclame neuf plats dans un
+    // plafond ouvert pour six, et le parseur qui jette les DERNIERS.
+    //
+    // ⚠️ LOT B — C'EST `cookingShape` ET PLUS `ladder.shape`: la forme SERVIE,
+    // celle que la consigne porte réellement. Le barreau brut ouvrirait un
+    // budget pour des plats qu'un plafond vient d'interdire, et `dishCapFor`
+    // dit ce qu'un modèle fait d'un budget ouvert — il « déborde poliment »
+    // pour le remplir. `dedicatedDishesFor` rend 0 à `one_dish`, donc un
+    // plafond qui mord referme le budget du même geste.
+    const mergeDedicatedDishes = ladder === null
+      ? 0
+      : dedicatedDishesFor(cookingShape, mergedEaterCells.length);
+
+    // CE QUE LE TRONC A BESOIN DE SAVOIR DE LA FUSION, et rien de plus: un
+    // barreau et deux nombres. Le tronc n'a pas à connaître un foyer.
+    const mergeBudget: MergedEater | null = ladder === null ? null : {
+      shape: cookingShape,
+      ownDishesShown: mergeMaterial.length,
+      // C6 — LE PLAFOND SUIT CE QUE LA CONSIGNE RÉCLAME, et pas seulement ce
+      // qu'elle montre: une fusion dont la fenêtre recomposée déborde le plan
+      // personnel (L10 ①) montre MOINS de plats qu'elle n'a de repas.
+      dedicatedDishesAsked: mergeDedicatedDishes,
+      // C7 ② — ET OÙ CES PLATS SONT ATTENDUS. Le nombre dit COMBIEN de place
+      // ouvrir; cette liste dit QUELLES cases un plat de plus a le droit
+      // d'occuper — c'est ce qui permet au plafond de sacrifier le surplus
+      // plutôt que le dimanche. LA MÊME liste que le dénominateur du constat
+      // (`mergedEaterCells`), jamais une seconde résolution.
+      dedicatedCells: mergedEaterCells,
+    };
+
     // LES CASES OÙ LES DIVERGENTS MANGENT ICI, et le nombre de plats dédiés qui
     // en découle.
     //
@@ -2577,22 +2647,29 @@ Deno.serve(async (req) => {
     // DIMANCHE DU FOYER. Le type est `MergedEater` parce que c'est le canal que
     // le tronc lit; ici il ne porte AUCUNE fusion — `ownDishesShown: 0`, il n'y
     // a aucun plan personnel sous les yeux du modèle.
-    const compositionEaterCells = divergingMembers.flatMap((m) =>
+    //
+    // ⚠️ LOT B — SUR `dishBearingMembers`, pas sur le calcul brut. Un foyer qui
+    // demande « un seul plat » n'ouvre AUCUNE place de plus, et c'est ce qui
+    // rend son choix réel: sans ça, le plafond dirait « un plat » pendant que le
+    // budget en promettrait neuf.
+    const compositionEaterCells = dishBearingMembers.flatMap((m) =>
       memberMealCells({
         away: m.away.effective,
         rhythm: eatingRhythm.length > 0 ? eatingRhythm : DEFAULT_EATING_RHYTHM,
         windowDays: daysToFill,
       })
     );
-    const compositionBudget: MergedEater | null = divergingMembers.length === 0 ? null : {
-      shape: compositionShape,
-      ownDishesShown: 0,
-      dedicatedDishesAsked: dedicatedDishesFor(
-        compositionShape,
-        compositionEaterCells.length,
-      ),
-      dedicatedCells: compositionEaterCells,
-    };
+    const compositionBudget: MergedEater | null = dishBearingMembers.length === 0
+      ? null
+      : {
+        shape: cookingShape,
+        ownDishesShown: 0,
+        dedicatedDishesAsked: dedicatedDishesFor(
+          cookingShape,
+          compositionEaterCells.length,
+        ),
+        dedicatedCells: compositionEaterCells,
+      };
     // LE SEUL NOMBRE QUE LES DEUX BOUTS LISENT — la consigne et le parseur. Un
     // `??` et pas une fusion des deux: une requête porte une opération.
     const eaterBudget: MergedEater | null = mergeBudget ?? compositionBudget;
@@ -2603,7 +2680,16 @@ Deno.serve(async (req) => {
       weekly_cooking_minutes: weeklyMinutes,
       time_allows_second_dish: timeAllowsASecondDish(weeklyMinutes),
       shape: cookingShape,
+      // LOT B — LES TROIS FAITS CÔTE À CÔTE. `shape` seul se lirait comme la
+      // décision du moteur alors que c'est parfois celle de la personne, et
+      // « pourquoi n'ai-je eu qu'un plat ? » n'aurait pas de réponse trois
+      // jours plus tard.
+      asked_shape: askedCookingShape,
+      computed_shape: computedShape,
+      shape_capped: shapeCap.capped,
+      shape_unused: shapeCap.unused,
       diverging: divergingMembers.map((m) => m.memberId),
+      dish_bearing: dishBearingMembers.map((m) => m.memberId),
       from_merge: ladder !== null,
       // R4 — CE QUE LA CASSEROLE COMMUNE SUIT. `null` = personne n'a rien
       // déclaré, et le prompt est alors byte-identique à celui d'avant ce lot.
@@ -2974,7 +3060,12 @@ Deno.serve(async (req) => {
         // ligne de forme promet un plat de plus à N personnes, ce bloc dit
         // lesquelles. Deux listes divergentes feraient promettre un plat à
         // quelqu'un que le bloc ne nomme pas.
-        divergingNames: divergingMembers.map((m) => m.displayName),
+        //
+        // ⚠️ LOT B — `dishBearingMembers`, PAS `divergingMembers`. Ce bloc écrit
+        // « their OWN dish is not bound by the sentence above »: le servir sous
+        // un plafond `one_dish` promettrait au modèle un plat que la ligne de
+        // forme lui interdit, dans le même prompt.
+        divergingNames: dishBearingMembers.map((m) => m.displayName),
       }),
       envyLine,
       restrictions,
@@ -2984,7 +3075,11 @@ Deno.serve(async (req) => {
         : {
           displayName: mergedMember.displayName,
           window: { startsOn, durationDays },
-          shape: ladder.shape,
+          // ⚠️ LOT B — LA FORME SERVIE, pas le barreau brut. `buildMergeBlock`
+          // écrit la consigne de reprise à partir d'elle; lui passer le barreau
+          // que le plafond vient de retenir ferait deux ordres contradictoires
+          // dans un seul prompt.
+          shape: cookingShape,
           // LA MÊME LISTE QUE CELLE QUI A OUVERT LE BUDGET, et c'est le point:
           // elle est calculée une seule fois, plus haut (`mergeMaterial`).
           dishes: mergeMaterial,
@@ -3567,6 +3662,30 @@ Deno.serve(async (req) => {
           sharedDishRegime: strictestRegime === null
             ? null
             : { regime: strictestRegime, heldBy: strictestHeldBy },
+          // ── LOT B · LE MODE DEMANDÉ, ET CE QU'IL A DONNÉ ─────────────────
+          //
+          // ⚠️ LES DEUX BOOLÉENS VIENNENT DE `capCookingShape`, JAMAIS D'UNE
+          // SECONDE COMPARAISON ÉCRITE ICI. Le plafond est décidé à un seul
+          // endroit; deux lectures d'une même règle feraient dire au plan
+          // l'inverse de ce qu'il a fait — c'est la forme de défaut que ce
+          // dépôt paie en boucle.
+          //
+          // ⚠️ `null` QUAND RIEN N'A ÉTÉ DEMANDÉ, et la phrase se tait alors:
+          // on n'explique pas une décision que personne n'a prise. Toutes les
+          // requêtes écrites avant ce lot passent par là.
+          //
+          // DES PRÉNOMS, jamais des identifiants: la phrase se lit à voix haute
+          // à table. Et ce sont ceux du CALCUL (`divergingMembers`), pas ceux de
+          // la consigne — c'est très exactement ce que le plafond a retenu, donc
+          // ce qu'il faut nommer. Une bouche dont le nom n'a pas pu être résolu
+          // est ÉCARTÉE plutôt que rendue en uuid.
+          cookingShapeChoice: askedCookingShape === null ? null : {
+            capped: shapeCap.capped,
+            unused: shapeCap.unused,
+            outsideSharedPot: divergingMembers
+              .map((m) => String(m.displayName ?? "").trim())
+              .filter(Boolean),
+          },
         },
       });
       rationaleLines = explained.lines;
@@ -3792,6 +3911,41 @@ Deno.serve(async (req) => {
                 // MOI j'ai dit ? ». Il porte les bouches dont TOUT est tombé —
                 // `heard` ne les porte pas.
                 per_member: household.voiceCounts.perMember,
+              },
+              // ══════════════════════════════════════════════════════════
+              // LOT B — LE MODE DE CUISSON: DEMANDÉ, CALCULÉ, SERVI.
+              // ══════════════════════════════════════════════════════════
+              //
+              // LES TROIS, ET PAS UN. `served` seul se lirait comme la décision
+              // du moteur alors que c'est parfois celle de la personne, et
+              // « pourquoi n'ai-je eu qu'un seul plat ? » n'aurait pas de
+              // réponse trois jours plus tard. C'est le même arbitrage que
+              // `merge.honoured.requested`/`observed` deux blocs plus bas: sans
+              // le couple, une archive se lit comme un fait alors que c'est une
+              // demande.
+              //
+              // ÉCRIT MÊME QUAND RIEN N'A ÉTÉ DEMANDÉ (`asked: null`), exprès:
+              // une clé absente ne se distingue pas d'un lot débranché, et ce
+              // dépôt paie en boucle la garde construite puis silencieusement
+              // débranchée.
+              //
+              // ⛔ ET IL N'A AUCUN LECTEUR, C'EST LE POINT. Le choix se refait à
+              // CHAQUE composition; le relire d'un plan précédent le
+              // transformerait en réglage de profil, c'est-à-dire très
+              // exactement ce que ce lot a refusé d'écrire — « un réglage de
+              // profil s'écrit une fois et s'applique en silence à toutes les
+              // semaines suivantes, y compris celle où on reçoit du monde ».
+              cooking: {
+                asked: askedCookingShape,
+                computed: computedShape,
+                served: cookingShape,
+                capped: shapeCap.capped,
+                unused: shapeCap.unused,
+                // LE CALCUL, puis CE QUE LA CONSIGNE A VRAIMENT PROMIS. Les
+                // deux listes diffèrent exactement quand le plafond a mordu, et
+                // c'est la seule façon de relire ce qu'un plan a retiré.
+                diverging: divergingMembers.map((m) => m.memberId),
+                dish_bearing: dishBearingMembers.map((m) => m.memberId),
               },
               // ── D14 · QUI A ÉTÉ COMPTÉ ABSENT, ET PAR QUI ──────────────
               // Sans ce bloc, une absence marquée par erreur est SILENCIEUSE:

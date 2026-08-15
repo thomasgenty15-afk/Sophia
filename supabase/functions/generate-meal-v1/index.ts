@@ -1993,6 +1993,11 @@ Deno.serve(async (req) => {
           // ici (`declaredRegime`, plus haut), et l'expliquer reviendrait à lui
           // relire sa propre réponse.
           sharedDishRegime: null,
+          // LE MODE DE CUISSON — `null` DÉFINITIF SUR CETTE LANE. Le choix
+          // « un seul plat / une cuisson / chacun le sien » n'a de sujet qu'à
+          // plusieurs bouches: cette lane en a UNE, et elle n'accepte pas le
+          // champ. La phrase ne sort de toute façon qu'au-dessus d'une bouche.
+          cookingShapeChoice: null,
         },
       });
       rationaleLines = explained.lines;

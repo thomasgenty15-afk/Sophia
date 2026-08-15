@@ -1581,6 +1581,18 @@ export default function StudentWeekPlanPage() {
       // « jusqu'à dimanche » rendrait une fenêtre qui chevauche.
       window: { kind: "exact", startsOn, durationDays: 7 },
       note,
+      // ── LOT B · LE MODE DE CUISSON — `null` ICI, ET C'EST UNE DÉCISION ──
+      // Cette carte-ci est un APERÇU SANS FORMULAIRE: un seul bouton, aucune
+      // entrée. Le champ des trois modes vit sur l'écran qui COMPOSE
+      // (`MealBuilder`, juste au-dessus sur cette même page, et l'entonnoir), à
+      // côté du budget et des jours de cuisine — c'est là que la question a un
+      // sens, et c'est là qu'elle est posée.
+      //
+      // `null` dit « je ne demande rien », donc le calcul du moteur gouverne
+      // seul: la sortie de cette carte est byte-identique à celle d'avant ce
+      // lot. Y glisser un défaut en dur reproduirait très exactement le
+      // `mine={null}` qui a rendu muet un lot entier.
+      cookingShape: null,
       // Les entrées de la lane individuelle. Le budget, les jours de cuisine et
       // le temps disponible ne sont PAS ici: le générateur les relit dans
       // `practical_constraints`, et les passer dans le corps ferait deux

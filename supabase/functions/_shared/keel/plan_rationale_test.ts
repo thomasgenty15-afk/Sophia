@@ -45,6 +45,10 @@ function nominalFacts(): PlanRationaleFacts {
     // d'un plan ORDINAIRE, et un plan ordinaire n'explique pas une décision qui
     // n'a pas été prise.
     sharedDishRegime: null,
+    // LOT B — `null` = aucun mode de cuisson n'a été demandé. C'est le chemin de
+    // TOUTE requête écrite avant ce lot, et de toute composition qui ne porte
+    // pas le champ: la sortie doit y rester byte-identique.
+    cookingShapeChoice: null,
   };
 }
 
@@ -310,12 +314,143 @@ Deno.test("AUCUN gabarit ne culpabilise — la porte 4 ne doit jamais mordre", (
     // mangent » est un gabarit distinct de son singulier, et une porte qui
     // n'aurait vu que l'un des deux ne l'aurait vérifié qu'à moitié.
     sharedDishRegime: { regime: "vegan", heldBy: ["Christèle", "Léa"] },
+    // LOT B — LE PLAFOND QUI MORD, AU PLURIEL. Ce gabarit-ci est celui qui dit
+    // à quelqu'un que sa part ne sort pas du plat commun: s'il existe un
+    // gabarit de ce module capable de culpabiliser, c'est celui-là. Il DOIT
+    // donc entrer dans le lot que la porte 4 relit, et dans ses DEUX formes —
+    // le singulier est un gabarit distinct, et une porte qui n'aurait vu que
+    // l'un des deux ne l'aurait vérifié qu'à moitié (le singulier est couvert
+    // par le test dédié plus bas).
+    cookingShapeChoice: {
+      capped: true,
+      unused: false,
+      outsideSharedPot: ["Zoé", "Tom"],
+    },
   };
   for (const locale of ["fr", "en"] as const) {
     const out = explainPlanChoices({ facts: tout, locale });
     assertEquals(out.refusal, null, `${locale}: ${JSON.stringify(out)}`);
-    assert(out.lines.length >= 8, `${locale}: ${out.lines.length} lignes`);
+    assert(out.lines.length >= 9, `${locale}: ${out.lines.length} lignes`);
   }
+});
+
+// ---------------------------------------------------------------------------
+// LOT B — LE MODE DE CUISSON DEMANDÉ, ET CE QU'IL A DONNÉ
+//
+// ⛔ LA RAISON D'ÊTRE DE CE BLOC: un choix silencieusement ignoré est PIRE que
+// pas de choix. Chacune des trois sorties possibles (rien à dire / le plafond a
+// mordu / le choix n'a rien eu à retenir) est épinglée ici, parce que c'est la
+// seule chose qui empêche le lot de se débrancher sans que rien n'échoue.
+// ---------------------------------------------------------------------------
+
+/** Un foyer de trois bouches, sinon la phrase n'a pas de sujet. */
+function tableFacts(): PlanRationaleFacts {
+  return { ...nominalFacts(), mouthsServed: 3 };
+}
+
+Deno.test("LOT B — aucun mode demandé ⇒ AUCUNE phrase de forme", () => {
+  // Le chemin de toute requête écrite avant ce lot. Sa sortie doit être
+  // byte-identique: une phrase qui apparaîtrait ici serait un lot qui parle
+  // pour des gens à qui on n'a rien demandé.
+  for (const locale of ["fr", "en"] as const) {
+    const out = explainPlanChoices({ facts: tableFacts(), locale });
+    const joined = out.lines.join(" ");
+    assert(!joined.includes("un seul plat"), joined);
+    assert(!joined.includes("one dish for everyone"), joined);
+    assert(!joined.includes("plats séparés"), joined);
+    assert(!joined.includes("separate dishes"), joined);
+  }
+});
+
+Deno.test("LOT B — le plafond a mordu: la phrase sort, et elle NOMME", () => {
+  const out = explainPlanChoices({
+    facts: {
+      ...tableFacts(),
+      cookingShapeChoice: {
+        capped: true,
+        unused: false,
+        outsideSharedPot: ["Zoé"],
+      },
+    },
+    locale: "fr",
+  });
+  assertEquals(out.refusal, null);
+  const joined = out.lines.join(" ");
+  assert(joined.includes("un seul plat pour tout le monde"), joined);
+  assert(joined.includes("Zoé"), joined);
+  // ⛔ ET ELLE NE DIT PAS POURQUOI. Nommer la raison dirait l'objectif de
+  // quelqu'un à toute la table, et ce module n'a jamais ce droit.
+  for (const interdit of ["objectif", "goal", "kcal", "calorie", "poids"]) {
+    assert(!joined.toLowerCase().includes(interdit), `${interdit} dans: ${joined}`);
+  }
+});
+
+Deno.test("LOT B — le choix n'a rien eu à retenir: on le dit, sans nommer personne", () => {
+  const out = explainPlanChoices({
+    facts: {
+      ...tableFacts(),
+      // Personne ne diverge: la liste est vide, et c'est cohérent — il n'y a
+      // personne à nommer.
+      cookingShapeChoice: { capped: false, unused: true, outsideSharedPot: [] },
+    },
+    locale: "fr",
+  });
+  const joined = out.lines.join(" ");
+  assert(joined.includes("plats séparés"), joined);
+  assert(joined.includes("qu'une cuisson"), joined);
+});
+
+Deno.test("LOT B — le choix a été tenu à la lettre ⇒ RIEN. Une prémisse, une phrase", () => {
+  // ⚠️ LE CAS LE PLUS FRÉQUENT, et celui qu'on oublie de tester. Une phrase
+  // « ton choix a été respecté » à chaque plan apprend à ne plus lire les
+  // autres.
+  const out = explainPlanChoices({
+    facts: {
+      ...tableFacts(),
+      cookingShapeChoice: { capped: false, unused: false, outsideSharedPot: [] },
+    },
+    locale: "fr",
+  });
+  const joined = out.lines.join(" ");
+  assert(!joined.includes("un seul plat"), joined);
+  assert(!joined.includes("plats séparés"), joined);
+});
+
+Deno.test("LOT B — une seule bouche ⇒ AUCUNE phrase de forme, même si on a demandé", () => {
+  // ⛔ LA PRÉMISSE ENGLOBANTE. « Un seul plat pour tout le monde » n'a pas de
+  // sujet quand on mange seul: c'est une évidence servie comme une contrainte.
+  const out = explainPlanChoices({
+    facts: {
+      ...nominalFacts(),
+      mouthsServed: 1,
+      cookingShapeChoice: {
+        capped: true,
+        unused: false,
+        outsideSharedPot: ["Zoé"],
+      },
+    },
+    locale: "fr",
+  });
+  const joined = out.lines.join(" ");
+  assert(!joined.includes("Zoé"), joined);
+});
+
+Deno.test("LOT B — plafond mordu mais AUCUN nom résolu ⇒ silence, jamais « la part de »", () => {
+  // La direction d'erreur de tout ce module: moins précis, jamais faux. Une
+  // phrase « La part de  ne sort pas du plat commun » est pire qu'un silence.
+  const out = explainPlanChoices({
+    facts: {
+      ...tableFacts(),
+      cookingShapeChoice: {
+        capped: true,
+        unused: false,
+        outsideSharedPot: ["", "   "],
+      },
+    },
+    locale: "fr",
+  });
+  const joined = out.lines.join(" ");
+  assert(!joined.includes("La part de"), joined);
 });
 
 // ---------------------------------------------------------------------------
