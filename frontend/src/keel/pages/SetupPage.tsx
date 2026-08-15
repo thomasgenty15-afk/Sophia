@@ -13,7 +13,6 @@ import { Field, inputClass } from "../components/ui/Field";
 import {
   addHouseholdMember,
   createHousehold,
-  generateHouseholdMeal,
   inviteToHousehold,
   MEMBER_GENDERS,
   type MemberGender,
@@ -27,7 +26,19 @@ import {
   setMemberGoal,
   setOwnBirthDate,
 } from "../api/household";
-import { generateMeal } from "../api/mealGeneration";
+import {
+  type ComposeDraftInput,
+  composeDraft,
+  type PlanDraft,
+  writeFromDraft,
+} from "../api/planDraft";
+// LOT B — le mode de cuisson demandé à la composition.
+import {
+  cookingShapeApplies,
+  type CookingShape,
+} from "../api/cookingShape";
+import CookingShapeField from "../components/CookingShapeField";
+import PlanDraftDialog from "../components/plan/PlanDraftDialog";
 import {
   DAY_TOKENS,
   EATING_OCCASIONS,
@@ -368,6 +379,57 @@ export default function SetupPage() {
   >(null);
   const [inviteEmail, setInviteEmail] = React.useState("");
   const [inviteFor, setInviteFor] = React.useState<string | null>(null);
+
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * L'APERÇU — LOT A. LA SORTIE DE L'ENTONNOIR PASSE PAR LÀ, PLUS DIRECTEMENT
+   * PAR L'ÉCRITURE.
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * ── CE QUE ÇA REMPLACE, ET POURQUOI C'EST ICI QUE ÇA COMPTE ──────────────
+   * `compose()` appelait `generateMeal` / `generateHouseholdMeal` avec un
+   * `intent: "prepare_next"`, c'est-à-dire qu'il ÉCRIVAIT. Le premier plan de
+   * quelqu'un — le seul moment où il décide de rester — arrivait donc sans
+   * qu'il l'ait vu, sans le CONSTAT qui explique pourquoi ces jours-là, et sans
+   * aucun geste pour dire « pas comme ça ». La même fenêtre existait depuis le
+   * 2026-08-13 sur `/app/plan`, montée nulle part ailleurs.
+   *
+   * ⛔ RIEN N'EST RECRÉÉ ICI. `PlanDraftDialog` monte `PlanResult`, le rendu
+   * UNIQUE d'un plan; `composeDraft`/`writeFromDraft` sont les mêmes appels que
+   * `/app/plan` fait. Un second dialogue d'aperçu divergerait au premier
+   * correctif, et c'est celui qu'on regarde le moins qui garderait l'ancien
+   * comportement.
+   *
+   * ⚠️ `draft === null` VEUT DIRE « RIEN À MONTRER », et la fenêtre ne s'ouvre
+   * qu'après: composer prend de 100 à 200 secondes, et ouvrir un cadre vide
+   * d'abord ferait regarder le vide pendant deux minutes. Le bouton dit qu'il
+   * travaille là où on a cliqué.
+   */
+  const [draft, setDraft] = React.useState<PlanDraft | null>(null);
+  /**
+   * LA PHRASE DU DERNIER TOUR, RETENUE POUR L'ADOPTION.
+   *
+   * ⛔ ELLE PART AVEC L'ADOPTION. Adopter RECOMPOSE (voir `writeFromDraft`):
+   * sans la phrase, le plan écrit ne serait pas celui qu'on vient de montrer,
+   * et personne ne saurait pourquoi ce qu'on avait demandé a disparu.
+   */
+  const [draftNote, setDraftNote] = React.useState<string | null>(null);
+  const [draftOpen, setDraftOpen] = React.useState(false);
+  /**
+   * LOT B — COMMENT ON CUISINE CETTE SEMAINE. `null` = « laisse décider », et
+   * c'est le DÉFAUT: le calcul du moteur gouverne alors seul, exactement comme
+   * avant ce lot.
+   *
+   * ⚠️ IL N'EST PAS DANS `plan` (`FunnelPlanAnswers`), ET C'EST LE POINT. Tout
+   * ce que porte cet objet-là est ÉCRIT par `savePlanAnswers` dans
+   * `practical_constraints`, donc appliqué en silence à toutes les semaines
+   * suivantes — « y compris celle où on reçoit du monde » (`CookingCapacityCard`,
+   * 2026-08-13). Ce choix-ci se refait à chaque composition; il ne s'enregistre
+   * nulle part et repart avec la demande.
+   */
+  const [cookingShape, setCookingShape] = React.useState<CookingShape | null>(
+    null,
+  );
 
   /**
    * LA LECTURE, ET ELLE EST LA SEULE SOURCE DE L'ÉTAT.
@@ -916,7 +978,12 @@ export default function SetupPage() {
   // ── ÉTAPE 3 — LA SORTIE ──────────────────────────────────────────────────
 
   /**
-   * LE BOUTON QUI COMPOSE.
+   * LES ENTRÉES DE LA DEMANDE, POUR LES TROIS GESTES — LA SOURCE UNIQUE.
+   *
+   * L'aperçu, la reprise et l'adoption l'appellent tous les trois. Deux corps
+   * écrits séparément divergeraient, et la divergence se paierait dans le sens
+   * le plus cher: un plan composé pour une vie que la personne n'a pas, parce
+   * que l'adoption aurait « oublié » la fenêtre ou le mode.
    *
    * ── LE ROUTAGE EST UN FAIT, PAS LA BRANCHE ─────────────────────────────
    * `generate-household-meal-v1` si le foyer a AU MOINS DEUX bouches, sinon
@@ -924,21 +991,80 @@ export default function SetupPage() {
    * commencé et laissé à une seule bouche recevrait sinon `empty_household` sur
    * un chemin où le générateur individuel marche très bien.
    *
-   * ── ET IL NE PEUT PAS ÉCHOUER SUR UN REFUS QUE L'ENTONNOIR FERME ────────
+   * ⚠️ `isOwner` EST LA MOITIÉ DU ROUTAGE, pas une précaution.
+   * `generate-household-meal-v1` rend 403 `not_owner` à un secondaire — et
+   * c'est voulu: son plan à lui est PERSONNEL (D2 du modèle foyer). Router sur
+   * le seul nombre de bouches enverrait toute personne ayant réclamé son profil
+   * droit dans un refus que rien ne peut fermer.
+   *
+   * ⚠️ LA RÈGLE A DEUX APPELANTS DEPUIS QUE `/app/plan` ACCUEILLE LA DEMANDE.
+   * `chooseGenerator` la porte, et deux copies auraient divergé: celle qui se
+   * trompe envoie un maître sur le générateur individuel — trente secondes
+   * d'attente, un appel modèle payé, et rien à l'écran.
+   *
+   * ⚠️ `otherMouths` EST LA LISTE SANS LE MAÎTRE. `facts.mouths` ne contient pas
+   * sa ligne; le module prend le compte des AUTRES et fait l'addition lui-même.
+   *
+   * ── ET LA DEMANDE NE PEUT PAS ÉCHOUER SUR UN REFUS QUE L'ENTONNOIR FERME ─
    * `goal_required` est fermé par `own_goal`, `no_household` et
    * `empty_household` par l'étape 1 et le routage ci-dessus, `mode_required` /
    * `window_required` / `unknown_intent` / `replaces_required` par les
    * constantes ci-dessous. Le tableau complet est dans la fiche.
    */
-  function compose(): Promise<void> {
+  function draftInput(
+    from: FunnelFacts,
+    note: string | null,
+  ): ComposeDraftInput {
+    const lane = chooseGenerator({
+      inHousehold: from.householdId !== null,
+      isOwner: from.isOwner,
+      otherMouths: from.mouths.length,
+    });
+    return {
+      lane,
+      // LA FENÊTRE DEMANDÉE, et plus « d'ici dimanche » codé en dur. Un compte
+      // créé un samedi recevait un plan d'un jour et demi sans avoir rien
+      // choisi.
+      window: {
+        kind: "exact",
+        startsOn: planWindow.startsOn,
+        durationDays: planWindow.durationDays,
+      },
+      note,
+      // LOT B — LE MODE DE CUISSON DEMANDÉ, TEL QUEL. Il part sur les TROIS
+      // gestes (aperçu, reprise, adoption), parce que `draftInput` est la
+      // source unique: sans lui à l'adoption, le plan ÉCRIT ne serait pas celui
+      // qu'on vient de montrer. La lane individuelle l'ignore.
+      cookingShape,
+      // Les entrées de la lane individuelle, ignorées sur la lane foyer.
+      // `to_shop` et pas `from_pantry`: un premier plan n'a pas de garde-manger
+      // déclaré, et `from_pantry` sans articles rend `pantry_required`.
+      mode: "to_shop",
+      slot: null,
+      servings: 1,
+      context: null,
+      preferences: null,
+      pantry: [],
+    };
+  }
+
+  /**
+   * LE BOUTON DE FIN — IL DEMANDE UN APERÇU, IL N'ÉCRIT PLUS.
+   *
+   * ⚠️ LES RÉPONSES DE L'ÉTAPE 3 SONT ÉCRITES D'ABORD, comme avant: elles sont
+   * lues par le générateur dans `practical_constraints`, et un aperçu composé
+   * sans elles montrerait un plan pour une semaine que personne n'a décrite.
+   *
+   * ON RELIT AVANT DE COMPOSER. Le verdict qui a allumé le bouton portait sur
+   * un brouillon; celui-ci porte sur ce qui est vraiment en base.
+   */
+  function askForDraft(): Promise<void> {
     return (async () => {
       await savePlanAnswers({
         userId,
         current: facts!.practicalConstraints,
         answers: plan!,
       });
-      // ON RELIT AVANT DE COMPOSER. Le verdict qui a allumé le bouton portait
-      // sur un brouillon; celui-ci porte sur ce qui est vraiment en base.
       const fresh = await readFunnelFacts(userId);
       const freshBranch = fresh.branch ?? "solo";
       const last = canGenerate(fresh.state, freshBranch);
@@ -946,74 +1072,21 @@ export default function SetupPage() {
         setFacts(fresh);
         throw new Error(t(setupMissKey(last.missing[0])));
       }
-      // ⚠️ `isOwner` EST LA MOITIÉ DU ROUTAGE, pas une précaution.
-      // `generate-household-meal-v1` rend 403 `not_owner` à un secondaire — et
-      // c'est voulu: son plan à lui est PERSONNEL (D2 du modèle foyer). Router
-      // sur le seul nombre de bouches enverrait toute personne ayant réclamé
-      // son profil droit dans un refus que rien ne peut fermer.
-      //
-      // ⚠️ LA RÈGLE A DEUX APPELANTS DEPUIS QUE `/app/plan` ACCUEILLE LA
-      // DEMANDE. Elle était en ligne ici tant que le couloir d'entrée était le
-      // seul endroit où l'on composait; deux copies auraient divergé, et celle
-      // qui se trompe envoie un maître sur le générateur individuel — trente
-      // secondes d'attente, un appel modèle payé, et rien à l'écran.
-      //
-      // ⚠️ `otherMouths` EST LA LISTE SANS LE MAÎTRE. `fresh.mouths` ne contient
-      // pas sa ligne, d'où le `+ 1` d'avant; le module prend le compte des
-      // AUTRES et fait l'addition lui-même, pour qu'aucun appelant n'ait à s'en
-      // souvenir.
-      const generator = chooseGenerator({
-        inHousehold: fresh.householdId !== null,
-        isOwner: fresh.isOwner,
-        otherMouths: fresh.mouths.length,
-      });
+      // LES FAITS FRAIS SONT RETENUS: l'adoption et la reprise routent sur eux,
+      // pas sur la photo d'écran d'avant l'enregistrement.
+      setFacts(fresh);
+      let composed: PlanDraft;
       try {
-        if (generator === "household") {
-          const result = await generateHouseholdMeal({
-            // LA FENÊTRE DEMANDÉE, et plus « d'ici dimanche » codé en dur. Un
-            // compte créé un samedi recevait un plan d'un jour et demi sans
-            // avoir rien choisi.
-            window: {
-              kind: "exact",
-              startsOn: planWindow.startsOn,
-              durationDays: planWindow.durationDays,
-            },
-            // `prepare_next` et pas `replace_current`: il n'y a rien à
-            // remplacer, et `replace_current` sans cible rend
-            // `replaces_required`.
-            intent: "prepare_next",
-            replaces: null,
-            context: null,
-          });
-          // Un 200 qui dit `ok: false` n'est pas une panne de transport, et il
-          // ne doit pas non plus atterrir comme un succès: il rejoint la même
-          // table de refus que tout le reste.
-          if (!result.ok) throw new Error("plan_not_written");
-        } else {
-          await generateMeal({
-            // `to_shop` et pas `from_pantry`: un premier plan n'a pas de
-            // garde-manger déclaré, et `from_pantry` sans articles rend
-            // `pantry_required`.
-            mode: "to_shop",
-            window: {
-              kind: "exact",
-              startsOn: planWindow.startsOn,
-              durationDays: planWindow.durationDays,
-            },
-            intent: "prepare_next",
-            replaces: null,
-            slot: null,
-            servings: 1,
-            context: null,
-            preferences: null,
-            pantry: [],
-          });
-        }
+        composed = await composeDraft(draftInput(fresh, null));
       } catch (error) {
         throw new Error(refusalMessage(error));
       }
-      // L'ATTERRISSAGE EST LE PLAN, jamais `/app/today`.
-      navigate("/app/plan", { replace: true });
+      setDraft(composed);
+      // LA PHRASE EST RETENUE APRÈS L'APPEL, jamais avant: une phrase refusée
+      // (`note_unusable`) ne doit ni rester collée à l'aperçu précédent, ni
+      // partir à l'adoption alors que le serveur l'a écartée.
+      setDraftNote(null);
+      setDraftOpen(true);
     })();
   }
 
@@ -1174,6 +1247,14 @@ export default function SetupPage() {
             onAwayFor={setAwayFor}
             awayBusy={awayBusy}
             rhythm={plan.eatingRhythm}
+            cookingShape={cookingShape}
+            onCookingShape={setCookingShape}
+            // LA MÊME QUESTION QUE LE ROUTAGE, POSÉE AU MÊME ENDROIT: le champ
+            // n'existe que si la demande part sur la lane foyer. `facts.mouths`
+            // ne contient pas la ligne du maître, d'où le `+ 1` — et c'est le
+            // seul endroit de ce fichier qui fait cette addition à la main,
+            // parce que `chooseGenerator` la fait pour le reste.
+            askCookingShape={cookingShapeApplies(facts.mouths.length + 1)}
             onAwaySaved={(m, next) =>
               guard(async () => {
                 setAwayBusy(true);
@@ -1299,13 +1380,92 @@ export default function SetupPage() {
                 variant="primary"
                 // LA SEULE SOURCE. Voir `previewState`: rien d'autre ne décide.
                 disabled={busy || !verdict.ok}
-                onClick={() => guard(compose)}
+                onClick={() => guard(askForDraft)}
               >
                 {busy ? t("setup.plan.composing") : t("setup.plan.compose")}
               </Button>
             ) : null}
           </div>
         </div>
+
+        {/* ── L'APERÇU, MONTÉ EN PERMANENCE ET NOURRI PAR LE BROUILLON ──────
+            `Modal` rend `null` fermé — il ne démonte pas ses enfants — donc
+            l'état de la fenêtre survit à une fermeture, et c'est
+            `PlanDraftDialog` qui remet son compteur de tours à zéro à chaque
+            OUVERTURE.
+
+            ⛔ AUCUNE CONSTANTE EN DUR ICI: chaque prop vient du brouillon
+            réellement composé. Un `rationale={[]}` posé à la main aurait rendu
+            muet le CONSTAT, c'est-à-dire la moitié de ce lot.
+
+            FERMER, C'EST RENONCER — et on reste dans l'entonnoir. Aucun plan
+            n'a été écrit (`intent: "draft"`), donc `/app/plan` n'aurait rien à
+            montrer: y envoyer quelqu'un serait le poser devant un écran vide
+            en lui ayant fait croire qu'il venait de finir. */}
+        <PlanDraftDialog
+          open={draftOpen}
+          onClose={() => setDraftOpen(false)}
+          draft={draft?.plan ?? null}
+          // LES PHRASES DU SERVEUR, TELLES QU'IL LES REND. Assemblées côté
+          // serveur, dans la langue du contenu: cet écran les affiche, il ne
+          // les décide pas.
+          rationale={draft?.envelope.rationale ?? []}
+          // 🔴 TOUJOURS `0` AUJOURD'HUI, et ce n'est pas une constante posée
+          // ici: c'est ce que le serveur rend, parce qu'il journalise `dropped`
+          // sans le publier. Voir `DraftEnvelope.droppedClauses`.
+          droppedClauses={draft?.envelope.droppedClauses ?? 0}
+          busy={busy}
+          onRemix={async (note) => {
+            // ⚠️ LA MÊME DEMANDE, PLUS LA PHRASE. `draftInput` est la source
+            // unique des entrées: le tour N porte les mêmes blocs que le tour
+            // 1, et la note s'AJOUTE. Elle ne remplace rien.
+            // Le `throw` est conservé: c'est lui qui fait qu'une reprise
+            // refusée à l'entrée ne compte PAS un tour, puisque rien n'a été
+            // composé.
+            try {
+              const composed = await composeDraft(draftInput(facts!, note));
+              setDraft(composed);
+              setDraftNote(note);
+            } catch (e) {
+              throw new Error(refusalMessage(e));
+            }
+          }}
+          onAdopt={async () => {
+            // ⚠️ CECI RECOMPOSE, ET C'EST DIT DANS LA FENÊTRE AVANT LE CLIC.
+            // Aucun chemin ne permet d'écrire l'aperçu tel quel:
+            // `write_student_meal_plan` est révoquée à `authenticated`, et
+            // aucune fonction edge n'accepte un plan déjà composé. Voir
+            // `writeFromDraft`.
+            //
+            // `prepare_next` et `replaces: null`: un compte qui sort de
+            // l'entonnoir n'a aucun plan vivant, donc rien à remplacer — et
+            // `replace_current` sans cible rend `replaces_required`.
+            //
+            // ⛔ `draftNote` ET PAS `null`. La phrase part AVEC l'adoption:
+            // sans elle, le plan écrit ne serait pas celui qu'on vient de
+            // montrer.
+            let written: { ok: boolean; mealId: string | null };
+            try {
+              written = await writeFromDraft(
+                draftInput(facts!, draftNote),
+                "prepare_next",
+                null,
+              );
+            } catch (e) {
+              throw new Error(refusalMessage(e));
+            }
+            // Un 200 qui dit `ok: false` n'est pas une panne de transport, et
+            // il ne doit pas non plus atterrir comme un succès.
+            if (!written.ok) {
+              throw new Error(refusalMessage(new Error("plan_not_written")));
+            }
+            setDraftOpen(false);
+            setDraft(null);
+            setDraftNote(null);
+            // L'ATTERRISSAGE EST LE PLAN, jamais `/app/today`.
+            navigate("/app/plan", { replace: true });
+          }}
+        />
       </div>
     </FunnelShell>
   );
@@ -2809,6 +2969,9 @@ function RequestStep({
   awayBusy,
   rhythm,
   onAwaySaved,
+  cookingShape,
+  onCookingShape,
+  askCookingShape,
 }: {
   draft: FunnelPlanAnswers;
   onChange: React.Dispatch<React.SetStateAction<FunnelPlanAnswers | null>>;
@@ -2830,6 +2993,23 @@ function RequestStep({
   awayBusy: boolean;
   rhythm: readonly EatingOccasionSlot[];
   onAwaySaved: (mouth: FunnelMouth, next: AwayDay[]) => void;
+  /**
+   * LOT B — LE MODE DE CUISSON DEMANDÉ. `null` = « laisse décider », le défaut.
+   *
+   * ⚠️ IL N'EST PAS DANS `draft` (`FunnelPlanAnswers`), ET C'EST LE POINT. Tout
+   * ce que porte `draft` est ÉCRIT dans `practical_constraints` par
+   * `savePlanAnswers` — c'est-à-dire appliqué en silence à toutes les semaines
+   * suivantes. Ce choix-ci se refait à chaque composition: l'y ranger en aurait
+   * fait le réglage de profil que ce lot a refusé d'écrire.
+   */
+  cookingShape: CookingShape | null;
+  onCookingShape: (next: CookingShape | null) => void;
+  /**
+   * LA QUESTION A-T-ELLE UN SUJET ? Décidé par l'appelant, qui connaît le
+   * roster: « un seul plat pour tout le monde » n'a pas de sens à une bouche,
+   * et la lane individuelle n'accepte pas le champ. REQUIS, jamais optionnel.
+   */
+  askCookingShape: boolean;
 }) {
   const toggle = (list: readonly string[], value: string) =>
     list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
@@ -2975,6 +3155,28 @@ function RequestStep({
               className={inputClass}
             />
           </Field>
+
+          {/* ── LOT B · COMMENT ON CUISINE CETTE SEMAINE ──────────────────
+              À CÔTÉ DES TROIS AUTRES ENTRÉES DE PLAN, et pour la même raison
+              qu'elles sont ici: c'est une propriété de la SEMAINE qu'on
+              commande, pas de la personne. Le MÊME champ que `MealBuilder`,
+              jamais un second — deux champs écrits séparément divergeraient au
+              premier libellé retouché.
+
+              ⛔ SEULEMENT À PLUSIEURS BOUCHES. « Un seul plat pour tout le
+              monde » n'a pas de sujet quand on mange seul, et la lane
+              individuelle n'accepte pas le champ: le poser quand même ferait
+              une question dont la réponse ne va nulle part. */}
+          {askCookingShape
+            ? (
+              <CookingShapeField
+                id="setup-cooking-shape"
+                value={cookingShape}
+                onChange={onCookingShape}
+                disabled={false}
+              />
+            )
+            : null}
         </div>
       </Card>
 

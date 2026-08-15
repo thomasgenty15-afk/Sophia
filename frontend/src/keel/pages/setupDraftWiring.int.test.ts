@@ -1,0 +1,151 @@
+import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+/**
+ * LOT A — LA SORTIE DE L'ENTONNOIR PASSE PAR L'APERÇU, ET ON LE PROUVE.
+ *
+ * ── LE DÉFAUT QUE CE FICHIER ÉPINGLE ──────────────────────────────────────
+ * `SetupPage.compose()` appelait `generateMeal` / `generateHouseholdMeal` avec
+ * `intent: "prepare_next"` — c'est-à-dire qu'il ÉCRIVAIT. Le tout premier plan
+ * de quelqu'un, le seul moment où il décide de rester, arrivait donc sans qu'il
+ * l'ait vu, sans le CONSTAT qui dit pourquoi ces jours-là, et sans aucun geste
+ * pour dire « pas comme ça ».
+ *
+ * La fenêtre d'aperçu (`PlanDraftDialog`, `intent: "draft"`, ZÉRO écriture)
+ * existait déjà depuis le 2026-08-13. Elle n'était montée que sur `/app/plan`:
+ * en venant de l'inscription, on ne la rencontrait jamais.
+ *
+ * ── POURQUOI CE TEST LIT LA SOURCE PLUTÔT QUE DE MONTER L'ÉCRAN ───────────
+ * Ce qu'il faut prouver est un CÂBLAGE — quel appel part, avec quel `intent`,
+ * depuis quel bouton. Monter `SetupPage` demanderait une session, une base et
+ * deux appels modèle de 100 à 200 secondes chacun; le fait à garder tient dans
+ * la source, et il tient à ne PAS régresser. Le parcours réel, lui, est fait à
+ * la main et consigné au rapport: les deux se complètent, aucun ne remplace
+ * l'autre.
+ *
+ * ⚠️ COMMENTAIRES RETIRÉS — cicatrice `caller-audit-must-strip-comments`.
+ * `SetupPage.tsx` PARLE longuement de `generateMeal` dans ses en-têtes, et un
+ * grep naïf compterait ces morts-là comme des vivants.
+ */
+
+const ROOT = resolve(__dirname, "../../../..");
+
+function code(rel: string): string {
+  return readFileSync(resolve(ROOT, rel), "utf8")
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
+    .split("\n")
+    .map((line) => {
+      const at = line.indexOf("//");
+      if (at < 0) return line;
+      // `https://` et les autres `:` collés ne sont pas des commentaires.
+      if (at > 0 && line[at - 1] === ":") return line;
+      return line.slice(0, at);
+    })
+    .join("\n");
+}
+
+describe("l'entonnoir sort par l'aperçu, pas par l'écriture", () => {
+  const src = code("frontend/src/keel/pages/SetupPage.tsx");
+
+  /**
+   * LE CAS QUI FAIT TOUT LE TEST. Un seul de ces deux appels qui revient, et
+   * le lot est défait: le bouton de fin écrirait de nouveau sans montrer.
+   */
+  it("plus aucun appel d'écriture directe depuis l'entonnoir", () => {
+    expect(src, "le générateur individuel écrit de nouveau depuis l'entonnoir")
+      .not.toContain("generateMeal(");
+    expect(src, "le générateur de foyer écrit de nouveau depuis l'entonnoir")
+      .not.toContain("generateHouseholdMeal(");
+  });
+
+  it("le bouton de fin demande un aperçu", () => {
+    expect(src, "`composeDraft` n'est plus appelé").toContain("composeDraft(");
+    expect(src, "le bouton de fin ne demande plus l'aperçu").toContain(
+      "guard(askForDraft)",
+    );
+  });
+
+  /**
+   * ⛔ LA FENÊTRE EST MONTÉE, ET ELLE REÇOIT LE CONSTAT.
+   *
+   * `rationale={[]}` posé en dur aurait rendu MUET le constat, c'est-à-dire la
+   * moitié de ce lot: la fenêtre se serait ouverte, le plan se serait affiché,
+   * et « pourquoi ces jours-là » n'aurait été nulle part. C'est très exactement
+   * la cicatrice `mine={null}` d'une carte voisine, qui a rendu muet un lot
+   * entier sans qu'aucun test ne bouge.
+   */
+  it("la fenêtre est montée et le constat vient du brouillon composé", () => {
+    expect(src, "la fenêtre d'aperçu n'est plus montée").toContain(
+      "<PlanDraftDialog",
+    );
+    expect(src, "le constat ne vient plus du brouillon").toContain(
+      "rationale={draft?.envelope.rationale ?? []}",
+    );
+  });
+
+  /**
+   * L'ADOPTION EST LE SEUL CHEMIN QUI ÉCRIT, et elle écrit par le module
+   * partagé — jamais par un appel refait ici.
+   */
+  it("adopter écrit par `writeFromDraft`, en `prepare_next`", () => {
+    expect(src, "l'adoption n'écrit plus").toContain("writeFromDraft(");
+    expect(src, "l'adoption a changé d'intention").toContain('"prepare_next"');
+  });
+
+  /**
+   * ⛔ LA GARDE INVERSE, ET ELLE COMPTE AUTANT QUE LES AUTRES.
+   *
+   * Sans elle, ce fichier ne distinguerait pas « on a branché l'aperçu » de
+   * « on a cassé la sortie ». Un aperçu qu'on ne peut pas adopter est un
+   * entonnoir sans sortie — et l'atterrissage est le PLAN, jamais `/app/today`:
+   * quelqu'un qui vient d'adopter a un plan, et c'est ce qu'il doit voir.
+   */
+  it("l'entonnoir a toujours une sortie, et elle mène au plan", () => {
+    expect(src, "l'atterrissage a bougé").toContain(
+      'navigate("/app/plan", { replace: true })',
+    );
+  });
+
+  /**
+   * LA SOURCE UNIQUE DES ENTRÉES. Les trois gestes (aperçu, reprise, adoption)
+   * passent par `draftInput`: deux corps de requête écrits séparément
+   * divergeraient, et la divergence se paierait dans le sens le plus cher — un
+   * plan composé pour une vie que la personne n'a pas, parce que l'adoption
+   * aurait « oublié » la fenêtre ou la lane.
+   */
+  it("les trois gestes partagent le même constructeur d'entrées", () => {
+    const calls = src.match(/draftInput\(/g) ?? [];
+    // La définition + les trois appels.
+    expect(calls.length, "un geste s'est mis à écrire son propre corps")
+      .toBeGreaterThanOrEqual(4);
+    expect(src, "la lane n'est plus décidée par `chooseGenerator`").toContain(
+      "chooseGenerator({",
+    );
+  });
+});
+
+describe("l'aperçu du plan reste le rendu unique, et il n'écrit rien", () => {
+  /**
+   * ⛔ CE QUI AUTORISE À BRANCHER L'ENTONNOIR DESSUS. `intent: "draft"` saute
+   * la SEULE écriture et garde toutes les gardes amont. Si ce fait cessait
+   * d'être vrai, le premier plan de quelqu'un s'écrirait au premier « refaire ».
+   */
+  it("`composeDraft` demande bien `draft`, et `writeFromDraft` ne le fait pas", () => {
+    const api = code("frontend/src/keel/api/planDraft.ts");
+    expect(api).toContain('callGenerator(input, "draft")');
+    expect(api).toContain("callGenerator(input, intent, replaces)");
+  });
+
+  /**
+   * LE RENDU EST MONTÉ DEUX FOIS, ET IL EST LE MÊME. `PlanDraftDialog` monte
+   * `PlanResult`, extrait exprès pour ça: un second rendu divergerait au
+   * premier correctif, et c'est celui qu'on regarde le moins qui garderait
+   * l'ancien comportement.
+   */
+  it("la fenêtre monte `PlanResult`, elle ne rend pas un plan à elle", () => {
+    const dialog = code("frontend/src/keel/components/plan/PlanDraftDialog.tsx");
+    expect(dialog).toContain("<PlanResult");
+  });
+});
