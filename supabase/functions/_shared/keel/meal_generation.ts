@@ -479,6 +479,24 @@ export interface GeneratedDish {
    * que ce qu'on AJOUTE au moment de manger — la salade, le pain, la sauce.
    */
   uses: Array<{ preparationId: string; servings: number }>;
+  /**
+   * LOT C — LA BOUCHE À QUI CE PLAT EST DÉDIÉ. `null` = le plat de la table.
+   *
+   * ⛔ `null` EST LE CAS NOMINAL, et il ne veut PAS dire « on ne sait pas ». La
+   * quasi-totalité des plats d'un plan sont le plat commun; seul le plat DÉDIÉ,
+   * réclamé par la consigne aux barreaux ② et ③, porte un identifiant.
+   *
+   * ⚠️ IL EST POSÉ À LA CRÉATION, jamais dérivé après coup. Le modèle le déclare
+   * (`for_member_id`), le parseur le valide contre la liste fermée des bouches
+   * qui reçoivent un plat (`MergedEater.dishBearerIds`), et un id inconnu est
+   * JETÉ et compté. Aucune lecture de titre n'intervient nulle part — « jamais
+   * de matcher maison ».
+   *
+   * ⚠️ TOUJOURS `null` SUR LA LANE INDIVIDUELLE: elle passe `merge: null`, donc
+   * la liste fermée est vide, donc rien n'est attribuable. Une personne seule
+   * n'a de toute façon pas de « plat dédié » — tous ses plats sont les siens.
+   */
+  memberId: string | null;
 }
 
 export interface ShoppingItem {
@@ -955,6 +973,41 @@ export interface MergedEater {
    * separate dishes ».
    */
   dedicatedCells: readonly { day: string; slot: string }[];
+  /**
+   * ══════════════════════════════════════════════════════════════════════
+   * LOT C — QUI REÇOIT CES PLATS DÉDIÉS. Les ids EXACTS, ceux du prompt.
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ LE TROU QUE CE CHAMP FERME, MESURÉ LE 2026-08-14. Les clés d'un plat en
+   * base sont `title, why, uses, method, slot, day, ingredients, servings_made,
+   * preparation_id, id, honours_belief_keys` — AUCUNE attribution. Le seul
+   * marqueur qu'un plat dédié est celui de Zoé était le texte libre « for Zoe »
+   * dans le TITRE, écrit par le modèle. La vue par personne montrait donc le
+   * plat dédié de Zoé dans la semaine de Kid.
+   *
+   * ⛔ ET ON NE DEVINE PAS DEPUIS LE TITRE. « Jamais de matcher maison » est une
+   * cicatrice mesurée de ce dépôt (12 faux positifs sur 12), et ici un matcher
+   * attribuerait de travers dès « Chicken for Zoe and Marc », et rien du tout
+   * dès que le plan sort en français.
+   *
+   * ⚠️ ET LE CALCUL NE PEUT PAS TRANCHER NON PLUS. Sur une case dédiée il y a
+   * DEUX plats — celui de la table et le sien. Lequel est lequel n'est pas
+   * décidable de l'extérieur: c'est le MODÈLE qui vient de composer les deux.
+   * D'où un champ qu'il déclare (`for_member_id`), validé contre cette liste
+   * fermée — le patron exact de `preparation_id` (inventé par le modèle,
+   * vérifié contre `preparations[].id`) et de `member_portions[].member_id`,
+   * qui utilise DÉJÀ ces mêmes ids et qui fonctionne en production.
+   *
+   * ⚠️ REQUIS, `T`, jamais `T?`. C'est la DIXIÈME fois que ce fichier écrit
+   * cette phrase. Un `?` ici serait parfaitement silencieux: la liste vide
+   * refuse toute attribution, donc le lot serait construit, branché et désarmé
+   * — « une ceinture armée sur un coffre vide ».
+   *
+   * `[]` au barreau ①: aucun plat dédié n'est demandé, donc aucun plat n'est
+   * attribuable, et le parseur refuse toute attribution qui arriverait quand
+   * même.
+   */
+  dishBearerIds: readonly string[];
 }
 
 /**
@@ -2393,6 +2446,12 @@ export function parseGeneratedMeal(
   // Résolu UNE fois, hors de la boucle: la question ne se pose pas préparation
   // par préparation, elle se pose une fois pour le plan.
   const secondDishAsked = args.merge !== null && asksForASecondDish(args.merge.shape);
+  // LOT C — LA LISTE FERMÉE DES BOUCHES ATTRIBUABLES. Résolue UNE fois, hors de
+  // la boucle, pour la même raison que la ligne au-dessus: la question ne se
+  // pose pas plat par plat, elle se pose une fois pour le plan.
+  const dishBearers = new Set(
+    (args.merge?.dishBearerIds ?? []).map((id) => String(id).trim()).filter(Boolean),
+  );
 
   // ── LES PLATS ───────────────────────────────────────────────────────────
   // ── LES PRÉPARATIONS ────────────────────────────────────────────────────
@@ -2870,6 +2929,49 @@ export function parseGeneratedMeal(
       keptRawIndex.splice(sacrifice, 1);
     }
 
+    // ══════════════════════════════════════════════════════════════════════
+    // LOT C — À QUI CE PLAT EST DÉDIÉ, POSÉ À LA CRÉATION
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ DEUX PORTES, ET LES DEUX COMPTENT.
+    //
+    //   ① LA CONSIGNE DOIT AVOIR RÉCLAMÉ UN PLAT DÉDIÉ (`secondDishAsked`). Au
+    //      barreau ① le prompt dit « Do NOT propose separate dishes »: un
+    //      `for_member_id` qui arriverait quand même attribuerait le plat de la
+    //      TABLE à une personne, et la vue par personne le retirerait alors à
+    //      tous les autres. C'est un faux plus cher que l'absence.
+    //   ② L'ID DOIT ÊTRE DANS LA LISTE FERMÉE (`dishBearerIds`) — les bouches à
+    //      qui la consigne promet vraiment un plat. Le patron est celui de
+    //      `preparation_id` juste au-dessus: inventé par le modèle, vérifié
+    //      contre une liste, JETÉ et compté quand il n'y est pas.
+    //
+    // ⛔ AUCUNE LECTURE DE TITRE. Le seul marqueur qui existait avant ce lot
+    // était « for Zoe » écrit dans le titre par le modèle, et un matcher
+    // là-dessus attribuerait de travers dès « Chicken for Zoe and Marc » — et
+    // rien du tout dès que le plan sort en français.
+    //
+    // ⚠️ UN `for_member_id` REFUSÉ NE REJETTE JAMAIS LE PLAT. L'attribution est
+    // une lecture EN PLUS; un plat sans elle reste un plat qui se cuisine et se
+    // mange. Même posture que `honours_belief_keys`: informatif, donc jeté et
+    // compté, jamais une raison de retirer un dîner à quelqu'un.
+    let memberId: string | null = null;
+    const declaredFor = cleanText(d.for_member_id);
+    if (declaredFor) {
+      if (!secondDishAsked) {
+        issues.push(
+          `dishes[${i}]: for_member_id on a shared dish (no dedicated dish was ` +
+            `asked), dropped`,
+        );
+      } else if (!dishBearers.has(declaredFor)) {
+        issues.push(
+          `dishes[${i}]: for_member_id ${JSON.stringify(declaredFor)} is not a ` +
+            `mouth that gets its own dish, dropped`,
+        );
+      } else {
+        memberId = declaredFor;
+      }
+    }
+
     dishes.push({
       title,
       slot,
@@ -2880,6 +2982,7 @@ export function parseGeneratedMeal(
       why: safeWhy,
       honours_belief_keys: honours,
       uses,
+      memberId,
     });
     keptCells.push(cell);
     keptRanks.push(rank);
@@ -3395,6 +3498,18 @@ export function mealDishesPayload(meal: GeneratedMeal): Array<Record<string, unk
       preparation_id: u.preparationId,
       servings: u.servings,
     })),
+    // LOT C — L'ATTRIBUTION, ÉCRITE MÊME À `null`.
+    //
+    // ⚠️ ÉCRITE TOUJOURS, exprès: une clé absente ne se distingue pas d'un lot
+    // débranché, et ce dépôt paie en boucle la garde construite puis
+    // silencieusement débranchée. `null` DIT « le plat de la table », ce qui est
+    // le cas nominal et une affirmation — pas une ignorance.
+    //
+    // ⚠️ AUCUNE MIGRATION: `dishes` est une colonne `jsonb`, et les plans écrits
+    // avant ce lot n'ont simplement pas la clé. Les lecteurs traitent son
+    // absence comme `null`, c'est-à-dire comme le plat de la table — ce que ces
+    // plans-là étaient déjà pour tout le monde.
+    member_id: d.memberId,
   }));
 }
 

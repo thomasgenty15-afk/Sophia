@@ -2635,6 +2635,13 @@ Deno.serve(async (req) => {
       // plutôt que le dimanche. LA MÊME liste que le dénominateur du constat
       // (`mergedEaterCells`), jamais une seconde résolution.
       dedicatedCells: mergedEaterCells,
+      // LOT C — UNE FUSION REPREND UNE PERSONNE, ET UNE SEULE. C'est le cas où
+      // l'attribution est la plus simple, et c'est aussi celui où le trou a été
+      // mesuré: le plat dédié de la personne reprise apparaissait dans la
+      // semaine de tout le monde. `[]` au barreau ① — rien n'y est attribuable.
+      dishBearerIds: asksForASecondDish(cookingShape) && mergedMember !== null
+        ? [mergedMember.memberId]
+        : [],
     };
 
     // LES CASES OÙ LES DIVERGENTS MANGENT ICI, et le nombre de plats dédiés qui
@@ -2669,6 +2676,11 @@ Deno.serve(async (req) => {
           compositionEaterCells.length,
         ),
         dedicatedCells: compositionEaterCells,
+        // LOT C — LES MÊMES BOUCHES QUE LA CONSIGNE NOMME, et pas le calcul
+        // brut: `dishBearingMembers` est déjà la liste plafonnée. Attribuer à
+        // quelqu'un à qui le prompt ne promet rien retirerait son plat à toute
+        // la table dans la vue par personne.
+        dishBearerIds: dishBearingMembers.map((m) => m.memberId),
       };
     // LE SEUL NOMBRE QUE LES DEUX BOUTS LISENT — la consigne et le parseur. Un
     // `??` et pas une fusion des deux: une requête porte une opération.
@@ -3048,6 +3060,27 @@ Deno.serve(async (req) => {
       // G5 — LA FORME DE CUISINE, DÉCIDÉE PLUS HAUT ET PAR UN SEUL ENDROIT.
       cooking: cookingShape,
       divergingCount,
+      // ── LOT C · QUI PEUT PORTER UN `for_member_id` ─────────────────────
+      // LA MÊME LISTE QUE `divergingCount` ET QUE `divergingNames`, et pas un
+      // troisième calcul: la ligne de forme promet un plat de plus à N
+      // personnes, le bloc de régime dit lesquelles, celui-ci donne leur id.
+      // Trois listes divergentes attribueraient un plat à quelqu'un à qui la
+      // consigne n'en promet pas — et la vue par personne le retirerait alors
+      // à toute la table.
+      //
+      // ⚠️ SUR UNE FUSION, C'EST LA PERSONNE REPRISE. `dishBearingMembers` est
+      // vide sur ce chemin (`divergingMembers` l'est: voir sa garde
+      // `merge !== null`), et le barreau vient de l'échelle.
+      dishBearers: ladder !== null && mergedMember !== null &&
+          asksForASecondDish(cookingShape)
+        ? [{
+          memberId: mergedMember.memberId,
+          displayName: mergedMember.displayName,
+        }]
+        : dishBearingMembers.map((m) => ({
+          memberId: m.memberId,
+          displayName: m.displayName,
+        })),
       // ── R4/R5 · CE QUE LA CASSEROLE COMMUNE SUIT, ET QUI N'EN MANGE PAS ──
       // `""` quand personne n'a rien déclaré: le bloc tombe du `filter` de
       // `buildHouseholdPromptBlocks` et le prompt est byte-identique à celui
@@ -3946,6 +3979,29 @@ Deno.serve(async (req) => {
                 // c'est la seule façon de relire ce qu'un plan a retiré.
                 diverging: divergingMembers.map((m) => m.memberId),
                 dish_bearing: dishBearingMembers.map((m) => m.memberId),
+              },
+              // ══════════════════════════════════════════════════════════
+              // LOT C — L'ATTRIBUTION, COMPTÉE. C'EST CE QUI EMPÊCHE LE LOT
+              // D'ÊTRE DÉSARMÉ EN SILENCE.
+              // ══════════════════════════════════════════════════════════
+              //
+              // ⛔ LE CHAMP `for_member_id` EST DÉCLARÉ PAR LE MODÈLE. On ne
+              // peut donc pas SAVOIR d'avance à quelle fréquence il le remplit
+              // — seulement le mesurer. Sans ces deux nombres, un modèle qui
+              // ignorerait la consigne rendrait `member_id: null` partout, et
+              // le lot ressemblerait trait pour trait à un lot qui marche: la
+              // vue par personne montrerait les mêmes plats à tout le monde,
+              // c'est-à-dire exactement le comportement d'avant.
+              //
+              // `asked` dit combien de plats dédiés la consigne réclamait;
+              // `attributed` combien en sont revenus avec un porteur valide.
+              // L'écart est LA question à poser au premier run réel.
+              //
+              // ÉCRIT MÊME À ZÉRO, comme les blocs voisins: une clé absente ne
+              // se distingue pas d'un lot débranché.
+              dish_owners: {
+                asked: eaterBudget?.dedicatedDishesAsked ?? 0,
+                attributed: meal.dishes.filter((d) => d.memberId !== null).length,
               },
               // ── D14 · QUI A ÉTÉ COMPTÉ ABSENT, ET PAR QUI ──────────────
               // Sans ce bloc, une absence marquée par erreur est SILENCIEUSE:

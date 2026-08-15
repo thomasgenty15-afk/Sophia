@@ -310,6 +310,31 @@ function PersonLine(props: { person: PersonRow; slot: string }) {
               chicken with plenty of roasted vegetables » tient sur quatre
               lignes à 320 px. La ligne est le contenu de cette vue: elle se lit
               entière ou la vue ne sert à rien. */}
+          {/* ══════════════════════════════════════════════════════════════
+              LOT C — SON PLAT À ELLE, QUAND LE PLAN LUI EN A COMPOSÉ UN.
+
+              ⛔ AVANT CE LOT, LE PLAT DÉDIÉ ÉTAIT INVISIBLE ICI ET VISIBLE
+              PARTOUT AILLEURS. Il n'était attribuable à personne (`dishes[]`
+              ne portait aucun `member_id`), donc il apparaissait dans la
+              semaine de tout le monde, et la ligne « le plat » pouvait
+              afficher le plat d'une seule personne à toute la table.
+
+              Il est mis EN AVANT de la part: quand quelqu'un mange autre chose
+              que la table, c'est le premier fait de sa case — la part vient
+              préciser, elle ne remplace pas.
+
+              ⚠️ UN TITRE, ET RIEN D'AUTRE. La règle des gardes d'affichage de
+              cette vue ne bouge pas: ni objectif, ni « pourquoi », ni
+              ingrédient. Un titre de plat est déjà lisible par tout le foyer.
+              ══════════════════════════════════════════════════════════════ */}
+          {cell.ownDish
+            ? (
+              <span className="block font-medium leading-snug text-ink">
+                {cell.ownDish}
+              </span>
+            )
+            : null}
+          {/* ⚠️ LA PART N'EST JAMAIS TRONQUÉE — voir le bloc au-dessus. */}
           {cell.note
             ? <span className="block leading-snug text-ink">{cell.note}</span>
             : null}

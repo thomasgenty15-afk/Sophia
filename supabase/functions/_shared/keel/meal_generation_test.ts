@@ -15,6 +15,8 @@ import {
   dishCapFor,
   isInPantry,
   MEAL_SCOPES,
+  // LOT C — l'attribution du plat dédié, écrite en base.
+  mealDishesPayload,
   parseGeneratedMeal,
   SHOPPING_AISLES,
 } from "./meal_generation.ts";
@@ -324,7 +326,8 @@ Deno.test("an invented conviction key is dropped but does NOT cost the dish", ()
 // ---------------------------------------------------------------------------
 
 Deno.test("the prompt separates the STABLE situation from the DATED context", () => {
-  const { userMessage, systemPrompt } = buildMealPrompt({
+  const { userMessage, systemPrompt } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true,
+    budgetAmount: null,
     safetyConstraints: null,
     body: null,
     focusAxis: null,
@@ -352,8 +355,49 @@ Deno.test("the prompt separates the STABLE situation from the DATED context", ()
   assert(systemPrompt.includes("Shopping quantities are DIFFERENT"));
 });
 
+Deno.test("le prompt EXIGE une quantité sur les matières grasses", () => {
+  // ── LA GARANTIE EST AU PROMPT ET AU PARSEUR ─────────────────────────────
+  // Le parseur nomme les denses non pesés (`energy_dense_unweighed`), et le
+  // verdict s'abstient dessus. Sans la consigne EN AMONT, les deux ne feraient
+  // que constater un plan illisible sans jamais l'améliorer.
+  //
+  // MESURÉ le 2026-08-12 sur 80 générations: 82 lignes d'huile d'olive sans
+  // quantité — de loin le premier poste de perte d'énergie du référentiel.
+  const { systemPrompt } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true,
+    budgetAmount: null,
+    safetyConstraints: null,
+    body: null,
+    focusAxis: null,
+    doctrineBlock: "d",
+    coachNoteBlock: null,
+    fixedIntakes: [],
+    dayProperties: [],
+    merge: null,
+    protocolBlock: "",
+    beliefKeys: [],
+    goal: "fat_loss",
+    situation: null,
+    context: null,
+    mode: "to_shop",
+    scope: "day",
+    slot: null,
+    servings: 1,
+    pantry: [],
+  });
+  assert(systemPrompt.includes('ALWAYS carry "amount" and "unit"'));
+  assert(systemPrompt.includes("A drizzle of olive oil"));
+  // La consigne ne doit PAS s'étendre au sel: une pincée reste une pincée, et
+  // exiger un chiffre partout ferait inventer des nombres — ce que le même
+  // prompt interdit deux paragraphes plus haut.
+  assert(systemPrompt.includes("pepper and herbs may stay a pinch; oil may not"));
+  assert(systemPrompt.includes("A made-up number is worse than a"));
+});
+
 Deno.test("from_pantry puts the pantry in the prompt, to_shop does not pretend to", () => {
   const base = {
+    contentLocale: "en-US",
+    firstDayCookable: true,
+    budgetAmount: null,
     safetyConstraints: null,
     body: null,
     focusAxis: null,
@@ -419,7 +463,8 @@ Deno.test("the aisle vocabulary is closed and non-empty", () => {
 // ---------------------------------------------------------------------------
 
 Deno.test("les préférences confirmées entrent dans le prompt, dans les mots de l'élève", () => {
-  const withPrefs = buildMealPrompt({
+  const withPrefs = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true,
+    budgetAmount: null,
     safetyConstraints: null,
     body: null,
     focusAxis: null,
@@ -449,6 +494,9 @@ Deno.test("sans préférence, le prompt est EXACTEMENT celui d'avant", () => {
   // L'ajout doit être additif: un élève qui n'a rien confirmé reçoit la même
   // journée qu'hier. C'est ce qui rend le lot sans risque de régression.
   const base = {
+    contentLocale: "en-US",
+    firstDayCookable: true,
+    budgetAmount: null,
     safetyConstraints: null,
     body: null,
     focusAxis: null,
@@ -472,4 +520,115 @@ Deno.test("sans préférence, le prompt est EXACTEMENT celui d'avant", () => {
   const empty = buildMealPrompt({ ...base, foodPreferences: [] });
   assertEquals(without.userMessage, empty.userMessage);
   assert(!without.userMessage.includes("in their own words"));
+});
+
+// ---------------------------------------------------------------------------
+// LOT C — À QUI CE PLAT EST-IL DÉDIÉ ?
+//
+// ⛔ LE TROU FERMÉ, MESURÉ LE 2026-08-14. Les clés d'un plat en base étaient
+// `title, why, uses, method, slot, day, ingredients, honours_belief_keys` — et
+// AUCUNE attribution. Le seul marqueur qu'un plat était celui de Zoé était
+// « for Zoe » écrit dans le TITRE par le modèle, et la vue par personne le
+// montrait donc dans la semaine de tout le monde.
+//
+// ⛔ ET AUCUN DE CES TESTS NE PEUT PASSER PAR UN MATCHER DE TITRE. Les titres y
+// sont volontairement muets: si quelqu'un remplaçait un jour l'attribution par
+// une lecture du titre, ces tests tomberaient au lieu de passer pour la
+// mauvaise raison.
+// ---------------------------------------------------------------------------
+
+/** Le budget d'une bouche qui reçoit son plat à elle. */
+function eaterAsking(memberIds: readonly string[]) {
+  return {
+    shape: "one_session" as const,
+    ownDishesShown: 0,
+    dedicatedDishesAsked: 1,
+    dedicatedCells: [{ day: "mon", slot: "lunch" }],
+    dishBearerIds: memberIds,
+  };
+}
+
+function dishFor(over: Record<string, unknown> = {}) {
+  return {
+    dishes: [
+      {
+        title: "Chicken and rice",
+        slot: "lunch",
+        day: "mon",
+        ingredients: [{ term: "chicken", quantity: "150 g" }],
+        method: "Cook it.",
+        why: "It fits the week.",
+        ...over,
+      },
+    ],
+  };
+}
+
+Deno.test("LOT C — un `for_member_id` déclaré et connu est POSÉ sur le plat", () => {
+  const meal = parse(dishFor({ for_member_id: "m-zoe" }), {
+    merge: eaterAsking(["m-zoe"]),
+  });
+  assertEquals(meal.dishes.length, 1);
+  assertEquals(meal.dishes[0].memberId, "m-zoe");
+});
+
+Deno.test("LOT C — un plat SANS `for_member_id` est celui de la table", () => {
+  // ⚠️ LE CAS NOMINAL, et il compte autant que les refus: `null` DIT « le plat
+  // de la table », ce n'est pas une ignorance. La quasi-totalité des plats d'un
+  // plan passent par ici.
+  const meal = parse(dishFor(), { merge: eaterAsking(["m-zoe"]) });
+  assertEquals(meal.dishes[0].memberId, null);
+});
+
+Deno.test("LOT C — un id HORS de la liste fermée est jeté, compté, et le plat reste", () => {
+  // Même posture que `honours_belief_keys`: l'attribution est une lecture EN
+  // PLUS. Un plat sans elle reste un plat qui se cuisine et se mange — retirer
+  // un dîner à quelqu'un pour un champ informatif serait le pire des échanges.
+  const meal = parse(dishFor({ for_member_id: "m-inconnu" }), {
+    merge: eaterAsking(["m-zoe"]),
+  });
+  assertEquals(meal.dishes.length, 1);
+  assertEquals(meal.dishes[0].memberId, null);
+  assert(
+    meal.issues.some((i) => i.includes("for_member_id") && i.includes("m-inconnu")),
+    meal.issues.join(" | "),
+  );
+});
+
+Deno.test("LOT C — au barreau ①, AUCUNE attribution n'est acceptée", () => {
+  // ⛔ LA PORTE QUI COMPTE LE PLUS. Le prompt y dit « Do NOT propose separate
+  // dishes »: un `for_member_id` qui arriverait quand même attribuerait le plat
+  // de la TABLE à une personne, et la vue par personne le retirerait alors à
+  // tous les autres. Un faux plus cher que l'absence.
+  const meal = parse(dishFor({ for_member_id: "m-zoe" }), {
+    merge: {
+      shape: "one_dish" as const,
+      ownDishesShown: 0,
+      dedicatedDishesAsked: 0,
+      dedicatedCells: [],
+      dishBearerIds: ["m-zoe"],
+    },
+  });
+  assertEquals(meal.dishes[0].memberId, null);
+  assert(
+    meal.issues.some((i) => i.includes("shared dish")),
+    meal.issues.join(" | "),
+  );
+});
+
+Deno.test("LOT C — la lane individuelle n'attribue JAMAIS rien", () => {
+  // Elle passe `merge: null`, donc la liste fermée est vide. Une personne seule
+  // n'a de toute façon pas de « plat dédié »: tous ses plats sont les siens.
+  const meal = parse(dishFor({ for_member_id: "m-zoe" }), { merge: null });
+  assertEquals(meal.dishes[0].memberId, null);
+});
+
+Deno.test("LOT C — l'attribution part dans le payload écrit en base", () => {
+  const meal = parse(dishFor({ for_member_id: "m-zoe" }), {
+    merge: eaterAsking(["m-zoe"]),
+  });
+  const payload = mealDishesPayload(meal);
+  // ÉCRIT MÊME À `null`: une clé absente ne se distingue pas d'un lot débranché.
+  assert("member_id" in payload[0], JSON.stringify(payload[0]));
+  assertEquals(payload[0].member_id, "m-zoe");
 });

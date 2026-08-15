@@ -70,6 +70,27 @@ export interface PersonCell {
    * plus personne ne lirait.
    */
   note: string | null;
+  /**
+   * ══════════════════════════════════════════════════════════════════════
+   * LOT C — SON PLAT À ELLE, quand le plan lui en a composé un. `null` = elle
+   * mange le plat de la table, et c'est le cas nominal.
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ CE CHAMP EST LA RÉPONSE AU TROU MESURÉ LE 2026-08-14. Un plat dédié ne
+   * portait AUCUNE attribution: cette vue montrait donc le petit-déjeuner de
+   * Zoé — « Greek yogurt bowls … for Zoe » — dans la ligne de Kid, et dans
+   * celle de tout le monde. Depuis le lot C, le moteur pose `member_id` à la
+   * CRÉATION du plat, et cette case le lit.
+   *
+   * ⚠️ IL PORTE UN TITRE, ET SEULEMENT UN TITRE. La règle d'en-tête ne bouge
+   * pas: ni objectif, ni « pourquoi », ni ingrédient. Un titre de plat est déjà
+   * lisible par tout le foyer (policy `student_generated_meals_household_read`).
+   *
+   * ⚠️ ET IL NE REMPLACE PAS `note`. Les deux peuvent coexister: quelqu'un a son
+   * plat à elle ET une part écrite pour un lot que ce plat prélève. Les fondre
+   * en un seul champ obligerait l'écran à deviner lequel il regarde.
+   */
+  ownDish: string | null;
 }
 
 /** Une bouche, et sa ligne à travers la semaine. */
@@ -139,15 +160,35 @@ export function buildPlanByPerson(args: {
   // des jours qu'il couvre par le moteur, donc il n'y a rien à répliquer ici:
   // le refaire produirait deux expansions du même plan, qui divergeraient.
   const byKey = new Map<string, HouseholdDishView>();
+  /**
+   * LOT C — LE PLAT DÉDIÉ D'UNE BOUCHE, PAR CASE. Clé `slot|day|memberId`.
+   *
+   * ⚠️ DEUX TABLES ET PAS UNE, ET C'EST TOUT LE LOT. Avant, un seul `byKey`
+   * gardait le PREMIER plat de la case — ce qui était juste tant qu'un plan
+   * n'en portait qu'un. Depuis les barreaux ② et ③, une case dédiée en porte
+   * DEUX: celui de la table et celui d'une bouche. Le « premier arrivé » aurait
+   * pu être l'un ou l'autre, au hasard de l'ordre du modèle, et la ligne « le
+   * plat » aurait affiché le plat d'une personne à toute la table.
+   */
+  const ownByKey = new Map<string, HouseholdDishView>();
   const slotsSeen: string[] = [];
   for (const dish of args.dishes) {
     if (!dish.day || !dish.slot) continue;
     if (!days.includes(dish.day)) continue;
     if (!slotsSeen.includes(dish.slot)) slotsSeen.push(dish.slot);
     const key = `${dish.slot}|${dish.day}`;
-    // PREMIER ARRIVÉ, PREMIER SERVI. Deux plats sur le même créneau du même
-    // jour n'existent pas dans un plan sain; si ça arrive, en rendre un est
-    // une réponse, en rendre deux dans une case en est une autre — et la
+    // ── LOT C · UN PLAT ATTRIBUÉ NE VA PAS DANS LA LIGNE COMMUNE ──────────
+    // Il est rangé sous SA bouche, et il ne concourt plus pour la case de la
+    // table. Sans cette séparation, le plat de Zoé pouvait devenir « le plat »
+    // du vendredi pour tout le monde.
+    if (dish.memberId !== null) {
+      const own = `${key}|${dish.memberId}`;
+      if (!ownByKey.has(own)) ownByKey.set(own, dish);
+      continue;
+    }
+    // PREMIER ARRIVÉ, PREMIER SERVI. Deux plats COMMUNS sur le même créneau du
+    // même jour n'existent pas dans un plan sain; si ça arrive, en rendre un
+    // est une réponse, en rendre deux dans une case en est une autre — et la
     // seconde ferait grandir la case sans que personne ne sache pourquoi.
     if (!byKey.has(key)) byKey.set(key, dish);
   }
@@ -168,9 +209,15 @@ export function buildPlanByPerson(args: {
         displayName: p.displayName,
         portionNote: p.portionNote,
         cells: days.map((day): PersonCell => {
-          const dish = byKey.get(`${slot}|${day}`);
-          if (!dish) return { note: null };
-          return { note: shareFor(p, dish) };
+          // ── LOT C · SON PLAT À ELLE D'ABORD ────────────────────────────
+          // Quand le plan lui a composé un plat, c'est CE plat qu'elle mange —
+          // pas une part du plat commun. Sa part de lot reste lue derrière:
+          // un plat dédié peut lui aussi prélever sur une préparation.
+          const own = ownByKey.get(`${slot}|${day}|${p.memberId}`) ?? null;
+          const shared = byKey.get(`${slot}|${day}`) ?? null;
+          const from = own ?? shared;
+          if (!from) return { note: null, ownDish: null };
+          return { note: shareFor(p, from), ownDish: own?.title ?? null };
         }),
       })),
     };
@@ -230,6 +277,20 @@ export function buildPersonWeek(args: {
     day,
     dishes: args.dishes
       .filter((d) => d.day === day && d.slot)
+      // ══════════════════════════════════════════════════════════════════
+      // LOT C — LE PLAT D'UN AUTRE NE FIGURE PAS DANS SA SEMAINE.
+      // ══════════════════════════════════════════════════════════════════
+      //
+      // ⛔ C'EST LE DÉFAUT MESURÉ LE 2026-08-14, CITÉ TEL QUEL: la semaine de
+      // Kid affichait « Greek yogurt bowls with peaches, granola and seeds »
+      // ET « … for Zoe » juste en dessous. Le second est le plat DÉDIÉ de Zoé,
+      // produit par le barreau ②, et rien ne permettait de le savoir — le plat
+      // ne portait aucune attribution, et le seul marqueur était « for Zoe »
+      // écrit dans son titre.
+      //
+      // `memberId === null` = le plat de la table, donc il est à elle aussi.
+      // Un plat attribué à quelqu'un d'autre sort de sa semaine.
+      .filter((d) => d.memberId === null || d.memberId === args.person.memberId)
       .sort((a, b) => order(a.slot ?? "") - order(b.slot ?? ""))
       .map((d) => ({
         slot: d.slot ?? "",

@@ -1362,6 +1362,28 @@ export interface HouseholdDishView {
    * la ligne de chaque bouche est la même.
    */
   uses: string[];
+  /**
+   * ══════════════════════════════════════════════════════════════════════
+   * LOT C — LA BOUCHE À QUI CE PLAT EST DÉDIÉ. `null` = le plat de la table.
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ LE TROU QUE CE CHAMP FERME, MESURÉ LE 2026-08-14. Un plat en base ne
+   * portait AUCUNE attribution: le seul marqueur que le petit-déjeuner dédié
+   * était celui de Zoé était « for Zoe » écrit dans son TITRE par le modèle. La
+   * vue par personne l'affichait donc aussi dans la semaine de Kid.
+   *
+   * ⚠️ C'EST UN `member_id`, PAS UN TEXTE, et il n'y a AUCUNE lecture de titre
+   * nulle part sur ce chemin. « Jamais de matcher maison » est une cicatrice
+   * mesurée (12 faux positifs sur 12), et ici un matcher se tromperait dès
+   * « Chicken for Zoe and Marc » et ne trouverait rien dès que le plan sort en
+   * français.
+   *
+   * ⚠️ LECTURE DÉFENSIVE, MÊME CICATRICE QUE `uses` JUSTE AU-DESSUS. La clé est
+   * arrivée après des compositions déjà en base: son absence se lit `null`,
+   * c'est-à-dire « le plat de la table » — ce que ces plans-là étaient déjà pour
+   * tout le monde.
+   */
+  memberId: string | null;
 }
 
 export interface HouseholdMealView {
@@ -1486,6 +1508,15 @@ function readHouseholdDishes(raw: unknown): HouseholdDishView[] {
           .map((u) => String(((u ?? {}) as Record<string, unknown>).preparation_id ?? ""))
           .filter((id) => id !== "")
         : [],
+      // LOT C — MÊME LECTURE DÉFENSIVE, ET MÊME RAISON: la clé est arrivée
+      // après des plans déjà en base. Absente ⇒ `null` ⇒ « le plat de la
+      // table », c'est-à-dire ce que ces plans-là étaient déjà pour tout le
+      // monde. Un `as` ici jurerait que la clé existe et rendrait `undefined`
+      // à l'ouverture d'un vieux plan — « un `as` sur un type étranger désarme
+      // le typecheck ».
+      memberId: typeof d.member_id === "string" && d.member_id.trim()
+        ? d.member_id.trim()
+        : null,
     };
   }).filter((d) => d.title !== "");
 }

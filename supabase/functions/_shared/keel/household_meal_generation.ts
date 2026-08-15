@@ -297,8 +297,24 @@ import {
  * `filter`, et le prompt est celui de v10 au caractère près.
  *
  * `MEAL_PROMPT_VERSION` ne bouge pas: rien de ce lot n'entre dans le tronc.
+ *
+ * ── v12 · LE PLAT DÉDIÉ DIT À QUI IL EST (LOT C, 2026-08-15) ──────────────
+ * La règle de v4 vaut encore — « quelle POPULATION voit une consigne
+ * différente » — et elle décrit ici UNE population, étroite et nommée: LES
+ * FOYERS OÙ AU MOINS UNE BOUCHE REÇOIT UN PLAT À ELLE. Eux seuls gagnent le
+ * bloc `WHOSE DISH IS IT`, avec le champ `for_member_id`.
+ *
+ * ⚠️ TOUT LE RESTE EST BYTE-IDENTIQUE À v11, ET UN TEST LE TIENT: un foyer au
+ * barreau ① rend `dishBearers: []`, le bloc n'est pas assemblé, et le prompt est
+ * celui de v11 au caractère près. C'est aussi ce qui empêche d'apprendre à un
+ * modèle, dans un prompt qui dit « Do NOT propose separate dishes », qu'un plat
+ * peut appartenir à quelqu'un.
+ *
+ * `MEAL_PROMPT_VERSION` ne bouge pas non plus: le champ `for_member_id` est lu
+ * par le parseur partagé, mais il n'est DEMANDÉ que par ce suffixe-ci, et la
+ * lane individuelle passe `merge: null` — donc rien n'y est attribuable.
  */
-export const HOUSEHOLD_PROMPT_VERSION = "v11_dietary_regime_at_the_table";
+export const HOUSEHOLD_PROMPT_VERSION = "v12_whose_dish_is_it";
 
 export interface HouseholdRestriction {
   memberId: string;
@@ -338,6 +354,22 @@ export interface HouseholdPromptInput {
    * Voir `cookingShapeLines` (`household_portions.ts`), qui porte la règle.
    */
   divergingCount: number;
+  /**
+   * LOT C — LES BOUCHES À QUI LA CONSIGNE PROMET UN PLAT À ELLES, avec leur id
+   * EXACT. `[]` = personne, et le bloc d'attribution n'existe alors pas.
+   *
+   * ⚠️ REQUIS, jamais optionnel. Un `?` n'aurait fait remonter AUCUN appelant au
+   * compilateur, et le bloc serait absent de tous les prompts: le modèle
+   * n'aurait jamais rien à quoi attribuer, le parseur n'aurait jamais rien à
+   * valider, et `member_id` serait `null` partout. Un lot construit, branché et
+   * désarmé — « une ceinture armée sur un coffre vide ».
+   *
+   * ⚠️ LES MÊMES BOUCHES QUE `divergingCount`, ET LE MÊME NOMBRE. Deux listes
+   * calculées séparément feraient promettre un plat à quelqu'un que le bloc ne
+   * nomme pas — ou nommer quelqu'un à qui la consigne ne promet rien, dont le
+   * plat serait alors retiré à toute la table par la vue par personne.
+   */
+  dishBearers: readonly { memberId: string; displayName: string }[];
   /**
    * R4/R5 — CE QUE LE PLAT PARTAGÉ DOIT RESPECTER. `""` = personne n'a déclaré
    * de régime, et le prompt est alors byte-identique à celui d'avant ce lot.
@@ -549,6 +581,46 @@ const PORTION_SCHEMA_BLOCK = [
   "about a person's body.",
 ] as const;
 
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * LOT C — LE PLAT DÉDIÉ DIT À QUI IL EST.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ LE TROU QUE CE BLOC FERME, MESURÉ LE 2026-08-14. Un plat en base porte
+ * `title, why, uses, method, slot, day, ingredients, honours_belief_keys` — et
+ * AUCUNE attribution. Le seul marqueur qu'un plat était celui de Zoé était
+ * « for Zoe » écrit dans le TITRE. La vue par personne montrait donc son plat
+ * dédié dans la semaine de tout le monde.
+ *
+ * ── POURQUOI ON LE DEMANDE AU MODÈLE, ET POURQUOI C'EST SÛR ───────────────
+ * Sur une case dédiée il y a DEUX plats: celui de la table et le sien. Lequel
+ * est lequel n'est pas décidable de l'extérieur — c'est le modèle qui vient de
+ * composer les deux. Et il copie DÉJÀ ces mêmes ids, dans le bloc juste
+ * au-dessus (`member_portions[].member_id`), sur chaque plan de foyer écrit
+ * depuis le pivot. Ce n'est donc pas un pari: c'est le même geste, une clé plus
+ * loin.
+ *
+ * ⛔ ET LE BLOC N'EXISTE QUE QUAND UN PLAT DÉDIÉ EST RÉCLAMÉ. Servi à un foyer
+ * au barreau ① — « Do NOT propose separate dishes » — il apprendrait au modèle
+ * qu'un plat peut appartenir à quelqu'un, et l'inviterait à en marquer un. Une
+ * consigne qui parle d'un marquage dans un prompt qui l'interdit est exactement
+ * l'invitation qu'on veut éviter; c'est le raisonnement de `buildPortionBrief`
+ * sur `anyHabit` et `anyRhythm`, mot pour mot.
+ */
+function dishOwnerSchemaBlock(
+  dishBearers: readonly { memberId: string; displayName: string }[],
+): readonly string[] {
+  if (dishBearers.length === 0) return [];
+  return [
+    "== WHOSE DISH IS IT (household) ==",
+    'Every dish you return may carry one more key: "for_member_id".',
+    "Set it ONLY on a dish you cooked for one named person below, using their",
+    "EXACT member_id. Leave it out of every dish the table shares — a dish with",
+    "no for_member_id is the table's dish, and that is the normal case.",
+    ...dishBearers.map((b) => `  ${b.displayName} = ${b.memberId}`),
+  ];
+}
+
 export interface HouseholdPromptBlocks {
   /** À concaténer au `userMessage` de `buildMealPrompt`. */
   userSuffix: string;
@@ -608,6 +680,7 @@ export function buildHouseholdPromptBlocks(
 ): HouseholdPromptBlocks {
   const envyBlock = buildEnvyBlock(input.envyLine);
   const voices = buildHouseholdVoices(input.voices);
+  const dishOwner = dishOwnerSchemaBlock(input.dishBearers);
 
   const idLines = input.members.map((m) => `- ${m.displayName} = ${m.memberId}`);
 
@@ -668,7 +741,14 @@ export function buildHouseholdPromptBlocks(
 
   return {
     userSuffix: `\n\n${parts.join("\n\n")}`,
-    systemSuffix: `\n\n${PORTION_SCHEMA_BLOCK.join("\n")}`,
+    // LOT C — LE BLOC D'ATTRIBUTION REJOINT LE SCHÉMA, et il n'existe que
+    // quand un plat dédié est réclamé (voir `dishOwnerSchemaBlock`).
+    systemSuffix: `\n\n${
+      [
+        ...PORTION_SCHEMA_BLOCK,
+        ...(dishOwner.length === 0 ? [] : ["", ...dishOwner]),
+      ].join("\n")
+    }`,
     envyLineUsed: envyBlock.length > 0,
     voiceIssues: voices.issues,
     voicesHeard: voices.heard.length,

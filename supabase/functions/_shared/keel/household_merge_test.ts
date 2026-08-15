@@ -1556,7 +1556,7 @@ Deno.test("BARREAU ①, une préparation d'UNE portion reste jetée", () => {
       ownDishesShown: 6,
       dedicatedDishesAsked: 0,
       // ① ne réclame aucun plat dédié: aucune case n'est protégée.
-      dedicatedCells: NO_DEDICATED_CELLS,
+      dedicatedCells: NO_DEDICATED_CELLS, dishBearerIds: ["m-eater"],
     },
   });
   assertEquals(meal.preparations.length, 0);
@@ -1578,7 +1578,7 @@ for (const shape of ["one_session", "separate_sessions"] as const) {
         shape,
         ownDishesShown: 6,
         dedicatedDishesAsked: 6,
-        dedicatedCells: cellsOf(["wed", "thu"], ["breakfast", "lunch", "dinner"]),
+        dedicatedCells: cellsOf(["wed", "thu"], ["breakfast", "lunch", "dinner"]), dishBearerIds: ["m-eater"],
       },
     });
     assertEquals(meal.preparations.length, 1);
@@ -1604,7 +1604,7 @@ Deno.test("MÊME SOUS FUSION, une préparation de ZÉRO portion tombe", () => {
         shape: "one_session",
         ownDishesShown: 6,
         dedicatedDishesAsked: 6,
-        dedicatedCells: cellsOf(["wed", "thu"], ["breakfast", "lunch", "dinner"]),
+        dedicatedCells: cellsOf(["wed", "thu"], ["breakfast", "lunch", "dinner"]), dishBearerIds: ["m-eater"],
       },
     });
     assertEquals(meal.preparations.length, 0, `servings_made = ${bad}`);
@@ -1654,7 +1654,7 @@ Deno.test("BARREAU ①, le plafond NE BOUGE PAS — ni au prompt, ni au parse", 
     // table même si la personne apporte douze plats.
     dedicatedDishesAsked: 0,
     // C7 ② — ① ne protège AUCUNE case: le plafond garde son ordre d'avant.
-    dedicatedCells: NO_DEDICATED_CELLS,
+    dedicatedCells: NO_DEDICATED_CELLS, dishBearerIds: ["m-eater"],
   };
   const { userMessage } = buildMealPrompt({ ...PROMPT_BASE, merge });
   assert(userMessage.includes(`at most ${BASE_CAP_15} dishes`));
@@ -1677,7 +1677,7 @@ Deno.test("BARREAUX ② ET ③, le plafond gagne EXACTEMENT ce qu'on montre", ()
       dedicatedDishesAsked: 3,
       // C7 ② — le BUDGET ne lit pas les cases, il lit les deux nombres. Le
       // décor le dit en ne lui en donnant aucune.
-      dedicatedCells: NO_DEDICATED_CELLS,
+      dedicatedCells: NO_DEDICATED_CELLS, dishBearerIds: ["m-eater"],
     };
     const { userMessage } = buildMealPrompt({ ...PROMPT_BASE, merge });
     assert(
@@ -1700,7 +1700,7 @@ Deno.test("BARREAU ② SANS MATIÈRE, il reste UN plat de plus — le « SECOND 
     shape: "one_session" as const,
     ownDishesShown: 0,
     dedicatedDishesAsked: 1,
-    dedicatedCells: NO_DEDICATED_CELLS,
+    dedicatedCells: NO_DEDICATED_CELLS, dishBearerIds: ["m-eater"],
   };
   const { userMessage } = buildMealPrompt({ ...PROMPT_BASE, merge });
   assert(userMessage.includes("at most 16 dishes"), userMessage.slice(0, 200));
@@ -1713,7 +1713,7 @@ Deno.test("LE BONUS EST BORNÉ PAR LE PLAFOND DE BASE — une bouche, pas trois"
     shape: "one_session" as const,
     ownDishesShown: 400,
     dedicatedDishesAsked: 9,
-    dedicatedCells: NO_DEDICATED_CELLS,
+    dedicatedCells: NO_DEDICATED_CELLS, dishBearerIds: ["m-eater"],
   };
   const { userMessage } = buildMealPrompt({ ...PROMPT_BASE, merge });
   assert(userMessage.includes("at most 30 dishes"), userMessage.slice(0, 200));
@@ -1728,19 +1728,19 @@ Deno.test("LE PROMPT ET LE PARSE ANNONCENT LE MÊME NOMBRE, barreau par barreau"
       shape: "one_dish",
       ownDishesShown: 5,
       dedicatedDishesAsked: 0,
-      dedicatedCells: NO_DEDICATED_CELLS,
+      dedicatedCells: NO_DEDICATED_CELLS, dishBearerIds: ["m-eater"],
     },
     {
       shape: "one_session",
       ownDishesShown: 3,
       dedicatedDishesAsked: 9,
-      dedicatedCells: NO_DEDICATED_CELLS,
+      dedicatedCells: NO_DEDICATED_CELLS, dishBearerIds: ["m-eater"],
     },
     {
       shape: "separate_sessions",
       ownDishesShown: 7,
       dedicatedDishesAsked: 2,
-      dedicatedCells: NO_DEDICATED_CELLS,
+      dedicatedCells: NO_DEDICATED_CELLS, dishBearerIds: ["m-eater"],
     },
   ];
   for (const merge of cases) {
@@ -1771,7 +1771,7 @@ Deno.test("LE BUDGET DE SESSIONS NE SUIT PAS LE BONUS DE FUSION", () => {
       shape: "one_session",
       ownDishesShown: 6,
       dedicatedDishesAsked: 6,
-      dedicatedCells: cellsOf(["wed", "thu"], ["breakfast", "lunch", "dinner"]),
+      dedicatedCells: cellsOf(["wed", "thu"], ["breakfast", "lunch", "dinner"]), dishBearerIds: ["m-eater"],
     },
   }).userMessage;
   const sessionsOf = (m: string) => m.match(/cooking sessions: at most (\d+)/)?.[1];
@@ -2426,7 +2426,7 @@ const c7Merge: MergedEater = {
   shape: "one_session",
   ownDishesShown: 9,
   dedicatedDishesAsked: 9,
-  dedicatedCells: C7_CELLS,
+  dedicatedCells: C7_CELLS, dishBearerIds: ["m-eater"],
 };
 
 const c7ParseBase = {
@@ -2551,7 +2551,7 @@ Deno.test("C7 ② — SANS LES CASES D'ELLE, LE PLAT DÉDIÉ REDEVIENT DU SURPLU
   }
   const meal = parseGeneratedMeal({ preparations: [], dishes, shopping_list: [] }, {
     ...c7ParseBase,
-    merge: { ...c7Merge, dedicatedCells: NO_DEDICATED_CELLS },
+    merge: { ...c7Merge, dedicatedCells: NO_DEDICATED_CELLS, dishBearerIds: ["m-eater"] },
   });
   assertEquals(meal.dishes.length, C7_CAP);
   const titles = meal.dishes.map((d) => d.title);
@@ -2670,7 +2670,13 @@ Deno.test("C8 ③ — LA LANE INDIVIDUELLE GARDE SA VERSION DE PROMPT", () => {
   // par le régime plutôt que par la direction de service. Tous les autres
   // rendent `dietBlock: ""`, et `household_meal_generation_test.ts` tient
   // l'égalité de chaîne.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v11_dietary_regime_at_the_table");
+  // ⚠️ v12 DEPUIS LE LOT C (2026-08-15), ET LE TRONC NE BOUGE TOUJOURS PAS. La
+  // population neuve est ÉTROITE et nommée: les foyers où au moins une bouche
+  // reçoit un plat à elle. Eux seuls gagnent le bloc `WHOSE DISH IS IT` et le
+  // champ `for_member_id`. Un foyer au barreau ① rend `dishBearers: []`, le bloc
+  // n'est pas assemblé, et le prompt est celui de v11 au caractère près —
+  // `household_meal_generation_test.ts` le tient.
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v12_whose_dish_is_it");
 });
 
 Deno.test("C7 ③ — LA LIGNE DE COURSES D'UN PLAT JETÉ NE PART PLUS AU MAGASIN", () => {
@@ -3386,5 +3392,61 @@ Deno.test("LOT B — ⛔ le choix est ARCHIVÉ et n'a AUCUN lecteur", async () =
   assert(
     !/generated_from["']?\s*\)?\s*[\.\[]\s*["']?household["']?[\s\S]{0,80}cooking/.test(src),
     "le choix archivé est relu depuis un plan précédent.",
+  );
+});
+
+// ---------------------------------------------------------------------------
+// LOT C — L'ATTRIBUTION ATTEINT LES TROIS BOUTS, ET ELLE EST COMPTÉE
+//
+// ⛔ LE MODULE PUR NE PROUVE QUE LA MOITIÉ, ENCORE. Le parseur peut valider
+// parfaitement un `for_member_id` que le prompt ne demande à personne, ou que
+// le budget ne connaît pas. Trois bouts doivent porter la MÊME liste:
+//
+//   ① LE PROMPT (`dishBearers`) — sans lui, le modèle n'a rien à quoi attribuer;
+//   ② LE PARSEUR (`dishBearerIds`) — sans lui, tout `for_member_id` est refusé;
+//   ③ L'ARCHIVE (`dish_owners`) — sans elle, un modèle qui ignorerait la
+//      consigne rendrait `member_id: null` partout et le lot ressemblerait trait
+//      pour trait à un lot qui marche.
+// ---------------------------------------------------------------------------
+
+Deno.test("LOT C — la liste des porteurs atteint le PARSEUR, sur les deux chemins", async () => {
+  const src = await generatorSource();
+  // Le chemin de FUSION: une seule personne, et seulement au-dessus du barreau ①.
+  assert(
+    /dishBearerIds: asksForASecondDish\(cookingShape\) && mergedMember !== null\s*\?\s*\[mergedMember\.memberId\]\s*:\s*\[\]/
+      .test(src),
+    "le budget de FUSION ne porte plus la bouche à qui le plat est dédié.",
+  );
+  // Le chemin de COMPOSITION: les bouches PLAFONNÉES, jamais le calcul brut.
+  assert(
+    /dishBearerIds: dishBearingMembers\.map\(\(m\) => m\.memberId\)/.test(src),
+    "le budget de COMPOSITION porte les divergents du CALCUL au lieu des bouches " +
+      "à qui la consigne promet vraiment un plat: un plat serait attribué à " +
+      "quelqu'un que le prompt ne nomme pas, et retiré à toute la table.",
+  );
+});
+
+Deno.test("LOT C — la liste des porteurs atteint le PROMPT, et c'est la même", async () => {
+  const src = await generatorSource();
+  assert(/dishBearers: ladder !== null && mergedMember !== null/.test(src),
+    "le bloc d'attribution ne reçoit plus la personne reprise sur une fusion.");
+  assert(
+    /: dishBearingMembers\.map\(\(m\) => \(\{\s*memberId: m\.memberId,\s*displayName: m\.displayName,\s*\}\)\)/
+      .test(src),
+    "le bloc d'attribution ne reçoit plus les bouches de la composition.",
+  );
+});
+
+Deno.test("LOT C — ⛔ l'écart demandé/attribué est ARCHIVÉ", async () => {
+  // C'est la seule chose qui rende le lot MESURABLE. `for_member_id` est
+  // déclaré par le modèle: on ne peut pas savoir d'avance à quelle fréquence il
+  // le remplit, seulement le compter. Sans ces deux nombres, un lot désarmé
+  // est indiscernable d'un lot qui marche.
+  const src = await generatorSource();
+  assert(
+    /dish_owners:\s*\{\s*asked: eaterBudget\?\.dedicatedDishesAsked \?\? 0,\s*attributed: meal\.dishes\.filter\(\(d\) => d\.memberId !== null\)\.length,/
+      .test(src),
+    "l'écart entre les plats dédiés RÉCLAMÉS et ceux réellement ATTRIBUÉS n'est " +
+      "plus archivé: un modèle qui ignore la consigne redevient invisible.",
   );
 });

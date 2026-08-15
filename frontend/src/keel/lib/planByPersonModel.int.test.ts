@@ -30,16 +30,18 @@ const DISHES: HouseholdDishView[] = [
     day: "fri",
     slot: "dinner",
     uses: ["prep_chicken_bowls"],
+    memberId: null,
   },
   {
     title: "Chicken rice bowls with roasted vegetables",
     day: "sat",
     slot: "dinner",
     uses: ["prep_chicken_bowls"],
+    memberId: null,
   },
   // ⚠️ UN PLAT SANS LOT. C'est le cas qui décide s'il faut fabriquer une phrase
   // de repli, et la réponse est non.
-  { title: "Apple and nuts", day: "fri", slot: "snack_pm", uses: [] },
+  { title: "Apple and nuts", day: "fri", slot: "snack_pm", uses: [], memberId: null },
 ];
 
 const PORTIONS: MemberPortionView[] = [
@@ -283,5 +285,119 @@ describe("les gardes d'affichage (câblage)", () => {
   it("à une seule bouche, la vue se tait — elle n'a pas de sujet", () => {
     const src = code(VIEW);
     expect(src).toContain("if (props.portions.length < 2) return null;");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// LOT C — LE PLAT DÉDIÉ EST ATTRIBUÉ, ET IL SORT DE LA SEMAINE DES AUTRES
+//
+// ⛔ LE DÉFAUT, MESURÉ LE 2026-08-14 ET CITÉ TEL QUEL. Sur le plan `de4309ba`,
+// la vue individuelle de Kid affichait au vendredi:
+//
+//     Breakfast — Greek yogurt bowls with peaches, granola and seeds
+//     Breakfast — Greek yogurt bowls with peaches, granola and seeds for Zoe
+//
+// Le second est le plat DÉDIÉ de Zoé (barreau ②). Il apparaissait dans la
+// semaine de tout le monde parce que `dishes[]` ne portait AUCUN `member_id`:
+// le seul marqueur était « for Zoe » écrit dans le TITRE par le modèle.
+//
+// ⛔ ET ON NE LE DEVINE TOUJOURS PAS DEPUIS LE TITRE. Les plats de ce bloc
+// portent volontairement le MÊME titre, sans aucune mention de prénom: si un
+// matcher revenait un jour, ces tests continueraient de passer pour la
+// mauvaise raison — donc ils sont écrits pour qu'aucun matcher ne PUISSE les
+// faire passer.
+// ---------------------------------------------------------------------------
+
+/** Le cas mesuré: une case, deux plats, l'un dédié. Titres IDENTIQUES. */
+const DEDICATED: HouseholdDishView[] = [
+  {
+    title: "Greek yogurt bowls with peaches",
+    day: "fri",
+    slot: "breakfast",
+    uses: [],
+    memberId: null,
+  },
+  {
+    title: "Greek yogurt bowls with peaches",
+    day: "fri",
+    slot: "breakfast",
+    uses: [],
+    memberId: "m-chris",
+  },
+];
+
+describe("LOT C — un plat dédié appartient à une bouche", () => {
+  it("la semaine d'une autre bouche ne porte PAS le plat dédié", () => {
+    const week = buildPersonWeek({
+      days: ["fri"],
+      dishes: DEDICATED,
+      person: PORTIONS[0], // ILi — le plat dédié est celui de Christèle
+    });
+    expect(week[0].dishes).toHaveLength(1);
+    expect(week[0].dishes[0].title).toBe("Greek yogurt bowls with peaches");
+  });
+
+  it("la semaine de SA bouche porte les deux — le commun et le sien", () => {
+    // ⚠️ LE CAS QUI PASSE, et il compte autant que le précédent: une garde
+    // qu'on ne sait pas faire dire « oui » bloque tout en ressemblant à une
+    // garde qui marche. Le plat commun de la table reste le sien aussi.
+    const week = buildPersonWeek({
+      days: ["fri"],
+      dishes: DEDICATED,
+      person: PORTIONS[1], // Christèle
+    });
+    expect(week[0].dishes).toHaveLength(2);
+  });
+
+  it("⛔ la ligne « le plat » ne montre JAMAIS le plat d'une seule personne", () => {
+    // Sans la séparation, le « premier arrivé » de la case pouvait être le plat
+    // dédié — au hasard de l'ordre du modèle — et la table entière lisait le
+    // plat d'une bouche comme le sien.
+    const model = buildPlanByPerson({
+      days: ["fri"],
+      // L'ORDRE EST INVERSÉ EXPRÈS: le plat dédié arrive EN PREMIER.
+      dishes: [DEDICATED[1], DEDICATED[0]],
+      portions: PORTIONS,
+    });
+    const breakfast = model.groups.find((g) => g.slot === "breakfast");
+    expect(breakfast?.dishes).toEqual(["Greek yogurt bowls with peaches"]);
+    const ili = breakfast?.people.find((p) => p.memberId === "m-ili");
+    const chris = breakfast?.people.find((p) => p.memberId === "m-chris");
+    // Le plat dédié est sous SA ligne, et sous elle seule.
+    expect(chris?.cells[0].ownDish).toBe("Greek yogurt bowls with peaches");
+    expect(ili?.cells[0].ownDish).toBeNull();
+  });
+
+  it("un plat commun ne porte AUCUNE attribution — la contre-épreuve", () => {
+    const model = buildPlanByPerson({
+      days: ["fri", "sat"],
+      dishes: DISHES,
+      portions: PORTIONS,
+    });
+    for (const group of model.groups) {
+      for (const person of group.people) {
+        for (const cell of person.cells) {
+          expect(cell.ownDish).toBeNull();
+        }
+      }
+    }
+  });
+
+  it("⛔ AUCUNE lecture de titre nulle part sur ce chemin", () => {
+    // « Jamais de matcher maison »: 12 faux positifs sur 12 mesurés. Ici un
+    // matcher attribuerait de travers dès « Chicken for Zoe and Marc », et rien
+    // du tout dès que le plan sort en français.
+    const model = readFileSync(
+      resolve(__dirname, "../../../..", "frontend/src/keel/lib/planByPersonModel.ts"),
+      "utf8",
+    );
+    for (const forbidden of ["includes(", "toLowerCase(", "match(", "indexOf("]) {
+      expect(model, `${forbidden} sur les titres est revenu`).not.toContain(
+        `title.${forbidden}`,
+      );
+    }
+    // L'attribution passe par l'IDENTIFIANT, et par lui seul.
+    expect(model).toContain("dish.memberId !== null");
+    expect(model).toContain("d.memberId === args.person.memberId");
   });
 });
