@@ -13,6 +13,17 @@ import MealBuilder from "../components/MealBuilder";
 import MyShareCard from "../components/plan/MyShareCard";
 import PlanByPerson from "../components/plan/PlanByPerson";
 import PlanDraftDialog from "../components/plan/PlanDraftDialog";
+// LOT D — le retour de fin de plan. Les questions viennent du module serveur,
+// jamais d'une seconde table écrite ici.
+import PlanFeedbackDialog from "../components/plan/PlanFeedbackDialog";
+import {
+  dismissPlanFeedback,
+  loadPlanAwaitingFeedback,
+  newEnvyIsAsked,
+  type PlanAwaitingFeedback,
+  questionsFor,
+  submitPlanFeedback,
+} from "../api/planFeedback";
 import { windowDates, windowDayOrder } from "../api/mealWindow";
 import { selectMyShare } from "../api/myShare";
 import { chooseGenerator } from "../api/planRouting";
@@ -33,6 +44,10 @@ import {
   loadHousehold,
   loadHouseholdMeal,
   loadMyHouseholdPlace,
+  // LOT D — l'envie apparue en cours de plan part dans le canal QUI EXISTE.
+  // Pas de second canal d'envies: ce wrapper est le seul écrivain de la ligne
+  // que le générateur lit à chaque composition.
+  submitEnvy,
 } from "../api/household";
 import { browserLocalDate } from "../lib/useMealTicks";
 import EatingRhythmCard from "../components/EatingRhythmCard";
@@ -43,7 +58,11 @@ import { dishDayLabel, mealCopy } from "../api/mealLabels";
 import { keptFrom } from "../api/foodPreferences";
 import { mergePracticalConstraints } from "../api/practicalConstraints";
 import { sendChatMessage } from "../api/chat";
-import { addDays } from "../api/dates";
+// `weekStartFor` — LOT D: la ligne d'envies est ancrée sur un LUNDI ISO, et la
+// table n'en accepte pas d'autre. Recaler ici plutôt qu'envoyer un mardi:
+// l'écriture le corrigerait, la relecture filtre en SQL, et « rien écrit »
+// s'afficherait juste après avoir écrit.
+import { addDays, weekStartFor } from "../api/dates";
 import {
   axisReading,
   type BodyMeasureRow,
@@ -1105,6 +1124,20 @@ export default function StudentWeekPlanPage() {
   const [draftBusy, setDraftBusy] = React.useState(false);
   const [draftFailure, setDraftFailure] = React.useState<string | null>(null);
   /**
+   * LOT D — LE PLAN ÉCOULÉ QUI ATTEND SON RETOUR. `null` = il n'y en a pas, et
+   * c'est le cas nominal.
+   *
+   * ⚠️ `feedbackOpenedOnce` EST UNE `ref`, PAS UN ÉTAT: `refresh()` est rappelé
+   * après chaque enregistrement de la page, et un état ferait resurgir le
+   * questionnaire que la personne vient de fermer. Même patron que
+   * `openedOnce` pour la fenêtre de réglage.
+   */
+  const [feedbackPlan, setFeedbackPlan] = React.useState<
+    PlanAwaitingFeedback | null
+  >(null);
+  const [feedbackOpen, setFeedbackOpen] = React.useState(false);
+  const feedbackOpenedOnce = React.useRef(false);
+  /**
    * LES PLANS VIVANTS, lus par `loadMealPlans` — la MÊME fonction que
    * `MealBuilder`, pas une seconde requête écrite ici.
    *
@@ -1386,6 +1419,33 @@ export default function StudentWeekPlanPage() {
     setRestricted(rows[0]?.risk_band === "restriction_flag");
     setReviews(rows);
     setMeasures((measureRes.data ?? []) as BodyMeasureRow[]);
+
+    // ══════════════════════════════════════════════════════════════════════
+    // LOT D — LE PLAN QUI S'EST ACHEVÉ ET QUI ATTEND SON RETOUR.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⚠️ IL S'OUVRE DE LUI-MÊME, ET UNE SEULE FOIS PAR CHARGEMENT. Personne ne
+    // clique sur un bouton pour découvrir une question qu'il ignore — même
+    // raisonnement que la fenêtre de réglage juste au-dessus, et même garde
+    // (`openedOnce`-like): un enregistrement dans la page rappelle `refresh`,
+    // et rouvrir sur cette relecture ferait resurgir le questionnaire que la
+    // personne vient de fermer.
+    //
+    // ⚠️ UNE LECTURE QUI ÉCHOUE NE COÛTE PAS LA PAGE. Ce questionnaire est un
+    // BONUS: `/app/plan` doit s'ouvrir même si `meal_plan_feedback` est
+    // injoignable. D'où le `catch` silencieux — et il est silencieux ici
+    // seulement, parce que rien de ce qu'il porte n'est nécessaire à lire son
+    // plan.
+    try {
+      const awaiting = await loadPlanAwaitingFeedback(uid, browserLocalDate());
+      setFeedbackPlan(awaiting);
+      if (awaiting && !feedbackOpenedOnce.current) {
+        feedbackOpenedOnce.current = true;
+        setFeedbackOpen(true);
+      }
+    } catch {
+      setFeedbackPlan(null);
+    }
   }, [weekStart, refreshHousehold, refreshLivePlans]);
 
   React.useEffect(() => {
@@ -2551,6 +2611,99 @@ export default function StudentWeekPlanPage() {
             }
           }}
         />
+
+        {/* ══════════════════════════════════════════════════════════════════
+            LOT D — LE RETOUR DE FIN DE PLAN.
+
+            ⛔ FERMER EST UNE RÉPONSE, ET ELLE S'ÉCRIT. Sans `onDismiss`, le
+            questionnaire reviendrait à chaque ouverture de l'app: un « non
+            merci » transformé en harcèlement. C'est la ligne la moins
+            spectaculaire de ce montage et celle dont l'absence se paierait le
+            plus vite.
+
+            ⛔ LES QUESTIONS VIENNENT DE `questionsFor`, PAS D'ICI. C'est elle
+            qui retire `portions` et `hunger_between_meals` sous plancher TCA,
+            ET qui rend la sortie INDISCERNABLE de celle d'une dynamique
+            inconnue — sinon le questionnaire devient lui-même un oracle
+            (« on ne m'a pas demandé les portions, donc je suis marqué »). Un
+            second calcul ici serait la première chose à diverger.
+
+            ⚠️ `restricted` EST LE DRAPEAU COURANT, lu plus haut sur la ligne
+            de bilan la plus récente. Une lecture EN ÉCHEC vaudrait `true`
+            (fail-closed) — se fermer rend un questionnaire plus court,
+            s'ouvrir met une question de portion sous les yeux de quelqu'un
+            qu'on n'a pas su évaluer.
+            ══════════════════════════════════════════════════════════════════ */}
+        {feedbackPlan
+          ? (
+            <PlanFeedbackDialog
+              open={feedbackOpen}
+              questions={questionsFor(
+                (goal?.goal ?? null) as never,
+                restricted,
+              )}
+              dishTitles={feedbackPlan.dishTitles}
+              // ⛔ SEUL LE MAÎTRE D'UN FOYER VOIT LA QUESTION D'ENVIE: c'est le
+              // seul compte qui puisse l'écrire dans le canal qui la lit
+              // (`keel_household_submit_envy` refuse tout autre membre par
+              // `not_owner`). Une question sans lecteur ne se pose pas.
+              askEnvy={newEnvyIsAsked({ isHouseholdOwner: isOwner })}
+              onDismiss={async () => {
+                // On ferme d'abord: le refus est déjà pris, et une erreur
+                // d'écriture ne doit pas retenir quelqu'un devant un
+                // questionnaire qu'il vient de refuser.
+                setFeedbackOpen(false);
+                try {
+                  await dismissPlanFeedback(feedbackPlan.mealId);
+                  setFeedbackPlan(null);
+                } catch {
+                  // Silencieux: le refus est un geste de sortie. Le
+                  // questionnaire reviendra au prochain chargement, ce qui est
+                  // le comportement d'avant ce lot — jamais pire.
+                }
+              }}
+              onSubmit={async (answers) => {
+                const written = await submitPlanFeedback(feedbackPlan.mealId, {
+                  cooked: answers.cooked,
+                  portions: answers.portions,
+                  neverAgain: answers.neverAgain,
+                  makeAgain: answers.makeAgain,
+                  axisQuestion: answers.axisQuestion,
+                  axisAnswer: answers.axisAnswer,
+                });
+                // `already_answered` n'est PAS une panne: « une seule fois par
+                // fenêtre » est une contrainte de BASE, et deux surfaces
+                // peuvent proposer ce questionnaire. On referme.
+                if (!written.ok && written.reason !== "already_answered") {
+                  throw new Error(written.reason ?? "feedback_not_written");
+                }
+                // ── L'ENVIE PART DANS LE CANAL QUI EXISTE ──────────────────
+                // ⛔ PAS DE SECOND CANAL D'ENVIES. `keel_household_submit_envy`
+                // est le seul écrivain de la ligne que le générateur lit, et
+                // elle vise la semaine PROCHAINE: l'écrire sur celle qui vient
+                // de s'achever serait l'écrire dans le passé — recueillie,
+                // rangée, et jamais servie.
+                if (answers.envy) {
+                  try {
+                    await submitEnvy(
+                      // `"mon"` EN DUR, ET C'EST LA TABLE QUI L'EXIGE: la
+                      // ligne d'envies n'ancre QUE des lundis ISO depuis le lot
+                      // 5, et la RPC recale de son côté. Un autre jeton ferait
+                      // écrire un lundi et relire autre chose.
+                      weekStartFor(addDays(browserLocalDate(), 7), "mon"),
+                      answers.envy,
+                    );
+                  } catch {
+                    // L'envie est un bonus sur un retour déjà écrit: son échec
+                    // ne doit pas faire relire tout le questionnaire.
+                  }
+                }
+                setFeedbackOpen(false);
+                setFeedbackPlan(null);
+              }}
+            />
+          )
+          : null}
       </div>
     </KeelAppShell>
   );
