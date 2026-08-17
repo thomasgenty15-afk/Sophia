@@ -197,6 +197,11 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
               startsOn={draft.startsOn}
               durationDays={draft.durationDays}
               today={draft.startsOn}
+              // LOT 1 — L'APERÇU S'OUVRE EN SEMAINE ENTIÈRE: on juge un
+              // brouillon en entier avant de l'adopter. Le rail reste là —
+              // lire le mardi du brouillon est à un clic. Le plan ADOPTÉ,
+              // lui, ouvre sur le jour (le défaut de `PlanResult`).
+              defaultView="week"
               fixedIntakes={draft.fixedIntakes}
               dayProperties={draft.dayProperties}
               // LE VIDE DE CETTE FENÊTRE N'EST PAS CELUI DE L'ÉCRAN. « Dis-moi

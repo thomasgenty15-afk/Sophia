@@ -1,0 +1,179 @@
+import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+import { defaultSelectedDay, effectiveSelectedDay } from "./planDayView";
+import { windowDates, windowDayOrder } from "../api/mealWindow";
+
+/**
+ * LOT 1 — LA VUE PAR JOUR. Ce que ces tests protègent, dans l'ordre de ce qui
+ * coûte le plus cher quand ça casse:
+ *
+ *   * L'ORDRE CALENDAIRE — une semaine commencée mercredi qui s'ouvrirait sur
+ *     lundi ouvrirait sur un jour qui a l'air raté;
+ *   * LE JOUR D'OUVERTURE — la vue jour doit ouvrir AUJOURD'HUI quand
+ *     aujourd'hui est dans la fenêtre, et sur le premier jour du PLAN sinon;
+ *   * LE GROUPE SANS JOUR — filtré sur un jour, il disparaîtrait d'un plan qui
+ *     le contient;
+ *   * LE RAIL ET LA GRILLE — deux entrées, UN état: les masquer ou les couper
+ *     de `setSelectedDay` rend la vue jour inatteignable.
+ */
+
+// UNE SEMAINE COMMENCÉE MERCREDI — le cas qui a produit `windowDayOrder`.
+// Les dates sont LITTÉRALES: le 2026-08-12 est un mercredi.
+const STARTS = "2026-08-12";
+const ORDER = windowDayOrder(STARTS, 7);
+const DATES = windowDates(STARTS, 7);
+
+describe("defaultSelectedDay — le jour qu'on ouvre", () => {
+  it("la vue jour ouvre sur AUJOURD'HUI quand il est dans la fenêtre", () => {
+    // Le vendredi 14: le troisième jour du plan, pas le premier.
+    expect(
+      defaultSelectedDay({ view: "day", order: ORDER, dates: DATES, today: "2026-08-14" }),
+    ).toBe("fri");
+  });
+
+  it("aujourd'hui HORS fenêtre ⇒ le PREMIER jour du plan, jamais le calendrier", () => {
+    // Un plan « suivant », regardé avant son départ: mercredi ouvre, pas lundi.
+    expect(
+      defaultSelectedDay({ view: "day", order: ORDER, dates: DATES, today: "2026-08-01" }),
+    ).toBe("wed");
+  });
+
+  it("l'aperçu (today = startsOn) tombe sur le premier jour du brouillon", () => {
+    // C'est la jointure qui rend le brouillon correct SANS code dédié:
+    // `PlanDraftDialog` passe `today={draft.startsOn}` depuis toujours.
+    expect(
+      defaultSelectedDay({ view: "day", order: ORDER, dates: DATES, today: STARTS }),
+    ).toBe("wed");
+  });
+
+  it("la vue semaine ouvre « all », quel que soit aujourd'hui", () => {
+    expect(
+      defaultSelectedDay({ view: "week", order: ORDER, dates: DATES, today: "2026-08-14" }),
+    ).toBe("all");
+  });
+
+  it("une fenêtre courte n'ouvre que ses propres jours", () => {
+    // Trois jours à partir du mercredi: le samedi n'existe pas dans ce plan.
+    const order = windowDayOrder(STARTS, 3);
+    const dates = windowDates(STARTS, 3);
+    expect(
+      defaultSelectedDay({ view: "day", order, dates, today: "2026-08-15" }),
+    ).toBe("wed");
+  });
+
+  it("sans aucun jour, « all » — jamais un jeton inventé", () => {
+    expect(
+      defaultSelectedDay({ view: "day", order: [], dates: {}, today: "2026-08-14" }),
+    ).toBe("all");
+  });
+});
+
+describe("effectiveSelectedDay — une sélection qui survit au changement de plan", () => {
+  it("« all » et un jeton de la fenêtre passent tels quels", () => {
+    expect(
+      effectiveSelectedDay({ selected: "all", order: ORDER, dates: DATES, today: "2026-08-14" }),
+    ).toBe("all");
+    expect(
+      effectiveSelectedDay({ selected: "sat", order: ORDER, dates: DATES, today: "2026-08-14" }),
+    ).toBe("sat");
+  });
+
+  it("un jeton hors de la NOUVELLE fenêtre retombe sur le défaut, jamais sur du vide", () => {
+    // L'onglet « courant » → « suivant » garde le composant monté: un `sun`
+    // choisi sur un plan de 7 jours n'existe pas dans un suivant de 3.
+    const order = windowDayOrder(STARTS, 3);
+    const dates = windowDates(STARTS, 3);
+    expect(
+      effectiveSelectedDay({ selected: "sun", order, dates, today: "2026-08-13" }),
+    ).toBe("thu");
+  });
+});
+
+/**
+ * LE CÂBLAGE, TESTÉ SUR LA SOURCE.
+ *
+ * ⚠️ COMMENTAIRES RETIRÉS — cicatrice `caller-audit-must-strip-comments`: les
+ * en-têtes de ces fichiers PARLENT du rail et de la sélection pour les
+ * documenter, et un `includes` sur la source brute passerait au vert sur un
+ * commentaire.
+ */
+describe("le câblage de la vue jour", () => {
+  const ROOT = resolve(__dirname, "../../../..");
+
+  function code(rel: string): string {
+    return readFileSync(resolve(ROOT, rel), "utf8")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
+      .split("\n")
+      .map((line) => {
+        const at = line.indexOf("//");
+        if (at < 0) return line;
+        if (at > 0 && line[at - 1] === ":") return line;
+        return line.slice(0, at);
+      })
+      .join("\n");
+  }
+
+  const RESULT = "frontend/src/keel/components/plan/PlanResult.tsx";
+  const GRID = "frontend/src/keel/components/plan/PlanGrid.tsx";
+
+  it("le rail des jours existe, et il écrit dans LA sélection", () => {
+    const src = code(RESULT);
+    expect(src, "le bouton « toute la semaine » a disparu").toContain(
+      'mealCopy("meals.result.day_all")',
+    );
+    expect(src, "le rail n'écrit plus la sélection").toContain(
+      'onClick={() => setSelectedDay("all")}',
+    );
+    expect(src, "les jours du rail n'écrivent plus la sélection").toContain(
+      "onClick={() => setSelectedDay(day)}",
+    );
+  });
+
+  it("la grille est le sélecteur naturel: son `<th>` filtre le détail", () => {
+    const grid = code(GRID);
+    expect(grid, "le `<th>` n'est plus cliquable").toContain(
+      "onClick={() => props.onSelectDay?.(day)}",
+    );
+    const result = code(RESULT);
+    expect(result, "`PlanResult` ne branche plus la grille sur la sélection")
+      .toContain("onSelectDay={(day) => setSelectedDay(day)}");
+  });
+
+  it("la grille et le détail lisent la MÊME dérivation du plan", () => {
+    const src = code(RESULT);
+    // Une seule expansion par jour (`groupByDay`), lue par la grille ET par
+    // les blocs: deux dérivations du même plan divergent.
+    expect(src).toContain("const groups = groupByDay(props.dishes, dayOrder);");
+    expect(src.match(/groupByDay\(/g)?.length, "une seconde dérivation est apparue").toBe(1);
+    expect(src, "la grille ne lit plus `groups`").toContain("groups,");
+    expect(src, "le détail ne lit plus `groups`").toContain("shownGroups.map");
+  });
+
+  it("le groupe SANS JOUR n'est jamais perdu par la vue jour", () => {
+    const src = code(RESULT);
+    expect(src, "le groupe `day: null` est filtré par la vue jour").toContain(
+      "...(undated ? [undated] : []),",
+    );
+  });
+
+  it("la sélection passe par `effectiveSelectedDay` — jamais un état brut", () => {
+    const src = code(RESULT);
+    expect(src, "une sélection périmée rendrait un écran vide").toContain(
+      "effectiveSelectedDay({",
+    );
+  });
+
+  it("l'aperçu ouvre la SEMAINE, le validé ouvre le JOUR", () => {
+    const dialog = code("frontend/src/keel/components/plan/PlanDraftDialog.tsx");
+    expect(dialog, "l'aperçu n'ouvre plus en semaine entière").toContain(
+      'defaultView="week"',
+    );
+    const result = code(RESULT);
+    expect(result, "le défaut n'est plus la vue jour").toContain(
+      'props.defaultView ?? "day"',
+    );
+  });
+});

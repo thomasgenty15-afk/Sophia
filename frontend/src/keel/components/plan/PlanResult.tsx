@@ -10,8 +10,14 @@ import type {
   PlanFixedIntake,
 } from "../../api/mealGeneration";
 import type { DayEnergyView, DishEnergyView } from "../../api/mealEnergy";
+import { dishDayLabel, mealCopy } from "../../api/mealLabels";
 import { EnergyBasisNote } from "./EnergyReadout";
 import { groupByDay } from "../../lib/mealBuilderModel";
+import {
+  type DaySelection,
+  defaultSelectedDay,
+  effectiveSelectedDay,
+} from "../../lib/planDayView";
 import { dishDate } from "../../api/mealStretch";
 import { windowDates, windowDayOrder } from "../../api/mealWindow";
 import PlanDayBlock from "./PlanDayBlock";
@@ -99,21 +105,47 @@ export interface PlanResultProps {
   energy?: (dish: GeneratedDish) => DishEnergyView | null;
   /** Le total d'un jour. `null` = pas de chiffre pour ce jour. */
   dayEnergy?: (day: string | null) => DayEnergyView | null;
+  /**
+   * LOT 1 — LA VUE À L'OUVERTURE. `"day"` (le défaut) ouvre sur le jour
+   * d'aujourd'hui — sur un brouillon, `today = startsOn`, donc sur son premier
+   * jour. `"week"` ouvre la semaine entière: c'est l'aperçu, qu'on juge en
+   * entier avant de l'adopter. UNE prop, pas un second rendu.
+   */
+  defaultView?: "week" | "day";
 }
 
 export default function PlanResult(props: PlanResultProps) {
   const dayDates = windowDates(props.startsOn, props.durationDays);
+  const dayOrder = windowDayOrder(props.startsOn, props.durationDays);
   // L'ordre du PLAN, pas celui du calendrier (FF-053 R1).
-  const groups = groupByDay(
-    props.dishes,
-    windowDayOrder(props.startsOn, props.durationDays),
+  const groups = groupByDay(props.dishes, dayOrder);
+
+  // ── LOT 1 · QUEL JOUR ON LIT ──────────────────────────────────────────────
+  // L'état est le JETON choisi (ou « all »); ce qui se REND passe par
+  // `effectiveSelectedDay`: l'onglet « courant » → « suivant » garde ce
+  // composant monté, et un jeton hors de la nouvelle fenêtre retomberait sur
+  // un écran vide. La liste des jours reste `dayOrder` — aucune seconde
+  // dérivation.
+  const [selectedDay, setSelectedDay] = React.useState<DaySelection>(() =>
+    defaultSelectedDay({
+      view: props.defaultView ?? "day",
+      order: dayOrder,
+      dates: dayDates,
+      today: props.today,
+    })
   );
+  const shown = effectiveSelectedDay({
+    selected: selectedDay,
+    order: dayOrder,
+    dates: dayDates,
+    today: props.today,
+  });
 
   // LA GRILLE, sur la MÊME donnée que les sections: elle lit `groups`, donc
   // l'expansion des lots par jour est déjà faite et les deux ne peuvent pas se
   // contredire. Deux dérivations du même plan finiraient par diverger.
   const grid = buildPlanGrid({
-    days: windowDayOrder(props.startsOn, props.durationDays),
+    days: dayOrder,
     rhythm: props.rhythm ?? [],
     groups,
     awayDays: props.awayDays ?? [],
@@ -129,16 +161,88 @@ export default function PlanResult(props: PlanResultProps) {
     );
   }
 
+  // ── LOT 1 · CE QUE LA VUE JOUR REND ───────────────────────────────────────
+  // Le groupe SANS jour n'est jamais perdu: il vaut pour la fenêtre entière,
+  // donc il se rend dans les deux vues — le filtrer sur un jour le ferait
+  // disparaître d'un plan qui le contient.
+  const undated = groups.find((g) => g.day === null) ?? null;
+  const shownGroups = shown === "all" ? groups : [
+    ...(undated ? [undated] : []),
+    // Le jour choisi, MÊME sans plat: il peut porter une session, des courses
+    // et des moments déclarés — un jour qui disparaît parce qu'il n'a pas de
+    // plat se lirait comme un plan troué.
+    { day: shown, dishes: groups.find((g) => g.day === shown)?.dishes ?? [] },
+  ];
+
   return (
     <div className="space-y-6">
-      {/* NIVEAU 1 — la semaine d'un coup d'œil. */}
+      {/* NIVEAU 1 — la semaine d'un coup d'œil, et le SÉLECTEUR naturel de la
+          vue jour: cliquer une colonne filtre le détail dessous. */}
       <PlanGrid
         grid={grid}
         // `windowDates` est une TABLE jeton→date, pas une liste: on la lit dans
         // l'ordre des colonnes pour que les deux ne puissent pas se décaler.
         dates={grid.days.map((d) => dayDates[d] ?? "")}
         today={props.today}
+        onSelectDay={(day) => setSelectedDay(day)}
       />
+      {/* ── LOT 1 · LE RAIL DES JOURS ──────────────────────────────────────
+          Un bouton par jour de la fenêtre + « toute la semaine ». Le patron
+          est le contrôle segmenté de `PlanByPerson` (deux `Button`
+          `aria-pressed`, pas de primitive `Tabs`). Il défile DANS son
+          conteneur: la contrainte qui gouverne est 320 px, et un rail qui
+          déborde emporterait la page entière.
+          ⛔ « AUJOURD'HUI » SE DIT PAR LA FORME (encre pleine + graisse),
+          jamais par une couleur — même arbitrage que `PlanGrid`. */}
+      <div className="overflow-x-auto">
+        <div
+          className="flex w-max gap-2"
+          role="group"
+          aria-label={mealCopy("meals.result.day_rail")}
+        >
+          <button
+            type="button"
+            aria-pressed={shown === "all"}
+            onClick={() => setSelectedDay("all")}
+            className={`min-h-6 rounded-part border px-2.5 py-0.5 text-xs ${
+              shown === "all"
+                ? "border-line-strong bg-fig-50 font-semibold text-ink"
+                : "border-line-strong bg-paper text-ink-soft hover:bg-fig-50"
+            }`}
+          >
+            {mealCopy("meals.result.day_all")}
+          </button>
+          {dayOrder.map((day) => {
+            const isToday = dayDates[day] === props.today;
+            const on = shown === day;
+            return (
+              <button
+                key={day}
+                type="button"
+                aria-pressed={on}
+                onClick={() => setSelectedDay(day)}
+                className={`min-h-6 rounded-part border px-2.5 py-0.5 text-left text-xs ${
+                  on
+                    ? "border-line-strong bg-fig-50 font-semibold text-ink"
+                    : `border-line-strong bg-paper hover:bg-fig-50 ${
+                      isToday ? "font-semibold text-ink" : "text-ink-soft"
+                    }`
+                }`}
+              >
+                {/* Le même contenu que les `<th>` de la grille: jour abrégé,
+                    puis quantième — deux libellés pour un même jour
+                    divergeraient. */}
+                <span className="block">
+                  {(dishDayLabel(day) ?? day).slice(0, 3)}
+                </span>
+                <span className="block font-normal text-ink-soft">
+                  {dayDates[day]?.slice(8) ?? ""}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
       {/* ── LE NIVEAU 2 EST PARTI LE 2026-08-14 ─────────────────────────────
           `KitchenBlock` (« ce que tu cuisines ») listait les préparations et
           les jours qu'elles nourrissent. « Tes sessions de cuisine » porte la
@@ -153,7 +257,7 @@ export default function PlanResult(props: PlanResultProps) {
           semaine entière, ou un seul jour — sans que les deux corps puissent
           diverger. La prop `cookingSessions` continue d'y descendre: elle a
           déjà été une prop morte une fois, et un test le verrouille. */}
-      {groups.map((group) => (
+      {shownGroups.map((group) => (
         <PlanDayBlock
           key={group.day ?? "undated"}
           group={group}

@@ -31,6 +31,13 @@ export interface PlanGridProps {
   dates: readonly string[];
   /** Aujourd'hui, pour souligner sa colonne. */
   today: string;
+  /**
+   * LOT 1 — CLIQUER UN JOUR FILTRE LE DÉTAIL. Optionnel: la grille reste
+   * lisible seule, et un appelant qui n'a pas de vue jour n'a pas de faux
+   * bouton. Quand il est fourni, le CONTENU du `<th>` devient un bouton — la
+   * grille est le sélecteur naturel, pas un second rail concurrent.
+   */
+  onSelectDay?: (day: string) => void;
 }
 
 function occasionLabel(slot: EatingOccasion): string {
@@ -58,6 +65,18 @@ export default function PlanGrid(props: PlanGridProps) {
               </th>
               {props.grid.days.map((day, i) => {
                 const isToday = props.dates[i] === props.today;
+                // LE CONTENU DU `<th>`, une seule fois: il sert nu, ou dans le
+                // bouton de sélection — deux copies divergeraient.
+                const label = (
+                  <>
+                    <span className="block">
+                      {(dishDayLabel(day) ?? day).slice(0, 3)}
+                    </span>
+                    <span className="block font-normal text-ink-soft">
+                      {props.dates[i]?.slice(8) ?? ""}
+                    </span>
+                  </>
+                );
                 return (
                   <th
                     key={`${day}-${i}`}
@@ -77,12 +96,23 @@ export default function PlanGrid(props: PlanGridProps) {
                         : "font-medium text-ink-soft"
                     }`}
                   >
-                    <span className="block">
-                      {(dishDayLabel(day) ?? day).slice(0, 3)}
-                    </span>
-                    <span className="block font-normal text-ink-soft">
-                      {props.dates[i]?.slice(8) ?? ""}
-                    </span>
+                    {props.onSelectDay
+                      ? (
+                        // LOT 1 — le jour se CHOISIT ici. Le soulignement au
+                        // survol porte l'affordance (l'idiome du kit pour un
+                        // contrôle discret); `min-h-6` est le plancher tactile
+                        // de 24 px, que deux lignes de `text-xs` n'atteignent
+                        // pas seules. La graisse et l'encre restent celles du
+                        // `<th>`: la position d'aujourd'hui ne bouge pas.
+                        <button
+                          type="button"
+                          onClick={() => props.onSelectDay?.(day)}
+                          className="min-h-6 text-left underline-offset-2 hover:underline"
+                        >
+                          {label}
+                        </button>
+                      )
+                      : label}
                   </th>
                 );
               })}
