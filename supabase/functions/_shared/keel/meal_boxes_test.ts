@@ -265,6 +265,27 @@ Deno.test("LOT 4 — une boîte SANS aucune bouche connue tombe et est COMPTÉE"
   assertEquals(meal.dishes.length, 1, "le plat SURVIT");
 });
 
+Deno.test("LOT 4 — une boîte SANS ID est jetée et COMPTÉE (elle serait incitable)", () => {
+  // ⚠️ CETTE PORTE-CI A SON TEST À ELLE, et pas par symétrie: une boîte sans id
+  // ne peut être citée par aucun plat, donc elle n'est pas une instruction —
+  // c'est un nombre orphelin. Et sans ce test, retirer son incrément de
+  // `refused` ne fait tomber personne (mesuré: la mutation passait au vert).
+  const meal = parse({
+    preparations: [prep({
+      boxes: [
+        { member_ids: [ZOE], grams: 120 },
+        { id: "box_ok", member_ids: [NINA], grams: 200 },
+      ],
+    })],
+    dishes: [dish()],
+    shopping_list: [],
+  });
+  assertEquals(meal.preparations[0].boxes.length, 1);
+  assertEquals(meal.preparations[0].boxes[0].id, "box_ok");
+  assertEquals(meal.box_counts.refused, 1);
+  assert(meal.issues.some((i) => i.includes("has no id")), meal.issues.join("\n"));
+});
+
 Deno.test("LOT 4 — un id de boîte DÉJÀ PRIS est jeté: la citation deviendrait ambiguë", () => {
   const meal = parse({
     preparations: [prep({
@@ -934,23 +955,33 @@ Deno.test("LOT 4 — le compteur des citations suit le PLAFOND de plats", () => 
   // ⚠️ « Un compteur dont le numérateur et le dénominateur ne comptent pas les
   // mêmes lignes est un compteur qui ment. » `scope: "day"` + un rythme d'un
   // moment donne un plafond de 1: le second plat tombe, et ses citations avec.
+  //
+  // ⚠️ LES DEUX PLATS NE CITENT PAS LA MÊME CHOSE, ET C'EST OBLIGATOIRE POUR
+  // QUE LE TEST MORDE: avec deux plats identiques, un tableau parallèle qui ne
+  // suivrait PAS le `splice` rendrait exactement le même compte, et la mutation
+  // passerait au vert (mesuré). Ici le plat gardé ne cite RIEN et l'évincé cite
+  // une boîte: un décalage d'un cran attribuerait la citation du mort au vivant.
   const meal = parse(
     {
       preparations: [prep({
         boxes: [{ id: "box_ok", member_ids: [ZOE], grams: 120 }],
       })],
       dishes: [
+        // ⚠️ SANS MOMENT: rang 2, le PLUS jetable. C'est ce qui force le
+        // `splice` d'un plat DÉJÀ GARDÉ — le seul chemin où un tableau
+        // parallèle peut se décaler. Un plat simplement refusé à l'entrée ne
+        // l'exercerait pas.
         dish({
-          title: "Kept",
+          title: "Cited",
           day: null,
-          slot: "lunch",
+          slot: null,
           uses: [{ preparation_id: "prep_chicken", servings: 1, box_id: "box_ok" }],
         }),
         dish({
-          title: "Dropped",
+          title: "Silent",
           day: null,
           slot: "lunch",
-          uses: [{ preparation_id: "prep_chicken", servings: 1, box_id: "box_ok" }],
+          uses: [{ preparation_id: "prep_chicken", servings: 1 }],
         }),
       ],
       shopping_list: [],
@@ -962,8 +993,13 @@ Deno.test("LOT 4 — le compteur des citations suit le PLAFOND de plats", () => 
     },
   );
   assertEquals(meal.dishes.length, 1);
+  assertEquals(meal.dishes[0].title, "Silent");
   assertEquals(meal.box_use_counts.uses, 1, "le plat évincé n'a laissé aucune reprise");
-  assertEquals(meal.box_use_counts.cited, 1);
+  assertEquals(
+    meal.box_use_counts.cited,
+    0,
+    "la citation du plat ÉVINCÉ a été attribuée au plat gardé",
+  );
 });
 
 Deno.test("LOT 4 — le VERROU DE SORTIE vide le plan ET remet les compteurs à zéro", () => {
