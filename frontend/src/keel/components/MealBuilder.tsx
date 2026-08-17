@@ -1523,6 +1523,21 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                 // La donnée arrive déjà ici (la fenêtre de courses la lit);
                 // le rendu du plan en déduit la vague de chaque jour.
                 shoppingList={result?.shoppingList ?? []}
+                // ── LOT 3 · LES PARTS DU PLAN QU'ON REGARDE ────────────────
+                // Elles viennent de la MÊME LIGNE que ses plats (`result`), et
+                // pas de `loadHouseholdMeal` qui ne rend que le plan COURANT:
+                // sur l'onglet « suivant », les parts d'un autre plan se
+                // seraient posées sous les plats de celui-ci sans que rien à
+                // l'écran ne le dise.
+                //
+                // ⛔ ET LA GARDE EST ÉCRITE, pas seulement structurelle. Un
+                // secondaire ne peut pas charger un plan de foyer ici
+                // (`loadMealPlans` filtre `user_id`, et `generate-meal-v1`
+                // n'écrit aucune `member_portions`) — mais « la part d'un
+                // autre » est justement ce que `MyShareCard` interdit à un
+                // secondaire, et une garde qu'on laisse au hasard d'une
+                // requête n'est pas une garde.
+                portions={place?.isOwner === true ? (result?.memberPortions ?? []) : []}
                 startsOn={startDate}
                 durationDays={durationDays}
                 today={today}

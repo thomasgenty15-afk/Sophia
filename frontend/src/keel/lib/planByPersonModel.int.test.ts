@@ -241,9 +241,13 @@ describe("les gardes d'affichage (câblage)", () => {
     // LOT 1 (2026-08-17): la liste par jour (`DishListByDay` et son modèle)
     // est montée DANS ces vues — la ceinture s'étend à elle, elle ne se
     // desserre pas.
+    // LOT 3 (2026-08-17): la séparation « pour la table / pour Untel » dans la
+    // vue jour lit les MÊMES parts. La ceinture s'étend à elle aussi.
     const src = code(VIEW) + code("frontend/src/keel/lib/planByPersonModel.ts") +
       code("frontend/src/keel/components/plan/DishListByDay.tsx") +
-      code("frontend/src/keel/lib/dishListByDay.ts");
+      code("frontend/src/keel/lib/dishListByDay.ts") +
+      code("frontend/src/keel/lib/planDaySlots.ts") +
+      code("frontend/src/keel/components/plan/DayPersonSplit.tsx");
     for (const forbidden of ["goal", "kcal", "calorie", "weightKg", "heightCm", "energy"]) {
       expect(src, `« ${forbidden} » est entré dans la vue par personne`)
         .not.toMatch(new RegExp(forbidden, "i"));

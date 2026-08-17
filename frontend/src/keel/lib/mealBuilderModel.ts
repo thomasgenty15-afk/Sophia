@@ -79,8 +79,17 @@ export function groupByDay(
   // jour couvert — trois entrées « Chicken quinoa veg bowl », chacune portant
   // `covers_days: [mon, tue, wed]`. Sans cette clé, l'expansion ci-dessous les
   // multiplierait entre elles: neuf cartes pour une seule session de cuisine.
+  //
+  // ⛔ L'ATTRIBUTION FAIT PARTIE DE L'IDENTITÉ (LOT 3, 2026-08-17), ET SON
+  // ABSENCE A ÉTÉ MESURÉE. Sur `title|slot` seuls, un plat DÉDIÉ portant le
+  // même titre que celui de la table — « Greek yogurt bowls » pour tout le
+  // monde, « Greek yogurt bowls » pour Zoé avec sa part à elle — était jeté
+  // ici, en silence, avant d'atteindre le moindre écran. Le foyer perdait donc
+  // une assiette sur la seule case où deux bouches ne mangent PAS la même
+  // chose, c'est-à-dire exactement le cas que la vue jour doit rendre lisible.
+  // Deux plats attribués différemment ne sont pas le même plat.
   const identity = (dish: GeneratedDish) =>
-    `${dish.title.trim().toLowerCase()}|${dish.slot ?? ""}`;
+    `${dish.title.trim().toLowerCase()}|${dish.slot ?? ""}|${dish.member_id ?? ""}`;
 
   const place = (token: string, dish: GeneratedDish) => {
     const list = groups.get(token) ?? [];

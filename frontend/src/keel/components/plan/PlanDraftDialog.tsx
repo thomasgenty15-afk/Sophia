@@ -197,6 +197,18 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
               // LOT 1 — le même corps de plan que le validé, courses du jour
               // comprises: l'aperçu doit montrer ce qu'adopter donnerait.
               shoppingList={draft.shoppingList}
+              // LOT 3 — les parts et les prénoms du BROUILLON, tels que le
+              // serveur les rend (`member_portions` est dans la réponse de
+              // `intent: "draft"` alors qu'aucune n'est écrite). C8: l'aperçu
+              // doit montrer ce qu'adopter donnerait, séparation par personne
+              // comprise.
+              //
+              // ⛔ AUCUNE GARDE À RECOPIER ICI, ET ELLE N'EST PAS OUBLIÉE: la
+              // lane individuelle ne rend AUCUNE part, et un secondaire est
+              // toujours routé sur elle (`chooseGenerator` rend `personal` dès
+              // `!isOwner`). Un non-maître n'a donc structurellement rien à
+              // voir dans ce tableau — il est vide pour lui.
+              portions={draft.memberPortions}
               startsOn={draft.startsOn}
               durationDays={draft.durationDays}
               today={draft.startsOn}

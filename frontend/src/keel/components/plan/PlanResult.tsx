@@ -6,6 +6,7 @@ import type {
   EatingOccasionSlot,
   GeneratedDish,
   MealPreparation,
+  MemberPortionView,
   PlanDayProperty,
   PlanFixedIntake,
   ShoppingItem,
@@ -65,6 +66,31 @@ export interface PlanResultProps {
    * chez celui qui oublie — l'aperçu et le validé doivent rendre le même corps.
    */
   shoppingList: readonly ShoppingItem[];
+  /**
+   * ══════════════════════════════════════════════════════════════════════
+   * LOT 3 — LES PARTS PAR BOUCHE DE **CE** PLAN (`member_portions`).
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * Elles servent DEUX choses, et une seule prop les porte parce qu'elles
+   * viennent de la même ligne: le PRÉNOM d'une bouche à qui un plat est dédié
+   * (`display_name`, recopié de la ligne membre par le moteur — F5), et sa
+   * PART sous un plat commun (`preparation_shares`).
+   *
+   * REQUISE, pas optionnelle: les deux appelants les ont, et un `?` ferait de
+   * la séparation par personne une prop morte chez celui qui oublie — le jour
+   * se lirait exactement comme avant ce lot, sans un seul rouge. C'est la
+   * cicatrice `shoppingList` du LOT 1, une prop plus loin.
+   *
+   * ⛔ QUI A LE DROIT DE LES VOIR — ET LA GARDE EST STRUCTURELLE AVANT D'ÊTRE
+   * ÉCRITE. `member_portions` n'existe que sur un plan de FOYER: la lane
+   * individuelle (`generate-meal-v1`) n'en écrit aucune. Et un plan de foyer
+   * n'est chargé, sur les deux surfaces qui montent ce rendu, que par son
+   * MAÎTRE — `loadMealPlans` filtre `user_id`, et un secondaire n'a que ses
+   * propres lignes. `MyShareCard` reste donc la seule « part d'un autre »
+   * qu'un secondaire puisse lire, et cette vue ne la contourne pas. Le
+   * plancher de deux bouches, lui, est dans `groupDayBySlot`.
+   */
+  portions: readonly MemberPortionView[];
   /** Le premier jour de la fenêtre, en date locale. */
   startsOn: string;
   durationDays: number;
@@ -301,6 +327,11 @@ export default function PlanResult(props: PlanResultProps) {
           // la grille au-dessus porte déjà ces silences case par case, et les
           // répéter sous chaque jour ferait vingt lignes de bruit.
           moments={shown === "all" ? [] : dayMoments(grid, group.day)}
+          // LOT 3 — LES PARTS DU PLAN RENDU, telles quelles. Le bloc jour ne
+          // va PAS les chercher: elles arrivent avec le plan, sur la même
+          // ligne que ses plats, donc elles ne peuvent pas être celles d'un
+          // autre plan que celui qu'on regarde.
+          portions={props.portions}
           tick={props.tick}
           energy={props.energy}
           dayEnergy={props.dayEnergy}

@@ -4,6 +4,7 @@ import type {
   CookingSession,
   GeneratedDish,
   MealPreparation,
+  MemberPortionView,
   ShoppingItem,
 } from "../../api/mealGeneration";
 import type { DayEnergyView, DishEnergyView } from "../../api/mealEnergy";
@@ -13,6 +14,8 @@ import { DayEnergyLine } from "./EnergyReadout";
 import { sessionForDish } from "../../lib/dishSession";
 import { groupByAisle } from "../../lib/mealBuilderModel";
 import { type DayMoment } from "../../lib/planDayView";
+import { groupDayBySlot } from "../../lib/planDaySlots";
+import DayPersonSplit from "./DayPersonSplit";
 import DishCard from "../DishCard";
 import { Card } from "../ui/Card";
 import { type DishTick } from "../../lib/useMealTicks";
@@ -71,6 +74,17 @@ export interface PlanDayBlockProps {
    * bruit. En vue jour, ils sont le détail qu'on est venu lire.
    */
   moments: readonly DayMoment[];
+  /**
+   * LOT 3 — LES PARTS PAR BOUCHE DU PLAN RENDU (`member_portions`). REQUISE,
+   * pas optionnelle: un `?` ferait de la séparation par personne une prop
+   * morte chez l'appelant qui oublie, et le jour se lirait comme un jour sans
+   * plat dédié — c'est-à-dire comme avant ce lot, sans un seul rouge.
+   *
+   * `[]` = plan individuel (la lane `generate-meal-v1` n'en écrit aucune), ou
+   * lecteur qui n'a pas à voir les parts. Alors ni prénom ni part ne sortent,
+   * et le jour se rend à plat.
+   */
+  portions: readonly MemberPortionView[];
   tick?: (dish: GeneratedDish, date: string | null) => DishTick | null;
   energy?: (dish: GeneratedDish) => DishEnergyView | null;
   dayEnergy?: (day: string | null) => DayEnergyView | null;
@@ -86,6 +100,12 @@ export default function PlanDayBlock(props: PlanDayBlockProps) {
   // LES SILENCES DU JOUR — tout moment dont la case n'est pas un plat. Les
   // plats, eux, sont déjà les cartes dessous: les redire ici les doublerait.
   const silences = props.moments.filter((m) => m.cell.kind !== "dish");
+  // LOT 3 — LES MOMENTS DE CE JOUR, ET QUI MANGE QUOI À CHACUN. Une seule
+  // dérivation: les plats du groupe, tels que `groupByDay` les a rangés.
+  const slotGroups = groupDayBySlot({
+    dishes: group.dishes,
+    portions: props.portions,
+  });
   const quiet = group.dishes.length === 0 && sessions.length === 0 &&
     props.wave === null && silences.length === 0;
   return (
@@ -140,28 +160,44 @@ export default function PlanDayBlock(props: PlanDayBlockProps) {
         {props.wave && props.wave.indices.length > 0 && (
           <DayGroceriesCard wave={props.wave} shoppingList={props.shoppingList} />
         )}
-        {group.dishes.map((dish, index) => (
-          <DishCard
-            key={`${group.day}-${index}-${dish.title}`}
-            dish={dish}
-            // LES PRÉPARATIONS QUE CE PLAT CONSOMME, résolues ici: le plat
-            // ne porte que des `id`, et une carte qui irait les chercher
-            // elle-même dupliquerait la résolution sur les deux écrans qui
-            // la montent.
-            sources={dish.uses
-              .map((u) =>
-                props.preparations.find((p) => p.id === u.preparation_id)
-              )
-              .filter((p): p is NonNullable<typeof p> => Boolean(p))
-              .map((p) => ({ title: p.title, cookOn: p.cook_on }))}
-            tick={props.tick?.(dish, date)}
-            energy={props.energy?.(dish) ?? null}
-            // ── LA SESSION QUI A FAIT SON LOT (2026-08-14) ───────────────
-            // RÉSOLUE ICI, comme `sources` juste au-dessus, et pour la même
-            // raison: le plat ne porte que des `id`, et une carte qui irait
-            // chercher les sessions elle-même dupliquerait la résolution sur
-            // les deux écrans qui la montent.
-            session={sessionForDish(dish, props.cookingSessions, props.preparations)}
+        {/* ── LOT 3 · LES PLATS, MOMENT PAR MOMENT ───────────────────────────
+            Le regroupement est PUR (`groupDayBySlot`) et il ne lit aucun titre:
+            l'attribution vient de `dish.member_id`, le prénom de la ligne
+            membre recopiée dans `member_portions` (F5). Un moment sans plat
+            dédié se rend comme avant — c'est le cas majoritaire, et il ne paie
+            rien. */}
+        {slotGroups.map((slotGroup) => (
+          <DayPersonSplit
+            key={`${group.day}-${slotGroup.slot ?? "no_slot"}`}
+            group={slotGroup}
+            // LE CÂBLAGE DE LA CARTE RESTE ICI, où il était déjà: `DayPersonSplit`
+            // PLACE les cartes sous le bon en-tête et ne lit aucun champ d'un
+            // plat — c'est ce qui rend structurellement impossible qu'un
+            // objectif ou un chiffre de corps entre dans la séparation.
+            renderDish={(dish, key) => (
+              <DishCard
+                key={key}
+                dish={dish}
+                // LES PRÉPARATIONS QUE CE PLAT CONSOMME, résolues ici: le plat
+                // ne porte que des `id`, et une carte qui irait les chercher
+                // elle-même dupliquerait la résolution sur les deux écrans qui
+                // la montent.
+                sources={dish.uses
+                  .map((u) =>
+                    props.preparations.find((p) => p.id === u.preparation_id)
+                  )
+                  .filter((p): p is NonNullable<typeof p> => Boolean(p))
+                  .map((p) => ({ title: p.title, cookOn: p.cook_on }))}
+                tick={props.tick?.(dish, date)}
+                energy={props.energy?.(dish) ?? null}
+                // ── LA SESSION QUI A FAIT SON LOT (2026-08-14) ───────────────
+                // RÉSOLUE ICI, comme `sources` juste au-dessus, et pour la même
+                // raison: le plat ne porte que des `id`, et une carte qui irait
+                // chercher les sessions elle-même dupliquerait la résolution sur
+                // les deux écrans qui la montent.
+                session={sessionForDish(dish, props.cookingSessions, props.preparations)}
+              />
+            )}
           />
         ))}
         {/* ── LES MOMENTS SANS PLAT, ET LEUR MOTIF ───────────────────────────
