@@ -2,8 +2,15 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { defaultSelectedDay, effectiveSelectedDay } from "./planDayView";
+import {
+  dayMoments,
+  defaultSelectedDay,
+  effectiveSelectedDay,
+  waveForDate,
+} from "./planDayView";
+import { buildPlanGrid } from "./planGridModel";
 import { windowDates, windowDayOrder } from "../api/mealWindow";
+import type { GeneratedDish } from "../api/mealGeneration";
 
 /**
  * LOT 1 — LA VUE PAR JOUR. Ce que ces tests protègent, dans l'ordre de ce qui
@@ -91,6 +98,81 @@ describe("effectiveSelectedDay — une sélection qui survit au changement de pl
   });
 });
 
+describe("waveForDate — la vague qui tombe ce jour-là", () => {
+  const WAVES = [
+    { buyOn: "2026-08-12", servesCookOn: null, indices: [0, 2] },
+    { buyOn: "2026-08-15", servesCookOn: "2026-08-16", indices: [1] },
+  ];
+
+  it("la jointure est une égalité de DATES — celle que `windowDates` a rendue", () => {
+    // Le samedi du plan commencé mercredi: `DATES.sat` vaut le 15.
+    expect(waveForDate(WAVES, DATES["sat"] ?? null)?.indices).toEqual([1]);
+    expect(waveForDate(WAVES, DATES["wed"] ?? null)?.indices).toEqual([0, 2]);
+  });
+
+  it("un jour sans vague rend `null` — pas la vague la plus proche", () => {
+    // Le jeudi 13: entre deux vagues. Rapprocher « au plus proche » enverrait
+    // quelqu'un au magasin un jour qui n'est écrit nulle part.
+    expect(waveForDate(WAVES, "2026-08-13")).toBeNull();
+  });
+
+  it("un jeton hors fenêtre n'a pas de date, donc pas de vague", () => {
+    expect(waveForDate(WAVES, null)).toBeNull();
+  });
+});
+
+describe("dayMoments — la colonne d'un jour, lue dans la grille", () => {
+  function dish(over: Partial<GeneratedDish> = {}): GeneratedDish {
+    return {
+      title: "Chicken and rice",
+      slot: "dinner",
+      day: "wed",
+      ingredients: [],
+      method: "Cook it.",
+      why: "",
+      uses: [],
+      ...over,
+    } as GeneratedDish;
+  }
+
+  const GRID = buildPlanGrid({
+    days: ["wed", "thu"],
+    rhythm: [
+      { slot: "breakfast", size: null },
+      { slot: "lunch", size: null },
+      { slot: "dinner", size: null },
+    ],
+    groups: [{ day: "wed", dishes: [dish()] }],
+    awayDays: [{ day: "wed", slots: ["lunch"] }],
+    fixedIntakes: [],
+    dayProperties: [{ day: "thu", properties: ["leftovers"] }],
+  });
+
+  it("rend chaque moment du jour avec le motif de sa case", () => {
+    expect(dayMoments(GRID, "wed")).toEqual([
+      { slot: "breakfast", cell: { kind: "empty" } },
+      { slot: "lunch", cell: { kind: "away" } },
+      {
+        slot: "dinner",
+        cell: { kind: "dish", title: "Chicken and rice", fromBatch: false },
+      },
+    ]);
+  });
+
+  it("lit LA colonne du jour demandé, pas la première", () => {
+    expect(dayMoments(GRID, "thu").map((m) => m.cell.kind)).toEqual([
+      "leftovers",
+      "leftovers",
+      "leftovers",
+    ]);
+  });
+
+  it("un jour hors grille, ou sans jour, rend [] — rien à motiver", () => {
+    expect(dayMoments(GRID, "sun")).toEqual([]);
+    expect(dayMoments(GRID, null)).toEqual([]);
+  });
+});
+
 /**
  * LE CÂBLAGE, TESTÉ SUR LA SOURCE.
  *
@@ -175,5 +257,64 @@ describe("le câblage de la vue jour", () => {
     expect(result, "le défaut n'est plus la vue jour").toContain(
       'props.defaultView ?? "day"',
     );
+  });
+
+  const BLOCK = "frontend/src/keel/components/plan/PlanDayBlock.tsx";
+
+  it("le bloc jour rend LA session de son jour, filtrée sur le jeton", () => {
+    const block = code(BLOCK);
+    expect(block, "la session du jour est débranchée").toContain(
+      "props.cookingSessions.filter((s) => s.day === group.day)",
+    );
+    expect(block, "la carte de session a disparu").toContain("<DaySessionCard");
+  });
+
+  it("la vague du jour vient de `waveForDate`, jointe par la DATE de `windowDates`", () => {
+    const result = code(RESULT);
+    // Le module serveur réexporté fait les vagues; l'écran ne recode rien.
+    expect(result, "les vagues ne viennent plus du module serveur").toContain(
+      "waveAssignments({",
+    );
+    expect(result, "la jointure jeton→date est cassée ou recodée").toContain(
+      "waveForDate(waves, dayDates[group.day] ?? null)",
+    );
+    const block = code(BLOCK);
+    expect(block, "le bloc courses du jour a disparu").toContain(
+      "<DayGroceriesCard",
+    );
+  });
+
+  it("les deux surfaces passent la liste de courses — même corps de plan", () => {
+    const builder = code("frontend/src/keel/components/MealBuilder.tsx");
+    expect(builder, "le validé ne passe plus la liste").toContain(
+      "shoppingList={result?.shoppingList ?? []}",
+    );
+    const dialog = code("frontend/src/keel/components/plan/PlanDraftDialog.tsx");
+    expect(dialog, "l'aperçu ne passe plus la liste").toContain(
+      "shoppingList={draft.shoppingList}",
+    );
+  });
+
+  it("le motif d'un moment vide vient de la grille, en vue jour", () => {
+    const result = code(RESULT);
+    expect(result, "les moments ne sont plus lus dans la grille").toContain(
+      'moments={shown === "all" ? [] : dayMoments(grid, group.day)}',
+    );
+    const block = code(BLOCK);
+    expect(block, "les silences du jour ne sont plus rendus").toContain(
+      'props.moments.filter((m) => m.cell.kind !== "dish")',
+    );
+  });
+
+  it("⛔ aucune règle de vague recodée côté écran", () => {
+    // `MAX_FRIDGE_DAYS` et la règle « périssable » vivent dans le module
+    // serveur. Leur retour ici serait le jumeau supprimé le 2026-08-10.
+    for (const rel of [RESULT, BLOCK, "frontend/src/keel/lib/planDayView.ts"]) {
+      const src = code(rel);
+      expect(src, `une règle de vague est recodée dans ${rel}`)
+        .not.toContain("MAX_FRIDGE_DAYS");
+      expect(src, `une règle de fraîcheur est recodée dans ${rel}`)
+        .not.toContain("PERISHABLE");
+    }
   });
 });

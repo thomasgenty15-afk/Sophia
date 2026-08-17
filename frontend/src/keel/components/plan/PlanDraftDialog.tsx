@@ -194,6 +194,9 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
               dishes={draft.dishes}
               preparations={draft.preparations}
               cookingSessions={draft.cookingSessions}
+              // LOT 1 — le même corps de plan que le validé, courses du jour
+              // comprises: l'aperçu doit montrer ce qu'adopter donnerait.
+              shoppingList={draft.shoppingList}
               startsOn={draft.startsOn}
               durationDays={draft.durationDays}
               today={draft.startsOn}

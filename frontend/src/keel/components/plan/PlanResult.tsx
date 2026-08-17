@@ -8,15 +8,19 @@ import type {
   MealPreparation,
   PlanDayProperty,
   PlanFixedIntake,
+  ShoppingItem,
 } from "../../api/mealGeneration";
 import type { DayEnergyView, DishEnergyView } from "../../api/mealEnergy";
+import { waveAssignments } from "../../api/groceryWaves";
 import { dishDayLabel, mealCopy } from "../../api/mealLabels";
 import { EnergyBasisNote } from "./EnergyReadout";
 import { groupByDay } from "../../lib/mealBuilderModel";
 import {
   type DaySelection,
+  dayMoments,
   defaultSelectedDay,
   effectiveSelectedDay,
+  waveForDate,
 } from "../../lib/planDayView";
 import { dishDate } from "../../api/mealStretch";
 import { windowDates, windowDayOrder } from "../../api/mealWindow";
@@ -54,6 +58,13 @@ export interface PlanResultProps {
   dishes: readonly GeneratedDish[];
   preparations: readonly MealPreparation[];
   cookingSessions: readonly CookingSession[];
+  /**
+   * LOT 1 — LA LISTE DE COURSES DU PLAN. Elle sert UNE chose ici: dire à
+   * chaque jour la vague qui tombe chez lui. REQUISE, pas optionnelle: les
+   * deux appelants l'ont déjà, et un `?` ferait du bloc courses une prop morte
+   * chez celui qui oublie — l'aperçu et le validé doivent rendre le même corps.
+   */
+  shoppingList: readonly ShoppingItem[];
   /** Le premier jour de la fenêtre, en date locale. */
   startsOn: string;
   durationDays: number;
@@ -151,6 +162,17 @@ export default function PlanResult(props: PlanResultProps) {
     awayDays: props.awayDays ?? [],
     fixedIntakes: props.fixedIntakes ?? [],
     dayProperties: props.dayProperties ?? [],
+  });
+
+  // LES VAGUES D'ACHAT — le module serveur réexporté (`api/groceryWaves`),
+  // JAMAIS un calcul maison: y remettre une règle recréerait le jumeau
+  // supprimé le 2026-08-10. Elles sont indexées par DATE; la jointure vers un
+  // jour passe par `windowDates` (jeton → date), dans `waveForDate`.
+  const waves = waveAssignments({
+    startsOn: props.startsOn,
+    durationDays: props.durationDays,
+    shoppingList: props.shoppingList,
+    preparations: props.preparations,
   });
 
   if (groups.length === 0) {
@@ -269,6 +291,16 @@ export default function PlanResult(props: PlanResultProps) {
           today={props.today}
           preparations={props.preparations}
           cookingSessions={props.cookingSessions}
+          // LA VAGUE DU JOUR — jointure par DATE, via `windowDates` et rien
+          // d'autre. `dayDates[group.day]` et pas `dishDate(...)`: le repli
+          // d'un groupe sans jour est « aujourd'hui », et une vague qui
+          // tomberait aujourd'hui s'accrocherait au bloc sans jour.
+          wave={group.day ? waveForDate(waves, dayDates[group.day] ?? null) : null}
+          shoppingList={props.shoppingList}
+          // LES MOTIFS DES MOMENTS VIDES, en vue JOUR seulement: en semaine,
+          // la grille au-dessus porte déjà ces silences case par case, et les
+          // répéter sous chaque jour ferait vingt lignes de bruit.
+          moments={shown === "all" ? [] : dayMoments(grid, group.day)}
           tick={props.tick}
           energy={props.energy}
           dayEnergy={props.dayEnergy}

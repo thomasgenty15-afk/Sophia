@@ -1,11 +1,18 @@
+import type { WaveAssignment } from "../api/groceryWaves";
+import type { EatingOccasion } from "../api/mealGeneration";
+import type { PlanGrid, PlanGridCell } from "./planGridModel";
+
 // LOT 1 — LA VUE PAR JOUR DU PLAN. Le modèle PUR: aucune I/O, aucune horloge,
 // aucun aléa, aucun `t()`.
 //
 // ── CE QUE CE MODULE DÉCIDE, ET CE QU'IL NE DÉCIDE PAS ─────────────────────
-// Il décide QUEL jour la vue ouvre, et si une sélection encore en mémoire vaut
-// toujours pour la fenêtre affichée. Il ne dérive AUCUNE liste de jours: la
-// liste vient de `windowDayOrder`, la seule source (deux dérivations du même
-// plan divergent — c'est l'interdit écrit dans `PlanResult`).
+// Il décide QUEL jour la vue ouvre, si une sélection encore en mémoire vaut
+// toujours pour la fenêtre affichée, quelle VAGUE de courses tombe un jour
+// donné, et ce que la grille dit des moments de ce jour. Il ne dérive AUCUNE
+// liste de jours ni AUCUNE règle de vague: la liste vient de `windowDayOrder`,
+// les vagues de `planGroceryWaves` (module serveur réexporté) — deux
+// dérivations d'une même règle divergent, et c'est l'écran qui garde la
+// vieille.
 //
 // ── « AUJOURD'HUI » EST UNE JOINTURE, PAS UNE DEVINETTE ────────────────────
 // Le jour d'ouverture est celui dont la DATE (`windowDates`, jeton → date)
@@ -57,4 +64,46 @@ export function effectiveSelectedDay(args: {
     dates: args.dates,
     today: args.today,
   });
+}
+
+/**
+ * LA VAGUE DE COURSES QUI TOMBE CE JOUR-LÀ — ou `null`.
+ *
+ * ⛔ LA JOINTURE EST UNE ÉGALITÉ DE DATES, ET RIEN D'AUTRE. Les vagues sont
+ * indexées par DATE (`GroceryWave.buyOn`, `YYYY-MM-DD`); les jours du plan par
+ * JETON (`mon..sun`). Le seul pont est `windowDates` — c'est l'appelant qui
+ * convertit son jeton en date AVANT d'appeler, jamais un calcul maison ici.
+ * `null` en entrée = un jeton hors fenêtre, qui n'a pas de date, donc pas de
+ * vague.
+ */
+export function waveForDate(
+  waves: readonly WaveAssignment[],
+  date: string | null,
+): WaveAssignment | null {
+  if (!date) return null;
+  return waves.find((wave) => wave.buyOn === date) ?? null;
+}
+
+/** Un moment du jour, et ce que sa case de grille dit. */
+export interface DayMoment {
+  slot: EatingOccasion;
+  cell: PlanGridCell;
+}
+
+/**
+ * LA COLONNE D'UN JOUR, lue dans la grille déjà construite.
+ *
+ * C'est ce qui donne à la vue jour le MOTIF d'un moment vide (absence, apport
+ * fixe, restes, ou le vrai vide) sans recalculer quoi que ce soit: la grille
+ * est déjà la source unique de ces quatre silences (`buildPlanGrid`), et une
+ * seconde lecture des déclarations divergerait de la première.
+ *
+ * `[]` pour un jour hors grille ou sans jour: le groupe `day: null` n'a pas de
+ * colonne, et ses plats valent pour la fenêtre entière.
+ */
+export function dayMoments(grid: PlanGrid, day: string | null): DayMoment[] {
+  if (!day) return [];
+  const at = grid.days.indexOf(day);
+  if (at < 0) return [];
+  return grid.rows.map((row) => ({ slot: row.slot, cell: row.cells[at] }));
 }

@@ -1519,6 +1519,10 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                 dishes={result?.dishes ?? []}
                 preparations={result?.preparations ?? []}
                 cookingSessions={result?.cookingSessions ?? []}
+                // LOT 1 — la vue jour dit les courses qui tombent chaque jour.
+                // La donnée arrive déjà ici (la fenêtre de courses la lit);
+                // le rendu du plan en déduit la vague de chaque jour.
+                shoppingList={result?.shoppingList ?? []}
                 startsOn={startDate}
                 durationDays={durationDays}
                 today={today}
