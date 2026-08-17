@@ -649,8 +649,15 @@ export function readDishes(raw: unknown): GeneratedDish[] {
   });
 }
 
-/** La liste de courses, même arbitrage: relue d'une ligne, elle est normalisée. */
-function readShopping(raw: unknown): ShoppingItem[] {
+/**
+ * La liste de courses, même arbitrage: relue d'une ligne, elle est normalisée.
+ *
+ * `export` pour `api/planDraft.ts` — même raison que `readFixedIntakes`: depuis
+ * le LOT 1, le brouillon rend ses courses jour par jour, et il les relit donc
+ * de la MÊME façon que le plan adopté. Deux lectures de la même ligne
+ * divergeraient.
+ */
+export function readShopping(raw: unknown): ShoppingItem[] {
   if (!Array.isArray(raw)) return [];
   return raw.map((entry) => {
     const s = (entry ?? {}) as Record<string, unknown>;

@@ -46,6 +46,7 @@ import {
   readFixedIntakes,
   readPreparations,
   readSessions,
+  readShopping,
 } from "./mealGeneration";
 import { type MealWindowRequest } from "./mealWindow";
 
@@ -270,9 +271,19 @@ export function readDraftPlan(raw: unknown): GeneratedMealResult {
     dishes: readDishes(payload.dishes),
     preparations: readPreparations(payload.preparations),
     cookingSessions: readSessions(payload.cooking_sessions),
-    // Le brouillon ne montre pas de courses: `PlanResult` n'en rend pas, et la
-    // liste se lit sur le plan adopté. Vide plutôt qu'un lecteur inutilisé.
-    shoppingList: [],
+    // ⚠️ CETTE LIGNE A ÉTÉ `[]` EN DUR, ET SON COMMENTAIRE A SURVÉCU À SA
+    // CAUSE. Il disait « le brouillon ne montre pas de courses: `PlanResult`
+    // n'en rend pas » — vrai jusqu'au LOT 1, faux depuis: `PlanResult` rend
+    // désormais LA VAGUE DU JOUR dans chaque bloc de jour, et
+    // `PlanDraftDialog` lui passe `draft.shoppingList`. Vidée ici, cette prop
+    // requise redevenait une garde désarmée: la carte « les courses du jour »
+    // ne pouvait structurellement PAS apparaître à l'aperçu, alors qu'elle
+    // apparaît sur le plan adopté — et l'aperçu doit montrer ce qu'adopter
+    // donnerait (C8: les deux surfaces, un seul corps de plan).
+    // Le serveur REND bien `shopping_list` sur `intent: "draft"`
+    // (`generate-household-meal-v1/index.ts:3805`, dans la branche `isDraft`);
+    // c'est le lecteur qui la jetait.
+    shoppingList: readShopping(payload.shopping_list),
     fixedIntakes: readFixedIntakes(payload.fixed_intakes),
     dayProperties: readDayProperties(payload.day_properties),
     context: null,

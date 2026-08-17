@@ -10,6 +10,7 @@ import {
 } from "./planDayView";
 import { buildPlanGrid } from "./planGridModel";
 import { windowDates, windowDayOrder } from "../api/mealWindow";
+import { readDraftPlan } from "../api/planDraft";
 import type { GeneratedDish } from "../api/mealGeneration";
 
 /**
@@ -293,6 +294,43 @@ describe("le câblage de la vue jour", () => {
     expect(dialog, "l'aperçu ne passe plus la liste").toContain(
       "shoppingList={draft.shoppingList}",
     );
+  });
+
+  /**
+   * ⚠️ LE TEST AU-DESSUS EST UN TEST DE CÂBLAGE, ET IL A ÉTÉ VERT SUR UNE PROP
+   * MORTE. `PlanDraftDialog` passait bien `draft.shoppingList` — mais
+   * `readDraftPlan` rendait `shoppingList: []` EN DUR, sous un commentaire qui
+   * avait survécu à sa cause (« le brouillon ne montre pas de courses:
+   * `PlanResult` n'en rend pas »), vrai avant le LOT 1 et faux depuis. La carte
+   * « les courses du jour » ne pouvait donc structurellement pas apparaître à
+   * l'aperçu, alors qu'elle apparaît sur le plan adopté — mesuré au navigateur
+   * le 2026-08-17, aucun jour de l'aperçu ne la portait.
+   *
+   * Ce test-ci mord sur la VALEUR, pas sur un littéral de source: c'est le seul
+   * qui tombe quand le lecteur rejette la ligne que le serveur a rendue.
+   */
+  it("l'aperçu porte VRAIMENT ses courses — le lecteur ne les jette pas", () => {
+    const plan = readDraftPlan({
+      window: { starts_on: STARTS, duration_days: 7 },
+      dishes: [],
+      shopping_list: [
+        { term: "chicken thighs", quantity: "1.2 kg", aisle: "butcher" },
+        { term: "couscous", quantity: "500 g", aisle: "dry_goods" },
+      ],
+    });
+    expect(plan.shoppingList, "le lecteur du brouillon jette la liste de courses")
+      .toHaveLength(2);
+    expect(plan.shoppingList[0]).toEqual({
+      term: "chicken thighs",
+      quantity: "1.2 kg",
+      aisle: "butcher",
+    });
+    // Et l'absence reste une absence: une réponse sans liste rend `[]`, pas un
+    // article vide — c'est le cas passant de la garde.
+    expect(
+      readDraftPlan({ window: { starts_on: STARTS, duration_days: 7 } })
+        .shoppingList,
+    ).toEqual([]);
   });
 
   it("le motif d'un moment vide vient de la grille, en vue jour", () => {
