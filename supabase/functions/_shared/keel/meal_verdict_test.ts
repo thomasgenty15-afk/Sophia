@@ -582,6 +582,7 @@ Deno.test("la correspondance colonne→drapeau couvre les SEPT, sans trou", () =
   const mapped = Object.values(SENTINEL_FLAG_BY_COLUMN);
   for (const flag of SENTINEL_FLAGS) {
     assert(mapped.includes(flag), `${flag} n'a pas de nom de colonne`);
+    boxMemberIds: [],
   }
   assertEquals(Object.keys(SENTINEL_FLAG_BY_COLUMN).length, SENTINEL_FLAGS.length);
 });

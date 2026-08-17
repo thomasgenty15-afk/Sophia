@@ -367,7 +367,28 @@ import {
  * compteur `dish_owner_counts` posé par le même lot dans `meal_generation.ts`
  * est une MESURE, pas une consigne — il ne se lit sur aucun prompt.
  */
-export const HOUSEHOLD_PROMPT_VERSION = "v13_dedicated_dish_is_ordered";
+// ── v14 (2026-08-17) — LE PROTOCOLE DES BOÎTES (LOT 4 / P4) ────────────────
+//
+// La décision produit du 2026-08-17 rend les parts PRÉCISES, et décide comment
+// éviter que quiconque pèse à chaque repas: TOUT SE PÈSE UNE FOIS, à la session
+// de cuisine, dans des boîtes nommées. L'enveloppe foyer gagne donc deux
+// moitiés — le SCHÉMA (`boxSchemaBlock`, prompt système) et la CONSIGNE
+// (`boxingOrderLines`, à l'intérieur du brief de portions, message
+// utilisateur) — plus la phrase des ids, qui nomme désormais ses deux
+// destinations.
+//
+// ⚠️ POPULATION EXACTE: les foyers d'AU MOINS DEUX BOUCHES. Une boîte par
+// personne n'a pas de sujet à une seule, et les deux blocs sont muets sous ce
+// seuil — un foyer d'une bouche rend un prompt byte-identique à v13, et un test
+// le tient dans les deux sens (le brief ET le suffixe système).
+//
+// ⚠️ `MEAL_PROMPT_VERSION` BOUGE AUSSI, ET CE N'EST PAS UN DOUBLON. Le tronc
+// porte l'autre moitié de P4 — les quantités du jour, pesées ou dénombrées —
+// que les QUATRE populations voient, plus les deux jetons d'identifiant de
+// boîte dans le bloc de langue. Deux changements, deux portées, deux axes:
+// c'est très exactement la règle « quelle population voit une consigne
+// différente », appliquée deux fois dans le même lot.
+export const HOUSEHOLD_PROMPT_VERSION = "v14_weigh_once_into_boxes";
 
 export interface HouseholdRestriction {
   memberId: string;
@@ -657,6 +678,51 @@ const PORTION_SCHEMA_BLOCK = [
 
 /**
  * ══════════════════════════════════════════════════════════════════════════
+ * LOT 4 — LA MOITIÉ SCHÉMA DU PROTOCOLE DES BOÎTES.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ LE PARTAGE EST CELUI DE `member_portions`, ET C'EST LE SEUL QUI MARCHE.
+ * Ce bloc-ci dit qu'une clé EXISTE et quelle forme elle a; la CONSIGNE — peser
+ * une fois, combien de bouches, et ce qui n'est pas une boîte — vit dans
+ * `boxingOrderLines`, côté message utilisateur, à l'intérieur même du brief de
+ * portions. `member_portions` a ces deux moitiés et il est rempli 100 % du
+ * temps; `for_member_id` n'avait que celle-ci et il est resté à zéro sur douze
+ * générations. On copie le patron qui marche.
+ *
+ * ⛔ ET IL N'EXISTE QU'À PARTIR DE DEUX BOUCHES, exactement comme
+ * `boxingOrderLines`. Une seule bouche rend un `systemSuffix` byte-identique à
+ * celui de v13, et un test le tient.
+ *
+ * ⚠️ `box_id` SUR `uses`, PAS UNE SECONDE LISTE. Le plat dit déjà de quel lot il
+ * prend (`uses[].preparation_id`); la boîte est une précision sur cette même
+ * reprise. En faire un champ à part du plat obligerait à tenir deux jointures
+ * d'accord, et c'est celle qu'on regarde le moins qui garderait l'ancienne.
+ */
+function boxSchemaBlock(
+  members: readonly { memberId: string; displayName: string }[],
+): readonly string[] {
+  if (members.length < 2) return [];
+  return [
+    "== BOXES, ON EVERY PREPARATION (household) ==",
+    'Each preparation carries one more key: "boxes".',
+    '  "boxes": [{ "id": "box_<preparation>_<name>",',
+    '              "member_ids": ["<exact ids from the list above>"],',
+    '              "grams": <whole grams of READY food in that box> }]',
+    "Ids are lowercase ASCII, invented by you, and each one is used once in the",
+    "whole plan. The grams are what goes IN the box once cooked, not the raw",
+    "weight of the shopping.",
+    // ⚠️ « carries », JAMAIS « may carry ». La formulation permissive a été
+    // mesurée le 2026-08-17 comme une permission qu'on décline — zéro
+    // déclaration sur douze runs — et un test de ce fichier interdit désormais
+    // la tournure dans tout le suffixe système.
+    'A dish that eats from a box says so: each entry of its "uses" then carries',
+    '"box_id", set to that exact box id. A box can only be cited by a meal on or',
+    "after the day its preparation is cooked.",
+  ];
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
  * LOT C — LE PLAT DÉDIÉ DIT À QUI IL EST.
  * ══════════════════════════════════════════════════════════════════════════
  *
@@ -826,12 +892,24 @@ export function buildHouseholdPromptBlocks(
   const envyBlock = buildEnvyBlock(input.envyLine);
   const voices = buildHouseholdVoices(input.voices);
   const dishOwner = dishOwnerSchemaBlock(input.dishBearers);
+  // LOT 4 — LA MOITIÉ SCHÉMA DES BOÎTES. Même prémisse que sa moitié consigne
+  // (`boxingOrderLines`, dans le brief): deux bouches au moins. Un foyer d'une
+  // seule rend les deux vides, et le prompt est celui de v13 au caractère près.
+  const boxSchema = boxSchemaBlock(input.members);
 
   const idLines = input.members.map((m) => `- ${m.displayName} = ${m.memberId}`);
 
   const parts = [
     "== THE HOUSEHOLD ==",
-    "Exact ids to use in member_portions:",
+    // ⚠️ LA PHRASE NOMME MAINTENANT LES DEUX DESTINATIONS DES IDS. Elle disait
+    // « to use in member_portions », c'est-à-dire le seul champ qui les
+    // consommait; depuis le LOT 4 les boîtes les consomment aussi, et une liste
+    // présentée comme servant UN champ est une liste que le modèle ne pense pas
+    // à relire pour un autre. Byte-identique à une seule bouche, où il n'y a pas
+    // de boîtes.
+    boxSchema.length === 0
+      ? "Exact ids to use in member_portions:"
+      : "Exact ids to use in member_portions and in every preparation's boxes:",
     ...idLines,
     "",
     // LA FORME DE CUISINE VIENT DE L'APPELANT, ET DE LUI SEUL (G5). Elle
@@ -906,6 +984,12 @@ export function buildHouseholdPromptBlocks(
     systemSuffix: `\n\n${
       [
         ...PORTION_SCHEMA_BLOCK,
+        // LOT 4 — LE SCHÉMA DES BOÎTES REJOINT LE SCHÉMA DES PORTIONS, et il
+        // vient JUSTE APRÈS lui: les deux disent « qui reçoit combien », l'un en
+        // prose lue à table, l'autre en grammes sur un couvercle. Les séparer
+        // par l'attribution des plats ferait lire la boîte comme une précision
+        // du plat dédié, alors qu'elle porte sur TOUTE préparation.
+        ...(boxSchema.length === 0 ? [] : ["", ...boxSchema]),
         ...(dishOwner.length === 0 ? [] : ["", ...dishOwner]),
       ].join("\n")
     }`,

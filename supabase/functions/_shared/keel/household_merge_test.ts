@@ -1432,6 +1432,10 @@ const PARSE_BASE = {
   fixedIntakes: [],
   dayProperties: [],
   merge: null as MergedEater | null,
+  // LOT 4 — LE ROSTER DES BOÎTES. `[]` par défaut: ces épreuves-ci portent sur
+  // le plafond, la garde de préparation et l'attribution, pas sur les grammes.
+  // Un test qui veut des boîtes le remplace explicitement.
+  boxMemberIds: [] as readonly string[],
 };
 
 const PROMPT_BASE = {
@@ -2667,7 +2671,20 @@ Deno.test("C8 ③ — LA LANE INDIVIDUELLE GARDE SA VERSION DE PROMPT", () => {
   //
   // Le même bump paie la clé `"uses"` déclarée DEUX FOIS dans le bloc de
   // schéma (défaut mesuré le 2026-08-17): le bloc changeait de toute façon.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v10_same_day");
+  // ⚠️ v11 DEPUIS LE LOT 4 (2026-08-17), ET C'EST LE MÊME RAISONNEMENT QUE v10
+  // PRIS UNE SECONDE FOIS: un octet de CONSIGNE change, et il change POUR TOUT
+  // LE MONDE. La section `WHAT A DISH ADDS ON THE DAY IS WEIGHED OR COUNTED`
+  // resserre la quantité d'un plat — grammes ou unités dénombrables — et elle
+  // est servie à la lane individuelle, au foyer ordinaire, à la fusion et au
+  // secondaire. Le même bump paie les deux jetons d'identifiant de boîte
+  // ajoutés à `MEAL_TOKEN_FIELDS`, qui sont rendus dans le bloc de langue des
+  // DEUX lanes.
+  //
+  // ⚠️ ET LE PROTOCOLE DES BOÎTES, LUI, N'EST PAS ICI: il vit dans l'enveloppe
+  // foyer (`v14_weigh_once_into_boxes`), parce que les ids de bouches n'existent
+  // que là. Deux moitiés d'un même lot, deux axes — la règle « quelle
+  // population voit une consigne différente », appliquée deux fois.
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v11_weighed_or_counted");
   // ⚠️ v10 DEPUIS LE LOT G (2026-08-14), ET C'EST LA MOITIÉ DU LOT QUI COMPTE
   // ICI: le TRONC ne bouge toujours pas (la ligne au-dessus le tient), la lane
   // du FOYER si. Deux populations neuves y voient une consigne différente —
@@ -2695,7 +2712,15 @@ Deno.test("C8 ③ — LA LANE INDIVIDUELLE GARDE SA VERSION DE PROMPT", () => {
   // passe dans le message UTILISATEUR, collé au brief qui le promet, parce que
   // la permission servie dans le prompt système n'a produit aucune attribution
   // retenue sur douze générations mesurées.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v13_dedicated_dish_is_ordered");
+  // ⚠️ v14 DEPUIS LE LOT 4 (2026-08-17), ET CETTE FOIS LE TRONC BOUGE AUSSI —
+  // ce qui n'était jamais arrivé sur cette liste. Ce n'est pas un doublon: les
+  // deux moitiés de P4 n'ont PAS la même portée. Le tronc porte les quantités
+  // du jour, vues par les quatre populations; l'enveloppe porte le protocole
+  // des boîtes, vu par les foyers d'AU MOINS DEUX BOUCHES — `boxSchemaBlock`
+  // côté système, `boxingOrderLines` dans le brief de portions. Un foyer d'une
+  // seule bouche rend les deux vides et un prompt de foyer byte-identique à
+  // v13, ce que `household_meal_generation_test.ts` tient par égalité de chaîne.
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v14_weigh_once_into_boxes");
 });
 
 Deno.test("C7 ③ — LA LIGNE DE COURSES D'UN PLAT JETÉ NE PART PLUS AU MAGASIN", () => {

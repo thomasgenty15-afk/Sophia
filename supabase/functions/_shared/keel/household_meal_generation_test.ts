@@ -371,6 +371,11 @@ Deno.test("CHANGER LES BLOCS SANS BUMPER LA VERSION DOIT ÊTRE ROUGE", () => {
   const SECTIONS_NO_MERGE = [
     "== THE HOUSEHOLD ==",
     "HOUSEHOLD SERVING PLAN",
+    // LOT 4 — LA MISE EN BOÎTES VIT DANS LE BRIEF, ENTRE LES LIGNES PAR
+    // PERSONNE ET L'INTERDIT DU « POURQUOI ». Sa place est la moitié du lot: la
+    // promesse de peser est ce brief-ci, et un ordre séparé de sa promesse a
+    // déjà été mesuré à zéro effet le 2026-08-17.
+    "WEIGH IT ONCE, INTO NAMED BOXES.",
     "WHO IS NOT AT THE TABLE",
     "WHAT THIS HOUSEHOLD ASKED FOR",
     "HOUSE RULES",
@@ -395,7 +400,9 @@ Deno.test("CHANGER LES BLOCS SANS BUMPER LA VERSION DOIT ÊTRE ROUGE", () => {
   // LE COMPTE ATTRAPE CE QUE LA LISTE NE PEUT PAS: un bloc NEUF, dont on ne
   // connaît pas encore le marqueur. Une liste blanche ne voit jamais arriver
   // ce qu'elle n'énumère pas.
-  const PARTS_NO_MERGE = 15;
+  // LOT 4 — 15 → 16: le protocole des boîtes, servi à tout foyer d'au moins
+  // deux bouches, ajoute un bloc à l'intérieur du brief de portions.
+  const PARTS_NO_MERGE = 16;
   assertEquals(
     userSuffix.split("\n\n").length,
     PARTS_NO_MERGE,
@@ -837,7 +844,8 @@ Deno.test("le bloc des voix entre APRÈS la tablée et AVANT l'envie", () => {
 
   // LE COMPTE, comme pour la composition sans fusion: une liste blanche ne voit
   // jamais arriver le bloc qu'elle n'énumère pas.
-  const PARTS_WITH_VOICES = 16;
+  // LOT 4 — 16 → 17, même cause qu'au test sans voix: le protocole des boîtes.
+  const PARTS_WITH_VOICES = 17;
   assertEquals(
     userSuffix.split("\n\n").length,
     PARTS_WITH_VOICES,
@@ -1390,10 +1398,15 @@ Deno.test("LOT 3C — un compte à ZÉRO avec un porteur ne réclame JAMAIS zér
   assert(out.userSuffix.includes("That is 1 extra dish on top"), out.userSuffix);
 });
 
-Deno.test("LOT 3C — la version de la lane foyer a bougé d'UN cran, et le tronc n'a pas bougé", () => {
-  // La règle est « quelle POPULATION voit une consigne différente »: les foyers
-  // où au moins une bouche reçoit un plat à elle, et eux seuls. Aucun octet du
-  // tronc ne change — le compteur posé par le même lot est une MESURE, elle ne
-  // se lit sur aucun prompt.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v13_dedicated_dish_is_ordered");
+Deno.test("LOT 4 — la version de la lane foyer a bougé d'UN cran", () => {
+  // La règle est « quelle POPULATION voit une consigne différente ». Au LOT 3C
+  // c'étaient les foyers où une bouche reçoit un plat à elle; au LOT 4 ce sont
+  // les foyers d'AU MOINS DEUX BOUCHES, qui voient le protocole des boîtes —
+  // deux moitiés, `boxSchemaBlock` côté système et `boxingOrderLines` dans le
+  // brief.
+  //
+  // ⚠️ ET CETTE FOIS LE TRONC BOUGE AUSSI, ce qui n'est PAS un doublon: il porte
+  // l'autre moitié de P4 — les quantités du jour, pesées ou dénombrées — que
+  // les quatre populations voient. Deux changements, deux portées, deux axes.
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v14_weigh_once_into_boxes");
 });

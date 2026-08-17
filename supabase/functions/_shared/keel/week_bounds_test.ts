@@ -207,6 +207,7 @@ Deno.test("un lot mangé AVANT d'être cuisiné est signalé", () => {
     },
   );
   assert(
+      boxMemberIds: [],
     meal.issues.some((i) => i.includes("after the meal")),
     JSON.stringify(meal.issues),
   );
@@ -255,6 +256,7 @@ Deno.test("cuisiner AVANT de manger ne déclenche rien", () => {
     },
   );
   assertEquals(meal.issues.filter((i) => i.includes("after the meal")), []);
+      boxMemberIds: [],
 });
 
 // ===========================================================================
@@ -317,6 +319,7 @@ function planWith(args: {
     },
   );
 }
+      boxMemberIds: [],
 
 Deno.test("un lot gardé plus de trois jours est signalé", () => {
   // LE CAS MESURÉ, mot pour mot: légumes rôtis cuisinés jeudi, encore mangés le

@@ -133,6 +133,7 @@ const PARSE_BASE = {
   composition: null,
   fixedIntakes: [],
   merge: null,
+  boxMemberIds: [],
 };
 
 const BATCH_PREP = {
@@ -334,6 +335,7 @@ const PROMPT_ARGS = {
 };
 
 Deno.test("R5 — DÉSARMEMENT: rien de déclaré, consigne identique AU CARACTÈRE PRÈS", () => {
+  boxMemberIds: [],
   assertEquals(dayPropertyPromptLines([]), []);
 
   const empty = buildMealPrompt({ ...PROMPT_ARGS, dayProperties: [] });

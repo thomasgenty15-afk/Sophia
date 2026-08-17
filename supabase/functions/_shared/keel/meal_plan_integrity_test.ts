@@ -319,6 +319,7 @@ const PARSE_ARGS = {
   fixedIntakes: [],
   dayProperties: [],
   merge: null,
+  boxMemberIds: [],
 };
 
 function parse(raw: unknown, over: Record<string, unknown> = {}) {

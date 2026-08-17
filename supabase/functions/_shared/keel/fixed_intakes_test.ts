@@ -87,6 +87,7 @@ Deno.test("les listes recopiées sont ÉGALES à celles d'origine", () => {
         fixedIntakes: [],
         dayProperties: [],
         merge: null,
+        boxMemberIds: [],
       }).dishes[0]?.day,
       d,
       `${d} n'est pas un jeton de jour du parseur`,
@@ -294,6 +295,7 @@ Deno.test("LES DEUX BOUTS — le parseur DROP le plat, la consigne ne suffit pas
     fixedIntakes: [intake()],
     dayProperties: [],
     merge: null,
+    boxMemberIds: [],
   });
   // Le lundi tombe, le samedi reste. Un seul plat survit.
   assertEquals(meal.dishes.length, 1);
@@ -539,6 +541,7 @@ const PROMPT_ARGS = {
   servings: 1,
   dayProperties: [],
   merge: null,
+  boxMemberIds: [],
 };
 
 Deno.test("R6 — DÉSARMEMENT: sans apport, la consigne est identique AU CARACTÈRE PRÈS", () => {

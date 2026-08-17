@@ -26,6 +26,7 @@ const PROMPT_BASE = {
   protocolBlock: "",
   beliefKeys: [],
   goal: "health" as const,
+  boxMemberIds: [],
   situation: null,
   context: null,
   mode: "to_shop" as const,
@@ -130,6 +131,7 @@ Deno.test("le VERROU DE SORTIE mord toujours â€” la consigne ne l'a pas remplacÃ
   });
   assertEquals(meal.dishes.length, 0);
   assert(meal.lock.reason !== "clean", meal.lock.reason);
+    boxMemberIds: [],
 });
 
 // ---------------------------------------------------------------------------

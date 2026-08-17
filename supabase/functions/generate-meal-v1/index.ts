@@ -1575,6 +1575,22 @@ Deno.serve(async (req) => {
       // là-haut: `null` des deux côtés, donc plafond inchangé et garde de
       // préparation entière. Les deux bouts, comme tout le reste de cet objet.
       merge: null,
+      // ── LOT 4 · AUCUNE BOÎTE ATTRIBUABLE SUR CETTE LANE ───────────────────
+      //
+      // ⚠️ `[]` EST UNE AFFIRMATION, PAS UN OUBLI, et c'est LES DEUX BOUTS comme
+      // le reste de cet objet: le prompt de cette lane ne porte AUCUN id de
+      // bouche — `boxSchemaBlock` et `boxingOrderLines` vivent dans l'enveloppe
+      // foyer et n'y sont jamais assemblés — donc le modèle n'a rien à écrire, et
+      // le parseur n'a rien à valider. Exactement la posture de `memberId`, qui
+      // est toujours `null` ici pour la même raison.
+      //
+      // Une personne seule a bien des boîtes dans sa vraie cuisine; ce qu'elle
+      // n'a pas, c'est deux bouches à départager — et le protocole des boîtes
+      // n'existe que pour ça. Lui servir un bloc qui nomme des bouches lui
+      // apprendrait qu'un marquage par personne existe et l'inviterait à en
+      // inventer un (raisonnement `dishOwnerSchemaBlock`), sur une lane où le
+      // champ n'apporte rien.
+      boxMemberIds: [],
     } as const;
 
     let meal: GeneratedMeal;
@@ -2052,10 +2068,33 @@ Deno.serve(async (req) => {
     // déjà mordu à l'identique. Aucun état de brouillon n'est posé en base: la
     // contrainte d'exclusion sur les fenêtres vivantes reste intacte, et rien
     // ne peut rester coincé.
+    // ══════════════════════════════════════════════════════════════════════
+    // LOT 4 — LES COMPTEURS DES GRAMMES, ÉCRITS UNE FOIS, LISIBLES SUR LES DEUX
+    // CHEMINS.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ ET RENDUS SUR L'APERÇU, PARCE QU'UN COMPTEUR QU'ON NE PEUT LIRE QUE SUR
+    // LE CHEMIN QUI CONSOMME UN PLAN N'EST PAS UN COMPTEUR. C'est la moitié qui
+    // manquait à `dish_owners` et qui a coûté un diagnostic entier le
+    // 2026-08-17: `generated_from` n'existe que sur une ligne ÉCRITE, donc toute
+    // vérification faite par `intent: "draft"` était AVEUGLE, et il fallait
+    // relire les plats un par un. Le LOT 3C l'a réparé côté foyer; ce lot-ci le
+    // fait aussi ici, sur la lane individuelle, qui ne rendait aucun compteur du
+    // tout.
+    //
+    // ⚠️ UNE SEULE EXPRESSION POUR LES DEUX CHEMINS, étalée par `...`: deux
+    // objets écrits séparément divergeraient au premier champ ajouté.
+    const boxTrace = {
+      boxes: meal.box_counts,
+      box_uses: meal.box_use_counts,
+      unquantified_dish_ingredients: meal.unquantified_dish_ingredients,
+    } as const;
+
     if (isDraft) {
       return jsonResponse(req, {
         ok: true,
         draft: true,
+        ...boxTrace,
         // `null` ET PAS UN IDENTIFIANT FABRIQUÉ: l'écran doit pouvoir
         // distinguer un aperçu d'un plan, et un id inventé serait la première
         // chose qu'un lecteur prendrait pour une ligne réelle.
@@ -2251,6 +2290,11 @@ Deno.serve(async (req) => {
             // ÉCRIT MÊME À ZÉRO, comme `dish_owners` sur la lane foyer: une clé
             // absente ne se distingue pas d'un lot débranché.
             same_day: meal.same_day_counts,
+            // ── LOT 4 · LES GRAMMES, COMPTÉS SUR CETTE LANE AUSSI ──────────
+            // La MÊME expression que celle rendue sur l'aperçu, quinze lignes
+            // plus haut: deux comptages divergeraient au premier champ ajouté,
+            // et la mesure d'un brouillon cesserait de prédire celle d'un plan.
+            ...boxTrace,
             // FF-027 — la provenance de l'adaptation, archivée avec la
             // composition. C'est ce qui rend « la faim persiste malgré deux
             // adaptations » (§10) lisible sans qu'aucun compteur ne vive sur

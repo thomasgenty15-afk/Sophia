@@ -3356,6 +3356,20 @@ Deno.serve(async (req) => {
       // ⚠️ G5 — `eaterBudget`, PAS `mergeBudget`: les deux bouts doivent lire
       // le MÊME nombre, et une composition divergente en a un désormais.
       merge: eaterBudget,
+      // ── LOT 4 · LE ROSTER ENTIER, ET PAS LES PORTEURS DE PLAT ─────────────
+      //
+      // ⚠️ LES DEUX BOUTS, ET C'EST LA MÊME LISTE QUE LA CONSIGNE. Le brief de
+      // portions nomme ces bouches une par une (`boxingOrderLines`) et le bloc
+      // de schéma donne leurs ids (`boxSchemaBlock`); ici le parseur valide
+      // contre EXACTEMENT la même source — `members`, celle qui a écrit les
+      // deux blocs. Un second calcul ferait promettre une boîte à quelqu'un que
+      // le parseur refuse, ou l'inverse.
+      //
+      // ⚠️ TOUT LE MONDE, PAS `dishBearerIds`. Une bouche qui mange le plat de
+      // la table a quand même SA part, donc SA boîte; seules quelques-unes ont
+      // un plat à elles. Passer les porteurs ici retirerait sa boîte à toute la
+      // tablée, en silence, et le lot ressemblerait à un modèle qui n'obéit pas.
+      boxMemberIds: members.map((m) => m.memberId),
     } as const;
 
     let meal;
@@ -3583,7 +3597,14 @@ Deno.serve(async (req) => {
     // une portion standard à toute bouche que le modèle a omise
     // (`portion_missing:<id>`). Lui passer la liste complète annulerait donc le
     // bon comportement du modèle s'il avait, lui, compris l'absence.
-    const { portions, issues: portionIssues } = reconcilePortions(
+    const {
+      portions,
+      issues: portionIssues,
+      // LOT 4 — LE FLOU DES CONSIGNES, COMPTÉ PAR LE MODULE QUI LES ASSAINIT.
+      // Recompté ici, il divergerait de la ceinture au premier terme ajouté, et
+      // c'est la copie qu'on regarde le moins qui garderait l'ancienne liste.
+      vagueCounts: portionVagueCounts,
+    } = reconcilePortions(
       platedMembers,
       extractMemberPortions(result),
     );
@@ -3816,6 +3837,28 @@ Deno.serve(async (req) => {
       refused: meal.dish_owner_counts.refused,
     };
 
+    // ══════════════════════════════════════════════════════════════════════
+    // LOT 4 — LES COMPTEURS DES GRAMMES, MÊME DISCIPLINE QUE `dish_owners`.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ RENDUS SUR L'APERÇU, et c'est la moitié qui manquait au compteur
+    // précédent: `generated_from` n'existe que sur une ligne ÉCRITE, donc toute
+    // vérification par `intent: "draft"` était aveugle — c'est de là qu'est
+    // venue la conclusion fausse du 2026-08-17. Une seule expression pour les
+    // deux chemins, pour que la mesure d'un brouillon prédise celle d'un plan.
+    //
+    // ⚠️ `boxes.asked` EST À CÔTÉ DES AUTRES, ET IL VIENT DE LA MÊME LISTE QUE
+    // LA CONSIGNE: le brief nomme `members.length` bouches à peser sur chaque
+    // préparation, `boxMemberIds` valide contre la même liste, et ce nombre-ci
+    // est celle-là encore. Trois lectures d'un même roster ne peuvent pas
+    // diverger tant qu'elles lisent le même tableau.
+    const boxTrace = {
+      boxes: { ...meal.box_counts, mouths: members.length },
+      box_uses: meal.box_use_counts,
+      unquantified_dish_ingredients: meal.unquantified_dish_ingredients,
+      vague_portions: portionVagueCounts,
+    } as const;
+
     if (isDraft) {
       return jsonResponse(req, {
         ok: true,
@@ -3829,6 +3872,7 @@ Deno.serve(async (req) => {
           id: householdId,
           member_count: members.length,
           dish_owners: dishOwnersTrace,
+          ...boxTrace,
         },
         dishes,
         preparations: mealPreparationsPayload(meal),
@@ -4062,6 +4106,28 @@ Deno.serve(async (req) => {
               // ÉCRIT MÊME À ZÉRO, comme les blocs voisins: une clé absente ne
               // se distingue pas d'un lot débranché.
               dish_owners: dishOwnersTrace,
+              // ══════════════════════════════════════════════════════════════
+              // LOT 4 — LES GRAMMES, COMPTÉS SOUS `household`.
+              // ══════════════════════════════════════════════════════════════
+              //
+              // ⚠️ ICI ET PAS À LA RACINE, contrairement à `same_day`, et la
+              // règle est celle que le LOT 2 a posée: un compteur se range où
+              // vit la CONSIGNE qui le produit. `same_day` est demandé par le
+              // schéma du TRONC, donc les deux lanes le comptent de la même
+              // façon au même endroit de la ligne. Les boîtes, elles, ne sont
+              // réclamées que par l'enveloppe foyer (`boxSchemaBlock`,
+              // `boxingOrderLines`) — comme `for_member_id`, et elles se rangent
+              // au même endroit que lui.
+              //
+              // ⚠️ `unquantified_dish_ingredients` VOYAGE AVEC ELLES ICI ET
+              // EXISTE AUSSI À LA RACINE DE LA LANE INDIVIDUELLE, et c'est
+              // assumé: la consigne qui le gouverne est du TRONC, donc une
+              // requête qui veut les deux populations lit la racine d'un côté et
+              // `household` de l'autre. La MÊME expression (`boxTrace`) écrit les
+              // deux, donc aucune divergence de forme n'est possible; ce qui
+              // diffère est le CHEMIN, et il est nommé ici pour qu'on ne le
+              // cherche pas.
+              ...boxTrace,
               // ── D14 · QUI A ÉTÉ COMPTÉ ABSENT, ET PAR QUI ──────────────
               // Sans ce bloc, une absence marquée par erreur est SILENCIEUSE:
               // il manque une assiette, et personne — ni le maître, ni la

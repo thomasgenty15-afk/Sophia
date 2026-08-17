@@ -33,6 +33,14 @@ const PARSE_ARGS = {
   fixedIntakes: [],
   dayProperties: [],
   merge: null,
+  // ⚠️ LOT 4 — AJOUTÉ À LA MAIN, PARCE QUE `as never` A DÉSARMÉ LE COMPILATEUR.
+  // Le champ `boxMemberIds` est REQUIS par `parseGeneratedMeal`, et le cast
+  // ci-dessous a laissé cet objet passer la compilation puis exploser À
+  // L'EXÉCUTION (`Cannot read properties of undefined`). C'est la cicatrice
+  // « `as` sur un type étranger désarme le typecheck », mot pour mot, sur un
+  // fichier de test. Le cast n'est pas retiré ici — il n'appartient pas à ce
+  // lot — mais il est nommé, et le rapport du LOT 4 le porte.
+  boxMemberIds: [],
 } as never;
 
 const DISHES: ReportableDish[] = [

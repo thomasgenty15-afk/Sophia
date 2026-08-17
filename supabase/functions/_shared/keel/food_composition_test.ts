@@ -404,6 +404,7 @@ Deno.test("les grammes ne sont JAMAIS lus d'un champ du modèle", () => {
       grams_raw: 9999,
       gramsRaw: 9999,
     },
+    boxMemberIds: [],
   ]);
   assertEquals(meal.dishes[0].ingredients[0].gramsRaw, 150);
 });

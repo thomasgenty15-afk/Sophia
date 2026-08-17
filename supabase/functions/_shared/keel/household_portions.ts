@@ -1067,13 +1067,92 @@ export function buildPortionBrief(
     ...lines,
     "",
     ...(anyBodyFacts ? [...BODY_FACTS_CAVEAT, ""] : []),
-    // EN DERNIER, ET ÇA RESTE LE CAS APRÈS LE LOT 3B. Un modèle lit la
-    // contrainte la plus proche de la fin comme la plus contraignante, et c'est
-    // celle-ci qui doit survivre aux faits corporels qu'on vient d'ajouter.
+    // ── LOT 4 · LA MISE EN BOÎTES, COLLÉE À LA PROMESSE ────────────────────
+    // Elle est ICI, dans le même souffle que les lignes par personne, et c'est
+    // la moitié qui décide du lot — voir `boxingOrderLines`.
+    ...boxingOrderLines(members),
+    // EN DERNIER, ET ÇA RESTE LE CAS APRÈS LE LOT 3B, PUIS APRÈS LE LOT 4. Un
+    // modèle lit la contrainte la plus proche de la fin comme la plus
+    // contraignante, et c'est celle-ci qui doit survivre aux faits corporels
+    // qu'on a ajoutés — ET aux grammes qu'on ajoute maintenant. C'est
+    // précisément quand le brief se met à porter des NOMBRES par personne que
+    // l'interdit du « pourquoi » doit rester la dernière chose lue.
     "NEVER state a reason, a goal, a calorie count or anything about a person's",
     "body in these instructions. They are read aloud at the table by the whole",
     "household. Write what to serve, never why.",
   ].join("\n");
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * LOT 4 — L'ORDRE DE PESER, LÀ OÙ LA MATIÈRE EST PROMISE.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ LA POSITION EST LA MOITIÉ DU LOT, ET ELLE A UNE DATE. Le 2026-08-17, un
+ * champ réclamé au modèle a été mesuré à ZÉRO déclaration sur 291 plats — non
+ * pas parce que le modèle refusait, mais parce que la PROMESSE de la matière
+ * vivait dans le message utilisateur pendant que la CLÉ du schéma vivait dans le
+ * prompt système, sans rien pour les relier. Rapproché de sa promesse, avec le
+ * NOMBRE attendu et l'échappatoire NOMMÉE, le même champ est passé à onze.
+ *
+ * Ici la promesse est ce brief-ci: « portions that differ », « how much of which
+ * component goes on their plate ». L'ordre de peser doit donc être DEDANS, pas
+ * dans un bloc voisin — et il l'est, juste avant les trois lignes de fin.
+ *
+ * Trois choses y sont load-bearing, chacune reprise d'une mesure:
+ *
+ *   ① LE NOMBRE. « ADD ONE dish » → le nombre exact avait déjà changé le
+ *      résultat sur la lane fusion (C6, 2026-08-12), puis sur le plat dédié
+ *      (LOT 3C). Ici c'est le nombre de BOUCHES à peser sur chaque préparation.
+ *      Il vient de `members.length` — la MÊME liste qui écrit les lignes juste
+ *      au-dessus, jamais un second calcul.
+ *   ② L'ÉCHAPPATOIRE, NOMMÉE. Le modèle a DÉJÀ un champ où ranger « qui mange
+ *      combien »: `member_portions`, qui lui est demandé. Une consigne qui
+ *      demande des grammes sans dire que la note de portion n'en est pas une
+ *      est une consigne qu'il satisfait dans l'autre champ — c'est exactement ce
+ *      qui a été capturé le 2026-08-17, la consigne renvoyée mot pour mot dans
+ *      le mauvais champ.
+ *   ③ LA BOÎTE PARTAGÉE EST LÉGITIME. Sans cette phrase, un modèle obéissant
+ *      écrirait quatre boîtes identiques là où une seule suffit, et la table de
+ *      pesée deviendrait illisible — après quoi quelqu'un désarmerait la
+ *      consigne. Ce qui compte est que CHAQUE bouche soit dans exactement une
+ *      boîte de chaque préparation.
+ *
+ * ⛔ ET AUCUN POURQUOI, JAMAIS. Le bloc ne dit pas d'où viennent les grammes: ce
+ * sont des grammes d'ALIMENT dans une boîte, du même côté de la frontière que
+ * « 400 g de cuisses de poulet » sur une liste de courses. Les trois lignes qui
+ * SUIVENT ce bloc l'interdisent explicitement, et elles restent les dernières.
+ *
+ * ⚠️ MUET À UNE SEULE BOUCHE. Une boîte par personne n'a de sujet qu'à partir de
+ * deux, et servir le bloc à un foyer d'un lui apprendrait qu'un marquage par
+ * personne existe — le raisonnement de `anyHabit`/`anyRhythm` juste au-dessus,
+ * quatrième fois. Un foyer à une bouche rend donc un brief byte-identique à
+ * celui d'avant ce lot, et un test le tient.
+ */
+export function boxingOrderLines(
+  members: readonly PortionMember[],
+): readonly string[] {
+  if (members.length < 2) return [];
+  const names = members.map((m) => m.displayName).join(", ");
+  return [
+    "WEIGH IT ONCE, INTO NAMED BOXES.",
+    "Nobody weighs anything at mealtime. Everything is weighed at the cooking",
+    "session, straight into boxes with a name on the lid, and a meal later just",
+    `takes its box out. Every preparation you write carries "boxes": one entry`,
+    "per box, with the exact member_ids it belongs to and its weight in grams of",
+    "READY food.",
+    `That is ${members.length} people to weigh out on EVERY preparation: ${names}.`,
+    "Count them before you answer — a person missing from a preparation's boxes",
+    "is a person standing at the fridge with nothing that says how much.",
+    "When two of them get the same weight, ONE box may carry both their ids; when",
+    "their shares differ, they get one box each, with different grams.",
+    "A line in member_portions is NOT a box. It is a sentence read aloud at the",
+    "table; a box has a weight and a name on it, and it is what stops the weighing",
+    "from happening again at every meal. Writing the serving instruction instead",
+    "of the boxes leaves the household weighing at every meal, which is the one",
+    "thing this plan exists to prevent.",
+    "",
+  ];
 }
 
 /**
@@ -1279,6 +1358,103 @@ export const FORBIDDEN_PORTION_TERMS: readonly ForbiddenTerm[] = [
   },
 ];
 
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * LOT 4 — LE VOCABULAIRE DU FLOU. UNE LISTE FERMÉE, DEUX LANGUES, ET ELLE NE
+ * RETIRE RIEN.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ CE N'EST PAS `FORBIDDEN_PORTION_TERMS`, ET LES DEUX NE FONT PAS LE MÊME
+ * MÉTIER. Celle-là porte des termes de CORPS et elle MORD: la note part à
+ * `null`, parce qu'une phrase qui parle du poids de quelqu'un devant toute la
+ * table est un dommage qu'on ne répare pas après coup. Celle-ci porte des termes
+ * de QUANTITÉ et elle COMPTE: « une bonne portion de poulet » n'est pas
+ * dangereux, c'est juste inutile — et le retirer laisserait la bouche sans
+ * aucune consigne, ce qui est PIRE que la consigne floue. On mesure, et c'est la
+ * mesure qui dira si la consigne resserrée du prompt a porté.
+ *
+ * ── LA FRONTIÈRE, ET CE QUI RESTE DEHORS ──────────────────────────────────
+ * On n'ajoute que du vocabulaire qui remplace UN NOMBRE par une impression.
+ *   `un peu` / `a little`   « un peu de sel » est une consigne de cuisine
+ *                           parfaitement juste — le sel a droit à la pincée
+ *                           dans le prompt depuis FF-038.
+ *   `cuillere` / `spoonful` une cuillère EST une unité (`tbsp`/`tsp` sont dans
+ *                           `COMPOSITION_UNITS`); mordre dessus punirait une
+ *                           quantité vraie.
+ *   `louche`                idem: une louche est un ustensile calibré, pas une
+ *                           impression.
+ * « Une ceinture qui mord sur tout se fait désarmer dans la semaine » — c'est
+ * l'arbitrage écrit vingt lignes plus haut pour les unités nues, appliqué ici.
+ *
+ * ⚠️ AUCUN MATCHER MAISON. On réutilise `findForbiddenMatches`, qui porte déjà
+ * les frontières de mot, la normalisation des accents et les pluriels. Écrire un
+ * `includes()` ici ferait mordre « poignée » à l'intérieur d'un autre mot et
+ * raterait « poignées » — c'est la douzième fois que ce dépôt l'écrit.
+ */
+export const VAGUE_PORTION_TERMS: readonly ForbiddenTerm[] = [
+  {
+    ruleId: "portion.vague",
+    token: "handful",
+    surfaceForms: ["poignee"],
+  },
+  {
+    ruleId: "portion.vague",
+    token: "generous portion",
+    surfaceForms: [
+      "generous helping",
+      "generous serving",
+      "generous share",
+      "large portion",
+      "grosse portion",
+      "grosse part",
+      "belle portion",
+      "belle part",
+      "grande portion",
+    ],
+  },
+  {
+    ruleId: "portion.vague",
+    token: "as much as you like",
+    surfaceForms: [
+      "as much as they like",
+      "as much as they want",
+      "a volonte",
+      "a discretion",
+    ],
+  },
+  {
+    ruleId: "portion.vague",
+    token: "a good amount",
+    surfaceForms: [
+      "a good amount of",
+      "plenty of",
+      "une bonne quantite",
+      "une bonne dose",
+    ],
+  },
+];
+
+/**
+ * LES MOTIFS DE FLOU D'UNE CONSIGNE. `[]` = elle est chiffrée, ou muette.
+ *
+ * ⚠️ `allowNegatedMentions: false`, EXACTEMENT COMME `sanitizePortionNote`. « pas
+ * une poignée mais 80 g » reste une phrase qui propose une poignée comme repère,
+ * et la lecture absolue est celle qu'on veut ici comme là-bas.
+ *
+ * ⛔ ET ELLE NE REND PAS DE TEXTE, elle rend des motifs. Le texte, lui, sort
+ * intact de cette fonction — c'est tout l'écart avec la ceinture du dessus, et
+ * c'est ce qui rend le cas passant vérifiable: « Your box: 150 g of the chicken »
+ * rend `[]` et sa phrase arrive telle quelle sur l'écran.
+ */
+export function vaguePortionMatches(raw: unknown): string[] {
+  const text = typeof raw === "string" ? raw.trim() : "";
+  if (!text) return [];
+  const matches = findForbiddenMatches(text, VAGUE_PORTION_TERMS, {
+    allowNegatedMentions: false,
+  });
+  return [...new Set(matches.map((m) => m.token))].sort();
+}
+
 export interface SanitizedNote {
   note: string | null;
   /** Les motifs qui ont mordu. Vide = la consigne est passée telle quelle. */
@@ -1322,6 +1498,24 @@ export interface ReconciledPortions {
   portions: MemberPortion[];
   /** Ce qui a été corrigé. Tracé, jamais silencieux. */
   issues: string[];
+  /**
+   * LOT 4 — LE FLOU, COMPTÉ SUR LES CONSIGNES QUI SORTENT VRAIMENT.
+   *
+   *   · `notes` — les textes examinés: une `portion_note` qui a survécu à
+   *     `sanitizePortionNote`, plus chaque note de part gardée. Le dénominateur.
+   *   · `vague` — ceux qui portent au moins un motif de `VAGUE_PORTION_TERMS`.
+   *
+   * ⚠️ LE DÉNOMINATEUR N'EST PAS DÉCORATIF. « 3 consignes floues » ne veut rien
+   * dire: sur trois consignes c'est un échec total, sur quarante c'est du bruit.
+   * Ce dépôt a déjà écrit deux fois qu'un compteur sans population est un
+   * compteur qui ment.
+   *
+   * ⚠️ MESURÉ APRÈS LA CEINTURE DE CORPS, ET DANS CET ORDRE. Une note mise à
+   * `null` parce qu'elle parlait d'un poids n'est plus une consigne: la compter
+   * comme « chiffrée » ou comme « floue » raconterait dans les deux cas quelque
+   * chose de faux sur un texte que personne ne lira.
+   */
+  vagueCounts: { notes: number; vague: number };
 }
 
 /**
@@ -1347,6 +1541,10 @@ export function reconcilePortions(
   raw: unknown,
 ): ReconciledPortions {
   const issues: string[] = [];
+  // LOT 4 — LES DEUX NOMBRES DU FLOU. Passés par référence à `parseShares` pour
+  // qu'il n'existe qu'UN compteur: une seconde addition côté appelant
+  // divergerait au premier changement de forme des parts.
+  const vagueCounts = { notes: 0, vague: 0 };
   const byMember = new Map<string, Record<string, unknown>>();
 
   if (Array.isArray(raw)) {
@@ -1385,22 +1583,37 @@ export function reconcilePortions(
     for (const v of violations) {
       issues.push(`portion_note_rejected:${member.memberId}:${v}`);
     }
+    // LOT 4 — LE FLOU, SUR LA CONSIGNE QUI SORT. Après la ceinture de corps, et
+    // seulement sur ce qui a survécu: une note mise à `null` n'est plus une
+    // consigne, et la compter dirait quelque chose sur un texte que personne ne
+    // lira.
+    if (note !== null) {
+      vagueCounts.notes++;
+      const vague = vaguePortionMatches(note);
+      if (vague.length > 0) {
+        vagueCounts.vague++;
+        for (const v of vague) {
+          issues.push(`portion_note_vague:${member.memberId}:${v}`);
+        }
+      }
+    }
 
     return {
       memberId: member.memberId,
       displayName: member.displayName,
       portionNote: note,
-      preparationShares: parseShares(row, member, issues),
+      preparationShares: parseShares(row, member, issues, vagueCounts),
     };
   });
 
-  return { portions, issues };
+  return { portions, issues, vagueCounts };
 }
 
 function parseShares(
   row: Record<string, unknown>,
   member: PortionMember,
   issues: string[],
+  vagueCounts: { notes: number; vague: number },
 ): PreparationShare[] {
   const raw = row.preparation_shares ?? row.preparationShares;
   if (!Array.isArray(raw)) return [];
@@ -1416,7 +1629,19 @@ function parseShares(
     }
     // Une part sans consigne lisible n'apporte rien à l'écran: on la laisse
     // tomber plutôt que d'afficher une ligne vide sous un plat.
-    if (note) out.push({ preparationId, note });
+    if (note) {
+      // LOT 4 — MÊME MESURE QUE SUR LA NOTE PRINCIPALE, ET AU MÊME MOMENT:
+      // après la ceinture de corps, sur ce qui sort vraiment.
+      vagueCounts.notes++;
+      const vague = vaguePortionMatches(note);
+      if (vague.length > 0) {
+        vagueCounts.vague++;
+        for (const v of vague) {
+          issues.push(`share_note_vague:${member.memberId}:${preparationId}:${v}`);
+        }
+      }
+      out.push({ preparationId, note });
+    }
   }
   return out;
 }

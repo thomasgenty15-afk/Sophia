@@ -87,6 +87,7 @@ function parse(payload: Record<string, unknown>, over: Record<string, unknown> =
     fixedIntakes: [],
     dayProperties: [],
     merge: null,
+    boxMemberIds: [],
     ...over,
   });
 }
@@ -406,6 +407,7 @@ Deno.test("from_pantry puts the pantry in the prompt, to_shop does not pretend t
     fixedIntakes: [],
     dayProperties: [],
     merge: null,
+    boxMemberIds: [],
     protocolBlock: "",
     beliefKeys: [],
     goal: "health",
@@ -440,6 +442,7 @@ Deno.test("a non-JSON model output throws instead of shipping an empty meal", ()
     fixedIntakes: [],
     dayProperties: [],
     merge: null,
+    boxMemberIds: [],
   }));
 });
 
@@ -505,6 +508,7 @@ Deno.test("sans préférence, le prompt est EXACTEMENT celui d'avant", () => {
     fixedIntakes: [],
     dayProperties: [],
     merge: null,
+    boxMemberIds: [],
     protocolBlock: "",
     beliefKeys: [],
     goal: "health" as const,

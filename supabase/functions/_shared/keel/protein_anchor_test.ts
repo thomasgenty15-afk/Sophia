@@ -217,6 +217,7 @@ function parse(payload: Record<string, unknown>, over: Record<string, unknown> =
     fixedIntakes: [],
     dayProperties: [],
     merge: null,
+    boxMemberIds: [],
     ...over,
   });
 }

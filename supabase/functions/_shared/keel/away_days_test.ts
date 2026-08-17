@@ -151,6 +151,7 @@ Deno.test("le parseur REJETTE un plat posé sur un moment écarté", () => {
     dayProperties: [],
     merge: null,
   });
+    boxMemberIds: [],
 
   const kept = parsed.dishes.map((d) => d.title);
   assertEquals(kept, ["Monday lunch", "Tuesday dinner"]);
@@ -197,6 +198,7 @@ Deno.test("un plat écarté ne consomme PAS une place du plafond", () => {
     dayProperties: [],
     merge: null,
   });
+    boxMemberIds: [],
 
   // `scope: "day"` avec un rythme d'UN moment donne un plafond de 1. Les six
   // plats interdits ne doivent pas l'avoir épuisé.
@@ -223,6 +225,7 @@ Deno.test("sans absence, rien ne change — le chantier est additif", () => {
     dayProperties: [],
     merge: null,
   };
+    boxMemberIds: [],
   const withNone = parseGeneratedMeal({ dishes, shopping_list: [] }, {
     ...args,
     awayDays: [],

@@ -240,6 +240,7 @@ Deno.test("le plafond du PROMPT et celui du PARSEUR ne peuvent pas diverger", ()
       dayProperties: [],
       merge: null,
     },
+      boxMemberIds: [],
   );
   assertEquals(meal.dishes.length, 5);
   assert(!meal.issues.some((i) => i.includes("cap")));

@@ -51,6 +51,7 @@ function parse(payload: Record<string, unknown>, over: Record<string, unknown> =
     fixedIntakes: [],
     dayProperties: [],
     merge: null,
+    boxMemberIds: [],
     ...over,
   });
 }
@@ -504,8 +505,16 @@ Deno.test("LOT 2 — le TRONC bumpe, l'enveloppe FOYER ne bouge pas", () => {
   // ferait bouger les DEUX axes se voie tout de suite; il a bougé depuis, pour
   // une raison qui n'appartient pas au LOT 2 (le LOT 3C, 2026-08-17, qui déplace
   // l'ordre du plat dédié dans le message utilisateur).
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v10_same_day");
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v13_dedicated_dish_is_ordered");
+  // ⚠️ LOT 4 (2026-08-17) — LES DEUX AXES ONT BOUGÉ, ET CE TEST LE VOIT, ce qui
+  // est exactement son office. Le tronc passe à v11 pour la section
+  // `WHAT A DISH ADDS ON THE DAY IS WEIGHED OR COUNTED` — vue par les quatre
+  // populations — et l'enveloppe foyer à v14 pour le protocole des boîtes, vu
+  // par les foyers d'au moins deux bouches. Deux consignes distinctes, deux
+  // portées distinctes, deux numéros: ce n'est pas le cas que le paragraphe
+  // ci-dessus met en garde (un même changement bumpé deux fois), c'est un lot
+  // qui touche vraiment les deux populations.
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v11_weighed_or_counted");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v14_weigh_once_into_boxes");
 });
 
 // ---------------------------------------------------------------------------

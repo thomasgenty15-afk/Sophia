@@ -391,6 +391,33 @@ Deno.test("SANS HABITUDE, LE BRIEF EST CELUI D'AVANT LE LOT G, À L'OCTET PRÈS"
       "- Christèle: balanced share of every component",
       "- Thomas: larger protein and starch share, same vegetables",
       "",
+      // ── LOT 4 (2026-08-17) · CE QUE CETTE ATTENTE A GAGNÉ, ET POURQUOI ────
+      // Le sujet du test n'a pas changé — « sans habitude, aucun fragment
+      // d'habitude » — et les deux lignes de membres au-dessus le prouvent
+      // toujours. Ce qui s'ajoute est le protocole des boîtes, qui est servi à
+      // TOUT foyer d'au moins deux bouches (`boxingOrderLines`) et n'a rien à
+      // voir avec les habitudes. Le byte-identique « d'avant le LOT G » se lit
+      // désormais « d'avant le LOT G, protocole des boîtes compris ».
+      // ⚠️ ET IL EST AVANT LES TROIS DERNIÈRES LIGNES, jamais après: l'interdit
+      // du « pourquoi » reste la dernière chose lue, et c'est précisément quand
+      // le brief se met à porter des nombres par personne que ça compte.
+      "WEIGH IT ONCE, INTO NAMED BOXES.",
+      "Nobody weighs anything at mealtime. Everything is weighed at the cooking",
+      "session, straight into boxes with a name on the lid, and a meal later just",
+      'takes its box out. Every preparation you write carries "boxes": one entry',
+      "per box, with the exact member_ids it belongs to and its weight in grams of",
+      "READY food.",
+      "That is 2 people to weigh out on EVERY preparation: Christèle, Thomas.",
+      "Count them before you answer — a person missing from a preparation's boxes",
+      "is a person standing at the fridge with nothing that says how much.",
+      "When two of them get the same weight, ONE box may carry both their ids; when",
+      "their shares differ, they get one box each, with different grams.",
+      "A line in member_portions is NOT a box. It is a sentence read aloud at the",
+      "table; a box has a weight and a name on it, and it is what stops the weighing",
+      "from happening again at every meal. Writing the serving instruction instead",
+      "of the boxes leaves the household weighing at every meal, which is the one",
+      "thing this plan exists to prevent.",
+      "",
       "NEVER state a reason, a goal, a calorie count or anything about a person's",
       "body in these instructions. They are read aloud at the table by the whole",
       "household. Write what to serve, never why.",
