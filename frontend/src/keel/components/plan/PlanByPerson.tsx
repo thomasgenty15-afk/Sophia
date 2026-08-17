@@ -82,6 +82,7 @@ import {
 import { t } from "../../i18n/t";
 import { Card, SectionLabel } from "../ui/Card";
 import { inputClass } from "../ui/Field";
+import DishListByDay from "./DishListByDay";
 
 export interface PlanByPersonProps {
   /** Les jours de la fenêtre, DANS L'ORDRE DU PLAN. */
@@ -401,33 +402,13 @@ function OnePerson(
         {person.portionNote ?? t("plan.person.standard")}
       </p>
 
-      <ul className="mt-3 flex flex-col gap-3">
-        {week.map((day) => (
-          <li key={day.day}>
-            <p className="text-xs font-semibold uppercase tracking-wide text-ink-soft">
-              {dishDayLabel(day.day) ?? day.day}
-            </p>
-            <ul className="mt-1 flex flex-col gap-1">
-              {day.dishes.map((d, i) => (
-                <li key={`${day.day}-${i}`} className="text-sm leading-6 break-words">
-                  <span className="text-ink-soft">
-                    {dishSlotLabel(d.slot) ?? d.slot}
-                  </span>
-                  {" — "}
-                  <span className="text-ink">{d.title}</span>
-                  {/* SA PART SOUS LE PLAT, jamais à la place: le plat est
-                      commun, la part ne l'est pas. Rien quand le plat ne puise
-                      dans aucun lot dont cette bouche ait une part — on
-                      n'invente pas une phrase pour remplir. */}
-                  {d.note
-                    ? <span className="block pl-4 text-ink-soft">{d.note}</span>
-                    : null}
-                </li>
-              ))}
-            </ul>
-          </li>
-        ))}
-      </ul>
+      {/* LOT 1 — le rendu par jour est EXTRAIT (`DishListByDay`): la même
+          liste sert « ce que la maison cuisine » et « ta part », et trois
+          copies divergeraient. `buildPersonWeek` reste la seule découpe de
+          CETTE vue — le filtrage par personne lui appartient. */}
+      <div className="mt-3">
+        <DishListByDay groups={week} />
+      </div>
     </div>
   );
 }

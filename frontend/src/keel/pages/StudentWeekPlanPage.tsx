@@ -2415,6 +2415,12 @@ export default function StudentWeekPlanPage() {
             isOwner,
           })}
           householdDishes={householdMeal?.dishes ?? []}
+          // LOT 1 — l'ordre des jours du plan du foyer, pour que « ce que la
+          // maison cuisine » se lise par jour dans l'ordre du PLAN. Même
+          // source que la vue « qui mange quoi » plus bas.
+          dishDayOrder={householdMeal
+            ? windowDayOrder(householdMeal.startsOn, householdMeal.durationDays)
+            : []}
           meMemberId={household?.me?.memberId ?? null}
           busy={draftBusy}
           onApprove={async () => {}}

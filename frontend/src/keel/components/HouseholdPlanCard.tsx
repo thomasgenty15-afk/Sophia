@@ -2,9 +2,11 @@ import React from "react";
 
 import type { HouseholdMealView, HouseholdMemberView } from "../api/household";
 import { divergenceLines, hasDivergence } from "../api/householdPlanTrace";
-import { dishDayLabel, dishSlotLabel } from "../api/mealLabels";
+import { windowDayOrder } from "../api/mealWindow";
+import { groupDishListByDay } from "../lib/dishListByDay";
 import { t } from "../i18n/t";
 import { Card, SectionLabel } from "./ui/Card";
+import DishListByDay from "./plan/DishListByDay";
 
 // KEEL — L8 · LE PLAN DU FOYER, ET CE QUI N'A PAS FUSIONNÉ (D9).
 //
@@ -76,19 +78,17 @@ export default function HouseholdPlanCard(
             {meal.dishes.length === 0
               ? <p className="text-sm text-ink-soft">{t("household.plan.no_dishes")}</p>
               : (
-                <ul className="flex flex-col gap-1 text-sm">
-                  {meal.dishes.map((dish, i) => (
-                    <li key={`${dish.title}:${i}`}>
-                      <span className="text-ink-soft">
-                        {[dishDayLabel(dish.day), dishSlotLabel(dish.slot)]
-                          .filter(Boolean)
-                          .join(" · ")}
-                      </span>
-                      {dish.day || dish.slot ? " — " : ""}
-                      {dish.title}
-                    </li>
-                  ))}
-                </ul>
+                // LOT 1 — la liste plate devient PAR JOUR, sans rien gagner
+                // d'autre: toujours ni `why` ni ingrédients (le type ne les
+                // porte pas), toujours pas de sessions. L'ordre des jours est
+                // celui du PLAN (`windowDayOrder` sur la fenêtre que la ligne
+                // porte), jamais le calendrier.
+                <DishListByDay
+                  groups={groupDishListByDay({
+                    order: windowDayOrder(meal.startsOn, meal.durationDays),
+                    dishes: meal.dishes,
+                  })}
+                />
               )}
           </>
         )

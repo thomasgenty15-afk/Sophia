@@ -238,7 +238,12 @@ describe("les gardes d'affichage (câblage)", () => {
   const VIEW = "frontend/src/keel/components/plan/PlanByPerson.tsx";
 
   it("aucun objectif, aucun poids, aucune calorie ne peut atteindre ces vues", () => {
-    const src = code(VIEW) + code("frontend/src/keel/lib/planByPersonModel.ts");
+    // LOT 1 (2026-08-17): la liste par jour (`DishListByDay` et son modèle)
+    // est montée DANS ces vues — la ceinture s'étend à elle, elle ne se
+    // desserre pas.
+    const src = code(VIEW) + code("frontend/src/keel/lib/planByPersonModel.ts") +
+      code("frontend/src/keel/components/plan/DishListByDay.tsx") +
+      code("frontend/src/keel/lib/dishListByDay.ts");
     for (const forbidden of ["goal", "kcal", "calorie", "weightKg", "heightCm", "energy"]) {
       expect(src, `« ${forbidden} » est entré dans la vue par personne`)
         .not.toMatch(new RegExp(forbidden, "i"));

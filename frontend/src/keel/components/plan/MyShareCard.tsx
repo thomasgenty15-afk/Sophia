@@ -98,18 +98,27 @@
 import React from "react";
 
 import type { HouseholdDishView, MemberPortionView } from "../../api/household";
-import { dishDayLabel, dishSlotLabel } from "../../api/mealLabels";
 import { sharePresentedTo } from "../../api/myShare";
+import { groupDishListByDay } from "../../lib/dishListByDay";
 import { t } from "../../i18n/t";
 import { Button } from "../ui/Button";
 import { Card, SectionLabel } from "../ui/Card";
 import { inputClass } from "../ui/Field";
+import DishListByDay from "./DishListByDay";
 
 export interface MyShareCardProps {
   /** MA ligne de `member_portions`. `null` = rien à montrer, la carte se tait. */
   mine: MemberPortionView | null;
   /** Les plats du foyer, pour le contexte. `[]` = la carte n'en montre aucun. */
   householdDishes: readonly HouseholdDishView[];
+  /**
+   * LOT 1 — L'ORDRE DES JOURS DU PLAN DU FOYER (`windowDayOrder`), pour que
+   * la liste des plats se lise PAR JOUR, dans l'ordre du PLAN. `[]` quand il
+   * n'y a pas de plan vivant — et alors `householdDishes` est vide aussi.
+   * REQUIS, pas optionnel: un `?` laisserait un monteur rendre la liste dans
+   * un ordre qui n'est celui d'aucun plan.
+   */
+  dishDayOrder: readonly string[];
   /** Ma bouche. REQUIS: sans elle, `mine` ne peut pas être vérifiée. */
   meMemberId: string | null;
   onApprove: () => Promise<void>;
@@ -118,7 +127,15 @@ export interface MyShareCardProps {
 }
 
 export default function MyShareCard(props: MyShareCardProps): React.ReactElement | null {
-  const { mine, householdDishes, meMemberId, onApprove, onRequestChange, busy } = props;
+  const {
+    mine,
+    householdDishes,
+    dishDayOrder,
+    meMemberId,
+    onApprove,
+    onRequestChange,
+    busy,
+  } = props;
 
   const [approved, setApproved] = React.useState(false);
   const [working, setWorking] = React.useState(false);
@@ -184,20 +201,16 @@ export default function MyShareCard(props: MyShareCardProps): React.ReactElement
         ? (
           <div className="mt-4 border-t border-line pt-3">
             <SectionLabel className="mb-2">{t("plan.mine.household_dishes")}</SectionLabel>
-            <ul className="flex flex-col gap-0.5 text-sm text-ink-soft break-words">
-              {householdDishes.map((dish, i) => (
-                // La clé porte l'INDEX en plus du titre: deux jours peuvent
-                // servir le même plat, et deux `<li>` de même clé perdent
-                // l'un des deux au rendu.
-                <li key={`${dish.day ?? ""}:${dish.slot ?? ""}:${dish.title}:${i}`}>
-                  {[dishDayLabel(dish.day), dishSlotLabel(dish.slot)]
-                    .filter(Boolean)
-                    .join(" · ")}
-                  {dish.day || dish.slot ? " — " : ""}
-                  {dish.title}
-                </li>
-              ))}
-            </ul>
+            {/* LOT 1 — la liste plate devient PAR JOUR, sans rien gagner
+                d'autre: toujours ni `why` ni ingrédients ni sessions — la
+                garde d'en-tête ne bouge pas. L'ordre des jours est celui du
+                PLAN, passé par le monteur (`dishDayOrder`). */}
+            <DishListByDay
+              groups={groupDishListByDay({
+                order: dishDayOrder,
+                dishes: householdDishes,
+              })}
+            />
           </div>
         )
         : null}
