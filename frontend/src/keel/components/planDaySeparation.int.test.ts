@@ -222,6 +222,47 @@ describe("LOT 3 · les parts, sous le plat et dans le jour", () => {
       .not.toContain("2 portions of chicken");
     expect(html, "le plat lui-même a disparu").toContain(DINNER);
   });
+
+  /**
+   * ══════════════════════════════════════════════════════════════════════
+   * ⛔ C4 SUR LA VALEUR RENDUE — trouvé À L'ÉCRAN, pas dans le code.
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * Mesuré le 2026-08-17 sur un plan de foyer portant un plat dédié: les
+   * DEUX sous-blocs listaient les MÊMES bouches. « Pour la table » disait
+   * « Paul — une pleine portion » pendant que Paul mangeait son plat à lui
+   * deux centimètres plus bas, et « Pour Paul » disait « Lea — une petite
+   * portion » sous un plat que Lea ne touche pas. Devant la casserole, le
+   * moment demandait de servir chacun DEUX FOIS.
+   */
+  it("⛔ chaque bouche n'est servie qu'UNE fois au moment séparé", () => {
+    const html = textOf({
+      dishes: [
+        bowls,
+        { ...bowls, title: "Zoé's bowl", member_id: "mem-zoe" } as GeneratedDish,
+      ],
+      portions: [zoeShare, kidShare],
+    });
+    // Un moment, deux voies, deux bouches: DEUX lignes de part au total.
+    expect(occurrences(html, "2 portions of chicken"), "Zoé est servie deux fois")
+      .toBe(1);
+    expect(occurrences(html, "1 small portion of chicken"), "Kid est servi deux fois")
+      .toBe(1);
+    // Et chacune est sous SON plat: celle de Zoé après le titre de son plat.
+    expect(html.indexOf("2 portions of chicken"))
+      .toBeGreaterThan(html.indexOf("Zoé's bowl"));
+    // Celle de Kid, elle, est AVANT — sous le plat de la table, qui vient en tête.
+    expect(html.indexOf("1 small portion of chicken"))
+      .toBeLessThan(html.indexOf("Zoé's bowl"));
+  });
+
+  it("⚠️ LE CAS QUI PASSE — sans plat dédié, les deux parts restent sous la table", () => {
+    const html = textOf({ dishes: [bowls], portions: [zoeShare, kidShare] });
+    expect(occurrences(html, "2 portions of chicken")).toBe(1);
+    expect(occurrences(html, "1 small portion of chicken")).toBe(1);
+    expect(html, "un en-tête est apparu sur le chemin majoritaire")
+      .not.toContain("For the table");
+  });
 });
 
 /**

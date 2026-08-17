@@ -123,10 +123,48 @@ export function groupDayBySlot(args: {
   // ferait une règle d'affichage qu'un second écran oublierait.
   const withShares = args.portions.length >= SHARES_MIN_MOUTHS;
 
-  const entryFor = (dish: GeneratedDish): DayDishEntry => ({
+  /**
+   * ══════════════════════════════════════════════════════════════════════
+   * C4 — LA PART SUIT L'ASSIETTE. UNE BOUCHE N'EST SERVIE QU'UNE FOIS.
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ MESURÉ À L'ÉCRAN LE 2026-08-17, sur un plan qui porte un plat dédié.
+   * Les parts étaient calculées sur TOUTES les bouches, pour TOUS les plats:
+   * au dîner du jeudi, la voie « pour la table » disait « Paul — une pleine
+   * portion » alors que Paul mange son plat à lui deux centimètres plus bas,
+   * et la voie « pour Paul » disait « Lea, Tom, Nina — … » sous un plat
+   * qu'aucune des trois ne touche. Les deux sous-blocs demandaient donc de
+   * servir tout le monde DEUX FOIS, sur la seule case que ce lot existe pour
+   * rendre lisible.
+   *
+   * ⚠️ C'EST LA MÊME QUESTION QUE `buildPersonWeek`, ET IL FAUT LA MÊME
+   * RÉPONSE. Ce lot a corrigé là-bas « son plat REMPLACE celui de la table »;
+   * ici la part faisait encore l'inverse. Deux fonctions du même lot qui
+   * répondent différemment à « Paul mange-t-il le plat de la table ce
+   * soir ? » est exactement ce qui produit les incidents de ce dépôt.
+   *
+   * ⚠️ UN PLAT DÉDIÉ À UNE BOUCHE QUE LE PLAN NE NOMME PLUS ne porte alors
+   * AUCUNE ligne: aucune bouche nommée ne le mange, et lui prêter les parts
+   * de la table dirait de lui une chose fausse. Le silence est juste ici
+   * aussi.
+   */
+  const eatsHere = (
+    memberId: string,
+    dish: GeneratedDish,
+    ownersHere: ReadonlySet<string>,
+  ): boolean =>
+    dish.member_id === null
+      ? !ownersHere.has(memberId)
+      : dish.member_id === memberId;
+
+  const entryFor = (
+    dish: GeneratedDish,
+    ownersHere: ReadonlySet<string>,
+  ): DayDishEntry => ({
     dish,
     shares: withShares
       ? args.portions
+        .filter((p) => eatsHere(p.memberId, dish, ownersHere))
         // ⚠️ LA JOINTURE EST CELLE DE `PlanByPerson`, APPELÉE — pas recopiée.
         // `shareFor` prend les `preparation_id` d'un plat; ceux-ci sont dans
         // `uses[]`, sous une autre forme que côté foyer (`{preparation_id,
@@ -172,12 +210,19 @@ export function groupDayBySlot(args: {
 
   return slots.map((slot): DaySlotGroup => {
     const here = args.dishes.filter((d) => (d.slot ?? null) === slot);
+    // C4 — LES BOUCHES QUI ONT LEUR PLAT À ELLES À CE MOMENT-LÀ. Calculé une
+    // fois pour le moment, pas plat par plat: la question « Paul mange-t-il le
+    // plat de la table ce soir ? » se pose au MOMENT, et deux plats du même
+    // moment ne peuvent pas y répondre différemment.
+    const ownersHere = new Set(
+      here.map((d) => d.member_id).filter((id): id is string => id !== null),
+    );
     const table: DayDishEntry[] = [];
     const unnamedDishes: DayDishEntry[] = [];
     const people: DayPersonBlock[] = [];
     const blockOf = new Map<string, DayPersonBlock>();
     for (const dish of here) {
-      const entry = entryFor(dish);
+      const entry = entryFor(dish, ownersHere);
       if (dish.member_id === null) {
         table.push(entry);
         continue;

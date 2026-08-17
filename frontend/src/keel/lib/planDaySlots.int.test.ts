@@ -228,12 +228,59 @@ describe("LOT 3 · les parts, sous le plat qu'elles servent", () => {
     expect(SHARES_MIN_MOUTHS).toBe(2);
   });
 
-  it("un plat DÉDIÉ porte aussi les parts du lot qu'il prélève", () => {
+  it("un plat DÉDIÉ porte la part du lot qu'il prélève, pour SA bouche", () => {
     const [group] = groupDayBySlot({
       dishes: [{ ...bowls, member_id: "mem-zoe" }],
       portions: [zoeShare, kidShare],
     });
-    expect(group.people[0].entries[0].shares.map((s) => s.name))
-      .toEqual(["Zoé", "Kid"]);
+    expect(group.people[0].entries[0].shares.map((s) => s.name)).toEqual(["Zoé"]);
+  });
+
+  /**
+   * ══════════════════════════════════════════════════════════════════════
+   * ⛔ C4 — LA PART SUIT L'ASSIETTE (défaut trouvé À L'ÉCRAN le 2026-08-17).
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * Sur un plan réel qui porte un plat dédié, les deux sous-blocs récitaient
+   * les MÊMES quatre bouches: « pour la table » nommait Paul, qui mange son
+   * plat à lui juste en dessous, et « pour Paul » nommait Lea, Tom et Nina,
+   * qui n'y touchent pas. Le moment demandait de servir tout le monde deux
+   * fois — la ligne C4 exactement, sur la seule case que ce lot rend lisible.
+   *
+   * ⚠️ CE TEST AVAIT UN JUMEAU QUI DISAIT LE CONTRAIRE, et il a été CORRIGÉ,
+   * pas contourné (juste au-dessus): il exigeait « Zoé, Kid » sous le plat de
+   * Zoé. Il avait tort, de la même façon exactement que le test de
+   * `buildPersonWeek` corrigé par le troisième commit de ce lot.
+   */
+  it("⛔ au moment où une bouche a SON plat, elle sort des parts de la table", () => {
+    const [group] = groupDayBySlot({
+      dishes: [bowls, { ...bowls, title: "Zoé's bowl", member_id: "mem-zoe" }],
+      portions: [zoeShare, kidShare],
+    });
+    expect(group.separated).toBe(true);
+    expect(group.table[0].shares.map((s) => s.name), "Zoé est servie deux fois")
+      .toEqual(["Kid"]);
+    expect(group.people[0].entries[0].shares.map((s) => s.name), "Kid est servi deux fois")
+      .toEqual(["Zoé"]);
+  });
+
+  it("⚠️ LE CAS QUI PASSE — sans plat dédié, la table garde TOUTES ses parts", () => {
+    // Sans ce cas, une règle qui couperait toutes les parts ressemblerait
+    // trait pour trait à la règle juste: c'est le chemin majoritaire.
+    const [group] = groupDayBySlot({
+      dishes: [bowls],
+      portions: [zoeShare, kidShare],
+    });
+    expect(group.table[0].shares.map((s) => s.name)).toEqual(["Zoé", "Kid"]);
+  });
+
+  it("⚠️ un plat dédié à une bouche que le plan ne nomme plus ne porte AUCUNE part", () => {
+    // Aucune bouche nommée ne le mange; lui prêter les parts de la table
+    // dirait de lui une chose fausse.
+    const [group] = groupDayBySlot({
+      dishes: [{ ...bowls, member_id: "mem-parti" }],
+      portions: [zoeShare, kidShare],
+    });
+    expect(group.unnamed[0].shares).toEqual([]);
   });
 });
