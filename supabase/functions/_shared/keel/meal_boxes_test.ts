@@ -905,6 +905,7 @@ Deno.test("LOT 4 — la ceinture du flou GARDE le texte et le COMPTE", () => {
       { member_id: NINA, portion_note: "Your box: 200 g of the chicken" },
     ],
     ["prep_chicken"],
+    [],
   );
   assertEquals(
     portions[0].portionNote,
@@ -914,7 +915,7 @@ Deno.test("LOT 4 — la ceinture du flou GARDE le texte et le COMPTE", () => {
   // LOT 4C ② — TROIS NOMBRES: `notes` la population, `vague` les tournures
   // molles, `quantified` celles qui portent un chiffre. « 150 g from your box »
   // et « Your box: 200 g » comptent; « Take a handful of the rice » non.
-  assertEquals(vagueCounts, { notes: 3, vague: 1, quantified: 2 });
+  assertEquals(vagueCounts, { notes: 3, vague: 1, quantified: 2, box_ids: 0 });
   assert(issues.some((i) => i === `portion_note_vague:${ZOE}:handful`), issues.join("\n"));
 });
 
@@ -927,8 +928,9 @@ Deno.test("LOT 4 — une note de PART floue est comptée et nommée par sa prép
       preparation_shares: [{ preparation_id: "prep_rice", note: "une grosse portion" }],
     }],
     ["prep_rice"],
+    [],
   );
-  assertEquals(vagueCounts, { notes: 2, vague: 1, quantified: 1 });
+  assertEquals(vagueCounts, { notes: 2, vague: 1, quantified: 1, box_ids: 0 });
   assert(
     issues.some((i) => i === `share_note_vague:${ZOE}:prep_rice:grosse portion`),
     issues.join("\n"),
@@ -942,9 +944,10 @@ Deno.test("LOT 4 — une note MISE À NULL par la ceinture de corps n'entre dans
     [ZOE_M],
     [{ member_id: ZOE, portion_note: "a handful, for your weight loss" }],
     [],
+    [],
   );
   assertEquals(portions[0].portionNote, null);
-  assertEquals(vagueCounts, { notes: 0, vague: 0, quantified: 0 });
+  assertEquals(vagueCounts, { notes: 0, vague: 0, quantified: 0, box_ids: 0 });
 });
 
 Deno.test("LOT 4 — la ceinture de CORPS est intacte, et les grammes la traversent", () => {
@@ -1079,6 +1082,7 @@ Deno.test("LOT 4C ① — LE CAS QUI PASSE: une part qui cite une VRAIE prépara
       preparation_shares: [{ preparation_id: "prep_chicken", note: "150 g de poulet" }],
     }],
     ["prep_chicken"],
+    [],
   );
   assertEquals(portions[0].preparationShares, [
     { preparationId: "prep_chicken", note: "150 g de poulet" },
@@ -1108,6 +1112,7 @@ Deno.test("LOT 4C ① — une part ORPHELINE est jetée, comptée, nommée — e
       },
     ],
     ["prep_chicken_tray"],
+    [],
   );
   // La part qui joint SURVIT; les deux orphelines tombent.
   assertEquals(portions[0].preparationShares, [
@@ -1153,6 +1158,7 @@ Deno.test("LOT 4C ① — la liste fermée est celle des préparations GARDÉES"
     // ⛔ EXACTEMENT CE QUE L'APPELANT PASSE: `meal.preparations.map(p => p.id)`,
     // la sortie du parseur — jamais ce que le modèle a déclaré.
     meal.preparations.map((p) => p.id),
+    [],
   );
   assertEquals(shareCounts, { shares: 0, unknown: 1 });
 });
@@ -1214,8 +1220,9 @@ Deno.test("LOT 4C ② — `quantified` compte les notes chiffrées, `vague` ne l
       { member_id: MARC, portion_note: "Child-size share of the same dish." },
     ],
     [],
+    [],
   );
-  assertEquals(molles.vagueCounts, { notes: 3, vague: 0, quantified: 0 });
+  assertEquals(molles.vagueCounts, { notes: 3, vague: 0, quantified: 0, box_ids: 0 });
 
   const chiffrees = reconcilePortions(
     [ZOE_M, NINA_M, MARC_M],
@@ -1225,8 +1232,9 @@ Deno.test("LOT 4C ② — `quantified` compte les notes chiffrées, `vague` ne l
       { member_id: MARC, portion_note: "Une part comme d'habitude" },
     ],
     [],
+    [],
   );
-  assertEquals(chiffrees.vagueCounts, { notes: 3, vague: 0, quantified: 2 });
+  assertEquals(chiffrees.vagueCounts, { notes: 3, vague: 0, quantified: 2, box_ids: 0 });
 });
 
 Deno.test("LOT 4C ② — le brief DEMANDE le chiffre, avec le nombre et l'échappatoire", () => {
@@ -1437,4 +1445,154 @@ Deno.test("LOT 4C ④ — un plan sans écrêtage lit ZÉRO (le compteur n'est p
   });
   assertEquals(meal.box_counts.capped, 0, "exactement au plafond n'est pas un écrêtage");
   assertEquals(meal.preparations[0].boxes[0].grams, BOX_MAX_GRAMS);
+});
+
+// ══════════════════════════════════════════════════════════════════════════
+// LOT E — UN IDENTIFIANT DE BOÎTE NE SE LIT PAS À VOIX HAUTE À TABLE.
+// ══════════════════════════════════════════════════════════════════════════
+//
+// ⛔ MESURÉ, PAS CRAINT. Run C du LOT 4C, 2026-08-17, littéralement:
+// « Use box_prep_chicken_shared. » et « Shares box_chicken_me with the Kid. »
+// L'écran ne rend jamais un id de boîte — sauf quand le MODÈLE en met un dans
+// une phrase, et là il traverse tout jusqu'à la table.
+//
+// ⚠️ LES ÉPREUVES SONT SUR LA VALEUR RENDUE (`portionNote`, `preparationShares`),
+// jamais sur un littéral de source: deux tests de source ont menti cette semaine
+// dans ce chantier.
+
+Deno.test("LOT E — LE CAS QUI PASSE: une note sans slug traverse intacte, FR et EN", () => {
+  // ⛔ ÉCRIT EN PREMIER, et c'est la moitié de la garde. Une ceinture cassée
+  // nulle TOUT et ressemble trait pour trait à une ceinture qui marche.
+  const { portions, issues, vagueCounts } = reconcilePortions(
+    [ZOE_M, NINA_M],
+    [
+      {
+        member_id: ZOE,
+        portion_note: "Take 220 g of the chicken from your box.",
+        preparation_shares: [
+          { preparation_id: "prep_chicken", note: "180 g from the shared box" },
+        ],
+      },
+      { member_id: NINA, portion_note: "Prends 150 g de poulet dans ta boîte." },
+    ],
+    ["prep_chicken"],
+    ["box_prep_chicken_shared", "box_chicken_me"],
+  );
+  assertEquals(portions[0].portionNote, "Take 220 g of the chicken from your box.");
+  assertEquals(portions[1].portionNote, "Prends 150 g de poulet dans ta boîte.");
+  assertEquals(portions[0].preparationShares, [
+    { preparationId: "prep_chicken", note: "180 g from the shared box" },
+  ]);
+  assertEquals(vagueCounts.box_ids, 0);
+  assertEquals(issues, []);
+});
+
+Deno.test("LOT E — un id de boîte dans la note PRINCIPALE la met à null, compte et nomme", () => {
+  const { portions, issues, vagueCounts } = reconcilePortions(
+    [ZOE_M],
+    [{ member_id: ZOE, portion_note: "Use box_prep_chicken_shared." }],
+    [],
+    ["box_prep_chicken_shared"],
+  );
+  assertEquals(portions[0].portionNote, null);
+  assertEquals(vagueCounts.box_ids, 1);
+  // ⚠️ ET ELLE N'ENTRE DANS AUCUN DES DEUX AUTRES COMPTEURS: une note nullée
+  // n'est plus une consigne. Même discipline que la ceinture de corps.
+  assertEquals(vagueCounts.notes, 0);
+  assertEquals(vagueCounts.quantified, 0);
+  assertEquals(
+    issues,
+    [`portion_note_box_id:${ZOE}:box_prep_chicken_shared`],
+  );
+});
+
+Deno.test("LOT E — un id de boîte dans une note de PART la met à null: c'est le cas MESURÉ", () => {
+  // ⛔ LA FUITE OBSERVÉE VIT ICI. Ne ceinturer que `portion_note` aurait laissé
+  // passer exactement la phrase du run C.
+  const { portions, issues, shareCounts, vagueCounts } = reconcilePortions(
+    [ZOE_M],
+    [{
+      member_id: ZOE,
+      portion_note: "Your box: 150 g of the chicken",
+      preparation_shares: [
+        { preparation_id: "prep_chicken", note: "Shares box_chicken_me with the Kid." },
+      ],
+    }],
+    ["prep_chicken"],
+    ["box_chicken_me"],
+  );
+  assertEquals(portions[0].preparationShares, []);
+  // ⛔ LA CONSIGNE PRINCIPALE SURVIT: on ne perd que la ligne fautive.
+  assertEquals(portions[0].portionNote, "Your box: 150 g of the chicken");
+  assertEquals(vagueCounts.box_ids, 1);
+  assertEquals(shareCounts, { shares: 0, unknown: 0 });
+  assert(
+    issues.includes(`share_note_box_id:${ZOE}:prep_chicken:box_chicken_me`),
+    issues.join("\n"),
+  );
+});
+
+Deno.test("LOT E — LA CEINTURE MORD DANS LES DEUX LANGUES (un id n'est jamais traduit)", () => {
+  // `MEAL_TOKEN_FIELDS` range `preparations[].boxes[].id` parmi les jetons
+  // « ASCII snake_case, English words only »: le slug est le MÊME dans une
+  // phrase française. La garde doit donc mordre des deux côtés — et la
+  // cicatrice « garde testée dans une seule langue » dit pourquoi on le prouve.
+  const { portions, vagueCounts } = reconcilePortions(
+    [ZOE_M, NINA_M],
+    [
+      { member_id: ZOE, portion_note: "Prends la boîte box_prep_riz_zoe, 180 g." },
+      { member_id: NINA, portion_note: "Take box_prep_riz_zoe out of the fridge." },
+    ],
+    [],
+    ["box_prep_riz_zoe"],
+  );
+  assertEquals(portions[0].portionNote, null, "la note FRANÇAISE doit tomber");
+  assertEquals(portions[1].portionNote, null, "la note ANGLAISE doit tomber");
+  assertEquals(vagueCounts.box_ids, 2);
+});
+
+Deno.test("LOT E — un id qui n'est PAS de ce plan ne mord pas: la liste est fermée", () => {
+  // Le patron `preparation_id`, une fois de plus: on ne devine pas une forme,
+  // on compare à ce que le parseur a gardé.
+  const { portions, vagueCounts } = reconcilePortions(
+    [ZOE_M],
+    [{ member_id: ZOE, portion_note: "Use box_of_another_plan for the rice." }],
+    [],
+    ["box_prep_chicken_shared"],
+  );
+  assertEquals(
+    portions[0].portionNote,
+    "Use box_of_another_plan for the rice.",
+  );
+  assertEquals(vagueCounts.box_ids, 0);
+});
+
+Deno.test("LOT E — un id SANS souligné ne mord pas: « Zoe » est un prénom, pas un slug", () => {
+  // ⚠️ LE PLANCHER, ASSUMÉ ET TESTÉ. « laitue » ≠ « lait »: 12 faux positifs sur
+  // 12 mesurés dans ce dépôt. Un id qui est un mot ordinaire est indistinguable
+  // de la prose, et le nuller serait exactement cette cicatrice.
+  const { portions, vagueCounts } = reconcilePortions(
+    [ZOE_M],
+    [{ member_id: ZOE, portion_note: "Zoe takes a bigger share of the rice." }],
+    [],
+    ["zoe"],
+  );
+  assertEquals(
+    portions[0].portionNote,
+    "Zoe takes a bigger share of the rice.",
+  );
+  assertEquals(vagueCounts.box_ids, 0);
+});
+
+Deno.test("LOT E — le slug doit être un JETON ENTIER, pas un morceau de mot", () => {
+  // `box_prep_riz` ne mord pas sur `box_prep_rizotto_zoe`: sans borne, une
+  // boîte au nom court nullerait les phrases de toutes les autres.
+  const { portions, vagueCounts } = reconcilePortions(
+    [ZOE_M],
+    [{ member_id: ZOE, portion_note: "Sers-toi dans box_prep_riz_complet." }],
+    [],
+    ["box_prep_riz"],
+  );
+  assertEquals(portions[0].portionNote, "Sers-toi dans box_prep_riz_complet.");
+  assertEquals(vagueCounts.box_ids, 0);
 });

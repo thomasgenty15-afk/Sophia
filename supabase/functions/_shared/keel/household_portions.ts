@@ -1553,6 +1553,56 @@ export function portionCarriesAQuantity(raw: unknown): boolean {
   return PORTION_QUANTITY_RE.test(text);
 }
 
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * LOT E — UN IDENTIFIANT DE BOÎTE N'A RIEN À FAIRE DANS UNE PHRASE LUE À TABLE.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ MESURÉ, PAS CRAINT. Le 2026-08-17 (run C du LOT 4C), le modèle a écrit,
+ * littéralement, dans deux notes de portion: « Use box_prep_chicken_shared. » et
+ * « Shares box_chicken_me with the Kid. » L'écran n'affiche JAMAIS d'id de boîte
+ * — `data-box-id` est un attribut, jamais du texte — sauf quand le modèle en
+ * glisse un dans une PHRASE, et là il traverse tout et se lit à voix haute.
+ *
+ * ⛔ CE N'EST PAS UN MATCHER MAISON, et c'est toute la différence. On ne cherche
+ * pas « ce qui ressemble à un identifiant »: on cherche les ids de boîte de CE
+ * PLAN, une liste fermée de quelques chaînes que le parseur vient de garder.
+ * Aucun savoir sur les aliments, aucune forme devinée — le patron
+ * `preparation_id`, une fois de plus.
+ *
+ * ⛔ LA LANGUE N'Y CHANGE RIEN, ET C'EST STRUCTUREL: `MEAL_TOKEN_FIELDS` range
+ * `preparations[].boxes[].id` parmi les jetons « ASCII snake_case, English words
+ * only » — un id n'est jamais traduit. La ceinture mord donc à l'identique sur
+ * une note anglaise et sur une note française, et les deux sont testées.
+ *
+ * ── LE PLANCHER, ASSUMÉ ───────────────────────────────────────────────────
+ * Un id SANS souligné (`zoe`) est un mot ordinaire: « Zoe takes a bigger share »
+ * le contient, et le nuller serait la cicatrice « laitue ≠ lait » — 12 faux
+ * positifs sur 12 mesurés. Ces ids-là sont donc IGNORÉS. Le parseur n'impose pas
+ * le snake_case (il n'exige qu'un id non vide et unique), donc le cas existe;
+ * il n'a jamais été observé en réel. Comme `quantified`, ce compteur est un
+ * PLANCHER, pas un verdict.
+ */
+export function boxIdsInNote(
+  raw: unknown,
+  boxIds: ReadonlySet<string>,
+): string[] {
+  const text = typeof raw === "string" ? raw.trim() : "";
+  if (!text || boxIds.size === 0) return [];
+  const found: string[] = [];
+  for (const id of boxIds) {
+    // ⚠️ LE SOULIGNÉ EST LA CONDITION D'ENTRÉE. Voir le plancher, ci-dessus.
+    if (!id.includes("_")) continue;
+    const escaped = id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    // Les bornes sont écrites à la main plutôt que `\b`: en JavaScript `\w`
+    // CONTIENT le souligné, donc `\b` ne borne pas un jeton snake_case comme on
+    // l'attendrait. `[^A-Za-z0-9_]` dit exactement ce qu'on veut.
+    const re = new RegExp(`(^|[^A-Za-z0-9_])${escaped}([^A-Za-z0-9_]|$)`, "i");
+    if (re.test(text)) found.push(id);
+  }
+  return [...new Set(found)].sort();
+}
+
 export interface SanitizedNote {
   note: string | null;
   /** Les motifs qui ont mordu. Vide = la consigne est passée telle quelle. */
@@ -1619,7 +1669,22 @@ export interface ReconciledPortions {
    *     AUCUNE ne portait un gramme. « Pas de mot flou » et « une part précise »
    *     sont deux faits différents, et c'est le second que P4 demande.
    */
-  vagueCounts: { notes: number; vague: number; quantified: number };
+  /**
+   *   · `box_ids` — LOT E: les notes MISES À NULL parce qu'elles nommaient un
+   *     identifiant technique de boîte.
+   *
+   * ⛔ `box_ids` N'EST PAS UN SOUS-ENSEMBLE DE `notes`, ET LE RAPPORT
+   * `box_ids / notes` NE VEUT RIEN DIRE. Une note nullée n'est plus une
+   * consigne: elle sort du dénominateur, exactement comme celles que
+   * `sanitizePortionNote` refuse. `box_ids` est un décompte d'ÉVÉNEMENTS, à lire
+   * seul.
+   */
+  vagueCounts: {
+    notes: number;
+    vague: number;
+    quantified: number;
+    box_ids: number;
+  };
   /**
    * ══════════════════════════════════════════════════════════════════════════
    * LOT 4C ① — LES PARTS QUI DÉSIGNENT UNE PRÉPARATION QUI N'EXISTE PAS.
@@ -1685,15 +1750,40 @@ export function reconcilePortions(
    * champ du plan qui l'avait manqué.
    */
   preparationIds: readonly string[],
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * LOT E — LES IDS DE BOÎTE DE CE PLAN. REQUIS, JAMAIS `?`.
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * Même raison que `preparationIds` juste au-dessus, et elle a déjà servi deux
+   * fois dans ce fichier: un paramètre de garde optionnel est une garde
+   * désarmée. Avec un `?`, l'unique appelant de production pourrait cesser de le
+   * passer sans qu'aucun compilateur ni aucun test ne bouge, et la note
+   * continuerait de dire « Use box_prep_chicken_shared » à toute la table.
+   *
+   * ⚠️ CE SONT LES BOÎTES **GARDÉES** (`preparations[].boxes[].id` en sortie du
+   * parseur), pas celles que le modèle a déclarées. Une boîte refusée n'existe
+   * nulle part: son id dans une phrase est du bruit exactement comme les autres,
+   * et il n'y a aucune raison de le laisser passer — mais la liste fermée est
+   * celle du plan qu'on écrit, comme partout ailleurs.
+   *
+   * ⚠️ `[]` EST LÉGITIME ET FRÉQUENT: la lane individuelle n'a aucune boîte, et
+   * un foyer où le modèle n'a pas obéi non plus. La ceinture est alors muette —
+   * et c'est juste: sans boîte, il n'y a aucun id à faire fuir.
+   */
+  boxIds: readonly string[],
 ): ReconciledPortions {
   const issues: string[] = [];
   // LOT 4 — LES NOMBRES DU FLOU. Passés par référence à `parseShares` pour
   // qu'il n'existe qu'UN compteur: une seconde addition côté appelant
   // divergerait au premier changement de forme des parts.
-  const vagueCounts = { notes: 0, vague: 0, quantified: 0 };
+  const vagueCounts = { notes: 0, vague: 0, quantified: 0, box_ids: 0 };
   const shareCounts = { shares: 0, unknown: 0 };
   const knownPreparations = new Set(
     preparationIds.map((id) => String(id).trim()).filter(Boolean),
+  );
+  const knownBoxIds = new Set(
+    boxIds.map((id) => String(id).trim()).filter(Boolean),
   );
   const byMember = new Map<string, Record<string, unknown>>();
 
@@ -1727,11 +1817,36 @@ export function reconcilePortions(
       };
     }
 
-    const { note, violations } = sanitizePortionNote(
+    const sanitized = sanitizePortionNote(
       row.portion_note ?? row.portionNote,
     );
-    for (const v of violations) {
+    let note = sanitized.note;
+    for (const v of sanitized.violations) {
       issues.push(`portion_note_rejected:${member.memberId}:${v}`);
+    }
+    // ── LOT E · L'ID DE BOÎTE, APRÈS LA CEINTURE DE CORPS ET AVANT LES DEUX
+    //           COMPTEURS DE NOTE ──────────────────────────────────────────
+    //
+    // ⚠️ L'ORDRE EST LE SUJET, comme pour la liste fermée des préparations. Une
+    // note nullée ici ne sera jamais lue: la compter dans `notes` gonflerait le
+    // dénominateur du flou avec du texte que personne ne voit.
+    //
+    // ⛔ MISE À NULL, PAS DE RÉÉCRITURE. Retirer le slug pour sauver la phrase
+    // donnerait « Use . » ou « Shares  with the Kid. » — du texte de modèle
+    // amputé, dont personne ne répond. C'est le choix que `sanitizePortionNote`
+    // a déjà tranché quinze lignes plus haut, pour la même raison.
+    //
+    // ⚠️ CE QUE ÇA COÛTE, ET POURQUOI ON LE PAIE: si la phrase portait un
+    // gramme, il tombe avec elle. Mais ce gramme-là n'est pas perdu à l'écran —
+    // il vient de la BOÎTE (`preparations[].boxes[].grams`), qui est structurée,
+    // et que `DishCard` comme la ligne de part rendent déjà (« Box Zoe — 220 g »).
+    const leakedBoxIds = boxIdsInNote(note, knownBoxIds);
+    if (leakedBoxIds.length > 0) {
+      vagueCounts.box_ids++;
+      note = null;
+      for (const id of leakedBoxIds) {
+        issues.push(`portion_note_box_id:${member.memberId}:${id}`);
+      }
     }
     // LOT 4 — LE FLOU, SUR LA CONSIGNE QUI SORT. Après la ceinture de corps, et
     // seulement sur ce qui a survécu: une note mise à `null` n'est plus une
@@ -1763,6 +1878,7 @@ export function reconcilePortions(
         vagueCounts,
         shareCounts,
         knownPreparations,
+        knownBoxIds,
       ),
     };
   });
@@ -1774,9 +1890,15 @@ function parseShares(
   row: Record<string, unknown>,
   member: PortionMember,
   issues: string[],
-  vagueCounts: { notes: number; vague: number; quantified: number },
+  vagueCounts: {
+    notes: number;
+    vague: number;
+    quantified: number;
+    box_ids: number;
+  },
   shareCounts: { shares: number; unknown: number },
   knownPreparations: ReadonlySet<string>,
+  knownBoxIds: ReadonlySet<string>,
 ): PreparationShare[] {
   const raw = row.preparation_shares ?? row.preparationShares;
   if (!Array.isArray(raw)) return [];
@@ -1805,9 +1927,28 @@ function parseShares(
       );
       continue;
     }
-    const { note, violations } = sanitizePortionNote(e.note);
-    for (const v of violations) {
+    const sanitized = sanitizePortionNote(e.note);
+    let note = sanitized.note;
+    for (const v of sanitized.violations) {
       issues.push(`share_note_rejected:${member.memberId}:${preparationId}:${v}`);
+    }
+    // ── LOT E · L'ID DE BOÎTE, ICI AUSSI ──────────────────────────────────
+    //
+    // ⛔ ET C'EST LA MOITIÉ QUI COMPTE LE PLUS. La fuite mesurée au run C du
+    // LOT 4C (« Use box_prep_chicken_shared. ») vit dans une note de PART: c'est
+    // le texte accroché sous un plat, celui qui dit à une personne ce qu'elle
+    // sort du frigo. Ne ceinturer que `portion_note` aurait laissé passer
+    // exactement le cas observé — la cicatrice « garde testée dans une seule
+    // langue », transposée à « garde posée sur un seul des deux champs ».
+    const leakedBoxIds = boxIdsInNote(note, knownBoxIds);
+    if (leakedBoxIds.length > 0) {
+      vagueCounts.box_ids++;
+      note = null;
+      for (const id of leakedBoxIds) {
+        issues.push(
+          `share_note_box_id:${member.memberId}:${preparationId}:${id}`,
+        );
+      }
     }
     // Une part sans consigne lisible n'apporte rien à l'écran: on la laisse
     // tomber plutôt que d'afficher une ligne vide sous un plat.

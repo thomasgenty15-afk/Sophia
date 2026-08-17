@@ -3654,6 +3654,12 @@ Deno.serve(async (req) => {
       // ce que le modèle a déclaré. Une part qui cite une préparation refusée ne
       // joindrait rien à l'écran, exactement comme une part orpheline.
       meal.preparations.map((p) => p.id),
+      // ⛔ LOT E — LES IDS DE BOÎTE DU PLAN QU'ON ÉCRIT. Même source que
+      // ci-dessus, même raison: `meal.preparations` est la sortie du parseur.
+      // Le 2026-08-17, le modèle a écrit « Use box_prep_chicken_shared. » dans
+      // une note lue à voix haute à table; sans cette liste, la ceinture ne
+      // peut pas distinguer un slug d'une phrase.
+      meal.preparations.flatMap((p) => p.boxes.map((b) => b.id)),
     );
 
     // ── L5/D8 · TOUTES LES REPRISES QUE CE PLAN PORTE ─────────────────────

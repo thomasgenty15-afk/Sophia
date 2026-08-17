@@ -354,7 +354,7 @@ Deno.test("PREUVE 2 — la ceinture est verte sur les DEUX sorties, FR et EN", (
   const clean = reconcilePortions([withBody, without], [
     { member_id: "m-dad", portion_note: "1,5 part de poulet, riz en plus" },
     { member_id: "m-son", portion_note: "a palm-sized share, extra greens" },
-  ], []);
+  ], [], []);
   assertEquals(clean.portions[0].portionNote, "1,5 part de poulet, riz en plus");
   assertEquals(clean.portions[1].portionNote, "a palm-sized share, extra greens");
   assertEquals(clean.issues, []);
@@ -365,7 +365,7 @@ Deno.test("PREUVE 2 — la ceinture est verte sur les DEUX sorties, FR et EN", (
   const leaked = reconcilePortions([withBody, without], [
     { member_id: "m-dad", portion_note: "une part calée sur ton poids" },
     { member_id: "m-son", portion_note: "a share sized for your weight" },
-  ], []);
+  ], [], []);
   assertEquals(leaked.portions[0].portionNote, null);
   assertEquals(leaked.portions[1].portionNote, null);
   assert(leaked.issues.some((i) => i.startsWith("portion_note_rejected:m-dad:")));
@@ -532,7 +532,7 @@ Deno.test("un membre oublié par le modèle est complété, PAS jeté", () => {
   const { portions, issues } = reconcilePortions([DAD, SON, KID], [
     { member_id: "m-dad", portion_note: "1 part" },
     { member_id: "m-son", portion_note: "1,5 part" },
-  ], []);
+  ], [], []);
   assertEquals(portions.length, 3);
   assertEquals(portions[2].memberId, "m-kid");
   assertEquals(portions[2].portionNote, null);
@@ -545,7 +545,7 @@ Deno.test("une consigne pour un inconnu est JETÉE", () => {
   const { portions, issues } = reconcilePortions([DAD], [
     { member_id: "m-dad", portion_note: "1 part" },
     { member_id: "m-ghost", portion_note: "2 parts" },
-  ], []);
+  ], [], []);
   assertEquals(portions.length, 1);
   assertEquals(portions[0].memberId, "m-dad");
   assert(issues.includes("portion_for_unknown_member:m-ghost"));
@@ -557,7 +557,7 @@ Deno.test("l'ordre de sortie suit le FOYER, pas le modèle", () => {
     { member_id: "m-kid", portion_note: "petite part" },
     { member_id: "m-son", portion_note: "grande part" },
     { member_id: "m-dad", portion_note: "part normale" },
-  ], []);
+  ], [], []);
   assertEquals(portions.map((p) => p.memberId), ["m-dad", "m-son", "m-kid"]);
 });
 
@@ -565,7 +565,7 @@ Deno.test("une consigne fautive est mise à null ET tracée, le reste survit", (
   const { portions, issues } = reconcilePortions([DAD, SON], [
     { member_id: "m-dad", portion_note: "part réduite, déficit calorique" },
     { member_id: "m-son", portion_note: "double portion de riz" },
-  ], []);
+  ], [], []);
   assertEquals(portions[0].portionNote, null);
   assertEquals(portions[1].portionNote, "double portion de riz");
   assert(issues.some((i) => i.startsWith("portion_note_rejected:m-dad:")));
@@ -582,13 +582,13 @@ Deno.test("la ceinture mord aussi sur les parts PAR PRÉPARATION", () => {
       { preparation_id: "p1", note: "moitié moins de riz, tu es en sèche" },
       { preparation_id: "p2", note: "double légumes" },
     ],
-  }], ["p1", "p2"]);
+  }], ["p1", "p2"], []);
   assertEquals(portions[0].preparationShares, [{ preparationId: "p2", note: "double légumes" }]);
   assert(issues.some((i) => i.startsWith("share_note_rejected:m-dad:p1:")));
 });
 
 Deno.test("une entrée non-tableau ne casse rien: tout le monde en part standard", () => {
-  const { portions, issues } = reconcilePortions([DAD, SON], null, []);
+  const { portions, issues } = reconcilePortions([DAD, SON], null, [], []);
   assertEquals(portions.map((p) => p.portionNote), [null, null]);
   assertEquals(issues, ["portion_missing:m-dad", "portion_missing:m-son"]);
 });
@@ -598,7 +598,7 @@ Deno.test("le payload stocké est en snake_case, comme la colonne", () => {
     member_id: "m-dad",
     portion_note: "1 part",
     preparation_shares: [{ preparation_id: "p1", note: "sans riz" }],
-  }], ["p1"]);
+  }], ["p1"], []);
   assertEquals(memberPortionsPayload(portions), [{
     member_id: "m-dad",
     display_name: "Marc",
