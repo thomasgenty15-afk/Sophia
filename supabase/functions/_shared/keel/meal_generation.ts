@@ -732,6 +732,43 @@ export interface GeneratedMeal {
     invalid: number;
     minutes_missing: number;
   };
+  /**
+   * LOT 3C — LE COMPTEUR DE L'ATTRIBUTION, ET IL MANQUAIT SA MOITIÉ.
+   *
+   * ⛔ LE DÉFAUT QUE CES NOMBRES FERMENT A COÛTÉ UN DIAGNOSTIC ENTIER, ET IL A
+   * UNE DATE. `generated_from.household.dish_owners` ne portait que `{asked,
+   * attributed}`. Le 2026-08-17, `attributed: 0` a été lu « le modèle n'écrit
+   * jamais la clé » — et l'archive `llm_raw_response_events` disait autre chose:
+   * sur douze générations de foyer, deux portaient bien `for_member_id`, dont
+   * une sur une bouche à qui la consigne ne promettait aucun plat, refusée par
+   * le parseur juste en dessous. « Jamais déclaré » et « déclaré puis refusé »
+   * rendaient le MÊME zéro, et ils appellent des corrections opposées: resserrer
+   * la consigne d'un côté, corriger la liste fermée de l'autre.
+   *
+   *   · `dishes`     — les plats GARDÉS. Le dénominateur.
+   *   · `declared`   — ceux où le modèle a ÉCRIT un `for_member_id` non vide,
+   *                    avant toute validation.
+   *   · `attributed` — ceux dont l'id a passé les deux portes.
+   *   · `refused`    — ceux dont l'id a été rejeté (consigne muette, ou bouche
+   *                    hors de la liste fermée).
+   *
+   * ⚠️ LES QUATRE SE COMPTENT INDÉPENDAMMENT, et `refused` n'est PAS dérivé de
+   * `declared - attributed`. C'est la cicatrice `withheld`/`over_cap` des voix:
+   * deux nombres du même objet, l'un dérivé de l'autre, se sont trouvés gonflé
+   * et dégonflé en sens inverses sans que rien n'échoue. Ici l'égalité
+   * `declared === attributed + refused` est une PROPRIÉTÉ qu'un test vérifie,
+   * pas une définition qui la rend invérifiable.
+   *
+   * ⚠️ MÊME POPULATION QUE `same_day_counts` — les plats finalement gardés. Un
+   * plat évincé par le plafond ne compte dans aucun des quatre; il laisse une
+   * `issue` nommée.
+   */
+  dish_owner_counts: {
+    dishes: number;
+    declared: number;
+    attributed: number;
+    refused: number;
+  };
   issues: string[];
   lock: OutputLockResult;
 }
@@ -2727,6 +2764,15 @@ export function parseGeneratedMeal(
    * inverses.
    */
   const keptSameDayFaults: Array<{ invalid: boolean; minutesMissing: boolean }> = [];
+  /**
+   * LOT 3C — CE QUE SON `for_member_id` A COÛTÉ, pour le plat GARDÉ.
+   *
+   * ⚠️ CINQUIÈME TABLEAU PARALLÈLE, et il suit les mêmes `splice` que les quatre
+   * autres, pour la même raison: « déclaré » et « attribué » doivent décrire les
+   * MÊMES lignes que `dishes`, sinon le compteur ment sur la seule question
+   * qu'on lui pose.
+   */
+  const keptOwnerFacts: Array<{ declared: boolean; refused: boolean }> = [];
 
   // ── LES CASES QUE LA CONSIGNE DE FUSION RÉCLAME POUR ELLE ───────────────
   // Vide hors fusion et au barreau ①, et c'est ce qui rend cette couche
@@ -3101,6 +3147,7 @@ export function parseGeneratedMeal(
       keptRanks.splice(sacrifice, 1);
       keptRawIndex.splice(sacrifice, 1);
       keptSameDayFaults.splice(sacrifice, 1);
+      keptOwnerFacts.splice(sacrifice, 1);
     }
 
     // ══════════════════════════════════════════════════════════════════════
@@ -3128,15 +3175,25 @@ export function parseGeneratedMeal(
     // une lecture EN PLUS; un plat sans elle reste un plat qui se cuisine et se
     // mange. Même posture que `honours_belief_keys`: informatif, donc jeté et
     // compté, jamais une raison de retirer un dîner à quelqu'un.
+    //
+    // ⚠️ LOT 3C — LES DEUX FAITS SE COMPTENT SÉPARÉMENT, ET C'EST LE POINT.
+    // « Le modèle n'a rien écrit » et « le modèle a écrit un id qu'on a refusé »
+    // rendaient tous deux `attributed: 0`, et ils appellent des corrections
+    // opposées. Voir `dish_owner_counts`.
     let memberId: string | null = null;
+    let ownerDeclared = false;
+    let ownerRefused = false;
     const declaredFor = cleanText(d.for_member_id);
     if (declaredFor) {
+      ownerDeclared = true;
       if (!secondDishAsked) {
+        ownerRefused = true;
         issues.push(
           `dishes[${i}]: for_member_id on a shared dish (no dedicated dish was ` +
             `asked), dropped`,
         );
       } else if (!dishBearers.has(declaredFor)) {
+        ownerRefused = true;
         issues.push(
           `dishes[${i}]: for_member_id ${JSON.stringify(declaredFor)} is not a ` +
             `mouth that gets its own dish, dropped`,
@@ -3264,6 +3321,7 @@ export function parseGeneratedMeal(
       invalid: sameDayInvalid,
       minutesMissing: sameDayMinutesMissing,
     });
+    keptOwnerFacts.push({ declared: ownerDeclared, refused: ownerRefused });
     keptCells.push(cell);
     keptRanks.push(rank);
     keptRawIndex.push(i);
@@ -3739,6 +3797,18 @@ export function parseGeneratedMeal(
     }
     : { dishes: 0, declared: 0, invalid: 0, minutes_missing: 0 };
 
+  // LOT 3C — MÊME DISCIPLINE, MÊME POPULATION, MÊME GARDE `clean`. `attributed`
+  // se lit sur la sortie (`memberId`), `declared`/`refused` sur le tableau
+  // parallèle qui a suivi les mêmes `splice`.
+  const dishOwnerCounts = clean
+    ? {
+      dishes: dishes.length,
+      declared: keptOwnerFacts.filter((f) => f.declared).length,
+      attributed: dishes.filter((d) => d.memberId !== null).length,
+      refused: keptOwnerFacts.filter((f) => f.refused).length,
+    }
+    : { dishes: 0, declared: 0, attributed: 0, refused: 0 };
+
   return {
     dishes: clean ? dishes : [],
     preparations: clean ? preparations : [],
@@ -3748,6 +3818,7 @@ export function parseGeneratedMeal(
     rejected_aisles: rejectedAisles,
     empty_slots: emptySlots,
     same_day_counts: sameDayCounts,
+    dish_owner_counts: dishOwnerCounts,
     // Gardé sur `clean` comme les plats eux-mêmes: relancer pour une ancre
     // quand la semaine entière vient d'être vidée par un allergène ferait
     // réparer la mauvaise chose, et à la deuxième sortie sale on aurait dépensé

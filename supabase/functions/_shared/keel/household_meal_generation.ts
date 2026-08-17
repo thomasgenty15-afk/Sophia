@@ -313,8 +313,61 @@ import {
  * `MEAL_PROMPT_VERSION` ne bouge pas non plus: le champ `for_member_id` est lu
  * par le parseur partagé, mais il n'est DEMANDÉ que par ce suffixe-ci, et la
  * lane individuelle passe `merge: null` — donc rien n'y est attribuable.
+ *
+ * ── v13 · LE PLAT DÉDIÉ EST COMMANDÉ, PLUS SEULEMENT PERMIS (LOT 3C) ──────
+ * Ouvert sur une mesure, pas sur une intuition. Sur les DOUZE générations de
+ * foyer servies en v12 (archive `llm_raw_response_events`, 2026-08-15 →
+ * 2026-08-17), le modèle a rendu 291 plats et **onze runs sur douze n'ont
+ * composé qu'UN SEUL plat par repas**: la divergence de la bouche marquée
+ * partait entièrement dans `member_portions`, jamais dans une seconde
+ * assiette. Le douzième a bien écrit `for_member_id` — sur la bouche qui porte
+ * une HABITUDE, pas sur celle à qui la consigne promet un plat — et le parseur
+ * l'a refusé, à juste titre. Le compteur `dish_owners` lisait `attributed: 0`
+ * dans les deux cas.
+ *
+ * ⛔ CE QUI MANQUAIT N'ÉTAIT PAS LE CHAMP, C'ÉTAIT L'ORDRE. v12 écrivait « may
+ * carry one more key » — une PERMISSION — dans le prompt SYSTÈME, pendant que
+ * la phrase qui PROMET le plat (`cookingShapeLines`, barreau ②/③) vivait dans
+ * le message UTILISATEUR, sous un en-tête qui dit « one cooking session,
+ * portions that differ » et au-dessus d'une consigne qui réclame une
+ * instruction de service par personne. Les deux moitiés ne se rejoignaient
+ * nulle part: rien ne disait au modèle que le plat promis par la ligne de
+ * forme EST celui qui doit porter la clé.
+ *
+ * ⚠️ ET LA LIGNE DE FORME AFFIRME UNE CHOSE QUE LE BRIEF DÉMENT. Elle dit
+ * « ONE person below cannot be served from it (**their line says so**) », et la
+ * ligne visée dit `- Théo: larger protein and starch share, same vegetables` —
+ * c'est-à-dire une instruction de service PRISE DANS LA CASSEROLE COMMUNE.
+ * Aucune ligne ne dit que quiconque ne peut pas en être servi. Le modèle lit
+ * les lignes, n'y trouve pas le marqueur annoncé, et sert tout le monde du
+ * même plat.
+ *
+ * CE QUE v13 CHANGE, ET RIEN D'AUTRE:
+ *   · un bloc `A DISH OF THEIR OWN` dans le message UTILISATEUR, JUSTE APRÈS le
+ *     brief de portions — là où la promesse est faite. Il nomme les bouches
+ *     avec leur id exact, commande DEUX plats à leur repas, et dit ce que le
+ *     modèle a réellement fait à la place: une ligne de `member_portions` n'est
+ *     pas un plat.
+ *   · `WHOSE DISH IS IT` (système) passe de la permission à l'obligation et
+ *     renvoie au bloc ci-dessus.
+ *
+ * ⚠️ LE PATRON EST CELUI DU CHAMP QUI MARCHE. `member_portions` est déclaré
+ * dans le prompt SYSTÈME (`PORTION_SCHEMA_BLOCK`) **et** commandé dans le
+ * message UTILISATEUR (`buildPortionBrief`), avec les ids exacts — et il est
+ * rempli sur 100 % des runs mesurés. `for_member_id` n'avait que la moitié
+ * système. On lui donne la seconde moitié, au même endroit, dans la même forme.
+ *
+ * ⚠️ TOUT LE RESTE EST BYTE-IDENTIQUE À v12, ET UN TEST LE TIENT: un foyer sans
+ * porteur rend `dishBearers: []`, aucun des deux blocs n'est assemblé, et le
+ * prompt est celui de v12 au caractère près. La population concernée est
+ * exactement celle de v12 — les foyers où au moins une bouche reçoit un plat à
+ * elle — et elle seule.
+ *
+ * `MEAL_PROMPT_VERSION` ne bouge pas: aucun octet du tronc ne change. Le
+ * compteur `dish_owner_counts` posé par le même lot dans `meal_generation.ts`
+ * est une MESURE, pas une consigne — il ne se lit sur aucun prompt.
  */
-export const HOUSEHOLD_PROMPT_VERSION = "v12_whose_dish_is_it";
+export const HOUSEHOLD_PROMPT_VERSION = "v13_dedicated_dish_is_ordered";
 
 export interface HouseholdRestriction {
   memberId: string;
@@ -370,6 +423,27 @@ export interface HouseholdPromptInput {
    * plat serait alors retiré à toute la table par la vue par personne.
    */
   dishBearers: readonly { memberId: string; displayName: string }[];
+  /**
+   * LOT 3C — COMBIEN DE PLATS DÉDIÉS LA CONSIGNE RÉCLAME, EN CHIFFRES.
+   *
+   * ⛔ LE NOMBRE EST LA MOITIÉ QUI MARCHE, ET C'EST MESURÉ DEUX FOIS DANS CE
+   * DÉPÔT. C6 (2026-08-12) a remplacé « ADD ONE dish » par le NOMBRE de plats
+   * dédiés dans `buildMergeBlock`, après avoir mesuré un seul plat rendu pour
+   * neuf créneaux. Le 2026-08-17, la même chose s'est reproduite un cran plus
+   * loin: une phrase qui promet « a dish of their OWN at EVERY meal » sans
+   * jamais dire COMBIEN a produit zéro second plat sur onze runs.
+   *
+   * ⚠️ REQUIS, jamais optionnel, et jamais recalculé ici. C'est le MÊME nombre
+   * que celui qui ouvre le budget de plats (`MergedEater.dedicatedDishesAsked`)
+   * et que celui qu'archive `dish_owners.asked`. Deux calculs feraient réclamer
+   * dans la consigne un nombre que le plafond n'ouvre pas — la contradiction
+   * exacte que L4 a payée (16 plats pour un plafond de 15, et le dîner du
+   * dimanche du foyer jeté).
+   *
+   * `0` quand personne ne porte de plat: le bloc n'existe alors pas de toute
+   * façon (`dishBearers` est vide), et le prompt est celui de v12.
+   */
+  dedicatedDishesAsked: number;
   /**
    * R4/R5 — CE QUE LE PLAT PARTAGÉ DOIT RESPECTER. `""` = personne n'a déclaré
    * de régime, et le prompt est alors byte-identique à celui d'avant ce lot.
@@ -606,6 +680,19 @@ const PORTION_SCHEMA_BLOCK = [
  * consigne qui parle d'un marquage dans un prompt qui l'interdit est exactement
  * l'invitation qu'on veut éviter; c'est le raisonnement de `buildPortionBrief`
  * sur `anyHabit` et `anyRhythm`, mot pour mot.
+ *
+ * ── LOT 3C · DE LA PERMISSION À L'ORDRE, ET POURQUOI ──────────────────────
+ * v12 écrivait « Every dish you return MAY carry one more key ». Mesuré sur les
+ * douze générations servies en v12: zéro attribution retenue, et onze runs sur
+ * douze n'ont même pas composé de second plat. Un champ facultatif décrit dans
+ * le prompt système, sans un ordre au même endroit que la promesse, est un
+ * champ que le modèle n'a aucune raison d'écrire — il a déjà dit la divergence
+ * ailleurs, dans `member_portions`, qui lui est DEMANDÉ.
+ *
+ * Ce bloc reste la moitié SCHÉMA (il dit qu'une clé existe et ce qu'elle vaut).
+ * La moitié CONSIGNE vit dans `dedicatedDishBlock`, côté message utilisateur,
+ * collée au brief qui promet le plat — exactement le partage de
+ * `PORTION_SCHEMA_BLOCK` / `buildPortionBrief`, qui est rempli 100 % du temps.
  */
 function dishOwnerSchemaBlock(
   dishBearers: readonly { memberId: string; displayName: string }[],
@@ -613,12 +700,70 @@ function dishOwnerSchemaBlock(
   if (dishBearers.length === 0) return [];
   return [
     "== WHOSE DISH IS IT (household) ==",
-    'Every dish you return may carry one more key: "for_member_id".',
-    "Set it ONLY on a dish you cooked for one named person below, using their",
-    "EXACT member_id. Leave it out of every dish the table shares — a dish with",
+    'A dish can carry one more key: "for_member_id".',
+    "The serving plan names the people who cannot be served from the shared pot",
+    "and orders a dish of their own. EVERY one of those dishes MUST carry",
+    '"for_member_id", set to that person\'s EXACT member_id. It is not optional:',
+    "their dish without that key is served to the whole household by mistake,",
+    "and the person it was cooked for never sees it.",
+    "Leave it out of every dish the table shares — a dish with",
     "no for_member_id is the table's dish, and that is the normal case.",
     ...dishBearers.map((b) => `  ${b.displayName} = ${b.memberId}`),
   ];
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * LOT 3C — L'ORDRE, À CÔTÉ DE LA PROMESSE.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ CE BLOC EXISTE PARCE QUE LA LIGNE DE FORME NE SUFFIT PAS, ET C'EST MESURÉ.
+ * `cookingShapeLines` promet « at EVERY meal they eat here they get a dish of
+ * their OWN » — cinq lignes au milieu d'un brief dont l'EN-TÊTE dit « one
+ * cooking session, portions that differ » et dont la suite réclame une
+ * instruction de service par personne. Sur douze runs, le modèle a tranché
+ * onze fois pour l'en-tête: un plat, des parts qui diffèrent.
+ *
+ * ⚠️ ET LA LIGNE DE FORME RENVOIE À UN MARQUEUR QUI N'EXISTE PAS. « ONE person
+ * below cannot be served from it (their line says so) » — la ligne visée dit
+ * `- Théo: larger protein and starch share, same vegetables`, une part prise
+ * dans la casserole commune. Ce bloc-ci est le marqueur manquant, et il porte
+ * les mêmes ids que le bloc de schéma parce qu'ils viennent du même tableau.
+ *
+ * ⚠️ LA DERNIÈRE PHRASE EST LA PLUS IMPORTANTE. Elle nomme ce que le modèle a
+ * réellement fait à la place — écrire la divergence dans `member_portions` —
+ * et dit que ce n'est pas la même chose. Une consigne qui interdit sans nommer
+ * la sortie qu'on prend à sa place est une consigne qu'on reprend.
+ */
+function dedicatedDishBlock(
+  dishBearers: readonly { memberId: string; displayName: string }[],
+  dedicatedDishesAsked: number,
+): string {
+  if (dishBearers.length === 0) return "";
+  // LE NOMBRE VIENT DE L'APPELANT, ET IL EST LE MÊME QUE CELUI DU BUDGET. Un
+  // plancher à 1 parce qu'un bloc qui réclame « 0 extra dishes » pendant que la
+  // ligne de forme en promet un à chaque repas serait la contradiction que ce
+  // fichier passe son temps à interdire.
+  const asked = Number.isFinite(dedicatedDishesAsked)
+    ? Math.max(1, Math.floor(dedicatedDishesAsked))
+    : 1;
+  return [
+    "== A DISH OF THEIR OWN ==",
+    "These people cannot be fed from the shared pot. At EVERY meal they eat",
+    "here, write TWO dishes for that day and that slot: the table's dish, and a",
+    "dish of their own — same cooking session, same shopping, different plate.",
+    ...dishBearers.map((b) => `  ${b.displayName} = ${b.memberId}`),
+    `That is ${asked} extra dish${asked > 1 ? "es" : ""} on top of the table's`,
+    "meals, and the dish budget above already has room for them. Count them",
+    "before you answer: a window where these people have no dish of their own is",
+    "a window where they do not eat.",
+    'Each of those dishes carries "for_member_id" set to the exact id above. The',
+    "table's dish carries no such key.",
+    "A line in member_portions is NOT one of these dishes: it says how much of a",
+    "SHARED dish goes on a plate, and these people are not eating the shared",
+    "dish. Writing them a serving instruction instead of a dish leaves them",
+    "without a meal.",
+  ].join("\n");
 }
 
 export interface HouseholdPromptBlocks {
@@ -693,6 +838,21 @@ export function buildHouseholdPromptBlocks(
     // valait `input.merge?.shape ?? "one_dish"`, et cette ligne-là clouait
     // toute composition ordinaire au barreau ① sans que rien ne le dise.
     buildPortionBrief(input.members, input.cooking, input.divergingCount),
+    // ── LOT 3C · COLLÉ AU BRIEF, ET LA POSITION EST LA MOITIÉ DU LOT ────────
+    // La ligne de forme PROMET un plat dédié à l'intérieur du brief ci-dessus;
+    // ce bloc-ci le COMMANDE, nomme les bouches et dit quelle clé le porte. Les
+    // séparer par la présence, la fusion ou l'envie remettrait la promesse et
+    // l'ordre à deux endroits du prompt — c'est très exactement l'état de v12,
+    // où la promesse était dans le message utilisateur et la clé dans le prompt
+    // système, et où le modèle n'a composé aucun second plat onze fois sur
+    // douze.
+    //
+    // ⚠️ IL NE PASSE PAS EN DERNIER. « La contrainte la plus proche de la fin
+    // est lue comme la plus contraignante » est l'invariant qui protège les
+    // règles de maison; ce bloc n'a pas besoin de cette place — il nomme ses
+    // bouches une par une et porte leurs ids — et la lui prendre démoterait la
+    // seule consigne qui doit survivre à tout.
+    dedicatedDishBlock(input.dishBearers, input.dedicatedDishesAsked),
     // JUSTE APRÈS LE BRIEF DE PORTIONS, et avant tout le reste: les deux
     // parlent de la même chose — qui mange quoi. Les séparer par l'envie de la
     // semaine ferait lire « pour combien de personnes » très loin de « pour

@@ -498,8 +498,14 @@ Deno.test("LOT 2 — le TRONC bumpe, l'enveloppe FOYER ne bouge pas", () => {
   // La règle est « quelle POPULATION voit une consigne différente ». Ici: tout
   // le monde — donc le tronc. L'enveloppe foyer ne gagne pas un octet, donc son
   // numéro reste, et son cache avec.
+  //
+  // ⚠️ CE QUE CE TEST PROTÈGE EST `MEAL_PROMPT_VERSION`, et rien d'autre. Le
+  // numéro de l'enveloppe foyer est épinglé pour que le jour où ce lot-ci
+  // ferait bouger les DEUX axes se voie tout de suite; il a bougé depuis, pour
+  // une raison qui n'appartient pas au LOT 2 (le LOT 3C, 2026-08-17, qui déplace
+  // l'ordre du plat dédié dans le message utilisateur).
   assertEquals(MEAL_PROMPT_VERSION, "meal.en.v10_same_day");
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v12_whose_dish_is_it");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v13_dedicated_dish_is_ordered");
 });
 
 // ---------------------------------------------------------------------------

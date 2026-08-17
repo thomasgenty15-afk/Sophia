@@ -632,3 +632,142 @@ Deno.test("LOT C — l'attribution part dans le payload écrit en base", () => {
   assert("member_id" in payload[0], JSON.stringify(payload[0]));
   assertEquals(payload[0].member_id, "m-zoe");
 });
+
+// ---------------------------------------------------------------------------
+// LOT 3C — LE COMPTEUR DE L'ATTRIBUTION
+//
+// ⛔ POURQUOI CES QUATRE NOMBRES EXISTENT, ET CE QUE LEUR ABSENCE A COÛTÉ.
+// Jusqu'au 2026-08-17, la trace ne portait que `{asked, attributed}`. Un
+// `attributed: 0` a donc été lu « le modèle n'écrit JAMAIS la clé » — et
+// l'archive des réponses brutes disait autre chose: deux réponses sur douze la
+// portaient, dont une sur une bouche hors de la liste fermée, refusée par le
+// parseur. « Jamais déclaré » et « déclaré puis refusé » rendaient le MÊME
+// zéro, et ils appellent des corrections OPPOSÉES.
+// ---------------------------------------------------------------------------
+
+Deno.test("LOT 3C — rien de déclaré: les quatre nombres le disent", () => {
+  // ⚠️ LE CAS QUI PASSE, et il est majoritaire. Un compteur qu'on ne sait pas
+  // faire dire « zéro pour la bonne raison » ne distingue rien.
+  const meal = parse(dishFor(), { merge: eaterAsking(["m-zoe"]) });
+  assertEquals(meal.dish_owner_counts, {
+    dishes: 1,
+    declared: 0,
+    attributed: 0,
+    refused: 0,
+  });
+});
+
+Deno.test("LOT 3C — déclaré et accepté: `declared` ET `attributed` montent", () => {
+  const meal = parse(dishFor({ for_member_id: "m-zoe" }), {
+    merge: eaterAsking(["m-zoe"]),
+  });
+  assertEquals(meal.dish_owner_counts, {
+    dishes: 1,
+    declared: 1,
+    attributed: 1,
+    refused: 0,
+  });
+});
+
+Deno.test("LOT 3C — déclaré sur une bouche INCONNUE: `declared` monte, `attributed` non", () => {
+  // ⛔ C'EST LE CAS QUI A ÉTÉ MAL LU EN PRODUCTION, mot pour mot: le modèle a
+  // marqué la bouche qui porte une HABITUDE plutôt que celle à qui la consigne
+  // promet un plat. Sans `declared`, ce run était indiscernable d'un run où le
+  // modèle n'a rien écrit — et la correction à faire n'est pas la même.
+  const meal = parse(dishFor({ for_member_id: "m-lea" }), {
+    merge: eaterAsking(["m-zoe"]),
+  });
+  assertEquals(meal.dish_owner_counts, {
+    dishes: 1,
+    declared: 1,
+    attributed: 0,
+    refused: 1,
+  });
+});
+
+Deno.test("LOT 3C — déclaré au barreau ①: compté REFUSÉ, jamais attribué", () => {
+  const meal = parse(dishFor({ for_member_id: "m-zoe" }), {
+    merge: {
+      shape: "one_dish" as const,
+      ownDishesShown: 0,
+      dedicatedDishesAsked: 0,
+      dedicatedCells: [],
+      dishBearerIds: ["m-zoe"],
+    },
+  });
+  assertEquals(meal.dish_owner_counts, {
+    dishes: 1,
+    declared: 1,
+    attributed: 0,
+    refused: 1,
+  });
+});
+
+Deno.test("LOT 3C — `declared` vaut TOUJOURS `attributed + refused`", () => {
+  // ⚠️ UNE PROPRIÉTÉ VÉRIFIÉE, PAS UNE DÉFINITION. Les trois nombres sont
+  // comptés séparément (cicatrice `withheld`/`over_cap`: deux nombres du même
+  // objet, l'un dérivé de l'autre, gonflé et dégonflé en sens inverses). Le
+  // dériver ici le rendrait invérifiable.
+  const meal = parse({
+    dishes: [
+      { ...dishFor().dishes[0], day: "mon", slot: "lunch", for_member_id: "m-zoe" },
+      { ...dishFor().dishes[0], day: "tue", slot: "lunch", for_member_id: "m-lea" },
+      { ...dishFor().dishes[0], day: "wed", slot: "lunch" },
+    ],
+  }, { merge: eaterAsking(["m-zoe"]) });
+  const c = meal.dish_owner_counts;
+  assertEquals(c.declared, c.attributed + c.refused);
+  assertEquals(c.declared, 2);
+  assertEquals(c.attributed, 1);
+  assertEquals(c.refused, 1);
+});
+
+Deno.test("LOT 3C — les nombres comptent la MÊME population que `dishes`", () => {
+  // ⚠️ LE DÉNOMINATEUR EST LA SORTIE, jamais la réponse brute. `dishes` est le
+  // nombre de plats GARDÉS; `declared` suit les mêmes `splice`. Un compteur dont
+  // le numérateur et le dénominateur ne décrivent pas les mêmes lignes est un
+  // compteur qui ment.
+  const meal = parse(dishFor({ for_member_id: "m-zoe" }), {
+    merge: eaterAsking(["m-zoe"]),
+  });
+  assertEquals(meal.dish_owner_counts.dishes, meal.dishes.length);
+});
+
+Deno.test("LOT 3C — un plat ÉVINCÉ par le plafond ne compte dans AUCUN des quatre", () => {
+  // ⛔ LE TABLEAU PARALLÈLE DOIT SUIVRE LE `splice`, et c'est la seule façon de
+  // le prouver: sans lui, le refus d'un plat que le plafond vient de retirer
+  // reste dans `declared`/`refused` alors que le plat n'existe plus. Le
+  // compteur annoncerait « une attribution refusée » sur une ligne que personne
+  // ne peut retrouver — exactement la famille `withheld`/`over_cap`.
+  const dish = (slot: string, n: number, over: Record<string, unknown> = {}) => ({
+    title: `Plate ${slot} ${n}`,
+    slot,
+    day: "mon",
+    ingredients: [{ term: "chicken", quantity: "150 g" }],
+    method: "Cook it.",
+    why: "It fits the day.",
+    ...over,
+  });
+  // Le TROISIÈME déjeuner est le plat le plus jetable (sa case est déjà prise
+  // deux fois): c'est lui que le plafond sacrifie quand le dîner arrive, et
+  // c'est lui qui porte l'attribution refusée.
+  const meal = parse({
+    dishes: [
+      dish("breakfast", 1),
+      dish("lunch", 1),
+      dish("lunch", 2),
+      dish("lunch", 3, { for_member_id: "m-inconnu" }),
+      dish("dinner", 1),
+    ],
+  }, { merge: eaterAsking(["m-zoe"]) });
+  assert(
+    !meal.dishes.some((d) => d.title === "Plate lunch 3"),
+    "le plafond n'a pas évincé le plat marqué: le test ne mesure plus rien",
+  );
+  assertEquals(meal.dish_owner_counts, {
+    dishes: meal.dishes.length,
+    declared: 0,
+    attributed: 0,
+    refused: 0,
+  });
+});

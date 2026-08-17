@@ -2689,7 +2689,13 @@ Deno.test("C8 ③ — LA LANE INDIVIDUELLE GARDE SA VERSION DE PROMPT", () => {
   // champ `for_member_id`. Un foyer au barreau ① rend `dishBearers: []`, le bloc
   // n'est pas assemblé, et le prompt est celui de v11 au caractère près —
   // `household_meal_generation_test.ts` le tient.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v12_whose_dish_is_it");
+  // ⚠️ v13 DEPUIS LE LOT 3C (2026-08-17), ET LE TRONC NE BOUGE TOUJOURS PAS. La
+  // population est EXACTEMENT celle de v12 — les foyers où au moins une bouche
+  // reçoit un plat à elle — et ce qu'elle voit change: l'ordre du plat dédié
+  // passe dans le message UTILISATEUR, collé au brief qui le promet, parce que
+  // la permission servie dans le prompt système n'a produit aucune attribution
+  // retenue sur douze générations mesurées.
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v13_dedicated_dish_is_ordered");
 });
 
 Deno.test("C7 ③ — LA LIGNE DE COURSES D'UN PLAT JETÉ NE PART PLUS AU MAGASIN", () => {
@@ -3453,13 +3459,30 @@ Deno.test("LOT C — la liste des porteurs atteint le PROMPT, et c'est la même"
 Deno.test("LOT C — ⛔ l'écart demandé/attribué est ARCHIVÉ", async () => {
   // C'est la seule chose qui rende le lot MESURABLE. `for_member_id` est
   // déclaré par le modèle: on ne peut pas savoir d'avance à quelle fréquence il
-  // le remplit, seulement le compter. Sans ces deux nombres, un lot désarmé
-  // est indiscernable d'un lot qui marche.
+  // le remplit, seulement le compter. Sans ces nombres, un lot désarmé est
+  // indiscernable d'un lot qui marche.
+  //
+  // ⛔ LOT 3C — ET DEUX NOMBRES DE PLUS, PARCE QUE DEUX SUFFISAIENT À TROMPER.
+  // Le 2026-08-17, `attributed: 0` a été rapporté comme « le modèle n'écrit
+  // jamais la clé »; l'archive des réponses brutes en montrait deux sur douze
+  // qui la portaient, dont une sur une bouche hors liste, refusée par le
+  // parseur. « Jamais déclaré » et « déclaré puis refusé » rendaient le même
+  // zéro et appellent des corrections opposées.
   const src = await generatorSource();
   assert(
-    /dish_owners:\s*\{\s*asked: eaterBudget\?\.dedicatedDishesAsked \?\? 0,\s*attributed: meal\.dishes\.filter\(\(d\) => d\.memberId !== null\)\.length,/
+    /const dishOwnersTrace = \{\s*asked: eaterBudget\?\.dedicatedDishesAsked \?\? 0,\s*declared: meal\.dish_owner_counts\.declared,\s*attributed: meal\.dish_owner_counts\.attributed,\s*refused: meal\.dish_owner_counts\.refused,\s*\};/
       .test(src),
-    "l'écart entre les plats dédiés RÉCLAMÉS et ceux réellement ATTRIBUÉS n'est " +
-      "plus archivé: un modèle qui ignore la consigne redevient invisible.",
+    "l'écart entre les plats dédiés RÉCLAMÉS, DÉCLARÉS, ATTRIBUÉS et REFUSÉS " +
+      "n'est plus archivé: un modèle qui ignore la consigne redevient " +
+      "indiscernable d'un modèle dont on refuse l'attribution.",
+  );
+  // ⚠️ ET IL EST LISIBLE SUR UN APERÇU. `generated_from` n'existe que sur une
+  // ligne ÉCRITE; toute vérification par `intent: "draft"` était donc aveugle,
+  // et c'est comme ça que la mesure a été manquée.
+  assert(
+    /household: \{\s*id: householdId,\s*member_count: members\.length,\s*dish_owners: dishOwnersTrace,/
+      .test(src),
+    "l'aperçu ne rend plus le compteur: une vérification par brouillon " +
+      "redevient aveugle.",
   );
 });

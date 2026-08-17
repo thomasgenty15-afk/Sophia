@@ -3081,6 +3081,12 @@ Deno.serve(async (req) => {
           memberId: m.memberId,
           displayName: m.displayName,
         })),
+      // ── LOT 3C · COMBIEN, ET C'EST LE MÊME NOMBRE QUE LE BUDGET ────────
+      // `eaterBudget` est déjà le seul nombre que la consigne et le plafond
+      // lisent (voir le `??` qui le compose plus haut). Le recalculer ici
+      // rouvrirait la porte que L4 a fermée: une consigne qui réclame N plats
+      // dans un plafond ouvert pour M, et le parseur qui jette les DERNIERS.
+      dedicatedDishesAsked: eaterBudget?.dedicatedDishesAsked ?? 0,
       // ── R4/R5 · CE QUE LA CASSEROLE COMMUNE SUIT, ET QUI N'EN MANGE PAS ──
       // `""` quand personne n'a rien déclaré: le bloc tombe du `filter` de
       // `buildHouseholdPromptBlocks` et le prompt est byte-identique à celui
@@ -3789,6 +3795,27 @@ Deno.serve(async (req) => {
     // quota de fusion n'est consommé (le chemin `merge` refuse `draft` tout en
     // haut), et aucun état de brouillon ne va en base: la contrainte
     // d'exclusion sur les fenêtres vivantes reste intacte.
+    // ══════════════════════════════════════════════════════════════════════
+    // LOT 3C — LES QUATRE NOMBRES DE L'ATTRIBUTION, ÉCRITS UNE FOIS.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ ET LISIBLES SUR UN APERÇU. C'est la moitié du compteur qui manquait:
+    // `dish_owners` ne vivait que dans `generated_from`, c'est-à-dire sur une
+    // ligne ÉCRITE. Un `intent: "draft"` n'écrit rien — donc toute mesure faite
+    // par aperçu était aveugle, et le 2026-08-17 trois runs de vérification ont
+    // dû conclure sur des plats relus un par un. Un compteur qu'on ne peut lire
+    // que sur le chemin qui consomme un plan n'est pas un compteur.
+    //
+    // ⚠️ UNE SEULE EXPRESSION POUR LES DEUX CHEMINS: l'aperçu et l'écriture
+    // lisent le même objet. Deux comptages divergeraient au premier champ
+    // ajouté, et la mesure d'un aperçu cesserait de prédire celle d'un plan.
+    const dishOwnersTrace = {
+      asked: eaterBudget?.dedicatedDishesAsked ?? 0,
+      declared: meal.dish_owner_counts.declared,
+      attributed: meal.dish_owner_counts.attributed,
+      refused: meal.dish_owner_counts.refused,
+    };
+
     if (isDraft) {
       return jsonResponse(req, {
         ok: true,
@@ -3798,7 +3825,11 @@ Deno.serve(async (req) => {
         suggested_window: suggestedWindow,
         rationale: { lines: rationaleLines, refusal: rationaleRefusal },
         request_report: { lines: reportLines, refusal: reportRefusal },
-        household: { id: householdId, member_count: members.length },
+        household: {
+          id: householdId,
+          member_count: members.length,
+          dish_owners: dishOwnersTrace,
+        },
         dishes,
         preparations: mealPreparationsPayload(meal),
         cooking_sessions: mealSessionsPayload(meal),
@@ -4014,12 +4045,23 @@ Deno.serve(async (req) => {
               // `attributed` combien en sont revenus avec un porteur valide.
               // L'écart est LA question à poser au premier run réel.
               //
+              // ⛔ LOT 3C — ET `declared`/`refused`, PARCE QUE `attributed: 0`
+              // A ÉTÉ MAL LU UNE FOIS, ET QUE ÇA A COÛTÉ UN DIAGNOSTIC ENTIER.
+              // Le 2026-08-17, ce zéro a été rapporté comme « le modèle n'écrit
+              // jamais la clé »; l'archive `llm_raw_response_events` disait
+              // autre chose — deux réponses sur douze la portaient, dont une sur
+              // une bouche hors de la liste fermée, refusée trois lignes plus
+              // bas dans le parseur. « Jamais déclaré » et « déclaré puis
+              // refusé » rendaient le MÊME zéro et appellent des corrections
+              // OPPOSÉES: resserrer la consigne d'un côté, corriger la liste
+              // des porteurs de l'autre. Les deux nombres viennent du parseur
+              // (`dish_owner_counts`), jamais d'un second comptage ici — deux
+              // comptages du même objet finissent gonflé et dégonflé en sens
+              // inverses, ce dépôt l'a déjà payé sur les voix.
+              //
               // ÉCRIT MÊME À ZÉRO, comme les blocs voisins: une clé absente ne
               // se distingue pas d'un lot débranché.
-              dish_owners: {
-                asked: eaterBudget?.dedicatedDishesAsked ?? 0,
-                attributed: meal.dishes.filter((d) => d.memberId !== null).length,
-              },
+              dish_owners: dishOwnersTrace,
               // ── D14 · QUI A ÉTÉ COMPTÉ ABSENT, ET PAR QUI ──────────────
               // Sans ce bloc, une absence marquée par erreur est SILENCIEUSE:
               // il manque une assiette, et personne — ni le maître, ni la
