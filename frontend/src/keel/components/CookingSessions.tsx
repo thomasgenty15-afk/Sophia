@@ -70,7 +70,7 @@ import { BoxTable } from "./plan/BoxTable";
 // `docs/keel/CHARTE-VITRINE.md` §2.
 
 export default function CookingSessions(
-  { sessions, preparations, dishes, portions = [], open, onClose }: {
+  { sessions, preparations, dishes, portions, open, onClose }: {
     sessions: readonly CookingSession[];
     preparations: readonly MealPreparation[];
     /**
@@ -81,12 +81,23 @@ export default function CookingSessions(
      * seule source de prénom autorisée sur ce chemin — jamais un titre de plat,
      * jamais un prénom deviné dans une phrase.
      *
-     * `[]` par défaut, et le défaut est le cas majoritaire: un plan personnel
-     * n'a aucune part, un lecteur qui n'en a pas non plus. La table de pesée
-     * rend alors ses grammes sans nom — l'instruction reste vraie — plutôt que
-     * de disparaître ou d'afficher un identifiant.
+     * ⚠️ REQUISE, `[]` pour « aucune », JAMAIS `?` AVEC UN DÉFAUT — et ce n'est
+     * pas une préférence de style, c'est un défaut MESURÉ le 2026-08-17 par la
+     * vérification du LOT 4. Le `portions?` d'origine a laissé le montage de
+     * `KitchenToday` (`/app/today`) sans parts sans un seul rouge: sa table de
+     * pesée rendait « Une boîte — 120 g » trois fois de suite, trois grammages
+     * différents et aucun nom — c'est-à-dire une instruction de pesée que
+     * personne ne peut exécuter. « Paramètre de garde optionnel = garde
+     * désarmée », et le reste de ce lot applique déjà la règle (`boxMemberIds`,
+     * `preparations` sur `groupDayBySlot`, `dedicatedDishesAsked`).
+     *
+     * `[]` reste légitime et fréquent: un plan personnel n'a aucune part, et un
+     * lecteur qui n'a pas le droit de les voir non plus. La table rend alors ses
+     * grammes sans nom — l'instruction de pesée reste vraie — plutôt que de
+     * disparaître ou d'afficher un identifiant. La différence est qu'un appelant
+     * doit désormais l'ÉCRIRE.
      */
-    portions?: readonly MemberPortionView[];
+    portions: readonly MemberPortionView[];
     /**
      * ── CE QUE `KitchenBlock` PORTAIT, ET QU'IL EMPORTAIT EN PARTANT ───────
      *

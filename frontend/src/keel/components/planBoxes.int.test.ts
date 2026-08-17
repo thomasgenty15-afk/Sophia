@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { renderToStaticMarkup } from "react-dom/server";
 import { createElement } from "react";
@@ -101,6 +101,37 @@ function code(rel: string): string {
     .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .replace(/(^|[^:])\/\/.*$/gm, "$1");
+}
+
+/**
+ * TOUS LES SITES DE MONTAGE D'UN COMPOSANT, DÉCOUVERTS SUR LE DISQUE.
+ *
+ * ⚠️ DÉCOUVERTS, PAS ÉNUMÉRÉS. Une liste de chemins écrite à la main reste verte
+ * le jour où quelqu'un ajoute un écran — c'est-à-dire le jour exact où le test
+ * devrait mordre. Elle serait aussi fausse dans l'autre sens: ce dossier porte
+ * des fichiers qui ne sont pas encore suivis par git (mesuré le 2026-08-17), et
+ * un chemin en dur ferait rouger une copie fraîche du dépôt.
+ *
+ * Rend `[file, jsx]` par montage, `jsx` étant les attributs jusqu'au `/>`.
+ */
+function mountSitesOf(tag: string): [string, string][] {
+  const roots = ["src/keel/components", "src/keel/pages"];
+  const out: [string, string][] = [];
+  const walk = (dir: string) => {
+    for (const entry of readdirSync(resolve(process.cwd(), dir), { withFileTypes: true })) {
+      const rel = `${dir}/${entry.name}`;
+      if (entry.isDirectory()) walk(rel);
+      else if (entry.name.endsWith(".tsx")) {
+        const src = code(rel);
+        for (const mount of src.split(tag).slice(1)) {
+          const end = mount.indexOf("/>");
+          out.push([rel, end === -1 ? mount : mount.slice(0, end)]);
+        }
+      }
+    }
+  };
+  for (const root of roots) walk(root);
+  return out;
 }
 
 // ---------------------------------------------------------------------------
@@ -462,5 +493,59 @@ describe("LOT 4 · les deux langues", () => {
     expect(fr["meals.boxes.title"]).not.toBe(en["meals.boxes.title"]);
     expect(fr["meals.boxes.line"]).not.toBe(en["meals.boxes.line"]);
     expect(fr["meals.boxes.grams"]).toBe(en["meals.boxes.grams"]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 8 — LE CÂBLAGE DES PRÉNOMS (défaut trouvé par la vérification du LOT 4)
+// ---------------------------------------------------------------------------
+
+describe("LOT 4 · une boîte sans nom n'est pas une instruction", () => {
+  // ⛔ CE QUI EST MESURÉ ICI, ET CE QUE ÇA A COÛTÉ. `portions` est née
+  // `portions?: … = []` sur `CookingSessions`. Le montage de `/app/today`
+  // (`KitchenToday.tsx`) ne la passait pas, et le compilateur n'avait rien à
+  // dire: la table de pesée de cet écran rendait « Une boîte — 120 g » autant
+  // de fois qu'il y a de bouches — trois grammages, aucun nom, et personne ne
+  // sait quelle boîte sortir. « Paramètre de garde optionnel = garde désarmée. »
+  //
+  // Deux gardes, pas une: la prop est désormais REQUISE (le compilateur tient
+  // les montages) et ce test tient la VALEUR — un test de source seul a déjà
+  // menti deux fois dans ce chantier.
+
+  it("⛔ SANS PARTS, la table perd les noms — le fait que le défaut produisait", () => {
+    const html = textOf(createElement(SessionPreparation, {
+      prep: prep({
+        boxes: [
+          { id: "box_zoe", member_ids: [ZOE_ID], grams: 120 },
+          { id: "box_nina", member_ids: [NINA_ID], grams: 200 },
+        ],
+      }),
+      feeds: [],
+      portions: [],
+      open: false,
+      onToggle: () => {},
+    }));
+    // La ligne survit — l'instruction de pesée reste vraie — mais elle ne dit
+    // plus À QUI. C'est exactement ce que `/app/today` affichait.
+    expect(occurrences(html, "One box — 120 g"), html).toBe(1);
+    expect(occurrences(html, "One box — 200 g"), html).toBe(1);
+    expect(html, html).not.toContain("Zoé");
+    expect(html, html).not.toContain("Nina");
+  });
+
+  it("⛔ CHAQUE MONTAGE DE `CookingSessions` PASSE SES PARTS", () => {
+    // Le test qui aurait attrapé le défaut, et qui attrapera le TROISIÈME
+    // montage du jour où quelqu'un l'écrit. Il lit les SITES D'APPEL, pas la
+    // définition: c'est là que l'oubli se produit.
+    //
+    // ⚠️ LES SITES SONT DÉCOUVERTS, JAMAIS ÉNUMÉRÉS. Une liste de chemins écrite
+    // à la main resterait verte le jour où quelqu'un ajoute un quatrième écran —
+    // c'est-à-dire exactement le jour où ce test devrait mordre.
+    const found = mountSitesOf("<CookingSessions");
+    expect(found.length, "aucun montage de CookingSessions trouvé").toBeGreaterThan(0);
+    for (const [file, jsx] of found) {
+      expect(jsx, `${file}: un montage de CookingSessions sans \`portions\``)
+        .toContain("portions=");
+    }
   });
 });
