@@ -346,16 +346,46 @@ describe("LOT C — un plat dédié appartient à une bouche", () => {
     expect(week[0].dishes[0].title).toBe("Greek yogurt bowls with peaches");
   });
 
-  it("la semaine de SA bouche porte les deux — le commun et le sien", () => {
-    // ⚠️ LE CAS QUI PASSE, et il compte autant que le précédent: une garde
-    // qu'on ne sait pas faire dire « oui » bloque tout en ressemblant à une
-    // garde qui marche. Le plat commun de la table reste le sien aussi.
+  /**
+   * ⛔ CE TEST DISAIT L'INVERSE JUSQU'AU 2026-08-17, ET IL AVAIT TORT.
+   *
+   * Il exigeait DEUX plats — « le commun et le sien » — comme cas passant de
+   * la garde du dessus. Mais la ligne C4 de la grille de cohérence dit: « au
+   * moment M, chaque bouche a soit le plat commun, SOIT son plat dédié —
+   * jamais zéro, jamais deux », et `buildPlanByPerson` répondait déjà `own ??
+   * shared` dans le même module. Deux fonctions voisines donnaient donc deux
+   * réponses à la même question, et Christèle lisait deux petits-déjeuners au
+   * même vendredi. Le cas passant est conservé, sur le moment où elle n'a PAS
+   * de plat à elle: le plat de la table y reste bien le sien.
+   */
+  it("⛔ au moment où elle a SON plat, celui de la table sort de son assiette", () => {
     const week = buildPersonWeek({
       days: ["fri"],
       dishes: DEDICATED,
       person: PORTIONS[1], // Christèle
     });
-    expect(week[0].dishes).toHaveLength(2);
+    expect(week[0].dishes, "deux petits-déjeuners au même moment").toHaveLength(1);
+  });
+
+  it("⚠️ LE CAS QUI PASSE — sur un moment sans plat à elle, la table est la sienne", () => {
+    // Une garde qu'on ne sait pas faire dire « oui » bloque tout en
+    // ressemblant à une garde qui marche: le dîner commun DOIT rester chez
+    // Christèle, qui n'a de plat dédié qu'au petit-déjeuner.
+    const week = buildPersonWeek({
+      days: ["fri"],
+      dishes: [
+        ...DEDICATED,
+        {
+          title: "Chicken and rice bowls",
+          day: "fri",
+          slot: "dinner",
+          uses: [],
+          memberId: null,
+        },
+      ],
+      person: PORTIONS[1], // Christèle
+    });
+    expect(week[0].dishes.map((d) => d.slot)).toEqual(["breakfast", "dinner"]);
   });
 
   it("⛔ la ligne « le plat » ne montre JAMAIS le plat d'une seule personne", () => {

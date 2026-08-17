@@ -273,10 +273,31 @@ export function buildPersonWeek(args: {
     // Les moments inconnus passent en queue, jamais devant le petit déjeuner.
     return at < 0 ? EATING_OCCASIONS.length : at;
   };
-  return args.days.map((day) => ({
+  return args.days.map((day) => {
+    const here = args.dishes.filter((d) => d.day === day && d.slot);
+    /**
+     * ══════════════════════════════════════════════════════════════════════
+     * LOT 3 — LES MOMENTS OÙ ELLE A SON PLAT À ELLE.
+     * ══════════════════════════════════════════════════════════════════════
+     *
+     * ⛔ SON PLAT REMPLACE CELUI DE LA TABLE, IL NE S'Y AJOUTE PAS. Sans cette
+     * ligne, la semaine de Zoé montrait DEUX petits-déjeuners au vendredi: le
+     * plat commun ET le sien. C'est la ligne C4 de la grille de cohérence —
+     * « au moment M, chaque bouche a soit le plat commun, soit son plat dédié,
+     * jamais zéro, jamais deux » — et c'est aussi ce que `buildPlanByPerson`
+     * répond DÉJÀ, dix lignes plus haut (`own ?? shared`). Deux fonctions du
+     * même module donnaient donc deux réponses à la même question; celle qu'on
+     * lisait le moins gagnait sur l'écran individuel.
+     *
+     * ⚠️ CE N'EST PAS UNE DÉDUCTION SUR LE TITRE, ni sur le contenu: c'est la
+     * seule lecture de `member_id`, posé par le moteur.
+     */
+    const ownSlots = new Set(
+      here.filter((d) => d.memberId === args.person.memberId).map((d) => d.slot),
+    );
+    return {
     day,
-    dishes: args.dishes
-      .filter((d) => d.day === day && d.slot)
+    dishes: here
       // ══════════════════════════════════════════════════════════════════
       // LOT C — LE PLAT D'UN AUTRE NE FIGURE PAS DANS SA SEMAINE.
       // ══════════════════════════════════════════════════════════════════
@@ -291,11 +312,16 @@ export function buildPersonWeek(args: {
       // `memberId === null` = le plat de la table, donc il est à elle aussi.
       // Un plat attribué à quelqu'un d'autre sort de sa semaine.
       .filter((d) => d.memberId === null || d.memberId === args.person.memberId)
+      // C4 — le plat de la table sort de SON assiette au moment où elle a le
+      // sien. Les autres moments ne bougent pas: le plat commun y reste le
+      // sien aussi.
+      .filter((d) => d.memberId !== null || !ownSlots.has(d.slot))
       .sort((a, b) => order(a.slot ?? "") - order(b.slot ?? ""))
       .map((d) => ({
         slot: d.slot ?? "",
         title: d.title,
         note: shareFor(args.person, d),
       })),
-  })).filter((d) => d.dishes.length > 0);
+    };
+  }).filter((d) => d.dishes.length > 0);
 }
