@@ -28,8 +28,10 @@ import {
   type AwayDay,
   DEFAULT_EATING_RHYTHM,
   type EatingOccasionSlot,
+  type MemberPortionView,
   parseAwayDays,
   parseEatingRhythm,
+  readMemberPortions,
 } from "./mealGeneration";
 // ⚠️ LA GARDE D'ÉCRITURE D'UNE DATE DE NAISSANCE EST CELLE DU SERVEUR, IMPORTÉE
 // TELLE QUELLE (D18, L9). Même geste que `groceryWaves.ts` et `coachProtocol.ts`
@@ -1319,13 +1321,16 @@ export async function generateHouseholdMeal(args: {
   };
 }
 
-export interface MemberPortionView {
-  memberId: string;
-  displayName: string;
-  /** `null` = part standard. L'écran rend son propre libellé. */
-  portionNote: string | null;
-  shares: Array<{ preparationId: string; note: string }>;
-}
+/**
+ * ⚠️ LE TYPE A DÉMÉNAGÉ DANS `api/mealGeneration.ts` (LOT 3), ET IL EST
+ * RÉEXPORTÉ ICI POUR SES IMPORTATEURS. `member_portions` est une COLONNE de
+ * `student_generated_meals`, au même titre que `dishes`: depuis que la vue jour
+ * du plan la lit elle aussi, la garder ici en aurait fait DEUX lecteurs du même
+ * JSON — et deux lecteurs divergent au premier champ ajouté (`uses` est arrivé
+ * après des compositions déjà en base, et c'est le lecteur qu'on regarde le
+ * moins qui garde l'ancien comportement).
+ */
+export { type MemberPortionView } from "./mealGeneration";
 
 /**
  * UN PLAT DU PLAN DU FOYER, RÉDUIT À CE QUI SE DIT À TABLE (L8, D9).
@@ -1458,29 +1463,13 @@ export async function loadHouseholdMeal(today: string): Promise<HouseholdMealVie
   const row = (chosen.current ?? chosen.next)?.raw;
   if (!row) return null;
 
-  const raw = Array.isArray(row.member_portions) ? row.member_portions : [];
   return {
     mealId: String(row.id),
     startsOn: String(row.starts_on ?? ""),
     durationDays: Number(row.duration_days) || 1,
-    portions: raw.map((entry) => {
-      const p = (entry ?? {}) as Record<string, unknown>;
-      const shares = Array.isArray(p.preparation_shares) ? p.preparation_shares : [];
-      return {
-        memberId: String(p.member_id ?? ""),
-        displayName: String(p.display_name ?? ""),
-        portionNote: typeof p.portion_note === "string" && p.portion_note.trim()
-          ? p.portion_note
-          : null,
-        shares: shares.map((s) => {
-          const share = (s ?? {}) as Record<string, unknown>;
-          return {
-            preparationId: String(share.preparation_id ?? ""),
-            note: String(share.note ?? ""),
-          };
-        }).filter((s) => s.preparationId && s.note),
-      };
-    }).filter((p) => p.memberId),
+    // LOT 3 — LE MÊME LECTEUR QUE LE RENDU DU PLAN, et pas une seconde copie
+    // de ces vingt lignes. Voir `readMemberPortions`.
+    portions: readMemberPortions(row.member_portions),
     dishes: readHouseholdDishes(row.dishes),
     trace: readHouseholdPlanTrace(row.generated_from),
   };

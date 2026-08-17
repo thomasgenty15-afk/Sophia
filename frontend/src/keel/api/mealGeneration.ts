@@ -313,6 +313,92 @@ export interface GeneratedDish {
    * serait affirmer un fait que personne n'a écrit.
    */
   same_day: DishSameDay | null;
+  /**
+   * ══════════════════════════════════════════════════════════════════════
+   * LOT 3 — LA BOUCHE À QUI CE PLAT EST DÉDIÉ. `null` = le plat de la table.
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ LA CLÉ EXISTAIT EN BASE ET N'ARRIVAIT PAS ICI. Le moteur pose
+   * `member_id` sur chaque plat depuis le lot C du 2026-08-15 — et il l'écrit
+   * MÊME À `null` (`mealDishesPayload`, `meal_generation.ts:3812`, posture
+   * « une clé absente ne se distingue pas d'un lot débranché »). Ce lecteur
+   * la jetait: le rendu du plan ne pouvait donc structurellement pas savoir
+   * que deux plats d'un même moment ne sont pas pour les mêmes bouches. C'est
+   * la même famille de défaut que le `shoppingList: []` du LOT 1 — un champ
+   * rendu par le serveur, perdu par le lecteur, sous un câblage vert.
+   *
+   * ⛔ C'EST UN `member_id`, ET IL N'Y A AUCUNE LECTURE DE TITRE NULLE PART
+   * SUR CE CHEMIN. Le seul marqueur d'un plat dédié était « for Zoe » écrit
+   * dans son titre par le modèle; un matcher se serait trompé dès « Chicken
+   * for Zoe and Marc » et n'aurait rien trouvé dès que le plan sort en
+   * français (« jamais de matcher maison »: 12 faux positifs sur 12 mesurés).
+   *
+   * ⚠️ LECTURE DÉFENSIVE: absent ⇒ `null`, c'est-à-dire « le plat de la
+   * table » — ce que ces plans-là étaient déjà pour tout le monde.
+   */
+  member_id: string | null;
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * LA PART D'UNE BOUCHE, TELLE QUE LE MOTEUR L'A ÉCRITE (`member_portions`).
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⚠️ CE TYPE VIVAIT DANS `api/household.ts`, ET IL A DÉMÉNAGÉ ICI (LOT 3).
+ * `member_portions` est une COLONNE DE `student_generated_meals`, comme
+ * `dishes` et `shopping_list`: son lecteur appartient au module de cette
+ * table. Il était chez le foyer par accident d'histoire — la seule surface qui
+ * la lisait était `/app/household`. Depuis le LOT 3, la vue jour du plan en a
+ * besoin aussi, et deux lecteurs du même JSON divergent au premier champ
+ * ajouté. `api/household.ts` RÉEXPORTE le type: aucun de ses importateurs ne
+ * change.
+ *
+ * ⚠️ LE PRÉNOM VIENT DE LA LIGNE MEMBRE (F5), PAS DU PLAN. Le moteur le
+ * recopie de `member.displayName` au moment de composer
+ * (`household_portions.ts:1376`), donc `display_name` EST le prénom de la
+ * ligne — et c'est la seule source de prénom autorisée sur ce chemin.
+ *
+ * ⛔ AUCUN OBJECTIF, AUCUN POIDS, AUCUNE CALORIE: la ceinture est
+ * STRUCTURELLE — ce type n'a aucun champ où en mettre un. `portion_note` et
+ * les notes de part sont des INSTRUCTIONS DE SERVICE, garanties sans motif ni
+ * vocabulaire de corps par `sanitizePortionNote` côté serveur. L'instruction
+ * est publique, le motif qui la produit ne l'est pas.
+ */
+export interface MemberPortionView {
+  memberId: string;
+  displayName: string;
+  /** `null` = part standard. L'écran rend son propre libellé. */
+  portionNote: string | null;
+  shares: Array<{ preparationId: string; note: string }>;
+}
+
+/**
+ * `member_portions` D'UNE LIGNE DE PLAN — L'UNIQUE LECTEUR.
+ *
+ * Défensif dans une seule direction, comme tous les lecteurs de ce fichier: une
+ * bouche sans `member_id` tombe (elle n'est jointe à rien), une part sans
+ * `preparation_id` ou sans texte tombe (elle ne dirait rien à côté d'un plat).
+ */
+export function readMemberPortions(raw: unknown): MemberPortionView[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((entry) => {
+    const p = (entry ?? {}) as Record<string, unknown>;
+    const shares = Array.isArray(p.preparation_shares) ? p.preparation_shares : [];
+    return {
+      memberId: String(p.member_id ?? ""),
+      displayName: String(p.display_name ?? ""),
+      portionNote: typeof p.portion_note === "string" && p.portion_note.trim()
+        ? p.portion_note
+        : null,
+      shares: shares.map((s) => {
+        const share = (s ?? {}) as Record<string, unknown>;
+        return {
+          preparationId: String(share.preparation_id ?? ""),
+          note: String(share.note ?? ""),
+        };
+      }).filter((s) => s.preparationId && s.note),
+    };
+  }).filter((p) => p.memberId);
 }
 
 export interface ShoppingItem {
@@ -351,6 +437,19 @@ export interface GeneratedMealResult {
   /** Quand on cuisine, et dans quel ordre. */
   cookingSessions: CookingSession[];
   shoppingList: ShoppingItem[];
+  /**
+   * LOT 3 — LES PARTS PAR BOUCHE DE **CE** PLAN. `[]` = plan individuel (la
+   * lane `generate-meal-v1` n'en écrit AUCUNE), ou plan écrit avant qu'elles
+   * n'existent.
+   *
+   * ⚠️ ELLES VOYAGENT AVEC LEUR PLAN, ET C'EST TOUT L'ARBITRAGE. La vue
+   * « qui mange quoi » les lit par `loadHouseholdMeal`, qui rend le plan
+   * COURANT du foyer; le rendu du plan, lui, montre l'onglet qu'on regarde —
+   * courant OU suivant. Les brancher l'une sur l'autre aurait posé les parts
+   * d'un plan à côté des plats d'un autre, sans que rien à l'écran ne le dise.
+   * Lues sur la MÊME LIGNE que `dishes`, elles ne peuvent pas se décaler.
+   */
+  memberPortions: MemberPortionView[];
   /**
    * FF-053 — CE QUI EXPLIQUE UNE CASE VIDE.
    *
@@ -508,6 +607,12 @@ export async function generateMeal(
     mealId: meal?.id ?? null,
     preparations: readPreparations(payload.preparations),
     cookingSessions: readSessions(payload.cooking_sessions),
+    // LOT 3 — `generate-meal-v1` n'écrit AUCUNE `member_portions` (la
+    // bifurcation des parts est l'objet de l'enveloppe foyer, et cette lane
+    // compose pour une seule bouche). Le lecteur est là quand même, et il rend
+    // `[]`: une clé absente et un lot débranché ne se distingueraient pas si
+    // on l'omettait.
+    memberPortions: readMemberPortions(payload.member_portions),
     // Ce qu'on a DEMANDÉ, pas ce que la réponse raconte: c'est la même valeur
     // que la ligne vient d'enregistrer, et elle est connue à coup sûr ici.
     context: input.context,
@@ -692,6 +797,13 @@ export function readDishes(raw: unknown): GeneratedDish[] {
         : [],
       ingredients: readIngredients(d.ingredients),
       same_day: readSameDay(d.same_day),
+      // LOT 3 — L'ATTRIBUTION, RELUE TELLE QUELLE. Une chaîne vide vaut
+      // `null`: « attribué à personne » et « attribué à la chaîne vide » se
+      // liraient pareil à l'écran, et la seconde ferait chercher une bouche
+      // qui n'existe pas.
+      member_id: typeof d.member_id === "string" && d.member_id.trim() !== ""
+        ? d.member_id.trim()
+        : null,
     };
   });
 }
@@ -796,11 +908,20 @@ async function readInvokeError(error: unknown): Promise<string | null> {
 }
 
 /** Les colonnes qu'un plan doit rendre pour être affichable ET situable. */
-const MEAL_COLUMNS =
+export const MEAL_COLUMNS =
+  // ⚠️ EXPORTÉE POUR ÊTRE TESTÉE AVEC SON LECTEUR, ET C'EST UNE LEÇON DU LOT 1.
+  // Une colonne absente d'ici rend `undefined` à `readMealRow`, qui rend alors
+  // du vide — sans un seul rouge, parce que le lecteur, lui, est correct. Le
+  // défaut `shoppingList: []` du 2026-08-17 est exactement de cette famille:
+  // câblage vert, valeur morte. Les deux se testent donc ensemble.
   // L8 — `plan_kind` sert à ne montrer QUE le plan qu'on cuisine (D9), et
   // `validated_at` à dire si on a pris la main dessus (D7). Voir `cookedPlans`.
   "plan_kind, validated_at, " +
-  "id, dishes, preparations, cooking_sessions, shopping_list, context, " +
+  // LOT 3 — `member_portions` vient d'ICI et de nulle part ailleurs pour le
+  // rendu du plan: c'est la SEULE façon que les parts affichées soient celles
+  // du plan affiché (l'onglet « suivant » n'est pas le plan que
+  // `loadHouseholdMeal` rend).
+  "id, dishes, member_portions, preparations, cooking_sessions, shopping_list, context, " +
   // `generated_from` porte, depuis FF-053, ce SOUS QUOI le plan a été composé —
   // apports fixes et propriétés de jour. Sans cette colonne, la grille
   // expliquerait ses cases vides juste après la génération et se tairait au
@@ -815,7 +936,7 @@ const MEAL_COLUMNS =
  * ancienne portait implicitement — et le backfill de la migration a écrit ce
  * même sept sur toutes les lignes historiques, donc les deux s'accordent.
  */
-function readMealRow(raw: unknown): GeneratedMealResult {
+export function readMealRow(raw: unknown): GeneratedMealResult {
   const row = (raw ?? {}) as Record<string, unknown>;
   return {
     mealId: String(row.id ?? "") || null,
@@ -823,6 +944,7 @@ function readMealRow(raw: unknown): GeneratedMealResult {
     preparations: readPreparations(row.preparations),
     cookingSessions: readSessions(row.cooking_sessions),
     shoppingList: readShopping(row.shopping_list),
+    memberPortions: readMemberPortions(row.member_portions),
     // Les DEUX lectures figées à la composition. Une ligne écrite avant FF-053
     // n'en a pas: la grille montre alors des cases vides sans explication, ce
     // qui est exactement ce qui était vrai pour ce plan-là.

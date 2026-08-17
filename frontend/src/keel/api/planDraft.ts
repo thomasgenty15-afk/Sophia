@@ -44,6 +44,7 @@ import {
   readDayProperties,
   readDishes,
   readFixedIntakes,
+  readMemberPortions,
   readPreparations,
   readSessions,
   readShopping,
@@ -284,6 +285,15 @@ export function readDraftPlan(raw: unknown): GeneratedMealResult {
     // (`generate-household-meal-v1/index.ts:3805`, dans la branche `isDraft`);
     // c'est le lecteur qui la jetait.
     shoppingList: readShopping(payload.shopping_list),
+    // ⚠️ LOT 3 — MÊME LEÇON QUE LA LIGNE AU-DESSUS, SUR UN AUTRE CHAMP. Le
+    // serveur REND `member_portions` sur `intent: "draft"`
+    // (`generate-household-meal-v1/index.ts:3806`, dans la branche `isDraft`)
+    // alors qu'il n'en ÉCRIT aucune. Sans cette lecture, l'aperçu ne pourrait
+    // structurellement pas nommer les bouches d'un plat dédié ni poser les
+    // parts sous un plat commun, alors que le plan adopté le fait — C8: les
+    // deux surfaces, un seul corps de plan.
+    // La lane individuelle n'en rend aucune: `[]`, et l'aperçu se tait.
+    memberPortions: readMemberPortions(payload.member_portions),
     fixedIntakes: readFixedIntakes(payload.fixed_intakes),
     dayProperties: readDayProperties(payload.day_properties),
     context: null,
