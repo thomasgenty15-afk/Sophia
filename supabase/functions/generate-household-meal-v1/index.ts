@@ -3883,6 +3883,23 @@ Deno.serve(async (req) => {
             // est juste; ce qui manquait était de pouvoir le lire autrement
             // qu'en relisant les plats un par un.
             empty_slots: meal.empty_slots,
+            // ══════════════════════════════════════════════════════════════
+            // LOT 2 — LE COMMENTAIRE DU JOUR J, COMPTÉ.
+            // ══════════════════════════════════════════════════════════════
+            //
+            // ⚠️ SUR LE TRONC ET PAS SOUS `household`, exprès: le champ est
+            // demandé par le schéma du tronc et lu par le parseur partagé, donc
+            // les deux lanes le comptent de la MÊME façon, au même endroit de
+            // la ligne. Un compteur rangé sous `household` d'un côté et à la
+            // racine de l'autre est un compteur qu'aucune requête SQL ne lit
+            // sur les deux populations à la fois — et « la part de plats qui
+            // portent leur geste du jour » est précisément un chiffre qui n'a
+            // de sens que sur toute la population.
+            //
+            // Même arbitrage que `dish_owners` plus bas, qui reste sous
+            // `household` parce que `for_member_id`, LUI, n'est demandé que par
+            // l'enveloppe foyer.
+            same_day: meal.same_day_counts,
             household: {
               id: householdId,
               member_count: members.length,

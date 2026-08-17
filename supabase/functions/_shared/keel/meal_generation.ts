@@ -459,6 +459,67 @@ export interface DishIngredient {
   gramsRaw: number | null;
 }
 
+/**
+ * LOT 2 — LA NATURE DU GESTE DU JOUR J, EN QUATRE JETONS ET PAS UN DE PLUS.
+ *
+ * ⛔ LISTE FERMÉE, DÉCLARÉE PAR LE MODÈLE, JAMAIS DEVINÉE. Le seul marqueur qui
+ * existait avant ce lot était la prose de `method` (« reheat a portion, add the
+ * salad ») et un matcher là-dessus se tromperait au premier plan français, au
+ * premier « do not reheat », au premier « assemble the reheated chicken ». Même
+ * patron que `for_member_id` et `preparation_id`: inventé par le modèle, vérifié
+ * contre cette liste, JETÉ et COMPTÉ quand il n'y est pas.
+ *
+ * Les quatre jetons disent quatre gestes qu'un cuisinier distingue vraiment:
+ *   · `none`        — rien à faire, l'assiette est prête (un fruit, un yaourt).
+ *   · `reheat_only` — sortir la boîte et réchauffer, et RIEN d'autre.
+ *   · `assemble`    — monter l'assiette avec du déjà-cuisiné, sans cuisson.
+ *   · `cook_fresh`  — une vraie cuisson du jour (des œufs brouillés, des pâtes).
+ */
+export const SAME_DAY_KINDS = [
+  "none",
+  "reheat_only",
+  "assemble",
+  "cook_fresh",
+] as const;
+
+export type SameDayKind = typeof SAME_DAY_KINDS[number];
+
+/**
+ * CE QU'IL Y A À FAIRE LE JOUR MÊME POUR AVOIR CE PLAT DANS L'ASSIETTE.
+ *
+ * ⚠️ `minutes` EST UN TEMPS DE PLAT, ET C'EST TOUT CE QU'IL EST. Il ne se
+ * confond avec aucun des deux temps qui existaient déjà, et la distinction est
+ * la raison d'être du champ:
+ *
+ *   · `preparations[].activeMinutes` / `.totalMinutes` = le temps d'une CUISSON
+ *     en lot, dans une session de cuisine, un autre jour.
+ *   · `cooking_sessions[].totalMinutes` = le temps de la SESSION au mur.
+ *   · `sameDay.minutes` = le temps du GESTE DU JOUR J, devant cette assiette-là.
+ *
+ * Le fait mesuré qui justifie le champ: AUCUN temps n'existait au niveau du
+ * plat. Un assemblage frais — la moitié des petits-déjeuners d'un plan — n'avait
+ * de durée nulle part, et un plat de lot n'annonçait que la durée de sa cuisson,
+ * c'est-à-dire cinquante minutes pour « réchauffe une portion ».
+ *
+ * `null` quand le modèle n'a pas rendu de nombre lisible. PAS de zéro par
+ * défaut: « 0 min » se lit « c'est instantané », ce qui est une affirmation, et
+ * le geste reste dit par `kind`. Le cas est compté (`minutes_missing`).
+ */
+export interface DishSameDay {
+  kind: SameDayKind;
+  minutes: number | null;
+}
+
+/**
+ * LE PLAFOND DU GESTE DU JOUR, en minutes.
+ *
+ * Une borne de vraisemblance, pas une règle de produit: au-delà, ce n'est plus
+ * le geste du soir mais une session de cuisine mal rangée, et l'écran
+ * annoncerait « à assembler — 240 min ». On écrête plutôt que de jeter — le
+ * jeton, lui, reste juste.
+ */
+export const SAME_DAY_MAX_MINUTES = 120;
+
 export interface GeneratedDish {
   title: string;
   slot: MealSlot | null;
@@ -497,6 +558,21 @@ export interface GeneratedDish {
    * n'a de toute façon pas de « plat dédié » — tous ses plats sont les siens.
    */
   memberId: string | null;
+  /**
+   * LOT 2 — CE QU'ON FAIT LE JOUR MÊME, DIT PLUTÔT QUE DEVINÉ.
+   *
+   * `null` = le modèle ne l'a pas déclaré, ou l'a déclaré illisible. Ce n'est PAS
+   * « rien à faire »: `none` dit ça, et il le dit exprès. La différence entre
+   * « il n'y a rien à préparer » et « personne ne l'a écrit » est exactement ce
+   * que le compteur `same_day` existe pour mesurer — sans elle, un modèle qui
+   * ignore la consigne rendrait un lot désarmé indiscernable d'un lot qui
+   * marche.
+   *
+   * ⚠️ Un `same_day` refusé NE REJETTE JAMAIS LE PLAT. Posture `for_member_id`:
+   * le commentaire du jour est une lecture EN PLUS; un plat sans lui reste un
+   * plat qui se cuisine et se mange.
+   */
+  sameDay: DishSameDay | null;
 }
 
 export interface ShoppingItem {
@@ -624,6 +700,38 @@ export interface GeneratedMeal {
    * Vide quand le verrou de sortie a mordu, pour la même raison que les plats.
    */
   empty_slots: MealSlotCase[];
+  /**
+   * LOT 2 — LE COMPTEUR DU COMMENTAIRE DU JOUR J.
+   *
+   * ⛔ SANS LUI, UN LOT DÉSARMÉ RESSEMBLE TRAIT POUR TRAIT À UN LOT QUI MARCHE.
+   * `same_day` est DÉCLARÉ PAR LE MODÈLE: on ne peut pas savoir d'avance à
+   * quelle fréquence il le remplit, seulement le mesurer. Un modèle qui
+   * l'ignorerait rendrait `sameDay: null` partout, l'écran n'afficherait aucun
+   * bandeau, et le produit serait exactement celui d'avant — sans qu'aucun test
+   * ne puisse le dire. Même arbitrage, mot pour mot, que `dish_owners`.
+   *
+   *   · `dishes`          — les plats GARDÉS du plan. Le dénominateur.
+   *   · `declared`        — ceux qui portent un `sameDay` valide.
+   *   · `invalid`         — ceux qui portaient un `same_day` que le parseur a
+   *                         refusé (jeton hors liste, ou objet illisible).
+   *   · `minutes_missing` — ceux dont le jeton est bon et le nombre non lisible.
+   *
+   * `declared + invalid` ne fait PAS forcément `dishes`: un plat sans clé
+   * `same_day` du tout n'est ni l'un ni l'autre, et c'est cet écart-là qu'on
+   * veut voir au premier run réel.
+   *
+   * ⚠️ LES QUATRE NOMBRES SONT COMPTÉS SUR LA MÊME POPULATION — les plats
+   * finalement gardés. Un plat évincé par le plafond ne laisse de trace dans
+   * AUCUN des quatre; il en laisse une, nommée, dans `issues`. Un compteur dont
+   * le numérateur et le dénominateur ne comptent pas les mêmes lignes est un
+   * compteur qui ment, et ce dépôt l'a déjà payé (`withheld`/`over_cap`).
+   */
+  same_day_counts: {
+    dishes: number;
+    declared: number;
+    invalid: number;
+    minutes_missing: number;
+  };
   issues: string[];
   lock: OutputLockResult;
 }
@@ -748,7 +856,28 @@ export interface GeneratedMeal {
 // (jour/moment) was dropped instead »), donc un plan dit lui-même quel ordre
 // l'a écrêté. C'est la lecture par plan, pas par colonne — et c'est ce que ce
 // chantier choisit à chaque fois que le prompt n'a pas bougé.
-export const MEAL_PROMPT_VERSION = "meal.en.v9_cooking_shape";
+//
+// ── v10 (2026-08-17) — LE COMMENTAIRE DU JOUR J (LOT 2 / P2) ──────────────
+//
+// C'est le tronc, et c'est bien le bon axe: la consigne `WHAT TODAY ACTUALLY
+// TAKES` et le champ `same_day` du schéma de sortie sont servis à TOUTES les
+// populations — lane individuelle, foyer ordinaire, fusion, secondaire. Il n'y a
+// pas ici de « population neuve » étroite comme sur l'axe foyer: tout le monde
+// voit une consigne différente, donc le cache de tout le monde doit tomber.
+//
+// ⚠️ `HOUSEHOLD_PROMPT_VERSION` NE BOUGE PAS, et le test le tient par égalité de
+// chaîne: l'enveloppe foyer (`buildHouseholdPromptBlocks`, `buildPortionBrief`)
+// ne gagne pas un octet dans ce lot — le champ demandé l'est par le schéma du
+// tronc, et il est lu par le parseur partagé.
+//
+// ⚠️ CE BUMP PAIE AUSSI UN DÉFAUT MESURÉ QUI VOYAGEAIT DANS LE MÊME BLOC: la clé
+// `"uses"` était déclarée DEUX FOIS dans `== OUTPUT JSON SCHEMA ==` (une fois
+// avant `honours_belief_keys`, une fois après). Un objet JSON à clé répétée est
+// légal et la seconde écrase la première — le modèle lisait donc un exemple
+// contradictoire sur le champ qui porte toute la jointure des lots. Corrigé ici
+// plutôt que dans un lot à part: le bloc change de toute façon, et un second
+// bump pour une accolade serait un cache invalidé pour rien.
+export const MEAL_PROMPT_VERSION = "meal.en.v10_same_day";
 
 const DAY_TOKENS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
 
@@ -1244,6 +1373,30 @@ Round to the nearest five. These are estimates a cook recognises, not
 measurements — but they are the numbers somebody uses to decide whether tonight
 is possible, so a wrong one costs a skipped meal.
 
+== WHAT TODAY ACTUALLY TAKES, ON EVERY DISH ==
+
+Every dish carries "same_day": what the student does ON THE DAY THEY EAT IT to
+get that plate in front of them, and how long that gesture takes.
+
+  "kind" is one of four, and nothing else exists:
+    "none"        - nothing to prepare. Fruit, a yogurt, a plate already made.
+    "reheat_only" - take the portion out and heat it, and NOTHING else.
+    "assemble"    - build the plate from what is already cooked, no cooking.
+    "cook_fresh"  - a real cooking gesture that day: scramble the eggs, boil
+                    the pasta, sear the fish.
+
+  "minutes" is how long THAT gesture takes, that day. A whole number.
+
+"minutes" IS NOT THE TIME OF THE COOKING SESSION, and confusing the two is the
+failure this field exists to stop. A portion of Sunday's roast, reheated on
+Wednesday, is 8 minutes - not the 50 the roast took. Announcing 50 tells
+somebody with ten minutes that dinner is out of reach, and they skip it.
+
+Say it on EVERY dish, including the ones where the answer is nothing. "none" and
+"cook_fresh" are answers; a missing line is a plate somebody stands in front of
+without knowing what to do. If the dish reheats, the word reheat is what they
+need to read, so write "reheat_only" and say it again plainly in "method".
+
 == NEVER PUT A NUMBER ON NUTRITION ==
 
 No calories. No macro grams. No percentages of anything nutritional. Not as a target, not as a range, not "roughly". Nobody has measured this student.
@@ -1310,8 +1463,9 @@ mode = to_shop
       "method": "how to make it, plainly, in a short paragraph",
       "why": "one sentence: why THIS dish for THIS student this week",
       "uses": [{ "preparation_id": "prep_chicken", "servings": 1 }],
-      "honours_belief_keys": ["<exact keys from the convictions list, when one applies>"],
-      "uses": [{ "preparation_id": "prep_chicken", "servings": 1 }]
+      "same_day": { "kind": "none"|"reheat_only"|"assemble"|"cook_fresh",
+                    "minutes": <whole minutes for the day-of gesture> },
+      "honours_belief_keys": ["<exact keys from the convictions list, when one applies>"]
     }
   ],
   "preparations": [
@@ -1387,6 +1541,12 @@ export const MEAL_TOKEN_FIELDS: readonly string[] = [
   "honours_belief_keys[]",
   "preparations[].id (ASCII snake_case, English words only)",
   "dishes[].uses[].preparation_id (must match preparations[].id exactly)",
+  // LOT 2 — LE GESTE DU JOUR J EST UN JETON, PAS UNE PHRASE. Il est comparé en
+  // code contre `SAME_DAY_KINDS` et rendu par l'écran sous un libellé traduit;
+  // un modèle qui écrirait « réchauffage » ou « nur aufwärmen » ferait tomber la
+  // validation, donc le bandeau du jour, dans toutes les langues sauf l'anglais.
+  // C'est le piège de `preparation_id`, mot pour mot, sur un autre champ.
+  "dishes[].same_day.kind (one of: none, reheat_only, assemble, cook_fresh)",
 ];
 
 /**
@@ -2554,6 +2714,19 @@ export function parseGeneratedMeal(
   const keptRanks: number[] = [];
   /** Son index dans la sortie BRUTE: la réconciliation des courses le lit. */
   const keptRawIndex: number[] = [];
+  /**
+   * LOT 2 — CE QUE SON `same_day` A COÛTÉ, pour le plat GARDÉ.
+   *
+   * ⚠️ QUATRIÈME TABLEAU PARALLÈLE, et pour la raison exacte des trois autres:
+   * il faut que le compteur `same_day` compte sur LA MÊME POPULATION que
+   * `dishes` — les plats finalement gardés. Un compteur incrémenté au fil de la
+   * boucle continuerait de porter le refus d'un plat que le plafond a évincé
+   * trois plats plus loin: `declared` (calculé sur la sortie) et `invalid`
+   * (accumulé) compteraient alors deux populations différentes. Ce dépôt a payé
+   * exactement ça sur `withheld`/`over_cap`, gonflé et dégonflé en sens
+   * inverses.
+   */
+  const keptSameDayFaults: Array<{ invalid: boolean; minutesMissing: boolean }> = [];
 
   // ── LES CASES QUE LA CONSIGNE DE FUSION RÉCLAME POUR ELLE ───────────────
   // Vide hors fusion et au barreau ①, et c'est ce qui rend cette couche
@@ -2927,6 +3100,7 @@ export function parseGeneratedMeal(
       keptCells.splice(sacrifice, 1);
       keptRanks.splice(sacrifice, 1);
       keptRawIndex.splice(sacrifice, 1);
+      keptSameDayFaults.splice(sacrifice, 1);
     }
 
     // ══════════════════════════════════════════════════════════════════════
@@ -2972,6 +3146,87 @@ export function parseGeneratedMeal(
       }
     }
 
+    // ══════════════════════════════════════════════════════════════════════
+    // LOT 2 — CE QU'ON FAIT LE JOUR MÊME, DÉCLARÉ ET VALIDÉ FERMÉ
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ LE PATRON EST CELUI DE `for_member_id` JUSTE AU-DESSUS, ET IL N'EST PAS
+    // NÉGOCIABLE ICI: le jeton est INVENTÉ par le modèle, vérifié contre
+    // `SAME_DAY_KINDS`, JETÉ et COMPTÉ quand il n'y est pas. Aucune lecture de
+    // `method` n'intervient — le seul marqueur qui existait avant ce lot était la
+    // prose (« reheat a portion »), et un matcher là-dessus se tromperait sur
+    // « do not reheat », sur « assemble the reheated chicken », et sur la
+    // totalité des plans rendus en français. « Jamais de matcher maison »,
+    // douzième fois.
+    //
+    // ⚠️ UN `same_day` REFUSÉ NE REJETTE JAMAIS LE PLAT. Posture
+    // `for_member_id` / `honours_belief_keys`: le commentaire du jour est une
+    // lecture EN PLUS, et retirer un dîner à quelqu'un parce qu'un modèle a
+    // écrit « warm_up » au lieu de « reheat_only » serait payer un champ
+    // informatif au prix d'un repas.
+    let sameDay: DishSameDay | null = null;
+    let sameDayInvalid = false;
+    let sameDayMinutesMissing = false;
+    const rawSameDay = d.same_day;
+    if (rawSameDay !== null && rawSameDay !== undefined) {
+      const sd = (typeof rawSameDay === "object" ? rawSameDay : {}) as Record<
+        string,
+        unknown
+      >;
+      const kindRaw = cleanText(sd.kind).toLowerCase();
+      if (!(SAME_DAY_KINDS as readonly string[]).includes(kindRaw)) {
+        sameDayInvalid = true;
+        issues.push(
+          `dishes[${i}]: same_day.kind ${JSON.stringify(kindRaw)} is not one of ` +
+            `${SAME_DAY_KINDS.join("/")}, dropped`,
+        );
+      } else {
+        // LES MINUTES SONT LUES À PART, ET LEUR ABSENCE NE COÛTE PAS LE JETON.
+        // Le geste (« à réchauffer ») est ce qui manquait au produit; la durée
+        // est ce qui le rend décidable. Perdre le premier parce que le second
+        // est illisible échangerait la moitié qui compte contre la moitié qui
+        // aide. `null`, JAMAIS zéro: « 0 min » se lit « c'est instantané ».
+        const minutesRaw = Number(sd.minutes);
+        let minutes: number | null = null;
+        if (Number.isFinite(minutesRaw) && minutesRaw >= 0) {
+          minutes = Math.min(SAME_DAY_MAX_MINUTES, Math.round(minutesRaw));
+          if (minutes !== Math.round(minutesRaw)) {
+            issues.push(
+              `dishes[${i}]: same_day.minutes ${Math.round(minutesRaw)} is over the ` +
+                `${SAME_DAY_MAX_MINUTES}-minute ceiling for a day-of gesture -- capped`,
+            );
+          }
+        } else {
+          sameDayMinutesMissing = true;
+          issues.push(
+            `dishes[${i}]: same_day.kind is ${kindRaw} but its minutes are not a ` +
+              `usable number -- the gesture is kept, the duration is not invented`,
+          );
+        }
+        sameDay = { kind: kindRaw as SameDayKind, minutes };
+
+        // ── LA COHÉRENCE DOUCE: COMPTÉE, NOMMÉE, JAMAIS REJETÉE ───────────
+        // Deux contradictions que la donnée porte déjà et que personne ne
+        // lisait: un plat qui dit « juste réchauffer » sans rien à réchauffer,
+        // et un plat qui dit « rien à préparer » en puisant dans un lot. Ni
+        // l'un ni l'autre ne rend le plan inexécutable — on ne peut pas savoir
+        // laquelle des deux moitiés a tort — donc c'est un CONSTAT, du même
+        // rang que `protein_anchor_missing`.
+        if (sameDay.kind === "reheat_only" && uses.length === 0) {
+          issues.push(
+            `dishes[${i}]: same_day says reheat_only but the dish uses no ` +
+              `preparation -- nothing to reheat`,
+          );
+        }
+        if (sameDay.kind === "none" && uses.length > 0) {
+          issues.push(
+            `dishes[${i}]: same_day says none but the dish draws on ` +
+              `${uses.length} preparation(s) -- at least the box comes out`,
+          );
+        }
+      }
+    }
+
     dishes.push({
       title,
       slot,
@@ -2983,6 +3238,11 @@ export function parseGeneratedMeal(
       honours_belief_keys: honours,
       uses,
       memberId,
+      sameDay,
+    });
+    keptSameDayFaults.push({
+      invalid: sameDayInvalid,
+      minutesMissing: sameDayMinutesMissing,
     });
     keptCells.push(cell);
     keptRanks.push(rank);
@@ -3440,6 +3700,25 @@ export function parseGeneratedMeal(
     issues.push(`empty_slots: ${emptySlotsLine(emptySlots)}`);
   }
 
+  // ── LOT 2 · LE COMPTEUR DU GESTE DU JOUR J ──────────────────────────────
+  //
+  // Calculé ICI, une seule fois, sur les tableaux FINAUX — donc sur exactement
+  // la population que le plan porte. `declared` se lit sur la sortie,
+  // `invalid`/`minutes_missing` sur le tableau parallèle qui a suivi les mêmes
+  // `splice`: les quatre nombres décrivent les mêmes lignes.
+  //
+  // GARDÉ SUR `clean`, comme les plats eux-mêmes: quand le verrou de sortie a
+  // vidé le plan, annoncer « 6 plats, 5 déclarés » sur un plan qui n'a plus
+  // aucun plat serait un chiffre faux sur une ligne réelle.
+  const sameDayCounts = clean
+    ? {
+      dishes: dishes.length,
+      declared: dishes.filter((d) => d.sameDay !== null).length,
+      invalid: keptSameDayFaults.filter((f) => f.invalid).length,
+      minutes_missing: keptSameDayFaults.filter((f) => f.minutesMissing).length,
+    }
+    : { dishes: 0, declared: 0, invalid: 0, minutes_missing: 0 };
+
   return {
     dishes: clean ? dishes : [],
     preparations: clean ? preparations : [],
@@ -3448,6 +3727,7 @@ export function parseGeneratedMeal(
     rejected_numeric: rejectedNumeric,
     rejected_aisles: rejectedAisles,
     empty_slots: emptySlots,
+    same_day_counts: sameDayCounts,
     // Gardé sur `clean` comme les plats eux-mêmes: relancer pour une ancre
     // quand la semaine entière vient d'être vidée par un allergène ferait
     // réparer la mauvaise chose, et à la deuxième sortie sale on aurait dépensé
@@ -3510,6 +3790,21 @@ export function mealDishesPayload(meal: GeneratedMeal): Array<Record<string, unk
     // absence comme `null`, c'est-à-dire comme le plat de la table — ce que ces
     // plans-là étaient déjà pour tout le monde.
     member_id: d.memberId,
+    // ── LOT 2 · LE GESTE DU JOUR J, ÉCRIT MÊME À `null` ──────────────────
+    //
+    // ⚠️ MÊME POSTURE QUE `member_id` JUSTE AU-DESSUS, ET POUR LA MÊME RAISON:
+    // une clé absente ne se distingue pas d'un lot débranché. `null` DIT « le
+    // modèle n'a rien déclaré pour ce plat », ce qui est une information — et
+    // c'est celle que le compteur `same_day` rend comptable en SQL.
+    //
+    // ⚠️ AUCUNE MIGRATION: `dishes` est une colonne `jsonb`, et les plans écrits
+    // avant ce lot n'ont simplement pas la clé. Le lecteur du front traite son
+    // absence comme `null`, c'est-à-dire « aucun bandeau » — ce que ces plans-là
+    // étaient déjà.
+    same_day: d.sameDay === null ? null : {
+      kind: d.sameDay.kind,
+      minutes: d.sameDay.minutes,
+    },
   }));
 }
 

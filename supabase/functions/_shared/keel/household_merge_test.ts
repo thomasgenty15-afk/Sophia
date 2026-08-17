@@ -2654,7 +2654,20 @@ Deno.test("C8 ③ — LA LANE INDIVIDUELLE GARDE SA VERSION DE PROMPT", () => {
   // fusions. Ici aucun octet de consigne ne bouge, pour personne: le prompt
   // servi est byte-identique et seul le contrat de sortie change. Bumper
   // invaliderait le cache d'une population entière pour un prompt identique.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v9_cooking_shape");
+  //
+  // ⚠️ v10 DEPUIS LE LOT 2 (2026-08-17), ET C'EST LE PREMIER BUMP DU TRONC
+  // DEPUIS v9 — pour la raison exacte que le paragraphe ci-dessus donne
+  // d'ordinaire pour NE PAS bumper, prise dans l'autre sens: cette fois un
+  // OCTET DE CONSIGNE change, et il change POUR TOUT LE MONDE. La section
+  // `WHAT TODAY ACTUALLY TAKES, ON EVERY DISH` et le champ `same_day` du schéma
+  // de sortie sont servis à la lane individuelle, au foyer ordinaire, à la
+  // fusion et au secondaire. Il n'y a donc aucune population qui verrait le
+  // prompt de v9: laisser le numéro immobile ferait rendre par le cache un
+  // prompt qui ne demande pas le champ que le parseur compte.
+  //
+  // Le même bump paie la clé `"uses"` déclarée DEUX FOIS dans le bloc de
+  // schéma (défaut mesuré le 2026-08-17): le bloc changeait de toute façon.
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v10_same_day");
   // ⚠️ v10 DEPUIS LE LOT G (2026-08-14), ET C'EST LA MOITIÉ DU LOT QUI COMPTE
   // ICI: le TRONC ne bouge toujours pas (la ligne au-dessus le tient), la lane
   // du FOYER si. Deux populations neuves y voient une consigne différente —

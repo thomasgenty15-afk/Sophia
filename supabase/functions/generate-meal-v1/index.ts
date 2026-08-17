@@ -2231,6 +2231,26 @@ Deno.serve(async (req) => {
             // d'un coup, et rien en base pour le dire autrement qu'en relisant
             // les plats un par un.
             empty_slots: meal.empty_slots,
+            // ══════════════════════════════════════════════════════════════
+            // LOT 2 — LE COMMENTAIRE DU JOUR J, COMPTÉ. C'EST CE QUI EMPÊCHE
+            // LE LOT D'ÊTRE DÉSARMÉ EN SILENCE.
+            // ══════════════════════════════════════════════════════════════
+            //
+            // ⛔ `same_day` EST DÉCLARÉ PAR LE MODÈLE. On ne peut donc pas
+            // SAVOIR d'avance à quelle fréquence il le remplit — seulement le
+            // mesurer. Sans ces quatre nombres, un modèle qui ignorerait la
+            // consigne rendrait `same_day: null` partout, aucun bandeau ne
+            // s'afficherait, et le lot ressemblerait trait pour trait à un lot
+            // qui marche: la carte d'un plat dirait exactement ce qu'elle
+            // disait avant.
+            //
+            // `declared/dishes` est le taux de service; `invalid` dit que le
+            // modèle a essayé un jeton hors liste (à resserrer dans le prompt);
+            // `minutes_missing` que le geste est nommé sans sa durée.
+            //
+            // ÉCRIT MÊME À ZÉRO, comme `dish_owners` sur la lane foyer: une clé
+            // absente ne se distingue pas d'un lot débranché.
+            same_day: meal.same_day_counts,
             // FF-027 — la provenance de l'adaptation, archivée avec la
             // composition. C'est ce qui rend « la faim persiste malgré deux
             // adaptations » (§10) lisible sans qu'aucun compteur ne vive sur
