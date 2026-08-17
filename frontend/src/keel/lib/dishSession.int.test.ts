@@ -193,8 +193,12 @@ describe("les gardes du lot (câblage)", () => {
    */
   it("la durée du GESTE DU JOUR, elle, est bien sur la carte", () => {
     const card = code("frontend/src/keel/components/DishCard.tsx");
+    // ⚠️ ON ASSÈRE LE MONTAGE, PAS LA LIGNE ENTIÈRE. La version d'avant recopiait
+    // le JSX au caractère près, `sameDay={dish.same_day} />` compris — et elle est
+    // tombée le 2026-08-17 pour un ajout de prop qui ne retirait rien. Un test qui
+    // casse quand on AJOUTE fait relire le test au lieu du changement.
     expect(card, "le bandeau du jour J a disparu de la carte").toContain(
-      "{dish.same_day && <SameDayLine sameDay={dish.same_day} />}",
+      "{dish.same_day && <SameDayLine",
     );
     expect(card, "la durée du geste du jour n'est plus rendue").toContain(
       "sameDay.minutes !== null",

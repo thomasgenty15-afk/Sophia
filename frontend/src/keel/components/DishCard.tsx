@@ -179,7 +179,7 @@ export default function DishCard(
           interdits ici — ce sont des temps de CUISSON et de SESSION, ils ont
           leur surface, et les remonter donnerait à un assemblage le temps d'un
           rôti. La ceinture est dans `lib/dishSession.int.test.ts`. */}
-      {dish.same_day && <SameDayLine sameDay={dish.same_day} />}
+      {dish.same_day && <SameDayLine sameDay={dish.same_day} method={dish.method} />}
       {dish.why && <p className="mt-1 text-sm text-ink-soft">{dish.why}</p>}
 
       {/* LE JOUR DE CUISSON, QUAND CE N'EST PAS AUJOURD'HUI. C'est la seule
@@ -254,9 +254,24 @@ export default function DishCard(
           temps, l'écran ne l'estime pas: `active_minutes` vit sur les
           PRÉPARATIONS, et le reprendre ici donnerait à un assemblage le temps
           d'une cuisson.
-          ⚠️ RIEN NE S'AFFICHE SANS TEXTE. Pas de libellé au-dessus du vide. */}
-      {dish.method && (
-        <p className="mt-3 text-sm text-ink">
+          ⚠️ RIEN NE S'AFFICHE SANS TEXTE. Pas de libellé au-dessus du vide.
+
+          ── LOT 2 (2026-08-17) · CE BLOC EST LE CHEMIN DE REPLI, PLUS LE CHEMIN
+          NORMAL ────────────────────────────────────────────────────────────
+          Quand le plat porte son `same_day`, sa méthode est REMONTÉE dans le
+          bandeau du jour J, en tête de carte — c'est là qu'on la cherche, et
+          P2 demande le TEXTE (« reprends le poulet de vendredi »), pas
+          seulement l'étiquette. Elle ne s'affiche donc PAS ici en plus: relire
+          la même phrase deux fois sur une même carte est exactement le bruit
+          que le paragraphe du 14/08 ci-dessus refuse.
+
+          ⚠️ MAIS CE BLOC RESTE, ET IL N'EST PAS MORT. `same_day` est `null` sur
+          TOUT plan écrit avant le 2026-08-17 — mesuré: 157 plans en base, dont
+          5 encore vivants. Les faire basculer sur un bandeau qui n'existe pas
+          leur retirerait la seule phrase qui leur dit quoi faire. Le silence du
+          bandeau ne doit pas se payer en lisibilité sur les plans anciens. */}
+      {!dish.same_day && dish.method && (
+        <p className="mt-3 text-sm text-ink break-words">
           <span className="font-medium text-ink">
             {mealCopy(leftover ? "meals.result.assemble" : "meals.result.method")}:
           </span>{" "}
@@ -293,31 +308,64 @@ export default function DishCard(
 }
 
 /**
- * LOT 2 — LE BANDEAU DU JOUR J.
+ * LOT 2 — LE COMMENTAIRE DE PRÉPARATION DU JOUR J, EN TÊTE DE CARTE.
  *
- * Une LIGNE, pas une carte: elle se lit d'un coup d'œil au-dessus de tout le
- * reste, et un encadré de plus sur une carte déjà dense ferait ressembler le
- * planning à un formulaire. Le trait vertical marque l'appartenance au plat
- * sans emprunter de couleur d'état — « aujourd'hui » se dit par la forme, la
- * règle vaut pour tout ce qui est temporel ici.
+ * Un bloc à filet vertical, pas une carte: il se lit d'un coup d'œil au-dessus
+ * de tout le reste, et un encadré de plus sur une carte déjà dense ferait
+ * ressembler le planning à un formulaire. Le trait marque l'appartenance au
+ * plat sans emprunter de couleur d'état — « aujourd'hui » se dit par la forme,
+ * la règle vaut pour tout ce qui est temporel ici.
  *
  * ⚠️ DEUX CLÉS ET PAS UNE PHRASE ASSEMBLÉE. Le libellé du geste et la durée
  * sont deux textes séparés, joints par le pack: en français « À réchauffer —
  * 8 min », en anglais « Just reheat — 8 min ». Bâtir la phrase en code
  * imposerait l'ordre anglais à toutes les langues.
+ *
+ * ── LE TEXTE, ET PAS SEULEMENT L'ÉTIQUETTE (2026-08-17) ───────────────────
+ * P2 demande « avant chaque plat, un commentaire de préparation » — et le
+ * commentaire est ce qui DIT QUOI FAIRE: « reprends le poulet de vendredi »,
+ * « réchauffe une portion et presse un citron ». Le jeton seul n'en est que la
+ * moitié: « À assembler — 10 min » en tête pendant que le comment reste sous
+ * les ingrédients oblige le lecteur à redescendre chercher son geste, devant
+ * une casserole. Les deux moitiés se lisent donc ensemble, ici.
+ *
+ * ⛔ ET UNE SEULE FOIS. `method` ne se rend plus sous les ingrédients quand il
+ * est monté ici (`{!dish.same_day && dish.method && …}`): la même phrase deux
+ * fois sur une carte est du bruit, pas de l'insistance.
+ *
+ * ⚠️ LE LIBELLÉ DU JETON REMPLACE LE COUPLE « Comment » / « Au moment de
+ * servir », il ne s'y ajoute pas. Ce couple était un SUBSTITUT: faute de savoir
+ * ce que le plat demandait, la carte devinait d'après `leftover` (le plat
+ * puise-t-il dans un lot ?) pour ne pas titrer « Comment » au-dessus d'un
+ * simple assemblage. `same_day.kind` est cette réponse, DÉCLARÉE au lieu d'être
+ * déduite, et plus fine — elle distingue le réchauffage de l'assemblage, ce que
+ * `leftover` ne pouvait pas faire. Empiler les deux donnerait « À réchauffer —
+ * 8 min » puis « Au moment de servir : », deux en-têtes pour une phrase. Le
+ * couple reste vivant sur le chemin de repli, pour les plans sans `same_day`.
  */
-function SameDayLine({ sameDay }: { sameDay: DishSameDay }) {
+function SameDayLine(
+  // `method` est `string` et jamais `null` (`readDishes` rend `String(… ?? "")`);
+  // la chaîne VIDE est le cas à traiter, et c'est `{method && …}` qui le fait.
+  { sameDay, method }: { sameDay: DishSameDay; method: string },
+) {
   const label = mealCopy(`meals.same_day.${sameDay.kind}`);
   return (
-    <p className="mt-2 border-l-2 border-line-strong pl-3 text-sm font-medium text-ink break-words">
-      {label}
-      {sameDay.minutes !== null && (
-        <span className="font-normal text-ink-soft">
-          {" — "}
-          {mealCopy("meals.same_day.minutes").replace("{n}", String(sameDay.minutes))}
-        </span>
-      )}
-    </p>
+    <div className="mt-2 border-l-2 border-line-strong pl-3">
+      <p className="text-sm font-medium text-ink break-words">
+        {label}
+        {sameDay.minutes !== null && (
+          <span className="font-normal text-ink-soft">
+            {" — "}
+            {mealCopy("meals.same_day.minutes").replace("{n}", String(sameDay.minutes))}
+          </span>
+        )}
+      </p>
+      {/* ⚠️ RIEN AU-DESSUS DU VIDE, la règle du 14/08 tient toujours: une
+          méthode absente ne laisse pas un paragraphe vide sous le libellé.
+          `break-words` est OBLIGATOIRE — c'est un paragraphe entier venu du
+          modèle, et la contrainte qui gouverne est 320 px. */}
+      {method && <p className="mt-1 text-sm text-ink break-words">{method}</p>}
+    </div>
   );
 }
 
