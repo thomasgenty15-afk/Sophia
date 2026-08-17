@@ -1046,6 +1046,35 @@ export function buildPortionBrief(
     ...cookingShapeLines(cooking, divergingCount),
     "For each person below, give a short serving instruction: how much of which",
     "component goes on their plate, and which side is added or dropped.",
+    // ══ LOT 4C ② · LE CHIFFRE DANS LA CONSIGNE, COLLÉ À LA PROMESSE ══════════
+    //
+    // ⛔ IL EST ICI, ET NULLE PART AILLEURS, POUR LA RAISON QUE 3C A MESURÉE:
+    // une consigne séparée de la phrase qui promet la matière est une consigne
+    // satisfaite ailleurs. La promesse, c'est la ligne juste au-dessus — « how
+    // much of which component goes on their plate ». Le chiffre s'y colle.
+    //
+    // ⚠️ MESURE QUI A MOTIVÉ CES QUATRE LIGNES: 93 notes de portion réelles,
+    // ZÉRO gramme. `vague_portions` lisait `0` parce que le modèle n'employait
+    // aucun des mots de la liste — il écrivait « One standard table portion. »,
+    // « Balanced share of the shared dish. », « Child-size share of the same
+    // dish. » La ceinture n'était pas cassée: son vocabulaire n'était pas celui
+    // du modèle. La réponse est le NOMBRE demandé, pas une liste plus longue.
+    //
+    // ① LE NOMBRE ATTENDU (`members.length`), même levier que `boxingOrderLines`.
+    // ② L'ÉCHAPPATOIRE NOMMÉE — et ici elle est LITTÉRALE: on renvoie au modèle
+    //    les trois tournures qu'il a réellement écrites, parce qu'une consigne
+    //    qui dit « sois précis » sans nommer ce qu'elle refuse se fait satisfaire
+    //    par une paraphrase.
+    //
+    // ⛔ ET AUCUN POURQUOI. Les exemples sont des grammes d'ALIMENT — du même
+    // côté de la frontière que « 400 g de cuisses de poulet » sur une liste de
+    // courses. Les trois dernières lignes du brief l'interdisent explicitement,
+    // et elles RESTENT les dernières.
+    "Every one of those instructions carries a number and a unit: 150 g of the",
+    "chicken, 80 g of dry pasta, 2 tbsp of the sauce. All " +
+    `${members.length} of them, not some.`,
+    `"A standard portion", "a balanced share", "take your box" tell nobody how`,
+    "much to put on a plate: write the grams, even when a box already holds them.",
     // LA CONSÉQUENCE DU « eats at ... only », DITE UNE FOIS, ET SEULEMENT SI
     // QUELQU'UN EST MARQUÉ. Sans elle, le modèle lit le fait et sert quand
     // même: une contrainte qu'on énonce sans dire ce qu'elle interdit est une
@@ -1144,8 +1173,25 @@ export function boxingOrderLines(
     `That is ${members.length} people to weigh out on EVERY preparation: ${names}.`,
     "Count them before you answer — a person missing from a preparation's boxes",
     "is a person standing at the fridge with nothing that says how much.",
-    "When two of them get the same weight, ONE box may carry both their ids; when",
-    "their shares differ, they get one box each, with different grams.",
+    // ══ LOT 4C ③ · CE QUE `grams` DÉSIGNE, ET COMBIEN DE BOÎTES PAR BOUCHE ══
+    //
+    // ⛔ EN REMPLACEMENT DE DEUX LIGNES, PAS EN AJOUT: la lane foyer frôle le mur
+    // de temps du worker (mesuré par 3C), et ce bloc est déjà le plus long du
+    // brief. Deux lignes deviennent quatre; rien d'autre ne bouge.
+    //
+    // ⚠️ LES DEUX TROUS QUE CETTE RÉDACTION FERME, MESURÉS SUR QUATRE RUNS RÉELS:
+    //   ① `grams` ÉTAIT AMBIGU. « ONE box may carry both their ids » ne disait
+    //      pas si le nombre est la part d'UNE personne ou le contenu du bac. Un
+    //      run l'a écrit comme le total (7500 g pour cinq), et l'écran imprime
+    //      les deux cas à l'identique: « Boîte Paul, Zoe, … — 430 g » se lit
+    //      « prends 430 g » et valait peut-être 72.
+    //   ② TREIZE BOUCHES DANS DEUX BOÎTES de la même casserole, TROIS dans
+    //      aucune. « Chaque bouche dans exactement une boîte » n'était énoncé
+    //      nulle part — seulement suggéré par « a person missing … ».
+    `"grams" is what ONE person takes out, never the size of the tub. Two people`,
+    "on the same weight share ONE box that lists both ids; when their shares",
+    "differ they get one box each. Every name above is in exactly ONE box of each",
+    "preparation -- never two, never none.",
     "A line in member_portions is NOT a box. It is a sentence read aloud at the",
     "table; a box has a weight and a name on it, and it is what stops the weighing",
     "from happening again at every meal. Writing the serving instruction instead",
@@ -1455,6 +1501,58 @@ export function vaguePortionMatches(raw: unknown): string[] {
   return [...new Set(matches.map((m) => m.token))].sort();
 }
 
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * LOT 4C ② — UN NOMBRE SUIVI D'UNE UNITÉ. LE SEUL FAIT VÉRIFIABLE ICI.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ POURQUOI CE COMPTEUR EXISTE, ET CE QU'IL RÉPARE. Le 2026-08-17,
+ * `vague_portions` a rendu **0 flou sur 93 notes réelles** — et ce zéro était un
+ * FEU VERT FAUX. Voici ce qu'il recouvrait, mot pour mot: « One standard table
+ * portion. », « Balanced share of the shared dish. », « Child-size share of the
+ * same dish. » ZÉRO note sur 93 portait un gramme. Un compteur qui affiche 0
+ * pendant que 93 notes sur 93 sont sans chiffre est PIRE qu'absent: il dit « tout
+ * va bien » à qui ouvre le tableau de bord.
+ *
+ * ⛔ ET CE N'EST PAS UNE LISTE DE MOTS PLUS LONGUE. Ajouter « standard portion »,
+ * « balanced share », « child-size » à `VAGUE_PORTION_TERMS` ferait la ceinture
+ * qui mord sur tout et qu'on désarme dans la semaine. Le manque est un COMPTEUR,
+ * pas du vocabulaire — patron `unquantified_dish_ingredients`, qui constate un
+ * champ et ne juge aucun mot.
+ *
+ * ⚠️ CE N'EST PAS UN MATCHER D'ALIMENT, et la distinction est celle qui compte:
+ * cette expression ne connaît AUCUN nom d'aliment, ne décide d'aucun mot, et ne
+ * peut donc pas confondre « laitue » et « lait ». Elle constate un CHIFFRE suivi
+ * d'une UNITÉ — la forme exacte de `ENERGY_UNIT_RE` (`meal_generation.ts:2656`),
+ * qui vit dans ce dépôt depuis FF-038 pour la même raison.
+ *
+ * ── CE QU'ELLE NE COMPTE PAS, ET C'EST ASSUMÉ ─────────────────────────────
+ *   · « half a lemon », « deux tranches » — les DÉNOMBRABLES. Les reconnaître
+ *     demanderait de savoir ce qui se compte à l'unité, c'est-à-dire un savoir
+ *     sur les ALIMENTS. Conséquence: un plan honnête n'est jamais à 100 %, et ce
+ *     nombre est un PLANCHER à surveiller, pas un verdict — exactement le statut
+ *     de `unquantified_dish_ingredients`, qui ne fait aucune exception pour le
+ *     sel.
+ *   · « 3 cm » — `cm` n'est pas une unité de portion. « Coupe les carottes en
+ *     morceaux de 3 cm » est une consigne de découpe, pas une part, et la
+ *     compter comme chiffrée gonflerait le taux avec des phrases qui ne disent
+ *     rien de combien on mange.
+ *
+ * Les symboles viennent de `COMPOSITION_UNITS` (`g`, `ml`, `tbsp`, `tsp`); les
+ * formes écrites en toutes lettres s'y ajoutent parce que ce texte-ci est de la
+ * PROSE lue à voix haute, pas un champ structuré. `unit` n'a pas de forme en
+ * prose et n'y est donc pas.
+ */
+const PORTION_QUANTITY_RE =
+  /\d[\d.,]*\s*(g|gr|grammes?|grams?|kg|ml|cl|tbsp|tablespoons?|tsp|teaspoons?)\b/i;
+
+/** `true` quand la consigne porte au moins un nombre suivi d'une unité connue. */
+export function portionCarriesAQuantity(raw: unknown): boolean {
+  const text = typeof raw === "string" ? raw.trim() : "";
+  if (!text) return false;
+  return PORTION_QUANTITY_RE.test(text);
+}
+
 export interface SanitizedNote {
   note: string | null;
   /** Les motifs qui ont mordu. Vide = la consigne est passée telle quelle. */
@@ -1514,8 +1612,34 @@ export interface ReconciledPortions {
    * `null` parce qu'elle parlait d'un poids n'est plus une consigne: la compter
    * comme « chiffrée » ou comme « floue » raconterait dans les deux cas quelque
    * chose de faux sur un texte que personne ne lira.
+   *
+   *   · `quantified` — LOT 4C: ceux qui portent au moins un nombre suivi d'une
+   *     unité (`portionCarriesAQuantity`). ⛔ C'EST LE CHIFFRE QUI MANQUAIT, et
+   *     `vague` ne le remplace pas: `vague: 0` a été mesuré sur 93 notes dont
+   *     AUCUNE ne portait un gramme. « Pas de mot flou » et « une part précise »
+   *     sont deux faits différents, et c'est le second que P4 demande.
    */
-  vagueCounts: { notes: number; vague: number };
+  vagueCounts: { notes: number; vague: number; quantified: number };
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * LOT 4C ① — LES PARTS QUI DÉSIGNENT UNE PRÉPARATION QUI N'EXISTE PAS.
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   *   · `shares`  — les parts gardées (note lisible ET préparation résolue).
+   *   · `unknown` — celles dont le `preparation_id` n'est dans aucune
+   *                 préparation du plan. JETÉES, et comptées.
+   *
+   * ⚠️ MESURÉ LE 2026-08-17: 18 parts sur 18 d'un plan réel citaient
+   * `prep_chicken_roast`, `prep_rice_batch`, `prep_veg_tray` — trois
+   * préparations qui n'existaient pas dans ce plan. Le lecteur ne joignait rien,
+   * la ligne était filtrée, et la surface « les grammes de chaque bouche » ne
+   * rendait RIEN, sur des données réelles, sans qu'aucun compteur ne bouge.
+   *
+   * ⚠️ `unknown` SE COMPTE, IL NE SE DÉDUIT PAS. `shares` compte ce qui sort,
+   * `unknown` ce qui tombe; les dériver l'un de l'autre est la cicatrice
+   * `withheld`/`over_cap`, et elle est écrite trois fois dans `meal_generation.ts`.
+   */
+  shareCounts: { shares: number; unknown: number };
 }
 
 /**
@@ -1539,12 +1663,38 @@ export interface ReconciledPortions {
 export function reconcilePortions(
   members: readonly PortionMember[],
   raw: unknown,
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * LOT 4C ① — LA LISTE FERMÉE DES PRÉPARATIONS DE CE PLAN.
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ REQUIS, JAMAIS `?`, ET C'EST LA MOITIÉ DE LA GARDE. Un paramètre optionnel
+   * n'aurait fait remonter AUCUN appelant au compilateur; la liste serait vide
+   * par défaut, donc TOUTE part serait jetée — ou, avec un repli « liste vide =
+   * on ne vérifie pas », la garde naîtrait désarmée. « Paramètre de garde
+   * optionnel = garde désarmée » est une cicatrice de ce dépôt, et `boxMemberIds`
+   * est le patron exact, à trois cents lignes d'ici.
+   *
+   * ⚠️ CE SONT LES IDS DES PRÉPARATIONS **GARDÉES**, pas ceux que le modèle a
+   * écrits. Une préparation refusée par le parseur (une portion, cible numérique,
+   * titre manquant) n'existe plus dans le plan: une part qui la cite ne joindra
+   * rien à l'écran, et la laisser passer rendrait une ligne muette.
+   *
+   * C'est le patron `preparation_id` de `dishes[].uses[]`
+   * (`meal_generation.ts`, « unknown preparation, dropped »), appliqué au seul
+   * champ du plan qui l'avait manqué.
+   */
+  preparationIds: readonly string[],
 ): ReconciledPortions {
   const issues: string[] = [];
-  // LOT 4 — LES DEUX NOMBRES DU FLOU. Passés par référence à `parseShares` pour
+  // LOT 4 — LES NOMBRES DU FLOU. Passés par référence à `parseShares` pour
   // qu'il n'existe qu'UN compteur: une seconde addition côté appelant
   // divergerait au premier changement de forme des parts.
-  const vagueCounts = { notes: 0, vague: 0 };
+  const vagueCounts = { notes: 0, vague: 0, quantified: 0 };
+  const shareCounts = { shares: 0, unknown: 0 };
+  const knownPreparations = new Set(
+    preparationIds.map((id) => String(id).trim()).filter(Boolean),
+  );
   const byMember = new Map<string, Record<string, unknown>>();
 
   if (Array.isArray(raw)) {
@@ -1589,6 +1739,10 @@ export function reconcilePortions(
     // lira.
     if (note !== null) {
       vagueCounts.notes++;
+      // LOT 4C ② — LE CHIFFRE, COMPTÉ AU MÊME ENDROIT QUE LE FLOU, SUR LA MÊME
+      // POPULATION. Deux dénominateurs pour deux propriétés du même texte
+      // finiraient par ne plus se comparer.
+      if (portionCarriesAQuantity(note)) vagueCounts.quantified++;
       const vague = vaguePortionMatches(note);
       if (vague.length > 0) {
         vagueCounts.vague++;
@@ -1602,18 +1756,27 @@ export function reconcilePortions(
       memberId: member.memberId,
       displayName: member.displayName,
       portionNote: note,
-      preparationShares: parseShares(row, member, issues, vagueCounts),
+      preparationShares: parseShares(
+        row,
+        member,
+        issues,
+        vagueCounts,
+        shareCounts,
+        knownPreparations,
+      ),
     };
   });
 
-  return { portions, issues, vagueCounts };
+  return { portions, issues, vagueCounts, shareCounts };
 }
 
 function parseShares(
   row: Record<string, unknown>,
   member: PortionMember,
   issues: string[],
-  vagueCounts: { notes: number; vague: number },
+  vagueCounts: { notes: number; vague: number; quantified: number },
+  shareCounts: { shares: number; unknown: number },
+  knownPreparations: ReadonlySet<string>,
 ): PreparationShare[] {
   const raw = row.preparation_shares ?? row.preparationShares;
   if (!Array.isArray(raw)) return [];
@@ -1623,6 +1786,25 @@ function parseShares(
     const e = entry as Record<string, unknown>;
     const preparationId = String(e.preparation_id ?? e.preparationId ?? "").trim();
     if (!preparationId) continue;
+    // ── LOT 4C ① · LA LISTE FERMÉE, AVANT TOUT LE RESTE ───────────────────
+    //
+    // ⛔ AVANT LA CEINTURE DE CORPS ET AVANT LES DEUX COMPTEURS DE NOTE, et
+    // l'ordre est le sujet: une part qui ne joint aucune préparation ne sera
+    // JAMAIS rendue. La compter dans `notes` gonflerait le dénominateur du flou
+    // avec du texte que personne ne lit — exactement l'erreur que
+    // `sanitizePortionNote` évite déjà en ne comptant que ce qui SORT.
+    //
+    // ⚠️ ET ÇA NE REJETTE NI LE PLAT NI LA PRÉPARATION NI LA BOUCHE. Seule la
+    // ligne tombe; `portion_note` — la consigne principale de cette personne —
+    // sort intacte. Posture de tout le lot: compter, nommer, ne rien perdre
+    // d'autre.
+    if (!knownPreparations.has(preparationId)) {
+      shareCounts.unknown++;
+      issues.push(
+        `share_for_unknown_preparation:${member.memberId}:${preparationId}`,
+      );
+      continue;
+    }
     const { note, violations } = sanitizePortionNote(e.note);
     for (const v of violations) {
       issues.push(`share_note_rejected:${member.memberId}:${preparationId}:${v}`);
@@ -1633,6 +1815,7 @@ function parseShares(
       // LOT 4 — MÊME MESURE QUE SUR LA NOTE PRINCIPALE, ET AU MÊME MOMENT:
       // après la ceinture de corps, sur ce qui sort vraiment.
       vagueCounts.notes++;
+      if (portionCarriesAQuantity(note)) vagueCounts.quantified++;
       const vague = vaguePortionMatches(note);
       if (vague.length > 0) {
         vagueCounts.vague++;
@@ -1640,6 +1823,7 @@ function parseShares(
           issues.push(`share_note_vague:${member.memberId}:${preparationId}:${v}`);
         }
       }
+      shareCounts.shares++;
       out.push({ preparationId, note });
     }
   }

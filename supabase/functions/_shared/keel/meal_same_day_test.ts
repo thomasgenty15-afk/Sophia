@@ -513,8 +513,12 @@ Deno.test("LOT 2 — le TRONC bumpe, l'enveloppe FOYER ne bouge pas", () => {
   // portées distinctes, deux numéros: ce n'est pas le cas que le paragraphe
   // ci-dessus met en garde (un même changement bumpé deux fois), c'est un lot
   // qui touche vraiment les deux populations.
+  // ⚠️ LOT 4C (2026-08-17) — CETTE FOIS UN SEUL AXE BOUGE, et c'est le cas
+  // nominal que ce test décrit depuis le LOT 2, pris dans l'autre sens: le
+  // tronc ne gagne pas un octet (il reste v11), l'enveloppe foyer passe à v15
+  // pour le gramme dans la note et « exactement une boîte par bouche ».
   assertEquals(MEAL_PROMPT_VERSION, "meal.en.v11_weighed_or_counted");
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v14_weigh_once_into_boxes");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v15_one_box_each_and_a_number");
 });
 
 // ---------------------------------------------------------------------------

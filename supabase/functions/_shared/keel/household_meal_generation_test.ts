@@ -1408,5 +1408,13 @@ Deno.test("LOT 4 — la version de la lane foyer a bougé d'UN cran", () => {
   // ⚠️ ET CETTE FOIS LE TRONC BOUGE AUSSI, ce qui n'est PAS un doublon: il porte
   // l'autre moitié de P4 — les quantités du jour, pesées ou dénombrées — que
   // les quatre populations voient. Deux changements, deux portées, deux axes.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v14_weigh_once_into_boxes");
+  //
+  // ⚠️ LOT 4C (2026-08-17) — UN CRAN DE PLUS, ET LA POPULATION S'ÉLARGIT. v15
+  // porte deux consignes que v14 n'avait pas dites: le GRAMME dans la note lue
+  // à table (93 notes réelles, zéro gramme) et « exactement une boîte par
+  // bouche » (13 bouches en double, 3 sans boîte, mesurées). La première vit
+  // dans le brief COMMUN — un foyer d'UNE bouche la voit aussi — donc la
+  // population de v15 est « tous les foyers », pas « les foyers d'au moins deux
+  // bouches ». Le tronc, lui, ne gagne pas un octet: il reste à v11.
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v15_one_box_each_and_a_number");
 });

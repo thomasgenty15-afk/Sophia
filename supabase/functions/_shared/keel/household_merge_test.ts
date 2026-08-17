@@ -2720,7 +2720,17 @@ Deno.test("C8 ③ — LA LANE INDIVIDUELLE GARDE SA VERSION DE PROMPT", () => {
   // côté système, `boxingOrderLines` dans le brief de portions. Un foyer d'une
   // seule bouche rend les deux vides et un prompt de foyer byte-identique à
   // v13, ce que `household_meal_generation_test.ts` tient par égalité de chaîne.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v14_weigh_once_into_boxes");
+  // ⚠️ v15 DEPUIS LE LOT 4C (2026-08-17), ET LE TRONC NE BOUGE PLUS: la ligne
+  // `MEAL_PROMPT_VERSION` ci-dessus reste v11, aucun octet de
+  // `MEAL_SYSTEM_PROMPT` ne change. Ce qui change vit dans le brief de portions,
+  // et la POPULATION S'ÉLARGIT PAR RAPPORT À v14: le gramme demandé dans la note
+  // (② — 93 notes réelles, zéro gramme) est servi à TOUT foyer, y compris à une
+  // seule bouche; « exactement une boîte par bouche » (③ — 13 bouches en double,
+  // 3 sans boîte) reste sous le seuil de deux. Un foyer d'une bouche n'est donc
+  // PLUS byte-identique à v13, et c'est délibéré: « des quantités précises pour
+  // chaque personne » ne s'arrête pas à deux habitants. La population non
+  // concernée est la lane INDIVIDUELLE, qui ne monte jamais cette enveloppe.
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v15_one_box_each_and_a_number");
 });
 
 Deno.test("C7 ③ — LA LIGNE DE COURSES D'UN PLAT JETÉ NE PART PLUS AU MAGASIN", () => {

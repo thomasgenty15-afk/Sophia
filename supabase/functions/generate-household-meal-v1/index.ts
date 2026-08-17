@@ -3372,7 +3372,40 @@ Deno.serve(async (req) => {
       boxMemberIds: members.map((m) => m.memberId),
     } as const;
 
+    // ══════════════════════════════════════════════════════════════════════
+    // LOT 4C ① — LE PLAN ET LE TEXTE QUI L'A PRODUIT, DANS UN SEUL OBJET.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ UN SEUL `let`, ET C'EST TOUT LE CORRECTIF. Avant ce lot il y en avait
+    // un seul aussi — `meal` — pendant que le TEXTE du modèle était relu plus
+    // bas depuis `result`, la constante de la PREMIÈRE réponse. La relance
+    // d'ancre protéique (cent lignes plus bas) remplace `meal` par le plan de la
+    // SECONDE réponse; les portions, elles, restaient sur la première.
+    //
+    //   plan réel `45bc8a52`, 2026-08-17, `protein_anchor_retry = true`
+    //     preparations écrites : prep_chicken_tray, prep_chicken_stirfry, …
+    //     preparation_shares   : prep_chicken_roast, prep_rice_batch, prep_veg_tray
+    //     -> DIX-HUIT parts sur dix-huit orphelines, sur les six bouches.
+    //
+    // La conséquence n'est pas cosmétique: la ligne ne joint rien, l'écran la
+    // filtre, et LES GRAMMES PAR BOUCHE — la moitié de P4 — ne s'affichent
+    // jamais. Le trou est INTERMITTENT (zéro orpheline sur les trois aperçus
+    // sans relance), donc invisible à tout test qui ne rejoue pas la relance.
+    //
+    // ⚠️ CE N'EST PAS `parseShares` QUI ÉTAIT EN CAUSE. Le modèle n'invente pas
+    // d'identifiants (zéro orpheline sur 51 parts sans relance) et le parseur ne
+    // renomme aucune préparation. C'était un `current` périmé. La garde de
+    // `parseShares` (liste fermée) est ajoutée quand même, et pour la raison
+    // INVERSE: sans elle, ce défaut-ci n'aurait laissé AUCUNE trace. C'est
+    // `share_counts.unknown` qui criera s'il revient par un autre chemin — le
+    // compteur est ici la vraie protection de régression, parce qu'aucun test
+    // unitaire ne peut rejouer une relance de modèle.
+    //
+    // ⚠️ CES DEUX `let` SE METTENT À JOUR ENSEMBLE, ET IL N'Y A QU'UN SEUL SITE
+    // (l'acceptation de la relance). C'est le seul endroit du fichier où l'un
+    // sans l'autre serait faux, et il porte la consigne en toutes lettres.
     let meal;
+    let mealSourceText = result;
     try {
       meal = parseGeneratedMeal(result, parseArgs);
     } catch (error) {
@@ -3457,6 +3490,10 @@ Deno.serve(async (req) => {
             retried.protein_anchor_missing.length < anchorMissingBefore
           ) {
             meal = retried;
+            // ⛔ LOT 4C ① — LES DEUX ENSEMBLE, TOUJOURS. Cette ligne et celle du
+            // dessus décrivent le MÊME fait: « c'est ce texte-là qui a produit
+            // ce plan-là ». Les séparer est très exactement le défaut réparé.
+            mealSourceText = retryResult;
             proteinAnchorRetry = true;
           } else if (
             dedicatedBefore !== null && dedicatedAfter !== null &&
@@ -3604,9 +3641,19 @@ Deno.serve(async (req) => {
       // Recompté ici, il divergerait de la ceinture au premier terme ajouté, et
       // c'est la copie qu'on regarde le moins qui garderait l'ancienne liste.
       vagueCounts: portionVagueCounts,
+      // LOT 4C ① — LES PARTS QUI JOIGNENT, ET CELLES QUI NE JOIGNENT RIEN.
+      shareCounts: portionShareCounts,
     } = reconcilePortions(
       platedMembers,
-      extractMemberPortions(result),
+      // ⛔ `mealSourceText`, JAMAIS `result`. Voir le bloc au-dessus du `let`:
+      // une relance d'ancre remplace `meal` et laissait les portions sur la
+      // réponse d'avant — 18 parts orphelines sur 18, mesurées en base.
+      extractMemberPortions(mealSourceText),
+      // ⛔ LA LISTE FERMÉE, PRISE SUR LE PLAN QU'ON ÉCRIT. `meal.preparations`
+      // est la sortie du parseur — celles qui ont SURVÉCU à ses gardes — et pas
+      // ce que le modèle a déclaré. Une part qui cite une préparation refusée ne
+      // joindrait rien à l'écran, exactement comme une part orpheline.
+      meal.preparations.map((p) => p.id),
     );
 
     // ── L5/D8 · TOUTES LES REPRISES QUE CE PLAN PORTE ─────────────────────
@@ -3857,6 +3904,11 @@ Deno.serve(async (req) => {
       box_uses: meal.box_use_counts,
       unquantified_dish_ingredients: meal.unquantified_dish_ingredients,
       vague_portions: portionVagueCounts,
+      // LOT 4C ① — RENDU SUR L'APERÇU COMME SUR LA LIGNE ÉCRITE, par la même
+      // expression que les quatre du dessus. Sans ce nombre, « la part de chaque
+      // bouche ne s'affiche pas » n'est visible qu'en relisant le `jsonb` à la
+      // main — c'est-à-dire pas.
+      shares: portionShareCounts,
     } as const;
 
     if (isDraft) {

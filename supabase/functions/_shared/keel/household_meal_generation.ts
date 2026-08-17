@@ -388,7 +388,37 @@ import {
 // boîte dans le bloc de langue. Deux changements, deux portées, deux axes:
 // c'est très exactement la règle « quelle population voit une consigne
 // différente », appliquée deux fois dans le même lot.
-export const HOUSEHOLD_PROMPT_VERSION = "v14_weigh_once_into_boxes";
+// ── v15 (2026-08-17) — LE GRAMME DANS LA CONSIGNE, ET UNE SEULE BOÎTE PAR
+//    BOUCHE (LOT 4C / P4, second passage) ─────────────────────────────────────
+//
+// v14 a fait déclarer les boîtes — 100 % des préparations, 45 boîtes, zéro
+// refusée sur quatre runs réels. Deux choses qu'elle n'avait pas dites ont été
+// mesurées dans la foulée, et elles vivent toutes les deux dans le brief de
+// portions (message utilisateur):
+//
+//   ② LA PART DITE À LA PERSONNE EST RESTÉE FLOUE. 93 notes réelles, ZÉRO
+//      gramme — « One standard table portion. », « Balanced share of the shared
+//      dish. » Le protocole marchait à la SESSION, pas à la bouche. Quatre
+//      lignes s'ajoutent COLLÉES à la phrase qui promet la consigne, avec le
+//      nombre attendu et les tournures refusées nommées.
+//   ③ `grams` ÉTAIT AMBIGU, ET « UNE SEULE BOÎTE PAR BOUCHE » N'ÉTAIT NULLE
+//      PART. Treize bouches se sont retrouvées dans deux boîtes de la même
+//      casserole, trois dans aucune. Deux lignes deviennent quatre, EN
+//      REMPLACEMENT.
+//
+// ⚠️ LA POPULATION S'ÉLARGIT PAR RAPPORT À v14, et il faut le lire: le bloc ③
+// reste muet à une bouche (il parle de boîtes), mais le bloc ② est dans le
+// brief COMMUN — un foyer d'UNE bouche voit donc désormais une consigne
+// différente. C'est voulu: « des quantités précises pour chaque personne » ne
+// s'arrête pas à deux habitants. La population non concernée est la lane
+// INDIVIDUELLE, qui ne monte jamais l'enveloppe foyer, et c'est elle que le
+// test byte-identique tient.
+//
+// ⚠️ `MEAL_PROMPT_VERSION` NE BOUGE PAS: aucun octet du tronc ne change dans ce
+// passage. Les trois compteurs ajoutés à `box_counts` (`capped`, `mouth_slots`,
+// `mouths_unboxed`/`mouths_double`) sont des MESURES, pas des consignes — ils ne
+// se lisent sur aucun prompt.
+export const HOUSEHOLD_PROMPT_VERSION = "v15_one_box_each_and_a_number";
 
 export interface HouseholdRestriction {
   memberId: string;

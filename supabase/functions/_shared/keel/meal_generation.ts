@@ -905,15 +905,44 @@ export interface GeneratedMeal {
    * ⚠️ `sum_checked + sum_unverifiable === with_boxes` est une PROPRIÉTÉ que les
    * tests vérifient, pas une définition — même discipline que
    * `declared === attributed + refused` sur `dish_owner_counts`.
+   *
+   * ── LOT 4C · CE QUE LES SEPT PREMIERS NE SAVAIENT PAS DIRE ────────────────
+   *
+   *   · `capped`           — les boîtes GARDÉES dont les grammes ont été
+   *                          ramenés à `BOX_MAX_GRAMS`. Le nombre affiché n'est
+   *                          alors pas celui que le modèle a écrit, et sans ce
+   *                          champ personne ne peut le savoir depuis le
+   *                          compteur (mesuré: 5 boîtes sur 7, `refused: 0`).
+   *                          ⚠️ PAS un refus: la boîte reste, écrêtée.
+   *   · `mouth_slots`      — le VRAI dénominateur du service: les préparations
+   *                          à boîtes × le roster. C'est le nombre que la
+   *                          consigne annonce, et `boxes / mouth_slots` est le
+   *                          taux de service (mesuré à 57,7 % là où
+   *                          `with_boxes / preparations` affichait 100 %).
+   *   · `mouths_unboxed`   — les bouches sans AUCUNE boîte d'une préparation
+   *                          dont elles mangent.
+   *   · `mouths_double`    — les bouches dans DEUX boîtes ou plus de la MÊME
+   *                          préparation: deux poids côte à côte pour une seule
+   *                          personne sur une seule casserole, c'est-à-dire une
+   *                          instruction contradictoire en cuisine.
+   *
+   * ⚠️ CES TROIS-LÀ MESURENT L'EXÉCUTABILITÉ, PAS LA FORME. Une boîte peut être
+   * parfaitement valide (id unique, bouche du roster, grammes entiers) et le jeu
+   * de boîtes rester inexécutable. C'est exactement l'écart qui a fait lire
+   * « 100 % » à un lot dont la moitié du service n'atteignait personne.
    */
   box_counts: {
     preparations: number;
     with_boxes: number;
     boxes: number;
     refused: number;
+    capped: number;
     sum_checked: number;
     sum_over: number;
     sum_unverifiable: number;
+    mouth_slots: number;
+    mouths_unboxed: number;
+    mouths_double: number;
   };
   /**
    * LOT 4 — LA CITATION D'UNE BOÎTE PAR UN PLAT. POPULATION: LES `uses` DES
@@ -2955,6 +2984,22 @@ export function parseGeneratedMeal(
   const boxIdsSeen = new Set<string>();
   /** Les entrées de boîte JETÉES. Comptée ici, jamais dérivée d'une soustraction. */
   let boxesRefused = 0;
+  /**
+   * LOT 4C ④ — LES BOÎTES DONT LE NOMBRE AFFICHÉ N'EST PAS CELUI DU MODÈLE.
+   *
+   * ⛔ UNE VALEUR CORRIGÉE EN SILENCE EST UNE VALEUR DONT PERSONNE NE SAURA
+   * QU'ELLE A ÉTÉ CORRIGÉE. Mesuré le 2026-08-17: sur un run réel, CINQ boîtes
+   * sur sept demandaient 7500, 3600, 3600, 3600 et 2400 g, et l'écran a affiché
+   * « 2000 g » cinq fois. Une `issue` le disait; `box_counts` lisait ce run
+   * comme PARFAIT (`refused: 0`), et un tableau de bord SQL n'avait aucun moyen
+   * de le savoir.
+   *
+   * ⚠️ CE N'EST PAS UN REFUS, et il ne doit pas se compter comme tel. La boîte
+   * est GARDÉE, écrêtée — le plafond empêche un « 75000 g » d'entrer en base.
+   * La ranger dans `refused` ferait mentir la propriété que le lot annonce
+   * (« refused = les entrées jetées ») dans les deux sens à la fois.
+   */
+  let boxesCapped = 0;
 
   // ── LES PLATS ───────────────────────────────────────────────────────────
   // ── LES PRÉPARATIONS ────────────────────────────────────────────────────
@@ -3104,6 +3149,7 @@ export function parseGeneratedMeal(
       }
       const grams = Math.min(BOX_MAX_GRAMS, Math.round(rawGrams));
       if (grams !== Math.round(rawGrams)) {
+        boxesCapped++;
         issues.push(
           `preparations[${i}].boxes[${JSON.stringify(boxId)}]: ` +
             `${Math.round(rawGrams)} g is over the ${BOX_MAX_GRAMS}-gram ceiling ` +
@@ -4276,6 +4322,67 @@ export function parseGeneratedMeal(
     }
   }
 
+  // ══════════════════════════════════════════════════════════════════════════
+  // LOT 4C ③ · C4/C5 — UNE BOUCHE A UNE PART, OU ELLE N'EN A PAS
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ CE QUI EST COMPTÉ ICI N'EST PAS LA FORME D'UNE BOÎTE, C'EST L'EXÉCUTABILITÉ
+  // DU JEU DE BOÎTES. Les trois portes du dessus valident qu'une boîte est bien
+  // FORMÉE — un id unique, des bouches du roster, des grammes utilisables. Aucune
+  // ne valide la propriété que la consigne elle-même énonce: « chaque bouche est
+  // dans exactement une boîte de chaque préparation ».
+  //
+  // ⚠️ MESURÉ SUR QUATRE GÉNÉRATIONS RÉELLES LE 2026-08-17: TREIZE bouches se
+  // retrouvent dans DEUX boîtes de la même casserole — deux poids affichés à
+  // deux centimètres l'un de l'autre, ce qui n'est pas une instruction de
+  // cuisine mais une contradiction — et TROIS n'ont aucune boîte sur une
+  // casserole dont tout le monde mange. Pendant ce temps `with_boxes` lisait
+  // 100 %: le compteur regardait la préparation, jamais la bouche.
+  //
+  // ⛔ ON COMPTE ET ON NOMME, ON NE REJETTE JAMAIS — posture de tout le lot.
+  // Choisir laquelle des deux boîtes de Zoé retirer, ou en inventer une pour
+  // Théo, serait décider de la part de quelqu'un sur une devinette.
+  //
+  // ⚠️ LE DÉNOMINATEUR EST `mouth_slots`, ET IL EST LE NOMBRE QUE LA CONSIGNE
+  // ANNONCE (« That is 6 people to weigh out on EVERY preparation »). Population:
+  // les préparations QUI PORTENT AU MOINS UNE BOÎTE, croisées avec le roster. Une
+  // préparation sans aucune boîte est déjà comptée par `with_boxes`, et l'inclure
+  // ici ferait dire deux fois le même défaut par deux compteurs différents.
+  //
+  // ⚠️ ZÉRO BOUCHE AU ROSTER (la lane individuelle, `boxMemberIds: []`) rend
+  // `mouth_slots: 0` et les deux écarts à zéro — aucun dénominateur inventé.
+  const boxMouthSlots = preparations.filter((p) => p.boxes.length > 0).length *
+    boxMembers.size;
+  let boxMouthsUnboxed = 0;
+  let boxMouthsDouble = 0;
+  for (const [p, prep] of preparations.entries()) {
+    if (prep.boxes.length === 0) continue;
+    for (const memberId of boxMembers) {
+      const inBoxes = prep.boxes.filter((b) => b.memberIds.includes(memberId)).length;
+      if (inBoxes === 1) continue;
+      // ⚠️ L'IDENTIFIANT, PAS LE PRÉNOM, et c'est un choix mesuré: ce parseur ne
+      // reçoit QUE des ids (`boxMemberIds`), et les prénoms vivent dans
+      // l'enveloppe foyer. Les faire descendre jusqu'ici demanderait un second
+      // paramètre requis et ses quarante-neuf sites de test, pour une chaîne
+      // que personne ne lit à l'écran — les `issues` de ce fichier nomment déjà
+      // les bouches par id partout ailleurs (« member_id "…" is not a mouth »).
+      // La jointure vers `household_members.display_name` se fait en SQL.
+      if (inBoxes === 0) {
+        boxMouthsUnboxed++;
+        issues.push(
+          `preparations[${p}]: ${JSON.stringify(memberId)} has no box on ` +
+            `"${prep.title}"`,
+        );
+        continue;
+      }
+      boxMouthsDouble++;
+      issues.push(
+        `preparations[${p}]: ${JSON.stringify(memberId)} is in ${inBoxes} boxes ` +
+          `of "${prep.title}" -- two weights for one pan`,
+      );
+    }
+  }
+
   // ── C2 ④ · LES CASES QUE PERSONNE NE REMPLIT ────────────────────────────
   //
   // MESURÉ DEUX FOIS LE 2026-08-12: les cinq petits-déjeuners du foyer sont
@@ -4352,18 +4459,26 @@ export function parseGeneratedMeal(
       with_boxes: preparations.filter((p) => p.boxes.length > 0).length,
       boxes: preparations.reduce((n, p) => n + p.boxes.length, 0),
       refused: boxesRefused,
+      capped: boxesCapped,
       sum_checked: boxSumChecked,
       sum_over: boxSumOver,
       sum_unverifiable: boxSumUnverifiable,
+      mouth_slots: boxMouthSlots,
+      mouths_unboxed: boxMouthsUnboxed,
+      mouths_double: boxMouthsDouble,
     }
     : {
       preparations: 0,
       with_boxes: 0,
       boxes: 0,
       refused: 0,
+      capped: 0,
       sum_checked: 0,
       sum_over: 0,
       sum_unverifiable: 0,
+      mouth_slots: 0,
+      mouths_unboxed: 0,
+      mouths_double: 0,
     };
 
   const boxUseCounts = clean

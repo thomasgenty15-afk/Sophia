@@ -42,6 +42,7 @@ import {
 import {
   buildPortionBrief,
   FORBIDDEN_PORTION_TERMS,
+  portionCarriesAQuantity,
   type PortionMember,
   reconcilePortions,
   sanitizePortionNote,
@@ -674,8 +675,12 @@ Deno.test("LOT 4 — les ids de boîte sont des JETONS déclarés, jamais tradui
 });
 
 Deno.test("LOT 4 — les deux axes de version ont bougé, chacun pour SA population", () => {
+  // ⚠️ LOT 4C: le tronc RESTE à v11 — aucun octet de `MEAL_SYSTEM_PROMPT` ne
+  // bouge dans ce passage — et l'enveloppe foyer passe à v15 pour les deux
+  // consignes ajoutées au brief de portions. Un seul axe bouge, et c'est
+  // exactement ce que ce test existe pour voir.
   assertEquals(MEAL_PROMPT_VERSION, "meal.en.v11_weighed_or_counted");
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v14_weigh_once_into_boxes");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v15_one_box_each_and_a_number");
 });
 
 // ---------------------------------------------------------------------------
@@ -899,13 +904,17 @@ Deno.test("LOT 4 — la ceinture du flou GARDE le texte et le COMPTE", () => {
       },
       { member_id: NINA, portion_note: "Your box: 200 g of the chicken" },
     ],
+    ["prep_chicken"],
   );
   assertEquals(
     portions[0].portionNote,
     "Take a handful of the rice",
     "le texte flou N'EST PAS retiré",
   );
-  assertEquals(vagueCounts, { notes: 3, vague: 1 });
+  // LOT 4C ② — TROIS NOMBRES: `notes` la population, `vague` les tournures
+  // molles, `quantified` celles qui portent un chiffre. « 150 g from your box »
+  // et « Your box: 200 g » comptent; « Take a handful of the rice » non.
+  assertEquals(vagueCounts, { notes: 3, vague: 1, quantified: 2 });
   assert(issues.some((i) => i === `portion_note_vague:${ZOE}:handful`), issues.join("\n"));
 });
 
@@ -917,8 +926,9 @@ Deno.test("LOT 4 — une note de PART floue est comptée et nommée par sa prép
       portion_note: "180 g from your box",
       preparation_shares: [{ preparation_id: "prep_rice", note: "une grosse portion" }],
     }],
+    ["prep_rice"],
   );
-  assertEquals(vagueCounts, { notes: 2, vague: 1 });
+  assertEquals(vagueCounts, { notes: 2, vague: 1, quantified: 1 });
   assert(
     issues.some((i) => i === `share_note_vague:${ZOE}:prep_rice:grosse portion`),
     issues.join("\n"),
@@ -931,9 +941,10 @@ Deno.test("LOT 4 — une note MISE À NULL par la ceinture de corps n'entre dans
   const { portions, vagueCounts } = reconcilePortions(
     [ZOE_M],
     [{ member_id: ZOE, portion_note: "a handful, for your weight loss" }],
+    [],
   );
   assertEquals(portions[0].portionNote, null);
-  assertEquals(vagueCounts, { notes: 0, vague: 0 });
+  assertEquals(vagueCounts, { notes: 0, vague: 0, quantified: 0 });
 });
 
 Deno.test("LOT 4 — la ceinture de CORPS est intacte, et les grammes la traversent", () => {
@@ -1026,10 +1037,404 @@ Deno.test("LOT 4 — le VERROU DE SORTIE vide le plan ET remet les compteurs à 
     with_boxes: 0,
     boxes: 0,
     refused: 0,
+    capped: 0,
     sum_checked: 0,
     sum_over: 0,
     sum_unverifiable: 0,
+    mouth_slots: 0,
+    mouths_unboxed: 0,
+    mouths_double: 0,
   });
   assertEquals(meal.box_use_counts, { uses: 0, cited: 0, resolved: 0, refused: 0 });
   assertEquals(meal.unquantified_dish_ingredients, { ingredients: 0, unquantified: 0 });
+});
+
+// ---------------------------------------------------------------------------
+// 9 — LOT 4C · CE QUE LE PREMIER PASSAGE NE SAVAIT PAS DIRE
+//
+// Quatre défauts mesurés sur QUATRE GÉNÉRATIONS RÉELLES le 2026-08-17, tous de
+// la même famille: la donnée existe, et personne ne la compte.
+//
+//   ① 18 parts sur 18 d'un plan écrit citaient une préparation inexistante —
+//      la surface « les grammes de chaque bouche » était morte, sans un chiffre
+//      pour le dire;
+//   ② `vague_portions` lisait 0 flou sur 93 notes dont AUCUNE ne portait un
+//      gramme: un compteur qui dit « tout va bien » est pire qu'un compteur
+//      absent;
+//   ③ 13 bouches dans DEUX boîtes de la même casserole, 3 dans aucune, pendant
+//      que `with_boxes` affichait 100 %;
+//   ④ 5 boîtes écrêtées à 2000 g, `refused: 0`, aucun autre champ.
+// ---------------------------------------------------------------------------
+
+// ── ① · LA PART QUI NE JOINT RIEN ─────────────────────────────────────────
+
+Deno.test("LOT 4C ① — LE CAS QUI PASSE: une part qui cite une VRAIE préparation", () => {
+  // ⛔ ÉCRIT EN PREMIER. Une liste fermée cassée jette tout et ressemble trait
+  // pour trait à une liste fermée qui marche.
+  const { portions, issues, shareCounts } = reconcilePortions(
+    [ZOE_M],
+    [{
+      member_id: ZOE,
+      portion_note: "Your box: 150 g of the chicken",
+      preparation_shares: [{ preparation_id: "prep_chicken", note: "150 g de poulet" }],
+    }],
+    ["prep_chicken"],
+  );
+  assertEquals(portions[0].preparationShares, [
+    { preparationId: "prep_chicken", note: "150 g de poulet" },
+  ]);
+  assertEquals(shareCounts, { shares: 1, unknown: 0 });
+  assertEquals(issues, []);
+});
+
+Deno.test("LOT 4C ① — une part ORPHELINE est jetée, comptée, nommée — et rien d'autre ne tombe", () => {
+  // ⚠️ LA FIXTURE EST CELLE DU PLAN RÉEL `45bc8a52`: le plan portait
+  // `prep_chicken_tray`, les six bouches citaient `prep_chicken_roast`,
+  // `prep_rice_batch`, `prep_veg_tray`. Dix-huit parts sur dix-huit orphelines.
+  const { portions, issues, shareCounts, vagueCounts } = reconcilePortions(
+    [ZOE_M, NINA_M],
+    [
+      {
+        member_id: ZOE,
+        portion_note: "Your box: 150 g of the chicken",
+        preparation_shares: [
+          { preparation_id: "prep_chicken_roast", note: "200 g de poulet" },
+          { preparation_id: "prep_chicken_tray", note: "180 g de poulet" },
+        ],
+      },
+      {
+        member_id: NINA,
+        preparation_shares: [{ preparation_id: "prep_rice_batch", note: "120 g de riz" }],
+      },
+    ],
+    ["prep_chicken_tray"],
+  );
+  // La part qui joint SURVIT; les deux orphelines tombent.
+  assertEquals(portions[0].preparationShares, [
+    { preparationId: "prep_chicken_tray", note: "180 g de poulet" },
+  ]);
+  assertEquals(portions[1].preparationShares, []);
+  assertEquals(shareCounts, { shares: 1, unknown: 2 });
+  // ⛔ LA CONSIGNE PRINCIPALE DE LA BOUCHE N'EST PAS PERDUE: une part orpheline
+  // ne rejette ni la personne, ni sa note, ni le plan.
+  assertEquals(portions[0].portionNote, "Your box: 150 g of the chicken");
+  // ⚠️ ET ELLE NE GONFLE PAS LE DÉNOMINATEUR DU FLOU: une note qui ne sera
+  // jamais rendue n'est pas une consigne. Deux notes examinées, pas quatre.
+  assertEquals(vagueCounts.notes, 2);
+  assert(
+    issues.includes(`share_for_unknown_preparation:${ZOE}:prep_chicken_roast`),
+    issues.join("\n"),
+  );
+  assert(
+    issues.includes(`share_for_unknown_preparation:${NINA}:prep_rice_batch`),
+    issues.join("\n"),
+  );
+});
+
+Deno.test("LOT 4C ① — la liste fermée est celle des préparations GARDÉES", () => {
+  // Une préparation refusée par le parseur (ici: `servings_made` à 1) n'existe
+  // plus dans le plan. Une part qui la cite ne joindrait rien à l'écran, et
+  // c'est le même défaut qu'une part orpheline — donc le même sort.
+  const meal = parse({
+    preparations: [
+      prep({ boxes: [{ id: "b1", member_ids: [ZOE], grams: 120 }] }),
+      prep({ id: "prep_solo", title: "Une assiette", servings_made: 1 }),
+    ],
+    dishes: [dish()],
+    shopping_list: [],
+  });
+  assertEquals(meal.preparations.map((p) => p.id), ["prep_chicken"]);
+  const { shareCounts } = reconcilePortions(
+    [ZOE_M],
+    [{
+      member_id: ZOE,
+      preparation_shares: [{ preparation_id: "prep_solo", note: "150 g" }],
+    }],
+    // ⛔ EXACTEMENT CE QUE L'APPELANT PASSE: `meal.preparations.map(p => p.id)`,
+    // la sortie du parseur — jamais ce que le modèle a déclaré.
+    meal.preparations.map((p) => p.id),
+  );
+  assertEquals(shareCounts, { shares: 0, unknown: 1 });
+});
+
+// ── ② · LE GRAMME DANS LA CONSIGNE ────────────────────────────────────────
+
+Deno.test("LOT 4C ② — `portionCarriesAQuantity` voit un chiffre, dans les DEUX langues", () => {
+  // ⛔ LE CAS QUI PASSE D'ABORD, dans les deux langues, et le cas qui ne passe
+  // pas juste après. Sans les deux, ce compteur est indiscernable d'un
+  // compteur bloqué.
+  for (
+    const yes of [
+      "Your box: 150 g of the chicken",
+      "Ta boîte : 150 g de poulet",
+      "Prends 80 g de pâtes sèches en plus",
+      "add 2 tbsp of the sauce",
+      "250ml de bouillon",
+      "1,5 kg pour la table",
+      "Sers-lui 200 grammes de riz",
+      "serve 200 grams of rice",
+    ]
+  ) {
+    assert(portionCarriesAQuantity(yes), `devrait compter: ${yes}`);
+  }
+  for (
+    const no of [
+      // ⚠️ LES SEPT PREMIÈRES SONT LES TOURNURES RÉELLES du 2026-08-17, copiées
+      // des 93 notes qui ont rendu `vague: 0`. Elles ne portent AUCUN mot de
+      // `VAGUE_PORTION_TERMS` — c'est très exactement pourquoi ce compteur-ci
+      // existe à côté et non à la place.
+      "One standard table portion.",
+      "Balanced share of the shared dish.",
+      "Child-size share of the same dish.",
+      "Small portion of pasta and sauce.",
+      "Slightly more vegetables, standard pasta and sauce.",
+      "Take the family box portion with more vegetables and less starch.",
+      "Serve a larger protein and starch share with the same vegetable side.",
+      // ⚠️ « 3 cm » N'EST PAS UNE PART: c'est une consigne de découpe, et la
+      // compter gonflerait le taux avec des phrases qui ne disent rien de
+      // combien on mange.
+      "Coupe les carottes en morceaux de 3 cm",
+      "",
+    ]
+  ) {
+    assert(!portionCarriesAQuantity(no), `ne devrait pas compter: ${no}`);
+  }
+  assert(!portionCarriesAQuantity(null));
+});
+
+Deno.test("LOT 4C ② — `quantified` compte les notes chiffrées, `vague` ne le remplace pas", () => {
+  // ⛔ LE DÉFAUT, REPRODUIT: trois notes sans un seul mot flou et sans un seul
+  // gramme. Avant ce lot, ce plan-là lisait `{notes: 3, vague: 0}` — un feu
+  // vert. Il lit maintenant `quantified: 0`, ce qui est le fait.
+  const molles = reconcilePortions(
+    [ZOE_M, NINA_M, MARC_M],
+    [
+      { member_id: ZOE, portion_note: "One standard table portion." },
+      { member_id: NINA, portion_note: "Balanced share of the shared dish." },
+      { member_id: MARC, portion_note: "Child-size share of the same dish." },
+    ],
+    [],
+  );
+  assertEquals(molles.vagueCounts, { notes: 3, vague: 0, quantified: 0 });
+
+  const chiffrees = reconcilePortions(
+    [ZOE_M, NINA_M, MARC_M],
+    [
+      { member_id: ZOE, portion_note: "Your box: 150 g of the chicken" },
+      { member_id: NINA, portion_note: "Ta boîte : 220 g de poulet" },
+      { member_id: MARC, portion_note: "Une part comme d'habitude" },
+    ],
+    [],
+  );
+  assertEquals(chiffrees.vagueCounts, { notes: 3, vague: 0, quantified: 2 });
+});
+
+Deno.test("LOT 4C ② — le brief DEMANDE le chiffre, avec le nombre et l'échappatoire", () => {
+  // ⚠️ TROIS APPELS, TROIS NOMBRES ÉCRITS EN LITTÉRAL: un test paramétré par la
+  // même expression que le code resterait vert si la consigne cessait de
+  // compter les bouches.
+  const deux = buildPortionBrief([ZOE_M, NINA_M], "one_dish", 0);
+  const trois = buildPortionBrief([ZOE_M, NINA_M, MARC_M], "one_dish", 0);
+  assert(deux.includes("carries a number and a unit"), deux);
+  assert(deux.includes("All 2 of them, not some."), deux);
+  assert(trois.includes("All 3 of them, not some."), trois);
+  // L'ÉCHAPPATOIRE NOMMÉE, LITTÉRALEMENT: les tournures que le modèle a
+  // réellement écrites lui sont renvoyées — « take your box » comprise, mesurée
+  // le 2026-08-17 sur un run où le modèle NOMMAIT la boîte sans jamais répéter
+  // son poids (0 gramme sur 16 notes, alors que les 12 boîtes en portaient un).
+  assert(deux.includes('"A standard portion"'), deux);
+  assert(deux.includes('"take your box"'), deux);
+  assert(deux.includes("even when a box already holds them"), deux);
+  // ⛔ COLLÉ À LA PROMESSE. La consigne suit IMMÉDIATEMENT la phrase qui promet
+  // l'instruction de service — c'est la moitié du lot que 3C a payée.
+  const promesse = deux.indexOf("give a short serving instruction");
+  const chiffre = deux.indexOf("carries a number and a unit");
+  const membres = deux.indexOf("- Zoé:");
+  assert(promesse >= 0 && chiffre > promesse && chiffre < membres, deux);
+});
+
+Deno.test("LOT 4C ② — un foyer d'UNE bouche voit la consigne du chiffre, PAS celle des boîtes", () => {
+  // ⚠️ LA POPULATION S'ÉLARGIT, ET C'EST ÉCRIT: « des quantités précises pour
+  // chaque personne » ne s'arrête pas à deux habitants. Le protocole des
+  // BOÎTES, lui, reste muet sous deux bouches — il parle d'ids à départager.
+  const solo = buildPortionBrief([ZOE_M], "one_dish", 0);
+  assert(solo.includes("carries a number and a unit"), solo);
+  assert(solo.includes("All 1 of them, not some."), solo);
+  assert(!solo.includes("WEIGH IT ONCE"), solo);
+});
+
+Deno.test("LOT 4C ② — l'interdit du POURQUOI reste les TROIS DERNIÈRES lignes", () => {
+  // ⛔ C'EST PRÉCISÉMENT QUAND LE BRIEF SE MET À RÉCLAMER DES NOMBRES que cette
+  // phrase doit rester la dernière chose lue.
+  const brief = buildPortionBrief([ZOE_M, NINA_M, MARC_M], "one_dish", 0);
+  assertEquals(brief.split("\n").slice(-3), [
+    "NEVER state a reason, a goal, a calorie count or anything about a person's",
+    "body in these instructions. They are read aloud at the table by the whole",
+    "household. Write what to serve, never why.",
+  ]);
+});
+
+Deno.test("LOT 4C ② — un gramme passe la ceinture de CORPS, un pourquoi ne passe pas", () => {
+  // La frontière de P4, rejouée sur les phrases que la consigne neuve invite le
+  // modèle à écrire. Les grammes d'ALIMENT sont des quantités; le reste est un
+  // verdict, et il meurt — dans les deux langues.
+  assertEquals(
+    sanitizePortionNote("150 g of the chicken, 80 g of dry pasta").note,
+    "150 g of the chicken, 80 g of dry pasta",
+  );
+  assertEquals(sanitizePortionNote("150 g de poulet, 80 g de pâtes").note, "150 g de poulet, 80 g de pâtes");
+  assertEquals(sanitizePortionNote("150 g parce que tu vises une perte de poids").note, null);
+  assertEquals(sanitizePortionNote("150 g for your weight loss").note, null);
+});
+
+// ── ③ · UNE BOUCHE, UNE BOÎTE ─────────────────────────────────────────────
+
+Deno.test("LOT 4C ③ — LE CAS QUI PASSE: chaque bouche dans exactement une boîte", () => {
+  const meal = parse({
+    preparations: [prep({
+      boxes: [
+        { id: "b_zoe", member_ids: [ZOE], grams: 120 },
+        { id: "b_nina", member_ids: [NINA], grams: 200 },
+        { id: "b_marc", member_ids: [MARC], grams: 180 },
+      ],
+    })],
+    dishes: [dish()],
+    shopping_list: [],
+  });
+  assertEquals(meal.box_counts.mouth_slots, 3);
+  assertEquals(meal.box_counts.mouths_unboxed, 0);
+  assertEquals(meal.box_counts.mouths_double, 0);
+  assert(
+    !meal.issues.some((i) => i.includes("has no box on") || i.includes("two weights")),
+    meal.issues.join("\n"),
+  );
+});
+
+Deno.test("LOT 4C ③ — une bouche EN DOUBLE et une bouche SANS boîte sont comptées et nommées", () => {
+  // ⚠️ LA FIXTURE EST LE PLAN RÉEL: une boîte « famille » qui liste tout le
+  // monde, PLUS une boîte individuelle pour deux d'entre eux. Zoé et Nina
+  // lisent alors DEUX poids sous la même casserole; Marc, lui, n'a que la
+  // boîte de table — donc exactement une, et il ne compte nulle part.
+  const meal = parse({
+    preparations: [prep({
+      boxes: [
+        { id: "b_table", member_ids: [ZOE, NINA, MARC], grams: 400 },
+        { id: "b_zoe", member_ids: [ZOE], grams: 120 },
+        { id: "b_nina", member_ids: [NINA], grams: 200 },
+      ],
+    })],
+    dishes: [dish()],
+    shopping_list: [],
+  });
+  assertEquals(meal.box_counts.mouth_slots, 3);
+  assertEquals(meal.box_counts.mouths_double, 2);
+  assertEquals(meal.box_counts.mouths_unboxed, 0);
+  // ⛔ RIEN N'EST REJETÉ: les trois boîtes sont écrites, la préparation vit.
+  assertEquals(meal.preparations[0].boxes.length, 3);
+  assertEquals(meal.box_counts.refused, 0);
+  assert(
+    meal.issues.some((i) => i.includes(`${ZOE}`) && i.includes("is in 2 boxes")),
+    meal.issues.join("\n"),
+  );
+  assert(
+    meal.issues.some((i) => i.includes("two weights for one pan")),
+    meal.issues.join("\n"),
+  );
+});
+
+Deno.test("LOT 4C ③ — une bouche SANS aucune boîte de la casserole est comptée et nommée", () => {
+  const meal = parse({
+    preparations: [prep({
+      boxes: [
+        { id: "b_zoe", member_ids: [ZOE], grams: 120 },
+        { id: "b_nina", member_ids: [NINA], grams: 200 },
+      ],
+    })],
+    dishes: [dish()],
+    shopping_list: [],
+  });
+  assertEquals(meal.box_counts.mouth_slots, 3);
+  assertEquals(meal.box_counts.mouths_unboxed, 1, "Marc n'a rien à sortir du frigo");
+  assertEquals(meal.box_counts.mouths_double, 0);
+  assert(
+    meal.issues.some((i) => i.includes(`${MARC}`) && i.includes("has no box on")),
+    meal.issues.join("\n"),
+  );
+});
+
+Deno.test("LOT 4C ③ — `mouth_slots` compte les préparations À BOÎTES, pas toutes", () => {
+  // ⚠️ UNE PRÉPARATION SANS AUCUNE BOÎTE EST DÉJÀ COMPTÉE PAR `with_boxes`.
+  // L'inclure ici ferait dire deux fois le même défaut par deux compteurs, et
+  // `mouths_unboxed` exploserait sur un plan dont une seule casserole manque.
+  const meal = parse({
+    preparations: [
+      prep({ boxes: [{ id: "b_all", member_ids: [ZOE, NINA, MARC], grams: 400 }] }),
+      prep({ id: "prep_rice", title: "Rice batch" }),
+    ],
+    dishes: [dish()],
+    shopping_list: [],
+  });
+  assertEquals(meal.box_counts.preparations, 2);
+  assertEquals(meal.box_counts.with_boxes, 1);
+  assertEquals(meal.box_counts.mouth_slots, 3, "3 bouches × 1 casserole à boîtes");
+  assertEquals(meal.box_counts.mouths_unboxed, 0);
+});
+
+Deno.test("LOT 4C ③ — LANE INDIVIDUELLE: aucun dénominateur inventé", () => {
+  const meal = parse(
+    {
+      preparations: [prep({ boxes: [{ id: "b1", member_ids: [ZOE], grams: 200 }] })],
+      dishes: [dish()],
+      shopping_list: [],
+    },
+    { boxMemberIds: [] },
+  );
+  assertEquals(meal.box_counts.mouth_slots, 0);
+  assertEquals(meal.box_counts.mouths_unboxed, 0);
+  assertEquals(meal.box_counts.mouths_double, 0);
+});
+
+Deno.test("LOT 4C ③ — le brief dit ce que `grams` désigne, et « exactement une boîte »", () => {
+  const brief = buildPortionBrief([ZOE_M, NINA_M], "one_dish", 0);
+  assert(brief.includes('"grams" is what ONE person takes out'), brief);
+  assert(brief.includes("never the size of the tub"), brief);
+  assert(brief.includes("exactly ONE box of each"), brief);
+  assert(brief.includes("never two, never none"), brief);
+  // L'ancienne rédaction ambiguë est PARTIE, pas doublée.
+  assert(!brief.includes("ONE box may carry both their ids"), brief);
+});
+
+// ── ④ · L'ÉCRÊTAGE, COMPTÉ ────────────────────────────────────────────────
+
+Deno.test("LOT 4C ④ — une boîte écrêtée est COMPTÉE, gardée, et jamais « refusée »", () => {
+  // ⚠️ L'ENTRÉE EST `BOX_MAX_GRAMS + 500`: muter la constante déplace l'entrée
+  // ET la sortie ensemble, donc le littéral juste en dessous est ce qui tient
+  // le test — patron du test d'écrêtage écrit par le premier passage.
+  assertEquals(BOX_MAX_GRAMS, 2000);
+  const meal = parse({
+    preparations: [prep({
+      boxes: [
+        { id: "b_huge", member_ids: [ZOE], grams: BOX_MAX_GRAMS + 500 },
+        { id: "b_ok", member_ids: [NINA], grams: 200 },
+      ],
+    })],
+    dishes: [dish()],
+    shopping_list: [],
+  });
+  assertEquals(meal.box_counts.capped, 1, "l'écrêtage n'est plus silencieux");
+  assertEquals(meal.box_counts.refused, 0, "une boîte écrêtée n'est PAS refusée");
+  assertEquals(meal.box_counts.boxes, 2);
+  assertEquals(meal.preparations[0].boxes[0].grams, 2000);
+});
+
+Deno.test("LOT 4C ④ — un plan sans écrêtage lit ZÉRO (le compteur n'est pas bloqué à 1)", () => {
+  const meal = parse({
+    preparations: [prep({
+      boxes: [{ id: "b_ok", member_ids: [ZOE], grams: BOX_MAX_GRAMS }],
+    })],
+    dishes: [dish()],
+    shopping_list: [],
+  });
+  assertEquals(meal.box_counts.capped, 0, "exactement au plafond n'est pas un écrêtage");
+  assertEquals(meal.preparations[0].boxes[0].grams, BOX_MAX_GRAMS);
 });

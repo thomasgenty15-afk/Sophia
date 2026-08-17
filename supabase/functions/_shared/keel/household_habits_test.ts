@@ -387,6 +387,16 @@ Deno.test("SANS HABITUDE, LE BRIEF EST CELUI D'AVANT LE LOT G, À L'OCTET PRÈS"
       "Cook ONE set of preparations for everyone. Do NOT propose separate dishes.",
       "For each person below, give a short serving instruction: how much of which",
       "component goes on their plate, and which side is added or dropped.",
+      // ── LOT 4C ② (2026-08-17) · LE CHIFFRE DANS LA CONSIGNE ──────────────
+      // Le sujet du test n'a toujours pas changé — « sans habitude, aucun
+      // fragment d'habitude » — et les deux lignes de membres plus bas le
+      // prouvent toujours. Ces quatre lignes sont servies à TOUT foyer, à une
+      // bouche comme à six: 93 notes réelles ne portaient aucun gramme, et
+      // c'est la consigne qui manquait, pas le vocabulaire de la ceinture.
+      "Every one of those instructions carries a number and a unit: 150 g of the",
+      "chicken, 80 g of dry pasta, 2 tbsp of the sauce. All 2 of them, not some.",
+      '"A standard portion", "a balanced share", "take your box" tell nobody how',
+      "much to put on a plate: write the grams, even when a box already holds them.",
       "",
       "- Christèle: balanced share of every component",
       "- Thomas: larger protein and starch share, same vegetables",
@@ -410,8 +420,15 @@ Deno.test("SANS HABITUDE, LE BRIEF EST CELUI D'AVANT LE LOT G, À L'OCTET PRÈS"
       "That is 2 people to weigh out on EVERY preparation: Christèle, Thomas.",
       "Count them before you answer — a person missing from a preparation's boxes",
       "is a person standing at the fridge with nothing that says how much.",
-      "When two of them get the same weight, ONE box may carry both their ids; when",
-      "their shares differ, they get one box each, with different grams.",
+      // ── LOT 4C ③ · CE QUE `grams` DÉSIGNE, ET UNE SEULE BOÎTE PAR BOUCHE ─
+      // EN REMPLACEMENT des deux lignes de v14, pas en ajout. Treize bouches se
+      // sont retrouvées dans deux boîtes de la même casserole, trois dans
+      // aucune, et `grams` ne disait pas s'il valait pour une personne ou pour
+      // le bac.
+      '"grams" is what ONE person takes out, never the size of the tub. Two people',
+      "on the same weight share ONE box that lists both ids; when their shares",
+      "differ they get one box each. Every name above is in exactly ONE box of each",
+      "preparation -- never two, never none.",
       "A line in member_portions is NOT a box. It is a sentence read aloud at the",
       "table; a box has a weight and a name on it, and it is what stops the weighing",
       "from happening again at every meal. Writing the serving instruction instead",
