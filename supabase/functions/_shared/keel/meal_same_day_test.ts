@@ -282,6 +282,49 @@ Deno.test("LOT 2 — `none` sur un plat qui puise dans un lot est NOMMÉ, pas re
   );
 });
 
+Deno.test("LOT 2 — `none` qui annonce une durée est NOMMÉ (mesuré en run réel)", () => {
+  // ⚠️ CE CONSTAT VIENT D'UN RUN RÉEL, PAS D'UNE HYPOTHÈSE (2026-08-17, plan
+  // foyer `6620682c`, 24 plats): DEUX plats portaient `{kind:"none",minutes:5}`
+  // — « Apple and peanut butter » et « Hummus and carrot sticks ». L'écran
+  // compose le libellé du jeton avec la durée et rend « Rien à préparer —
+  // 5 min », qui se contredit dans la même ligne. Le modèle lit `none` comme
+  // « rien à CUIRE »; le prompt dit « rien à FAIRE ».
+  const meal = parse({
+    preparations: [],
+    dishes: [dish({ uses: [], same_day: { kind: "none", minutes: 5 } })],
+    shopping_list: [],
+  });
+  // NOMMÉ, JAMAIS REJETÉ — la posture des deux constats du dessus.
+  assertEquals(meal.dishes.length, 1);
+  assertEquals(meal.dishes[0].sameDay, { kind: "none", minutes: 5 });
+  assertEquals(meal.same_day_counts.declared, 1);
+  assertEquals(meal.same_day_counts.invalid, 0);
+  assert(
+    meal.issues.some((i) => i.includes("nothing to prepare cannot take time")),
+    `la contradiction n'est pas nommée: ${meal.issues.join(" | ")}`,
+  );
+});
+
+Deno.test("LOT 2 — `none` à zéro minute ne déclenche RIEN (le cas qui passe)", () => {
+  // ⛔ SANS CE TEST, LE CONSTAT DU DESSUS SERAIT UNE GARDE SANS CAS PASSANT:
+  // un constat qui se déclencherait sur TOUS les `none` bloquerait la lecture
+  // en ayant l'air de marcher. `none` + `0` et `none` + absence de durée sont
+  // les deux formes JUSTES, et ni l'une ni l'autre ne doit être nommée.
+  for (const sd of [{ kind: "none", minutes: 0 }, { kind: "none" }]) {
+    const meal = parse({
+      preparations: [],
+      dishes: [dish({ uses: [], same_day: sd })],
+      shopping_list: [],
+    });
+    assertEquals(meal.dishes[0].sameDay?.kind, "none");
+    assert(
+      !meal.issues.some((i) => i.includes("nothing to prepare cannot take time")),
+      `un \`none\` juste a été nommé à tort (${JSON.stringify(sd)}): ` +
+        meal.issues.join(" | "),
+    );
+  }
+});
+
 // ---------------------------------------------------------------------------
 // LE COMPTEUR — LA MÊME POPULATION DES QUATRE CÔTÉS
 // ---------------------------------------------------------------------------

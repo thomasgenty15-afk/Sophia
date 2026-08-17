@@ -3206,12 +3206,13 @@ export function parseGeneratedMeal(
         sameDay = { kind: kindRaw as SameDayKind, minutes };
 
         // ── LA COHÉRENCE DOUCE: COMPTÉE, NOMMÉE, JAMAIS REJETÉE ───────────
-        // Deux contradictions que la donnée porte déjà et que personne ne
+        // Trois contradictions que la donnée porte déjà et que personne ne
         // lisait: un plat qui dit « juste réchauffer » sans rien à réchauffer,
-        // et un plat qui dit « rien à préparer » en puisant dans un lot. Ni
-        // l'un ni l'autre ne rend le plan inexécutable — on ne peut pas savoir
-        // laquelle des deux moitiés a tort — donc c'est un CONSTAT, du même
-        // rang que `protein_anchor_missing`.
+        // un plat qui dit « rien à préparer » en puisant dans un lot, et un
+        // plat qui dit « rien à préparer » en annonçant une durée. Aucune ne
+        // rend le plan inexécutable — on ne peut pas savoir laquelle des deux
+        // moitiés a tort — donc c'est un CONSTAT, du même rang que
+        // `protein_anchor_missing`.
         if (sameDay.kind === "reheat_only" && uses.length === 0) {
           issues.push(
             `dishes[${i}]: same_day says reheat_only but the dish uses no ` +
@@ -3222,6 +3223,25 @@ export function parseGeneratedMeal(
           issues.push(
             `dishes[${i}]: same_day says none but the dish draws on ` +
               `${uses.length} preparation(s) -- at least the box comes out`,
+          );
+        }
+        // ⚠️ MESURÉ EN RUN RÉEL LE 2026-08-17, ET C'EST POURQUOI CE TROISIÈME
+        // CONSTAT EXISTE. Sur un plan foyer de 24 plats, DEUX portaient
+        // `{kind: "none", minutes: 5}` — « Apple and peanut butter »,
+        // « Hummus and carrot sticks ». L'écran compose alors le libellé du
+        // jeton avec la durée et rend « Rien à préparer — 5 min », qui se
+        // contredit dans la même ligne. Le modèle lit `none` comme « rien à
+        // CUIRE » là où le prompt dit « rien à FAIRE »; le geste réel de ces
+        // deux plats est `assemble`.
+        //
+        // Compté, jamais rejeté, pour la raison des deux constats du dessus: on
+        // ne sait pas laquelle des deux moitiés a tort — la durée peut être
+        // juste et le jeton faux. C'est le prompt qu'il faudra resserrer, et ce
+        // constat est ce qui rendra le resserrage mesurable.
+        if (sameDay.kind === "none" && sameDay.minutes !== null && sameDay.minutes > 0) {
+          issues.push(
+            `dishes[${i}]: same_day says none but announces ` +
+              `${sameDay.minutes} minute(s) -- nothing to prepare cannot take time`,
           );
         }
       }
