@@ -45,14 +45,14 @@ const KID = person({ memberId: "mem-kid", displayName: "Kid" });
 
 describe("LOT 3 · la séparation d'un moment", () => {
   it("un seul plat commun ⇒ AUCUNE séparation, et le moment ne paie rien", () => {
-    const [group] = groupDayBySlot({ dishes: [dish()], portions: [ZOE, KID] });
+    const [group] = groupDayBySlot({ preparations: [], dishes: [dish()], portions: [ZOE, KID] });
     expect(group.separated).toBe(false);
     expect(group.table).toHaveLength(1);
     expect(group.people).toHaveLength(0);
   });
 
   it("⛔ un plat de la table + un plat dédié ⇒ DEUX voies, nommées", () => {
-    const groups = groupDayBySlot({
+    const groups = groupDayBySlot({ preparations: [],
       dishes: [dish(), dish({ member_id: "mem-zoe" })],
       portions: [ZOE, KID],
     });
@@ -65,7 +65,7 @@ describe("LOT 3 · la séparation d'un moment", () => {
   });
 
   it("deux bouches, deux plats dédiés ⇒ une voie chacune, dans l'ordre du plan", () => {
-    const [group] = groupDayBySlot({
+    const [group] = groupDayBySlot({ preparations: [],
       dishes: [dish({ member_id: "mem-kid" }), dish({ member_id: "mem-zoe" })],
       portions: [ZOE, KID],
     });
@@ -90,7 +90,7 @@ describe("LOT 3 · la séparation d'un moment", () => {
     // trouverait rien et ce test resterait vert en ne prouvant RIEN — la
     // mutation ne mordait pas, mesuré le 2026-08-17.
     const ZOE_AS_WRITTEN = person({ displayName: "Zoe" });
-    const [group] = groupDayBySlot({
+    const [group] = groupDayBySlot({ preparations: [],
       dishes: [dish({ title: named }), dish({ title: named, member_id: "mem-zoe" })],
       portions: [ZOE_AS_WRITTEN, KID],
     });
@@ -100,7 +100,7 @@ describe("LOT 3 · la séparation d'un moment", () => {
   });
 
   it("un plat commun ne se répète JAMAIS sous une bouche", () => {
-    const [group] = groupDayBySlot({
+    const [group] = groupDayBySlot({ preparations: [],
       dishes: [dish(), dish({ member_id: "mem-zoe" })],
       portions: [ZOE, KID],
     });
@@ -114,7 +114,7 @@ describe("LOT 3 · la séparation d'un moment", () => {
   });
 
   it("⚠️ une bouche que le plan ne nomme plus ne devient PAS « la table »", () => {
-    const [group] = groupDayBySlot({
+    const [group] = groupDayBySlot({ preparations: [],
       dishes: [dish(), dish({ member_id: "mem-parti" })],
       portions: [ZOE, KID],
     });
@@ -126,7 +126,7 @@ describe("LOT 3 · la séparation d'un moment", () => {
   });
 
   it("sans aucune part connue, tout se rend à plat — le chemin individuel", () => {
-    const [group] = groupDayBySlot({
+    const [group] = groupDayBySlot({ preparations: [],
       dishes: [dish(), dish({ member_id: "mem-zoe" })],
       portions: [],
     });
@@ -138,7 +138,7 @@ describe("LOT 3 · la séparation d'un moment", () => {
 
 describe("LOT 3 · l'ordre des moments, et rien de perdu", () => {
   it("les moments sortent dans l'ordre de la JOURNÉE, pas dans celui du modèle", () => {
-    const groups = groupDayBySlot({
+    const groups = groupDayBySlot({ preparations: [],
       dishes: [
         dish({ slot: "dinner", title: "Chicken" }),
         dish({ slot: "breakfast", title: "Yogurt" }),
@@ -152,7 +152,7 @@ describe("LOT 3 · l'ordre des moments, et rien de perdu", () => {
   it("⚠️ un moment INCONNU passe en queue, et un plat sans moment ferme la marche", () => {
     // `snack` n'est plus proposé, et des plats en base le portent: l'écarter
     // ferait disparaître un plat d'un plan vivant.
-    const groups = groupDayBySlot({
+    const groups = groupDayBySlot({ preparations: [],
       dishes: [
         dish({ slot: "snack" as GeneratedDish["slot"], title: "Nuts" }),
         dish({ slot: null, title: "Water" }),
@@ -182,20 +182,28 @@ describe("LOT 3 · les parts, sous le plat qu'elles servent", () => {
   });
 
   it("⛔ la part de chaque bouche se lit SOUS le plat, jointe par `preparation_id`", () => {
-    const [group] = groupDayBySlot({
+    const [group] = groupDayBySlot({ preparations: [],
       dishes: [bowls],
       portions: [zoeShare, kidShare],
     });
     expect(group.table[0].shares).toEqual([
-      { memberId: "mem-zoe", name: "Zoé", note: "2 portions of chicken" },
-      { memberId: "mem-kid", name: "Kid", note: "1 small portion of chicken" },
+      // LOT 4 — `boxGrams` est vide ici, et c'est le CAS QUI PASSE: aucune
+      // préparation n'a de boîte dans cette fixture, donc la part reste la
+      // phrase seule, exactement comme avant ce lot.
+      { memberId: "mem-zoe", name: "Zoé", note: "2 portions of chicken", boxGrams: [] },
+      {
+        memberId: "mem-kid",
+        name: "Kid",
+        note: "1 small portion of chicken",
+        boxGrams: [],
+      },
     ]);
   });
 
   it("⚠️ LE SILENCE EST VOULU — un plat qui ne puise dans rien n'a aucune ligne", () => {
     // Le petit-déjeuner se fait de zéro: aucune bouche n'a de part pour lui.
     // Fabriquer « comme la table » ferait dire au moteur ce qu'il n'a pas dit.
-    const [group] = groupDayBySlot({
+    const [group] = groupDayBySlot({ preparations: [],
       dishes: [dish()],
       portions: [zoeShare, kidShare],
     });
@@ -203,7 +211,7 @@ describe("LOT 3 · les parts, sous le plat qu'elles servent", () => {
   });
 
   it("une bouche sans part pour CE lot n'a pas de ligne, les autres si", () => {
-    const [group] = groupDayBySlot({
+    const [group] = groupDayBySlot({ preparations: [],
       dishes: [bowls],
       portions: [zoeShare, person({ memberId: "mem-kid", displayName: "Kid" })],
     });
@@ -219,17 +227,17 @@ describe("LOT 3 · les parts, sous le plat qu'elles servent", () => {
    * littérales (1, puis 2). Monter `SHARES_MIN_MOUTHS` à 3 le fait tomber.
    */
   it("⛔ à une seule bouche, aucune part — et à deux, elles reviennent", () => {
-    const alone = groupDayBySlot({ dishes: [bowls], portions: [zoeShare] });
+    const alone = groupDayBySlot({ preparations: [], dishes: [bowls], portions: [zoeShare] });
     expect(alone[0].table[0].shares, "une part récitée à une seule bouche")
       .toEqual([]);
-    const pair = groupDayBySlot({ dishes: [bowls], portions: [zoeShare, kidShare] });
+    const pair = groupDayBySlot({ preparations: [], dishes: [bowls], portions: [zoeShare, kidShare] });
     expect(pair[0].table[0].shares.length, "le plancher bloque tout").toBe(2);
     // Le plancher est bien celui que le module publie, et il vaut deux.
     expect(SHARES_MIN_MOUTHS).toBe(2);
   });
 
   it("un plat DÉDIÉ porte la part du lot qu'il prélève, pour SA bouche", () => {
-    const [group] = groupDayBySlot({
+    const [group] = groupDayBySlot({ preparations: [],
       dishes: [{ ...bowls, member_id: "mem-zoe" }],
       portions: [zoeShare, kidShare],
     });
@@ -253,7 +261,7 @@ describe("LOT 3 · les parts, sous le plat qu'elles servent", () => {
    * `buildPersonWeek` corrigé par le troisième commit de ce lot.
    */
   it("⛔ au moment où une bouche a SON plat, elle sort des parts de la table", () => {
-    const [group] = groupDayBySlot({
+    const [group] = groupDayBySlot({ preparations: [],
       dishes: [bowls, { ...bowls, title: "Zoé's bowl", member_id: "mem-zoe" }],
       portions: [zoeShare, kidShare],
     });
@@ -267,7 +275,7 @@ describe("LOT 3 · les parts, sous le plat qu'elles servent", () => {
   it("⚠️ LE CAS QUI PASSE — sans plat dédié, la table garde TOUTES ses parts", () => {
     // Sans ce cas, une règle qui couperait toutes les parts ressemblerait
     // trait pour trait à la règle juste: c'est le chemin majoritaire.
-    const [group] = groupDayBySlot({
+    const [group] = groupDayBySlot({ preparations: [],
       dishes: [bowls],
       portions: [zoeShare, kidShare],
     });
@@ -277,7 +285,7 @@ describe("LOT 3 · les parts, sous le plat qu'elles servent", () => {
   it("⚠️ un plat dédié à une bouche que le plan ne nomme plus ne porte AUCUNE part", () => {
     // Aucune bouche nommée ne le mange; lui prêter les parts de la table
     // dirait de lui une chose fausse.
-    const [group] = groupDayBySlot({
+    const [group] = groupDayBySlot({ preparations: [],
       dishes: [{ ...bowls, member_id: "mem-parti" }],
       portions: [zoeShare, kidShare],
     });

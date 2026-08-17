@@ -4,11 +4,15 @@ import {
   type CookingSession,
   type GeneratedDish,
   type MealPreparation,
+  type MemberPortionView,
 } from "../api/mealGeneration";
 import { dishDayLabel, mealCopy } from "../api/mealLabels";
+import { plural } from "../i18n/plural";
+import { boxLinesFor } from "../lib/preparationBoxes";
 import { daysFedBy } from "../lib/planGridModel";
 import { Card } from "./ui/Card";
 import Modal from "./ui/Modal";
+import { BoxTable } from "./plan/BoxTable";
 
 // LES SESSIONS DE CUISINE — quand on cuisine, et dans quel ordre.
 //
@@ -66,9 +70,23 @@ import Modal from "./ui/Modal";
 // `docs/keel/CHARTE-VITRINE.md` §2.
 
 export default function CookingSessions(
-  { sessions, preparations, dishes, open, onClose }: {
+  { sessions, preparations, dishes, portions = [], open, onClose }: {
     sessions: readonly CookingSession[];
     preparations: readonly MealPreparation[];
+    /**
+     * ── LOT 4 · LES PARTS, POUR LES PRÉNOMS DES BOÎTES ────────────────────
+     *
+     * ⚠️ POUR LES PRÉNOMS, ET POUR RIEN D'AUTRE. `member_portions[].display_name`
+     * EST le prénom de la ligne membre (F5, recopié par le moteur), et c'est la
+     * seule source de prénom autorisée sur ce chemin — jamais un titre de plat,
+     * jamais un prénom deviné dans une phrase.
+     *
+     * `[]` par défaut, et le défaut est le cas majoritaire: un plan personnel
+     * n'a aucune part, un lecteur qui n'en a pas non plus. La table de pesée
+     * rend alors ses grammes sans nom — l'instruction reste vraie — plutôt que
+     * de disparaître ou d'afficher un identifiant.
+     */
+    portions?: readonly MemberPortionView[];
     /**
      * ── CE QUE `KitchenBlock` PORTAIT, ET QU'IL EMPORTAIT EN PARTANT ───────
      *
@@ -154,27 +172,73 @@ export default function CookingSessions(
                 </p>
               )}
 
-              {preps.map((prep) => {
-                const feeds = daysFedBy(prep.id, dishes);
-                return (
-                <div
+              {preps.map((prep) => (
+                <SessionPreparation
                   key={prep.id}
+                  prep={prep}
+                  feeds={daysFedBy(prep.id, dishes)}
+                  portions={portions}
+                  open={openPreps.has(prep.id)}
+                  onToggle={() => togglePrep(prep.id)}
+                />
+              ))}
+            </Card>
+          );
+        })}
+      </div>
+    </Modal>
+  );
+}
+
+/**
+ * UNE PRÉPARATION DANS SA SESSION — et elle est EXPORTÉE pour une seule raison.
+ *
+ * ⚠️ `ui/Modal` REND PAR `createPortal` VERS `document.body`, et ce dépôt teste
+ * en environnement `node` (`vitest.config.ts`, ni jsdom ni testing-library): la
+ * fenêtre entière ne peut PAS être montée par `renderToStaticMarkup`. Sans cette
+ * extraction, la table de pesée et le pluriel réparé ne seraient vérifiables que
+ * par des littéraux de source — et deux vérificateurs de ce chantier ont trouvé
+ * cette semaine des tests de source VERTS sur du code mort. On teste la valeur
+ * rendue, donc on extrait ce qui se rend.
+ */
+export function SessionPreparation(
+  { prep, feeds, portions, open, onToggle }: {
+    prep: MealPreparation;
+    /** Les jours que cette casserole nourrit. `[]` = préparation orpheline. */
+    feeds: readonly string[];
+    portions: readonly MemberPortionView[];
+    open: boolean;
+    onToggle: () => void;
+  },
+) {
+  return (
+                <div
                   className="mt-4 border-t border-line pt-3 first:border-0"
                 >
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
                     <p className="text-sm font-medium text-ink">
                       {prep.title}
+                      {/* ── LE PLURIEL MORT, RÉPARÉ (LOT 4) ─────────────────
+                          « — 1 servings » s'affichait sur toute préparation
+                          d'UNE portion — le cas NOMINAL aux barreaux ② et ③ de
+                          la fusion, donc précisément sur le plat dédié que le
+                          chantier vient de rendre visible. `plural()` porte la
+                          seule divergence des deux langues (`i18n/plural.ts`:
+                          « 0 jour » contre « 0 days »), et les deux formes
+                          viennent du seed — aucun « s » n'est fabriqué en
+                          code (R7). */}
                       <span className="ml-2 font-normal text-ink-soft">
-                        {mealCopy("meals.sessions.makes").replace(
-                          "{n}",
-                          String(prep.servings_made),
+                        {plural(
+                          prep.servings_made,
+                          mealCopy("meals.sessions.makes_one", { n: prep.servings_made }),
+                          mealCopy("meals.sessions.makes", { n: prep.servings_made }),
                         )}
                       </span>
                     </p>
                     <button
                       type="button"
-                      onClick={() => togglePrep(prep.id)}
-                      aria-expanded={openPreps.has(prep.id)}
+                      onClick={onToggle}
+                      aria-expanded={open}
                       // ⚠️ PAS DE FIGUE ICI, ET C'EST LA FORME DU KIT. Déplier
                       // une recette n'est ni une navigation ni l'action
                       // principale de la fenêtre: c'est le contrôle de texte
@@ -185,7 +249,7 @@ export default function CookingSessions(
                       // disputer avec l'écran qui l'a ouverte.
                       className="shrink-0 text-xs font-medium text-ink-soft underline underline-offset-2 hover:text-ink"
                     >
-                      {openPreps.has(prep.id)
+                      {open
                         ? mealCopy("meals.sessions.recipe_hide")
                         : mealCopy("meals.sessions.recipe_show")}
                     </button>
@@ -234,7 +298,16 @@ export default function CookingSessions(
                     </p>
                   )}
 
-                  {openPreps.has(prep.id) && (
+                  {/* ── LA TABLE DE PESÉE (LOT 4) ────────────────────────────
+                      DEHORS de la recette dépliée, avec les durées et les jours
+                      nourris: c'est une INSTRUCTION DE SESSION — « voilà ce que
+                      tu mets dans quelle boîte » — et on la lit en même temps
+                      qu'on décide de se mettre à cuisiner, pas une fois la
+                      casserole ouverte. La replier obligerait à déplier chaque
+                      préparation pour savoir combien peser. */}
+                  <BoxTable lines={boxLinesFor(prep, portions)} />
+
+                  {open && (
                     <>
                       {prep.ingredients.length > 0 && (
                         <ul className="mt-2 space-y-1">
@@ -257,12 +330,5 @@ export default function CookingSessions(
                     </>
                   )}
                 </div>
-                );
-              })}
-            </Card>
-          );
-        })}
-      </div>
-    </Modal>
   );
 }

@@ -1,6 +1,7 @@
 import {
   EATING_OCCASIONS,
   type GeneratedDish,
+  type MealPreparation,
   type MemberPortionView,
 } from "../api/mealGeneration";
 import { shareFor } from "./planByPersonModel";
@@ -56,6 +57,27 @@ export interface DayShareLine {
   /** Le prénom, tel que la ligne membre l'écrit. Jamais traduit. */
   name: string;
   note: string;
+  /**
+   * LOT 4 — LES GRAMMES DES BOÎTES QUE CE PLAT CITE ET QUI SONT À CETTE BOUCHE.
+   *
+   * ⛔ C'EST LA MOITIÉ QUI REND LA PART EXÉCUTABLE. La note dit « ta part de
+   * poulet »; la boîte dit COMBIEN, et elle le dit sans faire ressortir la
+   * balance — la seule pesée de la semaine a eu lieu à la session de cuisine.
+   *
+   * ⚠️ UN TABLEAU, PAS UN NOMBRE. Un plat peut puiser dans DEUX lots boîtés (le
+   * poulet et le riz), et chacun a sa boîte pour cette bouche. Les additionner
+   * rendrait un nombre qui ne correspond à aucun couvercle; n'en garder qu'un
+   * ferait disparaître l'autre en silence. Ils sont dans l'ordre des `uses`.
+   *
+   * `[]` = ce plat ne cite aucune boîte qui soit à elle, et l'écran se tait —
+   * le cas de tout plan écrit avant le 2026-08-17.
+   *
+   * ⛔ DES GRAMMES D'ALIMENT, ET RIEN D'AUTRE. Ce champ est un nombre de
+   * grammes dans une boîte, du même côté de la frontière que « 400 g de cuisses
+   * de poulet » sur une liste de courses (F7/F8). Aucun objectif, aucun corps,
+   * aucune calorie ne peut structurellement passer par là.
+   */
+  boxGrams: number[];
 }
 
 /** Un plat du jour, et ce que chacun en prend. */
@@ -117,6 +139,19 @@ export function groupDayBySlot(args: {
    * n'a pas à voir les parts — et alors ni prénom ni part ne sortent d'ici.
    */
   portions: readonly MemberPortionView[];
+  /**
+   * LOT 4 — LES PRÉPARATIONS DU PLAN, POUR LES BOÎTES QU'UN PLAT CITE.
+   *
+   * ⚠️ REQUISE, `[]` pour « aucune », jamais `T?`. « Paramètre de garde
+   * optionnel = garde désarmée » est une cicatrice de ce dépôt, et elle vaut ici
+   * telle quelle: un `?` n'aurait fait remonter AUCUN appelant au compilateur,
+   * aucune part n'aurait jamais montré ses grammes, et le lot serait
+   * construit-branché-désarmé sans un seul rouge.
+   *
+   * `[]` = plan sans préparation, ou lecteur qui n'en a pas — et alors aucune
+   * part ne porte de grammes, ce que ces plans-là étaient déjà.
+   */
+  preparations: readonly MealPreparation[];
 }): DaySlotGroup[] {
   const named = new Map(args.portions.map((p) => [p.memberId, p]));
   // LE PLANCHER, APPLIQUÉ UNE FOIS ET AU MODÈLE. Le mettre à l'écran en
@@ -174,6 +209,19 @@ export function groupDayBySlot(args: {
           memberId: p.memberId,
           name: p.displayName,
           note: shareFor(p, { uses: dish.uses.map((u) => u.preparation_id) }),
+          // ── LOT 4 · LES BOÎTES DE CETTE BOUCHE, CITÉES PAR CE PLAT ──────
+          // ⛔ LA JOINTURE EST DOUBLE, ET ELLE EST TOUJOURS PAR ID: le plat
+          // cite un `box_id`, la boîte liste des `member_ids`. Aucun titre,
+          // aucun prénom cherché dans une phrase — « jamais de matcher
+          // maison », et ici une erreur ferait servir 75 g à la place de 200.
+          boxGrams: dish.uses.flatMap((u) => {
+            if (!u.box_id) return [];
+            for (const prep of args.preparations) {
+              const box = prep.boxes.find((b) => b.id === u.box_id);
+              if (box) return box.member_ids.includes(p.memberId) ? [box.grams] : [];
+            }
+            return [];
+          }),
         }))
         // `null` RESTE `null`, ET L'ÉCRAN N'ÉCRIT RIEN À LA PLACE. Fabriquer
         // « comme la table » ferait dire au moteur une chose qu'il n'a pas

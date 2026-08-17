@@ -15,6 +15,8 @@ import { sessionForDish } from "../../lib/dishSession";
 import { groupByAisle } from "../../lib/mealBuilderModel";
 import { type DayMoment } from "../../lib/planDayView";
 import { groupDayBySlot } from "../../lib/planDaySlots";
+import { boxLineForUse, boxLinesFor } from "../../lib/preparationBoxes";
+import { BoxTable } from "./BoxTable";
 import DayPersonSplit from "./DayPersonSplit";
 import DishCard from "../DishCard";
 import { Card } from "../ui/Card";
@@ -105,6 +107,10 @@ export default function PlanDayBlock(props: PlanDayBlockProps) {
   const slotGroups = groupDayBySlot({
     dishes: group.dishes,
     portions: props.portions,
+    // LOT 4 — pour que la part d'une bouche cite SA boîte. Même tableau que
+    // celui qui résout `sources` plus bas: une seule liste de préparations dans
+    // ce bloc, jamais deux.
+    preparations: props.preparations,
   });
   const quiet = group.dishes.length === 0 && sessions.length === 0 &&
     props.wave === null && silences.length === 0;
@@ -150,6 +156,10 @@ export default function PlanDayBlock(props: PlanDayBlockProps) {
             key={`${session.day}-${index}`}
             session={session}
             preparations={props.preparations}
+            // LOT 4 — LES PRÉNOMS DES BOÎTES. Même source que la séparation par
+            // personne juste en dessous (`props.portions`): une seule liste de
+            // bouches pour tout ce bloc, jamais deux.
+            portions={props.portions}
           />
         ))}
         {/* ── LES COURSES DU JOUR ────────────────────────────────────────────
@@ -183,11 +193,25 @@ export default function PlanDayBlock(props: PlanDayBlockProps) {
                 // elle-même dupliquerait la résolution sur les deux écrans qui
                 // la montent.
                 sources={dish.uses
-                  .map((u) =>
-                    props.preparations.find((p) => p.id === u.preparation_id)
+                  .map((u) => ({
+                    use: u,
+                    prep: props.preparations.find((p) => p.id === u.preparation_id),
+                  }))
+                  .filter((e): e is { use: typeof e.use; prep: MealPreparation } =>
+                    Boolean(e.prep)
                   )
-                  .filter((p): p is NonNullable<typeof p> => Boolean(p))
-                  .map((p) => ({ title: p.title, cookOn: p.cook_on }))}
+                  .map(({ use, prep }) => ({
+                    title: prep.title,
+                    cookOn: prep.cook_on,
+                    // ── LOT 4 · LA BOÎTE DE CETTE REPRISE, JOINTE PAR ID ───
+                    // Résolue ICI, comme `title` et `cookOn` juste au-dessus, et
+                    // pour la même raison: le plat ne porte que des
+                    // identifiants, et une carte qui irait les chercher
+                    // elle-même dupliquerait la résolution sur les deux écrans
+                    // qui la montent. La jointure est `uses[].box_id` →
+                    // `preparations[].boxes[].id`, jamais un titre.
+                    box: boxLineForUse(use, props.preparations, props.portions),
+                  }))}
                 tick={props.tick?.(dish, date)}
                 energy={props.energy?.(dish) ?? null}
                 // ── LA SESSION QUI A FAIT SON LOT (2026-08-14) ───────────────
@@ -260,15 +284,21 @@ export default function PlanDayBlock(props: PlanDayBlockProps) {
 function DaySessionCard(props: {
   session: CookingSession;
   preparations: readonly MealPreparation[];
+  portions: readonly MemberPortionView[];
 }) {
   const [open, setOpen] = React.useState(false);
   const panelId = React.useId();
   const { session } = props;
   // LES `id` INCONNUS SONT ÉCARTÉS, PAS RENDUS TELS QUELS — même règle que
   // `sessionForDish`: un slug de lot ne veut rien dire à table.
-  const titles = session.preparation_ids
-    .map((id) => props.preparations.find((p) => p.id === id)?.title ?? "")
-    .filter((title) => title !== "");
+  const preps = session.preparation_ids
+    .map((id) => props.preparations.find((p) => p.id === id))
+    .filter((p): p is MealPreparation => p !== undefined);
+  const titles = preps.map((p) => p.title).filter((title) => title !== "");
+  // LOT 4 — TOUTES LES BOÎTES DE CETTE SESSION, dans l'ordre de ses
+  // préparations. La pesée est le geste de CE jour-là: elle se lit avec le
+  // reste du jour, pas dans une fenêtre qu'il faut aller ouvrir.
+  const boxes = preps.flatMap((p) => boxLinesFor(p, props.portions));
   return (
     <Card>
       <div className="flex flex-wrap items-baseline gap-2">
@@ -307,6 +337,13 @@ function DaySessionCard(props: {
       {titles.length > 0 && (
         <p className="mt-1 text-sm text-ink-soft">{titles.join(" · ")}</p>
       )}
+      {/* ── LA TABLE DE PESÉE DU JOUR (LOT 4) ─────────────────────────────
+          TOUJOURS VISIBLE, jamais sous le dépliant: c'est l'instruction du
+          jour — « pèse ça, dans ces boîtes-là » — et la replier reviendrait à
+          demander d'ouvrir un panneau pour savoir quoi faire de la casserole
+          qu'on vient de vider. Le dépliant, lui, porte le DÉROULÉ, qui est un
+          autre geste. */}
+      <BoxTable lines={boxes} />
       {open && session.run_through && (
         <p id={panelId} className="mt-2 text-sm leading-6 text-ink">
           {session.run_through}

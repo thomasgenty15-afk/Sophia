@@ -176,6 +176,20 @@ function Entry(props: {
               <span className="font-medium text-ink">{share.name}</span>
               {" — "}
               {share.note}
+              {/* ── LOT 4 · CE QUE PÈSE SA BOÎTE ────────────────────────────
+                  La note dit ce qu'elle prend, la boîte dit COMBIEN — et elle
+                  le dit sans faire ressortir la balance: la pesée a eu lieu une
+                  fois, à la session de cuisine. Un plat qui puise dans deux
+                  lots boîtés en montre deux; les additionner rendrait un nombre
+                  qui ne correspond à aucun couvercle.
+                  ⛔ AUCUN POURQUOI À CÔTÉ DU GRAMME. `DayShareLine` ne porte
+                  qu'un prénom, une phrase et des nombres de grammes: aucun
+                  objectif ne peut structurellement entrer dans cette ligne. */}
+              {share.boxGrams.map((grams, i) => (
+                <span key={i} className="ml-2 font-medium tabular-nums text-ink">
+                  {mealCopy("meals.boxes.grams", { n: grams })}
+                </span>
+              ))}
             </li>
           ))}
         </ul>

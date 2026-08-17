@@ -72,6 +72,25 @@ export type ServedFrom = string | null;
 export interface DishSource {
   title: string;
   cookOn: string | null;
+  /**
+   * LOT 4 — LA BOÎTE QUE CETTE REPRISE SORT DU FRIGO, résolue par l'appelant.
+   *
+   * ⛔ RÉSOLUE PAR ID, ET LA JOINTURE N'EST PAS ICI. `uses[].box_id` pointe une
+   * `preparations[].boxes[].id`; l'appelant tient déjà les préparations (il en
+   * tire `title` et `cookOn` juste au-dessus) et les parts. Aller les chercher
+   * depuis cette carte en ferait un SECOND lecteur du même plan, et deux
+   * lecteurs finissent par se contredire — c'est l'argument écrit sur `session`
+   * dix lignes plus bas, mot pour mot.
+   *
+   * ⛔ ET JAMAIS PAR TITRE. Retrouver « la boîte de Zoé » en cherchant son
+   * prénom dans un titre se tromperait dès « Poulet pour Zoé et Marc » et ne
+   * trouverait rien en anglais. « Jamais de matcher maison. »
+   *
+   * `null` = ce plat prend une portion du lot sans boîte nommée — ce que
+   * TOUTES les reprises étaient avant le 2026-08-17, et ce que reste une lane
+   * individuelle. La carte se tait alors, elle n'invente pas de couvercle.
+   */
+  box: { names: string[]; grams: number } | null;
 }
 
 export default function DishCard(
@@ -192,15 +211,36 @@ export default function DishCard(
       {sources.length > 0 && (
         <div className="mt-3 space-y-1 rounded-card border border-line bg-paper-2 px-3 py-2">
           {sources.map((source, i) => (
-            <p key={`${source.title}-${i}`} className="text-sm text-ink">
-              {mealCopy("meals.result.from_prep")
-                .replace("{title}", source.title)
-                .replace(
-                  "{day}",
-                  (source.cookOn ? dishDayLabel(source.cookOn) : null) ??
-                    source.cookOn ?? "—",
-                )}
-            </p>
+            <div key={`${source.title}-${i}`}>
+              <p className="text-sm text-ink">
+                {mealCopy("meals.result.from_prep")
+                  .replace("{title}", source.title)
+                  .replace(
+                    "{day}",
+                    (source.cookOn ? dishDayLabel(source.cookOn) : null) ??
+                      source.cookOn ?? "—",
+                  )}
+              </p>
+              {/* ── LOT 4 · LA BOÎTE, PAS LA BALANCE ─────────────────────────
+                  « Boîte Zoé — 120 g » est ce qui remplace la pesée du jour: la
+                  seule pesée de la semaine a eu lieu à la session de cuisine, et
+                  ici on cite le couvercle. La ligne se pose SOUS la provenance,
+                  parce qu'elle la précise: on dit d'abord d'où vient le lot,
+                  puis quelle boîte en sortir.
+                  ⛔ AUCUN POURQUOI À CÔTÉ DU GRAMME. `DishSource.box` ne porte
+                  que des prénoms et un nombre — la carte n'a structurellement
+                  aucun champ où un objectif pourrait entrer. */}
+              {source.box && (
+                <p className="mt-0.5 text-sm font-medium tabular-nums text-ink break-words">
+                  {source.box.names.length > 0
+                    ? mealCopy("meals.boxes.line", {
+                      names: source.box.names.join(", "),
+                      n: source.box.grams,
+                    })
+                    : mealCopy("meals.boxes.line_unnamed", { n: source.box.grams })}
+                </p>
+              )}
+            </div>
           ))}
         </div>
       )}

@@ -286,6 +286,12 @@ describe("pack français de la vitrine", () => {
       // « Cuisine minute » / « Cook it fresh » — ce qui montre que le bloc
       // n'est pas recopié.
       "meals.same_day.minutes",
+      // LOT 4 — « {n} g », le poids d'une boîte, seul avec son nombre. Même
+      // raison que `meals.same_day.minutes` juste au-dessus: « g » est le
+      // symbole international du gramme, et il s'écrit pareil dans les deux
+      // langues. Les deux libellés voisins, eux, sont bien rédigés — « La
+      // pesée » / « Weigh it out », « Boîte {names} » / « Box {names} ».
+      "meals.boxes.grams",
       // ⚠️ CETTE VALEUR N'EST QU'UN TROU. `today.slot_header` vaut « {slot} »
       // dans les deux langues: le mot rendu vient de `slot.*`, qui est traduit
       // depuis le lot 3. Y écrire quoi que ce soit d'autre ajouterait un mot

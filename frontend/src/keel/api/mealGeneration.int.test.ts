@@ -115,10 +115,13 @@ describe("readDishes", () => {
       ],
     }]);
     expect(dish.uses).toEqual([
-      { preparation_id: "prep_poulet", servings: 2 },
+      // LOT 4 — `box_id` est relu sur CHAQUE reprise, et vaut `null` quand le
+      // plan n'en porte pas: une clé absente ne se distingue pas d'un lecteur
+      // débranché, et c'est exactement la posture du moteur qui l'écrit.
+      { preparation_id: "prep_poulet", servings: 2, box_id: null },
       // Sans portion nommée, une part: le plat en prélève, la question est
       // combien, et zéro serait un prélèvement qui n'a pas lieu.
-      { preparation_id: "prep_riz", servings: 1 },
+      { preparation_id: "prep_riz", servings: 1, box_id: null },
     ]);
   });
 

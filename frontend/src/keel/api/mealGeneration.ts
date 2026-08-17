@@ -244,6 +244,37 @@ export interface MealPreparation {
   active_minutes: number | null;
   total_minutes: number | null;
   cook_on: string | null;
+  /**
+   * LOT 4 — LA MISE EN BOÎTES, C'EST-À-DIRE LA SEULE PESÉE DE LA SEMAINE.
+   *
+   * `[]` sur tout plan écrit AVANT le 2026-08-17 (la clé n'existait pas), sur
+   * toute lane individuelle (elle n'a pas de bouches à départager), et sur tout
+   * foyer où le modèle n'a rien rendu. L'écran se tait alors — il n'invente pas
+   * de table de pesée, exactement comme il n'invente pas de bandeau du jour J.
+   */
+  boxes: PreparationBox[];
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * UNE BOÎTE: DES BOUCHES, ET DES GRAMMES. Recopiée du moteur.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ CE SONT DES GRAMMES D'ALIMENT, ET LA FRONTIÈRE EST STRUCTURELLE ICI AUSSI.
+ * « Boîte Zoé — 150 g » est une instruction de cuisine, du même côté que
+ * « 400 g de cuisses de poulet » sur une liste de courses. Ce type n'a AUCUN
+ * champ où mettre un pourquoi, un objectif ou un chiffre de corps — et c'est ce
+ * qui rend impossible de les afficher par accident.
+ *
+ * ⚠️ `member_ids` ET PAS DES PRÉNOMS. Le prénom vient de la ligne membre (F5),
+ * recopiée dans `member_portions[].display_name`; la jointure se fait par ID, et
+ * jamais par titre ni par texte — « jamais de matcher maison ».
+ */
+export interface PreparationBox {
+  id: string;
+  member_ids: string[];
+  /** Grammes d'aliment PRÊT. Entier > 0 — le moteur ne rend jamais zéro. */
+  grams: number;
 }
 
 /** Quand on cuisine, et dans quel ORDRE. Le déroulé est le champ qui compte. */
@@ -302,7 +333,17 @@ export interface GeneratedDish {
    * Ce que ce plat PRÉLÈVE sur des préparations déjà faites. Vide = il se fait
    * de zéro, et ses `ingredients` sont pour une assiette.
    */
-  uses: Array<{ preparation_id: string; servings: number }>;
+  uses: Array<{
+    preparation_id: string;
+    servings: number;
+    /**
+     * LOT 4 — LA BOÎTE QUE CE PLAT SORT DU FRIGO, validée par le moteur contre
+     * les boîtes qui existent ET contre le jour (une boîte remplie samedi ne se
+     * cite pas jeudi). `null` = « une portion de ce lot », ce que toutes les
+     * reprises étaient avant ce lot.
+     */
+    box_id: string | null;
+  }>;
   /**
    * LOT 2 — CE QU'ON FAIT LE JOUR MÊME, tel que le moteur l'a validé.
    *
@@ -792,6 +833,13 @@ export function readDishes(raw: unknown): GeneratedDish[] {
           return {
             preparation_id: String(u.preparation_id ?? ""),
             servings: Number(u.servings) || 1,
+            // LOT 4 — LA BOÎTE CITÉE, RELUE TELLE QUELLE. Une chaîne vide vaut
+            // `null`: « aucune boîte » et « la boîte nommée par la chaîne
+            // vide » se liraient pareil à l'écran, et la seconde ferait
+            // chercher un couvercle qui n'existe pas.
+            box_id: typeof u.box_id === "string" && u.box_id.trim() !== ""
+              ? u.box_id.trim()
+              : null,
           };
         }).filter((u) => u.preparation_id !== "")
         : [],
@@ -871,8 +919,41 @@ export function readPreparations(raw: unknown): MealPreparation[] {
       total_minutes: readMinutes(p.total_minutes),
       cook_on: p.cook_on === null || p.cook_on === undefined ? null : String(p.cook_on),
       ingredients: readIngredients(p.ingredients),
+      boxes: readBoxes(p.boxes),
     };
   }).filter((p) => p.id !== "" && p.title !== "");
+}
+
+/**
+ * LOT 4 — LES BOÎTES D'UNE PRÉPARATION, RELUES ET REVALIDÉES ICI.
+ *
+ * ⚠️ LA REVALIDATION N'EST PAS DE LA PARANOÏA, c'est le même arbitrage que
+ * `readSameDay` et `uses` juste au-dessus: ce lecteur monte aussi des lignes
+ * `student_generated_meals` écrites par une AUTRE version du moteur, où la clé
+ * n'existait pas du tout. Un `as PreparationBox[]` sur ce JSONB compilerait et
+ * jurerait que `box.member_ids` est un tableau; l'écran ferait
+ * `box.member_ids.map(...)` et casserait à l'ouverture du plan, sans qu'aucun
+ * test de type n'ait pu le voir. C'est le défaut que ce fichier documente déjà
+ * deux fois.
+ *
+ * ⛔ ET LES GRAMMES SONT REFUSÉS PLUTÔT QUE DÉFAUT-ÉS À ZÉRO. « 0 g » se lit
+ * « ne mange rien », ce qui est une affirmation; une boîte sans poids lisible
+ * n'est pas une instruction de pesée, et l'écran ne la rend pas. Précédent
+ * `readMinutes`, mot pour mot.
+ */
+function readBoxes(raw: unknown): PreparationBox[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((entry) => {
+    const b = (entry ?? {}) as Record<string, unknown>;
+    const grams = Number(b.grams);
+    return {
+      id: String(b.id ?? ""),
+      member_ids: Array.isArray(b.member_ids)
+        ? b.member_ids.map((v) => String(v)).filter((v) => v !== "")
+        : [],
+      grams: Number.isFinite(grams) && grams > 0 ? Math.round(grams) : 0,
+    };
+  }).filter((b) => b.id !== "" && b.member_ids.length > 0 && b.grams > 0);
 }
 
 /** `export` pour `api/planDraft.ts` — même raison que `readFixedIntakes`. */

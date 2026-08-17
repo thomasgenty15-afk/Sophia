@@ -1441,6 +1441,15 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                 sessions={result?.cookingSessions ?? []}
                 preparations={result?.preparations ?? []}
                 dishes={result?.dishes ?? []}
+                // ── LOT 4 · LES PRÉNOMS DES BOÎTES ─────────────────────────
+                // LA MÊME EXPRESSION que celle passée à `PlanResult` plus bas,
+                // et ce n'est pas une coquetterie: la table de pesée s'affiche
+                // dans les DEUX surfaces (cette fenêtre et le bloc session du
+                // jour), et deux règles de visibilité pour la même donnée
+                // finiraient par diverger. La garde `isOwner` est celle-là
+                // même — « la part d'un autre » est ce que `MyShareCard`
+                // interdit à un secondaire.
+                portions={place?.isOwner === true ? (result?.memberPortions ?? []) : []}
                 open={sessionsOpen}
                 onClose={() => setSessionsOpen(false)}
               />
