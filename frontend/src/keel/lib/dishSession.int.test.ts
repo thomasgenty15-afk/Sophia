@@ -191,9 +191,19 @@ describe("les gardes du lot (câblage)", () => {
     expect(card, "la jointure n'est plus auditable dans le DOM").toContain(
       "data-preparation-id={session.viaPreparationId}",
     );
-    const result = code("frontend/src/keel/components/plan/PlanResult.tsx");
-    expect(result, "la prop `cookingSessions` est redevenue morte").toContain(
+    // LOT 1 (2026-08-17): le bloc jour est extrait de `PlanResult` en
+    // `PlanDayBlock` — c'est LUI qui résout la session d'un plat maintenant.
+    // La garde suit le code, elle ne se contourne pas: `PlanResult` doit
+    // toujours faire DESCENDRE la prop jusqu'au bloc, et le bloc doit
+    // toujours la rendre. Un seul des deux qui lâche, et `cookingSessions`
+    // redevient la prop morte de 2026-08-14.
+    const block = code("frontend/src/keel/components/plan/PlanDayBlock.tsx");
+    expect(block, "la prop `cookingSessions` est redevenue morte").toContain(
       "sessionForDish(dish, props.cookingSessions, props.preparations)",
+    );
+    const result = code("frontend/src/keel/components/plan/PlanResult.tsx");
+    expect(result, "`PlanResult` ne passe plus les sessions au bloc jour").toContain(
+      "cookingSessions={props.cookingSessions}",
     );
   });
 
