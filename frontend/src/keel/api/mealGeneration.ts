@@ -255,6 +255,42 @@ export interface CookingSession {
   total_minutes: number | null;
 }
 
+/**
+ * LOT 2 — LES QUATRE GESTES DU JOUR J, recopiés du moteur.
+ *
+ * ⚠️ RECOPIÉE ET PAS IMPORTÉE, comme tout ce fichier: le front ne partage aucun
+ * module avec `supabase/functions/_shared/keel/`. La divergence est tenue par un
+ * test qui lit la source du moteur — sans lui, un jeton ajouté côté serveur
+ * arriverait ici sous forme de bandeau muet.
+ */
+export const SAME_DAY_KINDS = [
+  "none",
+  "reheat_only",
+  "assemble",
+  "cook_fresh",
+] as const;
+
+export type SameDayKind = typeof SAME_DAY_KINDS[number];
+
+/**
+ * CE QU'IL Y A À FAIRE LE JOUR MÊME POUR AVOIR CE PLAT DANS L'ASSIETTE.
+ *
+ * ⚠️ `minutes` EST UN TEMPS DE PLAT. Il ne se confond avec AUCUN des deux temps
+ * qui existaient déjà, et la carte d'un plat n'a le droit d'afficher que
+ * celui-ci: `MealPreparation.active_minutes` / `.total_minutes` sont des temps
+ * de CUISSON et `CookingSession.total_minutes` un temps de SESSION — ils ont
+ * leur surface (« tes sessions de cuisine »), et les remonter sur un plat
+ * annoncerait « réchauffe une portion » à cinquante minutes. La ceinture est
+ * dans `lib/dishSession.int.test.ts`, et elle reste mordante.
+ *
+ * `null` = le modèle a nommé le geste sans donner de durée. L'écran rend alors
+ * le libellé seul: pas de « 0 min », qui se lirait « c'est instantané ».
+ */
+export interface DishSameDay {
+  kind: SameDayKind;
+  minutes: number | null;
+}
+
 export interface GeneratedDish {
   title: string;
   slot: MealSlot | null;
@@ -267,6 +303,16 @@ export interface GeneratedDish {
    * de zéro, et ses `ingredients` sont pour une assiette.
    */
   uses: Array<{ preparation_id: string; servings: number }>;
+  /**
+   * LOT 2 — CE QU'ON FAIT LE JOUR MÊME, tel que le moteur l'a validé.
+   *
+   * `null` sur tout plan écrit AVANT le 2026-08-17 (la clé n'existait pas), et
+   * sur tout plat où le modèle ne l'a pas déclaré. Ce n'est PAS « rien à
+   * faire »: `none` dit ça, et il le dit exprès. L'écran se tait plutôt que
+   * d'inventer — écrire « rien à préparer » sur un plat qui n'a rien déclaré
+   * serait affirmer un fait que personne n'a écrit.
+   */
+  same_day: DishSameDay | null;
 }
 
 export interface ShoppingItem {
@@ -645,8 +691,36 @@ export function readDishes(raw: unknown): GeneratedDish[] {
         }).filter((u) => u.preparation_id !== "")
         : [],
       ingredients: readIngredients(d.ingredients),
+      same_day: readSameDay(d.same_day),
     };
   });
+}
+
+/**
+ * LOT 2 — LE GESTE DU JOUR J, RELU D'UNE LIGNE ET REVALIDÉ ICI.
+ *
+ * ⚠️ LA LISTE FERMÉE EST VÉRIFIÉE UNE SECONDE FOIS, et ce n'est pas de la
+ * paranoïa: ce lecteur monte aussi des lignes `student_generated_meals` écrites
+ * par une AUTRE version du moteur. Un `as SameDayKind` compilerait et jurerait
+ * que le jeton est bon; l'écran ferait alors `mealCopy("meals.same_day." + kind)`
+ * sur une clé qui n'existe pas — et en DEV, une clé absente LÈVE. Le plan entier
+ * disparaîtrait pour un champ décoratif.
+ *
+ * Même arbitrage que `uses` juste au-dessus: un lecteur qui DONNE les champs
+ * manquants, jamais un cast qui les suppose.
+ */
+function readSameDay(raw: unknown): DishSameDay | null {
+  if (raw === null || raw === undefined || typeof raw !== "object") return null;
+  const sd = raw as Record<string, unknown>;
+  const kind = String(sd.kind ?? "");
+  if (!(SAME_DAY_KINDS as readonly string[]).includes(kind)) return null;
+  const minutes = Number(sd.minutes);
+  return {
+    kind: kind as SameDayKind,
+    // `null` et JAMAIS zéro par défaut: « 0 min » se lit « c'est instantané »,
+    // ce qui est une affirmation que le moteur n'a pas faite.
+    minutes: Number.isFinite(minutes) && minutes >= 0 ? Math.round(minutes) : null,
+  };
 }
 
 /**

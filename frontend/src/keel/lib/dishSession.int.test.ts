@@ -154,18 +154,71 @@ describe("les gardes du lot (câblage)", () => {
   }
 
   /**
-   * ⛔ AUCUNE DURÉE INVENTÉE, NI RECOPIÉE.
+   * ⛔ AUCUNE DURÉE **DE SESSION** NE REMONTE SUR LA CARTE D'UN PLAT.
    *
    * `active_minutes` vit sur les PRÉPARATIONS et `total_minutes` sur la
    * session. Les remonter jusqu'à la carte d'un plat donnerait à un ASSEMBLAGE
    * le temps d'une CUISSON — « réchauffe une portion » annoncé à 50 minutes.
+   *
+   * ── LOT 2 (2026-08-17) · LA RÈGLE SE PRÉCISE, ELLE NE SE DESSERRE PAS ────
+   * Un plat porte désormais SA propre durée: `same_day.minutes`, le temps du
+   * GESTE DU JOUR J — huit minutes pour sortir la boîte et la réchauffer. Ce
+   * n'est pas une exception à la règle ci-dessus, c'est le champ qui la rend
+   * tenable: la carte disait « réchauffe une portion » sans durée précisément
+   * parce que la seule durée à portée était fausse.
+   *
+   * Trois temps, trois surfaces, et la carte n'a le droit que du troisième:
+   *   · `preparations[].active_minutes` / `.total_minutes` → sessions de cuisine
+   *   · `cooking_sessions[].total_minutes`                 → sessions de cuisine
+   *   · `dishes[].same_day.minutes`                        → LA CARTE DU PLAT
+   *
+   * Les trois littéraux interdits ci-dessous n'ont donc pas bougé d'un octet.
    */
-  it("aucune durée ne remonte du lot jusqu'à la carte du plat", () => {
+  it("aucune durée DE SESSION ne remonte du lot jusqu'à la carte du plat", () => {
     const src = code("frontend/src/keel/lib/dishSession.ts") +
       code("frontend/src/keel/components/DishCard.tsx");
     expect(src, "une durée est remontée sur un plat").not.toContain("active_minutes");
     expect(src, "une durée est remontée sur un plat").not.toContain("total_minutes");
     expect(src, "une durée est remontée sur un plat").not.toContain("totalMinutes");
+  });
+
+  /**
+   * ⚠️ LE CAS QUI DOIT PASSER, ET IL EST INDISPENSABLE.
+   *
+   * Une garde sans cas passant bloque tout et ressemble à une garde qui marche.
+   * Celle du dessus interdit TROIS littéraux; sans ce test, on ne saurait pas
+   * distinguer « la carte n'affiche aucune durée de session » de « la carte
+   * n'affiche aucune durée du tout », et le LOT 2 aurait pu être livré désarmé
+   * en restant vert.
+   */
+  it("la durée du GESTE DU JOUR, elle, est bien sur la carte", () => {
+    const card = code("frontend/src/keel/components/DishCard.tsx");
+    expect(card, "le bandeau du jour J a disparu de la carte").toContain(
+      "{dish.same_day && <SameDayLine sameDay={dish.same_day} />}",
+    );
+    expect(card, "la durée du geste du jour n'est plus rendue").toContain(
+      "sameDay.minutes !== null",
+    );
+  });
+
+  /**
+   * ⛔ LE LIBELLÉ VIENT DU JETON, JAMAIS DE LA PROSE.
+   *
+   * Le seul marqueur de réchauffage qui existait avant le LOT 2 était le mot
+   * « reheat » dans `method`. Un matcher là-dessus se tromperait sur « do not
+   * reheat », sur « assemble the reheated chicken », et sur la totalité des
+   * plans rendus en français. « Jamais de matcher maison. »
+   */
+  it("⛔ le geste du jour ne se devine pas dans la méthode", () => {
+    const card = code("frontend/src/keel/components/DishCard.tsx");
+    for (const probe of ["method.includes", "method.toLowerCase", "method.match"]) {
+      expect(card, `${probe} est apparu: le geste est deviné, plus déclaré`)
+        .not.toContain(probe);
+    }
+    for (const word of ["reheat", "réchauff"]) {
+      expect(card, `« ${word} » est écrit en dur dans la carte`)
+        .not.toMatch(new RegExp(word, "i"));
+    }
   });
 
   /**

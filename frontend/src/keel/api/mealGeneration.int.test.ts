@@ -23,7 +23,18 @@ import {
 // ===========================================================================
 
 function dish(title: string, day: string | null): GeneratedDish {
-  return { title, slot: null, day, ingredients: [], method: "", why: "", uses: [] };
+  return {
+    title,
+    slot: null,
+    day,
+    ingredients: [],
+    method: "",
+    why: "",
+    uses: [],
+    // LOT 2 — `null` = le geste du jour n'a pas été déclaré. Le partage par
+    // jour n'en lit rien; le remplir ici ferait croire qu'il en dépend.
+    same_day: null,
+  };
 }
 
 describe("dishDaySplit", () => {
@@ -114,6 +125,75 @@ describe("readDishes", () => {
   it("rend une liste vide sur ce qui n'est pas un tableau", () => {
     expect(readDishes(null)).toEqual([]);
     expect(readDishes({ dishes: [] })).toEqual([]);
+  });
+
+  // =========================================================================
+  // LOT 2 — LE GESTE DU JOUR J, RELU D'UNE LIGNE
+  //
+  // Même propriété que `uses` ci-dessus, sur un champ arrivé le 2026-08-17:
+  // l'écran ouvre encore des plans écrits avant lui. Et une seconde, propre à
+  // ce champ: le libellé du bandeau est composé par CLÉ
+  // (`meals.same_day.<jeton>`), donc un jeton inconnu qui passerait ferait
+  // demander une clé i18n inexistante — ce qui LÈVE en DEV.
+  // =========================================================================
+
+  it("un plan écrit AVANT le champ n'a pas de geste du jour, et ça se lit `null`", () => {
+    const [dish] = readDishes([
+      { title: "Poulet rôti", day: "tue", slot: "dinner", method: "", why: "" },
+    ]);
+    expect(dish.same_day).toBeNull();
+  });
+
+  it("les quatre jetons passent, et rien d'autre", () => {
+    // Écrits en toutes lettres, pas dérivés de `SAME_DAY_KINDS`: une boucle sur
+    // la constante resterait verte si on lui ajoutait « microwave ».
+    const read = readDishes([
+      { title: "A", same_day: { kind: "none", minutes: 0 } },
+      { title: "B", same_day: { kind: "reheat_only", minutes: 8 } },
+      { title: "C", same_day: { kind: "assemble", minutes: 10 } },
+      { title: "D", same_day: { kind: "cook_fresh", minutes: 15 } },
+      // Le jeton d'une version ultérieure du moteur, ou d'un modèle inventif.
+      { title: "E", same_day: { kind: "microwave", minutes: 3 } },
+      // Un jeton TRADUIT: exactement ce qui arriverait si `same_day.kind`
+      // quittait un jour `MEAL_TOKEN_FIELDS`.
+      { title: "F", same_day: { kind: "réchauffage", minutes: 8 } },
+    ]);
+    expect(read.map((d) => d.same_day?.kind ?? null)).toEqual([
+      "none",
+      "reheat_only",
+      "assemble",
+      "cook_fresh",
+      null,
+      null,
+    ]);
+  });
+
+  it("une durée illisible se lit `null`, jamais zéro", () => {
+    // « 0 min » se lirait « c'est instantané », ce qui est une affirmation que
+    // personne n'a faite. Le geste, lui, survit: c'est la moitié qui compte.
+    const read = readDishes([
+      { title: "A", same_day: { kind: "assemble" } },
+      { title: "B", same_day: { kind: "assemble", minutes: "vite" } },
+      { title: "C", same_day: { kind: "assemble", minutes: -5 } },
+      // …et le cas qui doit PASSER, sans quoi cette garde bloquerait tout en
+      // ayant l'air de marcher.
+      { title: "D", same_day: { kind: "assemble", minutes: 12 } },
+    ]);
+    expect(read.map((d) => (d.same_day === null ? "absent" : d.same_day.minutes)))
+      .toEqual([
+      null,
+      null,
+      null,
+      12,
+    ]);
+    expect(read[0].same_day?.kind).toBe("assemble");
+  });
+
+  it("un `same_day` qui n'est pas un objet ne casse rien", () => {
+    for (const raw of [{ same_day: "reheat_only" }, { same_day: 3 }, { same_day: [] }]) {
+      const [dish] = readDishes([raw]);
+      expect(dish.same_day).toBeNull();
+    }
   });
 });
 

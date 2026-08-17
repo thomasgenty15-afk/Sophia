@@ -278,6 +278,14 @@ describe("pack français de la vitrine", () => {
       // Les six autres phrases `meals.energy.*` qui le contiennent, elles,
       // diffèrent bien (« sur la journée », « dont {addon} ajoutées »…).
       "meals.energy.dish",
+      // LOT 2 — « {n} min », la durée du geste du jour J, seule avec son
+      // nombre. Même raison que `meals.energy.dish` et que les vingt-deux
+      // `unit.*`: « min » est le symbole international de la minute, et il
+      // s'abrège pareil dans les deux langues. Les QUATRE libellés voisins,
+      // eux, sont bien rédigés — « À réchauffer » / « Just reheat »,
+      // « Cuisine minute » / « Cook it fresh » — ce qui montre que le bloc
+      // n'est pas recopié.
+      "meals.same_day.minutes",
       // ⚠️ CETTE VALEUR N'EST QU'UN TROU. `today.slot_header` vaut « {slot} »
       // dans les deux langues: le mot rendu vient de `slot.*`, qui est traduit
       // depuis le lot 3. Y écrire quoi que ce soit d'autre ajouterait un mot

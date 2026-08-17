@@ -1,6 +1,6 @@
 import React from "react";
 
-import { type GeneratedDish } from "../api/mealGeneration";
+import { type DishSameDay, type GeneratedDish } from "../api/mealGeneration";
 import { type DishEnergyView } from "../api/mealEnergy";
 import { dishDayLabel, dishSlotLabel, mealCopy } from "../api/mealLabels";
 import { type DishSessionView } from "../lib/dishSession";
@@ -156,6 +156,30 @@ export default function DishCard(
           </span>
         )}
       </div>
+      {/* ── LOT 2 · CE QU'IL Y A À FAIRE AUJOURD'HUI, EN TÊTE DE CARTE ──────
+          C'est la première chose qu'on lit sous le titre, et c'est délibéré:
+          devant une assiette, la question n'est pas « pourquoi ce plat » ni
+          « quels ingrédients », c'est « qu'est-ce que je fais, là, maintenant ».
+          Le geste était dispersé — de la prose dans `method`, une provenance
+          dans `sources`, et AUCUNE durée nulle part au niveau du plat.
+
+          ⚠️ LE LIBELLÉ VIENT DU JETON, JAMAIS DU TEXTE. `same_day.kind` est
+          validé contre une liste fermée par le moteur ET par le lecteur; lire
+          `method` pour deviner « réchauffage » se tromperait sur « do not
+          reheat » et sur tout plan rendu en français.
+
+          ⚠️ RIEN QUAND LE MOTEUR N'A RIEN DÉCLARÉ. `same_day: null` n'est pas
+          « rien à préparer » — `none` dit ça. Afficher un bandeau par défaut
+          écrirait un fait que personne n'a écrit, et ce dépôt a déjà tranché ce
+          cas exact contre la coche automatique. Le compteur `same_day` de
+          `generated_from` est ce qui mesure ce silence, pas l'écran.
+
+          ⛔ LA SEULE DURÉE AUTORISÉE SUR CETTE CARTE. `same_day.minutes` est le
+          temps du GESTE DU JOUR. `active_minutes`/`total_minutes` restent
+          interdits ici — ce sont des temps de CUISSON et de SESSION, ils ont
+          leur surface, et les remonter donnerait à un assemblage le temps d'un
+          rôti. La ceinture est dans `lib/dishSession.int.test.ts`. */}
+      {dish.same_day && <SameDayLine sameDay={dish.same_day} />}
       {dish.why && <p className="mt-1 text-sm text-ink-soft">{dish.why}</p>}
 
       {/* LE JOUR DE CUISSON, QUAND CE N'EST PAS AUJOURD'HUI. C'est la seule
@@ -265,6 +289,35 @@ export default function DishCard(
           assemblage le temps d'une cuisson. Elles ont déjà leur surface. */}
       {session && <SessionLink session={session} />}
     </Card>
+  );
+}
+
+/**
+ * LOT 2 — LE BANDEAU DU JOUR J.
+ *
+ * Une LIGNE, pas une carte: elle se lit d'un coup d'œil au-dessus de tout le
+ * reste, et un encadré de plus sur une carte déjà dense ferait ressembler le
+ * planning à un formulaire. Le trait vertical marque l'appartenance au plat
+ * sans emprunter de couleur d'état — « aujourd'hui » se dit par la forme, la
+ * règle vaut pour tout ce qui est temporel ici.
+ *
+ * ⚠️ DEUX CLÉS ET PAS UNE PHRASE ASSEMBLÉE. Le libellé du geste et la durée
+ * sont deux textes séparés, joints par le pack: en français « À réchauffer —
+ * 8 min », en anglais « Just reheat — 8 min ». Bâtir la phrase en code
+ * imposerait l'ordre anglais à toutes les langues.
+ */
+function SameDayLine({ sameDay }: { sameDay: DishSameDay }) {
+  const label = mealCopy(`meals.same_day.${sameDay.kind}`);
+  return (
+    <p className="mt-2 border-l-2 border-line-strong pl-3 text-sm font-medium text-ink break-words">
+      {label}
+      {sameDay.minutes !== null && (
+        <span className="font-normal text-ink-soft">
+          {" — "}
+          {mealCopy("meals.same_day.minutes").replace("{n}", String(sameDay.minutes))}
+        </span>
+      )}
+    </p>
   );
 }
 

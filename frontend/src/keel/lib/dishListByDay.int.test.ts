@@ -148,9 +148,17 @@ describe("les trois montages de la liste par jour", () => {
     // Un secondaire n'a ni `ingredients` ni `why` ni sessions — c'est une
     // garde produit, pas un manque. Le composant ne doit même pas connaître
     // ces mots.
+    //
+    // LOT 2 (2026-08-17) — `same_day` REJOINT LA LISTE. Le bandeau du jour J
+    // est une instruction de CUISINE: il dit quoi réchauffer, quoi assembler,
+    // combien de temps. C'est ce que fait le maître, pas ce que lit une bouche
+    // qui vient voir ce que la maison mange. Le laisser entrer ici serait le
+    // même enrichissement muet que `method`, par une porte neuve.
     const src = code("frontend/src/keel/components/plan/DishListByDay.tsx") +
       code("frontend/src/keel/lib/dishListByDay.ts");
-    for (const forbidden of ["ingredient", "why", "method", "session", "uses"]) {
+    for (
+      const forbidden of ["ingredient", "why", "method", "session", "uses", "same_day"]
+    ) {
       expect(src, `« ${forbidden} » est entré dans la liste par jour`)
         .not.toMatch(new RegExp(forbidden, "i"));
     }
