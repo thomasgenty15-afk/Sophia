@@ -1,0 +1,212 @@
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { readFileSync } from "node:fs";
+import { describe, expect, it } from "vitest";
+
+import { MouthsStep } from "./SetupPage";
+import { en } from "../i18n/en";
+import { setChosenUiLocaleForTest } from "../i18n/runtime";
+import { GOAL_TOKENS } from "../../../../supabase/functions/_shared/keel/tokens.ts";
+
+// ===========================================================================
+// D6 (2026-08-18) — « C'EST UN ADULTE OU UN ENFANT ? » N'EST PLUS POSÉE
+//
+// Ce que ce fichier garde tient en deux phrases, et la seconde est un défaut
+// mesuré, pas une préférence:
+//
+//   · LA QUESTION EST PARTIE. La date de naissance, collectée dans le MÊME
+//     formulaire, dit déjà l'âge — et elle le dit mieux, parce qu'elle sait
+//     répondre « je ne sais pas », ce qu'une paire de boutons ne sait pas.
+//
+//   · L'OBJECTIF D'UN MINEUR NE S'EFFACE PLUS. Le sélecteur retiré portait
+//     `set({ kind, goal: kind === "child" ? "" : draft.goal })`: repasser en
+//     « enfant » VIDAIT la direction déjà choisie. C'est l'ancienne règle,
+//     renversée le 2026-08-18 (migration `20260818100000`, les deux portes RPC
+//     ouvertes, `servingDirectionFor` côté moteur). Cet écran était le dernier
+//     endroit à l'appliquer.
+//
+// ⚠️ SUR LA VALEUR RENDUE, PAS SUR LA SOURCE. `SetupPage` entier ne se monte
+// pas (session, routeur, deux appels modèle de 100 à 200 s); `MouthsStep`, si.
+// La seule assertion de source de ce fichier porte sur le GESTE qui effaçait,
+// parce qu'un `onClick` disparu ne laisse aucune trace dans le HTML — et elle
+// lit un fichier PRIVÉ DE SES COMMENTAIRES (cicatrice
+// `caller-audit-must-strip-comments`: `SetupPage.tsx` PARLE longuement de la
+// question retirée, et un grep naïf compterait ces morts-là comme des vivants).
+//
+// ⚠️ `.ts` ET `createElement`, JAMAIS DE JSX: `vitest.config.ts` n'inclut que
+// `src/**/*.int.test.ts` — un `.tsx` ne serait jamais collecté, et le fichier
+// entier serait un silence vert.
+// ===========================================================================
+
+const PATH = "/app/setup";
+
+const MINOR_BIRTH = "2016-05-04";
+const ADULT_BIRTH = "1990-05-04";
+
+/** Le brouillon d'ajout, dans sa forme rendue. */
+function draft(patch: Record<string, unknown> = {}) {
+  return {
+    firstName: "",
+    birthDate: "",
+    heightCm: "",
+    weightKg: "",
+    gender: "" as const,
+    activityLevel: null,
+    goal: "" as const,
+    allergies: [] as string[],
+    allergiesNone: false,
+    ...patch,
+  };
+}
+
+function html(patch: Record<string, unknown> = {}): string {
+  // `uiLocale()` lit le CHEMIN COURANT: sans `location`, la page sort en
+  // anglais quoi qu'on ait choisi. Patron de `mouthFormDialog.int.test.ts`.
+  Object.defineProperty(globalThis, "location", {
+    value: { pathname: PATH, search: "", href: `http://localhost${PATH}` },
+    configurable: true,
+    writable: true,
+  });
+  setChosenUiLocaleForTest("en");
+  return renderToStaticMarkup(
+    createElement(MouthsStep, {
+      // AUCUNE BOUCHE DÉJÀ INSCRITE: la pastille « adulte / enfant » d'une
+      // ligne existante est un RENDU de ce que la base a compris (dérivé de
+      // `ageState`), pas une question. La confondre avec la question retirée
+      // ferait rougir ce fichier pour la mauvaise raison.
+      mouths: [],
+      draft: draft(patch),
+      onDraftChange: () => {},
+      onAdd: () => {},
+      held: null,
+      failure: null,
+      onDiscard: () => {},
+      onGoal: () => {},
+      onBirthDate: () => {},
+      onAllergyAnswer: () => {},
+      onBody: () => {},
+      onRemove: () => {},
+      confirmRemove: null,
+      onConfirmRemove: () => {},
+      inviteFor: null,
+      onInviteFor: () => {},
+      inviteEmail: "",
+      onInviteEmail: () => {},
+      onInvite: () => {},
+      invite: null,
+      busy: false,
+      // deno-lint-ignore no-explicit-any
+    } as any),
+  );
+}
+
+function decode(markup: string): string {
+  return markup
+    .replace(/&#x27;/g, "'")
+    .replace(/&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&#x2F;/g, "/");
+}
+
+/** La source, PRIVÉE DE SES COMMENTAIRES. */
+function code(rel: string): string {
+  return readFileSync(new URL(rel, import.meta.url), "utf-8")
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
+    .split("\n")
+    .map((line) => {
+      const at = line.indexOf("//");
+      if (at < 0) return line;
+      if (at > 0 && line[at - 1] === ":") return line;
+      return line.slice(0, at);
+    })
+    .join("\n");
+}
+
+describe("le formulaire d'ajout ne demande plus l'âge en toutes lettres", () => {
+  it("ni la question, ni ses deux réponses", () => {
+    const body = decode(html());
+    expect(body, "la question « adulte ou enfant » est revenue")
+      .not.toContain(en["setup.mouths.kind"]);
+    expect(body, "le bouton « un adulte » est revenu")
+      .not.toContain(en["setup.mouths.kind_adult"]);
+    expect(body, "le bouton « un enfant » est revenu")
+      .not.toContain(en["setup.mouths.kind_child"]);
+  });
+
+  /**
+   * ⚠️ LE CAS QUI DONNE SON SENS AU PRÉCÉDENT. Sans lui, un `MouthsStep` qui
+   * ne rendrait RIEN du tout passerait le test du dessus — « une garde a
+   * besoin d'un cas qui passe ».
+   */
+  it("mais il demande toujours la date de naissance", () => {
+    const body = decode(html());
+    expect(body).toContain(en["setup.people.birth_date"]);
+    expect(body).toContain('type="date"');
+  });
+});
+
+describe("un mineur porte les trois directions, comme un majeur", () => {
+  /**
+   * LA LISTE NE DÉPEND PLUS DE L'ÂGE — c'est la décision du 2026-08-18, et
+   * elle se lit sur les DEUX dates: une liste plus courte d'un côté serait
+   * exactement l'ancienne règle réintroduite par la porte de derrière.
+   */
+  for (const [label, birthDate] of [["mineur", MINOR_BIRTH], ["majeur", ADULT_BIRTH]] as const) {
+    it(`les ${GOAL_TOKENS.length} directions sont proposées à un ${label}`, () => {
+      const body = decode(html({ birthDate }));
+      for (const goal of GOAL_TOKENS) {
+        expect(body, `la direction ${goal} manque pour un ${label}`).toContain(
+          en[`setup.goal.${goal}` as "setup.goal.fat_loss"],
+        );
+      }
+    });
+  }
+
+  /**
+   * L'OBJECTIF SURVIT À LA DATE D'UN ENFANT. Rendu avec une date de mineur ET
+   * une direction déjà choisie, le menu doit la rendre SÉLECTIONNÉE: c'est la
+   * lecture d'écran de « on n'efface plus jamais l'objectif ».
+   */
+  it("une direction déjà choisie reste choisie sur une date de mineur", () => {
+    const body = html({ birthDate: MINOR_BIRTH, goal: "fat_loss" });
+    expect(body).toMatch(/<option[^>]*value="fat_loss"[^>]*selected/);
+  });
+});
+
+/**
+ * LE GESTE QUI EFFAÇAIT — la seule assertion de source, et elle est nommée.
+ *
+ * Un `onClick` supprimé ne laisse aucune trace dans le HTML: le prouver par le
+ * rendu demanderait de simuler un clic, donc un DOM, donc `jsdom` pour toute la
+ * suite — un effet de bord que personne n'a demandé sur un fichier de config
+ * partagé par toutes les lanes.
+ */
+describe("plus aucun geste n'efface l'objectif d'un brouillon", () => {
+  const src = code("./SetupPage.tsx");
+
+  it("le brouillon d'ajout ne porte plus de champ `kind`", () => {
+    expect(src, "le sélecteur adulte/enfant est revenu")
+      .not.toContain('["adult", "child"] as const');
+    expect(src, "le brouillon redéclare un `kind` tapé à la main")
+      .not.toMatch(/^\s*kind: "adult" \| "child";/m);
+  });
+
+  it("aucune ligne ne remet `goal` à vide sur un choix d'âge", () => {
+    expect(src, "l'effacement de l'objectif est revenu")
+      .not.toContain('kind === "child" ? "" :');
+  });
+
+  /**
+   * ET LE DERNIER LECTEUR DE L'ANCIENNE RÈGLE: un enfant DÉJÀ INSCRIT ne voyait
+   * ni le champ de direction, ni la phrase qui dit où il vit — un blanc, là où
+   * un majeur lisait « ça se règle dans ton about you ».
+   */
+  it("un enfant qui a un compte n'est plus muet sur sa direction", () => {
+    expect(src, "le blanc réservé aux mineurs inscrits est revenu")
+      .not.toContain('m.claimed && m.kind === "child"');
+  });
+});

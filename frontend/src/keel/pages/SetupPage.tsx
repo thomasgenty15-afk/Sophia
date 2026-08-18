@@ -171,10 +171,33 @@ interface SelfDraft {
   allergiesNone: boolean;
 }
 
-/** Le brouillon d'une bouche qu'on ajoute. */
+/**
+ * Le brouillon d'une bouche qu'on ajoute.
+ *
+ * ── ⛔ AUCUN CHAMP `kind`, ET C'EST LE POINT (2026-08-18) ─────────────────
+ * Ce brouillon portait `kind: "adult" | "child"`, demandé par deux boutons
+ * juste sous le prénom. Deux raisons de l'avoir retiré, et la seconde est un
+ * défaut mesuré:
+ *
+ *   1. LA DATE DE NAISSANCE LE DIT DÉJÀ, et elle est collectée dans le même
+ *      formulaire, trois champs plus bas. Deux sources pour un même fait
+ *      finissent par se contredire — et c'est la réponse TAPÉE qui gagnerait,
+ *      parce qu'elle est plus récente. Le moteur, lui, résout l'âge en TROIS
+ *      états (mineur, majeur, INCONNU), où l'inconnu n'applique aucune
+ *      direction: un booléen d'écran ne sait pas dire le troisième.
+ *
+ *   2. REPASSER EN « ENFANT » EFFAÇAIT L'OBJECTIF DU BROUILLON. C'est
+ *      l'ancienne règle « un mineur n'a jamais d'objectif », RENVERSÉE le
+ *      2026-08-18: un mineur porte les trois directions exactement comme un
+ *      majeur (migration `20260818100000`, les deux portes RPC ouvertes,
+ *      `servingDirectionFor` côté moteur, `goalsForAge` rend la même liste des
+ *      deux côtés). Cet écran était le dernier endroit à l'appliquer.
+ *
+ * ⛔ NE PAS LE RÉINTRODUIRE. Ce que `MouthFormDialog` dit déjà de son côté vaut
+ * ici mot pour mot: « on ne demande jamais adulte ou enfant ».
+ */
 interface MouthDraft {
   firstName: string;
-  kind: "adult" | "child";
   birthDate: string;
   /** Tout-ou-rien, comme la base: les trois ou aucun. */
   heightCm: string;
@@ -212,7 +235,6 @@ function mouthDraftHasContent(d: MouthDraft): boolean {
 function emptyMouthDraft(): MouthDraft {
   return {
     firstName: "",
-    kind: "adult",
     birthDate: "",
     heightCm: "",
     weightKg: "",
@@ -759,11 +781,11 @@ export default function SetupPage() {
       const result = await addHouseholdMember(
         name,
         birth,
-        // UN ENFANT PORTE SA DIRECTION DEPUIS LE 2026-08-13 — mais jamais
-        // `fat_loss` ni `recomposition`, que `goalsFor` ne propose pas et que
-        // la base refuse (`goal_not_for_minor`). Écran et base disent la même
-        // chose: ne pas envoyer ce qui serait refusé, ne pas afficher comme
-        // active une valeur que le moteur n'appliquerait pas.
+        // UN ENFANT PORTE SA DIRECTION DEPUIS LE 2026-08-13, ET LES TROIS
+        // DEPUIS LE 2026-08-18. Le filtre `goal_not_for_minor` a été retiré des
+        // deux portes d'écriture (migration `20260818100000`): l'écran propose
+        // la même liste à tout le monde, et la base accepte la même. Rien à
+        // trier ici — ce qu'on envoie est ce qui a été choisi.
         draft.goal || null,
       );
       if (!result.ok) throw new Error(result.reason);
@@ -1880,7 +1902,17 @@ function SelfStep({
 // ÉTAPE 2b — LES AUTRES BOUCHES
 // ───────────────────────────────────────────────────────────────────────────
 
-function MouthsStep(props: {
+/**
+ * ⚠️ EXPORTÉ POUR ÊTRE RENDU, pas pour être réutilisé ailleurs.
+ *
+ * `SetupPage` entier ne se monte pas sous `renderToStaticMarkup` (session,
+ * routeur, deux appels modèle), et ce qui doit être prouvé ici est le CONTENU
+ * du formulaire d'ajout — qu'il ne demande plus « adulte ou enfant », et qu'il
+ * propose les trois directions. Un test de source aurait dit la même chose sur
+ * du texte; ce dépôt a déjà vu des tests de source rester verts sur du code
+ * mort. Voir `pages/setupMouthsStep.int.test.ts`.
+ */
+export function MouthsStep(props: {
   mouths: FunnelMouth[];
   draft: MouthDraft;
   onDraftChange: React.Dispatch<React.SetStateAction<MouthDraft>>;
@@ -1996,25 +2028,15 @@ function MouthsStep(props: {
             />
           </Field>
 
-          <Field label={t("setup.mouths.kind")} hint={t("setup.mouths.kind_hint")}>
-            <div className="flex flex-wrap gap-2">
-              {(["adult", "child"] as const).map((kind) => (
-                <Button
-                  key={kind}
-                  variant={draft.kind === kind ? "primary" : "secondary"}
-                  size="sm"
-                  onClick={() =>
-                    // Repasser en « enfant » EFFACE l'objectif du brouillon: un
-                    // mineur n'en a jamais, et le garder en mémoire le ferait
-                    // repartir au prochain basculement.
-                    set({ kind, goal: kind === "child" ? "" : draft.goal })}
-                >
-                  {kind === "adult" ? t("setup.mouths.kind_adult") : t("setup.mouths.kind_child")}
-                </Button>
-              ))}
-            </div>
-          </Field>
+          {/* ── ⛔ ICI SE TENAIT « C'EST UN ADULTE OU UN ENFANT ? » ─────────
+              Retirée le 2026-08-18. La date de naissance juste en dessous le
+              dit, et elle le dit MIEUX: elle distingue « je ne sais pas » de
+              « majeur », ce qu'une paire de boutons ne peut pas faire.
 
+              Ce que la question faisait en plus, et qui était le vrai défaut:
+              repasser en « enfant » EFFAÇAIT l'objectif déjà choisi. Un mineur
+              porte les trois directions depuis la décision du 2026-08-18 — plus
+              rien ici ne touche à `goal`. */}
           <Field
             label={t("setup.people.birth_date")}
             hint={t("setup.people.birth_date_hint")}
@@ -2078,18 +2100,28 @@ function MouthsStep(props: {
             </div>
           </Field>
 
-          {/* ── UN ENFANT PEUT PORTER UNE DIRECTION (2026-08-13) ────────────
+          {/* ── LA MÊME LISTE POUR TOUT LE MONDE (2026-08-18) ───────────────
               Le champ était réservé aux adultes: `PIVOT-FOYER.md` §8.4 disait
               qu'un mineur n'a « jamais d'objectif nutritionnel individuel ».
-              Décision humaine renversée — la règle était plus large que sa
-              raison, qui est « jamais CORRECTIF SUR LE CORPS: aucune mention de
-              poids, de silhouette, de restriction ».
+              Décision humaine renversée le 2026-08-13 — la règle était plus
+              large que sa raison, qui est « jamais CORRECTIF SUR LE CORPS:
+              aucune mention de poids, de silhouette, de restriction ».
 
-              Ce qui reste fermé est donc la LISTE, pas le champ: les deux
-              directions qui retirent (`fat_loss`, `recomposition`) ne sont pas
-              proposées à un enfant, et la base les refuse à l'écriture
-              (`goal_not_for_minor`) — l'écran ne cache pas une option que le
-              serveur accepterait. */}
+              ⚠️ LE COMMENTAIRE QUI ÉTAIT ICI EST PÉRIMÉ DEPUIS LE 2026-08-18,
+              et il disait le contraire du code quatre lignes plus bas: il
+              affirmait que `fat_loss` et `recomposition` ne sont pas proposées
+              à un enfant. `goalsForAge` (`api/household.ts`) rend la MÊME liste
+              des deux côtés depuis le renversement, les deux portes d'écriture
+              en base sont ouvertes (migration `20260818100000`), et il n'y a
+              plus rien ici pour dire « enfant » de toute façon.
+
+              La liste est donc `MEMBER_GOALS`, sans détour: `goalsForAge`
+              demanderait un `kind` qu'on ne collecte plus, et le fabriquer à
+              partir de la date de naissance juste pour l'ignorer serait un
+              paramètre inventé. Ce qui protège un mineur n'est PAS à l'écran —
+              son énergie reste une maintenance calculée sur son âge, le plafond
+              de son rythme se calcule sur son besoin, et son corps n'est jamais
+              énoncé (FF-047). */}
           <Field label={t("setup.mouths.goal")} htmlFor="setup-mouth-goal">
               <select
                 id="setup-mouth-goal"
@@ -2098,7 +2130,7 @@ function MouthsStep(props: {
                 className={inputClass}
               >
                 <option value="">{t("setup.mouths.goal_none")}</option>
-                {goalsForAge(draft.kind).map((g) => (
+                {MEMBER_GOALS.map((g) => (
                   <option key={g} value={g}>
                     {goalLabel(g)}
                   </option>
@@ -2284,7 +2316,13 @@ function MouthRow(props: {
         </Field>
       )}
 
-      {m.claimed && m.kind === "child" ? null : (
+      {/* ⚠️ UN ENFANT QUI A UN COMPTE VOIT LA MÊME CHOSE QUE LES AUTRES.
+          Cette ligne portait `m.claimed && m.kind === "child" ? null : …`: sur
+          un mineur déjà inscrit, l'écran ne rendait RIEN — ni le champ, ni la
+          phrase qui dit où il vit. C'est l'ancienne règle « un mineur n'a pas
+          d'objectif », renversée le 2026-08-18, et c'était en plus le pire des
+          deux mondes: un blanc ne dit pas « ça se règle ailleurs ». */}
+      {(
         m.claimed ? (
           // ⚠️ D1 DU CHANTIER FOYER: dès qu'une bouche a un compte, son objectif
           // vit dans SON « about you ». Le champ n'est donc pas ici — et le dire
