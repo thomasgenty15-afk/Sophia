@@ -4,9 +4,22 @@
 Lot vérifié : [`2026-08-18-1545-L8A-cible-et-grammages.md`](2026-08-18-1545-L8A-cible-et-grammages.md)
 Grille : [`2026-08-18-1215-L4B-verification-garde-tca.md`](2026-08-18-1215-L4B-verification-garde-tca.md) §7 (C1→C9)
 
-> ⚠️ Ce rapport est écrit **au fil de l'eau et commité par paliers**. Trois agents
-> ont calé sur cette vérification ; un résultat partiel posé vaut mieux qu'une
-> vérification complète perdue. Les sections marquées 🕓 sont en cours.
+> ⚠️ Ce rapport a été écrit **au fil de l'eau et commité par paliers** — trois
+> agents ont calé sur cette vérification avant moi.
+
+## EN CINQ LIGNES
+
+> **La contre-preuve de P4 répond OUI** : sur la même casserole, en ne faisant
+> varier que les cibles, l'écart entre les boîtes passe de **trois cent dix** à
+> **six cent vingt-huit** à **mille dix-sept grammes**. Et la ligne écrite en
+> base **est** le produit de ce calcul, boîte par boîte. **Le lot n'est pas
+> décoratif.**
+> **C8 est tenue dans le code mais non exercée en base** : la porte ① masque la
+> porte ② sur toute bouche sans compte. **C9 tient, contournement compris.**
+> **Un défaut à moi** : `BOX_FACTOR_MAX` est une ceinture sans aucun cas — la
+> mutation qui la porte de un virgule vingt-cinq à quatre-vingt-dix-neuf
+> **survit**.
+> **Aucun bump, aucune ligne de prompt** : prouvé à l'octet, pas affirmé.
 
 ---
 
@@ -404,4 +417,100 @@ entrée d'`eatingOutAdvice` ne porte un consommé, donc la phrase n'est **pas
 constructible**. Vérifié : la seule sortie chiffrée est `advised`, sept cents,
 arrondie aux cinquante.
 
-🕓 *Section 6 (C1→C9 au complet, C3/C6, ce qui reste rouge) en cours.*
+---
+
+## 6. LE CONTRAT C1→C9, CLAUSE PAR CLAUSE — MON VERDICT
+
+| | Clause | Verdict | Ce que j'ai mesuré, moi |
+|---|---|---|---|
+| **C1** | une seule porte vers le dimensionnement | ✅ | `canSizeFromTarget(` a **deux** sites d'appel dans tout le dépôt (hors tests), et les **deux** sont dans `household_portions.ts` : `mouthTargetFactor` l.1516 et `memberTargetFactor` l.1599 — le second n'est que le raccourci du premier. **Un seul fichier relu.** |
+| **C2** | l'état se lit AVANT le calcul | ✅ | Dans `mouthTargetFactor`, `canSizeFromTarget` est **l.1516**, `executedPaceFor` **l.1548** et la multiplication **l.1565**. Un refus rend `{factor: 1, reason}` sans qu'aucun écart n'ait été calculé. |
+| **C3** | inscription **manuelle** dans l'allowlist, avec sa relecture | ✅ **exécutable, re-prouvé par moi** | J'ai planté `canSizeFromTarget(` dans `plan_energy.ts`, **hors allowlist** : `AssertionError: appelant non relu de canSizeFromTarget( — inscris-le dans ALLOWED, ou n'appelle pas la garde depuis là`. Fichier restauré. Et le paragraphe de relecture **existe** : il nomme les **deux** fonctions, dit ce qu'on y a vérifié, et dit pourquoi le conseil ② entre par ailleurs. |
+| **C4** | ne lit NI ④ NI ⑤ | ✅ | Le test de source refuse `studentSwitch`, `targetSwitch`, `energy_*_enabled`, `canShowTarget`, `canShowEnergy` **dans le corps** de la fonction, **après** avoir vérifié sa propre prémisse. M15 le fait rougir. |
+| **C5** | aucun kcal par bouche sur les cinq sorties | ✅ | §5.1 : rien dans `preparations`, `dishes`, `generated_from`, aucune phrase de tracker, et `box_sizing.mouths` est un **histogramme de neuf motifs sans aucun `member_id`**. |
+| **C6** | R6 se **retourne**, ne se supprime pas | ✅ | Le test est **renommé** (`… ONLY through the gate, and only as grams (R6, retourné le 2026-08-18)`), sa liste d'interdits **gagne** `canSizeFromTarget` et `energySafetyGates` sur les trois générateurs, et **le cas qui passe est asserté** (`household_portions.ts` DOIT contenir la porte). M15 fait rougir **les deux**. |
+| **C7** | la cible n'a pas d'objectif | ✅ | `maintenanceRange` a **un seul** appelant de production : `meal-energy-v1` (le **lecteur**), jamais un générateur. Ses trois gardes de source sont intactes et vertes. |
+| **C8** | ⛔ la ceinture est **par bouche** | ⚠️ **tenue dans le code, NON EXERCÉE en base** | §2. Le résultat est juste en base (la boîte du mineur ne bouge pas), mais c'est la porte **①** qui se ferme sur lui, pas la **②** : `restriction_floor` masque `minor` pour toute bouche sans compte. La porte ② est exercée hors base sur le corps réel de Tom, et **M2 mord**. |
+| **C9** | tout état qui déclenche un chiffre entre par la porte | ✅ **et le contournement est fermé** | §3. Sept cas joués : six refus nommés, **zéro chiffre, aucun repli**, et **le cas qui passe existe** (sept cents, `advised`). L'état inventé passe par la porte d'écriture de l'élève (aucune contrainte en base — mesuré) et ressort en `not_eating_out`. M8 et M9 mordent. |
+
+---
+
+## 7. LA FRAÎCHEUR DU RUNTIME — et pourquoi mes mesures n'en dépendent pas
+
+Le runtime edge a été **redémarré à quatorze heures cinquante-quatre minutes
+trente-trois secondes UTC**, c'est-à-dire **après** la dernière écriture sur
+disque des six fichiers du lot, et la sonde `docker logs` ne montrait **aucune
+génération d'une autre lane** en vol (uniquement les crons de la minute).
+**Je n'ai pas redémarré** : le faire aurait tué le travail d'une lane qui venait
+de le faire, sans rien ajouter à la fraîcheur.
+
+⛔ **Et surtout : aucune de mes mesures ne passe par le runtime.**
+
+* Les mesures de code (facteurs, contre-preuve, C9, mutations) tournent en
+  `deno`, qui **lit le disque à chaque exécution** — la péremption des `_shared`
+  n'existe pas sur ce chemin.
+* La mesure en base lit un plan **déjà écrit** par le code du lot : `00646a00`,
+  quatorze heures quatre UTC, portant `box_sizing` — un objet que **seul** ce lot
+  sait écrire. Sa version de prompt est `meal.en.v12_a_dish_has_a_name +
+  household.v16_this_kitchen_and_a_meal_out`, **identique** à celle du plan
+  d'onze heures trente UTC écrit **avant** le lot : c'est la preuve du non-bump,
+  et c'est aussi ce qui identifie le code qui l'a produit.
+* ⛔ **Le lien entre les deux est fait, et à l'unité** : `sizeBoxesFromTarget`,
+  rejouée sur les grammes reconstitués avec les facteurs des corps réels, rend
+  **les vingt-quatre grammages exacts de la base**. Le code que je lis **est**
+  le code qui a écrit la ligne.
+
+⚠️ **Je n'ai pas lancé de run modèle.** C'est un choix : il aurait re-mesuré ce
+que `00646a00` établit déjà, pour un risque d'expiration à quatre minutes sur une
+lane qu'on sait juste. **Ce qu'il aurait prouvé en plus, et qui reste donc non
+prouvé : que le chemin complet tourne encore sous l'état de disque
+d'aujourd'hui**, qui porte le travail non commité de trois autres lanes.
+
+---
+
+## 8. CE QUI RESTE ROUGE, ET DE QUI
+
+| Rouge | À qui | Note |
+|---|---|---|
+| 🔴 `BOX_FACTOR_MAX` n'a **aucun cas** (M19 survit) | **ce lot** | §4.2. Ceinture inatteignable par construction, décrite comme non dormante. |
+| 🟠 la porte ② n'est **exercée par aucune ligne de base** | **ce lot / les fixtures** | §2.5. `restriction_floor` masque `minor` sur toute bouche sans compte. |
+| 🟠 le curseur d'une **prise** sature à plus dix pour cent | l'écran qui n'existe pas encore | §1.4. Zéro virgule quatre et un kg/semaine rendent le **même** grammage. |
+| 🟠 `student_goals.practical_constraints.away_days` n'a **aucune contrainte de vocabulaire** | pas ce lot | §3.4. Sans conséquence aujourd'hui ; c'est le chemin du jour où quelqu'un lira le `kind` brut. |
+| 🔴 `eatingOutAdvice` n'a **ni écrivain ni lecteur** | ce lot, **nommé** par lui | Le geste est décrit dans son §5.3 (~vingt lignes dans `meal-energy-v1`). |
+| 🔴 le rendu de ③ (`subject`, `meals_out`) n'existe pas | front | Aucune régression : un plan sans `eating_out` rend `the_day`. |
+| 🟠 la date d'arrivée d'une **prise** reste optimiste à l'écran | front | Le moteur ne l'est plus. |
+| ⚪ `with_pace` sur `student_goals` : **zéro sur soixante-treize** | attendu | Aucun écran n'écrit le curseur. |
+
+### Les épreuves que j'ai jouées
+
+| Épreuve | Résultat |
+|---|---|
+| `deno test _shared/keel/` (par `agent-gate`) | **trois mille trois cent soixante-seize passés, zéro rouge** |
+| `tsc -b` frontend (par `agent-gate`) | **pass** |
+| `deno check` des trois points d'entrée `sophia-brain` | **pass** |
+| `agent-gate` complet sur mon commit | **pass**, sans contournement |
+| `npx vitest --config vitest.config.ts run` | **mille quatre cent vingt-neuf passés, quatre rouges dans deux fichiers** — **tous étrangers** : `src/keel/api/household.int.test.ts` ×2 (une lane a ajouté `kind: "away"` à la sortie d'`awayFrom` sans mettre le test à jour) et `coverage-guard` ×2, les deux nommés d'avance comme rouges connus. **Je n'ai touché aucun fichier du front.** |
+| Mutations rejouées | **huit mordent sur neuf** — M19 survit, et c'est un constat |
+| Intégrité après mutations | `git diff --stat HEAD` **vide** sur les trois fichiers mutés |
+
+---
+
+## 9. ANTI-COLLISION
+
+* Aucun `git add -A`, aucun `git stash`, aucune commande à risque, aucune
+  migration, **aucun redémarrage de conteneur**.
+* Chaque écriture en base a été faite **dans une transaction annulée**
+  (`begin … rollback`). **Aucune donnée n'a été modifiée** par cette
+  vérification : la fixture des quatre crans était **déjà là** quand j'ai
+  commencé, posée par une session antérieure.
+* Les trois fichiers mutés sont restaurés à l'octet (SHA256 revérifié par le
+  harnais ; `plan_energy.ts` restauré depuis une copie et vérifié par `git
+  diff`).
+* Mes commits ne portent **qu'un seul chemin** :
+  `scratchpad/2026-08-18-1700-L8B-verification-cible.md`.
+  ⚠️ L'index du dépôt portait **trois fichiers d'une autre lane** au moment de
+  mon premier commit (`TableStepPlanning.tsx`, `tableStepPlanning.int.test.ts`,
+  `workLunchCommit.ts`) : le `-- <chemin>` les a laissés tranquilles, et ils y
+  sont toujours.
+* ⚠️ Le `.git/index.lock` d'une autre session a fait échouer plusieurs tentatives
+  de commit. Aucune n'a été forcée, aucun verrou n'a été retiré à la main.
