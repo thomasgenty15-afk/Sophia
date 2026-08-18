@@ -284,6 +284,26 @@ Deno.test("le plafond est celui du PROMPT, pas la somme des plafonds", () => {
   assert(got.intakes.some((i) => i.foodRef === "declared_zoe_2"));
 });
 
+Deno.test("NEUF bouches à un seul apport tiennent quand même sous le plafond", () => {
+  // ⚠️ UNE MUTATION A EXIGÉ CE TEST. Le plafond est vérifié à DEUX endroits —
+  // dans le tour de rôle et entre deux tours — et la fixture d'au-dessus (trois
+  // bouches) ne prouvait que le second: elle atteint 8 pile en fin de tour.
+  // Retirer la vérification INTÉRIEURE laissait tout vert, et un foyer plus
+  // large que le plafond aurait servi neuf lignes là où le prompt en tient
+  // huit. Le premier tour à lui seul doit s'arrêter.
+  const perMouth = Array.from({ length: 9 }, (_, n) => [{
+    foodRef: `declared_m${n}`,
+    label: `m${n}: pot`,
+    amount: 30,
+    unit: "g" as const,
+    days: [] as string[],
+    placement: "loose" as const,
+  }]);
+  const got = interleaveUnderCeiling(perMouth);
+  assertEquals(got.intakes.length, MAX_FIXED_INTAKES);
+  assertEquals(got.dropped, 1);
+});
+
 Deno.test("sous le plafond, RIEN ne tombe", () => {
   const got = interleaveUnderCeiling([
     [{

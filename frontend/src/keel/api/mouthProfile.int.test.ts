@@ -445,7 +445,13 @@ describe("le shaker saisi ARRIVE à la porte, tel qu'il a été tapé", () => {
         ...writers,
         setShaker: null,
       }),
-    ).rejects.toThrow(/setShaker/);
+      // ⚠️ ON EXIGE LES MOTS DE LA GARDE, PAS SEULEMENT SON SUJET — UNE
+      // MUTATION L'A DIT. Ce test cherchait `/setShaker/`; désarmer le `throw`
+      // le laissait VERT, parce que la ligne d'après appelle `null` comme une
+      // fonction et que le `TypeError` du moteur JS dit lui aussi
+      // « setShaker ». La garde était donc prouvée par la panne qu'elle existe
+      // pour remplacer — et elle aurait pu disparaître sans un rouge.
+    ).rejects.toThrow(/needs an account/);
   });
 
   it("le refus de la porte ARRÊTE la chaîne, il ne la traverse pas", async () => {
