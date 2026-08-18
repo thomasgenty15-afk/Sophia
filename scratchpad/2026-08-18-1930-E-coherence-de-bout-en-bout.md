@@ -293,6 +293,57 @@ naissance » à « perdre du gras, 78 kg visés, 0,35 kg/semaine, 178/85/male,
 complet qu'avant, et une restauration partielle aurait été plus risquée qu'utile.
 Une lane qui comptait sur « Paul n'a pas de corps » doit le savoir.
 
+## B1bis. 🟥 Le pop-up ne s'ouvre PAS sur une bouche ordinaire qui existe déjà
+
+L'exigence dit : *« il s'ouvre sur une bouche ordinaire **et** sur le maître »*.
+**À l'écran, seule la moitié est vraie.** Mesuré sur les trois boutons de la
+liste « WHO EATS HERE » :
+
+| Geste | Ce qui s'ouvre |
+|---|---|
+| « Fill in my details » (le maître) | **le pop-up**, six blocs ✅ |
+| « Add them » (une bouche NEUVE) | **le pop-up**, six blocs ✅ (titre « Someone who eats here ») |
+| « Edit » sur **Lea**, bouche qui existe déjà | 🟥 **une carte dépliante en ligne**, PAS le pop-up (`role=dialog` absent, le bouton devient « Close ») |
+
+La carte en ligne d'une bouche existante porte bien la matière — direction,
+corps, régime, habitudes, absences, allergies — mais **ce n'est pas le même
+écran, et il lui manque deux choses qui existent dans le pop-up** :
+
+🟥 **ni poids visé, ni curseur de rythme.** Le bloc s'appelle « THEIR DIRECTION »
+et propose quatre choix ; rien ne se déplie en dessous. **Une bouche ordinaire
+déjà enregistrée ne peut donc, aujourd'hui, recevoir ni cible ni rythme par aucun
+écran du produit** — le pop-up qui les porte ne s'ouvre jamais sur elle.
+
+C'est la même famille de trou que A1/A2 : le pop-up existe et il est bon ; il
+n'est **monté** que sur deux des trois portes.
+
+### ⚠️ Deux détails de copie relevés sur la carte en ligne
+
+- Elle dit « How the plan names their **portion** » là où le pop-up dit
+  « …their **serving** ». Deux mots pour la même chose, à un clic d'écart.
+- Elle rend, pour Lea, **du français au milieu de l'anglais** :
+  « Breakfast — **une pomme** » / « **Ne mange rien de réchauffé.** ». Ce sont
+  des données saisies par une lane précédente, pas de la traduction — mais un
+  lecteur y verra un écran à moitié traduit.
+
+## B1ter. Le shaker et le régime dans le pop-up du maître ✅ / ⚠️
+
+En dépliant les trois blocs repliables sur la fiche du maître :
+
+- **Bloc 4** — les six moments (BREAKFAST → BEFORE BED), puis
+  *« A shake or a measured snack? Add it and it counts inside the day. »* +
+  bouton **« Add a shake or measured snack »** ✅ — le shaker est bien là, et
+  bien pour le compte maître.
+- **Bloc 6** — s'intitule « WHAT THEY WILL NOT EAT, **AND HOW THEY EAT** » mais,
+  une fois ouvert, ne contient que **« FOOD THEY REFUSE »** : ⚠️ **aucun
+  sélecteur de régime**. C'est conforme à la règle (la base refuse un régime sur
+  une bouche `has_account`), mais **le titre promet la moitié qu'il ne rend
+  pas**. Une bouche sans compte, elle, a bien son régime (« HOW THEY EAT / Eats
+  everything / Vegetarian / Vegan / Pescatarian », vu sur la carte de Lea).
+- **La fenêtre se ressème correctement** : rouverte après le Save, elle affiche
+  `0.35 kg a week` et « About 20 weeks at this pace. » ✅ — la cicatrice du
+  brouillon figé au montage ne se rejoue pas.
+
 ---
 
 _(la suite est ajoutée au fil de l'eau)_
