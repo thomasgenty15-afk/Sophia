@@ -114,6 +114,143 @@ export async function setOwnTarget(
   return { ok: true, reason: "" } as RpcResult;
 }
 
+/**
+ * LA PORTE DE LA CIBLE D'UN COMPTE, PRÊTE POUR `persistMouth` — ET SA SEULE
+ * TOLÉRANCE.
+ *
+ * ⚠️ EFFACER CE QUI N'EXISTE PAS EST UN SUCCÈS, ET SANS CETTE LIGNE LE PREMIER
+ * ENREGISTREMENT DU MAÎTRE SERAIT UN BOUTON MORT. `persistMouth` EFFACE la
+ * cible avant de toucher à la direction (voir le CHECK là-bas); sur un compte
+ * dont la ligne `student_goals` n'existe pas encore — le cas nominal du tout
+ * premier passage — `setOwnTarget` répond `no_goal_row`, la chaîne s'arrête, et
+ * la direction qui aurait CRÉÉ la ligne n'est jamais posée. Le geste échouerait
+ * exactement une fois sur la personne pour qui il compte le plus.
+ *
+ * ⚠️ ET LA TOLÉRANCE S'ARRÊTE À L'EFFACEMENT. Une cible RÉELLE sans ligne où
+ * l'écrire reste `no_goal_row`, nommé: c'est une valeur saisie qui n'irait
+ * nulle part, c'est-à-dire le silence que ce lot existe pour fermer.
+ */
+export function ownTargetWriter(
+  userId: string,
+  write: typeof setOwnTarget = setOwnTarget,
+): (
+  memberId: string,
+  targetWeightKg: number | null,
+  paceKgPerWeek: number | null,
+) => Promise<RpcResult> {
+  return async (_memberId, targetWeightKg, paceKgPerWeek) => {
+    const res = await write(userId, targetWeightKg, paceKgPerWeek);
+    if (
+      !res.ok && res.reason === "no_goal_row" &&
+      targetWeightKg === null && paceKgPerWeek === null
+    ) {
+      return { ok: true, reason: "" };
+    }
+    return res;
+  };
+}
+
+/**
+ * LA DIRECTION DE QUI A UN COMPTE — `student_goals.goal`, ET SA CRÉATION.
+ *
+ * ⚠️ DEUX GESTES DANS UNE PORTE, ET C'EST LE PRODUIT QUI L'EXIGE. La ligne
+ * `student_goals` du compte maître n'existe pas toujours, et son absence est
+ * une FALAISE: `generate-household-meal-v1` refuse de démarrer sans elle
+ * (`goal_required`, 409). La fenêtre qui pose la direction est exactement le
+ * geste qui doit la supprimer — renvoyer `no_goal_row` à quelqu'un qui vient de
+ * choisir « perdre du poids » lui demanderait d'aller créer ailleurs une ligne
+ * dont il n'a jamais entendu parler.
+ *
+ * ⚠️ ON MET À JOUR D'ABORD, ON CRÉE ENSUITE — jamais un `upsert`. PostgREST
+ * traduit l'upsert en `ON CONFLICT DO UPDATE SET` de TOUTES les colonnes
+ * envoyées: `content_locale` repartirait à sa valeur d'insertion à chaque
+ * changement de direction, et la langue déclarée d'un compte se ferait écraser
+ * par un geste qui ne parle pas d'elle.
+ *
+ * ⚠️ `null` EST REFUSÉ, NOMMÉMENT. La colonne est `not null`; l'envoyer
+ * remonterait une erreur PostgreSQL brute. Le pop-up retient déjà le bouton
+ * tant que la direction n'est pas choisie — ce refus est la ceinture.
+ */
+export function ownGoalWriter(
+  userId: string,
+  createRow: (userId: string, goal: string) => Promise<boolean>,
+): (memberId: string, goal: string | null) => Promise<RpcResult> {
+  return async (_memberId: string, goal: string | null) => {
+    if (goal === null) return { ok: false, reason: "goal_required" };
+    const { data, error } = await supabase
+      .from("student_goals")
+      .update({ goal })
+      .eq("user_id", userId)
+      .select("user_id");
+    if (error) throw new Error(error.message);
+    if (data && data.length > 0) return { ok: true, reason: "" };
+    const created = await createRow(userId, goal);
+    return created
+      ? { ok: true, reason: "" }
+      : { ok: false, reason: "no_goal_row" };
+  };
+}
+
+// ---------------------------------------------------------------------------
+// CE QU'ON SAIT DÉJÀ — LA LECTURE SANS LAQUELLE LA FENÊTRE EFFACE
+// ---------------------------------------------------------------------------
+
+/**
+ * LES QUATRE CHAMPS D'UNE BOUCHE À COMPTE QU'AUCUNE AUTRE LECTURE DE L'ÉCRAN
+ * NE REND.
+ *
+ * `/app/household` lit déjà le prénom, la direction, le corps et les habitudes.
+ * Il ne lit NI la date de naissance (le roster ne la rend jamais — voir
+ * `setMemberBirthDate`), NI le poids visé, NI le rythme. Sans cette lecture, la
+ * fenêtre du maître retomberait sur un brouillon vide, et
+ * `persistMouth` EFFACERAIT sa cible en la reposant à `(null, null)`.
+ *
+ * ⚠️ DEUX TABLES PARCE QUE LES DEUX FAITS N'HABITENT PAS ENSEMBLE, et c'est le
+ * même arbitrage que `birthDateDoor`: la date d'une bouche QUI A UN COMPTE se
+ * résout sur `profiles.birth_date` d'abord (migration `20260812180000`), pas
+ * sur sa fiche de foyer. Lire la fiche ici rendrait la valeur que le moteur
+ * n'utilise pas.
+ *
+ * ⚠️ LA LIGNE `student_goals` PEUT MANQUER, et ce n'est pas une erreur: c'est
+ * le compte maître qui n'a pas encore posé sa direction. On rend alors des
+ * `null`, que `draftFromKnown` traduit en champs vides — pas en zéros.
+ */
+export interface KnownOwnMouth {
+  birthDate: string | null;
+  goal: string | null;
+  targetWeightKg: number | null;
+  paceKgPerWeek: number | null;
+}
+
+export async function loadOwnMouth(userId: string): Promise<KnownOwnMouth> {
+  const profile = await supabase
+    .from("profiles")
+    .select("birth_date")
+    .eq("id", userId)
+    .maybeSingle();
+  if (profile.error) throw new Error(profile.error.message);
+
+  const goals = await supabase
+    .from("student_goals")
+    .select("goal, target_weight_kg, target_pace_kg_per_week")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (goals.error) throw new Error(goals.error.message);
+
+  const row = (goals.data ?? {}) as Record<string, unknown>;
+  const asNumber = (v: unknown) => {
+    if (v === null || v === undefined || v === "") return null;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  };
+  return {
+    birthDate: (profile.data?.birth_date as string | null) ?? null,
+    goal: (row.goal as string | null) ?? null,
+    targetWeightKg: asNumber(row.target_weight_kg),
+    paceKgPerWeek: asNumber(row.target_pace_kg_per_week),
+  };
+}
+
 // ---------------------------------------------------------------------------
 // LE SHAKER
 // ---------------------------------------------------------------------------

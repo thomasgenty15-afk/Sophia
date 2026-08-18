@@ -3,10 +3,13 @@ import { describe, expect, it } from "vitest";
 import {
   type MouthToPersist,
   type MouthWriters,
+  ownTargetWriter,
   persistMouth,
+  type setOwnTarget,
   shakerIntakeJson,
 } from "./mouthProfile";
 import {
+  draftFromKnown,
   emptyMouthDraft,
   type MouthFormDraft,
   mouthToPersist,
@@ -311,6 +314,125 @@ describe("la marche 1 bis — une bouche qui EXISTE s'écrit quand même", () =>
     const res = await persistMouth(EXISTING, writers);
     expect(res).toEqual({ ok: false, reason: "not_owner" });
     expect(calls).toEqual(["setTarget"]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// LA PORTE DE LA CIBLE D'UN COMPTE — ET SA SEULE TOLÉRANCE
+// ---------------------------------------------------------------------------
+
+describe("`ownTargetWriter` — effacer ce qui n'existe pas est un succès", () => {
+  const noRow = () => Promise.resolve({ ok: false, reason: "no_goal_row" });
+
+  it("⛔ SANS ELLE, LE PREMIER ENREGISTREMENT DU MAÎTRE EST UN BOUTON MORT", async () => {
+    // `persistMouth` EFFACE la cible avant la direction. Sur un compte dont la
+    // ligne `student_goals` n'existe pas encore — le tout premier passage — le
+    // refus arrêterait la chaîne, et la direction qui aurait CRÉÉ la ligne ne
+    // serait jamais posée.
+    const res = await ownTargetWriter("u-1", noRow)("m-9", null, null);
+    expect(res).toEqual({ ok: true, reason: "" });
+  });
+
+  it("⚠️ …ET LA TOLÉRANCE S'ARRÊTE LÀ — une cible RÉELLE reste refusée", async () => {
+    const res = await ownTargetWriter("u-1", noRow)("m-9", 70, 0.5);
+    expect(res.ok).toBe(false);
+    expect(res.reason).toBe("no_goal_row");
+  });
+
+  it("un AUTRE refus n'est jamais avalé, même en effaçant", async () => {
+    const denied = () => Promise.resolve({ ok: false, reason: "not_your_line" });
+    const res = await ownTargetWriter("u-1", denied)("m-9", null, null);
+    expect(res.ok).toBe(false);
+    expect(res.reason).toBe("not_your_line");
+  });
+
+  it("le compte visé est CELUI DE LA PORTE, pas le `member_id` reçu", async () => {
+    // La cible d'un compte est clé sur `user_id`; passer le `member_id` ferait
+    // écrire la ligne de quelqu'un d'autre, ou de personne.
+    const seen: unknown[] = [];
+    const spy = (...args: unknown[]) => {
+      seen.push(args);
+      return Promise.resolve({ ok: true, reason: "" });
+    };
+    await ownTargetWriter("u-1", spy as typeof setOwnTarget)("m-9", 70, 0.5);
+    expect(seen[0]).toEqual(["u-1", 70, 0.5]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// REPRENDRE UNE FICHE — LA SEMENCE EST UNE GARDE
+// ---------------------------------------------------------------------------
+
+describe("`draftFromKnown` — ce qui n'est pas semé est EFFACÉ au Save", () => {
+  const KNOWN = {
+    firstName: "Ahmed",
+    birthDate: "1988-02-03",
+    goal: "fat_loss" as const,
+    targetWeightKg: 72,
+    paceKgPerWeek: 0.4,
+    heightCm: 178,
+    weightKg: 80,
+    gender: "male" as const,
+    activityLevel: "trains_some" as const,
+    habits: { breakfast: "un café" },
+  };
+
+  it("⛔ LA CIBLE SEMÉE SURVIT À L'EFFACEMENT DE `persistMouth`", async () => {
+    // Sans semence, `targetPayloadOf` rendrait `(null, null)` et le second
+    // passage de `setTarget` reposerait du vide: le poids visé réglé sur
+    // `/app/plan` disparaîtrait dans le geste censé compléter la fiche.
+    const payload = mouthToPersist(draftFromKnown(KNOWN), TODAY, "m-9");
+    expect(payload.targetWeightKg).toBe(72);
+    expect(payload.paceKgPerWeek).toBe(0.4);
+  });
+
+  it("⛔ LES HABITUDES SEMÉES SURVIVENT — la porte REMPLACE la liste", async () => {
+    const payload = mouthToPersist(draftFromKnown(KNOWN), TODAY, "m-9");
+    expect(payload.habits).toEqual([
+      { slot: "breakfast", kind: "own_usual", usual: "un café" },
+    ]);
+    // …et le brouillon VIDE, lui, les efface. C'est le fait que la semence
+    // existe pour empêcher, et il est prouvé ici plutôt que supposé.
+    expect(mouthToPersist(emptyMouthDraft(), TODAY, "m-9").habits).toEqual([]);
+  });
+
+  it("le corps, la direction et l'identité arrivent tels qu'ils sont lus", () => {
+    const payload = mouthToPersist(draftFromKnown(KNOWN), TODAY, "m-9");
+    expect(payload.firstName).toBe("Ahmed");
+    expect(payload.birthDate).toBe("1988-02-03");
+    expect(payload.goal).toBe("fat_loss");
+    expect(payload.heightCm).toBe(178);
+    expect(payload.weightKg).toBe(80);
+    expect(payload.gender).toBe("male");
+    expect(payload.activityLevel).toBe("trains_some");
+  });
+
+  it("⚠️ UN CHAMP NON LU RESTE VIDE — jamais un zéro de complaisance", () => {
+    const draft = draftFromKnown({
+      firstName: null,
+      birthDate: null,
+      goal: null,
+      targetWeightKg: null,
+      paceKgPerWeek: null,
+      heightCm: null,
+      weightKg: null,
+      gender: null,
+      activityLevel: null,
+      habits: {},
+    });
+    // `String(null)` rendrait « null », `Number(null)` rendrait 0 — et un zéro
+    // traverse `targetWeightRefusal` comme un poids réel.
+    expect(draft).toEqual(emptyMouthDraft());
+  });
+
+  it("⛔ CE QUI S'AJOUTE N'EST PAS SEMÉ — sinon on le rejoue à chaque Save", () => {
+    // Les allergies et les dégoûts passent par des portes `add_*`: les semer
+    // les réécrirait à chaque enregistrement, et ne pas les semer ne perd rien.
+    const draft = draftFromKnown(KNOWN);
+    expect(draft.allergies).toEqual([]);
+    expect(draft.dislikes).toEqual([]);
+    // Le régime n'existe pas pour une bouche qui a un compte (`has_account`).
+    expect(draft.diet).toBe("");
   });
 });
 

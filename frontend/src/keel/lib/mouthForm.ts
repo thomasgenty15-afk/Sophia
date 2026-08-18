@@ -180,6 +180,80 @@ export function emptyMouthDraft(): MouthFormDraft {
 }
 
 // ---------------------------------------------------------------------------
+// D5 (2026-08-18) — REPRENDRE UNE FICHE QUI EXISTE
+// ---------------------------------------------------------------------------
+
+/**
+ * CE QU'ON SAIT DÉJÀ D'UNE BOUCHE, TEL QUE LES LECTURES DE L'ÉCRAN LE RENDENT.
+ *
+ * ⚠️ TOUT EST NULLABLE, ET CHAQUE `null` VEUT DIRE « ON N'A PAS LU », JAMAIS
+ * « C'EST VIDE ». Les deux ne s'écrivent pas pareil, et c'est là que se joue
+ * la seule vraie menace de ce montage.
+ */
+export interface KnownMouth {
+  firstName: string | null;
+  birthDate: string | null;
+  goal: MemberGoal | null;
+  targetWeightKg: number | null;
+  paceKgPerWeek: number | null;
+  heightCm: number | null;
+  weightKg: number | null;
+  gender: MemberGender | null;
+  activityLevel: ActivityLevel | null;
+  /** Les habitudes DÉJÀ écrites, par moment. Voir l'avertissement ci-dessous. */
+  habits: Readonly<Record<string, string>>;
+}
+
+/**
+ * LE BROUILLON D'UNE FICHE QU'ON REPREND — ET IL EST UNE GARDE, PAS UN CONFORT.
+ *
+ * ── ⚠️ CE QUE L'ABSENCE DE SEMENCE COÛTERAIT, PORTE PAR PORTE ─────────────
+ * `persistMouth` n'écrit pas des CHAMPS, il appelle des PORTES, et trois
+ * d'entre elles REMPLACENT ce qu'elles trouvent. Ouvrir la fenêtre sur un
+ * brouillon vide et cliquer « Enregistrer » ferait donc, sans un mot:
+ *
+ *   `setHabits`  la liste COMPLÈTE remplace — un brouillon vide EFFACE les
+ *                habitudes déjà déclarées (« elle mange une pomme le matin »);
+ *   `setTarget`  `(null, null)` EFFACE le poids visé et le rythme, y compris
+ *                ceux réglés sur `/app/plan`;
+ *   `setName`    un prénom vide est refusé par la base, mais un prénom
+ *                RETAPÉ À CÔTÉ écraserait celui d'avant.
+ *
+ * Et le bloc 1 réclamant la date de naissance, une fiche non semée serait
+ * en plus **impossible à enregistrer** tant qu'on ne la retape pas — un
+ * formulaire qui redemande ce qu'il sait déjà.
+ *
+ * C'est la cicatrice `mount-snapshot-forms-need-a-loading-gate` prise par
+ * l'autre bout: là-bas le formulaire affichait du vide NON LU puis l'écrasait;
+ * ici il l'écraserait sans même l'afficher. D'où la règle de l'appelant, qui
+ * n'est pas dans ce fichier parce qu'elle est un fait d'écran: **on n'ouvre
+ * pas la fenêtre d'une fiche avant d'avoir lu ce qu'elle contient.**
+ *
+ * ── CE QUI N'EST PAS SEMÉ, ET POURQUOI CE N'EST PAS UN OUBLI ──────────────
+ * Les allergies et les dégoûts s'AJOUTENT (`add_*`, il n'existe pas de « poser
+ * la liste »): ne pas les semer ne perd rien, et les semer les rejouerait à
+ * chaque enregistrement. Le shaker de même — la porte remplace la ligne de
+ * même `food_ref` et garde les autres. Le régime, lui, n'existe pas pour une
+ * bouche qui a un compte: la base refuse `has_account`.
+ */
+export function draftFromKnown(known: KnownMouth): MouthFormDraft {
+  const asText = (n: number | null) => (n === null ? "" : String(n));
+  return {
+    ...emptyMouthDraft(),
+    firstName: known.firstName ?? "",
+    birthDate: known.birthDate ?? "",
+    goal: known.goal ?? "",
+    targetWeightKg: asText(known.targetWeightKg),
+    paceKgPerWeek: asText(known.paceKgPerWeek),
+    heightCm: asText(known.heightCm),
+    weightKg: asText(known.weightKg),
+    gender: known.gender ?? "",
+    activityLevel: known.activityLevel ?? "",
+    habits: { ...known.habits },
+  };
+}
+
+// ---------------------------------------------------------------------------
 // LES PARSEURS — un seul chemin de la chaîne au nombre
 // ---------------------------------------------------------------------------
 
