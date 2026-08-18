@@ -9,6 +9,7 @@ import MouthFormDialog, {
 } from "./MouthFormDialog";
 import {
   emptyMouthDraft,
+  missingRequiredBlocks,
   type MouthFormBlock,
   type MouthFormDraft,
 } from "../lib/mouthForm";
@@ -64,6 +65,8 @@ function html(args: {
   failure?: string | null;
   /** Le bloc sautable ouvert. `null` (défaut) = tous repliés. */
   openBlock?: MouthFormBlock | null;
+  /** Un enregistrement en vol — la SEULE raison de retenir la sortie. */
+  busy?: boolean;
 }): string {
   // `uiLocale()` lit le CHEMIN COURANT — la langue d'une page dépend de la
   // page, pas seulement du visiteur —, donc un rendu sans `location` sort en
@@ -82,7 +85,7 @@ function html(args: {
       onChange: () => {},
       subject: args.subject ?? NO_ACCOUNT,
       todayLocalIso: TODAY,
-      busy: false,
+      busy: args.busy ?? false,
       failure: args.failure ?? null,
       openBlock: args.openBlock ?? null,
       onOpenBlock: () => {},
@@ -119,6 +122,32 @@ function text(markup: string): string {
 function countOf(markup: string, needle: string): number {
   return markup.split(needle).length - 1;
 }
+
+/**
+ * LA BALISE OUVRANTE DU BOUTON QUI PORTE CE LIBELLÉ — et rien d'autre.
+ *
+ * ⚠️ L5-B (2026-08-18). Les deux assertions existantes sur `disabled` portent
+ * sur le markup ENTIER (`.toMatch` / `.not.toMatch`), donc elles ne savent dire
+ * que « au moins un bouton est retenu » et « aucun ne l'est ». Or la fenêtre a
+ * DEUX boutons dont les états sont OPPOSÉS par construction: sur un brouillon
+ * vide, celui qui inscrit est retenu ET celui qui sort ne l'est pas. Une
+ * assertion globale ne peut pas exprimer ça — mesuré: désactiver la sortie sur
+ * `missingRequiredBlocks(draft).length > 0` laissait les 97 tests VERTS.
+ */
+function buttonTagOf(markup: string, label: string): string {
+  const flat = decode(withoutClasses(markup));
+  const seen = countOf(flat, label);
+  if (seen !== 1) {
+    throw new Error(`« ${label} » apparaît ${seen} fois, l'ancre est ambiguë`);
+  }
+  const at = flat.indexOf(label);
+  const start = flat.lastIndexOf("<button", at);
+  if (start < 0) throw new Error(`aucun <button> avant « ${label} »`);
+  return flat.slice(start, flat.indexOf(">", start) + 1);
+}
+
+/** `disabled` en attribut, jamais dans une classe Tailwind. */
+const DISABLED = /\sdisabled(=""|\s|>)/;
 
 const ADULT_COMPLETE: Partial<MouthFormDraft> = {
   firstName: "Zoe",
@@ -537,6 +566,46 @@ describe("la fenêtre se ferme, et ce qui retient est NOMMÉ", () => {
     // faute de DOM pour monter le portail. C'est la seule assertion de source
     // du fichier, et elle est bornée à une ligne.
     expect(dialogSource).toContain('closeLabel={t("household.mouth.later")}');
+  });
+
+  it("⛔ LA SORTIE N'EST JAMAIS RETENUE, ALORS QUE L'INSCRIPTION L'EST", () => {
+    // ⚠️ L5-B (2026-08-18) — LA GARDE QUI MANQUAIT, ET C'EST CELLE DE
+    // L'INVARIANT QUE CE LOT NOMME COMME LE PLUS IMPORTANT.
+    //
+    // « Obligatoire » qualifie l'ENREGISTREMENT, jamais la fenêtre: « un pop-up
+    // qu'on ne peut pas fermer fait abandonner l'ajout de la deuxième personne,
+    // et le foyer meurt là » (conception §1). Cette phrase était écrite trois
+    // fois en commentaire, et prouvée nulle part — la seule assertion voisine
+    // vérifie que la sortie est RENDUE, pas qu'elle est ACTIONNABLE. Mesuré:
+    // remplacer `disabled={props.busy}` par
+    // `disabled={props.busy || missing.length > 0}` sur le bouton de sortie
+    // laissait les 97 tests verts, c'est-à-dire livrait une fenêtre CAPTIVE
+    // exactement dans l'état que la conception interdit.
+    //
+    // Les deux boutons sont donc lus SÉPARÉMENT, et sur le même rendu: c'est
+    // l'OPPOSITION de leurs états qui est le fait, pas l'état de l'un des deux.
+    const markup = html({});
+    expect(missingRequiredBlocks(emptyMouthDraft())).toHaveLength(3);
+    expect(buttonTagOf(markup, decode(en["household.mouth.add"])))
+      .toMatch(DISABLED);
+    expect(buttonTagOf(markup, decode(en["household.mouth.later"])))
+      .not.toMatch(DISABLED);
+    // ET EN FRANÇAIS: une fenêtre captive dans une seule langue est une fenêtre
+    // captive (cicatrice « garde testée dans une seule langue »).
+    const fre = html({ locale: "fr" });
+    expect(buttonTagOf(fre, decode(fr["household.mouth.add"])))
+      .toMatch(DISABLED);
+    expect(buttonTagOf(fre, decode(fr["household.mouth.later"])))
+      .not.toMatch(DISABLED);
+  });
+
+  it("`busy` retient les DEUX — un enregistrement en vol n'est pas une fenêtre", () => {
+    // La seule raison légitime de retenir la sortie: un appel en cours. Sans ce
+    // cas qui PASSE, la garde ci-dessus se lirait comme « la sortie n'est jamais
+    // désactivée », et quelqu'un la « réparerait » en retirant `props.busy`.
+    const markup = html({ busy: true });
+    expect(buttonTagOf(markup, decode(en["household.mouth.later"])))
+      .toMatch(DISABLED);
   });
 
   it("ce qui RETIENT le bouton est écrit, à côté du bouton", () => {

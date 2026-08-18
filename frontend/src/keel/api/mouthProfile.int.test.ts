@@ -12,6 +12,7 @@ import {
   mouthToPersist,
 } from "../lib/mouthForm";
 import { parseFixedIntakes } from "../../../../supabase/functions/_shared/keel/fixed_intakes.ts";
+import { ACTIVITY_LEVELS } from "../../../../supabase/functions/_shared/keel/tokens.ts";
 
 // ===========================================================================
 // L5-A (2026-08-18) — CE QUI PART EN BASE, ET DANS QUEL ORDRE
@@ -206,6 +207,39 @@ describe("le brouillon traduit en ce qui part", () => {
 
   it("le cran non coché part en `null` — aucun défaut", () => {
     expect(mouthToPersist(draftOf({}), TODAY).activityLevel).toBeNull();
+  });
+
+  it("⛔ …ET LE CRAN COCHÉ ARRIVE VRAIMENT — le cas qui PASSE", () => {
+    // ⚠️ L5-B (2026-08-18) — LA MOITIÉ QUI MANQUAIT.
+    //
+    // L'assertion voisine ne prouve que l'ABSENCE: elle reste verte si le
+    // traducteur écrit `activityLevel: null` en dur. Mesuré, exactement comme
+    // ça: remplacer la ligne de `mouthToPersist` par `activityLevel: null`
+    // laissait les 97 tests du lot VERTS. Le cran serait alors collecté à
+    // l'écran, retenu par `missingRequiredBlocks` — donc RÉCLAMÉ à la personne
+    // — et jeté avant la base: le champ décoratif exact que ce lot existe pour
+    // supprimer, et que la conception appelle « le trou n°1 du produit »
+    // (sans lui, `energy_target.ts` multiplie un métabolisme par une constante
+    // devinée et « produit une cible fausse avec l'aplomb d'un tableau »).
+    //
+    // Les QUATRE crans, pas un seul: une correspondance codée sur une valeur
+    // ne dit rien des trois autres.
+    for (const level of ACTIVITY_LEVELS) {
+      expect(mouthToPersist(draftOf({ activityLevel: level }), TODAY)
+        .activityLevel).toBe(level);
+    }
+  });
+
+  it("⛔ les DÉGOÛTS et les ALLERGIES restent DEUX listes distinctes", () => {
+    // ⚠️ L5-B (2026-08-18). Elles partent sur deux portes différentes
+    // (`addAllergy` / `addRestriction`), toutes deux clées sur `member_id` — et
+    // c'est LA décision du bloc 6: `food_preferences` est indexée sur `user_id`,
+    // donc inatteignable pour un enfant, le cas nominal du foyer. Les confondre
+    // ferait d'un dégoût une allergie, c'est-à-dire d'une préférence un fait
+    // médical que le produit traite en fail-closed.
+    const out = mouthToPersist(FULL, TODAY);
+    expect(out.allergies).toEqual(["peanut"]);
+    expect(out.dislikes).toEqual(["champignons"]);
   });
 
   it("la cible et le rythme suivent la direction", () => {

@@ -188,7 +188,15 @@ comment on function public.keel_household_set_member_target(uuid, numeric, numer
   'qui décide du cran affiché, et ce plafond-ci est la borne grossière qui '
   'tient face à un appel direct.';
 
-revoke all on function public.keel_household_set_member_target(uuid, numeric, numeric) from public;
+-- ⚠️ `from public, anon` — ET LES DEUX SONT NÉCESSAIRES, C'EST MESURÉ.
+-- `pg_default_acl` de ce projet porte, pour les FONCTIONS du schéma `public`:
+--   {postgres=X/postgres, anon=X/postgres, authenticated=X/postgres, service_role=X/postgres}
+-- Autrement dit `anon` reçoit un GRANT NOMMÉ sur toute fonction neuve, et un
+-- `revoke … from public` ne le voit même pas — il retire le pseudo-rôle
+-- `PUBLIC`, pas le rôle `anon`. La première application de ce fichier a échoué
+-- sur la garde ③ ci-dessous, exactement là-dessus. La garde avait raison; c'est
+-- cette ligne qui était incomplète. Même forme que `20260818160000` (lot L0).
+revoke all on function public.keel_household_set_member_target(uuid, numeric, numeric) from public, anon;
 grant execute on function public.keel_household_set_member_target(uuid, numeric, numeric) to authenticated;
 grant execute on function public.keel_household_set_member_target(uuid, numeric, numeric) to service_role;
 
