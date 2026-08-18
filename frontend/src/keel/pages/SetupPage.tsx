@@ -238,9 +238,9 @@ function emptyMouthDraft(): MouthDraft {
 const GOAL_KEYS: Record<MemberGoal, MessageKey> = {
   fat_loss: "setup.goal.fat_loss",
   muscle_gain: "setup.goal.muscle_gain",
-  recomposition: "setup.goal.recomposition",
-  performance: "setup.goal.performance",
-  health: "setup.goal.health",
+  // Trois clés retirées le 2026-08-18 avec leurs jetons. Le `Record` est
+  // COMPLET sur les trois qui restent — c'est lui qui refuse de compiler le
+  // jour où un quatrième objectif arrive sans son mot.
   maintenance: "setup.goal.maintenance",
 };
 

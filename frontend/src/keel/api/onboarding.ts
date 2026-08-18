@@ -1770,10 +1770,23 @@ export async function saveOwnGoal(userId: string, goal: MemberGoal): Promise<voi
   }
 
   const row = current as Record<string, unknown>;
+  // ⚠️ LES TROIS CHECK ONT CHANGÉ LE 2026-08-18, ET CES TROIS LIGNES SONT
+  // LEUR MIROIR. Avant, `target_waist_cm` n'était légal que sur
+  // `recomposition` et `focus_axis` que sur `health`/`performance`. Ces trois
+  // jetons ont disparu; la migration `20260818100000` a donc réécrit les deux
+  // CHECK sur `maintenance`, faute de quoi les colonnes devenaient
+  // INÉCRIVABLES pour tout le monde.
+  //
+  // Laisser les anciennes comparaisons ici n'aurait pas planté: elles seraient
+  // devenues FAUSSES pour tout le monde, et les deux colonnes auraient été
+  // remises à `null` à chaque enregistrement d'objectif — une perte silencieuse
+  // sur des lignes que la base accepte toujours. Du code mort qui ressemble à
+  // une garde, et le compilateur ne l'a nommé qu'une fois `MemberGoal` réduit
+  // à trois.
   const keepsWeight = goal === "fat_loss" || goal === "muscle_gain" ||
     goal === "maintenance";
-  const keepsWaist = goal === "recomposition";
-  const keepsFocus = goal === "health" || goal === "performance";
+  const keepsWaist = goal === "maintenance";
+  const keepsFocus = goal === "maintenance";
   const { data, error } = await supabase
     .from("student_goals")
     .update({
