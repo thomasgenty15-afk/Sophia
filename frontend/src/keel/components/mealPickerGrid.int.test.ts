@@ -157,6 +157,22 @@ describe("L3 — le trois-états", () => {
     expect(away).not.toContain("leaves the plan");
   });
 
+  it("laisse la place de LIRE les trois libellés, et le deux-états garde la sienne", () => {
+    // ⚠️ MESURÉ AU NAVIGATEUR À 320 px, LE 2026-08-18 (L3-B). À `min-w-[26rem]`
+    // une colonne fait 49 px; « Eating here » demande 64 px de texte plus la
+    // flèche du `select`. Les deux libellés se rendaient donc « Eating » — les
+    // DEUX ÉTATS QUE CE LOT EXISTE POUR SÉPARER devenaient identiques à l'œil,
+    // sur le seul écran où on les choisit.
+    //
+    // Le conteneur défile (`overflow-x-auto`), donc la page ne part pas de
+    // travers pour autant: `document.scrollWidth` reste à 320, vérifié.
+    expect(render({ threeState: true })).toContain("min-w-[52rem]");
+    // Et la case à cocher, elle, n'a jamais eu ce besoin: l'élargir ferait
+    // défiler un tableau qui tenait, pour trois écrans qui n'ont rien demandé.
+    expect(render()).toContain("min-w-[26rem]");
+    expect(render()).not.toContain("min-w-[52rem]");
+  });
+
   it("une JOURNÉE ENTIÈRE se déplie sur tous les moments du rythme", () => {
     // La grille n'a pas de case « toute la journée » — en avoir une ferait deux
     // façons de dire la même chose.

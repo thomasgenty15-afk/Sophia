@@ -189,11 +189,27 @@ export default function MealPickerGrid(props: MealPickerGridProps) {
       existing: marks,
       cells: state,
     });
-    // ⚠️ `onSave` REÇOIT AUSSI LES JETONS, et c'est ce qui rend le deux-états
-    // NON DESTRUCTIF: une `AwayMark` est une `AwayDay`, donc un écran qui ne
-    // connaît pas « dehors » réécrit quand même ce qu'il a lu. Sans ça, ouvrir
-    // puis enregistrer la grille sur un autre écran effacerait en silence des
-    // midis marqués dehors — et personne ne saurait où ils sont passés.
+    // `onSave` REÇOIT AUSSI LES JETONS — mais SEULEMENT CEUX QU'ON LUI A
+    // DONNÉS, et c'est là que la garde s'arrête.
+    //
+    // ⛔ MESURÉ AU NAVIGATEUR LE 2026-08-18 (L3-B), ET CE N'EST PAS THÉORIQUE.
+    // Les trois écrans qui montent cette grille lisent la colonne avec
+    // `parseAwayDays` (`api/household.ts:awayFrom` pour `/app/household` et
+    // `MealBuilder`, `StudentWeekPlanPage` pour la lane élève) — et
+    // `parseAwayDays` NE GARDE QUE `day` ET `slots`. Le jeton n'arrive donc
+    // jamais jusqu'ici: `marks` est tout entier `away`, et `mergeAwayMarks`
+    // réécrit `kind: "away"` PAR-DESSUS. Cinq midis « dehors » posés par la
+    // réponse hebdomadaire ont été effacés en OUVRANT puis ENREGISTRANT la
+    // grille du foyer, SANS toucher une seule case, pendant que
+    // `work_lunch` continuait de dire `outside`.
+    //
+    // ⚠️ CE N'EST PAS UNE RÉGRESSION AUJOURD'HUI, parce que rien n'écrit encore
+    // de « dehors »: aucun écran n'appelle `setMemberWorkLunch`, ni ne passe
+    // `onSaveMarks`. ÇA LE DEVIENT AU MOMENT PRÉCIS OÙ L6 BRANCHE LE
+    // FORMULAIRE. La réparation est chez l'APPELANT, pas ici — il n'y a rien à
+    // préserver dans un tableau dont le jeton a déjà été retiré: il faut lui
+    // donner `parseAwayMarks(raw, "household")` au lieu de `awayFrom(raw,
+    // "household")`, sur LES TROIS points de montage à la fois.
     void (props.onSaveMarks ? props.onSaveMarks(next) : props.onSave(next));
   }
 
@@ -277,7 +293,22 @@ export function MealPickerGridBody(props: {
                 tiennent pas à 320 px, et laisser la page partir de travers
                 emporterait tout l'écran. */}
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[26rem] border-collapse text-sm">
+              {/* ⚠️ LA LARGEUR MINIMALE DÉPEND DU CONTRÔLE, ET C'EST MESURÉ.
+                  `26rem` a été posé pour des CASES À COCHER — une colonne y
+                  fait ~49 px, ce qui suffit à une coche et à rien d'autre. Le
+                  choix à trois états y rentre le libellé le plus long
+                  (« Eating here », 64 px de texte plus la flèche) dans 49 px:
+                  mesuré à 320 px le 2026-08-18, « Eating here » et « Eating
+                  out » se rendent tous les deux « Eating », c'est-à-dire
+                  IDENTIQUES — exactement les deux états que ce lot existe pour
+                  séparer. Le conteneur défile déjà (`overflow-x-auto`), donc
+                  élargir ne fait pas partir la page: `document.scrollWidth`
+                  reste à 320. */}
+              <table
+                className={`w-full border-collapse text-sm ${
+                  threeState ? "min-w-[52rem]" : "min-w-[26rem]"
+                }`}
+              >
                 <thead>
                   <tr>
                     <th
