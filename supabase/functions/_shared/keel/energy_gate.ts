@@ -189,22 +189,61 @@ function fail(message: string): never {
 }
 
 /**
- * Un chiffre d'énergie peut-il atteindre cet élève ?
+ * ①②③ SEULES — LES TROIS PORTES QUI NE SONT PAS DES INTERRUPTEURS.
  *
- * ── POURQUOI LA VALIDATION EST DANS LA FONCTION ET PAS DANS LE TYPE ────────
- * Le type protège les appelants TypeScript. Il ne protège pas un appelant qui
- * construit son entrée depuis du JSON, une ligne de base ou un `as`. Ce dépôt a
- * la cicatrice « `as` sur un type étranger désarme le typecheck »: un objet mal
- * formé compilerait, et le premier `if` le lirait `undefined`, c'est-à-dire
- * faux, c'est-à-dire « pas de plancher ». La validation à l'exécution est ce
- * qui empêche `undefined` de valoir « tout va bien ».
+ * ── POURQUOI CETTE COUPURE EXISTE, ET OÙ ELLE PASSE ────────────────────────
+ * Les quatre portes ne sont pas de la même espèce. ① le plancher, ② l'âge et
+ * ③ la méthode du coach disent « ce chiffre ne doit pas être PRODUIT pour
+ * cette personne ». ④ (et ⑤) disent « cette personne ne veut pas le VOIR ».
+ *
+ * Un jour, un moteur voudra se servir d'une énergie pour dimensionner une part
+ * sans jamais l'afficher (FF-059 lot 3 / le chantier des boîtes). Il lui faut
+ * les trois premières — et il ne doit surtout PAS lire les deux dernières:
+ * masquer un chiffre ne doit pas changer le dîner. Sans cette fonction, cet
+ * appelant réécrirait ①②③ chez lui, et « deux points de décision finissent par
+ * diverger » — celui-ci porte la garde la plus sensible du produit.
+ *
+ * ⚠️ ELLE N'EST PAS UNE VERSION ALLÉGÉE DE `canShowEnergy`. C'est l'inverse:
+ * `canShowEnergy` EST cette fonction, plus ④. Il n'existe donc qu'une seule
+ * écriture de la chaîne de sécurité dans le dépôt.
  */
-export function canShowEnergy(input: EnergyGateInput): EnergyGateResult {
+export interface EnergySafetyInput {
+  /** ① Le plancher TCA. Voir `EnergyGateInput.restrictionFlag`. */
+  restrictionFlag: boolean;
+  /** ② Le verdict d'âge. Voir `EnergyGateInput.ageVerdict`. */
+  ageVerdict: BirthDateVerdict;
+  /** ③ La position du coach. Voir `EnergyGateInput.coachCounting`. */
+  coachCounting: CountingStance;
+}
+
+export interface EnergySafetyResult {
+  open: boolean;
+  reason: EnergyGateReason;
+}
+
+/**
+ * Les clés que `energySafetyGates` EXIGE. Mêmes règles que
+ * `ENERGY_GATE_INPUT_KEYS`: une entrée incomplète LÈVE.
+ */
+export const ENERGY_SAFETY_INPUT_KEYS = Object.freeze(
+  ["restrictionFlag", "ageVerdict", "coachCounting"] as const,
+);
+
+/**
+ * Les motifs que `energySafetyGates` peut rendre. `student_off` n'en est PAS:
+ * cette chaîne-ci ne lit aucun interrupteur, et un motif qu'elle ne peut pas
+ * produire n'a pas à figurer dans son vocabulaire.
+ */
+export const ENERGY_SAFETY_REASONS = Object.freeze(
+  ["open", "restriction_floor", "minor", "doctrine_no_counting"] as const,
+);
+
+export function energySafetyGates(input: EnergySafetyInput): EnergySafetyResult {
   if (input === null || typeof input !== "object") {
-    fail("canShowEnergy requires an input object");
+    fail("energySafetyGates requires an input object");
   }
   const bag = input as unknown as Record<string, unknown>;
-  for (const key of ENERGY_GATE_INPUT_KEYS) {
+  for (const key of ENERGY_SAFETY_INPUT_KEYS) {
     if (!Object.hasOwn(bag, key)) {
       fail(`missing required gate input: ${key}`);
     }
@@ -214,9 +253,6 @@ export function canShowEnergy(input: EnergyGateInput): EnergyGateResult {
   }
   if (typeof input.restrictionFlag !== "boolean") {
     fail("restrictionFlag must be a boolean");
-  }
-  if (typeof input.studentSwitch !== "boolean") {
-    fail("studentSwitch must be a boolean");
   }
   if (
     typeof input.ageVerdict !== "object" || input.ageVerdict === null ||
@@ -231,19 +267,60 @@ export function canShowEnergy(input: EnergyGateInput): EnergyGateResult {
   // ① LE PLANCHER. Aucun argument ne l'accompagne dans ce `if`, et c'est le
   //    point: il n'y a rien à conjuguer avec lui. Un `&&` ici serait la version
   //    cassée de cette fonction.
-  if (input.restrictionFlag) return { show: false, reason: "restriction_floor" };
+  if (input.restrictionFlag) return { open: false, reason: "restriction_floor" };
 
   // ② LE MINEUR. La règle vient de `weekPlanAgeGate`, pas d'une comparaison
   //    d'âge réécrite ici: une seconde définition de « mineur » diverge, et
   //    celle-ci porterait la garde la plus sensible du produit.
   if (weekPlanAgeGate(input.ageVerdict).reason === "minor") {
-    return { show: false, reason: "minor" };
+    return { open: false, reason: "minor" };
   }
 
   // ③ LA MÉTHODE DU COACH.
   if (input.coachCounting === "no_counting") {
-    return { show: false, reason: "doctrine_no_counting" };
+    return { open: false, reason: "doctrine_no_counting" };
   }
+
+  return { open: true, reason: "open" };
+}
+
+/**
+ * Un chiffre d'énergie peut-il atteindre cet élève ?
+ *
+ * ── POURQUOI LA VALIDATION EST DANS LA FONCTION ET PAS DANS LE TYPE ────────
+ * Le type protège les appelants TypeScript. Il ne protège pas un appelant qui
+ * construit son entrée depuis du JSON, une ligne de base ou un `as`. Ce dépôt a
+ * la cicatrice « `as` sur un type étranger désarme le typecheck »: un objet mal
+ * formé compilerait, et le premier `if` le lirait `undefined`, c'est-à-dire
+ * faux, c'est-à-dire « pas de plancher ». La validation à l'exécution est ce
+ * qui empêche `undefined` de valoir « tout va bien ».
+ *
+ * La validation des quatre clés reste ICI, entière, même si `energySafetyGates`
+ * revalide les trois siennes: ce n'est pas une décision, c'est une ceinture, et
+ * deux ceintures ne divergent pas — elles se doublent.
+ */
+export function canShowEnergy(input: EnergyGateInput): EnergyGateResult {
+  if (input === null || typeof input !== "object") {
+    fail("canShowEnergy requires an input object");
+  }
+  const bag = input as unknown as Record<string, unknown>;
+  for (const key of ENERGY_GATE_INPUT_KEYS) {
+    if (!Object.hasOwn(bag, key)) {
+      fail(`missing required gate input: ${key}`);
+    }
+    if (bag[key] === undefined) {
+      fail(`gate input ${key} is undefined — an absent gate is a disarmed gate`);
+    }
+  }
+  if (typeof input.studentSwitch !== "boolean") {
+    fail("studentSwitch must be a boolean");
+  }
+
+  // ①②③ — UNE SEULE ÉCRITURE, ET ELLE EST AILLEURS. Recopier les trois `if`
+  //       ici ferait exactement les deux points de décision que le commentaire
+  //       de `meal-energy-v1` interdit.
+  const safety = energySafetyGates(input);
+  if (!safety.open) return { show: false, reason: safety.reason };
 
   // ④ L'ÉLÈVE.
   if (!input.studentSwitch) return { show: false, reason: "student_off" };
@@ -328,4 +405,159 @@ export function canShowTarget(args: {
   if (!args.energy.show) return { show: false, reason: args.energy.reason };
   if (!args.targetSwitch) return { show: false, reason: "target_off" };
   return { show: true, reason: "open" };
+}
+
+// ---------------------------------------------------------------------------
+// L4 — LA GARDE TCA ARMÉE JUSQU'AU MOTEUR ET JUSQU'À LA TABLE
+//
+// Chantier: `docs/keel/CALORIE_REVERSAL.md` §0, l'étape déclarée BLOQUANTE.
+// Rapport: `scratchpad/2026-08-18-*-L4A-garde-tca.md` (les trois réponses).
+//
+// ── LA DÉCISION ① DE L'UTILISATEUR, 2026-08-18, ET CE QU'ELLE IMPOSE ────────
+//
+//     « LA GARDE NE PRODUIT JAMAIS LE CHIFFRE. Elle ne le supprime pas après
+//       coup. Rien à filtrer, donc rien qui puisse fuir par un chemin
+//       d'affichage oublié. Un filtre exhaustif est une promesse que le
+//       prochain rendu trahit sans le savoir. »
+//
+// Conséquence de CONCEPTION, et c'est elle qui décide de la forme des deux
+// fonctions ci-dessous: **l'état se lit AVANT le calcul, jamais entre le calcul
+// et l'écran.** Aucune de ces deux fonctions ne prend un nombre en entrée, et
+// aucune n'en rend un: elles répondent « tu peux calculer » ou « non, pour
+// CETTE raison », et elles répondent avant qu'un kcal existe.
+//
+// ⚠️ CE QUE ÇA INTERDIT À TOUT LOT FUTUR (le contrat, en une phrase): un kcal
+// peut vivre dans la pile d'appel d'un module pur; il ne peut PAS traverser une
+// réponse HTTP, une ligne de base, une consigne de modèle, un log nominatif ou
+// un écran sans que la porte correspondante ait dit oui AVANT qu'il soit
+// calculé.
+// ---------------------------------------------------------------------------
+
+/**
+ * LE MOTEUR PEUT-IL DIMENSIONNER UNE PART À PARTIR D'UNE ÉNERGIE ?
+ *
+ * C'est la porte du chantier de la cible (« la cible contraint les GRAMMAGES »).
+ * Elle existe parce que `household_portions.ts` ne connaît AUJOURD'HUI ni le
+ * plancher TCA, ni l'âge, ni la doctrine du coach — mesuré: les mots
+ * `restriction` et `floor` n'y apparaissent pas une seule fois. Tant que les
+ * parts se dimensionnaient sur des enveloppes de maintenance, ça n'avait pas
+ * d'importance. Le jour où une CIBLE les dimensionne, l'absence de cette porte
+ * serait un régime chiffré servi à quelqu'un que le plancher protège.
+ *
+ * ── POURQUOI ELLE NE LIT NI ④ NI ⑤, ET C'EST UN ARBITRAGE ─────────────────
+ * « Masquer les calories » est une préférence de LECTURE. Si elle changeait le
+ * dîner, l'élève paierait son confort en nourriture, et il découvrirait —
+ * peut-être — que sa part a changé le jour où il a caché un nombre. Les
+ * interrupteurs éteignent un affichage; ils ne pilotent pas une casserole.
+ *
+ * ⚠️ NE PAS « RÉPARER » EN AJOUTANT `studentSwitch` ICI. C'est écrit avant la
+ * première ligne d'appelant, exprès: la prochaine session qui verra une porte
+ * ④ « manquante » aura ce paragraphe sous les yeux.
+ *
+ * ── ET POURQUOI ELLE PREND UN RÉSULTAT, PAS TROIS BOOLÉENS ────────────────
+ * Même mécanique que `canShowTarget`: le seul argument par lequel on entre est
+ * la SORTIE de `energySafetyGates`. Un appelant ne peut donc pas dimensionner
+ * sans avoir fait tourner ①②③ — il n'y a pas d'autre porte, et il ne peut pas
+ * en fabriquer une avec un littéral (la validation d'exécution refuse une forme
+ * qui n'est pas un `EnergySafetyResult`).
+ */
+export function canSizeFromTarget(args: {
+  /** La sortie de `energySafetyGates`. REQUIS: c'est la seule porte d'entrée. */
+  safety: EnergySafetyResult;
+}): { size: boolean; reason: EnergyGateReason } {
+  if (args === null || typeof args !== "object") {
+    fail("canSizeFromTarget requires an input object");
+  }
+  const bag = args as unknown as Record<string, unknown>;
+  if (!Object.hasOwn(bag, "safety") || bag.safety === undefined) {
+    fail("missing required sizing gate input: safety");
+  }
+  if (
+    typeof args.safety !== "object" || args.safety === null ||
+    typeof args.safety.open !== "boolean" ||
+    !(ENERGY_SAFETY_REASONS as readonly string[]).includes(args.safety.reason)
+  ) {
+    fail("safety must be the result of energySafetyGates");
+  }
+  // LE MOTIF DE LA PREMIÈRE PORTE FERMÉE SURVIT TEL QUEL. Un foyer dont le
+  // compte maître est sous plancher lit `restriction_floor`, jamais autre chose.
+  if (!args.safety.open) return { size: false, reason: args.safety.reason };
+  return { size: true, reason: "open" };
+}
+
+/**
+ * Les motifs de l'ÉMISSION par bouche. Les six de la chaîne A/B/C, plus un.
+ */
+export const MOUTH_ENERGY_REASONS = Object.freeze(
+  [...TARGET_GATE_REASONS, "other_mouth"] as const,
+);
+export type MouthEnergyReason = (typeof MOUTH_ENERGY_REASONS)[number];
+
+/**
+ * UN CHIFFRE ATTRIBUÉ À UNE BOUCHE PEUT-IL SORTIR ?
+ *
+ * ── LA QUESTION §11 n°4 DE LA FICHE FF-059, TRANCHÉE ──────────────────────
+ * « Le foyer: les chiffres des autres bouches sont-ils visibles du maître ? »
+ * NON. Un chiffre d'énergie ne sort que pour la bouche QUI LE DEMANDE.
+ *
+ * Trois raisons, et la première suffirait:
+ *
+ *   1. LES CINQ ÉTATS QUI PORTENT LA DÉCISION SONT CLÉS SUR `auth.users` —
+ *      mesuré: le plancher (`evaluateRestrictionForStudent(userId)`),
+ *      `profiles.birth_date`, la doctrine du coach, et les deux interrupteurs.
+ *      AUCUN n'est clé sur `member_id`. Un foyer de quatre bouches n'a donc
+ *      qu'UNE ceinture, et elle appartient au compte maître. Rendre le chiffre
+ *      d'une autre bouche, c'est le rendre sous la ceinture de quelqu'un
+ *      d'autre — l'âge d'un autre, le plancher d'un autre, le consentement
+ *      d'un autre.
+ *   2. UNE BOUCHE SANS COMPTE NE PEUT RIEN ÉTEINDRE. « Un chiffre qu'on ne
+ *      peut pas faire taire est un tracker », et un enfant de douze ans n'a
+ *      pas d'interrupteur — il n'a pas de ligne où en poser un.
+ *   3. « CE QUI TOUCHE LE CORPS EST À SOI » (règle du foyer). Le corps de
+ *      chaque bouche est déjà dans une table sans aucun grant à
+ *      `authenticated`, précisément pour que le poids d'un co-membre ne soit
+ *      pas lisible. Un kcal par bouche à l'écran rouvrirait par la façade la
+ *      porte que `household_member_bodies` ferme par derrière.
+ *
+ * ⚠️ CE N'EST PAS UN INTERDIT DE CALCUL. Le moteur du foyer dimensionne déjà
+ * chaque part sur le corps de chaque bouche, et c'est la doctrine écrite du
+ * domaine: « collecter et calculer, jamais ÉNONCER ». Cette porte-ci garde
+ * l'énoncé, `canSizeFromTarget` garde le calcul. Les confondre fermerait le
+ * dîner d'une famille pour protéger un affichage que personne ne demandait.
+ */
+export function canEmitMouthEnergy(args: {
+  /**
+   * Le résultat de la chaîne POUR LE LECTEUR — `canShowEnergy` (niveaux A/B) ou
+   * `canShowTarget` (niveau C). REQUIS: c'est la seule porte d'entrée.
+   */
+  reader: { show: boolean; reason: TargetGateReason };
+  /** La bouche dont on parle EST-ELLE le lecteur ? REQUIS. */
+  mouthIsReader: boolean;
+}): { emit: boolean; reason: MouthEnergyReason } {
+  if (args === null || typeof args !== "object") {
+    fail("canEmitMouthEnergy requires an input object");
+  }
+  const bag = args as unknown as Record<string, unknown>;
+  for (const key of ["reader", "mouthIsReader"]) {
+    if (!Object.hasOwn(bag, key) || bag[key] === undefined) {
+      fail(`missing required mouth gate input: ${key}`);
+    }
+  }
+  if (typeof args.mouthIsReader !== "boolean") {
+    fail("mouthIsReader must be a boolean");
+  }
+  if (
+    typeof args.reader !== "object" || args.reader === null ||
+    typeof args.reader.show !== "boolean" ||
+    !(TARGET_GATE_REASONS as readonly string[]).includes(args.reader.reason)
+  ) {
+    fail("reader must be the result of canShowEnergy or canShowTarget");
+  }
+
+  // LA CHAÎNE DU LECTEUR D'ABORD, ET SON MOTIF SURVIT TEL QUEL. Un lecteur sous
+  // plancher qui demande la part d'un autre lit `restriction_floor`: le motif
+  // qui se répare, pas celui qui se contourne.
+  if (!args.reader.show) return { emit: false, reason: args.reader.reason };
+  if (!args.mouthIsReader) return { emit: false, reason: "other_mouth" };
+  return { emit: true, reason: "open" };
 }
