@@ -4410,11 +4410,12 @@ Deno.serve(async (req) => {
             // MÊME RAISON: `name` est demandé par le schéma du tronc, donc son
             // taux n'a de sens que lu sur toute la population.
             //
-            // ⚠️ CE COMPTEUR N'EST ARCHIVÉ QUE PAR CETTE LANE. `generate-meal-v1`
-            // (lane individuelle) archive `same_day` et pas encore `names` — son
-            // fichier n'appartient pas à ce lot. Ce qui reste comptable des DEUX
-            // côtés en attendant est `dishes[].name`, écrit par le payload
-            // partagé sur les deux lanes: voir la requête SQL du rapport L7-A.
+            // ⚠️ CE COMPTEUR ÉTAIT ARCHIVÉ PAR CETTE SEULE LANE, et le
+            // commentaire qui le disait a survécu à sa cause: depuis le lot ④
+            // du 2026-08-18, `generate-meal-v1` archive `names` au même nom et
+            // à la même place (racine du `generated_from`). Une requête qui
+            // regarde toute la population lit donc les deux lanes d'un coup —
+            // c'était le seul point de la décision de placement.
             names: meal.name_counts,
             household: {
               id: householdId,
