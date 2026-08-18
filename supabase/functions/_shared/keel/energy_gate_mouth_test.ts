@@ -443,12 +443,48 @@ Deno.test("L4 — les trois entrées neuves ne portent AUCUN champ optionnel", (
   }
 });
 
+/**
+ * LA FONCTION ENTIÈRE — signature ET corps.
+ *
+ * ⚠️ NE PAS REVENIR À `bodyAfter` ICI. Mesuré le 2026-08-18 (L4-B): son closer
+ * par défaut `"\n}"` tombe sur l'accolade qui ferme l'objet d'ARGUMENTS
+ * (`\n}): { size... }`), donc il rendait TROIS LIGNES — la liste de paramètres,
+ * et rien du corps. La garde ci-dessous cherchait `studentSwitch` dans un
+ * fragment où il ne pouvait pas être: un `const studentSwitch = true` posé dans
+ * le corps passait vert. Une garde cassée bloque tout et ressemble à une garde
+ * qui marche; celle-ci ne bloquait rien et lui ressemblait quand même.
+ *
+ * Le closer est `"\n}\n"`: un accolade en colonne 0 SUIVIE D'UNE FIN DE LIGNE.
+ * `\n}): ` ne matche pas, donc on saute bien la fin de l'objet d'arguments.
+ */
+function functionSource(name: string): string {
+  const marker = `export function ${name}(`;
+  const start = GATE_SOURCE.indexOf(marker);
+  assert(start > 0, `${name} a été renommée`);
+  const end = GATE_SOURCE.indexOf("\n}\n", start);
+  assert(end > start, `${name}: fin de fonction introuvable`);
+  return stripComments(GATE_SOURCE.slice(start, end + 2));
+}
+
 Deno.test("L4 — le dimensionnement ne lit NI ④ NI ⑤, et la source le prouve", () => {
   // L'arbitrage écrit dans le module: masquer un chiffre ne change pas le
   // dîner. Il tient tant que ces deux mots n'entrent pas dans cette fonction —
   // et « ajouter la porte ④ qui manque » est exactement le geste qu'une session
   // future croira réparateur.
-  const body = bodyAfter("export function canSizeFromTarget(args: {");
+  const body = functionSource("canSizeFromTarget");
+
+  // ── LA PRÉMISSE DE LA GARDE, VÉRIFIÉE AVANT LA GARDE ────────────────────
+  // Sans ces deux lignes, un extracteur cassé rend `""`, les quatre `assert`
+  // ci-dessous passent, et le banc reste vert en ne regardant RIEN. C'est
+  // exactement le défaut que L4-B a mesuré. On exige donc que le fragment
+  // contienne le corps réel: la lecture de la porte de sécurité, et le retour
+  // ouvert.
+  assert(body.includes("args.safety.open"), `le corps n'a pas été lu:\n${body}`);
+  assert(
+    body.includes('return { size: true, reason: "open" }'),
+    `le corps n'a pas été lu jusqu'au bout:\n${body}`,
+  );
+
   assert(!body.includes("studentSwitch"), body);
   assert(!body.includes("targetSwitch"), body);
   assert(!body.includes("energy_display_enabled"), body);
