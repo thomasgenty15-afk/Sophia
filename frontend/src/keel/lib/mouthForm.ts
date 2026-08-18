@@ -52,6 +52,11 @@ import {
 } from "../../../../supabase/functions/_shared/keel/student_age.ts";
 import type { ActivityLevel } from "../../../../supabase/functions/_shared/keel/tokens.ts";
 import type { MemberGender, MemberGoal } from "../api/household";
+// ⚠️ `import type` ET RIEN D'AUTRE. `api/mouthProfile` tire le client Supabase;
+// un import de VALEUR mettrait du réseau dans un module qui se déclare pur.
+// Le type, lui, est effacé à l'exécution — et le partager est ce qui empêche
+// une SECONDE forme du shaker de naître ici et de diverger de l'écrivain.
+import type { ShakerToWrite } from "../api/mouthProfile";
 
 // ---------------------------------------------------------------------------
 // LES SIX BLOCS
@@ -439,6 +444,38 @@ export function shakerIsComplete(shaker: ShakerDraft | null): boolean {
   return (numberOrNull(shaker.servingGrams) ?? 0) > 0;
 }
 
+/**
+ * LE SHAKER SAISI, TRADUIT EN CE QUI PART EN BASE — ou `null`.
+ *
+ * ── ⚠️ LA FRONTIÈRE, ET ELLE EST LA RAISON DU `null` ─────────────────────
+ * Un APPORT FIXE est une quantité CONNUE qui entre dans le calcul; une
+ * HABITUDE est une tendance que la composition contourne. Un shaker incomplet
+ * est une habitude: on sait qu'il existe, on ne sait pas ce qu'il apporte.
+ * Lui inventer une portion moyenne écrirait un fait que personne n'a pesé —
+ * cicatrice `auto-tick-writes-undeniable-false-facts`, et le référentiel ne
+ * pourrait même pas fournir la moyenne (mesuré: 911 références, zéro whey).
+ *
+ * ⚠️ CE `null` N'EST DONC PAS UNE PERTE SILENCIEUSE: l'écran dit déjà, à côté
+ * des champs, que la déclaration est incomplète (`shaker_incomplete`), et
+ * `shakerIsComplete` est la MÊME fonction des deux côtés. Ce qui disparaîtrait
+ * sans un mot, ce serait un shaker complet — et c'est exactement ce que ce
+ * traducteur existe pour empêcher.
+ */
+export function shakerToWrite(draft: MouthFormDraft): ShakerToWrite | null {
+  const shaker = draft.shaker;
+  if (!shakerIsComplete(shaker) || shaker === null) return null;
+  return {
+    label: shaker.label.trim(),
+    servingGrams: numberOrNull(shaker.servingGrams) ?? 0,
+    proteinGPerServing: numberOrNull(shaker.proteinGPerServing) ?? 0,
+    energyKcalPerServing: numberOrNull(shaker.energyKcalPerServing) ?? 0,
+    // `""` PART EN `null`, parce que c'est le mot que le type d'écriture
+    // emploie pour « hors moment nommé » (`loose`). Deux façons de dire la même
+    // absence dans une même chaîne finiraient par diverger sur la troisième.
+    slot: shaker.slot.trim() === "" ? null : shaker.slot.trim(),
+  };
+}
+
 // ---------------------------------------------------------------------------
 // CE QUI RETIENT LE BOUTON
 // ---------------------------------------------------------------------------
@@ -574,6 +611,16 @@ export interface MouthPersistPayload {
   targetWeightKg: number | null;
   paceKgPerWeek: number | null;
   habits: readonly { slot: string; kind: "own_usual"; usual: string }[];
+  /**
+   * LE SHAKER, OU `null` — ET IL EST ARRIVÉ ICI LE 2026-08-18 (D1).
+   *
+   * ⚠️ CE CHAMP MANQUAIT, ET SON ABSENCE ÉTAIT LE DÉFAUT. Le formulaire
+   * demandait ses protéines et ses calories à quelqu'un, et ce traducteur les
+   * JETAIT avant l'écriture: `addShakerToOwnIntakes` existait sans appelant, et
+   * la question était décorative de bout en bout. Un champ qu'on remplit et qui
+   * ne va nulle part est pire qu'un champ absent — il promet.
+   */
+  shaker: ShakerToWrite | null;
   allergies: readonly string[];
   dislikes: readonly string[];
   diet: string | null;
@@ -607,6 +654,11 @@ export function mouthToPersist(
         usual: usual.trim(),
       }))
       .filter((h) => h.usual !== ""),
+    // ⚠️ LA MÊME LIGNE QUE LES HABITUDES, ET LA FRONTIÈRE ENTRE LES DEUX EST LE
+    // SUJET: une habitude est une TENDANCE que la composition contourne, un
+    // apport fixe est une QUANTITÉ CONNUE qu'elle compte. `shakerToWrite` rend
+    // `null` tant que la quantité manque — voir la frontière écrite là-bas.
+    shaker: shakerToWrite(draft),
     allergies: [...draft.allergies],
     dislikes: [...draft.dislikes],
     diet: draft.diet === "" ? null : draft.diet,

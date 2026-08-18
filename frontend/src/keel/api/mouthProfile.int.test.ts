@@ -56,6 +56,10 @@ function spyWriters(
       addAllergy: make("addAllergy") as MouthWriters["addAllergy"],
       addRestriction: make("addRestriction") as MouthWriters["addRestriction"],
       setDiet: make("setDiet") as MouthWriters["setDiet"],
+      // D1 (2026-08-18) — LA SEPTIÈME PORTE. Le harnais la BRANCHE par défaut:
+      // « appelée avec quoi » est le sujet des tests d'en bas, et « jamais
+      // appelée sans shaker » n'a de sens que si elle était appelable.
+      setShaker: make("setShaker") as NonNullable<MouthWriters["setShaker"]>,
     },
   };
 }
@@ -72,6 +76,7 @@ const MOUTH: MouthToPersist = {
   targetWeightKg: 55,
   paceKgPerWeek: 0.45,
   habits: [{ slot: "breakfast", kind: "own_usual", usual: "une pomme" }],
+  shaker: null,
   allergies: ["peanut"],
   dislikes: ["champignons"],
   diet: "vegetarian",
@@ -311,5 +316,150 @@ describe("le shaker est relisible par le parseur du moteur", () => {
     // par `declared_`.
     const intake = parseFixedIntakes([shakerIntakeJson(SHAKER)]).intakes[0];
     expect(intake.foodRef.startsWith("declared_")).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// D1 (2026-08-18) — LE SHAKER TRAVERSE, DU CHAMP TAPÉ À LA LIGNE DU MOTEUR
+//
+// ⚠️ CE BLOC EST LA MOITIÉ QUI MANQUAIT, ET LE TROU ÉTAIT MESURÉ:
+// `mouthToPersist` JETAIT le shaker avant l'écriture, et `addShakerToOwnIntakes`
+// avait ZÉRO appelant. Le formulaire demandait donc ses protéines et ses
+// calories à quelqu'un pour rien. Les tests d'au-dessus prouvaient que la forme
+// écrite est RELISIBLE; aucun ne prouvait qu'elle est ÉCRITE.
+// ---------------------------------------------------------------------------
+
+describe("le shaker saisi ARRIVE à la porte, tel qu'il a été tapé", () => {
+  const TYPED: Partial<MouthFormDraft> = {
+    firstName: "Zoe",
+    birthDate: ADULT_BIRTH,
+    goal: "muscle_gain",
+    heightCm: "165",
+    weightKg: "60",
+    gender: "female",
+    activityLevel: "trains_hard",
+    shaker: {
+      label: "  mon shaker  ",
+      servingGrams: "30",
+      proteinGPerServing: "24",
+      energyKcalPerServing: "120",
+      slot: "snack_pm",
+    },
+  };
+
+  it("⛔ LE TRADUCTEUR NE LE JETTE PLUS — les trois nombres partent", () => {
+    const out = mouthToPersist(draftOf(TYPED), TODAY);
+    expect(out.shaker).toEqual({
+      // Le libellé est TAILLÉ, comme le prénom: c'est le nom que la consigne
+      // dira à la personne, pas une chaîne à comparer.
+      label: "mon shaker",
+      servingGrams: 30,
+      proteinGPerServing: 24,
+      energyKcalPerServing: 120,
+      slot: "snack_pm",
+    });
+  });
+
+  it("BOUT À BOUT — du champ tapé à la ligne que le MOTEUR relit", async () => {
+    // La chaîne entière, sans réseau: brouillon → payload → porte injectée →
+    // jsonb → parseur du moteur. C'est le seul test qui dit que la donnée
+    // TRAVERSE; chaque maillon pris seul reste vert sur un maillon suivant mort.
+    let arrived: unknown = null;
+    const { writers } = spyWriters();
+    const res = await persistMouth(
+      mouthToPersist(draftOf(TYPED), TODAY),
+      {
+        ...writers,
+        setShaker: (shaker) => {
+          arrived = shakerIntakeJson(shaker);
+          return Promise.resolve({ ok: true, reason: "" });
+        },
+      },
+    );
+    expect(res.ok).toBe(true);
+
+    const parsed = parseFixedIntakes([arrived]);
+    expect(parsed.discarded).toBe(0);
+    const intake = parsed.intakes[0];
+    if (!("nutrition" in intake) || intake.nutrition !== "declared") {
+      throw new Error("attendu: une branche `declared`");
+    }
+    expect(intake.label).toBe("mon shaker");
+    expect(intake.proteinGPerServing).toBe(24);
+    expect(intake.energyKcalPerServing).toBe(120);
+    // A5 — il nomme un moment et ne le PREND pas.
+    if (intake.placement !== "at_slot") {
+      throw new Error("attendu: un moment nommé");
+    }
+    expect(intake.slot).toBe("snack_pm");
+    expect(intake.replacesMeal).toBe(false);
+  });
+
+  it("le shaker part APRÈS les habitudes — même bloc, deux portes", async () => {
+    const { writers, calls } = spyWriters();
+    await persistMouth(mouthToPersist(draftOf(TYPED), TODAY), writers);
+    expect(calls.indexOf("setShaker")).toBe(calls.indexOf("setHabits") + 1);
+  });
+
+  it("PAS DE SHAKER = PAS D'APPEL — un `null` n'écrit pas une ligne vide", async () => {
+    const { writers, calls } = spyWriters();
+    await persistMouth(MOUTH, writers);
+    expect(calls).not.toContain("setShaker");
+  });
+
+  it("⚠️ LA FRONTIÈRE — un shaker INCOMPLET est une habitude, pas un apport", async () => {
+    // Un apport fixe est une quantité CONNUE; une habitude est une tendance.
+    // Inventer la portion moyenne d'une poudre écrirait un fait que personne
+    // n'a pesé — et le référentiel n'en connaît AUCUNE (911 références, zéro
+    // whey), donc il n'y aurait même pas de moyenne à emprunter.
+    for (
+      const hole of [
+        { servingGrams: "" },
+        { proteinGPerServing: "" },
+        { energyKcalPerServing: "" },
+        { label: "   " },
+        // Une portion de zéro gramme n'est pas une portion: rien ne se ramène
+        // à 100 g, et la ligne ne peut rien peser.
+        { servingGrams: "0" },
+      ]
+    ) {
+      const draft = draftOf({
+        ...TYPED,
+        shaker: { ...TYPED.shaker!, ...hole },
+      });
+      expect(mouthToPersist(draft, TODAY).shaker).toBeNull();
+      const { writers, calls } = spyWriters();
+      await persistMouth(mouthToPersist(draft, TODAY), writers);
+      expect(calls).not.toContain("setShaker");
+    }
+  });
+
+  it("un shaker SANS PORTE LÈVE — jamais un silence", async () => {
+    // C'est un défaut de CÂBLAGE: le pop-up ne montre le champ qu'à qui a un
+    // compte. Y arriver veut dire qu'un écran a monté la fenêtre avec
+    // `hasAccount: true` sans brancher la porte — et le silence est exactement
+    // l'état d'avant ce lot.
+    const { writers } = spyWriters();
+    await expect(
+      persistMouth(mouthToPersist(draftOf(TYPED), TODAY), {
+        ...writers,
+        setShaker: null,
+      }),
+    ).rejects.toThrow(/setShaker/);
+  });
+
+  it("le refus de la porte ARRÊTE la chaîne, il ne la traverse pas", async () => {
+    const { writers, calls } = spyWriters({
+      setShaker: { ok: false, reason: "no_goal_row" },
+    });
+    const res = await persistMouth(
+      mouthToPersist(draftOf(TYPED), TODAY),
+      writers,
+    );
+    expect(res.ok).toBe(false);
+    expect(res.reason).toBe("no_goal_row");
+    // Les marches d'après ne partent PAS: une fiche à moitié écrite dont
+    // personne ne sait ce qui manque est ce que l'arrêt évite.
+    expect(calls).not.toContain("addAllergy");
   });
 });

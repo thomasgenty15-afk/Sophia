@@ -128,20 +128,23 @@ export async function setOwnTarget(
  * `food_preferences`, et que `household_habits` a fermé de son côté en
  * déménageant sur `member_id`.
  *
- * Et le trou est PLUS LARGE QUE L'ÉCRITURE: la lane foyer ne LIT aucun apport
- * fixe. `generate-household-meal-v1/index.ts` passe `fixedIntakes: []` en dur,
- * trois fois, avec le commentaire « Le foyer ne porte pas d'apports fixes ».
- * Même en fabriquant une table par membre, rien ne la lirait.
+ * Le pop-up n'offre donc le shaker QU'À UNE BOUCHE QUI A UN COMPTE. Montrer le
+ * champ aux autres serait montrer un contrôle qui échoue à tous les coups —
+ * « pire qu'un contrôle absent, parce qu'il promet », la règle que
+ * `setMemberDiet` porte déjà pour l'objectif.
  *
- * Le pop-up n'offre donc le shaker QU'À UNE BOUCHE QUI A UN COMPTE, et pour
- * elle il atteint réellement le calcul (lane individuelle). Montrer le champ
- * aux autres serait montrer un contrôle qui échoue à tous les coups — « pire
- * qu'un contrôle absent, parce qu'il promet », la règle que `setMemberDiet`
- * porte déjà pour l'objectif.
+ * ── ⚠️ CE COMMIT NE FERME QUE L'ÉCRIVAIN ─────────────────────────────────
+ * Ce qui suit est vrai à l'instant où ces lignes s'écrivent, et le commit
+ * suivant du même lot (D1b) le rend faux: **la lane foyer ne LIT aucun apport
+ * fixe**. `generate-household-meal-v1/index.ts` passe `fixedIntakes: []` en
+ * dur, trois fois. Un shaker déclaré par une bouche du foyer atteint donc la
+ * base par ce fichier, et s'arrête là.
  *
- * ⛔ LE COMBLER APPARTIENT À L7/L8: le lecteur vit dans
- * `household_meal_generation.ts` et dans la fonction edge, deux fichiers que le
- * périmètre de ce lot exclut.
+ * L'écrivain est ici (`addShakerToOwnIntakes`, appelé par `persistMouth` via
+ * `MouthWriters`); le lecteur vit dans `household_meal_generation.ts` et dans
+ * la fonction edge. Un bout sans l'autre est un champ décoratif, dans un sens
+ * ou dans l'autre — c'est pour ça que les deux appartiennent au même lot, et
+ * que celui-ci n'est pas fini tant que le second commit n'est pas posé.
  */
 export interface ShakerToWrite {
   label: string;
@@ -232,6 +235,41 @@ export async function addShakerToOwnIntakes(args: {
   });
 }
 
+/**
+ * LA PORTE DU SHAKER D'UN COMPTE, PRÊTE POUR `persistMouth`.
+ *
+ * ⚠️ ELLE RELIT LA COLONNE AU MOMENT D'ÉCRIRE, ET C'EST TOUT L'INTÉRÊT DE
+ * L'ENVELOPPE. `addShakerToOwnIntakes` prend `current` — l'état à ne pas
+ * écraser — et un écran qui le capturerait AU MONTAGE renverrait, au Save, une
+ * photo périmée: le rythme alimentaire, la capacité de cuisine et les goûts
+ * vivent dans le MÊME jsonb, et une écriture faite entre-temps par une autre
+ * carte disparaîtrait sans un mot. C'est la cicatrice « `current` périmé efface
+ * l'écriture d'avant », mesurée deux fois sur `practical_constraints`.
+ *
+ * ⚠️ PAS DE LIGNE = `no_goal_row`, JAMAIS UN SUCCÈS. Même refus nommé que
+ * `setOwnTarget` juste au-dessus, et pour la même raison: `mergePractical
+ * Constraints` lèverait de son côté, mais avec un message de développeur.
+ */
+export function ownShakerWriter(
+  userId: string,
+): (shaker: ShakerToWrite) => Promise<RpcResult> {
+  return async (shaker: ShakerToWrite) => {
+    const { data, error } = await supabase
+      .from("student_goals")
+      .select("practical_constraints")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!data) return { ok: false, reason: "no_goal_row" };
+    await addShakerToOwnIntakes({
+      userId,
+      current: (data.practical_constraints ?? {}) as Record<string, unknown>,
+      shaker,
+    });
+    return { ok: true, reason: "" };
+  };
+}
+
 // ---------------------------------------------------------------------------
 // L'ORCHESTRATION — l'ordre des écritures est une garde
 // ---------------------------------------------------------------------------
@@ -246,7 +284,11 @@ export async function addShakerToOwnIntakes(args: {
  *   3. la CIBLE et le RYTHME — ils exigent que `goal` soit déjà `fat_loss` ou
  *                              `muscle_gain` en base, sinon
  *                              `target_needs_direction`;
- *   4. le reste (habitudes, allergies, dégoûts, régime) — indépendants.
+ *   4. le reste (habitudes, LE SHAKER, allergies, dégoûts, régime) —
+ *      indépendants. Le shaker suit les habitudes parce que c'est le même bloc
+ *      du formulaire, et il passe par une porte à part parce que ce n'est pas
+ *      la même donnée: `user_id` contre `member_id`, une quantité comptée
+ *      contre une tendance contournée.
  *
  * ── ⚠️ ET IL S'ARRÊTE À LA PREMIÈRE MARCHE QUI CASSE ─────────────────────
  * Pas de « on continue et on verra »: une bouche à qui on aurait posé un
@@ -296,6 +338,23 @@ export interface MouthWriters {
     slots: readonly { slot: string; kind: "own_usual"; usual: string }[],
     note: string | null,
   ) => Promise<RpcResult>;
+  /**
+   * LE SHAKER — REQUIS ET NULLABLE, jamais `?`.
+   *
+   * `null` veut dire « cette bouche n'a pas de compte », c'est-à-dire « il n'y
+   * a nulle part où porter un apport fixe ». C'est le SEUL état légitime sans
+   * porte, et le pop-up le tient déjà de son côté (`subject.hasAccount` cache
+   * le champ). Un `?` n'aurait fait remonter AUCUN appelant au compilateur, et
+   * le shaker serait resté ce qu'il était: collecté à l'écran, jeté avant la
+   * base. C'est le mode d'échec que ce lot solde — inutile de le rouvrir par
+   * la porte de la signature.
+   *
+   * ⚠️ ELLE PREND LE SHAKER SEUL, PAS DE `memberId`: `fixed_intakes` est clé
+   * sur `user_id`. C'est à l'appelant de lier le compte (`ownShakerWriter`), et
+   * cette asymétrie avec les six autres portes est exactement la frontière
+   * qu'elle doit rendre visible.
+   */
+  setShaker: ((shaker: ShakerToWrite) => Promise<RpcResult>) | null;
   addAllergy: (memberId: string, label: string) => Promise<RpcResult>;
   addRestriction: (memberId: string, label: string) => Promise<RpcResult>;
   setDiet: (memberId: string, diet: string | null) => Promise<RpcResult>;
@@ -314,6 +373,8 @@ export interface MouthToPersist {
   targetWeightKg: number | null;
   paceKgPerWeek: number | null;
   habits: readonly { slot: string; kind: "own_usual"; usual: string }[];
+  /** L'apport fixe déclaré, ou `null` quand la quantité n'est pas connue. */
+  shaker: ShakerToWrite | null;
   allergies: readonly string[];
   dislikes: readonly string[];
   diet: string | null;
@@ -360,6 +421,33 @@ export async function persistMouth(
   // liste est vide rendrait une suppression impossible.
   const habits = await writers.setHabits(memberId, mouth.habits, null);
   if (!habits.ok) return habits;
+
+  // ── LE SHAKER, JUSTE APRÈS LES HABITUDES ────────────────────────────────
+  //
+  // C'est le même bloc du formulaire (« ce qu'elle mange déjà »), et sa place
+  // ici le dit. Mais ce n'est PAS la même donnée: une habitude est une tendance
+  // que la composition contourne (`member_id`, texte libre), un apport fixe est
+  // une quantité connue qu'elle COMPTE (`user_id`, trois nombres lus sur le
+  // pot). D'où deux portes, et une seule ligne de garde entre les deux.
+  //
+  // ⚠️ `null` DES DEUX CÔTÉS EST LE CAS NOMINAL — une bouche sans compte, sans
+  // shaker. Un shaker SANS PORTE, en revanche, est une erreur de câblage: le
+  // pop-up ne montre le champ qu'à qui a un compte, donc y arriver veut dire
+  // qu'un écran a monté la fenêtre avec `hasAccount: true` et n'a pas branché
+  // la porte. On LÈVE plutôt que de rendre un refus: c'est un défaut de
+  // programme, pas une réponse à faire lire à quelqu'un — et surtout ce n'est
+  // pas un silence, qui est exactement l'état d'avant ce lot.
+  if (mouth.shaker !== null) {
+    if (writers.setShaker === null) {
+      throw new Error(
+        "[keel/api] persistMouth: a shaker was declared but no `setShaker` " +
+          "door was wired — `fixed_intakes` is keyed on `user_id`, so this " +
+          "mouth needs an account (see `ownShakerWriter`).",
+      );
+    }
+    const shaken = await writers.setShaker(mouth.shaker);
+    if (!shaken.ok) return shaken;
+  }
 
   // ⚠️ LES ALLERGIES ET LES DÉGOÛTS S'AJOUTENT, ILS NE REMPLACENT PAS. Les deux
   // portes sont `add_*` / `remove_*`, et il n'existe pas de « poser la liste ».
