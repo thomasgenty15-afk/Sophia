@@ -9,7 +9,8 @@
 | # | Sujet | Sort | Commit |
 |---|---|---|---|
 | ① | « C'est un adulte ou un enfant ? » retirée, et l'objectif ne s'efface plus | **livré** | `0009b1ab` |
-| ② | Deux surfaces : l'étape 3 en ligne, les préférences derrière un bouton | en cours | — |
+| ② | Deux surfaces : la fiche en ligne, les préférences derrière un bouton | **livré** | `518ef2d1` · `bd89db47` · `eef6b5e4` |
+| ⚠️ | Le bouton des préférences DANS l'entonnoir, et la cible des autres bouches | **non fait**, motivé | — |
 
 ---
 
@@ -79,10 +80,6 @@ celle qu'il porte. Ce n'est pas un effacement (rien n'est jeté), mais c'est la
 même règle d'avant le 18/08, dans le calcul de ce qui manque. **Non corrigé** :
 c'est un changement de ce qui BLOQUE l'entonnoir pour tous les foyers avec
 enfants, donc un arbitrage produit, pas un nettoyage. À trancher par un humain.
-
----
-
-_(la suite est ajoutée au fil de l'eau)_
 
 ---
 
