@@ -1,0 +1,105 @@
+diff --git a/frontend/src/keel/i18n/catalog.ts b/frontend/src/keel/i18n/catalog.ts
+index d5305371..876bf17d 100644
+--- a/frontend/src/keel/i18n/catalog.ts
++++ b/frontend/src/keel/i18n/catalog.ts
+@@ -488,13 +500,36 @@ export const PAGE_NAMESPACES: Readonly<
+   // des dates est un lot à part (une seule autorité, `keel/i18n/format.ts`, et
+   // la distinction entre un format d'AFFICHAGE et le `en-CA` de `dates.ts`, qui
+   // est une astuce `yyyy-mm-dd` comparée et stockée, jamais lue). Elle est
+   // écrite ici pour qu'elle soit trouvable, et c'est le SEUL site de format sur
+   // les cinq pages: `ShoppingListPanel` passe déjà `undefined` (la locale du
+   // navigateur), les trois autres pages n'en ont aucun.
+-  "/app/household": ["household", "meals", "plan", "app", "shell", "chat"],
++  // `common` pour la même raison qu'à `/app/setup`: la fenêtre de présence.
++  "/app/household": [
++    "household",
++    "meals",
++    "plan",
++    "app",
++    "shell",
++    "chat",
++    "common",
++    // ── L5, 2026-08-18 · LE POP-UP « UNE BOUCHE » ──────────────────────────
++    // La fenêtre qui décrit une personne s'ouvre ici comme dans l'entonnoir, et
++    // elle emprunte le MÊME vocabulaire de champ — prénom, date de naissance,
++    // taille, poids, sexe. Deux jeux de libellés pour les deux mêmes champs
++    // divergeraient au premier ajustement, et c'est l'écran le moins relu qui
++    // aurait tort. `allergen` suit pour la même raison: les treize slugs sont
++    // une DONNÉE partagée, et leur libellé se résout à l'appel.
++    //
++    // ⚠️ DÉCLARÉS PLUTÔT QU'ÉVITÉS, ET C'EST LE REMÈDE QUE LE SCANNER PRESCRIT
++    // LUI-MÊME. `pageSeams` a rougi sur ces deux namespaces avant que quiconque
++    // ouvre la page — « Ajoute son namespace à la déclaration de la page, ou
++    // traduis-le ». Les deux SONT traduits; il manquait la déclaration.
++    "setup",
++    "allergen",
++  ],
+   // `/app/chat` — la bulle. Elle n'a coûté que le point hebdomadaire: les onze
+   // libellés des six axes et des cinq crans vivaient dans `api/weeklyCheckIn.ts`
+   // sous CONTRAT MOT POUR MOT avec un fichier Deno, ce qui les rendait
+   // intraduisibles tant que le contrat portait sur « le libellé affiché ». Il
+   // porte maintenant sur l'ANGLAIS DU SEED — la même chaîne, la même exigence —
+   // et le pack français est libre. Voir la note du test.
+diff --git a/frontend/src/keel/copy/planRefusals.ts b/frontend/src/keel/copy/planRefusals.ts
+index efdc28c7..89ab5121 100644
+--- a/frontend/src/keel/copy/planRefusals.ts
++++ b/frontend/src/keel/copy/planRefusals.ts
+@@ -215,21 +232,58 @@ export function mergeSettingRefusalKey(reason: string): MessageKey | null {
+ export const HOUSEHOLD_REFUSAL_KEYS: Record<string, MessageKey> = {
+   bad_first_name: "household.error.bad_first_name",
+   bad_birth_date: "household.error.bad_birth_date",
+   bad_goal: "household.error.bad_goal",
+   bad_label: "household.error.bad_label",
+   bad_away: "household.error.bad_away",
++  // Les habitudes d'une bouche (spec du 2026-08-14, §G2). `not_a_member`,
++  // `not_your_line` et `not_authenticated` sont DÉJÀ dans cette table et ne
++  // sont pas dédoublés: la RPC des habitudes refuse avec les mêmes mots que
++  // toutes les autres RPC de foyer.
++  bad_slots: "household.error.bad_slots",
++  bad_note: "household.error.bad_note",
++  // ── LE RÉGIME D'UNE BOUCHE (spec du 2026-08-14, R3) ─────────────────────
++  // EN LITTÉRAL, jamais dans un ternaire: ce fichier est scanné par
++  // `planRefusals.int.test.ts`, qui ne lit QUE les littéraux — un motif calculé
++  // devient orphelin en silence, et ce dépôt l'a déjà payé.
++  bad_diet: "household.error.bad_diet",
++  // ⚠️ `has_account` MANQUAIT DÉJÀ, ET IL N'ÉTAIT PAS ORPHELIN PAR HASARD:
++  // `keel_household_set_member_goal` le rend depuis D1, mais l'écran masque le
++  // contrôle pour une bouche qui a un compte, donc personne ne l'avait jamais
++  // vu. Le régime suit la même règle d'affichage — et un motif qu'on ne peut
++  // pas traduire finit toujours par arriver en jeton nu le jour où un chemin
++  // change. On le nomme maintenant qu'une seconde RPC le rend.
++  has_account: "household.error.has_account",
+   household_full: "household.error.household_full",
+   not_owner: "household.error.not_owner",
+   not_a_member: "household.error.not_a_member",
+   not_your_line: "household.error.not_your_line",
+   no_household: "household.error.no_household",
+   cannot_remove_owner: "household.error.cannot_remove_owner",
+   cannot_detach_owner: "household.error.cannot_detach_owner",
+   not_claimed: "household.error.not_claimed",
+   not_found: "household.error.not_found",
++  // ── LE POIDS VISÉ ET LE RYTHME D'UNE BOUCHE (L5, migration 20260818190000) ─
++  // EN LITTÉRAL, jamais dans un ternaire: ce fichier est scanné par
++  // `planRefusals.int.test.ts`, qui ne lit QUE les littéraux — un motif calculé
++  // devient orphelin en silence.
++  //
++  // ⚠️ CES QUATRE-LÀ NE SONT PAS DÉCORATIFS, contrairement à `has_account` en
++  // son temps: le pop-up « une bouche » RETIENT son bouton sur un poids visé
++  // refusé, mais il ne connaît pas `goal` tel qu'il est EN BASE — la marche
++  // précédente vient de l'écrire, et une seconde fenêtre ouverte a pu changer
++  // la direction entre-temps. `target_needs_direction` est donc atteignable
++  // par une course, pas seulement par un appel direct de la RPC.
++  target_incomplete: "household.error.target_incomplete",
++  bad_target_weight: "household.error.bad_target_weight",
++  bad_pace: "household.error.bad_pace",
++  target_needs_direction: "household.error.target_needs_direction",
++  // Le refus que `persistMouth` fabrique lui-même quand la porte d'ajout rend
++  // `ok: true` SANS `member_id`. Les cinq marches suivantes viseraient alors la
++  // chaîne vide — cinq `not_a_member` au lieu d'une cause.
++  no_member_id: "household.error.no_member_id",
+   not_authenticated: "plan.validate.error.not_authenticated",
+ };
+ 
+ export function householdRefusalKey(reason: string): MessageKey | null {
+   return HOUSEHOLD_REFUSAL_KEYS[reason.trim()] ?? null;
+ }

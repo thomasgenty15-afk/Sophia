@@ -1,0 +1,387 @@
+// KEEL — CE QUE LE POP-UP « UNE BOUCHE » ÉCRIT, ET OÙ.
+//
+// Conception: `scratchpad/2026-08-18-FORMULAIRE-PERSONNE-ET-PLANNING.md` §1.
+// Migration: `20260818140000_the_collected_fields_get_a_write_port.sql`.
+//
+// ── POURQUOI UN FICHIER À PART DE `household.ts` ──────────────────────────
+// Parce que les six blocs du formulaire écrivent dans CINQ endroits, et que
+// deux d'entre eux dépendent de si la bouche a un compte ou non:
+//
+//   bloc 1  prénom, naissance   →  `keel_household_add_member` (existant)
+//   bloc 2  direction           →  `keel_household_set_member_goal` (existant)
+//           cible + rythme      →  ICI — deux chemins
+//   bloc 3  corps + activité    →  `keel_household_set_member_body` — UNE seule
+//                                  porte depuis le lot L0 (`20260818160000`)
+//   bloc 4  habitudes           →  `keel_household_set_member_habits` (existant)
+//           shaker              →  ICI — ⚠️ UN SEUL chemin, voir plus bas
+//   bloc 5  allergies           →  `keel_household_add_allergy` (existant)
+//   bloc 6  dégoûts, régime     →  `keel_household_add_restriction`,
+//                                  `keel_household_set_member_diet` (existants)
+//
+// Ranger les deux chemins de chaque champ à côté l'un de l'autre est ce qui
+// empêche un écran d'appeler celui du compte pour une bouche qui n'en a pas.
+//
+// ── ⚠️ LE TROU QUE CE FICHIER A TROUVÉ ───────────────────────────────────
+// Le lot socle a livré quatre colonnes en les annonçant comme « les colonnes à
+// écrire ». Mesuré avant d'écrire une ligne (`has_table_privilege`): trois
+// d'entre elles n'avaient AUCUN écrivain — ni grant à `authenticated`, ni RPC.
+//
+// ⚠️ LE CRAN D'ACTIVITÉ A ÉTÉ FERMÉ PAR LE LOT L0 PENDANT L'ÉCRITURE DE CE
+// FICHIER (`20260818160000` + `household.ts`): `keel_household_set_member_body`
+// prend désormais `p_activity_level`, l'ANCIENNE signature a été DROPPÉE, et
+// `profiles.activity_level` s'écrit par l'entonnoir. Ce fichier ne porte donc
+// AUCUNE porte d'activité — en ouvrir une seconde garantirait qu'un écran
+// appelle l'une et un autre l'autre.
+//
+// Restent le poids visé et le rythme, que personne n'avait pris. Tant que la
+// migration ci-dessus n'est pas appliquée, `setMemberTarget` répond
+// `{"ok": false}` avec le message de PostgREST, et l'écran le rend comme
+// n'importe quel refus — jamais comme un succès.
+
+import { supabase } from "../../lib/supabase";
+import { mergePracticalConstraints } from "./practicalConstraints";
+import type { ActivityLevel } from "../../../../supabase/functions/_shared/keel/tokens.ts";
+import {
+  declaredSlugFor,
+  MAX_FIXED_INTAKES,
+} from "../../../../supabase/functions/_shared/keel/fixed_intakes.ts";
+
+interface RpcResult {
+  ok: boolean;
+  reason: string;
+  [key: string]: unknown;
+}
+
+function asResult(data: unknown): RpcResult {
+  const row = (data ?? {}) as Record<string, unknown>;
+  return { ...row, ok: row.ok === true, reason: String(row.reason ?? "") };
+}
+
+// ---------------------------------------------------------------------------
+// LA CIBLE ET LE RYTHME
+// ---------------------------------------------------------------------------
+
+/**
+ * LE POIDS VISÉ ET LE RYTHME D'UNE BOUCHE SANS COMPTE — LES DEUX ENSEMBLE.
+ *
+ * `(null, null)` EFFACE, et c'est légitime: quelqu'un qui repasse en
+ * `maintenance` doit pouvoir laisser la colonne propre. Un seul des deux est un
+ * état que personne ne sait exécuter, et la porte le refuse par
+ * `target_incomplete`.
+ */
+export async function setMemberTarget(
+  memberId: string,
+  targetWeightKg: number | null,
+  paceKgPerWeek: number | null,
+) {
+  const { data, error } = await supabase.rpc(
+    "keel_household_set_member_target",
+    {
+      p_member: memberId,
+      p_target_weight_kg: targetWeightKg,
+      p_pace_kg_per_week: paceKgPerWeek,
+    },
+  );
+  if (error) throw new Error(error.message);
+  return asResult(data);
+}
+
+/**
+ * LA CIBLE ET LE RYTHME DE QUI A UN COMPTE — `student_goals`, en direct.
+ *
+ * ⚠️ CETTE LIGNE N'EXISTE PAS TOUJOURS. `createOwnerGoalRow` la pose au premier
+ * objectif; tant qu'elle manque, l'update ne touche aucune ligne et rend
+ * `no_goal_row` — ce que l'écran doit dire, plutôt que d'enchaîner sur un
+ * succès. Même garde que `mergePracticalConstraints`, pour la même raison.
+ */
+export async function setOwnTarget(
+  userId: string,
+  targetWeightKg: number | null,
+  paceKgPerWeek: number | null,
+) {
+  const { data, error } = await supabase
+    .from("student_goals")
+    .update({
+      target_weight_kg: targetWeightKg,
+      target_pace_kg_per_week: paceKgPerWeek,
+    })
+    .eq("user_id", userId)
+    .select("user_id");
+  if (error) throw new Error(error.message);
+  if (!data || data.length === 0) {
+    return { ok: false, reason: "no_goal_row" } as RpcResult;
+  }
+  return { ok: true, reason: "" } as RpcResult;
+}
+
+// ---------------------------------------------------------------------------
+// LE SHAKER
+// ---------------------------------------------------------------------------
+
+/**
+ * ⚠️ LE SHAKER N'A QU'UN SEUL CHEMIN, ET IL PASSE PAR UN COMPTE. À LIRE AVANT
+ * DE CROIRE À UN OUBLI.
+ *
+ * `fixed_intakes` (FF-051) vit dans `student_goals.practical_constraints`,
+ * c'est-à-dire sur `user_id`. Une bouche SANS COMPTE n'a donc nulle part où le
+ * porter — exactement le piège que la conception nomme pour
+ * `food_preferences`, et que `household_habits` a fermé de son côté en
+ * déménageant sur `member_id`.
+ *
+ * Et le trou est PLUS LARGE QUE L'ÉCRITURE: la lane foyer ne LIT aucun apport
+ * fixe. `generate-household-meal-v1/index.ts` passe `fixedIntakes: []` en dur,
+ * trois fois, avec le commentaire « Le foyer ne porte pas d'apports fixes ».
+ * Même en fabriquant une table par membre, rien ne la lirait.
+ *
+ * Le pop-up n'offre donc le shaker QU'À UNE BOUCHE QUI A UN COMPTE, et pour
+ * elle il atteint réellement le calcul (lane individuelle). Montrer le champ
+ * aux autres serait montrer un contrôle qui échoue à tous les coups — « pire
+ * qu'un contrôle absent, parce qu'il promet », la règle que `setMemberDiet`
+ * porte déjà pour l'objectif.
+ *
+ * ⛔ LE COMBLER APPARTIENT À L7/L8: le lecteur vit dans
+ * `household_meal_generation.ts` et dans la fonction edge, deux fichiers que le
+ * périmètre de ce lot exclut.
+ */
+export interface ShakerToWrite {
+  label: string;
+  servingGrams: number;
+  proteinGPerServing: number;
+  energyKcalPerServing: number;
+  /** `null` = hors moment nommé (`loose`). */
+  slot: string | null;
+}
+
+/**
+ * Le jsonb d'un apport déclaré, tel que `parseFixedIntakes` le relit.
+ *
+ * ⚠️ `nutrition: "declared"` EST OBLIGATOIRE, ET SES TROIS NOMBRES AVEC. Le
+ * référentiel ne connaît AUCUNE poudre de protéine (mesuré: 911 références,
+ * zéro whey), et même en en ajoutant une ce serait une moyenne — de 70 à 90 g
+ * pour 100 g selon la marque. Le nombre imprimé sur LE pot de la personne est
+ * strictement meilleur.
+ *
+ * ⚠️ `replaces_meal: false` MÊME AVEC UN MOMENT NOMMÉ (A5). « Un shaker au
+ * goûter » nomme un moment et ne remplace rien; le défaut inverse punirait
+ * d'un repas en moins quelqu'un qui décrit honnêtement ce qu'il mange déjà.
+ * Le pop-up ne pose pas la question — un formulaire d'accueil qui demande
+ * « est-ce que ça remplace le repas ? » demande un arbitrage de composition à
+ * quelqu'un qui n'a pas encore vu un plan.
+ */
+export function shakerIntakeJson(
+  shaker: ShakerToWrite,
+): Record<string, unknown> {
+  const out: Record<string, unknown> = {
+    food_ref: declaredSlugFor(shaker.label),
+    label: shaker.label,
+    amount: shaker.servingGrams,
+    unit: "g",
+    days: [],
+    nutrition: "declared",
+    serving_grams: shaker.servingGrams,
+    protein_g_per_serving: shaker.proteinGPerServing,
+    energy_kcal_per_serving: shaker.energyKcalPerServing,
+  };
+  if (shaker.slot) {
+    out.slot = shaker.slot;
+    out.replaces_meal = false;
+  }
+  return out;
+}
+
+/**
+ * AJOUTE LE SHAKER AUX APPORTS FIXES DU COMPTE, SANS ÉCRASER LES AUTRES.
+ *
+ * ⚠️ IL REMPLACE LA LIGNE DE MÊME `food_ref` PLUTÔT QUE D'EN EMPILER UNE
+ * SECONDE. `declaredSlugFor` dérive le slug du libellé: deux « mon shaker »
+ * partagent donc une ligne de composition, et c'est ce que la personne veut
+ * dire. Empiler ferait compter le même pot deux fois — 380 kcal ajoutées à
+ * chaque enregistrement, dans le sens qui fait maigrir un plan.
+ *
+ * ⚠️ LE PLAFOND EST CELUI DU MOTEUR (`MAX_FIXED_INTAKES`), IMPORTÉ. Une
+ * seconde constante ici divergerait, et c'est l'écran qui aurait raison contre
+ * le prompt. Au-delà, on refuse en le NOMMANT: le moteur, lui, écarte
+ * silencieusement l'excédent, et une déclaration qui disparaît sans trace est
+ * exactement ce que R4 refuse.
+ */
+export async function addShakerToOwnIntakes(args: {
+  userId: string;
+  current: Record<string, unknown> | null | undefined;
+  shaker: ShakerToWrite;
+}): Promise<void> {
+  const existing = Array.isArray(args.current?.fixed_intakes)
+    ? (args.current?.fixed_intakes as unknown[])
+    : [];
+  const json = shakerIntakeJson(args.shaker);
+  const slug = json.food_ref;
+  const kept = existing.filter((entry) => {
+    const e = (entry ?? {}) as Record<string, unknown>;
+    return String(e.food_ref ?? "") !== slug;
+  });
+  if (kept.length + 1 > MAX_FIXED_INTAKES) {
+    throw new Error(
+      `[keel/api] mouthProfile: ${MAX_FIXED_INTAKES} fixed intakes is the ` +
+        `ceiling the prompt carries — remove one before adding another.`,
+    );
+  }
+  await mergePracticalConstraints({
+    userId: args.userId,
+    current: args.current,
+    patch: { fixed_intakes: [...kept, json] },
+    source: "mouthProfile.addShakerToOwnIntakes",
+  });
+}
+
+// ---------------------------------------------------------------------------
+// L'ORCHESTRATION — l'ordre des écritures est une garde
+// ---------------------------------------------------------------------------
+
+/**
+ * ⚠️ L'ORDRE N'EST PAS INTERCHANGEABLE, ET CHAQUE ÉTAPE DIT POURQUOI ELLE EST
+ * LÀ:
+ *
+ *   1. la bouche EXISTE      — sans `member_id`, rien d'autre n'a de cible;
+ *   2. le CORPS ET SON CRAN  — un seul geste depuis le lot L0
+ *                              (`keel_household_set_member_body`, 5 paramètres);
+ *   3. la CIBLE et le RYTHME — ils exigent que `goal` soit déjà `fat_loss` ou
+ *                              `muscle_gain` en base, sinon
+ *                              `target_needs_direction`;
+ *   4. le reste (habitudes, allergies, dégoûts, régime) — indépendants.
+ *
+ * ── ⚠️ ET IL S'ARRÊTE À LA PREMIÈRE MARCHE QUI CASSE ─────────────────────
+ * Pas de « on continue et on verra »: une bouche à qui on aurait posé un
+ * régime sans corps serait une fiche à moitié écrite dont personne ne sait ce
+ * qui manque. Le refus rendu est le PREMIER, nommé, et l'écran le traduit par
+ * la liste fermée de `copy/planRefusals.ts` comme n'importe quel autre.
+ *
+ * ⚠️ CE N'EST PAS TRANSACTIONNEL, ET C'EST DIT PLUTÔT QUE MAQUILLÉ. Les portes
+ * sont cinq RPC distinctes; un échec en marche 3 laisse les marches 1 et 2
+ * écrites. C'est le bon compromis ici — la personne EXISTE avec son corps, et
+ * reprendre la fiche complète ce qui manque — mais ça veut dire qu'un écran ne
+ * doit jamais annoncer « rien n'a été enregistré ».
+ */
+export interface MouthWriters {
+  addMember: (
+    firstName: string,
+    birthDate: string | null,
+    goal: string | null,
+  ) => Promise<RpcResult>;
+  /**
+   * ⚠️ CINQ PARAMÈTRES DEPUIS LE LOT L0. Le cran d'activité entre PAR ICI, dans
+   * le même geste que le corps: il n'y a plus qu'une porte, et l'ancienne
+   * signature à quatre a été DROPPÉE en base — un appelant qui l'oublierait ne
+   * toucherait pas une version qui n'écrit rien, il ne compilerait pas.
+   */
+  /**
+   * ⚠️ INJECTÉ, ALORS QU'IL VIT DANS CE FICHIER — et c'est ce qui rend l'ORDRE
+   * des marches prouvable. Appelé en direct, `setMemberTarget` traînerait le
+   * client Supabase dans le seul test qui compte ici: « la marche 3 ne part
+   * jamais avant la marche 2 ». Une orchestration dont on ne peut pas prouver
+   * l'ordre est une orchestration dont on découvre l'ordre en production.
+   */
+  setTarget: (
+    memberId: string,
+    targetWeightKg: number | null,
+    paceKgPerWeek: number | null,
+  ) => Promise<RpcResult>;
+  setBody: (
+    memberId: string,
+    heightCm: number,
+    weightKg: number,
+    gender: "male" | "female" | "other",
+    activityLevel: ActivityLevel | null,
+  ) => Promise<RpcResult>;
+  setHabits: (
+    memberId: string,
+    slots: readonly { slot: string; kind: "own_usual"; usual: string }[],
+    note: string | null,
+  ) => Promise<RpcResult>;
+  addAllergy: (memberId: string, label: string) => Promise<RpcResult>;
+  addRestriction: (memberId: string, label: string) => Promise<RpcResult>;
+  setDiet: (memberId: string, diet: string | null) => Promise<RpcResult>;
+}
+
+export interface MouthToPersist {
+  /** `null` = elle n'existe pas encore, et la marche 1 la crée. */
+  memberId: string | null;
+  firstName: string;
+  birthDate: string | null;
+  goal: string | null;
+  heightCm: number;
+  weightKg: number;
+  gender: "male" | "female" | "other";
+  activityLevel: ActivityLevel | null;
+  targetWeightKg: number | null;
+  paceKgPerWeek: number | null;
+  habits: readonly { slot: string; kind: "own_usual"; usual: string }[];
+  allergies: readonly string[];
+  dislikes: readonly string[];
+  diet: string | null;
+}
+
+export async function persistMouth(
+  mouth: MouthToPersist,
+  writers: MouthWriters,
+): Promise<RpcResult> {
+  let memberId = mouth.memberId;
+  if (memberId === null) {
+    const added = await writers.addMember(
+      mouth.firstName,
+      mouth.birthDate,
+      mouth.goal,
+    );
+    if (!added.ok) return added;
+    memberId = String(added.member_id ?? "");
+    // ⚠️ UN `member_id` VIDE EST UN ÉCHEC, PAS UN SUCCÈS SANS SUITE. Toutes les
+    // marches suivantes viseraient alors la chaîne vide, que la base lirait
+    // `not_a_member` — six refus au lieu d'un, et aucun qui dise la cause.
+    if (memberId === "") return { ok: false, reason: "no_member_id" };
+  }
+
+  const body = await writers.setBody(
+    memberId,
+    mouth.heightCm,
+    mouth.weightKg,
+    mouth.gender,
+    mouth.activityLevel,
+  );
+  if (!body.ok) return body;
+
+  const target = await writers.setTarget(
+    memberId,
+    mouth.targetWeightKg,
+    mouth.paceKgPerWeek,
+  );
+  if (!target.ok) return target;
+
+  // ⚠️ LES HABITUDES S'ÉCRIVENT MÊME VIDES, ET C'EST DÉLIBÉRÉ: la porte prend
+  // la liste COMPLÈTE et remplace, donc retirer la dernière habitude d'une
+  // fiche qu'on reprend doit pouvoir vider la ligne. Sauter l'appel quand la
+  // liste est vide rendrait une suppression impossible.
+  const habits = await writers.setHabits(memberId, mouth.habits, null);
+  if (!habits.ok) return habits;
+
+  // ⚠️ LES ALLERGIES ET LES DÉGOÛTS S'AJOUTENT, ILS NE REMPLACENT PAS. Les deux
+  // portes sont `add_*` / `remove_*`, et il n'existe pas de « poser la liste ».
+  // Le retrait se fait sur la fiche de la personne, pas ici — ce formulaire
+  // AJOUTE ce qu'on vient de dire.
+  for (const label of mouth.allergies) {
+    const res = await writers.addAllergy(memberId, label);
+    if (!res.ok) return res;
+  }
+  for (const label of mouth.dislikes) {
+    const res = await writers.addRestriction(memberId, label);
+    if (!res.ok) return res;
+  }
+
+  // LE RÉGIME N'EST TENTÉ QUE S'IL A ÉTÉ RÉPONDU. `null` EFFACE, et effacer ce
+  // que personne n'a posé n'apporte rien; surtout, la base refuse
+  // `has_account`, et une bouche qui en a un ne doit pas voir passer ce refus
+  // pour une case qu'on ne lui a jamais montrée.
+  if (mouth.diet !== null) {
+    const diet = await writers.setDiet(memberId, mouth.diet);
+    if (!diet.ok) return diet;
+  }
+
+  return { ok: true, reason: "", member_id: memberId };
+}
