@@ -346,4 +346,82 @@ En dépliant les trois blocs repliables sur la fiche du maître :
 
 ---
 
+# 🟥🟥 LE POINT LE PLUS GRAVE DU RAPPORT — un clone frais ne compile pas
+
+C'était une question ouverte (« la dette i18n est hors de nous — qu'est-ce qu'un
+clone frais rend ? »). **Elle est maintenant tranchée, par la mesure.**
+
+**Le protocole** : un arbre de travail détaché sur `HEAD` seul
+(`git worktree add --detach /tmp/E-head-clone HEAD`), les `node_modules`
+du dépôt principal liés dedans, puis :
+
+```
+cd frontend && npx tsc -p tsconfig.app.json --noEmit
+```
+
+**Résultat : 1 170 erreurs TypeScript.** (Le même `tsc` est **vert** sur l'arbre
+de travail réel, qui porte les fichiers non commités.) L'arbre de test a été
+retiré derrière (`git worktree remove --force`) — rien ne reste.
+
+**Ce n'est donc pas « une page à moitié traduite ». Le frontend ne se construit
+pas du tout à partir de ce qui est dans git.**
+
+### La répartition
+
+| Code | Nombre | Ce que c'est |
+|---|---|---|
+| `TS2345` | **1 006** | une clé de message citée par un composant **et absente du seed `en.ts`** |
+| `TS2322` | 70 | types incompatibles |
+| `TS2307` | **41** | **des modules entiers qui n'ont jamais été commités** |
+| autres | 53 | |
+
+**Les modules qui n'existent pas à HEAD alors que du code commité les importe :**
+
+```
+keel/i18n/format      keel/i18n/plural     keel/i18n/prices
+keel/api/uiLanguage   keel/api/gapQuestion  components/KitchenToday
+```
+
+**Les fichiers les plus touchés** (les douze premiers) :
+
+```
+139  pages/CoachDoctrinePage.tsx        57  components/MouthFormDialog.tsx
+ 94  pages/StudentWeekPlanPage.tsx      53  pages/SetupPage.tsx
+ 63  components/DoctrineStartDialog.tsx 50  pages/CouplesPage.tsx
+ 59  components/MealBuilder.tsx         45  pages/FamiliesPage.tsx
+ 57  pages/StudentProgressPage.tsx      42  pages/MealPrepPage.tsx
+```
+
+### Le chiffre exact pour le pop-up de ce chantier
+
+`MouthFormDialog.tsx` **est commité** à HEAD, et il cite **50** clés
+`household.mouth.*` distinctes. Combien de ces 50 existent dans le `en.ts` de
+HEAD ? **Zéro.**
+
+```
+household.mouth.*   citées par le composant commité : 50   présentes dans en.ts à HEAD : 0
+household.mouth.*   dans en.ts SUR LE DISQUE : 57          dans fr.ts sur le disque : 57
+meals.*             dans en.ts à HEAD : 0                  sur le disque : 219 (et 219 en fr)
+```
+
+**Sur le disque, la couche i18n est complète et cohérente** (3 448 clés en
+anglais, 3 347 en français ; les 57 clés du pop-up et les 219 de `meals.*` sont
+présentes **dans les deux langues**). Le problème n'est pas la traduction : c'est
+que **rien de tout cela n'est dans git**. `frontend/src/keel/i18n/fr.ts` n'est
+pas suivi du tout ; `fr.public.ts`, qui est le fichier que le `t.ts` de HEAD
+importe, est marqué supprimé dans l'arbre.
+
+### Ce que ça veut dire, en clair
+
+- **Aucune des quatorze livraisons du jour n'est reproductible depuis git.** Un
+  collègue qui clone, ou une CI, obtient un frontend qui ne compile pas.
+- Les rapports de la journée qui disent « `npx tsc -b --force` : exit 0 » sont
+  **vrais** — mais ils mesurent l'**arbre de travail**, jamais le contenu de git.
+  Personne n'avait fait la mesure sur `HEAD` seul.
+- **C'est la décision n°1 qui appartient à l'utilisateur** : le hunk i18n de
+  2 061 lignes de la lane voisine doit être commité, ou le chantier reste sur un
+  seul disque dur.
+
+---
+
 _(la suite est ajoutée au fil de l'eau)_
