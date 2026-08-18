@@ -137,15 +137,42 @@ export function readKitchenEquipment(
  *
  * ⚠️ CE N'EST PAS UN `boolean` DÉGUISÉ. Un appelant qui écrit
  * `if (!hasKitchenTool(eq, "oven"))` traite « on ne sait pas » comme « il n'y
- * en a pas » et retire le four à tous les comptes d'avant ce lot. Le type
- * force à nommer le troisième cas, et c'est très exactement ce qu'on veut
- * qu'un lecteur de L7 soit obligé d'écrire.
+ * en a pas » et retire le four à tous les comptes d'avant ce lot.
  *
  * Le patron à suivre, côté consigne, est donc:
  *
  *   const oven = hasKitchenTool(equipment, "oven");
  *   if (oven === false) { …ne propose pas de cuisson au four… }
  *   // `true` ET `null` ⇒ rien à dire, comme avant ce lot.
+ *
+ * ═══════════════════════════════════════════════════════════════════════════
+ * ⛔ ET LE COMPILATEUR NE TIENT PAS CETTE RÈGLE — MESURÉ, PAS SUPPOSÉ.
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * La première version de ce pavé affirmait que « le type force à nommer le
+ * troisième cas ». C'est FAUX, et ça a été mesuré le 2026-08-18 (L2-B): sur un
+ * module qui écrit
+ *
+ *   if (!hasKitchenTool(readKitchenEquipment(pc), "oven")) lines.push("no oven");
+ *
+ * `deno check` sort en 0 et `deno lint` ne dit rien — TypeScript autorise `!`
+ * sur `boolean | null`, et il n'existe pas de règle de lint armée ici pour
+ * l'interdire. À l'exécution, sur un compte jamais interrogé, cette ligne rend
+ * bien `["no oven"]`: la dégradation silencieuse que tout ce lot existe pour
+ * empêcher. Le test « `!` ne mord PAS » plus bas épingle la mesure, pour que
+ * personne ne réécrive l'affirmation rassurante.
+ *
+ * ✅ LE CHEMIN SANS PIÈGE, ET C'EST CELUI QUE L7 DEVRAIT PRENDRE:
+ * `missingKitchenTools(equipment)` rend `[]` quand rien n'a été déclaré. Il
+ * n'a donc PAS de direction dangereuse — ni `!`, ni oubli du troisième cas ne
+ * peuvent en tirer une interdiction que personne n'a énoncée:
+ *
+ *   for (const tool of missingKitchenTools(equipment)) { …interdis-le… }
+ *   // ou, pour un seul outil:
+ *   if (missingKitchenTools(equipment).includes("oven")) { …pas de four… }
+ *
+ * `hasKitchenTool` reste utile pour DISTINGUER les trois cas (afficher, log,
+ * compteur). Ce qui doit décider d'une INTERDICTION passe par la liste.
  */
 export function hasKitchenTool(
   equipment: readonly KitchenTool[] | null,

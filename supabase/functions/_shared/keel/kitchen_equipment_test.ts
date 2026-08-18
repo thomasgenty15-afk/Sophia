@@ -184,17 +184,40 @@ Deno.test("ce module ne dit RIEN au modèle", async () => {
 });
 
 // ---------------------------------------------------------------------------
-// LE TYPE FAIT SON TRAVAIL
+// CE QUE LE TYPE FAIT — ET CE QU'IL NE FAIT PAS
 // ---------------------------------------------------------------------------
 
-Deno.test("`hasKitchenTool` force le troisième cas à être nommé", () => {
-  // Ce test documente le patron que L7 doit écrire. `if (!has(...))` traite
-  // « on ne sait pas » comme « il n'y en a pas »: c'est le bug du lot, et il
-  // se rattrape ici en lisant `=== false`.
+Deno.test("`=== false` distingue les trois cas, et c'est le patron de L7", () => {
   const unknown: readonly KitchenTool[] | null = null;
   const declared = readKitchenEquipment(pc(["stovetop"]));
   assertEquals(hasKitchenTool(unknown, "oven") === false, false);
   assertEquals(hasKitchenTool(declared, "oven") === false, true);
-  // Et le piège, écrit noir sur blanc: `!null` vaut `true`.
-  assert(!hasKitchenTool(unknown, "oven"));
+});
+
+Deno.test("⛔ `!` NE MORD PAS — le compilateur ne tient pas cette règle", () => {
+  // ⚠️ CE TEST ÉPINGLE UNE MESURE, PAS UN SOUHAIT (L2-B, 2026-08-18). Le pavé
+  // de `hasKitchenTool` affirmait que « le type force à nommer le troisième
+  // cas »: c'est faux. Un module qui écrit `if (!hasKitchenTool(eq, "oven"))`
+  // passe `deno check` (exit 0) ET `deno lint` sans un mot, et rend « pas de
+  // four » sur un compte à qui on n'a jamais rien demandé.
+  //
+  // Tant que ce test est vert, la convention `=== false` est tenue par une
+  // RELECTURE, jamais par le typecheck. Le chemin sans piège pour interdire
+  // quoi que ce soit est `missingKitchenTools`, vérifié juste en dessous.
+  const unknown: readonly KitchenTool[] | null = null;
+  assert(
+    !hasKitchenTool(unknown, "oven"),
+    "`!` sur `null` ne vaut plus `true`: la convention peut être durcie",
+  );
+});
+
+Deno.test("✅ `missingKitchenTools` n'a AUCUNE direction dangereuse", () => {
+  // La liste des interdits est vide tant que rien n'est déclaré: ni `!`, ni
+  // l'oubli du troisième cas ne peuvent en tirer une interdiction que personne
+  // n'a énoncée. C'est ce que L7 doit appeler pour DÉCIDER.
+  assertEquals(missingKitchenTools(null).includes("oven"), false);
+  assertEquals(
+    missingKitchenTools(readKitchenEquipment(pc(["stovetop"]))).includes("oven"),
+    true,
+  );
 });

@@ -199,19 +199,36 @@ describe("④ la donnée vit dans la colonne, et nulle part ailleurs", () => {
     // tout le module accuse `Set#delete` dans `toggleKitchenTool` — rouge au
     // premier lancement, sur un module parfaitement correct. Une garde qui se
     // trompe de sujet finit désarmée.
-    const chain = src.slice(src.indexOf('from("student_goals")'));
-    const statement = chain.slice(0, chain.indexOf(";"));
-    expect(statement, "la seule requête directe n'est plus une lecture")
-      .toContain(".select(");
-    for (const verb of [".update(", ".upsert(", ".insert(", ".delete("]) {
-      expect(statement, `l'écriture parle directement à la table (${verb})`)
-        .not.toContain(verb);
+    //
+    // ⚠️ ET ON LES REGARDE TOUTES, PAS LA PREMIÈRE — SECOND DURCISSEMENT,
+    // MESURÉ LE 2026-08-18 (L2-B, mutation M21). La version d'avant partait de
+    // `src.indexOf('from("student_goals")')`: elle n'inspectait donc QUE la
+    // première requête. Un second écrivain maison ajouté PLUS BAS dans le
+    // fichier — un `.update()` direct, écrit après la fusion — laissait la
+    // suite entièrement VERTE, parce que le comptage d'écrivains ci-dessous ne
+    // compte que les appels à `mergePracticalConstraints` et ne voit pas une
+    // requête écrite à la main. On épingle donc d'abord qu'il n'y a QU'UNE
+    // seule requête vers cette table, puis on juge chacune.
+    const statements = src.split('from("student_goals")').slice(1)
+      .map((chain) => chain.slice(0, chain.indexOf(";")));
+    expect(
+      statements.length,
+      "ce module parle à `student_goals` ailleurs que dans sa relecture",
+    ).toBe(1);
+    for (const statement of statements) {
+      expect(statement, "la seule requête directe n'est plus une lecture")
+        .toContain(".select(");
+      for (const verb of [".update(", ".upsert(", ".insert(", ".delete("]) {
+        expect(statement, `l'écriture parle directement à la table (${verb})`)
+          .not.toContain(verb);
+      }
+      // ⚠️ ET LA LECTURE EST SCOPÉE. Sans `.eq("user_id", …)`, quelqu'un qui
+      // est à la fois coach et mangeur relit la ligne d'un de ses élèves et
+      // fusionne dessus — RLS ne remplace pas un `.eq(user_id)`, cicatrice de
+      // cette table.
+      expect(statement, "la relecture n'est plus scopée sur le compte")
+        .toContain('.eq("user_id"');
     }
-    // ⚠️ ET LA LECTURE EST SCOPÉE. Sans `.eq("user_id", …)`, quelqu'un qui est
-    // à la fois coach et mangeur relit la ligne d'un de ses élèves et fusionne
-    // dessus — RLS ne remplace pas un `.eq(user_id)`, cicatrice de cette table.
-    expect(statement, "la relecture n'est plus scopée sur le compte")
-      .toContain('.eq("user_id"');
     // Un seul écrivain: deux appels voudraient dire deux patches, donc une
     // seconde écriture capable d'effacer la première.
     expect(
