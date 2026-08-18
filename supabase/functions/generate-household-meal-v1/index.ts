@@ -222,7 +222,12 @@ import {
 } from "../_shared/keel/household_composition.ts";
 import { envelopeFor, type MouthBody } from "../_shared/keel/meal_envelope.ts";
 import { MEAL_BODY_GENDERS } from "../_shared/keel/meal_body.ts";
-import { GOAL_TOKENS, type GoalToken } from "../_shared/keel/tokens.ts";
+import {
+  ACTIVITY_LEVELS,
+  type ActivityLevel,
+  GOAL_TOKENS,
+  type GoalToken,
+} from "../_shared/keel/tokens.ts";
 import { weekStartOf } from "../_shared/keel/weekly_flow_io.ts";
 
 /**
@@ -1789,6 +1794,18 @@ Deno.serve(async (req) => {
           // serait assigner — sur le corps d'un enfant, le plus souvent.
           : null,
         ageYears: age,
+        // ⚠️ LU DEPUIS LA RPC, QUI LE REND DEPUIS LE 2026-08-18. Hors
+        // vocabulaire ⇒ `null`, jamais un repli sur un cran: le repli
+        // documenté est l'hypothèse (1,5 adulte, 1,6 enfant), et choisir un
+        // cran à la place de quelqu'un ferait peser une réponse qu'il n'a pas
+        // donnée. Sur un MINEUR, `childActivityFactor` empêche en plus ce
+        // champ de faire DESCENDRE son besoin.
+        activityLevel:
+          (ACTIVITY_LEVELS as readonly string[]).includes(
+              String(row.activity_level ?? "").trim(),
+            )
+            ? (String(row.activity_level).trim() as ActivityLevel)
+            : null,
       });
     }
     // ⚠️ `composedMembers`, PAS `members` (L3). Cette résolution décide la
@@ -1810,7 +1827,11 @@ Deno.serve(async (req) => {
           m.goal === null || m.body === null ? null : envelopeFor(
             (GOAL_TOKENS as readonly string[]).includes(m.goal)
               ? (m.goal as GoalToken)
-              : "health",
+              // Repli du 2026-08-18: valait `"health"`, qui n'existe plus.
+              // `maintenance` est ce sur quoi `health` se replie, et c'est la
+              // seule lecture sûre d'un jeton illisible — elle ne creuse aucun
+              // déficit et n'ouvre aucun surplus.
+              : "maintenance",
             m.body,
             m.body.ageBand,
             // FAIL-CLOSED, comme sur la lane individuelle.
@@ -1819,6 +1840,18 @@ Deno.serve(async (req) => {
             // commun, et la doctrine qui le gouverne est celle du RÉFÉRENT,
             // pas celle de chaque membre. À instruire avec FF-043 §11.
             null,
+            // ⚠️ CE QUI EST BRANCHÉ, ET CE QUI NE L'EST PAS ENCORE.
+            // On lit le cran de la FICHE de cette bouche
+            // (`household_member_bodies`, via `keel_household_bodies_for`).
+            // Le cran d'un COMPTE vit sur `profiles.activity_level`, et cette
+            // lane ne charge pas les profils des membres — elle charge des
+            // corps par `member_id`. `null` en sortie veut alors dire « on ne
+            // sait pas » et rend l'hypothèse 1,5, c'est-à-dire EXACTEMENT le
+            // comportement d'avant ce lot: rien ne se dégrade, une moitié
+            // reste à câbler. Le chargement du profil par membre appartient au
+            // lot qui fait entrer la cible dans les grammages (L8), qui
+            // traverse déjà cette résolution.
+            lineBodies.get(m.memberId)?.activityLevel ?? null,
           ),
           // ② LE CORPS DE LA FICHE — REQUIS, et c'est lui qui répare le lot.
           // Il n'achète qu'une MAINTENANCE (pédiatrique pour un mineur), jamais

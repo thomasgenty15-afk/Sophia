@@ -116,23 +116,13 @@ Deno.test("chaque direction demande CE QU'ELLE DIT, mot pour mot", () => {
     starch: "larger", // « larger protein AND starch share »
     vegetables: "balanced", // « same vegetables »
   });
-  assertEquals(demandsOf("recomposition"), {
-    protein: "full",
-    starch: "moderate",
-    vegetables: "larger",
-  });
-  assertEquals(demandsOf("performance"), {
-    protein: "full",
-    starch: "larger",
-    // NON NOMMÉ = aucune demande. `performance` ne parle pas de légumes, donc
-    // n'importe quelle part lui convient — et c'est DIFFÉRENT de « équilibré ».
-    vegetables: null,
-  });
-  assertEquals(demandsOf("health"), {
-    protein: "balanced",
-    starch: "balanced",
-    vegetables: "larger",
-  });
+  // ⚠️ QUATRE LIGNES ONT DISPARU LE 2026-08-18, ET ELLES DISAIENT LA MÊME
+  // CHOSE À UN MOT PRÈS. `recomposition` (full/moderate/larger), `health`
+  // (balanced/balanced/larger) et `maintenance` (tout équilibré) se replient
+  // ici. Seule `performance` demandait autre chose — « larger starch share
+  // AROUND TRAINING », c'est-à-dire une consigne conditionnée à des jours
+  // d'entraînement que le produit ne collecte pas, donc appliquée tous les
+  // jours. Elle est perdue, exprès.
   assertEquals(demandsOf("maintenance"), {
     protein: "balanced",
     starch: "balanced",
@@ -140,11 +130,18 @@ Deno.test("chaque direction demande CE QU'ELLE DIT, mot pour mot", () => {
   });
 });
 
-Deno.test("un MINEUR ne demande rien: sa direction est une TAILLE", () => {
+// ⚠️ CE TEST A CHANGÉ DE SUJET LE 2026-08-18. Il posait `goal: "muscle_gain"`
+// sur un mineur et attendait AUCUNE demande — c'était la contre-épreuve de
+// l'écrasement inconditionnel de `servingDirectionFor`, et cet écrasement
+// était le défaut: la migration du 13/08 autorisait `muscle_gain` sur un ado,
+// et le moteur l'ignorait. Un mineur AVEC objectif demande maintenant ce que
+// son objectif demande. Ce qui reste vrai — et qui est le repli, pas la
+// règle — c'est qu'un mineur SANS objectif ne demande rien.
+Deno.test("un mineur SANS objectif ne demande rien: sa direction est une TAILLE", () => {
   // « child-size share of the same dish » — une taille, jamais une
-  // orientation. Un enfant est donc servable de n'importe quelle casserole, et
-  // le fusionner reste toujours au barreau ①.
-  assertEquals(servingDemandsFor(memberOf({ ageState: "minor", goal: "muscle_gain" })), {
+  // orientation. Un enfant sans direction est donc servable de n'importe
+  // quelle casserole, et le fusionner reste toujours au barreau ①.
+  assertEquals(servingDemandsFor(memberOf({ ageState: "minor", goal: null })), {
     protein: null,
     starch: null,
     vegetables: null,
@@ -172,7 +169,7 @@ Deno.test("LA FUSION LIT EXACTEMENT LA DIRECTION QUE LE BRIEF ÉCRIT", () => {
       memberOf({ goal: "muscle_gain" }),
       memberOf({ goal: null }),
       memberOf({ ageState: "minor", goal: "fat_loss" }),
-      memberOf({ ageState: "unknown", goal: "performance" }),
+      memberOf({ ageState: "unknown", goal: "maintenance" }),
     ]
   ) {
     const brief = buildPortionBrief([member], "one_dish", 0);
@@ -508,7 +505,7 @@ Deno.test("LE CAS QUI PASSE ① — une demande que la table porte déjà", () =
   // une casserole peut toujours en donner MOINS. Barreau ①.
   const out = mergeLadder({
     table: [demandsOf("fat_loss")],
-    incoming: demandsOf("health"),
+    incoming: demandsOf("maintenance"),
     householdCookingDays: COOKS_SUN,
     personalCookingDays: COOKS_SUN,
   });
@@ -522,7 +519,7 @@ Deno.test("LE CAS QUI PASSE ① — qui ne demande RIEN au-dessus de l'équilibr
   // de n'importe quelle casserole, quelle que soit la table.
   for (const incoming of [demandsOf("maintenance"), demandsOf(null)]) {
     const out = mergeLadder({
-      table: [demandsOf("fat_loss"), demandsOf("performance")],
+      table: [demandsOf("fat_loss"), demandsOf("maintenance")],
       incoming,
       householdCookingDays: COOKS_SUN,
       personalCookingDays: COOKS_SUN,
@@ -637,9 +634,15 @@ Deno.test("un axe que la table ne porte pas plafonne à l'équilibre", () => {
     starch: "balanced",
     vegetables: null,
   };
+  // `fat_loss` est la seule direction qui reste à demander « generous
+  // vegetables » — le repli du 2026-08-18 a emporté `recomposition` et
+  // `health`, qui le demandaient aussi.
   assertEquals(
-    servingConflicts([noVegDemand], demandsOf("health")),
-    ["vegetables:larger_above_table"],
+    servingConflicts([noVegDemand], demandsOf("fat_loss")),
+    // `fat_loss` demande AUSSI « full protein » là où la table n'offre que
+    // l'équilibre: deux conflits, pas un. Le cas d'origine (`health`) ne
+    // touchait que les légumes, et il n'existe plus.
+    ["protein:full_above_table", "vegetables:larger_above_table"],
   );
   // Et l'inverse: la même table sert sans broncher une demande à l'équilibre.
   assertEquals(servingConflicts([noVegDemand], demandsOf("maintenance")), []);

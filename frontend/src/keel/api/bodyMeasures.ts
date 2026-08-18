@@ -48,6 +48,7 @@ import {
   weeklyBodyPoints,
 } from "../../../../supabase/functions/_shared/keel/body_measure_series.ts";
 import type { GoalToken } from "../../../../supabase/functions/_shared/keel/tokens.ts";
+import { type MessageKey, t } from "../i18n/t";
 
 export type { DatedMeasure, MeasureTrend };
 export { WAIST_NOISE_CM, WEIGHT_NOISE_KG };
@@ -277,7 +278,20 @@ export interface GoalIndicator {
    * tient pour tous les objectifs.
    */
   axisObjective: boolean;
-  /** Ce que l'élève doit surveiller, en une ligne — sa phrase de sélecteur. */
+  /**
+   * Ce que l'élève doit surveiller, en une ligne.
+   *
+   * ⚠️ CE CHAMP N'EST RENDU NULLE PART, mesuré au lot 6 par un grep sur tout
+   * `frontend/src`: son seul lecteur est `bodyMeasures.int.test.ts:156`, qui
+   * vérifie que la chaîne n'est pas vide. Le sélecteur de dynamique dont il
+   * porte le nom affiche `plan.goal.<token>.blurb` (le seed) depuis la refonte
+   * de `/app/plan`.
+   *
+   * Il est donc laissé EN ANGLAIS et hors du seed: le traduire paierait six
+   * phrases qu'aucun écran n'affiche, et un test qui mesure une longueur
+   * resterait vert quoi qu'on y écrive. Le geste juste est de le supprimer —
+   * un geste à part, sur un dépôt partagé, donc SIGNALÉ et pas fait ici.
+   */
   reading: string;
 }
 
@@ -303,44 +317,31 @@ export function indicatorFor(goal: GoalToken): GoalIndicator {
         axisObjective: false,
         reading: "The scale going up — your waist is the guardrail, not the goal.",
       };
-    case "recomposition":
-      return {
-        primary: "waist",
-        secondary: "weight",
-        target: "waist",
-        axisObjective: false,
-        // Le poids est SECONDAIRE ici, et sa cible n'existe pas: viser un poids
-        // dans une dynamique dont la signature est « le poids ne bouge pas »
-        // serait se donner une cible qui contredit sa propre direction.
-        reading: "Your waist coming down while the scale holds still.",
-      };
+    // ── LE REPLI DU 2026-08-18, ET CE QU'IL ARBITRE ────────────────────
+    // `recomposition` (cible = tour de taille), `health` et `performance`
+    // (aucune cible, axe du dimanche à la place) se replient ici. Trois
+    // indicateurs deviennent un, et le choix est `weight`/`band`:
+    //
+    //   · le POIDS est la mesure de la troisième position — « la balance ne
+    //     bouge pas » se lit sur la balance, et sur rien d'autre;
+    //   · la BANDE plutôt qu'un point: viser un poids exact dans une
+    //     dynamique dont la signature est l'immobilité serait se donner une
+    //     cible qui contredit sa propre direction. `MAINTENANCE_BAND_KG` la
+    //     porte, et elle existait déjà pour ça.
+    //
+    // ⚠️ CE QUI SE PERD, ET IL FAUT LE DIRE: `axisObjective`. `health` et
+    // `performance` renvoyaient la personne vers l'axe du dimanche plutôt que
+    // vers une mesure. Le drapeau existe encore et n'est plus levé par aucune
+    // dynamique — `focus_axis` reste écrivable en base (son CHECK a suivi le
+    // repli et vise `maintenance`), mais la page des mesures ne l'annonce plus
+    // comme LA lecture. C'est un lot d'écran, pas un lot de socle.
     case "maintenance":
       return {
         primary: "weight",
-        secondary: null,
+        secondary: "waist",
         target: "band",
         axisObjective: false,
         reading: "Staying inside your range — this one is about not drifting.",
-      };
-    case "performance":
-      // AUCUNE cible, et ce n'est pas un oubli: `directionIsWorking` rend
-      // `false` pour cet objectif parce qu'aucune tendance de poids ou de
-      // taille ne dit qu'une performance progresse. Prétendre le contraire ici
-      // serait exactement la mesure décorative que le produit refuse.
-      return {
-        primary: null,
-        secondary: "weight",
-        target: null,
-        axisObjective: true,
-        reading: "How your sessions go — no measurement on this page says that.",
-      };
-    case "health":
-      return {
-        primary: null,
-        secondary: "weight",
-        target: null,
-        axisObjective: true,
-        reading: "How you feel and how regular you are. Body weight is not the point here.",
       };
   }
 }
@@ -394,14 +395,34 @@ export const FOCUS_AXES = [
 ] as const;
 export type FocusAxis = (typeof FOCUS_AXES)[number];
 
-export const FOCUS_AXIS_LABELS: Readonly<Record<FocusAxis, string>> = {
-  energy: "Day-to-day energy",
-  hunger: "Hunger between meals",
-  sleep: "Sleep quality",
-  digestion: "Digestion",
-  mood: "Mood",
-  training: "Training quality",
-};
+/**
+ * LE MOT D'UN AXE — LU DANS LE SEED, PLUS DANS UNE TABLE LOCALE.
+ *
+ * ── LA TROISIÈME COPIE EST PARTIE (lot 6) ─────────────────────────────────
+ * `FOCUS_AXIS_LABELS` vivait ici avec ses six phrases anglaises en dur, alors
+ * que `chat.weekly.axis.*` porte les mêmes, dans le seed et traduites depuis le
+ * lot 4. Trois tables pour un vocabulaire — celle-ci, le seed, et
+ * `WEEKLY_AXIS_LABELS_EN` (_shared/keel/weekly_flow.ts, qui part au modèle) —
+ * et aucune ceinture: renommer un axe d'un côté ne faisait rougir nulle part.
+ *
+ * ⚠️ LE DÉPLACEMENT SEUL N'AURAIT RIEN RÉPARÉ, et c'est ce que la note du lot 5
+ * annonçait: l'unique lecteur (`StudentWeekPlanPage`) ne se contentait pas
+ * d'AFFICHER l'étiquette, il la passait à `.toLowerCase()` À L'INTÉRIEUR d'une
+ * phrase anglaise construite en dur (« working on … »). Brancher la table sur
+ * `t()` sans réécrire cette phrase aurait déplacé la copie en laissant la
+ * couture. Les deux gestes sont faits ensemble, et `plan.goal.working_on` porte
+ * maintenant la phrase.
+ *
+ * ⚠️ UNE FONCTION, ET JAMAIS UN `Record` DE MODULE: un `Record` d'appels à
+ * `t()` se fige à la langue du PREMIER chargement (`i18n-lint.mjs`, règle
+ * `MODULE_SCOPE_T`).
+ *
+ * Reste le contrat avec le Deno, qui n'est pas dans ce lot: il porte sur
+ * l'ANGLAIS du seed (voir `api/weeklyCheckIn.ts`), pas sur le libellé affiché.
+ */
+export function focusAxisLabel(axis: FocusAxis): string {
+  return t(`chat.weekly.axis.${axis}` as MessageKey);
+}
 
 /**
  * DE COMBIEN UN AXE DOIT BOUGER pour que ce soit autre chose que du bruit.
@@ -446,7 +467,7 @@ export function axisReading(
   const trend = trendOf(measures, AXIS_NOISE);
   return {
     axis,
-    label: FOCUS_AXIS_LABELS[axis],
+    label: focusAxisLabel(axis),
     latest: latest(measures),
     trend,
     improving: trend === "rising",
@@ -508,15 +529,25 @@ export function readIndicator(args: {
     ? Math.abs(weight.value - reference) <= MAINTENANCE_BAND_KG
     : null;
 
+  // ⚠️ LA PHRASE EST COMPOSÉE DE FRAGMENTS DU SEED, ET LA JONCTION AUSSI.
+  // Elle était bâtie par gabarits anglais (`your weight is ${trend}`), donc le
+  // jeton de tendance sortait BRUT — « your weight is rising » — et la
+  // conjonction « and » était en dur. Les deux moitiés passent par `t()`: le
+  // mot d'une tendance dépend de la MESURE qu'il décrit en français (« ton
+  // poids MONTE », « ton tour de taille DESCEND »), donc chaque couple a sa clé
+  // plutôt qu'un adjectif interpolé qu'il faudrait accorder.
   const observed: string[] = [];
-  if (weightTrend !== "unknown") observed.push(`your weight is ${weightTrend}`);
-  if (waistTrend !== "unknown") observed.push(`your waist is ${waistTrend}`);
+  if (weightTrend !== "unknown") {
+    observed.push(t(`plan.trend.weight.${weightTrend}` as MessageKey));
+  }
+  if (waistTrend !== "unknown") {
+    observed.push(t(`plan.trend.waist.${waistTrend}` as MessageKey));
+  }
 
   let sentence: string | null = null;
   if (observed.length > 0) {
-    sentence = working
-      ? `${cap(observed.join(" and "))} — that is what this goal is asking for.`
-      : cap(observed.join(" and ")) + ".";
+    const joined = cap(observed.join(t("plan.trend.and")));
+    sentence = working ? t("plan.trend.asked_for", { observed: joined }) : `${joined}.`;
   }
 
   return { indicator, weight, waist, weightTrend, waistTrend, working, sentence, insideBand };
@@ -577,9 +608,14 @@ export function readMeasureInput(
   const text = raw.trim();
   if (text === "") return { ok: true, value: null };
   const n = Number(text.replace(",", "."));
-  if (!Number.isFinite(n)) return { ok: false, message: `${label}: numbers only.` };
+  if (!Number.isFinite(n)) {
+    return { ok: false, message: t("plan.input.numbers_only", { field: label }) };
+  }
   if (n < min || n > max) {
-    return { ok: false, message: `${label}: expected between ${min} and ${max}.` };
+    return {
+      ok: false,
+      message: t("plan.input.out_of_range", { field: label, min, max }),
+    };
   }
   // Une décimale suffit et évite les 78.30000000000001 du flottant.
   return { ok: true, value: Math.round(n * 10) / 10 };

@@ -18,14 +18,25 @@ import {
   type HouseholdMember,
   householdLaneMode,
   memberDeltasPayload,
+  mouthEnvelope,
   referenceMemberId,
   resolveHousehold,
+  toHouseholdMember,
   TRUNK_UNSATISFIABLE,
   trunkSafety,
   trunkSizing,
   trunkUnsatisfiableMessage,
 } from "./household_composition.ts";
-import type { Envelope } from "./meal_envelope.ts";
+import {
+  DENSITY_CEILING_DEFAULT,
+  type Envelope,
+  envelopeFingerprint,
+  estimatedChildMaintenanceKcal,
+  estimatedMaintenanceKcal,
+  type MouthBody,
+  pediatricBandOf,
+} from "./meal_envelope.ts";
+import { ageBandOf } from "./student_age.ts";
 
 const DEGRADED: Envelope = { mode: "per_portion", proteinPortionPerMeal: true };
 
@@ -43,7 +54,7 @@ function member(over: Partial<HouseholdMember> & { memberId: string }): Househol
   return {
     displayName: over.memberId,
     ageState: "adult",
-    goal: "health",
+    goal: "maintenance",
     envelope: null,
     ...over,
   };
@@ -151,23 +162,23 @@ Deno.test("une bouche d'âge INCONNU peut être référente", () => {
 // 3. LE TRONC — le MIN, jamais le référent
 // ---------------------------------------------------------------------------
 
-Deno.test("le tronc prend le MIN des enveloppes adultes calculables", () => {
+Deno.test("le tronc prend le MIN des enveloppes calculables", () => {
   const t = trunkSizing([
     member({ memberId: "a", envelope: perKg(2400, 2700) }),
     member({ memberId: "b", envelope: perKg(1800, 2000) }),
   ]);
   assertEquals(t.energy, { low: 1800, high: 2000 });
-  assertEquals(t.adultsCounted, 2);
+  assertEquals(t.mouthsCounted, 2);
 });
 
-Deno.test("un adulte SANS enveloppe compte STANDARD, jamais réduit", () => {
+Deno.test("une bouche SANS enveloppe compte STANDARD, jamais réduite", () => {
   // Ne pas savoir n'est pas une raison de servir moins.
   const withUnknown = trunkSizing([
     member({ memberId: "a", envelope: perKg(2400, 2700) }),
     member({ memberId: "b", envelope: null }),
   ]);
   assertEquals(withUnknown.energy, { low: 2400, high: 2700 });
-  assertEquals(withUnknown.adultsStandard, 1);
+  assertEquals(withUnknown.mouthsStandard, 1);
 });
 
 Deno.test("ZÉRO enveloppe calculable est le cas NOMINAL", () => {
@@ -185,17 +196,56 @@ Deno.test("ZÉRO enveloppe calculable est le cas NOMINAL", () => {
   assertEquals(r.deltas, []);
 });
 
-Deno.test("un MINEUR ne pèse pas dans le tronc et ne reçoit aucun delta", () => {
-  // `goal: null` par construction. Aucune enveloppe, aucun delta dérivé d'un
-  // objectif — et surtout, aucune lecture de ses objectifs.
+// ⚠️ CE TEST EST L'INVERSE DE CELUI QU'IL REMPLACE, ET C'EST VOULU.
+//
+// Il s'appelait « un MINEUR ne pèse pas dans le tronc et ne reçoit aucun
+// delta » et il gardait FF-043 §3 (« aucune enveloppe pour un mineur »). Cette
+// règle a été RENVERSÉE le 2026-08-12 par décision humaine, après que la
+// contrainte et sa raison ont été exposées:
+//
+//   « les deltas n'ont pas d'objectif donc ils ont juste un objectif normal de
+//     manger selon leur poids, âge, taille c'est tout »
+//
+// Ce que l'ancienne version protégeait — aucune direction dérivée d'un
+// objectif pour un enfant — est tenu AILLEURS et mieux: `childEnvelopeFromBody`
+// n'accepte aucun jeton d'objectif. Ce qu'elle coûtait est ce test-ci.
+Deno.test("un MINEUR pèse dans le tronc et reçoit un delta (renversement 2026-08-12)", () => {
+  // LE FOYER DU SCÉNARIO, en clair: une mère en déficit, un enfant en
+  // maintenance. Avant ce lot, l'enfant n'avait ni enveloppe ni delta — il
+  // mangeait le tronc, c'est-à-dire LE DÉFICIT DE SA MÈRE, sans rien en plus.
   const r = resolve([
-    member({ memberId: "dad", envelope: perKg(1800, 2000) }),
-    member({ memberId: "son", envelope: perKg(2600, 2900) }),
-    member({ memberId: "kid", ageState: "minor", goal: null, envelope: perKg(9999, 9999) }),
+    member({ memberId: "mother", goal: "fat_loss", envelope: perKg(1352, 1532) }),
+    member({ memberId: "kid", ageState: "minor", goal: null, envelope: perKg(1655, 1829) }),
   ]);
-  assertEquals(r.trunk.energy, { low: 1800, high: 2000 }, "le mineur ne pèse pas");
-  assert(!r.deltas.some((d) => d.memberId === "kid"));
-  assert(!r.residualGaps.some((g) => g.memberId === "kid"));
+  // Le tronc reste le MIN — ici la mère, dont le besoin est le plus bas.
+  assertEquals(r.trunk.energy, { low: 1352, high: 1532 });
+  assertEquals(r.trunk.mouthsCounted, 2, "l'enfant PÈSE désormais dans le MIN");
+  // ET L'ENFANT REÇOIT DE QUOI COMBLER L'ÉCART. C'est la réparation du lot.
+  const kidDeltas = r.deltas.filter((d) => d.memberId === "kid");
+  assert(kidDeltas.length > 0, "l'enfant mange encore le déficit de sa mère");
+  assert(
+    kidDeltas.every((d) => d.grams > 0),
+    "un delta de zéro gramme est un delta qui n'existe pas",
+  );
+  // L'instrumentation d'A3 le suit lui aussi, sinon l'écart résiduel d'un
+  // enfant serait invisible au moment de décider du slot de dressage.
+  assert(r.residualGaps.some((g) => g.memberId === "kid"));
+  // ET LE SERVICE FAMILIAL RESTE LA RÈGLE quand un mineur est à table: un
+  // add-on dressé en cuisine devant un enfant est la divergence rendue lisible.
+  assert(r.familyService);
+  assert(kidDeltas.every((d) => d.moment === "plating"));
+});
+
+Deno.test("une bouche SANS enveloppe ne tire toujours pas le tronc vers le bas", () => {
+  // Le pendant du test ci-dessus: ouvrir le MIN à toutes les bouches ne doit
+  // pas faire compter une bouche dont on ne sait rien pour « zéro ».
+  const r = resolve([
+    member({ memberId: "mother", envelope: perKg(1800, 2000) }),
+    member({ memberId: "kid", ageState: "minor", goal: null, envelope: null }),
+  ]);
+  assertEquals(r.trunk.energy, { low: 1800, high: 2000 });
+  assertEquals(r.trunk.mouthsStandard, 1);
+  assert(r.issues.includes("household_mouths_without_envelope:1"));
 });
 
 // ---------------------------------------------------------------------------
@@ -311,4 +361,225 @@ Deno.test("sous verrou de lane, AUCUN delta n'est dimensionné", () => {
   ]);
   assertEquals(r.deltas, []);
   assertEquals(r.residualGaps, []);
+});
+
+// ---------------------------------------------------------------------------
+// 7. L'ENVELOPPE D'UNE BOUCHE — la seule porte, et ce qu'elle refuse
+//
+// C'est ici que se tient la décision humaine du 2026-08-12: chaque bouche a un
+// corps, une bouche sans objectif mange NORMAL, et un objectif posé sur un
+// enfant est INERTE — pas ignoré par une condition, inerte par construction.
+// ---------------------------------------------------------------------------
+
+const CHILD_8: MouthBody = {
+  heightCm: 128,
+  weightKg: 26,
+  gender: "male",
+  ageYears: 8,
+  activityLevel: null,
+};
+
+Deno.test("L'ENVELOPPE DU COMPTE GAGNE TOUJOURS, y compris DÉGRADÉE", () => {
+  // LA GARDE LA PLUS CHÈRE DU LOT. Une enveloppe `per_portion` est la DÉCISION
+  // du plancher TCA, pas une absence. Retomber sur le corps de la fiche
+  // derrière elle contournerait le plancher par la porte de service — et le
+  // symptôme serait une personne protégée à qui on dimensionne une assiette.
+  const e = mouthEnvelope({
+    ageState: "adult",
+    accountEnvelope: DEGRADED,
+    lineBody: { heightCm: 175, weightKg: 70, gender: "male", ageYears: 40, activityLevel: null },
+  });
+  assertEquals(e, DEGRADED);
+});
+
+Deno.test("un objectif posé sur un ENFANT est INERTE — l'enveloppe est la maintenance", () => {
+  // Le maître écrit `fat_loss` sur la fiche de son enfant de huit ans. Le
+  // moteur ne le lit pas: `childEnvelopeFromBody` n'a pas de paramètre
+  // d'objectif, donc il n'existe aucun chemin par lequel ce jeton l'atteigne.
+  const withGoal = toHouseholdMember(
+    {
+      memberId: "kid",
+      displayName: "Lea",
+      goal: "fat_loss",
+      ageState: "minor",
+      body: null,
+      eatingSlots: null,
+      habits: [],
+      habitNote: null,
+    },
+    null,
+    CHILD_8,
+  );
+  const withoutGoal = toHouseholdMember(
+    {
+      memberId: "kid",
+      displayName: "Lea",
+      goal: null,
+      ageState: "minor",
+      body: null,
+      eatingSlots: null,
+      habits: [],
+      habitNote: null,
+    },
+    null,
+    CHILD_8,
+  );
+  // ÉGALITÉ D'EMPREINTE, pas inspection champ par champ: un test qui vérifie
+  // « la bande n'est pas celle de fat_loss » laisse passer un plafond de
+  // densité ajouté six mois plus tard.
+  assert(withGoal.envelope !== null);
+  assert(withoutGoal.envelope !== null);
+  assertEquals(
+    envelopeFingerprint(withGoal.envelope),
+    envelopeFingerprint(withoutGoal.envelope),
+    "un objectif posé sur un enfant change son enveloppe",
+  );
+  // ET AUCUNE PRESSION DE MINIMISATION N'EST POSÉE SUR SON ASSIETTE.
+  assert(withGoal.envelope.mode === "per_kg");
+  assertEquals(withGoal.envelope.densityCeiling, null);
+  assertEquals(withGoal.envelope.proteinPerMealG, null);
+});
+
+Deno.test("un ÂGE INCONNU n'a pas d'enveloppe, même avec un corps complet", () => {
+  // Ni l'équation d'adulte ni l'équation d'enfant: elles donnent des résultats
+  // très différents sur le même poids, et deviner serait choisir. `null` = part
+  // standard, jamais réduite.
+  assertEquals(
+    mouthEnvelope({
+      ageState: "unknown",
+      accountEnvelope: null,
+      lineBody: { heightCm: 150, weightKg: 45, gender: "female", ageYears: null, activityLevel: null },
+    }),
+    null,
+  );
+});
+
+Deno.test("le corps de la FICHE n'achète qu'une MAINTENANCE, jamais un objectif", () => {
+  // Un adulte SANS compte: pas de série de pesées, donc pas de plancher TCA
+  // derrière lui. Son enveloppe ne peut donc ni creuser un déficit ni poser un
+  // plafond de densité — la seule bande qu'un corps de fiche puisse acheter.
+  const e = mouthEnvelope({
+    ageState: "adult",
+    accountEnvelope: null,
+    lineBody: { heightCm: 162, weightKg: 55, gender: "female", ageYears: 38, activityLevel: null },
+  });
+  assert(e !== null && e.mode === "per_kg" && e.energy !== null);
+  const maintenance = estimatedMaintenanceKcal({ activityLevel: null,
+    weightKg: 55,
+    heightCm: 162,
+    ageBand: "30_44",
+    gender: "female",
+  });
+  assert(maintenance !== null);
+  // La bande de maintenance encadre M; une bande de déficit serait SOUS M.
+  assert(
+    e.energy.low < maintenance && maintenance < e.energy.high,
+    `la bande ${JSON.stringify(e.energy)} n'encadre pas la maintenance ${maintenance}`,
+  );
+  assertEquals(e.densityCeiling, DENSITY_CEILING_DEFAULT);
+});
+
+Deno.test("PAS DE CORPS = PAS D'ENVELOPPE, jamais l'enveloppe DÉGRADÉE", () => {
+  // ⚠️ LA DIFFÉRENCE COÛTE TOUT LE FOYER. Rendre `per_portion` ici armerait le
+  // VERROU DE LANE, et une case de formulaire vide ferait dégrader la
+  // composition de tout le monde. `null` ne dégrade personne: la bouche compte
+  // pour une part standard.
+  assertEquals(
+    mouthEnvelope({ ageState: "minor", accountEnvelope: null, lineBody: null }),
+    null,
+  );
+  assertEquals(
+    mouthEnvelope({
+      ageState: "minor",
+      accountEnvelope: null,
+      lineBody: { ...CHILD_8, weightKg: null },
+    }),
+    null,
+  );
+  // Et la preuve que ça ne dégrade PAS la lane du foyer entier.
+  const r = resolve([
+    member({ memberId: "mother", envelope: perKg(1352, 1532) }),
+    member({
+      memberId: "kid",
+      ageState: "minor",
+      goal: null,
+      envelope: mouthEnvelope({
+        ageState: "minor",
+        accountEnvelope: null,
+        lineBody: null,
+      }),
+    }),
+  ]);
+  assertEquals(r.mode, "per_kg");
+});
+
+Deno.test("LA CONTRE-ÉPREUVE PÉDIATRIQUE — Schofield contre Mifflin-St Jeor", () => {
+  // ⛔ LE CŒUR DU LOT. Mifflin-St Jeor est établie sur des ADULTES. Appliquée à
+  // un enfant de huit ans, elle sous-estime lourdement son besoin: la servir
+  // reviendrait à lui prescrire une restriction en croyant lui servir un besoin
+  // normal — le préjudice exact que ce lot existe pour fermer, retourné.
+  const pediatric = estimatedChildMaintenanceKcal({ activityLevel: null,
+    weightKg: CHILD_8.weightKg,
+    ageYears: CHILD_8.ageYears,
+    gender: CHILD_8.gender,
+  });
+  // Mifflin ne SAIT PAS parler d'un enfant: `ageBandOf(8)` rend `null`, donc
+  // elle rend `null`. C'est la première moitié de la preuve — le chemin adulte
+  // est FERMÉ à un mineur, il ne se contente pas d'être découragé.
+  assertEquals(
+    estimatedMaintenanceKcal({ activityLevel: null,
+      weightKg: CHILD_8.weightKg,
+      heightCm: CHILD_8.heightCm,
+      ageBand: ageBandOf(CHILD_8.ageYears),
+      gender: CHILD_8.gender,
+    }),
+    null,
+    "Mifflin rend une valeur pour un enfant de 8 ans",
+  );
+  // La seconde moitié: ce qu'elle rendrait SI on la forçait, en lui donnant la
+  // bande d'adulte la plus jeune. C'est le chiffre qu'un lecteur pressé aurait
+  // livré.
+  const forcedMifflin = estimatedMaintenanceKcal({ activityLevel: null,
+    weightKg: CHILD_8.weightKg,
+    heightCm: CHILD_8.heightCm,
+    ageBand: "18_29",
+    gender: CHILD_8.gender,
+  });
+  assert(pediatric !== null && forcedMifflin !== null);
+  const shortfall = (pediatric - forcedMifflin) / pediatric;
+  // ⚠️ L'ASSERTION EST UN SEUIL, PAS LA VALEUR MESURÉE. Un test écrit contre sa
+  // propre constante reste vert quand on change la constante. Ce qu'on protège
+  // est « les deux chemins ne sont PAS proches »: s'ils l'étaient, le chemin
+  // pédiatrique serait probablement faux.
+  assert(
+    shortfall > 0.15,
+    `Mifflin forcée (${forcedMifflin}) et Schofield (${pediatric}) ne diffèrent ` +
+      `que de ${Math.round(shortfall * 100)} % — le chemin pédiatrique est suspect`,
+  );
+});
+
+Deno.test("les tranches pédiatriques suivent le découpage FAO 0-3 / 3-10 / 10-18", () => {
+  assertEquals(pediatricBandOf(0), "0_3");
+  assertEquals(pediatricBandOf(2), "0_3");
+  assertEquals(pediatricBandOf(3), "3_10");
+  assertEquals(pediatricBandOf(9), "3_10");
+  assertEquals(pediatricBandOf(10), "10_18");
+  assertEquals(pediatricBandOf(17), "10_18");
+  // 18 ans: ce n'est plus un enfant. La frontière est celle de `KEEL_MINOR_AGE`,
+  // pas une seconde définition de la majorité posée à côté.
+  assertEquals(pediatricBandOf(18), null);
+  assertEquals(pediatricBandOf(null), null);
+});
+
+Deno.test("`other` prend la MOYENNE des deux jeux, jamais un repli sur `male`", () => {
+  // Choisir serait assigner — et la décision porterait ici sur le corps d'un
+  // enfant. Même arbitrage que Mifflin pour l'adulte.
+  const male = estimatedChildMaintenanceKcal({ activityLevel: null, weightKg: 26, ageYears: 8, gender: "male" });
+  const female = estimatedChildMaintenanceKcal({ activityLevel: null, weightKg: 26, ageYears: 8, gender: "female" });
+  const other = estimatedChildMaintenanceKcal({ activityLevel: null, weightKg: 26, ageYears: 8, gender: "other" });
+  const none = estimatedChildMaintenanceKcal({ activityLevel: null, weightKg: 26, ageYears: 8, gender: null });
+  assert(male !== null && female !== null && other !== null && none !== null);
+  assert(male !== female, "les coefficients par sexe sont identiques — banc inutile");
+  assert(other > female && other < male, `other=${other} hors de [${female}, ${male}]`);
+  assertEquals(other, none, "un sexe absent et `other` doivent produire la même chose");
 });

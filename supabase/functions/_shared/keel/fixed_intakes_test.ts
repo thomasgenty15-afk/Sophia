@@ -369,7 +369,7 @@ function body(over: Partial<MealBodyContext> = {}): MealBodyContext {
   };
 }
 
-const PER_KG = envelopeFor("muscle_gain", body(), "30_44", false, null);
+const PER_KG = envelopeFor("muscle_gain", body(), "30_44", false, null, null);
 
 const DISH = {
   slot: "dinner",
@@ -491,7 +491,8 @@ Deno.test("R3 — sous restriction, la branche 1 SURVIT et l'enveloppe n'existe 
     "30_44",
     true,
     null,
-  );
+  null,
+);
   assertEquals(restricted.mode, "per_portion");
   const v = verdictFor({
     dishes: [DISH],

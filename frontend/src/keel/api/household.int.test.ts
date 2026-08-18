@@ -10,7 +10,6 @@ import {
   type HouseholdView,
   MEMBER_GOALS,
   mergeCounterparts,
-  MINOR_FORBIDDEN_GOALS,
   restrictionNotice,
 } from "./household";
 
@@ -335,75 +334,77 @@ describe("awayFrom — les deux sources d'une absence, séparées (D14)", () => 
 // ───────────────────────────────────────────────────────────────────────────
 
 /**
- * ── CE QUE CE BLOC GARDE, ET POURQUOI IL LIT DES FICHIERS ─────────────────
- * Décision humaine du 2026-08-13: un enfant PEUT porter une direction
- * nutritionnelle — mais jamais `fat_loss` ni `recomposition`, les deux du
- * registre qui RETIRE (PIVOT-FOYER §8.4: « jamais correctif sur le corps »).
+ * ⚠️ CE BLOC A ÉTÉ RENVERSÉ LE 2026-08-18, ET IL GARDAIT L'ANCIENNE RÈGLE.
  *
- * Cette règle vit à TROIS endroits, parce que le navigateur, Deno et SQL ne
- * partagent aucun module:
+ * Il vérifiait que `fat_loss` et `recomposition` étaient refusés à un mineur,
+ * et il confrontait TROIS copies de cette liste sur le disque (écran, moteur,
+ * migration) pour qu'aucune ne dérive en silence. Décision humaine du
+ * 2026-08-18: un mineur porte LES TROIS objectifs, comme un majeur. Les trois
+ * copies sont supprimées ensemble, dans le même commit — c'était très
+ * exactement le mode d'échec que ce test existait pour empêcher, et il le
+ * mesure encore, dans l'autre sens.
  *
- *   1. ici, pour ce que l'écran PROPOSE;
- *   2. `_shared/keel/household.ts#MINOR_FORBIDDEN_GOALS`, pour ce que le
- *      moteur APPLIQUE;
- *   3. la migration `20260813180000`, pour ce que la base ACCEPTE D'ÉCRIRE.
- *
- * Une liste recopiée trois fois dérive, et la dérive est MUETTE: rouvrir
- * `fat_loss` aux enfants d'un seul côté ne casse rien, ne se voit nulle part, et
- * se découvre le jour où un parent lit « perdre du poids » sous le prénom de son
- * fils. Ce test lit les deux autres copies SUR LE DISQUE — la même technique que
- * le catalogue de l'entonnoir, qui résout ses consommateurs de la même façon.
+ * ⚠️ CE QUI PROTÈGE À LA PLACE N'EST PAS UN REFUS D'OBJECTIF, et n'est donc
+ * pas testable ici. La raison écrite le 13/08 n'était pas « pas de direction »,
+ * c'était « pas de direction qui fasse d'un enfant une cible de poids ». Trois
+ * gardes la tiennent, chacune testée dans son module Deno:
+ *   1. `childEnvelopeFromBody` ne prend pas de `goal` (`meal_envelope_test`);
+ *   2. `paceCeilingFor` borne un mineur sur son besoin (`weight_pace_test`);
+ *   3. le corps d'un enfant n'est jamais énoncé (FF-047, `meal_body_test`).
  */
-describe("les directions qu'un mineur ne porte jamais", () => {
+describe("les directions qu'un mineur porte, depuis le 2026-08-18", () => {
   const ROOT = resolve(__dirname, "../../../..");
 
-  it("propose tout à un adulte, et retire les deux correctrices à un enfant", () => {
+  it("propose EXACTEMENT la même liste à un adulte et à un enfant", () => {
     expect([...goalsForAge("adult")]).toEqual([...MEMBER_GOALS]);
-    expect([...goalsForAge("child")]).toEqual([
-      "muscle_gain",
-      "performance",
-      "health",
-      "maintenance",
-    ]);
-    // Ce que l'ouverture a rendu possible, dit explicitement: sans cette ligne,
-    // un `goalsForAge` qui rendrait `[]` pour un enfant passerait le test
-    // ci-dessus le jour où quelqu'un « restaure » l'ancienne règle.
+    expect([...goalsForAge("child")]).toEqual([...MEMBER_GOALS]);
+    // Sans cette ligne, un `goalsForAge` qui rendrait `[]` des deux côtés
+    // passerait l'égalité ci-dessus.
     expect(goalsForAge("child").length).toBeGreaterThan(0);
   });
 
-  it("dit la MÊME chose que le moteur (`_shared/keel/household.ts`)", () => {
+  it("le moteur n'a plus AUCUNE liste d'objectifs interdits aux mineurs", () => {
+    // La copie côté Deno est supprimée, pas vidée: une liste vide encore
+    // consultée est une branche morte que le prochain lecteur reremplit au
+    // hasard. Ce test lit le fichier SUR LE DISQUE, comme avant.
     const deno = readFileSync(
       resolve(ROOT, "supabase/functions/_shared/keel/household.ts"),
       "utf8",
     );
-    const block = deno.slice(deno.indexOf("MINOR_FORBIDDEN_GOALS"));
-    for (const goal of MINOR_FORBIDDEN_GOALS) {
-      expect(block.slice(0, block.indexOf("];"))).toContain(`"${goal}"`);
-    }
-    // Et l'inverse: aucune direction interdite côté moteur qui serait proposée
-    // ici. C'est le sens qui compte — celui où l'écran est plus permissif.
-    for (const goal of MEMBER_GOALS) {
-      if (block.slice(0, block.indexOf("];")).includes(`"${goal}"`)) {
-        expect(goalsForAge("child")).not.toContain(goal);
-      }
-    }
+    // ⚠️ ON CHERCHE LA DÉCLARATION, PAS LE MOT. Le fichier NOMME encore la
+    // constante disparue dans l'en-tête de `goalApplies` — c'est la trace de
+    // ce qui a été levé et par quelle autorité, et une garde levée sans trace
+    // est une garde que quelqu'un remettra au hasard.
+    expect(deno).not.toContain("export const MINOR_FORBIDDEN_GOALS");
+    expect(deno).toContain("2026-08-18");
   });
 
-  it("dit la MÊME chose que la base (migration 20260813180000)", () => {
+  it("la base a LEVÉ la garde sur LES DEUX portes, pas sur une seule", () => {
+    // ⚠️ C'EST LA MOITIÉ QUI SE RATE. Les deux RPC écrivent la même colonne;
+    // une garde levée sur une seule laisserait l'autre fermée, et c'est
+    // toujours celle qu'on n'a pas regardée qui sert. La migration du 18/08
+    // réécrit les DEUX fonctions et ne doit plus contenir le refus.
     const sql = readFileSync(
-      resolve(ROOT, "supabase/migrations/20260813180000_minor_may_carry_a_direction.sql"),
+      resolve(
+        ROOT,
+        "supabase/migrations/20260818100000_three_directions_and_a_collected_activity.sql",
+      ),
       "utf8",
     );
-    // Le refus est nommé, et il porte sur exactement ces deux jetons — DEUX
-    // fois, parce qu'il y a deux portes d'écriture et qu'une garde sur une
-    // seule laisse l'autre ouverte.
-    const guards = sql.split("goal_not_for_minor").length - 1;
-    expect(guards).toBeGreaterThanOrEqual(2);
-    for (const goal of MINOR_FORBIDDEN_GOALS) {
-      expect(sql).toContain(`'${goal}'`);
+    for (const door of [
+      "keel_household_set_member_goal",
+      "keel_household_add_member",
+    ]) {
+      expect(sql).toContain(`create or replace function public.${door}`);
     }
-    for (const goal of goalsForAge("child")) {
-      expect(sql).not.toContain(`in ('${goal}'`);
-    }
+    // Le refus n'existe plus qu'en COMMENTAIRE — la trace de ce qui a été
+    // levé — jamais dans un `return jsonb_build_object`.
+    expect(sql).not.toContain("'reason', 'goal_not_for_minor'");
+    // Et le vocabulaire des deux portes est celui d'aujourd'hui.
+    // `p_goal not in (…)`, et pas le simple `not in (…)`: la validation des
+    // PORTÉES de doctrine utilise la même liste sur une autre variable, et la
+    // compter ferait passer ce test avec une seule porte réécrite.
+    const doors = sql.split("p_goal not in ('fat_loss', 'maintenance', 'muscle_gain')");
+    expect(doors.length - 1).toBe(2);
   });
 });

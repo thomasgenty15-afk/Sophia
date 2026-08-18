@@ -177,35 +177,39 @@ export const MEMBER_GOALS = [
 export type MemberGoal = (typeof MEMBER_GOALS)[number];
 
 /**
- * LES DEUX DIRECTIONS QU'UN MINEUR NE PORTE JAMAIS.
+ * LES DIRECTIONS QU'ON PROPOSE À CETTE BOUCHE-LÀ.
  *
- * ── CE QUI A CHANGÉ LE 2026-08-13 ────────────────────────────────────────
- * `PIVOT-FOYER.md` §8.4 posait qu'un mineur n'a « jamais d'objectif
- * nutritionnel individuel ». Décision humaine renversée: un enfant PEUT porter
- * une direction. La règle était plus large que sa raison, qui est « avec un
- * mineur, le registre est éducatif — jamais CORRECTIF SUR LE CORPS: aucune
- * mention de poids, de silhouette, de restriction. On parle de ce que l'aliment
- * APPORTE. »
+ * ── ⚠️ RENVERSÉ LE 2026-08-18: LA MÊME LISTE POUR TOUT LE MONDE ──────────
+ * Cette fonction filtrait `MINOR_FORBIDDEN_GOALS` (`fat_loss`,
+ * `recomposition`) pour un enfant. Décision humaine du 2026-08-18: un mineur
+ * porte LES TROIS objectifs, exactement comme un majeur — les deux portes
+ * d'écriture en base sont ouvertes (migration `20260818100000`) et la lecture
+ * (`goalApplies`) ne refuse plus que l'âge INCONNU.
  *
- * Ces deux-là sont l'autre registre — celui qui RETIRE — et restent fermés.
+ * La constante `MINOR_FORBIDDEN_GOALS` est SUPPRIMÉE des trois copies (ici,
+ * `_shared/keel/household.ts`, et les deux RPC), pas vidée: une liste vide
+ * encore consultée est une branche morte que le prochain lecteur reremplit au
+ * hasard.
  *
- * ⚠️ CETTE LISTE N'EST PAS LA GARDE, elle décide de ce que l'ÉCRAN PROPOSE.
- * La garde est en base (`goal_not_for_minor`, sur les deux portes d'écriture) et
- * à la lecture (`goalApplies`, côté Deno). Trois copies d'une même liste, parce
- * que le navigateur, Deno et SQL ne partagent aucun module — et
- * `household.int.test.ts` les confronte SUR LE DISQUE pour qu'aucune ne dérive
- * en silence. C'est le seul moyen qu'un « on a rouvert `fat_loss` aux enfants »
- * ne passe pas par la porte qu'on n'a pas regardée.
+ * ⚠️ CE QUI PROTÈGE À LA PLACE, ET CE N'EST PAS À L'ÉCRAN. La raison écrite le
+ * 13/08 n'était pas « pas de direction », c'était « pas de direction qui fasse
+ * d'un enfant une cible de poids ». Trois choses la tiennent:
+ *   1. l'énergie d'un mineur reste une MAINTENANCE calculée sur son âge
+ *      (`childEnvelopeFromBody` ne prend pas de paramètre `goal`);
+ *   2. le plafond de son rythme se calcule sur son besoin (`paceCeilingFor`);
+ *   3. son corps n'est jamais ÉNONCÉ (FF-047) — ni au prompt, ni à table.
+ *
+ * ⚠️ LA SIGNATURE GARDE SON PARAMÈTRE, ET IL N'EST PLUS LU. C'est lui qui
+ * recensera les appelants le jour où les deux listes redivergeraient — et
+ * `goalsForAge(kind)` reste plus honnête à l'appel que `MEMBER_GOALS` nu, qui
+ * ne dit pas qu'une décision a été prise ici. Il est nommé, pas préfixé d'un
+ * souligné: un `_kind` se lit comme un oubli, et le lint le refuse.
  */
-export const MINOR_FORBIDDEN_GOALS: readonly MemberGoal[] = [
-  "fat_loss",
-  "recomposition",
-];
-
-/** Les directions qu'on PROPOSE à cette bouche-là. Voir ci-dessus. */
 export function goalsForAge(kind: "adult" | "child"): readonly MemberGoal[] {
-  if (kind === "adult") return MEMBER_GOALS;
-  return MEMBER_GOALS.filter((g) => !MINOR_FORBIDDEN_GOALS.includes(g));
+  // La même liste des deux côtés depuis le 2026-08-18. `void` plutôt qu'un
+  // paramètre non lu: il rend la non-lecture DÉLIBÉRÉE et visible.
+  void kind;
+  return MEMBER_GOALS;
 }
 
 // ───────────────────────────────────────────────────────────────────────────

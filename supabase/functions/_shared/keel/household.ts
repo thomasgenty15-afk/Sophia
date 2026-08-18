@@ -100,43 +100,41 @@ export function ageStateFromVerdict(verdict: BirthDateVerdict): MemberAgeState {
 }
 
 /**
- * LES DEUX DIRECTIONS QU'UN MINEUR NE PORTE JAMAIS.
- *
- * ── CE QUI A CHANGÉ LE 2026-08-13, ET CE QUI N'A PAS CHANGÉ ───────────────
- * `PIVOT-FOYER.md` §8.4 disait: « un membre mineur du foyer n'a JAMAIS
- * d'objectif nutritionnel individuel ». Décision humaine du 2026-08-13: un
- * enfant PEUT porter une direction. La règle était plus large que sa propre
- * raison.
- *
- * Relire §8.4 mot pour mot: « avec un mineur, le registre est éducatif — jamais
- * CORRECTIF SUR LE CORPS. Aucune mention de poids, de silhouette, de
- * restriction. On parle de ce que l'aliment APPORTE, pas de ce qu'il fait
- * grossir. » La raison n'a jamais été « pas de direction »; elle a toujours été
- * « pas de direction qui fasse d'un enfant une cible de poids ».
- *
- * « Manger mieux » et « mieux s'entraîner » sont exactement ce que l'aliment
- * APPORTE. `fat_loss` et `recomposition` sont l'autre registre — celui qui
- * retire, et qui parle de silhouette. Ces deux-là restent inconstructibles: la
- * base les refuse à l'écriture (`keel_household_set_member_goal`), et cette
- * fonction les refuserait de toute façon à la lecture.
- *
- * ⚠️ DEUX CEINTURES POUR UNE RÈGLE, ET C'EST VOULU. Une ligne peut porter une
- * valeur écrite AVANT ce lot, ou saisie à dix-sept ans par quelqu'un qui en a
- * seize aujourd'hui. La base empêche d'en écrire de nouvelles; la lecture
- * garantit que les anciennes ne s'appliquent pas. Une garde qui dépendrait d'un
- * nettoyage de données n'est pas une garde.
- */
-export const MINOR_FORBIDDEN_GOALS: readonly string[] = [
-  "fat_loss",
-  "recomposition",
-];
-
-/**
  * L'OBJECTIF S'APPLIQUE-T-IL À CETTE BOUCHE ?
  *
  * La règle du lot 3, en un endroit, parce qu'elle est lue par le générateur ET
  * par l'écran — et que deux copies divergeraient sur le cas `unknown`, qui est
  * précisément celui qui compte.
+ *
+ * ── L'HISTOIRE DE CETTE FONCTION, EN TROIS DÉCISIONS ──────────────────────
+ * `PIVOT-FOYER.md` §8.4 disait: « un membre mineur du foyer n'a JAMAIS
+ * d'objectif nutritionnel individuel ».
+ *
+ *   2026-08-13 — un enfant PEUT porter une direction, sauf `fat_loss` et
+ *   `recomposition`, « les deux registres qui RETIRENT ». Une liste
+ *   `MINOR_FORBIDDEN_GOALS` portait ces deux-là.
+ *
+ *   2026-08-18 — décision humaine: **un mineur porte les trois objectifs,
+ *   exactement comme un majeur.** La liste n'a plus de contenu, et elle est
+ *   SUPPRIMÉE plutôt que vidée: une liste vide encore consultée est une
+ *   branche morte que le prochain lecteur reremplit au hasard, et une garde
+ *   sans valeurs ressemble à une garde qui marche.
+ *
+ * ⚠️ CE QUI PROTÈGE À LA PLACE, ET POURQUOI CE N'EST PAS ICI. La raison écrite
+ * le 13/08 n'a jamais été « pas de direction », c'était « pas de direction qui
+ * fasse d'un enfant une cible de poids ». Trois choses la tiennent après
+ * l'ouverture, et aucune n'est un refus d'objectif:
+ *
+ *   1. `childEnvelopeFromBody` (`meal_envelope.ts`) NE PREND PAS de `goal`.
+ *      Un mineur reste en maintenance calculée sur son âge (Schofield), quoi
+ *      qu'il y ait dans sa colonne. Une direction est une consigne de service;
+ *      une bande d'énergie est un déficit. La première s'ouvre, la seconde non.
+ *   2. Le plafond de rythme d'un mineur (`weight_pace.ts`) est borné par son
+ *      propre besoin estimé, pas par le plafond de l'adulte.
+ *   3. Les faits CORPORELS d'un mineur ne sont jamais énoncés (FF-047): ni
+ *      taille ni pesée à côté de son prénom dans le prompt. Sans ce silence,
+ *      la direction d'un enfant deviendrait dérivable par tout le monde à
+ *      table — et c'est exactement le dégât que §8.4 nomme.
  *
  * ⚠️ `unknown` rend `false`, et c'est le sens SÛR. L'âge reste facultatif à la
  * saisie — le flux de 90 secondes ne se bloque pas — mais tant qu'il manque, la
@@ -144,21 +142,16 @@ export const MINOR_FORBIDDEN_GOALS: readonly string[] = [
  * l'incitation à compléter est intégrée: renseigner l'âge est ce qui active
  * l'objectif.
  *
- * ⚠️ ET `unknown` NE SUIT PAS LE MINEUR SUR L'OUVERTURE DE 2026-08-13. Un âge
- * inconnu ne reçoit AUCUNE direction, pas même celles qu'un enfant peut porter:
- * « je ne sais pas » et « c'est un enfant » ne sont pas la même phrase, et
- * traiter la première comme la seconde ferait exactement ce que la ceinture de
- * l'âge inconnu existe pour empêcher — décider à la place de quelqu'un dont on
- * ignore s'il a huit ou quarante ans.
+ * ⚠️ ET `unknown` NE SUIT PAS LE MINEUR SUR L'OUVERTURE. Un âge inconnu ne
+ * reçoit AUCUNE direction: « je ne sais pas » et « c'est un enfant » ne sont
+ * pas la même phrase, et traiter la première comme la seconde ferait exactement
+ * ce que la ceinture de l'âge inconnu existe pour empêcher — décider à la place
+ * de quelqu'un dont on ignore s'il a huit ou quarante ans.
  */
 export function goalApplies(member: {
   ageState: MemberAgeState;
   goal: string | null;
 }): boolean {
   if (member.goal === null || member.goal === "") return false;
-  if (member.ageState === "adult") return true;
-  if (member.ageState === "minor") {
-    return !MINOR_FORBIDDEN_GOALS.includes(member.goal);
-  }
-  return false;
+  return member.ageState === "adult" || member.ageState === "minor";
 }

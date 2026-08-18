@@ -602,19 +602,119 @@ export type ProteinSourceGroup = typeof PROTEIN_SOURCES[number];
 // win, read as "no measure says anything". The coach-side i18n had meanwhile
 // labelled `recomposition` "Muscle gain", so a coach restricting a rule to
 // muscle gain was in fact restricting it to waist-down-at-constant-weight —
-// the opposite instruction. Both are fixed; the label is now its own token.
+// the opposite instruction. Both were fixed; the label became its own token.
+//
+// ── SIX SONT REDEVENUS TROIS (2026-08-18) ─────────────────────────────────
+// Décision humaine du 2026-08-18. Le paragraphe ci-dessus s'était déjà écrit
+// la conclusion sans la tirer: « l'axe qui fait bifurquer une semaine est LA
+// DIRECTION DE LA BALANCE — bas, haut, ni l'un ni l'autre ». Les six valeurs
+// étaient cet axe à trois positions, avec la troisième découpée en quatre
+// nuances (`recomposition`, `performance`, `health`, `maintenance`) qui
+// rendaient des consignes voisines — et le dépôt avait déjà MESURÉ leur
+// voisinage: `health` a rendu, pendant des semaines, la chaîne de service
+// EXACTE de `maintenance` sans que rien n'échoue (`household_portions.ts`).
+//
+// Les quatre se replient donc sur `maintenance`, qui est le nom de la
+// troisième position. La table du repli est `RETIRED_GOAL_TOKENS`, juste en
+// dessous, et la migration `20260818100000` l'applique aux lignes déjà
+// écrites: une valeur retirée d'une énumération sans que les lignes suivent
+// laisse des orphelines que le prochain lecteur découvre par un `undefined`.
+//
+// CE QUE ÇA COÛTE, ET QUI EST ACCEPTÉ. Un coach qui écrivait une conviction
+// « pour mes élèves en performance » l'écrit désormais « pour mes élèves qui
+// maintiennent », et elle atteint aussi ceux qui visaient la santé. C'est la
+// portée qui s'élargit, jamais un élève qui perd une conviction — direction
+// d'erreur choisie, et la même que celle d'`goalScopeApplies` (« absent =
+// tout le monde ») depuis le premier jour.
 
 export const GOAL_TOKENS = [
   "fat_loss",
-  "muscle_gain",
-  "recomposition",
-  "performance",
-  "health",
   "maintenance",
+  "muscle_gain",
 ] as const;
 export type GoalToken = (typeof GOAL_TOKENS)[number];
 
 export const parseGoalToken = makeParser<GoalToken>("goal", GOAL_TOKENS);
+
+/**
+ * LES QUATRE NUANCES RETIRÉES LE 2026-08-18, ET CE QU'ELLES DEVIENNENT.
+ *
+ * ── POURQUOI CETTE TABLE EXISTE ALORS QUE LA MIGRATION A NETTOYÉ LA BASE ──
+ * Parce qu'une migration nettoie les LIGNES, pas ce qui est déjà en vol: un
+ * onglet ouvert depuis hier, un corps de requête d'un client plus vieux, une
+ * portée recopiée dans un jsonb qu'aucune contrainte n'atteint. Sans table
+ * nommée, chacun de ces cas retomberait sur « jeton inconnu ⇒ n'atteint
+ * personne » — c'est-à-dire qu'une conviction écrite pour la santé
+ * disparaîtrait en silence au lieu de suivre son objectif.
+ *
+ * ⚠️ CE N'EST PAS UN REPLI SILENCIEUX, ET R7 TIENT. `parseGoalToken` LÈVE
+ * toujours sur un jeton inconnu; `foldRetiredGoal` est une fonction SÉPARÉE,
+ * qu'un appelant doit nommer, et elle ne connaît que ces quatre-là. Un
+ * cinquième jeton inventé n'y trouve rien et ressort `null`.
+ */
+export const RETIRED_GOAL_TOKENS: Readonly<Record<string, GoalToken>> = Object
+  .freeze({
+    // La silhouette à poids constant: la balance ne bouge pas.
+    recomposition: "maintenance",
+    // L'entraînement à poids constant: la balance ne bouge pas non plus.
+    performance: "maintenance",
+    // Manger mieux, le poids hors sujet: la balance ne bouge pas.
+    health: "maintenance",
+  });
+
+/**
+ * Le jeton d'aujourd'hui pour une valeur qui peut être d'hier.
+ *
+ * Rend `null` — jamais un repli — pour ce qui n'est ni un jeton vivant ni une
+ * des trois nuances retirées. C'est à l'appelant de décider ce que veut dire
+ * « je ne connais pas ce mot », parce que la réponse sûre n'est pas la même
+ * pour une portée (personne) et pour l'objectif d'une bouche (aucune
+ * direction).
+ */
+export function foldRetiredGoal(raw: string): GoalToken | null {
+  if ((GOAL_TOKENS as readonly string[]).includes(raw)) return raw as GoalToken;
+  return RETIRED_GOAL_TOKENS[raw] ?? null;
+}
+
+// ---------------------------------------------------------------------------
+// ACTIVITY TOKENS — le champ qui manquait au produit (2026-08-18)
+// ---------------------------------------------------------------------------
+//
+// ── POURQUOI CE VOCABULAIRE EXISTE, ET CE QU'IL RÉPARE ────────────────────
+// `energy_target.ts` sert une fourchette de 28 à 33 kcal/kg, et son en-tête
+// dit pourquoi, mot pour mot: « rien ne collecte le niveau d'activité », donc
+// multiplier un métabolisme de base par une constante devinée « produit une
+// cible fausse avec l'aplomb d'un tableau ». La constante devinée existe et
+// porte un nom: `ACTIVITY_FACTOR = 1.5`, dans `meal_envelope.ts`. Ces quatre
+// crans sont ce qui la remplace.
+//
+// ⚠️ QUATRE CRANS, JAMAIS UN NOMBRE. On ne demande à personne son PAL ni ses
+// heures de sport par semaine: un nombre demandé à l'utilisateur est un nombre
+// qu'il invente, et l'inventé entre ensuite dans un calcul avec l'autorité
+// d'une mesure. Un cran se reconnaît — on sait si on est assis toute la
+// journée — et il porte sa propre imprécision.
+//
+// ⚠️ L'ABSENCE RESTE UNE VALEUR, ET ELLE N'EST PAS DANS CETTE LISTE. Personne
+// n'est obligé de répondre; `null` veut dire « on ne sait pas » et retombe sur
+// exactement le comportement d'avant ce lot (facteur 1,5, fourchette 28-33).
+// Un cinquième jeton « inconnu » ferait de l'ignorance une réponse, et une
+// réponse se met à peser dans les tables indexées dessus.
+export const ACTIVITY_LEVELS = [
+  /** Assis toute la journée, peu de marche. */
+  "sedentary",
+  /** Debout ou en mouvement une bonne partie du jour. */
+  "on_feet",
+  /** Sport 2 à 3 fois par semaine. */
+  "trains_some",
+  /** Sport 4 fois ou plus, ou métier physique. */
+  "trains_hard",
+] as const;
+export type ActivityLevel = (typeof ACTIVITY_LEVELS)[number];
+
+export const parseActivityLevel = makeParser<ActivityLevel>(
+  "activity_level",
+  ACTIVITY_LEVELS,
+);
 
 /**
  * Does an entry scoped to `goalScope` apply to a student whose goal is `goal`?

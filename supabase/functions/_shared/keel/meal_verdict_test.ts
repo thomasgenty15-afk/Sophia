@@ -15,6 +15,7 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
 import {
+  foldPreparationsIntoDishes,
   isWateryPreparation,
   MIN_RESOLUTION_FOR_VERDICT,
   PER_PORTION_PROTEIN_G,
@@ -95,8 +96,8 @@ function body(over: Partial<MealBodyContext> = {}): MealBodyContext {
   };
 }
 
-const PER_KG = envelopeFor("fat_loss", body(), "30_44", false, null);
-const PER_PORTION = envelopeFor("fat_loss", body({ restrictionFlag: true }), "30_44", true, null);
+const PER_KG = envelopeFor("fat_loss", body(), "30_44", false, null, null);
+const PER_PORTION = envelopeFor("fat_loss", body({ restrictionFlag: true }), "30_44", true, null, null);
 
 // ---------------------------------------------------------------------------
 // L'ABSTENTION AVANT L'ERREUR
@@ -149,6 +150,195 @@ Deno.test("UN SEUL inconnu de classe dense suffit, même à 95 % de résolution"
 });
 
 // ---------------------------------------------------------------------------
+// LE PLIAGE DES PRÉPARATIONS — la moitié du plan
+// ---------------------------------------------------------------------------
+
+Deno.test("un plat qui n'a QUE des `uses` porte la masse de sa préparation", () => {
+  // ── LE DÉFAUT MESURÉ (2026-08-12, 80 générations) ───────────────────────
+  // 41 % de l'énergie et 51 % de la PROTÉINE vivaient dans les préparations,
+  // et l'appelant ne passait que `dish.ingredients`. Le verdict rendait
+  // « below/under » sur des plans à 99 % de leur cible, et la boucle de
+  // correction dépensait son unique relance à réparer un plan déjà juste.
+  const folded = foldPreparationsIntoDishes({
+    dishes: [{
+      slot: "dinner",
+      method: "Reheat a portion.",
+      ingredients: [],
+      uses: [{ preparationId: "prep_chicken", servings: 1 }],
+    }],
+    preparations: [{
+      id: "prep_chicken",
+      servingsMade: 4,
+      ingredients: [
+        { term: "chicken breast", amount: 1000, unit: "g", state: "raw" },
+      ],
+    }],
+  });
+  assertEquals(folded.length, 1);
+  assertEquals(folded[0].ingredients.length, 1);
+  // ⚠️ LE PRORATA: 1 portion sur 4, donc 250 g — pas le kilo du lot. Compter
+  // le lot entier à chaque plat qui y touche ferait l'erreur inverse, et plus
+  // grosse: quatre dîners porteraient quatre kilos de poulet.
+  assertEquals(folded[0].ingredients[0].amount, 250);
+});
+
+Deno.test("le verdict CHANGE quand la préparation entre — la preuve chiffrée", () => {
+  // Sans cette assertion, le pliage pourrait ne rien plier et tous les autres
+  // tests resteraient verts: c'est exactement ce qui est arrivé pendant que la
+  // fonction vivait en fermeture dans l'edge function, hors de portée des
+  // tests.
+  const dish = {
+    slot: "dinner" as const,
+    method: "Reheat a portion.",
+    ingredients: [],
+    uses: [{ preparationId: "p", servings: 1 }],
+  };
+  const preparations = [{
+    id: "p",
+    servingsMade: 1,
+    ingredients: [
+      { term: "chicken breast", amount: 800, unit: "g" as const, state: "raw" as const },
+      { term: "rice", amount: 150, unit: "g" as const, state: "raw" as const },
+    ],
+  }];
+  const common = {
+    envelope: PER_KG,
+    index: INDEX,
+    daysCovered: 1,
+    uncoverableSentinels: [],
+    fixedIntakeInputs: [],
+  };
+  // Ce que faisait l'appelant fautif: les plats seuls.
+  const sansPreps = verdictFor({ dishes: [{ ...dish, ingredients: [] }], ...common });
+  assertEquals(sansPreps.resolution.total, 0, "un plat vide n'a rien à lire");
+  assertEquals(sansPreps.protein, "not_computable");
+
+  const avecPreps = verdictFor({
+    dishes: foldPreparationsIntoDishes({ dishes: [dish], preparations }),
+    ...common,
+  });
+  assertEquals(avecPreps.resolution.total, 2);
+  assertEquals(avecPreps.protein, "met", "800 g de poulet passent le plancher");
+});
+
+Deno.test("une `uses` vers une préparation inconnue est IGNORÉE, pas devinée", () => {
+  const folded = foldPreparationsIntoDishes({
+    dishes: [{
+      slot: "lunch",
+      method: "Assemble.",
+      ingredients: [{ term: "rice", amount: 80, unit: "g", state: "raw" }],
+      uses: [{ preparationId: "absent", servings: 2 }],
+    }],
+    preparations: [],
+  });
+  assertEquals(folded[0].ingredients.length, 1);
+  assertEquals(folded[0].ingredients[0].term, "rice");
+});
+
+Deno.test("une quantité ABSENTE reste absente après le prorata", () => {
+  // R2 du moteur: on propage de l'inconnu, jamais du zéro. Un `null × 0.25`
+  // qui rendrait 0 traverserait toutes les additions sans rien signaler, et le
+  // plancher protéique serait jugé atteint sur un lot qu'on n'a pas su lire.
+  const folded = foldPreparationsIntoDishes({
+    dishes: [{
+      slot: "dinner",
+      method: "Reheat.",
+      ingredients: [],
+      uses: [{ preparationId: "p", servings: 1 }],
+    }],
+    preparations: [{
+      id: "p",
+      servingsMade: 4,
+      ingredients: [{ term: "olive oil", amount: null, unit: null, state: null }],
+    }],
+  });
+  assertEquals(folded[0].ingredients[0].amount, null);
+});
+
+Deno.test("sans préparation, le pliage rend EXACTEMENT les plats d'avant", () => {
+  // La condition de désarmement: le chemin sans batch cooking ne doit pas
+  // bouger d'un ingrédient.
+  const dishes = [{
+    slot: "lunch" as const,
+    method: "Cook.",
+    ingredients: [{ term: "rice", amount: 80, unit: "g" as const, state: "raw" as const }],
+    uses: [],
+  }];
+  const folded = foldPreparationsIntoDishes({ dishes, preparations: [] });
+  assertEquals(folded, [{
+    slot: "lunch",
+    method: "Cook.",
+    ingredients: [{ term: "rice", amount: 80, unit: "g", state: "raw" }],
+  }]);
+});
+
+Deno.test("une matière grasse CONNUE mais non pesée s'abstient aussi", () => {
+  // Le miroir de la garde ci-dessus, et le trou qu'elle laissait: « olive
+  // oil » sans unité se RÉSOUT — la couverture est de 100 %, la porte des
+  // 80 % s'ouvre — et son énergie n'entre dans aucune somme. Le verdict
+  // porterait sur un plat amputé de 180 kcal en se présentant comme complet.
+  const verdict = verdictFor({
+    dishes: [{
+      slot: "dinner",
+      method: "Roast.",
+      ingredients: [
+        { term: "chicken breast", amount: 200, unit: "g", state: "raw" },
+        { term: "rice", amount: 100, unit: "g", state: "raw" },
+        { term: "olive oil", amount: 2, unit: null, state: "raw" },
+      ],
+    }],
+    envelope: PER_KG,
+    index: INDEX,
+    daysCovered: 1,
+    uncoverableSentinels: [],
+    fixedIntakeInputs: [],
+  });
+  assertEquals(verdict.resolution.resolved, 3, "les trois termes sont CONNUS");
+  assertEquals(verdict.resolution.unresolvedEnergyDense, false);
+  assert(verdict.resolution.unweighedEnergyDense);
+  assertEquals(verdict.energy, "not_computable");
+});
+
+Deno.test("des CONDIMENTS non pesés n'empêchent PAS le verdict", () => {
+  // ⚠️ LE CAS QUI PASSE — sans lui, la garde précédente serait indiscernable
+  // d'une garde qui s'abstient dès qu'un ingrédient n'est pas pesé.
+  //
+  // ── CE QUE CE TEST A COÛTÉ (mesuré le 2026-08-12) ───────────────────────
+  // Compter les seuls ingrédients PESÉS donnait 69 % de résolution sur une
+  // assiette réelle dont 26 des 30 écarts étaient du sel, du poivre, de la
+  // cannelle et des légumes comptés à l'unité. Sous la porte des 80 %, donc
+  // pas de verdict, pas de boucle de correction, pas de mise à l'échelle —
+  // tout l'étage éteint par des condiments. On a cherché la cause dans le
+  // référentiel deux fois avant de la trouver dans le compteur.
+  const ingredients = [
+    { term: "chicken breast", amount: 200, unit: "g" as const, state: "raw" as const },
+    { term: "rice", amount: 100, unit: "g" as const, state: "raw" as const },
+    // Connus du référentiel, sans poids d'unité: ils sortent de `resolved`.
+    ...Array.from({ length: 6 }, () => ({
+      term: "carrots",
+      amount: 1,
+      unit: "unit" as const,
+      state: "raw" as const,
+    })),
+  ];
+  const verdict = verdictFor({
+    dishes: [{ slot: "dinner", method: "Roast.", ingredients }],
+    envelope: PER_KG,
+    index: INDEX,
+    daysCovered: 1,
+    uncoverableSentinels: [],
+    fixedIntakeInputs: [],
+  });
+  assertEquals(verdict.resolution.resolved, 8);
+  assertEquals(verdict.resolution.total, 8);
+  assertEquals(verdict.resolution.unweighedEnergyDense, false);
+  assert(
+    verdict.energy !== "not_computable",
+    "six légumes non pesés ne doivent pas éteindre l'énergie",
+  );
+});
+
+// ---------------------------------------------------------------------------
 // LE VERDICT ÉNERGIE N'EXISTE PAS SOUS FLAG
 // ---------------------------------------------------------------------------
 
@@ -180,7 +370,7 @@ Deno.test("per_portion et corps inconnu rendent le MÊME verdict", () => {
   const flagged = verdictFor({ dishes, envelope: PER_PORTION, index: INDEX, daysCovered: 1, uncoverableSentinels: [], fixedIntakeInputs: [] });
   const unknownBody = verdictFor({
     dishes,
-    envelope: envelopeFor("fat_loss", null, null, false, null),
+    envelope: envelopeFor("fat_loss", null, null, false, null, null),
     index: INDEX,
     daysCovered: 1,
     uncoverableSentinels: [],
@@ -392,6 +582,7 @@ Deno.test("la sortie du parseur est IDENTIQUE avec et sans calcul de verdict", (
     fixedIntakes: [],
     dayProperties: [],
     merge: null,
+    boxMemberIds: [],
   };
   const before = parseGeneratedMeal(structuredClone(payload), args);
   // Le calcul du verdict tourne ICI, entre les deux parses.
@@ -582,7 +773,6 @@ Deno.test("la correspondance colonne→drapeau couvre les SEPT, sans trou", () =
   const mapped = Object.values(SENTINEL_FLAG_BY_COLUMN);
   for (const flag of SENTINEL_FLAGS) {
     assert(mapped.includes(flag), `${flag} n'a pas de nom de colonne`);
-    boxMemberIds: [],
   }
   assertEquals(Object.keys(SENTINEL_FLAG_BY_COLUMN).length, SENTINEL_FLAGS.length);
 });

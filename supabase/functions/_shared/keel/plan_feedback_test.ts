@@ -12,6 +12,7 @@ import {
   QUESTION_READERS,
   questionsFor,
 } from "./plan_feedback.ts";
+import { STUDENT_GOALS } from "./week_plan_generation.ts";
 
 // ===========================================================================
 // LE RETOUR DE FIN DE PLAN — ce que ce fichier garde
@@ -81,17 +82,20 @@ Deno.test("le REGISTRE: on évalue le plan, jamais la personne", () => {
 Deno.test("la quatrième question suit l'axe de la dynamique", () => {
   assert(questionsFor("fat_loss", false).includes("hunger_between_meals"));
   assert(questionsFor("muscle_gain", false).includes("could_finish"));
-  assert(questionsFor("recomposition", false).includes("could_finish"));
-  assert(questionsFor("health", false).includes("enough_variety"));
-  assert(questionsFor("performance", false).includes("energy_around_sessions"));
 
-  // `maintenance` n'en a PAS: son objectif est l'écart minimal, lui ajouter une
-  // question serait lui ajouter de la charge.
+  // ── LE REPLI DU 2026-08-18 ──────────────────────────────────────────────
+  // `maintenance` n'avait AUCUNE quatrième question. Elle en a une depuis
+  // qu'elle absorbe `health`, `recomposition` et `performance`, et c'est
+  // `enough_variety` — la seule des trois qui n'interroge ni l'appétit ni la
+  // quantité, donc la seule qui survive au plancher TCA. Ce test est le
+  // MESUREUR de ce choix: le remplacer par `could_finish` ou par
+  // `energy_around_sessions` le fait tomber.
   assertEquals(questionsFor("maintenance", false), [
     "cooked",
     "portions",
     "never_again",
     "make_again",
+    "enough_variety",
   ]);
 
   // ══════════════════════════════════════════════════════════════════════
@@ -107,9 +111,7 @@ Deno.test("la quatrième question suit l'axe de la dynamique", () => {
   //
   // Le jour où un cinquième SUJET apparaît, c'est ce commentaire qu'il faudra
   // contredire, et il n'y a pas de bonne raison de le faire.
-  for (const goal of [
-    "fat_loss", "muscle_gain", "recomposition", "health", "performance", "maintenance",
-  ] as const) {
+  for (const goal of STUDENT_GOALS) {
     assert(questionsFor(goal, false).length <= 5, goal);
     // ET LES DEUX POLARITÉS VONT ENSEMBLE. Une seule des deux posée serait un
     // questionnaire qui n'apprend qu'à éviter, ou qu'à viser.
@@ -127,9 +129,7 @@ Deno.test("sous plancher TCA, la sortie est INDISCERNABLE d'une dynamique inconn
   // reconnaissable, il deviendrait lui-même un oracle: « on ne m'a pas demandé
   // les portions, donc je suis marqué ». Égalité de chaînes, pas de forme.
   const unknownGoal = questionsFor(null, true);
-  for (const goal of [
-    "fat_loss", "muscle_gain", "recomposition", "health", "performance", "maintenance",
-  ] as const) {
+  for (const goal of STUDENT_GOALS) {
     assertEquals(
       JSON.stringify(questionsFor(goal, true)),
       JSON.stringify(unknownGoal),
@@ -228,9 +228,7 @@ Deno.test("désarmement : aucun retour ⇒ aucun effet", () => {
 Deno.test("toutes les questions du vocabulaire sont atteignables", () => {
   // Une question déclarée mais qu'aucune dynamique ne pose serait décorative.
   const reached = new Set<FeedbackQuestion>();
-  for (const goal of [
-    "fat_loss", "muscle_gain", "recomposition", "health", "performance", "maintenance",
-  ] as const) {
+  for (const goal of STUDENT_GOALS) {
     for (const q of questionsFor(goal, false)) reached.add(q);
   }
   for (const q of FEEDBACK_QUESTIONS) {

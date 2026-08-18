@@ -49,7 +49,25 @@ export const FEEDBACK_QUESTIONS = [
   "hunger_between_meals",
   "could_finish",
   "enough_variety",
-  "energy_around_sessions",
+  // ── ⚠️ `energy_around_sessions` A ÉTÉ RETIRÉE LE 2026-08-18 ─────────────
+  // Elle était la quatrième question de `performance`, et `performance`
+  // n'existe plus: les quatre nuances du « ni l'un ni l'autre » se replient
+  // sur `maintenance`, qui reçoit `enough_variety`. Aucune dynamique ne la
+  // posait donc plus.
+  //
+  // Elle est SUPPRIMÉE et pas laissée en place, parce que le test
+  // « toutes les questions du vocabulaire sont atteignables » est une garde
+  // R6 (« aucune valeur d'énumération sans branche nommée »): une question
+  // déclarée que personne ne pose est décorative, et une valeur décorative
+  // finit par être pilotée. Ce que ça coûte est nommé dans `AXIS_QUESTION`:
+  // le calage autour des séances n'est plus demandé à personne.
+  //
+  // ⚠️ LES RÉPONSES DÉJÀ ÉCRITES EN BASE LA PORTENT ENCORE. La colonne
+  // `question` de `student_plan_feedback` n'a pas de CHECK adossé à cette
+  // liste — la migration `20260811090000` la cite en commentaire, pas en
+  // contrainte —, donc les lignes d'hier restent lisibles et ne sont pas
+  // réécrites: ce sont des RÉPONSES d'une personne à une question qu'on lui a
+  // vraiment posée, et les traduire falsifierait ce qu'elle a dit.
 ] as const;
 export type FeedbackQuestion = (typeof FEEDBACK_QUESTIONS)[number];
 
@@ -79,12 +97,11 @@ export const QUESTION_READERS: Record<FeedbackQuestion, string> = {
   hunger_between_meals:
     "l'accent de satiété de `fat_loss` — la satiété est son axe gouvernant",
   could_finish:
-    "l'accent d'apport de `muscle_gain`/`recomposition` — leur obstacle est de " +
-    "manger assez, pas de se retenir",
+    "l'accent d'apport de `muscle_gain` — son obstacle est de manger assez, " +
+    "pas de se retenir",
   enough_variety:
-    "l'accent de diversité de `health` — la variété est son axe gouvernant",
-  energy_around_sessions:
-    "l'accent de placement de `performance` — le calage autour des séances",
+    "l'accent de diversité de `maintenance` — la variété est l'axe gouvernant " +
+    "de la troisième position de la balance, celle qui ne monte ni ne descend",
 };
 
 /** Les réponses possibles, par question. Listes fermées: pas de champ libre. */
@@ -100,7 +117,6 @@ export const QUESTION_OPTIONS: Record<FeedbackQuestion, readonly string[]> = {
   hunger_between_meals: ["often", "sometimes", "no"],
   could_finish: ["yes", "mostly", "no"],
   enough_variety: ["yes", "sometimes", "no"],
-  energy_around_sessions: ["good", "mixed", "flat"],
 };
 
 /**
@@ -109,17 +125,25 @@ export const QUESTION_OPTIONS: Record<FeedbackQuestion, readonly string[]> = {
  * Elle suit L'AXE QUI GOUVERNE la dynamique — c'est la hiérarchie du design des
  * unités de composition, pas une invention de ce fichier.
  *
- * `maintenance` n'en a PAS, et c'est un choix: son objectif est l'écart
- * minimal, donc lui ajouter une question serait lui ajouter de la charge pour
- * la seule dynamique qui demande qu'on ne lui en ajoute pas.
+ * ⚠️ `maintenance` N'EN AVAIT PAS, ET ELLE EN A UNE DEPUIS LE 2026-08-18.
+ * L'ancien choix se justifiait par « son objectif est l'écart minimal, donc
+ * lui ajouter une question serait ajouter de la charge à la seule dynamique
+ * qui demande qu'on ne lui en ajoute pas ». Le repli des quatre nuances change
+ * ce qu'elle DÉSIGNE: elle ne dit plus « je tiens ce que j'ai », elle dit
+ * « la balance ne bouge pas », ce qui recouvre `health` — de très loin la plus
+ * peuplée des trois retirées.
+ *
+ * `enough_variety` et pas les deux autres, et le critère n'est pas la
+ * popularité: c'est la SEULE des trois qui n'interroge ni l'appétit ni la
+ * quantité. `could_finish` (recomposition) et `energy_around_sessions`
+ * (performance) portent sur le corps; la première est d'ailleurs retirée par
+ * le plancher TCA quelques lignes plus bas. Une question qui survit au
+ * plancher est la seule qu'on puisse poser à toute une position.
  */
 const AXIS_QUESTION: Record<StudentGoal, FeedbackQuestion | null> = {
   fat_loss: "hunger_between_meals",
+  maintenance: "enough_variety",
   muscle_gain: "could_finish",
-  recomposition: "could_finish",
-  health: "enough_variety",
-  performance: "energy_around_sessions",
-  maintenance: null,
 };
 
 /**
@@ -230,10 +254,6 @@ export const QUESTION_LABELS: Record<
   enough_variety: {
     en: "Enough variety in it for you?",
     fr: "Assez de variété à ton goût ?",
-  },
-  energy_around_sessions: {
-    en: "How did it sit around your sessions?",
-    fr: "Comment ça tenait autour de tes séances ?",
   },
 };
 

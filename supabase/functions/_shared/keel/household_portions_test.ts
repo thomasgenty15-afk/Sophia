@@ -10,9 +10,15 @@ import {
   dedicatedDishesFor,
   distinctServingDirections,
   MEMBER_GOALS,
+  NEUTRAL_DIRECTION,
+  SERVING_DIRECTION,
   type MemberGoal,
   memberPortionsPayload,
   type PortionMember,
+  CHILD_DIRECTION,
+  readServingDemands,
+  servingDemandsFor,
+  servingDirectionFor,
   readCookingShape,
   reconcilePortions,
   sanitizePortionNote,
@@ -410,7 +416,15 @@ Deno.test("LOT 3B — les fuites que le corps rend POSSIBLES sont mordues, FR et
  * la chose qu'il teste reste vert quand on la change. Ce sont des PHRASES, du
  * genre que le modèle écrit vraiment dans une consigne de portion.
  */
-const GOAL_LEAKS: Record<MemberGoal, readonly string[]> = {
+// ⚠️ LA TABLE GARDE SES SIX ENTRÉES APRÈS LE REPLI DU 2026-08-18, ET C'EST LE
+// POINT. `MEMBER_GOALS` n'en porte plus que trois, mais cette liste-ci n'est
+// PAS un vocabulaire: c'est une PURGE-LIST de ce qui ne se dit pas à table.
+// `recomposition`, `performance` et « santé » restent des mots que le modèle
+// peut écrire — un plat « pour ta performance » se formule tout seul — et les
+// retirer d'une liste d'INTERDITS serait très exactement le bug. D'où
+// `Record<string, …>` plutôt que `Record<MemberGoal, …>`: le typage strict
+// SUPPRIMERAIT trois cas de banc au premier passage du compilateur.
+const GOAL_LEAKS: Record<string, readonly string[]> = {
   fat_loss: [
     "a smaller starch share for fat loss",
     "she is losing fat right now",
@@ -618,14 +632,10 @@ Deno.test("le payload stocké est en snake_case, comme la colonne", () => {
 //
 // Ce test échoue si deux objectifs re-fusionnent, quel que soit le couple.
 // ───────────────────────────────────────────────────────────────────────────
-const GOALS_UNDER_TEST = [
-  "fat_loss",
-  "muscle_gain",
-  "recomposition",
-  "performance",
-  "health",
-  "maintenance",
-] as const;
+// ⚠️ CE BANC PORTE SUR LA CONSTANTE DU PRODUIT DEPUIS LE 2026-08-18. Il
+// recopiait les six jetons; le repli les a ramenés à trois, et une copie
+// recopiée serait restée verte sur six directions dont trois n'existent plus.
+const GOALS_UNDER_TEST = MEMBER_GOALS;
 
 function directionFor(goal: PortionMember["goal"]): string {
   const line = buildPortionBrief([{
@@ -641,7 +651,7 @@ function directionFor(goal: PortionMember["goal"]): string {
   return line.slice("- Solo: ".length);
 }
 
-Deno.test("chacun des six objectifs rend une direction DISTINCTE", () => {
+Deno.test("chacune des trois directions est DISTINCTE des deux autres", () => {
   const seen = new Map<string, string>();
   for (const goal of GOALS_UNDER_TEST) {
     const direction = directionFor(goal);
@@ -655,13 +665,24 @@ Deno.test("chacun des six objectifs rend une direction DISTINCTE", () => {
   assertEquals(seen.size, GOALS_UNDER_TEST.length);
 });
 
-Deno.test("« santé » ne rend pas l'assiette de qui n'a rien déclaré", () => {
-  // LE CAS QUI MANQUAIT. Le repli et `maintenance` peuvent légitimement dire la
-  // même chose — ne rien déclarer, c'est demander l'équilibre. `health`, non:
-  // c'est un choix, et un choix doit se voir dans l'assiette.
-  assert(
-    directionFor("health") !== directionFor(null),
-    "« santé » rend le repli « aucun objectif »",
+// ⚠️ CE TEST A ÉTÉ RENVERSÉ LE 2026-08-18, ET IL FALLAIT LE RENVERSER.
+// Il gardait « `health` ne rend pas l'assiette de qui n'a rien déclaré »: un
+// CHOIX devait se voir dans l'assiette. `health` n'existe plus, et
+// `maintenance` — la valeur sur laquelle il se replie — dit LÉGITIMEMENT la
+// même chose que le repli: ne rien déclarer, c'est demander l'équilibre.
+//
+// Ce qui reste à garder est l'autre moitié, et elle est plus importante: les
+// deux chaînes sont ÉGALES aujourd'hui et vivent sous DEUX noms. Faire bouger
+// `SERVING_DIRECTION.maintenance` ne doit pas déplacer en silence l'assiette
+// de tous ceux qui n'ont pas d'objectif — c'est la raison d'être de
+// `NEUTRAL_DIRECTION`, et c'est ce que ce test mesure maintenant.
+Deno.test("le repli « aucun objectif » a son PROPRE nom, même chaîne", () => {
+  assertEquals(directionFor("maintenance"), NEUTRAL_DIRECTION);
+  assertEquals(directionFor(null), NEUTRAL_DIRECTION);
+  assertEquals(
+    SERVING_DIRECTION.maintenance,
+    NEUTRAL_DIRECTION,
+    "les deux disent la même chose aujourd'hui — et sous deux noms, exprès",
   );
 });
 
@@ -843,20 +864,20 @@ Deno.test("un foyer VIDE ne porte aucune direction", () => {
   assertEquals(distinctServingDirections([]), []);
 });
 
-Deno.test("les six objectifs produisent SIX directions distinctes", () => {
-  // ⚠️ SIX AUJOURD'HUI, ET C'EST LA CEINTURE DU PIÈGE. Les six chaînes sont
-  // deux à deux différentes; ce que `maintenance` partage, c'est la direction
-  // NEUTRE, pas un autre objectif (cas épinglé plus haut). Le jour où deux
-  // objectifs se remettent à rendre la même chaîne — ce que `health` a fait
-  // pendant des semaines sans que rien n'échoue — ce compte tombe à cinq et le
-  // dit. C'est le seul test du dépôt qui ferait rougir cette régression-là.
+Deno.test("chaque objectif produit une direction DISTINCTE des autres", () => {
+  // ⚠️ LE COMPTE EST DÉRIVÉ DE `MEMBER_GOALS`, PLUS ÉCRIT EN DUR. Il valait
+  // `6` en littéral, et ce littéral a survécu au passage à trois — un test
+  // paramétré par sa propre copie reste vert quand on change ce qu'il teste.
+  // Ce que la garde attrape est inchangé: le jour où deux objectifs se
+  // remettent à rendre LA MÊME chaîne — ce que `health` a fait pendant des
+  // semaines sans que rien n'échoue — ce compte tombe et le dit.
   const directions = distinctServingDirections(
     MEMBER_GOALS.map((goal: MemberGoal) => ({
       ageState: "adult" as const,
       goal,
     })),
   );
-  assertEquals(directions.length, 6);
+  assertEquals(directions.length, MEMBER_GOALS.length);
 });
 
 Deno.test("la lecture est idempotente", () => {
@@ -987,4 +1008,86 @@ Deno.test("LOT B — un plafond à `one_dish` referme le budget du même geste",
   const capped = capCookingShape("one_session", "one_dish");
   assertEquals(asksForASecondDish(capped.shape), false);
   assertEquals(dedicatedDishesFor(capped.shape, 9), 0);
+});
+
+// ---------------------------------------------------------------------------
+// ⚠️ LE RENVERSEMENT DU 2026-08-18 — UN MINEUR PORTE LES TROIS OBJECTIFS
+// ---------------------------------------------------------------------------
+//
+// LE DÉFAUT QUE CES TESTS FERMENT, et il était invisible: `servingDirectionFor`
+// commençait par `if (member.ageState === "minor") return CHILD_DIRECTION;`,
+// AVANT toute lecture de l'objectif. Depuis le 2026-08-13 la base acceptait
+// pourtant `muscle_gain` sur un mineur. On pouvait donc poser « prendre du
+// muscle » sur un ado, la ligne s'écrivait, l'écran l'affichait, et l'assiette
+// ne changeait pas. La décision était en base, le comportement n'a jamais
+// suivi — et rien n'échouait.
+// ---------------------------------------------------------------------------
+
+function minorMember(goal: MemberGoal | null): PortionMember {
+  return {
+    memberId: "m-kid",
+    displayName: "Theo",
+    goal,
+    ageState: "minor",
+    body: null,
+    eatingSlots: null,
+    habits: [],
+    habitNote: null,
+  };
+}
+
+Deno.test("⚠️ un mineur AVEC objectif reçoit SA direction, comme un majeur", () => {
+  for (const goal of MEMBER_GOALS) {
+    assertEquals(
+      servingDirectionFor(minorMember(goal)),
+      SERVING_DIRECTION[goal],
+      `un mineur en « ${goal} » doit recevoir sa direction depuis le 2026-08-18`,
+    );
+    // Et c'est EXACTEMENT celle d'un majeur du même objectif: le renversement
+    // ne crée pas un troisième régime, il retire une exception.
+    assertEquals(
+      servingDirectionFor(minorMember(goal)),
+      servingDirectionFor({ ...minorMember(goal), ageState: "adult" }),
+    );
+  }
+});
+
+Deno.test("⚠️ `CHILD_DIRECTION` devient le REPLI d'un mineur SANS objectif", () => {
+  // Elle ne disparaît pas: elle cesse d'écraser. C'est la moitié de la
+  // décision qu'un lecteur pressé supprimerait.
+  assertEquals(servingDirectionFor(minorMember(null)), CHILD_DIRECTION);
+  // Et un mineur sans objectif ne demande toujours RIEN à la casserole: sa
+  // direction est une TAILLE, pas une orientation.
+  assertEquals(servingDemandsFor(minorMember(null)), {
+    protein: null,
+    starch: null,
+    vegetables: null,
+  });
+});
+
+Deno.test("⚠️ un ÂGE INCONNU ne suit pas le mineur, et ne reçoit pas sa taille", () => {
+  // « Je ne sais pas » et « c'est un enfant » ne sont pas la même phrase.
+  // L'âge inconnu retombe sur le NEUTRE — jamais sur `CHILD_DIRECTION`, qui
+  // ferait servir une part d'enfant à quelqu'un dont on ignore s'il a huit ou
+  // quarante ans.
+  const unknownAge = { ...minorMember("fat_loss"), ageState: "unknown" as const };
+  assertEquals(servingDirectionFor(unknownAge), NEUTRAL_DIRECTION);
+  assert(servingDirectionFor(unknownAge) !== CHILD_DIRECTION);
+});
+
+Deno.test("les deux lectures d'une direction ne peuvent PAS diverger", () => {
+  // `servingDemandsFor` lit ce que `servingDirectionFor` écrit — une seule
+  // décision, jamais deux. Avant le 2026-08-18 elles portaient chacune leur
+  // branche `minor`, et c'est ce doublon qui rendait l'écrasement facile à
+  // ne réparer qu'à moitié.
+  for (const ageState of ["adult", "minor", "unknown"] as const) {
+    for (const goal of [null, ...MEMBER_GOALS]) {
+      const m = { ...minorMember(goal), ageState };
+      assertEquals(
+        servingDemandsFor(m),
+        readServingDemands(servingDirectionFor(m)),
+        `${ageState}/${goal}`,
+      );
+    }
+  }
 });

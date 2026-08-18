@@ -18,15 +18,18 @@ import type { StudentSafetyConstraint } from "./safety_constraints.ts";
  */
 
 const PROMPT_BASE = {
+  firstDayCookable: true,
+  contentLocale: "en-US",
+  budgetAmount: null,
   doctrineBlock: "== MARC'S METHOD ==",
   coachNoteBlock: null,
   fixedIntakes: [],
   dayProperties: [],
   merge: null,
+  boxMemberIds: [],
   protocolBlock: "",
   beliefKeys: [],
   goal: "health" as const,
-  boxMemberIds: [],
   situation: null,
   context: null,
   mode: "to_shop" as const,
@@ -128,10 +131,10 @@ Deno.test("le VERROU DE SORTIE mord toujours — la consigne ne l'a pas remplac�
     fixedIntakes: [],
     dayProperties: [],
     merge: null,
+    boxMemberIds: [],
   });
   assertEquals(meal.dishes.length, 0);
   assert(meal.lock.reason !== "clean", meal.lock.reason);
-    boxMemberIds: [],
 });
 
 // ---------------------------------------------------------------------------
@@ -234,6 +237,7 @@ Deno.test("l'âge est dérivé de birth_date, et part en BANDE", () => {
     timezone: "Europe/Paris",
     heightCm: 172,
     gender: "female" as const,
+    activityLevel: null,
     weights: [],
     waists: [],
   };
@@ -256,6 +260,7 @@ Deno.test("une date de naissance absente ou aberrante ne fabrique pas de bande",
       timezone: null,
       heightCm: null,
       gender: null,
+      activityLevel: null,
       weights: [],
       waists: [],
     }, false);
@@ -272,6 +277,7 @@ Deno.test("« le dernier poids » est bien le DERNIER, pas le premier", () => {
     timezone: null,
     heightCm: null,
     gender: null,
+    activityLevel: null,
     weights: [
       { weekStart: "2026-06-15", value: 81 },
       { weekStart: "2026-08-03", value: 74 },

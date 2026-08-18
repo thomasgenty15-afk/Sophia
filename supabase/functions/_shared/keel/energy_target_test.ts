@@ -14,6 +14,7 @@
 
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import { fromFileUrl } from "https://deno.land/std@0.208.0/path/mod.ts";
+import { ACTIVITY_LEVELS } from "./tokens.ts";
 
 import {
   ENERGY_TARGET_BASIS,
@@ -35,7 +36,7 @@ const TODAY = "2026-08-12";
 
 Deno.test("FF-059 lot 3 — la fourchette, calculée à la main", () => {
   // 75 kg → 28 × 75 = 2100 · 33 × 75 = 2475 → arrondi aux 50 → 2100 – 2500.
-  const t = maintenanceRange({ weightKg: 75, weightWeekStart: "2026-08-10" });
+  const t = maintenanceRange({ activityLevel: null, weightKg: 75, weightWeekStart: "2026-08-10" });
   assertEquals(t.range, { low: 2100, high: 2500 });
   assertEquals(t.basis, ENERGY_TARGET_BASIS);
   assertEquals(t.gap, null);
@@ -48,7 +49,7 @@ Deno.test("FF-059 lot 3 — c'est TOUJOURS une fourchette, jamais un point", () 
   // plage plausible, le haut est strictement au-dessus du bas — il n'existe
   // aucun poids où les deux se rejoignent et où la cible deviendrait un nombre.
   for (let w = TARGET_WEIGHT_KG_MIN; w <= TARGET_WEIGHT_KG_MAX; w += 1) {
-    const t = maintenanceRange({ weightKg: w, weightWeekStart: null });
+    const t = maintenanceRange({ activityLevel: null, weightKg: w, weightWeekStart: null });
     assert(t.range !== null, `${w} kg n'a pas de fourchette`);
     assert(
       t.range.high > t.range.low,
@@ -58,7 +59,7 @@ Deno.test("FF-059 lot 3 — c'est TOUJOURS une fourchette, jamais un point", () 
 });
 
 Deno.test("FF-059 lot 3 — arrondie aux 50, parce que la précision serait fausse", () => {
-  const t = maintenanceRange({ weightKg: 68.4, weightWeekStart: null });
+  const t = maintenanceRange({ activityLevel: null, weightKg: 68.4, weightWeekStart: null });
   // 28 × 68,4 = 1915,2 → 1900 ; 33 × 68,4 = 2257,2 → 2250.
   assertEquals(t.range, { low: 1900, high: 2250 });
   assertEquals(t.range!.low % 50, 0);
@@ -71,7 +72,7 @@ Deno.test("FF-059 lot 3 — arrondie aux 50, parce que la précision serait faus
 
 Deno.test("FF-059 lot 3 — sans pesée, pas de cible, et le motif le dit", () => {
   for (const weightKg of [null, 0, -5, Number.NaN]) {
-    const t = maintenanceRange({ weightKg, weightWeekStart: null });
+    const t = maintenanceRange({ activityLevel: null, weightKg, weightWeekStart: null });
     assertEquals(t.range, null, String(weightKg));
     assertEquals(t.gap, "no_weight", String(weightKg));
     // ⚠️ Même sans cible, la base est là: un champ qui ne porterait sa base que
@@ -85,20 +86,20 @@ Deno.test("FF-059 lot 3 — une pesée ABERRANTE se distingue d'une pesée absen
   // CORRECTION. Un motif unique ferait redemander son poids à quelqu'un qui
   // vient de taper 500.
   for (const weightKg of [TARGET_WEIGHT_KG_MIN - 1, TARGET_WEIGHT_KG_MAX + 1, 500]) {
-    const t = maintenanceRange({ weightKg, weightWeekStart: null });
+    const t = maintenanceRange({ activityLevel: null, weightKg, weightWeekStart: null });
     assertEquals(t.range, null);
     assertEquals(t.gap, "implausible_weight");
   }
   // Prémisse fausse: les bornes elles-mêmes PASSENT.
   for (const weightKg of [TARGET_WEIGHT_KG_MIN, TARGET_WEIGHT_KG_MAX]) {
-    assert(maintenanceRange({ weightKg, weightWeekStart: null }).range !== null);
+    assert(maintenanceRange({ activityLevel: null, weightKg, weightWeekStart: null }).range !== null);
   }
 });
 
 Deno.test("FF-059 lot 3 — les deux motifs sont atteignables, et il n'y en a que deux", () => {
   const seen = new Set<string>();
   for (const weightKg of [null, 500]) {
-    seen.add(maintenanceRange({ weightKg, weightWeekStart: null }).gap!);
+    seen.add(maintenanceRange({ activityLevel: null, weightKg, weightWeekStart: null }).gap!);
   }
   assertEquals([...seen].sort(), [...TARGET_GAPS].sort());
 });
@@ -236,4 +237,100 @@ Deno.test("FF-059 lot 3 — les constantes sont CELLES du front, et le test les 
   );
   // Et les bornes de plausibilité, qui décident QUI n'a pas de cible.
   assert(front.includes(`w < ${TARGET_WEIGHT_KG_MIN} || w > ${TARGET_WEIGHT_KG_MAX}`));
+});
+
+// ---------------------------------------------------------------------------
+// L'ACTIVITÉ COLLECTÉE — le trou nommé par l'en-tête, fermé le 2026-08-18
+// ---------------------------------------------------------------------------
+
+Deno.test("sans réponse, la fourchette est EXACTEMENT 28-33, comme avant", () => {
+  // ⚠️ LA CONDITION DE DÉSARMEMENT. Toute la base d'avant ce lot, et le coach
+  // dont l'écran ne connaît pas ce champ, doivent lire le même intervalle. Le
+  // test qui lie ces deux constantes à `weekInFood.ts` porte sur CELLES-CI.
+  const t = maintenanceRange({
+    weightKg: 70,
+    weightWeekStart: null,
+    activityLevel: null,
+  });
+  assertEquals(t.range, { low: 1950, high: 2300 });
+  assertEquals(Math.round(MAINTENANCE_KCAL_PER_KG_LOW * 70 / 50) * 50, 1950);
+});
+
+Deno.test("répondre RESSERRE et DÉPLACE la fourchette, dans les deux sens", () => {
+  // « La fourchette d'origine n'était pas la vérité; elle était l'aveu qu'on ne
+  // savait pas. » 28 reste trop haut pour qui est assis huit heures, 33 trop
+  // bas pour qui s'entraîne quatre fois par semaine.
+  const unknown = maintenanceRange({
+    weightKg: 70,
+    weightWeekStart: null,
+    activityLevel: null,
+  }).range!;
+  const sitting = maintenanceRange({
+    weightKg: 70,
+    weightWeekStart: null,
+    activityLevel: "sedentary",
+  }).range!;
+  const hard = maintenanceRange({
+    weightKg: 70,
+    weightWeekStart: null,
+    activityLevel: "trains_hard",
+  }).range!;
+  assert(sitting.low < unknown.low, "un sédentaire doit descendre sous 28 kcal/kg");
+  assert(hard.high > unknown.high, "un sportif doit monter au-dessus de 33 kcal/kg");
+  // Et chaque fourchette reste une FOURCHETTE: on a gagné en justesse, pas en
+  // précision affichée. Un intervalle de 100 kcal se lirait comme une cible.
+  for (const r of [unknown, sitting, hard]) {
+    assert(r.high - r.low >= 150, `fourchette trop étroite: ${r.low}-${r.high}`);
+  }
+});
+
+Deno.test("chaque cran a sa fourchette, et elles sont STRICTEMENT croissantes", () => {
+  // R6, et la garde qui compte: deux crans qui rendraient le même intervalle
+  // feraient une question à quatre réponses dont deux ne changent rien.
+  let previousLow = -1;
+  let previousHigh = -1;
+  for (const level of ACTIVITY_LEVELS) {
+    const r = maintenanceRange({
+      weightKg: 70,
+      weightWeekStart: null,
+      activityLevel: level,
+    }).range!;
+    assert(r.low > previousLow, `${level}: le bas ne monte pas`);
+    assert(r.high > previousHigh, `${level}: le haut ne monte pas`);
+    assert(r.low < r.high, `${level}: fourchette inversée`);
+    previousLow = r.low;
+    previousHigh = r.high;
+  }
+});
+
+Deno.test("les motifs d'absence gagnent sur l'activité, quel que soit le cran", () => {
+  // Un cran coché ne fabrique pas une cible pour quelqu'un dont on n'a pas le
+  // poids: c'est le poids qui porte le calcul, l'activité ne fait que le
+  // moduler.
+  for (const level of [null, ...ACTIVITY_LEVELS]) {
+    assertEquals(
+      maintenanceRange({ weightKg: null, weightWeekStart: null, activityLevel: level }).gap,
+      "no_weight",
+    );
+    assertEquals(
+      maintenanceRange({ weightKg: 900, weightWeekStart: null, activityLevel: level }).gap,
+      "implausible_weight",
+    );
+  }
+});
+
+Deno.test("FF-059 lot 3 — la constante DEVINÉE reste interdite ici", () => {
+  // ⚠️ LA GARDE N'EST PAS LEVÉE, ELLE EST PRÉCISÉE. Le test historique bannit
+  // `ACTIVITY_FACTOR` et `estimatedMaintenanceKcal` de ce fichier: ce sont la
+  // constante de 1,5 « qu'aucune donnée de cet élève ne justifie » et la
+  // fonction qui la multiplie. Elles restent bannies — ce lot les REMPLACE, il
+  // ne les autorise pas à entrer.
+  //
+  // Ce qui est autorisé est différent en nature: un cran DÉCLARÉ par la
+  // personne. Le nom le dit (`ACTIVITY_KCAL_PER_KG`, des kcal par kg, pas un
+  // multiplicateur de métabolisme), et la garde ci-dessous est ce qui empêche
+  // qu'on rouvre la porte en croyant l'avoir déjà ouverte.
+  assert(!SOURCE.includes("ACTIVITY_FACTOR"));
+  assert(!SOURCE.includes("estimatedMaintenanceKcal"));
+  assert(SOURCE.includes("ACTIVITY_KCAL_PER_KG"));
 });

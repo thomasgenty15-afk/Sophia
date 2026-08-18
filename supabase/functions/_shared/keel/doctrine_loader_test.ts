@@ -129,6 +129,96 @@ Deno.test("la colonne foods de la doctrine ne survit pas à la lecture", async (
   assertEquals(loaded.doctrine?.foods.discouraged.map((f) => f.term), ["Seed oil"]);
 });
 
+// ── LE GABARIT D'UNE EXCLUSION VOYAGE AVEC ELLE ────────────────────────────
+//
+// MESURÉ LE 2026-08-13 (run `doctrine5`): le `select` ne prenait que `label`,
+// donc « Viande rouge au dîner » posé en `not_after 19:00` arrivait dans le
+// bloc sous « Never suggest these to the student » — le coach a écrit « pas
+// après 19h », l'agent lisait « jamais ». Sur une doctrine dont le parti pris
+// EST une heure, la doctrine sortait déformée.
+//
+// ⚠️ LA BORNE VA DANS `reason`, JAMAIS DANS `term`: `term` est la chaîne que le
+// verrou déterministe de sortie cherche dans la prose générée. La déplacer
+// désarmerait le verrou sur l'aliment lui-même.
+Deno.test("une exclusion BORNÉE porte sa borne, et pas dans le terme", async () => {
+  const { db } = fakeDb({
+    coach_clients: { data: { coach_id: "coach-1" } },
+    coach_doctrines: { data: DOCTRINE_ROW },
+    coach_food_items: {
+      data: [
+        {
+          label: "Viande rouge au dîner",
+          why: "après 19h, plus rien de dense",
+          frequency_template: "not_after",
+          cutoff_local: "19:00:00",
+          slot_key: null,
+        },
+        {
+          label: "Café",
+          why: null,
+          frequency_template: "at_slot",
+          cutoff_local: null,
+          slot_key: "on_waking",
+        },
+      ],
+    },
+  });
+  const loaded = await loadPublishedDoctrine(db, "student-1");
+  const foods = loaded.doctrine?.foods.discouraged ?? [];
+  // Le TERME est intact — c'est lui que le verrou matche.
+  assertEquals(foods.map((f) => f.term), ["Viande rouge au dîner", "Café"]);
+  // La borne est dans le `reason`, avec le « pourquoi » du coach quand il existe.
+  // « fine before that » n'est pas décoratif: sans lui, le modèle lit une heure
+  // dans une section intitulée « Never suggest these » et garde le « jamais ».
+  assertEquals(
+    foods[0].reason,
+    "not after 19:00, fine before that — après 19h, plus rien de dense",
+  );
+  assertEquals(foods[1].reason, "at the on waking slot only");
+  // Et elle atteint le PROMPT: sans ça la lecture serait juste et le bloc faux.
+  const block = doctrineBlockFor(loaded);
+  assert(
+    block.includes("Viande rouge au dîner — not after 19:00"),
+    `la borne n'atteint pas le bloc:\n${block}`,
+  );
+});
+
+// ANTI-FAUX-POSITIF: une exclusion ABSOLUE — le cas de loin le plus courant —
+// ne gagne RIEN. Le bloc de tous les coachs qui n'ont pas touché aux gabarits
+// doit rester identique octet pour octet, sinon le hash de cache de chacun
+// bouge pour un lot qui ne les concerne pas.
+Deno.test("une exclusion ABSOLUE ne gagne aucune borne", async () => {
+  const { db } = fakeDb({
+    coach_clients: { data: { coach_id: "coach-1" } },
+    coach_doctrines: { data: DOCTRINE_ROW },
+    coach_food_items: {
+      data: [{ label: "Lentilles", why: null, frequency_template: null }],
+    },
+  });
+  const loaded = await loadPublishedDoctrine(db, "student-1");
+  assertEquals(loaded.doctrine?.foods.discouraged[0].reason, null);
+  assert(
+    doctrineBlockFor(loaded).includes("- Lentilles\n") ||
+      doctrineBlockFor(loaded).endsWith("- Lentilles"),
+    "une exclusion absolue doit rester une ligne nue",
+  );
+});
+
+// R7: un gabarit connu dont la colonne obligatoire manque ne produit PAS une
+// demi-borne. Une exclusion qu'on n'a pas su lire reste ABSOLUE — on ne relâche
+// jamais une exclusion sur une donnée incomplète.
+Deno.test("un gabarit sans sa colonne retombe sur l'exclusion absolue", async () => {
+  const { db } = fakeDb({
+    coach_clients: { data: { coach_id: "coach-1" } },
+    coach_doctrines: { data: DOCTRINE_ROW },
+    coach_food_items: {
+      data: [{ label: "Pâtes", why: null, frequency_template: "not_after", cutoff_local: null }],
+    },
+  });
+  const loaded = await loadPublishedDoctrine(db, "student-1");
+  assertEquals(loaded.doctrine?.foods.discouraged[0].reason, null);
+});
+
 // NE THROW JAMAIS. Une lecture d'aliments cassée dégrade la liste; elle ne doit
 // pas coûter sa doctrine au coach — sinon une panne sur une table secondaire
 // prive toute une cohorte de la méthode qu'elle paie.
@@ -268,10 +358,10 @@ Deno.test("deux élèves du MÊME coach dans le même intervalle reçoivent deux
   const doctrines = { coach_clients: { data: { coach_id: "coach-1" } }, coach_doctrines: { data: SCOPED_ROW } };
   const [a, b] = await Promise.all([
     loadPublishedDoctrine(fakeDb({ ...doctrines, student_goals: { data: { goal: "fat_loss" } } }).db, "s-a"),
-    loadPublishedDoctrine(fakeDb({ ...doctrines, student_goals: { data: { goal: "health" } } }).db, "s-b"),
+    loadPublishedDoctrine(fakeDb({ ...doctrines, student_goals: { data: { goal: "maintenance" } } }).db, "s-b"),
   ]);
   assertEquals(a.goal, "fat_loss");
-  assertEquals(b.goal, "health");
+  assertEquals(b.goal, "maintenance");
   assert(doctrineBlockFor(a).includes("Do not panic"));
   assert(!doctrineBlockFor(b).includes("Do not panic"));
   // La voix, elle, est la même — c'est le même coach.

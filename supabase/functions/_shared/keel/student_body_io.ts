@@ -33,6 +33,7 @@ import {
 } from "./body_measure_series.ts";
 import { loadBodyMeasures } from "./body_measure_io.ts";
 import { addDays } from "./local_date.ts";
+import { ACTIVITY_LEVELS, type ActivityLevel } from "./tokens.ts";
 import {
   MEAL_BODY_GENDERS,
   type MealBodyContext,
@@ -64,6 +65,20 @@ export interface StudentBodySnapshot {
   heightCm: number | null;
   /** `profiles.gender`. Liste FERMÉE; une valeur hors liste vaut `null`. */
   gender: MealBodyGender | null;
+  /**
+   * `profiles.activity_level` — les quatre crans du 2026-08-18.
+   *
+   * ⚠️ ELLE ARRIVE ICI POUR LA MÊME RAISON QUE `heightCm`: ce module lit déjà
+   * `profiles`, et un second chargeur serait un second endroit à tenir
+   * d'accord avec celui-ci. Une colonne de plus dans un `select` qui part de
+   * toute façon.
+   *
+   * `null` = personne n'a répondu, ET une valeur hors vocabulaire vaut `null`
+   * aussi — même règle que `gender` juste au-dessus. Un jeton inconnu retombe
+   * sur l'hypothèse (facteur 1,5) plutôt que d'entrer dans un `Record` et d'en
+   * ressortir `undefined`, qui deviendrait un `NaN` de besoin énergétique.
+   */
+  activityLevel: ActivityLevel | null;
   /** Du plus ancien au plus récent. Vide = l'élève n'a jamais saisi de mesure. */
   weights: DatedMeasure[];
   waists: DatedMeasure[];
@@ -105,6 +120,24 @@ function readGender(raw: unknown): MealBodyGender | null {
   const value = String(raw ?? "").trim().toLowerCase();
   return (MEAL_BODY_GENDERS as readonly string[]).includes(value)
     ? (value as MealBodyGender)
+    : null;
+}
+
+/**
+ * Le cran d'activité, ou `null`.
+ *
+ * ⚠️ PAS `parseActivityLevel`, ET C'EST DÉLIBÉRÉ. Le parseur LÈVE sur un jeton
+ * inconnu (R7), et c'est la bonne règle pour une ENTRÉE — quelqu'un qui écrit
+ * un jeton inventé doit s'entendre refuser. Ici on LIT une colonne, et une
+ * colonne illisible ne doit pas faire tomber la génération d'une semaine:
+ * `null` veut dire « on ne sait pas », le repli existe déjà et vaut
+ * exactement le comportement d'avant ce lot. Même arbitrage que `readGender`
+ * juste au-dessus, et le CHECK de la colonne tient la porte d'écriture.
+ */
+function readActivityLevel(raw: unknown): ActivityLevel | null {
+  const value = String(raw ?? "").trim().toLowerCase();
+  return (ACTIVITY_LEVELS as readonly string[]).includes(value)
+    ? (value as ActivityLevel)
     : null;
 }
 
@@ -160,7 +193,7 @@ export async function loadStudentBody(
 ): Promise<StudentBodySnapshot> {
   const profileRes = await db
     .from("profiles")
-    .select("birth_date, timezone, height_cm, gender")
+    .select("birth_date, timezone, height_cm, gender, activity_level")
     .eq("id", userId)
     .maybeSingle();
   if (profileRes.error) throw profileRes.error;
@@ -263,6 +296,7 @@ export async function loadStudentBody(
     timezone: String(profile.timezone ?? "").trim() || null,
     heightCm: readHeightCm(profile.height_cm),
     gender: readGender(profile.gender),
+    activityLevel: readActivityLevel(profile.activity_level),
     weights,
     waists,
   };

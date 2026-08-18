@@ -85,9 +85,17 @@ n'augmente ce qu'il a le droit de dire.
 |---|---|---|
 | **0 — la bouche** | prénom, date de naissance, allergie | **non** |
 | **1 — la direction** | un jeton d'objectif parmi six | **non** |
-| **2 — le corps** | taille, sexe, date exacte, **série de poids** | **oui** |
+| **2 — le corps qui DIMENSIONNE** | taille, poids, sexe | **non** (depuis le 2026-08-12) |
+| **3 — le corps qui se DIT** | taille, sexe, date exacte, **série de poids** | **oui** |
 
-Le compte garde le cran 2 pour une raison **technique**, pas commerciale :
+> ### ⚠️ Le cran 2 a été ouvert le 2026-08-12, et le cran 3 est ce qui reste derrière le compte.
+>
+> Décision de l'utilisateur, en connaissance de cause : *« il faut la taille le
+> poids et l'âge et le gender **obligatoirement** (même quand ils ont pas de
+> compte secondaire !) »*. Elle renverse la ligne qui suit, et
+> [FF-047](FF-047-le-corps-dans-la-part-du-foyer.md) §3.
+
+Le compte gardait le cran 2 pour une raison **technique**, pas commerciale :
 `restriction_guard` — le plancher TCA — a besoin d'une **série** de poids pour
 décider si l'on peut parler du corps de quelqu'un
 (`_shared/keel/restriction_runtime.ts`, appelé par
@@ -95,8 +103,20 @@ décider si l'on peut parler du corps de quelqu'un
 série. Un corps sans série est une donnée qu'on **ne sait pas protéger** — et le
 produit ne collecte pas ce qu'il ne sait pas protéger.
 
-C'est la raison pour laquelle il n'y a pas de « juste ajouter le poids » dans le
-formulaire d'ajout. Ce serait un cran 2 sans son plancher.
+**Ce qui a rendu l'ouverture tenable**, et c'est structurel et non déclaratif :
+le corps d'une fiche **n'achète qu'une maintenance**. Les deux fonctions qui le
+consomment — `maintenanceEnvelopeFromBody`, `childEnvelopeFromBody` —
+**n'acceptent aucun paramètre d'objectif**, donc aucune restriction ne peut être
+exécutée par ce chemin. Il n'y a rien à protéger d'une bande qui ne retire rien.
+Le cran **3**, lui, reste derrière le compte : c'est le seul qui fait **parler**
+d'un corps (`householdBodyFacts`), et lui seul a besoin du plancher.
+
+**Ce qui a été mesuré avant d'écrire la migration, et qui a changé le dessin :**
+`authenticated` a `SELECT` sur `household_members`, et sa policy
+(`household_members_member_read`) est **household-wide** — sondé, un non-maître
+lit les trois autres lignes de son foyer. Une colonne `weight_kg` posée là aurait
+été lisible par tout co-membre ayant un compte. Le corps vit donc dans une table
+à part, **sans aucun grant à `authenticated`**.
 
 ### Les règles transverses
 
@@ -133,8 +153,26 @@ formulaire d'ajout. Ce serait un cran 2 sans son plancher.
   d'abord.
 - ❌ **Le corps d'un mineur, ou d'une bouche d'âge inconnu, dans le prompt.**
   Même avec un compte. Poser « 152 cm, 41 kg » à côté du prénom d'un enfant rend
-  la direction `fat_loss` **dérivable** sans que personne l'ait demandée
-  (`meal_body.ts:247`).
+  sa direction **dérivable** sans que personne l'ait demandée
+  (`meal_body.ts:247`). ⚠️ **Toujours vrai après le 2026-08-12** : ce jour-là on
+  a ouvert la **collecte** du corps d'un mineur, pas son **énonciation**. On
+  calcule dans le moteur, on n'émet que des grammes d'aliment.
+  ⚠️ **Et c'est devenu la garde PRINCIPALE le 2026-08-18** : depuis ce jour un
+  mineur porte les **trois** objectifs comme un majeur (voir juste en dessous),
+  donc le silence sur son corps n'est plus une précaution parmi d'autres — c'est
+  ce qui empêche que sa direction se lise à table.
+- ✅ **Un mineur porte les trois objectifs, comme un majeur** — décision humaine
+  du **2026-08-18**, migration `20260818100000`. Elle renverse celle du
+  2026-08-13, qui refusait `fat_loss` et `recomposition` à l'écriture sur les
+  deux portes RPC. **Ce qui protège à la place, et ce n'est plus un refus :**
+  ① l'énergie d'un mineur reste une **maintenance calculée sur son âge**
+  (`childEnvelopeFromBody` ne prend pas de paramètre `goal` — un paramètre qui
+  n'existe pas, pas un `if` qu'on peut oublier) ; ② le **plafond de son rythme**
+  se calcule sur son besoin estimé, pas sur celui de l'adulte
+  (`weight_pace.ts`) ; ③ son **corps n'est jamais énoncé** (ligne ci-dessus).
+  ⚠️ Le défaut corrigé dans le même geste : `servingDirectionFor` écrasait
+  **toujours** la direction d'un mineur, donc « prendre du muscle » posé sur un
+  ado depuis le 13/08 s'écrivait en base et n'atteignait jamais l'assiette.
 - ❌ **Les calories, dans le foyer comme ailleurs.**
   [CONTRACT.md](../../keel/CONTRACT.md) ne bouge pas, et le brief de portions le
   redit en toutes lettres (`household_portions.ts`, `BODY_FACTS_CAVEAT`).
@@ -164,7 +202,9 @@ raconte donc une histoire, pas seulement un état.
 | 7 | **Le tap du soir et le bilan hebdo ne connaissent pas le gel.** `keel-daily-pulse-v1/index.ts` et `keel-weekly-flow-v1/index.ts` ne portent **aucune** occurrence de `household` : ils tournent à l'identique sur un foyer gelé. D4 nomme deux portes, et ce sont exactement les deux qui ont été fermées. Reste à trancher si le tap du soir et le bilan hebdo comptent comme **production**. | `keel-daily-pulse-v1/index.ts` · `keel-weekly-flow-v1/index.ts` | [FF-049](FF-049-le-prix-du-foyer.md) §7 |
 | 8 | **Le skill `plan_question` recharge ses contraintes SANS l'union du foyer.** `loadPlanQuestionRuntime` (`run.ts:2099`) rappelle `loadStudentSafetyConstraints` seul (`run.ts:2155-2159`) et le passe au résolveur d'échange (`skills/plan_question/swap_resolver.ts:93,150`). Conséquence : le résolveur peut **approuver** un échange que la ceinture de sortie mange ensuite — la sécurité tient, la cohérence non. | `sophia-brain/router/run.ts:2155-2159` | [FF-046](FF-046-l-allergie-d-une-bouche-sans-compte.md) §7 |
 | 9 | **`/start` ne lit pas le verrou pré-lancement.** La troisième porte le lit (`householdSignup.ts:161`, `JoinHouseholdPage.tsx:448`) ; `/start` (`frontend/src/App.tsx:329` → `StartPage.tsx`) ne porte **aucune** occurrence de `prelaunch`. Asymétrie relevée pendant le chantier 4, non corrigée : c'est une autre porte. | `frontend/src/App.tsx:329` · `keel/pages/StartPage.tsx` | [FF-048](FF-048-reclamer-son-profil.md) §7 |
-| 10 | **Les six tables du foyer sont hors de l'export RGPD** (sept avec `household_billing_periods`, qui n'a pas de `user_id`). `grep -ci household supabase/functions/account-export-v1/index.ts` rend **0**, à `HEAD` comme sur le disque, et `_shared/account_lifecycle.ts` ne les nomme pas non plus. La **purge** les réclame depuis le chantier 2 ; l'**archive**, non. Le fichier appartenait à une autre session au moment du lot, et le trou est nommé en tête de `20260811040000:98-103`. | `supabase/functions/account-export-v1/index.ts` | [FF-048](FF-048-reclamer-son-profil.md) §11 |
+| 10 | **PARTIELLEMENT REFERMÉ — les deux tables qui portent des données personnelles sont dans l'export ; les cinq autres, non.** Le trou d'origine : les six tables du foyer étaient absentes de l'archive (sept avec `household_billing_periods`, qui n'a pas de `user_id`), `grep -ci household account-export-v1/index.ts` rendait **0**. **`household_members`** y est entrée le 2026-08-12 (`392e4a87`), **`household_member_bodies`** le même jour — réclamée **dès sa migration**, pas après. Ce qui reste dehors : `households`, `household_invitations`, `household_food_restrictions`, `household_member_allergies`, `household_envy_submissions`, `household_billing_periods`. Les allergies sont la plus discutable des cinq — c'est une donnée de santé, et elle n'a pas de `user_id` (elle pend à `member_id`, comme le corps : le même chemin `fetchRowsByIdChunks` la ferait entrer). | `supabase/functions/account-export-v1/index.ts` | [FF-048](FF-048-reclamer-son-profil.md) §11 · [FF-047](FF-047-le-corps-dans-la-part-du-foyer.md) §11 |
+| 12 | **Un titulaire avec un objectif et SANS pesée dégrade TOUTE la lane du foyer.** `envelopeFor` rend `per_portion` pour trois causes indiscernables — plancher TCA, corps absent, poids inconnu — et `householdLaneMode` traite n'importe quel `per_portion` comme le verrou de lane. Un adulte qui a un compte, a choisi un objectif et n'a jamais renseigné son poids fait donc perdre **tout** dimensionnement au foyer entier, en silence et sans que rien ne le dise. L'indiscernabilité est voulue (FF-043 R2) ; sa conséquence sur le foyer n'a jamais été décidée. Trouvé par le **run réel** du 2026-08-12, pas par un test. | `_shared/keel/household_composition.ts` (`householdLaneMode`) · `_shared/keel/meal_envelope.ts:307` | [FF-043](FF-043-la-resolution-foyer.md) §11 n°5 |
+| 13 | **La résolution de date D18 s'arrête au roster.** `keel_household_member_age` résout `profiles.birth_date` puis la fiche du maître ; `student_body_io.ts:162` ne lit que `profiles.birth_date`. Un adulte daté **par son maître** est donc `adult` au roster — son objectif s'applique, sa direction de service est écrite — et porte `ageBand: null` dans son corps, donc **aucune bande d'énergie** : il ne pèse jamais dans le MIN et ne reçoit jamais d'add-on. Mesuré sur une bouche réelle pendant le run du 2026-08-12. | `_shared/keel/student_body_io.ts:162` | [FF-043](FF-043-la-resolution-foyer.md) §11 n°6 |
 | 11 | **Les invitations expirées ne sont jamais purgées, et portent une adresse e-mail de tiers.** Aucun chemin ne supprime `household_invitations` sur `expires_at` — le seul `delete` du dépôt est le nettoyage **ponctuel** des orphelines (`20260810200000:118`). Question de **rétention**, pas de détachement ; nommée en tête de `20260811040000:92-94`. | `household_invitations` | [FF-048](FF-048-reclamer-son-profil.md) §11 |
 
 ### Ce qui a été refermé, et par quoi
@@ -238,7 +278,7 @@ vérifié.
 
 | Fiche | Statut | En une phrase |
 |---|---|---|
-| [FF-043 · La résolution foyer](FF-043-la-resolution-foyer.md) | 🟠 En cours | Une cuisson, des assiettes qui divergent sans que la divergence soit lisible à table. Le tronc se dimensionne sur le MIN, jamais sur le référent, et un seul membre sous plancher fait dégrader toute la lane. |
+| [FF-043 · La résolution foyer](FF-043-la-resolution-foyer.md) | 🟠 En cours | Une cuisson, des assiettes qui divergent sans que la divergence soit lisible à table. Le tronc se dimensionne sur le MIN **de toutes les bouches** (2026-08-12), jamais sur le référent, et un seul membre sous plancher fait dégrader toute la lane. Le référent a enfin un écran ; les deltas, non. |
 | [FF-044 · La bouche sans compte](FF-044-la-bouche-sans-compte.md) | 🟢 Livrée | `member_id` est la clé du foyer, le compte est optionnel, l'âge a trois états. L'objectif vit sur la ligne membre **pour une bouche sans compte** ; dès qu'elle en a un, il vit dans son « about you » (D1, 2026-08-11 — R6). |
 | [FF-045 · Décrire son foyer](FF-045-decrire-son-foyer.md) | 🟢 Livrée | Le maître se décrit en premier, puis les bouches s'ajoutent d'affilée. Plafond de 8, en base et pas à l'écran. |
 | [FF-046 · L'allergie d'une bouche sans compte](FF-046-l-allergie-d-une-bouche-sans-compte.md) | 🟢 Livrée | Une table à part, un slug dérivé à la lecture, la même union fail-closed. Le fil du générateur est commité (`9cd01739`), et **le chat la voit** (`5dfdddb2`) — deux blocs de prompt, une seule ceinture. |

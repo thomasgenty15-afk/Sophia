@@ -25,6 +25,7 @@ import {
   RECALIBRATION_WEEKS,
 } from "./meal_coverage.ts";
 import { buildCompositionIndex, type CompositionRef } from "./food_composition.ts";
+import { STUDENT_GOALS } from "./week_plan_generation.ts";
 
 function ref(over: Partial<CompositionRef> & { slug: string }): CompositionRef {
   return {
@@ -220,14 +221,43 @@ Deno.test("une tendance INCONNUE n'est pas une tendance stable", () => {
   assertEquals(s.weeksAgainst, 0);
 });
 
-Deno.test("une dynamique sans direction attendue ne recale jamais", () => {
-  for (const goal of ["health", "performance", "recomposition"] as const) {
+// ⚠️ CE TEST A CHANGÉ DE SUJET LE 2026-08-18, ET IL FAUT LE DIRE.
+// Il bouclait sur `health`, `performance` et `recomposition` — les trois
+// dynamiques qui rendaient `null` en direction attendue, donc ne recalaient
+// jamais. Elles se replient sur `maintenance`, qui attend `stable`: après le
+// repli, il n'existe PLUS de dynamique sans direction attendue, et le test
+// « aucune ne recale » n'a plus de sujet.
+//
+// Ce qui reste vrai et qui est testé à la place: `static` — la position d'un
+// coach qui a éteint le ré-ancrage — ne recale jamais, quelle que soit la
+// dynamique. C'est l'invariant que ce test gardait réellement (« un coach qui
+// l'a éteint reçoit une sortie identique à celle d'avant ce lot »), et il ne
+// dépendait pas du nombre de dynamiques.
+Deno.test("`static` ne recale jamais, pour AUCUNE dynamique", () => {
+  for (const goal of STUDENT_GOALS) {
     let s = ZERO;
     for (let i = 0; i < 10; i++) {
-      s = nextRecalibration({ goal, trend: "rising", mode: "observed_trend", state: s });
+      s = nextRecalibration({ goal, trend: "rising", mode: "static", state: s });
     }
     assertEquals(s.shiftPct, 0, goal);
+    assertEquals(s.weeksAgainst, 0, goal);
   }
+});
+
+Deno.test("la troisième position RECALE désormais — le repli du 2026-08-18", () => {
+  // La contre-épreuve du commentaire ci-dessus, sur la VALEUR rendue: un poids
+  // qui monte contredit `maintenance`, et le décalage sort de zéro. Avant le
+  // repli, `health` sur les mêmes entrées rendait 0.
+  let s = ZERO;
+  for (let i = 0; i < 10; i++) {
+    s = nextRecalibration({
+      goal: "maintenance",
+      trend: "rising",
+      mode: "observed_trend",
+      state: s,
+    });
+  }
+  assert(s.shiftPct !== 0, "`maintenance` doit recaler sur une tendance qui la contredit");
 });
 
 Deno.test("le décalage acquis SURVIT à une bonne semaine", () => {

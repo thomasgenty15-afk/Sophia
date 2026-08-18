@@ -33,11 +33,19 @@ describe("practiceReach", () => {
   });
 
   it("une portée nommée se lit dans les mots du coach", () => {
-    expect(practiceReach(row({ goal_scope: ["fat_loss"] }))).toBe("Losing fat");
+    expect(practiceReach(row({ goal_scope: ["fat_loss"] }))).toBe("Fat loss");
+  });
+
+  // Deux objectifs se JOIGNENT par un mot, jamais par une virgule finale: le
+  // dernier séparateur d'une liste n'est pas le même d'une langue à l'autre
+  // (`common.list_pair`, comme les jours nommés de `api/labels.ts`).
+  it("deux objectifs se lisent comme une phrase, pas comme un CSV", () => {
+    expect(practiceReach(row({ goal_scope: ["fat_loss", "maintenance"] })))
+      .toBe("Fat loss and Maintenance");
   });
 
   // LE CAS QUI JUSTIFIE LA FONCTION. La portée et le statut sont vrais en même
-  // temps: rendre la portée seule afficherait « Losing fat » sur une pratique
+  // temps: rendre la portée seule afficherait « Fat loss » sur une pratique
   // que personne ne reçoit, et le coach conclurait que ses élèves l'ont eue.
   it("le statut GAGNE sur la portée: une pratique en relecture n'atteint personne", () => {
     expect(practiceReach(row({ goal_scope: ["fat_loss"], status: "needs_review" })))
@@ -56,7 +64,7 @@ describe("practiceReach", () => {
     // ce qui est exactement l'inverse de ce que la ligne dit.
     expect(practiceReach(row({ minor_safe: false }))).toBe("Everyone, adults only");
     expect(practiceReach(row({ goal_scope: ["muscle_gain"], minor_safe: false })))
-      .toBe("Gaining muscle, adults only");
+      .toBe("Muscle gain, adults only");
   });
 
   it("un objectif que ce build ne connaît pas n'invente pas un libellé", () => {

@@ -327,18 +327,17 @@ export const AXES_BY_GOAL: Readonly<Record<GoalToken, readonly ProtocolAxis[]>> 
     { labelKey: "coach.protocol.axis.carbs_around_training", classes: ["grain", "fruit"] },
     { labelKey: "coach.protocol.axis.eating_enough", classes: ["grain", "fat", "dairy"] },
   ],
-  recomposition: [
-    { labelKey: "coach.protocol.axis.protein_every_meal", classes: ["protein"] },
-    { labelKey: "coach.protocol.axis.carbs_around_training", classes: ["grain", "fruit"] },
-  ],
-  performance: [
-    { labelKey: "coach.protocol.axis.carbs_around_training", classes: ["grain", "fruit"] },
-    { labelKey: "coach.protocol.axis.hydration", classes: ["beverage"] },
-  ],
-  health: [
-    { labelKey: "coach.protocol.axis.vegetable_volume", classes: ["vegetable"] },
-    { labelKey: "coach.protocol.axis.ultra_processed", classes: ["discretionary"] },
-  ],
+  // ── LE REPLI DU 2026-08-18 ────────────────────────────────────────────
+  // `recomposition`, `performance` et `health` se replient ici. Les axes
+  // retenus sont ceux de `health`/`maintenance`, qui étaient DÉJÀ identiques
+  // — deux objectifs qui posaient au coach les deux mêmes questions, ce que le
+  // commentaire de `muscle_gain` juste au-dessus nomme comme le défaut à
+  // éviter. Le repli le supprime au lieu de le déplacer.
+  //
+  // ⚠️ `carbs_around_training` NE REMONTE PAS ICI, et c'était l'axe de
+  // `performance` et de `recomposition`. Il suppose des jours d'entraînement
+  // que le produit ne collecte pas; il reste chez `muscle_gain`, la seule
+  // dynamique qui suppose un entraînement par définition.
   maintenance: [
     { labelKey: "coach.protocol.axis.vegetable_volume", classes: ["vegetable"] },
     { labelKey: "coach.protocol.axis.ultra_processed", classes: ["discretionary"] },

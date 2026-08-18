@@ -164,18 +164,36 @@ describe("l'indicateur de chaque dynamique", () => {
     }
   });
 
-  it("recomposition ne propose PAS de cible de poids — elle la contredirait", () => {
-    // La signature de cet objectif est « le poids ne bouge pas ». Une cible de
-    // poids y serait une cible contre sa propre direction.
-    const i = indicatorFor("recomposition");
-    expect(i.primary).toBe("waist");
-    expect(i.target).toBe("waist");
+  it("maintenance vise une BANDE, jamais un point — le repli du 2026-08-18", () => {
+    // ⚠️ CE TEST A CHANGÉ DE SUJET. Il gardait `recomposition` (« cible = tour
+    // de taille, parce que le poids ne bouge pas »). Les quatre nuances du
+    // « ni l'un ni l'autre » se replient sur `maintenance`, et la lecture juste
+    // de la troisième position est le POIDS — c'est sur la balance qu'on voit
+    // qu'elle ne bouge pas. Mais une BANDE, pas un point: viser un poids exact
+    // dans une dynamique dont la signature est l'immobilité serait se donner
+    // une cible qui contredit sa propre direction.
+    const i = indicatorFor("maintenance");
+    expect(i.primary).toBe("weight");
+    expect(i.target).toBe("band");
+    expect(i.axisObjective).toBe(false);
   });
 
-  it("performance et health ne proposent AUCUNE cible chiffrée", () => {
-    for (const goal of ["performance", "health"] as const) {
-      expect(indicatorFor(goal).target, goal).toBeNull();
-      expect(indicatorFor(goal).primary, goal).toBeNull();
+  it("⚠️ plus AUCUNE dynamique ne renvoie vers l'axe du dimanche", () => {
+    // ⚠️ CE TEST A ÉTÉ RENVERSÉ LE 2026-08-18, ET C'EST UNE PERTE ASSUMÉE.
+    // Il gardait `performance` et `health`, qui ne proposaient aucune cible
+    // chiffrée et renvoyaient vers l'axe du point du dimanche
+    // (`axisObjective: true`). Les deux se replient sur `maintenance`, qui vise
+    // une bande de poids — donc le drapeau n'est plus levé par personne.
+    //
+    // Ce qui reste vrai, et que l'invariant d'exclusivité juste en dessous
+    // continue de tenir: axe et cible chiffrée ne coexistent jamais. Ce qui
+    // n'est PLUS vrai: qu'une dynamique puisse choisir l'axe. `focus_axis`
+    // reste écrivable en base (son CHECK a suivi le repli et vise
+    // `maintenance`); c'est l'ÉCRAN des mesures qui ne l'annonce plus, et le
+    // rebrancher est un lot d'écran, pas un lot de socle.
+    for (const goal of GOAL_TOKENS) {
+      expect(indicatorFor(goal).axisObjective, goal).toBe(false);
+      expect(indicatorFor(goal).target, goal).not.toBeNull();
     }
   });
 
@@ -245,28 +263,43 @@ describe("la lecture rendue à l'élève", () => {
     expect(r.working).toBe(true);
     expect(r.sentence).toContain("what this goal is asking for");
 
-    const asPerformance = readIndicator({
-      goal: "performance",
+    // ⚠️ LE CONTRE-FACTUEL A CHANGÉ DE JETON. Il posait `performance`, qui
+    // rendait `false` sur les mêmes mesures — c'était le défaut que
+    // `muscle_gain` a fermé en 2026-08-05. `performance` n'existe plus; le
+    // contre-factuel qui reste est `maintenance`, pour qui un poids qui MONTE
+    // n'est pas une victoire mais une dérive.
+    const asMaintenance = readIndicator({
+      goal: "maintenance",
       weights: [w("2026-07-06", 72), w("2026-07-20", 74)],
       waists: [],
     });
-    expect(asPerformance.working).toBe(false);
+    expect(asMaintenance.working).toBe(false);
   });
 
-  it("recomposition: c'est la TAILLE qui porte, un poids stable seul ne suffit pas", () => {
-    const waistOnly = readIndicator({
-      goal: "recomposition",
+  it("maintenance: c'est le POIDS STABLE qui porte — le repli du 2026-08-18", () => {
+    // ⚠️ CE TEST GARDAIT `recomposition`, la seule dynamique dont la lecture
+    // passait par le TOUR DE TAILLE (« la taille descend pendant que le poids
+    // ne descend pas »). Elle se replie sur `maintenance`, dont la signature
+    // est le poids stable — la taille n'y entre plus.
+    //
+    // Ce qui rattrape en partie: `fat_loss` lit toujours une taille qui
+    // descend (test plus haut), donc celui qui poursuit sa silhouette et
+    // accepte que la balance descende un peu coche « perdre du poids ».
+    const stable = readIndicator({
+      goal: "maintenance",
       weights: [w("2026-07-06", 74), w("2026-07-20", 74)],
       waists: [w("2026-07-06", 92), w("2026-07-20", 88)],
     });
-    expect(waistOnly.working).toBe(true);
+    expect(stable.working).toBe(true);
 
-    const noWaist = readIndicator({
-      goal: "recomposition",
-      weights: [w("2026-07-06", 74), w("2026-07-20", 74)],
-      waists: [],
+    // Et sans poids du tout, on ne dit rien: une taille seule ne prouve pas
+    // qu'une balance ne bouge pas.
+    const noWeight = readIndicator({
+      goal: "maintenance",
+      weights: [],
+      waists: [w("2026-07-06", 92), w("2026-07-20", 88)],
     });
-    expect(noWaist.working).toBe(false);
+    expect(noWeight.working).toBe(false);
   });
 
   it("une direction qui ne se produit pas ne produit AUCUN reproche", () => {
@@ -314,16 +347,20 @@ describe("la lecture rendue à l'élève", () => {
     expect(noRef.insideBand).toBeNull();
   });
 
-  it("un objectif sans indicateur ne fabrique pas de verdict", () => {
+  it("une direction qui ne se produit PAS ne fabrique pas de verdict", () => {
+    // ⚠️ CE TEST POSAIT `health`, qui n'avait aucun indicateur. Après le repli
+    // du 2026-08-18, les trois objectifs en ont un — donc le cas « objectif
+    // sans indicateur » n'existe plus. Ce qui reste, et qui est la propriété
+    // qu'il gardait vraiment: une mesure qui ne va pas dans le sens de
+    // l'objectif est CONSTATÉE, jamais reprochée.
     const r = readIndicator({
-      goal: "health",
-      weights: [w("2026-07-06", 80), w("2026-07-20", 78)],
+      goal: "maintenance",
+      weights: [w("2026-07-06", 80), w("2026-07-20", 76)],
       waists: [],
     });
     // La mesure reste visible — l'élève l'a saisie, on la lui rend…
-    expect(r.weight?.value).toBe(78);
-    // …mais `health` ne se juge pas au poids: la direction n'est pas « ce que
-    // cet objectif demande », elle est seulement constatée.
+    expect(r.weight?.value).toBe(76);
+    // …mais un poids qui descend n'est pas « ce que maintenir demande ».
     expect(r.working).toBe(false);
     expect(r.sentence).not.toContain("asking for");
   });

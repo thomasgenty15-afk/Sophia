@@ -175,19 +175,27 @@ export function directionIsWorking(goal: StudentGoal, body: BodyInputs): boolean
       // semaine, il ne prescrit rien — le prix d'une exigence de plus est plus
       // élevé que celui de l'erreur qu'elle éviterait.
       return body.weightTrend === "rising";
-    case "recomposition":
-      // La signature de la recomposition: la taille descend pendant que le
-      // poids ne descend pas. C'est la mesure qui porte cet objectif — sans
-      // tour de taille, on ne peut pas le dire, et on ne le dit pas.
-      return body.waistTrend === "falling" &&
-        (body.weightTrend === "stable" || body.weightTrend === "rising");
-    case "health":
+    // ── LE REPLI DU 2026-08-18, ET CE QU'IL FAIT PERDRE ──────────────────
+    // Trois branches se replient ici. `health` disait déjà exactement ceci.
+    // Les deux autres disaient autre chose, et il faut le nommer:
+    //
+    //   `recomposition` — « la taille descend pendant que le poids ne descend
+    //     pas ». C'était la seule branche qui LISAIT le tour de taille pour
+    //     décider, et elle disparaît. Ce qu'on perd: un élève dont la taille
+    //     descend à poids constant ne verra plus sa semaine s'alléger d'une
+    //     ligne. Ce qui le rattrape en partie: `fat_loss` lit déjà
+    //     `waistTrend === "falling"` — celui qui poursuit sa silhouette et
+    //     accepte que la balance descende un peu coche désormais « perdre du
+    //     poids » et retrouve la lecture du tour de taille.
+    //
+    //   `performance` — rendait `false`, en disant « aucune tendance de poids
+    //     ou de taille ne dit qu'une performance progresse ». Elle rend
+    //     maintenant `true` sur un poids stable, et c'est cohérent avec ce que
+    //     le jeton signifie après le repli: la balance ne bouge pas, et elle
+    //     ne bouge effectivement pas. La conséquence est de RETIRER une ligne,
+    //     jamais d'en prescrire une — la direction d'erreur du module.
     case "maintenance":
       return body.weightTrend === "stable";
-    case "performance":
-      // Aucune tendance de poids ou de taille ne dit qu'une performance
-      // progresse. On ne prétend pas le contraire.
-      return false;
   }
 }
 

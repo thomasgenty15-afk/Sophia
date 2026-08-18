@@ -43,8 +43,37 @@
  * nombre divergent, et c'est celle qu'on regarde le moins qui garde l'ancienne:
  * `energy_target_test.ts` LIT le fichier du front et refuse le désaccord.
  *
+ * ── ET DEPUIS LE 2026-08-18, LE PRODUIT DEMANDE L'ACTIVITÉ ────────────────
+ * Le paragraphe ci-dessus disait « rien ne collecte le niveau d'activité »
+ * comme la RAISON de la fourchette large. Ce n'est plus vrai: quatre crans
+ * lisibles sont posés à l'inscription (`ACTIVITY_LEVELS`), et le trou nommé
+ * par la fiche est fermé.
+ *
+ * Ce qui change, et ce qui ne change PAS:
+ *
+ *   · Ce qui ne change pas — le chemin SANS réponse. `activityLevel: null`
+ *     rend exactement 28-33, au caractère près, et c'est le cas de toute la
+ *     base existante et du coach, dont l'écran ne connaît pas ce champ. Le
+ *     lien avec `weekInFood.ts` porte sur CES deux nombres-là, et il tient.
+ *
+ *   · Ce qui change — quand quelqu'un a répondu, la fourchette se resserre ET
+ *     se déplace (voir `ACTIVITY_KCAL_PER_KG`). Elle DÉBORDE 28-33 aux deux
+ *     bouts, et c'est le point: 28 kcal/kg reste trop haut pour qui est assis
+ *     huit heures, et 33 trop bas pour qui s'entraîne quatre fois par semaine.
+ *     La fourchette d'origine n'était pas la vérité; elle était l'aveu qu'on
+ *     ne savait pas.
+ *
+ * ⚠️ CE QUI RESTE INTERDIT ICI, ET QUE L'ACTIVITÉ NE ROUVRE PAS. Aucune
+ * dynamique n'entre dans ce module: la fourchette est ce que ce corps DÉPENSE,
+ * pas ce qu'il « devrait » manger pour changer. Le test de ce module lit la
+ * source et refuse les jetons de dynamique; il refuse aussi la constante
+ * DEVINÉE de `meal_envelope.ts`, et il continue de la refuser — c'est
+ * précisément elle que ce lot remplace.
+ *
  * PURE MODULE: no I/O, no clock, no randomness.
  */
+
+import type { ActivityLevel } from "./tokens.ts";
 
 /**
  * LA BASE, et elle nomme ce qu'elle SAIT — le poids, et rien d'autre.
@@ -57,9 +86,48 @@
 export const ENERGY_TARGET_BASIS = "weight_range";
 export type EnergyTargetBasis = typeof ENERGY_TARGET_BASIS;
 
-/** kcal par kg de poids corporel. Le bas couvre le sédentaire, le haut l'actif. */
+/**
+ * kcal par kg de poids corporel, QUAND ON NE SAIT PAS. Le bas couvre le
+ * sédentaire, le haut l'actif — c'est-à-dire que la fourchette couvre
+ * l'ignorance elle-même.
+ */
 export const MAINTENANCE_KCAL_PER_KG_LOW = 28;
 export const MAINTENANCE_KCAL_PER_KG_HIGH = 33;
+
+/**
+ * kcal/kg PAR CRAN D'ACTIVITÉ — la fourchette de quelqu'un qui a répondu.
+ *
+ * ── D'OÙ VIENNENT CES NOMBRES ─────────────────────────────────────────────
+ * Du même raccourci de coach que 28-33, appliqué cran par cran plutôt qu'à
+ * tout le monde. Les quatre bandes se recouvrent d'un point à chaque
+ * frontière, et ce recouvrement est voulu: un cran est une réponse à une
+ * question, pas une mesure, et deux personnes de part et d'autre d'une
+ * frontière ne dépensent pas deux choses disjointes.
+ *
+ *   sedentary    26-29   assis toute la journée
+ *   on_feet      28-31   debout, en mouvement — le cran qui contient 28-33
+ *   trains_some  30-33   2 à 3 séances
+ *   trains_hard  32-36   4 séances et plus, ou métier physique
+ *
+ * ⚠️ LA LARGEUR NE DESCEND PAS SOUS TROIS POINTS, ET C'EST UNE DÉCISION. On
+ * pourrait resserrer davantage maintenant qu'on sait quelque chose. On ne le
+ * fait pas: « une fourchette se lit moins comme un objectif qu'un point.
+ * Personne ne rate un intervalle » — la phrase de l'en-tête vaut toujours, et
+ * une fourchette de 100 kcal se lirait comme une cible. On a gagné en
+ * JUSTESSE, on n'a pas décidé de gagner en précision affichée.
+ *
+ * ⚠️ ELLES DÉBORDENT 28-33 AUX DEUX BOUTS, ET C'EST LE POINT. Voir l'en-tête.
+ * Le lien avec `weekInFood.ts` porte sur la fourchette de l'ignorance, pas sur
+ * celles-ci — l'écran du coach ne collecte pas ce champ.
+ */
+export const ACTIVITY_KCAL_PER_KG: Readonly<
+  Record<ActivityLevel, { low: number; high: number }>
+> = Object.freeze({
+  sedentary: { low: 26, high: 29 },
+  on_feet: { low: 28, high: 31 },
+  trains_some: { low: 30, high: 33 },
+  trains_hard: { low: 32, high: 36 },
+});
 
 /**
  * Les bornes de plausibilité, les mêmes que le point hebdo et que
@@ -130,6 +198,16 @@ export function maintenanceRange(args: {
   weightKg: number | null;
   /** La semaine de la pesée, `YYYY-MM-DD`. `null` = date inconnue. */
   weightWeekStart: string | null;
+  /**
+   * ⚠️ REQUIS, JAMAIS OPTIONNEL. « Paramètre de garde optionnel = garde
+   * désarmée » est une cicatrice mesurée de ce dépôt; ici l'enjeu est le
+   * symétrique — un champ facultatif aurait laissé les appelants continuer de
+   * servir la fourchette de l'ignorance à quelqu'un qui a répondu, sans
+   * qu'aucun compilateur ne les recense.
+   *
+   * `null` veut dire « personne n'a répondu » et rend 28-33.
+   */
+  activityLevel: ActivityLevel | null;
 }): EnergyTarget {
   const w = Number(args.weightKg);
   if (args.weightKg === null || !Number.isFinite(w) || w <= 0) {
@@ -138,11 +216,17 @@ export function maintenanceRange(args: {
   if (w < TARGET_WEIGHT_KG_MIN || w > TARGET_WEIGHT_KG_MAX) {
     return noTarget("implausible_weight");
   }
+  const perKg = args.activityLevel === null
+    ? {
+      low: MAINTENANCE_KCAL_PER_KG_LOW,
+      high: MAINTENANCE_KCAL_PER_KG_HIGH,
+    }
+    : ACTIVITY_KCAL_PER_KG[args.activityLevel];
   const round50 = (n: number) => Math.round(n / 50) * 50;
   return {
     range: {
-      low: round50(MAINTENANCE_KCAL_PER_KG_LOW * w),
-      high: round50(MAINTENANCE_KCAL_PER_KG_HIGH * w),
+      low: round50(perKg.low * w),
+      high: round50(perKg.high * w),
     },
     basis: ENERGY_TARGET_BASIS,
     gap: null,

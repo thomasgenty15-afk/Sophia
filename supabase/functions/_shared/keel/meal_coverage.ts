@@ -165,12 +165,14 @@ function expectedTrend(goal: GoalToken): MeasureTrend | null {
       return "falling";
     case "muscle_gain":
       return "rising";
-    case "recomposition":
-      return null;
-    case "performance":
-      return null;
-    case "health":
-      return null;
+    // ⚠️ LE REPLI DU 2026-08-18 ARME LE RÉ-ANCRAGE POUR TROIS ANCIENNES
+    // DYNAMIQUES. `recomposition`, `performance` et `health` rendaient `null`
+    // — aucune direction attendue, donc rien à contredire, donc pas de
+    // recalage. Elles se replient sur `maintenance`, qui attend `stable`.
+    // C'est la lecture juste et c'est le POINT du repli: la troisième position
+    // de la balance est celle où l'aiguille ne bouge PAS, et une aiguille qui
+    // bouge la contredit. Ce qui borne l'effet reste `RECALIBRATION_CAP`, et
+    // il ne bouge pas.
     case "maintenance":
       return "stable";
   }

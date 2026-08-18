@@ -60,7 +60,7 @@ describe("l'aperçu par objectif", () => {
     expect(PREVIEW_VARIANTS).toHaveLength(GOAL_TOKENS.length + 1);
     expect(PREVIEW_VARIANTS[0]).toBeNull();
     expect(variantLabel(null)).toBe("No goal set yet");
-    expect(variantLabel("fat_loss")).toBe("Losing fat");
+    expect(variantLabel("fat_loss")).toBe("Fat loss");
   });
 
   it("ce que le coach lit est ce que l'élève reçoit — la portée mord", () => {
@@ -70,8 +70,8 @@ describe("l'aperçu par objectif", () => {
 
     expect(byGoal("fat_loss").compiled.text).toContain("Do not panic over a plateau.");
     expect(byGoal("fat_loss").compiled.text).toContain("Show me the waist.");
-    expect(byGoal("health").compiled.text).not.toContain("Do not panic");
-    expect(byGoal("health").compiled.text).not.toContain("Show me the waist.");
+    expect(byGoal("maintenance").compiled.text).not.toContain("Do not panic");
+    expect(byGoal("maintenance").compiled.text).not.toContain("Show me the waist.");
     // La voix et les interdits, eux, sont partout.
     for (const v of variants) {
       expect(v.compiled.text).toContain("Protein at every meal.");
@@ -118,7 +118,7 @@ describe("l'aperçu par objectif", () => {
     };
     const { doctrine } = draftToDoctrine(allTargeted, "Marlow", "en");
     const variants = previewVariants(doctrine);
-    expect(variants.find((v) => v.goal === "health")!.compiled.emptyForGoal).toBe(true);
+    expect(variants.find((v) => v.goal === "maintenance")!.compiled.emptyForGoal).toBe(true);
     expect(variants.find((v) => v.goal === "fat_loss")!.compiled.emptyForGoal).toBe(false);
   });
 
@@ -143,13 +143,13 @@ describe("l'édition — une partie globale, une partie par dynamique", () => {
 
     const fatLoss = entriesForScope(DRAFT.beliefs, "fat_loss");
     expect(fatLoss.map((e) => e.index)).toEqual([1]);
-    expect(entriesForScope(DRAFT.beliefs, "health")).toEqual([]);
+    expect(entriesForScope(DRAFT.beliefs, "maintenance")).toEqual([]);
   });
 
   it("une portée vide ou absente est GLOBALE — les deux, pas seulement l'une", () => {
-    const list = [{ claim: "a" }, { claim: "b", goal_scope: [] }, { claim: "c", goal_scope: ["health"] }];
+    const list = [{ claim: "a" }, { claim: "b", goal_scope: [] }, { claim: "c", goal_scope: ["maintenance"] }];
     expect(entriesForScope(list, null).map((e) => e.entry.claim)).toEqual(["a", "b"]);
-    expect(entriesForScope(list, "health").map((e) => e.entry.claim)).toEqual(["c"]);
+    expect(entriesForScope(list, "maintenance").map((e) => e.entry.claim)).toEqual(["c"]);
   });
 
   it("écrire dans la partie d'une dynamique ne touche à rien d'autre", () => {
@@ -162,15 +162,15 @@ describe("l'édition — une partie globale, une partie par dynamique", () => {
   });
 
   it("ajouter et retirer rendent de nouveaux tableaux", () => {
-    const added = addEntry(DRAFT.beliefs, { claim: "New.", goal_scope: ["health"] });
+    const added = addEntry(DRAFT.beliefs, { claim: "New.", goal_scope: ["maintenance"] });
     expect(added).toHaveLength(3);
-    expect(entriesForScope(added, "health")).toHaveLength(1);
+    expect(entriesForScope(added, "maintenance")).toHaveLength(1);
     expect(DRAFT.beliefs).toHaveLength(2);
 
     const removed = removeEntry(added, 1);
     expect(removed.map((b) => b.claim)).toEqual(["Protein at every meal.", "New."]);
     // Et la position rendue par la vue suit le retrait, sans décalage.
-    expect(entriesForScope(removed, "health").map((e) => e.index)).toEqual([1]);
+    expect(entriesForScope(removed, "maintenance").map((e) => e.index)).toEqual([1]);
   });
 
   it("une entrée écrite dans une dynamique n'atteint QUE cette dynamique", () => {
@@ -180,13 +180,13 @@ describe("l'édition — une partie globale, une partie par dynamique", () => {
       ...DRAFT,
       beliefs: addEntry(DRAFT.beliefs, {
         claim: "Eat more on training days.",
-        goal_scope: ["recomposition"],
+        goal_scope: ["maintenance"],
       }),
     };
     const { doctrine } = draftToDoctrine(edited, "Marlow", "en");
     const variants = previewVariants(doctrine);
     const text = (g: string | null) => variants.find((v) => v.goal === g)!.compiled.text;
-    expect(text("recomposition")).toContain("Eat more on training days.");
+    expect(text("maintenance")).toContain("Eat more on training days.");
     expect(text("fat_loss")).not.toContain("Eat more on training days.");
     expect(text(null)).not.toContain("Eat more on training days.");
   });
@@ -280,7 +280,11 @@ describe("l'édition — une partie globale, une partie par dynamique", () => {
   it("« Everyone » est une valeur affichée, pas un champ vide", () => {
     expect(scopeSentence(undefined)).toBe("Everyone");
     expect(scopeSentence([])).toBe("Everyone");
-    expect(scopeSentence(["fat_loss", "health"])).toBe("Losing fat, Health");
+    // La jointure est une PHRASE (`common.list_pair`), pas un `join(", ")`: le
+    // dernier séparateur est un mot, et il change de langue en langue.
+    expect(scopeSentence(["fat_loss", "maintenance"])).toBe("Fat loss and Maintenance");
+    expect(scopeSentence(["fat_loss", "maintenance", "muscle_gain"]))
+      .toBe("Fat loss, Maintenance and Muscle gain");
   });
 
   it("ne propose JAMAIS de restreindre ce qui est commun", () => {
@@ -359,13 +363,16 @@ describe("l'édition — une partie globale, une partie par dynamique", () => {
     //
     // 2026-08-05: `muscle_gain`, sixième jeton. Il a fait exactement son
     // travail (migration 20260805120000).
+    // 2026-08-18: SIX REDEVIENNENT TROIS. `recomposition`, `performance` et
+    // `health` se replient sur `maintenance` — l'axe qui fait bifurquer une
+    // semaine est la direction de la balance, et « ni l'un ni l'autre » était
+    // découpé en quatre nuances aux consignes voisines. Migration
+    // 20260818100000, qui réécrit AUSSI les lignes: une valeur retirée d'une
+    // énumération sans que les lignes suivent laisse des orphelines.
     expect([...GOAL_TOKENS]).toEqual([
       "fat_loss",
-      "muscle_gain",
-      "recomposition",
-      "performance",
-      "health",
       "maintenance",
+      "muscle_gain",
     ]);
   });
 });

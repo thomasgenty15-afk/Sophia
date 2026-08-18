@@ -51,6 +51,7 @@
  */
 
 import { findNumericNutritionTarget } from "./nutrition_lexicon.ts";
+import { appendContentLanguageBlock } from "./locale.ts";
 import {
   applyKeelOutputLocks,
   type OutputLockResult,
@@ -251,14 +252,28 @@ export function focusFor(goal: StudentGoal): { maxNutrition: number; emphasis: s
         emphasis: "eating enough across the whole day — including days with " +
           "no training and days with little appetite — with protein at each meal",
       };
-    case "recomposition":
-      return { maxNutrition: 4, emphasis: "protein regularity and training-day meals" };
-    case "performance":
-      return { maxNutrition: 5, emphasis: "fuelling around sessions and recovery meals" };
-    case "health":
-      return { maxNutrition: 4, emphasis: "vegetable and fibre variety, and steady meal timing" };
+    // ── LE REPLI DU 2026-08-18 ────────────────────────────────────────────
+    // Quatre accents deviennent un, et le choix n'est pas « garder le plus
+    // léger ». `maintenance` valait 3 lignes et « keeping what already works,
+    // with the lightest possible load » — ce qui, appliqué aux 45 élèves qui
+    // cochaient `health`, leur retirerait une ligne de nutrition et
+    // remplacerait « variété de légumes et de fibres » par « ne change rien ».
+    //
+    // L'accent retenu est celui de `health`, et le plafond reste à 4: c'est la
+    // seule des quatre formulations qui dise quelque chose à quelqu'un dont on
+    // sait uniquement que la balance ne doit pas bouger. « Fuelling around
+    // sessions » (`performance`) suppose des séances que rien ne déclare;
+    // « protein regularity and training-day meals » (`recomposition`) aussi.
+    //
+    // ⚠️ CE QUI SE PERD, ET IL FAUT LE DIRE: la 5e ligne de `performance`.
+    // C'était le seul objectif à 5, et il l'était pour du carburant autour de
+    // séances inconnues du produit. Celui qui s'entraîne pour prendre coche
+    // `muscle_gain`, qui reste à 4.
     case "maintenance":
-      return { maxNutrition: 3, emphasis: "keeping what already works, with the lightest possible load" };
+      return {
+        maxNutrition: 4,
+        emphasis: "vegetable and fibre variety, and steady meal timing",
+      };
   }
 }
 
@@ -429,6 +444,19 @@ export function buildWeekPlanPrompt(args: {
    * `hunger_signal_test.ts`).
    */
   hungerSignalBlock: string | null;
+  /**
+   * LA LANGUE DANS LAQUELLE CETTE SEMAINE EST ÉCRITE. REQUIS, jamais `T?`.
+   *
+   * Elle vient de `resolveArtifactLocale({studentProfile, tenantDefault})` chez
+   * l'appelant — c'est-à-dire de `profiles.locale`, la langue que la personne a
+   * CHOISIE — et surtout PAS de `student_goals.content_locale`, qui est la
+   * langue dans laquelle elle a écrit sa situation. R3 sépare les trois axes,
+   * et c'est le troisième qui mentait: tous ses écrivains le sèment `'en-GB'`.
+   *
+   * Requis parce qu'optionnel il aurait un défaut, et qu'un défaut de langue
+   * est exactement l'épingle qu'on vient de retirer partout ailleurs.
+   */
+  contentLocale: string;
 }): {
   systemPrompt: string;
   userMessage: string;
@@ -449,6 +477,8 @@ export function buildWeekPlanPrompt(args: {
    * seule source, rendue ici.
    */
   maxNutrition: number;
+  /** La locale QUI A SERVI à écrire ce prompt. L'appelant l'écrit en base. */
+  contentLocale: string;
 } {
   // L'objectif décide, le CORPS module. `focusFor` reste la branche par
   // objectif; `weekEmphasis` y ajoute la bande d'âge et les tendances. Corps
@@ -534,9 +564,38 @@ export function buildWeekPlanPrompt(args: {
 
   return {
     systemPrompt: WEEK_PLAN_SYSTEM_PROMPT,
-    userMessage,
+    // ── LE BLOC DE LANGUE EST LA DERNIÈRE CHOSE DU MESSAGE ─────────────────
+    //
+    // Sur le `userMessage`, jamais sur le `systemPrompt`: la RÉCENCE est le
+    // mécanisme (le modèle obéit à la dernière consigne), et le systemPrompt
+    // est la partie cacheable — y coller une valeur qui change par élève la
+    // rendrait non cacheable pour tout le monde.
+    //
+    // ⚠️ SI UNE PASSE DE BUDGET EST AJOUTÉE UN JOUR À CE GÉNÉRATEUR, ELLE DOIT
+    // PASSER AVANT CETTE LIGNE. Aujourd'hui il n'y en a pas, donc « après toute
+    // troncature » est trivialement vrai — et c'est exactement le genre de
+    // propriété qui devient fausse dans six mois sans que personne ne le voie.
+    userMessage: appendContentLanguageBlock(
+      userMessage,
+      args.contentLocale,
+      // CE QUI SE TRADUIT. Deux champs, et rien d'autre.
+      ["items[].label", "items[].rationale"],
+      // CE QUI RESTE EN ANGLAIS (R1). `source_belief_key` est répété ici bien
+      // qu'il soit déjà décrit comme « copié caractère pour caractère » dans le
+      // corps du prompt: la consigne de langue est plus RÉCENTE, donc elle
+      // gagnerait sur celle du corps si elle ne le nommait pas — et une clé de
+      // conviction traduite ne se rattache plus à rien.
+      ["kind", "action_kind", "days[]", "source_belief_key"],
+    ),
     allowedKeys,
     maxNutrition: focus.maxNutrition,
+    // ── LE MOTIF `maxNutrition`, POUR LA LANGUE ───────────────────────────
+    // La locale qui a servi à écrire le prompt RESSORT d'ici, et c'est elle
+    // que l'appelant écrit en base. Les deux valeurs ne peuvent pas diverger
+    // parce qu'il n'y en a qu'une — là où l'ancienne écriture,
+    // `String(goalRow.content_locale ?? "en")`, était une SECONDE expression,
+    // calculée ailleurs, et qui disait « en » d'un texte français.
+    contentLocale: args.contentLocale,
   };
 }
 

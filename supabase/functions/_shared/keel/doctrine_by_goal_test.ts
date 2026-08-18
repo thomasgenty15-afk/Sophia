@@ -50,7 +50,7 @@ const ROW = {
       rationale: "the scale is one signal out of four",
       goal_scope: ["fat_loss"],
     },
-    { claim: "Eat more than you think you need.", goal_scope: ["recomposition", "performance"] },
+    { claim: "Eat more than you think you need.", goal_scope: ["maintenance"] },
   ],
   forbidden: [{
     token: "six_small_meals",
@@ -94,7 +94,7 @@ function unscoped(): CoachDoctrine {
 Deno.test("deux élèves du même coach: même voix, conseils différents, aucune croyance ne franchit la frontière", () => {
   const d = marlow();
   const fatLoss = compileDoctrineBlock(d, "fat_loss");
-  const recomp = compileDoctrineBlock(d, "recomposition");
+  const recomp = compileDoctrineBlock(d, "maintenance");
 
   // MÊME VOIX. Ce qui fait que le coach se reconnaît dans les deux.
   for (const shared of [
@@ -109,7 +109,7 @@ Deno.test("deux élèves du même coach: même voix, conseils différents, aucun
     `address the student with "tu"`,
   ]) {
     assert(fatLoss.text.includes(shared), `perte de gras devrait porter: ${shared}`);
-    assert(recomp.text.includes(shared), `recomposition devrait porter: ${shared}`);
+    assert(recomp.text.includes(shared), `maintien devrait porter: ${shared}`);
   }
 
   // CONSEILS DIFFÉRENTS. Ce qui fait que la portée sert à quelque chose.
@@ -151,8 +151,8 @@ Deno.test("une portée à plusieurs objectifs atteint chacun d'eux, et personne 
   for (const goal of DOCTRINE_VARIANT_GOALS) {
     assertEquals(
       compileDoctrineBlock(d, goal).text.includes(claim),
-      goal === "recomposition" || goal === "performance",
-      `portée [recomposition, performance] mal appliquée sur ${variantKey(goal)}`,
+      goal === "maintenance",
+      `portée [maintenance] mal appliquée sur ${variantKey(goal)}`,
     );
   }
 });
@@ -240,24 +240,21 @@ Deno.test("le bloc ne nomme JAMAIS l'objectif de l'élève ni la portée d'une e
 Deno.test("la fragmentation d'un coach qui cible: mesurée, pas supposée", () => {
   // LE CHIFFRE DU STATUS, et il est meilleur qu'il n'en a l'air.
   //
-  // Marlow a ciblé deux croyances et un arbitrage. Ses six variantes tiennent
-  // en TROIS blocs distincts, parce que les objectifs qu'aucune portée ne vise
-  // retombent exactement sur la default:
-  //   default = health = maintenance   (les entrées globales seules)
-  //   fat_loss                          (+ la croyance et l'arbitrage ciblés)
-  //   recomposition = performance       (+ la croyance portée sur les deux)
+  // Marlow a ciblé deux croyances et un arbitrage. Ses QUATRE variantes
+  // (trois objectifs + la default) tiennent en TROIS blocs distincts, parce que
+  // l'objectif qu'aucune portée ne vise retombe exactement sur la default:
+  //   default = muscle_gain   (les entrées globales seules)
+  //   fat_loss                (+ la croyance et l'arbitrage ciblés)
+  //   maintenance             (+ la croyance portée sur la troisième position)
   // La fragmentation ne suit donc PAS le nombre d'objectifs, elle suit le
-  // nombre de portées DISTINCTES que le coach a réellement écrites.
+  // nombre de portées DISTINCTES que le coach a réellement écrites — et le
+  // repli du 2026-08-18 le montre mieux qu'avant: le NUMÉRATEUR est passé de
+  // six à trois, le dénominateur n'a pas bougé.
   const footprint = doctrineCacheFootprint(marlow());
   assertEquals(footprint.variants, GOAL_TOKENS.length + 1);
   assertEquals(footprint.distinctHashes, 3);
   assertEquals(
-    compileDoctrineBlock(marlow(), "performance").hash,
-    compileDoctrineBlock(marlow(), "recomposition").hash,
-    "deux objectifs sous la même portée partagent leur entrée de cache",
-  );
-  assertEquals(
-    compileDoctrineBlock(marlow(), "health").hash,
+    compileDoctrineBlock(marlow(), "muscle_gain").hash,
     compileDoctrineBlock(marlow(), null).hash,
     "un objectif qu'aucune portée ne vise doit RETOMBER sur la default, pas créer une entrée",
   );
@@ -395,7 +392,7 @@ Deno.test("une doctrine entièrement ciblée ailleurs: vide POUR CET OBJECTIF, p
     voice: {},
   });
 
-  const health = compileDoctrineBlock(doctrine, "health");
+  const health = compileDoctrineBlock(doctrine, "maintenance");
   assertEquals(health.isEmpty, true);
   assertEquals(health.emptyForGoal, true);
 
@@ -479,7 +476,7 @@ Deno.test("la portée de la doctrine et celle du mapping alimentaire décident P
   const scopes: readonly (readonly GoalToken[])[] = [
     [],
     ["fat_loss"],
-    ["fat_loss", "health"],
+    ["fat_loss", "maintenance"],
     [...GOAL_TOKENS],
   ];
   for (const scope of scopes) {

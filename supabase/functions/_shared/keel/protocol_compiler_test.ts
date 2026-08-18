@@ -385,9 +385,9 @@ Deno.test("portee: vide = global", () => {
 });
 
 Deno.test("portee: non vide = seulement les objectifs nommes", () => {
-  assertEquals(ruleAppliesTo(["recomposition"], "recomposition"), true);
-  assertEquals(ruleAppliesTo(["recomposition"], "fat_loss"), false);
-  assertEquals(ruleAppliesTo(["recomposition", "performance"], "performance"), true);
+  assertEquals(ruleAppliesTo(["maintenance"], "maintenance"), true);
+  assertEquals(ruleAppliesTo(["maintenance"], "fat_loss"), false);
+  assertEquals(ruleAppliesTo(["maintenance", "muscle_gain"], "muscle_gain"), true);
 });
 
 Deno.test("portee: un eleve SANS objectif ne recoit que le global", () => {
@@ -405,7 +405,7 @@ Deno.test("un eleve dont l'objectif n'est vise par AUCUNE regle recoit une liste
     timingRules: [],
     terms: [],
   };
-  assertEquals(compileProtocol(input, "performance").length, 0);
+  assertEquals(compileProtocol(input, "maintenance").length, 0);
 });
 
 // ===========================================================================
@@ -458,7 +458,7 @@ Deno.test("protocole VIDE: zero ligne, aucune erreur", () => {
     timingRules: [],
     terms: [],
   };
-  assertEquals(compileProtocol(empty, "health"), []);
+  assertEquals(compileProtocol(empty, "maintenance"), []);
   assertEquals(compileProtocol(empty, null), []);
 });
 
@@ -485,7 +485,7 @@ Deno.test("les 30 groupes tous marques: 30 lignes, toutes valides", () => {
     timingRules: [],
     terms: [],
   };
-  const out = compileProtocol(input, "health");
+  const out = compileProtocol(input, "maintenance");
   assertEquals(out.length, 30);
   for (const line of out) assertEquals(validateDraftCommitment(line), []);
 });
@@ -508,10 +508,10 @@ Deno.test("recompiler le meme protocole rend la MEME liste, dans le meme ordre",
     }],
     terms: [],
   };
-  const a = compileProtocol(input, "health");
+  const a = compileProtocol(input, "maintenance");
   const b = compileProtocol(
     { ...input, foodRules: [...input.foodRules].reverse() },
-    "health",
+    "maintenance",
   );
   assertEquals(JSON.stringify(a), JSON.stringify(b));
 });

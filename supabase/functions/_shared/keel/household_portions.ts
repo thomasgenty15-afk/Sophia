@@ -46,6 +46,7 @@
  */
 
 import { goalApplies, type MemberAgeState } from "./household.ts";
+import { GOAL_TOKENS, type GoalToken } from "./tokens.ts";
 import { findForbiddenMatches, type ForbiddenTerm } from "./forbidden_matcher.ts";
 import { householdBodyFacts, type MealBodyContext } from "./meal_body.ts";
 // G4 — LE MODULE DES HABITUDES EST IMPORTÉ, JAMAIS RECOPIÉ. Le fragment de
@@ -64,16 +65,19 @@ import {
 // écrit la ligne du prompt — donc c'est lui qui aurait tort en silence.
 import type { EatingOccasionSlot } from "./meal_generation.ts";
 
-/** Reflet du CHECK `student_goals_goal_check`. */
-export const MEMBER_GOALS = [
-  "fat_loss",
-  "muscle_gain",
-  "recomposition",
-  "performance",
-  "health",
-  "maintenance",
-] as const;
-export type MemberGoal = (typeof MEMBER_GOALS)[number];
+/**
+ * Reflet du CHECK `household_members_goal_check`, lui-même aligné sur
+ * `student_goals_goal_check` — trois valeurs depuis la migration
+ * `20260818100000`.
+ *
+ * ⚠️ CE N'EST PLUS UNE SECONDE LISTE. Elle est dérivée de `GOAL_TOKENS`, qui
+ * est le vocabulaire du dépôt: deux copies d'une énumération fermée est le
+ * mode d'échec que `tokens.ts` documente en tête de fichier, et celle-ci en
+ * était une — elle a survécu au passage de six à trois uniquement parce que le
+ * lot est allé la chercher.
+ */
+export const MEMBER_GOALS = GOAL_TOKENS;
+export type MemberGoal = GoalToken;
 
 export interface PortionMember {
   /**
@@ -206,29 +210,26 @@ export interface MemberPortion {
 export const SERVING_DIRECTION: Record<MemberGoal, string> = {
   fat_loss:
     "generous vegetables, full protein share, smaller starch share",
-  muscle_gain:
-    "larger protein and starch share, same vegetables",
-  recomposition:
-    "full protein share, moderate starch, generous vegetables",
-  performance:
-    "larger starch share around training, full protein share",
-  // ── `health` A CESSÉ D'ÊTRE MUET (2026-08-11) ────────────────────────────
-  // Il rendait EXACTEMENT la chaîne de `maintenance`, qui est aussi le repli
-  // « aucun objectif ». Choisir « santé » produisait donc l'assiette de qui n'a
-  // rien déclaré: un champ qui promet un effet et n'en a aucun. C'est le choix
-  // le plus naturel pour un titulaire sans objectif de performance — et c'est
-  // précisément lui qui paie pour être pris en compte.
+  // ── LES QUATRE NUANCES SE REPLIENT ICI (2026-08-18) ──────────────────────
+  // `recomposition`, `performance` et `health` avaient chacune leur chaîne, et
+  // ce fichier porte la MESURE qui justifie le repli: `health` a rendu
+  // EXACTEMENT cette chaîne-ci pendant des semaines sans que rien n'échoue.
+  // Les trois autres en étaient à un mot près — « full protein share, moderate
+  // starch, generous vegetables » et « generous vegetables, balanced protein
+  // and starch share » demandent la même chose à la casserole une fois lues
+  // par `readServingDemands`, qui est le seul lecteur qui compte.
   //
-  // POURQUOI CETTE FORMULATION ET PAS UNE AUTRE. « Plus de légumes, céréales
-  // complètes, moins de transformé » serait une consigne de COMPOSITION: elle
-  // ne veut rien dire au moment de servir un plat qui est déjà décidé. Ce
-  // module ne dit que des PARTS. La seule chose que « santé » peut demander à
-  // une assiette, c'est la place des légumes — sans toucher au rapport
-  // protéine/féculent, ce qui la distingue de `recomposition` et de `fat_loss`.
-  health:
-    "generous vegetables, balanced protein and starch share",
+  // CE QUI SE PERD, ET IL FAUT LE NOMMER: « larger starch share around
+  // training » (`performance`). C'était la seule des quatre à demander
+  // quelque chose de distinct — et elle le demandait « autour de
+  // l'entraînement », c'est-à-dire une information que le produit ne collecte
+  // pas (jours d'entraînement déclarés: aucun). Une consigne conditionnée à
+  // une donnée absente est une consigne inconditionnelle, et celle-ci servait
+  // donc du féculent en plus tous les jours à qui cochait « performance ».
   maintenance:
     "balanced share of every component",
+  muscle_gain:
+    "larger protein and starch share, same vegetables",
 };
 
 /**
@@ -366,33 +367,62 @@ export function readServingDemands(direction: string): ServingAxisDemands {
 /**
  * CE QUE CETTE BOUCHE DEMANDE À LA CASSEROLE.
  *
- * ⚠️ L'ORDRE DES TROIS CAS EST LE MÊME QUE DANS `buildPortionBrief`, ET CE
- * N'EST PAS UNE COÏNCIDENCE: c'est la MÊME décision, lue deux fois. Le mineur
- * d'abord — sa direction est une TAILLE, jamais une orientation, donc il ne
- * demande rien à personne et il est servable de n'importe quelle casserole.
- * Ensuite `goalApplies`, qui refuse aussi l'âge inconnu.
+ * ⚠️ L'ORDRE DES CAS EST LE MÊME QUE DANS `servingDirectionFor`, ET CE N'EST
+ * PAS UNE COÏNCIDENCE: c'est la MÊME décision, lue deux fois. `goalApplies`
+ * d'abord — il porte la règle du mineur ET celle de l'âge inconnu — puis le
+ * repli, qui pour un mineur est une TAILLE (`CHILD_DIRECTION`) et pour tout le
+ * monde une part équilibrée.
  *
  * Le test `household_merge_test.ts` vérifie que les deux lectures ne peuvent
  * pas diverger: la direction rendue par `buildPortionBrief` pour un membre est
  * exactement celle dont on lit les axes ici.
  */
 export function servingDemandsFor(member: PortionMember): ServingAxisDemands {
-  if (member.ageState === "minor") return { ...NO_DEMAND };
-  if (goalApplies(member) && member.goal) {
-    return readServingDemands(SERVING_DIRECTION[member.goal]);
-  }
-  return readServingDemands(NEUTRAL_DIRECTION);
+  return readServingDemands(servingDirectionFor(member));
 }
 
 /**
- * LA DIRECTION ÉCRITE POUR CE MEMBRE — extraite de `buildPortionBrief` pour
- * qu'il n'y ait qu'UN endroit qui choisisse entre les trois.
+ * LA DIRECTION ÉCRITE POUR CE MEMBRE — le SEUL endroit qui choisisse.
+ *
+ * ── LE RENVERSEMENT DU 2026-08-18, ET LE DÉFAUT QU'IL FERME ───────────────
+ * Cette fonction commençait par `if (member.ageState === "minor") return
+ * CHILD_DIRECTION;`, AVANT toute lecture de l'objectif. Depuis le 2026-08-13
+ * la base acceptait pourtant qu'un mineur porte `muscle_gain`: on pouvait donc
+ * poser « prendre du muscle » sur un ado, la ligne s'écrivait, l'écran
+ * l'affichait, et le moteur l'ignorait. **La décision était en base, le
+ * comportement n'a jamais suivi** — une migration livrée à moitié, et le genre
+ * de défaut qu'aucun test ne trouve parce que rien n'échoue.
+ *
+ * Décision humaine du 2026-08-18: un mineur porte les TROIS objectifs, comme
+ * un majeur. `CHILD_DIRECTION` devient donc le repli d'un mineur qui n'a PAS
+ * d'objectif, au lieu d'écraser celui qui en a un.
+ *
+ * ⚠️ CE QUI PROTÈGE À LA PLACE, ET C'EST LA MOITIÉ QUI COMPTE. La raison
+ * écrite le 13/08 n'était pas « pas de direction », c'était « pas de direction
+ * qui fasse d'un enfant une cible de poids ». Ce qui tient cette phrase après
+ * l'ouverture, et qui n'est pas ici:
+ *
+ *   · L'ÉNERGIE. `childEnvelopeFromBody` ne prend pas de `goal` — pas un `if`,
+ *     un paramètre qui n'existe pas. Un mineur reste en MAINTENANCE calculée
+ *     sur son âge (Schofield), quoi qu'il y ait dans sa colonne. La direction
+ *     est une consigne de service; la bande est un déficit. On ouvre la
+ *     première, jamais la seconde.
+ *   · LE RYTHME. `weight_pace.ts` borne le slider d'un mineur sur son propre
+ *     besoin estimé, pas sur le plafond de l'adulte.
+ *   · LE SILENCE. Le corps d'un enfant n'est jamais ÉNONCÉ (FF-047): ni taille
+ *     ni pesée à côté de son prénom dans le prompt. On calcule avec, on ne le
+ *     dit pas — sans quoi sa direction deviendrait dérivable par n'importe qui
+ *     à table. Cette garde-là ne bouge pas.
+ *
+ * ⚠️ L'ÂGE INCONNU NE SUIT PAS. `goalApplies` rend `false` pour lui, et il
+ * retombe donc sur `NEUTRAL_DIRECTION` — pas sur `CHILD_DIRECTION`. « Je ne
+ * sais pas » et « c'est un enfant » ne sont pas la même phrase.
  */
 export function servingDirectionFor(member: PortionMember): string {
-  if (member.ageState === "minor") return CHILD_DIRECTION;
-  return goalApplies(member) && member.goal
-    ? SERVING_DIRECTION[member.goal]
-    : NEUTRAL_DIRECTION;
+  if (goalApplies(member) && member.goal) {
+    return SERVING_DIRECTION[member.goal];
+  }
+  return member.ageState === "minor" ? CHILD_DIRECTION : NEUTRAL_DIRECTION;
 }
 
 /**
@@ -418,6 +448,13 @@ export function servingDirectionFor(member: PortionMember): string {
  * INCONNU en est hors aussi: `goalApplies` rend déjà `false` pour lui, donc il
  * porte `NEUTRAL_DIRECTION`, et le compter reviendrait à faire d'une ignorance
  * une position.
+ *
+ * ⚠️ ET DEPUIS LE 2026-08-18 LE FILTRE DE L'APPELANT EST LA SEULE BARRIÈRE.
+ * `goalApplies` accepte désormais les trois objectifs d'un mineur; une bouche
+ * mineure passée ici sans filtre apporterait donc SA direction au compte, et
+ * ferait afficher un arbitrage « qui commande la casserole » entre un adulte
+ * et un enfant. La fonction reste pure et croit ce qu'on lui donne — mais ce
+ * qui était auparavant rattrapé par la garde de lecture ne l'est plus.
  *
  * ⚠️ L'OBJECTIF LU DOIT ÊTRE L'OBJECTIF RÉSOLU. Pour une bouche qui a réclamé
  * son compte, l'objectif qui fait foi est celui de `student_goals`, pas la

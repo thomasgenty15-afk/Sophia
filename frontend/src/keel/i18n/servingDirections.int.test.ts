@@ -71,10 +71,21 @@ function block(source: string, declaration: string, close: string): string {
   return source.slice(start, end);
 }
 
-/** Les six identifiants d'objectif, lus sur `MEMBER_GOALS`. */
+/**
+ * Les identifiants d'objectif.
+ *
+ * ⚠️ ILS SE LISENT SUR `SERVING_DIRECTION` DEPUIS LE 2026-08-18, plus sur
+ * `MEMBER_GOALS`. Ce dernier était une SECONDE liste recopiée à côté de
+ * `GOAL_TOKENS`; le repli des six vers trois l'a rendue dérivée
+ * (`export const MEMBER_GOALS = GOAL_TOKENS;`), donc il n'y a plus de bloc de
+ * littéraux à y lire. `SERVING_DIRECTION` est de toute façon la meilleure
+ * source pour ce test-ci: c'est la table dont il vérifie les traductions, et
+ * une clé qui manquerait pour un objectif absent de cette table ne manquerait
+ * à personne.
+ */
 function memberGoals(source: string): string[] {
-  const body = block(source, "export const MEMBER_GOALS = [", "] as const;");
-  return [...body.matchAll(/"(\w+)"/g)].map((m) => m[1]);
+  const body = block(source, "export const SERVING_DIRECTION", "};");
+  return [...body.matchAll(/^ {2}(\w+):/gm)].map((m) => m[1]);
 }
 
 /**
@@ -125,7 +136,11 @@ describe("les consignes de service montrées sur la vitrine", () => {
   it("sont extraites du moteur, une par objectif", () => {
     // La ceinture de la ceinture: si l'extraction rendait zéro ligne, les deux
     // tests ci-dessous compareraient `undefined` à `undefined` et verdiraient.
-    expect(goals.length).toBe(6);
+    // ⚠️ TROIS DEPUIS LE 2026-08-18 — le repli des six objectifs. Le nombre
+    // est écrit en dur EXPRÈS: dérivé de la même source que l'extraction, il
+    // verdirait sur zéro ligne, ce qui est très exactement le défaut que ce
+    // test existe pour attraper.
+    expect(goals.length).toBe(3);
     expect(Object.keys(directions).sort()).toEqual([...goals].sort());
     for (const goal of goals) {
       expect(directions[goal], `direction vide pour ${goal}`).toBeTruthy();

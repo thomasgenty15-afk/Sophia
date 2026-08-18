@@ -157,7 +157,7 @@ import {
   assessCoverage,
   coverageFlagAfterCorrection,
 } from "../_shared/keel/meal_coverage.ts";
-import { GOAL_TOKENS, type GoalToken } from "../_shared/keel/tokens.ts";
+import { type ActivityLevel, GOAL_TOKENS, type GoalToken } from "../_shared/keel/tokens.ts";
 import {
   parseDietaryRegime,
   uncoverableSentinelsFor,
@@ -1289,11 +1289,16 @@ Deno.serve(async (req) => {
     // `studentBody` et pas `body`: dans cette fonction, `body` est déjà le
     // corps de la REQUÊTE HTTP.
     let studentBody: MealBodyContext | null = null;
+    // ⚠️ À CÔTÉ DE `studentBody`, PAS DEDANS. `MealBodyContext` porte des
+    // MESURES du corps (série de pesées datées, bande d'âge); le niveau
+    // d'activité est une déclaration sur la vie, pas une mesure — et la lane
+    // foyer, qui n'a pas de `MealBodyContext`, doit pouvoir le passer quand
+    // même. Voir le paramètre séparé d'`envelopeFor`.
+    let studentActivityLevel: ActivityLevel | null = null;
     try {
-      studentBody = mealBodyContextFrom(
-        await loadStudentBody(admin, userId, todayDate),
-        restrictionFlag,
-      );
+      const snapshot = await loadStudentBody(admin, userId, todayDate);
+      studentActivityLevel = snapshot.activityLevel;
+      studentBody = mealBodyContextFrom(snapshot, restrictionFlag);
     } catch (error) {
       console.warn(JSON.stringify({
         tag: "keel.meal.student_body_unreadable",
@@ -1669,7 +1674,13 @@ Deno.serve(async (req) => {
     const goalToken: GoalToken =
       (GOAL_TOKENS as readonly string[]).includes(String(goalRow.goal ?? ""))
         ? (String(goalRow.goal) as GoalToken)
-        : "health";
+        // ── LE REPLI DU 2026-08-18 ────────────────────────────────────────
+        // Valait `"health"`, qui n'existe plus. `maintenance` est la valeur
+        // sur laquelle `health` se replie, et c'est aussi la seule lecture
+        // sûre d'un jeton illisible: elle ne creuse aucun déficit et n'ouvre
+        // aucun surplus. Un repli sur `fat_loss` ferait exécuter une
+        // restriction à quelqu'un dont on n'a pas su lire l'objectif.
+        : "maintenance";
     // FAIL-CLOSED: une lecture du plancher en panne a déjà rendu
     // `restrictionFlag = true` en amont (FF-030 R6), et `studentBody` absent
     // dégrade de toute façon par la MÊME branche de `envelopeFor`.
@@ -1701,6 +1712,7 @@ Deno.serve(async (req) => {
       studentBody?.ageBand ?? null,
       studentBody?.restrictionFlag ?? true,
       steering,
+      studentActivityLevel,
     );
     /**
      * ── LE PLAT, PRÉPARATIONS COMPRISES ────────────────────────────────────

@@ -238,7 +238,7 @@ Deno.test("O7 — SANS FOYER NI COACH, LE REFUS SURVIT", async () => {
   const out = await loadDoctrineForCaller(db, {
     userId: CALLER,
     householdId: null,
-    goal: "health",
+    goal: "maintenance",
   });
   assertEquals(out.doctrine.coachId, null);
   assertEquals(out.doctrine.reason, "no_coach");
@@ -252,7 +252,7 @@ Deno.test("O7 — LE MAÎTRE NON PLUS N'A PAS DE COACH: `no_coach`, pas une exce
   const out = await loadDoctrineForCaller(db, {
     userId: CALLER,
     householdId: HOUSE,
-    goal: "health",
+    goal: "maintenance",
   });
   assertEquals(out.doctrine.coachId, null);
   assertEquals(out.doctrine.reason, "no_coach");
@@ -271,7 +271,7 @@ Deno.test("O7 — un foyer dont la ligne maître n'a plus de compte ne prête ri
   const out = await loadDoctrineForCaller(db, {
     userId: CALLER,
     householdId: HOUSE,
-    goal: "health",
+    goal: "maintenance",
   });
   assertEquals(out.doctrine.coachId, null);
   assertEquals(out.viaHousehold, false);
@@ -283,7 +283,7 @@ Deno.test("O7 — LE MAÎTRE, C'EST MOI: aucun second chargement", async () => {
   const out = await loadDoctrineForCaller(db, {
     userId: CALLER,
     householdId: HOUSE,
-    goal: "health",
+    goal: "maintenance",
   });
   assertEquals(out.doctrine.coachId, null);
   assertEquals(out.viaHousehold, false);
@@ -299,7 +299,7 @@ Deno.test("O7 — la lecture du maître en PANNE dégrade vers `no_coach`, sans 
   const out = await loadDoctrineForCaller(db, {
     userId: CALLER,
     householdId: HOUSE,
-    goal: "health",
+    goal: "maintenance",
   });
   assertEquals(out.doctrine.coachId, null);
   assertEquals(out.viaHousehold, false);

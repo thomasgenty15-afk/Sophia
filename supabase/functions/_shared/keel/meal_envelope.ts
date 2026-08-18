@@ -27,8 +27,8 @@
  */
 
 import type { MealBodyContext } from "./meal_body.ts";
-import type { AgeBand } from "./student_age.ts";
-import type { GoalToken } from "./tokens.ts";
+import { type AgeBand, ageBandOf, KEEL_MINOR_AGE } from "./student_age.ts";
+import type { ActivityLevel, GoalToken } from "./tokens.ts";
 import {
   applyPiloting,
   type SteeringEntry,
@@ -103,16 +103,55 @@ export type Envelope =
 export const MAX_DAILY_DEFICIT_KCAL = 500;
 
 /**
- * Mifflin-St Jeor, puis × 1,5 pour une activité INCONNUE.
+ * Mifflin-St Jeor, puis × 1,5 quand l'activité est INCONNUE.
  *
  * ── CE FACTEUR EST UNE HYPOTHÈSE, PAS UNE MESURE ─────────────────────────
- * Le produit ne demande pas son activité à l'élève. 1,5 est le milieu
- * « modérément actif », et l'estimation qui en sort est à ±20 % — empilée sur
- * ±10-15 % de table et de cuisson. C'est PLUS LARGE que la bande de
- * `muscle_gain` (5 points), et c'est exactement pourquoi le verdict énergie ne
- * dit qu'une DIRECTION au premier jour (voir `ENERGY_DIRECTION_MARGIN`).
+ * 1,5 est le milieu « modérément actif », et l'estimation qui en sort est à
+ * ±20 % — empilée sur ±10-15 % de table et de cuisson. C'est PLUS LARGE que
+ * la bande de `muscle_gain` (5 points), et c'est exactement pourquoi le
+ * verdict énergie ne dit qu'une DIRECTION au premier jour (voir
+ * `ENERGY_DIRECTION_MARGIN`).
+ *
+ * ⚠️ IL N'EST PLUS LE SEUL CHEMIN (2026-08-18). Le produit DEMANDE désormais
+ * le niveau d'activité (`ACTIVITY_LEVELS`, quatre crans). Ce nombre-ci reste,
+ * et il reste nommé « hypothèse »: c'est ce qu'on applique à qui n'a pas
+ * répondu — c'est-à-dire toute la base d'avant ce lot, qui doit continuer de
+ * produire exactement les mêmes enveloppes.
  */
 export const ACTIVITY_FACTOR = 1.5;
+
+/**
+ * LE FACTEUR D'ACTIVITÉ QUAND ON L'A DEMANDÉ — FAO/WHO/UNU 2004.
+ *
+ * Le rapport conjoint « Human energy requirements » range les adultes par
+ * niveau d'activité physique (PAL, multiplicateur du métabolisme de base):
+ * sédentaire ou activité légère 1,40-1,69; modérément actif 1,70-1,99;
+ * vigoureusement actif 2,00-2,40. Les quatre crans du formulaire s'y posent:
+ *
+ *   `sedentary`    1,45  bas de la bande sédentaire
+ *   `on_feet`      1,65  haut de la même bande — debout n'est pas du sport
+ *   `trains_some`  1,80  milieu de « modérément actif »
+ *   `trains_hard`  2,00  bas de « vigoureusement actif »
+ *
+ * ⚠️ ON PREND LE BAS DE « VIGOUREUX », PAS LE HAUT. La bande monte à 2,40, et
+ * ce qui vit là-haut est un travail de force huit heures par jour, pas quatre
+ * séances par semaine. Surestimer le facteur du plus actif ferait servir plus
+ * que nécessaire à celui dont on est le moins sûr — et c'est le seul cran où
+ * la question ne distingue pas le sportif du maçon.
+ *
+ * ⚠️ CE N'EST PAS UNE MESURE NON PLUS, ET C'EST TOUJOURS ÉCRIT. Un cran reste
+ * une bande de ±0,15 PAL. Ce qu'on gagne n'est pas de la précision: c'est de
+ * ne plus servir la MÊME hypothèse à quelqu'un assis huit heures et à
+ * quelqu'un qui court quatre fois par semaine — deux personnes dont les
+ * besoins diffèrent d'environ 40 %, soit le double de l'incertitude.
+ */
+export const ACTIVITY_FACTORS: Readonly<Record<ActivityLevel, number>> = Object
+  .freeze({
+    sedentary: 1.45,
+    on_feet: 1.65,
+    trains_some: 1.80,
+    trains_hard: 2.00,
+  });
 
 /**
  * LE GONFLEMENT DE LA BANDE POUR LE RÉGIME « DIRECTION ».
@@ -139,16 +178,35 @@ const ENERGY_BANDS: Record<GoalToken, { low: number; high: number }> = {
   // Murphy 2022 (déficit modéré); Garthe 2011: lent > rapide pour la masse
   // maigre. Le plafond de 500 kcal/j s'applique EN PLUS, et gagne.
   fat_loss: { low: 0.75, high: 0.85 },
+  // ── LA TROISIÈME POSITION DE LA BALANCE (2026-08-18) ────────────────────
+  // `recomposition` (Barakat 2020) valait 0,95-1,05 et `health` aussi;
+  // `performance` (Impey 2018) valait 1,00-1,10. Les trois se replient ici,
+  // et la bande retenue est CELLE-CI, pas leur moyenne: c'est la seule des
+  // quatre qui ne demande ni surplus ni déficit, donc la seule qu'on puisse
+  // servir à quelqu'un dont on sait seulement que la balance ne doit pas
+  // bouger. `performance` perd son +10 % — assumé: un surplus qu'on servait
+  // à un objectif qui ne le demandait pas, et le nom de ce surplus est
+  // `muscle_gain`.
+  maintenance: { low: 0.95, high: 1.05 },
   // Helms 2023: au-delà de +10 %, on gagne des plis cutanés, pas du muscle.
   muscle_gain: { low: 1.05, high: 1.10 },
-  // Barakat 2020.
-  recomposition: { low: 0.95, high: 1.05 },
-  // Impey 2018: la seule dynamique qui accepterait un `carb_timing` — inerte
-  // sans jours d'entraînement déclarés, et hors périmètre de cette étape.
-  performance: { low: 1.00, high: 1.10 },
-  health: { low: 0.95, high: 1.05 },
-  maintenance: { low: 0.95, high: 1.05 },
 };
+
+/**
+ * LE SURPLUS MAXIMAL, EXPOSÉ — ce que A1 fait en bas, lu en haut.
+ *
+ * DÉRIVÉ de la bande, jamais recopié: `weight_pace.ts` borne le rythme d'une
+ * PRISE avec ce nombre, et si Helms 2023 bougeait dans la table ci-dessus
+ * pendant qu'un `0.10` dormait dans l'autre module, le slider promettrait un
+ * rythme que l'enveloppe refuserait d'exécuter. Le dépôt a déjà payé « deux
+ * copies d'un même nombre divergent, et c'est celle qu'on regarde le moins qui
+ * garde l'ancienne ».
+ *
+ * L'arrondi n'est pas cosmétique: `1.10 - 1` vaut `0.10000000000000009` en
+ * flottant, et ce reste se propagerait dans un kg/semaine affiché.
+ */
+export const MAX_SURPLUS_FRACTION =
+  Math.round((ENERGY_BANDS.muscle_gain.high - 1) * 1000) / 1000;
 
 /**
  * LE PLANCHER PROTÉIQUE, en g/kg de poids corporel et par jour.
@@ -158,11 +216,15 @@ const ENERGY_BANDS: Record<GoalToken, { low: number; high: number }> = {
  */
 const PROTEIN_FLOOR_G_PER_KG: Record<GoalToken, number> = {
   fat_loss: 2.0,
-  muscle_gain: 1.6,
-  recomposition: 2.0,
-  performance: 1.6,
-  health: 1.6,
+  // `recomposition` valait 2,0 (Barakat 2020) et se replie ici, où le plancher
+  // est 1,6. C'est le seul endroit du repli qui RETIRE quelque chose, et il
+  // faut le dire: un élève « recomp » reçoit désormais le plancher protéique
+  // de la maintenance. La contrepartie est qu'il ne reçoit plus non plus la
+  // répartition par repas (voir plus bas) — les deux venaient de la même
+  // hypothèse, « il s'entraîne », que le jeton n'a jamais vérifiée. Celui qui
+  // s'entraîne pour prendre coche `muscle_gain` et garde les deux.
   maintenance: 1.6,
+  muscle_gain: 1.6,
 };
 
 /**
@@ -217,14 +279,23 @@ export const DENSITY_CEILING_DEFAULT = 1.8;
  * moyenne est la seule réponse qui ne le fait pas. L'écart entre les deux
  * constantes (166 kcal) est du même ordre que l'incertitude du facteur
  * d'activité, donc le choix ne change pas la nature du verdict.
+ *
+ * ── `activityLevel` EST REQUIS, ET `null` EST UNE RÉPONSE (2026-08-18) ────
+ * Requis, jamais optionnel: « paramètre de garde optionnel = garde désarmée »
+ * est une cicatrice mesurée de ce dépôt, et un champ facultatif ici aurait
+ * laissé le lot construit sans être branché — le compilateur n'aurait recensé
+ * aucun appelant. `null` veut dire « personne n'a répondu » et rend
+ * EXACTEMENT le nombre d'avant ce lot: le facteur 1,5, pour toute la base
+ * existante.
  */
 export function estimatedMaintenanceKcal(args: {
   weightKg: number | null;
   heightCm: number | null;
   ageBand: AgeBand | null;
   gender: "male" | "female" | "other" | null;
+  activityLevel: ActivityLevel | null;
 }): number | null {
-  const { weightKg, heightCm, ageBand, gender } = args;
+  const { weightKg, heightCm, ageBand, gender, activityLevel } = args;
   if (!weightKg || !heightCm || !ageBand) return null;
   // L'ÂGE EST UNE BANDE, PAS UN NOMBRE (FF-030 R8). On prend le MILIEU de la
   // bande: la formule demande des années, et une bande de quinze ans pèse ~150
@@ -247,7 +318,10 @@ export function estimatedMaintenanceKcal(args: {
     : (offsetMale + offsetFemale) / 2;
   const bmr = base + offset;
   if (!Number.isFinite(bmr) || bmr <= 0) return null;
-  return Math.round(bmr * ACTIVITY_FACTOR);
+  const factor = activityLevel === null
+    ? ACTIVITY_FACTOR
+    : ACTIVITY_FACTORS[activityLevel];
+  return Math.round(bmr * factor);
 }
 
 // ---------------------------------------------------------------------------
@@ -295,6 +369,18 @@ export function envelopeFor(
   ageBand: AgeBand | null,
   restrictionFlag: boolean,
   steering: SteeringEntry | null,
+  /**
+   * ── PARAMÈTRE À PART, POUR LA MÊME RAISON QUE `restrictionFlag` ─────────
+   * Le niveau d'activité ne vit pas dans `MealBodyContext`: ce type porte une
+   * SÉRIE de pesées datées, et l'activité n'est pas une mesure du corps — c'est
+   * une déclaration sur la vie. Surtout, la lane foyer n'a PAS de
+   * `MealBodyContext` (`body: null`) et doit quand même pouvoir la passer.
+   *
+   * Requis et positionnel: le compilateur recense ainsi tous les appelants, et
+   * aucun ne peut « oublier » de brancher le champ que ce lot existe pour
+   * collecter.
+   */
+  activityLevel: ActivityLevel | null,
 ): Envelope {
   // ── LA BRANCHE UNIQUE ───────────────────────────────────────────────────
   // Sous flag OU corps absent OU poids inconnu. Trois causes, une seule
@@ -306,11 +392,61 @@ export function envelopeFor(
   // rendrait le statut de restriction observable.
   if (restrictionFlag || !body || !weightKg) return DEGRADED_ENVELOPE;
 
-  const maintenance = estimatedMaintenanceKcal({
+  return envelopeCore({
+    goal,
     weightKg,
     heightCm: body.heightCm,
     ageBand,
     gender: body.gender,
+    steering,
+    restrictionFlag,
+    activityLevel,
+  });
+}
+
+/**
+ * LE MOTEUR, SUR DES PRIMITIVES — extrait le 2026-08-12 (lot foyer « chaque
+ * bouche a un corps »).
+ *
+ * ── POURQUOI UNE EXTRACTION ET PAS UNE SECONDE FONCTION ───────────────────
+ * La lane foyer a besoin d'une enveloppe pour une bouche QUI N'A PAS DE
+ * COMPTE: son corps vient de `household_members`, pas de `profiles` + série de
+ * pesées, donc elle n'a pas de `MealBodyContext` et surtout pas de
+ * `DatedMeasure` (fabriquer une date de mesure que personne n'a saisie serait
+ * un fait inventé sur une personne réelle).
+ *
+ * Écrire à côté « la bande de maintenance × le poids » aurait fait un SECOND
+ * moteur d'enveloppe — le défaut le plus cher de ce dépôt. Ici il n'y a qu'un
+ * corps de fonction: `envelopeFor` pose ses gardes puis l'appelle,
+ * `maintenanceEnvelopeFromBody` pose les siennes puis l'appelle. Une bande qui
+ * bouge bouge pour les deux.
+ */
+function envelopeCore(args: {
+  goal: GoalToken;
+  weightKg: number;
+  heightCm: number | null;
+  ageBand: AgeBand | null;
+  gender: "male" | "female" | "other" | null;
+  steering: SteeringEntry | null;
+  restrictionFlag: boolean;
+  activityLevel: ActivityLevel | null;
+}): Envelope {
+  const {
+    goal,
+    weightKg,
+    heightCm,
+    ageBand,
+    gender,
+    steering,
+    restrictionFlag,
+    activityLevel,
+  } = args;
+  const maintenance = estimatedMaintenanceKcal({
+    weightKg,
+    heightCm,
+    ageBand,
+    gender,
+    activityLevel,
   });
 
   const band = ENERGY_BANDS[goal];
@@ -349,7 +485,7 @@ export function envelopeFor(
   let proteinPerMealG: number | null = null;
   if (ageBand === "60_plus") {
     proteinPerMealG = Math.round(weightKg * SENIOR_PROTEIN_PER_MEAL_G_PER_KG);
-  } else if (goal === "muscle_gain" || goal === "recomposition") {
+  } else if (goal === "muscle_gain") {
     proteinPerMealG = Math.round(proteinFloorG / TRAINING_PROTEIN_MEALS);
   }
 
@@ -364,6 +500,292 @@ export function envelopeFor(
   };
   // EN DERNIER — après les ceintures produit, jamais avant.
   return applyPiloting(steering, base, restrictionFlag);
+}
+
+// ---------------------------------------------------------------------------
+// LE CORPS D'UNE BOUCHE, SANS COMPTE — lot foyer du 2026-08-12
+// ---------------------------------------------------------------------------
+
+/**
+ * Le corps d'une bouche tel que `household_members` le porte.
+ *
+ * ⚠️ CE N'EST PAS UN `MealBodyContext`, ET ÇA NE DOIT PAS LE DEVENIR.
+ * `MealBodyContext` porte une SÉRIE de mesures datées et le verdict du plancher
+ * TCA — deux choses qui n'existent que pour un compte. Ici il y a un corps
+ * saisi une fois par le compte maître: pas de date de pesée, pas de série,
+ * donc pas de tendance, donc rien dont on puisse dériver une direction.
+ *
+ * C'est exactement pourquoi ce corps-là ne peut acheter qu'une **maintenance**
+ * (voir `maintenanceEnvelopeFromBody` et `childEnvelopeFromBody`).
+ */
+export interface MouthBody {
+  /** En centimètres. Non lu par l'équation pédiatrique — voir `CHILD_BMR`. */
+  heightCm: number | null;
+  weightKg: number | null;
+  gender: "male" | "female" | "other" | null;
+  /** L'âge en années révolues, dérivé de la date à la lecture. */
+  ageYears: number | null;
+  /**
+   * `null` = personne n'a répondu ⇒ le facteur d'hypothèse (1,5 adulte, 1,6
+   * enfant), donc exactement l'enveloppe d'avant le 2026-08-18.
+   *
+   * REQUIS dans le type, jamais optionnel: c'est le compilateur qui recense
+   * les lecteurs de corps du foyer, et un `?` ici aurait laissé la moitié
+   * d'entre eux servir l'hypothèse à quelqu'un qui a répondu.
+   */
+  activityLevel: ActivityLevel | null;
+}
+
+/**
+ * L'ENVELOPPE DE MAINTENANCE D'UN ADULTE, DEPUIS UN CORPS DE FICHE.
+ *
+ * ── ELLE NE PREND PAS D'OBJECTIF, ET C'EST LA GARDE ──────────────────────
+ * Pas un paramètre `goal` qu'un appelant pourrait remplir: `maintenance` est
+ * écrit dans le corps de la fonction. Un corps sans série de pesées n'a pas de
+ * plancher TCA derrière lui; lui laisser exécuter un `fat_loss` serait faire
+ * exécuter une restriction à un moteur qui n'a aucun moyen de savoir qu'il ne
+ * devrait pas. Une maintenance, elle, ne peut ni creuser un déficit ni poser un
+ * plafond de densité — la seule chose qu'elle change en aval est de faire
+ * DESCENDRE un tronc commun (protecteur) ou d'ouvrir un add-on (additif).
+ *
+ * `restrictionFlag: false` est passé pour la même raison, et il est sûr POUR
+ * CETTE RAISON-LÀ seulement: il n'y a rien à protéger d'une bande qui ne
+ * retire rien.
+ */
+export function maintenanceEnvelopeFromBody(body: MouthBody): Envelope | null {
+  if (!body.weightKg) return null;
+  const ageBand = ageBandOf(body.ageYears);
+  if (ageBand === null) return null;
+  return envelopeCore({
+    goal: "maintenance",
+    weightKg: body.weightKg,
+    heightCm: body.heightCm,
+    ageBand,
+    gender: body.gender,
+    steering: null,
+    restrictionFlag: false,
+    activityLevel: body.activityLevel,
+  });
+}
+
+/**
+ * LES TRANCHES D'ÂGE PÉDIATRIQUES — un TYPE À PART, jamais `AgeBand`.
+ *
+ * ── POURQUOI PAS D'EXTENSION D'`AgeBand` ─────────────────────────────────
+ * C'était la première idée, et l'audit des lecteurs l'a écartée. `ageBandOf`
+ * rend `null` sous 18 ans, et DEUX chemins de production en dépendent
+ * aujourd'hui pour ne rien dire d'un mineur:
+ *
+ *   1. `meal_body.ts :: mealBodyBlocks` pousse `age band: …` DANS LE PROMPT
+ *      dès que `ageBand` n'est pas `null`. Une bande pédiatrique non nulle y
+ *      ferait entrer un fait corporel de mineur — exactement ce que le lot
+ *      s'interdit (FF-047 §3, moitié conservée).
+ *   2. `estimatedMaintenanceKcal` indexe `midAge: Record<AgeBand, number>`:
+ *      une valeur pédiatrique de plus y ferait passer un enfant par
+ *      Mifflin-St Jeor, c'est-à-dire lui servir une restriction en croyant lui
+ *      servir un besoin.
+ *
+ * Un type distinct rend les deux impossibles au compilateur plutôt qu'à la
+ * relecture. Ce qu'on perd: `PediatricBand` et `AgeBand` ne se comparent pas —
+ * et c'est précisément ce qu'on veut.
+ */
+export type PediatricBand = "0_3" | "3_10" | "10_18";
+
+/** `null` à 18 ans et au-delà: ce n'est plus un enfant, c'est `ageBandOf`. */
+export function pediatricBandOf(ageYears: number | null): PediatricBand | null {
+  if (ageYears === null || !Number.isFinite(ageYears)) return null;
+  if (ageYears < 0 || ageYears >= KEEL_MINOR_AGE) return null;
+  if (ageYears < 3) return "0_3";
+  if (ageYears < 10) return "3_10";
+  return "10_18";
+}
+
+/**
+ * LE MÉTABOLISME DE BASE D'UN ENFANT — Schofield, retenu par FAO/WHO/UNU.
+ *
+ * ⚠️ SOURCE, ET STATUT DE LA VALEUR. Schofield WN, « Predicting basal metabolic
+ * rate, new standards and review of previous work », Hum Nutr Clin Nutr 1985;
+ * repris comme référence de l'enfant par le rapport conjoint FAO/WHO/UNU
+ * « Human energy requirements » (2004), tables par tranche d'âge et par sexe.
+ * Les coefficients ci-dessous sont les formes **poids seul**, en kcal/jour.
+ *
+ * ── POURQUOI LE POIDS SEUL, ALORS QU'ON COLLECTE LA TAILLE ───────────────
+ * Schofield publie aussi des formes poids+taille. Elles sont réputées moins
+ * stables (le terme de taille y porte un coefficient qui change de signe d'une
+ * tranche à l'autre) et n'améliorent pas l'estimation en pratique clinique. La
+ * taille reste collectée: elle sert le chemin ADULTE (Mifflin la demande) et
+ * elle sert la plausibilité. Elle n'entre PAS ici, et le dire évite qu'un
+ * lecteur croie à un oubli.
+ *
+ * ⛔ ET SURTOUT: CE N'EST PAS MIFFLIN-ST JEOR. Mifflin est établie sur des
+ * adultes et sous-estime lourdement le besoin d'un enfant — le besoin par kilo
+ * d'un enfant est bien supérieur à celui d'un adulte. Servir Mifflin à un
+ * enfant de huit ans, c'est lui prescrire une restriction en croyant lui servir
+ * un besoin normal. La contre-épreuve chiffrée est dans le test de ce module.
+ */
+const CHILD_BMR: Record<
+  PediatricBand,
+  { male: { a: number; b: number }; female: { a: number; b: number } }
+> = {
+  "0_3": {
+    male: { a: 59.512, b: -30.4 },
+    female: { a: 58.317, b: -31.1 },
+  },
+  "3_10": {
+    male: { a: 22.706, b: 504.3 },
+    female: { a: 20.315, b: 485.9 },
+  },
+  "10_18": {
+    male: { a: 17.686, b: 658.2 },
+    female: { a: 13.384, b: 692.6 },
+  },
+};
+
+/**
+ * LE FACTEUR D'ACTIVITÉ DE L'ENFANT — HYPOTHÈSE, comme celui de l'adulte.
+ *
+ * FAO/WHO/UNU 2004 range les enfants d'âge scolaire modérément actifs entre
+ * PAL 1,55 et 1,75. On prend 1,60, le bas de « modéré »: le produit ne demande
+ * pas son activité à un enfant, et surestimer un besoin ferait servir plus que
+ * nécessaire — direction d'erreur bien moins grave que l'inverse, mais qui n'a
+ * pas de raison d'être choisie sans motif.
+ *
+ * ⚠️ IL EST PLUS ÉLEVÉ QUE CELUI DE L'ADULTE (1,5), ET CE N'EST PAS UN HASARD.
+ */
+export const CHILD_ACTIVITY_FACTOR = 1.6;
+
+/**
+ * LA CROISSANCE, NOMMÉE PLUTÔT QUE FONDUE DANS LE FACTEUR.
+ *
+ * FAO/WHO/UNU 2004 chiffre le coût énergétique de la croissance à environ 1 %
+ * du besoin total après la première année (il est massif avant, et le produit
+ * ne compose pas pour un nourrisson). Un pour cent est dans le bruit de
+ * l'estimation — et c'est justement pourquoi il est écrit ici plutôt que
+ * dissous dans le facteur d'activité: un lecteur doit pouvoir voir que la
+ * croissance a été prise en compte, et de combien.
+ */
+export const CHILD_GROWTH_ALLOWANCE = 0.01;
+
+/**
+ * LE BESOIN QUOTIDIEN ESTIMÉ D'UN ENFANT. INTERNE, comme celui de l'adulte:
+ * ce nombre ne sort jamais du moteur, ne s'affiche pas, ne se dit pas.
+ *
+ * `other` et l'absence de sexe prennent la MOYENNE des deux jeux de
+ * coefficients — même arbitrage que `estimatedMaintenanceKcal`: choisir serait
+ * assigner, et la moyenne est la seule réponse qui ne le fait pas. C'est
+ * d'autant plus vrai ici que la décision porterait sur le corps d'un enfant.
+ */
+export function estimatedChildMaintenanceKcal(args: {
+  weightKg: number | null;
+  ageYears: number | null;
+  gender: "male" | "female" | "other" | null;
+  /**
+   * ⚠️ IL NE PEUT QUE MONTER, JAMAIS DESCENDRE — voir `childActivityFactor`.
+   * Requis, pour la même raison que partout ailleurs dans ce lot.
+   */
+  activityLevel: ActivityLevel | null;
+}): number | null {
+  const band = pediatricBandOf(args.ageYears);
+  if (band === null || !args.weightKg) return null;
+  const coef = CHILD_BMR[band];
+  const male = coef.male.a * args.weightKg + coef.male.b;
+  const female = coef.female.a * args.weightKg + coef.female.b;
+  const bmr = args.gender === "male"
+    ? male
+    : args.gender === "female"
+    ? female
+    : (male + female) / 2;
+  if (!Number.isFinite(bmr) || bmr <= 0) return null;
+  return Math.round(
+    bmr * childActivityFactor(args.activityLevel) *
+      (1 + CHILD_GROWTH_ALLOWANCE),
+  );
+}
+
+/**
+ * LE FACTEUR D'UN ENFANT QUI A RÉPONDU — ET IL NE PEUT QUE MONTER.
+ *
+ * `Math.max` et pas une lecture directe de `ACTIVITY_FACTORS`, et c'est la
+ * décision de ce paragraphe. Les crans de l'adulte descendent à 1,45 pour un
+ * sédentaire; le défaut de l'enfant est 1,60, et il est plus haut EXPRÈS (voir
+ * `CHILD_ACTIVITY_FACTOR`: le besoin par kilo d'un enfant est supérieur à
+ * celui d'un adulte, et FAO/WHO/UNU 2004 range les enfants d'âge scolaire
+ * modérément actifs entre 1,55 et 1,75).
+ *
+ * Laisser un « assis toute la journée » coché sur un enfant faire DESCENDRE
+ * son besoin de 1,60 à 1,45, c'est servir 9 % de moins à un corps en
+ * croissance sur la foi d'une case cochée par quelqu'un d'autre que lui — le
+ * compte maître. « Surestimer un besoin ferait servir plus que nécessaire —
+ * direction d'erreur bien moins grave que l'inverse » était déjà écrit ici;
+ * ce plancher est cette phrase rendue exécutable.
+ *
+ * Ce qu'on garde: un enfant qui s'entraîne quatre fois par semaine monte
+ * vraiment à 2,00, et c'est le cas que le renversement du 2026-08-18 sert.
+ */
+export function childActivityFactor(level: ActivityLevel | null): number {
+  if (level === null) return CHILD_ACTIVITY_FACTOR;
+  return Math.max(CHILD_ACTIVITY_FACTOR, ACTIVITY_FACTORS[level]);
+}
+
+/**
+ * LE PLANCHER PROTÉIQUE DE L'ENFANT — le « niveau sûr d'apport ».
+ *
+ * WHO/FAO/UNU 2007, « Protein and amino acid requirements in human nutrition »:
+ * le niveau sûr tourne autour de 0,9 g/kg/j de 4 à 14 ans. On retient 1,0, et
+ * il faut lire ce qu'il n'est PAS: ce n'est pas le plancher de 1,6-2,0 g/kg des
+ * dynamiques d'adulte, qui sert la rétention de masse maigre sous contrainte.
+ * Un enfant n'est sous aucune contrainte ici — il est en maintenance, toujours.
+ */
+const CHILD_PROTEIN_FLOOR_G_PER_KG = 1.0;
+
+/**
+ * L'ENVELOPPE D'UN ENFANT. **Maintenance, toujours, quoi qu'il y ait ailleurs.**
+ *
+ * ── AUCUN OBJECTIF, PAR CONSTRUCTION ─────────────────────────────────────
+ * La fonction ne prend pas de `goal`. Si le compte maître écrit `fat_loss` sur
+ * la fiche d'un enfant, il n'existe aucun chemin par lequel ce jeton atteigne
+ * cette bande — ce n'est pas un `if` qu'on pourrait oublier de rejouer, c'est
+ * un paramètre qui n'existe pas.
+ *
+ * ⚠️ ET C'EST EXACTEMENT CE QUI RESTE VRAI APRÈS LE 2026-08-18. Ce jour-là,
+ * une décision humaine a ouvert les trois objectifs à un mineur, et
+ * `servingDirectionFor` a cessé d'écraser sa direction. Une DIRECTION est une
+ * consigne de service (« légumes généreux, féculent plus modeste »); une BANDE
+ * D'ÉNERGIE est un déficit. Le renversement porte sur la première et
+ * s'arrête ici, à la seconde: l'objectif s'applique, le régime ne s'ouvre pas.
+ * C'est la moitié de la décision qui protège, et elle est tenue par l'absence
+ * d'un paramètre plutôt que par une garde qu'on pourrait lever.
+ *
+ * ── NI PLAFOND DE DENSITÉ, NI DÉFICIT, NI RÉPARTITION PAR REPAS ──────────
+ * `densityCeiling: null` et `proteinPerMealG: null`. Ce qu'on calcule est un
+ * BESOIN, pas une cible à réduire; un plafond de densité est une pression de
+ * minimisation, et elle n'a rien à faire sur l'assiette d'un enfant.
+ *
+ * `null` quand le corps ne suffit pas: **jamais** l'enveloppe dégradée. Rendre
+ * `per_portion` ici armerait le verrou de lane et ferait dégrader TOUT le
+ * foyer parce qu'une case du formulaire est vide. `null` veut dire « pas
+ * d'enveloppe pour cette bouche » — elle compte alors pour une part standard,
+ * jamais réduite, ce qui est la direction d'erreur du reste du module.
+ */
+export function childEnvelopeFromBody(body: MouthBody): Envelope | null {
+  const maintenance = estimatedChildMaintenanceKcal({
+    weightKg: body.weightKg,
+    ageYears: body.ageYears,
+    gender: body.gender,
+    activityLevel: body.activityLevel,
+  });
+  if (maintenance === null || !body.weightKg) return null;
+  const band = ENERGY_BANDS.maintenance;
+  return {
+    mode: "per_kg",
+    energy: {
+      low: Math.round(maintenance * band.low),
+      high: Math.round(maintenance * band.high),
+    },
+    proteinFloorG: Math.round(body.weightKg * CHILD_PROTEIN_FLOOR_G_PER_KG),
+    proteinPerMealG: null,
+    densityCeiling: null,
+  };
 }
 
 /**

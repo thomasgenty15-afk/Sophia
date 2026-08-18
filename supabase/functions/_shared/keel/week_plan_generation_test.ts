@@ -79,6 +79,7 @@ const PEANUT: StudentSafetyConstraint = {
   substanceRef: null,
   medicationClass: null,
     conditionRef: null,
+    dietRef: null,
   severity: "medical",
   declaredBy: "student",
   notes: null,
@@ -479,7 +480,7 @@ Deno.test("every goal has a named branch (R6)", () => {
 });
 
 Deno.test("the prompt carries the convictions and forbids numbers", () => {
-  const { userMessage, allowedKeys, systemPrompt } = buildWeekPlanPrompt({
+  const { userMessage, allowedKeys, systemPrompt } = buildWeekPlanPrompt({ contentLocale: "en-US",
     principles: PRINCIPLES,
     situation: {
       goal: "fat_loss",
@@ -540,10 +541,10 @@ Deno.test("a non-JSON model output throws instead of shipping an empty plan", ()
 // ---------------------------------------------------------------------------
 
 function promptWith(over: Record<string, unknown>): string {
-  return buildWeekPlanPrompt({
+  return buildWeekPlanPrompt({ contentLocale: "en-US",
     principles: PRINCIPLES,
     situation: {
-      goal: "health",
+      goal: "maintenance",
       situation: null,
       context: null,
       aspiration: null,
@@ -612,7 +613,7 @@ Deno.test("FF-027 — avec signal, le bloc est dans le prompt, après l'élève"
     windowStart: "2026-08-01",
     windowEnd: "2026-08-07",
   })!;
-  const msg = buildWeekPlanPrompt({
+  const msg = buildWeekPlanPrompt({ contentLocale: "en-US",
     principles: PRINCIPLES,
     situation: {
       goal: "fat_loss",

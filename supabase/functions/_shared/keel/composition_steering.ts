@@ -61,8 +61,16 @@ export const UNEXTINGUISHABLE_AXIS: SteeringAxis = "protein";
  * `carb_timing` (Impey 2018) est inerte sans jours d'entraînement déclarés.
  * Posé ailleurs, il est rejeté, COMPTÉ, et dit à l'écran coach — pas nettoyé
  * en silence: un coach doit savoir que sa position n'a pas pris.
+ *
+ * ⚠️ IL A CHANGÉ DE DYNAMIQUE LE 2026-08-18, ET IL FALLAIT CHOISIR. Il visait
+ * `performance`, qui n'existe plus: les quatre nuances du « ni l'un ni
+ * l'autre » se replient sur `maintenance`. Le repli MÉCANIQUE aurait donc posé
+ * le timing des glucides sur la dynamique de qui ne veut rien changer — c'est
+ * la seule des trois qui, par définition, ne s'entraîne pas forcément.
+ * `muscle_gain` est la dynamique qui reste et qui suppose un entraînement, et
+ * c'est chez elle que la position d'un coach sur le timing a un sujet.
  */
-export const CARB_TIMING_GOAL: GoalToken = "performance";
+export const CARB_TIMING_GOAL: GoalToken = "muscle_gain";
 
 export interface SteeringProportions {
   protein_share: "standard" | "high";

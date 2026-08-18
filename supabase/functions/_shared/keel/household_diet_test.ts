@@ -110,9 +110,9 @@ Deno.test("R5 — le plafond mord sur `larger`, jamais sur `full` ni en dessous"
   // monde, et faire payer le temps de cuisine pour une distinction que la
   // casserole sait tenir.
   assertEquals(conflictsFor("fat_loss"), []);
-  assertEquals(conflictsFor("recomposition"), []);
-  assertEquals(conflictsFor("performance"), []);
-  assertEquals(conflictsFor("health"), []);
+  assertEquals(conflictsFor("maintenance"), []);
+  assertEquals(conflictsFor("maintenance"), []);
+  assertEquals(conflictsFor("maintenance"), []);
   assertEquals(conflictsFor("maintenance"), []);
   assertEquals(dietServingConflicts("vegan", readServingDemands(NEUTRAL_DIRECTION)), []);
   // Un régime qui ne plafonne pas ne mord sur personne.
