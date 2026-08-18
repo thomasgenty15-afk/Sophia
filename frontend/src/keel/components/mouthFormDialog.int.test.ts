@@ -4,7 +4,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { readFileSync } from "node:fs";
 
 import MouthFormDialog, {
-  MouthFormFields,
+  MouthCoreFields,
+  MouthPreferencesFields,
   type MouthSubject,
 } from "./MouthFormDialog";
 import {
@@ -60,17 +61,31 @@ const dialogSource = readFileSync(
 const NO_ACCOUNT: MouthSubject = { existing: false, hasAccount: false };
 const WITH_ACCOUNT: MouthSubject = { existing: true, hasAccount: true };
 
-function html(args: {
+/**
+ * ── ⚠️ DEUX SURFACES DEPUIS LE 2026-08-18, ET CE RENDU LES CONCATÈNE ──────
+ *
+ * Les six blocs ne vivent plus dans une seule fenêtre: les trois premiers sont
+ * EN LIGNE (`MouthCoreFields`), les trois derniers derrière le bouton
+ * « Renseigner ses préférences alimentaires » (`MouthPreferencesFields`).
+ *
+ * `html()` rend LES DEUX, bout à bout, et c'est délibéré: tout ce que ce
+ * fichier gardait déjà — les libellés, les quatre états du curseur, les quatre
+ * crans, le shaker, le régime, la parité des deux langues — porte sur ce que la
+ * personne peut voir SUR SA FICHE, et ces faits-là ne doivent pas changer parce
+ * qu'on a déplacé une cloison.
+ *
+ * ⚠️ CE QUI CHANGE, LUI, EST PROUVÉ À PART: `coreHtml` et `prefsHtml` sont
+ * rendus SÉPARÉMENT dans la section « la cloison entre les deux surfaces », et
+ * c'est la seule chose qui dise QUEL bloc est de QUEL côté. Sans elle, une
+ * cloison déplacée à l'envers laisserait ce fichier entièrement vert.
+ */
+function scene(args: {
   draft?: Partial<MouthFormDraft>;
   subject?: MouthSubject;
   locale?: "en" | "fr";
-  open?: boolean;
-  failure?: string | null;
-  /** Le bloc sautable ouvert. `null` (défaut) = tous repliés. */
   openBlock?: MouthFormBlock | null;
-  /** Un enregistrement en vol — la SEULE raison de retenir la sortie. */
   busy?: boolean;
-}): string {
+}) {
   // `uiLocale()` lit le CHEMIN COURANT — la langue d'une page dépend de la
   // page, pas seulement du visiteur —, donc un rendu sans `location` sort en
   // anglais quoi qu'on ait choisi. Patron de `kitchenEquipmentCard.int.test.ts`.
@@ -80,21 +95,57 @@ function html(args: {
     writable: true,
   });
   setChosenUiLocaleForTest(args.locale ?? "en");
+  return {
+    draft: { ...emptyMouthDraft(), ...(args.draft ?? {}) },
+    subject: args.subject ?? NO_ACCOUNT,
+    busy: args.busy ?? false,
+    openBlock: args.openBlock ?? null,
+  };
+}
+
+/** LA FICHE EN LIGNE — blocs 1 à 3, plus le bouton qui ouvre les goûts. */
+function coreHtml(args: Parameters<typeof scene>[0]): string {
+  const s = scene(args);
   return renderToStaticMarkup(
-    createElement(MouthFormFields, {
-      open: args.open ?? true,
-      onClose: () => {},
-      draft: { ...emptyMouthDraft(), ...(args.draft ?? {}) },
+    createElement(MouthCoreFields, {
+      draft: s.draft,
       onChange: () => {},
-      subject: args.subject ?? NO_ACCOUNT,
+      subject: s.subject,
       todayLocalIso: TODAY,
-      busy: args.busy ?? false,
-      failure: args.failure ?? null,
-      openBlock: args.openBlock ?? null,
-      onOpenBlock: () => {},
+      busy: s.busy,
+      failure: (args as { failure?: string | null }).failure ?? null,
+      onOpenPreferences: () => {},
       onSubmit: () => {},
     }),
   );
+}
+
+/** LA FENÊTRE — blocs 4 à 6. */
+function prefsHtml(args: Parameters<typeof scene>[0]): string {
+  const s = scene(args);
+  return renderToStaticMarkup(
+    createElement(MouthPreferencesFields, {
+      draft: s.draft,
+      onChange: () => {},
+      subject: s.subject,
+      busy: s.busy,
+      onClose: () => {},
+      openBlock: s.openBlock,
+      onOpenBlock: () => {},
+    }),
+  );
+}
+
+function html(args: {
+  draft?: Partial<MouthFormDraft>;
+  subject?: MouthSubject;
+  locale?: "en" | "fr";
+  open?: boolean;
+  failure?: string | null;
+  openBlock?: MouthFormBlock | null;
+  busy?: boolean;
+}): string {
+  return coreHtml(args) + prefsHtml(args);
 }
 
 /**
@@ -659,14 +710,17 @@ describe("les goûts et le régime", () => {
 
 describe("la fenêtre se ferme, et ce qui retient est NOMMÉ", () => {
   it("une sortie est rendue même quand les trois blocs manquent", () => {
-    const body = text(html({}));
-    // ⚠️ DEUX SORTIES EXISTENT, ET UNE SEULE EST DANS CE COMPOSANT. Le bouton
-    // du bas est ici; le second est le `closeLabel` du fronton, passé par
-    // `MouthFormDialog` — sans lui, `Modal` retomberait sur son défaut
-    // « fermer », qui laisse croire qu'on perd ce qu'on a saisi.
-    expect(countOf(body, decode(en["household.mouth.later"])))
+    // ⚠️ LA SORTIE A CHANGÉ DE CÔTÉ LE 2026-08-18, PAS DE NATURE. La fiche est
+    // EN LIGNE: il n'y a plus de fenêtre à quitter au-dessus des trois blocs
+    // obligatoires, donc plus de « plus tard » chez eux — un bouton de sortie
+    // sur une carte de page ne mène nulle part. Ce qui reste une FENÊTRE, ce
+    // sont les préférences, et c'est là que la conception mord: « un pop-up
+    // qu'on ne peut pas fermer fait abandonner l'ajout de la deuxième personne,
+    // et le foyer meurt là ».
+    const body = text(prefsHtml({}));
+    expect(countOf(body, decode(en["household.mouth.preferences_done"])))
       .toBeGreaterThanOrEqual(1);
-    // ET LE FRONTON PORTE BIEN LE MÊME MOT: prouvé sur la SOURCE du wrapper,
+    // ET LE FRONTON PORTE BIEN SA SORTIE: prouvé sur la SOURCE du wrapper,
     // faute de DOM pour monter le portail. C'est la seule assertion de source
     // du fichier, et elle est bornée à une ligne.
     expect(dialogSource).toContain('closeLabel={t("household.mouth.later")}');
@@ -676,40 +730,44 @@ describe("la fenêtre se ferme, et ce qui retient est NOMMÉ", () => {
     // ⚠️ L5-B (2026-08-18) — LA GARDE QUI MANQUAIT, ET C'EST CELLE DE
     // L'INVARIANT QUE CE LOT NOMME COMME LE PLUS IMPORTANT.
     //
-    // « Obligatoire » qualifie l'ENREGISTREMENT, jamais la fenêtre: « un pop-up
-    // qu'on ne peut pas fermer fait abandonner l'ajout de la deuxième personne,
-    // et le foyer meurt là » (conception §1). Cette phrase était écrite trois
-    // fois en commentaire, et prouvée nulle part — la seule assertion voisine
-    // vérifie que la sortie est RENDUE, pas qu'elle est ACTIONNABLE. Mesuré:
-    // remplacer `disabled={props.busy}` par
+    // Mesuré à l'époque: remplacer `disabled={props.busy}` par
     // `disabled={props.busy || missing.length > 0}` sur le bouton de sortie
     // laissait les 97 tests verts, c'est-à-dire livrait une fenêtre CAPTIVE
     // exactement dans l'état que la conception interdit.
     //
-    // Les deux boutons sont donc lus SÉPARÉMENT, et sur le même rendu: c'est
-    // l'OPPOSITION de leurs états qui est le fait, pas l'état de l'un des deux.
-    const markup = html({});
+    // ⚠️ LES DEUX BOUTONS NE SONT PLUS DANS LE MÊME COMPOSANT depuis la
+    // séparation des surfaces, et c'est justement pour ça qu'ils sont lus sur
+    // le MÊME brouillon: c'est l'OPPOSITION de leurs états qui est le fait —
+    // celui qui inscrit retient, celui qui ferme jamais.
     expect(missingRequiredBlocks(emptyMouthDraft())).toHaveLength(3);
-    expect(buttonTagOf(markup, decode(en["household.mouth.add"])))
+    expect(buttonTagOf(coreHtml({}), decode(en["household.mouth.add"])))
       .toMatch(DISABLED);
-    expect(buttonTagOf(markup, decode(en["household.mouth.later"])))
-      .not.toMatch(DISABLED);
+    expect(
+      buttonTagOf(prefsHtml({}), decode(en["household.mouth.preferences_done"])),
+    ).not.toMatch(DISABLED);
     // ET EN FRANÇAIS: une fenêtre captive dans une seule langue est une fenêtre
     // captive (cicatrice « garde testée dans une seule langue »).
-    const fre = html({ locale: "fr" });
-    expect(buttonTagOf(fre, decode(fr["household.mouth.add"])))
-      .toMatch(DISABLED);
-    expect(buttonTagOf(fre, decode(fr["household.mouth.later"])))
-      .not.toMatch(DISABLED);
+    expect(
+      buttonTagOf(coreHtml({ locale: "fr" }), decode(fr["household.mouth.add"])),
+    ).toMatch(DISABLED);
+    expect(
+      buttonTagOf(
+        prefsHtml({ locale: "fr" }),
+        decode(fr["household.mouth.preferences_done"]),
+      ),
+    ).not.toMatch(DISABLED);
   });
 
   it("`busy` retient les DEUX — un enregistrement en vol n'est pas une fenêtre", () => {
     // La seule raison légitime de retenir la sortie: un appel en cours. Sans ce
     // cas qui PASSE, la garde ci-dessus se lirait comme « la sortie n'est jamais
     // désactivée », et quelqu'un la « réparerait » en retirant `props.busy`.
-    const markup = html({ busy: true });
-    expect(buttonTagOf(markup, decode(en["household.mouth.later"])))
-      .toMatch(DISABLED);
+    expect(
+      buttonTagOf(
+        prefsHtml({ busy: true }),
+        decode(en["household.mouth.preferences_done"]),
+      ),
+    ).toMatch(DISABLED);
   });
 
   it("ce qui RETIENT le bouton est écrit, à côté du bouton", () => {
@@ -869,5 +927,134 @@ describe("un mineur porte les six blocs, comme les autres", () => {
     // Les deux corps sont IDENTIQUES sauf la date de naissance: si les bornes
     // sont les mêmes, c'est que le plafond pédiatrique n'est pas appliqué.
     expect(kidMax).not.toBe(adultMax);
+  });
+});
+
+// ===========================================================================
+// D6 (2026-08-18) — LA CLOISON ENTRE LES DEUX SURFACES
+//
+// C'est la SEULE section qui rende les deux composants séparément, et c'est
+// elle qui porte la décision:
+//
+//   « Le poids visé et le rythme d'évolution, il faut pas que ce soit dans la
+//     pop-up […]. Et le reste (allergies, etc.) dans une pop-up accessible
+//     depuis "Renseigner ses préférences alimentaires". »
+//
+// ⚠️ CHAQUE FAIT EST DIT DEUX FOIS, EN PRÉSENCE ET EN ABSENCE. Un bloc rendu
+// des DEUX côtés satisferait n'importe quelle assertion de présence, et
+// livrerait deux formulaires qui écrivent la même colonne — la cicatrice que la
+// fiche du maître a déjà payée.
+// ===========================================================================
+
+describe("la cloison entre les deux surfaces", () => {
+  const TITLES = {
+    identity: "household.mouth.identity",
+    direction: "household.mouth.direction",
+    body: "household.mouth.body",
+    habits: "household.mouth.habits",
+    allergies: "setup.mouths.allergies",
+    tastes: "household.mouth.tastes",
+  } as const;
+
+  it("la fiche en ligne porte les trois blocs qui structurent, et rien d'autre", () => {
+    const body = text(coreHtml({}));
+    for (const key of [TITLES.identity, TITLES.direction, TITLES.body]) {
+      expect(body, `${key} a quitté la fiche`).toContain(decode(en[key]));
+    }
+    for (const key of [TITLES.habits, TITLES.allergies, TITLES.tastes]) {
+      expect(body, `${key} est remonté dans la fiche`).not.toContain(
+        decode(en[key]),
+      );
+    }
+  });
+
+  it("la fenêtre porte les trois blocs qui affinent, et rien d'autre", () => {
+    const body = text(prefsHtml({}));
+    for (const key of [TITLES.habits, TITLES.allergies, TITLES.tastes]) {
+      expect(body, `${key} a quitté la fenêtre`).toContain(decode(en[key]));
+    }
+    for (const key of [TITLES.identity, TITLES.direction, TITLES.body]) {
+      expect(body, `${key} est redescendu dans la fenêtre`).not.toContain(
+        decode(en[key]),
+      );
+    }
+  });
+
+  /**
+   * LES DEUX CHAMPS QUE LA DÉCISION NOMME, ET LE CAS OÙ ILS EXISTENT.
+   *
+   * ⚠️ SANS LE CORPS ET LA DIRECTION, LE CURSEUR N'EST PAS RENDU DU TOUT
+   * (`folded`, puis `needs_body`): une assertion d'absence côté fenêtre serait
+   * alors verte sur un écran où PERSONNE ne le voit. Le brouillon porte donc un
+   * corps complet et une direction qui bouge — l'état où le curseur EXISTE.
+   */
+  it("le poids visé et le curseur de rythme sont EN LIGNE, jamais dans la fenêtre", () => {
+    const draft = {
+      goal: "fat_loss" as const,
+      birthDate: ADULT_BIRTH,
+      heightCm: "178",
+      weightKg: "85",
+      gender: "male" as const,
+      targetWeightKg: "78",
+    };
+    const core = coreHtml({ draft });
+    const prefs = prefsHtml({ draft });
+    expect(core, "le poids visé a quitté la fiche").toContain(
+      'id="mouth-target-weight"',
+    );
+    expect(core, "le curseur de rythme a quitté la fiche").toContain(
+      'id="mouth-pace"',
+    );
+    expect(prefs, "le poids visé est passé dans la fenêtre").not.toContain(
+      'id="mouth-target-weight"',
+    );
+    expect(prefs, "le curseur est passé dans la fenêtre").not.toContain(
+      'id="mouth-pace"',
+    );
+  });
+
+  it("le bouton qui ouvre la fenêtre est sur la fiche, dans les deux langues", () => {
+    expect(text(coreHtml({}))).toContain(
+      decode(en["household.mouth.preferences_open"]),
+    );
+    expect(text(coreHtml({ locale: "fr" }))).toContain(
+      decode(fr["household.mouth.preferences_open"]),
+    );
+  });
+
+  /**
+   * CE QUI A ÉTÉ RENSEIGNÉ DERRIÈRE LE BOUTON EST DIT SOUS LE BOUTON.
+   *
+   * ⚠️ LE CAS VIDE EST LA MOITIÉ DE LA GARDE. Sans lui, un récapitulatif qui
+   * dirait toujours la même phrase — ou qui ne dirait jamais rien — passerait:
+   * ce qui est prouvé est que l'écran DISTINGUE « rien répondu » de « répondu ».
+   */
+  it("le récapitulatif distingue « rien renseigné » de ce qui l'a été", () => {
+    expect(text(coreHtml({}))).toContain(
+      decode(en["household.mouth.preferences_empty"]),
+    );
+    const filled = text(
+      coreHtml({ draft: { allergies: ["milk"], dislikes: ["mushrooms"] } }),
+    );
+    expect(filled).not.toContain(
+      decode(en["household.mouth.preferences_empty"]),
+    );
+    expect(filled).toContain(decode(en["household.mouth.block_allergies"]));
+    expect(filled).toContain(decode(en["household.mouth.block_tastes"]));
+    // ET PAS CELUI QU'ON N'A PAS TOUCHÉ: un récapitulatif qui nomme tout ne
+    // récapitule rien.
+    expect(filled).not.toContain(decode(en["household.mouth.block_habits"]));
+  });
+
+  /**
+   * « AUCUNE ALLERGIE » EST UNE RÉPONSE, et le récapitulatif la compte comme
+   * telle. Sinon quelqu'un qui a répondu « rien » lit qu'il n'a rien répondu,
+   * rouvre, et recoche — c'est exactement ce que `allergiesNone` existe pour
+   * éviter en base.
+   */
+  it("« rien à déclarer » compte comme renseigné", () => {
+    const body = text(coreHtml({ draft: { allergiesNone: true } }));
+    expect(body).not.toContain(decode(en["household.mouth.preferences_empty"]));
+    expect(body).toContain(decode(en["household.mouth.block_allergies"]));
   });
 });

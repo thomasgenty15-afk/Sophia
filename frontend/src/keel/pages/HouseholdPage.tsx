@@ -88,7 +88,7 @@ import {
   type MouthFormDraft,
   mouthToPersist,
 } from "../lib/mouthForm";
-import MouthFormDialog from "../components/MouthFormDialog";
+import MouthFormDialog, { MouthCoreFields } from "../components/MouthFormDialog";
 import { householdErrorKey } from "../copy/planRefusals";
 import MealPickerGrid from "../components/MealPickerGrid";
 import HouseholdHabitsCard from "../components/HouseholdHabitsCard";
@@ -973,10 +973,33 @@ export function MeCard(
   // carte qui gagne sa fenêtre à la deuxième lecture changerait sinon de
   // nombre de hooks entre deux rendus.
   const [open, setOpen] = React.useState(false);
-  const [sheetDraft, setSheetDraft] = React.useState<MouthFormDraft>(
-    emptyMouthDraft,
+  // ⚠️ SEMÉ DÈS LE PREMIER RENDU, ET RE-SEMÉ À CHAQUE LECTURE DIFFÉRENTE (voir
+  // l'effet juste en dessous). L'initialiseur seul laisserait la fiche montrer
+  // du vide pendant un battement — « un formulaire qui affiche du vide non lu
+  // finit toujours par le faire écrire ».
+  const [sheetDraft, setSheetDraft] = React.useState<MouthFormDraft>(() =>
+    sheet === null ? emptyMouthDraft() : draftFromKnown(sheet.known)
   );
   const [openBlock, setOpenBlock] = React.useState<MouthFormBlock | null>(null);
+  /**
+   * ⚠️ ON SÈME SUR LA LECTURE, PAS AU MONTAGE, ET C'EST LA MOITIÉ QUI COMPTE.
+   *
+   * Le brouillon était semé À L'OUVERTURE de la fenêtre. La fiche est en ligne
+   * depuis le 2026-08-18: il n'y a plus d'ouverture, et un brouillon figé au
+   * montage rendrait, au deuxième Save, la photo d'AVANT le premier — `setHabits`
+   * comme `setTarget` REMPLACENT ce qu'elles trouvent. C'est la cicatrice
+   * « `current` périmé efface l'écriture d'avant », mesurée deux fois.
+   *
+   * La dépendance est la VALEUR lue, sérialisée: un re-rendu qui rend le même
+   * `known` ne touche à rien, donc une saisie en cours survit à tout ce qui
+   * n'est pas une lecture différente.
+   */
+  const knownKey = JSON.stringify(sheet?.known ?? null);
+  React.useEffect(() => {
+    if (sheet === null) return;
+    setSheetDraft(draftFromKnown(sheet.known));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [knownKey]);
 
   if (sheet !== null) {
     return (
@@ -985,25 +1008,13 @@ export function MeCard(
         <p className="mb-3 text-sm text-ink-soft">
           {needsGoalRow ? t("household.me.unlock") : t("household.me.sheet")}
         </p>
-        <Button
-          variant={needsGoalRow ? "primary" : "secondary"}
-          disabled={busy}
-          onClick={() => {
-            // ⚠️ ON SÈME À L'OUVERTURE, PAS AU MONTAGE, ET C'EST LA MOITIÉ QUI
-            // COMPTE. La carte vit tout le temps que dure l'écran; un
-            // brouillon figé à son montage rendrait, au deuxième Save, la
-            // photo d'AVANT le premier — et `setHabits` comme `setTarget`
-            // REMPLACENT ce qu'elles trouvent. C'est la cicatrice « `current`
-            // périmé efface l'écriture d'avant », mesurée deux fois.
-            setSheetDraft(draftFromKnown(sheet.known));
-            setOpen(true);
-          }}
-        >
-          {t("household.me.open")}
-        </Button>
-        <MouthFormDialog
-          open={open}
-          onClose={() => setOpen(false)}
+        {/* ── LES TROIS BLOCS QUI STRUCTURENT, EN LIGNE (2026-08-18) ───────
+            Ils vivaient derrière « Fill in my details ». La direction, le poids
+            visé et le curseur de rythme décident de la forme des assiettes: les
+            cacher derrière un clic, c'était rendre le réglage central de ce
+            produit invisible à qui ne pense pas à ouvrir une fenêtre. Ce qui
+            reste dans la fenêtre est ce qui AFFINE. */}
+        <MouthCoreFields
           draft={sheetDraft}
           onChange={setSheetDraft}
           // `existing: true` — sa ligne EXISTE, on la complète. `hasAccount:
@@ -1013,18 +1024,20 @@ export function MeCard(
           todayLocalIso={sheet.todayLocalIso}
           busy={busy}
           failure={sheet.failure}
+          onOpenPreferences={() => setOpen(true)}
+          onSubmit={() => {
+            void sheet.onSave(sheetDraft);
+          }}
+        />
+        <MouthFormDialog
+          open={open}
+          onClose={() => setOpen(false)}
+          draft={sheetDraft}
+          onChange={setSheetDraft}
+          subject={{ existing: true, hasAccount: true }}
+          busy={busy}
           openBlock={openBlock}
           onOpenBlock={setOpenBlock}
-          onSubmit={() => {
-            void (async () => {
-              const ok = await sheet.onSave(sheetDraft);
-              // ⚠️ ELLE SE FERME SUR UN SUCCÈS, contrairement à la carte
-              // d'ajout — et l'écart est le geste: on n'enchaîne pas sur une
-              // deuxième version de soi-même. Sur un refus elle reste ouverte,
-              // avec le motif dedans.
-              if (ok) setOpen(false);
-            })();
-          }}
         />
       </Card>
     );
@@ -1140,15 +1153,13 @@ function AddMouthCard(
         </p>
       ) : (
         <div>
-          {/* ⛔ PLUS DE FIGUE ICI (voir la note d'origine plus bas): le geste se
-              répète, et un aplat de marque qu'on actionne cinq fois de suite
-              n'est plus une action principale. */}
-          <Button disabled={busy} onClick={() => setOpen(true)}>
-            {t("household.add.submit")}
-          </Button>
-          <MouthFormDialog
-            open={open}
-            onClose={() => setOpen(false)}
+          {/* ── LA FICHE EST EN LIGNE, LA FENÊTRE NE PORTE QUE LES GOÛTS ────
+              Les trois blocs obligatoires étaient derrière « Ajouter quelqu'un »,
+              donc derrière un clic ET derrière une fenêtre. Ils sont ici, sans
+              clic: c'est ce qui dimensionne les assiettes. Le bouton qui INSCRIT
+              est celui de la fiche, en bas — il retient tant qu'il manque un des
+              trois blocs, et il DIT lesquels. */}
+          <MouthCoreFields
             draft={draft}
             onChange={setDraft}
             // `existing: false` — on l'AJOUTE. `hasAccount: false` — une bouche
@@ -1158,17 +1169,29 @@ function AddMouthCard(
             todayLocalIso={todayLocalIso}
             busy={busy}
             failure={failure}
-            openBlock={openBlock}
-            onOpenBlock={setOpenBlock}
+            onOpenPreferences={() => setOpen(true)}
             onSubmit={() => {
               void (async () => {
                 const ok = await onAdd(draft);
                 if (!ok) return;
-                // ON VIDE, ON NE FERME PAS: la fenêtre reste ouverte pour la
-                // personne suivante.
+                // ON VIDE, ET LA FENÊTRE DES GOÛTS SE REFERME AVEC: le
+                // brouillon suivant est celui de quelqu'un d'autre, et une
+                // fenêtre restée ouverte sur les préférences de la personne
+                // d'avant écrirait dans la fiche de la suivante.
                 setDraft(emptyMouthDraft());
+                setOpen(false);
               })();
             }}
+          />
+          <MouthFormDialog
+            open={open}
+            onClose={() => setOpen(false)}
+            draft={draft}
+            onChange={setDraft}
+            subject={{ existing: false, hasAccount: false }}
+            busy={busy}
+            openBlock={openBlock}
+            onOpenBlock={setOpenBlock}
           />
         </div>
       )}

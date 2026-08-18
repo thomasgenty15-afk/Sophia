@@ -74,14 +74,44 @@ function render(sheet: KnownMouth | null): string {
 }
 
 describe("la fiche du maître — quel formulaire la carte montre", () => {
-  it("⛔ AVEC LA FENÊTRE, LES TROIS CHAMPS EN LIGNE DISPARAISSENT", () => {
+  it("⛔ AVEC LA FICHE, LES TROIS CHAMPS EN LIGNE DISPARAISSENT", () => {
     // Deux formulaires qui écrivent les mêmes trois colonnes sur la même carte,
     // c'est la garantie qu'un jour l'un des deux cessera d'écrire ce que
     // l'autre écrit.
+    //
+    // ⚠️ D6 (2026-08-18) — CE N'EST PLUS UNE FENÊTRE QUI LES REMPLACE, C'EST LA
+    // FICHE EN LIGNE. Les trois blocs qui structurent (qui c'est · la direction
+    // avec son poids visé et son curseur · le corps) étaient derrière
+    // « Fill in my details »; ils sont maintenant dans la carte, sans clic. Ce
+    // qui reste derrière un bouton, ce sont les préférences alimentaires.
     const html = render(KNOWN);
-    expect(html).toContain(en["household.me.open"]);
-    expect(html).not.toContain(en["household.member.first_name"]);
-    expect(html).not.toContain(en["household.member.birth_date"]);
+    expect(html, "la fiche en ligne n'est pas rendue").toContain(
+      'id="mouth-first-name"',
+    );
+    expect(html, "le bouton des préférences a disparu").toContain(
+      en["household.mouth.preferences_open"],
+    );
+    // ⚠️ L'ANCRE EST UN COMPTE, PAS UNE ABSENCE, ET C'EST MESURÉ. Les deux
+    // formulaires disent les MÊMES MOTS — « First name », « Save » —, donc
+    // toute assertion d'absence sur un libellé rougit sur la fiche neuve,
+    // c'est-à-dire sur le cas nominal. Ce qui distingue « un formulaire » de
+    // « deux formulaires » est COMBIEN DE FOIS le champ apparaît.
+    expect(
+      html.split(en["household.member.first_name"]).length - 1,
+      "deux formulaires écrivent le prénom sur la même carte",
+    ).toBe(1);
+  });
+
+  /**
+   * ⚠️ LA FICHE EST SEMÉE DÈS LE PREMIER RENDU, pas à un `useEffect` qui ne
+   * tourne pas ici. Sans ça, la carte montrerait du vide non lu — et le Save
+   * l'écrirait par-dessus ce que la base savait déjà.
+   */
+  it("et elle s'ouvre sur ce que la base sait déjà", () => {
+    const html = render(KNOWN);
+    expect(html).toContain('value="Ahmed"');
+    expect(html).toContain('value="1988-02-03"');
+    expect(html).toContain('value="72"');
   });
 
   it("⛔ …ET LE CAS QUI PASSE — sans fenêtre, les trois champs sont là", () => {

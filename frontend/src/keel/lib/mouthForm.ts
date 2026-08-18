@@ -686,6 +686,48 @@ export function missingRequiredBlocks(
 }
 
 /**
+ * LES TROIS BLOCS QUI SONT PASSÉS DERRIÈRE UN BOUTON (2026-08-18).
+ *
+ * Décision, mot pour mot: « le poids visé et le rythme d'évolution […] dans le
+ * cadre de l'étape 3. Et le reste (allergies, etc.) dans une pop-up accessible
+ * depuis "Renseigner ses préférences alimentaires" ». Ce qui STRUCTURE le plan
+ * reste en ligne; ce qui l'AFFINE se replie.
+ */
+export const PREFERENCE_MOUTH_FORM_BLOCKS = [
+  "habits",
+  "allergies",
+  "tastes",
+] as const satisfies readonly MouthFormBlock[];
+
+/**
+ * CE QUI A DÉJÀ ÉTÉ RENSEIGNÉ DERRIÈRE LE BOUTON.
+ *
+ * ⚠️ CETTE FONCTION EXISTE PARCE QUE LA FENÊTRE CACHE CE QU'ON Y A TAPÉ. Le
+ * brouillon vit chez l'appelant et survit à la fermeture — mais l'écran, lui,
+ * n'en montre plus rien une fois la fenêtre refermée, et le dépôt sait ce que
+ * ça produit: on rouvre pour vérifier, on doute, on retape. Le récapitulatif
+ * sous le bouton est la seule chose qui dise « c'est gardé ».
+ *
+ * ⚠️ « AUCUNE ALLERGIE » COMPTE COMME RENSEIGNÉ. C'est une RÉPONSE, et la
+ * distinguer d'un bloc jamais ouvert est exactement ce que `allergiesNone`
+ * existe pour faire — sinon quelqu'un qui a répondu « rien » lirait qu'il n'a
+ * rien répondu, et rouvrirait pour cocher deux fois.
+ *
+ * ⚠️ UNE HABITUDE VIDE N'EN EST PAS UNE: `habits` porte une clé par moment dès
+ * qu'on a touché un champ puis effacé. On compte le TEXTE, pas la clé.
+ */
+export function filledPreferenceBlocks(
+  draft: MouthFormDraft,
+): readonly MouthFormBlock[] {
+  const out: MouthFormBlock[] = [];
+  const anyHabit = Object.values(draft.habits).some((v) => v.trim() !== "");
+  if (anyHabit || draft.shaker !== null) out.push("habits");
+  if (draft.allergies.length > 0 || draft.allergiesNone) out.push("allergies");
+  if (draft.dislikes.length > 0 || draft.diet !== "") out.push("tastes");
+  return out;
+}
+
+/**
  * LE POIDS VISÉ REFUSÉ RETIENT-IL LE BOUTON ?
  *
  * Oui — et c'est le seul refus non-bloc qui le fait. Un poids visé sous le

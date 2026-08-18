@@ -15,6 +15,7 @@ import { mealCopy } from "../api/mealLabels";
 import {
   activityIsRequired,
   ageStateOfDraft,
+  filledPreferenceBlocks,
   type MouthFormBlock,
   type MouthFormDraft,
   missingRequiredBlocks,
@@ -33,10 +34,36 @@ import {
 } from "../../../../supabase/functions/_shared/keel/weight_pace.ts";
 
 // ═══════════════════════════════════════════════════════════════════════════
-// LE POP-UP « UNE BOUCHE » — six blocs, trois obligatoires, trois sautables.
+// UNE BOUCHE — SIX BLOCS, ET DEUX SURFACES DEPUIS LE 2026-08-18.
 //
 // Conception: `scratchpad/2026-08-18-FORMULAIRE-PERSONNE-ET-PLANNING.md` §1.
 // La DÉCISION vit dans `lib/mouthForm.ts`; ce fichier REND.
+//
+// ── ⚠️ LA RÈGLE DE RÉPARTITION, DANS LES MOTS DE LA DÉCISION ─────────────
+// « Le poids visé et le rythme d'évolution, il faut pas que ce soit dans la
+//   pop-up […]. Et le reste (allergies, etc.) dans une pop-up accessible depuis
+//   "Renseigner ses préférences alimentaires". »
+//
+// Ce qui STRUCTURE le plan reste dans le flux, en ligne, sans clic; ce qui
+// l'AFFINE passe derrière un bouton:
+//
+//   `MouthCoreFields`        blocs 1-3 — qui c'est · la direction (avec le
+//                            poids visé ET le curseur de rythme) · le corps et
+//                            le cran d'activité. C'est lui qui porte le bouton
+//                            d'enregistrement, parce que c'est lui qui porte
+//                            les trois blocs obligatoires.
+//   `MouthPreferencesFields` blocs 4-6 — ce qu'elle mange déjà (avec le
+//                            shaker) · les allergies · ses dégoûts et son
+//                            régime. Rendus dans `MouthFormDialog`.
+//
+// ⚠️ UN SEUL BROUILLON POUR LES DEUX, ET UN SEUL ÉCRIVAIN. La fenêtre n'a pas
+// de bouton qui enregistre: elle édite le même `MouthFormDraft` que la fiche en
+// ligne, et c'est le Save de la fiche qui écrit. Deux boutons d'enregistrement
+// sur un même brouillon, c'est la garantie qu'un jour l'un des deux cessera
+// d'écrire ce que l'autre écrit — le dépôt l'a déjà mesuré sur `MeCard`.
+// La contrepartie est nommée à l'écran: ce qui a été renseigné derrière le
+// bouton est RÉCAPITULÉ sous lui (`filledPreferenceBlocks`), sinon fermer la
+// fenêtre se lirait comme perdre ce qu'on vient de taper.
 //
 // ── IL S'OUVRE POUR TOUT LE MONDE, MAÎTRE COMPRIS ────────────────────────
 // « sans quoi celui qui tient la maison serait le seul dont on ne sait rien ».
@@ -85,9 +112,8 @@ export interface MouthSubject {
   hasAccount: boolean;
 }
 
-export interface MouthFormDialogProps {
-  open: boolean;
-  onClose: () => void;
+/** Les blocs 1-3, EN LIGNE — c'est la fiche, pas la fenêtre. */
+export interface MouthCoreFieldsProps {
   draft: MouthFormDraft;
   onChange: React.Dispatch<React.SetStateAction<MouthFormDraft>>;
   subject: MouthSubject;
@@ -104,6 +130,22 @@ export interface MouthFormDialogProps {
   /** Le refus du dernier enregistrement, ou `null`. REQUIS. */
   failure: string | null;
   /**
+   * LE GESTE QUI OUVRE LES PRÉFÉRENCES. REQUIS — jamais optionnel: un bouton
+   * dont le geste est facultatif est un bouton qui peut ne rien faire, et
+   * « un geste qui ne fait rien est indiscernable d'un geste qui a marché ».
+   */
+  onOpenPreferences: () => void;
+  onSubmit: () => void;
+}
+
+/** Les blocs 4-6, DANS LA FENÊTRE — ils affinent, ils ne structurent pas. */
+export interface MouthPreferencesFieldsProps {
+  draft: MouthFormDraft;
+  onChange: React.Dispatch<React.SetStateAction<MouthFormDraft>>;
+  subject: MouthSubject;
+  busy: boolean;
+  onClose: () => void;
+  /**
    * LE BLOC SAUTABLE OUVERT, ou `null` — TOUS REPLIÉS.
    *
    * ⚠️ CONTRÔLÉ ET REQUIS, PAS UN `useState` INTERNE, ET C'EST UNE MUTATION
@@ -117,7 +159,16 @@ export interface MouthFormDialogProps {
    */
   openBlock: MouthFormBlock | null;
   onOpenBlock: (next: MouthFormBlock | null) => void;
-  onSubmit: () => void;
+}
+
+/**
+ * LA FENÊTRE DES PRÉFÉRENCES — le chrome, et ce qu'il porte.
+ *
+ * ⛔ PAS DE `onSubmit` ICI, ET C'EST LE POINT DE LA SÉPARATION. Elle édite le
+ * brouillon de la fiche; c'est la fiche qui enregistre.
+ */
+export interface MouthFormDialogProps extends MouthPreferencesFieldsProps {
+  open: boolean;
 }
 
 /**
@@ -237,20 +288,27 @@ export default function MouthFormDialog(
     <Modal
       open={props.open}
       onClose={props.onClose}
-      title={props.draft.firstName.trim() || t("household.mouth.title")}
+      // LE TITRE NOMME LE BOUTON QUI L'A OUVERTE, et le prénom vient après.
+      // Une fenêtre qui ne porte pas le nom du geste laisse le doute sur ce
+      // qu'on est en train de remplir.
+      title={props.draft.firstName.trim()
+        ? t("household.mouth.preferences_title_named", {
+          name: props.draft.firstName.trim(),
+        })
+        : t("household.mouth.preferences_title")}
       size="lg"
       // LA SORTIE DIT CE QU'ELLE FAIT. « Fermer » sur une fenêtre à moitié
       // remplie laisse croire qu'on perd tout; « plus tard » dit que la
       // personne reste et que la fiche se reprend.
       closeLabel={t("household.mouth.later")}
     >
-      <MouthFormFields {...props} />
+      <MouthPreferencesFields {...props} />
     </Modal>
   );
 }
 
-export function MouthFormFields(
-  props: MouthFormDialogProps,
+export function MouthCoreFields(
+  props: MouthCoreFieldsProps,
 ): React.ReactElement {
   const { draft, onChange, subject, todayLocalIso } = props;
   // ⚠️ MISE À JOUR FONCTIONNELLE. React groupe les mises à jour d'un même tick:
@@ -259,10 +317,8 @@ export function MouthFormFields(
   const set = (patch: Partial<MouthFormDraft>) =>
     onChange((prev) => ({ ...prev, ...patch }));
 
-  const toggle = (id: MouthFormBlock) =>
-    props.onOpenBlock(props.openBlock === id ? null : id);
-
   const missing = missingRequiredBlocks(draft);
+  const filled = filledPreferenceBlocks(draft);
   const held = submitIsHeld(draft, todayLocalIso);
   const paceControl = paceControlFor(draft, todayLocalIso);
   const targetState = targetWeightStateFor(draft, todayLocalIso);
@@ -602,6 +658,114 @@ export function MouthFormFields(
           </Field>
         </RequiredBlock>
 
+        {/* ── LE BOUTON QUI OUVRE LES PRÉFÉRENCES ─────────────────────────
+            Les blocs 4-6 vivent DERRIÈRE lui depuis le 2026-08-18: ils affinent
+            un plan, ils ne le structurent pas. Ce qui le précède — qui c'est, où
+            va la balance, quel corps — décide de la forme des assiettes, donc
+            reste en ligne, sans clic.
+
+            ⚠️ CE QUI A ÉTÉ RENSEIGNÉ DERRIÈRE EST DIT SOUS LE BOUTON. Sans ce
+            récapitulatif, fermer la fenêtre se lit comme perdre ce qu'on vient
+            de taper: le brouillon le garde, mais l'écran n'en montrait plus
+            rien — et « un geste qui ne fait rien est indiscernable d'un geste
+            qui a marché » vaut aussi dans l'autre sens. */}
+        <div className="rounded-card border border-line-strong bg-paper p-4">
+          <Button
+            variant="secondary"
+            disabled={props.busy}
+            onClick={props.onOpenPreferences}
+          >
+            {t("household.mouth.preferences_open")}
+          </Button>
+          <p className="mt-2 text-xs leading-5 text-ink-soft">
+            {filled.length > 0
+              ? t("household.mouth.preferences_filled", {
+                blocks: blockList(
+                  filled.map((b) =>
+                    t(
+                      `household.mouth.block_${b}` as "household.mouth.block_identity",
+                    )
+                  ),
+                ),
+              })
+              : t("household.mouth.preferences_empty")}
+          </p>
+        </div>
+
+        {/* ── LE REFUS, PUIS CE QUI RETIENT, PUIS LE GESTE ───────────────── */}
+        {props.failure !== null ? (
+          <p className="rounded-card border border-rose-200 bg-rose-50 p-3 text-xs leading-5 text-rose-900">
+            {props.failure}
+          </p>
+        ) : null}
+        {/* ⚠️ CE QUI RETIENT LE BOUTON EST NOMMÉ, ET IL EST À CÔTÉ DU BOUTON.
+            Un bouton grisé sans phrase est le mode d'échec n°1 de ce dépôt: le
+            geste ne fait rien, et rien ne dit ce qui le lèverait. */}
+        {missing.length > 0 ? (
+          <p className="rounded-card border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900">
+            {t("household.mouth.held", {
+              blocks: blockList(
+                missing.map((b) =>
+                  t(
+                    `household.mouth.block_${b}` as "household.mouth.block_identity",
+                  )
+                ),
+              ),
+            })}
+          </p>
+        ) : null}
+
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            variant="primary"
+            disabled={props.busy || held}
+            onClick={props.onSubmit}
+          >
+            {subject.existing
+              ? t("household.mouth.save")
+              : t("household.mouth.add")}
+          </Button>
+          {/* ⛔ PLUS DE « PLUS TARD » ICI. Cette fiche est EN LIGNE depuis le
+              2026-08-18: il n'y a plus de fenêtre à quitter, et un bouton de
+              sortie sur une carte de page ne mène nulle part. La sortie qui
+              reste est celle de la fenêtre des préférences, chez elle. */}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+/**
+ * LES BLOCS 4-6 — CE QUI AFFINE, JAMAIS CE QUI STRUCTURE.
+ *
+ * ⚠️ ILS ÉDITENT LE BROUILLON DE LA FICHE, ET N'ENREGISTRENT RIEN. Il n'y a
+ * donc ici NI bouton de save, NI ligne « il manque… »: les trois blocs qui
+ * retiennent l'enregistrement sont en ligne, dans `MouthCoreFields`, et leur
+ * refus est rendu à côté du bouton qui les lève. Poser un second bouton
+ * d'enregistrement sur le même brouillon ferait diverger les deux écritures —
+ * la cicatrice « deux formulaires qui écrivent les mêmes colonnes ».
+ *
+ * ⚠️ LA FENÊTRE SE FERME TOUJOURS, et fermer ne jette rien: le brouillon vit
+ * chez l'appelant. La phrase du bas le DIT, parce que personne ne peut le
+ * deviner d'un `onClose`.
+ */
+export function MouthPreferencesFields(
+  props: MouthPreferencesFieldsProps,
+): React.ReactElement {
+  const { draft, onChange, subject } = props;
+  const set = (patch: Partial<MouthFormDraft>) =>
+    onChange((prev) => ({ ...prev, ...patch }));
+
+  const toggle = (id: MouthFormBlock) =>
+    props.onOpenBlock(props.openBlock === id ? null : id);
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm leading-6 text-ink-soft">
+        {t("household.mouth.preferences_intro")}
+      </p>
+
         {/* ── BLOC 4 · CE QU'ELLE MANGE DÉJÀ · sautable ──────────────────── */}
         <Foldable
           title={t("household.mouth.habits")}
@@ -748,45 +912,15 @@ export function MouthFormFields(
           )}
         </Foldable>
 
-        {/* ── LE REFUS, PUIS CE QUI RETIENT, PUIS LE GESTE ───────────────── */}
-        {props.failure !== null ? (
-          <p className="rounded-card border border-rose-200 bg-rose-50 p-3 text-xs leading-5 text-rose-900">
-            {props.failure}
-          </p>
-        ) : null}
-        {/* ⚠️ CE QUI RETIENT LE BOUTON EST NOMMÉ, ET IL EST À CÔTÉ DU BOUTON.
-            Un bouton grisé sans phrase est le mode d'échec n°1 de ce dépôt: le
-            geste ne fait rien, et rien ne dit ce qui le lèverait. */}
-        {missing.length > 0 ? (
-          <p className="rounded-card border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900">
-            {t("household.mouth.held", {
-              blocks: blockList(
-                missing.map((b) =>
-                  t(
-                    `household.mouth.block_${b}` as "household.mouth.block_identity",
-                  )
-                ),
-              ),
-            })}
-          </p>
-        ) : null}
 
-        <div className="flex flex-wrap items-center gap-3">
-          <Button
-            variant="primary"
-            disabled={props.busy || held}
-            onClick={props.onSubmit}
-          >
-            {subject.existing
-              ? t("household.mouth.save")
-              : t("household.mouth.add")}
-          </Button>
-          {/* LA SORTIE EST UN BOUTON, pas seulement une croix. La croix se vise;
-              celui-ci se lit. */}
-          <Button variant="ghost" disabled={props.busy} onClick={props.onClose}>
-            {t("household.mouth.later")}
-          </Button>
-        </div>
+      {/* CE QUI SE PASSE À LA FERMETURE, DIT AVANT DE FERMER. */}
+      <p className="rounded-card border border-line-strong bg-paper-2 p-3 text-xs leading-5 text-ink-soft">
+        {t("household.mouth.preferences_kept")}
+      </p>
+      <div className="flex flex-wrap items-center gap-3">
+        <Button variant="secondary" disabled={props.busy} onClick={props.onClose}>
+          {t("household.mouth.preferences_done")}
+        </Button>
       </div>
     </div>
   );
