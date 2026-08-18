@@ -532,4 +532,130 @@ Mesure faite à `scroll 0`, sur `document.documentElement`, en énumérant tous 
 
 ---
 
+# PARTIE D — `/app/plan` et le chiffre d'énergie
+
+Vu à l'écran, connecté en maître du foyer Bramble, interface en **français**,
+plan du foyer `483da69a` (couvre lundi 17 et mardi 18 ; on est mardi).
+
+## D1. La vue jour ✅ — tout ce qui était demandé est là
+
+| Exigence | Ce que l'écran rend |
+|---|---|
+| bandeau du jour J | **« Mardi · Aujourd'hui »** ✅ |
+| sessions de cuisine | « Session de cuisine — environ 60 min — Voir le déroulé », avec les trois préparations nommées ✅ |
+| courses | « Les courses étaient prévues Lundi — 32 articles sur la liste — Ouvrir la liste » ✅ |
+| plats | 7 plats sur la journée, chacun avec son mode (« À réchauffer — 10 min », « À assembler — 8 min », « Cuisine minute — 15 min ») ✅ |
+| séparation par personne | **POUR LA TABLE / POUR NINA / POUR ZOE**, et une grille « QUI MANGE QUOI » avec une ligne par personne ✅ |
+| boîtes en grammes | **« LA PESÉE »** : `Boîte Paul, Lea, Nina, Zoe — 900 g`, `Boîte Nina — 150 g`, `Boîte Zoe — 220 g`… ✅ |
+
+Et la traçabilité des restes est rendue : *« Depuis Roast chicken thighs —
+cuisiné Mardi. »* suivi de la boîte et de son poids.
+
+## D2. La vue semaine ✅
+
+« Ta semaine d'un coup d'œil » rend les deux jours de la fenêtre en colonnes.
+**Lundi 17 n'a aucun plat et apparaît quand même**, avec « rien ici » dans les
+trois cases — la règle « un jour sans plat mais qui porte quelque chose
+s'affiche » tient. Les badges de division sont là : `+1 PLAT DE PLUS`,
+`+2 À PART`, `D'UNE FOURNÉE`.
+
+## D3. Les invariants de sûreté
+
+| Invariant | Verdict |
+|---|---|
+| **Aucun solde** | ✅ **zéro occurrence** de « il te reste », « restant », « remaining » sur les deux écrans, calories allumées comme éteintes |
+| **Grammes d'aliment voulus** | ✅ 38 mesures en grammes sur `/app/plan` |
+| **Aucune calorie dans le texte d'un plan** | ✅ **0 occurrence de `kcal`** quand l'interrupteur est éteint |
+| **Le corps d'un enfant jamais énoncé** | ✅ Lea n'apparaît que par son prénom, ses boîtes et « No share from the shared dishes ». **Aucun chiffre de corps.** |
+| **Pas de défilement horizontal** | ✅ (mesuré en partie C) |
+
+⚠️ **Une réserve, et je la pose sans trancher.** `/app/plan` affiche en tête une
+carte « À PROPOS DE TOI » qui dit **« Chiffres — 178 cm · 85 kg »**. Ce sont les
+chiffres de corps du **lecteur lui-même**, sur son propre écran, à côté d'un
+bouton « Modifier » — ce n'est pas le texte d'un plan. Je le signale parce que la
+consigne dit « les chiffres de corps, non », et qu'un humain doit dire si cette
+carte est dans le périmètre ou non.
+
+## D4. Le chiffre d'énergie — l'interrupteur coupe VRAIMENT les deux écrans ✅
+
+L'interrupteur vit en bas de `/app/plan` : **« Afficher les calories »** /
+**« Masquer les calories »**, avec la phrase *« Tu peux couper ça quand tu veux,
+et ça se tait partout. »*
+
+**Mesure, en comptant les occurrences du mot `kcal` sur la page entière :**
+
+| État | `/app/plan` | `/app/today` |
+|---|---|---|
+| éteint | **0** | **0** |
+| allumé | 4 (le total du jour + 3 plats) | 4 |
+| éteint à nouveau (depuis `/app/today`) | **0** | **0** |
+
+✅ **L'extinction coupe bien tout, sur les deux écrans, dans les deux sens.** Et
+elle ne touche pas aux grammes : 38 mesures en grammes restent sur `/app/plan`
+une fois les calories éteintes.
+
+**Quand il est allumé**, le bandeau du jour rend :
+
+```
+204 kcal — 3 plats comptés sur 9
+```
+
+✅ **L'incise est bien là** et elle **restreint le sujet du nombre** : elle ne dit
+pas « ta journée », elle dit combien de plats ont été comptés. C'est exactement le
+défaut que D2 ② devait fermer, et il est fermé à l'écran.
+
+Le module s'explique aussi : *« Calculé à partir des quantités de ton plan et
+d'une table de composition des aliments — pas deviné sur une photo. »*
+
+### 🟥 Deux choses NON VÉRIFIÉES, et il faut le dire
+
+- 🟥 **Le conseil du midi (« vise autour de … ») n'a pas pu être vu.** Zéro
+  occurrence de « vise autour » / « aim for » sur les deux écrans. C'est
+  **attendu** : il n'existe que pour un midi marqué « dehors », et **aucune
+  bouche de ce foyer n'a de marque d'absence** (les quatre `away_days` sont
+  vides). La phrase est prouvée par la mesure de D2 ① hors HTTP ; elle n'est
+  **pas** prouvée à l'écran. Pour la voir il faut un foyer avec un midi
+  « dehors » posé sur le jour courant.
+- 🟥 **La case « mange dehors » n'a pas pu être vue rendue** dans les deux
+  lecteurs, pour la même raison : rien n'est marqué dehors sur ce plan. Le lot ③
+  de D4 la prouve sur la valeur rendue ; l'œil ne l'a pas vue.
+
+### ⚠️ Un point que quelqu'un doit regarder : « Apple for Lea — 18 kcal »
+
+Calories allumées, la puce de kcal est rendue **sur chaque plat**, y compris sur
+un plat dont le nom porte le prénom d'une **mineure** :
+
+```
+Apple for Lea      Petit-déjeuner      18 kcal
+```
+
+Ce n'est pas un chiffre de **corps**, et ce n'est pas non plus un chiffre servi à
+l'enfant — c'est le plat, sur l'écran du maître, qui a lui-même allumé
+l'interrupteur. Mais c'est **un nombre de calories à côté du prénom d'un
+enfant**, et la consigne parle de « kcal nominatifs ». **À trancher par un
+humain.** Rien n'a été changé.
+
+## D5. ⚠️ La langue : coquille française, contenu anglais
+
+Sur un écran dont toute l'interface est en français, **tout le contenu du plan
+est en anglais** — noms de plats (« Chicken, couscous and roast vegetables »),
+étapes (« Reheat a portion of chicken… »), justifications (« It uses the batch
+cook from today… »), et jusqu'aux consignes de boîte (« Take the shared box
+portion for the table meal »). C'est la frontière connue (le plan est composé en
+anglais), mais **à l'écran c'est la moitié de la page**.
+
+🟥 **Et trois questions d'interface, elles, ne sont simplement pas traduites** —
+ce ne sont pas des données, ce sont des libellés :
+
+```
+DID YOU GET TO COOK THIS PLAN?         Yes / Partly / No
+THE PORTIONS IN IT WERE:               Too much / About right / Not enough
+DID THIS PLAN LEAVE YOU HUNGRY BETWEEN MEALS?   Often / Sometimes / No
+```
+
+au milieu d'un bloc dont le titre voisin est, lui, en français (« LES PLATS QU'IL
+PORTAIT », « Encore » / « Sans moi », « UNE ENVIE POUR LA SUITE »).
+
+---
+
 _(la suite est ajoutée au fil de l'eau)_
