@@ -679,8 +679,16 @@ Deno.test("LOT 4 — les deux axes de version ont bougé, chacun pour SA populat
   // bouge dans ce passage — et l'enveloppe foyer passe à v15 pour les deux
   // consignes ajoutées au brief de portions. Un seul axe bouge, et c'est
   // exactement ce que ce test existe pour voir.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v11_weighed_or_counted");
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v15_one_box_each_and_a_number");
+  // ⚠️ L7 (2026-08-18) — LES DEUX AXES BOUGENT ENSEMBLE, POUR LA SECONDE FOIS,
+  // et pour deux consignes qui n'ont RIEN à voir l'une avec l'autre. Le tronc
+  // passe à v12 pour le NOM d'un plat à côté de son titre — vu par les quatre
+  // populations, puisqu'il vit dans `MEAL_SYSTEM_PROMPT`. L'enveloppe foyer
+  // passe à v16 pour deux blocs qui ne concernent que le foyer: ce que cette
+  // cuisine n'a pas, et les midis qui sortent du plan sans sortir de la
+  // journée. Trois consignes, deux portées, deux numéros — ce n'est pas le cas
+  // que ce test met en garde (un même changement bumpé deux fois).
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v12_a_dish_has_a_name");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v16_this_kitchen_and_a_meal_out");
 });
 
 // ---------------------------------------------------------------------------
@@ -815,6 +823,8 @@ Deno.test("LOT 4 — le SCHÉMA des boîtes est côté système, et muet à une 
     dedicatedDishesAsked: 0,
     dietBlock: "",
     voices: [],
+    // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
+    kitchenEquipment: null,
   };
   const two = buildHouseholdPromptBlocks({ ...base, members: [ZOE_M, NINA_M] });
   assert(two.systemSuffix.includes("== BOXES, ON EVERY PREPARATION (household) =="));
@@ -844,6 +854,8 @@ Deno.test("LOT 4 — le schéma des boîtes ORDONNE, il ne permet pas", () => {
     dedicatedDishesAsked: 0,
     dietBlock: "",
     voices: [],
+    // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
+    kitchenEquipment: null,
   });
   assert(!out.systemSuffix.includes("may carry"), out.systemSuffix);
   assert(out.systemSuffix.includes("then carries"), out.systemSuffix);

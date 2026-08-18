@@ -52,7 +52,15 @@ import {
   type PortionMember,
 } from "./household_portions.ts";
 import { buildEnvyBlock } from "./household_envies.ts";
-import type { WindowPresence } from "./household_presence.ts";
+import type { MealCell, WindowPresence } from "./household_presence.ts";
+// L7 ① — LA PROSE DES JOURS ET DES MOMENTS VIENT DU TRONC, comme dans
+// `household_presence.ts` (D14). Une seconde table dirait « Saturday » ici et
+// « Sat » là, dans deux blocs que le modèle lit à la suite.
+import { dayProse, OCCASION_PROSE } from "./meal_generation.ts";
+import {
+  type KitchenTool,
+  missingKitchenTools,
+} from "./kitchen_equipment.ts";
 import {
   buildMergeBlock,
   buildUnmergeBlock,
@@ -418,7 +426,44 @@ import {
 // passage. Les trois compteurs ajoutés à `box_counts` (`capped`, `mouth_slots`,
 // `mouths_unboxed`/`mouths_double`) sont des MESURES, pas des consignes — ils ne
 // se lisent sur aucun prompt.
-export const HOUSEHOLD_PROMPT_VERSION = "v15_one_box_each_and_a_number";
+// ── v16 (2026-08-18) — LA CUISINE, ET LE MIDI QUI SORT DU PLAN (L7 ① ET ②) ──
+//
+// Deux blocs, un seul bump, et la règle de v4 s'applique telle quelle
+// (« quelle POPULATION voit une consigne différente »). Elle décrit ici deux
+// populations, toutes deux neuves et toutes deux VIDES à la minute où ce lot
+// est écrit — ce qui est le point: l'écran qui les remplira (L5/L6) arrivera
+// sur un moteur qui sait déjà les lire, au lieu d'une colonne sans lecteur.
+//
+//   ① LES FOYERS QUI ONT DÉCLARÉ CE QU'ILS N'ONT PAS. Bloc `THIS KITCHEN`,
+//      dans le groupe des verrous, après l'envie de la semaine. Source:
+//      `student_goals.practical_constraints.kitchen_equipment` (L2, 2026-08-18),
+//      lue par `missingKitchenTools()` — le SEUL chemin sans direction
+//      dangereuse (voir `kitchenBlock`). Mesuré le même jour: **0 ligne sur
+//      175** porte la clé. Un foyer qui n'a jamais vu la question rend donc un
+//      prompt byte-identique à v15, et c'est 100 % du parc.
+//   ② LES FOYERS OÙ QUELQU'UN MANGE DEHORS. Bloc
+//      `A MEAL EATEN OUT IS NOT AN ABSENCE`, collé au bloc de présence.
+//      Source: `resolveWindowPresence(...).eatingOut` (L3, 2026-08-18), qui
+//      porte déjà l'arbitrage entre la déclaration de la personne et la marque
+//      du maître. Personne dehors ⇒ `eatingOut: []` ⇒ prompt de v15 au
+//      caractère près.
+//
+// ⚠️ AUCUN CHAMP DE SORTIE N'EST DEMANDÉ PAR CES DEUX BLOCS, et c'est pour ça
+// que le `systemSuffix` ne bouge pas d'un octet. Ce sont des CONTRAINTES, pas
+// des clés: rien à déclarer, donc rien à valider, donc pas de compteur à trois
+// nombres — ce qui s'archive à leur place est ce que le bloc a réellement
+// INTERDIT et NOMMÉ (`kitchenMissing`, `eatingOut`), rendu par la même
+// expression que le texte. Un « compteur de respect » exigerait de lire les
+// titres et les méthodes pour décider si un plat passe au four: c'est un
+// matcher, et ce dépôt en a mesuré 12 faux positifs sur 12.
+//
+// ⚠️ `MEAL_PROMPT_VERSION` BOUGE AUSSI, ET CE N'EST PAS UN DOUBLON. Le tronc
+// porte la troisième moitié du même lot — le NOM d'un plat, à côté de son
+// titre — que les QUATRE populations voient, plus sa ligne dans le bloc de
+// langue. Deux changements, deux portées, deux axes: c'est la règle « quelle
+// population voit une consigne différente », appliquée deux fois dans le même
+// lot. Précédent exact: v14 (2026-08-17).
+export const HOUSEHOLD_PROMPT_VERSION = "v16_this_kitchen_and_a_meal_out";
 
 export interface HouseholdRestriction {
   memberId: string;
@@ -512,6 +557,23 @@ export interface HouseholdPromptInput {
    * assemble le prompt, alors qu'elle appartient au moteur qui la porte déjà.
    */
   dietBlock: string;
+  /**
+   * L7 ① — AVEC QUOI CE FOYER CUISINE. `null` = LA QUESTION N'A JAMAIS ÉTÉ
+   * POSÉE, et ce n'est PAS « il n'a rien ».
+   *
+   * ⚠️ REQUIS ET NULLABLE, jamais optionnel — même cicatrice que `presence`,
+   * `merge`, `cooking` et `dietBlock` au-dessus, et cette fois elle a un nom et
+   * une mesure: `budgetBand` était `?:`, un appelant l'a oublié, et la ligne de
+   * consigne a disparu sans que rien n'échoue. Un `?` ici ferait exactement ça:
+   * l'écran collecte les sept cases, la colonne se remplit, et le plan continue
+   * de proposer un gratin à un foyer sans four.
+   *
+   * ⚠️ LE TYPE EST LA LISTE DE CE QU'IL A, PAS DE CE QUI MANQUE. La conversion
+   * est faite ICI, par `missingKitchenTools()`, et c'est le seul chemin sans
+   * piège (voir `kitchenBlock`). Passer directement « ce qui manque » ferait un
+   * second calcul de la même chose chez l'appelant, où le `null` se perdrait.
+   */
+  kitchenEquipment: readonly KitchenTool[] | null;
   /**
    * LA ligne d'envies de la semaine, ou `null`. UNE phrase pour tout le foyer,
    * pas une liste par personne (lot 5). L'appelant est responsable de son
@@ -862,6 +924,162 @@ function dedicatedDishBlock(
   ].join("\n");
 }
 
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * L7 ① — CE QUE CETTE CUISINE N'A PAS.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ LE SEUL CHEMIN AUTORISÉ EST `missingKitchenTools()`, ET C'EST UNE DÉCISION
+ * PRISE EN OUVRANT CE LOT. `hasKitchenTool()` rend `true | false | null`, mais
+ * L2-B a MESURÉ le 2026-08-18 que `if (!hasKitchenTool(eq, "oven"))` compile
+ * sans un mot (`deno check` exit 0, `deno lint` muet) et traite « jamais
+ * demandé » comme « pas de four ». Or `select count(*) filter (where
+ * practical_constraints ? 'kitchen_equipment')` rend **0 sur 175 comptes**:
+ * écrire la forme naturelle retirerait le four et le congélateur à 100 % du
+ * parc au premier plan. `missingKitchenTools()` rend `[]` tant que rien n'a été
+ * déclaré — il n'a donc AUCUNE direction dangereuse, et aucun `!` ne peut en
+ * tirer une interdiction que personne n'a énoncée.
+ *
+ * L'autre sortie — changer le type de retour de `hasKitchenTool` en
+ * `"has" | "lacks" | "unknown"` — a été écartée: elle casse le contrat §3.2 que
+ * L2-A a écrit pour ce lot, oblige à réécrire les tests du module d'un lot
+ * voisin déjà commité, et ne rend rien de plus ici puisque ce fichier ne lit
+ * jamais un outil isolément. Le sujet reste ouvert pour qui voudra armer le
+ * compilateur; il n'est pas un prérequis de la consigne.
+ *
+ * ⚠️ `[]` ⇒ AUCUN BLOC, donc prompt byte-identique à v15. Un foyer qui n'a
+ * jamais vu la question, un foyer qui a tout coché, une ligne illisible: les
+ * trois rendent la même chose, et c'est le comportement d'avant ce lot.
+ *
+ * ⚠️ TROIS OUTILS ONT UNE CONSÉQUENCE ÉCRITE, LES QUATRE AUTRES SONT SEULEMENT
+ * NOMMÉS. Le §2.1 de la conception le dit: `freezer`, `microwave` et `oven`
+ * changent ce que le plan peut faire; l'air fryer, l'autocuiseur et le blender
+ * affinent. Écrire une conséquence pour chacun coûterait sept lignes de prompt
+ * sur une lane qui expire à quatre minutes, pour interdire des gestes que le
+ * modèle propose de toute façon rarement.
+ */
+const TOOL_PROSE: Record<KitchenTool, string> = {
+  oven: "an oven",
+  stovetop: "a hob",
+  microwave: "a microwave",
+  freezer: "a freezer",
+  air_fryer: "an air fryer",
+  pressure_cooker: "a pressure cooker",
+  blender: "a blender or food processor",
+};
+
+function kitchenBlock(
+  equipment: readonly KitchenTool[] | null,
+): { block: string; missing: readonly KitchenTool[] } {
+  const missing = missingKitchenTools(equipment);
+  // ⚠️ LA TRACE EST RENDUE PAR LA MÊME EXPRESSION QUE LE BLOC. Recalculer
+  // `missingKitchenTools` chez l'appelant ferait deux idées de « ce qui a été
+  // interdit », et c'est celle qu'on regarde le moins qui garderait l'ancienne.
+  if (missing.length === 0) return { block: "", missing };
+  const gone = new Set<KitchenTool>(missing);
+  const lines = [
+    "== THIS KITCHEN ==",
+    `This household does not have: ${
+      missing.map((tool) => TOOL_PROSE[tool]).join(", ")
+    }.`,
+    "Cook with what is left. Never write a preparation, a cooking session or a",
+    "day-of gesture that needs one of these, and never suggest buying one.",
+  ];
+  if (gone.has("oven")) {
+    lines.push(
+      "No oven: nothing roasted, baked, or finished under a grill. The batch" +
+        " comes out of a pan or a pot.",
+    );
+  }
+  if (gone.has("freezer")) {
+    lines.push(
+      "No freezer: nothing is frozen, and nothing is cooked to be kept longer" +
+        " than a fridge keeps it.",
+    );
+  }
+  if (gone.has("microwave")) {
+    // ⚠️ LA LIGNE DU MICRO-ONDES NOMME CE QUI RESTE, et ce qui reste dépend du
+    // four. Écrire « a pan or an oven » à un foyer qui vient de déclarer ne pas
+    // avoir de four serait une consigne qui se contredit trois lignes plus
+    // haut — et un prompt qui se contredit est un prompt qu'on tranche au
+    // hasard.
+    lines.push(
+      `No microwave: reheating means ${
+        gone.has("oven") ? "a pan" : "a pan or the oven"
+      }, so write that gesture and count the` + " minutes it really takes.",
+    );
+  }
+  return { block: lines.join("\n"), missing };
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * L7 ② — UN REPAS PRIS DEHORS N'EST PAS UNE ABSENCE.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ LE BLOC EST COLLÉ AU BLOC DE PRÉSENCE, ET LA POSITION EST LA MOITIÉ DU
+ * LOT. `presence.block` vient d'écrire « Nina not eating here -- cook for 3
+ * instead of 4 » pour exactement ces cases: sans un mot juste après, un midi
+ * dehors et une semaine de vacances sont, pour le modèle, le même fait. C'est
+ * la leçon mesurée du LOT 3C — la promesse et la clé qui vivaient dans deux
+ * souffles différents ont rendu zéro déclaration sur 291 plats — appliquée à
+ * une consigne qui n'a pas de clé: on la met contre la phrase qu'elle corrige.
+ *
+ * ⛔ AUCUN NOMBRE ICI, ET C'EST UNE FRONTIÈRE, PAS UN OUBLI. « Vise autour de
+ * 700 » appartient au lot qui sait le calculer (L8) et aux cinq portes de
+ * `energy_gate.ts`. Un kcal écrit dans ce bloc traverserait le prompt sans
+ * qu'aucune porte n'ait tourné — la clause C5 du contrat TCA, violée à
+ * l'instant où la ligne est écrite. Ce bloc dit ce que le plan NE FAIT PAS,
+ * jamais ce que la personne devrait manger.
+ *
+ * ⚠️ IL NE CHANGE NI `servings`, NI `householdAway`. Un « dehors » EST une
+ * absence de la table: la casserole descend comme avant, et c'est
+ * `resolveWindowPresence` qui en décide, pas ce bloc. Ce qui change est ce que
+ * le produit DIT.
+ *
+ * ⚠️ VIDE QUAND PERSONNE NE MANGE DEHORS — le cas nominal, et le prompt est
+ * alors celui de v15 au caractère près.
+ */
+function eatingOutBlock(
+  members: readonly PortionMember[],
+  eatingOut: ReadonlyArray<{ member_id: string; cells: MealCell[] }>,
+): { block: string; mouths: number; cells: number } {
+  const nothing = { block: "", mouths: 0, cells: 0 };
+  if (eatingOut.length === 0) return nothing;
+  const nameOf = new Map(members.map((m) => [m.memberId, m.displayName]));
+  const lines: string[] = [];
+  let cells = 0;
+  for (const entry of eatingOut) {
+    // UNE BOUCHE QUI N'EST PAS DANS LA LISTE DE CE PROMPT N'EST PAS NOMMÉE.
+    // `members` porte les bouches composées; quelqu'un qui mange son propre
+    // plan (prise de main) ou qui est absent toute la fenêtre n'y est pas, et
+    // écrire un id nu à sa place ferait citer au modèle un identifiant qu'il
+    // ne peut rapprocher de rien.
+    const name = nameOf.get(entry.member_id);
+    if (!name || entry.cells.length === 0) continue;
+    cells += entry.cells.length;
+    lines.push(
+      `- ${name}: ${
+        entry.cells.map((c) => `${dayProse(c.day)} ${OCCASION_PROSE[c.slot]}`)
+          .join(", ")
+      }`,
+    );
+  }
+  if (lines.length === 0) return nothing;
+  const block = [
+    "== A MEAL EATEN OUT IS NOT AN ABSENCE ==",
+    "These meals are eaten somewhere else, and they are already taken out of",
+    "the numbers above:",
+    ...lines,
+    "Compose NOTHING there: no dish, no preparation, no line of shopping.",
+    "But these people are not away. They eat, elsewhere, and they are back at",
+    "the next meal here. So do NOT make another meal bigger to make up for it,",
+    "do NOT move that meal to another day, and do NOT mention it -- not in a",
+    "title, not in a method, not in a serving note.",
+  ].join("\n");
+  return { block, mouths: lines.length, cells };
+}
+
 export interface HouseholdPromptBlocks {
   /** À concaténer au `userMessage` de `buildMealPrompt`. */
   userSuffix: string;
@@ -906,6 +1124,31 @@ export interface HouseholdPromptBlocks {
    * `linesUsed` est le seul nombre qui dise ce que le modèle a réellement vu.
    */
   voiceCounts: VoiceLineCounts;
+  /**
+   * L7 ① — CE QUE LE BLOC A RÉELLEMENT INTERDIT, dans l'ordre de la liste.
+   *
+   * ⚠️ RENDU PAR LE MODULE QUI ÉCRIT LE BLOC, et pas recalculé par l'appelant.
+   * Deux lectures de `missingKitchenTools` divergeraient au premier `null` mal
+   * propagé, et la trace dirait alors « on a interdit le four » sur un prompt
+   * qui ne l'a jamais dit. Une seule expression, deux destinations — le
+   * précédent est `dishOwnersTrace`.
+   *
+   * `[]` ⇒ aucun bloc servi. C'est le cas de 175 comptes sur 175 au
+   * 2026-08-18: la question n'a jamais été posée.
+   */
+  kitchenMissing: readonly KitchenTool[];
+  /**
+   * L7 ② — COMBIEN DE BOUCHES ET COMBIEN DE CASES LE BLOC « DEHORS » A NOMMÉES.
+   *
+   * ⚠️ COMPTÉ SUR LES LIGNES ÉCRITES, pas sur `presence.eatingOut`. Une bouche
+   * qui mange dehors mais qui n'est pas dans `members` (prise de main, absence
+   * totale) est ignorée par le bloc: si la trace la comptait quand même, « le
+   * modèle a ignoré la consigne » et « la consigne ne la nommait pas » se
+   * liraient pareil, ce qui est exactement le zéro ambigu que le LOT 3C a payé.
+   *
+   * `{mouths: 0, cells: 0}` ⇒ aucun bloc servi.
+   */
+  eatingOut: { mouths: number; cells: number };
 }
 
 /**
@@ -926,6 +1169,11 @@ export function buildHouseholdPromptBlocks(
   // (`boxingOrderLines`, dans le brief): deux bouches au moins. Un foyer d'une
   // seule rend les deux vides, et le prompt est celui de v13 au caractère près.
   const boxSchema = boxSchemaBlock(input.members);
+  // L7 — LES DEUX BLOCS NEUFS, CALCULÉS UNE FOIS. Leur trace sort par le même
+  // objet que leur texte: c'est ce qui empêche la mesure de mentir sur ce que
+  // le prompt a réellement dit.
+  const kitchen = kitchenBlock(input.kitchenEquipment);
+  const eatingOut = eatingOutBlock(input.members, input.presence.eatingOut);
 
   const idLines = input.members.map((m) => `- ${m.displayName} = ${m.memberId}`);
 
@@ -966,6 +1214,15 @@ export function buildHouseholdPromptBlocks(
     // semaine ferait lire « pour combien de personnes » très loin de « pour
     // qui », et le modèle recompte alors la tablée sur la liste d'ids.
     input.presence.block,
+    // ── L7 ② · COLLÉ AU BLOC DE PRÉSENCE, ET LA POSITION EST LA MOITIÉ DU LOT
+    // Le bloc juste au-dessus vient d'écrire « Nina not eating here -- cook for
+    // 3 instead of 4 » pour EXACTEMENT ces cases. C'est cette phrase-là que ce
+    // bloc-ci corrige: sans lui contre elle, un midi dehors et une semaine de
+    // vacances sont le même fait pour le modèle. Les séparer par la fusion,
+    // les voix ou l'envie rendrait la correction inaudible — c'est la mesure de
+    // 3C, où une promesse et sa clé séparées par le prompt ont rendu zéro
+    // déclaration sur 291 plats.
+    eatingOut.block,
     // APRÈS LA PRÉSENCE, AVANT L'ENVIE (D6). Le bloc dit qui revient à table:
     // c'est encore « qui mange quoi », donc il reste dans le groupe des trois
     // premiers. Le mettre après l'envie ferait lire « untel revient » comme une
@@ -990,6 +1247,19 @@ export function buildHouseholdPromptBlocks(
     // (« Léa adore le Nutella » face à « on ne sert pas de Nutella à Léa »).
     voices.block,
     envyBlock,
+    // ── L7 ① · LA CUISINE EST DANS LE GROUPE DES VERROUS, APRÈS L'ENVIE ─────
+    // Ce n'est pas une préférence, c'est une impossibilité physique: elle doit
+    // survivre à « on a envie d'un gratin » écrit trois lignes plus haut. D'où
+    // sa place après l'envie, avec le régime et les règles de maison.
+    //
+    // ⚠️ ELLE NE PASSE NI DERNIÈRE, NI AVANT LE RÉGIME. « Le modèle lit la
+    // contrainte la plus proche de la fin comme la plus contraignante » est
+    // l'invariant qui protège les règles de maison, et le régime a déjà pris sa
+    // place juste devant elles pour une raison écrite. Un four absent est une
+    // contrainte de MATÉRIEL: il change comment on cuit, jamais ce qu'on a le
+    // droit de servir à quelqu'un. Lui donner la place des deux verrous
+    // alimentaires les démoterait pour un appareil.
+    kitchen.block,
     // ── R4/R5 · LE RÉGIME, JUSTE AVANT LES RÈGLES DE MAISON ─────────────────
     // Il est dans le GROUPE DES VERROUS, avec les règles de maison, et loin des
     // blocs qui décrivent la tablée: comme elles, il dit ce que la casserole
@@ -1027,6 +1297,8 @@ export function buildHouseholdPromptBlocks(
     voiceIssues: voices.issues,
     voicesHeard: voices.heard.length,
     voiceCounts: voices.counts,
+    kitchenMissing: kitchen.missing,
+    eatingOut: { mouths: eatingOut.mouths, cells: eatingOut.cells },
   };
 }
 

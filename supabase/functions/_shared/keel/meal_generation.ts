@@ -521,7 +521,46 @@ export interface DishSameDay {
  */
 export const SAME_DAY_MAX_MINUTES = 120;
 
+/**
+ * L7 — LE NOM D'USAGE D'UN PLAT, PLAFONNÉ EN CARACTÈRES.
+ *
+ * Six mots au plus, dit au modèle; le plafond en code est en CARACTÈRES parce
+ * qu'un mot n'est pas une unité qu'on peut compter sans se tromper de langue
+ * (« pomme de terre » fait trois mots, `Kartoffelsalat` un seul). 60 est la
+ * largeur d'une case de grille de semaine, qui est l'endroit le plus étroit où
+ * ce texte est rendu.
+ */
+export const DISH_NAME_MAX_CHARS = 60;
+
 export interface GeneratedDish {
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * L7 — LE NOM D'USAGE. `null` = le modèle n'en a pas rendu d'utilisable.
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ CE CHAMP N'EST PAS UN TITRE PLUS JOLI, ET C'EST TOUT SON INTÉRÊT. La
+   * demande produit du 2026-08-18 est « des plats qui donnent envie » — et la
+   * façon de la satisfaire qui casse le produit est de rendre `title` appétissant.
+   * `title` est lu À VOIX HAUTE à table, il remplit les cases étroites de la
+   * grille de la semaine, et c'est à lui qu'on reconnaît son plat au moment de le
+   * préparer. « Le Soleil de Marrakech » ne dit plus ce qu'il y a dans
+   * l'assiette, et personne ne peut cuisiner un nom.
+   *
+   * ⚠️ `null` EST UNE DÉGRADATION GRACIEUSE, PAS UNE PANNE. L'écran affiche
+   * alors le `title`: un plan sans noms est exactement le plan d'avant ce lot.
+   * C'est ce qui autorise à le demander sans rien mettre en jeu.
+   *
+   * ⛔ AUCUNE GARDE NE S'ACCROCHE À CE TEXTE. L'attribution passe par
+   * `memberId`, les préparations par `preparations[].id`, les boîtes par
+   * `box_id` — tous des identifiants. Lire le NOM pour décider de quoi que ce
+   * soit rouvrirait la cicatrice des matchers de titre (« Theo's chicken
+   * sandwich » attribué de travers, et rien du tout en français).
+   *
+   * ⚠️ TRADUIT (`MEAL_TRANSLATABLE_FIELDS`): un nom d'usage anglais dans un plan
+   * français serait pire que pas de nom — c'est la seule ligne que l'œil
+   * attrape en premier.
+   */
+  name: string | null;
   title: string;
   slot: MealSlot | null;
   /** Jour nommé quand le scope en couvre plusieurs. Jetons `mon`..`sun`. */
@@ -875,6 +914,42 @@ export interface GeneratedMeal {
   };
   /**
    * ══════════════════════════════════════════════════════════════════════════
+   * L7 ③ — LE COMPTEUR DU NOM D'USAGE. TROIS NOMBRES, JAMAIS DEUX.
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ SANS LUI, UN LOT DÉSARMÉ RESSEMBLE TRAIT POUR TRAIT À UN LOT QUI MARCHE.
+   * `name` est DÉCLARÉ PAR LE MODÈLE et FACULTATIF au contrat: un modèle qui
+   * l'ignorerait rendrait `name: null` partout, l'écran afficherait le `title`
+   * comme avant, et le produit serait exactement celui d'hier — sans qu'aucun
+   * test ne puisse le dire. C'est le troisième champ de ce fichier dans ce cas,
+   * après `same_day` et `for_member_id`, et le second a coûté un diagnostic
+   * entier faute des trois nombres.
+   *
+   *   · `dishes`   — les plats GARDÉS. Le dénominateur.
+   *   · `declared` — ceux où le modèle a écrit un `name` non vide, AVANT toute
+   *                  validation.
+   *   · `kept`     — ceux dont le nom a passé les deux règles (longueur, et
+   *                  différent du titre). C'est ce que l'écran affichera.
+   *   · `refused`  — ceux dont le nom a été rejeté.
+   *
+   * ⚠️ `refused` SE COMPTE INDÉPENDAMMENT, jamais par `declared - kept`.
+   * Cicatrice `withheld`/`over_cap`: deux nombres du même objet, l'un dérivé de
+   * l'autre, se sont trouvés gonflé et dégonflé en sens inverses sans que rien
+   * n'échoue. Ici `declared === kept + refused` est une PROPRIÉTÉ qu'un test
+   * vérifie, pas une définition qui la rendrait invérifiable.
+   *
+   * ⚠️ MÊME POPULATION QUE `same_day_counts` ET `dish_owner_counts` — les plats
+   * finalement gardés. Un plat évincé par le plafond ne compte dans aucun des
+   * quatre; il laisse une `issue` nommée.
+   */
+  name_counts: {
+    dishes: number;
+    declared: number;
+    kept: number;
+    refused: number;
+  };
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
    * LOT 4 — LE COMPTEUR DES BOÎTES. POPULATION: LES PRÉPARATIONS GARDÉES.
    * ══════════════════════════════════════════════════════════════════════════
    *
@@ -1167,7 +1242,40 @@ export interface GeneratedMeal {
 // l'inviterait à en inventer un — le raisonnement de `dishOwnerSchemaBlock`,
 // deuxième fois — et alourdirait une lane dont on a mesuré le 2026-08-17
 // qu'elle frôle déjà le mur de temps du worker.
-export const MEAL_PROMPT_VERSION = "meal.en.v11_weighed_or_counted";
+//
+// ── v12 (2026-08-18) — LE PLAT PORTE UN NOM, EN PLUS DE SON TITRE (L7 ③) ───
+//
+// La demande produit: des plats qui donnent envie, au lieu de « Chicken,
+// courgette and pepper rice bowls ». La façon de la satisfaire qui CASSE le
+// produit est de rendre `title` plus joli — ce champ est lu à voix haute à
+// table, remplit les cases étroites de la grille, et est ce à quoi on
+// reconnaît son plat au moment de le cuisiner. D'où DEUX champs, jamais un
+// champ transformé: `name` (court, appétissant, facultatif au contrat) et
+// `title` (descriptif, inchangé au caractère près).
+//
+// ⚠️ LE BON AXE EST LE TRONC, SANS DISCUSSION. La section
+// `EVERY DISH HAS TWO LINES` et la clé `"name"` du schéma de sortie sont
+// servies aux QUATRE populations — lane individuelle, foyer ordinaire, fusion,
+// secondaire — parce qu'elles vivent dans `MEAL_SYSTEM_PROMPT`. Il n'existe
+// donc AUCUNE population byte-identique sur cet axe, et c'est le cas de v10 et
+// de v11 mot pour mot. `HOUSEHOLD_PROMPT_VERSION` bouge dans le même lot, pour
+// l'autre moitié (équipement de cuisine, déjeuner dehors), qui ne concerne QUE
+// le foyer: deux changements, deux portées, deux axes.
+//
+// ⚠️ `MEAL_TRANSLATABLE_FIELDS` GAGNE UNE LIGNE DANS LE MÊME BUMP, et c'est le
+// même prompt qui change: la liste est rendue dans le bloc de langue du message
+// utilisateur, sur les deux lanes. Un `name` anglais sous un `title` français
+// serait la seule ligne visible de la grille dans la mauvaise langue.
+//
+// ⚠️ LA PROMESSE ET LA CLÉ SE TOUCHENT, ET C'EST LA MOITIÉ QUI COMPTE. La
+// section qui ORDONNE le nom est collée juste au-dessus de
+// `== OUTPUT JSON SCHEMA ==`, et `"name"` est la PREMIÈRE clé du plat. C'est la
+// leçon mesurée du LOT 3C: une promesse dans un souffle et une clé dans un
+// autre rendent zéro déclaration sur 291 plats. Elle porte aussi le NOMBRE
+// attendu (« as many names as you have dishes. Count them ») et NOMME
+// l'échappatoire que le modèle prendrait à la place (enjoliver le titre) — les
+// deux leviers que 3C a mesurés, l'un après l'autre.
+export const MEAL_PROMPT_VERSION = "meal.en.v12_a_dish_has_a_name";
 
 const DAY_TOKENS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
 
@@ -1746,11 +1854,33 @@ mode = from_pantry
 mode = to_shop
   Compose freely, then give the shopping list the dish actually needs.
 
+== EVERY DISH HAS TWO LINES: A NAME, AND A TITLE ==
+
+They are not the same line and they do not do the same job.
+
+  "title" is what is on the plate, plainly: "Chicken, courgettes, peppers and
+  rice". It is read out at the table, it is what somebody cooks from, and it
+  never changes job. Keep writing it exactly as you already do.
+
+  "name" is what this dish is CALLED: "Golden roast chicken bowls". Short --
+  six words at most. Appetising. It is the line somebody reads when they decide
+  whether they want to eat tonight.
+
+Write BOTH, on every single dish: as many names as you have dishes. Count them
+before you answer.
+
+Do NOT make the title pretty instead. A title that becomes "Sunshine of
+Marrakesh" no longer says what is on the plate, and nobody can cook a name. If
+you find yourself dressing up the title, that is the name -- put it in "name"
+and give the title back its plain words. And never write the same string twice:
+a "name" identical to the title is a line that says nothing.
+
 == OUTPUT JSON SCHEMA ==
 
 {
   "dishes": [
     {
+      "name": "short, appetising, six words at most -- what the dish is CALLED",
       "title": "...",
       "slot": "breakfast"|"snack_am"|"lunch"|"snack_pm"|"dinner"|"before_bed"|null,
       "day": "mon"|"tue"|"wed"|"thu"|"fri"|"sat"|"sun"|null,
@@ -1803,6 +1933,11 @@ Day tokens are exactly: mon tue wed thu fri sat sun. Never translated.`;
 
 /** La prose que l'élève lit — dans son plan, et sur son PDF de courses. */
 export const MEAL_TRANSLATABLE_FIELDS: readonly string[] = [
+  // L7 — LE NOM D'USAGE EST DE LA PROSE, ET C'EST LA PREMIÈRE LIGNE QU'ON LIT.
+  // Un `title` traduit sous un `name` resté anglais donnerait « Golden roast
+  // chicken bowls » au-dessus de « Poulet, courgettes, poivrons et riz » —
+  // c'est-à-dire la seule ligne visible de la grille dans la mauvaise langue.
+  "dishes[].name",
   "dishes[].title",
   "dishes[].method",
   "dishes[].why",
@@ -1960,6 +2095,39 @@ export function buildMealPrompt(args: {
    * REQUIS, même raison que les deux ci-dessus.
    */
   focusAxis: WeeklyAxis | null;
+  /**
+   * FF-042 — LA CONSIGNE DE RÉGIME, ou `""` quand personne n'en a déclaré.
+   *
+   * ── CE QUE SON ABSENCE COÛTAIT, mesuré le 2026-08-18 ─────────────────────
+   * `dietary_regime.ts` existe depuis FF-042: il étend un régime en groupes
+   * exclus, écrit sa consigne (`dietaryRegimePromptLine`) et nomme ce qu'il
+   * rend incouvrable. La lane FOYER le lit (`household_diet.ts`). La lane
+   * INDIVIDUELLE n'en appelait que `uncoverableSentinelsFor` — le drapeau de
+   * carence — et le mot `regime` n'apparaissait pas une seule fois dans ce
+   * fichier. Autrement dit: **on posait la question à l'élève, on écrivait sa
+   * réponse en base (`student_safety_constraints.diet_ref`), on en déduisait
+   * qu'il lui manquerait de la B12 — et on lui composait du poulet.**
+   *
+   * C'est le même défaut, à la lettre, que celui que `household_diet.ts`
+   * décrit en tête pour la lane foyer. On le ferme du même côté.
+   *
+   * ── POURQUOI UN BLOC DÉJÀ RENDU, ET PAS LE JETON DU RÉGIME ───────────────
+   * Parce que les deux lanes n'ont pas la même phrase à écrire, et qu'une
+   * seule d'entre elles peut la calculer:
+   *   · solo — `dietaryRegimePromptLine(regime)`, tel quel;
+   *   · foyer — `householdDietBlock`, qui ajoute ce que ce fichier ne peut
+   *     pas savoir: quelle bouche est la plus stricte de la table, et qui
+   *     reçoit son propre plat. Il est déjà rendu, par `userSuffix`.
+   * Recalculer ici un régime depuis `safetyConstraints` produirait donc, sur
+   * la lane foyer, une SECONDE phrase de régime dans le même prompt.
+   *
+   * REQUIS, `string` et jamais `T?` — la cicatrice est écrite au call site du
+   * foyer, sur `safetyConstraints`: « c'est le paramètre REQUIS qui a rendu
+   * cet appelant visible: le compilateur l'a listé. Optionnel, il aurait gardé
+   * son trou. » Ici la preuve d'un oubli serait une assiette de viande servie
+   * à quelqu'un qui a déclaré ne pas en manger.
+   */
+  dietBlock: string;
   doctrineBlock: string;
   /**
    * LE MAPPING ALIMENTAIRE DU COACH — `protocolBlockFor()`, vide s'il n'a rien
@@ -2341,6 +2509,21 @@ export function buildMealPrompt(args: {
     // tout, y compris sur la méthode du coach: un coach dont la doctrine
     // recommande les fruits à coque n'a pas écrit ça pour un anaphylactique.
     ...(safetyBlock ? [safetyBlock, ""] : []),
+    // ── LE RÉGIME, JUSTE SOUS LES CONTRAINTES DURES ET AVANT LA DOCTRINE ────
+    // Même argument que la ligne au-dessus, et il vaut ici mot pour mot: un
+    // coach dont la méthode construit sur le poulet ne l'a pas écrite pour un
+    // végane. Le régime doit donc gagner sur la doctrine, comme l'allergie —
+    // et il doit survivre à une troncature du budget de prompt.
+    //
+    // ⚠️ IL EST SÉPARÉ DU BLOC DE CONTRAINTES DURES, ET ÇA N'EST PAS UN DÉTAIL
+    // DE MISE EN PAGE. `safetyConstraintTokens` exclut délibérément `dietRef`:
+    // verser « vegan » dans la liste d'évitement armerait la ceinture de
+    // sortie sur le mot lui-même, et ferait rejeter toute réponse qui décrit
+    // un plat comme végane — donc précisément les bonnes, et seulement pour
+    // les véganes. Ce dépôt a payé ce défaut en run réel avec
+    // `allergen_ref='diabetes'`. La ceinture reçoit l'EXPANSION
+    // (`excludedSurfaceFormsFor`), jamais le nom du régime.
+    ...(args.dietBlock.trim() ? [args.dietBlock.trim(), ""] : []),
     args.doctrineBlock.trim(),
     // Le mapping suit IMMÉDIATEMENT la doctrine, et avant tout ce qui est
     // propre à l'élève: c'est la partie commune à toute la cohorte du coach,
@@ -3224,6 +3407,17 @@ export function parseGeneratedMeal(
    * dénominateur qui ne le compte plus.
    */
   const keptUseBoxIdsRaw: string[][] = [];
+  /**
+   * L7 ③ — CE QUE SON `name` A COÛTÉ, pour le plat GARDÉ.
+   *
+   * ⚠️ SEPTIÈME TABLEAU PARALLÈLE, et il suit les mêmes `splice` que les six
+   * autres, pour la raison qu'ils portent tous: « déclaré » et « refusé »
+   * doivent décrire LES MÊMES LIGNES que `dishes`. Un plat évincé par le
+   * plafond emporterait sinon son refus dans un numérateur dont le
+   * dénominateur ne le compte plus — « un compteur dont le numérateur et le
+   * dénominateur ne comptent pas les mêmes lignes est un compteur qui ment ».
+   */
+  const keptNameFacts: Array<{ declared: boolean; refused: boolean }> = [];
 
   // ── LES CASES QUE LA CONSIGNE DE FUSION RÉCLAME POUR ELLE ───────────────
   // Vide hors fusion et au barreau ①, et c'est ce qui rend cette couche
@@ -3289,6 +3483,58 @@ export function parseGeneratedMeal(
     if (!title) {
       issues.push(`dishes[${i}]: empty title, dropped`);
       continue;
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    // L7 ③ — LE NOM D'USAGE, DÉCLARÉ PAR LE MODÈLE, JAMAIS DÉDUIT.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ UN NOM REFUSÉ NE REJETTE JAMAIS LE PLAT. Posture `for_member_id` /
+    // `same_day` / `box_id`, quatrième fois: c'est une lecture EN PLUS, et un
+    // plat sans elle reste un plat qui se cuisine et se mange — l'écran
+    // retombe sur le `title`, c'est-à-dire sur le produit d'avant ce lot.
+    //
+    // ⚠️ TROIS FAITS, ET ILS SE COMPTENT SÉPARÉMENT. « Le modèle n'a rien
+    // écrit » et « il a écrit quelque chose qu'on a refusé » appellent des
+    // corrections OPPOSÉES — resserrer la consigne d'un côté, desserrer la
+    // règle de l'autre — et le 2026-08-17 ce dépôt a payé un diagnostic entier
+    // pour les avoir confondus derrière un seul zéro.
+    //
+    // LES DEUX SEULES RAISONS DE REFUS, ET AUCUNE N'EST UN JUGEMENT DE GOÛT:
+    //   ① plus long que `DISH_NAME_MAX_CHARS` — ce n'est plus un nom, c'est un
+    //      second titre, et il ne tiendrait pas dans une case de grille;
+    //   ② identique au titre — l'écran rendrait deux fois la même chaîne, l'une
+    //      au-dessus de l'autre. La comparaison est une ÉGALITÉ de chaîne
+    //      normalisée (casse et espaces), jamais une ressemblance: un matcher
+    //      sur ce champ est exactement ce que l'en-tête de `name` interdit.
+    //
+    // Une clé absente, ou présente et vide, n'est NI déclarée NI refusée — même
+    // discipline que `same_day`, où un plat sans clé du tout ne compte dans
+    // aucun des deux.
+    const nameRaw = cleanText(d.name);
+    let name: string | null = null;
+    let nameDeclared = false;
+    let nameRefused = false;
+    if (nameRaw) {
+      nameDeclared = true;
+      if (nameRaw.length > DISH_NAME_MAX_CHARS) {
+        nameRefused = true;
+        issues.push(
+          `dishes[${i}]: name is ${nameRaw.length} characters, over the ` +
+            `${DISH_NAME_MAX_CHARS} a name fits in -- dropped, the title is shown instead`,
+        );
+      } else if (
+        nameRaw.toLowerCase().replace(/\s+/g, " ") ===
+          title.toLowerCase().replace(/\s+/g, " ")
+      ) {
+        nameRefused = true;
+        issues.push(
+          `dishes[${i}]: name repeats the title (${JSON.stringify(title)}) -- ` +
+            `dropped, one line is enough`,
+        );
+      } else {
+        name = nameRaw;
+      }
     }
 
     // ── LE JOUR ET LE CRÉNEAU, RÉSOLUS AVANT LE PLAFOND ──────────────────
@@ -3613,6 +3859,10 @@ export function parseGeneratedMeal(
       keptRawIndex.splice(sacrifice, 1);
       keptSameDayFaults.splice(sacrifice, 1);
       keptOwnerFacts.splice(sacrifice, 1);
+      // L7 ③ — LE SEPTIÈME TABLEAU SUIT LE MÊME `splice`, sans quoi le refus
+      // d'un plat évincé resterait dans un compteur dont le dénominateur ne le
+      // compte plus.
+      keptNameFacts.splice(sacrifice, 1);
       keptUseBoxIdsRaw.splice(sacrifice, 1);
     }
 
@@ -3771,6 +4021,9 @@ export function parseGeneratedMeal(
     }
 
     dishes.push({
+      // L7 ③ — LE NOM D'ABORD, COMME DANS LE SCHÉMA. `null` quand le modèle
+      // n'en a pas rendu d'utilisable: l'écran affiche alors le `title`.
+      name,
       title,
       slot,
       day,
@@ -3788,6 +4041,7 @@ export function parseGeneratedMeal(
       minutesMissing: sameDayMinutesMissing,
     });
     keptOwnerFacts.push({ declared: ownerDeclared, refused: ownerRefused });
+    keptNameFacts.push({ declared: nameDeclared, refused: nameRefused });
     keptUseBoxIdsRaw.push(useBoxIdsRaw);
     keptCells.push(cell);
     keptRanks.push(rank);
@@ -4447,6 +4701,19 @@ export function parseGeneratedMeal(
     }
     : { dishes: 0, declared: 0, attributed: 0, refused: 0 };
 
+  // L7 ③ — MÊME DISCIPLINE, MÊME POPULATION, MÊME GARDE `clean`. `kept` se lit
+  // sur la SORTIE (`name !== null`), `declared`/`refused` sur le tableau
+  // parallèle qui a suivi les mêmes `splice`: les trois décrivent les mêmes
+  // lignes, et `declared === kept + refused` est vérifiable de l'extérieur.
+  const nameCounts = clean
+    ? {
+      dishes: dishes.length,
+      declared: keptNameFacts.filter((f) => f.declared).length,
+      kept: dishes.filter((d) => d.name !== null).length,
+      refused: keptNameFacts.filter((f) => f.refused).length,
+    }
+    : { dishes: 0, declared: 0, kept: 0, refused: 0 };
+
   // ── LOT 4 · LES TROIS COMPTEURS DES GRAMMES ─────────────────────────────
   //
   // MÊME DISCIPLINE, MÊME GARDE `clean` que les deux du dessus: quand le verrou
@@ -4510,6 +4777,7 @@ export function parseGeneratedMeal(
     empty_slots: emptySlots,
     same_day_counts: sameDayCounts,
     dish_owner_counts: dishOwnerCounts,
+    name_counts: nameCounts,
     box_counts: boxCounts,
     box_use_counts: boxUseCounts,
     unquantified_dish_ingredients: dishQuantityCounts,
@@ -4552,6 +4820,19 @@ function ingredientPayload(i: DishIngredient): Record<string, unknown> {
 /** Le payload `dishes` écrit en base. R1: clés ASCII. */
 export function mealDishesPayload(meal: GeneratedMeal): Array<Record<string, unknown>> {
   return meal.dishes.map((d) => ({
+    // ── L7 ③ · LE NOM D'USAGE, ÉCRIT MÊME À `null` ────────────────────────
+    //
+    // ⚠️ QUATRIÈME FOIS DANS CE PAYLOAD, ET TOUJOURS POUR LA MÊME RAISON: une
+    // clé absente ne se distingue pas d'un lot débranché. `null` DIT « ce plat
+    // n'a pas de nom d'usage, montre son titre » — ce que TOUS les plats
+    // étaient avant ce lot, et ce que reste un plan dont le modèle a ignoré la
+    // consigne. Un `dishes[].name` toujours écrit rend le taux comptable en SQL
+    // sur les DEUX lanes, sans dépendre de `generated_from`.
+    //
+    // ⚠️ AUCUNE MIGRATION: `dishes` est une colonne `jsonb`, et les plans écrits
+    // avant ce lot n'ont simplement pas la clé. Les lecteurs traitent son
+    // absence comme `null`, c'est-à-dire « affiche le titre ».
+    name: d.name,
     title: d.title,
     slot: d.slot,
     day: d.day,

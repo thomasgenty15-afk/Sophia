@@ -187,6 +187,11 @@ import {
   HOUSEHOLD_PROMPT_VERSION,
   type HouseholdRestriction,
 } from "../_shared/keel/household_meal_generation.ts";
+// L7 ① — LE LECTEUR À TROIS VALEURS DES MOYENS DE CUISSON (L2, 2026-08-18).
+// ⛔ `hasKitchenTool` N'EST PAS IMPORTÉ ICI, ET C'EST VOULU: le seul chemin qui
+// décide d'une interdiction est `missingKitchenTools()`, appelé dans le module
+// qui écrit le bloc. Voir l'en-tête de `kitchenBlock`.
+import { readKitchenEquipment } from "../_shared/keel/kitchen_equipment.ts";
 import {
   // C6 — COMBIEN DE PLATS DÉDIÉS, DÉCIDÉ EN UN SEUL ENDROIT.
   dedicatedDishesFor,
@@ -1877,9 +1882,37 @@ Deno.serve(async (req) => {
       mode: resolution.mode,
       deltas: resolution.deltas.length,
       family_service: resolution.familyService,
-      // L'INSTRUMENTATION D'A3: sans elle, la décision d'armer le slot de
-      // dressage se prendrait à l'aveugle.
-      residual_gaps: resolution.residualGaps.map((g) => g.gapKcalPerDay),
+      // ══════════════════════════════════════════════════════════════════════
+      // ⛔ CE QUI ÉTAIT ÉCRIT ICI ÉTAIT UN KCAL/JOUR PAR BOUCHE, DANS UN LOG
+      // NOMINATIF, SANS QU'AUCUNE PORTE N'AIT TOURNÉ.
+      // ══════════════════════════════════════════════════════════════════════
+      //
+      // `residual_gaps: resolution.residualGaps.map((g) => g.gapKcalPerDay)`
+      // partait à côté de `user_id` ET de `household_id`, dans l'ordre des
+      // membres — donc rapprochable d'une personne. `gapKcalPerDay` est un
+      // kcal/jour par bouche (`household_composition.ts`), et NI `canShowEnergy`
+      // NI `energySafetyGates` n'ont d'appelant dans cette fonction: la clause
+      // C5 du contrat TCA (« ni réponse HTTP, ni ligne de base, ni prompt, ni
+      // log nominatif, ni écran sans que la porte ait dit oui AVANT que le
+      // nombre soit calculé ») était violée à l'instant où la ligne s'écrivait.
+      // Trouvé par L4-B le 2026-08-18, sur une ligne antérieure (`9cd01739`).
+      //
+      // ⚠️ ON AGRÈGE, ON NE SUPPRIME PAS. `residual_gaps` est l'instrumentation
+      // d'A3: sans elle, la décision d'armer le slot de dressage se prendrait à
+      // l'aveugle. Ce qu'elle sert à décider est « y a-t-il des écarts, et
+      // sont-ils gros ? » — deux questions auxquelles un COMPTE et une BANDE
+      // répondent, et qui ne désignent personne. Ce qu'elle ne doit pas servir
+      // à faire est de lire le déficit de la troisième bouche de la maison.
+      //
+      // Les bandes sont grossières exprès: `lt_200` / `gte_200` sépare « un
+      // reste d'arrondi » de « une bouche que la casserole ne sert pas », ce
+      // qui est la seule décision qui se prend là-dessus.
+      residual_gaps_count: resolution.residualGaps.length,
+      residual_gaps_max_band: resolution.residualGaps.length === 0
+        ? "none"
+        : Math.max(...resolution.residualGaps.map((g) => g.gapKcalPerDay)) >= 200
+        ? "gte_200"
+        : "lt_200",
     }));
 
     // ── LES RESTRICTIONS DE MAISON ──────────────────────────────────────
@@ -2944,6 +2977,24 @@ Deno.serve(async (req) => {
       // `[]` est donc le comportement d'AVANT, assumé et nommé. Le trou est
       // écrit en toutes lettres dans FF-051 §11 Q1.
       fixedIntakes: [],
+      // ── FF-042 · `""` ICI, ET CE N'EST PAS UN TROU ─────────────────────
+      // Cette lane a DÉJÀ sa consigne de régime, et elle est plus riche que
+      // celle que ce paramètre porte: `householdDietBlock` (plus bas, dans
+      // `buildHouseholdPromptBlocks`) écrit la ligne du plus strict de la
+      // table — par `dietaryRegimePromptLine`, la même fonction — PUIS la
+      // moitié que la lane solo ne peut pas connaître: qui diverge, et dont le
+      // plat propre n'est pas tenu par cette phrase.
+      //
+      // ⚠️ REMPLIR CE CHAMP ICI METTRAIT DEUX PHRASES DE RÉGIME DANS LE MÊME
+      // PROMPT. Et pas deux fois la même: ce paramètre ne saurait lire que
+      // l'UNION des contraintes des membres, où « le premier régime trouvé »
+      // n'est pas « le plus strict de la table ». Un foyer avec une végane et
+      // un pescétarien recevrait la consigne pescétarienne au-dessus de la
+      // consigne végane, dans le désordre de la base.
+      //
+      // Le bloc arrive par `household.userSuffix`, concaténé après
+      // `built.userMessage`.
+      dietBlock: "",
       // ── FF-052 · LES PROPRIÉTÉS DE JOUR NE SONT PAS ENCORE UNE DONNÉE DE
       // FOYER. Le dimanche batch d'un membre n'est pas celui de la table, et
       // la question est la même que pour l'apport fixe juste au-dessus: le
@@ -3139,6 +3190,19 @@ Deno.serve(async (req) => {
         // forme lui interdit, dans le même prompt.
         divergingNames: dishBearingMembers.map((m) => m.displayName),
       }),
+      // ── L7 ① · AVEC QUOI CE FOYER CUISINE ────────────────────────────────
+      //
+      // Lu sur `practical_constraints`, comme les jours de cuisine, le temps et
+      // le budget — c'est un fait de la MAISON, pas d'une bouche, et il ne
+      // change pas d'une semaine à l'autre.
+      //
+      // ⚠️ `null` = LA QUESTION N'A JAMAIS ÉTÉ POSÉE, et c'est le cas de 175
+      // comptes sur 175 au 2026-08-18. `buildHouseholdPromptBlocks` n'assemble
+      // alors aucun bloc, et le prompt est celui de v15 au caractère près.
+      // ⛔ NE PAS convertir ici en « ce qui manque »: `missingKitchenTools()`
+      // est appelé une seule fois, dans le module qui écrit le bloc, et c'est
+      // ce qui empêche la trace de mentir sur ce que le prompt a dit.
+      kitchenEquipment: readKitchenEquipment(pc),
       envyLine,
       restrictions,
       presence,
@@ -3950,6 +4014,40 @@ Deno.serve(async (req) => {
       shares: portionShareCounts,
     } as const;
 
+    // ══════════════════════════════════════════════════════════════════════
+    // L7 — CE QUE LES TROIS BLOCS ONT RÉELLEMENT DIT, ET CE QUE ÇA A RENDU.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ LES TROIS SONT RENDUS SUR L'APERÇU, PAR LA MÊME EXPRESSION QUE SUR LA
+    // LIGNE ÉCRITE. C'est la moitié du compteur que 3C a dû ajouter après coup:
+    // `generated_from` n'existe que sur une ligne ÉCRITE, donc toute mesure
+    // faite par `intent: "draft"` était aveugle, et un diagnostic entier s'est
+    // trompé dessus le 2026-08-17.
+    //
+    // ⚠️ DEUX FORMES, ET ELLES NE DISENT PAS LA MÊME CHOSE.
+    //   · `names` est un compteur à TROIS nombres (déclaré / gardé / refusé),
+    //     parce que `name` est un CHAMP que le modèle remplit. Sans les trois,
+    //     « il n'a rien écrit » et « il a écrit quelque chose qu'on a refusé »
+    //     rendraient le même zéro — la confusion exacte qui a coûté le
+    //     diagnostic de `for_member_id`.
+    //   · `kitchen` et `eating_out` sont des TRACES, pas des compteurs, parce
+    //     que leurs blocs ne demandent AUCUN champ: rien n'est déclaré, donc
+    //     rien n'est validable. Elles disent ce que le prompt a interdit et
+    //     nommé. ⛔ Il n'y a délibérément pas de « respecté »: le calculer
+    //     demanderait de lire les titres et les méthodes pour décider si un
+    //     plat passe au four — c'est-à-dire un matcher, et ce dépôt en a mesuré
+    //     12 faux positifs sur 12.
+    const promptTrace = {
+      kitchen: {
+        // `null` = la question n'a jamais été posée. `[]` est impossible ici:
+        // `readKitchenEquipment` rend `null` sur une liste vide ou illisible.
+        declared: readKitchenEquipment(pc),
+        // CE QUE LE BLOC A INTERDIT, rendu par le module qui l'a écrit.
+        missing: household.kitchenMissing,
+      },
+      eating_out: household.eatingOut,
+    } as const;
+
     if (isDraft) {
       return jsonResponse(req, {
         ok: true,
@@ -3959,10 +4057,18 @@ Deno.serve(async (req) => {
         suggested_window: suggestedWindow,
         rationale: { lines: rationaleLines, refusal: rationaleRefusal },
         request_report: { lines: reportLines, refusal: reportRefusal },
+        // L7 ③ — LE COMPTEUR DU NOM, À LA RACINE ET PAS SOUS `household`, pour
+        // la raison exacte de `same_day`: le champ est demandé par le schéma du
+        // TRONC et lu par le parseur partagé, donc les deux lanes le comptent
+        // de la même façon, au même endroit. Un compteur rangé sous `household`
+        // d'un côté et à la racine de l'autre n'est lisible par aucune requête
+        // qui regarde toute la population.
+        names: meal.name_counts,
         household: {
           id: householdId,
           member_count: members.length,
           dish_owners: dishOwnersTrace,
+          ...promptTrace,
           ...boxTrace,
         },
         dishes,
@@ -4066,6 +4172,16 @@ Deno.serve(async (req) => {
             // `household` parce que `for_member_id`, LUI, n'est demandé que par
             // l'enveloppe foyer.
             same_day: meal.same_day_counts,
+            // L7 ③ — MÊME ARBITRAGE, MÊME PLACE QUE `same_day`, ET POUR LA
+            // MÊME RAISON: `name` est demandé par le schéma du tronc, donc son
+            // taux n'a de sens que lu sur toute la population.
+            //
+            // ⚠️ CE COMPTEUR N'EST ARCHIVÉ QUE PAR CETTE LANE. `generate-meal-v1`
+            // (lane individuelle) archive `same_day` et pas encore `names` — son
+            // fichier n'appartient pas à ce lot. Ce qui reste comptable des DEUX
+            // côtés en attendant est `dishes[].name`, écrit par le payload
+            // partagé sur les deux lanes: voir la requête SQL du rapport L7-A.
+            names: meal.name_counts,
             household: {
               id: householdId,
               member_count: members.length,
@@ -4197,6 +4313,24 @@ Deno.serve(async (req) => {
               // ÉCRIT MÊME À ZÉRO, comme les blocs voisins: une clé absente ne
               // se distingue pas d'un lot débranché.
               dish_owners: dishOwnersTrace,
+              // ══════════════════════════════════════════════════════════════
+              // L7 ① ET ② — CE QUE LES DEUX BLOCS NEUFS ONT DIT.
+              // ══════════════════════════════════════════════════════════════
+              //
+              // ⚠️ SOUS `household`, comme les boîtes et l'attribution: leurs
+              // deux consignes ne sont réclamées que par l'enveloppe foyer
+              // (`kitchenBlock`, `eatingOutBlock`). La lane individuelle ne les
+              // voit pas — le trou est nommé dans le rapport L7-A.
+              //
+              // ⚠️ CE SONT DES TRACES, PAS DES COMPTEURS À TROIS NOMBRES: ces
+              // blocs ne demandent aucun champ au modèle, donc rien n'est
+              // déclaré et rien n'est validable. `kitchen.declared` dit ce que
+              // le foyer a répondu (`null` = jamais demandé, le cas de 175
+              // comptes sur 175 au 2026-08-18), `kitchen.missing` ce que le
+              // prompt a interdit, `eating_out` combien de bouches et de cases
+              // il a nommées. Écrits même vides: une clé absente ne se
+              // distingue pas d'un lot débranché.
+              ...promptTrace,
               // ══════════════════════════════════════════════════════════════
               // LOT 4 — LES GRAMMES, COMPTÉS SOUS `household`.
               // ══════════════════════════════════════════════════════════════

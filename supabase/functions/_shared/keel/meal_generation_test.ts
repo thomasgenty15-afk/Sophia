@@ -13,8 +13,13 @@ import { assert, assertEquals, assertThrows } from "jsr:@std/assert@1";
 import {
   buildMealPrompt,
   dishCapFor,
+  // L7 ③ — le plafond du nom d'usage, en caractères.
+  DISH_NAME_MAX_CHARS,
   isInPantry,
   MEAL_SCOPES,
+  MEAL_SYSTEM_PROMPT,
+  MEAL_TOKEN_FIELDS,
+  MEAL_TRANSLATABLE_FIELDS,
   // LOT C — l'attribution du plat dédié, écrite en base.
   mealDishesPayload,
   parseGeneratedMeal,
@@ -332,6 +337,7 @@ Deno.test("the prompt separates the STABLE situation from the DATED context", ()
     safetyConstraints: null,
     body: null,
     focusAxis: null,
+    dietBlock: "",
     doctrineBlock: "== MARC'S METHOD ==",
     coachNoteBlock: null,
     fixedIntakes: [],
@@ -369,6 +375,7 @@ Deno.test("le prompt EXIGE une quantité sur les matières grasses", () => {
     safetyConstraints: null,
     body: null,
     focusAxis: null,
+    dietBlock: "",
     doctrineBlock: "d",
     coachNoteBlock: null,
     fixedIntakes: [],
@@ -402,6 +409,7 @@ Deno.test("from_pantry puts the pantry in the prompt, to_shop does not pretend t
     safetyConstraints: null,
     body: null,
     focusAxis: null,
+    dietBlock: "",
     doctrineBlock: "d",
     coachNoteBlock: null,
     fixedIntakes: [],
@@ -471,6 +479,7 @@ Deno.test("les préférences confirmées entrent dans le prompt, dans les mots d
     safetyConstraints: null,
     body: null,
     focusAxis: null,
+    dietBlock: "",
     doctrineBlock: "== MARC'S METHOD ==",
     coachNoteBlock: null,
     fixedIntakes: [],
@@ -503,6 +512,7 @@ Deno.test("sans préférence, le prompt est EXACTEMENT celui d'avant", () => {
     safetyConstraints: null,
     body: null,
     focusAxis: null,
+    dietBlock: "",
     doctrineBlock: "== MARC'S METHOD ==",
     coachNoteBlock: null,
     fixedIntakes: [],
@@ -774,4 +784,227 @@ Deno.test("LOT 3C — un plat ÉVINCÉ par le plafond ne compte dans AUCUN des q
     attributed: 0,
     refused: 0,
   });
+});
+
+// ---------------------------------------------------------------------------
+// L7 ③ — LE NOM D'USAGE D'UN PLAT
+//
+// ⛔ LA LEÇON QUI GOUVERNE CE LOT A UNE DATE ET DEUX NOMBRES. Le 2026-08-17,
+// `for_member_id` a été mesuré à ZÉRO déclaration sur 291 plats — non parce que
+// le modèle refusait, mais parce que la PROMESSE de la matière vivait dans le
+// message utilisateur pendant que la CLÉ du schéma vivait dans le prompt
+// système, sans rien pour les relier. Rapprochée de sa promesse, avec le NOMBRE
+// attendu et l'ÉCHAPPATOIRE NOMMÉE, la même clé est passée à onze.
+//
+// D'où la forme de `name`: l'ordre et la clé se touchent (la section est collée
+// au schéma, et `"name"` en est la PREMIÈRE clé), le nombre est countable (« as
+// many names as you have dishes »), et l'échappatoire est nommée — enjoliver le
+// titre au lieu d'écrire un nom.
+// ---------------------------------------------------------------------------
+
+Deno.test("L7 ③ — la PROMESSE et la CLÉ se touchent, et le nombre est dit", () => {
+  const order = MEAL_SYSTEM_PROMPT.indexOf(
+    "== EVERY DISH HAS TWO LINES: A NAME, AND A TITLE ==",
+  );
+  const schema = MEAL_SYSTEM_PROMPT.indexOf("== OUTPUT JSON SCHEMA ==");
+  assert(order >= 0, "la section qui ORDONNE le nom a disparu du prompt système");
+  assert(schema > order, "la promesse ne précède plus le schéma");
+
+  // ⛔ ADJACENTES: rien entre les deux. C'est très exactement ce que 3C a
+  // mesuré à zéro quand les deux moitiés étaient séparées par le prompt.
+  const between = MEAL_SYSTEM_PROMPT.slice(order, schema);
+  assertEquals(
+    between.split("== ").length - 1,
+    1,
+    `un bloc s'est glissé entre la promesse du nom et le schéma:\n${between}`,
+  );
+
+  // LE NOMBRE, ET IL EST COMPTABLE PAR LE MODÈLE.
+  assert(
+    between.includes("as many names as you have dishes"),
+    "le nombre attendu n'est plus dit",
+  );
+  assert(between.includes("Count them"), "on ne demande plus de les compter");
+
+  // L'ÉCHAPPATOIRE, NOMMÉE. Le modèle qui ne veut pas de second champ rend le
+  // TITRE joli — c'est-à-dire précisément le geste que le produit interdit.
+  assert(
+    between.includes("Do NOT make the title pretty"),
+    "l'échappatoire (enjoliver le titre) n'est plus nommée",
+  );
+
+  // ET LA CLÉ EST LA PREMIÈRE DU PLAT, dans le schéma juste en dessous.
+  const dishBlock = MEAL_SYSTEM_PROMPT.slice(schema);
+  assert(
+    dishBlock.indexOf('"name"') < dishBlock.indexOf('"title"'),
+    "la clé `name` n'ouvre plus le plat dans le schéma",
+  );
+});
+
+Deno.test("L7 ③ — `dishes[].name` est de la PROSE, jamais un jeton", () => {
+  // Le piège de `preparation_id` pris à l'envers: un nom d'usage laissé en
+  // anglais dans un plan français serait la SEULE ligne visible de la grille
+  // dans la mauvaise langue.
+  assert(
+    MEAL_TRANSLATABLE_FIELDS.includes("dishes[].name"),
+    "le nom d'usage est sorti de la liste traduisible",
+  );
+  assert(
+    !MEAL_TOKEN_FIELDS.some((f) => f.startsWith("dishes[].name")),
+    "le nom d'usage est passé du côté des jetons non traduisibles",
+  );
+});
+
+Deno.test("L7 ③ — rien de déclaré: les trois nombres le disent, pour la bonne raison", () => {
+  // ⚠️ LE CAS QUI PASSE, et il est le cas nominal des plans d'avant ce lot. Un
+  // compteur qu'on ne sait pas faire dire « zéro pour la bonne raison » ne
+  // distingue rien.
+  const meal = parse(dishFor());
+  assertEquals(meal.name_counts, { dishes: 1, declared: 0, kept: 0, refused: 0 });
+  assertEquals(meal.dishes[0].name, null);
+  assertEquals(meal.dishes[0].title, "Chicken and rice");
+});
+
+Deno.test("L7 ③ — un nom déclaré est POSÉ, et le titre ne bouge pas", () => {
+  const meal = parse(dishFor({ name: "Golden roast chicken bowls" }));
+  assertEquals(meal.dishes[0].name, "Golden roast chicken bowls");
+  // ⛔ LE TITRE RESTE DESCRIPTIF. C'est toute la raison des deux champs.
+  assertEquals(meal.dishes[0].title, "Chicken and rice");
+  assertEquals(meal.name_counts, { dishes: 1, declared: 1, kept: 1, refused: 0 });
+});
+
+Deno.test("L7 ③ — un nom TROP LONG est refusé, et le plat reste", () => {
+  const tooLong = "A".repeat(DISH_NAME_MAX_CHARS + 1);
+  const meal = parse(dishFor({ name: tooLong }));
+  // ⛔ LA POSTURE DU LOT: un champ refusé ne rejette JAMAIS le plat.
+  assertEquals(meal.dishes.length, 1);
+  assertEquals(meal.dishes[0].name, null);
+  assertEquals(meal.dishes[0].title, "Chicken and rice");
+  assertEquals(meal.name_counts, { dishes: 1, declared: 1, kept: 0, refused: 1 });
+  assert(
+    meal.issues.some((i) => i.includes("characters")),
+    `le refus n'est pas nommé: ${JSON.stringify(meal.issues)}`,
+  );
+  // LA BORNE EST UNE BORNE: un caractère de moins passe.
+  const justFits = parse(dishFor({ name: "A".repeat(DISH_NAME_MAX_CHARS) }));
+  assertEquals(justFits.name_counts.kept, 1);
+});
+
+Deno.test("L7 ③ — un nom IDENTIQUE au titre est refusé: une ligne suffit", () => {
+  // L'écran rend le nom au-dessus du titre. Deux fois la même chaîne l'une
+  // sur l'autre est une ligne qui ne dit rien.
+  const meal = parse(dishFor({ name: "  chicken   AND rice " }));
+  assertEquals(meal.dishes[0].name, null);
+  assertEquals(meal.name_counts, { dishes: 1, declared: 1, kept: 0, refused: 1 });
+  assert(
+    meal.issues.some((i) => i.includes("repeats the title")),
+    `le refus n'est pas nommé: ${JSON.stringify(meal.issues)}`,
+  );
+});
+
+Deno.test("L7 ③ — une clé vide n'est NI déclarée NI refusée", () => {
+  // Même discipline que `same_day`: un plat sans clé du tout ne compte dans
+  // aucun des deux, et l'écart entre `dishes` et `declared` est le nombre qu'on
+  // veut voir au premier run réel.
+  for (const empty of ["", "   ", null]) {
+    const meal = parse(dishFor({ name: empty }));
+    assertEquals(
+      meal.name_counts,
+      { dishes: 1, declared: 0, kept: 0, refused: 0 },
+      `\`${JSON.stringify(empty)}\` a été compté`,
+    );
+  }
+});
+
+Deno.test("L7 ③ — `declared` vaut TOUJOURS `kept + refused`", () => {
+  // ⚠️ UNE PROPRIÉTÉ VÉRIFIÉE, PAS UNE DÉFINITION. Les trois se comptent
+  // séparément (cicatrice `withheld`/`over_cap`). La dériver la rendrait
+  // invérifiable.
+  const one = dishFor().dishes[0];
+  const meal = parse({
+    dishes: [
+      { ...one, day: "mon", slot: "lunch", name: "Golden bowls" },
+      { ...one, day: "mon", slot: "dinner", name: "B".repeat(200) },
+      { ...one, day: "mon", slot: "breakfast" },
+    ],
+  });
+  const c = meal.name_counts;
+  assertEquals(c.declared, c.kept + c.refused);
+  assertEquals(c, { dishes: 3, declared: 2, kept: 1, refused: 1 });
+});
+
+Deno.test("L7 ③ — un plat ÉVINCÉ par le plafond ne compte dans AUCUN des trois", () => {
+  // ⛔ LE SEPTIÈME TABLEAU PARALLÈLE DOIT SUIVRE LE `splice`. Sans lui, le refus
+  // d'un plat que le plafond vient de retirer resterait dans `declared` alors
+  // que le plat n'existe plus: un compteur qui annonce un refus sur une ligne
+  // que personne ne peut retrouver.
+  const plate = (slot: string, n: number, over: Record<string, unknown> = {}) => ({
+    title: `Plate ${slot} ${n}`,
+    slot,
+    day: "mon",
+    ingredients: [{ term: "chicken", quantity: "150 g" }],
+    method: "Cook it.",
+    why: "It fits the day.",
+    ...over,
+  });
+  // ⚠️ LA MISE EN SCÈNE EST LA MOITIÉ DU TEST, ET LA PREMIÈRE VERSION NE
+  // MESURAIT RIEN. Un plat refusé par le plafond peut sortir par DEUX portes:
+  // le `continue` (quand aucun plat gardé n'est plus jetable que lui) et le
+  // `splice` (quand un plat déjà gardé lui cède la place). Seule la seconde
+  // touche les tableaux parallèles. La première rédaction posait le nom sur un
+  // troisième déjeuner — donc sur le plat le plus jetable de tous, qui sort par
+  // le `continue` — et restait verte quand on retirait le `splice`: une
+  // ceinture armée sur un coffre vide. Ici le nom est sur le SECOND déjeuner,
+  // qui est gardé, puis évincé par le dîner.
+  const meal = parse({
+    dishes: [
+      plate("breakfast", 1),
+      plate("lunch", 1),
+      plate("lunch", 2, { name: "C".repeat(200) }),
+      plate("dinner", 1),
+    ],
+  });
+  assert(
+    !meal.dishes.some((d) => d.title === "Plate lunch 2"),
+    "le plafond n'a pas évincé le plat nommé: le test ne mesure plus rien",
+  );
+  assert(
+    meal.dishes.some((d) => d.title === "Plate dinner 1"),
+    "le plat nommé n'a pas CÉDÉ SA PLACE: il est sorti par le `continue`, " +
+      "et le `splice` n'est donc pas exercé",
+  );
+  assertEquals(meal.name_counts, {
+    dishes: meal.dishes.length,
+    declared: 0,
+    kept: 0,
+    refused: 0,
+  });
+});
+
+Deno.test("L7 ③ — le nom est ÉCRIT EN BASE, même à `null`", () => {
+  // Posture `member_id` / `same_day` / `box_id`: une clé absente ne se
+  // distingue pas d'un lot débranché — et c'est `dishes[].name` qui rend le
+  // taux comptable en SQL sur les DEUX lanes, sans passer par `generated_from`.
+  const sans = mealDishesPayload(parse(dishFor()));
+  assert("name" in sans[0], JSON.stringify(sans[0]));
+  assertEquals(sans[0].name, null);
+  const avec = mealDishesPayload(parse(dishFor({ name: "Golden bowls" })));
+  assertEquals(avec[0].name, "Golden bowls");
+  assertEquals(avec[0].title, "Chicken and rice");
+});
+
+Deno.test("L7 ③ — AUCUNE garde ne lit le nom: l'attribution passe par l'id", () => {
+  // ⛔ LA CICATRICE DES MATCHERS DE TITRE RESTE FERMÉE. Un nom qui contient le
+  // prénom d'une autre bouche ne doit rien changer: 12 faux positifs sur 12 ont
+  // été mesurés sur cette famille de lecture.
+  const nu = parse(dishFor({ for_member_id: "m-zoe" }), {
+    merge: eaterAsking(["m-zoe"]),
+  });
+  const nomme = parse(
+    dishFor({ for_member_id: "m-zoe", name: "Lea's golden bowls" }),
+    { merge: eaterAsking(["m-zoe"]) },
+  );
+  assertEquals(nomme.dishes[0].memberId, nu.dishes[0].memberId);
+  assertEquals(nomme.dishes[0].memberId, "m-zoe");
+  assertEquals(nomme.dish_owner_counts, nu.dish_owner_counts);
 });

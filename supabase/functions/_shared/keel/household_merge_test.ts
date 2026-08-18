@@ -1451,6 +1451,7 @@ const PROMPT_BASE = {
   habits: [],
   habitNote: null,
   focusAxis: null,
+  dietBlock: "",
   doctrineBlock: "",
   coachNoteBlock: null,
   protocolBlock: "",
@@ -2687,7 +2688,14 @@ Deno.test("C8 ③ — LA LANE INDIVIDUELLE GARDE SA VERSION DE PROMPT", () => {
   // foyer (`v14_weigh_once_into_boxes`), parce que les ids de bouches n'existent
   // que là. Deux moitiés d'un même lot, deux axes — la règle « quelle
   // population voit une consigne différente », appliquée deux fois.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v11_weighed_or_counted");
+  // ⚠️ v12 DEPUIS L7 (2026-08-18), ET C'EST LE RAISONNEMENT DE v10 ET v11 PRIS
+  // UNE TROISIÈME FOIS: un octet de CONSIGNE change, et il change POUR TOUT LE
+  // MONDE. La section `EVERY DISH HAS TWO LINES: A NAME, AND A TITLE` et la clé
+  // `"name"` du schéma de sortie vivent dans `MEAL_SYSTEM_PROMPT`, donc la lane
+  // individuelle, le foyer ordinaire, la fusion et le secondaire les voient
+  // tous. Le même bump paie la ligne `dishes[].name` ajoutée à
+  // `MEAL_TRANSLATABLE_FIELDS`, rendue dans le bloc de langue des deux lanes.
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v12_a_dish_has_a_name");
   // ⚠️ v10 DEPUIS LE LOT G (2026-08-14), ET C'EST LA MOITIÉ DU LOT QUI COMPTE
   // ICI: le TRONC ne bouge toujours pas (la ligne au-dessus le tient), la lane
   // du FOYER si. Deux populations neuves y voient une consigne différente —
@@ -2733,7 +2741,13 @@ Deno.test("C8 ③ — LA LANE INDIVIDUELLE GARDE SA VERSION DE PROMPT", () => {
   // PLUS byte-identique à v13, et c'est délibéré: « des quantités précises pour
   // chaque personne » ne s'arrête pas à deux habitants. La population non
   // concernée est la lane INDIVIDUELLE, qui ne monte jamais cette enveloppe.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v15_one_box_each_and_a_number");
+  // ⚠️ v16 DEPUIS L7 (2026-08-18), ET LES DEUX AXES BOUGENT ENSEMBLE POUR LA
+  // SECONDE FOIS. L'enveloppe gagne deux blocs qui ne concernent QUE le foyer —
+  // ce que cette cuisine n'a pas, et les midis qui sortent du plan sans sortir
+  // de la journée. Aucun des deux ne demande de champ au modèle, donc le
+  // `systemSuffix` ne bouge pas d'un octet; et sans donnée les deux sont vides,
+  // ce que deux tests tiennent par égalité de chaîne.
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v16_this_kitchen_and_a_meal_out");
 });
 
 Deno.test("C7 ③ — LA LIGNE DE COURSES D'UN PLAT JETÉ NE PART PLUS AU MAGASIN", () => {

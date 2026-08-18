@@ -517,8 +517,16 @@ Deno.test("LOT 2 — le TRONC bumpe, l'enveloppe FOYER ne bouge pas", () => {
   // nominal que ce test décrit depuis le LOT 2, pris dans l'autre sens: le
   // tronc ne gagne pas un octet (il reste v11), l'enveloppe foyer passe à v15
   // pour le gramme dans la note et « exactement une boîte par bouche ».
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v11_weighed_or_counted");
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v15_one_box_each_and_a_number");
+  // ⚠️ L7 (2026-08-18) — LES DEUX AXES BOUGENT ENSEMBLE, POUR LA SECONDE FOIS,
+  // et pour deux consignes qui n'ont RIEN à voir l'une avec l'autre. Le tronc
+  // passe à v12 pour le NOM d'un plat à côté de son titre — vu par les quatre
+  // populations, puisqu'il vit dans `MEAL_SYSTEM_PROMPT`. L'enveloppe foyer
+  // passe à v16 pour deux blocs qui ne concernent que le foyer: ce que cette
+  // cuisine n'a pas, et les midis qui sortent du plan sans sortir de la
+  // journée. Trois consignes, deux portées, deux numéros — ce n'est pas le cas
+  // que ce test met en garde (un même changement bumpé deux fois).
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v12_a_dish_has_a_name");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v16_this_kitchen_and_a_meal_out");
 });
 
 // ---------------------------------------------------------------------------
