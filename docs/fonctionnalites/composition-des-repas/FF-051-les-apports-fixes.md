@@ -328,10 +328,29 @@ shaker apporte à *son* plancher ne sort jamais du moteur.
 
 ## 11. Questions ouvertes
 
-1. **L'apport fixe au foyer.** Le shaker d'un membre n'est pas celui de la
-   table. Il appartient au canal des deltas
-   ([FF-043](../le-foyer/FF-043-la-resolution-foyer.md)), pas au tronc — mais
-   `DELTA_CHANNELS` ne le porte pas encore. **Non fait**, et c'est un vrai trou.
+1. ~~**L'apport fixe au foyer.**~~ **Fait le 2026-08-18 (D1b)**, et pas par où
+   cette question l'attendait. Elle disait « il appartient au canal des deltas
+   ([FF-043](../le-foyer/FF-043-la-resolution-foyer.md)), que `DELTA_CHANNELS`
+   ne porte pas encore » — c'est-à-dire qu'elle faisait dépendre un champ déjà
+   demandé à l'écran d'une dépendance qui n'existe pas. Pendant ce temps,
+   `generate-household-meal-v1` passait `fixedIntakes: []` en dur, trois fois:
+   on demandait ses protéines et ses calories à quelqu'un, rien ne les
+   enregistrait, et le générateur ne les lisait jamais.
+
+   Le lecteur est `_shared/keel/household_fixed_intakes.ts`, jumeau de
+   `household_bodies.ts`: une lecture PAR BOUCHE ATTABLÉE qui a un compte, le
+   prénom devant le libellé (« Zoe: mon shaker »), et le plafond du prompt
+   servi à tour de rôle. Le shaker d'un membre n'est toujours pas celui de la
+   table, et c'est la ligne nommée qui le dit.
+
+   ⚠️ **Ce qui reste ouvert est l'inverse de ce qui est fait**: un apport
+   `replaces_meal: true` **ne prend aucun moment au foyer** — il est ramené à
+   côté du repas, et le nombre de rétrogradations est compté
+   (`keel.household_meal.fixed_intakes`). Vider la case de quatre personnes
+   parce qu'une seule prend un shaker coûte un repas à trois d'entre elles;
+   laisser une portion de trop coûte une portion. Le jour où le canal des
+   deltas portera le champ, c'est LUI qui pourra reprendre un moment, pour la
+   bouche qui l'a déclaré et pour elle seule.
 2. **La quantité variable.** « Un ou deux œufs selon la faim » n'a pas de
    forme ici. Le plafond du moteur voudrait le maximum, la non-duplication
    voudrait le minimum. Non tranché, parce qu'aucune donnée ne dit encore si le
