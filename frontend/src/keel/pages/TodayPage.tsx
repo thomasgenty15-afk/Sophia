@@ -339,6 +339,31 @@ function OwnDay({
             <div className="mt-4 space-y-2">
               <EnergyTargetNote target={energy.target} />
               <EnergyBasisNote />
+              {/* L4 · ON L'ÉTEINT LÀ OÙ ON LE RENCONTRE.
+                  `meals.energy.switch_hint` promet « you can turn this off at
+                  any time, and it goes quiet everywhere » — c'était vrai de
+                  l'EFFET et faux de la PORTÉE: la seule bascule du produit
+                  vivait sur `/app/plan`, sous la semaine composée, et cet
+                  écran-ci est celui qu'on ouvre tous les jours. « Un chiffre
+                  qu'on ne peut pas faire taire est un tracker. »
+                  ⚠️ SEULEMENT L'EXTINCTION. On n'invite PAS à allumer ici:
+                  proposer « voir mes calories » sur l'écran quotidien serait
+                  une surface d'entrée neuve, et ce n'est pas la question que ce
+                  lot avait à trancher. */}
+              <div className="flex flex-wrap items-center gap-3 pt-1">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => energy.toggle(false)}
+                >
+                  {mealCopy("meals.energy.switch_off")}
+                </Button>
+                {energy.error && (
+                  <span className="text-xs text-red-700">
+                    {mealCopy("meals.energy.switch_failed")}
+                  </span>
+                )}
+              </div>
             </div>
           )}
         </section>
