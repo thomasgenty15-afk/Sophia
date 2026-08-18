@@ -26,7 +26,11 @@ import {
 // `resolveResponseLocale({})`: une chaine de priorite sans aucune entree, donc
 // une langue decidee par son repli. Le bloc RESPONSE_LANGUAGE part en DERNIERE
 // instruction du prompt (la position est le mecanisme: la recence gagne).
-import { appendResponseLanguageBlock } from "../../../_shared/keel/locale.ts";
+import {
+  appendResponseLanguageBlock,
+  type LocalePackKey,
+  localePackKey,
+} from "../../../_shared/keel/locale.ts";
 import { VISIBLE_OUTPUT_STYLE_RULES } from "../../router/response_style_policy.ts";
 import {
   FORBIDDEN_METRIC_TERMS,
@@ -133,42 +137,123 @@ export function validateVisibleMessage(
 
 // ---------------------------------------------------------------------------
 // Deterministic messages (fallback AND the reference wording)
+//
+// ── L4 · CE TEXTE ÉTAIT ANGLAIS, SUR LA LANE OÙ ÇA COÛTE LE PLUS CHER ──────
+//
+// C'est le repli ANTI-SILENCE: il part chaque fois que le modèle est refusé par
+// le validateur, ou qu'il ne répond pas. Autrement dit, quand la pile est en
+// panne, 100 % des tours cliniques passent par ici. Il n'existait qu'en anglais
+// — une personne francophone dans le flux de garde alimentaire lisait donc de
+// l'anglais au moment précis où le produit avait décidé de se taire sur les
+// chiffres pour la protéger. Même cicatrice que « accusé photo hors cerveau:
+// deux textes EN en dur », sur un chemin bien plus sensible.
+//
+// ── `responseLocale` EST REQUIS, ET POSITIONNEL ────────────────────────────
+// Pas de défaut, pas d'optionnel. Un appelant qui l'oublie ne compile pas —
+// c'est la seule forme de garde que ce dépôt accepte depuis « un paramètre de
+// garde optionnel est une garde désarmée ».
+//
+// ── L'ÉCHAPPATOIRE, NOMMÉE ────────────────────────────────────────────────
+// `localePackKey` JETTE pour une langue non livrée (R7), et c'est la bonne
+// règle partout ailleurs. PAS ICI: une exception dans ce repli rendrait un tour
+// clinique MUET, ce qui est pire qu'un tour anglais. On retombe donc sur `en`,
+// et on le JOURNALISE — un repli silencieux est celui qu'on ne répare jamais.
 // ---------------------------------------------------------------------------
+
+type DisorderedEatingPack = {
+  /** L'en-tête de la liste de ressources. */
+  resourcesHeader: string;
+  coach: string;
+  messages: Record<DisorderedEatingVisibleTaskKind, (parts: {
+    coach: string;
+    resources: string;
+  }) => string>;
+};
+
+const DISORDERED_EATING_PACKS: Record<LocalePackKey, DisorderedEatingPack> = {
+  en: {
+    resourcesHeader: "People who do this all day, and who are not me:",
+    coach:
+      "Your coach is the person to talk to next, and I can flag it to them right now.",
+    messages: {
+      open_without_numbers: ({ coach }) =>
+        "I've paused the check-ins and the progress figures on your side for now. " +
+        "Not as a penalty, and not because you did anything wrong — I just don't " +
+        `think they're helping you at the moment. ${coach} How are things going for you?`,
+      numbers_refusal: ({ coach }) =>
+        "I'm not going to give you that one. Those figures are paused for you " +
+        `right now, and going back over them isn't something I'll do here. ${coach}`,
+      clinical_resources: ({ coach, resources }) => `${coach}${resources}`,
+      medical_escalation: ({ coach, resources }) =>
+        "What you're describing needs to be looked at by a doctor today — please " +
+        "contact your GP or your local emergency service now, before anything else. " +
+        `${coach}${resources}`,
+      respect_decline_hold: () =>
+        "Understood, I'll leave it. I'm here if you want to come back to it.",
+      holding: () => "I'm here.",
+      close: () =>
+        "Of course. One thing before we move on: the progress figures and the " +
+        "check-in reminders stay paused on your side until your coach has looked " +
+        "at this with you.",
+    },
+  },
+  fr: {
+    resourcesHeader: "Des gens dont c'est le métier, et qui ne sont pas moi :",
+    coach:
+      "Ton coach est la personne à qui en parler ensuite, et je peux le lui signaler tout de suite.",
+    messages: {
+      open_without_numbers: ({ coach }) =>
+        "J'ai mis en pause les points de suivi et les chiffres de progression de " +
+        "ton côté, pour l'instant. Ce n'est pas une sanction, et tu n'as rien fait " +
+        `de mal — je ne crois simplement pas qu'ils t'aident en ce moment. ${coach} ` +
+        "Comment ça va, toi ?",
+      numbers_refusal: ({ coach }) =>
+        "Je ne vais pas te donner celui-là. Ces chiffres sont en pause pour toi en " +
+        `ce moment, et y revenir n'est pas quelque chose que je ferai ici. ${coach}`,
+      clinical_resources: ({ coach, resources }) => `${coach}${resources}`,
+      medical_escalation: ({ coach, resources }) =>
+        "Ce que tu décris doit être examiné par un médecin aujourd'hui — contacte " +
+        "ton médecin traitant ou les urgences de ta région maintenant, avant toute " +
+        `autre chose. ${coach}${resources}`,
+      respect_decline_hold: () =>
+        "D'accord, je laisse ça. Je suis là si tu veux y revenir.",
+      holding: () => "Je suis là.",
+      close: () =>
+        "Bien sûr. Une chose avant qu'on passe à autre chose : les chiffres de " +
+        "progression et les rappels de point restent en pause de ton côté jusqu'à " +
+        "ce que ton coach en ait parlé avec toi.",
+    },
+  },
+};
+
+/** Le pack du repli. R7 par délégation, SAUF que l'anti-silence gagne. */
+export function disorderedEatingPackKey(responseLocale: string): LocalePackKey {
+  try {
+    return localePackKey(responseLocale);
+  } catch {
+    console.warn(JSON.stringify({
+      tag: "disordered_eating_guard.deterministic_message_locale_fallback",
+      requested_locale: responseLocale,
+      used: "en",
+      effect:
+        "un tour clinique en anglais plutôt qu'un tour clinique muet — livrer " +
+        "le pack de cette langue est la vraie réparation",
+    }));
+    return "en";
+  }
+}
 
 export function disorderedEatingDeterministicMessage(
   kind: DisorderedEatingVisibleTaskKind,
   resourceLines: string[],
+  /** REQUIS. La langue du tour, telle que le runtime l'a résolue. */
+  responseLocale: string,
 ): string {
+  const pack = DISORDERED_EATING_PACKS[disorderedEatingPackKey(responseLocale)];
   const resources = resourceLines.length > 0
-    ? `\n\nPeople who do this all day, and who are not me:\n${
-      resourceLines.map((l) => `- ${l}`).join("\n")
-    }`
+    ? `\n\n${pack.resourcesHeader}\n${resourceLines.map((l) => `- ${l}`).join("\n")}`
     : "";
-  const coach = "Your coach is the person to talk to next, and I can flag it to them right now.";
-
-  const messages: Record<DisorderedEatingVisibleTaskKind, string> = {
-    open_without_numbers:
-      "I've paused the check-ins and the progress figures on your side for now. " +
-      "Not as a penalty, and not because you did anything wrong — I just don't " +
-      `think they're helping you at the moment. ${coach} How are things going for you?`,
-    numbers_refusal:
-      "I'm not going to give you that one. Those figures are paused for you " +
-      `right now, and going back over them isn't something I'll do here. ${coach}`,
-    clinical_resources:
-      `${coach}${resources}`,
-    medical_escalation:
-      "What you're describing needs to be looked at by a doctor today — please " +
-      "contact your GP or your local emergency service now, before anything else. " +
-      `${coach}${resources}`,
-    respect_decline_hold:
-      "Understood, I'll leave it. I'm here if you want to come back to it.",
-    holding: "I'm here.",
-    close:
-      "Of course. One thing before we move on: the progress figures and the " +
-      "check-in reminders stay paused on your side until your coach has looked " +
-      "at this with you.",
-  };
-  return messages[kind];
+  return pack.messages[kind]({ coach: pack.coach, resources });
 }
 
 // ---------------------------------------------------------------------------

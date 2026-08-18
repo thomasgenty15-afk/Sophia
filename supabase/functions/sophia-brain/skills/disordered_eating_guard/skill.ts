@@ -106,16 +106,23 @@ export async function runDisorderedEatingGuardSkill(
 
   // Anti-silence invariant, same shape as safety_crisis: a rejected or failed
   // generation yields the deterministic text, never an empty clinical turn.
+  //
+  // ⚠️ L4 — LA LANGUE VOYAGE JUSQU'ICI. Ce repli était anglais en dur: quand la
+  // pile tombe, 100 % des tours cliniques passent par lui, et une personne
+  // francophone lisait de l'anglais au moment le plus sensible du produit. Le
+  // troisième argument est REQUIS — un appelant qui l'oublie ne compile pas.
   const deterministic = visible.message
     ? null
     : disorderedEatingDeterministicMessage(
       reduction.visibleTask.kind,
       reduction.visibleTask.conversation_context.clinical_resources.lines,
+      input.context.response_locale,
     );
   if (!visible.message) {
     console.warn("disordered_eating_guard.visible_generation_fallback", {
       "visible_task.kind": reduction.visibleTask.kind,
       reason: visible.failure_reason,
+      response_locale: input.context.response_locale,
       deterministic_message_used: true,
     });
   }

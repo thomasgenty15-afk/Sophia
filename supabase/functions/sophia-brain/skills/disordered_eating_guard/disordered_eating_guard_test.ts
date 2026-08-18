@@ -29,6 +29,7 @@ import {
 import { resolveEatingDisorderResources } from "./resources.ts";
 import {
   disorderedEatingDeterministicMessage,
+  disorderedEatingPackKey,
   validateVisibleMessage,
 } from "./visible_agent.ts";
 
@@ -238,38 +239,106 @@ Deno.test("numbers — the helpline contact is the ONLY numeric string allowed",
   );
 });
 
-Deno.test("numbers — every deterministic fallback passes its own validator", () => {
+Deno.test("numbers — every deterministic fallback passes its own validator, in BOTH languages", () => {
   // A fallback that fails validation would mean the safe path is the broken
-  // one. Checked for every task kind and both resource states.
-  for (const country of ["US", "GB", "FR", null]) {
-    for (
-      const message of [
-        "",
-        "what's my score",
-        "yes please",
-        "no I'm fine",
-        "can we move on",
-        "I fainted this morning",
-        "mmh",
-      ]
-    ) {
-      const r = reduce({
-        state: message === "" ? undefined : AFTER_ENTRY,
-        message,
-        country,
-      });
-      const text = disorderedEatingDeterministicMessage(
-        r.visibleTask.kind,
-        r.visibleTask.conversation_context.clinical_resources.lines,
-      );
-      const v = validateVisibleMessage(text, r.visibleTask);
-      assertEquals(
-        v.ok,
-        true,
-        `fallback for ${r.visibleTask.kind}/${country} rejected: ${v.reason}`,
-      );
+  // one. Checked for every task kind, both resource states — ET LES DEUX
+  // LANGUES. Le validateur plie les accents avant de chercher: une garde
+  // éprouvée dans une seule langue ne prouve rien de l'autre, et
+  // `FORBIDDEN_METRIC_TERMS` porte « poids », « peser », « pesée »,
+  // « assiduité », « série » — cinq mots qu'un texte français attrape sans
+  // effort si personne ne les cherche.
+  for (const locale of ["en-US", "fr-FR"]) {
+    for (const country of ["US", "GB", "FR", null]) {
+      for (
+        const message of [
+          "",
+          "what's my score",
+          "yes please",
+          "no I'm fine",
+          "can we move on",
+          "I fainted this morning",
+          "mmh",
+        ]
+      ) {
+        const r = reduce({
+          state: message === "" ? undefined : AFTER_ENTRY,
+          message,
+          country,
+        });
+        const text = disorderedEatingDeterministicMessage(
+          r.visibleTask.kind,
+          r.visibleTask.conversation_context.clinical_resources.lines,
+          locale,
+        );
+        const v = validateVisibleMessage(text, r.visibleTask);
+        assertEquals(
+          v.ok,
+          true,
+          `fallback for ${r.visibleTask.kind}/${country}/${locale} rejected: ${v.reason}`,
+        );
+      }
     }
   }
+});
+
+Deno.test("L4 — le repli déterministe PARLE FRANÇAIS, et ce n'est pas l'anglais", () => {
+  // LE DÉFAUT QUE CE TEST FERME, mesuré le 2026-08-18: ce repli n'existait
+  // qu'en anglais. Il part chaque fois que le modèle est refusé par le
+  // validateur ou ne répond pas — c'est-à-dire que dans une panne, 100 % des
+  // tours de la lane clinique passaient par lui. Une personne francophone
+  // lisait donc de l'anglais au moment précis où le produit se taisait sur les
+  // chiffres pour la protéger.
+  const KINDS = [
+    "open_without_numbers",
+    "numbers_refusal",
+    "clinical_resources",
+    "medical_escalation",
+    "respect_decline_hold",
+    "holding",
+    "close",
+  ] as const;
+
+  for (const kind of KINDS) {
+    const en = disorderedEatingDeterministicMessage(kind, [], "en-US");
+    const fr = disorderedEatingDeterministicMessage(kind, [], "fr-FR");
+    assert(en.trim().length > 0, `${kind}: repli anglais vide`);
+    assert(fr.trim().length > 0, `${kind}: repli français vide`);
+    // LA PRÉMISSE FAUSSE, ET C'EST TOUT LE TEST: si un jour quelqu'un « livre »
+    // le français en recopiant l'anglais, cette ligne est la seule qui le dira.
+    assert(fr !== en, `${kind}: le repli « français » EST le texte anglais`);
+  }
+
+  // Deux ancrages de langue, un par côté, pour que le test ne se contente pas
+  // d'une différence de ponctuation.
+  assert(
+    disorderedEatingDeterministicMessage("holding", [], "fr-FR").includes("Je suis là"),
+  );
+  assert(
+    disorderedEatingDeterministicMessage("holding", [], "en-US").includes("I'm here"),
+  );
+
+  // L'en-tête de la liste de ressources suit la langue lui aussi — c'est la
+  // seule phrase que le repli ajoute AUTOUR d'un contact vérifié.
+  const withLines = disorderedEatingDeterministicMessage(
+    "clinical_resources",
+    ["Anorexie Boulimie Info Ecoute — 0 810 037 037"],
+    "fr-FR",
+  );
+  assert(withLines.includes("Des gens dont c'est le métier"), withLines);
+  assert(withLines.includes("Anorexie Boulimie Info Ecoute"), withLines);
+});
+
+Deno.test("L4 — une langue NON LIVRÉE retombe sur l'anglais, jamais sur le silence", () => {
+  // R7 dit de JETER pour une langue qu'on n'a pas livrée, et c'est la bonne
+  // règle partout ailleurs. Pas ici: une exception dans le repli anti-silence
+  // rendrait MUET un tour clinique, ce qui est strictement pire qu'un tour
+  // anglais. L'échappatoire est nommée, et elle est journalisée.
+  assertEquals(disorderedEatingPackKey("es-ES"), "en");
+  assertEquals(disorderedEatingPackKey("fr-CA"), "fr");
+  assertEquals(disorderedEatingPackKey("en-GB"), "en");
+  const text = disorderedEatingDeterministicMessage("holding", [], "es-ES");
+  assert(text.trim().length > 0);
+  assertEquals(text, disorderedEatingDeterministicMessage("holding", [], "en-US"));
 });
 
 Deno.test("numbers — the forbidden term list stays free of over-broad words", () => {
@@ -394,10 +463,15 @@ Deno.test("exit — closing NEVER lifts the suspension", () => {
   // it: only a coach review does. The close message says so out loud.
   const r = reduce({ state: AFTER_ENTRY, message: "let's move on" });
   assertEquals(r.status, "exit");
-  const text = disorderedEatingDeterministicMessage("close", []);
+  const text = disorderedEatingDeterministicMessage("close", [], "en-US");
   assert(text.includes("paused"));
   assert(text.includes("coach"));
   assertEquals(validateVisibleMessage(text, r.visibleTask).ok, true);
+  // Et la même promesse tient en français: fermer la CONVERSATION ne lève rien.
+  const fr = disorderedEatingDeterministicMessage("close", [], "fr-FR");
+  assert(fr.includes("en pause"), fr);
+  assert(fr.includes("coach"), fr);
+  assertEquals(validateVisibleMessage(fr, r.visibleTask).ok, true);
   // And the guard result the runtime holds is untouched by any of this.
   assertEquals(flaggedGuard().restriction_flag, true);
 });
