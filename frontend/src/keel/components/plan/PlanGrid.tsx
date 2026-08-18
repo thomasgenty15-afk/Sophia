@@ -135,13 +135,49 @@ export default function PlanGrid(props: PlanGridProps) {
                             survol. Sans ça, « Peanut butter toast and fruit »
                             prend trois lignes, la grille devient aussi haute
                             que la liste qu'elle résume, et elle ne résume plus
-                            rien. */}
-                        <span className="line-clamp-2 block" title={cell.title}>
+                            rien.
+                            ⛔ PAS DE `block` ICI. `line-clamp-2` pose
+                            `display:-webkit-box`, et `block` le REMPLACE —
+                            la paire `line-clamp-2 block` est inerte, la
+                            troncature ne s'applique jamais, et ça ne se voit
+                            que sur un titre assez long pour déborder. */}
+                        <span className="line-clamp-2" title={cell.title}>
                           {cell.title}
                         </span>
                         {cell.fromBatch && (
                           <span className="mt-0.5 block text-[10px] uppercase tracking-wide text-ink-soft">
                             {mealCopy("meals.grid.from_batch")}
+                          </span>
+                        )}
+                        {/* ── D3b · CE QUE LA CASE TAISAIT ─────────────────
+                            Une case étroite ne peut pas lister les assiettes;
+                            elle peut dire QU'IL Y EN A D'AUTRES. Sans ça, le
+                            seul moment où le foyer ne mange pas la même chose
+                            est justement celui où la grille l'affirme uni.
+                            Un seul badge: `titleIsOwn` REMPLACE le compte —
+                            « rien pour la table » est le fait le plus fort,
+                            et deux lignes de badge doubleraient la hauteur. */}
+                        {(cell.titleIsOwn || cell.ownMouths > 0) && (
+                          <span className="mt-0.5 block text-[10px] uppercase tracking-wide text-ink-soft">
+                            {cell.titleIsOwn
+                              ? mealCopy("meals.grid.own_only")
+                              : cell.ownMouths === 1
+                              ? mealCopy("meals.grid.own_one")
+                              : mealCopy("meals.grid.own_many", {
+                                n: cell.ownMouths,
+                              })}
+                          </span>
+                        )}
+                        {/* Le second plat de TABLE du même moment. Compté et
+                            nommé, jamais jeté: le moteur a peut-être raison,
+                            et c'est à l'humain de trancher. */}
+                        {cell.extraTableDishes > 0 && (
+                          <span className="mt-0.5 block text-[10px] uppercase tracking-wide text-ink-soft">
+                            {cell.extraTableDishes === 1
+                              ? mealCopy("meals.grid.extra_one")
+                              : mealCopy("meals.grid.extra_many", {
+                                n: cell.extraTableDishes,
+                              })}
                           </span>
                         )}
                       </span>

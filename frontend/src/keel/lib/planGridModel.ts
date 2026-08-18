@@ -44,6 +44,39 @@ export type PlanGridCell =
      * le corriger.
      */
     fromBatch: boolean;
+    /**
+     * ══════════════════════════════════════════════════════════════════════
+     * COMBIEN DE BOUCHES MANGENT LEUR PROPRE PLAT À CE MOMENT (D3b).
+     * ══════════════════════════════════════════════════════════════════════
+     *
+     * ⛔ LE DÉFAUT: la grille prenait LE PREMIER plat du moment et le montrait
+     * seul. Un dîner où Zoé mange autre chose se lisait donc « tout le monde
+     * mange la même chose » — la seule case où le foyer se divise était
+     * exactement celle où la grille l'affirmait uni. La vue JOUR sait déjà le
+     * dire (`DayPersonSplit`); la vue d'ensemble le taisait.
+     *
+     * 0 = personne à part, et c'est le cas courant: les deux plans réels
+     * mesurés le 2026-08-18 ne portent AUCUN plat dédié.
+     */
+    ownMouths: number;
+    /**
+     * Le titre montré est celui d'un plat DÉDIÉ, faute de plat de table.
+     *
+     * ⚠️ C'EST LE MENSONGE LE PLUS CHER DES DEUX, et il se produit sans qu'un
+     * seul champ soit faux: sans plat commun, la case affichait l'assiette
+     * d'UNE bouche au nom de toute la table. Le distinguer permet à l'écran de
+     * dire « rien pour la table » au lieu de servir le plat de quelqu'un
+     * d'autre.
+     */
+    titleIsOwn: boolean;
+    /**
+     * Les plats de TABLE en trop sur ce moment — au-delà du premier, le seul
+     * que la case a la place de nommer. 0 dans un plan sain.
+     *
+     * ⚠️ ON NE REJETTE RIEN, ON COMPTE. C'est le pendant visible de
+     * `issues`: la case dit qu'il y en a d'autres, `issues` dit lesquels.
+     */
+    extraTableDishes: number;
   }
   | { kind: "away" }
   /**
@@ -71,10 +104,45 @@ export interface PlanGridRow {
   cells: PlanGridCell[];
 }
 
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * DEUX PLATS DE TABLE AU MÊME DÎNER — COMPTÉ ET NOMMÉ, JAMAIS REJETÉ (D3b).
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ MESURÉ SUR UN PLAN RÉEL, pas imaginé: `scratchpad/backup_dishes_6620682c
+ * .json` porte « Prawn and tomato rice bowls » ET « Tomato lentil soup with
+ * bread » sur `fri/dinner`, tous deux SANS `member_id`, donc tous deux pour la
+ * table. Rien nulle part ne le relevait: la grille montrait le premier, la
+ * liste du jour les montrait tous les deux sans rien dire, et aucun compteur
+ * ne savait que le moteur avait composé deux dîners pour un seul dîner.
+ *
+ * ⚠️ C'EST UNE ANOMALIE NOMMÉE, PAS UN FILTRE. Rien n'est jeté — ni ici, ni
+ * dans la case, ni dans la liste du jour: c'est la posture de tout le
+ * chantier. Un plan qui compose deux dîners a peut-être raison (un soir à deux
+ * services, une option), et un lecteur qui trancherait à notre place ferait
+ * disparaître de l'assiette ce que le moteur a écrit. On le REND VISIBLE, et
+ * on laisse l'humain décider.
+ *
+ * ⚠️ COMPTÉ SUR TOUS LES MOMENTS, PAS SEULEMENT SUR LES LIGNES DU RYTHME. Un
+ * élève qui ne déclare pas de collation n'a pas de ligne « snack_pm », et une
+ * collision qui y tombe n'aurait aucune case pour se voir — c'est-à-dire
+ * exactement le silence que ce compteur existe pour rompre.
+ */
+export interface PlanGridIssue {
+  kind: "two_table_dishes";
+  day: string;
+  /** Le moment, tel que le plat le porte — jamais réécrit ni normalisé. */
+  slot: string;
+  /** Les titres en collision, dans l'ordre du plan. Toujours au moins deux. */
+  titles: string[];
+}
+
 export interface PlanGrid {
   /** Les jours, dans l'ordre du PLAN. Même longueur que chaque `cells`. */
   days: string[];
   rows: PlanGridRow[];
+  /** Les anomalies relevées, jamais corrigées. Vide dans un plan sain. */
+  issues: PlanGridIssue[];
 }
 
 /**
@@ -160,12 +228,28 @@ export function buildPlanGrid(args: {
   const rows: PlanGridRow[] = args.rhythm.map((r) => ({
     slot: r.slot,
     cells: args.days.map((day): PlanGridCell => {
-      const dish = (byDay.get(day) ?? []).find((d) => d.slot === r.slot);
+      // ⚠️ TOUS LES PLATS DU MOMENT, PAS LE PREMIER. `find` rendait la case
+      // aveugle aux deux défauts que ce lot répare: la bouche qui mange à
+      // part, et le second plat de table que personne ne comptait.
+      const atSlot = (byDay.get(day) ?? []).filter((d) => d.slot === r.slot);
+      // ⚠️ `member_id` ABSENT ⇒ LE PLAT DE LA TABLE, jamais un plat dédié à
+      // personne. C'est la lecture défensive du champ lui-même
+      // (`mealGeneration.ts`), et c'est ce que ces plans étaient déjà pour
+      // tout le monde avant que la clé existe.
+      const table = atSlot.filter((d) => (d.member_id ?? null) === null);
+      const own = atSlot.filter((d) => (d.member_id ?? null) !== null);
+      // LE PLAT DE LA TABLE GAGNE LE TITRE. À défaut, c'est l'assiette d'une
+      // bouche qui s'affiche — et `titleIsOwn` interdit de la lire comme
+      // celle de tout le monde.
+      const dish = table[0] ?? own[0] ?? null;
       if (dish) {
         return {
           kind: "dish",
           title: dish.title,
           fromBatch: dish.uses.length > 0,
+          ownMouths: own.length,
+          titleIsOwn: table.length === 0,
+          extraTableDishes: Math.max(0, table.length - 1),
         };
       }
       // ⚠️ LES DEUX SORTENT AU MÊME RANG DE PRÉCÉDENCE, celui qu'occupait
@@ -185,7 +269,44 @@ export function buildPlanGrid(args: {
     }),
   }));
 
-  return { days: [...args.days], rows };
+  return { days: [...args.days], rows, issues: tableCollisions(args.groups) };
+}
+
+/**
+ * Les moments où le plan a composé DEUX plats de table (ou plus).
+ *
+ * ⚠️ SUR `groups`, DONC SUR LA MÊME DONNÉE QUE LES CASES — jamais sur la liste
+ * de plats brute. `groupByDay` a déjà dédupliqué (`title|slot|member_id`): ce
+ * qui reste ici est deux titres DIFFÉRENTS sur un même moment, pas le même
+ * plat compté deux fois. Compter en amont ferait crier ce compteur sur la
+ * duplication que l'autre module vient d'absorber.
+ *
+ * Le groupe SANS jour est ignoré: « deux plats le même jour » n'a pas de sens
+ * pour des plats qui n'en nomment aucun.
+ */
+function tableCollisions(
+  groups: ReadonlyArray<{ day: string | null; dishes: GeneratedDish[] }>,
+): PlanGridIssue[] {
+  const out: PlanGridIssue[] = [];
+  for (const group of groups) {
+    if (!group.day) continue;
+    const bySlot = new Map<string, GeneratedDish[]>();
+    for (const d of group.dishes) {
+      if ((d.member_id ?? null) !== null) continue;
+      const slot = d.slot ?? "";
+      bySlot.set(slot, [...(bySlot.get(slot) ?? []), d]);
+    }
+    for (const [slot, dishes] of bySlot) {
+      if (dishes.length < 2) continue;
+      out.push({
+        kind: "two_table_dishes",
+        day: group.day,
+        slot,
+        titles: dishes.map((d) => d.title),
+      });
+    }
+  }
+  return out;
 }
 
 /**

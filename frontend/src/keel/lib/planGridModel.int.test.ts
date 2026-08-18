@@ -98,6 +98,9 @@ describe("FF-053 R3 — les cinq états d'une case", () => {
       kind: "dish",
       title: "Chicken and rice",
       fromBatch: false,
+      ownMouths: 0,
+      titleIsOwn: false,
+      extraTableDishes: 0,
     });
   });
 
@@ -198,6 +201,13 @@ describe("FF-053 R4 — le lot se dit", () => {
       kind: "dish",
       title: "Chicken and rice",
       fromBatch: true,
+      // D3b — le plan de cette fixture est un plan de TABLE sans collision:
+      // les trois compteurs sont à leur valeur de repos, et l'égalité EXACTE
+      // est gardée exprès. Un champ neuf qui apparaîtrait sans son test doit
+      // faire rougir celui-ci.
+      ownMouths: 0,
+      titleIsOwn: false,
+      extraTableDishes: 0,
     });
   });
 
