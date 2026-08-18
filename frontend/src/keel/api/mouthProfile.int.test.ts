@@ -67,6 +67,14 @@ function spyWriters(
       // « appelée avec quoi » est le sujet des tests d'en bas, et « jamais
       // appelée sans shaker » n'a de sens que si elle était appelable.
       setShaker: make("setShaker") as NonNullable<MouthWriters["setShaker"]>,
+      // D5 (2026-08-18) — LES TROIS PORTES DE LA MARCHE 1 BIS. Branchées par
+      // défaut pour la même raison que le shaker: « jamais appelées sur une
+      // bouche qu'on AJOUTE » ne prouve rien si elles n'étaient pas appelables.
+      setName: make("setName") as NonNullable<MouthWriters["setName"]>,
+      setBirthDate: make("setBirthDate") as NonNullable<
+        MouthWriters["setBirthDate"]
+      >,
+      setGoal: make("setGoal") as NonNullable<MouthWriters["setGoal"]>,
     },
   };
 }
@@ -154,7 +162,19 @@ describe("l'ordre des écritures est une garde", () => {
     const { writers, calls } = spyWriters();
     await persistMouth({ ...MOUTH, memberId: "m-9" }, writers);
     expect(calls).not.toContain("addMember");
-    expect(calls[0]).toBe("setBody");
+  });
+
+  it("⛔ …ET LES TROIS PORTES DE L'AJOUT NE SONT PAS APPELÉES POUR RIEN", async () => {
+    // Le cas qui PASSE de la garde d'en dessous: sur une bouche qu'on AJOUTE,
+    // `addMember` écrit déjà prénom, date et direction. Y rejouer les trois
+    // portes de mise à jour ferait trois écritures de plus pour la même valeur,
+    // et masquerait le jour où `addMember` cesse de les prendre.
+    const { writers, calls } = spyWriters();
+    await persistMouth(MOUTH, writers);
+    expect(calls).toContain("addMember");
+    for (const door of ["setName", "setBirthDate", "setGoal"]) {
+      expect(calls).not.toContain(door);
+    }
   });
 
   it("le régime n'est tenté QUE s'il a été répondu", async () => {
@@ -167,6 +187,130 @@ describe("l'ordre des écritures est une garde", () => {
     const { writers, calls } = spyWriters();
     await persistMouth({ ...MOUTH, habits: [] }, writers);
     expect(calls).toContain("setHabits");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// D5 (2026-08-18) — LA MARCHE 1 BIS: METTRE À JOUR UNE BOUCHE QUI EXISTE
+//
+// ⚠️ C'EST LE TROU QUE CE BLOC SOLDE, ET IL SE MESURE EN UNE PHRASE: avant, si
+// `memberId` n'était pas `null`, `addMember` n'était pas appelé — donc
+// `firstName`, `birthDate` et `goal` n'étaient écrits NULLE PART. Une bouche qui
+// existe est TOUJOURS le cas du compte maître, et monter la fenêtre sur sa fiche
+// jetait sa direction en silence.
+// ---------------------------------------------------------------------------
+
+/** Enregistre les ARGUMENTS, pas seulement les noms. */
+function argSpy(): {
+  writers: MouthWriters;
+  seen: { door: string; args: unknown[] }[];
+} {
+  const seen: { door: string; args: unknown[] }[] = [];
+  const { writers } = spyWriters();
+  for (const door of Object.keys(writers) as (keyof MouthWriters)[]) {
+    const inner = writers[door];
+    if (inner === null) continue;
+    // deno-lint-ignore no-explicit-any
+    (writers as any)[door] = (...args: unknown[]) => {
+      seen.push({ door, args });
+      return Promise.resolve(
+        door === "addMember" ? { ...OK, member_id: "m-1" } : { ...OK },
+      );
+    };
+  }
+  return { writers, seen };
+}
+
+const EXISTING: MouthToPersist = { ...MOUTH, memberId: "m-9" };
+
+describe("la marche 1 bis — une bouche qui EXISTE s'écrit quand même", () => {
+  it("⛔ LE TROU — prénom, date et direction ARRIVENT à une porte", async () => {
+    const { writers, seen } = argSpy();
+    const res = await persistMouth(
+      { ...EXISTING, firstName: "Ahmed", birthDate: "1988-02-03", goal: "muscle_gain" },
+      writers,
+    );
+    expect(res.ok).toBe(true);
+    // ⚠️ ON EXIGE LA VALEUR TAPÉE, PAS SEULEMENT L'APPEL. Une porte appelée
+    // avec la mauvaise variable serait le même silence, sous un nom rassurant.
+    expect(seen.find((c) => c.door === "setName")?.args)
+      .toEqual(["m-9", "Ahmed"]);
+    expect(seen.find((c) => c.door === "setBirthDate")?.args)
+      .toEqual(["m-9", "1988-02-03"]);
+    expect(seen.find((c) => c.door === "setGoal")?.args)
+      .toEqual(["m-9", "muscle_gain"]);
+  });
+
+  it("l'ordre complet, et la cible EFFACÉE avant la direction", async () => {
+    const { writers, seen } = argSpy();
+    await persistMouth(EXISTING, writers);
+    expect(seen.map((c) => c.door)).toEqual([
+      // ⚠️ L'EFFACEMENT D'ABORD. Les CHECK croisés refusent une cible orpheline:
+      // repasser en « maintenir » rendrait la ligne INÉCRIVABLE, et la violation
+      // remonterait en erreur PostgreSQL brute au milieu du formulaire.
+      "setTarget",
+      "setName",
+      "setBirthDate",
+      "setGoal",
+      "setBody",
+      // …et REPOSÉE ensuite, parce que la porte exige que la direction soit
+      // déjà en base (`target_needs_direction`).
+      "setTarget",
+      "setHabits",
+      "addAllergy",
+      "addRestriction",
+      "setDiet",
+    ]);
+  });
+
+  it("⚠️ le PREMIER passage EFFACE, le SECOND repose ce qui a été saisi", async () => {
+    const { writers, seen } = argSpy();
+    await persistMouth({ ...EXISTING, targetWeightKg: 55, paceKgPerWeek: 0.45 }, writers);
+    const targets = seen.filter((c) => c.door === "setTarget");
+    expect(targets).toHaveLength(2);
+    // Sans cette seconde ligne, l'effacement serait une PERTE: la cible saisie
+    // disparaîtrait dans le geste censé l'enregistrer.
+    expect(targets[0].args).toEqual(["m-9", null, null]);
+    expect(targets[1].args).toEqual(["m-9", 55, 0.45]);
+  });
+
+  it("⛔ SANS PORTE, ON LÈVE — jamais un champ collecté puis jeté", async () => {
+    for (const hole of ["setName", "setBirthDate", "setGoal"] as const) {
+      const { writers } = spyWriters();
+      await expect(
+        persistMouth(EXISTING, { ...writers, [hole]: null }),
+        // ⚠️ LES MOTS DE LA GARDE, PAS SON SUJET — la leçon du shaker: désarmer
+        // le `throw` laisserait un `TypeError` du moteur JS qui NOMME lui aussi
+        // la porte manquante, et la garde serait prouvée par la panne qu'elle
+        // existe pour remplacer.
+      ).rejects.toThrow(/collected and dropped/);
+    }
+  });
+
+  it("le refus d'une des trois ARRÊTE la chaîne", async () => {
+    for (
+      const [door, reason] of [
+        ["setName", "bad_first_name"],
+        ["setBirthDate", "bad_birth_date"],
+        ["setGoal", "has_account"],
+      ] as const
+    ) {
+      const { writers, calls } = spyWriters({ [door]: { ok: false, reason } });
+      const res = await persistMouth(EXISTING, writers);
+      expect(res).toEqual({ ok: false, reason });
+      // Le corps, les habitudes et le reste ne partent pas: une fiche à moitié
+      // écrite dont personne ne sait ce qui manque est ce que l'arrêt évite.
+      expect(calls).not.toContain("setBody");
+    }
+  });
+
+  it("l'effacement REFUSÉ arrête tout — on ne force pas la direction par-dessus", async () => {
+    const { writers, calls } = spyWriters({
+      setTarget: { ok: false, reason: "not_owner" },
+    });
+    const res = await persistMouth(EXISTING, writers);
+    expect(res).toEqual({ ok: false, reason: "not_owner" });
+    expect(calls).toEqual(["setTarget"]);
   });
 });
 

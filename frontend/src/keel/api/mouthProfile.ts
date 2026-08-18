@@ -283,6 +283,12 @@ export function ownShakerWriter(
  * LÀ:
  *
  *   1. la bouche EXISTE      — sans `member_id`, rien d'autre n'a de cible;
+ *      · elle n'existe PAS   → `addMember` écrit prénom, date ET direction;
+ *      · elle existe DÉJÀ    → les trois s'écrivent par leurs propres portes
+ *                              (`setName`, `setBirthDate`, `setGoal`), et la
+ *                              cible est EFFACÉE avant la direction — voir le
+ *                              CHECK cité dans `persistMouth`. C'est TOUJOURS
+ *                              le cas du compte maître;
  *   2. le CORPS ET SON CRAN  — un seul geste depuis le lot L0
  *                              (`keel_household_set_member_body`, 5 paramètres);
  *   3. la CIBLE et le RYTHME — ils exigent que `goal` soit déjà `fat_loss` ou
@@ -312,6 +318,34 @@ export interface MouthWriters {
     birthDate: string | null,
     goal: string | null,
   ) => Promise<RpcResult>;
+  /**
+   * ── LA MARCHE 1 BIS — METTRE À JOUR UNE BOUCHE QUI EXISTE ────────────────
+   *
+   * ⚠️ ELLES SONT REQUISES ET NULLABLES, jamais `?`, exactement comme
+   * `setShaker` et pour la même raison. Sans elles, `persistMouth` n'écrivait
+   * `firstName`, `birthDate` et `goal` QUE par `addMember` — c'est-à-dire
+   * nulle part sur une bouche qui existe déjà, ce qu'est TOUJOURS le compte
+   * maître. Monter la fenêtre sur sa fiche jetait donc sa direction en
+   * silence: le « champ qui promet » que ce chantier a payé cinq fois.
+   *
+   * `null` veut dire « cet écran n'AJOUTE que, il ne reprend jamais une
+   * fiche ». C'est le SEUL état légitime sans porte, et `persistMouth` LÈVE
+   * s'il rencontre l'autre — une bouche à mettre à jour sans porte pour le
+   * faire est un défaut de câblage, pas une réponse à faire lire à quelqu'un.
+   *
+   * ⚠️ TROIS PORTES ET PAS UNE, parce que la base en a trois et qu'elles ne
+   * mènent pas au même endroit selon la bouche: le prénom passe toujours par
+   * `keel_household_set_member_name`, la date part dans `profiles` pour qui a
+   * un compte et sur la fiche sinon (`birthDateDoor`), et la direction de qui
+   * a un compte vit dans `student_goals` — `keel_household_set_member_goal`
+   * lui répond `has_account`. Une porte unique ici forcerait l'appelant à
+   * refaire cet arbitrage dans une closure, hors de portée des tests.
+   */
+  setName: ((memberId: string, firstName: string) => Promise<RpcResult>) | null;
+  setBirthDate:
+    | ((memberId: string, birthDate: string | null) => Promise<RpcResult>)
+    | null;
+  setGoal: ((memberId: string, goal: string | null) => Promise<RpcResult>) | null;
   /**
    * ⚠️ CINQ PARAMÈTRES DEPUIS LE LOT L0. Le cran d'activité entre PAR ICI, dans
    * le même geste que le corps: il n'y a plus qu'une porte, et l'ancienne
@@ -401,6 +435,46 @@ export async function persistMouth(
     // marches suivantes viseraient alors la chaîne vide, que la base lirait
     // `not_a_member` — six refus au lieu d'un, et aucun qui dise la cause.
     if (memberId === "") return { ok: false, reason: "no_member_id" };
+  } else {
+    // ── MARCHE 1 BIS — LA BOUCHE EXISTE, ON LA MET À JOUR ─────────────────
+    //
+    // ⚠️ ON LÈVE PLUTÔT QUE DE JETER. Trois champs sont saisis dans le bloc 1
+    // et le bloc 2; sans ces portes ils n'iraient nulle part, et l'écran
+    // annoncerait un succès. Même patron que le shaker sans porte juste plus
+    // bas: c'est un défaut de programme, et le taire est exactement l'état
+    // d'avant ce lot.
+    if (
+      writers.setName === null || writers.setBirthDate === null ||
+      writers.setGoal === null
+    ) {
+      throw new Error(
+        "[keel/api] persistMouth: this mouth already exists, but no " +
+          "`setName` / `setBirthDate` / `setGoal` door was wired — its first " +
+          "name, birth date and direction would be collected and dropped " +
+          "(only `addMember` writes them, and it is not called here).",
+      );
+    }
+
+    // ⚠️ LA CIBLE EST EFFACÉE AVANT QU'ON TOUCHE À LA DIRECTION, ET REPOSÉE
+    // APRÈS (marche 3). Ce n'est pas une précaution: le CHECK
+    // `household_members_target_needs_direction_check` — et son jumeau
+    // `student_goals_target_pace_direction_check` — refusent une cible
+    // orpheline. Quelqu'un qui repasse de « perdre du poids » à « maintenir »
+    // rendrait donc sa ligne INÉCRIVABLE, et la violation remonterait en
+    // erreur PostgreSQL brute au milieu d'un formulaire d'accueil. La porte du
+    // 18/08 le dit mot pour mot: « repasser en `maintenance` RETIRE la cible
+    // par construction ».
+    const cleared = await writers.setTarget(memberId, null, null);
+    if (!cleared.ok) return cleared;
+
+    const named = await writers.setName(memberId, mouth.firstName);
+    if (!named.ok) return named;
+
+    const dated = await writers.setBirthDate(memberId, mouth.birthDate);
+    if (!dated.ok) return dated;
+
+    const aimed = await writers.setGoal(memberId, mouth.goal);
+    if (!aimed.ok) return aimed;
   }
 
   const body = await writers.setBody(

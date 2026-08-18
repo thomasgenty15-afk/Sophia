@@ -453,6 +453,16 @@ export default function HouseholdPage(): React.ReactElement {
                     // remonte sur ce que le serveur a VRAIMENT gardé.
                     run(() => persistMouth(mouthToPersist(draft, weekStart), {
                       addMember: addHouseholdMember,
+                      // ⚠️ `null` ×3, ET C'EST LA BONNE RÉPONSE ICI. Cette
+                      // carte AJOUTE: `addHouseholdMember` écrit déjà le
+                      // prénom, la date et la direction dans le même geste, et
+                      // `persistMouth` ne touche ces portes que sur une bouche
+                      // qui EXISTE. Les brancher quand même rejouerait trois
+                      // écritures pour la même valeur. La fiche du maître, elle,
+                      // les branche — c'est son seul chemin.
+                      setName: null,
+                      setBirthDate: null,
+                      setGoal: null,
                       setTarget: setMemberTarget,
                       setBody: setMemberBody,
                       setHabits: (id, slots, note) =>
