@@ -607,9 +607,23 @@ Deno.test("④ les trous CALCULÉS sont ceux qu'on passe aux deux blocs", async 
   // ET LE CAS QUI PASSE de l'autre côté: la grille comptée est celle du prompt,
   // pas une seconde définition. Un `fixedIntakes` qui divergerait de celui du
   // tronc réclamerait au modèle un repas que la consigne lui interdit.
-  assert(
-    src.includes("fixedIntakes: [],"),
+  //
+  // ⚠️ D1b (2026-08-18) — CETTE LIGNE CHERCHAIT `fixedIntakes: [],`, ET LA
+  // VALEUR VIDE N'ÉTAIT PAS LA GARANTIE: c'était l'IDENTITÉ entre les trois
+  // sites. La lane foyer lit désormais les apports de chaque bouche attablée
+  // (`loadHouseholdFixedIntakes`), donc la même variable part aux trois — le
+  // constat de trous, la consigne, le parseur — et c'est ce que ce test doit
+  // continuer à dire. Chercher encore `[]` reviendrait à épingler l'état
+  // d'avant sous couvert de vérifier une cohérence.
+  assertEquals(
+    src.match(/fixedIntakes,/g)?.length,
+    3,
     "la lane foyer ne passe plus la même grille au constat qu'au tronc.",
+  );
+  assert(
+    !/fixedIntakes:\s*\[\]/.test(src),
+    "un site est retombé sur la grille vide: le shaker d'une bouche ne " +
+      "traverse plus jusqu'au générateur.",
   );
 });
 

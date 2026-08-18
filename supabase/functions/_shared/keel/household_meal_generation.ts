@@ -463,7 +463,32 @@ import {
 // langue. Deux changements, deux portées, deux axes: c'est la règle « quelle
 // population voit une consigne différente », appliquée deux fois dans le même
 // lot. Précédent exact: v14 (2026-08-17).
-export const HOUSEHOLD_PROMPT_VERSION = "v16_this_kitchen_and_a_meal_out";
+// ── v17 (2026-08-18) — CE QUE CHAQUE BOUCHE MANGE DÉJÀ (D1b) ───────────────
+//
+// AUCUN BLOC DE CE FICHIER NE BOUGE. Ce qui change est un PARAMÈTRE DU TRONC
+// que cette lane passait vide en dur: `fixedIntakes`. Le bloc
+// `WHAT THEY ALREADY HAVE` existe dans le tronc depuis FF-051 et la lane
+// individuelle le sert déjà; ici il était structurellement impossible à
+// remplir, parce que trois `fixedIntakes: []` étaient écrits à la main.
+//
+// LA POPULATION QUI VOIT UNE CONSIGNE DIFFÉRENTE: les foyers où AU MOINS UNE
+// bouche attablée A UN COMPTE **et** a déclaré un apport fixe. Partout
+// ailleurs, `loadHouseholdFixedIntakes` rend `[]` — la valeur exacte d'avant —
+// et le prompt est byte-identique à v16, au caractère près. Un test le tient
+// (`household_fixed_intakes_test.ts`), et il le tient sur la sortie du
+// CHARGEUR, pas sur une constante: c'est un chargeur qui rendrait une ligne
+// fantôme qui casserait l'identité, pas `buildMealPrompt`.
+//
+// ⚠️ `MEAL_PROMPT_VERSION` NE BOUGE PAS: pas un octet du tronc ne change. Ce
+// serait la faute exacte que la note de v2 décrit — faire bouger la version du
+// plan INDIVIDUEL pour un lot qui ne le touche pas, et rendre illisible toute
+// comparaison avant/après sur cette lane-là.
+//
+// ⚠️ ET LE BUMP VAUT MÊME SI LE PARC EST VIDE À CETTE MINUTE, pour la raison
+// de v3: c'est la PRÉSENCE du bloc qui distingue les deux populations dans la
+// colonne, et une version qui ne bouge que « quand ça se voit » ne se relit
+// pas trois jours plus tard.
+export const HOUSEHOLD_PROMPT_VERSION = "v17_what_each_mouth_already_has";
 
 export interface HouseholdRestriction {
   memberId: string;

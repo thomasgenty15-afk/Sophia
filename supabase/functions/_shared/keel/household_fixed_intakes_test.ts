@@ -11,6 +11,7 @@ import {
   MAX_FIXED_INTAKES,
   slotIsTaken,
 } from "./fixed_intakes.ts";
+import { buildMealPrompt } from "./meal_generation.ts";
 
 /**
  * FF-051 AU FOYER — LE LECTEUR QUI MANQUAIT.
@@ -50,6 +51,42 @@ function shakerJson(over: Record<string, unknown> = {}) {
     ...over,
   };
 }
+
+/**
+ * Le décor minimal de `buildMealPrompt`, recopié de `fixed_intakes_test.ts`.
+ * Il ne sert qu'à une chose ici: lire le prompt AVEC et SANS apports.
+ */
+const PROMPT_ARGS = {
+  firstDayCookable: true,
+  contentLocale: "en-US",
+  budgetAmount: null,
+  safetyConstraints: null,
+  body: null,
+  focusAxis: null,
+  dietBlock: "",
+  doctrineBlock: "",
+  coachNoteBlock: null,
+  protocolBlock: "",
+  beliefKeys: [],
+  goal: "maintenance",
+  situation: null,
+  context: null,
+  mode: "to_shop" as const,
+  scope: "several_days" as const,
+  pantry: [],
+  cookDays: [],
+  todayToken: "mon",
+  today: null,
+  country: null,
+  daysToFill: ["mon", "sat"],
+  eatingRhythm: [],
+  awayDays: [],
+  slot: null,
+  servings: 4,
+  dayProperties: [],
+  merge: null,
+  boxMemberIds: [],
+};
 
 type Tables = Record<string, Array<Record<string, unknown>>>;
 
@@ -305,6 +342,79 @@ Deno.test("une entrée ILLISIBLE est comptée, et n'emporte pas les autres", asy
 // ---------------------------------------------------------------------------
 // ⛔ AUCUNE CALORIE NE SORT DANS LE TEXTE
 // ---------------------------------------------------------------------------
+
+Deno.test("le prompt PORTE l'apport — la chaîne va jusqu'au générateur", async () => {
+  // ⚠️ LE SEUL TEST QUI DIT QUE LA DONNÉE ARRIVE AU MODÈLE. Le chargeur peut
+  // être parfait et le paramètre rester `[]` en dur — c'est très exactement
+  // l'état d'avant ce lot, et il durait depuis FF-051.
+  const got = await loadHouseholdFixedIntakes(stubDb(goals()), {
+    mouths: MOUTHS,
+  });
+  const { userMessage } = buildMealPrompt({
+    ...PROMPT_ARGS,
+    fixedIntakes: got.intakes,
+  });
+  assertStringIncludes(userMessage, "WHAT THEY ALREADY HAVE");
+  assertStringIncludes(userMessage, "Ana: mon shaker");
+});
+
+Deno.test("un foyer où PERSONNE n'a déclaré rend le prompt de v16, au caractère près", async () => {
+  // LA POPULATION NON CONCERNÉE PAR LE BUMP `v17`. Elle se prouve sur la sortie
+  // du CHARGEUR et pas sur une constante: `buildMealPrompt` n'a pas changé,
+  // donc ce qui pourrait casser l'identité est un chargeur qui rendrait une
+  // ligne fantôme (un apport vide, une entrée « aucun apport ») pour un foyer
+  // qui n'a rien déclaré.
+  const got = await loadHouseholdFixedIntakes(
+    stubDb(goals({
+      student_goals: [
+        { user_id: ANA, practical_constraints: {} },
+        { user_id: MARC, practical_constraints: { fixed_intakes: [] } },
+      ],
+    })),
+    { mouths: MOUTHS },
+  );
+  assertEquals(got.intakes, []);
+  assertEquals(
+    buildMealPrompt({ ...PROMPT_ARGS, fixedIntakes: got.intakes }).userMessage,
+    // `[]` EN DUR: la valeur exacte que les trois sites de la fonction edge
+    // portaient avant ce lot.
+    buildMealPrompt({ ...PROMPT_ARGS, fixedIntakes: [] }).userMessage,
+  );
+});
+
+// ---------------------------------------------------------------------------
+// L'APPELANT — « un morceau construit dont personne n'a rebranché le fil »
+// ---------------------------------------------------------------------------
+
+/**
+ * ⚠️ LES COMMENTAIRES SONT RETIRÉS AVANT L'AUDIT. Ce fichier-ci EN PARLE en
+ * français et en anglais, et la fonction edge aussi: un `grep` naïf trouverait
+ * « fixedIntakes: [] » dans une phrase qui raconte l'état d'AVANT, et
+ * déclarerait mort un câblage vivant — ou vivant un câblage mort.
+ */
+function codeOf(url: URL): string {
+  return Deno.readTextFileSync(url)
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .split("\n")
+    .map((line) => line.replace(/^\s*\/\/.*$/, ""))
+    .join("\n");
+}
+
+Deno.test("la lane foyer BRANCHE le chargeur, et ne passe plus [] en dur", () => {
+  const caller = codeOf(
+    new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
+  );
+  assertStringIncludes(caller, "loadHouseholdFixedIntakes(admin");
+  // LES TROIS SITES. La consigne, le parseur, et le constat de trous: une
+  // valeur qui diverge entre les trois est la faute que le tronc nomme
+  // (« la consigne le dit, le parseur le tient »).
+  assertEquals(caller.match(/fixedIntakes,/g)?.length, 3);
+  // ⛔ ET AUCUN `[]` RESTANT. C'est la seule assertion qui morde si quelqu'un
+  // rebranche un seul des trois sites sur la valeur vide.
+  assert(!/fixedIntakes:\s*\[\]/.test(caller), "un site est resté sur []");
+  // Le coût et ce qu'on a retiré sont journalisés.
+  assertStringIncludes(caller, "keel.household_meal.fixed_intakes");
+});
 
 Deno.test("la consigne dit la QUANTITÉ, jamais l'énergie ni la protéine", async () => {
   const got = await loadHouseholdFixedIntakes(stubDb(goals()), {

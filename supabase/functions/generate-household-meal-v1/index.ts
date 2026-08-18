@@ -245,6 +245,11 @@ import {
   parseMemberHabits,
 } from "../_shared/keel/household_habits.ts";
 import { loadHouseholdMemberBodies } from "../_shared/keel/household_bodies.ts";
+// FF-051 · CE QUE CHAQUE BOUCHE MANGE DÉJÀ. Le jumeau du chargeur de corps
+// juste au-dessus, et pour la même raison qu'il est un module: l'appariement,
+// la règle « un apport ne prend pas le repas de la tablée » et le coût ne se
+// prouvent que là-bas.
+import { loadHouseholdFixedIntakes } from "../_shared/keel/household_fixed_intakes.ts";
 import {
   memberDeltasPayload,
   resolveHousehold,
@@ -2428,6 +2433,59 @@ Deno.serve(async (req) => {
       issues.push(`member_away_all_window:${id}`);
     }
 
+    // ── FF-051 · CE QUE CHAQUE BOUCHE MANGE DÉJÀ (D1b, 2026-08-18) ────────
+    //
+    // ⚠️ CE BLOC REMPLACE TROIS `fixedIntakes: []` EN DUR, et le commentaire
+    // qui les tenait n'était pas faux — il était incomplet. Il disait: « lire
+    // ici `practical_constraints` DU SEUL TITULAIRE ferait sauter le
+    // petit-déjeuner de TOUTE la tablée parce qu'UNE personne prend un
+    // shaker ». C'est vrai des DEUX défauts qu'il nomme, et le chargeur les
+    // ferme tous les deux plutôt que de renoncer à la donnée:
+    //
+    //   · « du seul titulaire »  →  il lit CHAQUE bouche qui a un compte, et
+    //     attribue chaque ligne à son prénom. Le shaker d'Ana n'est pas celui
+    //     de la table, et la consigne le dit maintenant mot pour mot.
+    //   · « ferait sauter le petit-déjeuner » →  aucun apport ne PREND un
+    //     moment au foyer (`replacesMeal` ramené à `false`, et COMPTÉ). Le
+    //     mécanisme qui supprime une case reste celui de l'absence, qui est
+    //     déclarée par une personne POUR la tablée.
+    //
+    // ⚠️ `platedMembers`, ET PAS `members`. Même cascade que le brief de
+    // portions: qui a pris la main mange son propre plan, qui est absent toute
+    // la fenêtre n'a pas d'assiette ici. Retirer un aliment des courses d'une
+    // tablée pour quelqu'un qu'elle ne nourrit pas serait un repas rogné pour
+    // les autres.
+    const fixedIntakeLoad = await loadHouseholdFixedIntakes(admin, {
+      mouths: platedMembers.map((m) => ({
+        memberId: m.memberId,
+        userId: m.userId,
+        displayName: m.displayName,
+      })),
+    });
+    const fixedIntakes = fixedIntakeLoad.intakes;
+    issues.push(...fixedIntakeLoad.issues);
+    // LE COÛT ET CE QU'ON A RETIRÉ, SUR LA MÊME LIGNE. `demoted` est le seul
+    // champ que ce chargeur enlève à une déclaration; sans compteur, « personne
+    // n'a rien déclaré » et « on a désarmé trois remplacements » laisseraient
+    // la même trace. `reads` passe de 0 à N par génération, et un nombre qu'on
+    // ne journalise pas est un nombre que personne ne verra doubler.
+    if (
+      fixedIntakes.length > 0 || fixedIntakeLoad.discarded > 0 ||
+      fixedIntakeLoad.dropped > 0 || fixedIntakeLoad.issues.length > 0
+    ) {
+      console.log(JSON.stringify({
+        tag: "keel.household_meal.fixed_intakes",
+        user_id: userId,
+        household_id: householdId,
+        mouths: platedMembers.length,
+        intakes: fixedIntakes.length,
+        demoted: fixedIntakeLoad.demoted,
+        discarded: fixedIntakeLoad.discarded,
+        dropped: fixedIntakeLoad.dropped,
+        reads: fixedIntakeLoad.reads,
+      }));
+    }
+
     // ── C3 ⑥ · LES REPAS DE LA PERSONNE REPRISE, pour le CONSTAT de forme ──
     //
     // Le dénominateur d'`observeMergeShape`: sans lui, « elle a un plat à elle »
@@ -2846,10 +2904,12 @@ Deno.serve(async (req) => {
         rhythm: eatingRhythm,
         dishes,
         awayDays,
-        // Le foyer ne porte pas d'apports fixes: le tronc lui passe déjà
-        // `fixedIntakes: []` (deux appels, plus bas). La même valeur ici, pour
-        // que le constat et la consigne comptent la même grille.
-        fixedIntakes: [],
+        // LA MÊME LISTE QUE LA CONSIGNE (deux appels, plus bas), pour que le
+        // constat et la consigne comptent la même grille. Aucun de ces apports
+        // ne PREND de moment au foyer, donc cette liste ne creuse aucun trou
+        // ici — mais passer `[]` pendant que le prompt en porterait huit ferait
+        // diverger les deux au premier apport remplaçant qu'on autoriserait.
+        fixedIntakes,
       });
     const mergeBaseGaps = merge === null ? [] : gapsOf(mergeBaseMaterial);
     const unmergeGaps = unmerge === null ? [] : gapsOf(unmergeMaterial);
@@ -2991,17 +3051,16 @@ Deno.serve(async (req) => {
       //
       // C'est le paramètre REQUIS qui a rendu cet appelant visible: le
       // compilateur l'a listé. Optionnel, il aurait gardé son trou.
-      // ── FF-051 · LES APPORTS FIXES NE SONT PAS ENCORE UNE DONNÉE DE FOYER
-      // Le shaker d'un membre n'est pas celui de la table: il appartient au
-      // canal des DELTAS (FF-043), que `DELTA_CHANNELS` ne porte pas encore.
-      // Lire ici `practical_constraints` du seul titulaire ferait sauter le
-      // petit-déjeuner de TOUTE la tablée parce qu'UNE personne prend un
-      // shaker — un substitut à une dépendance manquante, exactement ce que
-      // ce paramètre requis existe pour rendre visible.
+      // ── FF-051 · CE QUE CHAQUE BOUCHE MANGE DÉJÀ (D1b, 2026-08-18) ─────
+      // Ce paramètre valait `[]` EN DUR, et le trou était écrit en toutes
+      // lettres dans FF-051 §11 Q1. Il est chargé plus haut, par bouche
+      // ATTABLÉE, prénom devant et sans pouvoir prendre un moment de la table
+      // — voir le bloc `loadHouseholdFixedIntakes` et son module.
       //
-      // `[]` est donc le comportement d'AVANT, assumé et nommé. Le trou est
-      // écrit en toutes lettres dans FF-051 §11 Q1.
-      fixedIntakes: [],
+      // ⚠️ LE SHAKER D'UN MEMBRE N'EST TOUJOURS PAS CELUI DE LA TABLE, et
+      // c'est justement pour ça que la ligne porte un prénom: « they already
+      // eat these » sans nom dirait à la table entière de sauter son goûter.
+      fixedIntakes,
       // ── FF-042 · `""` ICI, ET CE N'EST PAS UN TROU ─────────────────────
       // Cette lane a DÉJÀ sa consigne de régime, et elle est plus riche que
       // celle que ce paramètre porte: `householdDietBlock` (plus bas, dans
@@ -3451,9 +3510,10 @@ Deno.serve(async (req) => {
     const parseArgs = {
       doctrine: doctrine.doctrine,
       safetyConstraints: constraints,
-      // FF-051 — la MÊME valeur que la consigne, et pour la même raison
-      // qu'elle est vide: voir le bloc au-dessus de `buildMealPrompt`.
-      fixedIntakes: [],
+      // FF-051 — LA MÊME VALEUR QUE LA CONSIGNE, et c'est la règle du dépôt:
+      // « la consigne le dit, le parseur le tient ». Une contrainte qui ne vit
+      // que dans le prompt n'est pas une garantie.
+      fixedIntakes,
       dayProperties: [],
       mode: "to_shop",
       scope,

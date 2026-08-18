@@ -1504,7 +1504,15 @@ Deno.test("LOT 4 — la version de la lane foyer a bougé d'UN cran", () => {
   // tests tiennent l'égalité de chaîne. Le tronc bouge AUSSI dans le même lot,
   // pour le NOM d'un plat, que les quatre populations voient: deux portées,
   // deux axes.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v16_this_kitchen_and_a_meal_out");
+  // ⚠️ D1b (2026-08-18) — UN SEUL AXE BOUGE, ET C'EST L'ENVELOPPE FOYER.
+  // `v17_what_each_mouth_already_has`: la lane foyer passait `fixedIntakes: []`
+  // EN DUR sur ses trois sites, donc le shaker qu'une bouche déclare
+  // n'atteignait jamais la consigne. Aucun bloc de l'enveloppe ne change — ce
+  // qui change est un PARAMÈTRE DU TRONC que cette lane laissait vide — et le
+  // tronc, lui, ne gagne pas un octet: il reste à `meal.en.v12_a_dish_has_a_name`.
+  // Population concernée: les foyers où une bouche ATTABLÉE a un compte ET a
+  // déclaré un apport. Ailleurs, prompt byte-identique à v16.
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v17_what_each_mouth_already_has");
 });
 
 // ===========================================================================
