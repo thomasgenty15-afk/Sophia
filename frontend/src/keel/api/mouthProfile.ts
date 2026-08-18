@@ -133,18 +133,22 @@ export async function setOwnTarget(
  * « pire qu'un contrôle absent, parce qu'il promet », la règle que
  * `setMemberDiet` porte déjà pour l'objectif.
  *
- * ── ⚠️ CE COMMIT NE FERME QUE L'ÉCRIVAIN ─────────────────────────────────
- * Ce qui suit est vrai à l'instant où ces lignes s'écrivent, et le commit
- * suivant du même lot (D1b) le rend faux: **la lane foyer ne LIT aucun apport
- * fixe**. `generate-household-meal-v1/index.ts` passe `fixedIntakes: []` en
- * dur, trois fois. Un shaker déclaré par une bouche du foyer atteint donc la
- * base par ce fichier, et s'arrête là.
+ * ── ✅ LES DEUX BOUTS SONT FERMÉS DEPUIS LE 2026-08-18 (D1b) ──────────────
+ * Ce commentaire a dit, deux commits durant: « la lane foyer ne LIT aucun
+ * apport fixe, `generate-household-meal-v1` passe `fixedIntakes: []` en dur,
+ * trois fois ». C'était vrai, et c'était la moitié la plus grave du trou — un
+ * champ qu'on remplit et qui ne va nulle part est pire qu'un champ absent,
+ * parce qu'il promet.
  *
- * L'écrivain est ici (`addShakerToOwnIntakes`, appelé par `persistMouth` via
- * `MouthWriters`); le lecteur vit dans `household_meal_generation.ts` et dans
- * la fonction edge. Un bout sans l'autre est un champ décoratif, dans un sens
- * ou dans l'autre — c'est pour ça que les deux appartiennent au même lot, et
- * que celui-ci n'est pas fini tant que le second commit n'est pas posé.
+ *   l'écrivain  →  ICI (`ownShakerWriter`, appelé par `persistMouth`)
+ *   le lecteur  →  `_shared/keel/household_fixed_intakes.ts`, que la fonction
+ *                  edge passe à `buildMealPrompt` ET au parseur
+ *
+ * ⚠️ ET LE JOINT ENTRE LES DEUX N'A QU'UN SEUL GARDIEN: le test « ⛔ LA
+ * SOUDURE » de `mouthProfile.int.test.ts`, qui fait traverser un brouillon
+ * jusqu'à la ligne de consigne. Chaque moitié prise seule reste verte au-dessus
+ * d'une clé de jsonb qui aurait dérivé — mesuré: renommer `serving_grams`
+ * ici ne fait rougir que lui.
  */
 export interface ShakerToWrite {
   label: string;
