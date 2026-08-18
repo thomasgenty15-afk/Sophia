@@ -424,4 +424,112 @@ importe, est marqué supprimé dans l'arbre.
 
 ---
 
+# 🟥 LE DÉFAUT D'ASSEMBLAGE — le corps du maître a DEUX maisons, et les deux écrans n'en lisent pas la même
+
+C'est exactement ce qu'un rapport « lot par lot » ne pouvait pas voir : les deux
+écrans sont justes séparément, et **le parcours qui les enchaîne perd deux
+champs sur trois**.
+
+**Le geste** : je viens d'écrire, par le pop-up de `/app/household`,
+`taille 178 / poids 85 / sexe male / on_feet` sur le maître. Je vais ensuite sur
+`/app/setup`, et je recharge la page. Ce que le tunnel affiche dans **ses**
+champs :
+
+| Champ | Écrit par le pop-up | Relu par le tunnel |
+|---|---|---|
+| poids | 85 | **85** ✅ |
+| direction | `fat_loss` | **`fat_loss`** ✅ |
+| **taille** | **178** | 🟥 **vide** |
+| **sexe** | **male** | 🟥 **vide** |
+
+Et le tunnel **refuse d'avancer** en conséquence, avec deux lignes du bloc
+« AVANT DE CONTINUER » :
+
+> *« Ta taille, pour que tes parts soient les tiennes. »*
+> *« Ton sexe, pour que tes parts soient les tiennes. »*
+
+**La cause, lue dans la base et dans le code :**
+
+```
+pop-up  → keel_household_set_member_body  →  household_member_bodies
+                                             (h=178 w=85 g=male act=on_feet)  ← la ligne EXISTE
+
+tunnel  → api/onboarding.ts:1476
+          .select("full_name, birth_date, height_cm, gender, activity_level")   sur PROFILES
+                                             profiles.height_cm = NULL
+                                             profiles.gender    = NULL
+                                             profiles.activity_level = NULL
+```
+
+Le tunnel lit le corps des **autres** bouches dans `household_member_bodies`
+(`onboarding.ts:1563-1565`) — mais celui **du titulaire** dans `profiles`
+(`onboarding.ts:1476, 1615-1619`). Le pop-up, lui, écrit le titulaire **comme
+une bouche**. Les deux écrans se croisent sans se voir.
+
+**Ce qu'un humain vit** : il remplit consciencieusement sa fiche sur l'écran du
+foyer, revient au tunnel, et on lui redemande sa taille et son sexe comme s'il
+n'avait rien fait. **Non corrigé** : ce n'est pas un correctif trivial (il faut
+trancher **quelle** table fait autorité pour le corps du titulaire, et le trancher
+au même endroit que `birthDateDoor` l'a déjà été pour la date de naissance).
+**C'est une décision qui appartient à l'utilisateur.**
+
+## ⚠️ Trois lignes identiques, et aucune ne dit de qui elle parle
+
+Toujours dans le bloc « AVANT DE CONTINUER » du tunnel, trois lignes **mot pour
+mot identiques** se suivent :
+
+```
+Taille, poids et sexe pour chaque personne à table. Sans les trois, cette personne est servie comme tout le monde…
+Taille, poids et sexe pour chaque personne à table. Sans les trois, cette personne est servie comme tout le monde…
+Taille, poids et sexe pour chaque personne à table. Sans les trois, cette personne est servie comme tout le monde…
+```
+
+Une par bouche incomplète (Lea, Nina, Zoe) — mais **aucune ne porte de prénom**.
+Le lecteur voit trois fois la même phrase et ne peut pas savoir laquelle des
+trois personnes il doit compléter. Le motif est `member_height_cm` /
+`member_weight_kg` / `member_gender` empilés sans sujet
+(`api/onboarding.ts:1090-1092`). Signalé, non corrigé.
+
+---
+
+# PARTIE C — les deux langues, et la largeur
+
+## Les deux langues ✅ (avec une réserve)
+
+La bascule se fait par **`?lang=fr`** (`i18n/runtime.ts`, priorité 1). ⚠️ Piège
+mesuré : si `localStorage["sophia.ui_locale"]` porte déjà un choix, **`?lang=fr`
+est ignoré** — il faut vider la clé. Une fois vidée, `uiLocale()` rend `fr`.
+
+**En français, le pop-up est complet et correct**, y compris les nombres :
+
+```
+0,35 kg par semaine            ← virgule décimale française
+Environ 20 semaines à ce rythme.
+Le maximum de ce curseur est réglé sur son corps…
+Sert à dimensionner les parts. Il n'est jamais énoncé, ni à table ni à côté d'un prénom.
+```
+
+Compté sur le disque : `en.ts` = 3 448 clés, `fr.ts` = 3 347. Les **57** clés
+`household.mouth.*` et les **219** clés `meals.*` sont présentes **dans les deux
+packs**. La couche i18n est finie — elle n'est simplement pas dans git (voir plus
+haut).
+
+⚠️ **Le genre grammatical du pack français se contredit sur la même personne.**
+Sur la fiche de Paul : « CE QU'**ELLE** MANGE DÉJÀ », « Y a-t-il quelque chose
+qu'**elle** mange presque tous les jours », puis « **IL** EST ALLERGIQUE À
+QUELQUE CHOSE ? ». Sur la fiche de Lea (prénom féminin, « Déjà enregistré**e** ») :
+« CE QU'**IL** VISE ». Ce n'est pas bloquant, mais c'est visible à chaque écran.
+
+## La largeur — la page ne défile jamais horizontalement ✅
+
+| Écran | Largeur | `scrollWidth` / `clientWidth` | Éléments qui débordent |
+|---|---|---|---|
+| `/app/household` (EN) | 1280 | **1280 / 1280** | 0 |
+| `/app/household` **+ pop-up ouvert** (FR) | **320** | **320 / 320** | **0** |
+
+Mesure faite à `scroll 0`, sur `document.documentElement`, en énumérant tous les
+éléments dont le bord droit dépasse `clientWidth`. **Aucun.** ✅
+
+---
+
 _(la suite est ajoutée au fil de l'eau)_
