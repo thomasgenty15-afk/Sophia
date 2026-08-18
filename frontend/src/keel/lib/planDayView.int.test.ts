@@ -155,7 +155,16 @@ describe("dayMoments — la colonne d'un jour, lue dans la grille", () => {
       { slot: "lunch", cell: { kind: "away" } },
       {
         slot: "dinner",
-        cell: { kind: "dish", title: "Chicken and rice", fromBatch: false },
+        cell: {
+          kind: "dish",
+          title: "Chicken and rice",
+          fromBatch: false,
+          // D3b — un plat de TABLE sans collision: les trois compteurs sont à
+          // leur valeur de repos. L'égalité EXACTE est gardée exprès.
+          ownMouths: 0,
+          titleIsOwn: false,
+          extraTableDishes: 0,
+        },
       },
     ]);
   });
