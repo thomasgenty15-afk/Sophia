@@ -165,32 +165,92 @@ function closed(reason: Exclude<EnergyReason, "open">): EnergyReading {
   return { show: false, reason, switchOfferable: false };
 }
 
-function readDish(raw: unknown): DishEnergyView {
+/**
+ * L'ABSENCE D'UN CHIFFRE NE DOIT PAS DEVENIR LE CHIFFRE ZÉRO.
+ *
+ * ── LE DÉFAUT QUE CETTE FONCTION FERME, MESURÉ LE 2026-08-18 ──────────────
+ * `Number(null)` vaut `0`, et `Number.isFinite(0)` vaut `true`. Un
+ * `Number.isFinite(Number(x))` laisse donc passer `null` — en le transformant
+ * en zéro. Mesuré en session réelle: le serveur rendait
+ * `target: { low: null, high: null, gap: "no_weight" }` — l'abstention exacte
+ * d'une personne sans pesée — et l'écran affichait
+ * « Autour de 0–0 par jour pour ton poids », sous la phrase « à peu près ce
+ * qu'un corps de ta taille dépense en une journée ».
+ *
+ * Ce que ça coûtait, et pourquoi c'est cette garde-ci qui doit le porter:
+ *
+ *   1. C'était un chiffre de NIVEAU C — celui qui parle du corps, pas de la
+ *      nourriture — FABRIQUÉ par l'écran, pour quelqu'un dont le serveur avait
+ *      décidé de se taire. La chaîne de gardes avait dit non; le parseur a dit
+ *      oui à sa place.
+ *   2. Le motif `no_weight` voyageait, et personne ne le lisait: la copie
+ *      « ajoute une pesée » (`meals.energy.target_no_weight`) était donc
+ *      INATTEIGNABLE. La réparation disparaissait avec l'abstention.
+ *   3. Sur le total d'un jour, le même piège rend « 0 kcal » là où
+ *      `DayEnergyLine` croit rendre « journée illisible » — le sens
+ *      exactement inverse, et c'est le rabbit hole n°3 de la fiche.
+ *
+ * ⚠️ NE PAS REVENIR À `Number.isFinite(Number(x))`. Le test
+ * `mealEnergy.int.test.ts` porte la valeur RENDUE pour chacun des trois
+ * chemins, et il rougit sur ce geste précis.
+ */
+export function finiteEnergyNumber(value: unknown): number | null {
+  // `null`, `undefined` et la chaîne vide sont les trois formes sous lesquelles
+  // « pas de chiffre » arrive sur le fil. `Number()` les rend toutes `0`.
+  if (value === null || value === undefined || value === "") return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+export function readDish(raw: unknown): DishEnergyView {
   const d = (raw ?? {}) as Record<string, unknown>;
-  const kcal = Number(d.kcal);
+  const kcal = finiteEnergyNumber(d.kcal);
   const complete = d.complete === true;
   return {
     // ⚠️ LE CHIFFRE NE SURVIT PAS À `complete: false`, même si le serveur en
     // envoyait un. Deux écritures de la même règle, aux deux bouts du fil: le
     // jour où l'une se relâche, l'autre tient.
-    kcal: complete && Number.isFinite(kcal) ? kcal : null,
+    kcal: complete ? kcal : null,
     basis: String(d.basis ?? ""),
     complete,
     gaps: Array.isArray(d.gaps) ? d.gaps.map((g) => String(g)) : [],
   };
 }
 
-function readDay(raw: unknown): DayEnergyView {
+export function readDay(raw: unknown): DayEnergyView {
   const d = (raw ?? {}) as Record<string, unknown>;
-  const kcal = Number(d.kcal);
   return {
     day: d.day === null || d.day === undefined ? null : String(d.day),
-    kcal: Number.isFinite(kcal) ? kcal : null,
+    kcal: finiteEnergyNumber(d.kcal),
     basis: String(d.basis ?? ""),
     complete: d.complete === true,
     dishesCounted: Number(d.dishes_counted) || 0,
     dishesTotal: Number(d.dishes_total) || 0,
     addonKcal: Number(d.addon_kcal) || 0,
+  };
+}
+
+/**
+ * LA FOURCHETTE, LUE. Extraite pour être éprouvée sur sa valeur RENDUE.
+ *
+ * ⚠️ TOUT-OU-RIEN: une borne seule se rendrait comme un POINT à l'écran, et un
+ * point est exactement la forme qu'on refuse — personne ne « rate » un
+ * intervalle, tout le monde rate un nombre.
+ */
+export function readTarget(raw: unknown): EnergyTargetView | null {
+  if (raw === null || raw === undefined || typeof raw !== "object") return null;
+  const t = raw as Record<string, unknown>;
+  const low = finiteEnergyNumber(t.low);
+  const high = finiteEnergyNumber(t.high);
+  const both = low !== null && high !== null;
+  return {
+    low: both ? low : null,
+    high: both ? high : null,
+    basis: String(t.basis ?? ""),
+    gap: t.gap === null || t.gap === undefined ? null : String(t.gap),
+    weightWeekStart: t.weight_week_start === null || t.weight_week_start === undefined
+      ? null
+      : String(t.weight_week_start),
   };
 }
 
@@ -239,31 +299,15 @@ export async function loadMealEnergy(
     };
   }
 
-  const rawTarget = (row.target ?? null) as Record<string, unknown> | null;
   return {
     show: true,
     reason: "open",
     switchOfferable: true,
     basis: String(row.basis ?? PLAN_ENERGY_BASIS),
     targetOfferable: row.target_offerable === true,
-    target: rawTarget === null ? null : {
-      // ⚠️ LA FOURCHETTE EST TOUT-OU-RIEN. Une borne seule se rendrait comme un
-      // POINT à l'écran — exactement la forme qu'on refuse.
-      low: Number.isFinite(Number(rawTarget.low)) && Number.isFinite(Number(rawTarget.high))
-        ? Number(rawTarget.low)
-        : null,
-      high: Number.isFinite(Number(rawTarget.low)) && Number.isFinite(Number(rawTarget.high))
-        ? Number(rawTarget.high)
-        : null,
-      basis: String(rawTarget.basis ?? ""),
-      gap: rawTarget.gap === null || rawTarget.gap === undefined
-        ? null
-        : String(rawTarget.gap),
-      weightWeekStart: rawTarget.weight_week_start === null ||
-          rawTarget.weight_week_start === undefined
-        ? null
-        : String(rawTarget.weight_week_start),
-    },
+    // ⚠️ LA FOURCHETTE EST TOUT-OU-RIEN, et son absence n'est pas un zéro:
+    // `readTarget` porte les deux règles, et son banc porte la valeur rendue.
+    target: readTarget(row.target ?? null),
     plans: (Array.isArray(row.plans) ? row.plans : []).map((entry) => {
       const p = (entry ?? {}) as Record<string, unknown>;
       const computable = p.computable === true;
