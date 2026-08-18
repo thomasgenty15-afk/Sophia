@@ -7,6 +7,13 @@ import {
 } from "../api/mealGeneration";
 import { dishDayLabel, mealCopy } from "../api/mealLabels";
 import { plural } from "../i18n/plural";
+import {
+  type AwayMark,
+  awayKindOf,
+  mergeAwayMarks,
+  type PresenceState,
+  presenceStateOf,
+} from "../lib/presenceMarks";
 import { Button } from "./ui/Button";
 import Modal from "./ui/Modal";
 
@@ -43,6 +50,21 @@ import Modal from "./ui/Modal";
 // même colonne. Recocher est ce qui oublie — la grille est l'interface de sa
 // propre mémoire.
 
+// ── LE TROISIÈME ÉTAT (L3, 2026-08-18) ─────────────────────────────────────
+// Une case n'a plus deux états mais trois: à table, dehors, absent. Les deux
+// derniers retirent la part; ce qui les sépare est que « dehors » garde le
+// droit à un conseil chiffré au midi et « absent » non.
+//
+// ⚠️ LA GRILLE EST L'AUTORITÉ, ET C'EST LA RÈGLE DU LOT (§2.2 bis). La réponse
+// hebdomadaire (« la semaine, tu manges au bureau ? ») PRÉ-REMPLIT ces cases;
+// elle ne les décide pas. Ce qu'on coche ici gagne toujours — sinon on aurait
+// fait le geste et il n'aurait rien changé.
+//
+// ⚠️ IL S'ALLUME PAR `onSaveMarks`, ET LE DEUX-ÉTATS RESTE LE DÉFAUT. Trois
+// écrans montent cette grille aujourd'hui et n'ont pas tous à connaître le
+// troisième état: sans `onSaveMarks` la grille rend EXACTEMENT la case à cocher
+// d'hier, et écrit par `onSave`. C'est ce qui rend ce lot additif.
+
 export interface MealPickerGridProps {
   open: boolean;
   onClose: () => void;
@@ -52,10 +74,27 @@ export interface MealPickerGridProps {
   dates: readonly string[];
   /** Les moments d'une journée normale — les lignes de la grille. */
   rhythm: readonly EatingOccasionSlot[];
-  /** Ce qui est déjà écarté, toutes semaines confondues. */
+  /**
+   * Ce qui est déjà écarté, toutes semaines confondues.
+   *
+   * ⚠️ LES ENTRÉES PEUVENT PORTER `kind` (ce sont alors des `AwayMark`), et le
+   * type ne bouge pas: une marque EST une absence. Un appelant qui lit la
+   * colonne avec `parseAwayMarks` fait apparaître « dehors » sans changer une
+   * signature; un appelant qui passe des absences nues voit l'écran d'hier.
+   */
   away: readonly AwayDay[];
   /** Reçoit la liste COMPLÈTE à écrire, fusion comprise. */
   onSave: (next: AwayDay[]) => void | Promise<void>;
+  /**
+   * LA PORTE DU TROIS-ÉTATS. Fournie, elle remplace `onSave` et reçoit la
+   * liste complète AVEC les jetons.
+   *
+   * Elle n'est pas un réglage d'affichage: c'est un écrivain. Une grille à
+   * trois états dont l'écriture retomberait sur `onSave` perdrait le jeton au
+   * premier enregistrement — la personne aurait coché « dehors » et relirait
+   * « absent ».
+   */
+  onSaveMarks?: (next: AwayMark[]) => void | Promise<void>;
   busy: boolean;
 }
 
@@ -65,10 +104,31 @@ function occasionLabel(slot: EatingOccasion): string {
 }
 
 export default function MealPickerGrid(props: MealPickerGridProps) {
-  /** Les cases DÉCOCHÉES, en `jour|créneau`. Le coché est l'absence d'entrée. */
-  const [off, setOff] = React.useState<Set<string>>(new Set());
+  /**
+   * L'ÉTAT DE CHAQUE CASE MONTRÉE, en `jour|créneau`.
+   *
+   * ⚠️ `at_table` N'A PAS D'ENTRÉE, et ce n'est pas une économie: c'est la même
+   * convention qu'en base, où être à table est l'ABSENCE d'entrée dans
+   * `away_days`. Une carte qui porterait les trois états aurait deux façons de
+   * dire « il mange ici » — celle de l'écran et celle de la base — et c'est
+   * celle qu'on regarde le moins qui garderait l'ancien état.
+   */
+  const [state, setState] = React.useState<Map<string, PresenceState>>(
+    new Map(),
+  );
 
   const key = (day: string, slot: string) => `${day}|${slot}`;
+
+  /** Les absences reçues, relues AVEC leur sens. */
+  const marks: AwayMark[] = React.useMemo(
+    () =>
+      props.away.map((a) => ({
+        day: a.day,
+        slots: a.slots,
+        kind: awayKindOf(a),
+      })),
+    [props.away],
+  );
 
   /**
    * L'ÉTAT PART DE CE QUI EST ENREGISTRÉ, et se resynchronise quand ça change.
@@ -77,62 +137,65 @@ export default function MealPickerGrid(props: MealPickerGridProps) {
    * tourne qu'au montage, et cette grille est montée en permanence par la
    * fenêtre (`Modal` rend `null` sans démonter l'appelant). Sans resynchro,
    * rouvrir après une sauvegarde afficherait l'état d'avant.
+   *
+   * ⚠️ L'EMPREINTE PORTE LE JETON. Sans lui, passer un midi d'« absent » à
+   * « dehors » laisserait l'empreinte identique — donc la grille rouverte
+   * montrerait l'état d'avant, et l'écrirait au premier enregistrement.
    */
   const savedPrint = JSON.stringify(
-    props.away.map((a) => [a.day, a.slots.join(",")]),
+    marks.map((a) => [a.day, a.slots.join(","), a.kind]),
   );
   const [syncedFrom, setSyncedFrom] = React.useState<string | null>(null);
   if (syncedFrom !== savedPrint) {
     setSyncedFrom(savedPrint);
-    const next = new Set<string>();
-    for (const a of props.away) {
-      // Journée entière: on coche l'absence sur CHAQUE moment du rythme, parce
-      // que la grille n'a pas de case « toute la journée » — et en avoir une
-      // ferait deux façons de dire la même chose.
-      const slots = a.slots.length > 0 ? a.slots : props.rhythm.map((r) => r.slot);
-      for (const s of slots) next.add(key(a.day, s));
+    const next = new Map<string, PresenceState>();
+    for (const day of props.days) {
+      for (const r of props.rhythm) {
+        // Journée entière: `presenceStateOf` la rend sur CHAQUE moment du
+        // rythme, parce que la grille n'a pas de case « toute la journée » — et
+        // en avoir une ferait deux façons de dire la même chose.
+        const at = presenceStateOf(marks, day, r.slot);
+        if (at !== "at_table") next.set(key(day, r.slot), at);
+      }
     }
-    setOff(next);
+    setState(next);
   }
 
-  const toggle = (day: string, slot: string) =>
-    setOff((prev) => {
-      const next = new Set(prev);
+  const setCell = (day: string, slot: string, at: PresenceState) =>
+    setState((prev) => {
+      const next = new Map(prev);
       const k = key(day, slot);
-      if (next.has(k)) next.delete(k);
-      else next.add(k);
+      if (at === "at_table") next.delete(k);
+      else next.set(k, at);
       return next;
     });
 
+  /**
+   * LE GESTE DU DEUX-ÉTATS: la case bascule entre « à table » et « absent ».
+   *
+   * ⚠️ ELLE NE PASSE JAMAIS PAR « DEHORS ». Un écran qui ne connaît pas le
+   * troisième état ne doit pas pouvoir l'écrire par accident — mais une case
+   * qui ARRIVE « dehors » et qu'on ne touche pas le reste (voir `save`).
+   */
+  const toggle = (day: string, slot: string) => {
+    const at = state.get(key(day, slot));
+    setCell(day, slot, at === undefined ? "away" : "at_table");
+  };
+
   function save() {
-    // ── LA FUSION, ET ELLE N'EST PAS UN DÉTAIL ──────────────────────────
-    // La grille ne montre que les jours de CETTE fenêtre. Une fenêtre de trois
-    // jours ne dit rien des quatre autres, et écraser `away_days` avec ce
-    // qu'elle montre effacerait « mardi midi » parce qu'on a composé un
-    // week-end. Les jours hors fenêtre sont donc repris tels quels.
-    const inWindow = new Set(props.days);
-    const kept = props.away.filter((a) => !inWindow.has(a.day));
-
-    const fresh: AwayDay[] = [];
-    for (const day of props.days) {
-      const slots = props.rhythm
-        .map((r) => r.slot)
-        .filter((s) => off.has(key(day, s)));
-      if (slots.length === 0) continue;
-      // TOUS les moments du rythme décochés = la journée entière. On écrit la
-      // forme courte: c'est celle que FF-002 a définie, et elle survit à un
-      // changement de rythme — ajouter un petit-déjeuner plus tard ne doit pas
-      // ressusciter un samedi où l'élève n'est jamais là.
-      fresh.push({
-        day,
-        slots: slots.length === props.rhythm.length ? [] : slots,
-      });
-    }
-    void props.onSave([...kept, ...fresh]);
+    const next = mergeAwayMarks({
+      days: props.days,
+      rhythm: props.rhythm,
+      existing: marks,
+      cells: state,
+    });
+    // ⚠️ `onSave` REÇOIT AUSSI LES JETONS, et c'est ce qui rend le deux-états
+    // NON DESTRUCTIF: une `AwayMark` est une `AwayDay`, donc un écran qui ne
+    // connaît pas « dehors » réécrit quand même ce qu'il a lu. Sans ça, ouvrir
+    // puis enregistrer la grille sur un autre écran effacerait en silence des
+    // midis marqués dehors — et personne ne saurait où ils sont passés.
+    void (props.onSaveMarks ? props.onSaveMarks(next) : props.onSave(next));
   }
-
-  const rows = props.rhythm;
-  const offCount = off.size;
 
   return (
     <Modal
@@ -141,6 +204,63 @@ export default function MealPickerGrid(props: MealPickerGridProps) {
       title={mealCopy("meals.picker.title")}
       size="lg"
     >
+      <MealPickerGridBody
+        days={props.days}
+        dates={props.dates}
+        rhythm={props.rhythm}
+        state={state}
+        threeState={Boolean(props.onSaveMarks)}
+        setCell={setCell}
+        toggle={toggle}
+        save={save}
+        onClose={props.onClose}
+        busy={props.busy}
+      />
+    </Modal>
+  );
+}
+
+/**
+ * LA GRILLE ELLE-MÊME, SANS SA FENÊTRE — et l'état est resté DEHORS.
+ *
+ * ⚠️ LA SÉPARATION N'EST PAS COSMÉTIQUE, ET LE SENS COMPTE. `Modal` rend
+ * `null` quand elle est fermée: tout ce qui vit SOUS elle est démonté, donc un
+ * état posé ici disparaîtrait à chaque fermeture — et une grille modifiée ne
+ * survivrait pas à un clic à côté. L'état reste donc dans le composant du
+ * dessus, qui reste monté; ce corps-ci ne fait que rendre ce qu'on lui donne.
+ *
+ * ⚠️ ET IL EST EXPORTÉ POUR ÊTRE MESURÉ. `Modal` passe par `createPortal` vers
+ * `document.body`; ce dépôt n'a ni jsdom ni testing-library, donc un test qui
+ * monterait la fenêtre entière tomberait sur « document is not defined » — et
+ * la seule issue serait de ne pas tester le rendu du tout, c'est-à-dire de
+ * retomber sur des tests de source verts sur du code mort.
+ */
+export function MealPickerGridBody(props: {
+  days: readonly string[];
+  dates: readonly string[];
+  rhythm: readonly EatingOccasionSlot[];
+  /** L'état de chaque case montrée. Une case absente est « à table ». */
+  state: ReadonlyMap<string, PresenceState>;
+  /** Trois choix nommés au lieu d'une case à cocher. */
+  threeState: boolean;
+  setCell: (day: string, slot: string, at: PresenceState) => void;
+  toggle: (day: string, slot: string) => void;
+  save: () => void;
+  onClose: () => void;
+  busy: boolean;
+}) {
+  const key = (day: string, slot: string) => `${day}|${slot}`;
+  const rows = props.rhythm;
+  const threeState = props.threeState;
+  const state = props.state;
+  const setCell = props.setCell;
+  const toggle = props.toggle;
+  const save = props.save;
+  const offCount = state.size;
+  const outCount = [...state.values()].filter((s) => s === "eating_out").length;
+
+  return (
+    <>
       <p className="mb-3 text-sm text-ink-soft">
         {mealCopy("meals.picker.subtitle")}
       </p>
@@ -203,23 +323,57 @@ export default function MealPickerGrid(props: MealPickerGridProps) {
                         {occasionLabel(row.slot)}
                       </th>
                       {props.days.map((day, i) => {
-                        const on = !off.has(key(day, row.slot));
+                        const at = state.get(key(day, row.slot)) ?? "at_table";
+                        const label = `${occasionLabel(row.slot)} — ${
+                          dishDayLabel(day) ?? day
+                        }`;
                         return (
                           <td key={`${day}-${i}`} className="px-1 py-2 text-center">
-                            <input
-                              type="checkbox"
-                              // `accent-*` COMPTE COMME UNE COULEUR, et celle-ci
-                              // était `gray-900`. Une case à cocher est un
-                              // CONTRÔLE: la teinte de marque y est chez elle
-                              // (charte §2 — la figue marque l'action), et elle
-                              // n'entre pas dans une pastille pour autant.
-                              className="h-4 w-4 accent-fig-700"
-                              checked={on}
-                              onChange={() => toggle(day, row.slot)}
-                              aria-label={`${occasionLabel(row.slot)} — ${
-                                dishDayLabel(day) ?? day
-                              }`}
-                            />
+                            {threeState
+                              ? (
+                                // TROIS ÉTATS, TROIS CHOIX NOMMÉS. Une case à
+                                // cocher ne sait dire que oui ou non; un cycle
+                                // sur trois positions oblige à cliquer deux fois
+                                // pour revenir, sans jamais dire où l'on va. Un
+                                // choix explicite se lit, s'annonce au lecteur
+                                // d'écran, et tient dans une colonne étroite.
+                                <select
+                                  className="w-full min-w-0 rounded-input border border-line bg-paper px-1 py-1 text-xs text-ink"
+                                  value={at}
+                                  onChange={(e) =>
+                                    setCell(
+                                      day,
+                                      row.slot,
+                                      e.target.value as PresenceState,
+                                    )}
+                                  aria-label={label}
+                                >
+                                  <option value="at_table">
+                                    {mealCopy("meals.picker.state_at_table")}
+                                  </option>
+                                  <option value="eating_out">
+                                    {mealCopy("meals.picker.state_eating_out")}
+                                  </option>
+                                  <option value="away">
+                                    {mealCopy("meals.picker.state_away")}
+                                  </option>
+                                </select>
+                              )
+                              : (
+                                <input
+                                  type="checkbox"
+                                  // `accent-*` COMPTE COMME UNE COULEUR, et
+                                  // celle-ci était `gray-900`. Une case à cocher
+                                  // est un CONTRÔLE: la teinte de marque y est
+                                  // chez elle (charte §2 — la figue marque
+                                  // l'action), et elle n'entre pas dans une
+                                  // pastille pour autant.
+                                  className="h-4 w-4 accent-fig-700"
+                                  checked={at === "at_table"}
+                                  onChange={() => toggle(day, row.slot)}
+                                  aria-label={label}
+                                />
+                              )}
                           </td>
                         );
                       })}
@@ -242,6 +396,22 @@ export default function MealPickerGrid(props: MealPickerGridProps) {
                 )}
             </p>
 
+            {/* CE QUE « DEHORS » VEUT DIRE, dit SÉPARÉMENT du décompte des
+                absences — parce que ce n'est pas la même chose. Le repas sort
+                du plan, il ne sort pas de la journée: c'est le seul état où le
+                produit gardera le droit de dire un ordre de grandeur. Sans
+                cette phrase, les deux états se lisent comme un seul avec deux
+                mots, et personne ne sait lequel choisir. */}
+            {threeState && outCount > 0 && (
+              <p className="mt-1 text-xs leading-5 text-ink-soft">
+                {plural(
+                  outCount,
+                  mealCopy("meals.picker.some_out_one", { n: outCount }),
+                  mealCopy("meals.picker.some_out_many", { n: outCount }),
+                )}
+              </p>
+            )}
+
             <div className="mt-4 flex flex-wrap items-center gap-2">
               <Button variant="primary" onClick={save} disabled={props.busy}>
                 {props.busy
@@ -258,6 +428,6 @@ export default function MealPickerGrid(props: MealPickerGridProps) {
             </div>
           </>
         )}
-    </Modal>
+    </>
   );
 }

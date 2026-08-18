@@ -128,6 +128,14 @@ describe("pack français de la vitrine", () => {
       "gyms.fig.money_keep_value",
       "gyms.fig.money_uptake_value", // « 37 clients » — le mot est le même
       "mealprep.start.ask_allergies", // « Allergies » s'écrit pareil
+      // « Air fryer » est le nom que l'appareil porte en français aussi — sur
+      // la boîte, dans les rayons, dans la bouche des gens. Les six autres
+      // outils de la cuisine sont traduits (Four, Plaques, Micro-ondes,
+      // Congélateur, Autocuiseur, Blender ou robot); inventer « friteuse à
+      // air » pour celui-là ferait chercher un appareil que personne ne nomme
+      // comme ça, sur une case à cocher qui doit se reconnaître d'un coup
+      // d'œil.
+      "setup.equipment.tool_air_fryer",
       // ── LES NOMS PROPRES ET LES SIGNATURES ───────────────────────────────
       // Un prénom de figure et une signature ne se traduisent pas. « — Marc »
       // est le nom que le coach a écrit; « — Sophia » est la marque, et c'est

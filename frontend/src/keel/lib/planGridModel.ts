@@ -6,6 +6,7 @@ import type {
   PlanDayProperty,
   PlanFixedIntake,
 } from "../api/mealGeneration";
+import { type AwayMark, awayKindOf, presenceStateOf } from "./presenceMarks";
 
 // FF-053 — LE MODÈLE DE LA GRILLE. Pur, sans React, donc testable sans rendu.
 //
@@ -13,16 +14,22 @@ import type {
 // Une case vide dans la semaine d'un élève a QUATRE causes, et l'écran n'en
 // distinguait aucune:
 //
-//   * il déjeune à la cantine            (FF-002, `away_days`)
+//   * il n'est pas là                    (FF-002, `away_days`)
+//   * il déjeune dehors                  (L3, `away_days` + `kind`)
 //   * son shaker remplace le moment      (FF-051, `fixed_intakes`)
 //   * c'est son jour de restes           (FF-052, `day_properties`)
 //   * le modèle n'a rien composé         ← LE SEUL QUI SOIT UN DÉFAUT
 //
-// Trois de ces silences sont exactement ce que l'élève a DEMANDÉ. Le quatrième
+// Quatre de ces silences sont exactement ce que l'élève a DEMANDÉ. Le cinquième
 // est une faute. Les rendre identiques, c'est rendre la faute invisible et les
-// trois autres inquiétants.
+// quatre autres inquiétants.
+//
+// ⚠️ LES DEUX PREMIERS SE RESSEMBLENT ET NE SONT PAS LA MÊME CHOSE (L3,
+// 2026-08-18). Aucun plat dans les deux cas; ce qui les sépare est que « dehors »
+// garde le droit à un conseil chiffré et « pas là » non. Les confondre ferait
+// taire le conseil du midi, ou le ferait apparaître pendant des vacances.
 
-/** Ce qu'une case dit. Cinq états, et le cinquième est l'anomalie. */
+/** Ce qu'une case dit. Six états, et le dernier est l'anomalie. */
 export type PlanGridCell =
   | {
     kind: "dish";
@@ -39,6 +46,22 @@ export type PlanGridCell =
     fromBatch: boolean;
   }
   | { kind: "away" }
+  /**
+   * ELLE MANGE, MAIS PAS CE QUE LE PLAN COMPOSE — le déjeuner dehors (L3,
+   * 2026-08-18).
+   *
+   * ⚠️ CE N'EST PAS `away`, ET LES SÉPARER EST TOUT L'INTÉRÊT. Les deux cases
+   * sont vides de plat; ce qui les distingue est que celle-ci a le droit de
+   * porter un nombre (« vise autour de 700 ») et l'autre non. Les rendre
+   * identiques ferait l'une des deux fautes: taire le conseil du midi de
+   * quelqu'un qui déjeune dehors tous les jours, ou le faire apparaître pendant
+   * ses vacances.
+   *
+   * ⚠️ ELLE NE PORTE AUCUN CHIFFRE, et c'est délibéré. Ce modèle dit OÙ un
+   * conseil a le droit d'exister; il ne sait pas le calculer et n'a rien pour
+   * ça. Poser un `kcal` ici en ferait un producteur d'énergie.
+   */
+  | { kind: "eating_out" }
   | { kind: "fixed_intake"; label: string }
   | { kind: "leftovers" }
   | { kind: "empty" };
@@ -54,16 +77,22 @@ export interface PlanGrid {
   rows: PlanGridRow[];
 }
 
-/** Ce moment-là, ce jour-là, est-il écarté ? Même règle que le moteur. */
-function isAway(
-  away: readonly AwayDay[],
-  day: string,
-  slot: EatingOccasion,
-): boolean {
-  const row = away.find((a) => a.day === day);
-  if (!row) return false;
-  // Liste vide = la journée entière (convention de FF-002, tenue des deux côtés).
-  return row.slots.length === 0 || row.slots.includes(slot);
+/**
+ * LES ABSENCES, RELUES AVEC LEUR SENS.
+ *
+ * ⚠️ LE PARAMÈTRE RESTE `AwayDay[]`, ET C'EST CE QUI REND CE LOT ADDITIF. Une
+ * `AwayMark` EST une `AwayDay`: un appelant qui lit la colonne avec
+ * `parseAwayMarks` fait apparaître « dehors » sans changer une seule signature,
+ * et un appelant qui passe des absences nues obtient exactement l'écran d'hier
+ * — tout en `away`, c'est-à-dire le silence. Le jeton voyage dans le même
+ * tableau, invisible à qui ne le lit pas, comme `source` avant lui.
+ */
+function markify(rows: readonly AwayDay[]): AwayMark[] {
+  return rows.map((a) => ({
+    day: a.day,
+    slots: a.slots,
+    kind: awayKindOf(a),
+  }));
 }
 
 /** Un apport fixe REMPLAÇANT occupe-t-il ce créneau ce jour-là ? */
@@ -96,8 +125,11 @@ export function dayHasProperty(
  * ordonnés du plus fort au plus faible:
  *
  *   1. un plat            — il est là, on le montre
- *   2. absent             — la déclaration la plus catégorique: rien n'est ni
- *                           composé, ni acheté, ni compté
+ *   2. absent OU dehors   — la déclaration la plus catégorique: rien n'est ni
+ *                           composé, ni acheté. Les deux sortent au MÊME rang
+ *                           (elles se distinguent par ce qu'on DIT, pas par ce
+ *                           qu'on compose); les départager ici en ferait passer
+ *                           une derrière un apport fixe, où elle disparaîtrait.
  *   3. apport fixe        — le moment est pris, mais par de la nourriture
  *   4. jour de restes     — le moment est libre, on y mange ce qui existe
  *   5. vide               — aucune des quatre. C'est le défaut.
@@ -123,6 +155,8 @@ export function buildPlanGrid(args: {
     if (g.day) byDay.set(g.day, g.dishes);
   }
 
+  const marks = markify(args.awayDays);
+
   const rows: PlanGridRow[] = args.rhythm.map((r) => ({
     slot: r.slot,
     cells: args.days.map((day): PlanGridCell => {
@@ -134,7 +168,14 @@ export function buildPlanGrid(args: {
           fromBatch: dish.uses.length > 0,
         };
       }
-      if (isAway(args.awayDays, day, r.slot)) return { kind: "away" };
+      // ⚠️ LES DEUX SORTENT AU MÊME RANG DE PRÉCÉDENCE, celui qu'occupait
+      // `away` seul. « Dehors » est une déclaration aussi catégorique
+      // qu'« absent » — rien n'est composé, rien n'est acheté — et lui donner
+      // un rang différent le ferait passer derrière un apport fixe ou un jour
+      // de restes, c'est-à-dire disparaître.
+      const state = presenceStateOf(marks, day, r.slot);
+      if (state === "away") return { kind: "away" };
+      if (state === "eating_out") return { kind: "eating_out" };
       const intake = takenByIntake(args.fixedIntakes, day, r.slot);
       if (intake) return { kind: "fixed_intake", label: intake.label };
       if (dayHasProperty(args.dayProperties, day, "leftovers")) {
