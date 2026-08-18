@@ -134,4 +134,118 @@ lignes d'écart. Non corrigé (ce n'est pas mon lot), signalé.
 
 # PARTIE B — le parcours, dans l'ordre où un humain le vit
 
-_(ajouté au fil de l'eau)_
+## B2. Le curseur de rythme — les quatre états, le plafond, l'avertissement, la saturation
+
+Balayage complet sur 7 corps × 3 directions
+(`scratchpad/2026-08-18-1930-E-sonde-curseur.ts`, à rejouer par
+`cd frontend && npx vite-node ../scratchpad/2026-08-18-1930-E-sonde-curseur.ts`).
+
+### Les quatre états
+
+| État | Quand | Vu ? |
+|---|---|---|
+| `folded` | « maintenir », ou rien de choisi | ✅ mesuré sur les 7 corps |
+| `needs_body` | direction choisie, corps inconnu | ✅ mesuré, **et vu à l'écran** (« Fill in height, weight and sex below and the pace slider appears. ») |
+| `slider` | corps connu, marge disponible | ✅ mesuré + vu à l'écran |
+| `no_margin` | corps connu, **zéro** marge | 🟥 **jamais atteint** |
+
+🟥 **`no_margin` est le seul état que je n'ai pas su faire apparaître**, y compris
+sur une femme adulte de **38 kg pour 158 cm** (qui rend encore un curseur de 0,05
+à 0,35). Il est peut-être injoignable par le formulaire, ou il demande un corps
+que je n'ai pas trouvé. **Personne ne peut donc dire aujourd'hui ce que cet écran
+affiche dans ce cas.** À trancher : soit on montre le corps qui l'atteint, soit
+on constate que la branche est morte. Elle est à `lib/mouthForm.ts:476`.
+
+### Le maximum s'adapte au corps et ne dépasse jamais 1 kg/semaine ✅
+
+```
+femme 38 kg  perte  → max 0,35   (bound = body_fraction)
+femme 42 kg  perte  → max 0,40   (body_fraction)
+homme 85 kg  perte  → max 0,45   (energy_floor)
+enfant 10 a. perte  → max 0,15   (energy_floor)
+femme 60 kg  prise  → max 0,60   (body_fraction)
+homme 85 kg  prise  → max 0,85   (body_fraction)
+homme 110 kg prise  → max 1,00   (absolute_cap)   ← le plus haut vu
+```
+
+**Maximum le plus haut sur tous les corps testés : exactement 1,00 kg/semaine**,
+et c'est le plafond absolu qui décide (`bound=absolute_cap`), pas le corps. Aucun
+corps ne dépasse. ✅
+
+### L'avertissement au-delà de 0,5 en prise ✅ — et il est bien *strictement* au-delà
+
+```
+prise 0,45 → pas d'avertissement
+prise 0,50 → pas d'avertissement          ← la borne est exclue, comme annoncé
+prise 0,55 → « surplus_becomes_fat »
+prise 1,00 → « surplus_becomes_fat »
+```
+
+Contrôle : en **perte**, l'avertissement n'apparaît jamais, à aucun cran ✅.
+
+### La saturation ✅ — et elle dépend bien du corps
+
+```
+femme 60 kg sédentaire, prise :  0,15 → rien ;  0,20 et au-delà → « plate_stops_changing »
+homme 110 kg sédentaire, prise : 0,25 → rien ;  0,30 et au-delà → « plate_stops_changing »
+```
+
+Et le rabattage annoncé fonctionne : la femme de 60 kg à qui on demande 1,00
+affiche **0,60**, son maximum ✅. En **perte**, jamais de saturation, à aucun
+cran, sur aucun corps ✅.
+
+### ⚠️ La réserve qui compte : le curseur s'ouvre DÉJÀ saturé, presque toujours
+
+Le défaut du curseur est **son maximum** (décision assumée, `mouthForm.ts:483`).
+Or le maximum en prise est **au-dessus** du point de saturation sur tous les corps
+adultes mesurés. Conséquence, mesurée :
+
+> Un adulte qui choisit « prendre du muscle » et **ne touche à rien** voit son
+> curseur à fond, avec **les deux phrases en même temps** : « au-delà de 0,5 le
+> surplus part en gras » **et** « ça ne change plus rien à l'assiette ».
+
+Ce n'est pas faux — les deux sont vraies — mais le premier contact avec la prise
+de masse est un contrôle qui s'annonce inutile au moment où on l'ouvre. **C'est
+une décision qui appartient à l'utilisateur** (ouvrir au point de saturation
+plutôt qu'au maximum ?). Rien n'a été changé.
+
+### Le poids visé ✅
+
+```
+perte, cible 78 kg sous 85 kg  → accepté, « 16 semaines »
+perte, cible 95 kg sous 85 kg  → REFUSÉ (wrong_direction), refus rendu à côté du champ
+perte, cible vide              → idle (rien ne s'affiche, rien ne promet)
+maintenir, cible 78 kg         → idle  ← le champ ne s'ouvre pas en maintien
+prise, cible 92 kg sous 85 kg  → accepté, « 9 semaines »
+```
+
+## B3. Le cran d'activité — obligatoire seulement sous une direction qui bouge ✅
+
+```
+goal = ""             → activityIsRequired = false
+goal = "fat_loss"     → activityIsRequired = TRUE
+goal = "maintenance"  → activityIsRequired = false
+goal = "muscle_gain"  → activityIsRequired = TRUE
+```
+
+Exactement la règle demandée (`lib/mouthForm.ts:571`). ✅
+
+## ⚠️ Un commentaire périmé, trouvé en chemin — `SetupPage.tsx:2392-2396`
+
+Le commentaire au-dessus du menu de direction d'un enfant affirme :
+
+> *« les deux directions qui retirent (`fat_loss`, `recomposition`) ne sont pas
+> proposées à un enfant, et la base les refuse à l'écriture
+> (`goal_not_for_minor`) »*
+
+C'est **faux depuis la décision humaine du 2026-08-18** : `goalsForAge`
+(`api/household.ts:256-261`) rend désormais **la même liste pour tout le monde**,
+et le code juste en dessous l'appelle. Un mineur se voit donc bien proposer les
+trois directions à l'écran, conformément à la décision — mais le commentaire dit
+le contraire, à quatre lignes de distance. C'est exactement le motif « une
+contrainte documentée survit à sa cause ». **Non corrigé** (fichier partagé, lane
+voisine active dessus), signalé.
+
+---
+
+_(la suite est ajoutée au fil de l'eau)_
