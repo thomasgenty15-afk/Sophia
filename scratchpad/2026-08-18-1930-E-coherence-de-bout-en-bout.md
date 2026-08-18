@@ -96,10 +96,42 @@ l'ordre des blocs met la cause **après** l'effet.
 « corps » avant le bloc « direction », soit on garde l'ordre actuel et on rend la
 phrase plus impérative. Rien n'a été changé.
 
-### Dans le tunnel d'inscription : rien
+### Dans le tunnel d'inscription : rien du tout 🟥
 
-_(mesure en cours — section A2bis)_
+Mesuré à l'écran sur `/app/setup` (étape 2 sur 4, bloc « YOU »), en sélectionnant
+« Lose weight » dans le menu `#setup-goal` :
+
+```
+avant :  WHAT YOU ARE AFTER  →  — / Lose weight / Hold what I have / Build muscle
+après :  WHAT YOU ARE AFTER  →  …puis directement ANYTHING YOU ARE ALLERGIC TO?
+```
+
+Compté sur la page entière **après** la sélection :
+
+| Ce qu'on cherche | Compte |
+|---|---|
+| `input[type=range]` (le curseur de rythme) | **0** |
+| champ « poids visé » | **aucun** |
+
+🟥 **Le tunnel ne porte ni poids visé ni curseur de rythme, pour personne** — ni
+pour le titulaire, ni pour les autres bouches. La direction y est un simple menu
+déroulant (`SetupPage.tsx:2122-2136` pour le titulaire,
+`SetupPage.tsx:2397-2410` pour une autre bouche), et **rien** ne se déplie en
+dessous. Le fichier ne contient aucune occurrence de curseur de rythme ni de
+poids visé — vérifié par recherche, et confirmé à l'œil.
+
+**Donc : quelqu'un qui s'inscrit aujourd'hui choisit une direction sans jamais
+pouvoir dire ni où il va, ni à quelle vitesse.** Ces deux réglages n'existent
+que dans le pop-up de `/app/household`, où il faut aller de soi-même.
+
+### ⚠️ Un détail vu en passant, sur le même écran
+
+L'en-tête du tunnel dit **« Three steps, then your first plan. »** et le fil
+d'Ariane juste en dessous dit **« STEP 2 OF 4 »**. Trois contre quatre, à deux
+lignes d'écart. Non corrigé (ce n'est pas mon lot), signalé.
 
 ---
 
-_(la suite du parcours est ajoutée au fil de l'eau)_
+# PARTIE B — le parcours, dans l'ordre où un humain le vit
+
+_(ajouté au fil de l'eau)_
