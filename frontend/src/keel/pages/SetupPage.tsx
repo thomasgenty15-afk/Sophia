@@ -85,6 +85,8 @@ import { MAX_WINDOW_DAYS, windowDayOrder } from "../api/mealWindow";
 import { type AwayDay, type EatingOccasionSlot } from "../api/mealGeneration";
 import { setMemberAway } from "../api/household";
 import MealPickerGrid from "../components/MealPickerGrid";
+import TableStepPlanning from "../components/TableStepPlanning";
+import { workLunchRoster } from "../lib/workLunchRoster";
 import { browserLocalDate } from "../lib/useMealTicks";
 import { t, type MessageKey } from "../i18n/t";
 // ⚠️ `HouseholdHabitsCard` N'EST PLUS MONTÉE ICI (2026-08-14). Elle reste le
@@ -1187,6 +1189,51 @@ export default function SetupPage() {
               <MissingCard missing={stepMissing} title="setup.missing.before_next" />
             ) : null}
           </>
+        ) : null}
+
+        {/* ── L'ÉTAPE `table` COMMENCE PAR LES MOYENS, PAS PAR LES MOMENTS ──
+            On demande AVEC QUOI on cuisine avant de demander QUAND. L'ordre
+            inverse planifie une cuisson qu'aucun appareil de la maison ne peut
+            faire, puis demande à quelqu'un de trouver le temps de la faire.
+            `TableStepPlanning` porte les deux cartes et MESURE leur ordre sur
+            le HTML rendu (`tableStepPlanning.int.test.ts`).
+
+            ⚠️ UN BLOC À PART, PAS UN FRAGMENT AUTOUR DE `TableStep`. Ce
+            fichier est partagé par trois lanes aujourd'hui; ré-indenter les
+            quarante lignes de `TableStep` pour les envelopper aurait fait un
+            diff illisible à côté du leur. Deux blocs sur la même condition
+            rendent la même chose, dans le même ordre. */}
+        {step.id === "table" ? (
+          <TableStepPlanning
+            // LA PHOTO DE LA COLONNE, JAMAIS DE QUOI ÉCRIRE. `null` = pas
+            // encore lu, et c'est la porte de rendu de la carte: sept cases
+            // décochées pendant la lecture partiraient telles quelles au
+            // premier Enregistrer. L'écrivain, lui, relit la colonne.
+            practicalConstraints={facts.practicalConstraints}
+            hasGoal={facts.state.self.goal !== null}
+            // LE TITULAIRE EST LA PREMIÈRE BOUCHE, et sans lui la question ne
+            // se poserait jamais à celui qui remplit le formulaire:
+            // `readFunnelFacts` le RETIRE de `mouths` — il vit dans
+            // `state.self`. Sa date à lui est une VRAIE date
+            // (`profiles.birth_date`); celle des autres bouches est une marque
+            // de présence, et `workLunchRoster` sait laquelle est laquelle.
+            people={workLunchRoster({
+              self: {
+                memberId: facts.ownMemberId,
+                firstName: facts.state.self.firstName,
+                birthDate: facts.state.self.birthDate,
+              },
+              mouths: facts.mouths,
+              todayLocalIso: browserLocalDate(),
+            })}
+            busy={busy}
+            // ⚠️ LA PAGE RELIT APRÈS LE DÉJEUNER AUSSI, PAS SEULEMENT APRÈS
+            // L'ÉQUIPEMENT. La porte SQL écrit `away_days` en même temps que
+            // `work_lunch`: sans ce `load`, l'étape 4 monterait sa grille sur
+            // les absences d'AVANT le pré-remplissage, et les cinq midis n'y
+            // seraient pas — alors qu'ils sont en base.
+            onSaved={() => load(false)}
+          />
         ) : null}
 
         {step.id === "table" ? (
