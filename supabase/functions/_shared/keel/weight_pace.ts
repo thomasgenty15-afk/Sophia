@@ -734,6 +734,116 @@ export function executedPaceFor(
   };
 }
 
+// ---------------------------------------------------------------------------
+// ③ — LE CURSEUR SATURE, ET RIEN NE LE DISAIT
+// ---------------------------------------------------------------------------
+
+/**
+ * CE QUE CE BLOC RÉPARE, ET CE QU'IL NE RÉPARE PAS.
+ *
+ * ⛔ CE N'EST PAS UN BUG À CORRIGER. `paceCeilingFor` laisse délibérément une
+ * PRISE monter jusqu'à la borne dure (« le slider le DIT, il ne l'interdit
+ * pas », §Bloc 2), pendant qu'`executedPaceFor` la plafonne à
+ * `MAX_SURPLUS_FRACTION` (+10 %). L'écart est ASSUMÉ, daté, et il repose sur
+ * une borne physiologique (Helms 2023): au-delà de +10 % d'excédent, le surplus
+ * ne construit plus de muscle, il s'ajoute autrement. On ne l'élargit pas.
+ *
+ * ⚠️ CE QUI ÉTAIT CASSÉ EST LE SILENCE. Mesuré le 2026-08-18 sur des corps
+ * réels — femme de 60 kg, 165 cm, 28 ans, sédentaire, en prise:
+ *
+ *     cran 0,15  →  165 kcal/jour d'écart exécuté   (`chosen`)
+ *     cran 0,20  →  196 kcal/jour                   (`surplus_band`)
+ *     cran 0,40  →  196 kcal/jour                   (`surplus_band`)
+ *     cran 0,60  →  196 kcal/jour                   (`surplus_band`)
+ *
+ * Son curseur monte jusqu'à 0,60. Les deux tiers de sa course ne changent
+ * RIEN — pas un gramme dans une boîte, pas une ligne dans un plan — et l'écran
+ * ne le dit nulle part. Quelqu'un pousse à 1,0 en croyant accélérer, ne voit
+ * aucune différence dans son assiette, et n'a aucun moyen de savoir si c'est le
+ * produit qui l'ignore ou son corps qui plafonne.
+ *
+ * ── POURQUOI UN JETON À PART, ET PAS UNE SIXIÈME VALEUR DE `paceWarning` ───
+ * Les deux phrases sont vraies EN MÊME TEMPS au-delà de 0,5 kg/semaine sur un
+ * grand corps: « le surplus part surtout en gras » (physiologie) et « l'assiette
+ * ne bouge plus » (exécution). `paceWarning` rend UN jeton; y ajouter celui-ci
+ * ferait taire l'autre, et c'est celui qui parle du corps qu'on perdrait.
+ *
+ * ── ET POURQUOI CE N'EST PAS UN SEUIL EN kg/SEMAINE ───────────────────────
+ * Il n'y en a pas: le point de saturation est `MAX_SURPLUS_FRACTION × entretien`,
+ * donc il dépend du corps — 0,178 kg/sem sur la femme ci-dessus, 0,341 sur un
+ * homme de 90 kg qui s'entraîne. Un nombre figé dans une constante serait faux
+ * pour tout le monde sauf pour le corps qui l'a inspiré. On pose donc la
+ * question à `executedPaceFor` lui-même, et la réponse est exacte par
+ * construction: si le cran choisi n'est pas exécuté, il sature.
+ */
+export const PACE_SATURATIONS = ["plate_stops_changing"] as const;
+export type PaceSaturation = (typeof PACE_SATURATIONS)[number];
+
+/**
+ * LA PHRASE, DANS LES DEUX LANGUES.
+ *
+ * Elle vit ICI, à côté du seuil qui la déclenche, pour la même raison que
+ * `PACE_WARNING_LABELS` vingt lignes plus haut: le nombre et le mot qui
+ * l'encadre sont une seule décision, et les séparer laisse l'un bouger sans
+ * l'autre.
+ *
+ * ⚠️ ELLE DIT CE QUI ARRIVE, PAS CE QU'IL FAUT FAIRE — même règle que sa
+ * voisine. « Redescends le curseur » serait une consigne sur le corps de
+ * quelqu'un qui a choisi son rythme; « l'assiette ne change plus » est un fait
+ * sur ce que le plan produit, et la personne décide.
+ *
+ * ⚠️ ELLE NE CITE AUCUN kcal, ET C'EST LA CLAUSE C5. Le point de saturation est
+ * une grandeur d'énergie par bouche (`MAX_SURPLUS_FRACTION × entretien`); la
+ * nommer en chiffre ici la ferait sortir sans avoir traversé la moindre porte,
+ * à côté d'un curseur que le compte maître règle pour QUELQU'UN D'AUTRE. La
+ * phrase parle donc de l'assiette, qui est ce que la personne voit.
+ */
+export const PACE_SATURATION_LABELS: Record<
+  PaceSaturation,
+  { en: string; fr: string }
+> = {
+  plate_stops_changing: {
+    en: "From this setting on, the plate stops changing: the plan can only " +
+      "add so much in a day, and moving the slider higher puts nothing more " +
+      "on it.",
+    fr: "À partir de ce cran, l'assiette ne change plus : le plan ne peut " +
+      "ajouter qu'une quantité limitée par jour, et monter le curseur plus " +
+      "haut n'y met rien de plus.",
+  },
+};
+
+/**
+ * CE CRAN CHANGE-T-IL ENCORE QUELQUE CHOSE ?
+ *
+ * `null` = oui, il est exécuté tel quel — et c'est le CAS QUI PASSE, celui sans
+ * lequel cette fonction ressemblerait à une garde qui marche tout en parlant
+ * partout. Sur une PERTE et sur un MINEUR, `paceCeilingFor` borne déjà le
+ * curseur exactement là où `executedPaceFor` plafonne: la phrase ne s'y affiche
+ * jamais, mesuré, et ce n'est pas de la dormance — c'est la même borne lue deux
+ * fois.
+ *
+ * ⚠️ ON INTERROGE `executedPaceFor`, ON NE RECOPIE PAS SON PLAFOND. Une seconde
+ * arithmétique de `MAX_SURPLUS_FRACTION` diverge le jour où la bande bouge, et
+ * c'est celle qu'on regarde le moins qui garderait l'ancienne — après quoi
+ * l'écran dirait « ça ne change plus » sur un cran qui change, ou se tairait sur
+ * un cran qui ne change pas.
+ *
+ * `null` aussi quand le corps ne suffit pas: on ne dit rien plutôt que de
+ * décrire l'assiette de quelqu'un qu'on ne sait pas estimer.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function paceSaturation(
+  direction: ScaleDirection,
+  subject: PaceSubject,
+  kgPerWeek: number,
+): PaceSaturation | null {
+  if (!Number.isFinite(kgPerWeek) || kgPerWeek <= 0) return null;
+  const executed = executedPaceFor(direction, subject, kgPerWeek);
+  if (executed === null) return null;
+  return executed.clampedBy === "chosen" ? null : "plate_stops_changing";
+}
+
 /**
  * COMBIEN DE SEMAINES, AU RYTHME CHOISI — la date d'arrivée du §Bloc 2.
  *

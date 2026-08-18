@@ -36,6 +36,8 @@
 import {
   paceCeilingFor,
   type PaceBound,
+  type PaceSaturation,
+  paceSaturation,
   type PaceWarning,
   paceWarning,
   roundPace,
@@ -285,6 +287,18 @@ export type PaceControl =
      * et les séparer laisse l'un bouger sans l'autre.
      */
     warning: PaceWarning | null;
+    /**
+     * ③ — CE CRAN CHANGE-T-IL ENCORE QUELQUE CHOSE, OU EST-IL SATURÉ ?
+     *
+     * `null` = il est exécuté tel quel. Non nul = ce cran et tous les plus
+     * rapides produisent LA MÊME assiette (`MAX_SURPLUS_FRACTION`), et l'écran
+     * doit le dire — sans quoi quelqu'un pousse à 1,0 en croyant accélérer.
+     *
+     * ⚠️ CHAMP SÉPARÉ DE `warning`, ET C'EST LA DÉCISION. Les deux phrases sont
+     * vraies en même temps sur un grand corps au-delà de 0,5 kg/semaine; un
+     * champ unique en ferait taire une, et ce serait celle qui parle du corps.
+     */
+    saturation: PaceSaturation | null;
   };
 
 /**
@@ -305,10 +319,15 @@ export function paceControlFor(
   if (direction === null) return { kind: "folded" };
 
   const body = bodyOfDraft(draft, todayLocalIso);
-  const ceiling = paceCeilingFor(direction, {
+  // ⚠️ UN SEUL `PaceSubject` POUR LE PLAFOND ET POUR LA SATURATION. Deux objets
+  // construits séparément divergeraient au premier champ ajouté à `MouthBody`,
+  // et l'écran dirait alors « ça ne change plus » sur le corps de quelqu'un
+  // d'autre que celui dont il montre le curseur.
+  const subject = {
     body,
     isMinor: ageStateOfDraft(draft, todayLocalIso) === "minor",
-  });
+  };
+  const ceiling = paceCeilingFor(direction, subject);
   if (ceiling === null) return { kind: "needs_body" };
   if (ceiling.maxKgPerWeek <= 0) return { kind: "no_margin" };
 
@@ -331,6 +350,10 @@ export function paceControlFor(
     bound: ceiling.bound,
     value,
     warning: paceWarning(direction, value),
+    // ③ — LA QUESTION EST POSÉE SUR LE CRAN AFFICHÉ (`value`), pas sur le
+    // maximum: la phrase doit apparaître au moment exact où le curseur cesse
+    // de servir à quelque chose, pas seulement tout en haut de sa course.
+    saturation: paceSaturation(direction, subject, value),
   };
 }
 

@@ -16,7 +16,10 @@ import {
 import { en } from "../i18n/en";
 import { fr } from "../i18n/fr";
 import { setChosenUiLocaleForTest } from "../i18n/runtime";
-import { PACE_WARNING_LABELS } from "../../../../supabase/functions/_shared/keel/weight_pace.ts";
+import {
+  PACE_SATURATION_LABELS,
+  PACE_WARNING_LABELS,
+} from "../../../../supabase/functions/_shared/keel/weight_pace.ts";
 import { ACTIVITY_LEVELS } from "../../../../supabase/functions/_shared/keel/tokens.ts";
 import { GOAL_TOKENS } from "../../../../supabase/functions/_shared/keel/tokens.ts";
 
@@ -367,6 +370,65 @@ describe("en prise, le curseur DIT sans interdire", () => {
     }));
     expect(body).not.toContain(
       decode(PACE_WARNING_LABELS.surplus_becomes_fat.en),
+    );
+  });
+
+  // ── ③ · LE CURSEUR SATURE, ET L'ÉCRAN LE DIT ─────────────────────────────
+  //
+  // Mesuré sur CE corps (110 kg, 185 cm, s'entraîne dur, en prise): son curseur
+  // monte jusqu'à 1,0, et à partir de 0,40 l'écart quotidien exécuté ne bouge
+  // plus — 415 kcal à 0,40, à 0,50, à 0,75 et à 1,0. Les trois cinquièmes de la
+  // course ne changent pas un gramme dans une boîte.
+  const SATURATED = "0.75";
+  /** ⚠️ LE CAS QUI PASSE. À 0,35, ce corps exécute encore le cran choisi. */
+  const STILL_MOVING = "0.35";
+
+  it("③ au-delà de la saturation, LA PHRASE DU MODULE — en anglais", () => {
+    const body = text(html({ draft: { ...LIFTER, paceKgPerWeek: SATURATED } }));
+    expect(body).toContain(
+      decode(PACE_SATURATION_LABELS.plate_stops_changing.en),
+    );
+  });
+
+  it("③ … ET EN FRANÇAIS, sans l'anglais à côté", () => {
+    const body = text(html({
+      draft: { ...LIFTER, paceKgPerWeek: SATURATED },
+      locale: "fr",
+    }));
+    expect(body).toContain(
+      decode(PACE_SATURATION_LABELS.plate_stops_changing.fr),
+    );
+    expect(body).not.toContain(
+      decode(PACE_SATURATION_LABELS.plate_stops_changing.en),
+    );
+  });
+
+  it("③ ⚠️ TANT QUE LE CRAN CHANGE QUELQUE CHOSE, AUCUNE PHRASE", () => {
+    // Sans ce cas, une fonction qui dirait « ça ne bouge plus » PARTOUT
+    // laisserait le banc vert et l'écran mentirait sur tous les crans.
+    const body = text(html({ draft: { ...LIFTER, paceKgPerWeek: STILL_MOVING } }));
+    expect(body).not.toContain(
+      decode(PACE_SATURATION_LABELS.plate_stops_changing.en),
+    );
+  });
+
+  it("③ une PERTE ne sature pas: la même borne y est lue deux fois", () => {
+    const body = text(html({
+      draft: { ...LIFTER, goal: "fat_loss", paceKgPerWeek: "0.45" },
+    }));
+    expect(body).not.toContain(
+      decode(PACE_SATURATION_LABELS.plate_stops_changing.en),
+    );
+  });
+
+  it("③ les DEUX phrases cohabitent — aucune n'avale l'autre", () => {
+    // C'est la raison d'être du jeton séparé: à 0,75 sur ce corps, « le surplus
+    // part surtout en gras » (physiologie) ET « l'assiette ne change plus »
+    // (exécution) sont vraies en même temps. Un champ unique en tairait une.
+    const body = text(html({ draft: { ...LIFTER, paceKgPerWeek: SATURATED } }));
+    expect(body).toContain(decode(PACE_WARNING_LABELS.surplus_becomes_fat.en));
+    expect(body).toContain(
+      decode(PACE_SATURATION_LABELS.plate_stops_changing.en),
     );
   });
 });

@@ -27,7 +27,10 @@ import {
 } from "../lib/mouthForm";
 import { ACTIVITY_LEVELS } from "../../../../supabase/functions/_shared/keel/tokens.ts";
 import type { ActivityLevel } from "../../../../supabase/functions/_shared/keel/tokens.ts";
-import { PACE_WARNING_LABELS } from "../../../../supabase/functions/_shared/keel/weight_pace.ts";
+import {
+  PACE_SATURATION_LABELS,
+  PACE_WARNING_LABELS,
+} from "../../../../supabase/functions/_shared/keel/weight_pace.ts";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // LE POP-UP « UNE BOUCHE » — six blocs, trois obligatoires, trois sautables.
@@ -434,6 +437,32 @@ export function MouthFormFields(
                   {paceControl.warning !== null ? (
                     <p className="mt-2 rounded-card border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900">
                       {PACE_WARNING_LABELS[paceControl.warning][
+                        uiLocale() === "fr" ? "fr" : "en"
+                      ]}
+                    </p>
+                  ) : null}
+                  {/* ③ — LE CURSEUR SATURE, ET RIEN NE LE DISAIT. Mesuré: au
+                      delà de `MAX_SURPLUS_FRACTION`, 0,20 et 0,60 rendent le
+                      MÊME écart quotidien — les deux tiers de la course du
+                      curseur ne changent pas un gramme dans une boîte. Sans
+                      cette phrase, quelqu'un pousse à 1,0 en croyant
+                      accélérer, ne voit aucune différence, et ne peut pas
+                      savoir si c'est le produit qui l'ignore ou son corps qui
+                      plafonne.
+
+                      ⚠️ SÉPARÉE DE L'AVERTISSEMENT DU DESSUS, et pas fondue
+                      dedans: les deux sont vraies en même temps au-delà de
+                      0,5 kg/semaine sur un grand corps, et elles ne disent pas
+                      la même chose — l'une parle de physiologie, l'autre de ce
+                      que le plan exécute. Un bloc unique en ferait taire une.
+
+                      ⚠️ TON NEUTRE, PAS AMBRE. Ce n'est pas un risque, c'est
+                      une information sur le contrôle: le peindre en alerte
+                      ferait lire « tu fais quelque chose de dangereux » à
+                      quelqu'un qui a simplement poussé un curseur. */}
+                  {paceControl.saturation !== null ? (
+                    <p className="mt-2 rounded-card border border-line-strong bg-paper-2 p-3 text-xs leading-5 text-ink-soft">
+                      {PACE_SATURATION_LABELS[paceControl.saturation][
                         uiLocale() === "fr" ? "fr" : "en"
                       ]}
                     </p>
