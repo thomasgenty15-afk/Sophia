@@ -99,7 +99,14 @@ function complete(branch: FunnelBranch): FunnelState {
       firstName: "Sam",
       kind: "adult",
       birthDate: "1988-09-12",
-      goal: "health",
+      // ⚠️ `health` JUSQU'AU 2026-08-18, et la fixture le disait encore après
+      // le repli des six objectifs vers trois. `canGenerate` valide l'objectif
+      // contre `MEMBER_GOALS`: la fixture réclamait donc `own_goal` sur un état
+      // qu'elle déclare COMPLET, et dix cas en dépendaient. C'est la cicatrice
+      // que ce fichier nomme vingt lignes plus bas — « une fixture qui parle une
+      // forme que la base ne porte pas ». `maintenance` est le repli de la
+      // migration elle-même.
+      goal: "maintenance",
       allergiesReviewed: true,
       diet: "vegetarian",
       heightCm: 178,

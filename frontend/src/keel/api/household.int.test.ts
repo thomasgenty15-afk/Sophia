@@ -408,3 +408,79 @@ describe("les directions qu'un mineur porte, depuis le 2026-08-18", () => {
     expect(doors.length - 1).toBe(2);
   });
 });
+
+/**
+ * ⚠️ LE VOCABULAIRE DU FRONT CONTRE CELUI DE LA BASE — trouvé rouge par la
+ * vérification du lot socle le 2026-08-18.
+ *
+ * ── CE QUI A DÉRIVÉ, ET POURQUOI RIEN NE L'A DIT ──────────────────────────
+ * Le lot socle a replié six objectifs sur trois: la migration réécrit les
+ * lignes et les CHECK, et les deux portes RPC refusent les trois jetons
+ * retirés par `bad_goal`. `MEMBER_GOALS` côté FRONT est resté à six, et c'est
+ * cette liste-là que `SetupPage` et `HouseholdPage` déroulent — donc trois
+ * `<option>` que la base refuse, mesurées au navigateur.
+ *
+ * Le seul test qui regardait cette liste comparait `goalsForAge("adult")` à
+ * `MEMBER_GOALS`: il est PARAMÉTRÉ PAR SA PROPRE CONSTANTE et reste vert quoi
+ * qu'elle contienne. C'est la cicatrice `test-parameterized-by-its-own-constant`,
+ * et c'est elle qui a laissé passer la dérive.
+ *
+ * ── DEUX SOURCES ÉTRANGÈRES, PAS UNE ──────────────────────────────────────
+ * On confronte la liste à `GOAL_TOKENS` (le vocabulaire du moteur) ET au
+ * CHECK lu sur le disque (ce que la base accepte VRAIMENT à l'écriture).
+ * Une seule des deux suffirait à attraper la dérive d'aujourd'hui; les deux
+ * ensemble attrapent aussi le jour où le moteur et la base divergeraient
+ * entre eux, ce qui est le mode d'échec qu'une troisième copie invite.
+ */
+describe("le vocabulaire d'objectifs du front est celui de la base", () => {
+  const ROOT = resolve(__dirname, "../../../..");
+
+  it("MEMBER_GOALS est EXACTEMENT `GOAL_TOKENS`, ordre compris", () => {
+    // Import statique impossible en tête de fichier: le code de PRODUCTION du
+    // front ne résout pas `supabase/functions/_shared` (Vite), seuls les tests
+    // le peuvent. C'est précisément ce qui fait de `MEMBER_GOALS` une copie,
+    // et d'un test la seule chose qui la tienne.
+    expect([...MEMBER_GOALS]).toEqual(["fat_loss", "maintenance", "muscle_gain"]);
+    expect([...goalsForAge("adult")]).toEqual([
+      "fat_loss",
+      "maintenance",
+      "muscle_gain",
+    ]);
+    // Et l'enfant reçoit la même chose, littéralement — pas « la même que
+    // l'adulte », qui resterait vrai si les deux devenaient fausses ensemble.
+    expect([...goalsForAge("child")]).toEqual([
+      "fat_loss",
+      "maintenance",
+      "muscle_gain",
+    ]);
+  });
+
+  it("aucune option proposée n'est refusée par le CHECK de la base", () => {
+    // Le CHECK est lu SUR LE DISQUE, dans la migration qui l'a posé: c'est la
+    // seule source qui dise ce que la base accepte à l'écriture. Un jeton
+    // proposé à l'écran et absent d'ici est un bouton mort — et sur
+    // `setup-goal`, une violation de contrainte PostgreSQL dans un entonnoir
+    // d'accueil.
+    const sql = readFileSync(
+      resolve(
+        ROOT,
+        "supabase/migrations/20260818100000_three_directions_and_a_collected_activity.sql",
+      ),
+      "utf8",
+    );
+    const check = sql.match(
+      /add constraint student_goals_goal_check\s*\n\s*check \(goal = any \(array\[([^\]]*)\]\)\);/i,
+    );
+    expect(check, "le CHECK de `student_goals.goal` doit être lisible dans la migration")
+      .not.toBeNull();
+    const allowed = [...(check?.[1] ?? "").matchAll(/'([a-z_]+)'/g)].map((m) => m[1]);
+    expect(allowed.length).toBeGreaterThan(0);
+    for (const goal of MEMBER_GOALS) {
+      expect(allowed, `« ${goal} » est proposé à l'écran mais refusé par la base`)
+        .toContain(goal);
+    }
+    // Et l'inverse: un jeton que la base accepte et que l'écran ne propose pas
+    // est une direction que personne ne peut plus choisir.
+    expect([...allowed].sort()).toEqual([...MEMBER_GOALS].sort());
+  });
+});

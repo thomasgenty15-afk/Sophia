@@ -159,12 +159,11 @@ function goalLabel(goal: MemberGoal): string {
       return t("household.goal.fat_loss");
     case "muscle_gain":
       return t("household.goal.muscle_gain");
-    case "recomposition":
-      return t("household.goal.recomposition");
-    case "performance":
-      return t("household.goal.performance");
-    case "health":
-      return t("household.goal.health");
+    // `recomposition`, `performance` et `health` sont partis avec le
+    // vocabulaire (2026-08-18): la base les refuse par `bad_goal`, donc un
+    // `case` pour eux était une branche que rien ne pouvait plus atteindre.
+    // Leurs clés i18n restent sur le disque — la parité en/fr n'est pas rompue
+    // par des clés inutilisées, et c'est à L5 de les retirer avec l'écran.
     case "maintenance":
       return t("household.goal.maintenance");
   }

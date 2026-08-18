@@ -165,14 +165,35 @@ export interface AllergyView {
   createdByUserId: string | null;
 }
 
-/** Les six jetons, dans l'ordre où l'écran les propose. Miroir du CHECK. */
+/**
+ * LES TROIS JETONS, DANS L'ORDRE OÙ L'ÉCRAN LES PROPOSE. Miroir du CHECK.
+ *
+ * ── ⚠️ RÉDUIT À TROIS LE 2026-08-18, ET LA VÉRIFICATION L'A TROUVÉ ROUGE ──
+ * Le lot socle a replié six objectifs sur trois: la migration
+ * `20260818100000` réécrit les lignes ET les CHECK
+ * (`student_goals_goal_check`, `household_members_goal_check`), et les deux
+ * portes RPC refusent désormais `recomposition`, `performance` et `health`
+ * par `{"ok": false, "reason": "bad_goal"}`. Cette liste-ci, elle, était
+ * restée à SIX — et c'est elle que `SetupPage` et `HouseholdPage` déroulent.
+ *
+ * Mesuré au navigateur avant le correctif: `/app/household` et `/app/setup`
+ * proposaient sept `<option>` dont TROIS que la base refuse. Le pire des deux
+ * est `setup-goal`: il écrit `student_goals` en direct, donc le refus serait
+ * une violation de contrainte PostgreSQL rendue dans un entonnoir d'accueil —
+ * très exactement ce que l'en-tête de `saveOwnGoal` dit vouloir éviter.
+ *
+ * ⚠️ ELLE N'EST PAS DÉRIVÉE DE `GOAL_TOKENS`, ET C'EST DÉLIBÉRÉ: le code de
+ * production du front ne remonte pas dans `supabase/functions/_shared`
+ * (Vite ne le résout pas). C'est donc une COPIE, et une copie ne tient que si
+ * quelque chose la confronte — d'où le test de parité qui lit à la fois
+ * `GOAL_TOKENS` et le CHECK de la migration SUR LE DISQUE. Le test précédent
+ * (`goalsForAge("adult")` égale `MEMBER_GOALS`) était paramétré par sa propre
+ * constante: il est resté vert pendant toute la dérive.
+ */
 export const MEMBER_GOALS = [
   "fat_loss",
-  "muscle_gain",
-  "recomposition",
-  "performance",
-  "health",
   "maintenance",
+  "muscle_gain",
 ] as const;
 export type MemberGoal = (typeof MEMBER_GOALS)[number];
 
