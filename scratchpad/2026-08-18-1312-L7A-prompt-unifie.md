@@ -430,6 +430,14 @@ commit est passé dans la foulée, **gate complet, sans contournement**.
 **Aucune de ces erreurs n'était dans un chemin de ce lot**, et je n'ai rien
 réparé. C'est très exactement la barrière du §2 bis de l'orchestration.
 
+⚠️ **Et à 13:22, ROUGE À NOUVEAU**, toujours le même fichier :
+`HouseholdPage.tsx(920)` — `MouthFormDialogProps` a gagné `openBlock` /
+`onOpenBlock` du côté du composant, pas encore du côté de l'appelant. **L5
+oscille**, et ce sera l'état que L7-B trouvera. **Ce n'est pas ce lot** : mes
+deux commits sont passés `agent-gate` complet, `tsc -b --force` **exit 0** aux
+deux instants où ils ont été faits, et **aucun fichier du front n'est touché
+par L7-A**. Attendre la convergence de L5 avant d'accuser quoi que ce soit.
+
 ⚠️ **Toujours `--force`** : l'incrémental invente des erreurs entre lanes
 concurrentes (mesuré par L2-B : une erreur pointée sur une accolade fermante).
 
