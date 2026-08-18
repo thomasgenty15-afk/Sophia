@@ -50,6 +50,16 @@ const RHYTHM = [
 function render(over: {
   away?: readonly AwayMark[];
   threeState?: boolean;
+  /**
+   * D4 ④ — LES MIDIS « DEHORS » POSÉS HORS DE LA FENÊTRE MONTRÉE.
+   *
+   * ⚠️ IL A FALLU L'AJOUTER ICI, ET C'EST UN TROU QUE CE LOT A TROUVÉ: les
+   * fichiers de test sont EXCLUS de `tsconfig.app.json` (motif `test`), donc
+   * une prop devenue obligatoire ne fait rougir NI `tsc` NI vitest — elle
+   * arrive `undefined`, la comparaison `> 0` est fausse, et la ligne ne se
+   * rend jamais pendant que le test reste vert.
+   */
+  outsideWindow?: number;
 } = {}): string {
   const marks = (over.away ?? []).map((a) => ({
     day: a.day,
@@ -70,6 +80,7 @@ function render(over: {
       rhythm: RHYTHM,
       state,
       threeState: Boolean(over.threeState),
+      outsideWindow: over.outsideWindow ?? 0,
       setCell: () => {},
       toggle: () => {},
       save: () => {},
@@ -78,6 +89,66 @@ function render(over: {
     }),
   );
 }
+
+describe("D4 ④ — le compteur dit ce que la fenêtre ne montre pas", () => {
+  it("⛔ LE DÉFAUT — les midis hors fenêtre sont NOMMÉS", () => {
+    // L'étape 3 annonce cinq midis « dehors »; une fenêtre ouverte un mardi
+    // n'en montre que quatre. Le compteur d'à côté n'était pas faux — il
+    // comptait ce qui est à l'écran — mais il démentait la phrase d'avant d'une
+    // unité, et un nombre faux d'un cran est pire qu'absent.
+    const html = render({
+      threeState: true,
+      away: [{ day: "tue", slots: ["lunch"], kind: "eating_out" }],
+      outsideWindow: 1,
+    });
+    expect(html).toContain(EN["meals.picker.some_out_hidden_one"]);
+    // ⚠️ ET ON N'ADDITIONNE PAS: le compteur des cases visibles reste à 1.
+    expect(html).toContain(EN["meals.picker.some_out_one"].replace("{n}", "1"));
+  });
+
+  it("le pluriel sort au-delà d'un, avec son nombre", () => {
+    const html = render({
+      threeState: true,
+      away: [{ day: "tue", slots: ["lunch"], kind: "eating_out" }],
+      outsideWindow: 3,
+    });
+    expect(html).toContain(
+      EN["meals.picker.some_out_hidden_many"].replace("{n}", "3"),
+    );
+  });
+
+  it("⛔ LE CAS QUI PASSE — rien hors fenêtre, AUCUNE des deux formes", () => {
+    // ⚠️ FIXTURE DURCIE APRÈS UNE MUTATION QUI NE MORDAIT PAS. Retirer le
+    // `> 0` de la garde laissait ce test VERT: `plural(0, …)` rend la forme
+    // PLURIELLE, donc chercher la forme au singulier ne prouvait rien. L'écran
+    // aurait alors affiché « 0 autres sont cochés des jours que ce plan ne
+    // couvre pas » — un compteur qui annonce zéro, c'est-à-dire le piège du
+    // 0–0 déjà payé sur le chiffre du jour: une phrase qui restreint son sujet
+    // en avouant qu'il n'y a aucune raison de le restreindre.
+    const html = render({
+      threeState: true,
+      away: [{ day: "tue", slots: ["lunch"], kind: "eating_out" }],
+      outsideWindow: 0,
+    });
+    expect(html).not.toContain(EN["meals.picker.some_out_hidden_one"]);
+    expect(html).not.toContain(
+      EN["meals.picker.some_out_hidden_many"].replace("{n}", "0"),
+    );
+    // La moitié invariable de la phrase, celle que les deux formes partagent:
+    // aucune des deux ne peut passer sans elle.
+    expect(html).not.toContain("this plan does not cover");
+  });
+
+  it("le deux-états ne la rend pas: il ne connaît pas « dehors »", () => {
+    const html = render({
+      away: [{ day: "tue", slots: ["lunch"], kind: "eating_out" }],
+      outsideWindow: 2,
+    });
+    expect(html).not.toContain(
+      EN["meals.picker.some_out_hidden_many"].replace("{n}", "2"),
+    );
+  });
+});
 
 describe("L3 — le deux-états reste l'écran d'hier", () => {
   it("sans `onSaveMarks`: des cases à cocher, aucun choix à trois", () => {

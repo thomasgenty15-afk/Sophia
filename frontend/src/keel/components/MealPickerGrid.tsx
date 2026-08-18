@@ -14,6 +14,7 @@ import {
   type PresenceState,
   presenceStateOf,
 } from "../lib/presenceMarks";
+import { marksOutsideWindow } from "../lib/presenceOutsideWindow";
 import { Button } from "./ui/Button";
 import Modal from "./ui/Modal";
 
@@ -225,6 +226,17 @@ export default function MealPickerGrid(props: MealPickerGridProps) {
         dates={props.dates}
         rhythm={props.rhythm}
         state={state}
+        // ── D4 ④ · CE QUE LA FENÊTRE NE MONTRE PAS ────────────────────────
+        // Le compteur du dessous ne peut compter que des CASES, et une case
+        // n'existe que pour un jour de la fenêtre. Le calcul part donc de
+        // `marks` — la colonne entière — et pas de `state`, qui est déjà
+        // l'état des seules cases montées.
+        outsideWindow={marksOutsideWindow({
+          marks,
+          days: props.days,
+          rhythm: props.rhythm,
+          state: "eating_out",
+        })}
         threeState={Boolean(props.onSaveMarks)}
         setCell={setCell}
         toggle={toggle}
@@ -259,6 +271,15 @@ export function MealPickerGridBody(props: {
   state: ReadonlyMap<string, PresenceState>;
   /** Trois choix nommés au lieu d'une case à cocher. */
   threeState: boolean;
+  /**
+   * LES MIDIS « DEHORS » POSÉS SUR DES JOURS QUE CETTE FENÊTRE NE COUVRE PAS.
+   *
+   * ⚠️ REQUIS, PAS OPTIONNEL. Un `?` aurait laissé les trois autres points de
+   * montage de cette grille afficher le compteur d'un cran trop bas sans qu'un
+   * seul appelant remonte au compilateur — c'est-à-dire exactement le défaut
+   * qu'on ferme.
+   */
+  outsideWindow: number;
   setCell: (day: string, slot: string, at: PresenceState) => void;
   toggle: (day: string, slot: string) => void;
   save: () => void;
@@ -439,6 +460,33 @@ export function MealPickerGridBody(props: {
                   outCount,
                   mealCopy("meals.picker.some_out_one", { n: outCount }),
                   mealCopy("meals.picker.some_out_many", { n: outCount }),
+                )}
+              </p>
+            )}
+
+            {/* ── D4 ④ · LE CRAN QUI MANQUAIT ────────────────────────────
+                L'étape 3 annonce « 5 midis de semaine seront déjà cochés
+                “dehors” à l'étape suivante », et ce compteur-ci en affichait
+                4: une fenêtre « d'ici dimanche » commencée un mardi ne porte
+                que quatre jours ouvrés. Aucun des deux nombres n'était faux —
+                l'un compte ce qui est ÉCRIT, l'autre ce qui est MONTRÉ — et
+                c'est bien le problème: deux vérités qui ne disent pas de quoi
+                elles parlent se lisent comme une erreur.
+                ⛔ ON N'ADDITIONNE PAS. Écrire « 5 » sous quatre cases cochées
+                ferait chercher la cinquième à l'écran, où elle n'est pas.
+                ⚠️ ET LA LIGNE DIT QU'ILS RESTENT. Sans ça, elle se lirait
+                comme un avertissement de perte — alors que ces midis-là sont
+                justement ceux que l'enregistrement REPREND tels quels. */}
+            {threeState && props.outsideWindow > 0 && (
+              <p className="mt-1 text-xs leading-5 text-ink-soft">
+                {plural(
+                  props.outsideWindow,
+                  mealCopy("meals.picker.some_out_hidden_one", {
+                    n: props.outsideWindow,
+                  }),
+                  mealCopy("meals.picker.some_out_hidden_many", {
+                    n: props.outsideWindow,
+                  }),
                 )}
               </p>
             )}
