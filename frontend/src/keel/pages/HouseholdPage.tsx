@@ -67,6 +67,16 @@ import {
   windowDayOrder,
 } from "../api/mealWindow";
 import { loadMutedMembers, muteMergeProposals } from "../api/householdMerge";
+// L5 — LE POP-UP « UNE BOUCHE ». Il s'ouvre à chaque ajout de personne; le
+// maître, lui, passe par sa propre fiche (`MeCard`), qui existait déjà.
+import { persistMouth, setMemberTarget } from "../api/mouthProfile";
+import {
+  emptyMouthDraft,
+  type MouthFormBlock,
+  type MouthFormDraft,
+  mouthToPersist,
+} from "../lib/mouthForm";
+import MouthFormDialog from "../components/MouthFormDialog";
 import { householdErrorKey } from "../copy/planRefusals";
 import MealPickerGrid from "../components/MealPickerGrid";
 import HouseholdHabitsCard from "../components/HouseholdHabitsCard";
@@ -431,8 +441,35 @@ export default function HouseholdPage(): React.ReactElement {
                 <AddMouthCard
                   count={household.members.length}
                   busy={busy}
-                  onAdd={(first, birth, goal) =>
-                    run(() => addHouseholdMember(first, birth, goal))}
+                  // ⚠️ LA DATE LOCALE EST CALCULÉE UNE FOIS, ICI, ET DESCENDUE.
+                  // L'âge décide du plafond du curseur et du plancher de la
+                  // cible; une horloge lue au rendu changerait de réponse à
+                  // minuit pendant qu'on remplit le formulaire.
+                  todayLocalIso={weekStart}
+                  failure={error}
+                  onAdd={(draft) =>
+                    // `run` traduit le refus par la liste fermée de
+                    // `copy/planRefusals.ts` et rafraîchit — donc la fenêtre se
+                    // remonte sur ce que le serveur a VRAIMENT gardé.
+                    run(() => persistMouth(mouthToPersist(draft, weekStart), {
+                      addMember: addHouseholdMember,
+                      setTarget: setMemberTarget,
+                      setBody: setMemberBody,
+                      setHabits: (id, slots, note) =>
+                        setMemberHabits(id, slots as HabitSlot[], note),
+                      // ⚠️ `null`, ET C'EST LA BONNE RÉPONSE ICI (D1). Cette
+                      // carte AJOUTE une bouche, donc quelqu'un qui n'a pas de
+                      // compte — et `fixed_intakes` est clé sur `user_id`. Le
+                      // pop-up ne lui montre pas le champ (`hasAccount: false`
+                      // juste en dessous), donc `mouth.shaker` est `null` et
+                      // cette porte n'est jamais appelée. La brancher quand
+                      // même écrirait le shaker d'un enfant sur la ligne du
+                      // maître.
+                      setShaker: null,
+                      addAllergy,
+                      addRestriction,
+                      setDiet: setMemberDiet,
+                    }))}
                 />
               ) : null}
 
@@ -823,24 +860,33 @@ function MeCard(
 /**
  * AJOUTER UNE BOUCHE — le geste que tout ce chantier existe pour permettre.
  *
- * Le formulaire NE SE FERME PAS après un ajout: il se vide et garde le focus.
- * Trois personnes d'affilée sans quitter le flux est la mesure de ce lot, et
- * une carte qui se replie à chaque succès la rate.
+ * ── ⚠️ LE FORMULAIRE EST DEVENU UNE FENÊTRE LE 2026-08-18 (lot L5) ────────
+ * Trois champs en ligne (prénom, naissance, direction) laissaient une personne
+ * inscrite dont on ne savait NI le corps, NI son niveau d'activité, NI ce
+ * qu'elle mange déjà — c'est-à-dire une bouche que la composition dimensionne
+ * au jugé. La fenêtre pose les six blocs de la conception d'un seul geste.
+ *
+ * ⚠️ ELLE SE FERME TOUJOURS, et le formulaire NE SE REPLIE PAS tout seul après
+ * un ajout: il se vide et se rouvre. Trois personnes d'affilée sans quitter le
+ * flux est la mesure de ce lot, et une fenêtre qui se referme à chaque succès
+ * la rate.
  */
 function AddMouthCard(
-  { count, busy, onAdd }: {
+  { count, busy, todayLocalIso, failure, onAdd }: {
     count: number;
     busy: boolean;
-    onAdd: (
-      firstName: string,
-      birthDate: string | null,
-      goal: MemberGoal | null,
-    ) => Promise<boolean>;
+    todayLocalIso: string;
+    /** Le refus du dernier geste, ou `null`. REQUIS — voir `MouthFormDialog`. */
+    failure: string | null;
+    onAdd: (draft: MouthFormDraft) => Promise<boolean>;
   },
 ) {
-  const empty: MouthDraft = { firstName: "", birthDate: "", goal: "" };
-  const [draft, setDraft] = React.useState<MouthDraft>(empty);
-  const nameRef = React.useRef<HTMLDivElement>(null);
+  const [open, setOpen] = React.useState(false);
+  const [draft, setDraft] = React.useState<MouthFormDraft>(emptyMouthDraft);
+  // LE BLOC SAUTABLE OUVERT — un seul à la fois, et tous repliés au départ.
+  // Trois blocs dépliés d'un coup, c'est le formulaire de trente champs que la
+  // fenêtre existe pour éviter.
+  const [openBlock, setOpenBlock] = React.useState<MouthFormBlock | null>(null);
 
   // LE PLAFOND REND SON MOTIF. La limite vit en base (`household_full`) et doit
   // tenir face à un appel direct de la RPC; ici on ne fait que la DIRE, et on
@@ -861,36 +907,43 @@ function AddMouthCard(
           {t("household.add.full")}
         </p>
       ) : (
-        <div ref={nameRef}>
-          <MouthFields draft={draft} onChange={setDraft} />
-          {/* ⛔ PLUS DE FIGUE ICI. Ce bouton et le « enregistrer » de la fiche du
-              maître se rendaient TOUJOURS ensemble (vérifié au navigateur), donc
-              l'écran montrait deux actions principales. Celle-ci perd la teinte:
-              la carte est déjà annoncée par son sur-titre, et le geste se répète
-              — on ajoute trois personnes d'affilée sans quitter le flux, ce que
-              la carte est faite pour permettre. Un aplat de marque qu'on
-              actionne cinq fois de suite n'est plus une action principale. */}
-          <Button
-            className="mt-3"
-            disabled={busy || !draft.firstName.trim()}
-            onClick={async () => {
-              const ok = await onAdd(
-                draft.firstName.trim(),
-                draft.birthDate || null,
-                draft.goal || null,
-              );
-              if (!ok) return;
-              setDraft(empty);
-              nameRef.current?.querySelector("input")?.focus();
-            }}
-          >
+        <div>
+          {/* ⛔ PLUS DE FIGUE ICI (voir la note d'origine plus bas): le geste se
+              répète, et un aplat de marque qu'on actionne cinq fois de suite
+              n'est plus une action principale. */}
+          <Button disabled={busy} onClick={() => setOpen(true)}>
             {t("household.add.submit")}
           </Button>
+          <MouthFormDialog
+            open={open}
+            onClose={() => setOpen(false)}
+            draft={draft}
+            onChange={setDraft}
+            // `existing: false` — on l'AJOUTE. `hasAccount: false` — une bouche
+            // qu'on saisit n'a jamais de compte au moment où on la saisit;
+            // elle en gagne un si elle réclame sa place plus tard.
+            subject={{ existing: false, hasAccount: false }}
+            todayLocalIso={todayLocalIso}
+            busy={busy}
+            failure={failure}
+            openBlock={openBlock}
+            onOpenBlock={setOpenBlock}
+            onSubmit={() => {
+              void (async () => {
+                const ok = await onAdd(draft);
+                if (!ok) return;
+                // ON VIDE, ON NE FERME PAS: la fenêtre reste ouverte pour la
+                // personne suivante.
+                setDraft(emptyMouthDraft());
+              })();
+            }}
+          />
         </div>
       )}
     </Card>
   );
 }
+
 
 /**
  * QUI MANGE ICI — la liste, et pour le compte maître, l'endroit où l'on corrige.
