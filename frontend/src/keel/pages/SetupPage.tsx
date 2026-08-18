@@ -79,6 +79,17 @@ import {
   savePlanAnswers,
 } from "../api/onboarding";
 import { BUDGET_MAX } from "../api/planBudget";
+// ── D6 (2026-08-18) — LE POIDS VISÉ ET LE RYTHME, DANS L'ENTONNOIR ─────────
+// Le composant, la décision et l'écrivain viennent tous les trois d'ailleurs:
+// cet écran n'en refait aucun. Une seconde lecture de `paceControlFor` ici
+// divergerait de celle de `/app/household` au premier correctif.
+import { TargetAndPaceFields } from "../components/MouthFormDialog";
+import {
+  emptyMouthDraft as emptyMouthFormDraft,
+  type MouthFormDraft,
+  targetPayloadOf,
+} from "../lib/mouthForm";
+import { loadOwnMouth, setOwnTarget } from "../api/mouthProfile";
 import { chooseGenerator } from "../api/planRouting";
 import { addDays, daysBetween } from "../api/dates";
 import { MAX_WINDOW_DAYS, windowDayOrder } from "../api/mealWindow";
@@ -457,6 +468,24 @@ export default function SetupPage() {
   );
 
   /**
+   * SON POIDS VISÉ ET SON RYTHME — LES DEUX SEULES VALEURS GARDÉES ICI.
+   *
+   * ⚠️ `null` = LA LECTURE N'A PAS EU LIEU, et l'étape 3 ne rend alors aucun
+   * champ. Ces deux valeurs existent peut-être DÉJÀ en base (`/app/household`
+   * les écrit): un formulaire qui afficherait du vide non lu les écraserait au
+   * « Continuer ».
+   *
+   * ⚠️ ON NE GARDE QUE CES DEUX-LÀ, PAS UN `MouthFormDraft` ENTIER. Le reste du
+   * brouillon — direction, corps, date de naissance — vit déjà dans `self`, et
+   * c'est LUI qui borne le curseur. Une seconde copie prendrait une photo à la
+   * lecture et cesserait de suivre ce qui est tapé à l'étape 2: on choisirait un
+   * rythme calculé sur un corps périmé.
+   */
+  const [selfTarget, setSelfTarget] = React.useState<
+    { targetWeightKg: string; paceKgPerWeek: string } | null
+  >(null);
+
+  /**
    * LA LECTURE, ET ELLE EST LA SEULE SOURCE DE L'ÉTAT.
    *
    * ⚠️ `seed` NE RESÈME LES BROUILLONS QU'AU PREMIER CHARGEMENT. Un `refresh`
@@ -478,6 +507,21 @@ export default function SetupPage() {
         } else {
           setHabits(new Map());
         }
+        // SA CIBLE ET SON RYTHME, DEPUIS `student_goals`. Hors du `seed`: ces
+        // deux valeurs ne sont pas un brouillon de saisie, ce sont des FAITS
+        // qu'une autre surface a pu écrire entre-temps — et l'étape 3 doit les
+        // relire après chaque écriture, comme le reste.
+        const own = await loadOwnMouth(userId).catch(() => null);
+        setSelfTarget({
+          targetWeightKg: own?.targetWeightKg === null ||
+              own?.targetWeightKg === undefined
+            ? ""
+            : String(own.targetWeightKg),
+          paceKgPerWeek: own?.paceKgPerWeek === null ||
+              own?.paceKgPerWeek === undefined
+            ? ""
+            : String(own.paceKgPerWeek),
+        });
         if (seed) {
           setSelf({
             firstName: read.state.self.firstName,
@@ -598,6 +642,36 @@ export default function SetupPage() {
       t("setup.mouths.held_exit"),
     ].filter(Boolean).join(" ");
   })();
+
+  /**
+   * LE BROUILLON DE BOUCHE DU TITULAIRE — DÉRIVÉ, JAMAIS STOCKÉ.
+   *
+   * ⚠️ IL SE RECALCULE À CHAQUE RENDU À PARTIR DE `self`, et c'est ce qui rend
+   * le curseur juste: son plafond est borné par la TAILLE, le POIDS et l'ÂGE
+   * saisis à l'étape 2. Une copie figée à la lecture proposerait un rythme
+   * calculé sur un corps que la personne vient de corriger.
+   *
+   * `null` tant que la lecture de la cible n'a pas eu lieu — la carte ne rend
+   * alors rien du tout.
+   */
+  const selfMouthDraft: MouthFormDraft | null = self === null ||
+      selfTarget === null
+    ? null
+    : {
+      ...emptyMouthFormDraft(),
+      firstName: self.firstName,
+      birthDate: self.birthDate,
+      goal: self.goal,
+      heightCm: self.heightCm,
+      weightKg: self.weightKg,
+      gender: self.gender,
+      // `null` (personne n'a répondu) devient `""` dans ce vocabulaire-ci:
+      // les deux disent la même chose, et `tokens.ts` refuse un jeton
+      // d'ignorance des deux côtés.
+      activityLevel: self.activityLevel ?? "",
+      targetWeightKg: selfTarget.targetWeightKg,
+      paceKgPerWeek: selfTarget.paceKgPerWeek,
+    };
 
   const isLast = stepIndex >= steps.length - 1;
 
@@ -1276,6 +1350,26 @@ export default function SetupPage() {
             // l'étape 2 et jamais enregistré.
             selfFirstName={facts.state.self.firstName}
             selfMemberId={facts.ownMemberId}
+            // ⚠️ ON NE REMONTE QUE LES DEUX CHAMPS QUI SONT À LUI. Le composant
+            // reçoit un brouillon complet (il en a besoin pour BORNER le
+            // curseur) mais n'a le droit d'en écrire que deux: tout ramener
+            // dans `self` ferait de cette carte un second formulaire sur les
+            // mêmes colonnes que l'étape 2.
+            selfTarget={selfMouthDraft === null ? null : {
+              draft: selfMouthDraft,
+              onChange: (next) =>
+                setSelfTarget((prev) => {
+                  if (prev === null) return prev;
+                  const applied = typeof next === "function"
+                    ? next(selfMouthDraft)
+                    : next;
+                  return {
+                    targetWeightKg: applied.targetWeightKg,
+                    paceKgPerWeek: applied.paceKgPerWeek,
+                  };
+                }),
+              todayLocalIso: browserLocalDate(),
+            }}
             habits={habits}
             // ⚠️ LES `slots` DÉJÀ ÉCRITS SONT REPASSÉS TELS QUELS. La RPC
             // REMPLACE la ligne entière (`on conflict do update set slots =
@@ -1438,6 +1532,38 @@ export default function SetupPage() {
                         diet: self.diet,
                         current: before.practicalConstraints,
                       });
+                    }
+                    // ── SA CIBLE ET SON RYTHME, ÉCRITS PAR CE MÊME BOUTON ──
+                    // ⚠️ `targetPayloadOf` EST LA SEULE DÉCISION, et elle est
+                    // le miroir exact du CHECK de la base
+                    // (`target_needs_direction`): rien ne part sur une
+                    // direction qui ne bouge pas, rien ne part à moitié. Un
+                    // écran qui enverrait une cible sur `maintenance`
+                    // recevrait une violation de contrainte au milieu d'un
+                    // entonnoir d'accueil.
+                    //
+                    // ⚠️ ET `no_goal_row` NE REMONTE PAS QUAND IL N'Y A RIEN À
+                    // ÉCRIRE. La ligne `student_goals` n'existe qu'une fois la
+                    // direction posée; effacer une cible qui n'a jamais existé
+                    // est un succès, et le refuser ferait échouer le bouton
+                    // exactement une fois, sur le compte le plus neuf.
+                    if (selfMouthDraft !== null) {
+                      const payload = targetPayloadOf(
+                        selfMouthDraft,
+                        browserLocalDate(),
+                      );
+                      const written = await setOwnTarget(
+                        userId,
+                        payload.targetWeightKg,
+                        payload.paceKgPerWeek,
+                      );
+                      if (
+                        !written.ok &&
+                        !(written.reason === "no_goal_row" &&
+                          payload.targetWeightKg === null)
+                      ) {
+                        throw new Error(written.reason);
+                      }
                     }
                     await savePlanAnswers({
                       userId,
@@ -2594,7 +2720,13 @@ function MouthRow(props: {
  * de total. « 2 personnes n'ont rien dit » se lit « il en reste 2 à relancer »,
  * et c'est la corvée que ce produit promet de supprimer (FF-050 §1).
  */
-function TableStep({
+/**
+ * ⚠️ EXPORTÉ POUR ÊTRE RENDU, comme `MouthsStep` — voir
+ * `pages/setupTableStepTarget.int.test.ts`. Ce qui doit être prouvé est que
+ * l'étape 3 PORTE le poids visé et le curseur de rythme, et un test de source
+ * dirait la même chose sur du texte.
+ */
+export function TableStep({
   draft,
   onChange,
   mouths,
@@ -2608,8 +2740,10 @@ function TableStep({
   selfMemberId,
   habits,
   onSaveNote,
+  selfTarget,
 }: {
   draft: FunnelPlanAnswers;
+  onChange: React.Dispatch
   onChange: React.Dispatch<React.SetStateAction<FunnelPlanAnswers | null>>;
   mouths: readonly FunnelMouth[];
   onMouthRhythm: (mouth: FunnelMouth, rhythm: readonly EatingOccasionSlot[]) => void;
@@ -2633,6 +2767,19 @@ function TableStep({
   /** `null` = la lecture n'a pas eu lieu. La carte s'en sert comme garde. */
   habits: Map<string, MemberHabitsView> | null;
   onSaveNote: (memberId: string, note: string | null) => Promise<boolean>;
+  /**
+   * SON POIDS VISÉ ET SON RYTHME — `null` tant que la lecture n'a pas eu lieu.
+   *
+   * ⚠️ REQUIS. `null` porte « on n'a pas encore lu », et la carte ne rend alors
+   * AUCUN champ: un formulaire figé sur du vide non lu l'écrit au premier Save,
+   * et ces deux valeurs-là existent peut-être déjà en base (`/app/household`
+   * les écrit). C'est la garde de chargement du reste de cet écran.
+   */
+  selfTarget: null | {
+    draft: MouthFormDraft;
+    onChange: React.Dispatch<React.SetStateAction<MouthFormDraft>>;
+    todayLocalIso: string;
+  };
 }) {
   /**
    * LE REFUS DES MOMENTS TOMBE SUR LA CARTE DU TITULAIRE, ET C'EST EXACT.
@@ -2672,6 +2819,7 @@ function TableStep({
             busy={busy}
             habits={habits}
             onSaveNote={onSaveNote}
+            target={selfTarget}
           />
         </li>
 
@@ -2704,6 +2852,14 @@ function TableStep({
               busy={busy}
               habits={habits}
               onSaveNote={onSaveNote}
+              // ⚠️ PAS ENCORE POUR LES AUTRES BOUCHES, ET C'EST DIT PLUTÔT QUE
+              // SOUS-ENTENDU. Leur cible s'écrit par `setMemberTarget` (porte
+              // distincte de celle du titulaire, `student_goals` contre la
+              // ligne membre), et la brancher demande un brouillon par bouche
+              // que cette étape n'a pas. Rendre le champ sans son écrivain
+              // serait un contrôle qui promet — le mode d'échec que ce
+              // chantier refuse partout.
+              target={null}
             />
           </li>
         ))}
@@ -2733,6 +2889,7 @@ function PersonTableCard({
   busy,
   habits,
   onSaveNote,
+  target,
 }: {
   firstName: string;
   memberId: string | null;
@@ -2748,6 +2905,21 @@ function PersonTableCard({
   busy: boolean;
   habits: Map<string, MemberHabitsView> | null;
   onSaveNote: (memberId: string, note: string | null) => Promise<boolean>;
+  /**
+   * LE POIDS VISÉ ET LE RYTHME D'ÉVOLUTION DE CETTE PERSONNE — ou `null`.
+   *
+   * ⚠️ REQUIS, JAMAIS OPTIONNEL, et `null` est une valeur qui se DIT: « cette
+   * carte n'en porte pas » (une bouche qui n'est pas le titulaire, ou une
+   * lecture qui n'a pas eu lieu). Un `?` en ferait une prop qu'on oublie de
+   * passer, c'est-à-dire un réglage qui disparaît sans que rien ne rougisse —
+   * exactement ce qui est arrivé à ces deux champs, absents de tout
+   * l'entonnoir jusqu'au 2026-08-18.
+   */
+  target: null | {
+    draft: MouthFormDraft;
+    onChange: React.Dispatch<React.SetStateAction<MouthFormDraft>>;
+    todayLocalIso: string;
+  };
 }) {
   const picked = new Map(rhythm.map((o) => [o.slot, o.size]));
 
@@ -2789,6 +2961,28 @@ function PersonTableCard({
   return (
     <>
       <span className="text-base font-semibold text-ink">{firstName || "—"}</span>
+
+      {/* ── ⓪ OÙ VA LA BALANCE, ET À QUELLE VITESSE ───────────────────────
+          Décision de l'utilisateur (2026-08-18): « le poids visé et le rythme
+          d'évolution, il faut pas que ce soit dans la pop-up, il faut que ce
+          soit dans le cadre de l'étape 3 ». Ils n'étaient NULLE PART dans
+          l'entonnoir — mesuré au navigateur, zéro `input[type=range]` sur la
+          page après avoir choisi une direction.
+
+          ⚠️ LE CORPS EST DEMANDÉ À L'ÉTAPE D'AVANT, et c'est ce qui rend cet
+          ordre-ci juste: le curseur est BORNÉ par la taille et le poids, et
+          quand ils manquent il le DIT (`needs_body`) au lieu de ne rien
+          afficher. Un dépliage vide se lit comme une fonctionnalité absente —
+          c'est le défaut qui a été rapporté. */}
+      {target !== null ? (
+        <div className="mt-3">
+          <TargetAndPaceFields
+            draft={target.draft}
+            onChange={target.onChange}
+            todayLocalIso={target.todayLocalIso}
+          />
+        </div>
+      ) : null}
 
       {/* ── ① LE RÉGIME ────────────────────────────────────────────────────
           RIEN N'EST PRÉ-ALLUMÉ. `null` veut dire « on n'a pas demandé », et

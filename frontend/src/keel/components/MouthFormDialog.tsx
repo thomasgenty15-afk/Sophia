@@ -535,135 +535,15 @@ export function MouthCoreFields(
             ))}
           </div>
 
-          {/* ── LES DEUX CHAMPS QUI SE DÉPLIENT ─────────────────────────── */}
-          {paceControl.kind === "folded" ? null : (
-            <div className="space-y-4 border-t border-line pt-4">
-              <Field
-                label={t("household.mouth.target_weight")}
-                hint={t("household.mouth.target_weight_hint")}
-                // ⚠️ LE REFUS EST RENDU À CÔTÉ DU CHAMP, ET C'EST LE CONTRAT DE
-                // PASSATION DU SOCLE. Trois fois dans `SetupPage`, un refus
-                // rendu loin du geste s'est lu comme un bouton mort.
-                error={targetState.kind === "refused"
-                  ? t(
-                    `household.mouth.target_refused_${targetState.refusal}` as "household.mouth.target_refused_implausible",
-                  )
-                  : undefined}
-                htmlFor="mouth-target-weight"
-              >
-                <input
-                  id="mouth-target-weight"
-                  type="number"
-                  inputMode="decimal"
-                  step="0.1"
-                  min={25}
-                  max={400}
-                  value={draft.targetWeightKg}
-                  onChange={(e) => set({ targetWeightKg: e.target.value })}
-                  className={inputClass}
-                />
-              </Field>
-
-              {paceControl.kind === "needs_body" ? (
-                // ⚠️ `null` DE `paceCeilingFor` = « JE NE CONNAIS PAS CE CORPS ».
-                // On demande le corps, on n'affiche PAS de curseur: un maximum
-                // deviné promettrait une date d'arrivée calculée sur une
-                // personne qui n'existe pas.
-                <p className="rounded-card border border-line-strong bg-paper-2 p-3 text-xs leading-5 text-ink-soft">
-                  {t("household.mouth.pace_needs_body")}
-                </p>
-              ) : null}
-
-              {paceControl.kind === "no_margin" ? (
-                // ⚠️ ET `0` = « JE LE CONNAIS, ET IL N'A PAS DE MARGE » (défaut
-                // D3 de la vérification du socle, porté dans le type de
-                // `PaceCeiling`). Les deux appellent des écrans DIFFÉRENTS, et
-                // surtout: on n'affiche pas un curseur de 0,05 à 0 — c'est un
-                // contrôle mort, et un contrôle mort se lit comme un bouton
-                // cassé, jamais comme un refus.
-                <p className="rounded-card border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900">
-                  {t("household.mouth.pace_no_margin")}
-                </p>
-              ) : null}
-
-              {paceControl.kind === "slider" ? (
-                <Field
-                  label={t("household.mouth.pace")}
-                  hint={t("household.mouth.pace_hint")}
-                  htmlFor="mouth-pace"
-                >
-                  <input
-                    id="mouth-pace"
-                    type="range"
-                    min={paceControl.min}
-                    max={paceControl.max}
-                    step={paceControl.step}
-                    value={paceControl.value}
-                    onChange={(e) => set({ paceKgPerWeek: e.target.value })}
-                    className="w-full"
-                  />
-                  <p className="mt-2 text-sm font-medium text-ink">
-                    {t("household.mouth.pace_value", {
-                      pace: pace(paceControl.value),
-                    })}
-                  </p>
-                  {/* ⚠️ LA PHRASE VIENT DU MODULE, DANS LES DEUX LANGUES, ET
-                      ELLE N'EST PAS RÉÉCRITE ICI. Le seuil et son mot sont une
-                      seule décision (`PACE_WARN_UP_KG_PER_WEEK` +
-                      `PACE_WARNING_LABELS`): les séparer laisse l'un bouger
-                      sans l'autre. Elle DIT un fait — « le surplus part surtout
-                      en gras » —, elle n'interdit rien: le curseur monte
-                      jusqu'à la borne dure. */}
-                  {paceControl.warning !== null ? (
-                    <p className="mt-2 rounded-card border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900">
-                      {PACE_WARNING_LABELS[paceControl.warning][
-                        uiLocale() === "fr" ? "fr" : "en"
-                      ]}
-                    </p>
-                  ) : null}
-                  {/* ③ — LE CURSEUR SATURE, ET RIEN NE LE DISAIT. Mesuré: au
-                      delà de `MAX_SURPLUS_FRACTION`, 0,20 et 0,60 rendent le
-                      MÊME écart quotidien — les deux tiers de la course du
-                      curseur ne changent pas un gramme dans une boîte. Sans
-                      cette phrase, quelqu'un pousse à 1,0 en croyant
-                      accélérer, ne voit aucune différence, et ne peut pas
-                      savoir si c'est le produit qui l'ignore ou son corps qui
-                      plafonne.
-
-                      ⚠️ SÉPARÉE DE L'AVERTISSEMENT DU DESSUS, et pas fondue
-                      dedans: les deux sont vraies en même temps au-delà de
-                      0,5 kg/semaine sur un grand corps, et elles ne disent pas
-                      la même chose — l'une parle de physiologie, l'autre de ce
-                      que le plan exécute. Un bloc unique en ferait taire une.
-
-                      ⚠️ TON NEUTRE, PAS AMBRE. Ce n'est pas un risque, c'est
-                      une information sur le contrôle: le peindre en alerte
-                      ferait lire « tu fais quelque chose de dangereux » à
-                      quelqu'un qui a simplement poussé un curseur. */}
-                  {paceControl.saturation !== null ? (
-                    <p className="mt-2 rounded-card border border-line-strong bg-paper-2 p-3 text-xs leading-5 text-ink-soft">
-                      {PACE_SATURATION_LABELS[paceControl.saturation][
-                        uiLocale() === "fr" ? "fr" : "en"
-                      ]}
-                    </p>
-                  ) : null}
-                  {/* LA DATE D'ARRIVÉE — ce qui rend l'objectif réel au lieu
-                      d'abstrait. `null` = on n'affiche rien; « tu y es dans 0
-                      semaine » et « ce rythme ne mène nulle part » ne se disent
-                      pas de la même façon. */}
-                  {targetState.kind === "accepted" && targetState.weeks !== null
-                    ? (
-                      <p className="mt-2 text-sm text-ink-soft">
-                        {t("household.mouth.arrival", {
-                          weeks: targetState.weeks,
-                        })}
-                      </p>
-                    )
-                    : null}
-                </Field>
-              ) : null}
-            </div>
-          )}
+          {/* ── LES DEUX CHAMPS QUI SE DÉPLIENT ─────────────────────────
+              Ils sont un COMPOSANT À PART depuis le 2026-08-18, parce que
+              l'entonnoir d'inscription les monte aussi — et qu'une seconde
+              copie de ces quatre états divergerait au premier correctif. */}
+          <TargetAndPaceFields
+            draft={draft}
+            onChange={onChange}
+            todayLocalIso={todayLocalIso}
+          />
         </RequiredBlock>
 
         {/* ── LE BOUTON QUI OUVRE LES PRÉFÉRENCES ─────────────────────────
@@ -931,6 +811,166 @@ export function MouthPreferencesFields(
         </Button>
       </div>
     </div>
+  );
+}
+
+
+/**
+ * LE POIDS VISÉ ET LE CURSEUR DE RYTHME — UN SEUL EXEMPLAIRE DANS LE DÉPÔT.
+ *
+ * ⚠️ EXTRAITS POUR QUE L'ENTONNOIR LES MONTE AUSSI. Mesuré au navigateur:
+ * `/app/setup` ne portait NI poids visé NI curseur — zéro `input[type=range]`
+ * sur la page après avoir choisi une direction. Les y recopier aurait fait une
+ * SECONDE lecture de `paceControlFor`, donc deux écrans qui divergent au premier
+ * correctif; le dépôt a déjà payé ça sur les listes d'objectifs.
+ *
+ * Les quatre états restent ceux du module, et ils ne se confondent pas:
+ *   `folded`      la direction ne bouge pas — on ne demande rien, et ce
+ *                 composant rend `null`;
+ *   `needs_body`  `null` = « je ne connais pas ce corps » — une phrase;
+ *   `no_margin`   `0` = « je le connais, il n'a pas de marge » — une AUTRE
+ *                 phrase, jamais un curseur de 0,05 à 0;
+ *   `slider`      un curseur borné sur CE corps.
+ */
+export function TargetAndPaceFields(
+  { draft, onChange, todayLocalIso }: {
+    draft: MouthFormDraft;
+    onChange: React.Dispatch<React.SetStateAction<MouthFormDraft>>;
+    todayLocalIso: string;
+  },
+): React.ReactElement | null {
+  const set = (patch: Partial<MouthFormDraft>) =>
+    onChange((prev) => ({ ...prev, ...patch }));
+  const paceControl = paceControlFor(draft, todayLocalIso);
+  const targetState = targetWeightStateFor(draft, todayLocalIso);
+  if (paceControl.kind === "folded") return null;
+  return (
+            <div className="space-y-4 border-t border-line pt-4">
+              <Field
+                label={t("household.mouth.target_weight")}
+                hint={t("household.mouth.target_weight_hint")}
+                // ⚠️ LE REFUS EST RENDU À CÔTÉ DU CHAMP, ET C'EST LE CONTRAT DE
+                // PASSATION DU SOCLE. Trois fois dans `SetupPage`, un refus
+                // rendu loin du geste s'est lu comme un bouton mort.
+                error={targetState.kind === "refused"
+                  ? t(
+                    `household.mouth.target_refused_${targetState.refusal}` as "household.mouth.target_refused_implausible",
+                  )
+                  : undefined}
+                htmlFor="mouth-target-weight"
+              >
+                <input
+                  id="mouth-target-weight"
+                  type="number"
+                  inputMode="decimal"
+                  step="0.1"
+                  min={25}
+                  max={400}
+                  value={draft.targetWeightKg}
+                  onChange={(e) => set({ targetWeightKg: e.target.value })}
+                  className={inputClass}
+                />
+              </Field>
+
+              {paceControl.kind === "needs_body" ? (
+                // ⚠️ `null` DE `paceCeilingFor` = « JE NE CONNAIS PAS CE CORPS ».
+                // On demande le corps, on n'affiche PAS de curseur: un maximum
+                // deviné promettrait une date d'arrivée calculée sur une
+                // personne qui n'existe pas.
+                <p className="rounded-card border border-line-strong bg-paper-2 p-3 text-xs leading-5 text-ink-soft">
+                  {t("household.mouth.pace_needs_body")}
+                </p>
+              ) : null}
+
+              {paceControl.kind === "no_margin" ? (
+                // ⚠️ ET `0` = « JE LE CONNAIS, ET IL N'A PAS DE MARGE » (défaut
+                // D3 de la vérification du socle, porté dans le type de
+                // `PaceCeiling`). Les deux appellent des écrans DIFFÉRENTS, et
+                // surtout: on n'affiche pas un curseur de 0,05 à 0 — c'est un
+                // contrôle mort, et un contrôle mort se lit comme un bouton
+                // cassé, jamais comme un refus.
+                <p className="rounded-card border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900">
+                  {t("household.mouth.pace_no_margin")}
+                </p>
+              ) : null}
+
+              {paceControl.kind === "slider" ? (
+                <Field
+                  label={t("household.mouth.pace")}
+                  hint={t("household.mouth.pace_hint")}
+                  htmlFor="mouth-pace"
+                >
+                  <input
+                    id="mouth-pace"
+                    type="range"
+                    min={paceControl.min}
+                    max={paceControl.max}
+                    step={paceControl.step}
+                    value={paceControl.value}
+                    onChange={(e) => set({ paceKgPerWeek: e.target.value })}
+                    className="w-full"
+                  />
+                  <p className="mt-2 text-sm font-medium text-ink">
+                    {t("household.mouth.pace_value", {
+                      pace: pace(paceControl.value),
+                    })}
+                  </p>
+                  {/* ⚠️ LA PHRASE VIENT DU MODULE, DANS LES DEUX LANGUES, ET
+                      ELLE N'EST PAS RÉÉCRITE ICI. Le seuil et son mot sont une
+                      seule décision (`PACE_WARN_UP_KG_PER_WEEK` +
+                      `PACE_WARNING_LABELS`): les séparer laisse l'un bouger
+                      sans l'autre. Elle DIT un fait — « le surplus part surtout
+                      en gras » —, elle n'interdit rien: le curseur monte
+                      jusqu'à la borne dure. */}
+                  {paceControl.warning !== null ? (
+                    <p className="mt-2 rounded-card border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900">
+                      {PACE_WARNING_LABELS[paceControl.warning][
+                        uiLocale() === "fr" ? "fr" : "en"
+                      ]}
+                    </p>
+                  ) : null}
+                  {/* ③ — LE CURSEUR SATURE, ET RIEN NE LE DISAIT. Mesuré: au
+                      delà de `MAX_SURPLUS_FRACTION`, 0,20 et 0,60 rendent le
+                      MÊME écart quotidien — les deux tiers de la course du
+                      curseur ne changent pas un gramme dans une boîte. Sans
+                      cette phrase, quelqu'un pousse à 1,0 en croyant
+                      accélérer, ne voit aucune différence, et ne peut pas
+                      savoir si c'est le produit qui l'ignore ou son corps qui
+                      plafonne.
+
+                      ⚠️ SÉPARÉE DE L'AVERTISSEMENT DU DESSUS, et pas fondue
+                      dedans: les deux sont vraies en même temps au-delà de
+                      0,5 kg/semaine sur un grand corps, et elles ne disent pas
+                      la même chose — l'une parle de physiologie, l'autre de ce
+                      que le plan exécute. Un bloc unique en ferait taire une.
+
+                      ⚠️ TON NEUTRE, PAS AMBRE. Ce n'est pas un risque, c'est
+                      une information sur le contrôle: le peindre en alerte
+                      ferait lire « tu fais quelque chose de dangereux » à
+                      quelqu'un qui a simplement poussé un curseur. */}
+                  {paceControl.saturation !== null ? (
+                    <p className="mt-2 rounded-card border border-line-strong bg-paper-2 p-3 text-xs leading-5 text-ink-soft">
+                      {PACE_SATURATION_LABELS[paceControl.saturation][
+                        uiLocale() === "fr" ? "fr" : "en"
+                      ]}
+                    </p>
+                  ) : null}
+                  {/* LA DATE D'ARRIVÉE — ce qui rend l'objectif réel au lieu
+                      d'abstrait. `null` = on n'affiche rien; « tu y es dans 0
+                      semaine » et « ce rythme ne mène nulle part » ne se disent
+                      pas de la même façon. */}
+                  {targetState.kind === "accepted" && targetState.weeks !== null
+                    ? (
+                      <p className="mt-2 text-sm text-ink-soft">
+                        {t("household.mouth.arrival", {
+                          weeks: targetState.weeks,
+                        })}
+                      </p>
+                    )
+                    : null}
+                </Field>
+              ) : null}
+            </div>
   );
 }
 
