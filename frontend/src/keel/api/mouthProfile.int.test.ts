@@ -11,7 +11,14 @@ import {
   type MouthFormDraft,
   mouthToPersist,
 } from "../lib/mouthForm";
-import { parseFixedIntakes } from "../../../../supabase/functions/_shared/keel/fixed_intakes.ts";
+import {
+  fixedIntakePromptLines,
+  parseFixedIntakes,
+} from "../../../../supabase/functions/_shared/keel/fixed_intakes.ts";
+// ⚠️ LE LECTEUR DU FOYER, IMPORTÉ ICI EXPRÈS. C'est le seul endroit du dépôt
+// d'où l'écrivain ET le lecteur sont atteignables dans le même processus, donc
+// le seul où « la donnée traverse » se prouve sans base et sans modèle.
+import { loadHouseholdFixedIntakes } from "../../../../supabase/functions/_shared/keel/household_fixed_intakes.ts";
 import { ACTIVITY_LEVELS } from "../../../../supabase/functions/_shared/keel/tokens.ts";
 
 // ===========================================================================
@@ -452,6 +459,52 @@ describe("le shaker saisi ARRIVE à la porte, tel qu'il a été tapé", () => {
       // « setShaker ». La garde était donc prouvée par la panne qu'elle existe
       // pour remplacer — et elle aurait pu disparaître sans un rouge.
     ).rejects.toThrow(/needs an account/);
+  });
+
+  it("⛔ LA SOUDURE — du champ tapé à la LIGNE DE CONSIGNE DU FOYER", async () => {
+    // ⚠️ LE SEUL TEST QUI TRAVERSE LES DEUX MOITIÉS DU LOT, ET IL EXISTE PARCE
+    // QUE LE JOINT EST INVISIBLE DES DEUX CÔTÉS. L'écrivain prouve que son
+    // jsonb est relisible; le lecteur prouve qu'il fabrique une consigne — sur
+    // une ligne de décor ÉCRITE À LA MAIN. Entre les deux, la forme réelle
+    // pourrait dériver d'un nom de clé sans qu'un seul test rougisse, et le
+    // shaker retomberait exactement là où il était: collecté, écrit, jamais lu.
+    //
+    // La chaîne, sans réseau ni modèle: brouillon → `mouthToPersist` →
+    // `persistMouth` → la porte du compte → `shakerIntakeJson` → LA COLONNE →
+    // `loadHouseholdFixedIntakes` → la ligne que le générateur reçoit.
+    let column: unknown = null;
+    const { writers } = spyWriters();
+    await persistMouth(mouthToPersist(draftOf(TYPED), TODAY), {
+      ...writers,
+      setShaker: (shaker) => {
+        column = [shakerIntakeJson(shaker)];
+        return Promise.resolve({ ok: true, reason: "" });
+      },
+    });
+
+    const loaded = await loadHouseholdFixedIntakes({
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            maybeSingle: () =>
+              Promise.resolve({
+                data: { practical_constraints: { fixed_intakes: column } },
+                error: null,
+              }),
+          }),
+        }),
+      }),
+    }, {
+      mouths: [{ memberId: "m-1", userId: "u-1", displayName: "Zoe" }],
+    });
+
+    const prose = fixedIntakePromptLines(loaded.intakes).join("\n");
+    // LE NOM QU'ELLE A TAPÉ, PRÉCÉDÉ DU SIEN, ET LA QUANTITÉ QU'ELLE A LUE SUR
+    // LE POT. C'est ce que le générateur reçoit, mot pour mot.
+    expect(prose).toContain("Zoe: mon shaker (30 g) at afternoon snack");
+    // ⛔ ET AUCUNE CALORIE. Les 120 kcal et les 24 g de protéine servent au
+    // calcul; ils ne se lisent nulle part dans un plan.
+    expect(prose).not.toMatch(/120|kcal|calorie|protein/i);
   });
 
   it("le refus de la porte ARRÊTE la chaîne, il ne la traverse pas", async () => {
