@@ -41,6 +41,7 @@ import {
   assessBirthDate,
   birthDateWritable,
 } from "../../../../supabase/functions/_shared/keel/student_age.ts";
+import { GOAL_TOKENS } from "../../../../supabase/functions/_shared/keel/tokens.ts";
 import {
   type HouseholdPlanTrace,
   readHouseholdPlanTrace,
@@ -182,19 +183,27 @@ export interface AllergyView {
  * une violation de contrainte PostgreSQL rendue dans un entonnoir d'accueil —
  * très exactement ce que l'en-tête de `saveOwnGoal` dit vouloir éviter.
  *
- * ⚠️ ELLE N'EST PAS DÉRIVÉE DE `GOAL_TOKENS`, ET C'EST DÉLIBÉRÉ: le code de
- * production du front ne remonte pas dans `supabase/functions/_shared`
- * (Vite ne le résout pas). C'est donc une COPIE, et une copie ne tient que si
- * quelque chose la confronte — d'où le test de parité qui lit à la fois
- * `GOAL_TOKENS` et le CHECK de la migration SUR LE DISQUE. Le test précédent
- * (`goalsForAge("adult")` égale `MEMBER_GOALS`) était paramétré par sa propre
- * constante: il est resté vert pendant toute la dérive.
+ * ⚠️ ELLE EST DÉRIVÉE, PLUS RECOPIÉE — ET LA COPIE ÉTAIT LA CAUSE. Une
+ * première version de ce correctif réécrivait les trois littéraux ici en
+ * expliquant que le front ne peut pas remonter dans
+ * `supabase/functions/_shared`. **C'était faux**, et le fichier le prouvait
+ * dix lignes plus haut: il importe déjà `student_age.ts` de là. Huit modules
+ * de production du front en importent (`groceryWaves`, `planFeedback`,
+ * `coachProtocol`, `servingDivergence`…). Il n'y avait donc aucune raison de
+ * garder une seconde liste — et c'est le fait d'en garder une qui a laissé
+ * l'écran proposer six directions quand la base n'en acceptait plus que trois.
+ *
+ * `_shared/keel/household_portions.ts` avait déjà fait ce geste
+ * (`export const MEMBER_GOALS = GOAL_TOKENS;`). Le front le fait maintenant
+ * aussi: **une seule liste, trois lecteurs.**
+ *
+ * Ce qui reste testé, et qui compte encore, c'est l'autre bout: que
+ * `GOAL_TOKENS` soit exactement ce que le CHECK de la base accepte à
+ * l'écriture. Le test précédent (`goalsForAge("adult")` égale `MEMBER_GOALS`)
+ * était paramétré par sa propre constante et est resté vert pendant toute la
+ * dérive.
  */
-export const MEMBER_GOALS = [
-  "fat_loss",
-  "maintenance",
-  "muscle_gain",
-] as const;
+export const MEMBER_GOALS = GOAL_TOKENS;
 export type MemberGoal = (typeof MEMBER_GOALS)[number];
 
 /**

@@ -18,9 +18,9 @@ navigateur : **sept `<option>`, dont trois que la base refuse**.
 |---|---|---|---|
 | **D4** | Le front propose 3 objectifs que la base refuse (`bad_goal`, et une violation de CHECK sur `setup-goal`) | **P0** | **CORRIGÉ** + test qui mord |
 | **D5** | `saveOwnGoal` efface `target_waist_cm` et `focus_axis` à chaque enregistrement | **P1** | **CORRIGÉ** |
-| **D1** | `absolute_cap` (le plafond de 1 kg) ne peut **structurellement jamais** mordre — et L1-A a nommé la mauvaise paire comme dormante | constat | **consigné**, §4 |
-| **D2** | Côté prise, le slider **interdit** ce que la spec dit de seulement **dire** (0,5 kg/sem inatteignable sous ~180 kg) | arbitrage | **à trancher**, §4 |
-| **D3** | `paceCeilingFor` rend `maxKgPerWeek: 0` — un curseur sans cran — non documenté pour L5 | contrat | **consigné**, §4 |
+| **D1** | `absolute_cap` ne pouvait **jamais** mordre — et L1-A a nommé la mauvaise paire comme dormante | constat | **porté dans le code**, et l'ouverture de la prise lui donne son 1ᵉʳ cas réel, §12 |
+| **D2** | Côté prise, le slider **interdisait** ce que la spec dit de seulement **dire** | écart à la décision produit | **CORRIGÉ** + 5 mutations, §12 |
+| **D3** | `paceCeilingFor` rend `maxKgPerWeek: 0` — un curseur sans cran | contrat | **porté dans le type**, §12 |
 
 Tout le reste de ce que L1-A annonce est **vrai et remesuré**.
 
@@ -533,10 +533,10 @@ des trois positions retirées. Une tâche est ouverte.
 
 ## 11. L'état des suites
 
-| Suite | Avant mon passage | Maintenant |
+| Suite | Avant mon passage | Maintenant (2ᵉ passage inclus) |
 |---|---|---|
-| Deno `_shared/keel` | 3249 / 0 | **3251 passés / 0 échec** |
-| vitest | 3 échecs / 1187 passés | **3 échecs / 1190 passés** |
+| Deno `_shared/keel` | 3249 / 0 | **3266 passés / 0 échec** (2 runs consécutifs) |
+| vitest | 3 échecs / 1187 passés | **3 échecs / 1202 passés** |
 | `tsc -b --force` | exit 0 | **exit 0** |
 | `tsc -p tsconfig.app.json` | exit 0 | **exit 0** |
 
@@ -552,15 +552,150 @@ ma fenêtre de réparation (§1) et sont résorbés.
 
 ---
 
-## 12. Ce qui reste à trancher, et par qui
+## 12. SECOND PASSAGE — D2 corrigé, D1 et D3 portés dans le code
+
+Le coordinateur a renvoyé trois demandes. Voici ce qu'elles ont donné.
+
+### ① D2 n'était pas un arbitrage ouvert — c'était un écart, et il est corrigé
+
+J'avais tort de le poser en question. La conception ne laisse aucune marge :
+« le slider le **DIT**, il ne l'interdit pas ». **Les trois bornes du `MIN` sont
+dures ; le seuil de 0,5 kg en prise est un avertissement.** Le module confondait
+les deux.
+
+**Corrigé** : pour une prise, la troisième borne n'existe pas (rien à franchir
+vers le haut), donc le plafond absolu et le gabarit reprennent la main.
+
+| | avant | après |
+|---|---|---|
+| adulte 70 kg | 0,30 kg/sem | **0,70 kg/sem** + la phrase |
+| adulte 110 kg | 0,30 kg/sem | **1,00 kg/sem** (`absolute_cap`) + la phrase |
+| max de la prise | 0,60 kg/sem | **1,00 kg/sem, jamais au-delà** |
+
+Neufs : `PACE_WARN_UP_KG_PER_WEEK = 0.5`, `paceWarning(direction, kgPerWeek)`,
+et `PACE_WARNING_LABELS` **dans les deux langues** (même forme que
+`QUESTION_LABELS` de `plan_feedback.ts` : le seuil et son mot sont une seule
+décision, les séparer laisse l'un bouger sans l'autre).
+
+> ⚠️ **La phrase dit un FAIT, pas une consigne.** « le surplus part surtout en
+> gras » décrit ce qui arrive ; « ralentis » serait un ordre sur le corps de
+> quelqu'un qui vient de choisir son rythme, ce que cette décision refuse
+> précisément. Le test exige que le **seuil chiffré** soit dans la phrase : sans
+> le nombre, « trop vite » n'est plus un fait, c'est un jugement.
+
+### ⚠️ Une régression que j'ai introduite, et que le balayage a rattrapée
+
+En ouvrant la prise, mon premier correctif a porté **un mineur à 1 kg/semaine**.
+Cause : dans `paceCeilingFor`, `direction === "up"` était testé **avant**
+`isMinor` — sans conséquence tant que la prise était bornée à +10 %, fatal dès
+qu'elle ne l'est plus.
+
+**L'ordre des cas est retourné** : `isMinor` passe devant. La décision du
+§Bloc 2 porte sur quelqu'un **qui choisit pour lui-même** ; la case d'un mineur
+est cochée par le compte maître, et ce plafond calculé sur *son* besoin est
+exactement ce qui le protège depuis qu'il porte les trois directions. Remesuré :
+prise mineur **max 0,90 / min 0,15**, `energy_floor` sur 18 080 cas — identique
+à la perte, dans les deux sens.
+
+### ② D1 et D3 sont maintenant DANS le code
+
+- **En-tête du module** : le paragraphe « ce qui est dormant » disait faux. Il
+  porte désormais le tableau des quatre balayages, les deux nombres (**0** et
+  **1 138**), et la démonstration que `absolute_cap` est **inatteignable en
+  perte** par A1 (0,4545 kg/sem).
+- **`PaceCeiling.bound`** : dit qu'`absolute_cap` ne sort **que** sur une prise
+  au-delà de 100 kg.
+- **`PaceCeiling.maxKgPerWeek`** (D3) : dit qu'il **peut valoir 0**, que `null`
+  et `0` sont deux écrans différents, et **qu'il ne faut pas afficher un curseur
+  de 0,05 à 0**.
+- **`PaceCeiling.dailyDeltaKcal`** : dit qu'en prise ce n'est plus ce que
+  l'enveloppe exécute.
+
+**L'ouverture a donné à `absolute_cap` son premier cas réel** : 12 000 victoires
+sur 18 080 prises adultes. Les trois bornes ont désormais un cas gagnant sur des
+corps réels, plus seulement sur des nombres nus.
+
+### ⚠️ L'écart que j'ouvre, et que je ne cache pas
+
+Le slider de prise monte maintenant plus haut que ce que `envelopeCore` exécute
+(bande `muscle_gain` plafonnée à **+10 %**, soit ~0,23 kg/sem sur 2 500 kcal).
+**Une date d'arrivée en prise au-delà de +10 % est donc optimiste.** C'est le
+prix assumé de ne pas refuser un rythme légitime — et c'est écrit à trois
+endroits du module pour que personne ne la croie exacte. **À L8 de refermer**,
+en élargissant la bande ou en disant la date sur le rythme *exécuté*.
+
+### Les mutations de ce second passage — 5, toutes mordent
+
+| # | Mutation | Mesuré |
+|---|---|---|
+| D2-a | rétablir la borne de surplus sur la prise (l'interdiction) | **mord** — « Values are not equal: à 110 kg », 4 cas de `weight_pace_test.ts` |
+| D2-b | remettre `isMinor` **après** `direction` | **mord** |
+| D2-c | avertir **dès** 0,5 au lieu d'au-delà | **mord** |
+| D2-d | avertir aussi sur une **perte** | **mord** |
+| D2-e | recopier l'anglais dans le français | **mord** — « surplus_becomes_fat n'est pas traduit » |
+
+### ③ Une erreur de ma part, trouvée en corrigeant : `MEMBER_GOALS` était encore une copie
+
+Mon premier correctif de **D4** réécrivait trois littéraux dans
+`frontend/src/keel/api/household.ts` en expliquant que le front **ne peut pas**
+importer `supabase/functions/_shared`. **C'était faux**, et le fichier le
+prouvait dix lignes plus haut : il importe déjà `student_age.ts` de là. Huit
+modules de production du front en importent (`groceryWaves`, `planFeedback`,
+`coachProtocol`, `servingDivergence`…).
+
+J'avais donc gardé une **seconde liste** en écrivant un commentaire pour la
+justifier — c'est-à-dire reproduit la cause exacte du défaut que je venais de
+trouver. **Corrigé** : `export const MEMBER_GOALS = GOAL_TOKENS;`, le geste que
+`_shared/keel/household_portions.ts` avait déjà fait. **Une seule liste, trois
+lecteurs.** Le test contre le CHECK de la migration reste, et c'est lui qui
+compte désormais : il tient l'autre bout, entre le moteur et la base.
+
+---
+
+## 12 bis. ⛔ LES DEUX CORRECTIFS QUE JE NE PEUX PAS COMMITER
+
+Le coordinateur demande de les commiter par pathspec et précise : « si tu
+emportes des modifications étrangères, dis-le et n'invente pas ». **C'est le
+cas, et je ne les commite donc pas.**
+
+`git commit -- <chemin>` commite **le fichier entier de l'arbre de travail**,
+pas mes hunks. Or les deux fichiers en portent d'autres :
+
+| Fichier | Hunks | Dont miens | Ce que sont les autres |
+|---|---|---|---|
+| `api/onboarding.ts` | 5 | **1** (`@@ -1770`) | lane L3 — `normalizeAllergenInput`, `AwayDay`, `awayHousehold` |
+| `pages/SetupPage.tsx` | 18 | **1** (`@@ -236,9`) | lanes L2/L3 — +256 lignes |
+
+Commiter emporterait le lot de deux lanes voisines. **Le `--` protège l'index,
+pas l'arbre de travail** — c'est la limite de la garde, et elle mord ici.
+
+**Ce que j'ai fait à la place** : les deux hunks sont extraits dans
+**`scratchpad/2026-08-18-L1B-correctifs-bloques.patch`**, commité, et vérifié
+applicable (`git apply --check -R` passe : le patch décrit exactement l'état du
+disque). Un commit voisin qui écraserait les fichiers ne détruit donc plus le
+travail — il reste rejouable par :
+
+```
+git apply scratchpad/2026-08-18-L1B-correctifs-bloques.patch
+```
+
+⚠️ **D4 est un P0 et il n'est corrigé qu'à moitié tant que ce patch n'est pas
+posé** : `SetupPage.tsx` porterait un `Record<MemberGoal, MessageKey>` à six
+clés que le typecheck refuse. **`tsc` ne passe QUE grâce au disque.** Le plus
+tôt est le mieux : dès que L2/L3 ont commité leurs fichiers, ces deux hunks
+peuvent l'être par pathspec sans rien emporter.
+
+---
+
+## 12 ter. Ce qui reste à trancher, et par qui
 
 | # | Question | À qui |
 |---|---|---|
-| **D1** | `bound` ne rendra jamais `absolute_cap`. L5 doit-il quand même écrire la phrase ? | **L5** — le dire dans la passation |
-| **D2** | Le slider de **prise** interdit 0,5 kg/sem à un corps ordinaire, là où la spec dit de seulement le **dire** | **utilisateur** — la spec ou la borne |
-| **D3** | `paceCeilingFor` peut rendre `maxKgPerWeek: 0`. Que montre L5 ? | **L5** — contrat à compléter |
+| **D2 bis** | En prise, le slider promet plus vite que l'enveloppe n'exécute (+10 %). Élargir la bande, ou dire la date sur le rythme exécuté ? | **L8** |
+| **D3** | `paceCeilingFor` peut rendre `maxKgPerWeek: 0` — documenté dans le type, reste à l'écran | **L5** |
 | — | Un accord explicite du maître pour poser « perdre du poids » sur un enfant | **utilisateur** — laissée ouverte par L1-A, à raison |
-| — | Écart disque/registre : 7 migrations plus anciennes absentes du registre | **humain** — préexiste, fera trébucher le prochain `migration up` |
+| — | Écart disque/registre : 7 migrations plus anciennes absentes du registre | **humain** — préexiste |
+| — | `PlanFeedbackDialog.tsx` rend `.en` en dur sur écran français | **autre lane** — tâche ouverte |
 
 ---
 

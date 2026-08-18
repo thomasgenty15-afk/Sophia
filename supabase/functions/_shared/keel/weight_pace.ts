@@ -24,21 +24,51 @@
  * qui promet n'importe quoi à un grand gabarit. Ne pas lire l'une comme une
  * entorse à l'autre.
  *
- * ⚠️ CE QUI EST DORMANT AUJOURD'HUI, ET IL FAUT LE DIRE. La troisième borne
- * est presque toujours la plus serrée pour une PERTE, parce qu'elle intègre le
- * plafond de déficit A1 (`MAX_DAILY_DEFICIT_KCAL`, 500 kcal/j, non
- * débrayable) — c'est-à-dire ce que l'enveloppe exécutera réellement. Les deux
- * premières bornes ne mordent donc pas sur un adulte moyen. Elles ne sont pas
- * décoratives pour autant: ce sont elles qui tiennent le jour où A1 bouge, et
- * `ceilingFromBounds` est testée bord par bord pour que chacune ait un cas où
- * elle gagne. On préfère écrire « dormante » que fabriquer un cas passant.
+ * ── ⚠️ UNE BORNE, UN AVERTISSEMENT: LA DISTINCTION QUI TIENT CE MODULE ────
+ * Les TROIS nombres ci-dessus sont des limites DURES — au-delà, le produit
+ * refuse. Le seuil de **0,5 kg/semaine en prise** n'en est PAS une: c'est un
+ * avertissement (`paceWarning`), au-delà duquel le produit PARLE. §Bloc 2,
+ * mot pour mot: « le slider le DIT, il ne l'interdit pas ».
+ *
+ * Ce module a confondu les deux jusqu'au 2026-08-18: la prise était bornée par
+ * `MAX_SURPLUS_FRACTION`, et un adulte de 70 kg plafonnait à **0,30 kg/sem** —
+ * l'interdiction exacte que la conception refuse. Un test gardait ça vert en
+ * CITANT la phrase ci-dessus puis en affirmant son contraire.
+ *
+ * ── ⚠️ QUELLE BORNE MORD VRAIMENT — MESURÉ, PAS SUPPOSÉ ──────────────────
+ * Balayage de 72 320 corps (25→250 kg × 4 tailles × 4 genres × 5 crans
+ * d'activité × 2 directions × {adulte, mineur}):
+ *
+ *   PERTE, adulte    `energy_floor` 16 942 · `body_fraction` 1 138 (25-45 kg)
+ *                    `absolute_cap` **0 — et INATTEIGNABLE, pas dormant**
+ *   PERTE, mineur    `energy_floor` 18 080 (la fraction de SON besoin)
+ *   PRISE, adulte    `absolute_cap` 12 000 (>100 kg) · `body_fraction` 6 080
+ *   PRISE, mineur    `energy_floor` 18 080 (la même fraction, dans les deux sens)
+ *
+ * Sur une PERTE, `absolute_cap` ne peut pas mordre par construction: l'écart y
+ * est plafonné par A1 (`MAX_DAILY_DEFICIT_KCAL`, 500 kcal/j, non débrayable),
+ * soit 500 × 7 / 7 700 = **0,4545 kg/sem**, la moitié du plafond. Aucun gabarit
+ * ne l'atteint. Un rapport de vérification avait nommé les deux premières
+ * bornes « dormantes »: `body_fraction` ne l'était pas, et `absolute_cap` était
+ * pire que dormante. C'est l'ouverture de la PRISE qui lui a donné son premier
+ * cas réel.
  *
  * ── L'INVARIANT QUI JUSTIFIE D'AVOIR MIS A1 DANS LE SLIDER ────────────────
- * **Le maximum du slider est le rythme le plus rapide que la composition sait
- * réellement livrer.** Un slider qui monterait plus haut ferait une promesse
- * que `envelopeCore` refuserait d'exécuter — et la date d'arrivée calculée
- * dessus (« à 0,5 kg/semaine, tu y es vers le 12 novembre ») serait fausse dès
- * le premier jour. Une date fausse est pire qu'une absence de date.
+ * **Sur une PERTE, le maximum du slider est le rythme le plus rapide que la
+ * composition sait réellement livrer.** Un slider qui monterait plus haut
+ * ferait une promesse que `envelopeCore` refuserait d'exécuter — et la date
+ * d'arrivée calculée dessus (« à 0,5 kg/semaine, tu y es vers le 12 novembre »)
+ * serait fausse dès le premier jour. Une date fausse est pire qu'une absence de
+ * date.
+ *
+ * ⚠️ ET SUR UNE PRISE, CET INVARIANT EST OUVERT DEPUIS LE 2026-08-18, EN
+ * CONNAISSANCE DE CAUSE. La bande `muscle_gain` plafonne à +10 %
+ * (`MAX_SURPLUS_FRACTION`), soit ~0,23 kg/sem sur 2 500 kcal d'entretien, alors
+ * que le slider monte désormais jusqu'à la borne dure. Une date d'arrivée en
+ * prise au-delà de +10 % est donc OPTIMISTE. C'est le prix, assumé, de ne pas
+ * refuser à quelqu'un un rythme qu'il a le droit de choisir — et c'est à L8 de
+ * refermer l'écart, en élargissant la bande ou en disant la date sur le rythme
+ * EXÉCUTÉ. Tant que ces lignes sont là, l'écart n'est pas refermé.
  *
  * ── CE QUE CE MODULE NE FAIT PAS ──────────────────────────────────────────
  * Il ne pose aucune cible dans le générateur (c'est le lot L8, et il attend la
@@ -161,6 +191,83 @@ export const ENERGY_FLOOR_KCAL = Object.freeze({
 export const MINOR_MAX_DAILY_DELTA_FRACTION = 0.10;
 
 // ---------------------------------------------------------------------------
+// L'AVERTISSEMENT DE PRISE — ce que le slider DIT sans l'interdire
+// ---------------------------------------------------------------------------
+
+/**
+ * LE SEUIL AU-DELÀ DUQUEL UNE PRISE PART SURTOUT EN GRAS, en kg/semaine.
+ *
+ * ⚠️ CE N'EST PAS UNE BORNE, ET LA DIFFÉRENCE EST TOUT LE SUJET. Les trois
+ * nombres de `ceilingFromBounds` sont des limites DURES: au-delà, le produit
+ * refuse. Celui-ci est un AVERTISSEMENT: au-delà, le produit PARLE. §Bloc 2 de
+ * la conception, décision humaine du 2026-08-18, mot pour mot — « le slider le
+ * DIT, il ne l'interdit pas ».
+ *
+ * La raison tient en une phrase: prendre plus vite est un choix légitime.
+ * Quelqu'un qui sort d'une maladie, qui reprend après une blessure, ou qui
+ * assume une prise rapide n'a pas à se voir opposer un curseur qui ne monte
+ * pas. Une limite dure déguisée en protection décide à la place de la personne
+ * — et le dépôt a déjà payé ce mode d'erreur ailleurs.
+ *
+ * `0.5` et pas une dérivée d'une bande: ce seuil ne sort d'aucune équation du
+ * module, c'est le nombre de la conception. Le dériver de
+ * `MAX_SURPLUS_FRACTION` le ferait bouger avec l'enveloppe, alors qu'il décrit
+ * une physiologie, pas une exécution.
+ */
+export const PACE_WARN_UP_KG_PER_WEEK = 0.5;
+
+/** Les avertissements possibles. Nommés, jamais un booléen nu. */
+export const PACE_WARNINGS = ["surplus_becomes_fat"] as const;
+export type PaceWarning = (typeof PACE_WARNINGS)[number];
+
+/**
+ * LA PHRASE, DANS LES DEUX LANGUES.
+ *
+ * Elle vit ICI et pas dans un pack i18n du front, pour la même raison que
+ * `QUESTION_LABELS` de `plan_feedback.ts`: le seuil et son mot sont une seule
+ * décision, et les séparer laisse l'un bouger sans l'autre. Le front importe
+ * ce module (huit modules de production le font déjà).
+ *
+ * ⚠️ ELLE DIT CE QUI ARRIVE, PAS CE QU'IL FAUT FAIRE. « part surtout en gras »
+ * est un fait sur la composition de la prise; « ralentis » serait une consigne,
+ * et une consigne sur le corps de quelqu'un qui a choisi son rythme est
+ * exactement ce que cette décision refuse.
+ */
+export const PACE_WARNING_LABELS: Record<
+  PaceWarning,
+  { en: string; fr: string }
+> = {
+  surplus_becomes_fat: {
+    en: "Above about 0.5 kg a week, the extra tends to go on as fat rather " +
+      "than muscle.",
+    fr: "Au-delà d'environ 0,5 kg par semaine, le surplus part surtout en " +
+      "gras plutôt qu'en muscle.",
+  },
+};
+
+/**
+ * CE RYTHME MÉRITE-T-IL UNE PHRASE ?
+ *
+ * `null` = rien à dire. Une PERTE n'en reçoit jamais: elle est déjà tenue par
+ * trois bornes dures, et lui ajouter un avertissement en plus d'un refus
+ * ferait deux fois le même geste.
+ *
+ * Le seuil est FRANCHI, pas atteint: à 0,50 pile on ne dit rien — c'est le
+ * nombre que la conception qualifie d'« environ », et avertir dessus ferait
+ * parler le produit sur le cran qu'il vient lui-même de proposer.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function paceWarning(
+  direction: ScaleDirection,
+  kgPerWeek: number,
+): PaceWarning | null {
+  if (direction !== "up") return null;
+  if (!Number.isFinite(kgPerWeek)) return null;
+  return kgPerWeek > PACE_WARN_UP_KG_PER_WEEK ? "surplus_becomes_fat" : null;
+}
+
+// ---------------------------------------------------------------------------
 // LE PLUS PETIT DES TROIS — isolé, pour que chaque borne ait un cas qui gagne
 // ---------------------------------------------------------------------------
 
@@ -173,11 +280,50 @@ export const PACE_BOUNDS = [
 export type PaceBound = (typeof PACE_BOUNDS)[number];
 
 export interface PaceCeiling {
-  /** kg/semaine, arrondi au 0,05 près — voir `roundPace`. */
+  /**
+   * kg/semaine, arrondi au 0,05 près — voir `roundPace`.
+   *
+   * ⚠️ IL PEUT VALOIR `0`, ET L'APPELANT DOIT LE TRAITER. Mesuré au balayage:
+   * 77 cas sur 72 320 (petits corps sédentaires, en PERTE) rendent un maximum
+   * de zéro — le besoin estimé y touche déjà le plancher d'énergie, donc il
+   * n'y a aucun rythme de perte disponible. `paceCeilingFor` ne rend PAS
+   * `null` dans ce cas: `null` veut dire « je ne connais pas ce corps », et
+   * zéro veut dire « je le connais, et il n'a pas de marge ». Les deux
+   * appellent des écrans différents.
+   *
+   * ⚠️ NE PAS AFFICHER UN CURSEUR DE 0,05 À 0 — c'est un contrôle mort, et le
+   * dépôt a déjà mesuré trois fois qu'un refus loin du geste se lit comme un
+   * bouton mort. La sortie juste est une phrase à la place du curseur: ce
+   * corps n'a pas de marge de perte aujourd'hui.
+   */
   maxKgPerWeek: number;
-  /** Celle des trois qui a décidé. */
+  /**
+   * Celle des trois qui a décidé.
+   *
+   * ⚠️ `absolute_cap` N'EST PAS UN CAS D'ÉCRAN COURANT — il ne sort QUE sur
+   * une PRISE au-delà de 100 kg (là, le 1 % du poids dépasse le kilo). Sur
+   * une PERTE il est INATTEIGNABLE par construction, et ce n'est pas de la
+   * dormance: l'écart quotidien y est plafonné par A1 (500 kcal/j), soit
+   * 500 × 7 / 7 700 = 0,4545 kg/semaine — la moitié du plafond. Aucun corps
+   * ne peut l'atteindre, quel que soit son gabarit.
+   *
+   * Mesuré sur 72 320 corps (25→250 kg × 4 tailles × 4 genres × 5 crans ×
+   * 2 directions × {adulte, mineur}), AVANT l'ouverture de la prise du
+   * 2026-08-18: `absolute_cap` gagnait **0** fois, `body_fraction` **1 138**
+   * fois (adultes de 25 à 45 kg en perte), `energy_floor` le reste. Un
+   * rapport de vérification avait nommé les deux premières « dormantes »: la
+   * seconde ne l'était pas, et la première était pire que dormante.
+   */
   bound: PaceBound;
-  /** L'écart quotidien que ce rythme représente, en kcal. INTERNE. */
+  /**
+   * L'écart quotidien que ce rythme représente, en kcal. INTERNE.
+   *
+   * ⚠️ SUR UNE PRISE, CE N'EST PLUS CE QUE L'ENVELOPPE EXÉCUTE. Depuis
+   * l'ouverture du 2026-08-18, le slider de prise monte jusqu'à la borne dure
+   * pendant que `envelopeCore` plafonne à `MAX_SURPLUS_FRACTION` (+10 %). Ce
+   * nombre est l'arithmétique du CRAN CHOISI, pas la promesse du moteur — voir
+   * la note de `paceCeilingFor`. Sur une perte, les deux coïncident toujours.
+   */
   dailyDeltaKcal: number;
 }
 
@@ -280,13 +426,52 @@ export function paceCeilingFor(
   // Elle a deux moitiés, et le MIN des deux est ce qui reste exécutable:
   //   · ce qui garde la journée au-dessus du plancher d'énergie;
   //   · ce que l'enveloppe accepte de creuser (A1, non débrayable).
-  // Pour une PRISE, il n'y a pas de plancher à franchir — la borne est le
-  // surplus au-delà duquel on gagne des plis cutanés plutôt que du muscle
-  // (`MAX_SURPLUS_FRACTION`, lu dans la bande, jamais recopié).
-  const maxDailyDeltaKcal = direction === "up"
-    ? Math.round(maintenance * MAX_SURPLUS_FRACTION)
-    : isMinor
+  //
+  // ⚠️ UNE PRISE N'EN A PAS, ET C'EST UNE DÉCISION PRODUIT, PAS UN OUBLI.
+  // Cette borne existait ici jusqu'au 2026-08-18: elle valait
+  // `MAX_SURPLUS_FRACTION × entretien`, et elle RENDAIT INATTEIGNABLE ce que
+  // le §Bloc 2 dit d'AUTORISER. Mesuré avant le correctif, sur des corps
+  // réels: un adulte de 70-90 kg plafonnait à 0,30 kg/semaine, et 0,5 kg
+  // était hors de portée sous ~180 kg. Or la conception dit, mot pour mot:
+  //
+  //   « Côté prise, au-delà d'environ 0,5 kg/semaine le surplus part surtout
+  //     en gras : le slider le DIT, il ne l'interdit pas. »
+  //
+  // Les TROIS bornes du `MIN` sont des limites dures. Le seuil de 0,5 kg est
+  // un AVERTISSEMENT (`paceWarning`), parce que prendre plus vite est un choix
+  // légitime que le produit informe au lieu de le refuser. Confondre les deux,
+  // c'est décider à la place de quelqu'un en ayant l'air de le protéger.
+  //
+  // Pour une prise, la troisième borne est donc `Infinity` — il n'y a rien à
+  // franchir vers le haut. Ce sont le plafond absolu et le gabarit qui
+  // reprennent la main, et c'est le SEUL endroit du module où `absolute_cap`
+  // gagne (au-delà de 100 kg, le 1 % du poids dépasse le kilo).
+  //
+  // ⚠️ CE QUE ÇA DÉCOUPLE, ET QU'IL FAUT LIRE AVANT DE « RÉPARER ». Le rythme
+  // que ce slider autorise dépasse désormais ce que `envelopeCore` exécute:
+  // la bande `muscle_gain` plafonne à `MAX_SURPLUS_FRACTION` (+10 %), soit
+  // ~0,23 kg/semaine sur 2 500 kcal d'entretien. L'écart est ASSUMÉ et il est
+  // la contrepartie exacte de la décision ci-dessus. Il appartient à L8 de le
+  // refermer — en élargissant la bande de prise, ou en disant la date
+  // d'arrivée sur le rythme EXÉCUTÉ. Tant qu'il est ouvert, une date d'arrivée
+  // calculée sur un rythme de prise au-delà de +10 % est OPTIMISTE, et c'est
+  // écrit ici pour que personne ne la croie exacte.
+  // ⚠️ L'ORDRE DES CAS EST UNE GARDE, ET IL A CHANGÉ LE 2026-08-18.
+  // `isMinor` passe DEVANT `direction`. Avant, `direction === "up"` était
+  // testé en premier, et un mineur en prise recevait donc la borne des
+  // adultes — ce qui était sans conséquence tant que cette borne valait
+  // `MAX_SURPLUS_FRACTION × entretien` (~0,17 kg/sem sur un enfant à
+  // 1 876 kcal). En ouvrant la prise de l'ADULTE jusqu'à la borne dure, le
+  // même ordre aurait porté un enfant à 1 kg/semaine.
+  //
+  // L'ouverture du §Bloc 2 est une décision sur quelqu'un QUI CHOISIT POUR
+  // LUI-MÊME. La case d'un mineur est cochée par le compte maître, et ce qui
+  // protège l'enfant depuis qu'il porte les trois directions est précisément
+  // ce plafond-ci, calculé sur SON besoin. Il reste DUR, dans les deux sens.
+  const maxDailyDeltaKcal = isMinor
     ? Math.round(maintenance * MINOR_MAX_DAILY_DELTA_FRACTION)
+    : direction === "up"
+    ? null
     : Math.min(
       MAX_DAILY_DEFICIT_KCAL,
       Math.round(maintenance - energyFloorFor(body.gender)),
@@ -295,10 +480,9 @@ export function paceCeilingFor(
   // Un corps déjà sous son propre plancher n'a aucun rythme de perte
   // disponible, et le dire par `0` plutôt que par un négatif est la seule
   // lecture juste: le slider n'a pas de cran, il ne recule pas.
-  const energyFloorKg = Math.max(
-    0,
-    (maxDailyDeltaKcal * 7) / KCAL_PER_KG_BODY_MASS,
-  );
+  const energyFloorKg = maxDailyDeltaKcal === null
+    ? Number.POSITIVE_INFINITY
+    : Math.max(0, (maxDailyDeltaKcal * 7) / KCAL_PER_KG_BODY_MASS);
 
   const picked = ceilingFromBounds(
     MAX_KG_PER_WEEK,

@@ -6,7 +6,11 @@ import {
   MAX_KG_PER_WEEK,
   MAX_WEEKLY_BODY_FRACTION,
   MINOR_MAX_DAILY_DELTA_FRACTION,
+  PACE_WARN_UP_KG_PER_WEEK,
+  PACE_WARNING_LABELS,
+  PACE_WARNINGS,
   paceCeilingFor,
+  paceWarning,
   type PaceSubject,
   roundPace,
   scaleDirectionOf,
@@ -166,13 +170,91 @@ Deno.test("aucun cran ne dépasse le plafond absolu, sur toute la plage de corps
   }
 });
 
-Deno.test("une PRISE est bornée par le surplus de la bande, pas par le plancher", () => {
+Deno.test("⚠️ une PRISE monte jusqu'à la borne DURE — le seuil de 0,5 kg n'en est pas une", () => {
+  // ── LE TEST QUE CE FICHIER PORTAIT, ET QUI DISAIT L'INVERSE DE SA CITATION ─
+  // Il citait le §Bloc 2 — « au-delà d'environ 0,5 kg/semaine le surplus part
+  // surtout en gras » — puis affirmait `maxKgPerWeek <= 0.5`. La phrase citée
+  // se termine par « le slider le DIT, il ne l'interdit pas ». Le test avait
+  // donc gelé la moitié de la décision et jeté l'autre, et il gardait vert un
+  // slider qui plafonnait un adulte de 70 kg à 0,30 kg/semaine.
+  //
+  // Les TROIS bornes du MIN sont dures. Le seuil de 0,5 kg est un
+  // AVERTISSEMENT (`paceWarning`). Ce test tient la différence.
   const up = paceCeilingFor("up", adult({ weightKg: 70, gender: "male" }));
   assert(up !== null);
-  assert(up.maxKgPerWeek > 0);
-  // Le design le dit: « au-delà d'environ 0,5 kg/semaine le surplus part
-  // surtout en gras ». La bande `muscle_gain` (+10 % au plus) le tient déjà.
-  assert(up.maxKgPerWeek <= 0.5, `prise trop rapide: ${up.maxKgPerWeek}`);
+  assertEquals(up.maxKgPerWeek, 0.7);
+  assertEquals(up.bound, "body_fraction");
+  // Et il PARLE au lieu de refuser.
+  assertEquals(paceWarning("up", up.maxKgPerWeek), "surplus_becomes_fat");
+});
+
+Deno.test("le plafond ABSOLU est le seul mur d'une prise, et il tient", () => {
+  // Au-delà de 100 kg, le 1 % du poids dépasse le kilo: c'est LE cas — et le
+  // seul du module — où `absolute_cap` gagne sur un corps réel. Avant
+  // l'ouverture du 2026-08-18 il ne gagnait JAMAIS, sur aucun des 72 320 corps
+  // balayés, et une phrase d'interface lui était pourtant destinée.
+  for (const weightKg of [110, 150, 250]) {
+    const up = paceCeilingFor("up", adult({ weightKg, gender: "male" }));
+    assert(up !== null);
+    assertEquals(up.bound, "absolute_cap", `à ${weightKg} kg`);
+    assertEquals(up.maxKgPerWeek, MAX_KG_PER_WEEK);
+  }
+});
+
+Deno.test("⚠️ l'ouverture de la prise ne touche PAS un mineur", () => {
+  // L'ORDRE DES CAS DANS `paceCeilingFor` EST CE QUI LE TIENT. `isMinor` passe
+  // devant `direction`: avant le 2026-08-18 c'était l'inverse, et sans
+  // conséquence tant que la prise était bornée à +10 % de l'entretien. Ouvrir
+  // la prise de l'adulte sans retourner l'ordre aurait porté un enfant à
+  // 1 kg/semaine.
+  //
+  // La décision du §Bloc 2 porte sur quelqu'un QUI CHOISIT POUR LUI-MÊME. La
+  // case d'un mineur est cochée par le compte maître.
+  const child = minor({ weightKg: 40, ageYears: 11, heightCm: 145 });
+  const up = paceCeilingFor("up", child);
+  assert(up !== null);
+  assert(
+    up.maxKgPerWeek <= 0.5,
+    `un mineur ne monte pas au-delà du seuil: ${up.maxKgPerWeek}`,
+  );
+  assertEquals(up.bound, "energy_floor");
+  // Et il ne reçoit jamais la phrase, parce qu'il ne peut pas atteindre le
+  // seuil qui la déclenche.
+  assertEquals(paceWarning("up", up.maxKgPerWeek), null);
+});
+
+Deno.test("l'avertissement PARLE au-delà, se tait dessus, et jamais sur une perte", () => {
+  // Le seuil est FRANCHI, pas atteint: à 0,50 pile on ne dit rien. Avertir
+  // sur le cran qu'on vient de proposer ferait parler le produit contre
+  // lui-même.
+  assertEquals(paceWarning("up", 0.45), null);
+  assertEquals(paceWarning("up", PACE_WARN_UP_KG_PER_WEEK), null);
+  assertEquals(paceWarning("up", 0.55), "surplus_becomes_fat");
+  assertEquals(paceWarning("up", 1.0), "surplus_becomes_fat");
+  // Une PERTE est déjà tenue par trois bornes dures. Lui ajouter une phrase
+  // ferait deux fois le même geste.
+  assertEquals(paceWarning("down", 0.45), null);
+  assertEquals(paceWarning("down", 1.0), null);
+});
+
+Deno.test("la phrase existe DANS LES DEUX LANGUES, et elle dit un fait", () => {
+  for (const warning of PACE_WARNINGS) {
+    const label = PACE_WARNING_LABELS[warning];
+    assert(label, `${warning} n'a pas de phrase`);
+    for (const lang of ["en", "fr"] as const) {
+      const text = label[lang];
+      assert(text.trim().length > 0, `${warning}.${lang} est vide`);
+      // Le nombre du seuil est DANS la phrase: une phrase qui dirait « trop
+      // vite » sans dire à partir de quoi n'est pas un fait, c'est un jugement.
+      assert(
+        text.includes("0.5") || text.includes("0,5"),
+        `${warning}.${lang} ne nomme pas le seuil: ${text}`,
+      );
+    }
+    // Les deux langues disent bien deux choses différentes — une table dont
+    // les deux côtés sont identiques est une traduction oubliée.
+    assert(label.en !== label.fr, `${warning} n'est pas traduit`);
+  }
 });
 
 Deno.test("un corps sans poids n'a PAS de plafond de secours", () => {
