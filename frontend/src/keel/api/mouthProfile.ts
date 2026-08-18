@@ -40,7 +40,11 @@
 
 import { supabase } from "../../lib/supabase";
 import { mergePracticalConstraints } from "./practicalConstraints";
-import type { ActivityLevel } from "../../../../supabase/functions/_shared/keel/tokens.ts";
+import {
+  type ActivityLevel,
+  GOAL_TOKENS,
+  type GoalToken,
+} from "../../../../supabase/functions/_shared/keel/tokens.ts";
 import {
   declaredSlugFor,
   MAX_FIXED_INTAKES,
@@ -170,21 +174,28 @@ export function ownTargetWriter(
  * ⚠️ `null` EST REFUSÉ, NOMMÉMENT. La colonne est `not null`; l'envoyer
  * remonterait une erreur PostgreSQL brute. Le pop-up retient déjà le bouton
  * tant que la direction n'est pas choisie — ce refus est la ceinture.
+ *
+ * ⚠️ ET LE JETON EST **RETROUVÉ** DANS `GOAL_TOKENS`, PAS CASTÉ. Un `as
+ * GoalToken` ferait passer au créateur de ligne n'importe quelle chaîne, et le
+ * CHECK de la base la refuserait en erreur brute — « `as` sur un type étranger
+ * désarme le typecheck », mesuré. Ici l'inconnu sort par `bad_goal`, nommé.
  */
 export function ownGoalWriter(
   userId: string,
-  createRow: (userId: string, goal: string) => Promise<boolean>,
+  createRow: (userId: string, goal: GoalToken) => Promise<boolean>,
 ): (memberId: string, goal: string | null) => Promise<RpcResult> {
   return async (_memberId: string, goal: string | null) => {
     if (goal === null) return { ok: false, reason: "goal_required" };
+    const token = GOAL_TOKENS.find((g) => g === goal);
+    if (token === undefined) return { ok: false, reason: "bad_goal" };
     const { data, error } = await supabase
       .from("student_goals")
-      .update({ goal })
+      .update({ goal: token })
       .eq("user_id", userId)
       .select("user_id");
     if (error) throw new Error(error.message);
     if (data && data.length > 0) return { ok: true, reason: "" };
-    const created = await createRow(userId, goal);
+    const created = await createRow(userId, token);
     return created
       ? { ok: true, reason: "" }
       : { ok: false, reason: "no_goal_row" };

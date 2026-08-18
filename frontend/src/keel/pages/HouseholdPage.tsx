@@ -67,11 +67,23 @@ import {
   windowDayOrder,
 } from "../api/mealWindow";
 import { loadMutedMembers, muteMergeProposals } from "../api/householdMerge";
-// L5 — LE POP-UP « UNE BOUCHE ». Il s'ouvre à chaque ajout de personne; le
-// maître, lui, passe par sa propre fiche (`MeCard`), qui existait déjà.
-import { persistMouth, setMemberTarget } from "../api/mouthProfile";
+// L5 — LE POP-UP « UNE BOUCHE ». Il s'ouvre à chaque ajout de personne, ET sur
+// la fiche du maître (D5, 2026-08-18): « sans quoi celui qui tient la maison
+// serait le seul dont on ne sait rien ».
 import {
+  type KnownOwnMouth,
+  loadOwnMouth,
+  ownGoalWriter,
+  ownShakerWriter,
+  ownTargetWriter,
+  persistMouth,
+  setMemberTarget,
+} from "../api/mouthProfile";
+import {
+  draftFromKnown,
   emptyMouthDraft,
+  type KnownMouth,
+  knownMouthForOwner,
   type MouthFormBlock,
   type MouthFormDraft,
   mouthToPersist,
@@ -254,6 +266,22 @@ export default function HouseholdPage(): React.ReactElement {
    * n'est que la PHRASE — sans elle, le refus du serveur arriverait comme
    * « non-2xx status code », c'est-à-dire comme une panne.
    */
+  /**
+   * D5 — CE QU'ON SAIT DÉJÀ DU MAÎTRE, ET QUE RIEN D'AUTRE ICI NE LIT.
+   *
+   * ⚠️ `null` = PAS LU, et tant qu'il l'est, **la fenêtre de sa fiche ne
+   * s'ouvre pas**. Ce n'est pas une précaution: `persistMouth` appelle des
+   * portes qui REMPLACENT — `setHabits` prend la liste complète, `setTarget`
+   * efface à `(null, null)`. Une fenêtre ouverte sur ce qu'on n'a pas lu
+   * effacerait donc le poids visé réglé sur `/app/plan` et les habitudes
+   * déclarées, sans un mot et en cliquant sur « Enregistrer ». C'est la
+   * cicatrice `mount-snapshot-forms-need-a-loading-gate`, prise par l'autre
+   * bout: là-bas le formulaire affichait du vide non lu, ici il l'écrirait.
+   *
+   * La date de naissance et la cible sont les deux seuls faits que ni le
+   * roster, ni les corps, ni les habitudes ne rendent. Voir `loadOwnMouth`.
+   */
+  const [ownMouth, setOwnMouth] = React.useState<KnownOwnMouth | null>(null);
   const [coverage, setCoverage] = React.useState<HouseholdCoverage | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [busy, setBusy] = React.useState(false);
@@ -329,6 +357,18 @@ export default function HouseholdPage(): React.ReactElement {
             setHabits(null);
             console.error("[household] habits unreadable", e);
           }
+          // D5 — MÊME DISCIPLINE QUE LES HABITUDES, ET LE MÊME `null`. Une
+          // lecture qui échoue dégrade LA SEULE carte qui en dépend: la fenêtre
+          // de la fiche du maître ne s'ouvre pas, et sa carte retombe sur les
+          // trois champs en ligne. Fail-closed, parce que ce que cette lecture
+          // porte n'est pas de l'affichage — c'est ce qu'un enregistrement
+          // aveugle EFFACERAIT.
+          try {
+            setOwnMouth(await loadOwnMouth(userId));
+          } catch (e) {
+            setOwnMouth(null);
+            console.error("[household] own mouth unreadable", e);
+          }
           // D17 — même raison que la ligne au-dessus: la table n'est lisible
           // que du maître, et la demander pour un membre rendrait zéro ligne,
           // c'est-à-dire « personne n'est masqué » — un fait qu'on n'a pas.
@@ -388,6 +428,44 @@ export default function HouseholdPage(): React.ReactElement {
   // (`null`), on ne gèle rien à l'écran: annoncer une pause à quelqu'un qui
   // paie sur la foi d'une lecture en cours est le pire des deux sens.
   const frozen = coverage?.frozen === true;
+  /**
+   * D5 — CE QU'ON SAIT DÉJÀ DU MAÎTRE, ASSEMBLÉ DES QUATRE LECTURES DE L'ÉCRAN.
+   *
+   * `null` = **on n'ouvre pas la fenêtre**, et il y a trois façons d'y arriver,
+   * toutes délibérées:
+   *
+   *   · ce n'est pas le maître — `keel_household_set_member_body` répond
+   *     `not_owner` à un profil réclamé, donc la fenêtre échouerait à sa
+   *     deuxième marche. Un contrôle qui échoue à tous les coups est « pire
+   *     qu'un contrôle absent, parce qu'il promet »; sa carte garde les trois
+   *     champs en ligne, qui, eux, marchent pour lui;
+   *   · une des deux lectures qui REMPLACENT n'a pas abouti (`ownMouth`,
+   *     `habits`) — voir l'état plus haut;
+   *   · il n'y a pas de ligne membre, donc rien où écrire.
+   *
+   * ⚠️ CE N'EST PAS UN HOOK, ET C'EST OBLIGATOIRE: `me` n'existe qu'après les
+   * gardes de montage, et un `useMemo` posé ici ne s'exécuterait pas au même
+   * rang à chaque rendu.
+   *
+   * ⚠️ LA DIRECTION VIENT DE `student_goals`, PAS DU ROSTER, et elle est
+   * RETROUVÉE dans la liste plutôt que castée: un jeton hérité de l'ancienne
+   * énumération (`health`, `performance`, `recomposition`) laisse le champ
+   * vide au lieu de faire choisir une valeur que le CHECK refuse.
+   */
+  const meKnown: KnownMouth | null = me === null ? null : knownMouthForOwner({
+    isOwner,
+    displayName: me.displayName,
+    ownMouth,
+    body: bodies.get(me.memberId) ?? null,
+    // ⚠️ `null` TRAVERSE, ET C'EST LE SUJET. `habits` vaut `null` tant que la
+    // lecture n'a pas eu lieu (ou a échoué); l'aplatir en `[]` ici dirait « lu,
+    // et elle n'en a aucune », et la fenêtre s'ouvrirait sur du vide qu'elle
+    // écrirait.
+    habits: habits === null
+      ? null
+      : (habits.get(me.memberId)?.slots ?? []),
+  });
+
   // ⚠️ `canCompose` A QUITTÉ CET ÉCRAN AVEC `ComposeCard`. Le gel reste lu ici
   // (`frozen`, ci-dessus, pour la carte de pause); ce qu'il coupait — la
   // production — se demande maintenant depuis `/app/plan`, et le serveur y
@@ -434,6 +512,65 @@ export default function HouseholdPage(): React.ReactElement {
                       userId,
                       alsoCreateGoalRow: !ownerGoalRow,
                     })}
+                  // ── D5 · LA FENÊTRE S'OUVRE AUSSI POUR LUI ─────────────
+                  // « sans quoi celui qui tient la maison serait le seul dont
+                  // on ne sait rien » (conception §1). `null` = on retombe sur
+                  // les trois champs en ligne — voir `meKnown`.
+                  sheet={meKnown === null ? null : {
+                    known: meKnown,
+                    todayLocalIso: weekStart,
+                    failure: error,
+                    onSave: (draft) =>
+                      run(() =>
+                        persistMouth(
+                          // ⚠️ SON `member_id`, ET C'EST TOUTE LA DIFFÉRENCE
+                          // AVEC LA CARTE D'AJOUT: la bouche EXISTE, donc
+                          // `persistMouth` prend la marche 1 bis et exige les
+                          // trois portes ci-dessous.
+                          mouthToPersist(draft, weekStart, me.memberId),
+                          {
+                            // ⛔ INATTEIGNABLE, ET ON LE DIT FORT. `memberId`
+                            // n'est jamais `null` ici; y arriver voudrait dire
+                            // que le maître se fait ajouter une seconde fois.
+                            addMember: () => {
+                              throw new Error(
+                                "[household] MeCard: the owner's mouth " +
+                                  "already exists — `addMember` must never " +
+                                  "be reached from this card.",
+                              );
+                            },
+                            setName: setMemberName,
+                            // ⚠️ SA DATE VA DANS SON PROFIL, PAS SUR SA FICHE.
+                            // Depuis `20260812180000`, l'âge d'une bouche QUI A
+                            // UN COMPTE se résout sur `profiles.birth_date`
+                            // d'abord: l'écrire sur sa ligne de foyer ferait un
+                            // champ qui enregistre et ne change rien. Même
+                            // arbitrage que `birthDateDoor` dans `saveMember`.
+                            setBirthDate: (_id, d) => setOwnBirthDate(userId, d),
+                            // ⚠️ `keel_household_set_member_goal` LUI RÉPOND
+                            // `has_account`: la direction de qui a un compte
+                            // vit dans son « about you ». Et cette porte-là
+                            // CRÉE la ligne quand elle manque — c'est le geste
+                            // qui supprime la falaise `goal_required`.
+                            setGoal: ownGoalWriter(userId, createOwnerGoalRow),
+                            setTarget: ownTargetWriter(userId),
+                            setBody: setMemberBody,
+                            setHabits: (id, slots, note) =>
+                              setMemberHabits(id, slots as HabitSlot[], note),
+                            // ⚠️ BRANCHÉ ICI, ET NULLE PART AILLEURS. C'est la
+                            // seule bouche de cet écran qui a un compte, donc
+                            // la seule qui puisse porter un apport fixe
+                            // (`fixed_intakes` est clé sur `user_id`).
+                            setShaker: ownShakerWriter(userId),
+                            addAllergy,
+                            addRestriction,
+                            // Jamais appelé: la fenêtre ne montre pas le régime
+                            // à qui a un compte, donc `diet` part `null`.
+                            setDiet: setMemberDiet,
+                          },
+                        )
+                      ),
+                  }}
                 />
               ) : null}
 
@@ -782,10 +919,34 @@ function MouthFields(
  * falaise: sans elle, `generate-household-meal-v1` rend `goal_required` (409),
  * et on le découvrait après avoir saisi tout le foyer.
  */
-function MeCard(
-  { me, needsGoalRow, goalEditable, busy, onSave }: {
+/**
+ * ⚠️ EXPORTÉ POUR SON HARNAIS (D5), et pas par commodité. Ce qui se prouve ici
+ * est « QU'EST-CE QUE LE LECTEUR VOIT »: que les trois champs en ligne et la
+ * fenêtre ne coexistent JAMAIS. Un test de source serait vert sur du code mort
+ * — ce dépôt en a mesuré deux.
+ */
+export function MeCard(
+  { me, needsGoalRow, goalEditable, busy, onSave, sheet }: {
     me: HouseholdMemberView;
     needsGoalRow: boolean;
+    /**
+     * D5 — LA FENÊTRE « UNE BOUCHE » POUR LE MAÎTRE, ou `null`.
+     *
+     * `null` REMET LES TROIS CHAMPS EN LIGNE, et ce n'est pas un repli
+     * décoratif: c'est le seul formulaire qui marche pour un profil réclamé
+     * (la fenêtre écrit un corps, et cette porte-là est réservée au maître),
+     * et le seul qui n'écrase rien quand une lecture a échoué.
+     *
+     * ⚠️ LES DEUX NE COEXISTENT JAMAIS. Deux formulaires qui écrivent les
+     * mêmes trois colonnes sur la même carte, c'est la garantie qu'un jour
+     * l'un des deux cessera d'écrire ce que l'autre écrit.
+     */
+    sheet: null | {
+      known: KnownMouth;
+      todayLocalIso: string;
+      failure: string | null;
+      onSave: (draft: MouthFormDraft) => Promise<boolean>;
+    };
     /**
      * D1 — l'objectif d'un titulaire vit dans son « about you ». On ne l'offre
      * ICI que tant que sa ligne `student_goals` N'EXISTE PAS: c'est la
@@ -807,6 +968,67 @@ function MeCard(
     goal: (me.goal as MemberGoal | null) ?? "",
   });
   const [saved, setSaved] = React.useState(false);
+  // ── D5 · L'ÉTAT DE LA FENÊTRE ──────────────────────────────────────────
+  // ⚠️ LES HOOKS SONT INCONDITIONNELS, même quand `sheet` est `null`: une
+  // carte qui gagne sa fenêtre à la deuxième lecture changerait sinon de
+  // nombre de hooks entre deux rendus.
+  const [open, setOpen] = React.useState(false);
+  const [sheetDraft, setSheetDraft] = React.useState<MouthFormDraft>(
+    emptyMouthDraft,
+  );
+  const [openBlock, setOpenBlock] = React.useState<MouthFormBlock | null>(null);
+
+  if (sheet !== null) {
+    return (
+      <Card tone={needsGoalRow ? "warning" : "default"}>
+        <SectionLabel>{t("household.me.title")}</SectionLabel>
+        <p className="mb-3 text-sm text-ink-soft">
+          {needsGoalRow ? t("household.me.unlock") : t("household.me.sheet")}
+        </p>
+        <Button
+          variant={needsGoalRow ? "primary" : "secondary"}
+          disabled={busy}
+          onClick={() => {
+            // ⚠️ ON SÈME À L'OUVERTURE, PAS AU MONTAGE, ET C'EST LA MOITIÉ QUI
+            // COMPTE. La carte vit tout le temps que dure l'écran; un
+            // brouillon figé à son montage rendrait, au deuxième Save, la
+            // photo d'AVANT le premier — et `setHabits` comme `setTarget`
+            // REMPLACENT ce qu'elles trouvent. C'est la cicatrice « `current`
+            // périmé efface l'écriture d'avant », mesurée deux fois.
+            setSheetDraft(draftFromKnown(sheet.known));
+            setOpen(true);
+          }}
+        >
+          {t("household.me.open")}
+        </Button>
+        <MouthFormDialog
+          open={open}
+          onClose={() => setOpen(false)}
+          draft={sheetDraft}
+          onChange={setSheetDraft}
+          // `existing: true` — sa ligne EXISTE, on la complète. `hasAccount:
+          // true` — c'est la seule bouche de cet écran qui en a un: elle porte
+          // donc son shaker, et pas son régime.
+          subject={{ existing: true, hasAccount: true }}
+          todayLocalIso={sheet.todayLocalIso}
+          busy={busy}
+          failure={sheet.failure}
+          openBlock={openBlock}
+          onOpenBlock={setOpenBlock}
+          onSubmit={() => {
+            void (async () => {
+              const ok = await sheet.onSave(sheetDraft);
+              // ⚠️ ELLE SE FERME SUR UN SUCCÈS, contrairement à la carte
+              // d'ajout — et l'écart est le geste: on n'enchaîne pas sur une
+              // deuxième version de soi-même. Sur un refus elle reste ouverte,
+              // avec le motif dedans.
+              if (ok) setOpen(false);
+            })();
+          }}
+        />
+      </Card>
+    );
+  }
 
   return (
     <Card tone={needsGoalRow ? "warning" : "default"}>

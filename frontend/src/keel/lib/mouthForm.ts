@@ -52,7 +52,10 @@ import {
   assessBirthDate,
   usableAge,
 } from "../../../../supabase/functions/_shared/keel/student_age.ts";
-import type { ActivityLevel } from "../../../../supabase/functions/_shared/keel/tokens.ts";
+import {
+  type ActivityLevel,
+  GOAL_TOKENS,
+} from "../../../../supabase/functions/_shared/keel/tokens.ts";
 import type { MemberGender, MemberGoal } from "../api/household";
 // ⚠️ `import type` ET RIEN D'AUTRE. `api/mouthProfile` tire le client Supabase;
 // un import de VALEUR mettrait du réseau dans un module qui se déclare pur.
@@ -236,6 +239,73 @@ export interface KnownMouth {
  * même `food_ref` et garde les autres. Le régime, lui, n'existe pas pour une
  * bouche qui a un compte: la base refuse `has_account`.
  */
+/**
+ * LE PLACEHOLDER DU ROSTER — `household.ts` rend « — » pour un prénom vide.
+ *
+ * Le laisser passer sèmerait le tiret DANS le champ, et l'enregistrement
+ * écrirait « — » comme prénom. C'est la clé de tout l'affichage (règle F5): un
+ * tiret y survivrait à toutes les lectures.
+ */
+const ROSTER_NO_NAME = "—";
+
+/**
+ * CE QU'ON SAIT DU MAÎTRE — OU `null`, C'EST-À-DIRE « ON N'OUVRE PAS ».
+ *
+ * ⚠️ CETTE FONCTION EST LA GARDE, ET SON `null` EST SA RAISON D'ÊTRE. Trois
+ * chemins y mènent, et aucun n'est un détail:
+ *
+ *   · `isOwner === false` — `keel_household_set_member_body` répond `not_owner`
+ *     à un profil réclamé. La fenêtre échouerait à sa deuxième marche, et un
+ *     contrôle qui échoue à tous les coups est « pire qu'un contrôle absent,
+ *     parce qu'il promet »;
+ *   · `ownMouth === null` — la cible et la date n'ont pas été lues, donc
+ *     `persistMouth` les reposerait à `(null, null)`: le poids visé réglé sur
+ *     `/app/plan` disparaîtrait;
+ *   · `habits === null` — pas lues, et la porte REMPLACE la liste complète.
+ *
+ * ⚠️ `[]` N'EST PAS `null`. Un foyer sans habitude déclarée est un fait qu'on a
+ * lu; confondre les deux fermerait la fenêtre à tout le monde sauf à ceux qui
+ * mangent une pomme le matin.
+ *
+ * ⚠️ LA DIRECTION EST **RETROUVÉE** DANS LA LISTE, PAS CASTÉE. Un jeton hérité
+ * de l'ancienne énumération (`health`, `performance`, `recomposition`) laisse
+ * le champ vide plutôt que de proposer une valeur que le CHECK refuse.
+ */
+export function knownMouthForOwner(input: {
+  isOwner: boolean;
+  displayName: string;
+  ownMouth: {
+    birthDate: string | null;
+    goal: string | null;
+    targetWeightKg: number | null;
+    paceKgPerWeek: number | null;
+  } | null;
+  /** `null` = jamais saisi. La porte du corps lit `null` comme « ne touche pas ». */
+  body: {
+    heightCm: number;
+    weightKg: number;
+    gender: MemberGender;
+    activityLevel: ActivityLevel | null;
+  } | null;
+  /** `null` = PAS LU. `[]` = lu, et elle n'en a aucune. */
+  habits: readonly { slot: string; usual: string }[] | null;
+}): KnownMouth | null {
+  if (!input.isOwner) return null;
+  if (input.ownMouth === null || input.habits === null) return null;
+  return {
+    firstName: input.displayName === ROSTER_NO_NAME ? null : input.displayName,
+    birthDate: input.ownMouth.birthDate,
+    goal: GOAL_TOKENS.find((g) => g === input.ownMouth?.goal) ?? null,
+    targetWeightKg: input.ownMouth.targetWeightKg,
+    paceKgPerWeek: input.ownMouth.paceKgPerWeek,
+    heightCm: input.body?.heightCm ?? null,
+    weightKg: input.body?.weightKg ?? null,
+    gender: input.body?.gender ?? null,
+    activityLevel: input.body?.activityLevel ?? null,
+    habits: Object.fromEntries(input.habits.map((h) => [h.slot, h.usual])),
+  };
+}
+
 export function draftFromKnown(known: KnownMouth): MouthFormDraft {
   const asText = (n: number | null) => (n === null ? "" : String(n));
   return {
