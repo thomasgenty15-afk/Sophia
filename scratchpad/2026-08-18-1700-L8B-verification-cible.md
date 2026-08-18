@@ -153,4 +153,255 @@ lignes posées à la main dans `household_members` ; **aucun écran n'écrit enc
 soixante-treize**. Ce que la contre-preuve établit est que **le mécanisme
 répond aux cibles**, pas que quiconque en ait une.
 
-🕓 *Sections 2 et suivantes en cours d'écriture.*
+---
+
+## 2. C8 — LA CEINTURE PAR BOUCHE. Ce qui est prouvé, et ce qui ne l'est pas.
+
+### 2.1 En base : la boîte du mineur n'a pas bougé d'un gramme
+
+Le foyer `4123e479` « Vidal » porte **Tom, né le quinze septembre deux mille
+quatorze — onze ans**, avec `goal = fat_loss`, `target_pace_kg_per_week = zéro
+virgule trois` et un corps complet en base (cent quarante-cinq centimètres,
+trente-six kilos). **Il a donc une cible, exactement comme son père.**
+
+Ses six boîtes dans le plan `00646a00` : deux cent cinquante, trois cent trente,
+trois cent vingt, trois cent trente, deux cent quatre-vingts, trois cents
+grammes. **Les six sont rigoureusement celles que le modèle a écrites** — la
+reconstitution du §1.2 le montre boîte par boîte, et le compteur le confirme :
+`sized: 12` sur vingt-quatre, soit **les six boîtes de Paul et les six de Nina,
+aucune de Tom ni de Lea**.
+
+⛔ **Le mineur n'est pas dimensionné, et il porte une cible.** C'est le trou que
+C8 nomme, et il est fermé en base.
+
+### 2.2 ⚠️ MAIS la porte qui s'est fermée sur Tom n'est PAS la porte ②
+
+`box_sizing.mouths` du plan `00646a00` dit :
+`sized: deux` · `restriction_floor: deux` · **`minor: zéro`**.
+
+Tom et Lea sont refusés par **la porte ①** (le plancher TCA, en *fail-closed* :
+une bouche sans compte n'a aucun `MealBodyContext`, donc `restrictionFlag` vaut
+`true`), **pas** par la porte ② de l'âge. La porte ② **n'a jamais tourné** sur ce
+plan, parce que la porte ① se ferme avant elle sur toute bouche sans compte.
+
+**Le bon résultat sort, mais pas par le mécanisme que C8 décrit.** Si la porte ②
+était retirée, le plan `00646a00` serait **rigoureusement identique** — ce qui est
+la définition d'une ceinture non exercée en base.
+
+### 2.3 La porte ② elle-même, exercée sur le corps réel de Tom
+
+J'ai donc rejoué `memberTargetFactor` avec **le vrai code**, sur **le vrai corps
+de Tom**, en n'ouvrant que la porte ① (`restrictionFlag: false`, ce qu'un mineur
+**avec un compte relu** rend — un cas que le produit permet, `departs_with_account`
+et les invitations existent) :
+
+| Bouche | Cran | Motif rendu | Facteur |
+|---|---|---|---|
+| Paul (adulte) | zéro virgule cinq | `sized` | zéro virgule sept mille deux cent soixante |
+| Nina (adulte) | zéro virgule quatre | `sized` | un virgule un |
+| **Tom (onze ans, compte relu)** | **zéro virgule trois** | **`minor`** | **un, exactement** |
+| Lea (huit ans, sans compte) | aucun | `restriction_floor` | un |
+
+**La porte ② rend `minor` et le facteur reste à un.** Les grammages produits sont
+identiques à ceux de la base.
+
+### 2.4 M2, rejouée
+
+```
+M2   MORD   L8 ① — chaque porte de sécurité ferme le DIMENSIONNEMENT, avec son motif
+            ⛔ L8 C8 — L'ENFANT DE DOUZE ANS N'EST PAS DIMENSIONNÉ PARCE QUE SON PARENT EST ADULTE
+            L8 ① — le vocabulaire des motifs est FERMÉ et chaque valeur est atteignable
+```
+
+La mutation remplace `mouthAgeVerdict(args.ageState)` par
+`mouthAgeVerdict("adult")` — c'est-à-dire exactement le défaut d'avant le lot.
+**Trois tests rougissent, dont celui qui porte le nom de la clause.** Fichier
+restauré, SHA256 revérifié.
+
+### 2.5 🟠 Ce qui n'est donc PAS prouvé
+
+**Aucune ligne de la base ne fait tourner la porte ②.** Pour l'exercer en base il
+faudrait un **mineur avec un compte dont l'évaluation de restriction a réussi**,
+et il n'en existe aucun dans les fixtures. Je ne l'ai pas fabriqué : créer un
+compte `auth.users` pour un enfant sur un dépôt que trois autres lanes partagent
+est une écriture dont le coût dépasse ce qu'elle prouverait de plus que le §2.3.
+
+**Conséquence à écrire** : dans le produit d'aujourd'hui, `restriction_floor`
+**masque** `minor` pour toute bouche sans compte. Un histogramme de motifs lu de
+bonne foi conclurait « nous n'avons aucun mineur », alors que le foyer en a deux.
+
+---
+
+## 3. C9 — LE CONSEIL DU MIDI, ET SON CONTOURNEMENT
+
+### 3.1 ⛔ La première chose à dire : la fonction n'a AUCUN APPELANT
+
+```
+grep -rn "eatingOutAdvice" supabase frontend/src
+  → household_portions.ts:1992  (la définition)
+  → household_portions.ts:2100  (le rendu de phrase)
+```
+
+**Aucun autre.** `eatingOutAdvice` n'est appelée nulle part en production.
+**Aucun chiffre ne peut donc sortir de nulle part, par construction** — et c'est
+le lot lui-même qui le dit (§5.3 de son rapport). La garde C9 est **armée sur une
+porte que personne ne franchit encore**. Ce n'est pas un reproche : c'est
+l'ordre correct (écrire la garde avant le lecteur). C'est la première ligne de la
+réponse à « éprouve le contournement ».
+
+### 3.2 L'état de présence INVENTÉ — les deux portes d'écriture
+
+**Porte ① — celle du maître (`household_members.away_days`).** Écriture directe
+d'un `kind` inventé :
+
+```
+update public.household_members
+   set away_days = '[{"day":"thu","slots":["lunch"],"kind":"chez_mamie"}]'
+ where member_id = '<Paul>';
+→ ERROR: violates check constraint "household_members_away_days_kind_check"
+```
+
+**REFUSÉE en base.** Le vocabulaire y est fermé (`away | eating_out`).
+
+**Porte ② — celle de l'élève (`student_goals.practical_constraints.away_days`).**
+
+```
+select conname from pg_constraint
+ where conrelid = 'public.student_goals'::regclass
+   and pg_get_constraintdef(oid) ilike '%away%';
+→ (0 rows)
+```
+
+⛔ **AUCUNE contrainte.** L'écriture passe, et je l'ai jouée : la ligne accepte
+`{"day":"thu","slots":["lunch"],"kind":"chez_mamie"}` sans broncher (transaction
+annulée après mesure). **La porte d'écriture de la présence côté élève n'a pas de
+vocabulaire fermé** — ce qui est exactement la prémisse pour laquelle C9.b existe.
+
+### 3.3 Ce que l'état inventé produit — mesuré, sept cas
+
+| Cas | Chiffre rendu | Motif |
+|---|---|---|
+| A · l'état **dérivé** de l'écriture inventée (`presenceStateFor`) | **AUCUN** | `not_eating_out` |
+| B · le `kind` **brut** passé tel quel (le contournement d'un appelant naïf) | **AUCUN** | `unknown_state` |
+| C · un **mineur** qui mange dehors, toutes les autres portes ouvertes | **AUCUN** | `mouth_minor` |
+| D · un **âge inconnu** qui mange dehors | **AUCUN** | `mouth_age_unknown` |
+| E · la bouche n'est **pas le lecteur** | **AUCUN** | `other_mouth` |
+| F · l'interrupteur ⑤ du lecteur est **éteint** | **AUCUN** | `target_off` |
+| **G ✅ LE CAS QUI PASSE** — adulte, lecteur, dehors, corps connu | **sept cents** | `advised` |
+
+Deux choses, et les deux comptent :
+
+* **`presenceStateFor` neutralise l'invention avant même la garde.** Un `kind`
+  hors vocabulaire tombe dans `away`, jamais dans `eating_out` : la dérivation
+  rend une valeur d'un ensemble **fermé de trois états**. C'est une seconde
+  ceinture, et elle est en amont.
+* **La garde C9.b tient quand même le cas où quelqu'un court-circuite cette
+  dérivation** (cas B) — c'est-à-dire le seul cas où elle sert, et c'est
+  précisément pourquoi `presenceState` est typé `string` et non `PresenceState`.
+  L'arbitrage du lot est juste, et il est **mesuré**, pas supposé.
+* ⛔ **Le cas qui passe existe** (G, sept cents kcal). Une garde cassée bloque
+  tout et ressemble à une garde qui marche ; celle-ci laisse passer le cas
+  nominal.
+
+M8 et M9, rejouées : **MORDENT** toutes les deux, sur
+`⛔ L8 C9.a — UN MINEUR ET UN ÂGE INCONNU NE REÇOIVENT AUCUN CHIFFRE` et
+`⛔ L8 C9.b — UN VOCABULAIRE INCONNU NE REÇOIT AUCUN CHIFFRE, ET AUCUN REPLI`.
+
+### 3.4 🟠 Le défaut que je laisse ouvert, nommé
+
+`student_goals.practical_constraints.away_days` **n'a aucune contrainte de
+vocabulaire**, là où `household_members.away_days` en a une. Aujourd'hui c'est
+sans conséquence (la dérivation rattrape, et rien n'appelle le conseil). Le jour
+où quelqu'un écrira le lecteur du §5.3 en lisant le `kind` brut plutôt que
+`presenceStateFor`, ce sera le chemin. **Ce n'est pas au lot L8 de le fermer** —
+la table n'est pas la sienne — mais personne ne l'a écrit avant cette ligne.
+
+---
+
+## 4. LES MUTATIONS — neuf rejouées, et **une qui SURVIT**
+
+Harnais du lot (`scratchpad/mutate_l8a.py`), plus trois de moi sur les bornes.
+
+| # | Ce qu'on casse | Verdict | Test qui rougit |
+|---|---|---|---|
+| **M2** | la porte ② lit le verdict du **maître** | **MORD** | ⛔ L8 C8 — L'ENFANT DE DOUZE ANS… (+ deux autres) |
+| **M4** | le plafond du récipient tourne **sans cible** | **MORD** | ⛔ L8 ① — AUCUNE CIBLE ⇒ AUCUN GRAMME NE BOUGE |
+| **M8** | C9.a retirée (mineur) | **MORD** | ⛔ L8 C9.a — UN MINEUR… AUCUN CHIFFRE |
+| **M9** | C9.b retirée (vocabulaire) | **MORD** | ⛔ L8 C9.b — … AUCUN REPLI |
+| **M15** | le module **court-circuite** `canSizeFromTarget` | **MORD** | R6 retourné **+** LE DIMENSIONNEMENT NE LIT NI ④ NI ⑤ |
+| **M16** | le plancher d'un gramme retiré | **MORD** | ⛔ UNE BOÎTE NE DESCEND JAMAIS À ZÉRO |
+| **M17** (à moi) | `BOX_FACTOR_MIN` **resserré** de zéro virgule sept à zéro virgule soixante-quinze | **MORD** | ⛔ LES BORNES DE PLAUSIBILITÉ NE MORDENT SUR AUCUN CORPS RÉEL |
+| **M18** (à moi) | `BOX_FACTOR_MIN` **relâché** à zéro virgule un | **MORD** | ⛔ UNE BOÎTE NE DESCEND JAMAIS À ZÉRO |
+| **M19** (à moi) | `BOX_FACTOR_MAX` porté de un virgule vingt-cinq à **quatre-vingt-dix-neuf** | 🔴 **SURVIT** | *(aucun)* |
+
+**Les fichiers sont restaurés à l'octet après chaque mutation** (SHA256
+revérifié par le harnais, et `git diff --stat HEAD` vide après la série).
+
+### 4.1 ✅ Le plancher corrigé EST exercé — et par un corps réel de la fixture
+
+**M17 mord**, et la démonstration est plus jolie que le test : **Paul rend un
+facteur de zéro virgule sept mille deux cent soixante**. Avec l'ancienne valeur
+`0,75`, la seule adulte réelle de la fixture aurait été refusée en
+`implausible_factor` et **ses six boîtes n'auraient pas bougé**. La correction
+`0,75 → 0,70` n'est pas une précaution théorique : sans elle, le lot serait
+désarmé sur le seul corps qui l'exerce en base.
+
+### 4.2 🔴 `BOX_FACTOR_MAX` est une ceinture SANS AUCUN CAS
+
+**M19 survit** : on peut porter le plafond de plausibilité de un virgule
+vingt-cinq à quatre-vingt-dix-neuf, **aucun test ne rougit**. Et c'est
+structurel : le facteur d'une prise vaut `(E + Δ)/E` avec `Δ ≤ 0,10 × E`
+(`MAX_SURPLUS_FRACTION`), donc **il ne peut mathématiquement pas dépasser un
+virgule dix**. Le plafond est inatteignable par le chemin nominal.
+
+⚠️ **Ce n'est pas symétrique du plancher**, et c'est ça le défaut : le commentaire
+du module calcule explicitement le minimum **structurel** du plancher
+(`0,7059`) et affirme ensuite, **pour les deux bornes ensemble**, qu'« elles ne
+sont pas dormantes pour autant » — elles mordraient sur un appelant qui
+fabriquerait un écart à la main. Le plancher a deux cas qui le prouvent (M17,
+M18). **Le plafond n'en a aucun.** C'est la « ceinture armée sur un coffre
+vide », quatrième fois nommée sur ce chantier, et cette fois c'est le lot qui
+l'écrit.
+
+**Le geste, pour qui le prendra** : un test qui appelle `mouthTargetFactor` avec
+un `subject` dont l'écart exécuté dépasse la borne — ou, plus honnête, un
+commentaire qui dit que le plafond est **inatteignable aujourd'hui** et sous
+quelle condition il cesserait de l'être.
+
+---
+
+## 5. AUCUN BUMP, AUCUNE LIGNE DE PROMPT — prouvé à l'octet
+
+| Épreuve | Résultat |
+|---|---|
+| Fichiers de prompt / gabarits touchés par les deux commits | **aucun** |
+| `boxingOrderLines` (fonction de prompt, la seule dont le voisinage bouge) | **IDENTIQUE À L'OCTET** — le `diff` porte sur le bloc de commentaire L8 inséré **après** sa dernière accolade |
+| `buildPortionBrief` (cent quatre-vingt-une lignes) | **IDENTIQUE À L'OCTET** |
+| `cookingShapeLines`, `servingDirectionFor`, `readServingDemands`, `dedicatedDishesFor`, `mergeDishBonus`, `distinctServingDirections` | **IDENTIQUES** |
+| `SERVING_DIRECTION`, `NEUTRAL_DIRECTION`, `CHILD_DIRECTION`, `SERVING_DEMANDS`, `COOKING_SHAPES` | **IDENTIQUES** |
+| Chaînes de douze caractères ou plus **ajoutées** au générateur | **trois** : `"../_shared/keel/energy_gate.ts"`, `"member_id, target_pace_kg_per_week"`, `"user_id, target_pace_kg_per_week"` — **un import et deux listes de colonnes SQL**, aucune ligne de consigne |
+| Chaînes **supprimées** | **zéro** |
+| Version en base, avant et après le lot | `household.v16_this_kitchen_and_a_meal_out` des **deux** côtés (plan de onze heures trente UTC et plan de quatorze heures quatre UTC) |
+
+**La population qui voit une consigne différente est vide, et c'est mesuré, pas
+affirmé.**
+
+### 5.1 Aucune calorie, aucun chiffre de corps dans les plans produits
+
+Sur les six plans de foyer vivants :
+
+| Épreuve | Résultat |
+|---|---|
+| `kcal\|calorie` dans `preparations` | **faux partout** |
+| `kcal\|calorie` dans `dishes` | **faux partout** |
+| `kcal\|calorie` dans `generated_from` | **faux partout** |
+| phrase de tracker (`il te reste`, `tu as consommé`, `remaining`, `left for today`, `budget restant`, `calories left`) | **faux partout** |
+| `box_sizing.mouths` porte-t-il un `member_id` ? | **non** — neuf motifs, neuf entiers, aucun identifiant |
+
+⛔ « Il te reste six cent quatre-vingts » **n'existe nulle part**, et le §5.2 du
+lot explique pourquoi c'est une **signature** et pas une discipline : aucune
+entrée d'`eatingOutAdvice` ne porte un consommé, donc la phrase n'est **pas
+constructible**. Vérifié : la seule sortie chiffrée est `advised`, sept cents,
+arrondie aux cinquante.
+
+🕓 *Section 6 (C1→C9 au complet, C3/C6, ce qui reste rouge) en cours.*
