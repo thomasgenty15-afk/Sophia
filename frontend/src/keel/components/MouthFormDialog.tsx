@@ -543,6 +543,10 @@ export function MouthCoreFields(
             draft={draft}
             onChange={onChange}
             todayLocalIso={todayLocalIso}
+            // `mouth` — les `id` d'origine, inchangés: cette fiche est SEULE
+            // sur sa page (`/app/household`), et les renommer casserait les
+            // tests qui les mesurent sans rien réparer.
+            idPrefix="mouth"
           />
         </RequiredBlock>
 
@@ -831,12 +835,23 @@ export function MouthPreferencesFields(
  *   `no_margin`   `0` = « je le connais, il n'a pas de marge » — une AUTRE
  *                 phrase, jamais un curseur de 0,05 à 0;
  *   `slider`      un curseur borné sur CE corps.
+ *
+ * ⚠️ `idPrefix` EST REQUIS, ET CE N'EST PAS DU CONFORT. Les deux contrôles
+ * portaient `id="mouth-target-weight"` et `id="mouth-pace"` en dur. Depuis le
+ * 2026-08-18 l'étape 2 de l'entonnoir les monte DEUX FOIS sur la même page —
+ * une fois pour le titulaire, une fois pour la bouche qu'on ajoute: deux
+ * éléments du même `id` font qu'un `<label for>` désigne le premier, donc
+ * cliquer le libellé du second met le curseur du premier au point. Un préfixe
+ * OPTIONNEL aurait laissé les appelants d'aujourd'hui produire la collision en
+ * silence — c'est le patron `idPrefix` d'`ActivityTiles`, requis pour la même
+ * raison.
  */
 export function TargetAndPaceFields(
-  { draft, onChange, todayLocalIso }: {
+  { draft, onChange, todayLocalIso, idPrefix }: {
     draft: MouthFormDraft;
     onChange: React.Dispatch<React.SetStateAction<MouthFormDraft>>;
     todayLocalIso: string;
+    idPrefix: string;
   },
 ): React.ReactElement | null {
   const set = (patch: Partial<MouthFormDraft>) =>
@@ -857,10 +872,10 @@ export function TargetAndPaceFields(
                     `household.mouth.target_refused_${targetState.refusal}` as "household.mouth.target_refused_implausible",
                   )
                   : undefined}
-                htmlFor="mouth-target-weight"
+                htmlFor={`${idPrefix}-target-weight`}
               >
                 <input
-                  id="mouth-target-weight"
+                  id={`${idPrefix}-target-weight`}
                   type="number"
                   inputMode="decimal"
                   step="0.1"
@@ -898,10 +913,10 @@ export function TargetAndPaceFields(
                 <Field
                   label={t("household.mouth.pace")}
                   hint={t("household.mouth.pace_hint")}
-                  htmlFor="mouth-pace"
+                  htmlFor={`${idPrefix}-pace`}
                 >
                   <input
-                    id="mouth-pace"
+                    id={`${idPrefix}-pace`}
                     type="range"
                     min={paceControl.min}
                     max={paceControl.max}
