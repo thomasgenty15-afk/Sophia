@@ -13,6 +13,38 @@
 - ⚠️ tenu, avec une réserve qu'un humain doit connaître
 - Chaque défaut porte son `fichier:ligne`.
 
+---
+
+## LE VERDICT EN UNE PAGE
+
+**Ce qui a été construit aujourd'hui est bon. Ce qui manque, c'est de le
+BRANCHER — et de le mettre dans git.**
+
+Presque chaque défaut trouvé a la même forme : *la pièce existe, elle est juste,
+elle est testée, et elle n'est reliée qu'à une porte sur deux ou trois.*
+
+| # | Ce qu'un humain vit | Verdict |
+|---|---|---|
+| 1 | Le pop-up des six blocs s'ouvre sur le maître et écrit vraiment | ✅ **vu, jusqu'en base** |
+| 2 | Il s'ouvre aussi quand on ajoute une bouche neuve | ✅ vu |
+| 3 | Il ne s'ouvre **pas** quand on modifie une bouche existante | 🟥 une carte différente, **sans poids visé ni curseur** |
+| 4 | Il n'existe **pas du tout** dans le tunnel d'inscription | 🟥 zéro occurrence dans `SetupPage.tsx` |
+| 5 | Le curseur : 4 états, plafond ≤ 1 kg/sem, avertissement, saturation | ✅ mesuré sur 7 corps — sauf l'état `no_margin`, 🟥 jamais atteint |
+| 6 | Le cran d'activité obligatoire seulement en perte/prise | ✅ |
+| 7 | Le corps saisi dans le pop-up revient dans le tunnel | 🟥 **taille et sexe perdus** — deux tables pour le même corps |
+| 8 | La grille de présence a trois états | 🟥 **elle en a deux, pour tout le monde** — `onSaveMarks` n'a aucun appelant |
+| 9 | `/app/plan` : jour, semaine, sessions, courses, parts, grammes | ✅ vu, tout y est |
+| 10 | Aucune calorie / aucun solde / corps d'enfant jamais énoncé | ✅ 0 `kcal` éteint, 0 solde, 0 chiffre sur l'enfant |
+| 11 | L'interrupteur des calories coupe les deux écrans | ✅ 4 → 0 sur `/app/plan` **et** `/app/today` |
+| 12 | Le conseil du midi et la case « dehors », à l'œil | 🟥 **non vus** — aucun foyer n'a de midi « dehors » |
+| 13 | Les deux langues, 320 px et 1280 px, aucun défilement latéral | ✅ mesuré |
+| 14 | **Un collègue clone le dépôt et lance le produit** | 🟥🟥 **1 170 erreurs — le frontend ne compile pas** |
+
+**Le point 14 domine tous les autres** : les treize premiers décrivent un disque
+dur, pas un dépôt.
+
+---
+
 ## Le harnais
 
 - Serveur de dev **dédié** : `frontend-e`, port **5198** (aucune autre lane
