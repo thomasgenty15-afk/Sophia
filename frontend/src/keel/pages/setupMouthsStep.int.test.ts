@@ -83,6 +83,10 @@ function html(patch: Record<string, unknown> = {}): string {
       onGoal: () => {},
       onBirthDate: () => {},
       onAllergyAnswer: () => {},
+      onOpenDraftPreferences: () => {},
+      onOpenMouthPreferences: () => {},
+      mouthPrefs: null,
+      onSaveMouthPreferences: () => {},
       onBody: () => {},
       onRemove: () => {},
       confirmRemove: null,
@@ -272,5 +276,86 @@ describe("et la cible d'une bouche a son écrivain", () => {
     expect(src, "la cible d'une bouche ne part nulle part").toContain(
       "setMemberTarget(",
     );
+  });
+});
+
+// ===========================================================================
+// D7 (2026-08-18) — LES ALLERGIES D'UNE BOUCHE SONT DERRIÈRE LE BOUTON
+//
+// Cet écran en portait TROIS exemplaires en ligne — la carte du titulaire, ce
+// formulaire d'ajout, et la ligne de chaque bouche déjà inscrite — pendant que
+// la même question vivait déjà dans une fenêtre sur `/app/household`. Deux
+// formulaires sur la même colonne: c'est le motif qui avait servi à ne rien
+// faire, et c'est celui qu'on referme.
+//
+// ⚠️ RETIRER LE CHAMP SANS LA PORTE SERAIT PIRE QUE DE NE RIEN FAIRE:
+// `canGenerate` réclame `member_allergies`, et la ligne n'offrirait plus aucun
+// champ pour y répondre — un bouton gris, et rien à faire.
+// ===========================================================================
+describe("la porte des préférences, et plus aucun champ en ligne", () => {
+  it("le formulaire d'ajout porte le bouton", () => {
+    expect(html()).toContain(en["household.mouth.preferences_open"]);
+  });
+
+  it("et plus aucun sélecteur d'allergies en ligne", () => {
+    expect(html(), "le champ d'allergies en ligne est revenu")
+      .not.toContain(en["setup.people.allergies_none"]);
+  });
+
+  /**
+   * ⚠️ LA LIGNE D'UNE BOUCHE DÉJÀ INSCRITE AUSSI, et son bouton n'est PAS
+   * conditionné à « les allergies n'ont pas encore de réponse »: la fenêtre
+   * porte aussi ce qu'elle mange déjà, ce qu'elle n'aime pas et son régime.
+   */
+  it("une bouche déjà inscrite a la même porte, même allergies répondues", () => {
+    const markup = renderToStaticMarkup(
+      createElement(MouthsStep, {
+        mouths: [{
+          memberId: "m-1",
+          firstName: "Léa",
+          claimed: false,
+          diet: null,
+          eatingSlots: null,
+          away: [],
+          heightCm: 120,
+          weightKg: 25,
+          gender: "female",
+          activityLevel: null,
+          kind: "child",
+          birthDate: null,
+          goal: null,
+          allergiesReviewed: true,
+        }],
+        draft: draft(),
+        onDraftChange: () => {},
+        onAdd: () => {},
+        held: null,
+        failure: null,
+        onDiscard: () => {},
+        onGoal: () => {},
+        onBirthDate: () => {},
+        onAllergyAnswer: () => {},
+        onOpenDraftPreferences: () => {},
+        onOpenMouthPreferences: () => {},
+        mouthPrefs: null,
+        onSaveMouthPreferences: () => {},
+        onBody: () => {},
+        onRemove: () => {},
+        confirmRemove: null,
+        onConfirmRemove: () => {},
+        inviteFor: null,
+        onInviteFor: () => {},
+        inviteEmail: "",
+        onInviteEmail: () => {},
+        onInvite: () => {},
+        invite: null,
+        busy: false,
+        // deno-lint-ignore no-explicit-any
+      } as any),
+    );
+    // Deux boutons: celui de sa ligne, et celui du formulaire d'ajout.
+    expect(markup.split(en["household.mouth.preferences_open"]).length - 1)
+      .toBe(2);
+    expect(markup).not.toContain(en["setup.people.allergies_none"]);
   });
 });

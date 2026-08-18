@@ -1036,6 +1036,10 @@ export function MeCard(
           onChange={setSheetDraft}
           subject={{ existing: true, hasAccount: true }}
           busy={busy}
+          // `/app/household` N'EXISTE QUE PARCE QU'IL Y A UN FOYER: la ligne
+          // membre est là, donc les habitudes, les dégoûts et le régime ont
+          // tous les trois où aller. Voir la prop.
+          memberScoped
           openBlock={openBlock}
           onOpenBlock={setOpenBlock}
         />
@@ -1190,6 +1194,7 @@ function AddMouthCard(
             onChange={setDraft}
             subject={{ existing: false, hasAccount: false }}
             busy={busy}
+            memberScoped
             openBlock={openBlock}
             onOpenBlock={setOpenBlock}
           />

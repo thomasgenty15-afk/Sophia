@@ -159,6 +159,26 @@ export interface MouthPreferencesFieldsProps {
    */
   openBlock: MouthFormBlock | null;
   onOpenBlock: (next: MouthFormBlock | null) => void;
+  /**
+   * CET ÉCRAN SAIT-IL ÉCRIRE SUR UNE LIGNE DE FOYER ? REQUIS, jamais `?`.
+   *
+   * ⚠️ CE N'EST PAS UN GOÛT DE MISE EN PAGE, C'EST LA CARTE DES ÉCRIVAINS.
+   * Trois des blocs de cette fenêtre sont clés sur un `member_id`: les
+   * habitudes (`household_member_habits`), les dégoûts
+   * (`household_food_restrictions`) et le régime
+   * (`keel_household_set_member_diet`). Un compte SOLO n'a pas de foyer, donc
+   * pas de ligne membre: ces trois-là n'auraient nulle part où aller.
+   *
+   * `false` les retire. Ce qui reste — les allergies
+   * (`student_safety_constraints`, clé `user_id`) et le shaker
+   * (`fixed_intakes`, clé `user_id`) — s'écrit sans ligne de foyer.
+   *
+   * ⛔ NE PAS LE RENDRE OPTIONNEL avec un défaut `true`: un appelant qui
+   * l'oublie montrerait alors trois contrôles qui échouent à tous les coups —
+   * « pire qu'un contrôle absent, parce qu'il promet ». Un paramètre de garde
+   * facultatif est une garde désarmée.
+   */
+  memberScoped: boolean;
 }
 
 /**
@@ -304,6 +324,49 @@ export default function MouthFormDialog(
     >
       <MouthPreferencesFields {...props} />
     </Modal>
+  );
+}
+
+/**
+ * LA PORTE DES PRÉFÉRENCES — LE BOUTON, ET CE QU'IL DIT DÉJÀ PORTER.
+ *
+ * ⚠️ UN COMPOSANT À PART DEPUIS LE 2026-08-18, parce que l'entonnoir le monte
+ * aussi — trois fois, même: sur la fiche du titulaire, sur le formulaire
+ * d'ajout, et sur la ligne de chaque bouche déjà inscrite. Les champs
+ * d'allergies EN LIGNE ont disparu de cet écran; ce bouton est alors la SEULE
+ * porte vers eux, et une porte recopiée à trois endroits est une porte dont
+ * deux exemplaires cesseront un jour de dire la même chose.
+ *
+ * ⚠️ LE RÉCAPITULATIF N'EST PAS DÉCORATIF. Sans lui, refermer la fenêtre se lit
+ * comme perdre ce qu'on vient de taper: le brouillon le garde, mais l'écran
+ * n'en montre plus rien — et « un geste qui ne fait rien est indiscernable d'un
+ * geste qui a marché » vaut aussi dans l'autre sens.
+ */
+export function MouthPreferencesButton(
+  { draft, busy, onOpen }: {
+    draft: MouthFormDraft;
+    busy: boolean;
+    onOpen: () => void;
+  },
+): React.ReactElement {
+  const filled = filledPreferenceBlocks(draft);
+  return (
+    <div className="rounded-card border border-line-strong bg-paper p-4">
+      <Button variant="secondary" disabled={busy} onClick={onOpen}>
+        {t("household.mouth.preferences_open")}
+      </Button>
+      <p className="mt-2 text-xs leading-5 text-ink-soft">
+        {filled.length > 0
+          ? t("household.mouth.preferences_filled", {
+            blocks: blockList(
+              filled.map((b) =>
+                t(`household.mouth.block_${b}` as "household.mouth.block_identity")
+              ),
+            ),
+          })
+          : t("household.mouth.preferences_empty")}
+      </p>
+    </div>
   );
 }
 
@@ -561,28 +624,11 @@ export function MouthCoreFields(
             de taper: le brouillon le garde, mais l'écran n'en montrait plus
             rien — et « un geste qui ne fait rien est indiscernable d'un geste
             qui a marché » vaut aussi dans l'autre sens. */}
-        <div className="rounded-card border border-line-strong bg-paper p-4">
-          <Button
-            variant="secondary"
-            disabled={props.busy}
-            onClick={props.onOpenPreferences}
-          >
-            {t("household.mouth.preferences_open")}
-          </Button>
-          <p className="mt-2 text-xs leading-5 text-ink-soft">
-            {filled.length > 0
-              ? t("household.mouth.preferences_filled", {
-                blocks: blockList(
-                  filled.map((b) =>
-                    t(
-                      `household.mouth.block_${b}` as "household.mouth.block_identity",
-                    )
-                  ),
-                ),
-              })
-              : t("household.mouth.preferences_empty")}
-          </p>
-        </div>
+        <MouthPreferencesButton
+          draft={draft}
+          busy={props.busy}
+          onOpen={props.onOpenPreferences}
+        />
 
         {/* ── LE REFUS, PUIS CE QUI RETIENT, PUIS LE GESTE ───────────────── */}
         {props.failure !== null ? (
@@ -665,6 +711,10 @@ export function MouthPreferencesFields(
           open={props.openBlock === "habits" || shakerIsForeground(draft.goal)}
           onToggle={() => toggle("habits")}
         >
+          {/* ⚠️ LES LIGNES PAR MOMENT VIVENT SUR `household_member_habits`,
+              clé `member_id`. Un compte solo n'a pas de ligne de foyer: les
+              montrer chez lui promettrait une saisie qui n'irait nulle part.
+              Le shaker, lui, reste — il est clé sur `user_id`. */}
           {/* UNE HABITUDE DIT UNE TENDANCE QUE LA COMPOSITION CONTOURNE, pas
               une quantité qui remplace un repas. On ne demande donc NI
               quantité NI aliment résolu: « une pomme » n'a ni l'un ni l'autre,
@@ -672,7 +722,7 @@ export function MouthPreferencesFields(
               Le cas qui a ouvert le chantier: sept matins d'œufs brouillés
               servis à une femme qui mange une pomme — personne ne le lui avait
               demandé. */}
-          {EATING_OCCASIONS.map((slot) => (
+          {(props.memberScoped ? EATING_OCCASIONS : []).map((slot) => (
             <Field
               key={slot}
               label={mealCopy(`meals.slot.${slot}` as "meals.slot.breakfast")}
@@ -756,7 +806,13 @@ export function MouthPreferencesFields(
           </Button>
         </Foldable>
 
-        {/* ── BLOC 6 · SES GOÛTS, SON RÉGIME · sautable ──────────────────── */}
+        {/* ── BLOC 6 · SES GOÛTS, SON RÉGIME · sautable ────────────────────
+            ⚠️ LES DEUX SONT CLÉS SUR `member_id` — `household_food_restrictions`
+            pour les dégoûts, `keel_household_set_member_diet` pour le régime.
+            Sans ligne de foyer, ce bloc entier n'a aucun écrivain: on le retire
+            plutôt que de rendre trois contrôles qui échouent à tous les
+            coups. */}
+        {props.memberScoped ? (
         <Foldable
           title={t("household.mouth.tastes")}
           hint={t("household.mouth.tastes_hint")}
@@ -803,6 +859,7 @@ export function MouthPreferencesFields(
             </Field>
           )}
         </Foldable>
+        ) : null}
 
 
       {/* CE QUI SE PASSE À LA FERMETURE, DIT AVANT DE FERMER. */}

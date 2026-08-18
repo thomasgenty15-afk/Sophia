@@ -132,6 +132,11 @@ function prefsHtml(args: Parameters<typeof scene>[0]): string {
       onClose: () => {},
       openBlock: s.openBlock,
       onOpenBlock: () => {},
+      // ⚠️ `true` PARCE QUE C'EST LE CAS NOMINAL DE CETTE FENÊTRE: elle
+      // s'ouvre sur `/app/household`, donc il y a un foyer, donc une ligne
+      // membre. `false` est l'état d'un compte SOLO, et il a son propre cas
+      // juste en dessous — « une garde a besoin d'un cas qui passe ».
+      memberScoped: (args as { memberScoped?: boolean }).memberScoped ?? true,
     }),
   );
 }
@@ -828,6 +833,7 @@ describe("la fenêtre se ferme, et ce qui retient est NOMMÉ", () => {
           failure: null,
           openBlock: null,
           onOpenBlock: () => {},
+          memberScoped: true,
           onSubmit: () => {},
         }),
       ),
@@ -1134,5 +1140,57 @@ describe("le corps est demandé AVANT le rythme qu'il borne", () => {
       .not.toContain("below");
     expect(decode(fr["household.mouth.pace_needs_body"]).toLowerCase())
       .not.toContain("ci-dessous");
+  });
+});
+
+// ===========================================================================
+// D7 (2026-08-18) — `memberScoped`: CE QUE LA FENÊTRE A LE DROIT DE MONTRER
+//
+// Trois des six blocs sont clés sur un `member_id` — les habitudes
+// (`household_member_habits`), les dégoûts (`household_food_restrictions`) et
+// le régime (`keel_household_set_member_diet`). Un compte SOLO n'a pas de
+// foyer, donc pas de ligne membre: les lui montrer serait trois contrôles qui
+// échouent à tous les coups, « pire qu'un contrôle absent, parce qu'il
+// promet ».
+//
+// ⚠️ CE CAS EST LE « CAS QUI PASSE » DE LA GARDE. Sans lui, `memberScoped`
+// serait un paramètre que tout le monde met à `true` et que rien ne mesure.
+// ===========================================================================
+describe("un écran sans ligne de foyer ne montre que ce qu'il sait écrire", () => {
+  it("les habitudes par moment disparaissent, le shaker reste", () => {
+    const body = text(
+      prefsHtml({
+        subject: WITH_ACCOUNT,
+        openBlock: "habits",
+        // deno-lint-ignore no-explicit-any
+        ...({ memberScoped: false } as any),
+      }),
+    );
+    // `fixed_intakes` est clé sur `user_id`: le shaker part sans foyer.
+    expect(body).toContain(decode(en["household.mouth.shaker_add"]));
+    expect(body).not.toContain(decode(en["household.mouth.habit_placeholder"]));
+  });
+
+  it("le bloc des goûts et du régime disparaît en entier", () => {
+    const body = text(
+      prefsHtml({
+        openBlock: "tastes",
+        // deno-lint-ignore no-explicit-any
+        ...({ memberScoped: false } as any),
+      }),
+    );
+    expect(body).not.toContain(decode(en["household.mouth.tastes"]));
+  });
+
+  /** ET LES ALLERGIES RESTENT — `student_safety_constraints` est sur `user_id`. */
+  it("les allergies, elles, restent: elles n'ont pas besoin d'un foyer", () => {
+    const body = text(
+      prefsHtml({
+        openBlock: "allergies",
+        // deno-lint-ignore no-explicit-any
+        ...({ memberScoped: false } as any),
+      }),
+    );
+    expect(body).toContain(decode(en["setup.mouths.allergies"]));
   });
 });

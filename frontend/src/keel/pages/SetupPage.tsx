@@ -83,13 +83,21 @@ import { BUDGET_MAX } from "../api/planBudget";
 // Le composant, la décision et l'écrivain viennent tous les trois d'ailleurs:
 // cet écran n'en refait aucun. Une seconde lecture de `paceControlFor` ici
 // divergerait de celle de `/app/household` au premier correctif.
-import { TargetAndPaceFields } from "../components/MouthFormDialog";
+import MouthFormDialog, {
+  MouthPreferencesButton,
+  TargetAndPaceFields,
+} from "../components/MouthFormDialog";
 import {
   emptyMouthDraft as emptyMouthFormDraft,
+  filledPreferenceBlocks,
+  type MouthFormBlock,
   type MouthFormDraft,
+  type ShakerDraft,
+  shakerToWrite,
   targetPayloadOf,
 } from "../lib/mouthForm";
 import {
+  addShakerToOwnIntakes,
   loadOwnMouth,
   setMemberTarget,
   setOwnTarget,
@@ -98,7 +106,7 @@ import { chooseGenerator } from "../api/planRouting";
 import { addDays, daysBetween } from "../api/dates";
 import { MAX_WINDOW_DAYS, windowDayOrder } from "../api/mealWindow";
 import { type AwayDay, type EatingOccasionSlot } from "../api/mealGeneration";
-import { setMemberAway } from "../api/household";
+import { addRestriction, setMemberAway } from "../api/household";
 import MealPickerGrid from "../components/MealPickerGrid";
 import TableStepPlanning from "../components/TableStepPlanning";
 import { workLunchRoster } from "../lib/workLunchRoster";
@@ -184,6 +192,18 @@ interface SelfDraft {
   allergies: string[];
   /** « Rien à déclarer » — une RÉPONSE, pas une absence de réponse. */
   allergiesNone: boolean;
+  // ── CE QUI SE SAISIT DERRIÈRE « RENSEIGNER SES PRÉFÉRENCES » (2026-08-18) ──
+  // Ces trois-là ne sont PAS des champs de la carte: ils vivent dans la
+  // fenêtre. Ils sont quand même dans CE brouillon, et pas dans un second, pour
+  // la raison qui gouverne toute la fenêtre — un seul brouillon, un seul
+  // écrivain. Deux états pour une même personne, c'est la garantie qu'un jour
+  // l'un des deux cessera d'écrire ce que l'autre écrit.
+  /** Une ligne libre par moment nommé. Clé = le moment. SEMÉE par `load`. */
+  habits: Record<string, string>;
+  /** Ses dégoûts. JAMAIS une allergie — deux tables, deux natures (FF-046). */
+  dislikes: string[];
+  /** Son apport fixe déclaré, ou `null`. Clé sur `user_id` (`fixed_intakes`). */
+  shaker: ShakerDraft | null;
 }
 
 /**
@@ -501,6 +521,53 @@ export default function SetupPage() {
   >(null);
 
   /**
+   * QUI EST DEVANT LA FENÊTRE DES PRÉFÉRENCES — ou `null`, elle est fermée.
+   *
+   * ⚠️ UNE SEULE FENÊTRE POUR TROIS SURFACES (le titulaire, la fiche qu'on
+   * ajoute, chaque bouche déjà inscrite), et c'est le point: les champs
+   * d'allergies EN LIGNE ont disparu de l'étape 2 le 2026-08-18 — ils étaient
+   * la moitié éclatée d'un formulaire dont l'autre moitié vivait déjà dans une
+   * fenêtre. Trois copies de la fenêtre auraient rouvert la même plaie.
+   */
+  const [prefsFor, setPrefsFor] = React.useState<
+    | { kind: "self" }
+    | { kind: "new" }
+    | { kind: "member"; memberId: string }
+    | null
+  >(null);
+  /** Le bloc sautable ouvert. Contrôlé — voir `MouthPreferencesFieldsProps`. */
+  const [prefsBlock, setPrefsBlock] = React.useState<MouthFormBlock | null>(
+    null,
+  );
+  /**
+   * LE BROUILLON DE PRÉFÉRENCES D'UNE BOUCHE DÉJÀ INSCRITE.
+   *
+   * ⚠️ UN SEUL À LA FOIS, ET IL PORTE SON `memberId`. Une carte par bouche
+   * aurait demandé une table d'états dont l'écran ne sait rien faire: on
+   * n'édite qu'une personne à la fois, et le bouton d'enregistrement de sa
+   * ligne est juste sous le sien.
+   *
+   * ⛔ SES ALLERGIES NE SONT PAS SEMÉES — la porte AJOUTE (`add_*`), et le
+   * roster ne rend de toute façon que « la question a-t-elle été posée ». Ses
+   * habitudes, elles, LE SONT: leur porte remplace la liste complète.
+   */
+  const [memberPrefs, setMemberPrefs] = React.useState<
+    { memberId: string; draft: MouthFormDraft } | null
+  >(null);
+  /**
+   * LES DÉGOÛTS DÉJÀ PARTIS EN BASE, PAR BOUCHE.
+   *
+   * ⚠️ `household_food_restrictions` n'a QUE `add` et `remove` — il n'existe
+   * pas de « poser la liste ». Or « Continuer » peut être appuyé dix fois, et
+   * `saveSelf` est rappelé par `addMouth`: sans ce registre, un dégoût saisi
+   * une fois se réécrirait à chaque geste. On n'envoie donc que le DELTA.
+   *
+   * ⚠️ UNE `ref`, PAS UN ÉTAT: le rendu n'en dépend pas, et un `setState` dans
+   * un écrivain relancerait un rendu au milieu d'une chaîne d'écritures.
+   */
+  const writtenDislikes = React.useRef<Map<string, Set<string>>>(new Map());
+
+  /**
    * LA LECTURE, ET ELLE EST LA SEULE SOURCE DE L'ÉTAT.
    *
    * ⚠️ `seed` NE RESÈME LES BROUILLONS QU'AU PREMIER CHARGEMENT. Un `refresh`
@@ -517,11 +584,15 @@ export default function SetupPage() {
         // LES HABITUDES SUIVENT LA MÊME LECTURE. Un foyer absent rend une
         // carte vide plutôt qu'une erreur: le compte solo est le chemin
         // majoritaire et il n'a personne à décrire.
-        if (read.householdId) {
-          setHabits(await loadMemberHabits().catch(() => new Map()));
-        } else {
-          setHabits(new Map());
-        }
+        // ⚠️ LA CARTE EST GARDÉE EN LOCAL, PAS SEULEMENT POSÉE DANS L'ÉTAT:
+        // le brouillon du titulaire s'en SÈME quelques lignes plus bas, et
+        // `setHabits` ne rend pas la valeur au tour de boucle courant.
+        // Sans cette semence, ouvrir la fenêtre et enregistrer EFFACERAIT les
+        // habitudes déjà déclarées — la porte remplace la liste COMPLÈTE.
+        const habitsMap = read.householdId
+          ? await loadMemberHabits().catch(() => new Map())
+          : new Map();
+        setHabits(habitsMap);
         // SA CIBLE ET SON RYTHME, DEPUIS `student_goals`. Hors du `seed`: ces
         // deux valeurs ne sont pas un brouillon de saisie, ce sont des FAITS
         // qu'une autre surface a pu écrire entre-temps — et l'étape 3 doit les
@@ -555,6 +626,22 @@ export default function SetupPage() {
             goal: read.state.self.goal ?? "",
             allergies: [],
             allergiesNone: read.state.self.allergiesReviewed,
+            // ⚠️ SEMÉES, JAMAIS VIDES: `keel_household_set_member_habits`
+            // REMPLACE la liste entière. Un brouillon vide enregistré effacerait
+            // « elle mange une pomme le matin » sans un mot — la cicatrice
+            // `mount-snapshot-forms-need-a-loading-gate`, prise par l'autre bout.
+            habits: Object.fromEntries(
+              (habitsMap.get(read.ownMemberId ?? "")?.slots ?? []).map((
+                h: HabitSlot,
+              ) => [h.slot, h.usual]),
+            ),
+            // ⛔ NI LES DÉGOÛTS NI LE SHAKER NE SE SÈMENT, et ce n'est pas un
+            // oubli: les dégoûts s'AJOUTENT (`add_*`, il n'existe pas de
+            // « poser la liste »), donc les semer les rejouerait à chaque
+            // enregistrement. Le shaker, lui, remplace la ligne de même
+            // `food_ref` et garde les autres.
+            dislikes: [],
+            shaker: null,
           });
           setPlan(read.state.plan);
           const branch = read.branch;
@@ -686,7 +773,49 @@ export default function SetupPage() {
       activityLevel: self.activityLevel ?? "",
       targetWeightKg: selfTarget.targetWeightKg,
       paceKgPerWeek: selfTarget.paceKgPerWeek,
+      // ── ET CE QUI SE SAISIT DERRIÈRE LE BOUTON (2026-08-18) ──────────────
+      // Les blocs 4-6 de la fenêtre éditent CE brouillon-ci. Sans ces quatre
+      // lignes ils recevraient le vide de `emptyMouthFormDraft()` à chaque
+      // rendu, c'est-à-dire un formulaire qui oublie ce qu'on vient d'y taper.
+      allergies: self.allergies,
+      allergiesNone: self.allergiesNone,
+      habits: self.habits,
+      dislikes: self.dislikes,
+      shaker: self.shaker,
+      diet: self.diet,
     };
+
+  /**
+   * CE QUE LA FENÊTRE ÉCRIT DANS LE BROUILLON DU TITULAIRE — ET OÙ ÇA VA.
+   *
+   * ⚠️ DEUX DESTINATIONS, ET C'EST LA SEULE CHOSE QUI COMPTE ICI. Le poids visé
+   * et le rythme sont des FAITS RELUS (`selfTarget`, posé par la lecture); tout
+   * le reste est le brouillon de saisie (`self`). Tout ramener dans l'un ou
+   * l'autre ferait, dans un sens, une seconde copie du corps qui se périme, et
+   * dans l'autre, une cible écrasée à la prochaine relecture.
+   */
+  const setSelfMouthDraft: React.Dispatch<
+    React.SetStateAction<MouthFormDraft>
+  > = (next) => {
+    if (selfMouthDraft === null) return;
+    const applied = typeof next === "function" ? next(selfMouthDraft) : next;
+    setSelfTarget((prev) =>
+      prev === null ? prev : {
+        targetWeightKg: applied.targetWeightKg,
+        paceKgPerWeek: applied.paceKgPerWeek,
+      }
+    );
+    setSelf((prev) =>
+      prev === null ? prev : {
+        ...prev,
+        allergies: [...applied.allergies],
+        allergiesNone: applied.allergiesNone,
+        habits: { ...applied.habits },
+        dislikes: [...applied.dislikes],
+        shaker: applied.shaker,
+      }
+    );
+  };
 
   const isLast = stepIndex >= steps.length - 1;
 
@@ -852,6 +981,57 @@ export default function SetupPage() {
           current: fresh.practicalConstraints,
         });
       }
+      // ── CE QUI A ÉTÉ SAISI DERRIÈRE « RENSEIGNER SES PRÉFÉRENCES » ────────
+      //
+      // ⚠️ SES HABITUDES ET SES DÉGOÛTS N'EXISTENT QUE S'IL A UNE LIGNE DE
+      // FOYER. Les deux tables sont clées sur `member_id`; un compte solo n'en
+      // a pas, et la fenêtre ne lui montre pas ces blocs (`memberScoped`). La
+      // garde ici est la MÊME décision, du côté de l'écriture: un écran et un
+      // écrivain qui ne seraient pas d'accord, c'est un champ qui promet.
+      if (facts!.householdId && facts!.ownMemberId && facts!.isOwner) {
+        const memberId = facts!.ownMemberId;
+        // LA LISTE COMPLÈTE REMPLACE — d'où la semence de `load`. Et la ligne
+        // libre est REPASSÉE telle quelle: la porte écrit les deux d'un coup,
+        // et envoyer `null` effacerait la note posée à l'étape 3.
+        await setMemberHabits(
+          memberId,
+          Object.entries(draft.habits)
+            .map(([slot, usual]) => ({
+              slot: slot as EatingOccasion,
+              kind: "own_usual" as const,
+              usual: usual.trim(),
+            }))
+            .filter((h) => h.usual !== ""),
+          habits?.get(memberId)?.note ?? null,
+        );
+        // ⚠️ LE DELTA, PAS LA LISTE. La porte n'a que `add` — « Continuer »
+        // appuyé deux fois écrirait deux fois le même dégoût.
+        const already = writtenDislikes.current.get(memberId) ?? new Set();
+        for (const label of draft.dislikes) {
+          if (already.has(label)) continue;
+          const res = await addRestriction(memberId, label);
+          if (!res.ok) throw new Error(res.reason);
+          already.add(label);
+        }
+        writtenDislikes.current.set(memberId, already);
+      }
+      // LE SHAKER, LUI, VIT SUR `user_id` — donc il part même sans foyer.
+      // `shakerToWrite` rend `null` tant que la quantité manque: un apport sans
+      // ses trois nombres serait contourné au lieu d'être compté.
+      const shaker = selfMouthDraft === null
+        ? null
+        : shakerToWrite(selfMouthDraft);
+      if (shaker !== null) {
+        // LECTURE FRAÎCHE: `fixed_intakes` vit dans le MÊME jsonb que le régime
+        // et les allergies qu'on vient d'écrire. Repartir d'une photo périmée
+        // effacerait ce qui vient d'y être posé.
+        const fresh = await readFunnelFacts(userId);
+        await addShakerToOwnIntakes({
+          userId,
+          current: fresh.practicalConstraints,
+          shaker,
+        });
+      }
       await load(false);
     })();
   }
@@ -976,9 +1156,13 @@ export default function SetupPage() {
         await saveMouthAllergies({
           userId,
           memberId,
-          labels: draft.allergies,
+          labels: [...draft.allergies],
           current: fresh.practicalConstraints,
         });
+        // ── ET LE RESTE DE CE QUI A ÉTÉ SAISI DANS LA FENÊTRE ──────────────
+        // Même ordre que `persistMouth`: les habitudes, puis les dégoûts, puis
+        // le régime. Les trois sont clés sur la ligne qu'on vient de créer.
+        await writeMouthPreferences(memberId, draft);
       } catch (error) {
         // On retire la ligne à moitié écrite, PUIS on relaie le motif d'origine.
         // Si le retrait échoue lui aussi, on ne le cache pas: la relecture
@@ -989,6 +1173,79 @@ export default function SetupPage() {
         throw error;
       }
       setMouth(emptyMouthDraft());
+      await load(false);
+    })();
+  }
+
+  /**
+   * CE QUE LA FENÊTRE A COLLECTÉ POUR UNE BOUCHE, ÉCRIT EN BASE.
+   *
+   * ⚠️ UN SEUL ÉCRIVAIN POUR LES DEUX CHEMINS — la bouche qu'on vient de créer
+   * et celle qu'on reprend. Deux copies divergeraient au premier correctif, et
+   * c'est précisément la plaie que ce lot referme.
+   *
+   * L'ORDRE EST CELUI DE `persistMouth`: les habitudes (la porte REMPLACE la
+   * liste), les dégoûts (elle AJOUTE — d'où le delta), le régime en dernier
+   * (`null` n'est pas envoyé: effacer ce que personne n'a posé n'apporte rien,
+   * et la base refuse `has_account`).
+   */
+  async function writeMouthPreferences(
+    memberId: string,
+    draft: MouthFormDraft,
+  ): Promise<void> {
+    const slots = Object.entries(draft.habits)
+      .map(([slot, usual]) => ({
+        slot: slot as EatingOccasion,
+        kind: "own_usual" as const,
+        usual: usual.trim(),
+      }))
+      .filter((h) => h.usual !== "");
+    const written = await setMemberHabits(
+      memberId,
+      slots,
+      habits?.get(memberId)?.note ?? null,
+    );
+    if (!written.ok) throw new Error(written.reason);
+    const already = writtenDislikes.current.get(memberId) ?? new Set<string>();
+    for (const label of draft.dislikes) {
+      if (already.has(label)) continue;
+      const res = await addRestriction(memberId, label);
+      if (!res.ok) throw new Error(res.reason);
+      already.add(label);
+    }
+    writtenDislikes.current.set(memberId, already);
+    if (draft.diet) {
+      const res = await setMemberDiet(memberId, draft.diet as DietAnswer);
+      if (!res.ok) throw new Error(res.reason);
+    }
+  }
+
+  /**
+   * LES PRÉFÉRENCES D'UNE BOUCHE DÉJÀ INSCRITE — le bouton de SA ligne.
+   *
+   * ⚠️ LES ALLERGIES PASSENT PAR LEUR PORTE À ELLES (`saveMouthAllergies`), et
+   * pas par `writeMouthPreferences`: leur accusé se fusionne dans la ligne
+   * `student_goals` DU MAÎTRE, donc l'écriture a besoin d'une lecture fraîche
+   * de sa colonne — pas de la photo d'écran, qui a pu vieillir de plusieurs
+   * gestes.
+   */
+  function saveMouthPreferences(target: FunnelMouth): Promise<void> {
+    return (async () => {
+      const memberId = target.memberId;
+      if (!memberId || memberPrefs?.memberId !== memberId) return;
+      const draft = memberPrefs.draft;
+      if (draft.allergiesNone || draft.allergies.length > 0) {
+        const fresh = await readFunnelFacts(userId);
+        await saveMouthAllergies({
+          userId,
+          memberId,
+          labels: [...draft.allergies],
+          current: fresh.practicalConstraints,
+        });
+      }
+      await writeMouthPreferences(memberId, draft);
+      setMemberPrefs(null);
+      setPrefsFor(null);
       await load(false);
     })();
   }
@@ -1309,18 +1566,15 @@ export default function SetupPage() {
               // les colonnes que le reste de la carte tient déjà.
               target={selfMouthDraft === null ? null : {
                 draft: selfMouthDraft,
-                onChange: (next) =>
-                  setSelfTarget((prev) => {
-                    if (prev === null) return prev;
-                    const applied = typeof next === "function"
-                      ? next(selfMouthDraft)
-                      : next;
-                    return {
-                      targetWeightKg: applied.targetWeightKg,
-                      paceKgPerWeek: applied.paceKgPerWeek,
-                    };
-                  }),
+                onChange: setSelfMouthDraft,
                 todayLocalIso: browserLocalDate(),
+              }}
+              // LA PORTE DES PRÉFÉRENCES. `null` tant que la lecture n'a pas eu
+              // lieu: un bouton qui ouvrirait une fenêtre sur du vide non lu
+              // l'écrirait au Save.
+              onOpenPreferences={selfMouthDraft === null ? null : () => {
+                setPrefsBlock(null);
+                setPrefsFor({ kind: "self" });
               }}
             />
             {/*
@@ -1356,6 +1610,35 @@ export default function SetupPage() {
                 onBirthDate={(m, d) => guardMouth(() => saveMouthBirthDate(m, d))}
                 onAllergyAnswer={(m, labels) =>
                   guardMouth(() => saveMouthAllergyAnswer(m, labels))}
+                onOpenDraftPreferences={() => {
+                  setPrefsBlock(null);
+                  setPrefsFor({ kind: "new" });
+                }}
+                // ⚠️ ON SÈME LES HABITUDES DE CETTE BOUCHE, ET RIEN D'AUTRE.
+                // Leur porte REMPLACE la liste complète: ouvrir sur du vide et
+                // enregistrer effacerait « une pomme le matin » sans un mot.
+                // Les allergies et les dégoûts, eux, s'AJOUTENT — les semer les
+                // rejouerait à chaque enregistrement.
+                onOpenMouthPreferences={(m) => {
+                  const known = habits?.get(m.memberId ?? "");
+                  setMemberPrefs({
+                    memberId: m.memberId ?? "",
+                    draft: {
+                      ...emptyMouthFormDraft(),
+                      firstName: m.firstName,
+                      goal: m.goal ?? "",
+                      diet: m.diet ?? "",
+                      habits: Object.fromEntries(
+                        (known?.slots ?? []).map((h) => [h.slot, h.usual]),
+                      ),
+                    },
+                  });
+                  setPrefsBlock(null);
+                  setPrefsFor({ kind: "member", memberId: m.memberId ?? "" });
+                }}
+                mouthPrefs={memberPrefs}
+                onSaveMouthPreferences={(m) =>
+                  guardMouth(() => saveMouthPreferences(m))}
                 onBody={(m, h, w, g) => guardMouth(() => saveRowBody(m, h, w, g))}
                 onRemove={(m) => guardMouth(() => removeMouth(m))}
                 confirmRemove={confirmRemove}
@@ -1647,6 +1930,73 @@ export default function SetupPage() {
           </div>
         </div>
 
+        {/* ── LA FENÊTRE DES PRÉFÉRENCES — UNE SEULE, POUR TROIS SURFACES ──
+            Décision de l'utilisateur (2026-08-18): « le reste — allergies,
+            habitudes, ce qu'on n'aime pas, le shaker — dans une pop-up
+            accessible depuis "Renseigner ses préférences alimentaires" », et
+            « bien sûr qu'il y ait le bouton pour l'ouvrir ».
+
+            ⚠️ ELLE N'ENREGISTRE RIEN PAR ELLE-MÊME. Elle édite le brouillon de
+            la fiche qui l'a ouverte, et c'est le geste d'enregistrement de
+            cette fiche qui écrit — « Continuer » pour le titulaire, « Ajouter »
+            pour la fiche neuve, le bouton de sa rangée pour une bouche déjà
+            inscrite. Deux boutons d'enregistrement sur un même brouillon, c'est
+            la garantie qu'un jour l'un des deux cessera d'écrire ce que l'autre
+            écrit — mesuré sur `MeCard`.
+
+            ⚠️ `Modal` REND `null` FERMÉ SANS DÉMONTER SES ENFANTS: on la monte
+            une fois, et le bloc déplié survit à une fermeture. */}
+        {prefsFor !== null && (
+          prefsFor.kind === "self"
+            ? selfMouthDraft !== null
+            : prefsFor.kind === "new" ||
+              memberPrefs?.memberId === prefsFor.memberId
+        ) ? (
+          <MouthFormDialog
+            open
+            onClose={() => setPrefsFor(null)}
+            draft={prefsFor.kind === "self"
+              ? selfMouthDraft!
+              : prefsFor.kind === "new"
+              ? mouth
+              : memberPrefs!.draft}
+            onChange={prefsFor.kind === "self"
+              ? setSelfMouthDraft
+              : prefsFor.kind === "new"
+              ? setMouth
+              : ((next) =>
+                setMemberPrefs((prev) =>
+                  prev === null ? prev : {
+                    ...prev,
+                    draft: typeof next === "function" ? next(prev.draft) : next,
+                  }
+                ))}
+            // ⚠️ `hasAccount` DÉCIDE DE DEUX BLOCS, DANS DES SENS OPPOSÉS: le
+            // shaker n'existe que pour un compte (`fixed_intakes` est clé sur
+            // `user_id`), le régime que pour une bouche sans compte (la base
+            // refuse `has_account`). Le titulaire en a un; une bouche qu'on
+            // ajoute n'en a jamais; une bouche inscrite, ça dépend d'elle.
+            subject={{
+              existing: prefsFor.kind !== "new",
+              hasAccount: prefsFor.kind === "self" ||
+                (prefsFor.kind === "member" &&
+                  (facts.mouths.find((m) => m.memberId === prefsFor.memberId)
+                    ?.claimed ?? false)),
+            }}
+            // ⚠️ ET `memberScoped` DÉCIDE DES TROIS AUTRES. Les habitudes, les
+            // dégoûts et le régime sont clés sur un `member_id`: un compte SOLO
+            // n'a pas de ligne de foyer, donc pas d'endroit où les ranger. Les
+            // lui montrer serait trois contrôles qui échouent à tous les coups.
+            // Une bouche, elle, a toujours sa ligne — celle qu'on ajoute
+            // l'obtiendra au clic sur « Ajouter ».
+            memberScoped={prefsFor.kind !== "self" ||
+              facts.ownMemberId !== null}
+            busy={busy}
+            openBlock={prefsBlock}
+            onOpenBlock={setPrefsBlock}
+          />
+        ) : null}
+
         {/* ── L'APERÇU, MONTÉ EN PERMANENCE ET NOURRI PAR LE BROUILLON ──────
             `Modal` rend `null` fermé — il ne démonte pas ses enfants — donc
             l'état de la fenêtre survit à une fermeture, et c'est
@@ -1915,14 +2265,7 @@ function SituateStep({
  * fautif se trouvait deux écrans plus loin, dans un fichier qui contenait bien
  * le mot `TargetAndPaceFields`. Voir `pages/setupSelfStepTarget.int.test.ts`.
  */
-export function SelfStep({
-  draft,
-  onChange,
-  branch,
-  onSave,
-  busy,
-  target,
-}: {
+export function SelfStep(props: {
   draft: SelfDraft;
   onChange: React.Dispatch<React.SetStateAction<SelfDraft | null>>;
   branch: FunnelBranch;
@@ -1943,7 +2286,17 @@ export function SelfStep({
     onChange: React.Dispatch<React.SetStateAction<MouthFormDraft>>;
     todayLocalIso: string;
   };
+  /**
+   * LE GESTE QUI OUVRE LES PRÉFÉRENCES — `null` tant que la lecture n'a pas eu
+   * lieu, et REQUIS dans les deux cas.
+   *
+   * ⚠️ C'EST LA SEULE PORTE VERS LES ALLERGIES depuis le 2026-08-18. Les rendre
+   * inatteignables serait pire que de les avoir laissées en ligne: `canGenerate`
+   * réclame la réponse, et l'écran n'offrirait aucun champ pour la donner.
+   */
+  onOpenPreferences: (() => void) | null;
 }) {
+  const { draft, onChange, branch, onSave, busy, target } = props;
   // ⚠️ MISE À JOUR FONCTIONNELLE, ET CE N'EST PAS UN TIC DE STYLE. Un
   // `onChange({ ...draft, ...patch })` fusionne depuis le `draft` de LA
   // FERMETURE, c'est-à-dire l'état du dernier rendu. React groupe les mises à
@@ -2110,14 +2463,30 @@ export function SelfStep({
             QUI sont les gens, l'étape 3 dit COMMENT ils mangent, et poser la
             même question à deux endroits selon la personne était pire. */}
 
-        <AllergyPicker
-          label={t("setup.people.allergies")}
-          hint={t("setup.people.allergies_hint")}
-          idPrefix="setup-self"
-          allergies={draft.allergies}
-          none={draft.allergiesNone}
-          onChange={(allergies, none) => set({ allergies, allergiesNone: none })}
-        />
+        {/* ── ⛔ ICI SE TENAIENT LES ALLERGIES, EN LIGNE ────────────────────
+            Retirées le 2026-08-18, sur la décision de l'utilisateur: « le
+            reste — allergies, habitudes, ce qu'on n'aime pas, le shaker —
+            dans une pop-up accessible depuis "Renseigner ses préférences
+            alimentaires" ».
+
+            ⚠️ ET IL N'EN RESTE AUCUN AILLEURS SUR CET ÉCRAN. Le formulaire
+            d'ajout et chaque ligne de bouche portaient le leur; les trois
+            passent par la MÊME fenêtre. Un champ d'allergie resté en ligne
+            pendant que la fenêtre en porte un autre, ce sont deux formulaires
+            sur la même colonne — le défaut qu'on vient de refermer, pas un
+            détail de mise en page.
+
+            ⚠️ CE QUI STRUCTURE LE PLAN RESTE EN LIGNE, ce qui l'affine passe
+            derrière le bouton. Une allergie affine: elle écarte des aliments
+            d'un plan dont la FORME est déjà décidée par le corps, la direction
+            et le rythme — tous au-dessus, sans clic. */}
+        {props.onOpenPreferences !== null && target !== null ? (
+          <MouthPreferencesButton
+            draft={target.draft}
+            busy={busy}
+            onOpen={props.onOpenPreferences}
+          />
+        ) : null}
 
         {onSave ? (
           <Button variant="secondary" disabled={busy} onClick={onSave}>
@@ -2161,6 +2530,17 @@ export function MouthsStep(props: {
   onGoal: (mouth: FunnelMouth, goal: MemberGoal | "") => void;
   onBirthDate: (mouth: FunnelMouth, date: string) => void;
   onAllergyAnswer: (mouth: FunnelMouth, labels: string[]) => void;
+  /** Ouvre la fenêtre sur le brouillon d'AJOUT. REQUIS — seule porte. */
+  onOpenDraftPreferences: () => void;
+  /** Ouvre la fenêtre sur une bouche DÉJÀ inscrite. REQUIS, même raison. */
+  onOpenMouthPreferences: (mouth: FunnelMouth) => void;
+  /**
+   * LE BROUILLON DE PRÉFÉRENCES D'UNE BOUCHE INSCRITE — celui qui est ouvert,
+   * ou `null`. C'est lui que le récapitulatif de sa ligne rend.
+   */
+  mouthPrefs: { memberId: string; draft: MouthFormDraft } | null;
+  /** Enregistre ce brouillon-là. REQUIS: sans lui la fenêtre ne promet rien. */
+  onSaveMouthPreferences: (mouth: FunnelMouth) => void;
   onBody: (
     mouth: FunnelMouth,
     heightCm: string,
@@ -2213,6 +2593,11 @@ export function MouthsStep(props: {
                 onGoal={(goal) => props.onGoal(m, goal)}
                 onBirthDate={(date) => props.onBirthDate(m, date)}
                 onAllergyAnswer={(labels) => props.onAllergyAnswer(m, labels)}
+                prefsDraft={props.mouthPrefs?.memberId === m.memberId
+                  ? props.mouthPrefs.draft
+                  : emptyMouthDraft()}
+                onOpenPreferences={() => props.onOpenMouthPreferences(m)}
+                onSavePreferences={() => props.onSaveMouthPreferences(m)}
                 onBody={(h, w, g) => props.onBody(m, h, w, g)}
                 onRemove={() => props.onRemove(m)}
                 confirmRemove={props.confirmRemove === m.memberId}
@@ -2393,13 +2778,16 @@ export function MouthsStep(props: {
             idPrefix="setup-mouth"
           />
 
-          <AllergyPicker
-            label={t("setup.mouths.allergies")}
-            hint={t("setup.people.allergies_hint")}
-            idPrefix="setup-mouth"
-            allergies={[...draft.allergies]}
-            none={draft.allergiesNone}
-            onChange={(allergies, none) => set({ allergies, allergiesNone: none })}
+          {/* ── ⛔ ICI SE TENAIENT LES ALLERGIES DE LA FICHE, EN LIGNE ──────
+              Même déplacement que sur la carte du titulaire, le même jour et
+              pour la même raison — voir le commentaire là-haut. Le bouton
+              est la SEULE porte, et son récapitulatif dit ce qui est déjà
+              renseigné: sans lui, refermer la fenêtre se lirait comme perdre ce
+              qu'on vient de taper. */}
+          <MouthPreferencesButton
+            draft={draft}
+            busy={props.busy}
+            onOpen={props.onOpenDraftPreferences}
           />
 
           {/* ── LE REFUS VIT SUR LE GESTE QUI LE LÈVE ────────────────────────
@@ -2458,6 +2846,11 @@ function MouthRow(props: {
   onGoal: (goal: MemberGoal | "") => void;
   onBirthDate: (date: string) => void;
   onAllergyAnswer: (labels: string[]) => void;
+  /** Le brouillon de préférences de CETTE ligne — vide si elle n'est pas celle
+   * qui est ouverte. REQUIS: c'est ce que le récapitulatif rend. */
+  prefsDraft: MouthFormDraft;
+  onOpenPreferences: () => void;
+  onSavePreferences: () => void;
   onBody: (heightCm: string, weightKg: string, gender: MemberGender | "") => void;
   onRemove: () => void;
   confirmRemove: boolean;
@@ -2661,34 +3054,42 @@ function MouthRow(props: {
         </Field>
       ) : null}
 
-      {/* LA QUESTION DE SÉCURITÉ, QUAND ELLE N'A PAS DE RÉPONSE.
-          Le cas nominal est la reprise, ou une bouche saisie sur
-          `/app/household`. Sans ce bloc, `canGenerate` réclamerait
-          `member_allergies` et la ligne n'offrirait AUCUN champ pour y
-          répondre: un bouton gris, et rien à faire. */}
-      {!m.allergiesReviewed ? (
-        <div className="space-y-2">
-          <AllergyPicker
-            label={t("setup.mouths.allergies")}
-            hint={t("setup.people.allergies_hint")}
-            idPrefix={`setup-row-${m.memberId}`}
-            allergies={allergies}
-            none={none}
-            onChange={(next, isNone) => {
-              setAllergies(next);
-              setNone(isNone);
-            }}
-          />
+      {/* ── LA MÊME PORTE QUE POUR LES DEUX AUTRES FICHES ────────────────
+          ⛔ ICI SE TENAIT UN TROISIÈME CHAMP D'ALLERGIES EN LIGNE, rendu
+          seulement quand la question n'avait pas de réponse. Il est passé dans
+          la fenêtre le 2026-08-18, avec les deux autres.
+
+          ⚠️ ET IL EST MONTRÉ MÊME QUAND LES ALLERGIES SONT DÉJÀ RÉPONDUES,
+          contrairement à ce qu'il remplace: la fenêtre ne porte plus seulement
+          la question de sécurité — elle porte aussi ce que cette bouche mange
+          déjà, ce qu'elle n'aime pas, et son régime. Le garder conditionné à
+          `allergiesReviewed` rendrait ces trois blocs-là inatteignables pour
+          toute bouche dont on a déjà déclaré les allergies.
+
+          ⚠️ SA FENÊTRE A UN BOUTON D'ENREGISTREMENT, ET LES DEUX AUTRES NON.
+          Ce n'est pas une incohérence: la fiche du titulaire et le formulaire
+          d'ajout ont chacun leur geste d'enregistrement en bas (« Continuer »,
+          « Ajouter »), qui emporte le brouillon entier. Une ligne déjà
+          inscrite, elle, écrit champ par champ — chaque contrôle de cette
+          rangée a le sien. Sans ce bouton, la fenêtre serait la seule surface
+          de l'écran à ne rien promettre. */}
+      <div className="space-y-2">
+        <MouthPreferencesButton
+          draft={props.prefsDraft}
+          busy={props.busy}
+          onOpen={props.onOpenPreferences}
+        />
+        {filledPreferenceBlocks(props.prefsDraft).length > 0 ? (
           <Button
             variant="secondary"
             size="sm"
-            disabled={props.busy || (!none && allergies.length === 0)}
-            onClick={() => props.onAllergyAnswer(allergies)}
+            disabled={props.busy}
+            onClick={props.onSavePreferences}
           >
             {t("household.member.save")}
           </Button>
-        </div>
-      ) : null}
+        ) : null}
+      </div>
 
       {/* L'ACCÈS — UN AJOUT PAR-DESSUS, JAMAIS UNE ALTERNATIVE. On a déjà
           ajouté la bouche; ceci ne fait que permettre à quelqu'un de la

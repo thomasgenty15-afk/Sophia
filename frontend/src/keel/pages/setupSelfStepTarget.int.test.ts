@@ -85,6 +85,7 @@ function html(target: MouthFormDraft | null): string {
         onChange: () => {},
         todayLocalIso: TODAY,
       },
+      onOpenPreferences: target === null ? null : () => {},
       // deno-lint-ignore no-explicit-any
     } as any),
   );
@@ -229,5 +230,45 @@ describe("et ce que l'étape 2 collecte, elle l'écrit", () => {
     // `/app/household` au premier correctif. Le composant est partagé, exprès.
     expect(src).not.toContain("paceControlFor(");
     expect(src).toContain("TargetAndPaceFields");
+  });
+});
+
+// ===========================================================================
+// D7 (2026-08-18) — LES ALLERGIES SONT DERRIÈRE LE BOUTON, ET LE BOUTON EST LÀ
+//
+// Décision de l'utilisateur: « le reste — allergies, habitudes, ce qu'on n'aime
+// pas, le shaker — dans une pop-up accessible depuis "Renseigner ses
+// préférences alimentaires" », et « bien sûr qu'il y ait le bouton pour
+// l'ouvrir ».
+//
+// ⚠️ LES DEUX MOITIÉS COMPTENT, ET LA SECONDE EST LA PLUS DANGEREUSE À OUBLIER:
+// retirer le champ en ligne SANS la porte rendrait les allergies
+// inatteignables, pendant que `canGenerate` continue de réclamer la réponse.
+// Un écran qui exige ce qu'il n'offre plus est pire que le doublon qu'on
+// referme.
+// ===========================================================================
+describe("les allergies ont quitté la ligne, et la porte est visible", () => {
+  it("le bouton des préférences est rendu", () => {
+    const markup = html(KNOWN_BODY);
+    expect(markup).toContain(en["household.mouth.preferences_open"]);
+  });
+
+  /**
+   * ⚠️ PLUS AUCUN CHAMP D'ALLERGIE EN LIGNE. Deux formulaires sur la même
+   * colonne, c'est la garantie qu'un jour l'un des deux cessera d'écrire ce que
+   * l'autre écrit — le motif exact qui avait servi à ne rien faire.
+   */
+  it("plus aucun sélecteur d'allergies sur la carte", () => {
+    const markup = html(KNOWN_BODY);
+    expect(markup, "le champ d'allergies en ligne est revenu")
+      .not.toContain(en["setup.people.allergies_none"]);
+  });
+
+  /** ET IL DIT CE QUI EST DÉJÀ RENSEIGNÉ — sinon fermer se lit comme perdre. */
+  it("le récapitulatif nomme ce qui est déjà là", () => {
+    const empty = html(KNOWN_BODY);
+    expect(empty).toContain(en["household.mouth.preferences_empty"]);
+    const filled = html(draftOf({ ...KNOWN_BODY, allergies: ["peanut"] }));
+    expect(filled).toContain(en["household.mouth.block_allergies"]);
   });
 });
