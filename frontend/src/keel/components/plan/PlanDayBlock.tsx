@@ -237,6 +237,16 @@ export default function PlanDayBlock(props: PlanDayBlockProps) {
                 {cell.kind === "away" && (
                   <span className="italic">{mealCopy("meals.grid.away")}</span>
                 )}
+                {/* ⛔ MÊME TROU QUE DANS LA GRILLE, ET IL COÛTE PLUS CHER ICI.
+                    La ligne se rendait « Déjeuner — » et s'arrêtait là: un tiret
+                    suivi de rien. C'est le moment PRÉCIS où le produit a le
+                    droit de dire un ordre de grandeur (« vise autour de 700 »),
+                    donc celui où un silence se lit comme une panne. */}
+                {cell.kind === "eating_out" && (
+                  <span className="italic">
+                    {mealCopy("meals.grid.eating_out")}
+                  </span>
+                )}
                 {cell.kind === "fixed_intake" && (
                   <span className="italic">{cell.label}</span>
                 )}

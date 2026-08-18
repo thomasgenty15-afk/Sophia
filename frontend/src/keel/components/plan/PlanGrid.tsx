@@ -213,12 +213,30 @@ export default function PlanGrid(props: PlanGridProps) {
                         )}
                       </span>
                     )}
-                    {/* LES TROIS SILENCES VOULUS. Ils se ressemblent entre eux —
+                    {/* LES QUATRE SILENCES VOULUS. Ils se ressemblent entre eux —
                         ce sont tous des « rien à composer ici, et c'est normal »
-                        — et ils ne ressemblent PAS au quatrième. */}
+                        — et ils ne ressemblent PAS au cinquième. */}
                     {cell.kind === "away" && (
                       <span className="text-xs italic text-ink-soft">
                         {mealCopy("meals.grid.away")}
+                      </span>
+                    )}
+                    {/* ⛔ CE `<td>` ÉTAIT VIDE, ET C'EST LE DÉFAUT QUE LE LOT DU
+                        DÉJEUNER DEHORS EXISTAIT POUR LEVER. Le modèle produisait
+                        l'état (`kind: "eating_out"`, rangé AU MÊME RANG que
+                        `away` exprès), la traduction existait dans les deux
+                        langues — et la grille ne rendait RIEN: pas le mot, pas
+                        même le marqueur d'anomalie. Une case muette au milieu de
+                        cases qui parlent se lit comme un moment que le plan a
+                        oublié, c'est-à-dire exactement la confusion entre
+                        « dehors » et « le plan est cassé ».
+                        ⚠️ ELLE PORTE LE TON DES SILENCES, PAS L'AMBRE. « Dehors »
+                        est une déclaration de la personne, pas un défaut du
+                        plan: la peindre en ambre accuserait quelqu'un d'avoir
+                        déjeuné au restaurant. */}
+                    {cell.kind === "eating_out" && (
+                      <span className="text-xs italic text-ink-soft">
+                        {mealCopy("meals.grid.eating_out")}
                       </span>
                     )}
                     {cell.kind === "fixed_intake" && (
@@ -231,8 +249,8 @@ export default function PlanGrid(props: PlanGridProps) {
                         {mealCopy("meals.grid.leftovers")}
                       </span>
                     )}
-                    {/* LE QUATRIÈME, ET LE SEUL QUI SOIT UN DÉFAUT. Il ne doit
-                        ressembler à aucun des trois autres: c'est la seule
+                    {/* LE CINQUIÈME, ET LE SEUL QUI SOIT UN DÉFAUT. Il ne doit
+                        ressembler à aucun des quatre autres: c'est la seule
                         anomalie que cet écran pouvait révéler. */}
                     {cell.kind === "empty" && (
                       <span
