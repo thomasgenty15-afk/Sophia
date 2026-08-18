@@ -57,6 +57,14 @@ export interface DishEnergyView {
   gaps: string[];
 }
 
+/**
+ * ② LE VOCABULAIRE DU SUJET, FERMÉ, et aligné mot pour mot sur `DayEnergy.subject`
+ * (`_shared/keel/plan_energy.ts`). Un jeton inconnu retombe sur `the_day` —
+ * c'est-à-dire sur le comportement d'hier, jamais sur une phrase inventée.
+ */
+export const DAY_ENERGY_SUBJECTS = ["the_day", "what_the_plan_made"] as const;
+export type DayEnergySubject = (typeof DAY_ENERGY_SUBJECTS)[number];
+
 export interface DayEnergyView {
   day: string | null;
   kcal: number | null;
@@ -87,6 +95,38 @@ export interface DayEnergyView {
    * objectif, et « ce qui touche le corps est à soi ».
    */
   addonKcal: number;
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * ② — DE QUOI CE NOMBRE PARLE.
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   *   `the_day`            — la journée entière. Le cas nominal.
+   *   `what_the_plan_made` — ce que le plan a composé, et rien d'autre.
+   *
+   * ⛔ POURQUOI CE CHAMP EXISTE. Si un repas sur trois est pris dehors, « ta
+   * journée : 1 400 · ta fourchette : 1 900–2 200 » est FAUX, et faux dans le
+   * sens qui décourage: la personne lit un déficit alors qu'elle a peut-être
+   * mangé un burger. Le nombre ne change pas de VALEUR, il change de SUJET.
+   *
+   * ⚠️ IL N'EST PAS DÉRIVÉ ICI. Le serveur le nomme (`plan_energy.ts`), et deux
+   * surfaces qui calculeraient `mealsOut > 0` chacune de leur côté finiraient
+   * par ne plus dire la même chose du même jour.
+   */
+  subject: DayEnergySubject;
+  /**
+   * COMBIEN DE REPAS DE CE JOUR ÉCHAPPENT AU PLAN. `0` quand le plan a composé
+   * toute la journée.
+   *
+   * ⚠️ IL PART AVEC `subject`, JAMAIS SEUL — voir `readDay`: un sujet sans son
+   * compte ne se rend pas, et un compte sans son sujet non plus.
+   *
+   * ⚠️ CE N'EST PAS LA MÊME INCOMPLÉTUDE QUE `dishesCounted`/`dishesTotal`.
+   * Celle-là dit « je n'ai pas su lire tous les plats » et se répare par le
+   * référentiel; celle-ci dit « il manquait des plats à lire » et ne se répare
+   * pas — c'est la vie de quelqu'un. Un écran qui n'en verrait qu'une nommerait
+   * la mauvaise.
+   */
+  mealsOut: number;
 }
 
 /** Ce qu'un plan rend, quand les quatre portes sont ouvertes. */
@@ -219,15 +259,106 @@ export function readDish(raw: unknown): DishEnergyView {
 
 export function readDay(raw: unknown): DayEnergyView {
   const d = (raw ?? {}) as Record<string, unknown>;
+  const dishesTotal = Number(d.dishes_total) || 0;
+  // ── ② · LE SUJET EST TOUT-OU-RIEN, comme la fourchette de `readTarget` ────
+  //
+  // ⚠️ LE PIÈGE QU'ON NE REJOUE PAS, ET IL A DÉJÀ COÛTÉ UNE FOIS. Le 2026-08-18,
+  // le serveur s'était tu (`low: null, high: null, gap: "no_weight"`) et l'écran
+  // a rendu « Autour de 0–0 par jour » — parce que `Number(null)` vaut `0`, que
+  // zéro est un nombre fini, et qu'un nombre fini a l'air d'un fait. La phrase
+  // fabriquée EFFAÇAIT celle qui invitait à ajouter une pesée.
+  //
+  // La forme dégradée qui menaçait ICI est la symétrique: un `subject` présent
+  // sans son `meals_out` rendrait « ce total porte sur les 2 repas que j'ai
+  // composés : 0 repas était pris dehors » — une phrase qui restreint le sujet
+  // du nombre en avouant qu'il n'y a aucune raison de le restreindre. Elle
+  // remplacerait « sur la journée », qui, lui, était vrai.
+  //
+  // D'où les TROIS conditions, toutes requises: le jeton doit être DANS le
+  // vocabulaire fermé, `meals_out` doit être un vrai chiffre STRICTEMENT
+  // positif (`finiteEnergyNumber`, pas `Number()`), et le plan doit avoir
+  // composé au moins un repas ce jour-là — sinon « les 0 repas que j'ai
+  // composés » n'est pas un sujet, c'est une journée vide, et `day_unreadable`
+  // le dit déjà mieux.
+  //
+  // Le repli est `the_day` + `0`, c'est-à-dire EXACTEMENT le comportement
+  // d'avant ce champ: un plan composé avant que la trace existe ne dit rien de
+  // neuf plutôt que de dire quelque chose de faux.
+  const mealsOut = finiteEnergyNumber(d.meals_out);
+  const declared = String(d.subject ?? "");
+  const restricted = declared === "what_the_plan_made" &&
+    mealsOut !== null && mealsOut > 0 && dishesTotal > 0;
   return {
     day: d.day === null || d.day === undefined ? null : String(d.day),
     kcal: finiteEnergyNumber(d.kcal),
     basis: String(d.basis ?? ""),
     complete: d.complete === true,
     dishesCounted: Number(d.dishes_counted) || 0,
-    dishesTotal: Number(d.dishes_total) || 0,
+    dishesTotal,
     addonKcal: Number(d.addon_kcal) || 0,
+    subject: restricted ? "what_the_plan_made" : "the_day",
+    // ⚠️ REMIS À ZÉRO AVEC LE SUJET. Les deux champs partent ensemble ou pas du
+    // tout: un `mealsOut` non nul sous `subject: "the_day"` inviterait le
+    // prochain rendu à composer sa propre phrase à partir de la moitié qui
+    // reste, et à refaire le calcul que ce module vient de refuser.
+    mealsOut: restricted ? Math.round(mealsOut as number) : 0,
   };
+}
+
+/**
+ * ② LE SUJET DU NOMBRE, EN TOUTES LETTRES, DANS LES DEUX LANGUES.
+ *
+ * ── CE QUE ÇA CORRIGE, MOT POUR MOT ───────────────────────────────────────
+ * « Ta journée : 1 400 · ta fourchette : 1 900–2 200 » est FAUX dès qu'un repas
+ * sur trois est pris dehors, et faux dans le sens qui décourage: la personne
+ * lit un déficit alors qu'elle a peut-être mangé un burger. Le nombre garde sa
+ * VALEUR — il est exact sur ce qu'il couvre — et change de SUJET: il ne parle
+ * plus de la journée mais de ce que le plan a produit.
+ *
+ * ── POURQUOI UNE INCISE, ET PAS UNE SECONDE LIGNE ─────────────────────────
+ * Parce que c'est le sujet DE CE NOMBRE-LÀ, et qu'un sujet se lit dans la même
+ * respiration que son verbe. Une phrase posée en dessous se lirait comme un
+ * commentaire — quelque chose qu'on ajoute au total — alors qu'elle dit de quoi
+ * le total parle. Et pratiquement: `DayEnergyLine` est rendue en suffixe d'un
+ * titre de jour (`PlanDayBlock`) et à côté d'un libellé de section
+ * (`TodayPage`); une seconde ligne y changerait la hauteur de deux écrans dont
+ * ce lot ne touche pas les fichiers.
+ *
+ * ── POURQUOI ELLE VIT ICI ET PAS DANS LE PACK i18n ────────────────────────
+ * Même raison que `PACE_WARNING_LABELS` (`weight_pace.ts`) et
+ * `EATING_OUT_SLOT_LABELS` (`household_portions.ts`): le nombre et le mot qui
+ * l'encadre sont une seule décision. La règle tout-ou-rien qui autorise cette
+ * incise vit dans `readDay`, juste au-dessus; les séparer la laisserait se dire
+ * sur des chiffres que le parseur venait de refuser, ou survivre à une règle
+ * qui a bougé.
+ *
+ * ⚠️ ELLE DIT CE QUE LE PLAN A FAIT, PAS CE QUE LA PERSONNE A MANGÉ. « Il te
+ * manque un repas », « tu n'as pas atteint ta journée » seraient un solde et un
+ * verdict, et ce chemin n'en porte aucun: le produit ne sait pas ce qui a été
+ * mangé dehors, et il ne le saura jamais — aucune de ses entrées ne porte un
+ * consommé.
+ *
+ * ⚠️ LE SINGULIER EST ÉCRIT, PAS INTERPOLÉ. « les 1 repas que j'ai composés »
+ * est une faute dans une langue sur deux, et invisible à qui teste dans
+ * l'autre — cicatrice « garde testée dans une seule langue ».
+ */
+export function dayEnergySubjectClause(
+  locale: "en" | "fr",
+  args: { dishes: number; mealsOut: number },
+): string {
+  const { dishes, mealsOut } = args;
+  if (locale === "fr") {
+    const made = dishes === 1
+      ? "le seul repas que j'ai composé"
+      : `les ${dishes} repas que j'ai composés`;
+    const out = mealsOut === 1 ? "1 repas dehors" : `${mealsOut} repas dehors`;
+    return `sur ${made} (${out})`;
+  }
+  const made = dishes === 1
+    ? "the one meal I composed"
+    : `the ${dishes} meals I composed`;
+  const out = mealsOut === 1 ? "1 meal out" : `${mealsOut} meals out`;
+  return `across ${made} (${out})`;
 }
 
 /**

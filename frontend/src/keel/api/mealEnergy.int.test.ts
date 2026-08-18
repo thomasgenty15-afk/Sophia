@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { finiteEnergyNumber, readDay, readDish, readTarget } from "./mealEnergy";
+import {
+  dayEnergySubjectClause,
+  finiteEnergyNumber,
+  readDay,
+  readDish,
+  readTarget,
+} from "./mealEnergy";
 
 // L4-B — L'ABSENCE D'UN CHIFFRE N'EST PAS LE CHIFFRE ZÉRO.
 //
@@ -137,6 +143,145 @@ describe("readDay — le total d'un jour", () => {
     const day = readDay({ day: "tue", kcal: 204, complete: false, dishes_counted: 3, dishes_total: 9 });
     expect(day.kcal).toBe(204);
     expect(day.dishesCounted).toBe(3);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// ② — LE SUJET DU NOMBRE, ET LE PIÈGE DU ZÉRO QU'ON NE REJOUE PAS
+// ---------------------------------------------------------------------------
+
+describe("readDay — de quoi ce nombre parle", () => {
+  const OUT_DAY = {
+    day: "tue",
+    kcal: 1400,
+    basis: "plan_quantities",
+    complete: true,
+    dishes_counted: 2,
+    dishes_total: 2,
+    addon_kcal: 0,
+    meals_out: 1,
+    subject: "what_the_plan_made",
+  };
+
+  it("LE CAS QUI PASSE: le sujet restreint traverse avec son compte", () => {
+    // Sans ce cas, une garde qui refuserait TOUT laisserait le banc vert et
+    // l'écran continuerait d'annoncer « ta journée » sur deux repas sur trois.
+    const day = readDay(OUT_DAY);
+    expect(day.subject).toBe("what_the_plan_made");
+    expect(day.mealsOut).toBe(1);
+    expect(day.kcal).toBe(1400);
+  });
+
+  it("le cas NOMINAL reste `the_day`, et son compte est zéro", () => {
+    const day = readDay({ ...OUT_DAY, meals_out: 0, subject: "the_day" });
+    expect(day.subject).toBe("the_day");
+    expect(day.mealsOut).toBe(0);
+  });
+
+  it("⚠️ un plan d'AVANT la trace se lit comme hier, pas comme une journée tronquée", () => {
+    // Les deux clés absentes du fil. Le repli doit être EXACTEMENT le
+    // comportement d'avant ce champ — sinon un plan composé la semaine dernière
+    // se mettrait à parler d'une restriction que personne n'a déclarée.
+    const day = readDay({
+      day: "tue",
+      kcal: 1400,
+      complete: true,
+      dishes_counted: 2,
+      dishes_total: 2,
+    });
+    expect(day.subject).toBe("the_day");
+    expect(day.mealsOut).toBe(0);
+  });
+
+  it("⛔ LE PIÈGE DU 0–0, DANS SA FORME SYMÉTRIQUE: un sujet sans son compte", () => {
+    // Le 2026-08-18, `Number(null) === 0` a fabriqué « Autour de 0–0 par jour »
+    // et EFFACÉ la phrase qui invitait à ajouter une pesée. Ici la forme
+    // dégradée serait « sur les 2 repas que j'ai composés (0 repas dehors) » —
+    // une phrase qui restreint le sujet du nombre en avouant qu'il n'y a aucune
+    // raison de le restreindre, et qui remplacerait « sur la journée », lequel
+    // était vrai.
+    for (
+      const broken of [
+        { ...OUT_DAY, meals_out: null },
+        { ...OUT_DAY, meals_out: undefined },
+        { ...OUT_DAY, meals_out: "" },
+        { ...OUT_DAY, meals_out: 0 },
+        { ...OUT_DAY, meals_out: -2 },
+      ]
+    ) {
+      const day = readDay(broken);
+      expect(day.subject).toBe("the_day");
+      expect(day.mealsOut).toBe(0);
+    }
+  });
+
+  it("un jour où le plan n'a composé AUCUN repas n'a pas de sujet à restreindre", () => {
+    // « sur les 0 repas que j'ai composés » n'est pas un sujet, c'est une
+    // journée vide — et `day_unreadable` le dit déjà mieux.
+    const day = readDay({ ...OUT_DAY, dishes_total: 0, kcal: null });
+    expect(day.subject).toBe("the_day");
+    expect(day.mealsOut).toBe(0);
+  });
+
+  it("un jeton de sujet INCONNU retombe sur le comportement d'hier", () => {
+    for (const token of ["the_week", "", "WHAT_THE_PLAN_MADE", 42, null]) {
+      const day = readDay({ ...OUT_DAY, subject: token });
+      expect(day.subject).toBe("the_day");
+      expect(day.mealsOut).toBe(0);
+    }
+  });
+
+  it("le compte est un ENTIER: un fil bavard ne rend pas « 1,4 repas dehors »", () => {
+    expect(readDay({ ...OUT_DAY, meals_out: 1.4 }).mealsOut).toBe(1);
+    expect(readDay({ ...OUT_DAY, meals_out: "3" }).mealsOut).toBe(3);
+  });
+});
+
+describe("dayEnergySubjectClause — le sujet, dans les deux langues", () => {
+  it("le pluriel et le singulier sont ÉCRITS, pas interpolés", () => {
+    expect(dayEnergySubjectClause("fr", { dishes: 2, mealsOut: 1 })).toBe(
+      "sur les 2 repas que j'ai composés (1 repas dehors)",
+    );
+    expect(dayEnergySubjectClause("fr", { dishes: 1, mealsOut: 2 })).toBe(
+      "sur le seul repas que j'ai composé (2 repas dehors)",
+    );
+    expect(dayEnergySubjectClause("en", { dishes: 2, mealsOut: 1 })).toBe(
+      "across the 2 meals I composed (1 meal out)",
+    );
+    expect(dayEnergySubjectClause("en", { dishes: 1, mealsOut: 2 })).toBe(
+      "across the one meal I composed (2 meals out)",
+    );
+  });
+
+  it("⛔ AUCUN SOLDE, AUCUN VERDICT — dans aucune des deux langues", () => {
+    // « Il te reste 680 kcal » est LA phrase d'un tracker. Elle n'existe sur
+    // aucun chemin de ce produit, et celui-ci est le plus tentant de tous:
+    // c'est le seul endroit où l'écran commente un total incomplet.
+    const forbidden = [
+      "reste",
+      "manque",
+      "left",
+      "remaining",
+      "missing",
+      "deficit",
+      "déficit",
+      "kcal",
+      "calorie",
+      "objectif",
+      "target",
+      "goal",
+    ];
+    for (const locale of ["en", "fr"] as const) {
+      for (const dishes of [1, 2, 5]) {
+        for (const mealsOut of [1, 3, 6]) {
+          const text = dayEnergySubjectClause(locale, { dishes, mealsOut })
+            .toLowerCase();
+          for (const word of forbidden) {
+            expect(text.includes(word)).toBe(false);
+          }
+        }
+      }
+    }
   });
 });
 

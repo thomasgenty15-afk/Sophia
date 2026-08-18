@@ -3,7 +3,9 @@ import type {
   DishEnergyView,
   EnergyTargetView,
 } from "../../api/mealEnergy";
+import { dayEnergySubjectClause } from "../../api/mealEnergy";
 import { mealCopy } from "../../api/mealLabels";
+import { uiLocale } from "../../i18n/runtime";
 
 // FF-059 — LE CHIFFRE, RENDU UNE SEULE FOIS.
 //
@@ -66,6 +68,19 @@ export function DishEnergyLine({ energy }: { energy: DishEnergyView | null }) {
  * « 1 200 kcal (incomplet) » se lit « 1 200 kcal »; « 1 200 kcal — 2 des 3
  * plats comptés » se lit correctement. C'est très exactement le rabbit hole
  * n°3 de la fiche, et il ne se commet pas dans le calcul: il se commet ici.
+ *
+ * ── ② · ET IL PORTE MAINTENANT SON SUJET ──────────────────────────────────
+ * DEUX incomplétudes se croisent sur cette ligne, et elles ne se réparent pas
+ * au même endroit:
+ *
+ *   `dishesCounted`/`dishesTotal` — « je n'ai pas su lire tous les plats ».
+ *                                    Se répare par le référentiel.
+ *   `subject`/`mealsOut` .......... « il manquait des plats à lire ».
+ *                                    Ne se répare pas: c'est la vie de
+ *                                    quelqu'un, et un midi au restaurant.
+ *
+ * Un écran qui n'en dirait qu'une nommerait la mauvaise — et proposerait de
+ * curer une table de composition pour un déjeuner pris dehors.
  */
 export function DayEnergyLine({ energy }: { energy: DayEnergyView | null }) {
   if (!energy) return null;
@@ -78,19 +93,66 @@ export function DayEnergyLine({ energy }: { energy: DayEnergyView | null }) {
       </span>
     );
   }
+  // ══ ② · LE NOMBRE CHANGE DE SUJET, ET IL LE DIT ═══════════════════════════
+  //
+  // ⛔ « TA JOURNÉE : 1 400 » EST FAUX dès qu'un repas sur trois est pris
+  // dehors, et faux dans le sens qui décourage: la personne lit un déficit
+  // alors qu'elle a peut-être mangé un burger. La VALEUR ne bouge pas — elle
+  // est exacte sur ce qu'elle couvre — c'est le SUJET qui change.
+  //
+  // ⚠️ AUCUN SOLDE, AUCUN VERDICT, AUCUNE COULEUR. Pas de « il te manque »,
+  // pas de rouge: le produit ne sait pas ce qui a été mangé dehors, et il ne
+  // peut pas le savoir. La teinte reste celle du total, décidée par `complete`.
+  //
+  // ⚠️ LES TROIS CONDITIONS SONT LA SECONDE CEINTURE, PAS LA PREMIÈRE. La règle
+  // tout-ou-rien vit déjà dans `readDay`, qui refuse un `subject` sans son
+  // compte. Deux écritures de la même règle aux deux bouts du fil: le jour où
+  // l'une se relâche, l'autre tient — même discipline que `readDish`, dont le
+  // chiffre ne survit pas à `complete: false` des deux côtés.
+  const subject = energy.subject === "what_the_plan_made" && energy.mealsOut > 0 &&
+      energy.dishesTotal > 0
+    ? dayEnergySubjectClause(uiLocale() === "fr" ? "fr" : "en", {
+      dishes: energy.dishesTotal,
+      mealsOut: energy.mealsOut,
+    })
+    : null;
+  /**
+   * L'incise, ajoutée à une phrase qui ne prétend PAS parler de la journée.
+   */
+  const withSubject = (base: string) => subject === null ? base : `${base} — ${subject}`;
   const text = !energy.complete
-    ? mealCopy("meals.energy.day_partial")
-      .replace("{n}", String(energy.kcal))
-      .replace("{counted}", String(energy.dishesCounted))
-      .replace("{total}", String(energy.dishesTotal))
+    // ⚠️ `day_partial` SURVIT TEL QUEL, et l'incise s'y AJOUTE. Les deux
+    // incomplétudes ne se réparent pas au même endroit — « je n'ai pas su lire
+    // tous les plats » se répare par le référentiel, « il manquait des plats à
+    // lire » ne se répare pas, c'est la vie de quelqu'un. Un écran qui n'en
+    // dirait qu'une nommerait la mauvaise.
+    ? withSubject(
+      mealCopy("meals.energy.day_partial")
+        .replace("{n}", String(energy.kcal))
+        .replace("{counted}", String(energy.dishesCounted))
+        .replace("{total}", String(energy.dishesTotal)),
+    )
     // L'ADD-ON SE DIT, il ne se fond pas dans le total. Le taire ferait lire à
     // deux personnes de la même table deux chiffres pour le même plat, sans
     // rien pour expliquer l'écart — après quoi la plus servie croit que le plat
     // est plus gros, et l'autre que le sien est rogné.
     : energy.addonKcal > 0
-    ? mealCopy("meals.energy.day_with_addon")
-      .replace("{n}", String(energy.kcal))
-      .replace("{addon}", String(energy.addonKcal))
+    ? withSubject(
+      mealCopy("meals.energy.day_with_addon")
+        .replace("{n}", String(energy.kcal))
+        .replace("{addon}", String(energy.addonKcal)),
+    )
+    // ══ LA SEULE PHRASE QUI SE FAIT REMPLACER, ET C'EST TOUT LE LOT ══════
+    //
+    // `meals.energy.day` dit « {n} kcal SUR LA JOURNÉE ». C'est très exactement
+    // l'affirmation qui devient fausse quand un repas échappe au plan — et lui
+    // accoler l'incise donnerait « 1 400 kcal sur la journée — sur les 2 repas
+    // que j'ai composés », une phrase qui se contredit dans sa propre longueur.
+    // Les deux autres variantes ne revendiquent pas la journée (elles parlent
+    // de plats comptés et d'add-on), donc elles se complètent au lieu de se
+    // faire remplacer.
+    : subject !== null
+    ? `${mealCopy("meals.energy.dish").replace("{n}", String(energy.kcal))} ${subject}`
     : mealCopy("meals.energy.day").replace("{n}", String(energy.kcal));
   return (
     <span
