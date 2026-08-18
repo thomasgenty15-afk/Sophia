@@ -1246,6 +1246,29 @@ export interface FunnelFacts {
   householdId: string | null;
   ownMemberId: string | null;
   /**
+   * D4 ② — MA COLONNE DU FOYER, celle où l'étape 3 a écrit mon pré-remplissage.
+   *
+   * ⚠️ ELLE N'EST PAS DANS `mouths`, ET C'EST TOUT LE PROBLÈME QU'ELLE FERME.
+   * `mouths` me RETIRE (je vis dans `state.self`), donc l'étape 4 ne me donnait
+   * aucune grille — alors que la question du déjeuner m'est bien posée à
+   * l'étape 3 et que ma réponse coche cinq de mes midis « dehors ». « Pré-remplir
+   * n'est pas décider »: sans cette lecture, la réponse hebdomadaire ne pouvait
+   * pas être contredite par celui-là même qui l'a donnée.
+   *
+   * `awayHousehold` SEUL, jamais l'union — même règle que `FunnelMouth.away`: la
+   * grille RÉÉCRIT ce qu'on lui donne, et nourrie de l'union elle recopierait ma
+   * déclaration dans la colonne du foyer, où elle survivrait à ma rétractation.
+   */
+  ownAway: AwayMark[];
+  /**
+   * LES MOMENTS OÙ JE MANGE — `null` = aux moments de la maison.
+   *
+   * Même champ et même repli que `FunnelMouth.eatingSlots`, et pour la même
+   * raison: une grille montée sur le rythme de la MAISON afficherait sept
+   * petits-déjeuners au nom de quelqu'un qui vient de dire qu'il n'en prend pas.
+   */
+  ownEatingSlots: EatingOccasionSlot[] | null;
+  /**
    * JE GOUVERNE CE FOYER — ou j'y suis une bouche parmi d'autres.
    *
    * ⚠️ CE N'EST PAS UN CONFORT D'AFFICHAGE, C'EST LA MOITIÉ DU ROUTAGE. Un
@@ -1449,6 +1472,12 @@ export async function readFunnelFacts(userId: string): Promise<FunnelFacts> {
     mouths,
     householdId: household?.id ?? null,
     ownMemberId,
+    // D4 ② — MA LIGNE, LUE COMME CELLE DES AUTRES. Même champ (`awayHousehold`),
+    // même repli (`null` = les moments de la maison), même porte d'écriture
+    // (`keel_household_set_member_away`): rien de neuf n'est inventé pour moi,
+    // ma ligne était simplement la seule que personne ne rendait.
+    ownAway: household?.me?.awayHousehold ?? [],
+    ownEatingSlots: household?.me?.eatingSlots ?? null,
     isOwner,
     hasPlan: await hasLivePlan(userId),
     practicalConstraints: pc,

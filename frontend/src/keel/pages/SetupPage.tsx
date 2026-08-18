@@ -87,6 +87,7 @@ import { setMemberAway } from "../api/household";
 import MealPickerGrid from "../components/MealPickerGrid";
 import TableStepPlanning from "../components/TableStepPlanning";
 import { workLunchRoster } from "../lib/workLunchRoster";
+import { presenceRoster } from "../lib/presenceRoster";
 import { browserLocalDate } from "../lib/useMealTicks";
 import { t, type MessageKey } from "../i18n/t";
 // ⚠️ `HouseholdHabitsCard` N'EST PLUS MONTÉE ICI (2026-08-14). Elle reste le
@@ -1288,7 +1289,23 @@ export default function SetupPage() {
             onWindowStart={setWindowStart}
             onWindowEnd={setWindowEnd}
             maxEnd={addDays(windowStart, MAX_WINDOW_DAYS - 1)}
-            mouths={facts.mouths}
+            // ── D4 ② · LE TITULAIRE A UNE GRILLE, LUI AUSSI ──────────────
+            // `facts.mouths` le RETIRE (il vit dans `state.self`), et l'étape 3
+            // lui pose pourtant la question du déjeuner: sa réponse coche cinq
+            // de SES midis « dehors ». Sans cette ligne, il ne trouvait nulle
+            // part dans le tunnel de quoi en contredire un seul — alors que la
+            // règle est « pré-remplir n'est pas décider, la grille gagne ».
+            // Le motif complet, et pourquoi on ne retire PAS la question à la
+            // place, sont dans `lib/presenceRoster.ts`.
+            mouths={presenceRoster({
+              self: {
+                ownMemberId: facts.ownMemberId,
+                firstName: facts.state.self.firstName,
+                away: facts.ownAway,
+                eatingSlots: facts.ownEatingSlots,
+              },
+              mouths: facts.mouths,
+            })}
             planWindow={planWindow}
             awayFor={awayFor}
             onAwayFor={setAwayFor}
