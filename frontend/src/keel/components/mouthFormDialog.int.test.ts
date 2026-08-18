@@ -431,6 +431,48 @@ describe("le niveau d'activité — quatre crans, jamais un nombre", () => {
     const markup = html({});
     expect(countOf(markup, 'name="mouth-activity" checked')).toBe(0);
   });
+
+  it("la FENÊTRE dit qu'il est réclamé — ou qu'il ne l'est pas (D1)", () => {
+    // ⚠️ D1 (2026-08-18) — LA DÉCISION EST RENDUE, PAS SEULEMENT APPLIQUÉE.
+    // Sans cet attribut, la seule trace de la règle serait la ligne « il
+    // manque… », c'est-à-dire une différence qu'on ne voit qu'APRÈS avoir
+    // essayé de sortir.
+    for (const goal of ["fat_loss", "muscle_gain"] as const) {
+      expect(html({ draft: { goal } })).toContain(
+        'aria-label="How active they are" aria-required="true"',
+      );
+    }
+    expect(html({ draft: { goal: "maintenance" } })).toContain(
+      'aria-label="How active they are" aria-required="false"',
+    );
+    // La direction non choisie ne réclame rien: son propre bloc retient déjà.
+    expect(html({})).toContain(
+      'aria-label="How active they are" aria-required="false"',
+    );
+  });
+
+  it("…et le BOUTON suit la même décision — jamais l'inverse", () => {
+    // ⚠️ UN CHAMP DÉCLARÉ FACULTATIF AU-DESSUS D'UN BOUTON QUI RETIENT QUAND
+    // MÊME serait un mensonge, pas un assouplissement. Le corps complet SAUF le
+    // cran: le bouton part sous `maintenance`, il reste retenu sous `fat_loss`.
+    const body = {
+      firstName: "Zoe",
+      birthDate: ADULT_BIRTH,
+      heightCm: "165",
+      weightKg: "60",
+      gender: "female" as const,
+      activityLevel: "" as const,
+    };
+    const holds = html({ draft: { ...body, goal: "fat_loss" } });
+    expect(buttonTagOf(holds, decode(en["household.mouth.add"])))
+      .toMatch(DISABLED);
+    expect(text(holds)).toContain(decode(en["household.mouth.block_body"]));
+
+    const frees = html({ draft: { ...body, goal: "maintenance" } });
+    expect(buttonTagOf(frees, decode(en["household.mouth.add"])))
+      .not.toMatch(DISABLED);
+    expect(text(frees)).not.toContain(decode(en["household.mouth.block_body"]));
+  });
 });
 
 // ---------------------------------------------------------------------------

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  activityIsRequired,
   ageStateOfDraft,
   bodyOfDraft,
   emptyMouthDraft,
@@ -122,13 +123,71 @@ describe("les six blocs, et lesquels retiennent", () => {
     expect([...missingRequiredBlocks(noName)]).toContain("identity");
   });
 
-  it("le CRAN D'ACTIVITÉ retient le bloc 3 — sans lui la cible est devinée", () => {
-    const noActivity = draftOf({
+  it("le CRAN D'ACTIVITÉ retient le bloc 3 SOUS UNE DIRECTION QUI BOUGE", () => {
+    // D1 (2026-08-18) — sans lui, `energy_target.ts` multiplie un métabolisme
+    // par une constante devinée pour VISER un rythme.
+    for (const goal of ["fat_loss", "muscle_gain"] as const) {
+      const noActivity = draftOf({
+        ...SIXTY_KG_WOMAN,
+        activityLevel: "",
+        goal,
+      });
+      expect([...missingRequiredBlocks(noActivity)]).toEqual(["body"]);
+      expect(submitIsHeld(noActivity, TODAY)).toBe(true);
+    }
+  });
+
+  it("…ET IL EST FACULTATIF POUR QUI VEUT MAINTENIR — le cas qui PASSE", () => {
+    // ⚠️ D1 (2026-08-18) — LA MOITIÉ QUI PROUVE LA CONDITION. L'assertion
+    // voisine reste verte si `activityIsRequired` rend `true` en dur: elle ne
+    // regarde que des directions qui bougent. Celle-ci est le seul cas où la
+    // condition DÉCIDE — et le blocage de sortie est vérifié avec, parce qu'un
+    // champ déclaré facultatif au-dessus d'un bouton qui retient quand même
+    // serait un mensonge, pas un assouplissement.
+    const held = draftOf({
       ...SIXTY_KG_WOMAN,
       activityLevel: "",
       goal: "maintenance",
     });
-    expect([...missingRequiredBlocks(noActivity)]).toEqual(["body"]);
+    expect([...missingRequiredBlocks(held)]).toEqual([]);
+    expect(submitIsHeld(held, TODAY)).toBe(false);
+  });
+
+  it("les trois AUTRES champs du bloc 3 retiennent, direction ou pas", () => {
+    // La condition ne porte QUE sur le cran. Taille, poids et sexe dimensionnent
+    // une part à toute personne à table, y compris à qui ne vise rien.
+    for (const patch of [
+      { heightCm: "" },
+      { weightKg: "" },
+      { gender: "" as const },
+    ]) {
+      const draft = draftOf({
+        ...SIXTY_KG_WOMAN,
+        goal: "maintenance",
+        ...patch,
+      });
+      expect([...missingRequiredBlocks(draft)]).toEqual(["body"]);
+    }
+  });
+
+  it("la direction NON CHOISIE ne réclame pas encore le cran", () => {
+    // Elle retient déjà le bouton par SON bloc. Empiler `body` nommerait un
+    // manque que la personne ne peut pas comprendre: on lui réclamerait son
+    // activité pour un objectif qu'elle n'a pas posé.
+    const noGoal = draftOf({ ...SIXTY_KG_WOMAN, activityLevel: "", goal: "" });
+    expect([...missingRequiredBlocks(noGoal)]).toEqual(["direction"]);
+  });
+
+  it("`activityIsRequired` couvre les TROIS directions, plus le vide", () => {
+    // Les trois jetons, pas un seul: une correspondance codée sur une valeur ne
+    // dit rien des deux autres. `GOAL_TOKENS` est la liste que la base porte.
+    expect([...GOAL_TOKENS].sort()).toEqual(
+      ["fat_loss", "maintenance", "muscle_gain"],
+    );
+    expect(activityIsRequired("fat_loss")).toBe(true);
+    expect(activityIsRequired("muscle_gain")).toBe(true);
+    expect(activityIsRequired("maintenance")).toBe(false);
+    expect(activityIsRequired("")).toBe(false);
   });
 });
 

@@ -373,6 +373,35 @@ export function targetWeightStateFor(
 }
 
 // ---------------------------------------------------------------------------
+// BLOC 3 — LE CRAN D'ACTIVITÉ, ET QUAND IL EST RÉCLAMÉ
+// ---------------------------------------------------------------------------
+
+/**
+ * OBLIGATOIRE SEULEMENT QUAND LA BALANCE DOIT BOUGER — décision du 2026-08-18.
+ *
+ * ── LA CONTRADICTION QUE ÇA SOLDE ────────────────────────────────────────
+ * Ce pop-up réclamait le cran de TOUT LE MONDE; l'entonnoir voisin le laissait
+ * facultatif. Les deux versions coexistaient, donc la même question était à la
+ * fois indispensable et sautable selon la porte d'entrée — et personne ne
+ * pouvait dire laquelle était la règle.
+ *
+ * ── POURQUOI LA DIRECTION DÉCIDE ─────────────────────────────────────────
+ * Sans activité, la fourchette d'entretien va de 28 à 33 kcal/kg: trop large
+ * pour VISER un rythme, assez juste pour le TENIR. Qui veut seulement maintenir
+ * n'a donc rien à gagner à répondre, et on ne demande que quand ça change
+ * quelque chose.
+ *
+ * ⚠️ `""` NE RÉCLAME RIEN, ET C'EST DÉLIBÉRÉ. Une direction non choisie retient
+ * déjà le bouton par son propre bloc (`direction`). Empiler `body` par-dessus
+ * nommerait à la personne un manque qu'elle ne peut pas encore comprendre — on
+ * lui réclamerait son activité pour un objectif qu'elle n'a pas posé.
+ */
+export function activityIsRequired(goal: MemberGoal | ""): boolean {
+  if (goal === "") return false;
+  return scaleDirectionOf(goal) !== null;
+}
+
+// ---------------------------------------------------------------------------
 // BLOC 4 — LE SHAKER
 // ---------------------------------------------------------------------------
 
@@ -420,16 +449,15 @@ export function shakerIsComplete(shaker: ShakerDraft | null): boolean {
  * Vide = le bouton d'inscription est actif. Ce n'est PAS ce qui ferme la
  * fenêtre: elle se ferme toujours.
  *
- * ⚠️ `activityLevel` COMPTE DANS LE BLOC 3, ET C'EST UN ARBITRAGE QUE J'ÉCRIS
- * PLUTÔT QUE DE LE LAISSER DEVINER. La colonne est nullable et `null` y veut
- * dire « personne n'a répondu » — le socle refuse explicitement un cinquième
- * cran « je ne sais pas ». Le bloc, lui, est déclaré OBLIGATOIRE par la
- * conception, et le champ y est appelé « le trou n°1 du produit »: sans lui,
- * `energy_target.ts` multiplie un métabolisme par une constante devinée et
- * « produit une cible fausse avec l'aplomb d'un tableau ». Le rendre facultatif
- * ici recréerait le `null` que le champ existe pour supprimer. `null` reste la
- * lecture juste des lignes écrites AVANT ce formulaire, et le moteur la traite
- * déjà (facteur d'hypothèse) — c'est une histoire, pas une réponse.
+ * ⚠️ `activityLevel` NE COMPTE DANS LE BLOC 3 QUE SOUS UNE DIRECTION QUI BOUGE
+ * (décision du 2026-08-18, `activityIsRequired`). Le champ reste le « trou n°1
+ * du produit » quand on VISE un rythme — sans lui, `energy_target.ts` multiplie
+ * un métabolisme par une constante devinée et « produit une cible fausse avec
+ * l'aplomb d'un tableau ». Mais la fourchette d'entretien (28 à 33 kcal/kg) est
+ * assez juste pour TENIR un poids, et ce pop-up le réclamait de tout le monde
+ * pendant que l'entonnoir voisin le laissait facultatif: deux règles pour une
+ * question. `null` reste la lecture juste d'une non-réponse, et le moteur la
+ * traite déjà (facteur d'hypothèse).
  */
 export function missingRequiredBlocks(
   draft: MouthFormDraft,
@@ -446,7 +474,7 @@ export function missingRequiredBlocks(
     numberOrNull(draft.heightCm) === null ||
     numberOrNull(draft.weightKg) === null ||
     draft.gender === "" ||
-    draft.activityLevel === ""
+    (activityIsRequired(draft.goal) && draft.activityLevel === "")
   ) {
     out.push("body");
   }

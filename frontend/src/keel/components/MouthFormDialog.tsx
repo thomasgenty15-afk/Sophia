@@ -13,6 +13,7 @@ import { DIET_ANSWERS } from "../api/onboarding";
 import { EATING_OCCASIONS } from "../api/mealGeneration";
 import { mealCopy } from "../api/mealLabels";
 import {
+  activityIsRequired,
   ageStateOfDraft,
   type MouthFormBlock,
   type MouthFormDraft,
@@ -522,7 +523,22 @@ export function MouthFormFields(
 
               ⛔ ET JAMAIS UN NOMBRE. Un nombre demandé est un nombre inventé, et
               l'inventé entre ensuite dans un calcul avec l'autorité d'une
-              mesure. */}
+              mesure.
+
+              ── ⚠️ RÉCLAMÉ SEULEMENT SOUS UNE DIRECTION QUI BOUGE ────────────
+              Décision du 2026-08-18. Le champ reste MONTRÉ à tout le monde —
+              « facultatif » n'est pas « absent », et quelqu'un qui maintient
+              peut très bien répondre —, mais il ne retient le bouton que si la
+              balance doit bouger. La décision vit dans `activityIsRequired`, et
+              elle est rendue ICI par `aria-required`: sans cet attribut, la
+              seule trace de la règle serait la ligne « il manque… », c'est-à-dire
+              une différence qu'on ne voit qu'APRÈS avoir essayé de sortir.
+
+              ⚠️ ET LE BLOCAGE SUIT PAR LE MÊME CHEMIN: `missingRequiredBlocks`
+              lit `activityIsRequired`, `submitIsHeld` lit `missingRequired
+              Blocks`, et le bouton lit `submitIsHeld`. Un `aria-required` qui
+              dirait « facultatif » au-dessus d'un bouton qui retient quand même
+              serait une garde désarmée doublée d'un mensonge. */}
           <Field
             label={t("household.mouth.activity")}
             hint={t("household.mouth.activity_hint")}
@@ -531,6 +547,7 @@ export function MouthFormFields(
               className="flex flex-col gap-2"
               role="radiogroup"
               aria-label={t("household.mouth.activity")}
+              aria-required={activityIsRequired(draft.goal)}
             >
               {ACTIVITY_LEVELS.map((level) => (
                 <label
