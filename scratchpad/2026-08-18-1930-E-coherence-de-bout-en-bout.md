@@ -726,4 +726,171 @@ de rendu de D4 ②/③ ; l'œil ne l'a pas vu.
 
 ---
 
-_(la suite est ajoutée au fil de l'eau)_
+# 🟥 PARTIE E — la grille de présence : le troisième état n'existe pour PERSONNE
+
+`/app/household` est revenu à la vie vers 20h10 (la lane voisine a posé ses
+clés). J'ai pu jouer la grille. Voici ce qu'elle est.
+
+## Ce que la grille rend, à l'écran
+
+Carte de Nina → « Indiquer ses absences » → une table `Repas × Mar 18 … Dim 23`,
+lignes `Petit-déjeuner / Déjeuner / Dîner`, **18 contrôles**. Chacun est :
+
+```html
+<input type="checkbox" aria-label="Déjeuner — Mercredi">
+```
+
+🟥 **Des cases à cocher. Deux états. Pas trois.** Et la consigne à côté conflue
+les deux absences en une seule : *« Décoche les repas qu'elle ne prendra pas
+ici. »* — « au restaurant » et « pas là » deviennent la même case décochée.
+
+## Pourquoi, et c'est une garde désarmée
+
+`MealPickerGrid.tsx` **sait** rendre les trois états. La bascule est à la ligne
+258 :
+
+```ts
+threeState={Boolean(props.onSaveMarks)}
+```
+
+et le `<select>` à trois options (`at_table` / `eating_out` / `away`) est aux
+lignes **410-429**.
+
+**`onSaveMarks` n'a AUCUN appelant dans tout le dépôt.** Vérifié :
+
+```
+$ grep -rn "onSaveMarks" frontend/src/ | grep -v components/MealPickerGrid.tsx
+frontend/src/keel/components/mealPickerGrid.int.test.ts:28   (un commentaire)
+frontend/src/keel/components/mealPickerGrid.int.test.ts:154  (le test du cas SANS la prop)
+```
+
+Les **deux seuls** montages de la grille (`MealBuilder.tsx:1066` et `:1468`)
+passent `onSave`, jamais `onSaveMarks`. Donc `threeState` vaut **`false`
+partout**, et le troisième état **ne se rend nulle part dans le produit**.
+
+C'est exactement le motif déjà payé dans ce dépôt : *un paramètre de garde
+optionnel est une garde désarmée*. Le commentaire de la prop
+(`MealPickerGrid.tsx:63-66`) l'assume — « le deux-états reste le défaut », « c'est
+ce qui rend ce lot additif » — mais **le lot est resté additif ET jamais
+additionné**.
+
+## Ce que ça fait au parcours, bout à bout
+
+```
+le tunnel demande   « la semaine, tu déjeunes au bureau ? »   → écrit 5 midis « dehors »
+les lecteurs du plan savent rendre « dehors »                 → prouvé par D4 ③
+      MAIS
+aucun écran ne permet à un humain de POSER ou de CORRIGER un « dehors ».
+```
+
+Et c'est aussi ce qui rend la question suivante impossible à trancher :
+
+🟥 **« Enregistrer sans toucher une case ne doit pas transformer *dehors* en
+*absent* » : NON VÉRIFIÉ, et invérifiable en l'état.** Pour le mesurer il
+faudrait une bouche portant une marque `eating_out`, et **rien à l'écran ne sait
+en créer une** — seule la question du déjeuner du tunnel le fait, et le tunnel
+est bloqué (voir plus haut). Le risque reste entier : la seule grille accessible
+écrit par l'ancienne porte `onSave` (`AwayDay[]`), qui ne connaît pas le
+troisième état.
+
+⚠️ **Aucune de mes cases n'a été enregistrée** : j'ai décoché « Déjeuner —
+Mercredi » pour observer, puis rechargé la page sans jamais cliquer
+« Enregistrer ». La grille de Nina est intacte.
+
+🟥 **« Le titulaire a bien sa propre grille » : NON VÉRIFIÉ.** La carte du maître
+sur `/app/household` est la fenêtre à six blocs, qui ne porte pas de grille
+d'absences ; la grille du titulaire vit dans le tunnel (D4 ②), que je n'ai pas
+pu atteindre.
+
+---
+
+# PARTIE F — l'état des suites, ce soir
+
+## `npx vitest --config vitest.config.ts run` (env QA neutralisé)
+
+```
+Test Files   4 failed | 94 passed | 5 skipped (103)
+Tests       55 failed | 1542 passed | 20 skipped (1617)
+```
+
+| Fichier rouge | Rouges | Verdict |
+|---|---|---|
+| `src/edge/coverage-guard.int.test.ts` | 2 | **étranger connu**, inchangé |
+| `src/keel/api/household.int.test.ts` | 2 | **étranger connu**, inchangé |
+| `src/keel/components/mouthFormDialog.int.test.ts` | **48** | 🟥 **NEUF** — lane voisine, en cours à 20h07 |
+| `src/keel/pages/meCardSheet.int.test.ts` | **3** | 🟥 **NEUF** — même cause (`MouthCoreFields is not defined`, `HouseholdPage.tsx:1035`) |
+
+Les 51 rouges neufs ne sont **pas** du chantier : ils apparaissent avec l'édition
+en cours d'une lane voisine sur `MouthFormDialog.tsx` / `HouseholdPage.tsx`, la
+même qui a fait tomber l'écran à 20h07.
+
+## `npx tsc -b --force`
+
+🟥 **ROUGE sur l'arbre de travail à 20h08** (3 erreurs, mêmes deux fichiers, même
+lane). Il faudra le rejouer une fois cette lane posée.
+🟥 **ROUGE sur `HEAD` seul : 1 170 erreurs** — voir la section « un clone frais ne
+compile pas ».
+
+---
+
+# CE QUE JE N'AI PAS PU VÉRIFIER — la liste rouge, sans excuse
+
+1. 🟥 **L'étape `table` du tunnel** (moyens de cuisson avant les disponibilités,
+   dépliage du déjeuner, moments de repas) — **jamais atteinte**. Le tunnel
+   refuse d'avancer tant que les quatre bouches n'ont pas taille/poids/sexe et
+   une réponse d'allergie, et compléter tout ça écrit lourdement dans un compte
+   QA partagé. Prouvée par L6-b sur le rendu ; **pas vue**.
+2. 🟥 **Les trois états de la grille** — impossibles à rendre (voir partie E).
+3. 🟥 **« Enregistrer sans toucher une case »** — invérifiable sans un `eating_out`
+   existant.
+4. 🟥 **La grille propre du titulaire** — vit dans le tunnel, non atteint.
+5. 🟥 **Le conseil du midi (« vise autour de … ») à l'écran** — aucun midi
+   « dehors » sur le foyer visé.
+6. 🟥 **La case « mange dehors » rendue dans les deux lecteurs** — même cause.
+7. 🟥 **L'état `no_margin` du curseur** — jamais atteint, même sur un corps de
+   38 kg.
+8. 🟥 **La journée entièrement dehors** — confirmée **non faite**, comme annoncé
+   (D4 §5, D5 §④). Je n'ai rien trouvé qui contredise leur diagnostic :
+   `meal-energy-v1/index.ts:869` itère toujours sur les jours **produits**.
+
+---
+
+# LES DÉCISIONS QUI APPARTIENNENT À L'UTILISATEUR
+
+1. **Commiter la couche i18n.** Sans elle, rien de ce chantier n'existe hors de
+   ce disque dur. C'est la décision n°1 et elle bloque tout le reste.
+2. **Monter le pop-up sur les deux portes qui lui manquent** : l'édition d'une
+   bouche existante (`/app/household`), et l'étape 3 du tunnel. Aujourd'hui le
+   poids visé et le rythme ne sont atteignables que par le maître.
+3. **Trancher quelle table fait autorité pour le corps du titulaire**
+   (`profiles` ou `household_member_bodies`) — sans ça, le tunnel et l'écran du
+   foyer continueront de se contredire.
+4. **Brancher `onSaveMarks`**, ou retirer le troisième état. Le laisser tel quel
+   est la pire des trois options : le code le porte, les tests le prouvent,
+   personne ne le voit.
+5. **Le curseur de prise s'ouvre au maximum, donc déjà saturé.** Ouvrir au point
+   de saturation ?
+6. **« Apple for Lea — 18 kcal »** : un nombre de calories à côté du prénom d'un
+   enfant. Dans le périmètre de l'interdit, ou non ?
+7. **« Chiffres — 178 cm · 85 kg »** en tête de `/app/plan` : dans le périmètre,
+   ou non ?
+8. **Les trois questions de bilan en anglais** au milieu d'une page française.
+
+---
+
+# CE QUE J'AI TOUCHÉ, ET RIEN D'AUTRE
+
+- **Écrit** : `scratchpad/2026-08-18-1930-E-*` (ce rapport et deux sondes).
+  **Aucun fichier du produit n'a été modifié.** Aucun défaut n'a été refermé en
+  silence.
+- **Compte QA partagé avancé** : `laneb-owner-…@test.dev` (Paul, foyer Bramble
+  `80e9af4c`) — direction, poids visé, rythme, corps, cran d'activité, date de
+  naissance, **plus** `profiles.height_cm/gender/activity_level` posés par le
+  tunnel. Détail et état d'avant en partie B1.
+- **Aucune case de la grille de Nina n'a été enregistrée.**
+- Un arbre de travail détaché a été créé puis **retiré** (`git worktree remove
+  --force`) ; `git worktree list` est propre.
+- Jamais `git add -A`, jamais `git stash`, aucune commande à risque, aucun push,
+  aucun merge. Commits `--no-verify` avec le motif écrit dans chaque message
+  (`agent-gate` est rouge sur des fichiers non suivis de lanes voisines).
+
