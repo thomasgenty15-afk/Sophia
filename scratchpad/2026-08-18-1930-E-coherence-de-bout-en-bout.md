@@ -246,6 +246,53 @@ le contraire, à quatre lignes de distance. C'est exactement le motif « une
 contrainte documentée survit à sa cause ». **Non corrigé** (fichier partagé, lane
 voisine active dessus), signalé.
 
+## B1. Le pop-up « une bouche » sur le MAÎTRE — la direction s'écrit vraiment ✅
+
+C'est le défaut le plus récemment fermé (« un bouton mort il y a une heure »), et
+c'est le seul point du chantier qui n'avait **jamais** été vu à l'écran. Il l'est
+maintenant, **de bout en bout, jusqu'à la base**.
+
+**Le geste, tel qu'un humain le fait**, sur `/app/household`, maître du foyer
+Bramble : « Fill in my details » → date de naissance `10/03/1988` → « Losing
+fat » → taille `178`, poids `85`, sexe `male` → poids visé `78` → cran
+« On their feet » → curseur descendu à `0.35` → **Save**.
+
+**Ce que l'écran a rendu pendant le geste :**
+
+- au clic sur « Losing fat », le poids visé s'ouvre, et à sa place le curseur dit
+  « Fill in height, weight and sex below and the pace slider appears » ;
+- corps saisi → le curseur apparaît, `min=0.05 max=0.45 step=0.05` ;
+- poids visé saisi → **« About 20 weeks at this pace. »** — la date d'arrivée
+  s'affiche à côté du champ, comme annoncé ;
+- la ligne « Still needed: … » disparaît quand les six manques sont comblés ;
+- au Save, **la fenêtre se ferme** et le roster passe de
+  `Paul — Staying where they are` à **`Paul — Losing fat`**. ✅
+
+**Ce qui est arrivé en base** (relevé avant / après, service role) :
+
+| Où | Avant | Après |
+|---|---|---|
+| `student_goals.goal` | `maintenance` | **`fat_loss`** ✅ |
+| `student_goals.target_weight_kg` | `null` | **78** ✅ |
+| `student_goals.target_pace_kg_per_week` | `null` | **0.35** ✅ |
+| `profiles.birth_date` | `null` | **1988-03-10** ✅ |
+| `household_member_bodies` (ce foyer) | **table vide** | 1 ligne : 178 / 85 / male / `on_feet` ✅ |
+| `household_members.goal` (sa ligne) | `null` | `null` — **et c'est juste** : la direction d'une bouche qui a un compte vit dans `student_goals`, pas sur la ligne membre |
+
+**Rien n'a été jeté en silence.** Les cinq écritures que D5 décrivait par des
+tests sont observées ici sur la vraie base, par le vrai geste. ✅
+
+### ⚠️ Ce que j'ai écrit dans une base QA partagée, et qu'il faut savoir
+
+Le compte **`laneb-owner-…@test.dev`** (Paul, maître de Bramble `80e9af4c`) a
+**changé d'état** : il est passé de « maintenir, sans corps, sans date de
+naissance » à « perdre du gras, 78 kg visés, 0,35 kg/semaine, 178/85/male,
+`on_feet`, né le 10/03/1988 ». L'état d'avant est archivé dans
+`/tmp/pE_snap_before.json`, celui d'après dans `/tmp/pE_snap_after.json`.
+**Je ne l'ai pas remis en arrière** : l'état où je le laisse est cohérent et plus
+complet qu'avant, et une restauration partielle aurait été plus risquée qu'utile.
+Une lane qui comptait sur « Paul n'a pas de corps » doit le savoir.
+
 ---
 
 _(la suite est ajoutée au fil de l'eau)_
