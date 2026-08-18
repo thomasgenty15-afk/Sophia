@@ -658,4 +658,72 @@ PORTAIT », « Encore » / « Sans moi », « UNE ENVIE POUR LA SUITE »).
 
 ---
 
+# 🟥 ALERTE VIVE — à 20h07, `/app/household` s'est mis à ne plus rien afficher du tout
+
+**Ce n'est pas mon lot, et je n'y touche pas** — mais il faut le savoir tout de
+suite, parce que c'est l'écran central de tout ce chantier.
+
+**Ce que la page rend, à 20h08 :**
+
+```
+Une erreur est survenue
+L'affichage a rencontré un problème. Rien n'a été perdu — recharge la page pour reprendre.
+[Recharger la page]
+```
+
+**Toute la page**, pas seulement la fenêtre. Persiste après rechargement complet.
+
+**La cause, lue dans la console :**
+
+```
+t(): "household.mouth.preferences_title" est hors [du périmètre traduit] de la page,
+     ou traduis-le. Voir i18n/catalog.ts.
+The above error occurred in the <MouthFormDialog> component.
+```
+
+**Le fait :** `MouthFormDialog.tsx` a été **modifié à 20h07** (horodatage du
+fichier) et appelle maintenant, à `MouthFormDialog.tsx:295` et `:298` :
+
+```ts
+t("household.mouth.preferences_title_named", { name })    // ← n'existe pas
+t("household.mouth.preferences_title")                    // ← n'existe pas
+```
+
+**Aucune des deux clés n'est dans `en.ts` ni dans `fr.ts`** (tous deux datés de
+19h17). La fenêtre est **montée fermée** sur chaque rendu de la page — le `t()`
+part donc à chaque affichage, et `t()` échoue bruyamment par construction (R7).
+Résultat : l'écran entier tombe dans la barrière d'erreur.
+
+**`npx tsc -b --force` sur l'arbre de travail est ROUGE en ce moment**, 3
+erreurs, toutes sur les mêmes deux fichiers :
+
+```
+MouthFormDialog.tsx(730,72)  Property 'onClose' does not exist on type 'MouthCoreFieldsProps'
+HouseholdPage.tsx(1035,11)   Property 'todayLocalIso' does not exist on type MouthFormDialogProps
+HouseholdPage.tsx(1180,13)   idem
+```
+
+C'est un lot **en cours d'écriture** par une lane voisine, pris en flagrant
+milieu de geste. **Je ne le répare pas** (fichier partagé, travail d'autrui), et
+je ne le compte pas contre le chantier.
+
+### ⚠️ Ce que ça change pour la lecture de CE rapport
+
+**Toutes mes mesures sur `/app/household` — le pop-up du maître, ses six blocs,
+l'écriture de la direction jusqu'en base, le curseur, le français, les 320 px —
+ont été prises AVANT 20h07, sur la version qui fonctionnait.** Elles restent
+vraies de cette version. Elles ne décrivent **pas** l'état de l'arbre de travail à
+20h08.
+
+### 🟥 Et la conséquence : la grille de présence n'a pas pu être vérifiée
+
+Le point 5 du parcours (les trois états de la grille, « enregistrer sans toucher
+une case ne transforme pas *dehors* en *absent* », la grille propre du
+titulaire) **n'a pas pu être joué au navigateur** : la seule porte vers cette
+grille est `/app/household`, qui est tombé au moment exact où j'y arrivais.
+**NON VÉRIFIÉ. Consigné rouge.** Ce point reste prouvé uniquement par les tests
+de rendu de D4 ②/③ ; l'œil ne l'a pas vu.
+
+---
+
 _(la suite est ajoutée au fil de l'eau)_
