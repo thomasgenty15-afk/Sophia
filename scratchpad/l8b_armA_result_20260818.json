@@ -1,0 +1,1845 @@
+{
+  "status": 200,
+  "ms": 37988,
+  "json": {
+    "ok": true,
+    "meal": {
+      "id": "00646a00-563a-4f7a-9cd3-cbfa1520537d"
+    },
+    "window": {
+      "starts_on": "2026-08-19",
+      "duration_days": 2
+    },
+    "suggested_window": {
+      "starts_on": "2026-08-18",
+      "shifted": null
+    },
+    "rationale": {
+      "lines": [
+        "This plan covers 2 days, starting Wednesday 2026-08-19.",
+        "Quantities are made for 4 people."
+      ],
+      "refusal": null
+    },
+    "request_report": {
+      "lines": [],
+      "refusal": null
+    },
+    "household": {
+      "id": "4123e479-f62a-4a3c-912e-5c7cb5c1f15a",
+      "member_count": 4
+    },
+    "dishes": [
+      {
+        "name": "Yoghurt fruit bowls",
+        "title": "Greek yoghurt, strawberries, blueberries and oats",
+        "slot": "breakfast",
+        "day": "wed",
+        "ingredients": [
+          {
+            "term": "Greek yoghurt",
+            "quantity": "800 g",
+            "in_pantry": false,
+            "amount": 800,
+            "unit": "g",
+            "state": "cooked",
+            "grams_raw": 800
+          },
+          {
+            "term": "strawberries",
+            "quantity": "400 g",
+            "in_pantry": false,
+            "amount": 400,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 400
+          },
+          {
+            "term": "blueberries",
+            "quantity": "300 g",
+            "in_pantry": false,
+            "amount": 300,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 300
+          },
+          {
+            "term": "rolled oats",
+            "quantity": "120 g",
+            "in_pantry": false,
+            "amount": 120,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 120
+          },
+          {
+            "term": "honey",
+            "quantity": "4 tsp",
+            "in_pantry": false,
+            "amount": 4,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 20
+          }
+        ],
+        "method": "Spoon the yoghurt into four bowls, top with the fruit and oats, then drizzle with honey.",
+        "why": "A quick protein-led breakfast that needs no cooking and uses in-season summer fruit.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": [],
+        "member_id": null,
+        "same_day": {
+          "kind": "none",
+          "minutes": 5
+        }
+      },
+      {
+        "name": "Chicken salad wraps",
+        "title": "Roast chicken, lettuce, cucumber, tomato and wholemeal wraps",
+        "slot": "lunch",
+        "day": "wed",
+        "ingredients": [
+          {
+            "term": "wholemeal wraps",
+            "quantity": "4 wraps",
+            "in_pantry": false,
+            "amount": 4,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 160
+          },
+          {
+            "term": "lettuce",
+            "quantity": "1 small lettuce",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 100
+          },
+          {
+            "term": "cucumber",
+            "quantity": "1 cucumber",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 300
+          },
+          {
+            "term": "tomatoes",
+            "quantity": "4 tomatoes",
+            "in_pantry": false,
+            "amount": 4,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 400
+          },
+          {
+            "term": "mustard",
+            "quantity": "2 tsp",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 10
+          }
+        ],
+        "method": "Reheat a portion of chicken and slice it with the salad vegetables, then fill the wraps and spread with mustard.",
+        "why": "This turns one batch of chicken into a fresh lunch with very little weekday effort.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_roast_chicken",
+            "servings": 1,
+            "box_id": "box_paul_chicken"
+          },
+          {
+            "preparation_id": "prep_roast_chicken",
+            "servings": 1,
+            "box_id": "box_lea_chicken"
+          },
+          {
+            "preparation_id": "prep_roast_chicken",
+            "servings": 1,
+            "box_id": "box_tom_chicken"
+          }
+        ],
+        "member_id": null,
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 10
+        }
+      },
+      {
+        "name": "Chicken wraps for Nina",
+        "title": "Roast chicken, lettuce, cucumber, tomato and wholemeal wraps",
+        "slot": "lunch",
+        "day": "wed",
+        "ingredients": [
+          {
+            "term": "wholemeal wraps",
+            "quantity": "2 wraps",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 80
+          },
+          {
+            "term": "lettuce",
+            "quantity": "1 small lettuce",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 100
+          },
+          {
+            "term": "cucumber",
+            "quantity": "1 cucumber",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 300
+          },
+          {
+            "term": "tomatoes",
+            "quantity": "2 tomatoes",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 200
+          },
+          {
+            "term": "mustard",
+            "quantity": "1 tsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 5
+          }
+        ],
+        "method": "Reheat Nina's chicken box, then fill the wraps with the salad and mustard.",
+        "why": "Nina gets her own lunch dish as required, built from the same cooking session but portioned separately.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_roast_chicken",
+            "servings": 1,
+            "box_id": "box_nina_chicken"
+          }
+        ],
+        "member_id": "e3d77550-6f51-411e-9d0c-8bd36c3d07a2",
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 10
+        }
+      },
+      {
+        "name": "Chicken rice bowls",
+        "title": "Roast chicken, courgette, peppers and rice",
+        "slot": "dinner",
+        "day": "wed",
+        "ingredients": [
+          {
+            "term": "lemon",
+            "quantity": "1 lemon",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 60
+          },
+          {
+            "term": "parsley",
+            "quantity": "a small bunch",
+            "in_pantry": false,
+            "amount": null,
+            "unit": null,
+            "state": null,
+            "grams_raw": null
+          }
+        ],
+        "method": "Reheat a portion of chicken and serve it over the cooked rice and vegetables, finishing with lemon and parsley.",
+        "why": "A straightforward dinner that uses the batch rice and roast vegetables while keeping the plate balanced.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_roast_chicken",
+            "servings": 1,
+            "box_id": "box_paul_chicken"
+          },
+          {
+            "preparation_id": "prep_roast_chicken",
+            "servings": 1,
+            "box_id": "box_lea_chicken"
+          },
+          {
+            "preparation_id": "prep_roast_chicken",
+            "servings": 1,
+            "box_id": "box_tom_chicken"
+          },
+          {
+            "preparation_id": "prep_roast_chicken",
+            "servings": 1,
+            "box_id": "box_nina_chicken"
+          },
+          {
+            "preparation_id": "prep_veg_rice",
+            "servings": 1,
+            "box_id": "box_paul_riceveg"
+          },
+          {
+            "preparation_id": "prep_veg_rice",
+            "servings": 1,
+            "box_id": "box_lea_riceveg"
+          },
+          {
+            "preparation_id": "prep_veg_rice",
+            "servings": 1,
+            "box_id": "box_tom_riceveg"
+          },
+          {
+            "preparation_id": "prep_veg_rice",
+            "servings": 1,
+            "box_id": "box_nina_riceveg"
+          }
+        ],
+        "member_id": null,
+        "same_day": {
+          "kind": "reheat_only",
+          "minutes": 10
+        }
+      },
+      {
+        "name": "Berry oat pots",
+        "title": "Greek yoghurt, raspberries, plums and oats",
+        "slot": "breakfast",
+        "day": "thu",
+        "ingredients": [
+          {
+            "term": "Greek yoghurt",
+            "quantity": "800 g",
+            "in_pantry": false,
+            "amount": 800,
+            "unit": "g",
+            "state": "cooked",
+            "grams_raw": 800
+          },
+          {
+            "term": "raspberries",
+            "quantity": "300 g",
+            "in_pantry": false,
+            "amount": 300,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 300
+          },
+          {
+            "term": "plums",
+            "quantity": "4 plums",
+            "in_pantry": false,
+            "amount": 4,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": null
+          },
+          {
+            "term": "rolled oats",
+            "quantity": "120 g",
+            "in_pantry": false,
+            "amount": 120,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 120
+          },
+          {
+            "term": "pumpkin seeds",
+            "quantity": "40 g",
+            "in_pantry": false,
+            "amount": 40,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 40
+          }
+        ],
+        "method": "Divide the yoghurt between four bowls, add the fruit and oats, and scatter over the seeds.",
+        "why": "Another no-cook breakfast that keeps protein at the centre and stays in season.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": [],
+        "member_id": null,
+        "same_day": {
+          "kind": "none",
+          "minutes": 5
+        }
+      },
+      {
+        "name": "Tuna pasta salad",
+        "title": "Tuna, wholewheat pasta, sweetcorn, cherry tomatoes and spinach",
+        "slot": "lunch",
+        "day": "thu",
+        "ingredients": [
+          {
+            "term": "cherry tomatoes",
+            "quantity": "300 g",
+            "in_pantry": false,
+            "amount": 300,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 300
+          },
+          {
+            "term": "spinach",
+            "quantity": "100 g",
+            "in_pantry": false,
+            "amount": 100,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 100
+          },
+          {
+            "term": "lemon",
+            "quantity": "1 lemon",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 60
+          }
+        ],
+        "method": "Reheat the pasta base if needed, then toss it with tuna, tomatoes and spinach, and finish with lemon.",
+        "why": "It makes a full lunch from one batch and suits a work-from-home day with almost no extra effort.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_pasta_tuna",
+            "servings": 1,
+            "box_id": "box_paul_pasta"
+          },
+          {
+            "preparation_id": "prep_pasta_tuna",
+            "servings": 1,
+            "box_id": "box_lea_pasta"
+          },
+          {
+            "preparation_id": "prep_pasta_tuna",
+            "servings": 1,
+            "box_id": "box_tom_pasta"
+          },
+          {
+            "preparation_id": "prep_pasta_tuna",
+            "servings": 1,
+            "box_id": "box_nina_pasta"
+          }
+        ],
+        "member_id": null,
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 8
+        }
+      },
+      {
+        "name": "Salmon and greens",
+        "title": "Salmon fillets, new potatoes, green beans and dill yoghurt",
+        "slot": "dinner",
+        "day": "thu",
+        "ingredients": [
+          {
+            "term": "new potatoes",
+            "quantity": "800 g",
+            "in_pantry": false,
+            "amount": 800,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 800
+          },
+          {
+            "term": "green beans",
+            "quantity": "600 g",
+            "in_pantry": false,
+            "amount": 600,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 600
+          },
+          {
+            "term": "greek yoghurt",
+            "quantity": "200 g",
+            "in_pantry": false,
+            "amount": 200,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 200
+          },
+          {
+            "term": "dill",
+            "quantity": "a small bunch",
+            "in_pantry": false,
+            "amount": null,
+            "unit": null,
+            "state": null,
+            "grams_raw": null
+          },
+          {
+            "term": "lemon",
+            "quantity": "1 lemon",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 60
+          }
+        ],
+        "method": "Reheat the salmon portions, warm the potatoes and beans, and stir the yoghurt with dill and lemon for the sauce.",
+        "why": "A second dinner from the week’s cooking that stays light, fast and protein-centred.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_salmon_tray",
+            "servings": 1,
+            "box_id": "box_paul_salmon"
+          },
+          {
+            "preparation_id": "prep_salmon_tray",
+            "servings": 1,
+            "box_id": "box_lea_salmon"
+          },
+          {
+            "preparation_id": "prep_salmon_tray",
+            "servings": 1,
+            "box_id": "box_tom_salmon"
+          },
+          {
+            "preparation_id": "prep_salmon_tray",
+            "servings": 1,
+            "box_id": "box_nina_salmon"
+          }
+        ],
+        "member_id": null,
+        "same_day": {
+          "kind": "reheat_only",
+          "minutes": 12
+        }
+      },
+      {
+        "name": "Tomato toast eggs",
+        "title": "Eggs, tomatoes and wholemeal toast",
+        "slot": "breakfast",
+        "day": "wed",
+        "ingredients": [
+          {
+            "term": "eggs",
+            "quantity": "8 eggs",
+            "in_pantry": false,
+            "amount": 8,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 440
+          },
+          {
+            "term": "tomatoes",
+            "quantity": "4 tomatoes",
+            "in_pantry": false,
+            "amount": 4,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 400
+          },
+          {
+            "term": "wholemeal bread",
+            "quantity": "8 slices",
+            "in_pantry": false,
+            "amount": 8,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 320
+          },
+          {
+            "term": "butter",
+            "quantity": "20 g",
+            "in_pantry": false,
+            "amount": 20,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 20
+          }
+        ],
+        "method": "Scramble the eggs with the tomatoes, toast the bread and butter it, then serve everything hot.",
+        "why": "A simple cooked breakfast with a proper protein anchor for the first day.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": [],
+        "member_id": null,
+        "same_day": {
+          "kind": "cook_fresh",
+          "minutes": 15
+        }
+      },
+      {
+        "name": "Courgette frittata",
+        "title": "Eggs, courgette, onions and feta",
+        "slot": "dinner",
+        "day": "wed",
+        "ingredients": [
+          {
+            "term": "eggs",
+            "quantity": "10 eggs",
+            "in_pantry": false,
+            "amount": 10,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 550
+          },
+          {
+            "term": "courgettes",
+            "quantity": "2 courgettes",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 400
+          },
+          {
+            "term": "onion",
+            "quantity": "1 onion",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 110
+          },
+          {
+            "term": "feta",
+            "quantity": "120 g",
+            "in_pantry": false,
+            "amount": 120,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 120
+          },
+          {
+            "term": "olive oil",
+            "quantity": "1 tbsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 15
+          }
+        ],
+        "method": "Cook the courgette and onion in a pan, add the eggs and feta, then finish the frittata under a lid or in the oven until set.",
+        "why": "It uses summer vegetables well and gives a proper protein-led dinner without needing a second session.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": [],
+        "member_id": null,
+        "same_day": {
+          "kind": "cook_fresh",
+          "minutes": 25
+        }
+      },
+      {
+        "name": "Omelette breakfast",
+        "title": "Eggs, spinach and mushrooms on toast",
+        "slot": "breakfast",
+        "day": "thu",
+        "ingredients": [
+          {
+            "term": "eggs",
+            "quantity": "8 eggs",
+            "in_pantry": false,
+            "amount": 8,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 440
+          },
+          {
+            "term": "spinach",
+            "quantity": "120 g",
+            "in_pantry": false,
+            "amount": 120,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 120
+          },
+          {
+            "term": "mushrooms",
+            "quantity": "250 g",
+            "in_pantry": false,
+            "amount": 250,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 250
+          },
+          {
+            "term": "wholemeal bread",
+            "quantity": "8 slices",
+            "in_pantry": false,
+            "amount": 8,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 320
+          },
+          {
+            "term": "butter",
+            "quantity": "20 g",
+            "in_pantry": false,
+            "amount": 20,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 20
+          }
+        ],
+        "method": "Cook the mushrooms and spinach, fold in the eggs, and serve with buttered toast.",
+        "why": "A second cooked breakfast keeps the week varied while still being quick and protein-led.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": [],
+        "member_id": null,
+        "same_day": {
+          "kind": "cook_fresh",
+          "minutes": 20
+        }
+      },
+      {
+        "name": "Falafel lunch boxes",
+        "title": "Falafel, couscous, cucumber, tomatoes and yoghurt",
+        "slot": "lunch",
+        "day": "thu",
+        "ingredients": [
+          {
+            "term": "cucumber",
+            "quantity": "1 cucumber",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 300
+          },
+          {
+            "term": "tomatoes",
+            "quantity": "4 tomatoes",
+            "in_pantry": false,
+            "amount": 4,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 400
+          },
+          {
+            "term": "Greek yoghurt",
+            "quantity": "200 g",
+            "in_pantry": false,
+            "amount": 200,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 200
+          },
+          {
+            "term": "mint",
+            "quantity": "a few leaves",
+            "in_pantry": false,
+            "amount": null,
+            "unit": null,
+            "state": null,
+            "grams_raw": null
+          }
+        ],
+        "method": "Reheat the falafel and couscous, then add the fresh vegetables and yoghurt.",
+        "why": "It gives a meat-free lunch that still has a clear protein anchor and stays easy on a working day.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_falafel_couscous",
+            "servings": 1,
+            "box_id": "box_paul_falafel"
+          },
+          {
+            "preparation_id": "prep_falafel_couscous",
+            "servings": 1,
+            "box_id": "box_lea_falafel"
+          },
+          {
+            "preparation_id": "prep_falafel_couscous",
+            "servings": 1,
+            "box_id": "box_tom_falafel"
+          },
+          {
+            "preparation_id": "prep_falafel_couscous",
+            "servings": 1,
+            "box_id": "box_nina_falafel"
+          }
+        ],
+        "member_id": null,
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 8
+        }
+      },
+      {
+        "name": "Chickpea salad dinner",
+        "title": "Chickpeas, courgettes, peppers and couscous",
+        "slot": "dinner",
+        "day": "thu",
+        "ingredients": [
+          {
+            "term": "cucumber",
+            "quantity": "1 cucumber",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 300
+          },
+          {
+            "term": "mixed salad leaves",
+            "quantity": "120 g",
+            "in_pantry": false,
+            "amount": 120,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 120
+          },
+          {
+            "term": "feta",
+            "quantity": "80 g",
+            "in_pantry": false,
+            "amount": 80,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 80
+          },
+          {
+            "term": "lemon",
+            "quantity": "1 lemon",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 60
+          }
+        ],
+        "method": "Reheat the chickpea and vegetable base, then add the salad, feta and lemon just before serving.",
+        "why": "A quick second-day dinner from the same session that keeps vegetables high and cooking low.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_chickpea_tray",
+            "servings": 1,
+            "box_id": "box_paul_chickpea"
+          },
+          {
+            "preparation_id": "prep_chickpea_tray",
+            "servings": 1,
+            "box_id": "box_lea_chickpea"
+          },
+          {
+            "preparation_id": "prep_chickpea_tray",
+            "servings": 1,
+            "box_id": "box_tom_chickpea"
+          },
+          {
+            "preparation_id": "prep_chickpea_tray",
+            "servings": 1,
+            "box_id": "box_nina_chickpea"
+          }
+        ],
+        "member_id": null,
+        "same_day": {
+          "kind": "reheat_only",
+          "minutes": 10
+        }
+      }
+    ],
+    "preparations": [
+      {
+        "id": "prep_roast_chicken",
+        "title": "Roast chicken thighs",
+        "servings_made": 4,
+        "ingredients": [
+          {
+            "term": "chicken thighs",
+            "quantity": "1.4 kg",
+            "in_pantry": false,
+            "amount": 1400,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 1400
+          },
+          {
+            "term": "olive oil",
+            "quantity": "2 tbsp",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 30
+          },
+          {
+            "term": "garlic",
+            "quantity": "4 cloves",
+            "in_pantry": false,
+            "amount": 4,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 20
+          },
+          {
+            "term": "paprika",
+            "quantity": "2 tsp",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 10
+          },
+          {
+            "term": "salt",
+            "quantity": "2 tsp",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 10
+          },
+          {
+            "term": "black pepper",
+            "quantity": "1 tsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 5
+          }
+        ],
+        "method": "Toss the chicken with oil, garlic, paprika, salt and pepper, then roast until golden and cooked through. Cool slightly and portion into four named boxes for the week.",
+        "active_minutes": 15,
+        "total_minutes": 45,
+        "cook_on": "wed",
+        "boxes": [
+          {
+            "id": "box_paul_chicken",
+            "member_ids": [
+              "30730edf-846c-4ea4-901d-39c9caaf7fee"
+            ],
+            "grams": 182
+          },
+          {
+            "id": "box_lea_chicken",
+            "member_ids": [
+              "e62e2bbd-b675-4fe2-be7d-9dd98510ee98"
+            ],
+            "grams": 250
+          },
+          {
+            "id": "box_tom_chicken",
+            "member_ids": [
+              "8183690c-96c2-4ded-a818-f1edc36862c0"
+            ],
+            "grams": 250
+          },
+          {
+            "id": "box_nina_chicken",
+            "member_ids": [
+              "e3d77550-6f51-411e-9d0c-8bd36c3d07a2"
+            ],
+            "grams": 330
+          }
+        ]
+      },
+      {
+        "id": "prep_veg_rice",
+        "title": "Courgette pepper rice",
+        "servings_made": 4,
+        "ingredients": [
+          {
+            "term": "basmati rice",
+            "quantity": "300 g",
+            "in_pantry": false,
+            "amount": 300,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 300
+          },
+          {
+            "term": "courgettes",
+            "quantity": "3 courgettes",
+            "in_pantry": false,
+            "amount": 3,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 600
+          },
+          {
+            "term": "red peppers",
+            "quantity": "3 red peppers",
+            "in_pantry": false,
+            "amount": 3,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 450
+          },
+          {
+            "term": "onion",
+            "quantity": "1 onion",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 110
+          },
+          {
+            "term": "olive oil",
+            "quantity": "1 tbsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 15
+          },
+          {
+            "term": "salt",
+            "quantity": "1 tsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 5
+          }
+        ],
+        "method": "Cook the rice, then fry the onion, courgettes and peppers in oil with salt and fold the rice through. Cool and box into four portions.",
+        "active_minutes": 20,
+        "total_minutes": 35,
+        "cook_on": "wed",
+        "boxes": [
+          {
+            "id": "box_paul_riceveg",
+            "member_ids": [
+              "30730edf-846c-4ea4-901d-39c9caaf7fee"
+            ],
+            "grams": 240
+          },
+          {
+            "id": "box_lea_riceveg",
+            "member_ids": [
+              "e62e2bbd-b675-4fe2-be7d-9dd98510ee98"
+            ],
+            "grams": 330
+          },
+          {
+            "id": "box_tom_riceveg",
+            "member_ids": [
+              "8183690c-96c2-4ded-a818-f1edc36862c0"
+            ],
+            "grams": 330
+          },
+          {
+            "id": "box_nina_riceveg",
+            "member_ids": [
+              "e3d77550-6f51-411e-9d0c-8bd36c3d07a2"
+            ],
+            "grams": 418
+          }
+        ]
+      },
+      {
+        "id": "prep_pasta_tuna",
+        "title": "Tuna pasta salad base",
+        "servings_made": 4,
+        "ingredients": [
+          {
+            "term": "wholewheat pasta",
+            "quantity": "320 g",
+            "in_pantry": false,
+            "amount": 320,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 320
+          },
+          {
+            "term": "tuna in olive oil",
+            "quantity": "4 tins",
+            "in_pantry": false,
+            "amount": 4,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 480
+          },
+          {
+            "term": "sweetcorn",
+            "quantity": "250 g",
+            "in_pantry": false,
+            "amount": 250,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 250
+          },
+          {
+            "term": "spring onions",
+            "quantity": "4 spring onions",
+            "in_pantry": false,
+            "amount": 4,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 60
+          },
+          {
+            "term": "olive oil",
+            "quantity": "1 tbsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 15
+          },
+          {
+            "term": "salt",
+            "quantity": "1 tsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 5
+          }
+        ],
+        "method": "Boil the pasta, drain and cool it, then mix with tuna, sweetcorn, spring onions, oil and salt. Box into four portions for tomorrow's lunch.",
+        "active_minutes": 20,
+        "total_minutes": 30,
+        "cook_on": "wed",
+        "boxes": [
+          {
+            "id": "box_paul_pasta",
+            "member_ids": [
+              "30730edf-846c-4ea4-901d-39c9caaf7fee"
+            ],
+            "grams": 232
+          },
+          {
+            "id": "box_lea_pasta",
+            "member_ids": [
+              "e62e2bbd-b675-4fe2-be7d-9dd98510ee98"
+            ],
+            "grams": 320
+          },
+          {
+            "id": "box_tom_pasta",
+            "member_ids": [
+              "8183690c-96c2-4ded-a818-f1edc36862c0"
+            ],
+            "grams": 320
+          },
+          {
+            "id": "box_nina_pasta",
+            "member_ids": [
+              "e3d77550-6f51-411e-9d0c-8bd36c3d07a2"
+            ],
+            "grams": 418
+          }
+        ]
+      },
+      {
+        "id": "prep_salmon_tray",
+        "title": "Salmon tray with potatoes",
+        "servings_made": 4,
+        "ingredients": [
+          {
+            "term": "salmon fillets",
+            "quantity": "800 g",
+            "in_pantry": false,
+            "amount": 800,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 800
+          },
+          {
+            "term": "new potatoes",
+            "quantity": "1.2 kg",
+            "in_pantry": false,
+            "amount": 1200,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 1200
+          },
+          {
+            "term": "green beans",
+            "quantity": "600 g",
+            "in_pantry": false,
+            "amount": 600,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 600
+          },
+          {
+            "term": "olive oil",
+            "quantity": "2 tbsp",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 30
+          },
+          {
+            "term": "dill",
+            "quantity": "a small bunch",
+            "in_pantry": false,
+            "amount": null,
+            "unit": null,
+            "state": null,
+            "grams_raw": null
+          },
+          {
+            "term": "salt",
+            "quantity": "1 tsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 5
+          }
+        ],
+        "method": "Roast the potatoes first, add the salmon and green beans partway through, then finish with dill and salt. Box the cooked salmon and vegetables into four portions for the next day's dinner.",
+        "active_minutes": 15,
+        "total_minutes": 40,
+        "cook_on": "wed",
+        "boxes": [
+          {
+            "id": "box_paul_salmon",
+            "member_ids": [
+              "30730edf-846c-4ea4-901d-39c9caaf7fee"
+            ],
+            "grams": 240
+          },
+          {
+            "id": "box_lea_salmon",
+            "member_ids": [
+              "e62e2bbd-b675-4fe2-be7d-9dd98510ee98"
+            ],
+            "grams": 330
+          },
+          {
+            "id": "box_tom_salmon",
+            "member_ids": [
+              "8183690c-96c2-4ded-a818-f1edc36862c0"
+            ],
+            "grams": 330
+          },
+          {
+            "id": "box_nina_salmon",
+            "member_ids": [
+              "e3d77550-6f51-411e-9d0c-8bd36c3d07a2"
+            ],
+            "grams": 418
+          }
+        ]
+      },
+      {
+        "id": "prep_falafel_couscous",
+        "title": "Falafel and couscous boxes",
+        "servings_made": 4,
+        "ingredients": [
+          {
+            "term": "falafel mix",
+            "quantity": "400 g",
+            "in_pantry": false,
+            "amount": 400,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": null
+          },
+          {
+            "term": "couscous",
+            "quantity": "280 g",
+            "in_pantry": false,
+            "amount": 280,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 280
+          },
+          {
+            "term": "cucumber",
+            "quantity": "1 cucumber",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 300
+          },
+          {
+            "term": "tomatoes",
+            "quantity": "4 tomatoes",
+            "in_pantry": false,
+            "amount": 4,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 400
+          },
+          {
+            "term": "olive oil",
+            "quantity": "1 tbsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 15
+          },
+          {
+            "term": "salt",
+            "quantity": "1 tsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 5
+          }
+        ],
+        "method": "Shape and bake the falafel, make the couscous, then cool both and portion with the vegetables into four boxes for lunch.",
+        "active_minutes": 20,
+        "total_minutes": 35,
+        "cook_on": "thu",
+        "boxes": [
+          {
+            "id": "box_paul_falafel",
+            "member_ids": [
+              "30730edf-846c-4ea4-901d-39c9caaf7fee"
+            ],
+            "grams": 203
+          },
+          {
+            "id": "box_lea_falafel",
+            "member_ids": [
+              "e62e2bbd-b675-4fe2-be7d-9dd98510ee98"
+            ],
+            "grams": 280
+          },
+          {
+            "id": "box_tom_falafel",
+            "member_ids": [
+              "8183690c-96c2-4ded-a818-f1edc36862c0"
+            ],
+            "grams": 280
+          },
+          {
+            "id": "box_nina_falafel",
+            "member_ids": [
+              "e3d77550-6f51-411e-9d0c-8bd36c3d07a2"
+            ],
+            "grams": 363
+          }
+        ]
+      },
+      {
+        "id": "prep_chickpea_tray",
+        "title": "Chickpea vegetable tray",
+        "servings_made": 4,
+        "ingredients": [
+          {
+            "term": "chickpeas",
+            "quantity": "3 tins",
+            "in_pantry": false,
+            "amount": 3,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 720
+          },
+          {
+            "term": "courgettes",
+            "quantity": "2 courgettes",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 400
+          },
+          {
+            "term": "red peppers",
+            "quantity": "2 red peppers",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 300
+          },
+          {
+            "term": "red onion",
+            "quantity": "1 red onion",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 110
+          },
+          {
+            "term": "olive oil",
+            "quantity": "1 tbsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 15
+          },
+          {
+            "term": "ras el hanout",
+            "quantity": "2 tsp",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": null
+          },
+          {
+            "term": "salt",
+            "quantity": "1 tsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 5
+          }
+        ],
+        "method": "Roast the chickpeas and vegetables with oil, ras el hanout and salt until browned, then cool and box for dinner.",
+        "active_minutes": 15,
+        "total_minutes": 40,
+        "cook_on": "thu",
+        "boxes": [
+          {
+            "id": "box_paul_chickpea",
+            "member_ids": [
+              "30730edf-846c-4ea4-901d-39c9caaf7fee"
+            ],
+            "grams": 218
+          },
+          {
+            "id": "box_lea_chickpea",
+            "member_ids": [
+              "e62e2bbd-b675-4fe2-be7d-9dd98510ee98"
+            ],
+            "grams": 300
+          },
+          {
+            "id": "box_tom_chickpea",
+            "member_ids": [
+              "8183690c-96c2-4ded-a818-f1edc36862c0"
+            ],
+            "grams": 300
+          },
+          {
+            "id": "box_nina_chickpea",
+            "member_ids": [
+              "e3d77550-6f51-411e-9d0c-8bd36c3d07a2"
+            ],
+            "grams": 385
+          }
+        ]
+      }
+    ],
+    "cooking_sessions": [
+      {
+        "day": "wed",
+        "preparation_ids": [
+          "prep_roast_chicken",
+          "prep_veg_rice",
+          "prep_pasta_tuna",
+          "prep_salmon_tray"
+        ],
+        "run_through": "Start the oven and roast the chicken thighs. While they cook, chop the courgettes, peppers and onion for the rice, and put the rice on. In the same stretch, boil the pasta, drain it, and mix the tuna pasta salad base. Use the oven space after the chicken for the salmon tray with potatoes and green beans. As each batch is done, cool it briefly and weigh it straight into the named boxes.",
+        "total_minutes": 90
+      },
+      {
+        "day": "thu",
+        "preparation_ids": [
+          "prep_falafel_couscous",
+          "prep_chickpea_tray"
+        ],
+        "run_through": "Shape and bake the falafel while the couscous soaks. Roast the chickpea and vegetable tray in the same oven after or alongside it, then cool both and box them for the next meal.",
+        "total_minutes": 45
+      }
+    ],
+    "shopping_list": [
+      {
+        "term": "Greek yoghurt",
+        "quantity": "1.6 kg",
+        "aisle": "dairy"
+      },
+      {
+        "term": "strawberries",
+        "quantity": "400 g",
+        "aisle": "produce"
+      },
+      {
+        "term": "blueberries",
+        "quantity": "300 g",
+        "aisle": "produce"
+      },
+      {
+        "term": "rolled oats",
+        "quantity": "240 g",
+        "aisle": "grains"
+      },
+      {
+        "term": "honey",
+        "quantity": "4 tsp",
+        "aisle": "pantry"
+      },
+      {
+        "term": "wholemeal wraps",
+        "quantity": "6 wraps",
+        "aisle": "grains"
+      },
+      {
+        "term": "lettuce",
+        "quantity": "2 small lettuces",
+        "aisle": "produce"
+      },
+      {
+        "term": "cucumber",
+        "quantity": "3 cucumbers",
+        "aisle": "produce"
+      },
+      {
+        "term": "tomatoes",
+        "quantity": "20 tomatoes",
+        "aisle": "produce"
+      },
+      {
+        "term": "mustard",
+        "quantity": "3 tsp",
+        "aisle": "pantry"
+      },
+      {
+        "term": "lemon",
+        "quantity": "4 lemons",
+        "aisle": "produce"
+      },
+      {
+        "term": "parsley",
+        "quantity": "a small bunch",
+        "aisle": "produce"
+      },
+      {
+        "term": "raspberries",
+        "quantity": "300 g",
+        "aisle": "produce"
+      },
+      {
+        "term": "plums",
+        "quantity": "4 plums",
+        "aisle": "produce"
+      },
+      {
+        "term": "pumpkin seeds",
+        "quantity": "40 g",
+        "aisle": "pantry"
+      },
+      {
+        "term": "new potatoes",
+        "quantity": "2 kg",
+        "aisle": "produce"
+      },
+      {
+        "term": "eggs",
+        "quantity": "26 eggs",
+        "aisle": "protein"
+      },
+      {
+        "term": "wholemeal bread",
+        "quantity": "16 slices",
+        "aisle": "grains"
+      },
+      {
+        "term": "butter",
+        "quantity": "40 g",
+        "aisle": "dairy"
+      },
+      {
+        "term": "courgettes",
+        "quantity": "7 courgettes",
+        "aisle": "produce"
+      },
+      {
+        "term": "onion",
+        "quantity": "2 onions",
+        "aisle": "produce"
+      },
+      {
+        "term": "feta",
+        "quantity": "200 g",
+        "aisle": "dairy"
+      },
+      {
+        "term": "spinach",
+        "quantity": "220 g",
+        "aisle": "produce"
+      },
+      {
+        "term": "mushrooms",
+        "quantity": "250 g",
+        "aisle": "produce"
+      },
+      {
+        "term": "olive oil",
+        "quantity": "8 tbsp",
+        "aisle": "pantry"
+      },
+      {
+        "term": "wholewheat pasta",
+        "quantity": "320 g",
+        "aisle": "grains"
+      },
+      {
+        "term": "tuna in olive oil",
+        "quantity": "4 tins",
+        "aisle": "protein"
+      },
+      {
+        "term": "sweetcorn",
+        "quantity": "250 g",
+        "aisle": "frozen"
+      },
+      {
+        "term": "spring onions",
+        "quantity": "4 spring onions",
+        "aisle": "produce"
+      },
+      {
+        "term": "salmon fillets",
+        "quantity": "800 g",
+        "aisle": "protein"
+      },
+      {
+        "term": "green beans",
+        "quantity": "600 g",
+        "aisle": "produce"
+      },
+      {
+        "term": "dill",
+        "quantity": "a small bunch",
+        "aisle": "produce"
+      },
+      {
+        "term": "falafel mix",
+        "quantity": "400 g",
+        "aisle": "pantry"
+      },
+      {
+        "term": "couscous",
+        "quantity": "280 g",
+        "aisle": "grains"
+      },
+      {
+        "term": "chickpeas",
+        "quantity": "3 tins",
+        "aisle": "pantry"
+      },
+      {
+        "term": "red peppers",
+        "quantity": "5 red peppers",
+        "aisle": "produce"
+      },
+      {
+        "term": "red onion",
+        "quantity": "1 red onion",
+        "aisle": "produce"
+      },
+      {
+        "term": "ras el hanout",
+        "quantity": "2 tsp",
+        "aisle": "pantry"
+      },
+      {
+        "term": "garlic",
+        "quantity": "4 cloves",
+        "aisle": "produce"
+      },
+      {
+        "term": "paprika",
+        "quantity": "2 tsp",
+        "aisle": "pantry"
+      },
+      {
+        "term": "salt",
+        "quantity": "as needed",
+        "aisle": "pantry"
+      },
+      {
+        "term": "black pepper",
+        "quantity": "as needed",
+        "aisle": "pantry"
+      }
+    ],
+    "member_portions": [
+      {
+        "member_id": "30730edf-846c-4ea4-901d-39c9caaf7fee",
+        "display_name": "Paul",
+        "portion_note": "Take the full chicken box, a smaller rice box, and generous vegetables; at breakfast and lunch use the shared dish portions as written.",
+        "preparation_shares": [
+          {
+            "preparation_id": "prep_roast_chicken",
+            "note": "1 box of chicken from the shared batch"
+          },
+          {
+            "preparation_id": "prep_veg_rice",
+            "note": "1 smaller rice-and-vegetable box from the shared batch"
+          },
+          {
+            "preparation_id": "prep_pasta_tuna",
+            "note": "1 box of tuna pasta from the shared batch"
+          },
+          {
+            "preparation_id": "prep_salmon_tray",
+            "note": "1 box of salmon and vegetables from the shared batch"
+          },
+          {
+            "preparation_id": "prep_falafel_couscous",
+            "note": "1 box of falafel and couscous from the shared batch"
+          },
+          {
+            "preparation_id": "prep_chickpea_tray",
+            "note": "1 box of chickpeas and vegetables from the shared batch"
+          }
+        ]
+      },
+      {
+        "member_id": "e62e2bbd-b675-4fe2-be7d-9dd98510ee98",
+        "display_name": "Lea",
+        "portion_note": "Take the full chicken box, a smaller rice box, and generous vegetables; at breakfast and lunch use the shared dish portions as written.",
+        "preparation_shares": [
+          {
+            "preparation_id": "prep_roast_chicken",
+            "note": "1 box of chicken from the shared batch"
+          },
+          {
+            "preparation_id": "prep_veg_rice",
+            "note": "1 smaller rice-and-vegetable box from the shared batch"
+          },
+          {
+            "preparation_id": "prep_pasta_tuna",
+            "note": "1 box of tuna pasta from the shared batch"
+          },
+          {
+            "preparation_id": "prep_salmon_tray",
+            "note": "1 box of salmon and vegetables from the shared batch"
+          },
+          {
+            "preparation_id": "prep_falafel_couscous",
+            "note": "1 box of falafel and couscous from the shared batch"
+          },
+          {
+            "preparation_id": "prep_chickpea_tray",
+            "note": "1 box of chickpeas and vegetables from the shared batch"
+          }
+        ]
+      },
+      {
+        "member_id": "8183690c-96c2-4ded-a818-f1edc36862c0",
+        "display_name": "Tom",
+        "portion_note": "Take the full chicken box, a smaller rice box, and generous vegetables; at breakfast and lunch use the shared dish portions as written.",
+        "preparation_shares": [
+          {
+            "preparation_id": "prep_roast_chicken",
+            "note": "1 box of chicken from the shared batch"
+          },
+          {
+            "preparation_id": "prep_veg_rice",
+            "note": "1 smaller rice-and-vegetable box from the shared batch"
+          },
+          {
+            "preparation_id": "prep_pasta_tuna",
+            "note": "1 box of tuna pasta from the shared batch"
+          },
+          {
+            "preparation_id": "prep_salmon_tray",
+            "note": "1 box of salmon and vegetables from the shared batch"
+          },
+          {
+            "preparation_id": "prep_falafel_couscous",
+            "note": "1 box of falafel and couscous from the shared batch"
+          },
+          {
+            "preparation_id": "prep_chickpea_tray",
+            "note": "1 box of chickpeas and vegetables from the shared batch"
+          }
+        ]
+      },
+      {
+        "member_id": "e3d77550-6f51-411e-9d0c-8bd36c3d07a2",
+        "display_name": "Nina",
+        "portion_note": "Take the larger protein and starch box, with the same vegetables as everyone else; at every meal she eats, use her own dish where shown.",
+        "preparation_shares": [
+          {
+            "preparation_id": "prep_roast_chicken",
+            "note": "1 larger chicken box from the shared batch"
+          },
+          {
+            "preparation_id": "prep_veg_rice",
+            "note": "1 larger rice-and-vegetable box from the shared batch"
+          },
+          {
+            "preparation_id": "prep_pasta_tuna",
+            "note": "1 larger tuna pasta box from the shared batch"
+          },
+          {
+            "preparation_id": "prep_salmon_tray",
+            "note": "1 larger salmon and vegetables box from the shared batch"
+          },
+          {
+            "preparation_id": "prep_falafel_couscous",
+            "note": "1 larger falafel and couscous box from the shared batch"
+          },
+          {
+            "preparation_id": "prep_chickpea_tray",
+            "note": "1 larger chickpea and vegetables box from the shared batch"
+          }
+        ]
+      }
+    ],
+    "member_deltas": [
+      {
+        "member_id": "e62e2bbd-b675-4fe2-be7d-9dd98510ee98",
+        "food_ref": "white_rice",
+        "grams": 60,
+        "moment": "plating",
+        "channel": "more_of_the_same"
+      },
+      {
+        "member_id": "8183690c-96c2-4ded-a818-f1edc36862c0",
+        "food_ref": "white_rice",
+        "grams": 180,
+        "moment": "plating",
+        "channel": "more_of_the_same"
+      }
+    ],
+    "merged_members": [],
+    "issues": [
+      "household_mouths_without_envelope:1",
+      "dishes[0]: same_day says none but announces 5 minute(s) -- nothing to prepare cannot take time",
+      "dishes[4]: same_day says none but announces 5 minute(s) -- nothing to prepare cannot take time",
+      "dishes[12]: over the 12-dish cap for several_days -- kept, and the surplus dish \"Eggs, green salad, tomatoes and new potatoes\" (wed/lunch) was dropped instead",
+      "shopping_list: 1 line(s) bought for a dish that is not in the plan -- removed (salad leaves)",
+      "structured_quantity_missing: 3/57 ingredients"
+    ],
+    "request_id": "4e5d4277-5760-496f-be92-d2acf7f221db"
+  }
+}

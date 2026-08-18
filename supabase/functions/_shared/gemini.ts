@@ -1024,6 +1024,34 @@ export async function generateWithGemini(
     ...extra,
   });
 
+  // --- Prompt capture (QA observability) -------------------------------------
+  // Until now the trace archived the ANSWER and, of the question, only its
+  // length (`rawTraceMetadata.prompt_chars` / `.system_prompt_chars`). Proving
+  // that a doctrine block reached the model therefore meant reading a counter
+  // gap instead of reading the text. These two strings are in scope for the
+  // whole function, so we simply carry them onto the trace.
+  //
+  // Written ONCE per generateWithGemini() call: the first logged event takes
+  // them, every later one leaves the columns NULL. In practice the first event
+  // is the `attempt_start` logged immediately before the HTTP call — and every
+  // early-exit path (open breaker, missing key) also goes through this helper,
+  // so no real call can end up with no prompt row at all.
+  //
+  // Nothing here can throw: logLlmRawResponseEvent swallows its own errors and
+  // is a no-op unless SOPHIA_LLM_RAW_TRACE_ENABLED is set.
+  let promptTraceWritten = false;
+  const takePromptOnce = (): {
+    system_prompt?: string;
+    user_message?: string;
+  } => {
+    if (promptTraceWritten) return {};
+    promptTraceWritten = true;
+    return {
+      system_prompt: String(systemPrompt ?? ""),
+      user_message: String(userMessage ?? ""),
+    };
+  };
+
   const logRawGenerationEvent = async (evt: {
     provider: "gemini" | "openai";
     model: string;
@@ -1054,6 +1082,7 @@ export async function generateWithGemini(
       outcome: evt.outcome ?? null,
       raw_response: evt.raw_response,
       error_message: evt.error_message ?? null,
+      ...takePromptOnce(),
       metadata: rawTraceMetadata(evt.metadata ?? {}),
     });
   };

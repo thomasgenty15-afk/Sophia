@@ -6,6 +6,7 @@ import { ensureInternalRequest } from "../_shared/internal-auth.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import { buildAndWriteCoachSynthesis } from "../_shared/keel/coach_synthesis_io.ts";
+import { resolveArtifactLocale } from "../_shared/keel/locale.ts";
 
 /**
  * PIVOT NUTRITION §1.4 — la synthèse du lundi, générée pour chaque coach actif.
@@ -50,7 +51,69 @@ function adminClient(): SupabaseClient {
   );
 }
 
-type CoachRow = { id: string; display_name: string | null };
+type CoachRow = {
+  id: string;
+  display_name: string | null;
+  /** `coaches.user_id` — la seule jointure vers la langue du coach. */
+  user_id: string | null;
+};
+
+/**
+ * LA LANGUE DU COACH — `coaches.user_id` → `profiles.locale`.
+ *
+ * ── POURQUOI CETTE LECTURE N'EXISTAIT PAS ─────────────────────────────────
+ * `buildAndWriteCoachSynthesis` acceptait un `contentLocale` OPTIONNEL, ce job
+ * ne le passait pas, et `renderSynthesisText` était appelé avec `locale: "en"`
+ * EN DUR. Trois pièces qui, ensemble, rendaient le corps de `/coach/weekly`
+ * anglais pour tout le monde — pendant que la colonne `content_locale` de la
+ * ligne écrite juste à côté affirmait la même chose, ce qui rendait le défaut
+ * invisible à toute vérification par la base.
+ *
+ * `coaches` n'a PAS de colonne de langue (voir 20260727120000_keel_tenancy).
+ * La seule source est le profil du compte auquel `user_id` renvoie. Une
+ * lecture groupée pour toute la page, plutôt qu'une par coach: le job balaie
+ * 200 coachs par tour.
+ */
+async function loadCoachLocales(
+  admin: SupabaseClient,
+  coaches: CoachRow[],
+): Promise<Map<string, string | null>> {
+  const userIds = coaches
+    .map((c) => String(c.user_id ?? "").trim())
+    .filter((id) => id.length > 0);
+  const byCoachId = new Map<string, string | null>();
+  if (userIds.length === 0) return byCoachId;
+  try {
+    const { data, error } = await admin
+      .from("profiles")
+      .select("id, locale")
+      .in("id", userIds);
+    if (error) throw error;
+    const byUserId = new Map<string, string | null>();
+    for (const row of (data ?? []) as Array<Record<string, unknown>>) {
+      byUserId.set(
+        String(row.id ?? ""),
+        String(row.locale ?? "").trim() || null,
+      );
+    }
+    for (const coach of coaches) {
+      byCoachId.set(
+        coach.id,
+        byUserId.get(String(coach.user_id ?? "").trim()) ?? null,
+      );
+    }
+  } catch (error) {
+    // Une lecture de langue qui échoue ne fait pas tomber la flotte: la chaîne
+    // retombe sur son repli final (`en-US`), ce qui est le comportement d'avant
+    // ce lot. Elle est JOURNALISÉE pour ne pas devenir un silence permanent.
+    console.warn(JSON.stringify({
+      tag: "keel.coach_synthesis.locale_unreadable",
+      coaches: coaches.length,
+      detail: String(error instanceof Error ? error.message : error),
+    }));
+  }
+  return byCoachId;
+}
 
 async function loadNextCoaches(args: {
   admin: SupabaseClient;
@@ -58,7 +121,7 @@ async function loadNextCoaches(args: {
 }): Promise<CoachRow[]> {
   let query = args.admin
     .from("coaches")
-    .select("id, display_name")
+    .select("id, display_name, user_id")
     .eq("status", "active")
     .order("id", { ascending: true })
     .limit(COACH_PAGE_SIZE);
@@ -111,6 +174,13 @@ Deno.serve(async (req) => {
         break;
       }
 
+      // R2 — une synthèse est un ARTEFACT: aucun fil à ancrer, donc
+      // `resolveArtifactLocale`. `tenantDefault` est `null` faute de source
+      // (`coaches.default_student_locale` n'existe pas), et de toute façon ce
+      // n'est pas la langue du coach qu'elle porterait, mais celle de ses
+      // élèves — deux choses différentes, et la synthèse est pour LUI.
+      const localesByCoachId = await loadCoachLocales(admin, coaches);
+
       for (const coach of coaches) {
         cursor = coach.id;
         coachesScanned++;
@@ -120,6 +190,10 @@ Deno.serve(async (req) => {
             coachName: coach.display_name,
             asOfLocalDate,
             now,
+            contentLocale: resolveArtifactLocale({
+              studentProfile: localesByCoachId.get(coach.id) ?? null,
+              tenantDefault: null,
+            }),
           });
           if (result.studentCount === 0) {
             // Un coach sans élève n'a pas de semaine à raconter. On ne crée

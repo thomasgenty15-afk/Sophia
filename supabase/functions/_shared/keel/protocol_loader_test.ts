@@ -103,9 +103,9 @@ Deno.test("ce que le coach coche arrive dans le prompt du générateur", async (
   const block = protocolBlockFor(loaded, "Marlow");
   assert(block.includes("MARLOW'S FOOD MAPPING"), "le bloc porte le nom du coach");
   assert(block.includes("-- REACH FOR THESE FIRST --"));
-  assert(block.includes("-- HE STEERS AWAY FROM THESE"));
-  assert(block.includes("-- HE DOES NOT USE THESE"));
-  assert(block.includes("-- HIS RULES ON FREQUENCY AND TIMING --"));
+  assert(block.includes("-- THIS COACH STEERS AWAY FROM THESE"));
+  assert(block.includes("-- THIS COACH DOES NOT USE THESE"));
+  assert(block.includes("-- THIS COACH'S RULES ON FREQUENCY AND TIMING --"));
 
   // Le MOT DU COACH porte le titre quand il en a posé un — c'est tout
   // l'intérêt de `coach_terms`, et ça se perdrait sans cette lecture.

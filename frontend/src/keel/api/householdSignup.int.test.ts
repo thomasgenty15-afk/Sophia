@@ -5,7 +5,7 @@ import {
   householdSignupMetadata,
   isHouseholdSignupOpen,
 } from "./householdSignup";
-import { SIGNUP_COUNTRIES, isDeclaredCountryValid } from "./countries";
+import { isDeclaredCountryValid } from "./countries";
 import { en } from "../i18n/en";
 
 // CE QUE CE FICHIER PROTÈGE — la porte d'inscription foyer (chantier 4, D1).
@@ -23,6 +23,7 @@ describe("householdSignupMetadata — les clés que le trigger lit", () => {
     fullName: "  Lea Martin  ",
     country: "FR",
     timezone: "Europe/Paris",
+    locale: "en-US",
   });
 
   it("porte le pays DÉCLARÉ, sous la clé que handle_new_user lit", () => {
@@ -40,10 +41,24 @@ describe("householdSignupMetadata — les clés que le trigger lit", () => {
     expect(HOUSEHOLD_SIGNUP_INTENT).toBe("household_member");
   });
 
-  it("pose la langue du produit, pas le défaut legacy fr-FR", () => {
+  it("porte la langue CHOISIE telle quelle, jamais un défaut à elle", () => {
     // `handle_new_user()` fait `coalesce(meta->>'locale', 'fr-FR')`: une clé
-    // absente ferait naître un compte français sur une surface anglaise.
+    // absente ferait naître un compte français que personne n'a demandé.
+    //
+    // Les deux sens, délibérément. Ce test asservissait `meta.locale` à
+    // `"en-US"`; il serait resté vert devant un `locale: "en-US"` réécrit en dur
+    // dans le constructeur — c'est-à-dire devant la régression exacte qu'on
+    // vient de retirer.
     expect(meta.locale).toBe("en-US");
+    for (const chosen of ["fr-FR", "fr-CA", "en-GB"]) {
+      const m = householdSignupMetadata({
+        fullName: "Lea",
+        country: "FR",
+        timezone: "Europe/Paris",
+        locale: chosen,
+      });
+      expect(m.locale).toBe(chosen);
+    }
   });
 
   it("pose le fuseau, dont l'absence range la personne hors fenêtre", () => {
@@ -73,8 +88,8 @@ describe("householdSignupMetadata — les clés que le trigger lit", () => {
 
 describe("isDeclaredCountryValid — la forme, et surtout le vide", () => {
   it("accepte les deux lettres majuscules de la liste proposée", () => {
-    for (const c of SIGNUP_COUNTRIES) {
-      expect(isDeclaredCountryValid(c.code)).toBe(true);
+    for (const code of ["US", "GB", "FR", "CA", "ZA"]) {
+      expect(isDeclaredCountryValid(code)).toBe(true);
     }
   });
 

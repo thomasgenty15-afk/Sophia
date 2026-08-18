@@ -1,3 +1,4 @@
+import { t } from "../i18n/t";
 import React from "react";
 
 import {
@@ -114,18 +115,16 @@ export default function CoachNoteCard({ studentId }: { studentId: string }) {
           ⚠️ NE POSE PAS DE `px-*` sur ce nœud: `.eq` écrit son `padding-left`
           hors de toute couche CSS et battrait un utilitaire de même
           spécificité. */}
-      <SectionLabel>What you have noticed about them</SectionLabel>
+      <SectionLabel>{t("coach.note.section")}</SectionLabel>
       <p className="max-w-[62ch] text-sm leading-6 text-ink-soft">
-        Optional. Anything here reaches their plans and their conversations with
-        Sophia — the shift work, the bad knee, the week they always skip. Leave
-        it empty and nothing changes.
+        {t("coach.note.lead")}
       </p>
 
       <textarea
         className={`${inputClass} mt-3 min-h-[7rem] resize-y`}
         value={draft}
         maxLength={COACH_NOTE_MAX_CHARS}
-        placeholder="Works nights, eats around 3am. Hates cooking on Sundays."
+        placeholder={t("coach.note.placeholder")}
         disabled={status.kind === "saving"}
         onChange={(e) => {
           setDraft(e.target.value);
@@ -140,11 +139,11 @@ export default function CoachNoteCard({ studentId }: { studentId: string }) {
           // exactement le rôle d'`attention` dans le vocabulaire du produit.
           className={`text-xs ${remaining < 100 ? "text-amber-700" : "text-ink-soft"}`}
         >
-          {remaining} characters left
+          {t("coach.note.remaining", { count: remaining })}
         </p>
         <div className="flex items-center gap-3">
           {justSaved && !dirty ? (
-            <span className="text-xs text-ink-soft">Saved.</span>
+            <span className="text-xs text-ink-soft">{t("coach.note.saved")}</span>
           ) : null}
           {/* ⛔ LE SEUL `variant="primary"` DE `/coach/clients/:id`, ET C'EST
               DÉLIBÉRÉ. La page est une LECTURE (son en-tête dit « READ-ONLY, and

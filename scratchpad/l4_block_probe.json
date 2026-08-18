@@ -1,0 +1,137 @@
+{
+  "floorChars": 1610,
+  "rows": [
+    {
+      "nom": "témoin · sans foyer",
+      "chars": 1610,
+      "shape": {
+        "members": 1,
+        "minors": 0,
+        "verbosity": "court",
+        "restrictions": 0,
+        "shoppingLines": 0,
+        "kind": "family"
+      }
+    },
+    {
+      "nom": "témoin · foyer de 1",
+      "chars": 2248,
+      "shape": {
+        "members": 1,
+        "minors": 0,
+        "verbosity": "reel",
+        "restrictions": 0,
+        "shoppingLines": 6,
+        "kind": "family"
+      }
+    },
+    {
+      "nom": "témoin · foyer de 2",
+      "chars": 2494,
+      "shape": {
+        "members": 2,
+        "minors": 0,
+        "verbosity": "reel",
+        "restrictions": 0,
+        "shoppingLines": 8,
+        "kind": "family"
+      }
+    },
+    {
+      "nom": "PIRE CAS CONNU · 6 × 7j (court)",
+      "chars": 2217,
+      "shape": {
+        "members": 6,
+        "minors": 2,
+        "verbosity": "court",
+        "restrictions": 0,
+        "shoppingLines": 24,
+        "kind": "family"
+      }
+    },
+    {
+      "nom": "PIRE CAS CONNU · 6 × 7j (réel)",
+      "chars": 2924,
+      "shape": {
+        "members": 6,
+        "minors": 2,
+        "verbosity": "reel",
+        "restrictions": 0,
+        "shoppingLines": 24,
+        "kind": "family"
+      }
+    },
+    {
+      "nom": "6 × 7j réel + 6 restrictions",
+      "chars": 3773,
+      "shape": {
+        "members": 6,
+        "minors": 2,
+        "verbosity": "reel",
+        "restrictions": 6,
+        "shoppingLines": 24,
+        "kind": "family"
+      }
+    },
+    {
+      "nom": "AU-DELÀ · 12 membres, réel",
+      "chars": 3821,
+      "shape": {
+        "members": 12,
+        "minors": 4,
+        "verbosity": "reel",
+        "restrictions": 6,
+        "shoppingLines": 24,
+        "kind": "family"
+      }
+    },
+    {
+      "nom": "AU-DELÀ · 20 membres, réel",
+      "chars": 3882,
+      "shape": {
+        "members": 20,
+        "minors": 6,
+        "verbosity": "reel",
+        "restrictions": 6,
+        "shoppingLines": 24,
+        "kind": "family"
+      }
+    },
+    {
+      "nom": "AU-DELÀ · 6 membres, BAVARD",
+      "chars": 3774,
+      "shape": {
+        "members": 6,
+        "minors": 2,
+        "verbosity": "bavard",
+        "restrictions": 6,
+        "shoppingLines": 24,
+        "kind": "family"
+      }
+    },
+    {
+      "nom": "AU-DELÀ · 20 membres, BAVARD",
+      "chars": 3883,
+      "shape": {
+        "members": 20,
+        "minors": 6,
+        "verbosity": "bavard",
+        "restrictions": 6,
+        "shoppingLines": 24,
+        "kind": "family"
+      }
+    },
+    {
+      "nom": "colocation · 20 membres, bavard",
+      "chars": 3898,
+      "shape": {
+        "members": 20,
+        "minors": 0,
+        "verbosity": "bavard",
+        "restrictions": 6,
+        "shoppingLines": 24,
+        "kind": "shared"
+      }
+    }
+  ]
+}

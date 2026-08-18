@@ -59,10 +59,12 @@ Deno.test("le plafond suit le nombre de jours RÉELLEMENT demandés", () => {
 
 Deno.test("le prompt annonce le plafond de la fenêtre, pas celui de sept jours", () => {
   const days = daysUntilSunday("thu");
-  const { userMessage } = buildMealPrompt({
+  const { userMessage } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true,
+    budgetAmount: null,
     safetyConstraints: null,
     body: null,
     focusAxis: null,
+    dietBlock: "",
     doctrineBlock: "== METHOD ==",
     coachNoteBlock: null,
     fixedIntakes: [],
@@ -94,10 +96,12 @@ Deno.test("un jour de cuisine hors fenêtre ne survit pas à la consigne", () =>
   // plan généré un jeudi; le modèle a posé une session le MERCREDI — un jour
   // déjà passé. Ses jours de cuisine décrivent sa semaine type, la fenêtre est
   // ce qu'il en reste, et seule l'intersection est exécutable.
-  const { userMessage } = buildMealPrompt({
+  const { userMessage } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true,
+    budgetAmount: null,
     safetyConstraints: null,
     body: null,
     focusAxis: null,
+    dietBlock: "",
     doctrineBlock: "== METHOD ==",
     coachNoteBlock: null,
     fixedIntakes: [],
@@ -128,10 +132,12 @@ Deno.test("aucun jour de cuisine dans la fenêtre: on ne reste pas sans session"
   // Quelqu'un qui ne cuisine que le lundi, un vendredi, doit quand même manger.
   // Mieux vaut une session posée un jour non déclaré — qu'il déplacera — qu'un
   // plan sans aucun jour de cuisine.
-  const { userMessage } = buildMealPrompt({
+  const { userMessage } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true,
+    budgetAmount: null,
     safetyConstraints: null,
     body: null,
     focusAxis: null,
+    dietBlock: "",
     doctrineBlock: "== METHOD ==",
     coachNoteBlock: null,
     fixedIntakes: [],
@@ -204,10 +210,10 @@ Deno.test("un lot mangé AVANT d'être cuisiné est signalé", () => {
       fixedIntakes: [],
       dayProperties: [],
       merge: null,
+      boxMemberIds: [],
     },
   );
   assert(
-      boxMemberIds: [],
     meal.issues.some((i) => i.includes("after the meal")),
     JSON.stringify(meal.issues),
   );
@@ -253,10 +259,10 @@ Deno.test("cuisiner AVANT de manger ne déclenche rien", () => {
       fixedIntakes: [],
       dayProperties: [],
       merge: null,
+      boxMemberIds: [],
     },
   );
   assertEquals(meal.issues.filter((i) => i.includes("after the meal")), []);
-      boxMemberIds: [],
 });
 
 // ===========================================================================
@@ -316,10 +322,10 @@ function planWith(args: {
       fixedIntakes: [],
       dayProperties: [],
       merge: null,
+      boxMemberIds: [],
     },
   );
 }
-      boxMemberIds: [],
 
 Deno.test("un lot gardé plus de trois jours est signalé", () => {
   // LE CAS MESURÉ, mot pour mot: légumes rôtis cuisinés jeudi, encore mangés le
@@ -386,10 +392,12 @@ Deno.test("un jour de cuisine qui arrive APRÈS les repas ouvre le premier jour"
   // samedi sur un lot cuisiné le dimanche. Quatre `issues` sur un vrai plan.
   //
   // Une contrainte qui rend le plan inexécutable n'est plus une contrainte.
-  const { userMessage } = buildMealPrompt({
+  const { userMessage } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true,
+    budgetAmount: null,
     safetyConstraints: null,
     body: null,
     focusAxis: null,
+    dietBlock: "",
     doctrineBlock: "== METHOD ==",
     coachNoteBlock: null,
     fixedIntakes: [],
@@ -423,10 +431,12 @@ Deno.test("un jour de cuisine assez tôt n'ouvre rien du tout", () => {
   // Vendredi déclaré, fenêtre jeudi→dimanche: vendredi ne nourrit pas jeudi,
   // mais jeudi est le premier jour et il se cuisine frais. Rien à ajouter —
   // ouvrir un jour ici piétinerait une contrainte parfaitement tenable.
-  const { userMessage } = buildMealPrompt({
+  const { userMessage } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true,
+    budgetAmount: null,
     safetyConstraints: null,
     body: null,
     focusAxis: null,
+    dietBlock: "",
     doctrineBlock: "== METHOD ==",
     coachNoteBlock: null,
     fixedIntakes: [],

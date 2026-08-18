@@ -22,10 +22,14 @@ import { enforceRateLimit } from "../_shared/rate-limit.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import { sendResendEmail } from "../_shared/resend.ts";
 import {
-  formatFrenchDate,
   sendLifecycleMessage,
   verifyPasswordFresh,
 } from "../_shared/account_lifecycle.ts";
+import { resolveArtifactLocale } from "../_shared/keel/locale.ts";
+import {
+  renderExportReadme,
+  renderExportRequestedNotice,
+} from "./export_copy.ts";
 
 const EXPORT_BUCKET = "gdpr-exports";
 const SIGNED_URL_TTL_SECONDS = 15 * 60;
@@ -415,9 +419,64 @@ const SCOPE = {
   householdMembers:
     "member_id,household_id,role,first_name,birth_date,goal,away_days," +
     "departs_with_account,joined_at",
+
+  // --- SON CORPS DANS LE FOYER (20260812220000) ------------------------------
+  //
+  // ⚠️ RÉCLAMÉE DÈS SA MIGRATION, ET PAS APRÈS. Le dépôt a la cicatrice
+  // inverse — neuf tables neuves absentes de cet export pendant des mois, sans
+  // que rien ne le dise — et celle-ci est la pire candidate possible à
+  // l'oubli: elle porte taille, poids et sexe, y compris **de mineurs**, y
+  // compris de bouches qui n'ont jamais eu de compte.
+  //
+  // ⚠️ SA LIGNE, ET SA LIGNE SEULE. Même règle que `householdMembers` juste
+  // au-dessus, et elle mord plus fort ici: le roster des corps est le poids de
+  // chaque personne du foyer. L'exporter ferait de l'export RGPD de l'un une
+  // divulgation médicale sur les autres — y compris sur ses enfants. La table
+  // n'a d'ailleurs AUCUN grant à `authenticated` pour cette raison exacte
+  // (sondé le 2026-08-12: la policy de `household_members` est household-wide,
+  // donc un co-membre lisait déjà toutes les lignes de son foyer).
+  //
+  // ⚠️ `household_id` N'EN EST PAS. Il est déjà dans `householdMembers`, et le
+  // répéter sur la ligne du corps n'apprend rien.
+  //
+  // CE QUI SURVIT, ET LA DIFFÉRENCE AVEC LA LIGNE MEMBRE: rien. La purge
+  // (`keel_household_purge_user`, 20260812220000) EFFACE le corps dans ses deux
+  // branches, là où elle CONSERVE prénom et date de naissance. L'arbitrage est
+  // écrit dans la migration: prénom et date répondent à « pour qui je
+  // cuisine »; une taille et un poids sont des métriques d'une personne qui a
+  // quitté le produit.
+  householdMemberBody:
+    "member_id,height_cm,weight_kg,gender,recorded_at,updated_at",
+  // G1 (2026-08-14) — CE QU'ELLE MANGE QUAND CE N'EST PAS LE PLAT DE LA MAISON.
+  //
+  // ⚠️ RÉCLAMÉE LE JOUR OÙ ELLE EST CRÉÉE, et c'est le point. « Le lifecycle
+  // RGPD ne réclame pas les tables neuves » est une cicatrice chiffrée de ce
+  // dépôt — neuf tables mesurées hors export. `slots` et `note` portent LES
+  // MOTS de la personne sur ce qu'elle mange: c'est de la donnée personnelle,
+  // elle sort dans l'archive.
+  //
+  // `updated_by` N'EN EST PAS: c'est l'id d'un AUTRE compte (le maître qui a
+  // rempli pour une bouche sans compte). L'exporter livrerait un identifiant
+  // de tiers dans l'archive de quelqu'un.
+  householdMemberHabits: "member_id,slots,note,updated_at",
   studentWeekPlans:
     "id,week_start,generated_from,items,status,adopted_at,content_locale,created_at,updated_at",
   studentDailyCheckins: "id,local_date,overall,axis,source,created_at",
+  // LE LOG DE SÉANCE (2026-08-18, migration 20260818180000).
+  //
+  // ⚠️ RÉCLAMÉE DANS LE MÊME LOT QUE SA MIGRATION, et pas après. « Le cycle de
+  // vie RGPD ne réclame pas les tables neuves » est une cicatrice CHIFFRÉE de
+  // ce dépôt — neuf tables du pivot mesurées hors export pendant des mois,
+  // pendant que le manifeste rendait `tables_indisponibles: []`, c'est-à-dire
+  // « rien ne manque ».
+  //
+  // TOUTES LES COLONNES SORTENT: ce que quelqu'un a fait de son corps, quel
+  // jour et combien de temps, est de la donnée personnelle au sens plein. Il
+  // n'y a rien à retenir ici — aucun identifiant de tiers, et surtout AUCUN
+  // chiffre d'énergie: la table n'en porte pas, par décision (voir l'en-tête
+  // de la migration, la raison y est chiffrée).
+  studentActivitySessions:
+    "id,local_date,kind,duration_min,intensity,source,created_at",
   // FF-027 — la faim déclarée en conversation. `student_note` porte LES MOTS DE
   // L'ÉLÈVE: c'est de la donnée personnelle, elle sort donc dans l'archive.
   studentHungerReports:
@@ -596,6 +655,7 @@ async function buildExportPayload(
     studentGoals,
     studentWeekPlans,
     studentDailyCheckins,
+    studentActivitySessions,
     studentHungerReports,
     studentGeneratedMeals,
     studentMealDocuments,
@@ -759,6 +819,14 @@ async function buildExportPayload(
     ),
     fetchKeelRows(
       admin,
+      "student_activity_sessions",
+      SCOPE.studentActivitySessions,
+      "user_id",
+      user.id,
+      keelUnavailable,
+    ),
+    fetchKeelRows(
+      admin,
       "student_hunger_reports",
       SCOPE.studentHungerReports,
       "user_id",
@@ -900,6 +968,57 @@ async function buildExportPayload(
     keelUnavailable,
   );
 
+  // SON CORPS DANS LE FOYER. Séquentiel pour la MÊME raison que les relations
+  // ci-dessus, et par le MÊME chemin: la table n'a pas de `user_id`, elle pend
+  // à `household_members.member_id`, et cet identifiant n'existe qu'une fois
+  // `householdMembership` revenu.
+  //
+  // ⚠️ LA LISTE D'IDS EST CELLE DE SA PROPRE LIGNE, ET D'ELLE SEULE. Elle sort
+  // d'une requête déjà filtrée sur `user_id = <lui>`, donc elle porte au plus un
+  // `member_id` (`household_members_one_per_user`). Passer les `member_id` du
+  // roster à la place exporterait le poids de ses enfants dans SON archive —
+  // c'est le seul geste qui rendrait ce lot pire que le trou qu'il ferme.
+  const householdMemberBody = await fetchRowsByIdChunks(
+    admin,
+    "household_member_bodies",
+    SCOPE.householdMemberBody,
+    "member_id",
+    householdMembership.map((row) => String((row as any)?.member_id ?? ""))
+      .filter(Boolean),
+    keelUnavailable,
+    // Cette table n'a pas de `created_at`; trier dessus la ferait tomber dans le
+    // filet `tables_indisponibles`, c'est-à-dire rendre un export SILENCIEUSEMENT
+    // VIDE sur des données corporelles. Même piège que `joined_at` juste au-
+    // dessus, et il vient d'être payé une fois.
+    "recorded_at",
+  );
+
+  // G1 — SES HABITUDES ALIMENTAIRES. Même chemin et même raison que le corps
+  // ci-dessus: la table n'a pas de `user_id`, elle pend à
+  // `household_members.member_id`, et cet identifiant n'existe qu'une fois
+  // `householdMembership` revenu.
+  //
+  // ⚠️ LA MÊME LISTE D'IDS, DONC LA MÊME GARANTIE: elle sort d'une requête déjà
+  // filtrée sur `user_id = <lui>` et porte au plus UN `member_id`
+  // (`household_members_one_per_user`). Passer les `member_id` du roster
+  // exporterait ce que mangent ses enfants dans SON archive.
+  //
+  // `updated_at` et pas `created_at`: cette table n'a pas de `created_at`, et
+  // trier sur une colonne inexistante la ferait tomber dans le filet
+  // `tables_indisponibles` — c'est-à-dire rendre un export SILENCIEUSEMENT
+  // VIDE. Le piège vient d'être payé deux fois au-dessus (`joined_at`,
+  // `recorded_at`).
+  const householdMemberHabits = await fetchRowsByIdChunks(
+    admin,
+    "household_member_habits",
+    SCOPE.householdMemberHabits,
+    "member_id",
+    householdMembership.map((row) => String((row as any)?.member_id ?? ""))
+      .filter(Boolean),
+    keelUnavailable,
+    "updated_at",
+  );
+
   const exportedAt = new Date().toISOString();
   return {
     exportedAt,
@@ -974,6 +1093,17 @@ async function buildExportPayload(
       // chose. Voir `SCOPE.householdMembers` pour l'arbitrage.
       "mon_foyer.json": {
         ma_place: householdMembership,
+        // LE CORPS, DANS LE MÊME FICHIER QUE LA PLACE — pas dans `profil.json`.
+        // Ce n'est pas le corps que la personne suit pour elle-même (celui-là
+        // vit dans `profiles` et dans ses pesées datées, et il sort ailleurs):
+        // c'est ce que la personne qui gère le foyer a saisi POUR SERVIR SON
+        // ASSIETTE. Deux origines, deux endroits — les mêler ferait lire une
+        // saisie d'autrui comme une déclaration de soi.
+        mon_corps_pour_les_parts: householdMemberBody,
+        // G1 — CE QUE JE MANGE QUAND CE N'EST PAS LE PLAT DE LA MAISON. Dans
+        // le même fichier que la place et le corps, et pour la même raison:
+        // ces trois-là décrivent une bouche À TABLE, pas une personne seule.
+        mes_habitudes_a_table: householdMemberHabits,
         // ⚠️ CETTE PHRASE EST LA MOITIÉ QUI COMPTE. Sans elle, l'export dirait
         // ce qu'on détient et se tairait sur ce qu'on garde — or c'est
         // précisément ce qu'on garde qui n'avait jamais été décidé, ni dit.
@@ -992,12 +1122,32 @@ async function buildExportPayload(
             "supprimer ton compte: la ligne est alors supprimée, pas détachée. " +
             "La personne qui gère le foyer peut aussi retirer la bouche à tout " +
             "moment.",
+          // ── ET CE QUI NE SURVIT PAS, DIT AUSSI CLAIREMENT ────────────────
+          // Un export qui n'énumère que ce qu'on garde laisse croire qu'on
+          // garde tout. La taille et le poids sont le seul endroit du foyer où
+          // la réponse est « non », et c'est la ligne qu'une personne inquiète
+          // vient chercher.
+          ce_qui_est_efface:
+            "Ta taille, ton poids et ton sexe tels qu'ils ont été saisis pour " +
+            "calculer ta part sont SUPPRIMÉS avec ton compte, même quand ta " +
+            "bouche reste dans le foyer. Sans eux, tu reçois une part standard " +
+            "de ce que la maison cuisine — jamais une part réduite.",
         },
       },
       "mon_plan.json": {
         objectif: studentGoals,
         semaines: studentWeekPlans,
         points_du_soir: studentDailyCheckins,
+        // LE LOG DE SÉANCE. Rangé ici parce que c'est un GESTE DE L'ÉLÈVE, au
+        // même titre que le tap du soir: ce qu'il a déclaré de sa semaine.
+        //
+        // ⚠️ IL N'Y A AUCUN CHIFFRE D'ÉNERGIE DANS CES LIGNES, ET C'EST UNE
+        // DÉCISION, PAS UN OUBLI DE L'EXPORT. La table ne porte pas de colonne
+        // de calories: la dépense d'une séance déclarée est fausse de ±30-50 %
+        // pour un déficit visé de 400-500 kcal/j, donc la stocker (et a
+        // fortiori la rendre) ajouterait de l'incertitude en la faisant passer
+        // pour une mesure. Voir 20260818180000.
+        seances_dactivite: studentActivitySessions,
         // FF-027. Rangée AVEC les points du soir parce que c'est le MÊME
         // signal par une autre porte: l'axe `hunger` du tap et la faim dite en
         // passant. Les séparer dans l'archive ferait croire à deux choses.
@@ -1047,59 +1197,9 @@ async function buildExportPayload(
   };
 }
 
-function readmeText(exportedAtIso: string): string {
-  return [
-    "EXPORT DE TES DONNÉES SOPHIA",
-    "============================",
-    "",
-    `Export généré le : ${formatFrenchDate(exportedAtIso)}`,
-    "",
-    "Contenu de l'archive :",
-    "  - profil.json          : tes informations de compte (nom, email, téléphone…).",
-    "  - transformations.json : tes cycles et transformations tels que visibles dans l'app.",
-    "  - plans.json           : tes plans et les actions qui les composent.",
-    "  - suivi.json           : tes entrées de suivi (check-ins, progrès, blocages).",
-    "  - souvenirs.json       : les souvenirs que Sophia a retenus de vos échanges.",
-    "  - conversations.json   : l'historique de tes conversations avec Sophia.",
-    "  - protocole.json       : le protocole écrit par ton coach (versions, engagements,",
-    "                           relations entre engagements) et, si tu es coach, tes",
-    "                           modèles, documents importés, doctrine, cohortes et",
-    "                           l'agrégat de tes synthèses hebdomadaires.",
-    "  - mon_foyer.json       : ta place dans un foyer (prénom, date de naissance,",
-    "                           objectif, absences) et — c'est important — ce qui en",
-    "                           SURVIT à la suppression de ton compte, et comment",
-    "                           l'effacer aussi.",
-    "  - mon_plan.json        : ton objectif, les semaines que tu t'es fixées et tes",
-    "                           points du soir.",
-    "  - ma_memoire_alimentaire.json : tes repas récurrents, tes préférences et ton",
-    "                           contexte, et les idées de repas reçues.",
-    "  - mes_cartes.json      : tes cartes, quand elles ont été armées et ce que tu en",
-    "                           as fait.",
-    "  - protocole_suivi.json : ce que tu as déclaré (repas, prises, photos) et les",
-    "                           évaluations qui en découlent, jour par jour.",
-    "  - protocole_bilans.json: tes bilans hebdomadaires et tes demandes d'ajustement.",
-    "  - securite.json        : tes contraintes de sécurité (allergies, intolérances,",
-    "                           traitements) telles que déclarées.",
-    "  - coaching.json        : tes liens avec un coach, les invitations reçues ou",
-    "                           envoyées, les accès à ton dossier, et les notes",
-    "                           que ton coach a écrites à ton sujet (ainsi que",
-    "                           celles que tu as écrites, si tu es coach).",
-    "  - fichiers.json        : la liste de tes fichiers, avec pour chacun s'il est",
-    "                           inclus dans l'archive et, sinon, pourquoi. Si son",
-    "                           champ « tables_indisponibles » n'est pas vide, une",
-    "                           partie des données ci-dessus manque : écris-nous.",
-    "  - fichiers/            : tes documents de plan et tes photos de repas.",
-    "",
-    "⚠ AVERTISSEMENT",
-    "Ce fichier contient des données personnelles sensibles (dont l'historique de",
-    "tes conversations). Conserve-le en lieu sûr, ne le partage pas et supprime-le",
-    "des espaces partagés ou synchronisés si tu n'en as plus besoin.",
-    "",
-    "Format : JSON (UTF-8), lisible avec n'importe quel éditeur de texte.",
-    "Pour toute question : sophia@sophia-coach.ai",
-    "",
-  ].join("\n");
-}
+// Le README et les deux notices vivent dans `export_copy.ts`: ce fichier est
+// en `@ts-nocheck`, donc le compilateur n'y relit rien. Une copie testable
+// hors de lui est la seule façon d'avoir un relecteur.
 
 Deno.serve(async (req) => {
   const requestId = getRequestId(req);
@@ -1157,24 +1257,38 @@ Deno.serve(async (req) => {
 
     const admin = createClient(supabaseUrl, supabaseServiceRole);
 
+    // ── LA LANGUE DU COMPTE, LUE UNE FOIS ────────────────────────────────
+    //
+    // R2: une archive et son alerte sont des ARTEFACTS — pas de fil à ancrer,
+    // donc `resolveArtifactLocale`. Lue en service_role parce que le client
+    // utilisateur ne sert ici qu'à prouver l'identité.
+    const { data: localeRow } = await admin
+      .from("profiles")
+      .select("locale")
+      .eq("id", user.id)
+      .maybeSingle();
+    const contentLocale = resolveArtifactLocale({
+      studentProfile: String(localeRow?.locale ?? "").trim() || null,
+      tenantDefault: null,
+    });
+
     // (2) Out-of-band notification, fired before delivery so a hijacked session
-    // can't quietly siphon the archive.
-    const notifyBody =
-      "Un export de tes données Sophia vient d'être demandé depuis ton compte. " +
-      "Si ce n'est pas toi, change ton mot de passe immédiatement.";
+    // can't quietly siphon the archive. Elle était FRANÇAISE en dur — un
+    // avertissement de sécurité que son destinataire ne lit pas ne protège
+    // personne.
+    const notice = renderExportRequestedNotice(contentLocale);
     const [waNotified, emailResult] = await Promise.all([
       sendLifecycleMessage({
         user_id: user.id,
         purpose: "gdpr_export_requested",
-        body: notifyBody,
+        body: notice.body,
         metadata_extra: { gdpr_export: true },
       }),
       user.email
         ? sendResendEmail({
           to: user.email,
-          subject: "Sophia — un export de tes données vient d'être demandé",
-          html:
-            `<p>Bonjour,</p><p>${notifyBody}</p><p>— L'équipe Sophia</p>`,
+          subject: notice.subject,
+          html: notice.html,
         })
         : Promise.resolve({ ok: false, error: "no_email" }),
     ]);
@@ -1182,7 +1296,7 @@ Deno.serve(async (req) => {
     // Build the archive.
     const payload = await buildExportPayload(admin, user);
     const zipEntries: Record<string, Uint8Array> = {
-      "README.txt": strToU8(readmeText(payload.exportedAt)),
+      "README.txt": strToU8(renderExportReadme(payload.exportedAt, contentLocale)),
     };
     for (const [name, content] of Object.entries(payload.files)) {
       zipEntries[name] = strToU8(JSON.stringify(content, null, 2));

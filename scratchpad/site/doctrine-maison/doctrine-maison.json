@@ -1,0 +1,590 @@
+{
+  "version": 1,
+  "establishedOn": "2026-08-13",
+  "forks": [
+    {
+      "fork": "meal_frequency",
+      "position": "frequency_is_theirs",
+      "grade": "B",
+      "why": "Le nombre de repas par jour ne change pas ce que la balance rend. Deux méta-analyses d'essais contrôlés arrivent au même endroit : la seule association favorable aux repas frequents disparaissait quand on retirait une seule étude, et la revue la plus recente conclut qu'aucun rythme n'a d'avantage sur l'autre. Comme rien ne départage trois repas de six, imposer un rythme, c'est demander a quelqu'un de réorganiser ses journées sans contrepartie. On laisse donc l'eleve garder le sien.",
+      "sources": [
+        "Schoenfeld BJ, Aragon AA, Krieger JW (2015). Effects of meal frequency on weight loss and body composition: a meta-analysis. Nutrition Reviews 73(2):69-82. https://doi.org/10.1093/nutrit/nuu017",
+        "Blazey P, Habibi A, Hassen N, et al. (2023). The effects of eating frequency on changes in body composition and cardiometabolic health in adults: a systematic review with meta-analysis of randomized trials. International Journal of Behavioral Nutrition and Physical Activity 20:133. https://doi.org/10.1186/s12966-023-01532-z",
+        "Bellisle F, McDevitt R, Prentice AM (1997). Meal frequency and energy balance. British Journal of Nutrition 77(S1):S57-S70. https://doi.org/10.1079/BJN19970104"
+      ],
+      "dissent": "Le camp trois_repas n'est pas absurde : la méta-analyse d'essais de 2024 sur le calendrier alimentaire trouve un petit avantage a une frequence plus basse (de l'ordre de -1,4 kg), et l'argument comportemental — le grignotage continu n'apprend a personne a reconnaitre sa faim — n'a jamais ete teste mais reste plausible. Ce qui manque pour le retenir, c'est la taille et la certitude : les auteurs eux-memes qualifient ces effets de petits et d'importance clinique incertaine, avec une forte heterogeneite. Un effet de cet ordre ne justifie pas d'imposer une structure de journée a tout le monde. Reference : Liu HY, et al. (2024). JAMA Network Open 7(11):e2442163. https://doi.org/10.1001/jamanetworkopen.2024.42163"
+    },
+    {
+      "fork": "breakfast",
+      "position": "breakfast_optional",
+      "grade": "A",
+      "why": "C'est la position la mieux établie des dix. La méta-analyse d'essais randomisés du BMJ montre que faire prendre un petit-déjeuner a quelqu'un qui n'en prenait pas ne fait pas maigrir : les participants qui sautaient le petit-déjeuner ont perdu 0,44 kg de plus, et l'apport total de la journée était plus eleve chez ceux qui le prenaient. La phrase le petit-dejeuner est le repas le plus important n'a pas de support experimental. Si un adherent n'a pas faim le matin, l'y forcer n'apporte rien.",
+      "sources": [
+        "Sievert K, Hussain SM, Page MJ, et al. (2019). Effect of breakfast on weight and energy intake: systematic review and meta-analysis of randomised controlled trials. BMJ 364:l42. https://doi.org/10.1136/bmj.l42",
+        "Bonnet JP, Cardel MI, Cellini J, et al. (2020). Breakfast skipping, body composition, and cardiometabolic risk: a systematic review and meta-analysis of randomized trials. Obesity 28(6):1098-1109. https://doi.org/10.1002/oby.22791"
+      ],
+      "dissent": "Le camp breakfast_matters s'appuie sur des cohortes observationnelles qui associent le saut du petit-déjeuner a plus de poids et a plus d'événements cardiovasculaires. Ces associations existent, mais elles sont confondues : sauter le petit-déjeuner voyage avec le tabac, l'alcool, le travail de nuit et un revenu plus bas. Des qu'on randomise, l'effet disparait ou s'inverse — et c'est exactement pour ca qu'on se fie ici aux essais, pas aux cohortes. Reste un point ouvert : la méta-analyse de calendrier alimentaire de 2024 trouve un petit avantage a manger plus tot dans la journée, ce qui n'est pas la meme chose que rendre le petit-déjeuner obligatoire."
+    },
+    {
+      "fork": "hunger",
+      "position": "hunger_is_information",
+      "grade": "B",
+      "why": "Ce qu'on met dans un repas décide de l'heure a laquelle la faim revient. En essai controle, passer de 15 a 30 % de protéines fait baisser spontanément l'apport de 441 kcal par jour sans qu'on demande a personne de se restreindre ; et en essai en milieu ferme, une alimentation ultra-transformee fait manger 500 kcal de plus par jour a composition affichee identique. Donc quand un adhérent a faim quatre-vingt-dix minutes apres avoir mangé, l'information la plus utile porte sur le repas d'avant, pas sur sa volonté. C'est une consigne diagnostique, pas un permis de grignoter.",
+      "sources": [
+        "Weigle DS, Breen PA, Matthys CC, et al. (2005). A high-protein diet induces sustained reductions in appetite, ad libitum caloric intake, and body weight. American Journal of Clinical Nutrition 82(1):41-48. https://doi.org/10.1093/ajcn/82.1.41",
+        "Hall KD, Ayuketah A, Brychta R, et al. (2019). Ultra-processed diets cause excess calorie intake and weight gain: an inpatient randomized controlled trial of ad libitum food intake. Cell Metabolism 30(1):67-77.e3. https://doi.org/10.1016/j.cmet.2019.05.008",
+        "Leidy HJ, Clifton PM, Astrup A, et al. (2015). The role of protein in weight loss and maintenance. American Journal of Clinical Nutrition 101(6):1320S-1329S. https://doi.org/10.3945/ajcn.114.084038"
+      ],
+      "dissent": "Le camp hunger_is_normal dit vrai sur un point que la revue de Leidy concede elle-meme : l'effet de satiete des protéines est modeste et ne se traduit pas de facon fiable par une baisse de l'apport au repas suivant. Une faim legere avant un repas est physiologique et ne signale rien de casse. Ce qui fait pencher la balance, c'est le risque de l'autre reponse : dire buvez un verre d'eau et couchez-vous a quelqu'un qui a reellement faim le soir, c'est enseigner a ignorer un signal — et la littérature sur la restriction rigide associe ce reflexe a la desinhibition qui suit. Aucun essai n'a compare les deux reponses en tete-a-tete ; c'est la limite de cette position."
+    },
+    {
+      "fork": "portions",
+      "position": "no_rule",
+      "grade": "C",
+      "why": "Position deliberement laissee vide, et c'est une decision, pas un oubli. La preuve est solide sur un point — la taille de ce qu'on sert change ce qu'on mange, 72 essais randomises le montrent — mais elle ne dit rien sur la facon de la mesurer soi-meme. Le seul travail publie sur la main mesure la largeur des doigts comme une regle : precis a 25 % pres sur les aliments de forme geometrique, et mauvais precisement sur les pieces irregulieres, c'est-a-dire sur le steak et le filet de poisson que la paume est censee doser. Et interdire la balance, comme le fait le camp de la main, reviendrait a interdire une pratique qui, elle, a des donnees favorables. Le produit compose deja les parts : l'eleve n'a pas besoin qu'une doctrine lui impose en plus un instrument.",
+      "sources": [
+        "Hollands GJ, Shemilt I, Marteau TM, et al. (2015). Portion, package or tableware size for changing selection and consumption of food, alcohol and tobacco. Cochrane Database of Systematic Reviews 9:CD011045. https://doi.org/10.1002/14651858.CD011045.pub2",
+        "Gibson AA, Hsu MSH, Rangan AM, et al. (2016). Accuracy of hands v. household measures as portion size estimation aids. Journal of Nutritional Science 5:e29. https://doi.org/10.1017/jns.2016.22",
+        "Burke LE, Wang J, Sevick MA (2011). Self-monitoring in weight loss: a systematic review of the literature. Journal of the American Dietetic Association 111(1):92-102. https://doi.org/10.1016/j.jada.2010.10.008"
+      ],
+      "dissent": "Les deux camps ont un argument reel et aucun ne bat l'autre. hand_portions gagne sur la charge : partout ou on a compare un suivi simplifie a un suivi detaille, le simplifie tient mieux dans le temps pour la meme perte de poids. weigh_to_learn gagne sur la mesure : peser est la seule facon d'apprendre une fois ce qu'est reellement une portion, et l'auto-surveillance alimentaire est constamment associee a de meilleurs resultats. Aucun essai ne les a compares directement. Tant que c'est le cas, engager le nom d'un professionnel sur l'un des deux serait une opinion deguisee en preuve — et l'interdit qui accompagne le camp de la main (ne pesez jamais) mordrait sur une pratique defendable."
+    },
+    {
+      "fork": "counting",
+      "position": "no_counting",
+      "grade": "B",
+      "why": "Deux essais randomises ont compare le comptage des calories a un suivi simplifie sans chiffres : meme perte de poids, et une adherence qui passe de 49 % a 97 % des jours en faveur du simplifie. Autrement dit, le chiffre coute cher et ne rapporte rien de plus. A cote de ca, l'usage des compteurs de calories est associé a plus de symptomes de troubles du comportement alimentaire, y compris chez des etudiants sans diagnostic. Pour une doctrine adoptee par defaut par une salle qui ne connait pas l'historique de ses adherents, c'est un rapport benefice-risque qui ne se defend pas.",
+      "sources": [
+        "Nezami BT, Hurley L, Power J, Valle CG, Tate DF (2022). A pilot randomized trial of simplified versus standard calorie dietary self-monitoring in a mobile weight loss intervention. Obesity 30(3):628-638. https://doi.org/10.1002/oby.23377",
+        "Patel ML, Cleare AE, Smith CM, Rosas LG, King AC (2022). Detailed versus simplified dietary self-monitoring in a digital weight loss intervention among racial and ethnic minority adults: fully remote, randomized pilot study. JMIR Formative Research 6(12):e42191. https://doi.org/10.2196/42191",
+        "Simpson CC, Mazzeo SE (2017). Calorie counting and fitness tracking technology: associations with eating disorder symptomatology. Eating Behaviors 26:89-92. https://doi.org/10.1016/j.eatbeh.2017.02.002",
+        "Levinson CA, Fewell L, Brosof LC (2017). My Fitness Pal calorie tracker usage in the eating disorders. Eating Behaviors 27:14-16. https://www.sciencedirect.com/science/article/abs/pii/S1471015317301484"
+      ],
+      "dissent": "Le camp count_briefly s'appuie sur une base reelle : la revue systematique de reference montre que l'auto-surveillance alimentaire est associee a plus de perte de poids, et que ceux qui rendent leurs carnets le plus regulierement perdent le plus. Cette preuve tient — mais elle porte sur le fait de NOTER, pas sur le fait de COMPTER des calories. Les deux essais cites ci-dessus separent justement les deux et montrent que la version sans chiffres fait aussi bien. L'interdit pose ici vise le chiffre, pas la trace : declarer ce qu'on a mange reste au coeur du produit."
+    },
+    {
+      "fork": "the_scale",
+      "position": "scale_is_noise",
+      "grade": "B",
+      "why": "La balance seule ne fait pas maigrir : la méta-analyse la plus stricte conclut qu'il n'existe pas de preuve que conseiller de se peser, sans rien d'autre autour, soit efficace. Elle a aussi un cout mesure — en essai randomise sur deux semaines, la pesee quotidienne a produit une plus grande instabilite emotionnelle negative, plus de stress lie au poids et moins de satisfaction corporelle chez de jeunes femmes que le groupe controle. Elle reste un instrument utile a l'interieur d'un programme, mais elle ne doit pas donner le ton de la semaine. C'est la quinzaine qu'on regarde, pas le chiffre du jour.",
+      "sources": [
+        "Madigan CD, Daley AJ, Lewis AL, Aveyard P, Jolly K (2015). Is self-weighing an effective tool for weight loss: a systematic literature review and meta-analysis. International Journal of Behavioral Nutrition and Physical Activity 12:104. https://doi.org/10.1186/s12966-015-0267-4",
+        "Pacanowski CR, Dominick G, Crosby RD, Engel SG, Cao L, Linde JA (2023). Daily self-weighing compared with an active control causes greater negative affective lability in emerging adult women: a randomized trial. Applied Psychology: Health and Well-Being 15(4):1695-1713. https://doi.org/10.1111/aphw.12463",
+        "Zheng Y, Klem ML, Sereika SM, Danford CA, Ewing LJ, Burke LE (2015). Self-weighing in weight management: a systematic literature review. Obesity 23(2):256-265. https://doi.org/10.1002/oby.20946"
+      ],
+      "dissent": "Le camp scale_daily_as_line est le mieux arme des deux camps ecartes de tout ce document, et un coach a de bonnes raisons de le choisir. Dans un essai de perte de poids, les personnes qui se pesaient chaque jour ont perdu 6,1 kg de plus que celles qui se pesaient moins souvent, et adoptaient nettement plus de comportements de controle du poids. La difference avec la position retenue est mince : les deux disent qu'un jour isole ne veut rien dire. Ce qui empeche d'en faire un defaut vendu a une salle entiere, c'est le signal de risque chez les jeunes femmes et l'absence de preuve que la pesee seule change quoi que ce soit. Reference : Steinberg DM, Bennett GG, Askew S, Tate DF (2015). Journal of the Academy of Nutrition and Dietetics 115(4):511-518. https://doi.org/10.1016/j.jand.2014.12.011"
+    },
+    {
+      "fork": "evening",
+      "position": "no_cutoff",
+      "grade": "B",
+      "why": "L'heure limite a ete testee directement : dans un essai randomise de 12 semaines, manger dans une fenetre de 8 heures n'a pas fait perdre plus qu'une journee a trois repas normaux. Ce qui compte, c'est ce qui a ete mange dans la journee, pas l'heure a laquelle la derniere bouchee est tombee. La regle rien apres 20 h est la plus repandue des salles de sport et la moins soutenue par les essais. Un adherent qui a vraiment faim le soir doit manger, et nous dire a quoi ressemblait le reste de sa journée.",
+      "sources": [
+        "Lowe DA, Wu N, Rohdin-Bibby L, et al. (2020). Effects of time-restricted eating on weight loss and other metabolic parameters in women and men with overweight and obesity: the TREAT randomized clinical trial. JAMA Internal Medicine 180(11):1491-1499. https://doi.org/10.1001/jamainternmed.2020.4153",
+        "Liu HY, Eso AA, Cook N, O'Neill HM, Albarqouni L (2024). Meal timing and anthropometric and metabolic outcomes: a systematic review and meta-analysis. JAMA Network Open 7(11):e2442163. https://doi.org/10.1001/jamanetworkopen.2024.42163"
+      ],
+      "dissent": "Le camp kitchen_closes n'est pas vide, et il faut le dire au gerant avant qu'un adherent lui sorte l'etude. En essai croise controle, avec apports, sommeil et activite identiques, manger tard augmente la faim et diminue la depense energetique de la journee ; et la méta-analyse de 2024 trouve un petit avantage (environ -1,75 kg) a distribuer les calories plus tot. Deux raisons de ne pas en faire une regle : les auteurs qualifient eux-memes ces effets de petits et d'importance clinique incertaine, et surtout une heure de fermeture contredirait frontalement la position retenue sur la faim, qui dit a l'eleve de manger s'il a reellement faim a 22 h. Reference : Vujovic N, et al. (2022). Cell Metabolism 34(10):1486-1498. https://doi.org/10.1016/j.cmet.2022.09.007"
+    },
+    {
+      "fork": "off_plan_meals",
+      "position": "no_cheat_meal",
+      "grade": "C",
+      "why": "Ce qui est en cause ici n'est pas le repas, c'est le mot. La revue de la litterature sur les cheat meals releve que la pratique, telle qu'elle circule, ressemble aux symptomes de l'hyperphagie boulimique des que les quantites deviennent grandes, et qu'un ecart non prevu declenche l'effet de transgression : une fois la regle cassee, autant tout casser. En parallele, la validation des dimensions du controle alimentaire montre que le controle rigide va avec plus de desinhibition, plus d'acces hyperphagiques et un IMC plus eleve, et le controle souple avec l'inverse. Nommer un repas triche, c'est installer une regle rigide et une dette a rembourser. Il y a le plan, et il y a les repas pris en dehors.",
+      "sources": [
+        "Tsang JH, Poon ETC, Trexler ET, Wong SHS, Zheng C, Sun F (2025). The role of cheat meals in dieting: a scoping review of physiological and psychological responses. Nutrition Reviews 83(11):2240-2252. https://doi.org/10.1093/nutrit/nuaf077",
+        "Westenhoefer J, Stunkard AJ, Pudel V (1999). Validation of the flexible and rigid control dimensions of dietary restraint. International Journal of Eating Disorders 26(1):53-64. https://doi.org/10.1002/(SICI)1098-108X(199907)26:1<53::AID-EAT7>3.0.CO;2-N"
+      ],
+      "dissent": "Le camp planned_off_meal est soutenu par la meme revue que celle citee ci-dessus, et c'est honnete de le dire : les quatre etudes physiologiques recensees montrent que des periodes de prise libre planifiees preservent le deficit hebdomadaire, reduisent la faim et augmentent la satisfaction, donc l'adherence. La difference entre les deux camps est plus mince qu'elle n'en a l'air : la position retenue n'interdit pas de prevoir un repas en dehors du plan, elle interdit de l'appeler une triche. Le niveau de preuve reste faible des deux cotes — huit etudes au total, dont quatre sur 125 participants — d'ou le grade C."
+    },
+    {
+      "fork": "eating_out",
+      "position": "restaurant_anchor",
+      "grade": "C",
+      "why": "Un repas de restaurant n'est pas un repas ordinaire : mesures au calorimetre dans cinq pays, les plats les plus commandes apportent en moyenne environ 1 000 kcal, soit plus du tiers des besoins d'une journee dans une seule assiette. Et 72 essais randomises montrent que ce qui est servi plus grand est mange plus. Chercher d'abord la protéine et les legumes sur la carte est la facon la plus simple de reprendre la main sur l'assiette sans rien compter, parce que ce sont les deux composantes qui rassasient pour le moins d'energie. C'est une heuristique de construction, pas un interdit.",
+      "sources": [
+        "Roberts SB, Das SK, Suen VMM, et al. (2018). Measured energy content of frequently purchased restaurant meals: multi-country cross sectional study. BMJ 363:k4864. https://doi.org/10.1136/bmj.k4864",
+        "Hollands GJ, Shemilt I, Marteau TM, et al. (2015). Portion, package or tableware size for changing selection and consumption of food, alcohol and tobacco. Cochrane Database of Systematic Reviews 9:CD011045. https://doi.org/10.1002/14651858.CD011045.pub2",
+        "Leidy HJ, Clifton PM, Astrup A, et al. (2015). The role of protein in weight loss and maintenance. American Journal of Clinical Nutrition 101(6):1320S-1329S. https://doi.org/10.3945/ajcn.114.084038"
+      ],
+      "dissent": "Le camp restaurant_no_rules dit que le restaurant n'est pas un probleme a resoudre, et c'est la seule position de ce document qu'une mesure directe contredit : les portions servies depassent largement ce que la personne aurait mange chez elle. Mais il faut etre clair sur ce qui manque de l'autre cote : aucun essai n'a teste la consigne cherche la protéine et les legumes d'abord en situation de restaurant. Les ingredients de la position sont prouves, la consigne elle-meme est une deduction. C'est la position la moins assuree des dix."
+    },
+    {
+      "fork": "quick_fixes",
+      "position": "no_detox",
+      "grade": "B",
+      "why": "La revue critique de reference a cherche les essais cliniques soutenant les cures detox et n'en a trouve qu'une poignee, toutes de methodologie defaillante et sur de tres petits effectifs. Aucun produit detox n'a demontre qu'il eliminait quoi que ce soit ni qu'il faisait maigrir durablement. Du cote des complements minceur, la revue de 315 essais cliniques conclut a une absence de preuve de qualite. Apres une semaine chargee, ce qui marche est ennuyeux : trois repas ordinaires le lendemain.",
+      "sources": [
+        "Klein AV, Kiat H (2015). Detox diets for toxin elimination and weight management: a critical review of the evidence. Journal of Human Nutrition and Dietetics 28(6):675-686. https://doi.org/10.1111/jhn.12286",
+        "Batsis JA, Apolzan JW, Bagley PJ, et al. (2021). A systematic review of dietary supplements and alternative therapies for weight loss. Obesity 29(7):1102-1113. https://doi.org/10.1002/oby.23110"
+      ],
+      "dissent": "Il n'y a pas de second camp dans ce debat : le produit n'en propose qu'un, et l'alternative offerte est no_rule. Ne rien dire serait ici le mauvais choix, parce que le silence laisse l'agent libre de reprendre le vocabulaire du client — et c'est le seul sujet des dix ou une reponse fausse se vend, en bouteille, a cote de la salle. Le seul point que la revue concede : quelques etudes montrent une elimination de polluants organiques persistants apres certains protocoles, sur des effectifs trop petits pour en conclure quoi que ce soit."
+    }
+  ],
+  "foods": [
+    {
+      "group": "leafy_greens",
+      "stance": "encouraged",
+      "why": "Les legumes-feuilles sont au coeur de la relation dose-reponse la plus nette de la nutrition : la baisse du risque de mortalite toutes causes se poursuit jusqu'a environ 800 g de fruits et legumes par jour. Ils donnent du volume a une assiette pour tres peu d'energie.",
+      "sources": [
+        "Aune D, Giovannucci E, Boffetta P, et al. (2017). Fruit and vegetable intake and the risk of cardiovascular disease, total cancer and all-cause mortality. International Journal of Epidemiology 46(3):1029-1056. https://doi.org/10.1093/ije/dyw319",
+        "Schwingshackl L, Schwedhelm C, Hoffmann G, et al. (2017). Food groups and risk of all-cause mortality: a systematic review and meta-analysis of prospective studies. American Journal of Clinical Nutrition 105(6):1462-1473. https://doi.org/10.3945/ajcn.117.153148"
+      ],
+      "frequency": null
+    },
+    {
+      "group": "cruciferous_veg",
+      "stance": "encouraged",
+      "why": "Meme base de preuve que les autres legumes : les cruciferes sont explicitement comptees dans les meta-analyses dose-reponse qui montrent la baisse de risque jusqu'a 800 g par jour. Aucune raison de les distinguer du reste du groupe legumes.",
+      "sources": [
+        "Aune D, Giovannucci E, Boffetta P, et al. (2017). International Journal of Epidemiology 46(3):1029-1056. https://doi.org/10.1093/ije/dyw319",
+        "Schwingshackl L, Schwedhelm C, Hoffmann G, et al. (2017). American Journal of Clinical Nutrition 105(6):1462-1473. https://doi.org/10.3945/ajcn.117.153148"
+      ],
+      "frequency": null
+    },
+    {
+      "group": "non_starchy_veg",
+      "stance": "encouraged",
+      "why": "C'est le seul groupe ou la preuve porte sur une quantite assez precise pour poser une regle : le risque baisse de facon continue jusqu'a 800 g de fruits et legumes par jour, ce qui fait au minimum deux portions de legumes non feculents dans une journee ordinaire. C'est aussi ce qui remplit une assiette pour le moins d'energie.",
+      "sources": [
+        "Aune D, Giovannucci E, Boffetta P, et al. (2017). International Journal of Epidemiology 46(3):1029-1056. https://doi.org/10.1093/ije/dyw319",
+        "Schwingshackl L, Schwedhelm C, Hoffmann G, et al. (2017). American Journal of Clinical Nutrition 105(6):1462-1473. https://doi.org/10.3945/ajcn.117.153148"
+      ],
+      "frequency": {
+        "template": "amount_per_period",
+        "direction": "at_least",
+        "amount": 2,
+        "amount_unit": "portion",
+        "period": "day"
+      }
+    },
+    {
+      "group": "starchy_veg",
+      "stance": "encouraged",
+      "why": "La pomme de terre bouillie obtient l'indice de satiete le plus eleve des 38 aliments testes a apport energetique egal, sept fois celui du croissant. Le signal defavorable des cohortes porte sur les chips et les frites, qui relevent ici du groupe fried_food, pas sur le tubercule cuit a l'eau ou au four.",
+      "sources": [
+        "Holt SHA, Brand Miller JC, Petocz P, Farmakalidis E (1995). A satiety index of common foods. European Journal of Clinical Nutrition 49(9):675-690. https://pubmed.ncbi.nlm.nih.gov/7498104/",
+        "Mozaffarian D, Hao T, Rimm EB, Willett WC, Hu FB (2011). Changes in diet and lifestyle and long-term weight gain in women and men. New England Journal of Medicine 364(25):2392-2404. https://doi.org/10.1056/NEJMoa1014296"
+      ],
+      "frequency": null
+    },
+    {
+      "group": "berries",
+      "stance": "encouraged",
+      "why": "Compte dans les fruits, dont la relation dose-reponse avec la mortalite toutes causes est etablie sur 95 etudes prospectives. Fruit entier, pas jus : c'est sur le fruit entier que porte la preuve.",
+      "sources": [
+        "Aune D, Giovannucci E, Boffetta P, et al. (2017). International Journal of Epidemiology 46(3):1029-1056. https://doi.org/10.1093/ije/dyw319"
+      ],
+      "frequency": null
+    },
+    {
+      "group": "citrus",
+      "stance": "encouraged",
+      "why": "Meme base que les autres fruits entiers dans la meta-analyse dose-reponse de reference. Aucune preuve ne justifie de traiter les agrumes a part.",
+      "sources": [
+        "Aune D, Giovannucci E, Boffetta P, et al. (2017). International Journal of Epidemiology 46(3):1029-1056. https://doi.org/10.1093/ije/dyw319"
+      ],
+      "frequency": null
+    },
+    {
+      "group": "other_fruit",
+      "stance": "encouraged",
+      "why": "La baisse de risque associee aux fruits est continue jusqu'a environ 800 g de fruits et legumes par jour. La preuve porte sur le fruit entier : le sucre d'un fruit mange entier ne se comporte pas comme celui d'une boisson sucree.",
+      "sources": [
+        "Aune D, Giovannucci E, Boffetta P, et al. (2017). International Journal of Epidemiology 46(3):1029-1056. https://doi.org/10.1093/ije/dyw319",
+        "Schwingshackl L, Schwedhelm C, Hoffmann G, et al. (2017). American Journal of Clinical Nutrition 105(6):1462-1473. https://doi.org/10.3945/ajcn.117.153148"
+      ],
+      "frequency": null
+    },
+    {
+      "group": "legumes",
+      "stance": "encouraged",
+      "why": "Les legumineuses figurent parmi les aliments a risque decroissant dans la serie de revues systematiques du Lancet sur la qualite des glucides et dans la meta-analyse des groupes alimentaires. Elles apportent protéines et fibres dans le meme aliment, ce qui est rare et pratique quand on construit une assiette.",
+      "sources": [
+        "Reynolds A, Mann J, Cummings J, Winter N, Mete E, Te Morenga L (2019). Carbohydrate quality and human health: a series of systematic reviews and meta-analyses. The Lancet 393(10170):434-445. https://doi.org/10.1016/S0140-6736(18)31809-9",
+        "Schwingshackl L, Schwedhelm C, Hoffmann G, et al. (2017). American Journal of Clinical Nutrition 105(6):1462-1473. https://doi.org/10.3945/ajcn.117.153148"
+      ],
+      "frequency": null
+    },
+    {
+      "group": "whole_grain",
+      "stance": "encouraged",
+      "why": "C'est le groupe glucidique le mieux soutenu : la serie du Lancet trouve une baisse du risque de maladies non transmissibles associee aux cereales completes et aux fibres, avec une relation dose-reponse. C'est aussi la substitution la plus simple a faire dans une cuisine : la meme assiette, avec la version complete.",
+      "sources": [
+        "Reynolds A, Mann J, Cummings J, Winter N, Mete E, Te Morenga L (2019). The Lancet 393(10170):434-445. https://doi.org/10.1016/S0140-6736(18)31809-9",
+        "Schwingshackl L, Schwedhelm C, Hoffmann G, et al. (2017). American Journal of Clinical Nutrition 105(6):1462-1473. https://doi.org/10.3945/ajcn.117.153148"
+      ],
+      "frequency": null
+    },
+    {
+      "group": "refined_grain",
+      "stance": "discouraged",
+      "why": "Ce n'est pas un aliment a bannir, c'est un aliment a remplacer : le benefice mesure porte sur la substitution du raffine par le complet, pas sur la suppression des feculents. Ecarte, donc, quand la version complete existe.",
+      "sources": [
+        "Reynolds A, Mann J, Cummings J, Winter N, Mete E, Te Morenga L (2019). The Lancet 393(10170):434-445. https://doi.org/10.1016/S0140-6736(18)31809-9",
+        "Hall KD, Ayuketah A, Brychta R, et al. (2019). Cell Metabolism 30(1):67-77.e3. https://doi.org/10.1016/j.cmet.2019.05.008"
+      ],
+      "frequency": null
+    },
+    {
+      "group": "lean_protein",
+      "stance": "encouraged",
+      "why": "En essai controle, augmenter la part de protéines fait baisser spontanement l'apport de 441 kcal par jour sans consigne de restriction. C'est la composante qui rassasie le plus par calorie apportee, donc celle qu'on pose en premier dans une assiette.",
+      "sources": [
+        "Weigle DS, Breen PA, Matthys CC, et al. (2005). American Journal of Clinical Nutrition 82(1):41-48. https://doi.org/10.1093/ajcn/82.1.41",
+        "Leidy HJ, Clifton PM, Astrup A, et al. (2015). American Journal of Clinical Nutrition 101(6):1320S-1329S. https://doi.org/10.3945/ajcn.114.084038"
+      ],
+      "frequency": null
+    },
+    {
+      "group": "poultry",
+      "stance": "encouraged",
+      "why": "Source de protéines qui ne porte aucune des limites posees sur la viande rouge : les recommandations internationales plafonnent la viande rouge et la charcuterie, pas la volaille. C'est le remplacant le plus direct quand on veut baisser la viande rouge sans changer les habitudes de cuisine.",
+      "sources": [
+        "World Cancer Research Fund / American Institute for Cancer Research (2018). Diet, Nutrition, Physical Activity and Cancer: a Global Perspective. Meat, fish and dairy products. https://www.wcrf.org/wp-content/uploads/2024/10/Meat-fish-and-dairy-products.pdf",
+        "Leidy HJ, Clifton PM, Astrup A, et al. (2015). American Journal of Clinical Nutrition 101(6):1320S-1329S. https://doi.org/10.3945/ajcn.114.084038"
+      ],
+      "frequency": null
+    },
+    {
+      "group": "red_meat",
+      "stance": "discouraged",
+      "why": "C'est le seul groupe pour lequel une recommandation internationale pose un plafond chiffre : pas plus de 350 a 500 g cuits par semaine, soit environ trois portions. Ce n'est pas une exclusion et ce n'est pas un jugement moral : c'est la seule quantite hebdomadaire que la litterature ait fixee, et elle est facile a tenir.",
+      "sources": [
+        "World Cancer Research Fund / American Institute for Cancer Research (2018). Diet, Nutrition, Physical Activity and Cancer: a Global Perspective. Cancer Prevention Recommendations. https://www.wcrf.org/wp-content/uploads/2024/10/Meat-fish-and-dairy-products.pdf",
+        "Schwingshackl L, Schwedhelm C, Hoffmann G, et al. (2017). American Journal of Clinical Nutrition 105(6):1462-1473. https://doi.org/10.3945/ajcn.117.153148"
+      ],
+      "frequency": {
+        "template": "amount_per_period",
+        "direction": "at_most",
+        "amount": 3,
+        "amount_unit": "portion",
+        "period": "week"
+      }
+    },
+    {
+      "group": "white_fish",
+      "stance": "encouraged",
+      "why": "Le poisson figure parmi les groupes a risque decroissant dans la meta-analyse des groupes alimentaires, et l'avis scientifique de l'American Heart Association recommande une a deux portions de produits de la mer par semaine. Le poisson blanc apporte la protéine sans la charge energetique.",
+      "sources": [
+        "Rimm EB, Appel LJ, Chiuve SE, et al. (2018). Seafood long-chain n-3 polyunsaturated fatty acids and cardiovascular disease: a science advisory from the American Heart Association. Circulation 138(1):e35-e47. https://doi.org/10.1161/CIR.0000000000000574",
+        "Schwingshackl L, Schwedhelm C, Hoffmann G, et al. (2017). American Journal of Clinical Nutrition 105(6):1462-1473. https://doi.org/10.3945/ajcn.117.153148"
+      ],
+      "frequency": null
+    },
+    {
+      "group": "fatty_fish",
+      "stance": "encouraged",
+      "why": "L'avis scientifique de l'American Heart Association recommande une a deux portions de produits de la mer par semaine, et cible explicitement les poissons gras pour les acides gras a longue chaine. C'est une quantite publiee, donc une regle qui se defend devant un adherent qui la conteste.",
+      "sources": [
+        "Rimm EB, Appel LJ, Chiuve SE, et al. (2018). Circulation 138(1):e35-e47. https://doi.org/10.1161/CIR.0000000000000574"
+      ],
+      "frequency": {
+        "template": "amount_per_period",
+        "direction": "at_least",
+        "amount": 1,
+        "amount_unit": "portion",
+        "period": "week"
+      }
+    },
+    {
+      "group": "shellfish",
+      "stance": "encouraged",
+      "why": "Les coquillages et crustaces sont comptes dans les produits de la mer vises par l'avis de l'American Heart Association. Protéine dense, energie faible : ils entrent dans la meme logique d'assiette que le poisson blanc.",
+      "sources": [
+        "Rimm EB, Appel LJ, Chiuve SE, et al. (2018). Circulation 138(1):e35-e47. https://doi.org/10.1161/CIR.0000000000000574"
+      ],
+      "frequency": null
+    },
+    {
+      "group": "eggs",
+      "stance": "encouraged",
+      "why": "La question du cholesterol de l'oeuf est tranchee pour la population generale : dans trois grandes cohortes americaines suivies plus de vingt ans et une meta-analyse actualisee sur 1,7 million de participants, un oeuf par jour n'est pas associe a un risque cardiovasculaire accru. C'est une protéine bon marche, rapide, et qui tient au corps.",
+      "sources": [
+        "Drouin-Chartier JP, Chen S, Li Y, et al. (2020). Egg consumption and risk of cardiovascular disease: three large prospective US cohort studies, systematic review, and updated meta-analysis. BMJ 368:m513. https://doi.org/10.1136/bmj.m513"
+      ],
+      "frequency": null
+    },
+    {
+      "group": "tofu_tempeh",
+      "stance": "encouraged",
+      "why": "Releve de la meme base de preuve que les legumineuses, classees parmi les aliments a risque decroissant. C'est la protéine qui permet de descendre la viande rouge sous son plafond sans supprimer un repas.",
+      "sources": [
+        "Reynolds A, Mann J, Cummings J, Winter N, Mete E, Te Morenga L (2019). The Lancet 393(10170):434-445. https://doi.org/10.1016/S0140-6736(18)31809-9",
+        "Schwingshackl L, Schwedhelm C, Hoffmann G, et al. (2017). American Journal of Clinical Nutrition 105(6):1462-1473. https://doi.org/10.3945/ajcn.117.153148"
+      ],
+      "frequency": null
+    },
+    {
+      "group": "dairy_yogurt",
+      "stance": "encouraged",
+      "why": "Le yaourt est l'un des rares aliments associes a moins de prise de poids sur vingt ans dans les trois cohortes de suivi, et la meta-analyse dose-reponse sur les produits laitiers ne trouve aucun signal defavorable pour les produits fermentes. Nature, pas sucre : le yaourt sucre releve du groupe sugar_sweets pour ce qu'il ajoute.",
+      "sources": [
+        "Mozaffarian D, Hao T, Rimm EB, Willett WC, Hu FB (2011). New England Journal of Medicine 364(25):2392-2404. https://doi.org/10.1056/NEJMoa1014296",
+        "Guo J, Astrup A, Lovegrove JA, Gijsbers L, Givens DI, Soedamah-Muthu SS (2017). Milk and dairy consumption and risk of cardiovascular diseases and all-cause mortality: dose-response meta-analysis of prospective cohort studies. European Journal of Epidemiology 32(4):269-287. https://doi.org/10.1007/s10654-017-0243-1"
+      ],
+      "frequency": null
+    },
+    {
+      "group": "dairy_cheese",
+      "stance": "discouraged",
+      "why": "A dire tel quel a un adherent : le fromage n'est pas accuse par les cohortes, la meta-analyse dose-reponse ne trouve pas de signal defavorable. Il est ecarte pour une raison de construction d'assiette, pas de sante : c'est l'un des aliments les plus denses en energie et en sel du repas ordinaire, et la seule facon pour la doctrine d'en tenir compte est de faire piocher le generateur ailleurs.",
+      "sources": [
+        "Guo J, Astrup A, Lovegrove JA, et al. (2017). European Journal of Epidemiology 32(4):269-287. https://doi.org/10.1007/s10654-017-0243-1",
+        "World Health Organization (2012). Guideline: Sodium intake for adults and children. https://www.ncbi.nlm.nih.gov/books/NBK133309/"
+      ],
+      "frequency": null
+    },
+    {
+      "group": "nuts_seeds",
+      "stance": "encouraged",
+      "why": "La meta-analyse dose-reponse sur les fruits a coque montre une baisse du risque cardiovasculaire et de mortalite des environ 28 g par jour, et l'essai PREDIMED les a testes en intervention. Denses en energie, mais c'est le groupe dense dont le benefice est le mieux etabli.",
+      "sources": [
+        "Aune D, Keum N, Giovannucci E, et al. (2016). Nut consumption and risk of cardiovascular disease, total cancer, all-cause and cause-specific mortality. BMC Medicine 14:207. https://doi.org/10.1186/s12916-016-0730-3",
+        "Estruch R, Ros E, Salas-Salvado J, et al. (2018). Primary prevention of cardiovascular disease with a Mediterranean diet supplemented with extra-virgin olive oil or nuts. New England Journal of Medicine 378(25):e34. https://doi.org/10.1056/NEJMoa1800389"
+      ],
+      "frequency": null
+    },
+    {
+      "group": "olive_oil",
+      "stance": "encouraged",
+      "why": "C'est la seule matiere grasse ajoutee testee en essai randomise d'intervention a grande echelle, avec un benefice cardiovasculaire. C'est donc la graisse de cuisine par defaut, et le point de comparaison pour toutes les autres.",
+      "sources": [
+        "Estruch R, Ros E, Salas-Salvado J, et al. (2018). New England Journal of Medicine 378(25):e34. https://doi.org/10.1056/NEJMoa1800389",
+        "Hooper L, Martin N, Jimoh OF, Kirk C, Foster E, Abdelhamid AS (2020). Reduction in saturated fat intake for cardiovascular disease. Cochrane Database of Systematic Reviews 5:CD011737. https://doi.org/10.1002/14651858.CD011737.pub3"
+      ],
+      "frequency": null
+    },
+    {
+      "group": "other_added_fat",
+      "stance": "discouraged",
+      "why": "Ecarte par comparaison, pas par condamnation : la revue Cochrane montre que remplacer les graisses saturees par des graisses insaturees reduit les evenements cardiovasculaires d'environ 17 %, et l'huile d'olive est la seule matiere grasse ajoutee validee en essai d'intervention. Toute graisse ajoutee est par ailleurs ce qui monte le plus vite l'energie d'un plat pour le moins de volume.",
+      "sources": [
+        "Hooper L, Martin N, Jimoh OF, Kirk C, Foster E, Abdelhamid AS (2020). Cochrane Database of Systematic Reviews 5:CD011737. https://doi.org/10.1002/14651858.CD011737.pub3",
+        "Estruch R, Ros E, Salas-Salvado J, et al. (2018). New England Journal of Medicine 378(25):e34. https://doi.org/10.1056/NEJMoa1800389"
+      ],
+      "frequency": null
+    },
+    {
+      "group": "sauce_dressing",
+      "stance": "discouraged",
+      "why": "C'est l'endroit du repas ou l'energie et le sel entrent sans se voir : une vinaigrette ou une sauce industrielle peut peser plus lourd que l'aliment qu'elle accompagne, et l'OMS recommande de rester sous 5 g de sel par jour. Ecarter le groupe ne veut pas dire manger sec, mais faire porter le gout par autre chose quand c'est possible.",
+      "sources": [
+        "World Health Organization (2012). Guideline: Sodium intake for adults and children. https://www.ncbi.nlm.nih.gov/books/NBK133309/",
+        "Hall KD, Ayuketah A, Brychta R, et al. (2019). Cell Metabolism 30(1):67-77.e3. https://doi.org/10.1016/j.cmet.2019.05.008"
+      ],
+      "frequency": null
+    },
+    {
+      "group": "sugar_sweets",
+      "stance": "discouraged",
+      "why": "L'OMS recommande de descendre les sucres libres sous 10 % de l'apport energetique, avec une recommandation forte, et suggere d'aller sous 5 %. C'est le groupe ou la recommandation internationale est la plus explicite. Ecarte, pas exclu : une doctrine par defaut n'a pas a supprimer le dessert de la vie de quelqu'un.",
+      "sources": [
+        "World Health Organization (2015). Guideline: Sugars intake for adults and children. https://www.ncbi.nlm.nih.gov/books/NBK285537/",
+        "Hall KD, Ayuketah A, Brychta R, et al. (2019). Cell Metabolism 30(1):67-77.e3. https://doi.org/10.1016/j.cmet.2019.05.008"
+      ],
+      "frequency": null
+    },
+    {
+      "group": "sweetened_beverage",
+      "stance": "discouraged",
+      "why": "C'est le groupe alimentaire dont le lien avec la prise de poids est le plus solidement etabli, cohortes et essais randomises confondus. Et c'est le seul dont le remplacement a ete teste directement : substituer de l'eau aux boissons caloriques fait perdre du poids en essai randomise. Le sucre bu ne rassasie pas comme le sucre mange.",
+      "sources": [
+        "Malik VS, Pan A, Willett WC, Hu FB (2013). Sugar-sweetened beverages and weight gain in children and adults: a systematic review and meta-analysis. American Journal of Clinical Nutrition 98(4):1084-1102. https://doi.org/10.3945/ajcn.113.058362",
+        "Tate DF, Turner-McGrievy G, Lyons E, et al. (2012). Replacing caloric beverages with water or diet beverages for weight loss in adults: the CHOICE randomized clinical trial. American Journal of Clinical Nutrition 95(3):555-563. https://doi.org/10.3945/ajcn.111.026278"
+      ],
+      "frequency": null
+    },
+    {
+      "group": "fried_food",
+      "stance": "discouraged",
+      "why": "La meta-analyse sur 562 445 personnes trouve un risque d'evenement cardiovasculaire majeur superieur de 28 % chez les plus gros consommateurs d'aliments frits. C'est aussi la transformation qui explique le signal defavorable attribue a tort aux pommes de terre : c'est la friture qui pese, pas le tubercule.",
+      "sources": [
+        "Qin P, Zhang M, Han M, et al. (2021). Fried-food consumption and risk of cardiovascular disease and all-cause mortality: a meta-analysis of observational studies. Heart 107(19):1567-1575. https://doi.org/10.1136/heartjnl-2020-317883",
+        "Mozaffarian D, Hao T, Rimm EB, Willett WC, Hu FB (2011). New England Journal of Medicine 364(25):2392-2404. https://doi.org/10.1056/NEJMoa1014296"
+      ],
+      "frequency": null
+    },
+    {
+      "group": "alcohol",
+      "stance": "discouraged",
+      "why": "L'analyse du fardeau mondial de la maladie sur 195 pays conclut que le niveau de consommation qui minimise le risque est zero. Ecarte, et non exclu : une doctrine par defaut n'a pas a decider de la vie sociale de quelqu'un, mais elle n'a pas non plus a presenter l'alcool comme neutre.",
+      "sources": [
+        "GBD 2016 Alcohol Collaborators (2018). Alcohol use and burden for 195 countries and territories, 1990-2016: a systematic analysis for the Global Burden of Disease Study 2016. The Lancet 392(10152):1015-1035. https://doi.org/10.1016/S0140-6736(18)31310-2"
+      ],
+      "frequency": null
+    },
+    {
+      "group": "coffee_tea",
+      "stance": "encouraged",
+      "why": "La revue parapluie de 201 meta-analyses conclut qu'une consommation habituelle de cafe est plus susceptible d'etre benefique que nefaste, avec le risque de mortalite le plus bas autour de trois tasses par jour. Sans sucre : ce qu'on ajoute dedans releve du groupe sugar_sweets. C'est aussi le remplacement le plus simple d'une boisson sucree.",
+      "sources": [
+        "Poole R, Kennedy OJ, Roderick P, Fallowfield JA, Hayes PC, Parkes J (2017). Coffee consumption and health: umbrella review of meta-analyses of multiple health outcomes. BMJ 359:j5024. https://doi.org/10.1136/bmj.j5024"
+      ],
+      "frequency": null
+    },
+    {
+      "group": "water",
+      "stance": "encouraged",
+      "why": "Le seul remplacement de boisson teste en essai randomise : substituer de l'eau aux boissons caloriques produit une perte de poids sur six mois. Aucune quantite quotidienne n'est posee ici, parce qu'aucune n'est etablie par la preuve.",
+      "sources": [
+        "Tate DF, Turner-McGrievy G, Lyons E, et al. (2012). American Journal of Clinical Nutrition 95(3):555-563. https://doi.org/10.3945/ajcn.111.026278"
+      ],
+      "frequency": null
+    }
+  ],
+  "forbidden": [
+    {
+      "token": "metabolism_boost",
+      "surfaceForms": [
+        "relance le metabolisme",
+        "relancer le metabolisme",
+        "accelerer le metabolisme",
+        "booster ton metabolisme",
+        "manger toutes les 3 heures",
+        "manger toutes les trois heures",
+        "boost your metabolism",
+        "speed up your metabolism",
+        "stoke your metabolism",
+        "eat every three hours",
+        "eat every 3 hours",
+        "keep your metabolism going"
+      ],
+      "reason": "L'idee que manger plus souvent accelere le metabolisme est fausse et elle est la justification la plus repandue du grignotage organise. La thermogenese suit la quantite mangee, pas le nombre de fois : a apport egal, la frequence des repas ne change ni la depense energetique ni la composition corporelle.",
+      "instead": "Manger plus souvent n'accelere rien : ce qui compte, c'est ce qu'il y a dans la journee, pas en combien de fois vous l'avez mangee. Gardez le rythme qui tient dans vos journees, et dites-moi a quel moment la faim revient trop tot — c'est le repas d'avant qu'on regardera."
+    },
+    {
+      "token": "calories_from_photo",
+      "surfaceForms": [
+        "combien de calories dans cette photo",
+        "combien de calories dans ce plat",
+        "je compte les calories de ta photo",
+        "compte les macros de la photo",
+        "analyse les calories de ton assiette",
+        "how many calories is this",
+        "how many calories in this photo",
+        "count the calories in your photo",
+        "track your macros from the picture",
+        "i can count the calories in that"
+      ],
+      "reason": "Le produit ne compte pas les calories ni les macros a partir d'une photo, et s'interdit de le laisser croire (docs/keel/LEGAL.md 6.4). Une photo rend des groupes d'aliments et des quantites approximatives ; annoncer un chiffre serait une promesse invérifiable, et l'utilisateur la decouvrirait fausse au premier controle.",
+      "instead": "Je ne compte pas les calories d'une photo, et personne ne peut le faire de facon fiable. Ce que je vois, ce sont les groupes d'aliments qui composent l'assiette — proteine, legumes, feculent, matiere grasse — et c'est la-dessus qu'on travaille."
+    },
+    {
+      "token": "spot_reduction",
+      "surfaceForms": [
+        "perdre du ventre avec des abdos",
+        "des abdos pour perdre du ventre",
+        "cibler la graisse du ventre",
+        "faire fondre la graisse localement",
+        "perdre des cuisses avec cet exercice",
+        "burn belly fat with abs",
+        "target belly fat",
+        "spot reduce",
+        "lose fat from that area",
+        "exercises to burn stomach fat"
+      ],
+      "reason": "La perte de gras localisee ne se produit pas. Dans un essai randomise de six semaines d'exercices abdominaux a alimentation constante, la graisse abdominale n'a pas bouge. C'est une promesse impossible a tenir, et celle qui fait le plus abandonner quand elle echoue.",
+      "instead": "On ne choisit pas l'endroit ou le gras part, et aucun exercice ne fait maigrir a un endroit precis. Ce qui bouge la composition du corps, c'est ce qui se passe dans l'assiette sur plusieurs semaines, plus la force qu'on garde a l'entrainement."
+    },
+    {
+      "token": "carbs_make_you_fat",
+      "surfaceForms": [
+        "les glucides font grossir",
+        "le pain fait grossir",
+        "arrete les feculents",
+        "supprime les glucides",
+        "le sucre du soir se stocke en graisse",
+        "carbs make you fat",
+        "cut out carbs",
+        "carbs are the problem",
+        "stop eating bread",
+        "carbs turn to fat at night"
+      ],
+      "reason": "L'essai randomise le plus grand sur la question a compare pendant douze mois un regime pauvre en graisses et un regime pauvre en glucides : aucune difference de perte de poids. Designer un macronutriment comme coupable supprime des aliments ordinaires sans contrepartie et rend l'assiette plus difficile a tenir.",
+      "instead": "Les glucides ne font pas grossir en eux-memes : compares sur douze mois, un regime pauvre en glucides et un regime pauvre en graisses donnent le meme resultat. Ce qui change quelque chose, c'est la version qu'on prend — complete plutot que raffinee — et ce qu'il y a a cote dans l'assiette."
+    },
+    {
+      "token": "food_moralising",
+      "surfaceForms": [
+        "aliment interdit",
+        "c'est de la malbouffe",
+        "tu as ete sage",
+        "tu as ete raisonnable cette semaine",
+        "manger propre",
+        "alimentation propre",
+        "mauvais aliment",
+        "clean eating",
+        "eat clean",
+        "bad food",
+        "junk you shouldn't touch",
+        "you've been good this week"
+      ],
+      "reason": "Classer les aliments en bons et mauvais installe un controle rigide, et la validation des dimensions du controle alimentaire montre que le controle rigide va avec plus de desinhibition, plus d'acces hyperphagiques et un IMC plus eleve. La regle morale se casse au premier ecart et emporte tout le reste avec elle.",
+      "instead": "Il n'y a pas d'aliment interdit ici, et rien de ce que vous mangez ne vous rend sage ou pas sage. Il y a ce qui construit bien une assiette et ce qui la construit moins bien, et ca se regarde sur la semaine, pas sur une bouchee."
+    },
+    {
+      "token": "compensate_with_exercise",
+      "surfaceForms": [
+        "tu compenseras a la salle",
+        "tu le bruleras a l'entrainement",
+        "une seance de plus pour rattraper",
+        "ajoute du cardio pour compenser",
+        "rattrape ca demain a la salle",
+        "work it off at the gym",
+        "you can train that off",
+        "add cardio to compensate",
+        "make up for it with a session"
+      ],
+      "reason": "Transformer un repas en dette a rembourser par l'exercice installe la logique de transgression puis de compensation, celle que la revue sur les cheat meals identifie comme le point de bascule vers les cycles restriction-exces. L'entrainement n'est pas une monnaie.",
+      "instead": "L'entrainement n'est pas la pour payer un repas. Vous avez mange en dehors du plan, ca arrive et ca ne se rembourse pas — dites-moi a quoi ressemblaient les heures d'avant, c'est en general la que se trouve la reponse."
+    },
+    {
+      "token": "skip_meal_to_compensate",
+      "surfaceForms": [
+        "saute le diner",
+        "saute un repas pour compenser",
+        "saute le repas de ce soir",
+        "jeune demain pour rattraper",
+        "ne mange pas ce soir apres ce midi",
+        "skip dinner to make up for it",
+        "skip a meal to balance it out",
+        "fast tomorrow to compensate",
+        "just don't eat tonight"
+      ],
+      "reason": "Sauter un repas pour compenser le precedent est la moitie restrictive du cycle restriction-exces, et c'est ce qui fabrique la faim du soir que le produit passe ensuite son temps a traiter. Le mecanisme est documente dans la litterature sur le controle rigide et l'effet de transgression.",
+      "instead": "Ne sautez pas le repas suivant pour compenser : c'est ce qui fabrique la faim du soir. Reprenez au repas d'apres comme si de rien n'etait — c'est la semaine entiere qui compte, pas une addition entre deux repas."
+    },
+    {
+      "token": "fat_burner_supplement",
+      "surfaceForms": [
+        "bruleur de graisse",
+        "brule graisse",
+        "coupe-faim",
+        "complement qui fait maigrir",
+        "gelules minceur",
+        "fat burner",
+        "appetite suppressant",
+        "weight loss supplement",
+        "slimming pills"
+      ],
+      "reason": "La revue systematique de 315 essais cliniques sur les complements et therapies alternatives pour la perte de poids conclut a une absence de preuve de qualite. Recommander un complement, c'est engager le nom d'un professionnel sur un produit non teste et souvent non regule.",
+      "instead": "Il n'existe aucun complement dont l'effet sur le poids tienne devant un essai serieux : 315 essais ont ete passes en revue, et rien n'en est ressorti. Gardez l'argent, et dites-moi plutot lequel de vos repas de la semaine est le plus difficile a tenir."
+    },
+    {
+      "token": "child_weight_rule",
+      "surfaceForms": [
+        "faire maigrir ton enfant",
+        "mettre ton enfant au regime",
+        "un objectif de poids pour lui",
+        "un objectif de poids pour elle",
+        "le regime de ton fils",
+        "le regime de ta fille",
+        "put your child on a diet",
+        "help your kid lose weight",
+        "a weight target for your child"
+      ],
+      "reason": "Un mineur n'est jamais une cible nutritionnelle dans ce produit, et le code refuse par construction un objectif de poids pose sur un enfant. Une doctrine adoptee par une salle ne doit pas ouvrir cette porte par le vocabulaire, meme quand c'est un parent qui la pousse.",
+      "instead": "Je ne fixe pas d'objectif de poids pour un enfant, et ce n'est pas une question de prudence : ce n'est pas quelque chose qui se decide en dehors d'un suivi medical. Ce que je peux faire, c'est aider a construire les repas du foyer — un enfant qui mange les memes plats que ses parents, c'est deja l'essentiel."
+    }
+  ]
+}

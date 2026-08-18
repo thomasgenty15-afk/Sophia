@@ -19,7 +19,12 @@
  * PURE MODULE: no I/O, no clock, no randomness.
  */
 
-import type { Envelope } from "./meal_envelope.ts";
+import {
+  childEnvelopeFromBody,
+  type Envelope,
+  maintenanceEnvelopeFromBody,
+  type MouthBody,
+} from "./meal_envelope.ts";
 import type { MemberAgeState } from "./household.ts";
 import type { MemberGoal, PortionMember } from "./household_portions.ts";
 import type { FoodGroupRef } from "./tokens.ts";
@@ -35,8 +40,11 @@ export interface HouseholdMember {
   ageState: MemberAgeState;
   goal: MemberGoal | null;
   /**
-   * L'enveloppe de CE membre, telle que `envelopeFor` l'a rendue. `null` pour
-   * une bouche sans compte, sans corps, ou dont l'objectif ne s'applique pas.
+   * L'enveloppe de CE membre, telle que `mouthEnvelope` l'a rendue — depuis
+   * son compte quand il y en a un, depuis le corps de sa fiche sinon.
+   *
+   * `null` = aucune enveloppe calculable pour cette bouche (corps absent, âge
+   * inconnu). Elle compte alors pour une part STANDARD, jamais réduite.
    */
   envelope: Envelope | null;
 }
@@ -81,10 +89,71 @@ export function householdLaneMode(
   for (const m of members) {
     if (m.envelope?.mode === "per_portion") return "per_portion";
   }
+  // ── « TOUTE BOUCHE », PLUS « TOUT ADULTE » (2026-08-12) ─────────────────
+  // La condition portait `m.ageState === "adult"`. Depuis que chaque bouche a
+  // un corps et donc une enveloppe, un foyer d'un adulte sans corps et de deux
+  // enfants avec corps est DIMENSIONNABLE — et c'est exactement le foyer que
+  // ce lot répare.
   const dimensionable = members.some((m) =>
-    m.ageState === "adult" && m.envelope?.mode === "per_kg" && m.envelope.energy !== null
+    m.envelope?.mode === "per_kg" && m.envelope.energy !== null
   );
   return dimensionable ? "per_kg" : "per_portion";
+}
+
+// ---------------------------------------------------------------------------
+// 1 bis. L'ENVELOPPE D'UNE BOUCHE — la seule porte, pour toutes les bouches
+// ---------------------------------------------------------------------------
+
+/**
+ * L'ENVELOPPE DE CETTE BOUCHE, ET IL N'Y A QU'UNE FAÇON DE L'OBTENIR.
+ *
+ * ── CE QUE CETTE FONCTION RÉPARE ─────────────────────────────────────────
+ * Avant le 2026-08-12, une bouche sans compte n'avait pas de corps, donc pas
+ * d'enveloppe, donc ni poids dans le MIN ni add-on. Dans le foyer « une mère en
+ * `fat_loss` + deux enfants », le MIN se prenait sur la seule adulte: **la
+ * casserole ÉTAIT une casserole de déficit, et les enfants la mangeaient**,
+ * sans rien en plus. C'est le préjudice que FF-043 §1 nomme, et il n'était
+ * fermé que pour les adultes.
+ *
+ * ── LES DEUX SOURCES, ET L'ORDRE ENTRE ELLES ─────────────────────────────
+ *
+ *   1. `accountEnvelope` — ce que `envelopeFor` a rendu depuis le compte de la
+ *      personne: sa série de pesées, son plancher TCA, et son objectif quand il
+ *      s'applique. **Elle gagne toujours**, y compris quand elle est dégradée:
+ *      une enveloppe `per_portion` est la DÉCISION du plancher, pas une
+ *      absence, et retomber sur la fiche derrière elle contournerait le
+ *      plancher par la porte de service.
+ *
+ *   2. `lineBody` — le corps que le compte maître a saisi sur la fiche. Il
+ *      n'achète qu'une **MAINTENANCE**, jamais un objectif: sans série de
+ *      pesées il n'y a pas de plancher TCA derrière, donc rien qui puisse
+ *      arrêter une restriction si on en exécutait une. Une maintenance ne peut
+ *      ni creuser un déficit ni poser un plafond de densité — elle ne peut que
+ *      faire descendre le tronc (protecteur) ou ouvrir un add-on (additif).
+ *
+ * ── UN MINEUR: MAINTENANCE PÉDIATRIQUE, TOUJOURS ─────────────────────────
+ * `goal: null` par construction reste vrai, et c'est structurel: aucun jeton
+ * d'objectif n'est passé à `childEnvelopeFromBody`, qui n'en accepte pas.
+ * `fat_loss` écrit sur la fiche d'un enfant est donc **inerte**, pas ignoré par
+ * une condition qu'on pourrait retirer.
+ *
+ * ── UN ÂGE INCONNU N'A PAS D'ENVELOPPE ───────────────────────────────────
+ * Ni adulte ni enfant: on ne sait pas quelle équation appliquer, et les deux
+ * donnent des résultats très différents sur le même poids. `null` = part
+ * standard, jamais réduite — la direction sûre du reste du domaine.
+ */
+export function mouthEnvelope(args: {
+  ageState: MemberAgeState;
+  /** ⚠️ REQUIS. `null` = cette bouche n'a pas de compte, ou rien à en tirer. */
+  accountEnvelope: Envelope | null;
+  /** ⚠️ REQUIS. `null` = le corps de la fiche n'est pas renseigné. */
+  lineBody: MouthBody | null;
+}): Envelope | null {
+  if (args.accountEnvelope !== null) return args.accountEnvelope;
+  if (args.lineBody === null) return null;
+  if (args.ageState === "minor") return childEnvelopeFromBody(args.lineBody);
+  if (args.ageState === "adult") return maintenanceEnvelopeFromBody(args.lineBody);
+  return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -128,10 +197,10 @@ export interface TrunkSizing {
    * se compose comme aujourd'hui, structure seulement.
    */
   energy: { low: number; high: number } | null;
-  /** Combien d'adultes ont pesé dans le MIN. Pour la mesure, jamais affiché. */
-  adultsCounted: number;
+  /** Combien de BOUCHES ont pesé dans le MIN. Pour la mesure, jamais affiché. */
+  mouthsCounted: number;
   /** Combien comptent pour « portion standard ». */
-  adultsStandard: number;
+  mouthsStandard: number;
 }
 
 /**
@@ -152,13 +221,25 @@ export interface TrunkSizing {
  * Pas une dégradation: Gorin 2018 — composer le foyer autour d'une structure
  * saine bénéficie à tous sans cible. Et c'est l'état de la majorité des
  * foyers.
+ *
+ * ── ⚠️ LE MIN PORTE SUR TOUTES LES BOUCHES DEPUIS LE 2026-08-12 ─────────
+ * Il ne portait que sur les ADULTES, et c'était le trou: un mineur n'avait ni
+ * enveloppe ni delta, donc il mangeait le tronc — c'est-à-dire, dans un foyer
+ * d'une mère en `fat_loss` et de deux enfants, **le déficit de sa mère**. Le
+ * MIN sur toutes les bouches garantit que le tronc ne dépasse le besoin de
+ * personne, et l'add-on rend à chacun ce qui lui manque.
+ *
+ * Conséquence à connaître: un tout-petit à table TIRE LE TRONC VERS LE BAS, et
+ * les adultes récupèrent l'écart en add-on. C'est l'arithmétique voulue (« on
+ * ajoute, on ne retire jamais »), mais elle rend la casserole commune plus
+ * petite à mesure que la plus petite bouche est petite. Instrumenté par
+ * `residualGaps`; voir FF-043 §11.
  */
 export function trunkSizing(members: readonly HouseholdMember[]): TrunkSizing {
-  const adults = members.filter((m) => m.ageState === "adult");
   let low: number | null = null;
   let high: number | null = null;
   let counted = 0;
-  for (const m of adults) {
+  for (const m of members) {
     // Un mode `per_portion` ne devrait pas arriver ici — le verrou de lane a
     // déjà tout dégradé — mais on ne s'en remet pas à l'ordre des appels: une
     // garde qui dépend d'un appelant est une garde qu'un appelant oublie.
@@ -169,8 +250,8 @@ export function trunkSizing(members: readonly HouseholdMember[]): TrunkSizing {
   }
   return {
     energy: low !== null && high !== null ? { low, high } : null,
-    adultsCounted: counted,
-    adultsStandard: adults.length - counted,
+    mouthsCounted: counted,
+    mouthsStandard: members.length - counted,
   };
 }
 
@@ -358,7 +439,7 @@ export function resolveHousehold(args: {
         args.declaredReferenceMemberId,
         args.composerMemberId,
       ),
-      trunk: { energy: null, adultsCounted: 0, adultsStandard: 0 },
+      trunk: { energy: null, mouthsCounted: 0, mouthsStandard: 0 },
       deltas: [],
       residualGaps: [],
       familyService,
@@ -372,9 +453,15 @@ export function resolveHousehold(args: {
 
   if (trunk.energy !== null) {
     for (const m of args.members) {
-      // ── UN MINEUR N'A NI ENVELOPPE NI DELTA DÉRIVÉ D'UN OBJECTIF ───────
-      // `goal: null` par construction. On ne lit rien, on ne dérive rien.
-      if (m.ageState !== "adult") continue;
+      // ── LA LIGNE QUI A DISPARU LE 2026-08-12, ET CE QU'ELLE COÛTAIT ────
+      // Il y avait ici `if (m.ageState !== "adult") continue;`. Un mineur
+      // n'avait donc NI enveloppe NI delta: il mangeait le tronc, c'est-à-dire
+      // — dans le foyer d'une mère en `fat_loss` — le déficit de sa mère, sans
+      // rien en plus. La garde qu'elle croyait tenir (« aucun delta dérivé d'un
+      // objectif ») est tenue AILLEURS et mieux: `mouthEnvelope` ne passe aucun
+      // jeton d'objectif à l'équation pédiatrique, qui n'en accepte pas. Le
+      // delta d'un enfant se dimensionne sur sa MAINTENANCE, jamais sur une
+      // direction.
       if (m.envelope?.mode !== "per_kg" || !m.envelope.energy) continue;
       // Ce qui manque à CE membre par rapport au tronc, en bas de bande: le
       // tronc est le MIN, donc l'écart est toujours ≥ 0. On n'ôte jamais.
@@ -412,10 +499,13 @@ export function resolveHousehold(args: {
     }
   }
 
-  if (trunk.adultsStandard > 0) {
+  if (trunk.mouthsStandard > 0) {
     // Compté, pas silencieux: c'est la part du foyer qui reçoit « standard »
     // faute d'enveloppe, et elle explique un tronc plus généreux qu'attendu.
-    issues.push(`household_adults_without_envelope:${trunk.adultsStandard}`);
+    // Renommé d'`household_adults_without_envelope` le 2026-08-12: il comptait
+    // des adultes quand le MIN ne portait que sur eux, et il compterait des
+    // gens en croyant compter des adultes depuis que toute bouche pèse.
+    issues.push(`household_mouths_without_envelope:${trunk.mouthsStandard}`);
   }
 
   return {
@@ -468,16 +558,30 @@ export function trunkSentinelGaps(
   return [...missingAtTrunk];
 }
 
-/** Un membre, tel que la lane foyer le fournit à la résolution. */
+/**
+ * Un membre, tel que la lane foyer le fournit à la résolution.
+ *
+ * ⚠️ `lineBody` EST REQUIS ET POSITIONNEL, jamais optionnel. C'est le seul
+ * mécanisme qui recense les appelants: le jour où ce lot est livré, une
+ * fonction edge qui ne passe pas le corps de la fiche ne compile pas, au lieu
+ * de continuer à composer des enfants sans enveloppe pendant six mois. « Un
+ * paramètre de garde optionnel est une garde désarmée » est une cicatrice de ce
+ * dépôt, et c'est exactement ce fichier-ci qui l'a payée.
+ */
 export function toHouseholdMember(
   member: PortionMember,
-  envelope: Envelope | null,
+  accountEnvelope: Envelope | null,
+  lineBody: MouthBody | null,
 ): HouseholdMember {
   return {
     memberId: member.memberId,
     displayName: member.displayName,
     ageState: member.ageState,
     goal: member.goal,
-    envelope,
+    envelope: mouthEnvelope({
+      ageState: member.ageState,
+      accountEnvelope,
+      lineBody,
+    }),
   };
 }

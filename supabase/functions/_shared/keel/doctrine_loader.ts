@@ -194,6 +194,37 @@ export type DoctrineDb = {
 };
 
 /**
+ * LA BORNE D'UNE EXCLUSION, quand le coach en a posé une.
+ *
+ * Rend `""` pour une exclusion absolue — le cas de loin le plus courant, et
+ * celui où le bloc ne doit rien gagner: `- Lentilles` doit rester `- Lentilles`,
+ * octet pour octet, pour tous les coachs qui n'ont pas touché aux gabarits.
+ *
+ * Elle est rédigée en anglais, comme TOUT l'échafaudage de
+ * `compileDoctrineBlock` (« also: », « Never suggest these to the student »):
+ * c'est une consigne au modèle, pas une phrase montrée à l'élève. Le contenu du
+ * coach, lui, reste dans sa langue.
+ *
+ * R7 par omission volontaire: un gabarit connu dont la colonne obligatoire
+ * manque rend `""` plutôt qu'une borne à moitié écrite. Le CHECK
+ * `coach_food_items_slots_match_frequency` garantit l'appariement à l'écriture;
+ * si une ligne y échappait, une exclusion ABSOLUE est la lecture prudente — on
+ * ne relâche jamais une exclusion sur une donnée qu'on n'a pas su lire.
+ */
+function exclusionBound(row: Record<string, unknown>): string {
+  const template = String(row.frequency_template ?? "").trim();
+  if (template === "not_after") {
+    const cutoff = String(row.cutoff_local ?? "").trim().slice(0, 5);
+    return cutoff ? `not after ${cutoff}, fine before that` : "";
+  }
+  if (template === "at_slot") {
+    const slot = String(row.slot_key ?? "").trim();
+    return slot ? `at the ${slot.replaceAll("_", " ")} slot only` : "";
+  }
+  return "";
+}
+
+/**
  * Résout le coach VIVANT de cet élève, puis sa doctrine publiée.
  *
  * Deux lectures et pas une jointure: `coach_clients` porte l'index unique
@@ -396,16 +427,48 @@ export async function loadPublishedDoctrine(
   // écartés partent avec le reste. Lire les siens ici produirait un hybride que
   // personne n'a écrit: la méthode de la maison, plus les exclusions d'un coach
   // dont l'agent ne prononce même plus le nom.
-  let excludedFoods: Array<{ term: string }> = [];
+  //
+  // ── LE GABARIT VOYAGE AVEC L'ALIMENT, ET IL NE LE FAISAIT PAS ────────────
+  //
+  // Ce `select` ne prenait que `label`. `coach_food_items` porte pourtant un
+  // `frequency_template` sous CHECK (`..._slots_match_frequency`), dont deux
+  // valeurs BORNENT l'exclusion au lieu de la rendre absolue: `not_after`
+  // (avec `cutoff_local`) et `at_slot` (avec `slot_key`).
+  //
+  // MESURÉ LE 2026-08-13, run `doctrine5`: un coach dont TOUT le parti pris est
+  // une heure (« matin chargé, soir minimal ») avait posé « Viande rouge au
+  // dîner », `not_after 19:00`. Le bloc servi à son élève disait:
+  //     -- FOODS THIS COACH DOES NOT PUT ON A PLATE --
+  //     Never suggest these to the student.
+  //     - Viande rouge au dîner
+  // Le coach a écrit « pas après 19h »; l'agent lisait « jamais ». Sur cette
+  // doctrine-là, c'est la doctrine elle-même qui sortait déformée.
+  //
+  // ⚠️ LA BORNE VA DANS `reason`, JAMAIS DANS `term`. `term` est ce que le
+  // VERROU DÉTERMINISTE de sortie matche dans la prose générée
+  // (`forbidden_matcher.ts`); y coller « (pas après 19:00) » changerait la
+  // chaîne cherchée et désarmerait le verrou sur l'aliment lui-même.
+  // `compileDoctrineBlock` rend `- ${term} — ${reason}`: la borne arrive donc
+  // dans le prompt, à côté de l'aliment, sans toucher à ce qui est matché.
+  //
+  // ⚠️ LE `why` DU COACH N'EST PAS ÉCRASÉ: quand il en a écrit un, les deux se
+  // suivent. Perdre sa phrase pour poser une heure serait échanger un défaut
+  // contre un autre.
+  let excludedFoods: Array<{ term: string; reason: string | null }> = [];
   try {
     const { data, error } = await client
       .from("coach_food_items")
-      .select("label")
+      .select("label, why, frequency_template, cutoff_local, slot_key")
       .eq("coach_id", owner.doctrineCoachId)
       .eq("stance", "excluded");
     if (error) throw error;
     excludedFoods = ((data ?? []) as Array<Record<string, unknown>>)
-      .map((r) => ({ term: String(r.label ?? "").trim() }))
+      .map((r) => {
+        const bound = exclusionBound(r);
+        const why = String(r.why ?? "").trim();
+        const reason = [bound, why].filter(Boolean).join(" — ") || null;
+        return { term: String(r.label ?? "").trim(), reason };
+      })
       .filter((f) => f.term.length > 0);
   } catch (error) {
     console.warn("[keel/doctrine] excluded foods unreadable", error);

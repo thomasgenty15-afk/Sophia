@@ -35,6 +35,7 @@ import {
   type WeekAdherenceInput,
   type WeekAdherenceResult,
 } from "./adherence.ts";
+import { type LocalePackKey, localePackKey } from "./locale.ts";
 
 // ---------------------------------------------------------------------------
 // AXIS 1 — CONTACT. How recently did this student say anything at all?
@@ -502,9 +503,9 @@ export function buildCoachSynthesis(
 // Rendering — a template, never a model
 // ---------------------------------------------------------------------------
 
-function nameOf(line: StudentSynthesisLine): string {
-  return line.displayName?.trim() || "A student";
-}
+// `nameOf` a disparu: son repli (« A student ») était un littéral anglais dans
+// une fonction sans locale. Il vit maintenant dans chaque pack, sous
+// `studentFallbackName`.
 
 /**
  * The order of the sections is imposed by the evidence, not by aesthetics
@@ -513,15 +514,219 @@ function nameOf(line: StudentSynthesisLine): string {
  * not (p>0.05). So coverage leads, adherence follows, and the students to catch
  * up come before any aggregate a coach cannot act on.
  */
+/**
+ * TOUT CE QUI PORTE LA LANGUE DE LA SYNTHÈSE, dans UN objet par locale.
+ *
+ * ── LE DÉFAUT QUE CE PACK FERME ────────────────────────────────────────────
+ * `renderSynthesisText` prenait `locale` et s'en servait pour UNE seule chose:
+ *
+ *     if (opts.locale !== "en") throw new Error(...)
+ *
+ * …pendant que son unique appelant de production
+ * (`coach_synthesis_io.ts:buildAndWriteCoachSynthesis`) lui passait
+ * `locale: "en"` EN DUR. La garde était donc inatteignable, le paramètre
+ * décoratif, et le corps de `/coach/weekly` anglais pour tout le monde — y
+ * compris quand la ligne `coach_syntheses.content_locale` écrite juste à côté
+ * disait `fr-FR`. Une ligne qui DÉCLARE une langue que son texte ne parle pas
+ * est pire qu'une ligne muette: le lecteur d'après lui fait confiance.
+ *
+ * ── CE QUE LA TRADUCTION N'A PAS LE DROIT DE FAIRE ────────────────────────
+ * Adoucir. Chaque phrase de ce module est un CONSTAT sur des gens réels, et
+ * l'en-tête du fichier dit pourquoi: un coach qui attrape un chiffre inventé
+ * cesse de croire tous les autres. Les chiffres traversent donc les packs sans
+ * être touchés, et les formulations françaises disent exactement la même chose
+ * que les anglaises — « nobody needs catching up » n'est pas une bonne
+ * nouvelle qu'on enjolive, c'est un fait.
+ */
+type SynthesisPack = {
+  emptyCohort: string;
+  studentFallbackName: string;
+  headcount: (n: number, responsive: number, slipping: number, silent: number) => string;
+  livabilityLine: (parts: string[]) => string;
+  livabilitySustainable: (n: number) => string;
+  livabilityStrained: (n: number) => string;
+  livabilityHard: (n: number) => string;
+  livabilityUnknown: string;
+  planned: (planned: number, total: number) => string;
+  adherence: (pct: number, withAdherence: number, total: number) => string;
+  noAdherenceNoPlan: (noPlan: number) => string;
+  noAdherenceBelowGate: (minDays: number) => string;
+  noAdherenceBoth: (
+    noPlan: number,
+    total: number,
+    belowGate: number,
+    minDays: number,
+  ) => string;
+  plates: (p: PortionBandSummary) => string;
+  nobodyToCatchUp: string;
+  toCatchUpHeading: string;
+  flagRestriction: string;
+  flagNeverReplied: string;
+  flagSilentDays: (days: number) => string;
+  flagCoverage: (loggedDays: number) => string;
+  flagWeekTooHardAxis: (hard: number, taps: number, axis: string) => string;
+  flagWeekTooHard: (hard: number, taps: number) => string;
+  flagNoEvaluablePlan: string;
+  flagOutcomeMismatch: string;
+  flagAdherenceAtRiskUnknown: string;
+  flagAdherenceAtRisk: (pct: number) => string;
+  flagSlippingUnknown: string;
+  flagSlippingDays: (days: number) => string;
+  flagDefault: string;
+};
+
+const SYNTHESIS_PACKS: Record<LocalePackKey, SynthesisPack> = {
+  en: {
+    emptyCohort: "No students in this cohort yet - nothing to report this week.",
+    studentFallbackName: "A student",
+    headcount: (n, responsive, slipping, silent) =>
+      `${n} student${n === 1 ? "" : "s"} this week: ` +
+      `${responsive} in touch, ${slipping} slipping, ${silent} silent.`,
+    livabilityLine: (parts) => `How the week felt: ${parts.join(", ")}.`,
+    livabilitySustainable: (n) => `${n} holding up`,
+    livabilityStrained: (n) => `${n} strained`,
+    livabilityHard: (n) => `${n} having a hard time`,
+    livabilityUnknown: "Nobody checked in enough this week to say how it felt.",
+    planned: (planned, total) =>
+      `${planned} of ${total} built themselves a week from your method.`,
+    adherence: (pct, withAdherence, total) =>
+      `Average adherence on core lines: ${pct}% ` +
+      `(${withAdherence} of ${total} logged enough for a number).`,
+    noAdherenceNoPlan: (noPlan) =>
+      "No adherence figure this week: no plan lines are published for " +
+      (noPlan === 1 ? "this student" : "these students") + " yet.",
+    noAdherenceBelowGate: (minDays) =>
+      `No adherence figure this week: nobody logged at least ${minDays} of 7 days.`,
+    noAdherenceBoth: (noPlan, total, belowGate, minDays) =>
+      `No adherence figure this week: ${noPlan} of ${total} ` +
+      `${noPlan === 1 ? "student has" : "students have"} no published plan ` +
+      `to log against, and ${belowGate} logged fewer than ${minDays} of 7 days.`,
+    plates: (p) =>
+      `${p.total} plate${p.total === 1 ? "" : "s"} seen: ` +
+      `${p.small} small, ${p.moderate} moderate, ${p.large} large` +
+      (p.unclear > 0 ? `, ${p.unclear} unclear` : "") + ".",
+    nobodyToCatchUp: "Nobody needs catching up. That is the whole report.",
+    toCatchUpHeading: "To catch up:",
+    flagRestriction:
+      "restrictive signals this week. I have paused adherence prompts for them - this one is yours to handle.",
+    flagNeverReplied: "has never replied since being added.",
+    flagSilentDays: (days) =>
+      `no message for ${days} day${days === 1 ? "" : "s"}.`,
+    flagCoverage: (loggedDays) =>
+      `only logged ${loggedDays} of 7 days - not enough to say how the week went.`,
+    flagWeekTooHardAxis: (hard, taps, axis) =>
+      `${hard} hard days out of ${taps} - it is ${axis} that keeps giving way.`,
+    flagWeekTooHard: (hard, taps) =>
+      `${hard} hard days out of ${taps} this week.`,
+    flagNoEvaluablePlan:
+      "is logging, but has no published plan lines to log against - publish their plan and this becomes measurable.",
+    flagOutcomeMismatch:
+      "following the plan, but the outcome is moving the wrong way.",
+    flagAdherenceAtRiskUnknown: "struggling on the core lines.",
+    flagAdherenceAtRisk: (pct) => `${pct}% on core lines.`,
+    flagSlippingUnknown: "has gone quiet.",
+    flagSlippingDays: (days) => `quiet for ${days} day${days === 1 ? "" : "s"}.`,
+    flagDefault: "needs a look.",
+  },
+  fr: {
+    emptyCohort:
+      "Aucun élève dans cette cohorte pour l'instant - rien à raconter cette semaine.",
+    studentFallbackName: "Un élève",
+    headcount: (n, responsive, slipping, silent) =>
+      `${n} élève${n === 1 ? "" : "s"} cette semaine : ` +
+      `${responsive} en contact, ${slipping} qui décroche${slipping === 1 ? "" : "nt"}, ` +
+      `${silent} silencieux.`,
+    livabilityLine: (parts) => `Comment la semaine a été vécue : ${parts.join(", ")}.`,
+    livabilitySustainable: (n) => `${n} tiennent le rythme`,
+    livabilityStrained: (n) => `${n} en tension`,
+    livabilityHard: (n) => `${n} en difficulté`,
+    livabilityUnknown:
+      "Personne ne s'est assez manifesté cette semaine pour dire comment elle a été vécue.",
+    planned: (planned, total) =>
+      `${planned} sur ${total} se sont construit une semaine à partir de ta méthode.`,
+    adherence: (pct, withAdherence, total) =>
+      `Adhérence moyenne sur les lignes essentielles : ${pct} % ` +
+      `(${withAdherence} sur ${total} ont noté assez pour qu'un chiffre existe).`,
+    noAdherenceNoPlan: (noPlan) =>
+      "Pas de chiffre d'adhérence cette semaine : aucune ligne de plan n'est publiée pour " +
+      (noPlan === 1 ? "cet élève" : "ces élèves") + " pour le moment.",
+    noAdherenceBelowGate: (minDays) =>
+      `Pas de chiffre d'adhérence cette semaine : personne n'a noté au moins ${minDays} jours sur 7.`,
+    noAdherenceBoth: (noPlan, total, belowGate, minDays) =>
+      `Pas de chiffre d'adhérence cette semaine : ${noPlan} sur ${total} ` +
+      `${noPlan === 1 ? "élève n'a" : "élèves n'ont"} aucune ligne de plan ` +
+      `publiée à suivre, et ${belowGate} ${belowGate === 1 ? "a noté" : "ont noté"} ` +
+      `moins de ${minDays} jours sur 7.`,
+    plates: (p) =>
+      `${p.total} assiette${p.total === 1 ? "" : "s"} vue${p.total === 1 ? "" : "s"} : ` +
+      `${p.small} petite${p.small === 1 ? "" : "s"}, ${p.moderate} moyenne${
+        p.moderate === 1 ? "" : "s"
+      }, ${p.large} grande${p.large === 1 ? "" : "s"}` +
+      (p.unclear > 0 ? `, ${p.unclear} indéterminée${p.unclear === 1 ? "" : "s"}` : "") +
+      ".",
+    nobodyToCatchUp: "Personne à rattraper. C'est tout le rapport.",
+    toCatchUpHeading: "À rattraper :",
+    flagRestriction:
+      "signaux restrictifs cette semaine. J'ai suspendu les relances d'adhérence pour cette personne - celle-ci est à toi.",
+    flagNeverReplied: "n'a jamais répondu depuis son ajout.",
+    flagSilentDays: (days) => `aucun message depuis ${days} jour${days === 1 ? "" : "s"}.`,
+    flagCoverage: (loggedDays) =>
+      `n'a noté que ${loggedDays} jours sur 7 - pas assez pour dire comment la semaine s'est passée.`,
+    flagWeekTooHardAxis: (hard, taps, axis) =>
+      `${hard} journées dures sur ${taps} - c'est ${axis} qui lâche à chaque fois.`,
+    flagWeekTooHard: (hard, taps) =>
+      `${hard} journées dures sur ${taps} cette semaine.`,
+    flagNoEvaluablePlan:
+      "note ses journées, mais n'a aucune ligne de plan publiée à suivre - publie son plan et ça devient mesurable.",
+    flagOutcomeMismatch:
+      "suit le plan, mais le résultat va dans le mauvais sens.",
+    flagAdherenceAtRiskUnknown: "en difficulté sur les lignes essentielles.",
+    flagAdherenceAtRisk: (pct) => `${pct} % sur les lignes essentielles.`,
+    flagSlippingUnknown: "n'a plus rien dit.",
+    flagSlippingDays: (days) => `silencieux depuis ${days} jour${days === 1 ? "" : "s"}.`,
+    flagDefault: "mérite un coup d'œil.",
+  },
+};
+
+/** R7 par délégation: `localePackKey` jette pour une langue non livrée. */
+function synthesisPackFor(locale: string): SynthesisPack {
+  return SYNTHESIS_PACKS[localePackKey(locale)];
+}
+
+/**
+ * ── L'AXE DU POULS, TRADUIT ICI ET NULLE PART AILLEURS ────────────────────
+ * `livability.dominantAxis` arrive en JETON (`energy` / `hunger` / `sleep`),
+ * et il s'insère au milieu d'une phrase. Il ne peut donc pas rester tel quel
+ * dans un texte français — « c'est hunger qui lâche » — ni être traduit par un
+ * `replace` improvisé. La table est FERMÉE, et un jeton inconnu est rendu tel
+ * quel plutôt que de faire tomber la synthèse entière d'un coach.
+ */
+const LIVABILITY_AXIS_LABELS: Record<LocalePackKey, Record<string, string>> = {
+  en: { energy: "energy", hunger: "hunger", sleep: "sleep" },
+  fr: { energy: "l'énergie", hunger: "la faim", sleep: "le sommeil" },
+};
+
+function axisLabel(axis: string, locale: string): string {
+  return LIVABILITY_AXIS_LABELS[localePackKey(locale)][axis] ?? axis;
+}
+
+/**
+ * The order of the sections is imposed by the evidence, not by aesthetics
+ * (docs/keel/PHOTO_QUANTIFICATION.md §5, Peterson 2014, n=220): logging
+ * FREQUENCY predicts outcome strongly (p<0.0001) while log COMPLETENESS does
+ * not (p>0.05). So coverage leads, adherence follows, and the students to catch
+ * up come before any aggregate a coach cannot act on.
+ *
+ * `locale` reste REQUIS — il l'était déjà. Ce qui change, c'est qu'il SERT.
+ */
 export function renderSynthesisText(
   synthesis: CoachSynthesis,
   opts: { coachName?: string | null; locale: string },
 ): string {
-  if (opts.locale !== "en") {
-    // R7: an unsupported render locale fails loudly rather than silently
-    // shipping English to a French coach as if it were a choice.
-    throw new Error(`R7: unsupported synthesis locale "${opts.locale}"`);
-  }
+  // R7: une langue non livrée jette encore, au même endroit du flux. Ce n'est
+  // plus `locale !== "en"` mais `localePackKey`, pour qu'il n'existe qu'UN
+  // refus dans le dépôt.
+  const pack = synthesisPackFor(opts.locale);
   const m = synthesis.metrics;
   const out: string[] = [];
 
@@ -531,14 +736,9 @@ export function renderSynthesisText(
   // muette. Un coach sans élève lirait donc un constat d'échec sur des gens
   // qui n'existent pas. Le job ne persiste plus cette synthèse (voir
   // `buildAndWriteCoachSynthesis`), et le rendu ne la fabrique plus non plus.
-  if (m.studentCount === 0) {
-    return "No students in this cohort yet - nothing to report this week.";
-  }
+  if (m.studentCount === 0) return pack.emptyCohort;
 
-  out.push(
-    `${m.studentCount} student${m.studentCount === 1 ? "" : "s"} this week: ` +
-      `${m.responsive} in touch, ${m.slipping} slipping, ${m.silent} silent.`,
-  );
+  out.push(pack.headcount(m.studentCount, m.responsive, m.slipping, m.silent));
 
   // PIVOT N4 — LA VIVABILITÉ EN DEUXIÈME, JUSTE APRÈS LE CONTACT.
   //
@@ -550,12 +750,12 @@ export function renderSynthesisText(
   const rated = liv.sustainable + liv.strained + liv.hard;
   if (rated > 0) {
     const parts: string[] = [];
-    if (liv.sustainable > 0) parts.push(`${liv.sustainable} holding up`);
-    if (liv.strained > 0) parts.push(`${liv.strained} strained`);
-    if (liv.hard > 0) parts.push(`${liv.hard} having a hard time`);
-    out.push(`How the week felt: ${parts.join(", ")}.`);
+    if (liv.sustainable > 0) parts.push(pack.livabilitySustainable(liv.sustainable));
+    if (liv.strained > 0) parts.push(pack.livabilityStrained(liv.strained));
+    if (liv.hard > 0) parts.push(pack.livabilityHard(liv.hard));
+    out.push(pack.livabilityLine(parts));
   } else {
-    out.push("Nobody checked in enough this week to say how it felt.");
+    out.push(pack.livabilityUnknown);
   }
 
   if (m.planned > 0) {
@@ -563,15 +763,12 @@ export function renderSynthesisText(
     // doit rester vraie pour les DEUX sources qui l'alimentent — une semaine de
     // méthode adoptée, et des repas composés. « A plan » désignait la première
     // seule, celle que plus personne n'a.
-    out.push(
-      `${m.planned} of ${m.studentCount} built themselves a week from your method.`,
-    );
+    out.push(pack.planned(m.planned, m.studentCount));
   }
 
   if (m.meanCoreAdherencePct !== null) {
     out.push(
-      `Average adherence on core lines: ${m.meanCoreAdherencePct}% ` +
-        `(${m.withAdherence} of ${m.studentCount} logged enough for a number).`,
+      pack.adherence(m.meanCoreAdherencePct, m.withAdherence, m.studentCount),
     );
   } else {
     // The gate, stated rather than filled with a fake average — AND stated
@@ -595,21 +792,17 @@ export function renderSynthesisText(
       (l) => l.adherence.kind === "insufficient_data",
     ).length;
     if (belowGate === 0) {
-      out.push(
-        "No adherence figure this week: no plan lines are published for " +
-          (noPlan === 1 ? "this student" : "these students") + " yet.",
-      );
+      out.push(pack.noAdherenceNoPlan(noPlan));
     } else if (noPlan === 0) {
-      out.push(
-        `No adherence figure this week: nobody logged at least ` +
-          `${LOGGING_COVERAGE_MIN_DAYS} of 7 days.`,
-      );
+      out.push(pack.noAdherenceBelowGate(LOGGING_COVERAGE_MIN_DAYS));
     } else {
       out.push(
-        `No adherence figure this week: ${noPlan} of ${m.studentCount} ` +
-          `${noPlan === 1 ? "student has" : "students have"} no published plan ` +
-          `to log against, and ${belowGate} logged fewer than ` +
-          `${LOGGING_COVERAGE_MIN_DAYS} of 7 days.`,
+        pack.noAdherenceBoth(
+          noPlan,
+          m.studentCount,
+          belowGate,
+          LOGGING_COVERAGE_MIN_DAYS,
+        ),
       );
     }
   }
@@ -619,23 +812,21 @@ export function renderSynthesisText(
   // Emitted only when plates were actually seen -- "0 plates: 0 small" is
   // noise dressed as data.
   const p = m.portions;
-  if (p.total > 0) {
-    out.push(
-      `${p.total} plate${p.total === 1 ? "" : "s"} seen: ` +
-        `${p.small} small, ${p.moderate} moderate, ${p.large} large` +
-        (p.unclear > 0 ? `, ${p.unclear} unclear` : "") + ".",
-    );
-  }
+  if (p.total > 0) out.push(pack.plates(p));
 
   if (synthesis.flagged.length === 0) {
-    out.push("Nobody needs catching up. That is the whole report.");
+    out.push(pack.nobodyToCatchUp);
     return out.join("\n");
   }
 
   out.push("");
-  out.push("To catch up:");
+  out.push(pack.toCatchUpHeading);
   for (const line of synthesis.flagged) {
-    out.push(`- ${nameOf(line)}: ${describeFlag(line)}`);
+    out.push(
+      `- ${line.displayName?.trim() || pack.studentFallbackName}: ${
+        describeFlag(line, opts.locale)
+      }`,
+    );
   }
   return out.join("\n");
 }
@@ -643,8 +834,16 @@ export function renderSynthesisText(
 /**
  * One sentence per flagged student, grounded in the computed value. Every
  * branch names WHAT was observed, never a diagnosis of the person.
+ *
+ * `locale` REQUIS: cette fonction est exportée, et une phrase de rattrapage
+ * anglaise au milieu d'une synthèse française serait exactement la sortie
+ * « à moitié traduite » que R7 existe pour interdire.
  */
-export function describeFlag(line: StudentSynthesisLine): string {
+export function describeFlag(
+  line: StudentSynthesisLine,
+  locale: string,
+): string {
+  const pack = synthesisPackFor(locale);
   const days = line.hoursSinceContact === null
     ? null
     : Math.floor(line.hoursSinceContact / 24);
@@ -652,39 +851,37 @@ export function describeFlag(line: StudentSynthesisLine): string {
     case "restriction_signal":
       // Deliberately carries NO adherence figure and NO nudge suggestion: the
       // product rule is that adherence pressure STOPS here (§3.4 garde-fou TCA).
-      return "restrictive signals this week. I have paused adherence prompts for them - this one is yours to handle.";
+      return pack.flagRestriction;
     case "silent_5d":
-      return days === null
-        ? "has never replied since being added."
-        : `no message for ${days} day${days === 1 ? "" : "s"}.`;
-    case "coverage_below_gate": {
-      const cov = line.adherence.loggingCoverage;
-      return `only logged ${cov.loggedDays} of 7 days - not enough to say how the week went.`;
-    }
+      return days === null ? pack.flagNeverReplied : pack.flagSilentDays(days);
+    case "coverage_below_gate":
+      return pack.flagCoverage(line.adherence.loggingCoverage.loggedDays);
     case "week_too_hard":
       // Nommé côté COACH: l'action est d'alléger, et elle est la sienne.
       return line.livability.dominantAxis
-        ? `${line.livability.hard} hard days out of ${line.livability.taps} - it is ${line.livability.dominantAxis} that keeps giving way.`
-        : `${line.livability.hard} hard days out of ${line.livability.taps} this week.`;
+        ? pack.flagWeekTooHardAxis(
+          line.livability.hard,
+          line.livability.taps,
+          axisLabel(line.livability.dominantAxis, locale),
+        )
+        : pack.flagWeekTooHard(line.livability.hard, line.livability.taps);
     case "no_evaluable_plan":
       // Nommé côté COACH, parce que l'action est la sienne.
-      return "is logging, but has no published plan lines to log against - publish their plan and this becomes measurable.";
+      return pack.flagNoEvaluablePlan;
     case "outcome_mismatch":
-      return "following the plan, but the outcome is moving the wrong way.";
+      return pack.flagOutcomeMismatch;
     case "adherence_at_risk": {
       const pct = line.adherence.kind === "adherence"
         ? (line.adherence.corePct ?? line.adherence.overallPct)
         : null;
       return pct === null
-        ? "struggling on the core lines."
-        : `${pct}% on core lines.`;
+        ? pack.flagAdherenceAtRiskUnknown
+        : pack.flagAdherenceAtRisk(pct);
     }
     case "slipping_contact":
-      return days === null
-        ? "has gone quiet."
-        : `quiet for ${days} day${days === 1 ? "" : "s"}.`;
+      return days === null ? pack.flagSlippingUnknown : pack.flagSlippingDays(days);
     default:
-      return "needs a look.";
+      return pack.flagDefault;
   }
 }
 

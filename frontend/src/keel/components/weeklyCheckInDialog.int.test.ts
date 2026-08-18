@@ -22,7 +22,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import { WeeklyCheckInDialog } from "./WeeklyCheckInDialog";
-import { WEEKLY_AXES, WEEKLY_AXIS_LABELS } from "../api/weeklyCheckIn";
+import { WEEKLY_AXES } from "../api/weeklyCheckIn";
 import { en as EN } from "../i18n/en";
 
 function render(showAxes: boolean | null): string {
@@ -54,7 +54,7 @@ describe("R4 — les six axes ne se rendent que là où quelqu'un les lit", () =
     // AUCUN des six libellés, et aucun cran de l'échelle.
     for (const axis of WEEKLY_AXES) {
       expect(html, `axe rendu sans lecteur: ${axis}`).not.toContain(
-        WEEKLY_AXIS_LABELS[axis],
+        EN[`chat.weekly.axis.${axis}` as keyof typeof EN],
       );
     }
     expect(html).not.toContain("aria-pressed");
@@ -76,7 +76,9 @@ describe("R4 — les six axes ne se rendent que là où quelqu'un les lit", () =
     const html = render(true);
     expect(html).toContain('data-axes="on"');
     for (const axis of WEEKLY_AXES) {
-      expect(html, `axe manquant: ${axis}`).toContain(WEEKLY_AXIS_LABELS[axis]);
+      expect(html, `axe manquant: ${axis}`).toContain(
+        EN[`chat.weekly.axis.${axis}` as keyof typeof EN],
+      );
     }
     expect(html).toContain("aria-pressed");
     expect(html).toContain(EN["chat.weekly.subtitle"]);

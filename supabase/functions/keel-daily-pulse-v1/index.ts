@@ -271,12 +271,22 @@ Deno.serve(async (req) => {
           // demanderait d'élargir `DayFacts`, dont le test appartient à un autre
           // chantier cette nuit. Le coût est borné aux élèves de la fenêtre
           // 20h-22h, et le noter ici vaut mieux qu'une optimisation non relue.
-          const stripLanguage = isFrenchLocale(
-              resolveArtifactLocale({
-                studentProfile: String(row.locale ?? "").trim() || null,
-                tenantDefault: null,
-              }),
-            )
+          // ── LA LANGUE DU SOIR, RÉSOLUE UNE FOIS ET DESCENDUE ──────────────
+          //
+          // Elle était résolue TROIS fois dans cette boucle — une par
+          // consommateur — et le troisième consommateur, la question elle-même,
+          // n'existait pas: `renderPulseMessage` n'avait pas de locale et
+          // écrivait « How was today? » sous un fait français. Une résolution
+          // unique par élève est ce qui empêche un quatrième consommateur de
+          // repartir sur son propre défaut (R3: on résout au propriétaire du
+          // tour, on passe le résultat).
+          const artifactLocale = resolveArtifactLocale({
+            studentProfile: String(row.locale ?? "").trim() || null,
+            tenantDefault: null,
+          });
+          // `buildEveningStrip` prend un `StripLanguage` fermé, pas un tag
+          // BCP-47: on traverse par `isFrenchLocale`, LE prédicat unique du gel.
+          const stripLanguage = isFrenchLocale(artifactLocale)
             ? "fr" as const
             : "en" as const;
           // ── LE PLANCHER TCA DURABLE — LE MÊME LITTÉRAL, ET LE MÊME AVEU ──
@@ -405,10 +415,7 @@ Deno.serve(async (req) => {
               facts,
               // R2/R3 — un message de job est un ARTEFACT: aucun fil à ancrer,
               // donc `resolveArtifactLocale` et pas `resolveResponseLocale`.
-              contentLocale: resolveArtifactLocale({
-                studentProfile: String(row.locale ?? "").trim() || null,
-                tenantDefault: null,
-              }),
+              contentLocale: artifactLocale,
               // FF-001 — LA PRATIQUE ENTRE DANS L'APPEL QUI A DÉJÀ LIEU.
               // `pulseAsks` vient de la décision prise trois lignes plus haut:
               // c'est ELLE qui fait l'alternance (R3), et pas une seconde
@@ -432,6 +439,7 @@ Deno.serve(async (req) => {
               recapBody: recap.body,
               ask: decision.ask,
               strip,
+              locale: artifactLocale,
             });
             // FF-058 §10 / R6 — LA MESURE DU SAPIN DE NOËL, dans le journal du
             // job. Longueur du message et nombre d'éléments interactifs sont les

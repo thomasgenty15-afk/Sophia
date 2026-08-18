@@ -37,6 +37,11 @@ import {
   type WeekFactInput,
   type WeekReviewReading,
 } from "./week_review.ts";
+import {
+  type ActivitySessionInput,
+  parseActivityIntensity,
+  parseActivitySessionKind,
+} from "./activity_session.ts";
 import { insertBodyMeasures } from "./body_measure_io.ts";
 import { doctrineBlockFor, loadPublishedDoctrine } from "./doctrine_loader.ts";
 import { loadPublishedProtocol } from "./protocol_loader.ts";
@@ -134,6 +139,32 @@ function foodGroupsOfRow(row: Record<string, unknown>): string[] {
 export interface WeekFactsLoad {
   facts: WeekFactInput[];
   pulses: Array<{ overall: string; axis: string | null }>;
+  /**
+   * ⚠️ CE CHEMIN EST CONDAMNÉ AVEC SON HÔTE (marqué le 2026-08-18, lot L2b).
+   *
+   * `docs/keel/RETRAIT-POINT-DU-DIMANCHE.md` §3.c, décision produit du
+   * 2026-08-10: « le bilan hebdo part aussi ». Le module entier partira avec le
+   * chantier de retrait, pas à la pièce — **ne retire rien ici**, et surtout pas
+   * les deux gardes que L2 y a posées (`COUNTABLE` étendu à
+   * `sessions|workouts|minutes`, et la ceinture `reason: "energy_number"`
+   * adossée à `findNumericNutritionTarget`): elles sont bonnes et testées.
+   *
+   * **Le consommateur VIVANT du log de séance est `/app/progress`**
+   * (`frontend/src/keel/api/activitySessions.ts` +
+   * `components/ActivitySessionsCard.tsx`). Celui-ci ne l'est plus: son unique
+   * déclencheur, le cron `keel-weekly-flow`, comptait 270 exécutions et 270
+   * échecs, et il est désactivé en local depuis le 2026-08-18.
+   *
+   * ── LE RESTE DU CONTRAT, TANT QUE CE CHAMP EXISTE ─────────────────────────
+   * Les séances loguées de la semaine, ou `null` QUAND ON N'A PAS SU LIRE.
+   *
+   * `[]` et `null` ne disent pas la même chose et ne doivent jamais être
+   * confondus: `[]` veut dire « lu, aucune séance » (le bilan n'en dit rien),
+   * `null` veut dire « pas lu » (le bilan n'en dit rien non plus, mais le gel
+   * ne porte alors AUCUN compte, donc rien plus tard ne pourra affirmer que
+   * cette semaine-là n'a pas bougé).
+   */
+  activity: ActivitySessionInput[] | null;
 }
 
 /**
@@ -151,7 +182,9 @@ export async function loadWeekFacts(
   args: { userId: string; weekStart: string; weekEnd: string },
 ): Promise<WeekFactsLoad> {
   const userId = String(args.userId ?? "").trim();
-  const empty: WeekFactsLoad = { facts: [], pulses: [] };
+  // Sans élève on ne LIT rien — donc `activity: null` (« pas lu »), et surtout
+  // pas `[]`, qui affirmerait une semaine sans séance.
+  const empty: WeekFactsLoad = { facts: [], pulses: [], activity: null };
   if (!userId) return empty;
 
   let facts: WeekFactInput[] = [];
@@ -200,7 +233,39 @@ export async function loadWeekFacts(
     console.warn("[keel/week_review] pulses unreadable", error);
   }
 
-  return { facts, pulses };
+  // ── LES SÉANCES LOGUÉES ───────────────────────────────────────────────────
+  //
+  // ⚠️ `.eq("user_id", userId)` EST OBLIGATOIRE ET N'EST PAS REDONDANT AVEC
+  // RLS. Ce chargeur tourne en `service_role` dans le cron du dimanche, où RLS
+  // ne s'applique PAS: sans ce filtre, la requête rendrait les séances de
+  // toute la base et le bilan d'un élève compterait celles des autres. Le
+  // dépôt a exactement cette cicatrice (« RLS ne remplace pas un
+  // .eq(user_id) », la ligne d'un élève rendue à un coach).
+  //
+  // UNE PANNE DÉGRADE, ELLE NE RENONCE PAS — même arbitrage que les taps juste
+  // au-dessus: les séances sont un AXE du bilan, pas son socle. Mais elles
+  // dégradent vers `null` (« je ne sais pas »), jamais vers `[]`, qui ferait
+  // geler « aucune séance » sur une panne Postgres.
+  let activity: ActivitySessionInput[] | null = null;
+  try {
+    const { data, error } = await db
+      .from("student_activity_sessions")
+      .select("local_date, kind, duration_min, intensity")
+      .eq("user_id", userId)
+      .gte("local_date", args.weekStart)
+      .lte("local_date", args.weekEnd);
+    if (error) throw error;
+    activity = ((data ?? []) as Array<Record<string, unknown>>).map((row) => ({
+      localDate: String(row.local_date ?? ""),
+      kind: parseActivitySessionKind(row.kind),
+      durationMin: row.duration_min == null ? null : Number(row.duration_min),
+      intensity: parseActivityIntensity(row.intensity),
+    }));
+  } catch (error) {
+    console.warn("[keel/week_review] activity sessions unreadable", error);
+  }
+
+  return { facts, pulses, activity };
 }
 
 // ---------------------------------------------------------------------------
@@ -715,6 +780,9 @@ export async function computeAndStoreWeekReview(
     weekDates,
     facts: load.facts,
     pulses: load.pulses,
+    // `null` traverse tel quel: le gel ne portera alors aucun compte de
+    // séances, ce qui vaut mieux qu'un zéro qu'on n'a pas mesuré.
+    activity: load.activity,
     rules,
     goal,
     previouslyAskedGroup: previous?.reading.question?.group ?? null,

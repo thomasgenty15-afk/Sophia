@@ -69,7 +69,12 @@ describe("allergen catalog mirror", () => {
     const slugs = ALLERGEN_OPTIONS.map((o) => o.slug);
     expect(new Set(slugs).size).toBe(slugs.length);
     for (const option of ALLERGEN_OPTIONS) {
-      expect(option.label.trim()).not.toBe("");
+      // ⚠️ ON PASSE PAR `allergenLabel` ET NON PAR `option.label`, QUI N'EXISTE
+      // PLUS. La table portait ses phrases en dur — donc figées à la langue du
+      // bundle — et porte maintenant des clés. Lire `t(option.labelKey)` ici
+      // testerait la même chose, mais par un chemin qu'aucun écran n'emprunte;
+      // `allergenLabel` est celui que les trois écrans appellent.
+      expect(allergenLabel(option.slug).trim()).not.toBe("");
     }
   });
 });

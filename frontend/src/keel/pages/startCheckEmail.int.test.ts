@@ -28,7 +28,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { CheckEmailScreen } from "./StartPage";
 import { en } from "../i18n/en";
-import { fr } from "../i18n/fr.public";
+import { fr } from "../i18n/fr";
 import { setChosenUiLocaleForTest } from "../i18n/runtime";
 
 /** `uiLocale()` lit le chemin courant: la langue d'une page dépend de la page. */

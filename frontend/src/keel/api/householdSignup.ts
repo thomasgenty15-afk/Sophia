@@ -20,7 +20,6 @@
 // compte ordinaire qui se heurtera ensuite à `country_required` au moment de
 // réclamer. Les deux gardes se rattrapent l'une l'autre; ce test les nomme.
 
-import { PRODUCT_LOCALE } from "./freeSignup";
 import { type MessageKey } from "../i18n/t";
 
 /**
@@ -36,6 +35,8 @@ export interface HouseholdSignupMetadataInput {
   /** ISO 3166-1 alpha-2, DÉCLARÉ. Jamais dérivé de la langue. */
   country: string;
   timezone: string;
+  /** La langue CHOISIE. `signupProfileLocale()` la produit depuis le drapeau. */
+  locale: string;
 }
 
 /**
@@ -43,8 +44,9 @@ export interface HouseholdSignupMetadataInput {
  * lit. Chaque clé a un lecteur SQL, et aucune n'est décorative:
  *
  *   full_name          -> profiles.full_name
- *   locale             -> profiles.locale (sinon le DÉFAUT LEGACY 'fr-FR', qui
- *                         ferait parler français une surface anglaise)
+ *   locale             -> profiles.locale (sinon le DÉFAUT LEGACY 'fr-FR', que
+ *                         personne n'a choisi). C'est la LANGUE DU COMPTE, lue
+ *                         à chaque tour par le backend.
  *   timezone           -> profiles.timezone. NULL fait rendre `null` à
  *                         `localHourFor`, ce qui range la personne en
  *                         `outside_window` à chaque tick, silencieusement.
@@ -64,7 +66,7 @@ export function householdSignupMetadata(
 ): Record<string, unknown> {
   return {
     full_name: input.fullName.trim(),
-    locale: PRODUCT_LOCALE,
+    locale: input.locale,
     timezone: input.timezone,
     tz_follow_device: true,
     keel_signup_intent: HOUSEHOLD_SIGNUP_INTENT,

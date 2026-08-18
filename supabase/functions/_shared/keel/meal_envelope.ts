@@ -33,6 +33,14 @@ import {
   applyPiloting,
   type SteeringEntry,
 } from "./composition_steering.ts";
+import {
+  HOUSEHOLD_SUBJECT,
+  type PortionAdjustItem,
+  type PortionAdjustMember,
+  type PortionAdjustValue,
+  type PortionMagnitude,
+  subjectsForPortionAdjust,
+} from "./retained_item.ts";
 
 // ---------------------------------------------------------------------------
 // LE TYPE
@@ -264,6 +272,235 @@ export const DENSITY_CEILING_FAT_LOSS = 1.3;
 export const DENSITY_CEILING_DEFAULT = 1.8;
 
 // ---------------------------------------------------------------------------
+// `portion.adjust` → L'ENVELOPPE — la traduction, et elle n'est QUE ici
+// ---------------------------------------------------------------------------
+//
+// Autorité produit: `docs/keel/NOMENCLATURE-MEMOIRE.md` §2 axe 1 (« le lecteur
+// de `portion.adjust` est l'enveloppe ») et §4 (« ⛔ aucun gramme, aucune
+// calorie dans `portion.adjust` […] c'est l'ENVELOPPE qui traduit, en aval, où
+// le plancher TCA s'applique »). Ce bloc EST cet aval.
+//
+// ── CE QUI ARRIVE ICI, ET CE QUI N'EN REPART PAS ──────────────────────────
+// Arrive: `{direction, magnitude}` — deux adverbes, transmis intacts par
+// `retained_items_routing.ts` qui s'interdit d'en dériver un nombre. Repart:
+// une bande d'énergie déplacée, INTERNE, comme tout ce que ce module calcule.
+// ⛔ Aucun gramme, aucune calorie ne remonte vers la personne: le produit
+// refuse d'afficher des nombres à qui n'en a pas demandé, et « ta portion
+// baisse de 240 kcal » est exactement le nombre qu'elle n'a pas demandé.
+//
+// ── CE QUE LA TRADUCTION DÉPLACE, ET CE QU'ELLE NE TOUCHE JAMAIS ──────────
+// LA BANDE D'ÉNERGIE, et rien d'autre. Ni `proteinFloorG`, ni
+// `proteinPerMealG`, ni `densityCeiling`:
+//
+//   · le plancher protéique est une CEINTURE (Morton 2018, Moore 2015), en
+//     g/kg de poids. « Les portions étaient trop grosses » n'est pas « il me
+//     faut moins de protéine par kilo ». Le faire descendre serait la première
+//     chose de tout ce module capable d'abaisser un plancher — même
+//     `applyPiloting` ne sait que le hausser (`Math.max(1, proteinBoost)`);
+//   · le plafond de densité est une pression de minimisation; le resserrer en
+//     même temps qu'on baisse l'énergie compterait la même remarque deux fois;
+//   · la part par repas est un placement, pas une quantité servie.
+//
+// ── L'AUDIENCE NE SE CALCULE PAS ICI ──────────────────────────────────────
+// `subjectsForPortionAdjust` (socle) tient la règle du §2 axe 3: un ajustement
+// À LA BAISSE sans sujet explicite ne s'applique ni à un mineur ni à une bouche
+// dont l'âge n'a pas été saisi. La réécrire ici ferait deux règles, et c'est
+// celle qu'on relit le moins qui retirerait de la nourriture à un enfant, en
+// silence.
+
+/**
+ * LES DEUX CRANS, TRADUITS — en fraction de la bande d'énergie.
+ *
+ * `slight` = « un peu trop », `clear` = « vraiment trop ». Ils DOIVENT rendre
+ * deux effets différents et ordonnés: deux crans qui produiraient le même
+ * nombre feraient une question fermée à deux réponses dont une ne change rien
+ * — le défaut que `health` a été, et que le test des crans d'activité épingle
+ * déjà (« deux crans qui rendraient le même nombre… un champ qui promet un
+ * effet et n'en a aucun »).
+ *
+ * ── D'OÙ VIENNENT 5 % ET 10 %, ET POURQUOI PAS DEUX AUTRES NOMBRES ────────
+ * Du registre déjà écrit dans ce fichier, pas d'une littérature qui n'existe
+ * pas pour un adverbe. Toute bande d'`ENERGY_BANDS` fait 10 points de large
+ * (0,75→0,85 ; 0,95→1,05), `MAX_SURPLUS_FRACTION` vaut 0,10 et
+ * `ENERGY_DIRECTION_MARGIN` vaut 1,10. `clear` = **la largeur d'une bande
+ * entière**: le plus grand déplacement que ce module s'autorise nulle part
+ * ailleurs. `slight` = la moitié, donc à l'intérieur de la marge de direction
+ * (±10 %) — un « un peu trop » déplace vraiment l'assiette sans à lui seul
+ * retourner un verdict.
+ *
+ * ⚠️ CE SONT DES CONSTANTES OPÉRATIONNELLES, ET C'EST AVOUÉ — même statut que
+ * `DENSITY_CEILING_*`. Personne n'a mesuré ce qu'un « un peu trop » vaut en
+ * kcal; ce qui est vérifié, c'est que les deux crans sont ordonnés et que le
+ * plus grand des deux reste sous les ceintures.
+ *
+ * `Record<PortionMagnitude, number>`: un troisième cran ajouté au socle ne
+ * compile plus ici tant qu'il n'a pas sa valeur.
+ */
+export const PORTION_ADJUST_STEP: Readonly<Record<PortionMagnitude, number>> =
+  Object.freeze({
+    slight: 0.05,
+    clear: 0.10,
+  });
+
+/**
+ * CE QU'IL FAUT POUR TRADUIRE — la bouche, et les ajustements retenus.
+ *
+ * ⚠️ `mouth` PORTE SON `ageState`, ET C'EST LE POINT. Le type est celui du
+ * socle (`PortionAdjustMember`), donc l'état d'âge ne peut pas être omis par un
+ * appelant: sans lui il n'y a pas de règle du mineur, et « personne n'est
+ * concerné » deviendrait indiscernable de « la garde n'a pas été branchée ».
+ * C'est la cicatrice « paramètre de garde optionnel = garde désarmée », prise
+ * du côté du type plutôt que du côté d'un `?`.
+ */
+export type PortionAdjustFor = {
+  /** La bouche dont on calcule l'enveloppe. */
+  readonly mouth: PortionAdjustMember;
+  /** Les `portion.adjust` retenus, tels que le lot 1C les groupe. */
+  readonly items: readonly PortionAdjustItem[];
+};
+
+/**
+ * LEQUEL S'APPLIQUE, QUAND PLUSIEURS VISENT LA MÊME BOUCHE.
+ *
+ * ── UN SEUL GAGNE. ILS NE S'ADDITIONNENT PAS. ────────────────────────────
+ * L'ordre est celui, déjà écrit, de `winsOver` (`retained_items_routing.ts`):
+ * la bouche NOMMÉE devant `household`, puis la date la plus récente, puis le
+ * dernier arrivé. `at` est strictement `YYYY-MM-DD` (garanti par le socle),
+ * donc la comparaison de chaînes EST la comparaison de dates — sans
+ * `Date.parse`, donc sans la reprojection UTC qui décale un mardi soir.
+ *
+ * ⚠️ LE CUMUL EST REFUSÉ, ET LE MOTIF EST DANS LE SOCLE: `portion.adjust` est
+ * `scope: "durable"` LITTÉRAL — il n'expire JAMAIS. Un magasin qui ne fait que
+ * grossir plus un facteur qui se compose, c'est une dérive vers le bas sans
+ * borne: trois « trop gros » sur trois bilans (chacun DÉJÀ servi par le
+ * précédent) donneraient ×0,729 au lieu de ×0,90, et personne n'a demandé
+ * −27 %. Ce dépôt a déjà payé un facteur composé (« un facteur ne porte que
+ * sur la part mobile »: un plafond ×2 qui mord, un plancher laissé ouvert de
+ * 23 g), et le plafond qu'il faudrait inventer pour borner la somme serait
+ * exactement la borne fabriquée que cette cicatrice interdit. Le dernier mot
+ * est borné par construction: −10 % au pire, jusqu'à ce qu'elle dise autre
+ * chose.
+ *
+ * ── LE ROSTER D'UNE SEULE BOUCHE, ET CE QUE ÇA VEUT DIRE ─────────────────
+ * On demande au socle « cet ajustement atteint-il CETTE bouche ? » en lui
+ * passant le roster réduit à elle. `included` non vide ⟺ oui — un roster d'un
+ * seul élément ne peut rien rendre d'autre. On lit `included.length`, jamais
+ * les identifiants: le socle rend l'id du sujet sur un chemin et celui du
+ * membre sur l'autre, et les comparer à la main rouvrirait une normalisation.
+ *
+ * ⚠️ `excluded` DE CET APPEL N'EST PAS UN CONSTAT DE FOYER, et il ne sort pas
+ * d'ici. Un item visant une AUTRE bouche revient `not_in_household`, ce qui est
+ * faux au niveau du foyer. Le constat d'exclusion, c'est
+ * `portionAdjustExclusionFacts` (1C), calculé sur le VRAI roster.
+ */
+export function winningPortionAdjust(
+  portion: PortionAdjustFor | null,
+): PortionAdjustValue | null {
+  if (!portion) return null;
+  const roster = [portion.mouth];
+  let winner: { item: PortionAdjustItem; index: number } | null = null;
+  let index = 0;
+  for (const item of portion.items ?? []) {
+    index += 1;
+    if (subjectsForPortionAdjust(item, roster).included.length === 0) continue;
+    if (winner === null || beatsPortionAdjust({ item, index }, winner)) {
+      winner = { item, index };
+    }
+  }
+  return winner === null ? null : winner.item.value;
+}
+
+/** Les trois crans de `winsOver`, dans le même ordre. Voir le bloc ci-dessus. */
+function beatsPortionAdjust(
+  challenger: { item: PortionAdjustItem; index: number },
+  holder: { item: PortionAdjustItem; index: number },
+): boolean {
+  const rankC = challenger.item.subject === HOUSEHOLD_SUBJECT ? 0 : 1;
+  const rankH = holder.item.subject === HOUSEHOLD_SUBJECT ? 0 : 1;
+  if (rankC !== rankH) return rankC > rankH;
+  if (challenger.item.at !== holder.item.at) {
+    return challenger.item.at > holder.item.at;
+  }
+  return challenger.index > holder.index;
+}
+
+/**
+ * LA TRADUCTION, APPLIQUÉE — le DERNIER geste de l'enveloppe.
+ *
+ * ── OÙ ELLE SE RANGE, ET POURQUOI PAS AILLEURS ───────────────────────────
+ * Après les ceintures produit (plafond de déficit A1, planchers) et après
+ * `applyPiloting`. C'est la hiérarchie de préséance du design §3.6, du plus
+ * général au plus proche de l'assiette:
+ *
+ *     ceintures produit  >  la méthode du coach  >  le mot de la personne
+ *
+ * Une doctrine est écrite pour une COHORTE; un `portion.adjust` est une bouche
+ * répondant à une question fermée sur ses propres portions. Le plus spécifique
+ * parle en dernier — même forme que `subjectRank`, où la bouche nommée passe
+ * devant `household`.
+ *
+ * ⛔ ET SURTOUT PAS AVANT LES PLANCHERS. C'est le seul levier de tout le module
+ * qui pousse vers le BAS: `applyPiloting` ne sait que hausser un plancher
+ * protéique et que remonter un bas de bande. Posé avant l'écrêtage A1, il
+ * passerait sous le plafond de déficit sans qu'aucun test au-dessus du plancher
+ * ne le voie. Posé en dernier, la garantie est LOCALE: c'est cette fonction qui
+ * écrête, et plus personne ne s'exécute après elle — l'ordre inverse ferait
+ * dépendre A1 d'une propriété d'un AUTRE fichier (« `applyPiloting` ne baisse
+ * jamais un bas de bande »), que rien ici n'épingle.
+ *
+ * ── SOUS PLANCHER TCA: ZÉRO, ET SANS RECONSTRUIRE L'OBJET ────────────────
+ * `per_portion` ne porte structurellement aucune énergie: il n'y a rien à
+ * baisser, et c'est très exactement la population qu'on ne baisse pas. On rend
+ * l'enveloppe TELLE QUELLE — même geste qu'`applyPiloting`, même motif:
+ * reconstruire ferait diverger l'empreinte d'indiscernabilité.
+ *
+ * @param energyFloorKcal le plancher A1 (`M − 500`), ou `null` s'il n'est pas
+ * calculable. `null` ⇒ **on ne retire rien**: sans plancher connu, il n'y a
+ * rien pour écrêter, et un repli inventerait la borne que la ceinture est.
+ */
+function applyPortionAdjust(
+  envelope: Envelope,
+  portion: PortionAdjustFor | null,
+  energyFloorKcal: number | null,
+): Envelope {
+  if (envelope.mode === "per_portion") return envelope;
+  const value = winningPortionAdjust(portion);
+  if (value === null) return envelope;
+  // Pas de bande (taille inconnue, ou axe `energy` éteint par le coach): il n'y
+  // a pas de grandeur à déplacer, et en fabriquer une serait rendre au pilotage
+  // ce qu'il vient d'éteindre.
+  if (envelope.energy === null) return envelope;
+
+  const step = PORTION_ADJUST_STEP[value.magnitude];
+  if (value.direction === "up") {
+    // ── À LA HAUSSE, AUCUN PLAFOND N'EST AJOUTÉ ICI, ET C'EST DIT ────────
+    // Aucune ceinture haute n'existe dans ce module: `surplus_style:
+    // "aggressive"` dépasse DÉJÀ `MAX_SURPLUS_FRACTION` (1,10 × 1,05). En
+    // poser une ici en ferait la première, sur le levier le moins grave —
+    // « surestimer un besoin ferait servir plus que nécessaire, direction
+    // d'erreur bien moins grave que l'inverse » est écrit trois fois dans ce
+    // fichier, et le socle le redit (« À LA HAUSSE, personne n'est retiré »).
+    return {
+      ...envelope,
+      energy: {
+        low: Math.round(envelope.energy.low * (1 + step)),
+        high: Math.round(envelope.energy.high * (1 + step)),
+      },
+    };
+  }
+
+  if (energyFloorKcal === null) return envelope;
+  // ── L'ÉCRÊTAGE, SUR LES DEUX BORDS ───────────────────────────────────────
+  // Les deux, pour la raison déjà mesurée sur A1: « un plafond qui ne mord que
+  // d'un côté n'est pas un plafond ». N'écrêter que le bas laisserait un
+  // `down` déplacer le haut sur un corps déjà au plancher — c'est-à-dire lui
+  // retirer quelque chose, ce que ce lot existe pour empêcher.
+  const low = Math.max(energyFloorKcal, Math.round(envelope.energy.low * (1 - step)));
+  const high = Math.max(energyFloorKcal, Math.round(envelope.energy.high * (1 - step)));
+  return { ...envelope, energy: { low, high: Math.max(high, low) } };
+}
+
+// ---------------------------------------------------------------------------
 // LA MAINTENANCE ESTIMÉE
 // ---------------------------------------------------------------------------
 
@@ -362,6 +599,13 @@ const DEGRADED_ENVELOPE: Envelope = Object.freeze({
  * déjà posées quand le pilotage arrive, donc il ne peut pas les outrepasser.
  * C'est la hiérarchie de préséance du design §3.6, rendue vraie par l'ordre
  * des lignes plutôt que par une vérification.
+ *
+ * ── `portion` EST REQUIS (nomenclature §2 axe 1) ─────────────────────────
+ * Même doctrine, et pour la même raison: c'est la casse de compilation qui
+ * recense les appelants. `null` = aucun ajustement retenu — l'état de TOUTE la
+ * base aujourd'hui, puisque le seul producteur de `portion.adjust` est le
+ * questionnaire de fin de plan (§5) et qu'il appartient à la phase 2. Ce `null`
+ * doit rendre l'enveloppe d'avant ce lot, au caractère près.
  */
 export function envelopeFor(
   goal: GoalToken,
@@ -381,6 +625,17 @@ export function envelopeFor(
    * collecter.
    */
   activityLevel: ActivityLevel | null,
+  /**
+   * ── LES `portion.adjust` RETENUS, ET LA BOUCHE QU'ILS VISENT ───────────
+   * `null` = aucun ajustement. Requis et positionnel, comme les cinq
+   * paramètres au-dessus: un `?` ici aurait laissé le lecteur construit et non
+   * branché, et le compilateur n'aurait recensé aucun appelant.
+   *
+   * ⛔ Ce paramètre ne porte AUCUN nombre — `{direction, magnitude}`, deux
+   * adverbes. La traduction vit dans `applyPortionAdjust`, et nulle part
+   * ailleurs.
+   */
+  portion: PortionAdjustFor | null,
 ): Envelope {
   // ── LA BRANCHE UNIQUE ───────────────────────────────────────────────────
   // Sous flag OU corps absent OU poids inconnu. Trois causes, une seule
@@ -390,6 +645,11 @@ export function envelopeFor(
   // corps, l'enveloppe dégradée est la même pour tout le monde, coach pilote
   // ou pas. Un steering qui changerait quoi que ce soit à cette branche
   // rendrait le statut de restriction observable.
+  //
+  // ⚠️ ET UN `portion.adjust` NON PLUS. Sous plancher TCA, l'assiette ne baisse
+  // pas: c'est la moitié la plus importante de ce lecteur, et elle est tenue
+  // ici par un `return` avant tout calcul, puis une seconde fois par le type
+  // dans `applyPortionAdjust` (`per_portion` ne porte pas d'énergie).
   if (restrictionFlag || !body || !weightKg) return DEGRADED_ENVELOPE;
 
   return envelopeCore({
@@ -401,6 +661,7 @@ export function envelopeFor(
     steering,
     restrictionFlag,
     activityLevel,
+    portion,
   });
 }
 
@@ -430,6 +691,7 @@ function envelopeCore(args: {
   steering: SteeringEntry | null;
   restrictionFlag: boolean;
   activityLevel: ActivityLevel | null;
+  portion: PortionAdjustFor | null;
 }): Envelope {
   const {
     goal,
@@ -440,6 +702,7 @@ function envelopeCore(args: {
     steering,
     restrictionFlag,
     activityLevel,
+    portion,
   } = args;
   const maintenance = estimatedMaintenanceKcal({
     weightKg,
@@ -451,7 +714,19 @@ function envelopeCore(args: {
 
   const band = ENERGY_BANDS[goal];
   let energy: EnergyBand | null = null;
+  /**
+   * LE PLANCHER D'ÉNERGIE A1, CALCULÉ UNE FOIS ET PARTAGÉ PAR SES DEUX
+   * LECTEURS: l'écrêtage de la bande ci-dessous, et celui d'un `portion.adjust`
+   * à la baisse tout en bas de cette fonction.
+   *
+   * ⚠️ UNE SEULE VARIABLE, EXPRÈS. Deux copies du même nombre divergent, et
+   * c'est celle qu'on regarde le moins qui garde l'ancienne — le dépôt le paie
+   * en boucle (`MAX_SURPLUS_FRACTION` est dérivé pour cette raison). Ici, la
+   * seconde copie aurait été celle qui protège l'assiette de quelqu'un.
+   */
+  let energyFloorKcal: number | null = null;
   if (maintenance !== null) {
+    energyFloorKcal = Math.round(maintenance - MAX_DAILY_DEFICIT_KCAL);
     const low = Math.round(maintenance * band.low);
     const high = Math.round(maintenance * band.high);
     // ── LE PLAFOND DE DÉFICIT MORD ICI, ET IL GAGNE (A1) ─────────────────
@@ -470,8 +745,7 @@ function envelopeCore(args: {
     // lecture juste, et le régime « direction » lui rend sa largeur par la
     // marge de ±10 % (§2.3) — largeur qui vient de l'INCERTITUDE de la mesure,
     // pas d'une tolérance qu'on s'accorderait.
-    const capped = Math.round(maintenance - MAX_DAILY_DEFICIT_KCAL);
-    const cappedLow = Math.max(low, capped);
+    const cappedLow = Math.max(low, energyFloorKcal);
     energy = { low: cappedLow, high: Math.max(high, cappedLow) };
   }
 
@@ -499,7 +773,12 @@ function envelopeCore(args: {
       : DENSITY_CEILING_DEFAULT,
   };
   // EN DERNIER — après les ceintures produit, jamais avant.
-  return applyPiloting(steering, base, restrictionFlag);
+  const piloted = applyPiloting(steering, base, restrictionFlag);
+  // ET APRÈS LE PILOTAGE: la personne parle de SON assiette, la doctrine parle
+  // d'une cohorte. Le plus spécifique parle en dernier — et c'est cette
+  // fonction-ci qui écrête sur `energyFloorKcal`, donc A1 reste le dernier mot
+  // sans dépendre d'une propriété d'`applyPiloting`. Voir son bloc de tête.
+  return applyPortionAdjust(piloted, portion, energyFloorKcal);
 }
 
 // ---------------------------------------------------------------------------
@@ -551,6 +830,16 @@ export interface MouthBody {
  * `restrictionFlag: false` est passé pour la même raison, et il est sûr POUR
  * CETTE RAISON-LÀ seulement: il n'y a rien à protéger d'une bande qui ne
  * retire rien.
+ *
+ * ── ⚠️ TROU NOMMÉ: LES `portion.adjust` N'ENTRENT PAS PAR CETTE PORTE ─────
+ * `portion: null`, et ce n'est pas un oubli. `MouthBody` ne porte NI
+ * `member_id` NI `ageState`, et `subjectsForPortionAdjust` exige les deux — la
+ * règle du mineur n'aurait rien à mordre. Les ajouter à `MouthBody` déplacerait
+ * la question chez `mouthEnvelope` (`household_composition.ts`), qui est hors
+ * du périmètre de ce lot. Conséquence assumée: une bouche ADULTE de foyer sans
+ * compte garde sa maintenance pleine. Direction d'erreur sûre — une part
+ * standard, jamais réduite, exactement le repli du reste de ce module — mais
+ * c'est une moitié à câbler, pas un état final.
  */
 export function maintenanceEnvelopeFromBody(body: MouthBody): Envelope | null {
   if (!body.weightKg) return null;
@@ -565,6 +854,7 @@ export function maintenanceEnvelopeFromBody(body: MouthBody): Envelope | null {
     steering: null,
     restrictionFlag: false,
     activityLevel: body.activityLevel,
+    portion: null,
   });
 }
 
@@ -760,6 +1050,13 @@ const CHILD_PROTEIN_FLOOR_G_PER_KG = 1.0;
  * `densityCeiling: null` et `proteinPerMealG: null`. Ce qu'on calcule est un
  * BESOIN, pas une cible à réduire; un plafond de densité est une pression de
  * minimisation, et elle n'a rien à faire sur l'assiette d'un enfant.
+ *
+ * ── NI `portion.adjust`, ET LÀ C'EST LA DÉCISION, PAS UN TROU ────────────
+ * La fonction ne prend pas de `portion` non plus. Un `portion.adjust` à la
+ * baisse sans sujet ne s'applique déjà pas à un mineur (socle, §2 axe 3); ici
+ * même un sujet EXPLICITE n'a aucun chemin, et c'est le même patron que le
+ * `goal` absent — l'assiette d'un enfant ne se réduit pas depuis un formulaire
+ * rempli par quelqu'un d'autre que lui.
  *
  * `null` quand le corps ne suffit pas: **jamais** l'enveloppe dégradée. Rendre
  * `per_portion` ici armerait le verrou de lane et ferait dégrader TOUT le

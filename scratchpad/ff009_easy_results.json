@@ -1,0 +1,62 @@
+[
+  {
+    "id": "E1",
+    "level": "easy",
+    "run": 1,
+    "text": "j'ai commandé une pizza ce soir",
+    "ok": true,
+    "detail": "off_plan | fried_food | - | chat | evw=0.8 | dq=-",
+    "reply": "Nice. Pizza for dinner is a clear choice, and it means lunch is the only meal in play for today’s plan.  And what did you have with it?",
+    "judgment": []
+  },
+  {
+    "id": "E2",
+    "level": "easy",
+    "run": 1,
+    "text": "j'ai commandé",
+    "ok": true,
+    "detail": "off_plan | - | - | chat | evw=0.8 | dq=-",
+    "reply": "You ordered something. If you want, I can help you think through the nutrition angle from there.  What was in it?",
+    "judgment": []
+  },
+  {
+    "id": "E1",
+    "level": "easy",
+    "run": 2,
+    "text": "j'ai commandé une pizza ce soir",
+    "ok": true,
+    "detail": "off_plan | fried_food | - | chat | evw=0.8 | dq=-",
+    "reply": "Pizza tonight is a clear, useful callout. The only thing I can say from the plan is that lunch is still the open slot today; this pizza doesn’t affect that unless it was your lunch.  And what did you have with it?",
+    "judgment": []
+  },
+  {
+    "id": "E2",
+    "level": "easy",
+    "run": 2,
+    "text": "j'ai commandé",
+    "ok": true,
+    "detail": "off_plan | - | - | chat | evw=0.8 | dq=-",
+    "reply": "Protein and vegetables at lunch are still the two items on the day’s list; if your “j’ai commandé” means you had lunch, tell me what it included and I can help you map it to those two points.  What was in it?",
+    "judgment": []
+  },
+  {
+    "id": "E1",
+    "level": "easy",
+    "run": 3,
+    "text": "j'ai commandé une pizza ce soir",
+    "ok": true,
+    "detail": "off_plan | fried_food | - | chat | evw=0.8 | dq=-",
+    "reply": "Got it — tonight’s pizza is simply something you ordered for dinner. Nothing else is implied from that alone.  And what did you have with it?",
+    "judgment": []
+  },
+  {
+    "id": "E2",
+    "level": "easy",
+    "run": 3,
+    "text": "j'ai commandé",
+    "ok": true,
+    "detail": "off_plan | - | - | chat | evw=0.8 | dq=-",
+    "reply": "You’ve ordered something, but I can’t tell what from that alone.  If you want, send the item or the meal and I’ll help you figure out whether it fits the lunch protein / vegetables targets.  What was in it?",
+    "judgment": []
+  }
+]

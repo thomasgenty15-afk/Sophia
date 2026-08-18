@@ -70,6 +70,7 @@ function doctrine(over: Partial<CoachDoctrine> = {}): CoachDoctrine {
     // soir, pas à chaque tour de conversation), donc le hash de cache de tous
     // les coachs existants est inchangé.
     dailyPractices: [],
+    compositionSteering: [],
     contentLocale: "fr-FR",
     ...over,
   };

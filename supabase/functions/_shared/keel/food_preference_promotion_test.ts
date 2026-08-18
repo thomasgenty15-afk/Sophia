@@ -9,9 +9,27 @@
 // fait daté, pas un goût. Le promouvoir mettrait une pizza dans toutes les
 // semaines à venir.
 //
-// LE TROISIÈME, moins visible et tout aussi coûteux: les deux générateurs
-// sérialisent `practical_constraints` EN ENTIER dans leur prompt. Tout ce qu'on
-// range dedans est servi au modèle, y compris une liste d'UUID de comptabilité.
+// LE TROISIÈME, moins visible et tout aussi coûteux: UN générateur sérialise
+// `practical_constraints` EN ENTIER dans son prompt. Tout ce qu'on range dedans
+// lui est servi, y compris une liste d'UUID de comptabilité — c'est ce que la
+// garde de prompt (`constraintsForPrompt`) retire.
+//
+// ⚠️ UN SEUL, ET PAS « LES DEUX GÉNÉRATEURS »: cet en-tête l'a dit pendant des
+// mois, et c'était FAUX. Mesuré le 2026-08-18, le seul point du dépôt qui
+// sérialise le jsonb entier est `week_plan_generation.ts:560`
+// (`JSON.stringify(args.situation.practicalConstraints ?? {})`), alimenté par
+// `generate-week-plan-v1/index.ts:714`, qui passe par `constraintsForPrompt`.
+// `generate-meal-v1` et `generate-household-meal-v1` ne reçoivent que des CLÉS
+// NOMMÉES — `meal_generation.ts:2220` le dit déjà, au même sujet: « ce
+// générateur-ci lit des clés NOMMÉES […] une clé de plus y est invisible tant
+// que personne ne la passe » — et le chemin foyer (`household_voices_io.ts:194`)
+// n'extrait de la colonne que `food_preferences`.
+//
+// CE QUE ÇA CHANGE POUR LE LOT SUIVANT: une clé neuve posée dans
+// `practical_constraints` n'atteint QUE le plan de semaine. Pour les deux
+// autres, il faut la PASSER. Croire cet en-tête, c'était poser sa clé et
+// repartir en pensant être servi — le défaut exact de `coach_food_rules`: un
+// écran, des gardes, trente tests, et aucun lecteur au runtime.
 
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
@@ -927,4 +945,733 @@ Deno.test("une ligne SANS entrée d'origine n'est PAS promue au rang de consigne
   });
   assertEquals(split.written, []);
   assertEquals(split.remembered, ["Une ligne orpheline"]);
+});
+
+// ===========================================================================
+// LE MAGASIN DURABLE — `RetainedItem` rangés à côté des phrases plates
+// ===========================================================================
+//
+// CE QUE CES TESTS PROTÈGENT, DANS L'ORDRE D'IMPORTANCE:
+//
+//  1. LE FORMAT EXISTANT CONTINUE DE SE LIRE. Les phrases déjà en base n'ont
+//     pas de `kind` et ne peuvent pas être reclassées sans inférence (§7 de la
+//     nomenclature). Elles ressortent dans `legacyNotes`, TELLES QUELLES.
+//  2. RIEN NE DISPARAÎT EN SILENCE. `canProduce` mord à la LECTURE: une ligne
+//     que son producteur n'avait pas le droit d'écrire ne remonte pas, même
+//     déjà en base. Elle se COMPTE — sinon un magasin à moitié refusé
+//     ressemble à un magasin à moitié vide.
+//  3. UN ITEM DIFFORME TOMBE SEUL. Une faute d'un producteur n'efface pas ce
+//     que la personne a déclaré le même jour.
+//  4. L'ALLER-RETOUR EST UNE IDENTITÉ. Écrire puis relire ne doit rien perdre,
+//     sinon la carte affiche autre chose que ce que la personne a validé.
+
+import {
+  parseRetainedItem,
+  type RetainedItem,
+} from "./retained_item.ts";
+import {
+  partitionForDurableStore,
+  readRetainedItems,
+  RETAINED_ITEMS_KEY,
+  retainedItemsFrom,
+  withRetainedItems,
+} from "./food_preference_promotion.ts";
+
+const ZOE = "11111111-1111-4111-8111-111111111111";
+const MEMORY_ITEM = "aaaaaaaa-0000-4000-8000-000000000009";
+
+/**
+ * Un item de test, construit par LA SEULE PORTE D'ENTRÉE du socle.
+ *
+ * Jamais un `as RetainedItem`: ce dépôt a la cicatrice « `as` sur un type
+ * étranger désarme le typecheck », mesurée en `200` au log et `null` en
+ * silence. Une fixture illisible fait tomber le test, bruyamment.
+ */
+function retained(over: Record<string, unknown> = {}): RetainedItem {
+  const parsed = parseRetainedItem({
+    kind: "food.exclude",
+    scope: "durable",
+    subject: "household",
+    text: "les rochers coco",
+    value: null,
+    source: "questionnaire",
+    at: "2026-08-18",
+    item: "",
+    confidence: null,
+    ...over,
+  });
+  if (!parsed) throw new Error(`fixture illisible: ${JSON.stringify(over)}`);
+  return parsed;
+}
+
+Deno.test("ALLER-RETOUR: écrire puis relire est une IDENTITÉ", () => {
+  const items = [
+    retained(),
+    retained({
+      kind: "portion.adjust",
+      subject: `member:${ZOE}`,
+      text: "un peu trop pour Zoé",
+      value: { direction: "down", magnitude: "slight" },
+    }),
+    retained({
+      kind: "logistics.set",
+      text: "25 minutes en semaine",
+      value: { field: "cooking_time_min", value: 25 },
+    }),
+    retained({
+      kind: "rhythm.set",
+      subject: `member:${ZOE}`,
+      text: "pas de petit-déjeuner",
+      value: { occasion: "breakfast", present: false },
+    }),
+    retained({
+      kind: "method.avoid",
+      source: "conversation",
+      item: MEMORY_ITEM,
+      confidence: 0.82,
+      text: "rien de frit",
+    }),
+  ];
+  const stored = withRetainedItems({}, items);
+  assertEquals(retainedItemsFrom(stored).items, items);
+  assertEquals(readRetainedItems(stored).refused.total, 0);
+});
+
+Deno.test("LE FORMAT EXISTANT: une phrase plate ressort INTACTE, sans `kind`", () => {
+  // Le cas le plus important du lot. Ces phrases sont en base aujourd'hui, sans
+  // `kind`, et les reclasser demanderait de lire du texte libre — « laitue » ≠
+  // « lait », 12 faux positifs sur 12 mesurés dans ce dépôt.
+  const legacy = {
+    [FOOD_PREFERENCES_KEY]: [
+      "N'aime pas le brocoli.",
+      "Aime le brocoli s'il est rôti.",
+    ],
+    [FOOD_PREFERENCES_ORIGIN_KEY]: { "n'aime pas le brocoli.": { item: "m-1" } },
+  };
+  const out = retainedItemsFrom(legacy);
+  assertEquals(out.legacyNotes, [
+    "N'aime pas le brocoli.",
+    "Aime le brocoli s'il est rôti.",
+  ]);
+  // ⛔ RIEN N'A ÉTÉ DEVINÉ: aucun item, et aucun refus non plus — il n'y avait
+  // rien à refuser. Une migration rétroactive apparaîtrait ici.
+  assertEquals(out.items, []);
+  assertEquals(readRetainedItems(legacy).refused.total, 0);
+});
+
+Deno.test("les deux magasins COHABITENT, et aucun n'efface l'autre", () => {
+  const legacy = applyFoodPreferenceDecision({ cook_days: ["mon"] }, {
+    kind: "write",
+    text: "Pas de poisson le lundi",
+  });
+  const both = withRetainedItems(legacy, [retained()]);
+
+  const out = retainedItemsFrom(both);
+  assertEquals(out.legacyNotes, ["Pas de poisson le lundi"]);
+  assertEquals(out.items.map((i) => i.text), ["les rochers coco"]);
+  // Le pont existant n'a pas bougé d'un pouce.
+  assertEquals(foodPreferencesForPrompt(both), ["Pas de poisson le lundi"]);
+  assertEquals(both.cook_days, ["mon"]);
+});
+
+Deno.test("`withRetainedItems` NE MUTE PAS son entrée", () => {
+  // Deux cartes ouvertes côte à côte ne doivent pas se désécrire l'une l'autre:
+  // le patron d'`EatingRhythmCard`. Muter l'entrée ferait fuiter l'écriture
+  // dans la copie que l'appelant croit intacte.
+  const before: Record<string, unknown> = { cook_days: ["mon"] };
+  const after = withRetainedItems(before, [retained()]);
+  assertEquals(before, { cook_days: ["mon"] });
+  assertEquals(before[RETAINED_ITEMS_KEY], undefined);
+  assert(after !== before);
+  assertEquals((after[RETAINED_ITEMS_KEY] as unknown[]).length, 1);
+});
+
+Deno.test("GARDE — un `craving` n'entre PAS dans le magasin durable", () => {
+  // « Une envie qui devient durable cesse d'être une envie et devient une
+  // habitude qu'on n'a pas demandée » (§2 axe 2). Le `next_plan` a son magasin.
+  const durable = retained();
+  const craving = retained({
+    kind: "craving",
+    scope: "next_plan",
+    source: "conversation",
+    item: MEMORY_ITEM,
+    confidence: 0.9,
+    text: "des fajitas la semaine prochaine",
+    value: null,
+  });
+
+  const split = partitionForDurableStore([durable, craving]);
+  assertEquals(split.durable, [durable]);
+  assertEquals(split.notDurable, [craving]);
+
+  // ⚠️ ON REGARDE LE JSONB ÉCRIT, PAS SEULEMENT CE QU'ON RELIT. La lecture
+  // filtre AUSSI sur le durable (ceinture et bretelles), donc un test qui ne
+  // vérifierait que le retour de `retainedItemsFrom` resterait vert si le
+  // filtre d'ÉCRITURE disparaissait: une bretelle testée par la ceinture est
+  // une bretelle qu'on peut couper sans que rien ne tombe. Mesuré: la première
+  // version de ce test survivait à la mutation.
+  const stored = withRetainedItems({}, [durable, craving]);
+  assertEquals((stored[RETAINED_ITEMS_KEY] as unknown[]).length, 1);
+  assert(!JSON.stringify(stored).includes("fajitas"));
+  assertEquals(retainedItemsFrom(stored).items, [durable]);
+});
+
+Deno.test("GARDE — LE CAS QUI PASSE: tout ce qui est `durable` entre", () => {
+  // Une garde sans cas passant est une garde cassée qui ressemble à une garde
+  // qui marche. Les cinq familles durables traversent.
+  const items = [
+    retained({ kind: "food.prefer", text: "plus de lentilles" }),
+    retained({ kind: "method.prefer", text: "au four" }),
+    retained({
+      kind: "portion.adjust",
+      text: "pas assez",
+      value: { direction: "up", magnitude: "clear" },
+    }),
+    retained({
+      kind: "rhythm.set",
+      text: "un goûter",
+      value: { occasion: "snack_pm", present: true },
+    }),
+    retained({
+      kind: "logistics.set",
+      text: "budget 90",
+      value: { field: "budget_amount", value: 90 },
+    }),
+  ];
+  const out = readRetainedItems(withRetainedItems({}, items));
+  assertEquals(out.items, items);
+  assertEquals(out.refused, {
+    total: 0,
+    forbiddenProducer: 0,
+    malformed: 0,
+    notDurable: 0,
+  });
+});
+
+Deno.test("§2.2 — une ligne HORS DROITS ne remonte pas, et elle se COMPTE", () => {
+  // `canProduce` mord À LA LECTURE. Le memorizer n'a pas le droit d'écrire un
+  // `portion.adjust` (« les portions étaient trop grosses », dans un foyer de
+  // quatre, ne désigne personne). Une telle ligne, même déjà en base, ne
+  // remonte pas — et sans ce compteur, elle disparaîtrait en silence.
+  const store = {
+    [RETAINED_ITEMS_KEY]: [
+      {
+        kind: "portion.adjust",
+        scope: "durable",
+        subject: "household",
+        text: "les portions étaient trop grosses",
+        value: { direction: "down", magnitude: "clear" },
+        source: "conversation",
+        at: "2026-08-18",
+        item: MEMORY_ITEM,
+        confidence: 0.9,
+      },
+    ],
+  };
+  const out = readRetainedItems(store);
+  assertEquals(out.items, []);
+  assertEquals(out.refused, {
+    total: 1,
+    forbiddenProducer: 1,
+    malformed: 0,
+    notDurable: 0,
+  });
+});
+
+Deno.test("§2.2 — LE CAS QUI PASSE: la MÊME ligne, produite par le questionnaire", () => {
+  // Le questionnaire est le SEUL producteur de `portion.adjust`, et il pose la
+  // question avec la liste du foyer sous les yeux. Sans ce cas, le test
+  // ci-dessus passerait aussi bien si `canProduce` refusait TOUT.
+  const out = readRetainedItems(
+    withRetainedItems({}, [
+      retained({
+        kind: "portion.adjust",
+        source: "questionnaire",
+        text: "les portions étaient trop grosses",
+        value: { direction: "down", magnitude: "clear" },
+      }),
+    ]),
+  );
+  assertEquals(out.items.length, 1);
+  assertEquals(out.refused.forbiddenProducer, 0);
+});
+
+Deno.test("un item DIFFORME tombe SEUL, et il est compté `malformed`", () => {
+  // Patron `parseAwayDays`: une faute de frappe d'un producteur ne doit pas
+  // effacer une déclaration lisible du même jour. ⛔ Et un `value` qui porte des
+  // GRAMMES fait tomber l'item ENTIER — le socle refuse, il ne nettoie pas:
+  // nettoyer garderait la ligne en effaçant la preuve qu'un producteur fabrique
+  // de la précision.
+  const good = retained({ text: "les rochers coco" });
+  const store = {
+    [RETAINED_ITEMS_KEY]: [
+      { kind: "food.exclude", scope: "durable" }, // à moitié écrit
+      {
+        kind: "portion.adjust",
+        scope: "durable",
+        subject: "household",
+        text: "moins 80 g",
+        value: { direction: "down", magnitude: "clear", grams: 80 },
+        source: "questionnaire",
+        at: "2026-08-18",
+        item: "",
+        confidence: null,
+      },
+      ...(withRetainedItems({}, [good])[RETAINED_ITEMS_KEY] as unknown[]),
+    ],
+  };
+  const out = readRetainedItems(store);
+  assertEquals(out.items, [good]);
+  assertEquals(out.refused, {
+    total: 2,
+    forbiddenProducer: 0,
+    malformed: 2,
+    notDurable: 0,
+  });
+});
+
+Deno.test("un `next_plan` DÉJÀ en base est refusé à la lecture, et compté", () => {
+  // Ceinture et bretelles: `withRetainedItems` le refuse à l'écriture, la
+  // lecture le refuse aussi. Une version antérieure d'un producteur, ou une
+  // écriture directe en SQL, ne doit pas faire entrer une envie dans le durable.
+  const store = {
+    [RETAINED_ITEMS_KEY]: [
+      {
+        kind: "craving",
+        scope: "next_plan",
+        subject: "household",
+        text: "des fajitas",
+        value: null,
+        source: "draft_note",
+        at: "2026-08-18",
+        item: "",
+        confidence: null,
+      },
+    ],
+  };
+  const out = readRetainedItems(store);
+  assertEquals(out.items, []);
+  assertEquals(out.refused, {
+    total: 1,
+    forbiddenProducer: 0,
+    malformed: 0,
+    notDurable: 1,
+  });
+});
+
+Deno.test("un magasin QUI N'EST PAS UNE LISTE compte pour UN refus, pas zéro", () => {
+  // À zéro, un jsonb corrompu serait indiscernable d'un jsonb vide — et « il
+  // n'y a rien » est exactement la lecture qu'on ne veut pas faire d'un magasin
+  // qu'on n'a pas su ouvrir.
+  const broken = readRetainedItems({ [RETAINED_ITEMS_KEY]: { oops: true } });
+  assertEquals(broken.items, []);
+  assertEquals(broken.refused.total, 1);
+  assertEquals(broken.refused.malformed, 1);
+
+  // LE CAS QUI PASSE: une clé ABSENTE n'est pas une corruption.
+  assertEquals(readRetainedItems({}).refused.total, 0);
+  assertEquals(readRetainedItems(null).refused.total, 0);
+  assertEquals(readRetainedItems(undefined).items, []);
+});
+
+Deno.test("LA GARDE DE PROMPT couvre aussi le magasin structuré", () => {
+  // Le magasin porte des `member:<uuid>`, des id de `memory_items` et des
+  // `confidence`: illisibles pour un modèle, coûteux en budget, et derrière ce
+  // budget il y a la doctrine du coach. Le lot 1C construit la consigne à
+  // partir des mêmes items — servir le jsonb brut EN PLUS ferait doublon.
+  const c = withRetainedItems({ cook_days: ["mon"] }, [
+    retained({ subject: `member:${ZOE}`, text: "pas de rochers coco" }),
+  ]);
+  const forPrompt = constraintsForPrompt(c);
+  assertEquals(forPrompt[RETAINED_ITEMS_KEY], undefined);
+  assert(!JSON.stringify(forPrompt).includes(ZOE));
+  // LE CAS QUI PASSE: le reste de la colonne arrive intact au modèle.
+  assertEquals(forPrompt.cook_days, ["mon"]);
+});
+
+Deno.test("écrire une liste VIDE efface le magasin, sans toucher au reste", () => {
+  const c = withRetainedItems({ cook_days: ["mon"] }, [retained()]);
+  const cleared = withRetainedItems(c, []);
+  assertEquals(cleared[RETAINED_ITEMS_KEY], []);
+  assertEquals(retainedItemsFrom(cleared).items, []);
+  assertEquals(cleared.cook_days, ["mon"]);
+});
+
+// ===========================================================================
+// LES BRETELLES — les gardes qu'on pouvait couper sans un seul rouge
+// ===========================================================================
+//
+// Le vérificateur du lot 1A a joué 21 mutations sur ce module: SIX gardes se
+// coupaient en laissant les 86 tests VERTS (contrat de phase 0, §7.4). Une
+// garde qu'aucune mutation ne fait rougir n'est pas une garde, c'est un
+// commentaire — et deux de celles-ci étaient justement documentées comme « pas
+// cosmétiques » dans le module.
+//
+// Chaque test ci-dessous est nommé par LA MUTATION qu'il fait tomber, et porte
+// son cas qui PASSE: une garde sans cas passant est une garde cassée qui
+// ressemble à une garde qui marche.
+
+Deno.test("B3 — LE NOM STOCKÉ est `retained_items`, épinglé à son littéral", () => {
+  // ⚠️ CETTE CLÉ EST DÉCLARÉE DEUX FOIS, DANS DEUX LANGAGES, ET RIEN NE RELIE
+  // LES DEUX. Ici `RETAINED_ITEMS_KEY`; et EN DUR dans le port d'écriture du
+  // lot 1D (`20260818240000_a_write_port_for_what_sophia_knows.sql`):
+  //   `jsonb_set(coalesce(sg.practical_constraints, '{}'), '{retained_items}', p_items, true)`
+  // ainsi que dans le `where` de concurrence optimiste de la même RPC
+  // (`sg.practical_constraints -> 'retained_items'`).
+  //
+  // Tous les autres tests de ce fichier IMPORTENT la constante et s'en servent
+  // comme clé: ils vérifient la cohérence du module AVEC LUI-MÊME. Renommer la
+  // constante les laissait donc tous verts pendant que la RPC continuait
+  // d'écrire dans `retained_items` — une clé que plus personne ne lisait, et un
+  // magasin qui a l'air vide. Le littéral s'épingle ici, une fois.
+  assertEquals(RETAINED_ITEMS_KEY, "retained_items");
+});
+
+Deno.test("B3 — l'ALLER-RETOUR passe par le LITTÉRAL, jamais par la constante", () => {
+  // L'épinglage ci-dessus dit le NOM; celui-ci dit que l'écriture et la lecture
+  // atterrissent bien dessus. La clé est tapée en dur des deux côtés, dans la
+  // forme exacte sous laquelle la base la connaît.
+  const item = retained({ text: "pas de rochers coco" });
+
+  const stored = withRetainedItems({ cook_days: ["mon"] }, [item]);
+  assert(
+    Array.isArray(stored["retained_items"]),
+    "l'écriture n'a pas atterri sur `retained_items`",
+  );
+  assertEquals((stored["retained_items"] as unknown[]).length, 1);
+
+  // …et la lecture, sur un jsonb dont la clé n'a JAMAIS touché la constante:
+  // c'est exactement la forme que la RPC de 1D dépose dans la colonne.
+  const fromSql = { "retained_items": stored["retained_items"] };
+  assertEquals(readRetainedItems(fromSql).items, [item]);
+  assertEquals(readRetainedItems(fromSql).refused.total, 0);
+});
+
+Deno.test("B4 — un SCALAIRE ou un `null` dans le magasin ne fait pas tomber la lecture", () => {
+  // `[null, 42, "texte", {…}]` est un jsonb PARFAITEMENT LÉGAL: la colonne n'a
+  // aucun schéma, et une écriture SQL directe, une migration, ou un producteur
+  // d'une version antérieure peut y déposer n'importe quoi. Le socle encaisse
+  // (`asRecord` rend `null`), mais la SECONDE passe de `readRetainedItems` —
+  // celle qui compte les refus — déréférence `entry.kind`: sans sa garde de
+  // non-objet, elle lève un TypeError sur `null`, et c'est la carte ENTIÈRE qui
+  // tombe, pas la seule ligne fautive. Aucun test ne mettait autre chose qu'un
+  // objet dans ce tableau.
+  const good = retained({ text: "les rochers coco" });
+  const store = {
+    [RETAINED_ITEMS_KEY]: [
+      null,
+      42,
+      "texte",
+      ...(withRetainedItems({}, [good])[RETAINED_ITEMS_KEY] as unknown[]),
+    ],
+  };
+
+  // Si la garde saute, l'appel qui suit JETTE — et le test rougit là.
+  const out = readRetainedItems(store);
+
+  // LE CAS QUI PASSE: la ligne lisible remonte, elle n'est pas emportée.
+  assertEquals(out.items, [good]);
+  // ⚠️ ET LES TROIS AUTRES SE COMPTENT. À zéro, un magasin à moitié illisible
+  // ressemblerait à un magasin à moitié vide.
+  assertEquals(out.refused, {
+    total: 3,
+    forbiddenProducer: 0,
+    malformed: 3,
+    notDurable: 0,
+  });
+});
+
+Deno.test("B1 — une ligne BLANCHE gardée ne devient pas une case vide", () => {
+  // `food_preferences` est un jsonb: une chaîne vide y est possible, et le
+  // module l'écrit lui-même noir sur blanc — « une ligne blanche gardée
+  // s'affiche comme une case vide dans la carte ». C'était une PROPRIÉTÉ
+  // DOCUMENTÉE ET ARMÉE PAR RIEN: `filter(Boolean)` se coupait sans un rouge.
+  //
+  // ⚠️ CE TEST NE VISE QUE `filter(Boolean)`. Les entrées sont vides SANS
+  // espaces: retirer `trim()` ne les rend pas visibles pour autant, donc ce
+  // rouge-ci ne peut venir que de la disparition du filtre. Voir B2 pour l'autre
+  // moitié — deux mutations qui tombent ensemble n'arment qu'une seule garde.
+  const store = { [FOOD_PREFERENCES_KEY]: ["", null, "Pas de brocoli"] };
+  // La carte (lot 1D) lit les phrases plates par ici…
+  assertEquals(retainedItemsFrom(store).legacyNotes, ["Pas de brocoli"]);
+  // …et le prompt du plan de semaine par là.
+  assertEquals(foodPreferencesForPrompt(store), ["Pas de brocoli"]);
+});
+
+Deno.test("B2 — une ligne gardée arrive TRIMÉE, des deux côtés", () => {
+  // L'autre moitié de la même ligne de code. Une phrase entourée d'espaces est
+  // VISIBLE (elle passe `Boolean`), donc `filter(Boolean)` ne la rattrape pas:
+  // seul `trim()` la nettoie. Sans lui, la carte affiche une ligne décalée, et
+  // surtout le texte ne retrouve plus son entrée d'origine — les origines sont
+  // indexées par `text.toLowerCase()`, sans espaces, donc la ligne perdrait sa
+  // date et son lien au souvenir en silence.
+  //
+  // ⚠️ CE TEST NE VISE QUE `trim()`: sans `filter(Boolean)`, il reste vert.
+  const store = { [FOOD_PREFERENCES_KEY]: ["  Pas de brocoli  "] };
+  assertEquals(retainedItemsFrom(store).legacyNotes, ["Pas de brocoli"]);
+  assertEquals(foodPreferencesForPrompt(store), ["Pas de brocoli"]);
+});
+
+Deno.test("B5 — `constraintsForPrompt` NE MUTE PAS le jsonb qu'on lui donne", () => {
+  // C'est le SEUL point de passage du dépôt entre `practical_constraints` et un
+  // prompt, et il travaille par `delete`. Appliqués à l'entrée plutôt qu'à une
+  // copie, ces QUATRE `delete` ne feraient pas que nettoyer une vue: chez son
+  // appelant (`generate-week-plan-v1/index.ts:714`, qui tient `goalRow
+  // .practical_constraints` et le persiste), ils EFFACERAIENT de la colonne de
+  // la personne sa table d'origines — donc la réconciliation, définitivement,
+  // puisque le lien texte→souvenir ne se reconstruit pas — et son magasin
+  // structuré. Le module est correct aujourd'hui; rien ne le verrouillait.
+  const before: Record<string, unknown> = {
+    cook_days: ["mon"],
+    [FOOD_PREFERENCES_KEY]: ["Pas de brocoli"],
+    [FOOD_PREFERENCES_DISMISSED_KEY]: [MEMORY_ITEM],
+    [FOOD_PREFERENCES_ORIGIN_KEY]: {
+      "pas de brocoli": { item: MEMORY_ITEM, at: "2026-08-01", source: "memory" },
+    },
+    [RETAINED_ITEMS_KEY]: withRetainedItems({}, [retained()])[RETAINED_ITEMS_KEY],
+    // PROFONDÉMENT IMBRIQUÉ, parce que c'est la forme réelle de cette colonne:
+    // `eating_rhythm` et la capacité de cuisine y rangent des sous-objets, et
+    // c'est ce qu'un appelant relit après coup en croyant l'avoir gardé intact.
+    eating_rhythm: {
+      weekday: { lunch: { present: true, notes: ["au bureau", "20 min"] } },
+    },
+  };
+  const snapshot = JSON.parse(JSON.stringify(before));
+
+  const forPrompt = constraintsForPrompt(before);
+
+  // LE CAS QUI PASSE: la vue servie au modèle est bien nettoyée…
+  assertEquals(forPrompt[FOOD_PREFERENCES_DISMISSED_KEY], undefined);
+  assertEquals(forPrompt[FOOD_PREFERENCES_ORIGIN_KEY], undefined);
+  assertEquals(forPrompt[RETAINED_ITEMS_KEY], undefined);
+  // …la vue DATÉE arrive bien au modèle — et cette ligne-là mord deux fois: si
+  // le `delete` de la table d'origines tapait dans l'entrée, il l'aurait retirée
+  // AVANT que `foodPreferencesForPrompt` ne la lise, et la date disparaîtrait.
+  assertEquals(forPrompt[FOOD_PREFERENCES_KEY], ["2026-08-01 — Pas de brocoli"]);
+  // …et l'ENTRÉE est intacte, jusque dans ses sous-objets.
+  assert(forPrompt !== before, "la vue de prompt EST l'entrée");
+  assertEquals(before, snapshot);
+});
+
+Deno.test("B6 — `retainedItemsFrom` rend EXACTEMENT les deux clés du contrat", () => {
+  // La signature est FIGÉE par le contrat de phase 0 (§6) et trois lots écrivent
+  // contre elle. `readRetainedItems`, dont ceci est l'enrobage, en rend une
+  // TROISIÈME (`refused`) — et `return readRetainedItems(constraints)`
+  // compilerait sans un mot: le contrôle de propriétés excédentaires de
+  // TypeScript ne mord que sur un littéral d'objet, jamais sur une variable
+  // déjà typée. L'enrobage doit donc DÉSTRUCTURER, et c'est la seule partie du
+  // §6 qu'aucun compilateur ne dit à sa place.
+  const out = retainedItemsFrom(withRetainedItems({}, [retained()]));
+  assertEquals(Object.keys(out).sort(), ["items", "legacyNotes"]);
+  // LE CAS QUI PASSE: les deux clés portent bien ce qu'elles annoncent.
+  assertEquals(out.items.length, 1);
+  assertEquals(out.legacyNotes, []);
+});
+
+// ===========================================================================
+// LA FUITE DU MAGASIN PROVISOIRE — mesurée, fermée, et gardée
+// ===========================================================================
+//
+// CE QUI EST SORTI, ET COMMENT. `constraintsForPrompt` retirait trois clés et
+// pas la quatrième: la chaîne `retained_next_plan` n'apparaissait pas une seule
+// fois dans le module. Or le §7.2 du contrat a déménagé le magasin PROVISOIRE
+// dans cette même colonne, et `week_plan_generation.ts:560` sérialise
+// `args.situation.practicalConstraints` EN ENTIER. Sonde du vérificateur, sur
+// la lane `generate-week-plan-v1`:
+//
+//     clés servies au prompt : cook_days, retained_next_plan
+//     uuid du souvenir fuite : true
+//     confidence fuite       : true
+//
+// Le commentaire au-dessus de la fonction, lui, disait que la clé n'était « pas
+// câblée » et qu'« aucune ligne en base ne porte encore cette clé ». C'était
+// vrai à l'écriture. Une contrainte documentée survit à sa cause: le
+// commentaire tenait tout seul, la garde non.
+
+Deno.test("B7 — LE MAGASIN PROVISOIRE NE PART PAS AU MODÈLE: cinq champs, nommés", () => {
+  // ⚠️ LA CLÉ EST TAPÉE EN DUR, JAMAIS `NEXT_PLAN_ITEMS_KEY`. C'est la leçon
+  // B3, dans l'autre sens: si ce test construisait sa fixture avec la
+  // constante, renommer la constante changerait la clé de la fixture EN MÊME
+  // TEMPS que celle du `delete`, et le test resterait vert pendant que la
+  // colonne réelle — écrite par le port SQL du lot 1D et par son miroir front —
+  // continuerait de porter `retained_next_plan`, servie brute au modèle.
+  const MEMORY = "9f2c1b7e-0000-4000-8000-00000000fa11";
+  const cravingJson: Record<string, unknown> = {
+    kind: "craving",
+    scope: "next_plan",
+    subject: `member:${ZOE}`,
+    text: "des fajitas la semaine prochaine",
+    value: null,
+    source: "conversation",
+    at: "2026-08-18",
+    item: MEMORY,
+    confidence: 0.82,
+  };
+
+  // LE DÉCOR EST VÉRIFIÉ AVANT DE SERVIR. Une fixture que le socle refuse
+  // n'est portée par aucune colonne réelle: ce test protégerait alors une forme
+  // que personne n'écrit, et il serait vert pour rien.
+  const parsedCraving = parseRetainedItem(cravingJson);
+  assert(parsedCraving !== null, "la fixture n'est pas un `RetainedItem` lisible");
+  assertEquals(parsedCraving.scope, "next_plan");
+
+  const stored: Record<string, unknown> = {
+    cook_days: ["mon"],
+    [FOOD_PREFERENCES_KEY]: ["Pas de brocoli"],
+    "retained_next_plan": [{ item: cravingJson, anchor: "2026-08-24" }],
+  };
+
+  const forPrompt = constraintsForPrompt(stored);
+  const served = JSON.stringify(forPrompt);
+
+  // ⚠️ ON N'ASSERTE PAS SEULEMENT L'ABSENCE DE LA CLÉ. Un jour où quelqu'un
+  // remplacerait le `delete` par une projection partielle, la clé pourrait
+  // disparaître pendant qu'un de ces cinq champs resterait ailleurs. Chacun est
+  // donc cherché DANS LE TEXTE SÉRIALISÉ, celui-là même que le prompt reçoit.
+  assert(!served.includes(MEMORY), "l'uuid du souvenir d'origine part au modèle");
+  assert(!served.includes("0.82"), "la `confidence` part au modèle");
+  assert(!served.includes("conversation"), "la `source` part au modèle");
+  assert(!served.includes(ZOE), "le `subject` (une bouche) part au modèle");
+  assert(!served.includes("2026-08-24"), "l'`anchor` de semaine part au modèle");
+  // L'enveloppe entière part, donc le `text` aussi. Il n'est pas dans les cinq:
+  // ce n'est pas de la comptabilité interne, c'est la phrase de la personne — et
+  // sa route vers le modèle est la consigne que le lot 1C construit, pas ce
+  // jsonb brut (« deux lectures d'une même structure divergent »).
+  assert(!served.includes("fajitas"));
+  assert(
+    !Object.hasOwn(forPrompt, "retained_next_plan"),
+    "la clé du magasin provisoire est servie au modèle",
+  );
+
+  // LE CAS QUI PASSE: le reste de la colonne arrive intact, et la vue datée des
+  // préférences est toujours construite.
+  assertEquals(forPrompt.cook_days, ["mon"]);
+  assertEquals(forPrompt[FOOD_PREFERENCES_KEY], ["Pas de brocoli"]);
+});
+
+// ---------------------------------------------------------------------------
+// L'INVENTAIRE — la garde GÉNÉRIQUE, et pourquoi elle est un test
+// ---------------------------------------------------------------------------
+//
+// Le vrai défaut n'est pas qu'une clé a été oubliée: c'est que
+// `constraintsForPrompt` travaille par LISTE NOIRE, donc que toute clé neuve
+// est servie par défaut. L'arbitrage (écrit au-dessus de la fonction) est de
+// GARDER la liste noire — une liste blanche vivant dans ce module devrait
+// énumérer des clés qu'il ne possède pas (`cook_days`, `away_days`,
+// `eating_rhythm`, `fixed_intakes`…), et en oublier une n'aurait rien fait
+// fuiter: ça aurait EFFACÉ du prompt une consigne réelle, en silence.
+//
+// La cause se ferme donc ici, par un test qui relit le DISQUE. Toute clé de
+// `practical_constraints` déclarée quelque part dans `_shared/keel/` doit être
+// rangée dans l'un des trois seaux ci-dessous, et « retirée » n'est pas une
+// étiquette: une clé classée `HIDDEN` n'est verte que si le filtre la retire
+// pour de bon.
+//
+// ⚠️ LA BORNE DU SCAN, NOMMÉE: il ne lit que `_shared/keel/`, et il ne
+// reconnaît une clé qu'à la forme `export const …_KEY = "…"` dans un fichier
+// qui parle de `practical_constraints`. Une clé déclarée ailleurs, ou en
+// littéral nu, lui échappe. C'est la convention du dépôt (les six clés
+// d'aujourd'hui la respectent toutes), pas une preuve.
+
+const KEEL_DIR = new URL(".", import.meta.url);
+
+interface ConstraintKeyOnDisk {
+  file: string;
+  name: string;
+  literal: string;
+}
+
+async function constraintKeysOnDisk(): Promise<ConstraintKeyOnDisk[]> {
+  const out: ConstraintKeyOnDisk[] = [];
+  const declaration = /^export const ([A-Z0-9_]+_KEY)\s*=\s*"([a-z0-9_]+)"/;
+  for await (const entry of Deno.readDir(KEEL_DIR)) {
+    if (!entry.isFile || !entry.name.endsWith(".ts")) continue;
+    if (entry.name.endsWith("_test.ts")) continue;
+    const src = await Deno.readTextFile(new URL(entry.name, KEEL_DIR));
+    if (!src.includes("practical_constraints")) continue;
+    for (const line of src.split("\n")) {
+      const m = declaration.exec(line);
+      if (m) out.push({ file: entry.name, name: m[1], literal: m[2] });
+    }
+  }
+  return out;
+}
+
+Deno.test("B8 — TOUTE CLÉ DE `practical_constraints` EST CLASSÉE, servie ou retirée", async () => {
+  // ⚠️ LES DEUX LISTES SONT DES LITTÉRAUX. Les écrire avec les constantes du
+  // module ferait un test paramétré par ce qu'il mesure: renommer une valeur le
+  // laisserait vert.
+  //
+  // SERVIE = le modèle la voit, et c'est voulu.
+  const SERVED = ["food_preferences", "kitchen_equipment"];
+  // RETIRÉE = comptabilité interne ou magasin structuré. Le lot 1C construit
+  // les consignes à partir de ces items; servir le jsonb brut EN PLUS ferait
+  // doublon, dans deux formes différentes, à l'intérieur d'un prompt qui a un
+  // budget — et derrière ce budget il y a la doctrine du coach.
+  const HIDDEN = [
+    "food_preferences_dismissed",
+    "food_preferences_origin",
+    "retained_items",
+    "retained_next_plan",
+  ];
+  // ⚠️ LA SOUPAPE, ET ELLE EST VIDE AUJOURD'HUI. Un `…_KEY` capté par le scan
+  // qui ne désigne PAS une clé de `practical_constraints` se range ici, avec son
+  // motif. La remplir pour faire taire une vraie clé de la colonne serait
+  // exactement le geste que ce test existe pour rendre visible.
+  const NOT_A_CONSTRAINT_KEY: string[] = [];
+
+  const found = await constraintKeysOnDisk();
+  const literals = [...new Set(found.map((f) => f.literal))].sort();
+
+  // ① LE SCAN LUI-MÊME EST ÉPINGLÉ. Sans cette boucle, une reformulation de
+  // commentaire ou un renommage de constante ferait TOMBER une clé hors du scan
+  // — et le test resterait vert en ne mesurant plus rien. Une garde qui se coupe
+  // sans un rouge n'est pas une garde.
+  for (const known of [...SERVED, ...HIDDEN].sort()) {
+    assert(
+      literals.includes(known),
+      `le scan ne trouve plus \`${known}\` sur le disque: il a cessé de ` +
+        `mesurer quelque chose. Trouvées: ${literals.join(", ")}`,
+    );
+  }
+
+  // ② TOUTE CLÉ TROUVÉE EST CLASSÉE. C'est CE rouge-ci que le prochain lot qui
+  // pose une clé dans `practical_constraints` doit rencontrer.
+  const unclassified = literals.filter((l) =>
+    !SERVED.includes(l) && !HIDDEN.includes(l) &&
+    !NOT_A_CONSTRAINT_KEY.includes(l)
+  );
+  assertEquals(
+    unclassified,
+    [],
+    "une clé de `practical_constraints` n'est ni servie ni retirée: dis " +
+      "laquelle des deux elle est, dans `constraintsForPrompt` et ici. Tout " +
+      "ce que ce jsonb porte part au modèle sur la lane du plan de semaine.",
+  );
+
+  // ③ « RETIRÉE » N'EST PAS UNE ÉTIQUETTE. Classer une clé sans ajouter son
+  // `delete` laisserait ce fichier cohérent avec lui-même et la clé dans le
+  // prompt: le filtre est donc interrogé, clé par clé.
+  for (const key of HIDDEN) {
+    const out = constraintsForPrompt({ cook_days: ["mon"], [key]: [`sentinelle-${key}`] });
+    assert(!Object.hasOwn(out, key), `\`${key}\` est classée retirée et reste servie`);
+    assert(
+      !JSON.stringify(out).includes(`sentinelle-${key}`),
+      `le contenu de \`${key}\` ressort ailleurs dans la vue de prompt`,
+    );
+    // LE CAS QUI PASSE, à chaque tour: le filtre n'emporte pas le voisinage.
+    assertEquals(out.cook_days, ["mon"]);
+  }
+
+  // ④ LE CAS QUI PASSE, EN FACE: une clé « servie » arrive bien au modèle. Sans
+  // lui, un `constraintsForPrompt` qui rendrait `{}` passerait ③ à la
+  // perfection — une garde qui coupe tout est indiscernable d'une garde qui
+  // marche.
+  for (const key of SERVED) {
+    const out = constraintsForPrompt({ [key]: [`sentinelle-${key}`] });
+    assert(
+      JSON.stringify(out).includes(`sentinelle-${key}`),
+      `\`${key}\` est classée servie et n'atteint pas le modèle`,
+    );
+  }
 });

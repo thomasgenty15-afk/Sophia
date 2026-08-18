@@ -631,6 +631,7 @@ const PROMPT_ARGS = {
   firstDayCookable: true,
   contentLocale: "en-US",
   budgetAmount: null,
+  dietBlock: "",
   doctrineBlock: "== MARC'S METHOD ==",
   coachNoteBlock: null,
   fixedIntakes: [],

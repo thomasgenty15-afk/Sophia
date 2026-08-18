@@ -1,0 +1,104 @@
+{
+  "created": [
+    "c96ab821-e3c2-47b9-8c54-3a08272eb9db",
+    "90618d55-2a29-4423-8207-edf93b148759",
+    "8f93a6c8-0ba9-4426-b73d-40322e79bf98",
+    "4229e289-e1a0-445f-a124-d5529788f306"
+  ],
+  "results": [
+    {
+      "id": "B1 poids negatif",
+      "verdict": "GREEN",
+      "detail": "throw: [keel/restriction_guard] weekly_outcomes[0].weight_7d_avg_kg = -70 is outside the plausible range [20, 500] kg (unit bug? storage is SI kg)",
+      "proof": "[keel/restriction_guard] weekly_outcomes[0].weight_7d_avg_kg = -70 is outside the plausible range [20, 500] kg (unit bug? storage is SI kg)"
+    },
+    {
+      "id": "B2 livres etiquetees kg (170 = 77 kg reels)",
+      "verdict": "RED",
+      "detail": "AUCUN throw — flag=false codes=[] (une garde qui declare « safe » sur une donnee cassee)",
+      "proof": {
+        "guard_version": "restriction_guard.v1",
+        "restriction_flag": false,
+        "triggers": [],
+        "evaluated_for_date": "2026-08-08"
+      }
+    },
+    {
+      "id": "B2-bis serie MIXTE lb/kg",
+      "verdict": "RED",
+      "detail": "AUCUN throw — flag=true weekly_loss_pct=27.65 (un faux positif fabrique par un bug d'unite, exactement ce que l'en-tete du module dit empecher)",
+      "proof": {
+        "window_start_week": "2026-07-20",
+        "window_end_week": "2026-08-03",
+        "window_days": 14,
+        "weekly_loss_pct": 27.65,
+        "threshold_weekly_loss_pct": 1.2
+      }
+    },
+    {
+      "id": "B3 poids zero",
+      "verdict": "GREEN",
+      "detail": "throw: [keel/restriction_guard] weekly_outcomes[0].weight_7d_avg_kg = 0 is outside the plausible range [20, 500] kg (unit bug? storage is SI kg)",
+      "proof": "[keel/restriction_guard] weekly_outcomes[0].weight_7d_avg_kg = 0 is outside the plausible range [20, 500] kg (unit bug? storage is SI kg)"
+    },
+    {
+      "id": "B4 logging_coverage = 3 (deux echelles)",
+      "verdict": "GREEN",
+      "detail": "throw: [keel/restriction_runtime] weekly_reviews.logging_coverage = 3 is outside [0, 1] — it is a coverage FRACTION, and a value outside that range means two scales di",
+      "proof": "[keel/restriction_runtime] weekly_reviews.logging_coverage = 3 is outside [0, 1] — it is a coverage FRACTION, and a value outside that range means two scales disagree (SCHEMA: coverage_C = min(1, ...))"
+    },
+    {
+      "id": "B5 serie non hebdomadaire",
+      "verdict": "GREEN",
+      "detail": "throw: [keel/restriction_guard] weekly_outcomes is not a weekly series: 3 days between 2026-08-03 and 2026-08-06",
+      "proof": "[keel/restriction_guard] weekly_outcomes is not a weekly series: 3 days between 2026-08-03 and 2026-08-06"
+    },
+    {
+      "id": "B6 doublon de semaine dedupe (le plus recent gagne)",
+      "verdict": "GREEN",
+      "detail": "flag=true weekly_loss_pct=3.75 (3.75 = la ligne la plus recente a gagne, 2.5 = l'ancienne)",
+      "proof": [
+        {
+          "code": "rapid_weight_loss",
+          "evidence": {
+            "window_start_week": "2026-07-20",
+            "window_end_week": "2026-08-03",
+            "window_days": 14,
+            "weekly_loss_pct": 3.75,
+            "threshold_weekly_loss_pct": 1.2
+          }
+        }
+      ]
+    },
+    {
+      "id": "B7-schema content_locale NOT NULL (le cas NULL est impossible en prod)",
+      "verdict": "GREEN",
+      "detail": "is_nullable\nNO",
+      "proof": null
+    },
+    {
+      "id": "B7 prose avec content_locale vide (R2)",
+      "verdict": "GREEN",
+      "detail": "throw: [keel/restriction_runtime] protocol_events.student_note without content_locale (R2) — refusing to scan prose whose language would have to be guessed",
+      "proof": "[keel/restriction_runtime] protocol_events.student_note without content_locale (R2) — refusing to scan prose whose language would have to be guessed"
+    },
+    {
+      "id": "B8-temoin sans corruption: la lane clinique s'ouvre",
+      "verdict": "GREEN",
+      "detail": "route_owner=disordered_eating_guard reply=\"The progress figures and check-in reminders are paused on your side. It is not a penalty, and you have not don\"",
+      "proof": "The progress figures and check-in reminders are paused on your side. It is not a penalty, and you have not done anything wrong. A human coach is here. How are you doing right now?"
+    },
+    {
+      "id": "B8 une ligne cassee AVEUGLE le plancher sur le tour reel (H1)",
+      "verdict": "RED",
+      "detail": "route_owner=normal_reply (attendu disordered_eating_guard) reply=\"Skipping breakfast to “make up” for last night usually pushes the swing harder, not steadier. If you’re trying to balance things out, a norm\"",
+      "proof": "Skipping breakfast to “make up” for last night usually pushes the swing harder, not steadier. If you’re trying to balance things out, a normal breakfast or at least something with protein and fiber is the cleaner move."
+    },
+    {
+      "id": "B8-preuve base: aucune escalade coach ecrite pendant l'aveuglement",
+      "verdict": "INFO",
+      "detail": "reason_code|urgency|status\nrestriction_signal|immediate|open",
+      "proof": null
+    }
+  ]
+}

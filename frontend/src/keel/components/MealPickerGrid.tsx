@@ -1,6 +1,5 @@
 import React from "react";
 
-import type { AwayDay } from "../api/mealGeneration";
 import {
   type EatingOccasion,
   type EatingOccasionSlot,
@@ -76,16 +75,39 @@ export interface MealPickerGridProps {
   /** Les moments d'une journée normale — les lignes de la grille. */
   rhythm: readonly EatingOccasionSlot[];
   /**
-   * Ce qui est déjà écarté, toutes semaines confondues.
+   * Ce qui est déjà écarté, toutes semaines confondues — AVEC SON SENS.
    *
-   * ⚠️ LES ENTRÉES PEUVENT PORTER `kind` (ce sont alors des `AwayMark`), et le
-   * type ne bouge pas: une marque EST une absence. Un appelant qui lit la
-   * colonne avec `parseAwayMarks` fait apparaître « dehors » sans changer une
-   * signature; un appelant qui passe des absences nues voit l'écran d'hier.
+   * ═════════════════════════════════════════════════════════════════════════
+   * ⛔ `AwayMark` ET PLUS `AwayDay`, ET CE RESSERREMENT EST LA RÉPARATION DU
+   * DÉFAUT P1 (L6, 2026-08-18). C'EST LE TYPE QUI TIENT LA GARDE, PAS UN
+   * COMMENTAIRE.
+   * ═════════════════════════════════════════════════════════════════════════
+   *
+   * La version d'hier acceptait `readonly AwayDay[]` « parce qu'une marque EST
+   * une absence ». C'était vrai du type et faux de la vie: les QUATRE points de
+   * montage lisaient la colonne avec `parseAwayDays`, qui ne garde que `day` et
+   * `slots`. Le jeton n'arrivait donc jamais ici, `marks` était tout entier
+   * `away`, et `mergeAwayMarks` réécrivait `kind: "away"` PAR-DESSUS. Mesuré au
+   * navigateur (L3-B): cinq midis « dehors » posés par la réponse hebdomadaire,
+   * effacés en OUVRANT puis ENREGISTRANT la grille SANS toucher une case,
+   * pendant que `work_lunch` continuait de dire `outside`.
+   *
+   * Un type large a laissé passer exactement ce qu'un commentaire promettait
+   * d'empêcher. Le resserrer fait échouer la COMPILATION du point de montage qui
+   * lirait de nouveau sans le jeton — c'est-à-dire qu'il rend impossible de
+   * n'en réparer que trois sur quatre.
    */
-  away: readonly AwayDay[];
-  /** Reçoit la liste COMPLÈTE à écrire, fusion comprise. */
-  onSave: (next: AwayDay[]) => void | Promise<void>;
+  away: readonly AwayMark[];
+  /**
+   * Reçoit la liste COMPLÈTE à écrire, fusion comprise — JETONS COMPRIS.
+   *
+   * ⚠️ LE PARAMÈTRE EST `AwayMark[]` MÊME SANS `onSaveMarks`. Un écran à deux
+   * états ne PROPOSE pas « dehors », il n'a pas pour autant le droit de
+   * l'effacer: ce qui arrive marqué repart marqué. Un écrivain typé `AwayDay[]`
+   * reste accepté (il en lira moins), mais il ne peut plus rien reconstruire à
+   * partir d'un tableau dont le jeton n'existerait pas.
+   */
+  onSave: (next: AwayMark[]) => void | Promise<void>;
   /**
    * LA PORTE DU TROIS-ÉTATS. Fournie, elle remplace `onSave` et reçoit la
    * liste complète AVEC les jetons.
@@ -190,27 +212,23 @@ export default function MealPickerGrid(props: MealPickerGridProps) {
       existing: marks,
       cells: state,
     });
-    // `onSave` REÇOIT AUSSI LES JETONS — mais SEULEMENT CEUX QU'ON LUI A
-    // DONNÉS, et c'est là que la garde s'arrête.
+    // `onSave` REÇOIT AUSSI LES JETONS — et depuis L6 (2026-08-18) ils
+    // ARRIVENT VRAIMENT JUSQU'ICI.
     //
-    // ⛔ MESURÉ AU NAVIGATEUR LE 2026-08-18 (L3-B), ET CE N'EST PAS THÉORIQUE.
-    // Les trois écrans qui montent cette grille lisent la colonne avec
-    // `parseAwayDays` (`api/household.ts:awayFrom` pour `/app/household` et
-    // `MealBuilder`, `StudentWeekPlanPage` pour la lane élève) — et
-    // `parseAwayDays` NE GARDE QUE `day` ET `slots`. Le jeton n'arrive donc
-    // jamais jusqu'ici: `marks` est tout entier `away`, et `mergeAwayMarks`
-    // réécrit `kind: "away"` PAR-DESSUS. Cinq midis « dehors » posés par la
-    // réponse hebdomadaire ont été effacés en OUVRANT puis ENREGISTRANT la
-    // grille du foyer, SANS toucher une seule case, pendant que
-    // `work_lunch` continuait de dire `outside`.
+    // ⛔ CE QUI ÉTAIT CASSÉ, MESURÉ AU NAVIGATEUR (L3-B). Les quatre écrans qui
+    // montent cette grille lisaient la colonne avec `parseAwayDays`, qui ne
+    // garde que `day` et `slots`. `marks` était donc tout entier `away`, et
+    // `mergeAwayMarks` réécrivait `kind: "away"` PAR-DESSUS: cinq midis
+    // « dehors » posés par la réponse hebdomadaire disparaissaient en OUVRANT
+    // puis ENREGISTRANT la grille du foyer, SANS toucher une seule case,
+    // pendant que `work_lunch` continuait de dire `outside`. La base se
+    // contredisait elle-même, et rien ne disait pourquoi.
     //
-    // ⚠️ CE N'EST PAS UNE RÉGRESSION AUJOURD'HUI, parce que rien n'écrit encore
-    // de « dehors »: aucun écran n'appelle `setMemberWorkLunch`, ni ne passe
-    // `onSaveMarks`. ÇA LE DEVIENT AU MOMENT PRÉCIS OÙ L6 BRANCHE LE
-    // FORMULAIRE. La réparation est chez l'APPELANT, pas ici — il n'y a rien à
-    // préserver dans un tableau dont le jeton a déjà été retiré: il faut lui
-    // donner `parseAwayMarks(raw, "household")` au lieu de `awayFrom(raw,
-    // "household")`, sur LES TROIS points de montage à la fois.
+    // ⚠️ LA RÉPARATION EST CHEZ L'APPELANT, ET ELLE EST TENUE PAR LE TYPE (voir
+    // `MealPickerGridProps.away`). Les quatre lisent maintenant avec
+    // `parseAwayMarks`; un cinquième qui lirait sans le jeton NE COMPILE PLUS.
+    // C'est ce qui rend impossible d'en réparer trois sur quatre — un seul
+    // écran resté en arrière écrase ce que les trois autres viennent d'écrire.
     void (props.onSaveMarks ? props.onSaveMarks(next) : props.onSave(next));
   }
 

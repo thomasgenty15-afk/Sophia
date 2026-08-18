@@ -292,9 +292,10 @@ Deno.test("LES COMPTEURS COMPTENT DES LIGNES, PAS DES MOTIFS NI DES `issues`", (
   assertEquals(counts.linesUsed, 3, "ce que le modèle a vu");
   assertEquals(counts.linesWithheld, 1, "1 LIGNE retenue, pas 4 motifs");
   assertEquals(counts.linesOverCap, 2, "2 LIGNES tombées, pas 1 `issue`");
+  assertEquals(counts.linesTooLong, 0, "aucune ligne n'est impubliable ici");
   assertEquals(counts.perMember, [
-    { memberId: "m-a", in: 4, used: 2, withheld: 0, over_cap: 2 },
-    { memberId: "m-b", in: 2, used: 1, withheld: 1, over_cap: 0 },
+    { memberId: "m-a", in: 4, used: 2, withheld: 0, over_cap: 2, too_long: 0 },
+    { memberId: "m-b", in: 2, used: 1, withheld: 1, over_cap: 0, too_long: 0 },
   ]);
   // LES `issues` RESTENT LA TRACE NOMMÉE, et leurs comptes ne coïncident PAS
   // avec ceux des lignes — c'est exactement pour ça que les dériver mentait.
@@ -311,7 +312,7 @@ Deno.test("UN MEMBRE DONT TOUT EST TOMBÉ FIGURE DANS LES COMPTES — `heard` ne
   ]);
   assertEquals(heard.length, 0);
   assertEquals(counts.perMember, [
-    { memberId: "m-a", in: 1, used: 0, withheld: 1, over_cap: 0 },
+    { memberId: "m-a", in: 1, used: 0, withheld: 1, over_cap: 0, too_long: 0 },
   ]);
   assertEquals(counts.linesIn, 1);
   assertEquals(counts.linesUsed, 0);
@@ -446,12 +447,18 @@ Deno.test("LE PLAFOND COUPE, ET IL S'ARRÊTE — il ne repêche pas une ligne pl
     "la ligne la PLUS ANCIENNE a survécu au plafond parce qu'elle est la plus " +
       "courte — exactement le défaut mesuré sur un plan réel.",
   );
+  // ⚠️ `too_long: 0` EST LA MOITIÉ QUI COMPTE ICI. Ces huit lignes tiennent
+  // TOUTES sous le plafond prises une par une (26 tokens contre 150): rien
+  // n'est sauté, tout est arrêté. C'est ce qui sépare ce test du suivant, et ce
+  // qui prouve que le saut des lignes impubliables n'a pas rouvert le
+  // `continue` refusé.
   assertEquals(counts.perMember, [{
     memberId: "m-x",
     in: 8,
     used: 5,
     withheld: 0,
     over_cap: 3,
+    too_long: 0,
   }]);
 });
 
@@ -481,36 +488,144 @@ Deno.test("LE PLAFOND EST PAR MEMBRE — le premier lu ne mange pas le budget de
   assert(block.includes("- no mushrooms"), "le second membre a été effacé par le premier");
 });
 
-Deno.test("une ligne PLUS LONGUE QUE LE PLAFOND fait taire la suite, et c'est tracé", () => {
+Deno.test("une ligne PLUS LONGUE QUE LE PLAFOND est SAUTÉE, pas un point d'arrêt", () => {
   // On ne tronque pas une préférence: une phrase amputée peut INVERSER son sens
   // (« ne mange pas de porc, sauf … »). Même posture que `sanitizePortionNote`,
-  // qui met à `null` plutôt que de bricoler du texte.
+  // qui met à `null` plutôt que de bricoler du texte. Elle est donc SAUTÉE.
   //
-  // ⚠️ CE QUE CE TEST A CHANGÉ DE SENS, ET C'EST ASSUMÉ. Il affirmait avant que
-  // « no fish » survivait à la ligne monstre qui la précède — c'est-à-dire
-  // exactement le `continue` que le module promettait de ne pas faire. Le
-  // plafond s'arrête maintenant: une ligne qui dépasse à elle seule fait taire
-  // tout ce qui la suit, et le compte le dit (`:2`, pas `:1`).
+  // ⚠️ CE TEST A CHANGÉ DE SENS DEUX FOIS, ET LA SECONDE EST UNE RÉGRESSION
+  // RÉPARÉE. Il a d'abord affirmé que « no fish » survivait à la ligne monstre
+  // (le `continue` d'origine), puis l'inverse: `heard.length === 0`, tout le
+  // titulaire muet. Cette seconde version reposait sur une mesure faite AVANT
+  // le chantier « mémoire structurée » — que le cas n'existe pas dans les
+  // données, la plus longue préférence réelle faisant 120 caractères. Le lot 1C
+  // met désormais EN TÊTE de cette liste des `RetainedItem.text` sans aucune
+  // longueur maximale (contrat de phase 0, §4), et la mesure ne couvre plus
+  // rien.
   //
-  // CE QUE ÇA COÛTE, MESURÉ: il faut ~598 caractères pour saturer 150 tokens à
-  // soi seul. Sur le corpus local, la plus longue préférence réelle fait 120
-  // caractères et le plus long texte de `memory_items` 126. Le cas n'existe pas
-  // dans les données; s'il apparaissait, il est tracé, et le retour arrière est
-  // un mot (`break` → `continue`).
+  // Ce qui reste vrai des deux côtés: la ligne monstre n'entre PAS dans le
+  // prompt. Ce qui change: elle n'emporte plus avec elle ce qui la suit.
   const monster = "tomate ".repeat(200);
   const { heard, issues, block, counts } = buildHouseholdVoices([
     { memberId: "m-x", displayName: "Zoé", lines: [monster, "no fish"] },
   ]);
-  assertEquals(issues, ["voice_over_cap:m-x:2"]);
-  assertEquals(heard.length, 0);
-  assertEquals(block, "");
-  assert(!block.includes("tomate tomate"));
+  // LES DEUX MOTIFS SONT SÉPARÉS: rien n'est tombé par la QUEUE ici, une seule
+  // ligne était impubliable. `voice_over_cap:m-x:1` aurait accusé le plafond
+  // d'être mal calibré, ce qui est faux.
+  assertEquals(issues, ["voice_line_too_long:m-x:1"]);
+  assertEquals(heard.length, 1);
+  assertEquals(heard[0].lines, ["no fish"]);
+  assert(block.includes("- no fish"), "le titulaire a été rendu muet par UNE ligne");
+  assert(!block.includes("tomate tomate"), "la ligne monstre est entrée dans le prompt");
   assertEquals(counts.perMember, [{
     memberId: "m-x",
     in: 2,
-    used: 0,
+    used: 1,
     withheld: 0,
-    over_cap: 2,
+    over_cap: 0,
+    too_long: 1,
+  }]);
+});
+
+// ───────────────────────────────────────────────────────────────────────────
+// LE BANC DU VÉRIFICATEUR — ce que le lot 1C a changé en amont de ce module
+//
+// `buildHouseholdVoices` reçoit maintenant, EN TÊTE de la liste de chaque
+// titulaire, les `food.*`/`method.*` retenus que le lot 1C construit
+// (`generate-household-meal-v1/index.ts`, « ELLES PASSENT DEVANT »). Ces
+// lignes-là n'ont AUCUNE longueur maximale — le contrat de phase 0 le dit mot
+// pour mot au §4 — alors que la mesure qui justifiait le point d'arrêt portait
+// sur des préférences plates de 120 à 126 caractères.
+// ───────────────────────────────────────────────────────────────────────────
+
+/** Une ligne structurée de longueur EXACTE, reconnaissable dans le bloc. */
+const structuredLine = (n: number, len: number) =>
+  `STRUCTURE ${String(n).padStart(2, "0")} ${"z".repeat(Math.max(0, len - 13))}`;
+
+Deno.test("CAS C — UNE SEULE LIGNE LONGUE NE FAIT PLUS TAIRE TOUT UN TITULAIRE", () => {
+  // LE DÉFAUT MESURÉ PAR LE VÉRIFICATEUR, mot pour mot:
+  //
+  //     C · 1 item structuré de 600 caractères, puis 1 item court, puis 2
+  //         phrases plates
+  //         structurés GARDÉS: 0 · plats GARDÉS: 0 · structurés TOMBÉS: 2
+  //
+  // Les deux phrases plates étaient servies AVANT ce chantier: c'est donc une
+  // RÉGRESSION, pas un manque. Un titulaire perdait sa voix entière parce
+  // qu'une ligne écrite par un producteur d'en face était trop longue.
+  const long = structuredLine(1, 600);
+  const short = structuredLine(2, 40);
+  const plats = ["2026-08-11 — pas d'olives", "2026-08-10 — plus de poisson le soir"];
+  // LE DÉCOR EST VÉRIFIÉ AVANT DE SERVIR. Les nombres sont calculés À LA MAIN,
+  // jamais dérivés de `VOICE_TOKEN_CAP_PER_MEMBER` — sinon ce test resterait
+  // vert le jour où quelqu'un met le plafond à 5 000:
+  //     600 car. → `- ` + 600 = 602 → ceil(602/4) = 151 tokens > 150 ⇒ SAUTÉE
+  //      40 car. → `- ` +  40 =  42 → ceil(42/4)  =  11 tokens
+  assertEquals(long.length, 600);
+  assertEquals(short.length, 40);
+  assertEquals(estimateVoiceTokens(`- ${long}`), 151);
+
+  const { heard, issues, block, counts } = buildHouseholdVoices([
+    { memberId: "m-c", displayName: "Zoé", lines: [long, short, ...plats] },
+  ]);
+
+  // LE TITULAIRE EST ENTENDU — c'est toute la question.
+  assertEquals(heard.length, 1);
+  assertEquals(heard[0].lines, [short, ...plats]);
+  assert(block.includes(`- ${short}`), "l'item structuré court est tombé avec le long");
+  assert(block.includes(`- ${plats[0]}`), "les phrases plates sont toujours muettes");
+  assert(block.includes(`- ${plats[1]}`), "les phrases plates sont toujours muettes");
+  // …et la ligne impubliable, elle, n'est nulle part.
+  assert(!block.includes(long), "la ligne de 600 caractères est entrée");
+  assertEquals(issues, ["voice_line_too_long:m-c:1"]);
+  assertEquals(counts.perMember, [{
+    memberId: "m-c",
+    in: 4,
+    used: 3,
+    withheld: 0,
+    over_cap: 0,
+    too_long: 1,
+  }]);
+});
+
+Deno.test("CAS B — LA PRIORITÉ TIENT: 20 items structurés en tête, 2 phrases plates après", () => {
+  // La promesse du lot 1C est que le plafond coupe par la QUEUE, donc que ce
+  // qui tombe est la plus vieille phrase plate et jamais un item structuré.
+  // Sauter les lignes impubliables ne doit pas l'entamer — et ici aucune ne
+  // l'est, donc le comportement doit être EXACTEMENT celui d'avant.
+  //
+  // LES NOMBRES, À LA MAIN: 40 car. → `- ` + 40 = 42 → ceil(42/4) = 11 tokens.
+  // 13 lignes valent 143 ≤ 150; la 14ᵉ porterait à 154 > 150 ⇒ ARRÊT.
+  const struct = Array.from({ length: 20 }, (_, i) => structuredLine(i, 40));
+  const plats = ["2026-08-11 — pas d'olives", "2026-08-10 — plus de poisson le soir"];
+  assertEquals(struct[0].length, 40);
+  assertEquals(estimateVoiceTokens(`- ${struct[0]}`), 11);
+
+  const { heard, issues, counts } = buildHouseholdVoices([
+    { memberId: "m-b", displayName: "Zoé", lines: [...struct, ...plats] },
+  ]);
+
+  const kept = heard[0].lines;
+  assertEquals(kept.length, 13);
+  assertEquals(
+    kept.filter((l) => l.startsWith("STRUCTURE")).length,
+    13,
+    "un item structuré est tombé alors que des phrases plates le suivaient",
+  );
+  assertEquals(
+    kept.filter((l) => l.startsWith("2026-")).length,
+    0,
+    "une phrase plate a doublé un item structuré: la coupe ne se fait plus par " +
+      "la queue",
+  );
+  // 9 tombées par la QUEUE (7 structurés + 2 plates), aucune impubliable.
+  assertEquals(issues, ["voice_over_cap:m-b:9"]);
+  assertEquals(counts.perMember, [{
+    memberId: "m-b",
+    in: 22,
+    used: 13,
+    withheld: 0,
+    over_cap: 9,
+    too_long: 0,
   }]);
 });
 

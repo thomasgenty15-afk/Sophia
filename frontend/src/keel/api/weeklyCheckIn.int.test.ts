@@ -22,12 +22,12 @@ import {
   WAIST_CM_MAX,
   WAIST_CM_MIN,
   WEEKLY_AXES,
-  WEEKLY_AXIS_LABELS,
-  WEEKLY_SCALE_LABELS,
+  WEEKLY_SCALE_VALUES,
   WEIGHT_KG_MAX,
   WEIGHT_KG_MIN,
 } from "./weeklyCheckIn";
 import { en as EN } from "../i18n/en";
+import { fr as FR } from "../i18n/fr";
 
 const BACKEND = readFileSync(
   resolve(__dirname, "../../../../supabase/functions/_shared/keel/weekly_flow.ts"),
@@ -52,25 +52,61 @@ describe("le formulaire hebdo ne peut pas dériver du parseur", () => {
     expect([...WEEKLY_AXES]).toEqual(backendArray("WEEKLY_AXES"));
   });
 
-  it("chaque axe proposé porte un libellé", () => {
+  it("chaque axe proposé porte un libellé DANS LES DEUX LANGUES", () => {
+    // Le lot 4 a sorti les onze libellés d'ici vers le seed. La question qu'il
+    // fallait garder n'a pas changé — « l'écran a-t-il un mot pour cet axe ? » —
+    // mais elle se pose maintenant une fois par langue: un axe traduit d'un côté
+    // seulement rendrait une clé brute à l'écran d'un francophone.
     for (const axis of WEEKLY_AXES) {
-      expect(WEEKLY_AXIS_LABELS[axis], `libellé manquant: ${axis}`).toBeTruthy();
+      const key = `chat.weekly.axis.${axis}` as keyof typeof EN;
+      expect(EN[key], `libellé anglais manquant: ${axis}`).toBeTruthy();
+      expect(
+        (FR as Record<string, string>)[key],
+        `libellé français manquant: ${axis}`,
+      ).toBeTruthy();
     }
   });
 
-  it("les libellés sont ceux du serveur, mot pour mot", () => {
-    // Un libellé qui diverge produit deux expériences différentes selon le
-    // canal — exactement ce que le dépôt a payé avec les boutons de template.
+  it("les libellés ANGLAIS sont ceux du serveur, mot pour mot", () => {
+    // ⚠️ CE TEST A CHANGÉ D'ANCRE AU LOT 4, PAS D'EXIGENCE. Il comparait
+    // `WEEKLY_AXIS_LABELS[axis]` — un `Record` en dur dans `weeklyCheckIn.ts` —
+    // au fichier Deno. Ce `Record` a disparu dans le seed; l'ancre est
+    // maintenant `en["chat.weekly.axis.<axe>"]`, c'est-à-dire LA MÊME CHAÎNE.
+    //
+    // Ce qui a été tranché, et pourquoi le français n'a PAS de jumelle serveur:
+    // les constantes `WEEKLY_AXIS_LABELS_EN` / `WEEKLY_SCALE_LABELS_EN` ne
+    // servent aucun écran. Elles nourrissent (1) des consignes de modèle —
+    // `meal_generation.ts:1679` et `week_plan_generation.ts:524` écrivent « the
+    // one thing they want to see improve: … » dans un prompt anglais — et (2)
+    // `weeklyFlowJson()`, la définition d'un formulaire Meta héritée du canal
+    // WhatsApp. Traduire ces deux-là serait un bug, pas un progrès: le premier
+    // dégraderait la consigne, le second un contrat externe.
+    //
+    // Donc: le mot-pour-mot reste sur l'ANGLAIS, et le pack français vit
+    // entièrement côté front. Aucune ligne de Deno n'a été touchée.
     for (const axis of WEEKLY_AXES) {
       const escaped = axis.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const m = BACKEND.match(new RegExp(`${escaped}:\\s*"([^"]+)"`));
       expect(m, `libellé serveur introuvable: ${axis}`).toBeTruthy();
-      expect(WEEKLY_AXIS_LABELS[axis]).toBe(m![1]);
+      expect(EN[`chat.weekly.axis.${axis}` as keyof typeof EN]).toBe(m![1]);
     }
   });
 
   it("l'échelle proposée est EXACTEMENT celle que le serveur accepte", () => {
-    expect(Object.keys(WEEKLY_SCALE_LABELS).map(Number).sort()).toEqual([1, 2, 3, 4, 5]);
+    expect([...WEEKLY_SCALE_VALUES]).toEqual([1, 2, 3, 4, 5]);
+    for (const score of WEEKLY_SCALE_VALUES) {
+      const key = `chat.weekly.scale.${score}` as keyof typeof EN;
+      expect(EN[key], `cran anglais manquant: ${score}`).toBeTruthy();
+      expect(
+        (FR as Record<string, string>)[key],
+        `cran français manquant: ${score}`,
+      ).toBeTruthy();
+      // Le mot-pour-mot vaut aussi pour les crans: le serveur les recopie dans
+      // le `data-source` du formulaire Meta.
+      const m = BACKEND.match(new RegExp(`\\s${score}:\\s*"([^"]+)"`));
+      expect(m, `cran serveur introuvable: ${score}`).toBeTruthy();
+      expect(EN[key]).toBe(m![1]);
+    }
     expect(backendNumber("WEEKLY_SCALE_MIN")).toBe(1);
     expect(backendNumber("WEEKLY_SCALE_MAX")).toBe(5);
   });

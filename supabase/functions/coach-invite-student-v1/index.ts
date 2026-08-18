@@ -47,6 +47,7 @@ import {
   isEphemeralTestEmail,
   normalizeInviteEmail,
   renderInviteEmail,
+  resolveInviteLocale,
 } from "./invite_token.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -348,10 +349,25 @@ Deno.serve(async (req: Request) => {
       sendState = "skipped_ephemeral";
       logLine({ request_id: requestId, invitation_id: invitationId, outcome: "skipped_ephemeral" });
     } else {
+      // ── LA LANGUE DE L'INVITATION ─────────────────────────────────────
+      //
+      // Elle vient du CORPS de la requête (`invite_locale`), c'est-à-dire d'un
+      // choix explicite du coach, et de nulle part ailleurs. Ni
+      // `Accept-Language` ni `profiles.locale` du coach: les deux donnent la
+      // langue du COACH, pas celle de l'invité — qui n'a pas de compte, donc
+      // pas de langue lisible. Le raisonnement complet est dans le pavé de
+      // `renderInviteEmail`.
+      //
+      // ⚠️ AUCUN APPELANT NE LA POSE ENCORE: l'écran d'invitation du coach n'a
+      // pas de sélecteur de langue. La chaîne rend donc `en-US` pour tout le
+      // monde, exactement comme avant — à ceci près qu'un seul champ de
+      // formulaire allume désormais le pack français.
+      const inviteLocale = resolveInviteLocale(body?.invite_locale);
       const { subject, html } = renderInviteEmail({
         coachName: (coachRow.display_name as string | null) ??
           (coachProfile?.full_name as string | null) ?? null,
         joinUrl,
+        locale: inviteLocale,
       });
       const out = await sendResendEmail({
         to: email,

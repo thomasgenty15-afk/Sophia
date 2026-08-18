@@ -1,3 +1,4 @@
+import { parseAwayMarks } from "../lib/presenceMarks";
 import React from "react";
 
 import { useAuth } from "../../context/AuthContext";
@@ -636,15 +637,36 @@ export default function HouseholdPage(): React.ReactElement {
                 // `bad_slots` arrive en phrase, jamais en jeton nu.
                 onSaveHabits={(memberId, s, n) =>
                   run(() => setMemberHabits(memberId, s, n))}
+                // ⚠️ LE CRAN D'ACTIVITÉ EST RELU ET RENVOYÉ TEL QUEL, ET C'EST
+                // OBLIGATOIRE. Cette RPC est TOUT-OU-RIEN: cet écran-ci ne
+                // pose pas la question (elle vit dans l'entonnoir, à côté de
+                // taille/poids/sexe — voir `FUNNEL_QUESTIONS`), donc corriger
+                // ici un poids sans repasser le cran ferait retomber sur
+                // l'hypothèse 1,5 quelqu'un qui a répondu — en silence, en
+                // cliquant sur « Enregistrer ». C'est la cicatrice « `current`
+                // périmé efface l'écriture d'avant », et `bodies` est la
+                // lecture fraîche de `keel_household_member_bodies`.
+                //
+                // (La base porte la même ceinture: `null` y veut dire « ne
+                // touche pas ». Les deux existent parce que c'est le troisième
+                // appelant, celui qui n'est pas encore écrit, qui casse.)
                 onSaveBody={(memberId, h, w, g) =>
-                  run(() => setMemberBody(memberId, h, w, g))}
+                  run(() =>
+                    setMemberBody(
+                      memberId,
+                      h,
+                      w,
+                      g,
+                      bodies.get(memberId)?.activityLevel ?? null,
+                    )
+                  )}
                 // LE RÉGIME D'UNE BOUCHE. Même `run` que les autres: le refus
                 // (`bad_diet`, `has_account`) arrive en phrase, et la page se
                 // remonte sur ce que la base a VRAIMENT gardé.
                 onSaveDiet={(memberId, diet) =>
                   run(() => setMemberDiet(memberId, diet))}
                 onMute={(memberId, next) => run(() => muteMergeProposals(memberId, next))}
-                onSaveAway={(memberId, next) => run(() => setMemberAway(memberId, next))}
+                onSaveAway={(memberId, next) => run(() => setMemberAway(memberId, parseAwayMarks(next)))}
                 onSave={(member, patch) => saveMember(member, patch, { userId })}
                 onRemove={(memberId) => run(() => removeHouseholdMember(memberId))}
                 onDetach={(memberId) => run(() => detachHouseholdMember(memberId))}

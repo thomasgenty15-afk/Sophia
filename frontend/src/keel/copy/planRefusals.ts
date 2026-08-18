@@ -88,6 +88,23 @@ export const EDGE_REFUSAL_KEYS: Record<string, MessageKey> = {
   // ── LA SÉCURITÉ, FAIL-CLOSED ────────────────────────────────────────────
   safety_constraints_unreadable: "plan.refusal.safety_constraints_unreadable",
 
+  // ── LE BROUILLON (`intent: "draft"`) ────────────────────────────────────
+  //
+  // ⚠️ CES DEUX-LÀ SONT POSÉS AVANT QUE LE SERVEUR NE LES RENDE, ET C'EST UN
+  // CHOIX D'ORDRE, PAS UN OUBLI. La liste des jetons de refus est FERMÉE et
+  // elle est écrite d'un seul geste, ici, pour que personne d'autre n'ouvre ce
+  // fichier ensuite. Le prix est connu et borné: tant que les deux générateurs
+  // n'émettent pas `draft_not_composed` et `note_unusable`, le cas
+  // « n'invente aucun jeton que le serveur ne rend pas » de
+  // `planRefusals.int.test.ts` les compte comme orphelins et rougit.
+  //
+  // L'ordre inverse coûtait plus cher: le jeton arrivé côté serveur en premier
+  // fait rougir « couvre chaque jeton », et le seul fichier qui puisse fermer
+  // ce rouge n'appartient alors à personne. Un rouge qui a un propriétaire et
+  // une date vaut mieux qu'un rouge qui n'en a pas.
+  draft_not_composed: "plan.refusal.draft_not_composed",
+  note_unusable: "plan.refusal.note_unusable",
+
   // ── CE QUI TOMBE APRÈS LE MODÈLE ────────────────────────────────────────
   // Chacune de ces phrases dit « ton plan précédent est intact », parce que
   // c'est vrai (le générateur n'écrit qu'à la toute fin) et parce que la
@@ -218,6 +235,24 @@ export const HOUSEHOLD_REFUSAL_KEYS: Record<string, MessageKey> = {
   bad_goal: "household.error.bad_goal",
   bad_label: "household.error.bad_label",
   bad_away: "household.error.bad_away",
+  // Les habitudes d'une bouche (spec du 2026-08-14, §G2). `not_a_member`,
+  // `not_your_line` et `not_authenticated` sont DÉJÀ dans cette table et ne
+  // sont pas dédoublés: la RPC des habitudes refuse avec les mêmes mots que
+  // toutes les autres RPC de foyer.
+  bad_slots: "household.error.bad_slots",
+  bad_note: "household.error.bad_note",
+  // ── LE RÉGIME D'UNE BOUCHE (spec du 2026-08-14, R3) ─────────────────────
+  // EN LITTÉRAL, jamais dans un ternaire: ce fichier est scanné par
+  // `planRefusals.int.test.ts`, qui ne lit QUE les littéraux — un motif calculé
+  // devient orphelin en silence, et ce dépôt l'a déjà payé.
+  bad_diet: "household.error.bad_diet",
+  // ⚠️ `has_account` MANQUAIT DÉJÀ, ET IL N'ÉTAIT PAS ORPHELIN PAR HASARD:
+  // `keel_household_set_member_goal` le rend depuis D1, mais l'écran masque le
+  // contrôle pour une bouche qui a un compte, donc personne ne l'avait jamais
+  // vu. Le régime suit la même règle d'affichage — et un motif qu'on ne peut
+  // pas traduire finit toujours par arriver en jeton nu le jour où un chemin
+  // change. On le nomme maintenant qu'une seconde RPC le rend.
+  has_account: "household.error.has_account",
   household_full: "household.error.household_full",
   not_owner: "household.error.not_owner",
   not_a_member: "household.error.not_a_member",
@@ -227,6 +262,64 @@ export const HOUSEHOLD_REFUSAL_KEYS: Record<string, MessageKey> = {
   cannot_detach_owner: "household.error.cannot_detach_owner",
   not_claimed: "household.error.not_claimed",
   not_found: "household.error.not_found",
+  // ── LE CORPS D'UNE BOUCHE, ET LA PERSONNE DE RÉFÉRENCE (L5-B, 2026-08-18) ─
+  //
+  // ⛔ HUIT JETONS QUI ARRIVAIENT NUS À L'ÉCRAN. Les phrases existaient toutes
+  // dans les deux packs (sauf `bad_activity_level`, ajouté avec elles); c'est
+  // la TABLE qui ne les nommait pas, donc `householdErrorKey` rendait `null` et
+  // l'écran affichait « bad_height » mot pour mot. `planRefusals.int.test.ts`
+  // le disait déjà en rouge — « chaque `household.error.*` écrit dans `en.ts`
+  // doit rester atteignable » — et personne n'avait relié le rouge au symptôme.
+  //
+  // ⚠️ CE N'EST PAS UN TROU THÉORIQUE DEPUIS LE POP-UP « UNE BOUCHE ». La
+  // marche 2 de `persistMouth` EST `keel_household_set_member_body`: le bloc 3
+  // réclame taille/poids/sexe/cran, et `submitIsHeld` vérifie leur PRÉSENCE,
+  // jamais leurs bornes. Une taille de 999 passe la fenêtre et revient en
+  // `bad_height` — c'est-à-dire, avant ce correctif, en jeton brut posé sous un
+  // formulaire d'accueil.
+  body_incomplete: "household.error.body_incomplete",
+  bad_height: "household.error.bad_height",
+  bad_weight: "household.error.bad_weight",
+  bad_gender: "household.error.bad_gender",
+  bad_activity_level: "household.error.bad_activity_level",
+  // Les trois de `keel_household_set_reference_member` — même défaut, même
+  // remède, et ils sont ANTÉRIEURS au pop-up (FF-043).
+  minor_cannot_be_reference: "household.error.minor_cannot_be_reference",
+  age_unknown_cannot_be_reference:
+    "household.error.age_unknown_cannot_be_reference",
+  not_your_household: "household.error.not_your_household",
+  // ── LE POIDS VISÉ ET LE RYTHME D'UNE BOUCHE (L5, migration 20260818190000) ─
+  // EN LITTÉRAL, jamais dans un ternaire: ce fichier est scanné par
+  // `planRefusals.int.test.ts`, qui ne lit QUE les littéraux — un motif calculé
+  // devient orphelin en silence.
+  //
+  // ⚠️ CES QUATRE-LÀ NE SONT PAS DÉCORATIFS, contrairement à `has_account` en
+  // son temps: le pop-up « une bouche » RETIENT son bouton sur un poids visé
+  // refusé, mais il ne connaît pas `goal` tel qu'il est EN BASE — la marche
+  // précédente vient de l'écrire, et une seconde fenêtre ouverte a pu changer
+  // la direction entre-temps. `target_needs_direction` est donc atteignable
+  // par une course, pas seulement par un appel direct de la RPC.
+  target_incomplete: "household.error.target_incomplete",
+  bad_target_weight: "household.error.bad_target_weight",
+  bad_pace: "household.error.bad_pace",
+  target_needs_direction: "household.error.target_needs_direction",
+  // ── LA RÉPONSE HEBDOMADAIRE DU DÉJEUNER (L6, RPC de L3, 20260818120000) ───
+  // EN LITTÉRAL, jamais dans un ternaire: ce fichier est scanné par
+  // `planRefusals.int.test.ts`, qui ne lit QUE les littéraux.
+  //
+  // ⚠️ `not_adult` EST ATTEIGNABLE MALGRÉ LE FILTRE DE L'ÉCRAN, et c'est
+  // précisément le genre de motif qu'on croit décoratif. La carte ne pose la
+  // question qu'aux `adult` du roster, mais une date de naissance peut changer
+  // dans un second onglet entre le rendu et le clic — et l'âge inconnu tombe
+  // dans le MÊME refus. Un jeton nu sous un formulaire d'accueil est
+  // exactement le défaut que L5-B a fermé sur huit autres.
+  bad_work_lunch: "household.error.bad_work_lunch",
+  not_adult: "household.error.not_adult",
+  too_many_away: "household.error.too_many_away",
+  // Le refus que `persistMouth` fabrique lui-même quand la porte d'ajout rend
+  // `ok: true` SANS `member_id`. Les cinq marches suivantes viseraient alors la
+  // chaîne vide — cinq `not_a_member` au lieu d'une cause.
+  no_member_id: "household.error.no_member_id",
   not_authenticated: "plan.validate.error.not_authenticated",
 };
 

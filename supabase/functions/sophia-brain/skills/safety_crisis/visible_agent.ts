@@ -18,8 +18,8 @@ import {
   oneShotReminderVisibleContextPresent,
 } from "../../router/one_shot_reminder_prompt_contract.ts";
 import {
-  VISIBLE_OUTPUT_STYLE_RULES,
-  VISIBLE_SAFETY_CONVERSATION_FLOW_RULES,
+  visibleOutputStyleRules,
+  visibleSafetyConversationFlowRules,
 } from "../../router/response_style_policy.ts";
 import type {
   SafetyCrisisVisibleTask,
@@ -263,7 +263,29 @@ export function safetyCrisisDeterministicVisibleMessage(
   return withCrisisResourceLine(template, emergency, suicide, french);
 }
 
-const STAGE_PROMPTS: Record<SafetyCrisisVisibleTaskKind, string> = {
+/**
+ * LES CONSIGNES DE STAGE — LE TROU LE PLUS CHER DE CE MODULE.
+ *
+ * ── LE DÉFAUT, ET POURQUOI IL SE VOYAIT SI MAL ────────────────────────────
+ * `safetyCrisisDeterministicVisibleMessage` (plus haut) a DÉJÀ ses deux packs
+ * et sa locale requise: le repli déterministe parlait donc anglais à un élève
+ * anglophone. Ces consignes-ci, elles, étaient un `Record` entièrement
+ * FRANÇAIS consommé sans condition. Un élève anglophone en crise voyait donc
+ * sa réponse GÉNÉRÉE depuis un prompt français, la langue de sortie ne tenant
+ * plus qu'au bloc `RESPONSE_LANGUAGE` en queue.
+ *
+ * Ce n'est pas une nuance de style. La consigne de stage est ce qui décide
+ * QUELLE question est posée et DANS QUEL ORDRE; un modèle qui la lit dans une
+ * langue et répond dans une autre traduit à la volée — et sur cette surface,
+ * la formulation exacte d'une question de triage est le produit.
+ *
+ * ── LE MOTIF EST CELUI DE `companion.ts` ──────────────────────────────────
+ * Deux tables entières, pas des fragments interpolés. Le pack FRANÇAIS est
+ * GELÉ mot pour mot: il a été écrit, relu et éprouvé sur une surface de
+ * sécurité, et le paraphraser « au passage » n'est pas un droit qu'on prend
+ * dans un lot de langue.
+ */
+const STAGE_PROMPTS_FR: Record<SafetyCrisisVisibleTaskKind, string> = {
   immediate_risk_check: [
     "Stage immediate_risk_check.",
     "Commence par UNE phrase d'accueil qui reconnait ce que le user vient de confier (chaleureuse, sans dramatiser, sans consigne) — surtout au premier tour du flow.",
@@ -329,15 +351,203 @@ const STAGE_PROMPTS: Record<SafetyCrisisVisibleTaskKind, string> = {
   ].join("\n"),
 };
 
+/**
+ * Le pack ANGLAIS — redérivé consigne par consigne, jamais traduit mot à mot.
+ *
+ * Ce qui est GARDÉ À L'IDENTIQUE dans les deux packs, et qu'aucune traduction
+ * n'a le droit d'assouplir:
+ *   · les CHEMINS de contexte (`conversation_context.handoff_data.…`,
+ *     `known_values.immediate_danger`) — ce sont des jetons machine (R1);
+ *   · les NOMS DE STAGE, pour la même raison;
+ *   · les interdictions, une par une, dans le même ordre. Une consigne perdue
+ *     dans un pack est une règle de sécurité qui ne s'applique qu'à la moitié
+ *     des élèves, et rien ne le montrerait — d'où le test de TOTALITÉ des deux
+ *     tables.
+ */
+const STAGE_PROMPTS_EN: Record<SafetyCrisisVisibleTaskKind, string> = {
+  immediate_risk_check: [
+    "Stage immediate_risk_check.",
+    "Open with ONE sentence that acknowledges what the user has just confided (warm, without dramatising, without instruction) — especially on the first turn of the flow.",
+    "Then check immediate safety, in short and direct words.",
+    "Use conversation_context only. End with the single most useful question to find out whether the user is in danger right now or alone.",
+    "NEVER RE-ASK a question already answered: if known_values.immediate_danger or known_values.user_not_alone already carries a value (true/false), that fact is settled — the question must bear ONLY on a fact that is still null, in new words (never the same sentence as the previous turn).",
+  ].join("\n"),
+  acute_grounding: [
+    "Stage acute_grounding.",
+    "Prioritise a single immediate action: move whatever can hurt out of reach if that is possible without danger, reach a human being, or call emergency services, according to conversation_context.",
+    "No long breathing exercise, no coaching, no product explanation.",
+  ].join("\n"),
+  support_contact: [
+    "Stage support_contact.",
+    "If known_values shows the user has just said they are ALONE, begin by acknowledging that solitude explicitly (one sentence of presence) — never a new triage question.",
+    "Help the user reach or keep a real human being with them.",
+    "You may offer a simple sentence to say or send if conversation_context shows support is missing.",
+  ].join("\n"),
+  stabilizing: [
+    "Stage stabilizing.",
+    "Hold the stabilisation by acknowledging only the reassuring facts present in conversation_context.",
+    "Keep the link with human help, and the means out of reach.",
+    "Use 2 or 3 instructions at most, in plain and standard terms: 4/6 breathing, stay seated, keep the person on the phone, stay away from the means.",
+  ].join("\n"),
+  exit_check: [
+    "Stage exit_check.",
+    "Do one last simple check before resolution.",
+    "Do not say it is over. Ask for a sober confirmation that there is no immediate danger.",
+  ].join("\n"),
+  resolved_exit: [
+    "Stage resolved_exit.",
+    "Say soberly that the immediate moment is stabilised, because conversation_context shows the reducer decided so.",
+    "Do not restart any product action, tool, plan, potion, card, reminder or status.",
+    "Exception (P7-A, paul-p6reval T16): if conversation_context.handoff_data.deferred_product_or_tool_request is non-null, the promise kept during the crisis is SETTLED here — mention in ONE line that what was set aside can be picked up now ('your physio reminder, we can set it now if you want') without creating it yourself and without asking again for every detail. Ignoring it silently on the exit turn is the observed bug.",
+  ].join("\n"),
+  repeat_current_step: [
+    "Stage repeat_current_step.",
+    "Repeat only the current safety step, from conversation_context.handoff_data.current_step.",
+    "Do not go back over the whole history.",
+  ].join("\n"),
+  product_tool_boundary: [
+    "Stage product_tool_boundary.",
+    "Defer the product, tool, plan, potion, card, reminder or status request named in conversation_context.handoff_data.deferred_product_or_tool_request.",
+    "Do not write the requested content: no card, no plan, no potion, no status, no ready-to-paste text, no artefact title, no product personalisation list.",
+    "Do not ask for a time, product details, a platform destination or a confirmation for that deferred request.",
+    "Simply say you are keeping it aside for after the stabilisation, then come back to a single next safety action.",
+    "Exception: explicitly allowed one-off reminders do not go through this stage; if you are in this stage, no reminder is to be confirmed.",
+  ].join("\n"),
+  stop_or_cancel: [
+    "Stage stop_or_cancel.",
+    "The user wants to stop locally, with no clear new subject.",
+    "Answer very briefly, with no closing question, without calling the global dispatcher, keeping a safety resource if conversation_context requires one.",
+  ].join("\n"),
+  safety_transition: [
+    "Stage safety_transition.",
+    "The turn comes from another flow but safety takes over again.",
+    "Do not expose the source note. Refocus directly on immediate safety.",
+  ].join("\n"),
+  safety_escalation: [
+    "Stage safety_escalation.",
+    "Prioritise the emergency with the resources provided in conversation_context.safety_resources.",
+    "One short sentence and one immediate action towards emergency services or human help.",
+  ].join("\n"),
+};
+
+/**
+ * ⚠️ PAS DE `localePackKey` ICI, ET C'EST DÉLIBÉRÉ. `localePackKey` JETTE pour
+ * une langue non livrée — un comportement juste pour un écran, inacceptable ici:
+ * un tour de crise qui lève est un élève en danger à qui on ne répond pas. La
+ * dégradation vers l'anglais a déjà eu lieu en amont
+ * (`clampToDeliveredLocale`), et `isFrenchLocale` est LE prédicat unique du gel.
+ */
+function stagePromptsFor(locale: string): Record<SafetyCrisisVisibleTaskKind, string> {
+  return isFrenchLocale(locale) ? STAGE_PROMPTS_FR : STAGE_PROMPTS_EN;
+}
+
+/**
+ * LES CONSIGNES FIXES DU PROMPT VISIBLE — deux packs entiers.
+ *
+ * Elles étaient françaises en dur au même titre que `STAGE_PROMPTS`, et pour
+ * la même raison: personne n'avait eu besoin de l'autre langue. Les traduire
+ * n'aurait servi à rien si la consigne de stage restait française, et
+ * inversement — d'où les deux dans le même lot.
+ *
+ * ⚠️ CE QUI RESTE FRANÇAIS DANS CE PROMPT, ET QUI N'EST PAS À MOI:
+ * `oneShotReminderCanonicalVisiblePromptLines` (partagé par plusieurs skills,
+ * sans jumelle anglaise). Il est signalé plutôt que traduit à la sauvette: un
+ * module partagé se traduit avec tous ses appelants, pas depuis l'un d'eux.
+ */
+type CrisisPromptPack = {
+  opening: string;
+  contextOnly: string;
+  noRouting: string;
+  noProduct: string;
+  benignRecall: string;
+  safetyFirstOrder: string;
+  noInternals: string;
+  mustIncludeNumbers: string;
+  alreadyDelivered: string;
+  maxQuestions: string;
+  noPrematureResolution: string;
+  neverHuman: string;
+  strictQuality: string;
+  lengthCeiling: string;
+  jsonOnly: string;
+};
+
+const CRISIS_PROMPT_PACKS: Record<"fr" | "en", CrisisPromptPack> = {
+  fr: {
+    opening:
+      "Tu ecris le prochain message visible de Sophia dans le flow safety_crisis.",
+    contextOnly:
+      "Tu recois uniquement visible_task.conversation_context. Tu n'utilises pas le message brut, les recent_messages, la DB brute, ni la memoire brute.",
+    noRouting:
+      "Tu ne routes pas, tu ne decides pas le risque, tu ne modifies pas l'etat.",
+    noProduct:
+      "Pas de produit, pas d'outil, pas de plan, pas de potion, pas de carte, pas de statut.",
+    benignRecall:
+      "CO-DEMANDE BENIGNE (P7-A): si conversation_context.handoff_data.benign_recall_request.asked est vrai, le user vient de demander qu'on lui redise un fait qu'il avait confie. Ce n'est ni un produit ni un outil: JAMAIS un silence sur cette demande. Si benign_recall_request.facts est non vide, restitue fidelement le fait en UNE phrase en fin de reponse (le soutien vient d'abord). Si facts est vide, dis en une ligne honnete que tu le lui rediras juste apres ce moment — sans inventer de contenu. La regle vaut AUSSI pour un readout READ-ONLY de RAPPELS (P8-E, paul-untested22 T14: « redis-moi mes rappels de demain » avale sous le bucket produit/outil): les lignes 'Rappel en attente ...' de facts sont la liste REELLE (source DB) — restitue-les fidelement en fin de reponse (chaque label + consigne, sans en inventer ni en omettre); c'est une lecture, jamais un differe obligatoire.",
+    safetyFirstOrder:
+      "Ordre de rendu safety-first: si un rappel a ete commis ce tour, le contenu safety (accueil, verification, prochaine action) ouvre TOUJOURS ta reponse; la confirmation du rappel est UNE seule phrase sobre en toute FIN de message — jamais la premiere phrase, jamais avant la question safety du tour.",
+    noInternals:
+      "Ne mentionne jamais JSON, dispatcher, reducer, prompt, table, DB ou outil interne.",
+    mustIncludeNumbers:
+      "Si conversation_context.safety_resources.must_include_emergency_numbers=true, inclure exactement emergency_numbers et suicide_prevention_number.",
+    alreadyDelivered:
+      "Si must_include_emergency_numbers=false et conversation_context.known_values.emergency_numbers_already_delivered=true, ne re-recite pas les numeros d'urgence (deja donnes): bascule vers un soutien emotionnel soutenu — presence, ancrage, renforcement du lien humain reel (la personne que le user va joindre) — sans repeter la hotline. Ne re-donne les numeros que si le user signale une nouvelle aggravation.",
+    maxQuestions: "Respecte max_questions strictement.",
+    noPrematureResolution:
+      "Ne dis pas que tout est resolu sauf si stage=resolved_exit.",
+    neverHuman: "Ne presente jamais Sophia comme une aide humaine.",
+    strictQuality:
+      "Qualite safety stricte: phrases courtes, pas de mot coupe, pas de terme invente, pas de formulation creative pour les techniques de respiration ou d'ancrage.",
+    lengthCeiling:
+      "Reste court, naturel et concret: maximum 120 mots sauf urgence critique exigeant les numeros.",
+    jsonOnly: 'Retourne uniquement un JSON strict: {"message":"..."}.',
+  },
+  en: {
+    opening:
+      "You are writing Sophia's next visible message in the safety_crisis flow.",
+    contextOnly:
+      "You receive visible_task.conversation_context only. You do not use the raw message, recent_messages, the raw DB, or raw memory.",
+    noRouting:
+      "You do not route, you do not decide the risk level, you do not mutate state.",
+    noProduct:
+      "No product, no tool, no plan, no potion, no card, no status.",
+    benignRecall:
+      "BENIGN SIDE-REQUEST (P7-A): if conversation_context.handoff_data.benign_recall_request.asked is true, the user has just asked you to tell them back a fact they had confided. That is neither a product nor a tool: NEVER stay silent on it. If benign_recall_request.facts is non-empty, give the fact back faithfully in ONE sentence at the end of your reply (support comes first). If facts is empty, say in one honest line that you will tell them right after this moment — without inventing content. The rule ALSO covers a READ-ONLY readout of REMINDERS (P8-E, paul-untested22 T14: \"tell me my reminders for tomorrow\" was being swallowed under the product/tool bucket): the 'Rappel en attente ...' lines in facts are the REAL list (DB source) — give them back faithfully at the end of your reply (each label + instruction, inventing none and omitting none); it is a read, never a mandatory deferral.",
+    safetyFirstOrder:
+      "Safety-first rendering order: if a reminder was committed this turn, the safety content (acknowledgement, check, next action) ALWAYS opens your reply; the reminder confirmation is ONE sober sentence at the very END of the message — never the first sentence, never before this turn's safety question.",
+    noInternals:
+      "Never mention JSON, dispatcher, reducer, prompt, table, DB or any internal tool.",
+    mustIncludeNumbers:
+      "If conversation_context.safety_resources.must_include_emergency_numbers=true, include exactly emergency_numbers and suicide_prevention_number.",
+    alreadyDelivered:
+      "If must_include_emergency_numbers=false and conversation_context.known_values.emergency_numbers_already_delivered=true, do not recite the emergency numbers again (they were already given): move to sustained emotional support — presence, grounding, strengthening the real human link (the person the user is about to reach) — without repeating the hotline. Only give the numbers again if the user reports a new worsening.",
+    maxQuestions: "Respect max_questions strictly.",
+    noPrematureResolution:
+      "Do not say anything is resolved unless stage=resolved_exit.",
+    neverHuman: "Never present Sophia as human help.",
+    strictQuality:
+      "Strict safety quality: short sentences, no cut-off word, no invented term, no creative wording for breathing or grounding techniques.",
+    lengthCeiling:
+      "Stay short, natural and concrete: 120 words maximum, except a critical emergency that requires the numbers.",
+    jsonOnly: 'Return a strict JSON object only: {"message":"..."}.',
+  },
+};
+
 function visibleSystemPrompt(input: SafetyCrisisVisibleAgentInput): string {
   const stage = input.visible_task.kind;
+  // W9/R3 — la locale est REÇUE, résolue une seule fois par le propriétaire du
+  // tour. Ce module ne la devine pas et n'en a pas de repli à lui.
+  const locale = input.response_locale;
+  const pack = isFrenchLocale(locale)
+    ? CRISIS_PROMPT_PACKS.fr
+    : CRISIS_PROMPT_PACKS.en;
   return [
-    "Tu ecris le prochain message visible de Sophia dans le flow safety_crisis.",
-    STAGE_PROMPTS[stage],
-    "Tu recois uniquement visible_task.conversation_context. Tu n'utilises pas le message brut, les recent_messages, la DB brute, ni la memoire brute.",
-    "Tu ne routes pas, tu ne decides pas le risque, tu ne modifies pas l'etat.",
-    "Pas de produit, pas d'outil, pas de plan, pas de potion, pas de carte, pas de statut.",
-    "CO-DEMANDE BENIGNE (P7-A): si conversation_context.handoff_data.benign_recall_request.asked est vrai, le user vient de demander qu'on lui redise un fait qu'il avait confie. Ce n'est ni un produit ni un outil: JAMAIS un silence sur cette demande. Si benign_recall_request.facts est non vide, restitue fidelement le fait en UNE phrase en fin de reponse (le soutien vient d'abord). Si facts est vide, dis en une ligne honnete que tu le lui rediras juste apres ce moment — sans inventer de contenu. La regle vaut AUSSI pour un readout READ-ONLY de RAPPELS (P8-E, paul-untested22 T14: « redis-moi mes rappels de demain » avale sous le bucket produit/outil): les lignes 'Rappel en attente ...' de facts sont la liste REELLE (source DB) — restitue-les fidelement en fin de reponse (chaque label + consigne, sans en inventer ni en omettre); c'est une lecture, jamais un differe obligatoire.",
+    pack.opening,
+    stagePromptsFor(locale)[stage],
+    pack.contextOnly,
+    pack.noRouting,
+    pack.noProduct,
+    pack.benignRecall,
     ...oneShotReminderCanonicalVisiblePromptLines(
       "conversation_context.known_values.direct_effect_confirmation_context",
       {
@@ -359,18 +569,25 @@ function visibleSystemPrompt(input: SafetyCrisisVisibleAgentInput): string {
         }),
       },
     ),
-    "Ordre de rendu safety-first: si un rappel a ete commis ce tour, le contenu safety (accueil, verification, prochaine action) ouvre TOUJOURS ta reponse; la confirmation du rappel est UNE seule phrase sobre en toute FIN de message — jamais la premiere phrase, jamais avant la question safety du tour.",
-    "Ne mentionne jamais JSON, dispatcher, reducer, prompt, table, DB ou outil interne.",
-    "Si conversation_context.safety_resources.must_include_emergency_numbers=true, inclure exactement emergency_numbers et suicide_prevention_number.",
-    "Si must_include_emergency_numbers=false et conversation_context.known_values.emergency_numbers_already_delivered=true, ne re-recite pas les numeros d'urgence (deja donnes): bascule vers un soutien emotionnel soutenu — presence, ancrage, renforcement du lien humain reel (la personne que le user va joindre) — sans repeter la hotline. Ne re-donne les numeros que si le user signale une nouvelle aggravation.",
-    "Respecte max_questions strictement.",
-    "Ne dis pas que tout est resolu sauf si stage=resolved_exit.",
-    "Ne presente jamais Sophia comme une aide humaine.",
-    "Qualite safety stricte: phrases courtes, pas de mot coupe, pas de terme invente, pas de formulation creative pour les techniques de respiration ou d'ancrage.",
-    VISIBLE_SAFETY_CONVERSATION_FLOW_RULES,
-    VISIBLE_OUTPUT_STYLE_RULES,
-    "Reste court, naturel et concret: maximum 120 mots sauf urgence critique exigeant les numeros.",
-    'Retourne uniquement un JSON strict: {"message":"..."}.',
+    pack.safetyFirstOrder,
+    pack.noInternals,
+    pack.mustIncludeNumbers,
+    pack.alreadyDelivered,
+    pack.maxQuestions,
+    pack.noPrematureResolution,
+    pack.neverHuman,
+    pack.strictQuality,
+    // ── DEUX SÉLECTEURS QUI EXISTAIENT DÉJÀ, ET QUE CE FICHIER IGNORAIT ────
+    //
+    // `response_style_policy.ts` livre `VISIBLE_OUTPUT_STYLE_RULES_EN` et
+    // `VISIBLE_SAFETY_CONVERSATION_FLOW_RULES_EN` DEPUIS UN LOT PRÉCÉDENT,
+    // avec leurs sélecteurs par locale. Ce module importait les constantes
+    // FRANÇAISES directement: un pack livré, testé, et jamais atteint — la
+    // classe de défaut la plus fréquente de ce dépôt.
+    visibleSafetyConversationFlowRules(locale),
+    visibleOutputStyleRules(locale),
+    pack.lengthCeiling,
+    pack.jsonOnly,
   ].join("\n");
 }
 

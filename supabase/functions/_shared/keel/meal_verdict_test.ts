@@ -96,8 +96,8 @@ function body(over: Partial<MealBodyContext> = {}): MealBodyContext {
   };
 }
 
-const PER_KG = envelopeFor("fat_loss", body(), "30_44", false, null, null);
-const PER_PORTION = envelopeFor("fat_loss", body({ restrictionFlag: true }), "30_44", true, null, null);
+const PER_KG = envelopeFor("fat_loss", body(), "30_44", false, null, null, null);
+const PER_PORTION = envelopeFor("fat_loss", body({ restrictionFlag: true }), "30_44", true, null, null, null);
 
 // ---------------------------------------------------------------------------
 // L'ABSTENTION AVANT L'ERREUR
@@ -370,7 +370,7 @@ Deno.test("per_portion et corps inconnu rendent le MÊME verdict", () => {
   const flagged = verdictFor({ dishes, envelope: PER_PORTION, index: INDEX, daysCovered: 1, uncoverableSentinels: [], fixedIntakeInputs: [] });
   const unknownBody = verdictFor({
     dishes,
-    envelope: envelopeFor("fat_loss", null, null, false, null, null),
+    envelope: envelopeFor("fat_loss", null, null, false, null, null, null),
     index: INDEX,
     daysCovered: 1,
     uncoverableSentinels: [],

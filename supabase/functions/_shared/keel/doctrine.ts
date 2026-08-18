@@ -48,6 +48,10 @@
 
 import { type DailyPractice, parseDailyPractices } from "./daily_practices.ts";
 import {
+  parseCompositionSteering,
+  type SteeringEntry,
+} from "./composition_steering.ts";
+import {
   findForbiddenMatches,
   type ForbiddenMatch,
   type ForbiddenMatchOptions,
@@ -318,6 +322,24 @@ export interface CoachDoctrine {
    * reçoit exactement le produit d'avant, octet pour octet.
    */
   dailyPractices: readonly DailyPractice[];
+  /**
+   * FF-041 — LE PILOTAGE DE COMPOSITION.
+   *
+   * Même raison d'être que `dailyPractices` juste au-dessus, et la MÊME
+   * exclusion: il vit sur la doctrine parce que c'est de la MÉTHODE — versionné,
+   * publié d'un bloc, ramené par un rollback avec le reste — et il n'entre PAS
+   * dans `compileDoctrineBlock`.
+   *
+   * ⚠️ Le bloc compilé part à CHAQUE tour de conversation. Une entrée de
+   * pilotage n'y a rien à faire: elle s'adresse au générateur de repas, une
+   * fois par composition. Deux conséquences qui se vérifient — le hash de cache
+   * est INCHANGÉ pour tous les coachs existants, et un coach sans pilotage
+   * reçoit exactement le produit d'avant, octet pour octet.
+   *
+   * ⚠️ Et ce n'est JAMAIS un formulaire montré au coach (§3.0 du design): c'est
+   * la forme compilée de ses réponses à un débat de doctrine.
+   */
+  compositionSteering: readonly SteeringEntry[];
   contentLocale: string;
 }
 
@@ -539,6 +561,16 @@ export function parseCoachDoctrine(
   const dailyPracticesParsed = parseDailyPractices(row.daily_practices ?? row.dailyPractices);
   issues.push(...dailyPracticesParsed.issues);
 
+  // ── LE PILOTAGE DE COMPOSITION (FF-041) ─────────────────────────────────
+  // Lu ici, avec le reste de la méthode, pour la raison qui gouverne tout ce
+  // parseur: une seule relecture de la ligne publiée. Ses `issues` rejoignent
+  // les autres et remontent sur le même écran — un coach dont une position n'a
+  // pas pris doit le lire, pas le deviner.
+  const steeringParsed = parseCompositionSteering(
+    row.composition_steering ?? row.compositionSteering,
+  );
+  issues.push(...steeringParsed.issues);
+
   const voiceRaw = (row.voice ?? {}) as Record<string, unknown>;
   const length = str(voiceRaw.length);
   const emojis = str(voiceRaw.emojis);
@@ -555,6 +587,7 @@ export function parseCoachDoctrine(
       foods,
       qa,
       dailyPractices: dailyPracticesParsed.practices,
+      compositionSteering: steeringParsed.entries,
       voice: {
         address: str(voiceRaw.address) || null,
         length: (length === "short" || length === "medium" ? length : null),

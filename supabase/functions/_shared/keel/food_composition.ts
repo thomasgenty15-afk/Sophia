@@ -339,14 +339,64 @@ export function normalizeTerm(term: string): string {
  * pour qu'un aliment dont le nom CONTIENT un modificateur (« cottage cheese »,
  * « fromage blanc ») gagne sur sa propre réduction.
  */
+/**
+ * LES MOTS QUI INTRODUISENT LE MILIEU, PAS UN AUTRE ALIMENT.
+ *
+ * ── LE DÉFAUT MESURÉ (run réel, 2026-08-11) ───────────────────────────────
+ * Le modèle écrit « canned tuna in spring water, drained ». `tuna_tinned`
+ * EXISTE au référentiel, et le terme ne s'y résolvait pas: « canned » et
+ * « drained » tombent bien (ce sont des modificateurs), mais « in spring
+ * water » restait et faisait échouer l'appariement.
+ *
+ * Ce n'était pas un cas isolé, et surtout ce n'était pas un cas anodin: les
+ * ingrédients que le modèle décrit le plus volontiers sont **les sources de
+ * protéine et les féculents** — précisément ceux qui portent l'énergie. Un
+ * plat de thon se calculait donc à 3 g de protéines, et le plan entier
+ * passait pour trois fois plus léger qu'il n'était. Un défaut de MESURE que
+ * l'on prenait pour un défaut de PRODUIT.
+ *
+ * ── POURQUOI C'EST UNE RÉDUCTION, ET PAS UNE DEVINETTE ────────────────────
+ * « X in Y » sur une ligne d'ingrédient désigne X, conservé dans Y: le thon
+ * au naturel reste du thon, les haricots à la sauce tomate restent des
+ * haricots. On coupe donc AVANT la préposition — c'est le même geste que le
+ * retrait d'un modificateur, une réduction de forme, pas un choix entre deux
+ * aliments.
+ *
+ * `with` n'y est PAS, et c'est délibéré: « chicken with rice » nomme deux
+ * aliments, et couper y perdrait le second. Seul le MILIEU se coupe.
+ */
+const MEDIUM_PREPOSITIONS: readonly string[] = [
+  " in ",
+  " au naturel",
+  " a l huile",
+  " à l huile",
+  " dans ",
+];
+
 function candidateForms(term: string): string[] {
   const base = normalizeTerm(term);
   if (!base) return [];
   const forms = [base];
-  const words = base.split(" ");
-  const stripped = words.filter((w) => !MODIFIER_SET.has(w));
-  if (stripped.length > 0 && stripped.length !== words.length) {
-    forms.push(stripped.join(" "));
+
+  // ── LE MILIEU, COUPÉ AVANT TOUT LE RESTE ────────────────────────────────
+  // Avant le retrait des modificateurs, pour que « canned tuna in spring
+  // water » devienne « canned tuna » (qui a son alias) et pas seulement
+  // « tuna » (qui serait ambigu entre frais et en conserve).
+  for (const prep of MEDIUM_PREPOSITIONS) {
+    const at = base.indexOf(prep);
+    if (at > 0) {
+      const head = base.slice(0, at).trim();
+      if (head) forms.push(head);
+    }
+  }
+
+  // Chaque forme obtenue passe aussi par le retrait des modificateurs.
+  for (const f of [...forms]) {
+    const words = f.split(" ");
+    const stripped = words.filter((w) => !MODIFIER_SET.has(w));
+    if (stripped.length > 0 && stripped.length !== words.length) {
+      forms.push(stripped.join(" "));
+    }
   }
   // Le pluriel anglais, retiré du DERNIER mot seulement — le seul que
   // l'anglais accorde. Le français accorde tous les mots, et ses formes
@@ -589,8 +639,42 @@ export interface ResolutionResult {
   unweighedTerms: string[];
   /** Au moins un terme non résolu appartient-il à la classe dense ? */
   unresolvedEnergyDense: boolean;
+  /**
+   * Au moins un terme RÉSOLU MAIS NON PESÉ est-il de classe dense ?
+   *
+   * ── LE MIROIR MANQUANT, MESURÉ LE 2026-08-12 ─────────────────────────────
+   * `unresolvedEnergyDense` garde la branche « je ne connais pas cet aliment ».
+   * L'autre branche n'était gardée par rien: un ingrédient RÉSOLU dont on ne
+   * sait pas tirer de grammes (« a drizzle of olive oil », « olive oil, to
+   * taste ») sort de `resolved`, n'entre dans AUCUNE somme — et compte pourtant
+   * comme connu dans `coverage`, qui est ce que la porte des 80 % regarde.
+   *
+   * Une huile qui vaut 120 kcal disparaît donc en silence, sur un plan qui se
+   * présente comme lisible à 96 %. C'est exactement le mode de défaillance que
+   * la garde des inconnus existe pour écarter, sur l'autre chemin.
+   *
+   * ⚠️ ICI, PAS DE LEXIQUE. `looksEnergyDense` devine à partir des mots parce
+   * qu'un terme non résolu n'a, par définition, pas de ligne. Un terme résolu
+   * en A une: on lit `energy_dense` du référentiel, qui est la donnée, pas son
+   * approximation. Utiliser le lexique des deux côtés ferait rater « ghee » là
+   * où le référentiel le sait, et ferait mordre « huile essentielle » là où il
+   * sait que non.
+   */
+  unweighedEnergyDense: boolean;
   total: number;
-  /** `resolved / total`, ou 0 quand il n'y a rien à résoudre. */
+  /**
+   * `connus / total` — donc les termes RÉSOLUS MAIS NON PESÉS y comptent
+   * comme connus. C'est voulu: la question de cette grandeur est « le
+   * référentiel connaît-il cette assiette ? », pas « sait-on peser chaque
+   * pincée de sel ? ».
+   *
+   * ⚠️ C'EST CE CHAMP QUE LES GARDES LISENT, jamais `resolved.length / total`.
+   * Mesuré: le second rendait 69 % là où celui-ci rend 96 %, sur une assiette
+   * dont 26 des 30 écarts étaient du sel, du poivre et des légumes comptés à
+   * l'unité. Un appelant qui compte le tableau `resolved` s'abstient sur des
+   * condiments. Le danger réel des non-pesés est porté par
+   * `unweighedEnergyDense`, pas par ce ratio.
+   */
   coverage: number;
 }
 
@@ -692,6 +776,7 @@ export function resolveIngredients(
   const resolved: ResolvedIngredient[] = [];
   const unresolvedTerms: string[] = [];
   const unweighedTerms: string[] = [];
+  let unweighedEnergyDense = false;
   for (const input of inputs) {
     const term = String(input?.term ?? "").trim();
     if (!term) continue;
@@ -716,6 +801,10 @@ export function resolveIngredients(
       // structurées est respecté. Les confondre ferait chercher des alias pour
       // un problème de prompt.
       unweighedTerms.push(normalizeTerm(term));
+      // Le référentiel SAIT que cet aliment est dense; on n'a pas su le peser.
+      // Son énergie ne sera dans aucune somme, et `coverage` le compte comme
+      // connu. Sans ce drapeau, la perte serait muette.
+      if (ref.energyDense) unweighedEnergyDense = true;
       continue;
     }
     resolved.push({ ref, gramsRaw: grams });
@@ -727,6 +816,7 @@ export function resolveIngredients(
     unresolvedTerms,
     unweighedTerms,
     unresolvedEnergyDense: unresolvedTerms.some(looksEnergyDense),
+    unweighedEnergyDense,
     total,
     coverage: total === 0 ? 0 : known / total,
   };

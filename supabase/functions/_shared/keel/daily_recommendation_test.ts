@@ -393,23 +393,21 @@ Deno.test("R4 — le plancher passe AVANT tout le reste", () => {
   // `restriction_flag`. Sinon le compte-rendu dirait qu'on s'est tu pour une
   // raison de cadence, et le jour où le plancher casserait, personne ne le
   // verrait.
-  assertEquals(
-    decideDailyRecommendation(nominal({
-      restrictionFlag: true,
-      hasActivePlan: false,
-      dailyAskCount: 5,
-      declineStreak: 9,
-      hunger: hunger(false),
-    })).decision === "silent" &&
-      decideDailyRecommendation(nominal({
-        restrictionFlag: true,
-        hasActivePlan: false,
-        dailyAskCount: 5,
-        declineStreak: 9,
-        hunger: hunger(false),
-      })).reason,
-    "restriction_flag",
-  );
+  // Une SEULE évaluation, puis on affine: deux appels séparés ne se narrowent
+  // pas (TypeScript ne relie pas les deux résultats), et le `&&` comparait
+  // `false` à `"restriction_flag"` quand la décision n'était pas un silence —
+  // un échec au message trompeur.
+  const decision = decideDailyRecommendation(nominal({
+    restrictionFlag: true,
+    hasActivePlan: false,
+    dailyAskCount: 5,
+    declineStreak: 9,
+    hunger: hunger(false),
+  }));
+  assertEquals(decision.decision, "silent");
+  if (decision.decision === "silent") {
+    assertEquals(decision.reason, "restriction_flag");
+  }
 });
 
 Deno.test("la bande de sécurité fait taire; `null` est permissif et déclaré", () => {
@@ -426,23 +424,33 @@ Deno.test("la bande de sécurité fait taire; `null` est permissif et déclaré"
 });
 
 Deno.test("mute, plan absent, doctrine illisible: trois silences nommés", () => {
-  assertEquals(
-    decideDailyRecommendation(nominal({ optedOut: true })).decision === "silent" &&
-      decideDailyRecommendation(nominal({ optedOut: true })).reason,
-    "opted_out",
-  );
-  assertEquals(
-    decideDailyRecommendation(nominal({ hasActivePlan: false })).decision ===
-        "silent" &&
-      decideDailyRecommendation(nominal({ hasActivePlan: false })).reason,
-    "no_active_plan",
-  );
-  assertEquals(
-    decideDailyRecommendation(nominal({ doctrineReadable: false })).decision ===
-        "silent" &&
-      decideDailyRecommendation(nominal({ doctrineReadable: false })).reason,
-    "doctrine_unreadable",
-  );
+  // ── POURQUOI CE TEST NE COMPILAIT PLUS (réparé le 2026-08-11) ────────────
+  // Il appelait `decideDailyRecommendation` DEUX fois par cas, et comptait sur
+  // `x.decision === "silent" && x.reason` pour affiner le type. TypeScript
+  // n'affine pas à travers deux appels distincts: la seconde expression porte
+  // toujours l'union entière, et `.reason` n'existe pas sur la branche
+  // `propose`. Quatre erreurs TS2339, sur un test dont la LOGIQUE était juste.
+  //
+  // Un `&&` était par ailleurs une comparaison douteuse: si la décision
+  // n'était PAS `silent`, l'assertion comparait `false` à `"opted_out"` —
+  // ça échouait, mais en disant « false ≠ opted_out » au lieu de « la
+  // décision n'est pas un silence ». On sépare donc les deux affirmations.
+  const cases = [
+    { label: "mute", input: { optedOut: true }, reason: "opted_out" },
+    { label: "plan absent", input: { hasActivePlan: false }, reason: "no_active_plan" },
+    {
+      label: "doctrine illisible",
+      input: { doctrineReadable: false },
+      reason: "doctrine_unreadable",
+    },
+  ] as const;
+
+  for (const c of cases) {
+    const decision = decideDailyRecommendation(nominal(c.input));
+    assertEquals(decision.decision, "silent", `${c.label}: devrait faire taire`);
+    if (decision.decision !== "silent") continue; // affine, et ne masque rien
+    assertEquals(decision.reason, c.reason, `${c.label}: silence mal nommé`);
+  }
 });
 
 Deno.test("§10 — trois refus consécutifs éteignent le moteur", () => {

@@ -341,8 +341,42 @@ Alors elle réussit les deux fois
   distribution, pas seulement sa médiane : une médiane à 85 % avec un quart des
   repas sous 60 % ne dit pas la même chose qu'une distribution serrée.
 - **La mesure secondaire :** part de repas dont l'énergie serait **calculable**
-  (résolution ≥ 80 % ET aucun ingrédient dense non résolu). C'est elle qui
-  décide de ce que FF-039 pourra observer.
+  (résolution ≥ 80 % ET aucun ingrédient dense non résolu ET aucun ingrédient
+  dense **non pesé**). C'est elle qui décide de ce que FF-039 pourra observer.
+
+### 10 bis. Ce que « résolu » veut dire — mesuré le 2026-08-12
+
+La couverture compte les termes que le référentiel **connaît**, pesés ou non.
+Ce n'est pas la taille du tableau `resolved`, qui ne contient que les termes
+**pesés**.
+
+L'écart n'est pas théorique : sur une assiette réelle, le second compteur
+rendait 69 % là où le premier rend 96 %. Les 26 lignes d'écart étaient du sel,
+du poivre, de la cannelle et des légumes comptés à l'unité — des aliments
+parfaitement connus dont on ignore le poids. Comme chaque plat en porte, la
+porte des 80 % était structurellement condamnée à se fermer, et elle éteignait
+d'un coup le verdict, la boucle de correction et la mise à l'échelle des
+portions. **Pour des condiments.**
+
+Le danger réel des non-pesés n'est pas leur nombre, c'est leur **densité** :
+
+| | inconnu du référentiel | connu mais non pesé |
+|---|---|---|
+| **classe dense** (huile, noix, sucre) | `unresolvedEnergyDense` → abstention | `unweighedEnergyDense` → abstention |
+| **classe ordinaire** (sel, courgette) | compte dans la couverture | ne compte pas contre la couverture |
+
+La seconde case était **vide jusqu'au 2026-08-12**. Un « filet d'huile d'olive »
+se résolvait, comptait comme connu, et son énergie n'entrait dans aucune somme :
+un plat amputé de 120 kcal se présentait comme lisible à 100 %. Mesuré sur 80
+générations réelles : **82 lignes d'huile d'olive sans quantité**, de loin le
+premier poste de perte.
+
+La garde côté lecture ne suffit pas — elle constate sans réparer. Le prompt
+exige donc désormais `amount` + `unit` sur les matières grasses, les fruits à
+coque et les sucrants (« a drizzle of olive oil » = 1 tbsp), et le parseur
+**nomme** les denses non pesés dans une issue à part (`energy_dense_unweighed`).
+Le sel et les herbes restent une pincée : exiger un chiffre partout ferait
+inventer des nombres, ce que le même prompt interdit deux paragraphes plus haut.
 - **La worklist :** les `unresolved_terms` par fréquence décroissante. Ce n'est
   pas une métrique, c'est le livrable ops de cette fiche — et le design nomme
   son payeur : une passe de curation hebdomadaire pilotée sur la couverture.

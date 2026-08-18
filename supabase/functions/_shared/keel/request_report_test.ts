@@ -396,3 +396,57 @@ Deno.test("le module est PUR — deux appels identiques rendent la même chose",
   } as const;
   assertEquals(reportOnRequest(args), reportOnRequest(args));
 });
+
+// ---------------------------------------------------------------------------
+// 10. CE QUE LE RÉEL A APPRIS — mesuré le 2026-08-12
+// ---------------------------------------------------------------------------
+
+Deno.test("RUN RÉEL — une DESCRIPTION D'OBJECTIF ne produit aucun refus", () => {
+  // ⚠️ LE DÉFAUT MESURÉ SUR LES `preferences` DÉJÀ EN BASE. Le champ ne
+  // contient pas que des envies. Cette ligne existe vraiment, et le module en
+  // tirait deux refus annoncés qui n'ont jamais eu lieu:
+  //
+  //     « You asked for full meat portion: there isn't any this time. »
+  //     « You asked for generous starch: there isn't any this time. »
+  //
+  // Les gardes de longueur et de mots vides ne l'attrapaient pas: « full meat
+  // portion » fait trois mots et n'en contient aucun de vide.
+  const r = report(
+    "Building muscle. Eats a heavy evening plate with a full meat portion and a generous starch.",
+    [dish({ id: "d1", title: "Poulet roti" })],
+  );
+  assertEquals(r.terms.filter((t) => t.status === "absent"), []);
+  assert(r.unreadableCount > 0, "les phrases sont comptées, pas dites");
+});
+
+Deno.test("une PHRASE trouvée se dit quand même — l'asymétrie est le point", () => {
+  // Une CORRESPONDANCE est une preuve: le terme est là, on peut le dire quel
+  // que soit le nombre de mots. C'est la NON-correspondance sur une phrase qui
+  // est une ignorance. Sans ce test, la règle précédente serait indiscernable
+  // d'un « on ignore tout ce qui fait plus d'un mot ».
+  const r = report("des pommes de terre", [
+    dish({ id: "d1", title: "Pomme de terre au four" }),
+  ]);
+  assertEquals(r.terms[0].status, "served");
+});
+
+Deno.test("RUN RÉEL — une demande NIÉE ne devient pas une envie", () => {
+  // « des trucs rapides, mais pas de poisson » répondait « tu as demandé mais
+  // pas de poisson : il n'y en a pas » — le contraire de ce qui a été écrit.
+  const fr = report("des trucs rapides, mais pas de poisson", [
+    dish({ id: "d1", title: "Poulet roti" }),
+  ]);
+  assertEquals(fr.terms, []);
+
+  const en = report("something quick, but no fish", [
+    dish({ id: "d1", title: "Roast chicken" }),
+  ]);
+  assertEquals(en.terms, []);
+});
+
+Deno.test("la négation ne mange pas une envie ORDINAIRE — le cas qui passe", () => {
+  // Sans lui, la garde précédente serait indiscernable d'une garde qui jette
+  // tout fragment un peu long.
+  const r = report("du poisson", [dish({ id: "d1", title: "Poisson roti" })]);
+  assertEquals(r.terms[0].status, "served");
+});

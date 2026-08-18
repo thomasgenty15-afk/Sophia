@@ -62,8 +62,14 @@ describe("l'entonnoir sort par l'aperçu, pas par l'écriture", () => {
 
   it("le bouton de fin demande un aperçu", () => {
     expect(src, "`composeDraft` n'est plus appelé").toContain("composeDraft(");
+    // ⚠️ `guardCompose` ET PLUS `guard`, DEPUIS LE 2026-08-15. Le refus du
+    // bouton de fin atterrissait dans le bandeau du HAUT de la page, à
+    // plusieurs écrans du geste: « je clique et rien ne se passe ». Ce qui est
+    // épinglé ici est l'APPEL À `askForDraft` depuis le bouton — quel que soit
+    // le garde qui l'enveloppe, il ne doit jamais redevenir une écriture
+    // directe.
     expect(src, "le bouton de fin ne demande plus l'aperçu").toContain(
-      "guard(askForDraft)",
+      "guardCompose(askForDraft)",
     );
   });
 

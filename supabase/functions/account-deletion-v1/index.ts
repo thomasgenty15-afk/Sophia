@@ -30,10 +30,15 @@ import {
   confirmationTokenSecret,
   DELETION_CONFIRMATION_WORD,
   DELETION_GRACE_DAYS,
-  formatFrenchDate,
+  formatAccountDate,
   sendLifecycleMessage,
   verifyPasswordFresh,
 } from "../_shared/account_lifecycle.ts";
+import { resolveArtifactLocale } from "../_shared/keel/locale.ts";
+import {
+  renderCoachDepartureEmail,
+  renderDeletionConfirmedMessage,
+} from "./deletion_copy.ts";
 
 const OPERATION_TYPE = "account_deletion";
 
@@ -297,22 +302,8 @@ const COACH_DEPARTURE_NOTICE_TYPE = "coach_departure_notice";
 // would be a data anomaly, not a use case: it is truncated and SAID.
 const COACH_DEPARTURE_MAX_STUDENTS = 200;
 
-function coachDepartureEmailHtml(firstName: string): string {
-  const hello = firstName ? `Hi ${firstName},` : "Hi,";
-  return `
-    <div style="font-family: sans-serif; color: #333; line-height: 1.6;">
-      <p>${hello}</p>
-      <p>Your coach has closed their Sophia account, so your coaching link has ended.</p>
-      <p><strong>Your plan and your data belong to you.</strong> They stay in your
-      account and remain accessible exactly as before &mdash; nothing has been
-      deleted, and you can export everything at any time.</p>
-      <p>Your coach no longer has access to your space. If you work with another
-      coach later on, they can invite you and you will be asked to consent
-      again.</p>
-      <p>Sophia</p>
-    </div>
-  `;
-}
+// Le sujet et le corps de cet avis vivent dans `deletion_copy.ts`: ce fichier
+// est en `@ts-nocheck`, donc la copie doit être typée et testable ailleurs.
 
 async function notifyStudentsOfCoachDeparture(
   admin: ReturnType<typeof createClient>,
@@ -332,7 +323,9 @@ async function notifyStudentsOfCoachDeparture(
 
   const { data: students, error: studentsErr } = await admin
     .from("profiles")
-    .select("id,email,full_name")
+    // `locale` AJOUTÉ: ces élèves sont d'AUTRES comptes, avec chacun sa langue.
+    // L'avis était anglais en dur — le bon défaut pour la moitié d'entre eux.
+    .select("id,email,full_name,locale")
     .in("id", studentIds);
   if (studentsErr) throw studentsErr;
 
@@ -367,10 +360,18 @@ async function notifyStudentsOfCoachDeparture(
 
       const firstName = String((student as any)?.full_name ?? "").trim()
         .split(" ")[0] ?? "";
+      const rendered = renderCoachDepartureEmail(
+        firstName,
+        // R2 — un avis de job est un ARTEFACT: pas de fil à ancrer.
+        resolveArtifactLocale({
+          studentProfile: String((student as any)?.locale ?? "").trim() || null,
+          tenantDefault: null,
+        }),
+      );
       const sent = await sendResendEmail({
         to: email,
-        subject: "Your coach has closed their Sophia account",
-        html: coachDepartureEmailHtml(firstName),
+        subject: rendered.subject,
+        html: rendered.html,
         from: senderEmail,
         maxAttempts: 3,
       });
@@ -576,7 +577,10 @@ Deno.serve(async (req) => {
 
       const { data: profile, error: profErr } = await admin
         .from("profiles")
-        .select("account_status,proactive_muted_at,timezone,purge_at")
+        // `locale` AJOUTÉ: l'accusé porte la DATE DE PURGE, la seule échéance
+        // du produit. Mal comprise, elle fait rater la fenêtre de sept jours
+        // pendant laquelle la suppression est encore annulable.
+        .select("account_status,proactive_muted_at,timezone,purge_at,locale")
         .eq("id", user.id)
         .maybeSingle();
       if (profErr) throw profErr;
@@ -698,14 +702,22 @@ Deno.serve(async (req) => {
       // les relances n'est pas refuser de savoir que son compte va disparaître.
       let deletionNotified = false;
       {
-        const purgeDateFr = formatFrenchDate(purgeAtIso, profile.timezone);
+        // ⚠️ IL ÉTAIT FRANÇAIS EN DUR, y compris la date. Un compte anglophone
+        // lisait donc « Ton compte sera définitivement supprimé le 20 août
+        // 2026 » — et c'est la seule échéance du produit.
+        const deletionLocale = resolveArtifactLocale({
+          studentProfile: String(profile.locale ?? "").trim() || null,
+          tenantDefault: null,
+        });
+        const purgeDate = formatAccountDate(
+          purgeAtIso,
+          deletionLocale,
+          profile.timezone,
+        );
         deletionNotified = await sendLifecycleMessage({
           user_id: user.id,
           purpose: "account_deletion_confirmed",
-          body:
-            `C'est fait. Ton compte sera définitivement supprimé le ${purgeDateFr}. ` +
-            `Reconnecte-toi avant cette date si tu veux annuler la suppression. ` +
-            `D'ici là, tu ne recevras plus aucun message.`,
+          body: renderDeletionConfirmedMessage(purgeDate, deletionLocale),
           metadata_extra: { account_deletion: true },
         });
       }

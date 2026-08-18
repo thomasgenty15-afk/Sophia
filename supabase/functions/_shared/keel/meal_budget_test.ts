@@ -34,6 +34,7 @@ import { BUDGET_MAX, buildMealPrompt, usableBudget } from "./meal_generation.ts"
 
 function mealArgs(budgetAmount: number | null) {
   return {
+    firstDayCookable: true,
     goal: "health",
     situation: null,
     context: null,
@@ -42,6 +43,7 @@ function mealArgs(budgetAmount: number | null) {
     safetyConstraints: null,
     body: null,
     focusAxis: null,
+    dietBlock: "",
     doctrineBlock: "d",
     coachNoteBlock: null,
     fixedIntakes: [],

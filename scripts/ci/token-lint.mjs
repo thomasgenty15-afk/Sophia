@@ -425,27 +425,53 @@ const INTERNAL_IN_PROSE = [
 // Le filtre excluait `t.ts` par basename et prenait tout le reste de
 // `i18n/` pour un seed. Ça marchait tant que le dossier ne contenait QUE le
 // seed et sa machinerie; le jour où il gagne `catalog.ts`, `runtime.ts` et
-// `fr.public.ts`, la règle R1-prose scanne les clés de `localStorage` et les
+// `fr.ts`, la règle R1-prose scanne les clés de `localStorage` et les
 // noms de namespace comme si un coach les lisait. Un lint qui remonte des
 // faux positifs sur des fichiers d'infrastructure est un lint qu'on apprend
 // à ignorer, ce qui coûte plus cher que ce qu'il garde.
 //
 // Une liste explicite vieillit dans le bon sens: ajouter une langue oblige à
 // ajouter son fichier ici, et c'est une ligne visible en diff.
-const LOCALE_SEED_BASENAMES = new Set(["en.ts", "fr.ts", "fr.public.ts"]);
+// ⚠️ `fr.public.ts` A ÉTÉ RENOMMÉ `fr.ts` (lot 2): le pack ne couvre plus la
+// seule vitrine. Le nom vivait ici ET dans `i18n/`, et l'oublier de ce côté
+// aurait fait scanner le pack français comme du code ordinaire.
+const LOCALE_SEED_BASENAMES = new Set(["en.ts", "fr.ts"]);
 const localeSeeds = files.filter((f) =>
   /^frontend\/src\/keel\/i18n\/[^/]+\.ts$/.test(rel(f)) &&
   LOCALE_SEED_BASENAMES.has(path.basename(f))
 );
+
+// LES CLÉS DONT LA VALEUR *EST* UN JETON, ET PAS DE LA PROSE.
+//
+// La règle R1-prose interdit un identifiant de stockage dans du texte qu'un
+// coach LIT. Il existe un cas — un seul aujourd'hui — où la valeur n'est pas du
+// texte à lire mais un EXEMPLE DE FORMAT: le champ « la chose elle-même » d'un
+// interdit de doctrine attend un jeton ASCII snake_case, parce que le verrou
+// déterministe branche dessus (`_shared/keel/doctrine.ts`: « `token` is ASCII
+// snake_case (R1) because code branches on it »). Le placeholder montre donc la
+// FORME attendue, et cette forme est la même dans toutes les langues — c'est R1
+// qui l'impose, pas un oubli de traduction.
+//
+// Une liste de CLÉS EXACTES, et surtout pas un motif: la valeur peut changer,
+// la clé non, et une entrée de trop se voit en diff. Le jour où ce champ cesse
+// d'attendre un jeton, la ligne part avec lui.
+const TOKEN_SHAPED_KEYS = new Set([
+  "coach.doctrine.forbidden.token_placeholder",
+]);
 
 for (const file of localeSeeds) {
   const raw = fs.readFileSync(file, "utf8");
   const { stripped } = scanTs(raw); // comments blanked, strings and offsets kept
   const literalRe = /"((?:[^"\\\n]|\\.)*)"/g;
   let m;
+  let lastKey = null;
   while ((m = literalRe.exec(stripped)) !== null) {
     // A literal immediately followed by ':' is a message KEY, not prose.
-    if (/^\s*:/.test(stripped.slice(m.index + m[0].length))) continue;
+    if (/^\s*:/.test(stripped.slice(m.index + m[0].length))) {
+      lastKey = m[1];
+      continue;
+    }
+    if (lastKey !== null && TOKEN_SHAPED_KEYS.has(lastKey)) continue;
     for (const rule of INTERNAL_IN_PROSE) {
       const hit = rule.re.exec(m[1]);
       if (hit) {

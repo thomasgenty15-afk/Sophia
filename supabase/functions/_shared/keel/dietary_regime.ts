@@ -59,6 +59,7 @@
  */
 
 import { type FoodGroupRef } from "./tokens.ts";
+import { normalizeForMatch } from "./forbidden_matcher.ts";
 
 /**
  * Les régimes que le produit sait EXÉCUTER.
@@ -195,6 +196,122 @@ const REGIME_FORMS: Record<DietaryRegime, readonly (readonly string[])[]> = {
   ],
   pescatarian: [MEAT_FORMS, POULTRY_FORMS],
 };
+
+/**
+ * LES ANALOGUES VÉGÉTAUX — et le défaut qu'ils gardent.
+ *
+ * ── MESURÉ EN RUN RÉEL, 2026-08-11 ─────────────────────────────────────────
+ * Génération pour un élève végan: le modèle a composé trois plats au
+ * « unsweetened soy yogurt » — exactement ce qu'il fallait faire. La garde a
+ * mordu dessus, parce que `yogurt` est dans les formes laitières et que
+ * « soy yogurt » le contient.
+ *
+ * Conséquence si on ne corrige pas: le verrou, une fois câblé en REJET DUR,
+ * viderait les plans des végans — les seuls qu'il existe pour protéger. Une
+ * garde qui casse précisément sur sa population cible est pire qu'une garde
+ * absente, parce qu'elle a l'air de marcher.
+ *
+ * C'est la famille « laitue ≠ lait », prise par l'autre bout: ici le terme
+ * animal est bien présent, mais un marqueur le désamorce.
+ *
+ * ── LA RÈGLE ───────────────────────────────────────────────────────────────
+ * Un ingrédient qui porte un marqueur d'origine végétale n'est JAMAIS une
+ * violation d'origine animale. Vaut pour toutes les familles, pas seulement le
+ * laitier: « vegan chicken », « soy sausage » et « fromage végétal » tombent
+ * sous la même règle.
+ *
+ * Liste FERMÉE et écrite à la main, comme le reste du fichier. Un marqueur
+ * absent laisse le comportement d'avant (le terme mord), donc l'ajout ne peut
+ * pas ÉLARGIR une faille — il ne peut que rendre un faux positif au silence.
+ */
+/**
+ * ── POURQUOI DEUX LISTES ET PAS UNE INFÉRENCE ──────────────────────────────
+ * La première version de cette garde cherchait des MARQUEURS (« soja »,
+ * « riz », « amande ») en mot entier. Le test symétrique l'a tuée en une
+ * ligne: **« riz au lait » contient le mot « riz »** et devenait un analogue
+ * végétal — alors que c'est un dessert laitier. Le français fait la
+ * différence par la seule préposition (« lait de riz » ≠ « riz au lait »), ce
+ * qu'aucune heuristique de mots ne rattrapera.
+ *
+ * On revient donc à la doctrine du fichier, la même que
+ * `allergen_surface_forms.ts`: **liste plate, fermée, écrite à la main. Jamais
+ * une inférence.**
+ */
+
+/**
+ * Les mots qui, SEULS, suffisent — parce qu'aucun produit animal ne les porte.
+ * « vegan cheese » est végétal quoi qu'il suive; « tofu » n'a pas d'ambiguïté.
+ */
+const UNAMBIGUOUS_PLANT_WORDS = [
+  "vegan", "vegane", "veganes", "vegetal", "vegetale", "vegetaux", "vegetales",
+  "plant based", "plantbased", "dairy free", "meat free", "tofu", "seitan",
+  "tempeh", "sans lait", "sans viande", "sans produits laitiers",
+] as const;
+
+/**
+ * Les analogues nommés, un par un. Une entrée absente laisse le comportement
+ * d'avant (le terme mord) — l'ajout ne peut donc pas ÉLARGIR une faille, il ne
+ * peut que rendre un faux positif au silence.
+ */
+const PLANT_ANALOGUE_PHRASES = [
+  // laits et boissons
+  "soy milk", "soya milk", "almond milk", "oat milk", "rice milk",
+  "coconut milk", "cashew milk", "hemp milk", "nut milk",
+  "lait de soja", "lait d amande", "lait d amandes", "lait d avoine",
+  "lait de riz", "lait de coco", "lait de cajou", "lait de chanvre",
+  "boisson au soja", "boisson a l avoine", "boisson d amande",
+  // yaourts
+  "soy yogurt", "soya yogurt", "soy yoghurt", "coconut yogurt",
+  "almond yogurt", "oat yogurt",
+  "yaourt de soja", "yaourt au soja", "yaourt de coco", "yaourt vegetal",
+  // crèmes et beurres
+  "soy cream", "oat cream", "coconut cream", "cashew cream",
+  "creme de soja", "creme d avoine", "creme de coco",
+  "peanut butter", "almond butter", "cashew butter", "nut butter",
+  "beurre de cacahuete", "beurre d amande", "purée d amande",
+  // fromages et œufs
+  "nutritional yeast", "levure maltee", "levure nutritionnelle",
+  "faux mage", "fromage de noix",
+  // simili-carnés
+  "soy sausage", "soy mince", "soy chunks", "textured soy",
+  "saucisse de soja", "protéines de soja", "proteines de soja",
+] as const;
+
+/**
+ * Ce terme est-il un analogue végétal ?
+ *
+ * Normalisation par `normalizeForMatch` — le moteur du dépôt, jamais une
+ * seconde.
+ */
+export function isPlantAnalogue(term: string): boolean {
+  const hay = canonical(term);
+  if (!hay) return false;
+
+  const words = new Set(hay.split(" ").filter(Boolean));
+  for (const w of UNAMBIGUOUS_PLANT_WORDS) {
+    const n = canonical(w);
+    if (!n) continue;
+    if (n.includes(" ") ? hay.includes(n) : words.has(n)) return true;
+  }
+  for (const phrase of PLANT_ANALOGUE_PHRASES) {
+    const n = canonical(phrase);
+    if (n && hay.includes(n)) return true;
+  }
+  return false;
+}
+
+/**
+ * `normalizeForMatch` conserve tirets et apostrophes (« plant-based butter »,
+ * « lait d'amande »). Pour comparer des LOCUTIONS, on les réduit d'abord à des
+ * mots séparés par une seule espace — sinon « plant based » ne trouve jamais
+ * « plant-based ». La normalisation de fond reste celle du dépôt; ceci n'est
+ * qu'un aplatissement de ponctuation par-dessus, pas un second normaliseur.
+ */
+function canonical(text: string): string {
+  return normalizeForMatch(String(text ?? ""))
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
 
 /**
  * Tout ce qu'un régime exclut, en formes de prose, dédupliqué et trié.

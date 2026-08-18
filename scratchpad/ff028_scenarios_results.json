@@ -1,0 +1,393 @@
+[
+  {
+    "level": "medium",
+    "id": "M1",
+    "scenario": "tap « Non » ⇒ cooldown, la même proposition ne revient pas 3 soirs",
+    "verdict": "GREEN",
+    "proof": {
+      "db_rows": [
+        {
+          "action": "add_afternoon_snack",
+          "state": "declined"
+        }
+      ],
+      "ack": "Understood — I'll leave your rhythm as it is.",
+      "following_nights": [
+        "cooldown",
+        "cooldown",
+        "cooldown"
+      ]
+    }
+  },
+  {
+    "level": "medium",
+    "id": "M2",
+    "scenario": "journée sans signal ⇒ AUCUN message, 3 soirs (le silence est nominal)",
+    "verdict": "GREEN",
+    "proof": {
+      "nights": [
+        "nothing_significant",
+        "nothing_significant",
+        "nothing_significant"
+      ],
+      "bubbles": 0,
+      "db_rows": 0,
+      "ask_ledger": 0
+    }
+  },
+  {
+    "level": "medium",
+    "id": "M2b",
+    "scenario": "faim récurrente sans adaptation tentée ⇒ silence (le seuil tient)",
+    "verdict": "GREEN",
+    "proof": {
+      "silent_reasons": {
+        "nothing_significant": 1
+      },
+      "bubbles": 0
+    }
+  },
+  {
+    "level": "medium",
+    "id": "M2c",
+    "scenario": "une seule adaptation ⇒ silence (le seuil est 2, pas 1)",
+    "verdict": "GREEN",
+    "proof": {
+      "silent_reasons": {
+        "nothing_significant": 1
+      }
+    }
+  },
+  {
+    "level": "medium",
+    "id": "M3",
+    "scenario": "élève fr-FR ⇒ proposition livrée (T-2: la copie runtime reste EN)",
+    "verdict": "GREEN",
+    "proof": {
+      "proposed": 1,
+      "text": "You've told me more than once that you were still hungry, an"
+    }
+  },
+  {
+    "level": "medium",
+    "id": "M4",
+    "scenario": "petit-déj déjà là ⇒ collation de l'après-midi, et elle s'applique",
+    "verdict": "GREEN",
+    "proof": {
+      "action": "add_afternoon_snack",
+      "rhythm_after": [
+        "breakfast",
+        "lunch",
+        "dinner",
+        "snack_pm"
+      ]
+    }
+  },
+  {
+    "level": "medium",
+    "id": "M5",
+    "scenario": "rythme déjà complet ⇒ no_action_available, rien n'est proposé",
+    "verdict": "GREEN",
+    "proof": {
+      "silent_reasons": {
+        "no_action_available": 1
+      }
+    }
+  },
+  {
+    "level": "medium",
+    "id": "M6",
+    "scenario": "sans student_goals ⇒ jamais de petit-déjeuner proposé (il en reçoit déjà un), et le « Oui » sur la collation N'ACCUSE PAS puisqu'il n'y a rien à écrire",
+    "verdict": "GREEN",
+    "proof": {
+      "action": "add_afternoon_snack",
+      "ack": "Something went wrong on my side and I couldn't save that — your rhythm is unchanged. Sorry. Could you try again?",
+      "state_after": "proposed",
+      "applied_at": null
+    }
+  },
+  {
+    "level": "hard",
+    "id": "H1",
+    "scenario": "coach « jeûne du matin » ⇒ AUCUNE proposition de petit-déjeuner",
+    "verdict": "GREEN",
+    "proof": {
+      "doctrine_removed": {
+        "add_breakfast:contra": 1
+      },
+      "proposed_actions": {
+        "add_afternoon_snack": 1
+      },
+      "text": "You've told me more than once that you were still hungry, and I've already built"
+    }
+  },
+  {
+    "level": "hard",
+    "id": "H1b",
+    "scenario": "doctrine qui exclut les deux familles ⇒ moteur muet, zéro bulle",
+    "verdict": "GREEN",
+    "proof": {
+      "silent_reasons": {
+        "no_action_available": 1
+      },
+      "doctrine_removed": {
+        "add_breakfast:contra": 1,
+        "add_afternoon_snack:contra": 1
+      }
+    }
+  },
+  {
+    "level": "hard",
+    "id": "H1c",
+    "scenario": "la MÊME doctrine en français ⇒ muet aussi (T9, garde bilingue)",
+    "verdict": "GREEN",
+    "proof": {
+      "silent_reasons": {
+        "no_action_available": 1
+      },
+      "doctrine_removed": {
+        "add_breakfast:contra": 1,
+        "add_afternoon_snack:contra": 1
+      }
+    }
+  },
+  {
+    "level": "hard",
+    "id": "H2",
+    "scenario": "sous restriction_flag ⇒ muet ET sans perte (rien n'est avalé: T-7)",
+    "verdict": "GREEN",
+    "proof": {
+      "silent_reasons": {
+        "restriction_flag": 1
+      },
+      "hunger_rows_before": 3,
+      "hunger_rows_after": 3,
+      "bubbles": 0,
+      "proposals": 0,
+      "ask_ledger": 0
+    }
+  },
+  {
+    "level": "hard",
+    "id": "H3",
+    "scenario": "plan modifié entre proposition et tap ⇒ rien ne s'applique, dit en une phrase",
+    "verdict": "GREEN",
+    "proof": {
+      "state": "expired",
+      "expiry_reason": "plan_changed",
+      "rhythm_before": [
+        "breakfast",
+        "lunch",
+        "dinner"
+      ],
+      "rhythm_after": [
+        "breakfast",
+        "lunch",
+        "dinner"
+      ],
+      "ack": "Your eating rhythm has changed since I asked, so I've left it alone — nothing has been added."
+    }
+  },
+  {
+    "level": "hard",
+    "id": "H4",
+    "scenario": "double tap ⇒ une seule application, rythme et applied_at inchangés",
+    "verdict": "GREEN",
+    "proof": {
+      "rhythm_after_first": [
+        "lunch",
+        "dinner",
+        "breakfast"
+      ],
+      "rhythm_after_second": [
+        "lunch",
+        "dinner",
+        "breakfast"
+      ],
+      "applied_at_stable": true,
+      "acks": [
+        "Done — breakfast is part of your rhythm now, and the next week you put together will have one.",
+        "Done — breakfast is part of your rhythm now, and the next week you put together will have one."
+      ],
+      "ack1": "Done — breakfast is part of your rhythm now, and the next week you put together will have one."
+    }
+  },
+  {
+    "level": "hard",
+    "id": "H5",
+    "scenario": "« Oui » puis « Non » ⇒ l'état reste accepté, rien n'est défait",
+    "verdict": "GREEN",
+    "proof": {
+      "state": "accepted",
+      "rhythm": [
+        "lunch",
+        "dinner",
+        "breakfast"
+      ],
+      "second_ack": "Done — breakfast is part of your rhythm now, and the next week you put together will have one."
+    }
+  },
+  {
+    "level": "extra-hard",
+    "id": "X1",
+    "scenario": "question de précision déjà posée ce jour ⇒ la proposition attend demain (T4)",
+    "verdict": "GREEN",
+    "proof": {
+      "tonight": {
+        "daily_ask_budget": 1
+      },
+      "bubbles_tonight": 0,
+      "tomorrow_proposed": 1
+    }
+  },
+  {
+    "level": "extra-hard",
+    "id": "X2",
+    "scenario": "le batch tombe un soir ⇒ UNE proposition le lendemain, pas deux",
+    "verdict": "GREEN",
+    "proof": {
+      "proposed": 1,
+      "db_rows": 1,
+      "bubbles": 1
+    }
+  },
+  {
+    "level": "extra-hard",
+    "id": "X3",
+    "scenario": "trois refus consécutifs ⇒ moteur muet, et encore muet quatre mois plus tard",
+    "verdict": "GREEN",
+    "proof": {
+      "tonight": {
+        "decline_streak_muted": 1
+      },
+      "in_120_days": {
+        "decline_streak_muted": 1
+      },
+      "bubbles": 0
+    }
+  },
+  {
+    "level": "extra-hard",
+    "id": "X3b",
+    "scenario": "deux refus AVANT une acceptation ne comptent pas: la série repart après le oui",
+    "verdict": "GREEN",
+    "proof": {
+      "proposed": 1,
+      "silent_reasons": {}
+    }
+  },
+  {
+    "level": "extra-hard",
+    "id": "X4",
+    "scenario": "recommandation partie à 19h ⇒ le tap du soir de 20h se retire (un seul message)",
+    "verdict": "GREEN",
+    "proof": {
+      "pulse_skipped": {
+        "outside_window": 298,
+        "no_active_plan": 254,
+        "nothing_to_say": 67,
+        "recommendation_sent_today": 1,
+        "opted_out": 9,
+        "already_sent_today": 1
+      },
+      "purposes_delivered": [
+        "keel_daily_recommendation"
+      ]
+    }
+  },
+  {
+    "level": "extra-hard",
+    "id": "X4b",
+    "scenario": "soir sans recommandation ⇒ le tap du soir n'est PAS étouffé (additif, pas substitutif)",
+    "verdict": "GREEN",
+    "proof": {
+      "pulse_sent": 1,
+      "purposes_delivered": [
+        "keel_daily_pulse"
+      ]
+    }
+  },
+  {
+    "level": "extra-hard",
+    "id": "X5",
+    "scenario": "deux instances du batch en parallèle ⇒ UNE ligne, UNE bulle, UNE place de budget",
+    "verdict": "GREEN",
+    "proof": {
+      "a": {
+        "proposed": 0,
+        "silent": {
+          "already_proposed_today": 1
+        }
+      },
+      "b": {
+        "proposed": 1,
+        "silent": {}
+      },
+      "db_rows": 1,
+      "bubbles": 1,
+      "ask_ledger": 1
+    }
+  },
+  {
+    "level": "extra-hard",
+    "id": "X6",
+    "scenario": "proposition SANS RÉPONSE ⇒ UNE seule bulle sur 14 soirs, puis expirée `unanswered` et son action en cooldown (le silence n'est pas un rappel)",
+    "verdict": "GREEN",
+    "proof": {
+      "nights": [
+        {
+          "night": 0,
+          "proposed": 1,
+          "reason": "-"
+        },
+        {
+          "night": 1,
+          "proposed": 0,
+          "reason": "awaiting_response"
+        },
+        {
+          "night": 2,
+          "proposed": 0,
+          "reason": "awaiting_response"
+        },
+        {
+          "night": 3,
+          "proposed": 0,
+          "reason": "awaiting_response"
+        },
+        {
+          "night": 6,
+          "proposed": 0,
+          "reason": "awaiting_response"
+        },
+        {
+          "night": 13,
+          "proposed": 0,
+          "reason": "awaiting_response"
+        }
+      ],
+      "after_14_days": {
+        "state": "expired",
+        "expiry_reason": "unanswered",
+        "proposed_on_day_15": 0,
+        "silent_on_day_15": {
+          "nothing_significant": 1
+        },
+        "bubbles_total": 1
+      }
+    }
+  },
+  {
+    "level": "extra-hard",
+    "id": "X6b",
+    "scenario": "l'action IGNORÉE reste en cooldown après expiration ⇒ toujours une seule bulle",
+    "verdict": "GREEN",
+    "proof": {
+      "day15": {
+        "cooldown": 1
+      },
+      "bubbles": 1,
+      "expiry_reason": "unanswered"
+    }
+  }
+]

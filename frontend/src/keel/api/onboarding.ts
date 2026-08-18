@@ -47,7 +47,26 @@ import {
   assessBirthDate,
   type BirthDateVerdict,
 } from "../../../../supabase/functions/_shared/keel/student_age.ts";
-import { normalizeAllergenInput } from "../copy/allergens";
+// ⚠️ `tokens.ts` EST L'AUTORITÉ DU VOCABULAIRE D'ACTIVITÉ, et il y en a un
+// SECOND dans le dépôt: `_shared/keel/activity_floor.ts` porte
+// `lightly_active` / `active` / `very_active`. C'est celui-ci qui a la
+// contrainte CHECK de `profiles.activity_level` et de
+// `household_member_bodies.activity_level` avec lui (`20260818100000`), donc
+// c'est celui-ci que l'entonnoir écrit. Collecter l'autre remplirait la colonne
+// de valeurs que la base refuse — ou, pire si la contrainte tombait un jour,
+// de valeurs que `ACTIVITY_FACTORS` rendrait `undefined`.
+import {
+  ACTIVITY_LEVELS,
+  type ActivityLevel,
+} from "../../../../supabase/functions/_shared/keel/tokens.ts";
+// ⚠️ `./allergenSlug` ET SURTOUT PAS `../copy/allergens`, QUI RÉEXPORTE LE MÊME
+// SYMBOLE. Ce module-ci est atteint par `api/household.ts`, donc par
+// `/app/plan`, `/app/household` et `/join-household`; passer par `copy/` ferait
+// entrer les treize littéraux `allergen.*` dans leur périmètre alors qu'aucune
+// des trois n'en rend un seul. Le scanner de `i18n/pageSeams.int.test.ts` suit
+// les IMPORTS, pas les appels — voir l'en-tête d'`api/planRouting.ts`, écrit
+// contre exactement ce piège, et celui d'`api/allergenSlug.ts`.
+import { normalizeAllergenInput } from "./allergenSlug";
 import { browserLocalDate } from "../lib/useMealTicks";
 import {
   addAllergy,
@@ -61,6 +80,11 @@ import {
   type MemberGoal,
   MEMBER_GOALS,
 } from "./household";
+// ⛔ `AwayMark` ET PLUS `AwayDay` SUR `FunnelMouth.away` — DÉFAUT P1 (L6,
+// 2026-08-18). L'entonnoir est l'un des quatre points de montage de la grille
+// de présence; un type qui perd le jeton `kind` laisse un écran le reconstruire
+// à plat, et « dehors » ressort « absent » au premier enregistrement.
+import { type AwayMark } from "../lib/presenceMarks";
 import {
   DAY_TOKENS,
   EATING_OCCASIONS,
@@ -127,6 +151,7 @@ export type FunnelQuestionId =
   | "own_height_cm"
   | "own_gender"
   | "own_weight_kg"
+  | "own_activity_level"
   | "own_goal"
   | "own_diet"
   | "own_allergies"
@@ -136,6 +161,7 @@ export type FunnelQuestionId =
   | "member_height_cm"
   | "member_weight_kg"
   | "member_gender"
+  | "member_activity_level"
   | "member_goal"
   | "member_allergies"
   // Étape 3 — la table
@@ -300,6 +326,50 @@ export const FUNNEL_QUESTIONS: readonly FunnelQuestion[] = Object.freeze([
     scope: "self",
   },
   {
+    // ── LE NIVEAU D'ACTIVITÉ (lot L0, 2026-08-18) ────────────────────────
+    //
+    // ⚠️ POURQUOI `wrong` ET PAS `better`, ALORS QUE LA RÈGLE LITTÉRALE DIRAIT
+    // `better`. Sans réponse, le plan n'est pas FAUX: il retombe sur
+    // l'hypothèse documentée (`ACTIVITY_FACTOR = 1.5`), qui est exactement le
+    // comportement de toute la base d'avant ce lot. La lettre de la règle
+    // classerait donc cette question « moins bon ».
+    //
+    // Ce qui départage est le SECOND MEMBRE de la règle: « moins bon → APRÈS le
+    // plan, devant le plat que ça change ». Le dépôt a déjà écrit l'argument,
+    // dix lignes plus haut, sur `own_height_cm`:
+    //
+    //     « Une taille ne change AUCUN plat en particulier; elle change toutes
+    //       les quantités, invisiblement. Il n'existe donc aucun moment
+    //       postérieur pour la demander — et "après" signifierait jamais. »
+    //
+    // L'activité est le MÊME OBJET. Elle ne se rattache à aucun plat, donc
+    // aucune question `better` ne peut la porter: une `better` se pose devant
+    // une assiette, et il n'y a pas d'assiette qui dise « celle-ci est plus
+    // grande parce que tu cours ». Elle va donc dans l'entonnoir, à côté de
+    // taille/poids/sexe, qui sont les autres entrées de la même équation.
+    //
+    // ⚠️ ET CE QU'ELLE PÈSE, MESURÉ: `ACTIVITY_FACTORS` va de 1,45
+    // (`sedentary`) à 2,00 (`trains_hard`), soit **38 % d'enveloppe** entre les
+    // deux extrêmes — le double de l'incertitude du calcul lui-même. Servir la
+    // même hypothèse à quelqu'un assis huit heures et à quelqu'un qui court
+    // quatre fois par semaine n'est pas une approximation, c'est la seule
+    // erreur de dimensionnement que le produit puisse encore commettre sur un
+    // corps entièrement décrit.
+    //
+    // ⚠️ `wrong` VEUT DIRE « DANS L'ENTONNOIR », PAS « BLOQUE LA COMPOSITION ».
+    // `canGenerateMisses` ne l'émet PAS, délibérément — voir la note à
+    // l'endroit où elle ne l'émet pas. Les deux sens de `weight` ne se
+    // recouvrent qu'ici, et c'est parce que `null` est une réponse légitime
+    // que la colonne accepte exprès (« l'absence reste une valeur »,
+    // `tokens.ts`).
+    id: "own_activity_level",
+    consumer: "supabase/functions/_shared/keel/meal_envelope.ts#ACTIVITY_FACTORS",
+    weight: "wrong",
+    branches: ALL_BRANCHES,
+    step: "people",
+    scope: "self",
+  },
+  {
     // `goal_required`, 409, dans LES DEUX générateurs. C'est le seul refus que
     // l'entonnoir ne peut pas se permettre de laisser passer: il tombe après
     // que tout a été saisi.
@@ -395,6 +465,30 @@ export const FUNNEL_QUESTIONS: readonly FunnelQuestion[] = Object.freeze([
   },
   {
     id: "member_gender",
+    consumer: "supabase/functions/generate-household-meal-v1/index.ts#keel_household_bodies_for",
+    weight: "wrong",
+    branches: WITH_OTHERS,
+    step: "people",
+    scope: "each_member",
+  },
+  {
+    // Le jumeau de `own_activity_level` pour une bouche SANS COMPTE — même
+    // argument, même mesure (1,45 → 2,00 = 38 % d'enveloppe), et le même
+    // `wrong` qui ne bloque pas.
+    //
+    // ⚠️ IL N'EST PAS DANS LE TOUT-OU-RIEN DU CORPS. Les trois lignes
+    // au-dessus le sont parce que le moteur SAUTE une bouche dont le corps est
+    // incomplet; celle-ci ne l'est pas, parce qu'une bouche sans cran compose
+    // normalement sur l'hypothèse. La RPC applique la même coupure
+    // (`20260818160000`): `body_incomplete` sur les trois, jamais sur celui-ci.
+    //
+    // ⚠️ ET SUR UN MINEUR, LE CRAN NE PEUT QUE FAIRE MONTER LE BESOIN
+    // (`childActivityFactor`). C'est une garde du moteur, pas de l'écran:
+    // la case est cochée par le compte maître, et laisser « assis toute la
+    // journée » retirer 9 % du besoin d'un corps en croissance sur la foi
+    // d'une case cochée par quelqu'un d'autre est la direction d'erreur qu'on
+    // refuse.
+    id: "member_activity_level",
     consumer: "supabase/functions/generate-household-meal-v1/index.ts#keel_household_bodies_for",
     weight: "wrong",
     branches: WITH_OTHERS,
@@ -582,6 +676,22 @@ export interface FunnelPerson {
   heightCm: number | null;
   weightKg: number | null;
   gender: MemberGender | null;
+  /**
+   * LE CRAN D'ACTIVITÉ, ET IL EST HORS DU TOUT-OU-RIEN CI-DESSUS.
+   *
+   * ⚠️ `null` N'EST PAS UN TROU, C'EST UNE RÉPONSE POSSIBLE. `tokens.ts`
+   * l'écrit: « personne n'est obligé de répondre; `null` veut dire on ne sait
+   * pas et retombe sur exactement le comportement d'avant ce lot (facteur 1,5,
+   * fourchette 28-33) ». Il n'existe donc PAS de cinquième jeton « inconnu » —
+   * un jeton d'ignorance deviendrait une réponse, et une réponse se met à peser
+   * dans un calcul d'énergie.
+   *
+   * Il est dans `FunnelState` malgré ça — donc le compilateur le réclame à
+   * chaque fixture — parce que l'ÉCRAN doit savoir quoi montrer comme déjà
+   * coché. Un formulaire qui affiche du vide non lu finit toujours par le faire
+   * écrire.
+   */
+  activityLevel: ActivityLevel | null;
   kind: "adult" | "child";
   /** ISO `YYYY-MM-DD`, ou `null`. */
   birthDate: string | null;
@@ -927,6 +1037,34 @@ function canGenerateMisses(
   }
   if (asks("own_gender") && state.self.gender === null) missing.push("own_gender");
   if (asks("own_diet") && state.self.diet === null) missing.push("own_diet");
+  // ── ⚠️ `own_activity_level` / `member_activity_level` NE SONT PAS ICI, ET
+  //    C'EST UN ARBITRAGE ÉCRIT, PAS UN OUBLI ──────────────────────────────
+  //
+  // Les deux sont `wrong` dans le catalogue, donc POSÉES dans l'entonnoir
+  // (`funnelSteps` les rend, à l'étape 2, à côté de taille/poids/sexe). Elles
+  // ne REFUSENT rien pour autant, et c'est la seule paire du catalogue dont
+  // les deux sens divergent.
+  //
+  // Ce qui l'impose est le vocabulaire lui-même. `tokens.ts` écrit, à propos
+  // de cette liste: « personne n'est obligé de répondre; `null` veut dire on ne
+  // sait pas », et refuse pour cette raison un cinquième jeton d'ignorance. La
+  // colonne est nullable, sans défaut, exprès. Bloquer la composition
+  // reviendrait à supprimer `null` du domaine des réponses possibles pour tout
+  // compte neuf — c'est-à-dire à forcer un choix parmi quatre, dont on saurait
+  // qu'une part est un pur devinement, et à faire entrer ce devinement dans un
+  // calcul d'énergie avec l'autorité d'une réponse. C'est exactement ce que le
+  // refus du cinquième jeton existe pour empêcher.
+  //
+  // La contrepartie est assumée: quelqu'un peut traverser l'entonnoir sans
+  // répondre, et il obtient l'hypothèse 1,5 — soit très précisément ce que
+  // TOUTE la base avait avant le 2026-08-18. On ne dégrade personne; on ouvre
+  // une porte qui était fermée.
+  //
+  // ⚠️ CONSÉQUENCE À CONNAÎTRE AVANT DE « RÉPARER » CE TROU: leurs phrases dans
+  // `SETUP_MISS_KEYS` sont donc INATTEIGNABLES, comme celle de
+  // `member_eating_rhythm`. Le `Record` complet par type est ce qui garantit
+  // qu'aucune question n'entre au catalogue sans ses mots; l'inatteignabilité
+  // est le prix, et elle est écrite des deux côtés.
 
   // ── ÉTAPE 2b, LES AUTRES ───────────────────────────────────────────────
   if (branch !== "solo") {
@@ -1101,6 +1239,7 @@ export function emptyFunnelState(): FunnelState {
       heightCm: null,
       weightKg: null,
       gender: null,
+      activityLevel: null,
     },
     others: [],
     plan: {
@@ -1124,6 +1263,7 @@ export function emptyFunnelPerson(): FunnelPerson {
     heightCm: null,
     weightKg: null,
     gender: null,
+    activityLevel: null,
   };
 }
 
@@ -1228,6 +1368,20 @@ export interface FunnelMouth extends FunnelPerson {
    */
   eatingSlots: EatingOccasionSlot[] | null;
   /**
+   * CE QUE LE MAÎTRE A DÉJÀ MARQUÉ COMME ABSENT POUR ELLE — `away_days`.
+   *
+   * ⚠️ C'EST `awayHousehold` ET JAMAIS L'UNION AVEC `awaySelf`. La grille
+   * RÉÉCRIT ce qu'on lui donne: nourrie de l'union, elle recopierait la
+   * déclaration de la personne dans la colonne du maître, où elle survivrait à
+   * sa rétractation. Voir la note de `HouseholdMemberView.awayHousehold`.
+   *
+   * ⚠️ ET IL FAUT LE PASSER À LA GRILLE. `MealPickerGrid` s'en sert pour
+   * REPRENDRE les jours hors fenêtre (`kept = away.filter(hors fenêtre)`):
+   * nourrie de `[]`, elle n'a rien à reprendre et son enregistrement efface
+   * toute absence posée en dehors des sept jours affichés.
+   */
+  away: AwayMark[];
+  /**
    * SON RÉGIME — `null` = personne n'a demandé, et c'est distinct d'« elle
    * mange de tout » (`omnivore`), qui est une RÉPONSE.
    *
@@ -1318,7 +1472,7 @@ export async function readFunnelFacts(userId: string): Promise<FunnelFacts> {
   const [profileRes, goalRes, household] = await Promise.all([
     supabase
       .from("profiles")
-      .select("full_name, birth_date, height_cm, gender")
+      .select("full_name, birth_date, height_cm, gender, activity_level")
       .eq("id", userId)
       .maybeSingle(),
     supabase
@@ -1368,6 +1522,8 @@ export async function readFunnelFacts(userId: string): Promise<FunnelFacts> {
       // moments de la maison » — jamais en pré-cochant ces moments-là sur la
       // ligne de quelqu'un.
       eatingSlots: m.eatingSlots,
+      // La colonne du MAÎTRE seule — voir la note du champ.
+      away: m.awayHousehold,
       // `loadHousehold` rend « — » pour un prénom vide (jamais l'e-mail: ça
       // divulguerait une adresse à tout le foyer). Ce libellé d'écran ne doit
       // pas repartir comme une RÉPONSE: l'entonnoir redemanderait alors un
@@ -1406,6 +1562,11 @@ export async function readFunnelFacts(userId: string): Promise<FunnelFacts> {
       heightCm: bodies.get(m.memberId)?.heightCm ?? null,
       weightKg: bodies.get(m.memberId)?.weightKg ?? null,
       gender: bodies.get(m.memberId)?.gender ?? null,
+      // ⚠️ MÊME TABLE QUE LE RESTE DU CORPS, et pour la même raison: c'est la
+      // SEULE que `keel_household_bodies_for` regarde, donc la seule dont le
+      // moteur tienne compte. Une bouche sans compte n'a pas de `profiles` où
+      // le chercher.
+      activityLevel: bodies.get(m.memberId)?.activityLevel ?? null,
     }));
 
   // Un foyer d'une seule bouche est un foyer qu'on a commencé et pas rempli:
@@ -1461,6 +1622,18 @@ export async function readFunnelFacts(userId: string): Promise<FunnelFacts> {
       // datés, et c'est ce que `restriction_guard` compare. Dans un foyer, ma
       // ligne de corps porte le même nombre, pour le moteur.
       weightKg: ownWeight ?? (ownMemberId ? bodies.get(ownMemberId)?.weightKg ?? null : null),
+      // ── MON CRAN VIENT DE `profiles`, ET C'EST LA BONNE SOURCE ──────────
+      // Il est écrit AUX DEUX ENDROITS par `saveSelf` (mon profil pour la lane
+      // individuelle, ma ligne de corps pour celle du foyer), parce que les
+      // deux moteurs lisent deux tables différentes. La RELECTURE, elle, n'a
+      // qu'une source: `profiles` est la seule qui existe hors foyer, donc la
+      // seule qui réponde sur les trois branches. Lire la ligne de corps ici
+      // rendrait `null` à tout compte solo — c'est-à-dire à la majorité.
+      activityLevel: (ACTIVITY_LEVELS as readonly string[]).includes(
+          String(profile.activity_level ?? "").trim(),
+        )
+        ? (String(profile.activity_level).trim() as ActivityLevel)
+        : null,
     },
     others: mouths,
     plan: readPlanAnswers(pc),
@@ -1595,11 +1768,30 @@ export async function saveOwnProfile(args: {
   firstName: string;
   heightCm: number;
   gender: MemberGender;
+  /**
+   * ⚠️ REQUIS, JAMAIS OPTIONNEL — la même règle que `maintenanceRange` s'est
+   * écrite pour lui-même: « un champ facultatif aurait laissé les appelants
+   * continuer de servir la fourchette de l'ignorance à quelqu'un qui a
+   * répondu, sans qu'aucun compilateur ne les recense ».
+   *
+   * `null` = personne n'a coché, et la colonne le porte tel quel: pas de
+   * défaut en base, pas de défaut ici.
+   */
+  activityLevel: ActivityLevel | null;
 }): Promise<void> {
   const patch: Record<string, unknown> = {
     height_cm: args.heightCm,
     gender: args.gender,
   };
+  // ⚠️ ON N'ÉCRIT PAS `null` PAR-DESSUS UNE RÉPONSE. La colonne n'a pas de
+  // défaut et `null` y veut dire « jamais répondu »; le patch est construit à
+  // partir d'un BROUILLON D'ÉCRAN, et un brouillon peut être vide parce que la
+  // lecture qui l'a semé a échoué, pas parce que la personne a effacé sa
+  // réponse. Sur `full_name` juste en dessous, la même précaution existe et
+  // pour la même raison. Aucun écran ne propose de dé-répondre — il n'y a pas
+  // de cinquième tuile —, donc l'absence dans le patch n'enlève rien à
+  // personne.
+  if (args.activityLevel !== null) patch.activity_level = args.activityLevel;
   const name = args.firstName.trim();
   if (name) patch.full_name = name;
   const { data, error } = await supabase
@@ -1744,19 +1936,27 @@ export async function saveOwnDiet(args: {
  * et son profil ne la remplace pas.
  *
  * Refus nommés: `not_owner`, `not_a_member`, `body_incomplete`, `bad_height`,
- * `bad_weight`, `bad_gender`.
+ * `bad_weight`, `bad_gender`, `bad_activity_level`.
+ *
+ * ⚠️ LE CRAN D'ACTIVITÉ VOYAGE AVEC, ET IL N'EST PAS DANS LE TOUT-OU-RIEN. La
+ * RPC refuse `body_incomplete` sur les trois du corps et jamais sur celui-ci:
+ * une bouche sans cran compose sur l'hypothèse documentée, une bouche sans
+ * taille est SAUTÉE. `null` côté base veut dire « ne touche pas », donc un
+ * appelant qui ne sait pas n'efface pas ce qu'un autre a écrit.
  */
 export async function saveMouthBody(args: {
   memberId: string;
   heightCm: number;
   weightKg: number;
   gender: MemberGender;
+  activityLevel: ActivityLevel | null;
 }): Promise<void> {
   const result = await setMemberBody(
     args.memberId,
     args.heightCm,
     args.weightKg,
     args.gender,
+    args.activityLevel,
   );
   if (!result.ok) throw new Error(String(result.reason));
 }

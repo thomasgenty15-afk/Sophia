@@ -53,7 +53,15 @@ import { browserLocalDate } from "../lib/useMealTicks";
 import EatingRhythmCard from "../components/EatingRhythmCard";
 import CookingCapacityCard from "../components/CookingCapacityCard";
 import FoodPreferencesCard from "../components/FoodPreferencesCard";
-import { type AwayDay, parseAwayDays, parseEatingRhythm } from "../api/mealGeneration";
+import { parseEatingRhythm } from "../api/mealGeneration";
+// ⛔ `parseAwayMarks` ET SURTOUT PLUS `parseAwayDays` — DÉFAUT P1 (L6,
+// 2026-08-18). Cette page était le QUATRIÈME point de montage de la grille de
+// présence, et le dernier à lire la colonne d'absences sans son jeton `kind`:
+// `parseAwayDays` ne garde que `day` et `slots`, donc « dehors » ressortait
+// « absent » au premier enregistrement de la grille — même sans toucher une
+// case. Les quatre écrans lisent maintenant pareil, et `MealPickerGridProps.away`
+// refuse désormais un tableau sans jeton, à la compilation.
+import { type AwayMark, parseAwayMarks } from "../lib/presenceMarks";
 import { dishDayLabel, mealCopy } from "../api/mealLabels";
 import { keptFrom } from "../api/foodPreferences";
 import { mergePracticalConstraints } from "../api/practicalConstraints";
@@ -1822,7 +1830,7 @@ export default function StudentWeekPlanPage() {
    * qu'une ligne a bougé valent ici aussi, et les dupliquer ferait une
    * quatrième écriture à tenir d'accord avec les trois autres.
    */
-  const saveAwayDays = async (next: AwayDay[]) => {
+  const saveAwayDays = async (next: AwayMark[]) => {
     const { data: sess } = await supabase.auth.getUser();
     const uid = sess.user?.id;
     if (!uid) throw new Error("not_signed_in");
@@ -2383,7 +2391,7 @@ export default function StudentWeekPlanPage() {
 
         <MealBuilder
           rhythm={parseEatingRhythm(pc.eating_rhythm)}
-          awayDays={parseAwayDays(pc.away_days)}
+          awayDays={parseAwayMarks(pc.away_days)}
           onAwaySaved={saveAwayDays}
           onHouseholdComposed={async () => {
             const uid = (await supabase.auth.getUser()).data.user?.id;
@@ -2654,6 +2662,16 @@ export default function StudentWeekPlanPage() {
               // (`keel_household_submit_envy` refuse tout autre membre par
               // `not_owner`). Une question sans lecteur ne se pose pas.
               askEnvy={newEnvyIsAsked({ isHouseholdOwner: isOwner })}
+              // ⚠️ LES BOUCHES DE LA TABLE, POUR « POUR QUI ? ». Un solo n'a
+              // PAS de foyer (`SetupPage.tsx`: « le solo ne crée pas de
+              // foyer »), donc pas une ligne `household_members`, donc aucun
+              // `member_id` à nommer: il reçoit `[]`, la question ne se pose
+              // pas, et l'ajustement vaut « tout le monde à table » — c'est-
+              // à-dire lui.
+              mouths={(household?.members ?? []).map((m) => ({
+                memberId: m.memberId,
+                displayName: m.displayName,
+              }))}
               onDismiss={async () => {
                 // On ferme d'abord: le refus est déjà pris, et une erreur
                 // d'écriture ne doit pas retenir quelqu'un devant un
@@ -2669,14 +2687,27 @@ export default function StudentWeekPlanPage() {
                 }
               }}
               onSubmit={async (answers) => {
-                const written = await submitPlanFeedback(feedbackPlan.mealId, {
-                  cooked: answers.cooked,
-                  portions: answers.portions,
-                  neverAgain: answers.neverAgain,
-                  makeAgain: answers.makeAgain,
-                  axisQuestion: answers.axisQuestion,
-                  axisAnswer: answers.axisAnswer,
-                });
+                const written = await submitPlanFeedback(
+                  feedbackPlan.mealId,
+                  {
+                    cooked: answers.cooked,
+                    portions: answers.portions,
+                    // ⛔ `member:<uuid>` OU `household`, JAMAIS UN PRÉNOM.
+                    // C'est ce qui rend `portion.adjust` attribuable — et le
+                    // questionnaire est son SEUL producteur pour cette raison
+                    // exacte: la conversation ne sait pas l'attribuer.
+                    portionsSubject: answers.portionsSubject,
+                    neverAgain: answers.neverAgain,
+                    makeAgain: answers.makeAgain,
+                    axisQuestion: answers.axisQuestion,
+                    axisAnswer: answers.axisAnswer,
+                  },
+                  // ⚠️ LE JOUR DE LA PERSONNE, PAS CELUI DU SERVEUR. C'est le
+                  // `at` de ce qui sera retenu (« je l'ai retenu de mardi »),
+                  // et l'horloge du serveur est en UTC: un mardi soir à Paris
+                  // y ressort mercredi.
+                  browserLocalDate(),
+                );
                 // `already_answered` n'est PAS une panne: « une seule fois par
                 // fenêtre » est une contrainte de BASE, et deux surfaces
                 // peuvent proposer ce questionnaire. On referme.

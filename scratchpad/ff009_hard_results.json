@@ -1,0 +1,212 @@
+[
+  {
+    "id": "H1",
+    "level": "hard",
+    "run": 1,
+    "text": "je vais commander ce soir",
+    "ok": true,
+    "detail": "(0 ligne — attendu)",
+    "reply": "Got it. That means tonight is likely a looser meal, so the useful move is just to keep lunch anchored on the two lunch lines you already have: protein and vegetables.",
+    "judgment": []
+  },
+  {
+    "id": "H2",
+    "level": "hard",
+    "run": 1,
+    "text": "on a commandé pour les enfants",
+    "ok": true,
+    "detail": "(0 ligne — attendu)",
+    "reply": "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in y",
+    "judgment": []
+  },
+  {
+    "id": "H3",
+    "level": "hard",
+    "run": 1,
+    "text": "I'm going to order takeout tonight",
+    "ok": true,
+    "detail": "(0 ligne — attendu)",
+    "reply": "Takeout tonight is a practical choice. If you want to keep lunch protein and vegetables in view today, make the dinner order do the opposite: choose one solid protein and one vegetable side, or a main that already includes both.",
+    "judgment": []
+  },
+  {
+    "id": "H4",
+    "level": "hard",
+    "run": 1,
+    "text": "we ordered for the kids",
+    "ok": true,
+    "detail": "(0 ligne — attendu)",
+    "reply": "Protein and vegetables at lunch are the two lunch items on your list. If the kids’ order covers the protein and the veg, that would fit both.",
+    "judgment": []
+  },
+  {
+    "id": "H5",
+    "level": "hard",
+    "run": 1,
+    "text": "j'ai mangé du poulet et du riz complet à midi",
+    "ok": true,
+    "detail": "NULL | poultry | - | chat | evw=0.8 | dq=- ;; NULL | whole_grain | - | chat | evw=0.8 | dq=-",
+    "reply": "Protein at lunch and vegetables at lunch are both still not reported for today. Chicken and brown rice give you protein and a solid carb base, but I don’t have any vegetables listed for that meal.  And what did you have with it?",
+    "judgment": []
+  },
+  {
+    "id": "H6",
+    "level": "hard",
+    "run": 1,
+    "text": "hier soir j'ai mangé chez moi, du saumon et des brocolis",
+    "ok": true,
+    "detail": "NULL | fatty_fish | - | chat | evw=0.8 | dq=- ;; NULL | cruciferous_veg | - | chat | evw=0.8 | dq=-",
+    "reply": "Noted — yesterday evening at home you had salmon and broccoli.",
+    "judgment": []
+  },
+  {
+    "id": "H7",
+    "level": "hard",
+    "run": 1,
+    "text": "I had grilled salmon with quinoa at home last night",
+    "ok": true,
+    "detail": "NULL | fatty_fish | - | chat | evw=0.8 | dq=- ;; NULL | whole_grain | - | chat | evw=0.8 | dq=-",
+    "reply": "At lunch today, protein is the useful part to keep in view. Salmon covers it; quinoa is fine as the carb.  Two things are now recorded for this turn.  And what did you have with it?",
+    "judgment": []
+  },
+  {
+    "id": "H1",
+    "level": "hard",
+    "run": 2,
+    "text": "je vais commander ce soir",
+    "ok": true,
+    "detail": "(0 ligne — attendu)",
+    "reply": "Understood — if you’re ordering tonight, the simplest move is to keep it protein-first and add a vegetable side if you can.",
+    "judgment": []
+  },
+  {
+    "id": "H2",
+    "level": "hard",
+    "run": 2,
+    "text": "on a commandé pour les enfants",
+    "ok": true,
+    "detail": "(0 ligne — attendu)",
+    "reply": "You ordered for the children. For today’s lunch slot, the two listed items are still the only ones on record: protein and vegetables.",
+    "judgment": []
+  },
+  {
+    "id": "H3",
+    "level": "hard",
+    "run": 2,
+    "text": "I'm going to order takeout tonight",
+    "ok": true,
+    "detail": "(0 ligne — attendu)",
+    "reply": "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in y",
+    "judgment": []
+  },
+  {
+    "id": "H4",
+    "level": "hard",
+    "run": 2,
+    "text": "we ordered for the kids",
+    "ok": true,
+    "detail": "(0 ligne — attendu)",
+    "reply": "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in y",
+    "judgment": []
+  },
+  {
+    "id": "H5",
+    "level": "hard",
+    "run": 2,
+    "text": "j'ai mangé du poulet et du riz complet à midi",
+    "ok": true,
+    "detail": "NULL | lean_protein | - | chat | evw=0.8 | dq=- ;; NULL | whole_grain | - | chat | evw=0.8 | dq=-",
+    "reply": "Noted. You’ve got protein at lunch covered today, and the vegetables at lunch line is still unreported.  And what did you have with it?",
+    "judgment": []
+  },
+  {
+    "id": "H6",
+    "level": "hard",
+    "run": 2,
+    "text": "hier soir j'ai mangé chez moi, du saumon et des brocolis",
+    "ok": true,
+    "detail": "NULL | fatty_fish | - | chat | evw=0.8 | dq=- ;; NULL | cruciferous_veg | - | chat | evw=0.8 | dq=-",
+    "reply": "Got it. For lunch today, the two things on your plan are protein and vegetables, and salmon with broccoli fits that well.",
+    "judgment": []
+  },
+  {
+    "id": "H7",
+    "level": "hard",
+    "run": 2,
+    "text": "I had grilled salmon with quinoa at home last night",
+    "ok": true,
+    "detail": "NULL | fatty_fish | - | chat | evw=0.8 | dq=- ;; NULL | whole_grain | - | chat | evw=0.8 | dq=-",
+    "reply": "Noted. That gives you protein and a solid carb base; the only missing piece is a vegetable serving, if you’re checking that lunch line.  And what did you have with it?",
+    "judgment": []
+  },
+  {
+    "id": "H1",
+    "level": "hard",
+    "run": 3,
+    "text": "je vais commander ce soir",
+    "ok": true,
+    "detail": "(0 ligne — attendu)",
+    "reply": "Got it — tonight you’re planning to order in.  If you want to keep it aligned with lunch today, the main thing is simple: make sure the meal has a clear protein source and some non-starchy vegetables.",
+    "judgment": []
+  },
+  {
+    "id": "H2",
+    "level": "hard",
+    "run": 3,
+    "text": "on a commandé pour les enfants",
+    "ok": true,
+    "detail": "(0 ligne — attendu)",
+    "reply": "If you ordered food for the kids, that’s not the same as your own lunch protein or vegetables.  For today’s lunch check, I can only count what you ate yourself.",
+    "judgment": []
+  },
+  {
+    "id": "H3",
+    "level": "hard",
+    "run": 3,
+    "text": "I'm going to order takeout tonight",
+    "ok": true,
+    "detail": "(0 ligne — attendu)",
+    "reply": "Got it. For takeout, the simplest way to keep it on track is: pick a main with a real protein, then add vegetables or a side salad if the meal is light on them.",
+    "judgment": []
+  },
+  {
+    "id": "H4",
+    "level": "hard",
+    "run": 3,
+    "text": "we ordered for the kids",
+    "ok": true,
+    "detail": "(0 ligne — attendu)",
+    "reply": "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in y",
+    "judgment": []
+  },
+  {
+    "id": "H5",
+    "level": "hard",
+    "run": 3,
+    "text": "j'ai mangé du poulet et du riz complet à midi",
+    "ok": true,
+    "detail": "NULL | poultry | - | chat | evw=0.8 | dq=- ;; NULL | whole_grain | - | chat | evw=0.8 | dq=-",
+    "reply": "You’ve got the lunch protein line covered for today: chicken fits it.   The vegetables-at-lunch line is still not reported, so I can’t count that from what you said.  And what did you have with it?",
+    "judgment": []
+  },
+  {
+    "id": "H6",
+    "level": "hard",
+    "run": 3,
+    "text": "hier soir j'ai mangé chez moi, du saumon et des brocolis",
+    "ok": true,
+    "detail": "NULL | fatty_fish | - | chat | evw=0.8 | dq=- ;; NULL | cruciferous_veg | - | chat | evw=0.8 | dq=-",
+    "reply": "Noted. Tonight’s dinner you mentioned was salmon and broccoli.",
+    "judgment": []
+  },
+  {
+    "id": "H7",
+    "level": "hard",
+    "run": 3,
+    "text": "I had grilled salmon with quinoa at home last night",
+    "ok": true,
+    "detail": "NULL | fatty_fish | - | chat | evw=0.8 | dq=- ;; NULL | whole_grain | - | chat | evw=0.8 | dq=-",
+    "reply": "That gives you protein and a decent carb base, but it does not cover the vegetables line at lunch.  And what did you have with it?",
+    "judgment": []
+  }
+]

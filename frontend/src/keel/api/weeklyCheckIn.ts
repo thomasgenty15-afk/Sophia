@@ -12,7 +12,24 @@
 // est déjà un test côté serveur — la même règle traverse maintenant la
 // frontière des deux runtimes, là où elle peut réellement diverger.
 
+// ── CE QUI A CHANGÉ AU LOT 4, ET CE QUI N'A PAS BOUGÉ ──────────────────────
+// Les onze LIBELLÉS (six axes, cinq crans) étaient des `Record` en dur ici. Ils
+// sont passés dans le seed (`chat.weekly.axis.*`, `chat.weekly.scale.*`) et
+// portent une version française.
+//
+// ⚠️ LE CONTRAT AVEC LE DENO N'A PAS ÉTÉ RELÂCHÉ, IL A ÉTÉ RÉANCRÉ. Le test
+// comparait `WEEKLY_AXIS_LABELS[axis]` au fichier serveur mot pour mot; il
+// compare maintenant `en["chat.weekly.axis." + axis]` au même fichier, ce qui
+// est LA MÊME CHAÎNE et la même exigence. Ce qui a été tranché, c'est que le
+// pack français n'a pas de jumelle serveur À FAIRE: les constantes `_EN` de
+// `weekly_flow.ts` ne servent aucun écran d'élève — elles nourrissent des
+// consignes de modèle (`meal_generation.ts`, `week_plan_generation.ts`, en
+// anglais par construction) et `weeklyFlowJson()`, la définition d'un
+// formulaire Meta héritée du canal WhatsApp. Aucun `RENDER_PACKS` à écrire, et
+// aucune ligne de Deno touchée.
+
 import { supabase } from "../../lib/supabase";
+import { t } from "../i18n/t";
 
 export const WEEKLY_AXES = [
   "energy",
@@ -24,23 +41,24 @@ export const WEEKLY_AXES = [
 ] as const;
 export type WeeklyAxis = (typeof WEEKLY_AXES)[number];
 
-export const WEEKLY_AXIS_LABELS: Record<WeeklyAxis, string> = {
-  energy: "Day-to-day energy",
-  hunger: "Hunger between meals",
-  sleep: "Sleep quality",
-  digestion: "Digestion",
-  mood: "Mood",
-  training: "Training quality",
-};
+/**
+ * L'axe, en mots, dans la langue de la page.
+ *
+ * Une FONCTION et pas une table de module: `t()` est résolu à l'appel, et une
+ * table construite à l'import se figerait à la langue du premier chargement —
+ * c'est exactement ce que la règle `MODULE_SCOPE_T` d'`i18n-lint.mjs` refuse.
+ */
+export function weeklyAxisLabel(axis: WeeklyAxis): string {
+  return t(`chat.weekly.axis.${axis}`);
+}
 
 /** Les cinq crans, nommés. Un chiffre nu invite chacun à sa propre échelle. */
-export const WEEKLY_SCALE_LABELS: Record<number, string> = {
-  1: "1 — bad",
-  2: "2 — poor",
-  3: "3 — ok",
-  4: "4 — good",
-  5: "5 — great",
-};
+export const WEEKLY_SCALE_VALUES = [1, 2, 3, 4, 5] as const;
+export type WeeklyScore = (typeof WEEKLY_SCALE_VALUES)[number];
+
+export function weeklyScaleLabel(score: WeeklyScore): string {
+  return t(`chat.weekly.scale.${score}`);
+}
 
 // Bornes de plausibilité. Volontairement larges : il ne s'agit pas de juger un
 // corps mais d'attraper une faute de frappe.

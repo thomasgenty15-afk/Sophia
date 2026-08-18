@@ -430,15 +430,15 @@ Deno.test("no buttons without a question, no question without buttons", () => {
   // wants none. A question with no buttons is worse: `readPulseReply` only ever
   // reads button ids, so a typed reply goes to the dispatcher and the day is
   // never measured at all.
-  const factOnly = renderPulseMessage({ recapBody: "Ticked off today: Oats.", ask: false, strip: null });
+  const factOnly = renderPulseMessage({ recapBody: "Ticked off today: Oats.", ask: false, strip: null, locale: "en-US", });
   assertEquals(factOnly.buttons.length, 0);
   assertEquals(factOnly.body, "Ticked off today: Oats.");
 
-  const askOnly = renderPulseMessage({ recapBody: null, ask: true, strip: null });
+  const askOnly = renderPulseMessage({ recapBody: null, ask: true, strip: null, locale: "en-US", });
   assertEquals(askOnly.buttons.length, 3);
   assertEquals(askOnly.body, "How was today?");
 
-  const both = renderPulseMessage({ recapBody: "Ticked off today: Oats.", ask: true, strip: null });
+  const both = renderPulseMessage({ recapBody: "Ticked off today: Oats.", ask: true, strip: null, locale: "en-US", });
   assertEquals(both.buttons.length, 3);
   // The blank line is load-bearing, not cosmetic: run together, the count reads
   // as the preamble to the question, which is the measurement bias the recap
@@ -451,7 +451,7 @@ Deno.test("neither ground nor ask cannot be rendered — the decider already ref
   // caller that reaches the renderer without it has bypassed the decision.
   let threw = false;
   try {
-    renderPulseMessage({ recapBody: null, ask: false, strip: null });
+    renderPulseMessage({ recapBody: null, ask: false, strip: null, locale: "en-US", });
   } catch {
     threw = true;
   }
@@ -459,7 +459,7 @@ Deno.test("neither ground nor ask cannot be rendered — the decider already ref
   // Whitespace is not a fact either.
   let threwOnBlank = false;
   try {
-    renderPulseMessage({ recapBody: "   \n ", ask: false, strip: null });
+    renderPulseMessage({ recapBody: "   \n ", ask: false, strip: null, locale: "en-US", });
   } catch {
     threwOnBlank = true;
   }
@@ -471,7 +471,7 @@ Deno.test("neither ground nor ask cannot be rendered — the decider already ref
 // ---------------------------------------------------------------------------
 
 Deno.test("exactly 3 buttons, titles under 20 chars (Meta's cap)", () => {
-  for (const set of [pulseLevelButtons(), pulseAxisButtons()]) {
+  for (const set of [pulseLevelButtons("en-US"), pulseAxisButtons("en-US")]) {
     assertEquals(set.length, 3);
     for (const b of set) {
       assert(b.title.length <= 20, `${b.title} is ${b.title.length} chars`);
@@ -480,15 +480,19 @@ Deno.test("exactly 3 buttons, titles under 20 chars (Meta's cap)", () => {
   }
 });
 
-Deno.test("the labels are PINNED: they must match the approved Meta template", () => {
-  // These five strings exist twice: here, and in the `keel_daily_pulse_v1`
-  // template submitted to Meta (docs/nutrition-pivot/META-TEMPLATES.md).
-  // Inside the 24h window our code renders the message; outside it Meta's
-  // template does. A rename here that "reads better" silently gives the same
-  // student two different products depending on the hour — and the template
-  // cannot be re-approved as fast as a string is edited.
-  assertEquals(renderPulseQuestion().body, "How was today?");
-  assertEquals(pulseLevelButtons().map((b) => b.title), [
+Deno.test("the ENGLISH labels are pinned — a locale pack is not a licence to rewrite", () => {
+  // ── CE QUE CETTE ÉPINGLE PROTÉGEAIT, ET CE QU'ELLE PROTÈGE MAINTENANT ─────
+  // Elle disait: « ces cinq chaînes existent deux fois, ici et dans le template
+  // `keel_daily_pulse_v1` soumis à Meta ». C'était vrai tant que le repli hors
+  // fenêtre 24h rendait le message. Depuis de-whatsapp, `deliverChatMessage`
+  // est le seul chemin et `pulseTemplateButtonComponents` n'a plus d'appelant
+  // de production — la contrainte a survécu à sa cause.
+  //
+  // L'épingle reste, pour l'autre raison: le pack anglais est ce que lisent
+  // tous les élèves non francophones, et ajouter un pack `fr` ne donne aucun
+  // droit de retoucher celui-là au passage.
+  assertEquals(renderPulseQuestion("en-US").body, "How was today?");
+  assertEquals(pulseLevelButtons("en-US").map((b) => b.title), [
     "All good",
     "So-so",
     "Rough",
@@ -523,10 +527,10 @@ Deno.test("the axis is asked ONLY when something went wrong", () => {
 });
 
 Deno.test("the two questions render with their buttons", () => {
-  const q = renderPulseQuestion();
+  const q = renderPulseQuestion("en-US");
   assertEquals(q.body, "How was today?");
   assertEquals(q.buttons.map((b) => b.title), ["All good", "So-so", "Rough"]);
-  const a = renderPulseAxisQuestion();
+  const a = renderPulseAxisQuestion("en-US");
   assertEquals(a.body, "What was hard?");
   assertEquals(a.buttons.map((b) => b.title), ["Energy", "Hunger", "Sleep"]);
 });
@@ -535,7 +539,7 @@ Deno.test("every button title fits Meta's 20-character ceiling", () => {
   // `whatsapp-send` tronque silencieusement au-delà. Un libellé tronqué serait
   // à la fois moche et DIFFÉRENT de celui du template Meta approuvé, donc deux
   // expériences selon qu'on est dans la fenêtre 24h ou non.
-  for (const b of [...pulseLevelButtons(), ...pulseAxisButtons()]) {
+  for (const b of [...pulseLevelButtons("en-US"), ...pulseAxisButtons("en-US")]) {
     assert(b.title.length <= 20, `${b.title} is ${b.title.length} chars`);
   }
 });
@@ -544,9 +548,9 @@ Deno.test("the ack never comments, consoles or bounces back", () => {
   // 'Dur' followed by 'courage, demain ira mieux' is ungrounded tenderness —
   // proscribed by the repo's own doctrine, and unbearable daily.
   const acks = [
-    renderPulseAck("good", null),
-    renderPulseAck("hard", "hunger"),
-    renderPulseAck("mixed", "sleep"),
+    renderPulseAck("good", null, "en-US"),
+    renderPulseAck("hard", "hunger", "en-US"),
+    renderPulseAck("mixed", "sleep", "en-US"),
   ];
   for (const ack of acks) {
     assert(ack.length <= 20, ack);
@@ -563,7 +567,7 @@ Deno.test("the template payloads follow the SAME order as the native buttons", (
   // bouton tapé, il renvoie le payload attaché à son INDEX. Deux boutons
   // inversés entre le template et le rendu natif = « Rough » enregistré pour
   // un élève qui a tapé « All good », sans erreur et sans trace.
-  const buttons = pulseLevelButtons();
+  const buttons = pulseLevelButtons("en-US");
   const components = pulseTemplateButtonComponents(buttons) as Array<
     Record<string, unknown>
   >;
@@ -583,7 +587,7 @@ Deno.test("the template payloads follow the SAME order as the native buttons", (
 Deno.test("the template carries the payloads the reader actually accepts", () => {
   // Un payload que `readPulseReply` ne sait pas lire est un tap perdu: l'élève
   // a répondu, le produit n'a rien enregistré.
-  const components = pulseTemplateButtonComponents(pulseLevelButtons()) as Array<
+  const components = pulseTemplateButtonComponents(pulseLevelButtons("en-US")) as Array<
     Record<string, unknown>
   >;
   for (const component of components) {
@@ -654,7 +658,7 @@ Deno.test("FF-058 — the order is fact, strip, question — and the buttons fol
   const all = renderPulseMessage({
     recapBody: "Ticked off today: Oats.",
     ask: true,
-    strip: STRIP,
+    strip: STRIP, locale: "en-US",
   });
   assertEquals(
     all.body,
@@ -675,7 +679,7 @@ Deno.test("FF-058 — the strip can carry the message alone, with no question an
   const stripOnly = renderPulseMessage({
     recapBody: null,
     ask: false,
-    strip: STRIP,
+    strip: STRIP, locale: "en-US",
   });
   assertEquals(stripOnly.body, "Today : Soup · Yoghurt");
   assertEquals(stripOnly.buttons.length, 2);
@@ -688,12 +692,12 @@ Deno.test("FF-058 — a null strip renders EXACTLY the message of before, byte f
   const before = renderPulseMessage({
     recapBody: "Ticked off today: Oats.",
     ask: true,
-    strip: null,
+    strip: null, locale: "en-US",
   });
   assertEquals(before.body, "Ticked off today: Oats.\n\nHow was today?");
   assertEquals(before.buttons.length, 3);
   assertEquals(
-    renderPulseMessage({ recapBody: "Ticked off today: Oats.", ask: false, strip: null })
+    renderPulseMessage({ recapBody: "Ticked off today: Oats.", ask: false, strip: null, locale: "en-US", })
       .buttons.length,
     0,
   );

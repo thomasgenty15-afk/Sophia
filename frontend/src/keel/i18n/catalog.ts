@@ -269,6 +269,21 @@ export const TRANSLATED_NAMESPACES = [
   // plan, un moment est DÉDUIT de `occurred_at`. Deux vocabulaires, deux
   // origines, et la grille de rythme rend le second.
   "moment",
+
+  // ══ « CE QUE SOPHIA SAIT DE TOI » (lot 1D) ══════════════════════════════
+  // ⚠️ IL ENTRE TRADUIT, ET CE N'EST PAS DU CONFORT. Cet écran est la surface
+  // de TRANSPARENCE: il dit à la personne ce que le produit retient d'elle, et
+  // lui laisse le corriger. Le livrer en anglais au milieu d'une app française
+  // ferait exactement la couture de `/start` du 2026-08-12 — sur l'écran où
+  // elle compte le plus, puisque c'est celui qu'on ouvre quand on se demande
+  // « qu'est-ce qu'il sait de moi ? ».
+  //
+  // ⚠️ NAMESPACE À LUI, ET PAS `plan.*`. Les 22 clés de `FoodPreferencesCard`
+  // vivent sous `plan.told.*` parce que la carte est montée sur `/app/plan`.
+  // Ranger cet écran-ci sous le même préfixe referait la fausse piste que le
+  // lot 6 a payée en renommant `household.envy.*` en `plan.envy.*`: une clé
+  // dont le nom désigne un écran qui ne l'affiche pas.
+  "known",
 ] as const;
 
 // ⚠️ `landing` A DISPARU DE CETTE LISTE, ET CE N'EST PAS UN OUBLI.
@@ -454,7 +469,19 @@ export const PAGE_NAMESPACES: Readonly<
   // aurait été la vraie faute: elle écrit `away_days` en reprenant les jours
   // HORS fenêtre, et deux implémentations de cette règle-là finissent par en
   // effacer la moitié.
-  "/app/setup": ["setup", "allergen", "household", "plan", "app", "meals"],
+  // ⚠️ `common` ENTRE PAR LE BOUTON DE FERMETURE DE `Modal`, PAS PAR LA PAGE.
+  // Son `closeLabel` avait pour défaut le littéral `"Close"`; il vaut désormais
+  // `common.close`, donc toute page qui monte une fenêtre sans nommer sa sortie
+  // atteint ce namespace. Ici c'est la grille « Quels repas, quels jours ».
+  "/app/setup": [
+    "setup",
+    "allergen",
+    "household",
+    "plan",
+    "app",
+    "meals",
+    "common",
+  ],
   // ── L'APP ÉLÈVE (lot 4) ──────────────────────────────────────────────────
   // ⚠️ CES PAGES MONTENT `KeelAppShell`, ET LES TROIS NAMESPACES DE LA
   // COQUILLE SONT DONC ÉCRITS À LA MAIN SUR CHACUNE. `pageSeams.int.test.ts`
@@ -491,7 +518,45 @@ export const PAGE_NAMESPACES: Readonly<
   // écrite ici pour qu'elle soit trouvable, et c'est le SEUL site de format sur
   // les cinq pages: `ShoppingListPanel` passe déjà `undefined` (la locale du
   // navigateur), les trois autres pages n'en ont aucun.
-  "/app/household": ["household", "meals", "plan", "app", "shell", "chat"],
+  // `common` pour la même raison qu'à `/app/setup`: la fenêtre de présence.
+  "/app/household": [
+    "household",
+    "meals",
+    "plan",
+    "app",
+    "shell",
+    "chat",
+    "common",
+    // ── L5, 2026-08-18 · LE POP-UP « UNE BOUCHE » ──────────────────────────
+    // La fenêtre qui décrit une personne s'ouvre ici comme dans l'entonnoir, et
+    // elle emprunte le MÊME vocabulaire de champ — prénom, date de naissance,
+    // taille, poids, sexe. Deux jeux de libellés pour les deux mêmes champs
+    // divergeraient au premier ajustement, et c'est l'écran le moins relu qui
+    // aurait tort. `allergen` suit pour la même raison: les treize slugs sont
+    // une DONNÉE partagée, et leur libellé se résout à l'appel.
+    //
+    // ⚠️ DÉCLARÉS PLUTÔT QU'ÉVITÉS, ET C'EST LE REMÈDE QUE LE SCANNER PRESCRIT
+    // LUI-MÊME. `pageSeams` a rougi sur ces deux namespaces avant que quiconque
+    // ouvre la page — « Ajoute son namespace à la déclaration de la page, ou
+    // traduis-le ». Les deux SONT traduits; il manquait la déclaration.
+    "setup",
+    "allergen",
+  ],
+  // `/app/about-you` — CE QUE SOPHIA SAIT DE TOI (lot 1D). L'écran de
+  // transparence: les six sections du §6, les anciennes notes du §7, et sur
+  // chaque ligne sa provenance en clair.
+  //
+  // ⚠️ `slot` ET `day` NE SONT PAS DU DÉCOR: un `rhythm.set` rend son moment
+  // par `slot.*` et un `logistics.set` ses jours de cuisine par `day.long.*`.
+  // Les deux sont des ATOMES lus depuis un jeton venu de la BASE, donc aucun
+  // scan statique ne les rattacherait à cet écran si la carte ne les écrivait
+  // pas en littéral — ce qu'elle fait exprès, pour que le scanner les voie.
+  //
+  // ⚠️ `known` NE SUFFIT PAS TOUT SEUL, et c'est la leçon de `/start`: le
+  // chrome (`app`, `shell`, `chat`) est écrit à la main comme sur les autres
+  // pages d'app, parce que `app.*` entre par la GARDE DE ROUTE —
+  // `KeelHouseholdRoute` rend `app.guard.checking` avant que la page n'existe.
+  "/app/about-you": ["known", "slot", "day", "app", "shell", "chat"],
   // `/app/chat` — la bulle. Elle n'a coûté que le point hebdomadaire: les onze
   // libellés des six axes et des cinq crans vivaient dans `api/weeklyCheckIn.ts`
   // sous CONTRAT MOT POUR MOT avec un fichier Deno, ce qui les rendait
@@ -539,6 +604,22 @@ export const PAGE_NAMESPACES: Readonly<
   // jours de cuisine (`day`) et les créneaux du rythme (`slot`, `when`,
   // `amount`, `sentence`, `question`, `unit`, `food_group`, `part`, `timing`)
   // par `api/labels.ts` et `api/mealLabels.ts`.
+  //
+  // ⚠️ ET DEPUIS QUE LA DEMANDE DE PLAN VIT ICI, LA LISTE NE BOUGE PAS — ce
+  // qui mérite d'être écrit, parce que c'est contre-intuitif. Trois blocs sont
+  // arrivés de `/app/household` (l'envie, « quelle façon de manger le plat
+  // commun suit », « à table »), mais leurs clés ont été RENOMMÉES sous `plan.*`
+  // au passage: `household.envy.*` → `plan.envy.*`, `household.reference.*` →
+  // `plan.reference.*`, `household.portions.*` → `plan.table.*`.
+  //
+  // Renommer n'était PAS obligatoire — cette page déclare `household`, donc les
+  // anciennes clés auraient compilé et passé toutes les gardes. C'est justement
+  // la raison de le faire: une clé `household.*` rendue par l'écran du plan est
+  // une fausse piste permanente pour qui grepera dans six mois, et ce dépôt a
+  // déjà payé « une valeur figée survit à sa cause ».
+  //
+  // `household` reste déclaré ici, et ce n'est pas un reliquat: l'écran lit
+  // `api/household.ts` (la place dans le foyer, la part, les refus de foyer).
   "/app/plan": [
     "plan",
     "meals",

@@ -15,8 +15,17 @@
 
 import { type MessageKey } from "../i18n/t";
 
-/** R3: les surfaces KEEL naissent en anglais. C'est `ui_locale`. */
-export const PRODUCT_LOCALE = "en-US";
+// ⚠️ `PRODUCT_LOCALE = "en-US"` A ÉTÉ RETIRÉ D'ICI, ET SON ABSENCE EST LE
+// CHANGEMENT. Il portait le commentaire « R3: les surfaces KEEL naissent en
+// anglais » — vrai du pilote, faux du produit: la langue est désormais un CHOIX
+// que la personne fait au moment de s'inscrire, avec le drapeau de la page.
+//
+// La locale devient donc un champ REQUIS de l'entrée ci-dessous, et pas une
+// lecture de `chosenUiLocale()` faite ici. Deux raisons, et la seconde est la
+// vraie: ces fonctions sont PURES et testées comme telles — lire un état de
+// module les rendrait dépendantes de l'ordre d'initialisation du runtime; et un
+// champ requis fait énumérer ses appelants par le compilateur, là où un défaut
+// optionnel aurait laissé les quatre portes tranquilles avec l'ancienne valeur.
 
 /** L'intention que `handle_new_user()` reconnaît. Un seul littéral, un seul endroit. */
 export const FREE_SIGNUP_INTENT = "student_free";
@@ -36,6 +45,8 @@ export interface FreeSignupMetadataInput {
   fullName: string;
   country: string;
   timezone: string;
+  /** La langue CHOISIE. `signupProfileLocale()` la produit depuis le drapeau. */
+  locale: string;
 }
 
 /**
@@ -43,7 +54,10 @@ export interface FreeSignupMetadataInput {
  * lit. Chaque clé a un lecteur SQL, et aucune n'est décorative:
  *
  *   full_name          -> profiles.full_name
- *   locale             -> profiles.locale (sinon le défaut legacy 'fr-FR')
+ *   locale             -> profiles.locale (sinon le défaut legacy 'fr-FR').
+ *                         C'est la LANGUE DU COMPTE: le backend la lit à chaque
+ *                         tour (`run.ts` -> `resolveResponseLocale`), donc ce
+ *                         champ décide dans quelle langue l'agent répond.
  *   timezone           -> profiles.timezone. NULL fait rendre `null` à
  *                         `localHourFor`, ce qui range l'élève en
  *                         `outside_window` à CHAQUE tick du tap du soir —
@@ -53,14 +67,15 @@ export interface FreeSignupMetadataInput {
  *   country            -> profiles.country, via le moteur de rattachement.
  *                         Sans lui le trigger REFUSE de rattacher: un pays
  *                         absent ferait déduire la hotline de crise depuis la
- *                         langue, et `locale` vaut 'en-US' pour tout le monde.
+ *                         langue — et depuis que `locale` est un CHOIX, cette
+ *                         déduction est devenue plus fausse qu'avant, pas moins.
  */
 export function freeSignupMetadata(
   input: FreeSignupMetadataInput,
 ): Record<string, unknown> {
   return {
     full_name: input.fullName.trim(),
-    locale: PRODUCT_LOCALE,
+    locale: input.locale,
     timezone: input.timezone,
     tz_follow_device: true,
     keel_signup_intent: FREE_SIGNUP_INTENT,
@@ -124,8 +139,15 @@ export type JoinRefusalReason =
  */
 export function joinRefusalMessageKey(reason: string | null | undefined): MessageKey {
   switch (reason) {
+    // ⚠️ `country_required` ARRIVE ENCORE DE LA BASE, ET N'A PLUS D'ÉCRAN POUR
+    // Y RÉPONDRE. Le pays n'est plus saisi — il est déduit du fuseau — donc ce
+    // refus ne peut plus vouloir dire « la personne n'a pas répondu ». Il veut
+    // dire que la déduction a produit une valeur que la base rejette,
+    // c'est-à-dire un défaut de NOTRE côté. On le range donc avec les pannes,
+    // dont la phrase invite à réessayer, plutôt que de demander à quelqu'un de
+    // corriger un champ qu'il n'a jamais vu.
     case "country_required":
-      return "start.error.country_required";
+      return "start.error.generic";
     case "already_coached":
       return "start.error.already_coached";
     case "caller_is_coach":

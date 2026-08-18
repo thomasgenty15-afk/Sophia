@@ -209,6 +209,42 @@ const REQUEST_STOPWORDS: ReadonlySet<string> = new Set([
 ]);
 
 /**
+ * LES MOTS QUI RETOURNENT UNE DEMANDE. Liste FERMÉE, EN + FR.
+ *
+ * « des trucs rapides, mais PAS de poisson » n'est pas une envie de poisson.
+ * Sans ce filtre, le fragment devient un terme, on ne le trouve pas dans le
+ * plan, et on répond « tu as demandé pas de poisson : il n'y en a pas » — une
+ * phrase qui rend le contraire de ce qui a été écrit.
+ *
+ * ⚠️ ON NE RÉUTILISE PAS la liste de `forbidden_matcher.ts`: la sienne blanchit
+ * une mention DANS un texte analysé (« pain sans gluten » ne sert pas de
+ * gluten). Ici on juge une DEMANDE, pas une mention — deux questions
+ * différentes qui méritent deux listes, même si elles se ressemblent
+ * aujourd'hui. Les coupler ferait qu'un assouplissement de l'une déplace
+ * l'autre en silence.
+ */
+const REQUEST_NEGATIONS: ReadonlySet<string> = new Set([
+  // FR
+  "pas",
+  "sans",
+  "aucun",
+  "aucune",
+  "jamais",
+  "plus",
+  "eviter",
+  "evite",
+  "marre",
+  // EN
+  "no",
+  "not",
+  "without",
+  "avoid",
+  "skip",
+  "never",
+  "except",
+]);
+
+/**
  * LES BORNES DE LISIBILITÉ.
  *
  * En dessous de `MIN_TERM_CHARS`, un fragment est du bruit de ponctuation. Au
@@ -266,7 +302,10 @@ export function extractRequestedTerms(
       words.length > 0 &&
       words.length <= MAX_TERM_WORDS &&
       // Un fragment entièrement fait de mots vides ne nomme aucun aliment.
-      words.some((w) => !REQUEST_STOPWORDS.has(w));
+      words.some((w) => !REQUEST_STOPWORDS.has(w)) &&
+      // Une demande NIÉE n'est pas une demande. La rendre comme un terme fait
+      // répondre le contraire de ce qui a été écrit.
+      !words.some((w) => REQUEST_NEGATIONS.has(w));
     if (!usable) {
       unreadableCount++;
       continue;
@@ -420,6 +459,8 @@ export function reportOnRequest(input: {
   );
 
   const terms: RequestedTerm[] = [];
+  /** Les phrases qu'on renonce à déclarer absentes. Comptées, jamais dites. */
+  let unreadableSilenced = 0;
   for (const term of extracted) {
     // ── PORTE 2, ICI ET PAS AILLEURS ────────────────────────────────────────
     // Un terme couvert par une règle de maison disparaît de la sortie ENTIÈRE,
@@ -450,6 +491,38 @@ export function reportOnRequest(input: {
     }
 
     if (dishIds.length === 0) {
+      // ── ⚠️ UN REFUS NE S'ANNONCE QUE SUR UN MOT, JAMAIS SUR UNE PHRASE ───
+      //
+      // MESURÉ EN CONDITIONS RÉELLES (2026-08-12), sur les `preferences` déjà
+      // en base. Le champ ne contient pas que des envies: une ligne portait
+      // « Building muscle. Eats a heavy evening plate with a full meat portion
+      // and a generous starch. » — une description d'OBJECTIF. Le module en a
+      // tiré « full meat portion » et « generous starch », ne les a trouvés
+      // nulle part, et a produit:
+      //
+      //     « You asked for full meat portion: there isn't any this time. »
+      //     « You asked for generous starch: there isn't any this time. »
+      //
+      // DEUX REFUS ANNONCÉS QUI N'ONT JAMAIS EU LIEU, sur une phrase qui ne
+      // demandait rien. C'est le pire faux positif de ce chantier, et les
+      // gardes de longueur et de mots vides ne l'attrapaient pas: « full meat
+      // portion » fait trois mots et n'en contient aucun de vide.
+      //
+      // L'ASYMÉTRIE QUI TRANCHE: une CORRESPONDANCE est une preuve — le terme
+      // est là, on peut le dire quel que soit le nombre de mots. Une
+      // NON-correspondance sur une phrase est une IGNORANCE: on n'a pas trouvé
+      // « generous starch » parce que ce n'est pas un aliment, pas parce qu'on
+      // l'a écarté.
+      //
+      // ── POURQUOI PAS UN FILTRE SUR LES ALIMENTS CONNUS ──────────────────
+      // Tentant, et mesuré: `food_composition_refs` ne connaît NI burger, NI
+      // pizza, NI sushi, NI tacos — c'est-à-dire exactement les envies pour
+      // lesquelles cette fonctionnalité existe. Le filtre aurait rendu le
+      // produit muet sur son cas nominal.
+      if (term.includes(" ")) {
+        unreadableSilenced++;
+        continue;
+      }
       // ── §2.5 — UN ABSENT SE DIT UNE FOIS, JAMAIS DEUX ────────────────────
       // Le dire est honnête. Le répéter à chaque génération transforme le
       // compte-rendu en liste de reproches, ce que « on dit surtout les oui »
@@ -467,7 +540,7 @@ export function reportOnRequest(input: {
     });
   }
 
-  return { terms, unreadableCount };
+  return { terms, unreadableCount: unreadableCount + unreadableSilenced };
 }
 
 /**

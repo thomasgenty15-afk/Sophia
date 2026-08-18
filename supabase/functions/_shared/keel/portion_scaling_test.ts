@@ -22,7 +22,7 @@ function bodyOf(kg: number, cm: number, g: "male" | "female", flag = false) {
     restrictionFlag: flag,
   };
 }
-const PER_KG = envelopeFor("fat_loss", bodyOf(92, 186, "male"), "30_44", false, null, null);
+const PER_KG = envelopeFor("fat_loss", bodyOf(92, 186, "male"), "30_44", false, null, null, null);
 const PER_PORTION = envelopeFor(
   "fat_loss",
   bodyOf(92, 186, "male", true),
@@ -30,6 +30,7 @@ const PER_PORTION = envelopeFor(
   true,
   null,
 null,
+  null,
 );
 
 function ing(over: Partial<ScalableIngredient> = {}): ScalableIngredient {
@@ -80,7 +81,7 @@ Deno.test("SOUS LE PLANCHER TCA, rien ne se met à l'échelle", () => {
     null,
   );
   // Corps inconnu: même silence, ce qui rend les deux indiscernables.
-  const unknown = envelopeFor("fat_loss", null, null, false, null, null);
+  const unknown = envelopeFor("fat_loss", null, null, false, null, null, null);
   assertEquals(
     scaleFactorFor({ computedKcal: 800, envelope: unknown, daysCovered: 1, resolvedShare: 1 }),
     null,

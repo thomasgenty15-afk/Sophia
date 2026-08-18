@@ -42,7 +42,7 @@ const PER_KG: Envelope = {
 
 function verdict(over: Partial<CompositionVerdict> = {}): CompositionVerdict {
   return {
-    resolution: { resolved: 10, total: 10, unresolvedEnergyDense: false },
+    resolution: { resolved: 10, total: 10, unresolvedEnergyDense: false, unweighedEnergyDense: false },
     energy: "within",
     protein: "met",
     density: "within",
@@ -158,7 +158,7 @@ Deno.test("`not_computable` ne déclenche RIEN — on ne corrige pas sur du brui
     energy: "not_computable",
     protein: "not_computable",
     density: "not_computable",
-    resolution: { resolved: 4, total: 10, unresolvedEnergyDense: true },
+    resolution: { resolved: 4, total: 10, unresolvedEnergyDense: true, unweighedEnergyDense: false },
   });
   assertEquals(p.tokens, []);
 });

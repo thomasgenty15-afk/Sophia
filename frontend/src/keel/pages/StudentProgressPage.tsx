@@ -16,6 +16,7 @@ import {
   type RhythmEventRow,
 } from "../lib/mealRhythm";
 import { signMealPhotoUrls } from "../api/mealPhoto";
+import { ActivitySessionsCard } from "../components/ActivitySessionsCard";
 import { formatWeekday } from "../i18n/format";
 import { plural } from "../i18n/plural";
 import { type MessageKey, t } from "../i18n/t";
@@ -32,7 +33,14 @@ import { type MessageKey, t } from "../i18n/t";
  *    prédit rien, p>0,05). Elle passe donc en premier et en gros.
  * 2. LA VIVABILITÉ ensuite — les taps du soir. « Est-ce que ça tient ? »
  * 3. LES PORTIONS — la réponse à « je mange beaucoup ou peu ? » sans un kcal.
- * 4. LE POIDS en dernier, et c'est délibéré : la variation d'eau quotidienne
+ * 4. LES SÉANCES (L2b, 2026-08-18) — un COMPTE, et rien qui en dérive. Placées
+ *    ici, avant-dernières, et c'est un arbitrage : une séance est un fait daté
+ *    que la personne déclare sur elle-même, du même genre que la pesée, et elle
+ *    ne doit jamais concurrencer la RÉGULARITÉ en tête. ⛔ Aucune kcal sur ce
+ *    chemin — la raison est chiffrée dans l'en-tête de
+ *    `20260818180000_a_session_is_a_fact_not_an_energy.sql`, et l'écran ne
+ *    règle rien depuis une séance : aucun générateur ne lit cette table.
+ * 5. LE POIDS en dernier, et c'est délibéré : la variation d'eau quotidienne
  *    (±1-2 kg) dépasse le signal hebdomadaire, et c'est la métrique la plus
  *    associée aux troubles alimentaires. Il est affiché en clair — arbitrage
  *    produit du 2026-08-03 — mais il ne mène jamais.
@@ -173,12 +181,25 @@ export default function StudentProgressPage() {
    * navigateur.
    */
   const [profileTimeZone, setProfileTimeZone] = React.useState<string | null>(null);
+  /**
+   * L'ÉLÈVE, NOMMÉMENT — et il est lu ICI parce que la carte des séances écrit.
+   *
+   * ⚠️ « RLS NE REMPLACE PAS UN `.eq("user_id", …)` ». Les autres lectures de
+   * cette page se reposent sur RLS seul; celle des séances porte son filtre, et
+   * son écriture porte son `user_id`. Ce dépôt a déjà rendu la ligne d'un élève
+   * à un coach par cet oubli, et une écriture sans propriétaire explicite est le
+   * même défaut vu de l'autre côté.
+   */
+  const [userId, setUserId] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     let cancelled = false;
     (async () => {
       setState({ kind: "loading" });
       try {
+        const authRes = await supabase.auth.getUser();
+        if (cancelled) return;
+        setUserId(authRes.data.user?.id ?? null);
         // LE FUSEAU D'ABORD, parce que les bornes de la fenêtre en dépendent:
         // « aujourd'hui » n'est pas le même jour pour un élève d'Auckland et
         // pour le navigateur qui l'affiche depuis Paris. Une requête de plus,
@@ -458,8 +479,14 @@ export default function StudentProgressPage() {
             survol de l'inactif (`KeelAppShell`, charte §2). C'est ce qui les
             fait lire comme la suite de la barre de navigation et pas comme un
             verdict posé sur la semaine.
-            ⛔ Rien d'autre sur cette page ne portera la marque: tout le reste
-            est un CHIFFRE, une MESURE ou un VERDICT. */}
+            ⛔ Rien d'autre sur cette page ne portera la marque, À UNE EXCEPTION
+            NOMMÉE: le bouton « Noter » de la carte des séances (L2b). Le motif
+            de cette interdiction est que tout le reste de l'écran est un
+            CHIFFRE, une MESURE ou un VERDICT — et un formulaire n'est aucun des
+            trois, c'est une ACTION, le seul rôle auquel la charte accorde la
+            marque (`ui/Button.tsx`, variante `primary`). Une seule action
+            principale ici, comme partout: deux boutons figue côte à côte, c'est
+            zéro hiérarchie. */}
         <div className="flex gap-2" role="group">
           {(["week", "month"] as Range[]).map((r) => (
             <button
@@ -875,7 +902,27 @@ export default function StudentProgressPage() {
           )}
         </Card>
 
-        {/* 4. LE POIDS, EN DERNIER. Une pesée par semaine, lue comme une
+        {/* 4. LES SÉANCES — L2b, 2026-08-18. Le consommateur VIVANT de
+            `student_activity_sessions`, et sa surface de saisie.
+            ⚠️ ELLE N'EST RENDUE QU'AVEC UN `userId`, et ce n'est pas de la
+            prudence de type: la carte ÉCRIT, et une écriture sans propriétaire
+            explicite est la même cicatrice que la lecture sans `.eq(user_id)`.
+            ⚠️ ET SEULEMENT DANS LA BRANCHE `ready`, donc APRÈS la lecture du
+            fuseau — c'est la porte de chargement du formulaire, qui sème sa date
+            avec « aujourd'hui chez l'élève » et non chez le navigateur. */}
+        {userId
+          ? (
+            <ActivitySessionsCard
+              userId={userId}
+              today={isoDaysAgo(0, profileTimeZone)}
+              since={windowStart(range, profileTimeZone)}
+              windowDates={rhythmDates}
+              dayName={dayName}
+            />
+          )
+          : null}
+
+        {/* 5. LE POIDS, EN DERNIER. Une pesée par semaine, lue comme une
             tendance: le chiffre du jour n'est pas l'information. */}
         <Card>
           <SectionLabel>{t("student_progress.weight.label")}</SectionLabel>

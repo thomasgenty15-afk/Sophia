@@ -8,6 +8,7 @@
 // à la main afficherait tôt ou tard un bouton actif sur un envoi que la base
 // refuse — c'est-à-dire un coach qui clique et ne comprend pas.
 
+import { formatDateLong } from "../i18n/format";
 import { supabase } from "../../lib/supabase";
 
 /** ⚠️ COPIE DE CONFORT. L'autorité est la CHECK `coach_broadcasts_body_length`
@@ -63,11 +64,7 @@ export function formatNextWindow(value: string | null): string | null {
   if (!value) return null;
   const at = new Date(value);
   if (Number.isNaN(at.getTime())) return null;
-  return at.toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  return formatDateLong(at);
 }
 
 function parseState(raw: unknown): BroadcastState | null {

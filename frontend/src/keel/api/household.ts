@@ -25,14 +25,17 @@ import { type CookingShape } from "./cookingShape";
 import { readEdgeRefusal } from "./edgeErrors";
 import { selectMealPlans } from "./mealWindow";
 import {
-  type AwayDay,
   DEFAULT_EATING_RHYTHM,
   type EatingOccasionSlot,
   type MemberPortionView,
-  parseAwayDays,
   parseEatingRhythm,
   readMemberPortions,
 } from "./mealGeneration";
+// ⚠️ `parseAwayMarks` ET SURTOUT PLUS `parseAwayDays` — voir `awayFrom`. Ce
+// module ne lit plus jamais la colonne d'absences sans son jeton: c'est un
+// parseur qui RETIRE de l'information, et trois écrans sur quatre passent par
+// ici.
+import { type AwayMark, parseAwayMarks } from "../lib/presenceMarks";
 // ⚠️ LA GARDE D'ÉCRITURE D'UNE DATE DE NAISSANCE EST CELLE DU SERVEUR, IMPORTÉE
 // TELLE QUELLE (D18, L9). Même geste que `groceryWaves.ts` et `coachProtocol.ts`
 // avec leurs modules partagés: le front n'en écrit pas une seconde version, il
@@ -41,7 +44,16 @@ import {
   assessBirthDate,
   birthDateWritable,
 } from "../../../../supabase/functions/_shared/keel/student_age.ts";
-import { GOAL_TOKENS } from "../../../../supabase/functions/_shared/keel/tokens.ts";
+// ⚠️ `tokens.ts` ET SURTOUT PAS `activity_floor.ts`, QUI PORTE UN AUTRE
+// VOCABULAIRE (`lightly_active` / `active` / `very_active`). C'est celui-ci qui
+// a la contrainte CHECK en base avec lui (`20260818100000`): son `parse` rendrait
+// `null` sur trois valeurs de base sur quatre, en silence, et l'écran afficherait
+// « personne n'a répondu » sur une réponse donnée.
+import {
+  ACTIVITY_LEVELS,
+  type ActivityLevel,
+  GOAL_TOKENS,
+} from "../../../../supabase/functions/_shared/keel/tokens.ts";
 import {
   type HouseholdPlanTrace,
   readHouseholdPlanTrace,
@@ -74,14 +86,20 @@ export interface HouseholdMemberView {
    * déclaration de la personne dans la colonne du maître, où elle survivrait
    * ensuite à sa rétractation. L'absence resterait alors marquée alors que son
    * auteur l'a retirée — et personne ne comprendrait d'où elle vient.
+   *
+   * ⛔ `AwayMark[]` ET PLUS `AwayDay[]` — DÉFAUT P1 (L6, 2026-08-18). Le type
+   * disait `AwayDay[]` pendant que `awayFrom` rendait déjà des marques: le
+   * jeton `kind` voyageait à l'exécution et disparaissait à la COMPILATION,
+   * donc rien n'empêchait un écran de le reconstruire à plat. Il est nommé ici
+   * parce que c'est de ce champ que partent trois des quatre grilles.
    */
-  awayHousehold: AwayDay[];
+  awayHousehold: AwayMark[];
   /**
    * CE QUE LA PERSONNE A DÉCLARÉ ELLE-MÊME, dans son « about you ». Toujours
    * vide pour une bouche sans compte. LECTURE SEULE ici: le maître la voit
    * (sinon il remarquerait la marque et pas le fait), il ne l'édite pas.
    */
-  awaySelf: AwayDay[];
+  awaySelf: AwayMark[];
   /**
    * LES MOMENTS OÙ CETTE BOUCHE MANGE — `null` quand personne ne l'a dit.
    *
@@ -417,15 +435,8 @@ function asResult(data: unknown): RpcResult {
  * personne dans la vue « marqué par le maître », la grille la RECOPIERAIT dans
  * la colonne du foyer au premier enregistrement.
  */
-export function awayFrom(raw: unknown, source: "self" | "household"): AwayDay[] {
-  if (!Array.isArray(raw)) return [];
-  return parseAwayDays(
-    raw.filter((e) => {
-      if (!e || typeof e !== "object" || Array.isArray(e)) return false;
-      const value = (e as Record<string, unknown>).source;
-      return String(value ?? "").trim().toLowerCase() === source;
-    }),
-  );
+export function awayFrom(raw: unknown, source: "self" | "household"): AwayMark[] {
+  return parseAwayMarks(raw, source);
 }
 
 export async function loadHousehold(myUserId: string): Promise<HouseholdView | null> {
@@ -790,10 +801,42 @@ export interface MemberBodyView {
   heightCm: number;
   weightKg: number;
   gender: "male" | "female" | "other";
+  /**
+   * LE CRAN D'ACTIVITÉ — `null` = personne n'a répondu, et ce n'est PAS un
+   * corps incomplet (lot L0, 2026-08-18).
+   *
+   * ⚠️ IL EST HORS DU TOUT-OU-RIEN, contrairement aux trois au-dessus. La
+   * différence est un fait du moteur, pas un choix d'écran: une bouche sans
+   * taille est SAUTÉE par `generate-household-meal-v1`, alors qu'une bouche
+   * sans cran reçoit l'hypothèse documentée (facteur 1,5) et compose
+   * normalement. Exiger le cran ferait donc d'une question à laquelle on a le
+   * droit de ne pas répondre un mur devant deux champs qui, eux, sont exigés.
+   */
+  activityLevel: ActivityLevel | null;
 }
 
 export const MEMBER_GENDERS = ["female", "male", "other"] as const;
 export type MemberGender = (typeof MEMBER_GENDERS)[number];
+
+/**
+ * LE CRAN D'UNE COLONNE NULLABLE — et ce n'est PAS `parseActivityLevel`.
+ *
+ * ⚠️ CELUI DE `tokens.ts` LÈVE (`makeParser`, R7: « fail loudly on unknown
+ * input »). C'est le bon comportement quand un jeton est REQUIS et qu'un
+ * inconnu est un bug d'appelant; c'en est un très mauvais ici, où la colonne
+ * est nullable par construction et où `null` est la valeur de TOUTE la base
+ * d'avant le 2026-08-18. Le passer directement ferait tomber l'écran de réglage
+ * de chaque foyer qui n'a pas encore répondu.
+ *
+ * Même lecture que `generate-household-meal-v1` fait de la même colonne, mot
+ * pour mot: hors vocabulaire ⇒ `null`, jamais un repli sur un cran.
+ */
+function readActivityLevel(value: unknown): ActivityLevel | null {
+  const slug = String(value ?? "").trim();
+  return (ACTIVITY_LEVELS as readonly string[]).includes(slug)
+    ? (slug as ActivityLevel)
+    : null;
+}
 
 /**
  * LES CORPS DU FOYER — POUR SON COMPTE MAÎTRE SEUL.
@@ -822,7 +865,18 @@ export async function loadMemberBodies(): Promise<Map<string, MemberBodyView>> {
     const gender = String(r.gender ?? "");
     if (!memberId || !Number.isFinite(heightCm) || !Number.isFinite(weightKg)) continue;
     if (gender !== "male" && gender !== "female" && gender !== "other") continue;
-    out.set(memberId, { memberId, heightCm, weightKg, gender });
+    out.set(memberId, {
+      memberId,
+      heightCm,
+      weightKg,
+      gender,
+      // ⚠️ HORS VOCABULAIRE ⇒ `null`, JAMAIS UN REPLI SUR UN CRAN. C'est mot
+      // pour mot ce que fait `generate-household-meal-v1` sur la même colonne:
+      // le repli documenté est l'HYPOTHÈSE (1,5), et choisir un cran à la place
+      // de quelqu'un ferait peser une réponse qu'il n'a pas donnée. Une valeur
+      // illisible doit rendre l'écran vierge, pas une tuile cochée.
+      activityLevel: readActivityLevel(r.activity_level),
+    });
   }
   return out;
 }
@@ -840,19 +894,34 @@ export async function loadMemberBodies(): Promise<Map<string, MemberBodyView>> {
  * sort dans aucune consigne de service. Collecter et calculer, jamais énoncer.
  *
  * Refus nommés: `not_owner`, `not_a_member`, `body_incomplete`, `bad_height`,
- * `bad_weight`, `bad_gender`.
+ * `bad_weight`, `bad_gender`, `bad_activity_level`.
+ *
+ * ⚠️ `activityLevel` EST UN PARAMÈTRE REQUIS, ET C'EST UNE CICATRICE DU DÉPÔT.
+ * « Un paramètre de garde optionnel est une garde désarmée » — `safetyBand` a
+ * vécu des mois en facultatif sans qu'aucun appelant ne le passe. Ici l'enjeu
+ * est le symétrique exact: cette RPC est TOUT-OU-RIEN sur le corps et elle a
+ * DEUX écrans appelants. Un paramètre optionnel aurait laissé le second
+ * réenregistrer taille/poids/sexe sans le cran — et la base, elle, aurait vu
+ * une écriture complète. `null` reste possible; il faut juste l'écrire, donc le
+ * compilateur recense qui le passe.
+ *
+ * (Côté base, `null` veut dire « ne touche pas à ce qui est déjà écrit »: voir
+ * le `coalesce` de `20260818160000`. La ceinture est des deux côtés parce que
+ * c'est le troisième appelant, celui qui n'existe pas encore, qui casse.)
  */
 export async function setMemberBody(
   memberId: string,
   heightCm: number,
   weightKg: number,
   gender: MemberGender,
+  activityLevel: ActivityLevel | null,
 ) {
   const { data, error } = await supabase.rpc("keel_household_set_member_body", {
     p_member: memberId,
     p_height_cm: heightCm,
     p_weight_kg: weightKg,
     p_gender: gender,
+    p_activity_level: activityLevel,
   });
   if (error) throw new Error(error.message);
   return asResult(data);
@@ -876,8 +945,14 @@ export async function setMemberBody(
  *        s'en charge (`MealPickerGrid` refusionne), parce qu'écraser avec ce
  *        qu'elle montre effacerait « jeudi midi » parce qu'on a composé un
  *        week-end.
+ *
+ * ⛔ `AwayMark[]` ET PLUS `AwayDay[]` — L'AUTRE MOITIÉ DU DÉFAUT P1. La porte
+ * SQL écrit `p_away` TEL QUEL (jeton compris, `20260818120000`), donc ce qui
+ * arrive ici part en base: c'est le dernier endroit où « dehors » pouvait être
+ * reconstruit en « absent » sans qu'aucune ligne ne proteste. Exiger la marque
+ * fait échouer la compilation d'un appelant qui recomposerait la liste à plat.
  */
-export async function setMemberAway(memberId: string, away: AwayDay[]) {
+export async function setMemberAway(memberId: string, away: readonly AwayMark[]) {
   const { data, error } = await supabase.rpc("keel_household_set_member_away", {
     p_member: memberId,
     p_away: away,

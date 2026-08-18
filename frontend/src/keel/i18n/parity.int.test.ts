@@ -175,6 +175,21 @@ describe("pack français de la vitrine", () => {
       // longue, elle, diffère bien (« Le plan de ma semaine »). Le raccourci
       // existe parce qu'une colonne de la barre du téléphone fait 75 px.
       "app.nav.plan.short",
+      // ── L2b · LES CINQ TYPES DE SÉANCE ───────────────────────────────────
+      // « Cardio » s'écrit pareil dans les deux langues — c'est le mot que les
+      // gens emploient en français, sur la tuile qu'ils doivent reconnaître d'un
+      // coup d'œil. Les quatre autres diffèrent tous (« Mouvement du
+      // quotidien », « Renforcement », « Récupération », « Mobilité »), ce qui
+      // montre que la table est traduite et non recopiée.
+      "student_progress.activity.kind.cardio",
+      // « {count} min » — même raison que `setup.plan.time_minutes` juste
+      // au-dessus: `min` est l'abréviation NORMALISÉE de minute dans les deux
+      // langues, pas un anglicisme.
+      "student_progress.activity.duration",
+      // Le repère du champ de durée. « minutes » s'écrit pareil dans les deux
+      // langues; l'étiquette du champ, elle, diffère bien (« How long? » /
+      // « Combien de temps ? »).
+      "student_progress.activity.form.duration_placeholder",
 
       // ══ LOT 3 · LES ATOMES PARTAGÉS ═══════════════════════════════════════
       // ⚠️ CE BLOC EST LONG, ET C'EST LA NATURE DE CE QU'IL COUVRE. Les atomes

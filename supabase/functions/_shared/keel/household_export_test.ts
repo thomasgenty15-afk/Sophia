@@ -39,6 +39,25 @@ async function exportSource(): Promise<string> {
   );
 }
 
+/**
+ * Le README de l'archive, qui a QUITTÉ `index.ts` (lot 7 — langue).
+ *
+ * Il y était français EN DUR, `index.ts` est en `@ts-nocheck`, et le README
+ * porte l'avertissement de sécurité de l'archive. Il vit maintenant dans un
+ * module pur à deux packs, `account-export-v1/export_copy.ts`.
+ *
+ * ⚠️ CETTE ÉPREUVE RESTE UNE LECTURE DE SOURCE, ET DANS LES DEUX PACKS. Le
+ * défaut qu'elle garde — « un fichier de l'archive qu'aucune ligne n'annonce
+ * n'est pas lu » — se rejoue à l'identique si UN SEUL des deux packs oublie la
+ * ligne: la moitié des utilisateurs recevrait alors un README qui ne nomme pas
+ * le fichier où survit sa date de naissance.
+ */
+async function exportReadmeSource(): Promise<string> {
+  return await Deno.readTextFile(
+    new URL("account-export-v1/export_copy.ts", FUNCTIONS_DIR),
+  );
+}
+
 Deno.test("C3 ③ — `household_members` EST DANS L'EXPORT, scopée à SA ligne", async () => {
   const src = await exportSource();
   const at = src.indexOf('"household_members"');
@@ -103,10 +122,14 @@ Deno.test("C3 ③ — L'EXPORT DIT CE QU'IL GARDE, pas seulement ce qu'il détie
       "ma place dans ce foyer »): un droit qu'on ne nomme pas ne s'exerce pas.",
   );
   // Et le README de l'archive le nomme: un fichier qu'aucune ligne n'annonce
-  // n'est pas lu.
-  assert(
-    src.includes("mon_foyer.json       :"),
-    "le README de l'archive n'annonce plus ce fichier.",
+  // n'est pas lu. DANS LES DEUX PACKS — un README anglais qui l'oublierait
+  // laisserait la moitié des utilisateurs sans mention du fichier où survit
+  // leur date de naissance.
+  const readme = await exportReadmeSource();
+  assertEquals(
+    readme.split("mon_foyer.json       :").length - 1,
+    2,
+    "le README de l'archive n'annonce plus ce fichier dans ses DEUX packs.",
   );
 });
 

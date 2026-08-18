@@ -21,12 +21,8 @@ import {
 import {
   dailyPracticeToRow,
 } from "../../../../supabase/functions/_shared/keel/daily_practices_classify.ts";
-import {
-  type GoalToken,
-  GOAL_TOKENS,
-} from "../../../../supabase/functions/_shared/keel/tokens.ts";
-import { GOAL_LABELS } from "./coachDoctrine";
-import { callDoctrine } from "./coachDoctrine";
+import { callDoctrine, scopeSentence } from "./coachDoctrine";
+import { t } from "../i18n/t";
 
 export type { DailyPractice, PracticeBlockingSurface, PracticeStatus };
 export { MAX_DAILY_PRACTICES };
@@ -62,23 +58,27 @@ export interface PracticeRow {
  *                reçue, ce qui est faux et indétectable de son côté.
  *   la PORTÉE  — vide = tout le monde, et c'est une VALEUR, pas un vide. Le
  *                coach ne doit pas croire qu'il a laissé son travail inachevé.
+ *                Elle est calculée par `scopeSentence`, qui est LA phrase de
+ *                portée de l'écran doctrine: cette fonction en recopiait le
+ *                corps ligne pour ligne, donc « Everyone » et la liste des
+ *                objectifs existaient en double.
  *   `minorSafe` — il ne change pas QUI, il change qui EN PLUS est exclu. Il
  *                s'ajoute donc à la phrase au lieu de la remplacer.
+ *
+ * ⚠️ LA SOUSTRACTION DES MINEURS PASSE PAR UNE CLÉ À TROU, jamais par une
+ * concaténation. `${who}, adults only` impose l'ordre anglais à toutes les
+ * langues; « {who}, adults only » laisse la traduction replacer le complément
+ * où sa grammaire le veut.
  */
 export function practiceReach(practice: PracticeRow): string {
   const status = String(practice.status ?? "");
-  if (status === "blocked") return "Nobody — this one is blocked";
-  if (status === "needs_review") return "Nobody yet — it is waiting for your review";
+  if (status === "blocked") return t("coach.practice.reach.blocked");
+  if (status === "needs_review") return t("coach.practice.reach.needs_review");
 
-  const goals = (practice.goal_scope ?? []).filter((g) =>
-    (GOAL_TOKENS as readonly string[]).includes(g)
-  );
-  const who = goals.length === 0
-    ? "Everyone"
-    : goals.map((g) => GOAL_LABELS[g as GoalToken]).join(", ");
+  const who = scopeSentence(practice.goal_scope);
   // Le mineur n'est pas une portée: c'est une soustraction. Le dire à part est
   // ce qui empêche de lire « Everyone » comme « y compris les mineurs ».
-  return practice.minor_safe === true ? who : `${who}, adults only`;
+  return practice.minor_safe === true ? who : t("coach.practice.reach.adults_only", { who });
 }
 
 /**
@@ -92,13 +92,13 @@ export function practiceReach(practice: PracticeRow): string {
 export function blockedSentence(collidesWith: string | null | undefined): string | null {
   switch (String(collidesWith ?? "")) {
     case "weight_readout":
-      return "This asks students to read a scale. The product suspends weight readouts for students showing signs of restrictive eating, so it cannot also send this every evening.";
+      return t("coach.practice.blocked.weight_readout");
     case "calorie_readout":
-      return "This asks students to count calories. The product suspends calorie readouts for students showing signs of restrictive eating, so it cannot also send this every evening.";
+      return t("coach.practice.blocked.calorie_readout");
     case "streak_display":
-      return "This is a streak. The product never shows students a streak — a missed day is not a failure, and a chain makes it one.";
+      return t("coach.practice.blocked.streak_display");
     case "adherence_score":
-      return "This asks students to score their own compliance. The product never puts an adherence score in front of a student.";
+      return t("coach.practice.blocked.adherence_score");
     default:
       return null;
   }

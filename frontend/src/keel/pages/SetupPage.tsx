@@ -1,8 +1,9 @@
+import { parseAwayMarks } from "../lib/presenceMarks";
 import React from "react";
+import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../context/AuthContext";
-import { allergenLabel, ALLERGEN_OPTIONS } from "../copy/allergens";
 import { edgeRefusalKey } from "../copy/planRefusals";
 import { setupMissKey } from "../copy/setupMisses";
 import { LocaleSwitch } from "../components/LocaleSwitch";
@@ -10,6 +11,14 @@ import { Button } from "../components/ui/Button";
 import { Badge } from "../components/ui/Badge";
 import { Card, SectionLabel } from "../components/ui/Card";
 import { Field, inputClass } from "../components/ui/Field";
+// ⚠️ `tokens.ts`, PAS `activity_floor.ts`. Le dépôt porte deux listes
+// `ACTIVITY_LEVELS`; celle-ci est celle que la contrainte CHECK des deux
+// colonnes connaît (`20260818100000`). L'autre rendrait des jetons que la base
+// refuse à l'écriture.
+import {
+  ACTIVITY_LEVELS,
+  type ActivityLevel,
+} from "../../../../supabase/functions/_shared/keel/tokens.ts";
 import {
   addHouseholdMember,
   createHousehold,
@@ -186,6 +195,12 @@ interface SelfDraft {
   heightCm: string;
   weightKg: string;
   gender: MemberGender | "";
+  /**
+   * `null` = aucune tuile cochée, ET C'EST UNE RÉPONSE VALIDE — pas un champ
+   * vide à remplir. Il n'y a donc pas de `""` ici comme sur les autres: le
+   * vocabulaire n'a pas de jeton d'ignorance, exprès (`tokens.ts`).
+   */
+  activityLevel: ActivityLevel | null;
   goal: MemberGoal | "";
   /** Vide = pas encore répondu. `omnivore` EST une réponse. */
   diet: DietAnswer | "";
@@ -366,6 +381,8 @@ export default function SetupPage() {
   const [failure, setFailure] = React.useState<string | null>(null);
   /** Le refus des gestes de la carte des bouches — rendu SUR la carte. */
   const [mouthFailure, setMouthFailure] = React.useState<string | null>(null);
+  /** Le refus du DERNIER bouton, rendu à côté de lui. Voir `guardCompose`. */
+  const [composeFailure, setComposeFailure] = React.useState<string | null>(null);
   /**
    * LES HABITUDES, PAR BOUCHE. `null` = LA LECTURE N'A PAS EU LIEU — c'est la
    * garde de chargement que `HouseholdHabitsCard` exige, et sans elle un
@@ -622,6 +639,10 @@ export default function SetupPage() {
               ? ""
               : String(read.state.self.weightKg),
             gender: read.state.self.gender ?? "",
+            // `null` TRAVERSE, et ne devient pas `""`: l'absence de réponse est
+            // l'état légitime de toute la base d'avant ce lot, et aucune tuile
+            // ne doit s'allumer dessus.
+            activityLevel: read.state.self.activityLevel,
             diet: read.state.self.diet ?? "",
             goal: read.state.self.goal ?? "",
             allergies: [],
@@ -717,6 +738,30 @@ export default function SetupPage() {
    * l'entonnoir demandait pour les bouches jusqu'au 2026-08-13.
    */
   const stepMissing = missesForStep(previewState, branch, step.id);
+
+  /**
+   * L'ÉTAT DE L'ÉTAPE 3 **TEL QUE L'ÉCRAN LE MONTRE**, et il diffère de
+   * `previewState` sur un seul champ: le régime du titulaire.
+   *
+   * ⚠️ SANS ÇA, LE MESSAGE QU'ON VIENT D'AJOUTER SE SERAIT MIS À MENTIR. Le
+   * régime est écrit par le « Continuer » de l'étape 3 (`saveOwnDiet`), donc
+   * `facts.state.self.diet` reste `null` tant qu'on n'a pas quitté l'étape.
+   * Quelqu'un retenu une première fois, qui clique ensuite « Végétarien »,
+   * aurait continué à lire « il manque ton régime » sous le bouton qu'il vient
+   * d'allumer — un reproche sur une question déjà répondue, exactement ce que
+   * `heldBack` existe pour éviter.
+   *
+   * Il ne sert QU'AU MESSAGE, jamais au verdict de composition: `previewState`
+   * reste la seule source du bouton de fin, qui ne doit s'allumer que sur des
+   * faits ENREGISTRÉS.
+   */
+  const tableShownState: FunnelState = {
+    ...previewState,
+    self: {
+      ...previewState.self,
+      diet: self?.diet || previewState.self.diet,
+    },
+  };
 
   /**
    * CE QUI RETIENT SUR LES BOUCHES, DIT SUR LE FORMULAIRE QUI LE LÈVE.
@@ -853,6 +898,34 @@ export default function SetupPage() {
    * BOUTON, et le bandeau du haut reste pour tout ce qui n'a pas de place à
    * lui.
    */
+  /**
+   * LE MÊME GARDE ENCORE, POUR LE DERNIER BOUTON — ET C'EST LA TROISIÈME FOIS.
+   *
+   * ⚠️ « JE CLIQUE SUR CONSTRUIRE MON PLAN ET RIEN NE SE PASSE », signalé le
+   * 2026-08-15. Il se passait quelque chose: `askForDraft` levait (le refus de
+   * la fonction edge), `guard` l'écrivait dans `failure`, et `failure` est rendu
+   * TOUT EN HAUT de la page — au-dessus du fil de progression. L'étape 4 fait
+   * plusieurs écrans de haut: la personne qui appuie sur le bouton de fin ne
+   * peut pas voir ce bandeau sans remonter, et rien à l'écran ne lui dit de
+   * remonter. Un refus qu'on ne voit pas est un bouton mort.
+   *
+   * C'est le MÊME défaut que `guardMouth` a fermé pour « Ajouter ». Deux
+   * occurrences valaient une règle: un geste qui peut échouer pose son refus
+   * À CÔTÉ DE LUI, et le bandeau du haut ne sert qu'à ce qui n'a pas de geste.
+   */
+  async function guardCompose(work: () => Promise<void>) {
+    setBusy(true);
+    setComposeFailure(null);
+    setFlash(null);
+    try {
+      await work();
+    } catch (error) {
+      setComposeFailure(error instanceof Error ? error.message : String(error));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function guardMouth(work: () => Promise<void>) {
     setBusy(true);
     setMouthFailure(null);
@@ -904,6 +977,11 @@ export default function SetupPage() {
           firstName: draft.firstName,
           heightCm: height,
           gender: draft.gender,
+          // LA LANE INDIVIDUELLE LIT `profiles.activity_level`
+          // (`student_body_io.ts#loadStudentBody`). Celle du foyer lit la ligne
+          // de corps, écrite quelques lignes plus bas — d'où les DEUX
+          // écritures: deux moteurs, deux tables, un seul cran.
+          activityLevel: draft.activityLevel,
         });
       }
       // MON POIDS VA DANS LA SÉRIE — c'est elle qui arme `restriction_guard`.
@@ -924,6 +1002,13 @@ export default function SetupPage() {
           heightCm: height,
           weightKg: weight,
           gender: draft.gender,
+          // ⚠️ ET PAS SEULEMENT DANS `profiles`. `generate-household-meal-v1`
+          // ne charge PAS le profil des membres — il lit des corps par
+          // `member_id` (`keel_household_bodies_for`), y compris le mien. Sans
+          // cette seconde écriture, un maître qui a coché « je m'entraîne
+          // quatre fois par semaine » compose son foyer sur l'hypothèse 1,5,
+          // et rien ne le dit.
+          activityLevel: draft.activityLevel,
         });
       }
       if (draft.birthDate) {
@@ -1117,6 +1202,10 @@ export default function SetupPage() {
             heightCm: mHeight,
             weightKg: mWeight,
             gender: draft.gender,
+            // `""` (personne n'a répondu) redevient `null` ici: la RPC lit
+            // `null` comme « ne touche pas », et le brouillon parle le
+            // vocabulaire de `MouthFormDraft`. Voir `MouthDraft`.
+            activityLevel: draft.activityLevel || null,
           });
         }
         // ── SA CIBLE ET SON RYTHME, JUSTE APRÈS SON CORPS ─────────────────
@@ -1353,6 +1442,7 @@ export default function SetupPage() {
     heightCm: string,
     weightKg: string,
     gender: MemberGender | "",
+    activityLevel: ActivityLevel | null,
   ): Promise<void> {
     return (async () => {
       const h = Number(heightCm);
@@ -1365,6 +1455,11 @@ export default function SetupPage() {
         heightCm: h,
         weightKg: w,
         gender,
+        // ⚠️ LE CRAN NE FAIT PAS PARTIE DE LA GARDE AU-DESSUS, et il ne doit
+        // pas: les trois du corps sont exigés (le moteur saute une ligne
+        // partielle), celui-ci ne l'est pas (il a un repli sûr). Un `null`
+        // n'efface rien en base — la RPC le lit « ne touche pas ».
+        activityLevel,
       });
       await load(false);
     })();
@@ -1489,9 +1584,17 @@ export default function SetupPage() {
    */
   function askForDraft(): Promise<void> {
     return (async () => {
+      // ⚠️ LECTURE FRAÎCHE — MÊME PIÈGE QU'À L'ÉTAPE 3, MÊME COLONNE.
+      // C'était `facts!.practicalConstraints`, la photo prise au MONTAGE de la
+      // page. Le « Continuer » de l'étape 3 a écrit `diet_asked` depuis, et
+      // `mergePracticalConstraints` réécrit l'objet en entier: partir de la
+      // photo effaçait ce régime, la relecture deux lignes plus bas le trouvait
+      // manquant, et la composition était refusée pour une question à laquelle
+      // on venait de répondre.
+      const before = await readFunnelFacts(userId);
       await savePlanAnswers({
         userId,
-        current: facts!.practicalConstraints,
+        current: before.practicalConstraints,
         answers: plan!,
       });
       const fresh = await readFunnelFacts(userId);
@@ -1639,7 +1742,7 @@ export default function SetupPage() {
                 mouthPrefs={memberPrefs}
                 onSaveMouthPreferences={(m) =>
                   guardMouth(() => saveMouthPreferences(m))}
-                onBody={(m, h, w, g) => guardMouth(() => saveRowBody(m, h, w, g))}
+                onBody={(m, h, w, g, a) => guardMouth(() => saveRowBody(m, h, w, g, a))}
                 onRemove={(m) => guardMouth(() => removeMouth(m))}
                 confirmRemove={confirmRemove}
                 onConfirmRemove={setConfirmRemove}
@@ -1746,7 +1849,7 @@ export default function SetupPage() {
             // manges » sous un formulaire qui pose exactement cette
             // question, et qui ne construit rien.
             missing={heldBack
-              ? missesForStep(previewState, branch, "table")
+              ? missesForStep(tableShownState, branch, "table")
               : []}
           />
         ) : null}
@@ -1795,7 +1898,7 @@ export default function SetupPage() {
               guard(async () => {
                 setAwayBusy(true);
                 try {
-                  const result = await setMemberAway(m.memberId!, next);
+                  const result = await setMemberAway(m.memberId!, parseAwayMarks(next));
                   if (!result.ok) throw new Error(result.reason);
                   setAwayFor(null);
                   await load(false);
@@ -1837,6 +1940,41 @@ export default function SetupPage() {
                 onClick={() =>
                   guard(async () => {
                     await saveSelf();
+                    // ── UNE FICHE REMPLIE N'EST PAS UNE FICHE À JETER ──────
+                    //
+                    // ⚠️ « CONTINUER » IGNORAIT LE BROUILLON, ET L'ÉCRAN S'EN
+                    // VANTAIT. On lisait « {name} n'est pas encore ajouté·e :
+                    // appuie sur "Ajouter". "Continuer" ne l'enregistre pas »
+                    // — au-dessous d'une fiche entièrement renseignée (prénom,
+                    // âge, corps, direction, allergies). Dire à quelqu'un que
+                    // le bouton principal va perdre son travail n'est pas un
+                    // avertissement, c'est l'aveu que le geste est mal placé:
+                    // il n'existe aucune raison de saisir une fiche pour ne pas
+                    // l'enregistrer. Signalé à l'écran le 2026-08-15.
+                    //
+                    // « Continuer » absorbe donc l'ajout. « Ajouter » reste, et
+                    // reste utile — c'est lui qui permet la RAFALE (enregistrer
+                    // et repartir sur une fiche vide sans quitter l'étape).
+                    //
+                    // Le refus atterrit sur `mouthFailure` et pas sur le
+                    // bandeau du haut: c'est la leçon de `guardMouth`, et elle
+                    // vaut pour ce chemin-ci exactement pour la même raison —
+                    // la fiche fautive est à l'écran, le bandeau est à des
+                    // centaines de pixels de là.
+                    const typed = mouth.firstName.trim();
+                    if (typed) {
+                      try {
+                        await addMouth();
+                      } catch (error) {
+                        setMouthFailure(
+                          error instanceof Error ? error.message : String(error),
+                        );
+                        // La fiche est encore là, non enregistrée: c'est
+                        // exactement ce que `heldBack` fait dire à l'étape.
+                        setHeldBack(true);
+                        return;
+                      }
+                    }
                     // ── UNE ÉTAPE NE SE LAISSE PAS QUITTER INCOMPLÈTE ───────
                     // Et la relecture est FRAÎCHE, pas `facts`: `saveSelf`
                     // vient d'écrire, l'état d'écran ne le sait pas encore, et
@@ -1895,9 +2033,33 @@ export default function SetupPage() {
                     // laisser sur ce bouton-ci les aurait fait partir d'un
                     // brouillon que cet écran ne montre plus — une écriture sans
                     // champ, c'est-à-dire la moitié muette du défaut d'en face.
+                    // ⚠️ LECTURE FRAÎCHE, ET C'EST CE QUI DÉBLOQUE L'ÉTAPE.
+                    //
+                    // Cette ligne disait `facts!.practicalConstraints` — la
+                    // photo d'AVANT le `saveOwnDiet` ci-dessus. Or les deux
+                    // écritures visent la MÊME colonne JSON et
+                    // `mergePracticalConstraints` la réécrit en entier
+                    // (`{...current, ...patch}`): repartir de la photo
+                    // périmée effaçait `diet_asked` à la milliseconde où il
+                    // venait d'être posé.
+                    //
+                    // Conséquence, mesurée le 2026-08-15 sur un compte réel:
+                    // « Je mange de tout » — la seule réponse dont l'accusé
+                    // JSON est la SEULE trace, les trois autres écrivant en
+                    // plus une ligne `student_safety_constraints` — ne
+                    // survivait jamais. `readDietAnswer` relisait `null`,
+                    // l'étape retenait sur `own_diet`, et elle retenait
+                    // À CHAQUE FOIS: un bouton « Continuer » qui ne pouvait
+                    // pas passer, quoi qu'on clique.
+                    //
+                    // C'est la même discipline qu'`addMouth` — voir le
+                    // commentaire « ET IL PART D'UNE LECTURE FRAÎCHE » — et
+                    // elle vaut partout où deux écritures se suivent sur ce
+                    // même objet.
+                    const beforePlan = await readFunnelFacts(userId);
                     await savePlanAnswers({
                       userId,
-                      current: facts!.practicalConstraints,
+                      current: beforePlan.practicalConstraints,
                       answers: plan!,
                     });
                     const fresh = await readFunnelFacts(userId);
@@ -1911,6 +2073,10 @@ export default function SetupPage() {
                       return;
                     }
                     setHeldBack(false);
+                    // LES FAITS FRAIS SONT RETENUS. Sans ça, l'étape 4 hérite
+                    // de la photo du montage — donc d'un état ANTÉRIEUR au
+                    // régime qu'on vient d'écrire.
+                    setFacts(fresh);
                     setStepIndex((i) => Math.min(steps.length - 1, i + 1));
                   })}
               >
@@ -1922,12 +2088,19 @@ export default function SetupPage() {
                 variant="primary"
                 // LA SEULE SOURCE. Voir `previewState`: rien d'autre ne décide.
                 disabled={busy || !verdict.ok}
-                onClick={() => guard(askForDraft)}
+                onClick={() => guardCompose(askForDraft)}
               >
-                {busy ? t("setup.plan.composing") : t("setup.plan.compose")}
+                {busy ? <ComposingLabel /> : t("setup.plan.compose")}
               </Button>
             ) : null}
           </div>
+
+          {/* LE REFUS DU BOUTON DE FIN, SOUS LE BOUTON DE FIN — voir
+              `guardCompose`. Il ne remplace pas le bandeau du haut: celui-ci
+              reste pour ce qui n'a pas de geste à qui se rattacher. */}
+          {composeFailure ? (
+            <p className="mt-3 text-sm text-red-700">{composeFailure}</p>
+          ) : null}
         </div>
 
         {/* ── LA FENÊTRE DES PRÉFÉRENCES — UNE SEULE, POUR TROIS SURFACES ──
@@ -2254,6 +2427,98 @@ function SituateStep({
 }
 
 // ───────────────────────────────────────────────────────────────────────────
+// LE NIVEAU D'ACTIVITÉ — QUATRE TUILES, TROIS ENDROITS, UN SEUL RENDU
+// ───────────────────────────────────────────────────────────────────────────
+
+/** Le libellé court et l'aide d'un cran. `Record` complet: un cran ajouté sans
+ *  ses mots ne compile pas — la même garde que `GOAL_KEYS` au-dessus. */
+const ACTIVITY_KEYS: Record<ActivityLevel, { label: MessageKey; hint: MessageKey }> = {
+  sedentary: { label: "setup.activity.sedentary", hint: "setup.activity.sedentary_hint" },
+  on_feet: { label: "setup.activity.on_feet", hint: "setup.activity.on_feet_hint" },
+  trains_some: {
+    label: "setup.activity.trains_some",
+    hint: "setup.activity.trains_some_hint",
+  },
+  trains_hard: {
+    label: "setup.activity.trains_hard",
+    hint: "setup.activity.trains_hard_hint",
+  },
+};
+
+/**
+ * LES QUATRE CRANS D'ACTIVITÉ — ET IL N'Y EN A QUE QUATRE.
+ *
+ * ⛔ NE PAS AJOUTER UNE CINQUIÈME TUILE « JE NE SAIS PAS ». Ne rien cocher EST
+ * la non-réponse: `null` traverse jusqu'à `meal_envelope.ts`, qui rend alors
+ * l'hypothèse 1,5 — exactement le comportement d'avant ce lot. Un jeton
+ * d'ignorance ferait de l'ignorance une RÉPONSE, et une réponse se met à peser
+ * dans un calcul d'énergie (`tokens.ts`, le paragraphe qui refuse ce jeton).
+ *
+ * ⛔ ET JAMAIS UN CHAMP NUMÉRIQUE. Ni PAL, ni heures de sport par semaine: « un
+ * nombre demandé à l'utilisateur est un nombre qu'il invente, et l'inventé
+ * entre ensuite dans un calcul avec l'autorité d'une mesure ». Un cran se
+ * reconnaît, et il porte sa propre imprécision.
+ *
+ * ── POURQUOI UN SEUL COMPOSANT POUR TROIS ENDROITS ────────────────────────
+ * Il est monté par `SelfStep` (moi), par le formulaire d'ajout de `MouthsStep`
+ * (une bouche neuve) et par `MouthRow` (une bouche déjà en base, à la reprise).
+ * Les trois écrivent la MÊME colonne à travers la MÊME RPC tout-ou-rien: trois
+ * grilles de tuiles recopiées divergeraient au premier ajustement, et c'est
+ * celle qu'on regarde le moins qui garderait l'ancienne liste.
+ *
+ * Le rendu est celui des cartes de l'étape 1 (`SituateStep`), au mot près —
+ * lavis `fig-100` fermé par `fig-700` pour le choix retenu, contour de contrôle
+ * `line-strong` pour les autres, `aria-pressed` parce que la couleur ne peut
+ * pas être la seule porteuse de l'information (WCAG 1.4.1).
+ */
+function ActivityTiles(props: {
+  label: MessageKey;
+  hint: MessageKey;
+  /** `null` = personne n'a répondu. Aucune tuile n'est alors marquée. */
+  value: ActivityLevel | null;
+  onChange: (next: ActivityLevel) => void;
+  busy: boolean;
+  /** Préfixe d'`id` — trois grilles peuvent coexister sur le même écran. */
+  idPrefix: string;
+}) {
+  return (
+    <Field label={t(props.label)} hint={t(props.hint)}>
+      {/* Deux colonnes et pas quatre: à quatre, chaque tuile tombe sous 80 px
+          au format de la carte et l'aide se casse en cinq lignes. Une seule
+          colonne à 320 px — pas de `whitespace-nowrap`, le texte se replie. */}
+      <div className="grid gap-3 sm:grid-cols-2">
+        {ACTIVITY_LEVELS.map((level) => {
+          const chosen = props.value === level;
+          return (
+            <button
+              key={level}
+              id={`${props.idPrefix}-activity-${level}`}
+              type="button"
+              disabled={props.busy}
+              aria-pressed={chosen}
+              onClick={() => props.onChange(level)}
+              className={[
+                "rounded-card border p-3 text-left transition-colors",
+                chosen
+                  ? "border-fig-700 bg-fig-100"
+                  : "border-line-strong bg-paper hover:bg-fig-50",
+              ].join(" ")}
+            >
+              <span className="block text-sm font-medium text-ink">
+                {t(ACTIVITY_KEYS[level].label)}
+              </span>
+              <span className="mt-1 block text-xs leading-5 text-ink-soft">
+                {t(ACTIVITY_KEYS[level].hint)}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </Field>
+  );
+}
+
+// ───────────────────────────────────────────────────────────────────────────
 // ÉTAPE 2 — MOI
 // ───────────────────────────────────────────────────────────────────────────
 
@@ -2384,6 +2649,21 @@ export function SelfStep(props: {
             className={inputClass}
           />
         </Field>
+
+        {/* L'ACTIVITÉ, À CÔTÉ DE LA TAILLE ET DU POIDS — parce que c'est la
+            TROISIÈME ENTRÉE DE LA MÊME ÉQUATION, pas une préférence. Le corps
+            dit combien on pèse, l'activité dit ce qu'on en fait, et
+            `meal_envelope.ts` multiplie les deux. La ranger ailleurs (ou
+            « plus tard ») en ferait une option, et l'écart entre ses deux
+            extrêmes est de 38 % de l'enveloppe. */}
+        <ActivityTiles
+          label="setup.activity.label"
+          hint="setup.activity.hint"
+          value={draft.activityLevel}
+          onChange={(next) => set({ activityLevel: next })}
+          busy={busy}
+          idPrefix="setup-self"
+        />
 
         <Field label={t("setup.people.gender")} htmlFor="setup-gender">
           <select
@@ -2546,6 +2826,7 @@ export function MouthsStep(props: {
     heightCm: string,
     weightKg: string,
     gender: MemberGender | "",
+    activityLevel: ActivityLevel | null,
   ) => void;
   onRemove: (mouth: FunnelMouth) => void;
   confirmRemove: string | null;
@@ -2598,7 +2879,7 @@ export function MouthsStep(props: {
                   : emptyMouthDraft()}
                 onOpenPreferences={() => props.onOpenMouthPreferences(m)}
                 onSavePreferences={() => props.onSaveMouthPreferences(m)}
-                onBody={(h, w, g) => props.onBody(m, h, w, g)}
+                onBody={(h, w, g, a) => props.onBody(m, h, w, g, a)}
                 onRemove={() => props.onRemove(m)}
                 confirmRemove={props.confirmRemove === m.memberId}
                 onConfirmRemove={() =>
@@ -2715,6 +2996,23 @@ export function MouthsStep(props: {
               </select>
             </div>
           </Field>
+
+          {/* SON ACTIVITÉ, JUSTE APRÈS SON CORPS — et HORS du `Field`
+              ci-dessus, dont l'aide dit « les trois ou aucun ». Ce cran-là
+              n'est PAS dans le tout-ou-rien: la RPC l'accepte seul, et une
+              bouche sans cran compose sur l'hypothèse documentée. L'y coller
+              ferait lire « quatre ou aucun » — faux, et bloquant. */}
+          <ActivityTiles
+            label="setup.activity.member_label"
+            hint="setup.activity.member_hint"
+            // Les deux traductions du cran — voir `MouthDraft`. `ActivityTiles`
+            // parle en `null`, le brouillon en `""`, et les deux disent
+            // « personne n'a répondu ».
+            value={draft.activityLevel || null}
+            onChange={(next) => set({ activityLevel: next })}
+            busy={props.busy}
+            idPrefix="setup-mouth"
+          />
 
           {/* ── LA MÊME LISTE POUR TOUT LE MONDE (2026-08-18) ───────────────
               Le champ était réservé aux adultes: `PIVOT-FOYER.md` §8.4 disait
@@ -2851,7 +3149,12 @@ function MouthRow(props: {
   prefsDraft: MouthFormDraft;
   onOpenPreferences: () => void;
   onSavePreferences: () => void;
-  onBody: (heightCm: string, weightKg: string, gender: MemberGender | "") => void;
+  onBody: (
+    heightCm: string,
+    weightKg: string,
+    gender: MemberGender | "",
+    activityLevel: ActivityLevel | null,
+  ) => void;
   onRemove: () => void;
   confirmRemove: boolean;
   onConfirmRemove: () => void;
@@ -2865,11 +3168,19 @@ function MouthRow(props: {
 }) {
   const m = props.mouth;
   const [date, setDate] = React.useState("");
-  const [allergies, setAllergies] = React.useState<string[]>([]);
-  const [none, setNone] = React.useState(false);
   const [bodyHeight, setBodyHeight] = React.useState("");
   const [bodyWeight, setBodyWeight] = React.useState("");
   const [bodyGender, setBodyGender] = React.useState<MemberGender | "">("");
+  /**
+   * LE CRAN EN COURS DE SAISIE — utilisé SEULEMENT quand le corps manque
+   * encore, où rien ne peut partir en base avant le bouton d'enregistrement
+   * (la RPC refuse `body_incomplete`). Quand le corps est déjà là, la tuile
+   * écrit tout de suite et ce brouillon ne sert pas: la valeur affichée est
+   * alors celle de la base, comme pour l'objectif juste au-dessus.
+   */
+  const [bodyActivity, setBodyActivity] = React.useState<ActivityLevel | null>(
+    null,
+  );
   const onFile = m.birthDate === BIRTH_DATE_ON_FILE;
   return (
     <div className="space-y-3">
@@ -3042,17 +3353,53 @@ function MouthRow(props: {
                 ))}
               </select>
             </div>
+            {/* LE CRAN VOYAGE AVEC LE BOUTON D'À CÔTÉ, ET IL LE DOIT. La RPC
+                refuse `body_incomplete` tant que les trois ne sont pas là:
+                une tuile qui écrirait toute seule ici rendrait un refus
+                incompréhensible sur un geste qui a l'air d'avoir marché. */}
+            <ActivityTiles
+              label="setup.activity.member_label"
+              hint="setup.activity.member_hint"
+              value={bodyActivity}
+              onChange={setBodyActivity}
+              busy={props.busy}
+              idPrefix={`setup-row-${m.memberId}`}
+            />
             <Button
               variant="secondary"
               size="sm"
               disabled={props.busy || !bodyGender || !bodyHeight || !bodyWeight}
-              onClick={() => props.onBody(bodyHeight, bodyWeight, bodyGender)}
+              onClick={() =>
+                props.onBody(bodyHeight, bodyWeight, bodyGender, bodyActivity)}
             >
               {t("household.member.save")}
             </Button>
           </div>
         </Field>
-      ) : null}
+      ) : (
+        /* ── LE CORPS EST DÉJÀ EN BASE, ET LE CRAN PEUT MANQUER QUAND MÊME ──
+           Le bloc ci-dessus DISPARAÎT dès que les trois sont saisis: sans
+           celui-ci, une bouche décrite avant le 2026-08-18 (ou sur
+           `/app/household`) n'aurait AUCUN endroit où répondre à la question
+           que l'entonnoir prétend poser. C'est le mode d'échec habituel du
+           dépôt — une question posée sur un écran, et pas de champ sur
+           l'autre.
+
+           ⚠️ LA TUILE ÉCRIT TOUT DE SUITE, comme le sélecteur d'objectif de
+           cette même ligne, et elle REJOUE le corps déjà connu parce que la
+           RPC est tout-ou-rien. Les trois valeurs viennent de la lecture de
+           `keel_household_member_bodies`, donc on réécrit ce que la base a
+           déjà — jamais un brouillon d'écran, qui pourrait être périmé. */
+        <ActivityTiles
+          label="setup.activity.member_label"
+          hint="setup.activity.member_hint"
+          value={m.activityLevel}
+          onChange={(next) =>
+            props.onBody(String(m.heightCm), String(m.weightKg), m.gender!, next)}
+          busy={props.busy}
+          idPrefix={`setup-row-${m.memberId}`}
+        />
+      )}
 
       {/* ── LA MÊME PORTE QUE POUR LES DEUX AUTRES FICHES ────────────────
           ⛔ ICI SE TENAIT UN TROISIÈME CHAMP D'ALLERGIES EN LIGNE, rendu
@@ -3272,7 +3619,6 @@ export function TableStep({
   onSaveNote,
 }: {
   draft: FunnelPlanAnswers;
-  onChange: React.Dispatch
   onChange: React.Dispatch<React.SetStateAction<FunnelPlanAnswers | null>>;
   mouths: readonly FunnelMouth[];
   onMouthRhythm: (mouth: FunnelMouth, rhythm: readonly EatingOccasionSlot[]) => void;
@@ -3324,6 +3670,28 @@ export function TableStep({
     ? t("setup.missing.eating_rhythm")
     : undefined;
 
+  /**
+   * ⚠️ LE RÉGIME RETENAIT L'ÉTAPE SANS QUE RIEN NE LE DISE, ET C'EST LE PIRE
+   * DES DEUX MONDES: un bouton principal qui ne fait RIEN.
+   *
+   * L'étape 3 ne retient que sur deux motifs — `eating_rhythm` et `own_diet`.
+   * Le premier avait son message sur son champ; le second était calculé,
+   * transmis à ce composant dans `missing`… et jamais lu. Quelqu'un qui avait
+   * coché ses moments mais pas répondu au régime appuyait sur « Continuer »,
+   * l'écran ne bougeait pas, et AUCUN mot n'apparaissait nulle part.
+   *
+   * Mesuré le 2026-08-15 sur un compte réel (`tho@gmail.com`):
+   * `practical_constraints` portait `eating_rhythm`, pas `diet`.
+   *
+   * ⚠️ SEULEMENT SUR LA CARTE DU TITULAIRE. `own_diet` est le motif de SON
+   * régime; les autres bouches ne retiennent l'étape sur rien (leur régime est
+   * un `better`), donc leur poser un message rouge accuserait quelqu'un qui n'a
+   * rien à corriger — la faute exacte que `rhythmError` évite déjà.
+   */
+  const dietError = missing.includes("own_diet")
+    ? t("setup.missing.own_diet")
+    : undefined;
+
   return (
     <Card>
       <SectionLabel>{t("setup.table.title")}</SectionLabel>
@@ -3344,6 +3712,7 @@ export function TableStep({
             onRhythm={(next) =>
               onChange((prev) => (prev === null ? prev : { ...prev, eatingRhythm: next }))}
             rhythmError={rhythmError}
+            dietError={dietError}
             fallsBackToHouse={false}
             readOnly={false}
             busy={busy}
@@ -3365,6 +3734,8 @@ export function TableStep({
               rhythm={m.eatingSlots ?? []}
               onRhythm={(next) => onMouthRhythm(m, next)}
               rhythmError={undefined}
+              // Le régime d'une autre bouche ne retient l'étape sur rien.
+              dietError={undefined}
               // `null` = personne ne l'a dit ⇒ elle mange aux moments de la
               // maison. On le DIT sous la rangée décochée plutôt que de
               // pré-cocher les moments du foyer sur sa ligne.
@@ -3405,6 +3776,7 @@ function PersonTableCard({
   rhythm,
   onRhythm,
   rhythmError,
+  dietError,
   fallsBackToHouse,
   readOnly,
   busy,
@@ -3420,6 +3792,8 @@ function PersonTableCard({
   onRhythm: (next: readonly EatingOccasionSlot[]) => void;
   /** Le motif de l'étape, rendu SUR le champ qui le lève. */
   rhythmError: string | undefined;
+  /** Idem pour le régime. `undefined` sur toute carte qui ne retient rien. */
+  dietError: string | undefined;
   fallsBackToHouse: boolean;
   readOnly: boolean;
   busy: boolean;
@@ -3480,7 +3854,11 @@ function PersonTableCard({
           divergeraient, et l'écran offrirait à l'un une case que le moteur
           n'honore pas chez l'autre. */}
       <div className="mt-3">
-        <Field label={t("setup.table.diet_label")} hint={t("setup.table.diet_hint")}>
+        <Field
+          label={t("setup.table.diet_label")}
+          hint={t("setup.table.diet_hint")}
+          error={dietError}
+        >
           <div className="flex flex-wrap gap-2">
             {DIET_ANSWERS.map((answer) => (
               <Button
@@ -4007,8 +4385,25 @@ function RequestStep({
                   // La taille voyage avec le moment depuis le 2026-08-14: plus
                   // de `size: null` fabriqué, plus de `as` — un `as` sur un
                   // type étranger désarme le typecheck.
-                  rhythm={rhythm}
-                  away={[]}
+                  //
+                  // ⚠️ SON RYTHME À ELLE, PAS CELUI DE LA MAISON. C'était
+                  // `rhythm={rhythm}` — les moments du TITULAIRE — pour chaque
+                  // bouche. Quelqu'un qui vient de déclarer à l'étape 3 que
+                  // Christèle ne prend pas de petit-déjeuner ouvrait cette
+                  // grille et y trouvait sept petits-déjeuners cochés à son
+                  // nom: la réponse qu'il venait de donner, contredite à
+                  // l'écran, et à recocher sept fois pour la redire.
+                  // Signalé le 2026-08-15.
+                  //
+                  // `null` = personne ne l'a dit ⇒ elle mange aux moments de la
+                  // maison, et c'est LÀ que le repli est légitime — il est la
+                  // règle du produit, pas un remplissage par défaut.
+                  rhythm={m.eatingSlots ?? rhythm}
+                  // Ce qui est déjà marqué pour elle. `[]` était écrit en dur,
+                  // et la grille n'avait donc AUCUN jour hors fenêtre à
+                  // reprendre: enregistrer effaçait en silence toute absence
+                  // posée en dehors des sept colonnes affichées.
+                  away={m.away}
                   busy={awayBusy}
                   onSave={(next) => onAwaySaved(m, next)}
                 />
@@ -4021,6 +4416,64 @@ function RequestStep({
       {missing.length > 0 ? <MissingCard missing={missing} title="setup.missing.title" /> : (
         <p className="text-xs text-ink-soft">{t("setup.plan.compose_hint")}</p>
       )}
+    </>
+  );
+}
+
+/**
+ * L'ATTENTE DE LA COMPOSITION, DITE PENDANT QU'ELLE DURE.
+ *
+ * ── POURQUOI HUIT PHRASES ET PAS UN SABLIER ────────────────────────────────
+ * Composer une semaine prend des dizaines de secondes: le modèle écrit, le
+ * serveur vérifie, la liste de courses se construit. Un libellé figé
+ * (« Construction en cours… ») pendant deux minutes se lit comme un écran
+ * planté — la personne appuie une deuxième fois, ou quitte. Ce qui distingue
+ * « ça travaille » de « c'est mort » n'est pas une animation, c'est du TEXTE
+ * QUI CHANGE: il prouve que quelque chose avance encore.
+ *
+ * ⚠️ CE QUE CES PHRASES NE FONT PAS: elles ne prétendent PAS lire l'avancement
+ * réel. La fonction edge ne rend rien avant d'avoir fini, donc une barre à
+ * pourcentage serait inventée de bout en bout — un fait indémentable de plus.
+ * Elles disent ce que la composition FAIT, dans l'ordre où elle le fait, et
+ * c'est vrai sans être mesuré.
+ *
+ * ── LA CADENCE ────────────────────────────────────────────────────────────
+ * Huit messages, quinze secondes chacun: deux minutes, la durée demandée. Au
+ * bout, le dernier RESTE affiché — on ne reboucle pas sur « on démarre », qui
+ * ferait croire que tout recommence, ni sur une phrase de fin, qui promettrait
+ * une réponse qui n'est pas arrivée.
+ *
+ * Le composant est monté par `busy` et démonté avec lui: chaque composition
+ * repart donc du premier message, sans qu'aucun `useEffect` de remise à zéro
+ * ait à exister.
+ */
+const COMPOSING_MESSAGES = 8;
+const COMPOSING_TICK_MS = 15_000;
+
+function ComposingLabel() {
+  const [index, setIndex] = React.useState(0);
+
+  React.useEffect(() => {
+    if (index >= COMPOSING_MESSAGES - 1) return;
+    const id = globalThis.setTimeout(
+      () => setIndex((n) => n + 1),
+      COMPOSING_TICK_MS,
+    );
+    return () => globalThis.clearTimeout(id);
+  }, [index]);
+
+  return (
+    <>
+      <Loader2 aria-hidden className="h-4 w-4 shrink-0 animate-spin" />
+      {/* `aria-live` et pas seulement du texte: le bouton est désactivé
+          pendant l'attente, donc son libellé n'est plus annoncé au focus. Sans
+          région vivante, un lecteur d'écran n'apprendrait jamais que ça
+          avance. */}
+      <span aria-live="polite">
+        {t(
+          `setup.plan.composing_${index + 1}` as "setup.plan.composing_1",
+        )}
+      </span>
     </>
   );
 }
@@ -4059,104 +4512,5 @@ function MissingCard(
         ))}
       </ul>
     </Card>
-  );
-}
-
-// ───────────────────────────────────────────────────────────────────────────
-// L'ALLERGIE — la seule des trois natures que l'entonnoir collecte
-// ───────────────────────────────────────────────────────────────────────────
-
-function AllergyPicker({
-  label,
-  hint,
-  idPrefix,
-  allergies,
-  none,
-  onChange,
-}: {
-  label: string;
-  hint: string;
-  idPrefix: string;
-  allergies: string[];
-  none: boolean;
-  onChange: (allergies: string[], none: boolean) => void;
-}) {
-  const [free, setFree] = React.useState("");
-  return (
-    <Field label={label} hint={hint}>
-      <div className="space-y-2">
-        <div className="flex flex-wrap gap-2">
-          {ALLERGEN_OPTIONS.map((option) => {
-            const on = allergies.includes(option.slug);
-            return (
-              <Button
-                key={option.slug}
-                size="sm"
-                variant={on ? "primary" : "secondary"}
-                onClick={() =>
-                  onChange(
-                    on
-                      ? allergies.filter((a) => a !== option.slug)
-                      : [...allergies, option.slug],
-                    // Cocher un allergène VAUT réponse: « rien à déclarer »
-                    // devient faux tout seul, sinon les deux coexisteraient et
-                    // l'écran raconterait deux choses.
-                    on ? none : false,
-                  )}
-              >
-                {allergenLabel(option.slug)}
-              </Button>
-            );
-          })}
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <input
-            id={`${idPrefix}-allergy-other`}
-            type="text"
-            placeholder={t("setup.people.allergies_other")}
-            value={free}
-            onChange={(e) => setFree(e.target.value)}
-            className={`${inputClass} min-w-0 flex-1`}
-          />
-          <Button
-            size="sm"
-            variant="secondary"
-            disabled={!free.trim()}
-            onClick={() => {
-              onChange([...allergies, free.trim()], false);
-              setFree("");
-            }}
-          >
-            {t("setup.people.allergies_add")}
-          </Button>
-        </div>
-        {/* « AUCUNE » EST UNE RÉPONSE, ET ELLE S'ENREGISTRE. Sans elle, une
-            table vide ne distingue pas « rien à déclarer » de « on n'a jamais
-            demandé » — et sur une question de sécurité, ces deux-là ne sont pas
-            la même chose. */}
-        <label className="flex items-start gap-2 text-sm leading-6 text-ink">
-          {/* ── `accent-fig-700`, ET LES DEUX CLASSES QU'IL REMPLACE ÉTAIENT
-              MORTES ────────────────────────────────────────────────────────
-              La case portait `border-gray-300 text-gray-900 focus:ring-gray-900`.
-              Ce dépôt n'a PAS `@tailwindcss/forms` (vérifié dans
-              `frontend/package.json`): sur une case native, `border-*` et
-              `text-*` ne rendent rien du tout — la coche restait au bleu du
-              système, et le gris n'était même pas appliqué. `accent-color` est
-              le seul levier qui la teigne, et c'est l'idiome déjà en place sur
-              `/start` (`StartPage.tsx:669`) et `/auth` (`Auth.tsx:1312`), les
-              deux portes qui précèdent cet écran.
-              L'anneau de focus est explicite parce que la règle
-              `:focus-visible` de `tokens.css` ne couvre que `a`, `button` et
-              `[tabindex]` — une case n'en fait pas partie. */}
-          <input
-            type="checkbox"
-            checked={none}
-            onChange={(e) => onChange(e.target.checked ? [] : allergies, e.target.checked)}
-            className="mt-1 h-4 w-4 shrink-0 cursor-pointer accent-fig-700 focus:outline-none focus:ring-2 focus:ring-fig-600 focus:ring-offset-2"
-          />
-          <span>{t("setup.people.allergies_none")}</span>
-        </label>
-      </div>
-    </Field>
   );
 }

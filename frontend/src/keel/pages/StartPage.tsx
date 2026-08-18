@@ -3,11 +3,10 @@ import { Link, useNavigate } from "react-router-dom";
 import SEO from "../../components/SEO";
 import { useAuth } from "../../context/AuthContext";
 import { supabase } from "../../lib/supabase";
-import { NO_COUNTRY_SELECTED, SIGNUP_COUNTRIES } from "../api/countries";
+import { declaredCountryFor } from "../api/countryFromTimezone";
 import {
   freeSignupMetadata,
   isAlreadyRegistered,
-  isDeclaredCountryValid,
   joinRefusalMessageKey,
   signUpOutcome,
 } from "../api/freeSignup";
@@ -16,6 +15,8 @@ import { PublicFooter, PublicHeader } from "../components/PublicHeader";
 import ServerUnreachable from "../components/ServerUnreachable";
 import { Button } from "../components/ui/Button";
 import { t } from "../i18n/t";
+import { chosenUiLocale, signupProfileLocale } from "../i18n/runtime";
+import { type UiLocale } from "../i18n/catalog";
 
 // KEEL — /start : ouvrir un compte de foyer.
 //
@@ -88,20 +89,30 @@ import { t } from "../i18n/t";
 // même raison: c'est la porte unique du produit, une régression y est une panne
 // totale.
 //
-// L'inscription du foyer a besoin d'une chose que `/auth` n'a pas: le pays
-// déclaré (§ ci-dessous). Elle vit donc à côté.
+// ── LE PAYS: DEMANDÉ HIER, DÉDUIT AUJOURD'HUI ────────────────────────────
 //
-// ── LE PAYS, ET C'EST LA RAISON D'ÊTRE DU SÉLECTEUR ──────────────────────
-// C'EST UN CHEMIN DE SÉCURITÉ, PAS UN CHAMP DE PROFIL. `profiles.country` est lu
-// EN PREMIER par le résolveur de ressources de crise, et son absence le fait
-// retomber sur la LANGUE — donc `en-US` pour tout le monde. Un élève français
-// en détresse recevait un numéro américain, `fallbackUsed` à faux, et rien ne le
-// signalait. C'est pour ça que l'inscription générique a été retirée de `/auth`
-// le 2026-08-05 (migration 20260804180000), et pour ça que cette porte-ci
-// demande le pays au lieu de le déduire — voir l'en-tête de
-// `20260811060000_household_signup_door.sql`, qui documente les deux gardes.
-// Le refus est côté base: `keel_join_house_coach` rend `country_required` sans
-// pays. NE PAS RETIRER CE CHAMP NI SON AIDE.
+// ⚠️ CE PARAGRAPHE DISAIT « NE PAS RETIRER CE CHAMP NI SON AIDE ». Il est
+// réécrit et non supprimé, parce qu'une contrainte documentée survit à sa
+// cause: un lecteur qui trouverait la déduction sous un commentaire qui
+// l'interdit conclurait que quelqu'un a cassé quelque chose, et le
+// « réparerait ». Ce dépôt l'a déjà payé deux fois.
+//
+// Ce qui était vrai, et l'est toujours: `profiles.country` est lu EN PREMIER
+// par le résolveur de ressources de crise, son absence le fait retomber sur la
+// LANGUE, et c'est l'incident qui a coûté l'inscription générique de `/auth`
+// (migration 20260804180000). Côté base, `keel_join_house_coach` rend toujours
+// `country_required` sans pays.
+//
+// Ce qui a changé: le routage du numéro d'urgence n'est plus un sujet du
+// produit — décision explicite, prise deux fois. La question occupait donc la
+// place de la SEULE qui change quelque chose tous les jours: la langue, dont
+// dépendent l'affichage de la plateforme, la langue du chat, celle du plan
+// généré et celle des e-mails. Le pays continue d'être écrit, déduit du fuseau
+// que ce formulaire envoyait déjà (`api/countryFromTimezone.ts`, qui écrit noir
+// sur blanc ce que la déduction coûte).
+//
+// Le geste juste, le jour où l'urgence redevient un sujet: REPOSER LA QUESTION.
+// Pas raffiner la table de fuseaux.
 //
 // ── CE QUE FAIT LA PAGE, DANS L'ORDRE, ET POURQUOI CET ORDRE ─────────────
 // 1. Elle demande à la base si l'inscription libre est ouverte
@@ -116,16 +127,6 @@ import { t } from "../i18n/t";
 //    rattachement du trigger est best-effort (un échec ne doit pas coûter le
 //    compte); ce rejeu est la réparation, et la RPC est idempotente.
 
-/**
- * Pays proposés. NOT une liste de validation — la base valide la FORME
- * (`profiles_country_iso3166_check`), volontairement: une liste fermée
- * refuserait un pays légitime le jour où quelqu'un s'y inscrit.
- *
- * ⚠️ LA LISTE A DÉMÉNAGÉ dans `api/countries.ts` au chantier 4, quand une
- * TROISIÈME porte s'est mise à demander le pays: trois copies d'une même liste
- * divergent, et la divergence porte sur la seule colonne dont dépend la hotline
- * de crise. `pages/Auth.tsx` garde la sienne, et c'est écrit là-bas.
- */
 type Phase =
   | { kind: "loading" }
   | { kind: "unavailable" }
@@ -278,11 +279,31 @@ export default function StartPage() {
   const [fullName, setFullName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
-  // ⚠️ VIDE, ET C'EST LA GARDE. Ce champ naissait à `"US"`: un compte créé sans
-  // y toucher partait avec `profiles.country='US'` — c'est-à-dire la hotline
-  // américaine servie à un Français, sous une aide qui promet le contraire.
-  // Voir `NO_COUNTRY_SELECTED` (api/countries.ts) pour la mesure et le pourquoi.
-  const [country, setCountry] = React.useState(NO_COUNTRY_SELECTED);
+  // ⚠️ LE SÉLECTEUR DE PAYS A DISPARU DE CET ÉCRAN, ET C'EST LA DÉCISION.
+  //
+  // Il demandait « Où vous vivez » sous une aide qui disait « sert à vous donner
+  // le bon numéro d'urgence si une conversation en a besoin un jour ». Vrai, et
+  // c'est exactement pourquoi il part: le routage du numéro d'urgence n'est pas
+  // un sujet du produit aujourd'hui, et cette question occupait la place de la
+  // seule qui change quelque chose tous les jours — la LANGUE.
+  //
+  // Le pays reste écrit en base (le SQL l'EXIGE: sans lui, `handle_new_user()`
+  // refuse de rattacher l'inscrit à son coach, silencieusement, donc un compte
+  // sans plan). Il se DÉDUIT du fuseau, que ce formulaire envoyait déjà — voir
+  // `api/countryFromTimezone.ts` pour ce que la déduction coûte, écrit noir sur
+  // blanc.
+  const timezone = React.useMemo(
+    () => Intl.DateTimeFormat().resolvedOptions().timeZone,
+    [],
+  );
+  // La langue du COMPTE. Naît sur le drapeau de l'en-tête, et s'en détache si
+  // la personne le veut — lire la page en français et être coaché en anglais
+  // est un besoin réel. Ce champ NE RECHARGE PAS: il détruirait la saisie.
+  const [language, setLanguage] = React.useState<UiLocale>(() => chosenUiLocale());
+  const country = React.useMemo(
+    () => declaredCountryFor(timezone, language),
+    [timezone, language],
+  );
   const [acceptedLegal, setAcceptedLegal] = React.useState(false);
   const [submitting, setSubmitting] = React.useState(false);
   const [formError, setFormError] = React.useState<string | null>(null);
@@ -409,10 +430,6 @@ export default function StartPage() {
         setFormError(t("start.error.legal"));
         return;
       }
-      if (!isDeclaredCountryValid(country)) {
-        setFormError(t("start.error.country_required"));
-        return;
-      }
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password,
@@ -426,7 +443,8 @@ export default function StartPage() {
           data: freeSignupMetadata({
             fullName,
             country,
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            timezone,
+            locale: signupProfileLocale(language),
           }),
           // ── LE TROU N°2 EST REFERMÉ (2026-08-13) ────────────────────────
           // Cette ligne pointait sur `/app/chat`, et le bouton de l'état
@@ -484,10 +502,6 @@ export default function StartPage() {
     setSubmitting(true);
     setFormError(null);
     try {
-      if (!isDeclaredCountryValid(country)) {
-        setFormError(t("start.error.country_required"));
-        return;
-      }
       const failure = await joinHouse(country);
       if (failure) {
         setFormError(failure);
@@ -636,25 +650,22 @@ export default function StartPage() {
               réseau, et `keel_join_house_coach` rendrait `country_required`
               si on la laissait passer. Même patron que `/join-household`. */}
           <Field
-            label={t("start.form.country")}
-            htmlFor="start-country"
-            hint={t("start.form.country_hint")}
+            label={t("start.form.language")}
+            htmlFor="start-language"
+            hint={t("start.form.language_hint")}
           >
             <select
-              id="start-country"
-              required
-              value={country}
-              onChange={(e) => setCountry(e.target.value)}
+              id="start-language"
+              value={language}
+              onChange={(e) => setLanguage(e.target.value === "fr" ? "fr" : "en")}
               className={controlClass}
             >
-              <option value={NO_COUNTRY_SELECTED}>
-                {t("start.form.country_placeholder")}
-              </option>
-              {SIGNUP_COUNTRIES.map((c) => (
-                <option key={c.code} value={c.code}>
-                  {c.label}
-                </option>
-              ))}
+              {/* Chaque langue nommée DANS sa langue, avec son `lang`: sans lui
+                  un lecteur d'écran français prononce « English » à la
+                  française. Les deux libellés existent déjà — le drapeau les
+                  rend — donc on ne crée pas un second nom pour la même langue. */}
+              <option value="en" lang="en">{t("public.language.en")}</option>
+              <option value="fr" lang="fr">{t("public.language.fr")}</option>
             </select>
           </Field>
 

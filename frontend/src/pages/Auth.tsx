@@ -2,15 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { resolveHomePath } from '../keel/api/postLogin';
-// La LISTE des pays reste dupliquée plus bas (`COACH_COUNTRIES`), pour la
-// raison écrite là-bas. La VALEUR INITIALE, elle, ne peut pas diverger sans
-// redonner un pays à quelqu'un qui n'en a pas déclaré: elle est nommée une fois.
-import { NO_COUNTRY_SELECTED } from '../keel/api/countries';
+// LE PAYS N'EST PLUS DEMANDÉ ICI. Il se déduit du fuseau — voir
+// `keel/api/countryFromTimezone.ts` pour la décision et son prix.
+import { declaredCountryFor } from '../keel/api/countryFromTimezone';
 import { consumePendingCoachInvitation } from '../keel/api/coachInvite';
 import SEO from '../components/SEO';
 import { LocaleSwitch } from '../keel/components/LocaleSwitch';
 import { Button, ButtonLink } from '../keel/components/ui/Button';
-import { t, type MessageKey } from '../keel/i18n/t';
+import { t } from '../keel/i18n/t';
+import { chosenUiLocale, signupProfileLocale } from '../keel/i18n/runtime';
+import { type UiLocale } from '../keel/i18n/catalog';
 import { newRequestId, requestHeaders } from '../lib/requestId';
 import { getPrelaunchLockdownRawValue, isPrelaunchLockdownEnabled } from '../security/prelaunch';
 import { DEFAULT_TIMEZONE, detectBrowserTimezone, getAllSupportedTimezones } from '../lib/localization';
@@ -69,7 +70,7 @@ function getErrorMessage(err: unknown, fallback: string) {
 //    couture au milieu de la page que `i18n/pageFrontier.int.test.ts` existe
 //    pour interdire, sur la seule page que tout le monde traverse. Tout passe
 //    désormais par le namespace `auth`, et `/auth` est déclarée dans
-//    `PUBLIC_PAGE_NAMESPACES`.
+//    `PAGE_NAMESPACES`.
 //    ⚠️ CE N'EST PLUS UN CHOIX PAR CHAÎNE. Une seule chaîne laissée en dur ici
 //    rouvre le défaut, et aucun type ne la voit: le compilateur garde les CLÉS,
 //    pas les littéraux qu'on oublie de passer par `t()`.
@@ -99,44 +100,24 @@ function getErrorMessage(err: unknown, fallback: string) {
 // ci-dessous sont ceux d'avant, avec les mêmes dépendances.
 // ---------------------------------------------------------------------------
 
-/**
- * Countries offered to a coach at signup. NOT a validation list — the database
- * CHECK (`profiles_country_iso3166_check`) validates the SHAPE only, on
- * purpose: a closed list would reject a legitimate country the day someone
- * signs up from it. This is a convenience ordering of the ones we expect first,
- * and `country` is asked rather than derived because country is not a language
- * (migration 20260727190000, at length): the crisis-resource resolver reads it
- * FIRST, and a wrong guess there hands an American student a French hotline.
- *
- * ⚠️ LES LIBELLÉS SONT DES CLÉS, ÉCRITES EN TOUTES LETTRES. Un
- * `t(`auth.country.${code.toLowerCase()}`)` compilerait — le type accepte le
- * littéral de gabarit — et ne prouverait plus rien: la clé absente ne serait
- * découverte qu'au rendu, chez un visiteur. Le CODE reste la valeur écrite en
- * base; seul le mot affiché est traduit.
- */
-const COACH_COUNTRIES: { code: string; label: MessageKey }[] = [
-  { code: "US", label: "auth.country.us" },
-  { code: "GB", label: "auth.country.gb" },
-  { code: "FR", label: "auth.country.fr" },
-  { code: "CA", label: "auth.country.ca" },
-  { code: "AU", label: "auth.country.au" },
-  { code: "IE", label: "auth.country.ie" },
-  { code: "NZ", label: "auth.country.nz" },
-  { code: "BE", label: "auth.country.be" },
-  { code: "CH", label: "auth.country.ch" },
-  { code: "DE", label: "auth.country.de" },
-  { code: "ES", label: "auth.country.es" },
-  { code: "IT", label: "auth.country.it" },
-  { code: "NL", label: "auth.country.nl" },
-  { code: "PT", label: "auth.country.pt" },
-  { code: "SE", label: "auth.country.se" },
-  { code: "SG", label: "auth.country.sg" },
-  { code: "AE", label: "auth.country.ae" },
-  { code: "ZA", label: "auth.country.za" },
-];
+// ⚠️ `COACH_COUNTRIES` A ÉTÉ RETIRÉE, ET SON ABSENCE EST LE CHANGEMENT. Cette
+// page gardait sa propre copie de la liste des pays — assumé, parce qu'elle est
+// la porte unique du produit et qu'on n'y touche pas pour factoriser une
+// constante. Elle n'a plus de sélecteur à remplir: le pays se déduit du fuseau.
 
-/** R3: the coach workspace is English. This is `ui_locale`, not content locale. */
-const COACH_LOCALE = "en-US";
+// ⚠️ `COACH_LOCALE = "en-US"` A ÉTÉ RETIRÉ, ET SON ABSENCE EST LE CHANGEMENT.
+// Il disait « R3: the coach workspace is English » — vrai du pilote, faux du
+// produit. La langue du compte est maintenant CE QUE LE DRAPEAU DIT au moment
+// de valider, et `signupProfileLocale()` (i18n/runtime.ts) est le seul endroit
+// qui la produit.
+//
+// Cette page l'écrit à DEUX endroits — les métadonnées de `signUp` et le corps
+// de `coach-signup-v1` — parce que deux écrivains différents la lisent
+// (`handle_new_user` puis la fonction edge). Les deux appellent la même
+// fonction plutôt que de se passer une variable: `chosenUiLocale()` ne bouge
+// pas dans la vie d'une page (le seul changement passe par
+// `setUiLocaleAndReload`, qui recharge), donc les deux lectures ne peuvent pas
+// diverger, et aucune des deux ne peut être oubliée dans une signature.
 
 // `normalizePhone` A ÉTÉ RETIRÉE AVEC LE CHAMP TÉLÉPHONE (2026-08-05).
 // Elle présupposait `+33` — 10 chiffres commençant par 0, 9 chiffres sans
@@ -445,18 +426,26 @@ const Auth = () => {
   // exactement comme `/start` — sauf qu'ici la valeur ne reste pas chez le
   // coach: `keel_attach_student_to_coach` (migration 20260804180000) recopie le
   // PAYS DÉCLARÉ DU COACH dans `profiles.country` de chaque élève qui n'a pas
-  // déclaré le sien. Un coach français qui ne touche pas ce champ fabrique donc
-  // une cohorte entière rangée aux États-Unis, sur la colonne que le résolveur
-  // de crise lit en premier.
+   // ⚠️ LE SÉLECTEUR DE PAYS A DISPARU DE CETTE PORTE, ET C'EST LA DÉCISION.
   //
-  // Ce que ça change pour la porte unique du produit: RIEN d'autre que d'armer
-  // une garde déjà écrite. La ceinture de forme existe depuis W6.1 quelques
-  // centaines de lignes plus bas (`!/^[A-Z]{2}$/.test(coachCountry)`) avec son
-  // message prêt — elle était simplement INATTEIGNABLE, puisque l'état ne
-  // pouvait pas être invalide. Les deux chemins qui rejouent l'après-inscription
-  // (le polling et le bouton « j'ai vérifié ») vivent dans la même session de
-  // page, donc en aval de cette garde: aucun d'eux ne peut voir la valeur vide.
-  const [coachCountry, setCoachCountry] = useState(NO_COUNTRY_SELECTED);
+  // Le bloc retiré ici racontait l'inverse: le champ naissait à « US », donc un
+  // coach français qui n'y touchait pas rangeait sa cohorte entière aux
+  // États-Unis, sur la colonne que le résolveur de crise lit en premier. La
+  // garde de forme a été armée pour ça (W6.1), et elle avait raison.
+  //
+  // Ce qui a changé n'est pas la mécanique, c'est le SUJET: le routage du
+  // numéro d'urgence n'est pas un sujet du produit aujourd'hui — décision
+  // explicite, prise deux fois. La question occupait donc la place de la seule
+  // qui change quelque chose tous les jours: la LANGUE, dont dépendent
+  // l'affichage de l'espace coach, la langue du chat de ses élèves, celle des
+  // plans générés et celle des e-mails.
+  //
+  // Le pays continue d'être écrit — `coach-signup-v1` le valide et la base a son
+  // CHECK — mais il est DÉDUIT du fuseau, que cette page connaît déjà
+  // (`detectBrowserTimezone`). Voir `keel/api/countryFromTimezone.ts`: ce que la
+  // déduction coûte y est écrit noir sur blanc, et le geste juste le jour où
+  // l'urgence redevient un sujet est de REPOSER LA QUESTION.
+  const [coachLanguage, setCoachLanguage] = useState<UiLocale>(() => chosenUiLocale());
   // Parrainage : prérempli depuis ?ref= (capturé au chargement de l'app),
   // modifiable/saisissable manuellement à l'inscription.
   const [hasAcceptedLegal, setHasAcceptedLegal] = useState(false); // New state for legal acceptance
@@ -523,8 +512,9 @@ const Auth = () => {
 
   useEffect(() => {
     // Prefill timezone from browser when opening signup (non-destructive if user already typed something else).
-    // La seule inscription qui reste ici est celle du coach, dont la langue est
-    // `COACH_LOCALE` (en-US) et non une valeur choisie dans le formulaire.
+    // La seule inscription qui reste ici est celle du coach, dont la langue ne
+    // se choisit pas dans le formulaire non plus: elle vient du drapeau en haut
+    // de l'écran, prérempli depuis le drapeau (`signupProfileLocale`).
     if (!isSignUp || prelaunchLockdown) return;
     const detected = detectBrowserTimezone();
     if (detected) setTimezone(detected);
@@ -595,7 +585,15 @@ const Auth = () => {
     if (coachSignup) {
       const reqId = newRequestId();
       const { error: coachErr } = await supabase.functions.invoke('coach-signup-v1', {
-        body: { country: coachCountry, display_name: name || undefined, locale: COACH_LOCALE },
+        body: {
+          // Le pays DÉDUIT du fuseau que cette page connaît déjà, jamais de la
+          // langue: un coach francophone qui exerce à Montréal ne doit pas être
+          // rangé en France, et c'est le seul défaut de la déduction qu'on
+          // pouvait éviter gratuitement.
+          country: declaredCountryFor(detectBrowserTimezone(), coachLanguage),
+          display_name: name || undefined,
+          locale: signupProfileLocale(coachLanguage),
+        },
         headers: requestHeaders(reqId),
       });
       if (coachErr) {
@@ -850,12 +848,6 @@ const Auth = () => {
           throw new Error(t("auth.error.student_signup_moved"));
         }
 
-        // KEEL W6.1 — the coach's country is a SELECTOR value, validated for
-        // shape here and again by the DB CHECK. R7: a bad value fails at the
-        // write, not three layers later inside the crisis resolver.
-        if (coachSignup && !/^[A-Z]{2}$/.test(coachCountry)) {
-          throw new Error(t("auth.error.country"));
-        }
 
         const detectedTimezone = detectBrowserTimezone();
         const signupTimezone = tzFollowDevice
@@ -874,7 +866,7 @@ const Auth = () => {
                 // clé absente stocke NULL et la garde anti-collision du trigger
                 // n'est jamais entrée. Envoyer "" prendrait la même branche;
                 // omettre la clé énonce l'intention.
-                locale: COACH_LOCALE,
+                locale: signupProfileLocale(coachLanguage),
                 timezone: signupTimezone,
                 tz_follow_device: tzFollowDevice,
             },
@@ -1217,33 +1209,28 @@ const Auth = () => {
                   l'inscription élève est /start, qui demande le PAYS (ce que
                   le numéro déduisait). Voir les destinations en bas de page. */}
 
-              {/* KEEL W6.1 — country. Asked, never derived from the locale:
-                  `profiles.country` is read FIRST by the crisis-resource
-                  resolver, and a fr-FR coach practising in Montreal must not
-                  be filed under France. */}
+              {/* LA LANGUE DU COMPTE. Elle a pris la place du sélecteur de
+                  pays, et elle NE RECHARGE PAS — le drapeau de l'en-tête, lui,
+                  recharge, et le faire ici détruirait le nom et le mot de passe
+                  qu'on vient de taper. Les deux peuvent donc diverger: lire la
+                  page en français et vouloir travailler en anglais est un
+                  besoin réel. Le champ naît sur le drapeau. */}
               {isSignUp && !prelaunchLockdown && coachSignup && (
                 <Field
-                  label={t("auth.field.country")}
-                  htmlFor="auth-country"
-                  hint={t("auth.field.country_hint")}
+                  label={t("auth.field.language")}
+                  htmlFor="auth-language"
+                  hint={t("auth.field.language_hint")}
                 >
                   <select
-                    id="auth-country"
-                    value={coachCountry}
-                    onChange={(e) => setCoachCountry(e.target.value)}
+                    id="auth-language"
+                    value={coachLanguage}
+                    onChange={(e) =>
+                      setCoachLanguage(e.target.value === "fr" ? "fr" : "en")}
                     className={controlClass}
                   >
-                    {/* L'option initiale. Elle n'est pas soumissible: la garde
-                        de forme au-dessus refuse une valeur vide avec une
-                        phrase lisible, avant tout appel réseau. */}
-                    <option value={NO_COUNTRY_SELECTED}>
-                      {t("auth.field.country_placeholder")}
-                    </option>
-                    {COACH_COUNTRIES.map((c) => (
-                      <option key={c.code} value={c.code}>
-                        {t(c.label)}
-                      </option>
-                    ))}
+                    {/* Chaque langue nommée DANS sa langue, avec son `lang`. */}
+                    <option value="en" lang="en">{t("public.language.en")}</option>
+                    <option value="fr" lang="fr">{t("public.language.fr")}</option>
                   </select>
                 </Field>
               )}

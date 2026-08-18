@@ -67,6 +67,20 @@ export function addDays(date: string, days: number): string {
 }
 
 /**
+ * Whole days from `from` to `to` — negative when `to` is earlier.
+ *
+ * Parsed at UTC noon like the rest of this module, so a DST boundary between
+ * the two dates cannot turn 7 days into 6.98 and round down.
+ */
+export function daysBetween(from: string, to: string): number {
+  assertIsoDate(from);
+  assertIsoDate(to);
+  const a = new Date(`${from}T12:00:00Z`).getTime();
+  const b = new Date(`${to}T12:00:00Z`).getTime();
+  return Math.round((b - a) / 86_400_000);
+}
+
+/**
  * The `n` local dates ending at `endDate`, oldest first. Used for the coverage
  * denominator, which is always the calendar window — never "the days we happen
  * to have rows for".

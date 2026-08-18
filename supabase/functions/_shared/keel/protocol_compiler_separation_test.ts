@@ -231,7 +231,7 @@ Deno.test("sens 2: le protocole du coach ne peut pas retirer un token du verrou"
       rationale: null,
     }],
     terms: [{ term: "cacahuete", food_group_ref: "nuts_seeds" }],
-  }, "health");
+  }, "maintenance");
   assert(protocole.length > 0, "le protocole de reference doit etre non vide");
 
   const apres = medicalConstraintTokens([PEANUT_ALLERGY]);

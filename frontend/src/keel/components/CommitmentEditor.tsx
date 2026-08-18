@@ -1,5 +1,22 @@
+/* ─────────────────────────────────────────────────────────────────────────
+ * `react-refresh/only-export-components` MORD SUR TOUT CE FICHIER, et c'est
+ * connu: il porte le contrat serveur (`callPlanTemplate`, `loadVocabulary`,
+ * `reviewSafety`) et les fonctions pures de l'éditeur (`blankCommitment`,
+ * `toServerCommitment`, `validateDraft`, `suggestTemplateKey`) À CÔTÉ des
+ * composants. Rien de neuf: ces sept exports sont là depuis l'origine du
+ * fichier, la règle ne les voit que parce que le gate ne linte que les
+ * fichiers modifiés — même situation, et même réponse, que `ui/Button.tsx`.
+ *
+ * La vraie réparation est de sortir la moitié non-composant dans son module
+ * (`keel/api/planTemplate.ts`, où vivent déjà les appels serveur): deux
+ * importateurs seulement, `TemplatesPage` et `PlanImportPage`. C'EST UN LOT À
+ * PART — le faire ici mêlerait un déplacement de 200 lignes à un lot qui ne
+ * cherchait qu'à rendre le gate vert.
+ * ───────────────────────────────────────────────────────────────────────── */
+/* eslint-disable react-refresh/only-export-components */
 import React from "react";
 import { t } from "../i18n/t";
+import { inputClass } from "./ui/Field";
 
 /**
  * KEEL — inline editor for ONE plan commitment, all six axes (W6.3).
@@ -418,14 +435,38 @@ export function validateDraft(c: DraftCommitment): string[] {
 // Field primitives
 // ---------------------------------------------------------------------------
 
-const FIELD =
-  "w-full rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-900 " +
-  "focus:border-gray-600 focus:outline-none disabled:bg-gray-100 disabled:text-gray-400";
+// ⛔ `FIELD` A ÉTÉ SUPPRIMÉ AU PROFIT D'`inputClass` DU KIT.
+// La constante locale valait
+//   `w-full rounded border border-gray-300 bg-white px-2 py-1 text-sm …`
+// et elle recopiait la classe de champ du produit avec deux défauts:
+//   • `text-sm` — 14 px. `index.css` pose 16 px sur les champs sous `lg` parce
+//     que Safari iOS ZOOME sur un champ plus petit au focus et NE DÉZOOME PAS.
+//     La règle vit dans `@layer base`, et un utilitaire la BAT: la protection
+//     était contournée sur les vingt-cinq contrôles de cet éditeur.
+//   • une bordure de contrôle sous 3:1, alors que WCAG 1.4.11 l'exige
+//     (`line-strong` est à 3,84:1), et aucun anneau de focus — juste un
+//     changement de bordure, que `focus:outline-none` laissait seul.
+// `inputClass` porte les trois corrections à la source. Autorité:
+// `scratchpad/plateforme/KIT-CONTRAT.md` §4.
+const FIELD = inputClass;
 
+/**
+ * L'étiquette d'un contrôle de cet éditeur.
+ *
+ * ⚠️ CE PETIT COMPOSANT NE DEVIENT PAS `ui/Field.tsx`, ET C'EST DÉLIBÉRÉ. Il
+ * enveloppe son contrôle dans le `<label>` lui-même: l'association est
+ * IMPLICITE, donc elle ne peut pas se casser. Le `Field` du kit associe par
+ * `htmlFor`/`id`, ce qui suppose un identifiant unique — il en faudrait
+ * vingt-cinq, inventés ici, sur un éditeur dont plusieurs instances sont
+ * rendues en même temps (une par ligne ouverte): deux `id` identiques dans le
+ * document, et le clic sur l'étiquette de l'une donne le focus au contrôle de
+ * l'autre. Ce qui vient du kit est ce qui devait en venir: la classe du
+ * contrôle, et le cran d'étiquette de la charte (`text-label`, §3).
+ */
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-0.5 block text-[11px] font-medium uppercase tracking-wide text-gray-400">
+      <span className="mb-2 block text-label font-semibold uppercase text-ink-soft">
         {label}
       </span>
       {children}
@@ -548,16 +589,16 @@ function Toggle({
   hint?: string;
 }) {
   return (
-    <label className="flex items-start gap-2 text-sm text-gray-700">
+    <label className="flex items-start gap-2 text-sm text-ink">
       <input
         type="checkbox"
-        className="mt-0.5 h-4 w-4 shrink-0"
+        className="mt-0.5 h-4 w-4 shrink-0 accent-fig-700"
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
       />
       <span>
         {label}
-        {hint && <span className="block text-xs text-gray-400">{hint}</span>}
+        {hint && <span className="mt-1 block max-w-[62ch] text-xs text-ink-soft">{hint}</span>}
       </span>
     </label>
   );
@@ -591,10 +632,14 @@ function DayPicker({
                 const ordered = options.filter((o) => next.has(o));
                 onChange(ordered.length === 0 ? null : [...ordered]);
               }}
-              className={`rounded px-2 py-1 font-mono text-[11px] ${
+              // UN JOUR COCHÉ EST UN CHOIX, DONC UNE ACTION: la marque a le
+              // droit d'y entrer (charte §2), ce que `bg-gray-900` disait déjà
+              // sans jeton. `aria-pressed` parce que c'est un interrupteur.
+              aria-pressed={on}
+              className={`rounded-full border px-2.5 py-1 font-mono text-[11px] transition-colors ${
                 on
-                  ? "bg-gray-900 text-white"
-                  : "border border-gray-300 bg-white text-gray-500 hover:bg-gray-50"
+                  ? "border-fig-700 bg-fig-700 text-paper"
+                  : "border-line-strong bg-paper text-ink-soft hover:bg-fig-50"
               }`}
             >
               {d}
@@ -608,8 +653,8 @@ function DayPicker({
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <fieldset className="rounded border border-gray-200 p-2">
-      <legend className="px-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+    <fieldset className="rounded-card border border-line-strong p-3">
+      <legend className="px-1 text-label font-semibold uppercase text-ink-soft">
         {title}
       </legend>
       {children}
@@ -633,9 +678,12 @@ function Section({ title, children }: { title: string; children: React.ReactNode
  * deliberate and is the difference between informing a professional and
  * grading them:
  *
- *  - NO ALARM COLOUR. Slate on white, the same weight as the source quote
- *    underneath. Red says "you did something wrong"; this says "here is what
- *    is on file".
+ *  - NO ALARM COLOUR. Encre courante sur un fond `paper-2`, le même poids que
+ *    la citation source en dessous. Red says "you did something wrong"; this
+ *    says "here is what is on file".
+ *    (La formule d'origine disait « slate sur blanc »: ni l'un ni l'autre
+ *    n'existe plus dans la palette, mais la DÉCISION — aucune couleur d'alarme
+ *    — est intacte et c'est elle qui compte.)
  *  - NO CONTROL. No button, no checkbox, no link. There is nothing to answer,
  *    so there is nothing to click — and a coach who reads a note and moves on
  *    has done the right thing.
@@ -646,8 +694,8 @@ export function SafetyNote({ finding }: { finding: SafetyFinding }) {
   if (finding.coach_notes.length === 0) return null;
 
   return (
-    <div className="mt-2 rounded border border-gray-200 bg-gray-50 px-2 py-1.5 text-xs text-gray-600">
-      <div className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+    <div className="mt-2 rounded-card border border-line bg-paper-2 px-2 py-1.5 text-xs text-ink">
+      <div className="text-label font-semibold uppercase text-ink-soft">
         {t("safety.note_title")}
       </div>
       <ul className="mt-0.5 space-y-0.5">
@@ -934,7 +982,7 @@ export function CommitmentEditor({
             options={enums.scheduled_days}
             onChange={(v) => set("scheduled_days", v)}
           />
-          <p className="mt-1 text-[11px] text-gray-400">
+          <p className="mt-1 max-w-[62ch] text-[11px] text-ink-soft">
             {t("editor.required_days_hint")}
           </p>
         </div>

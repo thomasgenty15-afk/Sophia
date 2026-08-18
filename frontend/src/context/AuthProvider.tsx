@@ -3,6 +3,13 @@ import type { AuthChangeEvent, Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { isPrelaunchLockdownEnabled } from '../security/prelaunch';
 import { normalizeAccessTierValue } from '../lib/entitlements';
+import { reconcileUiLocaleWithProfile } from '../keel/i18n/reconcile';
+import {
+  chosenUiLocale,
+  forgetUiLocaleDecision,
+  setUiLocaleAndReload,
+  uiLocaleDecisionOwner,
+} from '../keel/i18n/runtime';
 import {
   AuthContext,
   type AccessTier,
@@ -19,6 +26,15 @@ type ProfileAccessRow = {
   access_tier: string | null;
   account_status: string | null;
   purge_at: string | null;
+  /**
+   * La langue DÉCLARÉE du compte — celle que l'agent parle.
+   *
+   * Elle voyage dans ce `select` plutôt que dans une lecture à elle: la requête
+   * existait déjà, sur la même ligne, à chaque événement d'auth. Un mot de plus
+   * dans la liste de colonnes coûte zéro aller-retour, là où un second `select`
+   * en coûterait un à chaque connexion.
+   */
+  locale: string | null;
 };
 
 type SubscriptionRow = {
@@ -54,6 +70,37 @@ function isLikelyNetworkError(err: unknown) {
 // profile said 'student' arrived in the app as 'none' — MEGA_REVIEW B6, on the
 // client side.
 const normalizeAccessTier = normalizeAccessTierValue;
+
+/**
+ * LA LANGUE DU COMPTE REPREND LA MAIN SUR CELLE DU NAVIGATEUR.
+ *
+ * ── POURQUOI ICI ET PAS DANS `initUiLocale` ───────────────────────────────
+ * `initUiLocale` tourne AVANT le premier rendu, et la session met deux
+ * allers-retours à se résoudre: l'attendre donnerait une vitrine blanche au
+ * visiteur anonyme, c'est-à-dire à l'acheteur. La langue du compte n'est donc
+ * connaissable qu'ici, une fois la ligne `profiles` lue — et elle l'est dans la
+ * requête qui existait déjà.
+ *
+ * ── POURQUOI UN RECHARGEMENT ──────────────────────────────────────────────
+ * `t()` lit une variable de module, et plusieurs constantes de module
+ * l'appellent à l'IMPORT (données structurées SEO, table des refus
+ * d'invitation). Les repeindre à chaud les laisserait figées à la langue du
+ * premier chargement. Le rechargement rend la bascule totale et sans cas
+ * particulier — au prix d'un seul, gardé pour qu'il ne se répète jamais.
+ */
+function adoptProfileLocale(accountId: string, profileLocale: string | null): void {
+  const decision = reconcileUiLocaleWithProfile({
+    profileLocale,
+    chosen: chosenUiLocale(),
+    decisionOwner: uiLocaleDecisionOwner(),
+    accountId,
+  });
+  if (decision.kind === "keep") return;
+  // `setUiLocaleAndReload` pose le garde AVANT de recharger, sans quoi la page
+  // qui revient reprendrait exactement la même décision. Il est posé au nom de
+  // CE compte: c'est lui qui vient de décider, et lui seul que ça engage.
+  setUiLocaleAndReload(decision.locale, accountId);
+}
 
 function normalizeSubscription(
   row: SubscriptionRow | null,
@@ -154,7 +201,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Fetch profile for trial_end + access_tier (DB computed) + deletion state
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('trial_end,access_tier,account_status,purge_at')
+        .select('trial_end,access_tier,account_status,purge_at,locale')
         .eq('id', u.id)
         .single();
 
@@ -174,6 +221,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         profile?.account_status === "deletion_pending" ? "deletion_pending" : "active",
       );
       setPurgeAt(profile?.purge_at ?? null);
+      adoptProfileLocale(u.id, profile?.locale ?? null);
 
       // Fetch subscription (DB mirror); we attach `effective_tier` from profiles.access_tier
       const { data: subData } = await supabase
@@ -246,6 +294,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
         setSession(nextSession);
         const nextUser = nextSession?.user ?? null;
+
+        // LA DÉCISION DE LANGUE DE CET ONGLET MEURT AVEC LA SESSION QUI L'A
+        // PRISE. `SIGNED_OUT` est le seul point qui couvre les DEUX sorties —
+        // `signOut()` et `clearLocalSession()`, qui appelle
+        // `signOut({ scope: 'local' })` — donc le seul endroit où l'écrire une
+        // fois. Synchrone, et c'est obligatoire ici: ce rappel tourne sous le
+        // verrou d'auth et ne doit jamais attendre (voir la note ci-dessus).
+        if (eventName === "SIGNED_OUT") forgetUiLocaleDecision();
 
         if (eventName === "TOKEN_REFRESHED") {
           setUser((currentUser) =>

@@ -40,6 +40,21 @@ export const SETUP_MISS_KEYS: Record<FunnelMissId, MessageKey> = {
   member_goal: "setup.missing.member_goal",
   member_allergies: "setup.missing.member_allergies",
 
+  // ── DEUX PHRASES POUR DES MOTIFS QUI NE SORTENT JAMAIS (L0, 2026-08-18) ──
+  // Même situation que `member_eating_rhythm` plus bas, et pour une raison
+  // écrite ailleurs: les deux questions d'activité sont `wrong` — donc POSÉES
+  // dans l'entonnoir — mais `canGenerateMisses` ne les émet PAS, parce que
+  // `null` est une réponse légitime que la colonne accepte exprès. Voir la note
+  // à l'endroit exact où elle ne les émet pas (`api/onboarding.ts`).
+  //
+  // Le `Record` complet PAR TYPE les réclame quand même, et c'est bien ce qu'on
+  // veut: c'est la seule garde qui empêche une question d'entrer au catalogue
+  // sans ses mots. Le jour où l'activité deviendrait exigible — elle ne le
+  // deviendra pas sans que quelqu'un retire d'abord le refus du cinquième
+  // jeton —, la phrase est déjà écrite et traduite.
+  own_activity_level: "setup.activity.missing_own",
+  member_activity_level: "setup.activity.missing_member",
+
   eating_rhythm: "setup.missing.eating_rhythm",
   cook_days: "setup.missing.cook_days",
   cooking_time_min: "setup.missing.cooking_time_min",

@@ -25,6 +25,22 @@ import {
 } from "./onboarding";
 import { SETUP_MISS_KEYS } from "../copy/setupMisses";
 import { en } from "../i18n/en";
+// ── LES TROIS MODULES DU MOTEUR QUE CE FICHIER LIT POUR DE VRAI ───────────
+// Pas de copie de constante, pas de nombre recopié: ce sont les MÊMES objets
+// que `generate-meal-v1` et `generate-household-meal-v1` indexent. Une table
+// recopiée ici resterait verte le jour où le moteur change la sienne — et
+// c'est exactement le genre de divergence que ce fichier existe pour attraper
+// (cf. le lien `energy_target.ts` ↔ `weekInFood.ts`, écrit contre ça).
+import {
+  ACTIVITY_LEVELS,
+  type ActivityLevel,
+} from "../../../../supabase/functions/_shared/keel/tokens.ts";
+import {
+  ACTIVITY_FACTOR,
+  ACTIVITY_FACTORS,
+  estimatedMaintenanceKcal,
+} from "../../../../supabase/functions/_shared/keel/meal_envelope.ts";
+import { maintenanceRange } from "../../../../supabase/functions/_shared/keel/energy_target.ts";
 
 /**
  * ── CE QUE CE FICHIER GARDE, ET POURQUOI CHAQUE BLOC EXISTE ────────────────
@@ -112,6 +128,14 @@ function complete(branch: FunnelBranch): FunnelState {
       heightCm: 178,
       weightKg: 71,
       gender: "female",
+      // ⚠️ `null` DANS UN ÉTAT DÉCLARÉ COMPLET, ET C'EST L'ASSERTION LA PLUS
+      // IMPORTANTE DE CE DÉCOR. Le cran d'activité est `wrong` au catalogue —
+      // donc POSÉ dans l'entonnoir — et il ne REFUSE rien: `canGenerate` doit
+      // rendre `ok` sur cet état-ci. Mettre un cran ici masquerait exactement
+      // la régression qu'on veut voir, celle où quelqu'un « répare » le trou en
+      // ajoutant le motif à `canGenerateMisses` et rend l'activité obligatoire
+      // — ce que `tokens.ts` refuse (« personne n'est obligé de répondre »).
+      activityLevel: null,
     },
     others,
     plan: {
@@ -234,6 +258,11 @@ describe("funnelSteps", () => {
       "member_height_cm",
       "member_weight_kg",
       "member_gender",
+      // Ajouté par le lot L0 (2026-08-18). Il est `wrong`, donc RENDU par
+      // `funnelSteps` — et il ne bloque pourtant aucune composition: les deux
+      // sens de `weight` divergent ici, exprès. Voir la note de
+      // `canGenerateMisses`.
+      "member_activity_level",
       "member_goal",
       "member_allergies",
     ]);
@@ -850,5 +879,147 @@ describe("mouthsStillNeeded", () => {
     expect(mouthsStillNeeded("family", 4)).toBe(0);
     expect(mouthsStillNeeded("pair", 3)).toBe(0);
     expect(mouthsStillNeeded("solo", 0)).toBe(0);
+  });
+});
+
+// ───────────────────────────────────────────────────────────────────────────
+// L'ACTIVITÉ COLLECTÉE — LA JOINTURE ENTRE CE QU'ON DEMANDE ET CE QUI CALCULE
+//
+// ── CE QUE CE BLOC GARDE, ET QUE PERSONNE D'AUTRE NE GARDE ─────────────────
+// `meal_envelope_test.ts` et `energy_target_test.ts` prouvent déjà, côté
+// MOTEUR, que chaque cran rend un facteur et une fourchette, et que `null` rend
+// le comportement d'avant. Ils ne peuvent rien dire de l'ÉCRITURE: ils ne
+// connaissent ni le catalogue de l'entonnoir, ni la liste de tuiles.
+//
+// Or c'est précisément là qu'était le défaut du matin du 2026-08-18: colonnes
+// posées, CHECK posé, facteurs posés, tests moteur VERTS — et pas une seule
+// occurrence de `activity_level` dans `frontend/src`. Un lecteur sans écrivain
+// rend `null` à tout le monde, et `null` est le comportement d'avant: rien
+// n'était rouge. Ce bloc-ci est la seule chose qui rougirait.
+//
+// ⚠️ ET IL Y A DEUX VOCABULAIRES DANS LE DÉPÔT. `_shared/keel/activity_floor.ts`
+// porte `sedentary` / `lightly_active` / `active` / `very_active`; `tokens.ts`
+// porte `sedentary` / `on_feet` / `trains_some` / `trains_hard`, et c'est LUI
+// qui a la contrainte CHECK des deux colonnes avec lui (`20260818100000`).
+// Collecter l'autre remplirait la base de valeurs qu'elle refuse — ou, le jour
+// où la contrainte bougerait, ferait rendre `undefined` à `ACTIVITY_FACTORS`
+// sur trois valeurs sur quatre, en silence. Le test le plus bas est celui qui
+// attrape ça.
+// ───────────────────────────────────────────────────────────────────────────
+
+describe("le niveau d'activité, de la question au calcul", () => {
+  it("pose chaque cran et lit le facteur que le moteur applique", () => {
+    // La table entière, écrite en clair: un facteur changé sans intention fait
+    // rougir la ligne exacte, pas une inégalité vague.
+    expect(ACTIVITY_LEVELS.map((l) => ACTIVITY_FACTORS[l])).toEqual([
+      1.45, 1.65, 1.80, 2.00,
+    ]);
+    // ── LA MESURE QUI JUSTIFIE LE `wrong` DU CATALOGUE ────────────────────
+    // 1,45 → 2,00, soit 38 % d'enveloppe entre les deux extrêmes. C'est ce que
+    // le produit servait à tort à tout le monde, et c'est le nombre écrit dans
+    // le commentaire de `own_activity_level`: les deux ne peuvent plus diverger
+    // sans que ceci rougisse.
+    const spread = ACTIVITY_FACTORS.trains_hard / ACTIVITY_FACTORS.sedentary - 1;
+    expect(Math.round(spread * 100)).toBe(38);
+  });
+
+  it("pose chaque cran et lit la fourchette que le moteur sert", () => {
+    // 70 kg, le même corps que les tests moteur, pour que les nombres se
+    // comparent d'un fichier à l'autre sans arithmétique de tête.
+    const range = (activityLevel: ActivityLevel | null) =>
+      maintenanceRange({ weightKg: 70, weightWeekStart: null, activityLevel }).range;
+    expect(range("sedentary")).toEqual({ low: 1800, high: 2050 });
+    expect(range("on_feet")).toEqual({ low: 1950, high: 2150 });
+    expect(range("trains_some")).toEqual({ low: 2100, high: 2300 });
+    expect(range("trains_hard")).toEqual({ low: 2250, high: 2500 });
+  });
+
+  /**
+   * ⚠️ L'INVARIANT DE NON-RÉGRESSION DE TOUTE LA BASE EXISTANTE.
+   *
+   * Aucune ligne d'avant le 2026-08-18 ne porte de cran, et personne n'est
+   * obligé d'en cocher un: `null` est le cas MAJORITAIRE, pas un cas limite. Ce
+   * test dit qu'il rend le comportement d'avant au caractère près — facteur
+   * 1,5, fourchette 28-33 kcal/kg. S'il rougit, le lot a déplacé l'assiette de
+   * gens qui n'ont rien demandé.
+   */
+  it("sans réponse, rend EXACTEMENT le comportement d'avant le lot", () => {
+    expect(ACTIVITY_FACTOR).toBe(1.5);
+    // Le facteur de l'hypothèse n'est AUCUN des quatre crans: si l'un d'eux
+    // valait 1,5, « ne pas répondre » deviendrait indiscernable d'une réponse,
+    // et le jour où on voudrait mesurer combien de gens ont répondu, la donnée
+    // ne le dirait plus.
+    expect(Object.values(ACTIVITY_FACTORS)).not.toContain(ACTIVITY_FACTOR);
+
+    const body = {
+      weightKg: 70,
+      heightCm: 175,
+      ageBand: "30_44" as const,
+      gender: "male" as const,
+    };
+    const bmr = 10 * 70 + 6.25 * 175 - 5 * 37 + 5;
+    expect(estimatedMaintenanceKcal({ ...body, activityLevel: null })).toBe(
+      Math.round(bmr * 1.5),
+    );
+
+    // 28-33 kcal/kg, arrondi aux 50 — les deux constantes que `weekInFood.ts`
+    // sert au coach depuis toujours, et que ce lot ne touche pas.
+    expect(
+      maintenanceRange({ weightKg: 70, weightWeekStart: null, activityLevel: null })
+        .range,
+    ).toEqual({ low: 1950, high: 2300 });
+  });
+
+  it("collecte le vocabulaire de tokens.ts, et pas l'autre", () => {
+    // ⛔ SI CE TEST ROUGIT, NE CORRIGE PAS LA LISTE — vérifie d'abord LAQUELLE
+    // des deux la base accepte. La contrainte CHECK est l'arbitre, et elle est
+    // dans `20260818100000_three_directions_and_a_collected_activity.sql`.
+    expect([...ACTIVITY_LEVELS]).toEqual([
+      "sedentary",
+      "on_feet",
+      "trains_some",
+      "trains_hard",
+    ]);
+    // La liste que l'écran rend EST la liste que le moteur indexe: aucun cran
+    // collectable ne peut sortir `undefined` d'`ACTIVITY_FACTORS`.
+    for (const level of ACTIVITY_LEVELS) {
+      expect(typeof ACTIVITY_FACTORS[level]).toBe("number");
+    }
+    // Et il n'y a PAS de cinquième jeton. Un « je ne sais pas » collectable
+    // ferait de l'ignorance une réponse qui pèse dans un calcul d'énergie —
+    // c'est le paragraphe que `tokens.ts` a écrit contre lui-même.
+    expect(ACTIVITY_LEVELS.length).toBe(4);
+  });
+
+  it("déclare les deux questions dans l'entonnoir, sur les bonnes branches", () => {
+    const q = (id: string) => FUNNEL_QUESTIONS.find((x) => x.id === id)!;
+    expect([q("own_activity_level").weight, q("own_activity_level").step]).toEqual([
+      "wrong",
+      // ⚠️ MÊME ÉTAPE QUE TAILLE/POIDS/SEXE, et ce n'est pas de la mise en
+      // page: ce sont les autres entrées de LA MÊME ÉQUATION. Une question
+      // rangée ailleurs se lirait comme une préférence.
+      "people",
+    ]);
+    expect([...q("own_activity_level").branches]).toEqual(["solo", "pair", "family"]);
+    expect([...q("member_activity_level").branches]).toEqual(["pair", "family"]);
+    expect(q("member_activity_level").scope).toBe("each_member");
+  });
+
+  it("ne REFUSE aucune composition, sur aucune branche", () => {
+    // ⚠️ CE TEST EST LA MOITIÉ QUI SE FAIT « RÉPARER » PAR ERREUR. La règle du
+    // catalogue dit `wrong` ⇒ dans l'entonnoir; elle ne dit PAS `wrong` ⇒
+    // bloquant, et l'activité est le seul endroit où les deux divergent. Sans
+    // ce test, quelqu'un ajoute le motif à `canGenerateMisses` en croyant
+    // fermer un trou, et rend obligatoire une question dont `tokens.ts` écrit
+    // que « personne n'est obligé de répondre » — donc force un devinement
+    // dans un calcul d'énergie.
+    for (const branch of ["solo", "pair", "family"] as const) {
+      expect(misses(complete(branch), branch)).toEqual([]);
+    }
+    // Et sur un état VIERGE, il n'apparaît pas non plus parmi les motifs: rien
+    // n'est coché, et ce n'est reproché à personne.
+    const empty = misses(emptyFunnelState(), "solo");
+    expect(empty).not.toContain("own_activity_level");
+    expect(empty).not.toContain("member_activity_level");
   });
 });

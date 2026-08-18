@@ -10,6 +10,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2.87.3";
 
 import { deliverChatMessage } from "./chat/delivery.ts";
+import { isFrenchLocale } from "./keel/locale.ts";
 
 export const ACCOUNT_STATUS_ACTIVE = "active";
 export const ACCOUNT_STATUS_DELETION_PENDING = "deletion_pending";
@@ -48,16 +49,42 @@ export async function hashUserId(userId: string): Promise<string> {
   return await sha256Hex(`user:${userId}`);
 }
 
-export function formatFrenchDate(iso: string, timezone?: string | null): string {
+/**
+ * Une date, dans la langue du compte.
+ *
+ * ── LE NOM DISAIT LE PROBLÈME ─────────────────────────────────────────────
+ * Elle s'appelait `formatFrenchDate` et rendait « 20 août 2026 » à tout le
+ * monde. Ses deux appelants sont l'accusé de suppression de compte et le
+ * README de l'export RGPD — c'est-à-dire les deux surfaces qu'un utilisateur
+ * lit au moment précis où il quitte le produit, et où une date mal comprise
+ * est une date de purge mal comprise.
+ *
+ * `locale` est REQUIS. ⚠️ ET LE COMPILATEUR NE LE VÉRIFIE PAS: les deux
+ * appelants sont en `@ts-nocheck`. C'est pour ça que la fonction a été
+ * RENOMMÉE plutôt qu'élargie — un appel resté sur l'ancien nom échoue à
+ * l'import du module, bruyamment, au lieu de continuer en français.
+ *
+ * `isFrenchLocale` plutôt que le tag brut: une langue non livrée doit rendre
+ * une date anglaise, jamais une date dans une troisième langue.
+ */
+export function formatAccountDate(
+  iso: string,
+  locale: string,
+  timezone?: string | null,
+): string {
+  const tag = isFrenchLocale(locale) ? "fr-FR" : "en-GB";
   try {
-    return new Intl.DateTimeFormat("fr-FR", {
+    return new Intl.DateTimeFormat(tag, {
       day: "numeric",
       month: "long",
       year: "numeric",
+      // Le repli de fuseau reste `Europe/Paris`: c'est le fuseau du produit,
+      // pas une conséquence de la langue. Le changer déplacerait des dates de
+      // purge pour des comptes existants, ce qui n'est pas le sujet de ce lot.
       timeZone: (timezone ?? "").trim() || "Europe/Paris",
     }).format(new Date(iso));
   } catch {
-    return new Date(iso).toLocaleDateString("fr-FR");
+    return new Date(iso).toLocaleDateString(tag);
   }
 }
 

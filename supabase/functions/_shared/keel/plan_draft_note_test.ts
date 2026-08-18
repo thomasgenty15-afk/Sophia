@@ -429,6 +429,7 @@ const PROMPT_ARGS = {
   firstDayCookable: true,
   contentLocale: "en-US",
   budgetAmount: 90,
+  dietBlock: "",
   doctrineBlock: "== MARC'S METHOD ==\nSatiety before arithmetic.",
   coachNoteBlock: null,
   fixedIntakes: [],

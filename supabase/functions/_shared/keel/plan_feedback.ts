@@ -202,6 +202,75 @@ export function questionsFor(
   return axis ? [...common, axis] : common;
 }
 
+// ---------------------------------------------------------------------------
+// LA RELANCE DE `portions` — « POUR QUI ? »
+// ---------------------------------------------------------------------------
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * LA QUESTION QUI MANQUAIT, ET POURQUOI CE N'EST PAS UNE CINQUIÈME QUESTION.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * Elle n'est PAS dans `FEEDBACK_QUESTIONS`, et c'est délibéré: ce n'est pas une
+ * question de plus, c'est la SECONDE MOITIÉ de `portions`. `questionsFor`
+ * décide quoi poser AVANT de connaître les réponses; celle-ci ne peut se poser
+ * qu'APRÈS, et seulement si la réponse n'est pas neutre. L'ajouter au
+ * vocabulaire ferait rougir « toutes les questions sont atteignables » —
+ * exprès, et à raison: aucune dynamique ne la pose.
+ *
+ * ── POURQUOI ELLE EXISTE ──────────────────────────────────────────────────
+ * `portions` est la seule vérité terrain que le moteur n'a pas, et dans un
+ * foyer de quatre « trop grosses » ne désigne personne. C'est la raison écrite
+ * pour laquelle le questionnaire est le SEUL producteur de `portion.adjust`
+ * (nomenclature §5, ②): « une mesure a besoin d'un sujet, et la conversation ne
+ * sait pas l'attribuer ». Le questionnaire, lui, pose la question avec la liste
+ * du foyer sous les yeux — fermée, attribuable, pas une inférence.
+ *
+ * ── LES DEUX CONDITIONS, ET AUCUNE N'EST OPTIONNELLE ──────────────────────
+ *  1. **La réponse n'est pas neutre.** « Ce qu'il fallait » (ou une question
+ *     retirée par le plancher TCA) ne produit aucun ajustement: demander « pour
+ *     qui ? » attribuerait quelque chose qui n'a pas été dit. Le verdict vient
+ *     d'`effectOf`, la seule table de décision — pas d'une seconde lecture de
+ *     `portions` ici.
+ *  2. ⚠️ **Il y a plus d'une bouche.** UN SOLO N'A PAS DE FOYER
+ *     (`SetupPage.tsx`: « le solo ne crée pas de foyer »): il n'a AUCUNE ligne
+ *     `household_members`, donc aucun `member:<uuid>` n'existe pour lui, et la
+ *     seule valeur possible est `household` — « tout le monde à table », c'est-
+ *     à-dire lui. Lui poser la question, ce serait lui présenter un choix à une
+ *     seule issue. La réponse est donc `household` SANS la demander, et
+ *     l'ajustement lui est attribué exactement comme à un foyer.
+ *
+ * OPTION ÉCARTÉE: poser quand même la question au solo, « pour la symétrie ».
+ * Refusée — « au-delà de quatre gestes c'est un formulaire », et un formulaire
+ * gagné à la fin d'un plan est la meilleure façon de ne plus jamais recevoir de
+ * retour.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function portionSubjectIsAsked(input: {
+  /** La réponse à `portions`, telle qu'elle vient d'être cochée. */
+  portions: string | null;
+  /** Le nombre de bouches à table, le compte lui-même compris. */
+  mouths: number;
+}): boolean {
+  if (effectOf({ portions: input.portions }).portionDirection === null) return false;
+  return Number(input.mouths) > 1;
+}
+
+/**
+ * Le libellé de la relance, dans les deux langues — au même endroit que les
+ * autres, pour la même raison: une seconde table de questions à l'écran
+ * divergerait au premier mot changé.
+ *
+ * ⛔ IL NE NOMME PERSONNE. Les prénoms viennent de la liste du foyer, à
+ * l'affichage; une question qui porterait un prénom serait fausse au premier
+ * renommage.
+ */
+export const PORTION_SUBJECT_LABEL = {
+  en: "For whom?",
+  fr: "Pour qui ?",
+} as const;
+
 /**
  * Le libellé d'une question, dans les deux langues.
  *
@@ -265,6 +334,10 @@ export const OPTION_LABELS: Record<string, { en: string; fr: string }> = {
   right: { en: "About right", fr: "Ce qu'il fallait" },
   not_enough: { en: "Not enough", fr: "Pas assez" },
   none: { en: "None of them", fr: "Aucun" },
+  // LE DÉFAUT DE L'AXE 3 — « tout le monde à table ». C'est une RÉPONSE, pas
+  // une absence de réponse: sans elle, la seule façon de dire « ça vaut pour
+  // nous tous » serait de ne rien cocher, et un silence ne s'archive pas.
+  everyone: { en: "Everyone", fr: "Tout le monde" },
   often: { en: "Often", fr: "Souvent" },
   sometimes: { en: "Sometimes", fr: "Parfois" },
   mostly: { en: "Mostly", fr: "Plutôt" },

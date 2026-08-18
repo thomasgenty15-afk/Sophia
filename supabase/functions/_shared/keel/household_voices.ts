@@ -107,8 +107,19 @@ export interface MemberLineCount {
   used: number;
   /** LIGNES retenues par la garde de non-divulgation. Pas des motifs. */
   withheld: number;
-  /** LIGNES tombées au plafond. */
+  /** LIGNES tombées parce que le budget du membre était épuisé. */
   over_cap: number;
+  /**
+   * LIGNES sautées parce qu'elles ne tiennent pas SEULES sous le plafond.
+   *
+   * ⚠️ DISJOINT DE `over_cap`, et ce n'est pas de la comptabilité fine: les
+   * deux nombres accusent des choses différentes. Un `over_cap` qui monte dit
+   * que le plafond est peut-être trop bas pour ce foyer; un `too_long` qui
+   * monte dit qu'un PRODUCTEUR écrit des lignes impubliables. Les additionner
+   * rendrait les deux illisibles — c'est la cicatrice `withheld`/`over_cap` de
+   * ce fichier, en plus discret.
+   */
+  too_long: number;
 }
 
 export interface VoiceLineCounts {
@@ -118,6 +129,8 @@ export interface VoiceLineCounts {
   linesUsed: number;
   linesWithheld: number;
   linesOverCap: number;
+  /** Toutes bouches confondues: les lignes impubliables à elles seules. */
+  linesTooLong: number;
   /**
    * Le même détail, par bouche. Il porte les membres dont TOUT est tombé —
    * `heard` ne les porte pas, et c'est précisément le cas qu'on veut pouvoir
@@ -597,23 +610,63 @@ export function buildHouseholdVoices(
     // cette personne » est la seule règle qui se raconte, et c'est la même que
     // celle de `MAX_PROMPT_PREFERENCES`, qui fait un `.slice(0, 20)`.
     //
-    // CE QUE ÇA COÛTE, ET POURQUOI C'EST ACCEPTÉ. Une ligne qui dépasse le
-    // plafond À ELLE SEULE fait taire tout ce qui la suit. Mesuré sur le
-    // corpus local: la plus longue préférence réelle fait 120 caractères et le
-    // plus long texte de `memory_items` 126, contre ~598 caractères pour
-    // saturer 150 tokens à elle seule — le cas n'existe pas dans les données.
-    // S'il apparaissait, il est TRACÉ (`voice_over_cap:<membre>:<n>` porte
-    // alors toutes les lignes restantes), et le retour arrière est un mot.
+    // ⚠️ UNE LIGNE QUI NE TIENT PAS *SEULE* EST SAUTÉE, PAS UN POINT D'ARRÊT —
+    // ET C'EST UNE RÉGRESSION QUI A ÉTÉ MESURÉE. Le commentaire ci-dessus
+    // acceptait qu'une ligne trop longue fasse taire tout ce qui la suit, sur
+    // un argument de données: « la plus longue préférence réelle fait 120
+    // caractères et le plus long texte de `memory_items` 126, contre ~598 pour
+    // saturer 150 tokens à elle seule — le cas n'existe pas dans les données ».
+    //
+    // Cet argument portait sur des PRÉFÉRENCES PLATES. Il ne couvre plus rien
+    // depuis que le lot 1C place EN TÊTE de cette liste les `food.*`/`method.*`
+    // retenus, dont le `text` n'a AUCUNE longueur maximale (contrat de phase 0,
+    // §4: « aucune longueur maximale sur `text` », et le socle accepte 600
+    // caractères sans broncher). Mesure du vérificateur, un item structuré de
+    // 600 caractères en tête, puis un item court, puis deux phrases plates:
+    //
+    //     structurés GARDÉS: 0 · plats GARDÉS: 0 · structurés TOMBÉS: 2
+    //
+    // Une seule ligne longue faisait taire LE BLOC ENTIER du titulaire — y
+    // compris ses phrases plates, qui étaient servies AVANT ce chantier.
+    //
+    // POURQUOI CE `continue`-CI NE ROUVRE PAS CELUI QU'ON A REFUSÉ. L'argument
+    // du `break` est un argument d'ORDRE: une ligne plus VIEILLE ne doit pas
+    // doubler une ligne plus récente parce qu'elle est plus courte (mesuré sur
+    // un plan réel: `08-11 ✓ 08-10 ✓ … 08-07 ✗ 08-06 ✗ 08-05 ✓`). Cet argument
+    // n'a rien à dire d'une ligne dont le coût PROPRE dépasse le plafond: elle
+    // ne tient à AUCUNE position, donc la sauter ne prend la place de personne
+    // et ne fait doubler personne. La règle se raconte toujours en une phrase —
+    // « le modèle a vu les k premières lignes SERVABLES de cette personne » —
+    // et c'est la seule chose que cette passe exige.
+    //
+    // ⚠️ ET ELLE EST TRACÉE À PART. Les deux motifs ne se relisent pas pareil:
+    // `voice_over_cap` dit « ce titulaire a plus à dire que le budget », donc
+    // que le plafond est peut-être mal calibré; `voice_line_too_long` dit « une
+    // ligne est impubliable à elle seule », donc qu'un producteur écrit trop
+    // long. Les confondre dans un seul nombre, c'est la cicatrice
+    // `withheld`/`over_cap` de ce fichier, en plus discret.
     const kept: string[] = [];
     let spent = 0;
+    let tooLong = 0;
     for (const line of survivors) {
       const cost = estimateVoiceTokens(renderLine(line));
+      if (cost > VOICE_TOKEN_CAP_PER_MEMBER) {
+        tooLong += 1;
+        continue;
+      }
       if (spent + cost > VOICE_TOKEN_CAP_PER_MEMBER) break;
       spent += cost;
       kept.push(line);
     }
-    const overCap = survivors.length - kept.length;
+    // LES DEUX COMPTES SONT DISJOINTS, et `overCap` se dérive de ce qui reste:
+    // tout ce qui n'est ni gardé ni trop long est tombé par la queue.
+    const overCap = survivors.length - kept.length - tooLong;
 
+    if (tooLong > 0) {
+      // AVANT `voice_over_cap`, parce que c'est la ligne trop longue qui
+      // explique le reste quand les deux sont là.
+      issues.push(`voice_line_too_long:${memberId}:${tooLong}`);
+    }
     if (overCap > 0) {
       // TRACÉ AVEC SON COMPTE: « il en manque » et « il en manque sept » ne se
       // relisent pas pareil, et c'est le second qui dit qu'un plafond est mal
@@ -630,6 +683,7 @@ export function buildHouseholdVoices(
         used: kept.length,
         withheld: withheldLines,
         over_cap: overCap,
+        too_long: tooLong,
       });
     }
     if (kept.length > 0) {
@@ -646,6 +700,7 @@ export function buildHouseholdVoices(
     linesUsed: perMember.reduce((n, m) => n + m.used, 0),
     linesWithheld: perMember.reduce((n, m) => n + m.withheld, 0),
     linesOverCap: perMember.reduce((n, m) => n + m.over_cap, 0),
+    linesTooLong: perMember.reduce((n, m) => n + m.too_long, 0),
     perMember,
   };
 

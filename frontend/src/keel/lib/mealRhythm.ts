@@ -52,9 +52,12 @@
  * ORDINALE : `portion_band`, dont le jeton EST la barre d'erreur.
  *
  * PURE MODULE : aucun I/O, aucune horloge propre (l'appelant passe les dates et
- * le fuseau), aucun aléatoire.
+ * le fuseau), aucun aléatoire. `momentLabel` / `momentInSentence` lisent la
+ * langue courante, ce qui est la seule dépendance de ce fichier — et elle est
+ * hors de `aggregateRhythm`, qui reste calculable sans rendu.
  */
 
+import { type MessageKey, t } from "../i18n/t";
 import {
   FRUIT_GROUPS,
   PROTEIN_GROUPS,
@@ -74,13 +77,31 @@ export const MOMENTS = [
 ] as const;
 export type Moment = (typeof MOMENTS)[number];
 
-export const MOMENT_LABELS: Readonly<Record<Moment, string>> = {
-  morning: "Morning",
-  midday: "Midday",
-  afternoon: "Afternoon",
-  evening: "Evening",
-  night: "Night",
-};
+/**
+ * Le mot d'un moment — en-tête de colonne, ligne de la vue mensuelle.
+ *
+ * ⚠️ UNE FONCTION, ET JAMAIS UN `Record` CONSTRUIT AU NIVEAU MODULE. C'est ce
+ * qu'était `MOMENT_LABELS` jusqu'au lot 6, et un `Record` d'appels à `t()` se
+ * fige à la langue du PREMIER chargement — or changer de langue recharge la
+ * page précisément pour ces constantes-là (`i18n-lint.mjs`, règle
+ * `MODULE_SCOPE_T`). Résolu à l'appel, il suit la page.
+ */
+export function momentLabel(moment: Moment): string {
+  return t(`moment.${moment}` as MessageKey);
+}
+
+/**
+ * Le même moment DANS une phrase: « tombe le matin ».
+ *
+ * ⚠️ ELLE EXISTE PARCE QUE `.toLowerCase()` NE TRADUIT PAS. L'écran de
+ * progression composait « lands in the ${MOMENT_LABELS[m].toLowerCase()} »,
+ * ce qui marche en anglais et casse en français — « tombe dans le matin »
+ * n'est pas une phrase, et l'article dépend du genre du moment. La forme
+ * in-sentence est ÉCRITE dans le seed, jamais dérivée d'une casse.
+ */
+export function momentInSentence(moment: Moment): string {
+  return t(`moment.in.${moment}` as MessageKey);
+}
 
 /**
  * Les bornes, en heures locales. `night` enjambe minuit — c'est la seule bande
@@ -147,7 +168,15 @@ export function hourInZone(iso: string, timeZone: string): number | null {
   const at = new Date(iso);
   if (Number.isNaN(at.getTime())) return null;
   try {
-    const formatted = new Intl.DateTimeFormat("en-GB", {
+    // ⚠️ `en-CA` ET PAS `en-GB`, ET LE CHANGEMENT EST DOCUMENTAIRE AUTANT QUE
+    // TECHNIQUE (le rendu est identique : « 08 »). Ce résultat n'est JAMAIS lu
+    // par un humain — il est immédiatement transformé en nombre et sert de clé
+    // de bande. Règle mécanique du dépôt : si le résultat est comparé, stocké
+    // ou sert de clé, ce n'est pas un format d'affichage, et il ne doit pas
+    // suivre la langue. `en-CA` est le tag que `i18n-lint.mjs` blanchit
+    // nommément pour cet usage; `en-GB` est une locale d'INTERFACE, et l'écrire
+    // ici disait le contraire de ce que la fonction fait.
+    const formatted = new Intl.DateTimeFormat("en-CA", {
       timeZone,
       hour: "2-digit",
       // `h23` explicitement : sans lui, minuit remonte « 24 » dans certaines

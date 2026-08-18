@@ -1,0 +1,557 @@
+{
+  "status": 200,
+  "ms": 12319,
+  "json": {
+    "ok": true,
+    "draft": true,
+    "meal": null,
+    "window": {
+      "starts_on": "2026-08-19",
+      "duration_days": 1
+    },
+    "suggested_window": {
+      "starts_on": "2026-08-18",
+      "shifted": null
+    },
+    "rationale": {
+      "lines": [
+        "This plan covers Wednesday 2026-08-19.",
+        "Quantities are made for 4 people."
+      ],
+      "refusal": null
+    },
+    "request_report": {
+      "lines": [],
+      "refusal": null
+    },
+    "names": {
+      "dishes": 1,
+      "declared": 1,
+      "kept": 1,
+      "refused": 0
+    },
+    "household": {
+      "id": "4123e479-f62a-4a3c-912e-5c7cb5c1f15a",
+      "member_count": 4,
+      "dish_owners": {
+        "asked": 0,
+        "declared": 0,
+        "attributed": 0,
+        "refused": 0
+      },
+      "kitchen": {
+        "declared": null,
+        "missing": []
+      },
+      "eating_out": {
+        "mouths": 0,
+        "cells": 0
+      },
+      "boxes": {
+        "preparations": 3,
+        "with_boxes": 3,
+        "boxes": 3,
+        "refused": 0,
+        "capped": 0,
+        "sum_checked": 2,
+        "sum_over": 0,
+        "sum_unverifiable": 1,
+        "mouth_slots": 12,
+        "mouths_unboxed": 0,
+        "mouths_double": 0,
+        "mouths": 4
+      },
+      "box_uses": {
+        "uses": 3,
+        "cited": 3,
+        "resolved": 3,
+        "refused": 0
+      },
+      "unquantified_dish_ingredients": {
+        "ingredients": 2,
+        "unquantified": 0
+      },
+      "vague_portions": {
+        "notes": 16,
+        "vague": 0,
+        "quantified": 16,
+        "box_ids": 0
+      },
+      "shares": {
+        "shares": 12,
+        "unknown": 0
+      },
+      "box_sizing": {
+        "boxes": 3,
+        "sized": 0,
+        "unchanged": 0,
+        "shared_mixed": 3,
+        "capped_by_pot": 0,
+        "unverifiable": 0,
+        "mouths": {
+          "sized": 1,
+          "restriction_floor": 2,
+          "minor": 0,
+          "doctrine_no_counting": 0,
+          "age_unknown": 0,
+          "no_direction": 1,
+          "no_pace": 0,
+          "no_body": 0,
+          "implausible_factor": 0
+        }
+      }
+    },
+    "dishes": [
+      {
+        "name": "Lemon chicken trays",
+        "title": "Roast chicken, herbs, courgettes, peppers, onions, rice, yoghurt and lemon",
+        "slot": "dinner",
+        "day": "wed",
+        "ingredients": [
+          {
+            "term": "lemon",
+            "quantity": "1 lemon",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 60
+          },
+          {
+            "term": "Greek yoghurt",
+            "quantity": "4 tbsp",
+            "in_pantry": false,
+            "amount": 4,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 60
+          }
+        ],
+        "method": "Reheat the chicken, rice and vegetables in portions. Spoon over the yoghurt and squeeze over the lemon at the table.",
+        "why": "It gives the whole family one easy dinner with a protein anchor and enough cooked vegetables for a midweek evening.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_roast_chicken",
+            "servings": 4,
+            "box_id": "box_prep_roast_chicken_family"
+          },
+          {
+            "preparation_id": "prep_herb_rice",
+            "servings": 4,
+            "box_id": "box_prep_herb_rice_family"
+          },
+          {
+            "preparation_id": "prep_roasted_veg",
+            "servings": 4,
+            "box_id": "box_prep_roasted_veg_family"
+          }
+        ],
+        "member_id": null,
+        "same_day": {
+          "kind": "reheat_only",
+          "minutes": 10
+        }
+      }
+    ],
+    "preparations": [
+      {
+        "id": "prep_roast_chicken",
+        "title": "Roast chicken thighs with garlic and thyme",
+        "servings_made": 4,
+        "ingredients": [
+          {
+            "term": "chicken thighs",
+            "quantity": "900 g",
+            "in_pantry": false,
+            "amount": 900,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 900
+          },
+          {
+            "term": "garlic",
+            "quantity": "3 cloves",
+            "in_pantry": false,
+            "amount": 3,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 15
+          },
+          {
+            "term": "fresh thyme",
+            "quantity": "4 sprigs",
+            "in_pantry": false,
+            "amount": 4,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 4
+          },
+          {
+            "term": "olive oil",
+            "quantity": "1 tbsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 15
+          },
+          {
+            "term": "salt",
+            "quantity": "1 tsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 5
+          },
+          {
+            "term": "black pepper",
+            "quantity": "1/2 tsp",
+            "in_pantry": false,
+            "amount": 0.5,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 2.5
+          }
+        ],
+        "method": "Heat the oven. Toss the chicken with garlic, thyme, oil, salt and pepper, then roast until cooked through and browned. Rest briefly, then portion into labelled boxes.",
+        "active_minutes": 15,
+        "total_minutes": 40,
+        "cook_on": "wed",
+        "boxes": [
+          {
+            "id": "box_prep_roast_chicken_family",
+            "member_ids": [
+              "30730edf-846c-4ea4-901d-39c9caaf7fee",
+              "e62e2bbd-b675-4fe2-be7d-9dd98510ee98",
+              "8183690c-96c2-4ded-a818-f1edc36862c0",
+              "e3d77550-6f51-411e-9d0c-8bd36c3d07a2"
+            ],
+            "grams": 560
+          }
+        ]
+      },
+      {
+        "id": "prep_herb_rice",
+        "title": "Herb rice",
+        "servings_made": 4,
+        "ingredients": [
+          {
+            "term": "basmati rice",
+            "quantity": "280 g",
+            "in_pantry": false,
+            "amount": 280,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 280
+          },
+          {
+            "term": "water",
+            "quantity": "560 ml",
+            "in_pantry": false,
+            "amount": 560,
+            "unit": "ml",
+            "state": "raw",
+            "grams_raw": 560
+          },
+          {
+            "term": "salt",
+            "quantity": "1 tsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 5
+          },
+          {
+            "term": "parsley",
+            "quantity": "a small bunch",
+            "in_pantry": false,
+            "amount": null,
+            "unit": null,
+            "state": "raw",
+            "grams_raw": null
+          }
+        ],
+        "method": "Rinse the rice, then cook it with water and salt until tender. Stir through chopped parsley, fluff, and box it up while hot.",
+        "active_minutes": 10,
+        "total_minutes": 25,
+        "cook_on": "wed",
+        "boxes": [
+          {
+            "id": "box_prep_herb_rice_family",
+            "member_ids": [
+              "30730edf-846c-4ea4-901d-39c9caaf7fee",
+              "e62e2bbd-b675-4fe2-be7d-9dd98510ee98",
+              "8183690c-96c2-4ded-a818-f1edc36862c0",
+              "e3d77550-6f51-411e-9d0c-8bd36c3d07a2"
+            ],
+            "grams": 800
+          }
+        ]
+      },
+      {
+        "id": "prep_roasted_veg",
+        "title": "Roasted courgettes, peppers and onions",
+        "servings_made": 4,
+        "ingredients": [
+          {
+            "term": "courgettes",
+            "quantity": "3 medium",
+            "in_pantry": false,
+            "amount": 3,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 600
+          },
+          {
+            "term": "red peppers",
+            "quantity": "3",
+            "in_pantry": false,
+            "amount": 3,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 450
+          },
+          {
+            "term": "red onions",
+            "quantity": "2",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 220
+          },
+          {
+            "term": "olive oil",
+            "quantity": "2 tbsp",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 30
+          },
+          {
+            "term": "salt",
+            "quantity": "1 tsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 5
+          },
+          {
+            "term": "black pepper",
+            "quantity": "1/2 tsp",
+            "in_pantry": false,
+            "amount": 0.5,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 2.5
+          }
+        ],
+        "method": "Cut the vegetables, toss with oil, salt and pepper, then roast until tender and lightly charred. Cool enough to box alongside the other preparations.",
+        "active_minutes": 15,
+        "total_minutes": 35,
+        "cook_on": "wed",
+        "boxes": [
+          {
+            "id": "box_prep_roasted_veg_family",
+            "member_ids": [
+              "30730edf-846c-4ea4-901d-39c9caaf7fee",
+              "e62e2bbd-b675-4fe2-be7d-9dd98510ee98",
+              "8183690c-96c2-4ded-a818-f1edc36862c0",
+              "e3d77550-6f51-411e-9d0c-8bd36c3d07a2"
+            ],
+            "grams": 480
+          }
+        ]
+      }
+    ],
+    "cooking_sessions": [
+      {
+        "day": "wed",
+        "preparation_ids": [
+          "prep_roast_chicken",
+          "prep_herb_rice",
+          "prep_roasted_veg"
+        ],
+        "run_through": "Heat the oven and start the rice. Get the chicken seasoned and into the oven, then chop the courgettes, peppers and onions while the chicken roasts. Put the vegetables in the oven on a second tray, finish the rice with parsley, rest the chicken, then portion everything into the four named boxes.",
+        "total_minutes": 50
+      }
+    ],
+    "shopping_list": [
+      {
+        "term": "chicken thighs",
+        "quantity": "900 g",
+        "aisle": "protein"
+      },
+      {
+        "term": "basmati rice",
+        "quantity": "280 g",
+        "aisle": "grains"
+      },
+      {
+        "term": "courgettes",
+        "quantity": "3 medium",
+        "aisle": "produce"
+      },
+      {
+        "term": "red peppers",
+        "quantity": "3",
+        "aisle": "produce"
+      },
+      {
+        "term": "red onions",
+        "quantity": "2",
+        "aisle": "produce"
+      },
+      {
+        "term": "garlic",
+        "quantity": "3 cloves",
+        "aisle": "produce"
+      },
+      {
+        "term": "fresh thyme",
+        "quantity": "4 sprigs",
+        "aisle": "produce"
+      },
+      {
+        "term": "parsley",
+        "quantity": "a small bunch",
+        "aisle": "produce"
+      },
+      {
+        "term": "Greek yoghurt",
+        "quantity": "4 tbsp",
+        "aisle": "dairy"
+      },
+      {
+        "term": "lemon",
+        "quantity": "1",
+        "aisle": "produce"
+      },
+      {
+        "term": "olive oil",
+        "quantity": "3 tbsp",
+        "aisle": "pantry"
+      },
+      {
+        "term": "salt",
+        "quantity": "1 tsp",
+        "aisle": "pantry"
+      },
+      {
+        "term": "black pepper",
+        "quantity": "1 tsp",
+        "aisle": "pantry"
+      }
+    ],
+    "member_portions": [
+      {
+        "member_id": "30730edf-846c-4ea4-901d-39c9caaf7fee",
+        "display_name": "Paul",
+        "portion_note": "150 g of roast chicken, 120 g of vegetables, and 60 g of rice, with the lemon and yoghurt spooned over at the table.",
+        "preparation_shares": [
+          {
+            "preparation_id": "prep_roast_chicken",
+            "note": "take 150 g from the chicken box"
+          },
+          {
+            "preparation_id": "prep_herb_rice",
+            "note": "take 60 g from the rice box"
+          },
+          {
+            "preparation_id": "prep_roasted_veg",
+            "note": "take 120 g from the vegetables box"
+          }
+        ]
+      },
+      {
+        "member_id": "e62e2bbd-b675-4fe2-be7d-9dd98510ee98",
+        "display_name": "Lea",
+        "portion_note": "140 g of roast chicken, 120 g of vegetables, and 70 g of rice, with the lemon and yoghurt spooned over at the table.",
+        "preparation_shares": [
+          {
+            "preparation_id": "prep_roast_chicken",
+            "note": "take 140 g from the chicken box"
+          },
+          {
+            "preparation_id": "prep_herb_rice",
+            "note": "take 70 g from the rice box"
+          },
+          {
+            "preparation_id": "prep_roasted_veg",
+            "note": "take 120 g from the vegetables box"
+          }
+        ]
+      },
+      {
+        "member_id": "8183690c-96c2-4ded-a818-f1edc36862c0",
+        "display_name": "Tom",
+        "portion_note": "140 g of roast chicken, 120 g of vegetables, and 70 g of rice, with the lemon and yoghurt spooned over at the table.",
+        "preparation_shares": [
+          {
+            "preparation_id": "prep_roast_chicken",
+            "note": "take 140 g from the chicken box"
+          },
+          {
+            "preparation_id": "prep_herb_rice",
+            "note": "take 70 g from the rice box"
+          },
+          {
+            "preparation_id": "prep_roasted_veg",
+            "note": "take 120 g from the vegetables box"
+          }
+        ]
+      },
+      {
+        "member_id": "e3d77550-6f51-411e-9d0c-8bd36c3d07a2",
+        "display_name": "Nina",
+        "portion_note": "130 g of roast chicken, 100 g of vegetables, and 90 g of rice, with the lemon and yoghurt spooned over at the table.",
+        "preparation_shares": [
+          {
+            "preparation_id": "prep_roast_chicken",
+            "note": "take 130 g from the chicken box"
+          },
+          {
+            "preparation_id": "prep_herb_rice",
+            "note": "take 90 g from the rice box"
+          },
+          {
+            "preparation_id": "prep_roasted_veg",
+            "note": "take 100 g from the vegetables box"
+          }
+        ]
+      }
+    ],
+    "member_deltas": [
+      {
+        "member_id": "e62e2bbd-b675-4fe2-be7d-9dd98510ee98",
+        "food_ref": "white_rice",
+        "grams": 60,
+        "moment": "plating",
+        "channel": "more_of_the_same"
+      },
+      {
+        "member_id": "8183690c-96c2-4ded-a818-f1edc36862c0",
+        "food_ref": "white_rice",
+        "grams": 180,
+        "moment": "plating",
+        "channel": "more_of_the_same"
+      }
+    ],
+    "merged_members": [],
+    "issues": [
+      "household_mouths_without_envelope:1",
+      "preparations[prep_roast_chicken].boxes[box_prep_roast_chicken_family]: shared by mouths whose targets differ, grams left as written",
+      "preparations[prep_herb_rice].boxes[box_prep_herb_rice_family]: shared by mouths whose targets differ, grams left as written",
+      "preparations[prep_roasted_veg].boxes[box_prep_roasted_veg_family]: shared by mouths whose targets differ, grams left as written",
+      "empty_slots: wed/breakfast, wed/lunch"
+    ],
+    "request_id": "9f27205d-9083-451a-be56-f0123b78cdb0"
+  }
+}

@@ -12,7 +12,10 @@ import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { Field, inputClass } from "../components/ui/Field";
-import { t } from "../i18n/t";
+import { t, type MessageKey } from "../i18n/t";
+import { chosenUiLocale, signupProfileLocale } from "../i18n/runtime";
+import { type UiLocale } from "../i18n/catalog";
+import { SignupLanguageField } from "../components/SignupLanguageField";
 
 // KEEL — /join?token=... (BUILD_PLAN W6.5, rewritten as the student's front
 // door on 2026-08-03)
@@ -77,24 +80,43 @@ interface PreviewRefusal {
 }
 type Preview = PreviewOk | PreviewRefusal;
 
-/** R1 tokens from the RPC -> what a person should read. */
-const PREVIEW_REFUSALS: Record<string, string> = {
-  invalid_token:
-    "This invitation link is not valid. Check that you copied the whole link from the email, or ask your coach to send a new one.",
-  expired: t("invite.expired"),
-  revoked: "Your coach cancelled this invitation. Ask them for a new one.",
-  already_accepted:
-    "This invitation has already been used. If that was you, sign in — your space is waiting.",
-  coach_unavailable:
-    "This coach's account is not active right now, so the invitation cannot be accepted.",
+// ── LES DEUX TABLES DE REFUS ────────────────────────────────────────────────
+//
+// ⚠️ ELLES PORTAIENT LES PHRASES, ET L'UNE D'ELLES APPELAIT `t()` AU NIVEAU
+// MODULE (`expired: t("invite.expired")`). Deux défauts en un: six phrases
+// figées en anglais, et la septième figée à la langue du PREMIER chargement —
+// or changer de langue recharge la page précisément pour ces constantes-là.
+// Le lint (`MODULE_SCOPE_T`) nommait ce cas-ci en exemple.
+//
+// Elles portent maintenant des CLÉS, et la résolution passe par les deux
+// accesseurs paresseux du dessous. Aucune phrase n'a été réécrite au passage:
+// elles sont dans `en.ts` mot pour mot.
+const PREVIEW_REFUSAL_KEYS: Record<string, MessageKey> = {
+  invalid_token: "join.refusal.invalid_token",
+  expired: "invite.expired",
+  revoked: "join.refusal.revoked",
+  already_accepted: "join.refusal.already_accepted",
+  coach_unavailable: "join.refusal.coach_unavailable",
 };
 
-const ACCEPT_REFUSALS: Record<string, string> = {
-  ...PREVIEW_REFUSALS,
-  already_coached:
-    "Your account already follows another coach's program. End that relationship from your account page first — we never move you between coaches without you doing it.",
-  self_invitation: "This invitation was issued by your own coach account.",
+const ACCEPT_REFUSAL_KEYS: Record<string, MessageKey> = {
+  ...PREVIEW_REFUSAL_KEYS,
+  already_coached: "join.refusal.already_coached",
+  self_invitation: "join.refusal.self_invitation",
 };
+
+/**
+ * Le refus lu par une personne. Un jeton inconnu retombe sur `invalid_token`,
+ * comme avant: c'est le seul refus qui reste vrai quoi qu'il soit arrivé au
+ * lien, et il porte le geste (« redemande-en un »).
+ */
+function previewRefusalText(reason: string): string {
+  return t(PREVIEW_REFUSAL_KEYS[reason] ?? PREVIEW_REFUSAL_KEYS.invalid_token);
+}
+
+function acceptRefusalText(reason: string): string {
+  return t(ACCEPT_REFUSAL_KEYS[reason] ?? ACCEPT_REFUSAL_KEYS.invalid_token);
+}
 
 type Phase =
   | { kind: "loading" }
@@ -116,12 +138,14 @@ function isAlreadyRegistered(message: string): boolean {
 }
 
 function headline(coachName: string | null): string {
-  return t("invite.accept_title", { coach: coachName ?? "Your coach" });
+  return t("invite.accept_title", {
+    coach: coachName ?? t("invite.coach_fallback"),
+  });
 }
 
 /** Mid-sentence form of the coach, for every `join.*` key. Never sentence-initial. */
 function coachRef(coachName: string | null): string {
-  return coachName ?? "your coach";
+  return coachName ?? t("join.coach_fallback");
 }
 
 export default function JoinPage() {
@@ -135,6 +159,10 @@ export default function JoinPage() {
 
   // Signup fields (used only when there is no session).
   const [fullName, setFullName] = React.useState("");
+  // La langue du COMPTE, comme sur les trois autres portes. Cette page-ci n'a
+  // jamais demandé le pays — l'invitation du coach le porte — donc le champ ne
+  // remplace rien: il ajoute la seule question qui manquait.
+  const [language, setLanguage] = React.useState<UiLocale>(() => chosenUiLocale());
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
@@ -157,8 +185,7 @@ export default function JoinPage() {
       if (error) {
         setPhase({
           kind: "refused",
-          message:
-            "We could not check this invitation right now. Reload the page to try again.",
+          message: t("join.refusal.preview_unreachable"),
         });
         return;
       }
@@ -167,7 +194,7 @@ export default function JoinPage() {
         const reason = preview ? preview.reason : "invalid_token";
         setPhase({
           kind: "refused",
-          message: PREVIEW_REFUSALS[reason] ?? PREVIEW_REFUSALS.invalid_token,
+          message: previewRefusalText(reason),
           reason,
         });
         return;
@@ -194,7 +221,7 @@ export default function JoinPage() {
     if (error) {
       setPhase({
         kind: "refused",
-        message: "That did not go through. Nothing changed — reload and try again.",
+        message: t("join.refusal.accept_failed"),
       });
       return;
     }
@@ -205,7 +232,7 @@ export default function JoinPage() {
       const reason = result ? result.reason : "invalid_token";
       setPhase({
         kind: "refused",
-        message: ACCEPT_REFUSALS[reason] ?? ACCEPT_REFUSALS.invalid_token,
+        message: acceptRefusalText(reason),
       });
       return;
     }
@@ -255,9 +282,14 @@ export default function JoinPage() {
         options: {
           data: {
             full_name: fullName.trim(),
-            // R3: the three locale axes stay separate. KEEL surfaces are born
-            // in English; the coach's content carries its own content_locale.
-            locale: "en-US",
+            // R3: the three locale axes stay separate — this one is the ACCOUNT
+            // language, the one the agent answers in. The coach's content keeps
+            // its own `content_locale`, and neither decides the other.
+            //
+            // La langue vient du CHAMP du formulaire, pas du drapeau ni de la
+            // page: c'est la réponse que la personne vient de donner, et c'est
+            // elle qui décidera de ce que l'agent lui dit à chaque tour.
+            locale: signupProfileLocale(language),
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
             tz_follow_device: true,
             // The whole invitation, carried to handle_new_user().
@@ -300,11 +332,11 @@ export default function JoinPage() {
   // -------------------------------------------------------------------------
 
   if (phase.kind === "loading" || authLoading) {
-    return <Notice><p className="text-sm text-gray-500">Checking this invitation...</p></Notice>;
+    return <Notice><p className="text-sm text-gray-500">{t("join.state.checking")}</p></Notice>;
   }
 
   if (phase.kind === "accepting") {
-    return <Notice><p className="text-sm text-gray-500">Joining...</p></Notice>;
+    return <Notice><p className="text-sm text-gray-500">{t("join.state.joining")}</p></Notice>;
   }
 
   // Already used AND signed in: this is someone who joined and re-opened their
@@ -388,11 +420,17 @@ export default function JoinPage() {
   if (phase.kind === "check_email") {
     return (
       <Notice>
-        <h1 className="text-xl font-semibold text-gray-900">Confirm your email</h1>
+        <h1 className="text-xl font-semibold text-gray-900">
+          {t("join.check_email.title")}
+        </h1>
+        {/*
+          UNE clé et pas trois morceaux recollés. Le JSX composait la phrase
+          autour d'un génitif (`${coachName}'s` / « your coach's »): en français
+          le génitif devient un complément et « de + le » se contracte, donc un
+          fragment traduit isolément ne peut pas se rebrancher correctement.
+        */}
         <p className="mt-2 text-sm leading-6 text-gray-600">
-          Your account is created and you are already attached to
-          {phase.coachName ? ` ${phase.coachName}'s` : " your coach's"} program. Open
-          the confirmation email we just sent to finish signing in.
+          {t("join.check_email.body", { coach: coachRef(phase.coachName) })}
         </p>
       </Notice>
     );
@@ -494,6 +532,14 @@ export default function JoinPage() {
                       className={inputClass}
                     />
                   </Field>
+                  <SignupLanguageField
+                    id="join-language"
+                    value={language}
+                    onChange={setLanguage}
+                    labelKey="join.form.language"
+                    hintKey="join.form.language_hint"
+                    className={inputClass}
+                  />
                   <Field label={t("join.form.email")} htmlFor="join-email">
                     <input
                       id="join-email"

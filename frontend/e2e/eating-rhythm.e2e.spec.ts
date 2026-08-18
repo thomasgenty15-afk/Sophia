@@ -44,9 +44,9 @@ test("a saved eating rhythm shows up ticked on load", async ({ page }) => {
       practical_constraints: {
         ...pc,
         eating_rhythm: [
-          { slot: "breakfast", at: null },
-          { slot: "lunch", at: null },
-          { slot: "snack_pm", at: "17:00" },
+          { slot: "breakfast", size: null },
+          { slot: "lunch", size: null },
+          { slot: "snack_pm", size: "small" },
         ],
       },
     })
@@ -75,16 +75,16 @@ test("a saved eating rhythm shows up ticked on load", async ({ page }) => {
 
   await page.goto("/app/plan");
 
-  // Repliée, la carte dit ce qui est ENREGISTRÉ.
-  await expect(page.getByText("Breakfast · Lunch · Afternoon around 17:00")).toBeVisible({
+  // LA PAGE DIT CE QUI EST ENREGISTRÉ, SANS RIEN OUVRIR.
+  // Depuis le 2026-08-07 les quatre questions vivent dans une fenêtre, et la
+  // page ne garde qu'une carte de résumé — une ligne par section.
+  await expect(page.getByText("Breakfast · Lunch · Afternoon (small)")).toBeVisible({
     timeout: 15_000,
   });
 
-  // Déplié, les cases doivent porter ce même rythme — c'est CE point qui
-  // cassait, et c'est ce qu'un Save posé par-dessus écrasait.
-  // Le bouton de repli de CETTE carte: il porte l'éditeur en `aria-controls`,
-  // ce qui le distingue du « Change » de l'objectif juste au-dessus.
-  await page.locator('button[aria-controls="eating-rhythm-editor"]').click();
+  // Dans la fenêtre, les cases doivent porter ce même rythme — c'est CE point
+  // qui cassait, et c'est ce qu'un Save posé par-dessus écrasait.
+  await page.getByRole("button", { name: /^(Change|Set up)$/ }).first().click();
 
   const boxes = page.locator("#eating-rhythm-editor").getByRole("checkbox");
   await expect(boxes.nth(0)).toBeChecked(); // Breakfast

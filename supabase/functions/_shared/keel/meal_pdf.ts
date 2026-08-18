@@ -23,6 +23,7 @@
 
 import { PDFDocument, StandardFonts, rgb } from "npm:pdf-lib@1.17.1";
 import type { GeneratedDish, ShoppingAisle, ShoppingItem } from "./meal_generation.ts";
+import { type LocalePackKey, localePackKey } from "./locale.ts";
 
 /** Les intitulés de rayon, dans l'ordre où on parcourt un magasin. */
 const AISLE_ORDER: ShoppingAisle[] = [
@@ -35,19 +36,242 @@ const AISLE_ORDER: ShoppingAisle[] = [
   "other",
 ];
 
-const AISLE_LABEL: Record<ShoppingAisle, string> = {
-  produce: "Fruit & veg",
-  protein: "Meat & fish",
-  dairy: "Dairy",
-  grains: "Grains & bread",
-  frozen: "Frozen",
-  pantry: "Cupboard",
-  other: "Other",
+/**
+ * TOUT CE QUI PORTE LA LANGUE DE LA FEUILLE, dans UN objet par locale.
+ *
+ * Le fichier n'avait aucun champ de langue: `MealPdfInput` portait un prénom,
+ * des plats, une liste et une date déjà formatée — et trois phrases anglaises
+ * en dur. Un élève français recevait donc « Your shopping list » au-dessus de
+ * plats français, générés par un modèle à qui on avait dit d'écrire en
+ * français. Le document est la seule surface du produit qui SORT de l'app: on
+ * l'ouvre au magasin, on le garde.
+ */
+type MealPdfPack = {
+  aisleLabels: Record<ShoppingAisle, string>;
+  /** Le titre change avec le mode, pas avec le contenu. */
+  headline: (mode: "from_pantry" | "to_shop") => string;
+  /** L'intitulé de la liste. Même règle. */
+  listHeading: (mode: "from_pantry" | "to_shop") => string;
+  nothingToBuy: string;
+  contextPrefix: (context: string) => string;
+  /** La marque devant un ingrédient: déjà là, ou à acheter. */
+  markHave: string;
+  markBuy: string;
 };
+
+const MEAL_PDF_PACKS: Record<LocalePackKey, MealPdfPack> = {
+  en: {
+    aisleLabels: {
+      produce: "Fruit & veg",
+      protein: "Meat & fish",
+      dairy: "Dairy",
+      grains: "Grains & bread",
+      frozen: "Frozen",
+      pantry: "Cupboard",
+      other: "Other",
+    },
+    headline: (mode) =>
+      mode === "to_shop" ? "Your shopping list" : "Cooking with what you have",
+    listHeading: (mode) => (mode === "to_shop" ? "To buy" : "You still need"),
+    nothingToBuy: "Nothing to buy — you have everything.",
+    contextPrefix: (context) => `You told us: ${context}`,
+    markHave: "have",
+    markBuy: "buy",
+  },
+  fr: {
+    aisleLabels: {
+      produce: "Fruits & légumes",
+      protein: "Viande & poisson",
+      dairy: "Crèmerie",
+      grains: "Féculents & pain",
+      frozen: "Surgelés",
+      pantry: "Épicerie",
+      other: "Divers",
+    },
+    headline: (mode) =>
+      mode === "to_shop"
+        ? "Ta liste de courses"
+        : "Cuisiner avec ce que tu as",
+    listHeading: (mode) => (mode === "to_shop" ? "À acheter" : "Il te manque"),
+    nothingToBuy: "Rien à acheter — tu as déjà tout.",
+    contextPrefix: (context) => `Tu nous as dit : ${context}`,
+    markHave: "j'ai",
+    markBuy: "acheter",
+  },
+};
+
+/** R7 par délégation: une langue non livrée jette, elle ne retombe pas. */
+function mealPdfPackFor(locale: string): MealPdfPack {
+  return MEAL_PDF_PACKS[localePackKey(locale)];
+}
 
 const PAGE = { width: 595.28, height: 841.89 }; // A4 portrait, en points
 const MARGIN = 56;
 const LINE = 16;
+
+// ---------------------------------------------------------------------------
+// LA BOMBE — `StandardFonts.Helvetica` encode en WinAnsi, et pdf-lib LÈVE
+// ---------------------------------------------------------------------------
+
+/**
+ * Les caractères que WinAnsi (CP1252) sait encoder, EN CODES UNICODE.
+ *
+ * ── POURQUOI CETTE TABLE EXISTE, ET CE QU'ELLE A COÛTÉ ────────────────────
+ * `pdf-lib` n'encode pas « au mieux »: `widthOfTextAtSize` et `drawText`
+ * LÈVENT tous les deux sur un caractère hors WinAnsi. Le français passe
+ * presque entièrement (é è à ç ô « » — sont tous dans CP1252), ce qui rend le
+ * défaut d'autant plus vicieux: le document sort bien 95 fois sur 100. Mais un
+ * modèle qui écrit du français produit régulièrement U+202F (l'espace fine
+ * insécable avant `? ! ; :`) et U+2011 (le trait d'union insécable), et ni
+ * l'un ni l'autre n'existe en CP1252. Résultat: `meal-document-v1` rend un
+ * **500**, pas un PDF dégradé — l'élève ne reçoit rien du tout, et la ligne
+ * `student_meal_documents` n'est jamais écrite.
+ *
+ * ── POURQUOI PAS UNE TTF VIA FONTKIT ──────────────────────────────────────
+ * Embarquer une police Unicode réglerait le problème d'encodage et en
+ * ouvrirait trois: un binaire de ~300 ko dans le bundle edge, un
+ * `registerFontkit` de plus, et un document qui grossit d'autant. La question
+ * n'est pas « comment afficher toute langue » — deux langues sont livrées, et
+ * les deux tiennent dans CP1252. La question est « comment ne pas rendre un
+ * 500 sur une espace ».
+ */
+const WINANSI_HIGH_RANGE: ReadonlyArray<readonly [number, number]> = [
+  [0x20, 0x7e], // ASCII imprimable
+  [0xa1, 0xff], // Latin-1 supplement (0xA0 est traité comme une espace, plus bas)
+];
+
+/** Les 27 codes du bloc 0x80-0x9F de CP1252, par point de code Unicode. */
+const WINANSI_CP1252_EXTRAS: ReadonlySet<number> = new Set([
+  0x20ac, // €
+  0x201a, // ‚
+  0x0192, // ƒ
+  0x201e, // „
+  0x2026, // …
+  0x2020, // †
+  0x2021, // ‡
+  0x02c6, // ˆ
+  0x2030, // ‰
+  0x0160, // Š
+  0x2039, // ‹
+  0x0152, // Œ
+  0x017d, // Ž
+  0x2018, // '
+  0x2019, // '
+  0x201c, // "
+  0x201d, // "
+  0x2022, // •
+  0x2013, // –
+  0x2014, // —
+  0x02dc, // ˜
+  0x2122, // ™
+  0x0161, // š
+  0x203a, // ›
+  0x0153, // œ
+  0x017e, // ž
+  0x0178, // Ÿ
+]);
+
+/**
+ * Les équivalents: ce qu'on REMPLACE plutôt que de le perdre.
+ *
+ * L'ordre de préférence est « le caractère le plus proche qui existe en
+ * CP1252 », jamais « rien ». Une espace fine devient une espace; un trait
+ * d'union insécable devient un trait d'union. La feuille se lit pareil.
+ */
+// ⚠️ ÉCRITE EN ÉCHAPPEMENTS, JAMAIS EN CARACTÈRES LITTÉRAUX. La moitié de ces
+// caractères est INVISIBLE: une table écrite littéralement se relit à
+// l'aveugle, et un `git diff` qui remplace une espace fine par une espace
+// normale ne montre RIEN. L'échappement est ici la seule forme relisible.
+const WINANSI_EQUIVALENTS: ReadonlyMap<string, string> = new Map([
+  // Les espaces exotiques. U+202F est LE coupable mesure: l'espace fine
+  // insecable, que tout modele ecrivant en francais pose avant `? ! ; :`.
+  ["\u00A0", " "], // NO-BREAK SPACE — encodable, mais `wrap()` coupe dessus
+  ["\u2002", " "], // EN SPACE
+  ["\u2003", " "], // EM SPACE
+  ["\u2004", " "],
+  ["\u2005", " "],
+  ["\u2006", " "],
+  ["\u2007", " "], // FIGURE SPACE
+  ["\u2008", " "],
+  ["\u2009", " "], // THIN SPACE
+  ["\u200A", " "],
+  ["\u202F", " "], // NARROW NO-BREAK SPACE — le coupable n°1
+  ["\u205F", " "],
+  ["\u3000", " "], // IDEOGRAPHIC SPACE
+  // Les traits. U+2011 est le second coupable: « demi-ecreme » revient
+  // regulierement du modele avec un trait d'union insecable.
+  ["\u2010", "-"], // HYPHEN
+  ["\u2011", "-"], // NON-BREAKING HYPHEN — le coupable n°2
+  ["\u2012", "-"], // FIGURE DASH
+  ["\u2015", "\u2014"], // HORIZONTAL BAR -> EM DASH, qui EST en CP1252
+  ["\u2212", "-"], // MINUS SIGN
+  // Les invisibles: on les retire, ils ne portent rien sur une feuille A4.
+  ["\u00AD", ""], // SOFT HYPHEN
+  ["\u200B", ""], // ZERO WIDTH SPACE
+  ["\u200C", ""],
+  ["\u200D", ""],
+  ["\u2060", ""], // WORD JOINER
+  ["\uFEFF", ""], // BOM
+  // Les apostrophes et guillemets « typographiques » hors CP1252.
+  ["\u2032", "'"], // PRIME
+  ["\u2035", "'"], // REVERSED PRIME
+  ["\u201B", "'"], // SINGLE HIGH-REVERSED-9
+  ["\u2033", '"'], // DOUBLE PRIME
+  ["\u201F", '"'], // DOUBLE HIGH-REVERSED-9
+]);
+
+function isWinAnsiEncodable(codePoint: number): boolean {
+  for (const [lo, hi] of WINANSI_HIGH_RANGE) {
+    if (codePoint >= lo && codePoint <= hi) return true;
+  }
+  return WINANSI_CP1252_EXTRAS.has(codePoint);
+}
+
+/**
+ * Rend `text` encodable par WinAnsi. À APPELER À L'ENTRÉE DE L'ÉCRITURE, une
+ * fois, et jamais chez l'appelant.
+ *
+ * Trois passes, dans cet ordre, et l'ordre compte:
+ *   1. NFC. « é » décomposé (e + U+0301) n'est PAS encodable, alors que « é »
+ *      précomposé l'est. C'est la forme que produit macOS sur du texte collé,
+ *      et elle traverse la génération sans se voir.
+ *   2. les équivalents connus (table ci-dessus);
+ *   3. le filet: tout ce qui reste hors WinAnsi est RETIRÉ, et SIGNALÉ.
+ *
+ * Le retrait est un dernier recours assumé: un émoji dans un titre de plat vaut
+ * mieux perdu que rendu en 500. Il est journalisé pour que « la feuille a
+ * mangé un caractère » soit constatable autrement que par un humain qui
+ * compare deux PDF.
+ */
+export function toWinAnsi(text: string): string {
+  const normalized = String(text ?? "").normalize("NFC");
+  let out = "";
+  const dropped: string[] = [];
+  for (const ch of normalized) {
+    const swap = WINANSI_EQUIVALENTS.get(ch);
+    if (swap !== undefined) {
+      out += swap;
+      continue;
+    }
+    const cp = ch.codePointAt(0) ?? 0;
+    if (isWinAnsiEncodable(cp)) {
+      out += ch;
+      continue;
+    }
+    dropped.push(`U+${cp.toString(16).toUpperCase().padStart(4, "0")}`);
+  }
+  if (dropped.length > 0) {
+    console.warn(JSON.stringify({
+      tag: "keel.meal_pdf.unencodable_dropped",
+      code_points: [...new Set(dropped)].slice(0, 12),
+      detail:
+        "Helvetica encodes in WinAnsi (CP1252); these code points have no " +
+        "equivalent and were removed rather than raising and losing the whole " +
+        "document. Add an equivalent to WINANSI_EQUIVALENTS if one exists.",
+    }));
+  }
+  return out;
+}
 
 interface Cursor {
   page: ReturnType<PDFDocument["addPage"]>;
@@ -102,8 +326,23 @@ export interface MealPdfInput {
   context: string | null;
   /** `from_pantry` change le titre de la liste, pas son contenu. */
   mode: "from_pantry" | "to_shop";
-  /** Date déjà formatée par l'appelant: ce module n'a pas d'horloge. */
+  /**
+   * Date déjà formatée par l'appelant: ce module n'a pas d'horloge.
+   *
+   * L'appelant la formate DANS la même locale que celle passée juste en
+   * dessous — « 4 August 2026 » sous « Ta liste de courses » serait la même
+   * incohérence, en plus petit.
+   */
   dateLabel: string;
+  /**
+   * La langue du DOCUMENT (`resolveArtifactLocale`). REQUISE.
+   *
+   * Ce champ n'existait pas. Les plats, eux, arrivaient déjà traduits — le
+   * générateur reçoit un `contentLocale` depuis le lot précédent. Seule
+   * l'ossature de la feuille restait anglaise, ce qui donnait un document
+   * bilingue: « Your shopping list » au-dessus de « Poulet rôti au citron ».
+   */
+  locale: string;
 }
 
 /**
@@ -114,6 +353,7 @@ export interface MealPdfInput {
  * selon l'heure à laquelle tourne le test.
  */
 export async function buildMealPdf(input: MealPdfInput): Promise<Uint8Array> {
+  const pack = mealPdfPackFor(input.locale);
   const doc = await PDFDocument.create();
   const body = await doc.embedFont(StandardFonts.Helvetica);
   const bold = await doc.embedFont(StandardFonts.HelveticaBold);
@@ -130,11 +370,19 @@ export async function buildMealPdf(input: MealPdfInput): Promise<Uint8Array> {
   };
 
   const write = (
-    text: string,
+    raw: string,
     opts: { size?: number; font?: typeof body; colour?: typeof ink; gap?: number } = {},
   ) => {
     const size = opts.size ?? 11;
     const font = opts.font ?? body;
+    // ── LE SEUL POINT D'ENTRÉE DE TOUT TEXTE ────────────────────────────────
+    //
+    // Le nettoyage a lieu ICI et nulle part ailleurs, parce que `wrap()` appelle
+    // `widthOfTextAtSize`, qui LÈVE sur un caractère hors WinAnsi exactement
+    // comme `drawText`. Nettoyer au moment du dessin seulement laisserait la
+    // mesure exploser d'abord, une ligne plus haut, avec un message d'erreur
+    // qui parle de largeur et pas d'encodage.
+    const text = toWinAnsi(raw);
     for (const line of wrap(text, font, size, maxWidth)) {
       room(LINE);
       cur.page.drawText(line, {
@@ -150,10 +398,7 @@ export async function buildMealPdf(input: MealPdfInput): Promise<Uint8Array> {
   };
 
   // ── En-tête ─────────────────────────────────────────────────────────────
-  write(
-    input.mode === "to_shop" ? "Your shopping list" : "Cooking with what you have",
-    { size: 20, font: bold },
-  );
+  write(pack.headline(input.mode), { size: 20, font: bold });
   write(
     input.firstName ? `${input.firstName} · ${input.dateLabel}` : input.dateLabel,
     { size: 10, colour: faded, gap: 6 },
@@ -161,27 +406,24 @@ export async function buildMealPdf(input: MealPdfInput): Promise<Uint8Array> {
   if (input.context) {
     // Le contexte est rappelé pour que l'élève reconnaisse SA semaine sur la
     // feuille — c'est ce qui distingue ce document d'une liste générique.
-    write(`You told us: ${input.context}`, { size: 10, colour: faded, gap: 10 });
+    write(pack.contextPrefix(input.context), { size: 10, colour: faded, gap: 10 });
   }
 
   // ── La liste, groupée par rayon ─────────────────────────────────────────
   if (input.shoppingList.length > 0) {
-    write(
-      input.mode === "to_shop" ? "To buy" : "You still need",
-      { size: 14, font: bold, gap: 4 },
-    );
+    write(pack.listHeading(input.mode), { size: 14, font: bold, gap: 4 });
     for (const aisle of AISLE_ORDER) {
       const items = input.shoppingList.filter((i) => i.aisle === aisle);
       if (items.length === 0) continue;
       room(LINE * 2);
-      write(AISLE_LABEL[aisle], { size: 11, font: bold, colour: faded });
+      write(pack.aisleLabels[aisle], { size: 11, font: bold, colour: faded });
       for (const item of items) {
         write(`  ${item.quantity ? `${item.quantity}  ` : ""}${item.term}`);
       }
       cur.y -= 6;
     }
   } else if (input.mode === "from_pantry") {
-    write("Nothing to buy — you have everything.", { size: 11, gap: 10 });
+    write(pack.nothingToBuy, { size: 11, gap: 10 });
   }
 
   // ── Les plats ───────────────────────────────────────────────────────────
@@ -195,7 +437,7 @@ export async function buildMealPdf(input: MealPdfInput): Promise<Uint8Array> {
       // Ce que l'élève a déjà est marqué. C'est la seule information du
       // document qui vient d'une VÉRIFICATION et pas du modèle, et c'est celle
       // qui évite un aller-retour au magasin.
-      const mark = ing.in_pantry ? "have" : "buy";
+      const mark = ing.in_pantry ? pack.markHave : pack.markBuy;
       write(`  [${mark}] ${ing.quantity ? `${ing.quantity}  ` : ""}${ing.term}`, { size: 10 });
     }
     if (d.method) {

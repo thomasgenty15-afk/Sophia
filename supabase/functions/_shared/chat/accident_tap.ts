@@ -67,7 +67,6 @@ import {
 import { applyStripTicks } from "../keel/evening_strip_io.ts";
 import { planGroceryWavesForPlan } from "../keel/accident.ts";
 import { gatePhotoInvitation } from "../keel/photo_invitation.ts";
-import { MEAL_UNTICK_REASON } from "../keel/meal_tick.ts";
 
 /**
  * ⚠️ LE PLANCHER DE RESTRICTION N'A PLUS DE PRODUCTEUR, et c'est nommé ici.
@@ -209,11 +208,24 @@ async function handleFormAnswer(
   // arbitre), donc rejouer sur un plat déjà décoché par la bande ne fait pas de
   // seconde ligne — et ça rend le formulaire autonome quelle que soit l'entrée
   // (bande, écran, conversation).
+  //
+  // ⚠️ ET DEPUIS LE 2026-08-18, LA DÉCOCHE PORTE LE MOTIF. Les trois boutons
+  // écrivaient tous `MEAL_UNTICK_REASON` (`food_not_eaten`): la fiche posait la
+  // question, la personne répondait, et la réponse était perdue à l'écriture.
+  // Seul le fait `off_plan` en gardait une trace, et pour deux boutons sur
+  // trois — « pas eu le temps » ne laissait donc RIEN qui le distingue d'une
+  // décoche muette.
+  //
+  // ⚠️ `reply.kind` EST PASSÉ TEL QUEL, SANS TABLE DE CORRESPONDANCE. Les trois
+  // jetons du formulaire (`ordered`, `no_time`, `ate_other`) sont exactement
+  // trois des quatre `MEAL_UNTICK_REASONS`. Une table de correspondance serait
+  // une seconde liste, et deux listes finissent par diverger; ici, renommer un
+  // côté fait rougir le compilateur.
   const ticks = await applyStripTicks(admin, {
     userId: args.userId,
     mealId: plan.mealId,
     dishIndexes: [reply.dishIndex],
-    disqualified: MEAL_UNTICK_REASON,
+    disqualified: reply.kind,
     today: args.localDate,
     now: args.now,
   });

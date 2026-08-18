@@ -4,11 +4,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import SEO from "../../components/SEO";
 import { useAuth } from "../../context/AuthContext";
 import { supabase } from "../../lib/supabase";
-import {
-  NO_COUNTRY_SELECTED,
-  SIGNUP_COUNTRIES,
-  isDeclaredCountryValid,
-} from "../api/countries";
+import { declaredCountryFor } from "../api/countryFromTimezone";
 import { isAlreadyRegistered } from "../api/freeSignup";
 import {
   type HouseholdInvitationPreview,
@@ -25,6 +21,9 @@ import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { Field, inputClass } from "../components/ui/Field";
 import { t } from "../i18n/t";
+import { chosenUiLocale, signupProfileLocale } from "../i18n/runtime";
+import { type UiLocale } from "../i18n/catalog";
+import { SignupLanguageField } from "../components/SignupLanguageField";
 
 // KEEL — /join-household?token=… — RÉCLAMER SON PROFIL (lot 6, puis chantier 4).
 //
@@ -60,19 +59,23 @@ import { t } from "../i18n/t";
 // quelqu'un qui n'a qu'une invitation de foyer. Elle en porte une désormais, et
 // tout ce qui suit explique ce qu'elle ne rouvre pas.
 //
-// ── LE PAYS EST EXIGÉ, ET C'EST LA RAISON D'ÊTRE DU FORMULAIRE ────────────
+// ── LE PAYS: EXIGÉ EN BASE, PLUS DEMANDÉ À L'ÉCRAN ───────────────────────
 //
-// L'inscription générique a été retirée de `/auth` parce qu'un compte SANS PAYS
-// route vers la MAUVAISE HOTLINE DE CRISE: `profiles.country` est lu en premier
-// par le résolveur, son absence le fait retomber sur la langue, et `locale`
-// vaut `en-US` partout. Rouvrir une porte sans résoudre le pays rouvrirait ce
-// défaut — fermé par la migration `20260804180000`.
+// ⚠️ CE PARAGRAPHE EXIGEAIT UN « sélecteur de pays OBLIGATOIRE ». Il est
+// réécrit et non supprimé: une contrainte documentée survit à sa cause, et un
+// lecteur qui trouverait la déduction sous un commentaire qui l'interdit la
+// « réparerait ».
 //
-// Donc: sélecteur de pays OBLIGATOIRE, qui démarre VIDE. Pas de « US » par
-// défaut comme sur les deux autres portes — un défaut préchoisi enregistre le
-// pays de personne, et le piège nommé au chantier est exactement celui-là.
-// Et la garde n'est pas à l'écran: `handle_new_user()` REFUSE le compte sans
-// pays, `keel_household_join` refuse `country_required`.
+// Toujours vrai: `handle_new_user()` refuse le compte sans pays,
+// `keel_household_join` refuse `country_required`, et un compte sans pays route
+// vers la mauvaise ligne d'écoute (migration `20260804180000`).
+//
+// Ce qui a changé: le routage du numéro d'urgence n'est plus un sujet du
+// produit, par décision explicite. La question a donc cédé sa place à la LANGUE
+// — dont dépendent l'affichage, le chat, le plan généré et les e-mails — et le
+// pays se déduit du fuseau (`api/countryFromTimezone.ts`, qui écrit ce que ça
+// coûte). Les deux gardes de base restent armées, et leurs phrases de refus
+// restent écrites: une déduction peut rater.
 //
 // ── LE RÔLE: `household_member`, PAS `student` ────────────────────────────
 //
@@ -133,11 +136,21 @@ export default function JoinHouseholdPage(): React.ReactElement {
   const [signupOpen, setSignupOpen] = React.useState(false);
   const [fullName, setFullName] = React.useState("");
   const [password, setPassword] = React.useState("");
-  // ⚠️ VIDE, jamais "US". Voir l'en-tête: un défaut préchoisi enregistre le
-  // pays de personne, et c'est la colonne dont dépend la ligne d'écoute servie.
-  // La valeur est NOMMÉE (api/countries.ts) depuis que la même faute a été
-  // trouvée sur `/start`: trois portes, un seul état initial gardé par un test.
-  const [country, setCountry] = React.useState(NO_COUNTRY_SELECTED);
+  // ⚠️ LE SÉLECTEUR DE PAYS A DISPARU. Voir l'en-tête de
+  // `api/countryFromTimezone.ts`: la question se justifiait par le numéro
+  // d'urgence, sujet que le produit ne traite pas aujourd'hui, et elle occupait
+  // la place de la seule qui compte tous les jours — la langue. Le pays reste
+  // ÉCRIT (la RPC rend `country_required` sans lui), mais il est déduit du
+  // fuseau que ce formulaire envoyait déjà.
+  const timezone = React.useMemo(
+    () => Intl.DateTimeFormat().resolvedOptions().timeZone,
+    [],
+  );
+  const [language, setLanguage] = React.useState<UiLocale>(() => chosenUiLocale());
+  const country = React.useMemo(
+    () => declaredCountryFor(timezone, language),
+    [timezone, language],
+  );
   const [acceptedLegal, setAcceptedLegal] = React.useState(false);
   const [submitting, setSubmitting] = React.useState(false);
   const [formError, setFormError] = React.useState<string | null>(null);
@@ -228,10 +241,6 @@ export default function JoinHouseholdPage(): React.ReactElement {
       // signup refuse le compte sans pays et la réclamation refuse
       // `country_required`. Elle est là pour que la personne lise une phrase
       // plutôt qu'une erreur de base de données.
-      if (!isDeclaredCountryValid(country)) {
-        setFormError(t("household_claim.signup.error.country"));
-        return;
-      }
       const { data, error } = await supabase.auth.signUp({
         // L'ADRESSE VIENT DE L'INVITATION, pas d'un champ libre. La base
         // compare les deux (`email_mismatch`), donc une adresse choisie à la
@@ -245,7 +254,8 @@ export default function JoinHouseholdPage(): React.ReactElement {
           data: householdSignupMetadata({
             fullName: fullName || preview.firstName,
             country,
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            timezone,
+            locale: signupProfileLocale(language),
           }),
           // On revient sur CE lien: la réclamation est le geste qui reste à
           // faire, et elle a besoin d'une session. Le jeton est déjà entre les
@@ -356,7 +366,6 @@ export default function JoinHouseholdPage(): React.ReactElement {
 
   const preview = phase.preview;
   const busy = phase.kind === "claiming";
-  const mustDeclareCountry = ownCountry === null;
 
   return (
     <Frame>
@@ -400,27 +409,19 @@ export default function JoinHouseholdPage(): React.ReactElement {
           <p className="text-sm leading-6 text-gray-600">
             {t("household_claim.signed_in_as", { email: user.email ?? "" })}
           </p>
-          {/* LE PAYS MANQUANT SE DEMANDE ICI, plutôt que de laisser la base
-              rendre `country_required` sur un écran sans champ pour y répondre.
-              Un refus sans geste de réparation est une impasse. */}
-          {mustDeclareCountry && (
-            <div className="mt-4">
-              <p className="text-sm leading-6 text-gray-600">
-                {t("household_claim.country.required_lead")}
-              </p>
-              <div className="mt-3">
-                <CountryField value={country} onChange={setCountry} />
-              </div>
-            </div>
-          )}
+          {/* ⚠️ LE BLOC « déclarez votre pays » A DISPARU, ET C'EST COHÉRENT.
+              Il existait parce qu'un compte sans pays se heurtait à
+              `country_required` sur un écran sans champ pour y répondre — une
+              impasse. Le pays étant maintenant DÉDUIT, il n'y a plus rien à
+              demander: `countryToSend()` rend la déduction quand le compte n'a
+              pas déjà déclaré le sien. Le refus reste armé côté base, et sa
+              phrase (`household_claim.refused.country_required`) reste écrite:
+              une déduction peut rater, et un code de refus sans texte est pire
+              que le refus. */}
           <Button
             variant="primary"
             className="mt-3"
-            disabled={
-              busy ||
-              ownCountry === "unknown" ||
-              (mustDeclareCountry && !isDeclaredCountryValid(country))
-            }
+            disabled={busy || ownCountry === "unknown"}
             onClick={() => claim(preview, countryToSend())}
           >
             {busy ? t("household_claim.working") : t("household_claim.submit")}
@@ -464,8 +465,8 @@ export default function JoinHouseholdPage(): React.ReactElement {
                 setFullName={setFullName}
                 password={password}
                 setPassword={setPassword}
-                country={country}
-                setCountry={setCountry}
+                language={language}
+                setLanguage={setLanguage}
                 acceptedLegal={acceptedLegal}
                 setAcceptedLegal={setAcceptedLegal}
                 submitting={submitting}
@@ -501,8 +502,8 @@ interface SignupFormProps {
   setFullName: (v: string) => void;
   password: string;
   setPassword: (v: string) => void;
-  country: string;
-  setCountry: (v: string) => void;
+  language: UiLocale;
+  setLanguage: (v: UiLocale) => void;
   acceptedLegal: boolean;
   setAcceptedLegal: (v: boolean) => void;
   submitting: boolean;
@@ -569,7 +570,14 @@ function SignupForm(props: SignupFormProps): React.ReactElement {
           />
         </Field>
 
-        <CountryField value={props.country} onChange={props.setCountry} />
+        <SignupLanguageField
+          id="hh-language"
+          value={props.language}
+          onChange={props.setLanguage}
+          labelKey="household_claim.signup.language_label"
+          hintKey="household_claim.signup.language_hint"
+          className={inputClass}
+        />
 
         <label className="flex items-start gap-2 text-sm leading-6 text-gray-600">
           <input
@@ -620,42 +628,6 @@ function SignupForm(props: SignupFormProps): React.ReactElement {
   );
 }
 
-/**
- * LE PAYS — un seul composant pour les deux endroits qui le demandent
- * (l'inscription, et la réparation d'un compte qui n'en a pas).
- *
- * ⚠️ L'OPTION VIDE EST LA VALEUR INITIALE, et c'est la garde: un sélecteur
- * préchargé sur « United States » enregistre le pays de personne. La liste
- * n'est pas une validation — la forme l'est, ici, dans la base, et dans la RPC.
- */
-function CountryField(
-  { value, onChange }: { value: string; onChange: (v: string) => void },
-): React.ReactElement {
-  return (
-    <Field
-      label={t("household_claim.signup.country_label")}
-      htmlFor="hh-country"
-      hint={t("household_claim.signup.country_hint")}
-    >
-      <select
-        id="hh-country"
-        required
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className={inputClass}
-      >
-        <option value={NO_COUNTRY_SELECTED}>
-          {t("household_claim.signup.country_placeholder")}
-        </option>
-        {SIGNUP_COUNTRIES.map((c) => (
-          <option key={c.code} value={c.code}>
-            {c.label}
-          </option>
-        ))}
-      </select>
-    </Field>
-  );
-}
 
 /**
  * Le cadre. NOINDEX, et pas par précaution: toute URL réelle de cette route

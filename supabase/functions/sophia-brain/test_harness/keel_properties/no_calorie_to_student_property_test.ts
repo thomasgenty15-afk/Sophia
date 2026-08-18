@@ -696,14 +696,48 @@ Deno.test("PROPERTY: the target reaches a generator ONLY through the gate, and o
   // plus: c'est la forme la plus chère du défaut, mesurée deux fois cette
   // semaine sur ce chantier.
   const sizing = stripComments(keelSource("household_portions.ts"));
+
+  // ⛔ ET IL SE LIT SUR LE CORPS DE `mouthTargetFactor`, PAS SUR LE FICHIER.
+  //
+  // ⚠️ MESURÉ PAR L8-B, ET C'EST LA RAISON DE CE BLOC. Écrit sur le FICHIER, le
+  // cas qui passe était satisfait par n'importe quelle occurrence des deux
+  // symboles — et il y en a une SECONDE, dans la branche « pas de corps » de
+  // `memberTargetFactor`. On peut donc court-circuiter entièrement la porte sur
+  // le chemin de dimensionnement (mutation M15) sans qu'aucune des deux
+  // assertions ne bouge: rejouée telle quelle, la mutation SURVIVAIT ici.
+  //
+  // Un `includes` de fichier ne distingue pas « la porte est câblée » de « la
+  // porte existe encore quelque part dans le fichier ». Or l'accident probable
+  // n'est pas qu'on supprime le lot: c'est qu'on contourne la porte en la
+  // laissant en place. On lit donc le FRAGMENT qui décide.
+  const start = sizing.indexOf("export function mouthTargetFactor(");
   assertEquals(
-    sizing.includes("canSizeFromTarget("),
+    start > 0,
     true,
-    "le dimensionnement par la cible ne passe plus par la porte — soit le lot " +
-      "L8 a été débranché, soit quelqu'un a déplacé l'appel hors du module pur.",
+    "`mouthTargetFactor` a été renommée: la porte de dimensionnement n'a plus " +
+      "de nom connu, et ce test ne sait plus ce qu'il garde.",
+  );
+  const end = sizing.indexOf("\n}\n", start);
+  assertEquals(end > start, true, "fin de `mouthTargetFactor` introuvable");
+  const door = sizing.slice(start, end);
+  // ── LA PRÉMISSE DE LA GARDE, AVANT LA GARDE ────────────────────────────
+  // Même discipline que la garde jumelle de `target_grams_test.ts`: un
+  // extracteur cassé rendrait un fragment VIDE, et les deux `assertEquals`
+  // ci-dessous passeraient en ne regardant rien.
+  assertEquals(
+    door.includes('noSizing("no_pace")'),
+    true,
+    `le corps de mouthTargetFactor n'a pas été lu:\n${door}`,
   );
   assertEquals(
-    sizing.includes("energySafetyGates("),
+    door.includes("canSizeFromTarget("),
+    true,
+    "le dimensionnement par la cible ne passe plus par la porte — soit le lot " +
+      "L8 a été débranché, soit quelqu'un a court-circuité l'appel en laissant " +
+      "la porte en place ailleurs dans le fichier.",
+  );
+  assertEquals(
+    door.includes("energySafetyGates("),
     true,
     "la chaîne ①②③ n'est plus évaluée par bouche dans le module de portions " +
       "(clause C8): sans elle, la porte ② se referme sur le verdict du compte " +

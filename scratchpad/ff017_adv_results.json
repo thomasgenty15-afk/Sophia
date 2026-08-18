@@ -1,0 +1,558 @@
+{
+  "group": "adv",
+  "repeats": 3,
+  "students": [
+    "8b78a6f9-a2b9-4b9f-93d3-8f2f036a1d28",
+    "892b892d-12b9-4ebf-82e6-67bc87552ab4",
+    "765b7b87-68d0-4b3f-8ddc-6c273efcb6ee",
+    "a7b083d1-21e9-4afd-851a-d2b2e9f1f766",
+    "7dd260bb-04a9-4b91-918e-27d068505ce8",
+    "622824d7-559c-4f1a-827c-b9144071e3f6",
+    "92bae1b6-0845-422d-bd92-e7292df46259",
+    "4fb84189-4308-4b70-b565-31213aab16fd",
+    "73b706d2-420e-4c50-8e4e-527b1a920584",
+    "ec73c2a8-1b5d-4012-972e-24ef056cf02d",
+    "74c9a901-5548-439f-a87f-3e0e974cb836",
+    "2fc24d31-d167-418f-99b8-8cfb711ea03e",
+    "b876728f-7df2-4d5d-aba9-aadf8d052870",
+    "5cb91991-5f37-40b7-a6ee-3fe522561acd",
+    "c1e76e05-328f-430c-8440-7028d99b7a30",
+    "e05d7717-8bf5-4942-a460-0279b0477f2c",
+    "ddc0f2b1-f6dd-4860-be5f-3fa864ed91f6",
+    "37770c1d-b275-4ad4-bb20-900a9b00115e",
+    "72a96162-949d-4d8a-8b02-585527bb03b6",
+    "a9d8e7f5-faf4-4fd5-97d1-7f0bb62fa99e",
+    "ea8e1e4e-2a8a-4518-8794-7e0fa4ba524b",
+    "1b57665e-e9ae-42fe-b094-2625230e1894",
+    "d5a45c71-a53c-40aa-b7da-1c833d9f11f1",
+    "711d45f3-a7a4-4c1c-83f0-7ddcfc9f315a",
+    "e37c1cac-ce69-4b0a-bac3-c18b2890986e",
+    "cb457918-7626-4439-90bb-051dfb1e8c01",
+    "204319aa-b0f7-4377-9c23-c3d050be5660"
+  ],
+  "results": [
+    {
+      "id": "A1",
+      "level": "adv",
+      "run": 1,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Yes, chicken is expensive right now, especially for fillets and fresh pieces. If you want to keep protein costs down, eggs, canned tuna, yogurt, tofu, lentils, and frozen chicken thighs are usually better value."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [],
+      "writers": [],
+      "ghostAck": null
+    },
+    {
+      "id": "A1b",
+      "level": "adv",
+      "run": 1,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Yes — chicken prices are up in a lot of places right now. If you’re trying to keep protein cheap, eggs, yogurt, canned fish, tofu, beans, and lentils usually give you more for the money."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [],
+      "writers": [],
+      "ghostAck": null
+    },
+    {
+      "id": "A3",
+      "level": "adv",
+      "run": 1,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Got it — protein at lunch is covered. The vegetables part is still unreported.  And what did you have with it?"
+      ],
+      "questions": [
+        "And what did you have with it?"
+      ],
+      "ledger": [
+        "meal_precision_question | text | accompaniment | 2026-08-08 | And what did you have with it?"
+      ],
+      "events": [
+        "poultry | slot=lunch | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US"
+      ],
+      "writers": [
+        "FLOOR []"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "A4",
+      "level": "adv",
+      "run": 1,
+      "ok": false,
+      "detail": "attendu 1 ligne(s), obtenu 2 / food hors liste acceptable: [other_added_fat] (base: [other_added_fat,leafy_greens])",
+      "replies": [
+        "You had a salad last night, and that’s all I can safely take from it here. The “but” sounds like there’s more to it, but you don’t need to package it neatly for me.  And what did you have with it?"
+      ],
+      "questions": [
+        "And what did you have with it?"
+      ],
+      "ledger": [
+        "meal_precision_question | text | accompaniment | 2026-08-08 | And what did you have with it?"
+      ],
+      "events": [
+        "other_added_fat | slot=dinner | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR",
+        "leafy_greens | slot=dinner | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR"
+      ],
+      "writers": [
+        "FLOOR [{\"food_group_ref\": \"leafy_greens\"}]"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "A3b",
+      "level": "adv",
+      "run": 1,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "I can only mark the lunch protein line as met if you tell me that there was lean protein in the usual lunch. If you want, just name the protein.  I couldn't tell which line of your plan to attach that to — is it \"the usual for lunch\"? Tell me which one and I'll log it."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [],
+      "writers": [],
+      "ghostAck": null
+    },
+    {
+      "id": "A4b",
+      "level": "adv",
+      "run": 1,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "That sounds like a good meal with a bit of a sting at the end — tasty, but pricey.  If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."
+      ],
+      "questions": [],
+      "ledger": [
+        "photo_invitation | chat | - | 2026-08-08 | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."
+      ],
+      "events": [
+        "- | slot=NULL | src=chat | rel=off_plan | dq=NULL | evw=0.8 | loc=fr-FR"
+      ],
+      "writers": [
+        "FLOOR []"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "A5",
+      "level": "adv",
+      "run": 1,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Your breakfast protein bar is recorded, and I’ve also noted the breakfast entry again.  And what did you have with it?"
+      ],
+      "questions": [
+        "And what did you have with it?"
+      ],
+      "ledger": [
+        "meal_precision_question | text | accompaniment | 2026-08-08 | And what did you have with it?"
+      ],
+      "events": [
+        "refined_grain | slot=breakfast | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US",
+        "- | slot=breakfast | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US"
+      ],
+      "writers": [
+        "FLOOR [{\"student_note\": \"protein bar\"}]"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "A6",
+      "level": "adv",
+      "run": 1,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Stomach pain after lunch is a useful clue. The main things to think about are reflux/indigestion, something that disagreed with you, or a reaction to a specific food.  If it was mild and passed, keep an eye on whether it repeats with the same meal. If it’s severe, keeps coming back, or comes with vo"
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [],
+      "writers": [],
+      "ghostAck": null
+    },
+    {
+      "id": "A2(America/Chicago@23h)",
+      "level": "adv",
+      "run": 1,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Chicken gives you protein, which lines up with the lunch protein target. If there were vegetables with it too, that would cover the second lunch line as well.  And what did you have with it?"
+      ],
+      "questions": [
+        "And what did you have with it?"
+      ],
+      "ledger": [
+        "meal_precision_question | text | accompaniment | 2026-08-07 | And what did you have with it?"
+      ],
+      "events": [
+        "lean_protein | slot=NULL | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US"
+      ],
+      "writers": [
+        "DISPATCHER lean_protein"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "A1",
+      "level": "adv",
+      "run": 2,
+      "ok": false,
+      "detail": "attendu 0 ligne au 1er tour, obtenu 1 / attendu 0 question, obtenu 1",
+      "replies": [
+        "Yes, chicken is expensive right now.  If you want to keep protein costs down, eggs, canned tuna, tofu, lentils, Greek yogurt, and frozen chicken thighs usually give better value than fresh chicken breast.  And what did you have with it?"
+      ],
+      "questions": [
+        "And what did you have with it?"
+      ],
+      "ledger": [
+        "meal_precision_question | text | accompaniment | 2026-08-08 | And what did you have with it?"
+      ],
+      "events": [
+        "lean_protein | slot=NULL | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR"
+      ],
+      "writers": [
+        "DISPATCHER lean_protein"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "A1b",
+      "level": "adv",
+      "run": 2,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Yeah, chicken prices have been up in a lot of places lately. If you’re trying to keep protein costs down, eggs, Greek yogurt, canned tuna, tofu, lentils, and beans usually give you more for the money."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [],
+      "writers": [],
+      "ghostAck": null
+    },
+    {
+      "id": "A3",
+      "level": "adv",
+      "run": 2,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Got it — protein at lunch is covered.  And what did you have with it?"
+      ],
+      "questions": [
+        "And what did you have with it?"
+      ],
+      "ledger": [
+        "meal_precision_question | text | accompaniment | 2026-08-08 | And what did you have with it?"
+      ],
+      "events": [
+        "poultry | slot=lunch | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US"
+      ],
+      "writers": [
+        "DISPATCHER poultry"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "A4",
+      "level": "adv",
+      "run": 2,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Got it: yesterday evening you had a salad. As for “but…”, that leaves the picture unfinished — if you want, you can tell me what matters about it.  And what did you have with it?"
+      ],
+      "questions": [
+        "And what did you have with it?"
+      ],
+      "ledger": [
+        "meal_precision_question | text | accompaniment | 2026-08-08 | And what did you have with it?"
+      ],
+      "events": [
+        "leafy_greens | slot=dinner | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR"
+      ],
+      "writers": [
+        "DISPATCHER leafy_greens"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "A3b",
+      "level": "adv",
+      "run": 2,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Got it: lunch included the usual, but you didn’t name the food itself.  For today, the lunch items still shown are protein and vegetables."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [],
+      "writers": [],
+      "ghostAck": null
+    },
+    {
+      "id": "A4b",
+      "level": "adv",
+      "run": 2,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "That gives me a pretty clear read: good meal, but the price left a sting. If you want, I can help you think through whether it was worth it without overthinking it.  If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."
+      ],
+      "questions": [],
+      "ledger": [
+        "photo_invitation | chat | - | 2026-08-08 | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."
+      ],
+      "events": [
+        "- | slot=NULL | src=chat | rel=off_plan | dq=NULL | evw=0.8 | loc=fr-FR"
+      ],
+      "writers": [
+        "DISPATCHER -"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "A5",
+      "level": "adv",
+      "run": 2,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Protein at breakfast is covered by what you just said. The lunch items still show as unknown: protein and vegetables."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [],
+      "writers": [
+        "DISPATCHER protein_bar"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "A6",
+      "level": "adv",
+      "run": 2,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Stomach pain after lunch can be as simple as irritation, eating too fast, a heavy meal, or something that didn’t sit well. If it was mild and has settled, the main thing is to watch whether it comes back, gets worse, or comes with vomiting, fever, black stools, or sharp one-sided pain."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [],
+      "writers": [],
+      "ghostAck": null
+    },
+    {
+      "id": "A2(America/Chicago@23h)",
+      "level": "adv",
+      "run": 2,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Chicken is a solid protein choice. If you had it at lunch, that lines up with the protein target for today.  And what did you have with it?"
+      ],
+      "questions": [
+        "And what did you have with it?"
+      ],
+      "ledger": [
+        "meal_precision_question | text | accompaniment | 2026-08-07 | And what did you have with it?"
+      ],
+      "events": [
+        "poultry | slot=NULL | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US"
+      ],
+      "writers": [
+        "DISPATCHER poultry"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "A1",
+      "level": "adv",
+      "run": 3,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Yes — chicken is expensive right now, especially breasts and ready-cut pieces. If you want the cheapest protein options, eggs, canned fish, tofu, lentils, and whole chicken are usually better value."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [],
+      "writers": [],
+      "ghostAck": null
+    },
+    {
+      "id": "A1b",
+      "level": "adv",
+      "run": 3,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Yes — chicken has gotten noticeably pricier in a lot of places.  If you’re trying to keep protein costs down, eggs, Greek yogurt, canned tuna, tofu, lentils, and beans usually give you more for the money."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [],
+      "writers": [],
+      "ghostAck": null
+    },
+    {
+      "id": "A3",
+      "level": "adv",
+      "run": 3,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "You covered the protein at lunch. The vegetables are still the open item.  And what did you have with it?"
+      ],
+      "questions": [
+        "And what did you have with it?"
+      ],
+      "ledger": [
+        "meal_precision_question | text | accompaniment | 2026-08-08 | And what did you have with it?"
+      ],
+      "events": [
+        "lean_protein | slot=lunch | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US"
+      ],
+      "writers": [
+        "DISPATCHER lean_protein"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "A4",
+      "level": "adv",
+      "run": 3,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "A salad last night is a real meal, even if it feels a bit “but anyway.” 🥗  For lunch today, the only things on your list are protein and vegetables.  And what did you have with it?"
+      ],
+      "questions": [
+        "And what did you have with it?"
+      ],
+      "ledger": [
+        "meal_precision_question | text | accompaniment | 2026-08-08 | And what did you have with it?"
+      ],
+      "events": [
+        "leafy_greens | slot=dinner | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR"
+      ],
+      "writers": [
+        "DISPATCHER leafy_greens"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "A3b",
+      "level": "adv",
+      "run": 3,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "For lunch today, protein and non-starchy vegetables are still the two listed items, so “the usual” may cover one, both, or neither — I can’t tell from that alone.  I couldn't tell which line of your plan to attach that to — is it \"the usual for lunch\"? Tell me which one and I'll log it."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [],
+      "writers": [],
+      "ghostAck": null
+    },
+    {
+      "id": "A4b",
+      "level": "adv",
+      "run": 3,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Restaurant meal noted: good, but expensive.  If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."
+      ],
+      "questions": [],
+      "ledger": [
+        "photo_invitation | chat | - | 2026-08-08 | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."
+      ],
+      "events": [
+        "- | slot=NULL | src=chat | rel=off_plan | dq=NULL | evw=0.8 | loc=fr-FR"
+      ],
+      "writers": [
+        "DISPATCHER -"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "A5",
+      "level": "adv",
+      "run": 3,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Protein at breakfast is logged for today.  And what did you have with it?"
+      ],
+      "questions": [
+        "And what did you have with it?"
+      ],
+      "ledger": [
+        "meal_precision_question | text | accompaniment | 2026-08-08 | And what did you have with it?"
+      ],
+      "events": [
+        "other_added_fat | slot=breakfast | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US"
+      ],
+      "writers": [
+        "DISPATCHER other_added_fat"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "A6",
+      "level": "adv",
+      "run": 3,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Stomach pain after lunch usually points to irritation, indigestion, or something that didn’t sit well. If it was sharp, severe, keeps coming back, or comes with vomiting, fever, blood, or worsening pain, get medical help. If it’s mild and settling, keep things simple for now: avoid more heavy food a"
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [],
+      "writers": [],
+      "ghostAck": "Stomach pain after lunch usually points to irritation, indigestion, or something that didn’t sit well. If it was sharp, severe, keeps coming back, or comes with vomiting, fever, blood, or worsening pa"
+    },
+    {
+      "id": "A2(America/Chicago@23h)",
+      "level": "adv",
+      "run": 3,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Chicken can fit lunch well, but by itself it doesn’t tell me whether the lunch protein line was actually covered. For that line, the useful question is whether there was a clear protein portion at lunch — chicken would usually count if it was the main part of the meal.  And what did you have with it"
+      ],
+      "questions": [
+        "And what did you have with it?"
+      ],
+      "ledger": [
+        "meal_precision_question | text | accompaniment | 2026-08-07 | And what did you have with it?"
+      ],
+      "events": [
+        "poultry | slot=NULL | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US"
+      ],
+      "writers": [
+        "DISPATCHER poultry"
+      ],
+      "ghostAck": null
+    }
+  ]
+}

@@ -27,6 +27,8 @@ import {
   MAX_DAILY_PRACTICES,
   parseDailyPractices,
 } from "../_shared/keel/daily_practices.ts";
+import { deriveSteeringFromPositions } from "../_shared/keel/composition_forks.ts";
+import { deriveBeliefKey } from "../_shared/keel/doctrine.ts";
 import {
   buildPracticeClassifyPrompt,
   dailyPracticeToRow,
@@ -397,6 +399,66 @@ async function rewriteCompilations(
     reuse_ratio: footprint.reuseRatio,
   });
   return { variants: footprint.variants, distinctHashes: footprint.distinctHashes };
+}
+
+/**
+ * FF-041 — CE QUE LA PUBLICATION ÉCRIT À PARTIR DES POSITIONS.
+ *
+ * ── DEUX CHOSES, ET C'EST TOUT L'ARBITRAGE ────────────────────────────────
+ * Une `DoctrineBelief` ordinaire — citable, elle entre dans le bloc chat, le
+ * coach peut la réécrire ensuite dans ses mots — et l'entrée de pilotage qui
+ * pointe vers elle par `belief_key`. Le moteur ne lit que le jeton; le chat ne
+ * lit que la conviction. AUCUN parseur de prose, nulle part.
+ *
+ * ── L'AJOUT DE CONVICTION EST IDEMPOTENT PAR CLÉ ─────────────────────────
+ * Un coach qui enregistre trois fois ne se retrouve pas avec trois fois la
+ * même conviction. Et s'il a RÉÉCRIT la phrase depuis, on ne l'écrase pas: sa
+ * version gagne, parce que c'est la sienne.
+ */
+function compositionFromPositions(
+  payload: Record<string, unknown>,
+): {
+  positions: Record<string, string>;
+  steering: unknown[];
+  beliefs: Array<Record<string, unknown>>;
+  issues: string[];
+} {
+  const raw = payload.composition_positions;
+  const positions: Record<string, string> = {};
+  if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+    for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+      const value = String(v ?? "").trim();
+      if (value) positions[k] = value;
+    }
+  }
+  const derived = deriveSteeringFromPositions(positions);
+  const existing = Array.isArray(payload.beliefs) ? payload.beliefs : [];
+  const seen = new Set(
+    existing
+      .map((b) =>
+        deriveBeliefKey(String((b as Record<string, unknown>)?.claim ?? ""))
+      )
+      .filter(Boolean),
+  );
+  const beliefs = [...existing as Array<Record<string, unknown>>];
+  for (const b of derived.beliefs) {
+    if (seen.has(b.key)) continue;
+    beliefs.push({
+      claim: b.claim,
+      rationale: b.rationale,
+      goal_scope: [],
+      // `source` marque la provenance, comme pour les préréglages: c'est ce
+      // qui permet de dire plus tard « cette phrase est encore celle du
+      // débat » plutôt que « c'est la sienne ».
+      source: "composition_fork",
+    });
+  }
+  return {
+    positions,
+    steering: derived.entry ? [derived.entry] : [],
+    beliefs,
+    issues: derived.issues,
+  };
 }
 
 Deno.serve(async (req) => {
@@ -1052,12 +1114,18 @@ Deno.serve(async (req) => {
           request_id: requestId,
         }, { status: 400 });
       }
+      // FF-041 — dérivé AVANT l'insert: les `issues` d'une position inconnue
+      // doivent remonter au coach avec le reste, pas mourir dans un log.
+      const composition = compositionFromPositions(payload);
       const { data, error } = await admin
         .from("coach_doctrines")
         .insert({
           coach_id: coachId,
           version,
-          beliefs: payload.beliefs ?? [],
+          // FF-041 — LES POSITIONS DE COMPOSITION ÉCRIVENT DEUX CHOSES: une
+          // conviction citable (ajoutée ici, idempotente par clé) et le jeton
+          // exécutable (`composition_steering`, plus bas).
+          beliefs: composition.beliefs,
           forbidden: payload.forbidden ?? [],
           vocabulary: payload.vocabulary ?? [],
           arbitrations: payload.arbitrations ?? [],
@@ -1078,6 +1146,11 @@ Deno.serve(async (req) => {
           daily_practices: parseDailyPractices(payload.daily_practices)
             .practices.map(dailyPracticeToRow),
           voice: payload.voice ?? {},
+          // FF-041 — LA FEUILLE DE RÉPONSES ET SA FORME COMPILÉE, côte à côte.
+          // Re-dériver l'une depuis l'autre serait un décompilateur, et il
+          // serait faux dès que deux positions produisent le même jeton.
+          composition_positions: composition.positions,
+          composition_steering: composition.steering,
           content_locale: String(body.content_locale ?? "en"),
           change_note: String(body.change_note ?? "") || null,
           created_from_version: Number(body.created_from_version) || null,
@@ -1085,7 +1158,14 @@ Deno.serve(async (req) => {
         .select("id, version")
         .single();
       if (error) throw error;
-      return jsonResponse(req, { ok: true, saved: data, request_id: requestId });
+      return jsonResponse(req, {
+        ok: true,
+        saved: data,
+        // Une position inconnue est COMPTÉE et nommée, jamais un repli
+        // silencieux: un coach dont une réponse n'a pas pris doit le lire.
+        composition_issues: composition.issues,
+        request_id: requestId,
+      });
     }
 
     // ---- publish (brique 6) ---------------------------------------------
@@ -1218,6 +1298,12 @@ Deno.serve(async (req) => {
           // masquerait une éventuelle divergence entre les deux chemins.
           daily_practices: source.daily_practices ?? [],
           voice: source.voice ?? {},
+          // FF-041 — un rollback COPIE une version, donc il copie les deux
+          // colonnes de composition. En oublier une rendrait au coach une
+          // méthode dont le moteur n'exécuterait plus rien, sans rien lui dire
+          // — exactement la perte que `foods` et `qa` ont déjà coûtée ici.
+          composition_positions: source.composition_positions ?? {},
+          composition_steering: source.composition_steering ?? [],
           content_locale: String(source.content_locale ?? "en"),
           created_from_version: plan.sourceVersion,
           change_note: plan.changeNote,

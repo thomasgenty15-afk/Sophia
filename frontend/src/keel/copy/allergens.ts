@@ -23,26 +23,42 @@
 // mot écrit. C'est cette nuance-là que l'écran doit dire, et pas « protégé /
 // non protégé », qui serait faux dans les deux sens.
 
+import { t, type MessageKey } from "../i18n/t";
+
 export interface AllergenOption {
   slug: string;
-  label: string;
+  /**
+   * La clé du libellé, PAS le libellé.
+   *
+   * ⚠️ C'ÉTAIT `label: string`, ET LE CHANGEMENT N'EST PAS COSMÉTIQUE. Cette
+   * table est un `const` de module: une phrase écrite ici est figée à la langue
+   * du bundle, et treize cases à cocher en anglais au milieu d'un formulaire
+   * français est exactement la couture que ce chantier ferme. Une clé, elle, se
+   * résout à l'APPEL (`allergenLabel`), donc elle suit la langue courante.
+   *
+   * Le slug reste ce qu'il a toujours été: une DONNÉE, jamais traduite. C'est
+   * lui que le verrou de sortie compare, et le renommer casserait la protection
+   * d'un élève anaphylactique — d'où le test de parité qui lit les slugs du
+   * moteur DANS L'ORDRE.
+   */
+  labelKey: MessageKey;
 }
 
 /** Miroir de `ALLERGEN_CATALOG`. Même ordre, mêmes slugs. */
 export const ALLERGEN_OPTIONS: readonly AllergenOption[] = [
-  { slug: "peanut", label: "Peanuts" },
-  { slug: "tree_nut", label: "Tree nuts" },
-  { slug: "gluten", label: "Gluten" },
-  { slug: "wheat", label: "Wheat" },
-  { slug: "dairy", label: "Dairy" },
-  { slug: "egg", label: "Eggs" },
-  { slug: "fish", label: "Fish" },
-  { slug: "shellfish", label: "Shellfish" },
-  { slug: "mollusc", label: "Molluscs" },
-  { slug: "sesame", label: "Sesame" },
-  { slug: "soy", label: "Soy" },
-  { slug: "pork", label: "Pork" },
-  { slug: "alcohol", label: "Alcohol" },
+  { slug: "peanut", labelKey: "allergen.peanut" },
+  { slug: "tree_nut", labelKey: "allergen.tree_nut" },
+  { slug: "gluten", labelKey: "allergen.gluten" },
+  { slug: "wheat", labelKey: "allergen.wheat" },
+  { slug: "dairy", labelKey: "allergen.dairy" },
+  { slug: "egg", labelKey: "allergen.egg" },
+  { slug: "fish", labelKey: "allergen.fish" },
+  { slug: "shellfish", labelKey: "allergen.shellfish" },
+  { slug: "mollusc", labelKey: "allergen.mollusc" },
+  { slug: "sesame", labelKey: "allergen.sesame" },
+  { slug: "soy", labelKey: "allergen.soy" },
+  { slug: "pork", labelKey: "allergen.pork" },
+  { slug: "alcohol", labelKey: "allergen.alcohol" },
 ];
 
 const BY_SLUG = new Map(ALLERGEN_OPTIONS.map((o) => [o.slug, o]));
@@ -118,7 +134,7 @@ export function hasWideCoverage(slug: string): boolean {
 export function allergenLabel(slug: string): string {
   const normalized = String(slug ?? "").trim().toLowerCase();
   const known = BY_SLUG.get(normalized);
-  if (known) return known.label;
+  if (known) return t(known.labelKey);
   if (!normalized) return "—";
   return normalized
     .split("_")
@@ -130,20 +146,27 @@ export function allergenLabel(slug: string): string {
 /**
  * Normalise une saisie libre EXACTEMENT comme l'intake conversationnel.
  *
- * Côté moteur il n'y a plus qu'une implémentation, `allergen_catalog.ts ::
- * normalizeAllergenRef`, et `declare_safety_constraint/intake.ts` l'importe.
- * Celle-ci est la SEULE copie restante, et elle est structurelle: du Vite/TS ne
- * charge pas un module Deno/JSR.
+ * ⚠️ SON CORPS A DÉMÉNAGÉ DANS `api/allergenSlug.ts` LE 2026-08-14, ET CETTE
+ * RÉEXPORTATION EST CE QUI REND LE DÉMÉNAGEMENT GRATUIT POUR SES LECTEURS.
  *
- * Une divergence ici écrirait « fruits de mer » d'un côté et « fruitsdemer » de
- * l'autre pour le même mot: deux contraintes là où l'élève en a déclaré une, et
- * un verrou qui n'en connaît qu'une. `allergens.int.test.ts` extrait le corps
- * de la fonction moteur et compare les DEUX SORTIES sur un corpus — c'est une
- * équivalence de comportement, pas une ressemblance de texte.
+ * Pourquoi il a bougé: ce fichier-ci porte treize littéraux `allergen.*`, et
+ * `api/onboarding.ts` importait la fonction. Le scanner de
+ * `i18n/pageSeams.int.test.ts` suit les IMPORTS et pas les appels, donc
+ * `/app/plan`, `/app/household` et `/join-household` — qui atteignent
+ * `onboarding.ts` via `api/household.ts` — entraient dans le périmètre du
+ * namespace `allergen` sans jamais rendre un seul de ses libellés. Même règle,
+ * même geste et même explication que `api/planRouting.ts`.
+ *
+ * Pourquoi le chemin reste ouvert ici: `copy/allergens.ts ::
+ * normalizeAllergenInput` est nommé mot pour mot par
+ * `supabase/functions/_shared/keel/allergen_catalog.ts`, et
+ * `allergens.int.test.ts` l'importe de ce module pour le confronter au corps de
+ * la fonction moteur sur un corpus. Ce pont entre les deux langages est la
+ * garde qui empêche un même mot de devenir deux contraintes selon l'écran par
+ * lequel il a été déclaré; il ne se déplace pas pour une question de couture.
+ *
+ * ⚠️ UN NOUVEL APPELANT IMPORTE `api/allergenSlug.ts`, PAS CE FICHIER — sauf
+ * s'il rend déjà des libellés d'allergènes, auquel cas il est de toute façon
+ * dans le périmètre.
  */
-export function normalizeAllergenInput(value: string): string | null {
-  const raw = String(value ?? "").trim().toLowerCase();
-  if (!raw) return null;
-  const slug = raw.replace(/[\s-]+/g, "_").replace(/[^a-z0-9_]/g, "");
-  return slug || null;
-}
+export { normalizeAllergenInput } from "../api/allergenSlug";

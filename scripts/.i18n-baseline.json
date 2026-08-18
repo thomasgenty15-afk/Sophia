@@ -1,0 +1,59 @@
+{
+  "DISPLAY_FORMAT_LOCALE": {
+    "frontend/src/lib/baseDeVie.ts": 1,
+    "frontend/src/lib/planSchedule.ts": 1
+  },
+  "LOCALE_LITERAL": {
+    "frontend/src/keel/api/coachBroadcast.ts": 1,
+    "frontend/src/keel/api/household.ts": 1,
+    "frontend/src/keel/api/onboarding.ts": 3,
+    "frontend/src/keel/components/CommitmentEditor.tsx": 1,
+    "frontend/src/keel/lib/useMealTicks.ts": 1,
+    "frontend/src/keel/pages/CoachesPage.tsx": 1,
+    "frontend/src/keel/pages/CoachProtocolPage.tsx": 3,
+    "frontend/src/keel/pages/CommunitiesPage.tsx": 1,
+    "frontend/src/keel/pages/GymsLandingPage.tsx": 1,
+    "frontend/src/keel/pages/PlanImportPage.tsx": 3,
+    "frontend/src/keel/pages/StudentHealthPage.tsx": 1,
+    "frontend/src/keel/pages/StudentWeekPlanPage.tsx": 1,
+    "frontend/src/keel/pages/TemplatesPage.tsx": 2,
+    "frontend/src/keel/pages/TodayPage.tsx": 1,
+    "frontend/src/lib/baseDeVie.ts": 1,
+    "frontend/src/lib/planSchedule.ts": 1
+  },
+  "MODULE_SCOPE_T": {
+    "frontend/src/keel/pages/CoachesPage.tsx": 1,
+    "frontend/src/keel/pages/CommunitiesPage.tsx": 1,
+    "frontend/src/keel/pages/CouplesPage.tsx": 1,
+    "frontend/src/keel/pages/FamiliesPage.tsx": 1,
+    "frontend/src/keel/pages/GymsLandingPage.tsx": 1,
+    "frontend/src/keel/pages/HomePage.tsx": 2,
+    "frontend/src/keel/pages/ProPage.tsx": 2
+  },
+  "VISIBLE_LITERAL": {
+    "frontend/src/components/admin/AdminShell.tsx": 4,
+    "frontend/src/components/Footer.tsx": 3,
+    "frontend/src/components/SEO.tsx": 1,
+    "frontend/src/context/AuthContext.tsx": 2,
+    "frontend/src/context/OnboardingAmbientAudioContext.tsx": 1,
+    "frontend/src/keel/components/CoachSeatCard.tsx": 1,
+    "frontend/src/keel/components/CookingCapacityCard.tsx": 1,
+    "frontend/src/keel/components/DoctrineStartDialog.tsx": 1,
+    "frontend/src/keel/components/EatingRhythmCard.tsx": 1,
+    "frontend/src/keel/components/FoodPreferencesCard.tsx": 1,
+    "frontend/src/keel/components/HouseholdMergeCard.tsx": 2,
+    "frontend/src/keel/components/KitchenToday.tsx": 1,
+    "frontend/src/keel/components/MealBuilder.tsx": 1,
+    "frontend/src/keel/components/MealPickerGrid.tsx": 1,
+    "frontend/src/keel/components/TakeTheHandCard.tsx": 1,
+    "frontend/src/keel/components/WeekView.tsx": 1,
+    "frontend/src/keel/pages/CoachDoctrinePage.tsx": 1,
+    "frontend/src/keel/pages/CoachMealsPage.tsx": 1,
+    "frontend/src/keel/pages/CoachProtocolPage.tsx": 6,
+    "frontend/src/keel/pages/CoachStudentPage.tsx": 1,
+    "frontend/src/keel/pages/HouseholdPage.tsx": 13,
+    "frontend/src/keel/pages/SetupPage.tsx": 1,
+    "frontend/src/keel/pages/StudentProgressPage.tsx": 3,
+    "frontend/src/keel/pages/StudentWeekPlanPage.tsx": 2
+  }
+}

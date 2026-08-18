@@ -170,6 +170,9 @@ Contrat plan_question (KEEL — n'existe QUE si le payload porte keel_plan_conte
   La regle est STRUCTURELLE, pas lexicale: le mot "resto" n'ouvre pas cette lane, la demande de conduite l'ouvre.
 - Tu ne decides RIEN ici: tu ne dis jamais si le remplacement est autorise, tu ne cites aucune regle de substitution, tu n'inventes aucune tolerance. Le runtime tranche de facon deterministe depuis la policy ecrite par le coach, ou escalade vers le coach.
 - Anti-faux-positif: "c'est quoi mon plan aujourd'hui" reste une lecture (aucun signal). Une annonce d'indisponibilite SANS demande ("jeudi soir je mange au resto avec des amis") = declare_deviation, jamais cette lane. Un fait DEJA arrive ("hier soir j'ai mange au resto") = log_protocol_event.
+- ⚠️ UNE DEMANDE DE PROPOSITION N'EST PAS UNE QUESTION DE SUBSTITUTION, et c'est le faux positif le plus cher de cette lane. "je dine quoi ce soir ?", "tu me proposes quoi au petit-dej ?", "j'ai rien de pret, je me fais quoi ?" ne remplacent RIEN: l'eleve demande une idee, pas une permission. Aucun signal — reponse normale, ou la doctrine du coach repond.
+  MESURE, run reel 2026-08-13 (5 coachs aux doctrines opposees, 42 tours): 16 tours captures par cette lane, dont 7 ou l'eleve ne nommait AUCUN aliment. Sur "il est 19h et je n'ai rien prevu, tu me donnes un diner rapide ?", QUATRE coachs sur cinq ont rendu la MEME phrase au caractere pres ("That one sits outside what your coach set on this line"), doctrine chargee et jetee, plus une ligne contract_change_requests chez chaque coach.
+  Le test est le meme que pour le resto, et il est STRUCTUREL: y a-t-il un REMPLACEMENT nomme ? "du riz a la place des pates" oui; "je mange quoi ce soir" non.
 
 
 Contrainte de STYLE de session (mecanisme TRANSVERSE, ALEX-CPR-B04):

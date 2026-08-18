@@ -728,9 +728,9 @@ function previewSentence(c: CompiledCommitment, nameOverride?: string): string {
     case "encourage":
       return `${name} — build with it, at least ${p.perDay} portion a day`;
     case "discourage":
-      return `${name} — he steers away from it; swap it out when you can`;
+      return `${name} — this coach steers away from it; swap it out when you can`;
     case "exclude":
-      return `${name} — he does not build with it at all`;
+      return `${name} — this coach does not build with it at all`;
     case "portions":
       return `${name} — ${p.direction === "at_least" ? "at least" : "at most"} ${p.portions} portion${
         p.portions === 1 ? "" : "s"
@@ -769,7 +769,7 @@ export function protocolFoodBlock(
   );
 
   const lines: string[] = [];
-  lines.push(`== ${who.toUpperCase()}'S FOOD MAPPING — WHAT HE BUILDS PLATES WITH ==`);
+  lines.push(`== ${who.toUpperCase()}'S FOOD MAPPING — WHAT THIS COACH BUILDS PLATES WITH ==`);
   lines.push("");
   lines.push(
     "This is this coach's METHOD, not a medical restriction. The student's " +
@@ -791,14 +791,14 @@ export function protocolFoodBlock(
 
   section("-- REACH FOR THESE FIRST --", encouraged);
   section(
-    "-- HE STEERS AWAY FROM THESE — do not build a meal around one --",
+    "-- THIS COACH STEERS AWAY FROM THESE — do not build a meal around one --",
     discouraged,
   );
   section(
-    "-- HE DOES NOT USE THESE — never put one in a meal you propose --",
+    "-- THIS COACH DOES NOT USE THESE — never put one in a meal you propose --",
     excluded,
   );
-  section("-- HIS RULES ON FREQUENCY AND TIMING --", timing);
+  section("-- THIS COACH'S RULES ON FREQUENCY AND TIMING --", timing);
 
   return lines.join("\n");
 }
@@ -902,7 +902,7 @@ function renderChatBlock(
   caps: ChatSectionCaps,
 ): string {
   const lines: string[] = [];
-  lines.push(`== ${who.toUpperCase()}'S FOOD MAPPING — WHAT HE BUILDS PLATES WITH ==`);
+  lines.push(`== ${who.toUpperCase()}'S FOOD MAPPING — WHAT THIS COACH BUILDS PLATES WITH ==`);
   lines.push("");
   lines.push(
     "This is this coach's METHOD, not a medical restriction. The student's " +
@@ -949,31 +949,31 @@ function renderChatBlock(
     "-- REACH FOR THESE FIRST --",
     groups.encouraged,
     caps.encouraged,
-    "he encourages",
+    "this coach encourages",
   );
   section(
-    "-- HE STEERS AWAY FROM THESE --",
+    "-- THIS COACH STEERS AWAY FROM THESE --",
     groups.discouraged,
     caps.discouraged,
-    "he steers away from",
+    "this coach steers away from",
     // LE REGISTRE, DIT EXPLICITEMENT. Un `discouraged` rendu comme un danger
     // apprend à l'élève que son coach lui interdit un aliment pour sa santé —
     // et c'est l'inverse exact de ce que la ligne dit. La cicatrice est déjà
     // écrite en tête de ce fichier: confondre les deux registres, dans un sens
     // ou dans l'autre, est le défaut qu'on paie.
-    "A method preference, not an allergy. If they ask about one, say he does " +
-      "not build with it and name what he uses instead — never answer as if " +
-      "it were unsafe.",
+    "A method preference, not an allergy. If they ask about one, say this " +
+      "coach does not build with it and name what they use instead — never " +
+      "answer as if it were unsafe.",
   );
   section(
-    "-- HE DOES NOT USE THESE --",
+    "-- THIS COACH DOES NOT USE THESE --",
     groups.excluded,
     caps.excluded,
-    "he does not use",
-    "Same register as above: his method, not a medical ban.",
+    "this coach does not use",
+    "Same register as above: this coach's method, not a medical ban.",
   );
   section(
-    "-- HIS RULES ON FREQUENCY AND TIMING --",
+    "-- THIS COACH'S RULES ON FREQUENCY AND TIMING --",
     groups.timing,
     caps.timing,
     "timing rules",

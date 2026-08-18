@@ -35,6 +35,26 @@ import {
   loadHouseholdVoices,
   type VoiceMember,
 } from "../_shared/keel/household_voices_io.ts";
+// ══ LOT 1C · LA LECTURE DES ÉLÉMENTS RETENUS ════════════════════════════════
+// `readRetainedItems` et PAS `retainedItemsFrom`: même magasin, même lecture,
+// mais l'enrobage rend en plus le compteur des lignes REFUSÉES — sans lui,
+// « rien en base » et « rien de lisible » se ressemblent dans la trace.
+import { readRetainedItems } from "../_shared/keel/food_preference_promotion.ts";
+import {
+  HOUSEHOLD_SUBJECT,
+  memberSubject,
+  type RetainedItem,
+} from "../_shared/keel/retained_item.ts";
+import { nextPlanItemsFor } from "../_shared/keel/retained_next_plan.ts";
+import {
+  compositionLinesFor,
+  cravingLinesFor,
+  logisticsOverlayFor,
+  portionAdjustsFor,
+  rhythmOverlayFor,
+  routeRetainedItems,
+  routingTrace,
+} from "../_shared/keel/retained_items_routing.ts";
 import {
   dayTokenInZone,
   localDateInZone,
@@ -59,10 +79,19 @@ import { type ForbiddenTerm } from "../_shared/keel/forbidden_matcher.ts";
 // LA PHRASE ÉCRITE SUR UN BROUILLON — gardée À L'ENTRÉE, parce qu'elle part au
 // modèle dans le même message que la doctrine et les règles de maison.
 import {
+  type DraftNoteVerdict,
   draftNoteInstruction,
   hasDraftNote,
   readDraftNote,
 } from "../_shared/keel/plan_draft_note.ts";
+// LOT 2D — LE RETOUR SUR LE BROUILLON, RANGÉ. Le module (lot 2B) était livré,
+// testé et SANS AUCUN APPELANT: c'est le mode d'échec n°1 de ce dépôt, et
+// `draft_note_classify_wiring_test.ts` épingle désormais cet appel-ci.
+//
+// ⛔ IL PREND LE VERDICT, PAS LE TEXTE. `body.draft_note` brut rouvrirait dans
+// un SECOND appel modèle le trou que `readDraftNote` ferme (cible chiffrée,
+// interdit de doctrine, plancher TCA). Le type l'interdit; ne pas le contourner.
+import { classifyAndPersistDraftNote } from "../_shared/keel/draft_note_classify_io.ts";
 import {
   countHungerDays,
   type HungerWindowSignal,
@@ -81,7 +110,9 @@ import {
   addedCookDays,
   buildMealPrompt,
   DEFAULT_EATING_RHYTHM,
+  type EatingOccasion,
   EATING_OCCASIONS,
+  type EatingOccasionSlot,
   emptySlotsIn,
   emptySlotsLine,
   MEAL_PROMPT_VERSION,
@@ -255,7 +286,12 @@ import {
   resolveHousehold,
   toHouseholdMember,
 } from "../_shared/keel/household_composition.ts";
-import { envelopeFor, type MouthBody } from "../_shared/keel/meal_envelope.ts";
+import {
+  envelopeFor,
+  type MouthBody,
+  type PortionAdjustFor,
+  winningPortionAdjust,
+} from "../_shared/keel/meal_envelope.ts";
 import { MEAL_BODY_GENDERS } from "../_shared/keel/meal_body.ts";
 import {
   ACTIVITY_LEVELS,
@@ -1843,108 +1879,6 @@ Deno.serve(async (req) => {
             : null,
       });
     }
-    // ⚠️ `composedMembers`, PAS `members` (L3). Cette résolution décide la
-    // DIRECTION DE SERVICE du tronc commun et les add-ons par bouche: y laisser
-    // quelqu'un qui mange son propre plan tirerait la casserole vers un
-    // objectif que personne à cette table ne porte, et promettrait des grammes
-    // à un absent dans `member_deltas`.
-    const composerMemberId =
-      composedMembers.find((m) => m.userId === userId)?.memberId ?? null;
-    const resolution = resolveHousehold({
-      members: composedMembers.map((m) =>
-        toHouseholdMember(
-          m,
-          // ① L'ENVELOPPE DU COMPTE. `goalApplies` a déjà mis `goal` à `null`
-          // pour un mineur et pour une bouche d'âge inconnu, donc aucune
-          // enveloppe d'OBJECTIF n'en dérive — la garde vit là-bas, pas ici.
-          // Elle porte la série de pesées et le plancher TCA, et c'est pour ça
-          // qu'elle gagne toujours dans `mouthEnvelope`, y compris dégradée.
-          m.goal === null || m.body === null ? null : envelopeFor(
-            (GOAL_TOKENS as readonly string[]).includes(m.goal)
-              ? (m.goal as GoalToken)
-              // Repli du 2026-08-18: valait `"health"`, qui n'existe plus.
-              // `maintenance` est ce sur quoi `health` se replie, et c'est la
-              // seule lecture sûre d'un jeton illisible — elle ne creuse aucun
-              // déficit et n'ouvre aucun surplus.
-              : "maintenance",
-            m.body,
-            m.body.ageBand,
-            // FAIL-CLOSED, comme sur la lane individuelle.
-            m.body.restrictionFlag ?? true,
-            // Le pilotage du coach du foyer n'entre pas ici: le tronc est
-            // commun, et la doctrine qui le gouverne est celle du RÉFÉRENT,
-            // pas celle de chaque membre. À instruire avec FF-043 §11.
-            null,
-            // ⚠️ CE QUI EST BRANCHÉ, ET CE QUI NE L'EST PAS ENCORE.
-            // On lit le cran de la FICHE de cette bouche
-            // (`household_member_bodies`, via `keel_household_bodies_for`).
-            // Le cran d'un COMPTE vit sur `profiles.activity_level`, et cette
-            // lane ne charge pas les profils des membres — elle charge des
-            // corps par `member_id`. `null` en sortie veut alors dire « on ne
-            // sait pas » et rend l'hypothèse 1,5, c'est-à-dire EXACTEMENT le
-            // comportement d'avant ce lot: rien ne se dégrade, une moitié
-            // reste à câbler. Le chargement du profil par membre appartient au
-            // lot qui fait entrer la cible dans les grammages (L8), qui
-            // traverse déjà cette résolution.
-            lineBodies.get(m.memberId)?.activityLevel ?? null,
-          ),
-          // ② LE CORPS DE LA FICHE — REQUIS, et c'est lui qui répare le lot.
-          // Il n'achète qu'une MAINTENANCE (pédiatrique pour un mineur), jamais
-          // un objectif: sans série de pesées il n'y a pas de plancher TCA
-          // derrière, donc rien qui puisse arrêter une restriction. Une
-          // maintenance ne peut que faire descendre le tronc ou ouvrir un
-          // add-on. `mouthEnvelope` porte la règle; ici on ne fait que fournir.
-          lineBodies.get(m.memberId) ?? null,
-        )
-      ),
-      declaredReferenceMemberId: refRes.data?.reference_member_id ?? null,
-      composerMemberId,
-      daysCovered: 7,
-    });
-    issues.push(...resolution.issues);
-    console.log(JSON.stringify({
-      tag: "keel.household_meal.composition",
-      user_id: userId,
-      household_id: householdId,
-      // LE MODE MÉLANGE les deux populations (un membre protégé, ou aucune
-      // enveloppe calculable): il ne désigne personne. C'est la raison pour
-      // laquelle il est journalisable.
-      mode: resolution.mode,
-      deltas: resolution.deltas.length,
-      family_service: resolution.familyService,
-      // ══════════════════════════════════════════════════════════════════════
-      // ⛔ CE QUI ÉTAIT ÉCRIT ICI ÉTAIT UN KCAL/JOUR PAR BOUCHE, DANS UN LOG
-      // NOMINATIF, SANS QU'AUCUNE PORTE N'AIT TOURNÉ.
-      // ══════════════════════════════════════════════════════════════════════
-      //
-      // `residual_gaps: resolution.residualGaps.map((g) => g.gapKcalPerDay)`
-      // partait à côté de `user_id` ET de `household_id`, dans l'ordre des
-      // membres — donc rapprochable d'une personne. `gapKcalPerDay` est un
-      // kcal/jour par bouche (`household_composition.ts`), et NI `canShowEnergy`
-      // NI `energySafetyGates` n'ont d'appelant dans cette fonction: la clause
-      // C5 du contrat TCA (« ni réponse HTTP, ni ligne de base, ni prompt, ni
-      // log nominatif, ni écran sans que la porte ait dit oui AVANT que le
-      // nombre soit calculé ») était violée à l'instant où la ligne s'écrivait.
-      // Trouvé par L4-B le 2026-08-18, sur une ligne antérieure (`9cd01739`).
-      //
-      // ⚠️ ON AGRÈGE, ON NE SUPPRIME PAS. `residual_gaps` est l'instrumentation
-      // d'A3: sans elle, la décision d'armer le slot de dressage se prendrait à
-      // l'aveugle. Ce qu'elle sert à décider est « y a-t-il des écarts, et
-      // sont-ils gros ? » — deux questions auxquelles un COMPTE et une BANDE
-      // répondent, et qui ne désignent personne. Ce qu'elle ne doit pas servir
-      // à faire est de lire le déficit de la troisième bouche de la maison.
-      //
-      // Les bandes sont grossières exprès: `lt_200` / `gte_200` sépare « un
-      // reste d'arrondi » de « une bouche que la casserole ne sert pas », ce
-      // qui est la seule décision qui se prend là-dessus.
-      residual_gaps_count: resolution.residualGaps.length,
-      residual_gaps_max_band: resolution.residualGaps.length === 0
-        ? "none"
-        : Math.max(...resolution.residualGaps.map((g) => g.gapKcalPerDay)) >= 200
-        ? "gte_200"
-        : "lt_200",
-    }));
-
     // ── LES RESTRICTIONS DE MAISON ──────────────────────────────────────
     // Lues telles quelles. Le fait qu'elles soient LÉGITIMES a déjà été tranché
     // à l'écriture (`keel_household_add_restriction`: compte maître, membre de
@@ -2033,6 +1967,16 @@ Deno.serve(async (req) => {
     // et c'est elle qui l'écrit. Même arbitrage que la porte 1 de FF-061, dix
     // lignes plus bas dans ce fichier.
     let draftNoteSuffix = "";
+    // ── LOT 2D · LE VERDICT SURVIT À CE BLOC, ET LUI SEUL ──────────────────
+    // Il est relu ~3200 lignes plus bas, APRÈS l'écriture du plan du foyer,
+    // pour ranger ce que le maître a demandé (`classifyAndPersistDraftNote`).
+    //
+    // ⛔ C'EST LE VERDICT QU'ON GARDE, PAS `body.draft_note` NI `note.usable`.
+    // Le classifieur exige un `DraftNoteVerdict` — seul `readDraftNote` en
+    // produit — parce que sa charge repart au modèle: une `string` rouvrirait
+    // la garde d'entrée dans un second appel. Le type ferme la porte, et
+    // remplacer cette variable par une chaîne ne compilerait pas.
+    let draftNoteVerdict: DraftNoteVerdict | null = null;
     if (operation === "compose" && hasDraftNote(body.draft_note)) {
       const note = readDraftNote({
         raw: body.draft_note,
@@ -2059,6 +2003,10 @@ Deno.serve(async (req) => {
         }, { status: 400 });
       }
       draftNoteSuffix = `\n\n${draftNoteInstruction(note.usable)}`;
+      // ⚠️ APRÈS LES DEUX REFUS CI-DESSUS, JAMAIS AVANT. Une note refusée sort
+      // en 400 et n'atteint jamais l'écriture: le classifieur ne verra donc
+      // que des verdicts que la garde a laissés passer.
+      draftNoteVerdict = note;
     }
 
     let protocolBlock = "";
@@ -2203,6 +2151,298 @@ Deno.serve(async (req) => {
     });
     goalRow.practical_constraints = foodPreferences.constraints;
 
+    // ══ LOT 1C · LA MÉMOIRE STRUCTURÉE ENTRE ICI ═══════════════════════════
+    //
+    // ⚠️ AVANT `const pc`, et c'est la seule place possible: `logistics.set`
+    // CORRIGE `practical_constraints`, et `pc` est la référence que TOUS les
+    // lecteurs de cette colonne partagent ensuite (rythme, capacité,
+    // équipement). Poser le correctif après cette ligne le rendrait invisible
+    // à tous, et la trace dirait le contraire du prompt.
+    //
+    // Chaque famille va où son lecteur l'attend (nomenclature §2 axe 1):
+    //   `food.*` / `method.*` → le bloc DES VOIX, sous le titulaire concerné
+    //                           (voir plus bas — jamais le tronc, D4/L6);
+    //   `portion.adjust`      → l'audience, calculée ICI sur le vrai roster;
+    //   `rhythm.set`          → l'union des moments de la maison;
+    //   `logistics.set`       → `practical_constraints`, ici;
+    //   `craving`             → la ligne d'envies du foyer.
+    const retainedDurable = readRetainedItems(
+      goalRow.practical_constraints as Record<string, unknown> | null,
+    );
+    // ⚠️ CE BLOC ÉTAIT DOUBLEMENT FAUX JUSQU'AU LOT 1J. Il disait que le canal
+    // `next_plan` de cette lane était `household_envy_submissions`, « clé sur
+    // `household_id` », et que c'était « la différence avec les deux lanes
+    // individuelles, où le vide est structurel ». Le canal a déménagé (§7.2),
+    // et l'ancienne clé `user_id` de cette table a été DROPPÉE (§7.1): il n'y a
+    // donc plus ni ce magasin-là, ni cette différence-là.
+    //
+    // CE QUI EST VRAI: `nextPlanItemsFor({admin, userId, today})` lit
+    // `student_goals.practical_constraints.retained_next_plan`, PAR `user_id`
+    // SEUL, et les TROIS lanes sont servies par le même chemin — le solo comme
+    // le foyer. `household_envy_submissions` reste ce qu'il a toujours été: la
+    // phrase libre du maître pour toute la maison (`envyLine`, plus bas), une
+    // ligne par foyer et par semaine.
+    let retainedNextPlan: RetainedItem[] = [];
+    try {
+      retainedNextPlan = await nextPlanItemsFor({
+        admin,
+        userId,
+        today: todayDate,
+      });
+    } catch (error) {
+      // BEST-EFFORT: un générateur qui rend une erreur à une famille le samedi
+      // soir est un produit mort (§8.4).
+      console.warn(`[${FN_NAME}] next_plan retained items unreadable`, error);
+      issues.push("retained_next_plan_unreadable");
+    }
+    const routedRetained = routeRetainedItems([
+      ...retainedDurable.items,
+      ...retainedNextPlan,
+    ]);
+    // ⚠️ LE MAGASIN LU EST CELUI DU SEUL TITULAIRE QUI COMPOSE — LES DEUX
+    // MAGASINS, ET LE TROU EST PLUS LARGE QUE CE QU'ON A LONGTEMPS ÉCRIT ICI.
+    //
+    // Ce commentaire ne nommait que le magasin DURABLE (`retained_items`, que
+    // `loadHouseholdVoices` ne lit pas encore). Il manquait la moitié qui coûte
+    // le plus cher: `nextPlanItemsFor` est appelée avec le `userId` de la seule
+    // personne qui appuie sur le bouton, donc **les envies de la semaine
+    // déposées par les AUTRES titulaires ne sont lues par PERSONNE**. Elles
+    // vivent dans LEUR `practical_constraints.retained_next_plan`, et aucun
+    // chemin de cette lane n'y descend. Un membre qui écrit « des fajitas cette
+    // semaine » sur son propre compte voit sa demande enregistrée, affichée sur
+    // sa carte, et sans le moindre effet sur le plan de la maison — dès que ce
+    // n'est pas lui qui compose.
+    //
+    // ⛔ TROU NOMMÉ, PAS UN OUBLI DE CÂBLAGE, et il ne se referme pas ici: qui
+    // parle pour la maison quand deux titulaires demandent des choses opposées
+    // est une DÉCISION PRODUIT (le §2 axe 3 de la nomenclature ne tranche que
+    // les portions). Techniquement, fermer les deux moitiés demande d'écrire
+    // dans `household_voices_io.ts`, qui n'appartient pas à ce lot.
+    const ownerMemberId = members.find((m) => m.userId === userId)?.memberId ??
+      null;
+    const ownerSubject = ownerMemberId ? memberSubject(ownerMemberId) : null;
+    // `household` ET la bouche du titulaire: c'est SA colonne qu'on lit, donc
+    // un item qu'il aurait écrit sur lui-même le concerne. Les autres bouches
+    // sont comptées (`otherSubjects`), jamais appliquées — appliquer la règle
+    // d'une bouche à la table entière est exactement ce que l'axe 3 interdit.
+    const retainedSpeaksFor = ownerSubject
+      ? [HOUSEHOLD_SUBJECT, ownerSubject]
+      : [HOUSEHOLD_SUBJECT];
+    const retainedLogistics = logisticsOverlayFor({
+      items: routedRetained.logistics,
+      speaksFor: retainedSpeaksFor,
+    });
+    if (Object.keys(retainedLogistics.patch).length > 0) {
+      goalRow.practical_constraints = {
+        ...(goalRow.practical_constraints ?? {}) as Record<string, unknown>,
+        ...retainedLogistics.patch,
+      };
+    }
+    const retainedRhythm = rhythmOverlayFor({
+      items: routedRetained.rhythm,
+      speaksFor: retainedSpeaksFor,
+    });
+    const retainedComposition = compositionLinesFor({
+      items: routedRetained.composition,
+      speaksFor: retainedSpeaksFor,
+    });
+    const retainedCravings = cravingLinesFor({
+      items: routedRetained.craving,
+      speaksFor: retainedSpeaksFor,
+    });
+    // ── `portion.adjust` · L'AUDIENCE, SUR LE VRAI ROSTER ─────────────────
+    //
+    // C'est la SEULE des trois lanes qui a des bouches avec leur `ageState`,
+    // donc la seule où la règle du §2 axe 3 a quelque chose à mordre: un
+    // ajustement À LA BAISSE sans sujet explicite ne s'applique pas à un
+    // mineur, ni à une bouche dont l'âge n'a pas été saisi.
+    //
+    // ⛔ LA RÈGLE N'EST PAS RÉÉCRITE ICI. `subjectsForPortionAdjust` (socle) la
+    // tient; `portionAdjustsFor` ne fait que l'appeler par item. Deux copies
+    // divergeraient, et c'est celle qu'on relit le moins qui retirerait de la
+    // nourriture à un enfant, en silence.
+    //
+    // ⛔ ET RIEN N'EST TRADUIT EN ÉNERGIE ICI. `envelopeFor` est le lecteur, et
+    // la traduction vit dans `applyPortionAdjust`, en aval, là où le plancher
+    // TCA s'applique. Ce bloc transmet `{direction, magnitude}` intacts.
+    const retainedPortion = portionAdjustsFor(
+      routedRetained.portion,
+      members.map((m) => ({ memberId: m.memberId, ageState: m.ageState })),
+    );
+    /**
+     * ── LOT 1G · CE QUI PART À L'ENVELOPPE, BOUCHE PAR BOUCHE ─────────────
+     *
+     * Une fonction et pas un littéral recopié dans la résolution: deux
+     * constructions du même couple divergeraient, et celle qu'on relit le
+     * moins finirait par passer une bouche sans son `ageState` — c'est-à-dire
+     * la garde du §2 axe 3 désarmée sans qu'une ligne ne le dise.
+     *
+     * ⚠️ `items` EST LA LISTE ENTIÈRE, PAS `retainedPortion`. Le filtrage par
+     * bouche est le travail de `subjectsForPortionAdjust`, appelé par
+     * `winningPortionAdjust` avec le roster réduit à cette bouche. Pré-filtrer
+     * ici ferait une seconde application de la règle, en amont de celle qui
+     * fait autorité. `retainedPortion` sert au CONSTAT (qui est exclu, et
+     * pourquoi), calculé sur le VRAI roster — pas à l'effet.
+     */
+    const portionAdjustFor = (
+      mouth: { memberId: string; ageState: MemberAgeState },
+    ): PortionAdjustFor => ({
+      mouth: { memberId: mouth.memberId, ageState: mouth.ageState },
+      items: routedRetained.portion,
+    });
+    // ⚠️ `composedMembers`, PAS `members` (L3). Cette résolution décide la
+    // DIRECTION DE SERVICE du tronc commun et les add-ons par bouche: y laisser
+    // quelqu'un qui mange son propre plan tirerait la casserole vers un
+    // objectif que personne à cette table ne porte, et promettrait des grammes
+    // à un absent dans `member_deltas`.
+    const composerMemberId =
+      composedMembers.find((m) => m.userId === userId)?.memberId ?? null;
+    const resolution = resolveHousehold({
+      members: composedMembers.map((m) =>
+        toHouseholdMember(
+          m,
+          // ① L'ENVELOPPE DU COMPTE. `goalApplies` a déjà mis `goal` à `null`
+          // pour un mineur et pour une bouche d'âge inconnu, donc aucune
+          // enveloppe d'OBJECTIF n'en dérive — la garde vit là-bas, pas ici.
+          // Elle porte la série de pesées et le plancher TCA, et c'est pour ça
+          // qu'elle gagne toujours dans `mouthEnvelope`, y compris dégradée.
+          m.goal === null || m.body === null ? null : envelopeFor(
+            (GOAL_TOKENS as readonly string[]).includes(m.goal)
+              ? (m.goal as GoalToken)
+              // Repli du 2026-08-18: valait `"health"`, qui n'existe plus.
+              // `maintenance` est ce sur quoi `health` se replie, et c'est la
+              // seule lecture sûre d'un jeton illisible — elle ne creuse aucun
+              // déficit et n'ouvre aucun surplus.
+              : "maintenance",
+            m.body,
+            m.body.ageBand,
+            // FAIL-CLOSED, comme sur la lane individuelle.
+            m.body.restrictionFlag ?? true,
+            // Le pilotage du coach du foyer n'entre pas ici: le tronc est
+            // commun, et la doctrine qui le gouverne est celle du RÉFÉRENT,
+            // pas celle de chaque membre. À instruire avec FF-043 §11.
+            null,
+            // ⚠️ CE QUI EST BRANCHÉ, ET CE QUI NE L'EST PAS ENCORE.
+            // On lit le cran de la FICHE de cette bouche
+            // (`household_member_bodies`, via `keel_household_bodies_for`).
+            // Le cran d'un COMPTE vit sur `profiles.activity_level`, et cette
+            // lane ne charge pas les profils des membres — elle charge des
+            // corps par `member_id`. `null` en sortie veut alors dire « on ne
+            // sait pas » et rend l'hypothèse 1,5, c'est-à-dire EXACTEMENT le
+            // comportement d'avant ce lot: rien ne se dégrade, une moitié
+            // reste à câbler. Le chargement du profil par membre appartient au
+            // lot qui fait entrer la cible dans les grammages (L8), qui
+            // traverse déjà cette résolution.
+            lineBodies.get(m.memberId)?.activityLevel ?? null,
+            // ── `portion.adjust` · BRANCHÉ (lot 1G) ───────────────────────
+            // Le défaut n'était PAS une traduction manquante, c'était un ORDRE:
+            // cette résolution vivait ~430 lignes AU-DESSUS de la lecture des
+            // items retenus. Le lot 1G a descendu le bloc entier sous cette
+            // lecture — un déplacement, sans une ligne réécrite.
+            //
+            // ⛔ L'AUDIENCE NE SE CALCULE PAS ICI. On passe la bouche et les
+            // items; `winningPortionAdjust` (meal_envelope) appelle
+            // `subjectsForPortionAdjust` avec le roster réduit à CETTE bouche.
+            // La règle du §2 axe 3 mord donc là où elle est écrite, une seule
+            // fois: un mineur — et une bouche dont l'âge n'a pas été saisi — ne
+            // reçoit aucun `down` sans sujet explicite, et l'exclusion sort
+            // dans `keel.household_meal.retained_items` avec son motif.
+            portionAdjustFor(m),
+          ),
+          // ② LE CORPS DE LA FICHE — REQUIS, et c'est lui qui répare le lot.
+          // Il n'achète qu'une MAINTENANCE (pédiatrique pour un mineur), jamais
+          // un objectif: sans série de pesées il n'y a pas de plancher TCA
+          // derrière, donc rien qui puisse arrêter une restriction. Une
+          // maintenance ne peut que faire descendre le tronc ou ouvrir un
+          // add-on. `mouthEnvelope` porte la règle; ici on ne fait que fournir.
+          lineBodies.get(m.memberId) ?? null,
+        )
+      ),
+      declaredReferenceMemberId: refRes.data?.reference_member_id ?? null,
+      composerMemberId,
+      daysCovered: 7,
+    });
+    issues.push(...resolution.issues);
+    console.log(JSON.stringify({
+      tag: "keel.household_meal.composition",
+      user_id: userId,
+      household_id: householdId,
+      // LE MODE MÉLANGE les deux populations (un membre protégé, ou aucune
+      // enveloppe calculable): il ne désigne personne. C'est la raison pour
+      // laquelle il est journalisable.
+      mode: resolution.mode,
+      deltas: resolution.deltas.length,
+      family_service: resolution.familyService,
+      // ══════════════════════════════════════════════════════════════════════
+      // ⛔ CE QUI ÉTAIT ÉCRIT ICI ÉTAIT UN KCAL/JOUR PAR BOUCHE, DANS UN LOG
+      // NOMINATIF, SANS QU'AUCUNE PORTE N'AIT TOURNÉ.
+      // ══════════════════════════════════════════════════════════════════════
+      //
+      // `residual_gaps: resolution.residualGaps.map((g) => g.gapKcalPerDay)`
+      // partait à côté de `user_id` ET de `household_id`, dans l'ordre des
+      // membres — donc rapprochable d'une personne. `gapKcalPerDay` est un
+      // kcal/jour par bouche (`household_composition.ts`), et NI `canShowEnergy`
+      // NI `energySafetyGates` n'ont d'appelant dans cette fonction: la clause
+      // C5 du contrat TCA (« ni réponse HTTP, ni ligne de base, ni prompt, ni
+      // log nominatif, ni écran sans que la porte ait dit oui AVANT que le
+      // nombre soit calculé ») était violée à l'instant où la ligne s'écrivait.
+      // Trouvé par L4-B le 2026-08-18, sur une ligne antérieure (`9cd01739`).
+      //
+      // ⚠️ ON AGRÈGE, ON NE SUPPRIME PAS. `residual_gaps` est l'instrumentation
+      // d'A3: sans elle, la décision d'armer le slot de dressage se prendrait à
+      // l'aveugle. Ce qu'elle sert à décider est « y a-t-il des écarts, et
+      // sont-ils gros ? » — deux questions auxquelles un COMPTE et une BANDE
+      // répondent, et qui ne désignent personne. Ce qu'elle ne doit pas servir
+      // à faire est de lire le déficit de la troisième bouche de la maison.
+      //
+      // Les bandes sont grossières exprès: `lt_200` / `gte_200` sépare « un
+      // reste d'arrondi » de « une bouche que la casserole ne sert pas », ce
+      // qui est la seule décision qui se prend là-dessus.
+      residual_gaps_count: resolution.residualGaps.length,
+      residual_gaps_max_band: resolution.residualGaps.length === 0
+        ? "none"
+        : Math.max(...resolution.residualGaps.map((g) => g.gapKcalPerDay)) >= 200
+        ? "gte_200"
+        : "lt_200",
+    }));
+
+    console.log(JSON.stringify({
+      tag: "keel.household_meal.retained_items",
+      user_id: userId,
+      household_id: householdId,
+      ...routingTrace({ routed: routedRetained, adjustments: retainedPortion }),
+      // Ce que le magasin a REFUSÉ à la lecture. Zéro ne veut pas dire « rien
+      // en base »: il veut dire « rien d'illisible », et les deux se
+      // confondraient sans ce nombre.
+      refused: retainedDurable.refused.total,
+      legacy_notes: retainedDurable.legacyNotes.length,
+      other_subjects: retainedComposition.otherSubjects.length +
+        retainedLogistics.otherSubjects.length +
+        retainedRhythm.otherSubjects.length +
+        retainedCravings.otherSubjects.length,
+      // ⚠️ LE COMPTEUR A CHANGÉ DE SENS AU LOT 1G, ET C'EST VOLONTAIRE.
+      // Il valait `portion_unapplied` — le nombre d'ajustements que
+      // l'enveloppe NE recevait pas. Le laisser tel quel maintenant que le
+      // câblage existe donnerait le même nombre pour « rien à appliquer » et
+      // pour « tout appliqué »: un lot désarmé ressemblerait trait pour trait
+      // à un lot qui marche.
+      //
+      // `portion_applied` compte les BOUCHES dont l'enveloppe a réellement
+      // bougé, et il est calculé par le MÊME arbitre que celui qu'`envelopeFor`
+      // applique (`winningPortionAdjust`) — pas par une seconde lecture à la
+      // main de la règle du §2 axe 3.
+      //
+      // Les trois nombres se lisent ENSEMBLE, et c'est ce qui les rend utiles:
+      //   `portion` (routingTrace) = ce qui est sorti du magasin
+      //   `portion_applied`        = les bouches servies
+      //   `portion_excluded`       = qui a été retiré, avec son motif
+      // Un `portion` non nul avec `portion_applied: 0` et `portion_excluded`
+      // vide est la signature exacte d'un câblage rompu.
+      portion_applied: composedMembers.filter((m) =>
+        winningPortionAdjust(portionAdjustFor(m)) !== null
+      ).length,
+    }));
+
     const pc = goalRow.practical_constraints as Record<string, unknown> | null;
     // ── LES MOMENTS DE LA MAISON = L'UNION DES MOMENTS DES BOUCHES ────────
     //
@@ -2231,10 +2471,34 @@ Deno.serve(async (req) => {
     // de la maison, sans que personne l'ait dit. Ce que la taille d'une bouche
     // gouverne est SA part, et c'est `buildPortionBrief` qui l'écrit, ligne par
     // ligne.
-    const eatingRhythm = parseEatingRhythm([
-      ...(Array.isArray(pc?.eating_rhythm) ? pc!.eating_rhythm as unknown[] : []),
-      ...members.flatMap((m) => (m.eatingSlots ?? []).map((o) => o.slot)),
-    ]);
+    const eatingRhythm = ((): EatingOccasionSlot[] => {
+      const union = parseEatingRhythm([
+        ...(Array.isArray(pc?.eating_rhythm) ? pc!.eating_rhythm as unknown[] : []),
+        ...members.flatMap((m) => (m.eatingSlots ?? []).map((o) => o.slot)),
+      ]);
+      // LOT 1C — `rhythm.set` CORRIGE l'union, il ne la remplace pas. Rien à
+      // corriger ⇒ la valeur d'avant ce lot, au slot près.
+      //
+      // ⚠️ APRÈS L'UNION, ET PAS DEDANS. Un item retenu qui RETIRE un moment
+      // doit le retirer de la grille du plan — le glisser dans le tableau
+      // d'entrée de `parseEatingRhythm` ne saurait qu'en AJOUTER, et un
+      // « plus de goûter » n'aurait alors aucun effet.
+      if (
+        retainedRhythm.present.length === 0 && retainedRhythm.absent.length === 0
+      ) {
+        return union;
+      }
+      const bySlot = new Map<EatingOccasion, EatingOccasionSlot>();
+      for (const entry of union) bySlot.set(entry.slot, entry);
+      for (const occasion of retainedRhythm.absent) bySlot.delete(occasion);
+      for (const occasion of retainedRhythm.present) {
+        // La taille n'est PAS inventée: un `rhythm.set` dit qu'un moment
+        // existe, jamais quelle taille il fait. `size: null` est ce que
+        // `parseEatingRhythm` rend d'un moment déclaré sans taille.
+        if (!bySlot.has(occasion)) bySlot.set(occasion, { slot: occasion, size: null });
+      }
+      return EATING_OCCASIONS.filter((s) => bySlot.has(s)).map((s) => bySlot.get(s)!);
+    })();
     const capacity = readCookingCapacity(pc);
     const scope: MealScope = durationDays === 1 ? "day" : "several_days";
     const daysToFill = windowDayOrder(startsOn, durationDays);
@@ -2999,10 +3263,69 @@ Deno.serve(async (req) => {
           ? ((pc ?? {}) as Record<string, unknown>)
           : null,
       }));
-    const voices = await loadHouseholdVoices(admin, {
+    const loadedVoices = await loadHouseholdVoices(admin, {
       members: voiceMembers,
       source: FN_NAME,
     });
+    // ══ LOT 1C · LES `food.*` / `method.*` RETENUS ENTRENT PAR LES VOIX ════
+    //
+    // ⚠️ PAS PAR LE TRONC, ET C'EST LA RAISON D'ÊTRE DE D4/L6. Le tronc reçoit
+    // `foodPreferences: []` et `writtenInstructions: []` sur cette lane parce
+    // que le plafond par membre ET la garde de non-divulgation vivent dans
+    // `household_voices.ts`. Rouvrir la porte du tronc pour ces lignes-ci
+    // ferait un SECOND chemin, sans garde, et rien n'échouerait le jour où la
+    // garde bougerait. Il n'y a donc qu'une porte, et elle garde.
+    //
+    // ⚠️ SOUS LE TITULAIRE QUI COMPOSE, par son `member_id`. Ce n'est pas une
+    // attribution neuve: sa colonne `food_preferences` part DÉJÀ dans son
+    // propre bloc de voix depuis D4/L6, et ces items viennent de la même
+    // colonne. Sans `ownerMemberId` (une bouche introuvable), les lignes ne
+    // sont attachées à personne plutôt qu'à quelqu'un au hasard — et le
+    // compteur ci-dessous le dit.
+    //
+    // ELLES PASSENT DEVANT. Le plafond de `buildHouseholdVoices` coupe par la
+    // QUEUE: ce qui tombe est donc la plus vieille phrase plate, jamais un
+    // item structuré. Le §7 de la nomenclature nomme ces phrases « anciennes
+    // notes » — elles n'ont ni `kind`, ni sujet, ni date fiable.
+    const retainedVoiceLines = [
+      ...retainedComposition.written,
+      ...retainedComposition.remembered,
+    ];
+    const voices = (() => {
+      if (retainedVoiceLines.length === 0 || !ownerMemberId) return loadedVoices;
+      const existing = loadedVoices.voices.find((v) => v.memberId === ownerMemberId);
+      if (existing) {
+        return {
+          ...loadedVoices,
+          voices: loadedVoices.voices.map((v) =>
+            v.memberId === ownerMemberId
+              ? { ...v, lines: [...retainedVoiceLines, ...v.lines] }
+              : v
+          ),
+        };
+      }
+      // Le titulaire n'apparaît pas dans les voix quand sa colonne ne portait
+      // AUCUNE phrase plate (`loadHouseholdVoices` saute les listes vides). Ses
+      // items structurés ne doivent pas disparaître pour autant.
+      const ownerName = members.find((m) => m.memberId === ownerMemberId)
+        ?.displayName ?? "";
+      return {
+        ...loadedVoices,
+        voices: [
+          ...loadedVoices.voices,
+          {
+            memberId: ownerMemberId,
+            displayName: ownerName,
+            lines: retainedVoiceLines,
+          },
+        ],
+      };
+    })();
+    if (retainedVoiceLines.length > 0 && !ownerMemberId) {
+      // NOMMÉ: sans cette ligne, des consignes écrites par la personne qui
+      // compose seraient tombées sans un mot.
+      issues.push(`retained_lines_unattached:${retainedVoiceLines.length}`);
+    }
     issues.push(...voices.issues);
     // LE COÛT, OBSERVABLE EN PRODUCTION. Même raison que le log des corps juste
     // au-dessus: ce lot fait passer la lecture de préférences de 1 à N par
@@ -3287,7 +3610,20 @@ Deno.serve(async (req) => {
       // est appelé une seule fois, dans le module qui écrit le bloc, et c'est
       // ce qui empêche la trace de mentir sur ce que le prompt a dit.
       kitchenEquipment: readKitchenEquipment(pc),
-      envyLine,
+      // ══ LOT 1C · LES `craving` RETENUS REJOIGNENT LA LIGNE D'ENVIES ══════
+      //
+      // C'est leur lecteur nommé par la nomenclature, et il n'y en a pas
+      // d'autre sur cette lane. La ligne du maître passe DEVANT: elle a été
+      // écrite pour CETTE semaine, en toutes lettres, par la personne qui tient
+      // le foyer.
+      //
+      // ⚠️ LE PLAFOND RESTE CELUI DE `buildEnvyBlock` (`MAX_ENVY_CHARS`, 500).
+      // En poser un second ici couperait avant lui, sur une autre règle, et la
+      // ligne servie ne serait plus celle qu'aucun des deux annonce.
+      envyLine: [
+        ...(envyLine ? [envyLine] : []),
+        ...retainedCravings.lines,
+      ].join(" · ") || null,
       restrictions,
       presence,
       merge: merge === null || ladder === null || mergedMember === null
@@ -4447,6 +4783,18 @@ Deno.serve(async (req) => {
               // n'avait rien confirmé » laissent la même trace — et c'est
               // exactement la question que D4 existe pour trancher.
               //
+              // ⚠️ CETTE ÉNUMÉRATION N'EST PLUS COMPLÈTE, ET C'EST DIT PLUTÔT
+              // QUE TU. Il existe une CINQUIÈME cause de disparition depuis que
+              // `buildHouseholdVoices` distingue « le budget est épuisé » de
+              // « cette ligne-là ne tient à aucune position »: `linesTooLong`
+              // (`voice_line_too_long:<membre>:<n>`). Elle n'est PAS agrégée
+              // ici — seul `per_member.too_long` la porte, juste en dessous.
+              // Les deux motifs se lisent en sens opposés: `over_cap` dit « le
+              // plafond est peut-être trop bas pour ce foyer », `too_long` dit
+              // « un producteur écrit trop long ». Une énumération périmée se
+              // relit comme une spécification, et celle-ci laissait croire que
+              // quatre nombres suffisaient à savoir où sont passées les lignes.
+              //
               // ⚠️ LES NOMBRES VIENNENT DU MODULE, PAS DES `issues`, ET C'EST
               // UNE CORRECTION MESURÉE. Ils étaient dérivés en comptant des
               // CHAÎNES: une ligne retenue par la garde sur trois formes de
@@ -4844,6 +5192,42 @@ Deno.serve(async (req) => {
     // ⚠️ CELLE DES AUTRES TITULAIRES N'A JAMAIS RIEN À ÉCRIRE (C4): leur
     // `actor` est `someone_else`, donc `pending` y vaut toujours `null`.
     await persistReconciledFoodPreferences(foodPreferences.pending);
+
+    // ── LOT 2D · CE QUE LE MAÎTRE A DEMANDÉ SUR SON BROUILLON, RANGÉ ───────
+    //
+    // ⚠️ ICI, ET PAS DIX LIGNES PLUS HAUT. `intent: "draft"` est sorti bien
+    // avant ce point (`if (isDraft) return …`): sur un aperçu il n'y a pas
+    // encore de plan, et ranger une envie qui vise un plan que la personne peut
+    // encore abandonner écrirait une mémoire pour un geste qui n'a pas eu lieu.
+    //
+    // ⚠️ L'ANCRE EST `startsOn` — LA SEMAINE VISÉE — ET PAS `todayDate`.
+    // Un foyer qui adopte le dimanche un plan qui commence lundi vise la
+    // semaine SUIVANTE; ancrer sur le jour de la frappe ferait mourir l'envie
+    // le lendemain matin (§7.3: vivant tant que `jour ≤ ancre + 6`). `today`
+    // reste le jour de la frappe: c'est le `at` de l'item, pas son ancre.
+    //
+    // ⚠️ LE RÔLE VIENT DE `composedMembers`, PAS DE `members` (L3). Le modèle
+    // ne peut recopier que des `member_id` de bouches RÉELLEMENT à cette table:
+    // une bouche qui a repris la main sur son plan personnel n'est pas servie
+    // ici, et lui attribuer une envie la rangerait chez quelqu'un d'absent.
+    //
+    // ⚠️ NE PEUT PAS FAIRE ÉCHOUER LA RÉPONSE, comme la ligne au-dessus: le
+    // module rend un résultat, jamais une exception. Le plan est déjà écrit.
+    if (draftNoteVerdict !== null) {
+      await classifyAndPersistDraftNote({
+        admin,
+        userId,
+        note: draftNoteVerdict,
+        today: todayDate,
+        targetWeek: startsOn,
+        members: composedMembers.map((m) => ({
+          memberId: m.memberId,
+          label: m.displayName,
+        })),
+        contentLocale: built.contentLocale,
+        requestId,
+      });
+    }
 
     return jsonResponse(req, {
       ok: true,

@@ -299,6 +299,36 @@ Deno.test("un inconnu de classe dense est signalé — dans les deux langues", (
   assert(r.unresolvedEnergyDense, "une matière grasse inconnue doit se voir");
 });
 
+Deno.test("une matière grasse CONNUE mais non pesée se voit aussi", () => {
+  // ── LE MIROIR DE LA GARDE PRÉCÉDENTE ────────────────────────────────────
+  // « olive oil » se résout, donc `coverage` le compte comme connu — 100 %.
+  // Mais sans unité, il ne produit pas de grammes, il sort de `resolved`, et
+  // son énergie n'entre dans AUCUNE somme. Sans ce drapeau, le plat se
+  // présenterait comme parfaitement lisible en ayant perdu 900 kcal/100 g.
+  const r = resolveIngredients(INDEX, [
+    { term: "chicken breast", amount: 150, unit: "g", state: "raw" },
+    { term: "olive oil", amount: 2, unit: null, state: "raw" },
+  ]);
+  assertEquals(r.unresolvedTerms, [], "rien n'est inconnu ici");
+  assertEquals(r.coverage, 1, "la couverture ne voit aucun trou");
+  assert(r.unweighedTerms.includes("olive oil"));
+  assert(r.unweighedEnergyDense, "l'huile non pesée doit lever le drapeau");
+});
+
+Deno.test("un CONDIMENT non pesé ne lève pas le drapeau dense", () => {
+  // La contre-épreuve, et c'est tout l'objet de la distinction: une tomate ou
+  // un oignon sans poids ne déplace pas l'énergie d'un plat. Si ce test
+  // tombait en même temps que le précédent, le drapeau serait un simple
+  // synonyme de `unweighedTerms.length > 0` — donc une garde qui s'abstient
+  // sur du sel, exactement ce qu'on vient de retirer de la porte des 80 %.
+  const r = resolveIngredients(INDEX, [
+    { term: "chicken breast", amount: 150, unit: "g", state: "raw" },
+    { term: "tomatoes", amount: 2, unit: "unit", state: "raw" },
+  ]);
+  assert(r.unweighedTerms.includes("tomatoes"), "la tomate n'est pas pesable ici");
+  assert(!r.unweighedEnergyDense, "un légume non pesé ne déplace pas l'énergie");
+});
+
 Deno.test("résolu mais NON PESÉ est compté à part de non résolu", () => {
   // Les deux compteurs pilotent deux chantiers différents: l'un la curation
   // d'alias, l'autre le respect du contrat de quantités structurées. Les
@@ -374,6 +404,7 @@ function parseWith(
     fixedIntakes: [],
     dayProperties: [],
     merge: null,
+    boxMemberIds: [],
     ...over,
   });
 }
@@ -404,7 +435,6 @@ Deno.test("les grammes ne sont JAMAIS lus d'un champ du modèle", () => {
       grams_raw: 9999,
       gramsRaw: 9999,
     },
-    boxMemberIds: [],
   ]);
   assertEquals(meal.dishes[0].ingredients[0].gramsRaw, 150);
 });
@@ -452,6 +482,41 @@ Deno.test("l'issue de quantité est AGRÉGÉE, une seule ligne", () => {
   const lines = meal.issues.filter((i) => i.startsWith("structured_quantity_missing"));
   assertEquals(lines.length, 1);
   assert(lines[0].includes("3/3"));
+});
+
+Deno.test("la part DENSE sans grammes est NOMMÉE, à part du compteur", () => {
+  // ── POURQUOI DEUX CANAUX ────────────────────────────────────────────────
+  // « 26 ingrédients sans grammes » et « l'huile d'olive n'a pas de grammes »
+  // ont le même compteur et pas du tout le même coût: les 26 sont du sel et du
+  // poivre, l'huile éteint le verdict de son plat (`unweighedEnergyDense`).
+  // Mesuré sur 80 générations réelles: 82 lignes d'huile sans quantité.
+  //
+  // Ici on NOMME — la liste est courte par construction, et c'est le terme
+  // exact qu'il faut pour savoir si la consigne du prompt a porté.
+  const meal = parseWith([
+    { term: "chicken breast", quantity: "150 g", amount: 150, unit: "g", state: "raw" },
+    { term: "olive oil", quantity: "a drizzle" },
+    { term: "tomatoes", quantity: "a handful" },
+  ]);
+  const dense = meal.issues.filter((i) => i.startsWith("energy_dense_unweighed"));
+  assertEquals(dense.length, 1);
+  assert(dense[0].includes("olive oil"));
+  // ⚠️ LA CONTRE-ÉPREUVE: la tomate est sans grammes elle aussi, et elle n'a
+  // rien à faire là. Sans cette assertion, le canal dense serait un synonyme
+  // du compteur — donc un second nom pour la même chose.
+  assert(!dense[0].includes("tomato"), "un légume n'est pas de la classe dense");
+});
+
+Deno.test("aucune ligne dense ⇒ AUCUNE issue dense", () => {
+  // Le cas qui passe. Une garde qui lève toujours ressemble à une garde qui
+  // marche, et celle-ci se déclencherait sur chaque plan si elle lisait le
+  // simple fait qu'un ingrédient n'est pas pesé.
+  const meal = parseWith([
+    { term: "chicken breast", quantity: "150 g", amount: 150, unit: "g", state: "raw" },
+    { term: "olive oil", quantity: "1 tbsp", amount: 1, unit: "tbsp", state: "raw" },
+    { term: "tomatoes", quantity: "a handful" },
+  ]);
+  assertEquals(meal.issues.filter((i) => i.startsWith("energy_dense_unweighed")), []);
 });
 
 Deno.test("condition de désarmement: l'ANCIEN format parse comme avant", () => {

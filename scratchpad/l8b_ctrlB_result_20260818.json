@@ -1,0 +1,944 @@
+{
+  "status": 200,
+  "ms": 26845,
+  "json": {
+    "ok": true,
+    "meal": {
+      "id": "b2eecc78-cff4-4e45-b52d-df333fa59c4d"
+    },
+    "window": {
+      "starts_on": "2026-08-19",
+      "duration_days": 2
+    },
+    "suggested_window": {
+      "starts_on": "2026-08-18",
+      "shifted": null
+    },
+    "rationale": {
+      "lines": [
+        "This plan covers 2 days, starting Wednesday 2026-08-19.",
+        "Quantities are made for 4 people."
+      ],
+      "refusal": null
+    },
+    "request_report": {
+      "lines": [],
+      "refusal": null
+    },
+    "household": {
+      "id": "4123e479-f62a-4a3c-912e-5c7cb5c1f15a",
+      "member_count": 4
+    },
+    "dishes": [
+      {
+        "name": "Yogurt, berries and oats",
+        "title": "Greek yoghurt, berries and oats",
+        "slot": "breakfast",
+        "day": "wed",
+        "ingredients": [
+          {
+            "term": "Greek yoghurt",
+            "quantity": "200 g",
+            "in_pantry": false,
+            "amount": 200,
+            "unit": "g",
+            "state": "cooked",
+            "grams_raw": 200
+          },
+          {
+            "term": "berries",
+            "quantity": "120 g",
+            "in_pantry": false,
+            "amount": 120,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 120
+          },
+          {
+            "term": "rolled oats",
+            "quantity": "40 g",
+            "in_pantry": false,
+            "amount": 40,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 40
+          },
+          {
+            "term": "honey",
+            "quantity": "1 tsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 5
+          }
+        ],
+        "method": "Stir the oats into the yoghurt, top with the berries and drizzle with honey.",
+        "why": "A quick breakfast with protein anchor that needs no cooking on a work-from-home morning.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": [],
+        "member_id": null,
+        "same_day": {
+          "kind": "none",
+          "minutes": 5
+        }
+      },
+      {
+        "name": "Chicken rice bowls",
+        "title": "Lemon oregano chicken thighs, basmati rice and roasted summer vegetables",
+        "slot": "lunch",
+        "day": "wed",
+        "ingredients": [
+          {
+            "term": "lemon",
+            "quantity": "1/2",
+            "in_pantry": false,
+            "amount": null,
+            "unit": null,
+            "state": "raw",
+            "grams_raw": null
+          }
+        ],
+        "method": "Reheat the boxed chicken, rice and vegetables, then finish with lemon juice over the top.",
+        "why": "It gives the family one cooked base to share on the first day with a proper protein anchor and simple reheating.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_chicken_tray",
+            "servings": 4,
+            "box_id": "box_prep_chicken_tray_paul"
+          },
+          {
+            "preparation_id": "prep_rice",
+            "servings": 4,
+            "box_id": "box_prep_rice_paul"
+          },
+          {
+            "preparation_id": "prep_veg",
+            "servings": 4,
+            "box_id": "box_prep_veg_paul"
+          }
+        ],
+        "member_id": null,
+        "same_day": {
+          "kind": "reheat_only",
+          "minutes": 8
+        }
+      },
+      {
+        "name": "Egg toast and tomatoes",
+        "title": "Scrambled eggs, toast and tomatoes",
+        "slot": "dinner",
+        "day": "wed",
+        "ingredients": [
+          {
+            "term": "eggs",
+            "quantity": "8",
+            "in_pantry": false,
+            "amount": 8,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 440
+          },
+          {
+            "term": "wholemeal bread",
+            "quantity": "8 slices",
+            "in_pantry": false,
+            "amount": 8,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 320
+          },
+          {
+            "term": "tomatoes",
+            "quantity": "4",
+            "in_pantry": false,
+            "amount": 4,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 400
+          },
+          {
+            "term": "butter",
+            "quantity": "20 g",
+            "in_pantry": false,
+            "amount": 20,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 20
+          }
+        ],
+        "method": "Scramble the eggs in butter, toast the bread, and serve with sliced tomatoes alongside.",
+        "why": "A fresh dinner keeps the week varied while still giving every plate a clear protein anchor.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": [],
+        "member_id": null,
+        "same_day": {
+          "kind": "cook_fresh",
+          "minutes": 15
+        }
+      },
+      {
+        "name": "Overnight oats pots",
+        "title": "Greek yoghurt, berries, oats and seeds",
+        "slot": "breakfast",
+        "day": "thu",
+        "ingredients": [
+          {
+            "term": "Greek yoghurt",
+            "quantity": "200 g",
+            "in_pantry": false,
+            "amount": 200,
+            "unit": "g",
+            "state": "cooked",
+            "grams_raw": 200
+          },
+          {
+            "term": "berries",
+            "quantity": "120 g",
+            "in_pantry": false,
+            "amount": 120,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 120
+          },
+          {
+            "term": "rolled oats",
+            "quantity": "40 g",
+            "in_pantry": false,
+            "amount": 40,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 40
+          },
+          {
+            "term": "pumpkin seeds",
+            "quantity": "20 g",
+            "in_pantry": false,
+            "amount": 20,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 20
+          }
+        ],
+        "method": "Mix the yoghurt and oats, then top with berries and seeds.",
+        "why": "It is a fast second-day breakfast that still centres the protein anchor without any cooking.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": [],
+        "member_id": null,
+        "same_day": {
+          "kind": "none",
+          "minutes": 5
+        }
+      },
+      {
+        "name": "Chicken salad wraps",
+        "title": "Lemon oregano chicken thighs, roasted summer vegetables and wraps",
+        "slot": "lunch",
+        "day": "thu",
+        "ingredients": [
+          {
+            "term": "wholemeal wraps",
+            "quantity": "4",
+            "in_pantry": false,
+            "amount": 4,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 160
+          },
+          {
+            "term": "mixed salad leaves",
+            "quantity": "100 g",
+            "in_pantry": false,
+            "amount": 100,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 100
+          },
+          {
+            "term": "Greek yoghurt",
+            "quantity": "4 tbsp",
+            "in_pantry": false,
+            "amount": 4,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 60
+          },
+          {
+            "term": "lemon",
+            "quantity": "1/2",
+            "in_pantry": false,
+            "amount": null,
+            "unit": null,
+            "state": "raw",
+            "grams_raw": null
+          }
+        ],
+        "method": "Reheat the boxed chicken and vegetables, then tuck them into wraps with salad leaves and a spoon of yoghurt. Finish with lemon.",
+        "why": "Using the same cooked base in a different format keeps lunch easy and stops the week feeling repetitive.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_chicken_tray",
+            "servings": 4,
+            "box_id": "box_prep_chicken_tray_lea"
+          },
+          {
+            "preparation_id": "prep_veg",
+            "servings": 4,
+            "box_id": "box_prep_veg_lea"
+          }
+        ],
+        "member_id": null,
+        "same_day": {
+          "kind": "reheat_only",
+          "minutes": 10
+        }
+      },
+      {
+        "name": "Tuna pasta salad",
+        "title": "Wholewheat pasta, tuna, tomatoes and cucumber",
+        "slot": "dinner",
+        "day": "thu",
+        "ingredients": [
+          {
+            "term": "wholewheat pasta",
+            "quantity": "320 g",
+            "in_pantry": false,
+            "amount": 320,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 320
+          },
+          {
+            "term": "tuna in spring water",
+            "quantity": "2 tins",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "unit",
+            "state": "cooked",
+            "grams_raw": 240
+          },
+          {
+            "term": "cherry tomatoes",
+            "quantity": "250 g",
+            "in_pantry": false,
+            "amount": 250,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 250
+          },
+          {
+            "term": "cucumber",
+            "quantity": "1",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 300
+          },
+          {
+            "term": "olive oil",
+            "quantity": "1 tbsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 15
+          },
+          {
+            "term": "lemon",
+            "quantity": "1",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 60
+          }
+        ],
+        "method": "Boil the pasta, drain it, then toss with tuna, chopped tomatoes and cucumber. Dress with olive oil and lemon.",
+        "why": "It is a fresh dinner that fits the season and still starts from a protein food.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": [],
+        "member_id": null,
+        "same_day": {
+          "kind": "cook_fresh",
+          "minutes": 20
+        }
+      }
+    ],
+    "preparations": [
+      {
+        "id": "prep_chicken_tray",
+        "title": "Lemon oregano chicken thighs",
+        "servings_made": 8,
+        "ingredients": [
+          {
+            "term": "chicken thighs, boneless and skinless",
+            "quantity": "1.4 kg",
+            "in_pantry": false,
+            "amount": 1400,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": null
+          },
+          {
+            "term": "courgettes",
+            "quantity": "600 g",
+            "in_pantry": false,
+            "amount": 600,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 600
+          },
+          {
+            "term": "red peppers",
+            "quantity": "3",
+            "in_pantry": false,
+            "amount": 3,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 450
+          },
+          {
+            "term": "red onion",
+            "quantity": "2",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 220
+          },
+          {
+            "term": "garlic",
+            "quantity": "4 cloves",
+            "in_pantry": false,
+            "amount": 4,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 20
+          },
+          {
+            "term": "lemon",
+            "quantity": "2",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 120
+          },
+          {
+            "term": "dried oregano",
+            "quantity": "2 tsp",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 10
+          },
+          {
+            "term": "olive oil",
+            "quantity": "2 tbsp",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 30
+          },
+          {
+            "term": "salt",
+            "quantity": "1 tsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 5
+          },
+          {
+            "term": "black pepper",
+            "quantity": "1 tsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 5
+          }
+        ],
+        "method": "Heat the oven to 220 C. Toss the chicken with olive oil, oregano, garlic, salt, pepper and lemon zest. Spread on a tray with the courgettes, peppers and onion. Roast until the chicken is cooked through and the vegetables are browned, then squeeze over the lemon juice and portion into eight labelled boxes.",
+        "active_minutes": 20,
+        "total_minutes": 40,
+        "cook_on": "wed",
+        "boxes": [
+          {
+            "id": "box_prep_chicken_tray_paul",
+            "member_ids": [
+              "30730edf-846c-4ea4-901d-39c9caaf7fee"
+            ],
+            "grams": 180
+          },
+          {
+            "id": "box_prep_chicken_tray_lea",
+            "member_ids": [
+              "e62e2bbd-b675-4fe2-be7d-9dd98510ee98"
+            ],
+            "grams": 180
+          },
+          {
+            "id": "box_prep_chicken_tray_tom",
+            "member_ids": [
+              "8183690c-96c2-4ded-a818-f1edc36862c0"
+            ],
+            "grams": 120
+          },
+          {
+            "id": "box_prep_chicken_tray_nina",
+            "member_ids": [
+              "e3d77550-6f51-411e-9d0c-8bd36c3d07a2"
+            ],
+            "grams": 160
+          }
+        ]
+      },
+      {
+        "id": "prep_rice",
+        "title": "Basmati rice",
+        "servings_made": 4,
+        "ingredients": [
+          {
+            "term": "basmati rice",
+            "quantity": "280 g",
+            "in_pantry": false,
+            "amount": 280,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 280
+          },
+          {
+            "term": "water",
+            "quantity": "560 ml",
+            "in_pantry": false,
+            "amount": 560,
+            "unit": "ml",
+            "state": "raw",
+            "grams_raw": 560
+          },
+          {
+            "term": "salt",
+            "quantity": "1 tsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 5
+          }
+        ],
+        "method": "Rinse the rice, bring it to a boil with the water and salt, then cover and cook gently until tender. Fluff and portion straight away into four labelled boxes for same-day use.",
+        "active_minutes": 10,
+        "total_minutes": 25,
+        "cook_on": "wed",
+        "boxes": [
+          {
+            "id": "box_prep_rice_paul",
+            "member_ids": [
+              "30730edf-846c-4ea4-901d-39c9caaf7fee"
+            ],
+            "grams": 120
+          },
+          {
+            "id": "box_prep_rice_lea",
+            "member_ids": [
+              "e62e2bbd-b675-4fe2-be7d-9dd98510ee98"
+            ],
+            "grams": 120
+          },
+          {
+            "id": "box_prep_rice_tom",
+            "member_ids": [
+              "8183690c-96c2-4ded-a818-f1edc36862c0"
+            ],
+            "grams": 80
+          },
+          {
+            "id": "box_prep_rice_nina",
+            "member_ids": [
+              "e3d77550-6f51-411e-9d0c-8bd36c3d07a2"
+            ],
+            "grams": 110
+          }
+        ]
+      },
+      {
+        "id": "prep_veg",
+        "title": "Roast summer vegetables",
+        "servings_made": 4,
+        "ingredients": [
+          {
+            "term": "aubergines",
+            "quantity": "2",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": null
+          },
+          {
+            "term": "courgettes",
+            "quantity": "2",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 400
+          },
+          {
+            "term": "tomatoes",
+            "quantity": "500 g",
+            "in_pantry": false,
+            "amount": 500,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 500
+          },
+          {
+            "term": "red onion",
+            "quantity": "2",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 220
+          },
+          {
+            "term": "olive oil",
+            "quantity": "2 tbsp",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 30
+          },
+          {
+            "term": "salt",
+            "quantity": "1 tsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 5
+          },
+          {
+            "term": "black pepper",
+            "quantity": "1 tsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 5
+          }
+        ],
+        "method": "Chop the vegetables into large pieces, toss with oil, salt and pepper, and roast until soft and browned. Cool slightly and divide into four labelled boxes for the week.",
+        "active_minutes": 15,
+        "total_minutes": 35,
+        "cook_on": "wed",
+        "boxes": [
+          {
+            "id": "box_prep_veg_paul",
+            "member_ids": [
+              "30730edf-846c-4ea4-901d-39c9caaf7fee"
+            ],
+            "grams": 220
+          },
+          {
+            "id": "box_prep_veg_lea",
+            "member_ids": [
+              "e62e2bbd-b675-4fe2-be7d-9dd98510ee98"
+            ],
+            "grams": 220
+          },
+          {
+            "id": "box_prep_veg_tom",
+            "member_ids": [
+              "8183690c-96c2-4ded-a818-f1edc36862c0"
+            ],
+            "grams": 150
+          },
+          {
+            "id": "box_prep_veg_nina",
+            "member_ids": [
+              "e3d77550-6f51-411e-9d0c-8bd36c3d07a2"
+            ],
+            "grams": 180
+          }
+        ]
+      }
+    ],
+    "cooking_sessions": [
+      {
+        "day": "wed",
+        "preparation_ids": [
+          "prep_chicken_tray",
+          "prep_rice",
+          "prep_veg"
+        ],
+        "run_through": "Heat the oven first. Put the chicken and vegetables on trays, then start the rice while the oven runs. Roast the tray, simmer the rice alongside, then cool and box everything as soon as it is ready.",
+        "total_minutes": 45
+      }
+    ],
+    "shopping_list": [
+      {
+        "term": "chicken thighs, boneless and skinless",
+        "quantity": "1.4 kg",
+        "aisle": "protein"
+      },
+      {
+        "term": "Greek yoghurt",
+        "quantity": "1.2 kg",
+        "aisle": "dairy"
+      },
+      {
+        "term": "basmati rice",
+        "quantity": "280 g",
+        "aisle": "grains"
+      },
+      {
+        "term": "aubergines",
+        "quantity": "2",
+        "aisle": "produce"
+      },
+      {
+        "term": "courgettes",
+        "quantity": "4",
+        "aisle": "produce"
+      },
+      {
+        "term": "red peppers",
+        "quantity": "3",
+        "aisle": "produce"
+      },
+      {
+        "term": "red onion",
+        "quantity": "4",
+        "aisle": "produce"
+      },
+      {
+        "term": "garlic",
+        "quantity": "4 cloves",
+        "aisle": "produce"
+      },
+      {
+        "term": "lemon",
+        "quantity": "5",
+        "aisle": "produce"
+      },
+      {
+        "term": "dried oregano",
+        "quantity": "2 tsp",
+        "aisle": "pantry"
+      },
+      {
+        "term": "berries",
+        "quantity": "240 g",
+        "aisle": "produce"
+      },
+      {
+        "term": "rolled oats",
+        "quantity": "80 g",
+        "aisle": "grains"
+      },
+      {
+        "term": "honey",
+        "quantity": "1 tsp",
+        "aisle": "pantry"
+      },
+      {
+        "term": "eggs",
+        "quantity": "8",
+        "aisle": "protein"
+      },
+      {
+        "term": "wholemeal bread",
+        "quantity": "8 slices",
+        "aisle": "grains"
+      },
+      {
+        "term": "tomatoes",
+        "quantity": "4",
+        "aisle": "produce"
+      },
+      {
+        "term": "butter",
+        "quantity": "20 g",
+        "aisle": "dairy"
+      },
+      {
+        "term": "pumpkin seeds",
+        "quantity": "20 g",
+        "aisle": "pantry"
+      },
+      {
+        "term": "wholemeal wraps",
+        "quantity": "4",
+        "aisle": "grains"
+      },
+      {
+        "term": "mixed salad leaves",
+        "quantity": "100 g",
+        "aisle": "produce"
+      },
+      {
+        "term": "wholewheat pasta",
+        "quantity": "320 g",
+        "aisle": "grains"
+      },
+      {
+        "term": "tuna in spring water",
+        "quantity": "2 tins",
+        "aisle": "protein"
+      },
+      {
+        "term": "cherry tomatoes",
+        "quantity": "250 g",
+        "aisle": "produce"
+      },
+      {
+        "term": "cucumber",
+        "quantity": "1",
+        "aisle": "produce"
+      },
+      {
+        "term": "olive oil",
+        "quantity": "5 tbsp",
+        "aisle": "pantry"
+      },
+      {
+        "term": "salt",
+        "quantity": "1 tsp",
+        "aisle": "pantry"
+      },
+      {
+        "term": "black pepper",
+        "quantity": "1 tsp",
+        "aisle": "pantry"
+      },
+      {
+        "term": "water",
+        "quantity": "560 ml",
+        "aisle": "other"
+      }
+    ],
+    "member_portions": [
+      {
+        "member_id": "30730edf-846c-4ea4-901d-39c9caaf7fee",
+        "display_name": "Paul",
+        "portion_note": "180 g of the chicken, 120 g of the rice, and 220 g of the vegetables; breakfast, lunch and dinner only",
+        "preparation_shares": [
+          {
+            "preparation_id": "prep_chicken_tray",
+            "note": "take box for Paul"
+          },
+          {
+            "preparation_id": "prep_rice",
+            "note": "take box for Paul"
+          },
+          {
+            "preparation_id": "prep_veg",
+            "note": "take box for Paul"
+          }
+        ]
+      },
+      {
+        "member_id": "e62e2bbd-b675-4fe2-be7d-9dd98510ee98",
+        "display_name": "Lea",
+        "portion_note": "180 g of the chicken, 120 g of the rice, and 220 g of the vegetables",
+        "preparation_shares": [
+          {
+            "preparation_id": "prep_chicken_tray",
+            "note": "take box for Lea"
+          },
+          {
+            "preparation_id": "prep_rice",
+            "note": "take box for Lea"
+          },
+          {
+            "preparation_id": "prep_veg",
+            "note": "take box for Lea"
+          }
+        ]
+      },
+      {
+        "member_id": "8183690c-96c2-4ded-a818-f1edc36862c0",
+        "display_name": "Tom",
+        "portion_note": "120 g of the chicken, 80 g of the rice, and 150 g of the vegetables",
+        "preparation_shares": [
+          {
+            "preparation_id": "prep_chicken_tray",
+            "note": "take box for Tom"
+          },
+          {
+            "preparation_id": "prep_rice",
+            "note": "take box for Tom"
+          },
+          {
+            "preparation_id": "prep_veg",
+            "note": "take box for Tom"
+          }
+        ]
+      },
+      {
+        "member_id": "e3d77550-6f51-411e-9d0c-8bd36c3d07a2",
+        "display_name": "Nina",
+        "portion_note": "160 g of the chicken, 110 g of the rice, and 180 g of the vegetables",
+        "preparation_shares": [
+          {
+            "preparation_id": "prep_chicken_tray",
+            "note": "take box for Nina"
+          },
+          {
+            "preparation_id": "prep_rice",
+            "note": "take box for Nina"
+          },
+          {
+            "preparation_id": "prep_veg",
+            "note": "take box for Nina"
+          }
+        ]
+      }
+    ],
+    "member_deltas": [
+      {
+        "member_id": "e62e2bbd-b675-4fe2-be7d-9dd98510ee98",
+        "food_ref": "white_rice",
+        "grams": 60,
+        "moment": "plating",
+        "channel": "more_of_the_same"
+      },
+      {
+        "member_id": "8183690c-96c2-4ded-a818-f1edc36862c0",
+        "food_ref": "white_rice",
+        "grams": 180,
+        "moment": "plating",
+        "channel": "more_of_the_same"
+      }
+    ],
+    "merged_members": [],
+    "issues": [
+      "household_mouths_without_envelope:1",
+      "dishes[0]: same_day says none but announces 5 minute(s) -- nothing to prepare cannot take time",
+      "dishes[3]: same_day says none but announces 5 minute(s) -- nothing to prepare cannot take time",
+      "structured_quantity_missing: 2/23 ingredients"
+    ],
+    "request_id": "aff6a235-42a7-49bc-bcf6-358bfd0d001b"
+  }
+}

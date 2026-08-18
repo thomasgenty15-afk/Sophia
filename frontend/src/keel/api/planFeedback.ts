@@ -29,6 +29,7 @@
  */
 
 import { supabase } from "../../lib/supabase";
+import { readEdgeRefusal } from "./edgeErrors";
 import { selectMealPlans } from "./mealWindow";
 
 /**
@@ -46,6 +47,8 @@ export {
   feedbackIsDue,
   newEnvyIsAsked,
   OPTION_LABELS,
+  PORTION_SUBJECT_LABEL,
+  portionSubjectIsAsked,
   QUESTION_LABELS,
   QUESTION_OPTIONS,
   questionsFor,
@@ -55,6 +58,17 @@ export {
 export interface PlanFeedbackAnswers {
   cooked: string | null;
   portions: string | null;
+  /**
+   * ⚠️ POUR QUI vaut la réponse de portion. `household` ou `member:<uuid>`.
+   *
+   * `null` = la question n'a pas été posée: réponse neutre, ou une seule
+   * bouche (un solo n'a pas de foyer, donc pas de `member_id` à nommer — voir
+   * `portionSubjectIsAsked`). Le serveur lit alors « tout le monde à table »,
+   * qui est le défaut de l'axe 3.
+   *
+   * ⛔ JAMAIS UN PRÉNOM: « Poulet pour Zoé » ne se résout pas par un prénom.
+   */
+  portionsSubject: string | null;
   /** Des TITRES de plats, tels qu'ils sont dans le plan. `[]` = aucun. */
   neverAgain: string[];
   /** L'inverse. `[]` = aucun, et c'est une réponse. */
@@ -87,30 +101,67 @@ function asResult(raw: unknown): PlanFeedbackResult {
 /**
  * POSER LE RETOUR. La RPC vérifie que le plan est bien le sien.
  *
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⚠️ L'APPEL PASSE PAR UNE FONCTION EDGE DEPUIS LE LOT 2A, ET VOICI POURQUOI
+ * ══════════════════════════════════════════════════════════════════════════
+ * `keel_plan_feedback_submit` reste **la seule porte d'écriture** de la table,
+ * et elle vérifie toujours la propriété du plan par `auth.uid()`: la fonction
+ * edge l'appelle AVEC LE JETON DE LA PERSONNE, elle ne la contourne pas.
+ *
+ * Ce qu'elle ajoute est la moitié qui manquait: **l'extraction**. Les sept
+ * réponses avaient une table, un écran et une RPC — et zéro lecteur backend.
+ * Elles sont maintenant traduites en mémoire structurée (`portion.adjust`,
+ * `food.exclude`, `food.prefer`, `logistics.set`) dans le MÊME geste, en
+ * `service_role`, ce qu'un navigateur ne peut pas faire.
+ *
+ * ⚠️ ET SURTOUT: « POUR QUI ? » ENTRE DANS LE MÊME APPEL. La table porte
+ * `unique (meal_id)` et la RPC est `on conflict do nothing` — une seule fois
+ * par fenêtre, et c'est une règle produit. Une réponse posée par un second
+ * appel serait donc soit avalée par le conflit, soit portée par un second
+ * écrivain pour une seule intention: « le défaut n°1 de ce dépôt », écrit par
+ * la table elle-même.
+ *
  * ⚠️ `revoke all … from authenticated` SUR LA TABLE, ET ÇA DOIT LE RESTER: les
  * défauts Supabase donnent TOUT sur une table neuve, TRUNCATE compris, et
- * TRUNCATE échappe à RLS. La porte est donc une RPC `security definer`, et
- * c'est elle qui décide, pas cet écran.
+ * TRUNCATE échappe à RLS.
  *
  * ⚠️ `already_answered` N'EST PAS UNE PANNE. « Une seule fois par fenêtre » est
- * une contrainte de BASE (`unique (meal_id)`), pas un `if` applicatif — deux
- * surfaces peuvent proposer ce questionnaire. L'appelant referme, il n'alarme
- * pas.
+ * une contrainte de BASE, pas un `if` applicatif — deux surfaces peuvent
+ * proposer ce questionnaire. La fonction rend `200 {ok:false, reason}` pour
+ * tous les refus MÉTIER, précisément parce que `functions.invoke` ne rend pas
+ * le corps d'une réponse non-2xx: un refus nommé y arriverait comme une panne
+ * de bibliothèque.
+ *
+ * @param today LE JOUR DE LA PERSONNE (`browserLocalDate()`), passé par
+ *   l'appelant et jamais lu ici. C'est le `at` de ce qui sera retenu — « je
+ *   l'ai retenu de mardi » —, et l'horloge du serveur est en UTC: un mardi soir
+ *   à Paris y ressort mercredi. Ce module ne lit aucune horloge, comme les
+ *   modules serveurs dont il dépend.
  */
 export async function submitPlanFeedback(
   mealId: string,
   answers: PlanFeedbackAnswers,
+  today: string,
 ): Promise<PlanFeedbackResult> {
-  const { data, error } = await supabase.rpc("keel_plan_feedback_submit", {
-    p_meal_id: mealId,
-    p_cooked: answers.cooked,
-    p_portions: answers.portions,
-    p_never_again: answers.neverAgain,
-    p_make_again: answers.makeAgain,
-    p_axis_question: answers.axisQuestion,
-    p_axis_answer: answers.axisAnswer,
+  const { data, error } = await supabase.functions.invoke("keel-plan-feedback-v1", {
+    body: {
+      meal_id: mealId,
+      cooked: answers.cooked,
+      portions: answers.portions,
+      portions_subject: answers.portionsSubject,
+      never_again: answers.neverAgain,
+      make_again: answers.makeAgain,
+      axis_question: answers.axisQuestion,
+      axis_answer: answers.axisAnswer,
+      today,
+    },
   });
-  if (error) throw new Error(error.message);
+  if (error) {
+    // Le motif NOMMÉ quand il y en a un (`Unauthorized`, une session périmée),
+    // le message de la bibliothèque sinon. On n'invente pas de jeton.
+    const refusal = await readEdgeRefusal(error);
+    throw new Error(refusal?.token ?? (error as Error).message);
+  }
   return asResult(data);
 }
 

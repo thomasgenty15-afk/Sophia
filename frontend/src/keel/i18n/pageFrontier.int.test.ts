@@ -42,13 +42,15 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { PublicFooter, PublicHeader } from "../components/PublicHeader";
 import {
-  isPendingTranslationNamespace,
-  PUBLIC_NAMESPACES_PENDING_TRANSLATION,
-  PUBLIC_PAGE_NAMESPACES,
+  isDeclaredPagePath,
+  isTranslatedNamespace,
+  namespacesForPath,
+  PAGE_NAMESPACES,
+  PENDING_TRANSLATION_NAMESPACES,
   type UiLocale,
 } from "./catalog";
 import { en } from "./en";
-import { fr } from "./fr.public";
+import { fr } from "./fr";
 import { setChosenUiLocaleForTest, uiLocaleForPath } from "./runtime";
 
 /**
@@ -148,8 +150,8 @@ describe("la frontière de langue passe au bord des pages, jamais au milieu", ()
     // sans qu'aucune page ne soit forcée en anglais, et la couture revient sur
     // l'écran de quelqu'un. C'est le test qui rougit le jour où on ajoute un
     // namespace à la liste d'attente sans dire quelle page l'affiche.
-    const declared = new Set(Object.values(PUBLIC_PAGE_NAMESPACES).flat());
-    const orphans = PUBLIC_NAMESPACES_PENDING_TRANSLATION
+    const declared = new Set(Object.values(PAGE_NAMESPACES).flat());
+    const orphans = PENDING_TRANSLATION_NAMESPACES
       .filter((ns) => !declared.has(ns));
     expect(orphans).toEqual([]);
   });
@@ -157,7 +159,7 @@ describe("la frontière de langue passe au bord des pages, jamais au milieu", ()
   it("chaque namespace nommé par une page existe VRAIMENT dans le seed", () => {
     // Miroir de la ceinture d'à côté sur la liste d'attente: une table qui
     // nomme un namespace supprimé est une garde qui protège un écran mort.
-    const missing = Object.entries(PUBLIC_PAGE_NAMESPACES).flatMap(
+    const missing = Object.entries(PAGE_NAMESPACES).flatMap(
       ([path, namespaces]) =>
         namespaces
           .filter((ns) => !Object.keys(en).some((k) => k.startsWith(`${ns}.`)))
@@ -172,9 +174,14 @@ describe("la frontière de langue passe au bord des pages, jamais au milieu", ()
     // en attente, la page entière est anglaise; sinon elle est entièrement
     // française. Ce qu'elle interdit, c'est le mélange — dans les deux sens.
     setChosenUiLocaleForTest("fr");
-    for (const [path, namespaces] of Object.entries(PUBLIC_PAGE_NAMESPACES)) {
-      const pending = namespaces.some(isPendingTranslationNamespace);
-      expectChromeIn(path, pending ? "en" : "fr");
+    for (const [path, namespaces] of Object.entries(PAGE_NAMESPACES)) {
+      // ⚠️ LA CONDITION A CHANGÉ DE CÔTÉ AU LOT 2: c'était « aucun namespace
+      // n'est EN ATTENTE », c'est maintenant « tous sont TRADUITS ». La
+      // différence est un namespace ni traduit ni inscrit dans la liste
+      // d'attente — un oubli, donc — qui passait l'ancienne garde et laissait
+      // sa page se rendre en français à moitié.
+      const whole = namespaces.every(isTranslatedNamespace);
+      expectChromeIn(path, whole ? "fr" : "en");
     }
   });
 
@@ -183,7 +190,7 @@ describe("la frontière de langue passe au bord des pages, jamais au milieu", ()
     // FORCER le français. Une page traduite reste anglaise pour qui n'a pas
     // choisi le français.
     setChosenUiLocaleForTest("en");
-    for (const path of Object.keys(PUBLIC_PAGE_NAMESPACES)) {
+    for (const path of Object.keys(PAGE_NAMESPACES)) {
       expectChromeIn(path, "en");
     }
   });
@@ -196,44 +203,163 @@ describe("la frontière de langue passe au bord des pages, jamais au milieu", ()
     expectChromeIn("/start", "fr");
   });
 
-  it("/join est ENTIÈREMENT anglaise — la frontière déclarée, tenue", () => {
+  it("/coach/weekly est ENTIÈREMENT anglaise — la frontière tenue", () => {
     // LE CAS QUI PASSE DE L'AUTRE CÔTÉ. Sans lui, un compteur cassé rendrait
     // « aucun mot français » partout et le test verdirait en ne mesurant rien.
     //
-    // ⚠️ C'ÉTAIT `/gyms` JUSQU'AU 2026-08-12. La refonte du site a réécrit
-    // `/gyms` et `/communities` et livré leur pack français dans le même geste,
-    // donc elles ont quitté `PUBLIC_NAMESPACES_PENDING_TRANSLATION` — et ce
-    // test, qui a besoin d'une page RÉELLEMENT en attente pour prouver qu'il
-    // mesure quelque chose, s'est déplacé sur `/join` (`join.*` + `invite.*`,
-    // tous deux encore en attente).
-    // Le jour où plus AUCUNE page publique n'est en attente, ce test n'a plus
-    // de sujet: il faudra le supprimer, pas lui inventer une page.
+    // ⚠️ CE TEST A DÉJÀ DÉMÉNAGÉ QUATRE FOIS, ET IL DÉMÉNAGERA ENCORE — C'EST
+    // SA NATURE. `/gyms` d'abord (traduite le 2026-08-12 avec la refonte du
+    // site), `/join` ensuite (lot 2), `/app/household` ensuite (lot 3, puis
+    // traduite au lot 4 quand `api/mealLabels.ts` a rejoint le seed), `/coach`
+    // ensuite (traduite au lot 5).
+    //
+    // ⚠️ IL VIT MAINTENANT SUR UN CAS D'UNE AUTRE ESPÈCE, ET C'EST CE QUI LE
+    // REND PLUS SOLIDE. `/coach/weekly` n'est pas « pas encore traduite »: ses
+    // namespaces le sont TOUS, son pack français est écrit, et elle reste
+    // anglaise parce que son paragraphe central vient d'une fonction edge qui
+    // LÈVE sur toute locale autre que l'anglais. C'est donc la preuve que la
+    // frontière est portée par `PAGE_NAMESPACES` et par rien d'autre — pas par
+    // « ce qui se trouve traduit ».
+    //
+    // Ce qu'il prouve n'a pas changé: un chemin que la frontière rend en
+    // anglais rend AUSSI son chrome en anglais, drapeau FR ou pas.
     setChosenUiLocaleForTest("fr");
-    expectChromeIn("/join", "en");
+    expectChromeIn("/coach/weekly", "en");
   });
 
-  it("ne touche à rien en dehors de la vitrine", () => {
-    // L'app connectée et `/legal` (aucun namespace) suivent le choix du
-    // visiteur, exactement comme avant ce lot.
-    // ⚠️ `/auth` EST DANS CETTE LISTE POUR UNE AUTRE RAISON DEPUIS LE
-    // 2026-08-12. Il était ici comme « page sans namespace »; il en a un
-    // maintenant (`auth`, entièrement traduit). Il y reste parce que le
-    // résultat attendu est le même et que la propriété vaut d'être tenue: une
-    // page DÉCLARÉE et traduite suit le choix du visiteur, elle ne le force
-    // pas. C'est ce qui rougirait si `auth` repassait un jour en attente.
+  it("un chemin NON DÉCLARÉ rend l'anglais, et ne suit plus le visiteur", () => {
+    // ⚠️ CE TEST DISAIT L'INVERSE, ET C'EST LE CHANGEMENT DE CONTRAT DU LOT 2.
+    // Il affirmait que l'app connectée et `/legal` « suivent le choix du
+    // visiteur, exactement comme avant ce lot » — ce qui était sans effet tant
+    // qu'aucun namespace d'app n'était traduit: `t()` repliait sur l'anglais de
+    // toute façon, et le défaut ne se voyait pas.
+    //
+    // Depuis que `household.*` est traduit (pour `/app/setup`), la même règle
+    // produirait une couture: `/account` rend `household.plan.*` à travers
+    // `api/householdPlanTrace.ts`, donc une phrase française serait apparue au
+    // milieu d'un écran anglais, sans qu'aucun test ne bouge. L'anglais par
+    // défaut est le seul repli qui ne peut pas coudre — il reste dans la langue
+    // source.
     setChosenUiLocaleForTest("fr");
-    for (const path of ["/app/today", "/legal", "/auth", "/coach", "/nimporte"]) {
+    for (const path of ["/coach/import", "/coach/weekly", "/account", "/nimporte"]) {
+      expect(uiLocaleForPath(path), path).toBe("en");
+    }
+  });
+
+  it("/legal reste anglaise: son corps est en dur, la promesse serait fausse", () => {
+    // Le cas qui a failli passer. Déclarer `/legal` avec une liste VIDE rendait
+    // son chrome en français — « tous ses namespaces sont traduits » est vrai
+    // sur l'ensemble vide — et c'est ce qui a été essayé. Vérifié à l'écran: la
+    // page affichait alors un en-tête et un pied de page français autour de
+    // « Legal notice & terms / Who publishes sophia-coach.ai… », mille lignes
+    // d'anglais en dur. Une déclaration est une PROMESSE de page entière; sur
+    // un écran juridique, la tenir à moitié est pire qu'ailleurs.
+    setChosenUiLocaleForTest("fr");
+    expect(uiLocaleForPath("/legal")).toBe("en");
+  });
+
+  it("une page DÉCLARÉE et entièrement traduite suit le choix du visiteur", () => {
+    // La direction que la règle ci-dessus ne doit pas emporter avec elle: ce
+    // qui est déclaré ET traduit se rend bien en français.
+    setChosenUiLocaleForTest("fr");
+    for (const path of ["/auth", "/start", "/join", "/join-household", "/app/setup"]) {
       expect(uiLocaleForPath(path), path).toBe("fr");
     }
   });
 
-  it("ignore un slash final: /join/ est la même page que /join", () => {
-    // Une route qui gagne un slash ne doit pas silencieusement retrouver la
-    // couture — c'est le genre de trou qu'on ne découvre que par un lien
-    // partagé. (L'exemple était `/gyms` avant sa traduction — voir le test
-    // ci-dessus.)
+  it("les CINQ écrans coach déclarés se rendent en français, les quatre autres non", () => {
+    // ⚠️ CE TEST NOMME LES NEUF ROUTES UNE PAR UNE, ET C'EST VOULU. La ceinture
+    // générique d'au-dessus (« aucune page cousue ») dérive son attente de la
+    // table: elle vérifie la COHÉRENCE de ce qu'on a déclaré, jamais le
+    // CONTENU de la déclaration. Une route coach oubliée dans `PAGE_NAMESPACES`
+    // y passerait sans bruit — c'est exactement le silence par lequel `/start`
+    // est restée à moitié anglaise pendant des mois.
+    //
+    // ⚠️ LES QUATRE DERNIÈRES NE SONT PAS UNE DETTE DE TRADUCTION, et c'est la
+    // moitié du test: leurs namespaces sont écrits DES DEUX CÔTÉS. Ce qui les
+    // retient est un texte anglais qui ne vient pas du seed — la synthèse du
+    // lundi et l'extraction d'un plan (fonctions edge), les débats de doctrine
+    // (modules Deno partagés), le catalogue d'aliments (données de migration).
+    // Une future session qui « finirait la traduction » les verrait passer au
+    // vert sans que rien ne soit réparé si cette liste n'existait pas.
     setChosenUiLocaleForTest("fr");
-    expect(uiLocaleForPath("/join/")).toBe("en");
+    for (
+      const path of [
+        "/coach",
+        "/coach/meals",
+        "/coach/templates",
+        "/coach/billing",
+        "/coach/clients/9d1c0e40-0000-4000-8000-000000000000",
+      ]
+    ) {
+      expect(uiLocaleForPath(path), path).toBe("fr");
+    }
+    for (
+      const path of [
+        "/coach/doctrine",
+        "/coach/protocol",
+        "/coach/weekly",
+        "/coach/import",
+      ]
+    ) {
+      expect(uiLocaleForPath(path), path).toBe("en");
+    }
+  });
+
+  it("`/join` ne capture pas `/join-household`, ni l'inverse", () => {
+    // La résolution est passée de l'égalité de chaîne à `matchPath` pour que
+    // les routes paramétrées de l'app soient déclarables. Le risque du
+    // changement est le PRÉFIXE: deux pages voisines, deux namespaces
+    // différents, et un motif trop large qui les confond.
+    expect(namespacesForPath("/join")).toEqual(["join", "invite"]);
+    expect(namespacesForPath("/join-household")).toEqual([
+      "household_claim",
+      "household",
+      "start",
+      "auth",
+    ]);
+    // Et la racine, qui capturerait tout si `matchPath` était appelé sans son
+    // `end: true` par défaut.
+    expect(namespacesForPath("/app/setup")).not.toEqual(
+      namespacesForPath("/"),
+    );
+    expect(namespacesForPath("/")).toContain("home");
+  });
+
+  it("un chemin inconnu n'a pas de namespace, et n'est pas déclaré", () => {
+    // Les deux fonctions doivent répondre du MÊME écran: une page qui dit
+    // « oui, je suis déclarée » à `t()` (donc qui fait lever en DEV sur une clé
+    // hors périmètre) et que la locale n'a pas servie en français est la
+    // situation où le détecteur de couture accuse à tort.
+    expect(namespacesForPath("/nimporte")).toBeNull();
+    expect(isDeclaredPagePath("/nimporte")).toBe(false);
+    expect(isDeclaredPagePath("/app/setup")).toBe(true);
+  });
+
+  it("ignore un slash final: /app/household/ est la même page", () => {
+    // Une route qui gagne un slash ne doit pas silencieusement changer de côté
+    // — c'est le genre de trou qu'on ne découvre que par un lien partagé.
+    // `matchPath` s'en charge lui-même depuis le lot 2; la ceinture reste,
+    // parce que c'est un comportement de bibliothèque et pas une décision à
+    // nous.
+    //
+    // ⚠️ `/app/household/` ATTEND MAINTENANT LE FRANÇAIS, et c'est le sens fort
+    // du test: la page est déclarée depuis le lot 4, donc un slash oublié qui
+    // ne matcherait pas la ferait retomber en anglais — le repli sûr, donc
+    // celui qu'aucune assertion « toBe("en") » ne saurait distinguer d'un
+    // succès. `/coach/weekly/` tient l'autre bord (`/coach/` est déclarée
+    // depuis le lot 5).
+    //
+    // ⚠️ `/coach/clients/x/` EST LE CAS QUI MANQUAIT, ET C'EST LE SEUL MOTIF
+    // PARAMÉTRÉ DE LA TABLE. `matchPath` gère le slash final sur un chemin
+    // fixe; le vérifier aussi sur `/coach/clients/:id` est ce qui empêche un
+    // lien partagé vers la fiche d'un élève de retomber en anglais.
+    setChosenUiLocaleForTest("fr");
+    expect(uiLocaleForPath("/app/household/")).toBe("fr");
+    expect(uiLocaleForPath("/coach/")).toBe("fr");
+    expect(uiLocaleForPath("/coach/clients/1f8e/")).toBe("fr");
+    expect(uiLocaleForPath("/coach/weekly/")).toBe("en");
     expect(uiLocaleForPath("/start/")).toBe("fr");
+    expect(uiLocaleForPath("/join/")).toBe("fr");
   });
 });

@@ -127,6 +127,17 @@ const PIVOT_TABLES = [
   { table: "student_goals", owner: "user_id", marker: "A13SEED-OBJECTIF" },
   { table: "student_week_plans", owner: "user_id", marker: "A13SEED-SEMAINE" },
   { table: "student_daily_checkins", owner: "user_id", marker: null },
+  // LE LOG DE SÉANCE (2026-08-18, migration 20260818180000). Ce que quelqu'un
+  // a fait de son corps, quel jour et combien de temps: donnée personnelle au
+  // sens plein, elle sort dans l'archive et disparaît à la purge.
+  //
+  // ⚠️ PAS DE MARQUEUR TEXTUEL, ET C'EST UNE PROPRIÉTÉ DE LA TABLE: elle ne
+  // stocke AUCUNE prose — que des jetons de listes fermées, une date et une
+  // durée. Et surtout AUCUN chiffre d'énergie, par décision chiffrée (voir
+  // l'en-tête de la migration). Elle se prouve donc par son VOCABULAIRE PROPRE
+  // (`mobility`), exactement comme `student_daily_checkins` se prouve par
+  // `whatsapp_button` — l'assertion est plus bas, à côté de la sienne.
+  { table: "student_activity_sessions", owner: "user_id", marker: null },
   // FF-027 — la faim déclarée en conversation. Elle porte LES MOTS DE L'ÉLÈVE,
   // donc elle doit sortir dans l'archive et disparaître à la purge, comme le
   // reste. Une table neuve que le lifecycle ne réclame pas est une cicatrice
@@ -247,6 +258,16 @@ async function seedFullStudent(
     overall: "hard",
     axis: "hunger",
     source: "whatsapp_button",
+  });
+  // `mobility` n'apparaît nulle part ailleurs dans l'archive d'un élève: c'est
+  // le vocabulaire propre de cette table, et c'est ce qui sert de marqueur.
+  await ins("student_activity_sessions", {
+    user_id: userId,
+    local_date: "2026-08-04",
+    kind: "mobility",
+    duration_min: 41,
+    intensity: "easy",
+    source: "app",
   });
   await ins("student_hunger_reports", {
     user_id: userId,
@@ -454,6 +475,28 @@ Deno.test(
       archive.includes("whatsapp_button"),
       "student_daily_checkins absent de l'archive",
     );
+    assert(
+      archive.includes("mobility"),
+      "student_activity_sessions absent de l'archive",
+    );
+    // ET L'ARCHIVE NE PORTE AUCUN CHIFFRE D'ÉNERGIE SUR CES LIGNES. La table
+    // n'a pas de colonne de calories, par décision chiffrée (20260818180000):
+    // ce contrôle tomberait le jour où quelqu'un l'ajouterait sans rouvrir
+    // l'arbitrage.
+    const activityRows = JSON.parse(decoder.decode(files["mon_plan.json"]))
+      ?.seances_dactivite;
+    assert(
+      Array.isArray(activityRows) && activityRows.length >= 1,
+      "les séances doivent être une liste non vide dans mon_plan.json",
+    );
+    for (const row of activityRows) {
+      for (const key of Object.keys(row)) {
+        assert(
+          !/kcal|calorie|energy|burn/i.test(key),
+          `la séance exportée porte une colonne d'énergie: ${key}`,
+        );
+      }
+    }
     // Et l'archive ne doit PAS mentir sur ce qui manque.
     const manifest = JSON.parse(decoder.decode(files["fichiers.json"]));
     assertEquals(

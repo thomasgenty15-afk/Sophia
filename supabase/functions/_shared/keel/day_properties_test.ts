@@ -308,9 +308,13 @@ Deno.test("un `uses` qui pointe une préparation INEXISTANTE ne sauve pas le pla
 // ---------------------------------------------------------------------------
 
 const PROMPT_ARGS = {
+  firstDayCookable: true,
+  contentLocale: "en-US",
+  budgetAmount: null,
   safetyConstraints: null,
   body: null,
   focusAxis: null,
+  dietBlock: "",
   doctrineBlock: "",
   coachNoteBlock: null,
   protocolBlock: "",
@@ -332,10 +336,10 @@ const PROMPT_ARGS = {
   servings: 1,
   fixedIntakes: [],
   merge: null,
+  boxMemberIds: [],
 };
 
 Deno.test("R5 — DÉSARMEMENT: rien de déclaré, consigne identique AU CARACTÈRE PRÈS", () => {
-  boxMemberIds: [],
   assertEquals(dayPropertyPromptLines([]), []);
 
   const empty = buildMealPrompt({ ...PROMPT_ARGS, dayProperties: [] });

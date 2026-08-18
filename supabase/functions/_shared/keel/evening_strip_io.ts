@@ -49,7 +49,7 @@ import { parseAccidentPlan } from "./accident.ts";
 // deux définitions d'une même chose, ce que ce dépôt paie plus cher.
 import { loadSkippedDishIndexes } from "./accident_io.ts";
 import { planGroceryWaves, wavePreparationsFromRows } from "./grocery_waves.ts";
-import { MEAL_UNTICK_REASON, mealTickKey } from "./meal_tick.ts";
+import { type MealUntickReason, mealTickKey } from "./meal_tick.ts";
 import { isReportable, stretchDates } from "./meal_stretch.ts";
 import { loadPlannedDishContext } from "./planned_dish_io.ts";
 import { type StripDish, type StripShoppingWave } from "./evening_strip.ts";
@@ -395,10 +395,17 @@ export interface StripWriteResult {
 /**
  * Écrit UNE coche (ou UNE décoche) par le chemin de l'écran.
  *
- * @param disqualified `null` pour cocher, `MEAL_UNTICK_REASON` pour décocher.
+ * @param disqualified `null` pour cocher, un `MealUntickReason` pour décocher.
  *   REQUIS: les deux gestes partagent la ligne, la clé et l'index d'unicité, et
  *   c'est la valeur de cette colonne — et elle seule — qui les distingue. Un
  *   paramètre optionnel aurait fait d'un oubli une coche silencieuse.
+ *
+ *   ⚠️ QUATRE VALEURS DEPUIS FF-057 §3.A, ET PAS UNE. `food_not_eaten` est la
+ *   décoche NUE (celle de la bande du soir, celle qui précède le formulaire);
+ *   `ordered`, `no_time` et `ate_other` sont les trois motifs du formulaire.
+ *   Ce paramètre est ce qui porte le POURQUOI jusqu'à la ligne — avant, les
+ *   trois boutons de la fiche écrivaient tous la même chose et la réponse était
+ *   perdue à l'écriture.
  */
 export async function writeMealTick(
   admin: SupabaseClient,
@@ -406,7 +413,7 @@ export async function writeMealTick(
     userId: string;
     mealId: string;
     dishIndex: number;
-    disqualified: typeof MEAL_UNTICK_REASON | null;
+    disqualified: MealUntickReason | null;
     /** Chargé une fois par tap agrégé plutôt qu'une fois par plat. */
     plan: PlanForTick;
     /**
@@ -540,7 +547,7 @@ export async function applyStripTicks(
     userId: string;
     mealId: string;
     dishIndexes: readonly number[];
-    disqualified: typeof MEAL_UNTICK_REASON | null;
+    disqualified: MealUntickReason | null;
     /** Le jour local de la personne au moment du tap. REQUIS — voir H1. */
     today: string;
     now: Date;

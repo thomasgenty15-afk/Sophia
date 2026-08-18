@@ -1,0 +1,11 @@
+import { createClient } from "jsr:@supabase/supabase-js@2";
+import { loadLatestPulse } from "../supabase/functions/_shared/keel/daily_pulse_io.ts";
+import { pulseContextBlock } from "../supabase/functions/_shared/keel/daily_pulse.ts";
+const persona = JSON.parse(await Deno.readTextFile(Deno.args[0]));
+const admin = createClient("http://127.0.0.1:54321", Deno.env.get("QA_SERVICE_KEY")!, { auth: { persistSession: false } });
+const localDate = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+const pulse = await loadLatestPulse(admin, { userId: persona.userId, localDate });
+console.log("localDate =", localDate);
+console.log("pulse     =", JSON.stringify(pulse));
+console.log("--- bloc (extrait) ---");
+console.log(pulseContextBlock(pulse, false).split("\n").slice(0, 6).join("\n"));

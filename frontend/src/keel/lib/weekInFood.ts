@@ -31,6 +31,10 @@
  * une règle produit, pas un hasard.
  */
 
+import { en } from "../i18n/en";
+import type { MessageKey } from "../i18n/t";
+import { t } from "../i18n/t";
+
 export interface FoodEventRow {
   local_date: string;
   slot_key: string | null;
@@ -105,18 +109,35 @@ export const WATCH_GROUPS: readonly string[] = [
   "alcohol",
 ];
 
-const GROUP_LABELS: Record<string, string> = {
-  fried_food: "Fried food",
-  sugar_sweets: "Sugar and sweets",
-  sweetened_beverage: "Sweetened drinks",
-  alcohol: "Alcohol",
-};
-
-/** R7 adouci pour de l'affichage : un token inconnu est montré lisible, jamais planté. */
+/**
+ * LE MOT D'UN GROUPE — LU DANS LE SEED, PLUS DANS UNE TABLE LOCALE.
+ *
+ * ── CE QUE ÇA RÉPARE ──────────────────────────────────────────────────────
+ * Un `GROUP_LABELS` vivait ici avec ses quatre phrases anglaises en dur, alors
+ * que `food_group.fried_food`, `.sugar_sweets`, `.sweetened_beverage` et
+ * `.alcohol` sont dans le seed ET traduits depuis le lot 3. C'était une
+ * CINQUIÈME copie du même vocabulaire, invisible à la garde de `t()` comme au
+ * scanner de coutures — et elle sortait « Fried food ×3 » au milieu de la fiche
+ * française d'un élève, sur `/coach/clients/:id`.
+ *
+ * ── POURQUOI PAS `foodGroupLabel()` D'`api/labels.ts` ─────────────────────
+ * Parce que celui-là LÈVE sur un jeton inconnu (R7 strict), et que ce
+ * compteur-ci lit `recognized.detected_foods`, c'est-à-dire une sortie de
+ * modèle: un groupe neuf y apparaît AVANT d'entrer dans le seed. Un écran de
+ * coach qui tombe parce qu'un modèle a inventé un mot est pire que le mot. R7
+ * reste donc ADOUCI ici, et il l'est délibérément — mais il ne l'est plus
+ * qu'après avoir demandé au seed.
+ *
+ * ── LA MAJUSCULE EST À NOUS ───────────────────────────────────────────────
+ * Les `food_group.*` sont des FRAGMENTS de phrase, écrits en minuscules pour se
+ * coller dans « 2 portions de fritures ». Ici, ils commencent une pastille de
+ * compte: la capitale se pose au rendu, pas dans le seed.
+ */
 export function labelForGroup(token: string): string {
-  const known = GROUP_LABELS[token];
-  if (known) return known;
-  const pretty = token.replace(/_/g, " ");
+  const key = `food_group.${token}`;
+  const pretty = Object.prototype.hasOwnProperty.call(en, key)
+    ? t(key as MessageKey)
+    : token.replace(/_/g, " ");
   return pretty.charAt(0).toUpperCase() + pretty.slice(1);
 }
 

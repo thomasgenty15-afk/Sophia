@@ -1,0 +1,287 @@
+{
+  "group": "medium",
+  "repeats": 3,
+  "students": [
+    "386ed278-7f77-4ce4-88dd-6d37c17a7bf3",
+    "6a4c8bb5-14d1-4f24-aad3-c6c547b35df6",
+    "4e4d3f7b-0f70-44c5-82c6-b7d574a47380",
+    "0449e377-56f0-40c2-ab75-20932cb1ae7b",
+    "85fa418f-0fe6-4f3f-bcba-f91d26cb9c78",
+    "6ebf5597-b49a-4a9d-825d-a17aee509702",
+    "d3f780bc-b521-447d-be17-98a3264bd316",
+    "ba866eb5-d42f-4457-b05c-f66662675196",
+    "6c7b0a95-84c6-4f56-a5c0-4dbc5849ef3d",
+    "d1f27b42-76bf-4db2-8e7a-6211552f5dae",
+    "46bf3bc5-f0c1-4cc1-83ec-8b05ddc57b90",
+    "9bf42712-a878-4959-8945-9c7ae5e8a465"
+  ],
+  "results": [
+    {
+      "id": "M1",
+      "level": "medium",
+      "run": 1,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Logged for lunch: grilled chicken, brown rice, and broccoli."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [
+        "whole_grain | slot=lunch | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR",
+        "cruciferous_veg | slot=lunch | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR",
+        "poultry | slot=lunch | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR"
+      ],
+      "writers": [
+        "FLOOR [{\"food_group_ref\": \"whole_grain\"}, {\"food_group_ref\": \"cruciferous_veg\"}, {\"food_group_ref\": \"poultry\"}]"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "M2",
+      "level": "medium",
+      "run": 1,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Dinner noted: grilled salmon with quinoa and green beans."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [
+        "non_starchy_veg | slot=dinner | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US",
+        "fatty_fish | slot=dinner | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US",
+        "whole_grain | slot=dinner | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US"
+      ],
+      "writers": [
+        "FLOOR [{\"food_group_ref\": \"non_starchy_veg\"}, {\"food_group_ref\": \"fatty_fish\"}, {\"food_group_ref\": \"whole_grain\"}]"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "M3",
+      "level": "medium",
+      "run": 1,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Chicken is a solid protein choice for lunch. To match the line in front of you, the missing piece is vegetables.  And what did you have with it?"
+      ],
+      "questions": [
+        "And what did you have with it?"
+      ],
+      "ledger": [
+        "meal_precision_question | text | accompaniment | 2026-08-08 | And what did you have with it?"
+      ],
+      "events": [
+        "poultry | slot=NULL | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US"
+      ],
+      "writers": [
+        "DISPATCHER poultry"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "M4",
+      "level": "medium",
+      "run": 1,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Noted. Breakfast’s protein line is covered for today.  And what did you have with it?"
+      ],
+      "questions": [
+        "And what did you have with it?"
+      ],
+      "ledger": [
+        "meal_precision_question | text | accompaniment | 2026-08-08 | And what did you have with it?"
+      ],
+      "events": [
+        "eggs | slot=breakfast | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR",
+        "whole_grain | slot=breakfast | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR"
+      ],
+      "writers": [
+        "FLOOR [{\"food_group_ref\": \"whole_grain\"}]"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "M1",
+      "level": "medium",
+      "run": 2,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Got it: grilled chicken, brown rice, and broccoli at lunch. That covers protein and vegetables; the rice is your carb."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [
+        "whole_grain | slot=lunch | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR",
+        "cruciferous_veg | slot=lunch | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR",
+        "poultry | slot=lunch | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR"
+      ],
+      "writers": [
+        "FLOOR [{\"food_group_ref\": \"whole_grain\"}, {\"food_group_ref\": \"cruciferous_veg\"}, {\"food_group_ref\": \"poultry\"}]"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "M2",
+      "level": "medium",
+      "run": 2,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Grilled salmon covers protein, and green beans cover vegetables. Quinoa is a nice extra, but it doesn’t change those two core boxes."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [
+        "fatty_fish | slot=dinner | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US",
+        "whole_grain | slot=dinner | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US",
+        "non_starchy_veg | slot=dinner | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US"
+      ],
+      "writers": [
+        "FLOOR [{\"food_group_ref\": \"whole_grain\"}, {\"food_group_ref\": \"non_starchy_veg\"}]"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "M3",
+      "level": "medium",
+      "run": 2,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Chicken gives you protein. For lunch, that covers the protein line, but the vegetables line is still separate.  And what did you have with it?"
+      ],
+      "questions": [
+        "And what did you have with it?"
+      ],
+      "ledger": [
+        "meal_precision_question | text | accompaniment | 2026-08-08 | And what did you have with it?"
+      ],
+      "events": [
+        "lean_protein | slot=NULL | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US"
+      ],
+      "writers": [
+        "DISPATCHER lean_protein"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "M4",
+      "level": "medium",
+      "run": 2,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Protein at lunch and vegetables at lunch are still the two items in today’s plan. Your eggs and wholemeal bread at breakfast don’t change that.  And what did you have with it?"
+      ],
+      "questions": [
+        "And what did you have with it?"
+      ],
+      "ledger": [
+        "meal_precision_question | text | accompaniment | 2026-08-08 | And what did you have with it?"
+      ],
+      "events": [
+        "eggs | slot=breakfast | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR",
+        "whole_grain | slot=breakfast | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR"
+      ],
+      "writers": [
+        "FLOOR [{\"food_group_ref\": \"whole_grain\"}]"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "M1",
+      "level": "medium",
+      "run": 3,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "At lunch, you’ve got protein and vegetables covered: grilled chicken for the protein, and broccoli for the veg. Brown rice adds the carb side."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [
+        "whole_grain | slot=lunch | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR",
+        "cruciferous_veg | slot=lunch | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR",
+        "poultry | slot=lunch | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR"
+      ],
+      "writers": [
+        "FLOOR [{\"food_group_ref\": \"whole_grain\"}, {\"food_group_ref\": \"cruciferous_veg\"}, {\"food_group_ref\": \"poultry\"}]"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "M2",
+      "level": "medium",
+      "run": 3,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Noted: grilled salmon with quinoa and green beans for dinner."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [
+        "fatty_fish | slot=dinner | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US",
+        "whole_grain | slot=dinner | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US",
+        "non_starchy_veg | slot=dinner | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US"
+      ],
+      "writers": [
+        "FLOOR [{\"food_group_ref\": \"whole_grain\"}, {\"food_group_ref\": \"non_starchy_veg\"}]"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "M3",
+      "level": "medium",
+      "run": 3,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Chicken gives you protein, which fits the lunch protein line. The vegetables at lunch are still unreported.  And what did you have with it?"
+      ],
+      "questions": [
+        "And what did you have with it?"
+      ],
+      "ledger": [
+        "meal_precision_question | text | accompaniment | 2026-08-08 | And what did you have with it?"
+      ],
+      "events": [
+        "poultry | slot=NULL | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US"
+      ],
+      "writers": [
+        "DISPATCHER poultry"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "M4",
+      "level": "medium",
+      "run": 3,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Two things from your breakfast line: eggs and whole-grain bread. That gives you protein plus a more filling carbohydrate base.  And what did you have with it?"
+      ],
+      "questions": [
+        "And what did you have with it?"
+      ],
+      "ledger": [
+        "meal_precision_question | text | accompaniment | 2026-08-08 | And what did you have with it?"
+      ],
+      "events": [
+        "eggs | slot=breakfast | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR",
+        "whole_grain | slot=breakfast | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR"
+      ],
+      "writers": [
+        "FLOOR [{\"food_group_ref\": \"whole_grain\"}]"
+      ],
+      "ghostAck": null
+    }
+  ]
+}

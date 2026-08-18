@@ -1,0 +1,62 @@
+[
+  {
+    "member_id": "30730edf-846c-4ea4-901d-39c9caaf7fee",
+    "first_name": "Paul",
+    "role": "owner",
+    "user_id": "8d6d727e-e7ca-4b62-9864-2ae23b031049",
+    "away_days": [
+      {
+        "day": "wed"
+      },
+      {
+        "day": "thu"
+      }
+    ]
+  },
+  {
+    "member_id": "e62e2bbd-b675-4fe2-be7d-9dd98510ee98",
+    "first_name": "Lea",
+    "role": "member",
+    "user_id": null,
+    "away_days": [
+      {
+        "day": "wed"
+      },
+      {
+        "day": "thu"
+      }
+    ]
+  },
+  {
+    "member_id": "e3d77550-6f51-411e-9d0c-8bd36c3d07a2",
+    "first_name": "Nina",
+    "role": "member",
+    "user_id": "49177980-1f39-4e02-bfa6-bd91d5b79b88",
+    "away_days": [
+      {
+        "day": "wed"
+      },
+      {
+        "day": "thu"
+      }
+    ]
+  },
+  {
+    "member_id": "8183690c-96c2-4ded-a818-f1edc36862c0",
+    "first_name": "Tom",
+    "role": "member",
+    "user_id": null,
+    "away_days": [
+      {
+        "day": "wed",
+        "slots": [
+          "lunch",
+          "dinner"
+        ]
+      },
+      {
+        "day": "thu"
+      }
+    ]
+  }
+]

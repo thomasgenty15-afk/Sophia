@@ -1,0 +1,144 @@
+{
+  "id": "25b513d8-ef8b-4714-8540-d9f5e7002506",
+  "user_id": "8d6d727e-e7ca-4b62-9864-2ae23b031049",
+  "household_id": "4123e479-f62a-4a3c-912e-5c7cb5c1f15a",
+  "plan_kind": "household",
+  "starts_on": "2026-08-17",
+  "duration_days": 3,
+  "servings": 3,
+  "member_portions": [
+    {
+      "member_id": "30730edf-846c-4ea4-901d-39c9caaf7fee",
+      "display_name": "Paul",
+      "portion_note": "Serve a full adult plate with the main component, starch, and vegetables; include the sauce or dressing on the side or over the top as listed.",
+      "preparation_shares": [
+        {
+          "note": "Take 1 plateful from the batch when chicken is used.",
+          "preparation_id": "prep_chicken"
+        },
+        {
+          "note": "Take 1 plateful when rice is used.",
+          "preparation_id": "prep_rice"
+        },
+        {
+          "note": "Take a full share of the vegetables.",
+          "preparation_id": "prep_roast_veg"
+        },
+        {
+          "note": "Take 1 salmon portion when salmon is used.",
+          "preparation_id": "prep_salmon"
+        },
+        {
+          "note": "Take 1 couscous portion when couscous is used.",
+          "preparation_id": "prep_couscous"
+        },
+        {
+          "note": "Take 1 serving of the tuna and bean mix.",
+          "preparation_id": "prep_tuna_beans"
+        },
+        {
+          "note": "Take 1 bowl of soup.",
+          "preparation_id": "prep_lentil_soup"
+        }
+      ]
+    },
+    {
+      "member_id": "e62e2bbd-b675-4fe2-be7d-9dd98510ee98",
+      "display_name": "Lea",
+      "portion_note": "Serve a child-size plate with the same main dish, about two-thirds of the adult share, and keep sides modest.",
+      "preparation_shares": [
+        {
+          "note": "Take a smaller share of chicken, rice or vegetables when served.",
+          "preparation_id": "prep_chicken"
+        },
+        {
+          "note": "Take a smaller salmon portion when salmon is used.",
+          "preparation_id": "prep_salmon"
+        },
+        {
+          "note": "Take a smaller scoop of the tuna and bean mix.",
+          "preparation_id": "prep_tuna_beans"
+        },
+        {
+          "note": "Take a smaller bowl of soup.",
+          "preparation_id": "prep_lentil_soup"
+        }
+      ]
+    },
+    {
+      "member_id": "8183690c-96c2-4ded-a818-f1edc36862c0",
+      "display_name": "Tom",
+      "portion_note": "Serve a child-size plate with the same main dish, about two-thirds of the adult share, and keep sides modest.",
+      "preparation_shares": [
+        {
+          "note": "Take a smaller share of chicken, rice or vegetables when served.",
+          "preparation_id": "prep_chicken"
+        },
+        {
+          "note": "Take a smaller salmon portion when salmon is used.",
+          "preparation_id": "prep_salmon"
+        },
+        {
+          "note": "Take a smaller scoop of the tuna and bean mix.",
+          "preparation_id": "prep_tuna_beans"
+        },
+        {
+          "note": "Take a smaller bowl of soup.",
+          "preparation_id": "prep_lentil_soup"
+        }
+      ]
+    }
+  ],
+  "generated_from": {
+    "goal": "health",
+    "intent": "replace_current",
+    "issues": [
+      "member_took_the_hand:e3d77550-6f51-411e-9d0c-8bd36c3d07a2",
+      "structured_quantity_missing: 1/39 ingredients"
+    ],
+    "coach_id": "45ea87eb-2eac-4ffb-89af-7c3328a05125",
+    "household": {
+      "id": "4123e479-f62a-4a3c-912e-5c7cb5c1f15a",
+      "hand": {
+        "taken": [
+          {
+            "reason": "personal_plan_covers_window",
+            "plan_id": "063a0292-541e-43c3-b963-1a3361a88051",
+            "member_id": "e3d77550-6f51-411e-9d0c-8bd36c3d07a2",
+            "starts_on": "2026-08-16",
+            "validated_at": "2026-08-12T01:03:38.378046+00:00",
+            "duration_days": 5
+          }
+        ],
+        "partial": []
+      },
+      "presence": {
+        "members": [],
+        "deserted": [],
+        "servings": 3
+      },
+      "envy_week": "2026-08-17",
+      "minor_count": 2,
+      "member_count": 4,
+      "envy_line_used": false,
+      "accountless_count": 2,
+      "restriction_count": 0,
+      "unknown_age_count": 1
+    },
+    "belief_keys": [
+      "protein_anchor"
+    ],
+    "hunger_days": 0,
+    "prompt_version": "meal.en.v8_distinct_health_direction+household.v2_presence",
+    "doctrine_reason": "loaded",
+    "doctrine_version": 1,
+    "satiety_priority": false,
+    "hunger_window_end": "2026-08-12",
+    "hunger_window_days": 7,
+    "hunger_window_start": "2026-08-06",
+    "protein_anchor_retry": false,
+    "protein_anchor_missing": []
+  },
+  "retired_at": null,
+  "created_at": "2026-08-12T01:04:26.219848+00:00"
+}

@@ -3,6 +3,8 @@ import React from "react";
 import {
   type FeedbackQuestion,
   OPTION_LABELS,
+  PORTION_SUBJECT_LABEL,
+  portionSubjectIsAsked,
   QUESTION_LABELS,
   QUESTION_OPTIONS,
 } from "../../api/planFeedback";
@@ -51,6 +53,20 @@ import Modal from "../ui/Modal";
 /** Ce qu'une bouche a marqué sur un plat. Un plat n'a jamais les deux. */
 export type DishMark = "never_again" | "make_again" | null;
 
+/**
+ * UNE BOUCHE, réduite à ce que la relance « pour qui ? » demande.
+ *
+ * ⛔ `memberId` EST LA CLÉ, LE PRÉNOM EST L'AFFICHAGE. C'est l'axe 3 de la
+ * nomenclature, et la cicatrice est chiffrée dans ce dépôt: « laitue » ≠
+ * « lait », 12 faux positifs sur 12. Un prénom envoyé au serveur serait une
+ * clé qui casse au premier renommage — et qui désigne la mauvaise bouche
+ * quand deux personnes s'appellent pareil.
+ */
+export interface PlanFeedbackMouth {
+  memberId: string;
+  displayName: string;
+}
+
 export interface PlanFeedbackDialogProps {
   open: boolean;
   /**
@@ -81,10 +97,26 @@ export interface PlanFeedbackDialogProps {
    * seul lui voit la question. Une question sans lecteur ne se pose pas.
    */
   askEnvy: boolean;
+  /**
+   * LES BOUCHES DE LA TABLE — la liste FERMÉE de « pour qui ? ».
+   *
+   * ⚠️ REQUISE, jamais optionnelle: `[]` est une AFFIRMATION — « une seule
+   * bouche, il n'y a personne à nommer » — et un `?` l'aurait rendue muette
+   * partout sans qu'aucun appelant ne remonte au compilateur (cicatrice
+   * « paramètre de garde optionnel = garde désarmée »).
+   *
+   * ⚠️ UN SOLO N'A PAS DE FOYER (`SetupPage.tsx`: « le solo ne crée pas de
+   * foyer »), donc pas une seule ligne `household_members`, donc aucun
+   * `member_id` à nommer: il reçoit `[]`, la question ne se pose pas, et le
+   * sujet vaut « tout le monde à table » — qui, chez lui, est lui.
+   */
+  mouths: readonly PlanFeedbackMouth[];
   /** Envoie. `envy` est `null` quand la question n'était pas posée ou vide. */
   onSubmit: (answers: {
     cooked: string | null;
     portions: string | null;
+    /** `household`, `member:<uuid>`, ou `null` quand la question n'est pas posée. */
+    portionsSubject: string | null;
     neverAgain: string[];
     makeAgain: string[];
     axisQuestion: string | null;
@@ -99,6 +131,8 @@ const DISH_QUESTIONS: readonly FeedbackQuestion[] = ["never_again", "make_again"
 export default function PlanFeedbackDialog(props: PlanFeedbackDialogProps) {
   const [answers, setAnswers] = React.useState<Record<string, string>>({});
   const [marks, setMarks] = React.useState<Record<string, DishMark>>({});
+  /** `household` | `member:<uuid>`. Jamais un prénom. */
+  const [portionsSubject, setPortionsSubject] = React.useState<string | null>(null);
   const [envy, setEnvy] = React.useState("");
   const [busy, setBusy] = React.useState(false);
   const [failure, setFailure] = React.useState<string | null>(null);
@@ -113,6 +147,7 @@ export default function PlanFeedbackDialog(props: PlanFeedbackDialogProps) {
     if (!props.open) return;
     setAnswers({});
     setMarks({});
+    setPortionsSubject(null);
     setEnvy("");
     setFailure(null);
   }, [props.open]);
@@ -126,6 +161,17 @@ export default function PlanFeedbackDialog(props: PlanFeedbackDialogProps) {
     q !== "cooked" && q !== "portions" && !DISH_QUESTIONS.includes(q)
   ) ?? null;
   const asksDishes = props.questions.some((q) => DISH_QUESTIONS.includes(q));
+
+  /**
+   * ⛔ LA RÈGLE VIENT DU MODULE, PAS D'ICI (règle 2). « Pas neutre » se lit
+   * dans `effectOf`, et « plus d'une bouche » est la condition du solo. Un
+   * second calcul à l'écran serait la première chose à diverger — après quoi
+   * on demanderait « pour qui ? » à quelqu'un qui est seul à table.
+   */
+  const asksPortionSubject = portionSubjectIsAsked({
+    portions: answers.portions || null,
+    mouths: props.mouths.length,
+  });
 
   function mark(title: string, next: DishMark) {
     setMarks((prev) => ({
@@ -180,6 +226,61 @@ export default function PlanFeedbackDialog(props: PlanFeedbackDialogProps) {
               </Button>
             ))}
           </div>
+
+          {/* ── « POUR QUI ? », DANS LA MÊME CARTE QUE LA MESURE ──────────
+              ⛔ CE N'EST PAS UNE CINQUIÈME QUESTION: c'est la seconde moitié
+              de `portions`, et elle n'apparaît QUE si la réponse n'est pas
+              neutre. Une carte à part ferait une question de plus dans un
+              écran dont le plafond est « jamais plus de quatre gestes ».
+
+              ⚠️ ET C'EST ELLE QUI REND `portion.adjust` ATTRIBUABLE. Sans
+              sujet, « les portions étaient trop grosses » ne désigne personne
+              dans un foyer de quatre — c'est la raison écrite pour laquelle le
+              questionnaire en est le SEUL producteur. */}
+          {q === "portions" && asksPortionSubject
+            ? (
+              <div className="mt-3 border-t border-line pt-3">
+                <SectionLabel>{PORTION_SUBJECT_LABEL.en}</SectionLabel>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {/* LE DÉFAUT DE L'AXE 3 EN PREMIER: « tout le monde à
+                      table ». C'est une réponse, pas une absence de réponse. */}
+                  <Button
+                    size="sm"
+                    variant={portionsSubject === "household"
+                      ? "primary"
+                      : "secondary"}
+                    disabled={busy}
+                    onClick={() =>
+                      setPortionsSubject((prev) =>
+                        prev === "household" ? null : "household"
+                      )}
+                  >
+                    {OPTION_LABELS.everyone.en}
+                  </Button>
+                  {props.mouths.map((mouth) => {
+                    // ⛔ LA CLÉ EST L'IDENTIFIANT, LE PRÉNOM EST L'AFFICHAGE.
+                    const subject = `member:${mouth.memberId}`;
+                    return (
+                      <Button
+                        key={mouth.memberId}
+                        size="sm"
+                        variant={portionsSubject === subject
+                          ? "primary"
+                          : "secondary"}
+                        disabled={busy}
+                        onClick={() =>
+                          setPortionsSubject((prev) =>
+                            prev === subject ? null : subject
+                          )}
+                      >
+                        {mouth.displayName}
+                      </Button>
+                    );
+                  })}
+                </div>
+              </div>
+            )
+            : null}
         </Card>
       ))}
 
@@ -280,6 +381,13 @@ export default function PlanFeedbackDialog(props: PlanFeedbackDialogProps) {
               await props.onSubmit({
                 cooked: answers.cooked || null,
                 portions: answers.portions || null,
+                // ⚠️ `null` DÈS QUE LA QUESTION N'EST PLUS POSÉE, et pas
+                // seulement quand elle n'a pas été répondue: quelqu'un qui
+                // coche « trop », nomme une bouche, puis revient sur « ce
+                // qu'il fallait » enverrait sinon un sujet sans mesure — que
+                // la base REFUSE (`subject_without_measure`), et il perdrait
+                // tout son retour pour un bouton qu'il a repris.
+                portionsSubject: asksPortionSubject ? portionsSubject : null,
                 neverAgain: Object.keys(marks).filter((k) =>
                   marks[k] === "never_again"
                 ),

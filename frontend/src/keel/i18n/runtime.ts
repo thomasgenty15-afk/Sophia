@@ -12,10 +12,11 @@
 // modifie une fois par visiteur, c'est le bon échange.
 
 import {
+  composeProfileLocale,
   DEFAULT_UI_LOCALE,
-  isPendingTranslationNamespace,
+  isTranslatedNamespace,
+  namespacesForPath,
   parseUiLocale,
-  PUBLIC_PAGE_NAMESPACES,
   type UiLocale,
 } from "./catalog";
 
@@ -100,23 +101,34 @@ export function initUiLocale(): UiLocale {
 // de langue doit montrer le CHOIX du visiteur, jamais ce que la page a pu en
 // faire, sinon son clic ressemble à un bouton mort.
 
-/** Sans slash final (sauf la racine): `/gyms/` et `/gyms` sont la même page. */
-function normalisePath(pathname: string): string {
-  const trimmed = String(pathname ?? "").trim();
-  if (trimmed.length > 1 && trimmed.endsWith("/")) return trimmed.slice(0, -1);
-  return trimmed;
-}
-
 /**
  * La langue dans laquelle une page donnée peut se rendre ENTIÈREMENT.
  *
- * Un chemin inconnu rend le choix du visiteur, et c'est volontaire: l'app
- * connectée, `/legal`, `/auth` et tout ce qui n'est pas une page de vitrine ne
- * déclarent aucun namespace, donc rien ne change pour eux.
+ * Deux façons de retomber sur l'anglais, et elles ne disent pas la même chose:
+ *
+ *   · un chemin NON DÉCLARÉ — personne n'a promis de le traduire;
+ *   · un chemin déclaré dont un seul namespace n'est pas traduit — la promesse
+ *     existe mais n'est pas tenue, et une page à moitié tenue est une couture.
+ *
+ * ⚠️ LE CHEMIN INCONNU RENDAIT `current`, ET C'ÉTAIT UN PIÈGE ARMÉ. Tant
+ * qu'aucun namespace d'app n'était traduit, `t()` repliait de toute façon sur
+ * l'anglais et le défaut ne se voyait pas. Depuis que `household.*` est traduit
+ * (pour `/app/setup`), une route oubliée — `/account`, qui rend
+ * `household.plan.*` — se serait mise à afficher une phrase française au milieu
+ * d'un écran anglais, sans que rien ne le signale. L'anglais par défaut est le
+ * seul repli qui ne peut pas coudre: il ne fait que rester dans la langue
+ * source.
+ *
+ * La condition est `every(isTranslatedNamespace)` et NON « aucun n'est en
+ * attente »: la liste d'attente est tenue à la main, donc un namespace qu'on a
+ * oublié d'y inscrire passait la garde. La liste traduite, elle, n'a pas ce
+ * défaut — on ne peut pas oublier d'y inscrire ce qu'on vient d'écrire, le
+ * compilateur le réclame.
  */
 export function uiLocaleForPath(pathname: string): UiLocale {
-  const namespaces = PUBLIC_PAGE_NAMESPACES[normalisePath(pathname)];
-  if (namespaces?.some(isPendingTranslationNamespace)) return DEFAULT_UI_LOCALE;
+  const namespaces = namespacesForPath(pathname);
+  if (namespaces === null) return DEFAULT_UI_LOCALE;
+  if (!namespaces.every(isTranslatedNamespace)) return DEFAULT_UI_LOCALE;
   return current;
 }
 
@@ -144,6 +156,38 @@ export function chosenUiLocale(): UiLocale {
 }
 
 /**
+ * LA VALEUR À ÉCRIRE DANS `profiles.locale` QUAND UN COMPTE SE CRÉE.
+ *
+ * ── POURQUOI CETTE FONCTION NE LIT PLUS LE DRAPEAU ELLE-MÊME ──────────────
+ *
+ * Elle appelait `chosenUiLocale()` en interne: le drapeau de l'en-tête ÉTAIT le
+ * choix, et aucun formulaire ne posait la question. Les portes demandaient en
+ * revanche le PAYS, sous un texte d'aide qui se justifiait par le numéro
+ * d'urgence — une question dont le produit n'a pas l'usage aujourd'hui, posée à
+ * la place de la seule qui change ce que la personne va lire à chaque tour.
+ *
+ * Les formulaires portent donc maintenant un champ « Langue », et c'est SON
+ * état qui arrive ici. Le paramètre est REQUIS: optionnel avec un repli sur le
+ * drapeau, une porte qui oublierait de brancher son champ écrirait en silence
+ * autre chose que ce que la personne a coché, et rien ne le dirait. Requis, le
+ * compilateur énumère les quatre portes.
+ *
+ * ⚠️ LE CHAMP ET LE DRAPEAU PEUVENT DIVERGER, ET C'EST VOULU. Le drapeau change
+ * la langue de la PAGE et recharge; le champ décide la langue du COMPTE et ne
+ * recharge pas — sans quoi il détruirait le formulaire en cours de saisie.
+ * Quelqu'un qui lit la page en français peut vouloir être coaché en anglais.
+ * Le champ naît sur `chosenUiLocale()`, donc les deux s'accordent tant que
+ * personne ne les sépare exprès.
+ *
+ * Le second argument est `null` par nature: à l'inscription il n'existe aucune
+ * ligne `profiles`, donc aucune région à préserver. `composeProfileLocale`
+ * retombe alors sur le défaut déclaré de la langue.
+ */
+export function signupProfileLocale(chosen: UiLocale): string {
+  return composeProfileLocale(chosen, null);
+}
+
+/**
  * RÉSERVÉ AUX TESTS. La vitrine passe par `initUiLocale` (au démarrage) ou
  * `setUiLocaleAndReload` (au clic); ni l'un ni l'autre n'est rejouable dans un
  * même processus, ce qui rend les deux langues intestables sans ce point
@@ -168,6 +212,78 @@ export function applyDocumentLang(locale: UiLocale): void {
 }
 
 /**
+ * À QUI APPARTIENT LA DÉCISION DE LANGUE DÉJÀ PRISE DANS CET ONGLET.
+ *
+ * ── CE QUE CETTE CLÉ ÉTAIT, ET LE DÉFAUT QU'ELLE PORTAIT ──────────────────
+ *
+ * Elle s'appelait `sophia.ui_locale_adopted` et valait `"1"` — un booléen
+ * « une décision a eu lieu ici ». Le garde était donc par ONGLET pendant que
+ * la décision qu'il gèle est par COMPTE, et ces deux portées ne se recouvrent
+ * pas. Mesuré le 2026-08-14: un clic FR sur la vitrine (donc SANS session,
+ * donc sans écriture en base) posait `"1"`, puis l'inscription qui suivait
+ * dans le même onglet ne pouvait plus adopter la langue du compte. Écran
+ * français, compte anglais, agent anglais — et rien à l'écran pour le dire.
+ * C'est ce qui a rendu INVISIBLE l'écrasement SQL de `profiles.locale`
+ * (migration `20260813100000`): le seul symptôme visible était masqué par ce
+ * garde. Aucune fonction n'effaçait la clé, pas même la déconnexion.
+ *
+ * ── CE QU'ELLE EST MAINTENANT ─────────────────────────────────────────────
+ *
+ * L'IDENTIFIANT du compte pour lequel la décision a été prise, ou `"anon"`
+ * quand personne n'était connecté. Le garde ne mord donc que sur CE compte:
+ * un autre compte dans le même onglet — et un compte quelconque après un clic
+ * anonyme — retrouve le droit d'imposer sa langue, qui est la règle du
+ * produit (la langue est celle de l'inscription).
+ *
+ * Ce qu'il protège n'a pas changé et reste armé: un clic délibéré que la base
+ * n'a PAS pu enregistrer (réseau) ne doit pas être annulé en silence au
+ * rechargement suivant — voir `setUiLocaleAndReload`.
+ *
+ * ⚠️ LA CLÉ A CHANGÉ DE NOM EXPRÈS. Les onglets ouverts qui portent encore
+ * l'ancienne valeur ne sont plus lus par personne, donc ils se débloquent au
+ * lieu de rester figés sur une décision qu'on ne sait plus attribuer.
+ *
+ * `sessionStorage` et pas `localStorage`: le garde doit mourir avec l'onglet.
+ * Persistant, il gèlerait pour toujours une divergence devenue réelle — par
+ * exemple après que la personne a changé de langue depuis un autre appareil.
+ */
+const LOCALE_DECISION_OWNER_KEY = "sophia.ui_locale_decided_for";
+
+/** Le propriétaire d'une décision prise hors session. Jamais un identifiant. */
+export const ANONYMOUS_LOCALE_OWNER = "anon";
+
+function safeSessionStorage(): Storage | null {
+  try {
+    return globalThis.sessionStorage ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** Le compte pour lequel cet onglet a déjà tranché, `null` s'il n'a rien tranché. */
+export function uiLocaleDecisionOwner(): string | null {
+  const raw = safeSessionStorage()?.getItem(LOCALE_DECISION_OWNER_KEY) ?? "";
+  return raw.trim() ? raw : null;
+}
+
+export function markUiLocaleDecision(owner: string): void {
+  safeSessionStorage()?.setItem(LOCALE_DECISION_OWNER_KEY, owner);
+}
+
+/**
+ * Oublier la décision de cet onglet. Appelé à la DÉCONNEXION.
+ *
+ * La portée par compte suffirait à laisser le suivant décider — il ne
+ * correspondrait pas au propriétaire enregistré. On efface quand même, parce
+ * qu'une décision prise dans une session qui n'existe plus n'a aucune raison
+ * de survivre à qui l'a prise: sur un poste partagé, c'est la personne
+ * suivante qui en hériterait.
+ */
+export function forgetUiLocaleDecision(): void {
+  safeSessionStorage()?.removeItem(LOCALE_DECISION_OWNER_KEY);
+}
+
+/**
  * Change de langue et RECHARGE.
  *
  * Le rechargement n'est pas une paresse: `t()` est résolu à l'appel depuis une
@@ -175,8 +291,25 @@ export function applyDocumentLang(locale: UiLocale): void {
  * structurées SEO de la landing, la table des refus d'invitation) appellent
  * `t()` à l'IMPORT. Elles se figeraient à la langue du premier chargement.
  * Recharger rend la bascule totale et sans cas particulier.
+ *
+ * `owner` est REQUIS, et c'est le compte au nom duquel on tranche
+ * (`ANONYMOUS_LOCALE_OWNER` hors session). Optionnel, il aurait un défaut —
+ * et un défaut ici veut dire une décision attribuée à quelqu'un qui ne l'a pas
+ * prise, ce qui est exactement le défaut que la portée par compte ferme.
  */
-export function setUiLocaleAndReload(next: UiLocale): void {
+export function setUiLocaleAndReload(next: UiLocale, owner: string): void {
+  // UN CLIC DÉLIBÉRÉ GAGNE, POUR CE COMPTE ET DANS CET ONGLET. Sans cette
+  // ligne, la réconciliation d'`AuthProvider` relirait `profiles.locale` juste
+  // après le rechargement et ANNULERAIT le clic — silencieusement — quand
+  // l'écriture en base n'a pas suivi (réseau). Le garde meurt avec l'onglet,
+  // donc la langue du compte reprend la main à la session suivante; c'est la
+  // bonne durée pour un désaccord qu'on ne sait pas trancher.
+  //
+  // ⚠️ AVANT le court-circuit ci-dessous, et pas après: rechoisir la langue
+  // DÉJÀ affichée est un geste délibéré comme un autre. C'est même le seul que
+  // fasse quelqu'un dont l'écran est français et le compte anglais — le
+  // marquer est ce qui rend son clic durable au lieu d'être un bouton mort.
+  markUiLocaleDecision(owner);
   if (next === current) return;
   safeStorage()?.setItem(UI_LOCALE_STORAGE_KEY, next);
   // On retire `?lang` de l'URL: le laisser ferait gagner l'ancienne valeur au

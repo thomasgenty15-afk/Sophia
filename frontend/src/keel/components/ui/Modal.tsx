@@ -1,6 +1,8 @@
 import React from "react";
 import { createPortal } from "react-dom";
 
+import { t } from "../../i18n/t";
+
 // KEEL UI — la fenêtre. Une seule, pour que ses obligations soient tenues une
 // seule fois.
 //
@@ -47,14 +49,30 @@ export interface ModalProps {
   onClose: () => void;
   /** Nommée: c'est le `aria-label` autant que le titre affiché. */
   title: string;
+  /**
+   * ⚠️ SON DÉFAUT ÉTAIT LE LITTÉRAL `"Close"`, ET IL SORTAIT EN ANGLAIS.
+   *
+   * Cinq fenêtres passent leur propre libellé; toutes les autres — dont la
+   * grille « Quels repas, quels jours » de l'entonnoir — prenaient le défaut,
+   * donc un « Close » anglais en haut à droite d'un dialogue entièrement
+   * français. Vu à l'écran le 2026-08-15.
+   *
+   * Le défaut est maintenant `common.close`, qui est traduit. Il reste un
+   * DÉFAUT et pas une valeur imposée: une fenêtre dont la sortie n'est pas
+   * « fermer » mais « jeter ce brouillon » doit pouvoir le dire.
+   */
   closeLabel?: string;
   size?: ModalSize;
   children: React.ReactNode;
 }
 
 export default function Modal(
-  { open, onClose, title, closeLabel = "Close", size = "md", children }: ModalProps,
+  { open, onClose, title, closeLabel, size = "md", children }: ModalProps,
 ) {
+  // Résolu au RENDU et pas dans la signature: `t()` lit la locale courante à
+  // l'appel, et une valeur par défaut de paramètre l'évaluerait aussi à chaque
+  // rendu — mais l'écrire ici la met sous les yeux de qui lit le composant.
+  const closeText = closeLabel ?? t("common.close");
   // ── ÉCHAP FERME, ET LA PAGE DERRIÈRE NE DÉFILE PLUS ─────────────────────
   // Les deux moitiés du même contrat, posées et retirées ensemble.
   React.useEffect(() => {
@@ -123,7 +141,7 @@ export default function Modal(
             onClick={onClose}
             className="rounded-part px-2 py-1 text-sm text-ink-soft underline underline-offset-2 hover:text-ink"
           >
-            {closeLabel}
+            {closeText}
           </button>
         </div>
 

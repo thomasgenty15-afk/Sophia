@@ -20,10 +20,12 @@ import { buildMealPrompt } from "./meal_generation.ts";
 // ===========================================================================
 
 function promptWith(args: { today?: string | null; country?: string | null }): string {
-  return buildMealPrompt({
+  return buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true,
+    budgetAmount: null,
     safetyConstraints: null,
     body: null,
     focusAxis: null,
+    dietBlock: "",
     doctrineBlock: "== METHOD ==",
     coachNoteBlock: null,
     fixedIntakes: [],

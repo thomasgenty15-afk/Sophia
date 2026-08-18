@@ -1,0 +1,62 @@
+[
+  {
+    "id": "A9",
+    "run": 1,
+    "rhythm_after_accept": [
+      "lunch",
+      "dinner",
+      "breakfast"
+    ],
+    "preference_written": "I never eat anything in the morning",
+    "status": 200,
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "titles": [
+      "Herby chicken and chickpea salad bowl",
+      "Chicken, bean and slaw wraps"
+    ],
+    "note": null
+  },
+  {
+    "id": "A9",
+    "run": 2,
+    "rhythm_after_accept": [
+      "lunch",
+      "dinner",
+      "breakfast"
+    ],
+    "preference_written": "I never eat anything in the morning",
+    "status": 200,
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "titles": [
+      "Chicken, butterbean and roast pepper salad",
+      "Tuna and white bean jacket potato"
+    ],
+    "note": null
+  },
+  {
+    "id": "A9",
+    "run": 3,
+    "rhythm_after_accept": [
+      "lunch",
+      "dinner",
+      "breakfast"
+    ],
+    "preference_written": "I never eat anything in the morning",
+    "status": 200,
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "titles": [
+      "Chicken, chickpea and pepper salad bowl",
+      "Chicken and vegetable couscous bowl"
+    ],
+    "note": null
+  }
+]

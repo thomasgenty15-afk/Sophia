@@ -205,6 +205,7 @@ Deno.test("a written synthesis is NOT a delivered one (execution truth)", async 
     coachName: "Marc",
     asOfLocalDate: "2026-08-03",
     now: new Date("2026-08-03T09:00:00Z"),
+    contentLocale: "en-US",
   });
   assertEquals(out.write.written, true);
   assertEquals(out.write.id, "syn-1");
@@ -234,6 +235,7 @@ Deno.test("the narrative is a template over computed numbers", async () => {
     coachId: "c1",
     asOfLocalDate: "2026-08-03",
     now: new Date("2026-08-03T09:00:00Z"),
+    contentLocale: "en-US",
   });
   assert(out.narrative.includes("2 students this week"));
   // Nobody logged: the gate must speak instead of an invented average.
@@ -297,6 +299,7 @@ Deno.test("an OPEN restriction escalation reaches the synthesis (the live writer
     coachId: "c1",
     asOfLocalDate: "2026-08-03",
     now: new Date("2026-08-03T09:00:00Z"),
+    contentLocale: "en-US",
   });
 
   const flagged = writes[0].flagged_students as Array<Record<string, unknown>>;
@@ -333,6 +336,7 @@ Deno.test("a risk_band on weekly_reviews no longer reaches the synthesis (L3)", 
     coachId: "c1",
     asOfLocalDate: "2026-08-03",
     now: new Date("2026-08-03T09:00:00Z"),
+    contentLocale: "en-US",
   });
   const flagged = writes[0].flagged_students as Array<Record<string, unknown>>;
   assert(
@@ -352,6 +356,7 @@ Deno.test("no restriction anywhere: nobody is accused of one (premise false)", a
     coachId: "c1",
     asOfLocalDate: "2026-08-03",
     now: new Date("2026-08-03T09:00:00Z"),
+    contentLocale: "en-US",
   });
   const flagged = writes[0].flagged_students as Array<Record<string, unknown>>;
   assert(flagged.length > 0, "the cohort still has something to say");
@@ -369,6 +374,7 @@ Deno.test("a coach with no students writes NO row at all", async () => {
     coachId: "c1",
     asOfLocalDate: "2026-08-03",
     now: new Date("2026-08-03T09:00:00Z"),
+    contentLocale: "en-US",
   });
   assertEquals(out.studentCount, 0);
   assertEquals(out.write.written, false);

@@ -13,6 +13,7 @@
 // visible est une fonction de TROIS entrées (statut, date programmée, main-
 // tenant), et aucune des trois n'est facultative.
 
+import { formatDateLong } from "../i18n/format";
 import { supabase } from "../../lib/supabase";
 
 /** Les états de `coach_clients.status` que la base autorise. */
@@ -68,7 +69,7 @@ export function seatDisplayState(row: SeatRow | null): SeatDisplayState {
 
 /**
  * La date d'extinction, formatée pour le coach, ou `null` s'il n'y en a pas.
- * Locale figée sur `en-GB` comme le reste des surfaces KEEL (R3).
+ * La locale vient de `i18n/format.ts`, pas d'un `en-GB` écrit ici (R3).
  */
 export function formatSeatEndDate(value: string | null): string | null {
   if (!value) return null;
@@ -78,11 +79,7 @@ export function formatSeatEndDate(value: string | null): string | null {
   // DERNIER jour couvert, pas le premier jour découvert: sinon « désactivé le
   // 1er septembre » se lit comme « il a encore septembre ».
   const lastCovered = new Date(at.getTime() - 24 * 60 * 60 * 1000);
-  return lastCovered.toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  return formatDateLong(lastCovered);
 }
 
 export interface SeatActionResult {

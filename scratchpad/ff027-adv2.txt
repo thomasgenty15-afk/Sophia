@@ -1,0 +1,47 @@
+
+══════════════════════════════════════════════════════════════════════════════
+▌ A1 · LA SYMÉTRIE INTERDITE — « pas faim » ne produit RIEN
+══════════════════════════════════════════════════════════════════════════════
+  ✅ A1 · « je n'ai pas eu faim du tout cette … » n'écrit aucun fait — 0 ligne(s) · réponse: That’s useful context. If you’re getting full after each meal and not feeling hunger all w
+  ✅ A1 · …et la composition ne porte AUCUN marqueur de réduction — HTTP 200 · satiety_priority=false hunger_days=0 · aucune clé « reduce/less » n'existe dans generated_from: 0
+  ✅ A1 · « I haven't been hungry at all this … » n'écrit aucun fait — 0 ligne(s) · réponse: That fits the structure here: a protein anchor plus vegetables as the bulk tends to keep a
+  ✅ A1 · …et la composition ne porte AUCUN marqueur de réduction — HTTP 200 · satiety_priority=false hunger_days=0 · aucune clé « reduce/less » n'existe dans generated_from: 0
+
+══════════════════════════════════════════════════════════════════════════════
+▌ A2 · LE FUSEAU — le fait est daté dans la journée de l'ÉLÈVE
+══════════════════════════════════════════════════════════════════════════════
+  ✅ A2 · la ligne porte la journée LOCALE de l'élève — ligne=2026-08-07 · attendu(Honolulu)=2026-08-07 · serveur(UTC)=2026-08-08
+
+══════════════════════════════════════════════════════════════════════════════
+▌ A3 · SANS PLAN PUBLIÉ — le plancher ne casse rien
+══════════════════════════════════════════════════════════════════════════════
+  ✅ A3 · sans plan publié: le tour répond ET le fait s'écrit — HTTP 200 · 1 ligne(s) · réponse: That matters. If you’ve been too hungry for a few days, the usual fix is to make
+
+══════════════════════════════════════════════════════════════════════════════
+▌ A4 · RLS — un élève ne lit pas la faim d'un autre
+══════════════════════════════════════════════════════════════════════════════
+  ✅ A4 · le JWT d'un autre élève ne rend AUCUNE ligne — 0 ligne(s) rendues · erreur=aucune
+  ✅ A4b · …et il lit bien SES propres lignes (la policy n'est pas un mur) — erreur=aucune · 0 ligne(s)
+
+══════════════════════════════════════════════════════════════════════════════
+▌ A5 · generate-meal-v1 — le chemin SUFFIXE, sur de vrais plats
+══════════════════════════════════════════════════════════════════════════════
+  [avec signal]
+   HTTP 200 · plats: Greek yogurt bowl with oats, berries and walnuts | Tuna and chickpea salad bowl | Chicken, ratatouille and quinoa bowl | Egg and spinach omelette with wholegrain toast | Lentil salad with roast vegetables and feta | Salmon with green beans and new potatoes
+  [sans signal]
+   HTTP 200 · plats: Greek yogurt bowl with berries and seeds | Tuna and chickpea salad with tomatoes and cucumber | Lemon chicken, quinoa and roasted summer vegetables | Egg, tomato and herb open omelette with rye toast | Salmon and lentil salad with green beans | Turkey bean chilli with brown rice
+  ✅ A5 · la composition de repas consomme le signal — avec=true/3j · sans=false/0j
+  ✅ A5b · aucun chiffre d'énergie dans les plats produits — kcal/kJ absents des deux compositions
+  ✅ A5c · aucun plat ne PARLE de la faim (R5, inconditionnel) — aucune mention
+
+══════════════════════════════════════════════════════════════════════════════
+▌ A6 · LA PURGE — les vieux faits partent, ceux de la fenêtre restent
+══════════════════════════════════════════════════════════════════════════════
+  ✅ A6 · le fait de J-90 est purgé, celui du jour reste — avant=1 après=1 (2026-08-08)
+
+══════════════════════════════════════════════════════════════════════════════
+▌ RÉSUMÉ
+══════════════════════════════════════════════════════════════════════════════
+  TOTAL 12/12
+
+fixtures: 92498a95-43cd-4be0-81c0-cfb7179471f1 65f5a53b-a6ab-4516-939e-0c1a11357135 9f7e475e-6908-4b43-a177-17878d1c0414 df91dd9f-b48b-42a4-97ae-553b0d5ecec6 22245959-0aa5-4a65-905b-2ef82ce39c05 620ff9e3-2d7e-43a6-94fa-d3dd8f870294 20dd93d5-9433-4f25-9536-244ba690a604 2b4017a9-c8bd-4af2-a949-8e6112ea8aba 7aeb61bc-7fe3-452f-a923-8b6687173849

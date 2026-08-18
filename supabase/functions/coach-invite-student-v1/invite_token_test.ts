@@ -79,13 +79,18 @@ Deno.test("the invitation email carries the link and no student data", () => {
   const { subject, html } = renderInviteEmail({
     coachName: "Marie Dupont",
     joinUrl: "https://app.example.org/join?token=xyz",
+    locale: "en-US",
   });
   assertEquals(subject, "Marie Dupont invited you to their coaching program");
   assert(html.includes("https://app.example.org/join?token=xyz"));
 });
 
 Deno.test("a coach without a display name never yields an email from nobody", () => {
-  const { subject } = renderInviteEmail({ coachName: null, joinUrl: "https://x.test/join?token=t" });
+  const { subject } = renderInviteEmail({
+    coachName: null,
+    joinUrl: "https://x.test/join?token=t",
+    locale: "en-US",
+  });
   assertEquals(subject, "Your coach invited you to their coaching program");
 });
 
@@ -93,6 +98,7 @@ Deno.test("a coach name is escaped, never interpolated as markup", () => {
   const { html } = renderInviteEmail({
     coachName: '<img src=x onerror="alert(1)">',
     joinUrl: "https://x.test/join?token=t",
+    locale: "en-US",
   });
   assert(!html.includes("<img"), "coach name must not reach the email as markup");
   assert(html.includes("&lt;img"));

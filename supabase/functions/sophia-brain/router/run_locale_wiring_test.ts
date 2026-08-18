@@ -206,3 +206,59 @@ Deno.test("R3 — aucune lane ne code une locale de réponse en dur", async () =
       `(R3). Sites: ${offenders.join(", ")}`,
   );
 });
+
+Deno.test(
+  "R3 — la langue du CHAT vient de `profiles.locale`, jamais de `student_goals`",
+  async () => {
+    // ── POURQUOI CETTE CEINTURE EXISTE ──────────────────────────────────────
+    //
+    // `KeelTurnContext.content_locale` porte un nom qui MENT à moitié. Il y a
+    // deux colonnes `content_locale` dans ce produit et elles ne disent pas la
+    // même chose:
+    //
+    //   · `profiles.locale`               — la langue que la personne a CHOISIE
+    //                                       à l'inscription. C'est elle que
+    //                                       l'agent doit parler.
+    //   · `student_goals.content_locale`  — la langue dans laquelle elle a écrit
+    //                                       SA SITUATION. Troisième axe de R3,
+    //                                       et tous ses écrivains la sèment
+    //                                       `'en-GB'`.
+    //
+    // Le champ du contexte de tour s'appelle `content_locale` et vient de la
+    // PREMIÈRE. Rien, dans le nom, ne l'empêche de se mettre à venir de la
+    // seconde: le type est le même, les tests de comportement passeraient, et
+    // l'effet serait qu'un francophone se ferait répondre en anglais pour
+    // toujours — le défaut exact que les générateurs portaient avant d'être
+    // câblés.
+    //
+    // C'est aussi le maillon serveur de la chaîne que
+    // `frontend/src/keel/i18n/signupLanguageChain.int.test.ts` tient côté front:
+    //     champ « Langue » -> profiles.locale -> ICI -> resolveResponseLocale
+    const source = await Deno.readTextFile(
+      `${FUNCTIONS_DIR}/sophia-brain/router/run.ts`,
+    );
+    const code = stripCommentsAndStrings(source);
+
+    // 1. La valeur est lue sur la ligne `profiles`, pas ailleurs.
+    assert(
+      /const\s+contentLocale\s*=\s*String\(\s*profileRow\?\.locale/.test(code),
+      "`contentLocale` ne se lit plus sur `profileRow.locale` — la langue du " +
+        "chat a changé de source",
+    );
+
+    // 2. Elle n'est jamais reprise depuis la table des objectifs.
+    assert(
+      !/goalRow\??\.content_locale/.test(code),
+      "`run.ts` lit `content_locale` sur une ligne `student_goals`: c'est la " +
+        "langue dans laquelle l'élève a écrit sa situation, pas celle qu'il " +
+        "veut qu'on lui parle",
+    );
+
+    // 3. Et c'est bien elle qui entre dans le résolveur, sur l'entrée profil.
+    assert(
+      /studentProfile:\s*keelTurn\.content_locale/.test(code),
+      "`resolveResponseLocale` ne reçoit plus la locale du profil en " +
+        "`studentProfile`",
+    );
+  },
+);

@@ -1,0 +1,80 @@
+{
+  "group": "easy",
+  "repeats": 3,
+  "students": [
+    "0bf839f2-cb84-4f07-a76b-40d48df82618",
+    "fd025653-4572-4ecd-b6b0-97fbaae0b966",
+    "554f233f-3cc1-4210-a994-6d0e7c0ed54b"
+  ],
+  "results": [
+    {
+      "id": "E1",
+      "level": "easy",
+      "run": 1,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "You had chicken. Protein at lunch is covered.  And what did you have with it?"
+      ],
+      "questions": [
+        "And what did you have with it?"
+      ],
+      "ledger": [
+        "meal_precision_question | text | accompaniment | 2026-08-08 | And what did you have with it?"
+      ],
+      "events": [
+        "poultry | slot=NULL | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR"
+      ],
+      "writers": [
+        "DISPATCHER poultry"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "E1",
+      "level": "easy",
+      "run": 2,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Chicken counts as protein.  And what did you have with it?"
+      ],
+      "questions": [
+        "And what did you have with it?"
+      ],
+      "ledger": [
+        "meal_precision_question | text | accompaniment | 2026-08-08 | And what did you have with it?"
+      ],
+      "events": [
+        "poultry | slot=NULL | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR"
+      ],
+      "writers": [
+        "DISPATCHER poultry"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "E1",
+      "level": "easy",
+      "run": 3,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Chicken is a good lunch protein. On today’s plan, the protein part is the one you’ve covered; the vegetables at lunch are still unreported.  And what did you have with it?"
+      ],
+      "questions": [
+        "And what did you have with it?"
+      ],
+      "ledger": [
+        "meal_precision_question | text | accompaniment | 2026-08-08 | And what did you have with it?"
+      ],
+      "events": [
+        "poultry | slot=NULL | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR"
+      ],
+      "writers": [
+        "DISPATCHER poultry"
+      ],
+      "ghostAck": null
+    }
+  ]
+}

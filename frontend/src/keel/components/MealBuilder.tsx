@@ -1,8 +1,13 @@
 import React from "react";
 
 import { useAuth } from "../../context/AuthContext";
+// ⛔ `AwayMark` ET PLUS `AwayDay` SUR LES ABSENCES — DÉFAUT P1 (L6,
+// 2026-08-18). Ce composant monte DEUX grilles de présence: celle d'une bouche
+// du foyer et celle du titulaire. Toutes deux réécrivent ce qu'on leur donne,
+// donc un tableau reçu sans le jeton `kind` fait ressortir « dehors » en
+// « absent » — mesuré au navigateur avant ce lot. Le type est la garde.
+import { type AwayMark } from "../lib/presenceMarks";
 import {
-  type AwayDay,
   type EatingOccasionSlot,
   type GeneratedMealResult,
   generateMeal,
@@ -118,9 +123,9 @@ export interface MealBuilderProps {
    * générateur reçoit — le défaut exact que ce dépôt a payé sur le rythme.
    */
   rhythm?: readonly EatingOccasionSlot[];
-  awayDays?: readonly AwayDay[];
+  awayDays?: readonly AwayMark[];
   /** Reçoit la liste complète à écrire dans `practical_constraints`. */
-  onAwaySaved?: (next: AwayDay[]) => Promise<void>;
+  onAwaySaved?: (next: AwayMark[]) => Promise<void>;
   /**
    * LE FOYER VIENT DE COMPOSER — la page relit ce qui en dépend.
    *

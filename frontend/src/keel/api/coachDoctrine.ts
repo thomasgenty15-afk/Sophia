@@ -43,16 +43,34 @@ import {
   type StarterFork,
 } from "../../../../supabase/functions/_shared/keel/doctrine_starter.ts";
 import { VOICE_QUESTIONS } from "../../../../supabase/functions/_shared/keel/doctrine_from_forks.ts";
+// FF-041 — LE DÉBAT DE COMPOSITION.
+//
+// Importé exactement comme `STARTER_FORKS`, et pour la même raison: l'écran
+// coach doit lire LA table, pas une copie. Ce que le coach voit — les sujets,
+// les positions, et ce que chacune PRODUIT en langage plan/aliment — vit dans
+// le module partagé; les jetons exécutables en sont dérivés à la publication
+// et ne traversent jamais cette frontière (§3.0 du design).
+import {
+  COMPOSITION_FORKS,
+  type CompositionFork,
+  type CompositionPosition,
+  deriveSteeringFromPositions,
+  NO_STEERING,
+} from "../../../../supabase/functions/_shared/keel/composition_forks.ts";
 import {
   DOCTRINE_SOURCES,
   type DoctrineSource,
 } from "../../../../supabase/functions/_shared/keel/doctrine_delegation.ts";
 import { supabase } from "../../lib/supabase";
+import { t } from "../i18n/t";
+import { messageKey } from "./labels";
 
 export type { CoachDoctrine, CompiledDoctrine, DoctrineSource, GoalToken };
 export { GOAL_TOKENS };
 export type { StarterChoices, StarterFootprint, StarterFork };
 export { DOCTRINE_SOURCES, NO_RULE, STARTER_FORKS, VOICE_QUESTIONS };
+export type { CompositionFork, CompositionPosition };
+export { COMPOSITION_FORKS, deriveSteeringFromPositions, NO_STEERING };
 
 /**
  * L'APPEL À `coach-doctrine-v1` — une seule fois, pour deux surfaces.
@@ -139,6 +157,16 @@ export interface DoctrineDraft {
     collides_with?: string | null;
   }>;
   voice?: Record<string, unknown>;
+  /**
+   * FF-041 — CE QUE LE COACH A RÉPONDU aux débats de composition, sous la
+   * forme `{ fork_key: position_key }`.
+   *
+   * ⚠️ Ce sont ses RÉPONSES, jamais les jetons du moteur. `coach-doctrine-v1`
+   * en dérive `composition_steering` à l'enregistrement, et cette forme-là ne
+   * traverse jamais la frontière de l'écran (§3.0 du design: le coach ne voit
+   * pas un axe).
+   */
+  composition_positions?: Record<string, string>;
 }
 
 /**
@@ -201,25 +229,55 @@ export function isDraftEmpty(draft: DoctrineDraft | null): boolean {
     (clean.qa?.length ?? 0) === 0;
 }
 
-/** Le libellé d'un objectif, dans les mots d'un coach. */
-export const GOAL_LABELS: Readonly<Record<GoalToken, string>> = {
-  fat_loss: "Losing fat",
-  muscle_gain: "Gaining muscle",
-  // « Recomposition » est du jargon: le coach connaît le mot, mais il choisit
-  // ici pour des élèves, et le mot ne dit pas ce que l'objectif fait. Le
-  // libellé porte donc la signature de l'objectif — le poids tient, la
-  // silhouette change — qui est aussi exactement ce que le générateur mesure.
-  recomposition: "Same weight, different shape",
-  performance: "Performance",
-  health: "Health",
-  maintenance: "Maintenance",
-};
+/**
+ * LE LIBELLÉ D'UN OBJECTIF — UNE FONCTION, ET UNE SEULE TABLE POUR TOUT
+ * L'ESPACE COACH.
+ *
+ * ── CE QUE ÇA RÉPARE ─────────────────────────────────────────────────────
+ * C'était un `Record` figé, écrit ICI, avec ses propres mots: « Losing fat »,
+ * « Gaining muscle ». Le seed en portait DÉJÀ six autres sous
+ * `coach.protocol.goal.*` — « Fat loss », « Muscle gain » — pour les mêmes
+ * jetons. Un coach lisait donc deux mots différents pour le même objectif
+ * selon l'écran, et rien ne pouvait le lui signaler: deux catalogues
+ * parallèles ne divergent pas bruyamment, ils divergent en silence.
+ * Les six vivent maintenant sous `coach.goal.*` — un VOCABULAIRE partagé, qui
+ * n'appartient à aucun écran.
+ *
+ * ── POURQUOI UNE FONCTION ET PAS UN `Record` DE `t()` ────────────────────
+ * Un `Record` construit au niveau module fige ses valeurs à la langue du
+ * PREMIER chargement, et changer de langue recharge la page précisément pour
+ * ces constantes-là. La lecture doit donc être paresseuse (règle
+ * `MODULE_SCOPE_T` de `scripts/ci/i18n-lint.mjs`).
+ *
+ * ⚠️ `messageKey` ET PAS UN `as MessageKey`: un `as` sur un jeton venu d'un
+ * module partagé désarme le typecheck — un septième objectif ajouté côté Deno
+ * sans son libellé passerait la compilation et sortirait la clé brute à
+ * l'écran. `messageKey` lève au premier rendu (R7).
+ */
+export function goalLabel(goal: GoalToken): string {
+  return t(messageKey(`coach.goal.${goal}`));
+}
+
+/**
+ * « A, B et C » — la composition d'une liste, jamais un `join(", ")`.
+ *
+ * Le dernier séparateur est un MOT, et il n'est pas le même d'une langue à
+ * l'autre. `api/labels.ts` compose déjà ses jours nommés comme ça
+ * (`common.list_pair`); ce module fait pareil plutôt qu'inventer sa règle.
+ */
+function joinLabels(labels: readonly string[]): string {
+  if (labels.length <= 1) return labels[0] ?? "";
+  return t("common.list_pair", {
+    first: labels.slice(0, -1).join(", "),
+    second: labels[labels.length - 1],
+  });
+}
 
 /** Les variantes, dans l'ordre du sélecteur. `null` = ce que reçoit tout le monde. */
 export const PREVIEW_VARIANTS: readonly (GoalToken | null)[] = [null, ...GOAL_TOKENS];
 
 export function variantLabel(goal: GoalToken | null): string {
-  return goal === null ? "No goal set yet" : GOAL_LABELS[goal];
+  return goal === null ? t("coach.goal.none") : goalLabel(goal);
 }
 
 /**
@@ -290,8 +348,8 @@ export function cacheFootprint(doctrine: CoachDoctrine): { variants: number; ent
  */
 export function scopeSentence(scope: readonly string[] | undefined): string {
   const goals = (scope ?? []).filter((g) => (GOAL_TOKENS as readonly string[]).includes(g));
-  if (goals.length === 0) return "Everyone";
-  return goals.map((g) => GOAL_LABELS[g as GoalToken]).join(", ");
+  if (goals.length === 0) return t("coach.goal.everyone");
+  return joinLabels(goals.map((g) => goalLabel(g as GoalToken)));
 }
 
 // ---------------------------------------------------------------------------

@@ -1,0 +1,53 @@
+[
+ {"lot":"FF-037","symbol":"detectProteinAnchor","home":"keel/protein_anchor.ts","what":"repère l'ancre protéique d'un plat"},
+ {"lot":"FF-037","symbol":"proteinAnchorRetryInstruction","home":"keel/protein_anchor.ts","what":"la relance quand un repas principal n'a pas d'ancre"},
+ {"lot":"FF-037","symbol":"PROTEIN_ANCHOR_PROMPT_LINE","home":"keel/protein_anchor.ts","what":"la consigne d'ancre dans le prompt"},
+
+ {"lot":"FF-038","symbol":"loadCompositionIndex","home":"keel/food_composition_io.ts","what":"charge le référentiel Ciqual"},
+ {"lot":"FF-038","symbol":"resolveIngredients","home":"keel/food_composition.ts","what":"résout les ingrédients contre le référentiel"},
+ {"lot":"FF-038","symbol":"nutrientsOf","home":"keel/food_composition.ts","what":"calcule énergie et macros"},
+ {"lot":"FF-038","symbol":"gramsRawOf","home":"keel/food_composition.ts","what":"convertit une quantité structurée en grammes crus"},
+ {"lot":"FF-038","symbol":"isFriedMethod","home":"keel/food_composition.ts","what":"impute l'huile de friture"},
+
+ {"lot":"FF-039","symbol":"envelopeFor","home":"keel/meal_envelope.ts","what":"l'enveloppe énergétique, deux formes"},
+ {"lot":"FF-039","symbol":"verdictFor","home":"keel/meal_verdict.ts","what":"le verdict de composition"},
+ {"lot":"FF-039","symbol":"envelopeFingerprint","home":"keel/meal_envelope.ts","what":"l'empreinte d'enveloppe écrite en base"},
+ {"lot":"FF-039","symbol":"sentinelCarriersOf","home":"keel/meal_verdict.ts","what":"les groupes porteurs de chaque sentinelle"},
+
+ {"lot":"FF-040","symbol":"correctionPlanFor","home":"keel/meal_correction.ts","what":"traduit le verdict en jetons de correction"},
+ {"lot":"FF-040","symbol":"correctionRetryInstruction","home":"keel/meal_correction.ts","what":"la relance servie au modèle"},
+ {"lot":"FF-040","symbol":"assessCoverage","home":"keel/meal_coverage.ts","what":"le plancher de couverture énergétique"},
+ {"lot":"FF-040","symbol":"coverageFlagAfterCorrection","home":"keel/meal_coverage.ts","what":"le drapeau après correction"},
+ {"lot":"FF-040","symbol":"nextRecalibration","home":"keel/meal_coverage.ts","what":"le ré-ancrage de l'enveloppe"},
+ {"lot":"FF-040","symbol":"contradictsDeclaration","home":"keel/meal_correction.ts","what":"une correction qui contredit une déclaration de l'élève"},
+
+ {"lot":"FF-041","symbol":"parseCompositionSteering","home":"keel/composition_steering.ts","what":"lit le pilotage du coach"},
+ {"lot":"FF-041","symbol":"steeringFor","home":"keel/composition_steering.ts","what":"le pilotage applicable à un objectif"},
+ {"lot":"FF-041","symbol":"applyPiloting","home":"keel/composition_steering.ts","what":"applique le pilotage à l'enveloppe"},
+ {"lot":"FF-041","symbol":"offAxesFor","home":"keel/composition_steering.ts","what":"les axes que la doctrine éteint"},
+ {"lot":"FF-041","symbol":"deriveSteeringFromPositions","home":"keel/composition_forks.ts","what":"dérive le pilotage des positions du coach"},
+ {"lot":"FF-041","symbol":"COMPOSITION_FORKS","home":"keel/composition_forks.ts","what":"les quatre débats de composition"},
+
+ {"lot":"A4","symbol":"aggregateMayShip","home":"keel/meal_coverage.ts","what":"le plancher d'anonymat k=5"},
+ {"lot":"A4","symbol":"aggregatePairMayShip","home":"keel/meal_coverage.ts","what":"l'inférence par soustraction"},
+
+ {"lot":"FF-043","symbol":"resolveHousehold","home":"keel/household_composition.ts","what":"la résolution de composition d'un foyer"},
+ {"lot":"FF-043","symbol":"trunkSizing","home":"keel/household_composition.ts","what":"le dimensionnement du tronc commun"},
+ {"lot":"FF-043","symbol":"memberDeltasPayload","home":"keel/household_composition.ts","what":"les deltas par membre"},
+ {"lot":"FF-043","symbol":"householdLaneMode","home":"keel/household_composition.ts","what":"le mode de lane du foyer"},
+
+ {"lot":"FF-042 R6","symbol":"uncoverableSentinelsFor","home":"keel/dietary_regime.ts","what":"les nutriments qu'aucun aliment n'apporte à ce régime"},
+ {"lot":"FF-042","symbol":"dietaryRegimePromptLine","home":"keel/dietary_regime.ts","what":"la ligne de régime en tête de consigne"},
+ {"lot":"FF-042","symbol":"excludedSurfaceFormsFor","home":"keel/dietary_regime.ts","what":"les formes exclues du régime, pour le parseur"},
+ {"lot":"FF-042","symbol":"parseDietaryRegime","home":"keel/dietary_regime.ts","what":"lit le régime déclaré"},
+
+ {"lot":"FF-051","symbol":"parseFixedIntakes","home":"keel/fixed_intakes.ts","what":"lit les apports fixes"},
+ {"lot":"FF-051","symbol":"slotIsTaken","home":"keel/fixed_intakes.ts","what":"branche 1 — le créneau est pris"},
+ {"lot":"FF-051","symbol":"fixedIntakeInputsFor","home":"keel/fixed_intakes.ts","what":"branches 2 et 3 — ce que l'apport pèse"},
+ {"lot":"FF-051","symbol":"fixedIntakePromptLines","home":"keel/fixed_intakes.ts","what":"la consigne des apports fixes"},
+
+ {"lot":"FF-052","symbol":"parseDayProperties","home":"keel/day_properties.ts","what":"lit les propriétés de jour"},
+ {"lot":"FF-052","symbol":"dayHasProperty","home":"keel/day_properties.ts","what":"branche leftovers — le parseur"},
+ {"lot":"FF-052","symbol":"daysWithProperty","home":"keel/day_properties.ts","what":"branche batch_cook — le parseur"},
+ {"lot":"FF-052","symbol":"dayPropertyPromptLines","home":"keel/day_properties.ts","what":"la consigne des propriétés de jour"}
+]

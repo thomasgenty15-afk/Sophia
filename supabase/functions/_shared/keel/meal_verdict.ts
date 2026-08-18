@@ -46,9 +46,20 @@ import type { FoodGroupRef } from "./tokens.ts";
 
 export interface CompositionVerdict {
   resolution: {
+    /**
+     * Les termes que le référentiel CONNAÎT — pesés ou non.
+     *
+     * ⚠️ Ce n'est pas la taille du tableau `resolved` de `resolveIngredients`:
+     * celui-ci ne contient que les termes PESÉS. Le sel, le poivre et « 2
+     * poivrons » sans poids d'unité sont connus et absents de ce tableau. Les
+     * confondre fait s'abstenir sur des condiments — mesuré à 27 points d'écart
+     * sur une assiette réelle.
+     */
     resolved: number;
     total: number;
     unresolvedEnergyDense: boolean;
+    /** Un aliment dense connu mais non pesé — son énergie manque en silence. */
+    unweighedEnergyDense: boolean;
   };
   energy: "within" | "above" | "below" | "not_computable";
   protein: "met" | "under" | "not_computable";
@@ -260,6 +271,74 @@ export interface VerdictDish {
 }
 
 /**
+ * LE PLIAGE DES PRÉPARATIONS DANS LES PLATS.
+ *
+ * ⚠️ ── SANS LUI, LE VERDICT LIT LA MOITIÉ DU PLAN ──────────────────────────
+ * En batch cooking, les ingrédients ne sont PAS dans le plat: le plat dit
+ * « une portion du poulet rôti de mercredi », et le kilo de cuisses vit dans
+ * la préparation. Un appelant qui passe ses seuls `dish.ingredients` rend au
+ * verdict une assiette amputée de tout ce qui a été cuisiné d'avance —
+ * c'est-à-dire, très exactement, de la protéine.
+ *
+ * MESURÉ le 2026-08-12 sur 80 générations réelles:
+ *
+ *     énergie hors des plats : 41 %  (médiane par plan 39 %, max 93 %)
+ *     protéine hors des plats: 51 %
+ *
+ * Le verdict rendait `below` / `under` sur des plans à 99 % de leur cible, et
+ * la boucle de correction dépensait son unique relance à ajouter de la
+ * protéine à un plan qui touchait déjà son plancher. C'est la cause qu'on a
+ * longtemps lue comme « les plans servent une fraction de leur enveloppe ».
+ *
+ * ── LE PRORATA N'EST PAS UN RAFFINEMENT ───────────────────────────────────
+ * Une préparation fait `servingsMade` portions; un plat n'en consomme que
+ * `servings`. Compter le lot entier à chaque plat qui y touche ferait l'erreur
+ * inverse, et plus grosse: quatre dîners tirés d'un lot de quatre porteraient
+ * quatre kilos de poulet, et le verdict dirait « above » sur un plan juste.
+ *
+ * ── FONCTION PURE, ICI ET PAS DANS L'APPELANT ─────────────────────────────
+ * Elle vivait en fermeture dans `generate-meal-v1`, donc hors de portée des
+ * tests — et c'est là qu'elle a pu perdre la moitié du plan sans qu'une seule
+ * assertion ne bouge.
+ */
+export function foldPreparationsIntoDishes(args: {
+  dishes: readonly {
+    slot: string | null;
+    method: string;
+    ingredients: readonly CompositionInput[];
+    uses: readonly { preparationId: string; servings: number }[];
+  }[];
+  preparations: readonly {
+    id: string;
+    servingsMade: number;
+    ingredients: readonly CompositionInput[];
+  }[];
+}): VerdictDish[] {
+  const byId = new Map(args.preparations.map((p) => [p.id, p]));
+  return args.dishes.map((d) => {
+    const ingredients: CompositionInput[] = d.ingredients.map((i) => ({ ...i }));
+    for (const use of d.uses) {
+      const prep = byId.get(use.preparationId);
+      if (!prep) continue;
+      const made = Math.max(1, Number(prep.servingsMade) || 1);
+      const share = (Number(use.servings) || 1) / made;
+      for (const i of prep.ingredients) {
+        ingredients.push({
+          ...i,
+          // `null` RESTE `null`. Une quantité absente ne devient pas 0 au
+          // passage du prorata: c'est la règle R2 du moteur, et un 0 traverse
+          // toutes les additions sans rien signaler.
+          amount: i.amount === null || i.amount === undefined
+            ? null
+            : i.amount * share,
+        });
+      }
+    }
+    return { slot: d.slot, method: d.method, ingredients };
+  });
+}
+
+/**
  * Le verdict d'une génération entière.
  *
  * ── POURQUOI LE VERDICT PORTE SUR LA GÉNÉRATION, PAS SUR UN PLAT ─────────
@@ -275,6 +354,7 @@ export function verdictFor(args: {
   index: CompositionIndex;
   /** Le nombre de jours que cette génération couvre. Au moins 1. */
   daysCovered: number;
+  // (voir SENTINEL_MIN_DAYS: sous cette durée, les sentinelles s'abstiennent)
   /** L'imputation d'huile de friture, quand la méthode la déclenche. */
   friedMethod?: (method: string) => boolean;
   /**
@@ -345,6 +425,7 @@ export function verdictFor(args: {
       resolved: resolution.total - resolution.unresolvedTerms.length,
       total: resolution.total,
       unresolvedEnergyDense: resolution.unresolvedEnergyDense,
+      unweighedEnergyDense: resolution.unweighedEnergyDense,
     },
     energy: "not_computable",
     protein: "not_computable",
@@ -360,13 +441,26 @@ export function verdictFor(args: {
   };
 
   // ── L'ABSTENTION, AVANT TOUT LE RESTE ───────────────────────────────────
-  // Sous 80 % de résolution, OU un seul inconnu de classe dense. Le second
-  // mord même à 95 %: une matière grasse manquante déplace l'énergie d'un plat
-  // de plusieurs dizaines de pour cent.
+  // Sous 80 % de résolution, OU un seul aliment de classe dense dont l'énergie
+  // manque. Les deux dernières gardes mordent même à 95 %: une matière grasse
+  // absente de la somme déplace l'énergie d'un plat de plusieurs dizaines de
+  // pour cent.
+  //
+  // ── POURQUOI `coverage` ET NON `resolved.length / total` ────────────────
+  // `coverage` compte les termes CONNUS, pesés ou non. Le ratio des seuls
+  // pesés rendait 69 % là où celui-ci rend 96 %, sur une assiette dont l'écart
+  // était fait de sel, de poivre et de légumes comptés à l'unité — et cette
+  // porte-là s'abstenait sur des condiments, en éteignant du même coup le
+  // verdict, la boucle de correction et la mise à l'échelle.
+  //
+  // Ce n'est pas un assouplissement: le danger réel des non-pesés n'est pas
+  // leur nombre, c'est leur DENSITÉ, et il a désormais sa propre garde
+  // ci-dessous. Une pincée de sel ne déplace rien; un filet d'huile, si.
   if (
     resolution.total === 0 ||
     resolution.coverage < MIN_RESOLUTION_FOR_VERDICT ||
-    resolution.unresolvedEnergyDense
+    resolution.unresolvedEnergyDense ||
+    resolution.unweighedEnergyDense
   ) {
     return notComputable;
   }
@@ -397,7 +491,30 @@ export function verdictFor(args: {
     if (uncoverableSet.has(flag)) continue;
     for (const g of carriers.get(flag) ?? []) missingSet.add(g);
   }
-  const missing = [...missingSet].sort();
+  // ── UNE CADENCE HEBDOMADAIRE NE SE JUGE PAS SUR TROIS JOURS ─────────────
+  //
+  // MESURÉ EN RUN RÉEL (2026-08-11): sur un plan d'UN SEUL JOUR, le verdict
+  // rendait `missing: [dairy_cheese, dairy_yogurt, eggs, fatty_fish,
+  // shellfish, white_fish]` — six groupes. Ce n'est pas un trou, c'est une
+  // journée. Personne ne mange du poisson gras, des fruits de mer, du poisson
+  // blanc, des œufs et deux laitages le même jour, et il n'y a aucune raison
+  // qu'il le fasse: la cadence des sentinelles est HEBDOMADAIRE.
+  //
+  // Le coût n'était pas cosmétique: chaque faux trou consomme un
+  // `place_missing_sentinel` dans la boucle de correction — c'est-à-dire un
+  // des rares jetons d'une relance UNIQUE, dépensé pour réparer un problème
+  // qui n'existe pas, à la place d'un vrai écart d'énergie ou de protéine.
+  //
+  // On s'abstient donc sous la semaine, plutôt que de rendre un chiffre faux.
+  // C'est la même posture que l'abstention de densité sur les préparations
+  // aqueuses: ce n'est pas le plan qui est mauvais, c'est LA GRANDEUR qui n'a
+  // pas de sens sur cette fenêtre.
+  //
+  // `uncoverable` SURVIT à cette abstention, et c'est structurel: « cet élève
+  // est végan, la B12 n'existe pas dans le règne végétal » est vrai un lundi
+  // comme sur sept jours. Une carence structurelle n'est pas une affaire de
+  // cadence.
+  const missing = days >= SENTINEL_MIN_DAYS ? [...missingSet].sort() : [];
 
   // ── LES NUTRIMENTS, PAR PLAT, POUR QUE LA FRITURE S'IMPUTE AU BON PLAT ──
   let energyTotal = 0;
@@ -524,4 +641,19 @@ export function verdictFor(args: {
  * Opérationnelle, comme les plafonds de densité: elle se calibre pendant la
  * phase d'observation, elle ne se réclame d'aucune littérature.
  */
+/**
+ * LA FENÊTRE MINIMALE POUR JUGER UNE SENTINELLE.
+ *
+ * La cadence des sentinelles est HEBDOMADAIRE: « du poisson gras une fois
+ * cette semaine ». Sur une fenêtre plus courte, l'absence d'un groupe n'est
+ * pas un trou — c'est une journée ordinaire. Mesuré: un plan d'un jour
+ * rendait SIX groupes manquants, et chacun consommait un jeton de la relance
+ * unique pour réparer un problème inexistant.
+ *
+ * Sept, et pas cinq: c'est la période de la cadence elle-même. Tout seuil
+ * inférieur serait une opinion sur « à partir de quand ça devrait être là »,
+ * et personne ne l'a écrite.
+ */
+export const SENTINEL_MIN_DAYS = 7;
+
 export const PER_PORTION_PROTEIN_G = 20;

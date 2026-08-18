@@ -5,10 +5,8 @@ import {
   isAlreadyRegistered,
   isDeclaredCountryValid,
   joinRefusalMessageKey,
-  PRODUCT_LOCALE,
   signUpOutcome,
 } from "./freeSignup";
-import { NO_COUNTRY_SELECTED } from "./countries";
 import { en } from "../i18n/en";
 
 // CE QUE CE FICHIER PROTÈGE, ET POURQUOI ÇA VAUT UN TEST
@@ -29,6 +27,7 @@ describe("freeSignupMetadata", () => {
       fullName: "Ada Lovelace",
       country: "GB",
       timezone: "Europe/London",
+      locale: "en-US",
     });
     // Les noms sont assertés LITTÉRALEMENT: c'est le contrat avec
     // `raw_user_meta_data->>'keel_signup_intent'` et `->>'country'`.
@@ -36,17 +35,39 @@ describe("freeSignupMetadata", () => {
     expect(meta.country).toBe("GB");
   });
 
-  it("declares the product locale, never the legacy fr-FR default", () => {
+  it("porte la langue CHOISIE, telle quelle, dans les deux sens", () => {
+    // ── CE QUE CE TEST REMPLACE, ET POURQUOI ────────────────────────────────
+    // Il asservissait `meta.locale` à `"en-US"` et à la constante
+    // `PRODUCT_LOCALE`. Les deux ont disparu: la langue est maintenant un CHOIX
+    // fait au drapeau, et le seul défaut possible ici serait qu'elle ne
+    // traverse pas — un repli codé en dur, une clé oubliée, une valeur figée.
+    //
+    // D'où les DEUX sens. Une assertion sur le seul français resterait verte
+    // devant `locale: "fr-FR"` écrit en dur dans le constructeur, ce qui est
+    // exactement la faute qu'on vient de retirer, retournée.
+    for (const chosen of ["fr-FR", "en-US", "fr-GB"]) {
+      const meta = freeSignupMetadata({
+        fullName: "Ada",
+        country: "US",
+        timezone: "America/New_York",
+        locale: chosen,
+      });
+      expect(meta.locale).toBe(chosen);
+    }
+  });
+
+  it("n'omet JAMAIS la clé `locale`", () => {
+    // Le défaut que celle-ci attrape est muet et durable: sans la clé,
+    // `handle_new_user` retombe sur son défaut legacy `'fr-FR'` — que personne
+    // n'a choisi — et le compte parle français pour toujours sans qu'une seule
+    // erreur soit levée nulle part.
     const meta = freeSignupMetadata({
       fullName: "Ada",
       country: "US",
-      timezone: "America/New_York",
+      timezone: "UTC",
+      locale: "en-US",
     });
-    // `profiles.locale` a pour DÉFAUT 'fr-FR'. Ne pas envoyer la clé laisserait
-    // un inscrit libre en français sur un produit anglais — et toute ceinture
-    // gatée sur `isFrenchLocale` s'armerait sur lui.
-    expect(meta.locale).toBe("en-US");
-    expect(PRODUCT_LOCALE).toBe("en-US");
+    expect(Object.keys(meta)).toContain("locale");
   });
 
   it("carries the browser timezone, because no server value would be honest", () => {
@@ -54,6 +75,7 @@ describe("freeSignupMetadata", () => {
       fullName: "Ada",
       country: "US",
       timezone: "Asia/Singapore",
+      locale: "en-US",
     });
     // Un fuseau NULL fait rendre `null` à `localHourFor`, ce qui range l'élève en
     // `outside_window` à chaque tick du tap du soir. Silencieusement, pour
@@ -68,6 +90,7 @@ describe("freeSignupMetadata", () => {
       fullName: "  Ada  ",
       country: "US",
       timezone: "UTC",
+      locale: "en-US",
     });
     expect(meta.full_name).toBe("Ada");
   });
@@ -75,7 +98,7 @@ describe("freeSignupMetadata", () => {
   it("never omits country, whatever else is empty", () => {
     // Le cas qui compte: le trigger REFUSE de rattacher sans pays. Si cette clé
     // disparaissait, chaque inscrit libre sortirait sans coach, sans erreur.
-    const meta = freeSignupMetadata({ fullName: "", country: "FR", timezone: "UTC" });
+    const meta = freeSignupMetadata({ fullName: "", country: "FR", timezone: "UTC", locale: "en-US" });
     expect(Object.keys(meta)).toContain("country");
     expect(meta.country).toBe("FR");
   });
@@ -101,19 +124,19 @@ describe("isDeclaredCountryValid", () => {
     }
   });
 
-  it("REFUSE l'état initial des sélecteurs — la garde du défaut mesuré", () => {
-    // MESURÉ LE 2026-08-12, en jouant `/start` dans un navigateur: le sélecteur
-    // naissait à « United States », et un compte créé sans y toucher partait
-    // avec `profiles.country='US'` — sous une aide qui promet « le bon numéro
-    // d'urgence ». C'est-à-dire la hotline américaine pour un Français.
+  it("REFUSE la chaîne vide — la garde qui survit au retrait du sélecteur", () => {
+    // ⚠️ CE TEST CITAIT `NO_COUNTRY_SELECTED`, QUI N'EXISTE PLUS. Il gardait
+    // l'état initial des trois sélecteurs de pays contre un « US » de confort:
+    // mesuré le 2026-08-12, un compte créé sans toucher le champ partait avec
+    // `country='US'` sous une aide qui promettait le bon numéro d'urgence.
     //
-    // Ce test est la seule chose qui rougit si quelqu'un redonne un pays à
-    // `NO_COUNTRY_SELECTED` « pour éviter un champ vide »: `"US"` est une valeur
-    // parfaitement valide, donc aucune autre ceinture — ni le type, ni la base,
-    // ni un test de forme — ne verrait passer la régression. Les trois portes
-    // (`/start`, `/join-household`, la porte coach de `/auth`) partent de cette
-    // constante, donc une seule assertion les tient toutes les trois.
-    expect(isDeclaredCountryValid(NO_COUNTRY_SELECTED)).toBe(false);
+    // Les sélecteurs sont partis — le pays se déduit du fuseau — mais la
+    // propriété reste la bonne, et pour une raison DIFFÉRENTE: la déduction
+    // peut rendre du vide (fuseau inconnu ET navigateur sans région), et du
+    // vide écrit en base rouvrirait exactement le même trou. C'est
+    // `countryFromTimezone.int.test.ts` qui prouve qu'elle n'en rend jamais;
+    // celui-ci garde la forme que ce test-là interroge.
+    expect(isDeclaredCountryValid("")).toBe(false);
   });
 });
 
@@ -153,8 +176,21 @@ describe("signUpOutcome", () => {
 
 describe("joinRefusalMessageKey", () => {
   it("maps every refusal the RPC can emit to a real message", () => {
+    // ⚠️ `country_required` A QUITTÉ CETTE LISTE, ET LA RAISON EST ÉCRITE.
+    //
+    // Ces trois-là sont des refus que la personne peut COMPRENDRE et sur
+    // lesquels elle peut agir: elle suit déjà un coach, elle est elle-même
+    // coach, le coach maison est indisponible. Chacun mérite donc sa phrase, et
+    // retomber sur le message générique serait une perte d'information — c'est
+    // ce que cette assertion garde.
+    //
+    // `country_required` n'en est plus un. Le pays n'est plus saisi: il est
+    // déduit du fuseau. Ce refus ne peut donc plus vouloir dire « vous n'avez
+    // pas répondu » — il veut dire que NOTRE déduction a produit une valeur que
+    // la base rejette. Lui donner une phrase à lui reviendrait à demander à
+    // quelqu'un de corriger un champ qu'il n'a jamais vu; il est rangé avec les
+    // pannes, dont la phrase invite à réessayer. Le cas est tenu ci-dessous.
     const reasons = [
-      "country_required",
       "already_coached",
       "caller_is_coach",
       "house_coach_unavailable",
@@ -167,6 +203,15 @@ describe("joinRefusalMessageKey", () => {
       expect(en[key], `missing message for ${reason}`).toBeTruthy();
       expect(key).not.toBe("start.error.generic");
     }
+  });
+
+  it("`country_required` est traité comme une PANNE, pas comme une question", () => {
+    // La contrepartie de la carve-out ci-dessus, écrite plutôt que sous-entendue:
+    // le refus reste RECONNU (il n'atterrit pas dans le repli « motif inconnu »
+    // par accident), et sa phrase existe.
+    const key = joinRefusalMessageKey("country_required");
+    expect(key).toBe("start.error.generic");
+    expect(en[key]).toBeTruthy();
   });
 
   it("falls back to a human sentence on an unknown or absent reason", () => {

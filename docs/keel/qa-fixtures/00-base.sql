@@ -150,7 +150,7 @@ values
   ('08050000-0000-4000-8000-000000000012', 'muscle_gain',
    'Etudiant, sale de sport 4 fois par semaine, petit budget.',
    '{"eating_rhythm":["breakfast","lunch","snack_pm","dinner"],"cooks":true}'::jsonb, 'fr-FR'),
-  ('08050000-0000-4000-8000-000000000021', 'health',
+  ('08050000-0000-4000-8000-000000000021', 'maintenance',
    'Travaille de nuit, saute souvent le petit-dejeuner.',
    '{"eating_rhythm":["lunch","dinner"],"cooks":false}'::jsonb, 'fr-FR')
 on conflict (user_id) do update set

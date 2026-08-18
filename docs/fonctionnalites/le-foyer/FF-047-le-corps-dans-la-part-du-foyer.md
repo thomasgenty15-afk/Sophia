@@ -55,11 +55,53 @@ compte de toi ». Une promesse de ce genre ne se découvre pas, elle s'use.
 - Le **rearmement de la ceinture de sortie** sur ce que le corps rend dicible.
 - La **mesure** du coût, pas son estimation.
 
+### ⚠️ Renversement partiel du 2026-08-12 — lire avant le reste de la fiche
+
+> **Par qui** : l'utilisateur, en connaissance de cause, après que la contrainte
+> et sa raison lui ont été exposées.
+> **Contre quoi** : le premier point « hors périmètre » ci-dessous, et le
+> **cran 2** de la table d'intake du [README](README.md) (« le corps : compte
+> **requis** »).
+
+> « il faut la taille le poids et l'âge et le gender **obligatoirement** (même
+> quand ils ont pas de compte secondaire !) »
+
+**Ce qui a changé : on COLLECTE.** Chaque bouche — mineure comprise, sans compte
+comprise — porte désormais taille, poids et sexe, dans une table à part
+(`household_member_bodies`, migration `20260812220000`). Ils servent à
+**dimensionner dans le moteur** : le MIN du tronc commun et les add-ons par
+bouche (voir [FF-043](FF-043-la-resolution-foyer.md)).
+
+**Ce qui n'a PAS changé, et c'est la moitié qui portait vraiment la règle : on
+n'ÉNONCE pas.** La raison de l'interdit n'était pas de ne pas *savoir*, c'était
+de ne pas *dire*. Cette moitié-là est intacte :
+
+- ✅ `householdBodyFacts` rend toujours `[]` hors adulte — la suppression de
+  `meal_body.ts:247-248` **reste en place**. Vérifié sur la chaîne du run réel du
+  2026-08-12 : aucun des six chiffres corporels des deux enfants n'apparaît dans
+  le brief de portions, et leurs lignes sont **exactement** celles d'avant
+  (`- Lea: child-size share of the same dish`) ;
+- ✅ aucun fait corporel de mineur à l'écran, ni dans un log nominatif ;
+- ✅ aucune calorie, aucun besoin, aucun IMC, aucune cible, nulle part.
+
+**Ce que le renversement coûte, écrit noir sur blanc.** Le cran 2 gardait le
+corps derrière un compte pour une raison **technique** : `restriction_guard` — le
+plancher TCA — a besoin d'une **série** de poids, et une bouche sans compte n'en
+a pas. « Le produit ne collecte pas ce qu'il ne sait pas protéger. » On collecte
+désormais un poids sans série, donc **sans plancher derrière**. La contrepartie
+est structurelle et non déclarative : ce corps-là **n'achète qu'une maintenance**
+(`maintenanceEnvelopeFromBody`, `childEnvelopeFromBody`, aucune des deux
+n'accepte de paramètre d'objectif), et une maintenance ne peut ni creuser un
+déficit ni poser un plafond de densité. Il n'y a rien à protéger d'une bande qui
+ne retire rien.
+
 ### Hors périmètre — engageant
-- ❌ **Aucun fait corporel pour un mineur, ni pour un âge inconnu** — même avec
-  un compte. Poser « 152 cm, 41 kg » à côté du prénom d'un enfant rend la
-  direction `fat_loss` **dérivable** sans qu'on l'ait demandée
-  (`meal_body.ts:247`). Décision prise et nommée, réversible en une ligne.
+- ~~❌ **Aucun fait corporel pour un mineur, ni pour un âge inconnu** — même avec
+  un compte.~~ **RENVERSÉ le 2026-08-12 pour la COLLECTE, maintenu pour
+  l'ÉNONCIATION** (voir l'encadré ci-dessus). Poser « 152 cm, 41 kg » à côté du
+  prénom d'un enfant rend la direction `fat_loss` **dérivable** sans qu'on l'ait
+  demandée (`meal_body.ts:247`) — et c'est pourquoi ça n'entre toujours dans
+  aucun prompt.
 - ❌ **Aucun fait corporel pour qui est sous plancher TCA**
   (`meal_body.ts:248`).
 - ❌ **Aucune calorie, aucun besoin énergétique, aucun IMC, aucune catégorie,
@@ -219,6 +261,35 @@ Alors le nombre de lectures est le même qu'avec seulement les deux comptes
    rouges : plancher désarmé, appariement sur `user_id`, plancher fail-open,
    ligne sans faits, fil débranché, groupe `height` retiré) — pas au niveau du
    texte que le modèle produit.
-3. **Le mineur avec compte ne reçoit aucun fait corporel.** Décision réversible
-   en une ligne ; personne n'a demandé à la lever, et personne n'a mesuré ce
-   qu'elle coûte à un adolescent de seize ans qui suit son poids.
+3. ~~**Le mineur avec compte ne reçoit aucun fait corporel.**~~ **Tranché à
+   moitié le 2026-08-12** : son corps est désormais **collecté** et **calculé**
+   (il pèse dans le MIN et reçoit des add-ons), et il n'est toujours **pas
+   énoncé** — `householdBodyFacts` rend `[]` hors adulte. Ce qui reste ouvert est
+   plus étroit qu'avant : personne n'a mesuré ce que coûte, à un adolescent de
+   seize ans qui suit son poids, de ne pas voir ses pesées entrer dans la
+   consigne de service — seulement dans son dimensionnement.
+4. **Le corps d'une bouche sans compte n'a pas de plancher TCA derrière lui.**
+   C'est le prix nommé du renversement (encadré §3). La contrepartie retenue est
+   structurelle — ce corps n'achète qu'une **maintenance** — et pas un contrôle.
+   Ce qui n'est pas décidé : que faire le jour où un maître saisirait des poids
+   décroissants pour un enfant. Rien ne le lit, rien ne le voit, rien ne
+   l'alerte.
+5. ~~**La table des corps est HORS de l'export RGPD.**~~ **Refermé le
+   2026-08-12**, quelques heures après avoir été nommé — trou n°10 du
+   [README](README.md), désormais partiel.
+   - **Export** : `household_member_bodies` sort dans `mon_foyer.json`, clé
+     `mon_corps_pour_les_parts`, **scopée sur SA ligne** (les `member_id` viennent
+     de la lecture déjà filtrée sur `user_id = <lui>`, jamais du roster —
+     exporter le roster des corps ferait de l'archive de l'un une divulgation
+     médicale sur ses enfants). Vérifié en run réel : sur un foyer où trois
+     bouches ont un corps, l'archive du maître en porte **une**.
+   - **Purge** : `keel_household_purge_user` efface le corps dans ses **deux**
+     branches — arbitrage différent de celui de `birth_date`, écrit dans la
+     migration.
+   - **Et l'archive le DIT** : `ce_qui_est_efface` était absent à côté de
+     `ce_qui_survit_a_la_suppression`. Un export qui n'énumère que ce qu'il garde
+     laisse croire qu'il garde tout.
+
+   Ce qui reste ouvert du n°10 : **cinq** tables de foyer, dont
+   `household_member_allergies` — une donnée de santé, sans `user_id`, qui
+   entrerait par le même chemin que le corps.

@@ -3,10 +3,12 @@ import React from "react";
 import { type DishSameDay, type GeneratedDish } from "../api/mealGeneration";
 import { type DishEnergyView } from "../api/mealEnergy";
 import { dishDayLabel, dishSlotLabel, mealCopy } from "../api/mealLabels";
+import { MEAL_UNTICK_FORM_REASONS } from "../api/mealTicks";
 import { type DishSessionView } from "../lib/dishSession";
-import { type DishTick } from "../lib/useMealTicks";
+import { type DishTick, type UntickPrompt } from "../lib/useMealTicks";
 import { DishEnergyLine } from "./plan/EnergyReadout";
 import { Badge } from "./ui/Badge";
+import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
 
 // UN PLAT, RENDU UNE SEULE FOIS.
@@ -175,6 +177,13 @@ export default function DishCard(
           </span>
         )}
       </div>
+      {/* ── FF-057 §3.A · LE FORMULAIRE ACCIDENT, SOUS LA CASE QU'ON VIENT DE
+          DÉCOCHER ────────────────────────────────────────────────────────────
+          Il est INLINE et pas en fenêtre: la question porte sur CE plat-là, et
+          une modale l'aurait détaché de la carte qui la motive. Il n'apparaît
+          que sur le plat dont la décoche vient d'être écrite — jamais sur les
+          vingt-cinq autres cartes de `/app/plan`. */}
+      {tick?.untickPrompt && <UntickForm prompt={tick.untickPrompt} />}
       {/* ── LOT 2 · CE QU'IL Y A À FAIRE AUJOURD'HUI, EN TÊTE DE CARTE ──────
           C'est la première chose qu'on lit sous le titre, et c'est délibéré:
           devant une assiette, la question n'est pas « pourquoi ce plat » ni
@@ -344,6 +353,69 @@ export default function DishCard(
           assemblage le temps d'une cuisson. Elles ont déjà leur surface. */}
       {session && <SessionLink session={session} />}
     </Card>
+  );
+}
+
+/**
+ * FF-057 §3.A — LE FORMULAIRE ACCIDENT: TROIS BOUTONS, ET PAS UN QUATRIÈME.
+ *
+ * ── CE QU'IL EST, ET CE QU'IL N'EST PAS ────────────────────────────────────
+ * Il ne DEMANDE rien: la décoche est déjà écrite quand il s'affiche, il ne fait
+ * que proposer de la préciser. C'est pour ça qu'il n'a ni titre interrogatif ni
+ * bouton « Valider » — trois tuiles, une sortie, et le geste est fini.
+ *
+ * ⛔ AUCUN CHAMP LIBRE (fiche §9): « une fois ouvert, il devient obligatoire
+ * dans la tête des gens, et le coût du geste remonte ». Un quatrième cas se
+ * traite par « j'ai mangé autre chose », jamais par une branche neuve.
+ *
+ * ⛔ AUCUN JUGEMENT. Les trois libellés disent ce qui s'est passé, jamais ce
+ * qu'il aurait fallu faire. Le verrou de doctrine interdit déjà « cheat meal »
+ * et ses voisins, et rien ici ne s'en approche.
+ *
+ * ⚠️ LE COMPOSANT EST À CÔTÉ DE `DishCard`, PAS DANS LES DEUX PAGES. La carte
+ * est le seul rendu partagé de `/app/plan` et `/app/today`; y poser le
+ * formulaire les sert tous les deux d'un coup, avec la liaison unique de
+ * `lib/useMealTicks.ts` derrière. Deux câblages parallèles auraient donné la
+ * divergence que ce fichier-là existe pour empêcher.
+ */
+function UntickForm({ prompt }: { prompt: UntickPrompt }) {
+  return (
+    <div
+      // Même bloc que `sources` et le dépliant de session: c'est la famille
+      // « information rattachée à ce plat ». `line` garantit l'arête même là où
+      // le remplissage `paper-2` (1,08:1) ne se voit pas.
+      className="mt-3 rounded-card border border-line bg-paper-2 px-3 py-2"
+    >
+      <p className="text-sm text-ink break-words">{mealCopy("meals.untick.lead")}</p>
+      {/* `flex-wrap` et pas une grille à trois colonnes: à 320 px, trois
+          libellés de cette longueur côte à côte se cassent en escalier. Ils
+          s'empilent, ce qui est la bonne réponse sur un téléphone. */}
+      <div className="mt-2 flex flex-wrap gap-2">
+        {MEAL_UNTICK_FORM_REASONS.map((reason) => (
+          <Button
+            key={reason}
+            variant="secondary"
+            size="sm"
+            disabled={prompt.busy}
+            onClick={() => prompt.onPick(reason)}
+          >
+            {mealCopy(`meals.untick.${reason}`)}
+          </Button>
+        ))}
+        {/* IGNORER EST UNE FIN NORMALE, et elle est offerte au même endroit que
+            les trois autres. `ghost` parce que c'est le geste qu'on peut
+            ignorer: si les quatre portaient la même force, aucun ne guiderait.
+            Il n'écrit RIEN — la décoche nue reste. */}
+        <Button
+          variant="ghost"
+          size="sm"
+          disabled={prompt.busy}
+          onClick={prompt.onDismiss}
+        >
+          {mealCopy("meals.untick.dismiss")}
+        </Button>
+      </div>
+    </div>
   );
 }
 

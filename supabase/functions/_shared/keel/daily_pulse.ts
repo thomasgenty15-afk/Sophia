@@ -47,6 +47,8 @@
  * PURE MODULE : no I/O, no clock (le caller passe `now`), no randomness.
  */
 
+import { type LocalePackKey, localePackKey } from "./locale.ts";
+
 // ---------------------------------------------------------------------------
 // Le vocabulaire (R1 : tokens ASCII, ils voyagent en payload de bouton)
 // ---------------------------------------------------------------------------
@@ -73,46 +75,135 @@ export function pulseAxisButtonId(axis: PulseAxis): string {
 }
 
 /**
- * 20 caractères max par titre — limite Meta, tronquée par `whatsapp-send`.
+ * TOUT CE QUI PORTE LA LANGUE DU TAP DU SOIR, dans UN objet par locale.
  *
- * R3 : le produit est en anglais. Ces libellés partent tels quels dans le
- * payload du bouton et doivent aussi correspondre EXACTEMENT aux boutons du
- * template Meta approuvé (voir `docs/nutrition-pivot/META-TEMPLATES.md`) : hors
- * fenêtre 24h, c'est le template qui rend le message, et un libellé qui diverge
- * ici produit deux expériences différentes selon l'heure d'envoi.
+ * ── LE DÉFAUT QUE CE PACK FERME ────────────────────────────────────────────
+ * Les tables s'appelaient `LEVEL_LABELS_EN` / `AXIS_LABELS_EN` et les deux
+ * questions `PULSE_QUESTION_EN` / `PULSE_AXIS_QUESTION_EN`. Le suffixe était
+ * l'aveu: il n'existait aucune jumelle `_FR`, et l'appelant de production
+ * (`keel-daily-pulse-v1`) résolvait POURTANT une locale — qu'il ne passait
+ * qu'à la bande du soir et au récapitulatif. Un élève `fr-FR` recevait donc,
+ * tous les soirs, un fait français suivi de « How was today? » et de trois
+ * boutons anglais. C'est le message le plus vu du produit.
+ *
+ * ── POURQUOI UN PACK ET PAS DES `isFrenchLocale(...)` AU FIL DES LIGNES ────
+ * Même raison que `render.ts`, dont ce fichier copie le motif: une phrase
+ * oubliée dans une branche ne se voit pas, une clé manquante dans un pack ne
+ * compile pas.
+ *
+ * ── CE QUI A DISPARU AVEC META, ET QU'IL FAUT DIRE ─────────────────────────
+ * Le pavé précédent justifiait l'anglais par le template Meta approuvé: hors
+ * fenêtre 24h c'était LUI qui rendait le message, donc un libellé divergent
+ * produisait deux expériences. Depuis le chantier de-whatsapp, la livraison est
+ * un `deliverChatMessage` et `pulseTemplateButtonComponents` n'a plus d'appelant
+ * hors test (vérifié). La contrainte a survécu à sa cause; elle tombe ici.
+ *
+ * Ce qui NE tombe pas: les identifiants (`pulseLevelButtonId`) restent des
+ * jetons ASCII et ne sont jamais traduits (R1). C'est eux qui reviennent dans
+ * `button_payload`, et c'est le seul chemin d'interprétation.
  */
-const LEVEL_LABELS_EN: Record<PulseLevel, string> = {
-  good: "All good",
-  mixed: "So-so",
-  hard: "Rough",
+type PulsePack = {
+  /** Titre des trois boutons de niveau. 20 caractères utiles, pas plus. */
+  levelLabels: Record<PulseLevel, string>;
+  axisLabels: Record<PulseAxis, string>;
+  question: string;
+  axisQuestion: string;
+  /**
+   * L'accusé après le tap — porté par le pack ENTIER plutôt que par trois
+   * clés, parce que les trois formes ne se correspondent pas une à une d'une
+   * langue à l'autre.
+   */
+  ack: (level: PulseLevel, axis: PulseAxis | null) => string;
 };
-const AXIS_LABELS_EN: Record<PulseAxis, string> = {
-  energy: "Energy",
-  hunger: "Hunger",
-  sleep: "Sleep",
+
+const PULSE_PACKS: Record<LocalePackKey, PulsePack> = {
+  en: {
+    levelLabels: {
+      good: "All good",
+      mixed: "So-so",
+      hard: "Rough",
+    },
+    axisLabels: {
+      energy: "Energy",
+      hunger: "Hunger",
+      sleep: "Sleep",
+    },
+    question: "How was today?",
+    axisQuestion: "What was hard?",
+    ack: (level, axis) => {
+      if (level === "good") return "Got it 👌";
+      if (axis === null) return "Got it.";
+      return "Got it, thanks.";
+    },
+  },
+  fr: {
+    // « Ça va » / « Bof » / « Dur » : trois mots que quelqu'un dit vraiment.
+    // Une traduction littérale de « All good » (« Tout va bien ») serait plus
+    // longue et plus emphatique que ce qu'on demande — un bouton qu'on tape
+    // tous les trois soirs doit être le mot le plus court qui reste juste.
+    levelLabels: {
+      good: "Ça va",
+      mixed: "Bof",
+      hard: "Dur",
+    },
+    axisLabels: {
+      energy: "Énergie",
+      hunger: "Faim",
+      sleep: "Sommeil",
+    },
+    question: "Ta journée ?",
+    axisQuestion: "Qu'est-ce qui a coincé ?",
+    ack: (level, axis) => {
+      if (level === "good") return "Noté 👌";
+      if (axis === null) return "Noté.";
+      return "Noté, merci.";
+    },
+  },
 };
+
+/**
+ * Le pack du tap. R7 par délégation: `localePackKey` jette pour une langue
+ * qu'on n'a pas livrée, plutôt que de rendre un message à moitié anglais.
+ */
+function pulsePackFor(locale: string): PulsePack {
+  return PULSE_PACKS[localePackKey(locale)];
+}
 
 export interface PulseButton {
   id: string;
   title: string;
 }
 
-export function pulseLevelButtons(): PulseButton[] {
+/**
+ * `locale` est REQUIS partout dans ce fichier, jamais optionnel.
+ *
+ * Un défaut ici serait exactement l'épingle qu'on retire: le compilateur
+ * énumère les appelants, et chacun doit DIRE d'où vient la langue du soir.
+ */
+export function pulseLevelButtons(locale: string): PulseButton[] {
+  const pack = pulsePackFor(locale);
   return PULSE_LEVELS.map((level) => ({
     id: pulseLevelButtonId(level),
-    title: LEVEL_LABELS_EN[level],
+    title: pack.levelLabels[level],
   }));
 }
 
-export function pulseAxisButtons(): PulseButton[] {
+export function pulseAxisButtons(locale: string): PulseButton[] {
+  const pack = pulsePackFor(locale);
   return PULSE_AXES.map((axis) => ({
     id: pulseAxisButtonId(axis),
-    title: AXIS_LABELS_EN[axis],
+    title: pack.axisLabels[axis],
   }));
 }
 
-export const PULSE_QUESTION_EN = "How was today?";
-export const PULSE_AXIS_QUESTION_EN = "What was hard?";
+/** La question du soir, dans la langue de l'élève. */
+export function pulseQuestion(locale: string): string {
+  return pulsePackFor(locale).question;
+}
+
+export function pulseAxisQuestion(locale: string): string {
+  return pulsePackFor(locale).axisQuestion;
+}
 
 /**
  * Le template approuvé qui porte la MÊME question hors fenêtre 24h.
@@ -495,8 +586,8 @@ export interface PulseMessage {
   buttons: PulseButton[];
 }
 
-export function renderPulseQuestion(): PulseMessage {
-  return { body: PULSE_QUESTION_EN, buttons: pulseLevelButtons() };
+export function renderPulseQuestion(locale: string): PulseMessage {
+  return { body: pulseQuestion(locale), buttons: pulseLevelButtons(locale) };
 }
 
 /**
@@ -541,12 +632,18 @@ export function renderPulseQuestion(): PulseMessage {
  *   appelant serait indiscernable d'une soirée sans plat, et le symptôme
  *   (« la bande ne part jamais ») est exactement la panne silencieuse que
  *   `body_sources` a déjà appris à ce job à rendre visible.
+ * @param locale REQUIS. Le fait du jour et la bande arrivaient DÉJÀ dans la
+ *   langue de l'élève (`composeRecapBody` et `buildEveningStrip` la reçoivent);
+ *   seule la question restait anglaise, au milieu du même message. Un
+ *   paramètre optionnel aurait laissé cette phrase-là se recoller en anglais
+ *   au premier appelant distrait.
  */
 export function renderPulseMessage(
   args: {
     recapBody: string | null;
     ask: boolean;
     strip: { line: string; buttons: PulseButton[] } | null;
+    locale: string;
   },
 ): PulseMessage {
   const recap = String(args.recapBody ?? "").trim();
@@ -556,7 +653,7 @@ export function renderPulseMessage(
   const blocks: string[] = [];
   if (recap) blocks.push(recap);
   if (stripLine) blocks.push(stripLine);
-  if (args.ask) blocks.push(PULSE_QUESTION_EN);
+  if (args.ask) blocks.push(pulseQuestion(args.locale));
 
   if (blocks.length === 0) {
     // Un appel sans fait, sans bande NI question ne rend rien de sensé: le
@@ -569,12 +666,15 @@ export function renderPulseMessage(
 
   return {
     body: blocks.join("\n\n"),
-    buttons: [...stripButtons, ...(args.ask ? pulseLevelButtons() : [])],
+    buttons: [
+      ...stripButtons,
+      ...(args.ask ? pulseLevelButtons(args.locale) : []),
+    ],
   };
 }
 
-export function renderPulseAxisQuestion(): PulseMessage {
-  return { body: PULSE_AXIS_QUESTION_EN, buttons: pulseAxisButtons() };
+export function renderPulseAxisQuestion(locale: string): PulseMessage {
+  return { body: pulseAxisQuestion(locale), buttons: pulseAxisButtons(locale) };
 }
 
 /**
@@ -584,11 +684,16 @@ export function renderPulseAxisQuestion(): PulseMessage {
  * suivi de « courage, demain ira mieux » est exactement la tendresse non
  * groundée que la doctrine du dépôt proscrit, et sur un tap quotidien ça
  * devient insupportable en une semaine. On accuse réception, on se tait.
+ *
+ * Cette retenue est ce qui rend les deux packs comparables: il n'y a rien à
+ * traduire d'autre que « c'est enregistré ».
  */
-export function renderPulseAck(level: PulseLevel, axis: PulseAxis | null): string {
-  if (level === "good") return "Got it 👌";
-  if (axis === null) return "Got it.";
-  return "Got it, thanks.";
+export function renderPulseAck(
+  level: PulseLevel,
+  axis: PulseAxis | null,
+  locale: string,
+): string {
+  return pulsePackFor(locale).ack(level, axis);
 }
 
 // ---------------------------------------------------------------------------

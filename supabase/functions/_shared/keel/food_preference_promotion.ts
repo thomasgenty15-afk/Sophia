@@ -46,6 +46,27 @@
  *
  * PURE MODULE: aucun I/O, aucune horloge, aucun aléatoire.
  */
+import {
+  canProduce,
+  parseRetainedItem,
+  parseRetainedItems,
+  parseRetainedKind,
+  parseRetainedSource,
+  type RetainedItem,
+  retainedItemToJson,
+} from "./retained_item.ts";
+// LA CLÉ DU MAGASIN PROVISOIRE, IMPORTÉE ET PAS RETAPÉE. `constraintsForPrompt`
+// doit la retirer du prompt (voir son en-tête), et une clé déclarée deux fois —
+// une constante ici, un littéral là-bas — est la bretelle la plus chère de ce
+// chantier: renommer l'une laisserait les deux côtés verts pendant que
+// l'écriture et la lecture partiraient dans deux clés différentes.
+//
+// ⚠️ CE QUE CET IMPORT AJOUTE, ET CE QU'IL N'AJOUTE PAS. `retained_next_plan.ts`
+// contient la seule I/O de son lot, mais il n'importe RIEN d'autre que
+// `retained_item.ts` — le même socle pur que ce fichier. Aucun cycle
+// (`retained_next_plan.ts` ne connaît pas ce module), et aucune dépendance
+// réseau ne descend ici: ce module reste PUR au sens de son en-tête.
+import { NEXT_PLAN_ITEMS_KEY } from "./retained_next_plan.ts";
 
 /** Une ligne de `memory_items`, réduite à ce que la promotion regarde. */
 export interface MemoryItemForPromotion {
@@ -433,6 +454,27 @@ function originMapOf(
 }
 
 /**
+ * LES TEXTES GARDÉS, tels qu'ils sont en base — la SEULE lecture de cette clé.
+ *
+ * Ce fichier en portait QUATRE copies identiques (décision, réconciliation, vue
+ * de prompt, relance). Il écrit lui-même, au-dessus d'`originIdsOf`, que « deux
+ * lectures d'une même structure finissent toujours par diverger » — et il l'a
+ * payé une fois, sur cette table-là. Une cinquième copie était le prix d'entrée
+ * du magasin structuré: on extrait plutôt que d'ajouter.
+ *
+ * ⚠️ Le `trim` + `filter(Boolean)` n'est PAS cosmétique: `food_preferences` est
+ * un jsonb, une chaîne blanche y est possible, et une ligne blanche gardée
+ * s'affiche comme une case vide dans la carte.
+ */
+function keptTextsOf(
+  constraints: Record<string, unknown> | null | undefined,
+): string[] {
+  const raw = (constraints ?? {})[FOOD_PREFERENCES_KEY];
+  if (!Array.isArray(raw)) return [];
+  return raw.map((v) => String(v ?? "").trim()).filter(Boolean);
+}
+
+/**
  * LE PLAFOND DE `food_preferences_dismissed`.
  *
  * Cette liste n'a QUE des `push`: chaque proposition gardée ou écartée y laisse
@@ -534,10 +576,7 @@ export function applyFoodPreferenceDecision(
     | { kind: "write"; text: string },
 ): Record<string, unknown> {
   const base = { ...(constraints ?? {}) } as Record<string, unknown>;
-  const kept = Array.isArray(base[FOOD_PREFERENCES_KEY])
-    ? (base[FOOD_PREFERENCES_KEY] as unknown[]).map((v) => String(v ?? "").trim())
-      .filter(Boolean)
-    : [];
+  const kept = keptTextsOf(base);
   const dismissed = Array.isArray(base[FOOD_PREFERENCES_DISMISSED_KEY])
     ? (base[FOOD_PREFERENCES_DISMISSED_KEY] as unknown[]).map((v) =>
       String(v ?? "").trim()
@@ -620,6 +659,239 @@ export function applyFoodPreferenceDecision(
   base[FOOD_PREFERENCES_KEY] = kept;
   base[FOOD_PREFERENCES_DISMISSED_KEY] = capDismissed(dismissed);
   base[FOOD_PREFERENCES_ORIGIN_KEY] = origin;
+  return base;
+}
+
+// ===========================================================================
+// LE MAGASIN DURABLE — des `RetainedItem` là où il n'y avait que des phrases
+// ===========================================================================
+//
+// ── CE QUE CE BLOC AJOUTE, ET CE QU'IL NE REMPLACE PAS ─────────────────────
+// `food_preferences` reste EXACTEMENT ce qu'il est: une liste plate de phrases,
+// écrite par le pont `memory_items` → « Keep » → `applyFoodPreferenceDecision`,
+// lue par `foodPreferencesForPrompt`, corrigée par `reconcileFoodPreferences`.
+// Rien de ce chemin ne bouge. Le magasin structuré s'installe À CÔTÉ, dans une
+// seconde clé, et les deux cohabitent aussi longtemps qu'il reste une phrase
+// plate en base.
+//
+// ── ⛔ AUCUNE MIGRATION RÉTROACTIVE, ET C'EST LE §7 DE LA NOMENCLATURE ──────
+// Une phrase plate n'a pas de `kind`. Lui en attribuer un demanderait de lire
+// « n'aime pas le brocoli » et d'en déduire `food.exclude` — c'est-à-dire un
+// matcher maison, sur du texte libre, dans les deux langues servies. Ce dépôt a
+// la mesure: « laitue » ≠ « lait », 12 faux positifs sur 12. Les phrases déjà
+// écrites ressortent donc dans `legacyNotes`, TELLES QUELLES, et se reclassent
+// le jour où la personne les réécrit elle-même depuis la carte.
+//
+// ── POURQUOI UNE SECONDE CLÉ, ET PAS UN ÉLARGISSEMENT DE LA PREMIÈRE ───────
+// `food_preferences` a trois lecteurs vivants et une RPC d'écriture ciblée
+// (`keel_write_food_preferences`, `jsonb_set` sur deux clés nommées). Y mêler
+// des objets ferait tomber les trois lecteurs sur `String(objet)` — la panne
+// `"[object Object]"` est écrite au-dessus d'`originIdsOf`, et elle a déjà
+// arrêté la réconciliation pour tout le monde, en silence.
+
+/**
+ * LE MAGASIN STRUCTURÉ, à côté de `food_preferences` et de ses deux voisines.
+ *
+ * Même convention que `FOOD_PREFERENCES_KEY` / `KITCHEN_EQUIPMENT_KEY`: une
+ * clé de `practical_constraints`, en `snake_case`, nommée par une constante
+ * exportée pour que personne ne la retape.
+ */
+export const RETAINED_ITEMS_KEY = "retained_items";
+
+/**
+ * COMBIEN DE LIGNES STOCKÉES NE SONT PAS REMONTÉES, et pour quel motif.
+ *
+ * ── POURQUOI CE COMPTEUR EXISTE (contrat de phase 0, §2.2) ────────────────
+ * `parseRetainedItem` applique `canProduce(source, kind)` **À LA LECTURE**:
+ * une ligne que son producteur n'avait pas le droit d'écrire ne remonte pas,
+ * même déjà en base. C'est voulu — la matrice mord à chaque lecture, pas
+ * seulement le jour où le prompt s'en souvient. Mais sans compteur, un magasin
+ * dont la moitié des lignes est refusée ressemble EXACTEMENT à un magasin à
+ * moitié vide, et ce dépôt a une cicatrice nommée pour ça: « champ déclaré par
+ * le modèle = compteur obligatoire », « sans lui, un lot désarmé ressemble à un
+ * lot qui marche ».
+ *
+ * Trois motifs, séparés, parce qu'ils appellent trois réactions différentes:
+ *   · `forbiddenProducer` — un PRODUCTEUR écrit hors de ses droits. C'est un
+ *     défaut de code en amont, et il se répare en amont (§2.2 du contrat: une
+ *     ligne ré-éditée vers un `kind` interdit à sa source doit être
+ *     ré-enregistrée `source: "written"`, `item: ""`).
+ *   · `malformed` — la ligne est illisible (grammes dans un `portion.adjust`,
+ *     `subject` forgé, `at` qui n'est pas un jour, `confidence` sur un fait
+ *     déclaré). Le socle refuse l'item ENTIER plutôt que de le nettoyer.
+ *   · `notDurable` — la ligne est lisible mais n'a rien à faire ici: le
+ *     `next_plan` vit sur le canal d'envies (lot 1B), pas dans le durable.
+ */
+export interface RetainedItemsRefusals {
+  /** La somme des trois motifs. */
+  readonly total: number;
+  /** `canProduce(source, kind)` a mordu à la lecture. */
+  readonly forbiddenProducer: number;
+  /** Illisible pour tout autre motif — le socle refuse, il ne nettoie pas. */
+  readonly malformed: number;
+  /** Lisible, mais rangée dans le mauvais magasin. */
+  readonly notDurable: number;
+}
+
+/** Ce que le magasin rend: le structuré, le plat, et ce qui n'est pas passé. */
+export interface RetainedItemsReadout {
+  /** Les `RetainedItem` DURABLES, dans l'ordre où ils sont stockés. */
+  readonly items: RetainedItem[];
+  /**
+   * Les phrases plates de `food_preferences`, **telles quelles**. Sans `kind`,
+   * sans date inventée, sans reclassement. Voir le bloc de section.
+   */
+  readonly legacyNotes: string[];
+  /** Voir `RetainedItemsRefusals`. Jamais un silence. */
+  readonly refused: RetainedItemsRefusals;
+}
+
+/**
+ * LA PRIMITIVE, et la SEULE lecture du magasin structuré.
+ *
+ * `retainedItemsFrom` en est un enrobage, exactement comme
+ * `foodPreferencesForPrompt` enrobe `foodPreferencesByOrigin`: l'interface
+ * figée entre les lots de phase 1 ne porte que `{items, legacyNotes}`, et le
+ * compteur du §2.2 n'y tient pas sans la changer. Une seconde lecture de la
+ * même clé, elle, divergerait — c'est écrit deux fois dans ce fichier.
+ */
+export function readRetainedItems(
+  constraints: Record<string, unknown> | null | undefined,
+): RetainedItemsReadout {
+  const legacyNotes = keptTextsOf(constraints);
+  const raw = (constraints ?? {})[RETAINED_ITEMS_KEY];
+
+  // ⚠️ UN MAGASIN QUI N'EST PAS UNE LISTE COMPTE POUR UNE LIGNE REFUSÉE, pas
+  // pour zéro. À zéro, un jsonb corrompu (un objet, une chaîne, un `0`) serait
+  // indiscernable d'un jsonb vide — et « il n'y a rien » est précisément la
+  // lecture qu'on ne veut pas faire d'un magasin qu'on n'a pas su ouvrir.
+  if (!Array.isArray(raw)) {
+    const broken = raw === undefined || raw === null ? 0 : 1;
+    return {
+      items: [],
+      legacyNotes,
+      refused: {
+        total: broken,
+        forbiddenProducer: 0,
+        malformed: broken,
+        notDurable: 0,
+      },
+    };
+  }
+
+  // LE SOCLE, ET RIEN D'AUTRE. `parseRetainedItems` porte déjà la règle qui
+  // compte ici — un item difforme TOMBE SEUL et laisse ses voisins — et
+  // réécrire une boucle de lecture serait s'en fabriquer une seconde version.
+  const parsed = parseRetainedItems(raw);
+  const items = parsed.filter((entry) => entry.scope === "durable");
+
+  // Le DÉTAIL du refus, que le socle ne rend pas (il rend « de quoi le faire en
+  // comparant les longueurs »). Une seconde passe sur les lignes REFUSÉES
+  // seulement: le magasin durable d'une personne se compte en dizaines, et la
+  // clarté vaut plus ici que la passe économisée.
+  let forbiddenProducer = 0;
+  for (const row of raw) {
+    if (parseRetainedItem(row) !== null) continue;
+    const entry = row && typeof row === "object" && !Array.isArray(row)
+      ? row as Record<string, unknown>
+      : null;
+    if (!entry) continue;
+    const kind = parseRetainedKind(entry.kind);
+    const source = parseRetainedSource(entry.source);
+    // Les deux jetons se lisent, mais la matrice les refuse ENSEMBLE: c'est le
+    // motif §2.2, et c'est le seul qu'on sache nommer sans deviner.
+    if (kind && source && !canProduce(source, kind)) forbiddenProducer += 1;
+  }
+
+  const notDurable = parsed.length - items.length;
+  const unreadable = raw.length - parsed.length;
+  return {
+    items,
+    legacyNotes,
+    refused: {
+      total: unreadable + notDurable,
+      forbiddenProducer,
+      malformed: unreadable - forbiddenProducer,
+      notDurable,
+    },
+  };
+}
+
+/**
+ * Lit les `RetainedItem` DURABLES de `practical_constraints`.
+ *
+ * ⚠️ SIGNATURE FIGÉE par le contrat de phase 0 (§6): trois lots l'appellent.
+ * Le compteur de refus vit sur `readRetainedItems`, dont ceci est l'enrobage.
+ *
+ * `legacyNotes` = les phrases plates déjà en base, rendues **telles quelles**,
+ * jamais reclassées, jamais devinées. Elles ne sont PAS dédoublonnées contre
+ * les `items`: décider que la phrase « pas de brocoli » et l'item
+ * `food.exclude/brocoli` sont la même chose demanderait le matcher que ce
+ * fichier refuse. Deux lignes visibles se corrigent; une ligne effacée par une
+ * ressemblance ne se voit jamais.
+ */
+export function retainedItemsFrom(
+  constraints: Record<string, unknown> | null | undefined,
+): { items: RetainedItem[]; legacyNotes: string[] } {
+  const { items, legacyNotes } = readRetainedItems(constraints);
+  return { items, legacyNotes };
+}
+
+/**
+ * CE QUI A LE DROIT D'ENTRER DANS LE MAGASIN DURABLE, et ce qui n'y entre pas.
+ *
+ * Exporté pour que le refus de `withRetainedItems` soit DICIBLE par son
+ * appelant. La signature de `withRetainedItems` est figée et ne rend
+ * qu'un jsonb: sans ce compagnon, l'appelant qui range un `craving` ici ne
+ * pourrait rien dire à la personne, et l'envie disparaîtrait en silence — le
+ * geste exact que ce chantier existe pour empêcher.
+ *
+ * ⚠️ CE N'EST PAS UN PARAMÈTRE DE GARDE. `withRetainedItems` filtre TOUJOURS,
+ * qu'on appelle cette fonction ou non (« paramètre de garde optionnel = garde
+ * désarmée »). Elle ne fait que rendre lisible ce que le filtre a écarté.
+ */
+export function partitionForDurableStore(
+  items: readonly RetainedItem[],
+): { durable: RetainedItem[]; notDurable: RetainedItem[] } {
+  const durable: RetainedItem[] = [];
+  const notDurable: RetainedItem[] = [];
+  for (const entry of items ?? []) {
+    (entry?.scope === "durable" ? durable : notDurable).push(entry);
+  }
+  return { durable, notDurable };
+}
+
+/**
+ * Rend un `practical_constraints` NEUF portant ces items. **Ne mute pas
+ * l'entrée**, et ne touche à aucune autre clé.
+ *
+ * ⚠️ SIGNATURE FIGÉE par le contrat de phase 0 (§6).
+ *
+ * ── C'EST UN REMPLACEMENT DE CLÉ, PAS UNE FUSION ──────────────────────────
+ * La liste passée devient la liste stockée, comme `food_preferences`. Le reste
+ * de la colonne est recopié tel quel — patron d'`EatingRhythmCard` et de
+ * `CookingCapacityCard`: deux cartes ouvertes côte à côte ne doivent pas se
+ * désécrire l'une l'autre.
+ *
+ * ── ⚠️ SEUL LE `durable` EST ÉCRIT ICI, ET UN `craving` EST REFUSÉ ─────────
+ * Le `next_plan` a son magasin — le canal d'envies (lot 1B) — et son
+ * expiration s'y calcule À LA LECTURE. Rangé ici, il serait servi à toutes les
+ * générations suivantes: « une envie qui devient durable cesse d'être une envie
+ * et devient une habitude qu'on n'a pas demandée » (§2 axe 2). Un appelant qui
+ * détient les deux passe par `partitionForDurableStore` pour savoir quoi dire
+ * de ce qu'il n'a pas rangé ici.
+ *
+ * ⚠️ AUCUNE VALIDATION DE PLUS. Les items arrivent typés, donc déjà passés par
+ * `parseRetainedItem` — la seule porte d'entrée du socle. Revalider ici
+ * fabriquerait un second parseur, et le second finit toujours par diverger.
+ */
+export function withRetainedItems(
+  constraints: Record<string, unknown> | null | undefined,
+  items: readonly RetainedItem[],
+): Record<string, unknown> {
+  const base = { ...(constraints ?? {}) } as Record<string, unknown>;
+  base[RETAINED_ITEMS_KEY] = partitionForDurableStore(items).durable
+    .map(retainedItemToJson);
   return base;
 }
 
@@ -784,10 +1056,7 @@ export function reconcileFoodPreferences(args: {
   ignoreTokens?: ReadonlySet<string>;
 }): FoodPreferenceReconciliation {
   const base = { ...(args.constraints ?? {}) } as Record<string, unknown>;
-  const kept = Array.isArray(base[FOOD_PREFERENCES_KEY])
-    ? (base[FOOD_PREFERENCES_KEY] as unknown[]).map((v) => String(v ?? "").trim())
-      .filter(Boolean)
-    : [];
+  const kept = keptTextsOf(base);
   const origin = originMapOf(base);
   if (kept.length === 0) {
     return {
@@ -889,6 +1158,59 @@ export function reconcileFoodPreferences(args: {
  * c'est une table de correspondance texte→UUID, illisible pour un modèle et
  * coûteuse en budget. Elle sert la réconciliation, jamais la composition.
  * Sa DATE, elle, reste — voir `foodPreferencesForPrompt`.
+ *
+ * ── ⚠️ LES DEUX MAGASINS STRUCTURÉS PARTENT PAR LA MÊME PORTE ─────────────
+ * `retained_items` (durable, lot 1A) et `retained_next_plan` (provisoire, lot
+ * 1B) portent des `member:<uuid>`, des `item:<uuid>` de `memory_items`, des
+ * `source`, des `confidence` et — pour le second — une `anchor` de semaine.
+ * Autant de choses qu'un modèle ne peut pas lire et qu'il paierait en budget de
+ * contexte, derrière lequel il y a la doctrine du coach. Servis BRUTS, ils
+ * feraient en plus doublon avec la consigne que le lot 1C construit à partir
+ * des mêmes items, chacune dans une forme différente: c'est le patron « deux
+ * lectures d'une même structure divergent », mais dans le prompt, où il ne se
+ * voit pas.
+ *
+ * ⚠️ CE QUE CE BLOC A DIT DE FAUX, ET CE QUE ÇA A COÛTÉ. Il affirmait que « la
+ * clé n'est pas câblée » et qu'« aucune ligne en base ne porte encore cette
+ * clé », donc que le `delete` ne changeait rien. C'était vrai à l'écriture, et
+ * ça a cessé de l'être le jour même: le §7.2 du contrat a déménagé le magasin
+ * PROVISOIRE dans cette même colonne, et `week_plan_generation.ts:560`
+ * sérialise la colonne ENTIÈRE. `retained_next_plan` n'était pas retiré ici —
+ * la chaîne n'apparaissait pas une seule fois dans ce fichier — donc l'uuid du
+ * souvenir d'origine, la `confidence`, la `source`, le `subject` et l'`anchor`
+ * partaient au modèle sur la lane `generate-week-plan-v1`. Une contrainte
+ * documentée survit à sa cause: le commentaire tenait tout seul, la garde non.
+ *
+ * ── POURQUOI UNE LISTE NOIRE, ET PAS UNE LISTE BLANCHE ────────────────────
+ * La question s'est posée, parce que ce filtre a bien le défaut de sa forme:
+ * **toute clé neuve est servie par défaut**, et c'est exactement comme ça que
+ * `retained_next_plan` est sortie.
+ *
+ * Elle reste une liste NOIRE quand même, et le motif est l'asymétrie des
+ * dégâts. `practical_constraints` est un jsonb OUVERT, écrit par plusieurs
+ * producteurs (l'écran de réglages, le questionnaire, les recouvrements de
+ * `logistics.set`) et lu par nom dans une demi-douzaine de modules:
+ * `cook_days`, `cooking_time_min`, `recipe_difficulty`, `variety`,
+ * `budget_amount`, `away_days`, `day_properties`, `eating_rhythm`,
+ * `fixed_intakes`, `kitchen_equipment`… Une liste blanche vivant ICI devrait
+ * énumérer des clés que ce module ne possède pas. En oublier une ne fuit rien:
+ * elle EFFACE du prompt une consigne que la personne a réellement donnée, en
+ * silence, et le seul symptôme est un plan un peu moins juste. Rien ne rougit.
+ *
+ * Les deux formes ratent la clé neuve; elles ne ratent pas la même chose. La
+ * liste noire rate en FUYANT — cher, mais visible et testable. La liste blanche
+ * rate en AMPUTANT — moins cher au prompt, et invisible pour toujours. Et elle
+ * ne corrige même pas la cause: la liste vivrait toujours ici pendant que les
+ * clés naissent ailleurs.
+ *
+ * **Option écartée: la liste blanche** (n'exposer que les clés explicitement
+ * autorisées), pour ce qui précède.
+ *
+ * La cause, elle, est fermée par un test et pas par du code: l'inventaire des
+ * clés de `practical_constraints` est relu SUR LE DISQUE par
+ * `food_preference_promotion_test.ts`, et toute clé neuve y rougit tant que
+ * personne ne l'a classée « servie » ou « retirée » — et une clé classée
+ * « retirée » n'est verte que si ce filtre la retire vraiment.
  */
 export function constraintsForPrompt(
   constraints: Record<string, unknown> | null | undefined,
@@ -896,6 +1218,8 @@ export function constraintsForPrompt(
   const out = { ...(constraints ?? {}) } as Record<string, unknown>;
   delete out[FOOD_PREFERENCES_DISMISSED_KEY];
   delete out[FOOD_PREFERENCES_ORIGIN_KEY];
+  delete out[RETAINED_ITEMS_KEY];
+  delete out[NEXT_PLAN_ITEMS_KEY];
   const dated = foodPreferencesForPrompt(constraints);
   if (dated.length > 0) out[FOOD_PREFERENCES_KEY] = dated;
   return out;
@@ -975,10 +1299,7 @@ export function foodPreferencesByOrigin(
   constraints: Record<string, unknown> | null | undefined,
 ): FoodPreferencesByOrigin {
   const base = (constraints ?? {}) as Record<string, unknown>;
-  const kept = Array.isArray(base[FOOD_PREFERENCES_KEY])
-    ? (base[FOOD_PREFERENCES_KEY] as unknown[]).map((v) => String(v ?? "").trim())
-      .filter(Boolean)
-    : [];
+  const kept = keptTextsOf(base);
   if (kept.length === 0) return { written: [], remembered: [] };
   const origin = originMapOf(base);
 
@@ -1071,10 +1392,7 @@ export function preferencesWorthRechecking(args: {
   ignoreTokens?: ReadonlySet<string>;
 }): PreferenceRecheck[] {
   const base = (args.constraints ?? {}) as Record<string, unknown>;
-  const kept = Array.isArray(base[FOOD_PREFERENCES_KEY])
-    ? (base[FOOD_PREFERENCES_KEY] as unknown[]).map((v) => String(v ?? "").trim())
-      .filter(Boolean)
-    : [];
+  const kept = keptTextsOf(base);
   if (kept.length < 2) return [];
   const origin = originMapOf(base);
 

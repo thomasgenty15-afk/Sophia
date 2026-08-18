@@ -131,6 +131,19 @@ const NAV: Record<ShellVariant, NavItem[]> = {
     // deuxième membre n'a AUCUNE raison d'ouvrir l'app, ce qui rend le modèle
     // multi-comptes infacturable (PIVOT-FOYER §8.2c).
     { to: "/app/household", label: () => t("app.nav.household") },
+    // ⚠️ « CE QUE SOPHIA SAIT » — ET ELLE ARRIVE AVEC SON ENTRÉE, PARCE QUE
+    // SANS ELLE LE LOT NE SERT À RIEN. La surface existait déjà, montée dans
+    // une carte repliée en bas de `/app/plan`: la promesse « rien d'opaque »
+    // dépendait du hasard d'un défilement. La déplacer sur une route sans lui
+    // donner de lien referait le même défaut avec une URL de plus — c'est le
+    // cas extrême de la règle en tête de ce fichier.
+    //
+    // ⛔ PAS DANS LA BARRE DU BAS, ET C'EST UN CHOIX. Elle est PLEINE à cinq
+    // (au-delà, les colonnes deviennent trop étroites pour être visées au
+    // pouce), et cet écran n'est pas quotidien: on l'ouvre quand on se demande
+    // « qu'est-ce qu'il sait de moi ? », pas tous les matins. Il vit dans le
+    // menu, qui est complet.
+    { to: "/app/about-you", label: () => t("app.nav.about_you") },
     // PAS D'ENTRÉE « Cards », ET CE N'EST PAS UN OUBLI À RÉPARER.
     // `/app/cards` a eu son entrée ici, au nom de la règle en tête de ce
     // fichier. La règle était bien appliquée et la conclusion était fausse: la

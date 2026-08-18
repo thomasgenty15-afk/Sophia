@@ -6,6 +6,7 @@ import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import { buildMealPdf } from "../_shared/keel/meal_pdf.ts";
+import { isFrenchLocale, resolveArtifactLocale } from "../_shared/keel/locale.ts";
 import { deliverChatMessage } from "../_shared/chat/delivery.ts";
 import type { GeneratedDish, ShoppingItem } from "../_shared/keel/meal_generation.ts";
 
@@ -47,13 +48,41 @@ function adminClient(): SupabaseClient {
   });
 }
 
-/** `2026-08-04` -> `4 August 2026`. Le produit est en-GB. */
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+/**
+ * `2026-08-04` -> `4 August 2026`, ou `4 août 2026`.
+ *
+ * La locale était `en-GB` EN DUR, avec le commentaire « le produit est en-GB »
+ * pour la justifier. Elle est passée maintenant, parce que la date se lit sous
+ * un titre traduit: « 4 August 2026 » sous « Ta liste de courses » est la même
+ * incohérence que le titre anglais lui-même, en plus petit.
+ *
+ * `isFrenchLocale` est LE prédicat unique du gel (`_shared/keel/locale.ts`), et
+ * `Intl` prend un tag BCP-47 complet: on choisit entre deux tags connus plutôt
+ * que de passer le tag résolu tel quel, pour qu'une langue non livrée ne
+ * produise jamais une date dans une troisième langue.
+ */
+function formatDate(iso: string, locale: string): string {
+  return new Date(iso).toLocaleDateString(
+    isFrenchLocale(locale) ? "fr-FR" : "en-GB",
+    { day: "numeric", month: "long", year: "numeric" },
+  );
+}
+
+/** L'annonce dans la bulle. Deux packs entiers, comme partout ailleurs. */
+function documentReadyLine(
+  mode: "from_pantry" | "to_shop",
+  locale: string,
+): string {
+  if (isFrenchLocale(locale)) {
+    const label = mode === "to_shop"
+      ? "Ta liste de courses est prête."
+      : "De quoi cuisiner avec ce que tu as, c'est prêt.";
+    return `${label} Tu peux l'ouvrir depuis ton écran repas.`;
+  }
+  const label = mode === "to_shop"
+    ? "Your shopping list is ready."
+    : "What to cook with what you have is ready.";
+  return `${label} You can open it from your meals screen.`;
 }
 
 /** Un nom de fichier qu'on retrouve dans un fil WhatsApp trois jours plus tard. */
@@ -106,11 +135,22 @@ Deno.serve(async (req) => {
 
     const profRes = await admin
       .from("profiles")
-      .select("full_name, phone_number")
+      .select("full_name, phone_number, locale")
       .eq("id", userId)
       .maybeSingle();
     const profile = (profRes.data ?? {}) as Record<string, unknown>;
     const firstName = String(profile.full_name ?? "").trim().split(/\s+/)[0] || null;
+
+    // R2 — UN DOCUMENT EST UN ARTEFACT: il n'a aucun fil à ancrer, donc
+    // `resolveArtifactLocale` et jamais `resolveResponseLocale`. Résolu une
+    // fois ici et descendu aux trois consommateurs (le PDF, sa date, et
+    // l'annonce dans la bulle) — trois résolutions seraient trois occasions de
+    // diverger, et c'est précisément ce qui produisait un titre anglais sur
+    // une feuille de plats français.
+    const contentLocale = resolveArtifactLocale({
+      studentProfile: String(profile.locale ?? "").trim() || null,
+      tenantDefault: null,
+    });
 
     const mode = String(meal.mode ?? "to_shop") as "from_pantry" | "to_shop";
     const createdAt = String(meal.created_at ?? new Date().toISOString());
@@ -122,7 +162,8 @@ Deno.serve(async (req) => {
       shoppingList: (meal.shopping_list ?? []) as ShoppingItem[],
       context: meal.context ? String(meal.context) : null,
       mode,
-      dateLabel: formatDate(createdAt),
+      dateLabel: formatDate(createdAt, contentLocale),
+      locale: contentLocale,
     });
 
     // --- 2. le dépôt, PUIS la ligne, AVANT tout envoi ---------------------
@@ -175,12 +216,9 @@ Deno.serve(async (req) => {
       // cette étape, et un échec ici laisse un document parfaitement
       // téléchargeable. C'est la même garantie qu'avant, avec une étape en
       // moins qui pouvait la casser.
-      const label = mode === "to_shop"
-        ? "Your shopping list is ready."
-        : "What to cook with what you have is ready.";
       const res = await deliverChatMessage(admin, {
         userId,
-        content: `${label} You can open it from your meals screen.`,
+        content: documentReadyLine(mode, contentLocale),
         purpose: "keel_meal_document",
         // `isReply: true`: l'élève vient de demander ce document. Ce n'est pas
         // une relance, et le plafond quotidien n'a rien à voir avec elle.

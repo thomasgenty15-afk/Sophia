@@ -1,0 +1,439 @@
+/**
+ * LE CANAL PROVISOIRE — les `RetainedItem` de `scope: "next_plan"`, et leur
+ * EXPIRATION. Lot 1B du chantier « mémoire structurée ».
+ *
+ * Autorité produit: `docs/keel/NOMENCLATURE-MEMOIRE.md` §2 axe 2, §6 section 6,
+ * §7 premier point (tranché ici, et RÉÉCRIT dans le document le 2026-08-18).
+ * Socle: `retained_item.ts` — ce fichier ne le modifie pas et n'en réécrit rien.
+ *
+ * ═══════════════════════════════════════════════════════════════════════════
+ * LA DÉCISION QUE CE FICHIER PORTE — « JUSQU'À LA FIN DE LA FENÊTRE DU PLAN »
+ * ═══════════════════════════════════════════════════════════════════════════
+ * La nomenclature laissait le choix ouvert entre deux durées. C'est tranché:
+ *
+ *   Un `next_plan` vit **jusqu'à la fin de la semaine à laquelle il est
+ *   ancré** — le lundi ISO de `household_envy_submissions.week_start`. Il est
+ *   vivant tant que `jour <= ancre + 6`, et il n'est plus là à partir de
+ *   `ancre + 7`.
+ *
+ * ── LES TROIS RAISONS, DANS CET ORDRE ──────────────────────────────────────
+ * ① L'ANCRE EXISTE DÉJÀ, ET ELLE EST DÉJÀ ÉCRITE. `household_envy_submissions`
+ *   est datée par `week_start`, recalée sur le lundi ISO par
+ *   `keel_household_submit_envy`, et une contrainte de base REFUSE une ligne
+ *   qui ne serait pas ancrée sur un lundi (migration 20260810210000, bloc
+ *   « FAIL LOUD »). Le générateur de foyer lit DÉJÀ la phrase d'envies par
+ *   cette même ancre (`generate-household-meal-v1/index.ts`,
+ *   `weekStartOf(startsOn)`). La phrase libre et les items structurés du même
+ *   canal expirent donc ENSEMBLE. Deux choses du même canal qui expireraient
+ *   différemment sont exactement la divergence que ce dépôt paie en boucle.
+ * ② LA DATE D'EXPIRATION EST CONNUE À L'ÉCRITURE, donc AFFICHABLE. Le §6 de la
+ *   nomenclature l'exige mot pour mot: « Pour la semaine prochaine — tout le
+ *   `next_plan`, AVEC SA DATE D'EXPIRATION AFFICHÉE ». Une règle dont la date
+ *   ne se connaît pas d'avance rend ce §6 inapplicable.
+ * ③ RÉGÉNÉRER DEUX FOIS LA MÊME SEMAINE GARDE L'ENVIE. Le couple
+ *   brouillon/relance est le geste le plus courant de ce produit. « J'ai
+ *   demandé des fajitas cette semaine » est ce que la personne a voulu dire;
+ *   « pour exactement un appui de bouton » ne l'est pas.
+ *
+ * ── L'OPTION ÉCARTÉE: « EXACTEMENT UNE GÉNÉRATION » ────────────────────────
+ * Elle demande de SAVOIR qu'une génération a eu lieu. Ça coûte l'une de ces
+ * deux choses, et les deux sont refusées:
+ *
+ *   · un drapeau `consumed` (ou `status`, ou `expired`) sur l'item — c'est le
+ *     SECOND ÉTAT interdit, et son écrivain est un générateur dont ce dépôt a
+ *     MESURÉ qu'il peut échouer APRÈS l'appel modèle (voir l'en-tête de
+ *     `food_preference_promotion_io.ts`: un run rendu `400` avait déjà touché
+ *     la ligne). L'item finirait consommé deux fois, ou jamais.
+ *     *« Un second état à invalider est un état dont l'écrivain finit par
+ *     disparaître »* (`accident.ts`);
+ *   · une comparaison avec la dernière ligne de `student_generated_meals`.
+ *     Celle-là n'est PAS un second état — elle est dérivée, c'est honnête — et
+ *     elle reste refusée pour une raison produit: l'envie disparaît ENTRE DEUX
+ *     CLICS DU MÊME BOUTON. La seconde génération de la même minute compose
+ *     sans elle, sans un mot. *« Une envie qui disparaît sans prévenir se lit
+ *     comme une perte de données. »*
+ *
+ * Et dans les deux cas, la date d'expiration est inconnue d'avance: le §6
+ * tombe avec.
+ *
+ * ── CE QUE « CALCULÉ À LA LECTURE » VEUT DIRE ICI, LITTÉRALEMENT ───────────
+ * Aucune colonne `expired`, aucun `status`, aucun job de nettoyage, aucune
+ * suppression de ligne. `isNextPlanItemAlive` est une FONCTION, appelée à
+ * chaque lecture. La seule chose stockée est l'ancre, et l'ancre est une
+ * DONNÉE (« cette phrase vise la semaine du 24 »), pas un état à invalider.
+ *
+ * ── ⛔ CE QUI NE REVIENT PAS ───────────────────────────────────────────────
+ * La récolte d'envies PAR MEMBRE (`mergeEnvies`, retirée le 2026-08-10). Aucune
+ * fonction d'ici ne compte les membres, n'en nomme un qui se serait tu, ni ne
+ * demande à quiconque de parler. Le canal porte UNE ligne par foyer et par
+ * semaine; les items structurés vivent sur cette même ligne, et c'est leur
+ * champ `subject` — pas une seconde ligne par personne — qui dit à qui ils
+ * s'appliquent.
+ *
+ * ── ÉCHOUER NE COÛTE JAMAIS UN DÎNER ──────────────────────────────────────
+ * Toute lecture en panne rend une liste VIDE, journalisée. Posture de
+ * `household_voices_io.ts` mot pour mot, et l'inverse de celle des allergies
+ * (`safety_constraints.ts`, qui THROW): on parle ici d'envies. Un foyer dont le
+ * canal est illisible compose quand même — il compose comme avant ce lot.
+ */
+
+import {
+  parseRetainedDay,
+  parseRetainedItems,
+  type RetainedItem,
+} from "./retained_item.ts";
+
+// ===========================================================================
+// LE MAGASIN
+// ===========================================================================
+
+/**
+ * LA COLONNE qui porte les items, sur la ligne d'envies de la semaine.
+ *
+ * Exportée pour que la phase 2 (les producteurs) et 1D écrivent la MÊME clé.
+ * Une clé recopiée à la main dans trois fichiers est une clé qui divergera, et
+ * la divergence ne se verrait qu'en run réel, sur une envie qui n'arrive nulle
+ * part.
+ *
+ * ⚠️ ELLE N'EXISTE PAS ENCORE EN BASE. La migration qui l'ajoute est écrite et
+ * NON LANCÉE: `supabase/migrations/20260818230000_next_plan_retained_items.sql`.
+ * Tant qu'elle n'est pas passée, la lecture ci-dessous rend `[]` — et elle le
+ * DIT (`event: "channel_unreadable"`), au lieu de ressembler à « ce foyer n'a
+ * rien demandé ».
+ */
+export const NEXT_PLAN_ITEMS_COLUMN = "retained_items";
+
+/** Le strict minimum de client Supabase dont ce module a besoin. */
+type MinimalClient = {
+  from: (table: string) => any;
+};
+
+// ===========================================================================
+// L'ARITHMÉTIQUE DE LA SEMAINE — recopiée, et PROUVÉE ÉGALE par le test
+// ===========================================================================
+
+/**
+ * Le lundi ISO de la semaine qui contient ce jour, ou `null`.
+ *
+ * ── POURQUOI RECOPIÉE ET PAS IMPORTÉE ─────────────────────────────────────
+ * Les deux implémentations existantes vivent dans des modules d'I/O lourds:
+ * `weekly_flow_io.ts` (`weekStartOf`) traîne `body_measure_io.ts`, et
+ * `week_review_io.ts` (`weekStartOfLocalDate`) traîne le chargeur de doctrine
+ * ET `gemini.ts`. Ce fichier-ci sera importé par les trois générateurs (lot
+ * 1C); lui faire tirer un client de modèle serait le patron exact que
+ * `retained_item.ts` a refusé pour `EATING_OCCASIONS`.
+ *
+ * La recopie n'est pas un pari: `retained_next_plan_test.ts` importe
+ * `weekStartOf` (un test n'est dans aucun cycle d'imports) et échoue à la
+ * première divergence, sur une année entière de jours.
+ *
+ * ⚠️ REND `null` sur un jour malformé, jamais un repli. Un `week_start`
+ * illisible replié sur « aujourd'hui » ferait vivre une envie de six semaines.
+ */
+export function isoMondayOf(day: unknown): string | null {
+  const clean = parseRetainedDay(day);
+  if (!clean) return null;
+  const d = new Date(`${clean}T00:00:00Z`);
+  if (Number.isNaN(d.getTime())) return null;
+  // `getUTCDay()` vaut 0 le dimanche: `(dow + 6) % 7` met le lundi à 0.
+  const dow = (d.getUTCDay() + 6) % 7;
+  d.setUTCDate(d.getUTCDate() - dow);
+  return d.toISOString().slice(0, 10);
+}
+
+/** `day + n` jours, en `YYYY-MM-DD`. `null` sur un jour malformé. */
+function addDays(day: string, n: number): string | null {
+  const clean = parseRetainedDay(day);
+  if (!clean) return null;
+  const d = new Date(`${clean}T00:00:00Z`);
+  if (Number.isNaN(d.getTime())) return null;
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
+/**
+ * LA LONGUEUR DE LA FENÊTRE, en jours. Privée, et elle le reste.
+ *
+ * ⚠️ NON EXPORTÉE EXPRÈS. Cicatrice de ce dépôt: « un test paramétré par sa
+ * propre constante reste vert quand on change la constante ». Le test écrit les
+ * dates EN DUR; un lecteur qui aurait besoin de la borne demande une DATE
+ * (`nextPlanLifeOf`), jamais le nombre.
+ */
+const WINDOW_DAYS = 7;
+
+// ===========================================================================
+// LA RÈGLE — pure, et elle rend des DATES avant de rendre un booléen
+// ===========================================================================
+
+/**
+ * LA VIE D'UN `next_plan`, en trois dates adjacentes par construction.
+ *
+ * Trois et pas une, pour tuer l'ambiguïté de borne: personne ne doit avoir à
+ * deviner si « expire le 24 » veut dire « encore là le 24 » ou « plus là le
+ * 24 ». C'est exactement l'erreur d'un jour dont « une envie qui disparaît sans
+ * prévenir » est faite.
+ */
+export type NextPlanLife = {
+  /** Le lundi ISO de la semaine visée. */
+  readonly anchor: string;
+  /** LE DERNIER JOUR VIVANT — c'est CE jour-là que l'écran affiche (§6). */
+  readonly lastDay: string;
+  /** Le premier jour SANS l'item. `lastDay + 1`. */
+  readonly expiredFrom: string;
+};
+
+/**
+ * Les trois dates de vie d'un item déposé sous cette ancre.
+ *
+ * @param writtenAt **L'ANCRE DE LA SEMAINE VISÉE** — c'est-à-dire
+ *   `household_envy_submissions.week_start`, et PAS le jour de la frappe.
+ *
+ *   La distinction est la seule chose qui rend cette règle juste: quelqu'un qui
+ *   écrit le DIMANCHE pour la semaine SUIVANTE choisit son ancre (`p_week_start`
+ *   est un paramètre de `keel_household_submit_envy`), et son envie vit la
+ *   semaine entière. Ancrer sur le jour de la frappe la ferait mourir le
+ *   lendemain matin — une perte de données qui aurait l'air d'une règle.
+ *
+ *   La normalisation au lundi ISO ci-dessous est une RÉPARATION, pas la
+ *   conception: la base garantit déjà que `week_start` est un lundi, donc le
+ *   calcul est l'identité sur toute donnée venue d'elle. Elle existe pour un
+ *   appelant qui passerait un jour de semaine — mieux vaut le recaler que lui
+ *   rendre une fenêtre décalée de trois jours.
+ *
+ * @returns `null` quand `writtenAt` n'est pas un jour propre. `null` est un
+ *   REFUS: un item dont on ne sait pas dire quand il meurt ne s'affiche pas et
+ *   ne se sert pas.
+ */
+export function nextPlanLifeOf(writtenAt: unknown): NextPlanLife | null {
+  const anchor = isoMondayOf(writtenAt);
+  if (!anchor) return null;
+  const lastDay = addDays(anchor, WINDOW_DAYS - 1);
+  const expiredFrom = addDays(anchor, WINDOW_DAYS);
+  if (!lastDay || !expiredFrom) return null;
+  return { anchor, lastDay, expiredFrom };
+}
+
+/**
+ * CET ITEM EST-IL ENCORE VIVANT ? Module PUR, jumeau exact de la lecture.
+ *
+ * ── LES TROIS REFUS, ET AUCUN N'EST UN REPLI ──────────────────────────────
+ * 1. `scope !== "next_plan"` ⇒ `false`. Ce n'est pas « il n'expire jamais »:
+ *    un `durable` posé sur le canal provisoire est un producteur cassé. Rendre
+ *    `true` le pousserait dans la section « Pour la semaine prochaine », où
+ *    l'écran lui imprimerait une date d'expiration qu'il n'a pas, et où 1C le
+ *    routerait comme une envie. Même doctrine que `parseRetainedItem`: une
+ *    ligne que son producteur n'avait pas le droit d'écrire ne remonte pas.
+ *    ⚠️ Le socle garantit déjà `craving ⇒ next_plan` À LA COMPILATION; cette
+ *    branche mord sur les CINQ autres familles, dont `food.*` et `method.*`
+ *    qui peuvent légitimement être `next_plan` (retour sur brouillon) ou
+ *    `durable` (questionnaire). C'est là qu'elle sert.
+ * 2. `writtenAt` illisible ⇒ `false`. Voir `nextPlanLifeOf`.
+ * 3. `today` illisible ⇒ `false`. L'appelant est cassé; servir une envie sur
+ *    une date qu'on n'a pas su lire serait servir n'importe quoi.
+ *
+ * ── ⚠️ AUCUNE BORNE BASSE, ET C'EST DÉLIBÉRÉ ──────────────────────────────
+ * Un item ancré à la semaine PROCHAINE est vivant AUJOURD'HUI. La règle
+ * s'appelle « expiration », pas « activation »: un item écrit d'avance est un
+ * item futur, pas un item périmé. Et le §6 nomme la section « **Pour la semaine
+ * prochaine** » — la cacher jusqu'au lundi ferait disparaître de l'écran ce que
+ * la personne vient d'y déposer, ce qui est le défaut que ce lot existe pour
+ * fermer.
+ *
+ * @param writtenAt l'ANCRE (`week_start`), pas le jour de la frappe.
+ * @param today le jour LOCAL de la personne, passé par l'appelant. Ce module ne
+ *   lit aucune horloge.
+ */
+export function isNextPlanItemAlive(
+  item: RetainedItem,
+  writtenAt: string,
+  today: string,
+): boolean {
+  if (!item || item.scope !== "next_plan") return false;
+  const life = nextPlanLifeOf(writtenAt);
+  if (!life) return false;
+  const day = parseRetainedDay(today);
+  if (!day) return false;
+  // Comparaison de chaînes: `YYYY-MM-DD` est ordonné lexicographiquement, et
+  // c'est déjà la façon dont `accident.ts` compare ses dates de plan.
+  return day <= life.lastDay;
+}
+
+// ===========================================================================
+// LA LECTURE — la seule I/O de ce fichier
+// ===========================================================================
+
+/**
+ * Un item vivant, AVEC ses dates de vie.
+ *
+ * ⚠️ EXISTE POUR LE LOT 1D, et c'est un AJOUT à l'interface figée, pas une
+ * modification: `nextPlanItemsFor` garde exactement la signature du contrat et
+ * n'est plus qu'une projection de celle-ci.
+ *
+ * Motif: un `RetainedItem` ne porte PAS son ancre — `at` est le jour où la
+ * personne l'a dit, pas la semaine qu'elle vise, et les deux diffèrent dès
+ * qu'on écrit le dimanche pour la semaine suivante. Un écran qui ne recevrait
+ * que `RetainedItem[]` ne pourrait donc pas afficher la date d'expiration que
+ * le §6 exige, et il la recalculerait de travers depuis `at`.
+ */
+export type DatedNextPlanItem = {
+  readonly item: RetainedItem;
+  readonly life: NextPlanLife;
+};
+
+/**
+ * LES `next_plan` ENCORE VIVANTS DE CETTE PERSONNE, avec leurs dates.
+ *
+ * ── LE CHEMIN, ET CE QU'IL GARDE ──────────────────────────────────────────
+ * 1. le foyer de la personne, par un `.eq("user_id")` EXPLICITE. Ce module
+ *    reçoit un client `service_role`, qui traverse RLS: la policy
+ *    `household_envy_member_read` ne protège donc RIEN ici. Cicatrice nommée du
+ *    dépôt — « RLS ne remplace pas un `.eq(user_id)` », mesurée sur la ligne
+ *    d'un élève rendue au coach;
+ * 2. les lignes du canal dont l'ancre n'est pas trop vieille. Le filtre SQL est
+ *    une BORNE DE COÛT, VOLONTAIREMENT PLUS LARGE que la règle (une semaine de
+ *    marge): l'autorité reste `isNextPlanItemAlive`, appliquée ligne à ligne
+ *    juste après. Deux prédicats qui se veulent égaux finissent par diverger;
+ *    un prédicat large et une règle unique, non;
+ * 3. `parseRetainedItems` — un item difforme tombe SEUL, ses voisins restent;
+ * 4. l'expiration, calculée. Aucune écriture, aucune suppression.
+ *
+ * ── ⚠️ LE TROU CONNU, ET IL EST GRAND: LE SOLO N'A PAS DE FOYER ───────────
+ * `SetupPage.tsx` l'écrit en toutes lettres — « LE SOLO NE CRÉE PAS DE FOYER »
+ * — et `household_envy_submissions.household_id` est `not null`. Une personne
+ * seule ne peut donc porter AUCUNE ligne sur ce canal, et cette fonction lui
+ * rend `[]` pour toujours. Or l'entrée du produit est à 1 (PIVOT-FOYER §5).
+ *
+ * Ce n'est PAS réparé ici, et ce n'est pas un oubli: ouvrir un second magasin
+ * (une table par compte) est une décision de produit, elle appartient au chef
+ * d'orchestre, et deux magasins pour une même famille d'items seraient
+ * exactement la divergence que le contrat de phase 0 existe pour empêcher. Le
+ * cas rend donc `[]` AVEC UN ÉVÉNEMENT NOMMÉ (`solo_no_channel`), pour qu'il ne
+ * se lise pas comme « cette personne n'a rien demandé ».
+ *
+ * @param today le jour LOCAL de la personne, `YYYY-MM-DD`. Requis: ce module ne
+ *   lit aucune horloge, et un `today` déduit en UTC ferait mourir une envie un
+ *   jour trop tôt à Paris.
+ */
+export async function nextPlanItemsWithLifeFor(args: {
+  admin: MinimalClient;
+  userId: string;
+  today: string;
+}): Promise<DatedNextPlanItem[]> {
+  const today = parseRetainedDay(args.today);
+  const userId = String(args.userId ?? "").trim();
+  if (!today || !userId) {
+    warn("bad_args", { userId: userId ? "set" : "empty", today: args.today });
+    return [];
+  }
+
+  let householdId: string | null = null;
+  try {
+    const res = await args.admin
+      .from("household_members")
+      .select("household_id")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (res.error) throw new Error(String(res.error.message ?? res.error));
+    householdId =
+      String((res.data as Record<string, unknown> | null)?.household_id ?? "")
+        .trim() || null;
+  } catch (error) {
+    warn("household_unreadable", { error: messageOf(error) });
+    return [];
+  }
+
+  if (!householdId) {
+    // Le trou nommé ci-dessus. Journalisé, jamais silencieux.
+    warn("solo_no_channel", { today });
+    return [];
+  }
+
+  // La borne de coût: une semaine PLUS LARGE que la règle, exprès.
+  const anchorToday = isoMondayOf(today);
+  const floor = anchorToday ? addDays(anchorToday, -WINDOW_DAYS) : null;
+  if (!floor) {
+    warn("bad_anchor", { today });
+    return [];
+  }
+
+  let rows: Array<Record<string, unknown>> = [];
+  try {
+    const res = await args.admin
+      .from("household_envy_submissions")
+      .select(`week_start, ${NEXT_PLAN_ITEMS_COLUMN}`)
+      .eq("household_id", householdId)
+      .gte("week_start", floor);
+    if (res.error) throw new Error(String(res.error.message ?? res.error));
+    rows = (res.data ?? []) as Array<Record<string, unknown>>;
+  } catch (error) {
+    // Inclut le cas « la colonne n'existe pas encore »: la migration n'est pas
+    // lancée. Dire lequel est le travail du log, pas d'un repli.
+    warn("channel_unreadable", { error: messageOf(error) });
+    return [];
+  }
+
+  const out: DatedNextPlanItem[] = [];
+  let raw = 0;
+  let parsed = 0;
+  for (const row of rows) {
+    const life = nextPlanLifeOf(row.week_start);
+    if (!life) {
+      // Une ligne dont l'ancre est illisible ne peut pas dire quand elle meurt.
+      warn("bad_week_start", { week_start: String(row.week_start ?? "") });
+      continue;
+    }
+    const stored = row[NEXT_PLAN_ITEMS_COLUMN];
+    raw += Array.isArray(stored) ? stored.length : 0;
+    const items = parseRetainedItems(stored);
+    parsed += items.length;
+    for (const item of items) {
+      if (isNextPlanItemAlive(item, life.anchor, today)) {
+        out.push({ item, life });
+      }
+    }
+  }
+
+  // AUCUN ITEM NE SE PERD EN SILENCE. Les trois nombres se lisent ensemble:
+  // `raw > parsed` = un producteur écrit du difforme; `parsed > alive` = de
+  // l'expiré, ce qui est le cas NOMINAL et pas un incident.
+  if (raw > 0 || rows.length > 0) {
+    console.log(JSON.stringify({
+      tag: "keel/retained_next_plan",
+      event: "read",
+      rows: rows.length,
+      raw,
+      parsed,
+      alive: out.length,
+    }));
+  }
+  return out;
+}
+
+/**
+ * LES `next_plan` ENCORE VIVANTS. **La signature figée par le contrat §6.**
+ *
+ * L'expiration est CALCULÉE ICI, à la lecture — voir l'en-tête du fichier pour
+ * la règle et pour l'option écartée.
+ */
+export async function nextPlanItemsFor(args: {
+  admin: MinimalClient;
+  userId: string;
+  today: string;
+}): Promise<RetainedItem[]> {
+  const dated = await nextPlanItemsWithLifeFor(args);
+  return dated.map((d) => d.item);
+}
+
+// ---------------------------------------------------------------------------
+
+function messageOf(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function warn(event: string, extra: Record<string, unknown>): void {
+  console.warn(JSON.stringify({
+    tag: "keel/retained_next_plan",
+    event,
+    ...extra,
+  }));
+}

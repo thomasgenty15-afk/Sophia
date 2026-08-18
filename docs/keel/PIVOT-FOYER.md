@@ -38,7 +38,7 @@
 | [2. La proposition](#2-la-proposition) | Une phrase |
 | [3. La décision structurante](#3-la-décision-structurante--lunité-nest-pas-le-plat-cest-la-session) | L'unité = la session de cuisine |
 | [4. Ce que l'utilisateur gagne](#4-ce-que-lutilisateur-gagne) | Le tableau des gains |
-| [5. L'entrée est à 1](#5-lentrée-est-à-1--la-famille-est-lupgrade-jamais-le-ticket-dentrée) | Principe fondateur |
+| [5. L'entrée est à 1](#5-lentrée-est-à-1--la-famille-est-lupgrade-jamais-le-ticket-dentrée) | Activation et prix — **pas** la cible. **§5.1 : le persona prioritaire** |
 | [6. Les fonctionnalités](#6-les-fonctionnalités-dans-lordre-où-on-les-vit) | Dans l'ordre où on les vit |
 | [7. Les arguments de valeur](#7-les-arguments-de-valeur-classés-par-solidité) | Classés par solidité, dont la douve |
 | [8. Le conseil de famille](#8--le-conseil-de-famille) | Le rituel, et les deux autorités |
@@ -65,6 +65,40 @@ Le mode d'échec de toute la catégorie est documenté et il est toujours le mê
 existantes s'attaquent à **un seul maillon** et **ajoutent du travail administratif** au lieu
 d'en retirer. Elles demandent de saisir, de logger, de photographier. Elles transforment le
 dîner en projet.
+
+### 1.1 ⚠️ « Il n'existe rien » est FAUX, et le dire nous décrédibilise
+
+Des solutions existent pour la moitié **planning + courses**, et elles ont des millions
+d'utilisateurs (Jow 9 M, Samsung Food 6 M, Mealime 7 M — annexe). Affirmer qu'il n'y a rien
+se réfute en trois secondes, et on perd l'argument entier avec.
+
+Ce qui n'existe **nulle part**, ce sont les deux autres moitiés :
+
+1. **Une seule cuisson qui serve des besoins DIVERGENTS.** C'est l'intersection vide de
+   §7.1, vérifiée.
+2. **La re-planification.** Le mardi où rien ne se passe comme prévu. Aucun de ces produits
+   ne sait quoi faire d'un repas sauté, d'une session ratée, de courses non faites. Or **la
+   charge mentale est là** — pas dans « quoi manger jeudi », mais dans « tout est décalé, je
+   recommence ».
+
+La formulation défendable est donc étroite, et c'est sa force :
+
+> **« Je porte l'alimentation de plusieurs personnes qui n'ont pas les mêmes besoins, et
+> tout se casse dès qu'un imprévu arrive. »**
+
+### 1.2 POURQUOI CETTE PLACE EST LIBRE — et c'est ça qui la rend défendable
+
+Un espace inoccupé est un piège s'il est vide faute de demande. Il est une position s'il est
+vide pour une raison **structurelle**. Ici la raison est structurelle :
+
+Jow, Mealime et Samsung Food vivent d'**affiliation et de marge retail**. Leur métier est de
+faire acheter un panier. Servir des besoins nutritionnels divergents demande un **moteur de
+nutrition** — coûteux, et qui ne vend pas un gramme de courses en plus. Ils ne le
+construiront pas parce que ça ne sert pas leur modèle, pas parce qu'ils n'y ont pas pensé.
+
+⚠️ Ça ne prouve pas la demande. Une intersection vide est une affirmation de
+**différenciation**, jamais de **marché** — et la première hypothèse de §10.6 reste entière :
+un foyer réel qui paie.
 
 ---
 
@@ -138,6 +172,23 @@ paniers routés au lieu d'un (§11), et la raison en est la fraîcheur, pas la v
 
 *Principe fondateur, pas un horizon. Il gouverne l'activation et la tarification.*
 
+> ### ⛔ CE QUE CETTE SECTION NE GOUVERNE PAS — précision du 2026-08-18
+>
+> **Elle parle d'ACTIVATION et de PRIX, pas de CIBLE.** Elle a été citée pour freiner des
+> chantiers foyer; c'est un contresens, et il faut le fermer ici.
+>
+> La cible prioritaire est le **foyer** (§5.1). Le produit reste entier pour qui arrive
+> seul — c'est une contrainte de mécanique, pas un ordre de priorité commerciale. On parle
+> aux gens qui cuisinent pour plusieurs; on ne casse rien pour celui qui cuisine pour un.
+>
+> **Et la tension entre les deux est un faux problème**, pour une raison qui vaut mieux que
+> la formulation d'origine : le mode famille ne sert pas *seulement* les autres. Il sert
+> **la personne elle-même** — celle qui veut changer son alimentation **sans arrêter de
+> nourrir tout le monde**. Ce n'est donc pas « d'abord une personne, la famille en
+> extension » : c'est **la même personne**, qui a un objectif à elle et une table à tenir.
+>
+> Le mode famille est ce qui lui permet, à *elle*, de tenir son objectif.
+
 Le produit doit livrer **sa valeur entière à une seule personne dès le premier jour** :
 sessions de cuisine, portions selon son objectif, courses en vagues, explication des choix.
 
@@ -147,6 +198,55 @@ pas un prérequis. Un produit qui exige trois profils pour devenir bon meurt à 
 Conséquence tarifaire directe : le compte maître seul est un **produit complet**, pas une
 version amputée. Les sous-comptes sont un ajout, et ils se paient parce qu'ils ouvrent le
 rituel — pas parce qu'ils débloquent le produit.
+
+### 5.1 LE PERSONA PRIORITAIRE — arrêté le 2026-08-18
+
+> **La personne qui a un objectif à elle ET une table à tenir.**
+
+Concrètement : elle porte les courses, la cuisson et le planning du foyer ; elle a son propre
+objectif nutritionnel (reperdre du poids, se remettre en forme, une contrainte de santé) ;
+et **aujourd'hui elle doit choisir entre les deux**. Alors soit elle abandonne son objectif,
+soit elle cuisine deux fois.
+
+C'est ce double bind que le produit dénoue, et c'est *tout* le produit : une session de
+cuisine, des parts qui divergent.
+
+**Pourquoi c'est le meilleur persona B2C, et pas seulement le plus sympathique :**
+
+| | |
+|---|---|
+| **La douleur est double et simultanée** | Les concurrents résolvent un côté (le planning familial) ou l'autre (mon régime), jamais les deux à la fois. §7.1 rendu personnel |
+| **Elle décide et elle paie** | Une personne tranche pour plusieurs : pas d'achat de groupe à organiser, valeur par acquisition élevée |
+| **La douve se construit vite chez elle** | Elle décrit trois ou quatre personnes; le graphe de §7.8 s'accumule à cette vitesse-là, pas à celle d'un compte solo |
+| **L'invitation a un motif** | Elle a une raison fonctionnelle d'ajouter son conjoint — son objectif diverge. C'est l'hypothèse d'acquisition de §7.4, chez la personne qui peut la valider |
+
+**Ce que ça déclasse, et il faut le dire.** Le solo qui fait déjà du meal prep était classé
+premier pour son **fit structurel** — son comportement actuel *est* l'unité de planification
+du produit. Mais c'est le **pire cas de différenciation** : pour lui, les produits gratuits
+existants marchent très bien. Il reste un chemin d'entrée légitime; il n'est plus la cible.
+
+**✅ La conséquence technique qu'on craignait est DÉJÀ FERMÉE — revérifié le 2026-08-18.**
+
+Le 14 août, une bouche sans compte n'avait aucun canal d'habitudes :
+`household_voices_io.ts` ne charge les préférences que par `.in("user_id", …)` sur
+`student_goals`, et une bouche sans compte n'a pas cette ligne. Dans une famille de quatre
+sans profil réclamé, seules les habitudes du maître atteignaient le plan.
+
+**Ça n'est plus vrai.** `household_member_habits` existe (`slots` jsonb + `note`, clée sur
+`member_id`), avec ses trois RPC (`keel_household_habits`, `_for`, `set_member_habits`), elle
+est écrite depuis l'entonnoir (`SetupPage.tsx` via `api/householdHabits.ts`), elle passe une
+garde de texte (`_shared/keel/household_habits.ts :: gateMemberHabits`), et surtout **elle
+est LUE au runtime** : `generate-household-meal-v1:1042-1048` la charge et
+`:1530-1531` l'injecte dans le roster (`habits`, `habitNote`). Elle est aussi dans l'export
+RGPD.
+
+Donc chaque bouche a désormais : prénom, âge, objectif, corps, allergies, absences **et
+habitudes**. Le canal qui manquait au persona de §5.1 est complet.
+
+⚠️ **Leçon de méthode, pas seulement de contenu.** Cette section a d'abord porté
+l'affirmation inverse, écrite depuis une lecture de quatre jours plus tôt. Dans un dépôt où
+plusieurs sessions livrent en parallèle, **une affirmation d'absence se re-vérifie avant
+d'être citée** — la précédente aurait fait reprioriser un chantier déjà fait.
 
 ---
 

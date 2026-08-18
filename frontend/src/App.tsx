@@ -66,6 +66,7 @@ import CoachWeeklyPage from "./keel/pages/CoachWeeklyPage";
 import StudentWeekPlanPage from "./keel/pages/StudentWeekPlanPage";
 import StudentProgressPage from "./keel/pages/StudentProgressPage";
 import StudentHealthPage from "./keel/pages/StudentHealthPage";
+import StudentKnownPage from "./keel/pages/StudentKnownPage";
 import HouseholdPage from "./keel/pages/HouseholdPage";
 import SetupPage from "./keel/pages/SetupPage";
 import NotFoundPage from "./keel/pages/NotFoundPage";
@@ -223,6 +224,31 @@ function App() {
                       <StudentHealthPage />
                     </KeelOnboardingGate>
                   </KeelStudentRoute>
+                }
+              />
+              {/* KEEL — `/app/about-you`: CE QUE SOPHIA SAIT DE TOI.
+                  Autorité produit: docs/keel/NOMENCLATURE-MEMOIRE.md §6.
+                  Tout ce que le produit retient d'une personne vivait dans UNE
+                  carte repliée, en bas de `/app/plan`: la promesse « rien
+                  d'opaque » dépendait donc du hasard d'un défilement, sur un
+                  écran qu'on ouvre pour composer sa semaine et pas pour se
+                  relire. Elle devient une destination, avec son entrée de nav —
+                  une route sans lien est une fonctionnalité que personne n'a.
+                  ⚠️ `KeelHouseholdRoute` ET PAS `KeelStudentRoute`, la même
+                  garde que `/app/plan` et `/app/setup`, pour la même
+                  population: quelqu'un qui a RÉCLAMÉ son profil de foyer n'est
+                  l'élève de personne (`profiles.keel_role` reste NULL, exprès),
+                  et c'est justement quelqu'un dont le produit retient des
+                  choses. La route est de la NAVIGATION; RLS reste la frontière,
+                  et la lecture est scopée sur `user_id` en plus. */}
+              <Route
+                path="/app/about-you"
+                element={
+                  <KeelHouseholdRoute>
+                    <KeelOnboardingGate>
+                      <StudentKnownPage />
+                    </KeelOnboardingGate>
+                  </KeelHouseholdRoute>
                 }
               />
               {/* KEEL — /app/household. Qui mange ici, ce dont chacun a envie

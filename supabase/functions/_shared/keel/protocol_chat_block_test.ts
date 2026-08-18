@@ -175,7 +175,7 @@ Deno.test("un déconseillé du coach n'est PAS présenté comme un danger", () =
     "l'instruction doit dire quoi NE PAS faire, pas seulement nommer le registre",
   );
   assert(
-    block.includes("his method, not a medical ban"),
+    block.includes("this coach's method, not a medical ban"),
     "un `excluded` est la sévérité maximale d'une MÉTHODE, pas d'une allergie",
   );
 });
@@ -313,7 +313,7 @@ Deno.test("R7: la coupe ne tombe jamais au milieu d'une règle de coach", () => 
 
 Deno.test("R7: une liste tronquée le DIT, avec son compte exact", () => {
   const block = protocolChatFoodBlock(fatProtocol(), "Marlow");
-  const marker = /- \(\+(\d+) more he encourages, not listed here\)/.exec(block);
+  const marker = /- \(\+(\d+) more this coach encourages, not listed here\)/.exec(block);
   assert(marker, "aucun marqueur de troncature sur une liste réduite");
   const shown = block.split("\n").filter((l) =>
     l.startsWith("- ") && !l.startsWith("- (+")
@@ -338,7 +338,7 @@ Deno.test("R7: les ENCOURAGÉS sont les derniers réduits", () => {
       l.startsWith("- ") && !l.startsWith("- (+")
     ).length;
   };
-  const encouraged = count("REACH FOR THESE FIRST", "-- HE STEERS AWAY");
+  const encouraged = count("REACH FOR THESE FIRST", "-- THIS COACH STEERS AWAY");
   const timing = count("-- HIS RULES ON FREQUENCY", null);
   assert(
     encouraged >= timing,

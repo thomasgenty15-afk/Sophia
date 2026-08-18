@@ -1046,6 +1046,12 @@ export async function handleDeterministicButton(
     await timezoneFor(admin, message.user_id),
   );
 
+  // L'accusé et la question d'axe partent dans la langue de l'élève. Elles
+  // étaient anglaises en dur pendant que la charge du bouton, elle, venait
+  // d'un message du soir déjà français: taper « Dur » renvoyait « Got it,
+  // thanks. » puis « What was hard? » avec trois boutons anglais.
+  const pulseVoice = await studentVoiceContext(admin, message.user_id);
+
   if (pulse.kind === "level") {
     const wrote = await writePulseLevel(admin, {
       userId: message.user_id,
@@ -1057,14 +1063,14 @@ export async function handleDeterministicButton(
       userId: message.user_id,
       requestId: args.requestId,
       purpose: "keel_daily_pulse_ack",
-      body: renderPulseAck(pulse.level, null),
+      body: renderPulseAck(pulse.level, null, pulseVoice.contentLocale),
     });
     // La question d'axe n'est posée QUE si quelque chose a coincé — et c'est un
     // second message, armé de ses boutons. Deux messages plutôt qu'un accusé
     // qui pose une question : la bulle affiche les boutons sous LA question,
     // pas sous un « Got it ».
     if (wrote.needsAxis) {
-      const axisQuestion = renderPulseAxisQuestion();
+      const axisQuestion = renderPulseAxisQuestion(pulseVoice.contentLocale);
       await ack(admin, {
         userId: message.user_id,
         requestId: args.requestId,
@@ -1088,7 +1094,7 @@ export async function handleDeterministicButton(
     userId: message.user_id,
     requestId: args.requestId,
     purpose: "keel_daily_pulse_ack",
-    body: renderPulseAck("hard", pulse.axis),
+    body: renderPulseAck("hard", pulse.axis, pulseVoice.contentLocale),
   });
   return handled("daily_pulse_axis");
 }

@@ -450,7 +450,23 @@ export async function buildAndWriteCoachSynthesis(
     coachName?: string | null;
     asOfLocalDate: string;
     now: Date;
-    contentLocale?: string;
+    /**
+     * La langue du COACH — celle de `profiles.locale` du compte auquel
+     * `coaches.user_id` renvoie. REQUISE.
+     *
+     * ⚠️ ELLE ÉTAIT OPTIONNELLE, ET C'EST CE QUI CACHAIT LE DÉFAUT. Le seul
+     * appelant de production (`coach-synthesis-v1`) ne la passait pas, donc la
+     * ligne `coach_syntheses.content_locale` était semée `'en'` par le `??` de
+     * cette fonction — pendant que le narratif, lui, était rendu avec
+     * `locale: "en"` écrit EN DUR trois lignes plus bas. Deux défauts qui se
+     * confirmaient l'un l'autre: la ligne disait vrai sur un texte anglais que
+     * rien ne pouvait rendre autrement.
+     *
+     * Requise, elle force chaque appelant à dire d'où vient la langue, et le
+     * MÊME tag part au rendu et dans la colonne — une synthèse dont le texte
+     * et la colonne divergent est un piège pour le lecteur d'après.
+     */
+    contentLocale: string;
   },
 ): Promise<{
   window: SynthesisWindow;
@@ -495,7 +511,10 @@ export async function buildAndWriteCoachSynthesis(
   const synthesis = buildCoachSynthesis(students, args.now);
   const narrative = renderSynthesisText(synthesis, {
     coachName: args.coachName ?? null,
-    locale: "en",
+    // UN SEUL TAG, DEUX CONSOMMATEURS. Il était `"en"` en dur ici et
+    // `args.contentLocale ?? "en"` dans la ligne: la seule façon d'obtenir un
+    // texte et une colonne qui se contredisent.
+    locale: args.contentLocale,
   });
   const write = await writeSynthesis(db, {
     coachId: args.coachId,
@@ -503,7 +522,7 @@ export async function buildAndWriteCoachSynthesis(
     window,
     synthesis,
     narrative,
-    contentLocale: args.contentLocale ?? "en",
+    contentLocale: args.contentLocale,
   });
   return { window, synthesis, narrative, write, studentCount: studentIds.length };
 }

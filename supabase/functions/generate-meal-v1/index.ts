@@ -32,7 +32,34 @@ import { type WeeklyAxis, WEEKLY_AXES } from "../_shared/keel/weekly_flow.ts";
 import {
   foodPreferencesByOrigin,
   foodPreferencesForPrompt,
+  // LOT 1C — `readRetainedItems` et PAS `retainedItemsFrom`: même magasin,
+  // même lecture, mais l'enrobage rend en plus le compteur des lignes
+  // REFUSÉES. Sans lui, « rien en base » et « rien de lisible » se ressemblent.
+  readRetainedItems,
 } from "../_shared/keel/food_preference_promotion.ts";
+import type { RetainedItem } from "../_shared/keel/retained_item.ts";
+import { HOUSEHOLD_SUBJECT } from "../_shared/keel/retained_item.ts";
+import { nextPlanItemsFor } from "../_shared/keel/retained_next_plan.ts";
+import {
+  type CompositionLines,
+  compositionLinesFor,
+  cravingLinesFor,
+  logisticsOverlayFor,
+  portionAdjustsFor,
+  rhythmOverlayFor,
+  routeRetainedItems,
+  routingTrace,
+} from "../_shared/keel/retained_items_routing.ts";
+// ══ LOT 1G · L'ÉTAT D'ÂGE DU TITULAIRE, PROJETÉ PAR LA FONCTION EXISTANTE ═══
+// `ageStateFromVerdict` est LE jumeau de `keel_age_state(date)` côté SQL et le
+// rond-trip avec `mouthAgeVerdict` est déjà testé. On ne réécrit donc pas la
+// réduction « six statuts → trois états » ici: c'est elle qui garantit
+// qu'`unknown` ne peut pas dériver vers `adult`, c'est-à-dire vers la porte
+// ouverte.
+import {
+  ageStateFromVerdict,
+  type MemberAgeState,
+} from "../_shared/keel/household.ts";
 import {
   checkWrittenInstructions,
   silentInstructions,
@@ -65,15 +92,27 @@ import { explainPlanChoices } from "../_shared/keel/plan_rationale.ts";
 // dépôt. Les quatre portes vivent DANS le module, pas ici.
 import { reportOnRequest } from "../_shared/keel/request_report.ts";
 import { gateRequestReport } from "../_shared/keel/request_report_gate.ts";
-import { type ForbiddenTerm } from "../_shared/keel/forbidden_matcher.ts";
+import {
+  findForbiddenMatches,
+  type ForbiddenTerm,
+} from "../_shared/keel/forbidden_matcher.ts";
 // LA PHRASE ÉCRITE SUR UN BROUILLON — gardée À L'ENTRÉE, parce qu'elle part au
 // modèle dans le même message que la doctrine du coach et les contraintes de
 // sécurité. Les quatre portes vivent DANS le module, pas ici.
 import {
+  type DraftNoteVerdict,
   draftNoteInstruction,
   hasDraftNote,
   readDraftNote,
 } from "../_shared/keel/plan_draft_note.ts";
+// LOT 2D — LE RETOUR SUR LE BROUILLON, RANGÉ. Le module (lot 2B) était livré,
+// testé et SANS AUCUN APPELANT: c'est le mode d'échec n°1 de ce dépôt, et
+// `draft_note_classify_wiring_test.ts` épingle désormais cet appel-ci.
+//
+// ⛔ IL PREND LE VERDICT, PAS LE TEXTE. `body.draft_note` brut rouvrirait dans
+// un SECOND appel modèle le trou que `readDraftNote` ferme (cible chiffrée,
+// interdit de doctrine, plancher TCA). Le type l'interdit; ne pas le contourner.
+import { classifyAndPersistDraftNote } from "../_shared/keel/draft_note_classify_io.ts";
 // C3 ① — LE DROIT D'ACCÈS EST LU, JAMAIS APPLIQUÉ ICI. Voir l'en-tête du
 // module: aucune règle de facturation n'existe pour un compte sans foyer, et en
 // inventer une couperait des clients qui paient.
@@ -122,7 +161,9 @@ import {
   type MealScope,
   type MealSlot,
   DEFAULT_EATING_RHYTHM,
+  type EatingOccasion,
   EATING_OCCASIONS,
+  type EatingOccasionSlot,
   mealDishesPayload,
   mealPreparationsPayload,
   mealSessionsPayload,
@@ -137,7 +178,11 @@ import { proteinAnchorRetryInstruction } from "../_shared/keel/protein_anchor.ts
 import type { CompositionIndex } from "../_shared/keel/food_composition.ts";
 import { loadCompositionIndex } from "../_shared/keel/food_composition_io.ts";
 import { isFriedMethod, resolveIngredients } from "../_shared/keel/food_composition.ts";
-import { envelopeFor } from "../_shared/keel/meal_envelope.ts";
+import {
+  envelopeFor,
+  type PortionAdjustFor,
+  winningPortionAdjust,
+} from "../_shared/keel/meal_envelope.ts";
 import {
   type CompositionVerdict,
   foldPreparationsIntoDishes,
@@ -159,6 +204,8 @@ import {
 } from "../_shared/keel/meal_coverage.ts";
 import { type ActivityLevel, GOAL_TOKENS, type GoalToken } from "../_shared/keel/tokens.ts";
 import {
+  dietaryRegimePromptLine,
+  excludedSurfaceFormsFor,
   parseDietaryRegime,
   uncoverableSentinelsFor,
 } from "../_shared/keel/dietary_regime.ts";
@@ -261,10 +308,44 @@ function readPantry(raw: unknown, issues: string[]): PantryItem[] {
  * par diverger, et c'est le genre de divergence qu'on ne voit qu'en relisant
  * deux prompts côte à côte.
  */
-function readFoodPreferences(
+function readFlatFoodPreferences(
   pc: Record<string, unknown> | null,
 ): { written: string[]; remembered: string[] } {
   return foodPreferencesByOrigin(pc);
+}
+
+/**
+ * LES DEUX MAGASINS, EN UNE SEULE LECTURE — lot 1C.
+ *
+ * ── POURQUOI LA FUSION EST ICI ET PAS AUX TROIS CALL SITES ────────────────
+ * Cette fonction est appelée par la consigne, par la ceinture des consignes
+ * écrites et par la correction. Fusionner à chaque endroit aurait fait trois
+ * fusions à tenir d'accord — et c'est exactement la phrase qui justifie déjà
+ * l'existence de cette fonction: « deux lectures différentes du même jsonb
+ * finiraient par diverger ». Il y a maintenant deux jsonb; la raison n'a pas
+ * changé, elle a doublé.
+ *
+ * ── L'ORDRE: LE STRUCTURÉ DEVANT ──────────────────────────────────────────
+ * Le §7 de la nomenclature nomme les phrases plates « anciennes notes »: elles
+ * n'ont ni `kind`, ni sujet, ni date fiable, et elles ne se reclassent que
+ * quand la personne les édite. Le plafond de `foodPreferencesByOrigin` coupe
+ * déjà par la queue AVANT d'arriver ici, donc ce qui tombe reste la plus
+ * vieille récolte — jamais un item structuré.
+ *
+ * ⚠️ `retained` EST REQUIS, JAMAIS OPTIONNEL. « Paramètre de garde optionnel =
+ * garde désarmée » est une cicatrice de ce dépôt: facultatif, il aurait laissé
+ * un call site oublié rendre exactement le produit d'hier, sans qu'un seul
+ * test rougisse.
+ */
+function readFoodPreferences(
+  pc: Record<string, unknown> | null,
+  retained: CompositionLines,
+): { written: string[]; remembered: string[] } {
+  const flat = readFlatFoodPreferences(pc);
+  return {
+    written: [...retained.written, ...flat.written],
+    remembered: [...retained.remembered, ...flat.remembered],
+  };
 }
 
 /**
@@ -801,6 +882,24 @@ Deno.serve(async (req) => {
       console.warn(`[${FN_NAME}] safety constraints unavailable`, error);
     }
 
+    // ── FF-042 · LE RÉGIME DÉCLARÉ, LU UNE SEULE FOIS ET ASSEZ TÔT ─────────
+    //
+    // ⚠️ CE `const` EST HISSÉ ICI EXPRÈS, et le défaut qu'il corrige tenait
+    // entièrement dans son ancienne POSITION. Il était calculé ~300 lignes
+    // plus bas, juste au-dessus du verdict — c'est-à-dire APRÈS
+    // `buildMealPrompt`. Le régime ne pouvait donc pas entrer dans la
+    // consigne, même si quelqu'un avait voulu l'y mettre: à l'endroit où on
+    // le lisait, le prompt était déjà parti. Il n'a jamais servi qu'à
+    // `uncoverableSentinelsFor` (« il va lui manquer de la B12 »), pendant
+    // qu'on lui composait du poulet.
+    //
+    // LU DEPUIS LES CONTRAINTES DÉJÀ CHARGÉES, jamais par une seconde
+    // requête: deux lectures de la même table divergent, et c'est celle qu'on
+    // regarde le moins qui garde l'ancien comportement.
+    const declaredRegime = (constraints ?? [])
+      .map((c) => parseDietaryRegime(c.dietRef))
+      .find((r): r is NonNullable<typeof r> => r !== null) ?? null;
+
     // ── LE JOUR OÙ L'ÉLÈVE EST, ET LA FENÊTRE QU'IL A DEMANDÉE ───────────
     //
     // ── LE REPLI SUR « LE MODÈLE CHOISIT SES JOURS » A DISPARU ───────────
@@ -1043,6 +1142,134 @@ Deno.serve(async (req) => {
     const scope: MealScope = durationDays === 1 ? "day" : "several_days";
     const daysToFill: string[] = windowDayOrder(startsOn, durationDays);
 
+    // ══ LOT 1C · LA MÉMOIRE STRUCTURÉE ENTRE ICI ═══════════════════════════
+    //
+    // ⚠️ AVANT TOUT LECTEUR DE `practical_constraints`, et c'est la seule place
+    // possible: `logistics.set` CORRIGE cette colonne, et les six lectures qui
+    // suivent (`parseEatingRhythm`, `parseAwayDays`, `parseFixedIntakes`,
+    // `parseDayProperties`, `readCookingCapacity`, `readFoodPreferences`) la
+    // relisent chacune. Poser le correctif après l'une d'elles composerait le
+    // plan sur l'ancienne cuisine et n'en changerait que la trace.
+    //
+    // Chaque famille va où son lecteur l'attend (nomenclature §2 axe 1):
+    //   `food.*` / `method.*` → `foodPreferences` / `writtenInstructions`
+    //                           de `buildMealPrompt`, et la correction;
+    //   `rhythm.set`          → `eatingRhythm`, juste en dessous;
+    //   `logistics.set`       → `practical_constraints`, ici;
+    //   `craving`             → `preferences` — « ce dont ils ont envie CETTE
+    //                           fois », le seul bloc d'envies de cette lane;
+    //   `portion.adjust`      → voir le bloc dédié plus bas.
+    const retainedDurable = readRetainedItems(
+      goalRow.practical_constraints as Record<string, unknown> | null,
+    );
+    // ⚠️ CE BLOC DÉCRIVAIT L'ANCIEN MAGASIN, MOT POUR MOT, JUSQU'AU LOT 1J. Il
+    // annonçait que les `next_plan` vivaient sur `household_envy_submissions`
+    // (dont `household_id` est `not null`) et qu'un compte sans foyer n'aurait
+    // donc « rien pour toujours ». C'est faux depuis le déménagement (§7.2).
+    //
+    // CE QUI EST VRAI: `nextPlanItemsFor({admin, userId, today})` lit
+    // `student_goals.practical_constraints.retained_next_plan`, PAR `user_id`
+    // SEUL — aucun foyer dans la clé. **Le solo est servi comme tout le monde**,
+    // et c'était le motif même du déménagement: l'entrée du produit est à UNE
+    // bouche. L'expiration est calculée à la LECTURE (vivant tant que
+    // `jour ≤ ancre + 6`), sans colonne d'état ni suppression de ligne.
+    //
+    // Un `[]` ici ne dit donc plus qu'UNE chose: rien n'a été déposé pour la
+    // semaine visée. Il n'y a plus deux vides à distinguer, d'où le retrait de
+    // `next_plan_channel` de la trace ci-dessous.
+    let retainedNextPlan: RetainedItem[] = [];
+    try {
+      retainedNextPlan = await nextPlanItemsFor({
+        admin,
+        userId,
+        today: todayDate,
+      });
+    } catch (error) {
+      // BEST-EFFORT: un hoquet sur les envies ne doit pas coûter la semaine.
+      console.warn(`[${FN_NAME}] next_plan retained items unreadable`, error);
+      issues.push("retained_next_plan_unreadable");
+    }
+    const routedRetained = routeRetainedItems([
+      ...retainedDurable.items,
+      ...retainedNextPlan,
+    ]);
+    // ⚠️ `household` SEUL. Cette lane lit la ligne d'UN compte et ne charge
+    // aucun roster: elle ne connaît aucun `member_id`. Un item écrit pour une
+    // bouche nommée est donc COMPTÉ (`otherSubjects`) et non appliqué —
+    // l'appliquer reviendrait à décider que le titulaire EST cette bouche-là,
+    // ce que rien ici ne prouve, et « Poulet pour Zoé » ne se résout pas par un
+    // prénom.
+    const retainedSpeaksFor = [HOUSEHOLD_SUBJECT];
+    const retainedLogistics = logisticsOverlayFor({
+      items: routedRetained.logistics,
+      speaksFor: retainedSpeaksFor,
+    });
+    if (Object.keys(retainedLogistics.patch).length > 0) {
+      goalRow.practical_constraints = {
+        ...(goalRow.practical_constraints ?? {}) as Record<string, unknown>,
+        ...retainedLogistics.patch,
+      };
+    }
+    const retainedRhythm = rhythmOverlayFor({
+      items: routedRetained.rhythm,
+      speaksFor: retainedSpeaksFor,
+    });
+    const retainedComposition = compositionLinesFor({
+      items: routedRetained.composition,
+      speaksFor: retainedSpeaksFor,
+    });
+    const retainedCravings = cravingLinesFor({
+      items: routedRetained.craving,
+      speaksFor: retainedSpeaksFor,
+    });
+    // ── LE BLOC D'ENVIES DE CETTE LANE ────────────────────────────────────
+    //
+    // `preferences` est déjà « ce dont ils ont envie CETTE fois » — le seul
+    // endroit du prompt individuel qui porte une envie datée. Les `craving`
+    // retenus y rejoignent ce que la personne vient de taper, DERRIÈRE lui:
+    // une phrase écrite il y a dix secondes vaut plus qu'une envie déposée
+    // lundi, et la récence est le seul arbitrage qu'on sache défendre ici.
+    //
+    // `null` quand il n'y a ni l'un ni l'autre: `buildMealPrompt` ne pose
+    // alors AUCUNE ligne, et un en-tête d'envie suivi de rien ferait composer
+    // le modèle contre une demande imaginaire.
+    const preferencesForPrompt = [
+      ...(preferences ? [preferences] : []),
+      ...retainedCravings.lines,
+    ].join(" · ") || null;
+    // ── `portion.adjust` · CE QUI EN EST FAIT, ET OÙ ───────────────────────
+    //
+    // ⛔ RIEN N'EST TRADUIT ICI, ET ÇA NE CHANGE PAS. Écrire « slight = −80 g »
+    // à cet endroit fabriquerait, au mauvais endroit, la précision que le socle
+    // interdit des deux côtés — et le ferait AVANT le plancher TCA, qui vit
+    // dans l'enveloppe. La traduction est et reste dans `applyPortionAdjust`.
+    //
+    // ⚠️ CE QUI A CHANGÉ (lot 1G): l'ajustement N'EST PLUS SEULEMENT COMPTÉ.
+    // La bouche de cette lane est la personne authentifiée, son état d'âge
+    // vient de `profiles.birth_date`, et le couple {bouche, items} part à
+    // `envelopeFor` ~750 lignes plus bas. Le compteur et le constat d'audience
+    // vivent LÀ-BAS (`keel.meal.portion_adjust`), parce que l'état d'âge est
+    // chargé après ce point — pas ici. Cette trace-ci ne dit plus que ce
+    // qu'elle sait: combien d'ajustements sont sortis du magasin.
+    console.log(JSON.stringify({
+      tag: "keel.meal.retained_items",
+      user_id: userId,
+      ...routingTrace({ routed: routedRetained, adjustments: [] }),
+      refused: retainedDurable.refused.total,
+      legacy_notes: retainedDurable.legacyNotes.length,
+      other_subjects: retainedComposition.otherSubjects.length +
+        retainedLogistics.otherSubjects.length +
+        retainedRhythm.otherSubjects.length +
+        retainedCravings.otherSubjects.length,
+      // ⛔ `next_plan_channel` A ÉTÉ RETIRÉ ICI, PAS CORRIGÉ (lot 1J). Il valait
+      // `householdId ? "household" : "none"` et séparait « aucun canal » de
+      // « canal vide ». Le déménagement (§7.2) a supprimé le premier cas: un
+      // compte solo possède un canal. Le champ rendait `"none"` à quelqu'un qui
+      // en a un — la distinction était exactement INVERSÉE, et elle faisait lire
+      // « `craving: 0` est structurel » sur une personne qui n'avait rien
+      // demandé. Il n'y a plus qu'un vide, et `craving: 0` le dit déjà.
+    }));
+
     // LES MOMENTS D'UNE JOURNÉE NORMALE POUR CET ÉLÈVE — lus UNE fois, et
     // partagés par le prompt et le parseur.
     //
@@ -1054,10 +1281,33 @@ Deno.serve(async (req) => {
     // Un rythme illisible rend `[]`, et les deux côtés retombent alors sur les
     // trois repas d'avant — ensemble. Une contrainte qu'on ne sait pas lire ne
     // doit pas produire une journée vide.
-    const eatingRhythm = parseEatingRhythm(
-      (goalRow.practical_constraints as Record<string, unknown> | null)
-        ?.eating_rhythm,
-    );
+    const eatingRhythm = ((): EatingOccasionSlot[] => {
+      const declared = parseEatingRhythm(
+        (goalRow.practical_constraints as Record<string, unknown> | null)
+          ?.eating_rhythm,
+      );
+      // LOT 1C — `rhythm.set` CORRIGE les six moments. Rien à corriger ⇒ la
+      // valeur d'avant ce lot, au slot près: c'est ce qui rend l'ajout additif
+      // et non régressif pour toute la base d'aujourd'hui.
+      if (
+        retainedRhythm.present.length === 0 && retainedRhythm.absent.length === 0
+      ) {
+        return declared;
+      }
+      const bySlot = new Map<EatingOccasion, EatingOccasionSlot>();
+      for (const entry of declared) bySlot.set(entry.slot, entry);
+      for (const occasion of retainedRhythm.absent) bySlot.delete(occasion);
+      for (const occasion of retainedRhythm.present) {
+        // ⚠️ LA TAILLE DÉJÀ DÉCLARÉE EST CONSERVÉE, et on n'en invente aucune:
+        // un `rhythm.set` dit qu'un moment EXISTE, il ne dit rien de sa
+        // taille. `size: null` est exactement ce que `parseEatingRhythm` rend
+        // d'un moment déclaré sans taille.
+        if (!bySlot.has(occasion)) bySlot.set(occasion, { slot: occasion, size: null });
+      }
+      // L'ORDRE DE LA JOURNÉE, jamais l'ordre d'arrivée — même geste que la
+      // fusion des absences plus bas (`EATING_OCCASIONS.filter`).
+      return EATING_OCCASIONS.filter((s) => bySlot.has(s)).map((s) => bySlot.get(s)!);
+    })();
     // LES MOMENTS OÙ IL NE MANGE PAS ICI. Même `const` hissé que le rythme, et
     // pour la même raison: la valeur passée au prompt et celle passée au
     // parseur doivent être LA MÊME lecture, pas deux relectures à tenir
@@ -1246,6 +1496,16 @@ Deno.serve(async (req) => {
     // est un refus qui coûte un dîner pour rien (même leçon que
     // `replaces_required`, plus haut).
     let draftNoteSuffix = "";
+    // ── LOT 2D · LE VERDICT SURVIT À CE BLOC, ET LUI SEUL ──────────────────
+    // Il est relu ~1300 lignes plus bas, APRÈS l'écriture du plan, pour ranger
+    // ce que la personne a demandé (`classifyAndPersistDraftNote`).
+    //
+    // ⛔ C'EST LE VERDICT QU'ON GARDE, PAS `body.draft_note` NI `note.usable`.
+    // Le classifieur exige un `DraftNoteVerdict` — seul `readDraftNote` en
+    // produit — parce que sa charge repart au modèle: une `string` rouvrirait
+    // la garde d'entrée dans un second appel. Le type ferme la porte, et
+    // remplacer cette variable par une chaîne ne compilerait pas.
+    let draftNoteVerdict: DraftNoteVerdict | null = null;
     if (hasDraftNote(body.draft_note)) {
       const note = readDraftNote({
         raw: body.draft_note,
@@ -1279,6 +1539,10 @@ Deno.serve(async (req) => {
         }, { status: 400 });
       }
       draftNoteSuffix = `\n\n${draftNoteInstruction(note.usable)}`;
+      // ⚠️ APRÈS LES DEUX REFUS CI-DESSUS, JAMAIS AVANT. Une note refusée sort
+      // en 400 et n'atteint jamais l'écriture: le classifieur ne verra donc
+      // que des verdicts que la garde a laissés passer.
+      draftNoteVerdict = note;
     }
 
     // LE CORPS. Best-effort, contrairement au plancher: une portion moins bien
@@ -1295,9 +1559,26 @@ Deno.serve(async (req) => {
     // foyer, qui n'a pas de `MealBodyContext`, doit pouvoir le passer quand
     // même. Voir le paramètre séparé d'`envelopeFor`.
     let studentActivityLevel: ActivityLevel | null = null;
+    /**
+     * ── LOT 1G · L'ÉTAT D'ÂGE DU TITULAIRE — LA MÊME SOURCE QUE `ageBand` ───
+     *
+     * Il vient de `snapshot.verdict`, c'est-à-dire de `profiles.birth_date` via
+     * `assessBirthDate`: EXACTEMENT le verdict d'où cette lane tire déjà sa
+     * bande d'âge (`mealBodyContextFrom` → `ageBandOf(usableAge(verdict))`).
+     * Ce n'est donc pas une source nouvelle, c'est la même lue avec la
+     * projection canonique du dépôt.
+     *
+     * ⚠️ `"unknown"` EN VALEUR INITIALE, ET C'EST LA DIRECTION SÛRE. Un corps
+     * illisible (le `catch` ci-dessous) ne doit pas rendre un ajustement à la
+     * baisse applicable: « on n'a pas su lire » et « c'est un adulte » sont
+     * précisément les deux choses que ce dépôt a retiré son booléen pour ne
+     * plus confondre.
+     */
+    let studentAgeState: MemberAgeState = "unknown";
     try {
       const snapshot = await loadStudentBody(admin, userId, todayDate);
       studentActivityLevel = snapshot.activityLevel;
+      studentAgeState = ageStateFromVerdict(snapshot.verdict);
       studentBody = mealBodyContextFrom(snapshot, restrictionFlag);
     } catch (error) {
       console.warn(JSON.stringify({
@@ -1388,6 +1669,17 @@ Deno.serve(async (req) => {
       // double verrou du §3.3 du pivot: la consigne informe, la ceinture
       // garantit. `null` (lecture en panne) reste `null` des deux côtés.
       safetyConstraints: constraints,
+      // ── FF-042 · LE RÉGIME ENTRE DANS LA CONSIGNE ──────────────────────
+      // La MOITIÉ AMONT du double verrou, et elle manquait entièrement sur
+      // cette lane: `dietary_regime.ts` était importé ici pour son seul
+      // drapeau de carence. On déclarait donc à un végane qu'il manquerait de
+      // B12, dans un plan qui lui servait du poulet.
+      //
+      // La phrase vient de `dietaryRegimePromptLine`, JAMAIS d'une phrase
+      // écrite ici — même règle qu'au call site du foyer. Une seconde
+      // formulation divergerait de la première le jour où un quatrième régime
+      // arrive, et c'est la lane la moins relue qui garderait l'ancienne.
+      dietBlock: declaredRegime ? dietaryRegimePromptLine(declaredRegime) : "",
       body: studentBody,
       // L'AXE. La lecture est défensive contre la liste FERMÉE plutôt que
       // recopiée: le CHECK SQL tient la base, mais une valeur écrite avant lui
@@ -1408,7 +1700,10 @@ Deno.serve(async (req) => {
       // L'ENVIE DU MOMENT, distincte des goûts durables lus plus bas dans
       // `foodPreferences`: l'une a été tapée il y a dix secondes, les autres
       // viennent de la conversation et valent pour toutes ses semaines.
-      preferences,
+      //
+      // LOT 1C — la ligne porte aussi les `craving` retenus, hissée plus haut
+      // pour n'être calculée qu'une fois.
+      preferences: preferencesForPrompt,
       mode,
       scope,
       slot,
@@ -1444,14 +1739,24 @@ Deno.serve(async (req) => {
       // Passé NOMMÉMENT parce que ce générateur lit des clés nommées: une clé
       // de plus dans le jsonb y serait invisible (contrairement au plan hebdo,
       // qui sérialise tout).
+      //
+      // LOT 1C — la lecture porte désormais LES DEUX MAGASINS: les phrases
+      // plates de la colonne, et les `food.*` / `method.*` retenus. Voir
+      // `readFoodPreferences` pour l'ordre et pour le motif.
       foodPreferences: readFoodPreferences(
         goalRow.practical_constraints as Record<string, unknown> | null,
+        retainedComposition,
       ).remembered,
       // CE QU'IL A TAPÉ LUI-MÊME. Séparé, parce que le rang est la moitié du
       // message: une consigne écrite ne s'arbitre pas comme un goût confirmé
       // d'un bouton. Voir le bloc `-- WHAT THEY HAVE TOLD ME --`.
+      //
+      // LOT 1C — même lecture, même ordre: ce que la personne a tapé DANS SA
+      // CARTE (`source: "written"`) est une consigne, exactement comme les
+      // lignes tapées dans l'ancien champ.
       writtenInstructions: readFoodPreferences(
         goalRow.practical_constraints as Record<string, unknown> | null,
+        retainedComposition,
       ).written,
       // ── L4/D6 · IL N'Y A PERSONNE À REPRENDRE SUR CETTE LANE ────────────
       // `null`, et ce n'est pas un remplissage de signature. La fusion est une
@@ -1684,17 +1989,9 @@ Deno.serve(async (req) => {
     // FAIL-CLOSED: une lecture du plancher en panne a déjà rendu
     // `restrictionFlag = true` en amont (FF-030 R6), et `studentBody` absent
     // dégrade de toute façon par la MÊME branche de `envelopeFor`.
-    // ── FF-042 R6 · LE RÉGIME DÉCLARÉ, ET CE QU'IL REND INCOUVRABLE ───────
-    // Lu depuis les contraintes déjà chargées, jamais par une seconde requête:
-    // deux lectures de la même table divergent, et c'est celle qu'on regarde le
-    // moins qui garde l'ancien comportement.
-    //
-    // ⚠️ `dietRef` n'entre PAS dans la liste d'évitement — la ceinture reçoit
-    // l'expansion (viande, poisson, œuf…), jamais le nom du régime. Ce dépôt a
-    // payé le contraire en run réel avec `allergen_ref='diabetes'`.
-    const declaredRegime = (constraints ?? [])
-      .map((c) => parseDietaryRegime(c.dietRef))
-      .find((r): r is NonNullable<typeof r> => r !== null) ?? null;
+    // ── FF-042 R6 · CE QUE LE RÉGIME REND INCOUVRABLE ─────────────────────
+    // `declaredRegime` est HISSÉ au chargement des contraintes, et c'est ce
+    // déplacement qui a branché la consigne: ici, le prompt est déjà parti.
     const uncoverableForStudent = declaredRegime
       ? uncoverableSentinelsFor(declaredRegime)
       : [];
@@ -1706,6 +2003,80 @@ Deno.serve(async (req) => {
       doctrine.doctrine?.compositionSteering ?? [],
       goalToken,
     );
+    /**
+     * ── LOT 1G · LA BOUCHE DE CETTE LANE — L'ARBITRAGE, ÉCRIT ICI ──────────
+     *
+     * ⚠️ CE QUI A ÉTÉ TRANCHÉ, ET CONTRE QUOI. Le lot 1C avait laissé ce
+     * paramètre à `null` avec ce motif: « cette lane N'A PAS DE ROSTER ». Le
+     * motif était vrai au sens littéral — aucune LISTE de bouches n'est
+     * chargée — et faux au sens qui compte: cette lane a UNE bouche, la
+     * personne authentifiée, et son état d'âge est CONNAISSABLE.
+     *
+     * Il vient de `snapshot.verdict` (`profiles.birth_date` →
+     * `assessBirthDate`), lu 450 lignes plus haut, et projeté par
+     * `ageStateFromVerdict` — la même fonction que la lane foyer, dont le
+     * rond-trip avec `mouthAgeVerdict` est déjà testé. Ce n'est donc PAS une
+     * bouche fabriquée: c'est la même source d'âge que `ageBand` juste
+     * au-dessus, lue avec la projection canonique du dépôt.
+     *
+     * L'écran « about you » (`/app/plan`) demande cette date depuis toujours et
+     * l'écrit dans `profiles.birth_date` (migration 20260812180000) — la garde
+     * a donc un CAS QUI PASSE, et ce n'est pas une ceinture armée sur un coffre
+     * vide.
+     *
+     * ── L'OPTION ÉCARTÉE, ET POURQUOI ─────────────────────────────────────
+     * Passer `ageState: "adult"` par défaut « pour que le cas marche ». C'est
+     * le booléen que ce dépôt a retiré exprès, remis à l'endroit le plus cher:
+     * « je ne sais pas » et « majeur » doivent produire des résultats OPPOSÉS,
+     * et un compte de mineur atteint CETTE lane (contrairement à
+     * `generate-week-plan-v1`, qui rend `409 minor_student`). Un défaut
+     * `adult` retirerait donc de la nourriture à un enfant, en silence.
+     *
+     * ── LE PRIX ASSUMÉ, ET IL EST RÉEL ────────────────────────────────────
+     * Sans date de naissance au dossier, l'état vaut `unknown`, et le socle
+     * exclut `unknown` d'un ajustement À LA BAISSE sans sujet explicite
+     * (contrat §3). Une personne seule qui n'a jamais rempli « about you » ne
+     * peut donc pas réduire sa propre part. Ce n'est PAS silencieux: le log
+     * `keel.meal.portion_adjust` ci-dessous rend l'exclusion et son motif
+     * (`age_unknown`), bouche par bouche. À la HAUSSE, le socle n'exclut
+     * personne — cette moitié-là marche pour tout le monde, tout de suite.
+     *
+     * ── `memberId: userId`, ET CE QUE ÇA LAISSE OUVERT ────────────────────
+     * Cette lane ne résout pas de `household_members.id` (elle ne lit que
+     * `household_id`, plus haut). Un item dont le `subject` est
+     * `member:<member_id>` revient donc `not_in_household` et n'est appliqué à
+     * PERSONNE — la direction sûre du socle, jamais un repli sur « tout le
+     * monde ». TROU NOMMÉ: un ajustement que la personne s'est attribué
+     * nommément depuis sa fiche de foyer n'atteint pas son plan individuel; il
+     * atteint son plan de foyer. Le fermer demande une résolution
+     * `user_id → member_id` sur cette lane, qui n'est pas de ce lot.
+     */
+    const studentPortionAdjust: PortionAdjustFor = {
+      mouth: { memberId: userId, ageState: studentAgeState },
+      items: routedRetained.portion,
+    };
+    // ⚠️ LE CONSTAT SORT AVEC L'EFFET, ET C'EST LA NOMENCLATURE QUI L'EXIGE:
+    // « le mineur est simplement exclu de l'ajustement; rien n'échoue, ET LE
+    // CONSTAT LE DIT ». Sans ces trois nombres, un lot désarmé ressemblerait
+    // trait pour trait à un lot qui marche.
+    const studentPortionAudience = portionAdjustsFor(
+      routedRetained.portion,
+      [studentPortionAdjust.mouth],
+    );
+    console.log(JSON.stringify({
+      tag: "keel.meal.portion_adjust",
+      user_id: userId,
+      age_state: studentAgeState,
+      retained: routedRetained.portion.length,
+      // 0 ou 1: le gagnant, quand il y en a un. `winningPortionAdjust` est LE
+      // même arbitre que celui qu'`envelopeFor` applique une ligne plus bas —
+      // on ne recompte pas à la main ce que le module décide.
+      applied: winningPortionAdjust(studentPortionAdjust) === null ? 0 : 1,
+      ...routingTrace({
+        routed: routedRetained,
+        adjustments: studentPortionAudience,
+      }),
+    }));
     const envelope = envelopeFor(
       goalToken,
       studentBody,
@@ -1713,6 +2084,12 @@ Deno.serve(async (req) => {
       studentBody?.restrictionFlag ?? true,
       steering,
       studentActivityLevel,
+      // ── `portion.adjust` · BRANCHÉ (lot 1G) ──────────────────────────────
+      // ⛔ L'AUDIENCE N'EST PAS CALCULÉE ICI, et elle ne l'est nulle part dans
+      // ce fichier: `winningPortionAdjust` appelle `subjectsForPortionAdjust`
+      // avec le roster réduit à cette bouche. La règle du §2 axe 3 mord donc
+      // là où elle est écrite, une seule fois.
+      studentPortionAdjust,
     );
     /**
      * ── LE PLAT, PRÉPARATIONS COMPRISES ────────────────────────────────────
@@ -1818,9 +2195,18 @@ Deno.serve(async (req) => {
           // LA CORRECTION VOIT LES DEUX SEAUX, à plat. Elle cherche ce que
           // l'élève a déclaré, pas qui l'a saisi: une correction qui ignorerait
           // les consignes écrites corrigerait CONTRE elles.
-          foodPreferences: foodPreferencesForPrompt(
-            goalRow.practical_constraints as Record<string, unknown> | null,
-          ),
+          //
+          // LOT 1C — LES ITEMS RETENUS EN FONT PARTIE. Sans eux, la correction
+          // corrigerait CONTRE une exclusion que le prompt vient d'annoncer:
+          // c'est exactement le défaut que la ligne au-dessus décrit, sur le
+          // second magasin.
+          foodPreferences: [
+            ...retainedComposition.written,
+            ...retainedComposition.remembered,
+            ...foodPreferencesForPrompt(
+              goalRow.practical_constraints as Record<string, unknown> | null,
+            ),
+          ],
         },
         coverageFloorHit: measured.coverage.floorHit,
         // FF-041 — LES AXES QUE LA DOCTRINE GOUVERNANTE A ÉTEINTS.
@@ -1890,8 +2276,13 @@ Deno.serve(async (req) => {
     // (`issues`), ce qui est la condition pour savoir un jour s'il est rare ou
     // s'il est la règle. Décider d'en faire un motif de relance demande cette
     // mesure d'abord.
+    // LOT 1C — LA CEINTURE VOIT LES DEUX MAGASINS. Une consigne retenue que le
+    // plan avale en silence doit se compter comme n'importe quelle autre: la
+    // servir au modèle sans la vérifier ferait deux régimes de contrôle pour
+    // une seule promesse.
     const writtenForCheck = readFoodPreferences(
       goalRow.practical_constraints as Record<string, unknown> | null,
+      retainedComposition,
     ).written;
     if (writtenForCheck.length > 0) {
       const swallowed = silentInstructions(
@@ -1908,6 +2299,68 @@ Deno.serve(async (req) => {
       }));
       for (const instruction of swallowed) {
         issues.push(`written_instruction_unanswered: ${instruction}`);
+      }
+    }
+
+    // ══ FF-042 · LE SECOND TOUR DU DOUBLE VERROU, SUR LE RÉGIME ══════════
+    //
+    // La consigne est partie dans le prompt (`dietBlock`, plus haut). Une
+    // consigne de prompt régresse en réel — c'est la phrase fondatrice de
+    // `household_restriction_lock.ts`, et le régime n'y échappe pas: c'est
+    // exactement dans les fonds, les sauces et les garnitures que la règle se
+    // perd, ce que `dietaryRegimePromptLine` dit au modèle sans pouvoir le
+    // vérifier.
+    //
+    // ⚠️ ON MESURE L'EXPANSION, JAMAIS LE JETON. Les aiguilles sont les formes
+    // de surface (`excludedSurfaceFormsFor`: viande, lardons, nuoc-mâm,
+    // gélatine…), en FR ET EN EN. Armer la ceinture sur « vegan » ferait
+    // rejeter toute réponse qui décrit un plat comme végane — le défaut exact
+    // qu'`allergen_ref='diabetes'` a produit en run réel le 2026-08-06, où un
+    // message d'urgence a été remplacé par un refus poli.
+    //
+    // ⚠️ ON NE JETTE RIEN, même arbitrage et même raison que le bloc au-dessus.
+    // Le verrou de sortie est BINAIRE et calculé sur la concaténation de tous
+    // les plats: refuser ici viderait la semaine entière pour un lardon dans
+    // un seul plat, et l'élève paierait son régime en semaines vides — le
+    // défaut que FF-030 a déjà corrigé pour l'allergène. Le silence se COMPTE
+    // et se DIT, ce qui est la condition pour décider un jour d'en faire un
+    // motif de relance. Décider avant de mesurer, c'est ce qui a produit le
+    // refus poli ci-dessus.
+    if (declaredRegime) {
+      const excludedForms = excludedSurfaceFormsFor(declaredRegime);
+      const regimeTerms = excludedForms.map((form) => ({
+        ruleId: `diet:${declaredRegime}`,
+        token: form,
+      }));
+      // LE PLAT ENTIER, ingrédients COMPRIS. Le titre seul laisserait passer
+      // « risotto crémeux » dont la liste porte du parmesan et du bouillon de
+      // volaille — c'est-à-dire le cas que la consigne nomme en toutes lettres.
+      const breaches: string[] = [];
+      for (const dish of meal.dishes) {
+        const haystack = [
+          dish.title,
+          dish.why,
+          ...(dish.ingredients ?? []).map((i) =>
+            typeof i === "string" ? i : String((i as { term?: string })?.term ?? "")
+          ),
+        ].filter((s) => typeof s === "string" && s.trim() !== "").join(" · ");
+        for (const hit of findForbiddenMatches(haystack, regimeTerms)) {
+          breaches.push(`${dish.title}: ${hit.matchedText}`);
+        }
+      }
+      // TROIS NOMBRES, pas un booléen: un lot désarmé et un lot qui marche
+      // rendent le même `false`. `dishes` dit que la garde a eu de la matière,
+      // `forms` qu'elle avait des aiguilles, `breaches` ce qu'elle a trouvé.
+      console.log(JSON.stringify({
+        tag: "keel.meal.dietary_regime",
+        user_id: userId,
+        regime: declaredRegime,
+        dishes: meal.dishes.length,
+        forms: excludedForms.length,
+        breaches: breaches.length,
+      }));
+      for (const breach of breaches) {
+        issues.push(`dietary_regime_breach: ${breach}`);
       }
     }
 
@@ -2384,6 +2837,38 @@ Deno.serve(async (req) => {
     // erreurs et journalise. Le plan est déjà écrit; personne ne perd son dîner
     // parce qu'une préférence rétractée n'a pas pu être effacée.
     await persistReconciledFoodPreferences(foodPreferences.pending);
+
+    // ── LOT 2D · CE QUE LA PERSONNE A DEMANDÉ SUR SON BROUILLON, RANGÉ ─────
+    //
+    // ⚠️ ICI, ET PAS DIX LIGNES PLUS HAUT. `intent: "draft"` est sorti bien
+    // avant ce point (`if (isDraft) return …`): sur un aperçu il n'y a pas
+    // encore de plan, et ranger une envie qui vise un plan que la personne peut
+    // encore abandonner écrirait une mémoire pour un geste qui n'a pas eu lieu.
+    //
+    // ⚠️ L'ANCRE EST `startsOn` — LA SEMAINE VISÉE — ET PAS `todayDate`.
+    // Quelqu'un qui adopte le dimanche un plan qui commence lundi vise la
+    // semaine SUIVANTE; ancrer sur le jour de la frappe ferait mourir son envie
+    // le lendemain matin (§7.3: vivant tant que `jour ≤ ancre + 6`). `today`
+    // reste le jour de la frappe: c'est le `at` de l'item, pas son ancre.
+    //
+    // ⚠️ NE PEUT PAS FAIRE ÉCHOUER LA RÉPONSE, comme la ligne au-dessus: le
+    // module rend un résultat, jamais une exception. Le plan est déjà écrit.
+    if (draftNoteVerdict !== null) {
+      await classifyAndPersistDraftNote({
+        admin,
+        userId,
+        note: draftNoteVerdict,
+        today: todayDate,
+        targetWeek: startsOn,
+        // `[]` DIT « personne d'autre à table », et c'est vrai de cette lane:
+        // elle compose pour UNE bouche. `undefined` dirait « je n'ai pas su
+        // lire le foyer » — la cicatrice « paramètre de garde optionnel =
+        // garde désarmée » — et le type l'interdit déjà.
+        members: [],
+        contentLocale: built.contentLocale,
+        requestId,
+      });
+    }
 
     // ── FF-039 + FF-040 · LE VERDICT, ÉCRIT ────────────────────────────────
     // APRÈS l'écriture du plan, et dans un try/catch qui n'échoue jamais vers

@@ -126,7 +126,7 @@ from _qa_people q where p.id = q.id and q.kind='student';
 -- ---------------------------------------------------------------- objectifs
 insert into public.student_goals (user_id, goal, situation, practical_constraints, content_locale)
 select p.id,
-       (array['fat_loss','muscle_gain','health'])[p.rank],
+       (array['fat_loss','muscle_gain','maintenance'])[p.rank],
        'QA fixture cohort ' || :'tag',
        '{"eating_rhythm":["breakfast","lunch","dinner"],"cooks":true}'::jsonb,
        :locale

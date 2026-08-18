@@ -445,6 +445,16 @@ verify_jwt = false
 [functions.chat-inbound-v1]
 verify_jwt = true
 
+# LOT 2A — le questionnaire de fin de plan, et son extraction vers la mémoire
+# structurée. Même nature que `chat-inbound-v1`: l'appelant EST l'élève, depuis
+# son navigateur. La fonction a besoin de son IDENTITÉ (elle appelle
+# `keel_plan_feedback_submit` avec SON jeton, parce que la RPC vérifie la
+# propriété du plan par `auth.uid()`), donc elle re-vérifie le jeton elle-même;
+# la déclaration est là pour que le réglage de la passerelle soit EXPLICITE et
+# pas hérité d'un défaut.
+[functions.keel-plan-feedback-v1]
+verify_jwt = true
+
 # Public webhooks / internal senders (no JWT)
 # (DE-WHATSAPP: les 7 fonctions WhatsApp ont ete supprimees en P5.)
 [functions.process-llm-retry-jobs]

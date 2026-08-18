@@ -209,6 +209,10 @@ import {
 } from "./keel_meal_precision_lane.ts";
 import { armPhotoInvitation } from "./keel_photo_invitation_lane.ts";
 import { appendPhotoInvitation } from "../../_shared/keel/photo_invitation.ts";
+import {
+  appendSizingRedirect,
+  sizingRedirectFor,
+} from "../../_shared/keel/conversation_retained.ts";
 import type { PrecisionPlanLine } from "../../_shared/keel/meal_precision.ts";
 import type { MealPrecisionFlowState } from "../../_shared/keel/meal_precision_flow.ts";
 import {
@@ -243,6 +247,11 @@ import {
   type PlanQuestionSkillRuntime,
   runPlanQuestionSkill,
 } from "../skills/plan_question/skill.ts";
+// ⚠️ LA MÊME RÉSOLUTION QUE LE RESOLVER, ET C'EST TOUT L'INTÉRÊT DE L'IMPORTER
+// plutôt que de retester la chaîne ici: un gate qui juge « nommé » sur une
+// autre règle que celle qui juge « lisible » laisse passer exactement ce qui
+// tombe entre les deux. Voir le gate de routage plus bas.
+import { resolveFoodGroupToken } from "../skills/plan_question/swap_resolver.ts";
 // FF-056 — la divergence constatée. Continuation seule: l'épisode est ouvert
 // hors conversation par le batch du soir, et relu EN BASE à chaque tour.
 import {
@@ -1186,6 +1195,29 @@ export type KeelTurnContext = {
    * l'utilité et jamais le contrôle (R6), quelle que soit l'humeur du composeur.
    */
   meal_photo_invitation?: string | null;
+  /**
+   * LOT 2C — LE RENVOI DU SIZING armé par CE tour, ou `null`.
+   *
+   * ⚠️ CE N'EST PAS UN CLASSEMENT, C'EST UN RENVOI. `canProduce("conversation",
+   * "portion.adjust")` rend `false` (§5 ligne ③ de la nomenclature): une mesure
+   * a besoin d'un sujet, et la conversation ne sait pas l'attribuer — « les
+   * portions étaient trop grosses », dans un foyer de quatre, ne désigne
+   * personne. Le questionnaire de fin de plan, lui, pose la question avec la
+   * liste du foyer sous les yeux. **Le produit préfère une question de plus à
+   * une part fausse.** Ce champ porte la phrase qui le dit à la personne, au
+   * lieu de jeter son retour en silence.
+   *
+   * Même véhicule et même raison que `meal_photo_invitation` ci-dessus: un
+   * redispatch de sortie de flow reconstruit le `turn_frame` et perdrait ce
+   * qu'on y aurait posé, alors que `keelTurn` est passé OBLIGATOIREMENT à
+   * `finalVisibleText` sur les six chemins de sortie.
+   *
+   * Le TEXTE est un gabarit fermé et BILINGUE (`SIZING_REDIRECT_SENTENCES`,
+   * `conversation_retained.ts`), jamais une génération — *« une règle de prompt
+   * n'est pas une ceinture »*, et une garde testée dans une seule langue ne
+   * mord pas dans l'autre.
+   */
+  sizing_redirect?: string | null;
   /**
    * LE JETON DE MALADIE DÉCLARÉE CE TOUR-CI, ou null.
    *
@@ -2766,6 +2798,33 @@ export function finalVisibleText(
         keel.meal_precision_question = null;
       },
     );
+
+    // ── LOT 2C · LE RENVOI DU SIZING, ET IL EST DIT ─────────────────────────
+    //
+    // EN DERNIER DU BLOC NON-CRISE, et les trois moitiés du placement comptent:
+    //
+    //  1. DANS `finalVisibleText`, parce que c'est le SEUL entonnoir que tous
+    //     les chemins de sortie traversent. Le renvoi est armé bien plus haut,
+    //     juste après le calcul des signaux du dispatcher; entre les deux il y a
+    //     les lanes KEEL, dont `plan_question`, qui rend sa PROPRE réponse et
+    //     capture une part importante des tours. Une phrase posée en amont
+    //     d'elle serait avalée sans laisser de trace — et « rendu par un outil »
+    //     n'est pas « dit » dans ce dépôt.
+    //
+    //  2. APRÈS les deux ajouts armés (invitation photo, question de précision)
+    //     et après toutes les ceintures de rendu. Ce n'est ni un accusé (il ne
+    //     prétend rien avoir enregistré — au contraire, il dit qu'on ne range
+    //     PAS) ni une sollicitation au budget partagé: il ne demande rien, il
+    //     explique où va ce que la personne vient de dire. Le faire passer dans
+    //     un détecteur d'accusé ne pourrait que le mutiler.
+    //
+    //  3. DANS le `if (!isSafetyRoute(...))`: un tour de crise est le dernier
+    //     endroit où l'on parle de la taille des portions.
+    //
+    // ⚠️ LE TEXTE EST BILINGUE ET FERMÉ, résolu chez `sizingRedirectFor` à
+    // partir de `content_locale`. Une garde testée dans une seule langue ne mord
+    // pas dans l'autre, et ce produit a `fr-FR` par défaut.
+    out = appendSizingRedirect(out, keel.sizing_redirect);
   }
   out = out.trim();
 
@@ -5198,7 +5257,33 @@ export async function processMessage(
       const raw = String(value ?? "").trim().toLowerCase();
       return raw === "" || raw === "null" || raw === "none" || raw === "n/a";
     };
-    const noRequestedGroup = absentGroup(pqContext?.requested_food_group);
+    // ── « NOMMÉ » ET « LISIBLE » DOIVENT ÊTRE LA MÊME QUESTION ─────────────
+    //
+    // Ce test portait sur la CHAÎNE (vide, "null", "none", "n/a"). Le resolver,
+    // lui, teste la VALIDITÉ (`parseFoodGroupRef`). Entre les deux il restait
+    // une fente, et elle était habitée:
+    //
+    // MESURÉ LE 2026-08-13, run `doctrine5` passe 2, sur « avec deux repas
+    // seulement, mes protéines je les cale comment ? » — une question de
+    // MÉTHODE, aucun remplacement demandé. Le dispatcher a rempli
+    // `requested_food_group` d'un jeton qui n'est pas un slug `food_groups`.
+    // Pour ce gate il était « nommé » (chaîne non vide), donc le gate s'est
+    // tu; pour le resolver il était illisible, donc `unresolved_food_group` —
+    // la branche écrite pour l'hallucination de slug — et l'escalade est
+    // repartie, avec sa ligne `contract_change_requests` en `dislikes_food`.
+    //
+    // Un jeton qui ne résout sur AUCUN groupe ne nomme aucun remplacement.
+    // C'est la même phrase que la fiche, appliquée avec la même règle des deux
+    // côtés — et elle absorbe les quatre chaînes de l'ancien test, qui ne
+    // résolvent pas davantage.
+    //
+    // ⚠️ ON NE PERD PAS LA PROMESSE « UN SLUG ILLISIBLE NE DEVIENT JAMAIS UN
+    // OUI ». Le chemin général n'autorise rien: il porte le bloc doctrine, le
+    // bloc protocole, les contraintes dures en PREMIER bloc et le verrou
+    // déterministe de sortie. Ce qui disparaît, c'est une escalade vers un
+    // coach à qui on demandait d'arbitrer un mot que personne n'a écrit.
+    const noRequestedGroup =
+      resolveFoodGroupToken(String(pqContext?.requested_food_group ?? "")) === null;
     // ⚠️ LE PRESCRIT EST VÉRIFIÉ CONTRE LE PLAN, PAS CRU SUR PAROLE.
     //
     // Mesuré le 2026-08-08 sur « What should I eat for breakfast? », 3 fois
@@ -5300,26 +5385,120 @@ export async function processMessage(
     // ce cas (« NOTHING IS COMPOSED FOR TODAY … NEVER say their coach is
     // preparing anything »). Faire dépendre le gate du plat, c'était le
     // désarmer précisément là où la fiche l'exige.
-    if (
-      routeDecision.response_owner === "plan_question" &&
-      keelTurn.household !== null &&
-      noRequestedGroup
-    ) {
-      console.warn("[keel] plan_question sur repas du foyer → chemin général", {
+    // ── LE FOYER N'ÉTAIT PAS LA CONDITION, IL ÉTAIT LE DÉCOR OÙ ON L'A VU ───
+    //
+    // Ce gate exigeait `keelTurn.household !== null`. La borne était prudente
+    // — le défaut avait été mesuré sur quatre foyers — mais elle ne décrit
+    // rien de ce qui rend l'escalade fausse: « je dîne quoi ce soir ? » ne
+    // désigne aucune ligne du coach, qu'on cuisine pour six ou pour soi.
+    //
+    // MESURÉ LE 2026-08-13, run `doctrine5`, cinq élèves SANS foyer, cinq
+    // coachs aux doctrines opposées (rapport
+    // `qa-run-reports/2026-08-13-doctrine-5-coachs.md`): sur « il est 19h et je
+    // n'ai rien prévu, tu me donnes un dîner rapide ? », QUATRE des cinq ont
+    // reçu la MÊME phrase, au caractère près:
+    //   « That one sits outside what your coach set on this line […] Your
+    //     question is with them now, word for word. »
+    // Doctrine chargée sur les quatre (`keel.doctrine.variant → reason:
+    // "loaded", beliefs_kept: 3/3`) et jetée sans avoir servi. 16 tours sur 42
+    // capturés ainsi, 18 lignes `contract_change_requests` écrites.
+    //
+    // POURQUOI LE GATE FF-016 NE LES ATTRAPAIT PAS: il exige l'absence des
+    // DEUX groupes, et le dispatcher remplissait `prescribed_food_group:
+    // "lean_protein"` — un groupe qui EXISTE dans `plan_commitments`. C'est
+    // exactement le cas que le commentaire de FF-010 décrit vingt lignes plus
+    // haut (« Le prescrit ne discrimine rien ici »). La correction avait été
+    // écrite; seule sa portée était trop étroite.
+    //
+    // CE QUE ÇA COÛTE, ET C'EST LE MÊME ARBITRAGE QU'EN FOYER: « j'ai plus de
+    // saumon, je fais quoi ? » (prescrit nommé, demandé absent) part désormais
+    // au chemin général pour tout le monde. Ce n'est pas une bonne réponse
+    // perdue — c'était déjà la même escalade anglaise qui nomme une ligne que
+    // l'élève n'a pas évoquée. En face, le chemin général porte le bloc
+    // doctrine, le bloc protocole et le verrou déterministe de sortie.
+    // Une VRAIE substitution (« du riz à la place des pâtes ») nomme son
+    // remplacement, donc `noRequestedGroup` est faux et la lane garde la main.
+    if (routeDecision.response_owner === "plan_question" && noRequestedGroup) {
+      console.warn("[keel] plan_question sans remplacement nommé → chemin général", {
         request_id: requestId,
         kind: pqContext?.kind ?? null,
         household_id: keelTurn.household?.householdId ?? null,
         dishes_today: keelTurn.household?.todayDishes.length ?? 0,
         detail:
-          "l'élève a un foyer et le signal ne désigne aucune ligne du coach: " +
-          "la lane escaladait « on mange quoi ce soir ? » en demande de " +
-          "changement de contrat. FF-010 §7 et R6.",
+          "le signal ne désigne aucun remplacement: la lane escaladait « on " +
+          "mange quoi ce soir ? » en demande de changement de contrat. " +
+          "FF-010 §7 et R6, élargi hors foyer le 2026-08-13.",
       });
       routeDecision = {
         ...routeDecision,
         response_owner: "normal_reply",
-        reason_code: "plan_question_household_meal_general_path",
+        reason_code: "plan_question_no_named_swap_general_path",
       };
+    }
+
+    // ── CE QUE LE COACH A DÉJÀ TRANCHÉ NE S'ESCALADE PAS VERS LUI ───────────
+    //
+    // `plan_question` existe pour arbitrer ce que le coach n'a PAS décidé: sa
+    // `swap_policy` et son `autonomy` sur une ligne. Un aliment qu'il a
+    // explicitement écarté de sa méthode est, lui, une question CLOSE — et la
+    // renvoyer chez lui dit à l'élève l'exact contraire de la vérité.
+    //
+    // MESURÉ LE 2026-08-13 (même run), sur trois coachs et trois aliments que
+    // leur propre doctrine exclut nommément:
+    //   · « j'ai envie de poulet ce soir » → « volaille is outside what your
+    //     coach set for the protéines maigres line » chez un coach dont la
+    //     première conviction est « aucune chair animale n'entre dans une
+    //     assiette », et qui exclut `poultry` en `coach_food_rules` ET en
+    //     `coach_food_items`;
+    //   · « un plat préparé industriel, c'est jouable ? » → même phrase, chez
+    //     le coach « zéro ultra-transformé »;
+    //   · « des pâtes au dîner ? » → même phrase, chez le coach dont la
+    //     doctrine interdit les féculents le soir.
+    // Trois fois sur trois, l'élève s'entend répondre « ton coach n'a pas
+    // tranché, ta question part chez lui » sur une position que son coach a
+    // écrite trois fois.
+    //
+    // ⚠️ DÉTERMINISTE, ET SUR DES SLUGS, PAS SUR DE LA PROSE. On compare le
+    // groupe demandé au mapping PUBLIÉ (`coach_food_rules`, déjà chargé sur ce
+    // tour dans `keelTurn.protocol` — aucune lecture de plus). Les interdits en
+    // prose (`doctrine.forbidden`) ne sont pas lus ici: ils ont déjà leur
+    // verrou déterministe en sortie, et le matcher de prose n'a rien à faire
+    // dans une décision de routage.
+    //
+    // ⚠️ CE N'EST PAS UNE COUCHE DE SÉCURITÉ. Un `excluded` de coach est une
+    // sévérité de MÉTHODE. Les allergies restent dans `safety_constraints`,
+    // et le chemin général porte les contraintes dures en PREMIER bloc — donc
+    // rien de médical ne dépend de ce gate, dans un sens ni dans l'autre.
+    //
+    // ⚠️ `discourage` ENTRE, `encourage` NON. Déconseiller est une position
+    // tranchée (« il ne construit pas avec ça »); encourager ne ferme aucune
+    // question de substitution.
+    if (routeDecision.response_owner === "plan_question") {
+      const requestedSlug = String(pqContext?.requested_food_group ?? "")
+        .trim()
+        .toLowerCase();
+      const coachRuledOut = requestedSlug !== "" &&
+        (keelTurn.protocol?.compiled ?? []).some((line) =>
+          (line.preview.kind === "exclude" || line.preview.kind === "discourage") &&
+          String(line.preview.group).toLowerCase() === requestedSlug
+        );
+      if (coachRuledOut) {
+        console.warn("[keel] plan_question sur un aliment déjà écarté → chemin général", {
+          request_id: requestId,
+          kind: pqContext?.kind ?? null,
+          requested_food_group: requestedSlug,
+          coach_id: keelTurn.protocol?.coachId ?? null,
+          detail:
+            "le coach a écarté ce groupe dans son protocole publié: la " +
+            "question est TRANCHÉE, elle ne s'escalade pas vers lui. La " +
+            "doctrine répond au chemin général.",
+        });
+        routeDecision = {
+          ...routeDecision,
+          response_owner: "normal_reply",
+          reason_code: "plan_question_coach_already_ruled_general_path",
+        };
+      }
     }
   }
 
@@ -6255,6 +6434,40 @@ export async function processMessage(
     turnFrame,
     userMessage,
   });
+  // ── LOT 2C · L'ARMEMENT DU RENVOI DU SIZING ───────────────────────────────
+  //
+  // ⛔ AUCUN MATCHER MAISON. On ne relit pas le message: on lit le verdict que
+  // le dispatcher a déjà rendu (`plan_feedback`, qui porte `kind`, `detail` et
+  // `sentiment`). Reconnaître « les parts étaient trop grosses » sur du texte
+  // libre, dans deux langues, demanderait exactement le matcher que ce dépôt a
+  // mesuré faux — « laitue » ≠ « lait », 12 faux positifs sur 12.
+  //
+  // ICI, et pas plus bas, parce que c'est le premier point où le signal existe;
+  // et le DIRE se fait bien plus loin, dans `finalVisibleText`, seul entonnoir
+  // que toutes les sorties traversent (voir le bloc de `appendSizingRedirect`).
+  keelTurn.sizing_redirect = sizingRedirectFor({
+    signal: dispatcherSignals.plan_feedback,
+    locale: keelTurn.content_locale,
+    // ⚠️ REQUIS, jamais optionnel: hors élève KEEL il n'y a ni plan ni bilan de
+    // fin de plan, donc rien vers quoi renvoyer.
+    isKeelStudent: keelTurn.is_student === true,
+  });
+  // ⚠️ LE COMPTEUR, ET IL EST OBLIGATOIRE. « Champ déclaré par le modèle =
+  // compteur obligatoire »: sans lui, une lane jamais atteinte ressemble trait
+  // pour trait à une lane qui marche. Les deux nombres se lisent ENSEMBLE —
+  // `detected` sans `armed` dit que le tour parlait du plan mais pas d'une
+  // part; `detected: 0` sur toute une population dit que le PRODUCTEUR du
+  // signal est mort, pas que personne ne parle de ses portions.
+  if (dispatcherSignals.plan_feedback?.detected === true) {
+    console.info(JSON.stringify({
+      tag: "keel/sizing_redirect",
+      event: "plan_feedback_seen",
+      request_id: requestId,
+      kind: String(dispatcherSignals.plan_feedback?.kind ?? ""),
+      is_student: keelTurn.is_student === true,
+      armed: keelTurn.sizing_redirect !== null,
+    }));
+  }
   const onDemandTriggers = buildOnDemandTriggersFromDispatcherSignals(
     dispatcherSignals,
   );

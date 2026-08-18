@@ -384,8 +384,21 @@ export function appendContentLanguageBlock(
   translatableFields: readonly string[],
   tokenFields: readonly string[],
 ): string {
-  const body = String(prompt ?? "").trimEnd()
   const block = buildContentLanguageBlock(locale, translatableFields, tokenFields)
-  if (body.endsWith(block)) return body
-  return body ? `${body}\n\n${block}` : block
+  // ── « IDEMPOTENT » NE SUFFISAIT PAS: IL FAUT DÉPLAÇABLE ────────────────
+  //
+  // La garde était `if (body.endsWith(block)) return body` — vraie seulement
+  // tant que le bloc est DÉJÀ le dernier. Or les deux générateurs de repas
+  // collent des choses après lui: le bloc satiété, le suffixe de maison, et sur
+  // les chemins de réparation l'instruction de reprise. Le prompt ne se
+  // terminait donc plus par le bloc, et le rappel en ajoutait un SECOND.
+  //
+  // Deux blocs, c'est deux consignes de langue — aujourd'hui identiques, et
+  // contradictoires le jour où un appelant en change une. Mesuré par
+  // `generation_locale_test.ts`, qui a rougi sur exactement ce cas.
+  //
+  // On RETIRE donc toute occurrence antérieure avant de réécrire en queue: le
+  // bloc n'est pas « ajouté une fois », il est DÉPLACÉ à sa place.
+  const stripped = String(prompt ?? "").split(block).join("").trimEnd()
+  return stripped ? `${stripped}\n\n${block}` : block
 }

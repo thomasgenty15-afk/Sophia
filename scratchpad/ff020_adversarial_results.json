@@ -1,0 +1,268 @@
+[
+  {
+    "id": "A1",
+    "verdict": "RÉFUTÉE — aucune I/O sur le chemin déterministe",
+    "detail": []
+  },
+  {
+    "id": "A1-bis",
+    "verdict": "MESURE",
+    "detail": "200 replis en 69.9 ms"
+  },
+  {
+    "id": "A3/A12",
+    "verdict": "MESURE",
+    "detail": [
+      {
+        "input": "urgence",
+        "threw": true,
+        "message": "Error: [keel/crisis_resources] Unknown crisis resource kind:"
+      },
+      {
+        "input": "suicidé",
+        "threw": true,
+        "message": "Error: [keel/crisis_resources] Unknown crisis resource kind:"
+      },
+      {
+        "input": "suicide_prevention",
+        "threw": true,
+        "message": "Error: [keel/crisis_resources] Unknown crisis resource kind:"
+      },
+      {
+        "input": "emergencies",
+        "threw": true,
+        "message": "Error: [keel/crisis_resources] Unknown crisis resource kind:"
+      },
+      {
+        "input": "EMERGENCY ",
+        "result": "emergency",
+        "threw": false
+      },
+      {
+        "input": "eating disorder",
+        "result": "eating_disorder",
+        "threw": false
+      },
+      {
+        "input": "Eating-Disorder",
+        "result": "eating_disorder",
+        "threw": false
+      },
+      {
+        "input": "poisons",
+        "threw": true,
+        "message": "Error: [keel/crisis_resources] Unknown crisis resource kind:"
+      },
+      {
+        "input": "",
+        "threw": true,
+        "message": "Error: [keel/crisis_resources] Unknown crisis resource kind:"
+      },
+      {
+        "input": "null",
+        "threw": true,
+        "message": "Error: [keel/crisis_resources] Unknown crisis resource kind:"
+      },
+      {
+        "input": "undefined",
+        "threw": true,
+        "message": "Error: [keel/crisis_resources] Unknown crisis resource kind:"
+      },
+      {
+        "input": "42",
+        "threw": true,
+        "message": "Error: [keel/crisis_resources] Unknown crisis resource kind:"
+      }
+    ]
+  },
+  {
+    "id": "A3-bis",
+    "verdict": "MESURE — arguments de resolveCrisisResources dans le module",
+    "detail": [
+      "country, \"emergency\"",
+      "country, \"suicide\"",
+      "country, parsedKind",
+      "normalized, parsedKind",
+      "normalized, parsedKind"
+    ]
+  },
+  {
+    "id": "A5",
+    "verdict": "CONFIRMÉE — le résolveur ne rend JAMAIS de chaîne vide, donc le repli du repli est mort (inoffensif)",
+    "detail": []
+  },
+  {
+    "id": "A6",
+    "verdict": "RÉFUTÉE — aucune fuite de pays",
+    "detail": {
+      "rows": [
+        {
+          "input": "\"gb\"",
+          "served_country": "GB",
+          "emergency": "999 ou 112",
+          "suicide": "116 123",
+          "fallback_used": false
+        },
+        {
+          "input": "\" GB \"",
+          "served_country": "GB",
+          "emergency": "999 ou 112",
+          "suicide": "116 123",
+          "fallback_used": false
+        },
+        {
+          "input": "\"Gb\"",
+          "served_country": "GB",
+          "emergency": "999 ou 112",
+          "suicide": "116 123",
+          "fallback_used": false
+        },
+        {
+          "input": "\"United Kingdom\"",
+          "served_country": "ZZ",
+          "emergency": "112",
+          "suicide": "https://findahelpline.com",
+          "fallback_used": true
+        },
+        {
+          "input": "\"FRA\"",
+          "served_country": "ZZ",
+          "emergency": "112",
+          "suicide": "https://findahelpline.com",
+          "fallback_used": true
+        },
+        {
+          "input": "\"fr-FR\"",
+          "served_country": "ZZ",
+          "emergency": "112",
+          "suicide": "https://findahelpline.com",
+          "fallback_used": true
+        },
+        {
+          "input": "\"XX\"",
+          "served_country": "ZZ",
+          "emergency": "112",
+          "suicide": "https://findahelpline.com",
+          "fallback_used": true
+        },
+        {
+          "input": "\"ZZ\"",
+          "served_country": "ZZ",
+          "emergency": "112",
+          "suicide": "https://findahelpline.com",
+          "fallback_used": true
+        },
+        {
+          "input": "\"US \"",
+          "served_country": "US",
+          "emergency": "911",
+          "suicide": "988",
+          "fallback_used": false
+        },
+        {
+          "input": "\"usa\"",
+          "served_country": "US",
+          "emergency": "911",
+          "suicide": "988",
+          "fallback_used": false
+        },
+        {
+          "input": "\"uk\"",
+          "served_country": "GB",
+          "emergency": "999 ou 112",
+          "suicide": "116 123",
+          "fallback_used": false
+        },
+        {
+          "input": "\"  \"",
+          "served_country": "ZZ",
+          "emergency": "112",
+          "suicide": "https://findahelpline.com",
+          "fallback_used": true
+        },
+        {
+          "input": "\"0\"",
+          "served_country": "ZZ",
+          "emergency": "112",
+          "suicide": "https://findahelpline.com",
+          "fallback_used": true
+        },
+        {
+          "input": "\"F\"",
+          "served_country": "ZZ",
+          "emergency": "112",
+          "suicide": "https://findahelpline.com",
+          "fallback_used": true
+        },
+        {
+          "input": "\"FRANCE\"",
+          "served_country": "ZZ",
+          "emergency": "112",
+          "suicide": "https://findahelpline.com",
+          "fallback_used": true
+        },
+        {
+          "input": "\"🇫🇷\"",
+          "served_country": "ZZ",
+          "emergency": "112",
+          "suicide": "https://findahelpline.com",
+          "fallback_used": true
+        }
+      ],
+      "leaks": [],
+      "suspicious_to_read": []
+    }
+  },
+  {
+    "id": "A9",
+    "verdict": "RÉFUTÉE — message non vide, sans throw",
+    "detail": {
+      "threw": false,
+      "message": "On reste sur ta sécurité, une chose à la fois.\n\nEn cas de danger immédiat : 15 ou 112 · 3114.",
+      "empty": false
+    }
+  },
+  {
+    "id": "A10",
+    "verdict": "CONFIRMÉE — un gabarit interpole une URL comme un numéro à appeler",
+    "detail": [
+      {
+        "kind": "stop_or_cancel",
+        "message": "D'accord, on s'arrête là. Si besoin, le https://findahelpline.com répond 24h/24."
+      },
+      {
+        "kind": "safety_escalation",
+        "message": "Appelle maintenant le 112. Si c'est lié à des idées suicidaires, le https://findahelpline.com répond 24h/24. Si tu peux, rapproche-toi d'une personne tout de suite."
+      },
+      {
+        "kind": "acute_grounding",
+        "message": "Là, tout de suite : éloigne ce qui pourrait te blesser et rapproche-toi d'une personne. Si le danger est immédiat, appelle le 112 ; le https://findahelpline.com répond aussi 24h/24."
+      }
+    ]
+  },
+  {
+    "id": "A11",
+    "verdict": "CONFIRMÉE au niveau du résolveur (défaut anglais)",
+    "detail": {
+      "defaut": "15 or 112",
+      "ce_que_le_reducer_passe": "15 ou 112",
+      "format_sans_conjonction": "15 or 112"
+    }
+  },
+  {
+    "id": "COUVERTURE §8",
+    "verdict": "TENUE — 55 combinaisons kind × pays, toutes porteuses d'une ressource",
+    "detail": []
+  },
+  {
+    "id": "KINDS",
+    "verdict": "registre",
+    "detail": [
+      "suicide",
+      "emergency",
+      "eating_disorder",
+      "poison",
+      "domestic_violence"
+    ]
+  }
+]

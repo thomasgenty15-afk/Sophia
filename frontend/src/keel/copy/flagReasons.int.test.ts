@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { FLAG_REASON_COPY, flagReasonCopy } from "./flagReasons";
+import { en } from "../i18n/en";
+import { fr } from "../i18n/fr";
+import { FLAG_REASON_KEYS, flagReasonCopy } from "./flagReasons";
 
 /**
  * The drift test. `FLAG_REASONS` is declared in the engine and rendered here,
@@ -26,7 +28,7 @@ describe("flag reason copy", () => {
   it("covers every reason code the engine can emit", () => {
     const engine = engineFlagReasons();
     expect(engine.length).toBeGreaterThan(0);
-    const missing = engine.filter((code) => !(code in FLAG_REASON_COPY));
+    const missing = engine.filter((code) => !(code in FLAG_REASON_KEYS));
     expect(missing).toEqual([]);
   });
 
@@ -34,14 +36,28 @@ describe("flag reason copy", () => {
     // The half that let the bug hide: `restriction_flag` had copy for years and
     // was never reachable, because the engine emits `restriction_signal`.
     const engine = new Set(engineFlagReasons());
-    const orphans = Object.keys(FLAG_REASON_COPY).filter((code) => !engine.has(code));
+    const orphans = Object.keys(FLAG_REASON_KEYS).filter((code) => !engine.has(code));
     expect(orphans).toEqual([]);
+  });
+
+  it("pointe chaque code sur une clé qui existe dans les DEUX packs", () => {
+    // La moitié neuve du contrôle depuis que la phrase vit dans le seed: une
+    // clé absente ferait LEVER `t()` en DEV — c'est-à-dire un écran blanc là où
+    // ce module promet, deux tests plus bas, de montrer un code brut.
+    const missing = Object.values(FLAG_REASON_KEYS).filter(
+      (key) => en[key] === undefined || fr[key as keyof typeof fr] === undefined,
+    );
+    expect(missing).toEqual([]);
   });
 
   it("keeps the safety line pointed at the coach", () => {
     // Adherence pressure stops on a restriction signal, so the copy must send
-    // the coach in, not suggest a nudge.
-    expect(FLAG_REASON_COPY.restriction_signal).toMatch(/handle directly/i);
+    // the coach in, not suggest a nudge. Vérifié dans les DEUX langues: la
+    // ligne de sécurité est la seule du lot dont le SENS est une consigne, et
+    // une traduction qui la rendrait descriptive la désarmerait en silence.
+    expect(en[FLAG_REASON_KEYS.restriction_signal]).toMatch(/handle directly/i);
+    expect(fr[FLAG_REASON_KEYS.restriction_signal as keyof typeof fr])
+      .toMatch(/directement/i);
   });
 
   it("shows an unknown code raw rather than swallowing it", () => {

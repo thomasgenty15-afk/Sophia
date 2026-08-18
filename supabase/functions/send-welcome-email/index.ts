@@ -4,6 +4,8 @@ import { ensureInternalRequest } from "../_shared/internal-auth.ts";
 import { sendResendEmail } from "../_shared/resend.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import { getRequestContext } from "../_shared/request_context.ts";
+import { renderWelcomeEmail } from "./welcome_email.ts";
+import { resolveArtifactLocale } from "../_shared/keel/locale.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -43,7 +45,7 @@ serve(async (req) => {
     const email = userRecord.email; // Attention: profiles n'a pas forcément l'email si on ne le sync pas !
     // Si 'profiles' n'a pas l'email, il faut le récupérer via auth.users (nécessite admin client)
     const userId = userRecord.id;
-    const prenom = userRecord.full_name ? userRecord.full_name.split(' ')[0] : "là";
+    const prenom = userRecord.full_name ? userRecord.full_name.split(' ')[0] : null;
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
@@ -99,32 +101,38 @@ serve(async (req) => {
     // Il pointe maintenant vers la conversation, qui existe réellement.
     const chatLink = `${appBaseUrl()}/app/chat`;
 
-    const htmlContent = `
-      <div style="font-family: sans-serif; color: #333; line-height: 1.6;">
-        <p>Hello ${prenom},</p>
-
-        <p>Bienvenue ! Je suis super contente que tu sois là.</p>
-
-        <p>Tout se passe dans ton espace : nos échanges au quotidien, tes photos
-        de repas, tes bilans. Il n'y a rien à installer.</p>
-
-        <p style="margin: 20px 0;">
-          <a href="${chatLink}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
-            👉 Ouvrir ma conversation
-          </a>
-        </p>
-
-        <p>À tout de suite,</p>
-
-        <p><strong>Sophia</strong></p>
-      </div>
-    `;
+    // ── LA LANGUE DU COMPTE ───────────────────────────────────────────────
+    //
+    // Le webhook porte la ligne `profiles` entière, donc `locale` est là dans
+    // le cas nominal. L'appel de secours (`{ email, name }`) ne la porte pas —
+    // on la relit alors, plutôt que de deviner: se tromper ici coûte le PREMIER
+    // mot qu'on adresse à quelqu'un, et il n'y a pas de deuxième premier mot.
+    let profileLocale: string | null =
+      String(userRecord.locale ?? "").trim() || null;
+    if (!profileLocale && userId) {
+      const { data: localeRow } = await supabase
+        .from("profiles")
+        .select("locale")
+        .eq("id", userId)
+        .maybeSingle();
+      profileLocale =
+        String((localeRow as { locale?: string | null } | null)?.locale ?? "")
+          .trim() || null;
+    }
+    const rendered = renderWelcomeEmail({
+      firstName: prenom,
+      chatUrl: chatLink,
+      locale: resolveArtifactLocale({
+        studentProfile: profileLocale,
+        tenantDefault: null,
+      }),
+    });
 
     // 4. Envoi via Resend (with MEGA_TEST_MODE skip + 429 retry/backoff)
     const out = await sendResendEmail({
       to: targetEmail,
-      subject: `Bienvenue ${prenom} ! (Ta conversation est ouverte 👀)`,
-      html: htmlContent,
+      subject: rendered.subject,
+      html: rendered.html,
       from: SENDER_EMAIL,
       maxAttempts: 6,
     });

@@ -24,6 +24,9 @@ vérifiés.
 | [FF-042 · Les régimes alimentaires](FF-042-les-regimes-alimentaires.md) | 🟠 Fondations + R6 livré | Un végan reçoit encore un plan avec de la viande dedans : le verrou n'est pas câblé. Ce qui est livré, c'est le signalement de ce qu'aucune assiette ne peut apporter — sans jamais prescrire. |
 | [FF-051 · Les apports fixes](FF-051-les-apports-fixes.md) | 🟢 Livré | « Je prends un shaker tous les matins » : le premier input qui alimente le calcul et non la sélection. Il occupe un moment, il compte dans le plancher, il compte dans l'enveloppe. |
 | [FF-052 · Les propriétés de jour](FF-052-les-proprietes-de-jour.md) | 🟢 Livré | Le pendant positif de l'absence. Deux propriétés qui mordent — le jour de batch, le jour de restes — parce qu'une propriété sans branche est pire que son absence. |
+| [FF-054 · Le retour de fin de plan](FF-054-le-retour-de-fin-de-plan.md) | 🟠 Noyau livré | Le moteur sait ce qu'il a composé, pas ce qui a suffi. Trois questions et une par dynamique, chacune avec son lecteur nommé — la garde qui empêche de refaire le point du dimanche. |
+| [FF-055 · Les recommandations d'activité](FF-055-les-recommandations-d-activite.md) | 🟠 Noyau livré | Deux versions : le plancher public sans coach, sa posture avec. Et la ligne qui tient dans les deux — même un coach ne fait pas programmer Sophia. |
+| [FF-057 · La procédure accident](FF-057-la-procedure-accident.md) | 🟡 Spécifiée | « J'ai pas suivi » ne mène nulle part : le fait est capté, personne ne répond à « qu'est-ce que ça change pour la suite ». Trois entrées, un formulaire à trois boutons, quatre actions de réalignement — dont la session de cuisine sautée, qui fait disparaître des repas sans que l'écran s'en aperçoive. |
 
 ## Le chantier des unités de composition
 

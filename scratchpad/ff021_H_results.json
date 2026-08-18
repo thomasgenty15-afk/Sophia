@@ -1,0 +1,86 @@
+{
+  "created": [
+    "fb5e39b4-227f-4966-a835-e8e2699fabd9",
+    "51e42174-e704-463f-9aa3-90c0a6d911b9",
+    "58741e58-88e2-47c8-ad2b-e206a178fcbc",
+    "f8a73590-1c7e-4719-97fc-890132a8c889",
+    "945370bd-80e4-47c0-8aea-15cf2572e465",
+    "cd01d5b6-5a8b-4a6f-aff3-a00278569399",
+    "d26bc5a7-abce-4c64-b127-778ce83492d0",
+    "c73686fd-a593-43b0-8764-0daee754272d"
+  ],
+  "results": [
+    {
+      "id": "H1.1 repas conforme (question de precision) — SOLLICITATION (corrigee)",
+      "verdict": "GREEN",
+      "detail": "closed=true plancher=true owner=normal_reply demandes=0 invitation_photo=false",
+      "proof": "Got it — grilled chicken and rice for lunch today."
+    },
+    {
+      "id": "H2.1 repas conforme (question de precision) — EFFET durable (arbitrage T-7, NON corrige)",
+      "verdict": "INFO",
+      "detail": "protocol_events=2 reply=\"Got it — grilled chicken and rice for lunch today.\"",
+      "proof": "Got it — grilled chicken and rice for lunch today."
+    },
+    {
+      "id": "H1.2 repas conforme (question de precision) — SOLLICITATION (corrigee)",
+      "verdict": "GREEN",
+      "detail": "closed=true plancher=true owner=normal_reply demandes=0 invitation_photo=false",
+      "proof": "For lunch today, I’ve got protein from the grilled chicken, and the rice covers the carb side. The vegetables line at lunch is still not reported."
+    },
+    {
+      "id": "H2.2 repas conforme (question de precision) — EFFET durable (arbitrage T-7, NON corrige)",
+      "verdict": "INFO",
+      "detail": "protocol_events=2 reply=\"For lunch today, I’ve got protein from the grilled chicken, and the rice covers the carb side. The vegetables line at lunch is sti\"",
+      "proof": "For lunch today, I’ve got protein from the grilled chicken, and the rice covers the carb side. The vegetables line at lunch is still not reported."
+    },
+    {
+      "id": "H1.3 repas conforme (question de precision) — SOLLICITATION (corrigee)",
+      "verdict": "GREEN",
+      "detail": "closed=true plancher=true owner=normal_reply demandes=0 invitation_photo=false",
+      "proof": "You logged grilled chicken and rice for lunch. And the two lunch items on your plan are still the protein and the vegetables; the vegetables part is still unreported."
+    },
+    {
+      "id": "H2.3 repas conforme (question de precision) — EFFET durable (arbitrage T-7, NON corrige)",
+      "verdict": "INFO",
+      "detail": "protocol_events=2 reply=\"You logged grilled chicken and rice for lunch. And the two lunch items on your plan are still the protein and the vegetables; the \"",
+      "proof": "You logged grilled chicken and rice for lunch. And the two lunch items on your plan are still the protein and the vegetables; the vegetables part is still unreported."
+    },
+    {
+      "id": "H1.1 repas hors plan (invitation photo) — SOLLICITATION (corrigee)",
+      "verdict": "GREEN",
+      "detail": "closed=true plancher=true owner=normal_reply demandes=0 invitation_photo=false",
+      "proof": "Lunch can still count if the ordered-in meal includes lean protein and some non-starchy vegetables. If it’s mostly carbs or takeout, you can make the next meal the place to cover the missing piece."
+    },
+    {
+      "id": "H2.1 repas hors plan (invitation photo) — EFFET durable (arbitrage T-7, NON corrige)",
+      "verdict": "INFO",
+      "detail": "protocol_events=0 reply=\"Lunch can still count if the ordered-in meal includes lean protein and some non-starchy vegetables. If it’s mostly carbs or takeou\"",
+      "proof": "Lunch can still count if the ordered-in meal includes lean protein and some non-starchy vegetables. If it’s mostly carbs or takeout, you can make the next meal the place to cover the missing piece."
+    },
+    {
+      "id": "H1.2 repas hors plan (invitation photo) — SOLLICITATION (corrigee)",
+      "verdict": "GREEN",
+      "detail": "closed=true plancher=true owner=normal_reply demandes=0 invitation_photo=false",
+      "proof": "No time to cook is fine. Ordered-in still gives you a shot at the lunch targets: try to include a clear protein and some vegetables if you can."
+    },
+    {
+      "id": "H2.2 repas hors plan (invitation photo) — EFFET durable (arbitrage T-7, NON corrige)",
+      "verdict": "INFO",
+      "detail": "protocol_events=2 reply=\"No time to cook is fine. Ordered-in still gives you a shot at the lunch targets: try to include a clear protein and some vegetable\"",
+      "proof": "No time to cook is fine. Ordered-in still gives you a shot at the lunch targets: try to include a clear protein and some vegetables if you can."
+    },
+    {
+      "id": "H1.3 repas hors plan (invitation photo) — SOLLICITATION (corrigee)",
+      "verdict": "GREEN",
+      "detail": "closed=true plancher=true owner=normal_reply demandes=0 invitation_photo=false",
+      "proof": "Ordered in is fine for today.\n\nFor lunch, the two things on your list are protein and vegetables. With takeaway, the simplest win is to make sure the meal includes a clear protein source and some veg, even if the rest is whatever you could get quickly."
+    },
+    {
+      "id": "H2.3 repas hors plan (invitation photo) — EFFET durable (arbitrage T-7, NON corrige)",
+      "verdict": "INFO",
+      "detail": "protocol_events=0 reply=\"Ordered in is fine for today.\n\nFor lunch, the two things on your list are protein and vegetables. With takeaway, the simplest win \"",
+      "proof": "Ordered in is fine for today.\n\nFor lunch, the two things on your list are protein and vegetables. With takeaway, the simplest win is to make sure the meal includes a clear protein source and some veg, even if the rest is whatever you could get quickly."
+    }
+  ]
+}

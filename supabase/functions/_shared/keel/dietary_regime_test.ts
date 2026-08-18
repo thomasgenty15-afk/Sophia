@@ -4,6 +4,7 @@ import {
   dietaryRegimePromptLine,
   excludedGroupsFor,
   excludedSurfaceFormsFor,
+  isPlantAnalogue,
   parseDietaryRegime,
   uncoverableSentinelsFor,
 } from "./dietary_regime.ts";
@@ -162,6 +163,63 @@ Deno.test("la consigne NOMME les familles au lieu de compter sur la culture du m
   }
   // Le pescatarien n'est pas privé de poisson par une consigne trop large.
   assert(dietaryRegimePromptLine("pescatarian").includes("Fish and seafood are fine"));
+});
+
+Deno.test("un ANALOGUE VÉGÉTAL n'est jamais une violation — le défaut du run réel", () => {
+  // ── MESURÉ EN RUN RÉEL, 2026-08-11 ─────────────────────────────────────
+  // Génération pour un élève végan: le modèle a composé trois plats au
+  // « unsweetened soy yogurt » — exactement ce qu'il fallait faire. La garde a
+  // mordu dessus, parce que « yogurt » est dans les formes laitières.
+  //
+  // Une fois le verrou câblé en REJET DUR, ça viderait les plans des végans —
+  // les seuls qu'il existe pour protéger. Une garde qui casse sur sa
+  // population cible est pire qu'une garde absente: elle a l'air de marcher.
+  for (
+    const analogue of [
+      "unsweetened soy yogurt",
+      "soy milk",
+      "almond milk",
+      "oat milk",
+      "coconut cream",
+      "vegan cheese",
+      "plant-based butter",
+      "vegan chicken",
+      "soy sausage",
+      "yaourt de soja",
+      "lait d'amande",
+      "fromage végétal",
+      "crème de coco",
+      "boisson à l'avoine",
+    ]
+  ) {
+    assert(isPlantAnalogue(analogue), `raté comme analogue végétal: ${analogue}`);
+  }
+});
+
+Deno.test("l'exemption ne DÉSARME PAS le vrai animal", () => {
+  // LE RISQUE SYMÉTRIQUE, et c'est lui qui rend l'exemption dangereuse si elle
+  // est écrite en sous-chaîne: « riz au lait » contient « riz », et n'est pas
+  // pour autant végan.
+  for (
+    const real of [
+      "riz au lait",
+      "rice pudding with milk",
+      "chicken",
+      "poulet rôti",
+      "gruyère",
+      "beurre doux",
+      "yaourt nature",
+      "greek yogurt",
+      "lardons",
+      "saumon",
+    ]
+  ) {
+    assertEquals(
+      isPlantAnalogue(real),
+      false,
+      `désarmé à tort — ${real} devrait rester une violation`,
+    );
+  }
 });
 
 Deno.test("la B12 est signalée incouvrable pour le végan, et pour lui seul", () => {

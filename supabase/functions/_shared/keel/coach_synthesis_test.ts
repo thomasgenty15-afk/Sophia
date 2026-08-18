@@ -304,9 +304,18 @@ Deno.test("the header counts every contact state, and they sum to the cohort", (
   assert(renderSynthesisText(synthesis, { locale: "en" }).includes("4 students this week"));
 });
 
-Deno.test("an unsupported render locale throws (R7)", () => {
+Deno.test("an unsupported render locale throws (R7) — and `fr` is now SUPPORTED", () => {
+  // ── CE TEST PINNAIT LA MOITIÉ VISIBLE DU DÉFAUT ───────────────────────────
+  // Il vérifiait que `fr` JETTE. C'était exact, et c'était le bug: le seul
+  // appelant de production passait `locale: "en"` EN DUR, donc le corps de
+  // `/coach/weekly` ne pouvait être qu'anglais et cette garde était
+  // inatteignable. Ce qui est protégé n'a pas changé — une langue NON LIVRÉE
+  // jette encore, au lieu de rendre une synthèse à moitié traduite.
   const synthesis = buildCoachSynthesis([student()], NOW);
-  assertThrows(() => renderSynthesisText(synthesis, { locale: "fr" }));
+  assertThrows(() => renderSynthesisText(synthesis, { locale: "de-DE" }));
+  assertThrows(() => renderSynthesisText(synthesis, { locale: "es" }));
+  // `fr` rend, désormais, et rend quelque chose.
+  assert(renderSynthesisText(synthesis, { locale: "fr" }).trim().length > 0);
 });
 
 Deno.test("the payload keys are ASCII snake_case tokens (R1)", () => {

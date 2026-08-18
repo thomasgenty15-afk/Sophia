@@ -1,0 +1,9 @@
+{
+  "status": 409,
+  "ms": 542,
+  "json": {
+    "error": "plan_overlaps_existing",
+    "detail": "This household already has a plan that starts on that day or later. Replace it, or start your window before it.",
+    "request_id": "2bc59945-5d97-4d6a-84cf-689ab1f578f7"
+  }
+}

@@ -43,6 +43,7 @@ import {
   buildAccessEndedInitialMessage,
   normalizeAccessEndedReason,
 } from "../_shared/access_ended_notice.ts";
+import { resolveArtifactLocale } from "../_shared/keel/locale.ts";
 import {
   isBirthdayGreetingEventContext,
 } from "../_shared/birthday_checkins.ts";
@@ -1328,7 +1329,10 @@ async function processPendingAccessEndedNotifications(params: {
 
     const { data: profile, error: profileErr } = await params.supabaseAdmin
       .from("profiles")
-      .select("full_name,account_status")
+      // `locale` AJOUTÉ: sans elle, ce message partait en français à tout le
+      // monde, pilote anglophone compris. C'est la seule colonne qui porte la
+      // langue du compte.
+      .select("full_name,account_status,locale")
       .eq("id", row.user_id)
       .maybeSingle();
     if (profileErr) throw profileErr;
@@ -1344,9 +1348,15 @@ async function processPendingAccessEndedNotifications(params: {
       continue;
     }
 
+    // R2 — un message de job est un ARTEFACT: aucun fil à ancrer, donc
+    // `resolveArtifactLocale` et jamais `resolveResponseLocale`.
     const bodyText = buildAccessEndedInitialMessage({
       reason,
       firstName: String((profile as any)?.full_name ?? ""),
+      locale: resolveArtifactLocale({
+        studentProfile: String((profile as any)?.locale ?? "").trim() || null,
+        tenantDefault: null,
+      }),
     });
 
     try {

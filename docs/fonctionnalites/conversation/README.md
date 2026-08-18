@@ -113,7 +113,7 @@ compagnon, réduction du point hebdo) est un chantier à part :
 
 ---
 
-## Les 14 fonctionnalités
+## Les 15 fonctionnalités
 
 **Le service du plan** — *la raison d'ouvrir le chat*
 
@@ -140,6 +140,7 @@ compagnon, réduction du point hebdo) est un chantier à part :
 | 9 | [FF-027](FF-027-la-faim-branchee-au-plan.md) | La faim branchée au plan | 🟡 Spécifiée |
 | 10 | [FF-028](FF-028-la-recommandation-quotidienne.md) | La recommandation quotidienne | 🟡 Spécifiée (V1) |
 | 11 | [FF-029](FF-029-les-pratiques-quotidiennes.md) | Les pratiques quotidiennes | 🟠 En cours |
+| 15 | [FF-056](FF-056-la-divergence-constatee.md) | La divergence constatée | 🟡 Spécifiée |
 
 **L'humain** — *rare, mais ce qui fait confiance*
 
@@ -169,6 +170,9 @@ liste de valeur inviterait un jour à l'y arbitrer.
 5. **FF-016** (les recommandés), **FF-010**, **FF-011**, **FF-029** :
    indépendants — FF-010/FF-011/FF-016/FF-023 partagent le budget de prompt et
    se relisent ensemble.
+6. **FF-056** (la divergence constatée) : en dernier — elle consomme la série
+   de poids (FF-008/FF-031), le budget T4 et le canal de directives de FF-028,
+   et elle ne doit pas concurrencer le retour de fin de plan (FF-054).
 
 Le retrait passe **après** que l'accueil (1) existe : retirer la demande avant
 de savoir accueillir, c'est perdre la donnée deux fois.

@@ -207,6 +207,15 @@ des crons, observabilité, files de reprise.
 | [FF-048](le-foyer/FF-048-reclamer-son-profil.md) | Réclamer son profil | `le-foyer` | 🟢 Livrée |
 | [FF-049](le-foyer/FF-049-le-prix-du-foyer.md) | Le prix du foyer | `le-foyer` | 🟠 En cours |
 | [FF-050](le-foyer/FF-050-l-envie-de-la-semaine.md) | L'envie de la semaine | `le-foyer` | 🟢 Livrée |
+| [FF-051](composition-des-repas/FF-051-les-apports-fixes.md) | Les apports fixes — ce qui est déjà mangé | `composition-des-repas` | 🟢 Livrée |
+| [FF-052](composition-des-repas/FF-052-les-proprietes-de-jour.md) | Les propriétés de jour — le pendant positif | `composition-des-repas` | 🟢 Livrée |
+| [FF-053](composition-des-repas/FF-053-l-ecran-du-plan.md) | L'écran du plan — trois niveaux, une seule lecture | `composition-des-repas` | 🟠 En cours |
+| [FF-054](composition-des-repas/FF-054-le-retour-de-fin-de-plan.md) | Le retour de fin de plan — la vérité terrain du moteur | `composition-des-repas` | 🟠 Noyau livré |
+| [FF-055](composition-des-repas/FF-055-les-recommandations-d-activite.md) | Les recommandations d'activité — un repère, jamais un programme | `composition-des-repas` | 🟠 Noyau livré |
+| [FF-056](conversation/FF-056-la-divergence-constatee.md) | La divergence constatée — quand le résultat ne suit pas le plan | `conversation` | 🟡 Spécifiée |
+| [FF-057](composition-des-repas/FF-057-la-procedure-accident.md) | La procédure accident — le plan encaisse l'imprévu | `composition-des-repas` | 🟡 Spécifiée |
+| [FF-058](suivi-quotidien/FF-058-la-bande-du-soir.md) | La bande du soir — la coche vient à la personne | `suivi-quotidien` | 🟡 Spécifiée |
+| [FF-059](composition-des-repas/FF-059-le-chiffre-affiche.md) | Le chiffre affiché — quatre portes avant un kcal | `composition-des-repas` | 🟡 Spécifiée |
 | [FF-060](acquisition-et-acces/FF-060-le-parcours-d-entree.md) | Le parcours d'entrée — trois étapes qui finissent par un plan | `acquisition-et-acces` | 🟢 Livrée |
 
 > **Un identifiant ne se réutilise jamais** — y compris quand deux sessions

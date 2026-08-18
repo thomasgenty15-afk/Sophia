@@ -96,6 +96,7 @@ alter table public.user_topic_memories
   drop column if exists synthesis_embedding,
   drop column if exists mention_count,
   drop column if exists enrichment_count,
+  drop column if exists first_mentioned_at,
   drop column if exists last_enriched_at,
   drop column if exists last_retrieved_at,
   drop column if exists summary_compacted_at,

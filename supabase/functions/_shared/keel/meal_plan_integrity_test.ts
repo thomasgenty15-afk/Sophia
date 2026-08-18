@@ -458,6 +458,8 @@ Deno.test("④ LE CAS QUI PASSE — sans trou, les deux blocs sont ceux de v7", 
     dishes: MATERIAL,
     baseDishes: BASE,
     gaps: [],
+    dedicatedDishes: 6,
+    conflicts: ["protein:larger_above_table"],
   });
   assert(!merge.includes(GAP_HEADER), merge);
 });
@@ -473,6 +475,8 @@ Deno.test("④ la FUSION dit aussi le trou de son ANCRE", () => {
     dishes: MATERIAL,
     baseDishes: BASE,
     gaps: [{ day: "wed", slot: "breakfast" }, { day: "thu", slot: "breakfast" }],
+    dedicatedDishes: 6,
+    conflicts: ["protein:larger_above_table"],
   });
   assert(block.includes(GAP_HEADER), block);
   assert(block.includes("- wed breakfast"), block);
@@ -703,3 +707,83 @@ for (const fn of ["generate-meal-v1", "generate-household-meal-v1"]) {
     );
   });
 }
+
+// ===========================================================================
+// C6 ② — LA PERSISTANCE DES PRÉFÉRENCES ATTEND QUE LA REQUÊTE ABOUTISSE
+//
+// ⚠️ MESURÉ EN HTTP RÉEL LE 2026-08-12: `student_goals` corrigée à `17:30:59`
+// par un appel de `generate-meal-v1` qui a rendu `400 window_beyond_this_week`.
+//
+// ⚠️ ET C'EST LE MODE D'ÉCHEC PROPRE À CE LOT: séparer calculer de persister
+// crée une façon de PERDRE l'écriture — un appelant qui oublie d'appeler la
+// seconde moitié. Le module ne peut pas s'en apercevoir, et rien ne tomberait:
+// la correction serait juste « écrite plus tard, un jour, jamais ». Ce test est
+// la seule chose qui l'attrape.
+// ===========================================================================
+
+for (
+  const [fn, planWrite] of [
+    ["generate-meal-v1", '"write_student_meal_plan"'],
+    ["generate-household-meal-v1", '"write_student_meal_plan"'],
+    ["generate-week-plan-v1", '.from("student_week_plans")'],
+  ] as const
+) {
+  Deno.test(`C6 ② — la correction de goût s'écrit APRÈS le plan — ${fn}`, async () => {
+    const src = await edgeSource(fn);
+
+    const reconcile = src.indexOf("await reconcileFoodPreferencesFor({");
+    assert(reconcile >= 0, `${fn}: la réconciliation a disparu — test à réviser`);
+
+    const persist = src.indexOf("await persistReconciledFoodPreferences(");
+    assert(
+      persist >= 0,
+      `${fn}: la correction n'est JAMAIS persistée. La ligne de la personne ` +
+        `garde indéfiniment une préférence qu'elle a démentie — et la carte, ` +
+        `l'export RGPD et les deux autres générateurs continuent de la montrer.`,
+    );
+
+    // ① LE CALCUL RESTE EN AMONT: il alimente le prompt, et il doit précéder
+    //    la construction du prompt comme avant ce lot.
+    const model = src.indexOf("generateWithGemini(");
+    assert(model >= 0, `${fn}: appel modèle introuvable — test à réviser`);
+    assert(
+      reconcile < model,
+      `${fn}: la réconciliation est passée APRÈS le modèle: le prompt sert de ` +
+        `nouveau une préférence que la personne a rétractée.`,
+    );
+
+    // ② ET L'ÉCRITURE EST EN AVAL DU PLAN. C'est le lot: un refus, une panne
+    //    de modèle ou un 409 de la base laissent `student_goals` intacte.
+    const write = src.indexOf(planWrite);
+    assert(write >= 0, `${fn}: écriture du plan introuvable — test à réviser`);
+    assert(
+      persist > write,
+      `${fn}: la correction se persiste AVANT que le plan soit écrit. C'est le ` +
+        `défaut mesuré: la ligne bouge sur une requête que l'utilisateur voit ` +
+        `comme échouée.`,
+    );
+    assert(
+      persist > model,
+      `${fn}: la correction se persiste avant même l'appel modèle.`,
+    );
+  });
+}
+
+Deno.test("C6 ② — C4 TIENT: la lane des VOIX ne persiste rien, et le dit", async () => {
+  // ⚠️ LE PIÈGE SYMÉTRIQUE. Le test ci-dessus exige un appel à la persistance
+  // dans chaque générateur; le copier dans `household_voices_io.ts` — qui lit
+  // la ligne de CHAQUE AUTRE titulaire — écrirait sur la ligne d'un tiers, en
+  // différé, et défairait C4 sans qu'une assertion de C4 ne tombe.
+  const src = (await Deno.readTextFile(
+    new URL("./household_voices_io.ts", import.meta.url),
+  ))
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/(^|[^:])\/\/[^\n]*/g, "$1");
+  assert(
+    !src.includes("persistReconciledFoodPreferences"),
+    "la lane des voix persiste la correction d'un tiers: C4 est défait.",
+  );
+  // LE CAS QUI PASSE: elle réconcilie toujours, et elle dit toujours pour qui.
+  assert(src.includes("reconcileFoodPreferencesFor("));
+  assert(src.includes('actor: "someone_else"'));
+});

@@ -2,19 +2,19 @@ import React from "react";
 import { t } from "../i18n/t";
 import { supabase } from "../../lib/supabase";
 import { addDays, localDateIn } from "../api/dates";
-import { autonomyLabel, commitmentSentence, foodGroupLabel, priorityLabel } from "../api/labels";
+import { autonomyLabel, commitmentSentence, foodGroupLabel } from "../api/labels";
 import {
   buildPlanStructure,
-  type PlanPart,
   type PlanSection,
   type PlanSubsection,
 } from "../api/planStructure";
 import { planWindowUntilNextSession } from "../api/todayModel";
-import { ActivityChip } from "../components/CommitmentLine";
+import { ActivityChip, PriorityMark } from "../components/CommitmentLine";
 import { KeelAppShell } from "../components/KeelAppShell";
 import { Badge, type BadgeTone } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
+import { Field, inputClass } from "../components/ui/Field";
 import {
   blankCommitment,
   callPlanTemplate,
@@ -101,28 +101,25 @@ function toDraft(raw: unknown): DraftCommitment {
 //
 // The sections below come from `api/planStructure.ts` — the same call the
 // import review and the student's day make, in the same order, with the same
-// headings and the same family chips. Nothing about the layout is decided here;
-// this file only chooses the colours, and it chooses the import screen's.
+// headings and the same family chips. Nothing about the layout is decided here.
+//
+// ⚠️ CETTE DERNIÈRE PHRASE DISAIT « ce fichier ne choisit que les couleurs, et
+// il choisit celles de l'écran d'import ». Elle est périmée depuis le
+// 2026-08-13: il n'y a plus de couleur à choisir. Le code-couleur de partie
+// (lime / orange / ambre) et le rang en trois teintes ont été retirés des DEUX
+// écrans, et ce qui les remplace est une FORME partagée — le fronton à équerre
+// de `TemplateSection` et `PriorityMark`. Si tu relis « il choisit les
+// couleurs » quelque part, réécris-le, ne remets pas la teinte.
 // ---------------------------------------------------------------------------
 
-const PRIORITY_STYLE: Record<string, string> = {
-  core: "bg-gray-100 text-gray-700",
-  secondary: "bg-sky-50 text-sky-800",
-  optional: "bg-gray-50 text-gray-500",
-};
-
-/** The priority as the WORD, never the token (R1: tokens are data, not copy). */
-function PriorityChip({ priority }: { priority: string }) {
-  return (
-    <span
-      className={`shrink-0 rounded px-1.5 py-0.5 text-[11px] font-medium ${
-        PRIORITY_STYLE[priority] ?? PRIORITY_STYLE.optional
-      }`}
-    >
-      {priorityLabel(priority)}
-    </span>
-  );
-}
+// ⛔ `PriorityChip` A ÉTÉ SUPPRIMÉ D'ICI. Il était recopié À L'IDENTIQUE dans
+// `PlanImportPage.tsx` — deux définitions du même rang, sur deux écrans qui
+// rendent les mêmes lignes, plus un TROISIÈME rendu, différent, dans
+// `KeelBadges.PriorityBadge`. Le rang vit maintenant une seule fois, dans
+// `components/CommitmentLine.tsx` (`PriorityMark`), avec ses trois écrans comme
+// appelants, et il est une forme ordinale et non trois couleurs — le `sky` qu'il
+// portait prenait le bleu de `Badge tone="info"`. Lis son commentaire avant d'y
+// toucher.
 
 /**
  * One part of the template — "Food", "Actions", and the quiet observations.
@@ -143,42 +140,51 @@ function TemplateSection({
 
   if (part === "observations") {
     return (
-      <section className="rounded-lg border border-dashed border-gray-200 bg-gray-50/70 p-3">
-        <h4 className="flex items-baseline gap-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+      <section className="rounded-card border border-dashed border-line-strong bg-paper-2 p-3">
+        <h4 className="flex items-baseline gap-2 text-label font-semibold uppercase text-ink-soft">
           {label}
-          <span className="rounded bg-gray-200/70 px-1.5 text-[11px] font-normal tabular-nums text-gray-600">
-            {count}
-          </span>
+          <span className="font-normal tabular-nums">{count}</span>
         </h4>
-        <p className="mb-2 mt-0.5 text-[11px] text-gray-500">{hint}</p>
+        <p className="mb-2 mt-0.5 max-w-[62ch] text-[11px] text-ink-soft">{hint}</p>
         <div className="space-y-1">{children}</div>
       </section>
     );
   }
 
-  const tone: Record<PlanPart, string> = {
-    food: "border-lime-300",
-    actions: "border-orange-300",
-    unsorted: "border-amber-300",
-    observations: "border-gray-200",
-  };
-  const head: Record<PlanPart, string> = {
-    food: "border-lime-200 bg-lime-50 text-lime-900",
-    actions: "border-orange-200 bg-orange-50 text-orange-900",
-    unsorted: "border-amber-200 bg-amber-50 text-amber-900",
-    observations: "border-gray-200 bg-gray-50 text-gray-700",
-  };
+  // ⛔ LE CODE-COULEUR DE PARTIE EST PARTI — MÊME DÉCISION, MÊMES VALEURS, MÊME
+  // JOUR QUE `PlanImportPage.PartSection`, où le raisonnement complet est écrit.
+  // En résumé: `food` en lime, `actions` en orange, `unsorted` en ambre, c'était
+  // trois familles saturées pour dire trois CATÉGORIES, alors qu'une teinte
+  // saturée dit un FAIT dans ce produit (émeraude/bleu/ambre/rouge). L'orange et
+  // l'ambre étaient à 30° l'un de l'autre, donc l'échelle ne se lisait même pas,
+  // et l'ambre était déjà « attention » deux blocs plus haut.
+  //
+  // La frontière est désormais la forme que le kit a choisie pour le même
+  // problème (`ui/SetupSection.tsx`, charte §4): un FRONTON `paper-2` fermé par
+  // un trait `line`, portant l'ÉQUERRE collée au nom de la partie.
+  // ⚠️ Pas de `px-*` sur le nœud qui porte `.eq` — elle pose son propre
+  // `padding-left` hors couche CSS. Il est sur le fronton.
+  //
+  // `unsorted` GARDE l'ambre, et c'est le seul: `planStructure.ts` dit qu'une
+  // ligne dont la famille n'a pas pu être placée est « a thing the coach must
+  // FIX ». C'est un fait qui attend une décision, donc `Card tone="warning"` et
+  // ses valeurs, reprises telles quelles pour qu'il n'y ait qu'un ambre.
+  const unsorted = part === "unsorted";
+  const frame = unsorted ? "border-amber-200" : "border-line-strong";
+  const head = unsorted
+    ? "border-amber-200 bg-amber-50 text-amber-900"
+    : "border-line bg-paper-2 text-ink";
 
   return (
-    <section className={`overflow-hidden rounded-lg border ${tone[part]} bg-white`}>
-      <header className={`border-b px-3 py-2 ${head[part]}`}>
-        <h4 className="flex items-baseline gap-2 text-sm font-semibold uppercase tracking-wide">
+    <section className={`overflow-hidden rounded-card border bg-paper ${frame}`}>
+      <header className={`border-b px-3 py-2 ${head}`}>
+        <h4 className="eq flex flex-wrap items-baseline gap-2 text-label font-semibold uppercase">
           {label}
-          <span className="rounded bg-white/70 px-1.5 text-xs font-normal tabular-nums">
-            {count}
-          </span>
+          <span className="font-normal tabular-nums">{count}</span>
         </h4>
-        <p className="mt-0.5 text-[11px] font-normal normal-case opacity-80">{hint}</p>
+        <p className="mt-0.5 max-w-[62ch] text-[11px] font-normal normal-case opacity-80">
+          {hint}
+        </p>
       </header>
       <div className="space-y-4 p-3">{children}</div>
     </section>
@@ -199,15 +205,17 @@ function TemplateSubgroup({
 }) {
   return (
     <div>
-      <div className="mb-1.5 flex items-baseline gap-2">
+      <div className="mb-1.5 flex flex-wrap items-baseline gap-2">
         {subsection.kind === "activity_class"
           ? <ActivityChip activityClass={subsection.key} size="md" />
           : (
-            <h5 className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+            // Le même cran que le chip en rôle d'en-tête (`text-label`): les
+            // deux branches de ce ternaire sont deux en-têtes de sous-groupe.
+            <h5 className="text-label font-semibold uppercase text-ink-soft">
               {subsection.label}
             </h5>
           )}
-        <span className="text-[11px] tabular-nums text-gray-400">
+        <span className="text-[11px] tabular-nums text-ink-soft">
           {subsection.lines.length}
         </span>
       </div>
@@ -398,8 +406,8 @@ export default function TemplatesPage() {
         key={line.local_id}
         // A safety note no longer colours the row: it is a fact about the line,
         // not a defect in it. Only a blocking issue still frames the card.
-        className={`rounded border p-2 text-sm ${
-          issues.length > 0 ? "border-amber-400 bg-amber-50" : "border-gray-200"
+        className={`rounded-card border p-2 text-sm ${
+          issues.length > 0 ? "border-amber-400 bg-amber-50" : "border-line-strong"
         }`}
       >
         <div className="flex items-start justify-between gap-2">
@@ -408,20 +416,20 @@ export default function TemplatesPage() {
             className="min-w-0 flex-1 text-left"
             onClick={() => setEditingId((id) => (id === line.local_id ? null : line.local_id))}
           >
-            <div className="font-medium text-gray-900">
-              {line.title || <span className="text-gray-400">{t("review.untitled_line")}</span>}
+            <div className="font-medium text-ink">
+              {line.title || <span className="text-ink-soft">{t("review.untitled_line")}</span>}
             </div>
-            <div className="mt-0.5 text-xs text-gray-500">{commitmentSentence(line)}</div>
+            <div className="mt-0.5 text-xs text-ink-soft">{commitmentSentence(line)}</div>
           </button>
           <div className="flex shrink-0 items-center gap-1.5">
-            <PriorityChip priority={line.priority} />
-            <button
-              type="button"
+            <PriorityMark priority={line.priority} />
+            <Button
+              variant="danger"
+              size="sm"
               onClick={() => editLines((l) => l.filter((x) => x.local_id !== line.local_id))}
-              className="rounded border border-red-300 px-2 py-1 text-xs text-red-700 hover:bg-red-50"
             >
               {t("templates.delete")}
-            </button>
+            </Button>
           </div>
         </div>
         {finding && <SafetyNote finding={finding} />}
@@ -431,7 +439,7 @@ export default function TemplatesPage() {
           </ul>
         )}
         {editingId === line.local_id && vocabulary && (
-          <div className="mt-2 border-t border-gray-200 pt-2">
+          <div className="mt-2 border-t border-line pt-2">
             <CommitmentEditor
               draft={line}
               vocabulary={vocabulary}
@@ -535,14 +543,24 @@ export default function TemplatesPage() {
         }),
       });
       const json = await res.json().catch(() => null);
+      // LA MÊME LECTURE QUE L'ÉCRAN D'IMPORT, ET POUR LA MÊME RAISON.
+      //
+      // Cette ligne rendait « Published: plan_version <uuid> » en succès et le
+      // JSON de la réponse brut en échec — notre vocabulaire de stockage et
+      // notre transport, sur l'écran où une diététicienne publie. L'écran
+      // d'import avait déjà retiré exactement ces deux formes; les deux chemins
+      // de publication disent maintenant la même chose, avec les mêmes clés.
       setPublishNote(
         res.ok
-          ? t("templates.publish_result", {
-            message: `plan_version ${
-              (json as { plan_version?: { id?: string } } | null)?.plan_version?.id ?? "?"
-            }`,
+          ? t("review.publish_done", {
+            count: (json as { summary?: { commitments?: number } } | null)?.summary
+              ?.commitments ?? 0,
           })
-          : `HTTP ${res.status} — ${JSON.stringify(json)}`,
+          : t("review.publish_failed", {
+            message: String(
+              (json as { error?: unknown } | null)?.error ?? `HTTP ${res.status}`,
+            ),
+          }),
       );
     } catch (err) {
       setPublishNote(err instanceof Error ? err.message : String(err));
@@ -561,42 +579,54 @@ export default function TemplatesPage() {
       title={t("templates.title")}
       subtitle={t("templates.subtitle")}
       actions={
-        <Button variant="primary" onClick={startNew}>
+        // ⛔ `primary` EST DESCENDU SUR « ENREGISTRER », ET C'EST UNE DÉCISION.
+        // Une seule action figue par vue rendue. Quand un gabarit est ouvert,
+        // l'en-tête (« Nouveau ») et le pied de l'éditeur (« Enregistrer ») sont
+        // rendus EN MÊME TEMPS: deux aplats de marque, zéro hiérarchie. Celui qui
+        // la garde est celui que le coach cherche à ce moment-là — il vient
+        // d'écrire, il veut garder. « Nouveau » reste toujours atteignable, en
+        // contour. Sans gabarit ouvert, l'écran n'a AUCUNE figue, et c'est juste:
+        // il n'y a rien à faire d'autre que choisir dans la liste.
+        <Button onClick={startNew}>
           {t("templates.new")}
         </Button>
       }
     >
       {vocabError && (
-        <p className="mb-4 rounded bg-red-50 p-2 text-sm text-red-700">
+        <p className="mb-4 rounded-card bg-red-50 p-2 text-sm text-red-700">
           {t("editor.vocabulary_error", { message: vocabError })}
         </p>
       )}
       {loadError && (
-        <p className="mb-4 rounded bg-red-50 p-2 text-sm text-red-700">
+        <p className="mb-4 rounded-card bg-red-50 p-2 text-sm text-red-700">
           {t("templates.error", { message: loadError })}
         </p>
       )}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
         {/* LEFT — the library */}
-        <section className="space-y-2">
-          {loading && <p className="text-sm text-gray-500">{t("templates.loading")}</p>}
+        <section className="min-w-0 space-y-2">
+          {loading && <p className="text-sm text-ink-soft">{t("templates.loading")}</p>}
           {!loading && templates.length === 0 && (
-            <p className="rounded-xl border border-dashed border-gray-300 bg-white p-6 text-center text-sm text-gray-400">
+            <Card tone="dashed" padded={false} className="p-6 text-center text-sm text-ink-soft">
               {t("templates.empty")}
-            </p>
+            </Card>
           )}
           {templates.map((tpl) => (
+            // LE GABARIT OUVERT SE DISTINGUE PAR UN TRAIT DOUBLÉ, PAS PAR UNE
+            // TEINTE: `ring-1` posé sur la même couleur que la bordure épaissit
+            // le contour sans emprunter de sens. `border-gray-900` disait la même
+            // chose et n'existe plus dans la palette.
             <div
               key={tpl.id}
-              className={`rounded-xl border p-3 ${
-                selectedId === tpl.id ? "border-gray-900 bg-white" : "border-gray-200 bg-white"
+              className={`rounded-card border border-line-strong bg-paper p-3 ${
+                selectedId === tpl.id ? "ring-1 ring-line-strong" : ""
               }`}
             >
               <div className="flex items-start justify-between gap-2">
                 <button type="button" className="min-w-0 text-left" onClick={() => open(tpl)}>
-                  <div className="truncate text-sm font-medium text-gray-900">{tpl.title}</div>
-                  <div className="mt-0.5 text-xs text-gray-500">
+                  <div className="truncate text-sm font-medium text-ink">{tpl.title}</div>
+                  <div className="mt-0.5 text-xs text-ink-soft">
                     {t("templates.commitment_count", {
                       count: (tpl.commitments ?? []).length,
                     })}
@@ -616,22 +646,14 @@ export default function TemplatesPage() {
                   )}
                 </Badge>
               </div>
-              <div className="mt-2 flex gap-2 text-xs">
-                <button
-                  type="button"
-                  onClick={() => open(tpl)}
-                  className="rounded border border-gray-300 px-2 py-1 text-gray-700 hover:bg-gray-50"
-                >
+              <div className="mt-2 flex flex-wrap gap-2">
+                <Button size="sm" onClick={() => open(tpl)}>
                   {t("templates.open")}
-                </button>
+                </Button>
                 {tpl.status === "draft" && (
-                  <button
-                    type="button"
-                    onClick={() => remove(tpl)}
-                    className="rounded border border-red-300 px-2 py-1 text-red-700 hover:bg-red-50"
-                  >
+                  <Button variant="danger" size="sm" onClick={() => remove(tpl)}>
                     {t("templates.delete")}
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
@@ -639,55 +661,63 @@ export default function TemplatesPage() {
         </section>
 
         {/* RIGHT — the editor */}
-        <section>
+        <section className="min-w-0">
           {!draft && (
-            <p className="rounded-xl border border-dashed border-gray-300 bg-white p-6 text-center text-sm text-gray-400">
+            <Card tone="dashed" padded={false} className="p-6 text-center text-sm text-ink-soft">
               {t("templates.select_hint")}
-            </p>
+            </Card>
           )}
           {draft && (
             <div className="space-y-4">
-              <div className="grid gap-3 rounded-xl border border-gray-200 bg-white p-4 sm:grid-cols-2">
-                <label className="block sm:col-span-2">
-                  <span className="mb-0.5 block text-[11px] font-medium uppercase tracking-wide text-gray-400">
-                    {t("templates.field_title")}
-                  </span>
+              {/* LES SEPT CHAMPS DE CE PANNEAU ÉTAIENT RECOPIÉS À LA MAIN, en
+                  `text-sm` — 14 px. `index.css` pose 16 px sur les champs sous
+                  `lg` parce que Safari iOS zoome sur un champ plus petit au focus
+                  et NE DÉZOOME PAS; la règle vit dans `@layer base` et un
+                  utilitaire la bat, donc la protection était contournée sept fois
+                  ici. `Field` + `inputClass` la rétablissent, et donnent en même
+                  temps l'étiquette de la charte et la bordure de CONTRÔLE que
+                  WCAG 1.4.11 exige à 3:1 (`line-strong`, 3,84:1). */}
+              <Card className="grid gap-3 sm:grid-cols-2">
+                <Field
+                  className="sm:col-span-2"
+                  label={t("templates.field_title")}
+                  htmlFor="tpl-title"
+                >
                   <input
-                    className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                    id="tpl-title"
+                    className={inputClass}
                     value={draft.title}
                     onChange={(e) => setDraftField("title", e.target.value)}
                   />
-                </label>
-                <label className="block sm:col-span-2">
-                  <span className="mb-0.5 block text-[11px] font-medium uppercase tracking-wide text-gray-400">
-                    {t("templates.field_description")}
-                  </span>
+                </Field>
+                <Field
+                  className="sm:col-span-2"
+                  label={t("templates.field_description")}
+                  htmlFor="tpl-description"
+                >
                   <textarea
-                    className="h-16 w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                    id="tpl-description"
+                    className={`${inputClass} h-20`}
                     value={draft.description ?? ""}
                     onChange={(e) =>
                       setDraftField("description", e.target.value === "" ? null : e.target.value)}
                   />
-                </label>
-                <label className="block">
-                  <span className="mb-0.5 block text-[11px] font-medium uppercase tracking-wide text-gray-400">
-                    {t("templates.field_locale")}
-                  </span>
+                </Field>
+                <Field label={t("templates.field_locale")} htmlFor="tpl-locale">
                   <input
-                    className="w-full rounded border border-gray-300 px-2 py-1 font-mono text-sm"
+                    id="tpl-locale"
+                    className={`${inputClass} font-mono`}
                     value={draft.content_locale}
                     onChange={(e) => setDraftField("content_locale", e.target.value)}
                   />
-                </label>
-                <label className="block">
-                  <span className="mb-0.5 block text-[11px] font-medium uppercase tracking-wide text-gray-400">
-                    {t("templates.field_status")}
-                  </span>
+                </Field>
+                <Field label={t("templates.field_status")} htmlFor="tpl-status">
                   {/* The VALUE stays the token — it is what Postgres stores.
                       What the coach reads is the word, from the same map the
                       badge in the list uses (R1: tokens are data, not copy). */}
                   <select
-                    className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                    id="tpl-status"
+                    className={inputClass}
                     value={draft.status}
                     onChange={(e) => setDraftField("status", e.target.value)}
                   >
@@ -697,19 +727,18 @@ export default function TemplatesPage() {
                       </option>
                     ))}
                   </select>
-                </label>
-                <label className="block">
-                  <span className="mb-0.5 block text-[11px] font-medium uppercase tracking-wide text-gray-400">
-                    {t("templates.field_autonomy")}
-                  </span>
+                </Field>
+                <Field label={t("templates.field_autonomy")} htmlFor="tpl-autonomy">
                   {/* The VALUE stays the token — it is what travels to the
-                      server — but what the coach reads is English. This select
-                      printed `swap_within_policy` raw, in a monospaced box, and
-                      it was the last storage slug visible on the three plan
-                      screens. `autonomyLabel` throws on a value the seed has no
-                      word for (R7), so the next one added cannot leak. */}
+                      server — but what the coach reads is their own language.
+                      This select printed `swap_within_policy` raw, in a
+                      monospaced box, and it was the last storage slug visible on
+                      the three plan screens. `autonomyLabel` throws on a value
+                      the seed has no word for (R7), so the next one added cannot
+                      leak. */}
                   <select
-                    className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                    id="tpl-autonomy"
+                    className={inputClass}
                     value={draft.default_autonomy}
                     onChange={(e) => setDraftField("default_autonomy", e.target.value)}
                   >
@@ -717,47 +746,45 @@ export default function TemplatesPage() {
                       <option key={a} value={a}>{autonomyLabel(a)}</option>
                     ))}
                   </select>
-                </label>
-                <label className="block">
-                  <span className="mb-0.5 block text-[11px] font-medium uppercase tracking-wide text-gray-400">
-                    {t("templates.field_flex")}
-                  </span>
+                </Field>
+                <Field label={t("templates.field_flex")} htmlFor="tpl-flex">
                   <input
+                    id="tpl-flex"
                     type="number"
                     min={0}
                     max={7}
-                    className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                    className={inputClass}
                     value={draft.default_flex_allowance}
                     onChange={(e) =>
                       setDraftField("default_flex_allowance", Number(e.target.value))}
                   />
-                </label>
-                <label className="block">
-                  <span className="mb-0.5 block text-[11px] font-medium uppercase tracking-wide text-gray-400">
-                    {t("templates.field_target")}
-                  </span>
+                </Field>
+                <Field label={t("templates.field_target")} htmlFor="tpl-target">
                   <input
+                    id="tpl-target"
                     type="number"
                     min={1}
                     max={100}
-                    className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                    className={inputClass}
                     value={draft.default_adherence_target_pct}
                     onChange={(e) =>
                       setDraftField("default_adherence_target_pct", Number(e.target.value))}
                   />
-                </label>
-              </div>
+                </Field>
+              </Card>
 
               {/* default_swap_policy — ticked ONCE, at template level. */}
-              <div className="rounded-xl border border-gray-200 bg-white p-4">
-                <h3 className="text-sm font-semibold text-gray-800">
+              <Card>
+                <h3 className="text-sm font-semibold text-ink">
                   {t("templates.swap_title")}
                 </h3>
-                <p className="mb-2 mt-0.5 text-xs text-gray-500">{t("templates.swap_hint")}</p>
-                <label className="flex items-start gap-2 text-sm text-gray-700">
+                <p className="mb-2 mt-0.5 max-w-[62ch] text-xs text-ink-soft">
+                  {t("templates.swap_hint")}
+                </p>
+                <label className="flex items-start gap-2 text-sm text-ink">
                   <input
                     type="checkbox"
-                    className="mt-0.5 h-4 w-4"
+                    className="mt-0.5 h-4 w-4 accent-fig-700"
                     checked={draft.default_swap_policy?.class_equivalent === true}
                     onChange={(e) =>
                       setDraftField("default_swap_policy", {
@@ -768,7 +795,7 @@ export default function TemplatesPage() {
                   <span>{t("templates.swap_class_equivalent")}</span>
                 </label>
                 <div className="mt-3">
-                  <span className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">
+                  <span className="mb-2 block text-label font-semibold uppercase text-ink-soft">
                     {t("templates.swap_allowed_groups")}
                   </span>
                   <div className="flex flex-wrap gap-1">
@@ -776,10 +803,17 @@ export default function TemplatesPage() {
                       const selected = draft.default_swap_policy?.allowed_groups ?? [];
                       const on = selected.includes(g.slug);
                       return (
+                        // UN GROUPE COCHÉ EST UN CHOIX, DONC UNE ACTION, donc la
+                        // marque a le droit d'y entrer (charte §2) — ce que
+                        // `bg-gray-900 text-white` disait déjà, sans jeton.
+                        // ⚠️ `aria-pressed` parce que c'est un interrupteur:
+                        // sans lui, un lecteur d'écran entend « Poisson gras,
+                        // bouton » et n'apprend jamais s'il est coché.
                         <button
                           key={g.slug}
                           type="button"
                           title={g.class}
+                          aria-pressed={on}
                           onClick={() => {
                             const next = on
                               ? selected.filter((s) => s !== g.slug)
@@ -789,10 +823,10 @@ export default function TemplatesPage() {
                               allowed_groups: next.length === 0 ? null : next,
                             });
                           }}
-                          className={`rounded px-2 py-1 text-[11px] ${
+                          className={`rounded-full border px-2.5 py-1 text-[11px] transition-colors ${
                             on
-                              ? "bg-gray-900 text-white"
-                              : "border border-gray-300 bg-white text-gray-500 hover:bg-gray-50"
+                              ? "border-fig-700 bg-fig-700 text-paper"
+                              : "border-line-strong bg-paper text-ink-soft hover:bg-fig-50"
                           }`}
                         >
                           {/* The slug is the VALUE the policy stores; "oily
@@ -805,22 +839,24 @@ export default function TemplatesPage() {
                     })}
                   </div>
                 </div>
-              </div>
+              </Card>
 
               {/* THE LINES, IN THE SHAPE OF A PLAN — the import screen's
                   sections, from the import screen's module. */}
-              <div className="rounded-xl border border-gray-200 bg-white p-4">
-                <h3 className="mb-3 flex items-baseline gap-2 text-sm font-semibold text-gray-800">
+              <Card>
+                <h3 className="mb-3 flex flex-wrap items-baseline gap-2 text-sm font-semibold text-ink">
                   {t("templates.commitments_section")}
                   {/* THE HEADLINE IS "THINGS TO HOLD", NOT "ROWS ON SCREEN".
                       A weigh-in and an energy rating are watched, never held;
                       the import screen already counts them apart and this one
-                      must agree, or the same template reads as two sizes. */}
-                  <span className="rounded bg-gray-100 px-1.5 text-xs font-normal tabular-nums text-gray-600">
+                      must agree, or the same template reads as two sizes.
+                      Un chiffre est un chiffre: `tabular-nums` et pas une
+                      pastille grise — voir `PlanImportPage.Queue`. */}
+                  <span className="text-xs font-normal tabular-nums text-ink-soft">
                     {structure.toHold}
                   </span>
                   {structure.observed > 0 && (
-                    <span className="text-[11px] font-normal text-gray-400">
+                    <span className="text-[11px] font-normal text-ink-soft">
                       {t("import.stat_observed", { count: structure.observed })}
                     </span>
                   )}
@@ -842,8 +878,8 @@ export default function TemplatesPage() {
                     </TemplateSection>
                   ))}
                 </div>
-                <button
-                  type="button"
+                <Button
+                  className="mt-2 w-full"
                   onClick={() => {
                     const line = blankCommitment({
                       content_locale: draft.content_locale,
@@ -852,73 +888,72 @@ export default function TemplatesPage() {
                     editLines((l) => [...l, line]);
                     setEditingId(line.local_id);
                   }}
-                  className="mt-2 w-full rounded border border-dashed border-gray-300 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50"
                 >
                   + {t("review.add_line")}
-                </button>
-              </div>
+                </Button>
+              </Card>
 
               {/* Save + publish */}
-              <div className="space-y-2 rounded-xl border border-gray-200 bg-gray-50 p-4">
+              <Card className="space-y-3">
                 {blocking.length > 0 && (
-                  <p className="rounded bg-amber-100 p-2 text-xs text-amber-900">
+                  <p className="rounded-card bg-amber-50 p-2 text-xs text-amber-900">
                     {t("review.blocked_by_issues", { count: blocking.length })}
                   </p>
                 )}
-                <button
-                  type="button"
+                {/* ⛔ LA SEULE ACTION FIGUE DE CET ÉCRAN. Voir le commentaire de
+                    l'en-tête: « Nouveau » a été démoté pour celle-ci. */}
+                <Button
+                  variant="primary"
+                  className="w-full"
                   disabled={saving || blocking.length > 0}
                   onClick={save}
-                  className="w-full rounded bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-40"
                 >
                   {saving ? t("templates.saving") : t("templates.save")}
-                </button>
+                </Button>
                 {saveError && (
-                  <p className="break-words rounded bg-red-50 p-2 text-xs text-red-700">
+                  <p className="break-words rounded-card bg-red-50 p-2 text-xs text-red-700">
                     {t("review.save_error", { message: saveError })}
                   </p>
                 )}
                 {saved && (
-                  <p className="rounded bg-emerald-50 p-2 text-xs text-emerald-800">
+                  <p className="rounded-card bg-emerald-50 p-2 text-xs text-emerald-800">
                     {t("templates.saved")}
                   </p>
                 )}
 
-                <p className="pt-2 text-xs text-gray-500">{t("templates.publish_hint")}</p>
-                <label className="block">
-                  <span className="mb-0.5 block text-[11px] font-medium uppercase tracking-wide text-gray-400">
-                    {t("templates.student_id_label")}
-                  </span>
+                <p className="max-w-[62ch] pt-2 text-xs text-ink-soft">
+                  {t("templates.publish_hint")}
+                </p>
+                <Field label={t("templates.student_id_label")} htmlFor="tpl-student-id">
                   <input
-                    className="w-full rounded border border-gray-300 px-2 py-1 font-mono text-xs"
+                    id="tpl-student-id"
+                    className={`${inputClass} font-mono`}
                     value={studentId}
                     onChange={(e) => setStudentId(e.target.value)}
                   />
-                </label>
-                <label className="block">
-                  <span className="mb-0.5 block text-[11px] font-medium uppercase tracking-wide text-gray-400">
-                    {t("templates.timezone_label")}
-                  </span>
+                </Field>
+                <Field
+                  label={t("templates.timezone_label")}
+                  hint={t("templates.timezone_hint")}
+                  htmlFor="tpl-timezone"
+                >
                   <input
-                    className="w-full rounded border border-gray-300 px-2 py-1 font-mono text-xs"
+                    id="tpl-timezone"
+                    className={`${inputClass} font-mono`}
                     value={timezone}
                     onChange={(e) => setTimezone(e.target.value)}
                   />
-                  <span className="mt-0.5 block text-[11px] text-gray-400">
-                    {t("templates.timezone_hint")}
-                  </span>
-                </label>
+                </Field>
 
                 {/* HOW LONG IT RUNS — a date, not two database columns. */}
-                <div className="rounded border border-gray-200 bg-white p-2">
-                  <span className="mb-0.5 block text-[11px] font-medium uppercase tracking-wide text-gray-400">
+                <div className="rounded-card border border-line bg-paper-2 p-3">
+                  <span className="mb-2 block text-label font-semibold uppercase text-ink-soft">
                     {t("templates.next_session_label")}
                   </span>
                   {nextSession === null
                     ? (
-                      <button
-                        type="button"
-                        className="text-xs text-gray-700 underline"
+                      <Button
+                        size="sm"
                         onClick={() =>
                           setNextSession(
                             addDays(
@@ -928,30 +963,27 @@ export default function TemplatesPage() {
                           )}
                       >
                         {t("templates.next_session_open")}
-                      </button>
+                      </Button>
                     )
                     : (
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <input
                           type="date"
-                          className="rounded border border-gray-300 px-2 py-1 text-xs"
+                          aria-label={t("templates.next_session_label")}
+                          className={`${inputClass} w-auto`}
                           value={nextSession}
                           onChange={(e) => setNextSession(e.target.value || null)}
                         />
-                        <button
-                          type="button"
-                          className="text-[11px] text-gray-400 underline"
-                          onClick={() => setNextSession(null)}
-                        >
+                        <Button variant="ghost" size="sm" onClick={() => setNextSession(null)}>
                           {t("templates.next_session_clear")}
-                        </button>
+                        </Button>
                       </div>
                     )}
-                  <span className="mt-1 block text-[11px] text-gray-400">
+                  <span className="mt-2 block max-w-[62ch] text-[11px] text-ink-soft">
                     {t("templates.next_session_hint")}
                   </span>
                   {/* The conversion, read back before publish. */}
-                  <span className="mt-1 block text-[11px] text-gray-600">
+                  <span className="mt-1 block max-w-[62ch] text-[11px] text-ink">
                     {planWindow.durationWeeks === null
                       ? t("templates.plan_window_open_ended", {
                         anchor: planWindow.anchorWeekStart,
@@ -966,36 +998,35 @@ export default function TemplatesPage() {
                   </span>
                 </div>
 
-                <label className="flex items-start gap-2 text-sm text-gray-700">
+                <label className="flex items-start gap-2 text-sm text-ink">
                   <input
                     type="checkbox"
-                    className="mt-0.5 h-4 w-4"
+                    className="mt-0.5 h-4 w-4 accent-fig-700"
                     checked={approvedAt !== null}
                     onChange={(e) =>
                       setApprovedAt(e.target.checked ? new Date().toISOString() : null)}
                   />
                   <span>
                     {t("templates.approve_lines")}
-                    <span className="block text-xs text-gray-400">
+                    <span className="mt-1 block max-w-[62ch] text-xs text-ink-soft">
                       {t("review.approval_hint")}
                     </span>
                   </span>
                 </label>
-                <button
-                  type="button"
+                <Button
+                  className="w-full"
                   disabled={publishing || !selectedId || studentId.trim() === "" ||
                     blocking.length > 0 || approvedAt === null}
                   onClick={publish}
-                  className="w-full rounded border border-gray-900 px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100 disabled:opacity-40"
                 >
                   {publishing ? t("templates.publishing") : t("templates.publish")}
-                </button>
+                </Button>
                 {publishNote && (
-                  <p className="break-words rounded bg-gray-100 p-2 text-xs text-gray-600">
+                  <p className="break-words rounded-card bg-paper-2 p-2 text-xs text-ink">
                     {publishNote}
                   </p>
                 )}
-              </div>
+              </Card>
             </div>
           )}
         </section>

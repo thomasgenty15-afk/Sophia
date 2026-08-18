@@ -226,6 +226,26 @@ async function purgeOneUser(
 
   // 3) Personal data in SET-NULL / FK-less tables.
   await purgeMessagingTraces(admin, userId);
+
+  // LE LOG DE SÉANCE (20260818180000). Ce que quelqu'un a fait de son corps,
+  // quel jour et combien de temps: donnée personnelle au sens plein.
+  //
+  // ⚠️ EXPLICITE, ALORS QUE LA FK EST DÉJÀ `ON DELETE CASCADE`. Même règle que
+  // `inbound_dedup` juste au-dessus: ne rien laisser dépendre d'un ON DELETE
+  // qu'on n'a pas relu. Et surtout — « le cycle de vie RGPD ne réclame pas les
+  // tables neuves » est une cicatrice chiffrée de ce dépôt (neuf tables du
+  // pivot hors export ET hors purge pendant des mois). Une table réclamée ici
+  // le jour de sa migration ne peut pas devenir la dixième.
+  //
+  // L'erreur REMONTE: une purge qui rendrait « réussi » en laissant ces lignes
+  // serait exactement le mensonge que ce fichier existe pour éviter. Un échec
+  // bruyant se rejoue au tick suivant.
+  const { error: activityErr } = await admin
+    .from("student_activity_sessions")
+    .delete()
+    .eq("user_id", userId);
+  if (activityErr) throw activityErr;
+
   const { error: selErr } = await admin
     .from("system_error_logs")
     .delete()

@@ -362,6 +362,7 @@ Deno.test({
       coachName: "Marc",
       asOfLocalDate: asOf,
       now: day(8, 6),
+      contentLocale: "en-US",
     });
 
     assertEquals(out.window.periodStart, "2026-07-27");
@@ -417,6 +418,7 @@ Deno.test({
       coachName: "Marc",
       asOfLocalDate: localDate(day(8)),
       now: day(8, 7),
+      contentLocale: "en-US",
     });
     const { data, error } = await client
       .from("coach_syntheses")

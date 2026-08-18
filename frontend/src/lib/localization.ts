@@ -1,4 +1,16 @@
-export const DEFAULT_LOCALE = "fr-FR";
+// ⚠️ `DEFAULT_LOCALE = "fr-FR"` VIVAIT ICI, ET C'ÉTAIT UNE SECONDE SOURCE DE
+// VÉRITÉ SUR LA LANGUE. Un reliquat du produit grand public: il écrivait
+// « fr-FR » dans `profiles.locale` de tout compte créé, quelle que soit la
+// langue du visiteur. `UserProfile.tsx` avait déjà cessé de l'importer (voir sa
+// note ligne 20), et plus aucun fichier du dépôt ne le lisait — vérifié par
+// grep sur `frontend/src`. Retiré: l'autorité de la langue est
+// `keel/i18n/runtime.ts` (`signupProfileLocale`, `chosenUiLocale`), et celle du
+// FORMATAGE est `keel/i18n/format.ts`.
+//
+// `DEFAULT_TIMEZONE` reste, et ce n'est pas une inconséquence: un fuseau n'est
+// pas une langue. Il a trois lecteurs vivants (`UserProfile`, `Auth`), il sert
+// de repli quand le navigateur ne sait pas se situer, et il ne décide d'aucun
+// mot affiché.
 export const DEFAULT_TIMEZONE = "Europe/Paris";
 
 export function detectBrowserTimezone(): string | null {
@@ -46,10 +58,18 @@ export function getAllSupportedTimezones(detected?: string | null): string[] {
 
   // Modern browsers: Intl.supportedValuesOf('timeZone')
   try {
-    const anyIntl = Intl as any;
-    const list = anyIntl?.supportedValuesOf?.("timeZone");
+    // `supportedValuesOf` manque encore aux typings de la lib TS visée ici.
+    // On nomme LA SEULE méthode qu'on appelle: `Intl as any` aurait rendu
+    // `any` tout ce qui en descend — `list`, puis `all`, puis le tableau rendu
+    // par la fonction — et le typecheck aurait cessé de mordre en silence.
+    const intl = Intl as unknown as {
+      supportedValuesOf?: (key: string) => unknown;
+    };
+    const list = intl.supportedValuesOf?.("timeZone");
     if (Array.isArray(list) && list.length) {
-      const all = list.filter((x: any) => typeof x === "string" && x.trim());
+      const all = list.filter(
+        (x: unknown): x is string => typeof x === "string" && x.trim() !== "",
+      );
       const region = detected ? detected.split("/")[0] : null;
       const regionMatches = region ? all.filter((tz: string) => tz.startsWith(region + "/")) : [];
 

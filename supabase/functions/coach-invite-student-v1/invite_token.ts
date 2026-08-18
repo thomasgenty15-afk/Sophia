@@ -13,6 +13,8 @@
 // lowercase. `invite_token_test.ts` pins the TypeScript side against a fixed
 // vector; `invitation_rls_test.sql` pins the SQL side against the same one.
 
+import { isFrenchLocale } from "../_shared/keel/locale.ts";
+
 /** 32 bytes of CSPRNG entropy, base64url, unpadded (43 characters). */
 export function generateInviteToken(): string {
   const bytes = new Uint8Array(32);
@@ -75,17 +77,71 @@ export function buildJoinUrl(baseUrl: string | undefined | null, token: string):
 }
 
 /**
- * The invitation email. English by construction: the KEEL surfaces are born in
- * English (BUILD_PLAN W9), and this message is read by someone who does not
- * have an account yet, so there is no `ui_locale` to read (R3).
+ * L'INVITATION — LE SEUL E-MAIL DU PRODUIT DONT LE DESTINATAIRE N'A PAS DE
+ * COMPTE, et donc le seul dont la langue ne peut PAS se lire.
+ *
+ * ── LA CHAÎNE, ET POURQUOI ELLE N'A QUE DEUX MAILLONS ─────────────────────
+ *   1. la langue CHOISIE PAR LE COACH pour cette invitation;
+ *   2. `en-US`.
+ *
+ * Il n'y a pas de troisième maillon, et les deux candidats évidents sont
+ * écartés exprès:
+ *
+ *   ❌ `Accept-Language` de la requête. C'est la langue du NAVIGATEUR DU
+ *      COACH. Un coach français qui invite un élève anglophone enverrait un
+ *      e-mail français à quelqu'un qui ne le lit pas — et le défaut serait
+ *      invisible côté coach, qui voit sa propre langue partout.
+ *   ❌ `profiles.locale` du coach. Même erreur, par un autre chemin: c'est
+ *      encore la langue du coach, pas celle de l'invité.
+ *
+ * Seul le coach SAIT en quelle langue son élève lit. C'est donc un CHOIX
+ * explicite, ou rien. `en-US` par défaut est un aveu assumé, pas une
+ * préférence: c'est la langue dans laquelle le produit s'est vendu.
+ *
+ * ⚠️ CE QUI MANQUE ENCORE, ET QUI EST CÔTÉ FRONT: l'écran d'invitation du
+ * coach n'offre aucun sélecteur de langue et ne pose donc jamais
+ * `invite_locale`. Tant qu'il ne le fait pas, cette chaîne rend `en-US` pour
+ * tout le monde — ce qui est le comportement d'avant, à ceci près que le pack
+ * français existe et qu'un seul champ de formulaire l'allume.
+ *
+ * `locale` est REQUIS: le compilateur énumère ainsi le (seul) appelant.
  */
 export function renderInviteEmail(args: {
   coachName: string | null;
   joinUrl: string;
+  locale: string;
 }): { subject: string; html: string } {
-  const who = args.coachName && args.coachName.trim() ? args.coachName.trim() : "Your coach";
-  const subject = `${who} invited you to their coaching program`;
-  const html = `
+  const named = args.coachName && args.coachName.trim()
+    ? args.coachName.trim()
+    : null;
+  if (isFrenchLocale(args.locale)) {
+    const who = named ?? "Ton coach";
+    return {
+      subject: `${who} t'invite dans son programme`,
+      html: `
+    <div style="font-family: sans-serif; color: #111; line-height: 1.6;">
+      <p>${escapeHtml(who)} t'invite à suivre son programme.</p>
+      <p>C'est ton coach qui écrit le plan. Cet espace est l'endroit où il se
+         vit : quoi faire aujourd'hui, ce que tu as noté, et comment la semaine
+         s'est réellement passée — rien d'inventé, rien de généré à ta place.</p>
+      <p style="margin: 24px 0;">
+        <a href="${escapeHtml(args.joinUrl)}"
+           style="background-color:#111;color:#fff;padding:12px 24px;text-decoration:none;border-radius:4px;font-weight:bold;">
+          Accepter l'invitation
+        </a>
+      </p>
+      <p style="font-size: 13px; color: #666;">
+        Ce lien expire dans ${INVITE_TTL_DAYS} jours et ne sert qu'une fois. Si tu
+        ne l'attendais pas, ignore cet e-mail — rien n'a été créé en ton nom.
+      </p>
+    </div>
+  `,
+    };
+  }
+  const who = named ?? "Your coach";
+  return {
+    subject: `${who} invited you to their coaching program`,
+    html: `
     <div style="font-family: sans-serif; color: #111; line-height: 1.6;">
       <p>${escapeHtml(who)} invited you to follow their program.</p>
       <p>Your coach writes the plan. This space is where it runs: what to do today,
@@ -98,12 +154,26 @@ export function renderInviteEmail(args: {
         </a>
       </p>
       <p style="font-size: 13px; color: #666;">
-        This link expires in 14 days and can be used once. If you were not expecting it,
+        This link expires in ${INVITE_TTL_DAYS} days and can be used once. If you were not expecting it,
         ignore this email — nothing was created in your name.
       </p>
     </div>
-  `;
-  return { subject, html };
+  `,
+  };
+}
+
+/**
+ * La langue de CETTE invitation, telle que le coach l'a choisie.
+ *
+ * Deux maillons, jamais trois — le pavé de `renderInviteEmail` dit pourquoi.
+ * Une langue non livrée retombe sur `en-US` plutôt que de jeter: une
+ * invitation refusée pour cause de tag exotique est un élève qui n'entre
+ * jamais, et le coach n'aurait aucun moyen de le savoir.
+ */
+export function resolveInviteLocale(raw: unknown): string {
+  const chosen = typeof raw === "string" ? raw.trim() : "";
+  if (!chosen) return "en-US";
+  return isFrenchLocale(chosen) ? "fr-FR" : "en-US";
 }
 
 function escapeHtml(value: string): string {

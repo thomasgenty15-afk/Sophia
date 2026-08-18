@@ -43,6 +43,32 @@ function nullableText(value: unknown): string | null {
   return text || null;
 }
 
+/**
+ * A prompt block is only useful if a reader can tell "absent" from "cut at the
+ * ceiling". So we keep three things, never one: the (bounded) text, the length
+ * BEFORE bounding, and whether the ceiling actually bit.
+ *
+ * Note the deliberate absence of `.trim()`: the prompt is compared to
+ * independently-counted lengths (`metadata.system_prompt_chars` /
+ * `metadata.prompt_chars`, computed in gemini.ts on the untrimmed strings).
+ * Trimming here would make the two disagree by a few characters and turn a
+ * healthy capture into a false alarm.
+ */
+export function boundedPrompt(
+  value: unknown,
+  limit: number,
+): { text: string | null; chars: number | null; truncated: boolean } {
+  if (value === null || value === undefined) {
+    return { text: null, chars: null, truncated: false };
+  }
+  const text = String(value);
+  if (!text) return { text: null, chars: 0, truncated: false };
+  if (text.length <= limit) {
+    return { text, chars: text.length, truncated: false };
+  }
+  return { text: text.slice(0, limit), chars: text.length, truncated: true };
+}
+
 function redacted(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(redacted);
   if (value && typeof value === "object") {
@@ -120,6 +146,13 @@ export async function logLlmRawResponseEvent(evt: {
   output_tool_args?: unknown;
   raw_response?: unknown;
   error_message?: string | null;
+  /**
+   * The exact text handed to the provider. Optional on purpose: only the very
+   * first event of a generateWithGemini() call carries it, so one row per call
+   * holds the prompt instead of thirty copies of it.
+   */
+  system_prompt?: string | null;
+  user_message?: string | null;
   metadata?: Record<string, unknown>;
 }) {
   if (!enabled()) return;
@@ -129,6 +162,8 @@ export async function logLlmRawResponseEvent(evt: {
     const boundedRaw = boundedJson(evt.raw_response ?? null);
     const boundedToolArgs = boundedJson(evt.output_tool_args ?? null);
     const limit = maxChars();
+    const boundedSystemPrompt = boundedPrompt(evt.system_prompt ?? null, limit);
+    const boundedUserMessage = boundedPrompt(evt.user_message ?? null, limit);
     await admin.from("llm_raw_response_events").insert({
       request_id: nullableText(evt.request_id),
       user_id: nullableText(evt.user_id),
@@ -150,6 +185,12 @@ export async function logLlmRawResponseEvent(evt: {
       raw_response: boundedRaw.json,
       raw_response_truncated: boundedRaw.truncated || boundedToolArgs.truncated,
       error_message: truncateText(evt.error_message, 4000),
+      system_prompt: boundedSystemPrompt.text,
+      system_prompt_chars: boundedSystemPrompt.chars,
+      system_prompt_truncated: boundedSystemPrompt.truncated,
+      user_message: boundedUserMessage.text,
+      user_message_chars: boundedUserMessage.chars,
+      user_message_truncated: boundedUserMessage.truncated,
       metadata: evt.metadata ?? {},
     });
   } catch {

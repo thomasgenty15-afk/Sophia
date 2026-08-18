@@ -17,8 +17,26 @@ import {
 import { loadDoctrineForCaller } from "../_shared/keel/household_doctrine.ts";
 import { resolveHouseholdIdFor } from "../_shared/keel/household_turn_context.ts";
 import { GOAL_TOKENS, type GoalToken } from "../_shared/keel/tokens.ts";
+import { resolveArtifactLocale } from "../_shared/keel/locale.ts";
 import { coachNotePromptBlock, loadCoachNote } from "../_shared/keel/coach_note.ts";
-import { constraintsForPrompt } from "../_shared/keel/food_preference_promotion.ts";
+import {
+  constraintsForPrompt,
+  FOOD_PREFERENCES_KEY,
+  // LOT 1C — `readRetainedItems` et PAS `retainedItemsFrom`: c'est le même
+  // magasin, lu par la même fonction, mais l'enrobage rend en plus le compteur
+  // des lignes REFUSÉES. Sans lui, « rien en base » et « rien de lisible » sont
+  // indiscernables dans la trace.
+  readRetainedItems,
+} from "../_shared/keel/food_preference_promotion.ts";
+import type { RetainedItem } from "../_shared/keel/retained_item.ts";
+import { HOUSEHOLD_SUBJECT } from "../_shared/keel/retained_item.ts";
+import { nextPlanItemsFor } from "../_shared/keel/retained_next_plan.ts";
+import {
+  compositionLinesFor,
+  logisticsOverlayFor,
+  routeRetainedItems,
+  routingTrace,
+} from "../_shared/keel/retained_items_routing.ts";
 import {
   // C6 ② — CALCULER ET PERSISTER SONT DEUX GESTES, ET LE SECOND ATTEND QUE
   //         LA REQUÊTE ABOUTISSE.
@@ -245,6 +263,35 @@ Deno.serve(async (req) => {
       }, { status: 409 });
     }
     const goalRow = goalRes.data as Record<string, unknown>;
+
+    // ── LA LANGUE DE CETTE SEMAINE ────────────────────────────────────────
+    //
+    // ⚠️ ELLE NE VIENT PAS DE `student_goals.content_locale`, ET C'EST LE
+    // CORRECTIF. Cette colonne-là est la langue dans laquelle l'élève a écrit
+    // SA SITUATION — troisième axe de R3 — et tous ses écrivains la sèment
+    // `'en-GB'` sans que personne ne l'ait choisi. L'écriture en base disait
+    // donc `content_locale = 'en'` d'un texte qui, désormais, peut être
+    // français: une ligne qui ment sur elle-même, et sur laquelle s'appuient le
+    // rendu, le PDF et la relecture.
+    //
+    // `profiles.locale` est la langue que la personne a CHOISIE à l'inscription
+    // (`signupProfileLocale`), et c'est elle que l'agent parle. Un plan écrit
+    // dans une autre langue que la conversation est le défaut le plus visible
+    // que ce chantier pouvait produire.
+    const profileRes = await admin
+      .from("profiles")
+      .select("locale")
+      .eq("id", userId)
+      .maybeSingle();
+    if (profileRes.error) throw profileRes.error;
+    const contentLocale = resolveArtifactLocale({
+      studentProfile: String(
+        (profileRes.data as { locale?: string | null } | null)?.locale ?? "",
+      ).trim() || null,
+      // Attend sa source: `coaches.default_student_locale` n'existe pas encore.
+      // `null` explicite est une déclaration, pas un oubli.
+      tenantDefault: null,
+    });
 
     // --- CE QUE L'ÉLÈVE A DÉMENTI DEPUIS ----------------------------------
     // Une préférence gardée est une chaîne dans un jsonb; le souvenir dont
@@ -549,8 +596,151 @@ Deno.serve(async (req) => {
       }));
     }
 
+    // ══ LOT 1C · LA MÉMOIRE STRUCTURÉE ENTRE DANS LA SEMAINE ═══════════════
+    //
+    // Les items retenus (`docs/keel/NOMENCLATURE-MEMOIRE.md` §2 axe 1) arrivent
+    // de DEUX magasins et repartent vers leurs lecteurs:
+    //
+    //   `food.*` / `method.*` → la consigne de composition, c'est-à-dire ICI la
+    //                           clé `food_preferences` du jsonb sérialisé;
+    //   `logistics.set`       → `practical_constraints`, AVANT son seul lecteur.
+    //
+    // ── LES TROIS FAMILLES QUI N'ONT PAS DE LECTEUR SUR CETTE LANE ──────────
+    // Et elles ne s'inventent pas un: cette fonction écrit des LIGNES DE
+    // COACHING (« construis ton déjeuner autour de quelque chose qui tient »),
+    // pas un menu. Elle n'a ni enveloppe, ni grille de créneaux, ni bloc
+    // d'envies.
+    //
+    //   `portion.adjust` — son lecteur est `envelopeFor`, que cette fonction
+    //                      n'appelle pas. Rien à dimensionner ici.
+    //   `rhythm.set`     — les six moments sont lus par `parseEatingRhythm`,
+    //                      qui vit dans `meal_generation.ts`. Cette lane ne
+    //                      l'importe pas, et l'importer tirerait 2 600 lignes
+    //                      dans ce bundle pour corriger une clé sérialisée.
+    //                      ⚠️ CONSÉQUENCE ASSUMÉE ET NOMMÉE: le `eating_rhythm`
+    //                      envoyé au modèle par cette lane est celui de la
+    //                      COLONNE, non corrigé par les items retenus.
+    //   `craving`        — son lecteur est le bloc d'envies, qui n'existe que
+    //                      sur la lane foyer. Une envie de fajitas n'est pas
+    //                      une ligne de coaching.
+    //
+    // Les trois sont COMPTÉES dans la trace ci-dessous: « ce générateur n'en a
+    // rien fait » doit se lire, pas se deviner.
+    const retainedDurable = readRetainedItems(
+      goalRow.practical_constraints as Record<string, unknown> | null,
+    );
+    // BEST-EFFORT, et c'est l'inverse de la lecture du corps juste au-dessus:
+    // un hoquet sur les envies de la semaine prochaine ne doit pas coûter la
+    // semaine. `nextPlanItemsFor` n'écrit rien et journalise déjà ses propres
+    // échecs; ici on garde la trace côté appelant.
+    //
+    // ⚠️ CE BLOC A DÉCRIT LE CONTRAIRE DE CE QU'IL FAIT, MOT POUR MOT, JUSQU'AU
+    // LOT 1J. Il annonçait que le magasin `next_plan` vivait sur
+    // `household_envy_submissions` — dont `household_id` est `not null` — donc
+    // qu'une personne seule (qui NE CRÉE PAS DE FOYER) n'aurait jamais rien ici,
+    // « POUR TOUJOURS ». C'est faux depuis le déménagement (contrat §7.2), et
+    // le prochain lot aurait relu cette prose comme la spécification.
+    //
+    // CE QUI EST VRAI: `nextPlanItemsFor({admin, userId, today})` lit
+    // `student_goals.practical_constraints.retained_next_plan`, PAR `user_id`
+    // SEUL. Aucun foyer n'entre dans la clé. **Le solo est servi comme tout le
+    // monde** — c'est exactement le motif du déménagement: l'entrée du produit
+    // est à UNE bouche, et un compte solo n'aurait jamais pu porter le moindre
+    // retour sur brouillon. L'expiration est CALCULÉE À LA LECTURE (vivant tant
+    // que `jour ≤ ancre + 6`), sans colonne d'état ni job.
+    //
+    // Un `[]` ici veut donc dire UNE chose et une seule: cette personne n'a rien
+    // déposé pour la semaine visée. Il n'y a plus deux vides à distinguer, et
+    // c'est pourquoi la trace ne porte plus de `next_plan_channel`.
+    let retainedNextPlan: RetainedItem[] = [];
+    try {
+      retainedNextPlan = await nextPlanItemsFor({
+        admin,
+        userId,
+        today: todayLocal,
+      });
+    } catch (error) {
+      console.warn(`[${FN_NAME}] next_plan retained items unreadable`, error);
+    }
+    const routedRetained = routeRetainedItems([
+      ...retainedDurable.items,
+      ...retainedNextPlan,
+    ]);
+    // ⚠️ `household` SEUL. Cette lane ne connaît aucun `member_id`: elle lit la
+    // ligne d'UN compte. Un item écrit pour une bouche nommée est donc COMPTÉ
+    // (`otherSubjects`) et non appliqué — l'appliquer reviendrait à décider que
+    // le titulaire est cette bouche-là, ce que rien ici ne prouve.
+    const retainedSpeaksFor = [HOUSEHOLD_SUBJECT];
+    const retainedLogistics = logisticsOverlayFor({
+      items: routedRetained.logistics,
+      speaksFor: retainedSpeaksFor,
+    });
+    if (Object.keys(retainedLogistics.patch).length > 0) {
+      // AVANT `constraintsForPrompt`, seul lecteur de cette colonne dans ce
+      // fichier. Poser le correctif après lui ne changerait que la trace.
+      goalRow.practical_constraints = {
+        ...(goalRow.practical_constraints ?? {}) as Record<string, unknown>,
+        ...retainedLogistics.patch,
+      };
+    }
+    const retainedComposition = compositionLinesFor({
+      items: routedRetained.composition,
+      speaksFor: retainedSpeaksFor,
+    });
+    console.log(JSON.stringify({
+      tag: "keel.week_plan.retained_items",
+      user_id: userId,
+      ...routingTrace({ routed: routedRetained, adjustments: [] }),
+      // Ce que le magasin a REFUSÉ à la lecture. Zéro ici ne veut pas dire
+      // « rien en base »: il veut dire « rien d'illisible », et les deux se
+      // confondraient sans ce nombre.
+      refused: retainedDurable.refused.total,
+      legacy_notes: retainedDurable.legacyNotes.length,
+      other_subjects: retainedComposition.otherSubjects.length +
+        retainedLogistics.otherSubjects.length,
+      // ⛔ `next_plan_channel` A ÉTÉ RETIRÉ ICI, PAS CORRIGÉ (lot 1J). Il valait
+      // `householdId ? "household" : "none"` et existait pour séparer deux
+      // vides: « aucun canal » et « canal vide ». Le déménagement du magasin
+      // (§7.2) a supprimé le PREMIER — un compte solo possède désormais un
+      // canal comme tout le monde. Le champ rendait donc `"none"` à quelqu'un
+      // qui en a un, et un lecteur de trace en concluait « `craving: 0` est
+      // structurel » là où la personne n'avait simplement rien demandé: la
+      // distinction était exactement INVERSÉE. Un champ qui ment est pire que
+      // pas de champ, et il n'y a plus qu'un vide à lire — `craving: 0`.
+    }));
+
+    // ── LA CONSIGNE DE COMPOSITION, EN UNE SEULE LISTE ────────────────────
+    //
+    // ⚠️ LA MÊME CLÉ QUE LES PHRASES PLATES, ET PAS UNE SECONDE. Ce prompt
+    // sérialise le jsonb ENTIER: une clé de plus serait une SECONDE liste de
+    // règles alimentaires à côté de la première, et un modèle qui lit deux
+    // listes voisines les arbitre en silence.
+    //
+    // LE MAGASIN STRUCTURÉ PASSE DEVANT. Ce n'est pas une préférence de style:
+    // le §7 de la nomenclature nomme les phrases plates « anciennes notes »
+    // — elles n'ont ni `kind`, ni sujet, ni date fiable, et elles ne se
+    // reclassent que quand la personne les édite. Ce qui est structuré est
+    // donc plus récent ET plus sûr, dans cet ordre.
+    const practicalConstraintsForPrompt = (() => {
+      const serialised = constraintsForPrompt(
+        (goalRow.practical_constraints ?? {}) as Record<string, unknown>,
+      );
+      const lines = [
+        ...retainedComposition.written,
+        ...retainedComposition.remembered,
+      ];
+      if (lines.length === 0) return serialised;
+      const legacy = Array.isArray(serialised[FOOD_PREFERENCES_KEY])
+        ? serialised[FOOD_PREFERENCES_KEY] as unknown[]
+        : [];
+      return {
+        ...serialised,
+        [FOOD_PREFERENCES_KEY]: [...lines, ...legacy],
+      };
+    })();
+
     const goal = String(goalRow.goal ?? "health") as StudentGoal;
-    const { systemPrompt, userMessage, allowedKeys, maxNutrition } = buildWeekPlanPrompt({
+    const built = buildWeekPlanPrompt({
       principles,
       situation: {
         goal,
@@ -571,9 +761,10 @@ Deno.serve(async (req) => {
         // comptabilité de la carte de préférences (les ids écartés) n'a rien à
         // y faire — elle occuperait du budget pour du bruit, et un modèle qui
         // lit « dismissed » à côté de préférences peut les appliquer à l'envers.
-        practicalConstraints: constraintsForPrompt(
-          (goalRow.practical_constraints ?? {}) as Record<string, unknown>,
-        ),
+        //
+        // LOT 1C — la liste porte désormais AUSSI les `food.*` / `method.*`
+        // retenus, hissée juste au-dessus pour n'être calculée qu'une fois.
+        practicalConstraints: practicalConstraintsForPrompt,
         // Ce que chaque entrée ALTÈRE est documenté dans `student_body.ts`. Une
         // bande d'âge (pas un nombre) et des TENDANCES (pas des valeurs): le
         // modèle n'a aucun usage légitime de « 78,4 kg » qu'il n'ait de
@@ -596,10 +787,11 @@ Deno.serve(async (req) => {
       // FF-027. `null` quand la fenêtre ne porte pas de faim récurrente, et le
       // prompt est alors mot pour mot celui d'avant cette fiche.
       hungerSignalBlock,
+      contentLocale,
     });
 
     const result = await generateWithGemini(
-      systemPrompt, userMessage, 0.4, true, [], "auto",
+      built.systemPrompt, built.userMessage, 0.4, true, [], "auto",
       // Même modèle de composition que `generate-meal-v1` — voir
       // `generation_model.ts`. Un plan de semaine porte encore plus de
       // contraintes simultanées qu'un repas.
@@ -618,7 +810,7 @@ Deno.serve(async (req) => {
         safetyConstraints: constraints,
         // Le plafond EFFECTIF rendu par le prompt, jamais un second calcul —
         // voir le commentaire sur `maxNutrition` dans `buildWeekPlanPrompt`.
-        maxNutrition,
+        maxNutrition: built.maxNutrition,
       });
     } catch (error) {
       return jsonResponse(req, {
@@ -692,7 +884,7 @@ Deno.serve(async (req) => {
             age_known: usableAge(studentBody.verdict) !== null,
             weight_trend: trendOf(studentBody.weights, WEIGHT_NOISE_KG),
             waist_trend: trendOf(studentBody.waists, WAIST_NOISE_CM),
-            max_nutrition: maxNutrition,
+            max_nutrition: built.maxNutrition,
           },
           // FF-027 — LA PROVENANCE DE L'ADAPTATION, archivée avec le plan.
           //
@@ -712,7 +904,11 @@ Deno.serve(async (req) => {
         // c'est exactement le genre d'incohérence dont on se sert plus tard
         // pour affirmer qu'un élève avait adopté sa semaine.
         adopted_at: null,
-        content_locale: String(goalRow.content_locale ?? "en"),
+        // LA MÊME EXPRESSION QUE CELLE QUI A ÉCRIT LE PROMPT, littéralement.
+        // Elle valait `String(goalRow.content_locale ?? "en")` — une SECONDE
+        // expression, calculée ailleurs, à partir d'une autre colonne, et qui
+        // écrivait un tag de 2 lettres là où R2 demande du BCP-47.
+        content_locale: built.contentLocale,
       }, { onConflict: "user_id,week_start" })
       .select("id, week_start, status")
       .single();

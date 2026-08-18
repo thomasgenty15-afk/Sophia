@@ -1,0 +1,136 @@
+{
+  "id": "28fb9623-391f-4065-8a11-879b7dd469b6",
+  "user_id": "8d6d727e-e7ca-4b62-9864-2ae23b031049",
+  "household_id": "4123e479-f62a-4a3c-912e-5c7cb5c1f15a",
+  "plan_kind": "household",
+  "starts_on": "2026-08-17",
+  "duration_days": 3,
+  "servings": 4,
+  "member_portions": [
+    {
+      "member_id": "30730edf-846c-4ea4-901d-39c9caaf7fee",
+      "display_name": "Paul",
+      "portion_note": "Serve a full plate with chicken, a balanced scoop of rice or pasta, and a normal amount of vegetables; keep the salad or bread on the side as listed.",
+      "preparation_shares": [
+        {
+          "note": "1 plate-sized portion at each meal that uses it.",
+          "preparation_id": "prep_chicken"
+        },
+        {
+          "note": "1 balanced share with dinner on Monday.",
+          "preparation_id": "prep_rice"
+        },
+        {
+          "note": "1 balanced share with dinners or lunch as listed.",
+          "preparation_id": "prep_roasted_veg"
+        }
+      ]
+    },
+    {
+      "member_id": "e62e2bbd-b675-4fe2-be7d-9dd98510ee98",
+      "display_name": "Lea",
+      "portion_note": "Serve a smaller plate with the same components, using a child-size scoop of starch and a smaller mound of chicken and vegetables.",
+      "preparation_shares": [
+        {
+          "note": "A smaller share than Paul, with the same accompaniments.",
+          "preparation_id": "prep_chicken"
+        },
+        {
+          "note": "A child-size scoop at dinner.",
+          "preparation_id": "prep_rice"
+        },
+        {
+          "note": "A child-size portion, with vegetables kept easy to eat.",
+          "preparation_id": "prep_roasted_veg"
+        }
+      ]
+    },
+    {
+      "member_id": "8183690c-96c2-4ded-a818-f1edc36862c0",
+      "display_name": "Tom",
+      "portion_note": "Serve a child-size plate like Lea's, with chicken, a small starch portion, and the same vegetables.",
+      "preparation_shares": [
+        {
+          "note": "A smaller share than Paul, with the same accompaniments.",
+          "preparation_id": "prep_chicken"
+        },
+        {
+          "note": "A child-size scoop at dinner.",
+          "preparation_id": "prep_rice"
+        },
+        {
+          "note": "A child-size portion, with vegetables kept easy to eat.",
+          "preparation_id": "prep_roasted_veg"
+        }
+      ]
+    },
+    {
+      "member_id": "e3d77550-6f51-411e-9d0c-8bd36c3d07a2",
+      "display_name": "Nina",
+      "portion_note": "Serve the chicken and starch in balanced amounts, then add extra roasted vegetables or salad on top of the plate.",
+      "preparation_shares": [
+        {
+          "note": "Balanced protein share with the others.",
+          "preparation_id": "prep_chicken"
+        },
+        {
+          "note": "Balanced starch share, not oversized.",
+          "preparation_id": "prep_rice"
+        },
+        {
+          "note": "Extra vegetables added, especially at lunch or dinner.",
+          "preparation_id": "prep_roasted_veg"
+        }
+      ]
+    }
+  ],
+  "generated_from": {
+    "goal": "health",
+    "intent": "prepare_next",
+    "issues": [
+      "structured_quantity_missing: 3/34 ingredients",
+      "\"Chicken, tomato and cucumber salad with bread\" (mon) eats from \"Roast chicken thighs\", cooked on wed -- after the meal",
+      "\"Chicken rice bowls with roasted courgettes and peppers\" (mon) eats from \"Roast chicken thighs\", cooked on wed -- after the meal",
+      "\"Chicken rice bowls with roasted courgettes and peppers\" (mon) eats from \"Steamed rice\", cooked on wed -- after the meal",
+      "\"Chicken rice bowls with roasted courgettes and peppers\" (mon) eats from \"Roasted courgettes and peppers\", cooked on wed -- after the meal",
+      "\"Chicken pasta salad with basil and tomatoes\" (tue) eats from \"Roast chicken thighs\", cooked on wed -- after the meal",
+      "\"Chicken wraps with roasted vegetables and yogurt sauce\" (tue) eats from \"Roast chicken thighs\", cooked on wed -- after the meal",
+      "\"Chicken wraps with roasted vegetables and yogurt sauce\" (tue) eats from \"Roasted courgettes and peppers\", cooked on wed -- after the meal"
+    ],
+    "coach_id": "45ea87eb-2eac-4ffb-89af-7c3328a05125",
+    "household": {
+      "id": "4123e479-f62a-4a3c-912e-5c7cb5c1f15a",
+      "hand": {
+        "taken": [],
+        "partial": []
+      },
+      "presence": {
+        "members": [],
+        "deserted": [],
+        "servings": 4
+      },
+      "envy_week": "2026-08-17",
+      "minor_count": 2,
+      "member_count": 4,
+      "envy_line_used": false,
+      "accountless_count": 2,
+      "restriction_count": 0,
+      "unknown_age_count": 1
+    },
+    "belief_keys": [
+      "protein_anchor"
+    ],
+    "hunger_days": 0,
+    "prompt_version": "meal.en.v8_distinct_health_direction+household.v2_presence",
+    "doctrine_reason": "loaded",
+    "doctrine_version": 1,
+    "satiety_priority": false,
+    "hunger_window_end": "2026-08-12",
+    "hunger_window_days": 7,
+    "hunger_window_start": "2026-08-06",
+    "protein_anchor_retry": false,
+    "protein_anchor_missing": []
+  },
+  "retired_at": null,
+  "created_at": "2026-08-12T01:02:26.283666+00:00"
+}

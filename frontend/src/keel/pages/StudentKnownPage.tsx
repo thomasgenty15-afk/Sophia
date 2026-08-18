@@ -1,0 +1,150 @@
+import React from "react";
+
+import { useAuth } from "../../context/AuthContext";
+import {
+  type KnownMouth,
+  type KnownStore,
+  loadKnownRoster,
+  loadKnownStore,
+  persistKnownStore,
+} from "../api/retainedItems";
+import { localDateIn } from "../api/dates";
+import KeelAppShell from "../components/KeelAppShell";
+import KnownAboutYouCard from "../components/KnownAboutYouCard";
+import { Card } from "../components/ui/Card";
+import { t } from "../i18n/t";
+
+// KEEL — `/app/about-you` : « CE QUE SOPHIA SAIT DE TOI ».
+//
+// ── POURQUOI UNE DESTINATION, ET PAS UNE CARTE DE PLUS ────────────────────
+// Tout ce que le produit retient d'une personne vivait dans une carte repliée,
+// en bas de `/app/plan` (`StudentWeekPlanPage:2329`). La promesse « rien
+// d'opaque » dépendait donc du hasard d'un défilement — et d'un écran qu'on
+// ouvre pour composer sa semaine, pas pour se relire. §6 de
+// `docs/keel/NOMENCLATURE-MEMOIRE.md` tranche: elle devient une destination à
+// elle, avec son entrée de nav (une route sans lien est une fonctionnalité que
+// personne n'a).
+//
+// ── ⚠️ LA GATE DE CHARGEMENT N'EST PAS DU CONFORT ─────────────────────────
+// Cicatrice nommée du dépôt: « formulaire figé au montage sans gate » — il
+// affiche du vide non lu, puis l'ÉCRASE au Save. Ici le prix serait maximal:
+// la carte écrit la liste ENTIÈRE des items, donc un rendu avant lecture
+// enverrait `[]` et effacerait tout ce que la personne avait déclaré. La carte
+// n'est donc montée QUE sur l'état `ready`.
+//
+// ── ⚠️ CE QUE CET ÉCRAN NE PERSISTE PAS ENCORE ────────────────────────────
+// Le port d'écriture est une RPC dont la migration est ÉCRITE et NON LANCÉE
+// (`20260818240000_a_write_port_for_what_sophia_knows.sql`). Tant qu'un humain
+// ne l'a pas passée, chaque enregistrement rend le refus NOMMÉ
+// `no_write_port`, affiché sous le bouton qu'on vient d'appuyer. C'est un
+// partiel, et il se voit — pas un « Saved » posé sur un 204 silencieux.
+
+type LoadState =
+  | { kind: "loading" }
+  | { kind: "error"; message: string }
+  | { kind: "ready"; store: KnownStore; roster: KnownMouth[] };
+
+export default function StudentKnownPage() {
+  const { user } = useAuth();
+  const userId = user?.id ?? "";
+
+  const [state, setState] = React.useState<LoadState>({ kind: "loading" });
+
+  /**
+   * LE JOUR LOCAL DE LA PERSONNE, résolu UNE fois par montage.
+   *
+   * ⚠️ Il sert de `at` à toute ligne que la personne re-signe, et de « today »
+   * à l'expiration des envies. `localDateIn` prend le fuseau de l'appareil et
+   * rend un `yyyy-mm-dd` — jamais un `new Date().toISOString()`, qui donnerait
+   * le lendemain à un Européen après 22 h. Un « je l'ai écrit mardi » daté de
+   * mercredi est un écran de transparence qui ment.
+   */
+  const today = React.useMemo(
+    () => localDateIn(Intl.DateTimeFormat().resolvedOptions().timeZone),
+    [],
+  );
+
+  const refresh = React.useCallback(async () => {
+    if (!userId) return;
+    try {
+      // Les deux lectures ensemble: la carte a besoin des bouches pour NOMMER
+      // qui est concerné par un ajustement de portion, et une carte à moitié
+      // chargée afficherait « — » à la place des prénoms le temps d'un rendu.
+      const [store, roster] = await Promise.all([
+        loadKnownStore(userId),
+        loadKnownRoster(),
+      ]);
+      setState({ kind: "ready", store, roster });
+    } catch (error) {
+      setState({
+        kind: "error",
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }, [userId]);
+
+  React.useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  const shell = (children: React.ReactNode) => (
+    <KeelAppShell title={t("known.title")} subtitle={t("known.subtitle")}>
+      {children}
+    </KeelAppShell>
+  );
+
+  if (state.kind === "loading") {
+    return shell(<p className="text-sm text-ink-soft">{t("known.loading")}</p>);
+  }
+
+  if (state.kind === "error") {
+    return shell(
+      <Card tone="warning">
+        <p className="text-sm text-amber-900">
+          {t("known.error.load", { message: state.message })}
+        </p>
+      </Card>,
+    );
+  }
+
+  const { store, roster } = state;
+
+  if (!store.hasGoal) {
+    // Pas de ligne `student_goals` = rien à lire ET rien à écrire. Le dire
+    // plutôt que rendre six sections vides qui laisseraient croire que Sophia
+    // ne retient rien.
+    return shell(
+      <Card tone="dashed">
+        <p className="text-sm text-ink-soft">{t("known.no_goal")}</p>
+      </Card>,
+    );
+  }
+
+  const members = new Map(roster.map((m) => [m.memberId, m.displayName]));
+
+  return shell(
+    <>
+      <p className="mb-6 text-sm text-ink-soft">{t("known.intro")}</p>
+      <KnownAboutYouCard
+        store={store}
+        members={members}
+        roster={roster}
+        today={today}
+        onSave={async (next) => {
+          // ⚠️ L'ÉCRITURE EST CIBLÉE ET SA GARDE EST DANS LE PRÉDICAT: la RPC
+          // compare la valeur LIVE à celle qu'on a LUE (`store.rawItems`), donc
+          // un geste posé sur un état périmé est REFUSÉ (`stale_snapshot`) au
+          // lieu d'écraser celui d'un tiers. Le refus remonte à la carte, qui
+          // le rend sous le bouton.
+          await persistKnownStore({
+            store,
+            items: next.items,
+            nextPlan: next.nextPlan,
+            notes: next.notes,
+          });
+          await refresh();
+        }}
+      />
+    </>,
+  );
+}

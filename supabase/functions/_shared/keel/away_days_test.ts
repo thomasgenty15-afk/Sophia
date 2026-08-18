@@ -91,10 +91,12 @@ Deno.test("`isAway` distingue le moment, le jour entier, et le plat sans crénea
 });
 
 Deno.test("l'absence arrive jusqu'à la consigne, en négatif explicite", () => {
-  const { userMessage } = buildMealPrompt({
+  const { userMessage } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true,
+    budgetAmount: null,
     safetyConstraints: null,
     body: null,
     focusAxis: null,
+    dietBlock: "",
     doctrineBlock: "== METHOD ==",
     coachNoteBlock: null,
     fixedIntakes: [],
@@ -150,8 +152,8 @@ Deno.test("le parseur REJETTE un plat posé sur un moment écarté", () => {
     fixedIntakes: [],
     dayProperties: [],
     merge: null,
-  });
     boxMemberIds: [],
+  });
 
   const kept = parsed.dishes.map((d) => d.title);
   assertEquals(kept, ["Monday lunch", "Tuesday dinner"]);
@@ -197,8 +199,8 @@ Deno.test("un plat écarté ne consomme PAS une place du plafond", () => {
     fixedIntakes: [],
     dayProperties: [],
     merge: null,
-  });
     boxMemberIds: [],
+  });
 
   // `scope: "day"` avec un rythme d'UN moment donne un plafond de 1. Les six
   // plats interdits ne doivent pas l'avoir épuisé.
@@ -224,8 +226,8 @@ Deno.test("sans absence, rien ne change — le chantier est additif", () => {
     fixedIntakes: [],
     dayProperties: [],
     merge: null,
-  };
     boxMemberIds: [],
+  };
   const withNone = parseGeneratedMeal({ dishes, shopping_list: [] }, {
     ...args,
     awayDays: [],
@@ -233,10 +235,12 @@ Deno.test("sans absence, rien ne change — le chantier est additif", () => {
   assertEquals(withNone.dishes.map((d) => d.title), ["A", "B"]);
 
   // Et la consigne ne porte AUCUNE ligne d'absence quand il n'y en a pas.
-  const { userMessage } = buildMealPrompt({
+  const { userMessage } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true,
+    budgetAmount: null,
     safetyConstraints: null,
     body: null,
     focusAxis: null,
+    dietBlock: "",
     doctrineBlock: "== METHOD ==",
     coachNoteBlock: null,
     fixedIntakes: [],

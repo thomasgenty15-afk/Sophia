@@ -1,0 +1,9 @@
+{
+  "status": 409,
+  "ms": 91,
+  "json": {
+    "error": "plan_overlaps_existing",
+    "detail": "That window sits inside a plan this household already has, and writing it would leave the end of that plan with nothing. Cover it to its last day, or replace it.",
+    "request_id": "aafab210-5bd7-4cf6-bd57-01baa88fd378"
+  }
+}

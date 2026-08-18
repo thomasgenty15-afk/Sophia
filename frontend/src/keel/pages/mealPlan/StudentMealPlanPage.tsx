@@ -1,9 +1,11 @@
 import React from "react";
 
+import { isMealCopyKey, mealCopy } from "../../api/mealLabels";
 import { type MealIdea, loadStudentRecipes } from "../../api/mealPlanModel";
 import KeelAppShell from "../../components/KeelAppShell";
 import { Badge } from "../../components/ui/Badge";
 import { Card, SectionLabel } from "../../components/ui/Card";
+import { t } from "../../i18n/t";
 
 // KEEL — /app/meals. LES IDÉES DU COACH, et rien d'autre.
 //
@@ -29,31 +31,12 @@ import { Card, SectionLabel } from "../../components/ui/Card";
 // mots, et l'absence totale de contrôle le dit d'une façon qu'on ne peut pas
 // discuter.
 //
-// I18N HAND-OFF (W9 possède `i18n/en.ts`; ce fichier ne l'écrit pas).
-
-const COPY = {
-  "meals.title": "Meal ideas",
-  "meals.subtitle":
-    "Dishes your coach put up for everyone they work with. Ideas only — nothing here is tracked and none of it counts for or against you.",
-  "meals.list.title": "From your coach",
-  "meals.list.empty":
-    "Your coach has not put any meal ideas up yet. Your week is unaffected — build it from the plan screen.",
-  "meals.loading": "Loading…",
-  "meals.error": "These could not be loaded just now.",
-  "meals.slot.breakfast": "Breakfast",
-  "meals.slot.lunch": "Lunch",
-  "meals.slot.dinner": "Dinner",
-  "meals.slot.snack": "Snack",
-  "meals.slot.snack_am": "Morning snack",
-  "meals.slot.snack_pm": "Afternoon snack",
-  "meals.slot.any_meal": "Any meal",
-} as const;
-
-type CopyKey = keyof typeof COPY;
-
-function c(key: CopyKey): string {
-  return COPY[key];
-}
+// ── I18N (lot 4) ──────────────────────────────────────────────────────────
+// Le `COPY` local a rejoint le seed (`i18n/en.ts`, namespace `meals`). Il
+// portait treize phrases dont SIX doublaient celles d'`api/mealLabels.ts` sous
+// les mêmes clés `meals.slot.*` — avec deux mots différents pour `snack_am` et
+// `snack_pm` (« Morning snack » ici, « Mid-morning » là-bas). Deux écrans
+// nommaient donc le même créneau de deux façons. Le seed n'en garde qu'un.
 
 /**
  * Le libellé d'un créneau, ou le token tel quel.
@@ -64,8 +47,8 @@ function c(key: CopyKey): string {
  */
 function slotLabel(slot: string | null): string | null {
   if (!slot) return null;
-  const key = `meals.slot.${slot}` as CopyKey;
-  return key in COPY ? c(key) : slot.replace(/_/g, " ");
+  const key = `meals.slot.${slot}`;
+  return isMealCopyKey(key) ? mealCopy(key) : slot.replace(/_/g, " ");
 }
 
 type LoadState =
@@ -95,24 +78,24 @@ export default function StudentMealPlanPage() {
   }, []);
 
   return (
-    <KeelAppShell title={c("meals.title")} subtitle={c("meals.subtitle")}>
+    <KeelAppShell title={t("meals.title")} subtitle={t("meals.subtitle")}>
       {state.kind === "loading" && (
-        <p className="text-sm text-gray-500">{c("meals.loading")}</p>
+        <p className="text-sm text-gray-500">{t("meals.loading")}</p>
       )}
 
       {state.kind === "error" && (
         <Card tone="warning">
-          <p className="text-sm text-amber-900">{c("meals.error")}</p>
+          <p className="text-sm text-amber-900">{t("meals.error")}</p>
         </Card>
       )}
 
       {state.kind === "ready" && (
         <section>
-          <SectionLabel>{c("meals.list.title")}</SectionLabel>
+          <SectionLabel>{t("meals.list.title")}</SectionLabel>
           {state.recipes.length === 0
             ? (
               <Card tone="dashed">
-                <p className="text-sm text-gray-500">{c("meals.list.empty")}</p>
+                <p className="text-sm text-gray-500">{t("meals.list.empty")}</p>
               </Card>
             )
             : (

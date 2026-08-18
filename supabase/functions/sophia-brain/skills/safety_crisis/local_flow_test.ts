@@ -238,12 +238,45 @@ Deno.test("safety_crisis visible prompt enforces strict safety wording quality",
     request_id: "req-safety",
     visible_task: visibleTask,
   });
-  assert(prompt.includes("pas de mot coupe"));
-  assert(prompt.includes("termes simples et standards"));
-  assert(prompt.includes("maximum 120 mots"));
+  // ── CE TEST PINNAIT LE DÉFAUT ─────────────────────────────────────────────
+  // Il passait `response_locale: "en-US"` et vérifiait ensuite des chaînes
+  // FRANÇAISES. Il était donc vert précisément parce que le prompt ignorait la
+  // locale: il prouvait le bug au lieu de le trouver. Les quatre consignes
+  // vérifiées sont les mêmes, dans la langue demandée.
+  assert(prompt.includes("no cut-off word"));
+  assert(prompt.includes("in plain and standard terms"));
+  assert(prompt.includes("120 words maximum"));
+  // Le marqueur de bloc est une CLÉ, pas de la prose: il ne se traduit dans
+  // aucune des deux langues (R1).
   assert(prompt.includes("VISIBLE_SAFETY_CONVERSATION_FLOW_RULES"));
   assert(
-    prompt.includes("sans utiliser de message brut ni de recent_messages"),
+    prompt.includes("without using raw messages or recent_messages"),
+  );
+  // Et aucun fragment du pack français ne fuit dans un tour anglais.
+  for (
+    const marker of [
+      "Tu ecris le prochain message",
+      "pas de mot coupe",
+      "maximum 120 mots",
+      "termes simples et standards",
+    ]
+  ) {
+    assert(!prompt.includes(marker), `fuite FR dans un prompt en-US: ${marker}`);
+  }
+
+  // LA CONTRE-ÉPREUVE: le pack français est GELÉ et rend toujours ses mots.
+  const promptFr = visibleSystemPromptForSafetyCrisisTest({
+    user_id: "user-safety",
+    response_locale: "fr-FR",
+    request_id: "req-safety",
+    visible_task: visibleTask,
+  });
+  assert(promptFr.includes("pas de mot coupe"));
+  assert(promptFr.includes("termes simples et standards"));
+  assert(promptFr.includes("maximum 120 mots"));
+  assert(promptFr.includes("VISIBLE_SAFETY_CONVERSATION_FLOW_RULES"));
+  assert(
+    promptFr.includes("sans utiliser de message brut ni de recent_messages"),
   );
 
   setSafetyCrisisVisibleAgentForTest((input) => {
@@ -315,9 +348,23 @@ Deno.test("safety_crisis visible product boundary rejects product artifact conte
     request_id: "req-safety",
     visible_task: visibleTask,
   });
-  assert(prompt.includes("Ne redige pas le contenu demande"));
-  assert(prompt.includes("aucun texte pret a copier-coller"));
-  assert(prompt.includes("aucun rappel ne doit etre confirme"));
+  // Même correction que plus haut: la locale demandée est `en-US`, donc les
+  // trois interdictions du stage `product_tool_boundary` se vérifient en
+  // anglais. Une consigne perdue dans un pack est une règle de sécurité qui ne
+  // s'applique qu'à la moitié des élèves.
+  assert(prompt.includes("Do not write the requested content"));
+  assert(prompt.includes("no ready-to-paste text"));
+  assert(prompt.includes("no reminder is to be confirmed"));
+
+  const promptFr = visibleSystemPromptForSafetyCrisisTest({
+    user_id: "user-safety",
+    response_locale: "fr-FR",
+    request_id: "req-safety",
+    visible_task: visibleTask,
+  });
+  assert(promptFr.includes("Ne redige pas le contenu demande"));
+  assert(promptFr.includes("aucun texte pret a copier-coller"));
+  assert(promptFr.includes("aucun rappel ne doit etre confirme"));
 
   setSafetyCrisisVisibleAgentForTest(async () =>
     "Je te propose une carte courte.\n\nCARTE - DEMAIN MATIN\nRespirer, appeler ta cousine."

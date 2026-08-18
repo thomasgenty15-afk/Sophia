@@ -58,6 +58,13 @@
  */
 
 import {
+  type ActivitySessionInput,
+  parseWeekActivity,
+  renderWeekActivityFact,
+  summarizeWeekActivity,
+  type WeekActivitySummary,
+} from "./activity_session.ts";
+import {
   LOGGED_DAY_MIN_EVENTS,
   LOGGING_COVERAGE_MIN_DAYS,
   type PortionBandSummary,
@@ -78,6 +85,7 @@ import {
   sanitizeComposedNudge,
 } from "./reengage_composer.ts";
 import { findGuiltTripping } from "./reengagement.ts";
+import { findNumericNutritionTarget } from "./nutrition_lexicon.ts";
 
 /**
  * La version de la forme sérialisée dans `weekly_reviews.week_facts`.
@@ -132,6 +140,19 @@ export interface WeekReviewInput {
   facts: readonly WeekFactInput[];
   /** Les taps du soir de la semaine (`student_daily_checkins`). */
   pulses: ReadonlyArray<{ overall: string; axis: string | null }>;
+  /**
+   * Les séances loguées de la semaine (`student_activity_sessions`).
+   *
+   * ⚠️ TROIS ÉTATS, ET LE TROISIÈME N'EST PAS UN DÉTAIL:
+   *   `[]`        — lu, aucune séance. On le SAIT, et on n'en dit rien
+   *                 (`renderWeekActivityFact` n'imprime jamais un zéro).
+   *   `[…]`       — lu, des séances.
+   *   `null`/absent — PAS LU (lecture en panne, appelant qui ne les charge
+   *                 pas). La lecture rendra `activity: null`, ce qui veut dire
+   *                 « je ne sais pas », jamais « zéro ». Les confondre ferait
+   *                 affirmer une semaine sans mouvement sur une panne Postgres.
+   */
+  activity?: readonly ActivitySessionInput[] | null;
   /**
    * Le mapping du coach, DÉJÀ compilé et DÉJÀ filtré sur l'objectif de cet
    * élève (`loadPublishedProtocol` lit `student_goals.goal` lui-même, et c'est
@@ -262,6 +283,33 @@ export interface WeekReviewReading {
   evidence: WeekEvidenceSplit | null;
   portions: PortionBandSummary;
   livability: LivabilitySummary;
+  /**
+   * LES SÉANCES DE LA SEMAINE, COMPTÉES. `null` = on ne sait pas.
+   *
+   * ── POURQUOI CE CHAMP EXISTE ────────────────────────────────────────────
+   * C'est le SEUL consommateur du log de séance
+   * (`student_activity_sessions`, migration 20260818180000). La règle mère du
+   * dépôt — on ne collecte une donnée que si quelque chose en aval la
+   * consomme — est écrite à côté des questions de l'entonnoir
+   * (`onboarding.ts:36`), et sans cette ligne-ci la table serait une collecte
+   * sans lecteur.
+   *
+   * ── ⛔ AUCUNE ÉNERGIE N'EN SORT ─────────────────────────────────────────
+   * Le résumé ne porte ni calories, ni dépense, ni charge — voir l'en-tête de
+   * `activity_session.ts` pour la raison chiffrée (le déficit visé est de
+   * 400-500 kcal/j, l'erreur d'une dépense déclarée de ±30-50 %: la
+   * soustraire augmente l'incertitude au lieu de la réduire). La ceinture qui
+   * refuse un nombre d'énergie dans le texte composé est `energy_number`.
+   *
+   * ⚠️ `null` SUR UN GEL ANTÉRIEUR À CE LOT, et c'est la même décision, mot
+   * pour mot, que `evidence` juste au-dessus: le lire à zéro affirmerait
+   * « aucune séance cette semaine-là », ce qui est faux. C'est aussi ce qui
+   * permet d'AJOUTER ce champ sans bumper `WEEK_REVIEW_FACTS_VERSION` — une
+   * version neuve rendrait illisibles tous les gels existants, et la
+   * conversation perdrait une semaine entière de chiffres citables pour un
+   * champ purement additif.
+   */
+  activity: WeekActivitySummary | null;
   alignment: readonly AlignmentItem[];
   /** Règles du coach qu'on n'a PAS su juger (horaires, créneaux). Comptées. */
   unevaluatedRules: number;
@@ -601,6 +649,13 @@ export function computeWeekReview(input: WeekReviewInput): WeekReviewReading {
     photo: input.facts.filter((f) => f.source === "photo").length,
   };
 
+  // LE COMPTE DE SÉANCES. `undefined`/`null` en entrée = « pas lu », et il
+  // reste `null` jusqu'au bout: un appelant qui ne charge pas les séances ne
+  // doit pas faire dire « aucune séance » au bilan.
+  const activity = input.activity == null
+    ? null
+    : summarizeWeekActivity(input.activity, weekDates);
+
   return {
     version: WEEK_REVIEW_FACTS_VERSION,
     evidence,
@@ -612,6 +667,7 @@ export function computeWeekReview(input: WeekReviewInput): WeekReviewReading {
     coverage,
     portions,
     livability,
+    activity,
     alignment,
     unevaluatedRules,
     branch,
@@ -704,9 +760,14 @@ export function parseWeekReview(raw: unknown): WeekReviewReading | null {
     }
     : null;
 
+  // Le compte de séances — MÊME RÈGLE que `evidence` juste au-dessus: absent
+  // sur un gel antérieur au lot, et absent veut dire `null`, pas zéro.
+  const activity = raw.activity == null ? null : parseWeekActivity(raw.activity);
+
   return {
     version: WEEK_REVIEW_FACTS_VERSION,
     evidence,
+    activity,
     window: {
       start: cleanToken(window.start),
       end: cleanToken(window.end),
@@ -790,6 +851,21 @@ function askText(ask: AlignmentAsk): string {
 export function renderDeterministicWeekReview(reading: WeekReviewReading): string {
   const { coverage, branch, alignment, question } = reading;
 
+  /**
+   * LE FAIT DES SÉANCES, S'IL Y EN A UN.
+   *
+   * Il est collé à TOUTES les branches, y compris `insufficient_data`, et
+   * c'est le point: le mouvement de la semaine ne dépend pas de la couverture
+   * ALIMENTAIRE. Quelqu'un qui n'a rien photographié mais a couru trois fois
+   * doit s'entendre dire la seule chose vraie qu'on sait de sa semaine — et
+   * c'est précisément la semaine où le bilan n'avait rien à raconter.
+   *
+   * Zéro séance n'imprime rien: voir `renderWeekActivityFact`.
+   */
+  const activity = renderWeekActivityFact(reading.activity);
+  const withActivity = (text: string): string =>
+    activity ? `${text} ${activity}` : text;
+
   if (branch === "insufficient_data") {
     // Aucun reproche, aucune consigne: on dit ce qu'on a, et on s'arrête.
     // « Tu n'as pas assez logué » est un reproche passif, et le dépôt a déjà
@@ -798,8 +874,10 @@ export function renderDeterministicWeekReview(reading: WeekReviewReading): strin
     const seen = coverage.observedDays === 1
       ? "1 day of your week"
       : `${coverage.observedDays} days of your week`;
-    return `Thanks — that's saved. I only have ${seen} on the food side, ` +
-      `so I'll leave the eating out of it this time.`;
+    return withActivity(
+      `Thanks — that's saved. I only have ${seen} on the food side, ` +
+        `so I'll leave the eating out of it this time.`,
+    );
   }
 
   if (branch === "no_method" || alignment.length === 0) {
@@ -809,8 +887,10 @@ export function renderDeterministicWeekReview(reading: WeekReviewReading): strin
     // peut être rempli le mardi suivant, et ce module n'a pas d'horloge (il
     // n'en veut pas). Une phrase sans « cette » est vraie quand qu'on la lise;
     // la fenêtre, elle, est portée par le bloc de contexte, qui a les dates.
-    return `Thanks — that's saved. You logged ${meals} across ` +
-      `${coverage.loggedDays} days.`;
+    return withActivity(
+      `Thanks — that's saved. You logged ${meals} across ` +
+        `${coverage.loggedDays} days.`,
+    );
   }
 
   // ── ON N'OUVRE JAMAIS SUR UN ÉVITEMENT TENU ────────────────────────────────
@@ -843,6 +923,11 @@ export function renderDeterministicWeekReview(reading: WeekReviewReading): strin
   } else if (gaps.length === 0 && honouredDo.length > 0) {
     parts.push("Nothing your coach asks for went missing.");
   }
+
+  // AVANT la question, jamais après: la question est la seule partie qui
+  // appelle une réponse, et une phrase collée derrière elle se lit comme si on
+  // n'attendait pas vraiment de réponse.
+  if (activity) parts.splice(question ? parts.length - 1 : parts.length, 0, activity);
 
   return parts.join(" ");
 }
@@ -894,6 +979,42 @@ export function weekReviewPromptBlock(
   lines.push(
     "- Never state a number that is not written in this block, and never re-add them together.",
   );
+
+  // ── LES SÉANCES, AVANT LA SORTIE ANTICIPÉE SUR LA COUVERTURE ─────────────
+  // Elles ne dépendent pas de la couverture ALIMENTAIRE: une semaine sans
+  // photo peut être une semaine à trois séances, et la placer après le
+  // `return` ci-dessous la ferait disparaître exactement là où elle est la
+  // seule chose qu'on sache.
+  const activity = reading.activity;
+  if (activity && activity.sessions > 0) {
+    const bands =
+      `${activity.byIntensity.easy} easy, ${activity.byIntensity.moderate} moderate, ` +
+      `${activity.byIntensity.hard} hard, ${activity.byIntensity.undeclared} not stated`;
+    lines.push("");
+    lines.push(
+      `TRAINING THEY LOGGED THEMSELVES: ${activity.sessions} session(s) on ` +
+        `${activity.days} day(s) — ${bands}` +
+        (activity.minutesFrom > 0
+          ? `; ${activity.minutes} minutes declared across ${activity.minutesFrom} of those sessions`
+          : "") +
+        ".",
+    );
+    lines.push(
+      // Trois interdits, et chacun ferme un glissement précis. Le premier est
+      // celui qui coûterait le plus cher: la dépense d'un exercice DÉCLARÉ est
+      // fausse de ±30-50 %, et le déficit visé est de 400-500 kcal/jour — la
+      // soustraire augmenterait l'incertitude du jour au lieu de la réduire.
+      "- NEVER turn this into calories, energy burned, a deficit, or a 'balance' " +
+        "against what they ate. You do not know what it cost and this product does not compute it.",
+    );
+    lines.push(
+      "- It is a COUNT of what they logged, not a training programme. Do not prescribe " +
+        "sessions, volume, frequency or intensity, and do not change any food advice because of it.",
+    );
+    lines.push(
+      "- Days without a logged session are unknown, not rest days and not missed sessions.",
+    );
+  }
 
   if (!coverage.sufficient) {
     lines.push("");
@@ -1004,6 +1125,20 @@ export function describeWeekReview(reading: WeekReviewReading): string {
   );
   lines.push(`- Meals logged in total that week: ${coverage.totalFacts}.`);
 
+  // Les séances, AVANT les deux sorties anticipées ci-dessous: le mouvement de
+  // la semaine ne dépend pas de la couverture alimentaire ni de l'existence
+  // d'une méthode chez le coach.
+  if (reading.activity && reading.activity.sessions > 0) {
+    lines.push(
+      `- Training sessions they logged themselves: ${reading.activity.sessions}, ` +
+        `on ${reading.activity.days} day(s).`,
+    );
+    lines.push(
+      "- NEVER convert a session into calories, energy burned or a deficit, and never " +
+        "tell them to train more, less or differently. It is a count, not a programme.",
+    );
+  }
+
   if (branch === "insufficient_data") {
     lines.push(
       "- THERE IS NO READING OF THEIR EATING. Coverage is below the threshold. " +
@@ -1087,6 +1222,12 @@ export function buildWeekReviewSystemPrompt(args: {
       "no 'proud of you', no 'keep it up'. Naming what they did IS the recognition; " +
       "an adjective on top of it is worth nothing and costs you their trust the week it goes badly.",
     "- Never comment on their weight, their body, or a measurement.",
+    // Adossée à la ceinture `energy_number` (`findNumericNutritionTarget`,
+    // motif `energy_unit`): un message qui chiffre une dépense est jeté, pas
+    // corrigé. La raison est chiffrée dans `activity_session.ts` — une dépense
+    // déclarée est fausse de ±30-50 %, et le déficit visé fait 400-500 kcal/j.
+    "- Never state calories, kcal, kilojoules or 'energy burned' — not for food, and not " +
+      "for a training session. A session is a count of what they did, never a number of calories.",
     "- Do not tell them what to do next week. This is a reading, not an instruction.",
     wantsQuestion
       ? "- End with EXACTLY ONE question, and it must be the one named above: what made that " +
@@ -1139,9 +1280,18 @@ const ADHERENCE_LANGUAGE: readonly RegExp[] = [
   /\bs[ée]rie\s+de\s+\d/i,
 ];
 
-/** Les noms de choses qu'on compte dans un bilan de semaine. */
+/**
+ * Les noms de choses qu'on compte dans un bilan de semaine.
+ *
+ * ⚠️ `sessions`, `workouts` et `minutes` Y SONT PARCE QUE LE BILAN LES DONNE.
+ * Un nom absent de cette liste n'est pas « permis », il est INVISIBLE: le
+ * motif ne l'inspecte jamais, donc « you trained 5 times » passerait sur une
+ * semaine à 3 séances sans que la ceinture `invented_number` ouvre l'œil. Un
+ * chiffre donné au modèle sans son nom dans cette liste est un chiffre non
+ * gardé.
+ */
 const COUNTABLE = "meals?|dishes|plates?|days?|times?|portions?|servings?|photos?|logs?|" +
-  "entr(?:y|ies)|weeks?";
+  "entr(?:y|ies)|weeks?|sessions?|workouts?|minutes?";
 
 const NUM = `\\d+|${Object.keys(NUMBER_WORDS).join("|")}`;
 
@@ -1182,6 +1332,19 @@ export function allowedWeekNumbers(reading: WeekReviewReading): Set<number> {
     reading.alignment.length,
     reading.unevaluatedRules,
   ]);
+  // Les séances: tout ce que le bloc et les faits donnent au modèle, et rien
+  // de plus. Un compte donné mais non listé ici ferait replier une composition
+  // pourtant exacte — « un composeur mort déguisé en composeur prudent ».
+  if (reading.activity) {
+    out.add(reading.activity.sessions);
+    out.add(reading.activity.days);
+    out.add(reading.activity.minutes);
+    out.add(reading.activity.minutesFrom);
+    out.add(reading.activity.byIntensity.easy);
+    out.add(reading.activity.byIntensity.moderate);
+    out.add(reading.activity.byIntensity.hard);
+    out.add(reading.activity.byIntensity.undeclared);
+  }
   for (const item of reading.alignment) {
     out.add(item.seen);
     out.add(item.daysSeen);
@@ -1208,6 +1371,7 @@ export type WeekReviewVerdictReason =
   | "missing_question"
   | "unexpected_question"
   | "too_many_questions"
+  | "energy_number"
   | "invented_number";
 
 export type WeekReviewVerdict =
@@ -1266,6 +1430,28 @@ export function acceptComposedWeekReview(
   for (const pattern of ADHERENCE_LANGUAGE) {
     const match = pattern.exec(text);
     if (match) return { ok: false, reason: "adherence_language", detail: match[0] };
+  }
+
+  // ── AUCUN NOMBRE D'ÉNERGIE, ET C'EST UNE CEINTURE, PAS UNE CONSIGNE ──────
+  //
+  // Le bloc de contexte et le prompt système INTERDISENT tous les deux de
+  // convertir une séance en calories. « Une règle de prompt sans vérificateur
+  // est une intention », et ce fichier le dit lui-même deux cents lignes plus
+  // haut — voici le vérificateur, sur le texte exact que l'élève lirait.
+  //
+  // Le détecteur est celui du dépôt (`nutrition_lexicon.ts`), testé motif par
+  // motif, et pas un motif maison: `kcal`, `kJ`, `calorie(s)`, `kilocalories`
+  // et leurs pluriels s'y écrivent une seule fois pour tout le produit.
+  //
+  // ⚠️ SEUL `energy_unit` MORD ICI, et c'est délibéré. Les trois autres motifs
+  // du même fichier visent les macros (« 30 g de protéines »): les brancher
+  // sur ce texte-ci ferait mordre le filtre sur la prose des GROUPES
+  // ALIMENTAIRES que le bilan cite par construction (« lean protein »), et un
+  // faux positif ici est SILENCIEUX — le bilan part en repli déterministe sans
+  // que personne voie la voix du coach manquer.
+  const energy = findNumericNutritionTarget(text);
+  if (energy === "energy_unit") {
+    return { ok: false, reason: "energy_number", detail: energy };
   }
 
   // LA CARDINALITÉ DE LA QUESTION, dans les deux sens. Une question absente

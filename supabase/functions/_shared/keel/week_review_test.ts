@@ -36,6 +36,7 @@ import {
   type WeekReviewReading,
   weekReviewPromptBlock,
 } from "./week_review.ts";
+import type { ActivitySessionInput } from "./activity_session.ts";
 import type { CompiledCommitment } from "./protocol_compiler.ts";
 import type { FoodGroupRef } from "./tokens.ts";
 
@@ -780,4 +781,178 @@ Deno.test("un token hors vocabulaire dans NOTRE jsonb rend null", () => {
   raw.alignment[0].group = "kombucha";
   assertEquals(parseWeekReview(raw), null);
   assertEquals(WEEK_REVIEW_FACTS_VERSION, "week_review_v1");
+});
+
+// ---------------------------------------------------------------------------
+// LES SÉANCES — le consommateur du log d'activité (2026-08-18)
+//
+// Ces tests portent la condition d'existence de `student_activity_sessions`:
+// « on ne collecte une donnée que si quelque chose en aval la consomme »
+// (`onboarding.ts:36`). L'aval, c'est ce module. Et les deux bornes de la
+// décision produit: on ne règle rien depuis une séance, et aucun nombre
+// d'énergie n'en sort.
+// ---------------------------------------------------------------------------
+
+function withSessions(
+  sessions: ActivitySessionInput[] | null,
+  over: Partial<WeekReviewInput> = {},
+): WeekReviewReading {
+  return computeWeekReview(input({
+    facts: [...loggedDays(4), fact(WEEK_DATES[0], ["legumes"])],
+    rules: [
+      rule("legumes", { kind: "encourage", group: "legumes", perDay: 1 }),
+      rule("fatty_fish", { kind: "encourage", group: "fatty_fish", perDay: 1 }),
+    ],
+    activity: sessions,
+    ...over,
+  }));
+}
+
+function trained(localDate: string): ActivitySessionInput {
+  return { localDate, kind: "strength", durationMin: 45, intensity: "moderate" };
+}
+
+Deno.test("un appelant qui ne charge pas les séances rend `null`, pas zéro", () => {
+  // C'est le cas de TOUS les tests ci-dessus, et il doit le rester: `activity`
+  // est optionnel, et son absence ne doit pas se mettre à raconter une semaine
+  // sans mouvement.
+  assertEquals(computeWeekReview(input()).activity, null);
+  assertEquals(withSessions(null).activity, null);
+});
+
+Deno.test("une semaine lue sans séance est un compte à zéro — qui ne s'imprime jamais", () => {
+  const reading = withSessions([]);
+  assertEquals(reading.activity?.sessions, 0);
+  const text = renderDeterministicWeekReview(reading);
+  assert(!/session/i.test(text), `un zéro s'est imprimé: ${text}`);
+});
+
+Deno.test("le fait des séances entre dans le repli déterministe", () => {
+  const text = renderDeterministicWeekReview(
+    withSessions([trained(WEEK_DATES[0]), trained(WEEK_DATES[0]), trained(WEEK_DATES[3])]),
+  );
+  assert(text.includes("3 training sessions"), text);
+  assert(text.includes("2 days"), text);
+});
+
+Deno.test("le fait des séances passe AVANT la question, jamais après", () => {
+  const reading = withSessions([trained(WEEK_DATES[0])]);
+  assert(reading.question !== null, "la fixture doit poser une question");
+  const text = renderDeterministicWeekReview(reading);
+  assert(
+    text.indexOf("training session") < text.indexOf("?"),
+    `une phrase collée derrière la question dit qu'on n'attend pas de réponse: ${text}`,
+  );
+});
+
+Deno.test("sous le seuil alimentaire, les séances se disent QUAND MÊME", () => {
+  // C'est la semaine où ça compte le plus: rien de photographié, mais trois
+  // séances loguées. La couverture alimentaire ne gouverne pas le mouvement.
+  const reading = computeWeekReview(input({
+    facts: loggedDays(2),
+    activity: [trained(WEEK_DATES[0]), trained(WEEK_DATES[1]), trained(WEEK_DATES[2])],
+  }));
+  assertEquals(reading.branch, "insufficient_data");
+  const text = renderDeterministicWeekReview(reading);
+  assert(text.includes("3 training sessions"), text);
+  const block = weekReviewPromptBlock(reading);
+  assert(block.includes("TRAINING THEY LOGGED THEMSELVES"), block);
+});
+
+Deno.test("le bloc interdit de convertir une séance en calories, et de la prescrire", () => {
+  const block = weekReviewPromptBlock(withSessions([trained(WEEK_DATES[0])]));
+  assert(/NEVER turn this into calories/i.test(block), block);
+  assert(/do not prescribe/i.test(block), block);
+  assert(/not rest days and not missed sessions/i.test(block), block);
+});
+
+Deno.test("le bloc ne dit RIEN des séances quand il n'y en a pas", () => {
+  for (const reading of [withSessions([]), withSessions(null)]) {
+    const block = weekReviewPromptBlock(reading);
+    assert(!/TRAINING THEY LOGGED/i.test(block), block);
+  }
+});
+
+Deno.test("les comptes de séances sont citables par le modèle", () => {
+  const reading = withSessions([
+    trained(WEEK_DATES[0]),
+    trained(WEEK_DATES[1]),
+    { localDate: WEEK_DATES[2], kind: "cardio", durationMin: null, intensity: null },
+  ]);
+  const allowed = allowedWeekNumbers(reading);
+  assert(allowed.has(3), "3 séances");
+  assert(allowed.has(90), "90 minutes déclarées");
+  assert(allowed.has(2), "2 séances portant une durée");
+  const ok = acceptComposedWeekReview(
+    "Thanks — that's saved. You logged 3 training sessions. What made fish hard?",
+    reading,
+  );
+  assertEquals(ok.ok, true, JSON.stringify(ok));
+});
+
+Deno.test("un compte de séances inventé est refusé", () => {
+  const reading = withSessions([trained(WEEK_DATES[0])]);
+  const bad = acceptComposedWeekReview(
+    "Thanks — that's saved. You logged 6 sessions. What made fish hard?",
+    reading,
+  );
+  assertEquals(bad.ok, false);
+  if (!bad.ok) assertEquals(bad.reason, "invented_number");
+});
+
+Deno.test("une séance chiffrée en calories est REFUSÉE, pas corrigée", () => {
+  const reading = withSessions([trained(WEEK_DATES[0])]);
+  for (
+    const text of [
+      "Thanks — that's saved. That session burned about 400 kcal. What made fish hard?",
+      "Thanks — that's saved. That is roughly 350 calories. What made fish hard?",
+      "Thanks — that's saved. Around 1500 kilojoules there. What made fish hard?",
+    ]
+  ) {
+    const verdict = acceptComposedWeekReview(text, reading);
+    assertEquals(verdict.ok, false, text);
+    if (!verdict.ok) assertEquals(verdict.reason, "energy_number", text);
+  }
+});
+
+Deno.test("la ceinture d'énergie a un cas qui PASSE — sinon elle bloque tout", () => {
+  const reading = withSessions([trained(WEEK_DATES[0])]);
+  const ok = acceptComposedWeekReview(
+    "Thanks — that's saved. You logged 1 training session. What made fish hard?",
+    reading,
+  );
+  assertEquals(ok.ok, true, JSON.stringify(ok));
+});
+
+Deno.test("le prompt système porte l'interdit d'énergie, adossé à sa ceinture", () => {
+  const system = buildWeekReviewSystemPrompt({
+    doctrineBlock: "== METHOD ==",
+    reading: withSessions([trained(WEEK_DATES[0])]),
+  });
+  assert(/Never state calories, kcal, kilojoules/i.test(system), system);
+});
+
+Deno.test("aller-retour jsonb: le compte de séances survit au gel", () => {
+  const reading = withSessions([trained(WEEK_DATES[0]), trained(WEEK_DATES[2])]);
+  assertEquals(parseWeekReview(JSON.parse(JSON.stringify(reading))), reading);
+});
+
+Deno.test("un gel ANTÉRIEUR à ce lot relit `null`, jamais zéro", () => {
+  // La raison est la même, mot pour mot, que pour `evidence`: lire un bloc
+  // absent à zéro affirmerait « aucune séance cette semaine-là ». C'est aussi
+  // ce qui permet d'ajouter le champ sans bumper la version.
+  const raw = JSON.parse(JSON.stringify(withSessions([trained(WEEK_DATES[0])])));
+  delete raw.activity;
+  const round = parseWeekReview(raw);
+  assert(round !== null, "un gel sans le bloc doit rester lisible");
+  assertEquals(round?.activity, null);
+  assertEquals(round?.version, WEEK_REVIEW_FACTS_VERSION);
+});
+
+Deno.test("aucune énergie n'entre dans la lecture, quoi qu'on lui donne", () => {
+  const reading = withSessions([trained(WEEK_DATES[0]), trained(WEEK_DATES[1])]);
+  const serialized = JSON.stringify(reading.activity).toLowerCase();
+  for (const forbidden of ["kcal", "calorie", "energy", "burn"]) {
+    assert(!serialized.includes(forbidden), `${forbidden} dans le gel: ${serialized}`);
+  }
 });

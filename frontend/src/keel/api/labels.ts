@@ -7,6 +7,7 @@
 // turning an arbitrary database string into a key `t()` can accept at all.
 
 import { en } from "../i18n/en";
+import { plural } from "../i18n/plural";
 import { t, type MessageKey } from "../i18n/t";
 // TYPE-ONLY, and it has to stay that way: the STRUCTURE of a plan lives in
 // `planStructure.ts` (which parts exist, which line goes where, in what
@@ -202,6 +203,26 @@ export function foodGroupLabel(slug: string): string {
   return labelIn("food_group", slug);
 }
 
+/**
+ * Le même groupe, tel qu'il se dit APRÈS UNE QUANTITÉ: « of vegetables »,
+ * « de légumes », « d'œufs ».
+ *
+ * ⚠️ DEUX TABLES, ET C'EST LE FRANÇAIS QUI L'A EXIGÉ. La phrase se composait
+ * avec un gabarit « {amount} of {object} » et le mot nu de la table
+ * ci-dessus — ce qui marche tant que la préposition ne touche pas le mot.
+ * En français elle le touche: « 2 portions DE légumes » mais « 2 portions
+ * D'œufs », et « de fruits à coque et DE graines » redouble la préposition à
+ * l'intérieur même du groupe. Aucune règle mécanique ne produit les trois
+ * (« de haricots » ne s'élide pas, alors que « d'huile » s'élide sur un h),
+ * et le dépôt a déjà payé un matcher maison écrit sur cette intuition-là.
+ *
+ * La préposition vit donc dans le seed, collée au mot qu'elle gouverne, et le
+ * gabarit ne fait plus que juxtaposer.
+ */
+function foodGroupAfterQuantity(slug: string): string {
+  return labelIn("food_group.of", slug);
+}
+
 /** substances.slug -> "vitamin D3" (the word, mid-sentence, lowercase). */
 export function substanceLabel(slug: string): string {
   return labelIn("substance", slug);
@@ -214,9 +235,16 @@ export function substanceLabel(slug: string): string {
  * a number in a table; this renders prose, where "30 min" reads as an
  * abbreviation and "30 minutes" reads as a sentence. Symbol units (mg, IU)
  * carry the same string in both keys — the seed decides, not a code branch.
+ *
+ * ⚠️ L'ACCORD N'EST PAS `count === 1`, ET IL NE PEUT PAS L'ÊTRE. C'était la
+ * règle anglaise écrite en dur: « 0 days » en anglais, « 0 jour » en français.
+ * `plural()` (i18n/plural.ts) porte la seule divergence des deux langues
+ * livrées; les deux formes sont lues dans tous les cas, donc une unité à qui
+ * il en manque une échoue au premier rendu et pas un nombre sur deux.
  */
 function unitWord(unit: string | null, count: number): string {
-  return labelIn(count === 1 ? "unit.one" : "unit.many", unit ?? "none");
+  const token = unit ?? "none";
+  return plural(count, labelIn("unit.one", token), labelIn("unit.many", token));
 }
 
 /** A number with its unit word: "5000 IU", "2 servings", "30 minutes". */
@@ -471,7 +499,13 @@ function amountPhrase(c: CommitmentShape): string {
  */
 function objectPhrase(c: CommitmentShape, amount: string): string {
   if (c.polarity === "avoid") return "";
-  if (c.food_group_ref !== null) return foodGroupLabel(c.food_group_ref);
+  // Le mot change de forme selon qu'une quantité le précède ou non: « légumes »
+  // seul, « de légumes » derrière « 2 portions ». Voir `foodGroupAfterQuantity`.
+  if (c.food_group_ref !== null) {
+    return amount === ""
+      ? foodGroupLabel(c.food_group_ref)
+      : foodGroupAfterQuantity(c.food_group_ref);
+  }
   if (c.substance_ref !== null && amount === "") return substanceLabel(c.substance_ref);
   return "";
 }
@@ -674,50 +708,4 @@ export function commitmentQuestions(issues: string[]): CoachQuestion[] {
     });
   }
   return [...byKey.values()];
-}
-
-// ---------------------------------------------------------------------------
-// GAPS -> QUESTIONS
-// ---------------------------------------------------------------------------
-
-// The extractor describes a hole the way a report does: "The document asks for
-// retesting vitamin D in 8 weeks, but no standalone retest commitment is
-// prescribed." That is a finding ABOUT the document. What the coach needs is
-// the decision inside it.
-//
-// Two preambles, because the extractor writes the hole from both ends: the
-// positive one names something the document mentions ("asks for retesting
-// vitamin D"), the negative one names something it lacks ("sets no explicit
-// hydration target"). Both leave a noun phrase the coach can answer yes or no
-// to; anything else falls through to the generic question with the full
-// sentence underneath.
-const GAP_PREAMBLE =
-  /^the (?:document|plan)\s+(?:says|states|mentions|notes|asks for|asks|requires|calls for|prescribes|specifies)\s+(?:that\s+)?(?:to\s+)?/i;
-const GAP_NEGATIVE_PREAMBLE =
-  /^the (?:document|plan)\s+(?:(?:does not|doesn't)\s+(?:specify|prescribe|give|set|include|mention|state|define)|(?:sets|gives|contains|has|includes|provides)\s+no)\s+/i;
-const GAP_TAIL = /(?:,?\s*(?:but|although|though|however|while)\b|\s+despite\b).*$/i;
-const GAP_SUBJECT_MAX = 90;
-
-/**
- * A gap, read as the question it is: "Retest vitamin D in 8 weeks - do you
- * want that tracked?".
- *
- * The negation is deliberately NOT stripped ("says not to stack them" keeps
- * its "not to"): a shorter title that inverts the coach's meaning is worse
- * than an awkward one. When no subject can be isolated, the generic question
- * is used and the full description carries the detail underneath — the screen
- * never invents a prescription the document does not contain.
- */
-export function gapQuestion(description: string): string {
-  const subject = description
-    .trim()
-    .replace(GAP_PREAMBLE, "")
-    .replace(GAP_NEGATIVE_PREAMBLE, "")
-    .replace(GAP_TAIL, "")
-    .replace(/\.\s*$/, "")
-    .trim();
-  if (subject === "" || subject.length > GAP_SUBJECT_MAX) {
-    return t("review.gap_question_generic");
-  }
-  return t("review.gap_question", { subject: capitalizeFirst(subject) });
 }
