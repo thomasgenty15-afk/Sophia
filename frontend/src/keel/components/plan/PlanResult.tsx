@@ -15,7 +15,7 @@ import type { DayEnergyView, DishEnergyView } from "../../api/mealEnergy";
 import { waveAssignments } from "../../api/groceryWaves";
 import { dishDayLabel, mealCopy } from "../../api/mealLabels";
 import { EnergyBasisNote } from "./EnergyReadout";
-import { groupByDay } from "../../lib/mealBuilderModel";
+import { groupByDay, withDaysThatCarry } from "../../lib/mealBuilderModel";
 import {
   type DaySelection,
   dayMoments,
@@ -201,7 +201,45 @@ export default function PlanResult(props: PlanResultProps) {
     preparations: props.preparations,
   });
 
-  if (groups.length === 0) {
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * D3 — LA SEMAINE MONTRE AUSSI LES JOURS QUI NE PORTENT PAS DE REPAS.
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * `groupByDay` saute un jour sans plat, donc la vue SEMAINE ne rendait aucun
+   * bloc pour lui — et avec lui disparaissaient SA SESSION DE CUISINE et SA
+   * VAGUE DE COURSES. Le dimanche de grosse cuisson, celui qui remplit le
+   * frigo de toute la semaine mais dont aucun repas n'est à lui, était
+   * invisible sur l'écran qu'on ouvre pour savoir quoi faire.
+   *
+   * ⚠️ LA JOINTURE DE LA VAGUE EST CELLE DU RENDU, PAS UNE SECONDE. Même
+   * `waveForDate` sur les mêmes `dayDates` que la prop `wave` du bloc jour
+   * douze lignes plus bas, et même condition `indices.length > 0` que le rendu
+   * de `PlanDayBlock`. Sans elle, un jour ouvert sur une vague sans article
+   * rendrait un titre suivi de RIEN: `PlanDayBlock.quiet` teste
+   * `wave === null`, donc la vague vide lui interdit même sa phrase de repli.
+   *
+   * ⚠️ CE TERME EST UN MIROIR, PAS UNE GARDE MESURÉE — dit franchement. Aucune
+   * fixture ne sépare aujourd'hui les deux conditions: `waveAssignments` ne
+   * construit ses vagues que depuis des seaux NON VIDES, et retrouve les index
+   * par identité d'objet dans la liste même qui les a produits — une vague à
+   * zéro index n'est donc pas atteignable, et sa mutation ne mord sur aucun
+   * test. Il est gardé parce que c'est le rendu d'en face qui décide, pas
+   * parce qu'un rouge le tient.
+   */
+  const carrying = withDaysThatCarry({
+    groups,
+    order: dayOrder,
+    sessionDays: props.cookingSessions.map((s) => s.day),
+    groceryDays: dayOrder.filter((day) => {
+      const wave = waveForDate(waves, dayDates[day] ?? null);
+      return wave !== null && wave.indices.length > 0;
+    }),
+  });
+
+  // ⚠️ LE VIDE SE MESURE SUR `carrying`, PAS SUR `groups`. Un plan sans un seul
+  // plat mais qui porte une session est un plan qui a quelque chose à dire.
+  if (carrying.length === 0) {
     return (
       <Card tone="dashed">
         <p className="text-sm text-ink-soft">{props.emptyLabel}</p>
@@ -214,7 +252,7 @@ export default function PlanResult(props: PlanResultProps) {
   // donc il se rend dans les deux vues — le filtrer sur un jour le ferait
   // disparaître d'un plan qui le contient.
   const undated = groups.find((g) => g.day === null) ?? null;
-  const shownGroups = shown === "all" ? groups : [
+  const shownGroups = shown === "all" ? carrying : [
     ...(undated ? [undated] : []),
     // Le jour choisi, MÊME sans plat: il peut porter une session, des courses
     // et des moments déclarés — un jour qui disparaît parce qu'il n'a pas de

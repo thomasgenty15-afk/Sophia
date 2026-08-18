@@ -120,6 +120,81 @@ export function groupByDay(
   return out;
 }
 
+/** Un jour de la fenêtre, et ses plats. Vide = il ne porte pas de repas. */
+export interface DayGroup {
+  day: string | null;
+  dishes: GeneratedDish[];
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * LES JOURS QUI PORTENT QUELQUE CHOSE, MÊME SANS UN SEUL PLAT (D3, 2026-08-18).
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ LE DÉFAUT, TEL QU'IL SE VOYAIT. `groupByDay` ne rend un jour que s'il a un
+ * plat; la vue SEMAINE rend exactement ce qu'il lui donne. Un dimanche de
+ * grosse cuisson — la session qui remplit le frigo de toute la semaine — mais
+ * dont aucun repas n'est à lui, ne produisait AUCUN bloc: la session et la
+ * vague de courses de ce jour-là étaient invisibles sur l'écran qu'on ouvre
+ * pour savoir quoi faire. La vue JOUR, elle, traitait déjà ce cas.
+ *
+ * ── TRANCHÉ LE 2026-08-18 ────────────────────────────────────────────────
+ * On affiche le jour dès qu'il porte une SESSION ou des COURSES. On cuisine le
+ * dimanche pour la semaine, et cacher ce jour fait rater la session.
+ *
+ * ⚠️ ET PAS PLUS QUE ÇA. Un jour TOTALEMENT vide — ni plat, ni session, ni
+ * courses — reste absent. Sinon la semaine se remplit de blocs qui ne disent
+ * rien, et c'est exactement ce que la vue semaine existe pour éviter: elle est
+ * là pour qu'on VOIE, pas pour qu'on fasse défiler sept titres muets.
+ *
+ * ⚠️ AUCUNE RÈGLE DE VAGUE ICI, ET AUCUNE JOINTURE DE DATE. L'appelant a déjà
+ * les deux (`waveForDate` sur `windowDates`); ce module reçoit des JETONS de
+ * jour, déjà résolus. Recalculer une vague ici recréerait le jumeau supprimé
+ * le 2026-08-10.
+ *
+ * ⚠️ L'ORDRE ET LE GROUPE SANS JOUR NE BOUGENT PAS: l'ordre est celui du PLAN
+ * (`order`), et le groupe `day: null` reste en tête — il vaut pour la fenêtre
+ * entière.
+ */
+export function withDaysThatCarry(args: {
+  /** Les groupes de `groupByDay`, tels quels. */
+  groups: ReadonlyArray<DayGroup>;
+  /** L'ordre du PLAN (`windowDayOrder`), jamais le calendrier. */
+  order: readonly string[];
+  /** Les jetons des jours qui portent une session de cuisine. */
+  sessionDays: readonly string[];
+  /**
+   * Les jetons des jours où tombe une vague de courses VISIBLE.
+   *
+   * ⚠️ VISIBLE, PAS SEULEMENT ASSIGNÉE. Le bloc jour ne rend sa vague que si
+   * elle a des articles (`wave.indices.length > 0`); une vague vide ferait
+   * apparaître un jour dont le corps serait ensuite muet — c'est-à-dire le
+   * bloc creux que cette fonction refuse de produire.
+   */
+  groceryDays: readonly string[];
+}): DayGroup[] {
+  const withDishes = new Map<string, DayGroup>();
+  const out: DayGroup[] = [];
+  for (const group of args.groups) {
+    if (group.day === null) out.push(group);
+    else withDishes.set(group.day, group);
+  }
+  for (const day of args.order) {
+    const existing = withDishes.get(day);
+    if (existing) {
+      out.push(existing);
+      continue;
+    }
+    const carries = args.sessionDays.includes(day) ||
+      args.groceryDays.includes(day);
+    // LE JOUR SANS PLAT MAIS QUI PORTE: un groupe VIDE, à sa place dans
+    // l'ordre du plan. Le bloc jour sait déjà rendre ça — c'est ce que la vue
+    // jour lui envoie depuis le premier jour.
+    if (carries) out.push({ day, dishes: [] });
+  }
+  return out;
+}
+
 /**
  * Les articles groupés par rayon, dans l'ordre d'un magasin.
  *
